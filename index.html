@@ -661,6 +661,33 @@
     padding: 0.4rem 0.5rem !important;
     vertical-align: middle;
   }
+  .thumb-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+  }
+  .img-src-btn {
+    font-size: 0.48rem;
+    padding: 1px 3px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text3);
+    border-radius: 3px;
+    cursor: pointer;
+    width: 44px;
+    text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    letter-spacing: 0.04em;
+    line-height: 1.5;
+    font-family: 'DM Mono', monospace;
+  }
+  .img-src-btn:hover {
+    background: var(--accent);
+    color: #fff;
+    border-color: var(--accent);
+  }
   .entry-info { display: flex; flex-direction: column; gap: 1px; }
 
   /* STATS STRIP */
@@ -1497,15 +1524,34 @@ try {
 } catch(e) { applyTheme('navy-dark'); }
 
 // ─── ARTIST SPLITTING ──────────────────────────────────────────
-// Splits multiple artists using only ; and feat./ft. as separators.
-// Comma and & are intentionally excluded because they appear in artist
-// names (e.g. "Tyler, The Creator", "KING & COUNTRY").
-// Use semicolons in your sheet to separate multiple artists explicitly.
+// Artists whose names contain commas — add entries here to prevent incorrect splitting
+const ARTIST_COMMA_EXCEPTIONS = [
+  "Tyler, The Creator",
+  "Earth, Wind & Fire",
+];
+
+// Splits multiple artists using comma as the separator.
+// Names listed in ARTIST_COMMA_EXCEPTIONS are protected from splitting.
 function splitArtists(artistStr) {
   if (!artistStr) return [];
-  return artistStr
-    .split(/;|\bfeat\.?\b|\bft\.?\b/i)
-    .map(a => a.trim())
+  // Replace protected names with tokens before splitting on comma
+  let str = artistStr;
+  const tokens = {};
+  ARTIST_COMMA_EXCEPTIONS.forEach((name, i) => {
+    const token = `__ARTIST_${i}__`;
+    const re = new RegExp(name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi');
+    str = str.replace(re, token);
+    tokens[token] = name;
+  });
+  return str
+    .split(',')
+    .map(a => {
+      let part = a.trim();
+      Object.entries(tokens).forEach(([token, original]) => {
+        part = part.replace(token, original);
+      });
+      return part;
+    })
     .filter(a => a.length > 0);
 }
 
@@ -1518,6 +1564,10 @@ function songKey(p) {
 // ─── LAST.FM IMAGE LAYER ───────────────────────────────────────
 const LASTFM_KEY = '27fb711c6616676bf615a61844f9fe34';
 const imgCache = {}; // key → url string or null
+
+const IMG_SOURCES = ['itunes', 'lastfm', 'off'];
+const itemSourcePrefs = JSON.parse(localStorage.getItem('itemSourcePrefs') || '{}');
+function srcLabel(s) { return s === 'itunes' ? 'iTunes' : s === 'lastfm' ? 'Last.fm' : '—'; }
 
 function lfmUrl(method, params) {
   const q = new URLSearchParams({ method, api_key: LASTFM_KEY, format: 'json', ...params });
@@ -1534,74 +1584,83 @@ function bestImage(images) {
   return null;
 }
 
-async function getArtistImage(artist) {
-  const k = 'artist:' + artist.toLowerCase();
+async function getArtistImage(artist, source) {
+  source = source || 'itunes';
+  const k = 'artist:' + artist.toLowerCase() + ':' + source;
   if (k in imgCache) return imgCache[k];
   imgCache[k] = null;
+  if (source === 'off') return null;
   try {
-    // Last.fm dropped artist images in 2019.
-    // Strategy: search iTunes for the artist's top track → use that artwork as the artist thumbnail.
-    // This gives a recognisable image (usually the artist's most-played single/album cover)
-    // without needing any API key.
-    const q = encodeURIComponent(artist);
-    const r = await fetch(`https://itunes.apple.com/search?term=${q}&entity=musicTrack&limit=5&attribute=artistTerm`);
-    const d = await r.json();
-    const results = (d?.results || []).filter(x => x.kind === 'song');
-    // Prefer an exact artist name match to avoid misattribution
-    const match = results.find(x => x.artistName?.toLowerCase() === artist.toLowerCase()) || results[0];
-    if (match?.artworkUrl100) {
-      imgCache[k] = match.artworkUrl100.replace('100x100bb', '300x300bb');
+    if (source === 'itunes') {
+      const q = encodeURIComponent(artist);
+      const r = await fetch(`https://itunes.apple.com/search?term=${q}&entity=musicTrack&limit=5&attribute=artistTerm`);
+      const d = await r.json();
+      const results = (d?.results || []).filter(x => x.kind === 'song');
+      const match = results.find(x => x.artistName?.toLowerCase() === artist.toLowerCase()) || results[0];
+      if (match?.artworkUrl100) {
+        imgCache[k] = match.artworkUrl100.replace('100x100bb', '300x300bb');
+      }
+    } else if (source === 'lastfm') {
+      const r = await fetch(lfmUrl('artist.getinfo', { artist, autocorrect: 1 }));
+      const d = await r.json();
+      imgCache[k] = bestImage(d?.artist?.image) || null;
     }
   } catch(e) { imgCache[k] = null; }
   return imgCache[k];
 }
 
-async function getAlbumImage(album, artist) {
-  const k = 'album:' + artist.toLowerCase() + '|||' + album.toLowerCase();
+async function getAlbumImage(album, artist, source) {
+  source = source || 'itunes';
+  const k = 'album:' + artist.toLowerCase() + '|||' + album.toLowerCase() + ':' + source;
   if (k in imgCache) return imgCache[k];
   imgCache[k] = null;
+  if (source === 'off') return null;
   try {
-    const q = encodeURIComponent(artist + ' ' + album);
-    const r = await fetch(`https://itunes.apple.com/search?term=${q}&entity=album&limit=5`);
-    const d = await r.json();
-    const results = d?.results || [];
-    const match = results.find(x =>
-      x.collectionName?.toLowerCase().includes(album.toLowerCase()) &&
-      x.artistName?.toLowerCase().includes(artist.toLowerCase().split(/[\s,&]/)[0])
-    ) || results[0];
-    if (match?.artworkUrl100) {
-      imgCache[k] = match.artworkUrl100.replace('100x100bb', '600x600bb');
-      return imgCache[k];
+    if (source === 'itunes') {
+      const q = encodeURIComponent(artist + ' ' + album);
+      const r = await fetch(`https://itunes.apple.com/search?term=${q}&entity=album&limit=5`);
+      const d = await r.json();
+      const results = d?.results || [];
+      const match = results.find(x =>
+        x.collectionName?.toLowerCase().includes(album.toLowerCase()) &&
+        x.artistName?.toLowerCase().includes(artist.toLowerCase().split(/[\s,&]/)[0])
+      ) || results[0];
+      if (match?.artworkUrl100) {
+        imgCache[k] = match.artworkUrl100.replace('100x100bb', '600x600bb');
+      }
+    } else if (source === 'lastfm') {
+      const r = await fetch(lfmUrl('album.getinfo', { album, artist, autocorrect: 1 }));
+      const d = await r.json();
+      imgCache[k] = bestImage(d?.album?.image) || null;
     }
-    // Last.fm fallback
-    const r2 = await fetch(lfmUrl('album.getinfo', { album, artist, autocorrect: 1 }));
-    const d2 = await r2.json();
-    imgCache[k] = bestImage(d2?.album?.image) || null;
   } catch(e) { imgCache[k] = null; }
   return imgCache[k];
 }
 
-async function getTrackImage(track, artist) {
-  const k = 'track:' + artist.toLowerCase() + '|||' + track.toLowerCase();
+async function getTrackImage(track, artist, source) {
+  source = source || 'itunes';
+  const k = 'track:' + artist.toLowerCase() + '|||' + track.toLowerCase() + ':' + source;
   if (k in imgCache) return imgCache[k];
   imgCache[k] = null;
+  if (source === 'off') return null;
   try {
-    const q = encodeURIComponent(artist + ' ' + track);
-    const r = await fetch(`https://itunes.apple.com/search?term=${q}&entity=musicTrack&limit=5`);
-    const d = await r.json();
-    const results = (d?.results || []).filter(x => x.kind === 'song');
-    const match = results.find(x =>
-      x.trackName?.toLowerCase().includes(track.toLowerCase()) &&
-      x.artistName?.toLowerCase().includes(artist.toLowerCase().split(/[\s,&]/)[0])
-    ) || results[0];
-    if (match?.artworkUrl100) {
-      imgCache[k] = match.artworkUrl100.replace('100x100bb', '300x300bb');
-      return imgCache[k];
+    if (source === 'itunes') {
+      const q = encodeURIComponent(artist + ' ' + track);
+      const r = await fetch(`https://itunes.apple.com/search?term=${q}&entity=musicTrack&limit=5`);
+      const d = await r.json();
+      const results = (d?.results || []).filter(x => x.kind === 'song');
+      const match = results.find(x =>
+        x.trackName?.toLowerCase().includes(track.toLowerCase()) &&
+        x.artistName?.toLowerCase().includes(artist.toLowerCase().split(/[\s,&]/)[0])
+      ) || results[0];
+      if (match?.artworkUrl100) {
+        imgCache[k] = match.artworkUrl100.replace('100x100bb', '300x300bb');
+      }
+    } else if (source === 'lastfm') {
+      const r = await fetch(lfmUrl('track.getInfo', { track, artist, autocorrect: 1 }));
+      const d = await r.json();
+      imgCache[k] = bestImage(d?.track?.album?.image) || null;
     }
-    // Last.fm fallback
-    const r2 = await fetch(lfmUrl('track.getInfo', { track, artist, autocorrect: 1 }));
-    const d2 = await r2.json();
-    imgCache[k] = bestImage(d2?.track?.album?.image) || null;
   } catch(e) { imgCache[k] = null; }
   return imgCache[k];
 }
@@ -1618,21 +1677,66 @@ function thumbHtml(url, fallbackStr, isRank1) {
 // After render, fetch images async and inject them into existing rows
 async function loadImages(items, type) {
   for (const item of items) {
+    const source = (item.prefKey && itemSourcePrefs[item.prefKey]) || 'itunes';
     let url = null;
-    try {
-      if (type === 'artist') url = await getArtistImage(item.name);
-      else if (type === 'album') url = await getAlbumImage(item.album, item.artist);
-      else if (type === 'song') url = await getTrackImage(item.title, item.artist);
-    } catch(e) {}
+    if (source !== 'off') {
+      try {
+        if (type === 'artist') url = await getArtistImage(item.name, source);
+        else if (type === 'album') url = await getAlbumImage(item.album, item.artist, source);
+        else if (type === 'song') url = await getTrackImage(item.title, item.artist, source);
+      } catch(e) {}
+    }
     const el = document.getElementById(item.imgId);
     if (!el) continue;
+    const fallback = item.name || item.title || item.album;
     if (url) {
-      el.innerHTML = `<img class="thumb" src="${esc(url)}" alt="" loading="lazy" onerror="this.outerHTML='<div class=thumb-initials>${esc(initials(item.name||item.title||item.album))}</div>'">`;
+      el.innerHTML = `<img class="thumb" src="${esc(url)}" alt="" loading="lazy" onerror="this.outerHTML='<div class=thumb-initials>${esc(initials(fallback))}</div>'">`;
     } else {
-      el.innerHTML = `<div class="thumb-initials">${esc(initials(item.name || item.title || item.album))}</div>`;
+      el.innerHTML = `<div class="thumb-initials">${esc(initials(fallback))}</div>`;
+    }
+    if (item.prefKey) {
+      const btn = document.getElementById('srcbtn-' + item.imgId);
+      if (btn) btn.textContent = srcLabel(source);
     }
   }
 }
+
+function cycleImgSrc(imgId, type, prefKey, name, artist, album) {
+  const current = itemSourcePrefs[prefKey] || 'itunes';
+  const next = IMG_SOURCES[(IMG_SOURCES.indexOf(current) + 1) % IMG_SOURCES.length];
+  itemSourcePrefs[prefKey] = next;
+  localStorage.setItem('itemSourcePrefs', JSON.stringify(itemSourcePrefs));
+  const btn = document.getElementById('srcbtn-' + imgId);
+  if (btn) btn.textContent = srcLabel(next);
+  const el = document.getElementById(imgId);
+  if (!el) return;
+  const fallback = name || album || artist || '';
+  if (next === 'off') {
+    el.innerHTML = `<div class="thumb-initials">${esc(initials(fallback))}</div>`;
+    return;
+  }
+  let fetchPromise;
+  if (type === 'artist') fetchPromise = getArtistImage(name, next);
+  else if (type === 'album') fetchPromise = getAlbumImage(album, artist, next);
+  else fetchPromise = getTrackImage(name, artist, next);
+  fetchPromise.then(url => {
+    if (!document.getElementById(imgId)) return;
+    if (url) {
+      el.innerHTML = `<img class="thumb" src="${esc(url)}" alt="" loading="lazy" onerror="this.outerHTML='<div class=thumb-initials>${esc(initials(fallback))}</div>'">`;
+    } else {
+      el.innerHTML = `<div class="thumb-initials">${esc(initials(fallback))}</div>`;
+    }
+  });
+}
+
+// Handle source-cycle button clicks; stop propagation so artist-row onclick doesn't fire
+document.addEventListener('click', e => {
+  const btn = e.target.closest('.img-src-btn');
+  if (!btn) return;
+  e.stopPropagation();
+  const { imgid, type, prefkey, name, artist, album } = btn.dataset;
+  cycleImgSrc(imgid, type, prefkey, name, artist, album);
+}, true);
 
 
 // ─── GOOGLE SHEETS SYNC ────────────────────────────────────────
@@ -2207,10 +2311,11 @@ function renderPage(type, peaks) {
     document.getElementById('songsBody').innerHTML = slice.map((s, i) => {
       const rank = globalOffset + i + 1;
       const imgId = 'simg-' + i;
-      imgItems.push({ imgId, title: s.title, artist: s.artist, album: s.album });
+      const prefKey = 'song:' + s.artist.toLowerCase() + '|||' + s.title.toLowerCase();
+      imgItems.push({ imgId, title: s.title, artist: s.artist, album: s.album, prefKey });
       return `<tr class="${rank===1?'rank-1':rank===2?'rank-2':rank===3?'rank-3':''}">
         <td class="rank-cell">${rank}</td>
-        <td class="thumb-cell"><div id="${imgId}"><div class="thumb-initials">${esc(initials(s.title))}</div></div></td>
+        <td class="thumb-cell"><div class="thumb-wrap"><div id="${imgId}"><div class="thumb-initials">${esc(initials(s.title))}</div></div><button id="srcbtn-${imgId}" class="img-src-btn" data-imgid="${imgId}" data-type="song" data-prefkey="${esc(prefKey)}" data-name="${esc(s.title)}" data-artist="${esc(s.artist)}" data-album="${esc(s.album)}">${srcLabel(itemSourcePrefs[prefKey]||'itunes')}</button></div></td>
         <td>
           <div class="song-title">${esc(s.title)}${certBadge(s.count,'song')}</div>
           <div class="song-artist">${esc(s.artist)}</div>
@@ -2229,10 +2334,11 @@ function renderPage(type, peaks) {
     document.getElementById('artistsBody').innerHTML = slice.map((a, i) => {
       const rank = globalOffset + i + 1;
       const imgId = 'aimg-' + i;
-      imgItems.push({ imgId, name: a.name });
+      const prefKey = 'artist:' + a.name.toLowerCase();
+      imgItems.push({ imgId, name: a.name, prefKey });
       return `<tr class="${rank===1?'rank-1':rank===2?'rank-2':rank===3?'rank-3':''} artist-row" data-artist="${esc(a.name)}" onclick="openArtistModal(this.closest('tr').dataset.artist)">
         <td class="rank-cell">${rank}</td>
-        <td class="thumb-cell"><div id="${imgId}"><div class="thumb-initials">${esc(initials(a.name))}</div></div></td>
+        <td class="thumb-cell"><div class="thumb-wrap"><div id="${imgId}"><div class="thumb-initials">${esc(initials(a.name))}</div></div><button id="srcbtn-${imgId}" class="img-src-btn" data-imgid="${imgId}" data-type="artist" data-prefkey="${esc(prefKey)}" data-name="${esc(a.name)}" data-artist="${esc(a.name)}" data-album="">${srcLabel(itemSourcePrefs[prefKey]||'itunes')}</button></div></td>
         <td><div class="song-title">${esc(a.name)}</div><div class="song-artist" style="font-size:0.7rem;letter-spacing:0.06em;font-style:normal;font-family:'DM Mono',monospace;color:var(--text3)">CLICK TO VIEW PROFILE</div></td>
         <td><div class="song-artist">${a.songs.size} songs</div></td>
         <td>
@@ -2250,10 +2356,11 @@ function renderPage(type, peaks) {
       : slice.map((a, i) => {
           const rank = globalOffset + i + 1;
           const imgId = 'limg-' + i;
-          imgItems.push({ imgId, album: a.album, artist: a.artist, name: a.album });
+          const prefKey = 'album:' + a.artist.toLowerCase() + '|||' + a.album.toLowerCase();
+          imgItems.push({ imgId, album: a.album, artist: a.artist, name: a.album, prefKey });
           return `<tr class="${rank===1?'rank-1':rank===2?'rank-2':rank===3?'rank-3':''}">
         <td class="rank-cell">${rank}</td>
-        <td class="thumb-cell"><div id="${imgId}"><div class="thumb-initials">${esc(initials(a.album))}</div></div></td>
+        <td class="thumb-cell"><div class="thumb-wrap"><div id="${imgId}"><div class="thumb-initials">${esc(initials(a.album))}</div></div><button id="srcbtn-${imgId}" class="img-src-btn" data-imgid="${imgId}" data-type="album" data-prefkey="${esc(prefKey)}" data-name="${esc(a.album)}" data-artist="${esc(a.artist)}" data-album="${esc(a.album)}">${srcLabel(itemSourcePrefs[prefKey]||'itunes')}</button></div></td>
         <td>
           <div class="song-title">${esc(a.album)}${certBadge(a.count,'album')}</div>
           <div class="song-artist">${esc(a.artist)}</div>
@@ -2530,10 +2637,11 @@ function renderSongs(plays, peaks, monthlyStats) {
     const k = songKey(s);
     const pk = !isAllTime ? peaks.songPeakMap[k] : null;
     const imgId = 'simg-' + i;
-    imgItems.push({ imgId, title: s.title, artist: s.artist, album: s.album, type: 'song' });
+    const prefKey = 'song:' + s.artist.toLowerCase() + '|||' + s.title.toLowerCase();
+    imgItems.push({ imgId, title: s.title, artist: s.artist, album: s.album, type: 'song', prefKey });
     return `<tr class="${i===0?'rank-1':i===1?'rank-2':i===2?'rank-3':''}">
       <td class="rank-cell">${i+1}</td>
-      <td class="thumb-cell"><div id="${imgId}"><div class="thumb-initials">${esc(initials(s.title))}</div></div></td>
+      <td class="thumb-cell"><div class="thumb-wrap"><div id="${imgId}"><div class="thumb-initials">${esc(initials(s.title))}</div></div><button id="srcbtn-${imgId}" class="img-src-btn" data-imgid="${imgId}" data-type="song" data-prefkey="${esc(prefKey)}" data-name="${esc(s.title)}" data-artist="${esc(s.artist)}" data-album="${esc(s.album)}">${srcLabel(itemSourcePrefs[prefKey]||'itunes')}</button></div></td>
       <td>
         <div class="song-title">${esc(s.title)}${pk ? peakBadge(pk) : ''}${certBadge(s.count,'song')}</div>
         <div class="song-artist">${esc(s.artist)}</div>
@@ -2567,10 +2675,11 @@ function renderArtists(plays, peaks, monthlyStats) {
   document.getElementById('artistsBody').innerHTML = sorted.map(([artist, data], i) => {
     const pk = !isAllTime ? peaks.artistPeakMap[artist] : null;
     const imgId = 'aimg-' + i;
-    imgItems.push({ imgId, name: artist });
+    const prefKey = 'artist:' + artist.toLowerCase();
+    imgItems.push({ imgId, name: artist, prefKey });
     return `<tr class="${i===0?'rank-1':i===1?'rank-2':i===2?'rank-3':''} artist-row" data-artist="${esc(artist)}" onclick="openArtistModal(this.closest('tr').dataset.artist)">
       <td class="rank-cell">${i+1}</td>
-      <td class="thumb-cell"><div id="${imgId}"><div class="thumb-initials">${esc(initials(artist))}</div></div></td>
+      <td class="thumb-cell"><div class="thumb-wrap"><div id="${imgId}"><div class="thumb-initials">${esc(initials(artist))}</div></div><button id="srcbtn-${imgId}" class="img-src-btn" data-imgid="${imgId}" data-type="artist" data-prefkey="${esc(prefKey)}" data-name="${esc(artist)}" data-artist="${esc(artist)}" data-album="">${srcLabel(itemSourcePrefs[prefKey]||'itunes')}</button></div></td>
       <td><div class="song-title">${esc(artist)}${pk ? peakBadge(pk) : ''}</div><div class="song-artist" style="font-size:0.7rem;letter-spacing:0.06em;font-style:normal;font-family:'DM Mono',monospace;color:var(--text3)">CLICK TO VIEW PROFILE</div></td>
       <td><div class="song-artist">${data.songs.size} songs</div></td>
       ${monthlyStats ? mPrevCell(i+1, artist, 'artists', monthlyStats) : ''}
@@ -2604,10 +2713,11 @@ function renderAlbums(plays, peaks, monthlyStats) {
         const ak = album + '|||' + artist;
         const pk = !isAllTime ? peaks.albumPeakMap[ak] : null;
         const imgId = 'limg-' + i;
-        imgItems.push({ imgId, album, artist, name: album });
+        const prefKey = 'album:' + artist.toLowerCase() + '|||' + album.toLowerCase();
+        imgItems.push({ imgId, album, artist, name: album, prefKey });
         return `<tr class="${i===0?'rank-1':i===1?'rank-2':i===2?'rank-3':''}">
       <td class="rank-cell">${i+1}</td>
-      <td class="thumb-cell"><div id="${imgId}"><div class="thumb-initials">${esc(initials(album))}</div></div></td>
+      <td class="thumb-cell"><div class="thumb-wrap"><div id="${imgId}"><div class="thumb-initials">${esc(initials(album))}</div></div><button id="srcbtn-${imgId}" class="img-src-btn" data-imgid="${imgId}" data-type="album" data-prefkey="${esc(prefKey)}" data-name="${esc(album)}" data-artist="${esc(artist)}" data-album="${esc(album)}">${srcLabel(itemSourcePrefs[prefKey]||'itunes')}</button></div></td>
       <td>
         <div class="song-title">${esc(album)}${pk ? peakBadge(pk) : ''}${certBadge(count,'album')}</div>
         <div class="song-artist">${esc(artist)}</div>
