@@ -1242,12 +1242,14 @@ try {
 } catch(e) { applyTheme('navy-dark'); }
 
 // ─── ARTIST SPLITTING ──────────────────────────────────────────
-// Splits "Artist A, Artist B" or "Artist A feat. Artist B" into individual artists
+// Splits multiple artists using only ; and feat./ft. as separators.
+// Comma and & are intentionally excluded because they appear in artist
+// names (e.g. "Tyler, The Creator", "KING & COUNTRY").
+// Use semicolons in your sheet to separate multiple artists explicitly.
 function splitArtists(artistStr) {
   if (!artistStr) return [];
-  // Split on comma, semicolon, " feat.", " ft.", " &", " and " (case-insensitive)
   return artistStr
-    .split(/,|;|\bfeat\.?\b|\bft\.?\b|\s&\s|\sand\s/i)
+    .split(/;|\bfeat\.?\b|\bft\.?\b/i)
     .map(a => a.trim())
     .filter(a => a.length > 0);
 }
@@ -1451,18 +1453,19 @@ function parseCsv(text, fromSheets = false) {
   }
 
   allPlays = [];
-  let skippedRows = 0;
+  let skippedBlank = 0;
+  let skippedDate = 0;
   let skippedDateSamples = [];
 
   for (let i = 1; i < lines.length; i++) {
     const row = splitCsvRow(lines[i]);
-    if (row.length < 2) continue;
+    if (row.length < 2) { skippedBlank++; continue; }
     const get = idx => (idx !== undefined && row[idx] !== undefined) ? row[idx].replace(/^"|"$/g, '').trim() : '';
     const rawDate = get(colMap.datetime);
     const dt = parseDate(rawDate);
     if (!dt) {
-      skippedRows++;
-      if (skippedDateSamples.length < 5 && rawDate) skippedDateSamples.push(rawDate);
+      skippedDate++;
+      if (skippedDateSamples.length < 20 && rawDate) skippedDateSamples.push(`row ${i+1}: "${rawDate}"`);
       continue;
     }
     const artistRaw = get(colMap.artist);
@@ -1475,9 +1478,11 @@ function parseCsv(text, fromSheets = false) {
     });
   }
 
-  if (skippedRows > 0) {
-    console.warn(`dankstation.fm: skipped ${skippedRows} rows due to unparseable dates. Samples:`, skippedDateSamples);
-    setSyncStatus(`⚠ Synced with warnings — ${skippedRows} rows skipped (bad date format). Check console for samples.`, 'loading');
+  const totalSkipped = skippedBlank + skippedDate;
+  if (totalSkipped > 0) {
+    console.warn(`dankstation.fm: skipped ${totalSkipped} rows total — ${skippedDate} bad/missing date, ${skippedBlank} blank/short rows.`);
+    if (skippedDateSamples.length) console.warn('Date parse failures (up to 20):', skippedDateSamples);
+    setSyncStatus(`⚠ Synced with warnings — ${totalSkipped} rows skipped (${skippedDate} bad date, ${skippedBlank} blank). Check console for details.`, 'loading');
   }
 
   if (allPlays.length === 0) {
