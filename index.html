@@ -474,6 +474,37 @@
     gap: 1rem;
     margin-bottom: 0.5rem;
   }
+  .section-collapse-btn {
+    flex-shrink: 0;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    border: 1px solid var(--border2);
+    background: none;
+    color: var(--text3);
+    font-size: 0.7rem;
+    line-height: 1;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    transition: background 0.15s, color 0.15s, border-color 0.15s;
+  }
+  .section-collapse-btn:hover { background: var(--surface); color: var(--text); border-color: var(--accent); }
+  .section-body { display: block; }
+  .chart-section.collapsed .section-body { display: none; }
+  .chart-section.collapsed .section-sub  { display: none; }
+  .section-collapsed-label {
+    display: none;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.6rem;
+    color: var(--text3);
+    letter-spacing: 0.05em;
+    font-style: italic;
+  }
+  .chart-section.collapsed .section-collapsed-label { display: inline; }
+  .chart-section.collapsed { margin-bottom: 1rem; }
   .section-header h2 {
     font-family: 'DM Mono', monospace;
     font-size: 0.72rem;
@@ -835,6 +866,56 @@
   }
   .modal-stat .sv { font-family: 'DM Serif Display', serif; font-size: 1.45rem; color: var(--text); line-height: 1; }
   .modal-stat .sl { font-family: 'DM Mono', monospace; font-size: 0.57rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text3); margin-top: 0.25rem; }
+  /* ACCOMPLISHMENT EXPAND */
+  .acc-row {
+    border-bottom: 1px solid var(--border);
+  }
+  .acc-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.4rem 0;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.75rem;
+    color: var(--text2);
+  }
+  .acc-toggle {
+    flex-shrink: 0;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    border: 1px solid var(--border2);
+    background: none;
+    color: var(--text3);
+    font-size: 0.65rem;
+    line-height: 1;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    transition: background 0.15s, color 0.15s;
+  }
+  .acc-toggle:hover { background: var(--surface); color: var(--text); border-color: var(--accent); }
+  .acc-detail {
+    display: none;
+    padding: 0.4rem 0 0.6rem 1.5rem;
+  }
+  .acc-detail.open { display: block; }
+  .acc-detail-row {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.65rem;
+    color: var(--text3);
+    padding: 0.2rem 0;
+    display: flex;
+    gap: 0.75rem;
+    border-bottom: 1px solid var(--border);
+  }
+  .acc-detail-row:last-child { border-bottom: none; }
+  .acc-detail-name { color: var(--text2); flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .acc-detail-plays { flex-shrink: 0; }
+  .acc-detail-date  { flex-shrink: 0; color: var(--text3); }
+
   .modal-section-title {
     font-family: 'DM Mono', monospace;
     font-size: 0.68rem;
@@ -1020,12 +1101,124 @@
     padding: 0.5rem 0;
   }
 
+  /* RAW DATA VIEW */
+  #rawDataView { display: none; }
+  .raw-filters {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr 1fr auto;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+    align-items: end;
+  }
+  .raw-filter-group { display: flex; flex-direction: column; gap: 0.3rem; }
+  .raw-filter-group label {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.58rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text3);
+  }
+  .raw-filter-group input {
+    background: var(--bg2);
+    border: 1px solid var(--border2);
+    color: var(--text);
+    font-family: 'DM Mono', monospace;
+    font-size: 0.72rem;
+    padding: 0.35rem 0.6rem;
+    border-radius: 4px;
+    outline: none;
+    transition: border-color 0.15s;
+  }
+  .raw-filter-group input:focus { border-color: var(--accent); }
+  .raw-filter-group input::placeholder { color: var(--text3); }
+  .raw-clear-btn {
+    background: none;
+    border: 1px solid var(--border2);
+    color: var(--text3);
+    font-family: 'DM Mono', monospace;
+    font-size: 0.65rem;
+    padding: 0.35rem 0.75rem;
+    border-radius: 4px;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background 0.15s, color 0.15s;
+    align-self: end;
+  }
+  .raw-clear-btn:hover { background: var(--surface); color: var(--text); border-color: var(--accent); }
+  .raw-summary {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.65rem;
+    color: var(--text3);
+    margin-bottom: 0.75rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+  .raw-summary strong { color: var(--accent2); font-size: 0.8rem; }
+  .raw-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.75rem;
+  }
+  .raw-table th {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.58rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text3);
+    text-align: left;
+    padding: 0.4rem 0.6rem;
+    border-bottom: 1px solid var(--border2);
+    white-space: nowrap;
+    cursor: pointer;
+    user-select: none;
+  }
+  .raw-table th:hover { color: var(--text); }
+  .raw-table th .sort-arrow { margin-left: 4px; opacity: 0.4; }
+  .raw-table th.sort-active { color: var(--accent2); }
+  .raw-table th.sort-active .sort-arrow { opacity: 1; }
+  .raw-table td {
+    padding: 0.35rem 0.6rem;
+    border-bottom: 1px solid var(--border);
+    color: var(--text2);
+    vertical-align: middle;
+  }
+  .raw-table tr:hover td { background: var(--bg3); }
+  .raw-table .raw-num { color: var(--text3); font-family: 'DM Mono', monospace; font-size: 0.65rem; }
+  .raw-table .raw-date { font-family: 'DM Mono', monospace; font-size: 0.65rem; color: var(--text3); white-space: nowrap; }
+  .raw-table .raw-title { color: var(--text); font-weight: 500; }
+  .raw-table .raw-album { font-size: 0.68rem; color: var(--text3); }
+  .raw-pagination {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    margin-top: 1rem;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.65rem;
+    color: var(--text3);
+  }
+  .raw-pagination button {
+    background: none;
+    border: 1px solid var(--border2);
+    color: var(--text2);
+    font-family: 'DM Mono', monospace;
+    font-size: 0.65rem;
+    padding: 0.25rem 0.75rem;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .raw-pagination button:hover { background: var(--surface); }
+  .raw-pagination button:disabled { opacity: 0.3; cursor: default; }
+
   /* RESPONSIVE */
   @media (max-width: 600px) {
     .song-album { display: none; }
     .chart-table thead th:nth-child(4) { display: none; }
     .chart-table td:nth-child(4) { display: none; }
     .dropouts-grid { grid-template-columns: 1fr; }
+    .raw-filters { grid-template-columns: 1fr 1fr; }
   }
 </style>
 </head>
@@ -1068,6 +1261,7 @@
     <button data-period="month">Monthly</button>
     <button data-period="year">Yearly</button>
     <button data-period="alltime">All-Time</button>
+    <button data-period="rawdata">Raw Data</button>
   </div>
 
   <div class="chart-size-bar" id="chartSizeBar">
@@ -1092,88 +1286,149 @@
 
   <div class="stats-strip" id="statsStrip"></div>
 
-  <div class="chart-section">
+  <div class="chart-section" id="songsSection">
     <div class="section-header">
+      <button class="section-collapse-btn" data-target="songsSection" title="Collapse">−</button>
       <h2 id="songsSectionTitle">★ Top 10 Songs</h2>
+      <span class="section-collapsed-label">collapsed — click + to expand</span>
       <div class="section-rule"></div>
     </div>
     <div class="section-sub" id="songsSubtitle">By play count for the selected period</div>
-    <table class="chart-table" id="songsTable">
-      <thead>
-        <tr id="songsHeadRow">
-          <th>#</th>
-          <th style="width:52px;"></th>
-          <th>Title · Artist</th>
-          <th>Album</th>
-          <th style="text-align:right;">Plays</th>
-        </tr>
-      </thead>
-      <tbody id="songsBody"></tbody>
-    </table>
-    <div class="page-nav" id="songsPagination" style="display:none;">
-      <button onclick="changePage('songs',-1)">◄ PREV</button>
-      <span id="songsPageLabel"></span>
-      <button onclick="changePage('songs',1)">NEXT ►</button>
+    <div class="section-body">
+      <table class="chart-table" id="songsTable">
+        <thead>
+          <tr id="songsHeadRow">
+            <th>#</th>
+            <th style="width:52px;"></th>
+            <th>Title · Artist</th>
+            <th>Album</th>
+            <th style="text-align:right;">Plays</th>
+          </tr>
+        </thead>
+        <tbody id="songsBody"></tbody>
+      </table>
+      <div class="page-nav" id="songsPagination" style="display:none;">
+        <button onclick="changePage('songs',-1)">◄ PREV</button>
+        <span id="songsPageLabel"></span>
+        <button onclick="changePage('songs',1)">NEXT ►</button>
+      </div>
     </div>
   </div>
 
-  <div class="chart-section">
+  <div class="chart-section" id="artistsSection">
     <div class="section-header">
+      <button class="section-collapse-btn" data-target="artistsSection" title="Collapse">−</button>
       <h2 id="artistsSectionTitle">♦ Top 10 Artists</h2>
+      <span class="section-collapsed-label">collapsed — click + to expand</span>
       <div class="section-rule"></div>
     </div>
     <div class="section-sub">By total play count across all songs</div>
-    <table class="chart-table" id="artistsTable">
-      <thead>
-        <tr id="artistsHeadRow">
-          <th>#</th>
-          <th style="width:52px;"></th>
-          <th>Artist</th>
-          <th>Unique Songs</th>
-          <th style="text-align:right;">Total Plays</th>
-        </tr>
-      </thead>
-      <tbody id="artistsBody"></tbody>
-    </table>
-    <div class="page-nav" id="artistsPagination" style="display:none;">
-      <button onclick="changePage('artists',-1)">◄ PREV</button>
-      <span id="artistsPageLabel"></span>
-      <button onclick="changePage('artists',1)">NEXT ►</button>
+    <div class="section-body">
+      <table class="chart-table" id="artistsTable">
+        <thead>
+          <tr id="artistsHeadRow">
+            <th>#</th>
+            <th style="width:52px;"></th>
+            <th>Artist</th>
+            <th>Unique Songs</th>
+            <th style="text-align:right;">Total Plays</th>
+          </tr>
+        </thead>
+        <tbody id="artistsBody"></tbody>
+      </table>
+      <div class="page-nav" id="artistsPagination" style="display:none;">
+        <button onclick="changePage('artists',-1)">◄ PREV</button>
+        <span id="artistsPageLabel"></span>
+        <button onclick="changePage('artists',1)">NEXT ►</button>
+      </div>
     </div>
   </div>
 
-  <div class="chart-section">
+  <div class="chart-section" id="albumsSection">
     <div class="section-header">
+      <button class="section-collapse-btn" data-target="albumsSection" title="Collapse">−</button>
       <h2 id="albumsSectionTitle">◈ Top 10 Albums</h2>
+      <span class="section-collapsed-label">collapsed — click + to expand</span>
       <div class="section-rule"></div>
     </div>
     <div class="section-sub">By total play count across all tracks</div>
-    <table class="chart-table" id="albumsTable">
-      <thead>
-        <tr id="albumsHeadRow">
-          <th>#</th>
-          <th style="width:52px;"></th>
-          <th>Album · Artist</th>
-          <th>Tracks</th>
-          <th style="text-align:right;">Total Plays</th>
-        </tr>
-      </thead>
-      <tbody id="albumsBody"></tbody>
-    </table>
-    <div class="page-nav" id="albumsPagination" style="display:none;">
-      <button onclick="changePage('albums',-1)">◄ PREV</button>
-      <span id="albumsPageLabel"></span>
-      <button onclick="changePage('albums',1)">NEXT ►</button>
+    <div class="section-body">
+      <table class="chart-table" id="albumsTable">
+        <thead>
+          <tr id="albumsHeadRow">
+            <th>#</th>
+            <th style="width:52px;"></th>
+            <th>Album · Artist</th>
+            <th>Tracks</th>
+            <th style="text-align:right;">Total Plays</th>
+          </tr>
+        </thead>
+        <tbody id="albumsBody"></tbody>
+      </table>
+      <div class="page-nav" id="albumsPagination" style="display:none;">
+        <button onclick="changePage('albums',-1)">◄ PREV</button>
+        <span id="albumsPageLabel"></span>
+        <button onclick="changePage('albums',1)">NEXT ►</button>
+      </div>
     </div>
   </div>
 
   <div class="chart-section" id="dropoutsSection" style="display:none;">
     <div class="section-header">
+      <button class="section-collapse-btn" data-target="dropoutsSection" title="Collapse">−</button>
       <h2 class="section-title">⬇ Off the Chart</h2>
+      <span class="section-collapsed-label">collapsed — click + to expand</span>
       <div class="section-rule"></div>
     </div>
     <div class="section-sub">Songs, artists and albums that left the Top <span id="dropoutsChartSize">10</span> this week</div>
-    <div id="dropoutsContent"></div>
+    <div class="section-body">
+      <div id="dropoutsContent"></div>
+    </div>
+  </div>
+
+  <!-- RAW DATA VIEW -->
+  <div id="rawDataView">
+    <div class="section-header" style="margin-bottom:1rem;">
+      <h2 style="font-family:'DM Mono',monospace;font-size:0.72rem;text-transform:uppercase;letter-spacing:0.14em;color:var(--accent2);white-space:nowrap;font-weight:500;">⊞ Raw Scrobble Data</h2>
+      <div class="section-rule"></div>
+    </div>
+    <div class="raw-filters">
+      <div class="raw-filter-group">
+        <label>Song Title</label>
+        <input type="text" id="rawFilterSong" placeholder="Search songs…">
+      </div>
+      <div class="raw-filter-group">
+        <label>Artist</label>
+        <input type="text" id="rawFilterArtist" placeholder="Search artists…">
+      </div>
+      <div class="raw-filter-group">
+        <label>Album</label>
+        <input type="text" id="rawFilterAlbum" placeholder="Search albums…">
+      </div>
+      <div class="raw-filter-group">
+        <label>Date</label>
+        <input type="text" id="rawFilterDate" placeholder="e.g. 2024 or Mar 2024…">
+      </div>
+      <button class="raw-clear-btn" id="rawClearBtn">✕ Clear</button>
+    </div>
+    <div class="raw-summary" id="rawSummary"></div>
+    <table class="raw-table">
+      <thead>
+        <tr>
+          <th class="raw-th" data-col="num">#<span class="sort-arrow">↕</span></th>
+          <th class="raw-th sort-active" data-col="date">Date &amp; Time<span class="sort-arrow">↓</span></th>
+          <th class="raw-th" data-col="title">Song Title<span class="sort-arrow">↕</span></th>
+          <th class="raw-th" data-col="artist">Artist<span class="sort-arrow">↕</span></th>
+          <th class="raw-th" data-col="album">Album<span class="sort-arrow">↕</span></th>
+        </tr>
+      </thead>
+      <tbody id="rawBody"></tbody>
+    </table>
+    <div class="raw-pagination" id="rawPagination">
+      <button id="rawPrevBtn">◄ Prev</button>
+      <span id="rawPageLabel"></span>
+      <button id="rawNextBtn">Next ►</button>
+    </div>
   </div>
 
 </div>
@@ -1590,20 +1845,166 @@ document.getElementById('sizeBtnsMonthly').addEventListener('click', e => {
   renderAll();
 });
 
+// ─── SECTION COLLAPSE ──────────────────────────────────────────
+document.addEventListener('click', e => {
+  const btn = e.target.closest('.section-collapse-btn');
+  if (!btn) return;
+  const section = document.getElementById(btn.dataset.target);
+  if (!section) return;
+  const collapsed = section.classList.toggle('collapsed');
+  btn.textContent = collapsed ? '+' : '−';
+  btn.title = collapsed ? 'Expand' : 'Collapse';
+});
+
 document.getElementById('periodNav').addEventListener('click', e => {
   const btn = e.target.closest('button');
   if (!btn) return;
   document.querySelectorAll('.period-nav button').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
-  savedOffsets[currentPeriod] = currentOffset; // save position before switching
+
+  if (btn.dataset.period === 'rawdata') {
+    // Switch to raw data view
+    savedOffsets[currentPeriod] = currentOffset;
+    currentPeriod = 'rawdata';
+    document.getElementById('chartSizeBar').style.display = 'none';
+    document.getElementById('dateNav').style.display = 'none';
+    document.getElementById('statsStrip').style.display = 'none';
+    document.getElementById('songsSection').style.display = 'none';
+    document.getElementById('artistsSection').style.display = 'none';
+    document.getElementById('albumsSection').style.display = 'none';
+    document.getElementById('dropoutsSection').style.display = 'none';
+    document.getElementById('rawDataView').style.display = 'block';
+    applyRawFilters();
+    return;
+  }
+
+  // Leaving raw data view — restore chart UI
+  if (currentPeriod === 'rawdata') {
+    document.getElementById('dateNav').style.display = '';
+    document.getElementById('statsStrip').style.display = '';
+    document.getElementById('songsSection').style.display = '';
+    document.getElementById('artistsSection').style.display = '';
+    document.getElementById('albumsSection').style.display = '';
+    document.getElementById('rawDataView').style.display = 'none';
+  }
+
+  savedOffsets[currentPeriod === 'rawdata' ? btn.dataset.period : currentPeriod] = currentOffset;
   currentPeriod = btn.dataset.period;
-  currentOffset = savedOffsets[currentPeriod]; // restore last position for new period
+  currentOffset = savedOffsets[currentPeriod];
   pageState.songs = 0; pageState.artists = 0; pageState.albums = 0;
   renderAll();
 });
 
 document.getElementById('prevBtn').addEventListener('click', () => { currentOffset++; pageState.songs=0; pageState.artists=0; pageState.albums=0; renderAll(); });
 document.getElementById('nextBtn').addEventListener('click', () => { currentOffset = Math.max(0, currentOffset - 1); pageState.songs=0; pageState.artists=0; pageState.albums=0; renderAll(); });
+
+// ─── RAW DATA VIEW ─────────────────────────────────────────────
+const RAW_PAGE_SIZE = 200;
+let rawPage = 0;
+let rawFiltered = [];
+let rawSortCol = 'date';
+let rawSortDir = -1; // -1 = desc, 1 = asc
+
+function rawFmtDate(d) {
+  return d.toLocaleString('default', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+}
+
+function applyRawFilters() {
+  const fSong   = document.getElementById('rawFilterSong').value.trim().toLowerCase();
+  const fArtist = document.getElementById('rawFilterArtist').value.trim().toLowerCase();
+  const fAlbum  = document.getElementById('rawFilterAlbum').value.trim().toLowerCase();
+  const fDate   = document.getElementById('rawFilterDate').value.trim().toLowerCase();
+
+  rawFiltered = allPlays.filter(p => {
+    if (fSong   && !p.title.toLowerCase().includes(fSong))   return false;
+    if (fArtist && !p.artist.toLowerCase().includes(fArtist)) return false;
+    if (fAlbum  && !p.album.toLowerCase().includes(fAlbum))  return false;
+    if (fDate   && !rawFmtDate(p.date).toLowerCase().includes(fDate)) return false;
+    return true;
+  });
+
+  rawFiltered.sort((a, b) => {
+    let va, vb;
+    if      (rawSortCol === 'date')   { va = a.date; vb = b.date; }
+    else if (rawSortCol === 'title')  { va = a.title.toLowerCase(); vb = b.title.toLowerCase(); }
+    else if (rawSortCol === 'artist') { va = a.artist.toLowerCase(); vb = b.artist.toLowerCase(); }
+    else if (rawSortCol === 'album')  { va = a.album.toLowerCase(); vb = b.album.toLowerCase(); }
+    else return 0;
+    return va < vb ? -rawSortDir : va > vb ? rawSortDir : 0;
+  });
+
+  rawPage = 0;
+  renderRawPage();
+}
+
+function renderRawPage() {
+  const total = rawFiltered.length;
+  const totalPages = Math.max(1, Math.ceil(total / RAW_PAGE_SIZE));
+  rawPage = Math.max(0, Math.min(rawPage, totalPages - 1));
+  const start = rawPage * RAW_PAGE_SIZE;
+  const slice = rawFiltered.slice(start, start + RAW_PAGE_SIZE);
+
+  // Summary
+  const hasFilter = ['rawFilterSong','rawFilterArtist','rawFilterAlbum','rawFilterDate'].some(id => document.getElementById(id).value.trim());
+  const totalAll = allPlays.length;
+  document.getElementById('rawSummary').innerHTML = hasFilter
+    ? `Showing <strong>${total.toLocaleString()}</strong> of ${totalAll.toLocaleString()} records`
+    : `<strong>${totalAll.toLocaleString()}</strong> total records`;
+
+  // Rows
+  document.getElementById('rawBody').innerHTML = slice.map((p, i) => {
+    const n = start + i + 1;
+    return `<tr>
+      <td class="raw-num">${n.toLocaleString()}</td>
+      <td class="raw-date">${rawFmtDate(p.date)}</td>
+      <td class="raw-title">${esc(p.title)}</td>
+      <td>${esc(p.artist)}</td>
+      <td class="raw-album">${esc(p.album)}</td>
+    </tr>`;
+  }).join('') || `<tr><td colspan="5" style="padding:1rem;color:var(--text3);font-style:italic;font-family:'DM Mono',monospace;font-size:0.72rem;">No records match your filters.</td></tr>`;
+
+  // Pagination
+  document.getElementById('rawPrevBtn').disabled = rawPage === 0;
+  document.getElementById('rawNextBtn').disabled = rawPage >= totalPages - 1;
+  document.getElementById('rawPageLabel').textContent = total > 0 ? `Page ${rawPage + 1} of ${totalPages}` : '';
+
+  // Sort arrows
+  document.querySelectorAll('.raw-th').forEach(th => {
+    const col = th.dataset.col;
+    const arrow = th.querySelector('.sort-arrow');
+    th.classList.toggle('sort-active', col === rawSortCol);
+    if (col === rawSortCol) arrow.textContent = rawSortDir === -1 ? '↓' : '↑';
+    else arrow.textContent = '↕';
+  });
+}
+
+// Filter inputs — debounced
+let rawDebounce = null;
+['rawFilterSong','rawFilterArtist','rawFilterAlbum','rawFilterDate'].forEach(id => {
+  document.getElementById(id).addEventListener('input', () => {
+    clearTimeout(rawDebounce);
+    rawDebounce = setTimeout(applyRawFilters, 200);
+  });
+});
+
+document.getElementById('rawClearBtn').addEventListener('click', () => {
+  ['rawFilterSong','rawFilterArtist','rawFilterAlbum','rawFilterDate'].forEach(id => {
+    document.getElementById(id).value = '';
+  });
+  applyRawFilters();
+});
+
+document.getElementById('rawPrevBtn').addEventListener('click', () => { rawPage--; renderRawPage(); });
+document.getElementById('rawNextBtn').addEventListener('click', () => { rawPage++; renderRawPage(); });
+
+document.querySelector('table.raw-table thead').addEventListener('click', e => {
+  const th = e.target.closest('.raw-th');
+  if (!th || th.dataset.col === 'num') return;
+  const col = th.dataset.col;
+  if (rawSortCol === col) rawSortDir *= -1;
+  else { rawSortCol = col; rawSortDir = 1; }
+  applyRawFilters();
+});
 
 // ─── DATE RANGE ─────────────────────────────────────────────────
 function getDateRange() {
@@ -1652,6 +2053,7 @@ function fmt(d) {
 const isPaginated = () => currentPeriod === 'year' || currentPeriod === 'alltime';
 
 function renderAll() {
+  if (currentPeriod === 'rawdata') { applyRawFilters(); return; }
   const { start, end, label, sub } = getDateRange();
   const plays = currentPeriod === 'alltime'
     ? allPlays
@@ -1828,7 +2230,7 @@ function renderPage(type, peaks) {
       const rank = globalOffset + i + 1;
       const imgId = 'aimg-' + i;
       imgItems.push({ imgId, name: a.name });
-      return `<tr class="${rank===1?'rank-1':rank===2?'rank-2':rank===3?'rank-3':''} artist-row" onclick="openArtistModal(${JSON.stringify(a.name)})">
+      return `<tr class="${rank===1?'rank-1':rank===2?'rank-2':rank===3?'rank-3':''} artist-row" data-artist="${esc(a.name)}" onclick="openArtistModal(this.closest('tr').dataset.artist)">
         <td class="rank-cell">${rank}</td>
         <td class="thumb-cell"><div id="${imgId}"><div class="thumb-initials">${esc(initials(a.name))}</div></div></td>
         <td><div class="song-title">${esc(a.name)}</div><div class="song-artist" style="font-size:0.7rem;letter-spacing:0.06em;font-style:normal;font-family:'DM Mono',monospace;color:var(--text3)">CLICK TO VIEW PROFILE</div></td>
@@ -2166,7 +2568,7 @@ function renderArtists(plays, peaks, monthlyStats) {
     const pk = !isAllTime ? peaks.artistPeakMap[artist] : null;
     const imgId = 'aimg-' + i;
     imgItems.push({ imgId, name: artist });
-    return `<tr class="${i===0?'rank-1':i===1?'rank-2':i===2?'rank-3':''} artist-row" onclick="openArtistModal(${JSON.stringify(artist)})">
+    return `<tr class="${i===0?'rank-1':i===1?'rank-2':i===2?'rank-3':''} artist-row" data-artist="${esc(artist)}" onclick="openArtistModal(this.closest('tr').dataset.artist)">
       <td class="rank-cell">${i+1}</td>
       <td class="thumb-cell"><div id="${imgId}"><div class="thumb-initials">${esc(initials(artist))}</div></div></td>
       <td><div class="song-title">${esc(artist)}${pk ? peakBadge(pk) : ''}</div><div class="song-artist" style="font-size:0.7rem;letter-spacing:0.06em;font-style:normal;font-family:'DM Mono',monospace;color:var(--text3)">CLICK TO VIEW PROFILE</div></td>
@@ -2333,6 +2735,55 @@ const modal = document.getElementById('artistModal');
 document.getElementById('modalClose').addEventListener('click', () => modal.classList.remove('open'));
 modal.addEventListener('click', e => { if (e.target === modal) modal.classList.remove('open'); });
 
+// Returns all weeks (ever) where artistName had the most plays that week
+function findWeeklyNo1s(artistName) {
+  const FIRST_WEEK_START = new Date(2016, 0, 10);
+  const weekMap = {};
+  for (const p of allPlays) {
+    const dow = p.date.getDay();
+    const sunday = new Date(p.date);
+    sunday.setDate(p.date.getDate() - dow);
+    sunday.setHours(0,0,0,0);
+    if (sunday < FIRST_WEEK_START) sunday.setTime(FIRST_WEEK_START.getTime());
+    const key = sunday.toISOString().slice(0, 10);
+    if (!weekMap[key]) weekMap[key] = { sunday: new Date(sunday), artists: {} };
+    for (const a of p.artists) weekMap[key].artists[a] = (weekMap[key].artists[a] || 0) + 1;
+  }
+  const results = [];
+  for (const [key, wk] of Object.entries(weekMap)) {
+    const sorted = Object.entries(wk.artists).sort((a,b) => b[1]-a[1]);
+    if (sorted[0]?.[0] === artistName) results.push({ key, sunday: wk.sunday, plays: sorted[0][1] });
+  }
+  return results.sort((a,b) => b.key.localeCompare(a.key));
+}
+
+// Returns how many weeks ago a given Sunday was from the current Sunday
+function weekOffset(sundayDate) {
+  const now = new Date();
+  const currentSunday = new Date(now);
+  currentSunday.setDate(now.getDate() - now.getDay());
+  currentSunday.setHours(0,0,0,0);
+  return Math.round((currentSunday.getTime() - sundayDate.getTime()) / (7 * 86400000));
+}
+
+// Navigate to a specific weekly chart and close the modal
+function goToWeek(offset) {
+  document.getElementById('artistModal').classList.remove('open');
+  document.querySelectorAll('.period-nav button').forEach(b => b.classList.toggle('active', b.dataset.period === 'week'));
+  savedOffsets[currentPeriod] = currentOffset;
+  currentPeriod = 'week';
+  currentOffset = offset;
+  savedOffsets['week'] = offset;
+  pageState.songs = 0; pageState.artists = 0; pageState.albums = 0;
+  document.getElementById('dateNav').style.display = '';
+  document.getElementById('statsStrip').style.display = '';
+  document.getElementById('songsSection').style.display = '';
+  document.getElementById('artistsSection').style.display = '';
+  document.getElementById('albumsSection').style.display = '';
+  document.getElementById('rawDataView').style.display = 'none';
+  renderAll();
+}
+
 function openArtistModal(artistName) {
   // Gather all-time data for this artist across ALL plays
   const artistPlays = allPlays.filter(p => p.artists.includes(artistName));
@@ -2404,18 +2855,91 @@ function openArtistModal(artistName) {
     <div class="modal-stat"><div class="sv">${bestSongPeak ? '#' + bestSongPeak : '—'}</div><div class="sl">Best Song Peak</div></div>
   `;
 
-  // Accomplishments
-  const accStyle = `font-family:'DM Mono',monospace;font-size:0.75rem;padding:0.4rem 0;border-bottom:1px solid var(--border);color:var(--text2)`;
+  // Accomplishments — with expandable detail panels
+  // Helper: first-listened date for a song
+  const firstPlay = (s) => {
+    const plays = artistPlays.filter(p => songKey(p) === songKey(s));
+    return plays.length ? new Date(Math.min(...plays.map(p => p.date))).toLocaleDateString('default', { year:'numeric', month:'short', day:'numeric' }) : '—';
+  };
+  const firstAlbumPlay = (album) => {
+    const plays = artistPlays.filter(p => p.album === album);
+    return plays.length ? new Date(Math.min(...plays.map(p => p.date))).toLocaleDateString('default', { year:'numeric', month:'short', day:'numeric' }) : '—';
+  };
+
+  // Helper: build a detail block for a list of songs, albums, or weeks
+  let accDetailId = 0;
+  const accRow = (icon, label, detailRows) => {
+    const id = 'acc-detail-' + (accDetailId++);
+    const detail = detailRows.length
+      ? detailRows.map(r => {
+          const navAttr = r.weekOffset !== undefined ? ` onclick="goToWeek(${r.weekOffset})" style="cursor:pointer;"` : '';
+          const viewTag = r.weekOffset !== undefined ? `<span style="color:var(--accent);font-size:0.6rem;flex-shrink:0;margin-left:0.5rem;letter-spacing:0.06em;">→ VIEW</span>` : '';
+          return `<div class="acc-detail-row"${navAttr}><span class="acc-detail-name">${esc(r.name)}</span><span class="acc-detail-plays">${r.plays} plays</span>${r.date ? `<span class="acc-detail-date">${r.date}</span>` : ''}${viewTag}</div>`;
+        }).join('')
+      : `<div class="acc-detail-row"><span class="acc-detail-name" style="font-style:italic">No detail available</span></div>`;
+    return `<div class="acc-row">
+      <div class="acc-header">
+        <button class="acc-toggle" onclick="const d=document.getElementById('${id}');const open=d.classList.toggle('open');this.textContent=open?'−':'+';" title="Expand">+</button>
+        <span>${icon} ${label}</span>
+      </div>
+      <div class="acc-detail" id="${id}">${detail}</div>
+    </div>`;
+  };
+
   const acc = [];
-  if (artistPeak === 1) acc.push(`<div style="${accStyle}">🏆 Reached <strong style="color:var(--text)">#1</strong> on the All-Time Top ${chartSize} Artists chart</div>`);
-  else if (artistPeak) acc.push(`<div style="${accStyle}">📈 All-Time Artist Peak: <strong style="color:var(--text)">#${artistPeak}</strong> on Top ${chartSize} chart</div>`);
-  if (bestSongPeak === 1) acc.push(`<div style="${accStyle}">🎵 Has a <strong style="color:var(--text)">#1</strong> all-time song on the Top ${chartSize} Songs chart</div>`);
-  if (diamondSongs) acc.push(`<div style="${accStyle}">💎 <strong style="color:var(--text)">${diamondSongs}</strong> Diamond-certified song${diamondSongs > 1 ? 's' : ''} (${CERT.song.diamond}+ plays)</div>`);
-  if (platSongs)    acc.push(`<div style="${accStyle}">🪙 <strong style="color:var(--text)">${platSongs}</strong> Platinum-certified song${platSongs > 1 ? 's' : ''} (${CERT.song.plat}+ plays)</div>`);
-  if (goldSongs)    acc.push(`<div style="${accStyle}">⭐ <strong style="color:var(--text)">${goldSongs}</strong> Gold-certified song${goldSongs > 1 ? 's' : ''} (${CERT.song.gold}+ plays)</div>`);
-  if (diamondAlbums) acc.push(`<div style="${accStyle}">💎 <strong style="color:var(--text)">${diamondAlbums}</strong> Diamond-certified album${diamondAlbums > 1 ? 's' : ''} (${CERT.album.diamond}+ plays)</div>`);
-  if (platAlbums)    acc.push(`<div style="${accStyle}">🪙 <strong style="color:var(--text)">${platAlbums}</strong> Platinum-certified album${platAlbums > 1 ? 's' : ''} (${CERT.album.plat}+ plays)</div>`);
-  if (goldAlbums)    acc.push(`<div style="${accStyle}">⭐ <strong style="color:var(--text)">${goldAlbums}</strong> Gold-certified album${goldAlbums > 1 ? 's' : ''} (${CERT.album.gold}+ plays)</div>`);
+
+  // Weekly #1 — find every week this artist topped the chart
+  const no1Weeks = findWeeklyNo1s(artistName);
+  if (no1Weeks.length) {
+    acc.push(accRow('🏆', `Reached <strong style="color:var(--text)">#1</strong> on the Weekly Artists chart — <strong style="color:var(--text)">${no1Weeks.length}</strong> week${no1Weeks.length !== 1 ? 's' : ''}`,
+      no1Weeks.map(w => ({
+        name: 'Week of ' + w.sunday.toLocaleDateString('default', { month: 'short', day: 'numeric', year: 'numeric' }),
+        plays: w.plays,
+        date: '',
+        weekOffset: weekOffset(w.sunday)
+      }))));
+  } else if (artistPeak) {
+    acc.push(accRow('📈', `Artist Peak: <strong style="color:var(--text)">#${artistPeak}</strong> on Top ${chartSize} chart`, []));
+  }
+
+  if (bestSongPeak === 1) {
+    const no1songs = chartSongs.filter(s => peaks.songPeakMap[songKey(s)] === 1);
+    acc.push(accRow('🎵', `Has a <strong style="color:var(--text)">#1</strong> all-time song on the Top ${chartSize} Songs chart`,
+      no1songs.map(s => ({ name: s.title + (s.album !== '—' ? ' · ' + s.album : ''), plays: s.count, date: firstPlay(s) }))));
+  }
+
+  if (diamondSongs) {
+    const items = allSongsSorted.filter(s => s.count >= CERT.song.diamond);
+    acc.push(accRow('💎', `<strong style="color:var(--text)">${diamondSongs}</strong> Diamond-certified song${diamondSongs > 1 ? 's' : ''} (${CERT.song.diamond}+ plays)`,
+      items.map(s => ({ name: s.title + (s.album !== '—' ? ' · ' + s.album : ''), plays: s.count, date: firstPlay(s) }))));
+  }
+  if (platSongs) {
+    const items = allSongsSorted.filter(s => s.count >= CERT.song.plat && s.count < CERT.song.diamond);
+    acc.push(accRow('🪙', `<strong style="color:var(--text)">${platSongs}</strong> Platinum-certified song${platSongs > 1 ? 's' : ''} (${CERT.song.plat}+ plays)`,
+      items.map(s => ({ name: s.title + (s.album !== '—' ? ' · ' + s.album : ''), plays: s.count, date: firstPlay(s) }))));
+  }
+  if (goldSongs) {
+    const items = allSongsSorted.filter(s => s.count >= CERT.song.gold && s.count < CERT.song.plat);
+    acc.push(accRow('⭐', `<strong style="color:var(--text)">${goldSongs}</strong> Gold-certified song${goldSongs > 1 ? 's' : ''} (${CERT.song.gold}+ plays)`,
+      items.map(s => ({ name: s.title + (s.album !== '—' ? ' · ' + s.album : ''), plays: s.count, date: firstPlay(s) }))));
+  }
+
+  if (diamondAlbums) {
+    const items = allAlbumsSorted.filter(a => a.count >= CERT.album.diamond);
+    acc.push(accRow('💎', `<strong style="color:var(--text)">${diamondAlbums}</strong> Diamond-certified album${diamondAlbums > 1 ? 's' : ''} (${CERT.album.diamond}+ plays)`,
+      items.map(a => ({ name: a.album, plays: a.count, date: firstAlbumPlay(a.album) }))));
+  }
+  if (platAlbums) {
+    const items = allAlbumsSorted.filter(a => a.count >= CERT.album.plat && a.count < CERT.album.diamond);
+    acc.push(accRow('🪙', `<strong style="color:var(--text)">${platAlbums}</strong> Platinum-certified album${platAlbums > 1 ? 's' : ''} (${CERT.album.plat}+ plays)`,
+      items.map(a => ({ name: a.album, plays: a.count, date: firstAlbumPlay(a.album) }))));
+  }
+  if (goldAlbums) {
+    const items = allAlbumsSorted.filter(a => a.count >= CERT.album.gold && a.count < CERT.album.plat);
+    acc.push(accRow('⭐', `<strong style="color:var(--text)">${goldAlbums}</strong> Gold-certified album${goldAlbums > 1 ? 's' : ''} (${CERT.album.gold}+ plays)`,
+      items.map(a => ({ name: a.album, plays: a.count, date: firstAlbumPlay(a.album) }))));
+  }
+
   if (!acc.length) acc.push(`<div style="font-family:'DM Sans',sans-serif;font-style:italic;font-size:0.85rem;color:var(--text3);padding:0.5rem 0;">No chart accomplishments yet in the current Top ${chartSize} scope.</div>`);
   document.getElementById('modalAccomplishments').innerHTML = acc.join('');
 
