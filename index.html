@@ -1555,19 +1555,38 @@ function splitArtists(artistStr) {
     .filter(a => a.length > 0);
 }
 
-// For songs table: use the original combined artist string as the display label
-// but key by title only so "Artist A, Artist B" and "Artist B, Artist A" don't duplicate
+// Key songs by title + artist only (album excluded) so the same song played as a
+// single or from an album is counted as one entry in the songs chart.
 function songKey(p) {
-  return p.title.toLowerCase().trim() + '|||' + p.album.toLowerCase().trim();
+  return p.title.toLowerCase().trim() + '|||' + p.artist.toLowerCase().trim();
+}
+
+// Returns the best album label for a song: prefers a non-self-titled album
+// (i.e. album name !== song title) by play count, falling back to the most common.
+function bestAlbum(title, albumCounts) {
+  const entries = Object.entries(albumCounts).sort((a, b) => b[1] - a[1]);
+  const nonSingle = entries.filter(([a]) => a.toLowerCase().trim() !== title.toLowerCase().trim());
+  return nonSingle.length > 0 ? nonSingle[0][0] : entries[0][0];
 }
 
 // ─── LAST.FM IMAGE LAYER ───────────────────────────────────────
 const LASTFM_KEY = '27fb711c6616676bf615a61844f9fe34';
+
+// ─── YOUTUBE IMAGE SOURCE ──────────────────────────────────────
+// Paste your YouTube Data API v3 key here once you have it.
+// Get one free at: console.cloud.google.com → Enable "YouTube Data API v3" → Credentials → Create API Key
+const YOUTUBE_KEY = 'AIzaSyDAyHsCQ8Eb5Avz32ayqBGMUyV-21xVMtc';
+
 const imgCache = {}; // key → url string or null
 
-const IMG_SOURCES = ['itunes', 'lastfm', 'off'];
+const IMG_SOURCES = ['itunes', 'lastfm', 'youtube', 'off'];
 const itemSourcePrefs = JSON.parse(localStorage.getItem('itemSourcePrefs') || '{}');
-function srcLabel(s) { return s === 'itunes' ? 'iTunes' : s === 'lastfm' ? 'Last.fm' : '—'; }
+function srcLabel(s) {
+  if (s === 'itunes')  return 'iTunes';
+  if (s === 'lastfm')  return 'Last.fm';
+  if (s === 'youtube') return YOUTUBE_KEY ? 'YouTube' : 'YT (no key)';
+  return '—';
+}
 
 function lfmUrl(method, params) {
   const q = new URLSearchParams({ method, api_key: LASTFM_KEY, format: 'json', ...params });
@@ -1582,6 +1601,24 @@ function bestImage(images) {
     if (found) return found['#text'];
   }
   return null;
+}
+
+async function ytSearch(query) {
+  if (!YOUTUBE_KEY) return null;
+  const q = encodeURIComponent(query);
+  const r = await fetch(`https://www.googleapis.com/youtube/v3/search?part=snippet&q=${q}&type=video&maxResults=1&key=${YOUTUBE_KEY}`);
+  const d = await r.json();
+  const item = d?.items?.[0];
+  if (!item) return null;
+  const videoId = item.id?.videoId;
+  // Try maxresdefault first, fall back to hqdefault (always exists)
+  if (videoId) {
+    const maxres = `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`;
+    const hq = `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`;
+    // maxresdefault returns a grey placeholder for videos without it — use hqdefault as safe fallback
+    return item.snippet?.thumbnails?.maxres?.url || item.snippet?.thumbnails?.high?.url || hq;
+  }
+  return item.snippet?.thumbnails?.high?.url || null;
 }
 
 async function getArtistImage(artist, source) {
@@ -1604,6 +1641,8 @@ async function getArtistImage(artist, source) {
       const r = await fetch(lfmUrl('artist.getinfo', { artist, autocorrect: 1 }));
       const d = await r.json();
       imgCache[k] = bestImage(d?.artist?.image) || null;
+    } else if (source === 'youtube') {
+      imgCache[k] = await ytSearch(artist + ' official');
     }
   } catch(e) { imgCache[k] = null; }
   return imgCache[k];
@@ -1632,6 +1671,8 @@ async function getAlbumImage(album, artist, source) {
       const r = await fetch(lfmUrl('album.getinfo', { album, artist, autocorrect: 1 }));
       const d = await r.json();
       imgCache[k] = bestImage(d?.album?.image) || null;
+    } else if (source === 'youtube') {
+      imgCache[k] = await ytSearch(artist + ' ' + album + ' album');
     }
   } catch(e) { imgCache[k] = null; }
   return imgCache[k];
@@ -1660,6 +1701,8 @@ async function getTrackImage(track, artist, source) {
       const r = await fetch(lfmUrl('track.getInfo', { track, artist, autocorrect: 1 }));
       const d = await r.json();
       imgCache[k] = bestImage(d?.track?.album?.image) || null;
+    } else if (source === 'youtube') {
+      imgCache[k] = await ytSearch(artist + ' ' + track);
     }
   } catch(e) { imgCache[k] = null; }
   return imgCache[k];
@@ -2258,8 +2301,13 @@ function buildSongsFull(plays) {
   const counts = {};
   for (const p of plays) {
     const k = songKey(p);
-    if (!counts[k]) counts[k] = { title: p.title, artist: p.artist, album: p.album, count: 0 };
+    if (!counts[k]) counts[k] = { title: p.title, artist: p.artist, album: p.album, count: 0, _albums: {} };
     counts[k].count++;
+    counts[k]._albums[p.album] = (counts[k]._albums[p.album] || 0) + 1;
+  }
+  for (const entry of Object.values(counts)) {
+    entry.album = bestAlbum(entry.title, entry._albums);
+    delete entry._albums;
   }
   return Object.values(counts).sort((a,b) => b.count - a.count);
 }
@@ -2626,8 +2674,13 @@ function renderSongs(plays, peaks, monthlyStats) {
   const counts = {};
   for (const p of plays) {
     const k = songKey(p);
-    if (!counts[k]) counts[k] = { title: p.title, artist: p.artist, album: p.album, count: 0 };
+    if (!counts[k]) counts[k] = { title: p.title, artist: p.artist, album: p.album, count: 0, _albums: {} };
     counts[k].count++;
+    counts[k]._albums[p.album] = (counts[k]._albums[p.album] || 0) + 1;
+  }
+  for (const entry of Object.values(counts)) {
+    entry.album = bestAlbum(entry.title, entry._albums);
+    delete entry._albums;
   }
   const sorted = Object.values(counts).sort((a,b) => b.count - a.count).slice(0, chartSize);
   const max = sorted[0]?.count || 1;
