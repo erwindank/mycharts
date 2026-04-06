@@ -465,6 +465,27 @@
     font-size: 0.68rem;
     color: var(--text3);
   }
+  .date-nav-center {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.35rem;
+  }
+  .picker-input {
+    background: var(--surface);
+    border: 1px solid var(--border2);
+    padding: 0.18rem 0.55rem;
+    cursor: pointer;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.65rem;
+    color: var(--text2);
+    border-radius: 4px;
+    color-scheme: dark;
+    min-width: 130px;
+    text-align: center;
+  }
+  .picker-input:hover { border-color: var(--accent); color: var(--text); }
+  .picker-input:focus { outline: none; border-color: var(--accent); }
 
   /* SECTION HEADERS */
   .chart-section { margin-bottom: 2.5rem; }
@@ -1307,7 +1328,14 @@
 
   <div class="date-nav" id="dateNav">
     <button id="prevBtn">◄ Prev</button>
-    <div class="period-label" id="periodLabel"><strong>Loading...</strong></div>
+    <div class="date-nav-center">
+      <div class="period-label" id="periodLabel"><strong>Loading...</strong></div>
+      <div id="jumpPicker" style="display:none">
+        <input type="date"  id="weekPicker"  class="picker-input" title="Jump to week">
+        <input type="month" id="monthPicker" class="picker-input" style="display:none" title="Jump to month">
+        <select            id="yearPicker"  class="picker-input" style="display:none" title="Jump to year"></select>
+      </div>
+    </div>
     <button id="nextBtn">Next ►</button>
   </div>
 
@@ -1892,6 +1920,7 @@ function parseCsv(text, fromSheets = false) {
   }
 
   allPlays.sort((a, b) => b.date - a.date);
+  populateYearPicker();
   renderAll();
 }
 
@@ -2044,6 +2073,61 @@ document.getElementById('periodNav').addEventListener('click', e => {
 
 document.getElementById('prevBtn').addEventListener('click', () => { currentOffset++; pageState.songs=0; pageState.artists=0; pageState.albums=0; renderAll(); });
 document.getElementById('nextBtn').addEventListener('click', () => { currentOffset = Math.max(0, currentOffset - 1); pageState.songs=0; pageState.artists=0; pageState.albums=0; renderAll(); });
+
+// ─── JUMP PICKER ───────────────────────────────────────────────
+function syncPicker() {
+  const now = new Date();
+  const wp = document.getElementById('weekPicker');
+  const mp = document.getElementById('monthPicker');
+  const yp = document.getElementById('yearPicker');
+  const jp = document.getElementById('jumpPicker');
+  const hasPicker = ['week','month','year'].includes(currentPeriod);
+  jp.style.display = hasPicker ? '' : 'none';
+  wp.style.display = currentPeriod === 'week'  ? '' : 'none';
+  mp.style.display = currentPeriod === 'month' ? '' : 'none';
+  yp.style.display = currentPeriod === 'year'  ? '' : 'none';
+  if (currentPeriod === 'week') {
+    const dow = now.getDay();
+    const sun = new Date(now);
+    sun.setDate(now.getDate() - dow - currentOffset * 7);
+    sun.setHours(0,0,0,0);
+    wp.value = sun.toISOString().split('T')[0];
+  } else if (currentPeriod === 'month') {
+    const d = new Date(now.getFullYear(), now.getMonth() - currentOffset, 1);
+    mp.value = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+  } else if (currentPeriod === 'year') {
+    yp.value = String(now.getFullYear() - currentOffset);
+  }
+}
+
+function populateYearPicker() {
+  const yp = document.getElementById('yearPicker');
+  const years = [...new Set(allPlays.map(p => p.date.getFullYear()))].sort((a,b) => b - a);
+  yp.innerHTML = years.map(y => `<option value="${y}">${y}</option>`).join('');
+}
+
+document.getElementById('weekPicker').addEventListener('change', e => {
+  if (!e.target.value) return;
+  const picked = new Date(e.target.value + 'T00:00:00');
+  const now = new Date();
+  const curSun = new Date(now); curSun.setDate(now.getDate() - now.getDay()); curSun.setHours(0,0,0,0);
+  const picSun = new Date(picked); picSun.setDate(picked.getDate() - picked.getDay()); picSun.setHours(0,0,0,0);
+  const offset = Math.round((curSun - picSun) / (7 * 86400000));
+  if (offset >= 0) { currentOffset = offset; pageState.songs=0; pageState.artists=0; pageState.albums=0; renderAll(); }
+});
+
+document.getElementById('monthPicker').addEventListener('change', e => {
+  if (!e.target.value) return;
+  const [yr, mo] = e.target.value.split('-').map(Number);
+  const now = new Date();
+  const offset = (now.getFullYear() - yr) * 12 + (now.getMonth() + 1 - mo);
+  if (offset >= 0) { currentOffset = offset; pageState.songs=0; pageState.artists=0; pageState.albums=0; renderAll(); }
+});
+
+document.getElementById('yearPicker').addEventListener('change', e => {
+  const offset = new Date().getFullYear() - parseInt(e.target.value);
+  if (offset >= 0) { currentOffset = offset; pageState.songs=0; pageState.artists=0; pageState.albums=0; renderAll(); }
+});
 
 // ─── RAW DATA VIEW ─────────────────────────────────────────────
 const RAW_PAGE_SIZE = 200;
@@ -2221,6 +2305,7 @@ function renderAll() {
   pl.innerHTML = `<strong>${label}</strong><span style="font-size:0.68rem;font-family:'DM Mono',monospace;color:var(--text3)">${sub}</span>`;
   document.getElementById('prevBtn').disabled = (currentPeriod === 'alltime');
   document.getElementById('nextBtn').disabled = (currentOffset === 0 || currentPeriod === 'alltime');
+  syncPicker();
 
   // Stats — use split artists for accurate unique artist count
   const artistSet = new Set(plays.flatMap(p => p.artists));
