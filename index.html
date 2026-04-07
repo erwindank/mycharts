@@ -1353,7 +1353,7 @@
       <table class="chart-table" id="songsTable">
         <thead>
           <tr id="songsHeadRow">
-            <th>#</th>
+            <th>RANK</th>
             <th style="width:52px;"></th>
             <th>Title · Artist</th>
             <th>Album</th>
@@ -1382,7 +1382,7 @@
       <table class="chart-table" id="artistsTable">
         <thead>
           <tr id="artistsHeadRow">
-            <th>#</th>
+            <th>RANK</th>
             <th style="width:52px;"></th>
             <th>Artist</th>
             <th>Unique Songs</th>
@@ -1411,7 +1411,7 @@
       <table class="chart-table" id="albumsTable">
         <thead>
           <tr id="albumsHeadRow">
-            <th>#</th>
+            <th>RANK</th>
             <th style="width:52px;"></th>
             <th>Album · Artist</th>
             <th>Tracks</th>
@@ -2237,6 +2237,40 @@ document.querySelector('table.raw-table thead').addEventListener('click', e => {
   applyRawFilters();
 });
 
+// ─── WEEK KEY HELPERS ──────────────────────────────────────────
+// Use LOCAL date components (not toISOString which is UTC) to build date strings.
+// This prevents UTC-offset from shifting the date string by ±1 day.
+const FIRST_WEEK_SUN  = new Date(2016, 0, 10, 0, 0, 0, 0); // Jan 10 2016, Sunday
+const FIRST_DATA_DAY  = new Date(2016, 0,  9, 0, 0, 0, 0); // Jan  9 2016, Saturday (first streaming day)
+
+function localDateStr(d) {
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+
+// Returns the canonical week key (Sunday's local date string) for a given play date.
+// Jan 9, 2016 is explicitly folded into the first week rather than treated as a prior period.
+function playWeekKey(playDate) {
+  if (playDate >= FIRST_DATA_DAY && playDate < FIRST_WEEK_SUN) {
+    return localDateStr(FIRST_WEEK_SUN); // Jan 9 → first week
+  }
+  const dow = playDate.getDay();
+  const sun = new Date(playDate);
+  sun.setDate(playDate.getDate() - dow);
+  sun.setHours(0, 0, 0, 0);
+  if (sun < FIRST_WEEK_SUN) sun.setTime(FIRST_WEEK_SUN.getTime());
+  return localDateStr(sun);
+}
+
+// Returns the week key for the period currently being viewed (based on currentOffset).
+function currentViewWeekKey() {
+  const now = new Date();
+  const sun = new Date(now);
+  sun.setDate(now.getDate() - now.getDay() - currentOffset * 7);
+  sun.setHours(0, 0, 0, 0);
+  if (sun < FIRST_WEEK_SUN) sun.setTime(FIRST_WEEK_SUN.getTime());
+  return localDateStr(sun);
+}
+
 // ─── DATE RANGE ─────────────────────────────────────────────────
 function getDateRange() {
   const now = new Date();
@@ -2255,11 +2289,13 @@ function getDateRange() {
     const saturday = new Date(sunday);
     saturday.setDate(sunday.getDate() + 6);
     saturday.setHours(23,59,59,999);
-    // If this week's Sunday would fall before Jan 10 2016, clamp start to Jan 10
-    start = sunday < FIRST_WEEK_START ? FIRST_WEEK_START : sunday;
+    // Jan 9, 2016 (Saturday) is the first streaming day — include it in the first week's data range.
+    // Use <= so that when sunday lands exactly on FIRST_WEEK_START (Jan 10), Jan 9 is still included.
+    const FIRST_DATA_DATE = new Date(2016, 0, 9, 0, 0, 0, 0);
+    start = sunday <= FIRST_WEEK_START ? FIRST_DATA_DATE : sunday;
     end = saturday;
     label = currentOffset === 0 ? 'This Week' : `Week of ${fmt(sunday)}`;
-    sub = `${fmt(start)} – ${fmt(saturday)}`;
+    sub = `${fmt(sunday <= FIRST_WEEK_START ? FIRST_WEEK_START : sunday)} – ${fmt(saturday)}`;
   } else if (currentPeriod === 'month') {
     const d = new Date(now.getFullYear(), now.getMonth() - currentOffset, 1);
     start = new Date(d.getFullYear(), d.getMonth(), 1);
@@ -2322,16 +2358,16 @@ function renderAll() {
   const isWeeklyView  = currentPeriod === 'week';
   const isMonthlyView = currentPeriod === 'month';
   const hasPeriodStats = isWeeklyView || isMonthlyView;
-  const colCount = hasPeriodStats ? 8 : 5;
+  const colCount = hasPeriodStats ? 7 : 5;
   const periodLabel = isWeeklyView ? 'Weeks' : 'Months';
   if (hasPeriodStats) {
-    document.getElementById('songsHeadRow').innerHTML   = `<th>#</th><th style="width:52px;"></th><th>Title · Artist</th><th>Album</th><th class="m-th">Prev</th><th class="m-th">Plays</th><th class="m-th">${periodLabel}</th><th style="text-align:right;">Plays</th>`;
-    document.getElementById('artistsHeadRow').innerHTML = `<th>#</th><th style="width:52px;"></th><th>Artist</th><th>Unique Songs</th><th class="m-th">Prev</th><th class="m-th">Plays</th><th class="m-th">${periodLabel}</th><th style="text-align:right;">Total Plays</th>`;
-    document.getElementById('albumsHeadRow').innerHTML  = `<th>#</th><th style="width:52px;"></th><th>Album · Artist</th><th>Tracks</th><th class="m-th">Prev</th><th class="m-th">Plays</th><th class="m-th">${periodLabel}</th><th style="text-align:right;">Total Plays</th>`;
+    document.getElementById('songsHeadRow').innerHTML   = `<th>RANK</th><th style="width:52px;"></th><th>Title · Artist</th><th>Album</th><th class="m-th">Prev</th><th class="m-th">${periodLabel}</th><th style="text-align:right;">Plays</th>`;
+    document.getElementById('artistsHeadRow').innerHTML = `<th>RANK</th><th style="width:52px;"></th><th>Artist</th><th>Unique Songs</th><th class="m-th">Prev</th><th class="m-th">${periodLabel}</th><th style="text-align:right;">Total Plays</th>`;
+    document.getElementById('albumsHeadRow').innerHTML  = `<th>RANK</th><th style="width:52px;"></th><th>Album · Artist</th><th>Tracks</th><th class="m-th">Prev</th><th class="m-th">${periodLabel}</th><th style="text-align:right;">Total Plays</th>`;
   } else {
-    document.getElementById('songsHeadRow').innerHTML   = `<th>#</th><th style="width:52px;"></th><th>Title · Artist</th><th>Album</th><th style="text-align:right;">Plays</th>`;
-    document.getElementById('artistsHeadRow').innerHTML = `<th>#</th><th style="width:52px;"></th><th>Artist</th><th>Unique Songs</th><th style="text-align:right;">Total Plays</th>`;
-    document.getElementById('albumsHeadRow').innerHTML  = `<th>#</th><th style="width:52px;"></th><th>Album · Artist</th><th>Tracks</th><th style="text-align:right;">Total Plays</th>`;
+    document.getElementById('songsHeadRow').innerHTML   = `<th>RANK</th><th style="width:52px;"></th><th>Title · Artist</th><th>Album</th><th style="text-align:right;">Plays</th>`;
+    document.getElementById('artistsHeadRow').innerHTML = `<th>RANK</th><th style="width:52px;"></th><th>Artist</th><th>Unique Songs</th><th style="text-align:right;">Total Plays</th>`;
+    document.getElementById('albumsHeadRow').innerHTML  = `<th>RANK</th><th style="width:52px;"></th><th>Album · Artist</th><th>Tracks</th><th style="text-align:right;">Total Plays</th>`;
   }
 
   if (plays.length === 0) {
@@ -2381,12 +2417,29 @@ function renderAll() {
   }
 }
 
+// ─── TIE-BREAKING SORT ─────────────────────────────────────────
+// rankSort: count → timestamp (used for all-time / yearly where no period context exists)
+function rankSort(a, b) {
+  if (b.count !== a.count) return b.count - a.count;
+  return a.firstAchieved - b.firstAchieved;
+}
+
+// rankSortWithStatus: count → chart status → timestamp (used for weekly / monthly renders)
+// chartStatus: 0 = incumbent (was on chart last period)
+//              1 = re-entry  (charted before, but not last period)
+//              2 = debut     (never charted before)
+function rankSortWithStatus(a, b) {
+  if (b.count !== a.count) return b.count - a.count;
+  if (a.chartStatus !== b.chartStatus) return a.chartStatus - b.chartStatus;
+  return a.firstAchieved - b.firstAchieved;
+}
+
 // ─── FULL DATASET BUILDERS (for paginated yearly/alltime) ──────
 function buildSongsFull(plays) {
   const counts = {};
   for (const p of plays) {
     const k = songKey(p);
-    if (!counts[k]) counts[k] = { title: p.title, artist: p.artist, album: p.album, count: 0, _albums: {} };
+    if (!counts[k]) counts[k] = { title: p.title, artist: p.artist, album: p.album, count: 0, _albums: {}, firstAchieved: p.date };
     counts[k].count++;
     counts[k]._albums[p.album] = (counts[k]._albums[p.album] || 0) + 1;
   }
@@ -2394,19 +2447,19 @@ function buildSongsFull(plays) {
     entry.album = bestAlbum(entry.title, entry._albums);
     delete entry._albums;
   }
-  return Object.values(counts).sort((a,b) => b.count - a.count);
+  return Object.values(counts).sort(rankSort);
 }
 
 function buildArtistsFull(plays) {
   const counts = {};
   for (const p of plays) {
     for (const artist of p.artists) {
-      if (!counts[artist]) counts[artist] = { name: artist, count: 0, songs: new Set() };
+      if (!counts[artist]) counts[artist] = { name: artist, count: 0, songs: new Set(), firstAchieved: p.date };
       counts[artist].count++;
       counts[artist].songs.add(p.title);
     }
   }
-  return Object.values(counts).sort((a,b) => b.count - a.count);
+  return Object.values(counts).sort(rankSort);
 }
 
 function buildAlbumsFull(plays) {
@@ -2414,11 +2467,11 @@ function buildAlbumsFull(plays) {
   for (const p of plays) {
     if (!p.album || p.album === '—') continue;
     const k = p.album + '|||' + p.artist;
-    if (!counts[k]) counts[k] = { album: p.album, artist: p.artist, count: 0, tracks: new Set() };
+    if (!counts[k]) counts[k] = { album: p.album, artist: p.artist, count: 0, tracks: new Set(), firstAchieved: p.date };
     counts[k].count++;
     counts[k].tracks.add(p.title);
   }
-  return Object.values(counts).sort((a,b) => b.count - a.count);
+  return Object.values(counts).sort(rankSort);
 }
 
 // ─── PAGE RENDERING ────────────────────────────────────────────
@@ -2524,21 +2577,17 @@ function changePage(type, dir) {
 // Returns months-on-chart counts, previous month's chart, and
 // a set of items that ever charted before the current month.
 function buildPeriodStats(period) {
-  const FIRST_WEEK_START = new Date(2016, 0, 10);
   const now = new Date();
   let curKey, prevKey;
 
   if (period === 'week') {
-    const dow = now.getDay();
-    const sunday = new Date(now);
-    sunday.setDate(now.getDate() - dow - (currentOffset * 7));
-    sunday.setHours(0,0,0,0);
-    if (sunday < FIRST_WEEK_START) sunday.setTime(FIRST_WEEK_START.getTime());
-    curKey = sunday.toISOString().slice(0, 10);
-    const prevSunday = new Date(sunday);
-    prevSunday.setDate(sunday.getDate() - 7);
-    if (prevSunday < FIRST_WEEK_START) prevSunday.setTime(FIRST_WEEK_START.getTime());
-    prevKey = prevSunday.toISOString().slice(0, 10);
+    curKey = currentViewWeekKey();
+    const curSun = new Date(FIRST_WEEK_SUN);
+    // derive the actual Sunday for curKey so we can compute prevSunday
+    const curSunDate = new Date(curKey + 'T00:00:00');
+    const prevSun = new Date(curSunDate);
+    prevSun.setDate(curSunDate.getDate() - 7);
+    prevKey = prevSun < FIRST_WEEK_SUN ? '' : localDateStr(prevSun);
   } else {
     const d = new Date(now.getFullYear(), now.getMonth() - currentOffset, 1);
     curKey = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
@@ -2551,12 +2600,7 @@ function buildPeriodStats(period) {
   for (const p of allPlays) {
     let mk;
     if (period === 'week') {
-      const dow = p.date.getDay();
-      const sunday = new Date(p.date);
-      sunday.setDate(p.date.getDate() - dow);
-      sunday.setHours(0,0,0,0);
-      if (sunday < FIRST_WEEK_START) sunday.setTime(FIRST_WEEK_START.getTime());
-      mk = sunday.toISOString().slice(0, 10);
+      mk = playWeekKey(p.date);
     } else {
       mk = `${p.date.getFullYear()}-${String(p.date.getMonth()+1).padStart(2,'0')}`;
     }
@@ -2564,10 +2608,15 @@ function buildPeriodStats(period) {
     if (!periodMap[mk]) periodMap[mk] = { songs: {}, artists: {}, albums: {} };
     const mm = periodMap[mk];
     const sk = songKey(p);
-    mm.songs[sk] = (mm.songs[sk] || 0) + 1;
-    for (const a of p.artists) mm.artists[a] = (mm.artists[a] || 0) + 1;
+    if (!mm.songs[sk]) mm.songs[sk] = { count: 0, firstAchieved: p.date };
+    mm.songs[sk].count++;
+    for (const a of p.artists) {
+      if (!mm.artists[a]) mm.artists[a] = { count: 0, firstAchieved: p.date };
+      mm.artists[a].count++;
+    }
     const ak = p.album + '|||' + p.artist;
-    mm.albums[ak] = (mm.albums[ak] || 0) + 1;
+    if (!mm.albums[ak]) mm.albums[ak] = { count: 0, firstAchieved: p.date };
+    mm.albums[ak].count++;
   }
 
   const periodsOnChart = { songs: {}, artists: {}, albums: {} };
@@ -2576,10 +2625,10 @@ function buildPeriodStats(period) {
 
   for (const [mk, mm] of Object.entries(periodMap).sort((a, b) => a[0].localeCompare(b[0]))) {
     for (const type of ['songs', 'artists', 'albums']) {
-      Object.entries(mm[type]).sort((a, b) => b[1] - a[1]).slice(0, chartSize).forEach(([k, count], i) => {
+      Object.entries(mm[type]).sort(([,a],[,b]) => rankSort(a, b)).slice(0, chartSize).forEach(([k, data], i) => {
         periodsOnChart[type][k] = (periodsOnChart[type][k] || 0) + 1;
         if (mk < curKey) everChartedBefore[type].add(k);
-        if (mk === prevKey) prevChart[type][k] = { rank: i + 1, count };
+        if (mk === prevKey) prevChart[type][k] = { rank: i + 1, count: data.count };
       });
     }
   }
@@ -2600,17 +2649,18 @@ function mPrevCell(curRank, key, type, ms) {
   return `<td class="m-col"><span class="m-${dir}">${arrow}${Math.abs(diff)}</span><div class="m-prev-rank">#${prev.rank}</div></td>`;
 }
 
-function mDeltaCell(curCount, key, type, ms) {
+// Inline delta badge — returns a <span> (no <td>) for embedding next to the play count
+function deltaInline(curCount, key, type, ms) {
   const prev = ms.prevChart[type][key];
   if (!prev) {
     const label = ms.everChartedBefore[type].has(key) ? 'RE' : 'NEW';
-    return `<td class="m-col"><span class="m-${label === 'NEW' ? 'new' : 're'}">${label}</span></td>`;
+    return `<span class="m-${label === 'NEW' ? 'new' : 're'}" style="font-size:0.6rem;margin-left:0.4rem">${label}</span>`;
   }
   const diff = curCount - prev.count;
-  if (diff === 0) return `<td class="m-col"><span class="m-same">=</span></td>`;
+  if (diff === 0) return `<span class="m-same" style="font-size:0.6rem;margin-left:0.4rem">=</span>`;
   const dir = diff > 0 ? 'up' : 'down';
   const sign = diff > 0 ? '+' : '';
-  return `<td class="m-col"><span class="m-${dir}">${sign}${diff}</span></td>`;
+  return `<span class="m-${dir}" style="font-size:0.6rem;margin-left:0.4rem">${sign}${diff}</span>`;
 }
 
 function mMthsCell(key, type, ms) {
@@ -2626,10 +2676,10 @@ function buildAllTimePeaks() {
   const sp = {};
   for (const p of allPlays) {
     const k = songKey(p);
-    if (!sp[k]) sp[k] = { title: p.title, artist: p.artist, album: p.album, count: 0 };
+    if (!sp[k]) sp[k] = { count: 0, firstAchieved: p.date };
     sp[k].count++;
   }
-  const songsSorted = Object.entries(sp).sort((a,b)=>b[1].count-a[1].count).slice(0, chartSize);
+  const songsSorted = Object.entries(sp).sort(([,a],[,b]) => rankSort(a, b)).slice(0, chartSize);
   const songPeakMap = {};
   songsSorted.forEach(([k],i) => { songPeakMap[k] = i + 1; });
 
@@ -2637,12 +2687,12 @@ function buildAllTimePeaks() {
   const ap = {};
   for (const p of allPlays) {
     for (const a of p.artists) {
-      if (!ap[a]) ap[a] = { count: 0, songs: new Set() };
+      if (!ap[a]) ap[a] = { count: 0, songs: new Set(), firstAchieved: p.date };
       ap[a].count++;
       ap[a].songs.add(p.title);
     }
   }
-  const artistsSorted = Object.entries(ap).sort((a,b)=>b[1].count-a[1].count).slice(0, chartSize);
+  const artistsSorted = Object.entries(ap).sort(([,a],[,b]) => rankSort(a, b)).slice(0, chartSize);
   const artistPeakMap = {};
   artistsSorted.forEach(([name],i) => { artistPeakMap[name] = i + 1; });
 
@@ -2650,10 +2700,10 @@ function buildAllTimePeaks() {
   const lp = {};
   for (const p of allPlays) {
     const k = p.album + '|||' + p.artist;
-    if (!lp[k]) lp[k] = { count: 0 };
+    if (!lp[k]) lp[k] = { count: 0, firstAchieved: p.date };
     lp[k].count++;
   }
-  const albumsSorted = Object.entries(lp).sort((a,b)=>b[1].count-a[1].count).slice(0, chartSize);
+  const albumsSorted = Object.entries(lp).sort(([,a],[,b]) => rankSort(a, b)).slice(0, chartSize);
   const albumPeakMap = {};
   albumsSorted.forEach(([k],i) => { albumPeakMap[k] = i + 1; });
 
@@ -2665,18 +2715,12 @@ function buildAllTimePeaks() {
 // including the currently viewed week (no future weeks bleed in).
 // Same logic applies to monthly and yearly.
 function buildPeriodPeaks(period) {
-  const FIRST_WEEK_START = new Date(2016, 0, 10);
   const now = new Date();
 
   // Compute the key for the currently viewed period so we can ignore later ones
   let curKey;
   if (period === 'week') {
-    const dow = now.getDay();
-    const sunday = new Date(now);
-    sunday.setDate(now.getDate() - dow - (currentOffset * 7));
-    sunday.setHours(0,0,0,0);
-    if (sunday < FIRST_WEEK_START) sunday.setTime(FIRST_WEEK_START.getTime());
-    curKey = sunday.toISOString().slice(0, 10);
+    curKey = currentViewWeekKey();
   } else if (period === 'month') {
     const d = new Date(now.getFullYear(), now.getMonth() - currentOffset, 1);
     curKey = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
@@ -2689,12 +2733,7 @@ function buildPeriodPeaks(period) {
   for (const p of allPlays) {
     let key;
     if (period === 'week') {
-      const dow = p.date.getDay();
-      const sunday = new Date(p.date);
-      sunday.setDate(p.date.getDate() - dow);
-      sunday.setHours(0,0,0,0);
-      if (sunday < FIRST_WEEK_START) sunday.setTime(FIRST_WEEK_START.getTime());
-      key = sunday.toISOString().slice(0, 10);
+      key = playWeekKey(p.date);
     } else if (period === 'month') {
       key = `${p.date.getFullYear()}-${String(p.date.getMonth()+1).padStart(2,'0')}`;
     } else {
@@ -2707,30 +2746,34 @@ function buildPeriodPeaks(period) {
     const pm = periodMap[key];
 
     const sk = songKey(p);
-    pm.songs[sk] = (pm.songs[sk] || 0) + 1;
+    if (!pm.songs[sk]) pm.songs[sk] = { count: 0, firstAchieved: p.date };
+    pm.songs[sk].count++;
 
     for (const a of p.artists) {
-      pm.artists[a] = (pm.artists[a] || 0) + 1;
+      if (!pm.artists[a]) pm.artists[a] = { count: 0, firstAchieved: p.date };
+      pm.artists[a].count++;
     }
 
     const ak = p.album + '|||' + p.artist;
-    pm.albums[ak] = (pm.albums[ak] || 0) + 1;
+    if (!pm.albums[ak]) pm.albums[ak] = { count: 0, firstAchieved: p.date };
+    pm.albums[ak].count++;
   }
 
   const songPeakMap = {};
   const artistPeakMap = {};
   const albumPeakMap = {};
 
-  for (const pm of Object.values(periodMap)) {
-    Object.entries(pm.songs).sort((a,b)=>b[1]-a[1]).slice(0, chartSize).forEach(([k], i) => {
+  for (const [pKey, pm] of Object.entries(periodMap)) {
+    if (pKey === curKey) continue; // current period handled by render reconciliation (uses correct rankSortWithStatus)
+    Object.entries(pm.songs).sort(([,a],[,b]) => rankSort(a, b)).slice(0, chartSize).forEach(([k], i) => {
       const rank = i + 1;
       if (!songPeakMap[k] || rank < songPeakMap[k]) songPeakMap[k] = rank;
     });
-    Object.entries(pm.artists).sort((a,b)=>b[1]-a[1]).slice(0, chartSize).forEach(([name], i) => {
+    Object.entries(pm.artists).sort(([,a],[,b]) => rankSort(a, b)).slice(0, chartSize).forEach(([name], i) => {
       const rank = i + 1;
       if (!artistPeakMap[name] || rank < artistPeakMap[name]) artistPeakMap[name] = rank;
     });
-    Object.entries(pm.albums).sort((a,b)=>b[1]-a[1]).slice(0, chartSize).forEach(([k], i) => {
+    Object.entries(pm.albums).sort(([,a],[,b]) => rankSort(a, b)).slice(0, chartSize).forEach(([k], i) => {
       const rank = i + 1;
       if (!albumPeakMap[k] || rank < albumPeakMap[k]) albumPeakMap[k] = rank;
     });
@@ -2759,15 +2802,25 @@ function renderSongs(plays, peaks, monthlyStats) {
   const counts = {};
   for (const p of plays) {
     const k = songKey(p);
-    if (!counts[k]) counts[k] = { title: p.title, artist: p.artist, album: p.album, count: 0, _albums: {} };
+    if (!counts[k]) counts[k] = { title: p.title, artist: p.artist, album: p.album, count: 0, _albums: {}, firstAchieved: p.date };
     counts[k].count++;
     counts[k]._albums[p.album] = (counts[k]._albums[p.album] || 0) + 1;
   }
   for (const entry of Object.values(counts)) {
     entry.album = bestAlbum(entry.title, entry._albums);
     delete entry._albums;
+    if (monthlyStats) {
+      const k = songKey(entry);
+      entry.chartStatus = monthlyStats.prevChart.songs[k] ? 0
+        : monthlyStats.everChartedBefore.songs.has(k) ? 1 : 2;
+    }
   }
-  const sorted = Object.values(counts).sort((a,b) => b.count - a.count).slice(0, chartSize);
+  const sorted = Object.values(counts).sort(monthlyStats ? rankSortWithStatus : rankSort).slice(0, chartSize);
+  // Reconcile peak map: current period was excluded from buildPeriodPeaks (which uses rankSort),
+  // so apply the actual rendered rank here. Take the min vs any historical peak from past periods.
+  if (currentPeriod !== 'alltime') {
+    sorted.forEach((s, i) => { const k = songKey(s); const r = i + 1; peaks.songPeakMap[k] = peaks.songPeakMap[k] ? Math.min(peaks.songPeakMap[k], r) : r; });
+  }
   const max = sorted[0]?.count || 1;
   const isAllTime = currentPeriod === 'alltime';
   const imgItems = [];
@@ -2786,10 +2839,9 @@ function renderSongs(plays, peaks, monthlyStats) {
       </td>
       <td><div class="song-album">${esc(s.album)}</div></td>
       ${monthlyStats ? mPrevCell(i+1, k, 'songs', monthlyStats) : ''}
-      ${monthlyStats ? mDeltaCell(s.count, k, 'songs', monthlyStats) : ''}
       ${monthlyStats ? mMthsCell(k, 'songs', monthlyStats) : ''}
       <td>
-        <div class="play-count">${s.count} plays</div>
+        <div class="play-count">${s.count} plays${monthlyStats ? deltaInline(s.count, k, 'songs', monthlyStats) : ''}</div>
         <div class="play-bar"><div class="play-bar-fill" style="width:${Math.round(s.count/max*100)}%"></div></div>
       </td>
     </tr>`;
@@ -2801,12 +2853,22 @@ function renderArtists(plays, peaks, monthlyStats) {
   const counts = {};
   for (const p of plays) {
     for (const artist of p.artists) {
-      if (!counts[artist]) counts[artist] = { count: 0, songs: new Set() };
+      if (!counts[artist]) counts[artist] = { count: 0, songs: new Set(), firstAchieved: p.date };
       counts[artist].count++;
       counts[artist].songs.add(p.title);
     }
   }
-  const sorted = Object.entries(counts).sort((a,b)=>b[1].count-a[1].count).slice(0, chartSize);
+  if (monthlyStats) {
+    for (const [artist, data] of Object.entries(counts)) {
+      data.chartStatus = monthlyStats.prevChart.artists[artist] ? 0
+        : monthlyStats.everChartedBefore.artists.has(artist) ? 1 : 2;
+    }
+  }
+  const sorted = Object.entries(counts).sort(([,a],[,b]) => monthlyStats ? rankSortWithStatus(a, b) : rankSort(a, b)).slice(0, chartSize);
+  // Reconcile peak map with actual chart ranks (current period excluded from buildPeriodPeaks)
+  if (currentPeriod !== 'alltime') {
+    sorted.forEach(([artist], i) => { const r = i + 1; peaks.artistPeakMap[artist] = peaks.artistPeakMap[artist] ? Math.min(peaks.artistPeakMap[artist], r) : r; });
+  }
   const max = sorted[0]?.[1].count || 1;
   const isAllTime = currentPeriod === 'alltime';
   const imgItems = [];
@@ -2821,10 +2883,9 @@ function renderArtists(plays, peaks, monthlyStats) {
       <td><div class="song-title">${esc(artist)}${pk ? peakBadge(pk) : ''}</div><div class="song-artist" style="font-size:0.7rem;letter-spacing:0.06em;font-style:normal;font-family:'DM Mono',monospace;color:var(--text3)">CLICK TO VIEW PROFILE</div></td>
       <td><div class="song-artist">${data.songs.size} songs</div></td>
       ${monthlyStats ? mPrevCell(i+1, artist, 'artists', monthlyStats) : ''}
-      ${monthlyStats ? mDeltaCell(data.count, artist, 'artists', monthlyStats) : ''}
       ${monthlyStats ? mMthsCell(artist, 'artists', monthlyStats) : ''}
       <td>
-        <div class="play-count">${data.count} plays</div>
+        <div class="play-count">${data.count} plays${monthlyStats ? deltaInline(data.count, artist, 'artists', monthlyStats) : ''}</div>
         <div class="play-bar"><div class="play-bar-fill" style="width:${Math.round(data.count/max*100)}%"></div></div>
       </td>
     </tr>`;
@@ -2836,14 +2897,24 @@ function renderAlbums(plays, peaks, monthlyStats) {
   const counts = {};
   for (const p of plays) {
     const k = p.album + '|||' + p.artist;
-    if (!counts[k]) counts[k] = { album: p.album, artist: p.artist, count: 0, tracks: new Set() };
+    if (!counts[k]) counts[k] = { album: p.album, artist: p.artist, count: 0, tracks: new Set(), firstAchieved: p.date };
     counts[k].count++;
     counts[k].tracks.add(p.title);
   }
-  const sorted = Object.values(counts).filter(a=>a.album&&a.album!=='—').sort((a,b)=>b.count-a.count).slice(0, chartSize);
+  if (monthlyStats) {
+    for (const [k, entry] of Object.entries(counts)) {
+      entry.chartStatus = monthlyStats.prevChart.albums[k] ? 0
+        : monthlyStats.everChartedBefore.albums.has(k) ? 1 : 2;
+    }
+  }
+  const sorted = Object.values(counts).filter(a=>a.album&&a.album!=='—').sort(monthlyStats ? rankSortWithStatus : rankSort).slice(0, chartSize);
+  // Reconcile peak map with actual chart ranks (current period excluded from buildPeriodPeaks)
+  if (currentPeriod !== 'alltime') {
+    sorted.forEach(({ album, artist }, i) => { const ak = album + '|||' + artist; const r = i + 1; peaks.albumPeakMap[ak] = peaks.albumPeakMap[ak] ? Math.min(peaks.albumPeakMap[ak], r) : r; });
+  }
   const max = sorted[0]?.count || 1;
   const isAllTime = currentPeriod === 'alltime';
-  const colCount = monthlyStats ? 8 : 5;
+  const colCount = monthlyStats ? 7 : 5;
   const imgItems = [];
   document.getElementById('albumsBody').innerHTML = sorted.length === 0
     ? `<tr><td colspan="${colCount}"><div class="empty-state"><p>No album data found — make sure your CSV includes an Album column.</p></div></td></tr>`
@@ -2862,10 +2933,9 @@ function renderAlbums(plays, peaks, monthlyStats) {
       </td>
       <td><div class="song-artist">${tracks.size} tracks</div></td>
       ${monthlyStats ? mPrevCell(i+1, ak, 'albums', monthlyStats) : ''}
-      ${monthlyStats ? mDeltaCell(count, ak, 'albums', monthlyStats) : ''}
       ${monthlyStats ? mMthsCell(ak, 'albums', monthlyStats) : ''}
       <td>
-        <div class="play-count">${count} plays</div>
+        <div class="play-count">${count} plays${monthlyStats ? deltaInline(count, ak, 'albums', monthlyStats) : ''}</div>
         <div class="play-bar"><div class="play-bar-fill" style="width:${Math.round(count/max*100)}%"></div></div>
       </td>
     </tr>`;
@@ -2985,16 +3055,14 @@ modal.addEventListener('click', e => { if (e.target === modal) modal.classList.r
 
 // Returns all weeks (ever) where artistName had the most plays that week
 function findWeeklyNo1s(artistName) {
-  const FIRST_WEEK_START = new Date(2016, 0, 10);
   const weekMap = {};
   for (const p of allPlays) {
-    const dow = p.date.getDay();
-    const sunday = new Date(p.date);
-    sunday.setDate(p.date.getDate() - dow);
-    sunday.setHours(0,0,0,0);
-    if (sunday < FIRST_WEEK_START) sunday.setTime(FIRST_WEEK_START.getTime());
-    const key = sunday.toISOString().slice(0, 10);
-    if (!weekMap[key]) weekMap[key] = { sunday: new Date(sunday), artists: {} };
+    const key = playWeekKey(p.date);
+    if (!weekMap[key]) {
+      // Reconstruct the Sunday Date from the key string (local time)
+      const sun = new Date(key + 'T00:00:00');
+      weekMap[key] = { sunday: sun, artists: {} };
+    }
     for (const a of p.artists) weekMap[key].artists[a] = (weekMap[key].artists[a] || 0) + 1;
   }
   const results = [];
