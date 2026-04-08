@@ -1771,11 +1771,12 @@ const YOUTUBE_KEY = 'AIzaSyDAyHsCQ8Eb5Avz32ayqBGMUyV-21xVMtc';
 
 const imgCache = {}; // key → url string or null
 
-const IMG_SOURCES = ['itunes', 'lastfm', 'youtube', 'off'];
+const IMG_SOURCES = ['deezer', 'itunes', 'lastfm', 'youtube', 'off'];
 const itemSourcePrefs = JSON.parse(localStorage.getItem('itemSourcePrefs') || '{}');
 function srcLabel(s) {
   if (s === 'itunes')  return 'iTunes';
   if (s === 'lastfm')  return 'Last.fm';
+  if (s === 'deezer')  return 'Deezer';
   if (s === 'youtube') return YOUTUBE_KEY ? 'YouTube' : 'YT (no key)';
   return '—';
 }
@@ -1793,6 +1794,58 @@ function bestImage(images) {
     if (found) return found['#text'];
   }
   return null;
+}
+
+// Deezer placeholder URLs contain '//' after the image type (no real hash), e.g. /images/artist//500x500-...
+function deezerValidUrl(url) {
+  if (!url) return null;
+  return /\/images\/[^/]+\/\//.test(url) ? null : url;
+}
+
+// Deezer requires a CORS proxy for browser requests
+const DEEZER_PROXY = 'https://corsproxy.io/?url=';
+function deezerFetch(endpoint) {
+  return fetch(DEEZER_PROXY + encodeURIComponent('https://api.deezer.com/' + endpoint));
+}
+
+// Deezer placeholder URLs contain '//' after the image type (no real hash), e.g. /images/artist//500x500-...
+function deezerValidUrl(url) {
+  if (!url) return null;
+  return /\/images\/[^/]+\/\//.test(url) ? null : url;
+}
+
+async function deezerArtistImage(artist) {
+  const r = await deezerFetch(`search/artist?q=${encodeURIComponent(artist)}&limit=10`);
+  if (!r.ok) return null;
+  const d = await r.json();
+  const items = d?.data || [];
+  const match = items.find(x => x.name?.toLowerCase() === artist.toLowerCase()) || items[0];
+  return deezerValidUrl(match?.picture_xl) || deezerValidUrl(match?.picture_big) || deezerValidUrl(match?.picture_medium) || null;
+}
+
+async function deezerAlbumImage(album, artist) {
+  const r = await deezerFetch(`search/album?q=${encodeURIComponent(artist + ' ' + album)}&limit=10`);
+  if (!r.ok) return null;
+  const d = await r.json();
+  const items = d?.data || [];
+  const match = items.find(x =>
+    x.title?.toLowerCase().includes(album.toLowerCase()) &&
+    x.artist?.name?.toLowerCase().includes(artist.toLowerCase().split(/[\s,&]/)[0])
+  ) || items[0];
+  return deezerValidUrl(match?.cover_xl) || deezerValidUrl(match?.cover_big) || deezerValidUrl(match?.cover_medium) || null;
+}
+
+async function deezerTrackImage(track, artist) {
+  const r = await deezerFetch(`search/track?q=${encodeURIComponent(artist + ' ' + track)}&limit=10`);
+  if (!r.ok) return null;
+  const d = await r.json();
+  const items = d?.data || [];
+  const match = items.find(x =>
+    x.title?.toLowerCase().includes(track.toLowerCase()) &&
+    x.artist?.name?.toLowerCase().includes(artist.toLowerCase().split(/[\s,&]/)[0])
+  ) || items[0];
+  const alb = match?.album;
+  return deezerValidUrl(alb?.cover_xl) || deezerValidUrl(alb?.cover_big) || deezerValidUrl(alb?.cover_medium) || null;
 }
 
 async function ytSearch(query) {
@@ -1814,7 +1867,7 @@ async function ytSearch(query) {
 }
 
 async function getArtistImage(artist, source) {
-  source = source || 'itunes';
+  source = source || 'deezer';
   const k = 'artist:' + artist.toLowerCase() + ':' + source;
   if (k in imgCache) return imgCache[k];
   imgCache[k] = null;
@@ -1833,6 +1886,8 @@ async function getArtistImage(artist, source) {
       const r = await fetch(lfmUrl('artist.getinfo', { artist, autocorrect: 1 }));
       const d = await r.json();
       imgCache[k] = bestImage(d?.artist?.image) || null;
+    } else if (source === 'deezer') {
+      imgCache[k] = await deezerArtistImage(artist);
     } else if (source === 'youtube') {
       imgCache[k] = await ytSearch(artist + ' official');
     }
@@ -1841,7 +1896,7 @@ async function getArtistImage(artist, source) {
 }
 
 async function getAlbumImage(album, artist, source) {
-  source = source || 'itunes';
+  source = source || 'deezer';
   const k = 'album:' + artist.toLowerCase() + '|||' + album.toLowerCase() + ':' + source;
   if (k in imgCache) return imgCache[k];
   imgCache[k] = null;
@@ -1863,6 +1918,8 @@ async function getAlbumImage(album, artist, source) {
       const r = await fetch(lfmUrl('album.getinfo', { album, artist, autocorrect: 1 }));
       const d = await r.json();
       imgCache[k] = bestImage(d?.album?.image) || null;
+    } else if (source === 'deezer') {
+      imgCache[k] = await deezerAlbumImage(album, artist);
     } else if (source === 'youtube') {
       imgCache[k] = await ytSearch(artist + ' ' + album + ' album');
     }
@@ -1871,7 +1928,7 @@ async function getAlbumImage(album, artist, source) {
 }
 
 async function getTrackImage(track, artist, source) {
-  source = source || 'itunes';
+  source = source || 'deezer';
   const k = 'track:' + artist.toLowerCase() + '|||' + track.toLowerCase() + ':' + source;
   if (k in imgCache) return imgCache[k];
   imgCache[k] = null;
@@ -1893,6 +1950,8 @@ async function getTrackImage(track, artist, source) {
       const r = await fetch(lfmUrl('track.getInfo', { track, artist, autocorrect: 1 }));
       const d = await r.json();
       imgCache[k] = bestImage(d?.track?.album?.image) || null;
+    } else if (source === 'deezer') {
+      imgCache[k] = await deezerTrackImage(track, artist);
     } else if (source === 'youtube') {
       imgCache[k] = await ytSearch(artist + ' ' + track);
     }
@@ -1912,7 +1971,7 @@ function thumbHtml(url, fallbackStr, isRank1) {
 // After render, fetch images async and inject them into existing rows
 async function loadImages(items, type) {
   for (const item of items) {
-    const source = (item.prefKey && itemSourcePrefs[item.prefKey]) || 'itunes';
+    const source = (item.prefKey && itemSourcePrefs[item.prefKey]) || 'deezer';
     let url = null;
     if (source !== 'off') {
       try {
@@ -1937,7 +1996,7 @@ async function loadImages(items, type) {
 }
 
 function cycleImgSrc(imgId, type, prefKey, name, artist, album) {
-  const current = itemSourcePrefs[prefKey] || 'itunes';
+  const current = itemSourcePrefs[prefKey] || 'deezer';
   const next = IMG_SOURCES[(IMG_SOURCES.indexOf(current) + 1) % IMG_SOURCES.length];
   itemSourcePrefs[prefKey] = next;
   localStorage.setItem('itemSourcePrefs', JSON.stringify(itemSourcePrefs));
@@ -2670,7 +2729,7 @@ function renderPage(type, peaks) {
       imgItems.push({ imgId, title: s.title, artist: s.artist, album: s.album, prefKey });
       const mainRow = `<tr class="${rank===1?'rank-1':rank===2?'rank-2':rank===3?'rank-3':''}">
         <td class="rank-cell">${hasCR?`<button class="cr-toggle-btn" onclick="toggleChartRun(this,'${rowId}')">📊</button>`:''}${rank}</td>
-        <td class="thumb-cell"><div class="thumb-wrap"><div id="${imgId}"><div class="thumb-initials">${esc(initials(s.title))}</div></div><button id="srcbtn-${imgId}" class="img-src-btn" data-imgid="${imgId}" data-type="song" data-prefkey="${esc(prefKey)}" data-name="${esc(s.title)}" data-artist="${esc(s.artist)}" data-album="${esc(s.album)}">${srcLabel(itemSourcePrefs[prefKey]||'itunes')}</button></div></td>
+        <td class="thumb-cell"><div class="thumb-wrap"><div id="${imgId}"><div class="thumb-initials">${esc(initials(s.title))}</div></div><button id="srcbtn-${imgId}" class="img-src-btn" data-imgid="${imgId}" data-type="song" data-prefkey="${esc(prefKey)}" data-name="${esc(s.title)}" data-artist="${esc(s.artist)}" data-album="${esc(s.album)}">${srcLabel(itemSourcePrefs[prefKey]||'deezer')}</button></div></td>
         <td>
           <div class="song-title">${esc(s.title)}${certBadge(s.count,'song')}</div>
           <div class="song-artist">${esc(s.artist)}</div>
@@ -2696,7 +2755,7 @@ function renderPage(type, peaks) {
       imgItems.push({ imgId, name: a.name, prefKey });
       const mainRow = `<tr class="${rank===1?'rank-1':rank===2?'rank-2':rank===3?'rank-3':''} artist-row" data-artist="${esc(a.name)}" onclick="openArtistModal(this.closest('tr').dataset.artist)">
         <td class="rank-cell">${hasCR?`<button class="cr-toggle-btn" onclick="toggleChartRun(this,'${rowId}')">📊</button>`:''}${rank}</td>
-        <td class="thumb-cell"><div class="thumb-wrap"><div id="${imgId}"><div class="thumb-initials">${esc(initials(a.name))}</div></div><button id="srcbtn-${imgId}" class="img-src-btn" data-imgid="${imgId}" data-type="artist" data-prefkey="${esc(prefKey)}" data-name="${esc(a.name)}" data-artist="${esc(a.name)}" data-album="">${srcLabel(itemSourcePrefs[prefKey]||'itunes')}</button></div></td>
+        <td class="thumb-cell"><div class="thumb-wrap"><div id="${imgId}"><div class="thumb-initials">${esc(initials(a.name))}</div></div><button id="srcbtn-${imgId}" class="img-src-btn" data-imgid="${imgId}" data-type="artist" data-prefkey="${esc(prefKey)}" data-name="${esc(a.name)}" data-artist="${esc(a.name)}" data-album="">${srcLabel(itemSourcePrefs[prefKey]||'deezer')}</button></div></td>
         <td><div class="song-title">${esc(a.name)}</div><div class="song-artist" style="font-size:0.7rem;letter-spacing:0.06em;font-style:normal;font-family:'DM Mono',monospace;color:var(--text3)">CLICK TO VIEW PROFILE</div></td>
         <td><div class="song-artist">${a.songs.size} songs</div></td>
         <td>
@@ -2723,7 +2782,7 @@ function renderPage(type, peaks) {
         imgItems.push({ imgId, album: a.album, artist: a.artist, name: a.album, prefKey });
         const mainRow = `<tr class="${rank===1?'rank-1':rank===2?'rank-2':rank===3?'rank-3':''} album-row" data-albumkey="${esc(ak)}" onclick="openAlbumModal(this.dataset.albumkey)">
         <td class="rank-cell">${hasCR?`<button class="cr-toggle-btn" onclick="toggleChartRun(this,'${rowId}')">⊞</button>`:''}${rank}</td>
-        <td class="thumb-cell"><div class="thumb-wrap"><div id="${imgId}"><div class="thumb-initials">${esc(initials(a.album))}</div></div><button id="srcbtn-${imgId}" class="img-src-btn" data-imgid="${imgId}" data-type="album" data-prefkey="${esc(prefKey)}" data-name="${esc(a.album)}" data-artist="${esc(a.artist)}" data-album="${esc(a.album)}">${srcLabel(itemSourcePrefs[prefKey]||'itunes')}</button></div></td>
+        <td class="thumb-cell"><div class="thumb-wrap"><div id="${imgId}"><div class="thumb-initials">${esc(initials(a.album))}</div></div><button id="srcbtn-${imgId}" class="img-src-btn" data-imgid="${imgId}" data-type="album" data-prefkey="${esc(prefKey)}" data-name="${esc(a.album)}" data-artist="${esc(a.artist)}" data-album="${esc(a.album)}">${srcLabel(itemSourcePrefs[prefKey]||'deezer')}</button></div></td>
         <td>
           <div class="song-title">${esc(a.album)}${certBadge(a.count,'album')}</div>
           <div class="song-artist">${esc(a.artist)}</div>
@@ -3267,7 +3326,7 @@ function renderSongs(plays, peaks, monthlyStats) {
     imgItems.push({ imgId, title: s.title, artist: s.artist, album: s.album, type: 'song', prefKey });
     const mainRow = `<tr class="${i===0?'rank-1':i===1?'rank-2':i===2?'rank-3':''}">
       <td class="rank-cell"><button class="cr-toggle-btn" onclick="toggleChartRun(this,'${rowId}')">📊</button>${i+1}</td>
-      <td class="thumb-cell"><div class="thumb-wrap"><div id="${imgId}"><div class="thumb-initials">${esc(initials(s.title))}</div></div><button id="srcbtn-${imgId}" class="img-src-btn" data-imgid="${imgId}" data-type="song" data-prefkey="${esc(prefKey)}" data-name="${esc(s.title)}" data-artist="${esc(s.artist)}" data-album="${esc(s.album)}">${srcLabel(itemSourcePrefs[prefKey]||'itunes')}</button></div></td>
+      <td class="thumb-cell"><div class="thumb-wrap"><div id="${imgId}"><div class="thumb-initials">${esc(initials(s.title))}</div></div><button id="srcbtn-${imgId}" class="img-src-btn" data-imgid="${imgId}" data-type="song" data-prefkey="${esc(prefKey)}" data-name="${esc(s.title)}" data-artist="${esc(s.artist)}" data-album="${esc(s.album)}">${srcLabel(itemSourcePrefs[prefKey]||'deezer')}</button></div></td>
       <td>
         <div class="song-title">${esc(s.title)}${pk ? peakBadge(pk) : ''}${certBadge(s.count,'song')}</div>
         <div class="song-artist">${esc(s.artist)}</div>
@@ -3318,7 +3377,7 @@ function renderArtists(plays, peaks, monthlyStats) {
     imgItems.push({ imgId, name: artist, prefKey });
     const mainRow = `<tr class="${i===0?'rank-1':i===1?'rank-2':i===2?'rank-3':''} artist-row" data-artist="${esc(artist)}" onclick="openArtistModal(this.closest('tr').dataset.artist)">
       <td class="rank-cell"><button class="cr-toggle-btn" onclick="toggleChartRun(this,'${rowId}')"  >📊</button>${i+1}</td>
-      <td class="thumb-cell"><div class="thumb-wrap"><div id="${imgId}"><div class="thumb-initials">${esc(initials(artist))}</div></div><button id="srcbtn-${imgId}" class="img-src-btn" data-imgid="${imgId}" data-type="artist" data-prefkey="${esc(prefKey)}" data-name="${esc(artist)}" data-artist="${esc(artist)}" data-album="">${srcLabel(itemSourcePrefs[prefKey]||'itunes')}</button></div></td>
+      <td class="thumb-cell"><div class="thumb-wrap"><div id="${imgId}"><div class="thumb-initials">${esc(initials(artist))}</div></div><button id="srcbtn-${imgId}" class="img-src-btn" data-imgid="${imgId}" data-type="artist" data-prefkey="${esc(prefKey)}" data-name="${esc(artist)}" data-artist="${esc(artist)}" data-album="">${srcLabel(itemSourcePrefs[prefKey]||'deezer')}</button></div></td>
       <td><div class="song-title">${esc(artist)}${pk ? peakBadge(pk) : ''}</div><div class="song-artist" style="font-size:0.7rem;letter-spacing:0.06em;font-style:normal;font-family:'DM Mono',monospace;color:var(--text3)">CLICK TO VIEW PROFILE</div></td>
       <td><div class="song-artist">${data.songs.size} songs</div></td>
       ${monthlyStats ? mPrevCell(i+1, artist, 'artists', monthlyStats) : ''}
@@ -3369,7 +3428,7 @@ function renderAlbums(plays, peaks, monthlyStats) {
       imgItems.push({ imgId, album, artist, name: album, prefKey });
       const mainRow = `<tr class="${i===0?'rank-1':i===1?'rank-2':i===2?'rank-3':''} album-row" data-albumkey="${esc(ak)}" onclick="openAlbumModal(this.dataset.albumkey)">
       <td class="rank-cell"><button class="cr-toggle-btn" onclick="toggleChartRun(this,'${rowId}')">⊞</button>${i+1}</td>
-      <td class="thumb-cell"><div class="thumb-wrap"><div id="${imgId}"><div class="thumb-initials">${esc(initials(album))}</div></div><button id="srcbtn-${imgId}" class="img-src-btn" data-imgid="${imgId}" data-type="album" data-prefkey="${esc(prefKey)}" data-name="${esc(album)}" data-artist="${esc(artist)}" data-album="${esc(album)}">${srcLabel(itemSourcePrefs[prefKey]||'itunes')}</button></div></td>
+      <td class="thumb-cell"><div class="thumb-wrap"><div id="${imgId}"><div class="thumb-initials">${esc(initials(album))}</div></div><button id="srcbtn-${imgId}" class="img-src-btn" data-imgid="${imgId}" data-type="album" data-prefkey="${esc(prefKey)}" data-name="${esc(album)}" data-artist="${esc(artist)}" data-album="${esc(album)}">${srcLabel(itemSourcePrefs[prefKey]||'deezer')}</button></div></td>
       <td>
         <div class="song-title">${esc(album)}${pk ? peakBadge(pk) : ''}${certBadge(count,'album')}</div>
         <div class="song-artist">${esc(artist)}</div>
@@ -3833,9 +3892,9 @@ function openAlbumModal(albumKey) {
   // Image
   const imgEl = document.getElementById('albumModalImg');
   const prefKey = 'album:' + artistName.toLowerCase() + '|||' + albumName.toLowerCase();
-  const source = itemSourcePrefs[prefKey] || 'itunes';
+  const source = itemSourcePrefs[prefKey] || 'deezer';
   const cacheKey = 'album:' + albumName.toLowerCase() + ':' + source;
-  const cached = imgCache[cacheKey] || imgCache['album:' + albumName.toLowerCase() + ':itunes'];
+  const cached = imgCache[cacheKey] || imgCache['album:' + albumName.toLowerCase() + ':deezer'];
   if (cached) {
     imgEl.innerHTML = `<img class="modal-artist-img" src="${esc(cached)}" alt="" onerror="this.outerHTML='<div class=modal-artist-initials>${esc(initials(albumName))}</div>'">`;
   } else {
