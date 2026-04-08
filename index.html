@@ -857,6 +857,126 @@
   .cert-icon    { font-size: 10px; }
 
   /* ARTIST MODAL OVERLAY */
+  /* EXPORT PLAYLIST BUTTON */
+  .export-playlist-btn {
+    display: none;
+    align-items: center;
+    gap: 0.4rem;
+    margin: 0 0 1.5rem auto;
+    background: none;
+    border: 1px solid var(--border2);
+    color: var(--text2);
+    font-family: 'DM Mono', monospace;
+    font-size: 0.68rem;
+    letter-spacing: 0.07em;
+    padding: 0.35rem 0.85rem;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background 0.12s, color 0.12s, border-color 0.12s;
+  }
+  .export-playlist-btn:hover { background: var(--surface); color: var(--text); border-color: var(--accent); }
+
+  /* EXPORT MODAL */
+  .export-modal-box {
+    background: var(--bg2);
+    border: 1px solid var(--border2);
+    border-radius: 12px;
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 1.5rem;
+  }
+  .export-modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1rem;
+  }
+  .export-modal-title {
+    font-family: 'DM Serif Display', serif;
+    font-size: 1.2rem;
+    color: var(--text);
+  }
+  .export-modal-subtitle {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.62rem;
+    color: var(--text3);
+    letter-spacing: 0.06em;
+    margin-bottom: 1rem;
+  }
+  .export-tracklist {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 0.75rem;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.68rem;
+    color: var(--text2);
+    max-height: 260px;
+    overflow-y: auto;
+    white-space: pre;
+    line-height: 1.7;
+    margin-bottom: 1rem;
+    user-select: all;
+  }
+  .export-actions {
+    display: flex;
+    gap: 0.6rem;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  .export-btn {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.68rem;
+    letter-spacing: 0.06em;
+    padding: 0.38rem 0.9rem;
+    border-radius: 5px;
+    cursor: pointer;
+    border: 1px solid var(--border2);
+    transition: background 0.12s, color 0.12s;
+  }
+  .export-btn-copy { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .export-btn-copy:hover { background: var(--accent2); border-color: var(--accent2); }
+  .export-btn-dl   { background: none; color: var(--text2); }
+  .export-btn-dl:hover { background: var(--surface); color: var(--text); }
+  .export-btn-soundiiz { background: none; color: var(--teal); border-color: var(--teal); }
+  .export-btn-soundiiz:hover { background: rgba(56,189,248,0.1); }
+  .export-name-section {
+    margin-bottom: 0.85rem;
+  }
+  .export-name-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.6rem;
+    letter-spacing: 0.08em;
+    color: var(--text3);
+    margin-bottom: 0.4rem;
+  }
+  .export-name-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+  }
+  .export-name-chip {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.65rem;
+    background: var(--bg3);
+    border: 1px solid var(--border2);
+    border-radius: 4px;
+    padding: 0.2rem 0.55rem;
+    cursor: pointer;
+    color: var(--text2);
+    transition: background 0.12s, color 0.12s, border-color 0.12s;
+  }
+  .export-name-chip:hover { background: var(--surface); color: var(--text); border-color: var(--accent); }
+  .export-name-chip.copied { border-color: var(--green); color: var(--green); }
+
+  .export-note {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.6rem;
+    color: var(--text3);
+    margin-top: 0.75rem;
+    line-height: 1.6;
+  }
+
   .modal-overlay {
     display: none;
     position: fixed;
@@ -1532,6 +1652,8 @@
 
   <div class="stats-strip" id="statsStrip"></div>
 
+  <button class="export-playlist-btn" id="exportPlaylistBtn" onclick="openExportModal()">♫ EXPORT PLAYLIST</button>
+
   <div class="chart-section" id="songsSection">
     <div class="section-header">
       <button class="section-collapse-btn" data-target="songsSection" title="Collapse">−</button>
@@ -1697,6 +1819,40 @@
 <div class="page-footer">
   dankstation.fm · Erwin's Personal Music Charts · Est. 2016<br>
   All data stays in your browser. Nothing is uploaded or stored externally.
+</div>
+
+<!-- EXPORT PLAYLIST MODAL -->
+<div class="modal-overlay" id="exportModal" onclick="if(event.target===this)closeExportModal()">
+  <div class="export-modal-box">
+    <div class="export-modal-header">
+      <div class="export-modal-title">♫ Export Playlist</div>
+      <button class="modal-close" id="exportModalClose" onclick="closeExportModal()">✕ CLOSE</button>
+    </div>
+    <div class="export-modal-subtitle" id="exportModalSubtitle"></div>
+    <div class="export-name-section" id="exportNameSection">
+      <div class="export-name-label">SUGGESTED PLAYLIST NAMES — click to copy</div>
+      <div class="export-name-chips" id="exportNameChips"></div>
+    </div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.4rem">
+      <span style="font-family:'DM Mono',monospace;font-size:0.6rem;letter-spacing:0.08em;color:var(--text3)">TRACK ORDER</span>
+      <button class="export-name-chip" id="exportOrderBtn" onclick="toggleExportOrder()" style="font-size:0.62rem">▲ #1 First</button>
+    </div>
+    <div class="export-tracklist" id="exportTracklist"></div>
+    <div class="export-actions">
+      <button class="export-btn export-btn-copy" onclick="exportCopy()">⎘ COPY TO CLIPBOARD</button>
+      <button class="export-btn export-btn-dl" onclick="exportDownload()">↓ DOWNLOAD .TXT</button>
+      <a class="export-btn export-btn-soundiiz" href="https://soundiiz.com/login" target="_blank" rel="noopener">↗ GO TO SOUNDIIZ</a>
+    </div>
+    <div class="export-note">
+      <strong style="color:var(--text2)">How to import in Soundiiz:</strong><br>
+      1. Log in to Soundiiz → click <strong>Import Playlist</strong> (top right)<br>
+      2. To paste: select <strong>From Plain Text</strong> → paste the copied list<br>
+      &nbsp;&nbsp;&nbsp;To upload: select <strong>From File</strong> → upload the downloaded .txt<br>
+      3. Choose your target platform (Spotify, Deezer, YouTube Music, Apple Music…)<br>
+      4. Confirm to create the playlist<br><br>
+      Format used: <strong>Artist - Title</strong> (one track per line).
+    </div>
+  </div>
 </div>
 
 <!-- ALBUM PROFILE MODAL -->
@@ -2353,6 +2509,7 @@ document.getElementById('periodNav').addEventListener('click', e => {
     currentPeriod = 'rawdata';
     document.getElementById('chartSizeBar').style.display = 'none';
     document.getElementById('paginatedSizeBar').style.display = 'none';
+    document.getElementById('exportPlaylistBtn').style.display = 'none';
     document.getElementById('dateNav').style.display = 'none';
     document.getElementById('statsStrip').style.display = 'none';
     document.getElementById('songsSection').style.display = 'none';
@@ -2737,6 +2894,7 @@ function renderAll() {
     renderAlbums(plays, peaks, periodStats);
     renderDropouts(plays, periodStats);
   }
+  updateExportBtn();
 }
 
 // ─── TIE-BREAKING SORT ─────────────────────────────────────────
@@ -3721,6 +3879,178 @@ function certBadge(plays, type) {
   if (plays >= t.plat) return `<span class="cert cert-plat"><span class="cert-icon">💿</span>PLATINUM</span>`;
   if (plays >= t.gold) return `<span class="cert cert-gold"><span class="cert-icon">⭐</span>GOLD</span>`;
   return '';
+}
+
+// ─── EXPORT PLAYLIST ───────────────────────────────────────────
+function getCurrentChartSongs() {
+  // Returns [{title, artist}] for all songs currently visible in the chart
+  if (isPaginated()) {
+    // Yearly / All-Time: use fullData.songs (already limited by chart view setting)
+    return fullData.songs.map(s => ({ title: s.title, artist: s.artist }));
+  }
+  // Weekly / Monthly: re-derive from the current plays (same as renderSongs does)
+  const { start, end } = getDateRange();
+  const plays = currentPeriod === 'alltime'
+    ? allPlays
+    : allPlays.filter(p => p.date >= start && p.date <= end);
+  const counts = {};
+  for (const p of plays) {
+    const k = songKey(p);
+    if (!counts[k]) counts[k] = { title: p.title, artist: p.artist, count: 0, firstAchieved: p.date };
+    counts[k].count++;
+  }
+  return Object.values(counts).sort(rankSort).slice(0, chartSize)
+    .map(s => ({ title: s.title, artist: s.artist }));
+}
+
+let exportReversed = false;
+
+function buildExportText(songs) {
+  const list = exportReversed ? [...songs].reverse() : songs;
+  return list.map(s => `${s.artist} - ${s.title}`).join('\n');
+}
+
+function toggleExportOrder() {
+  exportReversed = !exportReversed;
+  const btn = document.getElementById('exportOrderBtn');
+  btn.textContent = exportReversed ? '▼ #1 Last' : '▲ #1 First';
+  // Re-render tracklist with current songs
+  const songs = getCurrentChartSongs();
+  document.getElementById('exportTracklist').textContent = buildExportText(songs);
+}
+
+function generatePlaylistNames(songs, periodName) {
+  const names = new Set();
+  const { label, sub } = getDateRange();
+  const weekLabel = currentPeriod === 'week' ? sub : label; // sub has actual dates e.g. "Apr 5 – Apr 11, 2026"
+
+  // ── Chart-based names ──
+  if (currentPeriod === 'week') {
+    names.add(`Top ${songs.length} - Week of ${weekLabel}`);
+    names.add(`My Week · ${weekLabel}`);
+    names.add(`Weekly Picks · ${weekLabel}`);
+    names.add(`Chart Hits · ${weekLabel}`);
+  } else if (currentPeriod === 'month') {
+    names.add(`Top ${songs.length} - ${label}`);
+    names.add(`${label} Favorites`);
+    names.add(`${label} Playlist`);
+    names.add(`Best of ${label}`);
+  } else if (currentPeriod === 'year') {
+    names.add(`Top ${songs.length} - ${label}`);
+    names.add(`Best of ${label}`);
+    names.add(`${label} Highlights`);
+    names.add(`My ${label} Soundtrack`);
+    names.add(`${label} Chart`);
+  } else if (currentPeriod === 'alltime') {
+    names.add(`Top ${songs.length} All-Time`);
+    names.add(`My All-Time Favorites`);
+    names.add(`All-Time Greatest`);
+    names.add(`The Definitive Playlist`);
+  }
+
+  // ── Artist-based names ──
+  // Count plays per artist across the song list
+  const artistCount = {};
+  for (const s of songs) {
+    const primary = s.artist.split(',')[0].trim();
+    artistCount[primary] = (artistCount[primary] || 0) + 1;
+  }
+  const topArtists = Object.entries(artistCount)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 3)
+    .map(([a]) => a);
+
+  const [a1, a2, a3] = topArtists;
+  const a1Share = a1 ? artistCount[a1] / songs.length : 0;
+
+  if (a1 && a1Share >= 0.5) {
+    // One artist dominates
+    names.add(`Best of ${a1}`);
+    names.add(`${a1} · Top Tracks`);
+    names.add(`${a1} Essentials`);
+  } else if (a1 && a2 && a1Share >= 0.25) {
+    names.add(`${a1} & More`);
+    names.add(`${a1} · ${a2} Mix`);
+  } else if (a1 && a2 && a3) {
+    names.add(`${a1}, ${a2} & More`);
+    names.add(`feat. ${a1} · ${a2} · ${a3}`);
+  } else if (a1 && a2) {
+    names.add(`${a1} & ${a2} Mix`);
+  }
+
+  // ── Song count flavour ──
+  const n = songs.length;
+  if (n <= 10)       names.add(`The Top ${n}`);
+  else if (n <= 50)  names.add(`Top ${n} Picks`);
+  else               names.add(`Top ${n} Tracks`);
+
+  return [...names];
+}
+
+function openExportModal() {
+  const songs = getCurrentChartSongs();
+  const { label } = getDateRange();
+  const periodName = currentPeriod === 'alltime' ? 'All-Time' :
+                     currentPeriod === 'year'    ? label :
+                     currentPeriod === 'month'   ? label :
+                     currentPeriod === 'week'    ? `Week of ${label}` : label;
+
+  document.getElementById('exportModalSubtitle').textContent =
+    `${songs.length} songs · ${periodName} chart`;
+
+  // Playlist name suggestions
+  const names = generatePlaylistNames(songs, periodName);
+  document.getElementById('exportNameChips').innerHTML = names.map(name =>
+    `<button class="export-name-chip" onclick="copyChipName(this,'${esc(name)}')">${esc(name)}</button>`
+  ).join('');
+
+  exportReversed = false;
+  document.getElementById('exportOrderBtn').textContent = '▲ #1 First';
+  document.getElementById('exportTracklist').textContent = buildExportText(songs);
+
+  document.getElementById('exportModal').classList.add('open');
+}
+
+function copyChipName(btn, name) {
+  navigator.clipboard.writeText(name).then(() => {
+    btn.classList.add('copied');
+    const orig = btn.textContent;
+    btn.textContent = '✓ ' + orig;
+    setTimeout(() => { btn.textContent = orig; btn.classList.remove('copied'); }, 2000);
+  });
+}
+
+function closeExportModal() {
+  document.getElementById('exportModal').classList.remove('open');
+}
+
+function exportCopy() {
+  const text = document.getElementById('exportTracklist').textContent;
+  navigator.clipboard.writeText(text).then(() => {
+    const btn = document.querySelector('.export-btn-copy');
+    const orig = btn.textContent;
+    btn.textContent = '✓ COPIED!';
+    setTimeout(() => btn.textContent = orig, 2000);
+  });
+}
+
+function exportDownload() {
+  const text = document.getElementById('exportTracklist').textContent;
+  const subtitle = document.getElementById('exportModalSubtitle').textContent;
+  const name = 'playlist-' + subtitle.replace(/[^a-z0-9]+/gi, '-').toLowerCase() + '.txt';
+  const a = document.createElement('a');
+  a.href = 'data:text/plain;charset=utf-8,' + encodeURIComponent(text);
+  a.download = name;
+  a.click();
+}
+
+// Show/hide export button — only when there are songs to export
+function updateExportBtn() {
+  const btn = document.getElementById('exportPlaylistBtn');
+  if (!btn) return;
+  const isAllEntries = isPaginated() && !isFinite(chartSizePaginated);
+  const show = currentPeriod !== 'rawdata' && allPlays.length > 0 && !isAllEntries;
+  btn.style.display = show ? 'flex' : 'none';
 }
 
 // ─── ARTIST MODAL ──────────────────────────────────────────────
