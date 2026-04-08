@@ -1507,6 +1507,16 @@
     </div>
   </div>
 
+  <div class="chart-size-bar" id="paginatedSizeBar" style="display:none">
+    <label>Chart View:</label>
+    <div class="size-btns" id="sizeBtnsPaginated">
+      <button data-size="50">Top 50</button>
+      <button data-size="100">Top 100</button>
+      <button data-size="200">Top 200</button>
+      <button data-size="0" class="active">All Entries</button>
+    </div>
+  </div>
+
   <div class="date-nav" id="dateNav">
     <button id="prevBtn">◄ Prev</button>
     <div class="date-nav-center">
@@ -1743,6 +1753,7 @@ const savedOffsets = { week: 0, month: 0, year: 0, alltime: 0 };
 let chartSize = 10;
 let chartSizeWeekly = 10;
 let chartSizeMonthly = 50;
+let chartSizePaginated = Infinity; // 0 = All Entries
 const PAGE_SIZE = 100;
 const pageState = { songs: 0, artists: 0, albums: 0 };
 const fullData = { songs: [], artists: [], albums: [] };
@@ -2308,6 +2319,17 @@ document.getElementById('sizeBtnsMonthly').addEventListener('click', e => {
   renderAll();
 });
 
+document.getElementById('sizeBtnsPaginated').addEventListener('click', e => {
+  const btn = e.target.closest('button');
+  if (!btn) return;
+  document.querySelectorAll('#sizeBtnsPaginated button').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  const v = parseInt(btn.dataset.size);
+  chartSizePaginated = v === 0 ? Infinity : v;
+  ['songs','artists','albums'].forEach(t => { searchState[t] = ''; const inp = document.getElementById(t + 'SearchInput'); if (inp) inp.value = ''; pageState[t] = 0; });
+  renderAll();
+});
+
 // ─── SECTION COLLAPSE ──────────────────────────────────────────
 document.addEventListener('click', e => {
   const btn = e.target.closest('.section-collapse-btn');
@@ -2330,6 +2352,7 @@ document.getElementById('periodNav').addEventListener('click', e => {
     savedOffsets[currentPeriod] = currentOffset;
     currentPeriod = 'rawdata';
     document.getElementById('chartSizeBar').style.display = 'none';
+    document.getElementById('paginatedSizeBar').style.display = 'none';
     document.getElementById('dateNav').style.display = 'none';
     document.getElementById('statsStrip').style.display = 'none';
     document.getElementById('songsSection').style.display = 'none';
@@ -2616,6 +2639,7 @@ function renderAll() {
   // Show/hide chart size bar and switch between weekly/monthly size buttons
   const paginated = isPaginated();
   document.getElementById('chartSizeBar').style.display = paginated ? 'none' : 'flex';
+  document.getElementById('paginatedSizeBar').style.display = paginated ? 'flex' : 'none';
   // Show/hide search bars; clear search state on period change
   ['songs','artists','albums'].forEach(t => {
     const el = document.getElementById(t + 'Search');
@@ -2679,18 +2703,21 @@ function renderAll() {
   if (currentPeriod === 'week' || currentPeriod === 'month' || currentPeriod === 'year') buildChartRun(currentPeriod);
 
   if (isPaginated()) {
-    // Build full sorted datasets and store for pagination
-    fullData.songs   = buildSongsFull(plays);
-    fullData.artists = buildArtistsFull(plays);
-    fullData.albums  = buildAlbumsFull(plays);
-    // Reset to page 0 when period/year changes
+    // Build full sorted datasets and apply chart view limit
+    const lim = chartSizePaginated;
+    fullData.songs   = buildSongsFull(plays).slice(0, lim);
+    fullData.artists = buildArtistsFull(plays).slice(0, lim);
+    fullData.albums  = buildAlbumsFull(plays).slice(0, lim);
+    // Reset to page 0 when period/year/view changes
     pageState.songs = 0; pageState.artists = 0; pageState.albums = 0;
 
+    const isLimited = isFinite(lim);
+    const sizeLabel = isLimited ? `Top ${lim}` : `All`;
     const totalEntries = Math.max(fullData.songs.length, fullData.artists.length, fullData.albums.length);
     const totalPages = Math.ceil(totalEntries / PAGE_SIZE);
-    document.getElementById('songsSectionTitle').textContent  = `★ Songs — All ${fullData.songs.length.toLocaleString()} Played`;
-    document.getElementById('artistsSectionTitle').textContent = `♦ Artists — All ${fullData.artists.length.toLocaleString()} Played`;
-    document.getElementById('albumsSectionTitle').textContent  = `◈ Albums — All ${fullData.albums.length.toLocaleString()} Played`;
+    document.getElementById('songsSectionTitle').textContent  = isLimited ? `★ Top ${lim} Songs`   : `★ Songs — All ${fullData.songs.length.toLocaleString()} Played`;
+    document.getElementById('artistsSectionTitle').textContent = isLimited ? `♦ Top ${lim} Artists` : `♦ Artists — All ${fullData.artists.length.toLocaleString()} Played`;
+    document.getElementById('albumsSectionTitle').textContent  = isLimited ? `◈ Top ${lim} Albums` : `◈ Albums — All ${fullData.albums.length.toLocaleString()} Played`;
 
     renderPage('songs', peaks);
     renderPage('artists', peaks);
