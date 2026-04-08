@@ -742,6 +742,46 @@
     margin-top: 0.3rem;
   }
 
+  /* PAGINATED SEARCH */
+  .paginated-search {
+    display: none;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 0.85rem 0.3rem;
+    background: var(--surface2);
+    border-bottom: 1px solid var(--border);
+  }
+  .paginated-search input {
+    flex: 1;
+    background: var(--surface);
+    border: 1px solid var(--border2);
+    border-radius: 5px;
+    color: var(--text);
+    font-family: 'DM Mono', monospace;
+    font-size: 0.72rem;
+    padding: 0.28rem 0.6rem;
+    outline: none;
+    transition: border-color 0.15s;
+  }
+  .paginated-search input:focus { border-color: var(--accent); }
+  .paginated-search input::placeholder { color: var(--text3); }
+  .paginated-search .search-count {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.6rem;
+    color: var(--text3);
+    white-space: nowrap;
+  }
+  .paginated-search .search-clear {
+    background: none;
+    border: none;
+    color: var(--text3);
+    cursor: pointer;
+    font-size: 0.75rem;
+    padding: 0 0.2rem;
+    line-height: 1;
+  }
+  .paginated-search .search-clear:hover { color: var(--text); }
+
   /* PAGINATION */
   .page-nav {
     display: flex;
@@ -1490,6 +1530,11 @@
       <div class="section-rule"></div>
     </div>
     <div class="section-sub" id="songsSubtitle">By play count for the selected period</div>
+    <div class="paginated-search" id="songsSearch">
+      <input type="text" id="songsSearchInput" placeholder="Search songs or artists…" oninput="applySearch('songs')" />
+      <span class="search-count" id="songsSearchCount"></span>
+      <button class="search-clear" onclick="clearSearch('songs')" title="Clear">✕</button>
+    </div>
     <div class="section-body">
       <table class="chart-table" id="songsTable">
         <thead>
@@ -1519,6 +1564,11 @@
       <div class="section-rule"></div>
     </div>
     <div class="section-sub">By total play count across all songs</div>
+    <div class="paginated-search" id="artistsSearch">
+      <input type="text" id="artistsSearchInput" placeholder="Search artists…" oninput="applySearch('artists')" />
+      <span class="search-count" id="artistsSearchCount"></span>
+      <button class="search-clear" onclick="clearSearch('artists')" title="Clear">✕</button>
+    </div>
     <div class="section-body">
       <table class="chart-table" id="artistsTable">
         <thead>
@@ -1548,6 +1598,11 @@
       <div class="section-rule"></div>
     </div>
     <div class="section-sub">By total play count across all tracks</div>
+    <div class="paginated-search" id="albumsSearch">
+      <input type="text" id="albumsSearchInput" placeholder="Search albums or artists…" oninput="applySearch('albums')" />
+      <span class="search-count" id="albumsSearchCount"></span>
+      <button class="search-clear" onclick="clearSearch('albums')" title="Clear">✕</button>
+    </div>
     <div class="section-body">
       <table class="chart-table" id="albumsTable">
         <thead>
@@ -1691,6 +1746,7 @@ let chartSizeMonthly = 50;
 const PAGE_SIZE = 100;
 const pageState = { songs: 0, artists: 0, albums: 0 };
 const fullData = { songs: [], artists: [], albums: [] };
+const searchState = { songs: '', artists: '', albums: '' };
 
 // ─── THEME SWITCHER ────────────────────────────────────────────
 const themeLabel = document.getElementById('themeLabel');
@@ -1745,6 +1801,12 @@ function splitArtists(artistStr) {
       return part;
     })
     .filter(a => a.length > 0);
+}
+
+// Primary artist for album grouping — always the first artist so that feat. tracks
+// don't split into a separate album entry.
+function albumArtist(p) {
+  return (p.artists && p.artists[0]) || p.artist;
 }
 
 // Key songs by title + artist only (album excluded) so the same song played as a
@@ -1979,6 +2041,8 @@ async function loadImages(items, type) {
         else if (type === 'album') url = await getAlbumImage(item.album, item.artist, source);
         else if (type === 'song') url = await getTrackImage(item.title, item.artist, source);
       } catch(e) {}
+      // Throttle Deezer requests to avoid hitting corsproxy.io rate limits
+      if (source === 'deezer') await new Promise(r => setTimeout(r, 120));
     }
     const el = document.getElementById(item.imgId);
     if (!el) continue;
@@ -2552,6 +2616,12 @@ function renderAll() {
   // Show/hide chart size bar and switch between weekly/monthly size buttons
   const paginated = isPaginated();
   document.getElementById('chartSizeBar').style.display = paginated ? 'none' : 'flex';
+  // Show/hide search bars; clear search state on period change
+  ['songs','artists','albums'].forEach(t => {
+    const el = document.getElementById(t + 'Search');
+    if (el) el.style.display = paginated ? 'flex' : 'none';
+    if (!paginated) { searchState[t] = ''; const inp = document.getElementById(t + 'SearchInput'); if (inp) inp.value = ''; }
+  });
   if (!paginated) {
     const isMonthly = currentPeriod === 'month';
     document.getElementById('sizeBtnsWeekly').style.display = isMonthly ? 'none' : 'flex';
@@ -2691,8 +2761,8 @@ function buildAlbumsFull(plays) {
   const counts = {};
   for (const p of plays) {
     if (!p.album || p.album === '—') continue;
-    const k = p.album + '|||' + p.artist;
-    if (!counts[k]) counts[k] = { album: p.album, artist: p.artist, count: 0, tracks: new Set(), firstAchieved: p.date };
+    const k = p.album + '|||' + albumArtist(p);
+    if (!counts[k]) counts[k] = { album: p.album, artist: albumArtist(p), count: 0, tracks: new Set(), firstAchieved: p.date };
     counts[k].count++;
     counts[k].tracks.add(p.title);
   }
@@ -2701,27 +2771,44 @@ function buildAlbumsFull(plays) {
 
 // ─── PAGE RENDERING ────────────────────────────────────────────
 function renderPage(type, peaks) {
-  const data = fullData[type];
+  const allData = fullData[type];
+  const data = filteredData(type);
+  const isFiltered = searchState[type].length > 0;
   const page = pageState[type];
   const totalPages = Math.ceil(data.length / PAGE_SIZE);
   const slice = data.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE);
-  const globalOffset = page * PAGE_SIZE; // position offset so rank starts at right number
-  const max = data[0]?.count || 1;
+  const max = allData[0]?.count || 1;
+
+  // Update search count
+  const countEl = document.getElementById(type + 'SearchCount');
+  if (countEl) countEl.textContent = isFiltered ? `${data.length} result${data.length !== 1 ? 's' : ''}` : '';
 
   const paginationEl = document.getElementById(type + 'Pagination');
   const labelEl = document.getElementById(type + 'PageLabel');
-  const start = globalOffset + 1;
-  const end = Math.min(globalOffset + PAGE_SIZE, data.length);
-  labelEl.textContent = `#${start}–#${end} of ${data.length.toLocaleString()}`;
-  paginationEl.style.display = 'flex';
-  paginationEl.querySelectorAll('button')[0].disabled = (page === 0);
-  paginationEl.querySelectorAll('button')[1].disabled = (page >= totalPages - 1);
+  if (isFiltered) {
+    labelEl.textContent = data.length === 0 ? 'No results' : `${data.length} result${data.length !== 1 ? 's' : ''}`;
+    paginationEl.style.display = data.length > PAGE_SIZE ? 'flex' : 'none';
+  } else {
+    const globalOffset = page * PAGE_SIZE;
+    const start = globalOffset + 1;
+    const end = Math.min(globalOffset + PAGE_SIZE, allData.length);
+    labelEl.textContent = `#${start}–#${end} of ${allData.length.toLocaleString()}`;
+    paginationEl.style.display = 'flex';
+  }
+  if (paginationEl.style.display === 'flex') {
+    paginationEl.querySelectorAll('button')[0].disabled = (page === 0);
+    paginationEl.querySelectorAll('button')[1].disabled = (page >= totalPages - 1);
+  }
+
+  // rank = actual position in full (unfiltered) dataset, always
+  const rankMap = new Map(allData.map((item, i) => [item, i + 1]));
+  const rankOf = (item) => rankMap.get(item) || 0;
 
   const hasCR = (currentPeriod === 'year');
   if (type === 'songs') {
     const imgItems = [];
     document.getElementById('songsBody').innerHTML = slice.flatMap((s, i) => {
-      const rank = globalOffset + i + 1;
+      const rank = rankOf(s);
       const imgId = 'simg-' + i;
       const prefKey = 'song:' + s.artist.toLowerCase() + '|||' + s.title.toLowerCase();
       const k = songKey(s);
@@ -2748,7 +2835,7 @@ function renderPage(type, peaks) {
   } else if (type === 'artists') {
     const imgItems = [];
     document.getElementById('artistsBody').innerHTML = slice.flatMap((a, i) => {
-      const rank = globalOffset + i + 1;
+      const rank = rankOf(a);
       const imgId = 'aimg-' + i;
       const prefKey = 'artist:' + a.name.toLowerCase();
       const rowId = 'crr-yartist-' + i;
@@ -2774,14 +2861,15 @@ function renderPage(type, peaks) {
       document.getElementById('albumsBody').innerHTML = `<tr><td colspan="5"><div class="empty-state"><p>No album data found.</p></div></td></tr>`;
     } else {
       document.getElementById('albumsBody').innerHTML = slice.flatMap((a, i) => {
-        const rank = globalOffset + i + 1;
+        const rank = rankOf(a);
         const imgId = 'limg-' + i;
         const ak = a.album + '|||' + a.artist;
         const prefKey = 'album:' + a.artist.toLowerCase() + '|||' + a.album.toLowerCase();
         const rowId = 'crr-yalbum-' + i;
+        const hasCR = chartRunData && !!chartRunData.result.albums[ak];
         imgItems.push({ imgId, album: a.album, artist: a.artist, name: a.album, prefKey });
         const mainRow = `<tr class="${rank===1?'rank-1':rank===2?'rank-2':rank===3?'rank-3':''} album-row" data-albumkey="${esc(ak)}" onclick="openAlbumModal(this.dataset.albumkey)">
-        <td class="rank-cell">${hasCR?`<button class="cr-toggle-btn" onclick="toggleChartRun(this,'${rowId}')">⊞</button>`:''}${rank}</td>
+        <td class="rank-cell">${hasCR?`<button class="cr-toggle-btn" onclick="toggleChartRun(this,'${rowId}')">📊</button>`:''}${rank}</td>
         <td class="thumb-cell"><div class="thumb-wrap"><div id="${imgId}"><div class="thumb-initials">${esc(initials(a.album))}</div></div><button id="srcbtn-${imgId}" class="img-src-btn" data-imgid="${imgId}" data-type="album" data-prefkey="${esc(prefKey)}" data-name="${esc(a.album)}" data-artist="${esc(a.artist)}" data-album="${esc(a.album)}">${srcLabel(itemSourcePrefs[prefKey]||'deezer')}</button></div></td>
         <td>
           <div class="song-title">${esc(a.album)}${certBadge(a.count,'album')}</div>
@@ -2800,6 +2888,33 @@ function renderPage(type, peaks) {
     }
     loadImages(imgItems, 'album');
   }
+}
+
+function applySearch(type) {
+  const q = document.getElementById(type + 'SearchInput').value.trim().toLowerCase();
+  searchState[type] = q;
+  pageState[type] = 0;
+  const peaks = buildPeaks();
+  renderPage(type, peaks);
+}
+
+function clearSearch(type) {
+  document.getElementById(type + 'SearchInput').value = '';
+  searchState[type] = '';
+  pageState[type] = 0;
+  const peaks = buildPeaks();
+  renderPage(type, peaks);
+}
+
+function filteredData(type) {
+  const q = searchState[type];
+  if (!q) return fullData[type];
+  if (type === 'songs') return fullData[type].filter(s =>
+    s.title.toLowerCase().includes(q) || s.artist.toLowerCase().includes(q) || (s.album || '').toLowerCase().includes(q));
+  if (type === 'artists') return fullData[type].filter(a => a.name.toLowerCase().includes(q));
+  if (type === 'albums') return fullData[type].filter(a =>
+    a.album.toLowerCase().includes(q) || a.artist.toLowerCase().includes(q));
+  return fullData[type];
 }
 
 function changePage(type, dir) {
@@ -2845,8 +2960,8 @@ function buildChartRun(period) {
       if (!pm.artists[a]) { pm.artists[a] = { count:0, firstAchieved:p.date }; pm.dayArtists[a] = new Set(); }
       pm.artists[a].count++; pm.dayArtists[a].add(dayStr);
     }
-    const ak = p.album + '|||' + p.artist;
-    if (!pm.albums[ak]) { pm.albums[ak] = { count:0, firstAchieved:p.date, _album:p.album, _artist:p.artist }; pm.dayAlbums[ak] = new Set(); }
+    const ak = p.album + '|||' + albumArtist(p);
+    if (!pm.albums[ak]) { pm.albums[ak] = { count:0, firstAchieved:p.date, _album:p.album, _artist:albumArtist(p) }; pm.dayAlbums[ak] = new Set(); }
     pm.albums[ak].count++; pm.dayAlbums[ak].add(dayStr);
     // For yearly: track unique months per item per year
     if (period === 'year') {
@@ -2877,7 +2992,7 @@ function buildChartRun(period) {
       for (const [k, data] of Object.entries(pm[type])) {
         data.chartStatus = prevChartKeys[type].has(k) ? 0 : everChartedKeys[type].has(k) ? 1 : 2;
       }
-      const ranked = Object.entries(pm[type]).sort(([,a],[,b]) => rankSortWithStatus(a,b)).slice(0, chartSize);
+      const ranked = Object.entries(pm[type]).sort(([,a],[,b]) => rankSortWithStatus(a,b)).slice(0, period === 'year' ? Infinity : chartSize);
       // Update prev/ever sets for next period
       const newPrevKeys = new Set();
       ranked.forEach(([k]) => { newPrevKeys.add(k); everChartedKeys[type].add(k); });
@@ -2945,8 +3060,8 @@ function crStats(type, key, period) {
     <div class="cr-stat"><strong>${d.peakDays}</strong>Peak Days in a Month</div>`;
   } else if (period === 'year') {
     html += `
-    <div class="cr-stat"><strong>${d.peakMonths}</strong>Peak Months in a Year</div>
-    <div class="cr-stat"><strong>${d.peakDays}</strong>Peak Days in a Year</div>`;
+    <div class="cr-stat"><strong>${d.peakMonths}</strong>Months Peak (Best Year)</div>
+    <div class="cr-stat"><strong>${d.peakDays}</strong>Days Peak (Best Year)</div>`;
   }
   return html;
 }
@@ -3106,7 +3221,7 @@ function buildPeriodStats(period) {
       if (!mm.artists[a]) mm.artists[a] = { count: 0, firstAchieved: p.date };
       mm.artists[a].count++;
     }
-    const ak = p.album + '|||' + p.artist;
+    const ak = p.album + '|||' + albumArtist(p);
     if (!mm.albums[ak]) mm.albums[ak] = { count: 0, firstAchieved: p.date };
     mm.albums[ak].count++;
   }
@@ -3191,7 +3306,7 @@ function buildAllTimePeaks() {
   // Albums — rank within top chartSize
   const lp = {};
   for (const p of allPlays) {
-    const k = p.album + '|||' + p.artist;
+    const k = p.album + '|||' + albumArtist(p);
     if (!lp[k]) lp[k] = { count: 0, firstAchieved: p.date };
     lp[k].count++;
   }
@@ -3246,7 +3361,7 @@ function buildPeriodPeaks(period) {
       pm.artists[a].count++;
     }
 
-    const ak = p.album + '|||' + p.artist;
+    const ak = p.album + '|||' + albumArtist(p);
     if (!pm.albums[ak]) pm.albums[ak] = { count: 0, firstAchieved: p.date };
     pm.albums[ak].count++;
   }
@@ -3396,8 +3511,8 @@ function renderArtists(plays, peaks, monthlyStats) {
 function renderAlbums(plays, peaks, monthlyStats) {
   const counts = {};
   for (const p of plays) {
-    const k = p.album + '|||' + p.artist;
-    if (!counts[k]) counts[k] = { album: p.album, artist: p.artist, count: 0, tracks: new Set(), firstAchieved: p.date };
+    const k = p.album + '|||' + albumArtist(p);
+    if (!counts[k]) counts[k] = { album: p.album, artist: albumArtist(p), count: 0, tracks: new Set(), firstAchieved: p.date };
     counts[k].count++;
     counts[k].tracks.add(p.title);
   }
@@ -3427,7 +3542,7 @@ function renderAlbums(plays, peaks, monthlyStats) {
       const rowId = 'crr-album-' + i;
       imgItems.push({ imgId, album, artist, name: album, prefKey });
       const mainRow = `<tr class="${i===0?'rank-1':i===1?'rank-2':i===2?'rank-3':''} album-row" data-albumkey="${esc(ak)}" onclick="openAlbumModal(this.dataset.albumkey)">
-      <td class="rank-cell"><button class="cr-toggle-btn" onclick="toggleChartRun(this,'${rowId}')">⊞</button>${i+1}</td>
+      <td class="rank-cell"><button class="cr-toggle-btn" onclick="toggleChartRun(this,'${rowId}')">📊</button>${i+1}</td>
       <td class="thumb-cell"><div class="thumb-wrap"><div id="${imgId}"><div class="thumb-initials">${esc(initials(album))}</div></div><button id="srcbtn-${imgId}" class="img-src-btn" data-imgid="${imgId}" data-type="album" data-prefkey="${esc(prefKey)}" data-name="${esc(album)}" data-artist="${esc(artist)}" data-album="${esc(album)}">${srcLabel(itemSourcePrefs[prefKey]||'deezer')}</button></div></td>
       <td>
         <div class="song-title">${esc(album)}${pk ? peakBadge(pk) : ''}${certBadge(count,'album')}</div>
@@ -3471,7 +3586,7 @@ function renderDropouts(plays, periodStats) {
   const lc = {};
   for (const p of plays) {
     if (!p.album || p.album === '—') continue;
-    const k = p.album + '|||' + p.artist;
+    const k = p.album + '|||' + albumArtist(p);
     lc[k] = (lc[k] || 0) + 1;
   }
   Object.entries(lc).sort((a,b)=>b[1]-a[1]).slice(0, chartSize).forEach(([k]) => curAlbumKeys.add(k));
@@ -3494,8 +3609,8 @@ function renderDropouts(plays, periodStats) {
   for (const p of allPlays) {
     const sk = songKey(p);
     if (!songNames[sk]) songNames[sk] = { title: p.title, artist: p.artist };
-    const ak = p.album + '|||' + p.artist;
-    if (!albumNames[ak]) albumNames[ak] = { album: p.album, artist: p.artist };
+    const ak = p.album + '|||' + albumArtist(p);
+    if (!albumNames[ak]) albumNames[ak] = { album: p.album, artist: albumArtist(p) };
   }
 
   function dropRows(entries, type) {
@@ -3851,7 +3966,7 @@ function findAlbumNo1Weeks(albumKey) {
   for (const p of allPlays) {
     if (!p.album || p.album === '—') continue;
     const key = playWeekKey(p.date);
-    const ak = p.album + '|||' + p.artist;
+    const ak = p.album + '|||' + albumArtist(p);
     if (!weekMap[key]) weekMap[key] = { sunday: new Date(key + 'T00:00:00'), albums: {} };
     weekMap[key].albums[ak] = (weekMap[key].albums[ak] || 0) + 1;
   }
@@ -3865,7 +3980,7 @@ function findAlbumNo1Weeks(albumKey) {
 
 function openAlbumModal(albumKey) {
   const [albumName, artistName] = albumKey.split('|||');
-  const albumPlays = allPlays.filter(p => (p.album + '|||' + p.artist) === albumKey);
+  const albumPlays = allPlays.filter(p => (p.album + '|||' + albumArtist(p)) === albumKey);
   const totalPlays = albumPlays.length;
 
   // Tracks — allPlays sorted newest→oldest, so first = lastPlayed, last = firstPlayed
@@ -4004,7 +4119,7 @@ function openAlbumModal(albumKey) {
         const hasCR = chartRunData && chartRunData.result.songs[crKey];
         const rowId = 'alb-cr-track-' + i;
         const mainRow = `<tr>
-          <td>${hasCR ? `<button class="cr-toggle-btn" onclick="event.stopPropagation();toggleChartRun(this,'${rowId}')">⊞</button>` : ''}</td>
+          <td>${hasCR ? `<button class="cr-toggle-btn" onclick="event.stopPropagation();toggleChartRun(this,'${rowId}')">📊</button>` : ''}</td>
           <td class="modal-rank-col">${pk ? '#' + pk : '—'}</td>
           <td>
             <div class="song-title">${esc(s.title)}${pk ? peakBadge(pk) : ''}${certBadge(s.count,'song')}</div>
