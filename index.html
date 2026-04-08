@@ -3256,14 +3256,24 @@ function buildPeriodStats(period) {
   const periodsOnChart = { songs: {}, artists: {}, albums: {} };
   const everChartedBefore = { songs: new Set(), artists: new Set(), albums: new Set() };
   const prevChart = { songs: {}, artists: {}, albums: {} };
+  // Must track prev/ever sets in order to assign chartStatus for rankSortWithStatus,
+  // so ties are broken by seniority — matching buildChartRun and the render functions exactly.
+  const bpsEver = { songs: new Set(), artists: new Set(), albums: new Set() };
+  const bpsPrev = { songs: new Set(), artists: new Set(), albums: new Set() };
 
   for (const [mk, mm] of Object.entries(periodMap).sort((a, b) => a[0].localeCompare(b[0]))) {
     for (const type of ['songs', 'artists', 'albums']) {
-      Object.entries(mm[type]).sort(([,a],[,b]) => rankSort(a, b)).slice(0, chartSize).forEach(([k, data], i) => {
+      for (const [k, data] of Object.entries(mm[type])) {
+        data.chartStatus = bpsPrev[type].has(k) ? 0 : bpsEver[type].has(k) ? 1 : 2;
+      }
+      const newPrev = new Set();
+      Object.entries(mm[type]).sort(([,a],[,b]) => rankSortWithStatus(a, b)).slice(0, chartSize).forEach(([k, data], i) => {
+        newPrev.add(k); bpsEver[type].add(k);
         periodsOnChart[type][k] = (periodsOnChart[type][k] || 0) + 1;
         if (mk < curKey) everChartedBefore[type].add(k);
         if (mk === prevKey) prevChart[type][k] = { rank: i + 1, count: data.count };
       });
+      bpsPrev[type] = newPrev;
     }
   }
 
@@ -3397,20 +3407,27 @@ function buildPeriodPeaks(period) {
   const artistPeakMap = {};
   const albumPeakMap = {};
 
-  for (const [pKey, pm] of Object.entries(periodMap)) {
-    if (pKey === curKey) continue; // current period handled by render reconciliation (uses correct rankSortWithStatus)
-    Object.entries(pm.songs).sort(([,a],[,b]) => rankSort(a, b)).slice(0, chartSize).forEach(([k], i) => {
-      const rank = i + 1;
-      if (!songPeakMap[k] || rank < songPeakMap[k]) songPeakMap[k] = rank;
-    });
-    Object.entries(pm.artists).sort(([,a],[,b]) => rankSort(a, b)).slice(0, chartSize).forEach(([name], i) => {
-      const rank = i + 1;
-      if (!artistPeakMap[name] || rank < artistPeakMap[name]) artistPeakMap[name] = rank;
-    });
-    Object.entries(pm.albums).sort(([,a],[,b]) => rankSort(a, b)).slice(0, chartSize).forEach(([k], i) => {
-      const rank = i + 1;
-      if (!albumPeakMap[k] || rank < albumPeakMap[k]) albumPeakMap[k] = rank;
-    });
+  // Must use rankSortWithStatus with proper prev/ever tracking so tie-breaking matches
+  // what the render functions display — otherwise a seniority-based #2 could be recorded as #1.
+  const ppEver = { songs: new Set(), artists: new Set(), albums: new Set() };
+  const ppPrev = { songs: new Set(), artists: new Set(), albums: new Set() };
+
+  for (const [pKey, pm] of Object.entries(periodMap).sort((a, b) => a[0].localeCompare(b[0]))) {
+    if (pKey === curKey) continue; // current period handled by render reconciliation
+    for (const type of ['songs', 'artists', 'albums']) {
+      for (const [k, data] of Object.entries(pm[type])) {
+        data.chartStatus = ppPrev[type].has(k) ? 0 : ppEver[type].has(k) ? 1 : 2;
+      }
+      const newPrev = new Set();
+      Object.entries(pm[type]).sort(([,a],[,b]) => rankSortWithStatus(a, b)).slice(0, chartSize).forEach(([k], i) => {
+        newPrev.add(k); ppEver[type].add(k);
+        const rank = i + 1;
+        if (type === 'songs')   { if (!songPeakMap[k]   || rank < songPeakMap[k])   songPeakMap[k]   = rank; }
+        if (type === 'artists') { if (!artistPeakMap[k] || rank < artistPeakMap[k]) artistPeakMap[k] = rank; }
+        if (type === 'albums')  { if (!albumPeakMap[k]  || rank < albumPeakMap[k])  albumPeakMap[k]  = rank; }
+      });
+      ppPrev[type] = newPrev;
+    }
   }
 
   return { songPeakMap, artistPeakMap, albumPeakMap };
