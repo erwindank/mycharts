@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>dankstation.fm — Erwin's Personal Music Charts</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <style>
   /* ── NAVY DARK (default) ── */
   :root {
@@ -1124,6 +1125,40 @@
   .page-nav button:disabled { opacity: 0.3; cursor: default; }
   .page-nav span { color: var(--text3); }
 
+  /* SHARE AS IMAGE BUTTONS */
+  .ig-share-bar {
+    display: none;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.6rem 0.85rem 0.2rem;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.6rem;
+    color: var(--text3);
+    letter-spacing: 0.08em;
+  }
+  .ig-share-bar.visible { display: flex; }
+  .ig-share-btn {
+    background: none;
+    border: 1px solid var(--border2);
+    color: var(--text2);
+    font-family: 'DM Mono', monospace;
+    font-size: 0.62rem;
+    letter-spacing: 0.06em;
+    padding: 0.25rem 0.75rem;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background 0.12s, color 0.12s, font-weight 0.12s;
+  }
+  .ig-share-btn:hover { background: var(--accent); color: #fff; font-weight: 700; border-color: var(--accent); }
+
+  /* OFF-SCREEN CARD CANVAS */
+  #igCardCanvas {
+    position: fixed;
+    left: -9999px;
+    top: 0;
+    pointer-events: none;
+  }
+
   /* UPCOMING RELEASES */
   .upcoming-status {
     font-family: 'DM Mono', monospace;
@@ -2109,6 +2144,11 @@
         <span id="songsPageLabel"></span>
         <button onclick="changePage('songs',1)">NEXT ►</button>
       </div>
+      <div class="ig-share-bar" id="songsShareBar">
+        <span>SHARE:</span>
+        <button class="ig-share-btn" onclick="generateIgImage('songs','post')">📷 Post (1:1)</button>
+        <button class="ig-share-btn" onclick="generateIgImage('songs','story')">📱 Story (9:16)</button>
+      </div>
     </div>
   </div>
 
@@ -2143,6 +2183,11 @@
         <span id="artistsPageLabel"></span>
         <button onclick="changePage('artists',1)">NEXT ►</button>
       </div>
+      <div class="ig-share-bar" id="artistsShareBar">
+        <span>SHARE:</span>
+        <button class="ig-share-btn" onclick="generateIgImage('artists','post')">📷 Post (1:1)</button>
+        <button class="ig-share-btn" onclick="generateIgImage('artists','story')">📱 Story (9:16)</button>
+      </div>
     </div>
   </div>
 
@@ -2176,6 +2221,11 @@
         <button onclick="changePage('albums',-1)">◄ PREV</button>
         <span id="albumsPageLabel"></span>
         <button onclick="changePage('albums',1)">NEXT ►</button>
+      </div>
+      <div class="ig-share-bar" id="albumsShareBar">
+        <span>SHARE:</span>
+        <button class="ig-share-btn" onclick="generateIgImage('albums','post')">📷 Post (1:1)</button>
+        <button class="ig-share-btn" onclick="generateIgImage('albums','story')">📱 Story (9:16)</button>
       </div>
     </div>
   </div>
@@ -2255,6 +2305,8 @@
   </div>
 
 </div>
+
+<div id="igCardCanvas"></div>
 
 <div class="page-footer">
   dankstation.fm · Erwin's Personal Music Charts · Est. 2016<br>
@@ -2353,6 +2405,8 @@ let chartSizePaginated = Infinity; // 0 = All Entries
 const PAGE_SIZE = 100;
 const pageState = { songs: 0, artists: 0, albums: 0 };
 const fullData = { songs: [], artists: [], albums: [] };
+let lastPeriodStats = null;
+let lastPeaks = null;
 const searchState = { songs: '', artists: '', albums: '' };
 
 // ─── THEME SWITCHER ────────────────────────────────────────────
@@ -3297,6 +3351,7 @@ function renderAll() {
   }
 
   const peaks = buildPeaks();
+  lastPeaks = peaks;
   chartRunData = null;
   if (currentPeriod === 'week' || currentPeriod === 'month' || currentPeriod === 'year') buildChartRun(currentPeriod);
 
@@ -3317,6 +3372,7 @@ function renderAll() {
     document.getElementById('artistsSectionTitle').textContent = isLimited ? `♦ Top ${lim} Artists` : `♦ Artists — All ${fullData.artists.length.toLocaleString()} Played`;
     document.getElementById('albumsSectionTitle').textContent  = isLimited ? `◈ Top ${lim} Albums` : `◈ Albums — All ${fullData.albums.length.toLocaleString()} Played`;
 
+    lastPeriodStats = null;
     renderPage('songs', peaks);
     renderPage('artists', peaks);
     renderPage('albums', peaks);
@@ -3330,12 +3386,14 @@ function renderAll() {
     document.getElementById('artistsSectionTitle').textContent = `♦ Top ${chartSize} Artists`;
     document.getElementById('albumsSectionTitle').textContent  = `◈ Top ${chartSize} Albums`;
     const periodStats = hasPeriodStats ? buildPeriodStats(currentPeriod) : null;
+    lastPeriodStats = periodStats;
     renderSongs(plays, peaks, periodStats);
     renderArtists(plays, peaks, periodStats);
     renderAlbums(plays, peaks, periodStats);
     renderDropouts(plays, periodStats);
   }
   updateExportBtn();
+  updateShareBtns();
 }
 
 // ─── TIE-BREAKING SORT ─────────────────────────────────────────
@@ -4492,6 +4550,174 @@ function updateExportBtn() {
   const isAllEntries = isPaginated() && !isFinite(chartSizePaginated);
   const show = currentPeriod !== 'rawdata' && allPlays.length > 0 && !isAllEntries;
   btn.style.display = show ? 'flex' : 'none';
+}
+
+// ─── SHARE AS IMAGE ─────────────────────────────────────────────
+function updateShareBtns() {
+  const show = currentPeriod !== 'rawdata' && allPlays.length > 0;
+  const size = isPaginated() ? chartSizePaginated : chartSize;
+  const allowed = show && isFinite(size) && size <= 20;
+  ['songs','artists','albums'].forEach(t => {
+    const bar = document.getElementById(t + 'ShareBar');
+    if (bar) bar.classList.toggle('visible', allowed);
+  });
+}
+
+// Collect current top N card data for a given type
+function getIgCardItems(type) {
+  const items = fullData[type] || [];
+  const size = isPaginated() ? Math.min(chartSizePaginated, 20) : Math.min(chartSize, 20);
+  return items.slice(0, size);
+}
+
+// Get movement label and direction for a card row
+function igMovement(rank, key, type) {
+  if (!lastPeriodStats) return { label: '', cls: '' };
+  const ms = lastPeriodStats;
+  const prev = ms.prevChart[type][key];
+  if (!prev) {
+    const isRe = ms.everChartedBefore[type].has(key);
+    return { label: isRe ? 'RE' : 'NEW', cls: isRe ? 're' : 'new' };
+  }
+  const diff = prev.rank - rank;
+  if (diff === 0) return { label: '=', cls: 'same' };
+  return { label: (diff > 0 ? '▲' : '▼') + Math.abs(diff), cls: diff > 0 ? 'up' : 'down' };
+}
+
+// Build peak info for a card row
+function igPeak(key, type, peaks) {
+  if (!peaks) return '';
+  const map = type === 'songs' ? peaks.songPeakMap : type === 'artists' ? peaks.artistPeakMap : peaks.albumPeakMap;
+  return map && map[key] ? '#' + map[key] : '';
+}
+
+// Theme-aware color getter
+function igColors() {
+  const s = getComputedStyle(document.documentElement);
+  const body = getComputedStyle(document.body);
+  const get = v => {
+    let val = body.getPropertyValue(v).trim() || s.getPropertyValue(v).trim();
+    return val || null;
+  };
+  return {
+    bg:      get('--bg')      || '#08121e',
+    bg2:     get('--bg2')     || '#0e1e34',
+    bg3:     get('--bg3')     || '#122444',
+    surface: get('--surface') || '#173060',
+    border:  get('--border')  || '#1e3d72',
+    text:    get('--text')    || '#eaf2ff',
+    text2:   get('--text2')   || '#a8c8f0',
+    text3:   get('--text3')   || '#7aa0d0',
+    accent:  get('--accent')  || '#4aacff',
+    accent2: get('--accent2') || '#80c8ff',
+    green:   get('--green')   || '#34d399',
+    amber:   get('--amber')   || '#fbbf24',
+    rose:    get('--rose')    || '#fb7185',
+    gold1:   get('--gold1')   || '#f0aa30',
+  };
+}
+
+function generateIgImage(type, format) {
+  const c = igColors();
+  const isPost = format === 'post';
+  const cardW = 540;
+  const cardH = isPost ? 540 : 960;
+  const items = getIgCardItems(type);
+  if (!items.length) return;
+
+  // Chart title
+  const titleMap = { songs: '★ TOP SONGS', artists: '♦ TOP ARTISTS', albums: '◈ TOP ALBUMS' };
+  const chartTitle = titleMap[type];
+  const n = items.length;
+  const periodTitle = `TOP ${n}`;
+
+  // Date/period label
+  const { label, sub } = getDateRange();
+  const periodLine = (currentPeriod === 'alltime') ? 'All-Time' : sub || label;
+
+  // Row height budget
+  const headerH = isPost ? 90 : 110;
+  const footerH = 36;
+  const rowH = Math.floor((cardH - headerH - footerH) / n);
+  const fontSize = Math.max(10, Math.min(14, rowH - 4));
+
+  // Movement color map
+  const moveCls = { up: c.green, down: c.rose, new: c.accent, re: c.amber, same: c.text3, '': c.text3 };
+
+  const rows = items.map((item, i) => {
+    const rank = i + 1;
+    let key, name, sub2;
+    if (type === 'songs')   { key = songKey(item); name = item.title; sub2 = item.artist; }
+    else if (type === 'artists') { key = item.name; name = item.name; sub2 = item.songs ? item.songs.size + ' songs' : ''; }
+    else { key = item.album + '|||' + item.artist; name = item.album; sub2 = item.artist; }
+
+    const { label: mvLabel, cls: mvCls } = igMovement(rank, key, type);
+    const peak = igPeak(key, type, lastPeaks);
+    const weeks = lastPeriodStats ? (lastPeriodStats.periodsOnChart[type][key] || 1) : null;
+    const plays = item.count;
+    const rowBg = i % 2 === 0 ? c.bg2 : c.bg;
+    const rankColor = rank === 1 ? c.gold1 : rank === 2 ? c.text : rank === 3 ? c.amber : c.text3;
+    const moveColor = moveCls[mvCls] || c.text3;
+
+    return `<div style="display:flex;align-items:center;height:${rowH}px;padding:0 10px;background:${rowBg};border-bottom:1px solid ${c.border};gap:6px;overflow:hidden;">
+      <div style="font-family:'DM Mono',monospace;font-size:${fontSize + 2}px;font-weight:700;color:${rankColor};min-width:28px;text-align:right;">${rank}</div>
+      <div style="font-family:'DM Mono',monospace;font-size:${fontSize - 1}px;color:${moveColor};min-width:30px;text-align:center;line-height:1;">${mvLabel || '—'}</div>
+      <div style="flex:1;overflow:hidden;">
+        <div style="font-family:'DM Sans',sans-serif;font-size:${fontSize}px;font-weight:600;color:${c.text};white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${esc(name)}</div>
+        ${sub2 ? `<div style="font-family:'DM Sans',sans-serif;font-size:${fontSize - 2}px;color:${c.text3};white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${esc(sub2)}</div>` : ''}
+      </div>
+      ${peak ? `<div style="font-family:'DM Mono',monospace;font-size:${fontSize - 3}px;color:${c.gold1};background:rgba(0,0,0,0.3);padding:1px 4px;border-radius:2px;white-space:nowrap;">⬆${peak}</div>` : ''}
+      ${weeks ? `<div style="font-family:'DM Mono',monospace;font-size:${fontSize - 3}px;color:${c.text3};white-space:nowrap;">${weeks}wk</div>` : ''}
+      <div style="font-family:'DM Mono',monospace;font-size:${fontSize - 1}px;color:${c.accent};font-weight:700;white-space:nowrap;min-width:40px;text-align:right;">${plays}</div>
+    </div>`;
+  }).join('');
+
+  const html = `<div style="width:${cardW}px;height:${cardH}px;background:${c.bg};overflow:hidden;display:flex;flex-direction:column;">
+    <div style="background:linear-gradient(135deg,${c.bg3},${c.surface});padding:${isPost?'14px 16px':'18px 20px'};border-bottom:2px solid ${c.accent};">
+      <div style="font-family:'DM Mono',monospace;font-size:${isPost?'9':'10'}px;letter-spacing:0.2em;color:${c.accent};text-transform:uppercase;margin-bottom:4px;">dankstation.fm</div>
+      <div style="font-family:'DM Sans',sans-serif;font-size:${isPost?'22':'28'}px;font-weight:700;color:${c.text};letter-spacing:-0.02em;line-height:1.1;">${periodTitle} ${chartTitle}</div>
+      <div style="font-family:'DM Mono',monospace;font-size:${isPost?'10':'11'}px;color:${c.text2};margin-top:4px;letter-spacing:0.05em;">${esc(periodLine)}</div>
+    </div>
+    <div style="flex:1;overflow:hidden;">${rows}</div>
+    <div style="padding:8px 12px;background:${c.bg3};border-top:1px solid ${c.border};display:flex;justify-content:space-between;align-items:center;">
+      <div style="font-family:'DM Mono',monospace;font-size:8px;color:${c.text3};letter-spacing:0.12em;">dankstation.fm · PERSONAL MUSIC CHARTS</div>
+      <div style="font-family:'DM Mono',monospace;font-size:8px;color:${c.accent};letter-spacing:0.08em;">Plays</div>
+    </div>
+  </div>`;
+
+  const canvas = document.getElementById('igCardCanvas');
+  canvas.innerHTML = html;
+  canvas.style.width  = cardW + 'px';
+  canvas.style.height = cardH + 'px';
+
+  const typeLabel = { songs: 'Songs', artists: 'Artists', albums: 'Albums' }[type];
+  const btn = event.target;
+  const origText = btn.textContent;
+  btn.textContent = '⏳ Generating…';
+  btn.disabled = true;
+
+  html2canvas(canvas, {
+    scale: 2,
+    useCORS: false,
+    allowTaint: true,
+    backgroundColor: null,
+    logging: false,
+    width: cardW,
+    height: cardH,
+  }).then(cvs => {
+    const link = document.createElement('a');
+    const periodSlug = (currentPeriod === 'alltime') ? 'AllTime' : (sub||label).replace(/[^a-z0-9]/gi,'').slice(0,20);
+    link.download = `dankstation_${typeLabel}_${periodSlug}_${format}.png`;
+    link.href = cvs.toDataURL('image/png');
+    link.click();
+    btn.textContent = origText;
+    btn.disabled = false;
+    canvas.innerHTML = '';
+  }).catch(() => {
+    btn.textContent = origText;
+    btn.disabled = false;
+    canvas.innerHTML = '';
+  });
 }
 
 // ─── ARTIST MODAL ──────────────────────────────────────────────
