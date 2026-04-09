@@ -6,6 +6,9 @@
 <title>dankstation.fm — Erwin's Personal Music Charts</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8/hammer.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@1.2.1/dist/chartjs-plugin-zoom.min.js"></script>
 <style>
   /* ── NAVY DARK (default) ── */
   :root {
@@ -795,6 +798,18 @@
   }
   .picker-input:hover { border-color: var(--accent); color: var(--text); font-weight: 700; }
   .picker-input:focus { outline: none; border-color: var(--accent); }
+  /* Graph date range pickers — dark icon in dark themes */
+  #gCumulativeFrom, #gCumulativeTo, #gVolumeFrom, #gVolumeTo { color-scheme: dark; }
+  body.navy-light #gCumulativeFrom, body.navy-light #gCumulativeTo,
+  body.navy-light #gVolumeFrom, body.navy-light #gVolumeTo,
+  body.purple-light #gCumulativeFrom, body.purple-light #gCumulativeTo,
+  body.purple-light #gVolumeFrom, body.purple-light #gVolumeTo,
+  body.red-light #gCumulativeFrom, body.red-light #gCumulativeTo,
+  body.red-light #gVolumeFrom, body.red-light #gVolumeTo,
+  body.yellow-light #gCumulativeFrom, body.yellow-light #gCumulativeTo,
+  body.yellow-light #gVolumeFrom, body.yellow-light #gVolumeTo,
+  body.pink-light #gCumulativeFrom, body.pink-light #gCumulativeTo,
+  body.pink-light #gVolumeFrom, body.pink-light #gVolumeTo { color-scheme: light; }
 
   /* SECTION HEADERS */
   .chart-section { margin-bottom: 2.5rem; }
@@ -1328,6 +1343,69 @@
   }
   .ig-download-btn:hover { filter: brightness(1.15); }
   .ig-download-btn:disabled { opacity: 0.5; cursor: default; }
+
+  /* GRAPHS VIEW */
+  .graphs-controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem 2rem;
+    padding: 0.75rem 0.85rem;
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    margin-bottom: 1.25rem;
+  }
+  .graphs-ctrl-group { display: flex; flex-direction: column; gap: 0.35rem; }
+  .graphs-ctrl-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.58rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text3);
+  }
+  .graphs-ctrl-btns { display: flex; gap: 4px; flex-wrap: wrap; }
+  .graphs-btn {
+    background: none;
+    border: 1px solid var(--border2);
+    color: var(--text2);
+    font-family: 'DM Mono', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.06em;
+    padding: 0.22rem 0.7rem;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background 0.12s, color 0.12s;
+  }
+  .graphs-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); font-weight: 700; }
+  .graphs-btn:not(.active):hover { color: #fff; font-weight: 700; border-color: var(--accent); }
+  .graph-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1.1rem 1.1rem 0.75rem;
+    margin-bottom: 1.25rem;
+  }
+  .graph-card-title {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.72rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--accent2);
+    margin-bottom: 0.2rem;
+    font-weight: 500;
+  }
+  .graph-card-sub {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.75rem;
+    color: var(--text3);
+    margin-bottom: 0.85rem;
+  }
+  .graph-canvas-wrap {
+    position: relative;
+    width: 100%;
+    height: 280px;
+  }
+  .graph-canvas-wrap canvas { width: 100% !important; height: 100% !important; }
 
   /* UPCOMING RELEASES */
   .upcoming-status {
@@ -2240,6 +2318,7 @@
     <button data-period="year">Yearly</button>
     <button data-period="alltime">All-Time</button>
     <button data-period="rawdata">Raw Data</button>
+    <button data-period="graphs">Graphs</button>
   </div>
 
   <div class="chart-size-bar" id="chartSizeBar">
@@ -2424,6 +2503,108 @@
       <button class="upcoming-refresh-btn" id="upcomingRefreshBtn" onclick="loadUpcomingReleases(true)" style="display:none">↺ REFRESH</button>
       <div class="upcoming-grid" id="upcomingGrid"></div>
     </div>
+  </div>
+
+  <!-- GRAPHS VIEW -->
+  <div id="graphsView" style="display:none;">
+    <div class="section-header" style="margin-bottom:0.5rem;">
+      <h2 class="section-header-h2">📈 Historical Graphs</h2>
+      <div class="section-rule"></div>
+    </div>
+
+    <!-- Graph controls -->
+    <div class="graphs-controls" id="graphsControls">
+      <div class="graphs-ctrl-group">
+        <label class="graphs-ctrl-label">Granularity</label>
+        <div class="graphs-ctrl-btns" id="graphGranularity">
+          <button class="graphs-btn" data-gran="day">Daily</button>
+          <button class="graphs-btn active" data-gran="month">Monthly</button>
+          <button class="graphs-btn" data-gran="year">Yearly</button>
+        </div>
+      </div>
+      <div class="graphs-ctrl-group" id="artistPickerGroup">
+        <label class="graphs-ctrl-label">Top Artists to Compare</label>
+        <div class="graphs-ctrl-btns" id="graphArtistCount">
+          <button class="graphs-btn active" data-n="5">Top 5</button>
+          <button class="graphs-btn" data-n="10">Top 10</button>
+          <button class="graphs-btn" data-n="15">Top 15</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Chart 1: Cumulative plays over time -->
+    <div class="graph-card">
+      <div class="graph-card-title">📈 Cumulative Plays Over Time — Artist Comparison</div>
+      <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.5rem;">
+        <input id="gCumulativeArtistInput" type="text" list="gCumulativeArtistList"
+          placeholder="Add an artist…"
+          style="flex:1;min-width:0;background:var(--bg2);border:1px solid var(--border2);color:var(--text);
+                 font-family:'DM Mono',monospace;font-size:0.7rem;padding:0.3rem 0.6rem;border-radius:4px;outline:none;">
+        <datalist id="gCumulativeArtistList"></datalist>
+        <button id="gCumulativeArtistBtn" class="graphs-btn active" style="white-space:nowrap;">+ Add</button>
+      </div>
+      <div id="gCumulativeChips" style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:0.6rem;min-height:0;"></div>
+      <div style="display:flex;align-items:center;gap:0.5rem;flex-wrap:wrap;margin-bottom:0.75rem;">
+        <span style="font-family:'DM Mono',monospace;font-size:0.62rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--text3);">Range</span>
+        <input id="gCumulativeFrom" type="date"
+          style="background:var(--bg2);border:1px solid var(--border2);color:var(--text);font-family:'DM Mono',monospace;font-size:0.7rem;padding:0.25rem 0.5rem;border-radius:4px;outline:none;">
+        <span style="font-family:'DM Mono',monospace;font-size:0.62rem;color:var(--text3);">to</span>
+        <input id="gCumulativeTo" type="date"
+          style="background:var(--bg2);border:1px solid var(--border2);color:var(--text);font-family:'DM Mono',monospace;font-size:0.7rem;padding:0.25rem 0.5rem;border-radius:4px;outline:none;">
+        <button id="gCumulativeResetRange" class="graphs-btn" style="white-space:nowrap;">Reset</button>
+        <button id="gCumulativeLabelsBtn" class="graphs-btn" style="white-space:nowrap;">Labels: Off</button>
+        <button id="gCumulativeResetZoom" class="graphs-btn" style="white-space:nowrap;">Reset Zoom</button>
+      </div>
+      <div class="graph-canvas-wrap"><canvas id="gCumulative"></canvas></div>
+    </div>
+
+    <!-- Chart 2: Play volume by artist -->
+    <div class="graph-card">
+      <div class="graph-card-title">📊 Play Volume by Period — Artist Comparison</div>
+      <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.5rem;">
+        <input id="gVolumeArtistInput" type="text" list="gVolumeArtistList"
+          placeholder="Add an artist…"
+          style="flex:1;min-width:0;background:var(--bg2);border:1px solid var(--border2);color:var(--text);
+                 font-family:'DM Mono',monospace;font-size:0.7rem;padding:0.3rem 0.6rem;border-radius:4px;outline:none;">
+        <datalist id="gVolumeArtistList"></datalist>
+        <button id="gVolumeArtistBtn" class="graphs-btn active" style="white-space:nowrap;">+ Add</button>
+      </div>
+      <div id="gVolumeChips" style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:0.6rem;min-height:0;"></div>
+      <div style="display:flex;align-items:center;gap:0.5rem;flex-wrap:wrap;margin-bottom:0.75rem;">
+        <span style="font-family:'DM Mono',monospace;font-size:0.62rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--text3);">Range</span>
+        <input id="gVolumeFrom" type="date"
+          style="background:var(--bg2);border:1px solid var(--border2);color:var(--text);font-family:'DM Mono',monospace;font-size:0.7rem;padding:0.25rem 0.5rem;border-radius:4px;outline:none;">
+        <span style="font-family:'DM Mono',monospace;font-size:0.62rem;color:var(--text3);">to</span>
+        <input id="gVolumeTo" type="date"
+          style="background:var(--bg2);border:1px solid var(--border2);color:var(--text);font-family:'DM Mono',monospace;font-size:0.7rem;padding:0.25rem 0.5rem;border-radius:4px;outline:none;">
+        <button id="gVolumeResetRange" class="graphs-btn" style="white-space:nowrap;">Reset</button>
+        <button id="gVolumeResetZoom" class="graphs-btn" style="white-space:nowrap;">Reset Zoom</button>
+        <button id="gVolumeLabelsBtn" class="graphs-btn" style="white-space:nowrap;">Labels: Off</button>
+      </div>
+      <div class="graph-canvas-wrap"><canvas id="gVolume"></canvas></div>
+    </div>
+
+    <!-- Chart 3: Top artist growth curves -->
+    <div class="graph-card">
+      <div class="graph-card-title">🎤 Top Artists — Cumulative Play Growth</div>
+      <div class="graph-card-sub">How your top artists accumulated plays over time</div>
+      <div class="graph-canvas-wrap"><canvas id="gArtistGrowth"></canvas></div>
+    </div>
+
+    <!-- Chart 4: New discoveries per period -->
+    <div class="graph-card">
+      <div class="graph-card-title">✨ New Discoveries per Period</div>
+      <div class="graph-card-sub">Songs, artists and albums heard for the first time each period</div>
+      <div class="graph-canvas-wrap"><canvas id="gDiscoveries"></canvas></div>
+    </div>
+
+    <!-- Chart 5: Artist rank history -->
+    <div class="graph-card">
+      <div class="graph-card-title">📉 Artist Rank History</div>
+      <div class="graph-card-sub">Weekly rank of your top artists over time (lower = better)</div>
+      <div class="graph-canvas-wrap"><canvas id="gRankHistory"></canvas></div>
+    </div>
+
   </div>
 
   <!-- RAW DATA VIEW -->
@@ -3232,17 +3413,38 @@ document.getElementById('periodNav').addEventListener('click', e => {
     return;
   }
 
-  // Leaving raw data view — restore chart UI
-  if (currentPeriod === 'rawdata') {
+  if (btn.dataset.period === 'graphs') {
+    // Switch to graphs view
+    savedOffsets[currentPeriod] = currentOffset;
+    currentPeriod = 'graphs';
+    document.getElementById('chartSizeBar').style.display = 'none';
+    document.getElementById('paginatedSizeBar').style.display = 'none';
+    document.getElementById('exportPlaylistBtn').style.display = 'none';
+    document.getElementById('dateNav').style.display = 'none';
+    document.getElementById('statsStrip').style.display = 'none';
+    document.getElementById('songsSection').style.display = 'none';
+    document.getElementById('artistsSection').style.display = 'none';
+    document.getElementById('albumsSection').style.display = 'none';
+    document.getElementById('dropoutsSection').style.display = 'none';
+    document.getElementById('rawDataView').style.display = 'none';
+    document.getElementById('graphsView').style.display = 'block';
+    if (allPlays.length) renderGraphs();
+    return;
+  }
+
+  // Leaving raw data or graphs view — restore chart UI
+  if (currentPeriod === 'rawdata' || currentPeriod === 'graphs') {
     document.getElementById('dateNav').style.display = '';
     document.getElementById('statsStrip').style.display = '';
     document.getElementById('songsSection').style.display = '';
     document.getElementById('artistsSection').style.display = '';
     document.getElementById('albumsSection').style.display = '';
     document.getElementById('rawDataView').style.display = 'none';
+    document.getElementById('graphsView').style.display = 'none';
+    if (currentPeriod === 'graphs') destroyGraphCharts();
   }
 
-  savedOffsets[currentPeriod === 'rawdata' ? btn.dataset.period : currentPeriod] = currentOffset;
+  savedOffsets[(currentPeriod === 'rawdata' || currentPeriod === 'graphs') ? btn.dataset.period : currentPeriod] = currentOffset;
   currentPeriod = btn.dataset.period;
   currentOffset = savedOffsets[currentPeriod];
   pageState.songs = 0; pageState.artists = 0; pageState.albums = 0;
@@ -4862,10 +5064,30 @@ function buildIgCardHTML(type, opts) {
   const cardH = isPost ? 540 : 960;
   const items = getIgCardItems(type);
   if (!items.length) return '';
-  const titleMap = { songs: '★ TOP SONGS', artists: '♦ TOP ARTISTS', albums: '◈ TOP ALBUMS' };
   const n = items.length;
   const { label, sub } = getDateRange();
-  const periodLine = (currentPeriod === 'alltime') ? 'All-Time' : sub || label;
+
+  // Period-aware titles
+  const typeWord = { songs: 'Songs', artists: 'Artists', albums: 'Albums' };
+  const typeIcon = { songs: '★', artists: '♦', albums: '◈' };
+  let cardTitle, periodLine;
+  if (currentPeriod === 'week') {
+    cardTitle = `TOP ${n} ${typeIcon[type]} ${typeWord[type]} of the Week`;
+    periodLine = sub || label;
+  } else if (currentPeriod === 'month') {
+    cardTitle = `TOP ${n} ${typeIcon[type]} ${typeWord[type]} of the Month`;
+    // Just "Month Year" e.g. "April 2026"
+    periodLine = label;
+  } else if (currentPeriod === 'year') {
+    cardTitle = `TOP ${n} ${typeIcon[type]} ${typeWord[type]} of ${label}`;
+    periodLine = label;
+  } else if (currentPeriod === 'alltime') {
+    cardTitle = `ALL-TIME TOP ${n} ${typeIcon[type]} ${typeWord[type]}`;
+    periodLine = 'All-Time';
+  } else {
+    cardTitle = `TOP ${n} ${typeIcon[type]} ${typeWord[type].toUpperCase()}`;
+    periodLine = sub || label;
+  }
   const headerH = isPost ? 90 : 110;
   const footerH = opts.showFooter ? 36 : 0;
   const rowH = Math.floor((cardH - headerH - footerH) / n);
@@ -4904,7 +5126,7 @@ function buildIgCardHTML(type, opts) {
   return `<div style="width:${cardW}px;height:${cardH}px;background:${c.bg};overflow:hidden;display:flex;flex-direction:column;font-family:'DM Sans',sans-serif;">
     <div style="background:linear-gradient(135deg,${c.bg3},${c.surface});padding:${isPost?'14px 16px':'18px 20px'};border-bottom:2px solid ${c.accent};">
       <div style="font-family:'DM Mono',monospace;font-size:${isPost?'9':'10'}px;letter-spacing:0.2em;color:${c.accent};text-transform:uppercase;margin-bottom:4px;">dankstation.fm</div>
-      <div style="font-family:'DM Sans',sans-serif;font-size:${isPost?'22':'28'}px;font-weight:700;color:${c.text};letter-spacing:-0.02em;line-height:1.1;">TOP ${n} ${titleMap[type]}</div>
+      <div style="font-family:'DM Sans',sans-serif;font-size:${isPost?'20':'26'}px;font-weight:700;color:${c.text};letter-spacing:-0.02em;line-height:1.15;">${esc(cardTitle)}</div>
       ${opts.showDate ? `<div style="font-family:'DM Mono',monospace;font-size:${isPost?'10':'11'}px;color:${c.text2};margin-top:4px;letter-spacing:0.05em;">${esc(periodLine)}</div>` : ''}
     </div>
     <div style="flex:1;overflow:hidden;">${rows}</div>
@@ -5631,6 +5853,515 @@ function renderUpcomingResults(allReleases, artists, fromCache) {
 function maybeLoadUpcoming() {
   if (allPlays.length > 0) loadUpcomingReleases();
 }
+
+// ─── GRAPHS TAB ────────────────────────────────────────────────
+let graphGranularity = 'month';
+let graphArtistCount = 5;
+let graphCharts = {};
+
+function destroyGraphCharts() {
+  Object.values(graphCharts).forEach(c => { try { c.destroy(); } catch(e){} });
+  graphCharts = {};
+}
+
+function graphKey(date) {
+  if (graphGranularity === 'day')   return date.toISOString().slice(0, 10);
+  if (graphGranularity === 'month') return `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}`;
+  return String(date.getFullYear());
+}
+
+function graphKeyLabel(key) {
+  if (graphGranularity === 'day') {
+    const d = new Date(key + 'T00:00:00');
+    return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: '2-digit' });
+  }
+  if (graphGranularity === 'month') {
+    const [y, m] = key.split('-');
+    const d = new Date(+y, +m - 1, 1);
+    return d.toLocaleDateString('en-US', { month: 'short', year: '2-digit' });
+  }
+  return key;
+}
+
+function getGraphColors() {
+  const style = getComputedStyle(document.body);
+  const doc   = getComputedStyle(document.documentElement);
+  const get = v => style.getPropertyValue(v).trim() || doc.getPropertyValue(v).trim();
+  return {
+    text:    get('--text')    || '#e8f0ff',
+    text3:   get('--text3')   || '#7aa0d0',
+    bg:      get('--bg')      || '#0a1628',
+    card:    get('--card')    || '#0e1e38',
+    accent:  get('--accent')  || '#4080d0',
+    accent2: get('--accent2') || '#2860b0',
+    grid:    get('--rule')    || '#1e3050',
+  };
+}
+
+const GRAPH_PALETTE = [
+  '#4e88e8','#f0aa30','#50d0a0','#e05090','#a070e0',
+  '#60c8e8','#e07040','#90d050','#d050b0','#70a0e0',
+  '#f0e050','#50e0c0','#e05050','#8050d0','#50b0f0'
+];
+
+function renderGraphs() {
+  if (!allPlays.length) return;
+  destroyGraphCharts();
+  const gc = getGraphColors();
+
+  // Build sorted list of all period keys
+  const allKeys = new Set();
+  for (const p of allPlays) allKeys.add(graphKey(p.date));
+  const sortedKeys = [...allKeys].sort();
+  const labels = sortedKeys.map(graphKeyLabel);
+  const maxTicks = 24;
+
+  const axisOpts = (reverse) => ({
+    x: { ticks: { color: gc.text3, maxTicksLimit: maxTicks, maxRotation: 45 }, grid: { color: gc.grid } },
+    y: reverse
+      ? { reverse: true, min: 1, ticks: { color: gc.text3, stepSize: 1 }, grid: { color: gc.grid }, title: { display: true, text: 'Rank (1 = top)', color: gc.text3 } }
+      : { ticks: { color: gc.text3 }, grid: { color: gc.grid } }
+  });
+  const legendOpts = { labels: { color: gc.text3 } };
+  const ptRadius = labels.length > 100 ? 0 : 2;
+
+  // ── Chart 1: Cumulative plays — artist comparison ─────────
+  {
+    const artistTotals = {};
+    for (const p of allPlays) for (const a of p.artists) artistTotals[a] = (artistTotals[a]||0)+1;
+    const sorted = Object.keys(artistTotals).sort((a,b) => artistTotals[b]-artistTotals[a]);
+    const dl = document.getElementById('gCumulativeArtistList');
+    dl.innerHTML = sorted.map(a => `<option value="${a.replace(/"/g,'&quot;')}">`).join('');
+    // Seed with top artist if list is empty
+    if (!gCumulativeArtists.length && sorted.length) {
+      gCumulativeArtists.push(sorted[0]);
+      renderCumulativeChips();
+    }
+    // Populate default date range from allPlays extents (only on first load)
+    const fromEl = document.getElementById('gCumulativeFrom');
+    const toEl   = document.getElementById('gCumulativeTo');
+    if (!fromEl.value && allPlays.length) {
+      // allPlays is sorted descending — last entry is the oldest play
+      fromEl.value = localDateStr(allPlays[allPlays.length - 1].date);
+      toEl.value   = localDateStr(new Date());
+    }
+  }
+  renderCumulativeChart(sortedKeys, labels, ptRadius, gc, axisOpts, legendOpts);
+
+  // ── Chart 2: Play volume per period — artist comparison ───
+  {
+    const artistTotals = {};
+    for (const p of allPlays) for (const a of p.artists) artistTotals[a] = (artistTotals[a]||0)+1;
+    const sorted = Object.keys(artistTotals).sort((a,b) => artistTotals[b]-artistTotals[a]);
+    document.getElementById('gVolumeArtistList').innerHTML =
+      sorted.map(a => `<option value="${a.replace(/"/g,'&quot;')}">`).join('');
+    if (!gVolumeArtists.length && sorted.length) {
+      gVolumeArtists.push(sorted[0]);
+      renderVolumeChips();
+    }
+    const vFrom = document.getElementById('gVolumeFrom');
+    const vTo   = document.getElementById('gVolumeTo');
+    if (!vFrom.value && allPlays.length) {
+      vFrom.value = localDateStr(allPlays[allPlays.length - 1].date);
+      vTo.value   = localDateStr(new Date());
+    }
+  }
+  renderVolumeChart(sortedKeys, labels, gc, axisOpts, legendOpts);
+
+  // ── Chart 3: Top-N artist cumulative growth ────────────────
+  {
+    const artistTotals = {};
+    for (const p of allPlays) for (const a of p.artists) artistTotals[a] = (artistTotals[a]||0)+1;
+    const topArtists = Object.entries(artistTotals).sort((a,b)=>b[1]-a[1]).slice(0, graphArtistCount).map(([a])=>a);
+    const apc = {};
+    topArtists.forEach(a => apc[a] = {});
+    for (const p of allPlays) {
+      const k = graphKey(p.date);
+      for (const a of p.artists) if (apc[a]) apc[a][k] = (apc[a][k]||0)+1;
+    }
+    const datasets = topArtists.map((a, i) => {
+      let running = 0;
+      return { label: a, data: sortedKeys.map(k => { running += apc[a][k]||0; return running; }),
+        borderColor: GRAPH_PALETTE[i%GRAPH_PALETTE.length], backgroundColor: 'transparent',
+        tension: 0.3, pointRadius: ptRadius, borderWidth: 2 };
+    });
+    graphCharts.artistGrowth = new Chart(document.getElementById('gArtistGrowth'), {
+      type: 'line', data: { labels, datasets },
+      options: { responsive: true, maintainAspectRatio: false,
+        plugins: { legend: legendOpts }, scales: axisOpts(false) }
+    });
+  }
+
+  // ── Chart 4: New discoveries per period ───────────────────
+  {
+    const seenSong = {}, seenArtist = {}, seenAlbum = {};
+    const nSong = {}, nArtist = {}, nAlbum = {};
+    sortedKeys.forEach(k => { nSong[k]=0; nArtist[k]=0; nAlbum[k]=0; });
+    const chrono = [...allPlays].sort((a,b) => a.date - b.date);
+    for (const p of chrono) {
+      const k = graphKey(p.date);
+      const sk = songKey(p);
+      if (!seenSong[sk]) { seenSong[sk]=1; if(nSong[k]!==undefined) nSong[k]++; }
+      for (const a of p.artists) if (!seenArtist[a]) { seenArtist[a]=1; if(nArtist[k]!==undefined) nArtist[k]++; }
+      if (p.album && p.album !== '—') {
+        const ak = p.album+'|||'+albumArtist(p);
+        if (!seenAlbum[ak]) { seenAlbum[ak]=1; if(nAlbum[k]!==undefined) nAlbum[k]++; }
+      }
+    }
+    graphCharts.discoveries = new Chart(document.getElementById('gDiscoveries'), {
+      type: 'bar',
+      data: { labels, datasets: [
+        { label:'New Songs',   data: sortedKeys.map(k=>nSong[k]),   backgroundColor: GRAPH_PALETTE[0]+'bb', borderColor: GRAPH_PALETTE[0], borderWidth:1, stack:'disc' },
+        { label:'New Artists', data: sortedKeys.map(k=>nArtist[k]), backgroundColor: GRAPH_PALETTE[1]+'bb', borderColor: GRAPH_PALETTE[1], borderWidth:1, stack:'disc' },
+        { label:'New Albums',  data: sortedKeys.map(k=>nAlbum[k]),  backgroundColor: GRAPH_PALETTE[2]+'bb', borderColor: GRAPH_PALETTE[2], borderWidth:1, stack:'disc' },
+      ]},
+      options: { responsive: true, maintainAspectRatio: false, plugins: { legend: legendOpts },
+        scales: {
+          x: { stacked:true, ticks:{ color:gc.text3, maxTicksLimit:maxTicks, maxRotation:45 }, grid:{ color:gc.grid } },
+          y: { stacked:true, ticks:{ color:gc.text3 }, grid:{ color:gc.grid } }
+        }
+      }
+    });
+  }
+
+  // ── Chart 5: Artist rank history ─────────────────────────
+  {
+    const artistTotals = {};
+    for (const p of allPlays) for (const a of p.artists) artistTotals[a] = (artistTotals[a]||0)+1;
+    const topArtists = Object.entries(artistTotals).sort((a,b)=>b[1]-a[1]).slice(0, graphArtistCount).map(([a])=>a);
+    const apc = {};
+    for (const p of allPlays) {
+      const k = graphKey(p.date);
+      if (!apc[k]) apc[k] = {};
+      for (const a of p.artists) apc[k][a] = (apc[k][a]||0)+1;
+    }
+    const rankByArtist = {};
+    topArtists.forEach(a => rankByArtist[a] = {});
+    for (const [k, counts] of Object.entries(apc)) {
+      const ranked = Object.entries(counts).sort((a,b)=>b[1]-a[1]).map(([a])=>a);
+      topArtists.forEach(a => { const r = ranked.indexOf(a); if (r >= 0) rankByArtist[a][k] = r+1; });
+    }
+    const datasets = topArtists.map((a, i) => ({
+      label: a, data: sortedKeys.map(k => rankByArtist[a][k] || null),
+      borderColor: GRAPH_PALETTE[i%GRAPH_PALETTE.length], backgroundColor: 'transparent',
+      tension: 0.3, pointRadius: ptRadius, borderWidth: 2, spanGaps: false,
+    }));
+    graphCharts.rankHistory = new Chart(document.getElementById('gRankHistory'), {
+      type: 'line', data: { labels, datasets },
+      options: { responsive: true, maintainAspectRatio: false,
+        plugins: { legend: legendOpts }, scales: axisOpts(true) }
+    });
+  }
+}
+
+let gCumulativeArtists = [];
+let gCumulativeLabels  = false;
+let gVolumeArtists     = [];
+let gVolumeLabels      = false;
+
+function renderCumulativeChips() {
+  const wrap = document.getElementById('gCumulativeChips');
+  wrap.innerHTML = gCumulativeArtists.map((a, i) => {
+    const col = GRAPH_PALETTE[i % GRAPH_PALETTE.length];
+    return `<span style="display:inline-flex;align-items:center;gap:4px;background:${col}22;border:1px solid ${col};
+              color:${col};font-family:'DM Mono',monospace;font-size:0.65rem;padding:2px 8px;border-radius:20px;
+              letter-spacing:0.04em;">
+              ${esc(a)}
+              <button onclick="removeCumulativeArtist(${i})" style="background:none;border:none;color:${col};
+                cursor:pointer;font-size:0.75rem;line-height:1;padding:0 0 1px 2px;">×</button>
+            </span>`;
+  }).join('');
+}
+
+function removeCumulativeArtist(idx) {
+  gCumulativeArtists.splice(idx, 1);
+  renderCumulativeChips();
+  triggerCumulativeUpdate();
+}
+
+function renderCumulativeChart(sortedKeys, labels, ptRadius, gc, axisOpts, legendOpts) {
+  if (graphCharts.cumulative) { try { graphCharts.cumulative.destroy(); } catch(e){} delete graphCharts.cumulative; }
+
+  // Date range filter
+  const fromVal = document.getElementById('gCumulativeFrom').value;
+  const toVal   = document.getElementById('gCumulativeTo').value;
+  const fromTs  = fromVal ? new Date(fromVal + 'T00:00:00').getTime() : -Infinity;
+  const toTs    = toVal   ? new Date(toVal   + 'T23:59:59').getTime() :  Infinity;
+
+  // Filter sortedKeys to range
+  const filteredKeys = sortedKeys.filter(k => {
+    const d = graphGranularity === 'day'   ? new Date(k + 'T00:00:00') :
+              graphGranularity === 'month' ? new Date(k + '-01T00:00:00') :
+                                             new Date(k + '-01-01T00:00:00');
+    return d.getTime() >= fromTs && d.getTime() <= toTs;
+  });
+  const filteredLabels = filteredKeys.map(graphKeyLabel);
+  const filtPtRadius = filteredLabels.length > 100 ? 0 : 2;
+
+  const datasets = gCumulativeArtists.map((artistName, i) => {
+    const col = GRAPH_PALETTE[i % GRAPH_PALETTE.length];
+    const countByKey = {};
+    for (const p of allPlays) {
+      if (p.date.getTime() < fromTs || p.date.getTime() > toTs) continue;
+      if (p.artists.some(a => a.toLowerCase() === artistName.toLowerCase())) {
+        const k = graphKey(p.date); countByKey[k] = (countByKey[k]||0)+1;
+      }
+    }
+    let running = 0;
+    return { label: artistName, data: filteredKeys.map(k => { running += countByKey[k]||0; return running; }),
+      borderColor: col, backgroundColor: col+'18',
+      fill: gCumulativeArtists.length === 1, tension: 0.3, pointRadius: filtPtRadius, borderWidth: 2 };
+  });
+  const labelsPlugin = {
+    id: 'cumulativeLabels',
+    afterDatasetsDraw(chart) {
+      if (!gCumulativeLabels) return;
+      const ctx = chart.ctx;
+      chart.data.datasets.forEach((ds, di) => {
+        const meta = chart.getDatasetMeta(di);
+        if (meta.hidden) return;
+        meta.data.forEach((pt, i) => {
+          const val = ds.data[i];
+          if (val == null) return;
+          ctx.save();
+          ctx.font = '600 10px "DM Mono", monospace';
+          ctx.fillStyle = ds.borderColor;
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'bottom';
+          ctx.fillText(val.toLocaleString(), pt.x, pt.y - 4);
+          ctx.restore();
+        });
+      });
+    }
+  };
+
+  graphCharts.cumulative = new Chart(document.getElementById('gCumulative'), {
+    type: 'line',
+    data: { labels: filteredLabels, datasets },
+    options: { responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: legendOpts,
+        zoom: {
+          pan:  { enabled: true, mode: 'x' },
+          zoom: { wheel: { enabled: true }, pinch: { enabled: true }, mode: 'x' }
+        }
+      },
+      scales: axisOpts(false) },
+    plugins: [labelsPlugin]
+  });
+}
+
+function triggerCumulativeUpdate() {
+  if (currentPeriod !== 'graphs' || !allPlays.length) return;
+  const gc = getGraphColors();
+  const allKeys = new Set();
+  for (const p of allPlays) allKeys.add(graphKey(p.date));
+  const sortedKeys = [...allKeys].sort();
+  const labels = sortedKeys.map(graphKeyLabel);
+  const ptRadius = labels.length > 100 ? 0 : 2;
+  const maxTicks = 24;
+  const axisOpts = () => ({
+    x: { ticks: { color: gc.text3, maxTicksLimit: maxTicks, maxRotation: 45 }, grid: { color: gc.grid } },
+    y: { ticks: { color: gc.text3 }, grid: { color: gc.grid } }
+  });
+  const legendOpts = { labels: { color: gc.text3 } };
+  renderCumulativeChart(sortedKeys, labels, ptRadius, gc, axisOpts, legendOpts);
+}
+
+function addCumulativeArtist() {
+  const input = document.getElementById('gCumulativeArtistInput');
+  const name = input.value.trim();
+  if (!name) return;
+  // Case-insensitive dedup
+  if (gCumulativeArtists.some(a => a.toLowerCase() === name.toLowerCase())) { input.value = ''; return; }
+  gCumulativeArtists.push(name);
+  input.value = '';
+  renderCumulativeChips();
+  triggerCumulativeUpdate();
+}
+
+document.getElementById('gCumulativeArtistBtn').addEventListener('click', addCumulativeArtist);
+document.getElementById('gCumulativeArtistInput').addEventListener('keydown', e => {
+  if (e.key === 'Enter') addCumulativeArtist();
+});
+document.getElementById('gCumulativeFrom').addEventListener('change', triggerCumulativeUpdate);
+document.getElementById('gCumulativeTo').addEventListener('change', triggerCumulativeUpdate);
+document.getElementById('gCumulativeLabelsBtn').addEventListener('click', () => {
+  gCumulativeLabels = !gCumulativeLabels;
+  const btn = document.getElementById('gCumulativeLabelsBtn');
+  btn.textContent = gCumulativeLabels ? 'Labels: On' : 'Labels: Off';
+  btn.classList.toggle('active', gCumulativeLabels);
+  triggerCumulativeUpdate();
+});
+
+document.getElementById('gCumulativeResetZoom').addEventListener('click', () => {
+  if (graphCharts.cumulative) graphCharts.cumulative.resetZoom();
+});
+
+document.getElementById('gCumulativeResetRange').addEventListener('click', () => {
+  if (!allPlays.length) return;
+  const dates = allPlays.map(p => p.date);
+  document.getElementById('gCumulativeFrom').value = localDateStr(allPlays[allPlays.length - 1].date);
+  document.getElementById('gCumulativeTo').value   = localDateStr(new Date());
+  triggerCumulativeUpdate();
+});
+
+// ── Volume chart ─────────────────────────────────────────────
+function renderVolumeChips() {
+  const wrap = document.getElementById('gVolumeChips');
+  wrap.innerHTML = gVolumeArtists.map((a, i) => {
+    const col = GRAPH_PALETTE[i % GRAPH_PALETTE.length];
+    return `<span style="display:inline-flex;align-items:center;gap:4px;background:${col}22;border:1px solid ${col};
+              color:${col};font-family:'DM Mono',monospace;font-size:0.65rem;padding:2px 8px;border-radius:20px;
+              letter-spacing:0.04em;">
+              ${esc(a)}
+              <button onclick="removeVolumeArtist(${i})" style="background:none;border:none;color:${col};
+                cursor:pointer;font-size:0.75rem;line-height:1;padding:0 0 1px 2px;">×</button>
+            </span>`;
+  }).join('');
+}
+
+function removeVolumeArtist(idx) {
+  gVolumeArtists.splice(idx, 1);
+  renderVolumeChips();
+  triggerVolumeUpdate();
+}
+
+function renderVolumeChart(sortedKeys, labels, gc, axisOpts, legendOpts) {
+  if (graphCharts.volume) { try { graphCharts.volume.destroy(); } catch(e){} delete graphCharts.volume; }
+
+  const fromVal = document.getElementById('gVolumeFrom').value;
+  const toVal   = document.getElementById('gVolumeTo').value;
+  const fromTs  = fromVal ? new Date(fromVal + 'T00:00:00').getTime() : -Infinity;
+  const toTs    = toVal   ? new Date(toVal   + 'T23:59:59').getTime() :  Infinity;
+
+  const filteredKeys = sortedKeys.filter(k => {
+    const d = graphGranularity === 'day'   ? new Date(k + 'T00:00:00') :
+              graphGranularity === 'month' ? new Date(k + '-01T00:00:00') :
+                                             new Date(k + '-01-01T00:00:00');
+    return d.getTime() >= fromTs && d.getTime() <= toTs;
+  });
+  const filteredLabels = filteredKeys.map(graphKeyLabel);
+
+  const datasets = gVolumeArtists.map((artistName, i) => {
+    const col = GRAPH_PALETTE[i % GRAPH_PALETTE.length];
+    const countByKey = {};
+    for (const p of allPlays) {
+      if (p.date.getTime() < fromTs || p.date.getTime() > toTs) continue;
+      if (p.artists.some(a => a.toLowerCase() === artistName.toLowerCase())) {
+        const k = graphKey(p.date); countByKey[k] = (countByKey[k]||0)+1;
+      }
+    }
+    return { label: artistName, data: filteredKeys.map(k => countByKey[k]||0),
+      backgroundColor: col+'99', borderColor: col, borderWidth: 1 };
+  });
+
+  const volumeLabelsPlugin = {
+    id: 'volumeLabels',
+    afterDatasetsDraw(chart) {
+      if (!gVolumeLabels) return;
+      const ctx = chart.ctx;
+      chart.data.datasets.forEach((ds, di) => {
+        const meta = chart.getDatasetMeta(di);
+        if (meta.hidden) return;
+        meta.data.forEach((bar, i) => {
+          const val = ds.data[i];
+          if (!val) return;
+          ctx.save();
+          ctx.font = '600 10px "DM Mono", monospace';
+          ctx.fillStyle = ds.borderColor;
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'bottom';
+          ctx.fillText(val.toLocaleString(), bar.x, bar.y - 2);
+          ctx.restore();
+        });
+      });
+    }
+  };
+
+  graphCharts.volume = new Chart(document.getElementById('gVolume'), {
+    type: 'bar',
+    data: { labels: filteredLabels, datasets },
+    options: { responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: legendOpts,
+        zoom: {
+          pan:  { enabled: true, mode: 'x' },
+          zoom: { wheel: { enabled: true }, pinch: { enabled: true }, mode: 'x' }
+        }
+      },
+      scales: axisOpts(false) },
+    plugins: [volumeLabelsPlugin]
+  });
+}
+
+function triggerVolumeUpdate() {
+  if (currentPeriod !== 'graphs' || !allPlays.length) return;
+  const gc = getGraphColors();
+  const allKeys = new Set();
+  for (const p of allPlays) allKeys.add(graphKey(p.date));
+  const sortedKeys = [...allKeys].sort();
+  const labels = sortedKeys.map(graphKeyLabel);
+  const maxTicks = 24;
+  const axisOpts = () => ({
+    x: { ticks: { color: gc.text3, maxTicksLimit: maxTicks, maxRotation: 45 }, grid: { color: gc.grid } },
+    y: { ticks: { color: gc.text3 }, grid: { color: gc.grid } }
+  });
+  const legendOpts = { labels: { color: gc.text3 } };
+  renderVolumeChart(sortedKeys, labels, gc, axisOpts, legendOpts);
+}
+
+function addVolumeArtist() {
+  const input = document.getElementById('gVolumeArtistInput');
+  const name = input.value.trim();
+  if (!name) return;
+  if (gVolumeArtists.some(a => a.toLowerCase() === name.toLowerCase())) { input.value = ''; return; }
+  gVolumeArtists.push(name);
+  input.value = '';
+  renderVolumeChips();
+  triggerVolumeUpdate();
+}
+
+document.getElementById('gVolumeArtistBtn').addEventListener('click', addVolumeArtist);
+document.getElementById('gVolumeArtistInput').addEventListener('keydown', e => {
+  if (e.key === 'Enter') addVolumeArtist();
+});
+document.getElementById('gVolumeFrom').addEventListener('change', triggerVolumeUpdate);
+document.getElementById('gVolumeTo').addEventListener('change', triggerVolumeUpdate);
+document.getElementById('gVolumeResetRange').addEventListener('click', () => {
+  if (!allPlays.length) return;
+  document.getElementById('gVolumeFrom').value = localDateStr(allPlays[allPlays.length - 1].date);
+  document.getElementById('gVolumeTo').value   = localDateStr(new Date());
+  triggerVolumeUpdate();
+});
+document.getElementById('gVolumeResetZoom').addEventListener('click', () => {
+  if (graphCharts.volume) graphCharts.volume.resetZoom();
+});
+document.getElementById('gVolumeLabelsBtn').addEventListener('click', () => {
+  gVolumeLabels = !gVolumeLabels;
+  const btn = document.getElementById('gVolumeLabelsBtn');
+  btn.textContent = gVolumeLabels ? 'Labels: On' : 'Labels: Off';
+  btn.classList.toggle('active', gVolumeLabels);
+  triggerVolumeUpdate();
+});
+
+document.getElementById('graphGranularity').addEventListener('click', e => {
+  const btn = e.target.closest('button');
+  if (!btn) return;
+  document.querySelectorAll('#graphGranularity button').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  graphGranularity = btn.dataset.gran;
+  if (currentPeriod === 'graphs') renderGraphs();
+});
+
+document.getElementById('graphArtistCount').addEventListener('click', e => {
+  const btn = e.target.closest('button');
+  if (!btn) return;
+  document.querySelectorAll('#graphArtistCount button').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  graphArtistCount = parseInt(btn.dataset.n);
+  if (currentPeriod === 'graphs') renderGraphs();
+});
 
 </script>
 
