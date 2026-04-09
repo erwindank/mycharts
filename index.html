@@ -1159,6 +1159,176 @@
     pointer-events: none;
   }
 
+  /* IG PREVIEW MODAL */
+  .ig-modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.7);
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+  }
+  .ig-modal-overlay.open { display: flex; }
+  .ig-modal-box {
+    background: var(--bg2);
+    border: 1px solid var(--border2);
+    border-radius: 10px;
+    width: 100%;
+    max-width: 820px;
+    max-height: 92vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+  }
+  .ig-modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.9rem 1.2rem;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg3);
+    flex-shrink: 0;
+  }
+  .ig-modal-header h3 {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.72rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--accent2);
+    font-weight: 500;
+  }
+  .ig-modal-close {
+    background: none;
+    border: 1px solid var(--border2);
+    color: var(--text3);
+    font-family: 'DM Mono', monospace;
+    font-size: 0.62rem;
+    letter-spacing: 0.08em;
+    padding: 0.2rem 0.65rem;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+  .ig-modal-close:hover { color: var(--text); border-color: var(--accent); }
+  .ig-modal-body {
+    display: flex;
+    gap: 1.25rem;
+    padding: 1.2rem;
+    overflow: auto;
+    flex: 1;
+  }
+  .ig-preview-panel {
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .ig-preview-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.6rem;
+    letter-spacing: 0.1em;
+    color: var(--text3);
+    text-transform: uppercase;
+  }
+  .ig-preview-frame {
+    overflow: hidden;
+    border: 1px solid var(--border2);
+    border-radius: 4px;
+    background: #000;
+    flex-shrink: 0;
+  }
+  .ig-preview-inner {
+    transform-origin: top left;
+  }
+  .ig-controls-panel {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    min-width: 200px;
+  }
+  .ig-ctrl-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+  }
+  .ig-ctrl-group-title {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.6rem;
+    letter-spacing: 0.15em;
+    color: var(--accent2);
+    text-transform: uppercase;
+    margin-bottom: 0.15rem;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 0.25rem;
+  }
+  .ig-ctrl-row {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    cursor: pointer;
+  }
+  .ig-ctrl-row input[type="checkbox"],
+  .ig-ctrl-row input[type="radio"] {
+    accent-color: var(--accent);
+    width: 14px;
+    height: 14px;
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+  .ig-ctrl-row span {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.78rem;
+    color: var(--text2);
+  }
+  .ig-format-btns {
+    display: flex;
+    gap: 0.5rem;
+  }
+  .ig-format-btn {
+    flex: 1;
+    padding: 0.45rem;
+    border: 1px solid var(--border2);
+    background: none;
+    color: var(--text2);
+    font-family: 'DM Mono', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.06em;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.12s;
+    text-align: center;
+  }
+  .ig-format-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); font-weight: 700; }
+  .ig-format-btn:not(.active):hover { border-color: var(--accent); color: var(--text); font-weight: 700; }
+  .ig-modal-footer {
+    padding: 0.85rem 1.2rem;
+    border-top: 1px solid var(--border);
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.6rem;
+    background: var(--bg3);
+    flex-shrink: 0;
+  }
+  .ig-download-btn {
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.68rem;
+    letter-spacing: 0.08em;
+    padding: 0.5rem 1.2rem;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: 700;
+    transition: filter 0.12s;
+  }
+  .ig-download-btn:hover { filter: brightness(1.15); }
+  .ig-download-btn:disabled { opacity: 0.5; cursor: default; }
+
   /* UPCOMING RELEASES */
   .upcoming-status {
     font-family: 'DM Mono', monospace;
@@ -2146,8 +2316,7 @@
       </div>
       <div class="ig-share-bar" id="songsShareBar">
         <span>SHARE:</span>
-        <button class="ig-share-btn" onclick="generateIgImage('songs','post')">📷 Post (1:1)</button>
-        <button class="ig-share-btn" onclick="generateIgImage('songs','story')">📱 Story (9:16)</button>
+        <button class="ig-share-btn" onclick="openIgPreviewModal('songs')">📷 Share as Image</button>
       </div>
     </div>
   </div>
@@ -2185,8 +2354,7 @@
       </div>
       <div class="ig-share-bar" id="artistsShareBar">
         <span>SHARE:</span>
-        <button class="ig-share-btn" onclick="generateIgImage('artists','post')">📷 Post (1:1)</button>
-        <button class="ig-share-btn" onclick="generateIgImage('artists','story')">📱 Story (9:16)</button>
+        <button class="ig-share-btn" onclick="openIgPreviewModal('artists')">📷 Share as Image</button>
       </div>
     </div>
   </div>
@@ -2224,8 +2392,7 @@
       </div>
       <div class="ig-share-bar" id="albumsShareBar">
         <span>SHARE:</span>
-        <button class="ig-share-btn" onclick="generateIgImage('albums','post')">📷 Post (1:1)</button>
-        <button class="ig-share-btn" onclick="generateIgImage('albums','story')">📱 Story (9:16)</button>
+        <button class="ig-share-btn" onclick="openIgPreviewModal('albums')">📷 Share as Image</button>
       </div>
     </div>
   </div>
@@ -2311,6 +2478,55 @@
 <div class="page-footer">
   dankstation.fm · Erwin's Personal Music Charts · Est. 2016<br>
   All data stays in your browser. Nothing is uploaded or stored externally.
+</div>
+
+<!-- IG SHARE PREVIEW MODAL -->
+<div class="ig-modal-overlay" id="igPreviewModal">
+  <div class="ig-modal-box">
+    <div class="ig-modal-header">
+      <h3 id="igPreviewTitle">Share as Image</h3>
+      <button class="ig-modal-close" onclick="closeIgPreviewModal()">✕ CLOSE</button>
+    </div>
+    <div class="ig-modal-body">
+      <div class="ig-preview-panel">
+        <div class="ig-preview-label">Preview</div>
+        <div class="ig-preview-frame" id="igPreviewFrame">
+          <div class="ig-preview-inner" id="igPreviewInner"></div>
+        </div>
+      </div>
+      <div class="ig-controls-panel">
+        <div class="ig-ctrl-group">
+          <div class="ig-ctrl-group-title">Format</div>
+          <div class="ig-format-btns">
+            <button class="ig-format-btn active" id="igFmtPost" onclick="setIgFormat('post')">📷 Post (1:1)</button>
+            <button class="ig-format-btn" id="igFmtStory" onclick="setIgFormat('story')">📱 Story (9:16)</button>
+          </div>
+        </div>
+        <div class="ig-ctrl-group">
+          <div class="ig-ctrl-group-title">Font Size</div>
+          <div style="display:flex;align-items:center;gap:0.6rem;">
+            <input type="range" id="igFontSize" min="8" max="24" value="0" step="1" oninput="updateIgFontLabel();updateIgPreview()" style="flex:1;accent-color:var(--accent);">
+            <span id="igFontSizeLabel" style="font-family:'DM Mono',monospace;font-size:0.7rem;color:var(--accent);min-width:36px;">Auto</span>
+          </div>
+          <div style="font-family:'DM Mono',monospace;font-size:0.55rem;color:var(--text3);letter-spacing:0.06em;">Slide to override · leftmost = Auto</div>
+        </div>
+        <div class="ig-ctrl-group">
+          <div class="ig-ctrl-group-title">Show / Hide</div>
+          <label class="ig-ctrl-row"><input type="checkbox" id="igOpt_showMovement" checked onchange="updateIgPreview()"><span>Movement (▲▼ NEW RE)</span></label>
+          <label class="ig-ctrl-row"><input type="checkbox" id="igOpt_showPeak" checked onchange="updateIgPreview()"><span>Peak Badge (PEAK #1)</span></label>
+          <label class="ig-ctrl-row"><input type="checkbox" id="igOpt_showWeeks" checked onchange="updateIgPreview()"><span>Weeks on Chart</span></label>
+          <label class="ig-ctrl-row"><input type="checkbox" id="igOpt_showPlays" checked onchange="updateIgPreview()"><span>Play Count</span></label>
+          <label class="ig-ctrl-row"><input type="checkbox" id="igOpt_showSubtitle" checked onchange="updateIgPreview()"><span>Artist / Subtitle</span></label>
+          <label class="ig-ctrl-row"><input type="checkbox" id="igOpt_showDate" checked onchange="updateIgPreview()"><span>Date / Period</span></label>
+          <label class="ig-ctrl-row"><input type="checkbox" id="igOpt_showFooter" checked onchange="updateIgPreview()"><span>Footer Branding</span></label>
+        </div>
+      </div>
+    </div>
+    <div class="ig-modal-footer">
+      <button class="ig-modal-close" onclick="closeIgPreviewModal()">Cancel</button>
+      <button class="ig-download-btn" id="igDownloadBtn" onclick="downloadIgFromPreview()">↓ Download Image</button>
+    </div>
+  </div>
 </div>
 
 <!-- EXPORT PLAYLIST MODAL -->
@@ -4124,6 +4340,7 @@ function renderSongs(plays, peaks, monthlyStats) {
     }
   }
   const sorted = Object.values(counts).sort(monthlyStats ? rankSortWithStatus : rankSort).slice(0, chartSize);
+  fullData.songs = sorted;
   // Reconcile peak map: current period was excluded from buildPeriodPeaks (which uses rankSort),
   // so apply the actual rendered rank here. Take the min vs any historical peak from past periods.
   if (currentPeriod !== 'alltime') {
@@ -4177,6 +4394,7 @@ function renderArtists(plays, peaks, monthlyStats) {
     }
   }
   const sorted = Object.entries(counts).sort(([,a],[,b]) => monthlyStats ? rankSortWithStatus(a, b) : rankSort(a, b)).slice(0, chartSize);
+  fullData.artists = sorted.map(([name, data]) => ({ name, ...data }));
   // Reconcile peak map with actual chart ranks (current period excluded from buildPeriodPeaks)
   if (currentPeriod !== 'alltime') {
     sorted.forEach(([artist], i) => { const r = i + 1; peaks.artistPeakMap[artist] = peaks.artistPeakMap[artist] ? Math.min(peaks.artistPeakMap[artist], r) : r; });
@@ -4224,6 +4442,7 @@ function renderAlbums(plays, peaks, monthlyStats) {
     }
   }
   const sorted = Object.values(counts).filter(a=>a.album&&a.album!=='—').sort(monthlyStats ? rankSortWithStatus : rankSort).slice(0, chartSize);
+  fullData.albums = sorted;
   // Reconcile peak map with actual chart ranks (current period excluded from buildPeriodPeaks)
   if (currentPeriod !== 'alltime') {
     sorted.forEach(({ album, artist }, i) => { const ak = album + '|||' + artist; const r = i + 1; peaks.albumPeakMap[ak] = peaks.albumPeakMap[ak] ? Math.min(peaks.albumPeakMap[ak], r) : r; });
@@ -4555,8 +4774,8 @@ function updateExportBtn() {
 // ─── SHARE AS IMAGE ─────────────────────────────────────────────
 function updateShareBtns() {
   const show = currentPeriod !== 'rawdata' && allPlays.length > 0;
-  const size = isPaginated() ? chartSizePaginated : chartSize;
-  const allowed = show && isFinite(size) && size <= 20;
+  const isAllEntries = isPaginated() && !isFinite(chartSizePaginated);
+  const allowed = show && !isAllEntries;
   ['songs','artists','albums'].forEach(t => {
     const bar = document.getElementById(t + 'ShareBar');
     if (bar) bar.classList.toggle('visible', allowed);
@@ -4584,11 +4803,17 @@ function igMovement(rank, key, type) {
   return { label: (diff > 0 ? '▲' : '▼') + Math.abs(diff), cls: diff > 0 ? 'up' : 'down' };
 }
 
-// Build peak info for a card row
-function igPeak(key, type, peaks) {
+// Build peak badge HTML for a card row — matches chart style
+function igPeak(key, type, peaks, fontSize) {
   if (!peaks) return '';
   const map = type === 'songs' ? peaks.songPeakMap : type === 'artists' ? peaks.artistPeakMap : peaks.albumPeakMap;
-  return map && map[key] ? '#' + map[key] : '';
+  const peak = map && map[key];
+  if (!peak) return '';
+  const fs = (fontSize - 4) + 'px';
+  if (peak === 1) return `<span style="font-family:'DM Mono',monospace;font-size:${fs};background:rgba(245,158,11,0.2);color:#f0aa30;padding:1px 5px;border-radius:3px;border:1px solid rgba(245,158,11,0.35);letter-spacing:0.05em;white-space:nowrap;">PEAK #1</span>`;
+  if (peak === 2) return `<span style="font-family:'DM Mono',monospace;font-size:${fs};background:rgba(148,163,184,0.2);color:#94a3b8;padding:1px 5px;border-radius:3px;border:1px solid rgba(148,163,184,0.35);letter-spacing:0.05em;white-space:nowrap;">PEAK #2</span>`;
+  if (peak === 3) return `<span style="font-family:'DM Mono',monospace;font-size:${fs};background:rgba(192,120,80,0.2);color:#c07850;padding:1px 5px;border-radius:3px;border:1px solid rgba(192,120,80,0.35);letter-spacing:0.05em;white-space:nowrap;">PEAK #3</span>`;
+  return `<span style="font-family:'DM Mono',monospace;font-size:${fs};background:rgba(255,255,255,0.08);color:#7aa0d0;padding:1px 5px;border-radius:3px;border:1px solid rgba(255,255,255,0.12);letter-spacing:0.05em;white-space:nowrap;">PEAK #${peak}</span>`;
 }
 
 // Theme-aware color getter
@@ -4617,108 +4842,173 @@ function igColors() {
   };
 }
 
-function generateIgImage(type, format) {
+// ─── IG PREVIEW STATE ───────────────────────────────────────────
+const igOptions = {
+  format: 'post',
+  showMovement: true,
+  showPeak: true,
+  showWeeks: true,
+  showPlays: true,
+  showSubtitle: true,
+  showDate: true,
+  showFooter: true,
+};
+let igPreviewType = null;
+
+function buildIgCardHTML(type, opts) {
   const c = igColors();
-  const isPost = format === 'post';
+  const isPost = opts.format === 'post';
   const cardW = 540;
   const cardH = isPost ? 540 : 960;
   const items = getIgCardItems(type);
-  if (!items.length) return;
-
-  // Chart title
+  if (!items.length) return '';
   const titleMap = { songs: '★ TOP SONGS', artists: '♦ TOP ARTISTS', albums: '◈ TOP ALBUMS' };
-  const chartTitle = titleMap[type];
   const n = items.length;
-  const periodTitle = `TOP ${n}`;
-
-  // Date/period label
   const { label, sub } = getDateRange();
   const periodLine = (currentPeriod === 'alltime') ? 'All-Time' : sub || label;
-
-  // Row height budget
   const headerH = isPost ? 90 : 110;
-  const footerH = 36;
+  const footerH = opts.showFooter ? 36 : 0;
   const rowH = Math.floor((cardH - headerH - footerH) / n);
-  const fontSize = Math.max(10, Math.min(14, rowH - 4));
-
-  // Movement color map
+  const fontOverride = parseInt(document.getElementById('igFontSize')?.value || 0);
+  const autoFont = isPost ? Math.max(10, Math.min(14, rowH - 4)) : Math.max(12, Math.min(20, rowH - 6));
+  const fontSize = fontOverride > 0 ? fontOverride : autoFont;
   const moveCls = { up: c.green, down: c.rose, new: c.accent, re: c.amber, same: c.text3, '': c.text3 };
 
   const rows = items.map((item, i) => {
     const rank = i + 1;
     let key, name, sub2;
-    if (type === 'songs')   { key = songKey(item); name = item.title; sub2 = item.artist; }
+    if (type === 'songs')        { key = songKey(item); name = item.title; sub2 = item.artist; }
     else if (type === 'artists') { key = item.name; name = item.name; sub2 = item.songs ? item.songs.size + ' songs' : ''; }
-    else { key = item.album + '|||' + item.artist; name = item.album; sub2 = item.artist; }
-
+    else                         { key = item.album + '|||' + item.artist; name = item.album; sub2 = item.artist; }
     const { label: mvLabel, cls: mvCls } = igMovement(rank, key, type);
-    const peak = igPeak(key, type, lastPeaks);
+    const peak = igPeak(key, type, lastPeaks, fontSize);
     const weeks = lastPeriodStats ? (lastPeriodStats.periodsOnChart[type][key] || 1) : null;
+    const weeksLabel = weeks ? (weeks === 1 ? '1 week' : weeks + ' weeks') : null;
     const plays = item.count;
     const rowBg = i % 2 === 0 ? c.bg2 : c.bg;
     const rankColor = rank === 1 ? c.gold1 : rank === 2 ? c.text : rank === 3 ? c.amber : c.text3;
     const moveColor = moveCls[mvCls] || c.text3;
-
-    return `<div style="display:flex;align-items:center;height:${rowH}px;padding:0 10px;background:${rowBg};border-bottom:1px solid ${c.border};gap:6px;overflow:hidden;">
-      <div style="font-family:'DM Mono',monospace;font-size:${fontSize + 2}px;font-weight:700;color:${rankColor};min-width:28px;text-align:right;">${rank}</div>
-      <div style="font-family:'DM Mono',monospace;font-size:${fontSize - 1}px;color:${moveColor};min-width:30px;text-align:center;line-height:1;">${mvLabel || '—'}</div>
-      <div style="flex:1;overflow:hidden;">
-        <div style="font-family:'DM Sans',sans-serif;font-size:${fontSize}px;font-weight:600;color:${c.text};white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${esc(name)}</div>
-        ${sub2 ? `<div style="font-family:'DM Sans',sans-serif;font-size:${fontSize - 2}px;color:${c.text3};white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${esc(sub2)}</div>` : ''}
+    return `<div style="display:flex;align-items:center;min-height:${rowH}px;padding:4px 10px;background:${rowBg};border-bottom:1px solid ${c.border};gap:6px;">
+      <div style="font-family:'DM Mono',monospace;font-size:${fontSize+2}px;font-weight:700;color:${rankColor};min-width:28px;text-align:right;flex-shrink:0;">${rank}</div>
+      ${opts.showMovement ? `<div style="font-family:'DM Mono',monospace;font-size:${fontSize-1}px;color:${moveColor};min-width:30px;text-align:center;line-height:1;flex-shrink:0;">${mvLabel||'—'}</div>` : ''}
+      <div style="flex:1;min-width:0;">
+        <div style="font-family:'DM Sans',sans-serif;font-size:${fontSize}px;font-weight:600;color:${c.text};${isPost?'white-space:nowrap;overflow:hidden;text-overflow:ellipsis;':'white-space:normal;word-break:break-word;'}line-height:1.25;">${esc(name)}</div>
+        ${opts.showSubtitle && sub2 ? `<div style="font-family:'DM Sans',sans-serif;font-size:${fontSize-2}px;color:${c.text3};${isPost?'white-space:nowrap;overflow:hidden;text-overflow:ellipsis;':'white-space:normal;word-break:break-word;'}line-height:1.25;">${esc(sub2)}</div>` : ''}
       </div>
-      ${peak ? `<div style="font-family:'DM Mono',monospace;font-size:${fontSize - 3}px;color:${c.gold1};background:rgba(0,0,0,0.3);padding:1px 4px;border-radius:2px;white-space:nowrap;">⬆${peak}</div>` : ''}
-      ${weeks ? `<div style="font-family:'DM Mono',monospace;font-size:${fontSize - 3}px;color:${c.text3};white-space:nowrap;">${weeks}wk</div>` : ''}
-      <div style="font-family:'DM Mono',monospace;font-size:${fontSize - 1}px;color:${c.accent};font-weight:700;white-space:nowrap;min-width:40px;text-align:right;">${plays}</div>
+      ${opts.showPeak && peak ? `<div>${peak}</div>` : ''}
+      ${opts.showWeeks && weeksLabel ? `<div style="font-family:'DM Mono',monospace;font-size:${fontSize-3}px;color:${c.text3};white-space:nowrap;">${weeksLabel}</div>` : ''}
+      ${opts.showPlays ? `<div style="font-family:'DM Mono',monospace;font-size:${fontSize-1}px;color:${c.accent};font-weight:700;white-space:nowrap;min-width:40px;text-align:right;">${plays} <span style="font-size:${fontSize-4}px;font-weight:400;opacity:0.75;">plays</span></div>` : ''}
     </div>`;
   }).join('');
 
-  const html = `<div style="width:${cardW}px;height:${cardH}px;background:${c.bg};overflow:hidden;display:flex;flex-direction:column;">
+  return `<div style="width:${cardW}px;height:${cardH}px;background:${c.bg};overflow:hidden;display:flex;flex-direction:column;font-family:'DM Sans',sans-serif;">
     <div style="background:linear-gradient(135deg,${c.bg3},${c.surface});padding:${isPost?'14px 16px':'18px 20px'};border-bottom:2px solid ${c.accent};">
       <div style="font-family:'DM Mono',monospace;font-size:${isPost?'9':'10'}px;letter-spacing:0.2em;color:${c.accent};text-transform:uppercase;margin-bottom:4px;">dankstation.fm</div>
-      <div style="font-family:'DM Sans',sans-serif;font-size:${isPost?'22':'28'}px;font-weight:700;color:${c.text};letter-spacing:-0.02em;line-height:1.1;">${periodTitle} ${chartTitle}</div>
-      <div style="font-family:'DM Mono',monospace;font-size:${isPost?'10':'11'}px;color:${c.text2};margin-top:4px;letter-spacing:0.05em;">${esc(periodLine)}</div>
+      <div style="font-family:'DM Sans',sans-serif;font-size:${isPost?'22':'28'}px;font-weight:700;color:${c.text};letter-spacing:-0.02em;line-height:1.1;">TOP ${n} ${titleMap[type]}</div>
+      ${opts.showDate ? `<div style="font-family:'DM Mono',monospace;font-size:${isPost?'10':'11'}px;color:${c.text2};margin-top:4px;letter-spacing:0.05em;">${esc(periodLine)}</div>` : ''}
     </div>
     <div style="flex:1;overflow:hidden;">${rows}</div>
-    <div style="padding:8px 12px;background:${c.bg3};border-top:1px solid ${c.border};display:flex;justify-content:space-between;align-items:center;">
+    ${opts.showFooter ? `<div style="padding:8px 12px;background:${c.bg3};border-top:1px solid ${c.border};display:flex;justify-content:space-between;align-items:center;">
       <div style="font-family:'DM Mono',monospace;font-size:8px;color:${c.text3};letter-spacing:0.12em;">dankstation.fm · PERSONAL MUSIC CHARTS</div>
       <div style="font-family:'DM Mono',monospace;font-size:8px;color:${c.accent};letter-spacing:0.08em;">Plays</div>
-    </div>
+    </div>` : ''}
   </div>`;
+}
 
+function updateIgFontLabel() {
+  const val = parseInt(document.getElementById('igFontSize').value);
+  document.getElementById('igFontSizeLabel').textContent = val === 0 ? 'Auto' : val + 'px';
+}
+
+function openIgPreviewModal(type) {
+  igPreviewType = type;
+  const titleMap = { songs: '★ Top Songs', artists: '♦ Top Artists', albums: '◈ Top Albums' };
+  document.getElementById('igPreviewTitle').textContent = 'Share as Image — ' + titleMap[type];
+  // Reset font slider to Auto
+  const sldr = document.getElementById('igFontSize');
+  if (sldr) { sldr.value = 0; updateIgFontLabel(); }
+  // Sync checkboxes
+  ['showMovement','showPeak','showWeeks','showPlays','showSubtitle','showDate','showFooter'].forEach(k => {
+    const el = document.getElementById('igOpt_' + k);
+    if (el) el.checked = igOptions[k];
+  });
+  setIgFormat(igOptions.format);
+  updateIgPreview();
+  document.getElementById('igPreviewModal').classList.add('open');
+}
+
+function closeIgPreviewModal() {
+  document.getElementById('igPreviewModal').classList.remove('open');
+  document.getElementById('igCardCanvas').innerHTML = '';
+}
+
+function setIgFormat(fmt) {
+  igOptions.format = fmt;
+  document.getElementById('igFmtPost').classList.toggle('active', fmt === 'post');
+  document.getElementById('igFmtStory').classList.toggle('active', fmt === 'story');
+  updateIgPreview();
+}
+
+function updateIgPreview() {
+  if (!igPreviewType) return;
+  // Read checkboxes
+  ['showMovement','showPeak','showWeeks','showPlays','showSubtitle','showDate','showFooter'].forEach(k => {
+    const el = document.getElementById('igOpt_' + k);
+    if (el) igOptions[k] = el.checked;
+  });
+  const isPost = igOptions.format === 'post';
+  const cardW = 540, cardH = isPost ? 540 : 960;
+  const scale = isPost ? 0.5 : 0.4;
+  const html = buildIgCardHTML(igPreviewType, igOptions);
+  if (!html) return;
+
+  // Update live preview (scaled)
+  const frame = document.getElementById('igPreviewFrame');
+  const inner = document.getElementById('igPreviewInner');
+  frame.style.width  = Math.round(cardW * scale) + 'px';
+  frame.style.height = Math.round(cardH * scale) + 'px';
+  inner.innerHTML = html;
+  inner.style.width  = cardW + 'px';
+  inner.style.height = cardH + 'px';
+  inner.style.transform = `scale(${scale})`;
+  inner.style.transformOrigin = 'top left';
+
+  // Update off-screen canvas for download
   const canvas = document.getElementById('igCardCanvas');
   canvas.innerHTML = html;
   canvas.style.width  = cardW + 'px';
   canvas.style.height = cardH + 'px';
+}
 
-  const typeLabel = { songs: 'Songs', artists: 'Artists', albums: 'Albums' }[type];
-  const btn = event.target;
+function downloadIgFromPreview() {
+  const btn = document.getElementById('igDownloadBtn');
   const origText = btn.textContent;
   btn.textContent = '⏳ Generating…';
   btn.disabled = true;
-
+  const isPost = igOptions.format === 'post';
+  const cardW = 540, cardH = isPost ? 540 : 960;
+  const canvas = document.getElementById('igCardCanvas');
+  const { label, sub } = getDateRange();
+  const typeLabel = { songs: 'Songs', artists: 'Artists', albums: 'Albums' }[igPreviewType];
+  const periodSlug = (currentPeriod === 'alltime') ? 'AllTime' : (sub||label).replace(/[^a-z0-9]/gi,'').slice(0,20);
   html2canvas(canvas, {
-    scale: 2,
-    useCORS: false,
-    allowTaint: true,
-    backgroundColor: null,
-    logging: false,
-    width: cardW,
-    height: cardH,
+    scale: 2, useCORS: false, allowTaint: true, backgroundColor: null, logging: false, width: cardW, height: cardH,
   }).then(cvs => {
     const link = document.createElement('a');
-    const periodSlug = (currentPeriod === 'alltime') ? 'AllTime' : (sub||label).replace(/[^a-z0-9]/gi,'').slice(0,20);
-    link.download = `dankstation_${typeLabel}_${periodSlug}_${format}.png`;
+    link.download = `dankstation_${typeLabel}_${periodSlug}_${igOptions.format}.png`;
     link.href = cvs.toDataURL('image/png');
     link.click();
     btn.textContent = origText;
     btn.disabled = false;
-    canvas.innerHTML = '';
   }).catch(() => {
     btn.textContent = origText;
     btn.disabled = false;
-    canvas.innerHTML = '';
   });
 }
+
+document.getElementById('igPreviewModal').addEventListener('click', e => {
+  if (e.target === document.getElementById('igPreviewModal')) closeIgPreviewModal();
+});
 
 // ─── ARTIST MODAL ──────────────────────────────────────────────
 const modal = document.getElementById('artistModal');
