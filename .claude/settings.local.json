@@ -1,7 +1,10 @@
 {
   "permissions": {
     "allow": [
-      "Bash(gh api:*)"
+      "Bash(gh api:*)",
+      "WebFetch(domain:musicbrainz.org)",
+      "WebSearch",
+      "WebFetch(domain:corsproxy.io)"
     ]
   }
 }
