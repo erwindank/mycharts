@@ -1975,6 +1975,17 @@
   .cr-row { display: none; }
   .cr-row.open { display: table-row; }
   .cr-row > td { padding: 0 !important; border-top: none !important; }
+  .cr-panel-section { border-top: 1px solid var(--border2); padding-top: 0.45rem; margin-top: 0.45rem; }
+  .cr-panel-section:first-child { border-top: none; padding-top: 0; margin-top: 0; }
+  .cr-panel-section-title { font-family: 'DM Mono', monospace; font-size: 0.58rem; letter-spacing: 0.12em; color: var(--text3); text-transform: uppercase; margin-bottom: 0.2rem; }
+  .cr-ig-share-btn { display: inline-block; margin-top: 0.55rem; background: none; border: 1px solid var(--border2); color: var(--text2); font-family: 'DM Mono', monospace; font-size: 0.58rem; letter-spacing: 0.08em; padding: 0.22rem 0.65rem; border-radius: 4px; cursor: pointer; transition: background 0.12s, color 0.12s; }
+  .cr-ig-share-btn:hover { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .cr-range-bar { display: flex; align-items: center; gap: 4px; flex-wrap: wrap; margin-bottom: 7px; }
+  .cr-range-label { font-family: 'DM Mono', monospace; font-size: 0.55rem; letter-spacing: 0.1em; color: var(--text3); text-transform: uppercase; margin-right: 2px; }
+  .cr-range-btn { background: none; border: 1px solid var(--border2); color: var(--text3); font-family: 'DM Mono', monospace; font-size: 0.58rem; letter-spacing: 0.06em; padding: 0.18rem 0.55rem; border-radius: 4px; cursor: pointer; transition: background 0.12s, color 0.12s, border-color 0.12s; white-space: nowrap; }
+  .cr-range-btn:hover { border-color: var(--accent2); color: var(--accent2); }
+  .cr-range-btn.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+
   .cr-panel {
     padding: 0.55rem 0.85rem 0.65rem;
     background: var(--bg3);
@@ -2796,6 +2807,58 @@
     </div>
   </div>
 </div>
+
+<!-- CHART RUN SHARE MODAL -->
+<div class="ig-modal-overlay" id="crIgModal">
+  <div class="ig-modal-box">
+    <div class="ig-modal-header">
+      <h3 id="crIgTitle">Share Chart Run as Image</h3>
+      <button class="ig-modal-close" onclick="closeCrIgModal()">✕ CLOSE</button>
+    </div>
+    <div class="ig-modal-body">
+      <div class="ig-preview-panel">
+        <div class="ig-preview-label">Preview</div>
+        <div class="ig-preview-frame" id="crIgPreviewFrame">
+          <div class="ig-preview-inner" id="crIgPreviewInner"></div>
+        </div>
+      </div>
+      <div class="ig-controls-panel">
+        <div class="ig-ctrl-group">
+          <div class="ig-ctrl-group-title">Format</div>
+          <div class="ig-format-btns">
+            <button class="ig-format-btn active" id="crIgFmtPost" onclick="setCrIgFormat('post')">📷 Post (1:1)</button>
+            <button class="ig-format-btn" id="crIgFmtStory" onclick="setCrIgFormat('story')">📱 Story (9:16)</button>
+          </div>
+        </div>
+        <div class="ig-ctrl-group">
+          <div class="ig-ctrl-group-title">Range</div>
+          <div class="ig-format-btns" id="crIgRangeBtns">
+            <button class="ig-format-btn" id="crIgRangeYear"     onclick="setCrIgRange('year')">Year Only</button>
+            <button class="ig-format-btn" id="crIgRangeUptoYear" onclick="setCrIgRange('uptoYear')">Up to Year</button>
+            <button class="ig-format-btn active" id="crIgRangeNow" onclick="setCrIgRange('now')">All-Time</button>
+          </div>
+          <div style="font-family:'DM Mono',monospace;font-size:0.55rem;color:var(--text3);letter-spacing:0.06em;margin-top:3px;">Range for the chart run boxes shown</div>
+        </div>
+        <div class="ig-ctrl-group">
+          <div class="ig-ctrl-group-title">Include Chart Runs</div>
+          <label class="ig-ctrl-row"><input type="checkbox" id="crIgOpt_showYear"  checked onchange="updateCrIgPreview()"><span>📅 Yearly Chart Run + Stats</span></label>
+          <label class="ig-ctrl-row"><input type="checkbox" id="crIgOpt_showMonth" checked onchange="updateCrIgPreview()"><span>📆 Monthly Chart Run + Stats</span></label>
+          <label class="ig-ctrl-row"><input type="checkbox" id="crIgOpt_showWeek"  checked onchange="updateCrIgPreview()"><span>🗓 Weekly Chart Run + Stats</span></label>
+        </div>
+        <div class="ig-ctrl-group">
+          <div class="ig-ctrl-group-title">Show / Hide</div>
+          <label class="ig-ctrl-row"><input type="checkbox" id="crIgOpt_showSubtitle" checked onchange="updateCrIgPreview()"><span>Artist / Sub-label</span></label>
+          <label class="ig-ctrl-row"><input type="checkbox" id="crIgOpt_showFooter"   checked onchange="updateCrIgPreview()"><span>Footer Branding</span></label>
+        </div>
+      </div>
+    </div>
+    <div class="ig-modal-footer">
+      <button class="ig-modal-close" onclick="closeCrIgModal()">Cancel</button>
+      <button class="ig-download-btn" id="crIgDownloadBtn" onclick="downloadCrIg()">↓ Download Image</button>
+    </div>
+  </div>
+</div>
+<div id="crIgCanvas" style="position:fixed;left:-9999px;top:0;pointer-events:none;"></div>
 
 <!-- EXPORT PLAYLIST MODAL -->
 <div class="modal-overlay" id="exportModal" onclick="if(event.target===this)closeExportModal()">
@@ -3901,8 +3964,17 @@ function renderAll() {
 
   const peaks = buildPeaks();
   lastPeaks = peaks;
-  chartRunData = null;
-  if (currentPeriod === 'week' || currentPeriod === 'month' || currentPeriod === 'year') buildChartRun(currentPeriod);
+  chartRunData             = null;
+  allChartRun              = {};
+  allChartRunIsFullHistory = false;
+  if (currentPeriod === 'year') {
+    buildAllChartRun(); // builds all 3 with offset=0 and sets allChartRunIsFullHistory
+  } else if (currentPeriod === 'week' || currentPeriod === 'month') {
+    // Build current-period chart run with actual offset for crPreview / album modal
+    allChartRun[currentPeriod] = buildChartRun(currentPeriod);
+    chartRunData = allChartRun[currentPeriod];
+    // The remaining periods + full history are built lazily on first 📊 open
+  }
 
   if (isPaginated()) {
     // Build full sorted datasets and apply chart view limit
@@ -4061,7 +4133,7 @@ function renderPage(type, peaks) {
         </td>
       </tr>`;
       if (!hasCR) return [mainRow];
-      return [mainRow, `<tr class="cr-row" id="${rowId}"><td colspan="5"><div class="cr-panel"><div class="cr-stats">${crStats('songs',k,'year')}</div>${crBoxesHTML('songs',k)}</div></td></tr>`];
+      return [mainRow, `<tr class="cr-row" id="${rowId}"><td colspan="5"><div class="cr-panel" data-crtype="songs" data-crkey="${encodeURIComponent(k)}">${buildCrPanelHTML('songs', k)}</div></td></tr>`];
     }).join('');
     loadImages(imgItems.map(i => ({ ...i, name: i.title })), 'song');
 
@@ -4084,7 +4156,7 @@ function renderPage(type, peaks) {
         </td>
       </tr>`;
       if (!hasCR) return [mainRow];
-      return [mainRow, `<tr class="cr-row" id="${rowId}"><td colspan="5"><div class="cr-panel"><div class="cr-stats">${crStats('artists',a.name,'year')}</div>${crBoxesHTML('artists',a.name)}</div></td></tr>`];
+      return [mainRow, `<tr class="cr-row" id="${rowId}"><td colspan="5"><div class="cr-panel" data-crtype="artists" data-crkey="${encodeURIComponent(a.name)}">${buildCrPanelHTML('artists', a.name)}</div></td></tr>`];
     }).join('');
     loadImages(imgItems, 'artist');
 
@@ -4116,7 +4188,7 @@ function renderPage(type, peaks) {
         </td>
       </tr>`;
         if (!hasCR) return [mainRow];
-        return [mainRow, `<tr class="cr-row" id="${rowId}"><td colspan="5"><div class="cr-panel"><div class="cr-stats">${crStats('albums',ak,'year')}</div>${crBoxesHTML('albums',ak)}</div></td></tr>`];
+        return [mainRow, `<tr class="cr-row" id="${rowId}"><td colspan="5"><div class="cr-panel" data-crtype="albums" data-crkey="${encodeURIComponent(ak)}">${buildCrPanelHTML('albums', ak)}</div></td></tr>`];
       }).join('');
     }
     loadImages(imgItems, 'album');
@@ -4165,7 +4237,88 @@ function changePage(type, dir) {
 // Builds per-item chart run history for the current period type.
 // Weekly → history of weekly ranks; Monthly → monthly; Yearly → yearly.
 // Stored in chartRunData for use by toggle expand rows.
-let chartRunData = null;
+let chartRunData          = null;
+let allChartRun           = {};
+let allChartRunIsFullHistory = false; // true only when all 3 built with offset=0
+let crRangeMode           = 'now'; // 'year' | 'uptoYear' | 'now'
+
+function getViewedYear() {
+  const now = new Date();
+  if (currentPeriod === 'year')  return now.getFullYear() - currentOffset;
+  if (currentPeriod === 'month') return new Date(now.getFullYear(), now.getMonth() - currentOffset, 1).getFullYear();
+  if (currentPeriod === 'week')  {
+    const sun = new Date(now);
+    sun.setDate(now.getDate() - now.getDay() - currentOffset * 7);
+    return sun.getFullYear();
+  }
+  return now.getFullYear();
+}
+
+function filterCrD(d, period, mode, viewedYear) {
+  if (!d || mode === 'now') return d;
+  let entries;
+  if (mode === 'year') {
+    if (period === 'year')       entries = d.entries.filter(e => parseInt(e.periodKey) === viewedYear);
+    else if (period === 'month') entries = d.entries.filter(e => e.periodKey.startsWith(viewedYear + '-'));
+    else                         entries = d.entries.filter(e => new Date(e.periodKey + 'T00:00:00').getFullYear() === viewedYear);
+  } else { // uptoYear
+    if (period === 'year')       entries = d.entries.filter(e => parseInt(e.periodKey) <= viewedYear);
+    else if (period === 'month') entries = d.entries.filter(e => e.periodKey <= viewedYear + '-12');
+    else                         entries = d.entries.filter(e => new Date(e.periodKey + 'T00:00:00').getFullYear() <= viewedYear);
+  }
+  if (!entries || !entries.length) return null;
+  const peak      = Math.min(...entries.map(e => e.rank));
+  const peakPlays = Math.max(0, ...entries.map(e => e.plays || 0));
+  const peakDays  = Math.max(0, ...entries.map(e => e.days  || 0));
+  return { ...d, entries, peak, peakPlays, peakDays };
+}
+
+function buildCrPanelHTML(type, key) {
+  ensureAllChartRun(); // guarantees allChartRun has full history for "All-Time" mode
+  const vy = getViewedYear();
+  const modeLabels = { year: vy + ' Only', uptoYear: 'Up to ' + vy, now: 'All-Time' };
+  const toggleHtml = `<div class="cr-range-bar">
+    <span class="cr-range-label">Range</span>
+    ${['year','uptoYear','now'].map(m =>
+      `<button class="cr-range-btn${crRangeMode===m?' active':''}" onclick="setCrRangeMode('${m}');event.stopPropagation()">${modeLabels[m]}</button>`
+    ).join('')}
+    <button class="cr-ig-share-btn" style="margin-left:auto;" onclick="openCrIgModal('${type}','${encodeURIComponent(key)}');event.stopPropagation()">📸 Share</button>
+  </div>`;
+
+  let sectionsHtml = '';
+  if (currentPeriod === 'year') {
+    sectionsHtml = [
+      { id: 'year',  label: '📅 Yearly'  },
+      { id: 'month', label: '📆 Monthly' },
+      { id: 'week',  label: '🗓 Weekly'  },
+    ].map(({ id, label }) => {
+      const crData = allChartRun[id];
+      const rawD = crData?.result?.[type]?.[key];
+      const d = filterCrD(rawD, id, crRangeMode, vy);
+      return `<div class="cr-panel-section">
+        <div class="cr-panel-section-title">${label}</div>
+        ${d ? `<div class="cr-stats">${crStats(type, key, id, null, d)}</div>${crBoxesHTML(type, key, null, d, id)}` : '<div style="font-size:0.6rem;color:var(--text3);padding:2px 0">No chart history for this range.</div>'}
+      </div>`;
+    }).join('');
+  } else {
+    const crData = allChartRun[currentPeriod] || chartRunData;
+    const rawD = crData?.result?.[type]?.[key];
+    const d = filterCrD(rawD, currentPeriod, crRangeMode, vy);
+    sectionsHtml = d
+      ? `<div class="cr-stats">${crStats(type, key, currentPeriod, null, d)}</div>${crBoxesHTML(type, key, null, d, currentPeriod)}`
+      : '<div style="font-size:0.6rem;color:var(--text3);padding:4px 0">No chart history for this range.</div>';
+  }
+  return toggleHtml + sectionsHtml;
+}
+
+function setCrRangeMode(mode) {
+  crRangeMode = mode;
+  document.querySelectorAll('.cr-row.open .cr-panel[data-crtype]').forEach(panel => {
+    const type = panel.dataset.crtype;
+    const key  = decodeURIComponent(panel.dataset.crkey);
+    panel.innerHTML = buildCrPanelHTML(type, key);
+  });
+}
 
 function buildChartRun(period) {
   const now = new Date();
@@ -4247,6 +4400,24 @@ function buildChartRun(period) {
     }
   }
   chartRunData = { period, curKey, periodMap, result };
+  return chartRunData;
+}
+
+function buildAllChartRun() {
+  const savedOffset = currentOffset;
+  currentOffset = 0; // build all 3 through today regardless of current view
+  allChartRun.year  = buildChartRun('year');
+  allChartRun.month = buildChartRun('month');
+  allChartRun.week  = buildChartRun('week');
+  currentOffset = savedOffset;
+  allChartRunIsFullHistory = true;
+  chartRunData = allChartRun[currentPeriod] || allChartRun.year;
+}
+
+function ensureAllChartRun() {
+  // Only skip rebuild if we already have full history (offset=0 for all 3)
+  if (allChartRunIsFullHistory) return;
+  buildAllChartRun();
 }
 
 function crPeriodLabel(period, key) {
@@ -4269,9 +4440,10 @@ function crPeriodTitle(period, key) {
   } else return 'Year ' + key;
 }
 
-function crStats(type, key, period) {
-  if (!chartRunData || !chartRunData.result[type][key]) return '';
-  const d = chartRunData.result[type][key];
+function crStats(type, key, period, crData, preD) {
+  const data = crData || chartRunData;
+  const d = preD !== undefined ? preD : (data?.result?.[type]?.[key]);
+  if (!d) return '';
   const n = d.entries.length;
   const peak = d.peak;
   const top1  = d.entries.filter(e => e.rank === 1).length;
@@ -4313,16 +4485,17 @@ function crPeriodGap(period, keyA, keyB) {
   }
 }
 
-function crBoxesHTML(type, key) {
-  if (!chartRunData || !chartRunData.result[type][key]) return '<div style="font-size:0.6rem;color:var(--text3);padding:4px 0">No chart history yet.</div>';
-  const d = chartRunData.result[type][key];
-  const period = chartRunData.period;
+function crBoxesHTML(type, key, crData, preD, periodOverride) {
+  const data = crData || chartRunData;
+  const d = preD !== undefined ? preD : (data?.result?.[type]?.[key]);
+  if (!d) return '<div style="font-size:0.6rem;color:var(--text3);padding:4px 0">No chart history yet.</div>';
+  const period = periodOverride || data?.period || currentPeriod;
   const safeKey = encodeURIComponent(key);
   const unit = (gap) => period === 'week' ? (gap === 1 ? 'Week' : 'Weeks') : period === 'month' ? (gap === 1 ? 'Month' : 'Months') : (gap === 1 ? 'Year' : 'Years');
   const boxes = d.entries.flatMap((e, i) => {
     const isPeak = (e.rank === d.peak);
     const cls = isPeak ? 'cr-box cr-box-peak' : 'cr-box';
-    const box = `<div class="${cls}" onclick="showCrPreview('${esc(e.periodKey)}','${type}','${safeKey}',this)">
+    const box = `<div class="${cls}" onclick="showCrPreview('${esc(e.periodKey)}','${type}','${safeKey}',this,'${period}')">
       <div class="cr-box-rank">#${e.rank}</div>
       <div class="cr-box-label">${esc(e.label)}</div>
     </div>`;
@@ -4345,12 +4518,13 @@ function toggleChartRun(btn, rowId) {
 }
 
 let _crPreviewCleanup = null;
-function showCrPreview(periodKey, type, encodedKey, boxEl) {
+function showCrPreview(periodKey, type, encodedKey, boxEl, periodName) {
   hideCrPreview();
-  if (!chartRunData || !chartRunData.periodMap[periodKey]) return;
+  const crData = (periodName && allChartRun[periodName]) || chartRunData;
+  if (!crData || !crData.periodMap[periodKey]) return;
   const key = decodeURIComponent(encodedKey);
-  const pm = chartRunData.periodMap[periodKey];
-  const period = chartRunData.period;
+  const pm = crData.periodMap[periodKey];
+  const period = crData.period;
   const title = crPeriodTitle(period, periodKey);
   const typeLabels = { songs:'Songs', artists:'Artists', albums:'Albums' };
   const ranked = Object.entries(pm[type]).sort(([,a],[,b]) => rankSort(a,b)).slice(0, Math.min(chartSize, 25));
@@ -4705,7 +4879,7 @@ function renderSongs(plays, peaks, monthlyStats) {
         <div class="play-bar"><div class="play-bar-fill" style="width:${Math.round(s.count/max*100)}%"></div></div>
       </td>
     </tr>`;
-    const expandRow = `<tr class="cr-row" id="${rowId}"><td colspan="${colCount}"><div class="cr-panel"><div class="cr-stats">${crStats('songs',k,currentPeriod)}</div>${crBoxesHTML('songs',k)}</div></td></tr>`;
+    const expandRow = `<tr class="cr-row" id="${rowId}"><td colspan="${colCount}"><div class="cr-panel" data-crtype="songs" data-crkey="${encodeURIComponent(k)}">${buildCrPanelHTML('songs', k)}</div></td></tr>`;
     return [mainRow, expandRow];
   }).join('');
   loadImages(imgItems.map(i => ({ ...i, name: i.title })), 'song');
@@ -4754,7 +4928,7 @@ function renderArtists(plays, peaks, monthlyStats) {
         <div class="play-bar"><div class="play-bar-fill" style="width:${Math.round(data.count/max*100)}%"></div></div>
       </td>
     </tr>`;
-    const expandRow = `<tr class="cr-row" id="${rowId}"><td colspan="${colCount}"><div class="cr-panel"><div class="cr-stats">${crStats('artists',artist,currentPeriod)}</div>${crBoxesHTML('artists',artist)}</div></td></tr>`;
+    const expandRow = `<tr class="cr-row" id="${rowId}"><td colspan="${colCount}"><div class="cr-panel" data-crtype="artists" data-crkey="${encodeURIComponent(artist)}">${buildCrPanelHTML('artists', artist)}</div></td></tr>`;
     return [mainRow, expandRow];
   }).join('');
   loadImages(imgItems, 'artist');
@@ -4810,7 +4984,7 @@ function renderAlbums(plays, peaks, monthlyStats) {
         <div class="play-bar"><div class="play-bar-fill" style="width:${Math.round(count/max*100)}%"></div></div>
       </td>
     </tr>`;
-      const expandRow = `<tr class="cr-row" id="${rowId}"><td colspan="${colCount}"><div class="cr-panel"><div class="cr-stats">${crStats('albums',ak,currentPeriod)}</div>${crBoxesHTML('albums',ak)}</div></td></tr>`;
+      const expandRow = `<tr class="cr-row" id="${rowId}"><td colspan="${colCount}"><div class="cr-panel" data-crtype="albums" data-crkey="${encodeURIComponent(ak)}">${buildCrPanelHTML('albums', ak)}</div></td></tr>`;
       return [mainRow, expandRow];
     }).join('');
   }
@@ -5361,6 +5535,182 @@ function downloadIgFromPreview() {
 
 document.getElementById('igPreviewModal').addEventListener('click', e => {
   if (e.target === document.getElementById('igPreviewModal')) closeIgPreviewModal();
+});
+
+// ─── CHART RUN SHARE IMAGE ──────────────────────────────────────
+let crIgState = { type: null, key: null, format: 'post', rangeMode: 'now' };
+
+function openCrIgModal(type, encodedKey) {
+  const key = decodeURIComponent(encodedKey);
+  crIgState.type = type; crIgState.key = key;
+
+  // Build any missing chart run data on demand
+  ensureAllChartRun();
+
+  // Header title
+  let name = key.split('|||')[0];
+  const crAny = allChartRun.year?.result?.[type]?.[key] || allChartRun.month?.result?.[type]?.[key];
+  if (crAny) {
+    if (type === 'songs')  name = crAny._title  || name;
+    if (type === 'albums') name = crAny._album  || name;
+  }
+  const typeLabel = { songs: '★ Song', artists: '♦ Artist', albums: '◈ Album' }[type];
+  document.getElementById('crIgTitle').textContent = typeLabel + ' Chart Run — ' + name.slice(0, 40);
+
+  // Sync range mode with current chart run panel setting
+  crIgState.rangeMode = crRangeMode;
+  setCrIgRange(crIgState.rangeMode);
+  setCrIgFormat(crIgState.format);
+  updateCrIgPreview();
+  document.getElementById('crIgModal').classList.add('open');
+}
+
+function closeCrIgModal() {
+  document.getElementById('crIgModal').classList.remove('open');
+  document.getElementById('crIgCanvas').innerHTML = '';
+}
+
+function setCrIgFormat(fmt) {
+  crIgState.format = fmt;
+  document.getElementById('crIgFmtPost').classList.toggle('active', fmt === 'post');
+  document.getElementById('crIgFmtStory').classList.toggle('active', fmt === 'story');
+  updateCrIgPreview();
+}
+
+function setCrIgRange(mode) {
+  crIgState.rangeMode = mode;
+  ['year','uptoYear','now'].forEach(m => {
+    const id = { year:'crIgRangeYear', uptoYear:'crIgRangeUptoYear', now:'crIgRangeNow' }[m];
+    document.getElementById(id)?.classList.toggle('active', m === mode);
+  });
+  updateCrIgPreview();
+}
+
+function buildCrIgCardHTML(type, key, opts) {
+  const c = igColors();
+  const isPost = opts.format === 'post';
+  const cardW = 540, cardH = isPost ? 540 : 960;
+
+  // Resolve display name
+  let displayName = key.split('|||')[0], artistName = key.split('|||')[1] || '';
+  const crAny = allChartRun.year?.result?.[type]?.[key] || allChartRun.month?.result?.[type]?.[key] || allChartRun.week?.result?.[type]?.[key];
+  if (crAny) {
+    if (type === 'songs')   { displayName = crAny._title  || displayName; artistName = crAny._artist || artistName; }
+    if (type === 'albums')  { displayName = crAny._album  || displayName; artistName = crAny._artist || artistName; }
+    if (type === 'artists') { displayName = key; artistName = ''; }
+  }
+
+  const periodConf = [
+    { id: 'year',  label: '📅 YEARLY',  check: opts.showYear  },
+    { id: 'month', label: '📆 MONTHLY', check: opts.showMonth },
+    { id: 'week',  label: '🗓 WEEKLY',  check: opts.showWeek  },
+  ];
+
+  const rangeMode = opts.rangeMode || 'now';
+  const vy = getViewedYear();
+  const rangeLabelMap = { year: vy + ' Only', uptoYear: 'Up to ' + vy, now: 'All-Time' };
+  const sections = periodConf.filter(p => p.check).map(pc => {
+    const crData = allChartRun[pc.id];
+    if (!crData?.result?.[type]?.[key]) return '';
+    const rawD = crData.result[type][key];
+    const d = filterCrD(rawD, pc.id, rangeMode, vy);
+    if (!d) return '';
+    const period = pc.id;
+    const n = d.entries.length;
+    const peak = d.peak;
+    const top1 = d.entries.filter(e => e.rank === 1).length;
+    const unit = period === 'week' ? (n>1?'wks':'wk') : period === 'month' ? (n>1?'mos':'mo') : (n>1?'yrs':'yr');
+    const statsLine = `${n} ${unit} on chart · Peak #${peak}${top1 ? ` · ${top1}× #1` : ''}`;
+
+    // Box sizing: wider story card fits more
+    const boxW = period === 'week' ? 30 : 36;
+    const gap = 3;
+    const maxBoxes = Math.floor((cardW - 28) / (boxW + gap));
+    const shown = d.entries.slice(-maxBoxes);
+    const truncated = d.entries.length > maxBoxes;
+
+    const boxesHtml = shown.map(e => {
+      const isPeak = e.rank === d.peak;
+      const bg     = isPeak ? 'rgba(245,158,11,0.18)' : c.surface;
+      const border = isPeak ? 'rgba(245,158,11,0.55)'  : c.border;
+      const rc     = isPeak ? c.gold1 : c.text;
+      return `<div style="background:${bg};border:1px solid ${border};border-radius:4px;padding:3px 4px;text-align:center;min-width:${boxW}px;flex-shrink:0;">
+        <div style="font-family:'DM Serif Display',serif;font-size:11px;color:${rc};line-height:1.1">#${e.rank}</div>
+        <div style="font-family:'DM Mono',monospace;font-size:6.5px;color:${c.text3};white-space:nowrap;margin-top:2px">${e.label}</div>
+      </div>`;
+    }).join('');
+
+    return `<div style="margin-bottom:9px;">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:3px;">
+        <div style="font-family:'DM Mono',monospace;font-size:8px;letter-spacing:0.14em;color:${c.accent};text-transform:uppercase;">${pc.label}</div>
+        <div style="font-family:'DM Mono',monospace;font-size:8px;color:${c.text3};">${statsLine}${truncated?` · last ${maxBoxes}`:''}</div>
+      </div>
+      <div style="display:flex;flex-wrap:wrap;gap:${gap}px;">${boxesHtml}</div>
+    </div>`;
+  }).filter(Boolean);
+
+  if (!sections.length) return '';
+
+  const typeLabel = { songs: '★ SONG', artists: '♦ ARTIST', albums: '◈ ALBUM' }[type];
+  return `<div style="width:${cardW}px;height:${cardH}px;background:${c.bg};overflow:hidden;display:flex;flex-direction:column;font-family:'DM Sans',sans-serif;">
+    <div style="background:linear-gradient(135deg,${c.bg3},${c.surface});padding:${isPost?'12px 16px':'16px 20px'};border-bottom:2px solid ${c.accent};flex-shrink:0;">
+      <div style="font-family:'DM Mono',monospace;font-size:8px;letter-spacing:0.2em;color:${c.accent};text-transform:uppercase;margin-bottom:3px;">dankcharts.fm · ${typeLabel} CHART RUN · ${rangeLabelMap[rangeMode]}</div>
+      <div style="font-family:'DM Sans',sans-serif;font-size:${isPost?17:22}px;font-weight:700;color:${c.text};line-height:1.15;letter-spacing:-0.02em;">${esc(displayName)}</div>
+      ${opts.showSubtitle && artistName ? `<div style="font-family:'DM Sans',sans-serif;font-size:${isPost?11:13}px;color:${c.text3};margin-top:2px;">${esc(artistName)}</div>` : ''}
+    </div>
+    <div style="flex:1;overflow:hidden;padding:${isPost?'10px 14px':'14px 18px'};">${sections.join('<div style="height:1px;background:'+ c.border +';margin:6px 0;"></div>')}</div>
+    ${opts.showFooter ? `<div style="padding:7px 12px;background:${c.bg3};border-top:1px solid ${c.border};flex-shrink:0;"><div style="font-family:'DM Mono',monospace;font-size:8px;color:${c.text3};letter-spacing:0.12em;">dankcharts.fm · PERSONAL MUSIC CHARTS</div></div>` : ''}
+  </div>`;
+}
+
+function updateCrIgPreview() {
+  if (!crIgState.type) return;
+  const opts = {
+    format:      crIgState.format,
+    rangeMode:   crIgState.rangeMode,
+    showYear:    document.getElementById('crIgOpt_showYear')?.checked  ?? true,
+    showMonth:   document.getElementById('crIgOpt_showMonth')?.checked ?? true,
+    showWeek:    document.getElementById('crIgOpt_showWeek')?.checked  ?? true,
+    showSubtitle:document.getElementById('crIgOpt_showSubtitle')?.checked ?? true,
+    showFooter:  document.getElementById('crIgOpt_showFooter')?.checked   ?? true,
+  };
+  const isPost = opts.format === 'post';
+  const cardW = 540, cardH = isPost ? 540 : 960;
+  const scale = isPost ? 0.5 : 0.4;
+  const html = buildCrIgCardHTML(crIgState.type, crIgState.key, opts);
+  if (!html) return;
+  const frame = document.getElementById('crIgPreviewFrame');
+  const inner = document.getElementById('crIgPreviewInner');
+  frame.style.width  = Math.round(cardW * scale) + 'px';
+  frame.style.height = Math.round(cardH * scale) + 'px';
+  inner.innerHTML = html;
+  inner.style.width  = cardW + 'px';
+  inner.style.height = cardH + 'px';
+  inner.style.transform = `scale(${scale})`;
+  inner.style.transformOrigin = 'top left';
+  const cvs = document.getElementById('crIgCanvas');
+  cvs.innerHTML = html;
+  cvs.style.width = cardW + 'px'; cvs.style.height = cardH + 'px';
+}
+
+function downloadCrIg() {
+  const btn = document.getElementById('crIgDownloadBtn');
+  const orig = btn.textContent; btn.textContent = '⏳ Generating…'; btn.disabled = true;
+  const isPost = crIgState.format === 'post';
+  const cardW = 540, cardH = isPost ? 540 : 960;
+  const cvs = document.getElementById('crIgCanvas');
+  const slug = (crIgState.key.split('|||')[0] || 'chart').replace(/[^a-z0-9]/gi,'').slice(0,20);
+  html2canvas(cvs, { scale:2, useCORS:false, allowTaint:true, backgroundColor:null, logging:false, width:cardW, height:cardH })
+    .then(c => {
+      const a = document.createElement('a');
+      a.download = `dankcharts_chartrun_${slug}_${crIgState.format}.png`;
+      a.href = c.toDataURL('image/png'); a.click();
+      btn.textContent = orig; btn.disabled = false;
+    }).catch(() => { btn.textContent = orig; btn.disabled = false; });
+}
+
+document.getElementById('crIgModal').addEventListener('click', e => {
+  if (e.target === document.getElementById('crIgModal')) closeCrIgModal();
 });
 
 // ─── ARTIST MODAL ──────────────────────────────────────────────
