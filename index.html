@@ -2505,9 +2505,9 @@
   </div>
 
   <!-- UPCOMING RELEASES SECTION -->
-  <div class="chart-section" id="upcomingSection" style="display:none; margin-top:2rem;">
+  <div class="chart-section collapsed" id="upcomingSection" style="display:none; margin-top:2rem;">
     <div class="section-header">
-      <button class="section-collapse-btn" data-target="upcomingSection" title="Collapse">−</button>
+      <button class="section-collapse-btn" data-target="upcomingSection" title="Collapse">+</button>
       <h2 class="section-title">🔜 Upcoming Releases</h2>
       <span class="section-collapsed-label">collapsed — click + to expand</span>
       <div class="section-rule"></div>
@@ -2521,9 +2521,9 @@
   </div>
 
   <!-- RECENT RELEASES SECTION -->
-  <div class="chart-section" id="recentSection" style="display:none; margin-top:2rem;">
+  <div class="chart-section collapsed" id="recentSection" style="display:none; margin-top:2rem;">
     <div class="section-header">
-      <button class="section-collapse-btn" data-target="recentSection" title="Collapse">−</button>
+      <button class="section-collapse-btn" data-target="recentSection" title="Collapse">+</button>
       <h2 class="section-title">🎉 Recent Releases</h2>
       <span class="section-collapsed-label">collapsed — click + to expand</span>
       <div class="section-rule"></div>
@@ -3246,7 +3246,7 @@ document.addEventListener('click', e => {
 const SHEET_ID   = '1ydtkm3-P_37mlOpim0IS5WfIs2LSlVRx_D8fOL4kFVM';
 const SHEET_TAB  = 'Full Raw Listening History';
 const SHEET_URL  = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv;charset:UTF-8&sheet=${encodeURIComponent(SHEET_TAB)}`;
-const SYNC_INTERVAL_MS = 5 * 60 * 1000; // auto-refresh every 5 minutes
+const SYNC_INTERVAL_MS = 60 * 60 * 1000; // auto-refresh every 1 hour
 let syncTimer = null;
 let lastSyncTime = null;
 
@@ -3269,6 +3269,8 @@ async function syncFromSheets() {
     const text = new TextDecoder('utf-8').decode(buffer);
     parseCsv(text, true); // true = from sheets (skip hide upload zone)
     lastSyncTime = new Date();
+    localStorage.setItem('dc_sync_ts', lastSyncTime.getTime().toString());
+    try { sessionStorage.setItem('dc_sync_csv', text); } catch(e) { sessionStorage.removeItem('dc_sync_csv'); }
     setSyncStatus('✓ Synced · ' + lastSyncTime.toLocaleTimeString() + '  (' + allPlays.length.toLocaleString() + ' plays loaded)', 'ok');
   } catch(e) {
     setSyncStatus('✕ Sync failed — check sheet is public · ' + e.message, 'err');
@@ -3281,10 +3283,24 @@ async function syncFromSheets() {
 
 document.getElementById('syncNowBtn').addEventListener('click', syncFromSheets);
 
-// Auto-sync on page load
+// Auto-sync on page load — use cached data if synced within the last hour
 window.addEventListener('load', () => {
   document.getElementById('mainApp').style.display = 'block';
-  syncFromSheets();
+  localStorage.removeItem('dc_sync_csv'); // clean up old oversized key if present
+  const cachedTs  = parseInt(localStorage.getItem('dc_sync_ts') || '0', 10);
+  const cachedCsv = sessionStorage.getItem('dc_sync_csv');
+  const age = Date.now() - cachedTs;
+  if (cachedCsv && age < SYNC_INTERVAL_MS) {
+    // Load from cache immediately, then schedule the next real sync for when the hour is up
+    lastSyncTime = new Date(cachedTs);
+    parseCsv(cachedCsv, true);
+    const minsAgo = Math.round(age / 60000);
+    setSyncStatus('✓ Synced · ' + lastSyncTime.toLocaleTimeString() + '  (' + allPlays.length.toLocaleString() + ' plays loaded) · cached ' + minsAgo + 'm ago', 'ok');
+    clearTimeout(syncTimer);
+    syncTimer = setTimeout(syncFromSheets, SYNC_INTERVAL_MS - age);
+  } else {
+    syncFromSheets();
+  }
 });
 
 function parseCsv(text, fromSheets = false) {
@@ -3353,8 +3369,25 @@ function parseCsv(text, fromSheets = false) {
 
   allPlays.sort((a, b) => b.date - a.date);
   populateYearPicker();
+
+  // Restore saved granularity before rendering
+  const savedGran = localStorage.getItem('dc_gran');
+  if (savedGran && ['day','month','year'].includes(savedGran)) {
+    graphGranularity = savedGran;
+    document.querySelectorAll('#graphGranularity button').forEach(b => {
+      b.classList.toggle('active', b.dataset.gran === graphGranularity);
+    });
+  }
+
   renderAll();
   maybeLoadUpcoming();
+
+  // Restore saved period (after renderAll so DOM is ready)
+  const savedPeriod = localStorage.getItem('dc_period');
+  if (savedPeriod && savedPeriod !== 'week') {
+    const periodBtn = document.querySelector(`#periodNav button[data-period="${savedPeriod}"]`);
+    if (periodBtn) periodBtn.click();
+  }
 }
 
 function splitCsvRow(row) {
@@ -3486,6 +3519,7 @@ document.getElementById('periodNav').addEventListener('click', e => {
     // Switch to raw data view
     savedOffsets[currentPeriod] = currentOffset;
     currentPeriod = 'rawdata';
+    localStorage.setItem('dc_period', currentPeriod);
     document.getElementById('chartSizeBar').style.display = 'none';
     document.getElementById('paginatedSizeBar').style.display = 'none';
     document.getElementById('exportPlaylistBtn').style.display = 'none';
@@ -3500,6 +3534,10 @@ document.getElementById('periodNav').addEventListener('click', e => {
     recentEl.classList.add('collapsed');
     const recentBtn = recentEl.querySelector('.section-collapse-btn');
     if (recentBtn) recentBtn.textContent = '+';
+    const upcomingEl = document.getElementById('upcomingSection');
+    upcomingEl.classList.add('collapsed');
+    const upcomingBtn = upcomingEl.querySelector('.section-collapse-btn');
+    if (upcomingBtn) upcomingBtn.textContent = '+';
     applyRawFilters();
     return;
   }
@@ -3508,6 +3546,7 @@ document.getElementById('periodNav').addEventListener('click', e => {
     // Switch to graphs view
     savedOffsets[currentPeriod] = currentOffset;
     currentPeriod = 'graphs';
+    localStorage.setItem('dc_period', currentPeriod);
     document.getElementById('chartSizeBar').style.display = 'none';
     document.getElementById('paginatedSizeBar').style.display = 'none';
     document.getElementById('exportPlaylistBtn').style.display = 'none';
@@ -3537,6 +3576,7 @@ document.getElementById('periodNav').addEventListener('click', e => {
 
   savedOffsets[(currentPeriod === 'rawdata' || currentPeriod === 'graphs') ? btn.dataset.period : currentPeriod] = currentOffset;
   currentPeriod = btn.dataset.period;
+  localStorage.setItem('dc_period', currentPeriod);
   currentOffset = savedOffsets[currentPeriod];
   pageState.songs = 0; pageState.artists = 0; pageState.albums = 0;
   renderAll();
@@ -7160,6 +7200,7 @@ document.getElementById('graphGranularity').addEventListener('click', e => {
   document.querySelectorAll('#graphGranularity button').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
   graphGranularity = btn.dataset.gran;
+  localStorage.setItem('dc_gran', graphGranularity);
   if (currentPeriod === 'graphs') renderGraphs();
 });
 
