@@ -800,17 +800,30 @@
   .picker-input:hover { border-color: var(--accent); color: var(--text); font-weight: 700; }
   .picker-input:focus { outline: none; border-color: var(--accent); }
   /* Graph date range pickers — dark icon in dark themes */
-  #gCumulativeFrom, #gCumulativeTo, #gVolumeFrom, #gVolumeTo { color-scheme: dark; }
+  #gCumulativeFrom, #gCumulativeTo,
+  #gTotalVolumeFrom, #gTotalVolumeTo,
+  #gVolumeFrom, #gVolumeTo,
+  #raceFrom, #raceTo { color-scheme: dark; }
   body.navy-light #gCumulativeFrom, body.navy-light #gCumulativeTo,
+  body.navy-light #gTotalVolumeFrom, body.navy-light #gTotalVolumeTo,
   body.navy-light #gVolumeFrom, body.navy-light #gVolumeTo,
   body.purple-light #gCumulativeFrom, body.purple-light #gCumulativeTo,
+  body.purple-light #gTotalVolumeFrom, body.purple-light #gTotalVolumeTo,
   body.purple-light #gVolumeFrom, body.purple-light #gVolumeTo,
   body.red-light #gCumulativeFrom, body.red-light #gCumulativeTo,
+  body.red-light #gTotalVolumeFrom, body.red-light #gTotalVolumeTo,
   body.red-light #gVolumeFrom, body.red-light #gVolumeTo,
   body.yellow-light #gCumulativeFrom, body.yellow-light #gCumulativeTo,
+  body.yellow-light #gTotalVolumeFrom, body.yellow-light #gTotalVolumeTo,
   body.yellow-light #gVolumeFrom, body.yellow-light #gVolumeTo,
   body.pink-light #gCumulativeFrom, body.pink-light #gCumulativeTo,
-  body.pink-light #gVolumeFrom, body.pink-light #gVolumeTo { color-scheme: light; }
+  body.pink-light #gTotalVolumeFrom, body.pink-light #gTotalVolumeTo,
+  body.pink-light #gVolumeFrom, body.pink-light #gVolumeTo,
+  body.navy-light #raceFrom, body.navy-light #raceTo,
+  body.purple-light #raceFrom, body.purple-light #raceTo,
+  body.red-light #raceFrom, body.red-light #raceTo,
+  body.yellow-light #raceFrom, body.yellow-light #raceTo,
+  body.pink-light #raceFrom, body.pink-light #raceTo { color-scheme: light; }
 
   /* SECTION HEADERS */
   .chart-section { margin-bottom: 2.5rem; }
@@ -2540,14 +2553,6 @@
           <button class="graphs-btn" data-gran="year">Yearly</button>
         </div>
       </div>
-      <div class="graphs-ctrl-group" id="artistPickerGroup">
-        <label class="graphs-ctrl-label">Top Artists to Compare</label>
-        <div class="graphs-ctrl-btns" id="graphArtistCount">
-          <button class="graphs-btn active" data-n="5">Top 5</button>
-          <button class="graphs-btn" data-n="10">Top 10</button>
-          <button class="graphs-btn" data-n="15">Top 15</button>
-        </div>
-      </div>
     </div>
 
     <!-- Chart 1: Cumulative plays over time -->
@@ -2576,7 +2581,25 @@
       <div class="graph-canvas-wrap"><canvas id="gCumulative"></canvas></div>
     </div>
 
-    <!-- Chart 2: Play volume by artist -->
+    <!-- Chart 2: Total play volume -->
+    <div class="graph-card">
+      <div class="graph-card-title">📊 Total Play Volume by Period</div>
+      <div class="graph-card-sub">How many songs you played each period across all artists</div>
+      <div style="display:flex;align-items:center;gap:0.5rem;flex-wrap:wrap;margin-bottom:0.75rem;">
+        <span style="font-family:'DM Mono',monospace;font-size:0.62rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--text3);">Range</span>
+        <input id="gTotalVolumeFrom" type="date"
+          style="background:var(--bg2);border:1px solid var(--border2);color:var(--text);font-family:'DM Mono',monospace;font-size:0.7rem;padding:0.25rem 0.5rem;border-radius:4px;outline:none;">
+        <span style="font-family:'DM Mono',monospace;font-size:0.62rem;color:var(--text3);">to</span>
+        <input id="gTotalVolumeTo" type="date"
+          style="background:var(--bg2);border:1px solid var(--border2);color:var(--text);font-family:'DM Mono',monospace;font-size:0.7rem;padding:0.25rem 0.5rem;border-radius:4px;outline:none;">
+        <button id="gTotalVolumeResetRange" class="graphs-btn" style="white-space:nowrap;">Reset</button>
+        <button id="gTotalVolumeResetZoom" class="graphs-btn" style="white-space:nowrap;">Reset Zoom</button>
+        <button id="gTotalVolumeLabelsBtn" class="graphs-btn" style="white-space:nowrap;">Labels: Off</button>
+      </div>
+      <div class="graph-canvas-wrap"><canvas id="gTotalVolume"></canvas></div>
+    </div>
+
+    <!-- Chart 3: Play volume by artist comparison -->
     <div class="graph-card">
       <div class="graph-card-title">📊 Play Volume by Period — Artist Comparison</div>
       <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.5rem;">
@@ -2602,13 +2625,6 @@
       <div class="graph-canvas-wrap"><canvas id="gVolume"></canvas></div>
     </div>
 
-    <!-- Chart 3: Top artist growth curves -->
-    <div class="graph-card">
-      <div class="graph-card-title">🎤 Top Artists — Cumulative Play Growth</div>
-      <div class="graph-card-sub">How your top artists accumulated plays over time</div>
-      <div class="graph-canvas-wrap"><canvas id="gArtistGrowth"></canvas></div>
-    </div>
-
     <!-- Chart 4: New discoveries per period -->
     <div class="graph-card">
       <div class="graph-card-title">✨ New Discoveries per Period</div>
@@ -2616,11 +2632,64 @@
       <div class="graph-canvas-wrap"><canvas id="gDiscoveries"></canvas></div>
     </div>
 
-    <!-- Chart 5: Artist rank history -->
+    <!-- Bar Chart Race -->
     <div class="graph-card">
-      <div class="graph-card-title">📉 Artist Rank History</div>
-      <div class="graph-card-sub">Weekly rank of your top artists over time (lower = better)</div>
-      <div class="graph-canvas-wrap"><canvas id="gRankHistory"></canvas></div>
+      <div class="graph-card-title">🏁 Play Count Race</div>
+      <div class="graph-card-sub">Cumulative plays over time — watch entries compete for the top spot</div>
+
+      <!-- Row 1: Type + Playback controls -->
+      <div style="display:flex;align-items:center;gap:0.5rem;flex-wrap:wrap;margin-bottom:0.45rem;">
+        <span style="font-family:'DM Mono',monospace;font-size:0.62rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--text3);">Type</span>
+        <div id="raceTypeBtns" style="display:flex;gap:4px;">
+          <button class="graphs-btn active" data-racetype="artists">Artists</button>
+          <button class="graphs-btn" data-racetype="songs">Songs</button>
+          <button class="graphs-btn" data-racetype="albums">Albums</button>
+        </div>
+        <span style="font-family:'DM Mono',monospace;font-size:0.62rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--text3);margin-left:0.3rem;">Speed</span>
+        <div id="raceSpeedBtns" style="display:flex;gap:4px;">
+          <button class="graphs-btn" data-speed="0.5">0.5×</button>
+          <button class="graphs-btn active" data-speed="1">1×</button>
+          <button class="graphs-btn" data-speed="2">2×</button>
+          <button class="graphs-btn" data-speed="4">4×</button>
+        </div>
+      </div>
+
+      <!-- Row 2: Show N -->
+      <div style="display:flex;align-items:center;gap:0.5rem;flex-wrap:wrap;margin-bottom:0.45rem;">
+        <span style="font-family:'DM Mono',monospace;font-size:0.62rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--text3);">Show</span>
+        <div id="raceTopNBtns" style="display:flex;gap:4px;flex-wrap:wrap;">
+          <button class="graphs-btn" data-topn="5">Top 5</button>
+          <button class="graphs-btn active" data-topn="10">Top 10</button>
+          <button class="graphs-btn" data-topn="15">Top 15</button>
+          <button class="graphs-btn" data-topn="20">Top 20</button>
+          <button class="graphs-btn" data-topn="30">Top 30</button>
+          <button class="graphs-btn" data-topn="50">Top 50</button>
+          <button class="graphs-btn" data-topn="100">Top 100</button>
+        </div>
+      </div>
+
+      <!-- Row 3: Date range -->
+      <div style="display:flex;align-items:center;gap:0.5rem;flex-wrap:wrap;margin-bottom:0.6rem;">
+        <span style="font-family:'DM Mono',monospace;font-size:0.62rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--text3);">Range</span>
+        <input id="raceFrom" type="date" style="background:var(--bg2);border:1px solid var(--border2);color:var(--text);font-family:'DM Mono',monospace;font-size:0.7rem;padding:0.25rem 0.5rem;border-radius:4px;outline:none;">
+        <span style="font-family:'DM Mono',monospace;font-size:0.62rem;color:var(--text3);">to</span>
+        <input id="raceTo" type="date" style="background:var(--bg2);border:1px solid var(--border2);color:var(--text);font-family:'DM Mono',monospace;font-size:0.7rem;padding:0.25rem 0.5rem;border-radius:4px;outline:none;">
+        <button id="raceResetRange" class="graphs-btn" style="white-space:nowrap;">Reset</button>
+      </div>
+
+      <!-- Row 4: Transport -->
+      <div style="display:flex;align-items:center;gap:0.4rem;flex-wrap:wrap;margin-bottom:0.5rem;">
+        <button id="raceRestartBtn" class="graphs-btn" title="Go to start">↩ Start</button>
+        <button id="raceStepBackBtn" class="graphs-btn" title="Step back">◀◀</button>
+        <button id="racePlayBtn" class="graphs-btn active" style="min-width:84px;">▶ Play</button>
+        <button id="raceStepFwdBtn" class="graphs-btn" title="Step forward">▶▶</button>
+        <button id="raceEndBtn" class="graphs-btn" title="Go to end">↪ End</button>
+        <button id="raceGifBtn" class="graphs-btn" title="Download GIF animation" style="margin-left:auto;">⬇ GIF</button>
+      </div>
+
+      <input id="raceSeekSlider" type="range" min="0" max="100" value="0"
+        style="width:100%;margin-bottom:0.5rem;accent-color:var(--accent);cursor:pointer;">
+      <canvas id="gBarRace" style="width:100%;display:block;border-radius:6px;"></canvas>
     </div>
 
   </div>
@@ -5990,7 +6059,6 @@ function renderRecentResults(allReleases, artists, fromCache) {
 
 // ─── GRAPHS TAB ────────────────────────────────────────────────
 let graphGranularity = 'month';
-let graphArtistCount = 5;
 let graphCharts = {};
 
 function destroyGraphCharts() {
@@ -6082,7 +6150,17 @@ function renderGraphs() {
   }
   renderCumulativeChart(sortedKeys, labels, ptRadius, gc, axisOpts, legendOpts);
 
-  // ── Chart 2: Play volume per period — artist comparison ───
+  // ── Chart 2: Total play volume ─────────────────────────────
+  {
+    const el = document.getElementById('gTotalVolumeFrom');
+    if (!el.value && allPlays.length) {
+      el.value = localDateStr(allPlays[allPlays.length - 1].date);
+      document.getElementById('gTotalVolumeTo').value = localDateStr(new Date());
+    }
+  }
+  renderTotalVolumeChart(sortedKeys, gc, axisOpts, legendOpts);
+
+  // ── Chart 3: Artist comparison volume ─────────────────────
   {
     const artistTotals = {};
     for (const p of allPlays) for (const a of p.artists) artistTotals[a] = (artistTotals[a]||0)+1;
@@ -6094,37 +6172,12 @@ function renderGraphs() {
       renderVolumeChips();
     }
     const vFrom = document.getElementById('gVolumeFrom');
-    const vTo   = document.getElementById('gVolumeTo');
     if (!vFrom.value && allPlays.length) {
       vFrom.value = localDateStr(allPlays[allPlays.length - 1].date);
-      vTo.value   = localDateStr(new Date());
+      document.getElementById('gVolumeTo').value = localDateStr(new Date());
     }
   }
-  renderVolumeChart(sortedKeys, labels, gc, axisOpts, legendOpts);
-
-  // ── Chart 3: Top-N artist cumulative growth ────────────────
-  {
-    const artistTotals = {};
-    for (const p of allPlays) for (const a of p.artists) artistTotals[a] = (artistTotals[a]||0)+1;
-    const topArtists = Object.entries(artistTotals).sort((a,b)=>b[1]-a[1]).slice(0, graphArtistCount).map(([a])=>a);
-    const apc = {};
-    topArtists.forEach(a => apc[a] = {});
-    for (const p of allPlays) {
-      const k = graphKey(p.date);
-      for (const a of p.artists) if (apc[a]) apc[a][k] = (apc[a][k]||0)+1;
-    }
-    const datasets = topArtists.map((a, i) => {
-      let running = 0;
-      return { label: a, data: sortedKeys.map(k => { running += apc[a][k]||0; return running; }),
-        borderColor: GRAPH_PALETTE[i%GRAPH_PALETTE.length], backgroundColor: 'transparent',
-        tension: 0.3, pointRadius: ptRadius, borderWidth: 2 };
-    });
-    graphCharts.artistGrowth = new Chart(document.getElementById('gArtistGrowth'), {
-      type: 'line', data: { labels, datasets },
-      options: { responsive: true, maintainAspectRatio: false,
-        plugins: { legend: legendOpts }, scales: axisOpts(false) }
-    });
-  }
+  renderVolumeChart(sortedKeys, gc, axisOpts, legendOpts);
 
   // ── Chart 4: New discoveries per period ───────────────────
   {
@@ -6158,40 +6211,22 @@ function renderGraphs() {
     });
   }
 
-  // ── Chart 5: Artist rank history ─────────────────────────
+  // ── Bar Race: set default date range ──────────────────────
   {
-    const artistTotals = {};
-    for (const p of allPlays) for (const a of p.artists) artistTotals[a] = (artistTotals[a]||0)+1;
-    const topArtists = Object.entries(artistTotals).sort((a,b)=>b[1]-a[1]).slice(0, graphArtistCount).map(([a])=>a);
-    const apc = {};
-    for (const p of allPlays) {
-      const k = graphKey(p.date);
-      if (!apc[k]) apc[k] = {};
-      for (const a of p.artists) apc[k][a] = (apc[k][a]||0)+1;
+    const rfEl = document.getElementById('raceFrom');
+    if (!rfEl.value && allPlays.length) {
+      rfEl.value = localDateStr(allPlays[allPlays.length - 1].date);
+      document.getElementById('raceTo').value = localDateStr(new Date());
     }
-    const rankByArtist = {};
-    topArtists.forEach(a => rankByArtist[a] = {});
-    for (const [k, counts] of Object.entries(apc)) {
-      const ranked = Object.entries(counts).sort((a,b)=>b[1]-a[1]).map(([a])=>a);
-      topArtists.forEach(a => { const r = ranked.indexOf(a); if (r >= 0) rankByArtist[a][k] = r+1; });
-    }
-    const datasets = topArtists.map((a, i) => ({
-      label: a, data: sortedKeys.map(k => rankByArtist[a][k] || null),
-      borderColor: GRAPH_PALETTE[i%GRAPH_PALETTE.length], backgroundColor: 'transparent',
-      tension: 0.3, pointRadius: ptRadius, borderWidth: 2, spanGaps: false,
-    }));
-    graphCharts.rankHistory = new Chart(document.getElementById('gRankHistory'), {
-      type: 'line', data: { labels, datasets },
-      options: { responsive: true, maintainAspectRatio: false,
-        plugins: { legend: legendOpts }, scales: axisOpts(true) }
-    });
   }
+  initRace();
 }
 
 let gCumulativeArtists = [];
 let gCumulativeLabels  = false;
-let gVolumeArtists     = [];
 let gVolumeLabels      = false;
+let gVolumeArtists     = [];
+let gTotalVolumeLabels = false;
 
 function renderCumulativeChips() {
   const wrap = document.getElementById('gCumulativeChips');
@@ -6340,7 +6375,81 @@ document.getElementById('gCumulativeResetRange').addEventListener('click', () =>
   triggerCumulativeUpdate();
 });
 
-// ── Volume chart ─────────────────────────────────────────────
+
+// ── Total volume chart (no artist filter) ────────────────────
+function renderTotalVolumeChart(sortedKeys, gc, axisOpts, legendOpts) {
+  if (graphCharts.totalVolume) { try { graphCharts.totalVolume.destroy(); } catch(e){} delete graphCharts.totalVolume; }
+
+  const fromVal = document.getElementById('gTotalVolumeFrom').value;
+  const toVal   = document.getElementById('gTotalVolumeTo').value;
+  const fromTs  = fromVal ? new Date(fromVal + 'T00:00:00').getTime() : -Infinity;
+  const toTs    = toVal   ? new Date(toVal   + 'T23:59:59').getTime() :  Infinity;
+
+  const filteredKeys = sortedKeys.filter(k => {
+    const d = graphGranularity === 'day'   ? new Date(k + 'T00:00:00') :
+              graphGranularity === 'month' ? new Date(k + '-01T00:00:00') :
+                                             new Date(k + '-01-01T00:00:00');
+    return d.getTime() >= fromTs && d.getTime() <= toTs;
+  });
+  const filteredLabels = filteredKeys.map(graphKeyLabel);
+
+  const countByKey = {};
+  for (const p of allPlays) {
+    if (p.date.getTime() < fromTs || p.date.getTime() > toTs) continue;
+    const k = graphKey(p.date); countByKey[k] = (countByKey[k]||0)+1;
+  }
+  const col = gc.accent;
+
+  const totalVolumeLabelsPlugin = {
+    id: 'totalVolumeLabels',
+    afterDatasetsDraw(chart) {
+      if (!gTotalVolumeLabels) return;
+      const ctx = chart.ctx;
+      chart.data.datasets.forEach((ds, di) => {
+        const meta = chart.getDatasetMeta(di);
+        if (meta.hidden) return;
+        meta.data.forEach((bar, i) => {
+          const val = ds.data[i];
+          if (!val) return;
+          ctx.save();
+          ctx.font = '600 10px "DM Mono", monospace';
+          ctx.fillStyle = ds.borderColor;
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'bottom';
+          ctx.fillText(val.toLocaleString(), bar.x, bar.y - 2);
+          ctx.restore();
+        });
+      });
+    }
+  };
+
+  graphCharts.totalVolume = new Chart(document.getElementById('gTotalVolume'), {
+    type: 'bar',
+    data: { labels: filteredLabels, datasets: [{ label: 'Plays', data: filteredKeys.map(k => countByKey[k]||0),
+      backgroundColor: col+'99', borderColor: col, borderWidth: 1 }] },
+    options: { responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        zoom: { pan: { enabled: true, mode: 'x' }, zoom: { wheel: { enabled: true }, pinch: { enabled: true }, mode: 'x' } }
+      },
+      scales: axisOpts(false) },
+    plugins: [totalVolumeLabelsPlugin]
+  });
+}
+
+function triggerTotalVolumeUpdate() {
+  if (currentPeriod !== 'graphs' || !allPlays.length) return;
+  const gc = getGraphColors();
+  const allKeys = new Set();
+  for (const p of allPlays) allKeys.add(graphKey(p.date));
+  const sortedKeys = [...allKeys].sort();
+  const maxTicks = 24;
+  const axisOpts = () => ({ x: { ticks: { color: gc.text3, maxTicksLimit: maxTicks, maxRotation: 45 }, grid: { color: gc.grid } }, y: { ticks: { color: gc.text3 }, grid: { color: gc.grid } } });
+  const legendOpts = { labels: { color: gc.text3 } };
+  renderTotalVolumeChart(sortedKeys, gc, axisOpts, legendOpts);
+}
+
+// ── Artist comparison volume chart ────────────────────────────
 function renderVolumeChips() {
   const wrap = document.getElementById('gVolumeChips');
   wrap.innerHTML = gVolumeArtists.map((a, i) => {
@@ -6361,7 +6470,7 @@ function removeVolumeArtist(idx) {
   triggerVolumeUpdate();
 }
 
-function renderVolumeChart(sortedKeys, labels, gc, axisOpts, legendOpts) {
+function renderVolumeChart(sortedKeys, gc, axisOpts, legendOpts) {
   if (graphCharts.volume) { try { graphCharts.volume.destroy(); } catch(e){} delete graphCharts.volume; }
 
   const fromVal = document.getElementById('gVolumeFrom').value;
@@ -6419,10 +6528,7 @@ function renderVolumeChart(sortedKeys, labels, gc, axisOpts, legendOpts) {
     options: { responsive: true, maintainAspectRatio: false,
       plugins: {
         legend: legendOpts,
-        zoom: {
-          pan:  { enabled: true, mode: 'x' },
-          zoom: { wheel: { enabled: true }, pinch: { enabled: true }, mode: 'x' }
-        }
+        zoom: { pan: { enabled: true, mode: 'x' }, zoom: { wheel: { enabled: true }, pinch: { enabled: true }, mode: 'x' } }
       },
       scales: axisOpts(false) },
     plugins: [volumeLabelsPlugin]
@@ -6435,14 +6541,13 @@ function triggerVolumeUpdate() {
   const allKeys = new Set();
   for (const p of allPlays) allKeys.add(graphKey(p.date));
   const sortedKeys = [...allKeys].sort();
-  const labels = sortedKeys.map(graphKeyLabel);
   const maxTicks = 24;
   const axisOpts = () => ({
     x: { ticks: { color: gc.text3, maxTicksLimit: maxTicks, maxRotation: 45 }, grid: { color: gc.grid } },
     y: { ticks: { color: gc.text3 }, grid: { color: gc.grid } }
   });
   const legendOpts = { labels: { color: gc.text3 } };
-  renderVolumeChart(sortedKeys, labels, gc, axisOpts, legendOpts);
+  renderVolumeChart(sortedKeys, gc, axisOpts, legendOpts);
 }
 
 function addVolumeArtist() {
@@ -6455,11 +6560,28 @@ function addVolumeArtist() {
   renderVolumeChips();
   triggerVolumeUpdate();
 }
-
 document.getElementById('gVolumeArtistBtn').addEventListener('click', addVolumeArtist);
-document.getElementById('gVolumeArtistInput').addEventListener('keydown', e => {
-  if (e.key === 'Enter') addVolumeArtist();
+document.getElementById('gVolumeArtistInput').addEventListener('keydown', e => { if (e.key === 'Enter') addVolumeArtist(); });
+
+document.getElementById('gTotalVolumeFrom').addEventListener('change', triggerTotalVolumeUpdate);
+document.getElementById('gTotalVolumeTo').addEventListener('change', triggerTotalVolumeUpdate);
+document.getElementById('gTotalVolumeResetRange').addEventListener('click', () => {
+  if (!allPlays.length) return;
+  document.getElementById('gTotalVolumeFrom').value = localDateStr(allPlays[allPlays.length - 1].date);
+  document.getElementById('gTotalVolumeTo').value   = localDateStr(new Date());
+  triggerTotalVolumeUpdate();
 });
+document.getElementById('gTotalVolumeResetZoom').addEventListener('click', () => {
+  if (graphCharts.totalVolume) graphCharts.totalVolume.resetZoom();
+});
+document.getElementById('gTotalVolumeLabelsBtn').addEventListener('click', () => {
+  gTotalVolumeLabels = !gTotalVolumeLabels;
+  const btn = document.getElementById('gTotalVolumeLabelsBtn');
+  btn.textContent = gTotalVolumeLabels ? 'Labels: On' : 'Labels: Off';
+  btn.classList.toggle('active', gTotalVolumeLabels);
+  triggerTotalVolumeUpdate();
+});
+
 document.getElementById('gVolumeFrom').addEventListener('change', triggerVolumeUpdate);
 document.getElementById('gVolumeTo').addEventListener('change', triggerVolumeUpdate);
 document.getElementById('gVolumeResetRange').addEventListener('click', () => {
@@ -6479,6 +6601,559 @@ document.getElementById('gVolumeLabelsBtn').addEventListener('click', () => {
   triggerVolumeUpdate();
 });
 
+// ─── BAR CHART RACE ────────────────────────────────────────────
+let raceFrames      = [];
+let raceFrameIdx    = 0;
+let raceProgress    = 0;
+let racePlaying     = false;
+let raceAnimId      = null;
+let raceSpeed       = 1;
+let raceTopN        = 10;
+let raceType        = 'artists'; // 'artists' | 'songs' | 'albums'
+let raceLastTime    = null;
+let raceW           = 0;
+let raceH           = 0;
+const raceImageCache   = {};
+const raceAvatarCache  = {};
+const raceArtistColors = {};
+const BASE_FRAME_MS    = 600;
+
+function getRaceColor(name) {
+  if (!raceArtistColors[name]) {
+    const n = Object.keys(raceArtistColors).length;
+    raceArtistColors[name] = GRAPH_PALETTE[n % GRAPH_PALETTE.length];
+  }
+  return raceArtistColors[name];
+}
+
+function raceLabel(key) {
+  if (graphGranularity === 'day') {
+    const d = new Date(key + 'T00:00:00');
+    return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+  }
+  if (graphGranularity === 'month') {
+    const [y, m] = key.split('-');
+    return new Date(+y, +m - 1, 1).toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+  }
+  return key; // year already is 4 digits
+}
+
+function loadRaceImage(key, meta) {
+  // key = unique string, meta = { type, name, artist, album }
+  if (raceImageCache[key] !== undefined) return;
+  raceImageCache[key] = null;
+  let promise;
+  if (meta.type === 'artists') promise = getArtistImage(meta.name, 'deezer');
+  else if (meta.type === 'songs') promise = getTrackImage(meta.name, meta.artist, 'deezer');
+  else promise = getAlbumImage(meta.name, meta.artist, 'deezer');
+  promise.then(url => {
+    if (!url) return;
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = () => {
+      raceImageCache[key] = img;
+      Object.keys(raceAvatarCache).filter(k => k.startsWith(key + ':')).forEach(k => delete raceAvatarCache[k]);
+      if (!racePlaying && raceFrames.length) drawRace(raceFrameIdx, raceProgress);
+    };
+    img.onerror = () => {};
+    img.src = url;
+  }).catch(() => {});
+}
+
+function getRaceAvatar(imgKey, size) {
+  const cacheKey = `${imgKey}:${size}`;
+  if (raceAvatarCache[cacheKey]) return raceAvatarCache[cacheKey];
+  const img = raceImageCache[imgKey];
+  if (!img) return null;
+  const oc = document.createElement('canvas');
+  oc.width = oc.height = size;
+  const oc_ctx = oc.getContext('2d');
+  try {
+    oc_ctx.beginPath();
+    oc_ctx.arc(size / 2, size / 2, size / 2 - 1, 0, Math.PI * 2);
+    oc_ctx.clip();
+    oc_ctx.drawImage(img, 0, 0, size, size);
+    raceAvatarCache[cacheKey] = oc;
+    return oc;
+  } catch(e) {
+    // Image tainted (loaded without crossOrigin) — skip avatar, return null
+    delete raceImageCache[imgKey];
+    return null;
+  }
+}
+
+function buildRaceFrames() {
+  // Date filter
+  const fromVal = document.getElementById('raceFrom')?.value;
+  const toVal   = document.getElementById('raceTo')?.value;
+  const fromDate = fromVal ? new Date(fromVal + 'T00:00:00') : null;
+  const toDate   = toVal   ? new Date(toVal   + 'T23:59:59') : null;
+  const filtered = allPlays.filter(p => {
+    if (fromDate && p.date < fromDate) return false;
+    if (toDate   && p.date > toDate)   return false;
+    return true;
+  });
+
+  const allKeys = new Set();
+  for (const p of filtered) allKeys.add(graphKey(p.date));
+  const sortedKeys = [...allKeys].sort();
+
+  const periodPlays = {};
+  for (const p of filtered) {
+    const k = graphKey(p.date);
+    if (!periodPlays[k]) periodPlays[k] = [];
+    periodPlays[k].push(p);
+  }
+
+  const totals  = {}; // imgKey -> count
+  const metaMap = {}; // imgKey -> { type, name, artist, display, sub }
+  const frames  = [];
+
+  for (const key of sortedKeys) {
+    for (const p of (periodPlays[key] || [])) {
+      if (raceType === 'artists') {
+        for (const a of p.artists) {
+          totals[a] = (totals[a] || 0) + 1;
+          if (!metaMap[a]) metaMap[a] = { type: 'artists', name: a, display: a, sub: '' };
+        }
+      } else if (raceType === 'songs') {
+        const mainArtist = (p.artists && p.artists[0]) || p.artist;
+        const imgKey = `${mainArtist}||${p.title}`;
+        totals[imgKey] = (totals[imgKey] || 0) + 1;
+        if (!metaMap[imgKey]) metaMap[imgKey] = { type: 'songs', name: p.title, artist: mainArtist, display: p.title, sub: mainArtist };
+      } else { // albums
+        const mainArtist = (p.artists && p.artists[0]) || p.artist;
+        const imgKey = `${mainArtist}||${p.album}`;
+        totals[imgKey] = (totals[imgKey] || 0) + 1;
+        if (!metaMap[imgKey]) metaMap[imgKey] = { type: 'albums', name: p.album, artist: mainArtist, display: p.album, sub: mainArtist };
+      }
+    }
+    const ranked = Object.entries(totals).sort((a, b) => b[1] - a[1]);
+    ranked.slice(0, raceTopN + 10).forEach(([k]) => getRaceColor(k));
+    frames.push({ key, label: raceLabel(key),
+      artists: ranked.slice(0, raceTopN + 5).map(([imgKey, count]) => {
+        const m = metaMap[imgKey] || { display: imgKey, sub: '' };
+        return { imgKey, name: m.display, sub: m.sub, count };
+      })
+    });
+  }
+
+  // Prepend a zero frame so bars grow from nothing at the start
+  if (frames.length) {
+    const zeroArtists = frames[0].artists.map(a => ({ ...a, count: 0 }));
+    frames.unshift({ key: '__zero__', label: frames[0].label, artists: zeroArtists });
+  }
+
+  // Load images for every entity that appears in the top-N across all frames
+  // Clear stale image cache entries so they reload with crossOrigin=anonymous
+  const topKeys = new Set();
+  frames.forEach(f => f.artists.slice(0, raceTopN).forEach(a => topKeys.add(a.imgKey)));
+  topKeys.forEach(k => {
+    const m = metaMap[k];
+    if (m) {
+      delete raceImageCache[k];
+      Object.keys(raceAvatarCache).filter(c => c.startsWith(k + ':')).forEach(c => delete raceAvatarCache[c]);
+      loadRaceImage(k, m);
+    }
+  });
+  return frames;
+}
+
+function easeRace(t) { return t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t; }
+
+function rrect(ctx, x, y, w, h, r) {
+  r = Math.min(r, w / 2, h / 2);
+  if (r <= 0 || w <= 0 || h <= 0) { if (w > 0 && h > 0) ctx.rect(x, y, w, h); return; }
+  ctx.moveTo(x + r, y);
+  ctx.lineTo(x + w - r, y);   ctx.arcTo(x + w, y,     x + w, y + r,     r);
+  ctx.lineTo(x + w, y + h - r); ctx.arcTo(x + w, y + h, x + w - r, y + h, r);
+  ctx.lineTo(x + r, y + h);   ctx.arcTo(x,     y + h, x,     y + h - r, r);
+  ctx.lineTo(x, y + r);       ctx.arcTo(x,     y,     x + r, y,         r);
+  ctx.closePath();
+}
+
+function drawRace(frameIdx, progress, targetCanvas) {
+  const canvas = targetCanvas || document.getElementById('gBarRace');
+  if (!canvas || !raceFrames.length) return;
+  const ctx = canvas.getContext('2d');
+  const W = targetCanvas ? canvas.width  : raceW;
+  const H = targetCanvas ? canvas.height : raceH;
+  const frameA = raceFrames[frameIdx];
+  const frameB = raceFrames[Math.min(frameIdx + 1, raceFrames.length - 1)];
+  const gc = getGraphColors();
+  const eased = easeRace(progress);
+
+  const LABEL_W  = 148;
+  const PAD_TOP  = 12;
+  const BAR_H    = raceTopN > 15 ? 26 : 32;
+  const SLOT_H   = raceTopN > 15 ? 36 : 42;
+  const AV_R     = raceTopN > 15 ? 12 : 15;
+  const CNT_W    = 74;
+  const BAR_X    = LABEL_W + 6;
+  const BAR_MAX_W = W - BAR_X - AV_R * 2 - 8 - CNT_W;
+
+  ctx.clearRect(0, 0, W, H);
+  if (targetCanvas) {
+    ctx.fillStyle = gc.bg || '#0a1628';
+    ctx.fillRect(0, 0, W, H);
+  }
+
+  const mapA = new Map(frameA.artists.map((a, i) => [a.imgKey, { rank: i, count: a.count, name: a.name, sub: a.sub }]));
+  const mapB = new Map(frameB.artists.map((a, i) => [a.imgKey, { rank: i, count: a.count, name: a.name, sub: a.sub }]));
+  const maxCount = Math.max(1, frameB.artists[0]?.count || 0, frameA.artists[0]?.count || 0);
+
+  const visSet = new Set([
+    ...frameA.artists.slice(0, raceTopN).map(a => a.imgKey),
+    ...frameB.artists.slice(0, raceTopN).map(a => a.imgKey)
+  ]);
+  const items = [];
+  for (const imgKey of visSet) {
+    const a = mapA.get(imgKey) || { rank: raceTopN + 2, count: 0 };
+    const b = mapB.get(imgKey) || { rank: raceTopN + 2, count: a.count };
+    const meta = mapA.get(imgKey) || mapB.get(imgKey) || {};
+    items.push({ imgKey, name: meta.name || imgKey, sub: meta.sub || '',
+      rank: a.rank + (b.rank - a.rank) * eased, count: a.count + (b.count - a.count) * progress });
+  }
+  items.sort((a, b) => a.rank - b.rank);
+
+  const dpr = window.devicePixelRatio || 1;
+  const avSize = Math.round(AV_R * 2 * dpr);
+
+  for (const { imgKey, name, sub, rank, count } of items) {
+    const alpha = rank >= raceTopN ? Math.max(0, (raceTopN + 0.6 - rank) / 0.6) : 1;
+    if (alpha <= 0) continue;
+    ctx.globalAlpha = alpha;
+
+    const y = PAD_TOP + rank * SLOT_H;
+    const bW = Math.max(0, Math.min((count / maxCount) * BAR_MAX_W, BAR_MAX_W));
+    const color = getRaceColor(imgKey);
+
+    // Bar track
+    ctx.beginPath(); rrect(ctx, BAR_X, y, BAR_MAX_W, BAR_H, 5);
+    ctx.fillStyle = (gc.card || '#0e1e38') ;
+    ctx.fill();
+
+    // Bar fill with gradient
+    if (bW > 1) {
+      const grad = ctx.createLinearGradient(BAR_X, 0, BAR_X + bW, 0);
+      grad.addColorStop(0, color + '55'); grad.addColorStop(1, color + 'dd');
+      ctx.fillStyle = grad;
+      ctx.beginPath(); rrect(ctx, BAR_X, y, bW, BAR_H, 5);
+      ctx.fill();
+    }
+
+    // Rank badge — colored pill on the far left
+    const rankN = Math.round(rank) + 1;
+    const rankStr = String(rankN);
+    ctx.font = `bold ${raceTopN > 15 ? 11 : 13}px "DM Mono", monospace`;
+    const pillW = Math.max(24, ctx.measureText(rankStr).width + 12);
+    const pillH = Math.min(BAR_H - 6, raceTopN > 15 ? 16 : 20);
+    const pillX = 2;
+    const pillY = y + (BAR_H - pillH) / 2;
+    ctx.beginPath(); rrect(ctx, pillX, pillY, pillW, pillH, 4);
+    ctx.fillStyle = color + '35'; ctx.fill();
+    ctx.strokeStyle = color + '90'; ctx.lineWidth = 1; ctx.stroke();
+    ctx.fillStyle = color;
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillText(rankStr, pillX + pillW / 2, pillY + pillH / 2 + 0.5);
+
+    // Name (and optional sub) — right-aligned in remaining label space
+    const nameAreaX = pillX + pillW + 4;
+    const nameMaxW  = LABEL_W - 2 - nameAreaX;
+    ctx.textAlign = 'right';
+    if (sub) {
+      ctx.fillStyle = gc.text || '#e8f0ff';
+      ctx.font = '500 11px "DM Sans", sans-serif';
+      ctx.textBaseline = 'middle';
+      let dname = name;
+      while (ctx.measureText(dname).width > nameMaxW && dname.length > 3) dname = dname.slice(0, -2) + '…';
+      ctx.fillText(dname, LABEL_W - 2, y + BAR_H / 2 - 4);
+      ctx.fillStyle = gc.text3 || '#7aa0d0';
+      ctx.font = '400 9px "DM Sans", sans-serif';
+      let dsub = sub;
+      while (ctx.measureText(dsub).width > nameMaxW && dsub.length > 3) dsub = dsub.slice(0, -2) + '…';
+      ctx.fillText(dsub, LABEL_W - 2, y + BAR_H / 2 + 7);
+    } else {
+      ctx.fillStyle = gc.text || '#e8f0ff';
+      ctx.font = `500 ${raceTopN > 15 ? 11 : 12}px "DM Sans", sans-serif`;
+      ctx.textBaseline = 'middle';
+      let dname = name;
+      while (ctx.measureText(dname).width > nameMaxW && dname.length > 3) dname = dname.slice(0, -2) + '…';
+      ctx.fillText(dname, LABEL_W - 2, y + BAR_H / 2 + 1);
+    }
+
+    // Avatar at bar tip (clamped so it stays on screen)
+    const avX = BAR_X + Math.max(AV_R + 2, Math.min(bW + AV_R + 1, BAR_MAX_W - AV_R - 2));
+    const avY = y + BAR_H / 2;
+    const avatarCanvas = getRaceAvatar(imgKey, avSize);
+    if (avatarCanvas) {
+      ctx.save();
+      ctx.beginPath(); ctx.arc(avX, avY, AV_R, 0, Math.PI * 2); ctx.clip();
+      ctx.drawImage(avatarCanvas, avX - AV_R, avY - AV_R, AV_R * 2, AV_R * 2);
+      ctx.restore();
+    } else {
+      ctx.beginPath(); ctx.arc(avX, avY, AV_R, 0, Math.PI * 2);
+      ctx.fillStyle = color; ctx.fill();
+      ctx.fillStyle = '#fff';
+      ctx.font = `700 ${Math.max(7, Math.round(AV_R * 0.62))}px "DM Sans", sans-serif`;
+      ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.fillText(name.split(/[\s\-&]+/).slice(0, 2).map(w => w[0] || '').join('').toUpperCase() || '?', avX, avY + 0.5);
+    }
+    ctx.beginPath(); ctx.arc(avX, avY, AV_R, 0, Math.PI * 2);
+    ctx.strokeStyle = color; ctx.lineWidth = 1.5; ctx.stroke();
+
+    // Play count
+    ctx.fillStyle = gc.text || '#e8f0ff';
+    ctx.font = '600 11px "DM Mono", monospace';
+    ctx.textAlign = 'right'; ctx.textBaseline = 'middle';
+    ctx.fillText(Math.round(count).toLocaleString(), W - 4, y + BAR_H / 2 + 1);
+
+    ctx.globalAlpha = 1;
+  }
+
+  // Date — bottom right, crossfade between frame labels
+  ctx.globalAlpha = 1;
+  ctx.font = 'bold 18px "DM Mono", monospace';
+  ctx.textAlign = 'right'; ctx.textBaseline = 'bottom';
+  ctx.fillStyle = gc.text3 || '#7aa0d0';
+  if (progress > 0 && frameA.label !== frameB.label) {
+    ctx.globalAlpha = 1 - progress; ctx.fillText(frameA.label, W - 12, H - 10);
+    ctx.globalAlpha = progress;     ctx.fillText(frameB.label, W - 12, H - 10);
+    ctx.globalAlpha = 1;
+  } else {
+    ctx.fillText(frameA.label, W - 12, H - 10);
+  }
+}
+
+function raceAnimate(ts) {
+  if (!racePlaying) return;
+  if (!raceLastTime) raceLastTime = ts;
+  raceProgress += (ts - raceLastTime) / (BASE_FRAME_MS / raceSpeed);
+  raceLastTime = ts;
+  if (raceProgress >= 1) {
+    raceProgress = 0; raceFrameIdx++;
+    if (raceFrameIdx >= raceFrames.length - 1) {
+      raceFrameIdx = raceFrames.length - 1; raceProgress = 0; racePlaying = false;
+      const btn = document.getElementById('racePlayBtn');
+      btn.textContent = '▶ Play'; btn.classList.add('active');
+      drawRace(raceFrameIdx, 0); raceUpdateSlider(); return;
+    }
+  }
+  drawRace(raceFrameIdx, raceProgress);
+  raceUpdateSlider();
+  raceAnimId = requestAnimationFrame(raceAnimate);
+}
+
+function raceUpdateSlider() {
+  const s = document.getElementById('raceSeekSlider');
+  if (s) s.value = raceFrameIdx + raceProgress;
+}
+
+function initRace() {
+  if (!allPlays.length) return;
+  racePlaying = false;
+  if (raceAnimId) { cancelAnimationFrame(raceAnimId); raceAnimId = null; }
+  raceLastTime = null;
+  raceFrames = buildRaceFrames();
+  raceFrameIdx = 0; raceProgress = 0;
+
+  const canvas = document.getElementById('gBarRace');
+  if (!canvas) return;
+  const dpr = window.devicePixelRatio || 1;
+  const SLOT_H = raceTopN > 15 ? 36 : 42; // compact rows for larger counts
+  raceW = Math.max(300, (canvas.parentElement?.clientWidth || 600) - 34);
+  raceH = raceTopN * SLOT_H + 62;
+  canvas.width  = Math.round(raceW * dpr);
+  canvas.height = Math.round(raceH * dpr);
+  canvas.style.height = raceH + 'px';
+  canvas.getContext('2d').setTransform(dpr, 0, 0, dpr, 0, 0);
+
+  const slider = document.getElementById('raceSeekSlider');
+  slider.max = Math.max(1, raceFrames.length - 1); slider.value = 0;
+  document.getElementById('racePlayBtn').textContent = '▶ Play';
+  document.getElementById('racePlayBtn').classList.add('active');
+  drawRace(0, 0);
+}
+
+document.getElementById('racePlayBtn').addEventListener('click', () => {
+  if (!raceFrames.length) return;
+  if (raceFrameIdx >= raceFrames.length - 1 && !racePlaying) {
+    raceFrameIdx = 0; raceProgress = 0; raceLastTime = null; raceUpdateSlider();
+  }
+  racePlaying = !racePlaying;
+  const btn = document.getElementById('racePlayBtn');
+  btn.textContent = racePlaying ? '⏸ Pause' : '▶ Play';
+  btn.classList.toggle('active', racePlaying);
+  if (racePlaying) { raceLastTime = null; raceAnimId = requestAnimationFrame(raceAnimate); }
+  else if (raceAnimId) { cancelAnimationFrame(raceAnimId); raceAnimId = null; }
+});
+
+document.getElementById('raceRestartBtn').addEventListener('click', () => {
+  racePlaying = false;
+  if (raceAnimId) { cancelAnimationFrame(raceAnimId); raceAnimId = null; }
+  raceFrameIdx = 0; raceProgress = 0; raceLastTime = null;
+  document.getElementById('racePlayBtn').textContent = '▶ Play';
+  document.getElementById('racePlayBtn').classList.add('active');
+  raceUpdateSlider(); drawRace(0, 0);
+});
+
+document.getElementById('raceSpeedBtns').addEventListener('click', e => {
+  const btn = e.target.closest('[data-speed]'); if (!btn) return;
+  document.querySelectorAll('#raceSpeedBtns button').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  raceSpeed = parseFloat(btn.dataset.speed);
+});
+
+document.getElementById('raceTopNBtns').addEventListener('click', e => {
+  const btn = e.target.closest('[data-topn]'); if (!btn) return;
+  document.querySelectorAll('#raceTopNBtns button').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  raceTopN = parseInt(btn.dataset.topn);
+  if (currentPeriod === 'graphs') initRace();
+});
+
+document.getElementById('raceSeekSlider').addEventListener('input', e => {
+  if (racePlaying) {
+    racePlaying = false;
+    if (raceAnimId) { cancelAnimationFrame(raceAnimId); raceAnimId = null; }
+    const btn = document.getElementById('racePlayBtn');
+    btn.textContent = '▶ Play'; btn.classList.add('active');
+  }
+  const v = parseFloat(e.target.value);
+  raceFrameIdx = Math.min(Math.floor(v), raceFrames.length - 1);
+  raceProgress = v - Math.floor(v);
+  raceLastTime = null;
+  drawRace(raceFrameIdx, raceProgress);
+});
+
+document.getElementById('raceTypeBtns').addEventListener('click', e => {
+  const btn = e.target.closest('[data-racetype]'); if (!btn) return;
+  document.querySelectorAll('#raceTypeBtns button').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  raceType = btn.dataset.racetype;
+  if (currentPeriod === 'graphs') initRace();
+});
+
+document.getElementById('raceFrom').addEventListener('change', () => {
+  if (currentPeriod === 'graphs') initRace();
+});
+document.getElementById('raceTo').addEventListener('change', () => {
+  if (currentPeriod === 'graphs') initRace();
+});
+document.getElementById('raceResetRange').addEventListener('click', () => {
+  if (!allPlays.length) return;
+  document.getElementById('raceFrom').value = localDateStr(allPlays[allPlays.length - 1].date);
+  document.getElementById('raceTo').value   = localDateStr(new Date());
+  if (currentPeriod === 'graphs') initRace();
+});
+
+document.getElementById('raceStepBackBtn').addEventListener('click', () => {
+  if (!raceFrames.length) return;
+  if (racePlaying) {
+    racePlaying = false;
+    if (raceAnimId) { cancelAnimationFrame(raceAnimId); raceAnimId = null; }
+    const btn = document.getElementById('racePlayBtn');
+    btn.textContent = '▶ Play'; btn.classList.add('active');
+  }
+  raceProgress = 0;
+  raceFrameIdx = Math.max(0, raceFrameIdx - 1);
+  raceLastTime = null;
+  raceUpdateSlider(); drawRace(raceFrameIdx, 0);
+});
+
+document.getElementById('raceStepFwdBtn').addEventListener('click', () => {
+  if (!raceFrames.length) return;
+  if (racePlaying) {
+    racePlaying = false;
+    if (raceAnimId) { cancelAnimationFrame(raceAnimId); raceAnimId = null; }
+    const btn = document.getElementById('racePlayBtn');
+    btn.textContent = '▶ Play'; btn.classList.add('active');
+  }
+  raceProgress = 0;
+  raceFrameIdx = Math.min(raceFrames.length - 1, raceFrameIdx + 1);
+  raceLastTime = null;
+  raceUpdateSlider(); drawRace(raceFrameIdx, 0);
+});
+
+document.getElementById('raceEndBtn').addEventListener('click', () => {
+  if (!raceFrames.length) return;
+  if (racePlaying) {
+    racePlaying = false;
+    if (raceAnimId) { cancelAnimationFrame(raceAnimId); raceAnimId = null; }
+    const btn = document.getElementById('racePlayBtn');
+    btn.textContent = '▶ Play'; btn.classList.add('active');
+  }
+  raceProgress = 0;
+  raceFrameIdx = raceFrames.length - 1;
+  raceLastTime = null;
+  raceUpdateSlider(); drawRace(raceFrameIdx, 0);
+});
+
+// ─── GIF EXPORT ────────────────────────────────────────────────
+async function loadGifJs() {
+  if (window.GIF) return;
+  await new Promise((resolve, reject) => {
+    const s = document.createElement('script');
+    s.src = 'https://cdn.jsdelivr.net/npm/gif.js@0.2.0/dist/gif.js';
+    s.onload = resolve; s.onerror = reject;
+    document.head.appendChild(s);
+  });
+}
+
+async function downloadRaceGif() {
+  if (!raceFrames.length) return;
+  const btn = document.getElementById('raceGifBtn');
+  btn.disabled = true; btn.textContent = 'Loading…';
+  try { await loadGifJs(); } catch(e) {
+    btn.disabled = false; btn.textContent = '⬇ GIF';
+    alert('Could not load GIF encoder. Check your connection.'); return;
+  }
+  let workerUrl;
+  try {
+    const workerText = await fetch('https://cdn.jsdelivr.net/npm/gif.js@0.2.0/dist/gif.worker.js').then(r => r.text());
+    workerUrl = URL.createObjectURL(new Blob([workerText], { type: 'application/javascript' }));
+  } catch(e) {
+    btn.disabled = false; btn.textContent = '⬇ GIF';
+    alert('Could not load GIF worker. Check your connection.'); return;
+  }
+
+  btn.textContent = 'Capturing…';
+  const W = Math.round(raceW), H = Math.round(raceH);
+  const tmpCanvas = document.createElement('canvas');
+  tmpCanvas.width = W; tmpCanvas.height = H;
+  const frameDelay = Math.max(50, Math.round(BASE_FRAME_MS / raceSpeed));
+  const gif = new GIF({ workers: 2, quality: 8, width: W, height: H, workerScript: workerUrl });
+
+  const frameCount = raceFrames.length;
+  for (let i = 0; i < frameCount; i++) {
+    drawRace(i, 0, tmpCanvas);
+    gif.addFrame(tmpCanvas, { copy: true, delay: i === frameCount - 1 ? frameDelay * 4 : frameDelay });
+    if (i % 4 === 0) {
+      btn.textContent = `Capturing… ${Math.round((i / frameCount) * 40)}%`;
+      await new Promise(r => setTimeout(r, 0));
+    }
+  }
+  // Restore main canvas view
+  drawRace(raceFrameIdx, raceProgress);
+
+  gif.on('progress', p => { btn.textContent = `Encoding… ${Math.round(40 + p * 60)}%`; });
+  gif.on('finished', blob => {
+    URL.revokeObjectURL(workerUrl);
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = `bar-race-${raceType}-${new Date().toISOString().slice(0,10)}.gif`;
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(url), 5000);
+    btn.disabled = false; btn.textContent = '⬇ GIF';
+  });
+  gif.on('abort', () => { URL.revokeObjectURL(workerUrl); btn.disabled = false; btn.textContent = '⬇ GIF'; });
+
+  btn.textContent = 'Encoding… 40%';
+  gif.render();
+}
+
+document.getElementById('raceGifBtn').addEventListener('click', downloadRaceGif);
+
 document.getElementById('graphGranularity').addEventListener('click', e => {
   const btn = e.target.closest('button');
   if (!btn) return;
@@ -6488,14 +7163,6 @@ document.getElementById('graphGranularity').addEventListener('click', e => {
   if (currentPeriod === 'graphs') renderGraphs();
 });
 
-document.getElementById('graphArtistCount').addEventListener('click', e => {
-  const btn = e.target.closest('button');
-  if (!btn) return;
-  document.querySelectorAll('#graphArtistCount button').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
-  graphArtistCount = parseInt(btn.dataset.n);
-  if (currentPeriod === 'graphs') renderGraphs();
-});
 
 </script>
 
