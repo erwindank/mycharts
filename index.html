@@ -7,6 +7,16 @@
 <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <script data-goatcounter="https://erwindank.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script>
+// Suppress html2canvas "willReadFrequently" warning by patching getContext
+(function() {
+  const _orig = HTMLCanvasElement.prototype.getContext;
+  HTMLCanvasElement.prototype.getContext = function(type, attrs) {
+    if (type === '2d') attrs = Object.assign({ willReadFrequently: true }, attrs);
+    return _orig.call(this, type, attrs);
+  };
+})();
+</script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8/hammer.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@1.2.1/dist/chartjs-plugin-zoom.min.js"></script>
@@ -2839,16 +2849,70 @@
           </div>
           <div style="font-family:'DM Mono',monospace;font-size:0.55rem;color:var(--text3);letter-spacing:0.06em;margin-top:3px;">Range for the chart run boxes shown</div>
         </div>
-        <div class="ig-ctrl-group">
+        <div class="ig-ctrl-group" id="crIgIncludeGroup">
           <div class="ig-ctrl-group-title">Include Chart Runs</div>
-          <label class="ig-ctrl-row"><input type="checkbox" id="crIgOpt_showYear"  checked onchange="updateCrIgPreview()"><span>📅 Yearly Chart Run + Stats</span></label>
-          <label class="ig-ctrl-row"><input type="checkbox" id="crIgOpt_showMonth" checked onchange="updateCrIgPreview()"><span>📆 Monthly Chart Run + Stats</span></label>
-          <label class="ig-ctrl-row"><input type="checkbox" id="crIgOpt_showWeek"  checked onchange="updateCrIgPreview()"><span>🗓 Weekly Chart Run + Stats</span></label>
+          <label class="ig-ctrl-row"><input type="checkbox" id="crIgOpt_showYear"  checked onchange="updateCrIgPreview()"><span>🗓️ Yearly Chart Run + Stats</span></label>
+          <label class="ig-ctrl-row"><input type="checkbox" id="crIgOpt_showMonth" checked onchange="updateCrIgPreview()"><span>📊 Monthly Chart Run + Stats</span></label>
+          <label class="ig-ctrl-row"><input type="checkbox" id="crIgOpt_showWeek"  checked onchange="updateCrIgPreview()"><span>📈 Weekly Chart Run + Stats</span></label>
         </div>
         <div class="ig-ctrl-group">
           <div class="ig-ctrl-group-title">Show / Hide</div>
           <label class="ig-ctrl-row"><input type="checkbox" id="crIgOpt_showSubtitle" checked onchange="updateCrIgPreview()"><span>Artist / Sub-label</span></label>
           <label class="ig-ctrl-row"><input type="checkbox" id="crIgOpt_showFooter"   checked onchange="updateCrIgPreview()"><span>Footer Branding</span></label>
+          <label class="ig-ctrl-row"><input type="checkbox" id="crIgOpt_showImage"    checked onchange="updateCrIgPreview()"><span>Cover Art / Photo</span></label>
+          <div style="display:flex;align-items:center;gap:0.4rem;padding-left:22px;flex-wrap:wrap;">
+            <span style="font-family:'DM Mono',monospace;font-size:0.58rem;color:var(--text3);flex-shrink:0;">Source:</span>
+            <button class="ig-format-btn active" id="crIgSrc_deezer"  onclick="setCrIgImgSource('deezer')" style="padding:0.2rem 0.45rem;font-size:0.6rem;">Deezer</button>
+            <button class="ig-format-btn"        id="crIgSrc_itunes"  onclick="setCrIgImgSource('itunes')" style="padding:0.2rem 0.45rem;font-size:0.6rem;">iTunes</button>
+            <button class="ig-format-btn"        id="crIgSrc_lastfm"  onclick="setCrIgImgSource('lastfm')" style="padding:0.2rem 0.45rem;font-size:0.6rem;">Last.fm</button>
+            <button class="ig-format-btn"        id="crIgSrc_youtube" onclick="setCrIgImgSource('youtube')" style="padding:0.2rem 0.45rem;font-size:0.6rem;">YouTube</button>
+          </div>
+        </div>
+        <div class="ig-ctrl-group">
+          <div class="ig-ctrl-group-title">Fonts</div>
+          <div style="display:flex;flex-direction:column;gap:0.35rem;">
+            <div style="display:flex;align-items:center;gap:0.5rem;">
+              <span style="font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--text3);min-width:52px;">Title</span>
+              <select id="crIgTitleFont" onchange="updateCrIgPreview()" style="flex:1;background:var(--bg3);border:1px solid var(--border2);color:var(--text2);font-family:'DM Mono',monospace;font-size:0.65rem;padding:3px 5px;border-radius:4px;">
+                <option value="DM Sans">DM Sans</option>
+                <option value="DM Serif Display">DM Serif Display</option>
+                <option value="DM Mono">DM Mono</option>
+                <option value="Georgia">Georgia</option>
+                <option value="Arial">Arial</option>
+                <option value="Verdana">Verdana</option>
+              </select>
+            </div>
+            <div style="display:flex;align-items:center;gap:0.5rem;">
+              <span style="font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--text3);min-width:52px;">Labels</span>
+              <select id="crIgLabelFont" onchange="updateCrIgPreview()" style="flex:1;background:var(--bg3);border:1px solid var(--border2);color:var(--text2);font-family:'DM Mono',monospace;font-size:0.65rem;padding:3px 5px;border-radius:4px;">
+                <option value="DM Mono">DM Mono</option>
+                <option value="DM Sans">DM Sans</option>
+                <option value="DM Serif Display">DM Serif Display</option>
+                <option value="Verdana">Verdana</option>
+                <option value="Arial">Arial</option>
+              </select>
+            </div>
+            <div style="display:flex;align-items:center;gap:0.5rem;">
+              <span style="font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--text3);min-width:52px;">Title px</span>
+              <input type="range" id="crIgTitleSize" min="0" max="36" value="0" oninput="updateCrIgSizeLabels();updateCrIgPreview()" style="flex:1;accent-color:var(--accent);">
+              <span id="crIgTitleSizeLabel" style="font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--text2);min-width:30px;text-align:right;">Auto</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:0.5rem;">
+              <span style="font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--text3);min-width:52px;">Brand px</span>
+              <input type="range" id="crIgBrandSize" min="0" max="18" value="0" oninput="updateCrIgSizeLabels();updateCrIgPreview()" style="flex:1;accent-color:var(--accent);">
+              <span id="crIgBrandSizeLabel" style="font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--text2);min-width:30px;text-align:right;">Auto</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:0.5rem;">
+              <span style="font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--text3);min-width:52px;">Section px</span>
+              <input type="range" id="crIgSectionSize" min="0" max="18" value="0" oninput="updateCrIgSizeLabels();updateCrIgPreview()" style="flex:1;accent-color:var(--accent);">
+              <span id="crIgSectionSizeLabel" style="font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--text2);min-width:30px;text-align:right;">Auto</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:0.5rem;">
+              <span style="font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--text3);min-width:52px;">Boxes px</span>
+              <input type="range" id="crIgBoxSize" min="0" max="22" value="0" oninput="updateCrIgSizeLabels();updateCrIgPreview()" style="flex:1;accent-color:var(--accent);">
+              <span id="crIgBoxSizeLabel" style="font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--text2);min-width:30px;text-align:right;">Auto</span>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -4338,9 +4402,9 @@ function buildCrPanelHTML(type, key) {
   let sectionsHtml = '';
   if (currentPeriod === 'year') {
     sectionsHtml = [
-      { id: 'year',  label: '📅 Yearly'  },
-      { id: 'month', label: '📆 Monthly' },
-      { id: 'week',  label: '🗓 Weekly'  },
+      { id: 'year',  label: '🗓️ Yearly'  },
+      { id: 'month', label: '📊 Monthly' },
+      { id: 'week',  label: '📈 Weekly'  },
     ].map(({ id, label }) => {
       const crData = allChartRun[id];
       const rawD = crData?.result?.[type]?.[key];
@@ -5588,14 +5652,37 @@ document.getElementById('igPreviewModal').addEventListener('click', e => {
 });
 
 // ─── CHART RUN SHARE IMAGE ──────────────────────────────────────
-let crIgState = { type: null, key: null, format: 'post', rangeMode: 'now' };
+let crIgState = { type: null, key: null, format: 'post', rangeMode: 'now', imgUrl: null, imgSource: 'deezer' };
 
 function openCrIgModal(type, encodedKey) {
   const key = decodeURIComponent(encodedKey);
   crIgState.type = type; crIgState.key = key;
 
-  // Build any missing chart run data on demand
-  ensureAllChartRun();
+  // Store which period opened the modal so card rendering stays context-aware
+  crIgState.period = currentPeriod;
+
+  // Rebuild chart run(s) with the correct chartSize for each period (offset=0 = full history)
+  const _savedOffset = currentOffset;
+  const _savedSize   = chartSize;
+  currentOffset = 0;
+  if (currentPeriod === 'week') {
+    chartSize = chartSizeWeekly;
+    allChartRun.week = buildChartRun('week');
+  } else if (currentPeriod === 'month') {
+    chartSize = chartSizeMonthly;
+    allChartRun.month = buildChartRun('month');
+  } else {
+    // Yearly: rebuild both month and week with their own correct sizes
+    chartSize = chartSizeMonthly; allChartRun.month = buildChartRun('month');
+    chartSize = chartSizeWeekly;  allChartRun.week  = buildChartRun('week');
+  }
+  currentOffset = _savedOffset;
+  chartSize     = _savedSize;
+  allChartRunIsFullHistory = true;
+
+  // Show/hide "Include Chart Runs" — only meaningful for yearly view
+  document.getElementById('crIgIncludeGroup').style.display =
+    (currentPeriod === 'week' || currentPeriod === 'month') ? 'none' : '';
 
   // Header title
   let name = key.split('|||')[0];
@@ -5624,9 +5711,78 @@ function openCrIgModal(type, encodedKey) {
   document.getElementById('crIgRangeNow').textContent      = _igLabels.now;
   setCrIgRange(crIgState.rangeMode);
   setCrIgFormat(crIgState.format);
+  // Reset all size sliders
+  ['crIgTitleSize','crIgBrandSize','crIgSectionSize','crIgBoxSize'].forEach(id => {
+    const el = document.getElementById(id); if (el) el.value = 0;
+  });
+  updateCrIgSizeLabels();
+  // Reset image source to deezer and update source button states
+  crIgState.imgSource = 'deezer';
+  _syncCrIgSrcBtns();
+  // Clear previous image, start fresh fetch
+  crIgState.imgUrl = null;
   updateCrIgPreview();
   document.getElementById('crIgModal').classList.add('open');
+  fetchCrIgImage(type, key);
 }
+
+// Fetches cover art for the given type/key using crIgState.imgSource
+async function fetchCrIgImage(type, key) {
+  const source = crIgState.imgSource;
+  try {
+    let url = null;
+    if (source === 'off') {
+      crIgState.imgUrl = null;
+    } else {
+      const crAny2 = allChartRun.year?.result?.[type]?.[key] || allChartRun.month?.result?.[type]?.[key] || allChartRun.week?.result?.[type]?.[key];
+      if (type === 'artists') {
+        url = await getArtistImage(key, source);
+      } else if (type === 'songs') {
+        const artist2 = crAny2?._artist || key.split('|||')[1] || '';
+        const title2  = crAny2?._title  || key.split('|||')[0] || key;
+        url = await getTrackImage(title2, artist2, source);
+      } else if (type === 'albums') {
+        const artist2 = crAny2?._artist || key.split('|||')[1] || '';
+        const album2  = crAny2?._album  || key.split('|||')[0] || key;
+        url = await getAlbumImage(album2, artist2, source);
+      }
+      crIgState.imgUrl = url || null;
+    }
+  } catch(e) { crIgState.imgUrl = null; }
+  if (document.getElementById('crIgModal').classList.contains('open') && crIgState.key === key) {
+    updateCrIgPreview();
+  }
+}
+
+// Sync source button active states to crIgState.imgSource
+function _syncCrIgSrcBtns() {
+  ['deezer','itunes','lastfm','youtube'].forEach(s => {
+    document.getElementById('crIgSrc_' + s)?.classList.toggle('active', s === crIgState.imgSource);
+  });
+}
+
+function setCrIgImgSource(source) {
+  crIgState.imgSource = source;
+  _syncCrIgSrcBtns();
+  crIgState.imgUrl = null;       // clear cached URL so preview shows loading state
+  updateCrIgPreview();           // render immediately without image
+  fetchCrIgImage(crIgState.type, crIgState.key); // then fetch + refresh
+}
+
+function updateCrIgSizeLabels() {
+  [
+    ['crIgTitleSize',   'crIgTitleSizeLabel'],
+    ['crIgBrandSize',   'crIgBrandSizeLabel'],
+    ['crIgSectionSize', 'crIgSectionSizeLabel'],
+    ['crIgBoxSize',     'crIgBoxSizeLabel'],
+  ].forEach(([sliderId, labelId]) => {
+    const val = parseInt(document.getElementById(sliderId)?.value || 0);
+    const lbl = document.getElementById(labelId);
+    if (lbl) lbl.textContent = val === 0 ? 'Auto' : val + 'px';
+  });
+}
+// Keep backward-compat alias used by openCrIgModal
+function updateCrIgTitleSizeLabel() { updateCrIgSizeLabels(); }
 
 function closeCrIgModal() {
   document.getElementById('crIgModal').classList.remove('open');
@@ -5663,19 +5819,25 @@ function buildCrIgCardHTML(type, key, opts) {
     if (type === 'artists') { displayName = key; artistName = ''; }
   }
 
-  const periodConf = [
-    { id: 'year',  label: '📅 YEARLY',  check: opts.showYear  },
-    { id: 'month', label: '📆 MONTHLY', check: opts.showMonth },
-    { id: 'week',  label: '🗓 WEEKLY',  check: opts.showWeek  },
-  ];
+  // Only show sections relevant to the period that opened the modal
+  const _activePeriod = opts.period || currentPeriod;
+  const periodConf = _activePeriod === 'week'
+    ? [{ id: 'week',  label: '📈 WEEKLY',  check: true }]
+    : _activePeriod === 'month'
+      ? [{ id: 'month', label: '📊 MONTHLY', check: true }]
+      : [
+          { id: 'year',  label: '🗓️ YEARLY',  check: opts.showYear  },
+          { id: 'month', label: '📊 MONTHLY', check: opts.showMonth },
+          { id: 'week',  label: '📈 WEEKLY',  check: opts.showWeek  },
+        ];
 
   const rangeMode = opts.rangeMode || 'now';
   const vy = getViewedYear();
   const cutoffKeys = getViewedCutoffKeys();
   let rangeLabelMap;
-  if (currentPeriod === 'week') {
+  if (_activePeriod === 'week') {
     rangeLabelMap = { year: vy + ' YTD', uptoYear: 'Up to This Week', now: 'All-Time' };
-  } else if (currentPeriod === 'month') {
+  } else if (_activePeriod === 'month') {
     rangeLabelMap = { year: vy + ' YTD', uptoYear: 'Up to This Month', now: 'All-Time' };
   } else {
     rangeLabelMap = { year: vy + ' Only', uptoYear: 'Up to ' + vy, now: 'All-Time' };
@@ -5689,32 +5851,65 @@ function buildCrIgCardHTML(type, key, opts) {
     const period = pc.id;
     const n = d.entries.length;
     const peak = d.peak;
-    const top1 = d.entries.filter(e => e.rank === 1).length;
+    const top1  = d.entries.filter(e => e.rank === 1).length;
+    const top5  = d.entries.filter(e => e.rank <= 5).length;
+    const top10 = d.entries.filter(e => e.rank <= 10).length;
+    const pSize = (opts.chartSizes && opts.chartSizes[period]) ?? Infinity; // chartSize for this period
     const unit = period === 'week' ? (n>1?'wks':'wk') : period === 'month' ? (n>1?'mos':'mo') : (n>1?'yrs':'yr');
-    const statsLine = `${n} ${unit} on chart · Peak #${peak}${top1 ? ` · ${top1}× #1` : ''}`;
-
-    // Box sizing: wider story card fits more
-    const boxW = period === 'week' ? 30 : 36;
-    const gap = 3;
-    const maxBoxes = Math.floor((cardW - 28) / (boxW + gap));
-    const shown = d.entries.slice(-maxBoxes);
+    // Box sizing — driven by opts.boxSize slider (auto = 11px for rank)
+    const boxRankSize  = opts.boxSize || 11;
+    const boxLabelSize = Math.max(5, boxRankSize - 4.5);
+    const baseW = period === 'week' ? 30 : 36;
+    const boxW  = opts.boxSize ? Math.round(opts.boxSize * (period === 'week' ? 2.8 : 3.3)) : baseW;
+    const gap   = Math.max(2, Math.round(boxW * 0.09));
+    // 2D capacity: how many boxes fit across multiple wrapped rows
+    const boxesPerRow = Math.max(1, Math.floor((cardW - 28) / (boxW + gap)));
+    const pad = Math.max(2, Math.round(boxRankSize * 0.27));
+    const boxH = Math.ceil(boxRankSize + Math.max(5, boxRankSize - 4.5) + pad * 2 + 4);
+    const rowH = boxH + gap;
+    const numSecs = Math.max(1, periodConf.filter(p => p.check).length);
+    const bodyH = cardH - (isPost ? 90 : 120) - (opts.showFooter ? 24 : 0) - (isPost ? 20 : 28);
+    const secAvailH = Math.floor(bodyH / numSecs) - ((opts.sectionSize || 8) * 2 + 22);
+    const maxRows = Math.max(2, Math.floor(secAvailH / rowH));
+    const maxBoxes = maxRows * boxesPerRow;
+    const shown = d.entries.length <= maxBoxes ? d.entries : d.entries.slice(-maxBoxes);
     const truncated = d.entries.length > maxBoxes;
+
+    const secSize = opts.sectionSize || 8;
+    const lFont = `'${opts.labelFont || 'DM Mono'}',monospace`;
+
+    // Inline peak badge matching chart style (gold/silver/bronze)
+    const _peakBadge = (p) => {
+      const fs = (secSize + 1) + 'px';
+      const base = `font-family:${lFont};font-size:${fs};padding:1px 5px;border-radius:3px;letter-spacing:0.05em;white-space:nowrap;font-weight:700;`;
+      if (p === 1) return `<span style="${base}background:rgba(245,158,11,0.2);color:#f0aa30;border:1px solid rgba(245,158,11,0.45);">PEAK #1</span>`;
+      if (p === 2) return `<span style="${base}background:rgba(148,163,184,0.2);color:#94a3b8;border:1px solid rgba(148,163,184,0.4);">PEAK #2</span>`;
+      if (p === 3) return `<span style="${base}background:rgba(192,120,80,0.2);color:#c07850;border:1px solid rgba(192,120,80,0.4);">PEAK #3</span>`;
+      return `<span style="${base}background:rgba(255,255,255,0.08);color:#7aa0d0;border:1px solid rgba(255,255,255,0.14);">PEAK #${p}</span>`;
+    };
+    // Stat chip: bold value + dimmed label
+    const _stat = (val, label) => `<span style="font-family:${lFont};font-size:${secSize}px;color:${c.text3};white-space:nowrap;"><strong style="color:${c.text};font-size:${secSize+1}px;font-weight:700;">${val}</strong> ${label}</span>`;
 
     const boxesHtml = shown.map(e => {
       const isPeak = e.rank === d.peak;
       const bg     = isPeak ? 'rgba(245,158,11,0.18)' : c.surface;
       const border = isPeak ? 'rgba(245,158,11,0.55)'  : c.border;
       const rc     = isPeak ? c.gold1 : c.text;
-      return `<div style="background:${bg};border:1px solid ${border};border-radius:4px;padding:3px 4px;text-align:center;min-width:${boxW}px;flex-shrink:0;">
-        <div style="font-family:'DM Serif Display',serif;font-size:11px;color:${rc};line-height:1.1">#${e.rank}</div>
-        <div style="font-family:'DM Mono',monospace;font-size:6.5px;color:${c.text3};white-space:nowrap;margin-top:2px">${e.label}</div>
+      return `<div style="background:${bg};border:1px solid ${border};border-radius:4px;padding:${pad}px ${pad+1}px;text-align:center;min-width:${boxW}px;flex-shrink:0;">
+        <div style="font-family:${lFont};font-size:${boxRankSize}px;font-weight:700;color:${rc};line-height:1.1">#${e.rank}</div>
+        <div style="font-family:${lFont};font-size:${boxLabelSize}px;color:${c.text3};white-space:nowrap;margin-top:2px">${e.label}</div>
       </div>`;
     }).join('');
 
     return `<div style="margin-bottom:9px;">
-      <div style="display:flex;align-items:center;gap:8px;margin-bottom:3px;">
-        <div style="font-family:'DM Mono',monospace;font-size:8px;letter-spacing:0.14em;color:${c.accent};text-transform:uppercase;">${pc.label}</div>
-        <div style="font-family:'DM Mono',monospace;font-size:8px;color:${c.text3};">${statsLine}${truncated?` · last ${maxBoxes}`:''}</div>
+      <div style="font-family:${lFont};font-size:${secSize}px;letter-spacing:0.14em;color:${c.accent};text-transform:uppercase;margin-bottom:4px;">${pc.label}</div>
+      <div style="display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin-bottom:5px;">
+        ${_stat(n + ' ' + unit, 'on chart')}
+        ${_peakBadge(peak)}
+        ${top1  ? _stat(top1  + ' ' + unit, 'at #1')                   : ''}
+        ${top5  && 5  < pSize ? _stat(top5  + ' ' + unit, 'in Top 5')  : ''}
+        ${top10 && 10 < pSize ? _stat(top10 + ' ' + unit, 'in Top 10') : ''}
+        ${truncated ? `<span style="font-family:${lFont};font-size:${secSize}px;color:${c.text3};">· last ${maxBoxes} shown</span>` : ''}
       </div>
       <div style="display:flex;flex-wrap:wrap;gap:${gap}px;">${boxesHtml}</div>
     </div>`;
@@ -5722,28 +5917,55 @@ function buildCrIgCardHTML(type, key, opts) {
 
   if (!sections.length) return '';
 
+  const tFont = `'${opts.titleFont || 'DM Sans'}',sans-serif`;
+  const lFont2 = `'${opts.labelFont || 'DM Mono'}',monospace`;
+  const autoTitleSize = isPost ? 17 : 22;
+  const titleFontSize = opts.titleSize || autoTitleSize;
+  const subtitleSize  = Math.max(10, titleFontSize - 6);
+  const brandFontSize = opts.brandSize || 8;
+  const imgSize = isPost ? 64 : 80;
   const typeLabel = { songs: '★ SONG', artists: '♦ ARTIST', albums: '◈ ALBUM' }[type];
-  return `<div style="width:${cardW}px;height:${cardH}px;background:${c.bg};overflow:hidden;display:flex;flex-direction:column;font-family:'DM Sans',sans-serif;">
-    <div style="background:linear-gradient(135deg,${c.bg3},${c.surface});padding:${isPost?'12px 16px':'16px 20px'};border-bottom:2px solid ${c.accent};flex-shrink:0;">
-      <div style="font-family:'DM Mono',monospace;font-size:8px;letter-spacing:0.2em;color:${c.accent};text-transform:uppercase;margin-bottom:3px;">dankcharts.fm · ${typeLabel} CHART RUN · ${rangeLabelMap[rangeMode]}</div>
-      <div style="font-family:'DM Sans',sans-serif;font-size:${isPost?17:22}px;font-weight:700;color:${c.text};line-height:1.15;letter-spacing:-0.02em;">${esc(displayName)}</div>
-      ${opts.showSubtitle && artistName ? `<div style="font-family:'DM Sans',sans-serif;font-size:${isPost?11:13}px;color:${c.text3};margin-top:2px;">${esc(artistName)}</div>` : ''}
-    </div>
+  const showImg = opts.showImage && opts.imgUrl;
+  const headerPad = isPost ? '12px 16px' : '16px 20px';
+  const headerInner = `
+    <div style="font-family:${lFont2};font-size:${brandFontSize}px;letter-spacing:0.2em;color:${c.accent};text-transform:uppercase;margin-bottom:${showImg?'4':'3'}px;">dankcharts.fm · ${typeLabel} CHART RUN · ${rangeLabelMap[rangeMode]}</div>
+    <div style="font-family:${tFont};font-size:${titleFontSize}px;font-weight:700;color:${c.text};line-height:1.15;letter-spacing:-0.02em;">${esc(displayName)}</div>
+    ${opts.showSubtitle && artistName ? `<div style="font-family:${tFont};font-size:${subtitleSize}px;color:${c.text3};margin-top:2px;">${esc(artistName)}</div>` : ''}
+  `;
+  const headerContent = showImg
+    ? `<div style="display:flex;align-items:center;gap:12px;">
+        <img src="${opts.imgUrl}" crossorigin="anonymous" style="width:${imgSize}px;height:${imgSize}px;object-fit:cover;border-radius:6px;flex-shrink:0;border:1px solid ${c.border};">
+        <div style="flex:1;min-width:0;">${headerInner}</div>
+       </div>`
+    : headerInner;
+  return `<div style="width:${cardW}px;height:${cardH}px;background:${c.bg};overflow:hidden;display:flex;flex-direction:column;font-family:${tFont};">
+    <div style="background:linear-gradient(135deg,${c.bg3},${c.surface});padding:${headerPad};border-bottom:2px solid ${c.accent};flex-shrink:0;">${headerContent}</div>
     <div style="flex:1;overflow:hidden;padding:${isPost?'10px 14px':'14px 18px'};">${sections.join('<div style="height:1px;background:'+ c.border +';margin:6px 0;"></div>')}</div>
-    ${opts.showFooter ? `<div style="padding:7px 12px;background:${c.bg3};border-top:1px solid ${c.border};flex-shrink:0;"><div style="font-family:'DM Mono',monospace;font-size:8px;color:${c.text3};letter-spacing:0.12em;">dankcharts.fm · PERSONAL MUSIC CHARTS</div></div>` : ''}
+    ${opts.showFooter ? `<div style="padding:7px 12px;background:${c.bg3};border-top:1px solid ${c.border};flex-shrink:0;"><div style="font-family:${lFont2};font-size:${brandFontSize}px;color:${c.text3};letter-spacing:0.12em;">dankcharts.fm · PERSONAL MUSIC CHARTS</div></div>` : ''}
   </div>`;
 }
 
 function updateCrIgPreview() {
   if (!crIgState.type) return;
+  const _sz = id => { const v = parseInt(document.getElementById(id)?.value || 0); return v > 0 ? v : null; };
   const opts = {
     format:      crIgState.format,
     rangeMode:   crIgState.rangeMode,
+    period:      crIgState.period || currentPeriod,
+    chartSizes:  { year: Infinity, month: chartSizeMonthly, week: chartSizeWeekly },
     showYear:    document.getElementById('crIgOpt_showYear')?.checked  ?? true,
     showMonth:   document.getElementById('crIgOpt_showMonth')?.checked ?? true,
     showWeek:    document.getElementById('crIgOpt_showWeek')?.checked  ?? true,
     showSubtitle:document.getElementById('crIgOpt_showSubtitle')?.checked ?? true,
     showFooter:  document.getElementById('crIgOpt_showFooter')?.checked   ?? true,
+    showImage:   document.getElementById('crIgOpt_showImage')?.checked    ?? true,
+    imgUrl:      crIgState.imgUrl,
+    titleFont:   document.getElementById('crIgTitleFont')?.value  || 'DM Sans',
+    labelFont:   document.getElementById('crIgLabelFont')?.value  || 'DM Mono',
+    titleSize:   _sz('crIgTitleSize'),
+    brandSize:   _sz('crIgBrandSize'),
+    sectionSize: _sz('crIgSectionSize'),
+    boxSize:     _sz('crIgBoxSize'),
   };
   const isPost = opts.format === 'post';
   const cardW = 540, cardH = isPost ? 540 : 960;
@@ -5771,13 +5993,13 @@ function downloadCrIg() {
   const cardW = 540, cardH = isPost ? 540 : 960;
   const cvs = document.getElementById('crIgCanvas');
   const slug = (crIgState.key.split('|||')[0] || 'chart').replace(/[^a-z0-9]/gi,'').slice(0,20);
-  html2canvas(cvs, { scale:2, useCORS:false, allowTaint:true, backgroundColor:null, logging:false, width:cardW, height:cardH })
+  html2canvas(cvs, { scale:2, useCORS:true, allowTaint:false, backgroundColor:null, logging:false, width:cardW, height:cardH })
     .then(c => {
       const a = document.createElement('a');
       a.download = `dankcharts_chartrun_${slug}_${crIgState.format}.png`;
       a.href = c.toDataURL('image/png'); a.click();
       btn.textContent = orig; btn.disabled = false;
-    }).catch(() => { btn.textContent = orig; btn.disabled = false; });
+    }).catch(err => { console.error('Chart run download failed:', err); btn.textContent = orig; btn.disabled = false; });
 }
 
 document.getElementById('crIgModal').addEventListener('click', e => {
