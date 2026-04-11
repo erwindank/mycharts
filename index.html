@@ -4254,17 +4254,59 @@ function getViewedYear() {
   return now.getFullYear();
 }
 
-function filterCrD(d, period, mode, viewedYear) {
+function getViewedCutoffKeys() {
+  const now = new Date();
+  let weekKey, monthKey, yearKey;
+  if (currentPeriod === 'week') {
+    const sun = new Date(now);
+    sun.setDate(now.getDate() - now.getDay() - currentOffset * 7);
+    sun.setHours(0, 0, 0, 0);
+    weekKey  = localDateStr(sun);
+    monthKey = `${sun.getFullYear()}-${String(sun.getMonth()+1).padStart(2,'0')}`;
+    yearKey  = String(sun.getFullYear());
+  } else if (currentPeriod === 'month') {
+    const d = new Date(now.getFullYear(), now.getMonth() - currentOffset, 1);
+    yearKey  = String(d.getFullYear());
+    monthKey = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+    const lastDay = new Date(d.getFullYear(), d.getMonth() + 1, 0);
+    lastDay.setDate(lastDay.getDate() - lastDay.getDay());
+    weekKey = localDateStr(lastDay);
+  } else {
+    const yr = now.getFullYear() - currentOffset;
+    yearKey  = String(yr);
+    monthKey = `${yr}-12`;
+    const lastDay = new Date(yr, 11, 31);
+    lastDay.setDate(lastDay.getDate() - lastDay.getDay());
+    weekKey = localDateStr(lastDay);
+  }
+  return { year: yearKey, month: monthKey, week: weekKey };
+}
+
+function filterCrD(d, period, mode, viewedYear, cutoffKeys) {
   if (!d || mode === 'now') return d;
   let entries;
   if (mode === 'year') {
-    if (period === 'year')       entries = d.entries.filter(e => parseInt(e.periodKey) === viewedYear);
-    else if (period === 'month') entries = d.entries.filter(e => e.periodKey.startsWith(viewedYear + '-'));
-    else                         entries = d.entries.filter(e => new Date(e.periodKey + 'T00:00:00').getFullYear() === viewedYear);
+    if (period === 'year') {
+      entries = d.entries.filter(e => parseInt(e.periodKey) === viewedYear);
+    } else if (period === 'month') {
+      const startKey = `${viewedYear}-01`;
+      const endKey   = cutoffKeys?.month || `${viewedYear}-12`;
+      entries = d.entries.filter(e => e.periodKey >= startKey && e.periodKey <= endKey);
+    } else { // week — YTD: Jan 1 of viewedYear through the viewed week
+      const startKey = `${viewedYear}-`;
+      const endKey   = cutoffKeys?.week || `${viewedYear}-12-31`;
+      entries = d.entries.filter(e => e.periodKey >= startKey && e.periodKey <= endKey);
+    }
   } else { // uptoYear
-    if (period === 'year')       entries = d.entries.filter(e => parseInt(e.periodKey) <= viewedYear);
-    else if (period === 'month') entries = d.entries.filter(e => e.periodKey <= viewedYear + '-12');
-    else                         entries = d.entries.filter(e => new Date(e.periodKey + 'T00:00:00').getFullYear() <= viewedYear);
+    if (period === 'year') {
+      entries = d.entries.filter(e => parseInt(e.periodKey) <= viewedYear);
+    } else if (period === 'month') {
+      const endKey = cutoffKeys?.month || `${viewedYear}-12`;
+      entries = d.entries.filter(e => e.periodKey <= endKey);
+    } else { // week — all time up to the viewed week
+      const endKey = cutoffKeys?.week || `${viewedYear}-12-31`;
+      entries = d.entries.filter(e => e.periodKey <= endKey);
+    }
   }
   if (!entries || !entries.length) return null;
   const peak      = Math.min(...entries.map(e => e.rank));
@@ -4276,7 +4318,15 @@ function filterCrD(d, period, mode, viewedYear) {
 function buildCrPanelHTML(type, key) {
   ensureAllChartRun(); // guarantees allChartRun has full history for "All-Time" mode
   const vy = getViewedYear();
-  const modeLabels = { year: vy + ' Only', uptoYear: 'Up to ' + vy, now: 'All-Time' };
+  const cutoffKeys = getViewedCutoffKeys();
+  let modeLabels;
+  if (currentPeriod === 'week') {
+    modeLabels = { year: vy + ' YTD', uptoYear: 'Up to This Week', now: 'All-Time' };
+  } else if (currentPeriod === 'month') {
+    modeLabels = { year: vy + ' YTD', uptoYear: 'Up to This Month', now: 'All-Time' };
+  } else {
+    modeLabels = { year: vy + ' Only', uptoYear: 'Up to ' + vy, now: 'All-Time' };
+  }
   const toggleHtml = `<div class="cr-range-bar">
     <span class="cr-range-label">Range</span>
     ${['year','uptoYear','now'].map(m =>
@@ -4294,7 +4344,7 @@ function buildCrPanelHTML(type, key) {
     ].map(({ id, label }) => {
       const crData = allChartRun[id];
       const rawD = crData?.result?.[type]?.[key];
-      const d = filterCrD(rawD, id, crRangeMode, vy);
+      const d = filterCrD(rawD, id, crRangeMode, vy, cutoffKeys);
       return `<div class="cr-panel-section">
         <div class="cr-panel-section-title">${label}</div>
         ${d ? `<div class="cr-stats">${crStats(type, key, id, null, d)}</div>${crBoxesHTML(type, key, null, d, id)}` : '<div style="font-size:0.6rem;color:var(--text3);padding:2px 0">No chart history for this range.</div>'}
@@ -4303,7 +4353,7 @@ function buildCrPanelHTML(type, key) {
   } else {
     const crData = allChartRun[currentPeriod] || chartRunData;
     const rawD = crData?.result?.[type]?.[key];
-    const d = filterCrD(rawD, currentPeriod, crRangeMode, vy);
+    const d = filterCrD(rawD, currentPeriod, crRangeMode, vy, cutoffKeys);
     sectionsHtml = d
       ? `<div class="cr-stats">${crStats(type, key, currentPeriod, null, d)}</div>${crBoxesHTML(type, key, null, d, currentPeriod)}`
       : '<div style="font-size:0.6rem;color:var(--text3);padding:4px 0">No chart history for this range.</div>';
@@ -5559,6 +5609,19 @@ function openCrIgModal(type, encodedKey) {
 
   // Sync range mode with current chart run panel setting
   crIgState.rangeMode = crRangeMode;
+  // Update IG range button labels to be context-aware
+  const _vy = getViewedYear();
+  let _igLabels;
+  if (currentPeriod === 'week') {
+    _igLabels = { year: _vy + ' YTD', uptoYear: 'Up to This Week', now: 'All-Time' };
+  } else if (currentPeriod === 'month') {
+    _igLabels = { year: _vy + ' YTD', uptoYear: 'Up to This Month', now: 'All-Time' };
+  } else {
+    _igLabels = { year: _vy + ' Only', uptoYear: 'Up to ' + _vy, now: 'All-Time' };
+  }
+  document.getElementById('crIgRangeYear').textContent     = _igLabels.year;
+  document.getElementById('crIgRangeUptoYear').textContent = _igLabels.uptoYear;
+  document.getElementById('crIgRangeNow').textContent      = _igLabels.now;
   setCrIgRange(crIgState.rangeMode);
   setCrIgFormat(crIgState.format);
   updateCrIgPreview();
@@ -5608,12 +5671,20 @@ function buildCrIgCardHTML(type, key, opts) {
 
   const rangeMode = opts.rangeMode || 'now';
   const vy = getViewedYear();
-  const rangeLabelMap = { year: vy + ' Only', uptoYear: 'Up to ' + vy, now: 'All-Time' };
+  const cutoffKeys = getViewedCutoffKeys();
+  let rangeLabelMap;
+  if (currentPeriod === 'week') {
+    rangeLabelMap = { year: vy + ' YTD', uptoYear: 'Up to This Week', now: 'All-Time' };
+  } else if (currentPeriod === 'month') {
+    rangeLabelMap = { year: vy + ' YTD', uptoYear: 'Up to This Month', now: 'All-Time' };
+  } else {
+    rangeLabelMap = { year: vy + ' Only', uptoYear: 'Up to ' + vy, now: 'All-Time' };
+  }
   const sections = periodConf.filter(p => p.check).map(pc => {
     const crData = allChartRun[pc.id];
     if (!crData?.result?.[type]?.[key]) return '';
     const rawD = crData.result[type][key];
-    const d = filterCrD(rawD, pc.id, rangeMode, vy);
+    const d = filterCrD(rawD, pc.id, rangeMode, vy, cutoffKeys);
     if (!d) return '';
     const period = pc.id;
     const n = d.entries.length;
