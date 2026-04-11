@@ -2396,7 +2396,7 @@
 
   <div class="stats-strip" id="statsStrip"></div>
 
-  <button class="export-playlist-btn" id="exportPlaylistBtn" onclick="openExportModal()">♫ EXPORT PLAYLIST</button>
+  <button class="export-playlist-btn" id="exportPlaylistBtn" title="Export this chart as a playlist — save to Spotify, Last.fm, or a text file" onclick="openExportModal()">♫ EXPORT PLAYLIST</button>
 
   <div class="chart-section" id="songsSection">
     <div class="section-header">
@@ -2431,7 +2431,7 @@
       </div>
       <div class="ig-share-bar" id="songsShareBar">
         <span>SHARE:</span>
-        <button class="ig-share-btn" onclick="openIgPreviewModal('songs')">📷 Share as Image</button>
+        <button class="ig-share-btn" title="Generate a shareable image of this chart for Instagram / social media" onclick="openIgPreviewModal('songs')">📷 Share as Image</button>
       </div>
     </div>
   </div>
@@ -2469,7 +2469,7 @@
       </div>
       <div class="ig-share-bar" id="artistsShareBar">
         <span>SHARE:</span>
-        <button class="ig-share-btn" onclick="openIgPreviewModal('artists')">📷 Share as Image</button>
+        <button class="ig-share-btn" title="Generate a shareable image of this chart for Instagram / social media" onclick="openIgPreviewModal('artists')">📷 Share as Image</button>
       </div>
     </div>
   </div>
@@ -2507,7 +2507,7 @@
       </div>
       <div class="ig-share-bar" id="albumsShareBar">
         <span>SHARE:</span>
-        <button class="ig-share-btn" onclick="openIgPreviewModal('albums')">📷 Share as Image</button>
+        <button class="ig-share-btn" title="Generate a shareable image of this chart for Instagram / social media" onclick="openIgPreviewModal('albums')">📷 Share as Image</button>
       </div>
     </div>
   </div>
@@ -2596,8 +2596,8 @@
         <input id="gCumulativeTo" type="date"
           style="background:var(--bg2);border:1px solid var(--border2);color:var(--text);font-family:'DM Mono',monospace;font-size:0.7rem;padding:0.25rem 0.5rem;border-radius:4px;outline:none;">
         <button id="gCumulativeResetRange" class="graphs-btn" style="white-space:nowrap;">Reset</button>
-        <button id="gCumulativeLabelsBtn" class="graphs-btn" style="white-space:nowrap;">Labels: Off</button>
-        <button id="gCumulativeResetZoom" class="graphs-btn" style="white-space:nowrap;">Reset Zoom</button>
+        <button id="gCumulativeLabelsBtn" class="graphs-btn" title="Toggle data point labels on/off for this graph" style="white-space:nowrap;">Labels: Off</button>
+        <button id="gCumulativeResetZoom" class="graphs-btn" title="Reset the chart zoom to show the full date range" style="white-space:nowrap;">Reset Zoom</button>
       </div>
       <div class="graph-canvas-wrap"><canvas id="gCumulative"></canvas></div>
     </div>
@@ -2614,8 +2614,8 @@
         <input id="gTotalVolumeTo" type="date"
           style="background:var(--bg2);border:1px solid var(--border2);color:var(--text);font-family:'DM Mono',monospace;font-size:0.7rem;padding:0.25rem 0.5rem;border-radius:4px;outline:none;">
         <button id="gTotalVolumeResetRange" class="graphs-btn" style="white-space:nowrap;">Reset</button>
-        <button id="gTotalVolumeResetZoom" class="graphs-btn" style="white-space:nowrap;">Reset Zoom</button>
-        <button id="gTotalVolumeLabelsBtn" class="graphs-btn" style="white-space:nowrap;">Labels: Off</button>
+        <button id="gTotalVolumeResetZoom" class="graphs-btn" title="Reset the chart zoom to show the full date range" style="white-space:nowrap;">Reset Zoom</button>
+        <button id="gTotalVolumeLabelsBtn" class="graphs-btn" title="Toggle data point labels on/off for this graph" style="white-space:nowrap;">Labels: Off</button>
       </div>
       <div class="graph-canvas-wrap"><canvas id="gTotalVolume"></canvas></div>
     </div>
@@ -2640,8 +2640,8 @@
         <input id="gVolumeTo" type="date"
           style="background:var(--bg2);border:1px solid var(--border2);color:var(--text);font-family:'DM Mono',monospace;font-size:0.7rem;padding:0.25rem 0.5rem;border-radius:4px;outline:none;">
         <button id="gVolumeResetRange" class="graphs-btn" style="white-space:nowrap;">Reset</button>
-        <button id="gVolumeResetZoom" class="graphs-btn" style="white-space:nowrap;">Reset Zoom</button>
-        <button id="gVolumeLabelsBtn" class="graphs-btn" style="white-space:nowrap;">Labels: Off</button>
+        <button id="gVolumeResetZoom" class="graphs-btn" title="Reset the chart zoom to show the full date range" style="white-space:nowrap;">Reset Zoom</button>
+        <button id="gVolumeLabelsBtn" class="graphs-btn" title="Toggle data point labels on/off for this graph" style="white-space:nowrap;">Labels: Off</button>
       </div>
       <div class="graph-canvas-wrap"><canvas id="gVolume"></canvas></div>
     </div>
@@ -4184,7 +4184,7 @@ function renderPage(type, peaks) {
       const rowId = 'crr-ysong-' + i;
       imgItems.push({ imgId, title: s.title, artist: s.artist, album: s.album, prefKey });
       const mainRow = `<tr class="${rank===1?'rank-1':rank===2?'rank-2':rank===3?'rank-3':''}">
-        <td class="rank-cell">${hasCR?`<button class="cr-toggle-btn" onclick="toggleChartRun(this,'${rowId}')">📊</button>`:''}${rank}</td>
+        <td class="rank-cell">${hasCR?`<button class="cr-toggle-btn" title="View chart run history — see how this entry has ranked over time" onclick="toggleChartRun(this,'${rowId}')">📊</button>`:''}${rank}</td>
         <td class="thumb-cell"><div class="thumb-wrap"><div id="${imgId}"><div class="thumb-initials">${esc(initials(s.title))}</div></div><button id="srcbtn-${imgId}" class="img-src-btn" data-imgid="${imgId}" data-type="song" data-prefkey="${esc(prefKey)}" data-name="${esc(s.title)}" data-artist="${esc(s.artist)}" data-album="${esc(s.album)}">${srcLabel(itemSourcePrefs[prefKey]||'deezer')}</button></div></td>
         <td>
           <div class="song-title">${esc(s.title)}${certBadge(s.count,'song')}</div>
@@ -4210,7 +4210,7 @@ function renderPage(type, peaks) {
       const rowId = 'crr-yartist-' + i;
       imgItems.push({ imgId, name: a.name, prefKey });
       const mainRow = `<tr class="${rank===1?'rank-1':rank===2?'rank-2':rank===3?'rank-3':''} artist-row" data-artist="${esc(a.name)}" onclick="openArtistModal(this.closest('tr').dataset.artist)">
-        <td class="rank-cell">${hasCR?`<button class="cr-toggle-btn" onclick="toggleChartRun(this,'${rowId}')">📊</button>`:''}${rank}</td>
+        <td class="rank-cell">${hasCR?`<button class="cr-toggle-btn" title="View chart run history — see how this entry has ranked over time" onclick="toggleChartRun(this,'${rowId}')">📊</button>`:''}${rank}</td>
         <td class="thumb-cell"><div class="thumb-wrap"><div id="${imgId}"><div class="thumb-initials">${esc(initials(a.name))}</div></div><button id="srcbtn-${imgId}" class="img-src-btn" data-imgid="${imgId}" data-type="artist" data-prefkey="${esc(prefKey)}" data-name="${esc(a.name)}" data-artist="${esc(a.name)}" data-album="">${srcLabel(itemSourcePrefs[prefKey]||'deezer')}</button></div></td>
         <td><div class="song-title">${esc(a.name)}</div><div class="song-artist" style="font-size:0.7rem;letter-spacing:0.06em;font-style:normal;font-family:'DM Mono',monospace;color:var(--text3)">CLICK TO VIEW PROFILE</div></td>
         <td><div class="song-artist">${a.songs.size} songs</div></td>
@@ -4238,7 +4238,7 @@ function renderPage(type, peaks) {
         const hasCR = chartRunData && !!chartRunData.result.albums[ak];
         imgItems.push({ imgId, album: a.album, artist: a.artist, name: a.album, prefKey });
         const mainRow = `<tr class="${rank===1?'rank-1':rank===2?'rank-2':rank===3?'rank-3':''} album-row" data-albumkey="${esc(ak)}" onclick="openAlbumModal(this.dataset.albumkey)">
-        <td class="rank-cell">${hasCR?`<button class="cr-toggle-btn" onclick="toggleChartRun(this,'${rowId}')">📊</button>`:''}${rank}</td>
+        <td class="rank-cell">${hasCR?`<button class="cr-toggle-btn" title="View chart run history — see how this entry has ranked over time" onclick="toggleChartRun(this,'${rowId}')">📊</button>`:''}${rank}</td>
         <td class="thumb-cell"><div class="thumb-wrap"><div id="${imgId}"><div class="thumb-initials">${esc(initials(a.album))}</div></div><button id="srcbtn-${imgId}" class="img-src-btn" data-imgid="${imgId}" data-type="album" data-prefkey="${esc(prefKey)}" data-name="${esc(a.album)}" data-artist="${esc(a.artist)}" data-album="${esc(a.album)}">${srcLabel(itemSourcePrefs[prefKey]||'deezer')}</button></div></td>
         <td>
           <div class="song-title">${esc(a.album)}${certBadge(a.count,'album')}</div>
@@ -4383,20 +4383,39 @@ function buildCrPanelHTML(type, key) {
   ensureAllChartRun(); // guarantees allChartRun has full history for "All-Time" mode
   const vy = getViewedYear();
   const cutoffKeys = getViewedCutoffKeys();
-  let modeLabels;
+  let modeLabels, modeTitles;
   if (currentPeriod === 'week') {
     modeLabels = { year: vy + ' YTD', uptoYear: 'Up to This Week', now: 'All-Time' };
+    modeTitles = {
+      year:     'Chart appearances from Jan 1 through the viewed week (Year-to-Date)',
+      uptoYear: 'Every chart appearance from your first scrobble up to and including the viewed week',
+      now:      'Every chart appearance across your entire scrobble history'
+    };
   } else if (currentPeriod === 'month') {
     modeLabels = { year: vy + ' YTD', uptoYear: 'Up to This Month', now: 'All-Time' };
+    modeTitles = {
+      year:     'Chart appearances from Jan 1 through the viewed month (Year-to-Date)',
+      uptoYear: 'Every chart appearance from your first scrobble up to and including the viewed month',
+      now:      'Every chart appearance across your entire scrobble history'
+    };
   } else {
     modeLabels = { year: vy + ' Only', uptoYear: 'Up to ' + vy, now: 'All-Time' };
+    modeTitles = {
+      year:     'Only chart appearances within the selected year',
+      uptoYear: 'Every chart appearance from your first scrobble up to and including the selected year',
+      now:      'Every chart appearance across your entire scrobble history'
+    };
   }
+  const headerHtml = `<div style="margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid var(--border);">
+    <div style="font-family:'DM Mono',monospace;font-size:0.65rem;font-weight:700;letter-spacing:0.18em;color:var(--text);text-transform:uppercase;">📊 Chart Run</div>
+    <div style="font-family:'DM Mono',monospace;font-size:0.54rem;letter-spacing:0.07em;color:var(--text3);margin-top:2px;">Ranking history &amp; chart appearances over time</div>
+  </div>`;
   const toggleHtml = `<div class="cr-range-bar">
     <span class="cr-range-label">Range</span>
     ${['year','uptoYear','now'].map(m =>
-      `<button class="cr-range-btn${crRangeMode===m?' active':''}" onclick="setCrRangeMode('${m}');event.stopPropagation()">${modeLabels[m]}</button>`
+      `<button class="cr-range-btn${crRangeMode===m?' active':''}" title="${modeTitles[m]}" onclick="setCrRangeMode('${m}');event.stopPropagation()">${modeLabels[m]}</button>`
     ).join('')}
-    <button class="cr-ig-share-btn" style="margin-left:auto;" onclick="openCrIgModal('${type}','${encodeURIComponent(key)}');event.stopPropagation()">📸 Share</button>
+    <button class="cr-ig-share-btn" title="Generate a shareable Instagram image of this chart run" style="margin-left:auto;" onclick="openCrIgModal('${type}','${encodeURIComponent(key)}');event.stopPropagation()">📸 Share</button>
   </div>`;
 
   let sectionsHtml = '';
@@ -4979,7 +4998,7 @@ function renderSongs(plays, peaks, monthlyStats) {
     const rowId = 'crr-song-' + i;
     imgItems.push({ imgId, title: s.title, artist: s.artist, album: s.album, type: 'song', prefKey });
     const mainRow = `<tr class="${i===0?'rank-1':i===1?'rank-2':i===2?'rank-3':''}">
-      <td class="rank-cell"><button class="cr-toggle-btn" onclick="toggleChartRun(this,'${rowId}')">📊</button>${i+1}</td>
+      <td class="rank-cell"><button class="cr-toggle-btn" title="View chart run history — see how this entry has ranked over time" onclick="toggleChartRun(this,'${rowId}')">📊</button>${i+1}</td>
       <td class="thumb-cell"><div class="thumb-wrap"><div id="${imgId}"><div class="thumb-initials">${esc(initials(s.title))}</div></div><button id="srcbtn-${imgId}" class="img-src-btn" data-imgid="${imgId}" data-type="song" data-prefkey="${esc(prefKey)}" data-name="${esc(s.title)}" data-artist="${esc(s.artist)}" data-album="${esc(s.album)}">${srcLabel(itemSourcePrefs[prefKey]||'deezer')}</button></div></td>
       <td>
         <div class="song-title">${esc(s.title)}${pk ? peakBadge(pk) : ''}${certBadge(s.count,'song')}</div>
@@ -5031,7 +5050,7 @@ function renderArtists(plays, peaks, monthlyStats) {
     const rowId = 'crr-artist-' + i;
     imgItems.push({ imgId, name: artist, prefKey });
     const mainRow = `<tr class="${i===0?'rank-1':i===1?'rank-2':i===2?'rank-3':''} artist-row" data-artist="${esc(artist)}" onclick="openArtistModal(this.closest('tr').dataset.artist)">
-      <td class="rank-cell"><button class="cr-toggle-btn" onclick="toggleChartRun(this,'${rowId}')"  >📊</button>${i+1}</td>
+      <td class="rank-cell"><button class="cr-toggle-btn" title="View chart run history — see how this entry has ranked over time" onclick="toggleChartRun(this,'${rowId}')">📊</button>${i+1}</td>
       <td class="thumb-cell"><div class="thumb-wrap"><div id="${imgId}"><div class="thumb-initials">${esc(initials(artist))}</div></div><button id="srcbtn-${imgId}" class="img-src-btn" data-imgid="${imgId}" data-type="artist" data-prefkey="${esc(prefKey)}" data-name="${esc(artist)}" data-artist="${esc(artist)}" data-album="">${srcLabel(itemSourcePrefs[prefKey]||'deezer')}</button></div></td>
       <td><div class="song-title">${esc(artist)}${pk ? peakBadge(pk) : ''}</div><div class="song-artist" style="font-size:0.7rem;letter-spacing:0.06em;font-style:normal;font-family:'DM Mono',monospace;color:var(--text3)">CLICK TO VIEW PROFILE</div></td>
       <td><div class="song-artist">${data.songs.size} songs</div></td>
@@ -5083,7 +5102,7 @@ function renderAlbums(plays, peaks, monthlyStats) {
       const rowId = 'crr-album-' + i;
       imgItems.push({ imgId, album, artist, name: album, prefKey });
       const mainRow = `<tr class="${i===0?'rank-1':i===1?'rank-2':i===2?'rank-3':''} album-row" data-albumkey="${esc(ak)}" onclick="openAlbumModal(this.dataset.albumkey)">
-      <td class="rank-cell"><button class="cr-toggle-btn" onclick="toggleChartRun(this,'${rowId}')">📊</button>${i+1}</td>
+      <td class="rank-cell"><button class="cr-toggle-btn" title="View chart run history — see how this entry has ranked over time" onclick="toggleChartRun(this,'${rowId}')">📊</button>${i+1}</td>
       <td class="thumb-cell"><div class="thumb-wrap"><div id="${imgId}"><div class="thumb-initials">${esc(initials(album))}</div></div><button id="srcbtn-${imgId}" class="img-src-btn" data-imgid="${imgId}" data-type="album" data-prefkey="${esc(prefKey)}" data-name="${esc(album)}" data-artist="${esc(artist)}" data-album="${esc(album)}">${srcLabel(itemSourcePrefs[prefKey]||'deezer')}</button></div></td>
       <td>
         <div class="song-title">${esc(album)}${pk ? peakBadge(pk) : ''}${certBadge(count,'album')}</div>
@@ -5698,17 +5717,35 @@ function openCrIgModal(type, encodedKey) {
   crIgState.rangeMode = crRangeMode;
   // Update IG range button labels to be context-aware
   const _vy = getViewedYear();
-  let _igLabels;
+  let _igLabels, _igTitles;
   if (currentPeriod === 'week') {
     _igLabels = { year: _vy + ' YTD', uptoYear: 'Up to This Week', now: 'All-Time' };
+    _igTitles = {
+      year:     'Chart appearances from Jan 1 through the viewed week (Year-to-Date)',
+      uptoYear: 'Every chart appearance from your first scrobble up to and including the viewed week',
+      now:      'Every chart appearance across your entire scrobble history'
+    };
   } else if (currentPeriod === 'month') {
     _igLabels = { year: _vy + ' YTD', uptoYear: 'Up to This Month', now: 'All-Time' };
+    _igTitles = {
+      year:     'Chart appearances from Jan 1 through the viewed month (Year-to-Date)',
+      uptoYear: 'Every chart appearance from your first scrobble up to and including the viewed month',
+      now:      'Every chart appearance across your entire scrobble history'
+    };
   } else {
     _igLabels = { year: _vy + ' Only', uptoYear: 'Up to ' + _vy, now: 'All-Time' };
+    _igTitles = {
+      year:     'Only chart appearances within the selected year',
+      uptoYear: 'Every chart appearance from your first scrobble up to and including the selected year',
+      now:      'Every chart appearance across your entire scrobble history'
+    };
   }
-  document.getElementById('crIgRangeYear').textContent     = _igLabels.year;
-  document.getElementById('crIgRangeUptoYear').textContent = _igLabels.uptoYear;
-  document.getElementById('crIgRangeNow').textContent      = _igLabels.now;
+  const _rYear = document.getElementById('crIgRangeYear');
+  const _rUpto = document.getElementById('crIgRangeUptoYear');
+  const _rNow  = document.getElementById('crIgRangeNow');
+  _rYear.textContent = _igLabels.year;     _rYear.title = _igTitles.year;
+  _rUpto.textContent = _igLabels.uptoYear; _rUpto.title = _igTitles.uptoYear;
+  _rNow.textContent  = _igLabels.now;      _rNow.title  = _igTitles.now;
   setCrIgRange(crIgState.rangeMode);
   setCrIgFormat(crIgState.format);
   // Reset all size sliders
@@ -6237,7 +6274,7 @@ function openArtistModal(artistName) {
     const hasCR = chartRunData && chartRunData.result.songs[crKey];
     const rowId = 'modal-cr-song-' + i;
     const mainRow = `<tr>
-      <td>${hasCR ? `<button class="cr-toggle-btn" onclick="event.stopPropagation();toggleChartRun(this,'${rowId}')">📊</button>` : ''}</td>
+      <td>${hasCR ? `<button class="cr-toggle-btn" title="View chart run history — see how this entry has ranked over time" onclick="event.stopPropagation();toggleChartRun(this,'${rowId}')">📊</button>` : ''}</td>
       <td class="modal-rank-col">${pk ? '#' + pk : i + 1}</td>
       <td>
         <div class="song-title">${esc(s.title)}${certBadge(s.count, 'song')}</div>
@@ -6261,7 +6298,7 @@ function openArtistModal(artistName) {
     const hasCR = !!crKey;
     const rowId = 'modal-cr-album-' + i;
     const mainRow = `<tr>
-      <td>${hasCR ? `<button class="cr-toggle-btn" onclick="event.stopPropagation();toggleChartRun(this,'${rowId}')">📊</button>` : ''}</td>
+      <td>${hasCR ? `<button class="cr-toggle-btn" title="View chart run history — see how this entry has ranked over time" onclick="event.stopPropagation();toggleChartRun(this,'${rowId}')">📊</button>` : ''}</td>
       <td class="modal-rank-col">${pk ? '#' + pk : '—'}</td>
       <td>
         <div class="song-title">${esc(a.album)}${certBadge(a.count, 'album')}</div>
@@ -6446,7 +6483,7 @@ function openAlbumModal(albumKey) {
         const hasCR = chartRunData && chartRunData.result.songs[crKey];
         const rowId = 'alb-cr-track-' + i;
         const mainRow = `<tr>
-          <td>${hasCR ? `<button class="cr-toggle-btn" onclick="event.stopPropagation();toggleChartRun(this,'${rowId}')">📊</button>` : ''}</td>
+          <td>${hasCR ? `<button class="cr-toggle-btn" title="View chart run history — see how this entry has ranked over time" onclick="event.stopPropagation();toggleChartRun(this,'${rowId}')">📊</button>` : ''}</td>
           <td class="modal-rank-col">${pk ? '#' + pk : '—'}</td>
           <td>
             <div class="song-title">${esc(s.title)}${pk ? peakBadge(pk) : ''}${certBadge(s.count,'song')}</div>
