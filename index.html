@@ -1998,7 +1998,7 @@
 
   .cr-panel {
     padding: 0.55rem 0.85rem 0.65rem;
-    background: var(--bg3);
+    background: var(--surface);
     border-top: 1px solid var(--border);
     border-bottom: 2px solid var(--border2);
   }
@@ -2373,7 +2373,13 @@
 
   <div class="chart-size-bar" id="paginatedSizeBar" style="display:none">
     <label>Chart View:</label>
-    <div class="size-btns" id="sizeBtnsPaginated">
+    <div class="size-btns" id="sizeBtnsYearly">
+      <button data-size="50">Top 50</button>
+      <button data-size="100">Top 100</button>
+      <button data-size="200">Top 200</button>
+      <button data-size="0" class="active">All Entries</button>
+    </div>
+    <div class="size-btns" id="sizeBtnsAllTime" style="display:none">
       <button data-size="50">Top 50</button>
       <button data-size="100">Top 100</button>
       <button data-size="200">Top 200</button>
@@ -2650,6 +2656,10 @@
     <div class="graph-card">
       <div class="graph-card-title">✨ New Discoveries per Period</div>
       <div class="graph-card-sub">Songs, artists and albums heard for the first time each period</div>
+      <div style="display:flex;align-items:center;gap:0.5rem;flex-wrap:wrap;margin-bottom:0.75rem;">
+        <button id="gDiscoveriesResetZoom" class="graphs-btn" title="Reset the chart zoom to show the full date range" style="white-space:nowrap;">Reset Zoom</button>
+        <button id="gDiscoveriesLabelsBtn" class="graphs-btn" title="Toggle data point labels on/off for this graph" style="white-space:nowrap;">Labels: Off</button>
+      </div>
       <div class="graph-canvas-wrap"><canvas id="gDiscoveries"></canvas></div>
     </div>
 
@@ -3012,7 +3022,8 @@ const savedOffsets = { week: 0, month: 0, year: 0, alltime: 0 };
 let chartSize = 10;
 let chartSizeWeekly = 10;
 let chartSizeMonthly = 50;
-let chartSizePaginated = Infinity; // 0 = All Entries
+let chartSizeYearly  = Infinity; // 0 = All Entries
+let chartSizeAllTime = Infinity; // 0 = All Entries
 const PAGE_SIZE = 100;
 const pageState = { songs: 0, artists: 0, albums: 0 };
 const fullData = { songs: [], artists: [], albums: [] };
@@ -3506,6 +3517,91 @@ function parseCsv(text, fromSheets = false) {
     });
   }
 
+  // Restore chart sizes
+  const savedWeekly = localStorage.getItem('dc_chartSizeWeekly');
+  if (savedWeekly) {
+    chartSizeWeekly = parseInt(savedWeekly);
+    document.querySelectorAll('#sizeBtnsWeekly button').forEach(b => b.classList.toggle('active', b.dataset.size === savedWeekly));
+  }
+  const savedMonthly = localStorage.getItem('dc_chartSizeMonthly');
+  if (savedMonthly) {
+    chartSizeMonthly = parseInt(savedMonthly);
+    document.querySelectorAll('#sizeBtnsMonthly button').forEach(b => b.classList.toggle('active', b.dataset.size === savedMonthly));
+  }
+  const savedYearly = localStorage.getItem('dc_chartSizeYearly');
+  if (savedYearly) {
+    const pv = parseInt(savedYearly);
+    chartSizeYearly = pv === 0 ? Infinity : pv;
+    document.querySelectorAll('#sizeBtnsYearly button').forEach(b => b.classList.toggle('active', b.dataset.size === savedYearly));
+  }
+  const savedAllTime = localStorage.getItem('dc_chartSizeAllTime');
+  if (savedAllTime) {
+    const pv = parseInt(savedAllTime);
+    chartSizeAllTime = pv === 0 ? Infinity : pv;
+    document.querySelectorAll('#sizeBtnsAllTime button').forEach(b => b.classList.toggle('active', b.dataset.size === savedAllTime));
+  }
+
+  // Restore graph settings (cumulative, total volume, volume comparison)
+  const savedCumArtists = localStorage.getItem('dc_gCumulativeArtists');
+  if (savedCumArtists) try { gCumulativeArtists = JSON.parse(savedCumArtists); renderCumulativeChips(); } catch(e){}
+  if (localStorage.getItem('dc_gCumulativeLabels') === '1') {
+    gCumulativeLabels = true;
+    const lb = document.getElementById('gCumulativeLabelsBtn');
+    if (lb) { lb.textContent = 'Labels: On'; lb.classList.add('active'); }
+  }
+  const savedCumFrom = localStorage.getItem('dc_gCumulativeFrom');
+  if (savedCumFrom) document.getElementById('gCumulativeFrom').value = savedCumFrom;
+  const savedCumTo = localStorage.getItem('dc_gCumulativeTo');
+  if (savedCumTo) document.getElementById('gCumulativeTo').value = savedCumTo;
+
+  if (localStorage.getItem('dc_gTotalVolumeLabels') === '1') {
+    gTotalVolumeLabels = true;
+    const lb = document.getElementById('gTotalVolumeLabelsBtn');
+    if (lb) { lb.textContent = 'Labels: On'; lb.classList.add('active'); }
+  }
+  if (localStorage.getItem('dc_gDiscoveriesLabels') === '1') {
+    gDiscoveriesLabels = true;
+    const lb = document.getElementById('gDiscoveriesLabelsBtn');
+    if (lb) { lb.textContent = 'Labels: On'; lb.classList.add('active'); }
+  }
+  const savedTVFrom = localStorage.getItem('dc_gTotalVolumeFrom');
+  if (savedTVFrom) document.getElementById('gTotalVolumeFrom').value = savedTVFrom;
+  const savedTVTo = localStorage.getItem('dc_gTotalVolumeTo');
+  if (savedTVTo) document.getElementById('gTotalVolumeTo').value = savedTVTo;
+
+  const savedVolArtists = localStorage.getItem('dc_gVolumeArtists');
+  if (savedVolArtists) try { gVolumeArtists = JSON.parse(savedVolArtists); renderVolumeChips(); } catch(e){}
+  if (localStorage.getItem('dc_gVolumeLabels') === '1') {
+    gVolumeLabels = true;
+    const lb = document.getElementById('gVolumeLabelsBtn');
+    if (lb) { lb.textContent = 'Labels: On'; lb.classList.add('active'); }
+  }
+  const savedVolFrom = localStorage.getItem('dc_gVolumeFrom');
+  if (savedVolFrom) document.getElementById('gVolumeFrom').value = savedVolFrom;
+  const savedVolTo = localStorage.getItem('dc_gVolumeTo');
+  if (savedVolTo) document.getElementById('gVolumeTo').value = savedVolTo;
+
+  // Restore race/graph settings
+  const savedRaceSpeed = localStorage.getItem('dc_raceSpeed');
+  if (savedRaceSpeed) {
+    raceSpeed = parseFloat(savedRaceSpeed);
+    document.querySelectorAll('#raceSpeedBtns button').forEach(b => b.classList.toggle('active', b.dataset.speed === savedRaceSpeed));
+  }
+  const savedRaceTopN = localStorage.getItem('dc_raceTopN');
+  if (savedRaceTopN) {
+    raceTopN = parseInt(savedRaceTopN);
+    document.querySelectorAll('#raceTopNBtns button').forEach(b => b.classList.toggle('active', b.dataset.topn === savedRaceTopN));
+  }
+  const savedRaceType = localStorage.getItem('dc_raceType');
+  if (savedRaceType) {
+    raceType = savedRaceType;
+    document.querySelectorAll('#raceTypeBtns button').forEach(b => b.classList.toggle('active', b.dataset.racetype === savedRaceType));
+  }
+  const savedRaceFrom = localStorage.getItem('dc_raceFrom');
+  if (savedRaceFrom) document.getElementById('raceFrom').value = savedRaceFrom;
+  const savedRaceTo = localStorage.getItem('dc_raceTo');
+  if (savedRaceTo) document.getElementById('raceTo').value = savedRaceTo;
+
   renderAll();
   maybeLoadUpcoming();
 
@@ -3601,6 +3697,7 @@ document.getElementById('sizeBtnsWeekly').addEventListener('click', e => {
   btn.classList.add('active');
   chartSizeWeekly = parseInt(btn.dataset.size);
   chartSize = chartSizeWeekly;
+  localStorage.setItem('dc_chartSizeWeekly', btn.dataset.size);
   renderAll();
 });
 
@@ -3611,16 +3708,30 @@ document.getElementById('sizeBtnsMonthly').addEventListener('click', e => {
   btn.classList.add('active');
   chartSizeMonthly = parseInt(btn.dataset.size);
   chartSize = chartSizeMonthly;
+  localStorage.setItem('dc_chartSizeMonthly', btn.dataset.size);
   renderAll();
 });
 
-document.getElementById('sizeBtnsPaginated').addEventListener('click', e => {
+document.getElementById('sizeBtnsYearly').addEventListener('click', e => {
   const btn = e.target.closest('button');
   if (!btn) return;
-  document.querySelectorAll('#sizeBtnsPaginated button').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('#sizeBtnsYearly button').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
   const v = parseInt(btn.dataset.size);
-  chartSizePaginated = v === 0 ? Infinity : v;
+  chartSizeYearly = v === 0 ? Infinity : v;
+  localStorage.setItem('dc_chartSizeYearly', btn.dataset.size);
+  ['songs','artists','albums'].forEach(t => { searchState[t] = ''; const inp = document.getElementById(t + 'SearchInput'); if (inp) inp.value = ''; pageState[t] = 0; });
+  renderAll();
+});
+
+document.getElementById('sizeBtnsAllTime').addEventListener('click', e => {
+  const btn = e.target.closest('button');
+  if (!btn) return;
+  document.querySelectorAll('#sizeBtnsAllTime button').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  const v = parseInt(btn.dataset.size);
+  chartSizeAllTime = v === 0 ? Infinity : v;
+  localStorage.setItem('dc_chartSizeAllTime', btn.dataset.size);
   ['songs','artists','albums'].forEach(t => { searchState[t] = ''; const inp = document.getElementById(t + 'SearchInput'); if (inp) inp.value = ''; pageState[t] = 0; });
   renderAll();
 });
@@ -3968,6 +4079,10 @@ function renderAll() {
   const paginated = isPaginated();
   document.getElementById('chartSizeBar').style.display = paginated ? 'none' : 'flex';
   document.getElementById('paginatedSizeBar').style.display = paginated ? 'flex' : 'none';
+  if (paginated) {
+    document.getElementById('sizeBtnsYearly').style.display  = currentPeriod === 'year'    ? 'flex' : 'none';
+    document.getElementById('sizeBtnsAllTime').style.display = currentPeriod === 'alltime' ? 'flex' : 'none';
+  }
   // Show/hide search bars; clear search state on period change
   ['songs','artists','albums'].forEach(t => {
     const el = document.getElementById(t + 'Search');
@@ -4042,7 +4157,7 @@ function renderAll() {
 
   if (isPaginated()) {
     // Build full sorted datasets and apply chart view limit
-    const lim = chartSizePaginated;
+    const lim = currentPeriod === 'year' ? chartSizeYearly : chartSizeAllTime;
     fullData.songs   = buildSongsFull(plays).slice(0, lim);
     fullData.artists = buildArtistsFull(plays).slice(0, lim);
     fullData.albums  = buildAlbumsFull(plays).slice(0, lim);
@@ -4441,7 +4556,7 @@ function buildCrPanelHTML(type, key) {
       ? `<div class="cr-stats">${crStats(type, key, currentPeriod, null, d)}</div>${crBoxesHTML(type, key, null, d, currentPeriod)}`
       : '<div style="font-size:0.6rem;color:var(--text3);padding:4px 0">No chart history for this range.</div>';
   }
-  return toggleHtml + sectionsHtml;
+  return headerHtml + toggleHtml + sectionsHtml;
 }
 
 function setCrRangeMode(mode) {
@@ -5406,7 +5521,8 @@ function exportDownload() {
 function updateExportBtn() {
   const btn = document.getElementById('exportPlaylistBtn');
   if (!btn) return;
-  const isAllEntries = isPaginated() && !isFinite(chartSizePaginated);
+  const curPaginatedSize = currentPeriod === 'year' ? chartSizeYearly : chartSizeAllTime;
+  const isAllEntries = isPaginated() && !isFinite(curPaginatedSize);
   const show = currentPeriod !== 'rawdata' && allPlays.length > 0 && !isAllEntries;
   btn.style.display = show ? 'flex' : 'none';
 }
@@ -5414,7 +5530,8 @@ function updateExportBtn() {
 // ─── SHARE AS IMAGE ─────────────────────────────────────────────
 function updateShareBtns() {
   const show = currentPeriod !== 'rawdata' && allPlays.length > 0;
-  const isAllEntries = isPaginated() && !isFinite(chartSizePaginated);
+  const curPaginatedSize2 = currentPeriod === 'year' ? chartSizeYearly : chartSizeAllTime;
+  const isAllEntries = isPaginated() && !isFinite(curPaginatedSize2);
   const allowed = show && !isAllEntries;
   ['songs','artists','albums'].forEach(t => {
     const bar = document.getElementById(t + 'ShareBar');
@@ -5425,7 +5542,7 @@ function updateShareBtns() {
 // Collect current top N card data for a given type
 function getIgCardItems(type) {
   const items = fullData[type] || [];
-  const size = isPaginated() ? Math.min(chartSizePaginated, 20) : Math.min(chartSize, 20);
+  const size = isPaginated() ? Math.min(currentPeriod === 'year' ? chartSizeYearly : chartSizeAllTime, 20) : Math.min(chartSize, 20);
   return items.slice(0, size);
 }
 
@@ -6813,7 +6930,7 @@ function getGraphColors() {
     text:    get('--text')    || '#e8f0ff',
     text3:   get('--text3')   || '#7aa0d0',
     bg:      get('--bg')      || '#0a1628',
-    card:    get('--card')    || '#0e1e38',
+    card:    get('--surface') || '#173060',
     accent:  get('--accent')  || '#4080d0',
     accent2: get('--accent2') || '#2860b0',
     grid:    get('--rule')    || '#1e3050',
@@ -6915,6 +7032,25 @@ function renderGraphs() {
         if (!seenAlbum[ak]) { seenAlbum[ak]=1; if(nAlbum[k]!==undefined) nAlbum[k]++; }
       }
     }
+    const discoveriesLabelsPlugin = {
+      id: 'discoveriesLabels',
+      afterDatasetsDraw(chart) {
+        if (!gDiscoveriesLabels) return;
+        const ctx = chart.ctx;
+        const lastMeta = chart.getDatasetMeta(chart.data.datasets.length - 1);
+        lastMeta.data.forEach((bar, i) => {
+          const total = chart.data.datasets.reduce((sum, ds) => sum + (ds.data[i] || 0), 0);
+          if (!total) return;
+          ctx.save();
+          ctx.font = '600 10px "DM Mono", monospace';
+          ctx.fillStyle = gc.text;
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'bottom';
+          ctx.fillText(total.toLocaleString(), bar.x, bar.y - 2);
+          ctx.restore();
+        });
+      }
+    };
     graphCharts.discoveries = new Chart(document.getElementById('gDiscoveries'), {
       type: 'bar',
       data: { labels, datasets: [
@@ -6922,13 +7058,19 @@ function renderGraphs() {
         { label:'New Artists', data: sortedKeys.map(k=>nArtist[k]), backgroundColor: GRAPH_PALETTE[1]+'bb', borderColor: GRAPH_PALETTE[1], borderWidth:1, stack:'disc' },
         { label:'New Albums',  data: sortedKeys.map(k=>nAlbum[k]),  backgroundColor: GRAPH_PALETTE[2]+'bb', borderColor: GRAPH_PALETTE[2], borderWidth:1, stack:'disc' },
       ]},
-      options: { responsive: true, maintainAspectRatio: false, plugins: { legend: legendOpts },
+      options: { responsive: true, maintainAspectRatio: false,
+        plugins: {
+          legend: legendOpts,
+          zoom: { pan: { enabled: true, mode: 'x', onPanComplete: ({chart}) => saveChartZoom(chart, 'discoveries') }, zoom: { wheel: { enabled: true }, pinch: { enabled: true }, mode: 'x', onZoomComplete: ({chart}) => saveChartZoom(chart, 'discoveries') } }
+        },
         scales: {
           x: { stacked:true, ticks:{ color:gc.text3, maxTicksLimit:maxTicks, maxRotation:45 }, grid:{ color:gc.grid } },
           y: { stacked:true, ticks:{ color:gc.text3 }, grid:{ color:gc.grid } }
         }
-      }
+      },
+      plugins: [discoveriesLabelsPlugin]
     });
+    restoreChartZoom(graphCharts.discoveries, 'discoveries');
   }
 
   // ── Bar Race: set default date range ──────────────────────
@@ -6940,13 +7082,46 @@ function renderGraphs() {
     }
   }
   initRace();
+  {
+    const savedFrameIdx = localStorage.getItem('dc_raceFrameIdx');
+    if (savedFrameIdx !== null) {
+      const idx = parseInt(savedFrameIdx);
+      if (idx > 0 && idx < raceFrames.length) {
+        raceFrameIdx = idx; raceProgress = 0;
+        const slider = document.getElementById('raceSeekSlider');
+        if (slider) slider.value = idx;
+        drawRace(raceFrameIdx, 0);
+      }
+    }
+  }
 }
 
-let gCumulativeArtists = [];
-let gCumulativeLabels  = false;
-let gVolumeLabels      = false;
-let gVolumeArtists     = [];
-let gTotalVolumeLabels = false;
+let gCumulativeArtists  = [];
+let gCumulativeLabels   = false;
+let gVolumeLabels       = false;
+let gVolumeArtists      = [];
+let gTotalVolumeLabels  = false;
+let gDiscoveriesLabels  = false;
+
+function saveChartZoom(chart, key) {
+  const scale = chart.scales && chart.scales.x;
+  if (!scale) return;
+  const min = scale.options.min;
+  const max = scale.options.max;
+  if (min != null && max != null) {
+    localStorage.setItem('dc_zoom_' + key, JSON.stringify({ min, max }));
+  } else {
+    localStorage.removeItem('dc_zoom_' + key);
+  }
+}
+function restoreChartZoom(chart, key) {
+  const saved = localStorage.getItem('dc_zoom_' + key);
+  if (!saved) return;
+  try {
+    const { min, max } = JSON.parse(saved);
+    chart.zoomScale('x', { min, max }, 'none');
+  } catch(e) {}
+}
 
 function renderCumulativeChips() {
   const wrap = document.getElementById('gCumulativeChips');
@@ -6964,6 +7139,7 @@ function renderCumulativeChips() {
 
 function removeCumulativeArtist(idx) {
   gCumulativeArtists.splice(idx, 1);
+  localStorage.setItem('dc_gCumulativeArtists', JSON.stringify(gCumulativeArtists));
   renderCumulativeChips();
   triggerCumulativeUpdate();
 }
@@ -7031,13 +7207,14 @@ function renderCumulativeChart(sortedKeys, labels, ptRadius, gc, axisOpts, legen
       plugins: {
         legend: legendOpts,
         zoom: {
-          pan:  { enabled: true, mode: 'x' },
-          zoom: { wheel: { enabled: true }, pinch: { enabled: true }, mode: 'x' }
+          pan:  { enabled: true, mode: 'x', onPanComplete: ({chart}) => saveChartZoom(chart, 'cumulative') },
+          zoom: { wheel: { enabled: true }, pinch: { enabled: true }, mode: 'x', onZoomComplete: ({chart}) => saveChartZoom(chart, 'cumulative') }
         }
       },
       scales: axisOpts(false) },
     plugins: [labelsPlugin]
   });
+  restoreChartZoom(graphCharts.cumulative, 'cumulative');
 }
 
 function triggerCumulativeUpdate() {
@@ -7064,6 +7241,7 @@ function addCumulativeArtist() {
   // Case-insensitive dedup
   if (gCumulativeArtists.some(a => a.toLowerCase() === name.toLowerCase())) { input.value = ''; return; }
   gCumulativeArtists.push(name);
+  localStorage.setItem('dc_gCumulativeArtists', JSON.stringify(gCumulativeArtists));
   input.value = '';
   renderCumulativeChips();
   triggerCumulativeUpdate();
@@ -7073,10 +7251,17 @@ document.getElementById('gCumulativeArtistBtn').addEventListener('click', addCum
 document.getElementById('gCumulativeArtistInput').addEventListener('keydown', e => {
   if (e.key === 'Enter') addCumulativeArtist();
 });
-document.getElementById('gCumulativeFrom').addEventListener('change', triggerCumulativeUpdate);
-document.getElementById('gCumulativeTo').addEventListener('change', triggerCumulativeUpdate);
+document.getElementById('gCumulativeFrom').addEventListener('change', () => {
+  localStorage.setItem('dc_gCumulativeFrom', document.getElementById('gCumulativeFrom').value);
+  triggerCumulativeUpdate();
+});
+document.getElementById('gCumulativeTo').addEventListener('change', () => {
+  localStorage.setItem('dc_gCumulativeTo', document.getElementById('gCumulativeTo').value);
+  triggerCumulativeUpdate();
+});
 document.getElementById('gCumulativeLabelsBtn').addEventListener('click', () => {
   gCumulativeLabels = !gCumulativeLabels;
+  localStorage.setItem('dc_gCumulativeLabels', gCumulativeLabels ? '1' : '0');
   const btn = document.getElementById('gCumulativeLabelsBtn');
   btn.textContent = gCumulativeLabels ? 'Labels: On' : 'Labels: Off';
   btn.classList.toggle('active', gCumulativeLabels);
@@ -7085,13 +7270,15 @@ document.getElementById('gCumulativeLabelsBtn').addEventListener('click', () => 
 
 document.getElementById('gCumulativeResetZoom').addEventListener('click', () => {
   if (graphCharts.cumulative) graphCharts.cumulative.resetZoom();
+  localStorage.removeItem('dc_zoom_cumulative');
 });
 
 document.getElementById('gCumulativeResetRange').addEventListener('click', () => {
   if (!allPlays.length) return;
-  const dates = allPlays.map(p => p.date);
   document.getElementById('gCumulativeFrom').value = localDateStr(allPlays[allPlays.length - 1].date);
   document.getElementById('gCumulativeTo').value   = localDateStr(new Date());
+  localStorage.removeItem('dc_gCumulativeFrom');
+  localStorage.removeItem('dc_gCumulativeTo');
   triggerCumulativeUpdate();
 });
 
@@ -7150,11 +7337,12 @@ function renderTotalVolumeChart(sortedKeys, gc, axisOpts, legendOpts) {
     options: { responsive: true, maintainAspectRatio: false,
       plugins: {
         legend: { display: false },
-        zoom: { pan: { enabled: true, mode: 'x' }, zoom: { wheel: { enabled: true }, pinch: { enabled: true }, mode: 'x' } }
+        zoom: { pan: { enabled: true, mode: 'x', onPanComplete: ({chart}) => saveChartZoom(chart, 'totalVolume') }, zoom: { wheel: { enabled: true }, pinch: { enabled: true }, mode: 'x', onZoomComplete: ({chart}) => saveChartZoom(chart, 'totalVolume') } }
       },
       scales: axisOpts(false) },
     plugins: [totalVolumeLabelsPlugin]
   });
+  restoreChartZoom(graphCharts.totalVolume, 'totalVolume');
 }
 
 function triggerTotalVolumeUpdate() {
@@ -7186,6 +7374,7 @@ function renderVolumeChips() {
 
 function removeVolumeArtist(idx) {
   gVolumeArtists.splice(idx, 1);
+  localStorage.setItem('dc_gVolumeArtists', JSON.stringify(gVolumeArtists));
   renderVolumeChips();
   triggerVolumeUpdate();
 }
@@ -7248,11 +7437,12 @@ function renderVolumeChart(sortedKeys, gc, axisOpts, legendOpts) {
     options: { responsive: true, maintainAspectRatio: false,
       plugins: {
         legend: legendOpts,
-        zoom: { pan: { enabled: true, mode: 'x' }, zoom: { wheel: { enabled: true }, pinch: { enabled: true }, mode: 'x' } }
+        zoom: { pan: { enabled: true, mode: 'x', onPanComplete: ({chart}) => saveChartZoom(chart, 'volume') }, zoom: { wheel: { enabled: true }, pinch: { enabled: true }, mode: 'x', onZoomComplete: ({chart}) => saveChartZoom(chart, 'volume') } }
       },
       scales: axisOpts(false) },
     plugins: [volumeLabelsPlugin]
   });
+  restoreChartZoom(graphCharts.volume, 'volume');
 }
 
 function triggerVolumeUpdate() {
@@ -7276,6 +7466,7 @@ function addVolumeArtist() {
   if (!name) return;
   if (gVolumeArtists.some(a => a.toLowerCase() === name.toLowerCase())) { input.value = ''; return; }
   gVolumeArtists.push(name);
+  localStorage.setItem('dc_gVolumeArtists', JSON.stringify(gVolumeArtists));
   input.value = '';
   renderVolumeChips();
   triggerVolumeUpdate();
@@ -7283,42 +7474,75 @@ function addVolumeArtist() {
 document.getElementById('gVolumeArtistBtn').addEventListener('click', addVolumeArtist);
 document.getElementById('gVolumeArtistInput').addEventListener('keydown', e => { if (e.key === 'Enter') addVolumeArtist(); });
 
-document.getElementById('gTotalVolumeFrom').addEventListener('change', triggerTotalVolumeUpdate);
-document.getElementById('gTotalVolumeTo').addEventListener('change', triggerTotalVolumeUpdate);
+document.getElementById('gTotalVolumeFrom').addEventListener('change', () => {
+  localStorage.setItem('dc_gTotalVolumeFrom', document.getElementById('gTotalVolumeFrom').value);
+  triggerTotalVolumeUpdate();
+});
+document.getElementById('gTotalVolumeTo').addEventListener('change', () => {
+  localStorage.setItem('dc_gTotalVolumeTo', document.getElementById('gTotalVolumeTo').value);
+  triggerTotalVolumeUpdate();
+});
 document.getElementById('gTotalVolumeResetRange').addEventListener('click', () => {
   if (!allPlays.length) return;
   document.getElementById('gTotalVolumeFrom').value = localDateStr(allPlays[allPlays.length - 1].date);
   document.getElementById('gTotalVolumeTo').value   = localDateStr(new Date());
+  localStorage.removeItem('dc_gTotalVolumeFrom');
+  localStorage.removeItem('dc_gTotalVolumeTo');
   triggerTotalVolumeUpdate();
 });
 document.getElementById('gTotalVolumeResetZoom').addEventListener('click', () => {
   if (graphCharts.totalVolume) graphCharts.totalVolume.resetZoom();
+  localStorage.removeItem('dc_zoom_totalVolume');
 });
 document.getElementById('gTotalVolumeLabelsBtn').addEventListener('click', () => {
   gTotalVolumeLabels = !gTotalVolumeLabels;
+  localStorage.setItem('dc_gTotalVolumeLabels', gTotalVolumeLabels ? '1' : '0');
   const btn = document.getElementById('gTotalVolumeLabelsBtn');
   btn.textContent = gTotalVolumeLabels ? 'Labels: On' : 'Labels: Off';
   btn.classList.toggle('active', gTotalVolumeLabels);
   triggerTotalVolumeUpdate();
 });
 
-document.getElementById('gVolumeFrom').addEventListener('change', triggerVolumeUpdate);
-document.getElementById('gVolumeTo').addEventListener('change', triggerVolumeUpdate);
+document.getElementById('gVolumeFrom').addEventListener('change', () => {
+  localStorage.setItem('dc_gVolumeFrom', document.getElementById('gVolumeFrom').value);
+  triggerVolumeUpdate();
+});
+document.getElementById('gVolumeTo').addEventListener('change', () => {
+  localStorage.setItem('dc_gVolumeTo', document.getElementById('gVolumeTo').value);
+  triggerVolumeUpdate();
+});
 document.getElementById('gVolumeResetRange').addEventListener('click', () => {
   if (!allPlays.length) return;
   document.getElementById('gVolumeFrom').value = localDateStr(allPlays[allPlays.length - 1].date);
   document.getElementById('gVolumeTo').value   = localDateStr(new Date());
+  localStorage.removeItem('dc_gVolumeFrom');
+  localStorage.removeItem('dc_gVolumeTo');
   triggerVolumeUpdate();
 });
 document.getElementById('gVolumeResetZoom').addEventListener('click', () => {
   if (graphCharts.volume) graphCharts.volume.resetZoom();
+  localStorage.removeItem('dc_zoom_volume');
 });
 document.getElementById('gVolumeLabelsBtn').addEventListener('click', () => {
   gVolumeLabels = !gVolumeLabels;
+  localStorage.setItem('dc_gVolumeLabels', gVolumeLabels ? '1' : '0');
   const btn = document.getElementById('gVolumeLabelsBtn');
   btn.textContent = gVolumeLabels ? 'Labels: On' : 'Labels: Off';
   btn.classList.toggle('active', gVolumeLabels);
   triggerVolumeUpdate();
+});
+
+document.getElementById('gDiscoveriesResetZoom').addEventListener('click', () => {
+  if (graphCharts.discoveries) graphCharts.discoveries.resetZoom();
+  localStorage.removeItem('dc_zoom_discoveries');
+});
+document.getElementById('gDiscoveriesLabelsBtn').addEventListener('click', () => {
+  gDiscoveriesLabels = !gDiscoveriesLabels;
+  localStorage.setItem('dc_gDiscoveriesLabels', gDiscoveriesLabels ? '1' : '0');
+  const btn = document.getElementById('gDiscoveriesLabelsBtn');
+  btn.textContent = gDiscoveriesLabels ? 'Labels: On' : 'Labels: Off';
+  btn.classList.toggle('active', gDiscoveriesLabels);
+  if (graphCharts.discoveries) graphCharts.discoveries.update();
 });
 
 // ─── BAR CHART RACE ────────────────────────────────────────────
@@ -7705,13 +7929,17 @@ document.getElementById('racePlayBtn').addEventListener('click', () => {
   btn.textContent = racePlaying ? '⏸ Pause' : '▶ Play';
   btn.classList.toggle('active', racePlaying);
   if (racePlaying) { raceLastTime = null; raceAnimId = requestAnimationFrame(raceAnimate); }
-  else if (raceAnimId) { cancelAnimationFrame(raceAnimId); raceAnimId = null; }
+  else {
+    if (raceAnimId) { cancelAnimationFrame(raceAnimId); raceAnimId = null; }
+    localStorage.setItem('dc_raceFrameIdx', raceFrameIdx);
+  }
 });
 
 document.getElementById('raceRestartBtn').addEventListener('click', () => {
   racePlaying = false;
   if (raceAnimId) { cancelAnimationFrame(raceAnimId); raceAnimId = null; }
   raceFrameIdx = 0; raceProgress = 0; raceLastTime = null;
+  localStorage.removeItem('dc_raceFrameIdx');
   document.getElementById('racePlayBtn').textContent = '▶ Play';
   document.getElementById('racePlayBtn').classList.add('active');
   raceUpdateSlider(); drawRace(0, 0);
@@ -7722,6 +7950,7 @@ document.getElementById('raceSpeedBtns').addEventListener('click', e => {
   document.querySelectorAll('#raceSpeedBtns button').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
   raceSpeed = parseFloat(btn.dataset.speed);
+  localStorage.setItem('dc_raceSpeed', btn.dataset.speed);
 });
 
 document.getElementById('raceTopNBtns').addEventListener('click', e => {
@@ -7729,6 +7958,7 @@ document.getElementById('raceTopNBtns').addEventListener('click', e => {
   document.querySelectorAll('#raceTopNBtns button').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
   raceTopN = parseInt(btn.dataset.topn);
+  localStorage.setItem('dc_raceTopN', btn.dataset.topn);
   if (currentPeriod === 'graphs') initRace();
 });
 
@@ -7743,6 +7973,7 @@ document.getElementById('raceSeekSlider').addEventListener('input', e => {
   raceFrameIdx = Math.min(Math.floor(v), raceFrames.length - 1);
   raceProgress = v - Math.floor(v);
   raceLastTime = null;
+  localStorage.setItem('dc_raceFrameIdx', raceFrameIdx);
   drawRace(raceFrameIdx, raceProgress);
 });
 
@@ -7751,19 +7982,24 @@ document.getElementById('raceTypeBtns').addEventListener('click', e => {
   document.querySelectorAll('#raceTypeBtns button').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
   raceType = btn.dataset.racetype;
+  localStorage.setItem('dc_raceType', raceType);
   if (currentPeriod === 'graphs') initRace();
 });
 
 document.getElementById('raceFrom').addEventListener('change', () => {
+  localStorage.setItem('dc_raceFrom', document.getElementById('raceFrom').value);
   if (currentPeriod === 'graphs') initRace();
 });
 document.getElementById('raceTo').addEventListener('change', () => {
+  localStorage.setItem('dc_raceTo', document.getElementById('raceTo').value);
   if (currentPeriod === 'graphs') initRace();
 });
 document.getElementById('raceResetRange').addEventListener('click', () => {
   if (!allPlays.length) return;
   document.getElementById('raceFrom').value = localDateStr(allPlays[allPlays.length - 1].date);
   document.getElementById('raceTo').value   = localDateStr(new Date());
+  localStorage.removeItem('dc_raceFrom');
+  localStorage.removeItem('dc_raceTo');
   if (currentPeriod === 'graphs') initRace();
 });
 
@@ -7778,6 +8014,7 @@ document.getElementById('raceStepBackBtn').addEventListener('click', () => {
   raceProgress = 0;
   raceFrameIdx = Math.max(0, raceFrameIdx - 1);
   raceLastTime = null;
+  localStorage.setItem('dc_raceFrameIdx', raceFrameIdx);
   raceUpdateSlider(); drawRace(raceFrameIdx, 0);
 });
 
@@ -7792,6 +8029,7 @@ document.getElementById('raceStepFwdBtn').addEventListener('click', () => {
   raceProgress = 0;
   raceFrameIdx = Math.min(raceFrames.length - 1, raceFrameIdx + 1);
   raceLastTime = null;
+  localStorage.setItem('dc_raceFrameIdx', raceFrameIdx);
   raceUpdateSlider(); drawRace(raceFrameIdx, 0);
 });
 
@@ -7806,6 +8044,7 @@ document.getElementById('raceEndBtn').addEventListener('click', () => {
   raceProgress = 0;
   raceFrameIdx = raceFrames.length - 1;
   raceLastTime = null;
+  localStorage.setItem('dc_raceFrameIdx', raceFrameIdx);
   raceUpdateSlider(); drawRace(raceFrameIdx, 0);
 });
 
