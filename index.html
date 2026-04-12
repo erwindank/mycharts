@@ -3575,6 +3575,43 @@
 
   <style>
     /* ── RECORDS VIEW ── */
+    #recordsView {
+      padding-top: 0.9rem;
+    }
+
+    .records-nav {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.35rem;
+      margin-bottom: 0.8rem;
+    }
+
+    .records-nav-btn {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      color: var(--text2);
+      font-family: 'DM Mono', monospace;
+      font-size: 0.58rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      padding: 0.28rem 0.52rem;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: background 0.15s, color 0.15s, border-color 0.15s;
+    }
+
+    .records-nav-btn:hover {
+      background: var(--bg3);
+      color: var(--text);
+      border-color: var(--border2);
+    }
+
+    .records-nav-btn.active {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #fff;
+    }
+
     .rec-intro {
       font-family: 'DM Mono', monospace;
       font-size: 0.7rem;
@@ -3589,6 +3626,52 @@
 
     .rec-section {
       margin-bottom: 1.5rem;
+    }
+
+    .rec-section-header {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-bottom: 0.3rem;
+    }
+
+    .rec-collapse-btn {
+      flex-shrink: 0;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      border: 1px solid var(--border2);
+      background: none;
+      color: var(--text3);
+      font-size: 0.65rem;
+      line-height: 1;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0;
+      transition: background 0.15s, color 0.15s, border-color 0.15s;
+    }
+
+    .rec-collapse-btn:hover {
+      background: var(--surface);
+      color: var(--text);
+      border-color: var(--accent);
+    }
+
+    .rec-section-header .rec-section-title {
+      margin-bottom: 0;
+      flex: 1;
+    }
+
+    .rec-section.rec-collapsed>.rec-section-sub,
+    .rec-section.rec-collapsed>.rec-table,
+    .rec-section.rec-collapsed>.milestone-table,
+    .rec-section.rec-collapsed>.pak-list,
+    .rec-section.rec-collapsed>.rec-grid-2,
+    .rec-section.rec-collapsed>.rec-empty,
+    .rec-section.rec-collapsed>div:not(.rec-section-header):not(.rec-section-title):not(.rec-section-sub) {
+      display: none;
     }
 
     .rec-section-title {
@@ -4330,6 +4413,18 @@
         <div class="section-rule"></div>
       </div>
       <div class="rec-intro" id="recIntro">Load your data to see records.</div>
+      <div class="records-nav" id="recordsNav">
+        <button class="records-nav-btn" data-rec-view="all">All</button>
+        <button class="records-nav-btn active" data-rec-view="recAllOnesSection">All #1s</button>
+        <button class="records-nav-btn" data-rec-view="recPAKSection">Perfect All Kill</button>
+        <button class="records-nav-btn" data-rec-view="recAppearancesSection">Appearances</button>
+        <button class="records-nav-btn" data-rec-view="recDebutsSection">Debuts</button>
+        <button class="records-nav-btn" data-rec-view="recPeakPlaysSection">Most Plays</button>
+        <button class="records-nav-btn" data-rec-view="recMilestonesSection">Milestones</button>
+        <button class="records-nav-btn" data-rec-view="recFastestSection">Fastest</button>
+        <button class="records-nav-btn" data-rec-view="recCertsSection">Certifications</button>
+        <button class="records-nav-btn" data-rec-view="recStreaksSection">Streaks</button>
+      </div>
 
       <div class="chart-section" id="recAllOnesSection">
         <div class="section-header">
@@ -6038,7 +6133,121 @@
         }
         sh += '</div>';
         document.getElementById('recStreaksBody').innerHTML = sh;
+        setupRecordSubsectionCollapse();
       }
+
+      function recSafeKey(str) {
+        return String(str || '').toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '').slice(0, 80) || 'section';
+      }
+
+      function initRecordsViewUI() {
+        const nav = document.getElementById('recordsNav');
+        if (!nav || nav.dataset.ready === '1') return;
+        nav.dataset.ready = '1';
+
+        nav.addEventListener('click', e => {
+          const btn = e.target.closest('.records-nav-btn');
+          if (!btn) return;
+          const view = btn.dataset.recView || 'all';
+          localStorage.setItem('dc_records_active_view', view);
+          applyRecordsViewFilter(view);
+        });
+      }
+
+      function applyRecordsViewFilter(view) {
+        const sectionIds = [
+          'recAllOnesSection',
+          'recPAKSection',
+          'recAppearancesSection',
+          'recDebutsSection',
+          'recPeakPlaysSection',
+          'recMilestonesSection',
+          'recFastestSection',
+          'recCertsSection',
+          'recStreaksSection'
+        ];
+        sectionIds.forEach(id => {
+          const el = document.getElementById(id);
+          if (!el) return;
+          el.style.display = (view === 'all' || view === id) ? '' : 'none';
+        });
+        document.querySelectorAll('#recordsNav .records-nav-btn').forEach(b => {
+          b.classList.toggle('active', (b.dataset.recView || 'all') === view);
+        });
+        if (typeof window._refreshBackToTop === 'function') window._refreshBackToTop();
+      }
+
+      function restoreRecordSectionCollapseState() {
+        const ids = [
+          'recAllOnesSection',
+          'recPAKSection',
+          'recAppearancesSection',
+          'recDebutsSection',
+          'recPeakPlaysSection',
+          'recMilestonesSection',
+          'recFastestSection',
+          'recCertsSection',
+          'recStreaksSection'
+        ];
+        ids.forEach(id => {
+          const section = document.getElementById(id);
+          if (!section) return;
+          const collapsed = localStorage.getItem('dc_rec_section_collapsed_' + id) === '1';
+          section.classList.toggle('collapsed', collapsed);
+          const btn = section.querySelector('.section-collapse-btn');
+          if (btn) {
+            btn.textContent = collapsed ? '+' : '−';
+            btn.title = collapsed ? 'Expand' : 'Collapse';
+          }
+        });
+      }
+
+      function setupRecordSubsectionCollapse() {
+        const root = document.getElementById('recordsView');
+        if (!root) return;
+        root.querySelectorAll('.rec-section').forEach(section => {
+          if (section.dataset.collapseReady === '1') return;
+          const title = section.querySelector('.rec-section-title');
+          if (!title) return;
+          const header = document.createElement('div');
+          header.className = 'rec-section-header';
+          const btn = document.createElement('button');
+          btn.type = 'button';
+          btn.className = 'rec-collapse-btn';
+          btn.title = 'Collapse';
+          btn.setAttribute('aria-expanded', 'true');
+          btn.textContent = '−';
+          const parent = section.closest('.section-body');
+          const key = (parent ? parent.id : 'records') + '__' + recSafeKey(title.textContent);
+          section.dataset.recCollapseKey = key;
+          title.parentNode.insertBefore(header, title);
+          header.appendChild(btn);
+          header.appendChild(title);
+          section.dataset.collapseReady = '1';
+
+          const collapsed = localStorage.getItem('dc_rec_inner_collapsed_' + key) === '1';
+          if (collapsed) {
+            section.classList.add('rec-collapsed');
+            btn.textContent = '+';
+            btn.title = 'Expand';
+            btn.setAttribute('aria-expanded', 'false');
+          }
+        });
+      }
+
+      document.addEventListener('click', e => {
+        const btn = e.target.closest('.rec-collapse-btn');
+        if (!btn) return;
+        const section = btn.closest('.rec-section');
+        if (!section) return;
+        const collapsed = section.classList.toggle('rec-collapsed');
+        btn.textContent = collapsed ? '+' : '−';
+        btn.title = collapsed ? 'Expand' : 'Collapse';
+        btn.setAttribute('aria-expanded', collapsed ? 'false' : 'true');
+        if (section.dataset.recCollapseKey) {
+          localStorage.setItem('dc_rec_inner_collapsed_' + section.dataset.recCollapseKey, collapsed ? '1' : '0');
+        }
+      });
 
       // ─── SECTION COLLAPSE ──────────────────────────────────────────
       document.addEventListener('click', e => {
@@ -6049,6 +6258,9 @@
         const collapsed = section.classList.toggle('collapsed');
         btn.textContent = collapsed ? '+' : '−';
         btn.title = collapsed ? 'Expand' : 'Collapse';
+        if (section.id && section.id.startsWith('rec')) {
+          localStorage.setItem('dc_rec_section_collapsed_' + section.id, collapsed ? '1' : '0');
+        }
       });
 
       document.getElementById('periodNav').addEventListener('click', e => {
@@ -6129,7 +6341,11 @@
           document.getElementById('rawDataView').style.display = 'none';
           document.getElementById('graphsView').style.display = 'none';
           document.getElementById('recordsView').style.display = 'block';
+          initRecordsViewUI();
+          restoreRecordSectionCollapseState();
           buildRecords();
+          applyRecordsViewFilter(localStorage.getItem('dc_records_active_view') || 'recAllOnesSection');
+          if (typeof window._refreshBackToTop === 'function') window._refreshBackToTop();
           return;
         }
 
@@ -10980,17 +11196,72 @@
 
     </script>
 
-    <button id="backToTopBtn" title="Back to top">▲</button>
+    <button id="backToTopBtn" title="Back to top" aria-label="Back to top">▲</button>
 
     <script>
       // ─── BACK TO TOP ────────────────────────────────────────────
       (function () {
         const btn = document.getElementById('backToTopBtn');
-        window.addEventListener('scroll', () => {
-          const threshold = window.innerHeight * 0.4;
-          btn.classList.toggle('visible', window.scrollY > threshold);
-        }, { passive: true });
-        btn.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
+        if (!btn) return;
+
+        let downScrollActions = 0;
+        let lastY = window.scrollY || document.documentElement.scrollTop || 0;
+        let lastActionAt = 0;
+        const SHOW_AFTER_ACTIONS = 10;
+        const ACTION_DEBOUNCE_MS = 80;
+
+        function updateBackToTopVisibility() {
+          btn.classList.toggle('visible', downScrollActions >= SHOW_AFTER_ACTIONS);
+        }
+
+        function registerScrollAction(dy) {
+          const now = (window.performance && typeof window.performance.now === 'function')
+            ? window.performance.now()
+            : Date.now();
+          if (now - lastActionAt < ACTION_DEBOUNCE_MS) return;
+
+          if (dy > 2) {
+            downScrollActions = Math.min(1000, downScrollActions + 1);
+            lastActionAt = now;
+          } else if (dy < -2) {
+            downScrollActions = Math.max(0, downScrollActions - 1);
+            lastActionAt = now;
+          }
+        }
+
+        function handleScrollProgress() {
+          const y = window.scrollY || document.documentElement.scrollTop || 0;
+          const dy = y - lastY;
+          lastY = y;
+
+          if (y <= 10) {
+            downScrollActions = 0;
+            updateBackToTopVisibility();
+            return;
+          }
+
+          registerScrollAction(dy);
+
+          updateBackToTopVisibility();
+        }
+
+        // Global hook retained for existing callers.
+        window._refreshBackToTop = function () {
+          const y = window.scrollY || document.documentElement.scrollTop || 0;
+          if (y <= 10) downScrollActions = 0;
+          updateBackToTopVisibility();
+        };
+
+        window.addEventListener('scroll', handleScrollProgress, { passive: true });
+        window.addEventListener('resize', updateBackToTopVisibility, { passive: true });
+
+        btn.addEventListener('click', () => {
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+          downScrollActions = 0;
+          updateBackToTopVisibility();
+        });
+
+        updateBackToTopVisibility();
       })();
     </script>
 </body>
