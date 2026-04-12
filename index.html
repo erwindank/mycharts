@@ -1343,6 +1343,31 @@
   }
   .ig-format-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); font-weight: 700; }
   .ig-format-btn:not(.active):hover { border-color: var(--accent); color: var(--text); font-weight: 700; }
+  .ig-modal-mode-bar {
+    display: flex;
+    gap: 0;
+    border-bottom: 2px solid var(--accent);
+    background: var(--bg3);
+    flex-shrink: 0;
+  }
+  .ig-mode-btn {
+    flex: 1;
+    padding: 0.55rem 0.5rem;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    background: none;
+    border: none;
+    color: var(--text3);
+    cursor: pointer;
+    border-bottom: 3px solid transparent;
+    margin-bottom: -2px;
+    transition: color 0.15s, border-color 0.15s;
+  }
+  .ig-mode-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
+  .ig-mode-btn:not(.active):hover { color: var(--text2); }
   .ig-modal-footer {
     padding: 0.85rem 1.2rem;
     border-top: 1px solid var(--border);
@@ -2832,8 +2857,13 @@
 <div class="ig-modal-overlay" id="crIgModal">
   <div class="ig-modal-box">
     <div class="ig-modal-header">
-      <h3 id="crIgTitle">Share Chart Run as Image</h3>
+      <h3 id="crIgTitle">Share as Image</h3>
       <button class="ig-modal-close" onclick="closeCrIgModal()">✕ CLOSE</button>
+    </div>
+    <!-- Mode toggle bar -->
+    <div class="ig-modal-mode-bar">
+      <button class="ig-mode-btn active" id="crIgModeChartRun" onclick="setCrIgMode('chartrun')">📊 Chart Run</button>
+      <button class="ig-mode-btn" id="crIgModeEntry" onclick="setCrIgMode('entrypost')">🎵 Entry Post</button>
     </div>
     <div class="ig-modal-body">
       <div class="ig-preview-panel">
@@ -2843,85 +2873,154 @@
         </div>
       </div>
       <div class="ig-controls-panel">
-        <div class="ig-ctrl-group">
-          <div class="ig-ctrl-group-title">Format</div>
-          <div class="ig-format-btns">
-            <button class="ig-format-btn active" id="crIgFmtPost" onclick="setCrIgFormat('post')">📷 Post (1:1)</button>
-            <button class="ig-format-btn" id="crIgFmtStory" onclick="setCrIgFormat('story')">📱 Story (9:16)</button>
+        <!-- ── CHART RUN CONTROLS ── -->
+        <div id="crIgChartRunControls">
+          <div class="ig-ctrl-group">
+            <div class="ig-ctrl-group-title">Format</div>
+            <div class="ig-format-btns">
+              <button class="ig-format-btn active" id="crIgFmtPost" onclick="setCrIgFormat('post')">📷 Post (1:1)</button>
+              <button class="ig-format-btn" id="crIgFmtStory" onclick="setCrIgFormat('story')">📱 Story (9:16)</button>
+            </div>
+          </div>
+          <div class="ig-ctrl-group">
+            <div class="ig-ctrl-group-title">Range</div>
+            <div class="ig-format-btns" id="crIgRangeBtns">
+              <button class="ig-format-btn" id="crIgRangeYear"     onclick="setCrIgRange('year')">Year Only</button>
+              <button class="ig-format-btn" id="crIgRangeUptoYear" onclick="setCrIgRange('uptoYear')">Up to Year</button>
+              <button class="ig-format-btn active" id="crIgRangeNow" onclick="setCrIgRange('now')">All-Time</button>
+            </div>
+            <div style="font-family:'DM Mono',monospace;font-size:0.55rem;color:var(--text3);letter-spacing:0.06em;margin-top:3px;">Range for the chart run boxes shown</div>
+          </div>
+          <div class="ig-ctrl-group" id="crIgIncludeGroup">
+            <div class="ig-ctrl-group-title">Include Chart Runs</div>
+            <label class="ig-ctrl-row"><input type="checkbox" id="crIgOpt_showYear"  checked onchange="updateCrIgPreview()"><span>🗓️ Yearly Chart Run + Stats</span></label>
+            <label class="ig-ctrl-row"><input type="checkbox" id="crIgOpt_showMonth" checked onchange="updateCrIgPreview()"><span>📊 Monthly Chart Run + Stats</span></label>
+            <label class="ig-ctrl-row"><input type="checkbox" id="crIgOpt_showWeek"  checked onchange="updateCrIgPreview()"><span>📈 Weekly Chart Run + Stats</span></label>
+          </div>
+          <div class="ig-ctrl-group">
+            <div class="ig-ctrl-group-title">Show / Hide</div>
+            <label class="ig-ctrl-row"><input type="checkbox" id="crIgOpt_showSubtitle" checked onchange="updateCrIgPreview()"><span>Artist / Sub-label</span></label>
+            <label class="ig-ctrl-row"><input type="checkbox" id="crIgOpt_showFooter"   checked onchange="updateCrIgPreview()"><span>Footer Branding</span></label>
+            <label class="ig-ctrl-row"><input type="checkbox" id="crIgOpt_showImage"    checked onchange="updateCrIgPreview()"><span>Cover Art / Photo</span></label>
+            <div style="display:flex;align-items:center;gap:0.4rem;padding-left:22px;flex-wrap:wrap;">
+              <span style="font-family:'DM Mono',monospace;font-size:0.58rem;color:var(--text3);flex-shrink:0;">Source:</span>
+              <button class="ig-format-btn active" id="crIgSrc_deezer"  onclick="setCrIgImgSource('deezer')" style="padding:0.2rem 0.45rem;font-size:0.6rem;">Deezer</button>
+              <button class="ig-format-btn"        id="crIgSrc_itunes"  onclick="setCrIgImgSource('itunes')" style="padding:0.2rem 0.45rem;font-size:0.6rem;">iTunes</button>
+              <button class="ig-format-btn"        id="crIgSrc_lastfm"  onclick="setCrIgImgSource('lastfm')" style="padding:0.2rem 0.45rem;font-size:0.6rem;">Last.fm</button>
+              <button class="ig-format-btn"        id="crIgSrc_youtube" onclick="setCrIgImgSource('youtube')" style="padding:0.2rem 0.45rem;font-size:0.6rem;">YouTube</button>
+            </div>
+          </div>
+          <div class="ig-ctrl-group">
+            <div class="ig-ctrl-group-title">Fonts</div>
+            <div style="display:flex;flex-direction:column;gap:0.35rem;">
+              <div style="display:flex;align-items:center;gap:0.5rem;">
+                <span style="font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--text3);min-width:52px;">Title</span>
+                <select id="crIgTitleFont" onchange="updateCrIgPreview()" style="flex:1;background:var(--bg3);border:1px solid var(--border2);color:var(--text2);font-family:'DM Mono',monospace;font-size:0.65rem;padding:3px 5px;border-radius:4px;">
+                  <option value="DM Sans">DM Sans</option>
+                  <option value="DM Serif Display">DM Serif Display</option>
+                  <option value="DM Mono">DM Mono</option>
+                  <option value="Georgia">Georgia</option>
+                  <option value="Arial">Arial</option>
+                  <option value="Verdana">Verdana</option>
+                </select>
+              </div>
+              <div style="display:flex;align-items:center;gap:0.5rem;">
+                <span style="font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--text3);min-width:52px;">Labels</span>
+                <select id="crIgLabelFont" onchange="updateCrIgPreview()" style="flex:1;background:var(--bg3);border:1px solid var(--border2);color:var(--text2);font-family:'DM Mono',monospace;font-size:0.65rem;padding:3px 5px;border-radius:4px;">
+                  <option value="DM Mono">DM Mono</option>
+                  <option value="DM Sans">DM Sans</option>
+                  <option value="DM Serif Display">DM Serif Display</option>
+                  <option value="Verdana">Verdana</option>
+                  <option value="Arial">Arial</option>
+                </select>
+              </div>
+              <div style="display:flex;align-items:center;gap:0.5rem;">
+                <span style="font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--text3);min-width:52px;">Title px</span>
+                <input type="range" id="crIgTitleSize" min="0" max="36" value="0" oninput="updateCrIgSizeLabels();updateCrIgPreview()" style="flex:1;accent-color:var(--accent);">
+                <span id="crIgTitleSizeLabel" style="font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--text2);min-width:30px;text-align:right;">Auto</span>
+              </div>
+              <div style="display:flex;align-items:center;gap:0.5rem;">
+                <span style="font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--text3);min-width:52px;">Brand px</span>
+                <input type="range" id="crIgBrandSize" min="0" max="18" value="0" oninput="updateCrIgSizeLabels();updateCrIgPreview()" style="flex:1;accent-color:var(--accent);">
+                <span id="crIgBrandSizeLabel" style="font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--text2);min-width:30px;text-align:right;">Auto</span>
+              </div>
+              <div style="display:flex;align-items:center;gap:0.5rem;">
+                <span style="font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--text3);min-width:52px;">Section px</span>
+                <input type="range" id="crIgSectionSize" min="0" max="18" value="0" oninput="updateCrIgSizeLabels();updateCrIgPreview()" style="flex:1;accent-color:var(--accent);">
+                <span id="crIgSectionSizeLabel" style="font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--text2);min-width:30px;text-align:right;">Auto</span>
+              </div>
+              <div style="display:flex;align-items:center;gap:0.5rem;">
+                <span style="font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--text3);min-width:52px;">Boxes px</span>
+                <input type="range" id="crIgBoxSize" min="0" max="22" value="0" oninput="updateCrIgSizeLabels();updateCrIgPreview()" style="flex:1;accent-color:var(--accent);">
+                <span id="crIgBoxSizeLabel" style="font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--text2);min-width:30px;text-align:right;">Auto</span>
+              </div>
+            </div>
           </div>
         </div>
-        <div class="ig-ctrl-group">
-          <div class="ig-ctrl-group-title">Range</div>
-          <div class="ig-format-btns" id="crIgRangeBtns">
-            <button class="ig-format-btn" id="crIgRangeYear"     onclick="setCrIgRange('year')">Year Only</button>
-            <button class="ig-format-btn" id="crIgRangeUptoYear" onclick="setCrIgRange('uptoYear')">Up to Year</button>
-            <button class="ig-format-btn active" id="crIgRangeNow" onclick="setCrIgRange('now')">All-Time</button>
+        <!-- ── ENTRY POST CONTROLS ── -->
+        <div id="crIgEntryControls" style="display:none;">
+          <div class="ig-ctrl-group">
+            <div class="ig-ctrl-group-title">Format</div>
+            <div class="ig-format-btns">
+              <button class="ig-format-btn active" id="entPostFmtPost"  onclick="setCrIgFormat('post')">📷 Post (1:1)</button>
+              <button class="ig-format-btn"        id="entPostFmtStory" onclick="setCrIgFormat('story')">📱 Story (9:16)</button>
+            </div>
           </div>
-          <div style="font-family:'DM Mono',monospace;font-size:0.55rem;color:var(--text3);letter-spacing:0.06em;margin-top:3px;">Range for the chart run boxes shown</div>
-        </div>
-        <div class="ig-ctrl-group" id="crIgIncludeGroup">
-          <div class="ig-ctrl-group-title">Include Chart Runs</div>
-          <label class="ig-ctrl-row"><input type="checkbox" id="crIgOpt_showYear"  checked onchange="updateCrIgPreview()"><span>🗓️ Yearly Chart Run + Stats</span></label>
-          <label class="ig-ctrl-row"><input type="checkbox" id="crIgOpt_showMonth" checked onchange="updateCrIgPreview()"><span>📊 Monthly Chart Run + Stats</span></label>
-          <label class="ig-ctrl-row"><input type="checkbox" id="crIgOpt_showWeek"  checked onchange="updateCrIgPreview()"><span>📈 Weekly Chart Run + Stats</span></label>
-        </div>
-        <div class="ig-ctrl-group">
-          <div class="ig-ctrl-group-title">Show / Hide</div>
-          <label class="ig-ctrl-row"><input type="checkbox" id="crIgOpt_showSubtitle" checked onchange="updateCrIgPreview()"><span>Artist / Sub-label</span></label>
-          <label class="ig-ctrl-row"><input type="checkbox" id="crIgOpt_showFooter"   checked onchange="updateCrIgPreview()"><span>Footer Branding</span></label>
-          <label class="ig-ctrl-row"><input type="checkbox" id="crIgOpt_showImage"    checked onchange="updateCrIgPreview()"><span>Cover Art / Photo</span></label>
-          <div style="display:flex;align-items:center;gap:0.4rem;padding-left:22px;flex-wrap:wrap;">
-            <span style="font-family:'DM Mono',monospace;font-size:0.58rem;color:var(--text3);flex-shrink:0;">Source:</span>
-            <button class="ig-format-btn active" id="crIgSrc_deezer"  onclick="setCrIgImgSource('deezer')" style="padding:0.2rem 0.45rem;font-size:0.6rem;">Deezer</button>
-            <button class="ig-format-btn"        id="crIgSrc_itunes"  onclick="setCrIgImgSource('itunes')" style="padding:0.2rem 0.45rem;font-size:0.6rem;">iTunes</button>
-            <button class="ig-format-btn"        id="crIgSrc_lastfm"  onclick="setCrIgImgSource('lastfm')" style="padding:0.2rem 0.45rem;font-size:0.6rem;">Last.fm</button>
-            <button class="ig-format-btn"        id="crIgSrc_youtube" onclick="setCrIgImgSource('youtube')" style="padding:0.2rem 0.45rem;font-size:0.6rem;">YouTube</button>
+          <div class="ig-ctrl-group">
+            <div class="ig-ctrl-group-title">Show / Hide</div>
+            <label class="ig-ctrl-row"><input type="checkbox" id="entPostOpt_showDescription" checked onchange="updateCrIgPreview()"><span>Chart Story Description</span></label>
+            <label class="ig-ctrl-row"><input type="checkbox" id="entPostOpt_showSubtitle"    checked onchange="updateCrIgPreview()"><span>Artist / Album Info</span></label>
+            <label class="ig-ctrl-row"><input type="checkbox" id="entPostOpt_showMovement"    checked onchange="updateCrIgPreview()"><span>Movement (Bottom Left)</span></label>
+            <label class="ig-ctrl-row"><input type="checkbox" id="entPostOpt_showFooter"      checked onchange="updateCrIgPreview()"><span>Footer Branding</span></label>
+            <label class="ig-ctrl-row"><input type="checkbox" id="entPostOpt_showImage"       checked onchange="updateCrIgPreview()"><span>Cover Art / Photo</span></label>
+            <div style="display:flex;align-items:center;gap:0.4rem;padding-left:22px;flex-wrap:wrap;margin-top:0.25rem;">
+              <span style="font-family:'DM Mono',monospace;font-size:0.58rem;color:var(--text3);flex-shrink:0;">Source:</span>
+              <button class="ig-format-btn active" id="entPostSrc_deezer"  onclick="setEntPostImgSource('deezer')"  style="padding:0.2rem 0.45rem;font-size:0.6rem;">Deezer</button>
+              <button class="ig-format-btn"        id="entPostSrc_itunes"  onclick="setEntPostImgSource('itunes')"  style="padding:0.2rem 0.45rem;font-size:0.6rem;">iTunes</button>
+              <button class="ig-format-btn"        id="entPostSrc_lastfm"  onclick="setEntPostImgSource('lastfm')"  style="padding:0.2rem 0.45rem;font-size:0.6rem;">Last.fm</button>
+              <button class="ig-format-btn"        id="entPostSrc_youtube" onclick="setEntPostImgSource('youtube')" style="padding:0.2rem 0.45rem;font-size:0.6rem;">YouTube</button>
+            </div>
           </div>
-        </div>
-        <div class="ig-ctrl-group">
-          <div class="ig-ctrl-group-title">Fonts</div>
-          <div style="display:flex;flex-direction:column;gap:0.35rem;">
-            <div style="display:flex;align-items:center;gap:0.5rem;">
-              <span style="font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--text3);min-width:52px;">Title</span>
-              <select id="crIgTitleFont" onchange="updateCrIgPreview()" style="flex:1;background:var(--bg3);border:1px solid var(--border2);color:var(--text2);font-family:'DM Mono',monospace;font-size:0.65rem;padding:3px 5px;border-radius:4px;">
-                <option value="DM Sans">DM Sans</option>
-                <option value="DM Serif Display">DM Serif Display</option>
-                <option value="DM Mono">DM Mono</option>
-                <option value="Georgia">Georgia</option>
-                <option value="Arial">Arial</option>
-                <option value="Verdana">Verdana</option>
-              </select>
+          <div class="ig-ctrl-group">
+            <div class="ig-ctrl-group-title">Font Sizes</div>
+            <div style="display:flex;flex-direction:column;gap:0.35rem;">
+              <div style="display:flex;align-items:center;gap:0.5rem;">
+                <span style="font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--text3);min-width:66px;">Chart Name</span>
+                <input type="range" id="entPostChartNameSize" min="0" max="28" value="0" oninput="updateEntPostSizeLabels();updateCrIgPreview()" style="flex:1;accent-color:var(--accent);">
+                <span id="entPostChartNameSizeLabel" style="font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--text2);min-width:30px;text-align:right;">Auto</span>
+              </div>
+              <div style="display:flex;align-items:center;gap:0.5rem;">
+                <span style="font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--text3);min-width:66px;">Title</span>
+                <input type="range" id="entPostTitleSize" min="0" max="36" value="0" oninput="updateEntPostSizeLabels();updateCrIgPreview()" style="flex:1;accent-color:var(--accent);">
+                <span id="entPostTitleSizeLabel" style="font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--text2);min-width:30px;text-align:right;">Auto</span>
+              </div>
+              <div style="display:flex;align-items:center;gap:0.5rem;">
+                <span style="font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--text3);min-width:66px;">Artist</span>
+                <input type="range" id="entPostSubtitleSize" min="0" max="28" value="0" oninput="updateEntPostSizeLabels();updateCrIgPreview()" style="flex:1;accent-color:var(--accent);">
+                <span id="entPostSubtitleSizeLabel" style="font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--text2);min-width:30px;text-align:right;">Auto</span>
+              </div>
+              <div style="display:flex;align-items:center;gap:0.5rem;">
+                <span style="font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--text3);min-width:66px;">Album</span>
+                <input type="range" id="entPostAlbumSize" min="0" max="22" value="0" oninput="updateEntPostSizeLabels();updateCrIgPreview()" style="flex:1;accent-color:var(--accent);">
+                <span id="entPostAlbumSizeLabel" style="font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--text2);min-width:30px;text-align:right;">Auto</span>
+              </div>
+              <div style="display:flex;align-items:center;gap:0.5rem;">
+                <span style="font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--text3);min-width:66px;">Description</span>
+                <input type="range" id="entPostDescSize" min="0" max="22" value="0" oninput="updateEntPostSizeLabels();updateCrIgPreview()" style="flex:1;accent-color:var(--accent);">
+                <span id="entPostDescSizeLabel" style="font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--text2);min-width:30px;text-align:right;">Auto</span>
+              </div>
+              <div style="display:flex;align-items:center;gap:0.5rem;">
+                <span style="font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--text3);min-width:66px;">Position #</span>
+                <input type="range" id="entPostRankSize" min="0" max="120" value="0" oninput="updateEntPostSizeLabels();updateCrIgPreview()" style="flex:1;accent-color:var(--accent);">
+                <span id="entPostRankSizeLabel" style="font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--text2);min-width:30px;text-align:right;">Auto</span>
+              </div>
+              <div style="display:flex;align-items:center;gap:0.5rem;">
+                <span style="font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--text3);min-width:66px;">Movement</span>
+                <input type="range" id="entPostMvSize" min="0" max="24" value="0" oninput="updateEntPostSizeLabels();updateCrIgPreview()" style="flex:1;accent-color:var(--accent);">
+                <span id="entPostMvSizeLabel" style="font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--text2);min-width:30px;text-align:right;">Auto</span>
+              </div>
             </div>
-            <div style="display:flex;align-items:center;gap:0.5rem;">
-              <span style="font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--text3);min-width:52px;">Labels</span>
-              <select id="crIgLabelFont" onchange="updateCrIgPreview()" style="flex:1;background:var(--bg3);border:1px solid var(--border2);color:var(--text2);font-family:'DM Mono',monospace;font-size:0.65rem;padding:3px 5px;border-radius:4px;">
-                <option value="DM Mono">DM Mono</option>
-                <option value="DM Sans">DM Sans</option>
-                <option value="DM Serif Display">DM Serif Display</option>
-                <option value="Verdana">Verdana</option>
-                <option value="Arial">Arial</option>
-              </select>
-            </div>
-            <div style="display:flex;align-items:center;gap:0.5rem;">
-              <span style="font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--text3);min-width:52px;">Title px</span>
-              <input type="range" id="crIgTitleSize" min="0" max="36" value="0" oninput="updateCrIgSizeLabels();updateCrIgPreview()" style="flex:1;accent-color:var(--accent);">
-              <span id="crIgTitleSizeLabel" style="font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--text2);min-width:30px;text-align:right;">Auto</span>
-            </div>
-            <div style="display:flex;align-items:center;gap:0.5rem;">
-              <span style="font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--text3);min-width:52px;">Brand px</span>
-              <input type="range" id="crIgBrandSize" min="0" max="18" value="0" oninput="updateCrIgSizeLabels();updateCrIgPreview()" style="flex:1;accent-color:var(--accent);">
-              <span id="crIgBrandSizeLabel" style="font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--text2);min-width:30px;text-align:right;">Auto</span>
-            </div>
-            <div style="display:flex;align-items:center;gap:0.5rem;">
-              <span style="font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--text3);min-width:52px;">Section px</span>
-              <input type="range" id="crIgSectionSize" min="0" max="18" value="0" oninput="updateCrIgSizeLabels();updateCrIgPreview()" style="flex:1;accent-color:var(--accent);">
-              <span id="crIgSectionSizeLabel" style="font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--text2);min-width:30px;text-align:right;">Auto</span>
-            </div>
-            <div style="display:flex;align-items:center;gap:0.5rem;">
-              <span style="font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--text3);min-width:52px;">Boxes px</span>
-              <input type="range" id="crIgBoxSize" min="0" max="22" value="0" oninput="updateCrIgSizeLabels();updateCrIgPreview()" style="flex:1;accent-color:var(--accent);">
-              <span id="crIgBoxSizeLabel" style="font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--text2);min-width:30px;text-align:right;">Auto</span>
-            </div>
+            <div style="font-family:'DM Mono',monospace;font-size:0.55rem;color:var(--text3);letter-spacing:0.06em;margin-top:4px;">Slide to override · leftmost = Auto</div>
           </div>
         </div>
       </div>
@@ -4299,7 +4398,7 @@ function renderPage(type, peaks) {
       const rowId = 'crr-ysong-' + i;
       imgItems.push({ imgId, title: s.title, artist: s.artist, album: s.album, prefKey });
       const mainRow = `<tr class="${rank===1?'rank-1':rank===2?'rank-2':rank===3?'rank-3':''}">
-        <td class="rank-cell">${hasCR?`<button class="cr-toggle-btn" title="View chart run history — see how this entry has ranked over time" onclick="toggleChartRun(this,'${rowId}')">📊</button>`:''}${rank}</td>
+        <td class="rank-cell">${hasCR?`<button class="cr-toggle-btn" title="View chart run history — see how this entry has ranked over time" onclick="toggleChartRun(this,'${rowId}')">📊</button>`:''} ${rank}</td>
         <td class="thumb-cell"><div class="thumb-wrap"><div id="${imgId}"><div class="thumb-initials">${esc(initials(s.title))}</div></div><button id="srcbtn-${imgId}" class="img-src-btn" data-imgid="${imgId}" data-type="song" data-prefkey="${esc(prefKey)}" data-name="${esc(s.title)}" data-artist="${esc(s.artist)}" data-album="${esc(s.album)}">${srcLabel(itemSourcePrefs[prefKey]||'deezer')}</button></div></td>
         <td>
           <div class="song-title">${esc(s.title)}${certBadge(s.count,'song')}</div>
@@ -4325,7 +4424,7 @@ function renderPage(type, peaks) {
       const rowId = 'crr-yartist-' + i;
       imgItems.push({ imgId, name: a.name, prefKey });
       const mainRow = `<tr class="${rank===1?'rank-1':rank===2?'rank-2':rank===3?'rank-3':''} artist-row" data-artist="${esc(a.name)}" onclick="openArtistModal(this.closest('tr').dataset.artist)">
-        <td class="rank-cell">${hasCR?`<button class="cr-toggle-btn" title="View chart run history — see how this entry has ranked over time" onclick="toggleChartRun(this,'${rowId}')">📊</button>`:''}${rank}</td>
+        <td class="rank-cell">${hasCR?`<button class="cr-toggle-btn" title="View chart run history — see how this entry has ranked over time" onclick="toggleChartRun(this,'${rowId}')">📊</button>`:''} ${rank}</td>
         <td class="thumb-cell"><div class="thumb-wrap"><div id="${imgId}"><div class="thumb-initials">${esc(initials(a.name))}</div></div><button id="srcbtn-${imgId}" class="img-src-btn" data-imgid="${imgId}" data-type="artist" data-prefkey="${esc(prefKey)}" data-name="${esc(a.name)}" data-artist="${esc(a.name)}" data-album="">${srcLabel(itemSourcePrefs[prefKey]||'deezer')}</button></div></td>
         <td><div class="song-title">${esc(a.name)}</div><div class="song-artist" style="font-size:0.7rem;letter-spacing:0.06em;font-style:normal;font-family:'DM Mono',monospace;color:var(--text3)">CLICK TO VIEW PROFILE</div></td>
         <td><div class="song-artist">${a.songs.size} songs</div></td>
@@ -4353,7 +4452,7 @@ function renderPage(type, peaks) {
         const hasCR = chartRunData && !!chartRunData.result.albums[ak];
         imgItems.push({ imgId, album: a.album, artist: a.artist, name: a.album, prefKey });
         const mainRow = `<tr class="${rank===1?'rank-1':rank===2?'rank-2':rank===3?'rank-3':''} album-row" data-albumkey="${esc(ak)}" onclick="openAlbumModal(this.dataset.albumkey)">
-        <td class="rank-cell">${hasCR?`<button class="cr-toggle-btn" title="View chart run history — see how this entry has ranked over time" onclick="toggleChartRun(this,'${rowId}')">📊</button>`:''}${rank}</td>
+        <td class="rank-cell">${hasCR?`<button class="cr-toggle-btn" title="View chart run history — see how this entry has ranked over time" onclick="toggleChartRun(this,'${rowId}')">📊</button>`:''} ${rank}</td>
         <td class="thumb-cell"><div class="thumb-wrap"><div id="${imgId}"><div class="thumb-initials">${esc(initials(a.album))}</div></div><button id="srcbtn-${imgId}" class="img-src-btn" data-imgid="${imgId}" data-type="album" data-prefkey="${esc(prefKey)}" data-name="${esc(a.album)}" data-artist="${esc(a.artist)}" data-album="${esc(a.album)}">${srcLabel(itemSourcePrefs[prefKey]||'deezer')}</button></div></td>
         <td>
           <div class="song-title">${esc(a.album)}${certBadge(a.count,'album')}</div>
@@ -4494,6 +4593,22 @@ function filterCrD(d, period, mode, viewedYear, cutoffKeys) {
   return { ...d, entries, peak, peakPlays, peakDays };
 }
 
+// Resolves the current chart rank for a key then opens the share modal
+function openCrIgModalFromPanel(type, encodedKey) {
+  const key = decodeURIComponent(encodedKey);
+  let rank = 0;
+  const fd = fullData[type === 'songs' ? 'songs' : type === 'artists' ? 'artists' : 'albums'];
+  if (fd) {
+    const idx = fd.findIndex(x =>
+      type === 'songs'   ? songKey(x)                   === key :
+      type === 'artists' ? x.name                       === key :
+                           (x.album + '|||' + x.artist) === key
+    );
+    if (idx >= 0) rank = idx + 1;
+  }
+  openCrIgModal(type, encodedKey, rank);
+}
+
 function buildCrPanelHTML(type, key) {
   ensureAllChartRun(); // guarantees allChartRun has full history for "All-Time" mode
   const vy = getViewedYear();
@@ -4530,7 +4645,7 @@ function buildCrPanelHTML(type, key) {
     ${['year','uptoYear','now'].map(m =>
       `<button class="cr-range-btn${crRangeMode===m?' active':''}" title="${modeTitles[m]}" onclick="setCrRangeMode('${m}');event.stopPropagation()">${modeLabels[m]}</button>`
     ).join('')}
-    <button class="cr-ig-share-btn" title="Generate a shareable Instagram image of this chart run" style="margin-left:auto;" onclick="openCrIgModal('${type}','${encodeURIComponent(key)}');event.stopPropagation()">📸 Share</button>
+    <button class="cr-ig-share-btn" title="Generate a shareable image of this chart run or entry" style="margin-left:auto;" onclick="openCrIgModalFromPanel('${type}','${encodeURIComponent(key)}');event.stopPropagation()">📸 Share</button>
   </div>`;
 
   let sectionsHtml = '';
@@ -5788,11 +5903,77 @@ document.getElementById('igPreviewModal').addEventListener('click', e => {
 });
 
 // ─── CHART RUN SHARE IMAGE ──────────────────────────────────────
-let crIgState = { type: null, key: null, format: 'post', rangeMode: 'now', imgUrl: null, imgSource: 'deezer' };
+let crIgState = { type: null, key: null, rank: 0, format: 'post', rangeMode: 'now', imgUrl: null, imgSource: 'deezer', entPostImgUrl: null, entPostImgSource: 'deezer', mode: 'chartrun' };
 
-function openCrIgModal(type, encodedKey) {
+function setCrIgMode(mode) {
+  crIgState.mode = mode;
+  document.getElementById('crIgModeChartRun').classList.toggle('active', mode === 'chartrun');
+  document.getElementById('crIgModeEntry').classList.toggle('active', mode === 'entrypost');
+  document.getElementById('crIgChartRunControls').style.display = mode === 'chartrun' ? '' : 'none';
+  document.getElementById('crIgEntryControls').style.display    = mode === 'entrypost' ? '' : 'none';
+  // Keep format buttons in sync across both panels
+  const fmt = crIgState.format;
+  document.getElementById('entPostFmtPost').classList.toggle('active', fmt === 'post');
+  document.getElementById('entPostFmtStory').classList.toggle('active', fmt === 'story');
+  updateCrIgPreview();
+}
+
+function _syncEntPostSrcBtns() {
+  ['deezer','itunes','lastfm','youtube'].forEach(s => {
+    const el = document.getElementById('entPostSrc_' + s);
+    if (el) el.classList.toggle('active', s === crIgState.entPostImgSource);
+  });
+}
+
+function setEntPostImgSource(source) {
+  crIgState.entPostImgSource = source;
+  _syncEntPostSrcBtns();
+  crIgState.entPostImgUrl = null;
+  updateCrIgPreview();
+  _fetchEntPostImage(crIgState.type, crIgState.key);
+}
+
+async function _fetchEntPostImage(type, key) {
+  const source = crIgState.entPostImgSource;
+  try {
+    let url = null;
+    const crAny = (allChartRun.year  && allChartRun.year.result  && allChartRun.year.result[type]  && allChartRun.year.result[type][key])
+              || (allChartRun.month && allChartRun.month.result && allChartRun.month.result[type] && allChartRun.month.result[type][key])
+              || (allChartRun.week  && allChartRun.week.result  && allChartRun.week.result[type]  && allChartRun.week.result[type][key]);
+    if (source !== 'off') {
+      if (type === 'artists') {
+        url = await getArtistImage(key, source);
+      } else if (type === 'songs') {
+        const artist2 = (crAny && crAny._artist) || key.split('|||')[1] || '';
+        const title2  = (crAny && crAny._title)  || key.split('|||')[0] || key;
+        url = await getTrackImage(title2, artist2, source);
+      } else {
+        const artist2 = (crAny && crAny._artist) || key.split('|||')[1] || '';
+        const album2  = (crAny && crAny._album)  || key.split('|||')[0] || key;
+        url = await getAlbumImage(album2, artist2, source);
+      }
+    }
+    crIgState.entPostImgUrl = url || null;
+  } catch(e) { crIgState.entPostImgUrl = null; }
+  if (document.getElementById('crIgModal').classList.contains('open') && crIgState.key === key && crIgState.mode === 'entrypost') {
+    updateCrIgPreview();
+  }
+}
+
+function updateEntPostSizeLabels() {
+  [['entPostChartNameSize','entPostChartNameSizeLabel'],['entPostTitleSize','entPostTitleSizeLabel'],
+   ['entPostSubtitleSize','entPostSubtitleSizeLabel'],['entPostAlbumSize','entPostAlbumSizeLabel'],
+   ['entPostDescSize','entPostDescSizeLabel'],['entPostRankSize','entPostRankSizeLabel'],
+   ['entPostMvSize','entPostMvSizeLabel']].forEach(([id, lbl]) => {
+    const v = parseInt(document.getElementById(id)?.value || 0);
+    const el = document.getElementById(lbl);
+    if (el) el.textContent = v > 0 ? v + 'px' : 'Auto';
+  });
+}
+
+function openCrIgModal(type, encodedKey, rank) {
   const key = decodeURIComponent(encodedKey);
-  crIgState.type = type; crIgState.key = key;
+  crIgState.type = type; crIgState.key = key; crIgState.rank = rank || 0;
 
   // Store which period opened the modal so card rendering stays context-aware
   crIgState.period = currentPeriod;
@@ -5873,11 +6054,15 @@ function openCrIgModal(type, encodedKey) {
   // Reset image source to deezer and update source button states
   crIgState.imgSource = 'deezer';
   _syncCrIgSrcBtns();
-  // Clear previous image, start fresh fetch
+  // Clear previous images, start fresh fetch
   crIgState.imgUrl = null;
-  updateCrIgPreview();
+  crIgState.entPostImgUrl = null;
+  crIgState.entPostImgSource = 'deezer';
+  _syncEntPostSrcBtns();
+  setCrIgMode('chartrun'); // always open on chart run tab; resets preview
   document.getElementById('crIgModal').classList.add('open');
   fetchCrIgImage(type, key);
+  _fetchEntPostImage(type, key);
 }
 
 // Fetches cover art for the given type/key using crIgState.imgSource
@@ -5947,6 +6132,8 @@ function setCrIgFormat(fmt) {
   crIgState.format = fmt;
   document.getElementById('crIgFmtPost').classList.toggle('active', fmt === 'post');
   document.getElementById('crIgFmtStory').classList.toggle('active', fmt === 'story');
+  document.getElementById('entPostFmtPost').classList.toggle('active', fmt === 'post');
+  document.getElementById('entPostFmtStory').classList.toggle('active', fmt === 'story');
   updateCrIgPreview();
 }
 
@@ -6102,29 +6289,51 @@ function buildCrIgCardHTML(type, key, opts) {
 function updateCrIgPreview() {
   if (!crIgState.type) return;
   const _sz = id => { const v = parseInt(document.getElementById(id)?.value || 0); return v > 0 ? v : null; };
-  const opts = {
-    format:      crIgState.format,
-    rangeMode:   crIgState.rangeMode,
-    period:      crIgState.period || currentPeriod,
-    chartSizes:  { year: Infinity, month: chartSizeMonthly, week: chartSizeWeekly },
-    showYear:    document.getElementById('crIgOpt_showYear')?.checked  ?? true,
-    showMonth:   document.getElementById('crIgOpt_showMonth')?.checked ?? true,
-    showWeek:    document.getElementById('crIgOpt_showWeek')?.checked  ?? true,
-    showSubtitle:document.getElementById('crIgOpt_showSubtitle')?.checked ?? true,
-    showFooter:  document.getElementById('crIgOpt_showFooter')?.checked   ?? true,
-    showImage:   document.getElementById('crIgOpt_showImage')?.checked    ?? true,
-    imgUrl:      crIgState.imgUrl,
-    titleFont:   document.getElementById('crIgTitleFont')?.value  || 'DM Sans',
-    labelFont:   document.getElementById('crIgLabelFont')?.value  || 'DM Mono',
-    titleSize:   _sz('crIgTitleSize'),
-    brandSize:   _sz('crIgBrandSize'),
-    sectionSize: _sz('crIgSectionSize'),
-    boxSize:     _sz('crIgBoxSize'),
-  };
-  const isPost = opts.format === 'post';
+  const isPost = crIgState.format === 'post';
   const cardW = 540, cardH = isPost ? 540 : 960;
   const scale = isPost ? 0.5 : 0.4;
-  const html = buildCrIgCardHTML(crIgState.type, crIgState.key, opts);
+  let html;
+  if (crIgState.mode === 'entrypost') {
+    const opts = {
+      format:          crIgState.format,
+      period:          crIgState.period || currentPeriod,
+      showDescription: (document.getElementById('entPostOpt_showDescription') || {checked:true}).checked,
+      showSubtitle:    (document.getElementById('entPostOpt_showSubtitle')    || {checked:true}).checked,
+      showMovement:    (document.getElementById('entPostOpt_showMovement')    || {checked:true}).checked,
+      showFooter:      (document.getElementById('entPostOpt_showFooter')      || {checked:true}).checked,
+      showImage:       (document.getElementById('entPostOpt_showImage')       || {checked:true}).checked,
+      imgUrl:          crIgState.entPostImgUrl,
+      chartNameSize:   _sz('entPostChartNameSize'),
+      entTitleSize:    _sz('entPostTitleSize'),
+      entSubtitleSize: _sz('entPostSubtitleSize'),
+      entAlbumSize:    _sz('entPostAlbumSize'),
+      entDescSize:     _sz('entPostDescSize'),
+      entRankSize:     _sz('entPostRankSize'),
+      entMvSize:       _sz('entPostMvSize'),
+    };
+    html = buildEntryIgCardHTML(crIgState.type, crIgState.key, crIgState.rank, opts);
+  } else {
+    const opts = {
+      format:      crIgState.format,
+      rangeMode:   crIgState.rangeMode,
+      period:      crIgState.period || currentPeriod,
+      chartSizes:  { year: Infinity, month: chartSizeMonthly, week: chartSizeWeekly },
+      showYear:    document.getElementById('crIgOpt_showYear')?.checked  ?? true,
+      showMonth:   document.getElementById('crIgOpt_showMonth')?.checked ?? true,
+      showWeek:    document.getElementById('crIgOpt_showWeek')?.checked  ?? true,
+      showSubtitle:document.getElementById('crIgOpt_showSubtitle')?.checked ?? true,
+      showFooter:  document.getElementById('crIgOpt_showFooter')?.checked   ?? true,
+      showImage:   document.getElementById('crIgOpt_showImage')?.checked    ?? true,
+      imgUrl:      crIgState.imgUrl,
+      titleFont:   document.getElementById('crIgTitleFont')?.value  || 'DM Sans',
+      labelFont:   document.getElementById('crIgLabelFont')?.value  || 'DM Mono',
+      titleSize:   _sz('crIgTitleSize'),
+      brandSize:   _sz('crIgBrandSize'),
+      sectionSize: _sz('crIgSectionSize'),
+      boxSize:     _sz('crIgBoxSize'),
+    };
+    html = buildCrIgCardHTML(crIgState.type, crIgState.key, opts);
+  }
   if (!html) return;
   const frame = document.getElementById('crIgPreviewFrame');
   const inner = document.getElementById('crIgPreviewInner');
@@ -6146,19 +6355,236 @@ function downloadCrIg() {
   const isPost = crIgState.format === 'post';
   const cardW = 540, cardH = isPost ? 540 : 960;
   const cvs = document.getElementById('crIgCanvas');
-  const slug = (crIgState.key.split('|||')[0] || 'chart').replace(/[^a-z0-9]/gi,'').slice(0,20);
+  const slug = (crIgState.key.split('|||')[0] || 'entry').replace(/[^a-z0-9]/gi,'').slice(0,20);
+  const prefix = crIgState.mode === 'entrypost' ? 'dankcharts_entry_' : 'dankcharts_chartrun_';
   html2canvas(cvs, { scale:2, useCORS:true, allowTaint:false, backgroundColor:null, logging:false, width:cardW, height:cardH })
     .then(c => {
       const a = document.createElement('a');
-      a.download = `dankcharts_chartrun_${slug}_${crIgState.format}.png`;
+      a.download = prefix + slug + '_' + crIgState.format + '.png';
       a.href = c.toDataURL('image/png'); a.click();
       btn.textContent = orig; btn.disabled = false;
-    }).catch(err => { console.error('Chart run download failed:', err); btn.textContent = orig; btn.disabled = false; });
+    }).catch(err => { console.error('Download failed:', err); btn.textContent = orig; btn.disabled = false; });
 }
 
 document.getElementById('crIgModal').addEventListener('click', e => {
   if (e.target === document.getElementById('crIgModal')) closeCrIgModal();
 });
+
+// ─── ENTRY SHARE IMAGE (builders only — UI lives in crIgModal) ──
+
+function buildEntryIgCardHTML(type, key, rank, opts) {
+  const c = igColors();
+  const isPost = opts.format === 'post';
+  const cardW = 540, cardH = isPost ? 540 : 960;
+  const period = opts.period || currentPeriod;
+
+  // Resolve display names from chart run data
+  let displayName = key.split('|||')[0], artistName = key.split('|||')[1] || '', albumName = '';
+  const crAny = (allChartRun[period] && allChartRun[period].result && allChartRun[period].result[type] && allChartRun[period].result[type][key])
+    || (allChartRun.year  && allChartRun.year.result  && allChartRun.year.result[type]  && allChartRun.year.result[type][key])
+    || (allChartRun.month && allChartRun.month.result && allChartRun.month.result[type] && allChartRun.month.result[type][key])
+    || (allChartRun.week  && allChartRun.week.result  && allChartRun.week.result[type]  && allChartRun.week.result[type][key]);
+  if (crAny) {
+    if (type === 'songs')   { displayName = crAny._title  || displayName; artistName = crAny._artist || artistName; }
+    if (type === 'albums')  { displayName = crAny._album  || displayName; artistName = crAny._artist || artistName; }
+    if (type === 'artists') { displayName = key; artistName = ''; }
+  }
+  if (type === 'songs') {
+    const s = fullData.songs && fullData.songs.find(function(s2){ return songKey(s2) === key; });
+    if (s) albumName = s.album || '';
+  }
+
+  // Period header text
+  const dr = getDateRange();
+  let chartName, periodLine;
+  if (period === 'week')       { chartName = 'Weekly Chart';   periodLine = dr.sub || dr.label; }
+  else if (period === 'month') { chartName = 'Monthly Chart';  periodLine = dr.label; }
+  else if (period === 'year')  { chartName = 'Yearly Chart';   periodLine = dr.label; }
+  else                         { chartName = 'All-Time Chart'; periodLine = 'All-Time'; }
+  const typeLabel = { songs: '\u2605 SONG', artists: '\u25c6 ARTIST', albums: '\u25c8 ALBUM' }[type];
+
+  // Movement label
+  const mv = _entryMovement(rank, key, type, period);
+  let mvText, mvColor;
+  if (mv.cls === 'new')        { mvText = 'NEW ENTRY';           mvColor = c.rose; }
+  else if (mv.cls === 're')    { mvText = 'RETURN';              mvColor = c.amber; }
+  else if (mv.cls === 'same')  { mvText = '= SAME POSITION';    mvColor = c.text3; }
+  else if (mv.cls === 'up') {
+    const n = parseInt(mv.label.replace(/[^\d]/g, '')) || 0;
+    mvText = '+' + n + ' POSITION' + (n !== 1 ? 'S' : '');       mvColor = c.green;
+  } else if (mv.cls === 'down') {
+    const n = parseInt(mv.label.replace(/[^\d]/g, '')) || 0;
+    mvText = '\u2212' + n + ' POSITION' + (n !== 1 ? 'S' : '');  mvColor = c.rose;
+  } else { mvText = mv.label || '\u2014'; mvColor = c.text3; }
+
+  // Rank colour: gold / silver / bronze / accent
+  const rankColor = rank===1 ? c.gold1 : rank===2 ? '#94a3b8' : rank===3 ? '#c07850' : c.accent;
+
+  // Layout sizes — opts override auto values
+  const _ov = (override, auto) => (override != null ? override : auto);
+  const imgSize    = isPost ? 172 : 240;
+  const headerH    = isPost ?  74 :  96;
+  const bottomH    = isPost ?  90 : 126;
+  const rankFont   = _ov(opts.entRankSize,    isPost ?  72 :  96);
+  const mvFont     = _ov(opts.entMvSize,      isPost ?  12 :  16);
+  const titleFont  = _ov(opts.entTitleSize,   isPost ?  20 :  27);
+  const subFont    = _ov(opts.entSubtitleSize,isPost ?  13 :  17);
+  const monoFont   = _ov(opts.entAlbumSize,   isPost ?  10 :  13);
+  const descFont   = _ov(opts.entDescSize,    isPost ?  11 :  14);
+  const nameMT     = isPost ?  14 :  20;
+  // chartNameSize controls the chart-name line in the header
+  const chartNameFont = _ov(opts.chartNameSize, isPost ? 15 : 19);
+
+  const desc = opts.showDescription ? _entryDescription(type, key, rank, period) : '';
+
+  const imgHTML = (opts.showImage && opts.imgUrl)
+    ? '<img src="' + opts.imgUrl + '" crossorigin="anonymous" style="width:' + imgSize + 'px;height:' + imgSize + 'px;object-fit:cover;border-radius:' + (isPost?10:14) + 'px;box-shadow:0 8px 32px rgba(0,0,0,0.55);border:1px solid ' + c.border + ';display:block;">'
+    : '<div style="width:' + imgSize + 'px;height:' + imgSize + 'px;background:' + c.surface + ';border-radius:' + (isPost?10:14) + 'px;border:1px solid ' + c.border + ';display:flex;align-items:center;justify-content:center;"><span style="font-family:\'DM Serif Display\',serif;font-size:' + Math.round(imgSize*0.32) + 'px;color:' + c.accent2 + ';">' + esc(initials(displayName)) + '</span></div>';
+
+  const header = '<div style="padding:' + (isPost?'14px 18px':'18px 22px') + ';background:linear-gradient(135deg,' + c.bg3 + ',' + c.surface + ');border-bottom:2px solid ' + c.accent + ';flex-shrink:0;height:' + headerH + 'px;box-sizing:border-box;">'
+    + '<div style="font-family:\'DM Mono\',monospace;font-size:' + (isPost?7.5:9) + 'px;letter-spacing:0.22em;color:' + c.accent + ';text-transform:uppercase;margin-bottom:3px;">dankcharts.fm \u00b7 ' + esc(typeLabel) + '</div>'
+    + '<div style="font-family:\'DM Serif Display\',serif;font-size:' + chartNameFont + 'px;color:' + c.text + ';line-height:1.1;">' + esc(chartName) + '</div>'
+    + '<div style="font-family:\'DM Mono\',monospace;font-size:' + (isPost?8:9.5) + 'px;color:' + c.text3 + ';margin-top:2px;letter-spacing:0.05em;">' + esc(periodLine) + '</div>'
+    + '</div>';
+
+  const body = '<div style="flex:1;overflow:hidden;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:' + (isPost?'0 22px':'0 28px') + ';position:relative;">'
+    + '<div style="position:absolute;width:' + (imgSize+80) + 'px;height:' + (imgSize+80) + 'px;border-radius:50%;background:radial-gradient(circle,' + c.accent + '14 0%,transparent 68%);pointer-events:none;"></div>'
+    + '<div style="position:relative;margin-bottom:' + nameMT + 'px;">' + imgHTML + '</div>'
+    + '<div style="text-align:center;width:100%;position:relative;">'
+    + '<div style="font-family:\'DM Sans\',sans-serif;font-size:' + titleFont + 'px;font-weight:700;color:' + c.text + ';line-height:1.2;margin-bottom:4px;">' + esc(displayName) + '</div>'
+    + (opts.showSubtitle && artistName ? '<div style="font-family:\'DM Sans\',sans-serif;font-size:' + subFont + 'px;color:' + c.text2 + ';line-height:1.3;margin-bottom:3px;">' + esc(artistName) + '</div>' : '')
+    + (opts.showSubtitle && type==='songs' && albumName ? '<div style="font-family:\'DM Mono\',monospace;font-size:' + monoFont + 'px;color:' + c.text3 + ';letter-spacing:0.06em;margin-bottom:4px;">' + esc(albumName) + '</div>' : '')
+    + (desc ? '<div style="font-family:\'DM Sans\',sans-serif;font-size:' + descFont + 'px;color:' + c.text3 + ';margin-top:' + (isPost?7:10) + 'px;font-style:italic;line-height:1.45;padding:0 6px;">' + esc(desc) + '</div>' : '')
+    + '</div>'
+    + '</div>';
+
+  const bottom = '<div style="height:' + bottomH + 'px;flex-shrink:0;display:flex;align-items:center;justify-content:space-between;padding:0 ' + (isPost?22:30) + 'px;background:linear-gradient(to top,' + c.bg3 + ' 0%,transparent 100%);border-top:1px solid ' + c.border + ';">'
+    + (opts.showMovement ? '<div style="font-family:\'DM Mono\',monospace;font-size:' + mvFont + 'px;color:' + mvColor + ';font-weight:700;letter-spacing:0.07em;line-height:1.3;">' + esc(mvText) + '</div>' : '<div></div>')
+    + '<div style="font-family:\'DM Serif Display\',serif;font-size:' + rankFont + 'px;color:' + rankColor + ';line-height:0.85;letter-spacing:-0.02em;">#' + rank + '</div>'
+    + '</div>';
+
+  const footer = opts.showFooter
+    ? '<div style="padding:5px 14px;background:' + c.bg3 + ';border-top:1px solid ' + c.border + ';flex-shrink:0;"><div style="font-family:\'DM Mono\',monospace;font-size:7px;color:' + c.text3 + ';letter-spacing:0.12em;">dankcharts.fm \u00b7 PERSONAL MUSIC CHARTS</div></div>'
+    : '';
+
+  return '<div style="width:' + cardW + 'px;height:' + cardH + 'px;background:' + c.bg + ';overflow:hidden;display:flex;flex-direction:column;font-family:\'DM Sans\',sans-serif;">' + header + body + bottom + footer + '</div>';
+}
+
+// Movement helper — week/month use lastPeriodStats; year uses chart run history
+function _entryMovement(rank, key, type, period) {
+  if (period !== 'year') return igMovement(rank, key, type);
+  const crData = allChartRun.year || (chartRunData && chartRunData.period === 'year' ? chartRunData : null);
+  const d = crData && crData.result && crData.result[type] && crData.result[type][key];
+  if (!d || !d.entries.length) return { label: 'NEW', cls: 'new' };
+  if (d.entries.length < 2) return { label: 'NEW', cls: 'new' };
+  const prev = d.entries[d.entries.length - 2];
+  const last = d.entries[d.entries.length - 1];
+  if (crPeriodGap('year', prev.periodKey, last.periodKey) > 0) return { label: 'RE', cls: 're' };
+  const diff = prev.rank - rank;
+  if (diff === 0) return { label: '=', cls: 'same' };
+  return { label: (diff > 0 ? '\u25b2' : '\u25bc') + Math.abs(diff), cls: diff > 0 ? 'up' : 'down' };
+}
+
+// Narrative description derived from chart run history
+function _entryDescription(type, key, rank, period) {
+  const crData = allChartRun[period] || (chartRunData && chartRunData.period === period ? chartRunData : null);
+  if (!crData) return '';
+  const d = crData.result && crData.result[type] && crData.result[type][key];
+  const unit  = period === 'week' ? 'week'  : period === 'month' ? 'month'  : 'year';
+  const units = unit + 's';
+
+  if (!d || !d.entries.length) {
+    const isRe = lastPeriodStats && lastPeriodStats.everChartedBefore && lastPeriodStats.everChartedBefore[type] && lastPeriodStats.everChartedBefore[type].has(key);
+    return isRe ? 'Returns to the chart at #' + rank + ' \u2014 welcome back!' : 'Makes its chart debut at #' + rank + '.';
+  }
+
+  const entries = d.entries;
+  const last = entries[entries.length - 1];
+  const prev = entries.length >= 2 ? entries[entries.length - 2] : null;
+  const n = entries.length;
+
+  // Unbroken streak of appearances ending at current period
+  let streak = 1;
+  for (let i = entries.length - 2; i >= 0; i--) {
+    if (crPeriodGap(period, entries[i].periodKey, entries[i+1].periodKey) === 0) streak++;
+    else break;
+  }
+
+  // Unbroken Top-10 run ending at current period
+  let consTop10 = 0;
+  for (let i = entries.length - 1; i >= 0; i--) {
+    if (i < entries.length - 1 && crPeriodGap(period, entries[i].periodKey, entries[i+1].periodKey) > 0) break;
+    if (entries[i].rank <= 10) consTop10++;
+    else break;
+  }
+
+  // Unbroken run at the current exact rank
+  let consAtRank = 1;
+  for (let i = entries.length - 2; i >= 0; i--) {
+    if (crPeriodGap(period, entries[i].periodKey, entries[i+1].periodKey) > 0) break;
+    if (entries[i].rank === rank) consAtRank++;
+    else break;
+  }
+
+  const top10Total = entries.filter(function(e){ return e.rank <= 10; }).length;
+
+  // RETURN — gap before the most recent entry
+  if (prev && crPeriodGap(period, prev.periodKey, last.periodKey) > 0) {
+    const gap = crPeriodGap(period, prev.periodKey, last.periodKey);
+    return 'Returns to the chart at #' + rank + ' after ' + gap + ' ' + (gap === 1 ? unit : units) + ' away.';
+  }
+
+  // NEW — first-ever appearance
+  if (!prev) {
+    if (rank === 1) return 'Explodes onto the chart at #1 \u2014 a debut at the very top!';
+    if (rank <= 5)  return 'Makes an impressive chart debut at #' + rank + ', entering the Top 5.';
+    if (rank <= 10) return 'Enters the chart in the Top 10 at #' + rank + '.';
+    return 'Makes its chart debut at #' + rank + '.';
+  }
+
+  const diff = prev.rank - rank; // positive = climbed
+
+  if (diff === 0) {
+    if (rank === 1) {
+      if (consAtRank >= 3) return 'Holds firm at #1 for ' + consAtRank + ' consecutive ' + units + '.';
+      return 'Stays at #1 for a ' + _ord(consAtRank) + ' ' + unit + ' running.';
+    }
+    if (consAtRank >= 4) return 'Locked in at #' + rank + ' for ' + consAtRank + ' straight ' + units + '.';
+    if (consTop10 >= 5 && rank <= 10) return 'Holds at #' + rank + ' \u2014 ' + consTop10 + ' consecutive ' + units + ' in the Top 10.';
+    if (streak >= 8) return 'Stays at #' + rank + ' \u2014 ' + streak + ' ' + units + ' on the chart and counting.';
+    return 'Holds at #' + rank + (consAtRank >= 2 ? ' for ' + consAtRank + ' consecutive ' + units : '') + '.';
+  }
+
+  if (diff > 0) {
+    // Detect a new all-time peak (compare against all prior entries)
+    const prevPeak = entries.slice(0, -1).reduce(function(m, e){ return Math.min(m, e.rank); }, Infinity);
+    const isNewPeak = rank < prevPeak;
+    if (isNewPeak) {
+      if (rank === 1) return 'Ascends to #1 for the first time' + (n > 1 ? ' after ' + (n-1) + ' ' + (n-1 === 1 ? unit : units) + ' on the chart' : '') + '!';
+      if (consTop10 >= 5) return 'Rises to a new peak of #' + rank + ' after ' + consTop10 + ' consecutive ' + units + ' in the Top 10.';
+      return 'Climbs to a new peak of #' + rank + ', up ' + diff + ' from #' + prev.rank + '.';
+    }
+    if (diff >= 15) return 'Rockets ' + diff + ' positions to #' + rank + (n > 2 ? ' \u2014 ' + n + ' ' + units + ' on the chart' : '') + '.';
+    if (diff >= 7)  return 'Surges ' + diff + ' spots to #' + rank + (consTop10 >= 3 ? ' after ' + consTop10 + ' ' + units + ' in the Top 10' : '') + '.';
+    if (rank <= 10 && prev.rank > 10) return 'Breaks into the Top 10 at #' + rank + ', up ' + diff + ' from #' + prev.rank + '.';
+    if (rank <= 5  && prev.rank > 5)  return 'Crosses into the Top 5 at #' + rank + '.';
+    return 'Rises ' + diff + ' position' + (diff !== 1 ? 's' : '') + ' to #' + rank + (streak >= 5 ? ' \u2014 ' + streak + ' ' + units + ' on the chart' : '') + '.';
+  }
+
+  // DROP
+  const drop = -diff;
+  if (rank > 10 && prev.rank <= 10) return 'Falls out of the Top 10 to #' + rank + ' after ' + top10Total + ' ' + (top10Total === 1 ? unit : units) + ' inside.';
+  if (rank > 5  && prev.rank <= 5)  return 'Slips out of the Top 5 to #' + rank + '.';
+  if (drop >= 15) return 'Tumbles ' + drop + ' positions to #' + rank + (streak >= 3 ? ' \u2014 still ' + streak + ' ' + units + ' on the chart' : '') + '.';
+  if (streak >= 10) return 'Falls ' + drop + ' spot' + (drop !== 1 ? 's' : '') + ' to #' + rank + ' \u2014 a remarkable ' + streak + ' ' + units + ' on the chart.';
+  if (streak >= 5)  return 'Slips ' + drop + ' position' + (drop !== 1 ? 's' : '') + ' to #' + rank + ' after ' + streak + ' ' + units + ' on the chart.';
+  return 'Falls ' + drop + ' position' + (drop !== 1 ? 's' : '') + ' to #' + rank + '.';
+}
+
+function _ord(n) {
+  const s = ['th','st','nd','rd'], v = n % 100;
+  return n + (s[(v - 20) % 10] || s[v] || s[0]);
+}
 
 // ─── ARTIST MODAL ──────────────────────────────────────────────
 const modal = document.getElementById('artistModal');
