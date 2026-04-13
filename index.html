@@ -735,10 +735,6 @@
       font-weight: 700;
     }
 
-    body.yellow #backToTopBtn {
-      color: #1a1a00;
-    }
-
     body.yellow #syncNowBtn:hover {
       color: #1a1a00;
     }
@@ -2294,40 +2290,6 @@
       color: var(--text3);
       letter-spacing: 0.08em;
       background: var(--bg);
-    }
-
-    /* BACK TO TOP BUTTON */
-    #backToTopBtn {
-      position: fixed;
-      right: 1.5rem;
-      bottom: 2rem;
-      z-index: 999;
-      background: var(--accent);
-      color: #fff;
-      border: none;
-      border-radius: 50%;
-      width: 42px;
-      height: 42px;
-      font-size: 1.1rem;
-      cursor: pointer;
-      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transform: translateX(80px);
-      opacity: 0;
-      transition: transform 0.3s ease, opacity 0.3s ease;
-      pointer-events: none;
-    }
-
-    #backToTopBtn.visible {
-      transform: translateX(0);
-      opacity: 1;
-      pointer-events: auto;
-    }
-
-    #backToTopBtn:hover {
-      filter: brightness(1.15);
     }
 
     /* CERTIFICATIONS */
@@ -4660,6 +4622,8 @@
               </div>
               <div class="ig-ctrl-group">
                 <div class="ig-ctrl-group-title">Show / Hide</div>
+                <label class="ig-ctrl-row"><input type="checkbox" id="crIgOpt_showWeekDate" checked
+                    onchange="updateCrIgPreview()"><span>Week Date Subtitle</span></label>
                 <label class="ig-ctrl-row"><input type="checkbox" id="crIgOpt_showSubtitle" checked
                     onchange="updateCrIgPreview()"><span>Artist / Sub-label</span></label>
                 <label class="ig-ctrl-row"><input type="checkbox" id="crIgOpt_showFooter" checked
@@ -4727,6 +4691,14 @@
                   </div>
                   <div style="display:flex;align-items:center;gap:0.5rem;">
                     <span
+                      style="font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--text3);min-width:52px;">Week Date px</span>
+                    <input type="range" id="crIgWeekDateSize" min="0" max="20" value="0"
+                      oninput="updateCrIgSizeLabels();updateCrIgPreview()" style="flex:1;accent-color:var(--accent);">
+                    <span id="crIgWeekDateSizeLabel"
+                      style="font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--text2);min-width:30px;text-align:right;">Auto</span>
+                  </div>
+                  <div style="display:flex;align-items:center;gap:0.5rem;">
+                    <span
                       style="font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--text3);min-width:52px;">Section
                       px</span>
                     <input type="range" id="crIgSectionSize" min="0" max="18" value="0"
@@ -4760,6 +4732,8 @@
               </div>
               <div class="ig-ctrl-group">
                 <div class="ig-ctrl-group-title">Show / Hide</div>
+                <label class="ig-ctrl-row"><input type="checkbox" id="entPostOpt_showWeekDate" checked
+                    onchange="updateCrIgPreview()"><span>Week Date Subtitle</span></label>
                 <label class="ig-ctrl-row"><input type="checkbox" id="entPostOpt_showDescription" checked
                     onchange="updateCrIgPreview()"><span>Chart Story Description</span></label>
                 <label class="ig-ctrl-row"><input type="checkbox" id="entPostOpt_showSubtitle" checked
@@ -4804,6 +4778,15 @@
                       oninput="updateEntPostSizeLabels();updateCrIgPreview()"
                       style="flex:1;accent-color:var(--accent);">
                     <span id="entPostChartNameSizeLabel"
+                      style="font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--text2);min-width:30px;text-align:right;">Auto</span>
+                  </div>
+                  <div style="display:flex;align-items:center;gap:0.5rem;">
+                    <span
+                      style="font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--text3);min-width:66px;">Week Date</span>
+                    <input type="range" id="entPostWeekDateSize" min="0" max="22" value="0"
+                      oninput="updateEntPostSizeLabels();updateCrIgPreview()"
+                      style="flex:1;accent-color:var(--accent);">
+                    <span id="entPostWeekDateSizeLabel"
                       style="font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--text2);min-width:30px;text-align:right;">Auto</span>
                   </div>
                   <div style="display:flex;align-items:center;gap:0.5rem;">
@@ -8434,7 +8417,7 @@
       }
 
       function updateEntPostSizeLabels() {
-        [['entPostBrandSize', 'entPostBrandSizeLabel'], ['entPostChartNameSize', 'entPostChartNameSizeLabel'], ['entPostImageSize', 'entPostImageSizeLabel'], ['entPostTitleSize', 'entPostTitleSizeLabel'],
+        [['entPostBrandSize', 'entPostBrandSizeLabel'], ['entPostChartNameSize', 'entPostChartNameSizeLabel'], ['entPostWeekDateSize', 'entPostWeekDateSizeLabel'], ['entPostImageSize', 'entPostImageSizeLabel'], ['entPostTitleSize', 'entPostTitleSizeLabel'],
         ['entPostSubtitleSize', 'entPostSubtitleSizeLabel'], ['entPostAlbumSize', 'entPostAlbumSizeLabel'],
         ['entPostDescSize', 'entPostDescSizeLabel'], ['entPostMvSize', 'entPostMvSizeLabel'], ['entPostRankSize', 'entPostRankSizeLabel'], ['entPostStatusY', 'entPostStatusYLabel']].forEach(([id, lbl]) => {
           const v = parseInt(document.getElementById(id)?.value || 0);
@@ -8453,7 +8436,7 @@
         // Respect current format limits (Story has higher caps for some sliders).
         applyEntPostFormatLimits(crIgState.format || 'post');
         const sliderIds = [
-          'entPostBrandSize', 'entPostChartNameSize', 'entPostImageSize', 'entPostTitleSize',
+          'entPostBrandSize', 'entPostChartNameSize', 'entPostWeekDateSize', 'entPostImageSize', 'entPostTitleSize',
           'entPostSubtitleSize', 'entPostAlbumSize', 'entPostDescSize', 'entPostMvSize',
           'entPostRankSize', 'entPostStatusY'
         ];
@@ -8640,6 +8623,7 @@
         [
           ['crIgTitleSize', 'crIgTitleSizeLabel'],
           ['crIgBrandSize', 'crIgBrandSizeLabel'],
+          ['crIgWeekDateSize', 'crIgWeekDateSizeLabel'],
           ['crIgSectionSize', 'crIgSectionSizeLabel'],
           ['crIgBoxSize', 'crIgBoxSizeLabel'],
         ].forEach(([sliderId, labelId]) => {
@@ -8808,6 +8792,12 @@
         const titleFontSize = opts.titleSize || autoTitleSize;
         const subtitleSize = Math.max(10, titleFontSize - 6);
         const brandFontSize = opts.brandSize || 8;
+        const weekDateFontSize = opts.weekDateSize || (isPost ? 9 : 11);
+        const dr2 = getDateRange();
+        const periodLine2 = _activePeriod === 'week' ? (dr2.sub || dr2.label)
+          : _activePeriod === 'month' ? dr2.label
+          : _activePeriod === 'year' ? dr2.label
+          : null;
         const imgSize = isPost ? 64 : 80;
         const typeLabel = { songs: '★ SONG', artists: '♦ ARTIST', albums: '◈ ALBUM' }[type];
         const showImg = opts.showImage && opts.imgUrl;
@@ -8816,6 +8806,7 @@
     <div style="font-family:${lFont2};font-size:${brandFontSize}px;letter-spacing:0.2em;color:${c.accent};text-transform:uppercase;margin-bottom:${showImg ? '4' : '3'}px;">dankcharts.fm · ${typeLabel} CHART RUN · ${rangeLabelMap[rangeMode]}</div>
     <div style="font-family:${tFont};font-size:${titleFontSize}px;font-weight:700;color:${c.text};line-height:1.15;letter-spacing:-0.02em;">${esc(displayName)}</div>
     ${opts.showSubtitle && artistName ? `<div style="font-family:${tFont};font-size:${subtitleSize}px;color:${c.text3};margin-top:2px;">${esc(artistName)}</div>` : ''}
+    ${opts.showWeekDate && periodLine2 ? `<div style="font-family:${lFont2};font-size:${weekDateFontSize}px;color:${c.text3};letter-spacing:0.1em;margin-top:3px;text-transform:uppercase;">${esc(periodLine2)}</div>` : ''}
   `;
         const headerContent = showImg
           ? `<div style="display:flex;align-items:center;gap:12px;">
@@ -8846,6 +8837,7 @@
             descMode: crIgState.entPostDescMode,
             descCustom: crIgState.entPostDescCustom,
             descVariant: crIgState.entPostDescVariant || 0,
+            showWeekDate: (document.getElementById('entPostOpt_showWeekDate') || { checked: true }).checked,
             showDescription: (document.getElementById('entPostOpt_showDescription') || { checked: true }).checked,
             showSubtitle: (document.getElementById('entPostOpt_showSubtitle') || { checked: true }).checked,
             showMovement: (document.getElementById('entPostOpt_showMovement') || { checked: true }).checked,
@@ -8854,6 +8846,7 @@
             imgUrl: crIgState.entPostImgUrl,
             chartNameSize: _sz('entPostChartNameSize'),
             entBrandSize: _sz('entPostBrandSize'),
+            entWeekDateSize: _sz('entPostWeekDateSize'),
             entTitleSize: _sz('entPostTitleSize'),
             entSubtitleSize: _sz('entPostSubtitleSize'),
             entAlbumSize: _sz('entPostAlbumSize'),
@@ -8873,6 +8866,7 @@
             showYear: document.getElementById('crIgOpt_showYear')?.checked ?? true,
             showMonth: document.getElementById('crIgOpt_showMonth')?.checked ?? true,
             showWeek: document.getElementById('crIgOpt_showWeek')?.checked ?? true,
+            showWeekDate: document.getElementById('crIgOpt_showWeekDate')?.checked ?? true,
             showSubtitle: document.getElementById('crIgOpt_showSubtitle')?.checked ?? true,
             showFooter: document.getElementById('crIgOpt_showFooter')?.checked ?? true,
             showImage: document.getElementById('crIgOpt_showImage')?.checked ?? true,
@@ -8881,6 +8875,7 @@
             labelFont: document.getElementById('crIgLabelFont')?.value || 'DM Mono',
             titleSize: _sz('crIgTitleSize'),
             brandSize: _sz('crIgBrandSize'),
+            weekDateSize: _sz('crIgWeekDateSize'),
             sectionSize: _sz('crIgSectionSize'),
             boxSize: _sz('crIgBoxSize'),
           };
@@ -8999,6 +8994,7 @@
         const descFont = _ov(opts.entDescSize, isPost ? 11 : 14);
         // chartNameSize controls the chart-name line in the header
         const chartNameFont = _ov(opts.chartNameSize, isPost ? 15 : 19);
+        const weekDateFont = _ov(opts.entWeekDateSize, isPost ? 9 : 11);
         const brandFont = _ov(opts.entBrandSize, isPost ? 8.5 : 10);
         const dateFont = isPost ? 8.5 : 9.5;
         // As header text grows, shrink the image and add spacing to avoid visual collisions.
@@ -9041,6 +9037,7 @@
         const header = '<div style="padding:' + (isPost ? '24px 22px 14px' : '86px 26px 18px') + ';background:linear-gradient(135deg,' + c.bg3 + ',' + c.surface + ');border-bottom:2px solid ' + c.accent + ';flex-shrink:0;min-height:' + headerMinH + 'px;box-sizing:border-box;display:flex;flex-direction:column;justify-content:flex-start;">'
           + '<div style="font-family:\'DM Mono\',monospace;font-size:' + brandFont + 'px;letter-spacing:0.22em;color:' + c.accent + ';text-transform:uppercase;margin-bottom:3px;">dankcharts.fm \u00b7 ' + esc(typeLabel) + '</div>'
           + '<div style="font-family:\'DM Serif Display\',serif;font-size:' + chartNameFont + 'px;color:' + c.text + ';line-height:1.1;">' + esc(chartName) + '</div>'
+          + (opts.showWeekDate && periodLine ? '<div style="font-family:\'DM Mono\',monospace;font-size:' + weekDateFont + 'px;color:' + c.text3 + ';letter-spacing:0.1em;margin-top:4px;text-transform:uppercase;">' + esc(periodLine) + '</div>' : '')
           + '</div>';
 
         const body = '<div style="flex:1;overflow:hidden;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:' + (isPost ? ('12px 22px ' + bodyPadBottom + 'px') : ('22px 28px ' + bodyPadBottom + 'px')) + ';position:relative;">'
@@ -11196,74 +11193,7 @@
 
     </script>
 
-    <button id="backToTopBtn" title="Back to top" aria-label="Back to top">▲</button>
 
-    <script>
-      // ─── BACK TO TOP ────────────────────────────────────────────
-      (function () {
-        const btn = document.getElementById('backToTopBtn');
-        if (!btn) return;
-
-        let downScrollActions = 0;
-        let lastY = window.scrollY || document.documentElement.scrollTop || 0;
-        let lastActionAt = 0;
-        const SHOW_AFTER_ACTIONS = 10;
-        const ACTION_DEBOUNCE_MS = 80;
-
-        function updateBackToTopVisibility() {
-          btn.classList.toggle('visible', downScrollActions >= SHOW_AFTER_ACTIONS);
-        }
-
-        function registerScrollAction(dy) {
-          const now = (window.performance && typeof window.performance.now === 'function')
-            ? window.performance.now()
-            : Date.now();
-          if (now - lastActionAt < ACTION_DEBOUNCE_MS) return;
-
-          if (dy > 2) {
-            downScrollActions = Math.min(1000, downScrollActions + 1);
-            lastActionAt = now;
-          } else if (dy < -2) {
-            downScrollActions = Math.max(0, downScrollActions - 1);
-            lastActionAt = now;
-          }
-        }
-
-        function handleScrollProgress() {
-          const y = window.scrollY || document.documentElement.scrollTop || 0;
-          const dy = y - lastY;
-          lastY = y;
-
-          if (y <= 10) {
-            downScrollActions = 0;
-            updateBackToTopVisibility();
-            return;
-          }
-
-          registerScrollAction(dy);
-
-          updateBackToTopVisibility();
-        }
-
-        // Global hook retained for existing callers.
-        window._refreshBackToTop = function () {
-          const y = window.scrollY || document.documentElement.scrollTop || 0;
-          if (y <= 10) downScrollActions = 0;
-          updateBackToTopVisibility();
-        };
-
-        window.addEventListener('scroll', handleScrollProgress, { passive: true });
-        window.addEventListener('resize', updateBackToTopVisibility, { passive: true });
-
-        btn.addEventListener('click', () => {
-          window.scrollTo({ top: 0, behavior: 'smooth' });
-          downScrollActions = 0;
-          updateBackToTopVisibility();
-        });
-
-        updateBackToTopVisibility();
-      })();
-    </script>
 </body>
 
 </html>
