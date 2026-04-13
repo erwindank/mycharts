@@ -678,6 +678,54 @@
       color: rgba(255, 255, 255, 0.8);
     }
 
+    body.yellow-light .modal-header {
+      background: linear-gradient(135deg, #7a6000, #9a7a00);
+    }
+
+    body.yellow-light .modal-header .modal-artist-name {
+      color: #fffde8;
+    }
+
+    body.yellow-light .modal-header .modal-artist-sub {
+      color: rgba(255, 248, 180, 0.9);
+    }
+
+    body.purple-light .modal-header {
+      background: linear-gradient(135deg, #3828a8, #4a38c8);
+    }
+
+    body.purple-light .modal-header .modal-artist-name {
+      color: #f0eeff;
+    }
+
+    body.purple-light .modal-header .modal-artist-sub {
+      color: rgba(220, 210, 255, 0.9);
+    }
+
+    body.navy-light .modal-header {
+      background: linear-gradient(135deg, #0852a8, #0a6acc);
+    }
+
+    body.navy-light .modal-header .modal-artist-name {
+      color: #e8f4ff;
+    }
+
+    body.navy-light .modal-header .modal-artist-sub {
+      color: rgba(180, 220, 255, 0.9);
+    }
+
+    body.pink-light .modal-header {
+      background: linear-gradient(135deg, #900054, #b0006a);
+    }
+
+    body.pink-light .modal-header .modal-artist-name {
+      color: #fff0f8;
+    }
+
+    body.pink-light .modal-header .modal-artist-sub {
+      color: rgba(255, 200, 230, 0.9);
+    }
+
     /* Yellow Dark masthead */
     body.yellow .masthead {
       background: linear-gradient(160deg, #1a1a00 0%, #2a2a00 50%, #1a1a00 100%);
@@ -2002,10 +2050,18 @@
       font-weight: 700;
     }
 
+    body.yellow .ig-format-btn.active {
+      color: #1a1600;
+    }
+
     .ig-format-btn:not(.active):hover {
       border-color: var(--accent);
       color: var(--text);
       font-weight: 700;
+    }
+
+    .ig-format-btn.active:hover {
+      font-weight: 900;
     }
 
     .ig-modal-mode-bar {
@@ -2982,6 +3038,14 @@
       background: var(--accent);
       border-color: var(--accent);
       color: #fff;
+    }
+
+    body.yellow .cr-range-btn.active {
+      color: #1a1600;
+    }
+
+    .cr-range-btn.active:hover {
+      font-weight: 700;
     }
 
     .cr-panel {
@@ -4716,6 +4780,15 @@
                       style="font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--text2);min-width:30px;text-align:right;">Auto</span>
                   </div>
                 </div>
+                <div style="display:flex;gap:0.4rem;flex-wrap:wrap;margin-top:4px;">
+                  <button class="ig-format-btn" onclick="setCrIgAllSliders(true)"
+                    style="padding:0.2rem 0.55rem;font-size:0.6rem;flex:0 0 auto;">Max All</button>
+                  <button class="ig-format-btn" onclick="setCrIgAllSliders(false)"
+                    style="padding:0.2rem 0.55rem;font-size:0.6rem;flex:0 0 auto;">Min All</button>
+                </div>
+                <div
+                  style="font-family:'DM Mono',monospace;font-size:0.55rem;color:var(--text3);letter-spacing:0.06em;margin-top:4px;">
+                  Slide to override · leftmost = Auto</div>
               </div>
             </div>
           </div>
@@ -5347,7 +5420,7 @@
         });
       }
 
-      // Handle source-cycle button clicks; stop propagation so artist-row onclick doesn't fire
+      // Handle source-cycle button clicks (capture phase so it beats artist-row handler)
       document.addEventListener('click', e => {
         const btn = e.target.closest('.img-src-btn');
         if (!btn) return;
@@ -5355,6 +5428,15 @@
         const { imgid, type, prefkey, name, artist, album } = btn.dataset;
         cycleImgSrc(imgid, type, prefkey, name, artist, album);
       }, true);
+
+      // Open artist profile modal when clicking anywhere in an artist row
+      // (except on buttons — 📊 toggle, img-src-btn, share button)
+      document.addEventListener('click', e => {
+        if (e.target.closest('button')) return;
+        const row = e.target.closest('tr.artist-row[data-artist]');
+        if (!row) return;
+        openArtistModal(row.dataset.artist);
+      });
 
 
       // ─── GOOGLE SHEETS SYNC ────────────────────────────────────────
@@ -6859,7 +6941,7 @@
             const prefKey = 'artist:' + a.name.toLowerCase();
             const rowId = 'crr-yartist-' + i;
             imgItems.push({ imgId, name: a.name, prefKey });
-            const mainRow = `<tr class="${rank === 1 ? 'rank-1' : rank === 2 ? 'rank-2' : rank === 3 ? 'rank-3' : ''} artist-row" data-artist="${esc(a.name)}" onclick="openArtistModal(this.closest('tr').dataset.artist)">
+            const mainRow = `<tr class="${rank === 1 ? 'rank-1' : rank === 2 ? 'rank-2' : rank === 3 ? 'rank-3' : ''} artist-row" data-artist="${esc(a.name)}">
         <td class="rank-cell">${hasCR ? `<button class="cr-toggle-btn" title="View chart run history — see how this entry has ranked over time" onclick="toggleChartRun(this,'${rowId}')">📊</button>` : ''} ${rank}</td>
         <td class="thumb-cell"><div class="thumb-wrap"><div id="${imgId}"><div class="thumb-initials">${esc(initials(a.name))}</div></div><button id="srcbtn-${imgId}" class="img-src-btn" data-imgid="${imgId}" data-type="artist" data-prefkey="${esc(prefKey)}" data-name="${esc(a.name)}" data-artist="${esc(a.name)}" data-album="">${srcLabel(itemSourcePrefs[prefKey] || 'deezer')}</button></div></td>
         <td><div class="song-title">${esc(a.name)}</div><div class="song-artist" style="font-size:0.7rem;letter-spacing:0.06em;font-style:normal;font-family:'DM Mono',monospace;color:var(--text3)">CLICK TO VIEW PROFILE</div></td>
@@ -6954,7 +7036,8 @@
       let chartRunData = null;
       let allChartRun = {};
       let allChartRunIsFullHistory = false; // true only when all 3 built with offset=0
-      let crRangeMode = 'now'; // 'year' | 'uptoYear' | 'now'
+      const crRangeModes = {}; // per-entry: keyed by type+'|'+key
+      function getCrRangeMode(type, key) { return crRangeModes[type + '|' + key] || 'now'; }
 
       function getViewedYear() {
         const now = new Date();
@@ -7079,7 +7162,7 @@
         const toggleHtml = `<div class="cr-range-bar">
     <span class="cr-range-label">Range</span>
     ${['year', 'uptoYear', 'now'].map(m =>
-          `<button class="cr-range-btn${crRangeMode === m ? ' active' : ''}" title="${modeTitles[m]}" onclick="setCrRangeMode('${m}');event.stopPropagation()">${modeLabels[m]}</button>`
+          `<button class="cr-range-btn${getCrRangeMode(type, key) === m ? ' active' : ''}" title="${modeTitles[m]}" onclick="setCrRangeMode('${m}','${type}','${encodeURIComponent(key)}');event.stopPropagation()">${modeLabels[m]}</button>`
         ).join('')}
     <button class="cr-ig-share-btn" title="Generate a shareable image of this chart run or entry" style="margin-left:auto;" onclick="openCrIgModalFromPanel('${type}','${encodeURIComponent(key)}');event.stopPropagation()">📸 Share</button>
   </div>`;
@@ -7093,7 +7176,7 @@
           ].map(({ id, label }) => {
             const crData = allChartRun[id];
             const rawD = crData?.result?.[type]?.[key];
-            const d = filterCrD(rawD, id, crRangeMode, vy, cutoffKeys);
+            const d = filterCrD(rawD, id, getCrRangeMode(type, key), vy, cutoffKeys);
             return `<div class="cr-panel-section">
         <div class="cr-panel-section-title">${label}</div>
         ${d ? `<div class="cr-stats">${crStats(type, key, id, null, d)}</div>${crBoxesHTML(type, key, null, d, id)}` : '<div style="font-size:0.6rem;color:var(--text3);padding:2px 0">No chart history for this range.</div>'}
@@ -7102,7 +7185,7 @@
         } else {
           const crData = allChartRun[currentPeriod] || chartRunData;
           const rawD = crData?.result?.[type]?.[key];
-          const d = filterCrD(rawD, currentPeriod, crRangeMode, vy, cutoffKeys);
+          const d = filterCrD(rawD, currentPeriod, getCrRangeMode(type, key), vy, cutoffKeys);
           sectionsHtml = d
             ? `<div class="cr-stats">${crStats(type, key, currentPeriod, null, d)}</div>${crBoxesHTML(type, key, null, d, currentPeriod)}`
             : '<div style="font-size:0.6rem;color:var(--text3);padding:4px 0">No chart history for this range.</div>';
@@ -7110,13 +7193,11 @@
         return headerHtml + toggleHtml + sectionsHtml;
       }
 
-      function setCrRangeMode(mode) {
-        crRangeMode = mode;
-        document.querySelectorAll('.cr-row.open .cr-panel[data-crtype]').forEach(panel => {
-          const type = panel.dataset.crtype;
-          const key = decodeURIComponent(panel.dataset.crkey);
-          panel.innerHTML = buildCrPanelHTML(type, key);
-        });
+      function setCrRangeMode(mode, type, encodedKey) {
+        const key = decodeURIComponent(encodedKey);
+        crRangeModes[type + '|' + key] = mode;
+        const panel = document.querySelector(`.cr-row.open .cr-panel[data-crtype="${type}"][data-crkey="${encodedKey}"]`);
+        if (panel) panel.innerHTML = buildCrPanelHTML(type, key);
       }
 
       function buildChartRun(period) {
@@ -7717,7 +7798,7 @@
           const prefKey = 'artist:' + artist.toLowerCase();
           const rowId = 'crr-artist-' + i;
           imgItems.push({ imgId, name: artist, prefKey });
-          const mainRow = `<tr class="${i === 0 ? 'rank-1' : i === 1 ? 'rank-2' : i === 2 ? 'rank-3' : ''} artist-row" data-artist="${esc(artist)}" onclick="openArtistModal(this.closest('tr').dataset.artist)">
+          const mainRow = `<tr class="${i === 0 ? 'rank-1' : i === 1 ? 'rank-2' : i === 2 ? 'rank-3' : ''} artist-row" data-artist="${esc(artist)}">
       <td class="rank-cell"><button class="cr-toggle-btn" title="View chart run history — see how this entry has ranked over time" onclick="toggleChartRun(this,'${rowId}')">📊</button>${i + 1}</td>
       <td class="thumb-cell"><div class="thumb-wrap"><div id="${imgId}"><div class="thumb-initials">${esc(initials(artist))}</div></div><button id="srcbtn-${imgId}" class="img-src-btn" data-imgid="${imgId}" data-type="artist" data-prefkey="${esc(prefKey)}" data-name="${esc(artist)}" data-artist="${esc(artist)}" data-album="">${srcLabel(itemSourcePrefs[prefKey] || 'deezer')}</button></div></td>
       <td><div class="song-title">${esc(artist)}${pk ? peakBadge(pk) : ''}</div><div class="song-artist" style="font-size:0.7rem;letter-spacing:0.06em;font-style:normal;font-family:'DM Mono',monospace;color:var(--text3)">CLICK TO VIEW PROFILE</div></td>
@@ -8450,6 +8531,18 @@
         updateCrIgPreview();
       }
 
+      function setCrIgAllSliders(toMax) {
+        const sliderIds = ['crIgTitleSize', 'crIgBrandSize', 'crIgWeekDateSize', 'crIgSectionSize', 'crIgBoxSize'];
+        sliderIds.forEach(id => {
+          const el = document.getElementById(id);
+          if (!el) return;
+          const target = toMax ? parseInt(el.max || el.value || '0', 10) : parseInt(el.min || '0', 10);
+          el.value = String(Number.isFinite(target) ? target : 0);
+        });
+        updateCrIgSizeLabels();
+        updateCrIgPreview();
+      }
+
       function _syncEntPostDescModeBtns() {
         const isAuto = crIgState.entPostDescMode !== 'custom';
         document.getElementById('entPostDescModeAuto')?.classList.toggle('active', isAuto);
@@ -8520,7 +8613,7 @@
         document.getElementById('crIgTitle').textContent = typeLabel + ' Chart Run — ' + name.slice(0, 40);
 
         // Sync range mode with current chart run panel setting
-        crIgState.rangeMode = crRangeMode;
+        crIgState.rangeMode = getCrRangeMode(type, key);
         // Update IG range button labels to be context-aware
         const _vy = getViewedYear();
         let _igLabels, _igTitles;
@@ -8570,6 +8663,8 @@
         crIgState.entPostImgUrl = null;
         crIgState.entPostImgSource = 'deezer';
         _syncEntPostSrcBtns();
+        // Close artist modal so it doesn't stack on top of the IG modal
+        document.getElementById('artistModal')?.classList.remove('open');
         setCrIgMode('chartrun'); // always open on chart run tab; resets preview
         document.getElementById('crIgModal').classList.add('open');
         fetchCrIgImage(type, key);
@@ -9260,6 +9355,9 @@
       }
 
       function openArtistModal(artistName) {
+        // Close any open IG modals so they don't stack behind the artist modal
+        document.getElementById('crIgModal')?.classList.remove('open');
+        document.getElementById('igPreviewModal')?.classList.remove('open');
         // Gather all-time data for this artist across ALL plays
         const artistPlays = allPlays.filter(p => p.artists.includes(artistName));
         const totalPlays = artistPlays.length;

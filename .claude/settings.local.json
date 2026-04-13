@@ -4,7 +4,8 @@
       "Bash(gh api:*)",
       "WebFetch(domain:musicbrainz.org)",
       "WebSearch",
-      "WebFetch(domain:corsproxy.io)"
+      "WebFetch(domain:corsproxy.io)",
+      "Bash(grep -n \"^    <script>$\" \"c:/Users/erwin/Desktop/mycharts/index.html\")"
     ]
   }
 }
