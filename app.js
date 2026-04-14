@@ -786,12 +786,26 @@ function navigateToRecPeriod(period, periodKey) {
     offset = (now.getFullYear() - yr) * 12 + (now.getMonth() + 1 - mo);
   }
   if (offset >= 0) {
-    if (currentPeriod !== period) {
-      savedOffsets[currentPeriod] = currentOffset;
-      currentPeriod = period;
-      document.querySelectorAll('.period-nav button').forEach(b => b.classList.toggle('active', b.dataset.period === period));
+    savedOffsets[currentPeriod] = currentOffset;
+    // If coming from records/graphs/rawdata, restore the chart UI
+    if (currentPeriod === 'records' || currentPeriod === 'graphs' || currentPeriod === 'rawdata') {
+      document.getElementById('recordsView').style.display = 'none';
+      document.getElementById('graphsView').style.display = 'none';
+      document.getElementById('rawDataView').style.display = 'none';
+      document.getElementById('dateNav').style.display = '';
+      document.getElementById('statsStrip').style.display = '';
+      document.getElementById('songsSection').style.display = '';
+      document.getElementById('artistsSection').style.display = '';
+      document.getElementById('albumsSection').style.display = '';
+      document.getElementById('upcomingSection').style.display = '';
+      document.getElementById('recentSection').style.display = '';
+      if (currentPeriod === 'graphs') destroyGraphCharts();
     }
+    currentPeriod = period;
+    localStorage.setItem('dc_period', currentPeriod);
+    document.querySelectorAll('.period-nav button').forEach(b => b.classList.toggle('active', b.dataset.period === period));
     currentOffset = offset;
+    savedOffsets[period] = offset;
     pageState.songs = 0; pageState.artists = 0; pageState.albums = 0;
     renderAll();
   }
@@ -992,12 +1006,14 @@ function buildRecords() {
     weekKeys.length + ' weeks &middot; ' + monthKeys.length + ' months &middot; ' + yearKeys.length + ' years of data';
 
   function recTable(headers, rows, limit) {
-    limit = limit || 25;
+    limit = (limit === undefined || limit === null) ? 25 : limit;
     if (!rows.length) return '<div class="rec-empty">No data yet.</div>';
+    const sliced = isFinite(limit) ? rows.slice(0, limit) : rows;
     return '<table class="rec-table"><thead><tr>' + headers.map(function (h) { return '<th>' + h + '</th>'; }).join('') + '</tr></thead><tbody>' +
-      rows.slice(0, limit).map(function (r, i) { return '<tr class="' + (i === 0 ? 'rec-rank-1' : i === 1 ? 'rec-rank-2' : i === 2 ? 'rec-rank-3' : '') + '">' + r + '</tr>'; }).join('') +
+      sliced.map(function (r, i) { return '<tr class="' + (i === 0 ? 'rec-rank-1' : i === 1 ? 'rec-rank-2' : i === 2 ? 'rec-rank-3' : '') + '">' + r + '</tr>'; }).join('') +
       '</tbody></table>';
   }
+  const lim = recLimit === 0 ? Infinity : recLimit;
 
   // ── All #1s ──────────────────────────────────────────────────
   const typeConfig = [
@@ -1042,7 +1058,7 @@ function buildRecords() {
           }
           return row;
         }),
-        recLimit === 0 ? Infinity : recLimit
+        lim
       );
       h += '</div>';
       // Collect image items for loading
@@ -1076,10 +1092,12 @@ function buildRecords() {
     const sortedPAK = Object.entries(byArtist).sort(function (a, b) { return b[1].length - a[1].length; });
     let ph = '<div class="rec-section-sub">' + pakWeeks.length + ' Perfect All Kill week' + (pakWeeks.length !== 1 ? 's' : '') + ' across ' + sortedPAK.length + ' artist' + (sortedPAK.length !== 1 ? 's' : '') + '</div>';
     ph += recTable(['#', 'Artist', 'PAK Weeks', 'Most Recent'],
-      sortedPAK.slice(0, 20).map(function (e, i) { return '<td class="rec-rank">' + (i + 1) + '</td><td><div class="rec-name">' + esc(e[0]) + '</div></td><td class="rec-count">' + e[1].length + '</td><td class="rec-meta">' + fmtPeriodKey(e[1][e[1].length - 1].weekKey, 'week') + '</td>'; })
+      sortedPAK.map(function (e, i) { return '<td class="rec-rank">' + (i + 1) + '</td><td><div class="rec-name">' + esc(e[0]) + '</div></td><td class="rec-count">' + e[1].length + '</td><td class="rec-meta">' + fmtPeriodKey(e[1][e[1].length - 1].weekKey, 'week') + '</td>'; }),
+      lim
     );
     ph += '<br><div class="rec-section-title" style="margin-top:0.75rem;">All PAK Weeks (Most Recent First)</div><div class="pak-list">';
-    for (const pw of [...pakWeeks].reverse().slice(0, 50)) {
+    const pakSlice = isFinite(lim) ? [...pakWeeks].reverse().slice(0, lim) : [...pakWeeks].reverse();
+    for (const pw of pakSlice) {
       ph += '<div class="pak-item"><div class="pak-date">' + fmtPeriodKey(pw.weekKey, 'week') + '</div><div class="pak-info"><div class="pak-artist">' + esc(pw.artist) + '</div><div class="pak-details">🎵 ' + esc(pw.song) + ' &middot; 💿 ' + esc(pw.album) + '</div></div><span class="rec-badge rec-badge-gold">PAK</span></div>';
     }
     ph += '</div>';
@@ -1095,9 +1113,10 @@ function buildRecords() {
   ];
   for (const ent of appEntConfig) {
     ah += '<div class="rec-section"><div class="rec-section-title">' + ent.icon + ' ' + ent.label + ' &mdash; Most Weekly Chart Appearances</div>';
-    const tops = Object.entries(ent.apps.week).sort(function (a, b) { return b[1] - a[1]; }).slice(0, 25);
+    const tops = Object.entries(ent.apps.week).sort(function (a, b) { return b[1] - a[1]; });
     ah += recTable(['#', ent.label, 'Weeks on Chart'],
-      tops.map(function (e, i) { return '<td class="rec-rank">' + (i + 1) + '</td><td>' + ent.nameOf(e[0]) + '</td><td class="rec-count">' + e[1] + ' wks</td>'; })
+      tops.map(function (e, i) { return '<td class="rec-rank">' + (i + 1) + '</td><td>' + ent.nameOf(e[0]) + '</td><td class="rec-count">' + e[1] + ' wks</td>'; }),
+      lim
     );
     ah += '</div>';
   }
@@ -1112,9 +1131,10 @@ function buildRecords() {
   ];
   for (const ent of debEntConfig) {
     dh += '<div class="rec-section"><div class="rec-section-title">' + ent.icon + ' ' + ent.label + ' &mdash; Biggest Debut Positions (Weekly)</div>';
-    const debs = Object.entries(ent.data.week).sort(function (a, b) { return a[1].rank - b[1].rank || a[1].period.localeCompare(b[1].period); }).slice(0, 25);
+    const debs = Object.entries(ent.data.week).sort(function (a, b) { return a[1].rank - b[1].rank || a[1].period.localeCompare(b[1].period); });
     dh += recTable(['#', ent.label, 'Debut Rank', 'Week'],
-      debs.map(function (e, i) { return '<td class="rec-rank">' + (i + 1) + '</td>' + ent.nameOf(e[0], e[1]) + '<td class="rec-count">#' + e[1].rank + '</td><td class="rec-meta">' + fmtPeriodKey(e[1].period, 'week') + '</td>'; })
+      debs.map(function (e, i) { return '<td class="rec-rank">' + (i + 1) + '</td>' + ent.nameOf(e[0], e[1]) + '<td class="rec-count">#' + e[1].rank + '</td><td class="rec-meta">' + fmtPeriodKey(e[1].period, 'week') + '</td>'; }),
+      lim
     );
     dh += '</div>';
   }
@@ -1129,17 +1149,20 @@ function buildRecords() {
   let ppH = '';
   for (const cfg of ptCfg) {
     ppH += '<div class="rec-section"><div class="rec-section-title">Most Plays in a Single ' + cfg.unitLabel + '</div><div class="rec-grid-2">';
-    const topS = Object.entries(cfg.sPP).sort(function (a, b) { return b[1].count - a[1].count; }).slice(0, 10);
+    const topS = Object.entries(cfg.sPP).sort(function (a, b) { return b[1].count - a[1].count; });
     ppH += '<div><div class="rec-section-sub">★ Top Songs</div>' + recTable(['#', 'Song &middot; Artist', 'Plays', cfg.unitLabel],
-      topS.map(function (e, i) { const d = e[1]; const n = songNames[e[0]] || {}; return '<td class="rec-rank">' + (i + 1) + '</td><td><div class="rec-name">' + esc(d.title || n.title || e[0].split('|||')[0]) + '</div><div class="rec-sub">' + esc(d.artist || n.artist || '') + '</div></td><td class="rec-count">' + d.count + '</td><td class="rec-meta">' + fmtPeriodKey(d.period, cfg.pt) + '</td>'; })
+      topS.map(function (e, i) { const d = e[1]; const n = songNames[e[0]] || {}; return '<td class="rec-rank">' + (i + 1) + '</td><td><div class="rec-name">' + esc(d.title || n.title || e[0].split('|||')[0]) + '</div><div class="rec-sub">' + esc(d.artist || n.artist || '') + '</div></td><td class="rec-count">' + d.count + '</td><td class="rec-meta">' + fmtPeriodKey(d.period, cfg.pt) + '</td>'; }),
+      lim
     ) + '</div>';
-    const topA = Object.entries(cfg.aPP).sort(function (a, b) { return b[1].count - a[1].count; }).slice(0, 10);
+    const topA = Object.entries(cfg.aPP).sort(function (a, b) { return b[1].count - a[1].count; });
     ppH += '<div><div class="rec-section-sub">♦ Top Artists</div>' + recTable(['#', 'Artist', 'Plays', cfg.unitLabel],
-      topA.map(function (e, i) { return '<td class="rec-rank">' + (i + 1) + '</td><td><div class="rec-name">' + esc(e[0]) + '</div></td><td class="rec-count">' + e[1].count + '</td><td class="rec-meta">' + fmtPeriodKey(e[1].period, cfg.pt) + '</td>'; })
+      topA.map(function (e, i) { return '<td class="rec-rank">' + (i + 1) + '</td><td><div class="rec-name">' + esc(e[0]) + '</div></td><td class="rec-count">' + e[1].count + '</td><td class="rec-meta">' + fmtPeriodKey(e[1].period, cfg.pt) + '</td>'; }),
+      lim
     ) + '</div></div>';
-    const topL = Object.entries(cfg.lPP).sort(function (a, b) { return b[1].count - a[1].count; }).slice(0, 5);
+    const topL = Object.entries(cfg.lPP).sort(function (a, b) { return b[1].count - a[1].count; });
     ppH += '<div class="rec-section-sub">◈ Top Albums</div>' + recTable(['#', 'Album &middot; Artist', 'Plays', cfg.unitLabel],
-      topL.map(function (e, i) { const d = e[1]; const n = albumNames[e[0]] || {}; return '<td class="rec-rank">' + (i + 1) + '</td><td><div class="rec-name">' + esc(d.album || n.album || e[0].split('|||')[0]) + '</div><div class="rec-sub">' + esc(d.artist || n.artist || '') + '</div></td><td class="rec-count">' + d.count + '</td><td class="rec-meta">' + fmtPeriodKey(d.period, cfg.pt) + '</td>'; })
+      topL.map(function (e, i) { const d = e[1]; const n = albumNames[e[0]] || {}; return '<td class="rec-rank">' + (i + 1) + '</td><td><div class="rec-name">' + esc(d.album || n.album || e[0].split('|||')[0]) + '</div><div class="rec-sub">' + esc(d.artist || n.artist || '') + '</div></td><td class="rec-count">' + d.count + '</td><td class="rec-meta">' + fmtPeriodKey(d.period, cfg.pt) + '</td>'; }),
+      lim
     ) + '</div>';
   }
   document.getElementById('recPeakPlaysBody').innerHTML = ppH;
@@ -1170,26 +1193,29 @@ function buildRecords() {
   fh += '<div class="rec-section"><div class="rec-section-title">♦ Artists Fastest to ' + TARGET.toLocaleString() + ' Plays</div>';
   fh += '<div class="rec-section-sub">' + withM.length + ' artist' + (withM.length !== 1 ? 's have' : ' has') + ' reached ' + TARGET.toLocaleString() + ' plays &mdash; ranked by fewest days from first to ' + TARGET.toLocaleString() + 'th play</div>';
   fh += recTable(['#', 'Artist', 'Days to 1K', 'First Play', 'Reached 1K'],
-    withM.slice(0, 25).map(function (e, i) {
+    withM.map(function (e, i) {
       const ms = e[1][TARGET], fp = artistFirst[e[0]];
       return '<td class="rec-rank">' + (i + 1) + '</td><td><div class="rec-name">' + esc(e[0]) + '</div></td><td class="rec-count">' + (ms.days === 0 ? '&lt; 1 day' : ms.days.toLocaleString() + ' days') + '</td><td class="rec-meta">' + (fp ? fp.toLocaleDateString('default', { year: 'numeric', month: 'short', day: 'numeric' }) : '—') + '</td><td class="rec-meta">' + ms.date.toLocaleDateString('default', { year: 'numeric', month: 'short', day: 'numeric' }) + '</td>';
-    })
+    }),
+    lim
   );
   fh += '</div>';
   for (const m of [500, 2000, 5000]) {
-    const entries = Object.entries(artistMS).filter(function (e) { return e[1][m]; }).sort(function (a, b) { return a[1][m].days - b[1][m].days; }).slice(0, 10);
+    const entries = Object.entries(artistMS).filter(function (e) { return e[1][m]; }).sort(function (a, b) { return a[1][m].days - b[1][m].days; });
     if (!entries.length) continue;
     fh += '<div class="rec-section"><div class="rec-section-title">♦ Fastest to ' + m.toLocaleString() + ' Plays</div>';
     fh += recTable(['#', 'Artist', 'Days', 'Date Reached'],
-      entries.map(function (e, i) { const ms = e[1][m]; return '<td class="rec-rank">' + (i + 1) + '</td><td><div class="rec-name">' + esc(e[0]) + '</div></td><td class="rec-count">' + (ms.days === 0 ? '&lt; 1' : ms.days.toLocaleString()) + ' days</td><td class="rec-meta">' + ms.date.toLocaleDateString('default', { year: 'numeric', month: 'short', day: 'numeric' }) + '</td>'; })
+      entries.map(function (e, i) { const ms = e[1][m]; return '<td class="rec-rank">' + (i + 1) + '</td><td><div class="rec-name">' + esc(e[0]) + '</div></td><td class="rec-count">' + (ms.days === 0 ? '&lt; 1' : ms.days.toLocaleString()) + ' days</td><td class="rec-meta">' + ms.date.toLocaleDateString('default', { year: 'numeric', month: 'short', day: 'numeric' }) + '</td>'; }),
+      lim
     );
     fh += '</div>';
   }
-  const songWith500 = Object.entries(songMS).filter(function (e) { return e[1][500]; }).sort(function (a, b) { return a[1][500].days - b[1][500].days; }).slice(0, 10);
+  const songWith500 = Object.entries(songMS).filter(function (e) { return e[1][500]; }).sort(function (a, b) { return a[1][500].days - b[1][500].days; });
   if (songWith500.length) {
     fh += '<div class="rec-section"><div class="rec-section-title">★ Songs Fastest to 500 Plays</div>';
     fh += recTable(['#', 'Song &middot; Artist', 'Days', 'Date Reached'],
-      songWith500.map(function (e, i) { const n = songNames[e[0]] || {}, ms = e[1][500]; return '<td class="rec-rank">' + (i + 1) + '</td><td><div class="rec-name">' + esc(n.title || e[0].split('|||')[0]) + '</div><div class="rec-sub">' + esc(n.artist || '') + '</div></td><td class="rec-count">' + (ms.days === 0 ? '&lt; 1' : ms.days.toLocaleString()) + ' days</td><td class="rec-meta">' + ms.date.toLocaleDateString('default', { year: 'numeric', month: 'short', day: 'numeric' }) + '</td>'; })
+      songWith500.map(function (e, i) { const n = songNames[e[0]] || {}, ms = e[1][500]; return '<td class="rec-rank">' + (i + 1) + '</td><td><div class="rec-name">' + esc(n.title || e[0].split('|||')[0]) + '</div><div class="rec-sub">' + esc(n.artist || '') + '</div></td><td class="rec-count">' + (ms.days === 0 ? '&lt; 1' : ms.days.toLocaleString()) + ' days</td><td class="rec-meta">' + ms.date.toLocaleDateString('default', { year: 'numeric', month: 'short', day: 'numeric' }) + '</td>'; }),
+      lim
     );
     fh += '</div>';
   }
@@ -1206,11 +1232,12 @@ function buildRecords() {
     ch += '<div class="rec-empty">No certifications yet &mdash; keep listening!</div>';
   } else {
     ch += recTable(['#', 'Artist', 'Song Certs', 'Album Certs'],
-      certW.slice(0, 25).map(function (e, i) {
+      certW.map(function (e, i) {
         const sc2 = [e.sd ? e.sd + '× 💎' : '', e.sp ? e.sp + '× 💿' : '', e.sg ? e.sg + '× ⭐' : ''].filter(Boolean).join(' ') || '—';
         const ac2 = [e.ad ? e.ad + '× 💎' : '', e.ap ? e.ap + '× 💿' : '', e.ag ? e.ag + '× ⭐' : ''].filter(Boolean).join(' ') || '—';
         return '<td class="rec-rank">' + (i + 1) + '</td><td><div class="rec-name">' + esc(e.art) + '</div></td><td class="rec-meta" style="white-space:nowrap">' + sc2 + '</td><td class="rec-meta" style="white-space:nowrap">' + ac2 + '</td>';
-      })
+      }),
+      lim
     );
   }
   ch += '</div>';
@@ -1218,25 +1245,28 @@ function buildRecords() {
 
   // ── Streak Records ────────────────────────────────────────────
   let sh = '';
-  const topAS = Object.entries(artistStreaks).sort(function (a, b) { return b[1] - a[1]; }).slice(0, 15);
+  const topAS = Object.entries(artistStreaks).sort(function (a, b) { return b[1] - a[1]; });
   sh += '<div class="rec-section"><div class="rec-section-title">♦ Artists &mdash; Longest Daily Listening Streak</div>';
   sh += recTable(['#', 'Artist', 'Consecutive Days'],
-    topAS.map(function (e, i) { return '<td class="rec-rank">' + (i + 1) + '</td><td><div class="rec-name">' + esc(e[0]) + '</div></td><td class="rec-count">' + e[1] + ' days</td>'; })
+    topAS.map(function (e, i) { return '<td class="rec-rank">' + (i + 1) + '</td><td><div class="rec-name">' + esc(e[0]) + '</div></td><td class="rec-count">' + e[1] + ' days</td>'; }),
+    lim
   );
   sh += '</div>';
-  const topSS = Object.entries(songStreaks).sort(function (a, b) { return b[1] - a[1]; }).slice(0, 15);
+  const topSS = Object.entries(songStreaks).sort(function (a, b) { return b[1] - a[1]; });
   sh += '<div class="rec-section"><div class="rec-section-title">★ Songs &mdash; Longest Daily Listening Streak</div>';
   sh += recTable(['#', 'Song &middot; Artist', 'Consecutive Days'],
-    topSS.map(function (e, i) { const n = songNames[e[0]] || {}; return '<td class="rec-rank">' + (i + 1) + '</td><td><div class="rec-name">' + esc(n.title || e[0].split('|||')[0]) + '</div><div class="rec-sub">' + esc(n.artist || '') + '</div></td><td class="rec-count">' + e[1] + ' days</td>'; })
+    topSS.map(function (e, i) { const n = songNames[e[0]] || {}; return '<td class="rec-rank">' + (i + 1) + '</td><td><div class="rec-name">' + esc(n.title || e[0].split('|||')[0]) + '</div><div class="rec-sub">' + esc(n.artist || '') + '</div></td><td class="rec-count">' + e[1] + ' days</td>'; }),
+    lim
   );
   sh += '</div>';
   sh += '<div class="rec-section"><div class="rec-section-title">🔁 Repeat Scrobble Runs</div><div class="rec-section-sub">Most consecutive listens to the same song without playing anything else &mdash; ranked from longest to shortest</div>';
   if (allCSRuns.length > 0) {
     sh += recTable(['#', 'Song &middot; Artist', 'Consecutive Plays', 'Date'],
-      allCSRuns.slice(0, 25).map(function (e, i) {
+      allCSRuns.map(function (e, i) {
         const n = songNames[e.key] || {};
         return '<td class="rec-rank">' + (i + 1) + '</td><td><div class="rec-name">' + esc(n.title || e.key.split('|||')[0]) + '</div><div class="rec-sub">' + esc(n.artist || '') + '</div></td><td class="rec-count">' + e.count + '&times;</td><td class="rec-meta">' + (e.date ? fmt(e.date) : '') + '</td>';
-      })
+      }),
+      lim
     );
   } else {
     sh += '<div class="rec-empty">No repeat scrobble runs detected.</div>';

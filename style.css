@@ -3852,6 +3852,36 @@
       color: #c07850;
     }
 
+    .rec-table .thumb-cell {
+      width: 52px;
+      padding: 0.35rem 0.4rem !important;
+      vertical-align: middle;
+    }
+
+    .rec-table .thumb-wrap {
+      gap: 1px;
+    }
+
+    .rec-table .thumb-initials {
+      width: 36px;
+      height: 36px;
+      border-radius: 4px;
+      font-size: 0.75rem;
+    }
+
+    .rec-rank-1 .thumb-initials {
+      background: rgba(240, 170, 48, 0.12);
+      color: var(--gold1);
+      border-color: rgba(240, 170, 48, 0.3);
+    }
+
+    .rec-table .img-src-btn {
+      font-size: 0.42rem;
+      padding: 1px 2px;
+      width: 38px;
+      letter-spacing: 0.02em;
+    }
+
     .rec-name {
       font-weight: 600;
       color: var(--text);
