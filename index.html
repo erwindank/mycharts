@@ -4706,14 +4706,16 @@
               </div>
               <div class="ig-ctrl-group">
                 <div class="ig-ctrl-group-title">Show / Hide</div>
+                <label class="ig-ctrl-row"><input type="checkbox" id="crIgOpt_showImage" checked
+                    onchange="updateCrIgPreview()"><span>Cover Art / Photo</span></label>
                 <label class="ig-ctrl-row"><input type="checkbox" id="crIgOpt_showWeekDate" checked
                     onchange="updateCrIgPreview()"><span>Week Date Subtitle</span></label>
                 <label class="ig-ctrl-row"><input type="checkbox" id="crIgOpt_showSubtitle" checked
                     onchange="updateCrIgPreview()"><span>Artist / Sub-label</span></label>
+                <label class="ig-ctrl-row"><input type="checkbox" id="crIgOpt_showSectionSummary" checked
+                    onchange="updateCrIgPreview()"><span>📈 Section Summary Stats</span></label>
                 <label class="ig-ctrl-row"><input type="checkbox" id="crIgOpt_showFooter" checked
                     onchange="updateCrIgPreview()"><span>Footer Branding</span></label>
-                <label class="ig-ctrl-row"><input type="checkbox" id="crIgOpt_showImage" checked
-                    onchange="updateCrIgPreview()"><span>Cover Art / Photo</span></label>
                 <div style="display:flex;align-items:center;gap:0.4rem;padding-left:22px;flex-wrap:wrap;">
                   <span
                     style="font-family:'DM Mono',monospace;font-size:0.58rem;color:var(--text3);flex-shrink:0;">Source:</span>
@@ -4757,12 +4759,12 @@
                   </div>
                   <div style="display:flex;align-items:center;gap:0.5rem;">
                     <span
-                      style="font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--text3);min-width:52px;">Title
-                      px</span>
-                    <input type="range" id="crIgTitleSize" min="0" max="36" value="0"
+                      style="font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--text3);min-width:52px;">Cover
+                      Art/Photo</span>
+                    <input type="range" id="crIgImageScale" min="80" max="150" value="100"
                       oninput="updateCrIgSizeLabels();updateCrIgPreview()" style="flex:1;accent-color:var(--accent);">
-                    <span id="crIgTitleSizeLabel"
-                      style="font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--text2);min-width:30px;text-align:right;">Auto</span>
+                    <span id="crIgImageScaleLabel"
+                      style="font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--text2);min-width:30px;text-align:right;">100%</span>
                   </div>
                   <div style="display:flex;align-items:center;gap:0.5rem;">
                     <span
@@ -4771,6 +4773,15 @@
                     <input type="range" id="crIgBrandSize" min="0" max="18" value="0"
                       oninput="updateCrIgSizeLabels();updateCrIgPreview()" style="flex:1;accent-color:var(--accent);">
                     <span id="crIgBrandSizeLabel"
+                      style="font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--text2);min-width:30px;text-align:right;">Auto</span>
+                  </div>
+                  <div style="display:flex;align-items:center;gap:0.5rem;">
+                    <span
+                      style="font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--text3);min-width:52px;">Song/Artist
+                      px</span>
+                    <input type="range" id="crIgTitleSize" min="0" max="60" value="0"
+                      oninput="updateCrIgSizeLabels();updateCrIgPreview()" style="flex:1;accent-color:var(--accent);">
+                    <span id="crIgTitleSizeLabel"
                       style="font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--text2);min-width:30px;text-align:right;">Auto</span>
                   </div>
                   <div style="display:flex;align-items:center;gap:0.5rem;">
@@ -8534,7 +8545,7 @@
     }
 
     function setCrIgAllSliders(toMax) {
-      const sliderIds = ['crIgTitleSize', 'crIgBrandSize', 'crIgWeekDateSize', 'crIgSectionSize', 'crIgBoxSize'];
+      const sliderIds = ['crIgImageScale', 'crIgBrandSize', 'crIgTitleSize', 'crIgWeekDateSize', 'crIgSectionSize', 'crIgBoxSize'];
       sliderIds.forEach(id => {
         const el = document.getElementById(id);
         if (!el) return;
@@ -8728,6 +8739,10 @@
         const lbl = document.getElementById(labelId);
         if (lbl) lbl.textContent = val === 0 ? 'Auto' : val + 'px';
       });
+      // Update Image Scale label
+      const scaleVal = parseInt(document.getElementById('crIgImageScale')?.value || 100);
+      const scaleLbl = document.getElementById('crIgImageScaleLabel');
+      if (scaleLbl) scaleLbl.textContent = scaleVal + '%';
     }
     // Keep backward-compat alias used by openCrIgModal
     function updateCrIgTitleSizeLabel() { updateCrIgSizeLabels(); }
@@ -8735,6 +8750,22 @@
     function closeCrIgModal() {
       document.getElementById('crIgModal').classList.remove('open');
       document.getElementById('crIgCanvas').innerHTML = '';
+    }
+
+    function applyCrIgFormatLimits(fmt) {
+      const isStory = fmt === 'story';
+      // Increase max values for Section px and Boxes px in Story format
+      const sectionSlider = document.getElementById('crIgSectionSize');
+      const boxSlider = document.getElementById('crIgBoxSize');
+      if (sectionSlider) {
+        sectionSlider.max = String(isStory ? 32 : 18);
+        if (parseInt(sectionSlider.value || '0', 10) > parseInt(sectionSlider.max, 10)) sectionSlider.value = sectionSlider.max;
+      }
+      if (boxSlider) {
+        boxSlider.max = String(isStory ? 40 : 22);
+        if (parseInt(boxSlider.value || '0', 10) > parseInt(boxSlider.max, 10)) boxSlider.value = boxSlider.max;
+      }
+      updateCrIgSizeLabels();
     }
 
     function applyEntPostFormatLimits(fmt) {
@@ -8758,6 +8789,7 @@
       document.getElementById('crIgFmtStory').classList.toggle('active', fmt === 'story');
       document.getElementById('entPostFmtPost').classList.toggle('active', fmt === 'post');
       document.getElementById('entPostFmtStory').classList.toggle('active', fmt === 'story');
+      applyCrIgFormatLimits(fmt);
       applyEntPostFormatLimits(fmt);
       updateCrIgPreview();
     }
@@ -8821,7 +8853,6 @@
         const top5 = d.entries.filter(e => e.rank <= 5).length;
         const top10 = d.entries.filter(e => e.rank <= 10).length;
         const pSize = (opts.chartSizes && opts.chartSizes[period]) ?? Infinity; // chartSize for this period
-        const unit = period === 'week' ? (n > 1 ? 'wks' : 'wk') : period === 'month' ? (n > 1 ? 'mos' : 'mo') : (n > 1 ? 'yrs' : 'yr');
         // Box sizing — driven by opts.boxSize slider (auto = 11px for rank)
         const boxRankSize = opts.boxSize || 11;
         const boxLabelSize = Math.max(5, boxRankSize - 4.5);
@@ -8869,14 +8900,14 @@
 
         return `<div style="margin-bottom:9px;">
       <div style="font-family:${lFont};font-size:${secSize}px;letter-spacing:0.14em;color:${c.accent};text-transform:uppercase;margin-bottom:4px;">${pc.label}</div>
-      <div style="display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin-bottom:5px;">
-        ${_stat(n + ' ' + unit, 'on chart')}
+      ${opts.showSectionSummary ? `<div style="display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin-bottom:5px;">
+        ${_stat(n + ' ' + (period === 'week' ? (n > 1 ? 'weeks' : 'week') : period === 'month' ? (n > 1 ? 'months' : 'month') : (n > 1 ? 'years' : 'year')), 'on chart')}
         ${_peakBadge(peak)}
-        ${top1 ? _stat(top1 + ' ' + unit, 'at #1') : ''}
-        ${top5 && 5 < pSize ? _stat(top5 + ' ' + unit, 'in Top 5') : ''}
-        ${top10 && 10 < pSize ? _stat(top10 + ' ' + unit, 'in Top 10') : ''}
+        ${top1 ? _stat(top1 + ' ' + (period === 'week' ? (top1 > 1 ? 'weeks' : 'week') : period === 'month' ? (top1 > 1 ? 'months' : 'month') : (top1 > 1 ? 'years' : 'year')), 'at #1') : ''}
+        ${top5 && 5 < pSize ? _stat(top5 + ' ' + (period === 'week' ? (top5 > 1 ? 'weeks' : 'week') : period === 'month' ? (top5 > 1 ? 'months' : 'month') : (top5 > 1 ? 'years' : 'year')), 'in Top 5') : ''}
+        ${top10 && 10 < pSize ? _stat(top10 + ' ' + (period === 'week' ? (top10 > 1 ? 'weeks' : 'week') : period === 'month' ? (top10 > 1 ? 'months' : 'month') : (top10 > 1 ? 'years' : 'year')), 'in Top 10') : ''}
         ${truncated ? `<span style="font-family:${lFont};font-size:${secSize}px;color:${c.text3};">· last ${maxBoxes} shown</span>` : ''}
-      </div>
+      </div>` : ''}
       <div style="display:flex;flex-wrap:wrap;gap:${gap}px;">${boxesHtml}</div>
     </div>`;
       }).filter(Boolean);
@@ -8895,7 +8926,11 @@
         : _activePeriod === 'month' ? dr2.label
           : _activePeriod === 'year' ? dr2.label
             : null;
-      const imgSize = isPost ? 64 : 80;
+      let imgSize = isPost ? 64 : 80;
+      // Apply image scale to cover art size
+      if (opts.imageScale) {
+        imgSize = Math.round(imgSize * opts.imageScale);
+      }
       const typeLabel = { songs: '★ SONG', artists: '♦ ARTIST', albums: '◈ ALBUM' }[type];
       const showImg = opts.showImage && opts.imgUrl;
       const headerPad = isPost ? '12px 16px' : '62px 20px 16px';
@@ -8967,6 +9002,7 @@
           showSubtitle: document.getElementById('crIgOpt_showSubtitle')?.checked ?? true,
           showFooter: document.getElementById('crIgOpt_showFooter')?.checked ?? true,
           showImage: document.getElementById('crIgOpt_showImage')?.checked ?? true,
+          showSectionSummary: document.getElementById('crIgOpt_showSectionSummary')?.checked ?? true,
           imgUrl: crIgState.imgUrl,
           titleFont: document.getElementById('crIgTitleFont')?.value || 'DM Sans',
           labelFont: document.getElementById('crIgLabelFont')?.value || 'DM Mono',
@@ -8975,6 +9011,7 @@
           weekDateSize: _sz('crIgWeekDateSize'),
           sectionSize: _sz('crIgSectionSize'),
           boxSize: _sz('crIgBoxSize'),
+          imageScale: parseInt(document.getElementById('crIgImageScale')?.value || 100) / 100,
         };
         html = buildCrIgCardHTML(crIgState.type, crIgState.key, opts);
       }
