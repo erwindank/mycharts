@@ -1057,7 +1057,7 @@ function buildRecords() {
         }
       });
       // Load images asynchronously after rendering
-      (async function() {
+      (async function () {
         await loadImages(imgItems, ent.type);
       })();
       h += '</div>';
