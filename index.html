@@ -9306,41 +9306,22 @@
 
     // ─── ARTIST MODAL ──────────────────────────────────────────────
     const modal = document.getElementById('artistModal');
-    document.getElementById('modalClose').addEventListener('click', () => {
-      console.log('Close button clicked');
-      modal.classList.remove('open');
-    });
-    modal.addEventListener('click', e => {
-      console.log('Modal clicked, e.target === modal?', e.target === modal);
-      if (e.target === modal) {
-        console.log('Reducing open class from modal overlay click');
-        modal.classList.remove('open');
-      }
-    });
+    document.getElementById('modalClose').addEventListener('click', () => modal.classList.remove('open'));
+    modal.addEventListener('click', e => { if (e.target === modal) modal.classList.remove('open'); });
 
-    // Event delegation for artist rows — attach to the already-existing artistsBody
+    // Event delegation for artist rows
     const artistsBody = document.getElementById('artistsBody');
     if (artistsBody) {
-      console.log('Attaching artist row click listener to artistsBody');
       artistsBody.addEventListener('click', e => {
-        // Find the artist row - could be clicked on tr, td, or nested element
         let artistRow = e.target.closest('.artist-row');
-        if (!artistRow) return;
-
-        // Skip if clicking on a button
-        if (e.target.closest('button')) return;
-
+        if (!artistRow || e.target.closest('button')) return;
         const artistName = artistRow.dataset.artist;
-        console.log('Artist row clicked, artistName:', artistName);
         if (artistName) {
-          console.log('Calling openArtistModal');
           e.preventDefault();
           e.stopPropagation();
           openArtistModal(artistName);
         }
       }, false);
-    } else {
-      console.warn('artistsBody not found');
     }
 
     // Returns all weeks (ever) where artistName had the most plays that week
@@ -9391,10 +9372,6 @@
     }
 
     function openArtistModal(artistName) {
-      console.log('openArtistModal called with artistName:', artistName);
-      console.log('allPlays length:', allPlays.length);
-      console.log('Modal element exists?', !!modal);
-      console.log('Modal in DOM?', document.contains(modal));
       // Close any open IG modals so they don't stack behind the artist modal
       document.getElementById('crIgModal')?.classList.remove('open');
       document.getElementById('igPreviewModal')?.classList.remove('open');
@@ -9614,28 +9591,8 @@
         return [mainRow, `<tr class="cr-row" id="${rowId}"><td colspan="6"><div class="cr-panel"><div class="cr-stats">${crStats('albums', crKey, chartRunData.period)}</div>${crBoxesHTML('albums', crKey)}</div></td></tr>`];
       }).join('') || `<tr><td colspan="6" style="font-style:italic;color:var(--text3);padding:0.5rem">No album data found.</td></tr>`;
 
-      console.log('About to open modal, modal element:', modal);
-      console.log('Modal box content length:', modal.querySelector('.modal-box')?.innerHTML?.length || 0);
-      console.log('Modal display before:', window.getComputedStyle(modal).display);
-      console.log('Modal position:', window.getComputedStyle(modal).position);
-      console.log('Modal top:', window.getComputedStyle(modal).top);
-      console.log('Modal parent:', modal.parentElement);
       modal.classList.add('open');
-      modal.style.display = 'block !important';
-      modal.style.visibility = 'visible !important';
-      console.log('Modal classes after add:', modal.className);
-      console.log('Modal display after:', window.getComputedStyle(modal).display);
-      console.log('Modal visibility:', window.getComputedStyle(modal).visibility);
-      console.log('Modal z-index:', window.getComputedStyle(modal).zIndex);
-      console.log('Modal width:', window.getComputedStyle(modal).width);
-      console.log('Modal height:', window.getComputedStyle(modal).height);
       modal.scrollTop = 0;
-      console.log('Modal opened, checking again after 100ms...');
-      setTimeout(() => {
-        console.log('After timeout - Modal classes:', modal.className);
-        console.log('After timeout - Modal display:', window.getComputedStyle(modal).display);
-        console.log('After timeout - Modal visibility:', window.getComputedStyle(modal).visibility);
-      }, 100);
     }
 
     function esc(str) {
@@ -9645,40 +9602,23 @@
     // ─── ALBUM MODAL ───────────────────────────────────────────────
     const albumModal = document.getElementById('albumModal');
     document.getElementById('albumModalClose').addEventListener('click', () => {
-      console.log('Album close button clicked');
       albumModal.classList.remove('open');
     });
-    albumModal.addEventListener('click', e => {
-      console.log('Album modal clicked, e.target === albumModal?', e.target === albumModal);
-      if (e.target === albumModal) {
-        console.log('Removing open class from album modal overlay click');
-        albumModal.classList.remove('open');
-      }
-    });
+    albumModal.addEventListener('click', e => { if (e.target === albumModal) albumModal.classList.remove('open'); });
 
-    // Event delegation for album rows — attach to the already-existing albumsBody
+    // Event delegation for album rows
     const albumsBody = document.getElementById('albumsBody');
     if (albumsBody) {
-      console.log('Attaching album row click listener to albumsBody');
       albumsBody.addEventListener('click', e => {
-        // Find the album row - could be clicked on tr, td, or nested element
         let albumRow = e.target.closest('.album-row');
-        if (!albumRow) return;
-
-        // Skip if clicking on a button
-        if (e.target.closest('button')) return;
-
+        if (!albumRow || e.target.closest('button')) return;
         const albumKey = albumRow.dataset.albumkey;
-        console.log('Album row clicked, albumKey:', albumKey);
         if (albumKey) {
-          console.log('Calling openAlbumModal');
           e.preventDefault();
           e.stopPropagation();
           openAlbumModal(albumKey);
         }
       }, false);
-    } else {
-      console.warn('albumsBody not found');
     }
 
     function findAlbumNo1Weeks(albumKey) {
@@ -9852,21 +9792,8 @@
           return [mainRow, `<tr class="cr-row" id="${rowId}"><td colspan="6"><div class="cr-panel"><div class="cr-stats">${crStats('songs', crKey, chartRunData.period)}</div>${crBoxesHTML('songs', crKey)}</div></td></tr>`];
         }).join(''));
 
-      console.log('About to open album modal, element:', albumModal);
-      console.log('Album modal display before:', window.getComputedStyle(albumModal).display);
-      console.log('Album modal position:', window.getComputedStyle(albumModal).position);
       albumModal.classList.add('open');
-      albumModal.style.display = 'block';
-      albumModal.style.visibility = 'visible';
-      console.log('Album modal classes after add:', albumModal.className);
-      console.log('Album modal display after:', window.getComputedStyle(albumModal).display);
-      console.log('Album modal visibility:', window.getComputedStyle(albumModal).visibility);
       albumModal.scrollTop = 0;
-      console.log('Album modal opened, checking again after 100ms...');
-      setTimeout(() => {
-        console.log('After timeout - Album modal classes:', albumModal.className);
-        console.log('After timeout - Album modal display:', window.getComputedStyle(albumModal).display);
-      }, 100);
     }
 
     // ─── UPCOMING RELEASES (MusicBrainz) ───────────────────────────
