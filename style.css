@@ -327,9 +327,11 @@
       cursor: pointer;
       outline: none;
     }
+
     #weekStartDaySelect:focus {
       border-color: var(--accent);
     }
+
     #weekStartDaySelect option {
       background: var(--bg2);
       color: var(--text);
@@ -3696,6 +3698,52 @@
       border-color: var(--accent);
     }
 
+    .rec-section-sub-header {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-bottom: 0.6rem;
+    }
+
+    .rec-subsection-collapse-btn {
+      flex-shrink: 0;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      border: 1px solid var(--border2);
+      background: none;
+      color: var(--text3);
+      font-size: 0.6rem;
+      line-height: 1;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0;
+      transition: background 0.15s, color 0.15s, border-color 0.15s;
+    }
+
+    .rec-subsection-collapse-btn:hover {
+      background: var(--surface);
+      color: var(--text);
+      border-color: var(--accent);
+    }
+
+    .rec-section-sub-wrapper.rec-subsection-collapsed .rec-subsection-content {
+      display: none;
+    }
+
+    .rec-section-sub-wrapper {
+      margin-bottom: 0.5rem;
+    }
+
+    .rec-section-header {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-bottom: 0.3rem;
+    }
+
     .rec-section-header .rec-section-title {
       margin-bottom: 0;
       flex: 1;
@@ -3820,6 +3868,19 @@
       font-family: 'DM Mono', monospace;
       font-size: 0.62rem;
       color: var(--text3);
+    }
+
+    .rec-date-link {
+      color: var(--accent);
+      text-decoration: none;
+      cursor: pointer;
+      border-bottom: 1px solid var(--accent);
+      padding-bottom: 1px;
+    }
+
+    .rec-date-link:hover {
+      color: var(--accent2);
+      border-bottom-color: var(--accent2);
     }
 
     .rec-count {
