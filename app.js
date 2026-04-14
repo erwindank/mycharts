@@ -49,8 +49,21 @@ try {
 } catch (e) { applyTheme('navy-dark'); }
 
 // ─── WEEK START DAY SELECTOR ───────────────────────────────────
-const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+const DAY_KEYS = ['day_sunday', 'day_monday', 'day_tuesday', 'day_wednesday', 'day_thursday', 'day_friday', 'day_saturday'];
 const startDaySelect = document.getElementById('weekStartDaySelect');
+
+function repopulateWeekDays() {
+  if (!startDaySelect) return;
+  const cur = startDaySelect.value;
+  startDaySelect.innerHTML = '';
+  DAY_KEYS.forEach((key, index) => {
+    const option = document.createElement('option');
+    option.value = index;
+    option.textContent = t(key);
+    startDaySelect.appendChild(option);
+  });
+  startDaySelect.value = cur;
+}
 
 function updateWeekStartDay(day) {
   weekStartDay = day;
@@ -59,10 +72,10 @@ function updateWeekStartDay(day) {
 }
 
 if (startDaySelect) {
-  dayNames.forEach((name, index) => {
+  DAY_KEYS.forEach((key, index) => {
     const option = document.createElement('option');
     option.value = index;
-    option.textContent = name;
+    option.textContent = t(key);
     startDaySelect.appendChild(option);
   });
 
@@ -421,7 +434,7 @@ function setSyncStatus(msg, cls) {
 async function syncFromSheets() {
   const btn = document.getElementById('syncNowBtn');
   btn.disabled = true;
-  setSyncStatus('⟳ Fetching from Google Sheets...', 'loading');
+  setSyncStatus(t('sync_connecting'), 'loading');
   try {
     const res = await fetch(SHEET_URL + '&t=' + Date.now()); // cache-bust
     if (!res.ok) throw new Error('HTTP ' + res.status);
@@ -433,9 +446,9 @@ async function syncFromSheets() {
     lastSyncTime = new Date();
     localStorage.setItem('dc_sync_ts', lastSyncTime.getTime().toString());
     try { sessionStorage.setItem('dc_sync_csv', text); } catch (e) { sessionStorage.removeItem('dc_sync_csv'); }
-    setSyncStatus('✓ Synced · ' + lastSyncTime.toLocaleTimeString() + '  (' + allPlays.length.toLocaleString() + ' plays loaded)', 'ok');
+    setSyncStatus(t('sync_ok', { time: lastSyncTime.toLocaleTimeString(), n: allPlays.length.toLocaleString() }), 'ok');
   } catch (e) {
-    setSyncStatus('✕ Sync failed — check sheet is public · ' + e.message, 'err');
+    setSyncStatus(t('sync_failed', { error: e.message }), 'err');
   }
   btn.disabled = false;
   // Schedule next auto-sync
@@ -457,7 +470,7 @@ window.addEventListener('load', () => {
     lastSyncTime = new Date(cachedTs);
     parseCsv(cachedCsv, true);
     const minsAgo = Math.round(age / 60000);
-    setSyncStatus('✓ Synced · ' + lastSyncTime.toLocaleTimeString() + '  (' + allPlays.length.toLocaleString() + ' plays loaded) · cached ' + minsAgo + 'm ago', 'ok');
+    setSyncStatus(t('sync_ok_cached', { time: lastSyncTime.toLocaleTimeString(), n: allPlays.length.toLocaleString(), mins: minsAgo }), 'ok');
     clearTimeout(syncTimer);
     syncTimer = setTimeout(syncFromSheets, SYNC_INTERVAL_MS - age);
   } else {
@@ -469,7 +482,7 @@ function parseCsv(text, fromSheets = false) {
   const lines = text.trim().split(/\r?\n/);
   if (lines.length < 2) {
     if (!fromSheets) return;
-    setSyncStatus('✕ Sheet appears empty or has only a header row.', 'err'); return;
+    setSyncStatus(t('sync_empty'), 'err'); return;
   }
 
   const headers = lines[0].split(',').map(h => h.replace(/^"|"$/g, '').trim().toLowerCase());
@@ -489,7 +502,7 @@ function parseCsv(text, fromSheets = false) {
   }
 
   if (colMap.title === undefined || colMap.artist === undefined || colMap.datetime === undefined) {
-    setSyncStatus('✕ Could not find required columns (Song Title, Artist, Date and Time) in sheet.', 'err'); return;
+    setSyncStatus(t('sync_missing_cols'), 'err'); return;
   }
 
   allPlays = [];
@@ -522,11 +535,11 @@ function parseCsv(text, fromSheets = false) {
   if (totalSkipped > 0) {
     console.warn(`dankcharts.fm: skipped ${totalSkipped} rows total — ${skippedDate} bad/missing date, ${skippedBlank} blank/short rows.`);
     if (skippedDateSamples.length) console.warn('Date parse failures (up to 20):', skippedDateSamples);
-    setSyncStatus(`⚠ Synced with warnings — ${totalSkipped} rows skipped (${skippedDate} bad date, ${skippedBlank} blank). Check console for details.`, 'loading');
+    setSyncStatus(t('sync_warning', { total: totalSkipped, date: skippedDate, blank: skippedBlank }), 'loading');
   }
 
   if (allPlays.length === 0) {
-    setSyncStatus('✕ No valid plays found — check date format in your sheet.', 'err'); return;
+    setSyncStatus(t('sync_no_valid'), 'err'); return;
   }
 
   allPlays.sort((a, b) => b.date - a.date);
@@ -570,8 +583,7 @@ function parseCsv(text, fromSheets = false) {
   if (savedCumArtists) try { gCumulativeArtists = JSON.parse(savedCumArtists); renderCumulativeChips(); } catch (e) { }
   if (localStorage.getItem('dc_gCumulativeLabels') === '1') {
     gCumulativeLabels = true;
-    const lb = document.getElementById('gCumulativeLabelsBtn');
-    if (lb) { lb.textContent = 'Labels: On'; lb.classList.add('active'); }
+    updateLabelButton('gCumulativeLabelsBtn', true);
   }
   const savedCumFrom = localStorage.getItem('dc_gCumulativeFrom');
   if (savedCumFrom) document.getElementById('gCumulativeFrom').value = savedCumFrom;
@@ -580,13 +592,11 @@ function parseCsv(text, fromSheets = false) {
 
   if (localStorage.getItem('dc_gTotalVolumeLabels') === '1') {
     gTotalVolumeLabels = true;
-    const lb = document.getElementById('gTotalVolumeLabelsBtn');
-    if (lb) { lb.textContent = 'Labels: On'; lb.classList.add('active'); }
+    updateLabelButton('gTotalVolumeLabelsBtn', true);
   }
   if (localStorage.getItem('dc_gDiscoveriesLabels') === '1') {
     gDiscoveriesLabels = true;
-    const lb = document.getElementById('gDiscoveriesLabelsBtn');
-    if (lb) { lb.textContent = 'Labels: On'; lb.classList.add('active'); }
+    updateLabelButton('gDiscoveriesLabelsBtn', true);
   }
   const savedTVFrom = localStorage.getItem('dc_gTotalVolumeFrom');
   if (savedTVFrom) document.getElementById('gTotalVolumeFrom').value = savedTVFrom;
@@ -597,8 +607,7 @@ function parseCsv(text, fromSheets = false) {
   if (savedVolArtists) try { gVolumeArtists = JSON.parse(savedVolArtists); renderVolumeChips(); } catch (e) { }
   if (localStorage.getItem('dc_gVolumeLabels') === '1') {
     gVolumeLabels = true;
-    const lb = document.getElementById('gVolumeLabelsBtn');
-    if (lb) { lb.textContent = 'Labels: On'; lb.classList.add('active'); }
+    updateLabelButton('gVolumeLabelsBtn', true);
   }
   const savedVolFrom = localStorage.getItem('dc_gVolumeFrom');
   if (savedVolFrom) document.getElementById('gVolumeFrom').value = savedVolFrom;
@@ -829,11 +838,11 @@ function buildRecords() {
   }
 
   function fmtPeriodKey(pk, pt) {
-    if (pt === 'week') { const d = new Date(pk + 'T00:00:00'); return 'Week of ' + fmt(d); }
+    if (pt === 'week') { const d = new Date(pk + 'T00:00:00'); return t('period_week_of', { date: fmt(d) }); }
     if (pt === 'month') { const [yr, mo] = pk.split('-'); return new Date(+yr, +mo - 1, 1).toLocaleString('default', { month: 'short', year: 'numeric' }); }
     return pk;
   }
-  function periodUnit(pt) { return pt === 'week' ? 'Weeks' : pt === 'month' ? 'Months' : 'Years'; }
+  function periodAtOneHeader(pt) { return pt === 'week' ? t('rec_th_weeks_at_1') : pt === 'month' ? t('rec_th_months_at_1') : t('rec_th_years_at_1'); }
 
   // Group plays by period
   const chron = [...allPlays].sort((a, b) => a.date - b.date);
@@ -1000,14 +1009,14 @@ function buildRecords() {
   }
 
   // ── RENDERING ────────────────────────────────────────────────
-  const yLabel = isFinite(chartSizeYearly) ? 'Top ' + chartSizeYearly : 'All Entries';
+  const yTopLabel = isFinite(chartSizeYearly) ? t('rec_yearly_top', { n: chartSizeYearly }) : t('rec_yearly_all');
   document.getElementById('recIntro').innerHTML =
-    'Records based on chart sizes: <strong>Weekly Top ' + wSize + '</strong> &middot; <strong>Monthly Top ' + mSize + '</strong> &middot; <strong>Yearly ' + yLabel + '</strong> &nbsp;|&nbsp; ' +
-    weekKeys.length + ' weeks &middot; ' + monthKeys.length + ' months &middot; ' + yearKeys.length + ' years of data';
+    t('rec_intro_prefix') + ' <strong>' + t('rec_weekly_top', { n: wSize }) + '</strong> &middot; <strong>' + t('rec_monthly_top', { n: mSize }) + '</strong> &middot; <strong>' + yTopLabel + '</strong> &nbsp;|&nbsp; ' +
+    t('rec_data_summary', { weeks: weekKeys.length, months: monthKeys.length, years: yearKeys.length });
 
   function recTable(headers, rows, limit) {
     limit = (limit === undefined || limit === null) ? 25 : limit;
-    if (!rows.length) return '<div class="rec-empty">No data yet.</div>';
+    if (!rows.length) return '<div class="rec-empty">' + t('rec_no_data') + '</div>';
     const sliced = isFinite(limit) ? rows.slice(0, limit) : rows;
     return '<table class="rec-table"><thead><tr>' + headers.map(function (h) { return '<th>' + h + '</th>'; }).join('') + '</tr></thead><tbody>' +
       sliced.map(function (r, i) { return '<tr class="' + (i === 0 ? 'rec-rank-1' : i === 1 ? 'rec-rank-2' : i === 2 ? 'rec-rank-3' : '') + '">' + r + '</tr>'; }).join('') +
@@ -1017,38 +1026,38 @@ function buildRecords() {
 
   // ── All #1s ──────────────────────────────────────────────────
   const typeConfig = [
-    { pt: 'week', label: 'Weekly', size: wSize },
-    { pt: 'month', label: 'Monthly', size: mSize },
-    { pt: 'year', label: 'Yearly', size: isFinite(chartSizeYearly) ? chartSizeYearly : '∞' },
+    { pt: 'week', label: t('rec_weekly_label'), size: wSize },
+    { pt: 'month', label: t('rec_monthly_label'), size: mSize },
+    { pt: 'year', label: t('rec_yearly_label'), size: isFinite(chartSizeYearly) ? chartSizeYearly : '∞' },
   ];
   const entityConfig = [
     {
-      key: 'songs', icon: '★', label: 'Songs', data: song1s, type: 'song',
+      key: 'songs', icon: '★', label: t('rec_th_songs'), data: song1s, type: 'song',
       nameRow: function (k, d, i, imgId) { return '<td class="rec-rank">' + (i + 1) + '</td><td class="thumb-cell"><div class="thumb-wrap"><div id="' + imgId + '"><div class="thumb-initials">' + esc(initials(d.title)) + '</div></div><button id="srcbtn-' + imgId + '" class="img-src-btn" data-imgid="' + imgId + '" data-type="song" data-prefkey="' + esc('song:' + d.artist.toLowerCase() + '|||' + d.title.toLowerCase()) + '" data-name="' + esc(d.title) + '" data-artist="' + esc(d.artist) + '" data-album="' + esc(d.album) + '">Deezer</button></div></td><td><div class="rec-name">' + esc(d.title) + '</div><div class="rec-sub">' + esc(d.artist) + '</div></td>'; }
     },
     {
-      key: 'artists', icon: '♦', label: 'Artists', data: artist1s, type: 'artist',
+      key: 'artists', icon: '♦', label: t('rec_th_artists'), data: artist1s, type: 'artist',
       nameRow: function (k, d, i, imgId) { return '<td class="rec-rank">' + (i + 1) + '</td><td class="thumb-cell"><div class="thumb-wrap"><div id="' + imgId + '"><div class="thumb-initials">' + esc(initials(k)) + '</div></div><button id="srcbtn-' + imgId + '" class="img-src-btn" data-imgid="' + imgId + '" data-type="artist" data-prefkey="' + esc('artist:' + k.toLowerCase()) + '" data-name="' + esc(k) + '" data-artist="' + esc(k) + '" data-album="">Deezer</button></div></td><td><div class="rec-name">' + esc(k) + '</div></td>'; }
     },
     {
-      key: 'albums', icon: '◈', label: 'Albums', data: album1s, type: 'album',
+      key: 'albums', icon: '◈', label: t('rec_th_albums'), data: album1s, type: 'album',
       nameRow: function (k, d, i, imgId) { return '<td class="rec-rank">' + (i + 1) + '</td><td class="thumb-cell"><div class="thumb-wrap"><div id="' + imgId + '"><div class="thumb-initials">' + esc(initials(d.album)) + '</div></div><button id="srcbtn-' + imgId + '" class="img-src-btn" data-imgid="' + imgId + '" data-type="album" data-prefkey="' + esc('album:' + d.artist.toLowerCase() + '|||' + d.album.toLowerCase()) + '" data-name="' + esc(d.album) + '" data-artist="' + esc(d.artist) + '" data-album="' + esc(d.album) + '">Deezer</button></div></td><td><div class="rec-name">' + esc(d.album) + '</div><div class="rec-sub">' + esc(d.artist) + '</div></td>'; }
     },
   ];
   let h = '';
   for (const ent of entityConfig) {
-    h += '<div class="rec-section"><div class="rec-section-title">' + ent.icon + ' ' + ent.label + ' &mdash; Most Times at #1 on Chart</div>';
+    h += '<div class="rec-section"><div class="rec-section-title">' + ent.icon + ' ' + ent.label + ' &mdash; ' + t('rec_most_times_1') + '</div>';
     for (const cfg of typeConfig) {
       const entries = Object.entries(ent.data[cfg.pt]).sort(function (a, b) { return b[1].count - a[1].count; });
       const subsectionId = 'rec-subsection-' + ent.key + '-' + cfg.pt;
       h += '<div class="rec-section-sub-wrapper" id="' + subsectionId + '-wrapper">';
       h += '<div class="rec-section-sub-header">';
       h += '<button class="rec-subsection-collapse-btn" data-subsection-id="' + subsectionId + '" title="Collapse">−</button>';
-      h += '<div class="rec-section-sub">' + cfg.label + ' Chart &mdash; <strong>' + entries.length + '</strong> ' + ent.label.toLowerCase() + ' have hit #1</div>';
+      h += '<div class="rec-section-sub">' + cfg.label + ' ' + t('rec_chart_label') + ' &mdash; ' + t('rec_have_hit_1', { n: '<strong>' + entries.length + '</strong>', type: ent.label.toLowerCase() }) + '</div>';
       h += '</div>';
       h += '<div class="rec-subsection-content" id="' + subsectionId + '">';
-      const headers = ['#', '', ent.label, periodUnit(cfg.pt) + ' at #1', 'First at #1'];
-      if (cfg.pt !== 'year') headers.push('Date at Peak');
+      const headers = ['#', '', ent.label, periodAtOneHeader(cfg.pt), t('rec_th_first_at_1')];
+      if (cfg.pt !== 'year') headers.push(t('rec_th_date_at_peak'));
       h += recTable(headers,
         entries.map(function (e, i) {
           const imgId = 'rec-img-' + ent.key + '-' + cfg.pt + '-' + i;
@@ -1085,17 +1094,17 @@ function buildRecords() {
 
   // ── Perfect All Kill ─────────────────────────────────────────
   if (!pakWeeks.length) {
-    document.getElementById('recPAKBody').innerHTML = '<div class="rec-empty">No Perfect All Kill weeks recorded with Weekly Top ' + wSize + '. An artist must simultaneously hold #1 on the artist, song and album charts in the same week.</div>';
+    document.getElementById('recPAKBody').innerHTML = '<div class="rec-empty">' + t('rec_no_pak', { n: wSize }) + '</div>';
   } else {
     const byArtist = {};
     for (const pw of pakWeeks) { (byArtist[pw.artist] || (byArtist[pw.artist] = [])).push(pw); }
     const sortedPAK = Object.entries(byArtist).sort(function (a, b) { return b[1].length - a[1].length; });
-    let ph = '<div class="rec-section-sub">' + pakWeeks.length + ' Perfect All Kill week' + (pakWeeks.length !== 1 ? 's' : '') + ' across ' + sortedPAK.length + ' artist' + (sortedPAK.length !== 1 ? 's' : '') + '</div>';
-    ph += recTable(['#', 'Artist', 'PAK Weeks', 'Most Recent'],
+    let ph = '<div class="rec-section-sub">' + t('rec_pak_summary', { weeks: pakWeeks.length, weekword: tUnit('weeks', pakWeeks.length), n: sortedPAK.length, artistword: tUnit('artists', sortedPAK.length) }) + '</div>';
+    ph += recTable(['#', t('rec_th_artist'), t('rec_th_pak_weeks'), t('rec_th_most_recent')],
       sortedPAK.map(function (e, i) { return '<td class="rec-rank">' + (i + 1) + '</td><td><div class="rec-name">' + esc(e[0]) + '</div></td><td class="rec-count">' + e[1].length + '</td><td class="rec-meta">' + fmtPeriodKey(e[1][e[1].length - 1].weekKey, 'week') + '</td>'; }),
       lim
     );
-    ph += '<br><div class="rec-section-title" style="margin-top:0.75rem;">All PAK Weeks (Most Recent First)</div><div class="pak-list">';
+    ph += '<br><div class="rec-section-title" style="margin-top:0.75rem;">' + t('rec_pak_all_title') + '</div><div class="pak-list">';
     const pakSlice = isFinite(lim) ? [...pakWeeks].reverse().slice(0, lim) : [...pakWeeks].reverse();
     for (const pw of pakSlice) {
       ph += '<div class="pak-item"><div class="pak-date">' + fmtPeriodKey(pw.weekKey, 'week') + '</div><div class="pak-info"><div class="pak-artist">' + esc(pw.artist) + '</div><div class="pak-details">🎵 ' + esc(pw.song) + ' &middot; 💿 ' + esc(pw.album) + '</div></div><span class="rec-badge rec-badge-gold">PAK</span></div>';
@@ -1107,15 +1116,15 @@ function buildRecords() {
   // ── Most Chart Appearances ────────────────────────────────────
   let ah = '';
   const appEntConfig = [
-    { icon: '★', label: 'Songs', apps: songApps, nameOf: function (k) { const n = songNames[k] || {}; return '<div class="rec-name">' + esc(n.title || k.split('|||')[0]) + '</div><div class="rec-sub">' + esc(n.artist || '') + '</div>'; } },
-    { icon: '♦', label: 'Artists', apps: artistApps, nameOf: function (k) { return '<div class="rec-name">' + esc(k) + '</div>'; } },
-    { icon: '◈', label: 'Albums', apps: albumApps, nameOf: function (k) { const n = albumNames[k] || {}; return '<div class="rec-name">' + esc(n.album || k.split('|||')[0]) + '</div><div class="rec-sub">' + esc(n.artist || '') + '</div>'; } },
+    { icon: '★', label: t('rec_th_songs'), apps: songApps, nameOf: function (k) { const n = songNames[k] || {}; return '<div class="rec-name">' + esc(n.title || k.split('|||')[0]) + '</div><div class="rec-sub">' + esc(n.artist || '') + '</div>'; } },
+    { icon: '♦', label: t('rec_th_artists'), apps: artistApps, nameOf: function (k) { return '<div class="rec-name">' + esc(k) + '</div>'; } },
+    { icon: '◈', label: t('rec_th_albums'), apps: albumApps, nameOf: function (k) { const n = albumNames[k] || {}; return '<div class="rec-name">' + esc(n.album || k.split('|||')[0]) + '</div><div class="rec-sub">' + esc(n.artist || '') + '</div>'; } },
   ];
   for (const ent of appEntConfig) {
-    ah += '<div class="rec-section"><div class="rec-section-title">' + ent.icon + ' ' + ent.label + ' &mdash; Most Weekly Chart Appearances</div>';
+    ah += '<div class="rec-section"><div class="rec-section-title">' + ent.icon + ' ' + ent.label + ' &mdash; ' + t('rec_most_appearances') + '</div>';
     const tops = Object.entries(ent.apps.week).sort(function (a, b) { return b[1] - a[1]; });
-    ah += recTable(['#', ent.label, 'Weeks on Chart'],
-      tops.map(function (e, i) { return '<td class="rec-rank">' + (i + 1) + '</td><td>' + ent.nameOf(e[0]) + '</td><td class="rec-count">' + e[1] + ' wks</td>'; }),
+    ah += recTable(['#', ent.label, t('rec_th_weeks_on_chart')],
+      tops.map(function (e, i) { return '<td class="rec-rank">' + (i + 1) + '</td><td>' + ent.nameOf(e[0]) + '</td><td class="rec-count">' + e[1] + ' ' + tUnit('weeks', e[1]) + '</td>'; }),
       lim
     );
     ah += '</div>';
@@ -1125,14 +1134,14 @@ function buildRecords() {
   // ── Biggest Debuts ───────────────────────────────────────────
   let dh = '';
   const debEntConfig = [
-    { icon: '★', label: 'Songs', data: songDebuts, nameOf: function (k, d) { return '<td><div class="rec-name">' + esc(d.title) + '</div><div class="rec-sub">' + esc(d.artist) + '</div></td>'; } },
-    { icon: '♦', label: 'Artists', data: artistDebuts, nameOf: function (k, d) { return '<td><div class="rec-name">' + esc(k) + '</div></td>'; } },
-    { icon: '◈', label: 'Albums', data: albumDebuts, nameOf: function (k, d) { return '<td><div class="rec-name">' + esc(d.album) + '</div><div class="rec-sub">' + esc(d.artist) + '</div></td>'; } },
+    { icon: '★', label: t('rec_th_songs'), data: songDebuts, nameOf: function (k, d) { return '<td><div class="rec-name">' + esc(d.title) + '</div><div class="rec-sub">' + esc(d.artist) + '</div></td>'; } },
+    { icon: '♦', label: t('rec_th_artists'), data: artistDebuts, nameOf: function (k, d) { return '<td><div class="rec-name">' + esc(k) + '</div></td>'; } },
+    { icon: '◈', label: t('rec_th_albums'), data: albumDebuts, nameOf: function (k, d) { return '<td><div class="rec-name">' + esc(d.album) + '</div><div class="rec-sub">' + esc(d.artist) + '</div></td>'; } },
   ];
   for (const ent of debEntConfig) {
-    dh += '<div class="rec-section"><div class="rec-section-title">' + ent.icon + ' ' + ent.label + ' &mdash; Biggest Debut Positions (Weekly)</div>';
+    dh += '<div class="rec-section"><div class="rec-section-title">' + ent.icon + ' ' + ent.label + ' &mdash; ' + t('rec_biggest_debuts_weekly') + '</div>';
     const debs = Object.entries(ent.data.week).sort(function (a, b) { return a[1].rank - b[1].rank || a[1].period.localeCompare(b[1].period); });
-    dh += recTable(['#', ent.label, 'Debut Rank', 'Week'],
+    dh += recTable(['#', ent.label, t('rec_th_debut_rank'), t('rec_th_week')],
       debs.map(function (e, i) { return '<td class="rec-rank">' + (i + 1) + '</td>' + ent.nameOf(e[0], e[1]) + '<td class="rec-count">#' + e[1].rank + '</td><td class="rec-meta">' + fmtPeriodKey(e[1].period, 'week') + '</td>'; }),
       lim
     );
@@ -1142,25 +1151,25 @@ function buildRecords() {
 
   // ── Most Plays in a Period ────────────────────────────────────
   const ptCfg = [
-    { pt: 'week', unitLabel: 'Week', sPP: songPP.week, aPP: artistPP.week, lPP: albumPP.week },
-    { pt: 'month', unitLabel: 'Month', sPP: songPP.month, aPP: artistPP.month, lPP: albumPP.month },
-    { pt: 'year', unitLabel: 'Year', sPP: songPP.year, aPP: artistPP.year, lPP: albumPP.year },
+    { pt: 'week', unitLabel: t('rec_th_week'), sPP: songPP.week, aPP: artistPP.week, lPP: albumPP.week },
+    { pt: 'month', unitLabel: t('rec_th_month'), sPP: songPP.month, aPP: artistPP.month, lPP: albumPP.month },
+    { pt: 'year', unitLabel: t('rec_th_year'), sPP: songPP.year, aPP: artistPP.year, lPP: albumPP.year },
   ];
   let ppH = '';
   for (const cfg of ptCfg) {
-    ppH += '<div class="rec-section"><div class="rec-section-title">Most Plays in a Single ' + cfg.unitLabel + '</div><div class="rec-grid-2">';
+    ppH += '<div class="rec-section"><div class="rec-section-title">' + t('rec_most_plays_single', { unit: cfg.unitLabel }) + '</div><div class="rec-grid-2">';
     const topS = Object.entries(cfg.sPP).sort(function (a, b) { return b[1].count - a[1].count; });
-    ppH += '<div><div class="rec-section-sub">★ Top Songs</div>' + recTable(['#', 'Song &middot; Artist', 'Plays', cfg.unitLabel],
+    ppH += '<div><div class="rec-section-sub">' + t('rec_top_songs') + '</div>' + recTable(['#', t('rec_th_songs') + ' &middot; ' + t('rec_th_artist'), t('rec_th_plays'), cfg.unitLabel],
       topS.map(function (e, i) { const d = e[1]; const n = songNames[e[0]] || {}; return '<td class="rec-rank">' + (i + 1) + '</td><td><div class="rec-name">' + esc(d.title || n.title || e[0].split('|||')[0]) + '</div><div class="rec-sub">' + esc(d.artist || n.artist || '') + '</div></td><td class="rec-count">' + d.count + '</td><td class="rec-meta">' + fmtPeriodKey(d.period, cfg.pt) + '</td>'; }),
       lim
     ) + '</div>';
     const topA = Object.entries(cfg.aPP).sort(function (a, b) { return b[1].count - a[1].count; });
-    ppH += '<div><div class="rec-section-sub">♦ Top Artists</div>' + recTable(['#', 'Artist', 'Plays', cfg.unitLabel],
+    ppH += '<div><div class="rec-section-sub">' + t('rec_top_artists') + '</div>' + recTable(['#', t('rec_th_artist'), t('rec_th_plays'), cfg.unitLabel],
       topA.map(function (e, i) { return '<td class="rec-rank">' + (i + 1) + '</td><td><div class="rec-name">' + esc(e[0]) + '</div></td><td class="rec-count">' + e[1].count + '</td><td class="rec-meta">' + fmtPeriodKey(e[1].period, cfg.pt) + '</td>'; }),
       lim
     ) + '</div></div>';
     const topL = Object.entries(cfg.lPP).sort(function (a, b) { return b[1].count - a[1].count; });
-    ppH += '<div class="rec-section-sub">◈ Top Albums</div>' + recTable(['#', 'Album &middot; Artist', 'Plays', cfg.unitLabel],
+    ppH += '<div class="rec-section-sub">' + t('rec_top_albums') + '</div>' + recTable(['#', t('rec_th_albums') + ' &middot; ' + t('rec_th_artist'), t('rec_th_plays'), cfg.unitLabel],
       topL.map(function (e, i) { const d = e[1]; const n = albumNames[e[0]] || {}; return '<td class="rec-rank">' + (i + 1) + '</td><td><div class="rec-name">' + esc(d.album || n.album || e[0].split('|||')[0]) + '</div><div class="rec-sub">' + esc(d.artist || n.artist || '') + '</div></td><td class="rec-count">' + d.count + '</td><td class="rec-meta">' + fmtPeriodKey(d.period, cfg.pt) + '</td>'; }),
       lim
     ) + '</div>';
@@ -1168,34 +1177,34 @@ function buildRecords() {
   document.getElementById('recPeakPlaysBody').innerHTML = ppH;
 
   // ── Play Count Milestones ─────────────────────────────────────
-  let mh = '<div class="rec-section"><div class="rec-section-title">♦ Artists &mdash; First to Reach Play Milestones</div>';
+  let mh = '<div class="rec-section"><div class="rec-section-title">' + t('rec_artists_milestones') + '</div>';
   const aMilRows = MILESTONES.map(function (m) {
     const first = Object.entries(artistMS).filter(function (e) { return e[1][m]; }).sort(function (a, b) { return a[1][m].date - b[1][m].date; })[0];
     if (!first) return '';
     const ms = first[1][m];
-    return '<tr><td><span class="milestone-number">' + m.toLocaleString() + '</span></td><td><div class="rec-name">' + esc(first[0]) + '</div></td><td class="rec-meta">' + ms.date.toLocaleDateString('default', { year: 'numeric', month: 'short', day: 'numeric' }) + '</td><td class="rec-meta">' + (ms.days === 0 ? 'Day 1' : ms.days.toLocaleString() + ' days after first play') + '</td></tr>';
+    return '<tr><td><span class="milestone-number">' + m.toLocaleString() + '</span></td><td><div class="rec-name">' + esc(first[0]) + '</div></td><td class="rec-meta">' + ms.date.toLocaleDateString('default', { year: 'numeric', month: 'short', day: 'numeric' }) + '</td><td class="rec-meta">' + (ms.days === 0 ? t('rec_milestone_day1') : t('rec_milestone_days_after', { n: ms.days.toLocaleString() })) + '</td></tr>';
   }).filter(Boolean);
-  mh += '<table class="milestone-table"><thead><tr><th>Plays</th><th>First Artist</th><th>Date Reached</th><th>Time Since First Play</th></tr></thead><tbody>' + (aMilRows.join('') || '<tr><td colspan="4" class="rec-empty">No milestones reached yet.</td></tr>') + '</tbody></table></div>';
-  mh += '<div class="rec-section"><div class="rec-section-title">★ Songs &mdash; First to Reach Play Milestones</div>';
+  mh += '<table class="milestone-table"><thead><tr><th>' + t('mil_th_plays') + '</th><th>' + t('mil_th_first_artist') + '</th><th>' + t('mil_th_date_reached') + '</th><th>' + t('mil_th_time_since') + '</th></tr></thead><tbody>' + (aMilRows.join('') || '<tr><td colspan="4" class="rec-empty">' + t('mil_no_data') + '</td></tr>') + '</tbody></table></div>';
+  mh += '<div class="rec-section"><div class="rec-section-title">' + t('rec_songs_milestones') + '</div>';
   const sMilRows = [50, 100, 200, 500, 1000].map(function (m) {
     const first = Object.entries(songMS).filter(function (e) { return e[1][m]; }).sort(function (a, b) { return a[1][m].date - b[1][m].date; })[0];
     if (!first) return '';
     const n = songNames[first[0]] || {}, ms = first[1][m];
-    return '<tr><td><span class="milestone-number">' + m.toLocaleString() + '</span></td><td><div class="rec-name">' + esc(n.title || first[0].split('|||')[0]) + '</div><div class="rec-sub">' + esc(n.artist || '') + '</div></td><td class="rec-meta">' + ms.date.toLocaleDateString('default', { year: 'numeric', month: 'short', day: 'numeric' }) + '</td><td class="rec-meta">' + (ms.days === 0 ? 'Day 1' : ms.days.toLocaleString() + ' days after first play') + '</td></tr>';
+    return '<tr><td><span class="milestone-number">' + m.toLocaleString() + '</span></td><td><div class="rec-name">' + esc(n.title || first[0].split('|||')[0]) + '</div><div class="rec-sub">' + esc(n.artist || '') + '</div></td><td class="rec-meta">' + ms.date.toLocaleDateString('default', { year: 'numeric', month: 'short', day: 'numeric' }) + '</td><td class="rec-meta">' + (ms.days === 0 ? t('rec_milestone_day1') : t('rec_milestone_days_after', { n: ms.days.toLocaleString() })) + '</td></tr>';
   }).filter(Boolean);
-  mh += '<table class="milestone-table"><thead><tr><th>Plays</th><th>First Song</th><th>Date Reached</th><th>Time Since First Play</th></tr></thead><tbody>' + (sMilRows.join('') || '<tr><td colspan="4" class="rec-empty">No milestones reached yet.</td></tr>') + '</tbody></table></div>';
+  mh += '<table class="milestone-table"><thead><tr><th>' + t('mil_th_plays') + '</th><th>' + t('mil_th_first_song') + '</th><th>' + t('mil_th_date_reached') + '</th><th>' + t('mil_th_time_since') + '</th></tr></thead><tbody>' + (sMilRows.join('') || '<tr><td colspan="4" class="rec-empty">' + t('mil_no_data') + '</td></tr>') + '</tbody></table></div>';
   document.getElementById('recMilestonesBody').innerHTML = mh;
 
   // ── Fastest to Milestone ──────────────────────────────────────
   const TARGET = 1000;
   let fh = '';
   const withM = Object.entries(artistMS).filter(function (e) { return e[1][TARGET]; }).sort(function (a, b) { return a[1][TARGET].days - b[1][TARGET].days; });
-  fh += '<div class="rec-section"><div class="rec-section-title">♦ Artists Fastest to ' + TARGET.toLocaleString() + ' Plays</div>';
-  fh += '<div class="rec-section-sub">' + withM.length + ' artist' + (withM.length !== 1 ? 's have' : ' has') + ' reached ' + TARGET.toLocaleString() + ' plays &mdash; ranked by fewest days from first to ' + TARGET.toLocaleString() + 'th play</div>';
-  fh += recTable(['#', 'Artist', 'Days to 1K', 'First Play', 'Reached 1K'],
+  fh += '<div class="rec-section"><div class="rec-section-title">' + t('rec_fastest_to', { type: '♦ ' + t('rec_th_artists'), n: TARGET.toLocaleString() }) + '</div>';
+  fh += '<div class="rec-section-sub">' + (withM.length !== 1 ? t('rec_have_reached', { n: withM.length, type: tUnit('artists', withM.length), plays: TARGET.toLocaleString() }) : t('rec_has_reached', { n: 1, type: tUnit('artists', 1), plays: TARGET.toLocaleString() })) + '</div>';
+  fh += recTable(['#', t('rec_th_artist'), t('rec_th_days_to_1k'), t('rec_th_first_play'), t('rec_th_reached_1k')],
     withM.map(function (e, i) {
       const ms = e[1][TARGET], fp = artistFirst[e[0]];
-      return '<td class="rec-rank">' + (i + 1) + '</td><td><div class="rec-name">' + esc(e[0]) + '</div></td><td class="rec-count">' + (ms.days === 0 ? '&lt; 1 day' : ms.days.toLocaleString() + ' days') + '</td><td class="rec-meta">' + (fp ? fp.toLocaleDateString('default', { year: 'numeric', month: 'short', day: 'numeric' }) : '—') + '</td><td class="rec-meta">' + ms.date.toLocaleDateString('default', { year: 'numeric', month: 'short', day: 'numeric' }) + '</td>';
+      return '<td class="rec-rank">' + (i + 1) + '</td><td><div class="rec-name">' + esc(e[0]) + '</div></td><td class="rec-count">' + (ms.days === 0 ? t('rec_days_less_than_1') : ms.days.toLocaleString() + ' ' + tUnit('days', ms.days)) + '</td><td class="rec-meta">' + (fp ? fp.toLocaleDateString('default', { year: 'numeric', month: 'short', day: 'numeric' }) : '—') + '</td><td class="rec-meta">' + ms.date.toLocaleDateString('default', { year: 'numeric', month: 'short', day: 'numeric' }) + '</td>';
     }),
     lim
   );
@@ -1203,18 +1212,18 @@ function buildRecords() {
   for (const m of [500, 2000, 5000]) {
     const entries = Object.entries(artistMS).filter(function (e) { return e[1][m]; }).sort(function (a, b) { return a[1][m].days - b[1][m].days; });
     if (!entries.length) continue;
-    fh += '<div class="rec-section"><div class="rec-section-title">♦ Fastest to ' + m.toLocaleString() + ' Plays</div>';
-    fh += recTable(['#', 'Artist', 'Days', 'Date Reached'],
-      entries.map(function (e, i) { const ms = e[1][m]; return '<td class="rec-rank">' + (i + 1) + '</td><td><div class="rec-name">' + esc(e[0]) + '</div></td><td class="rec-count">' + (ms.days === 0 ? '&lt; 1' : ms.days.toLocaleString()) + ' days</td><td class="rec-meta">' + ms.date.toLocaleDateString('default', { year: 'numeric', month: 'short', day: 'numeric' }) + '</td>'; }),
+    fh += '<div class="rec-section"><div class="rec-section-title">' + t('rec_fastest_to', { type: '♦ ' + t('rec_th_artists'), n: m.toLocaleString() }) + '</div>';
+    fh += recTable(['#', t('rec_th_artist'), t('rec_th_days'), t('rec_th_date_reached')],
+      entries.map(function (e, i) { const ms = e[1][m]; return '<td class="rec-rank">' + (i + 1) + '</td><td><div class="rec-name">' + esc(e[0]) + '</div></td><td class="rec-count">' + (ms.days === 0 ? '&lt; 1' : ms.days.toLocaleString()) + ' ' + tUnit('days', ms.days) + '</td><td class="rec-meta">' + ms.date.toLocaleDateString('default', { year: 'numeric', month: 'short', day: 'numeric' }) + '</td>'; }),
       lim
     );
     fh += '</div>';
   }
   const songWith500 = Object.entries(songMS).filter(function (e) { return e[1][500]; }).sort(function (a, b) { return a[1][500].days - b[1][500].days; });
   if (songWith500.length) {
-    fh += '<div class="rec-section"><div class="rec-section-title">★ Songs Fastest to 500 Plays</div>';
-    fh += recTable(['#', 'Song &middot; Artist', 'Days', 'Date Reached'],
-      songWith500.map(function (e, i) { const n = songNames[e[0]] || {}, ms = e[1][500]; return '<td class="rec-rank">' + (i + 1) + '</td><td><div class="rec-name">' + esc(n.title || e[0].split('|||')[0]) + '</div><div class="rec-sub">' + esc(n.artist || '') + '</div></td><td class="rec-count">' + (ms.days === 0 ? '&lt; 1' : ms.days.toLocaleString()) + ' days</td><td class="rec-meta">' + ms.date.toLocaleDateString('default', { year: 'numeric', month: 'short', day: 'numeric' }) + '</td>'; }),
+    fh += '<div class="rec-section"><div class="rec-section-title">' + t('rec_songs_fastest_to', { n: '500' }) + '</div>';
+    fh += recTable(['#', t('rec_th_songs') + ' &middot; ' + t('rec_th_artist'), t('rec_th_days'), t('rec_th_date_reached')],
+      songWith500.map(function (e, i) { const n = songNames[e[0]] || {}, ms = e[1][500]; return '<td class="rec-rank">' + (i + 1) + '</td><td><div class="rec-name">' + esc(n.title || e[0].split('|||')[0]) + '</div><div class="rec-sub">' + esc(n.artist || '') + '</div></td><td class="rec-count">' + (ms.days === 0 ? '&lt; 1' : ms.days.toLocaleString()) + ' ' + tUnit('days', ms.days) + '</td><td class="rec-meta">' + ms.date.toLocaleDateString('default', { year: 'numeric', month: 'short', day: 'numeric' }) + '</td>'; }),
       lim
     );
     fh += '</div>';
@@ -1226,12 +1235,12 @@ function buildRecords() {
     const c = e[1];
     return { art: e[0], sg: c.sg, sp: c.sp, sd: c.sd, ag: c.ag, ap: c.ap, ad: c.ad, score: c.sd * 4 + c.sp * 2 + c.sg + c.ad * 4 + c.ap * 2 + c.ag };
   }).filter(function (e) { return e.score > 0; }).sort(function (a, b) { return b.score - a.score; });
-  let ch = '<div class="rec-section"><div class="rec-section-title">Artists with Most Certifications</div>';
-  ch += '<div class="rec-section-sub">Song: Gold=' + CERT.song.gold + ' · Platinum=' + CERT.song.plat + ' · Diamond=' + CERT.song.diamond + ' plays | Album: Gold=' + CERT.album.gold + ' · Platinum=' + CERT.album.plat + ' · Diamond=' + CERT.album.diamond + ' plays</div>';
+  let ch = '<div class="rec-section"><div class="rec-section-title">' + t('rec_artists_with_certs') + '</div>';
+  ch += '<div class="rec-section-sub">' + t('rec_certs_thresholds', { sg: CERT.song.gold, sp: CERT.song.plat, sd: CERT.song.diamond, ag: CERT.album.gold, ap: CERT.album.plat, ad: CERT.album.diamond }) + '</div>';
   if (!certW.length) {
-    ch += '<div class="rec-empty">No certifications yet &mdash; keep listening!</div>';
+    ch += '<div class="rec-empty">' + t('rec_no_certifications') + '</div>';
   } else {
-    ch += recTable(['#', 'Artist', 'Song Certs', 'Album Certs'],
+    ch += recTable(['#', t('rec_th_artist'), t('rec_th_song_cert'), t('rec_th_album_cert')],
       certW.map(function (e, i) {
         const sc2 = [e.sd ? e.sd + '× 💎' : '', e.sp ? e.sp + '× 💿' : '', e.sg ? e.sg + '× ⭐' : ''].filter(Boolean).join(' ') || '—';
         const ac2 = [e.ad ? e.ad + '× 💎' : '', e.ap ? e.ap + '× 💿' : '', e.ag ? e.ag + '× ⭐' : ''].filter(Boolean).join(' ') || '—';
@@ -1246,22 +1255,22 @@ function buildRecords() {
   // ── Streak Records ────────────────────────────────────────────
   let sh = '';
   const topAS = Object.entries(artistStreaks).sort(function (a, b) { return b[1] - a[1]; });
-  sh += '<div class="rec-section"><div class="rec-section-title">♦ Artists &mdash; Longest Daily Listening Streak</div>';
-  sh += recTable(['#', 'Artist', 'Consecutive Days'],
-    topAS.map(function (e, i) { return '<td class="rec-rank">' + (i + 1) + '</td><td><div class="rec-name">' + esc(e[0]) + '</div></td><td class="rec-count">' + e[1] + ' days</td>'; }),
+  sh += '<div class="rec-section"><div class="rec-section-title">' + t('rec_artists_longest_streak') + '</div>';
+  sh += recTable(['#', t('rec_th_artist'), t('rec_th_consec_days')],
+    topAS.map(function (e, i) { return '<td class="rec-rank">' + (i + 1) + '</td><td><div class="rec-name">' + esc(e[0]) + '</div></td><td class="rec-count">' + e[1] + ' ' + tUnit('days', e[1]) + '</td>'; }),
     lim
   );
   sh += '</div>';
   const topSS = Object.entries(songStreaks).sort(function (a, b) { return b[1] - a[1]; });
-  sh += '<div class="rec-section"><div class="rec-section-title">★ Songs &mdash; Longest Daily Listening Streak</div>';
-  sh += recTable(['#', 'Song &middot; Artist', 'Consecutive Days'],
-    topSS.map(function (e, i) { const n = songNames[e[0]] || {}; return '<td class="rec-rank">' + (i + 1) + '</td><td><div class="rec-name">' + esc(n.title || e[0].split('|||')[0]) + '</div><div class="rec-sub">' + esc(n.artist || '') + '</div></td><td class="rec-count">' + e[1] + ' days</td>'; }),
+  sh += '<div class="rec-section"><div class="rec-section-title">' + t('rec_songs_longest_streak') + '</div>';
+  sh += recTable(['#', t('rec_th_songs') + ' &middot; ' + t('rec_th_artist'), t('rec_th_consec_days')],
+    topSS.map(function (e, i) { const n = songNames[e[0]] || {}; return '<td class="rec-rank">' + (i + 1) + '</td><td><div class="rec-name">' + esc(n.title || e[0].split('|||')[0]) + '</div><div class="rec-sub">' + esc(n.artist || '') + '</div></td><td class="rec-count">' + e[1] + ' ' + tUnit('days', e[1]) + '</td>'; }),
     lim
   );
   sh += '</div>';
-  sh += '<div class="rec-section"><div class="rec-section-title">🔁 Repeat Scrobble Runs</div><div class="rec-section-sub">Most consecutive listens to the same song without playing anything else &mdash; ranked from longest to shortest</div>';
+  sh += '<div class="rec-section"><div class="rec-section-title">' + t('rec_repeat_runs') + '</div><div class="rec-section-sub">' + t('rec_repeat_runs_sub') + '</div>';
   if (allCSRuns.length > 0) {
-    sh += recTable(['#', 'Song &middot; Artist', 'Consecutive Plays', 'Date'],
+    sh += recTable(['#', t('rec_th_songs') + ' &middot; ' + t('rec_th_artist'), t('rec_th_consec_plays'), t('rec_th_date')],
       allCSRuns.map(function (e, i) {
         const n = songNames[e.key] || {};
         return '<td class="rec-rank">' + (i + 1) + '</td><td><div class="rec-name">' + esc(n.title || e.key.split('|||')[0]) + '</div><div class="rec-sub">' + esc(n.artist || '') + '</div></td><td class="rec-count">' + e.count + '&times;</td><td class="rec-meta">' + (e.date ? fmt(e.date) : '') + '</td>';
@@ -1269,7 +1278,7 @@ function buildRecords() {
       lim
     );
   } else {
-    sh += '<div class="rec-empty">No repeat scrobble runs detected.</div>';
+    sh += '<div class="rec-empty">' + t('rec_no_repeat_runs') + '</div>';
   }
   sh += '</div>';
   document.getElementById('recStreaksBody').innerHTML = sh;
@@ -1691,8 +1700,8 @@ function renderRawPage() {
   const hasFilter = ['rawFilterSong', 'rawFilterArtist', 'rawFilterAlbum', 'rawFilterDate'].some(id => document.getElementById(id).value.trim());
   const totalAll = allPlays.length;
   document.getElementById('rawSummary').innerHTML = hasFilter
-    ? `Showing <strong>${total.toLocaleString()}</strong> of ${totalAll.toLocaleString()} records`
-    : `<strong>${totalAll.toLocaleString()}</strong> total records`;
+    ? t('raw_showing', { n: `<strong>${total.toLocaleString()}</strong>`, total: totalAll.toLocaleString() })
+    : t('raw_total', { n: `<strong>${totalAll.toLocaleString()}</strong>` });
 
   // Rows
   document.getElementById('rawBody').innerHTML = slice.map((p, i) => {
@@ -1704,12 +1713,12 @@ function renderRawPage() {
       <td>${esc(p.artist)}</td>
       <td class="raw-album">${esc(p.album)}</td>
     </tr>`;
-  }).join('') || `<tr><td colspan="5" style="padding:1rem;color:var(--text3);font-style:italic;font-family:'DM Mono',monospace;font-size:0.72rem;">No records match your filters.</td></tr>`;
+  }).join('') || `<tr><td colspan="5" style="padding:1rem;color:var(--text3);font-style:italic;font-family:'DM Mono',monospace;font-size:0.72rem;">${t('raw_no_match')}</td></tr>`;
 
   // Pagination
   document.getElementById('rawPrevBtn').disabled = rawPage === 0;
   document.getElementById('rawNextBtn').disabled = rawPage >= totalPages - 1;
-  document.getElementById('rawPageLabel').textContent = total > 0 ? `Page ${rawPage + 1} of ${totalPages}` : '';
+  document.getElementById('rawPageLabel').textContent = total > 0 ? t('page_label', { page: rawPage + 1, total: totalPages }) : '';
 
   // Sort arrows
   document.querySelectorAll('.raw-th').forEach(th => {
@@ -1781,7 +1790,7 @@ function currentViewWeekKey() {
 // ─── DATE RANGE ─────────────────────────────────────────────────
 function getDateRange() {
   const now = new Date();
-  if (currentPeriod === 'alltime') return { start: new Date(0), end: new Date(9999, 0), label: 'All-Time', sub: 'Every play since your first scrobble' };
+  if (currentPeriod === 'alltime') return { start: new Date(0), end: new Date(9999, 0), label: t('period_alltime'), sub: t('period_alltime_sub') };
 
   let start, end, label, sub;
   if (currentPeriod === 'week') {
@@ -1795,7 +1804,7 @@ function getDateRange() {
     weekEnd.setHours(23, 59, 59, 999);
     start = weekStart;
     end = weekEnd;
-    label = currentOffset === 0 ? 'This Week' : `Week of ${fmt(weekStart)}`;
+    label = currentOffset === 0 ? t('period_this_week') : t('period_week_of', { date: fmt(weekStart) });
     sub = `${fmt(weekStart)} – ${fmt(weekEnd)}`;
   } else if (currentPeriod === 'month') {
     const d = new Date(now.getFullYear(), now.getMonth() - currentOffset, 1);
@@ -1808,7 +1817,7 @@ function getDateRange() {
     start = new Date(yr, 0, 1);
     end = new Date(yr, 11, 31, 23, 59, 59, 999);
     label = String(yr);
-    sub = `January – December ${yr}`;
+    sub = t('period_year_months', { year: yr });
   }
   return { start, end, label, sub };
 }
@@ -1860,10 +1869,10 @@ function renderAll() {
   const songSet = new Set(plays.map(p => songKey(p)));
   const albumSet = new Set(plays.map(p => p.album).filter(a => a && a !== '—'));
   document.getElementById('statsStrip').innerHTML = `
-    <div class="stat-box"><div class="stat-val">${plays.length.toLocaleString()}</div><div class="stat-label">Total Plays</div></div>
-    <div class="stat-box"><div class="stat-val">${songSet.size.toLocaleString()}</div><div class="stat-label">Unique Songs</div></div>
-    <div class="stat-box"><div class="stat-val">${artistSet.size.toLocaleString()}</div><div class="stat-label">Artists</div></div>
-    <div class="stat-box"><div class="stat-val">${albumSet.size.toLocaleString()}</div><div class="stat-label">Albums</div></div>
+    <div class="stat-box"><div class="stat-val">${plays.length.toLocaleString()}</div><div class="stat-label">${t('stat_total_plays')}</div></div>
+    <div class="stat-box"><div class="stat-val">${songSet.size.toLocaleString()}</div><div class="stat-label">${t('stat_unique_songs')}</div></div>
+    <div class="stat-box"><div class="stat-val">${artistSet.size.toLocaleString()}</div><div class="stat-label">${t('stat_artists')}</div></div>
+    <div class="stat-box"><div class="stat-val">${albumSet.size.toLocaleString()}</div><div class="stat-label">${t('stat_albums')}</div></div>
   `;
 
   // Update table headers for weekly/monthly stats columns
@@ -1871,20 +1880,20 @@ function renderAll() {
   const isMonthlyView = currentPeriod === 'month';
   const hasPeriodStats = isWeeklyView || isMonthlyView;
   const colCount = hasPeriodStats ? 7 : 5;
-  const periodLabel = isWeeklyView ? 'Weeks' : 'Months';
+  const periodLabel = isWeeklyView ? t('th_weeks') : t('th_months');
   if (hasPeriodStats) {
-    document.getElementById('songsHeadRow').innerHTML = `<th>RANK</th><th style="width:52px;"></th><th>Title · Artist</th><th>Album</th><th class="m-th">Prev</th><th class="m-th">${periodLabel}</th><th style="text-align:right;">Plays</th>`;
-    document.getElementById('artistsHeadRow').innerHTML = `<th>RANK</th><th style="width:52px;"></th><th>Artist</th><th>Unique Songs</th><th class="m-th">Prev</th><th class="m-th">${periodLabel}</th><th style="text-align:right;">Total Plays</th>`;
-    document.getElementById('albumsHeadRow').innerHTML = `<th>RANK</th><th style="width:52px;"></th><th>Album · Artist</th><th>Tracks</th><th class="m-th">Prev</th><th class="m-th">${periodLabel}</th><th style="text-align:right;">Total Plays</th>`;
+    document.getElementById('songsHeadRow').innerHTML = `<th>${t('th_rank')}</th><th style="width:52px;"></th><th>${t('th_title_artist')}</th><th>${t('th_album')}</th><th class="m-th">${t('th_prev')}</th><th class="m-th">${periodLabel}</th><th style="text-align:right;">${t('th_plays')}</th>`;
+    document.getElementById('artistsHeadRow').innerHTML = `<th>${t('th_rank')}</th><th style="width:52px;"></th><th>${t('th_artist')}</th><th>${t('th_unique_songs')}</th><th class="m-th">${t('th_prev')}</th><th class="m-th">${periodLabel}</th><th style="text-align:right;">${t('th_total_plays')}</th>`;
+    document.getElementById('albumsHeadRow').innerHTML = `<th>${t('th_rank')}</th><th style="width:52px;"></th><th>${t('th_album_artist')}</th><th>${t('th_tracks')}</th><th class="m-th">${t('th_prev')}</th><th class="m-th">${periodLabel}</th><th style="text-align:right;">${t('th_total_plays')}</th>`;
   } else {
-    document.getElementById('songsHeadRow').innerHTML = `<th>RANK</th><th style="width:52px;"></th><th>Title · Artist</th><th>Album</th><th style="text-align:right;">Plays</th>`;
-    document.getElementById('artistsHeadRow').innerHTML = `<th>RANK</th><th style="width:52px;"></th><th>Artist</th><th>Unique Songs</th><th style="text-align:right;">Total Plays</th>`;
-    document.getElementById('albumsHeadRow').innerHTML = `<th>RANK</th><th style="width:52px;"></th><th>Album · Artist</th><th>Tracks</th><th style="text-align:right;">Total Plays</th>`;
+    document.getElementById('songsHeadRow').innerHTML = `<th>${t('th_rank')}</th><th style="width:52px;"></th><th>${t('th_title_artist')}</th><th>${t('th_album')}</th><th style="text-align:right;">${t('th_plays')}</th>`;
+    document.getElementById('artistsHeadRow').innerHTML = `<th>${t('th_rank')}</th><th style="width:52px;"></th><th>${t('th_artist')}</th><th>${t('th_unique_songs')}</th><th style="text-align:right;">${t('th_total_plays')}</th>`;
+    document.getElementById('albumsHeadRow').innerHTML = `<th>${t('th_rank')}</th><th style="width:52px;"></th><th>${t('th_album_artist')}</th><th>${t('th_tracks')}</th><th style="text-align:right;">${t('th_total_plays')}</th>`;
   }
 
   if (plays.length === 0) {
     ['songsBody', 'artistsBody', 'albumsBody'].forEach(id => {
-      document.getElementById(id).innerHTML = `<tr><td colspan="${colCount}"><div class="empty-state"><p>No plays found for this period.</p></div></td></tr>`;
+      document.getElementById(id).innerHTML = `<tr><td colspan="${colCount}"><div class="empty-state"><p>${t('empty_no_plays')}</p></div></td></tr>`;
     });
     ['songsPagination', 'artistsPagination', 'albumsPagination'].forEach(id => {
       document.getElementById(id).style.display = 'none';
@@ -1920,9 +1929,9 @@ function renderAll() {
     const sizeLabel = isLimited ? `Top ${lim}` : `All`;
     const totalEntries = Math.max(fullData.songs.length, fullData.artists.length, fullData.albums.length);
     const totalPages = Math.ceil(totalEntries / PAGE_SIZE);
-    document.getElementById('songsSectionTitle').textContent = isLimited ? `★ Top ${lim} Songs` : `★ Songs — All ${fullData.songs.length.toLocaleString()} Played`;
-    document.getElementById('artistsSectionTitle').textContent = isLimited ? `♦ Top ${lim} Artists` : `♦ Artists — All ${fullData.artists.length.toLocaleString()} Played`;
-    document.getElementById('albumsSectionTitle').textContent = isLimited ? `◈ Top ${lim} Albums` : `◈ Albums — All ${fullData.albums.length.toLocaleString()} Played`;
+    document.getElementById('songsSectionTitle').textContent = isLimited ? t('sec_songs_top', { n: lim }) : t('sec_songs_all', { n: fullData.songs.length.toLocaleString() });
+    document.getElementById('artistsSectionTitle').textContent = isLimited ? t('sec_artists_top', { n: lim }) : t('sec_artists_all', { n: fullData.artists.length.toLocaleString() });
+    document.getElementById('albumsSectionTitle').textContent = isLimited ? t('sec_albums_top', { n: lim }) : t('sec_albums_all', { n: fullData.albums.length.toLocaleString() });
 
     lastPeriodStats = null;
     renderPage('songs', peaks);
@@ -1934,9 +1943,9 @@ function renderAll() {
     ['songsPagination', 'artistsPagination', 'albumsPagination'].forEach(id => {
       document.getElementById(id).style.display = 'none';
     });
-    document.getElementById('songsSectionTitle').textContent = `★ Top ${chartSize} Songs`;
-    document.getElementById('artistsSectionTitle').textContent = `♦ Top ${chartSize} Artists`;
-    document.getElementById('albumsSectionTitle').textContent = `◈ Top ${chartSize} Albums`;
+    document.getElementById('songsSectionTitle').textContent = t('sec_songs_top', { n: chartSize });
+    document.getElementById('artistsSectionTitle').textContent = t('sec_artists_top', { n: chartSize });
+    document.getElementById('albumsSectionTitle').textContent = t('sec_albums_top', { n: chartSize });
     const periodStats = hasPeriodStats ? buildPeriodStats(currentPeriod) : null;
     lastPeriodStats = periodStats;
     renderSongs(plays, peaks, periodStats);
@@ -2017,12 +2026,12 @@ function renderPage(type, peaks) {
 
   // Update search count
   const countEl = document.getElementById(type + 'SearchCount');
-  if (countEl) countEl.textContent = isFiltered ? `${data.length} result${data.length !== 1 ? 's' : ''}` : '';
+  if (countEl) countEl.textContent = isFiltered ? t(data.length === 1 ? 'search_result' : 'search_results', { n: data.length }) : '';
 
   const paginationEl = document.getElementById(type + 'Pagination');
   const labelEl = document.getElementById(type + 'PageLabel');
   if (isFiltered) {
-    labelEl.textContent = data.length === 0 ? 'No results' : `${data.length} result${data.length !== 1 ? 's' : ''}`;
+    labelEl.textContent = data.length === 0 ? t('empty_no_results') : t(data.length === 1 ? 'search_result' : 'search_results', { n: data.length });
     paginationEl.style.display = data.length > PAGE_SIZE ? 'flex' : 'none';
   } else {
     const globalOffset = page * PAGE_SIZE;
@@ -2059,7 +2068,7 @@ function renderPage(type, peaks) {
         </td>
         <td><div class="song-album">${esc(s.album)}</div></td>
         <td>
-          <div class="play-count">${s.count} plays</div>
+          <div class="play-count">${tCount('plays', s.count)}</div>
           <div class="play-bar"><div class="play-bar-fill" style="width:${Math.round(s.count / max * 100)}%"></div></div>
         </td>
       </tr>`;
@@ -2079,10 +2088,10 @@ function renderPage(type, peaks) {
       const mainRow = `<tr class="${rank === 1 ? 'rank-1' : rank === 2 ? 'rank-2' : rank === 3 ? 'rank-3' : ''} artist-row" data-artist="${esc(a.name)}">
         <td class="rank-cell">${hasCR ? `<button class="cr-toggle-btn" title="View chart run history — see how this entry has ranked over time" onclick="event.stopPropagation();toggleChartRun(this,'${rowId}')">📊</button>` : ''} ${rank}</td>
         <td class="thumb-cell"><div class="thumb-wrap"><div id="${imgId}"><div class="thumb-initials">${esc(initials(a.name))}</div></div><button id="srcbtn-${imgId}" class="img-src-btn" data-imgid="${imgId}" data-type="artist" data-prefkey="${esc(prefKey)}" data-name="${esc(a.name)}" data-artist="${esc(a.name)}" data-album="">${srcLabel(itemSourcePrefs[prefKey] || 'deezer')}</button></div></td>
-        <td><div class="song-title">${esc(a.name)}</div><div class="song-artist" style="font-size:0.7rem;letter-spacing:0.06em;font-style:normal;font-family:'DM Mono',monospace;color:var(--text3)">CLICK TO VIEW PROFILE</div></td>
-        <td><div class="song-artist">${a.songs.size} songs</div></td>
+        <td><div class="song-title">${esc(a.name)}</div><div class="song-artist" style="font-size:0.7rem;letter-spacing:0.06em;font-style:normal;font-family:'DM Mono',monospace;color:var(--text3)">${t('click_view_profile')}</div></td>
+        <td><div class="song-artist">${tCount('songs', a.songs.size)}</div></td>
         <td>
-          <div class="play-count">${a.count} plays</div>
+          <div class="play-count">${tCount('plays', a.count)}</div>
           <div class="play-bar"><div class="play-bar-fill" style="width:${Math.round(a.count / max * 100)}%"></div></div>
         </td>
       </tr>`;
@@ -2094,7 +2103,7 @@ function renderPage(type, peaks) {
   } else if (type === 'albums') {
     const imgItems = [];
     if (slice.length === 0) {
-      document.getElementById('albumsBody').innerHTML = `<tr><td colspan="5"><div class="empty-state"><p>No album data found.</p></div></td></tr>`;
+      document.getElementById('albumsBody').innerHTML = `<tr><td colspan="5"><div class="empty-state"><p>${t('empty_no_album_data')}</p></div></td></tr>`;
     } else {
       document.getElementById('albumsBody').innerHTML = slice.flatMap((a, i) => {
         const rank = rankOf(a);
@@ -2110,11 +2119,11 @@ function renderPage(type, peaks) {
         <td>
           <div class="song-title">${esc(a.album)}${certBadge(a.count, 'album')}</div>
           <div class="song-artist">${esc(a.artist)}</div>
-          <div class="song-artist" style="font-size:0.65rem;letter-spacing:0.06em;font-style:normal;font-family:'DM Mono',monospace;color:var(--text3)">CLICK TO VIEW ALBUM</div>
+          <div class="song-artist" style="font-size:0.65rem;letter-spacing:0.06em;font-style:normal;font-family:'DM Mono',monospace;color:var(--text3)">${t('click_view_album')}</div>
         </td>
-        <td><div class="song-artist">${a.tracks.size} tracks</div></td>
+        <td><div class="song-artist">${tCount('tracks', a.tracks.size)}</div></td>
         <td>
-          <div class="play-count">${a.count} plays</div>
+          <div class="play-count">${tCount('plays', a.count)}</div>
           <div class="play-bar"><div class="play-bar-fill" style="width:${Math.round(a.count / max * 100)}%"></div></div>
         </td>
       </tr>`;
@@ -2271,54 +2280,39 @@ function buildCrPanelHTML(type, key) {
   ensureAllChartRun(); // guarantees allChartRun has full history for "All-Time" mode
   const vy = getViewedYear();
   const cutoffKeys = getViewedCutoffKeys();
-  let modeLabels, modeTitles;
+  let modeLabels;
   if (currentPeriod === 'week') {
-    modeLabels = { year: vy + ' YTD', uptoYear: 'Up to This Week', now: 'All-Time' };
-    modeTitles = {
-      year: 'Chart appearances from Jan 1 through the viewed week (Year-to-Date)',
-      uptoYear: 'Every chart appearance from your first scrobble up to and including the viewed week',
-      now: 'Every chart appearance across your entire scrobble history'
-    };
+    modeLabels = { year: t('cr_ytd', { year: vy }), uptoYear: t('cr_up_to_this_week'), now: t('cr_all_time') };
   } else if (currentPeriod === 'month') {
-    modeLabels = { year: vy + ' YTD', uptoYear: 'Up to This Month', now: 'All-Time' };
-    modeTitles = {
-      year: 'Chart appearances from Jan 1 through the viewed month (Year-to-Date)',
-      uptoYear: 'Every chart appearance from your first scrobble up to and including the viewed month',
-      now: 'Every chart appearance across your entire scrobble history'
-    };
+    modeLabels = { year: t('cr_ytd', { year: vy }), uptoYear: t('cr_up_to_this_month'), now: t('cr_all_time') };
   } else {
-    modeLabels = { year: vy + ' Only', uptoYear: 'Up to ' + vy, now: 'All-Time' };
-    modeTitles = {
-      year: 'Only chart appearances within the selected year',
-      uptoYear: 'Every chart appearance from your first scrobble up to and including the selected year',
-      now: 'Every chart appearance across your entire scrobble history'
-    };
+    modeLabels = { year: t('cr_year_only_label', { year: vy }), uptoYear: t('cr_up_to_year_label', { year: vy }), now: t('cr_all_time') };
   }
   const headerHtml = `<div style="margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid var(--border);">
-    <div style="font-family:'DM Mono',monospace;font-size:0.65rem;font-weight:700;letter-spacing:0.18em;color:var(--text);text-transform:uppercase;">📊 Chart Run</div>
-    <div style="font-family:'DM Mono',monospace;font-size:0.54rem;letter-spacing:0.07em;color:var(--text3);margin-top:2px;">Ranking history &amp; chart appearances over time</div>
+    <div style="font-family:'DM Mono',monospace;font-size:0.65rem;font-weight:700;letter-spacing:0.18em;color:var(--text);text-transform:uppercase;">${t('cr_chart_run')}</div>
+    <div style="font-family:'DM Mono',monospace;font-size:0.54rem;letter-spacing:0.07em;color:var(--text3);margin-top:2px;">${t('cr_rank_history')}</div>
   </div>`;
   const toggleHtml = `<div class="cr-range-bar">
-    <span class="cr-range-label">Range</span>
+    <span class="cr-range-label">${t('cr_range')}</span>
     ${['year', 'uptoYear', 'now'].map(m =>
-    `<button class="cr-range-btn${getCrRangeMode(type, key) === m ? ' active' : ''}" title="${modeTitles[m]}" onclick="setCrRangeMode('${m}','${type}','${encodeURIComponent(key)}');event.stopPropagation()">${modeLabels[m]}</button>`
+    `<button class="cr-range-btn${getCrRangeMode(type, key) === m ? ' active' : ''}" onclick="setCrRangeMode('${m}','${type}','${encodeURIComponent(key)}');event.stopPropagation()">${modeLabels[m]}</button>`
   ).join('')}
-    <button class="cr-ig-share-btn" title="Generate a shareable image of this chart run or entry" style="margin-left:auto;" onclick="openCrIgModalFromPanel('${type}','${encodeURIComponent(key)}');event.stopPropagation()">📸 Share</button>
+    <button class="cr-ig-share-btn" style="margin-left:auto;" onclick="openCrIgModalFromPanel('${type}','${encodeURIComponent(key)}');event.stopPropagation()">${t('cr_share_btn')}</button>
   </div>`;
 
   let sectionsHtml = '';
   if (currentPeriod === 'year') {
     sectionsHtml = [
-      { id: 'year', label: '🗓️ Yearly' },
-      { id: 'month', label: '📊 Monthly' },
-      { id: 'week', label: '📈 Weekly' },
+      { id: 'year', label: t('cr_yearly_label') },
+      { id: 'month', label: t('cr_monthly_label') },
+      { id: 'week', label: t('cr_weekly_label') },
     ].map(({ id, label }) => {
       const crData = allChartRun[id];
       const rawD = crData?.result?.[type]?.[key];
       const d = filterCrD(rawD, id, getCrRangeMode(type, key), vy, cutoffKeys);
       return `<div class="cr-panel-section">
         <div class="cr-panel-section-title">${label}</div>
-        ${d ? `<div class="cr-stats">${crStats(type, key, id, null, d)}</div>${crBoxesHTML(type, key, null, d, id)}` : '<div style="font-size:0.6rem;color:var(--text3);padding:2px 0">No chart history for this range.</div>'}
+        ${d ? `<div class="cr-stats">${crStats(type, key, id, null, d)}</div>${crBoxesHTML(type, key, null, d, id)}` : `<div style="font-size:0.6rem;color:var(--text3);padding:2px 0">${t('cr_no_history')}</div>`}
       </div>`;
     }).join('');
   } else {
@@ -2327,7 +2321,7 @@ function buildCrPanelHTML(type, key) {
     const d = filterCrD(rawD, currentPeriod, getCrRangeMode(type, key), vy, cutoffKeys);
     sectionsHtml = d
       ? `<div class="cr-stats">${crStats(type, key, currentPeriod, null, d)}</div>${crBoxesHTML(type, key, null, d, currentPeriod)}`
-      : '<div style="font-size:0.6rem;color:var(--text3);padding:4px 0">No chart history for this range.</div>';
+      : `<div style="font-size:0.6rem;color:var(--text3);padding:4px 0">${t('cr_no_history')}</div>`;
   }
   return headerHtml + toggleHtml + sectionsHtml;
 }
@@ -2470,24 +2464,21 @@ function crStats(type, key, period, crData, preD) {
   const top1 = d.entries.filter(e => e.rank === 1).length;
   const top5 = d.entries.filter(e => e.rank <= 5).length;
   const top10 = d.entries.filter(e => e.rank <= 10).length;
-  const unit = period === 'week' ? (n > 1 ? 'weeks' : 'week') : period === 'month' ? (n > 1 ? 'months' : 'month') : (n > 1 ? 'years' : 'year');
-  const u1 = period === 'week' ? (top1 > 1 ? 'weeks' : 'week') : period === 'month' ? (top1 > 1 ? 'months' : 'month') : (top1 > 1 ? 'years' : 'year');
-  const u5 = period === 'week' ? (top5 > 1 ? 'weeks' : 'week') : period === 'month' ? (top5 > 1 ? 'months' : 'month') : (top5 > 1 ? 'years' : 'year');
-  const u10 = period === 'week' ? (top10 > 1 ? 'weeks' : 'week') : period === 'month' ? (top10 > 1 ? 'months' : 'month') : (top10 > 1 ? 'years' : 'year');
+  const crPeriodUnit = (p, count) => p === 'week' ? tUnit('weeks', count) : p === 'month' ? tUnit('months', count) : tUnit('years', count);
   let html = `
-    <div class="cr-stat"><strong>${n} ${unit}</strong>on Chart</div>
+    <div class="cr-stat"><strong>${n} ${crPeriodUnit(period, n)}</strong>${t('cr_on_chart')}</div>
     <div class="cr-stat"><strong>Peak #${peak}</strong></div>
-    ${top1 ? `<div class="cr-stat"><strong>${top1} ${u1}</strong>at #1</div>` : ''}
-    ${top5 ? `<div class="cr-stat"><strong>${top5} ${u5}</strong>in Top 5</div>` : ''}
-    ${top10 ? `<div class="cr-stat"><strong>${top10} ${u10}</strong>in Top 10</div>` : ''}`;
+    ${top1 ? `<div class="cr-stat"><strong>${top1} ${crPeriodUnit(period, top1)}</strong>${t('cr_at_1')}</div>` : ''}
+    ${top5 ? `<div class="cr-stat"><strong>${top5} ${crPeriodUnit(period, top5)}</strong>${t('cr_in_top5')}</div>` : ''}
+    ${top10 ? `<div class="cr-stat"><strong>${top10} ${crPeriodUnit(period, top10)}</strong>${t('cr_in_top10')}</div>` : ''}`;
   if (period === 'month') {
     html += `
-    <div class="cr-stat"><strong>${d.peakPlays}</strong>Peak Plays in a Month</div>
-    <div class="cr-stat"><strong>${d.peakDays}</strong>Peak Days in a Month</div>`;
+    <div class="cr-stat"><strong>${d.peakPlays}</strong>${t('cr_peak_plays_month')}</div>
+    <div class="cr-stat"><strong>${d.peakDays}</strong>${t('cr_peak_days_month')}</div>`;
   } else if (period === 'year') {
     html += `
-    <div class="cr-stat"><strong>${d.peakMonths}</strong>Months Peak (Best Year)</div>
-    <div class="cr-stat"><strong>${d.peakDays}</strong>Days Peak (Best Year)</div>`;
+    <div class="cr-stat"><strong>${d.peakMonths}</strong>${t('cr_months_peak_year')}</div>
+    <div class="cr-stat"><strong>${d.peakDays}</strong>${t('cr_days_peak_year')}</div>`;
   }
   return html;
 }
@@ -2896,7 +2887,7 @@ function renderSongs(plays, peaks, monthlyStats) {
       ${monthlyStats ? mPrevCell(i + 1, k, 'songs', monthlyStats) : ''}
       ${monthlyStats ? mMthsCell(k, 'songs', monthlyStats) : ''}
       <td>
-        <div class="play-count">${s.count} plays${monthlyStats ? deltaInline(s.count, k, 'songs', monthlyStats) : ''}</div>
+        <div class="play-count">${tCount('plays', s.count)}${monthlyStats ? deltaInline(s.count, k, 'songs', monthlyStats) : ''}</div>
         <div class="play-bar"><div class="play-bar-fill" style="width:${Math.round(s.count / max * 100)}%"></div></div>
       </td>
     </tr>`;
@@ -2940,12 +2931,12 @@ function renderArtists(plays, peaks, monthlyStats) {
     const mainRow = `<tr class="${i === 0 ? 'rank-1' : i === 1 ? 'rank-2' : i === 2 ? 'rank-3' : ''} artist-row" data-artist="${esc(artist)}">
       <td class="rank-cell"><button class="cr-toggle-btn" title="View chart run history — see how this entry has ranked over time" onclick="event.stopPropagation();toggleChartRun(this,'${rowId}')">📊</button>${i + 1}</td>
       <td class="thumb-cell"><div class="thumb-wrap"><div id="${imgId}"><div class="thumb-initials">${esc(initials(artist))}</div></div><button id="srcbtn-${imgId}" class="img-src-btn" data-imgid="${imgId}" data-type="artist" data-prefkey="${esc(prefKey)}" data-name="${esc(artist)}" data-artist="${esc(artist)}" data-album="">${srcLabel(itemSourcePrefs[prefKey] || 'deezer')}</button></div></td>
-      <td><div class="song-title">${esc(artist)}${pk ? peakBadge(pk) : ''}</div><div class="song-artist" style="font-size:0.7rem;letter-spacing:0.06em;font-style:normal;font-family:'DM Mono',monospace;color:var(--text3)">CLICK TO VIEW PROFILE</div></td>
-      <td><div class="song-artist">${data.songs.size} songs</div></td>
+      <td><div class="song-title">${esc(artist)}${pk ? peakBadge(pk) : ''}</div><div class="song-artist" style="font-size:0.7rem;letter-spacing:0.06em;font-style:normal;font-family:'DM Mono',monospace;color:var(--text3)">${t('click_view_profile')}</div></td>
+      <td><div class="song-artist">${tCount('songs', data.songs.size)}</div></td>
       ${monthlyStats ? mPrevCell(i + 1, artist, 'artists', monthlyStats) : ''}
       ${monthlyStats ? mMthsCell(artist, 'artists', monthlyStats) : ''}
       <td>
-        <div class="play-count">${data.count} plays${monthlyStats ? deltaInline(data.count, artist, 'artists', monthlyStats) : ''}</div>
+        <div class="play-count">${tCount('plays', data.count)}${monthlyStats ? deltaInline(data.count, artist, 'artists', monthlyStats) : ''}</div>
         <div class="play-bar"><div class="play-bar-fill" style="width:${Math.round(data.count / max * 100)}%"></div></div>
       </td>
     </tr>`;
@@ -2980,7 +2971,7 @@ function renderAlbums(plays, peaks, monthlyStats) {
   const colCount = monthlyStats ? 7 : 5;
   const imgItems = [];
   if (sorted.length === 0) {
-    document.getElementById('albumsBody').innerHTML = `<tr><td colspan="${colCount}"><div class="empty-state"><p>No album data found — make sure your CSV includes an Album column.</p></div></td></tr>`;
+    document.getElementById('albumsBody').innerHTML = `<tr><td colspan="${colCount}"><div class="empty-state"><p>${t('empty_no_album_data_csv')}</p></div></td></tr>`;
   } else {
     document.getElementById('albumsBody').innerHTML = sorted.flatMap(({ album, artist, count, tracks }, i) => {
       const ak = album + '|||' + artist;
@@ -2995,13 +2986,13 @@ function renderAlbums(plays, peaks, monthlyStats) {
       <td>
         <div class="song-title">${esc(album)}${pk ? peakBadge(pk) : ''}${certBadge(count, 'album')}</div>
         <div class="song-artist">${esc(artist)}</div>
-        <div class="song-artist" style="font-size:0.65rem;letter-spacing:0.06em;font-style:normal;font-family:'DM Mono',monospace;color:var(--text3)">CLICK TO VIEW ALBUM</div>
+        <div class="song-artist" style="font-size:0.65rem;letter-spacing:0.06em;font-style:normal;font-family:'DM Mono',monospace;color:var(--text3)">${t('click_view_album')}</div>
       </td>
-      <td><div class="song-artist">${tracks.size} tracks</div></td>
+      <td><div class="song-artist">${tCount('tracks', tracks.size)}</div></td>
       ${monthlyStats ? mPrevCell(i + 1, ak, 'albums', monthlyStats) : ''}
       ${monthlyStats ? mMthsCell(ak, 'albums', monthlyStats) : ''}
       <td>
-        <div class="play-count">${count} plays${monthlyStats ? deltaInline(count, ak, 'albums', monthlyStats) : ''}</div>
+        <div class="play-count">${tCount('plays', count)}${monthlyStats ? deltaInline(count, ak, 'albums', monthlyStats) : ''}</div>
         <div class="play-bar"><div class="play-bar-fill" style="width:${Math.round(count / max * 100)}%"></div></div>
       </td>
     </tr>`;
@@ -3062,7 +3053,7 @@ function renderDropouts(plays, periodStats) {
   }
 
   function dropRows(entries, type) {
-    if (!entries.length) return `<div class="dropout-empty">None this week</div>`;
+    if (!entries.length) return `<div class="dropout-empty">${t('drop_none_this_week')}</div>`;
     return entries.map(([k, { rank, count }]) => {
       const wks = periodStats.periodsOnChart[type][k] || 1;
       let name, sub;
@@ -3076,8 +3067,8 @@ function renderDropouts(plays, periodStats) {
           ${sub ? `<div class="dropout-artist">${esc(sub)}</div>` : ''}
         </div>
         <div class="dropout-stats">
-          <span class="dropout-plays">${count} plays</span>
-          <span class="dropout-wks">${wks} week${wks !== 1 ? 's' : ''}</span>
+          <span class="dropout-plays">${tCount('plays', count)}</span>
+          <span class="dropout-wks">${wks} ${tUnit('weeks', wks)}</span>
         </div>
       </div>`;
     }).join('');
@@ -3087,15 +3078,15 @@ function renderDropouts(plays, periodStats) {
   document.getElementById('dropoutsContent').innerHTML = `
     <div class="dropouts-grid">
       <div class="dropout-col">
-        <div class="dropout-col-title">★ Songs</div>
+        <div class="dropout-col-title">${t('drop_col_songs')}</div>
         ${dropRows(dropSongs, 'songs')}
       </div>
       <div class="dropout-col">
-        <div class="dropout-col-title">♦ Artists</div>
+        <div class="dropout-col-title">${t('drop_col_artists')}</div>
         ${dropRows(dropArtists, 'artists')}
       </div>
       <div class="dropout-col">
-        <div class="dropout-col-title">◈ Albums</div>
+        <div class="dropout-col-title">${t('drop_col_albums')}</div>
         ${dropRows(dropAlbums, 'albums')}
       </div>
     </div>`;
@@ -3116,14 +3107,14 @@ function diamondMultiLabel(n) {
 
 function certBadge(plays, type) {
   if (currentPeriod !== 'alltime') return '';
-  const t = CERT[type];
-  if (!t) return '';
-  if (plays >= t.diamond) {
-    const { icon, label } = diamondMultiLabel(Math.floor(plays / t.diamond));
+  const certTiers = CERT[type];
+  if (!certTiers) return '';
+  if (plays >= certTiers.diamond) {
+    const { icon, label } = diamondMultiLabel(Math.floor(plays / certTiers.diamond));
     return `<span class="cert cert-diamond"><span class="cert-icon">${icon}</span>${label.toUpperCase()}</span>`;
   }
-  if (plays >= t.plat) return `<span class="cert cert-plat"><span class="cert-icon">💿</span>PLATINUM</span>`;
-  if (plays >= t.gold) return `<span class="cert cert-gold"><span class="cert-icon">⭐</span>GOLD</span>`;
+  if (plays >= certTiers.plat) return `<span class="cert cert-plat"><span class="cert-icon">💿</span>PLATINUM</span>`;
+  if (plays >= certTiers.gold) return `<span class="cert cert-gold"><span class="cert-icon">⭐</span>GOLD</span>`;
   return '';
 }
 
@@ -5615,9 +5606,7 @@ document.getElementById('gCumulativeTo').addEventListener('change', () => {
 document.getElementById('gCumulativeLabelsBtn').addEventListener('click', () => {
   gCumulativeLabels = !gCumulativeLabels;
   localStorage.setItem('dc_gCumulativeLabels', gCumulativeLabels ? '1' : '0');
-  const btn = document.getElementById('gCumulativeLabelsBtn');
-  btn.textContent = gCumulativeLabels ? 'Labels: On' : 'Labels: Off';
-  btn.classList.toggle('active', gCumulativeLabels);
+  updateLabelButton('gCumulativeLabelsBtn', gCumulativeLabels);
   triggerCumulativeUpdate();
 });
 
@@ -5860,9 +5849,7 @@ document.getElementById('gTotalVolumeResetZoom').addEventListener('click', () =>
 document.getElementById('gTotalVolumeLabelsBtn').addEventListener('click', () => {
   gTotalVolumeLabels = !gTotalVolumeLabels;
   localStorage.setItem('dc_gTotalVolumeLabels', gTotalVolumeLabels ? '1' : '0');
-  const btn = document.getElementById('gTotalVolumeLabelsBtn');
-  btn.textContent = gTotalVolumeLabels ? 'Labels: On' : 'Labels: Off';
-  btn.classList.toggle('active', gTotalVolumeLabels);
+  updateLabelButton('gTotalVolumeLabelsBtn', gTotalVolumeLabels);
   triggerTotalVolumeUpdate();
 });
 
@@ -5889,9 +5876,7 @@ document.getElementById('gVolumeResetZoom').addEventListener('click', () => {
 document.getElementById('gVolumeLabelsBtn').addEventListener('click', () => {
   gVolumeLabels = !gVolumeLabels;
   localStorage.setItem('dc_gVolumeLabels', gVolumeLabels ? '1' : '0');
-  const btn = document.getElementById('gVolumeLabelsBtn');
-  btn.textContent = gVolumeLabels ? 'Labels: On' : 'Labels: Off';
-  btn.classList.toggle('active', gVolumeLabels);
+  updateLabelButton('gVolumeLabelsBtn', gVolumeLabels);
   triggerVolumeUpdate();
 });
 
@@ -5902,9 +5887,7 @@ document.getElementById('gDiscoveriesResetZoom').addEventListener('click', () =>
 document.getElementById('gDiscoveriesLabelsBtn').addEventListener('click', () => {
   gDiscoveriesLabels = !gDiscoveriesLabels;
   localStorage.setItem('dc_gDiscoveriesLabels', gDiscoveriesLabels ? '1' : '0');
-  const btn = document.getElementById('gDiscoveriesLabelsBtn');
-  btn.textContent = gDiscoveriesLabels ? 'Labels: On' : 'Labels: Off';
-  btn.classList.toggle('active', gDiscoveriesLabels);
+  updateLabelButton('gDiscoveriesLabelsBtn', gDiscoveriesLabels);
   if (graphCharts.discoveries) graphCharts.discoveries.update();
 });
 
