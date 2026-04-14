@@ -5,7 +5,10 @@
       "WebFetch(domain:musicbrainz.org)",
       "WebSearch",
       "WebFetch(domain:corsproxy.io)",
-      "Bash(grep -n \"^    <script>$\" \"c:/Users/erwin/Desktop/mycharts/index.html\")"
+      "Bash(grep -n \"^    <script>$\" \"c:/Users/erwin/Desktop/mycharts/index.html\")",
+      "Bash(grep -v \"^.*:.*\\\\`\\\\|^.*:.*'\\\\|^.*:.*//\\\\|^.*:.*<\")",
+      "Bash(awk 'NR>=11290 && NR<=11310' index.html)",
+      "Bash(awk 'NR>=5510 && NR<=5560' index.html)"
     ]
   }
 }
