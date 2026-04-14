@@ -3335,7 +3335,9 @@ function igColors() {
     let val = body.getPropertyValue(v).trim() || s.getPropertyValue(v).trim();
     return val || null;
   };
+  const isDark = !Array.from(document.body.classList).some(c => c.endsWith('-light'));
   return {
+    isDark,
     bg: get('--bg') || '#08121e',
     bg2: get('--bg2') || '#0e1e34',
     bg3: get('--bg3') || '#122444',
@@ -4289,7 +4291,7 @@ function buildEntryIgCardHTML(type, key, rank, opts) {
     + '<div style="font-family:\'DM Sans\',sans-serif;font-size:' + titleFont + 'px;font-weight:700;color:' + c.text + ';line-height:1.2;margin-bottom:2px;max-height:' + (isPost ? 54 : 78) + 'px;overflow:hidden;">' + esc(displayName) + '</div>'
     + (opts.showSubtitle && artistName ? '<div style="font-family:\'DM Sans\',sans-serif;font-size:' + subFont + 'px;color:' + c.text2 + ';line-height:1.25;margin-bottom:1px;max-height:' + (isPost ? 34 : 48) + 'px;overflow:hidden;">' + esc(artistName) + '</div>' : '')
     + (opts.showSubtitle && type === 'songs' && albumName ? '<div style="font-family:\'DM Mono\',monospace;font-size:' + monoFont + 'px;color:' + c.text3 + ';letter-spacing:0.06em;margin-bottom:2px;">' + esc(albumName) + '</div>' : '')
-    + (descInMediaZone ? '<div style="margin-top:' + (isPost ? 6 : 8) + 'px;max-width:' + (isPost ? '92%' : '88%') + ';max-height:' + descOverlayMaxH + 'px;overflow:hidden;padding:' + (isPost ? '6px 8px' : '8px 10px') + ';font-family:\'DM Sans\',sans-serif;font-size:' + descOverlayFont + 'px;color:' + c.text + ';font-style:italic;line-height:1.35;background:linear-gradient(180deg, rgba(8,18,30,0.28), rgba(8,18,30,0.72));border:1px solid rgba(255,255,255,0.22);border-radius:' + (isPost ? 8 : 10) + 'px;text-shadow:0 1px 2px rgba(0,0,0,0.7);margin-left:auto;margin-right:auto;">' + esc(desc) + '</div>' : '')
+    + (descInMediaZone ? '<div style="margin-top:' + (isPost ? 6 : 8) + 'px;max-width:' + (isPost ? '92%' : '88%') + ';max-height:' + descOverlayMaxH + 'px;overflow:hidden;padding:' + (isPost ? '6px 8px' : '8px 10px') + ';font-family:\'DM Sans\',sans-serif;font-size:' + descOverlayFont + 'px;color:' + c.text + ';font-style:italic;line-height:1.35;background:' + (c.isDark ? 'linear-gradient(180deg, rgba(8,18,30,0.28), rgba(8,18,30,0.72))' : c.bg2 + 'cc') + ';border:1px solid ' + (c.isDark ? 'rgba(255,255,255,0.22)' : c.border) + ';border-radius:' + (isPost ? 8 : 10) + 'px;' + (c.isDark ? 'text-shadow:0 1px 2px rgba(0,0,0,0.7);' : '') + 'margin-left:auto;margin-right:auto;">' + esc(desc) + '</div>' : '')
     + (desc && !descInMediaZone ? '<div style="font-family:\'DM Sans\',sans-serif;font-size:' + descFont + 'px;color:' + c.text3 + ';margin-top:' + (isPost ? 6 : 8) + 'px;font-style:italic;line-height:1.45;padding:0 6px;max-height:' + descMaxH + 'px;overflow:hidden;">' + esc(desc) + '</div>' : '')
     + (isPost
       ? '<div style="display:flex;justify-content:center;margin-top:4px;"><div style="display:flex;align-items:center;justify-content:space-between;width:100%;padding:0 4px;">'
