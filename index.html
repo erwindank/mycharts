@@ -342,6 +342,25 @@
       margin-left: 3px;
     }
 
+    #weekStartDaySelect {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 3px 6px;
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.75rem;
+      cursor: pointer;
+      outline: none;
+    }
+    #weekStartDaySelect:focus {
+      border-color: var(--accent);
+    }
+    #weekStartDaySelect option {
+      background: var(--bg2);
+      color: var(--text);
+    }
+
     * {
       margin: 0;
       padding: 0;
@@ -3977,6 +3996,8 @@
       <button class="theme-btn" data-theme="pink" title="Pink Dark">●</button>
       <button class="theme-btn" data-theme="pink-light" title="Pink Light">●</button>
       <span id="themeLabel">Navy</span>
+      <span style="width:1px;height:18px;background:var(--border);margin:0 8px;"></span>
+      <select id="weekStartDaySelect" title="Week Start Day"></select>
     </div>
     <span class="est">★ Erwin's Personal Music Charts · Est. 2016 ★</span>
     <div class="wordmark">
@@ -5089,6 +5110,7 @@
     let allPlays = [];
     let currentPeriod = 'week';
     let currentOffset = 0;
+    let weekStartDay = 0; // 0=Sun, 1=Mon, 2=Tue, 3=Wed, 4=Thu, 5=Fri, 6=Sat
     const savedOffsets = { week: 0, month: 0, year: 0, alltime: 0, records: 0 };
     let chartSize = 10;
     let chartSizeWeekly = 10;
@@ -5124,6 +5146,35 @@
       const saved = localStorage.getItem('dankcharts-theme') || 'navy-dark';
       applyTheme(saved);
     } catch (e) { applyTheme('navy-dark'); }
+
+    // ─── WEEK START DAY SELECTOR ───────────────────────────────────
+    const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    const startDaySelect = document.getElementById('weekStartDaySelect');
+
+    function updateWeekStartDay(day) {
+      weekStartDay = day;
+      renderAll();
+      try { localStorage.setItem('dankcharts-weekStartDay', day); } catch (e) { }
+    }
+
+    if (startDaySelect) {
+      dayNames.forEach((name, index) => {
+        const option = document.createElement('option');
+        option.value = index;
+        option.textContent = name;
+        startDaySelect.appendChild(option);
+      });
+
+      try {
+        const saved = localStorage.getItem('dankcharts-weekStartDay');
+        weekStartDay = saved !== null ? parseInt(saved) : 0;
+        startDaySelect.value = weekStartDay;
+      } catch (e) { weekStartDay = 0; }
+
+      startDaySelect.addEventListener('change', (e) => {
+        updateWeekStartDay(parseInt(e.target.value));
+      });
+    }
 
     // ─── ARTIST SPLITTING ──────────────────────────────────────────
     // Artists whose names contain commas — add entries here to prevent incorrect splitting
@@ -6467,10 +6518,11 @@
       yp.style.display = currentPeriod === 'year' ? '' : 'none';
       if (currentPeriod === 'week') {
         const dow = now.getDay();
-        const sun = new Date(now);
-        sun.setDate(now.getDate() - dow - currentOffset * 7);
-        sun.setHours(0, 0, 0, 0);
-        wp.value = sun.toISOString().split('T')[0];
+        const offset = (dow - weekStartDay + 7) % 7;
+        const weekStart = new Date(now);
+        weekStart.setDate(now.getDate() - offset - currentOffset * 7);
+        weekStart.setHours(0, 0, 0, 0);
+        wp.value = weekStart.toISOString().split('T')[0];
       } else if (currentPeriod === 'month') {
         const d = new Date(now.getFullYear(), now.getMonth() - currentOffset, 1);
         mp.value = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
@@ -6489,9 +6541,13 @@
       if (!e.target.value) return;
       const picked = new Date(e.target.value + 'T00:00:00');
       const now = new Date();
-      const curSun = new Date(now); curSun.setDate(now.getDate() - now.getDay()); curSun.setHours(0, 0, 0, 0);
-      const picSun = new Date(picked); picSun.setDate(picked.getDate() - picked.getDay()); picSun.setHours(0, 0, 0, 0);
-      const offset = Math.round((curSun - picSun) / (7 * 86400000));
+      const nowDow = now.getDay();
+      const pickedDow = picked.getDay();
+      const nowOffset = (nowDow - weekStartDay + 7) % 7;
+      const pickedOffset = (pickedDow - weekStartDay + 7) % 7;
+      const curStart = new Date(now); curStart.setDate(now.getDate() - nowOffset); curStart.setHours(0, 0, 0, 0);
+      const picStart = new Date(picked); picStart.setDate(picked.getDate() - pickedOffset); picStart.setHours(0, 0, 0, 0);
+      const offset = Math.round((curStart - picStart) / (7 * 86400000));
       if (offset >= 0) { currentOffset = offset; pageState.songs = 0; pageState.artists = 0; pageState.albums = 0; renderAll(); }
     });
 
@@ -6619,35 +6675,30 @@
     // ─── WEEK KEY HELPERS ──────────────────────────────────────────
     // Use LOCAL date components (not toISOString which is UTC) to build date strings.
     // This prevents UTC-offset from shifting the date string by ±1 day.
-    const FIRST_WEEK_SUN = new Date(2016, 0, 10, 0, 0, 0, 0); // Jan 10 2016, Sunday
-    const FIRST_DATA_DAY = new Date(2016, 0, 9, 0, 0, 0, 0); // Jan  9 2016, Saturday (first streaming day)
 
     function localDateStr(d) {
       return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
     }
 
-    // Returns the canonical week key (Sunday's local date string) for a given play date.
-    // Jan 9, 2016 is explicitly folded into the first week rather than treated as a prior period.
+    // Returns the canonical week key (start day's local date string) for a given play date.
     function playWeekKey(playDate) {
-      if (playDate >= FIRST_DATA_DAY && playDate < FIRST_WEEK_SUN) {
-        return localDateStr(FIRST_WEEK_SUN); // Jan 9 → first week
-      }
       const dow = playDate.getDay();
-      const sun = new Date(playDate);
-      sun.setDate(playDate.getDate() - dow);
-      sun.setHours(0, 0, 0, 0);
-      if (sun < FIRST_WEEK_SUN) sun.setTime(FIRST_WEEK_SUN.getTime());
-      return localDateStr(sun);
+      const offset = (dow - weekStartDay + 7) % 7;
+      const startDate = new Date(playDate);
+      startDate.setDate(playDate.getDate() - offset);
+      startDate.setHours(0, 0, 0, 0);
+      return localDateStr(startDate);
     }
 
     // Returns the week key for the period currently being viewed (based on currentOffset).
     function currentViewWeekKey() {
       const now = new Date();
-      const sun = new Date(now);
-      sun.setDate(now.getDate() - now.getDay() - currentOffset * 7);
-      sun.setHours(0, 0, 0, 0);
-      if (sun < FIRST_WEEK_SUN) sun.setTime(FIRST_WEEK_SUN.getTime());
-      return localDateStr(sun);
+      const dow = now.getDay();
+      const offset = (dow - weekStartDay + 7) % 7;
+      const startDate = new Date(now);
+      startDate.setDate(now.getDate() - offset - currentOffset * 7);
+      startDate.setHours(0, 0, 0, 0);
+      return localDateStr(startDate);
     }
 
     // ─── DATE RANGE ─────────────────────────────────────────────────
@@ -6657,24 +6708,18 @@
 
       let start, end, label, sub;
       if (currentPeriod === 'week') {
-        // Weeks run Sunday–Saturday.
-        // Exception: Jan 9, 2016 (first streaming day, a Saturday) is folded into
-        // the week of Jan 10–16, 2016, so the very first week starts Jan 10 (Sunday).
-        const FIRST_WEEK_START = new Date(2016, 0, 10); // Jan 10 2016, Sunday
         const dow = now.getDay(); // 0=Sun … 6=Sat
-        const sunday = new Date(now);
-        sunday.setDate(now.getDate() - dow - (currentOffset * 7));
-        sunday.setHours(0, 0, 0, 0);
-        const saturday = new Date(sunday);
-        saturday.setDate(sunday.getDate() + 6);
-        saturday.setHours(23, 59, 59, 999);
-        // Jan 9, 2016 (Saturday) is the first streaming day — include it in the first week's data range.
-        // Use <= so that when sunday lands exactly on FIRST_WEEK_START (Jan 10), Jan 9 is still included.
-        const FIRST_DATA_DATE = new Date(2016, 0, 9, 0, 0, 0, 0);
-        start = sunday <= FIRST_WEEK_START ? FIRST_DATA_DATE : sunday;
-        end = saturday;
-        label = currentOffset === 0 ? 'This Week' : `Week of ${fmt(sunday)}`;
-        sub = `${fmt(sunday <= FIRST_WEEK_START ? FIRST_WEEK_START : sunday)} – ${fmt(saturday)}`;
+        const offset = (dow - weekStartDay + 7) % 7;
+        const weekStart = new Date(now);
+        weekStart.setDate(now.getDate() - offset - (currentOffset * 7));
+        weekStart.setHours(0, 0, 0, 0);
+        const weekEnd = new Date(weekStart);
+        weekEnd.setDate(weekStart.getDate() + 6);
+        weekEnd.setHours(23, 59, 59, 999);
+        start = weekStart;
+        end = weekEnd;
+        label = currentOffset === 0 ? 'This Week' : `Week of ${fmt(weekStart)}`;
+        sub = `${fmt(weekStart)} – ${fmt(weekEnd)}`;
       } else if (currentPeriod === 'month') {
         const d = new Date(now.getFullYear(), now.getMonth() - currentOffset, 1);
         start = new Date(d.getFullYear(), d.getMonth(), 1);
@@ -7057,9 +7102,11 @@
       if (currentPeriod === 'year') return now.getFullYear() - currentOffset;
       if (currentPeriod === 'month') return new Date(now.getFullYear(), now.getMonth() - currentOffset, 1).getFullYear();
       if (currentPeriod === 'week') {
-        const sun = new Date(now);
-        sun.setDate(now.getDate() - now.getDay() - currentOffset * 7);
-        return sun.getFullYear();
+        const dow = now.getDay();
+        const offset = (dow - weekStartDay + 7) % 7;
+        const weekStart = new Date(now);
+        weekStart.setDate(now.getDate() - offset - currentOffset * 7);
+        return weekStart.getFullYear();
       }
       return now.getFullYear();
     }
@@ -7068,12 +7115,14 @@
       const now = new Date();
       let weekKey, monthKey, yearKey;
       if (currentPeriod === 'week') {
-        const sun = new Date(now);
-        sun.setDate(now.getDate() - now.getDay() - currentOffset * 7);
-        sun.setHours(0, 0, 0, 0);
-        weekKey = localDateStr(sun);
-        monthKey = `${sun.getFullYear()}-${String(sun.getMonth() + 1).padStart(2, '0')}`;
-        yearKey = String(sun.getFullYear());
+        const dow = now.getDay();
+        const offset = (dow - weekStartDay + 7) % 7;
+        const weekStart = new Date(now);
+        weekStart.setDate(now.getDate() - offset - currentOffset * 7);
+        weekStart.setHours(0, 0, 0, 0);
+        weekKey = localDateStr(weekStart);
+        monthKey = `${weekStart.getFullYear()}-${String(weekStart.getMonth() + 1).padStart(2, '0')}`;
+        yearKey = String(weekStart.getFullYear());
       } else if (currentPeriod === 'month') {
         const d = new Date(now.getFullYear(), now.getMonth() - currentOffset, 1);
         yearKey = String(d.getFullYear());
@@ -7463,9 +7512,11 @@
       const now = new Date();
       let offset = 0;
       if (period === 'week') {
-        const curSun = new Date(now); curSun.setDate(now.getDate() - now.getDay()); curSun.setHours(0, 0, 0, 0);
-        const targetSun = new Date(periodKey + 'T00:00:00');
-        offset = Math.round((curSun - targetSun) / (7 * 86400000));
+        const nowDow = now.getDay();
+        const nowOffset = (nowDow - weekStartDay + 7) % 7;
+        const curStart = new Date(now); curStart.setDate(now.getDate() - nowOffset); curStart.setHours(0, 0, 0, 0);
+        const targetStart = new Date(periodKey + 'T00:00:00');
+        offset = Math.round((curStart - targetStart) / (7 * 86400000));
       } else if (period === 'month') {
         const [yr, mo] = periodKey.split('-').map(Number);
         offset = (now.getFullYear() - yr) * 12 + (now.getMonth() + 1 - mo);
@@ -7491,12 +7542,10 @@
 
       if (period === 'week') {
         curKey = currentViewWeekKey();
-        const curSun = new Date(FIRST_WEEK_SUN);
-        // derive the actual Sunday for curKey so we can compute prevSunday
-        const curSunDate = new Date(curKey + 'T00:00:00');
-        const prevSun = new Date(curSunDate);
-        prevSun.setDate(curSunDate.getDate() - 7);
-        prevKey = prevSun < FIRST_WEEK_SUN ? '' : localDateStr(prevSun);
+        const curStartDate = new Date(curKey + 'T00:00:00');
+        const prevStart = new Date(curStartDate);
+        prevStart.setDate(curStartDate.getDate() - 7);
+        prevKey = localDateStr(prevStart);
       } else {
         const d = new Date(now.getFullYear(), now.getMonth() - currentOffset, 1);
         curKey = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
@@ -9381,13 +9430,15 @@
       return results.sort((a, b) => b.key.localeCompare(a.key));
     }
 
-    // Returns how many weeks ago a given Sunday was from the current Sunday
-    function weekOffset(sundayDate) {
+    // Returns how many weeks ago a given week start was from the current week start
+    function weekOffset(weekDate) {
       const now = new Date();
-      const currentSunday = new Date(now);
-      currentSunday.setDate(now.getDate() - now.getDay());
-      currentSunday.setHours(0, 0, 0, 0);
-      return Math.round((currentSunday.getTime() - sundayDate.getTime()) / (7 * 86400000));
+      const nowDow = now.getDay();
+      const nowOffset = (nowDow - weekStartDay + 7) % 7;
+      const currentStart = new Date(now);
+      currentStart.setDate(now.getDate() - nowOffset);
+      currentStart.setHours(0, 0, 0, 0);
+      return Math.round((currentStart.getTime() - weekDate.getTime()) / (7 * 86400000));
     }
 
     // Navigate to a specific weekly chart and close the modal
