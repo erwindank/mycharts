@@ -8,7 +8,17 @@
       "Bash(grep -n \"^    <script>$\" \"c:/Users/erwin/Desktop/mycharts/index.html\")",
       "Bash(grep -v \"^.*:.*\\\\`\\\\|^.*:.*'\\\\|^.*:.*//\\\\|^.*:.*<\")",
       "Bash(awk 'NR>=11290 && NR<=11310' index.html)",
-      "Bash(awk 'NR>=5510 && NR<=5560' index.html)"
+      "Bash(awk 'NR>=5510 && NR<=5560' index.html)",
+      "Bash(node -e ':*)",
+      "Bash(where node:*)",
+      "Bash(where python:*)",
+      "Bash(where python3:*)",
+      "Bash(powershell -Command \"Get-Command node,python,python3 -ErrorAction SilentlyContinue | Select-Object Name,Source\")",
+      "Bash(powershell -Command \"node --version\")",
+      "Bash(powershell -Command ':*)",
+      "Bash(powershell -ExecutionPolicy Bypass -File \"c:\\\\Users\\\\erwin\\\\Desktop\\\\mycharts\\\\rebuild.ps1\")",
+      "Bash(powershell -Command \"git -C 'c:\\\\Users\\\\erwin\\\\Desktop\\\\mycharts' checkout HEAD -- index.html && Write-Host 'Restored original index.html from git'\")",
+      "Bash(git -C \"c:/Users/erwin/Desktop/mycharts\" checkout HEAD -- index.html)"
     ]
   }
 }
