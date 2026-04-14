@@ -6310,3 +6310,12 @@
       if (currentPeriod === 'graphs') renderGraphs();
     });
 
+    // ── BACK TO TOP BUTTON ──
+    const backToTopBtn = document.getElementById('backToTop');
+    window.addEventListener('scroll', () => {
+      backToTopBtn.classList.toggle('visible', window.scrollY > window.innerHeight / 6);
+    }, { passive: true });
+    backToTopBtn.addEventListener('click', () => {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+

@@ -3950,3 +3950,37 @@
       text-align: center;
       font-style: italic;
     }
+
+    /* ── BACK TO TOP BUTTON ── */
+    #backToTop {
+      position: fixed;
+      bottom: 2rem;
+      right: 1.5rem;
+      width: 2.75rem;
+      height: 2.75rem;
+      border-radius: 50%;
+      background: var(--surface);
+      border: 1.5px solid var(--border2);
+      color: var(--accent);
+      font-size: 1.6rem;
+      line-height: 1;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transform: translateX(calc(100% + 1.5rem));
+      opacity: 0;
+      transition: transform 0.3s ease, opacity 0.3s ease, background 0.15s, border-color 0.15s;
+      z-index: 9999;
+      box-shadow: 0 2px 12px rgba(0, 0, 0, 0.35);
+    }
+
+    #backToTop.visible {
+      transform: translateX(0);
+      opacity: 1;
+    }
+
+    #backToTop:hover {
+      background: var(--border);
+      border-color: var(--accent);
+    }
