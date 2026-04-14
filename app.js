@@ -1437,6 +1437,22 @@ document.addEventListener('click', e => {
 });
 
 // ─── SECTION COLLAPSE ──────────────────────────────────────────
+const CHART_COLLAPSIBLE_SECTIONS = ['songsSection', 'artistsSection', 'albumsSection', 'dropoutsSection'];
+
+function restoreChartSectionCollapseState(period) {
+  CHART_COLLAPSIBLE_SECTIONS.forEach(id => {
+    const section = document.getElementById(id);
+    if (!section) return;
+    const collapsed = localStorage.getItem('dc_chart_section_collapsed_' + id + '_' + period) === '1';
+    section.classList.toggle('collapsed', collapsed);
+    const btn = section.querySelector('.section-collapse-btn');
+    if (btn) {
+      btn.textContent = collapsed ? '+' : '−';
+      btn.title = collapsed ? 'Expand' : 'Collapse';
+    }
+  });
+}
+
 document.addEventListener('click', e => {
   const btn = e.target.closest('.section-collapse-btn');
   if (!btn) return;
@@ -1447,6 +1463,8 @@ document.addEventListener('click', e => {
   btn.title = collapsed ? 'Expand' : 'Collapse';
   if (section.id && section.id.startsWith('rec')) {
     localStorage.setItem('dc_rec_section_collapsed_' + section.id, collapsed ? '1' : '0');
+  } else if (CHART_COLLAPSIBLE_SECTIONS.includes(section.id)) {
+    localStorage.setItem('dc_chart_section_collapsed_' + section.id + '_' + currentPeriod, collapsed ? '1' : '0');
   }
 });
 
@@ -1555,6 +1573,7 @@ document.getElementById('periodNav').addEventListener('click', e => {
   currentPeriod = btn.dataset.period;
   localStorage.setItem('dc_period', currentPeriod);
   currentOffset = savedOffsets[currentPeriod];
+  restoreChartSectionCollapseState(currentPeriod);
   pageState.songs = 0; pageState.artists = 0; pageState.albums = 0;
   renderAll();
 });

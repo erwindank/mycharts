@@ -939,6 +939,11 @@
       accent-color: #b0006a;
     }
 
+    body.navy-light .picker-input {
+      color-scheme: light;
+      accent-color: #0852a8;
+    }
+
     body.pink-light .section-header h2,
     body.pink-light .section-header-h2 {
       color: var(--accent);
