@@ -2044,8 +2044,8 @@ function setLanguage(lang) {
     }
   });
 
-  // Re-render the app if data is loaded
-  if (typeof renderAll === 'function' && window.allPlays && allPlays.length > 0) {
+  // Re-render the app immediately (always, even if no data loaded)
+  if (typeof renderAll === 'function') {
     renderAll();
     if (typeof currentPeriod !== 'undefined' && currentPeriod === 'records') {
       if (typeof buildRecords === 'function') buildRecords();

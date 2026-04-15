@@ -1850,6 +1850,8 @@ const isPaginated = () => currentPeriod === 'year' || currentPeriod === 'alltime
 
 function renderAll() {
   if (currentPeriod === 'rawdata') { applyRawFilters(); return; }
+  // Exit early if no data has been loaded yet
+  if (!allPlays || allPlays.length === 0) { return; }
   const { start, end, label, sub } = getDateRange();
   const plays = currentPeriod === 'alltime'
     ? allPlays
