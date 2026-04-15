@@ -839,7 +839,12 @@ function buildRecords() {
 
   function fmtPeriodKey(pk, pt) {
     if (pt === 'week') { const d = new Date(pk + 'T00:00:00'); return t('period_week_of', { date: fmt(d) }); }
-    if (pt === 'month') { const [yr, mo] = pk.split('-'); return new Date(+yr, +mo - 1, 1).toLocaleString('default', { month: 'short', year: 'numeric' }); }
+    if (pt === 'month') {
+      const [yr, mo] = pk.split('-');
+      const monthKey = ['month_jan', 'month_feb', 'month_mar', 'month_apr', 'month_may_short', 'month_jun', 'month_jul', 'month_aug', 'month_sep', 'month_oct', 'month_nov', 'month_dec'][+mo - 1];
+      const monthName = t(monthKey);
+      return `${monthName} ${yr}`;
+    }
     return pk;
   }
   function periodAtOneHeader(pt) { return pt === 'week' ? t('rec_th_weeks_at_1') : pt === 'month' ? t('rec_th_months_at_1') : t('rec_th_years_at_1'); }
@@ -1182,7 +1187,7 @@ function buildRecords() {
     const first = Object.entries(artistMS).filter(function (e) { return e[1][m]; }).sort(function (a, b) { return a[1][m].date - b[1][m].date; })[0];
     if (!first) return '';
     const ms = first[1][m];
-    return '<tr><td><span class="milestone-number">' + m.toLocaleString() + '</span></td><td><div class="rec-name">' + esc(first[0]) + '</div></td><td class="rec-meta">' + ms.date.toLocaleDateString('default', { year: 'numeric', month: 'short', day: 'numeric' }) + '</td><td class="rec-meta">' + (ms.days === 0 ? t('rec_milestone_day1') : t('rec_milestone_days_after', { n: ms.days.toLocaleString() })) + '</td></tr>';
+    return '<tr><td><span class="milestone-number">' + m.toLocaleString() + '</span></td><td><div class="rec-name">' + esc(first[0]) + '</div></td><td class="rec-meta">' + fmtDate(ms.date) + '</td><td class="rec-meta">' + (ms.days === 0 ? t('rec_milestone_day1') : t('rec_milestone_days_after', { n: ms.days.toLocaleString() })) + '</td></tr>';
   }).filter(Boolean);
   mh += '<table class="milestone-table"><thead><tr><th>' + t('mil_th_plays') + '</th><th>' + t('mil_th_first_artist') + '</th><th>' + t('mil_th_date_reached') + '</th><th>' + t('mil_th_time_since') + '</th></tr></thead><tbody>' + (aMilRows.join('') || '<tr><td colspan="4" class="rec-empty">' + t('mil_no_data') + '</td></tr>') + '</tbody></table></div>';
   mh += '<div class="rec-section"><div class="rec-section-title">' + t('rec_songs_milestones') + '</div>';
@@ -1190,7 +1195,7 @@ function buildRecords() {
     const first = Object.entries(songMS).filter(function (e) { return e[1][m]; }).sort(function (a, b) { return a[1][m].date - b[1][m].date; })[0];
     if (!first) return '';
     const n = songNames[first[0]] || {}, ms = first[1][m];
-    return '<tr><td><span class="milestone-number">' + m.toLocaleString() + '</span></td><td><div class="rec-name">' + esc(n.title || first[0].split('|||')[0]) + '</div><div class="rec-sub">' + esc(n.artist || '') + '</div></td><td class="rec-meta">' + ms.date.toLocaleDateString('default', { year: 'numeric', month: 'short', day: 'numeric' }) + '</td><td class="rec-meta">' + (ms.days === 0 ? t('rec_milestone_day1') : t('rec_milestone_days_after', { n: ms.days.toLocaleString() })) + '</td></tr>';
+    return '<tr><td><span class="milestone-number">' + m.toLocaleString() + '</span></td><td><div class="rec-name">' + esc(n.title || first[0].split('|||')[0]) + '</div><div class="rec-sub">' + esc(n.artist || '') + '</div></td><td class="rec-meta">' + fmtDate(ms.date) + '</td><td class="rec-meta">' + (ms.days === 0 ? t('rec_milestone_day1') : t('rec_milestone_days_after', { n: ms.days.toLocaleString() })) + '</td></tr>';
   }).filter(Boolean);
   mh += '<table class="milestone-table"><thead><tr><th>' + t('mil_th_plays') + '</th><th>' + t('mil_th_first_song') + '</th><th>' + t('mil_th_date_reached') + '</th><th>' + t('mil_th_time_since') + '</th></tr></thead><tbody>' + (sMilRows.join('') || '<tr><td colspan="4" class="rec-empty">' + t('mil_no_data') + '</td></tr>') + '</tbody></table></div>';
   document.getElementById('recMilestonesBody').innerHTML = mh;
@@ -1204,7 +1209,7 @@ function buildRecords() {
   fh += recTable(['#', t('rec_th_artist'), t('rec_th_days_to_1k'), t('rec_th_first_play'), t('rec_th_reached_1k')],
     withM.map(function (e, i) {
       const ms = e[1][TARGET], fp = artistFirst[e[0]];
-      return '<td class="rec-rank">' + (i + 1) + '</td><td><div class="rec-name">' + esc(e[0]) + '</div></td><td class="rec-count">' + (ms.days === 0 ? t('rec_days_less_than_1') : ms.days.toLocaleString() + ' ' + tUnit('days', ms.days)) + '</td><td class="rec-meta">' + (fp ? fp.toLocaleDateString('default', { year: 'numeric', month: 'short', day: 'numeric' }) : '—') + '</td><td class="rec-meta">' + ms.date.toLocaleDateString('default', { year: 'numeric', month: 'short', day: 'numeric' }) + '</td>';
+      return '<td class="rec-rank">' + (i + 1) + '</td><td><div class="rec-name">' + esc(e[0]) + '</div></td><td class="rec-count">' + (ms.days === 0 ? t('rec_days_less_than_1') : ms.days.toLocaleString() + ' ' + tUnit('days', ms.days)) + '</td><td class="rec-meta">' + (fp ? fmtDate(fp) : '—') + '</td><td class="rec-meta">' + fmtDate(ms.date) + '</td>';
     }),
     lim
   );
@@ -1214,7 +1219,7 @@ function buildRecords() {
     if (!entries.length) continue;
     fh += '<div class="rec-section"><div class="rec-section-title">' + t('rec_fastest_to', { type: '♦ ' + t('rec_th_artists'), n: m.toLocaleString() }) + '</div>';
     fh += recTable(['#', t('rec_th_artist'), t('rec_th_days'), t('rec_th_date_reached')],
-      entries.map(function (e, i) { const ms = e[1][m]; return '<td class="rec-rank">' + (i + 1) + '</td><td><div class="rec-name">' + esc(e[0]) + '</div></td><td class="rec-count">' + (ms.days === 0 ? '&lt; 1' : ms.days.toLocaleString()) + ' ' + tUnit('days', ms.days) + '</td><td class="rec-meta">' + ms.date.toLocaleDateString('default', { year: 'numeric', month: 'short', day: 'numeric' }) + '</td>'; }),
+      entries.map(function (e, i) { const ms = e[1][m]; return '<td class="rec-rank">' + (i + 1) + '</td><td><div class="rec-name">' + esc(e[0]) + '</div></td><td class="rec-count">' + (ms.days === 0 ? '&lt; 1' : ms.days.toLocaleString()) + ' ' + tUnit('days', ms.days) + '</td><td class="rec-meta">' + fmtDate(ms.date) + '</td>'; }),
       lim
     );
     fh += '</div>';
@@ -1223,7 +1228,7 @@ function buildRecords() {
   if (songWith500.length) {
     fh += '<div class="rec-section"><div class="rec-section-title">' + t('rec_songs_fastest_to', { n: '500' }) + '</div>';
     fh += recTable(['#', t('rec_th_songs') + ' &middot; ' + t('rec_th_artist'), t('rec_th_days'), t('rec_th_date_reached')],
-      songWith500.map(function (e, i) { const n = songNames[e[0]] || {}, ms = e[1][500]; return '<td class="rec-rank">' + (i + 1) + '</td><td><div class="rec-name">' + esc(n.title || e[0].split('|||')[0]) + '</div><div class="rec-sub">' + esc(n.artist || '') + '</div></td><td class="rec-count">' + (ms.days === 0 ? '&lt; 1' : ms.days.toLocaleString()) + ' ' + tUnit('days', ms.days) + '</td><td class="rec-meta">' + ms.date.toLocaleDateString('default', { year: 'numeric', month: 'short', day: 'numeric' }) + '</td>'; }),
+      songWith500.map(function (e, i) { const n = songNames[e[0]] || {}, ms = e[1][500]; return '<td class="rec-rank">' + (i + 1) + '</td><td><div class="rec-name">' + esc(n.title || e[0].split('|||')[0]) + '</div><div class="rec-sub">' + esc(n.artist || '') + '</div></td><td class="rec-count">' + (ms.days === 0 ? '&lt; 1' : ms.days.toLocaleString()) + ' ' + tUnit('days', ms.days) + '</td><td class="rec-meta">' + fmtDate(ms.date) + '</td>'; }),
       lim
     );
     fh += '</div>';
@@ -1658,7 +1663,11 @@ let rawSortCol = 'date';
 let rawSortDir = -1; // -1 = desc, 1 = asc
 
 function rawFmtDate(d) {
-  return d.toLocaleString('default', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+  const monthKey = ['month_jan', 'month_feb', 'month_mar', 'month_apr', 'month_may_short', 'month_jun', 'month_jul', 'month_aug', 'month_sep', 'month_oct', 'month_nov', 'month_dec'][d.getMonth()];
+  const monthName = t(monthKey);
+  const hours = String(d.getHours()).padStart(2, '0');
+  const mins = String(d.getMinutes()).padStart(2, '0');
+  return `${d.getDate()} ${monthName} ${d.getFullYear()} ${hours}:${mins}`;
 }
 
 function applyRawFilters() {
@@ -1823,7 +1832,17 @@ function getDateRange() {
 }
 
 function fmt(d) {
-  return d.toLocaleDateString('default', { month: 'short', day: 'numeric', year: 'numeric' });
+  const monthKey = ['month_jan', 'month_feb', 'month_mar', 'month_apr', 'month_may_short', 'month_jun', 'month_jul', 'month_aug', 'month_sep', 'month_oct', 'month_nov', 'month_dec'][d.getMonth()];
+  const monthName = t(monthKey);
+  return `${d.getDate()} ${monthName} ${d.getFullYear()}`;
+}
+
+// Helper: format date using translated month names
+function fmtDate(d) {
+  if (!d || isNaN(d.getTime())) return '—';
+  const monthKey = ['month_jan', 'month_feb', 'month_mar', 'month_apr', 'month_may_short', 'month_jun', 'month_jul', 'month_aug', 'month_sep', 'month_oct', 'month_nov', 'month_dec'][d.getMonth()];
+  const monthName = t(monthKey);
+  return `${d.getDate()} ${monthName} ${d.getFullYear()}`;
 }
 
 // ─── RENDER ────────────────────────────────────────────────────
@@ -4610,11 +4629,11 @@ function openArtistModal(artistName) {
   // Helper: first-listened date for a song
   const firstPlay = (s) => {
     const plays = artistPlays.filter(p => songKey(p) === songKey(s));
-    return plays.length ? new Date(Math.min(...plays.map(p => p.date))).toLocaleDateString('default', { year: 'numeric', month: 'short', day: 'numeric' }) : '—';
+    return plays.length ? fmtDate(new Date(Math.min(...plays.map(p => p.date)))) : '—';
   };
   const firstAlbumPlay = (album) => {
     const plays = artistPlays.filter(p => p.album === album);
-    return plays.length ? new Date(Math.min(...plays.map(p => p.date))).toLocaleDateString('default', { year: 'numeric', month: 'short', day: 'numeric' }) : '—';
+    return plays.length ? fmtDate(new Date(Math.min(...plays.map(p => p.date)))) : '—';
   };
 
   // Helper: build a detail block for a list of songs, albums, or weeks
@@ -4644,7 +4663,7 @@ function openArtistModal(artistName) {
   if (no1Weeks.length) {
     acc.push(accRow('🏆', `Reached <strong style="color:var(--text)">#1</strong> on the Weekly Artists chart — <strong style="color:var(--text)">${no1Weeks.length}</strong> week${no1Weeks.length !== 1 ? 's' : ''}`,
       no1Weeks.map(w => ({
-        name: 'Week of ' + w.sunday.toLocaleDateString('default', { month: 'short', day: 'numeric', year: 'numeric' }),
+        name: 'Week of ' + fmtDate(w.sunday),
         plays: w.plays,
         date: '',
         weekOffset: weekOffset(w.sunday)
@@ -4872,7 +4891,7 @@ function openAlbumModal(albumKey) {
   if (albumPeak === 1) {
     const no1Weeks = findAlbumNo1Weeks(albumKey);
     acc.push(albAccRow('🏆', `Reached <strong style="color:var(--text)">#1</strong> on the Weekly Albums chart — <strong style="color:var(--text)">${no1Weeks.length}</strong> week${no1Weeks.length !== 1 ? 's' : ''}`,
-      no1Weeks.map(w => ({ name: 'Week of ' + w.sunday.toLocaleDateString('default', { month: 'short', day: 'numeric', year: 'numeric' }), plays: w.plays, weekOffset: weekOffset(w.sunday) }))));
+      no1Weeks.map(w => ({ name: 'Week of ' + fmtDate(w.sunday), plays: w.plays, weekOffset: weekOffset(w.sunday) }))));
   } else if (albumPeak) {
     acc.push(albAccRow('📈', `Album Peak: <strong style="color:var(--text)">#${albumPeak}</strong> on Top ${chartSize} Albums chart`, []));
   }
@@ -5016,7 +5035,7 @@ function upcomingDateLabel(dateStr) {
   const d = new Date(dateStr + 'T00:00:00');
   const now = new Date(); now.setHours(0, 0, 0, 0);
   const days = Math.round((d - now) / 86400000);
-  const fmt = d.toLocaleDateString('default', { month: 'short', day: 'numeric', year: 'numeric' });
+  const fmt = fmtDate(d);
   return { label: fmt, soon: days <= 14 };
 }
 
@@ -5147,7 +5166,7 @@ async function fetchRecentReleasesForMBID(mbid) {
 
 function renderRecentCard(release, artistName) {
   const d = new Date(release.date + 'T00:00:00');
-  const label = d.toLocaleDateString('default', { month: 'short', day: 'numeric', year: 'numeric' });
+  const label = fmtDate(d);
   return `<div class="upcoming-card">
     <div class="upcoming-card-date recent">${esc(label)}</div>
     <div class="upcoming-card-title">${esc(release.title)}</div>

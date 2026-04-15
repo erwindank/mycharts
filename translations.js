@@ -55,7 +55,7 @@ const TRANSLATIONS = {
     th_tracks: 'Tracks',
     th_artist: 'Artist',
     th_album_artist: 'Album · Artist',
-    th_prev: 'Prev',
+    th_prev: 'Previous',
     th_weeks: 'Weeks',
     th_months: 'Months',
 
@@ -149,6 +149,10 @@ const TRANSLATIONS = {
     // Click-to-view hints
     click_view_profile: 'CLICK TO VIEW PROFILE',
     click_view_album: 'CLICK TO VIEW ALBUM',
+
+    // Badge labels
+    badge_new: 'NEW',
+    badge_re: 'RE',
 
     // Search
     search_songs_placeholder: 'Search songs or artists…',
@@ -342,6 +346,38 @@ const TRANSLATIONS = {
     day_friday: 'Friday',
     day_saturday: 'Saturday',
 
+    // Month names (long form)
+    month_january: 'January',
+    month_february: 'February',
+    month_march: 'March',
+    month_april: 'April',
+    month_may: 'May',
+    month_june: 'June',
+    month_july: 'July',
+    month_august: 'August',
+    month_september: 'September',
+    month_october: 'October',
+    month_november: 'November',
+    month_december: 'December',
+
+    // Month names (short form)
+    month_jan: 'Jan',
+    month_feb: 'Feb',
+    month_mar: 'Mar',
+    month_apr: 'Apr',
+    month_may_short: 'May',
+    month_jun: 'Jun',
+    month_jul: 'Jul',
+    month_aug: 'Aug',
+    month_sep: 'Sep',
+    month_oct: 'Oct',
+    month_nov: 'Nov',
+    month_dec: 'Dec',
+
+    // Calendar & Date labels
+    calendar_label: 'Calendar',
+    calendar_picker: 'Date Picker',
+
     // Masthead
     masthead_est: "★ Erwin's Personal Music Charts · Est. 2016 ★",
     masthead_tagline: 'Your listening history. Your charts. Your legacy.',
@@ -498,16 +534,16 @@ const TRANSLATIONS = {
     stat_albums: 'Álbumes',
 
     // Table headers
-    th_rank: 'POS.',
+    th_rank: 'Puesto',
     th_title_artist: 'Título · Artista',
     th_album: 'Álbum',
-    th_plays: 'Repros',
+    th_plays: 'Reproducciones',
     th_unique_songs: 'Canciones Únicas',
     th_total_plays: 'Total Repros',
     th_tracks: 'Pistas',
     th_artist: 'Artista',
     th_album_artist: 'Álbum · Artista',
-    th_prev: 'Ant.',
+    th_prev: 'Puesto Anterior',
     th_weeks: 'Semanas',
     th_months: 'Meses',
 
@@ -601,6 +637,10 @@ const TRANSLATIONS = {
     // Click-to-view hints
     click_view_profile: 'CLIC PARA VER PERFIL',
     click_view_album: 'CLIC PARA VER ÁLBUM',
+
+    // Badge labels
+    badge_new: 'NUEVO',
+    badge_re: 'RE',
 
     // Search
     search_songs_placeholder: 'Buscar canciones o artistas…',
@@ -794,6 +834,38 @@ const TRANSLATIONS = {
     day_friday: 'Viernes',
     day_saturday: 'Sábado',
 
+    // Month names (long form)
+    month_january: 'Enero',
+    month_february: 'Febrero',
+    month_march: 'Marzo',
+    month_april: 'Abril',
+    month_may: 'Mayo',
+    month_june: 'Junio',
+    month_july: 'Julio',
+    month_august: 'Agosto',
+    month_september: 'Septiembre',
+    month_october: 'Octubre',
+    month_november: 'Noviembre',
+    month_december: 'Diciembre',
+
+    // Month names (short form)
+    month_jan: 'Ene',
+    month_feb: 'Feb',
+    month_mar: 'Mar',
+    month_apr: 'Abr',
+    month_may_short: 'May',
+    month_jun: 'Jun',
+    month_jul: 'Jul',
+    month_aug: 'Ago',
+    month_sep: 'Sep',
+    month_oct: 'Oct',
+    month_nov: 'Nov',
+    month_dec: 'Dic',
+
+    // Calendar & Date labels
+    calendar_label: 'Calendario',
+    calendar_picker: 'Selector de Fecha',
+
     // Masthead
     masthead_est: "★ Charts Personales de Música de Erwin · Est. 2016 ★",
     masthead_tagline: 'Tu historial de escucha. Tus charts. Tu legado.',
@@ -950,16 +1022,16 @@ const TRANSLATIONS = {
     stat_albums: 'Álbuns',
 
     // Table headers
-    th_rank: 'POS.',
+    th_rank: 'Posição',
     th_title_artist: 'Título · Artista',
     th_album: 'Álbum',
-    th_plays: 'Repros.',
+    th_plays: 'Reproduções',
     th_unique_songs: 'Músicas Únicas',
     th_total_plays: 'Total Repros.',
     th_tracks: 'Faixas',
     th_artist: 'Artista',
     th_album_artist: 'Álbum · Artista',
-    th_prev: 'Ant.',
+    th_prev: 'Anterior',
     th_weeks: 'Semanas',
     th_months: 'Meses',
 
@@ -1053,6 +1125,10 @@ const TRANSLATIONS = {
     // Click-to-view hints
     click_view_profile: 'CLIQUE PARA VER PERFIL',
     click_view_album: 'CLIQUE PARA VER ÁLBUM',
+
+    // Badge labels
+    badge_new: 'NOVO',
+    badge_re: 'RE',
 
     // Search
     search_songs_placeholder: 'Buscar músicas ou artistas…',
@@ -1246,6 +1322,38 @@ const TRANSLATIONS = {
     day_friday: 'Sexta-feira',
     day_saturday: 'Sábado',
 
+    // Month names (long form)
+    month_january: 'Janeiro',
+    month_february: 'Fevereiro',
+    month_march: 'Março',
+    month_april: 'Abril',
+    month_may: 'Maio',
+    month_june: 'Junho',
+    month_july: 'Julho',
+    month_august: 'Agosto',
+    month_september: 'Setembro',
+    month_october: 'Outubro',
+    month_november: 'Novembro',
+    month_december: 'Dezembro',
+
+    // Month names (short form)
+    month_jan: 'Jan',
+    month_feb: 'Fev',
+    month_mar: 'Mar',
+    month_apr: 'Abr',
+    month_may_short: 'Mai',
+    month_jun: 'Jun',
+    month_jul: 'Jul',
+    month_aug: 'Ago',
+    month_sep: 'Set',
+    month_oct: 'Out',
+    month_nov: 'Nov',
+    month_dec: 'Dez',
+
+    // Calendar & Date labels
+    calendar_label: 'Calendário',
+    calendar_picker: 'Selecionador de Data',
+
     // Masthead
     masthead_est: "★ Charts Pessoais de Música do Erwin · Est. 2016 ★",
     masthead_tagline: 'Seu histórico de escuta. Seus charts. Seu legado.',
@@ -1402,16 +1510,16 @@ const TRANSLATIONS = {
     stat_albums: 'Álbuns',
 
     // Table headers
-    th_rank: 'POS.',
+    th_rank: 'Posição',
     th_title_artist: 'Título · Artista',
     th_album: 'Álbum',
-    th_plays: 'Repros.',
+    th_plays: 'Reproduções',
     th_unique_songs: 'Músicas Únicas',
     th_total_plays: 'Total Repros.',
     th_tracks: 'Faixas',
     th_artist: 'Artista',
     th_album_artist: 'Álbum · Artista',
-    th_prev: 'Ant.',
+    th_prev: 'Anterior',
     th_weeks: 'Semanas',
     th_months: 'Meses',
 
@@ -1505,6 +1613,10 @@ const TRANSLATIONS = {
     // Click-to-view hints
     click_view_profile: 'CLIQUE PARA VER PERFIL',
     click_view_album: 'CLIQUE PARA VER ÁLBUM',
+
+    // Badge labels
+    badge_new: 'NOVO',
+    badge_re: 'RE',
 
     // Search
     search_songs_placeholder: 'Pesquisar músicas ou artistas…',
@@ -1698,6 +1810,38 @@ const TRANSLATIONS = {
     day_friday: 'Sexta-feira',
     day_saturday: 'Sábado',
 
+    // Month names (long form)
+    month_january: 'Janeiro',
+    month_february: 'Fevereiro',
+    month_march: 'Março',
+    month_april: 'Abril',
+    month_may: 'Maio',
+    month_june: 'Junho',
+    month_july: 'Julho',
+    month_august: 'Agosto',
+    month_september: 'Setembro',
+    month_october: 'Outubro',
+    month_november: 'Novembro',
+    month_december: 'Dezembro',
+
+    // Month names (short form)
+    month_jan: 'Jan',
+    month_feb: 'Fev',
+    month_mar: 'Mar',
+    month_apr: 'Abr',
+    month_may_short: 'Mai',
+    month_jun: 'Jun',
+    month_jul: 'Jul',
+    month_aug: 'Ago',
+    month_sep: 'Set',
+    month_oct: 'Out',
+    month_nov: 'Nov',
+    month_dec: 'Dez',
+
+    // Calendar & Date labels
+    calendar_label: 'Calendário',
+    calendar_picker: 'Selecionador de Data',
+
     // Masthead
     masthead_est: "★ Charts Pessoais de Música do Erwin · Est. 2016 ★",
     masthead_tagline: 'O seu histórico de escuta. Os seus charts. O seu legado.',
@@ -1876,7 +2020,7 @@ function setLanguage(lang) {
   if (!TRANSLATIONS[lang]) lang = 'en';
   currentLang = lang;
   try { localStorage.setItem('dankcharts-lang', lang); } catch (e) { }
-  document.documentElement.lang = lang.split('-')[0];
+  document.documentElement.lang = lang;
 
   // Update active button state
   document.querySelectorAll('.lang-btn').forEach(btn => {
@@ -1922,7 +2066,7 @@ function setLanguage(lang) {
 
 // Apply saved language to static DOM elements once the page is ready
 document.addEventListener('DOMContentLoaded', function () {
-  document.documentElement.lang = currentLang.split('-')[0];
+  document.documentElement.lang = currentLang;
   document.querySelectorAll('.lang-btn').forEach(btn => {
     btn.classList.toggle('active', btn.dataset.lang === currentLang);
   });
