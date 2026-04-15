@@ -2696,8 +2696,10 @@ function buildPeriodStats(period) {
 function mPrevCell(curRank, key, type, ms) {
   const prev = ms.prevChart[type][key];
   if (!prev) {
-    const label = ms.everChartedBefore[type].has(key) ? 'RE' : 'NEW';
-    return `<td class="m-col"><span class="m-${label === 'NEW' ? 'new' : 're'}">${label}</span></td>`;
+    const isRe = ms.everChartedBefore[type].has(key);
+    const badgeKey = isRe ? 'badge_re' : (type === 'songs' ? 'badge_new_songs' : 'badge_new');
+    const label = t(badgeKey);
+    return `<td class="m-col"><span class="m-${isRe ? 're' : 'new'}">${label}</span></td>`;
   }
   const diff = prev.rank - curRank; // positive = moved up
   if (diff === 0) return `<td class="m-col"><span class="m-same">=</span><div class="m-prev-rank">#${prev.rank}</div></td>`;
@@ -2710,8 +2712,10 @@ function mPrevCell(curRank, key, type, ms) {
 function deltaInline(curCount, key, type, ms) {
   const prev = ms.prevChart[type][key];
   if (!prev) {
-    const label = ms.everChartedBefore[type].has(key) ? 'RE' : 'NEW';
-    return `<span class="m-${label === 'NEW' ? 'new' : 're'}" style="font-size:0.6rem;margin-left:0.4rem">${label}</span>`;
+    const isRe = ms.everChartedBefore[type].has(key);
+    const badgeKey = isRe ? 'badge_re' : (type === 'songs' ? 'badge_new_songs' : 'badge_new');
+    const label = t(badgeKey);
+    return `<span class="m-${isRe ? 're' : 'new'}" style="font-size:0.6rem;margin-left:0.4rem">${label}</span>`;
   }
   const diff = curCount - prev.count;
   if (diff === 0) return `<span class="m-same" style="font-size:0.6rem;margin-left:0.4rem">=</span>`;

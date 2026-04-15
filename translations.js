@@ -152,6 +152,7 @@ const TRANSLATIONS = {
 
     // Badge labels
     badge_new: 'NEW',
+    badge_new_songs: 'NEW',
     badge_re: 'RE',
 
     // Search
@@ -502,7 +503,7 @@ const TRANSLATIONS = {
     nav_monthly: 'Mensual',
     nav_yearly: 'Anual',
     nav_alltime: 'Histórico',
-    nav_rawdata: 'Datos Brutos',
+    nav_rawdata: 'BASE DE DATOS',
     nav_graphs: 'Gráficas',
     nav_records: 'Récords',
 
@@ -640,6 +641,7 @@ const TRANSLATIONS = {
 
     // Badge labels
     badge_new: 'NUEVO',
+    badge_new_songs: 'NUEVA',
     badge_re: 'RE',
 
     // Search
@@ -1128,6 +1130,7 @@ const TRANSLATIONS = {
 
     // Badge labels
     badge_new: 'NOVO',
+    badge_new_songs: 'NOVA',
     badge_re: 'RE',
 
     // Search
@@ -1616,6 +1619,7 @@ const TRANSLATIONS = {
 
     // Badge labels
     badge_new: 'NOVO',
+    badge_new_songs: 'NOVA',
     badge_re: 'RE',
 
     // Search
