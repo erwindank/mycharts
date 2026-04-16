@@ -21,19 +21,19 @@
 
   <div class="masthead">
     <div class="theme-toggle">
-      <button class="theme-btn active" data-theme="navy-dark" title="Navy Dark">●</button>
-      <button class="theme-btn" data-theme="navy-light" title="Navy Light">●</button>
-      <button class="theme-btn" data-theme="purple" title="Purple Dark">●</button>
-      <button class="theme-btn" data-theme="purple-light" title="Purple Light">●</button>
-      <button class="theme-btn" data-theme="red" title="Red Dark">●</button>
-      <button class="theme-btn" data-theme="red-light" title="Red Light">●</button>
-      <button class="theme-btn" data-theme="yellow" title="Yellow Dark">●</button>
-      <button class="theme-btn" data-theme="yellow-light" title="Yellow Light">●</button>
-      <button class="theme-btn" data-theme="pink" title="Pink Dark">●</button>
-      <button class="theme-btn" data-theme="pink-light" title="Pink Light">●</button>
+      <button class="theme-btn active" data-theme="navy-dark" data-i18n-title="tooltip_theme_navy_dark">●</button>
+      <button class="theme-btn" data-theme="navy-light" data-i18n-title="tooltip_theme_navy_light">●</button>
+      <button class="theme-btn" data-theme="purple" data-i18n-title="tooltip_theme_purple_dark">●</button>
+      <button class="theme-btn" data-theme="purple-light" data-i18n-title="tooltip_theme_purple_light">●</button>
+      <button class="theme-btn" data-theme="red" data-i18n-title="tooltip_theme_red_dark">●</button>
+      <button class="theme-btn" data-theme="red-light" data-i18n-title="tooltip_theme_red_light">●</button>
+      <button class="theme-btn" data-theme="yellow" data-i18n-title="tooltip_theme_yellow_dark">●</button>
+      <button class="theme-btn" data-theme="yellow-light" data-i18n-title="tooltip_theme_yellow_light">●</button>
+      <button class="theme-btn" data-theme="pink" data-i18n-title="tooltip_theme_pink_dark">●</button>
+      <button class="theme-btn" data-theme="pink-light" data-i18n-title="tooltip_theme_pink_light">●</button>
       <span id="themeLabel">Navy</span>
       <span style="width:1px;height:18px;background:var(--border);margin:0 8px;"></span>
-      <select id="weekStartDaySelect" title="Week Start Day"></select>
+      <select id="weekStartDaySelect" data-i18n-title="tooltip_week_start_day"></select>
       <span style="width:1px;height:18px;background:var(--border);margin:0 4px;"></span>
       <div class="lang-switcher" id="langSwitcher">
         <button class="lang-btn active" data-lang="en" onclick="setLanguage('en')">🇺🇸 EN</button>
@@ -112,9 +112,11 @@
       <div class="date-nav-center">
         <div class="period-label" id="periodLabel"><strong>Loading...</strong></div>
         <div id="jumpPicker" style="display:none">
-          <input type="date" id="weekPicker" class="picker-input" title="Jump to week">
-          <input type="month" id="monthPicker" class="picker-input" style="display:none" title="Jump to month">
-          <select id="yearPicker" class="picker-input" style="display:none" title="Jump to year"></select>
+          <input type="date" id="weekPicker" class="picker-input" data-i18n-title="tooltip_jump_to_week">
+          <input type="month" id="monthPicker" class="picker-input" style="display:none"
+            data-i18n-title="tooltip_jump_to_month">
+          <select id="yearPicker" class="picker-input" style="display:none"
+            data-i18n-title="tooltip_jump_to_year"></select>
         </div>
       </div>
       <button id="nextBtn" data-i18n="btn_next">Next ►</button>
@@ -123,13 +125,13 @@
     <div class="stats-strip" id="statsStrip"></div>
 
     <button class="export-playlist-btn" id="exportPlaylistBtn"
-      title="Export this chart as a playlist — save to Spotify, Last.fm, or a text file" onclick="openExportModal()"
-      data-i18n="btn_export_playlist">♫
+      title="Export this chart as a playlist — save to Spotify, Last.fm, or a text file"
+      data-i18n-title="tooltip_export_playlist" onclick="openExportModal()" data-i18n="btn_export_playlist">♫
       EXPORT PLAYLIST</button>
 
     <div class="chart-section" id="songsSection">
       <div class="section-header">
-        <button class="section-collapse-btn" data-target="songsSection" title="Collapse">−</button>
+        <button class="section-collapse-btn" data-target="songsSection" data-i18n-title="tooltip_collapse">−</button>
         <h2 id="songsSectionTitle">★ Top 10 Songs</h2>
         <span class="section-collapsed-label" data-i18n="collapsed_hint">collapsed — click + to expand</span>
         <div class="section-rule"></div>
@@ -139,7 +141,7 @@
         <input type="text" id="songsSearchInput" placeholder="Search songs or artists…" oninput="applySearch('songs')"
           data-i18n-placeholder="search_songs_placeholder" />
         <span class="search-count" id="songsSearchCount"></span>
-        <button class="search-clear" onclick="clearSearch('songs')" title="Clear">✕</button>
+        <button class="search-clear" onclick="clearSearch('songs')" data-i18n-title="tooltip_clear">✕</button>
       </div>
       <div class="section-body">
         <table class="chart-table" id="songsTable">
@@ -161,15 +163,15 @@
         </div>
         <div class="ig-share-bar" id="songsShareBar">
           <span>SHARE:</span>
-          <button class="ig-share-btn" title="Generate a shareable image of this chart for Instagram / social media"
-            onclick="openIgPreviewModal('songs')" data-i18n="btn_share_image">📷 Share as Image</button>
+          <button class="ig-share-btn" data-i18n-title="tooltip_share_image" onclick="openIgPreviewModal('songs')"
+            data-i18n="btn_share_image">📷 Share as Image</button>
         </div>
       </div>
     </div>
 
     <div class="chart-section" id="artistsSection">
       <div class="section-header">
-        <button class="section-collapse-btn" data-target="artistsSection" title="Collapse">−</button>
+        <button class="section-collapse-btn" data-target="artistsSection" data-i18n-title="tooltip_collapse">−</button>
         <h2 id="artistsSectionTitle">♦ Top 10 Artists</h2>
         <span class="section-collapsed-label" data-i18n="collapsed_hint">collapsed — click + to expand</span>
         <div class="section-rule"></div>
@@ -179,7 +181,7 @@
         <input type="text" id="artistsSearchInput" placeholder="Search artists…" oninput="applySearch('artists')"
           data-i18n-placeholder="search_artists_placeholder" />
         <span class="search-count" id="artistsSearchCount"></span>
-        <button class="search-clear" onclick="clearSearch('artists')" title="Clear">✕</button>
+        <button class="search-clear" onclick="clearSearch('artists')" data-i18n-title="tooltip_clear">✕</button>
       </div>
       <div class="section-body">
         <table class="chart-table" id="artistsTable">
@@ -201,15 +203,15 @@
         </div>
         <div class="ig-share-bar" id="artistsShareBar">
           <span>SHARE:</span>
-          <button class="ig-share-btn" title="Generate a shareable image of this chart for Instagram / social media"
-            onclick="openIgPreviewModal('artists')">📷 Share as Image</button>
+          <button class="ig-share-btn" data-i18n-title="tooltip_share_image" onclick="openIgPreviewModal('artists')">📷
+            Share as Image</button>
         </div>
       </div>
     </div>
 
     <div class="chart-section" id="albumsSection">
       <div class="section-header">
-        <button class="section-collapse-btn" data-target="albumsSection" title="Collapse">−</button>
+        <button class="section-collapse-btn" data-target="albumsSection" data-i18n-title="tooltip_collapse">−</button>
         <h2 id="albumsSectionTitle">◈ Top 10 Albums</h2>
         <span class="section-collapsed-label" data-i18n="collapsed_hint">collapsed — click + to expand</span>
         <div class="section-rule"></div>
@@ -219,7 +221,7 @@
         <input type="text" id="albumsSearchInput" placeholder="Search albums or artists…"
           oninput="applySearch('albums')" data-i18n-placeholder="search_albums_placeholder" />
         <span class="search-count" id="albumsSearchCount"></span>
-        <button class="search-clear" onclick="clearSearch('albums')" title="Clear">✕</button>
+        <button class="search-clear" onclick="clearSearch('albums')" data-i18n-title="tooltip_clear">✕</button>
       </div>
       <div class="section-body">
         <table class="chart-table" id="albumsTable">
@@ -241,15 +243,15 @@
         </div>
         <div class="ig-share-bar" id="albumsShareBar">
           <span>SHARE:</span>
-          <button class="ig-share-btn" title="Generate a shareable image of this chart for Instagram / social media"
-            onclick="openIgPreviewModal('albums')">📷 Share as Image</button>
+          <button class="ig-share-btn" data-i18n-title="tooltip_share_image" onclick="openIgPreviewModal('albums')">📷
+            Share as Image</button>
         </div>
       </div>
     </div>
 
     <div class="chart-section" id="dropoutsSection" style="display:none;">
       <div class="section-header">
-        <button class="section-collapse-btn" data-target="dropoutsSection" title="Collapse">−</button>
+        <button class="section-collapse-btn" data-target="dropoutsSection" data-i18n-title="tooltip_collapse">−</button>
         <h2 class="section-title" data-i18n="sec_off_chart">⬇ Off the Chart</h2>
         <span class="section-collapsed-label" data-i18n="collapsed_hint">collapsed — click + to expand</span>
         <div class="section-rule"></div>
@@ -264,7 +266,7 @@
     <!-- UPCOMING RELEASES SECTION -->
     <div class="chart-section collapsed" id="upcomingSection" style="display:none; margin-top:2rem;">
       <div class="section-header">
-        <button class="section-collapse-btn" data-target="upcomingSection" title="Collapse">+</button>
+        <button class="section-collapse-btn" data-target="upcomingSection" data-i18n-title="tooltip_collapse">+</button>
         <h2 class="section-title" data-i18n="sec_upcoming_title">🔜 Upcoming Releases</h2>
         <span class="section-collapsed-label" data-i18n="collapsed_hint">collapsed — click + to expand</span>
         <div class="section-rule"></div>
@@ -282,7 +284,7 @@
     <!-- RECENT RELEASES SECTION -->
     <div class="chart-section collapsed" id="recentSection" style="display:none; margin-top:2rem;">
       <div class="section-header">
-        <button class="section-collapse-btn" data-target="recentSection" title="Collapse">+</button>
+        <button class="section-collapse-btn" data-target="recentSection" data-i18n-title="tooltip_collapse">+</button>
         <h2 class="section-title" data-i18n="sec_recent_title">🎉 Recent Releases</h2>
         <span class="section-collapsed-label" data-i18n="collapsed_hint">collapsed — click + to expand</span>
         <div class="section-rule"></div>
@@ -337,9 +339,9 @@
           <input id="gCumulativeTo" type="date"
             style="background:var(--bg2);border:1px solid var(--border2);color:var(--text);font-family:'DM Mono',monospace;font-size:0.7rem;padding:0.25rem 0.5rem;border-radius:4px;outline:none;">
           <button id="gCumulativeResetRange" class="graphs-btn" style="white-space:nowrap;">Reset</button>
-          <button id="gCumulativeLabelsBtn" class="graphs-btn" title="Toggle data point labels on/off for this graph"
+          <button id="gCumulativeLabelsBtn" class="graphs-btn" data-i18n-title="tooltip_toggle_labels"
             style="white-space:nowrap;">Labels: Off</button>
-          <button id="gCumulativeResetZoom" class="graphs-btn" title="Reset the chart zoom to show the full date range"
+          <button id="gCumulativeResetZoom" class="graphs-btn" data-i18n-title="tooltip_reset_zoom"
             style="white-space:nowrap;">Reset Zoom</button>
         </div>
         <div class="graph-canvas-wrap"><canvas id="gCumulative"></canvas></div>
@@ -359,9 +361,9 @@
           <input id="gTotalVolumeTo" type="date"
             style="background:var(--bg2);border:1px solid var(--border2);color:var(--text);font-family:'DM Mono',monospace;font-size:0.7rem;padding:0.25rem 0.5rem;border-radius:4px;outline:none;">
           <button id="gTotalVolumeResetRange" class="graphs-btn" style="white-space:nowrap;">Reset</button>
-          <button id="gTotalVolumeResetZoom" class="graphs-btn" title="Reset the chart zoom to show the full date range"
+          <button id="gTotalVolumeResetZoom" class="graphs-btn" data-i18n-title="tooltip_reset_zoom"
             style="white-space:nowrap;">Reset Zoom</button>
-          <button id="gTotalVolumeLabelsBtn" class="graphs-btn" title="Toggle data point labels on/off for this graph"
+          <button id="gTotalVolumeLabelsBtn" class="graphs-btn" data-i18n-title="tooltip_toggle_labels"
             style="white-space:nowrap;">Labels: Off</button>
         </div>
         <div class="graph-canvas-wrap"><canvas id="gTotalVolume"></canvas></div>
@@ -388,9 +390,9 @@
           <input id="gVolumeTo" type="date"
             style="background:var(--bg2);border:1px solid var(--border2);color:var(--text);font-family:'DM Mono',monospace;font-size:0.7rem;padding:0.25rem 0.5rem;border-radius:4px;outline:none;">
           <button id="gVolumeResetRange" class="graphs-btn" style="white-space:nowrap;">Reset</button>
-          <button id="gVolumeResetZoom" class="graphs-btn" title="Reset the chart zoom to show the full date range"
+          <button id="gVolumeResetZoom" class="graphs-btn" data-i18n-title="tooltip_reset_zoom"
             style="white-space:nowrap;">Reset Zoom</button>
-          <button id="gVolumeLabelsBtn" class="graphs-btn" title="Toggle data point labels on/off for this graph"
+          <button id="gVolumeLabelsBtn" class="graphs-btn" data-i18n-title="tooltip_toggle_labels"
             style="white-space:nowrap;">Labels: Off</button>
         </div>
         <div class="graph-canvas-wrap"><canvas id="gVolume"></canvas></div>
@@ -402,9 +404,9 @@
         <div class="graph-card-sub" data-i18n="graph_discoveries_sub">Songs, artists and albums heard for the first time
           each period</div>
         <div style="display:flex;align-items:center;gap:0.5rem;flex-wrap:wrap;margin-bottom:0.75rem;">
-          <button id="gDiscoveriesResetZoom" class="graphs-btn" title="Reset the chart zoom to show the full date range"
+          <button id="gDiscoveriesResetZoom" class="graphs-btn" data-i18n-title="tooltip_reset_zoom"
             style="white-space:nowrap;">Reset Zoom</button>
-          <button id="gDiscoveriesLabelsBtn" class="graphs-btn" title="Toggle data point labels on/off for this graph"
+          <button id="gDiscoveriesLabelsBtn" class="graphs-btn" data-i18n-title="tooltip_toggle_labels"
             style="white-space:nowrap;">Labels: Off</button>
         </div>
         <div class="graph-canvas-wrap"><canvas id="gDiscoveries"></canvas></div>
@@ -464,13 +466,15 @@
 
         <!-- Row 4: Transport -->
         <div style="display:flex;align-items:center;gap:0.4rem;flex-wrap:wrap;margin-bottom:0.5rem;">
-          <button id="raceRestartBtn" class="graphs-btn" data-i18n="race_start" title="Go to start">↩ Start</button>
-          <button id="raceStepBackBtn" class="graphs-btn" title="Step back">◀◀</button>
+          <button id="raceRestartBtn" class="graphs-btn" data-i18n="race_start" data-i18n-title="tooltip_race_start">↩
+            Start</button>
+          <button id="raceStepBackBtn" class="graphs-btn" data-i18n-title="tooltip_race_step_back">◀◀</button>
           <button id="racePlayBtn" class="graphs-btn active" style="min-width:84px;" data-i18n="race_play">▶
             Play</button>
-          <button id="raceStepFwdBtn" class="graphs-btn" title="Step forward">▶▶</button>
-          <button id="raceEndBtn" class="graphs-btn" data-i18n="race_end" title="Go to end">↪ End</button>
-          <button id="raceGifBtn" class="graphs-btn" data-i18n="btn_download_gif" title="Download GIF animation"
+          <button id="raceStepFwdBtn" class="graphs-btn" data-i18n-title="tooltip_race_step_forward">▶▶</button>
+          <button id="raceEndBtn" class="graphs-btn" data-i18n="race_end" data-i18n-title="tooltip_race_end">↪
+            End</button>
+          <button id="raceGifBtn" class="graphs-btn" data-i18n="btn_download_gif" data-i18n-title="tooltip_download_gif"
             style="margin-left:auto;">⬇
             GIF</button>
         </div>
@@ -570,7 +574,8 @@
 
       <div class="chart-section" id="recAllOnesSection">
         <div class="section-header">
-          <button class="section-collapse-btn" data-target="recAllOnesSection" title="Collapse">−</button>
+          <button class="section-collapse-btn" data-target="recAllOnesSection"
+            data-i18n-title="tooltip_collapse">−</button>
           <h2 class="section-header-h2" data-i18n="rec_all_ones_title">★ All #1s</h2>
           <div class="section-rule"></div>
         </div>
@@ -581,7 +586,7 @@
 
       <div class="chart-section" id="recPAKSection">
         <div class="section-header">
-          <button class="section-collapse-btn" data-target="recPAKSection" title="Collapse">−</button>
+          <button class="section-collapse-btn" data-target="recPAKSection" data-i18n-title="tooltip_collapse">−</button>
           <h2 class="section-header-h2" data-i18n="rec_pak_title">🎯 Perfect All Kill</h2>
           <div class="section-rule"></div>
         </div>
@@ -592,7 +597,8 @@
 
       <div class="chart-section" id="recAppearancesSection">
         <div class="section-header">
-          <button class="section-collapse-btn" data-target="recAppearancesSection" title="Collapse">−</button>
+          <button class="section-collapse-btn" data-target="recAppearancesSection"
+            data-i18n-title="tooltip_collapse">−</button>
           <h2 class="section-header-h2" data-i18n="rec_appearances_title">📈 Most Chart Appearances</h2>
           <div class="section-rule"></div>
         </div>
@@ -603,7 +609,8 @@
 
       <div class="chart-section" id="recDebutsSection">
         <div class="section-header">
-          <button class="section-collapse-btn" data-target="recDebutsSection" title="Collapse">−</button>
+          <button class="section-collapse-btn" data-target="recDebutsSection"
+            data-i18n-title="tooltip_collapse">−</button>
           <h2 class="section-header-h2" data-i18n="rec_debuts_title">🚀 Biggest Debuts</h2>
           <div class="section-rule"></div>
         </div>
@@ -614,7 +621,8 @@
 
       <div class="chart-section" id="recPeakPlaysSection">
         <div class="section-header">
-          <button class="section-collapse-btn" data-target="recPeakPlaysSection" title="Collapse">−</button>
+          <button class="section-collapse-btn" data-target="recPeakPlaysSection"
+            data-i18n-title="tooltip_collapse">−</button>
           <h2 class="section-header-h2" data-i18n="rec_peak_plays_title">🔥 Most Plays in a Period</h2>
           <div class="section-rule"></div>
         </div>
@@ -625,7 +633,8 @@
 
       <div class="chart-section" id="recMilestonesSection">
         <div class="section-header">
-          <button class="section-collapse-btn" data-target="recMilestonesSection" title="Collapse">−</button>
+          <button class="section-collapse-btn" data-target="recMilestonesSection"
+            data-i18n-title="tooltip_collapse">−</button>
           <h2 class="section-header-h2" data-i18n="rec_milestones_title">🎖 Play Count Milestones</h2>
           <div class="section-rule"></div>
         </div>
@@ -636,7 +645,8 @@
 
       <div class="chart-section" id="recFastestSection">
         <div class="section-header">
-          <button class="section-collapse-btn" data-target="recFastestSection" title="Collapse">−</button>
+          <button class="section-collapse-btn" data-target="recFastestSection"
+            data-i18n-title="tooltip_collapse">−</button>
           <h2 class="section-header-h2" data-i18n="rec_fastest_title">⚡ Fastest to Milestone</h2>
           <div class="section-rule"></div>
         </div>
@@ -647,7 +657,8 @@
 
       <div class="chart-section" id="recCertsSection">
         <div class="section-header">
-          <button class="section-collapse-btn" data-target="recCertsSection" title="Collapse">−</button>
+          <button class="section-collapse-btn" data-target="recCertsSection"
+            data-i18n-title="tooltip_collapse">−</button>
           <h2 class="section-header-h2" data-i18n="rec_certs_title">💿 Certifications Leaderboard</h2>
           <div class="section-rule"></div>
         </div>
@@ -658,7 +669,8 @@
 
       <div class="chart-section" id="recStreaksSection">
         <div class="section-header">
-          <button class="section-collapse-btn" data-target="recStreaksSection" title="Collapse">−</button>
+          <button class="section-collapse-btn" data-target="recStreaksSection"
+            data-i18n-title="tooltip_collapse">−</button>
           <h2 class="section-header-h2" data-i18n="rec_streaks_title">🔁 Streak Records</h2>
           <div class="section-rule"></div>
         </div>
@@ -1192,7 +1204,7 @@
     </div>
   </div>
 
-  <button id="backToTop" title="Back to top" aria-label="Back to top">&#8679;</button>
+  <button id="backToTop" data-i18n-title="tooltip_back_to_top" aria-label="Back to top">&#8679;</button>
 
   <script src="app.js"></script>
 

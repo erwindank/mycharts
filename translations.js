@@ -507,6 +507,34 @@ const TRANSLATIONS = {
     export_how_to_title: 'How to import in Soundiiz:',
     export_format_used: 'Format used: Artist - Title (one track per line).',
     export_copied: '✓ COPIED!',
+
+    // Button tooltips
+    tooltip_theme_navy_dark: 'Navy Dark',
+    tooltip_theme_navy_light: 'Navy Light',
+    tooltip_theme_purple_dark: 'Purple Dark',
+    tooltip_theme_purple_light: 'Purple Light',
+    tooltip_theme_red_dark: 'Red Dark',
+    tooltip_theme_red_light: 'Red Light',
+    tooltip_theme_yellow_dark: 'Yellow Dark',
+    tooltip_theme_yellow_light: 'Yellow Light',
+    tooltip_theme_pink_dark: 'Pink Dark',
+    tooltip_theme_pink_light: 'Pink Light',
+    tooltip_week_start_day: 'Week Start Day',
+    tooltip_jump_to_week: 'Jump to week',
+    tooltip_jump_to_month: 'Jump to month',
+    tooltip_jump_to_year: 'Jump to year',
+    tooltip_export_playlist: 'Export this chart as a playlist — save to Spotify, Last.fm, or a text file',
+    tooltip_collapse: 'Collapse',
+    tooltip_clear: 'Clear',
+    tooltip_share_image: 'Generate a shareable image of this chart for Instagram / social media',
+    tooltip_toggle_labels: 'Toggle data point labels on/off for this graph',
+    tooltip_reset_zoom: 'Reset the chart zoom to show the full date range',
+    tooltip_race_start: 'Go to start',
+    tooltip_race_step_back: 'Step back',
+    tooltip_race_step_forward: 'Step forward',
+    tooltip_race_end: 'Go to end',
+    tooltip_download_gif: 'Download GIF animation',
+    tooltip_back_to_top: 'Back to top',
   },
 
   // ── SPANISH ───────────────────────────────────────────────────────────────────
@@ -1009,6 +1037,34 @@ const TRANSLATIONS = {
     export_how_to_title: 'Cómo importar en Soundiiz:',
     export_format_used: 'Formato usado: Artista - Título (una pista por línea).',
     export_copied: '✓ ¡COPIADO!',
+
+    // Button tooltips
+    tooltip_theme_navy_dark: 'Azul Marino Oscuro',
+    tooltip_theme_navy_light: 'Azul Marino Claro',
+    tooltip_theme_purple_dark: 'Morado Oscuro',
+    tooltip_theme_purple_light: 'Morado Claro',
+    tooltip_theme_red_dark: 'Rojo Oscuro',
+    tooltip_theme_red_light: 'Rojo Claro',
+    tooltip_theme_yellow_dark: 'Amarillo Oscuro',
+    tooltip_theme_yellow_light: 'Amarillo Claro',
+    tooltip_theme_pink_dark: 'Rosa Oscuro',
+    tooltip_theme_pink_light: 'Rosa Claro',
+    tooltip_week_start_day: 'Día de Inicio de Semana',
+    tooltip_jump_to_week: 'Saltar a semana',
+    tooltip_jump_to_month: 'Saltar a mes',
+    tooltip_jump_to_year: 'Saltar a año',
+    tooltip_export_playlist: 'Exportar este chart como playlist — guardar en Spotify, Last.fm, o archivo de texto',
+    tooltip_collapse: 'Contraer',
+    tooltip_clear: 'Limpiar',
+    tooltip_share_image: 'Generar una imagen compartible de este chart para Instagram / redes sociales',
+    tooltip_toggle_labels: 'Alternar etiquetas de puntos de datos activadas/desactivadas para este gráfico',
+    tooltip_reset_zoom: 'Restablecer el zoom del gráfico para mostrar el rango de fechas completo',
+    tooltip_race_start: 'Ir al inicio',
+    tooltip_race_step_back: 'Retroceder paso',
+    tooltip_race_step_forward: 'Avanzar paso',
+    tooltip_race_end: 'Ir al final',
+    tooltip_download_gif: 'Descargar animación GIF',
+    tooltip_back_to_top: 'Volver arriba',
   },
 
   // ── PORTUGUESE — BRAZIL ───────────────────────────────────────────────────────
@@ -1511,6 +1567,34 @@ const TRANSLATIONS = {
     export_how_to_title: 'Como importar no Soundiiz:',
     export_format_used: 'Formato usado: Artista - Título (uma faixa por linha).',
     export_copied: '✓ COPIADO!',
+
+    // Button tooltips
+    tooltip_theme_navy_dark: 'Azul Marinho Escuro',
+    tooltip_theme_navy_light: 'Azul Marinho Claro',
+    tooltip_theme_purple_dark: 'Roxo Escuro',
+    tooltip_theme_purple_light: 'Roxo Claro',
+    tooltip_theme_red_dark: 'Vermelho Escuro',
+    tooltip_theme_red_light: 'Vermelho Claro',
+    tooltip_theme_yellow_dark: 'Amarelo Escuro',
+    tooltip_theme_yellow_light: 'Amarelo Claro',
+    tooltip_theme_pink_dark: 'Rosa Escuro',
+    tooltip_theme_pink_light: 'Rosa Claro',
+    tooltip_week_start_day: 'Dia de Início da Semana',
+    tooltip_jump_to_week: 'Pular para semana',
+    tooltip_jump_to_month: 'Pular para mês',
+    tooltip_jump_to_year: 'Pular para ano',
+    tooltip_export_playlist: 'Exportar este chart como playlist — salvar no Spotify, Last.fm, ou arquivo de texto',
+    tooltip_collapse: 'Recolher',
+    tooltip_clear: 'Limpar',
+    tooltip_share_image: 'Gerar uma imagem compartilhável deste chart para Instagram / redes sociais',
+    tooltip_toggle_labels: 'Alternar rótulos de pontos de dados ligados/desligados para este gráfico',
+    tooltip_reset_zoom: 'Redefinir o zoom do gráfico para mostrar o intervalo de datas completo',
+    tooltip_race_start: 'Ir para o início',
+    tooltip_race_step_back: 'Voltar passo',
+    tooltip_race_step_forward: 'Avançar passo',
+    tooltip_race_end: 'Ir para o fim',
+    tooltip_download_gif: 'Baixar animação GIF',
+    tooltip_back_to_top: 'Voltar ao topo',
   },
 
   // ── PORTUGUESE — EUROPEAN ─────────────────────────────────────────────────────
@@ -2013,6 +2097,34 @@ const TRANSLATIONS = {
     export_how_to_title: 'Como importar no Soundiiz:',
     export_format_used: 'Formato usado: Artista - Título (uma faixa por linha).',
     export_copied: '✓ COPIADO!',
+
+    // Button tooltips
+    tooltip_theme_navy_dark: 'Azul Escuro',
+    tooltip_theme_navy_light: 'Azul Claro',
+    tooltip_theme_purple_dark: 'Roxo Escuro',
+    tooltip_theme_purple_light: 'Roxo Claro',
+    tooltip_theme_red_dark: 'Vermelho Escuro',
+    tooltip_theme_red_light: 'Vermelho Claro',
+    tooltip_theme_yellow_dark: 'Amarelo Escuro',
+    tooltip_theme_yellow_light: 'Amarelo Claro',
+    tooltip_theme_pink_dark: 'Rosa Escuro',
+    tooltip_theme_pink_light: 'Rosa Claro',
+    tooltip_week_start_day: 'Dia de Início da Semana',
+    tooltip_jump_to_week: 'Saltar para semana',
+    tooltip_jump_to_month: 'Saltar para mês',
+    tooltip_jump_to_year: 'Saltar para ano',
+    tooltip_export_playlist: 'Exportar este chart como playlist — guardar no Spotify, Last.fm, ou ficheiro de texto',
+    tooltip_collapse: 'Recolher',
+    tooltip_clear: 'Limpar',
+    tooltip_share_image: 'Gerar uma imagem partilhável deste chart para Instagram / redes sociais',
+    tooltip_toggle_labels: 'Alternar rótulos de pontos de dados ligados/desligados para este gráfico',
+    tooltip_reset_zoom: 'Repor o zoom do gráfico para mostrar o intervalo de datas completo',
+    tooltip_race_start: 'Ir para o início',
+    tooltip_race_step_back: 'Retroceder passo',
+    tooltip_race_step_forward: 'Avançar passo',
+    tooltip_race_end: 'Ir para o fim',
+    tooltip_download_gif: 'Descarregar animação GIF',
+    tooltip_back_to_top: 'Voltar ao topo',
   },
 };
 
@@ -2086,29 +2198,12 @@ function setLanguage(lang) {
   // Update static DOM strings
   applyI18n();
 
-  // Re-populate the week start day dropdown with translated names
-  if (typeof repopulateWeekDays === 'function') repopulateWeekDays();
-
-  // Re-update label buttons (Labels: On/Off) with new language
-  // These might have been programmatically set, so we need to re-apply translations
-  ['gCumulativeLabelsBtn', 'gTotalVolumeLabelsBtn', 'gVolumeLabelsBtn', 'gDiscoveriesLabelsBtn'].forEach(btnId => {
-    const btn = document.getElementById(btnId);
-    if (btn && btn.classList.contains('active')) {
-      btn.textContent = t('labels_on');
-    } else if (btn) {
-      btn.textContent = t('labels_off');
-    }
-  });
-
-  // Re-render the app immediately (always, even if no data loaded)
-  if (typeof renderAll === 'function') {
-    renderAll();
-    if (typeof currentPeriod !== 'undefined' && currentPeriod === 'records') {
-      if (typeof buildRecords === 'function') buildRecords();
-    }
-    if (typeof currentPeriod !== 'undefined' && currentPeriod === 'rawdata') {
-      if (typeof applyRawFilters === 'function') applyRawFilters();
-    }
+  // Update theme label with new language
+  const currentTheme = localStorage.getItem('dankcharts-theme') || 'navy-dark';
+  const themeLabel = document.getElementById('themeLabel');
+  if (themeLabel) {
+    const labelKey = 'tooltip_theme_' + currentTheme.replace('-', '_');
+    themeLabel.textContent = t(labelKey) || t('tooltip_theme_navy_dark');
   }
 }
 

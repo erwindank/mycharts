@@ -30,12 +30,12 @@ const themeLabel = document.getElementById('themeLabel');
 const themeBtns = document.querySelectorAll('.theme-btn');
 
 const THEME_CLASSES = ['navy-light', 'purple', 'purple-light', 'red', 'red-light', 'yellow', 'yellow-light', 'pink', 'pink-light'];
-const THEME_LABELS = { 'navy-dark': 'Navy', 'navy-light': 'Navy Light', 'purple': 'Purple', 'purple-light': 'Purple Light', 'red': 'Red Dark', 'red-light': 'Red Light', 'yellow': 'Yellow Dark', 'yellow-light': 'Yellow Light', 'pink': 'Pink Dark', 'pink-light': 'Pink Light' };
 
 function applyTheme(theme) {
   document.body.classList.remove(...THEME_CLASSES);
   if (theme !== 'navy-dark') document.body.classList.add(theme);
-  themeLabel.textContent = THEME_LABELS[theme] || 'Navy';
+  const labelKey = 'tooltip_theme_' + theme.replace('-', '_');
+  themeLabel.textContent = t(labelKey) || t('tooltip_theme_navy_dark');
   themeBtns.forEach(b => b.classList.toggle('active', b.dataset.theme === theme));
   try { localStorage.setItem('dankcharts-theme', theme); } catch (e) { }
 }
