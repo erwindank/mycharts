@@ -45,6 +45,18 @@ const TRANSLATIONS = {
     stat_artists: 'Artists',
     stat_albums: 'Albums',
 
+    // Modal stats
+    modal_artist_peak: 'Artist Peak',
+    modal_songs_charted: 'Songs Charted',
+    modal_best_song_peak: 'Best Song Peak',
+    modal_tracks: 'Tracks',
+    modal_album_peak: 'Album Peak',
+    modal_tracks_charted: 'Tracks Charted',
+    modal_best_track_peak: 'Best Track Peak',
+    modal_first_played: 'First Played',
+    modal_last_played: 'Last Played',
+    modal_chart_profile: 'Chart Profile',
+
     // Table headers
     th_rank: 'RANK',
     th_title_artist: 'Title · Artist',
@@ -534,6 +546,18 @@ const TRANSLATIONS = {
     stat_unique_songs: 'Canciones Únicas',
     stat_artists: 'Artistas',
     stat_albums: 'Álbumes',
+
+    // Modal stats
+    modal_artist_peak: 'Pico Artista',
+    modal_songs_charted: 'Canciones en Chart',
+    modal_best_song_peak: 'Mejor Pico Canción',
+    modal_tracks: 'Pistas',
+    modal_album_peak: 'Pico Álbum',
+    modal_tracks_charted: 'Pistas en Chart',
+    modal_best_track_peak: 'Mejor Pico Pista',
+    modal_first_played: 'Primera Reproducción',
+    modal_last_played: 'Última Reproducción',
+    modal_chart_profile: 'Perfil en Chart',
 
     // Table headers
     th_rank: 'Puesto',
@@ -1025,6 +1049,18 @@ const TRANSLATIONS = {
     stat_artists: 'Artistas',
     stat_albums: 'Álbuns',
 
+    // Modal stats
+    modal_artist_peak: 'Pico do Artista',
+    modal_songs_charted: 'Músicas no Chart',
+    modal_best_song_peak: 'Melhor Pico de Música',
+    modal_tracks: 'Faixas',
+    modal_album_peak: 'Pico do Álbum',
+    modal_tracks_charted: 'Faixas no Chart',
+    modal_best_track_peak: 'Melhor Pico de Faixa',
+    modal_first_played: 'Primeira Reprodução',
+    modal_last_played: 'Última Reprodução',
+    modal_chart_profile: 'Perfil no Chart',
+
     // Table headers
     th_rank: 'Posição',
     th_title_artist: 'Título · Artista',
@@ -1514,6 +1550,18 @@ const TRANSLATIONS = {
     stat_unique_songs: 'Músicas Únicas',
     stat_artists: 'Artistas',
     stat_albums: 'Álbuns',
+
+    // Modal stats
+    modal_artist_peak: 'Pico do Artista',
+    modal_songs_charted: 'Músicas no Chart',
+    modal_best_song_peak: 'Melhor Pico de Música',
+    modal_tracks: 'Faixas',
+    modal_album_peak: 'Pico do Álbum',
+    modal_tracks_charted: 'Faixas no Chart',
+    modal_best_track_peak: 'Melhor Pico de Faixa',
+    modal_first_played: 'Primeira Reprodução',
+    modal_last_played: 'Última Reprodução',
+    modal_chart_profile: 'Perfil no Chart',
 
     // Table headers
     th_rank: 'Posição',

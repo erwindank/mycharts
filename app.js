@@ -4611,7 +4611,7 @@ function openArtistModal(artistName) {
   // Populate modal
   document.getElementById('modalArtistName').textContent = artistName;
   document.getElementById('modalArtistSub').textContent =
-    `Top ${chartSize} Chart Profile · All-Time`;
+    `Top ${chartSize} ${t('modal_chart_profile')} · All-Time`;
 
   // Artist image
   const imgEl = document.getElementById('modalArtistImg');
@@ -4627,12 +4627,12 @@ function openArtistModal(artistName) {
 
   // Stats strip
   document.getElementById('modalStats').innerHTML = `
-    <div class="modal-stat"><div class="sv">${totalPlays.toLocaleString()}</div><div class="sl">Total Plays</div></div>
-    <div class="modal-stat"><div class="sv">${allSongsSorted.length}</div><div class="sl">Unique Songs</div></div>
-    <div class="modal-stat"><div class="sv">${allAlbumsSorted.length}</div><div class="sl">Albums</div></div>
-    <div class="modal-stat"><div class="sv">${artistPeak ? '#' + artistPeak : '—'}</div><div class="sl">Artist Peak</div></div>
-    <div class="modal-stat"><div class="sv">${chartSongs.length}</div><div class="sl">Songs Charted</div></div>
-    <div class="modal-stat"><div class="sv">${bestSongPeak ? '#' + bestSongPeak : '—'}</div><div class="sl">Best Song Peak</div></div>
+    <div class="modal-stat"><div class="sv">${totalPlays.toLocaleString()}</div><div class="sl">${t('stat_total_plays')}</div></div>
+    <div class="modal-stat"><div class="sv">${allSongsSorted.length}</div><div class="sl">${t('stat_unique_songs')}</div></div>
+    <div class="modal-stat"><div class="sv">${allAlbumsSorted.length}</div><div class="sl">${t('stat_albums')}</div></div>
+    <div class="modal-stat"><div class="sv">${artistPeak ? '#' + artistPeak : '—'}</div><div class="sl">${t('modal_artist_peak')}</div></div>
+    <div class="modal-stat"><div class="sv">${chartSongs.length}</div><div class="sl">${t('modal_songs_charted')}</div></div>
+    <div class="modal-stat"><div class="sv">${bestSongPeak ? '#' + bestSongPeak : '—'}</div><div class="sl">${t('modal_best_song_peak')}</div></div>
   `;
 
   // Accomplishments — with expandable detail panels
@@ -4849,7 +4849,7 @@ function openAlbumModal(albumKey) {
 
   // Header
   document.getElementById('albumModalName').textContent = albumName;
-  document.getElementById('albumModalSub').textContent = `Album by ${artistName} · Chart Profile`;
+  document.getElementById('albumModalSub').textContent = `Album by ${artistName} · ${t('modal_chart_profile')}`;
 
   // Image
   const imgEl = document.getElementById('albumModalImg');
@@ -4868,13 +4868,13 @@ function openAlbumModal(albumKey) {
 
   // Stats strip
   document.getElementById('albumModalStats').innerHTML = `
-    <div class="modal-stat"><div class="sv">${totalPlays.toLocaleString()}</div><div class="sl">Total Plays</div></div>
-    <div class="modal-stat"><div class="sv">${allTracksSorted.length}</div><div class="sl">Tracks</div></div>
-    <div class="modal-stat"><div class="sv">${albumPeak ? '#' + albumPeak : '—'}</div><div class="sl">Album Peak</div></div>
-    <div class="modal-stat"><div class="sv">${chartTracks.length}</div><div class="sl">Tracks Charted</div></div>
-    <div class="modal-stat"><div class="sv">${bestTrackPeak ? '#' + bestTrackPeak : '—'}</div><div class="sl">Best Track Peak</div></div>
-    <div class="modal-stat"><div class="sv">${firstPlayed ? fmt(firstPlayed) : '—'}</div><div class="sl">First Played</div></div>
-    <div class="modal-stat"><div class="sv">${lastPlayed ? fmt(lastPlayed) : '—'}</div><div class="sl">Last Played</div></div>
+    <div class="modal-stat"><div class="sv">${totalPlays.toLocaleString()}</div><div class="sl">${t('stat_total_plays')}</div></div>
+    <div class="modal-stat"><div class="sv">${allTracksSorted.length}</div><div class="sl">${t('modal_tracks')}</div></div>
+    <div class="modal-stat"><div class="sv">${albumPeak ? '#' + albumPeak : '—'}</div><div class="sl">${t('modal_album_peak')}</div></div>
+    <div class="modal-stat"><div class="sv">${chartTracks.length}</div><div class="sl">${t('modal_tracks_charted')}</div></div>
+    <div class="modal-stat"><div class="sv">${bestTrackPeak ? '#' + bestTrackPeak : '—'}</div><div class="sl">${t('modal_best_track_peak')}</div></div>
+    <div class="modal-stat"><div class="sv">${firstPlayed ? fmt(firstPlayed) : '—'}</div><div class="sl">${t('modal_first_played')}</div></div>
+    <div class="modal-stat"><div class="sv">${lastPlayed ? fmt(lastPlayed) : '—'}</div><div class="sl">${t('modal_last_played')}</div></div>
   `;
 
   // Accomplishments
