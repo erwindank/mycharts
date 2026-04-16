@@ -2486,9 +2486,10 @@ function crStats(type, key, period, crData, preD) {
   const top5 = d.entries.filter(e => e.rank <= 5).length;
   const top10 = d.entries.filter(e => e.rank <= 10).length;
   const crPeriodUnit = (p, count) => p === 'week' ? tUnit('weeks', count) : p === 'month' ? tUnit('months', count) : tUnit('years', count);
+  const peakLabel = t('peak_label');
   let html = `
     <div class="cr-stat"><strong>${n} ${crPeriodUnit(period, n)}</strong>${t('cr_on_chart')}</div>
-    <div class="cr-stat"><strong>Peak #${peak}</strong></div>
+    <div class="cr-stat"><strong>${peakLabel} #${peak}</strong></div>
     ${top1 ? `<div class="cr-stat"><strong>${top1} ${crPeriodUnit(period, top1)}</strong>${t('cr_at_1')}</div>` : ''}
     ${top5 ? `<div class="cr-stat"><strong>${top5} ${crPeriodUnit(period, top5)}</strong>${t('cr_in_top5')}</div>` : ''}
     ${top10 ? `<div class="cr-stat"><strong>${top10} ${crPeriodUnit(period, top10)}</strong>${t('cr_in_top10')}</div>` : ''}`;
@@ -2859,11 +2860,12 @@ function buildPeaks() {
 
 function peakBadge(peak) {
   if (!peak || peak === '—') return '';
+  const peakLabel = t('peak_label');
   if (peak === 1 && currentPeriod === 'alltime') return `<span class="peak-badge-1">★ ALL-TIME #1</span>`;
-  if (peak === 1) return `<span class="peak-badge-1">PEAK #1</span>`;
-  if (peak === 2) return `<span class="peak-badge-2">PEAK #2</span>`;
-  if (peak === 3) return `<span class="peak-badge-3">PEAK #3</span>`;
-  return `<span class="peak-badge">PEAK #${peak}</span>`;
+  if (peak === 1) return `<span class="peak-badge-1">${peakLabel} #1</span>`;
+  if (peak === 2) return `<span class="peak-badge-2">${peakLabel} #2</span>`;
+  if (peak === 3) return `<span class="peak-badge-3">${peakLabel} #3</span>`;
+  return `<span class="peak-badge">${peakLabel} #${peak}</span>`;
 }
 
 function renderSongs(plays, peaks, monthlyStats) {
@@ -3356,10 +3358,11 @@ function igPeak(key, type, peaks, fontSize) {
   const peak = map && map[key];
   if (!peak) return '';
   const fs = (fontSize - 4) + 'px';
-  if (peak === 1) return `<span style="font-family:'DM Mono',monospace;font-size:${fs};background:rgba(245,158,11,0.2);color:#f0aa30;padding:1px 5px;border-radius:3px;border:1px solid rgba(245,158,11,0.35);letter-spacing:0.05em;white-space:nowrap;">PEAK #1</span>`;
-  if (peak === 2) return `<span style="font-family:'DM Mono',monospace;font-size:${fs};background:rgba(148,163,184,0.2);color:#94a3b8;padding:1px 5px;border-radius:3px;border:1px solid rgba(148,163,184,0.35);letter-spacing:0.05em;white-space:nowrap;">PEAK #2</span>`;
-  if (peak === 3) return `<span style="font-family:'DM Mono',monospace;font-size:${fs};background:rgba(192,120,80,0.2);color:#c07850;padding:1px 5px;border-radius:3px;border:1px solid rgba(192,120,80,0.35);letter-spacing:0.05em;white-space:nowrap;">PEAK #3</span>`;
-  return `<span style="font-family:'DM Mono',monospace;font-size:${fs};background:rgba(255,255,255,0.08);color:#7aa0d0;padding:1px 5px;border-radius:3px;border:1px solid rgba(255,255,255,0.12);letter-spacing:0.05em;white-space:nowrap;">PEAK #${peak}</span>`;
+  const peakLabel = t('peak_label');
+  if (peak === 1) return `<span style="font-family:'DM Mono',monospace;font-size:${fs};background:rgba(245,158,11,0.2);color:#f0aa30;padding:1px 5px;border-radius:3px;border:1px solid rgba(245,158,11,0.35);letter-spacing:0.05em;white-space:nowrap;">${peakLabel} #1</span>`;
+  if (peak === 2) return `<span style="font-family:'DM Mono',monospace;font-size:${fs};background:rgba(148,163,184,0.2);color:#94a3b8;padding:1px 5px;border-radius:3px;border:1px solid rgba(148,163,184,0.35);letter-spacing:0.05em;white-space:nowrap;">${peakLabel} #2</span>`;
+  if (peak === 3) return `<span style="font-family:'DM Mono',monospace;font-size:${fs};background:rgba(192,120,80,0.2);color:#c07850;padding:1px 5px;border-radius:3px;border:1px solid rgba(192,120,80,0.35);letter-spacing:0.05em;white-space:nowrap;">${peakLabel} #3</span>`;
+  return `<span style="font-family:'DM Mono',monospace;font-size:${fs};background:rgba(255,255,255,0.08);color:#7aa0d0;padding:1px 5px;border-radius:3px;border:1px solid rgba(255,255,255,0.12);letter-spacing:0.05em;white-space:nowrap;">${peakLabel} #${peak}</span>`;
 }
 
 // Theme-aware color getter
@@ -4023,10 +4026,11 @@ function buildCrIgCardHTML(type, key, opts) {
     const _peakBadge = (p) => {
       const fs = (secSize + 1) + 'px';
       const base = `font-family:${lFont};font-size:${fs};padding:1px 5px;border-radius:3px;letter-spacing:0.05em;white-space:nowrap;font-weight:700;`;
-      if (p === 1) return `<span style="${base}background:rgba(245,158,11,0.2);color:#f0aa30;border:1px solid rgba(245,158,11,0.45);">PEAK #1</span>`;
-      if (p === 2) return `<span style="${base}background:rgba(148,163,184,0.2);color:#94a3b8;border:1px solid rgba(148,163,184,0.4);">PEAK #2</span>`;
-      if (p === 3) return `<span style="${base}background:rgba(192,120,80,0.2);color:#c07850;border:1px solid rgba(192,120,80,0.4);">PEAK #3</span>`;
-      return `<span style="${base}background:rgba(255,255,255,0.08);color:#7aa0d0;border:1px solid rgba(255,255,255,0.14);">PEAK #${p}</span>`;
+      const peakLabel = t('peak_label');
+      if (p === 1) return `<span style="${base}background:rgba(245,158,11,0.2);color:#f0aa30;border:1px solid rgba(245,158,11,0.45);">${peakLabel} #1</span>`;
+      if (p === 2) return `<span style="${base}background:rgba(148,163,184,0.2);color:#94a3b8;border:1px solid rgba(148,163,184,0.4);">${peakLabel} #2</span>`;
+      if (p === 3) return `<span style="${base}background:rgba(192,120,80,0.2);color:#c07850;border:1px solid rgba(192,120,80,0.4);">${peakLabel} #3</span>`;
+      return `<span style="${base}background:rgba(255,255,255,0.08);color:#7aa0d0;border:1px solid rgba(255,255,255,0.14);">${peakLabel} #${p}</span>`;
     };
     // Stat chip: bold value + dimmed label
     const _stat = (val, label) => `<span style="font-family:${lFont};font-size:${secSize}px;color:${c.text3};white-space:nowrap;"><strong style="color:${c.text};font-size:${secSize + 1}px;font-weight:700;">${val}</strong> ${label}</span>`;

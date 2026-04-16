@@ -154,6 +154,7 @@ const TRANSLATIONS = {
     badge_new: 'NEW',
     badge_new_songs: 'NEW',
     badge_re: 'RE',
+    peak_label: 'PEAK',
 
     // Search
     search_songs_placeholder: 'Search songs or artists…',
@@ -643,6 +644,7 @@ const TRANSLATIONS = {
     badge_new: 'NUEVO',
     badge_new_songs: 'NUEVA',
     badge_re: 'RE',
+    peak_label: 'LOGRO',
 
     // Search
     search_songs_placeholder: 'Buscar canciones o artistas…',
@@ -1132,6 +1134,7 @@ const TRANSLATIONS = {
     badge_new: 'NOVO',
     badge_new_songs: 'NOVA',
     badge_re: 'RE',
+    peak_label: 'PICO',
 
     // Search
     search_songs_placeholder: 'Buscar músicas ou artistas…',
@@ -1621,6 +1624,7 @@ const TRANSLATIONS = {
     badge_new: 'NOVO',
     badge_new_songs: 'NOVA',
     badge_re: 'RE',
+    peak_label: 'PICO',
 
     // Search
     search_songs_placeholder: 'Pesquisar músicas ou artistas…',
