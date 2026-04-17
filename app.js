@@ -3349,7 +3349,7 @@ function igMovement(rank, key, type) {
   const prev = ms.prevChart[type][key];
   if (!prev) {
     const isRe = ms.everChartedBefore[type].has(key);
-    return { label: isRe ? 'RE' : 'NEW', cls: isRe ? 're' : 'new' };
+    return { label: isRe ? t('badge_re') : t(type === 'songs' ? 'badge_new_songs' : 'badge_new'), cls: isRe ? 're' : 'new' };
   }
   const diff = prev.rank - rank;
   if (diff === 0) return { label: '=', cls: 'same' };
@@ -3422,24 +3422,23 @@ function buildIgCardHTML(type, opts) {
   const { label, sub } = getDateRange();
 
   // Period-aware titles
-  const typeWord = { songs: 'Songs', artists: 'Artists', albums: 'Albums' };
+  const typeWord = { songs: t('ig_word_songs'), artists: t('ig_word_artists'), albums: t('ig_word_albums') };
   const typeIcon = { songs: '★', artists: '♦', albums: '◈' };
   let cardTitle, periodLine;
   if (currentPeriod === 'week') {
-    cardTitle = `TOP ${n} ${typeIcon[type]} ${typeWord[type]} of the Week`;
+    cardTitle = t('ig_card_title_week', { n, icon: typeIcon[type], type: typeWord[type] });
     periodLine = sub || label;
   } else if (currentPeriod === 'month') {
-    cardTitle = `TOP ${n} ${typeIcon[type]} ${typeWord[type]} of the Month`;
-    // Just "Month Year" e.g. "April 2026"
+    cardTitle = t('ig_card_title_month', { n, icon: typeIcon[type], type: typeWord[type] });
     periodLine = label;
   } else if (currentPeriod === 'year') {
-    cardTitle = `TOP ${n} ${typeIcon[type]} ${typeWord[type]} of ${label}`;
+    cardTitle = t('ig_card_title_year', { n, icon: typeIcon[type], type: typeWord[type], year: label });
     periodLine = label;
   } else if (currentPeriod === 'alltime') {
-    cardTitle = `ALL-TIME TOP ${n} ${typeIcon[type]} ${typeWord[type]}`;
-    periodLine = 'All-Time';
+    cardTitle = t('ig_card_title_alltime', { n, icon: typeIcon[type], type: typeWord[type] });
+    periodLine = t('period_alltime');
   } else {
-    cardTitle = `TOP ${n} ${typeIcon[type]} ${typeWord[type].toUpperCase()}`;
+    cardTitle = t('ig_card_title_other', { n, icon: typeIcon[type], type: typeWord[type].toUpperCase() });
     periodLine = sub || label;
   }
   const headerH = isPost ? 90 : 168;
@@ -3464,7 +3463,7 @@ function buildIgCardHTML(type, opts) {
     const { label: mvLabel, cls: mvCls } = igMovement(rank, key, type);
     const peak = igPeak(key, type, lastPeaks, fontSize);
     const weeks = lastPeriodStats ? (lastPeriodStats.periodsOnChart[type][key] || 1) : null;
-    const weeksLabel = weeks ? (weeks === 1 ? '1 week' : weeks + ' weeks') : null;
+    const weeksLabel = weeks ? (weeks + ' ' + tUnit('cr_week', weeks)) : null;
     const plays = item.count;
     const rowBg = i % 2 === 0 ? c.bg2 : c.bg;
     const rankColor = rank === 1 ? c.gold1 : rank === 2 ? c.text : rank === 3 ? c.amber : c.text3;
@@ -3478,7 +3477,7 @@ function buildIgCardHTML(type, opts) {
       </div>
       ${opts.showPeak && peak ? `<div>${peak}</div>` : ''}
       ${opts.showWeeks && weeksLabel ? `<div style="font-family:'DM Mono',monospace;font-size:${fontSize - 3}px;color:${c.text3};white-space:nowrap;">${weeksLabel}</div>` : ''}
-      ${opts.showPlays ? `<div style="font-family:'DM Mono',monospace;font-size:${fontSize - 1}px;color:${c.accent};font-weight:700;white-space:nowrap;min-width:40px;text-align:right;">${plays} <span style="font-size:${fontSize - 4}px;font-weight:400;opacity:0.75;">plays</span></div>` : ''}
+      ${opts.showPlays ? `<div style="font-family:'DM Mono',monospace;font-size:${fontSize - 1}px;color:${c.accent};font-weight:700;white-space:nowrap;min-width:40px;text-align:right;">${plays} <span style="font-size:${fontSize - 4}px;font-weight:400;opacity:0.75;">${t('plays_other')}</span></div>` : ''}
     </div>`;
   }).join('');
 
@@ -3490,8 +3489,8 @@ function buildIgCardHTML(type, opts) {
     </div>
     <div style="flex:1;overflow:hidden;">${rows}</div>
     ${opts.showFooter ? `<div style="padding:8px 12px;background:${c.bg3};border-top:1px solid ${c.border};display:flex;justify-content:space-between;align-items:center;">
-      <div style="font-family:'DM Mono',monospace;font-size:${Math.max(7, brandFontSize - 1)}px;color:${c.text3};letter-spacing:0.12em;">dankcharts.fm · PERSONAL MUSIC CHARTS</div>
-      <div style="font-family:'DM Mono',monospace;font-size:8px;color:${c.accent};letter-spacing:0.08em;">Plays</div>
+      <div style="font-family:'DM Mono',monospace;font-size:${Math.max(7, brandFontSize - 1)}px;color:${c.text3};letter-spacing:0.12em;">dankcharts.fm · ${t('ig_footer_personal_music')}</div>
+      <div style="font-family:'DM Mono',monospace;font-size:8px;color:${c.accent};letter-spacing:0.08em;">${t('ig_footer_plays_label')}</div>
     </div>` : ''}
   </div>`;
 }
@@ -3513,8 +3512,8 @@ function updateIgFontLabels() {
 
 function openIgPreviewModal(type) {
   igPreviewType = type;
-  const titleMap = { songs: '★ Top Songs', artists: '♦ Top Artists', albums: '◈ Top Albums' };
-  document.getElementById('igPreviewTitle').textContent = 'Share as Image — ' + titleMap[type];
+  const titleMap = { songs: '★ ' + t('ig_word_songs'), artists: '♦ ' + t('ig_word_artists'), albums: '◈ ' + t('ig_word_albums') };
+  document.getElementById('igPreviewTitle').textContent = t('ig_share_title') + ' — ' + titleMap[type];
   // Reset font slider to Auto
   ['igFontSize', 'igBrandSize', 'igDateSize'].forEach(id => {
     const el = document.getElementById(id);
@@ -4102,7 +4101,7 @@ function buildCrIgCardHTML(type, key, opts) {
   return `<div style="width:${cardW}px;height:${cardH}px;background:${c.bg};overflow:hidden;display:flex;flex-direction:column;font-family:${tFont};">
     <div style="background:linear-gradient(135deg,${c.bg3},${c.surface});padding:${headerPad};border-bottom:2px solid ${c.accent};flex-shrink:0;">${headerContent}</div>
     <div style="flex:1;overflow:hidden;padding:${isPost ? '10px 14px' : '14px 18px'};">${sections.join('<div style="height:1px;background:' + c.border + ';margin:6px 0;"></div>')}</div>
-    ${opts.showFooter ? `<div style="padding:7px 12px;background:${c.bg3};border-top:1px solid ${c.border};flex-shrink:0;"><div style="font-family:${lFont2};font-size:${brandFontSize}px;color:${c.text3};letter-spacing:0.12em;">dankcharts.fm · PERSONAL MUSIC CHARTS</div></div>` : ''}
+    ${opts.showFooter ? `<div style="padding:7px 12px;background:${c.bg3};border-top:1px solid ${c.border};flex-shrink:0;"><div style="font-family:${lFont2};font-size:${brandFontSize}px;color:${c.text3};letter-spacing:0.12em;">dankcharts.fm · ${t('ig_footer_personal_music')}</div></div>` : ''}
   </div>`;
 }
 
@@ -4353,7 +4352,7 @@ function buildEntryIgCardHTML(type, key, rank, opts) {
     + '</div>';
 
   const footer = opts.showFooter
-    ? '<div style="padding:5px 14px;background:' + c.bg3 + ';border-top:1px solid ' + c.border + ';flex-shrink:0;"><div style="font-family:\'DM Mono\',monospace;font-size:7px;color:' + c.text3 + ';letter-spacing:0.12em;">dankcharts.fm \u00b7 PERSONAL MUSIC CHARTS</div></div>'
+    ? '<div style="padding:5px 14px;background:' + c.bg3 + ';border-top:1px solid ' + c.border + ';flex-shrink:0;"><div style="font-family:\'DM Mono\',monospace;font-size:7px;color:' + c.text3 + ';letter-spacing:0.12em;">dankcharts.fm \u00b7 ' + t('ig_footer_personal_music') + '</div></div>'
     : '';
 
   return '<div style="width:' + cardW + 'px;height:' + cardH + 'px;background:' + c.bg + ';overflow:hidden;display:flex;flex-direction:column;font-family:\'DM Sans\',sans-serif;">' + header + body + (storyBottomSafe ? '<div style="height:' + storyBottomSafe + 'px;flex-shrink:0;"></div>' : '') + footer + '</div>';

@@ -705,16 +705,16 @@
         </div>
         <div class="ig-controls-panel">
           <div class="ig-ctrl-group">
-            <div class="ig-ctrl-group-title">Format</div>
+            <div class="ig-ctrl-group-title" data-i18n="ig_format">Format</div>
             <div class="ig-format-btns">
-              <button class="ig-format-btn active" id="igFmtPost" onclick="setIgFormat('post')">📷 Post (1:1)</button>
-              <button class="ig-format-btn" id="igFmtStory" onclick="setIgFormat('story')">📱 Story (9:16)</button>
+              <button class="ig-format-btn active" id="igFmtPost" onclick="setIgFormat('post')" data-i18n="ig_post">📷 Post (1:1)</button>
+              <button class="ig-format-btn" id="igFmtStory" onclick="setIgFormat('story')" data-i18n="ig_story">📱 Story (9:16)</button>
             </div>
           </div>
           <div class="ig-ctrl-group">
-            <div class="ig-ctrl-group-title">Font Size</div>
+            <div class="ig-ctrl-group-title" data-i18n="ig_font_size">Font Size</div>
             <div style="display:flex;align-items:center;gap:0.6rem;">
-              <span
+              <span data-i18n="ig_rows"
                 style="font-family:'DM Mono',monospace;font-size:0.58rem;color:var(--text3);min-width:62px;">Rows</span>
               <input type="range" id="igFontSize" min="8" max="24" value="0" step="1"
                 oninput="updateIgFontLabels();updateIgPreview()" style="flex:1;accent-color:var(--accent);">
@@ -722,7 +722,7 @@
                 style="font-family:'DM Mono',monospace;font-size:0.7rem;color:var(--accent);min-width:36px;">Auto</span>
             </div>
             <div style="display:flex;align-items:center;gap:0.6rem;">
-              <span
+              <span data-i18n="ig_branding"
                 style="font-family:'DM Mono',monospace;font-size:0.58rem;color:var(--text3);min-width:62px;">Branding</span>
               <input type="range" id="igBrandSize" min="0" max="22" value="0" step="1"
                 oninput="updateIgFontLabels();updateIgPreview()" style="flex:1;accent-color:var(--accent);">
@@ -730,32 +730,32 @@
                 style="font-family:'DM Mono',monospace;font-size:0.7rem;color:var(--accent);min-width:36px;">Auto</span>
             </div>
             <div style="display:flex;align-items:center;gap:0.6rem;">
-              <span
+              <span data-i18n="ig_date"
                 style="font-family:'DM Mono',monospace;font-size:0.58rem;color:var(--text3);min-width:62px;">Date</span>
               <input type="range" id="igDateSize" min="0" max="20" value="0" step="1"
                 oninput="updateIgFontLabels();updateIgPreview()" style="flex:1;accent-color:var(--accent);">
               <span id="igDateSizeLabel"
                 style="font-family:'DM Mono',monospace;font-size:0.7rem;color:var(--accent);min-width:36px;">Auto</span>
             </div>
-            <div style="font-family:'DM Mono',monospace;font-size:0.55rem;color:var(--text3);letter-spacing:0.06em;">
+            <div data-i18n="ig_slide_auto" style="font-family:'DM Mono',monospace;font-size:0.55rem;color:var(--text3);letter-spacing:0.06em;">
               Slide to override · leftmost = Auto</div>
           </div>
           <div class="ig-ctrl-group">
-            <div class="ig-ctrl-group-title">Show / Hide</div>
+            <div class="ig-ctrl-group-title" data-i18n="ig_show_hide">Show / Hide</div>
             <label class="ig-ctrl-row"><input type="checkbox" id="igOpt_showMovement" checked
-                onchange="updateIgPreview()"><span>Movement (▲▼ NEW RE)</span></label>
+                onchange="updateIgPreview()"><span data-i18n="ig_movement">Movement (▲▼ NEW RE)</span></label>
             <label class="ig-ctrl-row"><input type="checkbox" id="igOpt_showPeak" checked
-                onchange="updateIgPreview()"><span>Peak Badge (PEAK #1)</span></label>
+                onchange="updateIgPreview()"><span data-i18n="ig_peak_badge">Peak Badge (PEAK #1)</span></label>
             <label class="ig-ctrl-row"><input type="checkbox" id="igOpt_showWeeks" checked
-                onchange="updateIgPreview()"><span>Weeks on Chart</span></label>
+                onchange="updateIgPreview()"><span data-i18n="ig_weeks_on_chart">Weeks on Chart</span></label>
             <label class="ig-ctrl-row"><input type="checkbox" id="igOpt_showPlays" checked
-                onchange="updateIgPreview()"><span>Play Count</span></label>
+                onchange="updateIgPreview()"><span data-i18n="ig_play_count">Play Count</span></label>
             <label class="ig-ctrl-row"><input type="checkbox" id="igOpt_showSubtitle" checked
-                onchange="updateIgPreview()"><span>Artist / Subtitle</span></label>
+                onchange="updateIgPreview()"><span data-i18n="ig_artist_subtitle">Artist / Subtitle</span></label>
             <label class="ig-ctrl-row"><input type="checkbox" id="igOpt_showDate" checked
-                onchange="updateIgPreview()"><span>Date / Period</span></label>
+                onchange="updateIgPreview()"><span data-i18n="ig_date_period">Date / Period</span></label>
             <label class="ig-ctrl-row"><input type="checkbox" id="igOpt_showFooter" checked
-                onchange="updateIgPreview()"><span>Footer Branding</span></label>
+                onchange="updateIgPreview()"><span data-i18n="ig_footer_branding">Footer Branding</span></label>
           </div>
         </div>
       </div>
