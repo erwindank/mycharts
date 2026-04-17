@@ -772,12 +772,12 @@
     <div class="ig-modal-box">
       <div class="ig-modal-header">
         <h3 id="crIgTitle">Share as Image</h3>
-        <button class="ig-modal-close" onclick="closeCrIgModal()">✕ CLOSE</button>
+        <button class="ig-modal-close" onclick="closeCrIgModal()" data-i18n="btn_close">✕ CLOSE</button>
       </div>
       <!-- Mode toggle bar -->
       <div class="ig-modal-mode-bar">
-        <button class="ig-mode-btn active" id="crIgModeChartRun" onclick="setCrIgMode('chartrun')">📊 Chart Run</button>
-        <button class="ig-mode-btn" id="crIgModeEntry" onclick="setCrIgMode('entrypost')">🎵 Entry Post</button>
+        <button class="ig-mode-btn active" id="crIgModeChartRun" onclick="setCrIgMode('chartrun')" data-i18n="cr_chart_run">📊 Chart Run</button>
+        <button class="ig-mode-btn" id="crIgModeEntry" onclick="setCrIgMode('entrypost')" data-i18n="cr_entry_post">🎵 Entry Post</button>
       </div>
       <div class="ig-modal-body">
         <div class="ig-preview-panel">
@@ -790,16 +790,16 @@
           <!-- ── CHART RUN CONTROLS ── -->
           <div id="crIgChartRunControls">
             <div class="ig-ctrl-group">
-              <div class="ig-ctrl-group-title">Format</div>
+              <div class="ig-ctrl-group-title" data-i18n="ig_format">Format</div>
               <div class="ig-format-btns">
-                <button class="ig-format-btn active" id="crIgFmtPost" onclick="setCrIgFormat('post')">📷 Post
+                <button class="ig-format-btn active" id="crIgFmtPost" onclick="setCrIgFormat('post')" data-i18n="ig_post">📷 Post
                   (1:1)</button>
-                <button class="ig-format-btn" id="crIgFmtStory" onclick="setCrIgFormat('story')">📱 Story
+                <button class="ig-format-btn" id="crIgFmtStory" onclick="setCrIgFormat('story')" data-i18n="ig_story">📱 Story
                   (9:16)</button>
               </div>
             </div>
             <div class="ig-ctrl-group">
-              <div class="ig-ctrl-group-title">Range</div>
+              <div class="ig-ctrl-group-title" data-i18n="cr_range">Range</div>
               <div class="ig-format-btns" id="crIgRangeBtns">
                 <button class="ig-format-btn" id="crIgRangeYear" onclick="setCrIgRange('year')">Year Only</button>
                 <button class="ig-format-btn" id="crIgRangeUptoYear" onclick="setCrIgRange('uptoYear')">Up to
@@ -808,31 +808,31 @@
               </div>
               <div
                 style="font-family:'DM Mono',monospace;font-size:0.55rem;color:var(--text3);letter-spacing:0.06em;margin-top:3px;">
-                Range for the chart run boxes shown</div>
+                <span data-i18n="cr_range_note">Range for the chart run boxes shown</span></div>
               <div class="ig-ctrl-group" id="crIgIncludeGroup">
-                <div class="ig-ctrl-group-title">Include Chart Runs</div>
+                <div class="ig-ctrl-group-title" data-i18n="cr_include_runs">Include Chart Runs</div>
                 <label class="ig-ctrl-row"><input type="checkbox" id="crIgOpt_showYear" checked
-                    onchange="updateCrIgPreview()"><span>🗓️ Yearly Chart Run + Stats</span></label>
+                    onchange="updateCrIgPreview()"><span data-i18n="cr_yearly_run">🗓️ Yearly Chart Run + Stats</span></label>
                 <label class="ig-ctrl-row"><input type="checkbox" id="crIgOpt_showMonth" checked
-                    onchange="updateCrIgPreview()"><span>📊 Monthly Chart Run + Stats</span></label>
+                    onchange="updateCrIgPreview()"><span data-i18n="cr_monthly_run">📊 Monthly Chart Run + Stats</span></label>
                 <label class="ig-ctrl-row"><input type="checkbox" id="crIgOpt_showWeek" checked
-                    onchange="updateCrIgPreview()"><span>📈 Weekly Chart Run + Stats</span></label>
+                    onchange="updateCrIgPreview()"><span data-i18n="cr_weekly_run">📈 Weekly Chart Run + Stats</span></label>
               </div>
               <div class="ig-ctrl-group">
-                <div class="ig-ctrl-group-title">Show / Hide</div>
+                <div class="ig-ctrl-group-title" data-i18n="ig_show_hide">Show / Hide</div>
                 <label class="ig-ctrl-row"><input type="checkbox" id="crIgOpt_showImage" checked
-                    onchange="updateCrIgPreview()"><span>Cover Art / Photo</span></label>
+                    onchange="updateCrIgPreview()"><span data-i18n="ig_cover_art">Cover Art / Photo</span></label>
                 <label class="ig-ctrl-row"><input type="checkbox" id="crIgOpt_showWeekDate" checked
-                    onchange="updateCrIgPreview()"><span>Week Date Subtitle</span></label>
+                    onchange="updateCrIgPreview()"><span data-i18n="ig_week_date_sub">Week Date Subtitle</span></label>
                 <label class="ig-ctrl-row"><input type="checkbox" id="crIgOpt_showSubtitle" checked
-                    onchange="updateCrIgPreview()"><span>Artist / Sub-label</span></label>
+                    onchange="updateCrIgPreview()"><span data-i18n="ig_artist_sublabel">Artist / Sub-label</span></label>
                 <label class="ig-ctrl-row"><input type="checkbox" id="crIgOpt_showSectionSummary" checked
-                    onchange="updateCrIgPreview()"><span>📈 Section Summary Stats</span></label>
+                    onchange="updateCrIgPreview()"><span data-i18n="ig_section_summary">📈 Section Summary Stats</span></label>
                 <label class="ig-ctrl-row"><input type="checkbox" id="crIgOpt_showFooter" checked
-                    onchange="updateCrIgPreview()"><span>Footer Branding</span></label>
+                    onchange="updateCrIgPreview()"><span data-i18n="ig_footer_branding">Footer Branding</span></label>
                 <div style="display:flex;align-items:center;gap:0.4rem;padding-left:22px;flex-wrap:wrap;">
                   <span
-                    style="font-family:'DM Mono',monospace;font-size:0.58rem;color:var(--text3);flex-shrink:0;">Source:</span>
+                    style="font-family:'DM Mono',monospace;font-size:0.58rem;color:var(--text3);flex-shrink:0;" data-i18n="ig_source">Source:</span>
                   <button class="ig-format-btn active" id="crIgSrc_deezer" onclick="setCrIgImgSource('deezer')"
                     style="padding:0.2rem 0.45rem;font-size:0.6rem;">Deezer</button>
                   <button class="ig-format-btn" id="crIgSrc_itunes" onclick="setCrIgImgSource('itunes')"
@@ -844,11 +844,11 @@
                 </div>
               </div>
               <div class="ig-ctrl-group">
-                <div class="ig-ctrl-group-title">Fonts</div>
+                <div class="ig-ctrl-group-title" data-i18n="cr_fonts">Fonts</div>
                 <div style="display:flex;flex-direction:column;gap:0.35rem;">
                   <div style="display:flex;align-items:center;gap:0.5rem;">
                     <span
-                      style="font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--text3);min-width:52px;">Title</span>
+                      style="font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--text3);min-width:52px;" data-i18n="cr_title_font">Title</span>
                     <select id="crIgTitleFont" onchange="updateCrIgPreview()"
                       style="flex:1;background:var(--bg3);border:1px solid var(--border2);color:var(--text2);font-family:'DM Mono',monospace;font-size:0.65rem;padding:3px 5px;border-radius:4px;">
                       <option value="DM Sans">DM Sans</option>
@@ -861,7 +861,7 @@
                   </div>
                   <div style="display:flex;align-items:center;gap:0.5rem;">
                     <span
-                      style="font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--text3);min-width:52px;">Labels</span>
+                      style="font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--text3);min-width:52px;" data-i18n="cr_labels_font">Labels</span>
                     <select id="crIgLabelFont" onchange="updateCrIgPreview()"
                       style="flex:1;background:var(--bg3);border:1px solid var(--border2);color:var(--text2);font-family:'DM Mono',monospace;font-size:0.65rem;padding:3px 5px;border-radius:4px;">
                       <option value="DM Mono">DM Mono</option>
@@ -873,7 +873,7 @@
                   </div>
                   <div style="display:flex;align-items:center;gap:0.5rem;">
                     <span
-                      style="font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--text3);min-width:52px;">Cover
+                      style="font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--text3);min-width:52px;" data-i18n="cr_cover_art">Cover
                       Art/Photo</span>
                     <input type="range" id="crIgImageScale" min="80" max="150" value="100"
                       oninput="updateCrIgSizeLabels();updateCrIgPreview()" style="flex:1;accent-color:var(--accent);">
@@ -882,7 +882,7 @@
                   </div>
                   <div style="display:flex;align-items:center;gap:0.5rem;">
                     <span
-                      style="font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--text3);min-width:52px;">Brand
+                      style="font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--text3);min-width:52px;" data-i18n="cr_brand_px">Brand
                       px</span>
                     <input type="range" id="crIgBrandSize" min="0" max="18" value="0"
                       oninput="updateCrIgSizeLabels();updateCrIgPreview()" style="flex:1;accent-color:var(--accent);">
@@ -891,7 +891,7 @@
                   </div>
                   <div style="display:flex;align-items:center;gap:0.5rem;">
                     <span
-                      style="font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--text3);min-width:52px;">Song/Artist
+                      style="font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--text3);min-width:52px;" data-i18n="cr_song_artist_px">Song/Artist
                       px</span>
                     <input type="range" id="crIgTitleSize" min="0" max="60" value="0"
                       oninput="updateCrIgSizeLabels();updateCrIgPreview()" style="flex:1;accent-color:var(--accent);">
@@ -900,7 +900,7 @@
                   </div>
                   <div style="display:flex;align-items:center;gap:0.5rem;">
                     <span
-                      style="font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--text3);min-width:52px;">Week
+                      style="font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--text3);min-width:52px;" data-i18n="cr_week_date_px">Week
                       Date px</span>
                     <input type="range" id="crIgWeekDateSize" min="0" max="20" value="0"
                       oninput="updateCrIgSizeLabels();updateCrIgPreview()" style="flex:1;accent-color:var(--accent);">
@@ -909,7 +909,7 @@
                   </div>
                   <div style="display:flex;align-items:center;gap:0.5rem;">
                     <span
-                      style="font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--text3);min-width:52px;">Section
+                      style="font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--text3);min-width:52px;" data-i18n="cr_section_px">Section
                       px</span>
                     <input type="range" id="crIgSectionSize" min="0" max="18" value="0"
                       oninput="updateCrIgSizeLabels();updateCrIgPreview()" style="flex:1;accent-color:var(--accent);">
@@ -918,7 +918,7 @@
                   </div>
                   <div style="display:flex;align-items:center;gap:0.5rem;">
                     <span
-                      style="font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--text3);min-width:52px;">Boxes
+                      style="font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--text3);min-width:52px;" data-i18n="cr_boxes_px">Boxes
                       px</span>
                     <input type="range" id="crIgBoxSize" min="0" max="22" value="0"
                       oninput="updateCrIgSizeLabels();updateCrIgPreview()" style="flex:1;accent-color:var(--accent);">
@@ -928,12 +928,12 @@
                 </div>
                 <div style="display:flex;gap:0.4rem;flex-wrap:wrap;margin-top:4px;">
                   <button class="ig-format-btn" onclick="setCrIgAllSliders(true)"
-                    style="padding:0.2rem 0.55rem;font-size:0.6rem;flex:0 0 auto;">Max All</button>
+                    style="padding:0.2rem 0.55rem;font-size:0.6rem;flex:0 0 auto;" data-i18n="btn_max_all">Max All</button>
                   <button class="ig-format-btn" onclick="setCrIgAllSliders(false)"
-                    style="padding:0.2rem 0.55rem;font-size:0.6rem;flex:0 0 auto;">Min All</button>
+                    style="padding:0.2rem 0.55rem;font-size:0.6rem;flex:0 0 auto;" data-i18n="btn_min_all">Min All</button>
                 </div>
                 <div
-                  style="font-family:'DM Mono',monospace;font-size:0.55rem;color:var(--text3);letter-spacing:0.06em;margin-top:4px;">
+                  style="font-family:'DM Mono',monospace;font-size:0.55rem;color:var(--text3);letter-spacing:0.06em;margin-top:4px;" data-i18n="ig_slide_auto">
                   Slide to override · leftmost = Auto</div>
               </div>
             </div>
@@ -941,32 +941,32 @@
           <!-- ── ENTRY POST CONTROLS ── -->
           <div id="crIgEntryControls" style="display:none;">
             <div class="ig-ctrl-group">
-              <div class="ig-ctrl-group-title">Format</div>
+              <div class="ig-ctrl-group-title" data-i18n="ig_format">Format</div>
               <div class="ig-format-btns">
-                <button class="ig-format-btn active" id="entPostFmtPost" onclick="setCrIgFormat('post')">📷 Post
+                <button class="ig-format-btn active" id="entPostFmtPost" onclick="setCrIgFormat('post')" data-i18n="ig_post">📷 Post
                   (1:1)</button>
-                <button class="ig-format-btn" id="entPostFmtStory" onclick="setCrIgFormat('story')">📱 Story
+                <button class="ig-format-btn" id="entPostFmtStory" onclick="setCrIgFormat('story')" data-i18n="ig_story">📱 Story
                   (9:16)</button>
               </div>
             </div>
             <div class="ig-ctrl-group">
-              <div class="ig-ctrl-group-title">Show / Hide</div>
+              <div class="ig-ctrl-group-title" data-i18n="ig_show_hide">Show / Hide</div>
               <label class="ig-ctrl-row"><input type="checkbox" id="entPostOpt_showWeekDate" checked
-                  onchange="updateCrIgPreview()"><span>Week Date Subtitle</span></label>
+                  onchange="updateCrIgPreview()"><span data-i18n="ig_week_date_sub">Week Date Subtitle</span></label>
               <label class="ig-ctrl-row"><input type="checkbox" id="entPostOpt_showDescription" checked
-                  onchange="updateCrIgPreview()"><span>Chart Story Description</span></label>
+                  onchange="updateCrIgPreview()"><span data-i18n="ep_chart_story">Chart Story Description</span></label>
               <label class="ig-ctrl-row"><input type="checkbox" id="entPostOpt_showSubtitle" checked
-                  onchange="updateCrIgPreview()"><span>Artist / Album Info</span></label>
+                  onchange="updateCrIgPreview()"><span data-i18n="ep_artist_album">Artist / Album Info</span></label>
               <label class="ig-ctrl-row"><input type="checkbox" id="entPostOpt_showMovement" checked
-                  onchange="updateCrIgPreview()"><span>Movement (Bottom Left)</span></label>
+                  onchange="updateCrIgPreview()"><span data-i18n="ep_movement_bl">Movement (Bottom Left)</span></label>
               <label class="ig-ctrl-row"><input type="checkbox" id="entPostOpt_showFooter" checked
-                  onchange="updateCrIgPreview()"><span>Footer Branding</span></label>
+                  onchange="updateCrIgPreview()"><span data-i18n="ig_footer_branding">Footer Branding</span></label>
               <label class="ig-ctrl-row"><input type="checkbox" id="entPostOpt_showImage" checked
-                  onchange="updateCrIgPreview()"><span>Cover Art / Photo</span></label>
+                  onchange="updateCrIgPreview()"><span data-i18n="ig_cover_art">Cover Art / Photo</span></label>
               <div
                 style="display:flex;align-items:center;gap:0.4rem;padding-left:22px;flex-wrap:wrap;margin-top:0.25rem;">
                 <span
-                  style="font-family:'DM Mono',monospace;font-size:0.58rem;color:var(--text3);flex-shrink:0;">Source:</span>
+                  style="font-family:'DM Mono',monospace;font-size:0.58rem;color:var(--text3);flex-shrink:0;" data-i18n="ig_source">Source:</span>
                 <button class="ig-format-btn active" id="entPostSrc_deezer" onclick="setEntPostImgSource('deezer')"
                   style="padding:0.2rem 0.45rem;font-size:0.6rem;">Deezer</button>
                 <button class="ig-format-btn" id="entPostSrc_itunes" onclick="setEntPostImgSource('itunes')"
@@ -978,11 +978,11 @@
               </div>
             </div>
             <div class="ig-ctrl-group">
-              <div class="ig-ctrl-group-title">Font Sizes</div>
+              <div class="ig-ctrl-group-title" data-i18n="ep_font_sizes">Font Sizes</div>
               <div style="display:flex;flex-direction:column;gap:0.35rem;">
                 <div style="display:flex;align-items:center;gap:0.5rem;">
                   <span
-                    style="font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--text3);min-width:66px;">Branding</span>
+                    style="font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--text3);min-width:66px;" data-i18n="ep_branding">Branding</span>
                   <input type="range" id="entPostBrandSize" min="0" max="20" value="0"
                     oninput="updateEntPostSizeLabels();updateCrIgPreview()" style="flex:1;accent-color:var(--accent);">
                   <span id="entPostBrandSizeLabel"
@@ -990,7 +990,7 @@
                 </div>
                 <div style="display:flex;align-items:center;gap:0.5rem;">
                   <span
-                    style="font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--text3);min-width:66px;">Chart
+                    style="font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--text3);min-width:66px;" data-i18n="ep_chart_name">Chart
                     Name</span>
                   <input type="range" id="entPostChartNameSize" min="0" max="28" value="0"
                     oninput="updateEntPostSizeLabels();updateCrIgPreview()" style="flex:1;accent-color:var(--accent);">
@@ -998,7 +998,7 @@
                     style="font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--text2);min-width:30px;text-align:right;">Auto</span>
                 </div>
                 <div style="display:flex;align-items:center;gap:0.5rem;">
-                  <span style="font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--text3);min-width:66px;">Week
+                  <span style="font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--text3);min-width:66px;" data-i18n="ep_week_date">Week
                     Date</span>
                   <input type="range" id="entPostWeekDateSize" min="0" max="22" value="0"
                     oninput="updateEntPostSizeLabels();updateCrIgPreview()" style="flex:1;accent-color:var(--accent);">
@@ -1007,7 +1007,7 @@
                 </div>
                 <div style="display:flex;align-items:center;gap:0.5rem;">
                   <span
-                    style="font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--text3);min-width:66px;">Image</span>
+                    style="font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--text3);min-width:66px;" data-i18n="ep_image">Image</span>
                   <input type="range" id="entPostImageSize" min="0" max="320" value="0"
                     oninput="updateEntPostSizeLabels();updateCrIgPreview()" style="flex:1;accent-color:var(--accent);">
                   <span id="entPostImageSizeLabel"
@@ -1023,7 +1023,7 @@
                 </div>
                 <div style="display:flex;align-items:center;gap:0.5rem;">
                   <span
-                    style="font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--text3);min-width:66px;">Artist</span>
+                    style="font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--text3);min-width:66px;" data-i18n="ep_artist">Artist</span>
                   <input type="range" id="entPostSubtitleSize" min="0" max="28" value="0"
                     oninput="updateEntPostSizeLabels();updateCrIgPreview()" style="flex:1;accent-color:var(--accent);">
                   <span id="entPostSubtitleSizeLabel"
@@ -1031,7 +1031,7 @@
                 </div>
                 <div style="display:flex;align-items:center;gap:0.5rem;">
                   <span
-                    style="font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--text3);min-width:66px;">Album</span>
+                    style="font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--text3);min-width:66px;" data-i18n="ep_album">Album</span>
                   <input type="range" id="entPostAlbumSize" min="0" max="22" value="0"
                     oninput="updateEntPostSizeLabels();updateCrIgPreview()" style="flex:1;accent-color:var(--accent);">
                   <span id="entPostAlbumSizeLabel"
@@ -1039,7 +1039,7 @@
                 </div>
                 <div style="display:flex;align-items:center;gap:0.5rem;">
                   <span
-                    style="font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--text3);min-width:66px;">Description</span>
+                    style="font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--text3);min-width:66px;" data-i18n="ep_description">Description</span>
                   <input type="range" id="entPostDescSize" min="0" max="22" value="0"
                     oninput="updateEntPostSizeLabels();updateCrIgPreview()" style="flex:1;accent-color:var(--accent);">
                   <span id="entPostDescSizeLabel"
@@ -1047,7 +1047,7 @@
                 </div>
                 <div style="display:flex;align-items:center;gap:0.5rem;">
                   <span
-                    style="font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--text3);min-width:66px;">Movement</span>
+                    style="font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--text3);min-width:66px;" data-i18n="ep_movement">Movement</span>
                   <input type="range" id="entPostMvSize" min="0" max="24" value="0"
                     oninput="updateEntPostSizeLabels();updateCrIgPreview()" style="flex:1;accent-color:var(--accent);">
                   <span id="entPostMvSizeLabel"
@@ -1055,7 +1055,7 @@
                 </div>
                 <div style="display:flex;align-items:center;gap:0.5rem;">
                   <span
-                    style="font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--text3);min-width:66px;">Position
+                    style="font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--text3);min-width:66px;" data-i18n="ep_position">Position
                     #</span>
                   <input type="range" id="entPostRankSize" min="0" max="120" value="0"
                     oninput="updateEntPostSizeLabels();updateCrIgPreview()" style="flex:1;accent-color:var(--accent);">
@@ -1064,7 +1064,7 @@
                 </div>
                 <div style="display:flex;align-items:center;gap:0.5rem;">
                   <span
-                    style="font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--text3);min-width:66px;">Story
+                    style="font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--text3);min-width:66px;" data-i18n="ep_story_y">Story
                     Y</span>
                   <input type="range" id="entPostStatusY" min="-120" max="220" value="0"
                     oninput="updateEntPostSizeLabels();updateCrIgPreview()" style="flex:1;accent-color:var(--accent);">
@@ -1074,28 +1074,28 @@
               </div>
               <div style="display:flex;gap:0.4rem;flex-wrap:wrap;margin-top:4px;">
                 <button class="ig-format-btn" onclick="setEntPostAllSliders(true)"
-                  style="padding:0.2rem 0.55rem;font-size:0.6rem;flex:0 0 auto;">Max All</button>
+                  style="padding:0.2rem 0.55rem;font-size:0.6rem;flex:0 0 auto;" data-i18n="btn_max_all">Max All</button>
                 <button class="ig-format-btn" onclick="setEntPostAllSliders(false)"
-                  style="padding:0.2rem 0.55rem;font-size:0.6rem;flex:0 0 auto;">Min All</button>
+                  style="padding:0.2rem 0.55rem;font-size:0.6rem;flex:0 0 auto;" data-i18n="btn_min_all">Min All</button>
               </div>
               <div
-                style="font-family:'DM Mono',monospace;font-size:0.55rem;color:var(--text3);letter-spacing:0.06em;margin-top:4px;">
+                style="font-family:'DM Mono',monospace;font-size:0.55rem;color:var(--text3);letter-spacing:0.06em;margin-top:4px;" data-i18n="ig_slide_auto">
                 Slide to override · leftmost = Auto</div>
             </div>
             <div class="ig-ctrl-group">
-              <div class="ig-ctrl-group-title">Description Text</div>
+              <div class="ig-ctrl-group-title" data-i18n="cr_desc_text">Description Text</div>
               <div style="display:flex;gap:0.4rem;flex-wrap:wrap;">
                 <button class="ig-format-btn active" id="entPostDescModeAuto" onclick="setEntPostDescMode('auto')"
-                  style="padding:0.2rem 0.5rem;font-size:0.6rem;flex:0 0 auto;">Auto</button>
+                  style="padding:0.2rem 0.5rem;font-size:0.6rem;flex:0 0 auto;" data-i18n="cr_auto">Auto</button>
                 <button class="ig-format-btn" id="entPostDescShuffle" onclick="shuffleEntPostDescription()"
-                  style="padding:0.2rem 0.5rem;font-size:0.6rem;flex:0 0 auto;">Shuffle</button>
+                  style="padding:0.2rem 0.5rem;font-size:0.6rem;flex:0 0 auto;" data-i18n="cr_shuffle">Shuffle</button>
                 <button class="ig-format-btn" id="entPostDescModeCustom" onclick="setEntPostDescMode('custom')"
-                  style="padding:0.2rem 0.5rem;font-size:0.6rem;flex:0 0 auto;">Use Custom</button>
+                  style="padding:0.2rem 0.5rem;font-size:0.6rem;flex:0 0 auto;" data-i18n="cr_use_custom">Use Custom</button>
               </div>
-              <textarea id="entPostDescCustom" rows="3" placeholder="Type your own description..."
+              <textarea id="entPostDescCustom" rows="3" placeholder="Type your own description..." data-i18n-placeholder="cr_desc_placeholder"
                 oninput="updateEntPostCustomDescription(this.value)"
                 style="width:100%;resize:vertical;min-height:56px;max-height:120px;background:var(--bg3);border:1px solid var(--border2);border-radius:6px;color:var(--text2);font-family:'DM Sans',sans-serif;font-size:0.74rem;padding:6px 8px;"></textarea>
-              <div style="font-family:'DM Mono',monospace;font-size:0.55rem;color:var(--text3);letter-spacing:0.06em;">
+              <div style="font-family:'DM Mono',monospace;font-size:0.55rem;color:var(--text3);letter-spacing:0.06em;" data-i18n="cr_desc_hint">
                 Auto uses data up to the currently viewed date. Shuffle cycles generated variants.</div>
             </div>
           </div>

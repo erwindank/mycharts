@@ -2456,24 +2456,29 @@ function ensureAllChartRun() {
   buildAllChartRun();
 }
 
+const _CR_MON_SHORT = ['month_jan','month_feb','month_mar','month_apr','month_may_short','month_jun','month_jul','month_aug','month_sep','month_oct','month_nov','month_dec'];
+const _CR_MON_LONG  = ['month_january','month_february','month_march','month_april','month_may','month_june','month_july','month_august','month_september','month_october','month_november','month_december'];
+
 function crPeriodLabel(period, key) {
   if (period === 'week') {
     const d = new Date(key + 'T00:00:00');
-    return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: '2-digit' });
+    const mon = t(_CR_MON_SHORT[d.getMonth()]);
+    return `${mon} ${d.getDate()}, ${String(d.getFullYear()).slice(-2)}`;
   } else if (period === 'month') {
     const [y, m] = key.split('-');
-    return new Date(+y, +m - 1, 1).toLocaleDateString('en-US', { month: 'short', year: '2-digit' });
+    const mon = t(_CR_MON_SHORT[+m - 1]);
+    return `${mon} ${String(+y).slice(-2)}`;
   } else return key;
 }
 
 function crPeriodTitle(period, key) {
   if (period === 'week') {
     const d = new Date(key + 'T00:00:00');
-    return 'Week of ' + d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    return t('period_week_of', { date: fmt(d) });
   } else if (period === 'month') {
     const [y, m] = key.split('-');
-    return new Date(+y, +m - 1, 1).toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
-  } else return 'Year ' + key;
+    return t(_CR_MON_LONG[+m - 1]) + ' ' + y;
+  } else return key;
 }
 
 function crStats(type, key, period, crData, preD) {
@@ -2525,13 +2530,13 @@ function crBoxesHTML(type, key, crData, preD, periodOverride) {
   if (!d) return '<div style="font-size:0.6rem;color:var(--text3);padding:4px 0">No chart history yet.</div>';
   const period = periodOverride || data?.period || currentPeriod;
   const safeKey = encodeURIComponent(key);
-  const unit = (gap) => period === 'week' ? (gap === 1 ? 'Week' : 'Weeks') : period === 'month' ? (gap === 1 ? 'Month' : 'Months') : (gap === 1 ? 'Year' : 'Years');
+  const unit = (gap) => period === 'week' ? tUnit('weeks', gap) : period === 'month' ? tUnit('months', gap) : tUnit('years', gap);
   const boxes = d.entries.flatMap((e, i) => {
     const isPeak = (e.rank === d.peak);
     const cls = isPeak ? 'cr-box cr-box-peak' : 'cr-box';
     const box = `<div class="${cls}" onclick="showCrPreview('${esc(e.periodKey)}','${type}','${safeKey}',this,'${period}')">
       <div class="cr-box-rank">#${e.rank}</div>
-      <div class="cr-box-label">${esc(e.label)}</div>
+      <div class="cr-box-label">${esc(crPeriodLabel(period, e.periodKey))}</div>
     </div>`;
     if (i === 0) return [box];
     const gap = crPeriodGap(period, d.entries[i - 1].periodKey, e.periodKey);
@@ -2560,7 +2565,7 @@ function showCrPreview(periodKey, type, encodedKey, boxEl, periodName) {
   const pm = crData.periodMap[periodKey];
   const period = crData.period;
   const title = crPeriodTitle(period, periodKey);
-  const typeLabels = { songs: 'Songs', artists: 'Artists', albums: 'Albums' };
+  const typeLabels = { songs: t('rec_th_songs'), artists: t('rec_th_artists'), albums: t('rec_th_albums') };
   const ranked = Object.entries(pm[type]).sort(([, a], [, b]) => rankSort(a, b)).slice(0, Math.min(chartSize, 25));
   let items = ranked.map(([k, data], i) => {
     const rank = i + 1;
@@ -3670,7 +3675,7 @@ function updateEntPostSizeLabels() {
 function syncEntPostTitleLabel(type) {
   const el = document.getElementById('entPostTitleSizeText');
   if (!el) return;
-  el.textContent = type === 'songs' ? 'Song Title' : 'Title';
+  el.textContent = type === 'songs' ? t('ep_title_song') : t('ep_title');
 }
 
 function setEntPostAllSliders(toMax) {
@@ -3778,25 +3783,25 @@ function openCrIgModal(type, encodedKey, rank) {
   const _vy = getViewedYear();
   let _igLabels, _igTitles;
   if (currentPeriod === 'week') {
-    _igLabels = { year: _vy + ' YTD', uptoYear: 'Up to This Week', now: 'All-Time' };
+    _igLabels = { year: t('cr_ytd', { year: _vy }), uptoYear: t('cr_up_to_this_week'), now: t('cr_all_time') };
     _igTitles = {
-      year: 'Chart appearances from Jan 1 through the viewed week (Year-to-Date)',
-      uptoYear: 'Every chart appearance from your first scrobble up to and including the viewed week',
-      now: 'Every chart appearance across your entire scrobble history'
+      year: t('tooltip_cr_ytd_week'),
+      uptoYear: t('tooltip_cr_upto_week'),
+      now: t('tooltip_cr_all_time_range')
     };
   } else if (currentPeriod === 'month') {
-    _igLabels = { year: _vy + ' YTD', uptoYear: 'Up to This Month', now: 'All-Time' };
+    _igLabels = { year: t('cr_ytd', { year: _vy }), uptoYear: t('cr_up_to_this_month'), now: t('cr_all_time') };
     _igTitles = {
-      year: 'Chart appearances from Jan 1 through the viewed month (Year-to-Date)',
-      uptoYear: 'Every chart appearance from your first scrobble up to and including the viewed month',
-      now: 'Every chart appearance across your entire scrobble history'
+      year: t('tooltip_cr_ytd_month'),
+      uptoYear: t('tooltip_cr_upto_month'),
+      now: t('tooltip_cr_all_time_range')
     };
   } else {
-    _igLabels = { year: _vy + ' Only', uptoYear: 'Up to ' + _vy, now: 'All-Time' };
+    _igLabels = { year: t('cr_year_only_label', { year: _vy }), uptoYear: t('cr_up_to_year_label', { year: _vy }), now: t('cr_all_time') };
     _igTitles = {
-      year: 'Only chart appearances within the selected year',
-      uptoYear: 'Every chart appearance from your first scrobble up to and including the selected year',
-      now: 'Every chart appearance across your entire scrobble history'
+      year: t('tooltip_cr_year_only_range'),
+      uptoYear: t('tooltip_cr_upto_year_range'),
+      now: t('tooltip_cr_all_time_range')
     };
   }
   const _rYear = document.getElementById('crIgRangeYear');
@@ -3967,13 +3972,13 @@ function buildCrIgCardHTML(type, key, opts) {
   // Only show sections relevant to the period that opened the modal
   const _activePeriod = opts.period || currentPeriod;
   const periodConf = _activePeriod === 'week'
-    ? [{ id: 'week', label: '📈 WEEKLY', check: true }]
+    ? [{ id: 'week', label: t('cr_weekly_label').toUpperCase(), check: true }]
     : _activePeriod === 'month'
-      ? [{ id: 'month', label: '📊 MONTHLY', check: true }]
+      ? [{ id: 'month', label: t('cr_monthly_label').toUpperCase(), check: true }]
       : [
-        { id: 'year', label: '🗓️ YEARLY', check: opts.showYear },
-        { id: 'month', label: '📊 MONTHLY', check: opts.showMonth },
-        { id: 'week', label: '📈 WEEKLY', check: opts.showWeek },
+        { id: 'year', label: t('cr_yearly_label').toUpperCase(), check: opts.showYear },
+        { id: 'month', label: t('cr_monthly_label').toUpperCase(), check: opts.showMonth },
+        { id: 'week', label: t('cr_weekly_label').toUpperCase(), check: opts.showWeek },
       ];
 
   const rangeMode = opts.rangeMode || 'now';
@@ -3981,11 +3986,11 @@ function buildCrIgCardHTML(type, key, opts) {
   const cutoffKeys = getViewedCutoffKeys();
   let rangeLabelMap;
   if (_activePeriod === 'week') {
-    rangeLabelMap = { year: vy + ' YTD', uptoYear: 'Up to This Week', now: 'All-Time' };
+    rangeLabelMap = { year: t('cr_ytd', { year: vy }), uptoYear: t('cr_up_to_this_week'), now: t('cr_all_time') };
   } else if (_activePeriod === 'month') {
-    rangeLabelMap = { year: vy + ' YTD', uptoYear: 'Up to This Month', now: 'All-Time' };
+    rangeLabelMap = { year: t('cr_ytd', { year: vy }), uptoYear: t('cr_up_to_this_month'), now: t('cr_all_time') };
   } else {
-    rangeLabelMap = { year: vy + ' Only', uptoYear: 'Up to ' + vy, now: 'All-Time' };
+    rangeLabelMap = { year: t('cr_year_only_label', { year: vy }), uptoYear: t('cr_up_to_year_label', { year: vy }), now: t('cr_all_time') };
   }
   const sections = periodConf.filter(p => p.check).map(pc => {
     const crData = allChartRun[pc.id];
@@ -4049,12 +4054,12 @@ function buildCrIgCardHTML(type, key, opts) {
     return `<div style="margin-bottom:9px;">
       <div style="font-family:${lFont};font-size:${secSize}px;letter-spacing:0.14em;color:${c.accent};text-transform:uppercase;margin-bottom:4px;">${pc.label}</div>
       ${opts.showSectionSummary ? `<div style="display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin-bottom:5px;">
-        ${_stat(n + ' ' + (period === 'week' ? (n > 1 ? 'weeks' : 'week') : period === 'month' ? (n > 1 ? 'months' : 'month') : (n > 1 ? 'years' : 'year')), 'on chart')}
+        ${_stat(n + ' ' + (period === 'week' ? tUnit('cr_week', n) : period === 'month' ? tUnit('months', n) : tUnit('years', n)), t('cr_on_chart'))}
         ${_peakBadge(peak)}
-        ${top1 ? _stat(top1 + ' ' + (period === 'week' ? (top1 > 1 ? 'weeks' : 'week') : period === 'month' ? (top1 > 1 ? 'months' : 'month') : (top1 > 1 ? 'years' : 'year')), 'at #1') : ''}
-        ${top5 && 5 < pSize ? _stat(top5 + ' ' + (period === 'week' ? (top5 > 1 ? 'weeks' : 'week') : period === 'month' ? (top5 > 1 ? 'months' : 'month') : (top5 > 1 ? 'years' : 'year')), 'in Top 5') : ''}
-        ${top10 && 10 < pSize ? _stat(top10 + ' ' + (period === 'week' ? (top10 > 1 ? 'weeks' : 'week') : period === 'month' ? (top10 > 1 ? 'months' : 'month') : (top10 > 1 ? 'years' : 'year')), 'in Top 10') : ''}
-        ${truncated ? `<span style="font-family:${lFont};font-size:${secSize}px;color:${c.text3};">· last ${maxBoxes} shown</span>` : ''}
+        ${top1 ? _stat(top1 + ' ' + (period === 'week' ? tUnit('cr_week', top1) : period === 'month' ? tUnit('months', top1) : tUnit('years', top1)), t('cr_at_1')) : ''}
+        ${top5 && 5 < pSize ? _stat(top5 + ' ' + (period === 'week' ? tUnit('cr_week', top5) : period === 'month' ? tUnit('months', top5) : tUnit('years', top5)), t('cr_in_top5')) : ''}
+        ${top10 && 10 < pSize ? _stat(top10 + ' ' + (period === 'week' ? tUnit('cr_week', top10) : period === 'month' ? tUnit('months', top10) : tUnit('years', top10)), t('cr_in_top10')) : ''}
+        ${truncated ? `<span style="font-family:${lFont};font-size:${secSize}px;color:${c.text3};">· ${t('cr_last_shown', { n: maxBoxes })}</span>` : ''}
       </div>` : ''}
       <div style="display:flex;flex-wrap:wrap;gap:${gap}px;">${boxesHtml}</div>
     </div>`;
@@ -4079,7 +4084,7 @@ function buildCrIgCardHTML(type, key, opts) {
   if (opts.imageScale) {
     imgSize = Math.round(imgSize * opts.imageScale);
   }
-  const typeLabel = { songs: '★ SONG', artists: '♦ ARTIST', albums: '◈ ALBUM' }[type];
+  const typeLabel = t('cr_type_' + (type === 'songs' ? 'song' : type === 'artists' ? 'artist' : 'album'));
   const showImg = opts.showImage && opts.imgUrl;
   const headerPad = isPost ? '12px 16px' : '62px 20px 16px';
   const headerInner = `
@@ -4225,7 +4230,7 @@ function buildEntryIgCardHTML(type, key, rank, opts) {
 
   // Period header text (descriptive title with chart size + type + date range)
   const dr = getDateRange();
-  const typeWord = { songs: 'Songs', artists: 'Artists', albums: 'Albums' }[type] || 'Entries';
+  const typeWord = t('ep_type_' + type) || 'Entries';
   const topN = period === 'week' ? chartSizeWeekly
     : period === 'month' ? chartSizeMonthly
       : period === 'year' ? chartSizeYearly
@@ -4233,32 +4238,32 @@ function buildEntryIgCardHTML(type, key, rank, opts) {
   const topLabel = (isFinite(topN) && topN > 0) ? `Top ${topN}` : 'Top';
   let chartName, periodLine;
   if (period === 'week') {
-    chartName = `${topLabel} ${typeWord} of the Week`;
+    chartName = `${topLabel} ${typeWord} ${t('ep_of_week')}`;
     periodLine = dr.sub || dr.label;
   } else if (period === 'month') {
-    chartName = `${topLabel} ${typeWord} of ${dr.label}`;
+    chartName = `${topLabel} ${typeWord} ${t('ep_of')} ${dr.label}`;
     periodLine = dr.label;
   } else if (period === 'year') {
-    chartName = `${topLabel} ${typeWord} of ${dr.label}`;
-    periodLine = `Yearly ${typeWord} Chart`;
+    chartName = `${topLabel} ${typeWord} ${t('ep_of')} ${dr.label}`;
+    periodLine = t('ep_yearly_chart_line', { type: typeWord });
   } else {
-    chartName = `All-Time ${topLabel} ${typeWord}`;
-    periodLine = 'All-Time';
+    chartName = `${t('cr_all_time')} ${topLabel} ${typeWord}`;
+    periodLine = t('cr_all_time');
   }
-  const typeLabel = { songs: '\u2605 SONG', artists: '\u25c6 ARTIST', albums: '\u25c8 ALBUM' }[type];
+  const typeLabel = t('cr_type_' + (type === 'songs' ? 'song' : type === 'artists' ? 'artist' : 'album'));
 
   // Movement label
   const mv = _entryMovement(rank, key, type, period);
   let mvText, mvColor;
-  if (mv.cls === 'new') { mvText = 'NEW ENTRY'; mvColor = c.green; }
-  else if (mv.cls === 're') { mvText = 'RETURN'; mvColor = c.amber; }
-  else if (mv.cls === 'same') { mvText = '= SAME POSITION'; mvColor = c.text3; }
+  if (mv.cls === 'new') { mvText = t('ep_mv_new'); mvColor = c.green; }
+  else if (mv.cls === 're') { mvText = t('ep_mv_return'); mvColor = c.amber; }
+  else if (mv.cls === 'same') { mvText = t('ep_mv_same'); mvColor = c.text3; }
   else if (mv.cls === 'up') {
     const n = parseInt(mv.label.replace(/[^\d]/g, '')) || 0;
-    mvText = '+' + n + ' POSITION' + (n !== 1 ? 'S' : ''); mvColor = c.green;
+    mvText = t(n === 1 ? 'ep_mv_up_one' : 'ep_mv_up_other', { n }); mvColor = c.green;
   } else if (mv.cls === 'down') {
     const n = parseInt(mv.label.replace(/[^\d]/g, '')) || 0;
-    mvText = '\u2212' + n + ' POSITION' + (n !== 1 ? 'S' : ''); mvColor = c.rose;
+    mvText = t(n === 1 ? 'ep_mv_down_one' : 'ep_mv_down_other', { n }); mvColor = c.rose;
   } else { mvText = mv.label || '\u2014'; mvColor = c.text3; }
 
   // Rank colour: gold / silver / bronze / accent
@@ -4378,12 +4383,12 @@ function _entryDescription(type, key, rank, period, ctx) {
   const viewedYear = ctx.viewedYear != null ? ctx.viewedYear : getViewedYear();
   const cutoffKeys = ctx.cutoffKeys || getViewedCutoffKeys();
   const d = filterCrD(rawD, period, 'uptoYear', viewedYear, cutoffKeys);
-  const unit = period === 'week' ? 'week' : period === 'month' ? 'month' : 'year';
-  const units = unit + 's';
+  const _u1 = tUnit('desc_unit_' + period, 1);
+  const _un = function(n) { return tUnit('desc_unit_' + period, n); };
 
   if (!d || !d.entries.length) {
     const isRe = lastPeriodStats && lastPeriodStats.everChartedBefore && lastPeriodStats.everChartedBefore[type] && lastPeriodStats.everChartedBefore[type].has(key);
-    return isRe ? 'Returns to the chart at #' + rank + ' \u2014 welcome back!' : 'Makes its chart debut at #' + rank + '.';
+    return isRe ? t('desc_returns_welcome', { rank }) : t('desc_debut_no_hist', { rank });
   }
 
   const entries = d.entries;
@@ -4419,28 +4424,29 @@ function _entryDescription(type, key, rank, period, ctx) {
   // RETURN — gap before the most recent entry
   if (prev && crPeriodGap(period, prev.periodKey, last.periodKey) > 0) {
     const gap = crPeriodGap(period, prev.periodKey, last.periodKey);
-    return 'Returns to the chart at #' + rank + ' after ' + gap + ' ' + (gap === 1 ? unit : units) + ' away.';
+    return t('desc_return_after_gap', { rank, n: gap, unit: _un(gap) });
   }
 
   // NEW — first-ever appearance
   if (!prev) {
-    if (rank === 1) return 'Explodes onto the chart at #1 \u2014 a debut at the very top!';
-    if (rank <= 5) return 'Makes an impressive chart debut at #' + rank + ', entering the Top 5.';
-    if (rank <= 10) return 'Enters the chart in the Top 10 at #' + rank + '.';
-    return 'Makes its chart debut at #' + rank + '.';
+    if (rank === 1) return t('desc_debut_1');
+    if (rank <= 5) return t('desc_debut_top5', { rank });
+    if (rank <= 10) return t('desc_debut_top10', { rank });
+    return t('desc_debut', { rank });
   }
 
   const diff = prev.rank - rank; // positive = climbed
 
   if (diff === 0) {
     if (rank === 1) {
-      if (consAtRank >= 3) return 'Holds firm at #1 for ' + consAtRank + ' consecutive ' + units + '.';
-      return 'Stays at #1 for a ' + _ord(consAtRank) + ' ' + unit + ' running.';
+      if (consAtRank >= 3) return t('desc_hold_1_cons', { n: consAtRank, units: _un(consAtRank) });
+      return t('desc_hold_1_run', { n: consAtRank, ord: _ord(consAtRank), unit: _u1 });
     }
-    if (consAtRank >= 4) return 'Locked in at #' + rank + ' for ' + consAtRank + ' straight ' + units + '.';
-    if (consTop10 >= 5 && rank <= 10) return 'Holds at #' + rank + ' \u2014 ' + consTop10 + ' consecutive ' + units + ' in the Top 10.';
-    if (streak >= 8) return 'Stays at #' + rank + ' \u2014 ' + streak + ' ' + units + ' on the chart and counting.';
-    return 'Holds at #' + rank + (consAtRank >= 2 ? ' for ' + consAtRank + ' consecutive ' + units : '') + '.';
+    if (consAtRank >= 4) return t('desc_locked', { rank, n: consAtRank, units: _un(consAtRank) });
+    if (consTop10 >= 5 && rank <= 10) return t('desc_hold_top10', { rank, n: consTop10, units: _un(consTop10) });
+    if (streak >= 8) return t('desc_hold_long', { rank, n: streak, units: _un(streak) });
+    if (consAtRank >= 2) return t('desc_hold_cons', { rank, n: consAtRank, units: _un(consAtRank) });
+    return t('desc_hold', { rank });
   }
 
   if (diff > 0) {
@@ -4448,25 +4454,25 @@ function _entryDescription(type, key, rank, period, ctx) {
     const prevPeak = entries.slice(0, -1).reduce(function (m, e) { return Math.min(m, e.rank); }, Infinity);
     const isNewPeak = rank < prevPeak;
     if (isNewPeak) {
-      if (rank === 1) return 'Ascends to #1 for the first time' + (n > 1 ? ' after ' + (n - 1) + ' ' + (n - 1 === 1 ? unit : units) + ' on the chart' : '') + '!';
-      if (consTop10 >= 5) return 'Rises to a new peak of #' + rank + ' after ' + consTop10 + ' consecutive ' + units + ' in the Top 10.';
-      return 'Climbs to a new peak of #' + rank + ', up ' + diff + ' from #' + prev.rank + '.';
+      if (rank === 1) return t(n > 1 ? 'desc_ascend_1_hist' : 'desc_ascend_1', { n: n - 1, units: _un(n - 1) });
+      if (consTop10 >= 5) return t('desc_peak_top10', { rank, n: consTop10, units: _un(consTop10) });
+      return t('desc_peak', { rank, diff, prev: prev.rank });
     }
-    if (diff >= 15) return 'Rockets ' + diff + ' positions to #' + rank + (n > 2 ? ' \u2014 ' + n + ' ' + units + ' on the chart' : '') + '.';
-    if (diff >= 7) return 'Surges ' + diff + ' spots to #' + rank + (consTop10 >= 3 ? ' after ' + consTop10 + ' ' + units + ' in the Top 10' : '') + '.';
-    if (rank <= 10 && prev.rank > 10) return 'Breaks into the Top 10 at #' + rank + ', up ' + diff + ' from #' + prev.rank + '.';
-    if (rank <= 5 && prev.rank > 5) return 'Crosses into the Top 5 at #' + rank + '.';
-    return 'Rises ' + diff + ' position' + (diff !== 1 ? 's' : '') + ' to #' + rank + (streak >= 5 ? ' \u2014 ' + streak + ' ' + units + ' on the chart' : '') + '.';
+    if (diff >= 15) return t(n > 2 ? 'desc_rockets_hist' : 'desc_rockets', { diff, rank, n, units: _un(n) });
+    if (diff >= 7) return t(consTop10 >= 3 ? 'desc_surges_top10' : 'desc_surges', { diff, rank, n: consTop10, units: _un(consTop10) });
+    if (rank <= 10 && prev.rank > 10) return t('desc_breaks_top10', { rank, diff, prev: prev.rank });
+    if (rank <= 5 && prev.rank > 5) return t('desc_top5', { rank });
+    return t(streak >= 5 ? 'desc_rises_streak' : 'desc_rises', { diff, posn: tUnit('desc_position', diff), rank, n: streak, units: _un(streak) });
   }
 
   // DROP
   const drop = -diff;
-  if (rank > 10 && prev.rank <= 10) return 'Falls out of the Top 10 to #' + rank + ' after ' + top10Total + ' ' + (top10Total === 1 ? unit : units) + ' inside.';
-  if (rank > 5 && prev.rank <= 5) return 'Slips out of the Top 5 to #' + rank + '.';
-  if (drop >= 15) return 'Tumbles ' + drop + ' positions to #' + rank + (streak >= 3 ? ' \u2014 still ' + streak + ' ' + units + ' on the chart' : '') + '.';
-  if (streak >= 10) return 'Falls ' + drop + ' spot' + (drop !== 1 ? 's' : '') + ' to #' + rank + ' \u2014 a remarkable ' + streak + ' ' + units + ' on the chart.';
-  if (streak >= 5) return 'Slips ' + drop + ' position' + (drop !== 1 ? 's' : '') + ' to #' + rank + ' after ' + streak + ' ' + units + ' on the chart.';
-  return 'Falls ' + drop + ' position' + (drop !== 1 ? 's' : '') + ' to #' + rank + '.';
+  if (rank > 10 && prev.rank <= 10) return t('desc_falls_top10', { rank, n: top10Total, unit: _un(top10Total) });
+  if (rank > 5 && prev.rank <= 5) return t('desc_slips_top5', { rank });
+  if (drop >= 15) return t(streak >= 3 ? 'desc_tumbles_streak' : 'desc_tumbles', { drop, rank, n: streak, units: _un(streak) });
+  if (streak >= 10) return t('desc_falls_remarkable', { drop, spot: tUnit('desc_spot', drop), rank, n: streak, units: _un(streak) });
+  if (streak >= 5) return t('desc_slips_streak', { drop, posn: tUnit('desc_position', drop), rank, n: streak, units: _un(streak) });
+  return t('desc_falls', { drop, posn: tUnit('desc_position', drop), rank });
 }
 
 function _entryDescriptionText(type, key, rank, period, ctx) {
@@ -4474,11 +4480,12 @@ function _entryDescriptionText(type, key, rank, period, ctx) {
   if (ctx?.mode === 'custom' && custom) return custom;
   const base = _entryDescription(type, key, rank, period, { viewedYear: ctx?.viewedYear, cutoffKeys: ctx?.cutoffKeys });
   if (!base) return custom || '';
+  const periodLabel = ctx?.periodLine || t('desc_v_this_period');
   const variants = [
     base,
-    'On this chart: ' + base,
-    base.replace(/\.$/, '') + ' as of ' + (ctx?.periodLine || 'this period') + '.',
-    'Current snapshot: ' + base,
+    t('desc_v_prefix_chart') + base,
+    base.replace(/\.$/, '') + t('desc_v_suffix_as_of', { period: periodLabel }),
+    t('desc_v_prefix_snapshot') + base,
   ];
   const idx = Math.abs(parseInt(ctx?.variant || 0, 10)) % variants.length;
   return variants[idx];
