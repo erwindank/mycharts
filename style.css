@@ -2060,6 +2060,26 @@
       gap: 0.5rem;
     }
 
+    .ig-minmax-btn {
+      flex: 1;
+      padding: 0.3rem 0.5rem;
+      background: var(--bg3);
+      border: 1px solid var(--border2);
+      color: var(--text3);
+      font-family: 'DM Mono', monospace;
+      font-size: 0.55rem;
+      letter-spacing: 0.08em;
+      border-radius: 3px;
+      cursor: pointer;
+      transition: all 0.12s;
+      font-weight: 700;
+    }
+
+    .ig-minmax-btn:hover {
+      border-color: var(--accent);
+      color: var(--text);
+    }
+
     .ig-format-btn {
       flex: 1;
       padding: 0.45rem;
@@ -2161,6 +2181,10 @@
     .ig-download-btn:disabled {
       opacity: 0.5;
       cursor: default;
+    }
+
+    body.yellow .ig-download-btn {
+      color: #1a1600;
     }
 
     /* GRAPHS VIEW */

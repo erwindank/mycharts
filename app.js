@@ -3349,7 +3349,8 @@ function igMovement(rank, key, type) {
   const prev = ms.prevChart[type][key];
   if (!prev) {
     const isRe = ms.everChartedBefore[type].has(key);
-    return { label: isRe ? 'RE' : 'NEW', cls: isRe ? 're' : 'new' };
+    const badgeKey = isRe ? 'badge_re' : (type === 'songs' ? 'badge_new_songs' : 'badge_new');
+    return { label: t(badgeKey), cls: isRe ? 're' : 'new' };
   }
   const diff = prev.rank - rank;
   if (diff === 0) return { label: '=', cls: 'same' };
@@ -3362,7 +3363,7 @@ function igPeak(key, type, peaks, fontSize) {
   const map = type === 'songs' ? peaks.songPeakMap : type === 'artists' ? peaks.artistPeakMap : peaks.albumPeakMap;
   const peak = map && map[key];
   if (!peak) return '';
-  const fs = (fontSize - 4) + 'px';
+  const fs = fontSize + 'px'; // caller already computes the desired badge font size
   const peakLabel = t('peak_label');
   if (peak === 1) return `<span style="font-family:'DM Mono',monospace;font-size:${fs};background:rgba(245,158,11,0.2);color:#f0aa30;padding:1px 5px;border-radius:3px;border:1px solid rgba(245,158,11,0.35);letter-spacing:0.05em;white-space:nowrap;">${peakLabel} #1</span>`;
   if (peak === 2) return `<span style="font-family:'DM Mono',monospace;font-size:${fs};background:rgba(148,163,184,0.2);color:#94a3b8;padding:1px 5px;border-radius:3px;border:1px solid rgba(148,163,184,0.35);letter-spacing:0.05em;white-space:nowrap;">${peakLabel} #2</span>`;
@@ -3421,77 +3422,90 @@ function buildIgCardHTML(type, opts) {
   const n = items.length;
   const { label, sub } = getDateRange();
 
-  // Period-aware titles
-  const typeWord = { songs: 'Songs', artists: 'Artists', albums: 'Albums' };
+  // Period-aware titles (translated)
+  const typeWord = { songs: t('ig_type_songs'), artists: t('ig_type_artists'), albums: t('ig_type_albums') };
   const typeIcon = { songs: '★', artists: '♦', albums: '◈' };
   let cardTitle, periodLine;
   if (currentPeriod === 'week') {
-    cardTitle = `TOP ${n} ${typeIcon[type]} ${typeWord[type]} of the Week`;
+    cardTitle = `TOP ${n} ${typeIcon[type]} ${typeWord[type]} ${t('ig_period_of_week')}`;
     periodLine = sub || label;
   } else if (currentPeriod === 'month') {
-    cardTitle = `TOP ${n} ${typeIcon[type]} ${typeWord[type]} of the Month`;
-    // Just "Month Year" e.g. "April 2026"
+    cardTitle = `TOP ${n} ${typeIcon[type]} ${typeWord[type]} ${t('ig_period_of_month')}`;
     periodLine = label;
   } else if (currentPeriod === 'year') {
-    cardTitle = `TOP ${n} ${typeIcon[type]} ${typeWord[type]} of ${label}`;
+    cardTitle = `TOP ${n} ${typeIcon[type]} ${typeWord[type]} ${t('ig_period_of_year', { year: label })}`;
     periodLine = label;
   } else if (currentPeriod === 'alltime') {
-    cardTitle = `ALL-TIME TOP ${n} ${typeIcon[type]} ${typeWord[type]}`;
-    periodLine = 'All-Time';
+    cardTitle = `${t('ig_alltime_prefix')} TOP ${n} ${typeIcon[type]} ${typeWord[type]}`;
+    periodLine = t('ig_alltime_period');
   } else {
     cardTitle = `TOP ${n} ${typeIcon[type]} ${typeWord[type].toUpperCase()}`;
     periodLine = sub || label;
   }
+
   const headerH = isPost ? 90 : 168;
   const footerH = opts.showFooter ? 36 : 0;
   const rowH = Math.floor((cardH - headerH - footerH) / n);
-  const fontOverride = parseInt(document.getElementById('igFontSize')?.value || 0);
-  const brandOverride = parseInt(document.getElementById('igBrandSize')?.value || 0);
-  const dateOverride = parseInt(document.getElementById('igDateSize')?.value || 0);
-  const autoFont = isPost ? Math.max(10, Math.min(14, rowH - 4)) : Math.max(12, Math.min(20, rowH - 6));
-  const fontSize = fontOverride > 0 ? fontOverride : autoFont;
-  const brandFontSize = brandOverride > 0 ? brandOverride : (isPost ? 9 : 10);
-  const dateFontSize = dateOverride > 0 ? dateOverride : (isPost ? 10 : 11);
+
+  // Per-element font size overrides (0 = Auto)
+  const _v = id => parseInt(document.getElementById(id)?.value || 0);
+  const autoBase = isPost ? Math.max(10, Math.min(14, rowH - 4)) : Math.max(12, Math.min(20, rowH - 6));
+  const rankFontSize    = _v('igRankSize')      || (autoBase + 2);
+  const titleFontSize   = _v('igTitleSize')     || autoBase;
+  const artistFontSize  = _v('igArtistSize')    || Math.max(6, titleFontSize - 2);
+  const songsCountFontSize = type === 'artists' ? (_v('igSongsCountSize') || Math.max(6, titleFontSize - 2)) : artistFontSize;
+  const peakFontSize    = _v('igPeakSize')      || Math.max(6, autoBase - 4);
+  const weeksFontSize   = _v('igWeeksSize')     || Math.max(6, autoBase - 3);
+  const playsFontSize   = _v('igPlaysSize')     || (autoBase - 1);
+  const topBrandSize    = _v('igTopBrandSize')  || (isPost ? 9 : 10);
+  const cardTitleSize   = _v('igCardTitleSize') || (isPost ? 20 : 26);
+  const dateFontSize    = _v('igDateSize')      || (isPost ? 10 : 11);
+  const bottomBrandSize = _v('igBottomBrandSize') || Math.max(7, topBrandSize - 1);
+
   const moveCls = { up: c.green, down: c.rose, new: c.accent, re: c.amber, same: c.text3, '': c.text3 };
   const headerPadding = isPost ? '14px 16px' : '62px 20px 16px';
+  const playsWord = t('ig_plays_word');
+  const songsWord = t('ig_songs_word');
+  const personalCharts = t('ig_personal_charts');
 
   const rows = items.map((item, i) => {
     const rank = i + 1;
-    let key, name, sub2;
-    if (type === 'songs') { key = songKey(item); name = item.title; sub2 = item.artist; }
-    else if (type === 'artists') { key = item.name; name = item.name; sub2 = item.songs ? item.songs.size + ' songs' : ''; }
-    else { key = item.album + '|||' + item.artist; name = item.album; sub2 = item.artist; }
+    let key, name, sub2, songCount;
+    if (type === 'songs') { key = songKey(item); name = item.title; sub2 = item.artist; songCount = null; }
+    else if (type === 'artists') { key = item.name; name = item.name; sub2 = ''; songCount = item.songs ? item.songs.size : null; }
+    else { key = item.album + '|||' + item.artist; name = item.album; sub2 = item.artist; songCount = null; }
     const { label: mvLabel, cls: mvCls } = igMovement(rank, key, type);
-    const peak = igPeak(key, type, lastPeaks, fontSize);
+    const peak = igPeak(key, type, lastPeaks, peakFontSize);
     const weeks = lastPeriodStats ? (lastPeriodStats.periodsOnChart[type][key] || 1) : null;
-    const weeksLabel = weeks ? (weeks === 1 ? '1 week' : weeks + ' weeks') : null;
+    const weeksLabel = weeks ? (weeks === 1 ? t('ig_week_1') : t('ig_weeks_n', { n: weeks })) : null;
     const plays = item.count;
     const rowBg = i % 2 === 0 ? c.bg2 : c.bg;
     const rankColor = rank === 1 ? c.gold1 : rank === 2 ? c.text : rank === 3 ? c.amber : c.text3;
     const moveColor = moveCls[mvCls] || c.text3;
     return `<div style="display:flex;align-items:center;min-height:${rowH}px;padding:4px 10px;background:${rowBg};border-bottom:1px solid ${c.border};gap:6px;">
-      <div style="font-family:'DM Mono',monospace;font-size:${fontSize + 2}px;font-weight:700;color:${rankColor};min-width:28px;text-align:right;flex-shrink:0;">${rank}</div>
-      ${opts.showMovement ? `<div style="font-family:'DM Mono',monospace;font-size:${fontSize - 1}px;color:${moveColor};min-width:30px;text-align:center;line-height:1;flex-shrink:0;">${mvLabel || '—'}</div>` : ''}
+      <div style="font-family:'DM Mono',monospace;font-size:${rankFontSize}px;font-weight:700;color:${rankColor};min-width:28px;text-align:right;flex-shrink:0;">${rank}</div>
+      ${opts.showMovement ? `<div style="font-family:'DM Mono',monospace;font-size:${Math.max(6,rankFontSize-3)}px;color:${moveColor};min-width:24px;text-align:center;line-height:1;flex-shrink:0;white-space:nowrap;">${mvLabel || '—'}</div>` : ''}
       <div style="flex:1;min-width:0;">
-        <div style="font-family:'DM Sans',sans-serif;font-size:${fontSize}px;font-weight:600;color:${c.text};${isPost ? 'white-space:nowrap;overflow:hidden;text-overflow:ellipsis;' : 'white-space:normal;word-break:break-word;'}line-height:1.25;">${esc(name)}</div>
-        ${opts.showSubtitle && sub2 ? `<div style="font-family:'DM Sans',sans-serif;font-size:${fontSize - 2}px;color:${c.text3};${isPost ? 'white-space:nowrap;overflow:hidden;text-overflow:ellipsis;' : 'white-space:normal;word-break:break-word;'}line-height:1.25;">${esc(sub2)}</div>` : ''}
+        <div style="font-family:'DM Sans',sans-serif;font-size:${titleFontSize}px;font-weight:600;color:${c.text};white-space:normal;word-break:break-word;line-height:1.25;">${esc(name)}</div>
+        ${opts.showSubtitle && sub2 ? `<div style="font-family:'DM Sans',sans-serif;font-size:${songsCountFontSize}px;color:${c.text3};white-space:normal;word-break:break-word;line-height:1.25;">${esc(sub2)}</div>` : ''}
       </div>
-      ${opts.showPeak && peak ? `<div>${peak}</div>` : ''}
-      ${opts.showWeeks && weeksLabel ? `<div style="font-family:'DM Mono',monospace;font-size:${fontSize - 3}px;color:${c.text3};white-space:nowrap;">${weeksLabel}</div>` : ''}
-      ${opts.showPlays ? `<div style="font-family:'DM Mono',monospace;font-size:${fontSize - 1}px;color:${c.accent};font-weight:700;white-space:nowrap;min-width:40px;text-align:right;">${plays} <span style="font-size:${fontSize - 4}px;font-weight:400;opacity:0.75;">plays</span></div>` : ''}
+      ${opts.showSubtitle && songCount !== null ? `<div style="font-family:'DM Mono',monospace;font-size:${songsCountFontSize}px;color:${c.text3};font-weight:600;white-space:nowrap;text-align:right;flex-shrink:0;">${songCount} <span style="font-size:${Math.max(5,songsCountFontSize-3)}px;font-weight:400;opacity:0.75;">${songsWord}</span></div>` : ''}
+      ${opts.showPeak && peak ? `<div style="flex-shrink:0;">${peak}</div>` : ''}
+      ${opts.showWeeks && weeksLabel ? `<div style="font-family:'DM Mono',monospace;font-size:${weeksFontSize}px;color:${c.text3};white-space:nowrap;flex-shrink:0;">${weeksLabel}</div>` : ''}
+      ${opts.showPlays ? `<div style="font-family:'DM Mono',monospace;font-size:${playsFontSize}px;color:${c.accent};font-weight:700;white-space:nowrap;min-width:40px;text-align:right;flex-shrink:0;">${plays} <span style="font-size:${Math.max(5,playsFontSize-3)}px;font-weight:400;opacity:0.75;">${playsWord}</span></div>` : ''}
     </div>`;
   }).join('');
 
   return `<div style="width:${cardW}px;height:${cardH}px;background:${c.bg};overflow:hidden;display:flex;flex-direction:column;font-family:'DM Sans',sans-serif;">
     <div style="background:linear-gradient(135deg,${c.bg3},${c.surface});padding:${headerPadding};border-bottom:2px solid ${c.accent};">
-      <div style="font-family:'DM Mono',monospace;font-size:${brandFontSize}px;letter-spacing:0.2em;color:${c.accent};text-transform:uppercase;margin-bottom:4px;">dankcharts.fm</div>
-      <div style="font-family:'DM Sans',sans-serif;font-size:${isPost ? '20' : '26'}px;font-weight:700;color:${c.text};letter-spacing:-0.02em;line-height:1.15;">${esc(cardTitle)}</div>
+      <div style="font-family:'DM Mono',monospace;font-size:${topBrandSize}px;letter-spacing:0.2em;color:${c.accent};text-transform:uppercase;margin-bottom:4px;">dankcharts.fm</div>
+      <div style="font-family:'DM Sans',sans-serif;font-size:${cardTitleSize}px;font-weight:700;color:${c.text};letter-spacing:-0.02em;line-height:1.15;">${esc(cardTitle)}</div>
       ${opts.showDate ? `<div style="font-family:'DM Mono',monospace;font-size:${dateFontSize}px;color:${c.text2};margin-top:4px;letter-spacing:0.05em;">${esc(periodLine)}</div>` : ''}
     </div>
     <div style="flex:1;overflow:hidden;">${rows}</div>
     ${opts.showFooter ? `<div style="padding:8px 12px;background:${c.bg3};border-top:1px solid ${c.border};display:flex;justify-content:space-between;align-items:center;">
-      <div style="font-family:'DM Mono',monospace;font-size:${Math.max(7, brandFontSize - 1)}px;color:${c.text3};letter-spacing:0.12em;">dankcharts.fm · PERSONAL MUSIC CHARTS</div>
-      <div style="font-family:'DM Mono',monospace;font-size:8px;color:${c.accent};letter-spacing:0.08em;">Plays</div>
+      <div style="font-family:'DM Mono',monospace;font-size:${bottomBrandSize}px;color:${c.text3};letter-spacing:0.12em;">dankcharts.fm · ${personalCharts}</div>
+      <div style="font-family:'DM Mono',monospace;font-size:8px;color:${c.accent};letter-spacing:0.08em;text-transform:uppercase;">${playsWord}</div>
     </div>` : ''}
   </div>`;
 }
@@ -3501,25 +3515,72 @@ function updateIgFontLabel() {
 }
 
 function updateIgFontLabels() {
-  const rowVal = parseInt(document.getElementById('igFontSize')?.value || 0);
-  const brandVal = parseInt(document.getElementById('igBrandSize')?.value || 0);
-  const dateVal = parseInt(document.getElementById('igDateSize')?.value || 0);
-  document.getElementById('igFontSizeLabel').textContent = rowVal === 0 ? 'Auto' : rowVal + 'px';
-  const brandLbl = document.getElementById('igBrandSizeLabel');
-  if (brandLbl) brandLbl.textContent = brandVal === 0 ? 'Auto' : brandVal + 'px';
-  const dateLbl = document.getElementById('igDateSizeLabel');
-  if (dateLbl) dateLbl.textContent = dateVal === 0 ? 'Auto' : dateVal + 'px';
+  const pairs = [
+    ['igTopBrandSize', 'igTopBrandSizeLabel'],
+    ['igCardTitleSize', 'igCardTitleSizeLabel'],
+    ['igDateSize', 'igDateSizeLabel'],
+    ['igRankSize', 'igRankSizeLabel'],
+    ['igTitleSize', 'igTitleSizeLabel'],
+    ['igArtistSize', 'igArtistSizeLabel'],
+    ['igSongsCountSize', 'igSongsCountSizeLabel'],
+    ['igPeakSize', 'igPeakSizeLabel'],
+    ['igWeeksSize', 'igWeeksSizeLabel'],
+    ['igPlaysSize', 'igPlaysSizeLabel'],
+    ['igBottomBrandSize', 'igBottomBrandSizeLabel'],
+  ];
+  pairs.forEach(([sliderId, labelId]) => {
+    const val = parseInt(document.getElementById(sliderId)?.value || 0);
+    const lbl = document.getElementById(labelId);
+    if (lbl) lbl.textContent = val === 0 ? 'Auto' : val + 'px';
+  });
+}
+
+function setAllIgFonts(mode) {
+  const sliders = [
+    { id: 'igTopBrandSize', max: 22 },
+    { id: 'igCardTitleSize', max: 40 },
+    { id: 'igDateSize', max: 20 },
+    { id: 'igRankSize', max: 32 },
+    { id: 'igTitleSize', max: 24 },
+    { id: 'igArtistSize', max: 24 },
+    { id: 'igSongsCountSize', max: 24 },
+    { id: 'igPeakSize', max: 20 },
+    { id: 'igWeeksSize', max: 20 },
+    { id: 'igPlaysSize', max: 22 },
+    { id: 'igBottomBrandSize', max: 22 },
+  ];
+  sliders.forEach(({ id, max }) => {
+    const el = document.getElementById(id);
+    if (el) el.value = mode === 'max' ? max : 0;
+  });
+  updateIgFontLabels();
+  updateIgPreview();
 }
 
 function openIgPreviewModal(type) {
   igPreviewType = type;
-  const titleMap = { songs: '★ Top Songs', artists: '♦ Top Artists', albums: '◈ Top Albums' };
-  document.getElementById('igPreviewTitle').textContent = 'Share as Image — ' + titleMap[type];
-  // Reset font slider to Auto
-  ['igFontSize', 'igBrandSize', 'igDateSize'].forEach(id => {
+  const titleMap = { songs: `★ ${t('ig_type_songs')}`, artists: `♦ ${t('ig_type_artists')}`, albums: `◈ ${t('ig_type_albums')}` };
+  document.getElementById('igPreviewTitle').textContent = t('ig_share_title') + ' — ' + titleMap[type];
+  // Reset all font sliders to Auto (0)
+  ['igTopBrandSize','igCardTitleSize','igDateSize','igRankSize','igTitleSize','igArtistSize',
+   'igSongsCountSize','igPeakSize','igWeeksSize','igPlaysSize','igBottomBrandSize'].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.value = 0;
   });
+  // Update title label and artist row visibility based on chart type
+  const titleNameLabelEl = document.getElementById('igTitleNameLabel');
+  const artistRowEl = document.getElementById('igArtistSizeRow');
+  const songsCountRowEl = document.getElementById('igSongsCountSizeRow');
+  if (type === 'artists') {
+    if (titleNameLabelEl) titleNameLabelEl.textContent = t('ig_artist_size');
+    if (artistRowEl) artistRowEl.style.display = 'none';
+    if (songsCountRowEl) songsCountRowEl.style.display = 'flex';
+  } else {
+    const titleKey = type === 'albums' ? 'ig_title_size_albums' : 'ig_title_size_songs';
+    if (titleNameLabelEl) titleNameLabelEl.textContent = t(titleKey);
+    if (artistRowEl) artistRowEl.style.display = 'flex';
+    if (songsCountRowEl) songsCountRowEl.style.display = 'none';
+  }
   updateIgFontLabels();
   // Sync checkboxes
   ['showMovement', 'showPeak', 'showWeeks', 'showPlays', 'showSubtitle', 'showDate', 'showFooter'].forEach(k => {
@@ -3774,8 +3835,8 @@ function openCrIgModal(type, encodedKey, rank) {
     if (type === 'songs') name = crAny._title || name;
     if (type === 'albums') name = crAny._album || name;
   }
-  const typeLabel = { songs: '★ Song', artists: '♦ Artist', albums: '◈ Album' }[type];
-  document.getElementById('crIgTitle').textContent = typeLabel + ' Chart Run — ' + name.slice(0, 40);
+  const typeKey = { songs: 'cr_type_song', artists: 'cr_type_artist', albums: 'cr_type_album' }[type];
+  document.getElementById('crIgTitle').textContent = t(typeKey) + ' Chart Run — ' + name.slice(0, 40);
 
   // Sync range mode with current chart run panel setting
   crIgState.rangeMode = getCrRangeMode(type, key);
@@ -4364,11 +4425,12 @@ function _entryMovement(rank, key, type, period) {
   if (period !== 'year') return igMovement(rank, key, type);
   const crData = allChartRun.year || (chartRunData && chartRunData.period === 'year' ? chartRunData : null);
   const d = crData && crData.result && crData.result[type] && crData.result[type][key];
-  if (!d || !d.entries.length) return { label: 'NEW', cls: 'new' };
-  if (d.entries.length < 2) return { label: 'NEW', cls: 'new' };
+  const _newKey = type === 'songs' ? 'badge_new_songs' : 'badge_new';
+  if (!d || !d.entries.length) return { label: t(_newKey), cls: 'new' };
+  if (d.entries.length < 2) return { label: t(_newKey), cls: 'new' };
   const prev = d.entries[d.entries.length - 2];
   const last = d.entries[d.entries.length - 1];
-  if (crPeriodGap('year', prev.periodKey, last.periodKey) > 0) return { label: 'RE', cls: 're' };
+  if (crPeriodGap('year', prev.periodKey, last.periodKey) > 0) return { label: t('badge_re'), cls: 're' };
   const diff = prev.rank - rank;
   if (diff === 0) return { label: '=', cls: 'same' };
   return { label: (diff > 0 ? '\u25b2' : '\u25bc') + Math.abs(diff), cls: diff > 0 ? 'up' : 'down' };
