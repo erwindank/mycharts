@@ -256,8 +256,7 @@
         <span class="section-collapsed-label" data-i18n="collapsed_hint">collapsed — click + to expand</span>
         <div class="section-rule"></div>
       </div>
-      <div class="section-sub">Songs, artists and albums that left the Top <span id="dropoutsChartSize">10</span> this
-        week</div>
+      <div class="section-sub" id="dropoutsSubtitle" data-i18n-with-n="sub_dropouts" data-i18n-n="10"></div>
       <div class="section-body">
         <div id="dropoutsContent"></div>
       </div>
@@ -1207,15 +1206,7 @@
         <a class="export-btn export-btn-soundiiz" href="https://soundiiz.com/login" target="_blank" rel="noopener"
           data-i18n="btn_soundiiz">↗ GO TO SOUNDIIZ</a>
       </div>
-      <div class="export-note">
-        <strong style="color:var(--text2)" data-i18n="export_how_to_title">How to import in Soundiiz:</strong><br>
-        1. Log in to Soundiiz → click <strong>Import Playlist</strong> (top right)<br>
-        2. To paste: select <strong>From Plain Text</strong> → paste the copied list<br>
-        &nbsp;&nbsp;&nbsp;To upload: select <strong>From File</strong> → upload the downloaded .txt<br>
-        3. Choose your target platform (Spotify, Deezer, YouTube Music, Apple Music…)<br>
-        4. Confirm to create the playlist<br><br>
-        Format used: <strong>Artist - Title</strong> (one track per line).
-      </div>
+      <div class="export-note" id="exportNoteBody"></div>
     </div>
   </div>
 

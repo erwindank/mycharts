@@ -3040,7 +3040,9 @@ function renderDropouts(plays, periodStats) {
   const section = document.getElementById('dropoutsSection');
   if (!periodStats || currentPeriod !== 'week') { section.style.display = 'none'; return; }
 
-  document.getElementById('dropoutsChartSize').textContent = chartSize;
+  const dropoutsSubtitle = document.getElementById('dropoutsSubtitle');
+  dropoutsSubtitle.dataset.i18nN = chartSize;
+  dropoutsSubtitle.textContent = t('sub_dropouts', { n: chartSize });
 
   // Current week's chart keys
   const curSongKeys = new Set();
@@ -3182,7 +3184,7 @@ function buildExportText(songs) {
 function toggleExportOrder() {
   exportReversed = !exportReversed;
   const btn = document.getElementById('exportOrderBtn');
-  btn.textContent = exportReversed ? '▼ #1 Last' : '▲ #1 First';
+  btn.textContent = exportReversed ? t('export_no1_last') : t('export_no1_first');
   // Re-render tracklist with current songs
   const songs = getCurrentChartSongs();
   document.getElementById('exportTracklist').textContent = buildExportText(songs);
@@ -3259,13 +3261,12 @@ function generatePlaylistNames(songs, periodName) {
 function openExportModal() {
   const songs = getCurrentChartSongs();
   const { label } = getDateRange();
-  const periodName = currentPeriod === 'alltime' ? 'All-Time' :
-    currentPeriod === 'year' ? label :
-      currentPeriod === 'month' ? label :
-        currentPeriod === 'week' ? `Week of ${label}` : label;
+  const periodName = currentPeriod === 'alltime' ? t('period_alltime') :
+    currentPeriod === 'week' ? t('period_week_of', { date: label }) :
+      label;
 
   document.getElementById('exportModalSubtitle').textContent =
-    `${songs.length} songs · ${periodName} chart`;
+    t('export_subtitle', { count: tCount('songs', songs.length), period: periodName });
 
   // Playlist name suggestions
   const names = generatePlaylistNames(songs, periodName);
@@ -3274,8 +3275,17 @@ function openExportModal() {
   ).join('');
 
   exportReversed = false;
-  document.getElementById('exportOrderBtn').textContent = '▲ #1 First';
+  document.getElementById('exportOrderBtn').textContent = t('export_no1_first');
   document.getElementById('exportTracklist').textContent = buildExportText(songs);
+
+  document.getElementById('exportNoteBody').innerHTML =
+    `<strong style="color:var(--text2)">${t('export_how_to_title')}</strong><br>` +
+    `1. ${t('export_how_to_step1')}<br>` +
+    `2. ${t('export_how_to_step2')}<br>` +
+    `&nbsp;&nbsp;&nbsp;${t('export_how_to_step2b')}<br>` +
+    `3. ${t('export_how_to_step3')}<br>` +
+    `4. ${t('export_how_to_step4')}<br><br>` +
+    t('export_format_used');
 
   document.getElementById('exportModal').classList.add('open');
 }
@@ -3298,7 +3308,7 @@ function exportCopy() {
   navigator.clipboard.writeText(text).then(() => {
     const btn = document.querySelector('.export-btn-copy');
     const orig = btn.textContent;
-    btn.textContent = '✓ COPIED!';
+    btn.textContent = t('export_copied');
     setTimeout(() => btn.textContent = orig, 2000);
   });
 }
@@ -5156,14 +5166,14 @@ async function loadUpcomingReleases(forceRefresh = false) {
   document.getElementById('upcomingRefreshBtn').style.display = 'none';
 
   gridEl.innerHTML = '';
-  statusEl.textContent = `Searching MusicBrainz for ${artists.length} artists… this may take ~2 minutes on first load.`;
+  statusEl.textContent = t('mb_searching', { n: artists.length });
 
   const allReleases = []; // { release, artistName }
   let found = 0;
 
   for (let i = 0; i < artists.length; i++) {
     const name = artists[i];
-    statusEl.textContent = `Fetching ${i + 1} / ${artists.length}: ${name}…`;
+    statusEl.textContent = t('mb_fetching', { i: i + 1, n: artists.length, name });
 
     const mbid = await searchArtistMBID(name);
     if (!mbid) continue;
@@ -5201,17 +5211,17 @@ function renderUpcomingResults(allReleases, artists, fromCache) {
 
   const sorted = sortUpcomingReleases([...allReleases]);
   if (sorted.length === 0) {
-    gridEl.innerHTML = `<div class="upcoming-empty">No upcoming releases found in the next 90 days for your top 50 artists.<br>Coverage depends on MusicBrainz data availability.</div>`;
+    gridEl.innerHTML = `<div class="upcoming-empty">${t('mb_upcoming_empty')}</div>`;
   } else {
     gridEl.innerHTML = sorted.map(({ release, artistName }) =>
       renderUpcomingCard(release, artistName)).join('');
   }
 
-  const cacheNote = fromCache ? ' (cached)' : '';
+  const cacheNote = fromCache ? t('mb_cached') : '';
   const ts = fromCache
     ? (() => { try { return new Date(JSON.parse(localStorage.getItem(MB_CACHE_KEY)).ts).toLocaleString(); } catch (e) { return ''; } })()
     : new Date().toLocaleString();
-  statusEl.textContent = `${sorted.length} upcoming release${sorted.length !== 1 ? 's' : ''} found across ${artists.length} artists · Last updated ${ts}${cacheNote}`;
+  statusEl.textContent = t('mb_upcoming_status', { count: sorted.length, n: artists.length, ts, cache: cacheNote });
   refreshEl.style.display = 'block';
 }
 
@@ -5280,13 +5290,13 @@ async function loadRecentReleases(forceRefresh = false) {
   document.getElementById('recentRefreshBtn').style.display = 'none';
 
   gridEl.innerHTML = '';
-  statusEl.textContent = `Searching MusicBrainz for ${artists.length} artists… this may take ~2 minutes on first load.`;
+  statusEl.textContent = t('mb_searching', { n: artists.length });
 
   const allReleases = [];
 
   for (let i = 0; i < artists.length; i++) {
     const name = artists[i];
-    statusEl.textContent = `Fetching ${i + 1} / ${artists.length}: ${name}…`;
+    statusEl.textContent = t('mb_fetching', { i: i + 1, n: artists.length, name });
 
     const mbid = await searchArtistMBID(name);
     if (!mbid) continue;
@@ -5315,17 +5325,17 @@ function renderRecentResults(allReleases, artists, fromCache) {
 
   const sorted = sortRecentReleases([...allReleases]);
   if (sorted.length === 0) {
-    gridEl.innerHTML = `<div class="upcoming-empty">No releases found in the past 180 days for your top 50 artists.<br>Coverage depends on MusicBrainz data availability.</div>`;
+    gridEl.innerHTML = `<div class="upcoming-empty">${t('mb_recent_empty')}</div>`;
   } else {
     gridEl.innerHTML = sorted.map(({ release, artistName }) =>
       renderRecentCard(release, artistName)).join('');
   }
 
-  const cacheNote = fromCache ? ' (cached)' : '';
+  const cacheNote = fromCache ? t('mb_cached') : '';
   const ts = fromCache
     ? (() => { try { return new Date(JSON.parse(localStorage.getItem(MB_RECENT_CACHE_KEY)).ts).toLocaleString(); } catch (e) { return ''; } })()
     : new Date().toLocaleString();
-  statusEl.textContent = `${sorted.length} recent release${sorted.length !== 1 ? 's' : ''} found across ${artists.length} artists · Last updated ${ts}${cacheNote}`;
+  statusEl.textContent = t('mb_recent_status', { count: sorted.length, n: artists.length, ts, cache: cacheNote });
   refreshEl.style.display = 'block';
 }
 
