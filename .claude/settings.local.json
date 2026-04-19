@@ -20,7 +20,9 @@
       "Bash(powershell -Command \"git -C 'c:\\\\Users\\\\erwin\\\\Desktop\\\\mycharts' checkout HEAD -- index.html && Write-Host 'Restored original index.html from git'\")",
       "Bash(git -C \"c:/Users/erwin/Desktop/mycharts\" checkout HEAD -- index.html)",
       "Bash(awk '/ig-download-btn/,/\\\\}/' c:/Users/erwin/Desktop/mycharts/index.html)",
-      "Bash(grep -n \"^  [a-z].*: {$\\\\|^  [a-z][a-zA-Z]*: {$\" c:/Users/erwin/Desktop/mycharts/translations.js)"
+      "Bash(grep -n \"^  [a-z].*: {$\\\\|^  [a-z][a-zA-Z]*: {$\" c:/Users/erwin/Desktop/mycharts/translations.js)",
+      "Bash(git checkout *)",
+      "Bash(git add *)"
     ]
   }
 }
