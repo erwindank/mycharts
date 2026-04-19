@@ -819,6 +819,10 @@
       color: #7a5c00;
     }
 
+    body.yellow .export-btn-copy {
+      color: #1a1a00;
+    }
+
     /* Yellow Light masthead */
     body.yellow-light .masthead {
       background: linear-gradient(160deg, #806800 0%, #a08000 50%, #806800 100%);
@@ -1899,6 +1903,10 @@
       border-color: var(--accent);
     }
 
+    body.yellow .ig-share-btn:hover {
+      color: #1a1600;
+    }
+
     /* OFF-SCREEN CARD CANVAS */
     #igCardCanvas {
       position: fixed;
@@ -2542,6 +2550,7 @@
     .export-btn-copy:hover {
       background: var(--accent2);
       border-color: var(--accent2);
+      font-weight: bold;
     }
 
     .export-btn-dl {
@@ -2552,6 +2561,7 @@
     .export-btn-dl:hover {
       background: var(--surface);
       color: var(--text);
+      font-weight: bold;
     }
 
     .export-btn-soundiiz {
@@ -2562,6 +2572,7 @@
 
     .export-btn-soundiiz:hover {
       background: rgba(56, 189, 248, 0.1);
+      font-weight: bold;
     }
 
     .export-name-section {
@@ -3072,6 +3083,10 @@
       background: var(--accent);
       color: #fff;
       border-color: var(--accent);
+    }
+
+    body.yellow .cr-ig-share-btn:hover {
+      color: #1a1600;
     }
 
     .cr-range-bar {

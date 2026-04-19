@@ -34,7 +34,8 @@ const THEME_CLASSES = ['navy-light', 'purple', 'purple-light', 'red', 'red-light
 function applyTheme(theme) {
   document.body.classList.remove(...THEME_CLASSES);
   if (theme !== 'navy-dark') document.body.classList.add(theme);
-  const labelKey = 'tooltip_theme_' + theme.replace('-', '_');
+  const normalizedTheme = theme.includes('-') ? theme : theme + '-dark';
+  const labelKey = 'tooltip_theme_' + normalizedTheme.replace('-', '_');
   themeLabel.textContent = t(labelKey) || t('tooltip_theme_navy_dark');
   themeBtns.forEach(b => b.classList.toggle('active', b.dataset.theme === theme));
   try { localStorage.setItem('dankcharts-theme', theme); } catch (e) { }
@@ -2081,7 +2082,7 @@ function renderPage(type, peaks) {
       const rowId = 'crr-ysong-' + i;
       imgItems.push({ imgId, title: s.title, artist: s.artist, album: s.album, prefKey });
       const mainRow = `<tr class="${rank === 1 ? 'rank-1' : rank === 2 ? 'rank-2' : rank === 3 ? 'rank-3' : ''}">
-        <td class="rank-cell">${hasCR ? `<button class="cr-toggle-btn" title="View chart run history — see how this entry has ranked over time" onclick="event.stopPropagation();toggleChartRun(this,'${rowId}')">📊</button>` : ''} ${rank}</td>
+        <td class="rank-cell">${hasCR ? `<button class="cr-toggle-btn" title="${t('tooltip_cr_toggle_btn_song')}" onclick="event.stopPropagation();toggleChartRun(this,'${rowId}')">📊</button>` : ''} ${rank}</td>
         <td class="thumb-cell"><div class="thumb-wrap"><div id="${imgId}"><div class="thumb-initials">${esc(initials(s.title))}</div></div><button id="srcbtn-${imgId}" class="img-src-btn" data-imgid="${imgId}" data-type="song" data-prefkey="${esc(prefKey)}" data-name="${esc(s.title)}" data-artist="${esc(s.artist)}" data-album="${esc(s.album)}">${srcLabel(itemSourcePrefs[prefKey] || 'deezer')}</button></div></td>
         <td>
           <div class="song-title">${esc(s.title)}${certBadge(s.count, 'song')}</div>
@@ -2107,7 +2108,7 @@ function renderPage(type, peaks) {
       const rowId = 'crr-yartist-' + i;
       imgItems.push({ imgId, name: a.name, prefKey });
       const mainRow = `<tr class="${rank === 1 ? 'rank-1' : rank === 2 ? 'rank-2' : rank === 3 ? 'rank-3' : ''} artist-row" data-artist="${esc(a.name)}">
-        <td class="rank-cell">${hasCR ? `<button class="cr-toggle-btn" title="View chart run history — see how this entry has ranked over time" onclick="event.stopPropagation();toggleChartRun(this,'${rowId}')">📊</button>` : ''} ${rank}</td>
+        <td class="rank-cell">${hasCR ? `<button class="cr-toggle-btn" title="${t('tooltip_cr_toggle_btn_artist')}" onclick="event.stopPropagation();toggleChartRun(this,'${rowId}')">📊</button>` : ''} ${rank}</td>
         <td class="thumb-cell"><div class="thumb-wrap"><div id="${imgId}"><div class="thumb-initials">${esc(initials(a.name))}</div></div><button id="srcbtn-${imgId}" class="img-src-btn" data-imgid="${imgId}" data-type="artist" data-prefkey="${esc(prefKey)}" data-name="${esc(a.name)}" data-artist="${esc(a.name)}" data-album="">${srcLabel(itemSourcePrefs[prefKey] || 'deezer')}</button></div></td>
         <td><div class="song-title">${esc(a.name)}</div><div class="song-artist" style="font-size:0.7rem;letter-spacing:0.06em;font-style:normal;font-family:'DM Mono',monospace;color:var(--text3)">${t('click_view_profile')}</div></td>
         <td><div class="song-artist">${tCount('songs', a.songs.size)}</div></td>
@@ -2135,7 +2136,7 @@ function renderPage(type, peaks) {
         const hasCR = chartRunData && !!chartRunData.result.albums[ak];
         imgItems.push({ imgId, album: a.album, artist: a.artist, name: a.album, prefKey });
         const mainRow = `<tr class="${rank === 1 ? 'rank-1' : rank === 2 ? 'rank-2' : rank === 3 ? 'rank-3' : ''} album-row" data-albumkey="${esc(ak)}">
-        <td class="rank-cell">${hasCR ? `<button class="cr-toggle-btn" title="View chart run history — see how this entry has ranked over time" onclick="event.stopPropagation();toggleChartRun(this,'${rowId}')">📊</button>` : ''} ${rank}</td>
+        <td class="rank-cell">${hasCR ? `<button class="cr-toggle-btn" title="${t('tooltip_cr_toggle_btn_album')}" onclick="event.stopPropagation();toggleChartRun(this,'${rowId}')">📊</button>` : ''} ${rank}</td>
         <td class="thumb-cell"><div class="thumb-wrap"><div id="${imgId}"><div class="thumb-initials">${esc(initials(a.album))}</div></div><button id="srcbtn-${imgId}" class="img-src-btn" data-imgid="${imgId}" data-type="album" data-prefkey="${esc(prefKey)}" data-name="${esc(a.album)}" data-artist="${esc(a.artist)}" data-album="${esc(a.album)}">${srcLabel(itemSourcePrefs[prefKey] || 'deezer')}</button></div></td>
         <td>
           <div class="song-title">${esc(a.album)}${certBadge(a.count, 'album')}</div>
@@ -2909,7 +2910,7 @@ function renderSongs(plays, peaks, monthlyStats) {
     const rowId = 'crr-song-' + i;
     imgItems.push({ imgId, title: s.title, artist: s.artist, album: s.album, type: 'song', prefKey });
     const mainRow = `<tr class="${i === 0 ? 'rank-1' : i === 1 ? 'rank-2' : i === 2 ? 'rank-3' : ''}">
-      <td class="rank-cell"><button class="cr-toggle-btn" title="View chart run history — see how this entry has ranked over time" onclick="event.stopPropagation();toggleChartRun(this,'${rowId}')">📊</button>${i + 1}</td>
+      <td class="rank-cell"><button class="cr-toggle-btn" title="${t('tooltip_cr_toggle_btn_song')}" onclick="event.stopPropagation();toggleChartRun(this,'${rowId}')">📊</button>${i + 1}</td>
       <td class="thumb-cell"><div class="thumb-wrap"><div id="${imgId}"><div class="thumb-initials">${esc(initials(s.title))}</div></div><button id="srcbtn-${imgId}" class="img-src-btn" data-imgid="${imgId}" data-type="song" data-prefkey="${esc(prefKey)}" data-name="${esc(s.title)}" data-artist="${esc(s.artist)}" data-album="${esc(s.album)}">${srcLabel(itemSourcePrefs[prefKey] || 'deezer')}</button></div></td>
       <td>
         <div class="song-title">${esc(s.title)}${pk ? peakBadge(pk) : ''}${certBadge(s.count, 'song')}</div>
@@ -2961,7 +2962,7 @@ function renderArtists(plays, peaks, monthlyStats) {
     const rowId = 'crr-artist-' + i;
     imgItems.push({ imgId, name: artist, prefKey });
     const mainRow = `<tr class="${i === 0 ? 'rank-1' : i === 1 ? 'rank-2' : i === 2 ? 'rank-3' : ''} artist-row" data-artist="${esc(artist)}">
-      <td class="rank-cell"><button class="cr-toggle-btn" title="View chart run history — see how this entry has ranked over time" onclick="event.stopPropagation();toggleChartRun(this,'${rowId}')">📊</button>${i + 1}</td>
+      <td class="rank-cell"><button class="cr-toggle-btn" title="${t('tooltip_cr_toggle_btn_artist')}" onclick="event.stopPropagation();toggleChartRun(this,'${rowId}')">📊</button>${i + 1}</td>
       <td class="thumb-cell"><div class="thumb-wrap"><div id="${imgId}"><div class="thumb-initials">${esc(initials(artist))}</div></div><button id="srcbtn-${imgId}" class="img-src-btn" data-imgid="${imgId}" data-type="artist" data-prefkey="${esc(prefKey)}" data-name="${esc(artist)}" data-artist="${esc(artist)}" data-album="">${srcLabel(itemSourcePrefs[prefKey] || 'deezer')}</button></div></td>
       <td><div class="song-title">${esc(artist)}${pk ? peakBadge(pk) : ''}</div><div class="song-artist" style="font-size:0.7rem;letter-spacing:0.06em;font-style:normal;font-family:'DM Mono',monospace;color:var(--text3)">${t('click_view_profile')}</div></td>
       <td><div class="song-artist">${tCount('songs', data.songs.size)}</div></td>
@@ -3013,7 +3014,7 @@ function renderAlbums(plays, peaks, monthlyStats) {
       const rowId = 'crr-album-' + i;
       imgItems.push({ imgId, album, artist, name: album, prefKey });
       const mainRow = `<tr class="${i === 0 ? 'rank-1' : i === 1 ? 'rank-2' : i === 2 ? 'rank-3' : ''} album-row" data-albumkey="${esc(ak)}">
-      <td class="rank-cell"><button class="cr-toggle-btn" title="View chart run history — see how this entry has ranked over time" onclick="event.stopPropagation();toggleChartRun(this,'${rowId}')">📊</button>${i + 1}</td>
+      <td class="rank-cell"><button class="cr-toggle-btn" title="${t('tooltip_cr_toggle_btn_album')}" onclick="event.stopPropagation();toggleChartRun(this,'${rowId}')">📊</button>${i + 1}</td>
       <td class="thumb-cell"><div class="thumb-wrap"><div id="${imgId}"><div class="thumb-initials">${esc(initials(album))}</div></div><button id="srcbtn-${imgId}" class="img-src-btn" data-imgid="${imgId}" data-type="album" data-prefkey="${esc(prefKey)}" data-name="${esc(album)}" data-artist="${esc(artist)}" data-album="${esc(album)}">${srcLabel(itemSourcePrefs[prefKey] || 'deezer')}</button></div></td>
       <td>
         <div class="song-title">${esc(album)}${pk ? peakBadge(pk) : ''}${certBadge(count, 'album')}</div>
@@ -3138,6 +3139,12 @@ function diamondMultiLabel(n) {
   if (n === 3) return { icon: '💎💎💎', label: 'Triple Diamond' };
   return { icon: '💎', label: `${n}× Diamond` };
 }
+function tDiamondLabel(mult) {
+  if (mult === 1) return t('cert_diamond');
+  if (mult === 2) return t('cert_dbl_diamond');
+  if (mult === 3) return t('cert_tri_diamond');
+  return t('cert_nx_diamond', { n: mult });
+}
 
 function certBadge(plays, type) {
   if (currentPeriod !== 'alltime') return '';
@@ -3197,26 +3204,26 @@ function generatePlaylistNames(songs, periodName) {
 
   // ── Chart-based names ──
   if (currentPeriod === 'week') {
-    names.add(`Top ${songs.length} - Week of ${weekLabel}`);
-    names.add(`My Week · ${weekLabel}`);
-    names.add(`Weekly Picks · ${weekLabel}`);
-    names.add(`Chart Hits · ${weekLabel}`);
+    names.add(t('export_pn_week_top', { n: songs.length, date: weekLabel }));
+    names.add(t('export_pn_week_my', { date: weekLabel }));
+    names.add(t('export_pn_week_picks', { date: weekLabel }));
+    names.add(t('export_pn_week_hits', { date: weekLabel }));
   } else if (currentPeriod === 'month') {
-    names.add(`Top ${songs.length} - ${label}`);
-    names.add(`${label} Favorites`);
-    names.add(`${label} Playlist`);
-    names.add(`Best of ${label}`);
+    names.add(t('export_pn_month_top', { n: songs.length, label }));
+    names.add(t('export_pn_month_favorites', { label }));
+    names.add(t('export_pn_month_playlist', { label }));
+    names.add(t('export_pn_best_of', { label }));
   } else if (currentPeriod === 'year') {
-    names.add(`Top ${songs.length} - ${label}`);
-    names.add(`Best of ${label}`);
-    names.add(`${label} Highlights`);
-    names.add(`My ${label} Soundtrack`);
-    names.add(`${label} Chart`);
+    names.add(t('export_pn_month_top', { n: songs.length, label }));
+    names.add(t('export_pn_best_of', { label }));
+    names.add(t('export_pn_year_highlights', { label }));
+    names.add(t('export_pn_year_soundtrack', { label }));
+    names.add(t('export_pn_year_chart', { label }));
   } else if (currentPeriod === 'alltime') {
-    names.add(`Top ${songs.length} All-Time`);
-    names.add(`My All-Time Favorites`);
-    names.add(`All-Time Greatest`);
-    names.add(`The Definitive Playlist`);
+    names.add(t('export_pn_alltime_top', { n: songs.length }));
+    names.add(t('export_pn_alltime_favorites'));
+    names.add(t('export_pn_alltime_greatest'));
+    names.add(t('export_pn_alltime_definitive'));
   }
 
   // ── Artist-based names ──
@@ -3235,25 +3242,24 @@ function generatePlaylistNames(songs, periodName) {
   const a1Share = a1 ? artistCount[a1] / songs.length : 0;
 
   if (a1 && a1Share >= 0.5) {
-    // One artist dominates
-    names.add(`Best of ${a1}`);
-    names.add(`${a1} · Top Tracks`);
-    names.add(`${a1} Essentials`);
+    names.add(t('export_pn_artist_best_of', { artist: a1 }));
+    names.add(t('export_pn_artist_top_tracks', { artist: a1 }));
+    names.add(t('export_pn_artist_essentials', { artist: a1 }));
   } else if (a1 && a2 && a1Share >= 0.25) {
-    names.add(`${a1} & More`);
-    names.add(`${a1} · ${a2} Mix`);
+    names.add(t('export_pn_artist_and_more', { artist: a1 }));
+    names.add(t('export_pn_two_artist_mix', { a1, a2 }));
   } else if (a1 && a2 && a3) {
-    names.add(`${a1}, ${a2} & More`);
-    names.add(`feat. ${a1} · ${a2} · ${a3}`);
+    names.add(t('export_pn_artists_and_more', { a1, a2 }));
+    names.add(t('export_pn_feat_three', { a1, a2, a3 }));
   } else if (a1 && a2) {
-    names.add(`${a1} & ${a2} Mix`);
+    names.add(t('export_pn_two_and_mix', { a1, a2 }));
   }
 
   // ── Song count flavour ──
   const n = songs.length;
-  if (n <= 10) names.add(`The Top ${n}`);
-  else if (n <= 50) names.add(`Top ${n} Picks`);
-  else names.add(`Top ${n} Tracks`);
+  if (n <= 10) names.add(t('export_pn_the_top', { n }));
+  else if (n <= 50) names.add(t('export_pn_top_picks', { n }));
+  else names.add(t('export_pn_top_tracks', { n }));
 
   return [...names];
 }
@@ -3845,8 +3851,8 @@ function openCrIgModal(type, encodedKey, rank) {
     if (type === 'songs') name = crAny._title || name;
     if (type === 'albums') name = crAny._album || name;
   }
-  const typeKey = { songs: 'cr_type_song', artists: 'cr_type_artist', albums: 'cr_type_album' }[type];
-  document.getElementById('crIgTitle').textContent = t(typeKey) + ' Chart Run — ' + name.slice(0, 40);
+  const titleKey = { songs: 'cr_modal_title_songs', artists: 'cr_modal_title_artists', albums: 'cr_modal_title_albums' }[type];
+  document.getElementById('crIgTitle').textContent = t(titleKey) + ' — ' + name.slice(0, 40);
 
   // Sync range mode with current chart run panel setting
   crIgState.rangeMode = getCrRangeMode(type, key);
@@ -4690,7 +4696,7 @@ function openArtistModal(artistName) {
   // Populate modal
   document.getElementById('modalArtistName').textContent = artistName;
   document.getElementById('modalArtistSub').textContent =
-    `Top ${chartSize} ${t('modal_chart_profile')} · All-Time`;
+    `Top ${chartSize} ${t('modal_chart_profile')} · ${t('period_alltime')}`;
 
   // Artist image
   const imgEl = document.getElementById('modalArtistImg');
@@ -4733,9 +4739,9 @@ function openArtistModal(artistName) {
       ? detailRows.map(r => {
         const navAttr = r.weekOffset !== undefined ? ` onclick="goToWeek(${r.weekOffset})" style="cursor:pointer;"` : '';
         const viewTag = r.weekOffset !== undefined ? `<span style="color:var(--accent);font-size:0.6rem;flex-shrink:0;margin-left:0.5rem;letter-spacing:0.06em;">→ VIEW</span>` : '';
-        return `<div class="acc-detail-row"${navAttr}><span class="acc-detail-name">${esc(r.name)}</span><span class="acc-detail-plays">${r.plays} plays</span>${r.date ? `<span class="acc-detail-date">${r.date}</span>` : ''}${viewTag}</div>`;
+        return `<div class="acc-detail-row"${navAttr}><span class="acc-detail-name">${esc(r.name)}</span><span class="acc-detail-plays">${r.plays} ${tUnit('plays', r.plays)}</span>${r.date ? `<span class="acc-detail-date">${r.date}</span>` : ''}${viewTag}</div>`;
       }).join('')
-      : `<div class="acc-detail-row"><span class="acc-detail-name" style="font-style:italic">No detail available</span></div>`;
+      : `<div class="acc-detail-row"><span class="acc-detail-name" style="font-style:italic">${t('modal_no_detail')}</span></div>`;
     return `<div class="acc-row">
       <div class="acc-header">
         <button class="acc-toggle" onclick="const d=document.getElementById('${id}');const open=d.classList.toggle('open');this.textContent=open?'−':'+';" title="Expand">+</button>
@@ -4750,20 +4756,20 @@ function openArtistModal(artistName) {
   // Weekly #1 — find every week this artist topped the chart
   const no1Weeks = findWeeklyNo1s(artistName);
   if (no1Weeks.length) {
-    acc.push(accRow('🏆', `Reached <strong style="color:var(--text)">#1</strong> on the Weekly Artists chart — <strong style="color:var(--text)">${no1Weeks.length}</strong> week${no1Weeks.length !== 1 ? 's' : ''}`,
+    acc.push(accRow('🏆', t('acc_artist_no1', { n: no1Weeks.length, unit: tUnit('cr_week', no1Weeks.length) }),
       no1Weeks.map(w => ({
-        name: 'Week of ' + fmtDate(w.sunday),
+        name: t('period_week_of', { date: fmtDate(w.sunday) }),
         plays: w.plays,
         date: '',
         weekOffset: weekOffset(w.sunday)
       }))));
   } else if (artistPeak) {
-    acc.push(accRow('📈', `Artist Peak: <strong style="color:var(--text)">#${artistPeak}</strong> on Top ${chartSize} chart`, []));
+    acc.push(accRow('📈', t('acc_artist_peak', { peak: artistPeak, size: chartSize }), []));
   }
 
   if (bestSongPeak === 1) {
     const no1songs = chartSongs.filter(s => peaks.songPeakMap[songKey(s)] === 1);
-    acc.push(accRow('🎵', `Has <strong style="color:var(--text)">${no1songs.length} #1</strong> song${no1songs.length > 1 ? 's' : ''} on the Top ${chartSize} Songs chart`,
+    acc.push(accRow('🎵', t('acc_no1_songs', { n: no1songs.length, unit: tUnit('songs', no1songs.length), size: chartSize }),
       no1songs.map(s => ({ name: s.title + (s.album !== '—' ? ' · ' + s.album : ''), plays: s.count, date: firstPlay(s) }))));
   }
 
@@ -4772,18 +4778,19 @@ function openArtistModal(artistName) {
   for (let mult = maxSongMult; mult >= 1; mult--) {
     const items = allSongsSorted.filter(s => Math.floor(s.count / CERT.song.diamond) === mult);
     if (!items.length) continue;
-    const { icon, label } = diamondMultiLabel(mult);
-    acc.push(accRow(icon, `<strong style="color:var(--text)">${items.length}</strong> ${label}-certified song${items.length > 1 ? 's' : ''} (${mult * CERT.song.diamond}+ plays)`,
+    const { icon } = diamondMultiLabel(mult);
+    const plays = mult * CERT.song.diamond;
+    acc.push(accRow(icon, t('acc_cert', { n: items.length, cert: tDiamondLabel(mult), unit: tUnit('songs', items.length), plays, plays_unit: tUnit('plays', plays) }),
       items.map(s => ({ name: s.title + (s.album !== '—' ? ' · ' + s.album : ''), plays: s.count, date: firstPlay(s) }))));
   }
   if (platSongs) {
     const items = allSongsSorted.filter(s => s.count >= CERT.song.plat && s.count < CERT.song.diamond);
-    acc.push(accRow('💿', `<strong style="color:var(--text)">${platSongs}</strong> Platinum-certified song${platSongs > 1 ? 's' : ''} (${CERT.song.plat}+ plays)`,
+    acc.push(accRow('💿', t('acc_cert', { n: platSongs, cert: t('cert_plat'), unit: tUnit('songs', platSongs), plays: CERT.song.plat, plays_unit: tUnit('plays', CERT.song.plat) }),
       items.map(s => ({ name: s.title + (s.album !== '—' ? ' · ' + s.album : ''), plays: s.count, date: firstPlay(s) }))));
   }
   if (goldSongs) {
     const items = allSongsSorted.filter(s => s.count >= CERT.song.gold && s.count < CERT.song.plat);
-    acc.push(accRow('⭐', `<strong style="color:var(--text)">${goldSongs}</strong> Gold-certified song${goldSongs > 1 ? 's' : ''} (${CERT.song.gold}+ plays)`,
+    acc.push(accRow('⭐', t('acc_cert', { n: goldSongs, cert: t('cert_gold'), unit: tUnit('songs', goldSongs), plays: CERT.song.gold, plays_unit: tUnit('plays', CERT.song.gold) }),
       items.map(s => ({ name: s.title + (s.album !== '—' ? ' · ' + s.album : ''), plays: s.count, date: firstPlay(s) }))));
   }
 
@@ -4792,34 +4799,35 @@ function openArtistModal(artistName) {
   for (let mult = maxAlbumMult; mult >= 1; mult--) {
     const items = allAlbumsSorted.filter(a => Math.floor(a.count / CERT.album.diamond) === mult);
     if (!items.length) continue;
-    const { icon, label } = diamondMultiLabel(mult);
-    acc.push(accRow(icon, `<strong style="color:var(--text)">${items.length}</strong> ${label}-certified album${items.length > 1 ? 's' : ''} (${mult * CERT.album.diamond}+ plays)`,
+    const { icon } = diamondMultiLabel(mult);
+    const plays = mult * CERT.album.diamond;
+    acc.push(accRow(icon, t('acc_cert', { n: items.length, cert: tDiamondLabel(mult), unit: tUnit('albums', items.length), plays, plays_unit: tUnit('plays', plays) }),
       items.map(a => ({ name: a.album, plays: a.count, date: firstAlbumPlay(a.album) }))));
   }
   if (platAlbums) {
     const items = allAlbumsSorted.filter(a => a.count >= CERT.album.plat && a.count < CERT.album.diamond);
-    acc.push(accRow('💿', `<strong style="color:var(--text)">${platAlbums}</strong> Platinum-certified album${platAlbums > 1 ? 's' : ''} (${CERT.album.plat}+ plays)`,
+    acc.push(accRow('💿', t('acc_cert', { n: platAlbums, cert: t('cert_plat'), unit: tUnit('albums', platAlbums), plays: CERT.album.plat, plays_unit: tUnit('plays', CERT.album.plat) }),
       items.map(a => ({ name: a.album, plays: a.count, date: firstAlbumPlay(a.album) }))));
   }
   if (goldAlbums) {
     const items = allAlbumsSorted.filter(a => a.count >= CERT.album.gold && a.count < CERT.album.plat);
-    acc.push(accRow('⭐', `<strong style="color:var(--text)">${goldAlbums}</strong> Gold-certified album${goldAlbums > 1 ? 's' : ''} (${CERT.album.gold}+ plays)`,
+    acc.push(accRow('⭐', t('acc_cert', { n: goldAlbums, cert: t('cert_gold'), unit: tUnit('albums', goldAlbums), plays: CERT.album.gold, plays_unit: tUnit('plays', CERT.album.gold) }),
       items.map(a => ({ name: a.album, plays: a.count, date: firstAlbumPlay(a.album) }))));
   }
 
-  if (!acc.length) acc.push(`<div style="font-family:'DM Sans',sans-serif;font-style:italic;font-size:0.85rem;color:var(--text3);padding:0.5rem 0;">No chart accomplishments yet in the current Top ${chartSize} scope.</div>`);
+  if (!acc.length) acc.push(`<div style="font-family:'DM Sans',sans-serif;font-style:italic;font-size:0.85rem;color:var(--text3);padding:0.5rem 0;">${t('acc_none', { n: chartSize })}</div>`);
   document.getElementById('modalAccomplishments').innerHTML = acc.join('');
 
   // Songs table — show all songs that charted, ranked by peak
   const songsToShow = chartSongs.length > 0 ? chartSongs : allSongsSorted.slice(0, chartSize);
-  const songTableHeader = `<tr class="modal-table-header"><td></td><td></td><td>Song</td><td class="modal-date-col">First Played</td><td class="modal-date-col">Last Played</td><td>Plays</td></tr>`;
+  const songTableHeader = `<tr class="modal-table-header"><td></td><td></td><td>${t('th_song')}</td><td class="modal-date-col">${t('modal_first_played')}</td><td class="modal-date-col">${t('modal_last_played')}</td><td>${t('th_plays')}</td></tr>`;
   document.getElementById('modalSongs').innerHTML = songTableHeader + songsToShow.flatMap((s, i) => {
     const pk = peaks.songPeakMap[songKey(s)];
     const crKey = songKey(s);
     const hasCR = chartRunData && chartRunData.result.songs[crKey];
     const rowId = 'modal-cr-song-' + i;
     const mainRow = `<tr>
-      <td>${hasCR ? `<button class="cr-toggle-btn" title="View chart run history — see how this entry has ranked over time" onclick="event.stopPropagation();toggleChartRun(this,'${rowId}')">📊</button>` : ''}</td>
+      <td>${hasCR ? `<button class="cr-toggle-btn" title="${t('tooltip_cr_toggle_btn_song')}" onclick="event.stopPropagation();toggleChartRun(this,'${rowId}')">📊</button>` : ''}</td>
       <td class="modal-rank-col">${pk ? '#' + pk : i + 1}</td>
       <td>
         <div class="song-title">${esc(s.title)}${certBadge(s.count, 'song')}</div>
@@ -4827,15 +4835,15 @@ function openArtistModal(artistName) {
       </td>
       <td class="modal-date-col">${fmt(s.firstPlayed)}</td>
       <td class="modal-date-col">${fmt(s.lastPlayed)}</td>
-      <td>${s.count} plays</td>
+      <td>${s.count} ${tUnit('plays', s.count)}</td>
     </tr>`;
     if (!hasCR) return [mainRow];
     return [mainRow, `<tr class="cr-row" id="${rowId}"><td colspan="6"><div class="cr-panel"><div class="cr-stats">${crStats('songs', crKey, chartRunData.period)}</div>${crBoxesHTML('songs', crKey)}</div></td></tr>`];
-  }).join('') || `<tr><td colspan="6" style="font-style:italic;color:var(--text3);padding:0.5rem">No songs charted in current Top ${chartSize} scope.</td></tr>`;
+  }).join('') || `<tr><td colspan="6" style="font-style:italic;color:var(--text3);padding:0.5rem">${t('modal_no_songs', { n: chartSize })}</td></tr>`;
 
   // Albums table
   const albumsToShow = allAlbumsSorted;
-  const albumTableHeader = `<tr class="modal-table-header"><td></td><td></td><td>Album</td><td class="modal-date-col">First Played</td><td class="modal-date-col">Last Played</td><td>Plays</td></tr>`;
+  const albumTableHeader = `<tr class="modal-table-header"><td></td><td></td><td>${t('th_album')}</td><td class="modal-date-col">${t('modal_first_played')}</td><td class="modal-date-col">${t('modal_last_played')}</td><td>${t('th_plays')}</td></tr>`;
   document.getElementById('modalAlbums').innerHTML = albumTableHeader + albumsToShow.flatMap((a, i) => {
     const pkKey = Object.keys(peaks.albumPeakMap).find(k => k.startsWith(a.album + '|||'));
     const pk = pkKey ? peaks.albumPeakMap[pkKey] : null;
@@ -4843,19 +4851,19 @@ function openArtistModal(artistName) {
     const hasCR = !!crKey;
     const rowId = 'modal-cr-album-' + i;
     const mainRow = `<tr>
-      <td>${hasCR ? `<button class="cr-toggle-btn" title="View chart run history — see how this entry has ranked over time" onclick="event.stopPropagation();toggleChartRun(this,'${rowId}')">📊</button>` : ''}</td>
+      <td>${hasCR ? `<button class="cr-toggle-btn" title="${t('tooltip_cr_toggle_btn_album')}" onclick="event.stopPropagation();toggleChartRun(this,'${rowId}')">📊</button>` : ''}</td>
       <td class="modal-rank-col">${pk ? '#' + pk : '—'}</td>
       <td>
         <div class="song-title">${esc(a.album)}${certBadge(a.count, 'album')}</div>
-        <div class="song-album">${a.tracks.size} tracks</div>
+        <div class="song-album">${a.tracks.size} ${tUnit('tracks', a.tracks.size)}</div>
       </td>
       <td class="modal-date-col">${fmt(a.firstPlayed)}</td>
       <td class="modal-date-col">${fmt(a.lastPlayed)}</td>
-      <td>${a.count} plays</td>
+      <td>${a.count} ${tUnit('plays', a.count)}</td>
     </tr>`;
     if (!hasCR) return [mainRow];
     return [mainRow, `<tr class="cr-row" id="${rowId}"><td colspan="6"><div class="cr-panel"><div class="cr-stats">${crStats('albums', crKey, chartRunData.period)}</div>${crBoxesHTML('albums', crKey)}</div></td></tr>`];
-  }).join('') || `<tr><td colspan="6" style="font-style:italic;color:var(--text3);padding:0.5rem">No album data found.</td></tr>`;
+  }).join('') || `<tr><td colspan="6" style="font-style:italic;color:var(--text3);padding:0.5rem">${t('empty_no_album_data')}</td></tr>`;
 
   modal.classList.add('open');
   modal.scrollTop = 0;
@@ -4964,9 +4972,9 @@ function openAlbumModal(albumKey) {
       ? detailRows.map(r => {
         const navAttr = r.weekOffset !== undefined ? ` onclick="goToWeek(${r.weekOffset});albumModal.classList.remove('open')" style="cursor:pointer"` : '';
         const viewTag = r.weekOffset !== undefined ? `<span style="color:var(--accent);font-size:0.6rem;flex-shrink:0;margin-left:0.5rem;letter-spacing:0.06em;">→ VIEW</span>` : '';
-        return `<div class="acc-detail-row"${navAttr}><span class="acc-detail-name">${esc(r.name)}</span><span class="acc-detail-plays">${r.plays} plays</span>${r.date ? `<span class="acc-detail-date">${r.date}</span>` : ''}${viewTag}</div>`;
+        return `<div class="acc-detail-row"${navAttr}><span class="acc-detail-name">${esc(r.name)}</span><span class="acc-detail-plays">${r.plays} ${tUnit('plays', r.plays)}</span>${r.date ? `<span class="acc-detail-date">${r.date}</span>` : ''}${viewTag}</div>`;
       }).join('')
-      : `<div class="acc-detail-row"><span class="acc-detail-name" style="font-style:italic">No detail available</span></div>`;
+      : `<div class="acc-detail-row"><span class="acc-detail-name" style="font-style:italic">${t('modal_no_detail')}</span></div>`;
     return `<div class="acc-row">
       <div class="acc-header">
         <button class="acc-toggle" onclick="const d=document.getElementById('${id}');const open=d.classList.toggle('open');this.textContent=open?'−':'+';" title="Expand">+</button>
@@ -4979,47 +4987,49 @@ function openAlbumModal(albumKey) {
   const acc = [];
   if (albumPeak === 1) {
     const no1Weeks = findAlbumNo1Weeks(albumKey);
-    acc.push(albAccRow('🏆', `Reached <strong style="color:var(--text)">#1</strong> on the Weekly Albums chart — <strong style="color:var(--text)">${no1Weeks.length}</strong> week${no1Weeks.length !== 1 ? 's' : ''}`,
-      no1Weeks.map(w => ({ name: 'Week of ' + fmtDate(w.sunday), plays: w.plays, weekOffset: weekOffset(w.sunday) }))));
+    acc.push(albAccRow('🏆', t('acc_album_no1', { n: no1Weeks.length, unit: tUnit('cr_week', no1Weeks.length) }),
+      no1Weeks.map(w => ({ name: t('period_week_of', { date: fmtDate(w.sunday) }), plays: w.plays, weekOffset: weekOffset(w.sunday) }))));
   } else if (albumPeak) {
-    acc.push(albAccRow('📈', `Album Peak: <strong style="color:var(--text)">#${albumPeak}</strong> on Top ${chartSize} Albums chart`, []));
+    acc.push(albAccRow('📈', t('acc_album_peak', { peak: albumPeak, size: chartSize }), []));
   }
   if (bestTrackPeak === 1) {
     const no1tracks = chartTracks.filter(s => peaks.songPeakMap[songKey(s)] === 1);
-    acc.push(albAccRow('🎵', `Has <strong style="color:var(--text)">${no1tracks.length} #1</strong> track${no1tracks.length > 1 ? 's' : ''} on the Songs chart`,
+    acc.push(albAccRow('🎵', t('acc_no1_tracks', { n: no1tracks.length, unit: tUnit('tracks', no1tracks.length) }),
       no1tracks.map(s => ({ name: s.title, plays: s.count }))));
   }
   if (totalPlays >= CERT.album.diamond) {
     const mult = Math.floor(totalPlays / CERT.album.diamond);
-    const { icon, label } = diamondMultiLabel(mult);
-    acc.push(albAccRow(icon, `${label}-certified album (${mult * CERT.album.diamond}+ plays)`, []));
+    const { icon } = diamondMultiLabel(mult);
+    const plays = mult * CERT.album.diamond;
+    acc.push(albAccRow(icon, t('acc_cert_single_album', { cert: tDiamondLabel(mult), plays, plays_unit: tUnit('plays', plays) }), []));
   } else if (totalPlays >= CERT.album.plat) {
-    acc.push(albAccRow('💿', `Platinum-certified album (${CERT.album.plat}+ plays)`, []));
+    acc.push(albAccRow('💿', t('acc_cert_single_album', { cert: t('cert_plat'), plays: CERT.album.plat, plays_unit: tUnit('plays', CERT.album.plat) }), []));
   } else if (totalPlays >= CERT.album.gold) {
-    acc.push(albAccRow('⭐', `Gold-certified album (${CERT.album.gold}+ plays)`, []));
+    acc.push(albAccRow('⭐', t('acc_cert_single_album', { cert: t('cert_gold'), plays: CERT.album.gold, plays_unit: tUnit('plays', CERT.album.gold) }), []));
   }
   // Multi-level diamond tracks
   const maxTrackMult = allTracksSorted.reduce((m, s) => Math.max(m, Math.floor(s.count / CERT.song.diamond)), 0);
   for (let mult = maxTrackMult; mult >= 1; mult--) {
     const items = allTracksSorted.filter(s => Math.floor(s.count / CERT.song.diamond) === mult);
     if (!items.length) continue;
-    const { icon, label } = diamondMultiLabel(mult);
-    acc.push(albAccRow(icon, `<strong style="color:var(--text)">${items.length}</strong> ${label}-certified track${items.length > 1 ? 's' : ''} (${mult * CERT.song.diamond}+ plays)`,
+    const { icon } = diamondMultiLabel(mult);
+    const plays = mult * CERT.song.diamond;
+    acc.push(albAccRow(icon, t('acc_cert', { n: items.length, cert: tDiamondLabel(mult), unit: tUnit('tracks', items.length), plays, plays_unit: tUnit('plays', plays) }),
       items.map(s => ({ name: s.title, plays: s.count }))));
   }
   const platTracks = allTracksSorted.filter(s => s.count >= CERT.song.plat && s.count < CERT.song.diamond).length;
   if (platTracks) {
     const items = allTracksSorted.filter(s => s.count >= CERT.song.plat && s.count < CERT.song.diamond);
-    acc.push(albAccRow('💿', `<strong style="color:var(--text)">${platTracks}</strong> Platinum-certified track${platTracks > 1 ? 's' : ''} (${CERT.song.plat}+ plays)`,
+    acc.push(albAccRow('💿', t('acc_cert', { n: platTracks, cert: t('cert_plat'), unit: tUnit('tracks', platTracks), plays: CERT.song.plat, plays_unit: tUnit('plays', CERT.song.plat) }),
       items.map(s => ({ name: s.title, plays: s.count }))));
   }
   const goldTracks = allTracksSorted.filter(s => s.count >= CERT.song.gold && s.count < CERT.song.plat).length;
   if (goldTracks) {
     const items = allTracksSorted.filter(s => s.count >= CERT.song.gold && s.count < CERT.song.plat);
-    acc.push(albAccRow('⭐', `<strong style="color:var(--text)">${goldTracks}</strong> Gold-certified track${goldTracks > 1 ? 's' : ''} (${CERT.song.gold}+ plays)`,
+    acc.push(albAccRow('⭐', t('acc_cert', { n: goldTracks, cert: t('cert_gold'), unit: tUnit('tracks', goldTracks), plays: CERT.song.gold, plays_unit: tUnit('plays', CERT.song.gold) }),
       items.map(s => ({ name: s.title, plays: s.count }))));
   }
-  if (!acc.length) acc.push(`<div style="font-family:'DM Sans',sans-serif;font-style:italic;font-size:0.85rem;color:var(--text3);padding:0.5rem 0">No chart accomplishments yet in the current Top ${chartSize} scope.</div>`);
+  if (!acc.length) acc.push(`<div style="font-family:'DM Sans',sans-serif;font-style:italic;font-size:0.85rem;color:var(--text3);padding:0.5rem 0">${t('acc_none', { n: chartSize })}</div>`);
   document.getElementById('albumModalAccomplishments').innerHTML = acc.join('');
 
   // Chart run section
@@ -5036,23 +5046,23 @@ function openAlbumModal(albumKey) {
 
   // Tracks table
   const tracksToShow = allTracksSorted;
-  const trackHeader = `<tr class="modal-table-header"><td></td><td></td><td>Track</td><td class="modal-date-col">First Played</td><td class="modal-date-col">Last Played</td><td>Plays</td></tr>`;
+  const trackHeader = `<tr class="modal-table-header"><td></td><td></td><td>${t('th_track')}</td><td class="modal-date-col">${t('modal_first_played')}</td><td class="modal-date-col">${t('modal_last_played')}</td><td>${t('th_plays')}</td></tr>`;
   document.getElementById('albumModalTracks').innerHTML = trackHeader + (tracksToShow.length === 0
-    ? `<tr><td colspan="6" style="font-style:italic;color:var(--text3);padding:0.5rem">No tracks found.</td></tr>`
+    ? `<tr><td colspan="6" style="font-style:italic;color:var(--text3);padding:0.5rem">${t('modal_no_tracks')}</td></tr>`
     : tracksToShow.flatMap((s, i) => {
       const pk = peaks.songPeakMap[songKey(s)];
       const crKey = songKey(s);
       const hasCR = chartRunData && chartRunData.result.songs[crKey];
       const rowId = 'alb-cr-track-' + i;
       const mainRow = `<tr>
-          <td>${hasCR ? `<button class="cr-toggle-btn" title="View chart run history — see how this entry has ranked over time" onclick="event.stopPropagation();toggleChartRun(this,'${rowId}')">📊</button>` : ''}</td>
+          <td>${hasCR ? `<button class="cr-toggle-btn" title="${t('tooltip_cr_toggle_btn_song')}" onclick="event.stopPropagation();toggleChartRun(this,'${rowId}')">📊</button>` : ''}</td>
           <td class="modal-rank-col">${pk ? '#' + pk : '—'}</td>
           <td>
             <div class="song-title">${esc(s.title)}${pk ? peakBadge(pk) : ''}${certBadge(s.count, 'song')}</div>
           </td>
           <td class="modal-date-col">${fmt(s.firstPlayed)}</td>
           <td class="modal-date-col">${fmt(s.lastPlayed)}</td>
-          <td>${s.count} plays</td>
+          <td>${s.count} ${tUnit('plays', s.count)}</td>
         </tr>`;
       if (!hasCR) return [mainRow];
       return [mainRow, `<tr class="cr-row" id="${rowId}"><td colspan="6"><div class="cr-panel"><div class="cr-stats">${crStats('songs', crKey, chartRunData.period)}</div>${crBoxesHTML('songs', crKey)}</div></td></tr>`];
