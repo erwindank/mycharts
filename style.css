@@ -4141,6 +4141,28 @@
       padding: 2px;
     }
 
+    .pak-mini-thumb .thumb {
+      width: 100%;
+      height: 100%;
+      border-radius: inherit;
+      border: none;
+    }
+
+    .pak-mini-thumb .thumb-initials {
+      width: 100%;
+      height: 100%;
+      border-radius: inherit;
+      font-size: 0.48rem;
+      font-weight: 700;
+      border: none;
+      background: var(--bg3);
+      color: var(--text3);
+    }
+
+    .debut-mini-art-th {
+      width: 36px;
+    }
+
     .pak-date {
       font-family: 'DM Mono', monospace;
       font-size: 0.6rem;

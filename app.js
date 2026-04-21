@@ -1391,29 +1391,23 @@ function buildRecords() {
       dh += '<div class="rec-empty">' + t('rec_no_data') + '</div>';
     } else {
       dh += '<div class="app-table-wrap"><table class="rec-table debut-rich-table"><thead><tr>';
-      dh += '<th>#</th><th colspan="2">' + t('rec_th_songs') + '</th><th></th><th>' + t('rec_th_artist') + '</th>';
+      dh += '<th>#</th><th>' + t('rec_th_songs') + '</th><th class="debut-mini-art-th"></th><th>' + t('rec_th_artist') + '</th>';
       dh += '<th>' + t('rec_th_plays') + '</th><th>' + t('rec_th_debut_rank') + '</th><th>' + t('rec_th_week') + '</th>';
       dh += '</tr></thead><tbody>';
       sliced.forEach(function (e, i) {
         const k = e[0], d = e[1];
         const rankCls = i === 0 ? 'rec-rank-1' : i === 1 ? 'rec-rank-2' : i === 2 ? 'rec-rank-3' : '';
-        const songImgId = 'deb-song-img-' + i;
         const artImgId = 'deb-song-art-' + i;
-        const songPrefKey = 'song:' + d.artist.toLowerCase() + '|||' + d.title.toLowerCase();
         const artPrefKey = 'artist:' + d.artist.toLowerCase();
         dh += '<tr class="' + rankCls + '">';
         dh += '<td class="rec-rank">' + (i + 1) + '</td>';
-        dh += '<td class="thumb-cell"><div class="thumb-wrap"><div id="' + songImgId + '"><div class="thumb-initials">' + esc(initials(d.title)) + '</div></div>';
-        dh += '<button id="srcbtn-' + songImgId + '" class="img-src-btn" data-imgid="' + songImgId + '" data-type="song" data-prefkey="' + esc(songPrefKey) + '" data-name="' + esc(d.title) + '" data-artist="' + esc(d.artist) + '" data-album="">Deezer</button></div></td>';
-        dh += '<td><div class="rec-name">' + esc(d.title) + '</div></td>';
-        dh += '<td class="thumb-cell"><div class="thumb-wrap"><div id="' + artImgId + '" class="app-art-circle"><div class="thumb-initials">' + esc(initials(d.artist)) + '</div></div>';
-        dh += '<button id="srcbtn-' + artImgId + '" class="img-src-btn" data-imgid="' + artImgId + '" data-type="artist" data-prefkey="' + esc(artPrefKey) + '" data-name="' + esc(d.artist) + '" data-artist="' + esc(d.artist) + '" data-album="">Deezer</button></div></td>';
+        dh += '<td><span class="pak-col-icon">🎵</span><span class="rec-name">' + esc(d.title) + '</span></td>';
+        dh += '<td><div class="pak-mini-thumb pak-mini-thumb-round" id="' + artImgId + '"><div class="pak-mini-initials">' + esc(initials(d.artist)) + '</div></div></td>';
         dh += '<td><div class="rec-name">' + esc(d.artist) + '</div></td>';
         dh += '<td class="rec-count">' + (d.plays || 0) + '</td>';
         dh += '<td class="rec-count">#' + d.rank + '</td>';
         dh += '<td class="rec-meta"><a class="debut-week-link" href="javascript:void(0)" onclick="showDebutWeekPreview(\'' + esc(d.period) + '\',this,event)">' + fmtPeriodKey(d.period, 'week') + '</a></td>';
         dh += '</tr>';
-        debImgQueue.push({ imgId: songImgId, imgType: 'song', title: d.title, artist: d.artist, album: '', prefKey: songPrefKey });
         debImgQueue.push({ imgId: artImgId, imgType: 'artist', name: d.artist, prefKey: artPrefKey });
       });
       dh += '</tbody></table></div>';
@@ -1432,9 +1426,9 @@ function buildRecords() {
       dh += '<div class="rec-empty">' + t('rec_no_data') + '</div>';
     } else {
       dh += '<div class="app-table-wrap"><table class="rec-table debut-rich-table"><thead><tr>';
-      dh += '<th>#</th><th colspan="2">' + t('rec_th_artist') + '</th>';
-      dh += '<th colspan="2">' + t('rec_th_first_song') + '</th>';
-      dh += '<th colspan="2">' + t('rec_th_first_album') + '</th>';
+      dh += '<th>#</th><th class="debut-mini-art-th"></th><th>' + t('rec_th_artist') + '</th>';
+      dh += '<th>' + t('rec_th_first_song') + '</th>';
+      dh += '<th class="debut-mini-art-th"></th><th>' + t('rec_th_first_album') + '</th>';
       dh += '<th>' + t('rec_th_plays') + '</th><th>' + t('rec_th_debut_rank') + '</th><th>' + t('rec_th_week') + '</th>';
       dh += '</tr></thead><tbody>';
       sliced.forEach(function (e, i) {
@@ -1450,24 +1444,19 @@ function buildRecords() {
         const fAlbPrefKey = fAlbObj ? 'album:' + fAlbObj.artist.toLowerCase() + '|||' + fAlbObj.album.toLowerCase() : '';
         dh += '<tr class="' + rankCls + '">';
         dh += '<td class="rec-rank">' + (i + 1) + '</td>';
-        dh += '<td class="thumb-cell"><div class="thumb-wrap"><div id="' + artImgId + '" class="app-art-circle"><div class="thumb-initials">' + esc(initials(a)) + '</div></div>';
-        dh += '<button id="srcbtn-' + artImgId + '" class="img-src-btn" data-imgid="' + artImgId + '" data-type="artist" data-prefkey="' + esc(artPrefKey) + '" data-name="' + esc(a) + '" data-artist="' + esc(a) + '" data-album="">Deezer</button></div></td>';
+        dh += '<td><div class="pak-mini-thumb pak-mini-thumb-round" id="' + artImgId + '"><div class="pak-mini-initials">' + esc(initials(a)) + '</div></div></td>';
         dh += '<td><div class="rec-name">' + esc(a) + '</div></td>';
         if (fSong) {
-          dh += '<td class="thumb-cell"><div class="thumb-wrap"><div id="' + fSongImgId + '"><div class="thumb-initials">' + esc(initials(fSong)) + '</div></div>';
-          dh += '<button id="srcbtn-' + fSongImgId + '" class="img-src-btn" data-imgid="' + fSongImgId + '" data-type="song" data-prefkey="' + esc(fSongPrefKey) + '" data-name="' + esc(fSong) + '" data-artist="' + esc(a) + '" data-album="">Deezer</button></div></td>';
-          dh += '<td><div class="rec-name debut-first-label">' + esc(fSong) + '</div></td>';
-          debImgQueue.push({ imgId: fSongImgId, imgType: 'song', title: fSong, artist: a, album: '', prefKey: fSongPrefKey });
+          dh += '<td><span class="pak-col-icon">🎵</span><span class="rec-name debut-first-label">' + esc(fSong) + '</span></td>';
         } else {
-          dh += '<td class="rec-meta">—</td><td></td>';
+          dh += '<td class="rec-meta">—</td>';
         }
         if (fAlbObj) {
-          dh += '<td class="thumb-cell"><div class="thumb-wrap"><div id="' + fAlbImgId + '"><div class="thumb-initials">' + esc(initials(fAlbObj.album)) + '</div></div>';
-          dh += '<button id="srcbtn-' + fAlbImgId + '" class="img-src-btn" data-imgid="' + fAlbImgId + '" data-type="album" data-prefkey="' + esc(fAlbPrefKey) + '" data-name="' + esc(fAlbObj.album) + '" data-artist="' + esc(fAlbObj.artist) + '" data-album="' + esc(fAlbObj.album) + '">Deezer</button></div></td>';
+          dh += '<td><div class="pak-mini-thumb" id="' + fAlbImgId + '"><div class="pak-mini-initials">' + esc(initials(fAlbObj.album)) + '</div></div></td>';
           dh += '<td><div class="rec-name debut-first-label">' + esc(fAlbObj.album) + '</div></td>';
           debImgQueue.push({ imgId: fAlbImgId, imgType: 'album', name: fAlbObj.album, album: fAlbObj.album, artist: fAlbObj.artist, prefKey: fAlbPrefKey });
         } else {
-          dh += '<td class="rec-meta">—</td><td></td>';
+          dh += '<td></td><td class="rec-meta">—</td>';
         }
         dh += '<td class="rec-count">' + (d.plays || 0) + '</td>';
         dh += '<td class="rec-count">#' + d.rank + '</td>';
@@ -1491,7 +1480,7 @@ function buildRecords() {
       dh += '<div class="rec-empty">' + t('rec_no_data') + '</div>';
     } else {
       dh += '<div class="app-table-wrap"><table class="rec-table debut-rich-table"><thead><tr>';
-      dh += '<th>#</th><th colspan="2">' + t('rec_th_albums') + '</th><th></th><th>' + t('rec_th_artist') + '</th>';
+      dh += '<th>#</th><th class="debut-mini-art-th"></th><th>' + t('rec_th_albums') + '</th><th class="debut-mini-art-th"></th><th>' + t('rec_th_artist') + '</th>';
       dh += '<th>' + t('rec_th_plays') + '</th><th>' + t('rec_th_debut_rank') + '</th><th>' + t('rec_th_week') + '</th>';
       dh += '</tr></thead><tbody>';
       sliced.forEach(function (e, i) {
@@ -1503,11 +1492,9 @@ function buildRecords() {
         const artPrefKey = 'artist:' + d.artist.toLowerCase();
         dh += '<tr class="' + rankCls + '">';
         dh += '<td class="rec-rank">' + (i + 1) + '</td>';
-        dh += '<td class="thumb-cell"><div class="thumb-wrap"><div id="' + albImgId + '"><div class="thumb-initials">' + esc(initials(d.album)) + '</div></div>';
-        dh += '<button id="srcbtn-' + albImgId + '" class="img-src-btn" data-imgid="' + albImgId + '" data-type="album" data-prefkey="' + esc(albPrefKey) + '" data-name="' + esc(d.album) + '" data-artist="' + esc(d.artist) + '" data-album="' + esc(d.album) + '">Deezer</button></div></td>';
+        dh += '<td><div class="pak-mini-thumb" id="' + albImgId + '"><div class="pak-mini-initials">' + esc(initials(d.album)) + '</div></div></td>';
         dh += '<td><div class="rec-name">' + esc(d.album) + '</div></td>';
-        dh += '<td class="thumb-cell"><div class="thumb-wrap"><div id="' + artImgId + '" class="app-art-circle"><div class="thumb-initials">' + esc(initials(d.artist)) + '</div></div>';
-        dh += '<button id="srcbtn-' + artImgId + '" class="img-src-btn" data-imgid="' + artImgId + '" data-type="artist" data-prefkey="' + esc(artPrefKey) + '" data-name="' + esc(d.artist) + '" data-artist="' + esc(d.artist) + '" data-album="">Deezer</button></div></td>';
+        dh += '<td><div class="pak-mini-thumb pak-mini-thumb-round" id="' + artImgId + '"><div class="pak-mini-initials">' + esc(initials(d.artist)) + '</div></div></td>';
         dh += '<td><div class="rec-name">' + esc(d.artist) + '</div></td>';
         dh += '<td class="rec-count">' + (d.plays || 0) + '</td>';
         dh += '<td class="rec-count">#' + d.rank + '</td>';
