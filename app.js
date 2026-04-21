@@ -91,6 +91,22 @@ if (startDaySelect) {
   });
 }
 
+// ─── SOURCE BUTTON TOGGLE ──────────────────────────────────────
+(function initSrcToggle() {
+  try {
+    if (localStorage.getItem('dankcharts-hideSrcBtns') === '1') {
+      document.body.classList.add('hide-src-btns');
+      document.getElementById('srcToggleBtn')?.classList.add('hidden-active');
+    }
+  } catch (e) { }
+})();
+
+function toggleSrcButtons() {
+  const hidden = document.body.classList.toggle('hide-src-btns');
+  document.getElementById('srcToggleBtn')?.classList.toggle('hidden-active', hidden);
+  try { localStorage.setItem('dankcharts-hideSrcBtns', hidden ? '1' : '0'); } catch (e) { }
+}
+
 // ─── ARTIST SPLITTING ──────────────────────────────────────────
 // Artists whose names contain commas — add entries here to prevent incorrect splitting
 const ARTIST_COMMA_EXCEPTIONS = [

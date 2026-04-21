@@ -369,6 +369,36 @@
       color: rgba(255, 255, 255, 0.95);
     }
 
+    .src-toggle-btn {
+      background: transparent;
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      border-radius: 4px;
+      color: rgba(255, 255, 255, 0.5);
+      cursor: pointer;
+      font-family: 'DM Mono', monospace;
+      font-size: 0.58rem;
+      letter-spacing: 0.06em;
+      padding: 2px 5px;
+      transition: border-color 0.15s, color 0.15s, background 0.15s;
+      white-space: nowrap;
+    }
+
+    .src-toggle-btn:hover {
+      border-color: rgba(255, 255, 255, 0.45);
+      color: rgba(255, 255, 255, 0.8);
+    }
+
+    .src-toggle-btn.hidden-active {
+      background: rgba(255, 255, 255, 0.12);
+      border-color: rgba(255, 255, 255, 0.55);
+      color: rgba(255, 255, 255, 0.95);
+      text-decoration: line-through;
+    }
+
+    body.hide-src-btns .img-src-btn {
+      display: none;
+    }
+
     * {
       margin: 0;
       padding: 0;
