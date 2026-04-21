@@ -4382,3 +4382,89 @@
       background: var(--border);
       border-color: var(--accent);
     }
+
+    /* ── Appearances chart enhancements ────────────────────────── */
+    .app-art-circle {
+      border-radius: 50%;
+      overflow: hidden;
+    }
+
+    .app-art-circle .thumb-initials {
+      border-radius: 50%;
+    }
+
+    .app-art-th {
+      width: 52px;
+    }
+
+    .rec-cr-th {
+      width: 28px;
+    }
+
+    .rec-cr-btn-cell {
+      width: 28px;
+      padding: 0.2rem 0.25rem !important;
+      text-align: center;
+      vertical-align: middle;
+    }
+
+    .rec-cr-toggle {
+      background: none;
+      border: 1px solid var(--border);
+      border-radius: 3px;
+      color: var(--text3);
+      font-size: 0.55rem;
+      padding: 2px 4px;
+      cursor: pointer;
+      line-height: 1;
+      transition: color 0.15s, border-color 0.15s, background 0.15s;
+    }
+
+    .rec-cr-toggle:hover {
+      color: var(--accent);
+      border-color: var(--accent);
+    }
+
+    .rec-cr-toggle.active {
+      color: var(--accent2);
+      border-color: var(--accent2);
+      background: rgba(255, 255, 255, 0.04);
+    }
+
+    .app-cr-row td {
+      padding: 0 !important;
+      background: var(--bg);
+    }
+
+    .app-cr-content {
+      padding: 0.5rem 0.75rem 0.6rem 0.75rem;
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .app-song-cell {
+      max-width: 160px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .app-song-icon {
+      margin-right: 4px;
+      font-size: 0.6rem;
+      opacity: 0.7;
+    }
+
+    .app-appearances-table th {
+      white-space: nowrap;
+      font-size: 0.62rem;
+    }
+
+    .app-appearances-table td.rec-meta {
+      white-space: nowrap;
+      font-size: 0.72rem;
+    }
+
+    .app-table-wrap {
+      overflow-x: auto;
+    }

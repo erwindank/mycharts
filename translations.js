@@ -321,6 +321,12 @@ const TRANSLATIONS = {
     rec_th_song_cert: 'Song Certs',
     rec_th_album_cert: 'Album Certs',
     rec_th_time_since: 'Time Since First Play',
+    rec_th_first_streamed: 'First Streamed',
+    rec_th_last_streamed: 'Last Streamed',
+    rec_th_last_song: 'Last Song',
+    rec_th_first_charted: 'First Charted',
+    rec_app_week_one: 'week',
+    rec_app_week_other: 'weeks',
 
     // Records dynamic text
     rec_weekly_label: 'Weekly',
@@ -1034,6 +1040,12 @@ const TRANSLATIONS = {
     rec_th_song_cert: 'Certs. Canciones',
     rec_th_album_cert: 'Certs. Álbumes',
     rec_th_time_since: 'Tiempo desde 1ª Repro.',
+    rec_th_first_streamed: 'Primera Reproducción',
+    rec_th_last_streamed: 'Última Reproducción',
+    rec_th_last_song: 'Última Canción',
+    rec_th_first_charted: 'Primera Semana en Ranking',
+    rec_app_week_one: 'semana',
+    rec_app_week_other: 'semanas',
 
     // Records dynamic text
     rec_weekly_label: 'Semanal',
@@ -1747,6 +1759,12 @@ const TRANSLATIONS = {
     rec_th_song_cert: 'Certs. Músicas',
     rec_th_album_cert: 'Certs. Álbuns',
     rec_th_time_since: 'Tempo desde 1ª Repro.',
+    rec_th_first_streamed: 'Primeira Reprodução',
+    rec_th_last_streamed: 'Última Reprodução',
+    rec_th_last_song: 'Última Música',
+    rec_th_first_charted: 'Primeira Semana no Top',
+    rec_app_week_one: 'semana',
+    rec_app_week_other: 'semanas',
 
     // Records dynamic text
     rec_weekly_label: 'Semanal',
@@ -2460,6 +2478,12 @@ const TRANSLATIONS = {
     rec_th_song_cert: 'Certs. Músicas',
     rec_th_album_cert: 'Certs. Álbuns',
     rec_th_time_since: 'Tempo desde 1ª Repro.',
+    rec_th_first_streamed: 'Primeira Reprodução',
+    rec_th_last_streamed: 'Última Reprodução',
+    rec_th_last_song: 'Última Música',
+    rec_th_first_charted: 'Primeira Semana no Top',
+    rec_app_week_one: 'semana',
+    rec_app_week_other: 'semanas',
 
     // Records dynamic text
     rec_weekly_label: 'Semanal',
@@ -2983,6 +3007,11 @@ function setLanguage(lang) {
     if (crEl && typeof chartRunData !== 'undefined' && chartRunData?.result?.albums?.[_currentAlbumKey]) {
       crEl.innerHTML = `<div style="padding:0.4rem 0 0.7rem"><div class="cr-stats" style="margin-bottom:0.5rem">${crStats('albums', _currentAlbumKey, chartRunData.period)}</div>${crBoxesHTML('albums', _currentAlbumKey)}</div>`;
     }
+  }
+
+  // Re-render records tab if active (renderAll does not handle the records period)
+  if (typeof currentPeriod !== 'undefined' && currentPeriod === 'records' && typeof buildRecords === 'function') {
+    buildRecords();
   }
 
   // Re-render graphs tab if active (renderAll does not handle the graphs period)

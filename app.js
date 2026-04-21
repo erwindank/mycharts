@@ -865,6 +865,24 @@ function buildRecords() {
   const monthKeys = Object.keys(monthPlaysMap).sort();
   const yearKeys = Object.keys(yearPlaysMap).sort();
 
+  // First/last play data for appearances charts
+  const songFirstPlay = {}, songLastPlay = {};
+  const artistFirstSongName = {}, artistLastSongName = {};
+  const albumFirstPlayDate = {}, albumFirstSongName = {};
+  for (const p of chron) {
+    const sk = songKey(p);
+    if (!songFirstPlay[sk]) songFirstPlay[sk] = p.date;
+    songLastPlay[sk] = p.date;
+    for (const a of p.artists) {
+      if (!artistFirstSongName[a]) artistFirstSongName[a] = p.title;
+      artistLastSongName[a] = p.title;
+    }
+    if (p.album && p.album !== '—') {
+      const ak = p.album + '|||' + albumArtist(p);
+      if (!albumFirstPlayDate[ak]) { albumFirstPlayDate[ak] = p.date; albumFirstSongName[ak] = p.title; }
+    }
+  }
+
   // Records containers
   const song1s = { week: {}, month: {}, year: {} };
   const artist1s = { week: {}, month: {}, year: {} };
@@ -1204,22 +1222,139 @@ function buildRecords() {
   }
 
   // ── Most Chart Appearances ────────────────────────────────────
+  ensureAllChartRun();
   let ah = '';
-  const appEntConfig = [
-    { icon: '★', label: t('rec_th_songs'), apps: songApps, nameOf: function (k) { const n = songNames[k] || {}; return '<div class="rec-name">' + esc(n.title || k.split('|||')[0]) + '</div><div class="rec-sub">' + esc(n.artist || '') + '</div>'; } },
-    { icon: '♦', label: t('rec_th_artists'), apps: artistApps, nameOf: function (k) { return '<div class="rec-name">' + esc(k) + '</div>'; } },
-    { icon: '◈', label: t('rec_th_albums'), apps: albumApps, nameOf: function (k) { const n = albumNames[k] || {}; return '<div class="rec-name">' + esc(n.album || k.split('|||')[0]) + '</div><div class="rec-sub">' + esc(n.artist || '') + '</div>'; } },
-  ];
-  for (const ent of appEntConfig) {
-    ah += '<div class="rec-section"><div class="rec-section-title">' + ent.icon + ' ' + ent.label + ' &mdash; ' + t('rec_most_appearances') + '</div>';
-    const tops = Object.entries(ent.apps.week).sort(function (a, b) { return b[1] - a[1]; });
-    ah += recTable(['#', ent.label, t('rec_th_weeks_on_chart')],
-      tops.map(function (e, i) { return '<td class="rec-rank">' + (i + 1) + '</td><td>' + ent.nameOf(e[0]) + '</td><td class="rec-count">' + e[1] + ' ' + tUnit('weeks', e[1]) + '</td>'; }),
-      lim
-    );
-    ah += '</div>';
+  const appImgQueue = [];
+
+  // ── Songs appearances ──
+  {
+    const tops = Object.entries(songApps.week).sort((a, b) => b[1] - a[1]);
+    const sliced = isFinite(lim) ? tops.slice(0, lim) : tops;
+    ah += '<div class="rec-section"><div class="rec-section-title">★ ' + t('rec_th_songs') + ' &mdash; ' + t('rec_most_appearances') + '</div>';
+    ah += '<div class="app-table-wrap"><table class="rec-table app-appearances-table"><thead><tr>';
+    ah += '<th>#</th><th></th><th>' + t('rec_th_songs') + '</th><th class="app-art-th"></th><th>' + t('rec_th_artist') + '</th>';
+    ah += '<th>' + t('rec_th_first_streamed') + '</th><th>' + t('rec_th_last_streamed') + '</th>';
+    ah += '<th>' + t('rec_th_weeks_on_chart') + '</th><th class="rec-cr-th"></th>';
+    ah += '</tr></thead><tbody>';
+    for (let i = 0; i < sliced.length; i++) {
+      const [k, count] = sliced[i];
+      const n = songNames[k] || {};
+      const title = n.title || k.split('|||')[0];
+      const artist = n.artist || '';
+      const album = n.album || '';
+      const imgId = 'app-song-img-' + i;
+      const artImgId = 'app-art-song-' + i;
+      const crRowId = 'app-cr-row-song-' + i;
+      const firstDate = songFirstPlay[k] ? fmt(songFirstPlay[k]) : '—';
+      const lastDate = songLastPlay[k] ? fmt(songLastPlay[k]) : '—';
+      const rankCls = i === 0 ? 'rec-rank-1' : i === 1 ? 'rec-rank-2' : i === 2 ? 'rec-rank-3' : '';
+      const weekWord = count === 1 ? t('rec_app_week_one') : t('rec_app_week_other');
+      ah += '<tr class="' + rankCls + '">';
+      ah += '<td class="rec-rank">' + (i + 1) + '</td>';
+      ah += '<td class="thumb-cell"><div class="thumb-wrap"><div id="' + imgId + '"><div class="thumb-initials">' + esc(initials(title)) + '</div></div>';
+      ah += '<button id="srcbtn-' + imgId + '" class="img-src-btn" data-imgid="' + imgId + '" data-type="song" data-prefkey="' + esc('song:' + artist.toLowerCase() + '|||' + title.toLowerCase()) + '" data-name="' + esc(title) + '" data-artist="' + esc(artist) + '" data-album="' + esc(album) + '">Deezer</button></div></td>';
+      ah += '<td><div class="rec-name">' + esc(title) + '</div></td>';
+      ah += '<td class="thumb-cell"><div class="thumb-wrap"><div id="' + artImgId + '" class="app-art-circle"><div class="thumb-initials">' + esc(initials(artist)) + '</div></div>';
+      ah += '<button id="srcbtn-' + artImgId + '" class="img-src-btn" data-imgid="' + artImgId + '" data-type="artist" data-prefkey="' + esc('artist:' + artist.toLowerCase()) + '" data-name="' + esc(artist) + '" data-artist="' + esc(artist) + '" data-album="">Deezer</button></div></td>';
+      ah += '<td><div class="rec-name">' + esc(artist) + '</div></td>';
+      ah += '<td class="rec-meta">' + esc(firstDate) + '</td>';
+      ah += '<td class="rec-meta">' + esc(lastDate) + '</td>';
+      ah += '<td class="rec-count">' + count + ' ' + weekWord + '</td>';
+      ah += '<td class="rec-cr-btn-cell"><button class="rec-cr-toggle" onclick="toggleAppCr(\'' + crRowId + '\',this)" title="' + t('cr_chart_run') + '">▶</button></td>';
+      ah += '</tr>';
+      ah += '<tr class="app-cr-row" id="' + crRowId + '" style="display:none"><td colspan="9"><div class="app-cr-content">' + crBoxesHTML('songs', k, allChartRun.week) + '</div></td></tr>';
+      appImgQueue.push({ imgId, imgType: 'song', name: title, prefKey: 'song:' + artist.toLowerCase() + '|||' + title.toLowerCase(), title, artist, album });
+      appImgQueue.push({ imgId: artImgId, imgType: 'artist', name: artist, prefKey: 'artist:' + artist.toLowerCase() });
+    }
+    ah += '</tbody></table></div></div>';
   }
+
+  // ── Artists appearances ──
+  {
+    const tops = Object.entries(artistApps.week).sort((a, b) => b[1] - a[1]);
+    const sliced = isFinite(lim) ? tops.slice(0, lim) : tops;
+    ah += '<div class="rec-section"><div class="rec-section-title">♦ ' + t('rec_th_artists') + ' &mdash; ' + t('rec_most_appearances') + '</div>';
+    ah += '<div class="app-table-wrap"><table class="rec-table app-appearances-table"><thead><tr>';
+    ah += '<th>#</th><th></th><th>' + t('rec_th_artist') + '</th>';
+    ah += '<th>' + t('rec_th_first_song') + '</th><th>' + t('rec_th_last_song') + '</th>';
+    ah += '<th>' + t('rec_th_first_charted') + '</th>';
+    ah += '<th>' + t('rec_th_weeks_on_chart') + '</th><th class="rec-cr-th"></th>';
+    ah += '</tr></thead><tbody>';
+    for (let i = 0; i < sliced.length; i++) {
+      const [a, count] = sliced[i];
+      const imgId = 'app-artist-img-' + i;
+      const crRowId = 'app-cr-row-artist-' + i;
+      const firstSong = artistFirstSongName[a] || '—';
+      const lastSong = artistLastSongName[a] || '—';
+      const firstCharted = artistDebuts.week[a] ? fmtPeriodKey(artistDebuts.week[a].period, 'week') : '—';
+      const rankCls = i === 0 ? 'rec-rank-1' : i === 1 ? 'rec-rank-2' : i === 2 ? 'rec-rank-3' : '';
+      const weekWord = count === 1 ? t('rec_app_week_one') : t('rec_app_week_other');
+      ah += '<tr class="' + rankCls + '">';
+      ah += '<td class="rec-rank">' + (i + 1) + '</td>';
+      ah += '<td class="thumb-cell"><div class="thumb-wrap"><div id="' + imgId + '" class="app-art-circle"><div class="thumb-initials">' + esc(initials(a)) + '</div></div>';
+      ah += '<button id="srcbtn-' + imgId + '" class="img-src-btn" data-imgid="' + imgId + '" data-type="artist" data-prefkey="' + esc('artist:' + a.toLowerCase()) + '" data-name="' + esc(a) + '" data-artist="' + esc(a) + '" data-album="">Deezer</button></div></td>';
+      ah += '<td><div class="rec-name">' + esc(a) + '</div></td>';
+      ah += '<td class="rec-meta app-song-cell"><span class="app-song-icon">🎵</span>' + esc(firstSong) + '</td>';
+      ah += '<td class="rec-meta app-song-cell"><span class="app-song-icon">🎵</span>' + esc(lastSong) + '</td>';
+      ah += '<td class="rec-meta">' + esc(firstCharted) + '</td>';
+      ah += '<td class="rec-count">' + count + ' ' + weekWord + '</td>';
+      ah += '<td class="rec-cr-btn-cell"><button class="rec-cr-toggle" onclick="toggleAppCr(\'' + crRowId + '\',this)" title="' + t('cr_chart_run') + '">▶</button></td>';
+      ah += '</tr>';
+      ah += '<tr class="app-cr-row" id="' + crRowId + '" style="display:none"><td colspan="8"><div class="app-cr-content">' + crBoxesHTML('artists', a, allChartRun.week) + '</div></td></tr>';
+      appImgQueue.push({ imgId, imgType: 'artist', name: a, prefKey: 'artist:' + a.toLowerCase() });
+    }
+    ah += '</tbody></table></div></div>';
+  }
+
+  // ── Albums appearances ──
+  {
+    const tops = Object.entries(albumApps.week).sort((a, b) => b[1] - a[1]);
+    const sliced = isFinite(lim) ? tops.slice(0, lim) : tops;
+    ah += '<div class="rec-section"><div class="rec-section-title">◈ ' + t('rec_th_albums') + ' &mdash; ' + t('rec_most_appearances') + '</div>';
+    ah += '<div class="app-table-wrap"><table class="rec-table app-appearances-table"><thead><tr>';
+    ah += '<th>#</th><th></th><th>' + t('rec_th_albums') + '</th><th class="app-art-th"></th><th>' + t('rec_th_artist') + '</th>';
+    ah += '<th>' + t('rec_th_first_song') + '</th>';
+    ah += '<th>' + t('rec_th_first_streamed') + '</th>';
+    ah += '<th>' + t('rec_th_weeks_on_chart') + '</th><th class="rec-cr-th"></th>';
+    ah += '</tr></thead><tbody>';
+    for (let i = 0; i < sliced.length; i++) {
+      const [k, count] = sliced[i];
+      const n = albumNames[k] || {};
+      const album = n.album || k.split('|||')[0];
+      const artist = n.artist || '';
+      const imgId = 'app-album-img-' + i;
+      const artImgId = 'app-art-album-' + i;
+      const crRowId = 'app-cr-row-album-' + i;
+      const firstSong = albumFirstSongName[k] || '—';
+      const firstDate = albumFirstPlayDate[k] ? fmt(albumFirstPlayDate[k]) : '—';
+      const rankCls = i === 0 ? 'rec-rank-1' : i === 1 ? 'rec-rank-2' : i === 2 ? 'rec-rank-3' : '';
+      const weekWord = count === 1 ? t('rec_app_week_one') : t('rec_app_week_other');
+      ah += '<tr class="' + rankCls + '">';
+      ah += '<td class="rec-rank">' + (i + 1) + '</td>';
+      ah += '<td class="thumb-cell"><div class="thumb-wrap"><div id="' + imgId + '"><div class="thumb-initials">' + esc(initials(album)) + '</div></div>';
+      ah += '<button id="srcbtn-' + imgId + '" class="img-src-btn" data-imgid="' + imgId + '" data-type="album" data-prefkey="' + esc('album:' + artist.toLowerCase() + '|||' + album.toLowerCase()) + '" data-name="' + esc(album) + '" data-artist="' + esc(artist) + '" data-album="' + esc(album) + '">Deezer</button></div></td>';
+      ah += '<td><div class="rec-name">' + esc(album) + '</div></td>';
+      ah += '<td class="thumb-cell"><div class="thumb-wrap"><div id="' + artImgId + '" class="app-art-circle"><div class="thumb-initials">' + esc(initials(artist)) + '</div></div>';
+      ah += '<button id="srcbtn-' + artImgId + '" class="img-src-btn" data-imgid="' + artImgId + '" data-type="artist" data-prefkey="' + esc('artist:' + artist.toLowerCase()) + '" data-name="' + esc(artist) + '" data-artist="' + esc(artist) + '" data-album="">Deezer</button></div></td>';
+      ah += '<td><div class="rec-name">' + esc(artist) + '</div></td>';
+      ah += '<td class="rec-meta app-song-cell"><span class="app-song-icon">🎵</span>' + esc(firstSong) + '</td>';
+      ah += '<td class="rec-meta">' + esc(firstDate) + '</td>';
+      ah += '<td class="rec-count">' + count + ' ' + weekWord + '</td>';
+      ah += '<td class="rec-cr-btn-cell"><button class="rec-cr-toggle" onclick="toggleAppCr(\'' + crRowId + '\',this)" title="' + t('cr_chart_run') + '">▶</button></td>';
+      ah += '</tr>';
+      ah += '<tr class="app-cr-row" id="' + crRowId + '" style="display:none"><td colspan="9"><div class="app-cr-content">' + crBoxesHTML('albums', k, allChartRun.week) + '</div></td></tr>';
+      appImgQueue.push({ imgId, imgType: 'album', name: album, prefKey: 'album:' + artist.toLowerCase() + '|||' + album.toLowerCase(), album, artist });
+      appImgQueue.push({ imgId: artImgId, imgType: 'artist', name: artist, prefKey: 'artist:' + artist.toLowerCase() });
+    }
+    ah += '</tbody></table></div></div>';
+  }
+
   document.getElementById('recAppearancesBody').innerHTML = ah;
+  (async () => {
+    await loadImages(appImgQueue.filter(x => x.imgType === 'song'), 'song');
+    await loadImages(appImgQueue.filter(x => x.imgType === 'artist'), 'artist');
+    await loadImages(appImgQueue.filter(x => x.imgType === 'album'), 'album');
+  })();
 
   // ── Biggest Debuts ───────────────────────────────────────────
   let dh = '';
@@ -2643,6 +2778,15 @@ function toggleChartRun(btn, rowId) {
   const open = !row.classList.contains('open');
   row.classList.toggle('open', open);
   btn.classList.toggle('active', open);
+}
+
+function toggleAppCr(rowId, btn) {
+  const row = document.getElementById(rowId);
+  if (!row) return;
+  const isOpen = row.style.display !== 'none';
+  row.style.display = isOpen ? 'none' : '';
+  btn.classList.toggle('active', !isOpen);
+  btn.textContent = isOpen ? '▶' : '▼';
 }
 
 let _crPreviewCleanup = null;
