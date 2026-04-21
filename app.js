@@ -1933,6 +1933,22 @@ function fmtDate(d) {
 // ─── RENDER ────────────────────────────────────────────────────
 const isPaginated = () => currentPeriod === 'year' || currentPeriod === 'alltime';
 
+function renderTableHeaders() {
+  const isWeeklyView = currentPeriod === 'week';
+  const isMonthlyView = currentPeriod === 'month';
+  const hasPeriodStats = isWeeklyView || isMonthlyView;
+  const periodLabel = isWeeklyView ? t('th_weeks') : t('th_months');
+  if (hasPeriodStats) {
+    document.getElementById('songsHeadRow').innerHTML = `<th>${t('th_rank')}</th><th style="width:52px;"></th><th>${t('th_title_artist')}</th><th>${t('th_album')}</th><th class="m-th">${t('th_prev')}</th><th class="m-th">${periodLabel}</th><th style="text-align:right;">${t('th_plays')}</th>`;
+    document.getElementById('artistsHeadRow').innerHTML = `<th>${t('th_rank')}</th><th style="width:52px;"></th><th>${t('th_artist')}</th><th>${t('th_unique_songs')}</th><th class="m-th">${t('th_prev')}</th><th class="m-th">${periodLabel}</th><th style="text-align:right;">${t('th_total_plays')}</th>`;
+    document.getElementById('albumsHeadRow').innerHTML = `<th>${t('th_rank')}</th><th style="width:52px;"></th><th>${t('th_album_artist')}</th><th>${t('th_tracks')}</th><th class="m-th">${t('th_prev')}</th><th class="m-th">${periodLabel}</th><th style="text-align:right;">${t('th_total_plays')}</th>`;
+  } else {
+    document.getElementById('songsHeadRow').innerHTML = `<th>${t('th_rank')}</th><th style="width:52px;"></th><th>${t('th_title_artist')}</th><th>${t('th_album')}</th><th style="text-align:right;">${t('th_plays')}</th>`;
+    document.getElementById('artistsHeadRow').innerHTML = `<th>${t('th_rank')}</th><th style="width:52px;"></th><th>${t('th_artist')}</th><th>${t('th_unique_songs')}</th><th style="text-align:right;">${t('th_total_plays')}</th>`;
+    document.getElementById('albumsHeadRow').innerHTML = `<th>${t('th_rank')}</th><th style="width:52px;"></th><th>${t('th_album_artist')}</th><th>${t('th_tracks')}</th><th style="text-align:right;">${t('th_total_plays')}</th>`;
+  }
+}
+
 function renderAll() {
   if (currentPeriod === 'rawdata') { applyRawFilters(); return; }
   // Exit early if no data has been loaded yet
@@ -1975,27 +1991,15 @@ function renderAll() {
   const songSet = new Set(plays.map(p => songKey(p)));
   const albumSet = new Set(plays.map(p => p.album).filter(a => a && a !== '—'));
   document.getElementById('statsStrip').innerHTML = `
-    <div class="stat-box"><div class="stat-val">${plays.length.toLocaleString()}</div><div class="stat-label">${t('stat_total_plays')}</div></div>
-    <div class="stat-box"><div class="stat-val">${songSet.size.toLocaleString()}</div><div class="stat-label">${t('stat_unique_songs')}</div></div>
-    <div class="stat-box"><div class="stat-val">${artistSet.size.toLocaleString()}</div><div class="stat-label">${t('stat_artists')}</div></div>
-    <div class="stat-box"><div class="stat-val">${albumSet.size.toLocaleString()}</div><div class="stat-label">${t('stat_albums')}</div></div>
+    <div class="stat-box"><div class="stat-val">${plays.length.toLocaleString()}</div><div class="stat-label" data-i18n="stat_total_plays">${t('stat_total_plays')}</div></div>
+    <div class="stat-box"><div class="stat-val">${songSet.size.toLocaleString()}</div><div class="stat-label" data-i18n="stat_unique_songs">${t('stat_unique_songs')}</div></div>
+    <div class="stat-box"><div class="stat-val">${artistSet.size.toLocaleString()}</div><div class="stat-label" data-i18n="stat_artists">${t('stat_artists')}</div></div>
+    <div class="stat-box"><div class="stat-val">${albumSet.size.toLocaleString()}</div><div class="stat-label" data-i18n="stat_albums">${t('stat_albums')}</div></div>
   `;
 
-  // Update table headers for weekly/monthly stats columns
-  const isWeeklyView = currentPeriod === 'week';
-  const isMonthlyView = currentPeriod === 'month';
-  const hasPeriodStats = isWeeklyView || isMonthlyView;
+  renderTableHeaders();
+  const hasPeriodStats = currentPeriod === 'week' || currentPeriod === 'month';
   const colCount = hasPeriodStats ? 7 : 5;
-  const periodLabel = isWeeklyView ? t('th_weeks') : t('th_months');
-  if (hasPeriodStats) {
-    document.getElementById('songsHeadRow').innerHTML = `<th>${t('th_rank')}</th><th style="width:52px;"></th><th>${t('th_title_artist')}</th><th>${t('th_album')}</th><th class="m-th">${t('th_prev')}</th><th class="m-th">${periodLabel}</th><th style="text-align:right;">${t('th_plays')}</th>`;
-    document.getElementById('artistsHeadRow').innerHTML = `<th>${t('th_rank')}</th><th style="width:52px;"></th><th>${t('th_artist')}</th><th>${t('th_unique_songs')}</th><th class="m-th">${t('th_prev')}</th><th class="m-th">${periodLabel}</th><th style="text-align:right;">${t('th_total_plays')}</th>`;
-    document.getElementById('albumsHeadRow').innerHTML = `<th>${t('th_rank')}</th><th style="width:52px;"></th><th>${t('th_album_artist')}</th><th>${t('th_tracks')}</th><th class="m-th">${t('th_prev')}</th><th class="m-th">${periodLabel}</th><th style="text-align:right;">${t('th_total_plays')}</th>`;
-  } else {
-    document.getElementById('songsHeadRow').innerHTML = `<th>${t('th_rank')}</th><th style="width:52px;"></th><th>${t('th_title_artist')}</th><th>${t('th_album')}</th><th style="text-align:right;">${t('th_plays')}</th>`;
-    document.getElementById('artistsHeadRow').innerHTML = `<th>${t('th_rank')}</th><th style="width:52px;"></th><th>${t('th_artist')}</th><th>${t('th_unique_songs')}</th><th style="text-align:right;">${t('th_total_plays')}</th>`;
-    document.getElementById('albumsHeadRow').innerHTML = `<th>${t('th_rank')}</th><th style="width:52px;"></th><th>${t('th_album_artist')}</th><th>${t('th_tracks')}</th><th style="text-align:right;">${t('th_total_plays')}</th>`;
-  }
 
   if (plays.length === 0) {
     ['songsBody', 'artistsBody', 'albumsBody'].forEach(id => {
@@ -4995,7 +4999,7 @@ function openArtistModal(artistName) {
       <td>${s.count} ${tUnit('plays', s.count)}</td>
     </tr>`;
     if (!hasCR) return [mainRow];
-    return [mainRow, `<tr class="cr-row" id="${rowId}"><td colspan="6"><div class="cr-panel"><div class="cr-stats">${crStats('songs', crKey, chartRunData.period)}</div>${crBoxesHTML('songs', crKey)}</div></td></tr>`];
+    return [mainRow, `<tr class="cr-row" id="${rowId}"><td colspan="6"><div class="cr-panel" data-crtype="songs" data-crkey="${encodeURIComponent(crKey)}"><div class="cr-stats">${crStats('songs', crKey, chartRunData.period)}</div>${crBoxesHTML('songs', crKey)}</div></td></tr>`];
   }).join('') || `<tr><td colspan="6" style="font-style:italic;color:var(--text3);padding:0.5rem">${t('modal_no_songs', { n: chartSize })}</td></tr>`;
 
   // Albums table
@@ -5019,7 +5023,7 @@ function openArtistModal(artistName) {
       <td>${a.count} ${tUnit('plays', a.count)}</td>
     </tr>`;
     if (!hasCR) return [mainRow];
-    return [mainRow, `<tr class="cr-row" id="${rowId}"><td colspan="6"><div class="cr-panel"><div class="cr-stats">${crStats('albums', crKey, chartRunData.period)}</div>${crBoxesHTML('albums', crKey)}</div></td></tr>`];
+    return [mainRow, `<tr class="cr-row" id="${rowId}"><td colspan="6"><div class="cr-panel" data-crtype="albums" data-crkey="${encodeURIComponent(crKey)}"><div class="cr-stats">${crStats('albums', crKey, chartRunData.period)}</div>${crBoxesHTML('albums', crKey)}</div></td></tr>`];
   }).join('') || `<tr><td colspan="6" style="font-style:italic;color:var(--text3);padding:0.5rem">${t('empty_no_album_data')}</td></tr>`;
 
   modal.classList.add('open');
@@ -5069,7 +5073,9 @@ function findAlbumNo1Weeks(albumKey) {
   return results.sort((a, b) => b.key.localeCompare(a.key));
 }
 
+let _currentAlbumKey = null;
 function openAlbumModal(albumKey) {
+  _currentAlbumKey = albumKey;
   const [albumName, artistName] = albumKey.split('|||');
   const albumPlays = allPlays.filter(p => (p.album + '|||' + albumArtist(p)) === albumKey);
   const totalPlays = albumPlays.length;
@@ -5222,7 +5228,7 @@ function openAlbumModal(albumKey) {
           <td>${s.count} ${tUnit('plays', s.count)}</td>
         </tr>`;
       if (!hasCR) return [mainRow];
-      return [mainRow, `<tr class="cr-row" id="${rowId}"><td colspan="6"><div class="cr-panel"><div class="cr-stats">${crStats('songs', crKey, chartRunData.period)}</div>${crBoxesHTML('songs', crKey)}</div></td></tr>`];
+      return [mainRow, `<tr class="cr-row" id="${rowId}"><td colspan="6"><div class="cr-panel" data-crtype="songs" data-crkey="${encodeURIComponent(crKey)}"><div class="cr-stats">${crStats('songs', crKey, chartRunData.period)}</div>${crBoxesHTML('songs', crKey)}</div></td></tr>`];
     }).join(''));
 
   albumModal.classList.add('open');
@@ -5297,11 +5303,13 @@ function upcomingDateLabel(dateStr) {
 
 function renderUpcomingCard(release, artistName) {
   const { label, soon } = upcomingDateLabel(release.date);
+  const typeKey = 'mb_type_' + (release.type || 'Release').toLowerCase();
+  const typeLabel = t(typeKey) || release.type || 'Release';
   return `<div class="upcoming-card">
-    <div class="upcoming-card-date${soon ? ' soon' : ''}">${esc(label)}</div>
+    <div class="upcoming-card-date${soon ? ' soon' : ''}" data-date="${esc(release.date)}">${esc(label)}</div>
     <div class="upcoming-card-title">${esc(release.title)}</div>
     <div class="upcoming-card-artist">${esc(artistName)}</div>
-    <div class="upcoming-card-type">${esc(release.type)}</div>
+    <div class="upcoming-card-type" data-mbtype="${esc(release.type || 'Release')}">${esc(typeLabel)}</div>
   </div>`;
 }
 
@@ -5388,6 +5396,10 @@ function renderUpcomingResults(allReleases, artists, fromCache) {
   const ts = fromCache
     ? (() => { try { return new Date(JSON.parse(localStorage.getItem(MB_CACHE_KEY)).ts).toLocaleString(); } catch (e) { return ''; } })()
     : new Date().toLocaleString();
+  statusEl.dataset.count = sorted.length;
+  statusEl.dataset.n = artists.length;
+  statusEl.dataset.ts = ts;
+  statusEl.dataset.fromCache = fromCache ? '1' : '';
   statusEl.textContent = t('mb_upcoming_status', { count: sorted.length, n: artists.length, ts, cache: cacheNote });
   refreshEl.style.display = 'block';
 }
@@ -5423,11 +5435,13 @@ async function fetchRecentReleasesForMBID(mbid) {
 function renderRecentCard(release, artistName) {
   const d = new Date(release.date + 'T00:00:00');
   const label = fmtDate(d);
+  const typeKey = 'mb_type_' + (release.type || 'Release').toLowerCase();
+  const typeLabel = t(typeKey) || release.type || 'Release';
   return `<div class="upcoming-card">
-    <div class="upcoming-card-date recent">${esc(label)}</div>
+    <div class="upcoming-card-date recent" data-date="${esc(release.date)}">${esc(label)}</div>
     <div class="upcoming-card-title">${esc(release.title)}</div>
     <div class="upcoming-card-artist">${esc(artistName)}</div>
-    <div class="upcoming-card-type">${esc(release.type)}</div>
+    <div class="upcoming-card-type" data-mbtype="${esc(release.type || 'Release')}">${esc(typeLabel)}</div>
   </div>`;
 }
 
@@ -5502,6 +5516,10 @@ function renderRecentResults(allReleases, artists, fromCache) {
   const ts = fromCache
     ? (() => { try { return new Date(JSON.parse(localStorage.getItem(MB_RECENT_CACHE_KEY)).ts).toLocaleString(); } catch (e) { return ''; } })()
     : new Date().toLocaleString();
+  statusEl.dataset.count = sorted.length;
+  statusEl.dataset.n = artists.length;
+  statusEl.dataset.ts = ts;
+  statusEl.dataset.fromCache = fromCache ? '1' : '';
   statusEl.textContent = t('mb_recent_status', { count: sorted.length, n: artists.length, ts, cache: cacheNote });
   refreshEl.style.display = 'block';
 }

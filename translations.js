@@ -108,6 +108,12 @@ const TRANSLATIONS = {
     mb_recent_status: '{{count}} recent releases found across {{n}} artists · Last updated {{ts}}{{cache}}',
     mb_upcoming_empty: 'No upcoming releases found in the next 90 days for your top 50 artists.<br>Coverage depends on MusicBrainz data availability.',
     mb_recent_empty: 'No releases found in the past 180 days for your top 50 artists.<br>Coverage depends on MusicBrainz data availability.',
+    mb_type_album: 'Album',
+    mb_type_single: 'Single',
+    mb_type_ep: 'EP',
+    mb_type_broadcast: 'Broadcast',
+    mb_type_other: 'Other',
+    mb_type_release: 'Release',
     sec_graphs_title: '📈 Historical Graphs',
     sec_raw_data_title: '⊞ Raw Scrobble Data',
     sec_records_title: '🏆 Records & Hall of Fame',
@@ -814,6 +820,12 @@ const TRANSLATIONS = {
     mb_recent_status: '{{count}} lanzamientos recientes encontrados entre {{n}} artistas · Última actualización {{ts}}{{cache}}',
     mb_upcoming_empty: 'No se encontraron próximos lanzamientos en los próximos 90 días para tus top 50 artistas.<br>La cobertura depende de la disponibilidad de datos de MusicBrainz.',
     mb_recent_empty: 'No se encontraron lanzamientos en los últimos 180 días para tus top 50 artistas.<br>La cobertura depende de la disponibilidad de datos de MusicBrainz.',
+    mb_type_album: 'Álbum',
+    mb_type_single: 'Sencillo',
+    mb_type_ep: 'EP',
+    mb_type_broadcast: 'Transmisión',
+    mb_type_other: 'Otro',
+    mb_type_release: 'Lanzamiento',
     sec_graphs_title: '📈 Gráficas Históricas',
     sec_raw_data_title: '⊞ Datos Brutos de Scrobbles',
     sec_records_title: '🏆 Récords y Salón de la Fama',
@@ -1222,7 +1234,7 @@ const TRANSLATIONS = {
     cr_at_1: 'en el #1',
     cr_in_top5: 'en el Top 5',
     cr_in_top10: 'en el Top 10',
-    cr_peak_plays_month: 'Pico de Plays en un Mes',
+    cr_peak_plays_month: 'Pico de Reproducciones en un Mes',
     cr_peak_days_month: 'Pico de Días en un Mes',
     cr_months_peak_year: 'Pico de Meses (Mejor Año)',
     cr_days_peak_year: 'Pico de Días (Mejor Año)',
@@ -1520,6 +1532,12 @@ const TRANSLATIONS = {
     mb_recent_status: '{{count}} lançamentos recentes encontrados entre {{n}} artistas · Última atualização {{ts}}{{cache}}',
     mb_upcoming_empty: 'Nenhum próximo lançamento encontrado nos próximos 90 dias para seus top 50 artistas.<br>A cobertura depende da disponibilidade de dados do MusicBrainz.',
     mb_recent_empty: 'Nenhum lançamento encontrado nos últimos 180 dias para seus top 50 artistas.<br>A cobertura depende da disponibilidade de dados do MusicBrainz.',
+    mb_type_album: 'Álbum',
+    mb_type_single: 'Single',
+    mb_type_ep: 'EP',
+    mb_type_broadcast: 'Transmissão',
+    mb_type_other: 'Outro',
+    mb_type_release: 'Lançamento',
     sec_graphs_title: '📈 Gráficos Históricos',
     sec_raw_data_title: '⊞ Dados Brutos de Scrobbles',
     sec_records_title: '🏆 Recordes e Salão da Fama',
@@ -1928,7 +1946,7 @@ const TRANSLATIONS = {
     cr_at_1: 'no #1',
     cr_in_top5: 'no Top 5',
     cr_in_top10: 'no Top 10',
-    cr_peak_plays_month: 'Pico de Plays em um Mês',
+    cr_peak_plays_month: 'Pico de Reproduções em um Mês',
     cr_peak_days_month: 'Pico de Dias em um Mês',
     cr_months_peak_year: 'Pico de Meses (Melhor Ano)',
     cr_days_peak_year: 'Pico de Dias (Melhor Ano)',
@@ -2226,6 +2244,12 @@ const TRANSLATIONS = {
     mb_recent_status: '{{count}} lançamentos recentes encontrados entre {{n}} artistas · Última atualização {{ts}}{{cache}}',
     mb_upcoming_empty: 'Nenhum próximo lançamento encontrado nos próximos 90 dias para os seus top 50 artistas.<br>A cobertura depende da disponibilidade de dados do MusicBrainz.',
     mb_recent_empty: 'Nenhum lançamento encontrado nos últimos 180 dias para os seus top 50 artistas.<br>A cobertura depende da disponibilidade de dados do MusicBrainz.',
+    mb_type_album: 'Álbum',
+    mb_type_single: 'Single',
+    mb_type_ep: 'EP',
+    mb_type_broadcast: 'Transmissão',
+    mb_type_other: 'Outro',
+    mb_type_release: 'Lançamento',
     sec_graphs_title: '📈 Gráficos Históricos',
     sec_raw_data_title: '⊞ Dados Brutos de Scrobbles',
     sec_records_title: '🏆 Recordes e Salão da Fama',
@@ -2904,6 +2928,58 @@ function setLanguage(lang) {
 
   // Update static DOM strings
   applyI18n();
+
+  // Re-render upcoming/recent status text with new language
+  ['upcomingStatus', 'recentStatus'].forEach(id => {
+    const el = document.getElementById(id);
+    if (!el || !el.dataset.ts) return;
+    const cacheNote = el.dataset.fromCache ? t('mb_cached') : '';
+    const key = id === 'upcomingStatus' ? 'mb_upcoming_status' : 'mb_recent_status';
+    el.textContent = t(key, { count: el.dataset.count, n: el.dataset.n, ts: el.dataset.ts, cache: cacheNote });
+  });
+
+  // Re-render release card dates and type labels with new language
+  document.querySelectorAll('.upcoming-card-date[data-date]').forEach(el => {
+    const d = new Date(el.dataset.date + 'T00:00:00');
+    if (!isNaN(d.getTime())) el.textContent = fmtDate(d);
+  });
+  document.querySelectorAll('.upcoming-card-type[data-mbtype]').forEach(el => {
+    const typeKey = 'mb_type_' + el.dataset.mbtype.toLowerCase();
+    el.textContent = t(typeKey) || el.dataset.mbtype;
+  });
+
+  // Re-render the full chart so date labels, period header, and section titles update
+  if (typeof renderAll === 'function' && typeof allPlays !== 'undefined' && allPlays && allPlays.length > 0) {
+    // Snapshot open chart run panels before re-render wipes the DOM
+    const openPanels = [];
+    document.querySelectorAll('.cr-row.open .cr-panel[data-crtype][data-crkey]').forEach(panel => {
+      openPanels.push({ crtype: panel.dataset.crtype, crkey: panel.dataset.crkey });
+    });
+
+    renderAll();
+
+    // Restore open state for any panels that were open before the re-render
+    openPanels.forEach(({ crtype, crkey }) => {
+      const panel = document.querySelector(`.cr-panel[data-crtype="${crtype}"][data-crkey="${crkey}"]`);
+      if (!panel) return;
+      const crRow = panel.closest('.cr-row');
+      if (!crRow) return;
+      crRow.classList.add('open');
+      const mainRow = crRow.previousElementSibling;
+      if (mainRow) {
+        const btn = mainRow.querySelector('.cr-toggle-btn');
+        if (btn) btn.classList.add('active');
+      }
+    });
+  }
+  // Re-render the album modal's chart run section if it's open
+  const albumModal = document.getElementById('albumModal');
+  if (albumModal?.classList.contains('open') && typeof _currentAlbumKey !== 'undefined' && _currentAlbumKey) {
+    const crEl = document.getElementById('albumModalChartRun');
+    if (crEl && typeof chartRunData !== 'undefined' && chartRunData?.result?.albums?.[_currentAlbumKey]) {
+      crEl.innerHTML = `<div style="padding:0.4rem 0 0.7rem"><div class="cr-stats" style="margin-bottom:0.5rem">${crStats('albums', _currentAlbumKey, chartRunData.period)}</div>${crBoxesHTML('albums', _currentAlbumKey)}</div>`;
+    }
+  }
 
   // Update theme label with new language
   const currentTheme = localStorage.getItem('dankcharts-theme') || 'navy-dark';
