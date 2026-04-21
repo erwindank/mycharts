@@ -22,7 +22,10 @@
       "Bash(awk '/ig-download-btn/,/\\\\}/' c:/Users/erwin/Desktop/mycharts/index.html)",
       "Bash(grep -n \"^  [a-z].*: {$\\\\|^  [a-z][a-zA-Z]*: {$\" c:/Users/erwin/Desktop/mycharts/translations.js)",
       "Bash(git checkout *)",
-      "Bash(git add *)"
+      "Bash(git add *)",
+      "Bash(git commit *)",
+      "Bash(git push *)",
+      "Bash(grep -n \"i18n\\\\|translate\\\\|language\\\\|lang\\\\|translations\\\\|t\\\\\\\\.get\\\\|applyTranslations\" c:/Users/erwin/Desktop/mycharts/app.js)"
     ]
   }
 }

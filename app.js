@@ -5540,14 +5540,15 @@ function graphKey(date) {
 }
 
 function graphKeyLabel(key) {
+  const locale = currentLang === 'en' ? 'en-US' : currentLang;
   if (graphGranularity === 'day') {
     const d = new Date(key + 'T00:00:00');
-    return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: '2-digit' });
+    return d.toLocaleDateString(locale, { month: 'short', day: 'numeric', year: '2-digit' });
   }
   if (graphGranularity === 'month') {
     const [y, m] = key.split('-');
     const d = new Date(+y, +m - 1, 1);
-    return d.toLocaleDateString('en-US', { month: 'short', year: '2-digit' });
+    return d.toLocaleDateString(locale, { month: 'short', year: '2-digit' });
   }
   return key;
 }
@@ -6210,13 +6211,14 @@ function getRaceColor(name) {
 }
 
 function raceLabel(key) {
+  const locale = currentLang === 'en' ? 'en-US' : currentLang;
   if (graphGranularity === 'day') {
     const d = new Date(key + 'T00:00:00');
-    return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    return d.toLocaleDateString(locale, { month: 'short', day: 'numeric', year: 'numeric' });
   }
   if (graphGranularity === 'month') {
     const [y, m] = key.split('-');
-    return new Date(+y, +m - 1, 1).toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+    return new Date(+y, +m - 1, 1).toLocaleDateString(locale, { month: 'short', year: 'numeric' });
   }
   return key; // year already is 4 digits
 }

@@ -320,25 +320,25 @@
         <div class="graph-card-title" data-i18n="graph_cumulative_title">📈 Cumulative Plays Over Time — Artist
           Comparison</div>
         <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.5rem;">
-          <input id="gCumulativeArtistInput" type="text" list="gCumulativeArtistList" placeholder="Add an artist…"
+          <input id="gCumulativeArtistInput" type="text" list="gCumulativeArtistList" data-i18n-placeholder="graph_add_artist" placeholder="Add an artist…"
             style="flex:1;min-width:0;background:var(--bg2);border:1px solid var(--border2);color:var(--text);
                  font-family:'DM Mono',monospace;font-size:0.7rem;padding:0.3rem 0.6rem;border-radius:4px;outline:none;">
           <datalist id="gCumulativeArtistList"></datalist>
-          <button id="gCumulativeArtistBtn" class="graphs-btn active" style="white-space:nowrap;">+ Add</button>
+          <button id="gCumulativeArtistBtn" class="graphs-btn active" data-i18n="btn_add" style="white-space:nowrap;">+ Add</button>
         </div>
         <div id="gCumulativeChips" style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:0.6rem;min-height:0;"></div>
         <div style="display:flex;align-items:center;gap:0.5rem;flex-wrap:wrap;margin-bottom:0.75rem;">
-          <span
+          <span data-i18n="range_label"
             style="font-family:'DM Mono',monospace;font-size:0.62rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--text3);">Range</span>
           <input id="gCumulativeFrom" type="date"
             style="background:var(--bg2);border:1px solid var(--border2);color:var(--text);font-family:'DM Mono',monospace;font-size:0.7rem;padding:0.25rem 0.5rem;border-radius:4px;outline:none;">
-          <span style="font-family:'DM Mono',monospace;font-size:0.62rem;color:var(--text3);">to</span>
+          <span data-i18n="range_to" style="font-family:'DM Mono',monospace;font-size:0.62rem;color:var(--text3);">to</span>
           <input id="gCumulativeTo" type="date"
             style="background:var(--bg2);border:1px solid var(--border2);color:var(--text);font-family:'DM Mono',monospace;font-size:0.7rem;padding:0.25rem 0.5rem;border-radius:4px;outline:none;">
-          <button id="gCumulativeResetRange" class="graphs-btn" style="white-space:nowrap;">Reset</button>
+          <button id="gCumulativeResetRange" class="graphs-btn" data-i18n="btn_reset" style="white-space:nowrap;">Reset</button>
           <button id="gCumulativeLabelsBtn" class="graphs-btn" data-i18n-title="tooltip_toggle_labels"
             style="white-space:nowrap;">Labels: Off</button>
-          <button id="gCumulativeResetZoom" class="graphs-btn" data-i18n-title="tooltip_reset_zoom"
+          <button id="gCumulativeResetZoom" class="graphs-btn" data-i18n="btn_reset_zoom" data-i18n-title="tooltip_reset_zoom"
             style="white-space:nowrap;">Reset Zoom</button>
         </div>
         <div class="graph-canvas-wrap"><canvas id="gCumulative"></canvas></div>
@@ -350,15 +350,15 @@
         <div class="graph-card-sub" data-i18n="graph_volume_sub">How many songs you played each period across all
           artists</div>
         <div style="display:flex;align-items:center;gap:0.5rem;flex-wrap:wrap;margin-bottom:0.75rem;">
-          <span
+          <span data-i18n="range_label"
             style="font-family:'DM Mono',monospace;font-size:0.62rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--text3);">Range</span>
           <input id="gTotalVolumeFrom" type="date"
             style="background:var(--bg2);border:1px solid var(--border2);color:var(--text);font-family:'DM Mono',monospace;font-size:0.7rem;padding:0.25rem 0.5rem;border-radius:4px;outline:none;">
-          <span style="font-family:'DM Mono',monospace;font-size:0.62rem;color:var(--text3);">to</span>
+          <span data-i18n="range_to" style="font-family:'DM Mono',monospace;font-size:0.62rem;color:var(--text3);">to</span>
           <input id="gTotalVolumeTo" type="date"
             style="background:var(--bg2);border:1px solid var(--border2);color:var(--text);font-family:'DM Mono',monospace;font-size:0.7rem;padding:0.25rem 0.5rem;border-radius:4px;outline:none;">
-          <button id="gTotalVolumeResetRange" class="graphs-btn" style="white-space:nowrap;">Reset</button>
-          <button id="gTotalVolumeResetZoom" class="graphs-btn" data-i18n-title="tooltip_reset_zoom"
+          <button id="gTotalVolumeResetRange" class="graphs-btn" data-i18n="btn_reset" style="white-space:nowrap;">Reset</button>
+          <button id="gTotalVolumeResetZoom" class="graphs-btn" data-i18n="btn_reset_zoom" data-i18n-title="tooltip_reset_zoom"
             style="white-space:nowrap;">Reset Zoom</button>
           <button id="gTotalVolumeLabelsBtn" class="graphs-btn" data-i18n-title="tooltip_toggle_labels"
             style="white-space:nowrap;">Labels: Off</button>
@@ -371,23 +371,23 @@
         <div class="graph-card-title" data-i18n="graph_volume_comp_title">📊 Play Volume by Period — Artist Comparison
         </div>
         <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.5rem;">
-          <input id="gVolumeArtistInput" type="text" list="gVolumeArtistList" placeholder="Add an artist…"
+          <input id="gVolumeArtistInput" type="text" list="gVolumeArtistList" data-i18n-placeholder="graph_add_artist" placeholder="Add an artist…"
             style="flex:1;min-width:0;background:var(--bg2);border:1px solid var(--border2);color:var(--text);
                  font-family:'DM Mono',monospace;font-size:0.7rem;padding:0.3rem 0.6rem;border-radius:4px;outline:none;">
           <datalist id="gVolumeArtistList"></datalist>
-          <button id="gVolumeArtistBtn" class="graphs-btn active" style="white-space:nowrap;">+ Add</button>
+          <button id="gVolumeArtistBtn" class="graphs-btn active" data-i18n="btn_add" style="white-space:nowrap;">+ Add</button>
         </div>
         <div id="gVolumeChips" style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:0.6rem;min-height:0;"></div>
         <div style="display:flex;align-items:center;gap:0.5rem;flex-wrap:wrap;margin-bottom:0.75rem;">
-          <span
+          <span data-i18n="range_label"
             style="font-family:'DM Mono',monospace;font-size:0.62rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--text3);">Range</span>
           <input id="gVolumeFrom" type="date"
             style="background:var(--bg2);border:1px solid var(--border2);color:var(--text);font-family:'DM Mono',monospace;font-size:0.7rem;padding:0.25rem 0.5rem;border-radius:4px;outline:none;">
-          <span style="font-family:'DM Mono',monospace;font-size:0.62rem;color:var(--text3);">to</span>
+          <span data-i18n="range_to" style="font-family:'DM Mono',monospace;font-size:0.62rem;color:var(--text3);">to</span>
           <input id="gVolumeTo" type="date"
             style="background:var(--bg2);border:1px solid var(--border2);color:var(--text);font-family:'DM Mono',monospace;font-size:0.7rem;padding:0.25rem 0.5rem;border-radius:4px;outline:none;">
-          <button id="gVolumeResetRange" class="graphs-btn" style="white-space:nowrap;">Reset</button>
-          <button id="gVolumeResetZoom" class="graphs-btn" data-i18n-title="tooltip_reset_zoom"
+          <button id="gVolumeResetRange" class="graphs-btn" data-i18n="btn_reset" style="white-space:nowrap;">Reset</button>
+          <button id="gVolumeResetZoom" class="graphs-btn" data-i18n="btn_reset_zoom" data-i18n-title="tooltip_reset_zoom"
             style="white-space:nowrap;">Reset Zoom</button>
           <button id="gVolumeLabelsBtn" class="graphs-btn" data-i18n-title="tooltip_toggle_labels"
             style="white-space:nowrap;">Labels: Off</button>
@@ -401,7 +401,7 @@
         <div class="graph-card-sub" data-i18n="graph_discoveries_sub">Songs, artists and albums heard for the first time
           each period</div>
         <div style="display:flex;align-items:center;gap:0.5rem;flex-wrap:wrap;margin-bottom:0.75rem;">
-          <button id="gDiscoveriesResetZoom" class="graphs-btn" data-i18n-title="tooltip_reset_zoom"
+          <button id="gDiscoveriesResetZoom" class="graphs-btn" data-i18n="btn_reset_zoom" data-i18n-title="tooltip_reset_zoom"
             style="white-space:nowrap;">Reset Zoom</button>
           <button id="gDiscoveriesLabelsBtn" class="graphs-btn" data-i18n-title="tooltip_toggle_labels"
             style="white-space:nowrap;">Labels: Off</button>
@@ -417,14 +417,14 @@
 
         <!-- Row 1: Type + Playback controls -->
         <div style="display:flex;align-items:center;gap:0.5rem;flex-wrap:wrap;margin-bottom:0.45rem;">
-          <span
+          <span data-i18n="type_label"
             style="font-family:'DM Mono',monospace;font-size:0.62rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--text3);">Type</span>
           <div id="raceTypeBtns" style="display:flex;gap:4px;">
             <button class="graphs-btn active" data-racetype="artists" data-i18n="race_artists">Artists</button>
             <button class="graphs-btn" data-racetype="songs" data-i18n="race_songs">Songs</button>
             <button class="graphs-btn" data-racetype="albums" data-i18n="race_albums">Albums</button>
           </div>
-          <span
+          <span data-i18n="speed_label"
             style="font-family:'DM Mono',monospace;font-size:0.62rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--text3);margin-left:0.3rem;">Speed</span>
           <div id="raceSpeedBtns" style="display:flex;gap:4px;">
             <button class="graphs-btn" data-speed="0.5">0.5×</button>
@@ -436,7 +436,7 @@
 
         <!-- Row 2: Show N -->
         <div style="display:flex;align-items:center;gap:0.5rem;flex-wrap:wrap;margin-bottom:0.45rem;">
-          <span
+          <span data-i18n="show_label"
             style="font-family:'DM Mono',monospace;font-size:0.62rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--text3);">Show</span>
           <div id="raceTopNBtns" style="display:flex;gap:4px;flex-wrap:wrap;">
             <button class="graphs-btn" data-topn="5">Top 5</button>
@@ -451,14 +451,14 @@
 
         <!-- Row 3: Date range -->
         <div style="display:flex;align-items:center;gap:0.5rem;flex-wrap:wrap;margin-bottom:0.6rem;">
-          <span
+          <span data-i18n="range_label"
             style="font-family:'DM Mono',monospace;font-size:0.62rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--text3);">Range</span>
           <input id="raceFrom" type="date"
             style="background:var(--bg2);border:1px solid var(--border2);color:var(--text);font-family:'DM Mono',monospace;font-size:0.7rem;padding:0.25rem 0.5rem;border-radius:4px;outline:none;">
-          <span style="font-family:'DM Mono',monospace;font-size:0.62rem;color:var(--text3);">to</span>
+          <span data-i18n="range_to" style="font-family:'DM Mono',monospace;font-size:0.62rem;color:var(--text3);">to</span>
           <input id="raceTo" type="date"
             style="background:var(--bg2);border:1px solid var(--border2);color:var(--text);font-family:'DM Mono',monospace;font-size:0.7rem;padding:0.25rem 0.5rem;border-radius:4px;outline:none;">
-          <button id="raceResetRange" class="graphs-btn" style="white-space:nowrap;">Reset</button>
+          <button id="raceResetRange" class="graphs-btn" data-i18n="btn_reset" style="white-space:nowrap;">Reset</button>
         </div>
 
         <!-- Row 4: Transport -->

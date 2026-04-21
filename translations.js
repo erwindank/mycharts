@@ -224,6 +224,7 @@ const TRANSLATIONS = {
     type_label: 'Type',
     speed_label: 'Speed',
     show_label: 'Show',
+    graph_add_artist: 'Add an artist…',
 
     // Graph card titles / subtitles
     graph_cumulative_title: '📈 Cumulative Plays Over Time — Artist Comparison',
@@ -936,6 +937,7 @@ const TRANSLATIONS = {
     type_label: 'Tipo',
     speed_label: 'Velocidad',
     show_label: 'Mostrar',
+    graph_add_artist: 'Añadir un artista…',
 
     // Graph card titles / subtitles
     graph_cumulative_title: '📈 Reproducciones Acumuladas — Comparación de Artistas',
@@ -1648,6 +1650,7 @@ const TRANSLATIONS = {
     type_label: 'Tipo',
     speed_label: 'Velocidade',
     show_label: 'Mostrar',
+    graph_add_artist: 'Adicionar um artista…',
 
     // Graph card titles / subtitles
     graph_cumulative_title: '📈 Reproduções Acumuladas — Comparação de Artistas',
@@ -2360,6 +2363,7 @@ const TRANSLATIONS = {
     type_label: 'Tipo',
     speed_label: 'Velocidade',
     show_label: 'Mostrar',
+    graph_add_artist: 'Adicionar um artista…',
 
     // Graph card titles / subtitles
     graph_cumulative_title: '📈 Reproduções Acumuladas — Comparação de Artistas',
@@ -2978,6 +2982,18 @@ function setLanguage(lang) {
     const crEl = document.getElementById('albumModalChartRun');
     if (crEl && typeof chartRunData !== 'undefined' && chartRunData?.result?.albums?.[_currentAlbumKey]) {
       crEl.innerHTML = `<div style="padding:0.4rem 0 0.7rem"><div class="cr-stats" style="margin-bottom:0.5rem">${crStats('albums', _currentAlbumKey, chartRunData.period)}</div>${crBoxesHTML('albums', _currentAlbumKey)}</div>`;
+    }
+  }
+
+  // Re-render graphs tab if active (renderAll does not handle the graphs period)
+  if (typeof currentPeriod !== 'undefined' && currentPeriod === 'graphs' && typeof renderGraphs === 'function') {
+    renderGraphs();
+    // Refresh labels button text with the new language
+    if (typeof updateLabelButton === 'function') {
+      if (typeof gCumulativeLabels !== 'undefined') updateLabelButton('gCumulativeLabelsBtn', gCumulativeLabels);
+      if (typeof gTotalVolumeLabels !== 'undefined') updateLabelButton('gTotalVolumeLabelsBtn', gTotalVolumeLabels);
+      if (typeof gVolumeLabels !== 'undefined') updateLabelButton('gVolumeLabelsBtn', gVolumeLabels);
+      if (typeof gDiscoveriesLabels !== 'undefined') updateLabelButton('gDiscoveriesLabelsBtn', gDiscoveriesLabels);
     }
   }
 
