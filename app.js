@@ -885,6 +885,7 @@ function buildRecords() {
   const songFirstPlay = {}, songLastPlay = {};
   const artistFirstSongName = {}, artistLastSongName = {};
   const albumFirstPlayDate = {}, albumFirstSongName = {};
+  const artistFirstAlbum = {};
   for (const p of chron) {
     const sk = songKey(p);
     if (!songFirstPlay[sk]) songFirstPlay[sk] = p.date;
@@ -892,6 +893,9 @@ function buildRecords() {
     for (const a of p.artists) {
       if (!artistFirstSongName[a]) artistFirstSongName[a] = p.title;
       artistLastSongName[a] = p.title;
+      if (!artistFirstAlbum[a] && p.album && p.album !== '—') {
+        artistFirstAlbum[a] = { album: p.album, albumKey: p.album + '|||' + albumArtist(p), artist: albumArtist(p) };
+      }
     }
     if (p.album && p.album !== '—') {
       const ak = p.album + '|||' + albumArtist(p);
@@ -943,7 +947,7 @@ function buildRecords() {
       const nPS = {}, nPA = {}, nPL = {};
       topSongs.forEach(([k, d], i) => {
         nPS[k] = i + 1;
-        if (!everSong.has(k)) songDebuts[pt][k] = { rank: i + 1, period: pk, title: d.title, artist: d.artist };
+        if (!everSong.has(k)) songDebuts[pt][k] = { rank: i + 1, period: pk, title: d.title, artist: d.artist, plays: d.count };
         everSong.add(k);
         if (i === 0) { if (!song1s[pt][k]) song1s[pt][k] = { title: d.title, artist: d.artist, album: d.album, count: 0, firstPeriod: pk }; song1s[pt][k].count++; song1s[pt][k].lastPeriod = pk; }
         songApps[pt][k] = (songApps[pt][k] || 0) + 1;
@@ -951,7 +955,7 @@ function buildRecords() {
       });
       topArtists.forEach(([a, d], i) => {
         nPA[a] = i + 1;
-        if (!everArtist.has(a)) artistDebuts[pt][a] = { rank: i + 1, period: pk };
+        if (!everArtist.has(a)) artistDebuts[pt][a] = { rank: i + 1, period: pk, plays: d.count };
         everArtist.add(a);
         if (i === 0) { if (!artist1s[pt][a]) artist1s[pt][a] = { count: 0, firstPeriod: pk }; artist1s[pt][a].count++; artist1s[pt][a].lastPeriod = pk; }
         artistApps[pt][a] = (artistApps[pt][a] || 0) + 1;
@@ -959,7 +963,7 @@ function buildRecords() {
       });
       topAlbums.forEach(([ak, d], i) => {
         nPL[ak] = i + 1;
-        if (!everAlbum.has(ak)) albumDebuts[pt][ak] = { rank: i + 1, period: pk, album: d.album, artist: d.artist };
+        if (!everAlbum.has(ak)) albumDebuts[pt][ak] = { rank: i + 1, period: pk, album: d.album, artist: d.artist, plays: d.count };
         everAlbum.add(ak);
         if (i === 0) { if (!album1s[pt][ak]) album1s[pt][ak] = { album: d.album, artist: d.artist, count: 0, firstPeriod: pk }; album1s[pt][ak].count++; album1s[pt][ak].lastPeriod = pk; }
         albumApps[pt][ak] = (albumApps[pt][ak] || 0) + 1;
@@ -1373,22 +1377,156 @@ function buildRecords() {
   })();
 
   // ── Biggest Debuts ───────────────────────────────────────────
+  const debImgQueue = [];
   let dh = '';
-  const debEntConfig = [
-    { icon: '★', label: t('rec_th_songs'), data: songDebuts, nameOf: function (k, d) { return '<td><div class="rec-name">' + esc(d.title) + '</div><div class="rec-sub">' + esc(d.artist) + '</div></td>'; } },
-    { icon: '♦', label: t('rec_th_artists'), data: artistDebuts, nameOf: function (k, d) { return '<td><div class="rec-name">' + esc(k) + '</div></td>'; } },
-    { icon: '◈', label: t('rec_th_albums'), data: albumDebuts, nameOf: function (k, d) { return '<td><div class="rec-name">' + esc(d.album) + '</div><div class="rec-sub">' + esc(d.artist) + '</div></td>'; } },
-  ];
-  for (const ent of debEntConfig) {
-    dh += '<div class="rec-section"><div class="rec-section-title">' + ent.icon + ' ' + ent.label + ' &mdash; ' + t('rec_biggest_debuts_weekly') + '</div>';
-    const debs = Object.entries(ent.data.week).sort(function (a, b) { return a[1].rank - b[1].rank || a[1].period.localeCompare(b[1].period); });
-    dh += recTable(['#', ent.label, t('rec_th_debut_rank'), t('rec_th_week')],
-      debs.map(function (e, i) { return '<td class="rec-rank">' + (i + 1) + '</td>' + ent.nameOf(e[0], e[1]) + '<td class="rec-count">#' + e[1].rank + '</td><td class="rec-meta">' + fmtPeriodKey(e[1].period, 'week') + '</td>'; }),
-      lim
-    );
+
+  // ── Songs Debuts ──
+  {
+    const debs = Object.entries(songDebuts.week).sort(function (a, b) {
+      return b[1].plays - a[1].plays || a[1].rank - b[1].rank || a[1].period.localeCompare(b[1].period);
+    });
+    const sliced = isFinite(lim) ? debs.slice(0, lim) : debs;
+    dh += '<div class="rec-section"><div class="rec-section-title">★ ' + t('rec_th_songs') + ' &mdash; ' + t('rec_biggest_debuts_weekly') + '</div>';
+    if (!sliced.length) {
+      dh += '<div class="rec-empty">' + t('rec_no_data') + '</div>';
+    } else {
+      dh += '<div class="app-table-wrap"><table class="rec-table debut-rich-table"><thead><tr>';
+      dh += '<th>#</th><th colspan="2">' + t('rec_th_songs') + '</th><th></th><th>' + t('rec_th_artist') + '</th>';
+      dh += '<th>' + t('rec_th_plays') + '</th><th>' + t('rec_th_debut_rank') + '</th><th>' + t('rec_th_week') + '</th>';
+      dh += '</tr></thead><tbody>';
+      sliced.forEach(function (e, i) {
+        const k = e[0], d = e[1];
+        const rankCls = i === 0 ? 'rec-rank-1' : i === 1 ? 'rec-rank-2' : i === 2 ? 'rec-rank-3' : '';
+        const songImgId = 'deb-song-img-' + i;
+        const artImgId = 'deb-song-art-' + i;
+        const songPrefKey = 'song:' + d.artist.toLowerCase() + '|||' + d.title.toLowerCase();
+        const artPrefKey = 'artist:' + d.artist.toLowerCase();
+        dh += '<tr class="' + rankCls + '">';
+        dh += '<td class="rec-rank">' + (i + 1) + '</td>';
+        dh += '<td class="thumb-cell"><div class="thumb-wrap"><div id="' + songImgId + '"><div class="thumb-initials">' + esc(initials(d.title)) + '</div></div>';
+        dh += '<button id="srcbtn-' + songImgId + '" class="img-src-btn" data-imgid="' + songImgId + '" data-type="song" data-prefkey="' + esc(songPrefKey) + '" data-name="' + esc(d.title) + '" data-artist="' + esc(d.artist) + '" data-album="">Deezer</button></div></td>';
+        dh += '<td><div class="rec-name">' + esc(d.title) + '</div></td>';
+        dh += '<td class="thumb-cell"><div class="thumb-wrap"><div id="' + artImgId + '" class="app-art-circle"><div class="thumb-initials">' + esc(initials(d.artist)) + '</div></div>';
+        dh += '<button id="srcbtn-' + artImgId + '" class="img-src-btn" data-imgid="' + artImgId + '" data-type="artist" data-prefkey="' + esc(artPrefKey) + '" data-name="' + esc(d.artist) + '" data-artist="' + esc(d.artist) + '" data-album="">Deezer</button></div></td>';
+        dh += '<td><div class="rec-name">' + esc(d.artist) + '</div></td>';
+        dh += '<td class="rec-count">' + (d.plays || 0) + '</td>';
+        dh += '<td class="rec-count">#' + d.rank + '</td>';
+        dh += '<td class="rec-meta"><a class="debut-week-link" href="javascript:void(0)" onclick="showDebutWeekPreview(\'' + esc(d.period) + '\',this,event)">' + fmtPeriodKey(d.period, 'week') + '</a></td>';
+        dh += '</tr>';
+        debImgQueue.push({ imgId: songImgId, imgType: 'song', title: d.title, artist: d.artist, album: '', prefKey: songPrefKey });
+        debImgQueue.push({ imgId: artImgId, imgType: 'artist', name: d.artist, prefKey: artPrefKey });
+      });
+      dh += '</tbody></table></div>';
+    }
     dh += '</div>';
   }
+
+  // ── Artists Debuts ──
+  {
+    const debs = Object.entries(artistDebuts.week).sort(function (a, b) {
+      return b[1].plays - a[1].plays || a[1].rank - b[1].rank || a[1].period.localeCompare(b[1].period);
+    });
+    const sliced = isFinite(lim) ? debs.slice(0, lim) : debs;
+    dh += '<div class="rec-section"><div class="rec-section-title">♦ ' + t('rec_th_artists') + ' &mdash; ' + t('rec_biggest_debuts_weekly') + '</div>';
+    if (!sliced.length) {
+      dh += '<div class="rec-empty">' + t('rec_no_data') + '</div>';
+    } else {
+      dh += '<div class="app-table-wrap"><table class="rec-table debut-rich-table"><thead><tr>';
+      dh += '<th>#</th><th colspan="2">' + t('rec_th_artist') + '</th>';
+      dh += '<th colspan="2">' + t('rec_th_first_song') + '</th>';
+      dh += '<th colspan="2">' + t('rec_th_first_album') + '</th>';
+      dh += '<th>' + t('rec_th_plays') + '</th><th>' + t('rec_th_debut_rank') + '</th><th>' + t('rec_th_week') + '</th>';
+      dh += '</tr></thead><tbody>';
+      sliced.forEach(function (e, i) {
+        const a = e[0], d = e[1];
+        const rankCls = i === 0 ? 'rec-rank-1' : i === 1 ? 'rec-rank-2' : i === 2 ? 'rec-rank-3' : '';
+        const artImgId = 'deb-art-img-' + i;
+        const artPrefKey = 'artist:' + a.toLowerCase();
+        const fSong = artistFirstSongName[a] || '';
+        const fAlbObj = artistFirstAlbum[a] || null;
+        const fSongImgId = 'deb-art-fsong-' + i;
+        const fAlbImgId = 'deb-art-falb-' + i;
+        const fSongPrefKey = fSong ? 'song:' + a.toLowerCase() + '|||' + fSong.toLowerCase() : '';
+        const fAlbPrefKey = fAlbObj ? 'album:' + fAlbObj.artist.toLowerCase() + '|||' + fAlbObj.album.toLowerCase() : '';
+        dh += '<tr class="' + rankCls + '">';
+        dh += '<td class="rec-rank">' + (i + 1) + '</td>';
+        dh += '<td class="thumb-cell"><div class="thumb-wrap"><div id="' + artImgId + '" class="app-art-circle"><div class="thumb-initials">' + esc(initials(a)) + '</div></div>';
+        dh += '<button id="srcbtn-' + artImgId + '" class="img-src-btn" data-imgid="' + artImgId + '" data-type="artist" data-prefkey="' + esc(artPrefKey) + '" data-name="' + esc(a) + '" data-artist="' + esc(a) + '" data-album="">Deezer</button></div></td>';
+        dh += '<td><div class="rec-name">' + esc(a) + '</div></td>';
+        if (fSong) {
+          dh += '<td class="thumb-cell"><div class="thumb-wrap"><div id="' + fSongImgId + '"><div class="thumb-initials">' + esc(initials(fSong)) + '</div></div>';
+          dh += '<button id="srcbtn-' + fSongImgId + '" class="img-src-btn" data-imgid="' + fSongImgId + '" data-type="song" data-prefkey="' + esc(fSongPrefKey) + '" data-name="' + esc(fSong) + '" data-artist="' + esc(a) + '" data-album="">Deezer</button></div></td>';
+          dh += '<td><div class="rec-name debut-first-label">' + esc(fSong) + '</div></td>';
+          debImgQueue.push({ imgId: fSongImgId, imgType: 'song', title: fSong, artist: a, album: '', prefKey: fSongPrefKey });
+        } else {
+          dh += '<td class="rec-meta">—</td><td></td>';
+        }
+        if (fAlbObj) {
+          dh += '<td class="thumb-cell"><div class="thumb-wrap"><div id="' + fAlbImgId + '"><div class="thumb-initials">' + esc(initials(fAlbObj.album)) + '</div></div>';
+          dh += '<button id="srcbtn-' + fAlbImgId + '" class="img-src-btn" data-imgid="' + fAlbImgId + '" data-type="album" data-prefkey="' + esc(fAlbPrefKey) + '" data-name="' + esc(fAlbObj.album) + '" data-artist="' + esc(fAlbObj.artist) + '" data-album="' + esc(fAlbObj.album) + '">Deezer</button></div></td>';
+          dh += '<td><div class="rec-name debut-first-label">' + esc(fAlbObj.album) + '</div></td>';
+          debImgQueue.push({ imgId: fAlbImgId, imgType: 'album', name: fAlbObj.album, album: fAlbObj.album, artist: fAlbObj.artist, prefKey: fAlbPrefKey });
+        } else {
+          dh += '<td class="rec-meta">—</td><td></td>';
+        }
+        dh += '<td class="rec-count">' + (d.plays || 0) + '</td>';
+        dh += '<td class="rec-count">#' + d.rank + '</td>';
+        dh += '<td class="rec-meta"><a class="debut-week-link" href="javascript:void(0)" onclick="showDebutWeekPreview(\'' + esc(d.period) + '\',this,event)">' + fmtPeriodKey(d.period, 'week') + '</a></td>';
+        dh += '</tr>';
+        debImgQueue.push({ imgId: artImgId, imgType: 'artist', name: a, prefKey: artPrefKey });
+      });
+      dh += '</tbody></table></div>';
+    }
+    dh += '</div>';
+  }
+
+  // ── Albums Debuts ──
+  {
+    const debs = Object.entries(albumDebuts.week).sort(function (a, b) {
+      return b[1].plays - a[1].plays || a[1].rank - b[1].rank || a[1].period.localeCompare(b[1].period);
+    });
+    const sliced = isFinite(lim) ? debs.slice(0, lim) : debs;
+    dh += '<div class="rec-section"><div class="rec-section-title">◈ ' + t('rec_th_albums') + ' &mdash; ' + t('rec_biggest_debuts_weekly') + '</div>';
+    if (!sliced.length) {
+      dh += '<div class="rec-empty">' + t('rec_no_data') + '</div>';
+    } else {
+      dh += '<div class="app-table-wrap"><table class="rec-table debut-rich-table"><thead><tr>';
+      dh += '<th>#</th><th colspan="2">' + t('rec_th_albums') + '</th><th></th><th>' + t('rec_th_artist') + '</th>';
+      dh += '<th>' + t('rec_th_plays') + '</th><th>' + t('rec_th_debut_rank') + '</th><th>' + t('rec_th_week') + '</th>';
+      dh += '</tr></thead><tbody>';
+      sliced.forEach(function (e, i) {
+        const k = e[0], d = e[1];
+        const rankCls = i === 0 ? 'rec-rank-1' : i === 1 ? 'rec-rank-2' : i === 2 ? 'rec-rank-3' : '';
+        const albImgId = 'deb-alb-img-' + i;
+        const artImgId = 'deb-alb-art-' + i;
+        const albPrefKey = 'album:' + d.artist.toLowerCase() + '|||' + d.album.toLowerCase();
+        const artPrefKey = 'artist:' + d.artist.toLowerCase();
+        dh += '<tr class="' + rankCls + '">';
+        dh += '<td class="rec-rank">' + (i + 1) + '</td>';
+        dh += '<td class="thumb-cell"><div class="thumb-wrap"><div id="' + albImgId + '"><div class="thumb-initials">' + esc(initials(d.album)) + '</div></div>';
+        dh += '<button id="srcbtn-' + albImgId + '" class="img-src-btn" data-imgid="' + albImgId + '" data-type="album" data-prefkey="' + esc(albPrefKey) + '" data-name="' + esc(d.album) + '" data-artist="' + esc(d.artist) + '" data-album="' + esc(d.album) + '">Deezer</button></div></td>';
+        dh += '<td><div class="rec-name">' + esc(d.album) + '</div></td>';
+        dh += '<td class="thumb-cell"><div class="thumb-wrap"><div id="' + artImgId + '" class="app-art-circle"><div class="thumb-initials">' + esc(initials(d.artist)) + '</div></div>';
+        dh += '<button id="srcbtn-' + artImgId + '" class="img-src-btn" data-imgid="' + artImgId + '" data-type="artist" data-prefkey="' + esc(artPrefKey) + '" data-name="' + esc(d.artist) + '" data-artist="' + esc(d.artist) + '" data-album="">Deezer</button></div></td>';
+        dh += '<td><div class="rec-name">' + esc(d.artist) + '</div></td>';
+        dh += '<td class="rec-count">' + (d.plays || 0) + '</td>';
+        dh += '<td class="rec-count">#' + d.rank + '</td>';
+        dh += '<td class="rec-meta"><a class="debut-week-link" href="javascript:void(0)" onclick="showDebutWeekPreview(\'' + esc(d.period) + '\',this,event)">' + fmtPeriodKey(d.period, 'week') + '</a></td>';
+        dh += '</tr>';
+        debImgQueue.push({ imgId: albImgId, imgType: 'album', name: d.album, album: d.album, artist: d.artist, prefKey: albPrefKey });
+        debImgQueue.push({ imgId: artImgId, imgType: 'artist', name: d.artist, prefKey: artPrefKey });
+      });
+      dh += '</tbody></table></div>';
+    }
+    dh += '</div>';
+  }
+
   document.getElementById('recDebutsBody').innerHTML = dh;
+  (async () => {
+    await loadImages(debImgQueue.filter(function (x) { return x.imgType === 'song'; }), 'song');
+    await loadImages(debImgQueue.filter(function (x) { return x.imgType === 'artist'; }), 'artist');
+    await loadImages(debImgQueue.filter(function (x) { return x.imgType === 'album'; }), 'album');
+  })();
 
   // ── Most Plays in a Period ────────────────────────────────────
   const ptCfg = [
@@ -2922,6 +3060,55 @@ function hidePakWeekPreview() {
   const el = document.getElementById('pakWeekPreviewPopup');
   if (el) el.remove();
   if (_pakPreviewCleanup) { _pakPreviewCleanup(); _pakPreviewCleanup = null; }
+}
+
+let _debutPreviewCleanup = null;
+function showDebutWeekPreview(weekKey, triggerEl, event) {
+  if (event) event.stopPropagation();
+  hideDebutWeekPreview();
+  ensureAllChartRun();
+  const crData = allChartRun['week'];
+  const popup = document.createElement('div');
+  popup.className = 'cr-preview';
+  popup.id = 'debutWeekPreviewPopup';
+  popup.style.position = 'fixed';
+  const title = crPeriodTitle('week', weekKey);
+  const navigateLink = `<a class="cr-preview-link" href="javascript:void(0)" onclick="hideDebutWeekPreview();navigateToRecPeriod('week','${weekKey}')">${t('rec_pak_week_preview_link')}</a>`;
+  if (!crData || !crData.periodMap || !crData.periodMap[weekKey]) {
+    popup.innerHTML = `<button class="cr-preview-close" onclick="hideDebutWeekPreview()">✕</button><div class="cr-preview-title">${esc(title)}</div><div style="padding:4px 0;font-size:0.62rem;color:var(--text3);">${navigateLink}</div>`;
+  } else {
+    const pm = crData.periodMap[weekKey];
+    const types = [
+      { key: 'songs', icon: '🎵', label: t('rec_th_songs'), nameOf: function ([k, d]) { return d._title || k.split('|||')[0]; } },
+      { key: 'artists', icon: '♦', label: t('rec_th_artists'), nameOf: function ([k]) { return k; } },
+      { key: 'albums', icon: '💿', label: t('rec_th_albums'), nameOf: function ([k, d]) { return d._album || k.split('|||')[0]; } },
+    ];
+    let items = '';
+    for (const { key, icon, label, nameOf } of types) {
+      const ranked = Object.entries(pm[key]).sort(function ([, a], [, b]) { return rankSort(a, b); }).slice(0, Math.min(chartSize, 5));
+      if (!ranked.length) continue;
+      items += `<div class="cr-preview-section-label">${icon} ${label}</div>`;
+      items += ranked.map(function ([k, d], i) { return `<div class="cr-preview-item${i === 0 ? ' highlighted' : ''}"><span class="cr-preview-rank">${i + 1}</span><span>${esc(nameOf([k, d]))}</span></div>`; }).join('');
+    }
+    popup.innerHTML = `<button class="cr-preview-close" onclick="hideDebutWeekPreview()">✕</button><div class="cr-preview-title">${esc(title)}</div>${items}<div class="pak-preview-navlink">${navigateLink}</div>`;
+  }
+  document.body.appendChild(popup);
+  const rect = triggerEl.getBoundingClientRect();
+  const pw = 230, ph = 380;
+  let top = rect.bottom + 6, left = rect.left;
+  if (left + pw > window.innerWidth) left = window.innerWidth - pw - 8;
+  if (top + ph > window.innerHeight) top = rect.top - ph - 6;
+  popup.style.top = Math.max(4, top) + 'px';
+  popup.style.left = Math.max(4, left) + 'px';
+  const handler = function (e) { if (!popup.contains(e.target) && !e.target.closest('.debut-week-link')) hideDebutWeekPreview(); };
+  setTimeout(function () { document.addEventListener('click', handler, true); }, 0);
+  _debutPreviewCleanup = function () { document.removeEventListener('click', handler, true); };
+}
+
+function hideDebutWeekPreview() {
+  const el = document.getElementById('debutWeekPreviewPopup');
+  if (el) el.remove();
+  if (_debutPreviewCleanup) { _debutPreviewCleanup(); _debutPreviewCleanup = null; }
 }
 
 function navigateToCrChart(period, periodKey) {

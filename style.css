@@ -4498,3 +4498,35 @@
     .app-table-wrap {
       overflow-x: auto;
     }
+
+    .debut-week-link {
+      text-decoration: none;
+      cursor: pointer;
+      color: inherit;
+      border-bottom: 1px dotted var(--text3);
+      transition: color 0.15s, border-color 0.15s;
+    }
+
+    .debut-week-link:hover {
+      color: var(--accent2);
+      border-bottom-color: var(--accent2);
+    }
+
+    .debut-rich-table th {
+      white-space: nowrap;
+      font-size: 0.62rem;
+    }
+
+    .debut-rich-table td.rec-meta {
+      white-space: nowrap;
+      font-size: 0.72rem;
+    }
+
+    .debut-first-label {
+      font-size: 0.72rem;
+      color: var(--text2);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 130px;
+    }
