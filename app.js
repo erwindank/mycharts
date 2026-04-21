@@ -1106,17 +1106,101 @@ function buildRecords() {
     for (const pw of pakWeeks) { (byArtist[pw.artist] || (byArtist[pw.artist] = [])).push(pw); }
     const sortedPAK = Object.entries(byArtist).sort(function (a, b) { return b[1].length - a[1].length; });
     let ph = '<div class="rec-section-sub">' + t('rec_pak_summary', { weeks: pakWeeks.length, weekword: tUnit('weeks', pakWeeks.length), n: sortedPAK.length, artistword: tUnit('artists', sortedPAK.length) }) + '</div>';
-    ph += recTable(['#', t('rec_th_artist'), t('rec_th_pak_weeks'), t('rec_th_most_recent')],
-      sortedPAK.map(function (e, i) { return '<td class="rec-rank">' + (i + 1) + '</td><td><div class="rec-name">' + esc(e[0]) + '</div></td><td class="rec-count">' + e[1].length + '</td><td class="rec-meta">' + fmtPeriodKey(e[1][e[1].length - 1].weekKey, 'week') + '</td>'; }),
-      lim
-    );
+    const limEntries = isFinite(lim) ? sortedPAK.slice(0, lim) : sortedPAK;
+    ph += '<table class="rec-table pak-artist-table"><thead><tr>'
+      + '<th></th><th>' + t('rec_th_artist') + '</th>'
+      + '<th class="pak-weeks-th">' + t('rec_th_pak_weeks') + '</th>'
+      + '<th>' + t('rec_th_first_song') + '</th>'
+      + '<th>' + t('rec_th_first_album') + '</th>'
+      + '<th>' + t('rec_th_most_recent') + '</th>'
+      + '</tr></thead><tbody>';
+    for (let i = 0; i < limEntries.length; i++) {
+      const [artist, weeks] = limEntries[i];
+      const firstWeek = weeks[0];
+      const lastWeek = weeks[weeks.length - 1];
+      const safeKey = artist.replace(/[^a-z0-9]/gi, '-').toLowerCase() + '-' + i;
+      const artistImgId = 'pak-tbl-aimg-' + safeKey;
+      const expandId = 'pak-expand-' + safeKey;
+      const rankCls = i === 0 ? ' rec-rank-1' : i === 1 ? ' rec-rank-2' : i === 2 ? ' rec-rank-3' : '';
+      ph += '<tr class="pak-artist-row' + rankCls + '" onclick="togglePakArtistExpand(\'' + expandId + '\',this)">'
+        + '<td class="rec-rank">' + (i + 1) + '</td>'
+        + '<td><div class="pak-artist-cell"><div class="pak-mini-thumb pak-mini-thumb-round" id="' + artistImgId + '"><div class="pak-mini-initials">' + esc(initials(artist)) + '</div></div><div class="rec-name">' + esc(artist) + '</div></div></td>'
+        + '<td class="rec-count">' + weeks.length + '</td>'
+        + '<td class="rec-meta pak-tbl-song"><span class="pak-col-icon">🎵</span>' + esc(firstWeek.song) + '</td>'
+        + '<td class="rec-meta pak-tbl-album"><span class="pak-col-icon">💿</span>' + esc(firstWeek.album) + '</td>'
+        + '<td class="rec-meta pak-tbl-last-cell"><a class="pak-date pak-date-link" href="javascript:void(0)" onclick="event.stopPropagation();showPakWeekPreview(\'' + lastWeek.weekKey + '\',this)">' + fmtPeriodKey(lastWeek.weekKey, 'week') + '</a><span class="pak-expand-icon">▼</span></td>'
+        + '</tr>';
+      ph += '<tr class="pak-expand-row" id="' + expandId + '" style="display:none"><td colspan="6"><div class="pak-expand-list">';
+      for (let j = 0; j < weeks.length; j++) {
+        const pw = weeks[j];
+        const albumImgId = 'pak-exp-img-' + safeKey + '-' + j;
+        ph += '<div class="pak-expand-item" data-pak-album-img="' + albumImgId + '" data-album="' + esc(pw.album) + '" data-artist="' + esc(artist) + '">'
+          + '<div class="pak-mini-thumb" id="' + albumImgId + '"><div class="pak-mini-initials">' + esc(initials(pw.album)) + '</div></div>'
+          + '<span class="pak-expand-album">💿 ' + esc(pw.album) + '</span>'
+          + '<span class="pak-expand-song"><span class="pak-col-icon">🎵</span>' + esc(pw.song) + '</span>'
+          + '<a class="pak-date pak-date-link" href="javascript:void(0)" onclick="showPakWeekPreview(\'' + pw.weekKey + '\',this)">' + fmtPeriodKey(pw.weekKey, 'week') + '</a>'
+          + '<a class="pak-expand-link" href="javascript:void(0)" onclick="navigateToRecPeriod(\'week\',\'' + pw.weekKey + '\')">' + t('rec_pak_week_preview_link') + '</a>'
+          + '</div>';
+      }
+      ph += '</div></td></tr>';
+    }
+    ph += '</tbody></table>';
     ph += '<br><div class="rec-section-title" style="margin-top:0.75rem;">' + t('rec_pak_all_title') + '</div><div class="pak-list">';
     const pakSlice = isFinite(lim) ? [...pakWeeks].reverse().slice(0, lim) : [...pakWeeks].reverse();
-    for (const pw of pakSlice) {
-      ph += '<div class="pak-item"><div class="pak-date">' + fmtPeriodKey(pw.weekKey, 'week') + '</div><div class="pak-info"><div class="pak-artist">' + esc(pw.artist) + '</div><div class="pak-details">🎵 ' + esc(pw.song) + ' &middot; 💿 ' + esc(pw.album) + '</div></div><span class="rec-badge rec-badge-gold">PAK</span></div>';
+    for (let idx = 0; idx < pakSlice.length; idx++) {
+      const pw = pakSlice[idx];
+      const pakImgId = 'pak-img-' + pw.weekKey.replace(/[^a-z0-9]/gi, '-') + '-' + idx;
+      const pakArtistImgId = 'pak-aimg-' + pw.weekKey.replace(/[^a-z0-9]/gi, '-') + '-' + idx;
+      ph += '<div class="pak-item">'
+        + '<a class="pak-date pak-date-link" href="javascript:void(0)" onclick="showPakWeekPreview(\'' + pw.weekKey + '\',this)">' + fmtPeriodKey(pw.weekKey, 'week') + '</a>'
+        + '<div class="pak-col pak-col-artist"><div class="pak-mini-thumb pak-mini-thumb-round" id="' + pakArtistImgId + '"><div class="pak-mini-initials">' + esc(initials(pw.artist)) + '</div></div><span class="pak-col-text">' + esc(pw.artist) + '</span></div>'
+        + '<div class="pak-col pak-col-song"><span class="pak-col-icon">🎵</span>' + esc(pw.song) + '</div>'
+        + '<div class="pak-col pak-col-album"><div class="pak-mini-thumb" id="' + pakImgId + '"><div class="pak-mini-initials">' + esc(initials(pw.album)) + '</div></div><span class="pak-col-text">' + esc(pw.album) + '</span></div>'
+        + '<span class="rec-badge rec-badge-gold">' + t('rec_pak_badge') + '</span>'
+        + '</div>';
     }
     ph += '</div>';
     document.getElementById('recPAKBody').innerHTML = ph;
+    // Load artist images for table rows and flat list asynchronously
+    (async () => {
+      for (let i = 0; i < limEntries.length; i++) {
+        const [artist] = limEntries[i];
+        const safeKey = artist.replace(/[^a-z0-9]/gi, '-').toLowerCase() + '-' + i;
+        try {
+          const artistEl = document.getElementById('pak-tbl-aimg-' + safeKey);
+          if (artistEl) {
+            const url = await getArtistImage(artist);
+            if (url) {
+              artistEl.innerHTML = `<img class="pak-mini-img" src="${esc(url)}" alt="" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"><div class="pak-mini-initials" style="display:none">${esc(initials(artist))}</div>`;
+              await new Promise(r => setTimeout(r, 60));
+            }
+          }
+        } catch (e) { }
+      }
+      for (let i = 0; i < pakSlice.length; i++) {
+        const pw = pakSlice[i];
+        const albumImgId = 'pak-img-' + pw.weekKey.replace(/[^a-z0-9]/gi, '-') + '-' + i;
+        const artistImgId = 'pak-aimg-' + pw.weekKey.replace(/[^a-z0-9]/gi, '-') + '-' + i;
+        try {
+          const albumEl = document.getElementById(albumImgId);
+          if (albumEl) {
+            const url = await getAlbumImage(pw.album, pw.artist);
+            if (url) {
+              albumEl.innerHTML = `<img class="pak-mini-img" src="${esc(url)}" alt="" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"><div class="pak-mini-initials" style="display:none">${esc(initials(pw.album))}</div>`;
+              await new Promise(r => setTimeout(r, 60));
+            }
+          }
+          const artistEl = document.getElementById(artistImgId);
+          if (artistEl) {
+            const url = await getArtistImage(pw.artist);
+            if (url) {
+              artistEl.innerHTML = `<img class="pak-mini-img" src="${esc(url)}" alt="" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"><div class="pak-mini-initials" style="display:none">${esc(initials(pw.artist))}</div>`;
+              await new Promise(r => setTimeout(r, 60));
+            }
+          }
+        } catch (e) { }
+      }
+    })();
   }
 
   // ── Most Chart Appearances ────────────────────────────────────
@@ -2601,6 +2685,79 @@ function hideCrPreview() {
   const el = document.getElementById('crPreviewPopup');
   if (el) el.remove();
   if (_crPreviewCleanup) { _crPreviewCleanup(); _crPreviewCleanup = null; }
+}
+
+let _pakPreviewCleanup = null;
+function togglePakArtistExpand(expandId, rowEl) {
+  const expandRow = document.getElementById(expandId);
+  if (!expandRow) return;
+  const isOpen = expandRow.style.display !== 'none';
+  expandRow.style.display = isOpen ? 'none' : '';
+  if (rowEl) rowEl.classList.toggle('pak-artist-row-open', !isOpen);
+  if (!isOpen && !expandRow.dataset.imgsLoaded) {
+    expandRow.dataset.imgsLoaded = '1';
+    (async () => {
+      const items = expandRow.querySelectorAll('[data-pak-album-img]');
+      for (const item of items) {
+        const imgEl = document.getElementById(item.dataset.pakAlbumImg);
+        if (!imgEl) continue;
+        try {
+          const url = await getAlbumImage(item.dataset.album, item.dataset.artist);
+          if (url) {
+            imgEl.innerHTML = `<img class="pak-mini-img" src="${esc(url)}" alt="" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"><div class="pak-mini-initials" style="display:none">${esc(initials(item.dataset.album))}</div>`;
+            await new Promise(r => setTimeout(r, 60));
+          }
+        } catch (e) { }
+      }
+    })();
+  }
+}
+
+function showPakWeekPreview(weekKey, triggerEl) {
+  hidePakWeekPreview();
+  ensureAllChartRun();
+  const crData = allChartRun['week'];
+  const popup = document.createElement('div');
+  popup.className = 'cr-preview';
+  popup.id = 'pakWeekPreviewPopup';
+  popup.style.position = 'fixed';
+  const title = crPeriodTitle('week', weekKey);
+  const navigateLink = `<a class="cr-preview-link" href="javascript:void(0)" onclick="hidePakWeekPreview();navigateToRecPeriod('week','${weekKey}')">${t('rec_pak_week_preview_link')}</a>`;
+  if (!crData || !crData.periodMap[weekKey]) {
+    popup.innerHTML = `<button class="cr-preview-close" onclick="hidePakWeekPreview()">✕</button><div class="cr-preview-title">${esc(title)}</div><div style="padding:4px 0;font-size:0.62rem;color:var(--text3);">${navigateLink}</div>`;
+  } else {
+    const pm = crData.periodMap[weekKey];
+    const types = [
+      { key: 'songs', icon: '🎵', label: t('rec_th_songs'), nameOf: ([k, d]) => d._title || k.split('|||')[0] },
+      { key: 'artists', icon: '♦', label: t('rec_th_artists'), nameOf: ([k]) => k },
+      { key: 'albums', icon: '💿', label: t('rec_th_albums'), nameOf: ([k, d]) => d._album || k.split('|||')[0] },
+    ];
+    let items = '';
+    for (const { key, icon, label, nameOf } of types) {
+      const ranked = Object.entries(pm[key]).sort(([, a], [, b]) => rankSort(a, b)).slice(0, Math.min(chartSize, 5));
+      if (!ranked.length) continue;
+      items += `<div class="cr-preview-section-label">${icon} ${label}</div>`;
+      items += ranked.map(([k, d], i) => `<div class="cr-preview-item${i === 0 ? ' highlighted' : ''}"><span class="cr-preview-rank">${i + 1}</span><span>${esc(nameOf([k, d]))}</span></div>`).join('');
+    }
+    popup.innerHTML = `<button class="cr-preview-close" onclick="hidePakWeekPreview()">✕</button><div class="cr-preview-title">${esc(title)}</div>${items}<div class="pak-preview-navlink">${navigateLink}</div>`;
+  }
+  document.body.appendChild(popup);
+  const rect = triggerEl.getBoundingClientRect();
+  const pw = 230, ph = 380;
+  let top = rect.bottom + 6, left = rect.left;
+  if (left + pw > window.innerWidth) left = window.innerWidth - pw - 8;
+  if (top + ph > window.innerHeight) top = rect.top - ph - 6;
+  popup.style.top = Math.max(4, top) + 'px';
+  popup.style.left = Math.max(4, left) + 'px';
+  const handler = e => { if (!popup.contains(e.target) && !e.target.closest('.pak-date-link')) hidePakWeekPreview(); };
+  setTimeout(() => document.addEventListener('click', handler, true), 0);
+  _pakPreviewCleanup = () => document.removeEventListener('click', handler, true);
+}
+
+function hidePakWeekPreview() {
+  const el = document.getElementById('pakWeekPreviewPopup');
+  if (el) el.remove();
+  if (_pakPreviewCleanup) { _pakPreviewCleanup(); _pakPreviewCleanup = null; }
 }
 
 function navigateToCrChart(period, periodKey) {

@@ -3317,6 +3317,24 @@
       flex-shrink: 0;
     }
 
+    .cr-preview-section-label {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.52rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--text3);
+      margin-top: 0.5rem;
+      padding-top: 0.35rem;
+      border-top: 1px solid var(--border);
+    }
+
+    .cr-preview-section-label:first-child {
+      margin-top: 0;
+      padding-top: 0;
+      border-top: none;
+    }
+
     .cr-preview-close {
       position: absolute;
       top: 5px;
@@ -3687,6 +3705,36 @@
       .raw-filters {
         grid-template-columns: 1fr 1fr;
       }
+
+      .pak-item {
+        grid-template-columns: auto 1fr auto;
+      }
+
+      .pak-col-song,
+      .pak-col-album {
+        display: none;
+      }
+
+      .pak-col-artist {
+        grid-column: 2;
+      }
+
+      .rec-badge.rec-badge-gold {
+        grid-column: 3;
+      }
+
+      .pak-date-link {
+        grid-column: 1;
+      }
+
+      .pak-tbl-song,
+      .pak-tbl-album {
+        display: none;
+      }
+
+      .pak-expand-album {
+        display: none;
+      }
     }
 
     /* ── RECORDS VIEW ── */
@@ -4024,11 +4072,43 @@
       background: var(--bg2);
       border: 1px solid var(--border);
       border-radius: 6px;
-      padding: 0.55rem 0.85rem;
+      padding: 0.45rem 0.75rem 0.45rem 0.55rem;
       display: grid;
-      grid-template-columns: auto 1fr auto;
+      grid-template-columns: auto 1fr 1fr 1fr auto;
       align-items: center;
-      gap: 0.65rem;
+      gap: 0.55rem;
+    }
+
+    .pak-mini-thumb {
+      width: 28px;
+      height: 28px;
+      border-radius: 3px;
+      overflow: hidden;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--bg3);
+    }
+
+    .pak-mini-thumb-round {
+      border-radius: 50%;
+    }
+
+    .pak-mini-img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .pak-mini-initials {
+      font-size: 0.48rem;
+      font-weight: 700;
+      color: var(--text3);
+      text-align: center;
+      line-height: 1;
+      padding: 2px;
     }
 
     .pak-date {
@@ -4039,21 +4119,172 @@
       white-space: nowrap;
     }
 
-    .pak-info {
+    .pak-date-link {
+      text-decoration: none;
+      cursor: pointer;
+      border-bottom: 1px dotted var(--text3);
+      transition: color 0.15s, border-color 0.15s;
+    }
+
+    .pak-date-link:hover {
+      color: var(--accent2);
+      border-bottom-color: var(--accent2);
+    }
+
+    .pak-col {
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      font-size: 0.75rem;
+      color: var(--text2);
+    }
+
+    .pak-col-artist {
+      font-weight: 600;
+      font-size: 0.82rem;
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    .pak-col-album {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.6rem;
+      color: var(--text3);
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    .pak-col-song {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.6rem;
+      color: var(--text3);
+    }
+
+    .pak-col-text {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
       min-width: 0;
     }
 
-    .pak-artist {
-      font-weight: 600;
-      font-size: 0.88rem;
-      color: var(--text);
+    .pak-col-icon {
+      margin-right: 0.2em;
     }
 
-    .pak-details {
+    .pak-preview-navlink {
+      margin-top: 0.4rem;
+      padding-top: 0.3rem;
+      border-top: 1px solid var(--border);
       font-family: 'DM Mono', monospace;
       font-size: 0.58rem;
+    }
+
+    .pak-artist-table tbody tr.pak-artist-row {
+      cursor: pointer;
+    }
+
+    .pak-artist-table thead th.pak-weeks-th {
+      white-space: normal;
+      max-width: 4.5rem;
+      line-height: 1.3;
+    }
+
+    .pak-artist-cell {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .pak-tbl-song,
+    .pak-tbl-album {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.68rem;
       color: var(--text3);
-      margin-top: 2px;
+      max-width: 160px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .pak-tbl-last-cell {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      white-space: nowrap;
+    }
+
+    .pak-expand-icon {
+      display: inline-block;
+      font-size: 0.5rem;
+      color: var(--text3);
+      transition: transform 0.2s;
+    }
+
+    .pak-artist-row-open .pak-expand-icon {
+      transform: rotate(180deg);
+    }
+
+    .pak-expand-row > td {
+      padding: 0 !important;
+      background: var(--bg) !important;
+    }
+
+    .pak-expand-list {
+      display: flex;
+      flex-direction: column;
+      padding: 0.3rem 0.75rem 0.3rem 3rem;
+    }
+
+    .pak-expand-item {
+      display: flex;
+      align-items: center;
+      gap: 0.55rem;
+      padding: 0.3rem 0;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .pak-expand-item:last-child {
+      border-bottom: none;
+    }
+
+    .pak-expand-album {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.62rem;
+      color: var(--text3);
+      flex: 1;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      min-width: 0;
+    }
+
+    .pak-expand-song {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.62rem;
+      color: var(--text2);
+      flex: 1;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      min-width: 0;
+    }
+
+    .pak-expand-link {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.6rem;
+      color: var(--accent);
+      text-decoration: none;
+      white-space: nowrap;
+      opacity: 0.75;
+    }
+
+    .pak-expand-link:hover {
+      opacity: 1;
+      text-decoration: underline;
     }
 
     .milestone-table {
