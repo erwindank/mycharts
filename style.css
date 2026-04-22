@@ -3956,6 +3956,24 @@
       border-right: 1px solid var(--border);
       color: var(--text2);
       font-weight: 500;
+      position: relative;
+    }
+
+    .col-resize-handle {
+      position: absolute;
+      right: -2px;
+      top: 0;
+      bottom: 0;
+      width: 5px;
+      cursor: col-resize;
+      user-select: none;
+      z-index: 2;
+    }
+
+    .col-resize-handle:hover,
+    .col-resize-handle.resizing {
+      background: rgba(100, 160, 255, 0.35);
+      border-radius: 2px;
     }
 
     .rec-table thead th:last-child {
@@ -3978,6 +3996,54 @@
 
     .rec-table tbody tr:hover {
       background: var(--bg3);
+    }
+
+    .rec-run-detail {
+      display: none;
+      background: var(--bg2);
+    }
+
+    .rec-run-detail.open {
+      display: table-row;
+    }
+
+    .rec-run-detail td {
+      padding: 0.45rem 0.9rem 0.6rem !important;
+      border-top: 1px solid var(--border) !important;
+    }
+
+    .rec-table tbody tr.rec-run-detail:hover {
+      background: var(--bg2);
+    }
+
+    .rec-run-toggle-cell {
+      width: 28px;
+      padding: 0 4px !important;
+      text-align: center;
+    }
+
+    .rec-run-toggle-btn {
+      background: none;
+      border: 1px solid var(--border);
+      color: var(--text3);
+      border-radius: 4px;
+      width: 22px;
+      height: 22px;
+      cursor: pointer;
+      font-size: 0.72rem;
+      padding: 0;
+      transition: border-color 0.15s, color 0.15s;
+      line-height: 1;
+    }
+
+    .rec-run-toggle-btn:hover,
+    .rec-run-toggle-btn.active {
+      border-color: var(--gold1);
+      color: var(--gold1);
+    }
+
+    .rec-1s-box .cr-box-rank {
+      font-size: 0.75rem;
     }
 
     .rec-table td {
@@ -4359,6 +4425,7 @@
       padding: 0.45rem 0.7rem;
       text-align: left;
       border-bottom: 1px solid var(--border);
+      position: relative;
     }
 
     .milestone-table td {
@@ -4451,6 +4518,7 @@
 
     .rec-cr-th {
       width: 28px;
+      text-align: center;
     }
 
     .rec-cr-btn-cell {
@@ -4481,6 +4549,25 @@
       color: var(--accent2);
       border-color: var(--accent2);
       background: rgba(255, 255, 255, 0.04);
+    }
+
+    .rec-expand-all-btn {
+      background: none;
+      border: 1px solid var(--border);
+      border-radius: 3px;
+      color: var(--text3);
+      cursor: pointer;
+      font-size: 0.6rem;
+      padding: 2px 4px;
+      line-height: 1;
+      transition: color 0.15s, border-color 0.15s;
+      white-space: nowrap;
+    }
+
+    .rec-expand-all-btn:hover,
+    .rec-expand-all-btn.active {
+      border-color: var(--gold1);
+      color: var(--gold1);
     }
 
     .app-cr-row td {

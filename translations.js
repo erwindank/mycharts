@@ -166,6 +166,8 @@ const TRANSLATIONS = {
     artists_other: 'artists',
     weeks_one: 'wk',
     weeks_other: 'wks',
+    weeks_full_one: 'week',
+    weeks_full_other: 'weeks',
     months_one: 'month',
     months_other: 'months',
     years_one: 'year',
@@ -329,9 +331,9 @@ const TRANSLATIONS = {
     rec_app_week_other: 'weeks',
 
     // Records dynamic text
-    rec_weekly_label: 'Weekly',
-    rec_monthly_label: 'Monthly',
-    rec_yearly_label: 'Yearly',
+    rec_weekly_label: 'Weekly Chart',
+    rec_monthly_label: 'Monthly Chart',
+    rec_yearly_label: 'Yearly Chart',
     rec_chart_label: 'Chart',
     rec_most_times_1: 'Most Times at #1 on Chart',
     rec_most_appearances: 'Most Weekly Chart Appearances',
@@ -508,6 +510,7 @@ const TRANSLATIONS = {
 
     // CR modal
     cr_chart_run: '📊 Chart Run',
+    rec_expand_all: 'Expand / Collapse All',
     cr_rank_history: 'Ranking history & chart appearances over time',
     cr_entry_post: '🎵 Entry Post',
     cr_range: 'Range',
@@ -885,6 +888,8 @@ const TRANSLATIONS = {
     artists_other: 'artistas',
     weeks_one: 'sem.',
     weeks_other: 'sems.',
+    weeks_full_one: 'semana',
+    weeks_full_other: 'semanas',
     months_one: 'mes',
     months_other: 'meses',
     years_one: 'año',
@@ -1048,9 +1053,9 @@ const TRANSLATIONS = {
     rec_app_week_other: 'semanas',
 
     // Records dynamic text
-    rec_weekly_label: 'Semanal',
-    rec_monthly_label: 'Mensual',
-    rec_yearly_label: 'Anual',
+    rec_weekly_label: 'Ranking Semanal',
+    rec_monthly_label: 'Ranking Mensual',
+    rec_yearly_label: 'Ranking Anual',
     rec_chart_label: 'Ranking',
     rec_most_times_1: 'Más Veces en #1 del Ranking',
     rec_most_appearances: 'Más Apariciones en el Ranking Semanal',
@@ -1075,7 +1080,7 @@ const TRANSLATIONS = {
     rec_certs_thresholds: 'Canción: Oro={{sg}} · Platino={{sp}} · Diamante={{sd}} repros. | Álbum: Oro={{ag}} · Platino={{ap}} · Diamante={{ad}} repros.',
     rec_have_reached: '{{n}} {{type}} han alcanzado {{plays}} repros. — ordenados por menos días desde la primera hasta la {{plays}}ª repro.',
     rec_has_reached: '1 {{type}} ha alcanzado {{plays}} repros. — ordenado por menos días desde la primera hasta la {{plays}}ª repro.',
-    rec_pak_summary: '{{weeks}} {{weekword}} de Dominio Total en {{n}} {{artistword}}',
+    rec_pak_summary: '{{weeks}} {{weekwordfull}} de Dominio Total en {{n}} {{artistword}}',
     rec_pak_badge: 'Dominio Total',
     rec_pak_week_preview_link: '→ Ver semana completa',
     rec_pak_all_title: 'Todas las Semanas de Dominio Total (Más Recientes Primero)',
@@ -1227,6 +1232,7 @@ const TRANSLATIONS = {
 
     // CR modal
     cr_chart_run: '📊 Recorrido en el Ranking',
+    rec_expand_all: 'Expandir / Colapsar Todo',
     cr_rank_history: 'Historial de posiciones y apariciones en el ranking',
     cr_entry_post: '🎵 Post de Entrada',
     cr_range: 'Rango',
@@ -1604,6 +1610,8 @@ const TRANSLATIONS = {
     artists_other: 'artistas',
     weeks_one: 'sem.',
     weeks_other: 'sems.',
+    weeks_full_one: 'semana',
+    weeks_full_other: 'semanas',
     months_one: 'mês',
     months_other: 'meses',
     years_one: 'ano',
@@ -1767,9 +1775,9 @@ const TRANSLATIONS = {
     rec_app_week_other: 'semanas',
 
     // Records dynamic text
-    rec_weekly_label: 'Semanal',
-    rec_monthly_label: 'Mensal',
-    rec_yearly_label: 'Anual',
+    rec_weekly_label: 'Parada Semanal',
+    rec_monthly_label: 'Parada Mensal',
+    rec_yearly_label: 'Parada Anual',
     rec_chart_label: 'Parada',
     rec_most_times_1: 'Mais Vezes no #1 da Parada',
     rec_most_appearances: 'Mais Aparições na Parada Semanal',
@@ -1794,7 +1802,7 @@ const TRANSLATIONS = {
     rec_certs_thresholds: 'Música: Ouro={{sg}} · Platina={{sp}} · Diamante={{sd}} repros. | Álbum: Ouro={{ag}} · Platina={{ap}} · Diamante={{ad}} repros.',
     rec_have_reached: '{{n}} {{type}} atingiram {{plays}} repros. — ordenados pelo menor número de dias do primeiro ao {{plays}}º',
     rec_has_reached: '1 {{type}} atingiu {{plays}} repros. — ordenado pelo menor número de dias do primeiro ao {{plays}}º',
-    rec_pak_summary: '{{weeks}} {{weekword}} de Domínio Total em {{n}} {{artistword}}',
+    rec_pak_summary: '{{weeks}} {{weekwordfull}} de Domínio Total em {{n}} {{artistword}}',
     rec_pak_badge: 'Domínio Total',
     rec_pak_week_preview_link: '→ Ver semana completa',
     rec_pak_all_title: 'Todas as Semanas de Domínio Total (Mais Recentes Primeiro)',
@@ -1946,6 +1954,7 @@ const TRANSLATIONS = {
 
     // CR modal
     cr_chart_run: '📊 Trajetória na Parada',
+    rec_expand_all: 'Expandir / Colapsar Tudo',
     cr_rank_history: 'Histórico de posições e aparições na parada',
     cr_entry_post: '🎵 Post de Entrada',
     cr_range: 'Intervalo',
@@ -2323,6 +2332,8 @@ const TRANSLATIONS = {
     artists_other: 'artistas',
     weeks_one: 'sem.',
     weeks_other: 'sems.',
+    weeks_full_one: 'semana',
+    weeks_full_other: 'semanas',
     months_one: 'mês',
     months_other: 'meses',
     years_one: 'ano',
@@ -2486,9 +2497,9 @@ const TRANSLATIONS = {
     rec_app_week_other: 'semanas',
 
     // Records dynamic text
-    rec_weekly_label: 'Semanal',
-    rec_monthly_label: 'Mensal',
-    rec_yearly_label: 'Anual',
+    rec_weekly_label: 'Top Semanal',
+    rec_monthly_label: 'Top Mensal',
+    rec_yearly_label: 'Top Anual',
     rec_chart_label: 'Top',
     rec_most_times_1: 'Mais Vezes no #1 do Top',
     rec_most_appearances: 'Mais Aparições no Top Semanal',
@@ -2513,7 +2524,7 @@ const TRANSLATIONS = {
     rec_certs_thresholds: 'Música: Ouro={{sg}} · Platina={{sp}} · Diamante={{sd}} repros. | Álbum: Ouro={{ag}} · Platina={{ap}} · Diamante={{ad}} repros.',
     rec_have_reached: '{{n}} {{type}} atingiram {{plays}} repros. — ordenados pelo menor número de dias do primeiro ao {{plays}}º',
     rec_has_reached: '1 {{type}} atingiu {{plays}} repros. — ordenado pelo menor número de dias do primeiro ao {{plays}}º',
-    rec_pak_summary: '{{weeks}} {{weekword}} de Domínio Total em {{n}} {{artistword}}',
+    rec_pak_summary: '{{weeks}} {{weekwordfull}} de Domínio Total em {{n}} {{artistword}}',
     rec_pak_badge: 'Domínio Total',
     rec_pak_week_preview_link: '→ Ver semana completa',
     rec_pak_all_title: 'Todas as Semanas de Domínio Total (Mais Recentes Primeiro)',
@@ -2665,6 +2676,7 @@ const TRANSLATIONS = {
 
     // CR modal
     cr_chart_run: '📊 Trajetória no Top',
+    rec_expand_all: 'Expandir / Colapsar Tudo',
     cr_rank_history: 'Histórico de posições e aparições no top',
     cr_entry_post: '🎵 Post de Entrada',
     cr_range: 'Intervalo',

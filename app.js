@@ -949,7 +949,7 @@ function buildRecords() {
         nPS[k] = i + 1;
         if (!everSong.has(k)) songDebuts[pt][k] = { rank: i + 1, period: pk, title: d.title, artist: d.artist, plays: d.count };
         everSong.add(k);
-        if (i === 0) { if (!song1s[pt][k]) song1s[pt][k] = { title: d.title, artist: d.artist, album: d.album, count: 0, firstPeriod: pk }; song1s[pt][k].count++; song1s[pt][k].lastPeriod = pk; }
+        if (i === 0) { if (!song1s[pt][k]) song1s[pt][k] = { title: d.title, artist: d.artist, album: d.album, count: 0, firstPeriod: pk, periods: [] }; song1s[pt][k].count++; song1s[pt][k].lastPeriod = pk; song1s[pt][k].periods.push(pk); }
         songApps[pt][k] = (songApps[pt][k] || 0) + 1;
         if (!songPP[pt][k] || d.count > songPP[pt][k].count) songPP[pt][k] = { count: d.count, period: pk, title: d.title, artist: d.artist };
       });
@@ -957,7 +957,7 @@ function buildRecords() {
         nPA[a] = i + 1;
         if (!everArtist.has(a)) artistDebuts[pt][a] = { rank: i + 1, period: pk, plays: d.count };
         everArtist.add(a);
-        if (i === 0) { if (!artist1s[pt][a]) artist1s[pt][a] = { count: 0, firstPeriod: pk }; artist1s[pt][a].count++; artist1s[pt][a].lastPeriod = pk; }
+        if (i === 0) { if (!artist1s[pt][a]) artist1s[pt][a] = { count: 0, firstPeriod: pk, periods: [] }; artist1s[pt][a].count++; artist1s[pt][a].lastPeriod = pk; artist1s[pt][a].periods.push(pk); }
         artistApps[pt][a] = (artistApps[pt][a] || 0) + 1;
         if (!artistPP[pt][a] || d.count > artistPP[pt][a].count) artistPP[pt][a] = { count: d.count, period: pk };
       });
@@ -965,7 +965,7 @@ function buildRecords() {
         nPL[ak] = i + 1;
         if (!everAlbum.has(ak)) albumDebuts[pt][ak] = { rank: i + 1, period: pk, album: d.album, artist: d.artist, plays: d.count };
         everAlbum.add(ak);
-        if (i === 0) { if (!album1s[pt][ak]) album1s[pt][ak] = { album: d.album, artist: d.artist, count: 0, firstPeriod: pk }; album1s[pt][ak].count++; album1s[pt][ak].lastPeriod = pk; }
+        if (i === 0) { if (!album1s[pt][ak]) album1s[pt][ak] = { album: d.album, artist: d.artist, count: 0, firstPeriod: pk, periods: [] }; album1s[pt][ak].count++; album1s[pt][ak].lastPeriod = pk; album1s[pt][ak].periods.push(pk); }
         albumApps[pt][ak] = (albumApps[pt][ak] || 0) + 1;
         if (!albumPP[pt][ak] || d.count > albumPP[pt][ak].count) albumPP[pt][ak] = { count: d.count, period: pk, album: d.album, artist: d.artist };
       });
@@ -1058,12 +1058,19 @@ function buildRecords() {
     t('rec_intro_prefix') + ' <strong>' + t('rec_weekly_top', { n: wSize }) + '</strong> &middot; <strong>' + t('rec_monthly_top', { n: mSize }) + '</strong> &middot; <strong>' + yTopLabel + '</strong> &nbsp;|&nbsp; ' +
     t('rec_data_summary', { weeks: weekKeys.length, months: monthKeys.length, years: yearKeys.length });
 
-  function recTable(headers, rows, limit) {
+  function recTable(headers, rows, limit, detailRows, tableId) {
     limit = (limit === undefined || limit === null) ? 25 : limit;
     if (!rows.length) return '<div class="rec-empty">' + t('rec_no_data') + '</div>';
     const sliced = isFinite(limit) ? rows.slice(0, limit) : rows;
-    return '<table class="rec-table"><thead><tr>' + headers.map(function (h) { return '<th>' + h + '</th>'; }).join('') + '</tr></thead><tbody>' +
-      sliced.map(function (r, i) { return '<tr class="' + (i === 0 ? 'rec-rank-1' : i === 1 ? 'rec-rank-2' : i === 2 ? 'rec-rank-3' : '') + '">' + r + '</tr>'; }).join('') +
+    const slicedDetails = detailRows ? (isFinite(limit) ? detailRows.slice(0, limit) : detailRows) : null;
+    const colCount = headers.length;
+    return '<table class="rec-table"' + (tableId ? ' id="' + tableId + '"' : '') + '><thead><tr>' + headers.map(function (h) { return '<th>' + h + '</th>'; }).join('') + '</tr></thead><tbody>' +
+      sliced.map(function (r, i) {
+        const rankCls = i === 0 ? 'rec-rank-1' : i === 1 ? 'rec-rank-2' : i === 2 ? 'rec-rank-3' : '';
+        if (!slicedDetails || !slicedDetails[i]) return '<tr class="' + rankCls + '">' + r + '</tr>';
+        return '<tr class="' + rankCls + '">' + r + '</tr>'
+          + '<tr class="rec-run-detail" id="' + slicedDetails[i].id + '"><td colspan="' + colCount + '">' + slicedDetails[i].html + '</td></tr>';
+      }).join('') +
       '</tbody></table>';
   }
   const lim = recLimit === 0 ? Infinity : recLimit;
@@ -1097,21 +1104,30 @@ function buildRecords() {
       h += '<div class="rec-section-sub-wrapper" id="' + subsectionId + '-wrapper">';
       h += '<div class="rec-section-sub-header">';
       h += '<button class="rec-subsection-collapse-btn" data-subsection-id="' + subsectionId + '" title="Collapse">−</button>';
-      h += '<div class="rec-section-sub">' + cfg.label + ' ' + t('rec_chart_label') + ' &mdash; ' + t('rec_have_hit_1', { n: '<strong>' + entries.length + '</strong>', type: ent.label.toLowerCase() }) + '</div>';
+      h += '<div class="rec-section-sub">' + cfg.label + ' &mdash; ' + t('rec_have_hit_1', { n: '<strong>' + entries.length + '</strong>', type: ent.label.toLowerCase() }) + '</div>';
       h += '</div>';
       h += '<div class="rec-subsection-content" id="' + subsectionId + '">';
+      const tableId = 'rec-1s-tbl-' + ent.key + '-' + cfg.pt;
+      const runBaseId = 'rec-1s-run-' + ent.key + '-' + cfg.pt;
       const headers = ['#', '', ent.label, periodAtOneHeader(cfg.pt), t('rec_th_first_at_1')];
       if (cfg.pt !== 'year') headers.push(t('rec_th_date_at_peak'));
+      headers.push('<button class="rec-expand-all-btn" onclick="event.stopPropagation();toggleAllRecRuns(\'' + tableId + '\',this)" title="' + t('rec_expand_all') + '">▸▸</button>');
       h += recTable(headers,
         entries.map(function (e, i) {
           const imgId = 'rec-img-' + ent.key + '-' + cfg.pt + '-' + i;
+          const runId = runBaseId + '-' + i;
           let row = ent.nameRow(e[0], e[1], i, imgId) + '<td class="rec-count">' + e[1].count + '</td><td class="rec-meta">' + fmtPeriodKey(e[1].firstPeriod, cfg.pt) + '</td>';
           if (cfg.pt !== 'year') {
             row += '<td class="rec-meta"><a href="javascript:void(0)" class="rec-date-link" onclick="navigateToRecPeriod(\'' + cfg.pt + '\',\'' + e[1].lastPeriod + '\')">' + fmtPeriodKey(e[1].lastPeriod, cfg.pt) + '</a></td>';
           }
+          row += '<td class="rec-run-toggle-cell"><button class="rec-run-toggle-btn" onclick="event.stopPropagation();toggleRecRun(this,\'' + runId + '\')">▸</button></td>';
           return row;
         }),
-        lim
+        lim,
+        entries.map(function (e, i) {
+          return { id: runBaseId + '-' + i, html: rec1sBoxesHTML(e[1].periods, cfg.pt) };
+        }),
+        tableId
       );
       h += '</div>';
       // Collect image items for loading
@@ -1143,7 +1159,7 @@ function buildRecords() {
     const byArtist = {};
     for (const pw of pakWeeks) { (byArtist[pw.artist] || (byArtist[pw.artist] = [])).push(pw); }
     const sortedPAK = Object.entries(byArtist).sort(function (a, b) { return b[1].length - a[1].length; });
-    let ph = '<div class="rec-section-sub">' + t('rec_pak_summary', { weeks: pakWeeks.length, weekword: tUnit('weeks', pakWeeks.length), n: sortedPAK.length, artistword: tUnit('artists', sortedPAK.length) }) + '</div>';
+    let ph = '<div class="rec-section-sub">' + t('rec_pak_summary', { weeks: pakWeeks.length, weekword: tUnit('weeks', pakWeeks.length), weekwordfull: tUnit('weeks_full', pakWeeks.length), n: sortedPAK.length, artistword: tUnit('artists', sortedPAK.length) }) + '</div>';
     const limEntries = isFinite(lim) ? sortedPAK.slice(0, lim) : sortedPAK;
     ph += '<table class="rec-table pak-artist-table"><thead><tr>'
       + '<th></th><th>' + t('rec_th_artist') + '</th>'
@@ -1251,10 +1267,10 @@ function buildRecords() {
     const tops = Object.entries(songApps.week).sort((a, b) => b[1] - a[1]);
     const sliced = isFinite(lim) ? tops.slice(0, lim) : tops;
     ah += '<div class="rec-section"><div class="rec-section-title">★ ' + t('rec_th_songs') + ' &mdash; ' + t('rec_most_appearances') + '</div>';
-    ah += '<div class="app-table-wrap"><table class="rec-table app-appearances-table"><thead><tr>';
+    ah += '<div class="app-table-wrap"><table class="rec-table app-appearances-table" id="app-tbl-songs"><thead><tr>';
     ah += '<th>#</th><th></th><th>' + t('rec_th_songs') + '</th><th class="app-art-th"></th><th>' + t('rec_th_artist') + '</th>';
     ah += '<th>' + t('rec_th_first_streamed') + '</th><th>' + t('rec_th_last_streamed') + '</th>';
-    ah += '<th>' + t('rec_th_weeks_on_chart') + '</th><th class="rec-cr-th"></th>';
+    ah += '<th>' + t('rec_th_weeks_on_chart') + '</th><th class="rec-cr-th"><button class="rec-expand-all-btn" onclick="event.stopPropagation();toggleAllAppCr(\'app-tbl-songs\',this)" title="' + t('rec_expand_all') + '">▶▶</button></th>';
     ah += '</tr></thead><tbody>';
     for (let i = 0; i < sliced.length; i++) {
       const [k, count] = sliced[i];
@@ -1294,11 +1310,11 @@ function buildRecords() {
     const tops = Object.entries(artistApps.week).sort((a, b) => b[1] - a[1]);
     const sliced = isFinite(lim) ? tops.slice(0, lim) : tops;
     ah += '<div class="rec-section"><div class="rec-section-title">♦ ' + t('rec_th_artists') + ' &mdash; ' + t('rec_most_appearances') + '</div>';
-    ah += '<div class="app-table-wrap"><table class="rec-table app-appearances-table"><thead><tr>';
+    ah += '<div class="app-table-wrap"><table class="rec-table app-appearances-table" id="app-tbl-artists"><thead><tr>';
     ah += '<th>#</th><th></th><th>' + t('rec_th_artist') + '</th>';
     ah += '<th>' + t('rec_th_first_song') + '</th><th>' + t('rec_th_last_song') + '</th>';
     ah += '<th>' + t('rec_th_first_charted') + '</th>';
-    ah += '<th>' + t('rec_th_weeks_on_chart') + '</th><th class="rec-cr-th"></th>';
+    ah += '<th>' + t('rec_th_weeks_on_chart') + '</th><th class="rec-cr-th"><button class="rec-expand-all-btn" onclick="event.stopPropagation();toggleAllAppCr(\'app-tbl-artists\',this)" title="' + t('rec_expand_all') + '">▶▶</button></th>';
     ah += '</tr></thead><tbody>';
     for (let i = 0; i < sliced.length; i++) {
       const [a, count] = sliced[i];
@@ -1331,11 +1347,11 @@ function buildRecords() {
     const tops = Object.entries(albumApps.week).sort((a, b) => b[1] - a[1]);
     const sliced = isFinite(lim) ? tops.slice(0, lim) : tops;
     ah += '<div class="rec-section"><div class="rec-section-title">◈ ' + t('rec_th_albums') + ' &mdash; ' + t('rec_most_appearances') + '</div>';
-    ah += '<div class="app-table-wrap"><table class="rec-table app-appearances-table"><thead><tr>';
+    ah += '<div class="app-table-wrap"><table class="rec-table app-appearances-table" id="app-tbl-albums"><thead><tr>';
     ah += '<th>#</th><th></th><th>' + t('rec_th_albums') + '</th><th class="app-art-th"></th><th>' + t('rec_th_artist') + '</th>';
     ah += '<th>' + t('rec_th_first_song') + '</th>';
     ah += '<th>' + t('rec_th_first_streamed') + '</th>';
-    ah += '<th>' + t('rec_th_weeks_on_chart') + '</th><th class="rec-cr-th"></th>';
+    ah += '<th>' + t('rec_th_weeks_on_chart') + '</th><th class="rec-cr-th"><button class="rec-expand-all-btn" onclick="event.stopPropagation();toggleAllAppCr(\'app-tbl-albums\',this)" title="' + t('rec_expand_all') + '">▶▶</button></th>';
     ah += '</tr></thead><tbody>';
     for (let i = 0; i < sliced.length; i++) {
       const [k, count] = sliced[i];
@@ -1650,6 +1666,48 @@ function buildRecords() {
   document.getElementById('recStreaksBody').innerHTML = sh;
   setupRecordSubsectionCollapse();
   restoreRecordSubsectionCollapseStates();
+  initAllRecTableResizableCols();
+}
+
+function initAllRecTableResizableCols() {
+  document.querySelectorAll('#recordsView .rec-table, #recordsView .milestone-table').forEach(initResizableColsForTable);
+}
+
+function initResizableColsForTable(table) {
+  if (table.dataset.resizeReady === '1') return;
+  table.dataset.resizeReady = '1';
+  const ths = Array.from(table.querySelectorAll('thead th'));
+  ths.forEach(function(th, i) {
+    if (i === ths.length - 1) return; // skip last column
+    const handle = document.createElement('span');
+    handle.className = 'col-resize-handle';
+    th.appendChild(handle);
+    handle.addEventListener('mousedown', function(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      const startX = e.pageX;
+      const startW = th.offsetWidth;
+      if (table.style.tableLayout !== 'fixed') {
+        ths.forEach(function(t) { t.style.width = t.offsetWidth + 'px'; });
+        table.style.tableLayout = 'fixed';
+      }
+      handle.classList.add('resizing');
+      document.body.style.cursor = 'col-resize';
+      document.body.style.userSelect = 'none';
+      function onMouseMove(e) {
+        th.style.width = Math.max(30, startW + e.pageX - startX) + 'px';
+      }
+      function onMouseUp() {
+        handle.classList.remove('resizing');
+        document.body.style.cursor = '';
+        document.body.style.userSelect = '';
+        document.removeEventListener('mousemove', onMouseMove);
+        document.removeEventListener('mouseup', onMouseUp);
+      }
+      document.addEventListener('mousemove', onMouseMove);
+      document.addEventListener('mouseup', onMouseUp);
+    });
+  });
 }
 
 function restoreRecordSubsectionCollapseStates() {
@@ -2889,6 +2947,31 @@ function crPeriodGap(period, keyA, keyB) {
   }
 }
 
+function rec1sBoxesHTML(periods, pt) {
+  if (!periods || !periods.length) return '';
+  const unit = function(gap) { return pt === 'week' ? tUnit('weeks', gap) : pt === 'month' ? tUnit('months', gap) : tUnit('years', gap); };
+  const boxes = periods.flatMap(function(pk, i) {
+    const box = '<div class="cr-box cr-box-peak rec-1s-box" onclick="navigateToRecPeriod(\'' + pt + '\',\'' + pk + '\')">'
+      + '<div class="cr-box-rank">#1</div>'
+      + '<div class="cr-box-label">' + esc(crPeriodLabel(pt, pk)) + '</div>'
+      + '</div>';
+    if (i === 0) return [box];
+    const gap = crPeriodGap(pt, periods[i - 1], pk);
+    if (gap <= 0) return [box];
+    const gapEl = '<div class="cr-box-gap"><div class="cr-box-gap-label">✕' + gap + '</div><div class="cr-box-gap-unit">' + unit(gap) + '</div></div>';
+    return [gapEl, box];
+  }).join('');
+  return '<div class="cr-boxes-wrap"><div class="cr-boxes">' + boxes + '</div></div>';
+}
+
+function toggleRecRun(btn, runId) {
+  const row = document.getElementById(runId);
+  if (!row) return;
+  const open = row.classList.toggle('open');
+  btn.classList.toggle('active', open);
+  btn.textContent = open ? '▾' : '▸';
+}
+
 function crBoxesHTML(type, key, crData, preD, periodOverride) {
   const data = crData || chartRunData;
   const d = preD !== undefined ? preD : (data?.result?.[type]?.[key]);
@@ -2928,6 +3011,32 @@ function toggleAppCr(rowId, btn) {
   row.style.display = isOpen ? 'none' : '';
   btn.classList.toggle('active', !isOpen);
   btn.textContent = isOpen ? '▶' : '▼';
+}
+
+function toggleAllRecRuns(tableId, btn) {
+  event.stopPropagation();
+  const table = document.getElementById(tableId);
+  if (!table) return;
+  const detailRows = table.querySelectorAll('tr.rec-run-detail');
+  const toggleBtns = table.querySelectorAll('button.rec-run-toggle-btn');
+  const anyOpen = Array.from(detailRows).some(r => r.classList.contains('open'));
+  detailRows.forEach(r => r.classList.toggle('open', !anyOpen));
+  toggleBtns.forEach(b => { b.classList.toggle('active', !anyOpen); b.textContent = anyOpen ? '▸' : '▾'; });
+  btn.classList.toggle('active', !anyOpen);
+  btn.textContent = anyOpen ? '▸▸' : '▾▾';
+}
+
+function toggleAllAppCr(tableId, btn) {
+  event.stopPropagation();
+  const table = document.getElementById(tableId);
+  if (!table) return;
+  const crRows = table.querySelectorAll('tr.app-cr-row');
+  const crBtns = table.querySelectorAll('button.rec-cr-toggle');
+  const anyOpen = Array.from(crRows).some(r => r.style.display !== 'none');
+  crRows.forEach(r => { r.style.display = anyOpen ? 'none' : ''; });
+  crBtns.forEach(b => { b.classList.toggle('active', !anyOpen); b.textContent = anyOpen ? '▶' : '▼'; });
+  btn.classList.toggle('active', !anyOpen);
+  btn.textContent = anyOpen ? '▶▶' : '▼▼';
 }
 
 let _crPreviewCleanup = null;
