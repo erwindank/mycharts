@@ -1200,6 +1200,15 @@ function buildRecords() {
     }
     ph += '</tbody></table>';
     ph += '<br><div class="rec-section-title" style="margin-top:0.75rem;">' + t('rec_pak_all_title') + '</div><div class="pak-list">';
+    const pakGlobalIdx = {};
+    const pakArtistOcc = {};
+    const _artOccTmp = {};
+    for (let k = 0; k < pakWeeks.length; k++) {
+      const wk = pakWeeks[k];
+      pakGlobalIdx[wk.weekKey] = k + 1;
+      _artOccTmp[wk.artist] = (_artOccTmp[wk.artist] || 0) + 1;
+      pakArtistOcc[wk.weekKey] = _artOccTmp[wk.artist];
+    }
     const pakSlice = isFinite(lim) ? [...pakWeeks].reverse().slice(0, lim) : [...pakWeeks].reverse();
     for (let idx = 0; idx < pakSlice.length; idx++) {
       const pw = pakSlice[idx];
@@ -1210,7 +1219,10 @@ function buildRecords() {
         + '<div class="pak-col pak-col-artist"><div class="pak-mini-thumb pak-mini-thumb-round" id="' + pakArtistImgId + '"><div class="pak-mini-initials">' + esc(initials(pw.artist)) + '</div></div><span class="pak-col-text">' + esc(pw.artist) + '</span></div>'
         + '<div class="pak-col pak-col-song"><span class="pak-col-icon">🎵</span>' + esc(pw.song) + '</div>'
         + '<div class="pak-col pak-col-album"><div class="pak-mini-thumb" id="' + pakImgId + '"><div class="pak-mini-initials">' + esc(initials(pw.album)) + '</div></div><span class="pak-col-text">' + esc(pw.album) + '</span></div>'
-        + '<span class="rec-badge rec-badge-gold">' + t('rec_pak_badge') + '</span>'
+        + '<div class="pak-badge-stack">'
+        + '<span class="rec-badge rec-badge-gold">#' + pakGlobalIdx[pw.weekKey] + ' / ' + pakWeeks.length + '</span>'
+        + '<span class="rec-badge rec-badge-artist-pak">' + t('rec_pak_badge_artist') + ' #' + pakArtistOcc[pw.weekKey] + '</span>'
+        + '</div>'
         + '</div>';
     }
     ph += '</div>';

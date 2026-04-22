@@ -3749,7 +3749,7 @@
         grid-column: 2;
       }
 
-      .rec-badge.rec-badge-gold {
+      .pak-badge-stack {
         grid-column: 3;
       }
 
@@ -4158,6 +4158,20 @@
       border: 1px solid rgba(240, 170, 48, 0.3);
     }
 
+    .rec-badge-artist-pak {
+      background: rgba(100, 180, 255, 0.1);
+      color: #7bc8f0;
+      border: 1px solid rgba(100, 180, 255, 0.22);
+      margin-left: 0;
+    }
+
+    .pak-badge-stack {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 2px;
+    }
+
     .pak-list {
       display: flex;
       flex-direction: column;
@@ -4320,12 +4334,12 @@
     .pak-tbl-song,
     .pak-tbl-album {
       font-family: 'DM Mono', monospace;
-      font-size: 0.68rem;
+      font-size: 0.62rem;
       color: var(--text3);
-      max-width: 160px;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
+      white-space: normal;
+      word-break: break-word;
+      overflow-wrap: break-word;
+      line-height: 1.35;
     }
 
     .pak-tbl-last-cell {
