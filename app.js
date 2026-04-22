@@ -2216,6 +2216,45 @@ function playWeekKey(playDate) {
   return localDateStr(startDate);
 }
 
+// Groups allPlays by period key (week/month/year), optionally capped at cutoffKey (inclusive)
+function _buildPeriodPlaysMap(periodType, cutoffKey) {
+  const playsMap = {};
+  for (const p of allPlays) {
+    let key;
+    if (periodType === 'week') {
+      key = playWeekKey(p.date);
+    } else if (periodType === 'month') {
+      key = p.date.getFullYear() + '-' + String(p.date.getMonth() + 1).padStart(2, '0');
+    } else {
+      key = String(p.date.getFullYear());
+    }
+    if (cutoffKey && key > cutoffKey) continue;
+    (playsMap[key] || (playsMap[key] = [])).push(p);
+  }
+  return playsMap;
+}
+
+function _maxStatsFromMap(playsMap) {
+  let maxPlays = 0, maxSongs = 0, maxArtists = 0, maxAlbums = 0;
+  for (const pp of Object.values(playsMap)) {
+    maxPlays   = Math.max(maxPlays,   pp.length);
+    maxSongs   = Math.max(maxSongs,   new Set(pp.map(p => songKey(p))).size);
+    maxArtists = Math.max(maxArtists, new Set(pp.flatMap(p => p.artists)).size);
+    maxAlbums  = Math.max(maxAlbums,  new Set(pp.map(p => p.album).filter(a => a && a !== '—')).size);
+  }
+  return { maxPlays, maxSongs, maxArtists, maxAlbums };
+}
+
+// Returns the max stats across all periods of this type (all time)
+function buildPeriodTypePeakStats(periodType) {
+  return _maxStatsFromMap(_buildPeriodPlaysMap(periodType, null));
+}
+
+// Returns the max stats across all periods up to and including cutoffKey
+function buildPeriodTypePeakStatsUpTo(periodType, cutoffKey) {
+  return _maxStatsFromMap(_buildPeriodPlaysMap(periodType, cutoffKey));
+}
+
 // Returns the week key for the period currently being viewed (based on currentOffset).
 function currentViewWeekKey() {
   const now = new Date();
@@ -2336,12 +2375,81 @@ function renderAll() {
   const artistSet = new Set(plays.flatMap(p => p.artists));
   const songSet = new Set(plays.map(p => songKey(p)));
   const albumSet = new Set(plays.map(p => p.album).filter(a => a && a !== '—'));
-  document.getElementById('statsStrip').innerHTML = `
-    <div class="stat-box"><div class="stat-val">${plays.length.toLocaleString()}</div><div class="stat-label" data-i18n="stat_total_plays">${t('stat_total_plays')}</div></div>
-    <div class="stat-box"><div class="stat-val">${songSet.size.toLocaleString()}</div><div class="stat-label" data-i18n="stat_unique_songs">${t('stat_unique_songs')}</div></div>
-    <div class="stat-box"><div class="stat-val">${artistSet.size.toLocaleString()}</div><div class="stat-label" data-i18n="stat_artists">${t('stat_artists')}</div></div>
-    <div class="stat-box"><div class="stat-val">${albumSet.size.toLocaleString()}</div><div class="stat-label" data-i18n="stat_albums">${t('stat_albums')}</div></div>
-  `;
+
+  // Compute previous period plays for delta comparison
+  let prevPlays = null;
+  if (currentPeriod !== 'alltime') {
+    let prevStart, prevEnd;
+    const now = new Date();
+    if (currentPeriod === 'week') {
+      const dow = now.getDay();
+      const off = (dow - weekStartDay + 7) % 7;
+      const ps = new Date(now);
+      ps.setDate(now.getDate() - off - (currentOffset + 1) * 7);
+      ps.setHours(0, 0, 0, 0);
+      prevStart = ps;
+      prevEnd = new Date(ps);
+      prevEnd.setDate(ps.getDate() + 6);
+      prevEnd.setHours(23, 59, 59, 999);
+    } else if (currentPeriod === 'month') {
+      const d = new Date(now.getFullYear(), now.getMonth() - currentOffset - 1, 1);
+      prevStart = new Date(d.getFullYear(), d.getMonth(), 1);
+      prevEnd   = new Date(d.getFullYear(), d.getMonth() + 1, 0, 23, 59, 59, 999);
+    } else {
+      const yr = now.getFullYear() - currentOffset - 1;
+      prevStart = new Date(yr, 0, 1);
+      prevEnd   = new Date(yr, 11, 31, 23, 59, 59, 999);
+    }
+    prevPlays = allPlays.filter(p => p.date >= prevStart && p.date <= prevEnd);
+  }
+
+  // Compute all-time peak stats and peak-at-the-time stats per period type
+  let peakStats = null, peakAtTimeStats = null;
+  if (currentPeriod !== 'alltime') {
+    let cutoffKey;
+    if (currentPeriod === 'week') {
+      cutoffKey = playWeekKey(start);
+    } else if (currentPeriod === 'month') {
+      cutoffKey = start.getFullYear() + '-' + String(start.getMonth() + 1).padStart(2, '0');
+    } else {
+      cutoffKey = String(start.getFullYear());
+    }
+    peakStats       = buildPeriodTypePeakStats(currentPeriod);
+    peakAtTimeStats = buildPeriodTypePeakStatsUpTo(currentPeriod, cutoffKey);
+  }
+
+  // Previous period stat sets
+  const prevArtistSet = prevPlays ? new Set(prevPlays.flatMap(p => p.artists)) : null;
+  const prevSongSet   = prevPlays ? new Set(prevPlays.map(p => songKey(p))) : null;
+  const prevAlbumSet  = prevPlays ? new Set(prevPlays.map(p => p.album).filter(a => a && a !== '—')) : null;
+
+  function statDelta(cur, prevVal) {
+    if (prevVal === null) return '';
+    const diff = cur - prevVal;
+    if (diff > 0) return `<div class="stat-delta up">▲ ${diff.toLocaleString()}</div>`;
+    if (diff < 0) return `<div class="stat-delta down">▼ ${Math.abs(diff).toLocaleString()}</div>`;
+    return `<div class="stat-delta same">= same</div>`;
+  }
+
+  function statBox(val, i18nKey, prevVal, maxAllTime, maxAtTime) {
+    const isAllTimePeak  = maxAllTime !== null && val > 0 && val >= maxAllTime;
+    const isAtTimePeak   = maxAtTime  !== null && val > 0 && val >= maxAtTime;
+    const allTimeBadge   = isAllTimePeak ? `<div class="stat-peak-badge stat-peak-badge-alltime">★ ALL-TIME PEAK</div>` : '';
+    const atTimeBadge    = isAtTimePeak  ? `<div class="stat-peak-badge stat-peak-badge-attime">◆ PEAK AT THE TIME</div>` : '';
+    const deltaHtml      = statDelta(val, prevVal);
+    const boxClass       = isAllTimePeak ? ' stat-peak-alltime' : isAtTimePeak ? ' stat-peak-attime' : '';
+    return `<div class="stat-box${boxClass}">
+      <div class="stat-val">${val.toLocaleString()}</div>
+      <div class="stat-label" data-i18n="${i18nKey}">${t(i18nKey)}</div>
+      ${deltaHtml}${allTimeBadge}${atTimeBadge}
+    </div>`;
+  }
+
+  document.getElementById('statsStrip').innerHTML =
+    statBox(plays.length,   'stat_total_plays',  prevPlays     ? prevPlays.length     : null, peakStats ? peakStats.maxPlays   : null, peakAtTimeStats ? peakAtTimeStats.maxPlays   : null) +
+    statBox(songSet.size,   'stat_unique_songs',  prevSongSet   ? prevSongSet.size     : null, peakStats ? peakStats.maxSongs   : null, peakAtTimeStats ? peakAtTimeStats.maxSongs   : null) +
+    statBox(artistSet.size, 'stat_artists',       prevArtistSet ? prevArtistSet.size   : null, peakStats ? peakStats.maxArtists : null, peakAtTimeStats ? peakAtTimeStats.maxArtists : null) +
+    statBox(albumSet.size,  'stat_albums',        prevAlbumSet  ? prevAlbumSet.size    : null, peakStats ? peakStats.maxAlbums  : null, peakAtTimeStats ? peakAtTimeStats.maxAlbums  : null);
 
   renderTableHeaders();
   const hasPeriodStats = currentPeriod === 'week' || currentPeriod === 'month';

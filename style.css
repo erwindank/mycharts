@@ -1803,6 +1803,51 @@
       margin-top: 0.3rem;
     }
 
+    .stat-delta {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.57rem;
+      letter-spacing: 0.06em;
+      margin-top: 0.3rem;
+    }
+    .stat-delta.up   { color: var(--green); }
+    .stat-delta.down { color: var(--rose); }
+    .stat-delta.same { color: var(--text3); }
+
+    .stat-peak-badge {
+      display: inline-block;
+      font-family: 'DM Mono', monospace;
+      font-size: 0.48rem;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      border-radius: 3px;
+      padding: 0.1rem 0.38rem;
+      margin-top: 0.3rem;
+    }
+
+    .stat-peak-badge-alltime {
+      color: var(--gold1);
+      border: 1px solid var(--gold1);
+      animation: peakPulse 2.4s ease-in-out infinite;
+    }
+
+    .stat-peak-badge-attime {
+      color: var(--accent2);
+      border: 1px solid var(--accent2);
+    }
+
+    @keyframes peakPulse {
+      0%, 100% { opacity: 1; }
+      50%       { opacity: 0.55; }
+    }
+
+    .stat-box.stat-peak-alltime {
+      box-shadow: inset 0 3px 0 var(--gold1);
+    }
+
+    .stat-box.stat-peak-attime {
+      box-shadow: inset 0 3px 0 var(--accent2);
+    }
+
     /* PAGINATED SEARCH */
     .paginated-search {
       display: none;
