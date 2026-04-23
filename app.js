@@ -435,9 +435,15 @@ document.addEventListener('click', e => {
 
 
 // ─── GOOGLE SHEETS SYNC ────────────────────────────────────────
-const SHEET_ID = '1ydtkm3-P_37mlOpim0IS5WfIs2LSlVRx_D8fOL4kFVM';
-const SHEET_TAB = 'Full Raw Listening History';
-const SHEET_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv;charset:UTF-8&sheet=${encodeURIComponent(SHEET_TAB)}`;
+const DEFAULT_SHEET_ID  = '1ydtkm3-P_37mlOpim0IS5WfIs2LSlVRx_D8fOL4kFVM';
+const DEFAULT_SHEET_TAB = 'Full Raw Listening History';
+function getSheetUrl() {
+  const id  = localStorage.getItem('dc_sheet_id')  || DEFAULT_SHEET_ID;
+  const tab = localStorage.getItem('dc_sheet_tab') || DEFAULT_SHEET_TAB;
+  return `https://docs.google.com/spreadsheets/d/${id}/gviz/tq?tqx=out:csv;charset:UTF-8&sheet=${encodeURIComponent(tab)}`;
+}
+function getDataSource()  { return localStorage.getItem('dc_source')      || 'sheets'; }
+function getLastFmUser()  { return localStorage.getItem('dc_lastfm_user') || ''; }
 const SYNC_INTERVAL_MS = 60 * 60 * 1000; // auto-refresh every 1 hour
 let syncTimer = null;
 let lastSyncTime = null;
@@ -453,7 +459,7 @@ async function syncFromSheets() {
   btn.disabled = true;
   setSyncStatus(t('sync_connecting'), 'loading');
   try {
-    const res = await fetch(SHEET_URL + '&t=' + Date.now()); // cache-bust
+    const res = await fetch(getSheetUrl() + '&t=' + Date.now()); // cache-bust
     if (!res.ok) throw new Error('HTTP ' + res.status);
     // Explicitly decode as UTF-8 to preserve special characters
     // (Spanish, Korean, accented names etc.) — never let the browser guess
@@ -473,12 +479,146 @@ async function syncFromSheets() {
   syncTimer = setTimeout(syncFromSheets, SYNC_INTERVAL_MS);
 }
 
-document.getElementById('syncNowBtn').addEventListener('click', syncFromSheets);
+async function syncFromLastFm() {
+  const username = getLastFmUser();
+  if (!username) {
+    setSyncStatus('No Last.fm username set — click ⚙ Configure to get started.', 'err');
+    return;
+  }
+  const btn = document.getElementById('syncNowBtn');
+  btn.disabled = true;
+
+  // Serve from session cache if fresh
+  const cacheTs  = parseInt(localStorage.getItem('dc_lastfm_ts') || '0');
+  const cacheRaw = sessionStorage.getItem('dc_lastfm_cache');
+  const age = Date.now() - cacheTs;
+  if (cacheRaw && age < SYNC_INTERVAL_MS) {
+    try {
+      const compact = JSON.parse(cacheRaw);
+      allPlays = compact.map(([title, artist, album, uts]) => {
+        const ar = artist || '';
+        return { title, artist: ar, artists: splitArtists(ar), album: album || '—', date: new Date(uts * 1000) };
+      });
+      lastSyncTime = new Date(cacheTs);
+      const minsAgo = Math.round(age / 60000);
+      setSyncStatus(t('sync_ok_cached', { time: lastSyncTime.toLocaleTimeString(), n: allPlays.length.toLocaleString(), mins: minsAgo }), 'ok');
+      finalizeLoad();
+      btn.disabled = false;
+      clearTimeout(syncTimer);
+      syncTimer = setTimeout(syncFromLastFm, SYNC_INTERVAL_MS - age);
+      return;
+    } catch (e) { /* cache corrupt — fall through to fresh fetch */ }
+  }
+
+  let page = 1, totalPages = 1, rawTracks = [];
+  try {
+    do {
+      setSyncStatus(`Loading Last.fm history… page ${page}${totalPages > 1 ? ' of ' + totalPages : ''}`, 'loading');
+      const url = `https://ws.audioscrobbler.com/2.0/?method=user.getrecenttracks`
+        + `&user=${encodeURIComponent(username)}&api_key=${LASTFM_KEY}`
+        + `&format=json&limit=200&page=${page}`;
+      const res = await fetch(url);
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      const data = await res.json();
+      if (data.error) throw new Error(data.message);
+      totalPages = parseInt(data.recenttracks['@attr'].totalPages) || 1;
+      let tracks = data.recenttracks.track;
+      if (!Array.isArray(tracks)) tracks = tracks ? [tracks] : [];
+      rawTracks = rawTracks.concat(tracks.filter(t => t.date && t.date.uts));
+      page++;
+      if (page <= totalPages) await new Promise(r => setTimeout(r, 120));
+    } while (page <= totalPages);
+  } catch (e) {
+    setSyncStatus('Last.fm error: ' + e.message, 'err');
+    btn.disabled = false;
+    return;
+  }
+
+  allPlays = rawTracks.map(t => {
+    const ar = (t.artist && t.artist['#text']) || '';
+    return {
+      title:   t.name || '',
+      artist:  ar,
+      artists: splitArtists(ar),
+      album:   (t.album && t.album['#text']) || '—',
+      date:    new Date(parseInt(t.date.uts) * 1000)
+    };
+  });
+
+  const compact = rawTracks.map(t => [
+    t.name || '',
+    (t.artist && t.artist['#text']) || '',
+    (t.album  && t.album['#text'])  || '',
+    parseInt(t.date.uts)
+  ]);
+  try { sessionStorage.setItem('dc_lastfm_cache', JSON.stringify(compact)); } catch (e) {}
+  localStorage.setItem('dc_lastfm_ts', Date.now().toString());
+  lastSyncTime = new Date();
+
+  setSyncStatus(t('sync_ok', { time: lastSyncTime.toLocaleTimeString(), n: allPlays.length.toLocaleString() }), 'ok');
+  finalizeLoad();
+  btn.disabled = false;
+  clearTimeout(syncTimer);
+  syncTimer = setTimeout(syncFromLastFm, SYNC_INTERVAL_MS);
+}
+
+function syncNow() {
+  if (getDataSource() === 'lastfm') syncFromLastFm();
+  else syncFromSheets();
+}
+
+// ─── DATA SOURCE MODAL ─────────────────────────────────────────
+function openSourceModal() {
+  const modal = document.getElementById('sourceModal');
+  modal.classList.add('open');
+  const src = getDataSource();
+  document.getElementById('srcRadioSheets').checked = src === 'sheets';
+  document.getElementById('srcRadioLastfm').checked = src === 'lastfm';
+  document.getElementById('srcSheetId').value  = localStorage.getItem('dc_sheet_id')  || DEFAULT_SHEET_ID;
+  document.getElementById('srcSheetTab').value = localStorage.getItem('dc_sheet_tab') || DEFAULT_SHEET_TAB;
+  document.getElementById('srcLastfmUser').value = getLastFmUser();
+  updateSourceModalFields();
+}
+
+function closeSourceModal() {
+  document.getElementById('sourceModal').classList.remove('open');
+}
+
+function updateSourceModalFields() {
+  const isSheets = document.getElementById('srcRadioSheets').checked;
+  document.getElementById('srcSheetsFields').style.display = isSheets ? '' : 'none';
+  document.getElementById('srcLastfmFields').style.display = isSheets ? 'none' : '';
+}
+
+function saveSourceConfig() {
+  const src = document.getElementById('srcRadioSheets').checked ? 'sheets' : 'lastfm';
+  localStorage.setItem('dc_source', src);
+  if (src === 'sheets') {
+    localStorage.setItem('dc_sheet_id',  document.getElementById('srcSheetId').value.trim());
+    localStorage.setItem('dc_sheet_tab', document.getElementById('srcSheetTab').value.trim());
+    sessionStorage.removeItem('dc_lastfm_cache');
+    localStorage.removeItem('dc_lastfm_ts');
+  } else {
+    localStorage.setItem('dc_lastfm_user', document.getElementById('srcLastfmUser').value.trim());
+    sessionStorage.removeItem('dc_sync_csv');
+    localStorage.removeItem('dc_sync_ts');
+  }
+  closeSourceModal();
+  syncNow();
+}
+
+document.getElementById('syncNowBtn').addEventListener('click', syncNow);
 
 // Auto-sync on page load — use cached data if synced within the last hour
 window.addEventListener('load', () => {
   document.getElementById('mainApp').style.display = 'block';
   localStorage.removeItem('dc_sync_csv'); // clean up old oversized key if present
+
+  if (getDataSource() === 'lastfm') {
+    syncFromLastFm();
+    return;
+  }
+
   const cachedTs = parseInt(localStorage.getItem('dc_sync_ts') || '0', 10);
   const cachedCsv = sessionStorage.getItem('dc_sync_csv');
   const age = Date.now() - cachedTs;
@@ -560,6 +700,10 @@ function parseCsv(text, fromSheets = false) {
   }
 
   allPlays.sort((a, b) => b.date - a.date);
+  finalizeLoad();
+}
+
+function finalizeLoad() {
   populateYearPicker();
 
   // Restore saved granularity before rendering

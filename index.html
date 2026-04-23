@@ -66,8 +66,9 @@
   <div class="container" id="mainApp" style="display:none;">
 
     <div class="sync-bar" id="syncBar">
-      <span id="syncStatus" data-i18n="sync_connecting">⟳ Connecting to Google Sheets...</span>
+      <span id="syncStatus" data-i18n="sync_connecting">⟳ Connecting...</span>
       <button id="syncNowBtn" data-i18n="sync_now">↺ SYNC NOW</button>
+      <button id="configureSourceBtn" onclick="openSourceModal()" title="Configure data source">⚙ Configure</button>
     </div>
 
     <div class="period-nav" id="periodNav">
@@ -1268,6 +1269,48 @@
 
   <script src="app.js"></script>
 
+  <!-- ── Data Source Configure Modal ── -->
+  <div id="sourceModal" class="modal-overlay" role="dialog" aria-modal="true">
+    <div class="src-modal-box">
+      <h3 class="src-modal-title">Data Source</h3>
+
+      <div class="src-radio-group">
+        <label>
+          <input type="radio" name="srcRadio" id="srcRadioSheets" onchange="updateSourceModalFields()">
+          Google Sheets
+        </label>
+        <label>
+          <input type="radio" name="srcRadio" id="srcRadioLastfm" onchange="updateSourceModalFields()">
+          Last.fm
+        </label>
+      </div>
+
+      <div id="srcSheetsFields" class="src-field-group">
+        <label>
+          Sheet ID
+          <input type="text" id="srcSheetId" placeholder="Paste your Google Sheet ID here">
+        </label>
+        <label>
+          Tab name
+          <input type="text" id="srcSheetTab" placeholder="Full Raw Listening History">
+        </label>
+        <p class="src-modal-hint">The sheet must be shared as "Anyone with the link can view"</p>
+      </div>
+
+      <div id="srcLastfmFields" class="src-field-group" style="display:none;">
+        <label>
+          Last.fm username
+          <input type="text" id="srcLastfmUser" placeholder="your_lastfm_username" autocomplete="off">
+        </label>
+        <p class="src-modal-hint">Your full listening history will be loaded directly from Last.fm</p>
+      </div>
+
+      <div class="src-modal-btns">
+        <button class="src-btn-cancel" onclick="closeSourceModal()">Cancel</button>
+        <button class="src-btn-save" onclick="saveSourceConfig()">Save &amp; Load</button>
+      </div>
+    </div>
+  </div>
 
 </body>
 

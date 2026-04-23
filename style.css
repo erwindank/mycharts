@@ -1216,6 +1216,138 @@
       cursor: default;
     }
 
+    #configureSourceBtn {
+      background: none;
+      border: 1px solid var(--border);
+      color: var(--text3);
+      font-family: 'DM Mono', monospace;
+      font-size: 0.65rem;
+      letter-spacing: 0.08em;
+      padding: 0.2rem 0.6rem;
+      cursor: pointer;
+      border-radius: 4px;
+      margin-left: 0.4rem;
+      transition: background 0.15s, border-color 0.15s, color 0.15s;
+    }
+
+    #configureSourceBtn:hover {
+      background: var(--surface);
+      border-color: var(--border2);
+      color: var(--text);
+    }
+
+    /* ── Source Configure Modal ── */
+    .src-modal-box {
+      width: 100%;
+      max-width: 460px;
+      background: var(--bg2);
+      border: 1px solid var(--border2);
+      border-radius: 12px;
+      padding: 1.6rem;
+      margin: auto;
+      position: relative;
+      top: 50%;
+      transform: translateY(-50%);
+    }
+
+    .src-modal-title {
+      margin: 0 0 1.2rem;
+      color: var(--text);
+      font-size: 1rem;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    .src-radio-group {
+      display: flex;
+      gap: 1.5rem;
+      margin-bottom: 1.4rem;
+    }
+
+    .src-radio-group label {
+      display: flex;
+      align-items: center;
+      gap: 0.45rem;
+      color: var(--text);
+      cursor: pointer;
+      font-size: 0.9rem;
+    }
+
+    .src-field-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.9rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .src-field-group label {
+      display: flex;
+      flex-direction: column;
+      gap: 0.3rem;
+      color: var(--text3);
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+    }
+
+    .src-field-group input {
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 0.5rem 0.75rem;
+      color: var(--text);
+      font-size: 0.88rem;
+      font-family: 'DM Mono', monospace;
+      transition: border-color 0.15s;
+    }
+
+    .src-field-group input:focus {
+      outline: none;
+      border-color: var(--accent);
+    }
+
+    .src-modal-hint {
+      font-size: 0.75rem;
+      color: var(--text3);
+      margin: 0.2rem 0 0;
+    }
+
+    .src-modal-btns {
+      display: flex;
+      gap: 0.7rem;
+      margin-top: 1.4rem;
+      justify-content: flex-end;
+    }
+
+    .src-btn-cancel {
+      background: none;
+      border: 1px solid var(--border);
+      color: var(--text3);
+      padding: 0.45rem 1rem;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.85rem;
+      font-family: inherit;
+      transition: background 0.15s;
+    }
+
+    .src-btn-cancel:hover { background: var(--surface); }
+
+    .src-btn-save {
+      background: var(--accent);
+      border: 1px solid var(--accent);
+      color: #fff;
+      padding: 0.45rem 1.2rem;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.85rem;
+      font-weight: 600;
+      font-family: inherit;
+      transition: opacity 0.15s;
+    }
+
+    .src-btn-save:hover { opacity: 0.85; }
+
     /* PERIOD NAV */
     .period-nav {
       display: flex;
