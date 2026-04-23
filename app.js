@@ -184,6 +184,181 @@ function lfmUrl(method, params) {
   return `https://ws.audioscrobbler.com/2.0/?${q}`;
 }
 
+// ─── LAST.FM SCROBBLE / AUTH ──────────────────────────────────
+const SCROBBLE_DEFAULT_KEY    = '16bf00f19c64398611d93beed16c3ab7';
+const SCROBBLE_DEFAULT_SECRET = 'cfb0cff4971d817bb8461b7e7c44e67e';
+
+function getScrobbleKey()     { return localStorage.getItem('dc_lfm_api_key')     || SCROBBLE_DEFAULT_KEY; }
+function getScrobbleSecret()  { return localStorage.getItem('dc_lfm_api_secret')  || SCROBBLE_DEFAULT_SECRET; }
+function getScrobbleSession() { return localStorage.getItem('dc_lfm_session_key') || ''; }
+function getScrobbleUser()    { return localStorage.getItem('dc_lfm_session_user')|| ''; }
+
+function lfmSig(params, secret) {
+  return md5(Object.keys(params).sort().map(k => k + params[k]).join('') + secret);
+}
+
+async function lfmPost(params) {
+  const key    = getScrobbleKey();
+  const secret = getScrobbleSecret();
+  if (!key || !secret) throw new Error('API credentials not configured');
+  const p = { ...params, api_key: key };
+  p.api_sig = lfmSig(p, secret);
+  p.format  = 'json';
+  const res  = await fetch('https://ws.audioscrobbler.com/2.0/', { method: 'POST', body: new URLSearchParams(p) });
+  if (!res.ok) throw new Error('HTTP ' + res.status);
+  const data = await res.json();
+  if (data.error) throw new Error(data.message || 'Last.fm error ' + data.error);
+  return data;
+}
+
+function updateLfmAuthStatus() {
+  const user      = getScrobbleUser();
+  const sess      = getScrobbleSession();
+  const statusEl  = document.getElementById('lfmAuthStatus');
+  const connectBtn= document.getElementById('lfmConnectBtn');
+  const disconnBtn= document.getElementById('lfmDisconnectBtn');
+  const scrobBtn  = document.getElementById('scrobbleBtn');
+  if (sess && user) {
+    if (statusEl)   statusEl.innerHTML = `<span class="lfm-auth-dot connected"></span> Connected as <strong>${user}</strong>`;
+    if (connectBtn) connectBtn.style.display = 'none';
+    if (disconnBtn) disconnBtn.style.display = '';
+    if (scrobBtn)   scrobBtn.style.display   = '';
+  } else {
+    if (statusEl)   statusEl.innerHTML = '<span class="lfm-auth-dot"></span> Not connected';
+    if (connectBtn) { connectBtn.style.display = ''; connectBtn.textContent = 'Connect to Last.fm'; connectBtn.disabled = false; }
+    if (disconnBtn) disconnBtn.style.display = 'none';
+    if (scrobBtn)   scrobBtn.style.display   = 'none';
+  }
+}
+
+function lfmAuthBtnClick() {
+  if (localStorage.getItem('dc_lfm_pending_token')) lfmAuthFinalize();
+  else lfmAuthConnect();
+}
+
+async function lfmAuthConnect() {
+  const keyEl    = document.getElementById('srcLfmApiKey');
+  const secretEl = document.getElementById('srcLfmApiSecret');
+  if (keyEl?.value.trim())    localStorage.setItem('dc_lfm_api_key',    keyEl.value.trim());
+  if (secretEl?.value.trim()) localStorage.setItem('dc_lfm_api_secret', secretEl.value.trim());
+
+  const key    = getScrobbleKey();
+  const secret = getScrobbleSecret();
+  const hint   = document.getElementById('lfmConnectHint');
+  if (!key || !secret) {
+    if (hint) { hint.textContent = 'Enter your API key and secret above first.'; hint.style.color = 'var(--rose)'; }
+    return;
+  }
+  const btn = document.getElementById('lfmConnectBtn');
+  btn.disabled = true;
+  btn.textContent = 'Getting token…';
+  try {
+    const data = await lfmPost({ method: 'auth.getToken' });
+    localStorage.setItem('dc_lfm_pending_token', data.token);
+    window.open(`https://www.last.fm/api/auth/?api_key=${encodeURIComponent(key)}&token=${encodeURIComponent(data.token)}`, '_blank');
+    btn.textContent = "I've authorized ✓";
+    btn.disabled = false;
+    if (hint) { hint.textContent = 'Authorize dankstation.fm on Last.fm, then click the button again.'; hint.style.color = ''; }
+  } catch (e) {
+    btn.textContent = 'Connect to Last.fm';
+    btn.disabled = false;
+    if (hint) { hint.textContent = 'Error: ' + e.message; hint.style.color = 'var(--rose)'; }
+  }
+}
+
+async function lfmAuthFinalize() {
+  const token = localStorage.getItem('dc_lfm_pending_token');
+  if (!token) return;
+  const btn  = document.getElementById('lfmConnectBtn');
+  const hint = document.getElementById('lfmConnectHint');
+  btn.disabled = true;
+  btn.textContent = 'Connecting…';
+  try {
+    const data = await lfmPost({ method: 'auth.getSession', token });
+    localStorage.setItem('dc_lfm_session_key',  data.session.key);
+    localStorage.setItem('dc_lfm_session_user', data.session.name);
+    localStorage.removeItem('dc_lfm_pending_token');
+    if (hint) { hint.textContent = 'Connect to enable manual scrobbling from this app.'; hint.style.color = ''; }
+    updateLfmAuthStatus();
+  } catch (e) {
+    btn.textContent = "I've authorized ✓";
+    btn.disabled = false;
+    if (hint) { hint.textContent = 'Error: ' + e.message + ' — make sure you authorized the app on Last.fm first.'; hint.style.color = 'var(--rose)'; }
+  }
+}
+
+function lfmAuthDisconnect() {
+  localStorage.removeItem('dc_lfm_session_key');
+  localStorage.removeItem('dc_lfm_session_user');
+  localStorage.removeItem('dc_lfm_pending_token');
+  const hint = document.getElementById('lfmConnectHint');
+  if (hint) { hint.textContent = 'Connect to enable manual scrobbling from this app.'; hint.style.color = ''; }
+  updateLfmAuthStatus();
+}
+
+// ─── SCROBBLE MODAL ────────────────────────────────────────────
+function scrobbleDatetimeLocal(d) {
+  return new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+}
+
+function openScrobbleModal() {
+  document.getElementById('scrobbleModal').classList.add('open');
+  document.getElementById('scrobbleArtist').value = '';
+  document.getElementById('scrobbleTrack').value  = '';
+  document.getElementById('scrobbleAlbum').value  = '';
+  document.getElementById('scrobbleStatus').textContent = '';
+  document.getElementById('scrobbleStatus').className   = 'scrobble-status';
+  setScrobbleNow();
+}
+
+function closeScrobbleModal() {
+  document.getElementById('scrobbleModal').classList.remove('open');
+}
+
+function setScrobbleNow() {
+  const now = new Date();
+  now.setSeconds(0, 0);
+  document.getElementById('scrobbleTime').value = scrobbleDatetimeLocal(now);
+}
+
+async function submitScrobble() {
+  const artist  = document.getElementById('scrobbleArtist').value.trim();
+  const track   = document.getElementById('scrobbleTrack').value.trim();
+  const album   = document.getElementById('scrobbleAlbum').value.trim();
+  const timeVal = document.getElementById('scrobbleTime').value;
+  const statusEl= document.getElementById('scrobbleStatus');
+
+  if (!artist || !track) {
+    statusEl.textContent = 'Artist and Track are required.';
+    statusEl.className   = 'scrobble-status err';
+    return;
+  }
+  const timestamp = Math.floor(new Date(timeVal).getTime() / 1000);
+  if (isNaN(timestamp)) {
+    statusEl.textContent = 'Invalid date/time.';
+    statusEl.className   = 'scrobble-status err';
+    return;
+  }
+
+  const btn = document.getElementById('scrobbleSubmitBtn');
+  btn.disabled = true;
+  statusEl.textContent = 'Scrobbling…';
+  statusEl.className   = 'scrobble-status loading';
+
+  try {
+    const params = { method: 'track.scrobble', artist, track, timestamp: String(timestamp), sk: getScrobbleSession() };
+    if (album) params.album = album;
+    await lfmPost(params);
+    statusEl.textContent = '✓ Scrobbled successfully!';
+    statusEl.className   = 'scrobble-status ok';
+    setTimeout(closeScrobbleModal, 1500);
+  } catch (e) {
+    statusEl.textContent = 'Error: ' + e.message;
+    statusEl.className   = 'scrobble-status err';
+  }
+  btn.disabled = false;
+}
+
 function bestImage(images) {
   if (!images || !images.length) return null;
   const order = ['extralarge', 'large', 'medium', 'small'];
@@ -574,9 +749,11 @@ function openSourceModal() {
   const src = getDataSource();
   document.getElementById('srcRadioSheets').checked = src === 'sheets';
   document.getElementById('srcRadioLastfm').checked = src === 'lastfm';
-  document.getElementById('srcSheetId').value  = localStorage.getItem('dc_sheet_id')  || DEFAULT_SHEET_ID;
-  document.getElementById('srcSheetTab').value = localStorage.getItem('dc_sheet_tab') || DEFAULT_SHEET_TAB;
-  document.getElementById('srcLastfmUser').value = getLastFmUser();
+  document.getElementById('srcSheetId').value      = localStorage.getItem('dc_sheet_id')  || DEFAULT_SHEET_ID;
+  document.getElementById('srcSheetTab').value     = localStorage.getItem('dc_sheet_tab') || DEFAULT_SHEET_TAB;
+  document.getElementById('srcLastfmUser').value   = getLastFmUser();
+  document.getElementById('srcLfmApiKey').value    = getScrobbleKey();
+  document.getElementById('srcLfmApiSecret').value = getScrobbleSecret();
   updateSourceModalFields();
 }
 
@@ -588,6 +765,7 @@ function updateSourceModalFields() {
   const isSheets = document.getElementById('srcRadioSheets').checked;
   document.getElementById('srcSheetsFields').style.display = isSheets ? '' : 'none';
   document.getElementById('srcLastfmFields').style.display = isSheets ? 'none' : '';
+  if (!isSheets) updateLfmAuthStatus();
 }
 
 function saveSourceConfig() {
@@ -603,6 +781,11 @@ function saveSourceConfig() {
     sessionStorage.removeItem('dc_sync_csv');
     localStorage.removeItem('dc_sync_ts');
   }
+  // Always persist LFM API credentials when filled in (used for scrobbling regardless of data source)
+  const apiKey    = document.getElementById('srcLfmApiKey').value.trim();
+  const apiSecret = document.getElementById('srcLfmApiSecret').value.trim();
+  if (apiKey)    localStorage.setItem('dc_lfm_api_key',    apiKey);
+  if (apiSecret) localStorage.setItem('dc_lfm_api_secret', apiSecret);
   closeSourceModal();
   syncNow();
 }
@@ -612,6 +795,7 @@ document.getElementById('syncNowBtn').addEventListener('click', syncNow);
 // Auto-sync on page load — use cached data if synced within the last hour
 window.addEventListener('load', () => {
   document.getElementById('mainApp').style.display = 'block';
+  updateLfmAuthStatus();
   localStorage.removeItem('dc_sync_csv'); // clean up old oversized key if present
 
   if (getDataSource() === 'lastfm') {

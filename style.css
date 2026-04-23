@@ -1236,6 +1236,155 @@
       color: var(--text);
     }
 
+    #scrobbleBtn {
+      background: none;
+      border: 1px solid var(--border);
+      color: var(--accent);
+      padding: 0.3rem 0.75rem;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.72rem;
+      font-family: 'DM Mono', monospace;
+      letter-spacing: 0.05em;
+      transition: background 0.15s, border-color 0.15s, color 0.15s;
+    }
+
+    #scrobbleBtn:hover {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #fff;
+    }
+
+    /* ── Last.fm Scrobble Auth Section ── */
+    .lfm-auth-section {
+      border-top: 1px solid var(--border);
+      padding-top: 0.9rem;
+      margin-top: 0.2rem;
+    }
+
+    .lfm-auth-divider {
+      font-size: 0.7rem;
+      color: var(--text3);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 0.8rem;
+    }
+
+    .lfm-optional {
+      text-transform: none;
+      opacity: 0.65;
+    }
+
+    .lfm-auth-row {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      flex-wrap: wrap;
+      margin-top: 0.2rem;
+    }
+
+    .lfm-auth-status {
+      font-size: 0.8rem;
+      color: var(--text3);
+      flex: 1;
+    }
+
+    .lfm-auth-dot {
+      display: inline-block;
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--text3);
+      margin-right: 3px;
+      vertical-align: middle;
+    }
+
+    .lfm-auth-dot.connected { background: #4caf50; }
+
+    .lfm-connect-btn {
+      background: var(--accent);
+      border: none;
+      color: #fff;
+      padding: 0.35rem 0.9rem;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.78rem;
+      font-family: inherit;
+      font-weight: 600;
+      transition: opacity 0.15s;
+      white-space: nowrap;
+    }
+
+    .lfm-connect-btn:hover { opacity: 0.85; }
+    .lfm-connect-btn:disabled { opacity: 0.5; cursor: default; }
+
+    .lfm-disconnect-btn {
+      background: none;
+      border: 1px solid var(--border);
+      color: var(--text3);
+      padding: 0.35rem 0.75rem;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.78rem;
+      font-family: inherit;
+      transition: background 0.15s, color 0.15s;
+      white-space: nowrap;
+    }
+
+    .lfm-disconnect-btn:hover { background: var(--surface); color: var(--text); }
+
+    .lfm-custom-creds {
+      margin-top: 0.7rem;
+    }
+
+    .lfm-custom-creds summary {
+      font-size: 0.72rem;
+      color: var(--text3);
+      cursor: pointer;
+      user-select: none;
+      letter-spacing: 0.04em;
+    }
+
+    .lfm-custom-creds summary:hover { color: var(--text); }
+
+    .lfm-custom-creds .src-field-group { gap: 0.7rem; margin-bottom: 0; }
+
+    /* ── Scrobble Modal ── */
+    .scrobble-modal-box { max-width: 380px; }
+
+    .scrobble-time-row {
+      display: flex;
+      gap: 0.5rem;
+      align-items: center;
+    }
+
+    .scrobble-time-row input { flex: 1; }
+
+    .scrobble-now-btn {
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 0.45rem 0.7rem;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.8rem;
+      font-family: 'DM Mono', monospace;
+      transition: background 0.15s;
+      white-space: nowrap;
+    }
+
+    .scrobble-now-btn:hover { background: var(--surface); }
+
+    .scrobble-status {
+      font-size: 0.82rem;
+      min-height: 1.3em;
+      margin: 0.4rem 0 0;
+    }
+
+    .scrobble-status.ok      { color: #4caf50; }
+    .scrobble-status.err     { color: var(--rose, #e05); }
+    .scrobble-status.loading { color: var(--text3); }
+
     /* ── Source Configure Modal ── */
     .src-modal-box {
       width: 100%;

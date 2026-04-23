@@ -15,6 +15,7 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8/hammer.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@1.2.1/dist/chartjs-plugin-zoom.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/blueimp-md5@2.19.0/js/md5.min.js"></script>
 </head>
 
 <body>
@@ -69,6 +70,7 @@
       <span id="syncStatus" data-i18n="sync_connecting">⟳ Connecting...</span>
       <button id="syncNowBtn" data-i18n="sync_now">↺ SYNC NOW</button>
       <button id="configureSourceBtn" onclick="openSourceModal()" title="Configure data source">⚙ Configure</button>
+      <button id="scrobbleBtn" onclick="openScrobbleModal()" title="Manually scrobble a track to Last.fm" style="display:none">✚ Scrobble</button>
     </div>
 
     <div class="period-nav" id="periodNav">
@@ -1267,6 +1269,39 @@
 
   <button id="backToTop" data-i18n-title="tooltip_back_to_top" aria-label="Back to top">&#8679;</button>
 
+  <!-- ── Manual Scrobble Modal ── -->
+  <div id="scrobbleModal" class="modal-overlay" role="dialog" aria-modal="true">
+    <div class="src-modal-box scrobble-modal-box">
+      <h3 class="src-modal-title">Manual Scrobble</h3>
+      <div class="src-field-group">
+        <label>
+          Artist *
+          <input type="text" id="scrobbleArtist" placeholder="Artist name" autocomplete="off">
+        </label>
+        <label>
+          Track *
+          <input type="text" id="scrobbleTrack" placeholder="Track title" autocomplete="off">
+        </label>
+        <label>
+          Album
+          <input type="text" id="scrobbleAlbum" placeholder="Album (optional)" autocomplete="off">
+        </label>
+        <label>
+          Date &amp; Time
+          <div class="scrobble-time-row">
+            <input type="datetime-local" id="scrobbleTime">
+            <button type="button" class="scrobble-now-btn" onclick="setScrobbleNow()">Now</button>
+          </div>
+        </label>
+      </div>
+      <div id="scrobbleStatus" class="scrobble-status"></div>
+      <div class="src-modal-btns">
+        <button class="src-btn-cancel" onclick="closeScrobbleModal()">Cancel</button>
+        <button class="src-btn-save" id="scrobbleSubmitBtn" onclick="submitScrobble()">Scrobble</button>
+      </div>
+    </div>
+  </div>
+
   <script src="app.js"></script>
 
   <!-- ── Data Source Configure Modal ── -->
@@ -1303,6 +1338,29 @@
           <input type="text" id="srcLastfmUser" placeholder="your_lastfm_username" autocomplete="off">
         </label>
         <p class="src-modal-hint">Your full listening history will be loaded directly from Last.fm</p>
+
+        <div class="lfm-auth-section">
+          <div class="lfm-auth-divider">Scrobble Setup</div>
+          <div class="lfm-auth-row">
+            <span id="lfmAuthStatus" class="lfm-auth-status"><span class="lfm-auth-dot"></span> Not connected</span>
+            <button type="button" id="lfmConnectBtn" class="lfm-connect-btn" onclick="lfmAuthBtnClick()">Connect to Last.fm</button>
+            <button type="button" id="lfmDisconnectBtn" class="lfm-disconnect-btn" onclick="lfmAuthDisconnect()" style="display:none">Disconnect</button>
+          </div>
+          <p id="lfmConnectHint" class="src-modal-hint">Connect to enable manual scrobbling from this app.</p>
+          <details class="lfm-custom-creds">
+            <summary>Use custom API credentials</summary>
+            <div class="src-field-group" style="margin-top:0.7rem">
+              <label>
+                API Key
+                <input type="text" id="srcLfmApiKey" placeholder="API key from last.fm/api/account" autocomplete="off">
+              </label>
+              <label>
+                API Secret
+                <input type="password" id="srcLfmApiSecret" placeholder="Shared secret" autocomplete="off">
+              </label>
+            </div>
+          </details>
+        </div>
       </div>
 
       <div class="src-modal-btns">
