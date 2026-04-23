@@ -15,6 +15,8 @@ const savedOffsets = { week: 0, month: 0, year: 0, alltime: 0, records: 0 };
 let chartSize = 10;
 let chartSizeWeekly = 10;
 let chartSizeMonthly = 50;
+let cumulativeMaps = null;   // cumulative plays up to end of current period
+let playsPeakMaps = null;    // historical max per-period plays for peak badge
 let chartSizeYearly = Infinity; // 0 = All Entries
 let chartSizeAllTime = Infinity; // 0 = All Entries
 let recLimit = 25; // Records entries limit
@@ -2796,6 +2798,13 @@ function renderAll() {
 
   const peaks = buildPeaks();
   lastPeaks = peaks;
+  cumulativeMaps = null;
+  playsPeakMaps = null;
+  if (currentPeriod !== 'alltime') {
+    const { end } = getDateRange();
+    cumulativeMaps = buildCumulativeMapsForPeriod(end);
+    playsPeakMaps = buildPlaysPeakMaps(currentPeriod);
+  }
   chartRunData = null;
   allChartRun = {};
   allChartRunIsFullHistory = false;
@@ -2951,16 +2960,21 @@ function renderPage(type, peaks) {
       const k = songKey(s);
       const rowId = 'crr-ysong-' + i;
       imgItems.push({ imgId, title: s.title, artist: s.artist, album: s.album, prefKey });
+      const cumSongPlays = cumulativeMaps ? (cumulativeMaps.songs[k] || s.count) : s.count;
+      const albumKey = cumulativeMaps ? cumulativeMaps.songAlbumKey[k] : null;
+      const cumAlbumPlays = albumKey ? (cumulativeMaps.albums[albumKey] || 0) : 0;
+      const histMaxSong = playsPeakMaps ? (playsPeakMaps.songs[k] || 0) : 0;
+      const isPlaysPeak = histMaxSong > 0 && s.count >= histMaxSong;
       const mainRow = `<tr class="${rank === 1 ? 'rank-1' : rank === 2 ? 'rank-2' : rank === 3 ? 'rank-3' : ''}">
         <td class="rank-cell">${hasCR ? `<button class="cr-toggle-btn" title="${t('tooltip_cr_toggle_btn_song')}" onclick="event.stopPropagation();toggleChartRun(this,'${rowId}')">📊</button>` : ''} ${rank}</td>
         <td class="thumb-cell"><div class="thumb-wrap"><div id="${imgId}"><div class="thumb-initials">${esc(initials(s.title))}</div></div><button id="srcbtn-${imgId}" class="img-src-btn" data-imgid="${imgId}" data-type="song" data-prefkey="${esc(prefKey)}" data-name="${esc(s.title)}" data-artist="${esc(s.artist)}" data-album="${esc(s.album)}">${srcLabel(itemSourcePrefs[prefKey] || 'deezer')}</button></div></td>
         <td>
-          <div class="song-title">${esc(s.title)}${certBadge(s.count, 'song')}</div>
+          <div class="song-title">${esc(s.title)}${certBadge(cumSongPlays, 'song')}</div>
           <div class="song-artist">${esc(s.artist)}</div>
         </td>
-        <td><div class="song-album">${esc(s.album)}</div></td>
+        <td><div class="song-album">${esc(s.album)}${cumAlbumPlays ? certBadge(cumAlbumPlays, 'album') : ''}</div></td>
         <td>
-          <div class="play-count">${tCount('plays', s.count)}</div>
+          <div class="play-count">${tCount('plays', s.count)}${isPlaysPeak ? playsPeakBadge() : ''}</div>
           <div class="play-bar"><div class="play-bar-fill" style="width:${Math.round(s.count / max * 100)}%"></div></div>
         </td>
       </tr>`;
@@ -2977,13 +2991,15 @@ function renderPage(type, peaks) {
       const prefKey = 'artist:' + a.name.toLowerCase();
       const rowId = 'crr-yartist-' + i;
       imgItems.push({ imgId, name: a.name, prefKey });
+      const histMaxArtist = playsPeakMaps ? (playsPeakMaps.artists[a.name] || 0) : 0;
+      const isArtistPlaysPeak = histMaxArtist > 0 && a.count >= histMaxArtist;
       const mainRow = `<tr class="${rank === 1 ? 'rank-1' : rank === 2 ? 'rank-2' : rank === 3 ? 'rank-3' : ''} artist-row" data-artist="${esc(a.name)}">
         <td class="rank-cell">${hasCR ? `<button class="cr-toggle-btn" title="${t('tooltip_cr_toggle_btn_artist')}" onclick="event.stopPropagation();toggleChartRun(this,'${rowId}')">📊</button>` : ''} ${rank}</td>
         <td class="thumb-cell"><div class="thumb-wrap"><div id="${imgId}"><div class="thumb-initials">${esc(initials(a.name))}</div></div><button id="srcbtn-${imgId}" class="img-src-btn" data-imgid="${imgId}" data-type="artist" data-prefkey="${esc(prefKey)}" data-name="${esc(a.name)}" data-artist="${esc(a.name)}" data-album="">${srcLabel(itemSourcePrefs[prefKey] || 'deezer')}</button></div></td>
         <td><div class="song-title">${esc(a.name)}</div><div class="song-artist" style="font-size:0.7rem;letter-spacing:0.06em;font-style:normal;font-family:'DM Mono',monospace;color:var(--text3)">${t('click_view_profile')}</div></td>
         <td><div class="song-artist">${tCount('songs', a.songs.size)}</div></td>
         <td>
-          <div class="play-count">${tCount('plays', a.count)}</div>
+          <div class="play-count">${tCount('plays', a.count)}${isArtistPlaysPeak ? playsPeakBadge() : ''}</div>
           <div class="play-bar"><div class="play-bar-fill" style="width:${Math.round(a.count / max * 100)}%"></div></div>
         </td>
       </tr>`;
@@ -3005,17 +3021,20 @@ function renderPage(type, peaks) {
         const rowId = 'crr-yalbum-' + i;
         const hasCR = chartRunData && !!chartRunData.result.albums[ak];
         imgItems.push({ imgId, album: a.album, artist: a.artist, name: a.album, prefKey });
+        const cumAlbumPlays = cumulativeMaps ? (cumulativeMaps.albums[ak] || a.count) : a.count;
+        const histMaxAlbum = playsPeakMaps ? (playsPeakMaps.albums[ak] || 0) : 0;
+        const isAlbumPlaysPeak = histMaxAlbum > 0 && a.count >= histMaxAlbum;
         const mainRow = `<tr class="${rank === 1 ? 'rank-1' : rank === 2 ? 'rank-2' : rank === 3 ? 'rank-3' : ''} album-row" data-albumkey="${esc(ak)}">
         <td class="rank-cell">${hasCR ? `<button class="cr-toggle-btn" title="${t('tooltip_cr_toggle_btn_album')}" onclick="event.stopPropagation();toggleChartRun(this,'${rowId}')">📊</button>` : ''} ${rank}</td>
         <td class="thumb-cell"><div class="thumb-wrap"><div id="${imgId}"><div class="thumb-initials">${esc(initials(a.album))}</div></div><button id="srcbtn-${imgId}" class="img-src-btn" data-imgid="${imgId}" data-type="album" data-prefkey="${esc(prefKey)}" data-name="${esc(a.album)}" data-artist="${esc(a.artist)}" data-album="${esc(a.album)}">${srcLabel(itemSourcePrefs[prefKey] || 'deezer')}</button></div></td>
         <td>
-          <div class="song-title">${esc(a.album)}${certBadge(a.count, 'album')}</div>
+          <div class="song-title">${esc(a.album)}${certBadge(cumAlbumPlays, 'album')}</div>
           <div class="song-artist">${esc(a.artist)}</div>
           <div class="song-artist" style="font-size:0.65rem;letter-spacing:0.06em;font-style:normal;font-family:'DM Mono',monospace;color:var(--text3)">${t('click_view_album')}</div>
         </td>
         <td><div class="song-artist">${tCount('tracks', a.tracks.size)}</div></td>
         <td>
-          <div class="play-count">${tCount('plays', a.count)}</div>
+          <div class="play-count">${tCount('plays', a.count)}${isAlbumPlaysPeak ? playsPeakBadge() : ''}</div>
           <div class="play-bar"><div class="play-bar-fill" style="width:${Math.round(a.count / max * 100)}%"></div></div>
         </td>
       </tr>`;
@@ -3909,6 +3928,73 @@ function buildPeriodPeaks(period) {
   return { songPeakMap, artistPeakMap, albumPeakMap };
 }
 
+// Small badge shown on the play count when a period play count equals the all-time per-period peak.
+function playsPeakBadge() {
+  return `<span class="plays-peak-badge">▲ PLAYS PEAK</span>`;
+}
+
+// Cumulative plays per song/album up to endDate (for period cert badges).
+function buildCumulativeMapsForPeriod(endDate) {
+  const songs = {};
+  const albums = {};
+  const songAlbumCounts = {}; // songKey → { albumKey → count }
+  for (const p of allPlays) {
+    if (p.date > endDate) continue;
+    const sk = songKey(p);
+    songs[sk] = (songs[sk] || 0) + 1;
+    const ak = p.album + '|||' + albumArtist(p);
+    albums[ak] = (albums[ak] || 0) + 1;
+    if (!songAlbumCounts[sk]) songAlbumCounts[sk] = {};
+    songAlbumCounts[sk][ak] = (songAlbumCounts[sk][ak] || 0) + 1;
+  }
+  // Best album key per song (mirrors bestAlbum — pick the most-played album)
+  const songAlbumKey = {};
+  for (const [sk, ac] of Object.entries(songAlbumCounts)) {
+    songAlbumKey[sk] = Object.entries(ac).sort((a, b) => b[1] - a[1])[0][0];
+  }
+  return { songs, albums, songAlbumKey };
+}
+
+// Historical max per-period play counts, excluding the currently viewed period.
+// Used to decide whether the current period is a plays-peak for a song/artist/album.
+function buildPlaysPeakMaps(period) {
+  const now = new Date();
+  let curKey;
+  if (period === 'week') {
+    curKey = currentViewWeekKey();
+  } else if (period === 'month') {
+    const d = new Date(now.getFullYear(), now.getMonth() - currentOffset, 1);
+    curKey = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+  } else {
+    curKey = String(now.getFullYear() - currentOffset);
+  }
+
+  const periodMap = {};
+  for (const p of allPlays) {
+    let key;
+    if (period === 'week') key = playWeekKey(p.date);
+    else if (period === 'month') key = `${p.date.getFullYear()}-${String(p.date.getMonth() + 1).padStart(2, '0')}`;
+    else key = String(p.date.getFullYear());
+    if (key > curKey) continue;
+    if (!periodMap[key]) periodMap[key] = { songs: {}, artists: {}, albums: {} };
+    const pm = periodMap[key];
+    const sk = songKey(p);
+    pm.songs[sk] = (pm.songs[sk] || 0) + 1;
+    for (const a of p.artists) pm.artists[a] = (pm.artists[a] || 0) + 1;
+    const ak = p.album + '|||' + albumArtist(p);
+    pm.albums[ak] = (pm.albums[ak] || 0) + 1;
+  }
+
+  const songs = {}, artists = {}, albums = {};
+  for (const [pKey, pm] of Object.entries(periodMap)) {
+    if (pKey === curKey) continue; // current period handled at render time
+    for (const [k, c] of Object.entries(pm.songs)) { if (c > (songs[k] || 0)) songs[k] = c; }
+    for (const [k, c] of Object.entries(pm.artists)) { if (c > (artists[k] || 0)) artists[k] = c; }
+    for (const [k, c] of Object.entries(pm.albums)) { if (c > (albums[k] || 0)) albums[k] = c; }
+  }
+  return { songs, artists, albums };
+}
+
 function buildPeaks() {
   if (currentPeriod === 'week' || currentPeriod === 'month' || currentPeriod === 'year') {
     return buildPeriodPeaks(currentPeriod);
@@ -3961,18 +4047,23 @@ function renderSongs(plays, peaks, monthlyStats) {
     const prefKey = 'song:' + s.artist.toLowerCase() + '|||' + s.title.toLowerCase();
     const rowId = 'crr-song-' + i;
     imgItems.push({ imgId, title: s.title, artist: s.artist, album: s.album, type: 'song', prefKey });
+    const cumSongPlays = cumulativeMaps ? (cumulativeMaps.songs[k] || 0) : s.count;
+    const albumKey = cumulativeMaps ? cumulativeMaps.songAlbumKey[k] : null;
+    const cumAlbumPlays = albumKey ? (cumulativeMaps.albums[albumKey] || 0) : 0;
+    const histMaxSong = playsPeakMaps ? (playsPeakMaps.songs[k] || 0) : 0;
+    const isPlaysPeak = !isAllTime && histMaxSong > 0 && s.count >= histMaxSong;
     const mainRow = `<tr class="${i === 0 ? 'rank-1' : i === 1 ? 'rank-2' : i === 2 ? 'rank-3' : ''}">
       <td class="rank-cell"><button class="cr-toggle-btn" title="${t('tooltip_cr_toggle_btn_song')}" onclick="event.stopPropagation();toggleChartRun(this,'${rowId}')">📊</button>${i + 1}</td>
       <td class="thumb-cell"><div class="thumb-wrap"><div id="${imgId}"><div class="thumb-initials">${esc(initials(s.title))}</div></div><button id="srcbtn-${imgId}" class="img-src-btn" data-imgid="${imgId}" data-type="song" data-prefkey="${esc(prefKey)}" data-name="${esc(s.title)}" data-artist="${esc(s.artist)}" data-album="${esc(s.album)}">${srcLabel(itemSourcePrefs[prefKey] || 'deezer')}</button></div></td>
       <td>
-        <div class="song-title">${esc(s.title)}${pk ? peakBadge(pk) : ''}${certBadge(s.count, 'song')}</div>
+        <div class="song-title">${esc(s.title)}${pk ? peakBadge(pk) : ''}${certBadge(cumSongPlays, 'song')}</div>
         <div class="song-artist">${esc(s.artist)}</div>
       </td>
-      <td><div class="song-album">${esc(s.album)}</div></td>
+      <td><div class="song-album">${esc(s.album)}${cumAlbumPlays ? certBadge(cumAlbumPlays, 'album') : ''}</div></td>
       ${monthlyStats ? mPrevCell(i + 1, k, 'songs', monthlyStats) : ''}
       ${monthlyStats ? mMthsCell(k, 'songs', monthlyStats) : ''}
       <td>
-        <div class="play-count">${tCount('plays', s.count)}${monthlyStats ? deltaInline(s.count, k, 'songs', monthlyStats) : ''}</div>
+        <div class="play-count">${tCount('plays', s.count)}${monthlyStats ? deltaInline(s.count, k, 'songs', monthlyStats) : ''}${isPlaysPeak ? playsPeakBadge() : ''}</div>
         <div class="play-bar"><div class="play-bar-fill" style="width:${Math.round(s.count / max * 100)}%"></div></div>
       </td>
     </tr>`;
@@ -4013,6 +4104,8 @@ function renderArtists(plays, peaks, monthlyStats) {
     const prefKey = 'artist:' + artist.toLowerCase();
     const rowId = 'crr-artist-' + i;
     imgItems.push({ imgId, name: artist, prefKey });
+    const histMaxArtist = playsPeakMaps ? (playsPeakMaps.artists[artist] || 0) : 0;
+    const isPlaysPeak = !isAllTime && histMaxArtist > 0 && data.count >= histMaxArtist;
     const mainRow = `<tr class="${i === 0 ? 'rank-1' : i === 1 ? 'rank-2' : i === 2 ? 'rank-3' : ''} artist-row" data-artist="${esc(artist)}">
       <td class="rank-cell"><button class="cr-toggle-btn" title="${t('tooltip_cr_toggle_btn_artist')}" onclick="event.stopPropagation();toggleChartRun(this,'${rowId}')">📊</button>${i + 1}</td>
       <td class="thumb-cell"><div class="thumb-wrap"><div id="${imgId}"><div class="thumb-initials">${esc(initials(artist))}</div></div><button id="srcbtn-${imgId}" class="img-src-btn" data-imgid="${imgId}" data-type="artist" data-prefkey="${esc(prefKey)}" data-name="${esc(artist)}" data-artist="${esc(artist)}" data-album="">${srcLabel(itemSourcePrefs[prefKey] || 'deezer')}</button></div></td>
@@ -4021,7 +4114,7 @@ function renderArtists(plays, peaks, monthlyStats) {
       ${monthlyStats ? mPrevCell(i + 1, artist, 'artists', monthlyStats) : ''}
       ${monthlyStats ? mMthsCell(artist, 'artists', monthlyStats) : ''}
       <td>
-        <div class="play-count">${tCount('plays', data.count)}${monthlyStats ? deltaInline(data.count, artist, 'artists', monthlyStats) : ''}</div>
+        <div class="play-count">${tCount('plays', data.count)}${monthlyStats ? deltaInline(data.count, artist, 'artists', monthlyStats) : ''}${isPlaysPeak ? playsPeakBadge() : ''}</div>
         <div class="play-bar"><div class="play-bar-fill" style="width:${Math.round(data.count / max * 100)}%"></div></div>
       </td>
     </tr>`;
@@ -4065,11 +4158,14 @@ function renderAlbums(plays, peaks, monthlyStats) {
       const prefKey = 'album:' + artist.toLowerCase() + '|||' + album.toLowerCase();
       const rowId = 'crr-album-' + i;
       imgItems.push({ imgId, album, artist, name: album, prefKey });
+      const cumAlbumPlays = cumulativeMaps ? (cumulativeMaps.albums[ak] || 0) : count;
+      const histMaxAlbum = playsPeakMaps ? (playsPeakMaps.albums[ak] || 0) : 0;
+      const isPlaysPeak = !isAllTime && histMaxAlbum > 0 && count >= histMaxAlbum;
       const mainRow = `<tr class="${i === 0 ? 'rank-1' : i === 1 ? 'rank-2' : i === 2 ? 'rank-3' : ''} album-row" data-albumkey="${esc(ak)}">
       <td class="rank-cell"><button class="cr-toggle-btn" title="${t('tooltip_cr_toggle_btn_album')}" onclick="event.stopPropagation();toggleChartRun(this,'${rowId}')">📊</button>${i + 1}</td>
       <td class="thumb-cell"><div class="thumb-wrap"><div id="${imgId}"><div class="thumb-initials">${esc(initials(album))}</div></div><button id="srcbtn-${imgId}" class="img-src-btn" data-imgid="${imgId}" data-type="album" data-prefkey="${esc(prefKey)}" data-name="${esc(album)}" data-artist="${esc(artist)}" data-album="${esc(album)}">${srcLabel(itemSourcePrefs[prefKey] || 'deezer')}</button></div></td>
       <td>
-        <div class="song-title">${esc(album)}${pk ? peakBadge(pk) : ''}${certBadge(count, 'album')}</div>
+        <div class="song-title">${esc(album)}${pk ? peakBadge(pk) : ''}${certBadge(cumAlbumPlays, 'album')}</div>
         <div class="song-artist">${esc(artist)}</div>
         <div class="song-artist" style="font-size:0.65rem;letter-spacing:0.06em;font-style:normal;font-family:'DM Mono',monospace;color:var(--text3)">${t('click_view_album')}</div>
       </td>
@@ -4077,7 +4173,7 @@ function renderAlbums(plays, peaks, monthlyStats) {
       ${monthlyStats ? mPrevCell(i + 1, ak, 'albums', monthlyStats) : ''}
       ${monthlyStats ? mMthsCell(ak, 'albums', monthlyStats) : ''}
       <td>
-        <div class="play-count">${tCount('plays', count)}${monthlyStats ? deltaInline(count, ak, 'albums', monthlyStats) : ''}</div>
+        <div class="play-count">${tCount('plays', count)}${monthlyStats ? deltaInline(count, ak, 'albums', monthlyStats) : ''}${isPlaysPeak ? playsPeakBadge() : ''}</div>
         <div class="play-bar"><div class="play-bar-fill" style="width:${Math.round(count / max * 100)}%"></div></div>
       </td>
     </tr>`;
@@ -4199,7 +4295,6 @@ function tDiamondLabel(mult) {
 }
 
 function certBadge(plays, type) {
-  if (currentPeriod !== 'alltime') return '';
   const certTiers = CERT[type];
   if (!certTiers) return '';
   if (plays >= certTiers.diamond) {
