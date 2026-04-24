@@ -22,25 +22,47 @@
 
   <div class="masthead">
     <div class="theme-toggle">
-      <button class="theme-btn active" data-theme="navy-dark" data-i18n-title="tooltip_theme_navy_dark">●</button>
-      <button class="theme-btn" data-theme="navy-light" data-i18n-title="tooltip_theme_navy_light">●</button>
-      <button class="theme-btn" data-theme="purple" data-i18n-title="tooltip_theme_purple_dark">●</button>
-      <button class="theme-btn" data-theme="purple-light" data-i18n-title="tooltip_theme_purple_light">●</button>
-      <button class="theme-btn" data-theme="red" data-i18n-title="tooltip_theme_red_dark">●</button>
-      <button class="theme-btn" data-theme="red-light" data-i18n-title="tooltip_theme_red_light">●</button>
-      <button class="theme-btn" data-theme="yellow" data-i18n-title="tooltip_theme_yellow_dark">●</button>
-      <button class="theme-btn" data-theme="yellow-light" data-i18n-title="tooltip_theme_yellow_light">●</button>
-      <button class="theme-btn" data-theme="pink" data-i18n-title="tooltip_theme_pink_dark">●</button>
-      <button class="theme-btn" data-theme="pink-light" data-i18n-title="tooltip_theme_pink_light">●</button>
-      <span id="themeLabel">Navy</span>
-      <span style="width:1px;height:18px;background:var(--border);margin:0 8px;"></span>
-      <select id="weekStartDaySelect" data-i18n-title="tooltip_week_start_day"></select>
-      <span style="width:1px;height:18px;background:var(--border);margin:0 4px;"></span>
-      <div class="lang-switcher" id="langSwitcher">
-        <button class="lang-btn active" data-lang="en" onclick="setLanguage('en')">🇺🇸 EN</button>
-        <button class="lang-btn" data-lang="es" onclick="setLanguage('es')">🇪🇸 ES</button>
-        <button class="lang-btn" data-lang="pt-BR" onclick="setLanguage('pt-BR')">🇧🇷 PT-BR</button>
-        <button class="lang-btn" data-lang="pt-PT" onclick="setLanguage('pt-PT')">🇵🇹 PT-PT</button>
+      <div class="ctrl-group" id="themeCtrlGroup">
+        <button class="ctrl-group-btn" id="themeGroupBtn" aria-label="Theme" title="Theme">
+          <span class="ctrl-btn-wide"><span class="ctrl-theme-dot"></span>THEME</span>
+          <span class="ctrl-btn-narrow"><span class="ctrl-theme-dot"></span></span>
+        </button>
+        <div class="ctrl-group-panel">
+          <button class="theme-btn active" data-theme="navy-dark" data-i18n-title="tooltip_theme_navy_dark">●</button>
+          <button class="theme-btn" data-theme="navy-light" data-i18n-title="tooltip_theme_navy_light">●</button>
+          <button class="theme-btn" data-theme="purple" data-i18n-title="tooltip_theme_purple_dark">●</button>
+          <button class="theme-btn" data-theme="purple-light" data-i18n-title="tooltip_theme_purple_light">●</button>
+          <button class="theme-btn" data-theme="red" data-i18n-title="tooltip_theme_red_dark">●</button>
+          <button class="theme-btn" data-theme="red-light" data-i18n-title="tooltip_theme_red_light">●</button>
+          <button class="theme-btn" data-theme="yellow" data-i18n-title="tooltip_theme_yellow_dark">●</button>
+          <button class="theme-btn" data-theme="yellow-light" data-i18n-title="tooltip_theme_yellow_light">●</button>
+          <button class="theme-btn" data-theme="pink" data-i18n-title="tooltip_theme_pink_dark">●</button>
+          <button class="theme-btn" data-theme="pink-light" data-i18n-title="tooltip_theme_pink_light">●</button>
+          <span id="themeLabel">Navy</span>
+        </div>
+      </div>
+      <div class="ctrl-group" id="dayCtrlGroup">
+        <button class="ctrl-group-btn" id="dayGroupBtn" aria-label="Week start day" title="Week start day">
+          <span class="ctrl-btn-wide">☀️ START DAY</span>
+          <span class="ctrl-btn-narrow" id="dayGroupAbbrev">Su</span>
+        </button>
+        <div class="ctrl-group-panel">
+          <div class="day-switcher" id="daySwitcher"></div>
+        </div>
+      </div>
+      <div class="ctrl-group" id="langCtrlGroup">
+        <button class="ctrl-group-btn" id="langGroupBtn" aria-label="Language" title="Language">
+          <span class="ctrl-btn-wide">LANGUAGE</span>
+          <span class="ctrl-btn-narrow" id="langGroupFlag">🇺🇸</span>
+        </button>
+        <div class="ctrl-group-panel">
+          <div class="lang-switcher" id="langSwitcher">
+            <button class="lang-btn active" data-lang="en" onclick="setLanguage('en')">🇺🇸 EN</button>
+            <button class="lang-btn" data-lang="es" onclick="setLanguage('es')">🇪🇸 ES</button>
+            <button class="lang-btn" data-lang="pt-BR" onclick="setLanguage('pt-BR')">🇧🇷 PT-BR</button>
+            <button class="lang-btn" data-lang="pt-PT" onclick="setLanguage('pt-PT')">🇵🇹 PT-PT</button>
+          </div>
+        </div>
       </div>
     </div>
 

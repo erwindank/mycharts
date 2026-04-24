@@ -33,6 +33,14 @@ const themeBtns = document.querySelectorAll('.theme-btn');
 
 const THEME_CLASSES = ['navy-light', 'purple', 'purple-light', 'red', 'red-light', 'yellow', 'yellow-light', 'pink', 'pink-light'];
 
+const THEME_DOT_COLORS = {
+  'navy-dark': '#1a6eb5', 'navy-light': '#90c4f4',
+  'purple': '#7c6af7', 'purple-light': '#c4b8ff',
+  'red': '#cc2020', 'red-light': '#ff9999',
+  'yellow': '#c8a800', 'yellow-light': '#ffe040',
+  'pink': '#cc2090', 'pink-light': '#ffaadd'
+};
+
 function applyTheme(theme) {
   document.body.classList.remove(...THEME_CLASSES);
   if (theme !== 'navy-dark') document.body.classList.add(theme);
@@ -40,6 +48,8 @@ function applyTheme(theme) {
   const labelKey = 'tooltip_theme_' + normalizedTheme.replace('-', '_');
   themeLabel.textContent = t(labelKey) || t('tooltip_theme_navy_dark');
   themeBtns.forEach(b => b.classList.toggle('active', b.dataset.theme === theme));
+  const dotColor = THEME_DOT_COLORS[theme] || '#1a6eb5';
+  document.querySelectorAll('.ctrl-theme-dot').forEach(d => { d.style.background = dotColor; });
   try { localStorage.setItem('dankcharts-theme', theme); } catch (e) { }
 }
 
@@ -84,46 +94,52 @@ function toggleDisplay(type) {
 initDisplayToggles();
 
 // ─── WEEK START DAY SELECTOR ───────────────────────────────────
-const DAY_KEYS = ['day_sunday', 'day_monday', 'day_tuesday', 'day_wednesday', 'day_thursday', 'day_friday', 'day_saturday'];
-const startDaySelect = document.getElementById('weekStartDaySelect');
-
-function repopulateWeekDays() {
-  if (!startDaySelect) return;
-  const cur = startDaySelect.value;
-  startDaySelect.innerHTML = '';
-  DAY_KEYS.forEach((key, index) => {
-    const option = document.createElement('option');
-    option.value = index;
-    option.textContent = t(key);
-    startDaySelect.appendChild(option);
-  });
-  startDaySelect.value = cur;
-}
+const DAY_ABBREVS = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
 
 function updateWeekStartDay(day) {
   weekStartDay = day;
+  const dayGroupAbbrev = document.getElementById('dayGroupAbbrev');
+  if (dayGroupAbbrev) dayGroupAbbrev.textContent = DAY_ABBREVS[day];
+  document.querySelectorAll('.day-btn').forEach(btn => {
+    btn.classList.toggle('active', parseInt(btn.dataset.day) === day);
+  });
   renderAll();
   try { localStorage.setItem('dankcharts-weekStartDay', day); } catch (e) { }
 }
 
-if (startDaySelect) {
-  DAY_KEYS.forEach((key, index) => {
-    const option = document.createElement('option');
-    option.value = index;
-    option.textContent = t(key);
-    startDaySelect.appendChild(option);
-  });
+try {
+  const saved = localStorage.getItem('dankcharts-weekStartDay');
+  weekStartDay = saved !== null ? parseInt(saved) : 0;
+} catch (e) { weekStartDay = 0; }
 
-  try {
-    const saved = localStorage.getItem('dankcharts-weekStartDay');
-    weekStartDay = saved !== null ? parseInt(saved) : 0;
-    startDaySelect.value = weekStartDay;
-  } catch (e) { weekStartDay = 0; }
-
-  startDaySelect.addEventListener('change', (e) => {
-    updateWeekStartDay(parseInt(e.target.value));
+const daySwitcher = document.getElementById('daySwitcher');
+if (daySwitcher) {
+  DAY_ABBREVS.forEach((abbrev, index) => {
+    const btn = document.createElement('button');
+    btn.className = 'day-btn' + (index === weekStartDay ? ' active' : '');
+    btn.dataset.day = index;
+    btn.textContent = abbrev;
+    btn.addEventListener('click', () => updateWeekStartDay(index));
+    daySwitcher.appendChild(btn);
   });
 }
+
+const dayGroupAbbrev = document.getElementById('dayGroupAbbrev');
+if (dayGroupAbbrev) dayGroupAbbrev.textContent = DAY_ABBREVS[weekStartDay];
+
+// ─── CTRL GROUP TOGGLE (mobile) ────────────────────────────────
+document.querySelectorAll('.ctrl-group-btn').forEach(btn => {
+  btn.addEventListener('click', e => {
+    e.stopPropagation();
+    const group = btn.closest('.ctrl-group');
+    const wasOpen = group.classList.contains('open');
+    document.querySelectorAll('.ctrl-group.open').forEach(g => g.classList.remove('open'));
+    if (!wasOpen) group.classList.add('open');
+  });
+});
+document.addEventListener('click', () => {
+  document.querySelectorAll('.ctrl-group.open').forEach(g => g.classList.remove('open'));
+});
 
 // ─── SOURCE BUTTON TOGGLE ──────────────────────────────────────
 (function initSrcToggle() {

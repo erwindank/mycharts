@@ -3001,6 +3001,13 @@ function setLanguage(lang) {
     btn.classList.toggle('active', btn.dataset.lang === lang);
   });
 
+  // Sync mobile lang trigger flag icon
+  const langGroupFlag = document.getElementById('langGroupFlag');
+  if (langGroupFlag) {
+    const activeBtn = document.querySelector('.lang-btn[data-lang="' + lang + '"]');
+    if (activeBtn) langGroupFlag.textContent = activeBtn.textContent.trim().split(' ')[0];
+  }
+
   // Update static DOM strings
   applyI18n();
 
