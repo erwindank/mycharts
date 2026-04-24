@@ -846,6 +846,7 @@ function openSourceModal() {
   const src = getDataSource();
   document.getElementById('srcRadioSheets').checked = src === 'sheets';
   document.getElementById('srcRadioLastfm').checked = src === 'lastfm';
+  document.getElementById('srcDisplayName').value  = localStorage.getItem('dc_display_name') || '';
   document.getElementById('srcSheetId').value      = localStorage.getItem('dc_sheet_id')  || DEFAULT_SHEET_ID;
   document.getElementById('srcSheetTab').value     = localStorage.getItem('dc_sheet_tab') || DEFAULT_SHEET_TAB;
   document.getElementById('srcLastfmUser').value   = getLastFmUser();
@@ -866,6 +867,10 @@ function updateSourceModalFields() {
 }
 
 function saveSourceConfig() {
+  const displayName = document.getElementById('srcDisplayName').value.trim();
+  if (displayName) localStorage.setItem('dc_display_name', displayName);
+  else localStorage.removeItem('dc_display_name');
+  updateMastheadDynamic();
   const src = document.getElementById('srcRadioSheets').checked ? 'sheets' : 'lastfm';
   localStorage.setItem('dc_source', src);
   if (src === 'sheets') {
@@ -892,6 +897,7 @@ document.getElementById('syncNowBtn').addEventListener('click', syncNow);
 // Auto-sync on page load — use cached data if synced within the last hour
 window.addEventListener('load', () => {
   document.getElementById('mainApp').style.display = 'block';
+  updateMastheadDynamic();
   updateLfmAuthStatus();
   localStorage.removeItem('dc_sync_csv'); // clean up old oversized key if present
 
@@ -985,6 +991,10 @@ function parseCsv(text, fromSheets = false) {
 }
 
 function finalizeLoad() {
+  if (allPlays.length) {
+    window.firstScrobbleDate = allPlays.reduce((min, p) => p.date < min ? p.date : min, allPlays[0].date);
+    updateMastheadDynamic();
+  }
   populateYearPicker();
 
   // Restore saved granularity before rendering

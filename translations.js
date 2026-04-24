@@ -424,9 +424,10 @@ const TRANSLATIONS = {
     calendar_picker: 'Date Picker',
 
     // Masthead
-    masthead_est: "★ Erwin's Personal Music Charts · Est. 2016 ★",
+    masthead_est: "★ {{possessive}} Personal Music Charts · Est. {{year}} ★",
+    masthead_est_default: "★ Your Personal Music Charts · Est. {{year}} ★",
     masthead_tagline: 'Your listening history. Your charts. Your legacy.',
-    masthead_streaming: 'Streaming since January 9, 2016',
+    masthead_streaming: 'Streaming since {{date}}',
 
     // Footer
     footer_line1: "dankcharts.fm · Erwin's Personal Music Charts · Est. 2016",
@@ -1147,9 +1148,10 @@ const TRANSLATIONS = {
     calendar_picker: 'Selector de Fecha',
 
     // Masthead
-    masthead_est: "★ Rankings Personales de Música de Erwin · Est. 2016 ★",
+    masthead_est: "★ Rankings Personales de Música de {{name}} · Est. {{year}} ★",
+    masthead_est_default: "★ Tus Rankings Personales de Música · Est. {{year}} ★",
     masthead_tagline: 'Tu historial de escucha. Tus rankings. Tu legado.',
-    masthead_streaming: 'Escuchando desde el 9 de enero de 2016',
+    masthead_streaming: 'Escuchando desde el {{date}}',
 
     // Footer
     footer_line1: "dankcharts.fm · Rankings Personales de Música de Erwin · Est. 2016",
@@ -1870,9 +1872,10 @@ const TRANSLATIONS = {
     calendar_picker: 'Selecionador de Data',
 
     // Masthead
-    masthead_est: "★ Paradas Musicais Pessoais do Erwin · Est. 2016 ★",
+    masthead_est: "★ Paradas Musicais Pessoais de {{name}} · Est. {{year}} ★",
+    masthead_est_default: "★ Suas Paradas Musicais Pessoais · Est. {{year}} ★",
     masthead_tagline: 'Seu histórico de escuta. Suas paradas. Seu legado.',
-    masthead_streaming: 'Ouvindo desde 9 de janeiro de 2016',
+    masthead_streaming: 'Ouvindo desde {{date}}',
 
     // Footer
     footer_line1: "dankcharts.fm · Paradas Musicais Pessoais do Erwin · Est. 2016",
@@ -2593,9 +2596,10 @@ const TRANSLATIONS = {
     calendar_picker: 'Selecionador de Data',
 
     // Masthead
-    masthead_est: "★ Tops Pessoais de Música do Erwin · Est. 2016 ★",
+    masthead_est: "★ Tops Pessoais de Música de {{name}} · Est. {{year}} ★",
+    masthead_est_default: "★ Os Seus Tops Pessoais de Música · Est. {{year}} ★",
     masthead_tagline: 'O seu histórico de escuta. Os seus tops. O seu legado.',
-    masthead_streaming: 'A ouvir desde 9 de janeiro de 2016',
+    masthead_streaming: 'A ouvir desde {{date}}',
 
     // Footer
     footer_line1: "dankcharts.fm · Tops Pessoais de Música do Erwin · Est. 2016",
@@ -2937,10 +2941,37 @@ function updateLabelButton(elemId, isOn) {
 // Elements with data-i18n-placeholder="key"  → placeholder attribute updated
 // Elements with data-i18n-title="key"        → title attribute updated
 // Elements with data-i18n-raw-th="key"       → raw table TH (preserves sort-arrow span)
+function updateMastheadDynamic() {
+  const name = localStorage.getItem('dc_display_name') || '';
+  const firstDate = window.firstScrobbleDate;
+  const year = firstDate ? firstDate.getFullYear() : new Date().getFullYear();
+
+  const estEl = document.querySelector('[data-i18n="masthead_est"]');
+  if (estEl) {
+    const key = name ? 'masthead_est' : 'masthead_est_default';
+    const possessive = name ? (name.match(/s$/i) ? name + "'" : name + "'s") : '';
+    estEl.textContent = t(key, { name, possessive, year });
+  }
+
+  const streamEl = document.querySelector('[data-i18n="masthead_streaming"]');
+  if (streamEl) {
+    if (firstDate) {
+      const localeMap = { en: 'en-US', es: 'es', 'pt-BR': 'pt-BR', 'pt-PT': 'pt-PT' };
+      const locale = localeMap[currentLang] || 'en-US';
+      const dateStr = new Intl.DateTimeFormat(locale, { day: 'numeric', month: 'long', year: 'numeric' }).format(firstDate);
+      streamEl.textContent = t('masthead_streaming', { date: dateStr });
+    } else {
+      streamEl.textContent = t('masthead_streaming', { date: '—' });
+    }
+  }
+}
+
 function applyI18n() {
   document.querySelectorAll('[data-i18n]').forEach(el => {
+    if (el.dataset.i18n === 'masthead_est' || el.dataset.i18n === 'masthead_streaming') return;
     el.textContent = t(el.dataset.i18n);
   });
+  updateMastheadDynamic();
   document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
     el.placeholder = t(el.dataset.i18nPlaceholder);
   });
