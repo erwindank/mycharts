@@ -657,6 +657,52 @@ const SYNC_INTERVAL_MS = 60 * 60 * 1000; // auto-refresh every 1 hour
 let syncTimer = null;
 let lastSyncTime = null;
 
+// ─── INDEXEDDB CACHE (survives page refresh) ───────────────────
+const IDB_NAME = 'dankcharts';
+const IDB_STORE = 'cache';
+const IDB_LASTFM_KEY = 'lastfm';
+
+function openIDB() {
+  return new Promise((resolve, reject) => {
+    const req = indexedDB.open(IDB_NAME, 1);
+    req.onupgradeneeded = e => e.target.result.createObjectStore(IDB_STORE);
+    req.onsuccess = e => resolve(e.target.result);
+    req.onerror = e => reject(e.target.error);
+  });
+}
+async function loadFromIDB(key) {
+  try {
+    const db = await openIDB();
+    return new Promise((resolve, reject) => {
+      const req = db.transaction(IDB_STORE, 'readonly').objectStore(IDB_STORE).get(key);
+      req.onsuccess = e => resolve(e.target.result ?? null);
+      req.onerror = e => reject(e.target.error);
+    });
+  } catch (e) { return null; }
+}
+async function saveToIDB(key, value) {
+  try {
+    const db = await openIDB();
+    return new Promise((resolve, reject) => {
+      const tx = db.transaction(IDB_STORE, 'readwrite');
+      tx.objectStore(IDB_STORE).put(value, key);
+      tx.oncomplete = resolve;
+      tx.onerror = e => reject(e.target.error);
+    });
+  } catch (e) { /* ignore */ }
+}
+async function deleteFromIDB(key) {
+  try {
+    const db = await openIDB();
+    return new Promise((resolve) => {
+      const tx = db.transaction(IDB_STORE, 'readwrite');
+      tx.objectStore(IDB_STORE).delete(key);
+      tx.oncomplete = resolve;
+      tx.onerror = resolve;
+    });
+  } catch (e) { /* ignore */ }
+}
+
 function setSyncStatus(msg, cls) {
   const el = document.getElementById('syncStatus');
   el.textContent = msg;
@@ -688,6 +734,20 @@ async function syncFromSheets() {
   syncTimer = setTimeout(syncFromSheets, SYNC_INTERVAL_MS);
 }
 
+async function fetchLastFmPage(username, page) {
+  const url = `https://ws.audioscrobbler.com/2.0/?method=user.getrecenttracks`
+    + `&user=${encodeURIComponent(username)}&api_key=${LASTFM_KEY}`
+    + `&format=json&limit=200&page=${page}`;
+  for (let attempt = 0; attempt < 3; attempt++) {
+    if (attempt > 0) await new Promise(r => setTimeout(r, 1000 * Math.pow(2, attempt - 1)));
+    const res = await fetch(url);
+    if (!res.ok) { if (attempt === 2) throw new Error('HTTP ' + res.status); continue; }
+    const data = await res.json();
+    if (data.error) throw new Error(data.message);
+    return data;
+  }
+}
+
 async function syncFromLastFm() {
   const username = getLastFmUser();
   if (!username) {
@@ -697,18 +757,16 @@ async function syncFromLastFm() {
   const btn = document.getElementById('syncNowBtn');
   btn.disabled = true;
 
-  // Serve from session cache if fresh
-  const cacheTs  = parseInt(localStorage.getItem('dc_lastfm_ts') || '0');
-  const cacheRaw = sessionStorage.getItem('dc_lastfm_cache');
-  const age = Date.now() - cacheTs;
-  if (cacheRaw && age < SYNC_INTERVAL_MS) {
+  // Serve from IndexedDB cache if still fresh (survives page refresh)
+  const cached = await loadFromIDB(IDB_LASTFM_KEY);
+  const age = cached ? Date.now() - cached.ts : Infinity;
+  if (cached && age < SYNC_INTERVAL_MS) {
     try {
-      const compact = JSON.parse(cacheRaw);
-      allPlays = compact.map(([title, artist, album, uts]) => {
+      allPlays = cached.data.map(([title, artist, album, uts]) => {
         const ar = artist || '';
         return { title, artist: ar, artists: splitArtists(ar), album: album || '—', date: new Date(uts * 1000) };
       });
-      lastSyncTime = new Date(cacheTs);
+      lastSyncTime = new Date(cached.ts);
       const minsAgo = Math.round(age / 60000);
       setSyncStatus(t('sync_ok_cached', { time: lastSyncTime.toLocaleTimeString(), n: allPlays.length.toLocaleString(), mins: minsAgo }), 'ok');
       finalizeLoad();
@@ -719,24 +777,30 @@ async function syncFromLastFm() {
     } catch (e) { /* cache corrupt — fall through to fresh fetch */ }
   }
 
-  let page = 1, totalPages = 1, rawTracks = [];
+  let rawTracks = [];
   try {
-    do {
-      setSyncStatus(`Loading Last.fm history… page ${page}${totalPages > 1 ? ' of ' + totalPages : ''}`, 'loading');
-      const url = `https://ws.audioscrobbler.com/2.0/?method=user.getrecenttracks`
-        + `&user=${encodeURIComponent(username)}&api_key=${LASTFM_KEY}`
-        + `&format=json&limit=200&page=${page}`;
-      const res = await fetch(url);
-      if (!res.ok) throw new Error('HTTP ' + res.status);
-      const data = await res.json();
-      if (data.error) throw new Error(data.message);
-      totalPages = parseInt(data.recenttracks['@attr'].totalPages) || 1;
-      let tracks = data.recenttracks.track;
-      if (!Array.isArray(tracks)) tracks = tracks ? [tracks] : [];
-      rawTracks = rawTracks.concat(tracks.filter(t => t.date && t.date.uts));
-      page++;
-      if (page <= totalPages) await new Promise(r => setTimeout(r, 120));
-    } while (page <= totalPages);
+    // Fetch page 1 to discover totalPages
+    setSyncStatus('Loading Last.fm history… page 1', 'loading');
+    const firstData = await fetchLastFmPage(username, 1);
+    const totalPages = parseInt(firstData.recenttracks['@attr'].totalPages) || 1;
+    let tracks = firstData.recenttracks.track;
+    if (!Array.isArray(tracks)) tracks = tracks ? [tracks] : [];
+    rawTracks = rawTracks.concat(tracks.filter(t => t.date && t.date.uts));
+
+    // Fetch remaining pages in parallel batches of 10
+    const BATCH = 10;
+    for (let batchStart = 2; batchStart <= totalPages; batchStart += BATCH) {
+      const batchEnd = Math.min(batchStart + BATCH - 1, totalPages);
+      setSyncStatus(`Loading Last.fm history… pages ${batchStart}–${batchEnd} of ${totalPages}`, 'loading');
+      const pages = [];
+      for (let p = batchStart; p <= batchEnd; p++) pages.push(p);
+      const results = await Promise.all(pages.map(p => fetchLastFmPage(username, p)));
+      for (const data of results) {
+        let t = data.recenttracks.track;
+        if (!Array.isArray(t)) t = t ? [t] : [];
+        rawTracks = rawTracks.concat(t.filter(t => t.date && t.date.uts));
+      }
+    }
   } catch (e) {
     setSyncStatus('Last.fm error: ' + e.message, 'err');
     btn.disabled = false;
@@ -760,8 +824,7 @@ async function syncFromLastFm() {
     (t.album  && t.album['#text'])  || '',
     parseInt(t.date.uts)
   ]);
-  try { sessionStorage.setItem('dc_lastfm_cache', JSON.stringify(compact)); } catch (e) {}
-  localStorage.setItem('dc_lastfm_ts', Date.now().toString());
+  await saveToIDB(IDB_LASTFM_KEY, { data: compact, ts: Date.now() });
   lastSyncTime = new Date();
 
   setSyncStatus(t('sync_ok', { time: lastSyncTime.toLocaleTimeString(), n: allPlays.length.toLocaleString() }), 'ok');
@@ -808,8 +871,8 @@ function saveSourceConfig() {
   if (src === 'sheets') {
     localStorage.setItem('dc_sheet_id',  document.getElementById('srcSheetId').value.trim());
     localStorage.setItem('dc_sheet_tab', document.getElementById('srcSheetTab').value.trim());
-    sessionStorage.removeItem('dc_lastfm_cache');
-    localStorage.removeItem('dc_lastfm_ts');
+    deleteFromIDB(IDB_LASTFM_KEY);
+    localStorage.removeItem('dc_lastfm_ts'); // clean up old key
   } else {
     localStorage.setItem('dc_lastfm_user', document.getElementById('srcLastfmUser').value.trim());
     sessionStorage.removeItem('dc_sync_csv');
