@@ -2673,6 +2673,10 @@
       border-color: var(--accent);
     }
 
+    body.yellow .graphs-btn.active {
+      color: #1a1a00;
+    }
+
     .graph-card {
       background: var(--bg2);
       border: 1px solid var(--border);
@@ -4220,6 +4224,10 @@
       background: var(--accent);
       border-color: var(--accent);
       color: #fff;
+    }
+
+    body.yellow .records-nav-btn.active {
+      color: #1a1a00;
     }
 
     .rec-intro {
