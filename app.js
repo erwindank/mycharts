@@ -51,6 +51,38 @@ try {
   applyTheme(saved);
 } catch (e) { applyTheme('navy-dark'); }
 
+// ─── DISPLAY TOGGLES ──────────────────────────────────────────
+const DISPLAY_TOGGLE_CONFIG = {
+  'cert':       { btnId: 'toggleCertBtn',      bodyClass: 'hide-cert' },
+  'plays-peak': { btnId: 'togglePlaysPeakBtn', bodyClass: 'hide-plays-peak' },
+  'peak-tags':  { btnId: 'togglePeakTagsBtn',  bodyClass: 'hide-peak-tags' }
+};
+const displayToggleState = (() => {
+  try { return JSON.parse(localStorage.getItem('dc_displayToggles') || '{}'); } catch(e) { return {}; }
+})();
+
+function initDisplayToggles() {
+  for (const [type, cfg] of Object.entries(DISPLAY_TOGGLE_CONFIG)) {
+    const visible = displayToggleState[type] !== false;
+    const btn = document.getElementById(cfg.btnId);
+    if (btn) btn.classList.toggle('active', visible);
+    document.body.classList.toggle(cfg.bodyClass, !visible);
+  }
+}
+
+function toggleDisplay(type) {
+  const cfg = DISPLAY_TOGGLE_CONFIG[type];
+  if (!cfg) return;
+  const nowVisible = displayToggleState[type] !== false;
+  displayToggleState[type] = !nowVisible;
+  const btn = document.getElementById(cfg.btnId);
+  if (btn) btn.classList.toggle('active', !nowVisible);
+  document.body.classList.toggle(cfg.bodyClass, nowVisible);
+  try { localStorage.setItem('dc_displayToggles', JSON.stringify(displayToggleState)); } catch(e) {}
+}
+
+initDisplayToggles();
+
 // ─── WEEK START DAY SELECTOR ───────────────────────────────────
 const DAY_KEYS = ['day_sunday', 'day_monday', 'day_tuesday', 'day_wednesday', 'day_thursday', 'day_friday', 'day_saturday'];
 const startDaySelect = document.getElementById('weekStartDaySelect');
@@ -98,14 +130,14 @@ if (startDaySelect) {
   try {
     if (localStorage.getItem('dankcharts-hideSrcBtns') === '1') {
       document.body.classList.add('hide-src-btns');
-      document.getElementById('srcToggleBtn')?.classList.add('hidden-active');
+      document.getElementById('srcToggleBtn')?.classList.remove('active');
     }
   } catch (e) { }
 })();
 
 function toggleSrcButtons() {
   const hidden = document.body.classList.toggle('hide-src-btns');
-  document.getElementById('srcToggleBtn')?.classList.toggle('hidden-active', hidden);
+  document.getElementById('srcToggleBtn')?.classList.toggle('active', !hidden);
   try { localStorage.setItem('dankcharts-hideSrcBtns', hidden ? '1' : '0'); } catch (e) { }
 }
 
@@ -2256,6 +2288,7 @@ document.getElementById('periodNav').addEventListener('click', e => {
     localStorage.setItem('dc_period', currentPeriod);
     document.getElementById('chartSizeBar').style.display = 'none';
     document.getElementById('paginatedSizeBar').style.display = 'none';
+    document.getElementById('chartDisplayToggles').style.display = 'none';
     document.getElementById('exportPlaylistBtn').style.display = 'none';
     document.getElementById('dateNav').style.display = 'none';
     document.getElementById('statsStrip').style.display = 'none';
@@ -2286,6 +2319,7 @@ document.getElementById('periodNav').addEventListener('click', e => {
     localStorage.setItem('dc_period', currentPeriod);
     document.getElementById('chartSizeBar').style.display = 'none';
     document.getElementById('paginatedSizeBar').style.display = 'none';
+    document.getElementById('chartDisplayToggles').style.display = 'none';
     document.getElementById('exportPlaylistBtn').style.display = 'none';
     document.getElementById('dateNav').style.display = 'none';
     document.getElementById('statsStrip').style.display = 'none';
@@ -2309,6 +2343,7 @@ document.getElementById('periodNav').addEventListener('click', e => {
     localStorage.setItem('dc_period', currentPeriod);
     document.getElementById('chartSizeBar').style.display = 'none';
     document.getElementById('paginatedSizeBar').style.display = 'none';
+    document.getElementById('chartDisplayToggles').style.display = 'none';
     document.getElementById('exportPlaylistBtn').style.display = 'none';
     document.getElementById('dateNav').style.display = 'none';
     document.getElementById('statsStrip').style.display = 'none';
@@ -2666,6 +2701,7 @@ function renderTableHeaders() {
 
 function renderAll() {
   if (currentPeriod === 'rawdata') { applyRawFilters(); return; }
+  document.body.dataset.period = currentPeriod;
   // Exit early if no data has been loaded yet
   if (!allPlays || allPlays.length === 0) { return; }
   const { start, end, label, sub } = getDateRange();
@@ -2677,6 +2713,10 @@ function renderAll() {
   const paginated = isPaginated();
   document.getElementById('chartSizeBar').style.display = paginated ? 'none' : 'flex';
   document.getElementById('paginatedSizeBar').style.display = paginated ? 'flex' : 'none';
+  document.getElementById('chartDisplayToggles').style.display =
+    ['week', 'month', 'year'].includes(currentPeriod) ? 'flex' : 'none';
+  document.getElementById('togglePeakTagsBtn').style.display =
+    currentPeriod === 'year' ? 'none' : '';
   if (paginated) {
     document.getElementById('sizeBtnsYearly').style.display = currentPeriod === 'year' ? 'flex' : 'none';
     document.getElementById('sizeBtnsAllTime').style.display = currentPeriod === 'alltime' ? 'flex' : 'none';
@@ -2961,8 +3001,7 @@ function renderPage(type, peaks) {
       const rowId = 'crr-ysong-' + i;
       imgItems.push({ imgId, title: s.title, artist: s.artist, album: s.album, prefKey });
       const cumSongPlays = cumulativeMaps ? (cumulativeMaps.songs[k] || s.count) : s.count;
-      const albumKey = cumulativeMaps ? cumulativeMaps.songAlbumKey[k] : null;
-      const cumAlbumPlays = albumKey ? (cumulativeMaps.albums[albumKey] || 0) : 0;
+      const cumAlbumPlays = cumulativeMaps && s.album ? (cumulativeMaps.albumsByName[s.album] || 0) : 0;
       const histMaxSong = playsPeakMaps ? (playsPeakMaps.songs[k] || 0) : 0;
       const isPlaysPeak = histMaxSong > 0 && s.count >= histMaxSong;
       const mainRow = `<tr class="${rank === 1 ? 'rank-1' : rank === 2 ? 'rank-2' : rank === 3 ? 'rank-3' : ''}">
@@ -2974,7 +3013,7 @@ function renderPage(type, peaks) {
         </td>
         <td><div class="song-album">${esc(s.album)}${cumAlbumPlays ? certBadge(cumAlbumPlays, 'album') : ''}</div></td>
         <td>
-          <div class="play-count">${tCount('plays', s.count)}${isPlaysPeak ? playsPeakBadge() : ''}</div>
+          <div class="play-count">${isPlaysPeak ? playsPeakBadge() : ''}${tCount('plays', s.count)}</div>
           <div class="play-bar"><div class="play-bar-fill" style="width:${Math.round(s.count / max * 100)}%"></div></div>
         </td>
       </tr>`;
@@ -2999,7 +3038,7 @@ function renderPage(type, peaks) {
         <td><div class="song-title">${esc(a.name)}</div><div class="song-artist" style="font-size:0.7rem;letter-spacing:0.06em;font-style:normal;font-family:'DM Mono',monospace;color:var(--text3)">${t('click_view_profile')}</div></td>
         <td><div class="song-artist">${tCount('songs', a.songs.size)}</div></td>
         <td>
-          <div class="play-count">${tCount('plays', a.count)}${isArtistPlaysPeak ? playsPeakBadge() : ''}</div>
+          <div class="play-count">${isArtistPlaysPeak ? playsPeakBadge() : ''}${tCount('plays', a.count)}</div>
           <div class="play-bar"><div class="play-bar-fill" style="width:${Math.round(a.count / max * 100)}%"></div></div>
         </td>
       </tr>`;
@@ -3034,7 +3073,7 @@ function renderPage(type, peaks) {
         </td>
         <td><div class="song-artist">${tCount('tracks', a.tracks.size)}</div></td>
         <td>
-          <div class="play-count">${tCount('plays', a.count)}${isAlbumPlaysPeak ? playsPeakBadge() : ''}</div>
+          <div class="play-count">${isAlbumPlaysPeak ? playsPeakBadge() : ''}${tCount('plays', a.count)}</div>
           <div class="play-bar"><div class="play-bar-fill" style="width:${Math.round(a.count / max * 100)}%"></div></div>
         </td>
       </tr>`;
@@ -3947,12 +3986,23 @@ function buildCumulativeMapsForPeriod(endDate) {
     if (!songAlbumCounts[sk]) songAlbumCounts[sk] = {};
     songAlbumCounts[sk][ak] = (songAlbumCounts[sk][ak] || 0) + 1;
   }
-  // Best album key per song (mirrors bestAlbum — pick the most-played album)
+  // Best album key per song: mirrors bestAlbum — prefer non-self-titled (i.e. album name ≠ song title),
+  // then pick the most-played. This keeps the album cert badge consistent with the displayed album name.
   const songAlbumKey = {};
   for (const [sk, ac] of Object.entries(songAlbumCounts)) {
-    songAlbumKey[sk] = Object.entries(ac).sort((a, b) => b[1] - a[1])[0][0];
+    const entries = Object.entries(ac).sort((a, b) => b[1] - a[1]);
+    const songTitle = sk.split('|||')[0];
+    const nonSingle = entries.filter(([ak]) => ak.split('|||')[0].toLowerCase().trim() !== songTitle);
+    songAlbumKey[sk] = (nonSingle.length > 0 ? nonSingle[0][0] : entries[0][0]);
   }
-  return { songs, albums, songAlbumKey };
+  // Album plays keyed by album name only — used as fallback for songs with no prior history
+  // (e.g. NEW entries that have no songAlbumKey yet).
+  const albumsByName = {};
+  for (const [ak, count] of Object.entries(albums)) {
+    const name = ak.split('|||')[0];
+    albumsByName[name] = (albumsByName[name] || 0) + count;
+  }
+  return { songs, albums, songAlbumKey, albumsByName };
 }
 
 // Historical max per-period play counts, excluding the currently viewed period.
@@ -4048,8 +4098,7 @@ function renderSongs(plays, peaks, monthlyStats) {
     const rowId = 'crr-song-' + i;
     imgItems.push({ imgId, title: s.title, artist: s.artist, album: s.album, type: 'song', prefKey });
     const cumSongPlays = cumulativeMaps ? (cumulativeMaps.songs[k] || 0) : s.count;
-    const albumKey = cumulativeMaps ? cumulativeMaps.songAlbumKey[k] : null;
-    const cumAlbumPlays = albumKey ? (cumulativeMaps.albums[albumKey] || 0) : 0;
+    const cumAlbumPlays = cumulativeMaps && s.album ? (cumulativeMaps.albumsByName[s.album] || 0) : 0;
     const histMaxSong = playsPeakMaps ? (playsPeakMaps.songs[k] || 0) : 0;
     const isPlaysPeak = !isAllTime && histMaxSong > 0 && s.count >= histMaxSong;
     const mainRow = `<tr class="${i === 0 ? 'rank-1' : i === 1 ? 'rank-2' : i === 2 ? 'rank-3' : ''}">
@@ -4063,7 +4112,7 @@ function renderSongs(plays, peaks, monthlyStats) {
       ${monthlyStats ? mPrevCell(i + 1, k, 'songs', monthlyStats) : ''}
       ${monthlyStats ? mMthsCell(k, 'songs', monthlyStats) : ''}
       <td>
-        <div class="play-count">${tCount('plays', s.count)}${monthlyStats ? deltaInline(s.count, k, 'songs', monthlyStats) : ''}${isPlaysPeak ? playsPeakBadge() : ''}</div>
+        <div class="play-count">${isPlaysPeak ? playsPeakBadge() : ''}${tCount('plays', s.count)}${monthlyStats ? deltaInline(s.count, k, 'songs', monthlyStats) : ''}</div>
         <div class="play-bar"><div class="play-bar-fill" style="width:${Math.round(s.count / max * 100)}%"></div></div>
       </td>
     </tr>`;
@@ -4114,7 +4163,7 @@ function renderArtists(plays, peaks, monthlyStats) {
       ${monthlyStats ? mPrevCell(i + 1, artist, 'artists', monthlyStats) : ''}
       ${monthlyStats ? mMthsCell(artist, 'artists', monthlyStats) : ''}
       <td>
-        <div class="play-count">${tCount('plays', data.count)}${monthlyStats ? deltaInline(data.count, artist, 'artists', monthlyStats) : ''}${isPlaysPeak ? playsPeakBadge() : ''}</div>
+        <div class="play-count">${isPlaysPeak ? playsPeakBadge() : ''}${tCount('plays', data.count)}${monthlyStats ? deltaInline(data.count, artist, 'artists', monthlyStats) : ''}</div>
         <div class="play-bar"><div class="play-bar-fill" style="width:${Math.round(data.count / max * 100)}%"></div></div>
       </td>
     </tr>`;
@@ -4173,7 +4222,7 @@ function renderAlbums(plays, peaks, monthlyStats) {
       ${monthlyStats ? mPrevCell(i + 1, ak, 'albums', monthlyStats) : ''}
       ${monthlyStats ? mMthsCell(ak, 'albums', monthlyStats) : ''}
       <td>
-        <div class="play-count">${tCount('plays', count)}${monthlyStats ? deltaInline(count, ak, 'albums', monthlyStats) : ''}${isPlaysPeak ? playsPeakBadge() : ''}</div>
+        <div class="play-count">${isPlaysPeak ? playsPeakBadge() : ''}${tCount('plays', count)}${monthlyStats ? deltaInline(count, ak, 'albums', monthlyStats) : ''}</div>
         <div class="play-bar"><div class="play-bar-fill" style="width:${Math.round(count / max * 100)}%"></div></div>
       </td>
     </tr>`;

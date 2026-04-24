@@ -1587,6 +1587,70 @@
       border-color: var(--accent);
     }
 
+    /* DISPLAY TOGGLES */
+    .chart-display-toggles {
+      display: flex;
+      align-items: center;
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-top: none;
+      padding: 0.45rem 1rem;
+      gap: 0.75rem;
+    }
+
+    .chart-display-toggles label {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.65rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--text3);
+      white-space: nowrap;
+    }
+
+    .chart-display-toggles .toggle-btns {
+      display: flex;
+      gap: 4px;
+      flex-wrap: wrap;
+    }
+
+    .display-toggle-btn {
+      background: none;
+      border: 1px solid var(--border);
+      padding: 0.2rem 0.7rem;
+      cursor: pointer;
+      font-family: 'DM Mono', monospace;
+      font-size: 0.62rem;
+      letter-spacing: 0.06em;
+      color: var(--text3);
+      border-radius: 4px;
+      transition: background 0.15s, color 0.15s, border-color 0.15s, opacity 0.15s;
+      opacity: 0.5;
+    }
+
+    .display-toggle-btn:hover {
+      background: var(--bg3);
+      color: var(--text);
+      opacity: 0.85;
+    }
+
+    .display-toggle-btn.active {
+      background: var(--accent);
+      color: #fff;
+      border-color: var(--accent);
+      opacity: 1;
+    }
+
+    body.yellow .display-toggle-btn.active {
+      color: #0d0d00;
+    }
+
+    body.hide-cert .cert { display: none !important; }
+    body.hide-plays-peak .plays-peak-badge { display: none !important; }
+    body.hide-peak-tags .peak-badge,
+    body.hide-peak-tags .peak-badge-1,
+    body.hide-peak-tags .peak-badge-2,
+    body.hide-peak-tags .peak-badge-3 { display: none !important; }
+
     /* DATE NAVIGATOR */
     .date-nav {
       display: flex;
@@ -2806,13 +2870,25 @@
       font-size: 10px;
     }
 
+    body:not([data-period="alltime"]) #songsTable .cert,
+    body:not([data-period="alltime"]) #albumsTable .cert {
+      font-size: 0.5rem;
+      padding: 1px 4px;
+      margin-left: 4px;
+    }
+
+    body:not([data-period="alltime"]) #songsTable .cert-icon,
+    body:not([data-period="alltime"]) #albumsTable .cert-icon {
+      font-size: 8px;
+    }
+
     .plays-peak-badge {
       display: inline-block;
       font-family: 'DM Mono', monospace;
       font-size: 0.5rem;
       letter-spacing: 0.07em;
       padding: 1px 5px;
-      margin-left: 5px;
+      margin-right: 5px;
       border-radius: 3px;
       border: 1px solid rgba(52, 211, 153, 0.35);
       background: rgba(52, 211, 153, 0.1);
