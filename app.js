@@ -41,6 +41,7 @@ const savedOffsets = { week: 0, month: 0, year: 0, alltime: 0, records: 0 };
 let chartSize = 10;
 let chartSizeWeekly = 10;
 let chartSizeMonthly = 50;
+let firstSeenMaps = null; // cached first-ever play dates per song/artist/album
 let cumulativeMaps = null;   // cumulative plays up to end of current period
 let playsPeakMaps = null;    // historical max per-period plays for peak badge
 let chartSizeYearly = Infinity; // 0 = All Entries
@@ -964,6 +965,7 @@ function parsePlaysCsv(text) {
 // Lightweight re-render after a background poll — does NOT restore settings or click period buttons.
 function refreshAfterPoll() {
   if (!allPlays.length) return;
+  firstSeenMaps = null;
   window.firstScrobbleDate = allPlays.reduce((min, p) => p.date < min ? p.date : min, allPlays[0].date);
   updateMastheadDynamic();
   populateYearPicker();
@@ -1249,6 +1251,7 @@ function parseCsv(text, fromSheets = false) {
 }
 
 function finalizeLoad() {
+  firstSeenMaps = null;
   if (allPlays.length) {
     window.firstScrobbleDate = allPlays.reduce((min, p) => p.date < min ? p.date : min, allPlays[0].date);
     updateMastheadDynamic();
@@ -2607,7 +2610,7 @@ document.addEventListener('click', e => {
 });
 
 // ─── SECTION COLLAPSE ──────────────────────────────────────────
-const CHART_COLLAPSIBLE_SECTIONS = ['songsSection', 'artistsSection', 'albumsSection', 'dropoutsSection'];
+const CHART_COLLAPSIBLE_SECTIONS = ['songsSection', 'artistsSection', 'albumsSection', 'dropoutsSection', 'newSongsSection', 'newArtistsSection', 'newAlbumsSection'];
 
 function restoreChartSectionCollapseState(period) {
   CHART_COLLAPSIBLE_SECTIONS.forEach(id => {
@@ -2659,6 +2662,7 @@ document.getElementById('periodNav').addEventListener('click', e => {
     document.getElementById('artistsSection').style.display = 'none';
     document.getElementById('albumsSection').style.display = 'none';
     document.getElementById('dropoutsSection').style.display = 'none';
+    NEW_ENTRY_SECTIONS.forEach(id => { const el = document.getElementById(id); if (el) el.style.display = 'none'; });
     document.getElementById('upcomingSection').style.display = 'none';
     document.getElementById('recentSection').style.display = 'none';
     document.getElementById('recordsView').style.display = 'none';
@@ -2690,6 +2694,7 @@ document.getElementById('periodNav').addEventListener('click', e => {
     document.getElementById('artistsSection').style.display = 'none';
     document.getElementById('albumsSection').style.display = 'none';
     document.getElementById('dropoutsSection').style.display = 'none';
+    NEW_ENTRY_SECTIONS.forEach(id => { const el = document.getElementById(id); if (el) el.style.display = 'none'; });
     document.getElementById('upcomingSection').style.display = 'none';
     document.getElementById('recentSection').style.display = 'none';
     document.getElementById('recordsView').style.display = 'none';
@@ -2714,6 +2719,7 @@ document.getElementById('periodNav').addEventListener('click', e => {
     document.getElementById('artistsSection').style.display = 'none';
     document.getElementById('albumsSection').style.display = 'none';
     document.getElementById('dropoutsSection').style.display = 'none';
+    NEW_ENTRY_SECTIONS.forEach(id => { const el = document.getElementById(id); if (el) el.style.display = 'none'; });
     document.getElementById('upcomingSection').style.display = 'none';
     document.getElementById('recentSection').style.display = 'none';
     document.getElementById('rawDataView').style.display = 'none';
@@ -3042,6 +3048,161 @@ function fmtDate(d) {
   return `${d.getDate()} ${monthName} ${d.getFullYear()}`;
 }
 
+// ─── NEW ENTRIES (first-ever plays for the period) ─────────────
+
+function buildFirstSeenMaps() {
+  const songFirst = {}, artistFirst = {}, albumFirst = {};
+  for (const p of allPlays) {
+    const tz = tzDate(p.date);
+    const sk = songKey(p);
+    if (!songFirst[sk] || tz < songFirst[sk]) songFirst[sk] = tz;
+    for (const artist of p.artists) {
+      if (!artistFirst[artist] || tz < artistFirst[artist]) artistFirst[artist] = tz;
+    }
+    if (p.album && p.album !== '—') {
+      const ak = p.album + '|||' + albumArtist(p);
+      if (!albumFirst[ak] || tz < albumFirst[ak]) albumFirst[ak] = tz;
+    }
+  }
+  return { songFirst, artistFirst, albumFirst };
+}
+
+const NEW_ENTRY_SECTIONS = ['newSongsSection', 'newArtistsSection', 'newAlbumsSection'];
+
+function renderNewEntries(plays, start, end) {
+  const show = plays.length > 0 && ['week', 'month', 'year'].includes(currentPeriod);
+  if (!show) {
+    NEW_ENTRY_SECTIONS.forEach(id => { const el = document.getElementById(id); if (el) el.style.display = 'none'; });
+    return;
+  }
+
+  const periodLabel = currentPeriod === 'week' ? 'Week' : currentPeriod === 'month' ? 'Month' : 'Year';
+
+  let limit;
+  if (currentPeriod === 'week') {
+    limit = Math.max(20, chartSizeWeekly);
+  } else if (currentPeriod === 'month') {
+    limit = chartSizeMonthly;
+  } else {
+    limit = chartSizeYearly; // Infinity = All Entries
+  }
+
+  if (!firstSeenMaps) firstSeenMaps = buildFirstSeenMaps();
+  const { songFirst, artistFirst, albumFirst } = firstSeenMaps;
+
+  // New songs
+  const songCounts = {};
+  for (const p of plays) {
+    const sk = songKey(p);
+    const first = songFirst[sk];
+    if (first && first >= start && first <= end) {
+      if (!songCounts[sk]) songCounts[sk] = { title: p.title, artist: p.artist, count: 0, _albums: {} };
+      songCounts[sk].count++;
+      songCounts[sk]._albums[p.album] = (songCounts[sk]._albums[p.album] || 0) + 1;
+    }
+  }
+  const allNewSongs = Object.values(songCounts).map(s => { s.album = bestAlbum(s.title, s._albums); delete s._albums; return s; })
+    .sort((a, b) => b.count - a.count);
+  const newSongs = isFinite(limit) ? allNewSongs.slice(0, limit) : allNewSongs;
+
+  // New artists
+  const artistCounts = {};
+  for (const p of plays) {
+    for (const artist of p.artists) {
+      const first = artistFirst[artist];
+      if (first && first >= start && first <= end) {
+        if (!artistCounts[artist]) artistCounts[artist] = { name: artist, count: 0, songs: new Set() };
+        artistCounts[artist].count++;
+        artistCounts[artist].songs.add(p.title);
+      }
+    }
+  }
+  const allNewArtists = Object.values(artistCounts).sort((a, b) => b.count - a.count);
+  const newArtists = isFinite(limit) ? allNewArtists.slice(0, limit) : allNewArtists;
+
+  // New albums
+  const albumCounts = {};
+  for (const p of plays) {
+    if (!p.album || p.album === '—') continue;
+    const ak = p.album + '|||' + albumArtist(p);
+    const first = albumFirst[ak];
+    if (first && first >= start && first <= end) {
+      if (!albumCounts[ak]) albumCounts[ak] = { album: p.album, artist: albumArtist(p), count: 0, tracks: new Set() };
+      albumCounts[ak].count++;
+      albumCounts[ak].tracks.add(p.title);
+    }
+  }
+  const allNewAlbums = Object.values(albumCounts).sort((a, b) => b.count - a.count);
+  const newAlbums = isFinite(limit) ? allNewAlbums.slice(0, limit) : allNewAlbums;
+
+  // Update titles and visibility
+  const maxS = newSongs[0]?.count || 1;
+  const maxA = newArtists[0]?.count || 1;
+  const maxL = newAlbums[0]?.count || 1;
+
+  const songSec = document.getElementById('newSongsSection');
+  const artistSec = document.getElementById('newArtistsSection');
+  const albumSec = document.getElementById('newAlbumsSection');
+
+  if (songSec) {
+    songSec.style.display = newSongs.length > 0 ? '' : 'none';
+    document.getElementById('newSongsTitle').textContent = `✦ ${newSongs.length} NEW SONG${newSongs.length !== 1 ? 'S' : ''} THIS ${periodLabel.toUpperCase()}`;
+  }
+  if (artistSec) {
+    artistSec.style.display = newArtists.length > 0 ? '' : 'none';
+    document.getElementById('newArtistsTitle').textContent = `✦ ${newArtists.length} NEW ARTIST${newArtists.length !== 1 ? 'S' : ''} THIS ${periodLabel.toUpperCase()}`;
+  }
+  if (albumSec) {
+    albumSec.style.display = newAlbums.length > 0 ? '' : 'none';
+    document.getElementById('newAlbumsTitle').textContent = `✦ ${newAlbums.length} NEW ALBUM${newAlbums.length !== 1 ? 'S' : ''} THIS ${periodLabel.toUpperCase()}`;
+  }
+
+  // Render new songs
+  const newSongImgs = [];
+  document.getElementById('newSongsBody').innerHTML = newSongs.map((s, i) => {
+    const imgId = 'nsimg-' + i;
+    const prefKey = 'song:' + s.artist.toLowerCase() + '|||' + s.title.toLowerCase();
+    newSongImgs.push({ imgId, title: s.title, artist: s.artist, album: s.album, prefKey });
+    return `<tr class="${i === 0 ? 'rank-1' : i === 1 ? 'rank-2' : i === 2 ? 'rank-3' : ''}">
+      <td class="rank-cell">${i + 1}</td>
+      <td class="thumb-cell"><div class="thumb-wrap"><div id="${imgId}"><div class="thumb-initials">${esc(initials(s.title))}</div></div><button id="srcbtn-${imgId}" class="img-src-btn" data-imgid="${imgId}" data-type="song" data-prefkey="${esc(prefKey)}" data-name="${esc(s.title)}" data-artist="${esc(s.artist)}" data-album="${esc(s.album)}">${srcLabel(itemSourcePrefs[prefKey] || 'deezer')}</button></div></td>
+      <td><div class="song-title">${esc(s.title)}</div><div class="song-artist">${esc(s.artist)}</div></td>
+      <td><div class="play-count">${tCount('plays', s.count)}</div><div class="play-bar"><div class="play-bar-fill" style="width:${Math.round(s.count / maxS * 100)}%"></div></div></td>
+    </tr>`;
+  }).join('');
+  loadImages(newSongImgs.map(i => ({ ...i, name: i.title })), 'song');
+
+  // Render new artists
+  const newArtistImgs = [];
+  document.getElementById('newArtistsBody').innerHTML = newArtists.map((a, i) => {
+    const imgId = 'naimg-' + i;
+    const prefKey = 'artist:' + a.name.toLowerCase();
+    newArtistImgs.push({ imgId, name: a.name, prefKey });
+    return `<tr class="${i === 0 ? 'rank-1' : i === 1 ? 'rank-2' : i === 2 ? 'rank-3' : ''} artist-row" data-artist="${esc(a.name)}">
+      <td class="rank-cell">${i + 1}</td>
+      <td class="thumb-cell"><div class="thumb-wrap"><div id="${imgId}"><div class="thumb-initials">${esc(initials(a.name))}</div></div><button id="srcbtn-${imgId}" class="img-src-btn" data-imgid="${imgId}" data-type="artist" data-prefkey="${esc(prefKey)}" data-name="${esc(a.name)}" data-artist="${esc(a.name)}" data-album="">${srcLabel(itemSourcePrefs[prefKey] || 'deezer')}</button></div></td>
+      <td><div class="song-title">${esc(a.name)}</div><div class="song-artist">${tCount('songs', a.songs.size)}</div></td>
+      <td><div class="play-count">${tCount('plays', a.count)}</div><div class="play-bar"><div class="play-bar-fill" style="width:${Math.round(a.count / maxA * 100)}%"></div></div></td>
+    </tr>`;
+  }).join('');
+  loadImages(newArtistImgs, 'artist');
+
+  // Render new albums
+  const newAlbumImgs = [];
+  document.getElementById('newAlbumsBody').innerHTML = newAlbums.map((a, i) => {
+    const imgId = 'nlimg-' + i;
+    const prefKey = 'album:' + a.artist.toLowerCase() + '|||' + a.album.toLowerCase();
+    newAlbumImgs.push({ imgId, album: a.album, artist: a.artist, name: a.album, prefKey });
+    return `<tr class="${i === 0 ? 'rank-1' : i === 1 ? 'rank-2' : i === 2 ? 'rank-3' : ''} album-row" data-albumkey="${esc(a.album + '|||' + a.artist)}">
+      <td class="rank-cell">${i + 1}</td>
+      <td class="thumb-cell"><div class="thumb-wrap"><div id="${imgId}"><div class="thumb-initials">${esc(initials(a.album))}</div></div><button id="srcbtn-${imgId}" class="img-src-btn" data-imgid="${imgId}" data-type="album" data-prefkey="${esc(prefKey)}" data-name="${esc(a.album)}" data-artist="${esc(a.artist)}" data-album="${esc(a.album)}">${srcLabel(itemSourcePrefs[prefKey] || 'deezer')}</button></div></td>
+      <td><div class="song-title">${esc(a.album)}</div><div class="song-artist">${esc(a.artist)}</div></td>
+      <td><div class="play-count">${tCount('plays', a.count)}</div><div class="play-bar"><div class="play-bar-fill" style="width:${Math.round(a.count / maxL * 100)}%"></div></div></td>
+    </tr>`;
+  }).join('');
+  loadImages(newAlbumImgs, 'album');
+}
+
 // ─── RENDER ────────────────────────────────────────────────────
 const isPaginated = () => currentPeriod === 'year' || currentPeriod === 'alltime';
 
@@ -3191,6 +3352,7 @@ function renderAll() {
       document.getElementById(id).style.display = 'none';
     });
     document.getElementById('dropoutsSection').style.display = 'none';
+    NEW_ENTRY_SECTIONS.forEach(id => { const el = document.getElementById(id); if (el) el.style.display = 'none'; });
     return;
   }
 
@@ -3252,6 +3414,7 @@ function renderAll() {
     renderAlbums(plays, peaks, periodStats);
     renderDropouts(plays, periodStats);
   }
+  renderNewEntries(plays, start, end);
   updateExportBtn();
   updateShareBtns();
 }

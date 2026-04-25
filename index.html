@@ -205,6 +205,28 @@
       </div>
     </div>
 
+    <div class="chart-section new-entries-section" id="newSongsSection" style="display:none;">
+      <div class="section-header">
+        <button class="section-collapse-btn" data-target="newSongsSection" title="Collapse">−</button>
+        <span id="newSongsTitle" class="new-entries-title">✦ New Songs This Week</span>
+        <span class="section-collapsed-label" data-i18n="collapsed_hint">collapsed — click + to expand</span>
+        <div class="section-rule"></div>
+      </div>
+      <div class="section-body">
+        <table class="chart-table new-entries-table">
+          <thead>
+            <tr>
+              <th>RANK</th>
+              <th style="width:52px;"></th>
+              <th>Title · Artist</th>
+              <th style="text-align:right;">Plays</th>
+            </tr>
+          </thead>
+          <tbody id="newSongsBody"></tbody>
+        </table>
+      </div>
+    </div>
+
     <div class="chart-section" id="artistsSection">
       <div class="section-header">
         <button class="section-collapse-btn" data-target="artistsSection" data-i18n-title="tooltip_collapse">−</button>
@@ -244,6 +266,28 @@
       </div>
     </div>
 
+    <div class="chart-section new-entries-section" id="newArtistsSection" style="display:none;">
+      <div class="section-header">
+        <button class="section-collapse-btn" data-target="newArtistsSection" title="Collapse">−</button>
+        <span id="newArtistsTitle" class="new-entries-title">✦ New Artists This Week</span>
+        <span class="section-collapsed-label" data-i18n="collapsed_hint">collapsed — click + to expand</span>
+        <div class="section-rule"></div>
+      </div>
+      <div class="section-body">
+        <table class="chart-table new-entries-table">
+          <thead>
+            <tr>
+              <th>RANK</th>
+              <th style="width:52px;"></th>
+              <th>Artist</th>
+              <th style="text-align:right;">Plays</th>
+            </tr>
+          </thead>
+          <tbody id="newArtistsBody"></tbody>
+        </table>
+      </div>
+    </div>
+
     <div class="chart-section" id="albumsSection">
       <div class="section-header">
         <button class="section-collapse-btn" data-target="albumsSection" data-i18n-title="tooltip_collapse">−</button>
@@ -280,6 +324,28 @@
           <span data-i18n="btn_share">SHARE:</span>
           <button class="ig-share-btn" data-i18n-title="tooltip_share_image" data-i18n="btn_share_image" onclick="openIgPreviewModal('albums')">📷 Share as Image</button>
         </div>
+      </div>
+    </div>
+
+    <div class="chart-section new-entries-section" id="newAlbumsSection" style="display:none;">
+      <div class="section-header">
+        <button class="section-collapse-btn" data-target="newAlbumsSection" title="Collapse">−</button>
+        <span id="newAlbumsTitle" class="new-entries-title">✦ New Albums This Week</span>
+        <span class="section-collapsed-label" data-i18n="collapsed_hint">collapsed — click + to expand</span>
+        <div class="section-rule"></div>
+      </div>
+      <div class="section-body">
+        <table class="chart-table new-entries-table">
+          <thead>
+            <tr>
+              <th>RANK</th>
+              <th style="width:52px;"></th>
+              <th>Album · Artist</th>
+              <th style="text-align:right;">Plays</th>
+            </tr>
+          </thead>
+          <tbody id="newAlbumsBody"></tbody>
+        </table>
       </div>
     </div>
 

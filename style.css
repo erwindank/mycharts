@@ -1990,6 +1990,59 @@
       margin-bottom: 2.5rem;
     }
 
+    /* NEW ENTRIES SUB-SECTIONS */
+    .new-entries-section {
+      margin-top: -1.8rem;
+      margin-bottom: 2.5rem;
+      border-left: 3px solid var(--border);
+      padding-left: 1rem;
+    }
+
+    .new-entries-section .section-header {
+      margin-bottom: 0.35rem;
+    }
+
+    .new-entries-title {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.66rem;
+      letter-spacing: 0.12em;
+      font-weight: 500;
+      color: var(--accent);
+      white-space: nowrap;
+    }
+
+    .new-entries-table td {
+      padding: 0.4rem 0.7rem;
+      font-size: 0.82rem;
+    }
+
+    .new-entries-table .rank-cell {
+      font-size: 1.25rem !important;
+    }
+
+    .new-entries-table .thumb-initials {
+      width: 36px;
+      height: 36px;
+      font-size: 0.7rem;
+    }
+
+    .new-entries-table .img-src-btn {
+      width: 36px;
+    }
+
+    .new-entries-table .song-title {
+      font-size: 0.84rem;
+    }
+
+    .new-entries-table .song-artist {
+      font-size: 0.7rem;
+    }
+
+    .new-entries-table .play-count {
+      font-size: 0.78rem;
+      white-space: nowrap;
+    }
+
     .section-header {
       display: flex;
       align-items: center;
