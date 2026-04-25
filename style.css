@@ -622,6 +622,38 @@
       background: linear-gradient(90deg, transparent, #1258b0, #38bdf8, #1258b0, transparent);
     }
 
+    /* Navy Light control buttons */
+    body.navy-light .ctrl-group-btn {
+      color: rgba(4, 14, 28, 0.7);
+      border-color: rgba(4, 14, 28, 0.3);
+    }
+
+    body.navy-light .ctrl-group-btn:hover,
+    body.navy-light .ctrl-group.open .ctrl-group-btn {
+      background: rgba(4, 14, 28, 0.08);
+      border-color: rgba(4, 14, 28, 0.5);
+      color: rgba(4, 14, 28, 0.95);
+    }
+
+    body.navy-light .day-btn,
+    body.navy-light .lang-btn {
+      color: rgba(4, 14, 28, 0.65);
+      border-color: rgba(4, 14, 28, 0.2);
+    }
+
+    body.navy-light .day-btn:hover,
+    body.navy-light .lang-btn:hover {
+      border-color: rgba(4, 14, 28, 0.45);
+      color: rgba(4, 14, 28, 0.85);
+    }
+
+    body.navy-light .day-btn.active,
+    body.navy-light .lang-btn.active {
+      background: rgba(4, 14, 28, 0.1);
+      border-color: rgba(4, 14, 28, 0.55);
+      color: rgba(4, 14, 28, 0.95);
+    }
+
     /* Purple Dark masthead */
     body.purple .masthead {
       background: linear-gradient(160deg, #12102a 0%, #1a1640 50%, #12102a 100%);
