@@ -5614,3 +5614,447 @@
         font-size: 1rem;
       }
     }
+
+    /* ═══════════════════════════════════════════════════════════
+       CERTIFICATIONS WALL
+       ═══════════════════════════════════════════════════════════ */
+    #certifications-wall {
+      margin-top: 1.5rem;
+    }
+
+    .cwall-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+      gap: 1.5rem;
+      padding: 0.25rem;
+    }
+
+    .cwall-empty {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.75rem;
+      color: var(--text3);
+      text-align: center;
+      padding: 2rem;
+      letter-spacing: 0.05em;
+    }
+
+    /* ── Plaque card ── */
+    .cert-card {
+      border-radius: 10px;
+      transition: transform 0.2s ease;
+    }
+
+    .cert-card:hover {
+      transform: translateY(-5px) scale(1.02);
+    }
+
+    /* ── The 3D frame ── */
+    .cert-frame {
+      border-radius: 10px;
+      padding: 18px 14px 16px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+      border: 2px solid;
+      position: relative;
+    }
+
+    /* Corner screws */
+    .cert-frame::before,
+    .cert-frame::after {
+      content: '';
+      position: absolute;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      top: 8px;
+    }
+    .cert-frame::before { left: 8px; }
+    .cert-frame::after  { right: 8px; }
+
+    /* ── Record section ── */
+    .cert-record-wrap {
+      position: relative;
+      width: 108px;
+      height: 108px;
+      margin: 2px auto;
+    }
+
+    /* Sleeve: square-ish cardboard behind the circle */
+    .cert-sleeve {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 84px;
+      height: 88px;
+      border-radius: 5px;
+      z-index: 0;
+    }
+
+    .cert-record {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 108px;
+      height: 108px;
+      border-radius: 50%;
+      object-fit: cover;
+      display: block;
+      z-index: 1;
+      border: 3px solid rgba(255,255,255,0.12);
+      box-shadow:
+        0 6px 20px rgba(0,0,0,0.6),
+        inset 0 0 0 2px rgba(0,0,0,0.2);
+    }
+
+    .cert-record-initials {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 108px;
+      height: 108px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'DM Serif Display', serif;
+      font-size: 1.5rem;
+      font-weight: 700;
+      background: rgba(0,0,0,0.35);
+      border: 3px solid rgba(255,255,255,0.12);
+      box-shadow: 0 6px 20px rgba(0,0,0,0.6);
+      z-index: 1;
+    }
+
+    /* Vinyl centre-label dot */
+    .cert-vinyl-center {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: rgba(0,0,0,0.6);
+      border: 2px solid rgba(255,255,255,0.15);
+      pointer-events: none;
+      z-index: 2;
+    }
+
+    /* ── Info panel ── */
+    .cert-info {
+      width: 100%;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px;
+    }
+
+    .cert-type-badge {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.52rem;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      padding: 2px 7px;
+      border-radius: 3px;
+      margin-bottom: 2px;
+      background: rgba(0,0,0,0.22);
+      border: 1px solid rgba(255,255,255,0.08);
+    }
+
+    .cert-title {
+      font-family: 'DM Serif Display', serif;
+      font-size: 0.8rem;
+      line-height: 1.3;
+      word-break: break-word;
+      text-shadow: 0 1px 3px rgba(0,0,0,0.8), 0 -1px 0 rgba(255,255,255,0.06);
+      max-width: 100%;
+    }
+
+    .cert-artist {
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.67rem;
+      font-style: italic;
+      opacity: 0.72;
+      text-shadow: 0 1px 2px rgba(0,0,0,0.6);
+    }
+
+    .cert-tier-badge {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-family: 'DM Mono', monospace;
+      font-size: 0.6rem;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      padding: 3px 10px;
+      border-radius: 4px;
+      margin-top: 5px;
+      border: 1px solid;
+    }
+
+    .cert-date {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.52rem;
+      letter-spacing: 0.06em;
+      opacity: 0.5;
+      margin-top: 1px;
+      text-shadow: 0 1px 2px rgba(0,0,0,0.8);
+    }
+
+    /* ── GOLD ── */
+    .cert-card--gold .cert-frame {
+      background: linear-gradient(160deg, #2c1e06 0%, #3e2b0c 35%, #2a1c06 65%, #1c1204 100%);
+      border-color: #7a5508;
+      box-shadow:
+        0 12px 32px rgba(0,0,0,0.7),
+        0 4px 10px rgba(0,0,0,0.4),
+        0 0 28px rgba(200,148,10,0.38),
+        inset 0 1px 0 rgba(255,210,80,0.12),
+        inset 0 -2px 5px rgba(0,0,0,0.4);
+    }
+    .cert-card--gold:hover .cert-frame {
+      box-shadow:
+        0 20px 44px rgba(0,0,0,0.75),
+        0 6px 14px rgba(0,0,0,0.45),
+        0 0 40px rgba(200,150,15,0.52),
+        inset 0 1px 0 rgba(255,210,80,0.15),
+        inset 0 -2px 5px rgba(0,0,0,0.4);
+    }
+    .cert-card--gold .cert-frame::before,
+    .cert-card--gold .cert-frame::after {
+      background: radial-gradient(circle at 35% 30%, #d4a010, #6a4500);
+    }
+    .cert-card--gold .cert-info,
+    .cert-card--gold .cert-title    { color: #f0cc50; }
+    .cert-card--gold .cert-artist   { color: #c8a040; }
+    .cert-card--gold .cert-date     { color: #c89830; }
+    .cert-card--gold .cert-type-badge {
+      color: #c89028;
+      border-color: rgba(180,120,10,0.25);
+    }
+    .cert-card--gold .cert-tier-badge {
+      background: linear-gradient(90deg, #7a5508, #c49010, #7a5508);
+      border-color: #e8b830;
+      color: #fff8e0;
+      text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+      box-shadow: 0 0 10px rgba(200,150,10,0.35);
+    }
+    .cert-card--gold .cert-record,
+    .cert-card--gold .cert-record-initials { border-color: rgba(200,155,20,0.35); }
+    .cert-card--gold .cert-record-initials  { color: #f0cc50; }
+    .cert-card--gold .cert-sleeve {
+      background: linear-gradient(180deg, rgba(60,35,5,0.6), rgba(20,12,2,0.6));
+      border: 1px solid rgba(180,120,10,0.18);
+    }
+
+    /* ── PLATINUM ── */
+    .cert-card--plat .cert-frame {
+      background: linear-gradient(160deg, #121a24 0%, #1a2438 35%, #121a24 65%, #0c1218 100%);
+      border-color: #48606e;
+      box-shadow:
+        0 12px 32px rgba(0,0,0,0.7),
+        0 4px 10px rgba(0,0,0,0.4),
+        0 0 28px rgba(140,185,220,0.30),
+        inset 0 1px 0 rgba(190,215,245,0.1),
+        inset 0 -2px 5px rgba(0,0,0,0.4);
+    }
+    .cert-card--plat:hover .cert-frame {
+      box-shadow:
+        0 20px 44px rgba(0,0,0,0.75),
+        0 6px 14px rgba(0,0,0,0.45),
+        0 0 42px rgba(160,200,235,0.45),
+        inset 0 1px 0 rgba(190,215,245,0.12),
+        inset 0 -2px 5px rgba(0,0,0,0.4);
+    }
+    .cert-card--plat .cert-frame::before,
+    .cert-card--plat .cert-frame::after {
+      background: radial-gradient(circle at 35% 30%, #c0ccd8, #507080);
+    }
+    .cert-card--plat .cert-info,
+    .cert-card--plat .cert-title    { color: #d0e0f0; }
+    .cert-card--plat .cert-artist   { color: #90a8c0; }
+    .cert-card--plat .cert-date     { color: #8ab4cc; }
+    .cert-card--plat .cert-type-badge {
+      color: #8098b0;
+      border-color: rgba(120,165,200,0.22);
+    }
+    .cert-card--plat .cert-tier-badge {
+      background: linear-gradient(90deg, #3c5060, #788898, #c0ccd8, #788898, #3c5060);
+      border-color: #b0c0d0;
+      color: #eef4f8;
+      text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+      box-shadow: 0 0 10px rgba(150,185,215,0.25);
+    }
+    .cert-card--plat .cert-record,
+    .cert-card--plat .cert-record-initials { border-color: rgba(150,185,215,0.3); }
+    .cert-card--plat .cert-record-initials  { color: #d0e0f0; }
+    .cert-card--plat .cert-sleeve {
+      background: linear-gradient(180deg, rgba(25,38,55,0.65), rgba(10,16,24,0.65));
+      border: 1px solid rgba(100,145,180,0.15);
+    }
+
+    /* ── DIAMOND ── */
+    .cert-card--diamond .cert-frame {
+      background: linear-gradient(160deg, #040810 0%, #080d1c 35%, #0a1028 65%, #040810 100%);
+      border-color: #1858a0;
+      box-shadow:
+        0 12px 32px rgba(0,0,0,0.8),
+        0 4px 10px rgba(0,0,0,0.5),
+        0 0 32px rgba(70,175,255,0.38),
+        inset 0 1px 0 rgba(100,195,255,0.18),
+        inset 0 -2px 5px rgba(0,0,0,0.5);
+      filter: drop-shadow(0 0 14px rgba(70,175,255,0.40));
+    }
+    .cert-card--diamond:hover .cert-frame {
+      box-shadow:
+        0 20px 44px rgba(0,0,0,0.85),
+        0 6px 14px rgba(0,0,0,0.55),
+        0 0 48px rgba(70,175,255,0.52),
+        inset 0 1px 0 rgba(100,195,255,0.22),
+        inset 0 -2px 5px rgba(0,0,0,0.5);
+      filter: drop-shadow(0 0 22px rgba(70,175,255,0.55));
+    }
+    .cert-card--diamond .cert-frame::before,
+    .cert-card--diamond .cert-frame::after {
+      background: radial-gradient(circle at 35% 30%, #70c0ff, #1858a0);
+    }
+    .cert-card--diamond .cert-info,
+    .cert-card--diamond .cert-title  { color: #b8e4ff; }
+    .cert-card--diamond .cert-artist { color: #6aa8d8; }
+    .cert-card--diamond .cert-date   { color: #58b0e0; }
+    .cert-card--diamond .cert-type-badge {
+      color: #5090c0;
+      border-color: rgba(70,160,220,0.3);
+    }
+    .cert-card--diamond .cert-tier-badge {
+      background: linear-gradient(90deg, #0c3880, #2880e0, #a0d8ff, #7090f8, #2880e0, #0c3880);
+      background-size: 200% 100%;
+      animation: cert-iridescent 3s linear infinite;
+      border-color: #70c0ff;
+      color: #f0f8ff;
+      text-shadow: 0 1px 2px rgba(0,0,0,0.6);
+      box-shadow: 0 0 14px rgba(70,175,255,0.45);
+    }
+    .cert-card--diamond .cert-record,
+    .cert-card--diamond .cert-record-initials { border-color: rgba(70,175,255,0.35); }
+    .cert-card--diamond .cert-record-initials  { color: #b8e4ff; }
+    .cert-card--diamond .cert-sleeve {
+      background: linear-gradient(180deg, rgba(8,18,40,0.7), rgba(3,8,18,0.7));
+      border: 1px solid rgba(50,140,200,0.2);
+    }
+
+    @keyframes cert-iridescent {
+      0%   { background-position: 0% 50%; }
+      100% { background-position: 200% 50%; }
+    }
+
+    @media (max-width: 600px) {
+      .cwall-grid {
+        grid-template-columns: repeat(auto-fill, minmax(145px, 1fr));
+        gap: 1rem;
+      }
+      .cert-record-wrap { width: 88px; height: 88px; }
+      .cert-record,
+      .cert-record-initials { width: 88px; height: 88px; }
+      .cert-sleeve { width: 68px; height: 72px; }
+      .cert-vinyl-center { width: 16px; height: 16px; }
+      .cert-title { font-size: 0.74rem; }
+    }
+
+    /* ── Cert wall controls ─────────────────────────────────────── */
+    .cwall-controls {
+      display: flex;
+      flex-direction: column;
+      gap: 0.6rem;
+      margin-bottom: 1.1rem;
+    }
+
+    .cwall-search-wrap {
+      width: 100%;
+    }
+
+    .cwall-search {
+      width: 100%;
+      box-sizing: border-box;
+      padding: 0.4rem 0.75rem;
+      border-radius: 6px;
+      border: 1px solid var(--border2);
+      background: var(--bg2);
+      color: var(--text);
+      font-family: 'DM Mono', monospace;
+      font-size: 0.78rem;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+
+    .cwall-search:focus {
+      border-color: var(--accent);
+    }
+
+    .cwall-search::placeholder {
+      color: var(--text3);
+    }
+
+    .cwall-filter-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .cwall-filter-btns,
+    .cwall-sort-btns {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.3rem;
+      align-items: center;
+    }
+
+    .cwall-sort-label {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.72rem;
+      color: var(--text3);
+      margin-right: 0.1rem;
+      letter-spacing: 0.04em;
+    }
+
+    .cwall-btn {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.72rem;
+      letter-spacing: 0.04em;
+      padding: 0.25rem 0.65rem;
+      border-radius: 4px;
+      border: 1px solid var(--border2);
+      background: var(--bg2);
+      color: var(--text3);
+      cursor: pointer;
+      transition: background 0.12s, color 0.12s, border-color 0.12s;
+      white-space: nowrap;
+    }
+
+    .cwall-btn:hover {
+      background: var(--surface);
+      color: var(--text);
+      border-color: var(--accent);
+    }
+
+    .cwall-btn.active {
+      background: var(--accent);
+      color: #fff;
+      border-color: var(--accent);
+    }
+
+    @media (max-width: 500px) {
+      .cwall-filter-row {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+    }

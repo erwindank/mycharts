@@ -54,6 +54,12 @@ let lastPeriodStats = null;
 let lastPeaks = null;
 const searchState = { songs: '', artists: '', albums: '' };
 
+let certWallData   = [];
+let certWallFilter = 'all';
+let certWallSearch = '';
+let certWallSort   = 'tier';
+const CWALL_TIER_ORD = { diamond: 0, platinum: 1, gold: 2 };
+
 // ─── THEME SWITCHER ────────────────────────────────────────────
 const themeLabel = document.getElementById('themeLabel');
 const themeBtns = document.querySelectorAll('.theme-btn');
@@ -2397,6 +2403,59 @@ function buildRecords() {
   }
   ch += '</div>';
   document.getElementById('recCertsBody').innerHTML = ch;
+
+  // ── Certifications Wall ───────────────────────────────────────
+  const _wSongP = {}, _wAlbP = {}, _wSongCert = {}, _wAlbCert = {};
+  for (const p of chron) {
+    const sk = songKey(p);
+    _wSongP[sk] = (_wSongP[sk] || 0) + 1;
+    if (!_wSongCert[sk]) _wSongCert[sk] = {};
+    for (const thresh of [CERT.song.gold, CERT.song.plat, CERT.song.diamond]) {
+      if (!_wSongCert[sk][thresh] && _wSongP[sk] >= thresh) _wSongCert[sk][thresh] = p.date;
+    }
+    if (p.album && p.album !== '—') {
+      const ak = p.album + '|||' + albumArtist(p);
+      _wAlbP[ak] = (_wAlbP[ak] || 0) + 1;
+      if (!_wAlbCert[ak]) _wAlbCert[ak] = {};
+      for (const thresh of [CERT.album.gold, CERT.album.plat, CERT.album.diamond]) {
+        if (!_wAlbCert[ak][thresh] && _wAlbP[ak] >= thresh) _wAlbCert[ak][thresh] = p.date;
+      }
+    }
+  }
+  const wallItems = [];
+  for (const [sk, plays] of Object.entries(_wSongP)) {
+    if (plays < CERT.song.gold) continue;
+    const nm = songNames[sk] || {};
+    let tier, certDate;
+    if (plays >= CERT.song.diamond)     { tier = 'diamond';  certDate = _wSongCert[sk][CERT.song.diamond]; }
+    else if (plays >= CERT.song.plat)   { tier = 'platinum'; certDate = _wSongCert[sk][CERT.song.plat]; }
+    else                                { tier = 'gold';     certDate = _wSongCert[sk][CERT.song.gold]; }
+    wallItems.push({
+      title: nm.title || sk.split('|||')[0], artist: nm.artist || '',
+      image: null, type: 'song', tier,
+      date: certDate ? certDate.toISOString().split('T')[0] : '',
+      _plays: plays, _album: nm.album || ''
+    });
+  }
+  for (const [ak, plays] of Object.entries(_wAlbP)) {
+    if (plays < CERT.album.gold) continue;
+    const nm = albumNames[ak] || {};
+    const album = nm.album || ak.split('|||')[0];
+    const artist = nm.artist || ak.split('|||')[1] || '';
+    let tier, certDate;
+    if (plays >= CERT.album.diamond)    { tier = 'diamond';  certDate = _wAlbCert[ak][CERT.album.diamond]; }
+    else if (plays >= CERT.album.plat)  { tier = 'platinum'; certDate = _wAlbCert[ak][CERT.album.plat]; }
+    else                                { tier = 'gold';     certDate = _wAlbCert[ak][CERT.album.gold]; }
+    wallItems.push({
+      title: album, artist, image: null, type: 'album', tier,
+      date: certDate ? certDate.toISOString().split('T')[0] : '',
+      _plays: plays, _album: album
+    });
+  }
+  const _wTierOrd = { diamond: 0, platinum: 1, gold: 2 };
+  wallItems.sort((a, b) => (_wTierOrd[a.tier] - _wTierOrd[b.tier]) || (b._plays - a._plays));
+  renderCertifications(wallItems);
+  loadCertWallImages(wallItems);
 
   // ── Streak Records ────────────────────────────────────────────
   let sh = '';
@@ -8370,4 +8429,172 @@ window.addEventListener('scroll', () => {
 backToTopBtn.addEventListener('click', () => {
   window.scrollTo({ top: 0, behavior: 'smooth' });
 });
+
+// ─── CERTIFICATIONS WALL ────────────────────────────────────────
+const CWALL_TIER_CLASS = { gold: 'gold', platinum: 'plat', diamond: 'diamond' };
+const CWALL_TIER_LABEL = { gold: '⭐ Gold', platinum: '💿 Platinum', diamond: '💎 Diamond' };
+const CWALL_TYPE_LABEL = { song: 'Song', album: 'Album' };
+
+function wallInitials(str) {
+  return (str || '').split(/\s+/).slice(0, 2).map(w => w[0] || '').join('').toUpperCase() || '?';
+}
+
+function fmtCertDate(dateStr) {
+  if (!dateStr) return '';
+  try {
+    return new Date(dateStr).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+  } catch (e) { return String(dateStr); }
+}
+
+function renderCertifications(data) {
+  certWallData = data || [];
+  const wall = document.getElementById('certifications-wall');
+  if (!wall) return;
+
+  if (!certWallData.length) {
+    wall.innerHTML = '<div class="cwall-empty">No certifications to display.</div>';
+    return;
+  }
+
+  wall.innerHTML = `
+    <div class="cwall-controls">
+      <div class="cwall-search-wrap">
+        <input class="cwall-search" id="cwall-search-input" type="search"
+          placeholder="Search by artist, song, or album…" value="${esc(certWallSearch)}">
+      </div>
+      <div class="cwall-filter-row">
+        <div class="cwall-filter-btns">
+          <button class="cwall-btn${certWallFilter==='all'?' active':''}" data-cwall-filter="all">All</button>
+          <button class="cwall-btn${certWallFilter==='song'?' active':''}" data-cwall-filter="song">Songs</button>
+          <button class="cwall-btn${certWallFilter==='album'?' active':''}" data-cwall-filter="album">Albums</button>
+        </div>
+        <div class="cwall-sort-btns">
+          <span class="cwall-sort-label">Sort:</span>
+          <button class="cwall-btn${certWallSort==='tier'?' active':''}" data-cwall-sort="tier">Tier</button>
+          <button class="cwall-btn${certWallSort==='artist'?' active':''}" data-cwall-sort="artist">Artist</button>
+          <button class="cwall-btn${certWallSort==='title'?' active':''}" data-cwall-sort="title">Title</button>
+          <button class="cwall-btn${certWallSort==='date'?' active':''}" data-cwall-sort="date">Date</button>
+        </div>
+      </div>
+    </div>
+    <div class="cwall-grid" id="cwall-grid"></div>`;
+
+  document.getElementById('cwall-search-input').addEventListener('input', e => {
+    certWallSearch = e.target.value;
+    renderCertWallCards();
+  });
+
+  wall.querySelector('.cwall-filter-btns').addEventListener('click', e => {
+    const btn = e.target.closest('[data-cwall-filter]');
+    if (!btn) return;
+    certWallFilter = btn.dataset.cwallFilter;
+    wall.querySelectorAll('[data-cwall-filter]').forEach(b =>
+      b.classList.toggle('active', b.dataset.cwallFilter === certWallFilter));
+    renderCertWallCards();
+  });
+
+  wall.querySelector('.cwall-sort-btns').addEventListener('click', e => {
+    const btn = e.target.closest('[data-cwall-sort]');
+    if (!btn) return;
+    certWallSort = btn.dataset.cwallSort;
+    wall.querySelectorAll('[data-cwall-sort]').forEach(b =>
+      b.classList.toggle('active', b.dataset.cwallSort === certWallSort));
+    renderCertWallCards();
+  });
+
+  renderCertWallCards();
+}
+
+function renderCertWallCards() {
+  const grid = document.getElementById('cwall-grid');
+  if (!grid) return;
+
+  let items = certWallData.slice();
+
+  if (certWallFilter !== 'all') {
+    items = items.filter(item => item.type === certWallFilter);
+  }
+
+  if (certWallSearch.trim()) {
+    const q = certWallSearch.trim().toLowerCase();
+    items = items.filter(item =>
+      item.title.toLowerCase().includes(q) ||
+      item.artist.toLowerCase().includes(q));
+  }
+
+  if (certWallSort === 'tier') {
+    items.sort((a, b) =>
+      (CWALL_TIER_ORD[a.tier] - CWALL_TIER_ORD[b.tier]) || (b._plays - a._plays));
+  } else if (certWallSort === 'artist') {
+    items.sort((a, b) =>
+      (a.artist || '').localeCompare(b.artist || '') ||
+      (a.title || '').localeCompare(b.title || ''));
+  } else if (certWallSort === 'title') {
+    items.sort((a, b) => (a.title || '').localeCompare(b.title || ''));
+  } else if (certWallSort === 'date') {
+    items.sort((a, b) =>
+      (a.date || '').localeCompare(b.date || '') ||
+      (a.title || '').localeCompare(b.title || ''));
+  }
+
+  if (!items.length) {
+    grid.innerHTML = '<div class="cwall-empty">No certifications match your search.</div>';
+    return;
+  }
+
+  grid.innerHTML = items.map(item => {
+    const origIdx = certWallData.indexOf(item);
+    const tierClass = CWALL_TIER_CLASS[item.tier] || 'gold';
+    const ini = esc(wallInitials(item.title));
+    const dateStr = fmtCertDate(item.date);
+
+    const recordHtml = item.image
+      ? `<img class="cert-record" src="${esc(item.image)}" alt="${esc(item.title)}" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">`
+        + `<div class="cert-record-initials" style="display:none">${ini}</div>`
+      : `<div class="cert-record-initials">${ini}</div>`;
+
+    return `<div class="cert-card cert-card--${tierClass}">
+  <div class="cert-frame">
+    <div class="cert-record-wrap" id="cwrec-${origIdx}">
+      <div class="cert-sleeve"></div>
+      ${recordHtml}
+      <div class="cert-vinyl-center"></div>
+    </div>
+    <div class="cert-info">
+      <span class="cert-type-badge">${esc(CWALL_TYPE_LABEL[item.type] || item.type || '')}</span>
+      <div class="cert-title">${esc(item.title)}</div>
+      <div class="cert-artist">${esc(item.artist)}</div>
+      <div class="cert-tier-badge">${CWALL_TIER_LABEL[item.tier] || esc(item.tier)}</div>
+      ${dateStr ? `<div class="cert-date">Certified ${dateStr}</div>` : ''}
+    </div>
+  </div>
+</div>`;
+  }).join('');
+}
+
+async function loadCertWallImages(items) {
+  for (let i = 0; i < items.length; i++) {
+    const item = items[i];
+    let url = null;
+    try {
+      if (item.type === 'album') {
+        url = await getAlbumImage(item.title, item.artist);
+      } else {
+        if (item._album) url = await getAlbumImage(item._album, item.artist);
+        if (!url) url = await getTrackImage(item.title, item.artist);
+      }
+    } catch (e) {}
+    if (!url) continue;
+    item.image = url;
+    const wrap = document.getElementById('cwrec-' + i);
+    if (!wrap) continue;
+    const existingIni = wrap.querySelector('.cert-record-initials');
+    if (existingIni) {
+      existingIni.style.display = 'none';
+      existingIni.insertAdjacentHTML('beforebegin',
+        `<img class="cert-record" src="${url}" alt="" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">`
+      );
+    }
+  }
+}
 
