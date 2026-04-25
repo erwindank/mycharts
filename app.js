@@ -11,6 +11,32 @@ let allPlays = [];
 let currentPeriod = 'week';
 let currentOffset = 0;
 let weekStartDay = 0; // 0=Sun, 1=Mon, 2=Tue, 3=Wed, 4=Thu, 5=Fri, 6=Sat
+
+// ─── TIMEZONE SUPPORT ──────────────────────────────────────────
+const BROWSER_TZ = Intl.DateTimeFormat().resolvedOptions().timeZone;
+let userTimezone = (() => {
+  try { return localStorage.getItem('dc_timezone') || BROWSER_TZ; } catch(e) { return BROWSER_TZ; }
+})();
+let _tzFmt = null;
+
+// Converts a real Date to a "fake-local" Date whose getDay/getDate/etc. reflect userTimezone.
+// When userTimezone === BROWSER_TZ, returns d unchanged (no-op path for performance).
+function tzDate(d) {
+  if (userTimezone === BROWSER_TZ) return d;
+  try {
+    if (!_tzFmt) _tzFmt = new Intl.DateTimeFormat('en', {
+      timeZone: userTimezone,
+      year: 'numeric', month: 'numeric', day: 'numeric',
+      hour: 'numeric', minute: 'numeric', second: 'numeric',
+      hour12: false
+    });
+    const parts = _tzFmt.formatToParts(d);
+    const get = type => parseInt(parts.find(p => p.type === type)?.value || '0');
+    return new Date(get('year'), get('month') - 1, get('day'), get('hour') % 24, get('minute'), get('second'));
+  } catch (e) { return d; }
+}
+
+function tzNow() { return tzDate(new Date()); }
 const savedOffsets = { week: 0, month: 0, year: 0, alltime: 0, records: 0 };
 let chartSize = 10;
 let chartSizeWeekly = 10;
@@ -1004,6 +1030,46 @@ async function pollSheets() {
 }
 
 // ─── DATA SOURCE MODAL ─────────────────────────────────────────
+function populateTzSelect() {
+  const sel = document.getElementById('srcTimezone');
+  if (sel.dataset.populated) return;
+  sel.dataset.populated = '1';
+  let zones;
+  try { zones = Intl.supportedValuesOf('timeZone'); }
+  catch(e) {
+    zones = ['UTC','America/Anchorage','America/Los_Angeles','America/Denver','America/Chicago',
+             'America/New_York','America/Sao_Paulo','Atlantic/Azores','Europe/London','Europe/Paris',
+             'Europe/Berlin','Europe/Helsinki','Asia/Dubai','Asia/Karachi','Asia/Kolkata',
+             'Asia/Dhaka','Asia/Bangkok','Asia/Singapore','Asia/Manila','Asia/Tokyo',
+             'Australia/Sydney','Pacific/Auckland','Pacific/Honolulu'];
+  }
+  const now = new Date();
+  function getTzOffset(tz) {
+    try {
+      const parts = new Intl.DateTimeFormat('en', { timeZoneName: 'shortOffset', timeZone: tz }).formatToParts(now);
+      return parts.find(p => p.type === 'timeZoneName')?.value || '';
+    } catch(e) { return ''; }
+  }
+  const groups = {};
+  for (const tz of zones) {
+    const slash = tz.indexOf('/');
+    const region = slash >= 0 ? tz.slice(0, slash) : 'Etc';
+    (groups[region] || (groups[region] = [])).push(tz);
+  }
+  for (const [region, tzs] of Object.entries(groups).sort(([a], [b]) => a.localeCompare(b))) {
+    const grp = document.createElement('optgroup');
+    grp.label = region;
+    for (const tz of tzs) {
+      const opt = document.createElement('option');
+      opt.value = tz;
+      const offset = getTzOffset(tz);
+      opt.textContent = tz.replace(/_/g, ' ') + (offset ? ' (' + offset + ')' : '');
+      grp.appendChild(opt);
+    }
+    sel.appendChild(grp);
+  }
+}
+
 function openSourceModal() {
   const modal = document.getElementById('sourceModal');
   modal.classList.add('open');
@@ -1011,6 +1077,8 @@ function openSourceModal() {
   document.getElementById('srcRadioSheets').checked = src === 'sheets';
   document.getElementById('srcRadioLastfm').checked = src === 'lastfm';
   document.getElementById('srcDisplayName').value  = localStorage.getItem('dc_display_name') || '';
+  populateTzSelect();
+  document.getElementById('srcTimezone').value = userTimezone;
   document.getElementById('srcSheetId').value      = localStorage.getItem('dc_sheet_id')  || DEFAULT_SHEET_ID;
   document.getElementById('srcSheetTab').value     = localStorage.getItem('dc_sheet_tab') || DEFAULT_SHEET_TAB;
   document.getElementById('srcLastfmUser').value   = getLastFmUser();
@@ -1034,6 +1102,12 @@ function saveSourceConfig() {
   const displayName = document.getElementById('srcDisplayName').value.trim();
   if (displayName) localStorage.setItem('dc_display_name', displayName);
   else localStorage.removeItem('dc_display_name');
+  const selTz = document.getElementById('srcTimezone').value;
+  if (selTz) {
+    userTimezone = selTz;
+    _tzFmt = null;
+    try { localStorage.setItem('dc_timezone', selTz); } catch(e) {}
+  }
   updateMastheadDynamic();
   const src = document.getElementById('srcRadioSheets').checked ? 'sheets' : 'lastfm';
   localStorage.setItem('dc_source', src);
@@ -1442,7 +1516,7 @@ document.getElementById('sizeBtnsAllTime').addEventListener('click', e => {
 
 // ─── NAVIGATE TO RECORD PERIOD ────────────────────────────────
 function navigateToRecPeriod(period, periodKey) {
-  const now = new Date();
+  const now = tzNow();
   let offset = 0;
   if (period === 'week') {
     const nowDow = now.getDay();
@@ -1514,8 +1588,9 @@ function buildRecords() {
   const weekPlaysMap = {}, monthPlaysMap = {}, yearPlaysMap = {};
   for (const p of chron) {
     const wk = playWeekKey(p.date);
-    const mk = p.date.getFullYear() + '-' + String(p.date.getMonth() + 1).padStart(2, '0');
-    const yk = String(p.date.getFullYear());
+    const _td = tzDate(p.date);
+    const mk = _td.getFullYear() + '-' + String(_td.getMonth() + 1).padStart(2, '0');
+    const yk = String(_td.getFullYear());
     (weekPlaysMap[wk] || (weekPlaysMap[wk] = [])).push(p);
     (monthPlaysMap[mk] || (monthPlaysMap[mk] = [])).push(p);
     (yearPlaysMap[yk] || (yearPlaysMap[yk] = [])).push(p);
@@ -1660,7 +1735,7 @@ function buildRecords() {
   // Consecutive days played (streaks) per artist/song
   const artistDaySet = {}, songDaySet = {};
   for (const p of chron) {
-    const ds = localDateStr(p.date);
+    const ds = localDateStr(tzDate(p.date));
     for (const a of p.artists) { if (!artistDaySet[a]) artistDaySet[a] = []; artistDaySet[a].push(ds); }
     const sk = songKey(p);
     if (!songDaySet[sk]) songDaySet[sk] = [];
@@ -2674,7 +2749,7 @@ document.getElementById('nextBtn').addEventListener('click', () => { currentOffs
 
 // ─── JUMP PICKER ───────────────────────────────────────────────
 function syncPicker() {
-  const now = new Date();
+  const now = tzNow();
   const wp = document.getElementById('weekPicker');
   const mp = document.getElementById('monthPicker');
   const yp = document.getElementById('yearPicker');
@@ -2690,7 +2765,7 @@ function syncPicker() {
     const weekStart = new Date(now);
     weekStart.setDate(now.getDate() - offset - currentOffset * 7);
     weekStart.setHours(0, 0, 0, 0);
-    wp.value = weekStart.toISOString().split('T')[0];
+    wp.value = localDateStr(weekStart);
   } else if (currentPeriod === 'month') {
     const d = new Date(now.getFullYear(), now.getMonth() - currentOffset, 1);
     mp.value = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
@@ -2701,20 +2776,20 @@ function syncPicker() {
 
 function populateYearPicker() {
   const yp = document.getElementById('yearPicker');
-  const years = [...new Set(allPlays.map(p => p.date.getFullYear()))].sort((a, b) => b - a);
+  const years = [...new Set(allPlays.map(p => tzDate(p.date).getFullYear()))].sort((a, b) => b - a);
   yp.innerHTML = years.map(y => `<option value="${y}">${y}</option>`).join('');
 }
 
 document.getElementById('weekPicker').addEventListener('change', e => {
   if (!e.target.value) return;
-  const picked = new Date(e.target.value + 'T00:00:00');
-  const now = new Date();
+  const picked = new Date(e.target.value + 'T00:00:00'); // fake-local midnight on picked date
+  const now = tzNow();
   const nowDow = now.getDay();
   const pickedDow = picked.getDay();
   const nowOffset = (nowDow - weekStartDay + 7) % 7;
   const pickedOffset = (pickedDow - weekStartDay + 7) % 7;
-  const curStart = new Date(now); curStart.setDate(now.getDate() - nowOffset); curStart.setHours(0, 0, 0, 0);
-  const picStart = new Date(picked); picStart.setDate(picked.getDate() - pickedOffset); picStart.setHours(0, 0, 0, 0);
+  const curStart = new Date(now.getFullYear(), now.getMonth(), now.getDate() - nowOffset);
+  const picStart = new Date(picked.getFullYear(), picked.getMonth(), picked.getDate() - pickedOffset);
   const offset = Math.round((curStart - picStart) / (7 * 86400000));
   if (offset >= 0) { currentOffset = offset; pageState.songs = 0; pageState.artists = 0; pageState.albums = 0; renderAll(); }
 });
@@ -2722,13 +2797,13 @@ document.getElementById('weekPicker').addEventListener('change', e => {
 document.getElementById('monthPicker').addEventListener('change', e => {
   if (!e.target.value) return;
   const [yr, mo] = e.target.value.split('-').map(Number);
-  const now = new Date();
+  const now = tzNow();
   const offset = (now.getFullYear() - yr) * 12 + (now.getMonth() + 1 - mo);
   if (offset >= 0) { currentOffset = offset; pageState.songs = 0; pageState.artists = 0; pageState.albums = 0; renderAll(); }
 });
 
 document.getElementById('yearPicker').addEventListener('change', e => {
-  const offset = new Date().getFullYear() - parseInt(e.target.value);
+  const offset = tzNow().getFullYear() - parseInt(e.target.value);
   if (offset >= 0) { currentOffset = offset; pageState.songs = 0; pageState.artists = 0; pageState.albums = 0; renderAll(); }
 });
 
@@ -2740,11 +2815,12 @@ let rawSortCol = 'date';
 let rawSortDir = -1; // -1 = desc, 1 = asc
 
 function rawFmtDate(d) {
-  const monthKey = ['month_jan', 'month_feb', 'month_mar', 'month_apr', 'month_may_short', 'month_jun', 'month_jul', 'month_aug', 'month_sep', 'month_oct', 'month_nov', 'month_dec'][d.getMonth()];
+  const td = tzDate(d);
+  const monthKey = ['month_jan', 'month_feb', 'month_mar', 'month_apr', 'month_may_short', 'month_jun', 'month_jul', 'month_aug', 'month_sep', 'month_oct', 'month_nov', 'month_dec'][td.getMonth()];
   const monthName = t(monthKey);
-  const hours = String(d.getHours()).padStart(2, '0');
-  const mins = String(d.getMinutes()).padStart(2, '0');
-  return `${d.getDate()} ${monthName} ${d.getFullYear()} ${hours}:${mins}`;
+  const hours = String(td.getHours()).padStart(2, '0');
+  const mins = String(td.getMinutes()).padStart(2, '0');
+  return `${td.getDate()} ${monthName} ${td.getFullYear()} ${hours}:${mins}`;
 }
 
 function applyRawFilters() {
@@ -2854,11 +2930,10 @@ function localDateStr(d) {
 
 // Returns the canonical week key (start day's local date string) for a given play date.
 function playWeekKey(playDate) {
-  const dow = playDate.getDay();
+  const td = tzDate(playDate);
+  const dow = td.getDay();
   const offset = (dow - weekStartDay + 7) % 7;
-  const startDate = new Date(playDate);
-  startDate.setDate(playDate.getDate() - offset);
-  startDate.setHours(0, 0, 0, 0);
+  const startDate = new Date(td.getFullYear(), td.getMonth(), td.getDate() - offset);
   return localDateStr(startDate);
 }
 
@@ -2870,9 +2945,10 @@ function _buildPeriodPlaysMap(periodType, cutoffKey) {
     if (periodType === 'week') {
       key = playWeekKey(p.date);
     } else if (periodType === 'month') {
-      key = p.date.getFullYear() + '-' + String(p.date.getMonth() + 1).padStart(2, '0');
+      const _td = tzDate(p.date);
+      key = _td.getFullYear() + '-' + String(_td.getMonth() + 1).padStart(2, '0');
     } else {
-      key = String(p.date.getFullYear());
+      key = String(tzDate(p.date).getFullYear());
     }
     if (cutoffKey && key > cutoffKey) continue;
     (playsMap[key] || (playsMap[key] = [])).push(p);
@@ -2903,18 +2979,16 @@ function buildPeriodTypePeakStatsUpTo(periodType, cutoffKey) {
 
 // Returns the week key for the period currently being viewed (based on currentOffset).
 function currentViewWeekKey() {
-  const now = new Date();
+  const now = tzNow();
   const dow = now.getDay();
   const offset = (dow - weekStartDay + 7) % 7;
-  const startDate = new Date(now);
-  startDate.setDate(now.getDate() - offset - currentOffset * 7);
-  startDate.setHours(0, 0, 0, 0);
+  const startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate() - offset - currentOffset * 7);
   return localDateStr(startDate);
 }
 
 // ─── DATE RANGE ─────────────────────────────────────────────────
 function getDateRange() {
-  const now = new Date();
+  const now = tzNow();
   if (currentPeriod === 'alltime') return { start: new Date(0), end: new Date(9999, 0), label: t('period_alltime'), sub: t('period_alltime_sub') };
 
   let start, end, label, sub;
@@ -2988,7 +3062,7 @@ function renderAll() {
   const { start, end, label, sub } = getDateRange();
   const plays = currentPeriod === 'alltime'
     ? allPlays
-    : allPlays.filter(p => p.date >= start && p.date <= end);
+    : allPlays.filter(p => { const _tp = tzDate(p.date); return _tp >= start && _tp <= end; });
 
   // Show/hide chart size bar and switch between weekly/monthly size buttons
   const paginated = isPaginated();
@@ -3031,27 +3105,23 @@ function renderAll() {
   let prevPlays = null;
   if (currentPeriod !== 'alltime') {
     let prevStart, prevEnd;
-    const now = new Date();
+    const _pnow = tzNow();
     if (currentPeriod === 'week') {
-      const dow = now.getDay();
+      const dow = _pnow.getDay();
       const off = (dow - weekStartDay + 7) % 7;
-      const ps = new Date(now);
-      ps.setDate(now.getDate() - off - (currentOffset + 1) * 7);
-      ps.setHours(0, 0, 0, 0);
+      const ps = new Date(_pnow.getFullYear(), _pnow.getMonth(), _pnow.getDate() - off - (currentOffset + 1) * 7);
       prevStart = ps;
-      prevEnd = new Date(ps);
-      prevEnd.setDate(ps.getDate() + 6);
-      prevEnd.setHours(23, 59, 59, 999);
+      prevEnd = new Date(ps.getFullYear(), ps.getMonth(), ps.getDate() + 6, 23, 59, 59, 999);
     } else if (currentPeriod === 'month') {
-      const d = new Date(now.getFullYear(), now.getMonth() - currentOffset - 1, 1);
+      const d = new Date(_pnow.getFullYear(), _pnow.getMonth() - currentOffset - 1, 1);
       prevStart = new Date(d.getFullYear(), d.getMonth(), 1);
       prevEnd   = new Date(d.getFullYear(), d.getMonth() + 1, 0, 23, 59, 59, 999);
     } else {
-      const yr = now.getFullYear() - currentOffset - 1;
+      const yr = _pnow.getFullYear() - currentOffset - 1;
       prevStart = new Date(yr, 0, 1);
       prevEnd   = new Date(yr, 11, 31, 23, 59, 59, 999);
     }
-    prevPlays = allPlays.filter(p => p.date >= prevStart && p.date <= prevEnd);
+    prevPlays = allPlays.filter(p => { const _tp = tzDate(p.date); return _tp >= prevStart && _tp <= prevEnd; });
   }
 
   // Compute all-time peak stats and peak-at-the-time stats per period type
@@ -3059,7 +3129,7 @@ function renderAll() {
   if (currentPeriod !== 'alltime') {
     let cutoffKey;
     if (currentPeriod === 'week') {
-      cutoffKey = playWeekKey(start);
+      cutoffKey = localDateStr(start); // start is already the week-start fake-local Date
     } else if (currentPeriod === 'month') {
       cutoffKey = start.getFullYear() + '-' + String(start.getMonth() + 1).padStart(2, '0');
     } else {
@@ -3415,28 +3485,25 @@ const crRangeModes = {}; // per-entry: keyed by type+'|'+key
 function getCrRangeMode(type, key) { return crRangeModes[type + '|' + key] || 'now'; }
 
 function getViewedYear() {
-  const now = new Date();
+  const now = tzNow();
   if (currentPeriod === 'year') return now.getFullYear() - currentOffset;
   if (currentPeriod === 'month') return new Date(now.getFullYear(), now.getMonth() - currentOffset, 1).getFullYear();
   if (currentPeriod === 'week') {
     const dow = now.getDay();
     const offset = (dow - weekStartDay + 7) % 7;
-    const weekStart = new Date(now);
-    weekStart.setDate(now.getDate() - offset - currentOffset * 7);
+    const weekStart = new Date(now.getFullYear(), now.getMonth(), now.getDate() - offset - currentOffset * 7);
     return weekStart.getFullYear();
   }
   return now.getFullYear();
 }
 
 function getViewedCutoffKeys() {
-  const now = new Date();
+  const now = tzNow();
   let weekKey, monthKey, yearKey;
   if (currentPeriod === 'week') {
     const dow = now.getDay();
     const offset = (dow - weekStartDay + 7) % 7;
-    const weekStart = new Date(now);
-    weekStart.setDate(now.getDate() - offset - currentOffset * 7);
-    weekStart.setHours(0, 0, 0, 0);
+    const weekStart = new Date(now.getFullYear(), now.getMonth(), now.getDate() - offset - currentOffset * 7);
     weekKey = localDateStr(weekStart);
     monthKey = `${weekStart.getFullYear()}-${String(weekStart.getMonth() + 1).padStart(2, '0')}`;
     yearKey = String(weekStart.getFullYear());
@@ -3565,7 +3632,7 @@ function setCrRangeMode(mode, type, encodedKey) {
 }
 
 function buildChartRun(period) {
-  const now = new Date();
+  const now = tzNow();
   let curKey;
   if (period === 'week') curKey = currentViewWeekKey();
   else if (period === 'month') {
@@ -3576,13 +3643,14 @@ function buildChartRun(period) {
   const periodMap = {};
   for (const p of allPlays) {
     let key;
+    const _ptd = tzDate(p.date);
     if (period === 'week') key = playWeekKey(p.date);
-    else if (period === 'month') key = `${p.date.getFullYear()}-${String(p.date.getMonth() + 1).padStart(2, '0')}`;
-    else key = String(p.date.getFullYear());
+    else if (period === 'month') key = `${_ptd.getFullYear()}-${String(_ptd.getMonth() + 1).padStart(2, '0')}`;
+    else key = String(_ptd.getFullYear());
     if (key > curKey) continue;
     if (!periodMap[key]) periodMap[key] = { songs: {}, artists: {}, albums: {}, daySongs: {}, dayArtists: {}, dayAlbums: {}, yrMonths: null };
     const pm = periodMap[key];
-    const dayStr = localDateStr(p.date);
+    const dayStr = localDateStr(_ptd);
     const sk = songKey(p);
     if (!pm.songs[sk]) { pm.songs[sk] = { count: 0, firstAchieved: p.date, _title: p.title, _artist: p.artist }; pm.daySongs[sk] = new Set(); }
     pm.songs[sk].count++; pm.daySongs[sk].add(dayStr);
@@ -3596,7 +3664,7 @@ function buildChartRun(period) {
     // For yearly: track unique months per item per year
     if (period === 'year') {
       if (!pm.yrMonths) pm.yrMonths = { songs: {}, artists: {}, albums: {} };
-      const mo = p.date.getMonth();
+      const mo = _ptd.getMonth();
       if (!pm.yrMonths.songs[sk]) pm.yrMonths.songs[sk] = new Set();
       pm.yrMonths.songs[sk].add(mo);
       for (const a of p.artists) {
@@ -3996,12 +4064,12 @@ function hideDebutWeekPreview() {
 
 function navigateToCrChart(period, periodKey) {
   hideCrPreview();
-  const now = new Date();
+  const now = tzNow();
   let offset = 0;
   if (period === 'week') {
     const nowDow = now.getDay();
     const nowOffset = (nowDow - weekStartDay + 7) % 7;
-    const curStart = new Date(now); curStart.setDate(now.getDate() - nowOffset); curStart.setHours(0, 0, 0, 0);
+    const curStart = new Date(now.getFullYear(), now.getMonth(), now.getDate() - nowOffset);
     const targetStart = new Date(periodKey + 'T00:00:00');
     offset = Math.round((curStart - targetStart) / (7 * 86400000));
   } else if (period === 'month') {
@@ -4024,7 +4092,7 @@ function navigateToCrChart(period, periodKey) {
 // Returns months-on-chart counts, previous month's chart, and
 // a set of items that ever charted before the current month.
 function buildPeriodStats(period) {
-  const now = new Date();
+  const now = tzNow();
   let curKey, prevKey;
 
   if (period === 'week') {
@@ -4044,10 +4112,11 @@ function buildPeriodStats(period) {
   const periodMap = {};
   for (const p of allPlays) {
     let mk;
+    const _bpstd = tzDate(p.date);
     if (period === 'week') {
       mk = playWeekKey(p.date);
     } else {
-      mk = `${p.date.getFullYear()}-${String(p.date.getMonth() + 1).padStart(2, '0')}`;
+      mk = `${_bpstd.getFullYear()}-${String(_bpstd.getMonth() + 1).padStart(2, '0')}`;
     }
     if (mk > curKey) continue; // ignore future periods
     if (!periodMap[mk]) periodMap[mk] = { songs: {}, artists: {}, albums: {} };
@@ -4174,7 +4243,7 @@ function buildAllTimePeaks() {
 // including the currently viewed week (no future weeks bleed in).
 // Same logic applies to monthly and yearly.
 function buildPeriodPeaks(period) {
-  const now = new Date();
+  const now = tzNow();
 
   // Compute the key for the currently viewed period so we can ignore later ones
   let curKey;
@@ -4191,12 +4260,13 @@ function buildPeriodPeaks(period) {
 
   for (const p of allPlays) {
     let key;
+    const _bpptd = tzDate(p.date);
     if (period === 'week') {
       key = playWeekKey(p.date);
     } else if (period === 'month') {
-      key = `${p.date.getFullYear()}-${String(p.date.getMonth() + 1).padStart(2, '0')}`;
+      key = `${_bpptd.getFullYear()}-${String(_bpptd.getMonth() + 1).padStart(2, '0')}`;
     } else {
-      key = String(p.date.getFullYear());
+      key = String(_bpptd.getFullYear());
     }
 
     if (key > curKey) continue; // ignore periods after the currently viewed one
@@ -4289,7 +4359,7 @@ function buildCumulativeMapsForPeriod(endDate) {
 // Historical max per-period play counts, excluding the currently viewed period.
 // Used to decide whether the current period is a plays-peak for a song/artist/album.
 function buildPlaysPeakMaps(period) {
-  const now = new Date();
+  const now = tzNow();
   let curKey;
   if (period === 'week') {
     curKey = currentViewWeekKey();
@@ -4303,9 +4373,10 @@ function buildPlaysPeakMaps(period) {
   const periodMap = {};
   for (const p of allPlays) {
     let key;
+    const _bppmtd = tzDate(p.date);
     if (period === 'week') key = playWeekKey(p.date);
-    else if (period === 'month') key = `${p.date.getFullYear()}-${String(p.date.getMonth() + 1).padStart(2, '0')}`;
-    else key = String(p.date.getFullYear());
+    else if (period === 'month') key = `${_bppmtd.getFullYear()}-${String(_bppmtd.getMonth() + 1).padStart(2, '0')}`;
+    else key = String(_bppmtd.getFullYear());
     if (key > curKey) continue;
     if (!periodMap[key]) periodMap[key] = { songs: {}, artists: {}, albums: {} };
     const pm = periodMap[key];
@@ -4647,7 +4718,7 @@ function getCurrentChartSongs() {
   const { start, end } = getDateRange();
   const plays = currentPeriod === 'alltime'
     ? allPlays
-    : allPlays.filter(p => p.date >= start && p.date <= end);
+    : allPlays.filter(p => { const _tp = tzDate(p.date); return _tp >= start && _tp <= end; });
   const counts = {};
   for (const p of plays) {
     const k = songKey(p);
@@ -6093,12 +6164,10 @@ function findWeeklyNo1s(artistName) {
 
 // Returns how many weeks ago a given week start was from the current week start
 function weekOffset(weekDate) {
-  const now = new Date();
+  const now = tzNow();
   const nowDow = now.getDay();
   const nowOffset = (nowDow - weekStartDay + 7) % 7;
-  const currentStart = new Date(now);
-  currentStart.setDate(now.getDate() - nowOffset);
-  currentStart.setHours(0, 0, 0, 0);
+  const currentStart = new Date(now.getFullYear(), now.getMonth(), now.getDate() - nowOffset);
   return Math.round((currentStart.getTime() - weekDate.getTime()) / (7 * 86400000));
 }
 
@@ -6593,10 +6662,10 @@ async function searchArtistMBID(name) {
 
 async function fetchReleasesForMBID(mbid) {
   try {
-    const today = new Date(); today.setHours(0, 0, 0, 0);
-    const future = new Date(today); future.setDate(today.getDate() + 90);
-    const todayStr = today.toISOString().slice(0, 10);
-    const futureStr = future.toISOString().slice(0, 10);
+    const today = tzNow(); today.setHours(0, 0, 0, 0);
+    const future = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 90);
+    const todayStr = localDateStr(today);
+    const futureStr = localDateStr(future);
     const d = await mbFetch(`release-group?artist=${mbid}&type=album|ep|single&fmt=json&limit=100`);
     return (d['release-groups'] || []).filter(g => {
       const date = g['first-release-date'];
@@ -6611,7 +6680,7 @@ async function fetchReleasesForMBID(mbid) {
 
 function upcomingDateLabel(dateStr) {
   const d = new Date(dateStr + 'T00:00:00');
-  const now = new Date(); now.setHours(0, 0, 0, 0);
+  const now = tzNow(); now.setHours(0, 0, 0, 0);
   const days = Math.round((d - now) / 86400000);
   const fmt = fmtDate(d);
   return { label: fmt, soon: days <= 14 };
@@ -6732,10 +6801,10 @@ const MB_RECENT_CACHE_KEY = 'mbRecentCache';
 
 async function fetchRecentReleasesForMBID(mbid) {
   try {
-    const today = new Date(); today.setHours(0, 0, 0, 0);
-    const past = new Date(today); past.setDate(today.getDate() - 180);
-    const todayStr = today.toISOString().slice(0, 10);
-    const pastStr = past.toISOString().slice(0, 10);
+    const today = tzNow(); today.setHours(0, 0, 0, 0);
+    const past = new Date(today.getFullYear(), today.getMonth(), today.getDate() - 180);
+    const todayStr = localDateStr(today);
+    const pastStr = localDateStr(past);
     const d = await mbFetch(`release-group?artist=${mbid}&type=album|ep|single&fmt=json&limit=100`);
     return (d['release-groups'] || []).filter(g => {
       const date = g['first-release-date'];
@@ -6928,8 +6997,8 @@ function renderGraphs() {
     const toEl = document.getElementById('gCumulativeTo');
     if (!fromEl.value && allPlays.length) {
       // allPlays is sorted descending — last entry is the oldest play
-      fromEl.value = localDateStr(allPlays[allPlays.length - 1].date);
-      toEl.value = localDateStr(new Date());
+      fromEl.value = localDateStr(tzDate(allPlays[allPlays.length - 1].date));
+      toEl.value = localDateStr(tzNow());
     }
   }
   renderCumulativeChart(sortedKeys, labels, ptRadius, gc, axisOpts, legendOpts);
@@ -6938,8 +7007,8 @@ function renderGraphs() {
   {
     const el = document.getElementById('gTotalVolumeFrom');
     if (!el.value && allPlays.length) {
-      el.value = localDateStr(allPlays[allPlays.length - 1].date);
-      document.getElementById('gTotalVolumeTo').value = localDateStr(new Date());
+      el.value = localDateStr(tzDate(allPlays[allPlays.length - 1].date));
+      document.getElementById('gTotalVolumeTo').value = localDateStr(tzNow());
     }
   }
   renderTotalVolumeChart(sortedKeys, gc, axisOpts, legendOpts);
@@ -6957,8 +7026,8 @@ function renderGraphs() {
     }
     const vFrom = document.getElementById('gVolumeFrom');
     if (!vFrom.value && allPlays.length) {
-      vFrom.value = localDateStr(allPlays[allPlays.length - 1].date);
-      document.getElementById('gVolumeTo').value = localDateStr(new Date());
+      vFrom.value = localDateStr(tzDate(allPlays[allPlays.length - 1].date));
+      document.getElementById('gVolumeTo').value = localDateStr(tzNow());
     }
   }
   renderVolumeChart(sortedKeys, gc, axisOpts, legendOpts);
@@ -7027,8 +7096,8 @@ function renderGraphs() {
   {
     const rfEl = document.getElementById('raceFrom');
     if (!rfEl.value && allPlays.length) {
-      rfEl.value = localDateStr(allPlays[allPlays.length - 1].date);
-      document.getElementById('raceTo').value = localDateStr(new Date());
+      rfEl.value = localDateStr(tzDate(allPlays[allPlays.length - 1].date));
+      document.getElementById('raceTo').value = localDateStr(tzNow());
     }
   }
   initRace();
@@ -7227,8 +7296,8 @@ document.getElementById('gCumulativeResetZoom').addEventListener('click', () => 
 
 document.getElementById('gCumulativeResetRange').addEventListener('click', () => {
   if (!allPlays.length) return;
-  document.getElementById('gCumulativeFrom').value = localDateStr(allPlays[allPlays.length - 1].date);
-  document.getElementById('gCumulativeTo').value = localDateStr(new Date());
+  document.getElementById('gCumulativeFrom').value = localDateStr(tzDate(allPlays[allPlays.length - 1].date));
+  document.getElementById('gCumulativeTo').value = localDateStr(tzNow());
   localStorage.removeItem('dc_gCumulativeFrom');
   localStorage.removeItem('dc_gCumulativeTo');
   triggerCumulativeUpdate();
@@ -7446,8 +7515,8 @@ document.getElementById('gTotalVolumeTo').addEventListener('change', () => {
 });
 document.getElementById('gTotalVolumeResetRange').addEventListener('click', () => {
   if (!allPlays.length) return;
-  document.getElementById('gTotalVolumeFrom').value = localDateStr(allPlays[allPlays.length - 1].date);
-  document.getElementById('gTotalVolumeTo').value = localDateStr(new Date());
+  document.getElementById('gTotalVolumeFrom').value = localDateStr(tzDate(allPlays[allPlays.length - 1].date));
+  document.getElementById('gTotalVolumeTo').value = localDateStr(tzNow());
   localStorage.removeItem('dc_gTotalVolumeFrom');
   localStorage.removeItem('dc_gTotalVolumeTo');
   triggerTotalVolumeUpdate();
@@ -7473,8 +7542,8 @@ document.getElementById('gVolumeTo').addEventListener('change', () => {
 });
 document.getElementById('gVolumeResetRange').addEventListener('click', () => {
   if (!allPlays.length) return;
-  document.getElementById('gVolumeFrom').value = localDateStr(allPlays[allPlays.length - 1].date);
-  document.getElementById('gVolumeTo').value = localDateStr(new Date());
+  document.getElementById('gVolumeFrom').value = localDateStr(tzDate(allPlays[allPlays.length - 1].date));
+  document.getElementById('gVolumeTo').value = localDateStr(tzNow());
   localStorage.removeItem('dc_gVolumeFrom');
   localStorage.removeItem('dc_gVolumeTo');
   triggerVolumeUpdate();
@@ -7956,8 +8025,8 @@ document.getElementById('raceTo').addEventListener('change', () => {
 });
 document.getElementById('raceResetRange').addEventListener('click', () => {
   if (!allPlays.length) return;
-  document.getElementById('raceFrom').value = localDateStr(allPlays[allPlays.length - 1].date);
-  document.getElementById('raceTo').value = localDateStr(new Date());
+  document.getElementById('raceFrom').value = localDateStr(tzDate(allPlays[allPlays.length - 1].date));
+  document.getElementById('raceTo').value = localDateStr(tzNow());
   localStorage.removeItem('dc_raceFrom');
   localStorage.removeItem('dc_raceTo');
   if (currentPeriod === 'graphs') initRace();

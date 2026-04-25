@@ -25,7 +25,9 @@
       "Bash(git add *)",
       "Bash(git commit *)",
       "Bash(git push *)",
-      "Bash(grep -n \"i18n\\\\|translate\\\\|language\\\\|lang\\\\|translations\\\\|t\\\\\\\\.get\\\\|applyTranslations\" c:/Users/erwin/Desktop/mycharts/app.js)"
+      "Bash(grep -n \"i18n\\\\|translate\\\\|language\\\\|lang\\\\|translations\\\\|t\\\\\\\\.get\\\\|applyTranslations\" c:/Users/erwin/Desktop/mycharts/app.js)",
+      "Bash(node --check app.js)",
+      "PowerShell(node --check \"c:\\\\Users\\\\erwin\\\\Desktop\\\\mycharts\\\\app.js\" 2>&1)"
     ]
   }
 }
