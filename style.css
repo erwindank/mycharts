@@ -540,12 +540,22 @@
       box-sizing: border-box;
     }
 
+    button, input, select, textarea {
+      touch-action: manipulation;
+    }
+
+    button {
+      -webkit-tap-highlight-color: transparent;
+    }
+
     body {
       background: var(--bg);
       color: var(--text);
       font-family: 'DM Sans', sans-serif;
       font-weight: 400;
       min-height: 100vh;
+      -webkit-text-size-adjust: 100%;
+      text-size-adjust: 100%;
     }
 
     /* MASTHEAD */
@@ -4408,6 +4418,65 @@
       .pak-expand-album {
         display: none;
       }
+
+      /* Sync bar wraps on small screens */
+      .sync-bar {
+        flex-wrap: wrap;
+        gap: 0.4rem;
+      }
+
+      /* Bigger touch targets for date nav */
+      .date-nav button {
+        min-height: 40px;
+        padding: 0.35rem 0.8rem;
+      }
+
+      /* Allow chart control bars to wrap */
+      .chart-size-bar,
+      .chart-display-toggles {
+        flex-wrap: wrap;
+      }
+
+      /* Export button full width */
+      .export-playlist-btn {
+        width: 100%;
+        text-align: center;
+      }
+
+      /* Source modal: remove desktop vertical-center trick, let it scroll naturally */
+      .src-modal-box {
+        top: auto;
+        transform: none;
+        margin: 0 auto;
+      }
+
+      /* IG share modal: stack preview above controls on narrow screens */
+      .ig-modal-body {
+        flex-direction: column;
+      }
+
+      .ig-preview-panel {
+        width: 100%;
+        align-items: center;
+      }
+
+      .ig-controls-panel {
+        min-width: unset;
+        width: 100%;
+      }
+
+      /* Prevent iOS Safari from zooming into inputs */
+      input[type="text"],
+      input[type="email"],
+      input[type="password"],
+      input[type="search"],
+      input[type="date"],
+      input[type="month"],
+      input[type="datetime-local"],
+      select,
+      textarea {
+        font-size: max(16px, 1em) !important;
+      }
     }
 
     /* ── RECORDS VIEW ── */
@@ -5299,4 +5368,55 @@
       overflow: hidden;
       text-overflow: ellipsis;
       max-width: 130px;
+    }
+
+    /* ── MOBILE POLISH ── */
+
+    /* Safe-area insets for notched phones (iPhone X+, Android cutouts) */
+    @supports (padding-bottom: env(safe-area-inset-bottom)) {
+      .container {
+        padding-bottom: max(4rem, calc(env(safe-area-inset-bottom) + 1rem));
+      }
+
+      #backToTop {
+        bottom: max(1.5rem, calc(env(safe-area-inset-bottom) + 0.5rem));
+      }
+
+      .modal-overlay {
+        padding-bottom: max(2rem, calc(env(safe-area-inset-bottom) + 1rem));
+      }
+    }
+
+    /* Period nav: scroll horizontally if buttons get too squished */
+    @media (max-width: 480px) {
+      .period-nav {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+      }
+
+      .period-nav::-webkit-scrollbar {
+        display: none;
+      }
+
+      .period-nav button {
+        flex-shrink: 0;
+        min-width: 4.5rem;
+      }
+    }
+
+    /* Tighter date-nav on very small screens */
+    @media (max-width: 380px) {
+      .date-nav {
+        padding: 0.45rem 0.5rem;
+      }
+
+      .date-nav button {
+        padding: 0.3rem 0.55rem;
+        font-size: 0.65rem;
+      }
+
+      .date-nav .period-label strong {
+        font-size: 1rem;
+      }
     }
