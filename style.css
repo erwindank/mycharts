@@ -1383,6 +1383,11 @@
       cursor: default;
     }
 
+    @keyframes configure-attention-pulse {
+      0%, 100% { box-shadow: 0 0 0 0 transparent; border-color: var(--gold1); color: var(--gold1); }
+      50%       { box-shadow: 0 0 10px 3px var(--gold1); border-color: var(--gold2); color: var(--gold2); }
+    }
+
     #configureSourceBtn {
       background: none;
       border: 1px solid var(--border);
@@ -1397,10 +1402,17 @@
       transition: background 0.15s, border-color 0.15s, color 0.15s;
     }
 
+    #configureSourceBtn.configure-attention {
+      border-color: var(--gold1);
+      color: var(--gold1);
+      animation: configure-attention-pulse 1.8s ease-in-out infinite;
+    }
+
     #configureSourceBtn:hover {
       background: var(--surface);
       border-color: var(--border2);
       color: var(--text);
+      animation: none;
     }
 
     #scrobbleBtn {

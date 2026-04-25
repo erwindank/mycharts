@@ -1071,6 +1071,7 @@ function populateTzSelect() {
 }
 
 function openSourceModal() {
+  document.getElementById('configureSourceBtn').classList.remove('configure-attention');
   const modal = document.getElementById('sourceModal');
   modal.classList.add('open');
   const src = getDataSource();
@@ -1138,6 +1139,12 @@ window.addEventListener('load', async () => {
   updateMastheadDynamic();
   updateLfmAuthStatus();
   localStorage.removeItem('dc_sync_csv'); // clean up old oversized key if present
+
+  if (!localStorage.getItem('dc_display_name')) {
+    const btn = document.getElementById('configureSourceBtn');
+    btn.classList.add('configure-attention');
+    btn.title = 'Start here — configure your data source';
+  }
 
   if (getDataSource() === 'lastfm') {
     syncFromLastFm();
