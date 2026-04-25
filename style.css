@@ -540,16 +540,16 @@
       box-sizing: border-box;
     }
 
+    html {
+      min-width: min-content;
+    }
+
     button, input, select, textarea {
       touch-action: manipulation;
     }
 
     button {
       -webkit-tap-highlight-color: transparent;
-    }
-
-    html {
-      overflow-x: hidden;
     }
 
     body {
@@ -560,7 +560,6 @@
       min-height: 100vh;
       -webkit-text-size-adjust: 100%;
       text-size-adjust: 100%;
-      overflow-x: hidden;
     }
 
     /* MASTHEAD */
@@ -570,8 +569,6 @@
       padding: 2.75rem 1rem 2rem;
       border-bottom: 1px solid rgba(59, 158, 255, 0.2);
       position: relative;
-      max-width: 100%;
-      overflow: hidden;
     }
 
     .masthead::before {
@@ -1340,7 +1337,6 @@
       max-width: 980px;
       margin: 0 auto;
       padding: 0 1rem 4rem;
-      overflow-x: hidden;
     }
 
     /* SYNC BAR */
@@ -4339,6 +4335,7 @@
       }
 
       .theme-toggle {
+        position: fixed;
         top: 0.5rem;
         right: 0.5rem;
       }
