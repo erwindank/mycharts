@@ -164,26 +164,31 @@ const ARTIST_COMMA_EXCEPTIONS = [
   "Earth, Wind & Fire",
 ];
 
+// Pre-compiled once — avoids recreating RegExp on every splitArtists call
+const _ARTIST_EXCEPTION_RES = ARTIST_COMMA_EXCEPTIONS.map((name, i) => ({
+  re: new RegExp(name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi'),
+  token: `__ARTIST_${i}__`,
+  name,
+}));
+
 // Splits multiple artists using comma as the separator.
 // Names listed in ARTIST_COMMA_EXCEPTIONS are protected from splitting.
 function splitArtists(artistStr) {
   if (!artistStr) return [];
-  // Replace protected names with tokens before splitting on comma
+  if (artistStr.indexOf(',') === -1) return [artistStr]; // fast path: no comma
   let str = artistStr;
-  const tokens = {};
-  ARTIST_COMMA_EXCEPTIONS.forEach((name, i) => {
-    const token = `__ARTIST_${i}__`;
-    const re = new RegExp(name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi');
-    str = str.replace(re, token);
-    tokens[token] = name;
-  });
+  const activeTokens = {};
+  for (const { re, token, name } of _ARTIST_EXCEPTION_RES) {
+    if (str.toLowerCase().indexOf(name.toLowerCase().slice(0, 5)) !== -1) {
+      str = str.replace(re, token);
+      activeTokens[token] = name;
+    }
+  }
   return str
     .split(',')
     .map(a => {
       let part = a.trim();
-      Object.entries(tokens).forEach(([token, original]) => {
-        part = part.replace(token, original);
-      });
+      for (const [tok, orig] of Object.entries(activeTokens)) part = part.replace(tok, orig);
       return part;
     })
     .filter(a => a.length > 0);
@@ -669,7 +674,7 @@ function getSheetUrl() {
 }
 function getDataSource()  { return localStorage.getItem('dc_source')      || 'sheets'; }
 function getLastFmUser()  { return localStorage.getItem('dc_lastfm_user') || ''; }
-const SYNC_INTERVAL_MS = 60 * 60 * 1000; // auto-refresh every 1 hour
+const SYNC_INTERVAL_MS = 6 * 60 * 60 * 1000; // auto-refresh every 6 hours
 let syncTimer = null;
 let lastSyncTime = null;
 
@@ -677,6 +682,7 @@ let lastSyncTime = null;
 const IDB_NAME = 'dankcharts';
 const IDB_STORE = 'cache';
 const IDB_LASTFM_KEY = 'lastfm';
+const IDB_SHEETS_KEY = 'sheets';
 
 function openIDB() {
   return new Promise((resolve, reject) => {
@@ -739,7 +745,7 @@ async function syncFromSheets() {
     parseCsv(text, true); // true = from sheets (skip hide upload zone)
     lastSyncTime = new Date();
     localStorage.setItem('dc_sync_ts', lastSyncTime.getTime().toString());
-    try { sessionStorage.setItem('dc_sync_csv', text); } catch (e) { sessionStorage.removeItem('dc_sync_csv'); }
+    await saveToIDB(IDB_SHEETS_KEY, { ts: lastSyncTime.getTime(), csv: text });
     setSyncStatus(t('sync_ok', { time: lastSyncTime.toLocaleTimeString(), n: allPlays.length.toLocaleString() }), 'ok');
   } catch (e) {
     setSyncStatus(t('sync_failed', { error: e.message }), 'err');
@@ -801,21 +807,41 @@ async function syncFromLastFm() {
     const totalPages = parseInt(firstData.recenttracks['@attr'].totalPages) || 1;
     let tracks = firstData.recenttracks.track;
     if (!Array.isArray(tracks)) tracks = tracks ? [tracks] : [];
-    rawTracks = rawTracks.concat(tracks.filter(t => t.date && t.date.uts));
+    for (const tr of tracks) { if (tr.date && tr.date.uts) rawTracks.push(tr); }
 
-    // Fetch remaining pages in parallel batches of 10
-    const BATCH = 10;
-    for (let batchStart = 2; batchStart <= totalPages; batchStart += BATCH) {
-      const batchEnd = Math.min(batchStart + BATCH - 1, totalPages);
-      setSyncStatus(`Loading Last.fm history… pages ${batchStart}–${batchEnd} of ${totalPages}`, 'loading');
-      const pages = [];
-      for (let p = batchStart; p <= batchEnd; p++) pages.push(p);
-      const results = await Promise.all(pages.map(p => fetchLastFmPage(username, p)));
-      for (const data of results) {
-        let t = data.recenttracks.track;
-        if (!Array.isArray(t)) t = t ? [t] : [];
-        rawTracks = rawTracks.concat(t.filter(t => t.date && t.date.uts));
-      }
+    if (totalPages > 1) {
+      // Rolling concurrency pool: always keep up to CONCURRENCY requests in-flight.
+      // Unlike fixed batches, this never idles waiting for the slowest request in a group.
+      // CONCURRENCY=10 keeps us within Last.fm's ~5 req/s limit for large accounts.
+      const CONCURRENCY = 10;
+      let nextPage = 2;
+      let completedPages = 1;
+      await new Promise((resolve) => {
+        let inFlight = 0;
+        function fill() {
+          while (inFlight < CONCURRENCY && nextPage <= totalPages) {
+            const p = nextPage++;
+            inFlight++;
+            fetchLastFmPage(username, p).then(data => {
+              let t = data.recenttracks.track;
+              if (!Array.isArray(t)) t = t ? [t] : [];
+              for (const tr of t) { if (tr.date && tr.date.uts) rawTracks.push(tr); }
+            }).catch(e => {
+              console.warn(`Last.fm: page ${p} failed (${e.message}), skipping`);
+            }).finally(() => {
+              completedPages++;
+              if (completedPages % 20 === 0 || completedPages === totalPages) {
+                setSyncStatus(`Loading Last.fm history… ${completedPages} / ${totalPages} pages`, 'loading');
+              }
+              inFlight--;
+              if (nextPage > totalPages && inFlight === 0) resolve();
+              else fill();
+            });
+          }
+          if (nextPage > totalPages && inFlight === 0) resolve();
+        }
+        fill();
+      });
     }
   } catch (e) {
     setSyncStatus('Last.fm error: ' + e.message, 'err');
@@ -896,7 +922,7 @@ function saveSourceConfig() {
     localStorage.removeItem('dc_lastfm_ts'); // clean up old key
   } else {
     localStorage.setItem('dc_lastfm_user', document.getElementById('srcLastfmUser').value.trim());
-    sessionStorage.removeItem('dc_sync_csv');
+    deleteFromIDB(IDB_SHEETS_KEY);
     localStorage.removeItem('dc_sync_ts');
   }
   // Always persist LFM API credentials when filled in (used for scrobbling regardless of data source)
@@ -911,7 +937,7 @@ function saveSourceConfig() {
 document.getElementById('syncNowBtn').addEventListener('click', syncNow);
 
 // Auto-sync on page load — use cached data if synced within the last hour
-window.addEventListener('load', () => {
+window.addEventListener('load', async () => {
   document.getElementById('mainApp').style.display = 'block';
   updateMastheadDynamic();
   updateLfmAuthStatus();
@@ -922,13 +948,12 @@ window.addEventListener('load', () => {
     return;
   }
 
-  const cachedTs = parseInt(localStorage.getItem('dc_sync_ts') || '0', 10);
-  const cachedCsv = sessionStorage.getItem('dc_sync_csv');
-  const age = Date.now() - cachedTs;
-  if (cachedCsv && age < SYNC_INTERVAL_MS) {
-    // Load from cache immediately, then schedule the next real sync for when the hour is up
-    lastSyncTime = new Date(cachedTs);
-    parseCsv(cachedCsv, true);
+  const cached = await loadFromIDB(IDB_SHEETS_KEY);
+  const age = cached ? Date.now() - cached.ts : Infinity;
+  if (cached && age < SYNC_INTERVAL_MS) {
+    // Load from IndexedDB cache (survives tab close / browser restart)
+    lastSyncTime = new Date(cached.ts);
+    parseCsv(cached.csv, true);
     const minsAgo = Math.round(age / 60000);
     setSyncStatus(t('sync_ok_cached', { time: lastSyncTime.toLocaleTimeString(), n: allPlays.length.toLocaleString(), mins: minsAgo }), 'ok');
     clearTimeout(syncTimer);
@@ -970,12 +995,24 @@ function parseCsv(text, fromSheets = false) {
   let skippedDate = 0;
   let skippedDateSamples = [];
 
+  // Detect date format from first data row to avoid 5-regex fallback on every row
+  let fastDateParse = null;
+  for (let i = 1; i < lines.length && !fastDateParse; i++) {
+    const r = splitCsvRow(lines[i]);
+    if (r.length < 2) continue;
+    const sample = (colMap.datetime !== undefined && r[colMap.datetime] !== undefined)
+      ? r[colMap.datetime].replace(/^"|"$/g, '').trim() : '';
+    if (sample) fastDateParse = makeFastDateParser(sample) || parseDate; // fallback to full parser
+  }
+  if (!fastDateParse) fastDateParse = parseDate;
+
   for (let i = 1; i < lines.length; i++) {
     const row = splitCsvRow(lines[i]);
     if (row.length < 2) { skippedBlank++; continue; }
     const get = idx => (idx !== undefined && row[idx] !== undefined) ? row[idx].replace(/^"|"$/g, '').trim() : '';
     const rawDate = get(colMap.datetime);
-    const dt = parseDate(rawDate);
+    let dt = fastDateParse(rawDate);
+    if (!dt && fastDateParse !== parseDate) dt = parseDate(rawDate); // rare fallback for outlier rows
     if (!dt) {
       skippedDate++;
       if (skippedDateSamples.length < 20 && rawDate) skippedDateSamples.push(`row ${i + 1}: "${rawDate}"`);
@@ -1126,6 +1163,7 @@ function finalizeLoad() {
 }
 
 function splitCsvRow(row) {
+  if (row.indexOf('"') === -1) return row.split(','); // fast path: no quoted fields
   const result = [];
   let cur = '';
   let inQuotes = false;
@@ -1137,6 +1175,36 @@ function splitCsvRow(row) {
   }
   result.push(cur);
   return result;
+}
+
+// Returns a specialized fast parser if the date sample matches a common unambiguous
+// format, falling back to the full parseDate otherwise. Called once per CSV load.
+function makeFastDateParser(sample) {
+  if (!sample) return null;
+  // YYYY-MM-DD or YYYY/MM/DD with optional time — most Google Sheets exports
+  if (/^\d{4}[\/\-]\d{2}[\/\-]\d{2}/.test(sample)) {
+    return str => {
+      const y = +str.slice(0, 4), mo = +str.slice(5, 7) - 1, d = +str.slice(8, 10);
+      if (isNaN(y) || isNaN(mo) || isNaN(d)) return null;
+      const h = str.length > 10 ? +(str.slice(11, 13)) || 0 : 0;
+      const mi = str.length > 13 ? +(str.slice(14, 16)) || 0 : 0;
+      const dt = new Date(y, mo, d, h, mi);
+      return isNaN(dt) ? null : dt;
+    };
+  }
+  // Unix timestamp (10 digits)
+  if (/^\d{10}$/.test(sample)) {
+    return str => { const n = +str; return n ? new Date(n * 1000) : null; };
+  }
+  // Google Sheets date serial (plain number)
+  if (/^\d{4,6}(\.\d+)?$/.test(sample)) {
+    const EPOCH = new Date(1899, 11, 30).getTime();
+    return str => {
+      const serial = parseFloat(str);
+      return (serial > 1 && serial < 100000) ? new Date(EPOCH + serial * 86400000) : null;
+    };
+  }
+  return null;
 }
 
 function parseDate(str) {
