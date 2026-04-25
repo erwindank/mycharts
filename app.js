@@ -1087,11 +1087,26 @@ function openSourceModal() {
   document.getElementById('srcLastfmUser').value   = getLastFmUser();
   document.getElementById('srcLfmApiKey').value    = getScrobbleKey();
   document.getElementById('srcLfmApiSecret').value = getScrobbleSecret();
+  document.getElementById('certAlbumGold').value    = CERT.album.gold;
+  document.getElementById('certAlbumPlat').value    = CERT.album.plat;
+  document.getElementById('certAlbumDiamond').value = CERT.album.diamond;
+  document.getElementById('certSongGold').value    = CERT.song.gold;
+  document.getElementById('certSongPlat').value    = CERT.song.plat;
+  document.getElementById('certSongDiamond').value = CERT.song.diamond;
   updateSourceModalFields();
 }
 
 function closeSourceModal() {
   document.getElementById('sourceModal').classList.remove('open');
+}
+
+function resetCertDefaults() {
+  document.getElementById('certAlbumGold').value    = CERT_DEFAULTS.album.gold;
+  document.getElementById('certAlbumPlat').value    = CERT_DEFAULTS.album.plat;
+  document.getElementById('certAlbumDiamond').value = CERT_DEFAULTS.album.diamond;
+  document.getElementById('certSongGold').value    = CERT_DEFAULTS.song.gold;
+  document.getElementById('certSongPlat').value    = CERT_DEFAULTS.song.plat;
+  document.getElementById('certSongDiamond').value = CERT_DEFAULTS.song.diamond;
 }
 
 function updateSourceModalFields() {
@@ -1129,6 +1144,15 @@ function saveSourceConfig() {
   const apiSecret = document.getElementById('srcLfmApiSecret').value.trim();
   if (apiKey)    localStorage.setItem('dc_lfm_api_key',    apiKey);
   if (apiSecret) localStorage.setItem('dc_lfm_api_secret', apiSecret);
+  const ag = parseInt(document.getElementById('certAlbumGold').value)    || CERT_DEFAULTS.album.gold;
+  const ap = parseInt(document.getElementById('certAlbumPlat').value)    || CERT_DEFAULTS.album.plat;
+  const ad = parseInt(document.getElementById('certAlbumDiamond').value) || CERT_DEFAULTS.album.diamond;
+  const sg = parseInt(document.getElementById('certSongGold').value)    || CERT_DEFAULTS.song.gold;
+  const sp = parseInt(document.getElementById('certSongPlat').value)    || CERT_DEFAULTS.song.plat;
+  const sd = parseInt(document.getElementById('certSongDiamond').value) || CERT_DEFAULTS.song.diamond;
+  CERT.album.gold = ag; CERT.album.plat = ap; CERT.album.diamond = ad;
+  CERT.song.gold  = sg; CERT.song.plat  = sp; CERT.song.diamond  = sd;
+  localStorage.setItem('dc_cert_config', JSON.stringify({ ag, ap, ad, sg, sp, sd }));
   closeSourceModal();
   syncNow();
 }
@@ -4847,10 +4871,26 @@ function renderDropouts(plays, periodStats) {
 }
 
 // ─── CERTIFICATIONS ────────────────────────────────────────────
-const CERT = {
-  song: { gold: 50, plat: 100, diamond: 200 },
+const CERT_DEFAULTS = {
+  song:  { gold: 50,  plat: 100, diamond: 200 },
   album: { gold: 120, plat: 300, diamond: 600 }
 };
+const CERT = {
+  song:  { gold: 50,  plat: 100, diamond: 200 },
+  album: { gold: 120, plat: 300, diamond: 600 }
+};
+(function () {
+  try {
+    const saved = JSON.parse(localStorage.getItem('dc_cert_config') || 'null');
+    if (!saved) return;
+    if (saved.ag > 0) CERT.album.gold    = saved.ag;
+    if (saved.ap > 0) CERT.album.plat    = saved.ap;
+    if (saved.ad > 0) CERT.album.diamond = saved.ad;
+    if (saved.sg > 0) CERT.song.gold    = saved.sg;
+    if (saved.sp > 0) CERT.song.plat    = saved.sp;
+    if (saved.sd > 0) CERT.song.diamond = saved.sd;
+  } catch (e) {}
+})();
 
 function diamondMultiLabel(n) {
   if (n === 1) return { icon: '💎', label: 'Diamond' };

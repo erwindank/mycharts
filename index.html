@@ -1475,6 +1475,28 @@
         </div>
       </div>
 
+      <div class="cert-config-group">
+        <div class="cert-config-title">Certification Thresholds (Plays)</div>
+        <div class="cert-config-grid">
+          <div class="cert-config-col">
+            <div class="cert-config-col-hdr">Albums</div>
+            <label class="cert-row">⭐ Gold <input type="number" id="certAlbumGold" min="1" class="cert-input"></label>
+            <label class="cert-row">💿 Platinum <input type="number" id="certAlbumPlat" min="1" class="cert-input"></label>
+            <label class="cert-row">💎 Diamond <input type="number" id="certAlbumDiamond" min="1" class="cert-input"></label>
+          </div>
+          <div class="cert-config-col">
+            <div class="cert-config-col-hdr">Songs</div>
+            <label class="cert-row">⭐ Gold <input type="number" id="certSongGold" min="1" class="cert-input"></label>
+            <label class="cert-row">💿 Platinum <input type="number" id="certSongPlat" min="1" class="cert-input"></label>
+            <label class="cert-row">💎 Diamond <input type="number" id="certSongDiamond" min="1" class="cert-input"></label>
+          </div>
+        </div>
+        <div class="cert-config-footer">
+          <p class="src-modal-hint">Minimum plays to earn each badge. Changes apply on Save &amp; Load.</p>
+          <button type="button" class="cert-reset-btn" onclick="resetCertDefaults()">Reset to defaults</button>
+        </div>
+      </div>
+
       <div class="src-modal-btns">
         <button class="src-btn-cancel" onclick="closeSourceModal()">Cancel</button>
         <button class="src-btn-save" onclick="saveSourceConfig()">Save &amp; Load</button>
