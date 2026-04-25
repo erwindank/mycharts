@@ -548,6 +548,10 @@
       -webkit-tap-highlight-color: transparent;
     }
 
+    html {
+      overflow-x: hidden;
+    }
+
     body {
       background: var(--bg);
       color: var(--text);
@@ -556,6 +560,7 @@
       min-height: 100vh;
       -webkit-text-size-adjust: 100%;
       text-size-adjust: 100%;
+      overflow-x: hidden;
     }
 
     /* MASTHEAD */
@@ -565,6 +570,7 @@
       padding: 2.75rem 1rem 2rem;
       border-bottom: 1px solid rgba(59, 158, 255, 0.2);
       position: relative;
+      max-width: 100%;
       overflow: hidden;
     }
 
@@ -1334,6 +1340,7 @@
       max-width: 980px;
       margin: 0 auto;
       padding: 0 1rem 4rem;
+      overflow-x: hidden;
     }
 
     /* SYNC BAR */
@@ -4326,6 +4333,11 @@
 
     /* CTRL GROUP — mobile: compact circle buttons */
     @media (max-width: 700px) {
+      /* Push masthead content below the stacked control buttons (~106px tall + 8px offset) */
+      .masthead {
+        padding-top: 8rem;
+      }
+
       .theme-toggle {
         top: 0.5rem;
         right: 0.5rem;
@@ -4359,6 +4371,13 @@
       .ctrl-theme-dot {
         width: 13px;
         height: 13px;
+      }
+
+      /* Panels drop downward on mobile, aligned to the right edge of the button */
+      .ctrl-group-panel {
+        right: 0;
+        top: calc(100% + 6px);
+        transform: none;
       }
 
       #themeCtrlGroup .ctrl-group-panel .theme-btn {
