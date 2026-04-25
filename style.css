@@ -4493,6 +4493,55 @@
       textarea {
         font-size: max(16px, 1em) !important;
       }
+
+      /* Compact chart table for portrait phones */
+      .chart-table thead th {
+        padding: 0.4rem 0.4rem;
+        font-size: 0.55rem;
+      }
+
+      .chart-table td {
+        padding: 0.4rem 0.4rem;
+        font-size: 0.78rem;
+      }
+
+      .rank-cell {
+        width: 72px;
+        font-size: 1.2rem !important;
+      }
+
+      .thumb {
+        width: 36px;
+        height: 36px;
+      }
+
+      .thumb-initials {
+        width: 36px;
+        height: 36px;
+        font-size: 0.8rem;
+      }
+
+      .thumb-cell {
+        width: 46px;
+        padding: 0.3rem 0.35rem !important;
+      }
+
+      .img-src-btn {
+        width: 36px;
+        font-size: 0.44rem;
+      }
+
+      .song-title {
+        font-size: 0.78rem;
+      }
+
+      .song-artist {
+        font-size: 0.66rem;
+      }
+
+      .play-count {
+        font-size: 0.68rem;
+      }
     }
 
     /* ── RECORDS VIEW ── */
