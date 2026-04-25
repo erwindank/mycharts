@@ -675,7 +675,9 @@ function getSheetUrl() {
 function getDataSource()  { return localStorage.getItem('dc_source')      || 'sheets'; }
 function getLastFmUser()  { return localStorage.getItem('dc_lastfm_user') || ''; }
 const SYNC_INTERVAL_MS = 6 * 60 * 60 * 1000; // auto-refresh every 6 hours
+const POLL_INTERVAL_MS = 30 * 60 * 1000;     // background poll every 30 minutes
 let syncTimer = null;
+let pollTimer = null;
 let lastSyncTime = null;
 
 // ─── INDEXEDDB CACHE (survives page refresh) ───────────────────
@@ -751,9 +753,11 @@ async function syncFromSheets() {
     setSyncStatus(t('sync_failed', { error: e.message }), 'err');
   }
   btn.disabled = false;
-  // Schedule next auto-sync
+  // Schedule next auto-sync and background poll
   clearTimeout(syncTimer);
   syncTimer = setTimeout(syncFromSheets, SYNC_INTERVAL_MS);
+  clearTimeout(pollTimer);
+  pollTimer = setTimeout(pollSheets, POLL_INTERVAL_MS);
 }
 
 async function fetchLastFmPage(username, page) {
@@ -795,6 +799,8 @@ async function syncFromLastFm() {
       btn.disabled = false;
       clearTimeout(syncTimer);
       syncTimer = setTimeout(syncFromLastFm, SYNC_INTERVAL_MS - age);
+      clearTimeout(pollTimer);
+      pollTimer = setTimeout(pollLastFm, POLL_INTERVAL_MS);
       return;
     } catch (e) { /* cache corrupt — fall through to fresh fetch */ }
   }
@@ -874,11 +880,127 @@ async function syncFromLastFm() {
   btn.disabled = false;
   clearTimeout(syncTimer);
   syncTimer = setTimeout(syncFromLastFm, SYNC_INTERVAL_MS);
+  clearTimeout(pollTimer);
+  pollTimer = setTimeout(pollLastFm, POLL_INTERVAL_MS);
 }
 
 function syncNow() {
   if (getDataSource() === 'lastfm') syncFromLastFm();
   else syncFromSheets();
+}
+
+// ─── BACKGROUND POLL (every 30 min) ───────────────────────────
+
+// Pure CSV parser — returns sorted plays array or null, no UI side effects.
+function parsePlaysCsv(text) {
+  const lines = text.trim().split(/\r?\n/);
+  if (lines.length < 2) return null;
+  const headers = lines[0].split(',').map(h => h.replace(/^"|"$/g, '').trim().toLowerCase());
+  const colMap = {};
+  const aliases = {
+    title:    ['song title', 'title', 'track', 'track name', 'song name'],
+    artist:   ['artist', 'artist name', 'performer'],
+    album:    ['album', 'album name', 'release'],
+    datetime: ['date and time', 'date', 'datetime', 'timestamp', 'time', 'played at', 'scrobble time']
+  };
+  for (const [key, names] of Object.entries(aliases)) {
+    for (const n of names) {
+      const idx = headers.indexOf(n);
+      if (idx !== -1) { colMap[key] = idx; break; }
+    }
+  }
+  if (colMap.title === undefined || colMap.artist === undefined || colMap.datetime === undefined) return null;
+  let fastDateParse = null;
+  for (let i = 1; i < lines.length && !fastDateParse; i++) {
+    const r = splitCsvRow(lines[i]);
+    if (r.length < 2) continue;
+    const sample = r[colMap.datetime] !== undefined ? r[colMap.datetime].replace(/^"|"$/g, '').trim() : '';
+    if (sample) fastDateParse = makeFastDateParser(sample) || parseDate;
+  }
+  if (!fastDateParse) fastDateParse = parseDate;
+  const plays = [];
+  for (let i = 1; i < lines.length; i++) {
+    const row = splitCsvRow(lines[i]);
+    if (row.length < 2) continue;
+    const get = idx => (idx !== undefined && row[idx] !== undefined) ? row[idx].replace(/^"|"$/g, '').trim() : '';
+    const rawDate = get(colMap.datetime);
+    let dt = fastDateParse(rawDate);
+    if (!dt && fastDateParse !== parseDate) dt = parseDate(rawDate);
+    if (!dt) continue;
+    const artistRaw = get(colMap.artist);
+    plays.push({ title: get(colMap.title), artist: artistRaw, artists: splitArtists(artistRaw), album: get(colMap.album) || '—', date: dt });
+  }
+  if (!plays.length) return null;
+  plays.sort((a, b) => b.date - a.date);
+  return plays;
+}
+
+// Lightweight re-render after a background poll — does NOT restore settings or click period buttons.
+function refreshAfterPoll() {
+  if (!allPlays.length) return;
+  window.firstScrobbleDate = allPlays.reduce((min, p) => p.date < min ? p.date : min, allPlays[0].date);
+  updateMastheadDynamic();
+  populateYearPicker();
+  if (currentPeriod === 'rawdata') applyRawFilters();
+  else if (currentPeriod === 'graphs') renderGraphs();
+  else if (currentPeriod === 'records') buildRecords();
+  else renderAll();
+}
+
+async function pollLastFm() {
+  const username = getLastFmUser();
+  if (username && allPlays.length) {
+    try {
+      const data = await fetchLastFmPage(username, 1);
+      let tracks = data.recenttracks.track;
+      if (!Array.isArray(tracks)) tracks = tracks ? [tracks] : [];
+      const newestKnown = allPlays[0].date;
+      const newTracks = tracks.filter(tr => tr.date?.uts && new Date(parseInt(tr.date.uts) * 1000) > newestKnown);
+      if (newTracks.length > 0) {
+        const newPlays = newTracks.map(tr => {
+          const ar = (tr.artist?.['#text']) || '';
+          return { title: tr.name || '', artist: ar, artists: splitArtists(ar), album: tr.album?.['#text'] || '—', date: new Date(parseInt(tr.date.uts) * 1000) };
+        });
+        allPlays = [...newPlays, ...allPlays];
+        // Update IDB cache data while preserving the original ts so the 6-hour full sync still fires on schedule
+        const cached = await loadFromIDB(IDB_LASTFM_KEY);
+        if (cached) {
+          const newCompact = newTracks.map(tr => [tr.name || '', tr.artist?.['#text'] || '', tr.album?.['#text'] || '', parseInt(tr.date.uts)]);
+          await saveToIDB(IDB_LASTFM_KEY, { data: [...newCompact, ...cached.data], ts: cached.ts });
+        }
+        lastSyncTime = new Date();
+        setSyncStatus(t('sync_ok', { time: lastSyncTime.toLocaleTimeString(), n: allPlays.length.toLocaleString() }), 'ok');
+        refreshAfterPoll();
+      }
+    } catch (e) { /* silent — full sync will catch up */ }
+  }
+  clearTimeout(pollTimer);
+  pollTimer = setTimeout(pollLastFm, POLL_INTERVAL_MS);
+}
+
+async function pollSheets() {
+  try {
+    const res = await fetch(getSheetUrl() + '&t=' + Date.now());
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const buffer = await res.arrayBuffer();
+    const text = new TextDecoder('utf-8').decode(buffer);
+    const newPlays = parsePlaysCsv(text);
+    if (newPlays) {
+      const changed = newPlays.length !== allPlays.length ||
+        (newPlays.length > 0 && allPlays.length > 0 && newPlays[0].date.getTime() !== allPlays[0].date.getTime());
+      if (changed) {
+        allPlays = newPlays;
+        // Preserve original ts so the 6-hour full sync still fires on schedule
+        const cached = await loadFromIDB(IDB_SHEETS_KEY);
+        await saveToIDB(IDB_SHEETS_KEY, { ts: cached ? cached.ts : Date.now(), csv: text });
+        lastSyncTime = new Date();
+        setSyncStatus(t('sync_ok', { time: lastSyncTime.toLocaleTimeString(), n: allPlays.length.toLocaleString() }), 'ok');
+        refreshAfterPoll();
+      }
+    }
+  } catch (e) { /* silent — full sync will catch up */ }
+  clearTimeout(pollTimer);
+  pollTimer = setTimeout(pollSheets, POLL_INTERVAL_MS);
 }
 
 // ─── DATA SOURCE MODAL ─────────────────────────────────────────
@@ -958,6 +1080,8 @@ window.addEventListener('load', async () => {
     setSyncStatus(t('sync_ok_cached', { time: lastSyncTime.toLocaleTimeString(), n: allPlays.length.toLocaleString(), mins: minsAgo }), 'ok');
     clearTimeout(syncTimer);
     syncTimer = setTimeout(syncFromSheets, SYNC_INTERVAL_MS - age);
+    clearTimeout(pollTimer);
+    pollTimer = setTimeout(pollSheets, POLL_INTERVAL_MS);
   } else {
     syncFromSheets();
   }
