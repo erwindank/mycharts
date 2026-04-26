@@ -544,6 +544,12 @@
       min-width: min-content;
     }
 
+    @media (max-width: 600px) {
+      html {
+        min-width: 0;
+      }
+    }
+
     button, input, select, textarea {
       touch-action: manipulation;
     }
@@ -4670,6 +4676,11 @@
 
       .play-count {
         font-size: 0.68rem;
+      }
+
+      .new-entries-title {
+        white-space: normal;
+        min-width: 0;
       }
     }
 
