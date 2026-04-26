@@ -6907,12 +6907,12 @@ async function mbFetch(endpoint) {
   return res.json();
 }
 
-function getTop50Artists() {
+function getTop200Artists() {
   const counts = {};
   for (const p of allPlays) {
     for (const a of p.artists) counts[a] = (counts[a] || 0) + 1;
   }
-  return Object.entries(counts).sort((a, b) => b[1] - a[1]).slice(0, 50).map(([name]) => name);
+  return Object.entries(counts).sort((a, b) => b[1] - a[1]).slice(0, 200).map(([name]) => name);
 }
 
 const _mbidCache = {};
@@ -6989,7 +6989,7 @@ async function loadUpcomingReleases(forceRefresh = false) {
     } catch (e) { }
   }
 
-  const artists = getTop50Artists();
+  const artists = getTop200Artists();
   const statusEl = document.getElementById('upcomingStatus');
   const gridEl = document.getElementById('upcomingGrid');
   document.getElementById('upcomingRefreshBtn').style.display = 'none';
@@ -7119,7 +7119,7 @@ async function loadRecentReleases(forceRefresh = false) {
     } catch (e) { }
   }
 
-  const artists = getTop50Artists();
+  const artists = getTop200Artists();
   const statusEl = document.getElementById('recentStatus');
   const gridEl = document.getElementById('recentGrid');
   document.getElementById('recentRefreshBtn').style.display = 'none';
