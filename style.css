@@ -3252,17 +3252,18 @@
 
     .plays-peak-badge {
       display: block;
+      width: fit-content;
       font-family: 'DM Mono', monospace;
-      font-size: 0.5rem;
-      letter-spacing: 0.07em;
-      padding: 1px 5px;
-      margin-top: 4px;
-      border-radius: 3px;
-      border: 1px solid rgba(52, 211, 153, 0.35);
-      background: rgba(52, 211, 153, 0.1);
+      font-size: 0.58rem;
+      letter-spacing: 0.1em;
+      padding: 4px 14px;
+      margin: 5px auto 0;
+      border-radius: 4px;
+      border: 1px solid rgba(52, 211, 153, 0.5);
+      background: rgba(52, 211, 153, 0.12);
       color: #34d399;
       white-space: nowrap;
-      text-align: right;
+      text-align: center;
     }
 
     /* ARTIST MODAL OVERLAY */
@@ -4767,6 +4768,14 @@
       .new-entries-section {
         padding-left: 0.5rem;
       }
+    }
+
+    /* Short column header label — hidden by default, shown only on portrait phones */
+    .th-plays-short { display: none; }
+
+    @media (max-width: 600px) and (orientation: portrait) {
+      .th-plays-full { display: none; }
+      .th-plays-short { display: inline; }
     }
 
     /* ── RECORDS VIEW ── */

@@ -62,8 +62,10 @@ const TRANSLATIONS = {
     th_title_artist: 'Title · Artist',
     th_album: 'Album',
     th_plays: 'Plays',
+    th_plays_mobile: 'Plays',
     th_unique_songs: 'Unique Songs',
     th_total_plays: 'Total Plays',
+    th_total_plays_mobile: 'Total Plays',
     th_tracks: 'Tracks',
     th_artist: 'Artist',
     th_album_artist: 'Album · Artist',
@@ -158,6 +160,8 @@ const TRANSLATIONS = {
     // Plurals (unit words)
     plays_one: 'play',
     plays_other: 'plays',
+    plays_one_mobile: 'play',
+    plays_other_mobile: 'plays',
     songs_one: 'song',
     songs_other: 'songs',
     albums_one: 'album',
@@ -789,8 +793,10 @@ const TRANSLATIONS = {
     th_title_artist: 'Título · Artista',
     th_album: 'Álbum',
     th_plays: 'Reproducciones',
+    th_plays_mobile: 'Repros',
     th_unique_songs: 'Canciones Únicas',
     th_total_plays: 'Total Repros',
+    th_total_plays_mobile: 'Total',
     th_tracks: 'Pistas',
     th_artist: 'Artista',
     th_album_artist: 'Álbum · Artista',
@@ -885,6 +891,8 @@ const TRANSLATIONS = {
     // Plurals
     plays_one: 'reproducción',
     plays_other: 'reproducciones',
+    plays_one_mobile: 'repro',
+    plays_other_mobile: 'repros',
     songs_one: 'canción',
     songs_other: 'canciones',
     albums_one: 'álbum',
@@ -1516,8 +1524,10 @@ const TRANSLATIONS = {
     th_title_artist: 'Título · Artista',
     th_album: 'Álbum',
     th_plays: 'Reproduções',
+    th_plays_mobile: 'Repros',
     th_unique_songs: 'Músicas Únicas',
     th_total_plays: 'Total Repros.',
+    th_total_plays_mobile: 'Total',
     th_tracks: 'Faixas',
     th_artist: 'Artista',
     th_album_artist: 'Álbum · Artista',
@@ -1612,6 +1622,8 @@ const TRANSLATIONS = {
     // Plurals
     plays_one: 'reprodução',
     plays_other: 'reproduções',
+    plays_one_mobile: 'repro',
+    plays_other_mobile: 'repros',
     songs_one: 'música',
     songs_other: 'músicas',
     albums_one: 'álbum',
@@ -2243,8 +2255,10 @@ const TRANSLATIONS = {
     th_title_artist: 'Título · Artista',
     th_album: 'Álbum',
     th_plays: 'Reproduções',
+    th_plays_mobile: 'Repros',
     th_unique_songs: 'Músicas Únicas',
     th_total_plays: 'Total Repros.',
+    th_total_plays_mobile: 'Total',
     th_tracks: 'Faixas',
     th_artist: 'Artista',
     th_album_artist: 'Álbum · Artista',
@@ -2339,6 +2353,8 @@ const TRANSLATIONS = {
     // Plurals
     plays_one: 'reprodução',
     plays_other: 'reproduções',
+    plays_one_mobile: 'repro',
+    plays_other_mobile: 'repros',
     songs_one: 'música',
     songs_other: 'músicas',
     albums_one: 'álbum',
@@ -2936,6 +2952,17 @@ function tUnit(key, n) {
 // Usage: tCount('plays', 3)  →  "3 plays" / "3 reproducciones"
 function tCount(key, n) {
   return `${n.toLocaleString()} ${tUnit(key, n)}`;
+}
+
+// ─── HELPER: number + unit with portrait-mobile abbreviation ─────────────────
+// Returns dual-span HTML so CSS can swap the unit word on narrow portrait screens.
+// Falls back to plain tCount when full and short unit are identical (e.g. English).
+function tCountHtml(key, n) {
+  const unit = tUnit(key, n);
+  const mobileUnit = t(n === 1 ? key + '_one_mobile' : key + '_other_mobile');
+  const count = n.toLocaleString();
+  if (unit === mobileUnit) return `${count} ${unit}`;
+  return `${count} <span class="th-plays-full">${unit}</span><span class="th-plays-short">${mobileUnit}</span>`;
 }
 
 // ─── HELPER: update button label (On/Off state) ──────────────────────────────

@@ -3289,7 +3289,7 @@ function renderNewEntries(plays, start, end) {
       <td class="rank-cell">${i + 1}</td>
       <td class="thumb-cell"><div class="thumb-wrap"><div id="${imgId}"><div class="thumb-initials">${esc(initials(s.title))}</div></div><button id="srcbtn-${imgId}" class="img-src-btn" data-imgid="${imgId}" data-type="song" data-prefkey="${esc(prefKey)}" data-name="${esc(s.title)}" data-artist="${esc(s.artist)}" data-album="${esc(s.album)}">${srcLabel(itemSourcePrefs[prefKey] || 'deezer')}</button></div></td>
       <td><div class="song-title">${esc(s.title)}</div><div class="song-artist">${esc(s.artist)}</div></td>
-      <td><div class="play-count">${tCount('plays', s.count)}</div><div class="play-bar"><div class="play-bar-fill" style="width:${Math.round(s.count / maxS * 100)}%"></div></div></td>
+      <td><div class="play-count">${tCountHtml('plays', s.count)}</div><div class="play-bar"><div class="play-bar-fill" style="width:${Math.round(s.count / maxS * 100)}%"></div></div></td>
     </tr>`;
   }).join('');
   loadImages(newSongImgs.map(i => ({ ...i, name: i.title })), 'song');
@@ -3304,7 +3304,7 @@ function renderNewEntries(plays, start, end) {
       <td class="rank-cell">${i + 1}</td>
       <td class="thumb-cell"><div class="thumb-wrap"><div id="${imgId}"><div class="thumb-initials">${esc(initials(a.name))}</div></div><button id="srcbtn-${imgId}" class="img-src-btn" data-imgid="${imgId}" data-type="artist" data-prefkey="${esc(prefKey)}" data-name="${esc(a.name)}" data-artist="${esc(a.name)}" data-album="">${srcLabel(itemSourcePrefs[prefKey] || 'deezer')}</button></div></td>
       <td><div class="song-title">${esc(a.name)}</div><div class="song-artist">${tCount('songs', a.songs.size)}</div></td>
-      <td><div class="play-count">${tCount('plays', a.count)}</div><div class="play-bar"><div class="play-bar-fill" style="width:${Math.round(a.count / maxA * 100)}%"></div></div></td>
+      <td><div class="play-count">${tCountHtml('plays', a.count)}</div><div class="play-bar"><div class="play-bar-fill" style="width:${Math.round(a.count / maxA * 100)}%"></div></div></td>
     </tr>`;
   }).join('');
   loadImages(newArtistImgs, 'artist');
@@ -3319,7 +3319,7 @@ function renderNewEntries(plays, start, end) {
       <td class="rank-cell">${i + 1}</td>
       <td class="thumb-cell"><div class="thumb-wrap"><div id="${imgId}"><div class="thumb-initials">${esc(initials(a.album))}</div></div><button id="srcbtn-${imgId}" class="img-src-btn" data-imgid="${imgId}" data-type="album" data-prefkey="${esc(prefKey)}" data-name="${esc(a.album)}" data-artist="${esc(a.artist)}" data-album="${esc(a.album)}">${srcLabel(itemSourcePrefs[prefKey] || 'deezer')}</button></div></td>
       <td><div class="song-title">${esc(a.album)}</div><div class="song-artist">${esc(a.artist)}</div></td>
-      <td><div class="play-count">${tCount('plays', a.count)}</div><div class="play-bar"><div class="play-bar-fill" style="width:${Math.round(a.count / maxL * 100)}%"></div></div></td>
+      <td><div class="play-count">${tCountHtml('plays', a.count)}</div><div class="play-bar"><div class="play-bar-fill" style="width:${Math.round(a.count / maxL * 100)}%"></div></div></td>
     </tr>`;
   }).join('');
   loadImages(newAlbumImgs, 'album');
@@ -3334,13 +3334,13 @@ function renderTableHeaders() {
   const hasPeriodStats = isWeeklyView || isMonthlyView;
   const periodLabel = isWeeklyView ? t('th_weeks') : t('th_months');
   if (hasPeriodStats) {
-    document.getElementById('songsHeadRow').innerHTML = `<th>${t('th_rank')}</th><th style="width:52px;"></th><th>${t('th_title_artist')}</th><th>${t('th_album')}</th><th class="m-th">${t('th_prev')}</th><th class="m-th">${periodLabel}</th><th style="text-align:right;">${t('th_plays')}</th>`;
-    document.getElementById('artistsHeadRow').innerHTML = `<th>${t('th_rank')}</th><th style="width:52px;"></th><th>${t('th_artist')}</th><th>${t('th_unique_songs')}</th><th class="m-th">${t('th_prev')}</th><th class="m-th">${periodLabel}</th><th style="text-align:right;">${t('th_total_plays')}</th>`;
-    document.getElementById('albumsHeadRow').innerHTML = `<th>${t('th_rank')}</th><th style="width:52px;"></th><th>${t('th_album_artist')}</th><th>${t('th_tracks')}</th><th class="m-th">${t('th_prev')}</th><th class="m-th">${periodLabel}</th><th style="text-align:right;">${t('th_total_plays')}</th>`;
+    document.getElementById('songsHeadRow').innerHTML = `<th>${t('th_rank')}</th><th style="width:52px;"></th><th>${t('th_title_artist')}</th><th>${t('th_album')}</th><th class="m-th">${t('th_prev')}</th><th class="m-th">${periodLabel}</th><th style="text-align:right;"><span class="th-plays-full">${t('th_plays')}</span><span class="th-plays-short">${t('th_plays_mobile')}</span></th>`;
+    document.getElementById('artistsHeadRow').innerHTML = `<th>${t('th_rank')}</th><th style="width:52px;"></th><th>${t('th_artist')}</th><th>${t('th_unique_songs')}</th><th class="m-th">${t('th_prev')}</th><th class="m-th">${periodLabel}</th><th style="text-align:right;"><span class="th-plays-full">${t('th_total_plays')}</span><span class="th-plays-short">${t('th_total_plays_mobile')}</span></th>`;
+    document.getElementById('albumsHeadRow').innerHTML = `<th>${t('th_rank')}</th><th style="width:52px;"></th><th>${t('th_album_artist')}</th><th>${t('th_tracks')}</th><th class="m-th">${t('th_prev')}</th><th class="m-th">${periodLabel}</th><th style="text-align:right;"><span class="th-plays-full">${t('th_total_plays')}</span><span class="th-plays-short">${t('th_total_plays_mobile')}</span></th>`;
   } else {
-    document.getElementById('songsHeadRow').innerHTML = `<th>${t('th_rank')}</th><th style="width:52px;"></th><th>${t('th_title_artist')}</th><th>${t('th_album')}</th><th style="text-align:right;">${t('th_plays')}</th>`;
-    document.getElementById('artistsHeadRow').innerHTML = `<th>${t('th_rank')}</th><th style="width:52px;"></th><th>${t('th_artist')}</th><th>${t('th_unique_songs')}</th><th style="text-align:right;">${t('th_total_plays')}</th>`;
-    document.getElementById('albumsHeadRow').innerHTML = `<th>${t('th_rank')}</th><th style="width:52px;"></th><th>${t('th_album_artist')}</th><th>${t('th_tracks')}</th><th style="text-align:right;">${t('th_total_plays')}</th>`;
+    document.getElementById('songsHeadRow').innerHTML = `<th>${t('th_rank')}</th><th style="width:52px;"></th><th>${t('th_title_artist')}</th><th>${t('th_album')}</th><th style="text-align:right;"><span class="th-plays-full">${t('th_plays')}</span><span class="th-plays-short">${t('th_plays_mobile')}</span></th>`;
+    document.getElementById('artistsHeadRow').innerHTML = `<th>${t('th_rank')}</th><th style="width:52px;"></th><th>${t('th_artist')}</th><th>${t('th_unique_songs')}</th><th style="text-align:right;"><span class="th-plays-full">${t('th_total_plays')}</span><span class="th-plays-short">${t('th_total_plays_mobile')}</span></th>`;
+    document.getElementById('albumsHeadRow').innerHTML = `<th>${t('th_rank')}</th><th style="width:52px;"></th><th>${t('th_album_artist')}</th><th>${t('th_tracks')}</th><th style="text-align:right;"><span class="th-plays-full">${t('th_total_plays')}</span><span class="th-plays-short">${t('th_total_plays_mobile')}</span></th>`;
   }
 }
 
@@ -3656,7 +3656,7 @@ function renderPage(type, peaks) {
         </td>
         <td><div class="song-album">${esc(s.album)}${cumAlbumPlays ? certBadge(cumAlbumPlays, 'album') : ''}</div></td>
         <td>
-          <div class="play-count">${tCount('plays', s.count)}</div>
+          <div class="play-count">${tCountHtml('plays', s.count)}</div>
           <div class="play-bar"><div class="play-bar-fill" style="width:${Math.round(s.count / max * 100)}%"></div></div>
           ${isPlaysPeak ? playsPeakBadge() : ''}
         </td>
@@ -3682,7 +3682,7 @@ function renderPage(type, peaks) {
         <td><div class="song-title">${esc(a.name)}</div><div class="song-artist" style="font-size:0.7rem;letter-spacing:0.06em;font-style:normal;font-family:'DM Mono',monospace;color:var(--text3)">${t('click_view_profile')}</div></td>
         <td><div class="song-artist">${tCount('songs', a.songs.size)}</div></td>
         <td>
-          <div class="play-count">${tCount('plays', a.count)}</div>
+          <div class="play-count">${tCountHtml('plays', a.count)}</div>
           <div class="play-bar"><div class="play-bar-fill" style="width:${Math.round(a.count / max * 100)}%"></div></div>
           ${isArtistPlaysPeak ? playsPeakBadge() : ''}
         </td>
@@ -3718,7 +3718,7 @@ function renderPage(type, peaks) {
         </td>
         <td><div class="song-artist">${tCount('tracks', a.tracks.size)}</div></td>
         <td>
-          <div class="play-count">${tCount('plays', a.count)}</div>
+          <div class="play-count">${tCountHtml('plays', a.count)}</div>
           <div class="play-bar"><div class="play-bar-fill" style="width:${Math.round(a.count / max * 100)}%"></div></div>
           ${isAlbumPlaysPeak ? playsPeakBadge() : ''}
         </td>
@@ -4759,8 +4759,9 @@ function renderSongs(plays, peaks, monthlyStats) {
       ${monthlyStats ? mPrevCell(i + 1, k, 'songs', monthlyStats) : ''}
       ${monthlyStats ? mMthsCell(k, 'songs', monthlyStats) : ''}
       <td>
-        <div class="play-count">${isPlaysPeak ? playsPeakBadge() : ''}${tCount('plays', s.count)}${monthlyStats ? deltaInline(s.count, k, 'songs', monthlyStats) : ''}</div>
+        <div class="play-count">${tCountHtml('plays', s.count)}${monthlyStats ? deltaInline(s.count, k, 'songs', monthlyStats) : ''}</div>
         <div class="play-bar"><div class="play-bar-fill" style="width:${Math.round(s.count / max * 100)}%"></div></div>
+        ${isPlaysPeak ? playsPeakBadge() : ''}
       </td>
     </tr>`;
     const expandRow = `<tr class="cr-row" id="${rowId}"><td colspan="${colCount}"><div class="cr-panel" data-crtype="songs" data-crkey="${encodeURIComponent(k)}">${buildCrPanelHTML('songs', k)}</div></td></tr>`;
@@ -4810,7 +4811,7 @@ function renderArtists(plays, peaks, monthlyStats) {
       ${monthlyStats ? mPrevCell(i + 1, artist, 'artists', monthlyStats) : ''}
       ${monthlyStats ? mMthsCell(artist, 'artists', monthlyStats) : ''}
       <td>
-        <div class="play-count">${isPlaysPeak ? playsPeakBadge() : ''}${tCount('plays', data.count)}${monthlyStats ? deltaInline(data.count, artist, 'artists', monthlyStats) : ''}</div>
+        <div class="play-count">${isPlaysPeak ? playsPeakBadge() : ''}${tCountHtml('plays', data.count)}${monthlyStats ? deltaInline(data.count, artist, 'artists', monthlyStats) : ''}</div>
         <div class="play-bar"><div class="play-bar-fill" style="width:${Math.round(data.count / max * 100)}%"></div></div>
       </td>
     </tr>`;
@@ -4869,7 +4870,7 @@ function renderAlbums(plays, peaks, monthlyStats) {
       ${monthlyStats ? mPrevCell(i + 1, ak, 'albums', monthlyStats) : ''}
       ${monthlyStats ? mMthsCell(ak, 'albums', monthlyStats) : ''}
       <td>
-        <div class="play-count">${isPlaysPeak ? playsPeakBadge() : ''}${tCount('plays', count)}${monthlyStats ? deltaInline(count, ak, 'albums', monthlyStats) : ''}</div>
+        <div class="play-count">${isPlaysPeak ? playsPeakBadge() : ''}${tCountHtml('plays', count)}${monthlyStats ? deltaInline(count, ak, 'albums', monthlyStats) : ''}</div>
         <div class="play-bar"><div class="play-bar-fill" style="width:${Math.round(count / max * 100)}%"></div></div>
       </td>
     </tr>`;
@@ -4946,7 +4947,7 @@ function renderDropouts(plays, periodStats) {
           ${sub ? `<div class="dropout-artist">${esc(sub)}</div>` : ''}
         </div>
         <div class="dropout-stats">
-          <span class="dropout-plays">${tCount('plays', count)}</span>
+          <span class="dropout-plays">${tCountHtml('plays', count)}</span>
           <span class="dropout-wks">${wks} ${tUnit('weeks', wks)}</span>
         </div>
       </div>`;
