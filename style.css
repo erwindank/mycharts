@@ -1341,6 +1341,7 @@
     /* MAIN LAYOUT */
     .container {
       max-width: 980px;
+      width: 100%;
       margin: 0 auto;
       padding: 0 1rem 4rem;
     }
@@ -4717,6 +4718,30 @@
       .new-entries-title {
         white-space: normal;
         min-width: 0;
+      }
+
+      /* Full-bleed: punch bar elements through the 1rem container padding */
+      .sync-bar,
+      .period-nav,
+      .chart-size-bar,
+      .date-nav,
+      .stats-strip,
+      .chart-display-toggles {
+        margin-left: -1rem;
+        margin-right: -1rem;
+      }
+
+      /* Remove corner rounding on elements that are now edge-to-edge */
+      .sync-bar,
+      .date-nav,
+      .stats-strip {
+        border-radius: 0;
+      }
+
+      /* Drop the left-indent border so New charts match regular chart width */
+      .new-entries-section {
+        border-left: none;
+        padding-left: 0;
       }
     }
 
