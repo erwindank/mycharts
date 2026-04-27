@@ -4561,11 +4561,11 @@
         display: none;
       }
 
-      .chart-table thead th:nth-child(4) {
+      .chart-table:not(.new-entries-table) thead th:nth-child(4) {
         display: none;
       }
 
-      .chart-table td:nth-child(4) {
+      .chart-table:not(.new-entries-table) td:nth-child(4) {
         display: none;
       }
 
