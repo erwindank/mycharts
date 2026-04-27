@@ -3251,18 +3251,18 @@
     }
 
     .plays-peak-badge {
-      display: inline-block;
+      display: block;
       font-family: 'DM Mono', monospace;
       font-size: 0.5rem;
       letter-spacing: 0.07em;
       padding: 1px 5px;
-      margin-right: 5px;
+      margin-top: 4px;
       border-radius: 3px;
       border: 1px solid rgba(52, 211, 153, 0.35);
       background: rgba(52, 211, 153, 0.1);
       color: #34d399;
-      vertical-align: middle;
       white-space: nowrap;
+      text-align: right;
     }
 
     /* ARTIST MODAL OVERLAY */
@@ -4741,13 +4741,11 @@
       .chart-display-toggles {
         margin-left: -1rem;
         margin-right: -1rem;
+        width: calc(100% + 2rem);
       }
 
-      /* Force display-toggles bar to true full viewport width */
+      /* Compact display toggle bar */
       .chart-display-toggles {
-        width: 100vw !important;
-        margin-left: -1rem !important;
-        margin-right: 0 !important;
         gap: 0.4rem;
         padding-left: 0.75rem;
         padding-right: 0.75rem;
@@ -4760,10 +4758,14 @@
         border-radius: 0;
       }
 
-      /* Drop the left-indent border so New charts match regular chart width */
+      /* Stats: 2×2 grid on mobile */
+      .stats-strip {
+        grid-template-columns: 1fr 1fr;
+      }
+
+      /* Thin left-border keeps new-entry charts visually distinct as child sections */
       .new-entries-section {
-        border-left: none;
-        padding-left: 0;
+        padding-left: 0.5rem;
       }
     }
 

@@ -3656,8 +3656,9 @@ function renderPage(type, peaks) {
         </td>
         <td><div class="song-album">${esc(s.album)}${cumAlbumPlays ? certBadge(cumAlbumPlays, 'album') : ''}</div></td>
         <td>
-          <div class="play-count">${isPlaysPeak ? playsPeakBadge() : ''}${tCount('plays', s.count)}</div>
+          <div class="play-count">${tCount('plays', s.count)}</div>
           <div class="play-bar"><div class="play-bar-fill" style="width:${Math.round(s.count / max * 100)}%"></div></div>
+          ${isPlaysPeak ? playsPeakBadge() : ''}
         </td>
       </tr>`;
       if (!hasCR) return [mainRow];
@@ -3681,8 +3682,9 @@ function renderPage(type, peaks) {
         <td><div class="song-title">${esc(a.name)}</div><div class="song-artist" style="font-size:0.7rem;letter-spacing:0.06em;font-style:normal;font-family:'DM Mono',monospace;color:var(--text3)">${t('click_view_profile')}</div></td>
         <td><div class="song-artist">${tCount('songs', a.songs.size)}</div></td>
         <td>
-          <div class="play-count">${isArtistPlaysPeak ? playsPeakBadge() : ''}${tCount('plays', a.count)}</div>
+          <div class="play-count">${tCount('plays', a.count)}</div>
           <div class="play-bar"><div class="play-bar-fill" style="width:${Math.round(a.count / max * 100)}%"></div></div>
+          ${isArtistPlaysPeak ? playsPeakBadge() : ''}
         </td>
       </tr>`;
       if (!hasCR) return [mainRow];
@@ -3716,8 +3718,9 @@ function renderPage(type, peaks) {
         </td>
         <td><div class="song-artist">${tCount('tracks', a.tracks.size)}</div></td>
         <td>
-          <div class="play-count">${isAlbumPlaysPeak ? playsPeakBadge() : ''}${tCount('plays', a.count)}</div>
+          <div class="play-count">${tCount('plays', a.count)}</div>
           <div class="play-bar"><div class="play-bar-fill" style="width:${Math.round(a.count / max * 100)}%"></div></div>
+          ${isAlbumPlaysPeak ? playsPeakBadge() : ''}
         </td>
       </tr>`;
         if (!hasCR) return [mainRow];
