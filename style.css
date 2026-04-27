@@ -4625,6 +4625,18 @@
         flex-wrap: wrap;
       }
 
+      /* Compact display toggle buttons on one row */
+      .chart-display-toggles .toggle-btns {
+        flex-wrap: nowrap;
+        gap: 3px;
+      }
+
+      .display-toggle-btn {
+        font-size: 0.52rem;
+        padding: 0.15rem 0.35rem;
+        letter-spacing: 0.03em;
+      }
+
       /* Export button full width */
       .export-playlist-btn {
         width: 100%;
@@ -4729,6 +4741,16 @@
       .chart-display-toggles {
         margin-left: -1rem;
         margin-right: -1rem;
+      }
+
+      /* Force display-toggles bar to true full viewport width */
+      .chart-display-toggles {
+        width: 100vw !important;
+        margin-left: -1rem !important;
+        margin-right: 0 !important;
+        gap: 0.4rem;
+        padding-left: 0.75rem;
+        padding-right: 0.75rem;
       }
 
       /* Remove corner rounding on elements that are now edge-to-edge */
