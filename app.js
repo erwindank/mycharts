@@ -47,6 +47,7 @@ let playsPeakMaps = null;    // historical max per-period plays for peak badge
 let chartSizeYearly = Infinity; // 0 = All Entries
 let chartSizeAllTime = Infinity; // 0 = All Entries
 let recLimit = 25; // Records entries limit
+let eventsArtistLimit = parseInt(localStorage.getItem('dc_events_artist_limit') || '50') || 50;
 const PAGE_SIZE = 100;
 const pageState = { songs: 0, artists: 0, albums: 0 };
 const fullData = { songs: [], artists: [], albums: [] };
@@ -1099,6 +1100,7 @@ function openSourceModal() {
   document.getElementById('certSongGold').value    = CERT.song.gold;
   document.getElementById('certSongPlat').value    = CERT.song.plat;
   document.getElementById('certSongDiamond').value = CERT.song.diamond;
+  document.getElementById('eventsArtistLimitSelect').value = eventsArtistLimit;
   updateSourceModalFields();
 }
 
@@ -1159,6 +1161,14 @@ function saveSourceConfig() {
   CERT.album.gold = ag; CERT.album.plat = ap; CERT.album.diamond = ad;
   CERT.song.gold  = sg; CERT.song.plat  = sp; CERT.song.diamond  = sd;
   localStorage.setItem('dc_cert_config', JSON.stringify({ ag, ap, ad, sg, sp, sd }));
+  const newEventsLimit = parseInt(document.getElementById('eventsArtistLimitSelect').value) || 50;
+  if (newEventsLimit !== eventsArtistLimit) {
+    eventsArtistLimit = newEventsLimit;
+    localStorage.setItem('dc_events_artist_limit', newEventsLimit);
+    localStorage.removeItem(EVENTS_CACHE_KEY);
+    const sel = document.getElementById('eventsLimitSelect');
+    if (sel) sel.value = eventsArtistLimit;
+  }
   closeSourceModal();
   syncNow();
 }
@@ -2816,8 +2826,36 @@ document.getElementById('periodNav').addEventListener('click', e => {
     return;
   }
 
-  // Leaving raw data, graphs, or records view — restore chart UI
-  if (currentPeriod === 'rawdata' || currentPeriod === 'graphs' || currentPeriod === 'records') {
+  if (btn.dataset.period === 'events') {
+    savedOffsets[currentPeriod] = currentOffset;
+    currentPeriod = 'events';
+    localStorage.setItem('dc_period', currentPeriod);
+    document.getElementById('chartSizeBar').style.display = 'none';
+    document.getElementById('paginatedSizeBar').style.display = 'none';
+    document.getElementById('chartDisplayToggles').style.display = 'none';
+    document.getElementById('exportPlaylistBtn').style.display = 'none';
+    document.getElementById('dateNav').style.display = 'none';
+    document.getElementById('statsStrip').style.display = 'none';
+    document.getElementById('songsSection').style.display = 'none';
+    document.getElementById('artistsSection').style.display = 'none';
+    document.getElementById('albumsSection').style.display = 'none';
+    document.getElementById('dropoutsSection').style.display = 'none';
+    NEW_ENTRY_SECTIONS.forEach(id => { const el = document.getElementById(id); if (el) el.style.display = 'none'; });
+    document.getElementById('upcomingSection').style.display = 'none';
+    document.getElementById('recentSection').style.display = 'none';
+    document.getElementById('rawDataView').style.display = 'none';
+    document.getElementById('graphsView').style.display = 'none';
+    document.getElementById('recordsView').style.display = 'none';
+    document.getElementById('eventsView').style.display = 'block';
+    const sel = document.getElementById('eventsLimitSelect');
+    if (sel) sel.value = eventsArtistLimit;
+    if (allPlays.length) loadEvents();
+    if (typeof window._refreshBackToTop === 'function') window._refreshBackToTop();
+    return;
+  }
+
+  // Leaving raw data, graphs, records, or events view — restore chart UI
+  if (currentPeriod === 'rawdata' || currentPeriod === 'graphs' || currentPeriod === 'records' || currentPeriod === 'events') {
     document.getElementById('dateNav').style.display = '';
     document.getElementById('statsStrip').style.display = '';
     document.getElementById('songsSection').style.display = '';
@@ -2828,10 +2866,11 @@ document.getElementById('periodNav').addEventListener('click', e => {
     document.getElementById('rawDataView').style.display = 'none';
     document.getElementById('graphsView').style.display = 'none';
     document.getElementById('recordsView').style.display = 'none';
+    document.getElementById('eventsView').style.display = 'none';
     if (currentPeriod === 'graphs') destroyGraphCharts();
   }
 
-  savedOffsets[(currentPeriod === 'rawdata' || currentPeriod === 'graphs' || currentPeriod === 'records') ? btn.dataset.period : currentPeriod] = currentOffset;
+  savedOffsets[(currentPeriod === 'rawdata' || currentPeriod === 'graphs' || currentPeriod === 'records' || currentPeriod === 'events') ? btn.dataset.period : currentPeriod] = currentOffset;
   currentPeriod = btn.dataset.period;
   localStorage.setItem('dc_period', currentPeriod);
   currentOffset = savedOffsets[currentPeriod];
@@ -6916,6 +6955,7 @@ function getTop200Artists() {
 }
 
 const _mbidCache = {};
+const _mbBirthdayCache = {}; // artist name → "YYYY-MM-DD" captured from MB search results
 async function searchArtistMBID(name) {
   if (_mbidCache[name] !== undefined) return _mbidCache[name];
   try {
@@ -6925,8 +6965,21 @@ async function searchArtistMBID(name) {
       || artists.find(a => a.score >= 90)
       || artists[0];
     _mbidCache[name] = match?.id || null;
+    const born = match?.['life-span']?.begin;
+    if (born && born.length >= 10) _mbBirthdayCache[name] = born.slice(0, 10);
     return _mbidCache[name];
   } catch (e) { _mbidCache[name] = null; return null; }
+}
+
+// Shared cache for release-groups — avoids duplicate MB API calls across upcoming, recent, and events
+const _mbReleasesCache = {};
+async function fetchAllReleasesRaw(mbid) {
+  if (_mbReleasesCache[mbid] !== undefined) return _mbReleasesCache[mbid];
+  try {
+    const d = await mbFetch(`release-group?artist=${mbid}&type=album|ep|single&fmt=json&limit=100`);
+    _mbReleasesCache[mbid] = d['release-groups'] || [];
+  } catch (e) { _mbReleasesCache[mbid] = []; }
+  return _mbReleasesCache[mbid];
 }
 
 async function fetchReleasesForMBID(mbid) {
@@ -6935,8 +6988,8 @@ async function fetchReleasesForMBID(mbid) {
     const future = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 90);
     const todayStr = localDateStr(today);
     const futureStr = localDateStr(future);
-    const d = await mbFetch(`release-group?artist=${mbid}&type=album|ep|single&fmt=json&limit=100`);
-    return (d['release-groups'] || []).filter(g => {
+    const groups = await fetchAllReleasesRaw(mbid);
+    return groups.filter(g => {
       const date = g['first-release-date'];
       return date && date.length >= 10 && date >= todayStr && date <= futureStr;
     }).map(g => ({
@@ -7075,8 +7128,8 @@ async function fetchRecentReleasesForMBID(mbid) {
     const past = new Date(today.getFullYear(), today.getMonth(), today.getDate() - 180);
     const todayStr = localDateStr(today);
     const pastStr = localDateStr(past);
-    const d = await mbFetch(`release-group?artist=${mbid}&type=album|ep|single&fmt=json&limit=100`);
-    return (d['release-groups'] || []).filter(g => {
+    const groups = await fetchAllReleasesRaw(mbid);
+    return groups.filter(g => {
       const date = g['first-release-date'];
       return date && date.length >= 10 && date >= pastStr && date < todayStr;
     }).map(g => ({
@@ -8598,5 +8651,234 @@ async function loadCertWallImages(items) {
       );
     }
   }
+}
+
+// ─── EVENTS CALENDAR (Birthdays & Album Anniversaries) ─────────
+const EVENTS_CACHE_KEY = 'dc_eventsCache';
+const EVENTS_CACHE_TTL = 24 * 60 * 60 * 1000;
+const EVENTS_WINDOW_DAYS = 30;
+
+function getTopNArtists(n) {
+  const counts = {};
+  for (const p of allPlays) {
+    for (const a of p.artists) counts[a] = (counts[a] || 0) + 1;
+  }
+  return Object.entries(counts).sort((a, b) => b[1] - a[1]).slice(0, n).map(([name]) => name);
+}
+
+// TheAudioDB fallback — returns "YYYY-MM-DD" or null
+const _tadbCache = {};
+async function fetchBirthdayTADB(name) {
+  if (_tadbCache[name] !== undefined) return _tadbCache[name];
+  await new Promise(r => setTimeout(r, 500));
+  try {
+    const res = await fetch(`https://www.theaudiodb.com/api/v1/json/2/search.php?s=${encodeURIComponent(name)}`);
+    if (!res.ok) { _tadbCache[name] = null; return null; }
+    const d = await res.json();
+    const born = d?.artists?.[0]?.strBornDT || null;
+    _tadbCache[name] = (born && born.length >= 10) ? born.slice(0, 10) : null;
+    return _tadbCache[name];
+  } catch (e) { _tadbCache[name] = null; return null; }
+}
+
+// Wikidata SPARQL fallback — returns "YYYY-MM-DD" or null
+const _wikidataCache = {};
+async function fetchBirthdayWikidata(name) {
+  if (_wikidataCache[name] !== undefined) return _wikidataCache[name];
+  await new Promise(r => setTimeout(r, 300));
+  try {
+    const safeName = name.replace(/["\\]/g, ' ');
+    const sparql = `SELECT ?dob WHERE { ?person rdfs:label "${safeName}"@en; wdt:P569 ?dob. FILTER(!ISBLANK(?dob)) } LIMIT 1`;
+    const url = `https://query.wikidata.org/sparql?query=${encodeURIComponent(sparql)}&format=json`;
+    const res = await fetch(url, { headers: { 'Accept': 'application/sparql-results+json' } });
+    if (!res.ok) { _wikidataCache[name] = null; return null; }
+    const d = await res.json();
+    const val = d?.results?.bindings?.[0]?.dob?.value;
+    if (!val) { _wikidataCache[name] = null; return null; }
+    const m = val.match(/(\d{4}-\d{2}-\d{2})/);
+    _wikidataCache[name] = m ? m[1] : null;
+    return _wikidataCache[name];
+  } catch (e) { _wikidataCache[name] = null; return null; }
+}
+
+// Returns days until next occurrence of MM-DD within windowDays, or null if too far away
+function daysUntilNextOccurrence(mmdd, windowDays) {
+  if (!mmdd || mmdd.includes('00')) return null;
+  const today = tzNow(); today.setHours(0, 0, 0, 0);
+  const [mm, dd] = mmdd.split('-').map(Number);
+  let candidate = new Date(today.getFullYear(), mm - 1, dd);
+  candidate.setHours(0, 0, 0, 0);
+  if (candidate < today) candidate = new Date(today.getFullYear() + 1, mm - 1, dd);
+  const days = Math.round((candidate - today) / 86400000);
+  return days <= windowDays ? days : null;
+}
+
+function ordinalSuffix(n) {
+  if (n === 11 || n === 12 || n === 13) return n + 'th';
+  const s = ['th', 'st', 'nd', 'rd'];
+  return n + (s[n % 10] || 'th');
+}
+
+function renderBirthdayCard(entry) {
+  const { artistName, dateStr, daysUntil } = entry;
+  const isToday = daysUntil === 0;
+  const birthYear = parseInt(dateStr.slice(0, 4));
+  const currentYear = tzNow().getFullYear();
+  const age = isToday ? currentYear - birthYear : (currentYear + (daysUntil > 0 ? 0 : 1)) - birthYear;
+  const [, mm, dd] = dateStr.split('-');
+  const displayDate = fmtDate(new Date(currentYear + (daysUntil < 0 ? 1 : 0), parseInt(mm) - 1, parseInt(dd)));
+  const countdownLabel = isToday ? 'TODAY' : `in ${daysUntil} day${daysUntil === 1 ? '' : 's'}`;
+  const searchUrl = `https://www.google.com/search?q=${encodeURIComponent(artistName + ' birthday')}`;
+  return `<a class="upcoming-card${isToday ? ' event-today' : ''}" href="${searchUrl}" target="_blank" rel="noopener noreferrer">
+    <div class="upcoming-card-date${isToday ? ' soon' : ''}">${countdownLabel}</div>
+    <div class="upcoming-card-title">${esc(artistName)}</div>
+    <div class="upcoming-card-artist">${esc(displayDate)} · Turning ${age}</div>
+    <div class="upcoming-card-type">🎂 Birthday</div>
+  </a>`;
+}
+
+function renderAnniversaryCard(entry) {
+  const { artistName, title, type, releaseDate, years, daysUntil } = entry;
+  const isToday = daysUntil === 0;
+  const typeKey = 'mb_type_' + (type || 'Release').toLowerCase();
+  const typeLabel = t(typeKey) || type || 'Release';
+  const countdownLabel = isToday ? 'TODAY' : `in ${daysUntil} day${daysUntil === 1 ? '' : 's'}`;
+  const searchUrl = `https://www.google.com/search?q=${encodeURIComponent(title + ' ' + artistName)}`;
+  return `<a class="upcoming-card${isToday ? ' event-today' : ''}" href="${searchUrl}" target="_blank" rel="noopener noreferrer">
+    <div class="upcoming-card-date${isToday ? ' soon' : ''}">${countdownLabel}</div>
+    <div class="upcoming-card-title">${esc(title)}</div>
+    <div class="upcoming-card-artist">${esc(artistName)}</div>
+    <div class="upcoming-card-type">🎵 ${ordinalSuffix(years)} Anniversary · ${esc(typeLabel)} · ${releaseDate.slice(0, 4)}</div>
+  </a>`;
+}
+
+function renderEventsPartial(birthdays, anniversaries) {
+  const sortFn = (a, b) => a.daysUntil - b.daysUntil;
+  const bGrid = document.getElementById('birthdaysGrid');
+  const aGrid = document.getElementById('anniversariesGrid');
+  if (bGrid && birthdays.length) bGrid.innerHTML = [...birthdays].sort(sortFn).map(renderBirthdayCard).join('');
+  if (aGrid && anniversaries.length) aGrid.innerHTML = [...anniversaries].sort(sortFn).map(renderAnniversaryCard).join('');
+}
+
+async function loadEvents(forceRefresh = false) {
+  if (!allPlays.length) return;
+
+  if (!forceRefresh) {
+    try {
+      const cached = JSON.parse(localStorage.getItem(EVENTS_CACHE_KEY) || 'null');
+      if (cached && Date.now() - cached.ts < EVENTS_CACHE_TTL && cached.limit === eventsArtistLimit) {
+        renderEventsResults(cached.birthdays, cached.anniversaries, cached.artists, true);
+        return;
+      }
+    } catch (e) {}
+  }
+
+  const artists = getTopNArtists(eventsArtistLimit);
+  const statusEl = document.getElementById('eventsStatus');
+  const refreshEl = document.getElementById('eventsRefreshBtn');
+  if (!statusEl) return;
+
+  document.getElementById('birthdaysGrid').innerHTML = '';
+  document.getElementById('anniversariesGrid').innerHTML = '';
+  if (refreshEl) refreshEl.style.display = 'none';
+  statusEl.textContent = `Fetching events for top ${artists.length} artists…`;
+
+  const birthdays = [];
+  const anniversaries = [];
+
+  for (let i = 0; i < artists.length; i++) {
+    const name = artists[i];
+    statusEl.textContent = `Fetching (${i + 1}/${artists.length}): ${name}`;
+
+    const mbid = await searchArtistMBID(name);
+
+    // Birthday: MusicBrainz (from search result cache) → TheAudioDB → Wikidata
+    let birthday = _mbBirthdayCache[name] || null;
+    if (!birthday) birthday = await fetchBirthdayTADB(name);
+    if (!birthday) birthday = await fetchBirthdayWikidata(name);
+
+    if (birthday && birthday.length >= 10) {
+      const mmdd = birthday.slice(5, 10);
+      const days = daysUntilNextOccurrence(mmdd, EVENTS_WINDOW_DAYS);
+      if (days !== null) {
+        birthdays.push({ artistName: name, dateStr: birthday, mmdd, daysUntil: days });
+      }
+    }
+
+    // Album anniversaries from shared MB releases cache
+    if (mbid) {
+      const groups = await fetchAllReleasesRaw(mbid);
+      const currentYear = tzNow().getFullYear();
+      for (const g of groups) {
+        const date = g['first-release-date'];
+        if (!date || date.length < 10) continue;
+        const mmdd = date.slice(5, 10);
+        if (mmdd.includes('00')) continue;
+        const releaseYear = parseInt(date.slice(0, 4));
+        if (releaseYear >= currentYear) continue;
+        const years = currentYear - releaseYear;
+        const days = daysUntilNextOccurrence(mmdd, EVENTS_WINDOW_DAYS);
+        if (days !== null) {
+          anniversaries.push({
+            artistName: name,
+            title: g.title,
+            type: g['primary-type'] || 'Release',
+            releaseDate: date,
+            years,
+            mmdd,
+            daysUntil: days
+          });
+        }
+      }
+    }
+
+    if (i % 5 === 4 || i === artists.length - 1) renderEventsPartial(birthdays, anniversaries);
+  }
+
+  try {
+    localStorage.setItem(EVENTS_CACHE_KEY, JSON.stringify({
+      ts: Date.now(), limit: eventsArtistLimit, birthdays, anniversaries, artists
+    }));
+  } catch (e) {}
+
+  renderEventsResults(birthdays, anniversaries, artists, false);
+}
+
+function renderEventsResults(birthdays, anniversaries, artists, fromCache) {
+  const statusEl = document.getElementById('eventsStatus');
+  const refreshEl = document.getElementById('eventsRefreshBtn');
+  const sortFn = (a, b) => a.daysUntil - b.daysUntil;
+  const sortedB = [...birthdays].sort(sortFn);
+  const sortedA = [...anniversaries].sort(sortFn);
+  const bGrid = document.getElementById('birthdaysGrid');
+  const aGrid = document.getElementById('anniversariesGrid');
+
+  if (bGrid) bGrid.innerHTML = sortedB.length
+    ? sortedB.map(renderBirthdayCard).join('')
+    : `<div class="upcoming-empty">No birthdays found in the next ${EVENTS_WINDOW_DAYS} days for your top ${artists.length} artists.</div>`;
+
+  if (aGrid) aGrid.innerHTML = sortedA.length
+    ? sortedA.map(renderAnniversaryCard).join('')
+    : `<div class="upcoming-empty">No album anniversaries found in the next ${EVENTS_WINDOW_DAYS} days for your top ${artists.length} artists.</div>`;
+
+  const cacheNote = fromCache ? ' (cached)' : '';
+  const ts = fromCache
+    ? (() => { try { return new Date(JSON.parse(localStorage.getItem(EVENTS_CACHE_KEY)).ts).toLocaleString(); } catch (e) { return ''; } })()
+    : new Date().toLocaleString();
+  if (statusEl) statusEl.textContent = `${sortedB.length} birthdays · ${sortedA.length} anniversaries · top ${artists.length} artists · ${ts}${cacheNote}`;
+  if (refreshEl) refreshEl.style.display = 'block';
+
+  // Sync the limit selector in the view
+  const sel = document.getElementById('eventsLimitSelect');
+  if (sel) sel.value = eventsArtistLimit;
+}
+
+function eventsLimitChanged(val) {
+  const newLimit = parseInt(val) || 50;
+  if (newLimit === eventsArtistLimit) return;
+  eventsArtistLimit = newLimit;
+  localStorage.setItem('dc_events_artist_limit', newLimit);
+  localStorage.removeItem(EVENTS_CACHE_KEY);
+  loadEvents(true);
 }
 

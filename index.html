@@ -101,6 +101,7 @@
       <button data-period="rawdata" data-i18n="nav_rawdata">Raw Data</button>
       <button data-period="graphs" data-i18n="nav_graphs">Graphs</button>
       <button data-period="records" data-i18n="nav_records">Records</button>
+      <button data-period="events">Events</button>
     </div>
 
     <div class="chart-size-bar" id="chartSizeBar">
@@ -777,6 +778,54 @@
         <div class="section-sub" data-i18n="rec_streaks_sub">Longest consecutive listening streaks, repeat plays, and
           daily play records</div>
         <div class="section-body" id="recStreaksBody"></div>
+      </div>
+    </div>
+
+    <!-- EVENTS VIEW -->
+    <div id="eventsView" style="display:none;">
+      <div class="section-header" style="margin-bottom:0.5rem;">
+        <h2 class="section-header-h2">🗓 Events Calendar</h2>
+        <div class="section-rule"></div>
+      </div>
+
+      <div class="events-controls">
+        <span class="events-controls-label">Top
+          <select id="eventsLimitSelect" onchange="eventsLimitChanged(this.value)">
+            <option value="10">10</option>
+            <option value="25">25</option>
+            <option value="50">50</option>
+            <option value="100">100</option>
+            <option value="200">200</option>
+          </select>
+          all-time artists
+        </span>
+        <button class="upcoming-refresh-btn" id="eventsRefreshBtn" onclick="loadEvents(true)" style="display:none">↺ Refresh</button>
+      </div>
+
+      <div id="eventsStatus" class="upcoming-status"></div>
+
+      <div class="chart-section" id="birthdaysSection">
+        <div class="section-header">
+          <button class="section-collapse-btn" data-target="birthdaysSection" title="Collapse">−</button>
+          <h2 class="section-header-h2">🎂 Artist Birthdays</h2>
+          <div class="section-rule"></div>
+        </div>
+        <div class="section-sub">Upcoming birthdays for your top artists — next 30 days</div>
+        <div class="section-body">
+          <div class="upcoming-grid" id="birthdaysGrid"></div>
+        </div>
+      </div>
+
+      <div class="chart-section" id="anniversariesSection">
+        <div class="section-header">
+          <button class="section-collapse-btn" data-target="anniversariesSection" title="Collapse">−</button>
+          <h2 class="section-header-h2">🎵 Album Anniversaries</h2>
+          <div class="section-rule"></div>
+        </div>
+        <div class="section-sub">Albums celebrating release anniversaries in the next 30 days</div>
+        <div class="section-body">
+          <div class="upcoming-grid" id="anniversariesGrid"></div>
+        </div>
       </div>
     </div>
 
@@ -1495,6 +1544,24 @@
         <div class="cert-config-footer">
           <p class="src-modal-hint">Minimum plays to earn each badge. Changes apply on Save &amp; Load.</p>
           <button type="button" class="cert-reset-btn" onclick="resetCertDefaults()">Reset to defaults</button>
+        </div>
+      </div>
+
+      <div class="cert-config-group">
+        <div class="cert-config-title">Events Calendar</div>
+        <div style="padding:0.4rem 0;">
+          <label class="cert-row" style="flex-wrap:wrap;gap:0.4rem;">
+            Show for top
+            <select id="eventsArtistLimitSelect" style="padding:0.22rem 0.45rem;border-radius:4px;border:1px solid var(--border);background:var(--bg2);color:var(--text1);font-family:'DM Mono',monospace;font-size:0.72rem;cursor:pointer;">
+              <option value="10">10</option>
+              <option value="25">25</option>
+              <option value="50">50</option>
+              <option value="100">100</option>
+              <option value="200">200</option>
+            </select>
+            all-time artists
+          </label>
+          <p class="src-modal-hint">Number of top all-time artists to fetch birthdays &amp; anniversaries for</p>
         </div>
       </div>
 
