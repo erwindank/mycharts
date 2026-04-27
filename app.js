@@ -6959,12 +6959,13 @@ function renderUpcomingCard(release, artistName) {
   const { label, soon } = upcomingDateLabel(release.date);
   const typeKey = 'mb_type_' + (release.type || 'Release').toLowerCase();
   const typeLabel = t(typeKey) || release.type || 'Release';
-  return `<div class="upcoming-card">
+  const searchUrl = `https://www.google.com/search?q=${encodeURIComponent(release.title + ' ' + artistName)}`;
+  return `<a class="upcoming-card" href="${searchUrl}" target="_blank" rel="noopener noreferrer">
     <div class="upcoming-card-date${soon ? ' soon' : ''}" data-date="${esc(release.date)}">${esc(label)}</div>
     <div class="upcoming-card-title">${esc(release.title)}</div>
     <div class="upcoming-card-artist">${esc(artistName)}</div>
     <div class="upcoming-card-type" data-mbtype="${esc(release.type || 'Release')}">${esc(typeLabel)}</div>
-  </div>`;
+  </a>`;
 }
 
 function sortUpcomingReleases(releases) {
@@ -7091,12 +7092,13 @@ function renderRecentCard(release, artistName) {
   const label = fmtDate(d);
   const typeKey = 'mb_type_' + (release.type || 'Release').toLowerCase();
   const typeLabel = t(typeKey) || release.type || 'Release';
-  return `<div class="upcoming-card">
+  const searchUrl = `https://www.google.com/search?q=${encodeURIComponent(release.title + ' ' + artistName)}`;
+  return `<a class="upcoming-card" href="${searchUrl}" target="_blank" rel="noopener noreferrer">
     <div class="upcoming-card-date recent" data-date="${esc(release.date)}">${esc(label)}</div>
     <div class="upcoming-card-title">${esc(release.title)}</div>
     <div class="upcoming-card-artist">${esc(artistName)}</div>
     <div class="upcoming-card-type" data-mbtype="${esc(release.type || 'Release')}">${esc(typeLabel)}</div>
-  </div>`;
+  </a>`;
 }
 
 function sortRecentReleases(releases) {
