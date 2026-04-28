@@ -5,6 +5,8 @@ let currentPeriod = 'weekly';
 let currentLimit = 25;
 let weeksList = [];
 let currentWeekIndex = -1;
+let localScrobbles = null; // cached for local IDB-based users
+let localWeekOffset = 0;   // weeks back from current week for local nav
 
 // ── TRANSLATIONS ──────────────────────────────────────────────────
 const LANGS = {
@@ -143,6 +145,8 @@ function changeUser() {
   currentUser = null;
   weeksList = [];
   currentWeekIndex = -1;
+  localScrobbles = null;
+  localWeekOffset = 0;
   showLanding();
   document.getElementById('usernameInput').value = '';
   document.getElementById('landingError').textContent = '';
@@ -160,6 +164,20 @@ async function startCharts() {
   errEl.textContent = '';
 
   try {
+    // Check local IDB data first — no Last.fm account needed
+    const localCount = await countIDB(username);
+    if (localCount > 0) {
+      localScrobbles = null;
+      localWeekOffset = 0;
+      currentUser = { name: username, isLocal: true, playcount: localCount, image: [] };
+      localStorage.setItem('dc_lfm_username', username);
+      renderUserBarLocal(username, localCount);
+      showCharts();
+      loadCharts();
+      return;
+    }
+
+    // Fall back to Last.fm API
     const res = await fetch(`${API}/api/lastfm/user/${encodeURIComponent(username)}`);
     const data = await res.json();
 
@@ -193,6 +211,161 @@ function renderUserBar(user) {
   plays.textContent = t('scrobbles_fmt')(user.playcount);
 }
 
+function renderUserBarLocal(username, scrobbleCount) {
+  const img = document.getElementById('userAvatar');
+  const name = document.getElementById('userName');
+  const plays = document.getElementById('userPlaycount');
+  img.src = 'https://lastfm.freetls.fastly.net/i/u/64s/2a96cbd8b46e442fc41c2b86b821562f.png';
+  img.alt = username;
+  name.textContent = username;
+  plays.textContent = t('scrobbles_fmt')(scrobbleCount);
+}
+
+// ── LOCAL CHART COMPUTATION ───────────────────────────────────────
+async function getIDBAllScrobbles(username) {
+  const db = await openIDB();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(IDB_STORE, 'readonly');
+    const range = IDBKeyRange.bound([username, ''], [username, '￿']);
+    const req = tx.objectStore(IDB_STORE).getAll(range);
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject(req.error);
+  });
+}
+
+function periodToDateRange(period) {
+  const now = new Date();
+  const daysMap = { '1month': 30, '3month': 90, '6month': 180, '12month': 365 };
+  if (daysMap[period]) {
+    const from = new Date(now.getTime() - daysMap[period] * 86400000);
+    return { from: from.toISOString(), to: now.toISOString() };
+  }
+  return { from: null, to: now.toISOString() }; // 'overall' = all time
+}
+
+function computeTopN(scrobbles, field, limit) {
+  const counts = {};
+  for (const s of scrobbles) {
+    let key;
+    if (field === 'track') {
+      if (!s.track) continue;
+      key = `${s.track}\x00${s.artist || ''}`;
+    } else if (field === 'album') {
+      if (!s.album || s.album === '—') continue;
+      key = `${s.album}\x00${s.artist || ''}`;
+    } else {
+      key = s[field] || '';
+      if (!key) continue;
+    }
+    counts[key] = (counts[key] || 0) + 1;
+  }
+  return Object.entries(counts)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, limit)
+    .map(([key, count]) => ({ key, count }));
+}
+
+function localToArtists(top) {
+  return top.map(({ key, count }) => ({ name: key, playcount: count, url: '#', image: [] }));
+}
+
+function localToTracks(top) {
+  return top.map(({ key, count }) => {
+    const [name, artist] = key.split('\x00');
+    return { name, playcount: count, url: '#', image: [], artist: { name: artist || '' } };
+  });
+}
+
+function localToAlbums(top) {
+  return top.map(({ key, count }) => {
+    const [name, artist] = key.split('\x00');
+    return { name, playcount: count, url: '#', image: [], artist: { name: artist || '' } };
+  });
+}
+
+function getWeekBoundaries(weeksBack) {
+  const now = new Date();
+  const day = now.getDay(); // 0=Sun
+  const daysToMon = day === 0 ? -6 : 1 - day;
+  const monday = new Date(now.getFullYear(), now.getMonth(), now.getDate() + daysToMon - weeksBack * 7);
+  const sunday = new Date(monday.getTime() + 7 * 86400000);
+  return { from: monday.toISOString(), to: sunday.toISOString() };
+}
+
+function formatWeekLabel(fromISO, toISO) {
+  const from = new Date(fromISO);
+  const to = new Date(new Date(toISO).getTime() - 1); // inclusive end
+  const fmt = (d, showYear) => d.toLocaleDateString('en', { month: 'short', day: 'numeric', ...(showYear ? { year: 'numeric' } : {}) });
+  return `${fmt(from, false)} – ${fmt(to, true)}`;
+}
+
+async function loadLocalCharts() {
+  if (!localScrobbles) {
+    localScrobbles = await getIDBAllScrobbles(currentUser.name);
+  }
+
+  if (currentPeriod === 'weekly') {
+    loadLocalWeeklyCharts();
+    return;
+  }
+
+  showDateNav(false);
+  const statsStrip = document.getElementById('statsStrip');
+  if (statsStrip) statsStrip.style.display = 'none';
+
+  updateSectionTitles();
+  setLoading('artists');
+  setLoading('tracks');
+  setLoading('albums');
+
+  const { from } = periodToDateRange(currentPeriod);
+  const filtered = from ? localScrobbles.filter(s => s.scrobbled_at >= from) : localScrobbles;
+
+  renderArtists(localToArtists(computeTopN(filtered, 'artist', currentLimit)));
+  renderTracks(localToTracks(computeTopN(filtered, 'track', currentLimit)));
+  renderAlbums(localToAlbums(computeTopN(filtered, 'album', currentLimit)));
+
+  setLoaded('artists');
+  setLoaded('tracks');
+  setLoaded('albums');
+}
+
+async function loadLocalWeeklyCharts() {
+  if (!localScrobbles) {
+    localScrobbles = await getIDBAllScrobbles(currentUser.name);
+  }
+
+  showDateNav(true);
+  const { from, to } = getWeekBoundaries(localWeekOffset);
+  document.getElementById('periodLabel').textContent = formatWeekLabel(from, to);
+  document.getElementById('prevWeekBtn').disabled = false;
+  document.getElementById('nextWeekBtn').disabled = localWeekOffset === 0;
+
+  updateSectionTitles();
+  setLoading('artists');
+  setLoading('tracks');
+  setLoading('albums');
+
+  const filtered = localScrobbles.filter(s => s.scrobbled_at >= from && s.scrobbled_at < to);
+
+  const statsStrip = document.getElementById('statsStrip');
+  if (statsStrip) {
+    const totalPlays = filtered.length;
+    const uniqueArtists = new Set(filtered.map(s => s.artist)).size;
+    const uniqueTracks = new Set(filtered.map(s => `${s.track}\x00${s.artist}`)).size;
+    const uniqueAlbums = new Set(filtered.filter(s => s.album).map(s => `${s.album}\x00${s.artist}`)).size;
+    updateStatsStrip(totalPlays, uniqueArtists, uniqueTracks, uniqueAlbums);
+  }
+
+  renderArtists(localToArtists(computeTopN(filtered, 'artist', currentLimit)));
+  renderTracks(localToTracks(computeTopN(filtered, 'track', currentLimit)));
+  renderAlbums(localToAlbums(computeTopN(filtered, 'album', currentLimit)));
+
+  setLoaded('artists');
+  setLoaded('tracks');
+  setLoaded('albums');
+}
+
 // ── CHARTS ────────────────────────────────────────────────────────
 function updateSectionTitles() {
   document.getElementById('artistsTitle').textContent = t('section_artists');
@@ -213,6 +386,10 @@ function setLoaded(section) {
 
 async function loadCharts() {
   if (!currentUser) return;
+  if (currentUser.isLocal) {
+    await loadLocalCharts();
+    return;
+  }
   if (currentPeriod === 'weekly') {
     await switchToWeekly();
     return;
@@ -357,8 +534,21 @@ async function saveToIDB(username, scrobbles) {
   const db = await openIDB();
   let count = 0;
   const BATCH = 500;
-  for (let i = 0; i < scrobbles.length; i += BATCH) {
-    const batch = scrobbles.slice(i, i + BATCH);
+
+  // Make timestamps unique so same-second scrobbles don't overwrite each other.
+  // The keyPath is ['username', 'scrobbled_at'], so duplicate timestamps lose data.
+  const tsCounts = {};
+  const uniqueScrobbles = scrobbles.map(s => {
+    if (!s.scrobbled_at) return s;
+    // Normalize to base (strip existing ms) then re-add unique ms offset
+    const base = s.scrobbled_at.replace(/\.\d{3}Z$/, '').replace(/Z$/, '');
+    const n = tsCounts[base] ?? 0;
+    tsCounts[base] = n + 1;
+    return { ...s, scrobbled_at: `${base}.${String(n).padStart(3, '0')}Z` };
+  });
+
+  for (let i = 0; i < uniqueScrobbles.length; i += BATCH) {
+    const batch = uniqueScrobbles.slice(i, i + BATCH);
     await new Promise((resolve, reject) => {
       const tx = db.transaction(IDB_STORE, 'readwrite');
       const store = tx.objectStore(IDB_STORE);
@@ -485,6 +675,7 @@ async function syncLastfm() {
 
   btn.disabled = false;
   setTimeout(() => { prog.style.display = 'none'; }, 2000);
+  localScrobbles = null; // force reload on next chart render
   loadSyncStatus();
 }
 
@@ -597,6 +788,7 @@ async function handleFileUpload(file) {
     setResult('uploadResult', `Saving ${scrobbles.length.toLocaleString()} records…`, '');
     const count = await saveToIDB(username, scrobbles);
     setResult('uploadResult', `✓ ${count.toLocaleString()} of ${scrobbles.length.toLocaleString()} records imported`, 'ok');
+    localScrobbles = null; // force reload on next chart render
     loadSyncStatus();
   } catch (e) {
     setResult('uploadResult', `Error: ${e.message || 'Could not parse file'}`, 'err');
@@ -634,7 +826,7 @@ async function syncSheets() {
 
   setResult('sheetsResult', 'Fetching sheet…', '');
   try {
-    const csvUrl = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:csv&gid=${gid}`;
+    const csvUrl = `https://docs.google.com/spreadsheets/d/${sheetId}/export?format=csv&gid=${gid}`;
     const csvRes = await fetch(csvUrl);
     if (!csvRes.ok) throw new Error(`Could not fetch sheet (${csvRes.status})`);
     const ct = csvRes.headers.get('content-type') || '';
@@ -654,6 +846,7 @@ async function syncSheets() {
     setResult('sheetsResult', `Saving ${rows.length.toLocaleString()} records…`, '');
     const count = await saveToIDB(username, rows);
     setResult('sheetsResult', `✓ ${count.toLocaleString()} of ${rows.length.toLocaleString()} records imported`, 'ok');
+    localScrobbles = null; // force reload on next chart render
     loadSyncStatus();
   } catch (e) {
     setResult('sheetsResult', e.message || 'Connection error. Try again.', 'err');
@@ -825,6 +1018,13 @@ async function loadWeeklyCharts() {
 }
 
 function navigateWeek(delta) {
+  if (currentUser?.isLocal) {
+    const newOffset = localWeekOffset - delta; // prev = further back = higher offset
+    if (newOffset < 0) return;
+    localWeekOffset = newOffset;
+    loadLocalWeeklyCharts();
+    return;
+  }
   const newIndex = currentWeekIndex + delta;
   if (newIndex < 0 || newIndex >= weeksList.length) return;
   currentWeekIndex = newIndex;
