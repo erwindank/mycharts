@@ -6,7 +6,7 @@ import os
 load_dotenv()
 
 app = Flask(__name__)
-CORS(app, origins=os.getenv('ALLOWED_ORIGINS', '*').split(','))
+CORS(app, origins='*', supports_credentials=False)
 
 import lastfm
 import spotify
