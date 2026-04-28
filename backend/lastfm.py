@@ -32,7 +32,22 @@ def api_error(message, status=400):
 @bp.route('/user/<username>')
 def user_info(username):
     try:
-        return jsonify(lastfm_get('user.getInfo', {'user': username}))
+        data = lastfm_get('user.getInfo', {'user': username})
+        user = data.get('user', {})
+        try:
+            from database import get_db
+            import datetime
+            db = get_db()
+            registered_ts = user.get('registered', {}).get('unixtime')
+            db.table('dc_users').upsert({
+                'lastfm_username': user.get('name', username),
+                'playcount': int(user.get('playcount', 0)),
+                'registered_at': datetime.datetime.fromtimestamp(int(registered_ts), tz=datetime.timezone.utc).isoformat() if registered_ts else None,
+                'last_seen_at': datetime.datetime.now(datetime.timezone.utc).isoformat(),
+            }, on_conflict='lastfm_username').execute()
+        except Exception:
+            pass
+        return jsonify(data)
     except ValueError as e:
         return api_error(str(e))
     except requests.RequestException:
