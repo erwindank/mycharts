@@ -455,21 +455,141 @@ async function syncSheets() {
   const url = document.getElementById('sheetsUrl').value.trim();
   if (!url) { setResult('sheetsResult', 'Paste a Google Sheets URL first.', 'err'); return; }
 
+  const sheetMatch = url.match(/\/spreadsheets\/d\/([a-zA-Z0-9_-]+)/);
+  if (!sheetMatch) { setResult('sheetsResult', 'Invalid Google Sheets URL.', 'err'); return; }
+  const sheetId = sheetMatch[1];
+  const gidMatch = url.match(/[?&]gid=(\d+)/);
+  const gid = gidMatch ? gidMatch[1] : '0';
+
   setResult('sheetsResult', 'Fetching sheet…', '');
   try {
+    const csvUrl = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:csv&gid=${gid}`;
+    const csvRes = await fetch(csvUrl);
+    if (!csvRes.ok) throw new Error(`Could not fetch sheet (${csvRes.status})`);
+    const ct = csvRes.headers.get('content-type') || '';
+    if (ct.includes('html')) {
+      setResult('sheetsResult', 'Sheet is not public — set sharing to "Anyone with the link can view".', 'err');
+      return;
+    }
+    const csvText = await csvRes.text();
+
+    setResult('sheetsResult', 'Parsing…', '');
+    const rows = parseSheetCsv(csvText);
+    if (!rows.length) {
+      setResult('sheetsResult', 'No valid records found. Check your column headers.', 'err');
+      return;
+    }
+
+    setResult('sheetsResult', `Uploading ${rows.length.toLocaleString()} records…`, '');
     const res = await fetch(
-      `${API}/api/sync/sheets/${encodeURIComponent(username)}`,
+      `${API}/api/sync/rows/${encodeURIComponent(username)}`,
       { method: 'POST', headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({ url }) }
+        body: JSON.stringify({ rows }) }
     );
     const data = await res.json();
     if (data.error) { setResult('sheetsResult', data.error, 'err'); return; }
     setResult('sheetsResult',
       `✓ ${data.synced.toLocaleString()} of ${data.total.toLocaleString()} records imported`, 'ok');
     loadSyncStatus();
-  } catch {
-    setResult('sheetsResult', 'Connection error. Try again.', 'err');
+  } catch (e) {
+    setResult('sheetsResult', e.message || 'Connection error. Try again.', 'err');
   }
+}
+
+function parseSheetCsv(text) {
+  text = text.replace(/^﻿/, '');
+  const lines = parseCsvLines(text);
+  if (lines.length < 2) return [];
+
+  const header = lines[0].map(h => h.toLowerCase().trim());
+  const isLastfm  = header.includes('uts');
+  const hasTitle  = header.some(f => f.includes('song') || f.includes('title'));
+  const isMycharts = hasTitle && header.some(f => f.includes('date'));
+
+  const scrobbles = [];
+  for (let i = 1; i < lines.length; i++) {
+    const row = lines[i];
+    const r = {};
+    header.forEach((h, idx) => { r[h] = (row[idx] || '').trim(); });
+
+    let artist, album, track, ts;
+
+    if (isLastfm) {
+      const uts = r['uts'];
+      if (!uts || !/^\d+$/.test(uts)) continue;
+      ts     = new Date(parseInt(uts) * 1000).toISOString();
+      artist = r['artist'] || '';
+      album  = r['album']  || '';
+      track  = r['track']  || '';
+    } else if (isMycharts) {
+      const dtStr = r['date and time'] || r['datetime'] || r['date'] || r['time'] || '';
+      ts = parseDtStr(dtStr);
+      if (!ts) continue;
+      artist = r['artist'] || '';
+      album  = r['album']  || '';
+      track  = r['song title'] || r['track'] || r['title'] || r['song'] || '';
+    } else {
+      ts = null;
+      for (const k of ['date and time', 'datetime', 'timestamp', 'utc_time', 'date', 'time']) {
+        if (r[k]) { ts = parseDtStr(r[k]); if (ts) break; }
+      }
+      if (!ts) continue;
+      artist = r['artist'] || r['artist name'] || '';
+      album  = r['album']  || r['album name']  || '';
+      track  = r['song title'] || r['track name'] || r['track'] || r['title'] || r['song'] || '';
+    }
+
+    if (artist && track) scrobbles.push({ artist, album, track, scrobbled_at: ts });
+  }
+  return scrobbles;
+}
+
+function parseCsvLines(text) {
+  const lines = [];
+  let cur = [], field = '', inQuote = false;
+  for (let i = 0; i < text.length; i++) {
+    const ch = text[i];
+    if (inQuote) {
+      if (ch === '"' && text[i + 1] === '"') { field += '"'; i++; }
+      else if (ch === '"') inQuote = false;
+      else field += ch;
+    } else if (ch === '"') {
+      inQuote = true;
+    } else if (ch === ',') {
+      cur.push(field); field = '';
+    } else if (ch === '\n' || ch === '\r') {
+      if (ch === '\r' && text[i + 1] === '\n') i++;
+      cur.push(field); field = '';
+      if (cur.some(f => f)) lines.push(cur);
+      cur = [];
+    } else {
+      field += ch;
+    }
+  }
+  if (field || cur.length) { cur.push(field); if (cur.some(f => f)) lines.push(cur); }
+  return lines;
+}
+
+function parseDtStr(s) {
+  if (!s) return null;
+  s = s.trim();
+  if (/^\d{10,}$/.test(s)) return new Date(parseInt(s) * 1000).toISOString();
+  if (/^\d{4}-\d{2}-\d{2}/.test(s)) {
+    const d = new Date(s.includes('T') ? s : s.replace(' ', 'T') + (s.length <= 10 ? 'T00:00:00Z' : 'Z'));
+    if (!isNaN(d)) return d.toISOString();
+  }
+  const m1 = s.match(/^(\d{1,2})\s+(\w{3,})\s+(\d{4})[,\s]+(\d{2}):(\d{2})/);
+  if (m1) {
+    const d = new Date(`${m1[2]} ${m1[1]}, ${m1[3]} ${m1[4]}:${m1[5]}:00 UTC`);
+    if (!isNaN(d)) return d.toISOString();
+  }
+  const m2 = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})\s+(\d{2}):(\d{2})/);
+  if (m2) {
+    const d = new Date(Date.UTC(+m2[3], +m2[2] - 1, +m2[1], +m2[4], +m2[5]));
+    if (!isNaN(d)) return d.toISOString();
+  }
+  const d = new Date(s);
+  return isNaN(d) ? null : d.toISOString();
 }
 
 // ── WEEKLY NAVIGATION ─────────────────────────────────────────────
