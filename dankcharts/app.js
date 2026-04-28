@@ -298,6 +298,164 @@ function renderAlbums(albums) {
     </tr>`).join('');
 }
 
+// ── IMPORT MODAL ──────────────────────────────────────────────────
+function openImportModal() {
+  document.getElementById('importModal').style.display = 'flex';
+  loadSyncStatus();
+}
+
+function closeImportModal(e) {
+  if (!e || e.target === document.getElementById('importModal')) {
+    document.getElementById('importModal').style.display = 'none';
+  }
+}
+
+function switchImportTab(tab) {
+  document.querySelectorAll('.modal-tab').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
+  document.querySelectorAll('.tab-pane').forEach(p => p.style.display = 'none');
+  document.getElementById(`tab-${tab}`).style.display = 'flex';
+}
+
+function setResult(elId, msg, type) {
+  const el = document.getElementById(elId);
+  el.textContent = msg;
+  el.className = `import-result ${type}`;
+}
+
+async function loadSyncStatus() {
+  if (!currentUser) return;
+  try {
+    const res = await fetch(`${API}/api/sync/status/${encodeURIComponent(currentUser.name)}`);
+    const data = await res.json();
+    const stats = document.getElementById('syncStats');
+    if (data.scrobbles > 0) {
+      const earliest = data.earliest ? new Date(data.earliest).toLocaleDateString() : '?';
+      const latest   = data.latest   ? new Date(data.latest).toLocaleDateString()   : '?';
+      stats.textContent = `${Number(data.scrobbles).toLocaleString()} scrobbles stored · ${earliest} – ${latest}`;
+      document.getElementById('lfmSyncInfo').textContent =
+        `Last stored: ${latest} · ${Number(data.scrobbles).toLocaleString()} scrobbles`;
+    } else {
+      stats.textContent = 'No scrobbles stored yet';
+      document.getElementById('lfmSyncInfo').textContent = 'No data synced yet — first sync may take a few minutes.';
+    }
+  } catch {}
+}
+
+// ── Last.fm sync (loops through pages) ────────────────────────────
+async function syncLastfm() {
+  if (!currentUser) return;
+  const btn = document.getElementById('lfmSyncBtn');
+  const prog = document.getElementById('lfmProgress');
+  const fill = document.getElementById('lfmFill');
+  const label = document.getElementById('lfmLabel');
+
+  btn.disabled = true;
+  prog.style.display = '';
+  setResult('lfmResult', '', '');
+
+  let page = 1;
+  let totalSynced = 0;
+  let totalPages = null;
+  let hasMore = true;
+
+  while (hasMore) {
+    label.textContent = totalPages
+      ? `Syncing page ${page} of ${totalPages}…`
+      : `Syncing… (page ${page})`;
+    if (totalPages) fill.style.width = `${Math.round((page / totalPages) * 100)}%`;
+
+    try {
+      const res = await fetch(
+        `${API}/api/sync/lastfm/${encodeURIComponent(currentUser.name)}`,
+        { method: 'POST', headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({ page }) }
+      );
+      const data = await res.json();
+      if (data.error) { setResult('lfmResult', data.error, 'err'); break; }
+
+      totalSynced += data.synced || 0;
+      totalPages = data.total_pages;
+      hasMore = data.has_more;
+      page = data.next_page || (page + 25);
+    } catch (e) {
+      setResult('lfmResult', 'Connection error. Try again.', 'err');
+      break;
+    }
+  }
+
+  fill.style.width = '100%';
+  label.textContent = 'Done!';
+  setResult('lfmResult', `✓ ${totalSynced.toLocaleString()} scrobbles synced`, 'ok');
+  btn.disabled = false;
+  setTimeout(() => { prog.style.display = 'none'; }, 2000);
+  loadSyncStatus();
+}
+
+// ── File upload ────────────────────────────────────────────────────
+function handleFileUpload(file) {
+  if (!file || !currentUser) return;
+  const result = document.getElementById('uploadResult');
+  result.textContent = `Uploading ${file.name}…`;
+  result.className = 'import-result';
+
+  const zone = document.getElementById('dropZone');
+  zone.querySelector('.drop-label').textContent = file.name;
+
+  const formData = new FormData();
+  formData.append('file', file);
+
+  fetch(`${API}/api/sync/upload/${encodeURIComponent(currentUser.name)}`, {
+    method: 'POST', body: formData,
+  })
+    .then(r => r.json())
+    .then(data => {
+      if (data.error) { setResult('uploadResult', data.error, 'err'); return; }
+      setResult('uploadResult',
+        `✓ ${data.synced.toLocaleString()} of ${data.total.toLocaleString()} records imported`, 'ok');
+      loadSyncStatus();
+    })
+    .catch(() => setResult('uploadResult', 'Upload failed. Try again.', 'err'));
+
+  document.getElementById('fileInput').value = '';
+}
+
+// ── Drag-and-drop wiring (set up after DOM ready) ──────────────────
+function initDropZone() {
+  const zone = document.getElementById('dropZone');
+  if (!zone) return;
+  zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('dragover'); });
+  zone.addEventListener('dragleave', () => zone.classList.remove('dragover'));
+  zone.addEventListener('drop', e => {
+    e.preventDefault();
+    zone.classList.remove('dragover');
+    const file = e.dataTransfer.files[0];
+    if (file) handleFileUpload(file);
+  });
+}
+
+// ── Google Sheets sync ─────────────────────────────────────────────
+async function syncSheets() {
+  if (!currentUser) return;
+  const url = document.getElementById('sheetsUrl').value.trim();
+  if (!url) { setResult('sheetsResult', 'Paste a Google Sheets URL first.', 'err'); return; }
+
+  setResult('sheetsResult', 'Fetching sheet…', '');
+  try {
+    const res = await fetch(
+      `${API}/api/sync/sheets/${encodeURIComponent(currentUser.name)}`,
+      { method: 'POST', headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ url }) }
+    );
+    const data = await res.json();
+    if (data.error) { setResult('sheetsResult', data.error, 'err'); return; }
+    setResult('sheetsResult',
+      `✓ ${data.synced.toLocaleString()} of ${data.total.toLocaleString()} records imported`, 'ok');
+    loadSyncStatus();
+  } catch {
+    setResult('sheetsResult', 'Connection error. Try again.', 'err');
+  }
+}
+
 // ── WEEKLY NAVIGATION ─────────────────────────────────────────────
 function showDateNav(visible) {
   const nav = document.getElementById('dateNav');
@@ -420,6 +578,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Ctrl panels
   initCtrlGroups();
+
+  // Drop zone for file import
+  initDropZone();
 
   // Period buttons
   document.querySelectorAll('.period-nav button').forEach(btn => {

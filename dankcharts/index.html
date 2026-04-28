@@ -73,7 +73,70 @@
         <span class="user-name" id="userName"></span>
         <span class="user-playcount" id="userPlaycount"></span>
       </div>
+      <button class="import-btn" onclick="openImportModal()">↑ Import Data</button>
       <button class="change-user-btn" onclick="changeUser()" data-i18n="change_user">Change user</button>
+    </div>
+
+    <!-- ── IMPORT MODAL ────────────────────────────────────────── -->
+    <div class="modal-overlay" id="importModal" style="display:none" onclick="closeImportModal(event)">
+      <div class="modal" onclick="event.stopPropagation()">
+        <div class="modal-header">
+          <h2>↑ Import Your Music Data</h2>
+          <button class="modal-close" onclick="closeImportModal()">✕</button>
+        </div>
+
+        <div class="modal-tabs">
+          <button class="modal-tab active" data-tab="lastfm" onclick="switchImportTab('lastfm')">Last.fm API</button>
+          <button class="modal-tab" data-tab="upload" onclick="switchImportTab('upload')">Upload File</button>
+          <button class="modal-tab" data-tab="sheets" onclick="switchImportTab('sheets')">Google Sheets</button>
+        </div>
+
+        <div class="modal-body">
+
+          <!-- Last.fm tab -->
+          <div class="tab-pane" id="tab-lastfm">
+            <p class="tab-desc">Sync your scrobble history directly from Last.fm. On first run this fetches everything; after that only new plays are added.</p>
+            <div class="sync-info" id="lfmSyncInfo"></div>
+            <button class="action-btn" id="lfmSyncBtn" onclick="syncLastfm()">↑ Sync Now</button>
+            <div class="progress-wrap" id="lfmProgress" style="display:none">
+              <div class="progress-bar"><div class="progress-fill" id="lfmFill" style="width:0%"></div></div>
+              <div class="progress-label" id="lfmLabel">Connecting...</div>
+            </div>
+            <div class="import-result" id="lfmResult"></div>
+          </div>
+
+          <!-- Upload tab -->
+          <div class="tab-pane" id="tab-upload" style="display:none">
+            <p class="tab-desc">Upload your listening history. Supported formats:</p>
+            <ul class="format-list">
+              <li><strong>Last.fm CSV</strong> — download from last.fm/settings/account → Export data</li>
+              <li><strong>Spotify ZIP</strong> — request from spotify.com/us/account/privacy → Extended streaming history</li>
+              <li><strong>Deezer XLSX</strong> — download from deezer.com/us/profile → Listening history</li>
+              <li><strong>Google Sheets CSV</strong> — your mycharts sheet, File → Download → CSV</li>
+            </ul>
+            <div class="drop-zone" id="dropZone" onclick="document.getElementById('fileInput').click()">
+              <div class="drop-icon">📂</div>
+              <div class="drop-label">Drop file here or click to browse</div>
+              <div class="drop-sub">.csv &nbsp;·&nbsp; .zip &nbsp;·&nbsp; .xlsx &nbsp;·&nbsp; .xls</div>
+            </div>
+            <input type="file" id="fileInput" accept=".csv,.zip,.xlsx,.xls" style="display:none" onchange="handleFileUpload(this.files[0])">
+            <div class="import-result" id="uploadResult"></div>
+          </div>
+
+          <!-- Google Sheets tab -->
+          <div class="tab-pane" id="tab-sheets" style="display:none">
+            <p class="tab-desc">Paste your Google Sheets URL. The sheet must be set to <strong>Anyone with the link can view</strong>.</p>
+            <input type="url" id="sheetsUrl" class="sheets-input" placeholder="https://docs.google.com/spreadsheets/d/...">
+            <button class="action-btn" onclick="syncSheets()">↑ Import from Sheet</button>
+            <div class="import-result" id="sheetsResult"></div>
+          </div>
+
+        </div>
+
+        <div class="modal-footer">
+          <div class="sync-stats" id="syncStats"></div>
+        </div>
+      </div>
     </div>
 
     <div class="period-nav" id="periodNav">

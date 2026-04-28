@@ -10,9 +10,11 @@ CORS(app, origins=os.getenv('ALLOWED_ORIGINS', '*').split(','))
 
 import lastfm
 import spotify
+import sync
 
 app.register_blueprint(lastfm.bp)
 app.register_blueprint(spotify.bp)
+app.register_blueprint(sync.bp)
 
 
 @app.route('/health')
