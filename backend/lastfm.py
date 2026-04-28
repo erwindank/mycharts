@@ -1,0 +1,102 @@
+from flask import Blueprint, jsonify, request
+import requests
+import os
+
+bp = Blueprint('lastfm', __name__, url_prefix='/api/lastfm')
+
+LASTFM_API_KEY = os.getenv('LASTFM_API_KEY')
+LASTFM_BASE_URL = 'https://ws.audioscrobbler.com/2.0/'
+
+
+def lastfm_get(method, params=None):
+    if params is None:
+        params = {}
+    all_params = {
+        'method': method,
+        'api_key': LASTFM_API_KEY,
+        'format': 'json',
+        **params,
+    }
+    r = requests.get(LASTFM_BASE_URL, params=all_params, timeout=10)
+    r.raise_for_status()
+    data = r.json()
+    if 'error' in data:
+        raise ValueError(data.get('message', 'Last.fm API error'))
+    return data
+
+
+def api_error(message, status=400):
+    return jsonify({'error': message}), status
+
+
+@bp.route('/user/<username>')
+def user_info(username):
+    try:
+        return jsonify(lastfm_get('user.getInfo', {'user': username}))
+    except ValueError as e:
+        return api_error(str(e))
+    except requests.RequestException:
+        return api_error('Could not reach Last.fm', 502)
+
+
+@bp.route('/recent/<username>')
+def recent_tracks(username):
+    limit = request.args.get('limit', 200)
+    try:
+        return jsonify(lastfm_get('user.getRecentTracks', {
+            'user': username,
+            'limit': limit,
+            'extended': 1,
+        }))
+    except ValueError as e:
+        return api_error(str(e))
+    except requests.RequestException:
+        return api_error('Could not reach Last.fm', 502)
+
+
+@bp.route('/top/artists/<username>')
+def top_artists(username):
+    period = request.args.get('period', '7day')
+    limit = request.args.get('limit', 50)
+    try:
+        return jsonify(lastfm_get('user.getTopArtists', {
+            'user': username,
+            'period': period,
+            'limit': limit,
+        }))
+    except ValueError as e:
+        return api_error(str(e))
+    except requests.RequestException:
+        return api_error('Could not reach Last.fm', 502)
+
+
+@bp.route('/top/tracks/<username>')
+def top_tracks(username):
+    period = request.args.get('period', '7day')
+    limit = request.args.get('limit', 50)
+    try:
+        return jsonify(lastfm_get('user.getTopTracks', {
+            'user': username,
+            'period': period,
+            'limit': limit,
+        }))
+    except ValueError as e:
+        return api_error(str(e))
+    except requests.RequestException:
+        return api_error('Could not reach Last.fm', 502)
+
+
+@bp.route('/top/albums/<username>')
+def top_albums(username):
+    period = request.args.get('period', '7day')
+    limit = request.args.get('limit', 50)
+    try:
+        return jsonify(lastfm_get('user.getTopAlbums', {
+            'user': username,
+            'period': period,
+            'limit': limit,
+        }))
+    except ValueError as e:
+        return api_error(str(e))
+    except requests.RequestException:
+        return api_error('Could not reach Last.fm', 502)
