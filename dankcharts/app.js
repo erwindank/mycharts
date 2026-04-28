@@ -1,4 +1,4 @@
-const API = 'https://api.dankcharts.fm';
+const API = 'https://dankcharts-api.onrender.com';
 
 let currentUser = null;
 let currentPeriod = 'weekly';
