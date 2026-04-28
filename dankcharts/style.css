@@ -63,6 +63,22 @@ body.pink-light {
   --gold1: #78380e; --gold2: #b05c00;
   --rose: #881337; --green: #14532d;
 }
+body.yellow {
+  --bg: #0e0c02; --bg2: #1a1800; --bg3: #222000;
+  --surface: #302c00; --border: #4a4400; --border2: #6a6000;
+  --text: #fffff0; --text2: #e0d890; --text3: #b0a840;
+  --accent: #e0b800; --accent2: #f0d040;
+  --gold1: #f59e0b; --gold2: #fcd34d;
+  --rose: #fb7185; --green: #34d399;
+}
+body.yellow-light {
+  --bg: #fffde8; --bg2: #fffff0; --bg3: #fff8c0;
+  --surface: #fff0a0; --border: #e8d840; --border2: #c8b800;
+  --text: #1a1800; --text2: #3a3200; --text3: #6a5800;
+  --accent: #8a6800; --accent2: #6a5000;
+  --gold1: #78380e; --gold2: #b05c00;
+  --rose: #881337; --green: #14532d;
+}
 
 /* ── BASE ───────────────────────────────────────────────────────── */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -365,6 +381,57 @@ body {
   color: var(--bg);
   font-weight: 600;
 }
+
+/* ── DATE NAV ───────────────────────────────────────────────────── */
+.date-nav {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  padding: 10px 20px;
+  background: var(--bg2);
+  border-bottom: 1px solid var(--border);
+}
+
+.date-nav button {
+  background: var(--surface);
+  border: 1px solid var(--border2);
+  color: var(--text2);
+  padding: 5px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-family: 'DM Mono', monospace;
+  font-size: 0.72rem;
+  letter-spacing: 0.04em;
+  transition: border-color 0.15s, color 0.15s;
+}
+.date-nav button:hover:not(:disabled) { border-color: var(--accent); color: var(--accent); }
+.date-nav button:disabled { opacity: 0.3; cursor: default; }
+
+.period-label {
+  font-family: 'DM Serif Display', serif;
+  font-size: 1.05rem;
+  color: var(--text);
+  min-width: 220px;
+  text-align: center;
+}
+
+/* ── STATS STRIP ────────────────────────────────────────────────── */
+.stats-strip {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 7px 20px;
+  background: var(--bg3);
+  border-bottom: 1px solid var(--border);
+  font-family: 'DM Mono', monospace;
+  font-size: 0.7rem;
+  color: var(--text3);
+  flex-wrap: wrap;
+}
+.stat-val { color: var(--accent); font-weight: 500; }
+.stat-dot { color: var(--border2); }
 
 /* ── LIMIT BAR ──────────────────────────────────────────────────── */
 .chart-limit-bar {

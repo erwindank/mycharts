@@ -23,6 +23,8 @@
           <button class="theme-btn" data-theme="purple-light" title="Purple Light">●</button>
           <button class="theme-btn" data-theme="red" title="Red Dark">●</button>
           <button class="theme-btn" data-theme="red-light" title="Red Light">●</button>
+          <button class="theme-btn" data-theme="yellow" title="Yellow Dark">●</button>
+          <button class="theme-btn" data-theme="yellow-light" title="Yellow Light">●</button>
           <button class="theme-btn" data-theme="pink" title="Pink Dark">●</button>
           <button class="theme-btn" data-theme="pink-light" title="Pink Light">●</button>
           <span id="themeLabel">Navy</span>
@@ -75,7 +77,7 @@
     </div>
 
     <div class="period-nav" id="periodNav">
-      <button class="active" data-period="7day" data-i18n="period_7day">7 Days</button>
+      <button class="active" data-period="weekly">Weekly</button>
       <button data-period="1month" data-i18n="period_1month">1 Month</button>
       <button data-period="3month" data-i18n="period_3month">3 Months</button>
       <button data-period="6month" data-i18n="period_6month">6 Months</button>
@@ -83,12 +85,21 @@
       <button data-period="overall" data-i18n="period_overall">All Time</button>
     </div>
 
+    <div class="date-nav" id="dateNav" style="display:none">
+      <button id="prevWeekBtn" onclick="navigateWeek(-1)" disabled>◄ Prev</button>
+      <div id="periodLabel" class="period-label">Loading...</div>
+      <button id="nextWeekBtn" onclick="navigateWeek(1)" disabled>Next ►</button>
+    </div>
+
+    <div class="stats-strip" id="statsStrip" style="display:none"></div>
+
     <div class="chart-limit-bar">
       <label data-i18n="limit_label">Show:</label>
       <div class="limit-btns">
         <button data-limit="10" data-i18n="limit_10">Top 10</button>
         <button data-limit="25" class="active" data-i18n="limit_25">Top 25</button>
         <button data-limit="50" data-i18n="limit_50">Top 50</button>
+        <button data-limit="100">Top 100</button>
       </div>
     </div>
 

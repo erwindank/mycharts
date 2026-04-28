@@ -1,8 +1,10 @@
 const API = 'https://api.dankcharts.fm';
 
 let currentUser = null;
-let currentPeriod = '7day';
+let currentPeriod = 'weekly';
 let currentLimit = 25;
+let weeksList = [];
+let currentWeekIndex = -1;
 
 // ── TRANSLATIONS ──────────────────────────────────────────────────
 const LANGS = {
@@ -79,16 +81,18 @@ function setLanguage(l) {
 }
 
 // ── THEMES ────────────────────────────────────────────────────────
-const THEME_CLASSES = ['navy-light', 'purple', 'purple-light', 'red', 'red-light', 'pink', 'pink-light'];
+const THEME_CLASSES = ['navy-light', 'purple', 'purple-light', 'red', 'red-light', 'yellow', 'yellow-light', 'pink', 'pink-light'];
 const THEME_COLORS = {
   'navy-dark': '#1a6eb5', 'navy-light': '#90c4f4',
   'purple': '#7c6af7', 'purple-light': '#c4b8ff',
   'red': '#cc2020', 'red-light': '#ff9999',
+  'yellow': '#e0b800', 'yellow-light': '#c8a000',
   'pink': '#cc2090', 'pink-light': '#ffaadd',
 };
 const THEME_NAMES = {
   'navy-dark': 'Navy', 'navy-light': 'Navy ☀', 'purple': 'Purple', 'purple-light': 'Purple ☀',
-  'red': 'Red', 'red-light': 'Red ☀', 'pink': 'Pink', 'pink-light': 'Pink ☀',
+  'red': 'Red', 'red-light': 'Red ☀', 'yellow': 'Yellow', 'yellow-light': 'Yellow ☀',
+  'pink': 'Pink', 'pink-light': 'Pink ☀',
 };
 
 function applyTheme(theme) {
@@ -137,6 +141,8 @@ function showCharts() {
 function changeUser() {
   localStorage.removeItem('dc_lfm_username');
   currentUser = null;
+  weeksList = [];
+  currentWeekIndex = -1;
   showLanding();
   document.getElementById('usernameInput').value = '';
   document.getElementById('landingError').textContent = '';
@@ -207,6 +213,15 @@ function setLoaded(section) {
 
 async function loadCharts() {
   if (!currentUser) return;
+  if (currentPeriod === 'weekly') {
+    await switchToWeekly();
+    return;
+  }
+
+  showDateNav(false);
+  const statsStrip = document.getElementById('statsStrip');
+  if (statsStrip) statsStrip.style.display = 'none';
+
   const username = encodeURIComponent(currentUser.name);
   const params = `period=${currentPeriod}&limit=${currentLimit}`;
 
@@ -281,6 +296,109 @@ function renderAlbums(albums) {
       </td>
       <td class="plays-cell">${Number(a.playcount).toLocaleString()}</td>
     </tr>`).join('');
+}
+
+// ── WEEKLY NAVIGATION ─────────────────────────────────────────────
+function showDateNav(visible) {
+  const nav = document.getElementById('dateNav');
+  if (nav) nav.style.display = visible ? '' : 'none';
+}
+
+async function fetchWeeksList() {
+  const username = encodeURIComponent(currentUser.name);
+  const res = await fetch(`${API}/api/lastfm/weekly/charts/${username}`);
+  const data = await res.json();
+  weeksList = (data.weeklychartlist?.chart || [])
+    .sort((a, b) => parseInt(a.from) - parseInt(b.from));
+  currentWeekIndex = weeksList.length - 1;
+}
+
+async function switchToWeekly() {
+  showDateNav(true);
+  if (weeksList.length === 0) {
+    document.getElementById('periodLabel').textContent = 'Loading weeks...';
+    document.getElementById('prevWeekBtn').disabled = true;
+    document.getElementById('nextWeekBtn').disabled = true;
+    setLoading('artists');
+    setLoading('tracks');
+    setLoading('albums');
+    try {
+      await fetchWeeksList();
+    } catch {
+      document.getElementById('periodLabel').textContent = 'Could not load weeks';
+      return;
+    }
+  }
+  updateDateNav();
+  await loadWeeklyCharts();
+}
+
+async function loadWeeklyCharts() {
+  if (!weeksList.length || currentWeekIndex < 0) return;
+  const week = weeksList[currentWeekIndex];
+  const username = encodeURIComponent(currentUser.name);
+  const params = `from=${week.from}&to=${week.to}`;
+
+  updateSectionTitles();
+  setLoading('artists');
+  setLoading('tracks');
+  setLoading('albums');
+
+  const [ar, tr, al] = await Promise.allSettled([
+    fetch(`${API}/api/lastfm/weekly/artists/${username}?${params}`).then(r => r.json()),
+    fetch(`${API}/api/lastfm/weekly/tracks/${username}?${params}`).then(r => r.json()),
+    fetch(`${API}/api/lastfm/weekly/albums/${username}?${params}`).then(r => r.json()),
+  ]);
+
+  const artists = ar.status === 'fulfilled' ? (ar.value.weeklyartistchart?.artist || []) : [];
+  const tracks  = tr.status === 'fulfilled' ? (tr.value.weeklytrackchart?.track   || []) : [];
+  const albums  = al.status === 'fulfilled' ? (al.value.weeklyalbumchart?.album   || []) : [];
+
+  renderArtists(artists.slice(0, currentLimit));
+  renderTracks(tracks.slice(0, currentLimit));
+  renderAlbums(albums.slice(0, currentLimit));
+
+  setLoaded('artists');
+  setLoaded('tracks');
+  setLoaded('albums');
+
+  const totalPlays = tracks.reduce((s, t) => s + parseInt(t.playcount || 0), 0);
+  updateStatsStrip(totalPlays, artists.length, tracks.length, albums.length);
+}
+
+function navigateWeek(delta) {
+  const newIndex = currentWeekIndex + delta;
+  if (newIndex < 0 || newIndex >= weeksList.length) return;
+  currentWeekIndex = newIndex;
+  updateDateNav();
+  loadWeeklyCharts();
+}
+
+function updateDateNav() {
+  if (!weeksList.length || currentWeekIndex < 0) return;
+  const week = weeksList[currentWeekIndex];
+  const from = new Date(parseInt(week.from) * 1000);
+  const to   = new Date(parseInt(week.to)   * 1000);
+  const fromStr = from.toLocaleDateString('en', { month: 'short', day: 'numeric' });
+  const toStr   = to.toLocaleDateString('en',   { month: 'short', day: 'numeric', year: 'numeric' });
+  document.getElementById('periodLabel').textContent = `${fromStr} – ${toStr}`;
+  document.getElementById('prevWeekBtn').disabled = currentWeekIndex <= 0;
+  document.getElementById('nextWeekBtn').disabled = currentWeekIndex >= weeksList.length - 1;
+}
+
+function updateStatsStrip(plays, artists, tracks, albums) {
+  const strip = document.getElementById('statsStrip');
+  if (!strip) return;
+  strip.style.display = '';
+  strip.innerHTML = `
+    <span><span class="stat-val">${plays.toLocaleString()}</span> plays</span>
+    <span class="stat-dot">·</span>
+    <span><span class="stat-val">${artists.toLocaleString()}</span> artists</span>
+    <span class="stat-dot">·</span>
+    <span><span class="stat-val">${tracks.toLocaleString()}</span> tracks</span>
+    <span class="stat-dot">·</span>
+    <span><span class="stat-val">${albums.toLocaleString()}</span> albums</span>
+  `;
 }
 
 // ── INIT ──────────────────────────────────────────────────────────
