@@ -12,8 +12,8 @@ let localWeekOffset = 0;   // weeks back from current week for local nav
 const LANGS = {
   en: {
     tagline: 'Your listening history. Your charts. Your legacy.',
-    landing_title: 'See your music charts',
-    landing_desc: 'Enter your Last.fm username to view your top artists, tracks, and albums.',
+    landing_title: 'Your Music Charts',
+    landing_desc: 'Import your listening history to see your personal charts — no account required.',
     landing_btn: 'View Charts →',
     change_user: 'Change user',
     period_7day: '7 Days', period_1month: '1 Month', period_3month: '3 Months',
@@ -29,8 +29,8 @@ const LANGS = {
   },
   es: {
     tagline: 'Tu historial de escucha. Tus charts. Tu legado.',
-    landing_title: 'Ve tus charts musicales',
-    landing_desc: 'Ingresa tu usuario de Last.fm para ver tus artistas, canciones y álbumes favoritos.',
+    landing_title: 'Tus Charts Musicales',
+    landing_desc: 'Importa tu historial de escucha para ver tus charts personales — sin cuenta requerida.',
     landing_btn: 'Ver Charts →',
     change_user: 'Cambiar usuario',
     period_7day: '7 Días', period_1month: '1 Mes', period_3month: '3 Meses',
@@ -46,8 +46,8 @@ const LANGS = {
   },
   'pt-BR': {
     tagline: 'Seu histórico de escuta. Seus charts. Seu legado.',
-    landing_title: 'Veja seus charts musicais',
-    landing_desc: 'Digite seu usuário do Last.fm para ver seus artistas, faixas e álbuns favoritos.',
+    landing_title: 'Seus Charts Musicais',
+    landing_desc: 'Importe seu histórico de escuta para ver seus charts pessoais — sem conta necessária.',
     landing_btn: 'Ver Charts →',
     change_user: 'Trocar usuário',
     period_7day: '7 Dias', period_1month: '1 Mês', period_3month: '3 Meses',
@@ -164,7 +164,6 @@ async function startCharts() {
   errEl.textContent = '';
 
   try {
-    // Check local IDB data first — no Last.fm account needed
     const localCount = await countIDB(username);
     if (localCount > 0) {
       localScrobbles = null;
@@ -177,22 +176,13 @@ async function startCharts() {
       return;
     }
 
-    // Fall back to Last.fm API
-    const res = await fetch(`${API}/api/lastfm/user/${encodeURIComponent(username)}`);
-    const data = await res.json();
-
-    if (data.error) {
-      errEl.textContent = t('err_not_found');
-      return;
-    }
-
-    currentUser = data.user;
-    localStorage.setItem('dc_lfm_username', username);
-    renderUserBar(currentUser);
-    showCharts();
-    loadCharts();
+    // No local data — open import modal so user can bring in their history
+    errEl.textContent = 'No data found for this name — import your listening history below.';
+    const nameInput = document.getElementById('modalUsernameInput');
+    if (nameInput) nameInput.value = username;
+    openImportModal();
   } catch {
-    errEl.textContent = t('err_network');
+    errEl.textContent = 'Error checking data. Try again.';
   } finally {
     btn.disabled = false;
     btn.textContent = t('landing_btn');
@@ -483,11 +473,9 @@ function getImportUsername() {
 
 function openImportModal() {
   const userRow = document.getElementById('modalUserRow');
-  if (currentUser) {
-    userRow.style.display = 'none';
-  } else {
-    userRow.style.display = '';
-  }
+  userRow.style.display = ''; // always visible so user knows which name data is saved under
+  const nameInput = document.getElementById('modalUsernameInput');
+  if (nameInput && currentUser && !nameInput.value) nameInput.value = currentUser.name;
   document.getElementById('importModal').style.display = 'flex';
   loadSyncStatus();
 }
@@ -508,6 +496,22 @@ function setResult(elId, msg, type) {
   const el = document.getElementById(elId);
   el.textContent = msg;
   el.className = `import-result ${type}`;
+}
+
+async function navigateAfterImport(username) {
+  if (!username) return;
+  const localCount = await countIDB(username);
+  if (localCount === 0) return;
+  localScrobbles = null;
+  localWeekOffset = 0;
+  currentUser = { name: username, isLocal: true, playcount: localCount, image: [] };
+  localStorage.setItem('dc_lfm_username', username);
+  renderUserBarLocal(username, localCount);
+  setTimeout(() => {
+    closeImportModal();
+    showCharts();
+    loadCharts();
+  }, 1200); // brief pause so the success message is visible
 }
 
 // ── IndexedDB helpers ─────────────────────────────────────────────
@@ -609,8 +613,11 @@ async function loadSyncStatus() {
 
 // ── Last.fm sync (client-side via backend proxy, stores in IDB) ───
 async function syncLastfm() {
-  const username = getImportUsername();
-  if (!username) { setResult('lfmResult', 'Enter a display name above first.', 'err'); return; }
+  const displayName = getImportUsername();
+  if (!displayName) { setResult('lfmResult', 'Enter a display name above first.', 'err'); return; }
+  const lfmUsername = (document.getElementById('lfmUsername')?.value || '').trim() || displayName;
+  if (!lfmUsername) { setResult('lfmResult', 'Enter your Last.fm username above.', 'err'); return; }
+  const username = displayName; // IDB key is always the display name
   const btn = document.getElementById('lfmSyncBtn');
   const prog = document.getElementById('lfmProgress');
   const fill = document.getElementById('lfmFill');
@@ -635,7 +642,7 @@ async function syncLastfm() {
         : `Syncing… (page ${page})`;
       if (totalPages) fill.style.width = `${Math.round((page / totalPages) * 100)}%`;
 
-      let url = `${API}/api/lastfm/recenttracks/${encodeURIComponent(username)}?page=${page}&limit=200`;
+      let url = `${API}/api/lastfm/recenttracks/${encodeURIComponent(lfmUsername)}?page=${page}&limit=200`;
       if (fromTs) url += `&from=${fromTs}`;
       const res = await fetch(url);
       if (!res.ok) throw new Error(`Server error (${res.status})`);
@@ -666,17 +673,19 @@ async function syncLastfm() {
 
     fill.style.width = '100%';
     label.textContent = 'Done!';
-    setResult('lfmResult', totalSynced > 0
-      ? `✓ ${totalSynced.toLocaleString()} scrobbles synced`
-      : '✓ Already up to date', 'ok');
+    const msg = totalSynced > 0
+      ? `✓ ${totalSynced.toLocaleString()} scrobbles synced — loading charts…`
+      : '✓ Already up to date';
+    setResult('lfmResult', msg, 'ok');
+    localScrobbles = null;
+    loadSyncStatus();
+    if (totalSynced > 0) navigateAfterImport(username);
   } catch (e) {
     setResult('lfmResult', e.message || 'Connection error. Try again.', 'err');
   }
 
   btn.disabled = false;
   setTimeout(() => { prog.style.display = 'none'; }, 2000);
-  localScrobbles = null; // force reload on next chart render
-  loadSyncStatus();
 }
 
 // ── File helpers ──────────────────────────────────────────────────
@@ -787,9 +796,10 @@ async function handleFileUpload(file) {
 
     setResult('uploadResult', `Saving ${scrobbles.length.toLocaleString()} records…`, '');
     const count = await saveToIDB(username, scrobbles);
-    setResult('uploadResult', `✓ ${count.toLocaleString()} of ${scrobbles.length.toLocaleString()} records imported`, 'ok');
-    localScrobbles = null; // force reload on next chart render
+    setResult('uploadResult', `✓ ${count.toLocaleString()} of ${scrobbles.length.toLocaleString()} records saved — loading charts…`, 'ok');
+    localScrobbles = null;
     loadSyncStatus();
+    navigateAfterImport(username);
   } catch (e) {
     setResult('uploadResult', `Error: ${e.message || 'Could not parse file'}`, 'err');
   }
@@ -821,20 +831,23 @@ async function syncSheets() {
   const sheetMatch = url.match(/\/spreadsheets\/d\/([a-zA-Z0-9_-]+)/);
   if (!sheetMatch) { setResult('sheetsResult', 'Invalid Google Sheets URL.', 'err'); return; }
   const sheetId = sheetMatch[1];
-  const gidMatch = url.match(/[?&]gid=(\d+)/);
-  const gid = gidMatch ? gidMatch[1] : '0';
+  // Support gid in query string (?gid=) or hash (#gid=)
+  const gidMatch = url.match(/[?&#]gid=(\d+)/);
+  const gid = gidMatch ? gidMatch[1] : null;
 
   setResult('sheetsResult', 'Fetching sheet…', '');
   try {
-    const csvUrl = `https://docs.google.com/spreadsheets/d/${sheetId}/export?format=csv&gid=${gid}`;
+    // gviz/tq handles large sheets (>10 MB) without truncation unlike export?format=csv
+    const csvUrl = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:csv;charset:UTF-8${gid && gid !== '0' ? `&gid=${gid}` : ''}`;
     const csvRes = await fetch(csvUrl);
     if (!csvRes.ok) throw new Error(`Could not fetch sheet (${csvRes.status})`);
     const ct = csvRes.headers.get('content-type') || '';
-    if (ct.includes('html')) {
+    if (ct.includes('text/html')) {
       setResult('sheetsResult', 'Sheet is not public — set sharing to "Anyone with the link can view".', 'err');
       return;
     }
-    const csvText = await csvRes.text();
+    const buffer = await csvRes.arrayBuffer();
+    const csvText = new TextDecoder('utf-8').decode(buffer);
 
     setResult('sheetsResult', 'Parsing…', '');
     const rows = parseSheetCsv(csvText);
@@ -845,9 +858,10 @@ async function syncSheets() {
 
     setResult('sheetsResult', `Saving ${rows.length.toLocaleString()} records…`, '');
     const count = await saveToIDB(username, rows);
-    setResult('sheetsResult', `✓ ${count.toLocaleString()} of ${rows.length.toLocaleString()} records imported`, 'ok');
-    localScrobbles = null; // force reload on next chart render
+    setResult('sheetsResult', `✓ ${count.toLocaleString()} of ${rows.length.toLocaleString()} records saved — loading charts…`, 'ok');
+    localScrobbles = null;
     loadSyncStatus();
+    navigateAfterImport(username);
   } catch (e) {
     setResult('sheetsResult', e.message || 'Connection error. Try again.', 'err');
   }

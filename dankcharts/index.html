@@ -50,20 +50,16 @@
   <div id="landing">
     <div class="landing-card">
       <div class="landing-icon">♫</div>
-      <h2 data-i18n="landing_title">See your music charts</h2>
-      <p data-i18n="landing_desc">Enter your Last.fm username to view your top artists, tracks, and albums.</p>
+      <h2 data-i18n="landing_title">Your Music Charts</h2>
+      <p data-i18n="landing_desc">Import your listening history to see your personal charts — no account required.</p>
+      <button class="landing-import-btn" onclick="openImportModal()" style="margin-bottom:0.5rem">↑ Import Your Listening History</button>
+      <p class="landing-import-hint">Google Sheets · CSV · Spotify ZIP · Deezer XLSX · Last.fm API</p>
+      <div class="landing-divider"><span>or continue as</span></div>
       <div class="landing-input-row">
-        <input type="text" id="usernameInput" placeholder="Last.fm username" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
+        <input type="text" id="usernameInput" placeholder="Your display name" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
         <button id="goBtn" onclick="startCharts()" data-i18n="landing_btn">View Charts →</button>
       </div>
       <div class="landing-error" id="landingError"></div>
-      <div class="landing-services">
-        <span class="service-badge lastfm-badge">Last.fm</span>
-        <span class="service-badge coming-soon">Spotify — coming soon</span>
-      </div>
-      <div class="landing-divider"><span>or</span></div>
-      <button class="landing-import-btn" onclick="openImportModal()">↑ Import Your Listening History</button>
-      <p class="landing-import-hint">Upload a CSV, Spotify ZIP, Deezer XLSX, or paste a Google Sheets link — no Last.fm account needed</p>
     </div>
   </div>
 
@@ -76,7 +72,6 @@
         <span class="user-name" id="userName"></span>
         <span class="user-playcount" id="userPlaycount"></span>
       </div>
-      <button class="import-btn" onclick="openImportModal()">↑ Import Data</button>
       <button class="change-user-btn" onclick="changeUser()" data-i18n="change_user">Change user</button>
     </div>
 
@@ -173,6 +168,8 @@
         <!-- Last.fm tab -->
         <div class="tab-pane" id="tab-lastfm">
           <p class="tab-desc">Sync your scrobble history directly from Last.fm. On first run this fetches everything; after that only new plays are added.</p>
+          <label class="modal-user-label" style="display:block;margin-bottom:0.25rem;font-size:0.7rem;font-weight:600;letter-spacing:0.08em;color:var(--text3)">LAST.FM USERNAME</label>
+          <input type="text" id="lfmUsername" class="modal-user-input" placeholder="your_lastfm_username" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" style="margin-bottom:0.75rem">
           <div class="sync-info" id="lfmSyncInfo"></div>
           <button class="action-btn" id="lfmSyncBtn" onclick="syncLastfm()">↑ Sync Now</button>
           <div class="progress-wrap" id="lfmProgress" style="display:none">
