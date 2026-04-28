@@ -54,6 +54,22 @@ def user_info(username):
         return api_error('Could not reach Last.fm', 502)
 
 
+@bp.route('/recenttracks/<username>')
+def recent_tracks_paged(username):
+    page = request.args.get('page', 1, type=int)
+    limit = request.args.get('limit', 200, type=int)
+    from_ts = request.args.get('from', type=int)
+    params = {'user': username, 'limit': min(limit, 200), 'page': page, 'extended': 0}
+    if from_ts:
+        params['from'] = from_ts
+    try:
+        return jsonify(lastfm_get('user.getRecentTracks', params))
+    except ValueError as e:
+        return api_error(str(e))
+    except requests.RequestException:
+        return api_error('Could not reach Last.fm', 502)
+
+
 @bp.route('/recent/<username>')
 def recent_tracks(username):
     limit = request.args.get('limit', 200)

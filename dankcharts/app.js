@@ -333,27 +333,91 @@ function setResult(elId, msg, type) {
   el.className = `import-result ${type}`;
 }
 
+// ── IndexedDB helpers ─────────────────────────────────────────────
+const IDB_NAME  = 'dankcharts-public';
+const IDB_VER   = 1;
+const IDB_STORE = 'scrobbles';
+
+function openIDB() {
+  return new Promise((resolve, reject) => {
+    const req = indexedDB.open(IDB_NAME, IDB_VER);
+    req.onupgradeneeded = e => {
+      const db = e.target.result;
+      if (!db.objectStoreNames.contains(IDB_STORE)) {
+        const s = db.createObjectStore(IDB_STORE, { keyPath: ['username', 'scrobbled_at'] });
+        s.createIndex('by_user', 'username');
+      }
+    };
+    req.onsuccess = e => resolve(e.target.result);
+    req.onerror = () => reject(req.error);
+  });
+}
+
+async function saveToIDB(username, scrobbles) {
+  const db = await openIDB();
+  let count = 0;
+  const BATCH = 500;
+  for (let i = 0; i < scrobbles.length; i += BATCH) {
+    const batch = scrobbles.slice(i, i + BATCH);
+    await new Promise((resolve, reject) => {
+      const tx = db.transaction(IDB_STORE, 'readwrite');
+      const store = tx.objectStore(IDB_STORE);
+      for (const s of batch) {
+        if (s.scrobbled_at) {
+          store.put({ username, artist: s.artist || '', album: s.album || '', track: s.track || '', scrobbled_at: s.scrobbled_at });
+          count++;
+        }
+      }
+      tx.oncomplete = resolve;
+      tx.onerror = () => reject(tx.error);
+    });
+  }
+  return count;
+}
+
+async function countIDB(username) {
+  const db = await openIDB();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(IDB_STORE, 'readonly');
+    const req = tx.objectStore(IDB_STORE).index('by_user').count(IDBKeyRange.only(username));
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject(req.error);
+  });
+}
+
+async function getIDBDateRange(username) {
+  const db = await openIDB();
+  const range = IDBKeyRange.bound([username, ''], [username, '￿']);
+  const getEdge = dir => new Promise((resolve, reject) => {
+    const tx = db.transaction(IDB_STORE, 'readonly');
+    const req = tx.objectStore(IDB_STORE).openCursor(range, dir);
+    req.onsuccess = e => resolve(e.target.result?.value || null);
+    req.onerror = () => reject(req.error);
+  });
+  const [first, last] = await Promise.all([getEdge('next'), getEdge('prev')]);
+  return { earliest: first?.scrobbled_at || null, latest: last?.scrobbled_at || null };
+}
+
 async function loadSyncStatus() {
   const username = getImportUsername();
   if (!username) return;
   try {
-    const res = await fetch(`${API}/api/sync/status/${encodeURIComponent(username)}`);
-    const data = await res.json();
+    const count = await countIDB(username);
     const stats = document.getElementById('syncStats');
-    if (data.scrobbles > 0) {
-      const earliest = data.earliest ? new Date(data.earliest).toLocaleDateString() : '?';
-      const latest   = data.latest   ? new Date(data.latest).toLocaleDateString()   : '?';
-      stats.textContent = `${Number(data.scrobbles).toLocaleString()} scrobbles stored · ${earliest} – ${latest}`;
+    const fmt = ts => ts ? new Date(ts).toLocaleDateString() : '?';
+    if (count > 0) {
+      const { earliest, latest } = await getIDBDateRange(username);
+      stats.textContent = `${count.toLocaleString()} scrobbles stored · ${fmt(earliest)} – ${fmt(latest)}`;
       document.getElementById('lfmSyncInfo').textContent =
-        `Last stored: ${latest} · ${Number(data.scrobbles).toLocaleString()} scrobbles`;
+        `Last stored: ${fmt(latest)} · ${count.toLocaleString()} scrobbles`;
     } else {
       stats.textContent = 'No scrobbles stored yet';
-      document.getElementById('lfmSyncInfo').textContent = 'No data synced yet — first sync may take a few minutes.';
+      document.getElementById('lfmSyncInfo').textContent = 'No data synced yet.';
     }
   } catch {}
 }
 
-// ── Last.fm sync (loops through pages) ────────────────────────────
+// ── Last.fm sync (client-side via backend proxy, stores in IDB) ───
 async function syncLastfm() {
   const username = getImportUsername();
   if (!username) { setResult('lfmResult', 'Enter a display name above first.', 'err'); return; }
@@ -366,75 +430,182 @@ async function syncLastfm() {
   prog.style.display = '';
   setResult('lfmResult', '', '');
 
-  let page = 1;
-  let totalSynced = 0;
-  let totalPages = null;
-  let hasMore = true;
+  let fromTs = null;
+  try {
+    const { latest } = await getIDBDateRange(username);
+    if (latest) fromTs = Math.floor(new Date(latest).getTime() / 1000) + 1;
+  } catch {}
 
-  while (hasMore) {
-    label.textContent = totalPages
-      ? `Syncing page ${page} of ${totalPages}…`
-      : `Syncing… (page ${page})`;
-    if (totalPages) fill.style.width = `${Math.round((page / totalPages) * 100)}%`;
+  let page = 1, totalPages = null, totalSynced = 0;
 
-    try {
-      const res = await fetch(
-        `${API}/api/sync/lastfm/${encodeURIComponent(username)}`,
-        { method: 'POST', headers: {'Content-Type': 'application/json'},
-          body: JSON.stringify({ page }) }
-      );
+  try {
+    while (true) {
+      label.textContent = totalPages
+        ? `Syncing page ${page} of ${totalPages}…`
+        : `Syncing… (page ${page})`;
+      if (totalPages) fill.style.width = `${Math.round((page / totalPages) * 100)}%`;
+
+      let url = `${API}/api/lastfm/recenttracks/${encodeURIComponent(username)}?page=${page}&limit=200`;
+      if (fromTs) url += `&from=${fromTs}`;
+      const res = await fetch(url);
+      if (!res.ok) throw new Error(`Server error (${res.status})`);
       const data = await res.json();
-      if (data.error) { setResult('lfmResult', data.error, 'err'); break; }
+      if (data.error) throw new Error(data.error);
 
-      totalSynced += data.synced || 0;
-      totalPages = data.total_pages;
-      hasMore = data.has_more;
-      page = data.next_page || (page + 25);
-    } catch (e) {
-      setResult('lfmResult', 'Connection error. Try again.', 'err');
-      break;
+      const attrs = data?.recenttracks?.['@attr'] || {};
+      totalPages = parseInt(attrs.totalPages || '1');
+
+      const tracks = (data?.recenttracks?.track || []).filter(t =>
+        t && typeof t === 'object' && !t['@attr']?.nowplaying && t.date?.uts
+      );
+      const scrobbles = tracks.map(t => ({
+        artist: (typeof t.artist === 'object' ? t.artist['#text'] : t.artist) || '',
+        album:  (typeof t.album  === 'object' ? t.album['#text']  : t.album)  || '',
+        track: t.name || '',
+        scrobbled_at: new Date(parseInt(t.date.uts) * 1000).toISOString(),
+      })).filter(s => s.artist && s.track);
+
+      if (scrobbles.length) {
+        await saveToIDB(username, scrobbles);
+        totalSynced += scrobbles.length;
+      }
+
+      if (page >= totalPages) break;
+      page++;
     }
+
+    fill.style.width = '100%';
+    label.textContent = 'Done!';
+    setResult('lfmResult', totalSynced > 0
+      ? `✓ ${totalSynced.toLocaleString()} scrobbles synced`
+      : '✓ Already up to date', 'ok');
+  } catch (e) {
+    setResult('lfmResult', e.message || 'Connection error. Try again.', 'err');
   }
 
-  fill.style.width = '100%';
-  label.textContent = 'Done!';
-  setResult('lfmResult', `✓ ${totalSynced.toLocaleString()} scrobbles synced`, 'ok');
   btn.disabled = false;
   setTimeout(() => { prog.style.display = 'none'; }, 2000);
   loadSyncStatus();
 }
 
-// ── File upload ────────────────────────────────────────────────────
-function handleFileUpload(file) {
+// ── File helpers ──────────────────────────────────────────────────
+function readFileAsText(file) {
+  return new Promise((resolve, reject) => {
+    const r = new FileReader();
+    r.onload = e => resolve(e.target.result);
+    r.onerror = () => reject(new Error('Could not read file'));
+    r.readAsText(file, 'utf-8');
+  });
+}
+
+function readFileAsBuffer(file) {
+  return new Promise((resolve, reject) => {
+    const r = new FileReader();
+    r.onload = e => resolve(e.target.result);
+    r.onerror = () => reject(new Error('Could not read file'));
+    r.readAsArrayBuffer(file);
+  });
+}
+
+async function parseSpotifyZip(file) {
+  if (!window.JSZip) throw new Error('JSZip library not loaded');
+  const buf = await readFileAsBuffer(file);
+  const zip = await window.JSZip.loadAsync(buf);
+  const scrobbles = [];
+  for (const [name, entry] of Object.entries(zip.files)) {
+    const lower = name.toLowerCase();
+    if (!lower.endsWith('.json')) continue;
+    if (!['streaming', 'endsong', 'audio'].some(k => lower.includes(k))) continue;
+    let data;
+    try { data = JSON.parse(await entry.async('string')); } catch { continue; }
+    if (!Array.isArray(data)) continue;
+    for (const item of data) {
+      if (!item || typeof item !== 'object') continue;
+      if (parseInt(item.ms_played || 0) < 30000) continue;
+      const ts = parseDtStr(item.ts || item.endTime || '');
+      if (!ts) continue;
+      const track  = item.master_metadata_track_name || item.trackName || '';
+      const artist = item.master_metadata_album_artist_name || item.artistName || '';
+      if (!track || !artist) continue;
+      scrobbles.push({
+        artist,
+        album: item.master_metadata_album_album_name || '',
+        track,
+        scrobbled_at: ts,
+      });
+    }
+  }
+  return scrobbles;
+}
+
+async function parseDeezerXlsx(file) {
+  if (!window.XLSX) throw new Error('SheetJS library not loaded');
+  const buf = await readFileAsBuffer(file);
+  const wb = window.XLSX.read(buf, { type: 'array', cellDates: true });
+  const ws = wb.Sheets[wb.SheetNames[0]];
+  const rows = window.XLSX.utils.sheet_to_json(ws, { header: 1, raw: false, dateNF: 'yyyy-mm-dd HH:mm:ss' });
+  if (rows.length < 2) return [];
+
+  const header = rows[0].map(h => String(h || '').toLowerCase().trim());
+  const col = {};
+  header.forEach((h, i) => {
+    if (['song', 'title', 'track', 'titre', 'piste'].some(x => h.includes(x))) { if (col.track == null) col.track = i; }
+    else if (['artist', 'artiste'].some(x => h.includes(x)))                   { if (col.artist == null) col.artist = i; }
+    else if (h.includes('album'))                                                { if (col.album == null) col.album = i; }
+    else if (['date', 'time', 'listened', 'ecoute'].some(x => h.includes(x))) { if (col.ts == null) col.ts = i; }
+  });
+
+  const scrobbles = [];
+  for (const row of rows.slice(1)) {
+    const get = k => col[k] != null ? String(row[col[k]] || '') : '';
+    const ts = parseDtStr(get('ts'));
+    if (!ts) continue;
+    const artist = get('artist'), track = get('track');
+    if (!artist || !track) continue;
+    scrobbles.push({ artist, album: get('album'), track, scrobbled_at: ts });
+  }
+  return scrobbles;
+}
+
+// ── File upload (fully client-side) ──────────────────────────────
+async function handleFileUpload(file) {
   if (!file) return;
   const username = getImportUsername();
   if (!username) { setResult('uploadResult', 'Enter a display name above first.', 'err'); return; }
-  const result = document.getElementById('uploadResult');
-  result.textContent = `Uploading ${file.name}…`;
-  result.className = 'import-result';
 
-  const zone = document.getElementById('dropZone');
-  zone.querySelector('.drop-label').textContent = file.name;
+  document.getElementById('dropZone').querySelector('.drop-label').textContent = file.name;
+  setResult('uploadResult', `Parsing ${file.name}…`, '');
 
-  const formData = new FormData();
-  formData.append('file', file);
+  try {
+    const fname = file.name.toLowerCase();
+    let scrobbles;
 
-  fetch(`${API}/api/sync/upload/${encodeURIComponent(username)}`, {
-    method: 'POST', body: formData,
-  })
-    .then(r => r.json())
-    .then(data => {
-      if (data.error) { setResult('uploadResult', data.error, 'err'); return; }
-      setResult('uploadResult',
-        `✓ ${data.synced.toLocaleString()} of ${data.total.toLocaleString()} records imported`, 'ok');
-      loadSyncStatus();
-    })
-    .catch(() => setResult('uploadResult', 'Upload failed. Try again.', 'err'));
+    if (fname.endsWith('.zip')) {
+      scrobbles = await parseSpotifyZip(file);
+    } else if (fname.endsWith('.xlsx') || fname.endsWith('.xls')) {
+      scrobbles = await parseDeezerXlsx(file);
+    } else {
+      const text = await readFileAsText(file);
+      scrobbles = parseSheetCsv(text);
+    }
+
+    if (!scrobbles.length) {
+      setResult('uploadResult', 'No valid records found. Check your file format.', 'err');
+      return;
+    }
+
+    setResult('uploadResult', `Saving ${scrobbles.length.toLocaleString()} records…`, '');
+    const count = await saveToIDB(username, scrobbles);
+    setResult('uploadResult', `✓ ${count.toLocaleString()} of ${scrobbles.length.toLocaleString()} records imported`, 'ok');
+    loadSyncStatus();
+  } catch (e) {
+    setResult('uploadResult', `Error: ${e.message || 'Could not parse file'}`, 'err');
+  }
 
   document.getElementById('fileInput').value = '';
 }
 
-// ── Drag-and-drop wiring (set up after DOM ready) ──────────────────
+// ── Drag-and-drop wiring ──────────────────────────────────────────
 function initDropZone() {
   const zone = document.getElementById('dropZone');
   if (!zone) return;
@@ -448,7 +619,7 @@ function initDropZone() {
   });
 }
 
-// ── Google Sheets sync ─────────────────────────────────────────────
+// ── Google Sheets sync (fully client-side) ────────────────────────
 async function syncSheets() {
   const username = getImportUsername();
   if (!username) { setResult('sheetsResult', 'Enter a display name above first.', 'err'); return; }
@@ -480,29 +651,9 @@ async function syncSheets() {
       return;
     }
 
-    const CHUNK = 2000;
-    let totalSynced = 0;
-    for (let i = 0; i < rows.length; i += CHUNK) {
-      const chunk = rows.slice(i, i + CHUNK);
-      const pct = Math.round((i / rows.length) * 100);
-      setResult('sheetsResult', `Uploading… ${pct}% (${i.toLocaleString()} / ${rows.length.toLocaleString()})`, '');
-      const res = await fetch(
-        `${API}/api/sync/rows/${encodeURIComponent(username)}`,
-        { method: 'POST', headers: {'Content-Type': 'application/json'},
-          body: JSON.stringify({ rows: chunk }) }
-      );
-      if (!res.ok) {
-        const txt = await res.text();
-        const msg = txt.startsWith('{') ? (JSON.parse(txt).error || res.status) : res.status;
-        setResult('sheetsResult', `Server error: ${msg}`, 'err');
-        return;
-      }
-      const data = await res.json();
-      if (data.error) { setResult('sheetsResult', data.error, 'err'); return; }
-      totalSynced += data.synced || 0;
-    }
-    setResult('sheetsResult',
-      `✓ ${totalSynced.toLocaleString()} of ${rows.length.toLocaleString()} records imported`, 'ok');
+    setResult('sheetsResult', `Saving ${rows.length.toLocaleString()} records…`, '');
+    const count = await saveToIDB(username, rows);
+    setResult('sheetsResult', `✓ ${count.toLocaleString()} of ${rows.length.toLocaleString()} records imported`, 'ok');
     loadSyncStatus();
   } catch (e) {
     setResult('sheetsResult', e.message || 'Connection error. Try again.', 'err');
