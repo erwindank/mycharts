@@ -100,3 +100,64 @@ def top_albums(username):
         return api_error(str(e))
     except requests.RequestException:
         return api_error('Could not reach Last.fm', 502)
+
+
+@bp.route('/weekly/charts/<username>')
+def weekly_chart_list(username):
+    try:
+        return jsonify(lastfm_get('user.getWeeklyChartList', {'user': username}))
+    except ValueError as e:
+        return api_error(str(e))
+    except requests.RequestException:
+        return api_error('Could not reach Last.fm', 502)
+
+
+@bp.route('/weekly/artists/<username>')
+def weekly_artists(username):
+    from_ts = request.args.get('from')
+    to_ts = request.args.get('to')
+    params = {'user': username}
+    if from_ts:
+        params['from'] = from_ts
+    if to_ts:
+        params['to'] = to_ts
+    try:
+        return jsonify(lastfm_get('user.getWeeklyArtistChart', params))
+    except ValueError as e:
+        return api_error(str(e))
+    except requests.RequestException:
+        return api_error('Could not reach Last.fm', 502)
+
+
+@bp.route('/weekly/tracks/<username>')
+def weekly_tracks(username):
+    from_ts = request.args.get('from')
+    to_ts = request.args.get('to')
+    params = {'user': username}
+    if from_ts:
+        params['from'] = from_ts
+    if to_ts:
+        params['to'] = to_ts
+    try:
+        return jsonify(lastfm_get('user.getWeeklyTrackChart', params))
+    except ValueError as e:
+        return api_error(str(e))
+    except requests.RequestException:
+        return api_error('Could not reach Last.fm', 502)
+
+
+@bp.route('/weekly/albums/<username>')
+def weekly_albums(username):
+    from_ts = request.args.get('from')
+    to_ts = request.args.get('to')
+    params = {'user': username}
+    if from_ts:
+        params['from'] = from_ts
+    if to_ts:
+        params['to'] = to_ts
+    try:
+        return jsonify(lastfm_get('user.getWeeklyAlbumChart', params))
+    except ValueError as e:
+        return api_error(str(e))
+    except requests.RequestException:
+        return api_error('Could not reach Last.fm', 502)
