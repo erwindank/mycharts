@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>dankcharts.fm — Your Music Charts</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- ── MASTHEAD ──────────────────────────────────────── -->
+  <div class="masthead">
+    <div class="masthead-controls">
+      <div class="ctrl-group" id="themeCtrlGroup">
+        <button class="ctrl-group-btn" id="themeGroupBtn">
+          <span class="ctrl-theme-dot"></span> THEME
+        </button>
+        <div class="ctrl-group-panel">
+          <button class="theme-btn active" data-theme="navy-dark" title="Navy Dark">●</button>
+          <button class="theme-btn" data-theme="navy-light" title="Navy Light">●</button>
+          <button class="theme-btn" data-theme="purple" title="Purple Dark">●</button>
+          <button class="theme-btn" data-theme="purple-light" title="Purple Light">●</button>
+          <button class="theme-btn" data-theme="red" title="Red Dark">●</button>
+          <button class="theme-btn" data-theme="red-light" title="Red Light">●</button>
+          <button class="theme-btn" data-theme="pink" title="Pink Dark">●</button>
+          <button class="theme-btn" data-theme="pink-light" title="Pink Light">●</button>
+          <span id="themeLabel">Navy</span>
+        </div>
+      </div>
+      <div class="ctrl-group" id="langCtrlGroup">
+        <button class="ctrl-group-btn" id="langGroupBtn">🌐 LANGUAGE</button>
+        <div class="ctrl-group-panel">
+          <button class="lang-btn active" data-lang="en">🇺🇸 EN</button>
+          <button class="lang-btn" data-lang="es">🇪🇸 ES</button>
+          <button class="lang-btn" data-lang="pt-BR">🇧🇷 PT</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="wordmark">
+      <span class="wordmark-dank">dank</span><span class="wordmark-charts">charts</span><span class="wordmark-fm">.fm</span>
+    </div>
+    <div class="tagline" data-i18n="tagline">Your listening history. Your charts. Your legacy.</div>
+  </div>
+
+  <!-- ── LANDING (no username) ────────────────────────── -->
+  <div id="landing">
+    <div class="landing-card">
+      <div class="landing-icon">♫</div>
+      <h2 data-i18n="landing_title">See your music charts</h2>
+      <p data-i18n="landing_desc">Enter your Last.fm username to view your top artists, tracks, and albums.</p>
+      <div class="landing-input-row">
+        <input type="text" id="usernameInput" placeholder="Last.fm username" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
+        <button id="goBtn" onclick="startCharts()" data-i18n="landing_btn">View Charts →</button>
+      </div>
+      <div class="landing-error" id="landingError"></div>
+      <div class="landing-services">
+        <span class="service-badge lastfm-badge">Last.fm</span>
+        <span class="service-badge coming-soon">Spotify — coming soon</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── CHARTS APP ────────────────────────────────────── -->
+  <div id="chartsApp" style="display:none">
+
+    <div class="user-bar">
+      <img class="user-avatar" id="userAvatar" src="" alt="">
+      <div class="user-info">
+        <span class="user-name" id="userName"></span>
+        <span class="user-playcount" id="userPlaycount"></span>
+      </div>
+      <button class="change-user-btn" onclick="changeUser()" data-i18n="change_user">Change user</button>
+    </div>
+
+    <div class="period-nav" id="periodNav">
+      <button class="active" data-period="7day" data-i18n="period_7day">7 Days</button>
+      <button data-period="1month" data-i18n="period_1month">1 Month</button>
+      <button data-period="3month" data-i18n="period_3month">3 Months</button>
+      <button data-period="6month" data-i18n="period_6month">6 Months</button>
+      <button data-period="12month" data-i18n="period_12month">12 Months</button>
+      <button data-period="overall" data-i18n="period_overall">All Time</button>
+    </div>
+
+    <div class="chart-limit-bar">
+      <label data-i18n="limit_label">Show:</label>
+      <div class="limit-btns">
+        <button data-limit="10" data-i18n="limit_10">Top 10</button>
+        <button data-limit="25" class="active" data-i18n="limit_25">Top 25</button>
+        <button data-limit="50" data-i18n="limit_50">Top 50</button>
+      </div>
+    </div>
+
+    <div class="charts-grid">
+
+      <div class="chart-section">
+        <div class="section-header">
+          <h2 id="artistsTitle" data-i18n="section_artists">★ Top Artists</h2>
+          <div class="section-rule"></div>
+        </div>
+        <div class="loading" id="artistsLoading" data-i18n="loading">Loading...</div>
+        <table class="chart-table" id="artistsTable" style="display:none">
+          <thead><tr><th>#</th><th style="width:48px"></th><th data-i18n="col_artist">Artist</th><th style="text-align:right" data-i18n="col_plays">Plays</th></tr></thead>
+          <tbody id="artistsBody"></tbody>
+        </table>
+      </div>
+
+      <div class="chart-section">
+        <div class="section-header">
+          <h2 id="tracksTitle" data-i18n="section_tracks">★ Top Tracks</h2>
+          <div class="section-rule"></div>
+        </div>
+        <div class="loading" id="tracksLoading" data-i18n="loading">Loading...</div>
+        <table class="chart-table" id="tracksTable" style="display:none">
+          <thead><tr><th>#</th><th style="width:48px"></th><th data-i18n="col_track">Track · Artist</th><th style="text-align:right" data-i18n="col_plays">Plays</th></tr></thead>
+          <tbody id="tracksBody"></tbody>
+        </table>
+      </div>
+
+      <div class="chart-section">
+        <div class="section-header">
+          <h2 id="albumsTitle" data-i18n="section_albums">★ Top Albums</h2>
+          <div class="section-rule"></div>
+        </div>
+        <div class="loading" id="albumsLoading" data-i18n="loading">Loading...</div>
+        <table class="chart-table" id="albumsTable" style="display:none">
+          <thead><tr><th>#</th><th style="width:48px"></th><th data-i18n="col_album">Album · Artist</th><th style="text-align:right" data-i18n="col_plays">Plays</th></tr></thead>
+          <tbody id="albumsBody"></tbody>
+        </table>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="footer">
+    <span>dankcharts.fm</span> · <span data-i18n="footer_powered">Powered by Last.fm</span>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

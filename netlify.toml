@@ -1,0 +1,3 @@
+[build]
+  base = "dankcharts"
+  publish = "dankcharts"
