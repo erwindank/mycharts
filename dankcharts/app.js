@@ -299,7 +299,18 @@ function renderAlbums(albums) {
 }
 
 // ── IMPORT MODAL ──────────────────────────────────────────────────
+function getImportUsername() {
+  if (currentUser) return currentUser.name;
+  return (document.getElementById('modalUsernameInput')?.value || '').trim();
+}
+
 function openImportModal() {
+  const userRow = document.getElementById('modalUserRow');
+  if (currentUser) {
+    userRow.style.display = 'none';
+  } else {
+    userRow.style.display = '';
+  }
   document.getElementById('importModal').style.display = 'flex';
   loadSyncStatus();
 }
@@ -323,9 +334,10 @@ function setResult(elId, msg, type) {
 }
 
 async function loadSyncStatus() {
-  if (!currentUser) return;
+  const username = getImportUsername();
+  if (!username) return;
   try {
-    const res = await fetch(`${API}/api/sync/status/${encodeURIComponent(currentUser.name)}`);
+    const res = await fetch(`${API}/api/sync/status/${encodeURIComponent(username)}`);
     const data = await res.json();
     const stats = document.getElementById('syncStats');
     if (data.scrobbles > 0) {
@@ -343,7 +355,8 @@ async function loadSyncStatus() {
 
 // ── Last.fm sync (loops through pages) ────────────────────────────
 async function syncLastfm() {
-  if (!currentUser) return;
+  const username = getImportUsername();
+  if (!username) { setResult('lfmResult', 'Enter a display name above first.', 'err'); return; }
   const btn = document.getElementById('lfmSyncBtn');
   const prog = document.getElementById('lfmProgress');
   const fill = document.getElementById('lfmFill');
@@ -366,7 +379,7 @@ async function syncLastfm() {
 
     try {
       const res = await fetch(
-        `${API}/api/sync/lastfm/${encodeURIComponent(currentUser.name)}`,
+        `${API}/api/sync/lastfm/${encodeURIComponent(username)}`,
         { method: 'POST', headers: {'Content-Type': 'application/json'},
           body: JSON.stringify({ page }) }
       );
@@ -393,7 +406,9 @@ async function syncLastfm() {
 
 // ── File upload ────────────────────────────────────────────────────
 function handleFileUpload(file) {
-  if (!file || !currentUser) return;
+  if (!file) return;
+  const username = getImportUsername();
+  if (!username) { setResult('uploadResult', 'Enter a display name above first.', 'err'); return; }
   const result = document.getElementById('uploadResult');
   result.textContent = `Uploading ${file.name}…`;
   result.className = 'import-result';
@@ -404,7 +419,7 @@ function handleFileUpload(file) {
   const formData = new FormData();
   formData.append('file', file);
 
-  fetch(`${API}/api/sync/upload/${encodeURIComponent(currentUser.name)}`, {
+  fetch(`${API}/api/sync/upload/${encodeURIComponent(username)}`, {
     method: 'POST', body: formData,
   })
     .then(r => r.json())
@@ -435,14 +450,15 @@ function initDropZone() {
 
 // ── Google Sheets sync ─────────────────────────────────────────────
 async function syncSheets() {
-  if (!currentUser) return;
+  const username = getImportUsername();
+  if (!username) { setResult('sheetsResult', 'Enter a display name above first.', 'err'); return; }
   const url = document.getElementById('sheetsUrl').value.trim();
   if (!url) { setResult('sheetsResult', 'Paste a Google Sheets URL first.', 'err'); return; }
 
   setResult('sheetsResult', 'Fetching sheet…', '');
   try {
     const res = await fetch(
-      `${API}/api/sync/sheets/${encodeURIComponent(currentUser.name)}`,
+      `${API}/api/sync/sheets/${encodeURIComponent(username)}`,
       { method: 'POST', headers: {'Content-Type': 'application/json'},
         body: JSON.stringify({ url }) }
     );
