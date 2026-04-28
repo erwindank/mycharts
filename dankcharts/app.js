@@ -480,16 +480,29 @@ async function syncSheets() {
       return;
     }
 
-    setResult('sheetsResult', `Uploading ${rows.length.toLocaleString()} records…`, '');
-    const res = await fetch(
-      `${API}/api/sync/rows/${encodeURIComponent(username)}`,
-      { method: 'POST', headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({ rows }) }
-    );
-    const data = await res.json();
-    if (data.error) { setResult('sheetsResult', data.error, 'err'); return; }
+    const CHUNK = 2000;
+    let totalSynced = 0;
+    for (let i = 0; i < rows.length; i += CHUNK) {
+      const chunk = rows.slice(i, i + CHUNK);
+      const pct = Math.round((i / rows.length) * 100);
+      setResult('sheetsResult', `Uploading… ${pct}% (${i.toLocaleString()} / ${rows.length.toLocaleString()})`, '');
+      const res = await fetch(
+        `${API}/api/sync/rows/${encodeURIComponent(username)}`,
+        { method: 'POST', headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({ rows: chunk }) }
+      );
+      if (!res.ok) {
+        const txt = await res.text();
+        const msg = txt.startsWith('{') ? (JSON.parse(txt).error || res.status) : res.status;
+        setResult('sheetsResult', `Server error: ${msg}`, 'err');
+        return;
+      }
+      const data = await res.json();
+      if (data.error) { setResult('sheetsResult', data.error, 'err'); return; }
+      totalSynced += data.synced || 0;
+    }
     setResult('sheetsResult',
-      `✓ ${data.synced.toLocaleString()} of ${data.total.toLocaleString()} records imported`, 'ok');
+      `✓ ${totalSynced.toLocaleString()} of ${rows.length.toLocaleString()} records imported`, 'ok');
     loadSyncStatus();
   } catch (e) {
     setResult('sheetsResult', e.message || 'Connection error. Try again.', 'err');

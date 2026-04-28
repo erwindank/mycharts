@@ -416,26 +416,29 @@ def sync_sheets(username):
 def sync_rows(username):
     from database import get_db
 
-    body = request.get_json(silent=True) or {}
-    rows = body.get('rows', [])
-    if not isinstance(rows, list) or not rows:
-        return api_error('No rows provided')
+    try:
+        body = request.get_json(silent=True) or {}
+        rows = body.get('rows', [])
+        if not isinstance(rows, list) or not rows:
+            return api_error('No rows provided')
 
-    scrobbles = []
-    for row in rows:
-        if not isinstance(row, dict):
-            continue
-        artist = str(row.get('artist', '') or '').strip()
-        track  = str(row.get('track',  '') or '').strip()
-        album  = str(row.get('album',  '') or '').strip()
-        ts     = str(row.get('scrobbled_at', '') or '').strip()
-        if artist and track and ts:
-            scrobbles.append({'artist': artist, 'album': album, 'track': track, 'scrobbled_at': ts})
+        scrobbles = []
+        for row in rows:
+            if not isinstance(row, dict):
+                continue
+            artist = str(row.get('artist', '') or '').strip()
+            track  = str(row.get('track',  '') or '').strip()
+            album  = str(row.get('album',  '') or '').strip()
+            ts     = str(row.get('scrobbled_at', '') or '').strip()
+            if artist and track and ts:
+                scrobbles.append({'artist': artist, 'album': album, 'track': track, 'scrobbled_at': ts})
 
-    db = get_db()
-    user_id = get_or_create_user(db, username)
-    count = insert_scrobbles(db, user_id, scrobbles)
-    return jsonify({'synced': count, 'total': len(scrobbles)})
+        db = get_db()
+        user_id = get_or_create_user(db, username)
+        count = insert_scrobbles(db, user_id, scrobbles)
+        return jsonify({'synced': count, 'total': len(scrobbles)})
+    except Exception as e:
+        return api_error(f'Server error: {str(e)}', 500)
 
 
 # ── STATUS ────────────────────────────────────────────────────────
