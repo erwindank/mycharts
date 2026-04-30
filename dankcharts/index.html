@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>dankcharts.fm — Erwin's Personal Music Charts</title>
   <link
-    href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&family=DM+Mono:wght@400;500&display=swap"
+    href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&family=DM+Mono:wght@400;500&family=Instrument+Serif:ital@0;1&display=swap"
     rel="stylesheet">
   <script data-goatcounter="https://erwindank.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -21,6 +21,61 @@
 </head>
 
 <body>
+
+  <!-- ── Landing / Onboarding Screen ── -->
+  <div id="landingScreen" class="landing-screen" style="display:none;">
+    <div class="landing-orb landing-orb-1"></div>
+    <div class="landing-orb landing-orb-2"></div>
+
+    <div class="landing-hero">
+      <div class="wordmark landing-wordmark">
+        <span class="wordmark-dank">dank</span><span class="wordmark-station">charts</span><span class="wordmark-fm">.fm</span>
+      </div>
+      <p class="landing-tagline">Your listening history. Your charts. Your legacy.</p>
+    </div>
+
+    <h2 class="landing-section-title">How would you like to import your data?</h2>
+
+    <div class="landing-cards">
+
+      <div class="landing-card" id="landingCardSheets" onclick="selectLandingSource('sheets')">
+        <div class="landing-card-icon">📊</div>
+        <h3>Google Sheets</h3>
+        <p>Connect a shared spreadsheet with your scrobble history</p>
+        <div class="landing-card-config" id="landingConfigSheets" style="display:none;">
+          <input type="text" id="landingSheetId" placeholder="Paste your Google Sheets URL or Sheet ID" onclick="event.stopPropagation()" autocomplete="off">
+          <input type="text" id="landingSheetTab" placeholder="Tab name (default: Full Raw Listening History)" onclick="event.stopPropagation()" autocomplete="off">
+          <p class="landing-hint">The sheet must be shared as "Anyone with the link can view"</p>
+        </div>
+      </div>
+
+      <div class="landing-card" id="landingCardLastfm" onclick="selectLandingSource('lastfm')">
+        <div class="landing-card-icon">🎵</div>
+        <h3>Last.fm</h3>
+        <p>Load your full scrobble history directly from Last.fm</p>
+        <div class="landing-card-config" id="landingConfigLastfm" style="display:none;">
+          <input type="text" id="landingLastfmUser" placeholder="Your Last.fm username" onclick="event.stopPropagation()" autocomplete="off">
+          <p class="landing-hint">Your complete listening history will be imported from Last.fm</p>
+        </div>
+      </div>
+
+      <div class="landing-card" id="landingCardFile" onclick="selectLandingSource('file')">
+        <div class="landing-card-icon">📂</div>
+        <h3>Upload File</h3>
+        <p>Import from CSV, Last.fm export, Spotify&nbsp;ZIP, or Deezer&nbsp;XLSX</p>
+        <div class="landing-card-config" id="landingConfigFile" style="display:none;">
+          <p class="landing-hint">You'll choose your file on the next screen</p>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="landing-cta" id="landingCta" style="display:none;">
+      <button class="landing-start-btn" onclick="startFromLanding()">Start Charting →</button>
+    </div>
+
+    <p class="landing-skip">Already set up? <a href="#" onclick="skipLanding(); return false;">Continue to charts</a></p>
+  </div>
 
   <div class="masthead">
     <div class="theme-toggle">

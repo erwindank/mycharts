@@ -699,10 +699,9 @@ document.addEventListener('click', e => {
 
 
 // ─── GOOGLE SHEETS SYNC ────────────────────────────────────────
-const DEFAULT_SHEET_ID  = '1ydtkm3-P_37mlOpim0IS5WfIs2LSlVRx_D8fOL4kFVM';
 const DEFAULT_SHEET_TAB = 'Full Raw Listening History';
 function getSheetUrl() {
-  const rawId = localStorage.getItem('dc_sheet_id') || DEFAULT_SHEET_ID;
+  const rawId = localStorage.getItem('dc_sheet_id') || '';
   const tab   = localStorage.getItem('dc_sheet_tab') || DEFAULT_SHEET_TAB;
   // Support stored full URLs (e.g. from the deployed modal's URL input field)
   const urlMatch = rawId.match(/spreadsheets\/d\/([^\/\?#]+)/);
@@ -787,6 +786,11 @@ function getSheetUrlFallback() {
 }
 
 async function syncFromSheets() {
+  if (!localStorage.getItem('dc_sheet_id')) {
+    setSyncStatus('No Google Sheet configured — click ⚙ Configure to set one up.', 'err');
+    document.getElementById('syncNowBtn').disabled = false;
+    return;
+  }
   const btn = document.getElementById('syncNowBtn');
   btn.disabled = true;
   setSyncStatus(t('sync_connecting'), 'loading');
@@ -1249,12 +1253,84 @@ function saveSourceConfig() {
 
 document.getElementById('syncNowBtn').addEventListener('click', syncNow);
 
+// ─── LANDING / ONBOARDING ──────────────────────────────────────
+function needsOnboarding() {
+  if (!localStorage.getItem('dc_source')) return true;
+  const src = getDataSource();
+  if (src === 'sheets' && !localStorage.getItem('dc_sheet_id')) return true;
+  if (src === 'lastfm' && !getLastFmUser()) return true;
+  return false;
+}
+
+let _landingSrc = null;
+
+function selectLandingSource(src) {
+  _landingSrc = src;
+  document.querySelectorAll('.landing-card').forEach(c => c.classList.remove('active'));
+  document.querySelectorAll('.landing-card-config').forEach(c => { c.style.display = 'none'; });
+  const card = document.getElementById('landingCard' + src.charAt(0).toUpperCase() + src.slice(1));
+  if (card) card.classList.add('active');
+  const cfg = document.getElementById('landingConfig' + src.charAt(0).toUpperCase() + src.slice(1));
+  if (cfg) cfg.style.display = 'flex';
+  document.getElementById('landingCta').style.display = 'flex';
+}
+
+function startFromLanding() {
+  const src = _landingSrc;
+  if (!src) return;
+  if (src === 'sheets') {
+    const rawId = document.getElementById('landingSheetId').value.trim();
+    if (!rawId) {
+      document.getElementById('landingSheetId').focus();
+      document.getElementById('landingSheetId').classList.add('landing-input-error');
+      return;
+    }
+    document.getElementById('landingSheetId').classList.remove('landing-input-error');
+    const tab = document.getElementById('landingSheetTab').value.trim() || DEFAULT_SHEET_TAB;
+    localStorage.setItem('dc_source', 'sheets');
+    localStorage.setItem('dc_sheet_id', rawId);
+    localStorage.setItem('dc_sheet_tab', tab);
+  } else if (src === 'lastfm') {
+    const user = document.getElementById('landingLastfmUser').value.trim();
+    if (!user) {
+      document.getElementById('landingLastfmUser').focus();
+      document.getElementById('landingLastfmUser').classList.add('landing-input-error');
+      return;
+    }
+    document.getElementById('landingLastfmUser').classList.remove('landing-input-error');
+    localStorage.setItem('dc_source', 'lastfm');
+    localStorage.setItem('dc_lastfm_user', user);
+  } else if (src === 'file') {
+    localStorage.setItem('dc_source', 'file');
+  }
+  document.getElementById('landingScreen').style.display = 'none';
+  document.getElementById('mainApp').style.display = 'block';
+  updateMastheadDynamic();
+  if (src === 'sheets') syncFromSheets();
+  else if (src === 'lastfm') syncFromLastFm();
+  else {
+    document.getElementById('uploadZone').style.display = 'block';
+  }
+}
+
+function skipLanding() {
+  document.getElementById('landingScreen').style.display = 'none';
+  document.getElementById('mainApp').style.display = 'block';
+  syncNow();
+}
+
 // Auto-sync on page load — use cached data if synced within the last hour
 window.addEventListener('load', async () => {
-  document.getElementById('mainApp').style.display = 'block';
   updateMastheadDynamic();
   updateLfmAuthStatus();
   localStorage.removeItem('dc_sync_csv'); // clean up old oversized key if present
+
+  if (needsOnboarding()) {
+    document.getElementById('landingScreen').style.display = 'flex';
+    return;
+  }
+
+  document.getElementById('mainApp').style.display = 'block';
 
   if (!localStorage.getItem('dc_display_name')) {
     const btn = document.getElementById('configureSourceBtn');
