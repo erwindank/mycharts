@@ -801,6 +801,11 @@
       color: #ccb0b0;
     }
 
+    body.red .page-input {
+      color: #ffffff;
+      border-color: #8a2a2a;
+    }
+
     body.red .period-nav button.active {
       background: #8a0c0c;
     }
@@ -2613,6 +2618,42 @@
 
     .page-nav span {
       color: var(--text3);
+    }
+
+    .page-nav-center {
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+      flex: 1;
+      justify-content: center;
+    }
+
+    .page-jump {
+      display: flex;
+      align-items: center;
+      gap: 0.25rem;
+      font-size: 0.63rem;
+      color: var(--text3);
+    }
+
+    .page-input {
+      width: 3rem;
+      text-align: center;
+      background: var(--bg3);
+      border: 1px solid var(--border2);
+      color: var(--text);
+      font-family: 'DM Mono', monospace;
+      font-size: 0.68rem;
+      letter-spacing: 0.06em;
+      padding: 0.1rem 0.2rem;
+      border-radius: 4px;
+      -moz-appearance: textfield;
+    }
+
+    .page-input::-webkit-outer-spin-button,
+    .page-input::-webkit-inner-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
     }
 
     /* SHARE AS IMAGE BUTTONS */
@@ -6394,6 +6435,100 @@ body {
   color: var(--text3);
   line-height: 1.4;
   margin: 0;
+}
+
+/* Last.fm new-user info panel */
+.lfm-new-user-info {
+  border: 1px solid rgba(74, 172, 255, 0.18);
+  border-radius: 8px;
+  overflow: hidden;
+  background: rgba(74, 172, 255, 0.04);
+}
+
+.lfm-new-user-info summary {
+  font-size: 0.73rem;
+  font-family: 'DM Sans', sans-serif;
+  font-weight: 500;
+  color: var(--accent);
+  cursor: pointer;
+  padding: 0.45rem 0.7rem;
+  list-style: none;
+  user-select: none;
+  transition: background 0.15s;
+}
+
+.lfm-new-user-info summary::-webkit-details-marker { display: none; }
+
+.lfm-new-user-info[open] summary::after {
+  content: ' ↑';
+}
+
+.lfm-new-user-info:not([open]) summary::after {
+  content: ' ↓';
+}
+
+.lfm-new-user-info summary:hover {
+  background: rgba(74, 172, 255, 0.08);
+}
+
+.lfm-new-user-body {
+  padding: 0 0.7rem 0.65rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  border-top: 1px solid rgba(74, 172, 255, 0.12);
+}
+
+.lfm-new-user-body p {
+  font-size: 0.72rem;
+  color: var(--text2);
+  line-height: 1.45;
+  margin: 0;
+  padding-top: 0.45rem;
+}
+
+.lfm-services-label {
+  font-size: 0.66rem !important;
+  font-weight: 600 !important;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text3) !important;
+  padding-top: 0 !important;
+}
+
+.lfm-services-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.28rem;
+}
+
+.lfm-services-chips span {
+  font-size: 0.63rem;
+  font-family: 'DM Mono', monospace;
+  background: rgba(74, 172, 255, 0.1);
+  color: var(--accent);
+  border-radius: 4px;
+  padding: 0.13rem 0.38rem;
+  white-space: nowrap;
+}
+
+.lfm-signup-link {
+  display: block;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--accent);
+  text-decoration: none;
+  border: 1px solid rgba(74, 172, 255, 0.3);
+  border-radius: 6px;
+  padding: 0.32rem 0.6rem;
+  margin-top: 0.1rem;
+  text-align: center;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.lfm-signup-link:hover {
+  background: rgba(74, 172, 255, 0.1);
+  border-color: var(--accent);
 }
 
 /* CTA button */

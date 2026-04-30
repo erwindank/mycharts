@@ -54,6 +54,17 @@
         <h3>Last.fm</h3>
         <p>Load your full scrobble history directly from Last.fm</p>
         <div class="landing-card-config" id="landingConfigLastfm" style="display:none;">
+          <details class="lfm-new-user-info" onclick="event.stopPropagation()">
+            <summary>New to Last.fm? Learn more</summary>
+            <div class="lfm-new-user-body">
+              <p><strong>Last.fm</strong> automatically tracks every song you listen to — this is called <em>scrobbling</em>. Over time it builds a complete history of your music taste that you can chart here.</p>
+              <p class="lfm-services-label">Compatible with:</p>
+              <div class="lfm-services-chips">
+                <span>Spotify</span><span>Apple Music</span><span>YouTube Music</span><span>Tidal</span><span>Deezer</span><span>Amazon Music</span><span>SoundCloud</span><span>Plex</span><span>Subsonic</span><span>+ many more</span>
+              </div>
+              <a href="https://www.last.fm/join" target="_blank" rel="noopener" class="lfm-signup-link">Create a free Last.fm account →</a>
+            </div>
+          </details>
           <input type="text" id="landingLastfmUser" placeholder="Your Last.fm username" onclick="event.stopPropagation()" autocomplete="off">
           <p class="landing-hint">Your complete listening history will be imported from Last.fm</p>
         </div>
@@ -147,7 +158,7 @@
       <span id="syncStatus" data-i18n="sync_connecting">⟳ Connecting...</span>
       <button id="syncNowBtn" data-i18n="sync_now">↺ SYNC NOW</button>
       <button id="configureSourceBtn" onclick="openSourceModal()" title="Configure data source">⚙ Configure</button>
-      <button id="scrobbleBtn" onclick="openScrobbleModal()" title="Manually scrobble a track to Last.fm" style="display:none">✚ Scrobble</button>
+      <button id="scrobbleBtn" onclick="openScrobbleModal()" title="Add a play manually" style="display:none">✚ Add Play</button>
     </div>
 
     <div class="period-nav" id="periodNav">
@@ -251,9 +262,14 @@
           <tbody id="songsBody"></tbody>
         </table>
         <div class="page-nav" id="songsPagination" style="display:none;">
-          <button onclick="changePage('songs',-1)">◄ PREV</button>
-          <span id="songsPageLabel"></span>
-          <button onclick="changePage('songs',1)">NEXT ►</button>
+          <button class="page-nav-first" onclick="goToPage('songs',0)" title="First page">|◄</button>
+          <button class="page-nav-prev" onclick="changePage('songs',-1)">◄ PREV</button>
+          <span class="page-nav-center">
+            <span id="songsPageLabel"></span>
+            <span class="page-jump">· pg <input type="number" id="songsPageInput" class="page-input" min="1" onkeydown="if(event.key==='Enter')goToPageInput('songs',this.value)" /></span>
+          </span>
+          <button class="page-nav-next" onclick="changePage('songs',1)">NEXT ►</button>
+          <button class="page-nav-last" onclick="goToPage('songs',Infinity)" title="Last page">►|</button>
         </div>
         <div class="ig-share-bar" id="songsShareBar">
           <span data-i18n="btn_share">SHARE:</span>
@@ -282,6 +298,16 @@
           </thead>
           <tbody id="newSongsBody"></tbody>
         </table>
+        <div class="page-nav" id="newSongsPagination" style="display:none;">
+          <button class="page-nav-first" onclick="goToNewPage('newSongs',0)" title="First page">|◄</button>
+          <button class="page-nav-prev" onclick="changeNewPage('newSongs',-1)">◄ PREV</button>
+          <span class="page-nav-center">
+            <span id="newSongsPageLabel"></span>
+            <span class="page-jump">· pg <input type="number" id="newSongsPageInput" class="page-input" min="1" onkeydown="if(event.key==='Enter')goToNewPageInput('newSongs',this.value)" /></span>
+          </span>
+          <button class="page-nav-next" onclick="changeNewPage('newSongs',1)">NEXT ►</button>
+          <button class="page-nav-last" onclick="goToNewPage('newSongs',Infinity)" title="Last page">►|</button>
+        </div>
       </div>
     </div>
 
@@ -313,9 +339,14 @@
           <tbody id="artistsBody"></tbody>
         </table>
         <div class="page-nav" id="artistsPagination" style="display:none;">
-          <button onclick="changePage('artists',-1)">◄ PREV</button>
-          <span id="artistsPageLabel"></span>
-          <button onclick="changePage('artists',1)">NEXT ►</button>
+          <button class="page-nav-first" onclick="goToPage('artists',0)" title="First page">|◄</button>
+          <button class="page-nav-prev" onclick="changePage('artists',-1)">◄ PREV</button>
+          <span class="page-nav-center">
+            <span id="artistsPageLabel"></span>
+            <span class="page-jump">· pg <input type="number" id="artistsPageInput" class="page-input" min="1" onkeydown="if(event.key==='Enter')goToPageInput('artists',this.value)" /></span>
+          </span>
+          <button class="page-nav-next" onclick="changePage('artists',1)">NEXT ►</button>
+          <button class="page-nav-last" onclick="goToPage('artists',Infinity)" title="Last page">►|</button>
         </div>
         <div class="ig-share-bar" id="artistsShareBar">
           <span data-i18n="btn_share">SHARE:</span>
@@ -343,6 +374,16 @@
           </thead>
           <tbody id="newArtistsBody"></tbody>
         </table>
+        <div class="page-nav" id="newArtistsPagination" style="display:none;">
+          <button class="page-nav-first" onclick="goToNewPage('newArtists',0)" title="First page">|◄</button>
+          <button class="page-nav-prev" onclick="changeNewPage('newArtists',-1)">◄ PREV</button>
+          <span class="page-nav-center">
+            <span id="newArtistsPageLabel"></span>
+            <span class="page-jump">· pg <input type="number" id="newArtistsPageInput" class="page-input" min="1" onkeydown="if(event.key==='Enter')goToNewPageInput('newArtists',this.value)" /></span>
+          </span>
+          <button class="page-nav-next" onclick="changeNewPage('newArtists',1)">NEXT ►</button>
+          <button class="page-nav-last" onclick="goToNewPage('newArtists',Infinity)" title="Last page">►|</button>
+        </div>
       </div>
     </div>
 
@@ -374,9 +415,14 @@
           <tbody id="albumsBody"></tbody>
         </table>
         <div class="page-nav" id="albumsPagination" style="display:none;">
-          <button onclick="changePage('albums',-1)">◄ PREV</button>
-          <span id="albumsPageLabel"></span>
-          <button onclick="changePage('albums',1)">NEXT ►</button>
+          <button class="page-nav-first" onclick="goToPage('albums',0)" title="First page">|◄</button>
+          <button class="page-nav-prev" onclick="changePage('albums',-1)">◄ PREV</button>
+          <span class="page-nav-center">
+            <span id="albumsPageLabel"></span>
+            <span class="page-jump">· pg <input type="number" id="albumsPageInput" class="page-input" min="1" onkeydown="if(event.key==='Enter')goToPageInput('albums',this.value)" /></span>
+          </span>
+          <button class="page-nav-next" onclick="changePage('albums',1)">NEXT ►</button>
+          <button class="page-nav-last" onclick="goToPage('albums',Infinity)" title="Last page">►|</button>
         </div>
         <div class="ig-share-bar" id="albumsShareBar">
           <span data-i18n="btn_share">SHARE:</span>
@@ -404,6 +450,16 @@
           </thead>
           <tbody id="newAlbumsBody"></tbody>
         </table>
+        <div class="page-nav" id="newAlbumsPagination" style="display:none;">
+          <button class="page-nav-first" onclick="goToNewPage('newAlbums',0)" title="First page">|◄</button>
+          <button class="page-nav-prev" onclick="changeNewPage('newAlbums',-1)">◄ PREV</button>
+          <span class="page-nav-center">
+            <span id="newAlbumsPageLabel"></span>
+            <span class="page-jump">· pg <input type="number" id="newAlbumsPageInput" class="page-input" min="1" onkeydown="if(event.key==='Enter')goToNewPageInput('newAlbums',this.value)" /></span>
+          </span>
+          <button class="page-nav-next" onclick="changeNewPage('newAlbums',1)">NEXT ►</button>
+          <button class="page-nav-last" onclick="goToNewPage('newAlbums',Infinity)" title="Last page">►|</button>
+        </div>
       </div>
     </div>
 
@@ -1492,15 +1548,17 @@
         <label>
           Date &amp; Time
           <div class="scrobble-time-row">
-            <input type="datetime-local" id="scrobbleTime">
+            <input type="datetime-local" id="scrobbleTime" step="1">
             <button type="button" class="scrobble-now-btn" onclick="setScrobbleNow()">Now</button>
           </div>
         </label>
       </div>
       <div id="scrobbleStatus" class="scrobble-status"></div>
+      <div id="scrobbleNoTarget" class="scrobble-status" style="display:none">Connect Last.fm or configure a Sheet write URL in Settings to add plays.</div>
       <div class="src-modal-btns">
         <button class="src-btn-cancel" onclick="closeScrobbleModal()">Cancel</button>
-        <button class="src-btn-save" id="scrobbleSubmitBtn" onclick="submitScrobble()">Scrobble</button>
+        <button class="src-btn-save" id="scrobbleSheetBtn" onclick="submitToSheet()" style="display:none">Add to Sheet</button>
+        <button class="src-btn-save" id="scrobbleSubmitBtn" onclick="submitScrobble()" style="display:none">Scrobble to Last.fm</button>
       </div>
     </div>
   </div>
@@ -1553,6 +1611,69 @@
           <input type="text" id="srcSheetTab" placeholder="Full Raw Listening History">
         </label>
         <p class="src-modal-hint">The sheet must be shared as "Anyone with the link can view"</p>
+        <details class="lfm-custom-creds" style="margin-top:0.9rem">
+          <summary>Enable manual play entry (optional)</summary>
+          <div style="margin-top:0.7rem">
+            <label>
+              Apps Script Web App URL
+              <input type="url" id="srcSheetWriteUrl" placeholder="https://script.google.com/macros/s/…/exec" autocomplete="off" style="margin-top:0.3rem">
+            </label>
+            <p class="src-modal-hint" style="margin-top:0.4rem">Paste your deployed Apps Script URL here to enable the "Add Play" button.</p>
+            <details class="lfm-custom-creds" style="margin-top:0.6rem">
+              <summary>How to set this up</summary>
+              <ol class="src-modal-hint" style="margin:0.5rem 0 0 1.1rem;line-height:1.7">
+                <li>Open your Google Sheet → <strong>Extensions → Apps Script</strong></li>
+                <li>Replace any existing code with the script below and save (Ctrl+S)</li>
+                <li><strong>Deploy → New deployment</strong> → Type: Web app</li>
+                <li>Execute as: <strong>Me</strong> · Who has access: <strong>Anyone</strong></li>
+                <li>Click Deploy, copy the URL, paste it above</li>
+              </ol>
+              <div style="position:relative;margin-top:0.6rem">
+                <pre id="appsScriptCode" style="background:var(--bg3,#111);border:1px solid var(--border);border-radius:4px;padding:0.7rem;font-size:0.7rem;overflow-x:auto;white-space:pre;color:var(--text2);margin:0;line-height:1.5">function doPost(e) {
+  try {
+    var data = JSON.parse(e.postData.contents);
+    var ss   = SpreadsheetApp.getActiveSpreadsheet();
+    var sheet = ss.getSheetByName('Full Raw Listening History') || ss.getSheets()[0];
+    var lastCol = Math.max(sheet.getLastColumn(), 1);
+    var headers = sheet.getRange(1,1,1,lastCol).getValues()[0]
+      .map(function(h){ return h.toString().toLowerCase().trim(); });
+    var aliases = {
+      title:    ['song title','title','track','track name','song name'],
+      artist:   ['artist','artist name','performer'],
+      album:    ['album','album name','release'],
+      datetime: ['date and time','date','datetime','timestamp','time','played at','scrobble time']
+    };
+    var colIdx = {};
+    for (var key in aliases) {
+      for (var i = 0; i &lt; aliases[key].length; i++) {
+        var idx = headers.indexOf(aliases[key][i]);
+        if (idx !== -1) { colIdx[key] = idx; break; }
+      }
+    }
+    var dt = new Date(data.timestamp * 1000);
+    var p  = function(n){ return n &lt; 10 ? '0'+n : ''+n; };
+    var fmt = dt.getFullYear()+'-'+p(dt.getMonth()+1)+'-'+p(dt.getDate())
+            +' '+p(dt.getHours())+':'+p(dt.getMinutes())+':'+p(dt.getSeconds());
+    var row = new Array(lastCol).fill('');
+    if (colIdx.title    !== undefined) row[colIdx.title]    = data.track  || '';
+    if (colIdx.artist   !== undefined) row[colIdx.artist]   = data.artist || '';
+    if (colIdx.album    !== undefined) row[colIdx.album]    = data.album  || '';
+    if (colIdx.datetime !== undefined) row[colIdx.datetime] = fmt;
+    sheet.appendRow(row);
+    return ContentService
+      .createTextOutput(JSON.stringify({status:'ok'}))
+      .setMimeType(ContentService.MimeType.JSON);
+  } catch(err) {
+    return ContentService
+      .createTextOutput(JSON.stringify({status:'error',message:err.message}))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+}</pre>
+                <button type="button" onclick="copyAppsScript()" style="position:absolute;top:0.4rem;right:0.4rem;font-size:0.7rem;padding:0.2rem 0.5rem;border-radius:3px;border:1px solid var(--border);background:var(--bg2);color:var(--text2);cursor:pointer" id="copyAppsScriptBtn">Copy</button>
+              </div>
+            </details>
+          </div>
+        </details>
       </div>
 
       <div id="srcLastfmFields" class="src-field-group" style="display:none;">

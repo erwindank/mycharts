@@ -49,11 +49,14 @@ let chartSizeAllTime = Infinity; // 0 = All Entries
 let recLimit = 25; // Records entries limit
 let eventsArtistLimit = parseInt(localStorage.getItem('dc_events_artist_limit') || '50') || 50;
 const PAGE_SIZE = 100;
-const pageState = { songs: 0, artists: 0, albums: 0 };
+const pageState = { songs: 0, artists: 0, albums: 0, newSongs: 0, newArtists: 0, newAlbums: 0 };
 const fullData = { songs: [], artists: [], albums: [] };
+const fullNewData = { newSongs: [], newArtists: [], newAlbums: [] };
 let lastPeriodStats = null;
 let lastPeaks = null;
 const searchState = { songs: '', artists: '', albums: '' };
+let imgObservers = [];
+let imgQueue = Promise.resolve();
 
 let certWallData   = [];
 let certWallFilter = 'all';
@@ -281,6 +284,7 @@ function getScrobbleKey()     { return localStorage.getItem('dc_lfm_api_key')   
 function getScrobbleSecret()  { return localStorage.getItem('dc_lfm_api_secret')  || SCROBBLE_DEFAULT_SECRET; }
 function getScrobbleSession() { return localStorage.getItem('dc_lfm_session_key') || ''; }
 function getScrobbleUser()    { return localStorage.getItem('dc_lfm_session_user')|| ''; }
+function getSheetWriteUrl()   { return localStorage.getItem('dc_sheet_write_url') || ''; }
 
 function lfmSig(params, secret) {
   return md5(Object.keys(params).sort().map(k => k + params[k]).join('') + secret);
@@ -300,24 +304,30 @@ async function lfmPost(params) {
   return data;
 }
 
+function updateScrobbleBtn() {
+  const scrobBtn = document.getElementById('scrobbleBtn');
+  if (!scrobBtn) return;
+  const hasLfm   = !!(getScrobbleSession() && getScrobbleUser());
+  const hasSheet = !!(getSheetWriteUrl() && getDataSource() === 'sheets');
+  scrobBtn.style.display = (hasLfm || hasSheet) ? '' : 'none';
+}
+
 function updateLfmAuthStatus() {
   const user      = getScrobbleUser();
   const sess      = getScrobbleSession();
   const statusEl  = document.getElementById('lfmAuthStatus');
   const connectBtn= document.getElementById('lfmConnectBtn');
   const disconnBtn= document.getElementById('lfmDisconnectBtn');
-  const scrobBtn  = document.getElementById('scrobbleBtn');
   if (sess && user) {
     if (statusEl)   statusEl.innerHTML = `<span class="lfm-auth-dot connected"></span> Connected as <strong>${user}</strong>`;
     if (connectBtn) connectBtn.style.display = 'none';
     if (disconnBtn) disconnBtn.style.display = '';
-    if (scrobBtn)   scrobBtn.style.display   = '';
   } else {
     if (statusEl)   statusEl.innerHTML = '<span class="lfm-auth-dot"></span> Not connected';
     if (connectBtn) { connectBtn.style.display = ''; connectBtn.textContent = 'Connect to Last.fm'; connectBtn.disabled = false; }
     if (disconnBtn) disconnBtn.style.display = 'none';
-    if (scrobBtn)   scrobBtn.style.display   = 'none';
   }
+  updateScrobbleBtn();
 }
 
 function lfmAuthBtnClick() {
@@ -387,7 +397,7 @@ function lfmAuthDisconnect() {
 
 // ─── SCROBBLE MODAL ────────────────────────────────────────────
 function scrobbleDatetimeLocal(d) {
-  return new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+  return new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 19);
 }
 
 function openScrobbleModal() {
@@ -398,6 +408,12 @@ function openScrobbleModal() {
   document.getElementById('scrobbleStatus').textContent = '';
   document.getElementById('scrobbleStatus').className   = 'scrobble-status';
   setScrobbleNow();
+
+  const hasLfm   = !!(getScrobbleSession() && getScrobbleUser());
+  const hasSheet = !!(getSheetWriteUrl() && getDataSource() === 'sheets');
+  document.getElementById('scrobbleSubmitBtn').style.display = hasLfm   ? '' : 'none';
+  document.getElementById('scrobbleSheetBtn').style.display  = hasSheet ? '' : 'none';
+  document.getElementById('scrobbleNoTarget').style.display  = (!hasLfm && !hasSheet) ? '' : 'none';
 }
 
 function closeScrobbleModal() {
@@ -406,7 +422,7 @@ function closeScrobbleModal() {
 
 function setScrobbleNow() {
   const now = new Date();
-  now.setSeconds(0, 0);
+  now.setMilliseconds(0);
   document.getElementById('scrobbleTime').value = scrobbleDatetimeLocal(now);
 }
 
@@ -446,6 +462,63 @@ async function submitScrobble() {
     statusEl.className   = 'scrobble-status err';
   }
   btn.disabled = false;
+}
+
+async function submitToSheet() {
+  const artist  = document.getElementById('scrobbleArtist').value.trim();
+  const track   = document.getElementById('scrobbleTrack').value.trim();
+  const album   = document.getElementById('scrobbleAlbum').value.trim();
+  const timeVal = document.getElementById('scrobbleTime').value;
+  const statusEl= document.getElementById('scrobbleStatus');
+
+  if (!artist || !track) {
+    statusEl.textContent = 'Artist and Track are required.';
+    statusEl.className   = 'scrobble-status err';
+    return;
+  }
+  const timestamp = Math.floor(new Date(timeVal).getTime() / 1000);
+  if (isNaN(timestamp)) {
+    statusEl.textContent = 'Invalid date/time.';
+    statusEl.className   = 'scrobble-status err';
+    return;
+  }
+
+  const writeUrl = getSheetWriteUrl();
+  if (!writeUrl) {
+    statusEl.textContent = 'No Apps Script URL configured.';
+    statusEl.className   = 'scrobble-status err';
+    return;
+  }
+
+  const btn = document.getElementById('scrobbleSheetBtn');
+  btn.disabled = true;
+  statusEl.textContent = 'Adding to sheet…';
+  statusEl.className   = 'scrobble-status loading';
+
+  try {
+    const res  = await fetch(writeUrl, {
+      method: 'POST',
+      body: JSON.stringify({ artist, track, album, timestamp }),
+    });
+    const data = await res.json();
+    if (data.status === 'error') throw new Error(data.message || 'Script error');
+    statusEl.textContent = '✓ Added to sheet!';
+    statusEl.className   = 'scrobble-status ok';
+    setTimeout(closeScrobbleModal, 1500);
+  } catch (e) {
+    statusEl.textContent = 'Error: ' + e.message;
+    statusEl.className   = 'scrobble-status err';
+  }
+  btn.disabled = false;
+}
+
+function copyAppsScript() {
+  const code = document.getElementById('appsScriptCode').textContent;
+  navigator.clipboard.writeText(code).then(() => {
+    const btn = document.getElementById('copyAppsScriptBtn');
+    btn.textContent = 'Copied!';
+    setTimeout(() => { btn.textContent = 'Copy'; }, 2000);
+  });
 }
 
 function bestImage(images) {
@@ -514,6 +587,7 @@ async function ytSearch(query) {
   if (!YOUTUBE_KEY) return null;
   const q = encodeURIComponent(query);
   const r = await fetch(`https://www.googleapis.com/youtube/v3/search?part=snippet&q=${q}&type=video&maxResults=1&key=${YOUTUBE_KEY}`);
+  if (!r.ok) return null;
   const d = await r.json();
   const item = d?.items?.[0];
   if (!item) return null;
@@ -630,32 +704,114 @@ function thumbHtml(url, fallbackStr, isRank1) {
   return `<div class="thumb-initials">${esc(initials(fallbackStr))}</div>`;
 }
 
-// After render, fetch images async and inject them into existing rows
-async function loadImages(items, type) {
-  for (const item of items) {
-    const source = (item.prefKey && itemSourcePrefs[item.prefKey]) || 'deezer';
+// Called when a browser fails to render an image URL — cycles through remaining sources automatically.
+// Tracks tried sources via data-tried-src to prevent repeating and stops once all are exhausted.
+async function _imgFallback(img) {
+  const FALLBACK_SOURCES = ['deezer', 'itunes', 'lastfm', 'youtube'];
+  const tried = new Set(img.dataset.triedSrc ? img.dataset.triedSrc.split(',') : []);
+  const type = img.dataset.type || '';
+  const prefKey = img.dataset.prefkey || '';
+  const name = img.dataset.name || '';
+  const artist = img.dataset.artist || '';
+  const album = img.dataset.album || '';
+  const imgId = img.dataset.imgid || '';
+  const fallback = name || album || artist || '';
+  img.onerror = null; // prevent re-entry while async fetch is in flight
+  for (const source of FALLBACK_SOURCES) {
+    if (tried.has(source)) continue;
+    tried.add(source);
+    img.dataset.triedSrc = [...tried].join(',');
     let url = null;
-    if (source !== 'off') {
+    try {
+      if (type === 'artist') url = await getArtistImage(name, source);
+      else if (type === 'album') url = await getAlbumImage(album, artist, source);
+      else url = await getTrackImage(name, artist, source);
+    } catch (e) {}
+    if (!img.isConnected) return;
+    if (url) {
+      img.onerror = function() { _imgFallback(this); };
+      img.src = url;
+      if (imgId) {
+        const btn = document.getElementById('srcbtn-' + imgId);
+        if (btn) btn.textContent = srcLabel(source);
+      }
+      if (prefKey) {
+        itemSourcePrefs[prefKey] = source;
+        localStorage.setItem('itemSourcePrefs', JSON.stringify(itemSourcePrefs));
+      }
+      return;
+    }
+  }
+  // All sources exhausted — stay on initials, leave source button as-is (Deezer)
+  if (img.isConnected) img.outerHTML = `<div class="thumb-initials">${esc(initials(fallback))}</div>`;
+}
+
+// Fetch and inject a single image into its container element
+async function fetchAndInjectImage(el, item, type) {
+  const FALLBACK_SOURCES = ['deezer', 'itunes', 'lastfm', 'youtube'];
+  const preferredSource = (item.prefKey && itemSourcePrefs[item.prefKey]) || 'deezer';
+  let url = null;
+  let usedSource = preferredSource;
+
+  if (preferredSource !== 'off') {
+    const startIdx = Math.max(0, FALLBACK_SOURCES.indexOf(preferredSource));
+    for (let i = 0; i < FALLBACK_SOURCES.length; i++) {
+      const source = FALLBACK_SOURCES[(startIdx + i) % FALLBACK_SOURCES.length];
+      if (i > 0 && source === 'deezer') break;
       try {
         if (type === 'artist') url = await getArtistImage(item.name, source);
         else if (type === 'album') url = await getAlbumImage(item.album, item.artist, source);
-        else if (type === 'song') url = await getTrackImage(item.title, item.artist, source);
-      } catch (e) { }
-      // Throttle Deezer requests to avoid hitting corsproxy.io rate limits
+        else url = await getTrackImage(item.title, item.artist, source);
+      } catch (e) { url = null; }
       if (source === 'deezer') await new Promise(r => setTimeout(r, 120));
+      if (url) { usedSource = source; break; }
     }
+    if (!url) usedSource = 'deezer';
+  }
+
+  if (!document.getElementById(item.imgId)) return;
+  const fallback = item.name || item.title || item.album || '';
+  if (url) {
+    el.innerHTML = `<img class="thumb" alt="" loading="lazy" data-imgid="${esc(item.imgId || '')}" data-type="${esc(type)}" data-prefkey="${esc(item.prefKey || '')}" data-name="${esc(item.name || item.title || '')}" data-artist="${esc(item.artist || '')}" data-album="${esc(item.album || '')}" data-tried-src="${esc(usedSource)}">`;
+    const newImg = el.querySelector('img');
+    newImg.onerror = function() { _imgFallback(this); };
+    newImg.src = url;
+  } else {
+    el.innerHTML = `<div class="thumb-initials">${esc(initials(fallback))}</div>`;
+  }
+  if (item.prefKey) {
+    if (usedSource !== preferredSource) {
+      itemSourcePrefs[item.prefKey] = usedSource;
+      localStorage.setItem('itemSourcePrefs', JSON.stringify(itemSourcePrefs));
+    }
+    const btn = document.getElementById('srcbtn-' + item.imgId);
+    if (btn) btn.textContent = srcLabel(usedSource);
+  }
+}
+
+function clearImageObservers() {
+  imgObservers.forEach(o => o.disconnect());
+  imgObservers = [];
+  imgQueue = Promise.resolve();
+}
+
+// Set up IntersectionObserver so images only load when scrolled into view
+function loadImages(items, type) {
+  const observer = new IntersectionObserver((entries) => {
+    for (const entry of entries) {
+      if (!entry.isIntersecting) continue;
+      observer.unobserve(entry.target);
+      const item = entry.target._imgItem;
+      if (item) imgQueue = imgQueue.then(() => fetchAndInjectImage(entry.target, item, type));
+    }
+  }, { rootMargin: '300px' });
+  imgObservers.push(observer);
+
+  for (const item of items) {
     const el = document.getElementById(item.imgId);
     if (!el) continue;
-    const fallback = item.name || item.title || item.album;
-    if (url) {
-      el.innerHTML = `<img class="thumb" src="${esc(url)}" alt="" loading="lazy" onerror="this.outerHTML='<div class=thumb-initials>${esc(initials(fallback))}</div>'">`;
-    } else {
-      el.innerHTML = `<div class="thumb-initials">${esc(initials(fallback))}</div>`;
-    }
-    if (item.prefKey) {
-      const btn = document.getElementById('srcbtn-' + item.imgId);
-      if (btn) btn.textContent = srcLabel(source);
-    }
+    el._imgItem = item;
+    observer.observe(el);
   }
 }
 
@@ -1147,8 +1303,9 @@ function openSourceModal() {
   document.getElementById('srcDisplayName').value  = localStorage.getItem('dc_display_name') || '';
   populateTzSelect();
   document.getElementById('srcTimezone').value = userTimezone;
-  document.getElementById('srcSheetId').value      = localStorage.getItem('dc_sheet_id')  || DEFAULT_SHEET_ID;
-  document.getElementById('srcSheetTab').value     = localStorage.getItem('dc_sheet_tab') || DEFAULT_SHEET_TAB;
+  document.getElementById('srcSheetId').value       = localStorage.getItem('dc_sheet_id')        || DEFAULT_SHEET_ID;
+  document.getElementById('srcSheetTab').value      = localStorage.getItem('dc_sheet_tab')       || DEFAULT_SHEET_TAB;
+  document.getElementById('srcSheetWriteUrl').value = localStorage.getItem('dc_sheet_write_url') || '';
   document.getElementById('srcLastfmUser').value   = getLastFmUser();
   document.getElementById('srcLfmApiKey').value    = getScrobbleKey();
   document.getElementById('srcLfmApiSecret').value = getScrobbleSecret();
@@ -1218,6 +1375,10 @@ function saveSourceConfig() {
     if (gidMatch) localStorage.setItem('dc_sheet_gid', gidMatch[1]);
     else localStorage.removeItem('dc_sheet_gid');
     localStorage.setItem('dc_sheet_tab', document.getElementById('srcSheetTab').value.trim());
+    const writeUrl = document.getElementById('srcSheetWriteUrl').value.trim();
+    if (writeUrl) localStorage.setItem('dc_sheet_write_url', writeUrl);
+    else localStorage.removeItem('dc_sheet_write_url');
+    updateScrobbleBtn();
     deleteFromIDB(IDB_LASTFM_KEY);
     localStorage.removeItem('dc_lastfm_ts'); // clean up old key
   } else {
@@ -3361,6 +3522,7 @@ function renderNewEntries(plays, start, end) {
   const show = plays.length > 0 && ['week', 'month', 'year'].includes(currentPeriod);
   if (!show) {
     NEW_ENTRY_SECTIONS.forEach(id => { const el = document.getElementById(id); if (el) el.style.display = 'none'; });
+    pageState.newSongs = 0; pageState.newArtists = 0; pageState.newAlbums = 0;
     return;
   }
 
@@ -3391,7 +3553,7 @@ function renderNewEntries(plays, start, end) {
   }
   const allNewSongs = Object.values(songCounts).map(s => { s.album = bestAlbum(s.title, s._albums); delete s._albums; return s; })
     .sort((a, b) => b.count - a.count);
-  const newSongs = isFinite(limit) ? allNewSongs.slice(0, limit) : allNewSongs;
+  fullNewData.newSongs = isFinite(limit) ? allNewSongs.slice(0, limit) : allNewSongs;
 
   // New artists
   const artistCounts = {};
@@ -3406,7 +3568,7 @@ function renderNewEntries(plays, start, end) {
     }
   }
   const allNewArtists = Object.values(artistCounts).sort((a, b) => b.count - a.count);
-  const newArtists = isFinite(limit) ? allNewArtists.slice(0, limit) : allNewArtists;
+  fullNewData.newArtists = isFinite(limit) ? allNewArtists.slice(0, limit) : allNewArtists;
 
   // New albums
   const albumCounts = {};
@@ -3421,74 +3583,129 @@ function renderNewEntries(plays, start, end) {
     }
   }
   const allNewAlbums = Object.values(albumCounts).sort((a, b) => b.count - a.count);
-  const newAlbums = isFinite(limit) ? allNewAlbums.slice(0, limit) : allNewAlbums;
+  fullNewData.newAlbums = isFinite(limit) ? allNewAlbums.slice(0, limit) : allNewAlbums;
 
-  // Update titles and visibility
-  const maxS = newSongs[0]?.count || 1;
-  const maxA = newArtists[0]?.count || 1;
-  const maxL = newAlbums[0]?.count || 1;
+  // Reset pages on each full data rebuild
+  pageState.newSongs = 0; pageState.newArtists = 0; pageState.newAlbums = 0;
 
+  // Update section visibility and titles
   const songSec = document.getElementById('newSongsSection');
   const artistSec = document.getElementById('newArtistsSection');
   const albumSec = document.getElementById('newAlbumsSection');
 
   if (songSec) {
-    songSec.style.display = newSongs.length > 0 ? '' : 'none';
-    document.getElementById('newSongsTitle').textContent = `✦ ${newSongs.length} NEW SONG${newSongs.length !== 1 ? 'S' : ''} THIS ${periodLabel.toUpperCase()}`;
+    songSec.style.display = fullNewData.newSongs.length > 0 ? '' : 'none';
+    document.getElementById('newSongsTitle').textContent = `✦ ${fullNewData.newSongs.length} NEW SONG${fullNewData.newSongs.length !== 1 ? 'S' : ''} THIS ${periodLabel.toUpperCase()}`;
   }
   if (artistSec) {
-    artistSec.style.display = newArtists.length > 0 ? '' : 'none';
-    document.getElementById('newArtistsTitle').textContent = `✦ ${newArtists.length} NEW ARTIST${newArtists.length !== 1 ? 'S' : ''} THIS ${periodLabel.toUpperCase()}`;
+    artistSec.style.display = fullNewData.newArtists.length > 0 ? '' : 'none';
+    document.getElementById('newArtistsTitle').textContent = `✦ ${fullNewData.newArtists.length} NEW ARTIST${fullNewData.newArtists.length !== 1 ? 'S' : ''} THIS ${periodLabel.toUpperCase()}`;
   }
   if (albumSec) {
-    albumSec.style.display = newAlbums.length > 0 ? '' : 'none';
-    document.getElementById('newAlbumsTitle').textContent = `✦ ${newAlbums.length} NEW ALBUM${newAlbums.length !== 1 ? 'S' : ''} THIS ${periodLabel.toUpperCase()}`;
+    albumSec.style.display = fullNewData.newAlbums.length > 0 ? '' : 'none';
+    document.getElementById('newAlbumsTitle').textContent = `✦ ${fullNewData.newAlbums.length} NEW ALBUM${fullNewData.newAlbums.length !== 1 ? 'S' : ''} THIS ${periodLabel.toUpperCase()}`;
   }
 
-  // Render new songs
-  const newSongImgs = [];
-  document.getElementById('newSongsBody').innerHTML = newSongs.map((s, i) => {
-    const imgId = 'nsimg-' + i;
-    const prefKey = 'song:' + s.artist.toLowerCase() + '|||' + s.title.toLowerCase();
-    newSongImgs.push({ imgId, title: s.title, artist: s.artist, album: s.album, prefKey });
-    return `<tr class="${i === 0 ? 'rank-1' : i === 1 ? 'rank-2' : i === 2 ? 'rank-3' : ''}">
-      <td class="rank-cell">${i + 1}</td>
+  renderNewPage('newSongs');
+  renderNewPage('newArtists');
+  renderNewPage('newAlbums');
+}
+
+function renderNewPage(type) {
+  const data = fullNewData[type];
+  const page = pageState[type];
+  const totalPages = Math.ceil(data.length / PAGE_SIZE);
+  const slice = data.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE);
+  const max = data[0]?.count || 1;
+
+  const paginationEl = document.getElementById(type + 'Pagination');
+  const labelEl = document.getElementById(type + 'PageLabel');
+  if (paginationEl && labelEl) {
+    if (data.length > PAGE_SIZE) {
+      const start = page * PAGE_SIZE + 1;
+      const end = Math.min((page + 1) * PAGE_SIZE, data.length);
+      labelEl.textContent = `#${start}–#${end} of ${data.length.toLocaleString()}`;
+      paginationEl.style.display = 'flex';
+      const atFirst = page === 0;
+      const atLast = page >= totalPages - 1;
+      paginationEl.querySelector('.page-nav-first').disabled = atFirst;
+      paginationEl.querySelector('.page-nav-prev').disabled = atFirst;
+      paginationEl.querySelector('.page-nav-next').disabled = atLast;
+      paginationEl.querySelector('.page-nav-last').disabled = atLast;
+      const pageInput = document.getElementById(type + 'PageInput');
+      if (pageInput) pageInput.value = page + 1;
+    } else {
+      paginationEl.style.display = 'none';
+    }
+  }
+
+  const imgs = [];
+  if (type === 'newSongs') {
+    document.getElementById('newSongsBody').innerHTML = slice.map((s, i) => {
+      const rank = page * PAGE_SIZE + i + 1;
+      const imgId = 'nsimg-' + i;
+      const prefKey = 'song:' + s.artist.toLowerCase() + '|||' + s.title.toLowerCase();
+      imgs.push({ imgId, title: s.title, artist: s.artist, album: s.album, prefKey });
+      return `<tr class="${rank === 1 ? 'rank-1' : rank === 2 ? 'rank-2' : rank === 3 ? 'rank-3' : ''}">
+      <td class="rank-cell">${rank}</td>
       <td class="thumb-cell"><div class="thumb-wrap"><div id="${imgId}"><div class="thumb-initials">${esc(initials(s.title))}</div></div><button id="srcbtn-${imgId}" class="img-src-btn" data-imgid="${imgId}" data-type="song" data-prefkey="${esc(prefKey)}" data-name="${esc(s.title)}" data-artist="${esc(s.artist)}" data-album="${esc(s.album)}">${srcLabel(itemSourcePrefs[prefKey] || 'deezer')}</button></div></td>
       <td><div class="song-title">${esc(s.title)}</div><div class="song-artist">${esc(s.artist)}</div></td>
-      <td><div class="play-count">${tCountHtml('plays', s.count)}</div><div class="play-bar"><div class="play-bar-fill" style="width:${Math.round(s.count / maxS * 100)}%"></div></div></td>
+      <td><div class="play-count">${tCountHtml('plays', s.count)}</div><div class="play-bar"><div class="play-bar-fill" style="width:${Math.round(s.count / max * 100)}%"></div></div></td>
     </tr>`;
-  }).join('');
-  loadImages(newSongImgs.map(i => ({ ...i, name: i.title })), 'song');
-
-  // Render new artists
-  const newArtistImgs = [];
-  document.getElementById('newArtistsBody').innerHTML = newArtists.map((a, i) => {
-    const imgId = 'naimg-' + i;
-    const prefKey = 'artist:' + a.name.toLowerCase();
-    newArtistImgs.push({ imgId, name: a.name, prefKey });
-    return `<tr class="${i === 0 ? 'rank-1' : i === 1 ? 'rank-2' : i === 2 ? 'rank-3' : ''} artist-row" data-artist="${esc(a.name)}">
-      <td class="rank-cell">${i + 1}</td>
+    }).join('');
+    loadImages(imgs.map(i => ({ ...i, name: i.title })), 'song');
+  } else if (type === 'newArtists') {
+    document.getElementById('newArtistsBody').innerHTML = slice.map((a, i) => {
+      const rank = page * PAGE_SIZE + i + 1;
+      const imgId = 'naimg-' + i;
+      const prefKey = 'artist:' + a.name.toLowerCase();
+      imgs.push({ imgId, name: a.name, prefKey });
+      return `<tr class="${rank === 1 ? 'rank-1' : rank === 2 ? 'rank-2' : rank === 3 ? 'rank-3' : ''} artist-row" data-artist="${esc(a.name)}">
+      <td class="rank-cell">${rank}</td>
       <td class="thumb-cell"><div class="thumb-wrap"><div id="${imgId}"><div class="thumb-initials">${esc(initials(a.name))}</div></div><button id="srcbtn-${imgId}" class="img-src-btn" data-imgid="${imgId}" data-type="artist" data-prefkey="${esc(prefKey)}" data-name="${esc(a.name)}" data-artist="${esc(a.name)}" data-album="">${srcLabel(itemSourcePrefs[prefKey] || 'deezer')}</button></div></td>
       <td><div class="song-title">${esc(a.name)}</div><div class="song-artist">${tCount('songs', a.songs.size)}</div></td>
-      <td><div class="play-count">${tCountHtml('plays', a.count)}</div><div class="play-bar"><div class="play-bar-fill" style="width:${Math.round(a.count / maxA * 100)}%"></div></div></td>
+      <td><div class="play-count">${tCountHtml('plays', a.count)}</div><div class="play-bar"><div class="play-bar-fill" style="width:${Math.round(a.count / max * 100)}%"></div></div></td>
     </tr>`;
-  }).join('');
-  loadImages(newArtistImgs, 'artist');
-
-  // Render new albums
-  const newAlbumImgs = [];
-  document.getElementById('newAlbumsBody').innerHTML = newAlbums.map((a, i) => {
-    const imgId = 'nlimg-' + i;
-    const prefKey = 'album:' + a.artist.toLowerCase() + '|||' + a.album.toLowerCase();
-    newAlbumImgs.push({ imgId, album: a.album, artist: a.artist, name: a.album, prefKey });
-    return `<tr class="${i === 0 ? 'rank-1' : i === 1 ? 'rank-2' : i === 2 ? 'rank-3' : ''} album-row" data-albumkey="${esc(a.album + '|||' + a.artist)}">
-      <td class="rank-cell">${i + 1}</td>
+    }).join('');
+    loadImages(imgs, 'artist');
+  } else if (type === 'newAlbums') {
+    document.getElementById('newAlbumsBody').innerHTML = slice.map((a, i) => {
+      const rank = page * PAGE_SIZE + i + 1;
+      const imgId = 'nlimg-' + i;
+      const prefKey = 'album:' + a.artist.toLowerCase() + '|||' + a.album.toLowerCase();
+      imgs.push({ imgId, album: a.album, artist: a.artist, name: a.album, prefKey });
+      return `<tr class="${rank === 1 ? 'rank-1' : rank === 2 ? 'rank-2' : rank === 3 ? 'rank-3' : ''} album-row" data-albumkey="${esc(a.album + '|||' + a.artist)}">
+      <td class="rank-cell">${rank}</td>
       <td class="thumb-cell"><div class="thumb-wrap"><div id="${imgId}"><div class="thumb-initials">${esc(initials(a.album))}</div></div><button id="srcbtn-${imgId}" class="img-src-btn" data-imgid="${imgId}" data-type="album" data-prefkey="${esc(prefKey)}" data-name="${esc(a.album)}" data-artist="${esc(a.artist)}" data-album="${esc(a.album)}">${srcLabel(itemSourcePrefs[prefKey] || 'deezer')}</button></div></td>
       <td><div class="song-title">${esc(a.album)}</div><div class="song-artist">${esc(a.artist)}</div></td>
-      <td><div class="play-count">${tCountHtml('plays', a.count)}</div><div class="play-bar"><div class="play-bar-fill" style="width:${Math.round(a.count / maxL * 100)}%"></div></div></td>
+      <td><div class="play-count">${tCountHtml('plays', a.count)}</div><div class="play-bar"><div class="play-bar-fill" style="width:${Math.round(a.count / max * 100)}%"></div></div></td>
     </tr>`;
-  }).join('');
-  loadImages(newAlbumImgs, 'album');
+    }).join('');
+    loadImages(imgs, 'album');
+  }
+}
+
+function changeNewPage(type, dir) {
+  const data = fullNewData[type];
+  const totalPages = Math.ceil(data.length / PAGE_SIZE);
+  pageState[type] = Math.max(0, Math.min(totalPages - 1, pageState[type] + dir));
+  renderNewPage(type);
+  const titleIds = { newSongs: 'newSongsTitle', newArtists: 'newArtistsTitle', newAlbums: 'newAlbumsTitle' };
+  document.getElementById(titleIds[type]).scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function goToNewPage(type, pageNum) {
+  const data = fullNewData[type];
+  const totalPages = Math.ceil(data.length / PAGE_SIZE);
+  pageState[type] = pageNum === Infinity ? totalPages - 1 : Math.max(0, Math.min(totalPages - 1, pageNum));
+  renderNewPage(type);
+  const titleIds = { newSongs: 'newSongsTitle', newArtists: 'newArtistsTitle', newAlbums: 'newAlbumsTitle' };
+  document.getElementById(titleIds[type]).scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function goToNewPageInput(type, val) {
+  const n = parseInt(val, 10);
+  if (!isNaN(n) && n >= 1) goToNewPage(type, n - 1);
 }
 
 // ─── RENDER ────────────────────────────────────────────────────
@@ -3512,6 +3729,7 @@ function renderTableHeaders() {
 
 function renderAll() {
   if (currentPeriod === 'rawdata') { applyRawFilters(); return; }
+  clearImageObservers();
   document.body.dataset.period = currentPeriod;
   // Exit early if no data has been loaded yet
   if (!allPlays || allPlays.length === 0) { return; }
@@ -3791,8 +4009,14 @@ function renderPage(type, peaks) {
     paginationEl.style.display = 'flex';
   }
   if (paginationEl.style.display === 'flex') {
-    paginationEl.querySelectorAll('button')[0].disabled = (page === 0);
-    paginationEl.querySelectorAll('button')[1].disabled = (page >= totalPages - 1);
+    const atFirst = page === 0;
+    const atLast = page >= totalPages - 1;
+    paginationEl.querySelector('.page-nav-first').disabled = atFirst;
+    paginationEl.querySelector('.page-nav-prev').disabled = atFirst;
+    paginationEl.querySelector('.page-nav-next').disabled = atLast;
+    paginationEl.querySelector('.page-nav-last').disabled = atLast;
+    const pageInput = document.getElementById(type + 'PageInput');
+    if (pageInput) pageInput.value = page + 1;
   }
 
   // rank = actual position in full (unfiltered) dataset, always
@@ -3925,14 +4149,24 @@ function filteredData(type) {
 }
 
 function changePage(type, dir) {
-  const data = fullData[type];
-  const totalPages = Math.ceil(data.length / PAGE_SIZE);
+  const totalPages = Math.ceil(filteredData(type).length / PAGE_SIZE);
   pageState[type] = Math.max(0, Math.min(totalPages - 1, pageState[type] + dir));
-  const peaks = buildPeaks();
-  renderPage(type, peaks);
-  // Scroll to the top of that section's table
+  renderPage(type, buildPeaks());
   const titles = { songs: 'songsSectionTitle', artists: 'artistsSectionTitle', albums: 'albumsSectionTitle' };
   document.getElementById(titles[type]).scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function goToPage(type, pageNum) {
+  const totalPages = Math.ceil(filteredData(type).length / PAGE_SIZE);
+  pageState[type] = pageNum === Infinity ? totalPages - 1 : Math.max(0, Math.min(totalPages - 1, pageNum));
+  renderPage(type, buildPeaks());
+  const titles = { songs: 'songsSectionTitle', artists: 'artistsSectionTitle', albums: 'albumsSectionTitle' };
+  document.getElementById(titles[type]).scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function goToPageInput(type, val) {
+  const n = parseInt(val, 10);
+  if (!isNaN(n) && n >= 1) goToPage(type, n - 1);
 }
 
 // ─── CHART RUN ─────────────────────────────────────────────────
@@ -5738,28 +5972,55 @@ function setEntPostImgSource(source) {
   _fetchEntPostImage(crIgState.type, crIgState.key);
 }
 
-async function _fetchEntPostImage(type, key) {
-  const source = crIgState.entPostImgSource;
+// Resolves a URL for the given type/key/source, returns null on any failure.
+async function _lookupImgUrl(type, key, source) {
   try {
-    let url = null;
-    const crAny = (allChartRun.year && allChartRun.year.result && allChartRun.year.result[type] && allChartRun.year.result[type][key])
-      || (allChartRun.month && allChartRun.month.result && allChartRun.month.result[type] && allChartRun.month.result[type][key])
-      || (allChartRun.week && allChartRun.week.result && allChartRun.week.result[type] && allChartRun.week.result[type][key]);
-    if (source !== 'off') {
-      if (type === 'artists') {
-        url = await getArtistImage(key, source);
-      } else if (type === 'songs') {
-        const artist2 = (crAny && crAny._artist) || key.split('|||')[1] || '';
-        const title2 = (crAny && crAny._title) || key.split('|||')[0] || key;
-        url = await getTrackImage(title2, artist2, source);
-      } else {
-        const artist2 = (crAny && crAny._artist) || key.split('|||')[1] || '';
-        const album2 = (crAny && crAny._album) || key.split('|||')[0] || key;
-        url = await getAlbumImage(album2, artist2, source);
-      }
+    const crAny = allChartRun.year?.result?.[type]?.[key]
+      || allChartRun.month?.result?.[type]?.[key]
+      || allChartRun.week?.result?.[type]?.[key];
+    if (type === 'artists') return await getArtistImage(key, source);
+    if (type === 'songs') {
+      return await getTrackImage(
+        crAny?._title || key.split('|||')[0] || key,
+        crAny?._artist || key.split('|||')[1] || '',
+        source
+      );
     }
-    crIgState.entPostImgUrl = url || null;
-  } catch (e) { crIgState.entPostImgUrl = null; }
+    return await getAlbumImage(
+      crAny?._album || key.split('|||')[0] || key,
+      crAny?._artist || key.split('|||')[1] || '',
+      source
+    );
+  } catch (e) { return null; }
+}
+
+const _CRIG_SOURCES = ['deezer', 'itunes', 'lastfm', 'youtube'];
+
+// Cycles through _CRIG_SOURCES starting from startSource, stops before looping back to 'deezer'.
+// Returns { url, source } for the first hit, or { url: null, source: 'deezer' } when all fail.
+async function _fetchWithSourceFallback(type, key, startSource) {
+  const startIdx = Math.max(0, _CRIG_SOURCES.indexOf(startSource));
+  for (let i = 0; i < _CRIG_SOURCES.length; i++) {
+    const source = _CRIG_SOURCES[(startIdx + i) % _CRIG_SOURCES.length];
+    if (i > 0 && source === 'deezer') break; // cycled back to sentinel — stop
+    const url = await _lookupImgUrl(type, key, source);
+    if (url) return { url, source };
+  }
+  return { url: null, source: 'deezer' };
+}
+
+async function _fetchEntPostImage(type, key) {
+  if (crIgState.entPostImgSource === 'off') {
+    crIgState.entPostImgUrl = null;
+    if (document.getElementById('crIgModal').classList.contains('open') && crIgState.key === key && crIgState.mode === 'entrypost') updateCrIgPreview();
+    return;
+  }
+  const { url, source } = await _fetchWithSourceFallback(type, key, crIgState.entPostImgSource || 'deezer');
+  if (source !== crIgState.entPostImgSource) {
+    crIgState.entPostImgSource = source;
+    _syncEntPostSrcBtns();
+  }
+  crIgState.entPostImgUrl = url || null;
   if (document.getElementById('crIgModal').classList.contains('open') && crIgState.key === key && crIgState.mode === 'entrypost') {
     updateCrIgPreview();
   }
@@ -5939,29 +6200,19 @@ function openCrIgModal(type, encodedKey, rank) {
   _fetchEntPostImage(type, key);
 }
 
-// Fetches cover art for the given type/key using crIgState.imgSource
+// Fetches cover art for the given type/key using crIgState.imgSource, with automatic source fallback.
 async function fetchCrIgImage(type, key) {
-  const source = crIgState.imgSource;
-  try {
-    let url = null;
-    if (source === 'off') {
-      crIgState.imgUrl = null;
-    } else {
-      const crAny2 = allChartRun.year?.result?.[type]?.[key] || allChartRun.month?.result?.[type]?.[key] || allChartRun.week?.result?.[type]?.[key];
-      if (type === 'artists') {
-        url = await getArtistImage(key, source);
-      } else if (type === 'songs') {
-        const artist2 = crAny2?._artist || key.split('|||')[1] || '';
-        const title2 = crAny2?._title || key.split('|||')[0] || key;
-        url = await getTrackImage(title2, artist2, source);
-      } else if (type === 'albums') {
-        const artist2 = crAny2?._artist || key.split('|||')[1] || '';
-        const album2 = crAny2?._album || key.split('|||')[0] || key;
-        url = await getAlbumImage(album2, artist2, source);
-      }
-      crIgState.imgUrl = url || null;
-    }
-  } catch (e) { crIgState.imgUrl = null; }
+  if (crIgState.imgSource === 'off') {
+    crIgState.imgUrl = null;
+    if (document.getElementById('crIgModal').classList.contains('open') && crIgState.key === key) updateCrIgPreview();
+    return;
+  }
+  const { url, source } = await _fetchWithSourceFallback(type, key, crIgState.imgSource || 'deezer');
+  if (source !== crIgState.imgSource) {
+    crIgState.imgSource = source;
+    _syncCrIgSrcBtns();
+  }
+  crIgState.imgUrl = url || null;
   if (document.getElementById('crIgModal').classList.contains('open') && crIgState.key === key) {
     updateCrIgPreview();
   }
