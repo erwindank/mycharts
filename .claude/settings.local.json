@@ -32,7 +32,11 @@
       "Bash(awk 'NR<=547' style.css)",
       "Bash(awk 'NR>=545 && NR<=560' style.css)",
       "Bash(grep -n \"^\\\\s\\\\{2,4\\\\}[a-z][a-z][a-z]\\\\?:\\\\s*{\" c:/Users/erwin_totaltransport/Desktop/mycharts/translations.js)",
-      "Bash(awk 'NR>=4740 && NR<=4790 {print NR\": \"$0}' c:/Users/erwin_totaltransport/Desktop/mycharts/style.css)"
+      "Bash(awk 'NR>=4740 && NR<=4790 {print NR\": \"$0}' c:/Users/erwin_totaltransport/Desktop/mycharts/style.css)",
+      "Bash(python test_sheets.py)",
+      "Bash(venv\\\\Scripts\\\\python.exe test_sheets.py)",
+      "Bash(\"venv/Scripts/python.exe\" test_sheets.py)",
+      "Bash(venv/Scripts/python.exe -c ' *)"
     ]
   }
 }

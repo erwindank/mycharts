@@ -6,6 +6,7 @@ import json
 import csv
 import os
 import re
+import urllib.parse
 import requests as req_lib
 
 bp = Blueprint('sync', __name__, url_prefix='/api/sync')
@@ -81,18 +82,39 @@ def ts_to_iso(unix_ts):
     return datetime.datetime.fromtimestamp(int(unix_ts), tz=datetime.timezone.utc).isoformat()
 
 
+_ES_MONTHS = {
+    'ene': 1, 'feb': 2, 'mar': 3, 'abr': 4, 'may': 5, 'jun': 6,
+    'jul': 7, 'ago': 8, 'sep': 9, 'oct': 10, 'nov': 11, 'dic': 12,
+}
+
+
 def parse_dt_str(s):
     if not s:
         return None
     s = str(s).strip()
     if s.isdigit() and len(s) >= 10:
         return ts_to_iso(int(s))
+    # Spanish locale format from gviz/tq: "9/ene/2016 2:10:34"
+    m = re.match(r'^(\d{1,2})/([a-zA-Z]{3})/(\d{4})\s+(\d{1,2}):(\d{2})(?::(\d{2}))?', s)
+    if m:
+        mon = _ES_MONTHS.get(m.group(2).lower())
+        if mon:
+            try:
+                dt = datetime.datetime(
+                    int(m.group(3)), mon, int(m.group(1)),
+                    int(m.group(4)), int(m.group(5)), int(m.group(6) or 0),
+                    tzinfo=datetime.timezone.utc,
+                )
+                return dt.isoformat()
+            except ValueError:
+                pass
     formats = [
         '%Y-%m-%dT%H:%M:%SZ',
         '%Y-%m-%dT%H:%M:%S.%fZ',
         '%Y-%m-%dT%H:%M:%S',
         '%Y-%m-%d %H:%M:%S',
         '%d %b %Y, %H:%M',
+        '%d/%m/%Y %H:%M:%S',
         '%d/%m/%Y %H:%M',
         '%m/%d/%Y %H:%M',
         '%Y-%m-%d %H:%M',
@@ -377,10 +399,11 @@ def parse_deezer_xlsx(file_obj):
 
 @bp.route('/sheets-proxy', methods=['GET'])
 def sheets_proxy():
-    """Proxy-fetch a public Google Sheet CSV server-side.
+    """Proxy-fetch a public Google Sheet CSV using paginated gviz/tq calls.
 
-    Browser fetches are anonymous and Google silently truncates large sheets.
-    Server-side requests bypass that cap.
+    Google's export?format=csv silently truncates large public sheets at ~100-150k rows
+    regardless of whether the request is from a browser or a server. The gviz/tq endpoint
+    supports SQL-style LIMIT/OFFSET so we can page through the entire sheet in chunks.
     """
     sheet_id = request.args.get('sheetId', '').strip()
     gid = request.args.get('gid', '').strip()
@@ -390,27 +413,59 @@ def sheets_proxy():
     if gid and not gid.isdigit():
         return api_error('Invalid gid')
 
-    csv_url = f'https://docs.google.com/spreadsheets/d/{sheet_id}/export?format=csv'
-    if gid and gid != '0':
-        csv_url += f'&gid={gid}'
-
-    headers = {
+    req_headers = {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
     }
-    try:
-        r = req_lib.get(csv_url, headers=headers, timeout=120, stream=True)
-        r.raise_for_status()
-        ct = r.headers.get('content-type', '')
-        if 'text/html' in ct:
-            return api_error('Sheet is not public — set sharing to "Anyone with the link can view"', 403)
 
-        def generate():
-            for chunk in r.iter_content(chunk_size=65536):
-                if chunk:
-                    yield chunk
+    PAGE_SIZE = 50000
+    csv_header = None
+    all_data_rows = []
+    offset = 0
+    first_page = True
+
+    try:
+        while True:
+            tq = urllib.parse.quote(f"select * limit {PAGE_SIZE} offset {offset}")
+            page_url = f"https://docs.google.com/spreadsheets/d/{sheet_id}/gviz/tq?tqx=out:csv&tq={tq}"
+            if gid and gid != '0':
+                page_url += f"&gid={gid}"
+
+            r = req_lib.get(page_url, headers=req_headers, timeout=120)
+            r.raise_for_status()
+
+            ct = r.headers.get('content-type', '')
+            if 'text/html' in ct:
+                return api_error('Sheet is not public — set sharing to "Anyone with the link can view"', 403)
+
+            text = r.content.decode('utf-8').lstrip('﻿')
+            rows = list(csv.reader(io.StringIO(text)))
+
+            if not rows:
+                break
+
+            if first_page:
+                csv_header = rows[0]
+                data_rows = rows[1:]
+                first_page = False
+            else:
+                # gviz/tq always includes the header row on every paginated response
+                data_rows = rows[1:]
+
+            all_data_rows.extend(data_rows)
+
+            if len(data_rows) < PAGE_SIZE:
+                break
+
+            offset += PAGE_SIZE
+
+        out = io.StringIO()
+        writer = csv.writer(out)
+        if csv_header:
+            writer.writerow(csv_header)
+        writer.writerows(all_data_rows)
 
         return Response(
-            stream_with_context(generate()),
+            out.getvalue().encode('utf-8'),
             content_type='text/csv; charset=utf-8',
         )
     except req_lib.exceptions.Timeout:

@@ -991,6 +991,8 @@ function parseCsvLines(text) {
   return lines;
 }
 
+const _ES_MONTHS = {ene:0,feb:1,mar:2,abr:3,may:4,jun:5,jul:6,ago:7,sep:8,oct:9,nov:10,dic:11};
+
 function parseDtStr(s) {
   if (!s) return null;
   s = s.trim();
@@ -999,12 +1001,21 @@ function parseDtStr(s) {
     const d = new Date(s.includes('T') ? s : s.replace(' ', 'T') + (s.length <= 10 ? 'T00:00:00Z' : 'Z'));
     if (!isNaN(d)) return d.toISOString();
   }
+  // Spanish locale format from gviz/tq: "9/ene/2016 2:10:34"
+  const mES = s.match(/^(\d{1,2})\/([a-zA-Z]{3})\/(\d{4})\s+(\d{1,2}):(\d{2})(?::(\d{2}))?/);
+  if (mES) {
+    const mon = _ES_MONTHS[mES[2].toLowerCase()];
+    if (mon !== undefined) {
+      const d = new Date(Date.UTC(+mES[3], mon, +mES[1], +mES[4], +mES[5], +(mES[6] || 0)));
+      if (!isNaN(d)) return d.toISOString();
+    }
+  }
   const m1 = s.match(/^(\d{1,2})\s+(\w{3,})\s+(\d{4})[,\s]+(\d{2}):(\d{2})/);
   if (m1) {
     const d = new Date(`${m1[2]} ${m1[1]}, ${m1[3]} ${m1[4]}:${m1[5]}:00 UTC`);
     if (!isNaN(d)) return d.toISOString();
   }
-  const m2 = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})\s+(\d{2}):(\d{2})/);
+  const m2 = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})\s+(\d{1,2}):(\d{2})/);
   if (m2) {
     const d = new Date(Date.UTC(+m2[3], +m2[2] - 1, +m2[1], +m2[4], +m2[5]));
     if (!isNaN(d)) return d.toISOString();
