@@ -702,9 +702,18 @@ document.addEventListener('click', e => {
 const DEFAULT_SHEET_ID  = '1ydtkm3-P_37mlOpim0IS5WfIs2LSlVRx_D8fOL4kFVM';
 const DEFAULT_SHEET_TAB = 'Full Raw Listening History';
 function getSheetUrl() {
-  const id  = localStorage.getItem('dc_sheet_id')  || DEFAULT_SHEET_ID;
-  const tab = localStorage.getItem('dc_sheet_tab') || DEFAULT_SHEET_TAB;
-  return `https://docs.google.com/spreadsheets/d/${id}/gviz/tq?tqx=out:csv;charset:UTF-8&sheet=${encodeURIComponent(tab)}`;
+  const rawId = localStorage.getItem('dc_sheet_id') || DEFAULT_SHEET_ID;
+  const tab   = localStorage.getItem('dc_sheet_tab') || DEFAULT_SHEET_TAB;
+  // Support stored full URLs (e.g. from the deployed modal's URL input field)
+  const urlMatch = rawId.match(/spreadsheets\/d\/([^\/\?#]+)/);
+  const id = urlMatch ? urlMatch[1] : rawId;
+  const gidFromStored = rawId.match(/[#&?]gid=(\d+)/);
+  const gid = (gidFromStored && gidFromStored[1]) || localStorage.getItem('dc_sheet_gid') || '';
+  // export?format=csv has no response size limit (unlike gviz/tq which truncates large sheets)
+  if (gid) {
+    return `https://docs.google.com/spreadsheets/d/${id}/export?format=csv&gid=${gid}`;
+  }
+  return `https://docs.google.com/spreadsheets/d/${id}/export?format=csv&sheet=${encodeURIComponent(tab)}`;
 }
 function getDataSource()  { return localStorage.getItem('dc_source')      || 'sheets'; }
 function getLastFmUser()  { return localStorage.getItem('dc_lastfm_user') || ''; }
@@ -767,12 +776,21 @@ function setSyncStatus(msg, cls) {
   el.className = cls || '';
 }
 
+function getSheetUrlFallback() {
+  const rawId = localStorage.getItem('dc_sheet_id') || DEFAULT_SHEET_ID;
+  const tab   = localStorage.getItem('dc_sheet_tab') || DEFAULT_SHEET_TAB;
+  const urlMatch = rawId.match(/spreadsheets\/d\/([^\/\?#]+)/);
+  const id = urlMatch ? urlMatch[1] : rawId;
+  return `https://docs.google.com/spreadsheets/d/${id}/gviz/tq?tqx=out:csv;charset:UTF-8&sheet=${encodeURIComponent(tab)}`;
+}
+
 async function syncFromSheets() {
   const btn = document.getElementById('syncNowBtn');
   btn.disabled = true;
   setSyncStatus(t('sync_connecting'), 'loading');
   try {
-    const res = await fetch(getSheetUrl() + '&t=' + Date.now()); // cache-bust
+    const bust = '&t=' + Date.now();
+    let res = await fetch(getSheetUrl() + bust); // export?format=csv — no row/size limit
     if (!res.ok) throw new Error('HTTP ' + res.status);
     // Explicitly decode as UTF-8 to preserve special characters
     // (Spanish, Korean, accented names etc.) — never let the browser guess
@@ -784,7 +802,20 @@ async function syncFromSheets() {
     await saveToIDB(IDB_SHEETS_KEY, { ts: lastSyncTime.getTime(), csv: text });
     setSyncStatus(t('sync_ok', { time: lastSyncTime.toLocaleTimeString(), n: allPlays.length.toLocaleString() }), 'ok');
   } catch (e) {
-    setSyncStatus(t('sync_failed', { error: e.message }), 'err');
+    // If export?format=csv fails (e.g. CORS on some browsers), retry with gviz/tq
+    try {
+      const res2 = await fetch(getSheetUrlFallback() + '&t=' + Date.now());
+      if (!res2.ok) throw new Error('HTTP ' + res2.status);
+      const buffer2 = await res2.arrayBuffer();
+      const text2 = new TextDecoder('utf-8').decode(buffer2);
+      parseCsv(text2, true);
+      lastSyncTime = new Date();
+      localStorage.setItem('dc_sync_ts', lastSyncTime.getTime().toString());
+      await saveToIDB(IDB_SHEETS_KEY, { ts: lastSyncTime.getTime(), csv: text2 });
+      setSyncStatus(t('sync_ok', { time: lastSyncTime.toLocaleTimeString(), n: allPlays.length.toLocaleString() }), 'ok');
+    } catch (e2) {
+      setSyncStatus(t('sync_failed', { error: e2.message }), 'err');
+    }
   }
   btn.disabled = false;
   // Schedule next auto-sync and background poll
@@ -1138,7 +1169,13 @@ function saveSourceConfig() {
   const src = document.getElementById('srcRadioSheets').checked ? 'sheets' : 'lastfm';
   localStorage.setItem('dc_source', src);
   if (src === 'sheets') {
-    localStorage.setItem('dc_sheet_id',  document.getElementById('srcSheetId').value.trim());
+    const rawInput = document.getElementById('srcSheetId').value.trim();
+    const urlMatch = rawInput.match(/spreadsheets\/d\/([^\/\?#]+)/);
+    const sheetId  = urlMatch ? urlMatch[1] : rawInput;
+    const gidMatch = rawInput.match(/[#&?]gid=(\d+)/);
+    localStorage.setItem('dc_sheet_id', sheetId);
+    if (gidMatch) localStorage.setItem('dc_sheet_gid', gidMatch[1]);
+    else localStorage.removeItem('dc_sheet_gid');
     localStorage.setItem('dc_sheet_tab', document.getElementById('srcSheetTab').value.trim());
     deleteFromIDB(IDB_LASTFM_KEY);
     localStorage.removeItem('dc_lastfm_ts'); // clean up old key

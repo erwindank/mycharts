@@ -171,6 +171,7 @@ async function startCharts() {
       currentUser = { name: username, isLocal: true, playcount: localCount, image: [] };
       localStorage.setItem('dc_lfm_username', username);
       renderUserBarLocal(username, localCount);
+      startSheetsAutoRefresh(username);
       showCharts();
       loadCharts();
       return;
@@ -507,6 +508,7 @@ async function navigateAfterImport(username) {
   currentUser = { name: username, isLocal: true, playcount: localCount, image: [] };
   localStorage.setItem('dc_lfm_username', username);
   renderUserBarLocal(username, localCount);
+  startSheetsAutoRefresh(username);
   setTimeout(() => {
     closeImportModal();
     showCharts();
@@ -821,33 +823,54 @@ function initDropZone() {
   });
 }
 
-// ── Google Sheets sync (fully client-side) ────────────────────────
+// ── Google Sheets sync ────────────────────────────────────────────
+// Fetches via the backend proxy so Google serves the full file.
+// Direct browser fetches are anonymous; Google silently truncates large sheets.
+const SHEETS_REFRESH_MS = 90 * 60 * 1000;
+let sheetsRefreshTimer = null;
+
+function parseSheetsUrl(url) {
+  const sheetMatch = url.match(/\/spreadsheets\/d\/([a-zA-Z0-9_-]+)/);
+  if (!sheetMatch) return null;
+  const gidMatch = url.match(/[?&#]gid=(\d+)/);
+  return { sheetId: sheetMatch[1], gid: gidMatch ? gidMatch[1] : null };
+}
+
+async function fetchSheetCsvText(sheetId, gid) {
+  let proxyUrl = `${API}/api/sync/sheets-proxy?sheetId=${encodeURIComponent(sheetId)}`;
+  if (gid && gid !== '0') proxyUrl += `&gid=${encodeURIComponent(gid)}`;
+  const csvRes = await fetch(proxyUrl);
+  if (!csvRes.ok) {
+    const body = await csvRes.json().catch(() => ({}));
+    if (csvRes.status === 403) throw new Error('__not_public__');
+    throw new Error(body.error || `Could not fetch sheet (${csvRes.status})`);
+  }
+  const buffer = await csvRes.arrayBuffer();
+  return new TextDecoder('utf-8').decode(buffer);
+}
+
 async function syncSheets() {
   const username = getImportUsername();
   if (!username) { setResult('sheetsResult', 'Enter a display name above first.', 'err'); return; }
   const url = document.getElementById('sheetsUrl').value.trim();
   if (!url) { setResult('sheetsResult', 'Paste a Google Sheets URL first.', 'err'); return; }
 
-  const sheetMatch = url.match(/\/spreadsheets\/d\/([a-zA-Z0-9_-]+)/);
-  if (!sheetMatch) { setResult('sheetsResult', 'Invalid Google Sheets URL.', 'err'); return; }
-  const sheetId = sheetMatch[1];
-  // Support gid in query string (?gid=) or hash (#gid=)
-  const gidMatch = url.match(/[?&#]gid=(\d+)/);
-  const gid = gidMatch ? gidMatch[1] : null;
+  const parsed = parseSheetsUrl(url);
+  if (!parsed) { setResult('sheetsResult', 'Invalid Google Sheets URL.', 'err'); return; }
+  const { sheetId, gid } = parsed;
 
   setResult('sheetsResult', 'Fetching sheet…', '');
   try {
-    // gviz/tq handles large sheets (>10 MB) without truncation unlike export?format=csv
-    const csvUrl = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:csv;charset:UTF-8${gid && gid !== '0' ? `&gid=${gid}` : ''}`;
-    const csvRes = await fetch(csvUrl);
-    if (!csvRes.ok) throw new Error(`Could not fetch sheet (${csvRes.status})`);
-    const ct = csvRes.headers.get('content-type') || '';
-    if (ct.includes('text/html')) {
-      setResult('sheetsResult', 'Sheet is not public — set sharing to "Anyone with the link can view".', 'err');
-      return;
+    let csvText;
+    try {
+      csvText = await fetchSheetCsvText(sheetId, gid);
+    } catch (e) {
+      if (e.message === '__not_public__') {
+        setResult('sheetsResult', 'Sheet is not public — set sharing to "Anyone with the link can view".', 'err');
+        return;
+      }
+      throw e;
     }
-    const buffer = await csvRes.arrayBuffer();
-    const csvText = new TextDecoder('utf-8').decode(buffer);
 
     setResult('sheetsResult', 'Parsing…', '');
     const rows = parseSheetCsv(csvText);
@@ -858,6 +881,7 @@ async function syncSheets() {
 
     setResult('sheetsResult', `Saving ${rows.length.toLocaleString()} records…`, '');
     const count = await saveToIDB(username, rows);
+    localStorage.setItem(`dc_sheets_url_${username}`, url);
     setResult('sheetsResult', `✓ ${count.toLocaleString()} of ${rows.length.toLocaleString()} records saved — loading charts…`, 'ok');
     localScrobbles = null;
     loadSyncStatus();
@@ -865,6 +889,32 @@ async function syncSheets() {
   } catch (e) {
     setResult('sheetsResult', e.message || 'Connection error. Try again.', 'err');
   }
+}
+
+async function autoSyncSheets(username) {
+  const url = localStorage.getItem(`dc_sheets_url_${username}`);
+  if (!url) return;
+  const parsed = parseSheetsUrl(url);
+  if (!parsed) return;
+  try {
+    const csvText = await fetchSheetCsvText(parsed.sheetId, parsed.gid);
+    const rows = parseSheetCsv(csvText);
+    if (!rows.length) return;
+    await saveToIDB(username, rows);
+    if (currentUser?.name === username) {
+      localScrobbles = null;
+      const total = await countIDB(username);
+      currentUser.playcount = total;
+      renderUserBarLocal(username, total);
+      loadCharts();
+    }
+  } catch {}
+}
+
+function startSheetsAutoRefresh(username) {
+  if (sheetsRefreshTimer) clearInterval(sheetsRefreshTimer);
+  if (!localStorage.getItem(`dc_sheets_url_${username}`)) return;
+  sheetsRefreshTimer = setInterval(() => autoSyncSheets(username), SHEETS_REFRESH_MS);
 }
 
 function parseSheetCsv(text) {

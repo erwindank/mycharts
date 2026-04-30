@@ -1,10 +1,11 @@
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, jsonify, request, Response, stream_with_context
 import datetime
 import zipfile
 import io
 import json
 import csv
 import os
+import re
 import requests as req_lib
 
 bp = Blueprint('sync', __name__, url_prefix='/api/sync')
@@ -374,10 +375,55 @@ def parse_deezer_xlsx(file_obj):
 
 # ── GOOGLE SHEETS ─────────────────────────────────────────────────
 
+@bp.route('/sheets-proxy', methods=['GET'])
+def sheets_proxy():
+    """Proxy-fetch a public Google Sheet CSV server-side.
+
+    Browser fetches are anonymous and Google silently truncates large sheets.
+    Server-side requests bypass that cap.
+    """
+    sheet_id = request.args.get('sheetId', '').strip()
+    gid = request.args.get('gid', '').strip()
+
+    if not sheet_id or not re.match(r'^[a-zA-Z0-9_-]+$', sheet_id):
+        return api_error('Invalid sheet ID')
+    if gid and not gid.isdigit():
+        return api_error('Invalid gid')
+
+    csv_url = f'https://docs.google.com/spreadsheets/d/{sheet_id}/export?format=csv'
+    if gid and gid != '0':
+        csv_url += f'&gid={gid}'
+
+    headers = {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+    }
+    try:
+        r = req_lib.get(csv_url, headers=headers, timeout=120, stream=True)
+        r.raise_for_status()
+        ct = r.headers.get('content-type', '')
+        if 'text/html' in ct:
+            return api_error('Sheet is not public — set sharing to "Anyone with the link can view"', 403)
+
+        def generate():
+            for chunk in r.iter_content(chunk_size=65536):
+                if chunk:
+                    yield chunk
+
+        return Response(
+            stream_with_context(generate()),
+            content_type='text/csv; charset=utf-8',
+        )
+    except req_lib.exceptions.Timeout:
+        return api_error('Sheet fetch timed out — try again', 504)
+    except req_lib.exceptions.HTTPError as e:
+        return api_error(f'Could not fetch sheet ({e.response.status_code})', 502)
+    except Exception as e:
+        return api_error(f'Could not fetch sheet: {str(e)}', 502)
+
+
 @bp.route('/sheets/<username>', methods=['POST'])
 def sync_sheets(username):
     from database import get_db
-    import re
 
     body = request.get_json(silent=True) or {}
     url = body.get('url', '').strip()
