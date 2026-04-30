@@ -1,224 +1,1594 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>dankcharts.fm — Your Music Charts</title>
-  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <title>dankcharts.fm — Erwin's Personal Music Charts</title>
+  <link
+    href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&family=DM+Mono:wght@400;500&display=swap"
+    rel="stylesheet">
+  <script data-goatcounter="https://erwindank.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
   <link rel="stylesheet" href="style.css">
+  <script src="translations.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8/hammer.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@1.2.1/dist/chartjs-plugin-zoom.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/blueimp-md5@2.19.0/js/md5.min.js"></script>
 </head>
+
 <body>
 
-  <!-- ── MASTHEAD ──────────────────────────────────────── -->
   <div class="masthead">
-    <div class="masthead-controls">
+    <div class="theme-toggle">
       <div class="ctrl-group" id="themeCtrlGroup">
-        <button class="ctrl-group-btn" id="themeGroupBtn">
-          <span class="ctrl-theme-dot"></span> THEME
+        <button class="ctrl-group-btn" id="themeGroupBtn" aria-label="Theme" title="Theme">
+          <span class="ctrl-btn-wide"><span class="ctrl-theme-dot"></span><span data-i18n="ctrl_btn_theme">THEME</span></span>
+          <span class="ctrl-btn-narrow"><span class="ctrl-theme-dot"></span></span>
         </button>
         <div class="ctrl-group-panel">
-          <button class="theme-btn active" data-theme="navy-dark" title="Navy Dark">●</button>
-          <button class="theme-btn" data-theme="navy-light" title="Navy Light">●</button>
-          <button class="theme-btn" data-theme="purple" title="Purple Dark">●</button>
-          <button class="theme-btn" data-theme="purple-light" title="Purple Light">●</button>
-          <button class="theme-btn" data-theme="red" title="Red Dark">●</button>
-          <button class="theme-btn" data-theme="red-light" title="Red Light">●</button>
-          <button class="theme-btn" data-theme="yellow" title="Yellow Dark">●</button>
-          <button class="theme-btn" data-theme="yellow-light" title="Yellow Light">●</button>
-          <button class="theme-btn" data-theme="pink" title="Pink Dark">●</button>
-          <button class="theme-btn" data-theme="pink-light" title="Pink Light">●</button>
+          <button class="theme-btn active" data-theme="navy-dark" data-i18n-title="tooltip_theme_navy_dark">●</button>
+          <button class="theme-btn" data-theme="navy-light" data-i18n-title="tooltip_theme_navy_light">●</button>
+          <button class="theme-btn" data-theme="purple" data-i18n-title="tooltip_theme_purple_dark">●</button>
+          <button class="theme-btn" data-theme="purple-light" data-i18n-title="tooltip_theme_purple_light">●</button>
+          <button class="theme-btn" data-theme="red" data-i18n-title="tooltip_theme_red_dark">●</button>
+          <button class="theme-btn" data-theme="red-light" data-i18n-title="tooltip_theme_red_light">●</button>
+          <button class="theme-btn" data-theme="yellow" data-i18n-title="tooltip_theme_yellow_dark">●</button>
+          <button class="theme-btn" data-theme="yellow-light" data-i18n-title="tooltip_theme_yellow_light">●</button>
+          <button class="theme-btn" data-theme="pink" data-i18n-title="tooltip_theme_pink_dark">●</button>
+          <button class="theme-btn" data-theme="pink-light" data-i18n-title="tooltip_theme_pink_light">●</button>
           <span id="themeLabel">Navy</span>
         </div>
       </div>
-      <div class="ctrl-group" id="langCtrlGroup">
-        <button class="ctrl-group-btn" id="langGroupBtn">🌐 LANGUAGE</button>
+      <div class="ctrl-group" id="dayCtrlGroup">
+        <button class="ctrl-group-btn" id="dayGroupBtn" aria-label="Week start day" title="Week start day">
+          <span class="ctrl-btn-wide">📅 <span data-i18n="ctrl_btn_start_day">START DAY</span></span>
+          <span class="ctrl-btn-narrow" id="dayGroupAbbrev">Su</span>
+        </button>
         <div class="ctrl-group-panel">
-          <button class="lang-btn active" data-lang="en">🇺🇸 EN</button>
-          <button class="lang-btn" data-lang="es">🇪🇸 ES</button>
-          <button class="lang-btn" data-lang="pt-BR">🇧🇷 PT</button>
+          <div class="day-switcher" id="daySwitcher"></div>
+        </div>
+      </div>
+      <div class="ctrl-group" id="langCtrlGroup">
+        <button class="ctrl-group-btn" id="langGroupBtn" aria-label="Language" title="Language">
+          <span class="ctrl-btn-wide">🌐 <span data-i18n="ctrl_btn_language">LANGUAGE</span></span>
+          <span class="ctrl-btn-narrow" id="langGroupFlag">🇺🇸</span>
+        </button>
+        <div class="ctrl-group-panel">
+          <div class="lang-switcher" id="langSwitcher">
+            <button class="lang-btn active" data-lang="en" onclick="setLanguage('en')">🇺🇸 EN</button>
+            <button class="lang-btn" data-lang="es" onclick="setLanguage('es')">🇪🇸 ES</button>
+            <button class="lang-btn" data-lang="pt-BR" onclick="setLanguage('pt-BR')">🇧🇷 PT-BR</button>
+            <button class="lang-btn" data-lang="pt-PT" onclick="setLanguage('pt-PT')">🇵🇹 PT-PT</button>
+          </div>
         </div>
       </div>
     </div>
 
+    <span class="est" data-i18n="masthead_est">★ Erwin's Personal Music Charts · Est. 2016 ★</span>
     <div class="wordmark">
-      <span class="wordmark-dank">dank</span><span class="wordmark-charts">charts</span><span class="wordmark-fm">.fm</span>
+      <span class="wordmark-dank">dank</span><span class="wordmark-station">charts</span><span
+        class="wordmark-fm">.fm</span>
     </div>
-    <div class="tagline" data-i18n="tagline">Your listening history. Your charts. Your legacy.</div>
+    <div class="tagline" data-i18n="masthead_tagline">Your listening history. Your charts. Your legacy.</div>
+    <div class="masthead-rule" data-i18n="masthead_streaming">Streaming since January 9, 2016</div>
   </div>
 
-  <!-- ── LANDING (no username) ────────────────────────── -->
-  <div id="landing">
-    <div class="landing-card">
-      <div class="landing-icon">♫</div>
-      <h2 data-i18n="landing_title">Your Music Charts</h2>
-      <p data-i18n="landing_desc">Import your listening history to see your personal charts — no account required.</p>
-      <button class="landing-import-btn" onclick="openImportModal()" style="margin-bottom:0.5rem">↑ Import Your Listening History</button>
-      <p class="landing-import-hint">Google Sheets · CSV · Spotify ZIP · Deezer XLSX · Last.fm API</p>
-      <div class="landing-divider"><span>or continue as</span></div>
-      <div class="landing-input-row">
-        <input type="text" id="usernameInput" placeholder="Your display name" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
-        <button id="goBtn" onclick="startCharts()" data-i18n="landing_btn">View Charts →</button>
-      </div>
-      <div class="landing-error" id="landingError"></div>
+  <div class="upload-zone" id="uploadZone" style="display:none;">
+    <div class="upload-box" id="uploadBox">
+      <input type="file" id="csvFile" accept=".csv">
+      <span class="upload-icon">📂</span>
+      <h3 data-i18n="upload_title">Load Your Listening History</h3>
+      <p data-i18n="upload_desc">Drop your CSV file here, or click to browse</p>
     </div>
   </div>
 
-  <!-- ── CHARTS APP ────────────────────────────────────── -->
-  <div id="chartsApp" style="display:none">
+  <div class="container" id="mainApp" style="display:none;">
 
-    <div class="user-bar">
-      <img class="user-avatar" id="userAvatar" src="" alt="">
-      <div class="user-info">
-        <span class="user-name" id="userName"></span>
-        <span class="user-playcount" id="userPlaycount"></span>
-      </div>
-      <button class="change-user-btn" onclick="changeUser()" data-i18n="change_user">Change user</button>
+    <div class="sync-bar" id="syncBar">
+      <span id="syncStatus" data-i18n="sync_connecting">⟳ Connecting...</span>
+      <button id="syncNowBtn" data-i18n="sync_now">↺ SYNC NOW</button>
+      <button id="configureSourceBtn" onclick="openSourceModal()" title="Configure data source">⚙ Configure</button>
+      <button id="scrobbleBtn" onclick="openScrobbleModal()" title="Manually scrobble a track to Last.fm" style="display:none">✚ Scrobble</button>
     </div>
 
     <div class="period-nav" id="periodNav">
-      <button class="active" data-period="weekly">Weekly</button>
-      <button data-period="1month" data-i18n="period_1month">1 Month</button>
-      <button data-period="3month" data-i18n="period_3month">3 Months</button>
-      <button data-period="6month" data-i18n="period_6month">6 Months</button>
-      <button data-period="12month" data-i18n="period_12month">12 Months</button>
-      <button data-period="overall" data-i18n="period_overall">All Time</button>
+      <button class="active" data-period="week" data-i18n="nav_weekly">Weekly</button>
+      <button data-period="month" data-i18n="nav_monthly">Monthly</button>
+      <button data-period="year" data-i18n="nav_yearly">Yearly</button>
+      <button data-period="alltime" data-i18n="nav_alltime">All-Time</button>
+      <button data-period="rawdata" data-i18n="nav_rawdata">Raw Data</button>
+      <button data-period="graphs" data-i18n="nav_graphs">Graphs</button>
+      <button data-period="records" data-i18n="nav_records">Records</button>
+      <button data-period="events">Events</button>
     </div>
 
-    <div class="date-nav" id="dateNav" style="display:none">
-      <button id="prevWeekBtn" onclick="navigateWeek(-1)" disabled>◄ Prev</button>
-      <div id="periodLabel" class="period-label">Loading...</div>
-      <button id="nextWeekBtn" onclick="navigateWeek(1)" disabled>Next ►</button>
-    </div>
-
-    <div class="stats-strip" id="statsStrip" style="display:none"></div>
-
-    <div class="chart-limit-bar">
-      <label data-i18n="limit_label">Show:</label>
-      <div class="limit-btns">
-        <button data-limit="10" data-i18n="limit_10">Top 10</button>
-        <button data-limit="25" class="active" data-i18n="limit_25">Top 25</button>
-        <button data-limit="50" data-i18n="limit_50">Top 50</button>
-        <button data-limit="100">Top 100</button>
+    <div class="chart-size-bar" id="chartSizeBar">
+      <label data-i18n="chartsize_label">Chart Size:</label>
+      <div class="size-btns" id="sizeBtnsWeekly">
+        <button data-size="10" class="active">Top 10</button>
+        <button data-size="20">Top 20</button>
+        <button data-size="50">Top 50</button>
+        <button data-size="100">Top 100</button>
+      </div>
+      <div class="size-btns" id="sizeBtnsMonthly" style="display:none">
+        <button data-size="50" class="active">Top 50</button>
+        <button data-size="100">Top 100</button>
       </div>
     </div>
 
-    <div class="charts-grid">
+    <div class="chart-size-bar" id="paginatedSizeBar" style="display:none">
+      <label data-i18n="chartview_label">Chart View:</label>
+      <div class="size-btns" id="sizeBtnsYearly">
+        <button data-size="50">Top 50</button>
+        <button data-size="100">Top 100</button>
+        <button data-size="200">Top 200</button>
+        <button data-size="0" class="active" data-i18n="all_entries">All Entries</button>
+      </div>
+      <div class="size-btns" id="sizeBtnsAllTime" style="display:none">
+        <button data-size="50">Top 50</button>
+        <button data-size="100">Top 100</button>
+        <button data-size="200">Top 200</button>
+        <button data-size="0" class="active" data-i18n="all_entries">All Entries</button>
+      </div>
+    </div>
 
-      <div class="chart-section">
-        <div class="section-header">
-          <h2 id="artistsTitle" data-i18n="section_artists">★ Top Artists</h2>
-          <div class="section-rule"></div>
+    <div class="date-nav" id="dateNav">
+      <button id="prevBtn" data-i18n="btn_prev">◄ Prev</button>
+      <div class="date-nav-center">
+        <div class="period-label" id="periodLabel"><strong>Loading...</strong></div>
+        <div id="jumpPicker" style="display:none">
+          <input type="date" id="weekPicker" class="picker-input" data-i18n-title="tooltip_jump_to_week">
+          <input type="month" id="monthPicker" class="picker-input" style="display:none"
+            data-i18n-title="tooltip_jump_to_month">
+          <select id="yearPicker" class="picker-input" style="display:none"
+            data-i18n-title="tooltip_jump_to_year"></select>
         </div>
-        <div class="loading" id="artistsLoading" data-i18n="loading">Loading...</div>
-        <table class="chart-table" id="artistsTable" style="display:none">
-          <thead><tr><th>#</th><th style="width:48px"></th><th data-i18n="col_artist">Artist</th><th style="text-align:right" data-i18n="col_plays">Plays</th></tr></thead>
+      </div>
+      <button id="nextBtn" data-i18n="btn_next">Next ►</button>
+    </div>
+
+    <div class="stats-strip" id="statsStrip"></div>
+
+    <button class="export-playlist-btn" id="exportPlaylistBtn"
+      title="Export this chart as a playlist — save to Spotify, Last.fm, or a text file"
+      data-i18n-title="tooltip_export_playlist" onclick="openExportModal()" data-i18n="btn_export_playlist">♫
+      EXPORT PLAYLIST</button>
+
+    <div class="chart-display-toggles" id="chartDisplayToggles" style="display:none;">
+      <label>DISPLAY:</label>
+      <div class="toggle-btns">
+        <button id="toggleCertBtn" class="display-toggle-btn active" onclick="toggleDisplay('cert')">⭐ CERT BADGES</button>
+        <button id="togglePlaysPeakBtn" class="display-toggle-btn active" onclick="toggleDisplay('plays-peak')">▲ PLAYS PEAK</button>
+        <button id="togglePeakTagsBtn" class="display-toggle-btn active" onclick="toggleDisplay('peak-tags')">★ PEAK TAGS</button>
+        <button id="srcToggleBtn" class="display-toggle-btn active" onclick="toggleSrcButtons()" title="Show/hide photo source buttons">📷 PIC SOURCE</button>
+      </div>
+    </div>
+
+    <div class="chart-section" id="songsSection">
+      <div class="section-header">
+        <button class="section-collapse-btn" data-target="songsSection" data-i18n-title="tooltip_collapse">−</button>
+        <h2 id="songsSectionTitle">★ Top 10 Songs</h2>
+        <span class="section-collapsed-label" data-i18n="collapsed_hint">collapsed — click + to expand</span>
+        <div class="section-rule"></div>
+      </div>
+      <div class="section-sub" id="songsSubtitle" data-i18n="sub_songs">By play count for the selected period</div>
+      <div class="paginated-search" id="songsSearch">
+        <input type="text" id="songsSearchInput" placeholder="Search songs or artists…" oninput="applySearch('songs')"
+          data-i18n-placeholder="search_songs_placeholder" />
+        <span class="search-count" id="songsSearchCount"></span>
+        <button class="search-clear" onclick="clearSearch('songs')" data-i18n-title="tooltip_clear">✕</button>
+      </div>
+      <div class="section-body">
+        <table class="chart-table" id="songsTable">
+          <thead>
+            <tr id="songsHeadRow">
+              <th>RANK</th>
+              <th style="width:52px;"></th>
+              <th>Title · Artist</th>
+              <th>Album</th>
+              <th style="text-align:right;">Plays</th>
+            </tr>
+          </thead>
+          <tbody id="songsBody"></tbody>
+        </table>
+        <div class="page-nav" id="songsPagination" style="display:none;">
+          <button onclick="changePage('songs',-1)">◄ PREV</button>
+          <span id="songsPageLabel"></span>
+          <button onclick="changePage('songs',1)">NEXT ►</button>
+        </div>
+        <div class="ig-share-bar" id="songsShareBar">
+          <span data-i18n="btn_share">SHARE:</span>
+          <button class="ig-share-btn" data-i18n-title="tooltip_share_image" onclick="openIgPreviewModal('songs')"
+            data-i18n="btn_share_image">📷 Share as Image</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="chart-section new-entries-section" id="newSongsSection" style="display:none;">
+      <div class="section-header">
+        <button class="section-collapse-btn" data-target="newSongsSection" title="Collapse">−</button>
+        <span id="newSongsTitle" class="new-entries-title">✦ New Songs This Week</span>
+        <span class="section-collapsed-label" data-i18n="collapsed_hint">collapsed — click + to expand</span>
+        <div class="section-rule"></div>
+      </div>
+      <div class="section-body">
+        <table class="chart-table new-entries-table">
+          <thead>
+            <tr>
+              <th>RANK</th>
+              <th style="width:52px;"></th>
+              <th>Title · Artist</th>
+              <th style="text-align:right;">Plays</th>
+            </tr>
+          </thead>
+          <tbody id="newSongsBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="chart-section" id="artistsSection">
+      <div class="section-header">
+        <button class="section-collapse-btn" data-target="artistsSection" data-i18n-title="tooltip_collapse">−</button>
+        <h2 id="artistsSectionTitle">♦ Top 10 Artists</h2>
+        <span class="section-collapsed-label" data-i18n="collapsed_hint">collapsed — click + to expand</span>
+        <div class="section-rule"></div>
+      </div>
+      <div class="section-sub" data-i18n="sub_artists">By total play count across all songs</div>
+      <div class="paginated-search" id="artistsSearch">
+        <input type="text" id="artistsSearchInput" placeholder="Search artists…" oninput="applySearch('artists')"
+          data-i18n-placeholder="search_artists_placeholder" />
+        <span class="search-count" id="artistsSearchCount"></span>
+        <button class="search-clear" onclick="clearSearch('artists')" data-i18n-title="tooltip_clear">✕</button>
+      </div>
+      <div class="section-body">
+        <table class="chart-table" id="artistsTable">
+          <thead>
+            <tr id="artistsHeadRow">
+              <th>RANK</th>
+              <th style="width:52px;"></th>
+              <th>Artist</th>
+              <th>Unique Songs</th>
+              <th style="text-align:right;">Total Plays</th>
+            </tr>
+          </thead>
           <tbody id="artistsBody"></tbody>
         </table>
-      </div>
-
-      <div class="chart-section">
-        <div class="section-header">
-          <h2 id="tracksTitle" data-i18n="section_tracks">★ Top Tracks</h2>
-          <div class="section-rule"></div>
+        <div class="page-nav" id="artistsPagination" style="display:none;">
+          <button onclick="changePage('artists',-1)">◄ PREV</button>
+          <span id="artistsPageLabel"></span>
+          <button onclick="changePage('artists',1)">NEXT ►</button>
         </div>
-        <div class="loading" id="tracksLoading" data-i18n="loading">Loading...</div>
-        <table class="chart-table" id="tracksTable" style="display:none">
-          <thead><tr><th>#</th><th style="width:48px"></th><th data-i18n="col_track">Track · Artist</th><th style="text-align:right" data-i18n="col_plays">Plays</th></tr></thead>
-          <tbody id="tracksBody"></tbody>
+        <div class="ig-share-bar" id="artistsShareBar">
+          <span data-i18n="btn_share">SHARE:</span>
+          <button class="ig-share-btn" data-i18n-title="tooltip_share_image" data-i18n="btn_share_image" onclick="openIgPreviewModal('artists')">📷 Share as Image</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="chart-section new-entries-section" id="newArtistsSection" style="display:none;">
+      <div class="section-header">
+        <button class="section-collapse-btn" data-target="newArtistsSection" title="Collapse">−</button>
+        <span id="newArtistsTitle" class="new-entries-title">✦ New Artists This Week</span>
+        <span class="section-collapsed-label" data-i18n="collapsed_hint">collapsed — click + to expand</span>
+        <div class="section-rule"></div>
+      </div>
+      <div class="section-body">
+        <table class="chart-table new-entries-table">
+          <thead>
+            <tr>
+              <th>RANK</th>
+              <th style="width:52px;"></th>
+              <th>Artist</th>
+              <th style="text-align:right;">Plays</th>
+            </tr>
+          </thead>
+          <tbody id="newArtistsBody"></tbody>
         </table>
       </div>
+    </div>
 
-      <div class="chart-section">
-        <div class="section-header">
-          <h2 id="albumsTitle" data-i18n="section_albums">★ Top Albums</h2>
-          <div class="section-rule"></div>
-        </div>
-        <div class="loading" id="albumsLoading" data-i18n="loading">Loading...</div>
-        <table class="chart-table" id="albumsTable" style="display:none">
-          <thead><tr><th>#</th><th style="width:48px"></th><th data-i18n="col_album">Album · Artist</th><th style="text-align:right" data-i18n="col_plays">Plays</th></tr></thead>
+    <div class="chart-section" id="albumsSection">
+      <div class="section-header">
+        <button class="section-collapse-btn" data-target="albumsSection" data-i18n-title="tooltip_collapse">−</button>
+        <h2 id="albumsSectionTitle">◈ Top 10 Albums</h2>
+        <span class="section-collapsed-label" data-i18n="collapsed_hint">collapsed — click + to expand</span>
+        <div class="section-rule"></div>
+      </div>
+      <div class="section-sub" data-i18n="sub_albums">By total play count across all tracks</div>
+      <div class="paginated-search" id="albumsSearch">
+        <input type="text" id="albumsSearchInput" placeholder="Search albums or artists…"
+          oninput="applySearch('albums')" data-i18n-placeholder="search_albums_placeholder" />
+        <span class="search-count" id="albumsSearchCount"></span>
+        <button class="search-clear" onclick="clearSearch('albums')" data-i18n-title="tooltip_clear">✕</button>
+      </div>
+      <div class="section-body">
+        <table class="chart-table" id="albumsTable">
+          <thead>
+            <tr id="albumsHeadRow">
+              <th>RANK</th>
+              <th style="width:52px;"></th>
+              <th>Album · Artist</th>
+              <th>Tracks</th>
+              <th style="text-align:right;">Total Plays</th>
+            </tr>
+          </thead>
           <tbody id="albumsBody"></tbody>
         </table>
+        <div class="page-nav" id="albumsPagination" style="display:none;">
+          <button onclick="changePage('albums',-1)">◄ PREV</button>
+          <span id="albumsPageLabel"></span>
+          <button onclick="changePage('albums',1)">NEXT ►</button>
+        </div>
+        <div class="ig-share-bar" id="albumsShareBar">
+          <span data-i18n="btn_share">SHARE:</span>
+          <button class="ig-share-btn" data-i18n-title="tooltip_share_image" data-i18n="btn_share_image" onclick="openIgPreviewModal('albums')">📷 Share as Image</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="chart-section new-entries-section" id="newAlbumsSection" style="display:none;">
+      <div class="section-header">
+        <button class="section-collapse-btn" data-target="newAlbumsSection" title="Collapse">−</button>
+        <span id="newAlbumsTitle" class="new-entries-title">✦ New Albums This Week</span>
+        <span class="section-collapsed-label" data-i18n="collapsed_hint">collapsed — click + to expand</span>
+        <div class="section-rule"></div>
+      </div>
+      <div class="section-body">
+        <table class="chart-table new-entries-table">
+          <thead>
+            <tr>
+              <th>RANK</th>
+              <th style="width:52px;"></th>
+              <th>Album · Artist</th>
+              <th style="text-align:right;">Plays</th>
+            </tr>
+          </thead>
+          <tbody id="newAlbumsBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="chart-section" id="dropoutsSection" style="display:none;">
+      <div class="section-header">
+        <button class="section-collapse-btn" data-target="dropoutsSection" data-i18n-title="tooltip_collapse">−</button>
+        <h2 class="section-title" data-i18n="sec_off_chart">⬇ Off the Chart</h2>
+        <span class="section-collapsed-label" data-i18n="collapsed_hint">collapsed — click + to expand</span>
+        <div class="section-rule"></div>
+      </div>
+      <div class="section-sub" id="dropoutsSubtitle" data-i18n-with-n="sub_dropouts" data-i18n-n="10"></div>
+      <div class="section-body">
+        <div id="dropoutsContent"></div>
+      </div>
+    </div>
+
+    <!-- UPCOMING RELEASES SECTION -->
+    <div class="chart-section collapsed" id="upcomingSection" style="display:none; margin-top:2rem;">
+      <div class="section-header">
+        <button class="section-collapse-btn" data-target="upcomingSection" data-i18n-title="tooltip_collapse">+</button>
+        <h2 class="section-title" data-i18n="sec_upcoming_title">🔜 Upcoming Releases</h2>
+        <span class="section-collapsed-label" data-i18n="collapsed_hint">collapsed — click + to expand</span>
+        <div class="section-rule"></div>
+      </div>
+      <div class="section-sub" id="upcomingSubtitle" data-i18n="sub_upcoming">Next 90 days · Based on your Top 200
+        All-Time Artists</div>
+      <div class="section-body">
+        <div class="upcoming-status" id="upcomingStatus"></div>
+        <button class="upcoming-refresh-btn" id="upcomingRefreshBtn" onclick="loadUpcomingReleases(true)"
+          style="display:none">↺ REFRESH</button>
+        <div class="upcoming-grid" id="upcomingGrid"></div>
+      </div>
+    </div>
+
+    <!-- RECENT RELEASES SECTION -->
+    <div class="chart-section collapsed" id="recentSection" style="display:none; margin-top:2rem;">
+      <div class="section-header">
+        <button class="section-collapse-btn" data-target="recentSection" data-i18n-title="tooltip_collapse">+</button>
+        <h2 class="section-title" data-i18n="sec_recent_title">🎉 Recent Releases</h2>
+        <span class="section-collapsed-label" data-i18n="collapsed_hint">collapsed — click + to expand</span>
+        <div class="section-rule"></div>
+      </div>
+      <div class="section-sub" id="recentSubtitle" data-i18n="sub_recent">Past 180 days · Based on your Top 200 All-Time
+        Artists</div>
+      <div class="section-body">
+        <div class="upcoming-status" id="recentStatus"></div>
+        <button class="upcoming-refresh-btn" id="recentRefreshBtn" onclick="loadRecentReleases(true)"
+          style="display:none">↺ REFRESH</button>
+        <div class="upcoming-grid" id="recentGrid"></div>
+      </div>
+    </div>
+
+    <!-- GRAPHS VIEW -->
+    <div id="graphsView" style="display:none;">
+      <div class="section-header" style="margin-bottom:0.5rem;">
+        <h2 class="section-header-h2" data-i18n="sec_graphs_title">📈 Historical Graphs</h2>
+        <div class="section-rule"></div>
+      </div>
+
+      <!-- Graph controls -->
+      <div class="graphs-controls" id="graphsControls">
+        <div class="graphs-ctrl-group">
+          <label class="graphs-ctrl-label" data-i18n="gran_label">Granularity</label>
+          <div class="graphs-ctrl-btns" id="graphGranularity">
+            <button class="graphs-btn" data-gran="day" data-i18n="gran_daily">Daily</button>
+            <button class="graphs-btn active" data-gran="month" data-i18n="gran_monthly">Monthly</button>
+            <button class="graphs-btn" data-gran="year" data-i18n="gran_yearly">Yearly</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Chart 1: Cumulative plays over time -->
+      <div class="graph-card">
+        <div class="graph-card-title" data-i18n="graph_cumulative_title">📈 Cumulative Plays Over Time — Artist
+          Comparison</div>
+        <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.5rem;">
+          <input id="gCumulativeArtistInput" type="text" list="gCumulativeArtistList" data-i18n-placeholder="graph_add_artist" placeholder="Add an artist…"
+            style="flex:1;min-width:0;background:var(--bg2);border:1px solid var(--border2);color:var(--text);
+                 font-family:'DM Mono',monospace;font-size:0.7rem;padding:0.3rem 0.6rem;border-radius:4px;outline:none;">
+          <datalist id="gCumulativeArtistList"></datalist>
+          <button id="gCumulativeArtistBtn" class="graphs-btn active" data-i18n="btn_add" style="white-space:nowrap;">+ Add</button>
+        </div>
+        <div id="gCumulativeChips" style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:0.6rem;min-height:0;"></div>
+        <div style="display:flex;align-items:center;gap:0.5rem;flex-wrap:wrap;margin-bottom:0.75rem;">
+          <span data-i18n="range_label"
+            style="font-family:'DM Mono',monospace;font-size:0.62rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--text3);">Range</span>
+          <input id="gCumulativeFrom" type="date"
+            style="background:var(--bg2);border:1px solid var(--border2);color:var(--text);font-family:'DM Mono',monospace;font-size:0.7rem;padding:0.25rem 0.5rem;border-radius:4px;outline:none;">
+          <span data-i18n="range_to" style="font-family:'DM Mono',monospace;font-size:0.62rem;color:var(--text3);">to</span>
+          <input id="gCumulativeTo" type="date"
+            style="background:var(--bg2);border:1px solid var(--border2);color:var(--text);font-family:'DM Mono',monospace;font-size:0.7rem;padding:0.25rem 0.5rem;border-radius:4px;outline:none;">
+          <button id="gCumulativeResetRange" class="graphs-btn" data-i18n="btn_reset" style="white-space:nowrap;">Reset</button>
+          <button id="gCumulativeLabelsBtn" class="graphs-btn" data-i18n-title="tooltip_toggle_labels"
+            style="white-space:nowrap;">Labels: Off</button>
+          <button id="gCumulativeResetZoom" class="graphs-btn" data-i18n="btn_reset_zoom" data-i18n-title="tooltip_reset_zoom"
+            style="white-space:nowrap;">Reset Zoom</button>
+        </div>
+        <div class="graph-canvas-wrap"><canvas id="gCumulative"></canvas></div>
+      </div>
+
+      <!-- Chart 2: Total play volume -->
+      <div class="graph-card">
+        <div class="graph-card-title" data-i18n="graph_volume_title">📊 Total Play Volume by Period</div>
+        <div class="graph-card-sub" data-i18n="graph_volume_sub">How many songs you played each period across all
+          artists</div>
+        <div style="display:flex;align-items:center;gap:0.5rem;flex-wrap:wrap;margin-bottom:0.75rem;">
+          <span data-i18n="range_label"
+            style="font-family:'DM Mono',monospace;font-size:0.62rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--text3);">Range</span>
+          <input id="gTotalVolumeFrom" type="date"
+            style="background:var(--bg2);border:1px solid var(--border2);color:var(--text);font-family:'DM Mono',monospace;font-size:0.7rem;padding:0.25rem 0.5rem;border-radius:4px;outline:none;">
+          <span data-i18n="range_to" style="font-family:'DM Mono',monospace;font-size:0.62rem;color:var(--text3);">to</span>
+          <input id="gTotalVolumeTo" type="date"
+            style="background:var(--bg2);border:1px solid var(--border2);color:var(--text);font-family:'DM Mono',monospace;font-size:0.7rem;padding:0.25rem 0.5rem;border-radius:4px;outline:none;">
+          <button id="gTotalVolumeResetRange" class="graphs-btn" data-i18n="btn_reset" style="white-space:nowrap;">Reset</button>
+          <button id="gTotalVolumeResetZoom" class="graphs-btn" data-i18n="btn_reset_zoom" data-i18n-title="tooltip_reset_zoom"
+            style="white-space:nowrap;">Reset Zoom</button>
+          <button id="gTotalVolumeLabelsBtn" class="graphs-btn" data-i18n-title="tooltip_toggle_labels"
+            style="white-space:nowrap;">Labels: Off</button>
+        </div>
+        <div class="graph-canvas-wrap"><canvas id="gTotalVolume"></canvas></div>
+      </div>
+
+      <!-- Chart 3: Play volume by artist comparison -->
+      <div class="graph-card">
+        <div class="graph-card-title" data-i18n="graph_volume_comp_title">📊 Play Volume by Period — Artist Comparison
+        </div>
+        <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.5rem;">
+          <input id="gVolumeArtistInput" type="text" list="gVolumeArtistList" data-i18n-placeholder="graph_add_artist" placeholder="Add an artist…"
+            style="flex:1;min-width:0;background:var(--bg2);border:1px solid var(--border2);color:var(--text);
+                 font-family:'DM Mono',monospace;font-size:0.7rem;padding:0.3rem 0.6rem;border-radius:4px;outline:none;">
+          <datalist id="gVolumeArtistList"></datalist>
+          <button id="gVolumeArtistBtn" class="graphs-btn active" data-i18n="btn_add" style="white-space:nowrap;">+ Add</button>
+        </div>
+        <div id="gVolumeChips" style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:0.6rem;min-height:0;"></div>
+        <div style="display:flex;align-items:center;gap:0.5rem;flex-wrap:wrap;margin-bottom:0.75rem;">
+          <span data-i18n="range_label"
+            style="font-family:'DM Mono',monospace;font-size:0.62rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--text3);">Range</span>
+          <input id="gVolumeFrom" type="date"
+            style="background:var(--bg2);border:1px solid var(--border2);color:var(--text);font-family:'DM Mono',monospace;font-size:0.7rem;padding:0.25rem 0.5rem;border-radius:4px;outline:none;">
+          <span data-i18n="range_to" style="font-family:'DM Mono',monospace;font-size:0.62rem;color:var(--text3);">to</span>
+          <input id="gVolumeTo" type="date"
+            style="background:var(--bg2);border:1px solid var(--border2);color:var(--text);font-family:'DM Mono',monospace;font-size:0.7rem;padding:0.25rem 0.5rem;border-radius:4px;outline:none;">
+          <button id="gVolumeResetRange" class="graphs-btn" data-i18n="btn_reset" style="white-space:nowrap;">Reset</button>
+          <button id="gVolumeResetZoom" class="graphs-btn" data-i18n="btn_reset_zoom" data-i18n-title="tooltip_reset_zoom"
+            style="white-space:nowrap;">Reset Zoom</button>
+          <button id="gVolumeLabelsBtn" class="graphs-btn" data-i18n-title="tooltip_toggle_labels"
+            style="white-space:nowrap;">Labels: Off</button>
+        </div>
+        <div class="graph-canvas-wrap"><canvas id="gVolume"></canvas></div>
+      </div>
+
+      <!-- Chart 4: New discoveries per period -->
+      <div class="graph-card">
+        <div class="graph-card-title" data-i18n="graph_discoveries_title">✨ New Discoveries per Period</div>
+        <div class="graph-card-sub" data-i18n="graph_discoveries_sub">Songs, artists and albums heard for the first time
+          each period</div>
+        <div style="display:flex;align-items:center;gap:0.5rem;flex-wrap:wrap;margin-bottom:0.75rem;">
+          <button id="gDiscoveriesResetZoom" class="graphs-btn" data-i18n="btn_reset_zoom" data-i18n-title="tooltip_reset_zoom"
+            style="white-space:nowrap;">Reset Zoom</button>
+          <button id="gDiscoveriesLabelsBtn" class="graphs-btn" data-i18n-title="tooltip_toggle_labels"
+            style="white-space:nowrap;">Labels: Off</button>
+        </div>
+        <div class="graph-canvas-wrap"><canvas id="gDiscoveries"></canvas></div>
+      </div>
+
+      <!-- Bar Chart Race -->
+      <div class="graph-card">
+        <div class="graph-card-title" data-i18n="graph_race_title">🏁 Play Count Race</div>
+        <div class="graph-card-sub" data-i18n="graph_race_sub">Cumulative plays over time — watch entries compete for
+          the top spot</div>
+
+        <!-- Row 1: Type + Playback controls -->
+        <div style="display:flex;align-items:center;gap:0.5rem;flex-wrap:wrap;margin-bottom:0.45rem;">
+          <span data-i18n="type_label"
+            style="font-family:'DM Mono',monospace;font-size:0.62rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--text3);">Type</span>
+          <div id="raceTypeBtns" style="display:flex;gap:4px;">
+            <button class="graphs-btn active" data-racetype="artists" data-i18n="race_artists">Artists</button>
+            <button class="graphs-btn" data-racetype="songs" data-i18n="race_songs">Songs</button>
+            <button class="graphs-btn" data-racetype="albums" data-i18n="race_albums">Albums</button>
+          </div>
+          <span data-i18n="speed_label"
+            style="font-family:'DM Mono',monospace;font-size:0.62rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--text3);margin-left:0.3rem;">Speed</span>
+          <div id="raceSpeedBtns" style="display:flex;gap:4px;">
+            <button class="graphs-btn" data-speed="0.5">0.5×</button>
+            <button class="graphs-btn active" data-speed="1">1×</button>
+            <button class="graphs-btn" data-speed="2">2×</button>
+            <button class="graphs-btn" data-speed="4">4×</button>
+          </div>
+        </div>
+
+        <!-- Row 2: Show N -->
+        <div style="display:flex;align-items:center;gap:0.5rem;flex-wrap:wrap;margin-bottom:0.45rem;">
+          <span data-i18n="show_label"
+            style="font-family:'DM Mono',monospace;font-size:0.62rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--text3);">Show</span>
+          <div id="raceTopNBtns" style="display:flex;gap:4px;flex-wrap:wrap;">
+            <button class="graphs-btn" data-topn="5">Top 5</button>
+            <button class="graphs-btn active" data-topn="10">Top 10</button>
+            <button class="graphs-btn" data-topn="15">Top 15</button>
+            <button class="graphs-btn" data-topn="20">Top 20</button>
+            <button class="graphs-btn" data-topn="30">Top 30</button>
+            <button class="graphs-btn" data-topn="50">Top 50</button>
+            <button class="graphs-btn" data-topn="100">Top 100</button>
+          </div>
+        </div>
+
+        <!-- Row 3: Date range -->
+        <div style="display:flex;align-items:center;gap:0.5rem;flex-wrap:wrap;margin-bottom:0.6rem;">
+          <span data-i18n="range_label"
+            style="font-family:'DM Mono',monospace;font-size:0.62rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--text3);">Range</span>
+          <input id="raceFrom" type="date"
+            style="background:var(--bg2);border:1px solid var(--border2);color:var(--text);font-family:'DM Mono',monospace;font-size:0.7rem;padding:0.25rem 0.5rem;border-radius:4px;outline:none;">
+          <span data-i18n="range_to" style="font-family:'DM Mono',monospace;font-size:0.62rem;color:var(--text3);">to</span>
+          <input id="raceTo" type="date"
+            style="background:var(--bg2);border:1px solid var(--border2);color:var(--text);font-family:'DM Mono',monospace;font-size:0.7rem;padding:0.25rem 0.5rem;border-radius:4px;outline:none;">
+          <button id="raceResetRange" class="graphs-btn" data-i18n="btn_reset" style="white-space:nowrap;">Reset</button>
+        </div>
+
+        <!-- Row 4: Transport -->
+        <div style="display:flex;align-items:center;gap:0.4rem;flex-wrap:wrap;margin-bottom:0.5rem;">
+          <button id="raceRestartBtn" class="graphs-btn" data-i18n="race_start" data-i18n-title="tooltip_race_start">↩
+            Start</button>
+          <button id="raceStepBackBtn" class="graphs-btn" data-i18n-title="tooltip_race_step_back">◀◀</button>
+          <button id="racePlayBtn" class="graphs-btn active" style="min-width:84px;" data-i18n="race_play">▶
+            Play</button>
+          <button id="raceStepFwdBtn" class="graphs-btn" data-i18n-title="tooltip_race_step_forward">▶▶</button>
+          <button id="raceEndBtn" class="graphs-btn" data-i18n="race_end" data-i18n-title="tooltip_race_end">↪
+            End</button>
+          <button id="raceGifBtn" class="graphs-btn" data-i18n="btn_download_gif" data-i18n-title="tooltip_download_gif"
+            style="margin-left:auto;">⬇
+            GIF</button>
+        </div>
+
+        <input id="raceSeekSlider" type="range" min="0" max="100" value="0"
+          style="width:100%;margin-bottom:0.5rem;accent-color:var(--accent);cursor:pointer;">
+        <canvas id="gBarRace" style="width:100%;display:block;border-radius:6px;"></canvas>
       </div>
 
     </div>
+
+    <!-- RAW DATA VIEW -->
+    <div id="rawDataView">
+      <div class="section-header" style="margin-bottom:1rem;">
+        <h2 class="section-header-h2" data-i18n="sec_raw_data_title">⊞ Raw Scrobble Data</h2>
+        <div class="section-rule"></div>
+      </div>
+      <div class="raw-filters">
+        <div class="raw-filter-group">
+          <label data-i18n="raw_song_label">Song Title</label>
+          <input type="text" id="rawFilterSong" placeholder="Search songs…" data-i18n-placeholder="raw_search_songs">
+        </div>
+        <div class="raw-filter-group">
+          <label data-i18n="raw_artist_label">Artist</label>
+          <input type="text" id="rawFilterArtist" placeholder="Search artists…"
+            data-i18n-placeholder="raw_search_artists">
+        </div>
+        <div class="raw-filter-group">
+          <label data-i18n="raw_album_label">Album</label>
+          <input type="text" id="rawFilterAlbum" placeholder="Search albums…" data-i18n-placeholder="raw_search_albums">
+        </div>
+        <div class="raw-filter-group">
+          <label data-i18n="raw_date_label">Date</label>
+          <input type="text" id="rawFilterDate" placeholder="e.g. 2024 or Mar 2024…"
+            data-i18n-placeholder="raw_search_date">
+        </div>
+        <button class="raw-clear-btn" id="rawClearBtn" data-i18n="raw_clear">✕ Clear</button>
+      </div>
+      <div class="raw-summary" id="rawSummary"></div>
+      <table class="raw-table">
+        <thead>
+          <tr>
+            <th class="raw-th" data-col="num" data-i18n-raw-th="raw_th_num">#<span class="sort-arrow">↕</span></th>
+            <th class="raw-th sort-active" data-col="date" data-i18n-raw-th="raw_th_date_time">Date &amp; Time<span
+                class="sort-arrow">↓</span></th>
+            <th class="raw-th" data-col="title" data-i18n-raw-th="raw_th_song_title">Song Title<span
+                class="sort-arrow">↕</span></th>
+            <th class="raw-th" data-col="artist" data-i18n-raw-th="raw_th_artist">Artist<span
+                class="sort-arrow">↕</span></th>
+            <th class="raw-th" data-col="album" data-i18n-raw-th="raw_th_album">Album<span class="sort-arrow">↕</span>
+            </th>
+          </tr>
+        </thead>
+        <tbody id="rawBody"></tbody>
+      </table>
+      <div class="raw-pagination" id="rawPagination">
+        <button id="rawPrevBtn">◄ Prev</button>
+        <span id="rawPageLabel"></span>
+        <button id="rawNextBtn">Next ►</button>
+      </div>
+    </div>
+
+    <!-- RECORDS VIEW -->
+    <div id="recordsView" style="display:none;">
+      <div class="section-header" style="margin-bottom:0.5rem;">
+        <h2 class="section-header-h2" data-i18n="sec_records_title">🏆 Records &amp; Hall of Fame</h2>
+        <div class="section-rule"></div>
+      </div>
+      <div class="rec-intro" id="recIntro">Load your data to see records.</div>
+      <div class="records-nav" id="recordsNav">
+        <button class="records-nav-btn" data-rec-view="all" data-i18n="rec_nav_all">All</button>
+        <button class="records-nav-btn active" data-rec-view="recAllOnesSection" data-i18n="rec_nav_all_ones">All
+          #1s</button>
+        <button class="records-nav-btn" data-rec-view="recPAKSection" data-i18n="rec_nav_pak">Perfect All Kill</button>
+        <button class="records-nav-btn" data-rec-view="recAppearancesSection"
+          data-i18n="rec_nav_appearances">Appearances</button>
+        <button class="records-nav-btn" data-rec-view="recDebutsSection" data-i18n="rec_nav_debuts">Debuts</button>
+        <button class="records-nav-btn" data-rec-view="recPeakPlaysSection" data-i18n="rec_nav_peak_plays">Most
+          Plays</button>
+        <button class="records-nav-btn" data-rec-view="recMilestonesSection"
+          data-i18n="rec_nav_milestones">Milestones</button>
+        <button class="records-nav-btn" data-rec-view="recFastestSection" data-i18n="rec_nav_fastest">Fastest</button>
+        <button class="records-nav-btn" data-rec-view="recCertsSection"
+          data-i18n="rec_nav_certs">Certifications</button>
+        <button class="records-nav-btn" data-rec-view="recStreaksSection" data-i18n="rec_nav_streaks">Streaks</button>
+      </div>
+
+      <div class="chart-size-bar" id="recordsSizeBar">
+        <label data-i18n="rec_size_label">Entries Display:</label>
+        <div class="size-btns" id="recordsSizeBtns">
+          <button data-rec-size="25" class="active">25</button>
+          <button data-rec-size="50">50</button>
+          <button data-rec-size="100">100</button>
+          <button data-rec-size="0">All</button>
+        </div>
+      </div>
+
+      <div class="chart-section" id="recAllOnesSection">
+        <div class="section-header">
+          <button class="section-collapse-btn" data-target="recAllOnesSection"
+            data-i18n-title="tooltip_collapse">−</button>
+          <h2 class="section-header-h2" data-i18n="rec_all_ones_title">★ All #1s</h2>
+          <div class="section-rule"></div>
+        </div>
+        <div class="section-sub" data-i18n="rec_all_ones_sub">Artists, albums &amp; tracks that reached the top spot on
+          your charts — including how many times each held #1</div>
+        <div class="section-body" id="recAllOnesBody"></div>
+      </div>
+
+      <div class="chart-section" id="recPAKSection">
+        <div class="section-header">
+          <button class="section-collapse-btn" data-target="recPAKSection" data-i18n-title="tooltip_collapse">−</button>
+          <h2 class="section-header-h2" data-i18n="rec_pak_title">🎯 Perfect All Kill</h2>
+          <div class="section-rule"></div>
+        </div>
+        <div class="section-sub" data-i18n="rec_pak_sub">Weeks an artist simultaneously held #1 on the artist, song
+          &amp; album weekly charts</div>
+        <div class="section-body" id="recPAKBody"></div>
+      </div>
+
+      <div class="chart-section" id="recAppearancesSection">
+        <div class="section-header">
+          <button class="section-collapse-btn" data-target="recAppearancesSection"
+            data-i18n-title="tooltip_collapse">−</button>
+          <h2 class="section-header-h2" data-i18n="rec_appearances_title">📈 Most Chart Appearances</h2>
+          <div class="section-rule"></div>
+        </div>
+        <div class="section-sub" data-i18n="rec_appearances_sub">Artists, albums &amp; tracks with the most periods
+          spent inside your weekly chart</div>
+        <div class="section-body" id="recAppearancesBody"></div>
+      </div>
+
+      <div class="chart-section" id="recDebutsSection">
+        <div class="section-header">
+          <button class="section-collapse-btn" data-target="recDebutsSection"
+            data-i18n-title="tooltip_collapse">−</button>
+          <h2 class="section-header-h2" data-i18n="rec_debuts_title">🚀 Biggest Debuts</h2>
+          <div class="section-rule"></div>
+        </div>
+        <div class="section-sub" data-i18n="rec_debuts_sub">Entries that debuted at the highest chart positions on the
+          weekly chart</div>
+        <div class="section-body" id="recDebutsBody"></div>
+      </div>
+
+      <div class="chart-section" id="recPeakPlaysSection">
+        <div class="section-header">
+          <button class="section-collapse-btn" data-target="recPeakPlaysSection"
+            data-i18n-title="tooltip_collapse">−</button>
+          <h2 class="section-header-h2" data-i18n="rec_peak_plays_title">🔥 Most Plays in a Period</h2>
+          <div class="section-rule"></div>
+        </div>
+        <div class="section-sub" data-i18n="rec_peak_plays_sub">Peak single-period play counts — most plays by a song,
+          artist or album in one week, month or year</div>
+        <div class="section-body" id="recPeakPlaysBody"></div>
+      </div>
+
+      <div class="chart-section" id="recMilestonesSection">
+        <div class="section-header">
+          <button class="section-collapse-btn" data-target="recMilestonesSection"
+            data-i18n-title="tooltip_collapse">−</button>
+          <h2 class="section-header-h2" data-i18n="rec_milestones_title">🎖 Play Count Milestones</h2>
+          <div class="section-rule"></div>
+        </div>
+        <div class="section-sub" data-i18n="rec_milestones_sub">First artists &amp; songs to reach 100, 500, 1,000,
+          2,000, 3,000, 5,000+ plays</div>
+        <div class="section-body" id="recMilestonesBody"></div>
+      </div>
+
+      <div class="chart-section" id="recFastestSection">
+        <div class="section-header">
+          <button class="section-collapse-btn" data-target="recFastestSection"
+            data-i18n-title="tooltip_collapse">−</button>
+          <h2 class="section-header-h2" data-i18n="rec_fastest_title">⚡ Fastest to Milestone</h2>
+          <div class="section-rule"></div>
+        </div>
+        <div class="section-sub" data-i18n="rec_fastest_sub">Which artists &amp; songs hit milestones fastest — fewest
+          days from first listen to reaching 1K, 2K, 5K plays</div>
+        <div class="section-body" id="recFastestBody"></div>
+      </div>
+
+      <div class="chart-section" id="recCertsSection">
+        <div class="section-header">
+          <button class="section-collapse-btn" data-target="recCertsSection"
+            data-i18n-title="tooltip_collapse">−</button>
+          <h2 class="section-header-h2" data-i18n="rec_certs_title">💿 Certifications Leaderboard</h2>
+          <div class="section-rule"></div>
+        </div>
+        <div class="section-sub" data-i18n="rec_certs_sub">Artists with the most Gold, Platinum &amp; Diamond certified
+          songs and albums</div>
+        <div class="section-body" id="recCertsBody"></div>
+        <div id="certifications-wall"></div>
+      </div>
+
+      <div class="chart-section" id="recStreaksSection">
+        <div class="section-header">
+          <button class="section-collapse-btn" data-target="recStreaksSection"
+            data-i18n-title="tooltip_collapse">−</button>
+          <h2 class="section-header-h2" data-i18n="rec_streaks_title">🔁 Streak Records</h2>
+          <div class="section-rule"></div>
+        </div>
+        <div class="section-sub" data-i18n="rec_streaks_sub">Longest consecutive listening streaks, repeat plays, and
+          daily play records</div>
+        <div class="section-body" id="recStreaksBody"></div>
+      </div>
+    </div>
+
+    <!-- EVENTS VIEW -->
+    <div id="eventsView" style="display:none;">
+      <div class="section-header" style="margin-bottom:0.5rem;">
+        <h2 class="section-header-h2">🗓 Events Calendar</h2>
+        <div class="section-rule"></div>
+      </div>
+
+      <div class="events-controls">
+        <span class="events-controls-label">Top
+          <select id="eventsLimitSelect" onchange="eventsLimitChanged(this.value)">
+            <option value="10">10</option>
+            <option value="25">25</option>
+            <option value="50">50</option>
+            <option value="100">100</option>
+            <option value="200">200</option>
+          </select>
+          all-time artists
+        </span>
+        <button class="upcoming-refresh-btn" id="eventsRefreshBtn" onclick="loadEvents(true)" style="display:none">↺ Refresh</button>
+      </div>
+
+      <div id="eventsStatus" class="upcoming-status"></div>
+
+      <div class="chart-section" id="birthdaysSection">
+        <div class="section-header">
+          <button class="section-collapse-btn" data-target="birthdaysSection" title="Collapse">−</button>
+          <h2 class="section-header-h2">🎂 Artist Birthdays</h2>
+          <div class="section-rule"></div>
+        </div>
+        <div class="section-sub">Upcoming birthdays for your top artists — next 30 days</div>
+        <div class="section-body">
+          <div class="upcoming-grid" id="birthdaysGrid"></div>
+        </div>
+      </div>
+
+      <div class="chart-section" id="anniversariesSection">
+        <div class="section-header">
+          <button class="section-collapse-btn" data-target="anniversariesSection" title="Collapse">−</button>
+          <h2 class="section-header-h2">🎵 Album Anniversaries</h2>
+          <div class="section-rule"></div>
+        </div>
+        <div class="section-sub">Albums celebrating release anniversaries in the next 30 days</div>
+        <div class="section-body">
+          <div class="upcoming-grid" id="anniversariesGrid"></div>
+        </div>
+      </div>
+    </div>
+
   </div>
 
-  <!-- ── IMPORT MODAL (outside chartsApp so it works from landing too) ── -->
-  <div class="modal-overlay" id="importModal" style="display:none" onclick="closeImportModal(event)">
-    <div class="modal" onclick="event.stopPropagation()">
+  <div id="igCardCanvas"></div>
+
+  <div class="page-footer">
+    <span data-i18n="footer_line1">dankcharts.fm · Erwin's Personal Music Charts · Est. 2016</span><br>
+    <span data-i18n="footer_line2">All data stays in your browser. Nothing is uploaded or stored externally.</span>
+  </div>
+
+  <!-- IG SHARE PREVIEW MODAL -->
+  <div class="ig-modal-overlay" id="igPreviewModal">
+    <div class="ig-modal-box">
+      <div class="ig-modal-header">
+        <h3 id="igPreviewTitle" data-i18n="ig_share_title">Share as Image</h3>
+        <button class="ig-modal-close" onclick="closeIgPreviewModal()" data-i18n="btn_close">✕ CLOSE</button>
+      </div>
+      <div class="ig-modal-body">
+        <div class="ig-preview-panel">
+          <div class="ig-preview-label" data-i18n="ig_preview_label">Preview</div>
+          <div class="ig-preview-frame" id="igPreviewFrame">
+            <div class="ig-preview-inner" id="igPreviewInner"></div>
+          </div>
+        </div>
+        <div class="ig-controls-panel">
+          <div class="ig-ctrl-group">
+            <div class="ig-ctrl-group-title" data-i18n="ig_format">Format</div>
+            <div class="ig-format-btns">
+              <button class="ig-format-btn active" id="igFmtPost" onclick="setIgFormat('post')" data-i18n="ig_post">📷 Post (1:1)</button>
+              <button class="ig-format-btn" id="igFmtStory" onclick="setIgFormat('story')" data-i18n="ig_story">📱 Story (9:16)</button>
+            </div>
+          </div>
+          <div class="ig-ctrl-group">
+            <div class="ig-ctrl-group-title" data-i18n="ig_font_size">Font Size</div>
+            <div style="display:flex;gap:0.4rem;margin-bottom:0.4rem;">
+              <button class="ig-minmax-btn" onclick="setAllIgFonts('max')" data-i18n="ig_max_all">MAX ALL</button>
+              <button class="ig-minmax-btn" onclick="setAllIgFonts('min')" data-i18n="ig_min_all">MIN ALL</button>
+            </div>
+            <div style="display:flex;align-items:center;gap:0.6rem;">
+              <span data-i18n="ig_top_brand"
+                style="font-family:'DM Mono',monospace;font-size:0.58rem;color:var(--text3);min-width:72px;">Top Brand</span>
+              <input type="range" id="igTopBrandSize" min="0" max="22" value="0" step="1"
+                oninput="updateIgFontLabels();updateIgPreview()" style="flex:1;accent-color:var(--accent);">
+              <span id="igTopBrandSizeLabel"
+                style="font-family:'DM Mono',monospace;font-size:0.7rem;color:var(--accent);min-width:36px;">Auto</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:0.6rem;">
+              <span data-i18n="ig_card_title_size"
+                style="font-family:'DM Mono',monospace;font-size:0.58rem;color:var(--text3);min-width:72px;">Card Title</span>
+              <input type="range" id="igCardTitleSize" min="0" max="40" value="0" step="1"
+                oninput="updateIgFontLabels();updateIgPreview()" style="flex:1;accent-color:var(--accent);">
+              <span id="igCardTitleSizeLabel"
+                style="font-family:'DM Mono',monospace;font-size:0.7rem;color:var(--accent);min-width:36px;">Auto</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:0.6rem;">
+              <span data-i18n="ig_date"
+                style="font-family:'DM Mono',monospace;font-size:0.58rem;color:var(--text3);min-width:72px;">Date</span>
+              <input type="range" id="igDateSize" min="0" max="20" value="0" step="1"
+                oninput="updateIgFontLabels();updateIgPreview()" style="flex:1;accent-color:var(--accent);">
+              <span id="igDateSizeLabel"
+                style="font-family:'DM Mono',monospace;font-size:0.7rem;color:var(--accent);min-width:36px;">Auto</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:0.6rem;">
+              <span data-i18n="ig_rank_size"
+                style="font-family:'DM Mono',monospace;font-size:0.58rem;color:var(--text3);min-width:72px;">Rank</span>
+              <input type="range" id="igRankSize" min="0" max="32" value="0" step="1"
+                oninput="updateIgFontLabels();updateIgPreview()" style="flex:1;accent-color:var(--accent);">
+              <span id="igRankSizeLabel"
+                style="font-family:'DM Mono',monospace;font-size:0.7rem;color:var(--accent);min-width:36px;">Auto</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:0.6rem;">
+              <span id="igTitleNameLabel" data-i18n="ig_title_size"
+                style="font-family:'DM Mono',monospace;font-size:0.58rem;color:var(--text3);min-width:72px;">Title</span>
+              <input type="range" id="igTitleSize" min="0" max="24" value="0" step="1"
+                oninput="updateIgFontLabels();updateIgPreview()" style="flex:1;accent-color:var(--accent);">
+              <span id="igTitleSizeLabel"
+                style="font-family:'DM Mono',monospace;font-size:0.7rem;color:var(--accent);min-width:36px;">Auto</span>
+            </div>
+            <div id="igArtistSizeRow" style="display:flex;align-items:center;gap:0.6rem;">
+              <span data-i18n="ig_artist_size"
+                style="font-family:'DM Mono',monospace;font-size:0.58rem;color:var(--text3);min-width:72px;">Artist</span>
+              <input type="range" id="igArtistSize" min="0" max="24" value="0" step="1"
+                oninput="updateIgFontLabels();updateIgPreview()" style="flex:1;accent-color:var(--accent);">
+              <span id="igArtistSizeLabel"
+                style="font-family:'DM Mono',monospace;font-size:0.7rem;color:var(--accent);min-width:36px;">Auto</span>
+            </div>
+            <div id="igSongsCountSizeRow" style="display:none;align-items:center;gap:0.6rem;">
+              <span data-i18n="ig_songs_count_size"
+                style="font-family:'DM Mono',monospace;font-size:0.58rem;color:var(--text3);min-width:72px;">Songs Ct.</span>
+              <input type="range" id="igSongsCountSize" min="0" max="24" value="0" step="1"
+                oninput="updateIgFontLabels();updateIgPreview()" style="flex:1;accent-color:var(--accent);">
+              <span id="igSongsCountSizeLabel"
+                style="font-family:'DM Mono',monospace;font-size:0.7rem;color:var(--accent);min-width:36px;">Auto</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:0.6rem;">
+              <span data-i18n="ig_peak_size"
+                style="font-family:'DM Mono',monospace;font-size:0.58rem;color:var(--text3);min-width:72px;">Peak</span>
+              <input type="range" id="igPeakSize" min="0" max="20" value="0" step="1"
+                oninput="updateIgFontLabels();updateIgPreview()" style="flex:1;accent-color:var(--accent);">
+              <span id="igPeakSizeLabel"
+                style="font-family:'DM Mono',monospace;font-size:0.7rem;color:var(--accent);min-width:36px;">Auto</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:0.6rem;">
+              <span data-i18n="ig_weeks_size"
+                style="font-family:'DM Mono',monospace;font-size:0.58rem;color:var(--text3);min-width:72px;">Weeks</span>
+              <input type="range" id="igWeeksSize" min="0" max="20" value="0" step="1"
+                oninput="updateIgFontLabels();updateIgPreview()" style="flex:1;accent-color:var(--accent);">
+              <span id="igWeeksSizeLabel"
+                style="font-family:'DM Mono',monospace;font-size:0.7rem;color:var(--accent);min-width:36px;">Auto</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:0.6rem;">
+              <span data-i18n="ig_plays_size"
+                style="font-family:'DM Mono',monospace;font-size:0.58rem;color:var(--text3);min-width:72px;">Plays</span>
+              <input type="range" id="igPlaysSize" min="0" max="22" value="0" step="1"
+                oninput="updateIgFontLabels();updateIgPreview()" style="flex:1;accent-color:var(--accent);">
+              <span id="igPlaysSizeLabel"
+                style="font-family:'DM Mono',monospace;font-size:0.7rem;color:var(--accent);min-width:36px;">Auto</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:0.6rem;">
+              <span data-i18n="ig_bottom_brand"
+                style="font-family:'DM Mono',monospace;font-size:0.58rem;color:var(--text3);min-width:72px;">Bottom Brand</span>
+              <input type="range" id="igBottomBrandSize" min="0" max="22" value="0" step="1"
+                oninput="updateIgFontLabels();updateIgPreview()" style="flex:1;accent-color:var(--accent);">
+              <span id="igBottomBrandSizeLabel"
+                style="font-family:'DM Mono',monospace;font-size:0.7rem;color:var(--accent);min-width:36px;">Auto</span>
+            </div>
+            <div style="font-family:'DM Mono',monospace;font-size:0.55rem;color:var(--text3);letter-spacing:0.06em;" data-i18n="ig_slide_auto">
+              Slide to override · leftmost = Auto</div>
+          </div>
+          <div class="ig-ctrl-group">
+            <div class="ig-ctrl-group-title" data-i18n="ig_show_hide">Show / Hide</div>
+            <label class="ig-ctrl-row"><input type="checkbox" id="igOpt_showMovement" checked
+                onchange="updateIgPreview()"><span data-i18n="ig_movement">Movement (▲▼ NEW RE)</span></label>
+            <label class="ig-ctrl-row"><input type="checkbox" id="igOpt_showPeak" checked
+                onchange="updateIgPreview()"><span data-i18n="ig_peak_badge">Peak Badge (PEAK #1)</span></label>
+            <label class="ig-ctrl-row"><input type="checkbox" id="igOpt_showWeeks" checked
+                onchange="updateIgPreview()"><span data-i18n="ig_weeks_on_chart">Weeks on Chart</span></label>
+            <label class="ig-ctrl-row"><input type="checkbox" id="igOpt_showPlays" checked
+                onchange="updateIgPreview()"><span data-i18n="ig_play_count">Play Count</span></label>
+            <label class="ig-ctrl-row"><input type="checkbox" id="igOpt_showSubtitle" checked
+                onchange="updateIgPreview()"><span data-i18n="ig_artist_subtitle">Artist / Subtitle</span></label>
+            <label class="ig-ctrl-row"><input type="checkbox" id="igOpt_showDate" checked
+                onchange="updateIgPreview()"><span data-i18n="ig_date_period">Date / Period</span></label>
+            <label class="ig-ctrl-row"><input type="checkbox" id="igOpt_showFooter" checked
+                onchange="updateIgPreview()"><span data-i18n="ig_footer_branding">Footer Branding</span></label>
+          </div>
+        </div>
+      </div>
+      <div class="ig-modal-footer">
+        <button class="ig-modal-close" onclick="closeIgPreviewModal()" data-i18n="btn_cancel">Cancel</button>
+        <button class="ig-download-btn" id="igDownloadBtn" onclick="downloadIgFromPreview()"
+          data-i18n="btn_download_image">↓ Download Image</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- CHART RUN SHARE MODAL -->
+  <div class="ig-modal-overlay" id="crIgModal">
+    <div class="ig-modal-box">
+      <div class="ig-modal-header">
+        <h3 id="crIgTitle">Share as Image</h3>
+        <button class="ig-modal-close" onclick="closeCrIgModal()" data-i18n="btn_close">✕ CLOSE</button>
+      </div>
+      <!-- Mode toggle bar -->
+      <div class="ig-modal-mode-bar">
+        <button class="ig-mode-btn active" id="crIgModeChartRun" onclick="setCrIgMode('chartrun')" data-i18n="cr_chart_run">📊 Chart Run</button>
+        <button class="ig-mode-btn" id="crIgModeEntry" onclick="setCrIgMode('entrypost')" data-i18n="cr_entry_post">🎵 Entry Post</button>
+      </div>
+      <div class="ig-modal-body">
+        <div class="ig-preview-panel">
+          <div class="ig-preview-label" data-i18n="ig_preview_label">Preview</div>
+          <div class="ig-preview-frame" id="crIgPreviewFrame">
+            <div class="ig-preview-inner" id="crIgPreviewInner"></div>
+          </div>
+        </div>
+        <div class="ig-controls-panel">
+          <!-- ── CHART RUN CONTROLS ── -->
+          <div id="crIgChartRunControls">
+            <div class="ig-ctrl-group">
+              <div class="ig-ctrl-group-title" data-i18n="ig_format">Format</div>
+              <div class="ig-format-btns">
+                <button class="ig-format-btn active" id="crIgFmtPost" onclick="setCrIgFormat('post')" data-i18n="ig_post">📷 Post
+                  (1:1)</button>
+                <button class="ig-format-btn" id="crIgFmtStory" onclick="setCrIgFormat('story')" data-i18n="ig_story">📱 Story
+                  (9:16)</button>
+              </div>
+            </div>
+            <div class="ig-ctrl-group">
+              <div class="ig-ctrl-group-title" data-i18n="cr_range">Range</div>
+              <div class="ig-format-btns" id="crIgRangeBtns">
+                <button class="ig-format-btn" id="crIgRangeYear" onclick="setCrIgRange('year')">Year Only</button>
+                <button class="ig-format-btn" id="crIgRangeUptoYear" onclick="setCrIgRange('uptoYear')">Up to
+                  Year</button>
+                <button class="ig-format-btn active" id="crIgRangeNow" onclick="setCrIgRange('now')">All-Time</button>
+              </div>
+              <div
+                style="font-family:'DM Mono',monospace;font-size:0.55rem;color:var(--text3);letter-spacing:0.06em;margin-top:3px;">
+                <span data-i18n="cr_range_note">Range for the chart run boxes shown</span></div>
+              <div class="ig-ctrl-group" id="crIgIncludeGroup">
+                <div class="ig-ctrl-group-title" data-i18n="cr_include_runs">Include Chart Runs</div>
+                <label class="ig-ctrl-row"><input type="checkbox" id="crIgOpt_showYear" checked
+                    onchange="updateCrIgPreview()"><span data-i18n="cr_yearly_run">🗓️ Yearly Chart Run + Stats</span></label>
+                <label class="ig-ctrl-row"><input type="checkbox" id="crIgOpt_showMonth" checked
+                    onchange="updateCrIgPreview()"><span data-i18n="cr_monthly_run">📊 Monthly Chart Run + Stats</span></label>
+                <label class="ig-ctrl-row"><input type="checkbox" id="crIgOpt_showWeek" checked
+                    onchange="updateCrIgPreview()"><span data-i18n="cr_weekly_run">📈 Weekly Chart Run + Stats</span></label>
+              </div>
+              <div class="ig-ctrl-group">
+                <div class="ig-ctrl-group-title" data-i18n="ig_show_hide">Show / Hide</div>
+                <label class="ig-ctrl-row"><input type="checkbox" id="crIgOpt_showImage" checked
+                    onchange="updateCrIgPreview()"><span data-i18n="ig_cover_art">Cover Art / Photo</span></label>
+                <label class="ig-ctrl-row"><input type="checkbox" id="crIgOpt_showWeekDate" checked
+                    onchange="updateCrIgPreview()"><span data-i18n="ig_week_date_sub">Week Date Subtitle</span></label>
+                <label class="ig-ctrl-row"><input type="checkbox" id="crIgOpt_showSubtitle" checked
+                    onchange="updateCrIgPreview()"><span data-i18n="ig_artist_sublabel">Artist / Sub-label</span></label>
+                <label class="ig-ctrl-row"><input type="checkbox" id="crIgOpt_showSectionSummary" checked
+                    onchange="updateCrIgPreview()"><span data-i18n="ig_section_summary">📈 Section Summary Stats</span></label>
+                <label class="ig-ctrl-row"><input type="checkbox" id="crIgOpt_showFooter" checked
+                    onchange="updateCrIgPreview()"><span data-i18n="ig_footer_branding">Footer Branding</span></label>
+                <div style="display:flex;align-items:center;gap:0.4rem;padding-left:22px;flex-wrap:wrap;">
+                  <span
+                    style="font-family:'DM Mono',monospace;font-size:0.58rem;color:var(--text3);flex-shrink:0;" data-i18n="ig_source">Source:</span>
+                  <button class="ig-format-btn active" id="crIgSrc_deezer" onclick="setCrIgImgSource('deezer')"
+                    style="padding:0.2rem 0.45rem;font-size:0.6rem;">Deezer</button>
+                  <button class="ig-format-btn" id="crIgSrc_itunes" onclick="setCrIgImgSource('itunes')"
+                    style="padding:0.2rem 0.45rem;font-size:0.6rem;">iTunes</button>
+                  <button class="ig-format-btn" id="crIgSrc_lastfm" onclick="setCrIgImgSource('lastfm')"
+                    style="padding:0.2rem 0.45rem;font-size:0.6rem;">Last.fm</button>
+                  <button class="ig-format-btn" id="crIgSrc_youtube" onclick="setCrIgImgSource('youtube')"
+                    style="padding:0.2rem 0.45rem;font-size:0.6rem;">YouTube</button>
+                </div>
+              </div>
+              <div class="ig-ctrl-group">
+                <div class="ig-ctrl-group-title" data-i18n="cr_fonts">Fonts</div>
+                <div style="display:flex;flex-direction:column;gap:0.35rem;">
+                  <div style="display:flex;align-items:center;gap:0.5rem;">
+                    <span
+                      style="font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--text3);min-width:52px;" data-i18n="cr_title_font">Title</span>
+                    <select id="crIgTitleFont" onchange="updateCrIgPreview()"
+                      style="flex:1;background:var(--bg3);border:1px solid var(--border2);color:var(--text2);font-family:'DM Mono',monospace;font-size:0.65rem;padding:3px 5px;border-radius:4px;">
+                      <option value="DM Sans">DM Sans</option>
+                      <option value="DM Serif Display">DM Serif Display</option>
+                      <option value="DM Mono">DM Mono</option>
+                      <option value="Georgia">Georgia</option>
+                      <option value="Arial">Arial</option>
+                      <option value="Verdana">Verdana</option>
+                    </select>
+                  </div>
+                  <div style="display:flex;align-items:center;gap:0.5rem;">
+                    <span
+                      style="font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--text3);min-width:52px;" data-i18n="cr_labels_font">Labels</span>
+                    <select id="crIgLabelFont" onchange="updateCrIgPreview()"
+                      style="flex:1;background:var(--bg3);border:1px solid var(--border2);color:var(--text2);font-family:'DM Mono',monospace;font-size:0.65rem;padding:3px 5px;border-radius:4px;">
+                      <option value="DM Mono">DM Mono</option>
+                      <option value="DM Sans">DM Sans</option>
+                      <option value="DM Serif Display">DM Serif Display</option>
+                      <option value="Verdana">Verdana</option>
+                      <option value="Arial">Arial</option>
+                    </select>
+                  </div>
+                  <div style="display:flex;align-items:center;gap:0.5rem;">
+                    <span
+                      style="font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--text3);min-width:52px;" data-i18n="cr_cover_art">Cover
+                      Art/Photo</span>
+                    <input type="range" id="crIgImageScale" min="80" max="150" value="100"
+                      oninput="updateCrIgSizeLabels();updateCrIgPreview()" style="flex:1;accent-color:var(--accent);">
+                    <span id="crIgImageScaleLabel"
+                      style="font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--text2);min-width:30px;text-align:right;">100%</span>
+                  </div>
+                  <div style="display:flex;align-items:center;gap:0.5rem;">
+                    <span
+                      style="font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--text3);min-width:52px;" data-i18n="cr_brand_px">Brand
+                      px</span>
+                    <input type="range" id="crIgBrandSize" min="0" max="18" value="0"
+                      oninput="updateCrIgSizeLabels();updateCrIgPreview()" style="flex:1;accent-color:var(--accent);">
+                    <span id="crIgBrandSizeLabel"
+                      style="font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--text2);min-width:30px;text-align:right;">Auto</span>
+                  </div>
+                  <div style="display:flex;align-items:center;gap:0.5rem;">
+                    <span
+                      style="font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--text3);min-width:52px;" data-i18n="cr_song_artist_px">Song/Artist
+                      px</span>
+                    <input type="range" id="crIgTitleSize" min="0" max="60" value="0"
+                      oninput="updateCrIgSizeLabels();updateCrIgPreview()" style="flex:1;accent-color:var(--accent);">
+                    <span id="crIgTitleSizeLabel"
+                      style="font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--text2);min-width:30px;text-align:right;">Auto</span>
+                  </div>
+                  <div style="display:flex;align-items:center;gap:0.5rem;">
+                    <span
+                      style="font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--text3);min-width:52px;" data-i18n="cr_week_date_px">Week
+                      Date px</span>
+                    <input type="range" id="crIgWeekDateSize" min="0" max="20" value="0"
+                      oninput="updateCrIgSizeLabels();updateCrIgPreview()" style="flex:1;accent-color:var(--accent);">
+                    <span id="crIgWeekDateSizeLabel"
+                      style="font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--text2);min-width:30px;text-align:right;">Auto</span>
+                  </div>
+                  <div style="display:flex;align-items:center;gap:0.5rem;">
+                    <span
+                      style="font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--text3);min-width:52px;" data-i18n="cr_section_px">Section
+                      px</span>
+                    <input type="range" id="crIgSectionSize" min="0" max="18" value="0"
+                      oninput="updateCrIgSizeLabels();updateCrIgPreview()" style="flex:1;accent-color:var(--accent);">
+                    <span id="crIgSectionSizeLabel"
+                      style="font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--text2);min-width:30px;text-align:right;">Auto</span>
+                  </div>
+                  <div style="display:flex;align-items:center;gap:0.5rem;">
+                    <span
+                      style="font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--text3);min-width:52px;" data-i18n="cr_boxes_px">Boxes
+                      px</span>
+                    <input type="range" id="crIgBoxSize" min="0" max="22" value="0"
+                      oninput="updateCrIgSizeLabels();updateCrIgPreview()" style="flex:1;accent-color:var(--accent);">
+                    <span id="crIgBoxSizeLabel"
+                      style="font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--text2);min-width:30px;text-align:right;">Auto</span>
+                  </div>
+                </div>
+                <div style="display:flex;gap:0.4rem;flex-wrap:wrap;margin-top:4px;">
+                  <button class="ig-format-btn" onclick="setCrIgAllSliders(true)"
+                    style="padding:0.2rem 0.55rem;font-size:0.6rem;flex:0 0 auto;" data-i18n="btn_max_all">Max All</button>
+                  <button class="ig-format-btn" onclick="setCrIgAllSliders(false)"
+                    style="padding:0.2rem 0.55rem;font-size:0.6rem;flex:0 0 auto;" data-i18n="btn_min_all">Min All</button>
+                </div>
+                <div
+                  style="font-family:'DM Mono',monospace;font-size:0.55rem;color:var(--text3);letter-spacing:0.06em;margin-top:4px;" data-i18n="ig_slide_auto">
+                  Slide to override · leftmost = Auto</div>
+              </div>
+            </div>
+          </div>
+          <!-- ── ENTRY POST CONTROLS ── -->
+          <div id="crIgEntryControls" style="display:none;">
+            <div class="ig-ctrl-group">
+              <div class="ig-ctrl-group-title" data-i18n="ig_format">Format</div>
+              <div class="ig-format-btns">
+                <button class="ig-format-btn active" id="entPostFmtPost" onclick="setCrIgFormat('post')" data-i18n="ig_post">📷 Post
+                  (1:1)</button>
+                <button class="ig-format-btn" id="entPostFmtStory" onclick="setCrIgFormat('story')" data-i18n="ig_story">📱 Story
+                  (9:16)</button>
+              </div>
+            </div>
+            <div class="ig-ctrl-group">
+              <div class="ig-ctrl-group-title" data-i18n="ig_show_hide">Show / Hide</div>
+              <label class="ig-ctrl-row"><input type="checkbox" id="entPostOpt_showWeekDate" checked
+                  onchange="updateCrIgPreview()"><span data-i18n="ig_week_date_sub">Week Date Subtitle</span></label>
+              <label class="ig-ctrl-row"><input type="checkbox" id="entPostOpt_showDescription" checked
+                  onchange="updateCrIgPreview()"><span data-i18n="ep_chart_story">Chart Story Description</span></label>
+              <label class="ig-ctrl-row"><input type="checkbox" id="entPostOpt_showSubtitle" checked
+                  onchange="updateCrIgPreview()"><span data-i18n="ep_artist_album">Artist / Album Info</span></label>
+              <label class="ig-ctrl-row"><input type="checkbox" id="entPostOpt_showMovement" checked
+                  onchange="updateCrIgPreview()"><span data-i18n="ep_movement_bl">Movement (Bottom Left)</span></label>
+              <label class="ig-ctrl-row"><input type="checkbox" id="entPostOpt_showFooter" checked
+                  onchange="updateCrIgPreview()"><span data-i18n="ig_footer_branding">Footer Branding</span></label>
+              <label class="ig-ctrl-row"><input type="checkbox" id="entPostOpt_showImage" checked
+                  onchange="updateCrIgPreview()"><span data-i18n="ig_cover_art">Cover Art / Photo</span></label>
+              <div
+                style="display:flex;align-items:center;gap:0.4rem;padding-left:22px;flex-wrap:wrap;margin-top:0.25rem;">
+                <span
+                  style="font-family:'DM Mono',monospace;font-size:0.58rem;color:var(--text3);flex-shrink:0;" data-i18n="ig_source">Source:</span>
+                <button class="ig-format-btn active" id="entPostSrc_deezer" onclick="setEntPostImgSource('deezer')"
+                  style="padding:0.2rem 0.45rem;font-size:0.6rem;">Deezer</button>
+                <button class="ig-format-btn" id="entPostSrc_itunes" onclick="setEntPostImgSource('itunes')"
+                  style="padding:0.2rem 0.45rem;font-size:0.6rem;">iTunes</button>
+                <button class="ig-format-btn" id="entPostSrc_lastfm" onclick="setEntPostImgSource('lastfm')"
+                  style="padding:0.2rem 0.45rem;font-size:0.6rem;">Last.fm</button>
+                <button class="ig-format-btn" id="entPostSrc_youtube" onclick="setEntPostImgSource('youtube')"
+                  style="padding:0.2rem 0.45rem;font-size:0.6rem;">YouTube</button>
+              </div>
+            </div>
+            <div class="ig-ctrl-group">
+              <div class="ig-ctrl-group-title" data-i18n="ep_font_sizes">Font Sizes</div>
+              <div style="display:flex;flex-direction:column;gap:0.35rem;">
+                <div style="display:flex;align-items:center;gap:0.5rem;">
+                  <span
+                    style="font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--text3);min-width:66px;" data-i18n="ep_branding">Branding</span>
+                  <input type="range" id="entPostBrandSize" min="0" max="20" value="0"
+                    oninput="updateEntPostSizeLabels();updateCrIgPreview()" style="flex:1;accent-color:var(--accent);">
+                  <span id="entPostBrandSizeLabel"
+                    style="font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--text2);min-width:30px;text-align:right;">Auto</span>
+                </div>
+                <div style="display:flex;align-items:center;gap:0.5rem;">
+                  <span
+                    style="font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--text3);min-width:66px;" data-i18n="ep_chart_name">Chart
+                    Name</span>
+                  <input type="range" id="entPostChartNameSize" min="0" max="28" value="0"
+                    oninput="updateEntPostSizeLabels();updateCrIgPreview()" style="flex:1;accent-color:var(--accent);">
+                  <span id="entPostChartNameSizeLabel"
+                    style="font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--text2);min-width:30px;text-align:right;">Auto</span>
+                </div>
+                <div style="display:flex;align-items:center;gap:0.5rem;">
+                  <span style="font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--text3);min-width:66px;" data-i18n="ep_week_date">Week
+                    Date</span>
+                  <input type="range" id="entPostWeekDateSize" min="0" max="22" value="0"
+                    oninput="updateEntPostSizeLabels();updateCrIgPreview()" style="flex:1;accent-color:var(--accent);">
+                  <span id="entPostWeekDateSizeLabel"
+                    style="font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--text2);min-width:30px;text-align:right;">Auto</span>
+                </div>
+                <div style="display:flex;align-items:center;gap:0.5rem;">
+                  <span
+                    style="font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--text3);min-width:66px;" data-i18n="ep_image">Image</span>
+                  <input type="range" id="entPostImageSize" min="0" max="320" value="0"
+                    oninput="updateEntPostSizeLabels();updateCrIgPreview()" style="flex:1;accent-color:var(--accent);">
+                  <span id="entPostImageSizeLabel"
+                    style="font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--text2);min-width:30px;text-align:right;">Auto</span>
+                </div>
+                <div style="display:flex;align-items:center;gap:0.5rem;">
+                  <span id="entPostTitleSizeText"
+                    style="font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--text3);min-width:66px;">Title</span>
+                  <input type="range" id="entPostTitleSize" min="0" max="36" value="0"
+                    oninput="updateEntPostSizeLabels();updateCrIgPreview()" style="flex:1;accent-color:var(--accent);">
+                  <span id="entPostTitleSizeLabel"
+                    style="font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--text2);min-width:30px;text-align:right;">Auto</span>
+                </div>
+                <div style="display:flex;align-items:center;gap:0.5rem;">
+                  <span
+                    style="font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--text3);min-width:66px;" data-i18n="ep_artist">Artist</span>
+                  <input type="range" id="entPostSubtitleSize" min="0" max="28" value="0"
+                    oninput="updateEntPostSizeLabels();updateCrIgPreview()" style="flex:1;accent-color:var(--accent);">
+                  <span id="entPostSubtitleSizeLabel"
+                    style="font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--text2);min-width:30px;text-align:right;">Auto</span>
+                </div>
+                <div style="display:flex;align-items:center;gap:0.5rem;">
+                  <span
+                    style="font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--text3);min-width:66px;" data-i18n="ep_album">Album</span>
+                  <input type="range" id="entPostAlbumSize" min="0" max="22" value="0"
+                    oninput="updateEntPostSizeLabels();updateCrIgPreview()" style="flex:1;accent-color:var(--accent);">
+                  <span id="entPostAlbumSizeLabel"
+                    style="font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--text2);min-width:30px;text-align:right;">Auto</span>
+                </div>
+                <div style="display:flex;align-items:center;gap:0.5rem;">
+                  <span
+                    style="font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--text3);min-width:66px;" data-i18n="ep_description">Description</span>
+                  <input type="range" id="entPostDescSize" min="0" max="22" value="0"
+                    oninput="updateEntPostSizeLabels();updateCrIgPreview()" style="flex:1;accent-color:var(--accent);">
+                  <span id="entPostDescSizeLabel"
+                    style="font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--text2);min-width:30px;text-align:right;">Auto</span>
+                </div>
+                <div style="display:flex;align-items:center;gap:0.5rem;">
+                  <span
+                    style="font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--text3);min-width:66px;" data-i18n="ep_movement">Movement</span>
+                  <input type="range" id="entPostMvSize" min="0" max="24" value="0"
+                    oninput="updateEntPostSizeLabels();updateCrIgPreview()" style="flex:1;accent-color:var(--accent);">
+                  <span id="entPostMvSizeLabel"
+                    style="font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--text2);min-width:30px;text-align:right;">Auto</span>
+                </div>
+                <div style="display:flex;align-items:center;gap:0.5rem;">
+                  <span
+                    style="font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--text3);min-width:66px;" data-i18n="ep_position">Position
+                    #</span>
+                  <input type="range" id="entPostRankSize" min="0" max="120" value="0"
+                    oninput="updateEntPostSizeLabels();updateCrIgPreview()" style="flex:1;accent-color:var(--accent);">
+                  <span id="entPostRankSizeLabel"
+                    style="font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--text2);min-width:30px;text-align:right;">Auto</span>
+                </div>
+                <div style="display:flex;align-items:center;gap:0.5rem;">
+                  <span
+                    style="font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--text3);min-width:66px;" data-i18n="ep_story_y">Story
+                    Y</span>
+                  <input type="range" id="entPostStatusY" min="-120" max="220" value="0"
+                    oninput="updateEntPostSizeLabels();updateCrIgPreview()" style="flex:1;accent-color:var(--accent);">
+                  <span id="entPostStatusYLabel"
+                    style="font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--text2);min-width:30px;text-align:right;">Auto</span>
+                </div>
+              </div>
+              <div style="display:flex;gap:0.4rem;flex-wrap:wrap;margin-top:4px;">
+                <button class="ig-format-btn" onclick="setEntPostAllSliders(true)"
+                  style="padding:0.2rem 0.55rem;font-size:0.6rem;flex:0 0 auto;" data-i18n="btn_max_all">Max All</button>
+                <button class="ig-format-btn" onclick="setEntPostAllSliders(false)"
+                  style="padding:0.2rem 0.55rem;font-size:0.6rem;flex:0 0 auto;" data-i18n="btn_min_all">Min All</button>
+              </div>
+              <div
+                style="font-family:'DM Mono',monospace;font-size:0.55rem;color:var(--text3);letter-spacing:0.06em;margin-top:4px;" data-i18n="ig_slide_auto">
+                Slide to override · leftmost = Auto</div>
+            </div>
+            <div class="ig-ctrl-group">
+              <div class="ig-ctrl-group-title" data-i18n="cr_desc_text">Description Text</div>
+              <div style="display:flex;gap:0.4rem;flex-wrap:wrap;">
+                <button class="ig-format-btn active" id="entPostDescModeAuto" onclick="setEntPostDescMode('auto')"
+                  style="padding:0.2rem 0.5rem;font-size:0.6rem;flex:0 0 auto;" data-i18n="cr_auto">Auto</button>
+                <button class="ig-format-btn" id="entPostDescShuffle" onclick="shuffleEntPostDescription()"
+                  style="padding:0.2rem 0.5rem;font-size:0.6rem;flex:0 0 auto;" data-i18n="cr_shuffle">Shuffle</button>
+                <button class="ig-format-btn" id="entPostDescModeCustom" onclick="setEntPostDescMode('custom')"
+                  style="padding:0.2rem 0.5rem;font-size:0.6rem;flex:0 0 auto;" data-i18n="cr_use_custom">Use Custom</button>
+              </div>
+              <textarea id="entPostDescCustom" rows="3" placeholder="Type your own description..." data-i18n-placeholder="cr_desc_placeholder"
+                oninput="updateEntPostCustomDescription(this.value)"
+                style="width:100%;resize:vertical;min-height:56px;max-height:120px;background:var(--bg3);border:1px solid var(--border2);border-radius:6px;color:var(--text2);font-family:'DM Sans',sans-serif;font-size:0.74rem;padding:6px 8px;"></textarea>
+              <div style="font-family:'DM Mono',monospace;font-size:0.55rem;color:var(--text3);letter-spacing:0.06em;" data-i18n="cr_desc_hint">
+                Auto uses data up to the currently viewed date. Shuffle cycles generated variants.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="ig-modal-footer">
+        <button class="ig-modal-close" onclick="closeCrIgModal()" data-i18n="btn_cancel">Cancel</button>
+        <button class="ig-download-btn" id="crIgDownloadBtn" onclick="downloadCrIg()" data-i18n="btn_download_image">↓
+          Download Image</button>
+      </div>
+    </div>
+  </div>
+  <div id="crIgCanvas" style="position:fixed;left:-9999px;top:0;pointer-events:none;"></div>
+
+  <!-- EXPORT PLAYLIST MODAL -->
+  <div class="modal-overlay" id="exportModal" onclick="if(event.target===this)closeExportModal()">
+    <div class="export-modal-box">
+      <div class="export-modal-header">
+        <div class="export-modal-title" data-i18n="export_title">♫ Export Playlist</div>
+        <button class="modal-close" id="exportModalClose" onclick="closeExportModal()" data-i18n="btn_close">✕
+          CLOSE</button>
+      </div>
+      <div class="export-modal-subtitle" id="exportModalSubtitle"></div>
+      <div class="export-name-section" id="exportNameSection">
+        <div class="export-name-label" data-i18n="export_suggested_names">SUGGESTED PLAYLIST NAMES — click to copy</div>
+        <div class="export-name-chips" id="exportNameChips"></div>
+      </div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.4rem">
+        <span style="font-family:'DM Mono',monospace;font-size:0.6rem;letter-spacing:0.08em;color:var(--text3)"
+          data-i18n="export_track_order">TRACK
+          ORDER</span>
+        <button class="export-name-chip" id="exportOrderBtn" onclick="toggleExportOrder()" style="font-size:0.62rem">▲
+          #1 First</button>
+      </div>
+      <div class="export-tracklist" id="exportTracklist"></div>
+      <div class="export-actions">
+        <button class="export-btn export-btn-copy" onclick="exportCopy()" data-i18n="btn_copy_clipboard">⎘ COPY TO
+          CLIPBOARD</button>
+        <button class="export-btn export-btn-dl" onclick="exportDownload()" data-i18n="btn_download_txt">↓ DOWNLOAD
+          .TXT</button>
+        <a class="export-btn export-btn-soundiiz" href="https://soundiiz.com/login" target="_blank" rel="noopener"
+          data-i18n="btn_soundiiz">↗ GO TO SOUNDIIZ</a>
+      </div>
+      <div class="export-note" id="exportNoteBody"></div>
+    </div>
+  </div>
+
+  <!-- ALBUM PROFILE MODAL -->
+  <div class="modal-overlay" id="albumModal">
+    <div class="modal-box">
+      <button class="modal-close" id="albumModalClose" data-i18n="btn_close">✕ CLOSE</button>
       <div class="modal-header">
-        <h2>↑ Import Your Music Data</h2>
-        <button class="modal-close" onclick="closeImportModal()">✕</button>
+        <div id="albumModalImg"></div>
+        <div>
+          <div class="modal-artist-name" id="albumModalName"></div>
+          <div class="modal-artist-sub" id="albumModalSub"></div>
+        </div>
       </div>
-
-      <!-- Shown only when no Last.fm user is logged in -->
-      <div class="modal-user-row" id="modalUserRow" style="display:none">
-        <label class="modal-user-label">Your display name</label>
-        <input type="text" id="modalUsernameInput" class="modal-user-input" placeholder="Pick any name — used to store your data" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
-      </div>
-
-      <div class="modal-tabs">
-        <button class="modal-tab active" data-tab="lastfm" onclick="switchImportTab('lastfm')">Last.fm API</button>
-        <button class="modal-tab" data-tab="upload" onclick="switchImportTab('upload')">Upload File</button>
-        <button class="modal-tab" data-tab="sheets" onclick="switchImportTab('sheets')">Google Sheets</button>
-      </div>
-
       <div class="modal-body">
-
-        <!-- Last.fm tab -->
-        <div class="tab-pane" id="tab-lastfm">
-          <p class="tab-desc">Sync your scrobble history directly from Last.fm. On first run this fetches everything; after that only new plays are added.</p>
-          <label class="modal-user-label" style="display:block;margin-bottom:0.25rem;font-size:0.7rem;font-weight:600;letter-spacing:0.08em;color:var(--text3)">LAST.FM USERNAME</label>
-          <input type="text" id="lfmUsername" class="modal-user-input" placeholder="your_lastfm_username" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" style="margin-bottom:0.75rem">
-          <div class="sync-info" id="lfmSyncInfo"></div>
-          <button class="action-btn" id="lfmSyncBtn" onclick="syncLastfm()">↑ Sync Now</button>
-          <div class="progress-wrap" id="lfmProgress" style="display:none">
-            <div class="progress-bar"><div class="progress-fill" id="lfmFill" style="width:0%"></div></div>
-            <div class="progress-label" id="lfmLabel">Connecting...</div>
-          </div>
-          <div class="import-result" id="lfmResult"></div>
-        </div>
-
-        <!-- Upload tab -->
-        <div class="tab-pane" id="tab-upload" style="display:none">
-          <p class="tab-desc">Upload your listening history. Supported formats:</p>
-          <ul class="format-list">
-            <li><strong>Last.fm CSV</strong> — download from last.fm/settings/account → Export data</li>
-            <li><strong>Spotify ZIP</strong> — request from spotify.com/us/account/privacy → Extended streaming history</li>
-            <li><strong>Deezer XLSX</strong> — download from deezer.com/us/profile → Listening history</li>
-            <li><strong>Google Sheets CSV</strong> — your mycharts sheet, File → Download → CSV</li>
-          </ul>
-          <div class="drop-zone" id="dropZone" onclick="document.getElementById('fileInput').click()">
-            <div class="drop-icon">📂</div>
-            <div class="drop-label">Drop file here or click to browse</div>
-            <div class="drop-sub">.csv &nbsp;·&nbsp; .zip &nbsp;·&nbsp; .xlsx &nbsp;·&nbsp; .xls</div>
-          </div>
-          <input type="file" id="fileInput" accept=".csv,.zip,.xlsx,.xls" style="display:none" onchange="handleFileUpload(this.files[0])">
-          <div class="import-result" id="uploadResult"></div>
-        </div>
-
-        <!-- Google Sheets tab -->
-        <div class="tab-pane" id="tab-sheets" style="display:none">
-          <p class="tab-desc">Paste your Google Sheets URL. The sheet must be set to <strong>Anyone with the link can view</strong>.</p>
-          <input type="url" id="sheetsUrl" class="sheets-input" placeholder="https://docs.google.com/spreadsheets/d/...">
-          <button class="action-btn" onclick="syncSheets()">↑ Import from Sheet</button>
-          <div class="import-result" id="sheetsResult"></div>
-        </div>
-
-      </div>
-
-      <div class="modal-footer">
-        <div class="sync-stats" id="syncStats"></div>
+        <div class="modal-stats-strip" id="albumModalStats"></div>
+        <div class="modal-section-title" data-i18n="modal_accomplishments">★ Chart Accomplishments</div>
+        <div id="albumModalAccomplishments"></div>
+        <div class="modal-section-title" id="albumModalChartRunTitle" data-i18n="modal_chart_run_title"
+          style="display:none">📊 Chart Run History</div>
+        <div id="albumModalChartRun"></div>
+        <div class="modal-section-title" data-i18n="modal_tracks_on_chart">♦ Tracks on Songs Chart</div>
+        <table class="modal-table">
+          <tbody id="albumModalTracks"></tbody>
+        </table>
       </div>
     </div>
   </div>
 
-  <div class="footer">
-    <span>dankcharts.fm</span> · <span data-i18n="footer_powered">Powered by Last.fm</span>
+  <!-- ARTIST PROFILE MODAL -->
+  <div class="modal-overlay" id="artistModal">
+    <div class="modal-box">
+      <button class="modal-close" id="modalClose" data-i18n="btn_close">✕ CLOSE</button>
+      <div class="modal-header">
+        <div id="modalArtistImg"></div>
+        <div>
+          <div class="modal-artist-name" id="modalArtistName"></div>
+          <div class="modal-artist-sub" id="modalArtistSub"></div>
+        </div>
+      </div>
+      <div class="modal-body">
+        <div class="modal-stats-strip" id="modalStats"></div>
+        <div class="modal-section-title" data-i18n="modal_accomplishments">★ Chart Accomplishments</div>
+        <div id="modalAccomplishments"></div>
+        <div class="modal-section-title" data-i18n="modal_songs_on_chart">♦ Songs on Chart</div>
+        <table class="modal-table">
+          <tbody id="modalSongs"></tbody>
+        </table>
+        <div class="modal-section-title" data-i18n="modal_albums_on_chart">◈ Albums on Chart</div>
+        <table class="modal-table">
+          <tbody id="modalAlbums"></tbody>
+        </table>
+      </div>
+    </div>
   </div>
 
-  <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+  <button id="backToTop" data-i18n-title="tooltip_back_to_top" aria-label="Back to top">&#8679;</button>
+
+  <!-- ── Manual Scrobble Modal ── -->
+  <div id="scrobbleModal" class="modal-overlay" role="dialog" aria-modal="true">
+    <div class="src-modal-box scrobble-modal-box">
+      <h3 class="src-modal-title">Manual Scrobble</h3>
+      <div class="src-field-group">
+        <label>
+          Artist *
+          <input type="text" id="scrobbleArtist" placeholder="Artist name" autocomplete="off">
+        </label>
+        <label>
+          Track *
+          <input type="text" id="scrobbleTrack" placeholder="Track title" autocomplete="off">
+        </label>
+        <label>
+          Album
+          <input type="text" id="scrobbleAlbum" placeholder="Album (optional)" autocomplete="off">
+        </label>
+        <label>
+          Date &amp; Time
+          <div class="scrobble-time-row">
+            <input type="datetime-local" id="scrobbleTime">
+            <button type="button" class="scrobble-now-btn" onclick="setScrobbleNow()">Now</button>
+          </div>
+        </label>
+      </div>
+      <div id="scrobbleStatus" class="scrobble-status"></div>
+      <div class="src-modal-btns">
+        <button class="src-btn-cancel" onclick="closeScrobbleModal()">Cancel</button>
+        <button class="src-btn-save" id="scrobbleSubmitBtn" onclick="submitScrobble()">Scrobble</button>
+      </div>
+    </div>
+  </div>
+
   <script src="app.js"></script>
+
+  <!-- ── Data Source Configure Modal ── -->
+  <div id="sourceModal" class="modal-overlay" role="dialog" aria-modal="true">
+    <div class="src-modal-box">
+      <h3 class="src-modal-title">Data Source</h3>
+
+      <div class="src-field-group" style="margin-bottom:1rem;">
+        <label>
+          Display name
+          <input type="text" id="srcDisplayName" placeholder="Your name" autocomplete="off">
+        </label>
+        <p class="src-modal-hint">Shown in the masthead — e.g. "Your Name's Personal Music Charts"</p>
+      </div>
+
+      <div class="src-field-group" style="margin-bottom:1rem;">
+        <label>
+          Time Zone
+          <select id="srcTimezone" style="width:100%;margin-top:0.3rem;padding:0.35rem 0.5rem;border-radius:4px;border:1px solid var(--border);background:var(--bg2);color:var(--text1);font-size:0.85rem;cursor:pointer;"></select>
+        </label>
+        <p class="src-modal-hint">Chart periods (weeks, months, years) begin and end at midnight in this timezone</p>
+      </div>
+
+      <div class="src-radio-group">
+        <label>
+          <input type="radio" name="srcRadio" id="srcRadioSheets" onchange="updateSourceModalFields()">
+          Google Sheets
+        </label>
+        <label>
+          <input type="radio" name="srcRadio" id="srcRadioLastfm" onchange="updateSourceModalFields()">
+          Last.fm
+        </label>
+        <label>
+          <input type="radio" name="srcRadio" id="srcRadioFile" onchange="updateSourceModalFields()">
+          Upload File
+        </label>
+      </div>
+
+      <div id="srcSheetsFields" class="src-field-group">
+        <label>
+          Sheet ID
+          <input type="text" id="srcSheetId" placeholder="Paste your Google Sheets URL or Sheet ID">
+        </label>
+        <label>
+          Tab name
+          <input type="text" id="srcSheetTab" placeholder="Full Raw Listening History">
+        </label>
+        <p class="src-modal-hint">The sheet must be shared as "Anyone with the link can view"</p>
+      </div>
+
+      <div id="srcLastfmFields" class="src-field-group" style="display:none;">
+        <label>
+          Last.fm username
+          <input type="text" id="srcLastfmUser" placeholder="your_lastfm_username" autocomplete="off">
+        </label>
+        <p class="src-modal-hint">Your full listening history will be loaded directly from Last.fm</p>
+
+        <div class="lfm-auth-section">
+          <div class="lfm-auth-divider">Scrobble Setup</div>
+          <div class="lfm-auth-row">
+            <span id="lfmAuthStatus" class="lfm-auth-status"><span class="lfm-auth-dot"></span> Not connected</span>
+            <button type="button" id="lfmConnectBtn" class="lfm-connect-btn" onclick="lfmAuthBtnClick()">Connect to Last.fm</button>
+            <button type="button" id="lfmDisconnectBtn" class="lfm-disconnect-btn" onclick="lfmAuthDisconnect()" style="display:none">Disconnect</button>
+          </div>
+          <p id="lfmConnectHint" class="src-modal-hint">Connect to enable manual scrobbling from this app.</p>
+          <details class="lfm-custom-creds">
+            <summary>Use custom API credentials</summary>
+            <div class="src-field-group" style="margin-top:0.7rem">
+              <label>
+                API Key
+                <input type="text" id="srcLfmApiKey" placeholder="API key from last.fm/api/account" autocomplete="off">
+              </label>
+              <label>
+                API Secret
+                <input type="password" id="srcLfmApiSecret" placeholder="Shared secret" autocomplete="off">
+              </label>
+            </div>
+          </details>
+        </div>
+      </div>
+
+      <div id="srcFileFields" class="src-field-group" style="display:none;">
+        <p class="src-modal-hint">Upload your listening history. Supported formats: <strong>Last.fm CSV</strong>, <strong>mycharts CSV</strong>, <strong>Spotify ZIP</strong> (extended streaming history), <strong>Deezer XLSX</strong>.</p>
+        <div id="srcFileDrop" style="border:2px dashed var(--border);border-radius:6px;padding:1.5rem;text-align:center;cursor:pointer;transition:border-color .15s;">
+          <div style="font-size:1.5rem;margin-bottom:0.4rem;">📂</div>
+          <div style="font-size:0.85rem;color:var(--text2);">Drop file here or click to browse</div>
+          <div style="font-size:0.72rem;color:var(--text3);margin-top:0.25rem;">.csv &nbsp;·&nbsp; .zip &nbsp;·&nbsp; .xlsx &nbsp;·&nbsp; .xls</div>
+        </div>
+        <input type="file" id="srcFileInput" accept=".csv,.zip,.xlsx,.xls" style="display:none">
+        <div id="srcFileStatus" class="src-modal-hint" style="margin-top:0.5rem;"></div>
+      </div>
+
+      <div class="cert-config-group">
+        <div class="cert-config-title">Certification Thresholds (Plays)</div>
+        <div class="cert-config-grid">
+          <div class="cert-config-col">
+            <div class="cert-config-col-hdr">Albums</div>
+            <label class="cert-row">⭐ Gold <input type="number" id="certAlbumGold" min="1" class="cert-input"></label>
+            <label class="cert-row">💿 Platinum <input type="number" id="certAlbumPlat" min="1" class="cert-input"></label>
+            <label class="cert-row">💎 Diamond <input type="number" id="certAlbumDiamond" min="1" class="cert-input"></label>
+          </div>
+          <div class="cert-config-col">
+            <div class="cert-config-col-hdr">Songs</div>
+            <label class="cert-row">⭐ Gold <input type="number" id="certSongGold" min="1" class="cert-input"></label>
+            <label class="cert-row">💿 Platinum <input type="number" id="certSongPlat" min="1" class="cert-input"></label>
+            <label class="cert-row">💎 Diamond <input type="number" id="certSongDiamond" min="1" class="cert-input"></label>
+          </div>
+        </div>
+        <div class="cert-config-footer">
+          <p class="src-modal-hint">Minimum plays to earn each badge. Changes apply on Save &amp; Load.</p>
+          <button type="button" class="cert-reset-btn" onclick="resetCertDefaults()">Reset to defaults</button>
+        </div>
+      </div>
+
+      <div class="cert-config-group">
+        <div class="cert-config-title">Events Calendar</div>
+        <div style="padding:0.4rem 0;">
+          <label class="cert-row" style="flex-wrap:wrap;gap:0.4rem;">
+            Show for top
+            <select id="eventsArtistLimitSelect" style="padding:0.22rem 0.45rem;border-radius:4px;border:1px solid var(--border);background:var(--bg2);color:var(--text1);font-family:'DM Mono',monospace;font-size:0.72rem;cursor:pointer;">
+              <option value="10">10</option>
+              <option value="25">25</option>
+              <option value="50">50</option>
+              <option value="100">100</option>
+              <option value="200">200</option>
+            </select>
+            all-time artists
+          </label>
+          <p class="src-modal-hint">Number of top all-time artists to fetch birthdays &amp; anniversaries for</p>
+        </div>
+      </div>
+
+      <div class="src-modal-btns">
+        <button class="src-btn-cancel" onclick="closeSourceModal()">Cancel</button>
+        <button class="src-btn-save" onclick="saveSourceConfig()">Save &amp; Load</button>
+      </div>
+    </div>
+  </div>
+
 </body>
+
 </html>
