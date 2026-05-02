@@ -3074,6 +3074,15 @@
       border-color: var(--border2);
     }
 
+    .upcoming-card-img {
+      width: calc(100% + 1.7rem);
+      margin: -0.7rem -0.85rem 0.5rem;
+      aspect-ratio: 1;
+      object-fit: cover;
+      border-radius: 6px 6px 0 0;
+      display: block;
+    }
+
     .upcoming-card-date {
       font-family: 'DM Mono', monospace;
       font-size: 0.58rem;

@@ -7036,7 +7036,8 @@ async function fetchReleasesForMBID(mbid) {
     }).map(g => ({
       title: g.title,
       type: g['primary-type'] || 'Release',
-      date: g['first-release-date']
+      date: g['first-release-date'],
+      mbid: g.id
     }));
   } catch (e) { return []; }
 }
@@ -7054,7 +7055,9 @@ function renderUpcomingCard(release, artistName) {
   const typeKey = 'mb_type_' + (release.type || 'Release').toLowerCase();
   const typeLabel = t(typeKey) || release.type || 'Release';
   const searchUrl = `https://www.google.com/search?q=${encodeURIComponent(release.title + ' ' + artistName)}`;
+  const imgHtml = release.mbid ? `<img class="upcoming-card-img" src="https://coverartarchive.org/release-group/${release.mbid}/front-250" alt="" loading="lazy" onerror="this.remove()">` : '';
   return `<a class="upcoming-card" href="${searchUrl}" target="_blank" rel="noopener noreferrer">
+    ${imgHtml}
     <div class="upcoming-card-date${soon ? ' soon' : ''}" data-date="${esc(release.date)}">${esc(label)}</div>
     <div class="upcoming-card-title">${esc(release.title)}</div>
     <div class="upcoming-card-artist">${esc(artistName)}</div>
@@ -7176,7 +7179,8 @@ async function fetchRecentReleasesForMBID(mbid) {
     }).map(g => ({
       title: g.title,
       type: g['primary-type'] || 'Release',
-      date: g['first-release-date']
+      date: g['first-release-date'],
+      mbid: g.id
     }));
   } catch (e) { return []; }
 }
@@ -7187,7 +7191,9 @@ function renderRecentCard(release, artistName) {
   const typeKey = 'mb_type_' + (release.type || 'Release').toLowerCase();
   const typeLabel = t(typeKey) || release.type || 'Release';
   const searchUrl = `https://www.google.com/search?q=${encodeURIComponent(release.title + ' ' + artistName)}`;
+  const imgHtml = release.mbid ? `<img class="upcoming-card-img" src="https://coverartarchive.org/release-group/${release.mbid}/front-250" alt="" loading="lazy" onerror="this.remove()">` : '';
   return `<a class="upcoming-card" href="${searchUrl}" target="_blank" rel="noopener noreferrer">
+    ${imgHtml}
     <div class="upcoming-card-date recent" data-date="${esc(release.date)}">${esc(label)}</div>
     <div class="upcoming-card-title">${esc(release.title)}</div>
     <div class="upcoming-card-artist">${esc(artistName)}</div>

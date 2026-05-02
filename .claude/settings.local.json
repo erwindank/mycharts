@@ -36,7 +36,10 @@
       "Bash(python test_sheets.py)",
       "Bash(venv\\\\Scripts\\\\python.exe test_sheets.py)",
       "Bash(\"venv/Scripts/python.exe\" test_sheets.py)",
-      "Bash(venv/Scripts/python.exe -c ' *)"
+      "Bash(venv/Scripts/python.exe -c ' *)",
+      "Bash(Get-ChildItem -Path \"c:\\\\Users\\\\erwin\\\\Desktop\\\\mycharts\" -Recurse -File)",
+      "Bash(Select-Object -First 50)",
+      "Bash(powershell -command \"Get-Item 'c:\\\\Users\\\\erwin\\\\Desktop\\\\mycharts\\\\app.js','c:\\\\Users\\\\erwin\\\\Desktop\\\\mycharts\\\\dankcharts\\\\app.js' | Select-Object Name,Length\")"
     ]
   }
 }

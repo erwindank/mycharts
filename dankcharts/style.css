@@ -3115,6 +3115,30 @@
       border-color: var(--border2);
     }
 
+    .upcoming-card-img {
+      width: calc(100% + 1.7rem);
+      margin: -0.7rem -0.85rem 0.5rem;
+      aspect-ratio: 1;
+      object-fit: cover;
+      border-radius: 6px 6px 0 0;
+      display: block;
+    }
+
+    .upcoming-card-placeholder {
+      width: calc(100% + 1.7rem);
+      margin: -0.7rem -0.85rem 0.5rem;
+      aspect-ratio: 1;
+      border-radius: 6px 6px 0 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2rem;
+      font-weight: 700;
+      color: rgba(255, 255, 255, 0.2);
+      letter-spacing: 0.05em;
+      user-select: none;
+    }
+
     .upcoming-card-date {
       font-family: 'DM Mono', monospace;
       font-size: 0.58rem;

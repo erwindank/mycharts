@@ -7416,9 +7416,77 @@ async function fetchReleasesForMBID(mbid) {
     }).map(g => ({
       title: g.title,
       type: g['primary-type'] || 'Release',
-      date: g['first-release-date']
+      date: g['first-release-date'],
+      mbid: g.id
     }));
   } catch (e) { return []; }
+}
+
+function releaseImgFallback(img) {
+  if (!img.isConnected) return;
+  const sources = (img.dataset.sources || '').split(',').filter(Boolean);
+  if (!sources.length) { showReleasePlaceholder(img); return; }
+  const next = sources.shift();
+  img.dataset.sources = sources.join(',');
+  img.onerror = null;
+  if (next === 'itunes') tryItunesFallback(img);
+  else if (next === 'lastfm') tryLastFmFallback(img);
+  else showReleasePlaceholder(img);
+}
+
+async function tryItunesFallback(img) {
+  if (!img.isConnected) return;
+  try {
+    const q = encodeURIComponent((img.dataset.artist || '') + ' ' + (img.dataset.title || ''));
+    const res = await fetch(`https://itunes.apple.com/search?term=${q}&media=music&entity=album&limit=5`);
+    const data = await res.json();
+    const artist = (img.dataset.artist || '').toLowerCase();
+    const match = (data.results || []).find(r => r.artistName?.toLowerCase() === artist) || data.results?.[0];
+    if (match?.artworkUrl100) {
+      img.onerror = () => releaseImgFallback(img);
+      img.src = match.artworkUrl100.replace('100x100bb', '600x600bb');
+      return;
+    }
+  } catch (e) {}
+  releaseImgFallback(img);
+}
+
+async function tryLastFmFallback(img) {
+  if (!img.isConnected) return;
+  try {
+    const url = lfmUrl('album.getinfo', { artist: img.dataset.artist || '', album: img.dataset.title || '' });
+    const res = await fetch(url);
+    const data = await res.json();
+    const images = data.album?.image || [];
+    const best = [...images].reverse().find(i => i['#text'] && !i['#text'].includes('2a96cbd8b46e442fc41c2b86b821562f'));
+    if (best?.['#text']) {
+      img.onerror = () => releaseImgFallback(img);
+      img.src = best['#text'];
+      return;
+    }
+  } catch (e) {}
+  releaseImgFallback(img);
+}
+
+function showReleasePlaceholder(img) {
+  if (!img.isConnected) return;
+  const artist = img.dataset.artist || '';
+  const words = artist.replace(/^The\s+/i, '').split(/\s+/).filter(Boolean);
+  const initials = words.slice(0, 2).map(w => w[0].toUpperCase()).join('');
+  const colors = ['#0d2137', '#1a1040', '#0d2e1f', '#2b1a0d', '#0d1e2b', '#1f0d0d'];
+  const hash = artist.split('').reduce((a, c) => a + c.charCodeAt(0), 0);
+  const div = document.createElement('div');
+  div.className = 'upcoming-card-placeholder';
+  div.style.background = colors[hash % colors.length];
+  div.textContent = initials;
+  img.parentNode.replaceChild(div, img);
+}
+
+function triggerPendingImgs(gridEl) {
+  gridEl.querySelectorAll('.upcoming-card-img-pending').forEach(img => {
+    img.classList.remove('upcoming-card-img-pending');
+    releaseImgFallback(img);
+  });
 }
 
 function upcomingDateLabel(dateStr) {
@@ -7434,7 +7502,10 @@ function renderUpcomingCard(release, artistName) {
   const typeKey = 'mb_type_' + (release.type || 'Release').toLowerCase();
   const typeLabel = t(typeKey) || release.type || 'Release';
   const searchUrl = `https://www.google.com/search?q=${encodeURIComponent(release.title + ' ' + artistName)}`;
+  const imgSrc = release.mbid ? `https://coverartarchive.org/release-group/${release.mbid}/front-250` : null;
+  const imgHtml = `<img class="upcoming-card-img${imgSrc ? '' : ' upcoming-card-img-pending'}" ${imgSrc ? `src="${imgSrc}" onerror="releaseImgFallback(this)"` : ''} alt="" loading="lazy" data-artist="${esc(artistName)}" data-title="${esc(release.title)}" data-sources="itunes,lastfm">`;
   return `<a class="upcoming-card" href="${searchUrl}" target="_blank" rel="noopener noreferrer">
+    ${imgHtml}
     <div class="upcoming-card-date${soon ? ' soon' : ''}" data-date="${esc(release.date)}">${esc(label)}</div>
     <div class="upcoming-card-title">${esc(release.title)}</div>
     <div class="upcoming-card-artist">${esc(artistName)}</div>
@@ -7493,6 +7564,7 @@ async function loadUpcomingReleases(forceRefresh = false) {
       const sorted = sortUpcomingReleases([...allReleases]);
       gridEl.innerHTML = sorted.map(({ release, artistName }) =>
         renderUpcomingCard(release, artistName)).join('');
+      triggerPendingImgs(gridEl);
     }
   }
 
@@ -7519,6 +7591,7 @@ function renderUpcomingResults(allReleases, artists, fromCache) {
   } else {
     gridEl.innerHTML = sorted.map(({ release, artistName }) =>
       renderUpcomingCard(release, artistName)).join('');
+    triggerPendingImgs(gridEl);
   }
 
   const cacheNote = fromCache ? t('mb_cached') : '';
@@ -7556,7 +7629,8 @@ async function fetchRecentReleasesForMBID(mbid) {
     }).map(g => ({
       title: g.title,
       type: g['primary-type'] || 'Release',
-      date: g['first-release-date']
+      date: g['first-release-date'],
+      mbid: g.id
     }));
   } catch (e) { return []; }
 }
@@ -7567,7 +7641,10 @@ function renderRecentCard(release, artistName) {
   const typeKey = 'mb_type_' + (release.type || 'Release').toLowerCase();
   const typeLabel = t(typeKey) || release.type || 'Release';
   const searchUrl = `https://www.google.com/search?q=${encodeURIComponent(release.title + ' ' + artistName)}`;
+  const imgSrc = release.mbid ? `https://coverartarchive.org/release-group/${release.mbid}/front-250` : null;
+  const imgHtml = `<img class="upcoming-card-img${imgSrc ? '' : ' upcoming-card-img-pending'}" ${imgSrc ? `src="${imgSrc}" onerror="releaseImgFallback(this)"` : ''} alt="" loading="lazy" data-artist="${esc(artistName)}" data-title="${esc(release.title)}" data-sources="itunes,lastfm">`;
   return `<a class="upcoming-card" href="${searchUrl}" target="_blank" rel="noopener noreferrer">
+    ${imgHtml}
     <div class="upcoming-card-date recent" data-date="${esc(release.date)}">${esc(label)}</div>
     <div class="upcoming-card-title">${esc(release.title)}</div>
     <div class="upcoming-card-artist">${esc(artistName)}</div>
@@ -7619,6 +7696,7 @@ async function loadRecentReleases(forceRefresh = false) {
       const sorted = sortRecentReleases([...allReleases]);
       gridEl.innerHTML = sorted.map(({ release, artistName }) =>
         renderRecentCard(release, artistName)).join('');
+      triggerPendingImgs(gridEl);
     }
   }
 
@@ -7640,6 +7718,7 @@ function renderRecentResults(allReleases, artists, fromCache) {
   } else {
     gridEl.innerHTML = sorted.map(({ release, artistName }) =>
       renderRecentCard(release, artistName)).join('');
+    triggerPendingImgs(gridEl);
   }
 
   const cacheNote = fromCache ? t('mb_cached') : '';
