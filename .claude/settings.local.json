@@ -39,7 +39,15 @@
       "Bash(venv/Scripts/python.exe -c ' *)",
       "Bash(Get-ChildItem -Path \"c:\\\\Users\\\\erwin\\\\Desktop\\\\mycharts\" -Recurse -File)",
       "Bash(Select-Object -First 50)",
-      "Bash(powershell -command \"Get-Item 'c:\\\\Users\\\\erwin\\\\Desktop\\\\mycharts\\\\app.js','c:\\\\Users\\\\erwin\\\\Desktop\\\\mycharts\\\\dankcharts\\\\app.js' | Select-Object Name,Length\")"
+      "Bash(powershell -command \"Get-Item 'c:\\\\Users\\\\erwin\\\\Desktop\\\\mycharts\\\\app.js','c:\\\\Users\\\\erwin\\\\Desktop\\\\mycharts\\\\dankcharts\\\\app.js' | Select-Object Name,Length\")",
+      "Bash(git stash *)",
+      "Bash(node --check dankcharts/app.js)",
+      "Bash(awk 'NR>=1648 && NR<=1850 {print NR\": \"$0}' dankcharts/index.html)",
+      "Bash(awk 'NR>=1658 && NR<=1870' dankcharts/index.html)",
+      "Bash(grep -n \"updateMastheadDynamic\" dankcharts/translations.js)",
+      "Bash(grep -rn \"function updateMastheadDynamic\" dankcharts/)",
+      "Bash(awk '/^\\\\.masthead \\\\{/,/^\\\\}/' dankcharts/style.css)",
+      "Bash(awk 'NR==572,NR==599' dankcharts/style.css)"
     ]
   }
 }

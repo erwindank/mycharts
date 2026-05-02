@@ -3594,16 +3594,28 @@ function renderNewEntries(plays, start, end) {
   const albumSec = document.getElementById('newAlbumsSection');
 
   if (songSec) {
-    songSec.style.display = fullNewData.newSongs.length > 0 ? '' : 'none';
-    document.getElementById('newSongsTitle').textContent = `✦ ${fullNewData.newSongs.length} NEW SONG${fullNewData.newSongs.length !== 1 ? 'S' : ''} THIS ${periodLabel.toUpperCase()}`;
+    const songShown = fullNewData.newSongs.length;
+    const songTotal = allNewSongs.length;
+    songSec.style.display = songShown > 0 ? '' : 'none';
+    const songPrefix = songTotal > songShown ? `TOP ${songShown}` : `${songShown}`;
+    const songSuffix = songTotal > songShown ? ` (out of ${songTotal} discovered for the first time)` : '';
+    document.getElementById('newSongsTitle').textContent = `✦ ${songPrefix} NEW SONG${songShown !== 1 ? 'S' : ''} THIS ${periodLabel.toUpperCase()}${songSuffix}`;
   }
   if (artistSec) {
-    artistSec.style.display = fullNewData.newArtists.length > 0 ? '' : 'none';
-    document.getElementById('newArtistsTitle').textContent = `✦ ${fullNewData.newArtists.length} NEW ARTIST${fullNewData.newArtists.length !== 1 ? 'S' : ''} THIS ${periodLabel.toUpperCase()}`;
+    const artistShown = fullNewData.newArtists.length;
+    const artistTotal = allNewArtists.length;
+    artistSec.style.display = artistShown > 0 ? '' : 'none';
+    const artistPrefix = artistTotal > artistShown ? `TOP ${artistShown}` : `${artistShown}`;
+    const artistSuffix = artistTotal > artistShown ? ` (out of ${artistTotal} discovered for the first time)` : '';
+    document.getElementById('newArtistsTitle').textContent = `✦ ${artistPrefix} NEW ARTIST${artistShown !== 1 ? 'S' : ''} THIS ${periodLabel.toUpperCase()}${artistSuffix}`;
   }
   if (albumSec) {
-    albumSec.style.display = fullNewData.newAlbums.length > 0 ? '' : 'none';
-    document.getElementById('newAlbumsTitle').textContent = `✦ ${fullNewData.newAlbums.length} NEW ALBUM${fullNewData.newAlbums.length !== 1 ? 'S' : ''} THIS ${periodLabel.toUpperCase()}`;
+    const albumShown = fullNewData.newAlbums.length;
+    const albumTotal = allNewAlbums.length;
+    albumSec.style.display = albumShown > 0 ? '' : 'none';
+    const albumPrefix = albumTotal > albumShown ? `TOP ${albumShown}` : `${albumShown}`;
+    const albumSuffix = albumTotal > albumShown ? ` (out of ${albumTotal} discovered for the first time)` : '';
+    document.getElementById('newAlbumsTitle').textContent = `✦ ${albumPrefix} NEW ALBUM${albumShown !== 1 ? 'S' : ''} THIS ${periodLabel.toUpperCase()}${albumSuffix}`;
   }
 
   renderNewPage('newSongs');

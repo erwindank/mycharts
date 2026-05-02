@@ -3305,15 +3305,21 @@ function renderNewEntries(plays, start, end) {
 
   if (songSec) {
     songSec.style.display = newSongs.length > 0 ? '' : 'none';
-    document.getElementById('newSongsTitle').textContent = `✦ ${newSongs.length} NEW SONG${newSongs.length !== 1 ? 'S' : ''} THIS ${periodLabel.toUpperCase()}`;
+    const songPrefix = allNewSongs.length > newSongs.length ? `TOP ${newSongs.length}` : `${newSongs.length}`;
+    const songSuffix = allNewSongs.length > newSongs.length ? ` (out of ${allNewSongs.length} discovered for the first time)` : '';
+    document.getElementById('newSongsTitle').textContent = `✦ ${songPrefix} NEW SONG${newSongs.length !== 1 ? 'S' : ''} THIS ${periodLabel.toUpperCase()}${songSuffix}`;
   }
   if (artistSec) {
     artistSec.style.display = newArtists.length > 0 ? '' : 'none';
-    document.getElementById('newArtistsTitle').textContent = `✦ ${newArtists.length} NEW ARTIST${newArtists.length !== 1 ? 'S' : ''} THIS ${periodLabel.toUpperCase()}`;
+    const artistPrefix = allNewArtists.length > newArtists.length ? `TOP ${newArtists.length}` : `${newArtists.length}`;
+    const artistSuffix = allNewArtists.length > newArtists.length ? ` (out of ${allNewArtists.length} discovered for the first time)` : '';
+    document.getElementById('newArtistsTitle').textContent = `✦ ${artistPrefix} NEW ARTIST${newArtists.length !== 1 ? 'S' : ''} THIS ${periodLabel.toUpperCase()}${artistSuffix}`;
   }
   if (albumSec) {
     albumSec.style.display = newAlbums.length > 0 ? '' : 'none';
-    document.getElementById('newAlbumsTitle').textContent = `✦ ${newAlbums.length} NEW ALBUM${newAlbums.length !== 1 ? 'S' : ''} THIS ${periodLabel.toUpperCase()}`;
+    const albumPrefix = allNewAlbums.length > newAlbums.length ? `TOP ${newAlbums.length}` : `${newAlbums.length}`;
+    const albumSuffix = allNewAlbums.length > newAlbums.length ? ` (out of ${allNewAlbums.length} discovered for the first time)` : '';
+    document.getElementById('newAlbumsTitle').textContent = `✦ ${albumPrefix} NEW ALBUM${newAlbums.length !== 1 ? 'S' : ''} THIS ${periodLabel.toUpperCase()}${albumSuffix}`;
   }
 
   // Render new songs

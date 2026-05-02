@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Google Sheets Setup Guide — dankcharts.fm</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    /* ── Base ── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:      #08121e;
+      --bg2:     #0e1e34;
+      --bg3:     #122444;
+      --surface: #173060;
+      --border:  #1e3d72;
+      --text:    #eaf2ff;
+      --text2:   #a8c8f0;
+      --text3:   #7aa0d0;
+      --accent:  #4aacff;
+      --green:   #34d399;
+      --amber:   #fbbf24;
+      --rose:    #fb7185;
+    }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      font-size: 15px;
+    }
+
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    code {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.85em;
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 0.1em 0.4em;
+    }
+
+    /* ── Layout ── */
+    .page {
+      max-width: 780px;
+      margin: 0 auto;
+      padding: 2.5rem 2rem 4rem;
+    }
+
+    /* ── Print button ── */
+    .print-bar {
+      display: flex;
+      justify-content: flex-end;
+      margin-bottom: 1.5rem;
+    }
+    .print-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      background: var(--accent);
+      color: #08121e;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.85rem;
+      font-weight: 600;
+      border: none;
+      border-radius: 6px;
+      padding: 0.45rem 1rem;
+      cursor: pointer;
+    }
+    .print-btn:hover { opacity: 0.88; }
+
+    /* ── Header ── */
+    .guide-header {
+      text-align: center;
+      padding: 2rem 1rem 2.5rem;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 2.5rem;
+    }
+    .guide-logo {
+      font-family: 'DM Serif Display', serif;
+      font-size: 1.6rem;
+      color: var(--accent);
+      letter-spacing: 0.02em;
+      margin-bottom: 0.3rem;
+    }
+    .guide-title {
+      font-family: 'DM Serif Display', serif;
+      font-size: 2rem;
+      color: var(--text);
+      margin-bottom: 0.5rem;
+    }
+    .guide-subtitle {
+      color: var(--text2);
+      font-size: 0.95rem;
+      max-width: 500px;
+      margin: 0 auto;
+    }
+
+    /* ── What you'll need ── */
+    .needs-box {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 1.2rem 1.5rem;
+      margin-bottom: 2.5rem;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.8rem 2rem;
+    }
+    .needs-box h3 {
+      width: 100%;
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text3);
+      margin-bottom: 0.2rem;
+    }
+    .need-item {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.9rem;
+      color: var(--text2);
+    }
+    .need-item .dot {
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      background: var(--accent);
+      flex-shrink: 0;
+    }
+
+    /* ── Steps ── */
+    .steps { display: flex; flex-direction: column; gap: 1.8rem; }
+
+    .step {
+      display: grid;
+      grid-template-columns: 52px 1fr;
+      gap: 0 1.2rem;
+      align-items: start;
+    }
+
+    .step-num {
+      width: 52px; height: 52px;
+      border-radius: 50%;
+      background: var(--surface);
+      border: 2px solid var(--border2, #2a52a0);
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'DM Serif Display', serif;
+      font-size: 1.4rem;
+      color: var(--accent);
+      flex-shrink: 0;
+      margin-top: 0.1rem;
+    }
+
+    .step-body { padding-top: 0.15rem; }
+
+    .step-label {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--text3);
+      margin-bottom: 0.2rem;
+    }
+
+    .step-title {
+      font-family: 'DM Serif Display', serif;
+      font-size: 1.25rem;
+      color: var(--text);
+      margin-bottom: 0.5rem;
+    }
+
+    .step-desc {
+      color: var(--text2);
+      font-size: 0.9rem;
+      margin-bottom: 0.7rem;
+    }
+
+    /* ── Infobox / callout ── */
+    .infobox {
+      background: var(--bg3);
+      border-left: 3px solid var(--accent);
+      border-radius: 0 6px 6px 0;
+      padding: 0.7rem 1rem;
+      font-size: 0.85rem;
+      color: var(--text2);
+      margin-top: 0.7rem;
+    }
+    .infobox.warning {
+      border-left-color: var(--amber);
+    }
+    .infobox.tip {
+      border-left-color: var(--green);
+    }
+    .infobox strong { color: var(--text); }
+
+    /* ── Settings table visual ── */
+    .sheet-visual {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      overflow: hidden;
+      margin-top: 0.8rem;
+      font-size: 0.82rem;
+    }
+    .sheet-visual-header {
+      background: var(--surface);
+      display: grid;
+      grid-template-columns: 160px 1fr;
+      padding: 0.35rem 0.8rem;
+      font-size: 0.72rem;
+      color: var(--text3);
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      border-bottom: 1px solid var(--border);
+    }
+    .sheet-row {
+      display: grid;
+      grid-template-columns: 160px 1fr;
+      padding: 0.5rem 0.8rem;
+      border-bottom: 1px solid var(--border);
+      align-items: center;
+    }
+    .sheet-row:last-child { border-bottom: none; }
+    .sheet-row .cell-a { color: var(--text2); font-weight: 500; }
+    .sheet-row .cell-b {
+      color: var(--accent);
+      font-family: 'DM Mono', monospace;
+      font-size: 0.8rem;
+    }
+    .sheet-row .cell-b.muted { color: var(--text3); font-style: italic; }
+
+    /* ── Path display ── */
+    .path {
+      display: inline-flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.2rem;
+      margin: 0.5rem 0;
+    }
+    .path-step {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 5px;
+      padding: 0.2rem 0.6rem;
+      font-size: 0.82rem;
+      color: var(--text);
+      font-weight: 500;
+    }
+    .path-arrow { color: var(--text3); font-size: 0.75rem; }
+
+    /* ── Optional badge ── */
+    .optional-badge {
+      display: inline-block;
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      font-size: 0.68rem;
+      color: var(--text3);
+      padding: 0.1rem 0.5rem;
+      vertical-align: middle;
+      margin-left: 0.4rem;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    /* ── Divider ── */
+    .divider {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 2rem 0;
+    }
+
+    /* ── Footer ── */
+    .guide-footer {
+      margin-top: 3rem;
+      padding-top: 1.5rem;
+      border-top: 1px solid var(--border);
+      text-align: center;
+      font-size: 0.8rem;
+      color: var(--text3);
+    }
+    .guide-footer a { color: var(--text3); }
+
+    /* ── Support box ── */
+    .support-box {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 2rem 1.5rem;
+      text-align: center;
+      margin-top: 2rem;
+    }
+    .support-btn {
+      display: inline-block;
+      background: var(--accent);
+      color: #08121e;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.88rem;
+      font-weight: 600;
+      border: none;
+      border-radius: 8px;
+      padding: 0.55rem 1.3rem;
+      cursor: pointer;
+    }
+    .support-btn:hover { opacity: 0.88; }
+
+    /* ── Print styles ── */
+    @media print {
+      :root {
+        --bg: #ffffff;
+        --bg2: #f5f8ff;
+        --bg3: #e8f0fc;
+        --surface: #dce8f8;
+        --border: #b0c8e8;
+        --text: #06101e;
+        --text2: #1a3a60;
+        --text3: #3a6090;
+        --accent: #0852a8;
+        --green: #14532d;
+        --amber: #78350f;
+      }
+      body { background: #fff; color: #06101e; }
+      .print-bar { display: none !important; }
+      .page { padding: 0.5rem 1rem 2rem; }
+      .step { break-inside: avoid; }
+      .infobox { break-inside: avoid; }
+      a { color: var(--accent); }
+      a[href]::after {
+        content: " (" attr(href) ")";
+        font-size: 0.75em;
+        color: var(--text3);
+      }
+      .print-no-url::after { content: none !important; }
+    }
+  </style>
+</head>
+<body>
+<div class="page">
+
+  <!-- Print button -->
+  <div class="print-bar">
+    <button class="print-btn" onclick="window.print()">
+      ↓ Save as PDF / Print
+    </button>
+  </div>
+
+  <!-- Header -->
+  <div class="guide-header">
+    <div class="guide-logo">dankcharts.fm</div>
+    <h1 class="guide-title">Google Sheets Setup Guide</h1>
+    <p class="guide-subtitle">How to connect your sheet, enable automatic syncing from Last.fm, and add plays manually from the site.</p>
+  </div>
+
+  <!-- What you'll need -->
+  <div class="needs-box">
+    <h3>What you'll need</h3>
+    <div class="need-item"><span class="dot"></span> A Google account</div>
+    <div class="need-item"><span class="dot"></span> A Last.fm account with some listening history</div>
+    <div class="need-item"><span class="dot"></span> A free Last.fm API key — <a href="https://www.last.fm/api/account/create" target="_blank">last.fm/api/account/create</a></div>
+  </div>
+
+  <!-- Steps -->
+  <div class="steps">
+
+    <!-- Step 1 -->
+    <div class="step">
+      <div class="step-num">1</div>
+      <div class="step-body">
+        <div class="step-label">Step 1</div>
+        <div class="step-title">Copy the template sheet</div>
+        <p class="step-desc">Open the link below and click <strong>Make a copy</strong>. This saves a personal copy to your own Google Drive — your data stays private and only you can edit it.</p>
+        <div class="infobox">
+          <strong>Template link:</strong><br>
+          <a href="https://docs.google.com/spreadsheets/d/19brQQYXn1WQNhCkSMCYnGVYmxhmLzKOE2A3E3QFCeqk/copy" target="_blank">
+            docs.google.com/spreadsheets/d/19brQQYXn1WQNhCkSMCYnGVYmxhmLzKOE2A3E3QFCeqk/copy
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 2 -->
+    <div class="step">
+      <div class="step-num">2</div>
+      <div class="step-body">
+        <div class="step-label">Step 2</div>
+        <div class="step-title">Fill in your details</div>
+        <p class="step-desc">In your copied sheet, click the <strong>Settings</strong> tab at the bottom. Fill in your Last.fm username and API key in column B.</p>
+        <div class="sheet-visual">
+          <div class="sheet-visual-header">
+            <span>Column A</span><span>Column B — fill these in</span>
+          </div>
+          <div class="sheet-row">
+            <span class="cell-a">Last.fm Username:</span>
+            <span class="cell-b">your_lastfm_username</span>
+          </div>
+          <div class="sheet-row">
+            <span class="cell-a">Last.fm API Key:</span>
+            <span class="cell-b">your_32_character_api_key</span>
+          </div>
+          <div class="sheet-row">
+            <span class="cell-a">Data Tab Name:</span>
+            <span class="cell-b muted">Full Raw Listening History (leave as-is)</span>
+          </div>
+        </div>
+        <div class="infobox tip" style="margin-top:0.7rem">
+          <strong>Don't have an API key yet?</strong> Get one free in about 2 minutes at <a href="https://www.last.fm/api/account/create" target="_blank">last.fm/api/account/create</a> — the application name can be anything you like.
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 3 -->
+    <div class="step">
+      <div class="step-num">3</div>
+      <div class="step-body">
+        <div class="step-label">Step 3</div>
+        <div class="step-title">The script is already included</div>
+        <p class="step-desc">When you made a copy in Step 1, Google showed a notice saying <em>"The attached Apps Script file and functionality will also be copied"</em> — that's the sync script. It came with the template, so there's nothing to add.</p>
+        <p class="step-desc">You can confirm it's there by going to:</p>
+        <div class="path">
+          <span class="path-step">Extensions</span>
+          <span class="path-arrow">→</span>
+          <span class="path-step">Apps Script</span>
+        </div>
+        <p class="step-desc" style="margin-top:0.5rem">You'll see the Last.fm sync code already loaded and ready. No changes needed — just close that tab and move on to Step 4.</p>
+      </div>
+    </div>
+
+    <!-- Step 4 -->
+    <div class="step">
+      <div class="step-num">4</div>
+      <div class="step-body">
+        <div class="step-label">Step 4</div>
+        <div class="step-title">Start auto-sync</div>
+        <p class="step-desc">Go back to your sheet. You'll now see a <strong>Last.fm</strong> menu in the top menu bar, next to Help. Click it and select <strong>Start Auto-Update (90 min)</strong>.</p>
+        <div class="path">
+          <span class="path-step">Last.fm</span>
+          <span class="path-arrow">→</span>
+          <span class="path-step">Start Auto-Update (90 min)</span>
+        </div>
+        <p class="step-desc" style="margin-top:0.6rem">That's it — your sheet will now automatically pull in new plays from Last.fm every 90 minutes. The 90-minute interval is intentional: some sources like Deezer can have a delay before scrobbles appear on Last.fm, so a longer window helps make sure nothing gets missed.</p>
+        <div class="infobox warning">
+          <strong>Seeing a "This app isn't verified" warning?</strong> This is completely normal for personal scripts. Google shows this for any script that isn't published to the Play Store. Click <strong>Advanced</strong> → <strong>Go to [app name] (unsafe)</strong> → <strong>Allow</strong>. It is safe — the script only accesses your own sheet.
+        </div>
+        <div class="infobox tip" style="margin-top:0.7rem">
+          <strong>Don't want to wait?</strong> You can always pull your latest tracks manually at any time by clicking <strong>Last.fm → Fetch Latest Tracks</strong> — handy if you just finished a listening session and want your charts to update right away.
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 5 -->
+    <div class="step">
+      <div class="step-num">5</div>
+      <div class="step-body">
+        <div class="step-label">Step 5</div>
+        <div class="step-title">Connect to dankcharts.fm</div>
+        <p class="step-desc">Now link your sheet to the site so your charts load from it. In dankcharts.fm, open Settings (the ⚙ icon), choose <strong>Google Sheets</strong>, and paste your sheet's URL.</p>
+        <div class="infobox">
+          <strong>Important:</strong> your sheet must be set to "Anyone with the link can view" so the site can read it.<br>
+          In your sheet: <span style="color:var(--text)"><strong>Share → Anyone with the link → Viewer</strong></span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 6 (optional) -->
+    <div class="step">
+      <div class="step-num" style="border-color:var(--border);color:var(--text3)">6</div>
+      <div class="step-body">
+        <div class="step-label">Step 6</div>
+        <div class="step-title">Enable manual play entry <span class="optional-badge">Optional</span></div>
+        <p class="step-desc">Want to add plays directly from dankcharts.fm using the <strong>+ Add Play</strong> button? You'll need to deploy the script as a Web App first. Here's how:</p>
+
+        <p class="step-desc" style="margin-top:0.8rem"><strong>1. Open the Apps Script editor</strong></p>
+        <p class="step-desc">In your Google Sheet, go to:</p>
+        <div class="path">
+          <span class="path-step">Extensions</span>
+          <span class="path-arrow">→</span>
+          <span class="path-step">Apps Script</span>
+        </div>
+
+        <p class="step-desc" style="margin-top:0.8rem"><strong>2. Create a new deployment</strong></p>
+        <p class="step-desc">In the Apps Script editor, click:</p>
+        <div class="path">
+          <span class="path-step">Deploy</span>
+          <span class="path-arrow">→</span>
+          <span class="path-step">New deployment</span>
+        </div>
+
+        <p class="step-desc" style="margin-top:0.8rem"><strong>3. Configure the deployment settings</strong></p>
+        <p class="step-desc">A dialog will open. Set the following:</p>
+        <div class="sheet-visual" style="margin-top:0.4rem">
+          <div class="sheet-visual-header">
+            <span>Setting</span><span>Value</span>
+          </div>
+          <div class="sheet-row">
+            <span class="cell-a">Type</span>
+            <span class="cell-b">Web app</span>
+          </div>
+          <div class="sheet-row">
+            <span class="cell-a">Execute as</span>
+            <span class="cell-b">Me</span>
+          </div>
+          <div class="sheet-row">
+            <span class="cell-a">Who has access</span>
+            <span class="cell-b">Anyone</span>
+          </div>
+        </div>
+        <p class="step-desc" style="margin-top:0.5rem">Click <strong>Deploy</strong>. You may be asked to authorize — follow the same steps as in Step 4 (Advanced → Go to [app name] (unsafe) → Allow). Once done, <strong>copy the Web App URL</strong> it gives you.</p>
+
+        <p class="step-desc" style="margin-top:0.8rem"><strong>4. Paste the URL into dankcharts.fm</strong></p>
+        <p class="step-desc">In dankcharts.fm, go to:</p>
+        <div class="path">
+          <span class="path-step">Settings ⚙</span>
+          <span class="path-arrow">→</span>
+          <span class="path-step">Enable auto-sync &amp; manual play entry</span>
+        </div>
+        <p class="step-desc" style="margin-top:0.5rem">Paste the URL into the <em>Apps Script Web App URL</em> field and save. The <strong>+ Add Play</strong> button will now work.</p>
+      </div>
+    </div>
+
+  </div><!-- /steps -->
+
+  <hr class="divider">
+
+  <!-- Troubleshooting -->
+  <div>
+    <div style="font-family:'DM Serif Display',serif;font-size:1.1rem;color:var(--text);margin-bottom:1rem">Troubleshooting</div>
+    <div style="display:flex;flex-direction:column;gap:0.8rem">
+      <div class="infobox">
+        <strong>The Last.fm menu doesn't appear in my sheet.</strong><br>
+        Close and reopen the sheet. The <code>onOpen</code> function runs when the sheet loads — if you had the sheet open right after making your copy, just refresh the page.
+      </div>
+      <div class="infobox">
+        <strong>No data is being imported.</strong><br>
+        Check that your Last.fm username (B1) and API key (B2) in the Settings tab are correct and have no extra spaces. You can test by clicking <strong>Last.fm → Fetch Latest Tracks</strong> and then going to <strong>View → Logs</strong> in the Apps Script editor.
+      </div>
+      <div class="infobox">
+        <strong>The site shows "No Google Sheet configured".</strong><br>
+        Make sure you've pasted the sheet URL in dankcharts.fm Settings and that the sheet is shared as "Anyone with the link can view".
+      </div>
+      <div class="infobox">
+        <strong>Manual entry gives an error.</strong><br>
+        The Web App URL must be redeployed after any script change. In Apps Script: <strong>Deploy → Manage deployments → edit the existing deployment → Deploy</strong>.
+      </div>
+    </div>
+  </div>
+
+  <!-- Support -->
+  <hr class="divider">
+  <div class="support-box">
+    <div style="font-size:1.6rem;margin-bottom:0.6rem">🎧</div>
+    <div style="font-family:'DM Serif Display',serif;font-size:1.25rem;color:var(--text);margin-bottom:0.4rem">Need help?</div>
+    <p style="color:var(--text2);font-size:0.88rem;max-width:380px;margin:0 auto 1.1rem;line-height:1.6">Can't get it working? Open a support ticket and we'll get back to you.</p>
+    <button class="support-btn" onclick="window.ZohoDeskAsapReady&&window.ZohoDeskAsapReady(function(){window.ZohoDeskAsap&&window.ZohoDeskAsap.invoke('open')})">Open a Support Ticket</button>
+    <p style="font-size:0.78rem;color:var(--text3);margin-top:0.6rem">or email <a href="mailto:support@dankcharts.fm" style="color:var(--text3)">support@dankcharts.fm</a></p>
+  </div>
+
+  <!-- Footer -->
+  <div class="guide-footer">
+    <p><a href="https://dankcharts.fm" class="print-no-url">dankcharts.fm</a> — your personal music charts</p>
+    <p style="margin-top:0.3rem">Last.fm API key: <a href="https://www.last.fm/api/account/create" target="_blank">last.fm/api/account/create</a></p>
+  </div>
+
+</div>
+<script type="text/javascript" id="zohodeskasap">var d=document;s=d.createElement("script"),s.type="text/javascript",s.id="zohodeskasapscript",s.defer=!0,s.src="https://desk.zoho.com/portal/api/web/asapApp/1336756000000408048?orgId=922864240",t=d.getElementsByTagName("script")[0],t.parentNode.insertBefore(s,t),window.ZohoDeskAsapReady=function(s){var e=window.ZohoDeskAsap__asyncalls=window.ZohoDeskAsap__asyncalls||[];window.ZohoDeskAsapReadyStatus?(s&&e.push(s),e.forEach(s=>s&&s()),window.ZohoDeskAsap__asyncalls=null):s&&e.push(s)};</script>
+</body>
+</html>

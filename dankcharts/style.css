@@ -6682,3 +6682,52 @@ body.pink-light .landing-card-config input {
   box-shadow: 0 0 0 2px rgba(74, 172, 255, 0.15);
   outline: none;
 }
+
+/* ── Support bar (main app) ── */
+.app-support-bar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 0.5rem 0.8rem;
+  padding: 1.2rem 1rem;
+  color: var(--text3);
+  font-size: 0.82rem;
+}
+.app-support-bar a { color: var(--text3); }
+.app-support-bar a:hover { color: var(--accent); }
+.app-support-btn {
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--accent);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.82rem;
+  font-weight: 500;
+  padding: 0.22rem 0.75rem;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.app-support-btn:hover { background: var(--bg2); }
+.app-support-sep { color: var(--border); }
+
+/* ── Support note (landing screen) ── */
+.landing-support-note {
+  margin-top: 1.5rem;
+  padding: 1rem 0 0.25rem;
+  text-align: center;
+  font-size: 0.82rem;
+  color: var(--text3);
+}
+.landing-support-link {
+  background: none;
+  border: none;
+  color: var(--accent);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.82rem;
+  font-weight: 500;
+  cursor: pointer;
+  text-decoration: underline;
+  padding: 0;
+}
+.landing-support-link:hover { opacity: 0.8; }

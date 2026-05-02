@@ -46,6 +46,20 @@
           <input type="text" id="landingSheetId" placeholder="Paste your Google Sheets URL or Sheet ID" onclick="event.stopPropagation()" autocomplete="off">
           <input type="text" id="landingSheetTab" placeholder="Tab name (default: Full Raw Listening History)" onclick="event.stopPropagation()" autocomplete="off">
           <p class="landing-hint">The sheet must be shared as "Anyone with the link can view"</p>
+          <p class="landing-hint" style="margin-top:0.3rem">No sheet yet? <a href="https://docs.google.com/spreadsheets/d/19brQQYXn1WQNhCkSMCYnGVYmxhmLzKOE2A3E3QFCeqk/copy" target="_blank" rel="noopener" onclick="event.stopPropagation()" style="color:var(--accent)">Copy our ready-to-use template →</a></p>
+          <details class="lfm-new-user-info" onclick="event.stopPropagation()" style="margin-top:0.5rem">
+            <summary style="font-size:0.8rem;color:var(--accent);cursor:pointer">How does this work?</summary>
+            <div class="lfm-new-user-body" style="font-size:0.78rem;line-height:1.7;margin-top:0.4rem">
+              <p style="margin:0 0 0.4rem">Your Google Sheet is where all your listening history lives. Here's how to get it running:</p>
+              <ol style="margin:0 0 0 1.1rem;padding:0">
+                <li><strong>Copy the template</strong> using the link above and open it in your Google Drive</li>
+                <li>In the <strong>Settings</strong> tab, enter your Last.fm username in B1 and your API key in B2 — <a href="https://www.last.fm/api/account/create" target="_blank" rel="noopener" onclick="event.stopPropagation()" style="color:var(--accent)">get a free key here</a></li>
+                <li>To keep your sheet updated automatically, click <strong>Last.fm → Start Auto-Update (90 min)</strong> in the sheet's top menu — it will sync new plays every 90 minutes on its own</li>
+                <li>To add plays manually from this site, you'll need to do a one-time deploy — instructions are in the settings panel below</li>
+              </ol>
+              <p style="margin:0.6rem 0 0;color:var(--text2)"><strong>Seeing a "This app isn't verified" screen?</strong> That's normal — it's Google's standard warning for personal scripts. Click <strong>Advanced → Go to [app name] (unsafe) → Allow</strong> to continue. It's safe because the script only touches your own sheet.</p>
+            </div>
+          </details>
         </div>
       </div>
 
@@ -86,6 +100,10 @@
     </div>
 
     <p class="landing-skip">Already set up? <a href="#" onclick="skipLanding(); return false;">Continue to charts</a></p>
+
+    <div class="landing-support-note">
+      Questions or need help? <button class="landing-support-link" onclick="window.ZohoDeskAsapReady&&window.ZohoDeskAsapReady(function(){window.ZohoDeskAsap&&window.ZohoDeskAsap.invoke('open')})">Contact Support</button>
+    </div>
   </div>
 
   <div class="masthead">
@@ -946,6 +964,13 @@
 
   <div id="igCardCanvas"></div>
 
+  <div class="app-support-bar">
+    <span>Questions or issues?</span>
+    <button class="app-support-btn" onclick="window.ZohoDeskAsapReady&&window.ZohoDeskAsapReady(function(){window.ZohoDeskAsap&&window.ZohoDeskAsap.invoke('open')})">Contact Support</button>
+    <span class="app-support-sep">·</span>
+    <a href="mailto:support@dankcharts.fm">support@dankcharts.fm</a>
+  </div>
+
   <div class="page-footer">
     <span data-i18n="footer_line1">dankcharts.fm · Erwin's Personal Music Charts · Est. 2016</span><br>
     <span data-i18n="footer_line2">All data stays in your browser. Nothing is uploaded or stored externally.</span>
@@ -1602,8 +1627,9 @@
       </div>
 
       <div id="srcSheetsFields" class="src-field-group">
+        <p class="src-modal-hint" style="margin-bottom:0.7rem">No tracking sheet yet? <a href="https://docs.google.com/spreadsheets/d/19brQQYXn1WQNhCkSMCYnGVYmxhmLzKOE2A3E3QFCeqk/copy" target="_blank" rel="noopener" style="color:var(--accent);font-weight:500">Copy our ready-to-use template →</a> &nbsp;·&nbsp; <a href="setup-guide.html" target="_blank" rel="noopener" style="color:var(--accent)">📄 Setup guide</a></p>
         <label>
-          Sheet ID
+          Sheet URL or ID
           <input type="text" id="srcSheetId" placeholder="Paste your Google Sheets URL or Sheet ID">
         </label>
         <label>
@@ -1612,7 +1638,7 @@
         </label>
         <p class="src-modal-hint">The sheet must be shared as "Anyone with the link can view"</p>
         <details class="lfm-custom-creds" style="margin-top:0.9rem">
-          <summary>Enable manual play entry (optional)</summary>
+          <summary>Enable auto-sync &amp; manual play entry (optional)</summary>
           <div style="margin-top:0.7rem">
             <label>
               Apps Script Web App URL
@@ -1622,26 +1648,197 @@
             <details class="lfm-custom-creds" style="margin-top:0.6rem">
               <summary>How to set this up</summary>
               <ol class="src-modal-hint" style="margin:0.5rem 0 0 1.1rem;line-height:1.7">
-                <li>Open your Google Sheet → <strong>Extensions → Apps Script</strong></li>
-                <li>Replace any existing code with the script below and save (Ctrl+S)</li>
-                <li><strong>Deploy → New deployment</strong> → Type: Web app</li>
-                <li>Execute as: <strong>Me</strong> · Who has access: <strong>Anyone</strong></li>
-                <li>Click Deploy, copy the URL, paste it above</li>
+                <li>If using our template, fill in your details in the <strong>Settings</strong> tab (B1 = username, B2 = API key)</li>
+                <li>Open your sheet → <strong>Extensions → Apps Script</strong></li>
+                <li>Replace any existing code with the full script below and save (Ctrl+S)</li>
+                <li><strong>For auto-sync:</strong> click <strong>Last.fm → Start Auto-Update (90 min)</strong> in your sheet's menu bar</li>
+                <li><strong>For manual entry:</strong> click <strong>Deploy → New deployment</strong> → Type: Web app · Execute as: <strong>Me</strong> · Access: <strong>Anyone</strong> → copy the URL and paste it above</li>
+                <li><strong>Authorization warning:</strong> Google will show a "This app isn't verified" screen — this is normal for personal scripts. Click <strong>Advanced</strong> → <strong>Go to [app name] (unsafe)</strong> → <strong>Allow</strong>. It is safe because you own this script and it only accesses your own sheet.</li>
               </ol>
               <div style="position:relative;margin-top:0.6rem">
-                <pre id="appsScriptCode" style="background:var(--bg3,#111);border:1px solid var(--border);border-radius:4px;padding:0.7rem;font-size:0.7rem;overflow-x:auto;white-space:pre;color:var(--text2);margin:0;line-height:1.5">function doPost(e) {
+                <pre id="appsScriptCode" style="background:var(--bg3,#111);border:1px solid var(--border);border-radius:4px;padding:0.7rem;font-size:0.7rem;overflow-x:auto;white-space:pre;color:var(--text2);margin:0;line-height:1.5">// =============================================================
+//  DANKCHARTS.FM — Google Sheet Sync Script
+// =============================================================
+//  SETUP (do this once):
+//  1. Fill in your details in the "Settings" tab:
+//       B1 = Your Last.fm username
+//       B2 = Your Last.fm API key  (free: last.fm/api/account/create)
+//       B3 = Data tab name         (default: Full Raw Listening History)
+//
+//  2. FOR AUTO-SYNC: click the button next to "Help" in the Google Sheets
+//     menu bar called "Last.fm" → select "Start Auto-Update (90 min)"
+//     It will sync new plays every 90 minutes.
+//
+//  3. FOR MANUAL ENTRY: Deploy this script as a Web App
+//     (Deploy → New deployment → Web app → Execute as: Me → Access: Anyone)
+//     then paste the generated URL into the dankcharts.fm settings.
+//
+//  NOTE — "This app isn't verified" warning:
+//  Google shows this screen the first time you authorize the script.
+//  It is normal for personal scripts. Click Advanced →
+//  "Go to [app name] (unsafe)" → Allow. It is safe because you
+//  own this script and it only accesses your own Google Sheet.
+// =============================================================
+
+
+// Reads your credentials from the Settings tab.
+// No need to edit this function.
+function getSettings_() {
+  var s = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Settings');
+  if (!s) throw new Error('"Settings" tab not found. Check your sheet setup.');
+  return {
+    user:    s.getRange('B1').getValue().toString().trim(),
+    apiKey:  s.getRange('B2').getValue().toString().trim(),
+    tabName: s.getRange('B3').getValue().toString().trim() || 'Full Raw Listening History'
+  };
+}
+
+
+// =============================================================
+//  AUTO-SYNC
+//  Fetches any new plays from Last.fm and appends them to your
+//  data tab. Runs every 90 minutes once you click
+//  Last.fm → Start Auto-Update in the sheet menu.
+// =============================================================
+function fetchAndLogLastFmHistory() {
+  var cfg = getSettings_();
+
+  // Stop if credentials are missing
+  if (!cfg.user || !cfg.apiKey) {
+    Logger.log('ERROR: Fill in your Last.fm Username (B1) and API Key (B2) in the Settings tab.');
+    return;
+  }
+
+  // Remove any existing triggers to avoid duplicates (Google limits you to 20)
+  ScriptApp.getProjectTriggers().forEach(function(t) {
+    if (t.getHandlerFunction() === 'fetchAndLogLastFmHistory') ScriptApp.deleteTrigger(t);
+  });
+
+  var ss    = SpreadsheetApp.getActiveSpreadsheet();
+  var sheet = ss.getSheetByName(cfg.tabName);
+  if (!sheet) {
+    Logger.log('ERROR: Tab "' + cfg.tabName + '" not found. Check B3 in the Settings tab.');
+    return;
+  }
+
+  // Use the sheet's own timezone so dates are stored in your local time
+  var tz = ss.getSpreadsheetTimeZone();
+
+  // Find the last recorded track so we only fetch plays newer than that
+  var maxRow = sheet.getLastRow(), lastTs = 0, actualLastRow = 0;
+  if (maxRow > 1) {
+    var vals = sheet.getRange(1, 4, maxRow, 1).getValues(); // column D = date
+    for (var i = vals.length - 1; i >= 0; i--) {
+      var v = vals[i][0];
+      if (v &amp;&amp; v !== '') {
+        actualLastRow = i + 1;
+        var str = v instanceof Date ? Utilities.formatDate(v, tz, 'yyyy-MM-dd HH:mm:ss') : String(v);
+        if (/\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}/.test(str))
+          lastTs = Math.floor(Utilities.parseDate(str, tz, 'yyyy-MM-dd HH:mm:ss').getTime() / 1000);
+        break;
+      }
+    }
+  }
+
+  // Build the Last.fm API request (fetches up to 200 new plays at a time)
+  var url = 'https://ws.audioscrobbler.com/2.0/?method=user.getrecenttracks'
+    + '&amp;user=' + encodeURIComponent(cfg.user) + '&amp;api_key=' + cfg.apiKey
+    + '&amp;format=json&amp;from=' + (lastTs + 1) + '&amp;limit=200';
+
+  // Fetch with up to 5 retries in case of rate limiting or network errors
+  var response, attempt = 0;
+  while (attempt &lt; 5) {
+    try {
+      response = UrlFetchApp.fetch(url, { muteHttpExceptions: true,
+        headers: { 'Cache-Control': 'no-cache', 'Pragma': 'no-cache' } });
+      if (response.getResponseCode() === 429 || response.getResponseCode() === 403)
+        throw new Error('Rate limited');
+      break;
+    } catch(e) {
+      if (++attempt >= 5) {
+        // Give up for now, try again in 90 minutes
+        ScriptApp.newTrigger('fetchAndLogLastFmHistory').timeBased().after(90*60*1000).create();
+        return;
+      }
+      Utilities.sleep(Math.pow(2, attempt) * 1000 + Math.floor(Math.random() * 1000));
+    }
+  }
+
+  var data = JSON.parse(response.getContentText());
+  if (data.error) {
+    Logger.log('Last.fm API error: ' + data.message);
+    ScriptApp.newTrigger('fetchAndLogLastFmHistory').timeBased().after(90*60*1000).create();
+    return;
+  }
+
+  // Write new tracks to the sheet (skip the "now playing" entry which has no timestamp)
+  var tracks = data.recenttracks &amp;&amp; data.recenttracks.track;
+  if (tracks &amp;&amp; tracks.length) {
+    var done = tracks.filter(function(t) { return t.date &amp;&amp; t.date.uts; });
+    if (done.length) {
+      done.sort(function(a, b) { return +a.date.uts - +b.date.uts; }); // oldest first
+      var rows = done.map(function(t) {
+        return [
+          t.name,
+          t.artist['#text'],
+          t.album['#text'],
+          Utilities.formatDate(new Date(+t.date.uts * 1000), tz, 'yyyy-MM-dd HH:mm:ss')
+        ];
+      });
+      sheet.getRange(actualLastRow + 1, 1, rows.length, 4).setValues(rows);
+      Logger.log('Added ' + rows.length + ' new track(s).');
+    }
+  } else {
+    Logger.log('No new tracks since last sync.');
+  }
+
+  // Schedule the next sync in 90 minutes
+  ScriptApp.newTrigger('fetchAndLogLastFmHistory').timeBased().after(90*60*1000).create();
+}
+
+
+// Run this once from Last.fm → Start Auto-Update to kick off the 90-minute cycle.
+function setupTrigger() {
+  ScriptApp.getProjectTriggers().forEach(function(t) {
+    if (t.getHandlerFunction() === 'fetchAndLogLastFmHistory') ScriptApp.deleteTrigger(t);
+  });
+  ScriptApp.newTrigger('fetchAndLogLastFmHistory').timeBased().after(60*1000).create();
+  Logger.log('All set! First sync in 1 minute, then every 90 minutes automatically.');
+}
+
+
+// Adds the "Last.fm" menu to your sheet when you open it.
+function onOpen() {
+  SpreadsheetApp.getUi().createMenu('Last.fm')
+    .addItem('Fetch Latest Tracks', 'fetchAndLogLastFmHistory')
+    .addItem('Start Auto-Update (90 min)', 'setupTrigger')
+    .addToUi();
+}
+
+
+// =============================================================
+//  MANUAL ENTRY (Web App)
+//  This function receives a play from dankcharts.fm and writes
+//  it to your sheet. Only needed if you want the "Add Play"
+//  button — requires deploying this script as a Web App.
+// =============================================================
+function doPost(e) {
   try {
-    var data = JSON.parse(e.postData.contents);
-    var ss   = SpreadsheetApp.getActiveSpreadsheet();
-    var sheet = ss.getSheetByName('Full Raw Listening History') || ss.getSheets()[0];
+    var data    = JSON.parse(e.postData.contents);
+    var ss      = SpreadsheetApp.getActiveSpreadsheet();
+    var cfg     = ss.getSheetByName('Settings');
+    var tabName = cfg ? cfg.getRange('B3').getValue().toString().trim() : '';
+    var sheet   = ss.getSheetByName(tabName || 'Full Raw Listening History') || ss.getSheets()[0];
+
+    // Detect which column is which by reading the header row
     var lastCol = Math.max(sheet.getLastColumn(), 1);
-    var headers = sheet.getRange(1,1,1,lastCol).getValues()[0]
-      .map(function(h){ return h.toString().toLowerCase().trim(); });
+    var headers = sheet.getRange(1, 1, 1, lastCol).getValues()[0]
+      .map(function(h) { return h.toString().toLowerCase().trim(); });
     var aliases = {
-      title:    ['song title','title','track','track name','song name'],
-      artist:   ['artist','artist name','performer'],
-      album:    ['album','album name','release'],
-      datetime: ['date and time','date','datetime','timestamp','time','played at','scrobble time']
+      title:    ['song title', 'title', 'track', 'track name', 'song name'],
+      artist:   ['artist', 'artist name', 'performer'],
+      album:    ['album', 'album name', 'release'],
+      datetime: ['date and time', 'date', 'datetime', 'timestamp', 'time', 'played at', 'scrobble time']
     };
     var colIdx = {};
     for (var key in aliases) {
@@ -1650,22 +1847,22 @@
         if (idx !== -1) { colIdx[key] = idx; break; }
       }
     }
-    var dt = new Date(data.timestamp * 1000);
-    var p  = function(n){ return n &lt; 10 ? '0'+n : ''+n; };
-    var fmt = dt.getFullYear()+'-'+p(dt.getMonth()+1)+'-'+p(dt.getDate())
-            +' '+p(dt.getHours())+':'+p(dt.getMinutes())+':'+p(dt.getSeconds());
+
+    // Format the timestamp in the sheet's local timezone
+    var tz  = ss.getSpreadsheetTimeZone();
+    var fmt = Utilities.formatDate(new Date(data.timestamp * 1000), tz, 'yyyy-MM-dd HH:mm:ss');
+
     var row = new Array(lastCol).fill('');
     if (colIdx.title    !== undefined) row[colIdx.title]    = data.track  || '';
     if (colIdx.artist   !== undefined) row[colIdx.artist]   = data.artist || '';
     if (colIdx.album    !== undefined) row[colIdx.album]    = data.album  || '';
     if (colIdx.datetime !== undefined) row[colIdx.datetime] = fmt;
     sheet.appendRow(row);
-    return ContentService
-      .createTextOutput(JSON.stringify({status:'ok'}))
+
+    return ContentService.createTextOutput(JSON.stringify({ status: 'ok' }))
       .setMimeType(ContentService.MimeType.JSON);
   } catch(err) {
-    return ContentService
-      .createTextOutput(JSON.stringify({status:'error',message:err.message}))
+    return ContentService.createTextOutput(JSON.stringify({ status: 'error', message: err.message }))
       .setMimeType(ContentService.MimeType.JSON);
   }
 }</pre>
@@ -1765,6 +1962,10 @@
     </div>
   </div>
 
+<script type="text/javascript" id="zohodeskasap">
+window.ZohoDeskAsapReady=function(s){var e=window.ZohoDeskAsap__asyncalls=window.ZohoDeskAsap__asyncalls||[];window.ZohoDeskAsapReadyStatus?(s&&e.push(s),e.forEach(function(f){f&&f()}),window.ZohoDeskAsap__asyncalls=null):s&&e.push(s)};
+window.addEventListener('load',function(){var d=document,s=d.createElement('script');s.type='text/javascript';s.id='zohodeskasapscript';s.async=true;s.src='https://desk.zoho.com/portal/api/web/asapApp/1336756000000408048?orgId=922864240';d.body.appendChild(s);});
+</script>
 </body>
 
 </html>
