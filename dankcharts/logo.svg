@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  dankcharts.fm — Official Logo (Horizontal Lockup)
+  ─────────────────────────────────────────────────
+  Editable in Adobe Illustrator. Groups map to layers:
+    #background  — dark fill rect; delete for transparent version
+    #icon-mark   — badge + equalizer bars + gradient def
+    #wordmark    — name (.fm suffix) + tagline
+
+  Fonts used: DM Sans (weights 300, 800) — same as the app.
+  If DM Sans is not installed, Illustrator will substitute;
+  install from Google Fonts then re-open to restore exact weight.
+
+  Color tokens (Navy Dark theme):
+    #08121e  — background deep
+    #0e1e34  — background mid (icon badge)
+    #eaf2ff  — text primary
+    #4aacff  — accent blue
+    #3a8acc  — accent blue muted (tagline)
+-->
+<svg
+  xmlns="http://www.w3.org/2000/svg"
+  viewBox="0 0 620 160"
+  width="620"
+  height="160">
+
+  <title>dankcharts.fm</title>
+
+  <defs>
+    <!-- Vertical gradient for equalizer bars: lighter top → deeper bottom -->
+    <linearGradient id="barGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%"   stop-color="#7dd4ff"/>
+      <stop offset="100%" stop-color="#1e7acc"/>
+    </linearGradient>
+  </defs>
+
+  <!-- ═══════════════════════════════════════════
+       BACKGROUND
+       Delete this group for a transparent logo.
+       ═══════════════════════════════════════════ -->
+  <g id="background">
+    <rect width="620" height="160" rx="14" fill="#08121e"/>
+  </g>
+
+  <!-- ═══════════════════════════════════════════
+       ICON MARK
+       Badge with 4 ascending equalizer bars.
+       All bars bottom-aligned at y=124.
+       ═══════════════════════════════════════════ -->
+  <g id="icon-mark">
+    <!-- Badge background -->
+    <rect x="20" y="20" width="120" height="120" rx="16" fill="#0e1e34"/>
+
+    <!-- Bar 1 — short  (30 px) -->
+    <rect x="35"  y="94"  width="16" height="30" rx="3" fill="url(#barGrad)"/>
+    <!-- Bar 2 — medium (52 px) -->
+    <rect x="57"  y="72"  width="16" height="52" rx="3" fill="url(#barGrad)"/>
+    <!-- Bar 3 — tall   (76 px) hero bar -->
+    <rect x="79"  y="48"  width="16" height="76" rx="3" fill="url(#barGrad)"/>
+    <!-- Bar 4 — short+ (42 px) -->
+    <rect x="101" y="82"  width="16" height="42" rx="3" fill="url(#barGrad)"/>
+  </g>
+
+  <!-- ═══════════════════════════════════════════
+       WORDMARK
+       "dankcharts" (light) + ".fm" (accent, raised)
+       + tagline in muted accent below.
+       ═══════════════════════════════════════════ -->
+  <g id="wordmark">
+
+    <!-- Primary name + domain suffix -->
+    <text
+      x="162" y="90"
+      font-family="'DM Sans', 'Helvetica Neue', Arial, sans-serif"
+      font-weight="800"
+      font-size="58"
+      letter-spacing="-1.5">
+      <tspan fill="#eaf2ff">dankcharts</tspan><tspan fill="#4aacff" font-size="28" dy="-14">.fm</tspan>
+    </text>
+
+    <!-- Tagline -->
+    <text
+      x="163" y="116"
+      font-family="'DM Sans', 'Helvetica Neue', Arial, sans-serif"
+      font-weight="300"
+      font-size="11"
+      fill="#3a8acc"
+      letter-spacing="3.5">YOUR MUSIC · YOUR CHARTS · YOUR LEGACY</text>
+
+  </g>
+
+</svg>
