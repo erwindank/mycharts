@@ -3208,6 +3208,7 @@
       object-fit: cover;
       border-radius: 6px 6px 0 0;
       display: block;
+      background: var(--surface);
     }
 
     .upcoming-card-placeholder {

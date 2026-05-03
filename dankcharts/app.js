@@ -7434,64 +7434,73 @@ async function fetchReleasesForMBID(mbid) {
   } catch (e) { return []; }
 }
 
-function releaseImgFallback(img) {
-  if (!img.isConnected) return;
-  const sources = (img.dataset.sources || '').split(',').filter(Boolean);
-  if (!sources.length) { showReleasePlaceholder(img); return; }
-  const next = sources.shift();
-  img.dataset.sources = sources.join(',');
-  img.onerror = null;
-  if (next === 'itunes') tryItunesFallback(img);
-  else if (next === 'lastfm') tryLastFmFallback(img);
-  else showReleasePlaceholder(img);
-}
-
-async function tryItunesFallback(img) {
-  if (!img.isConnected) return;
-  try {
-    const q = encodeURIComponent((img.dataset.artist || '') + ' ' + (img.dataset.title || ''));
-    const res = await fetch(`https://itunes.apple.com/search?term=${q}&media=music&entity=album&limit=5`);
-    const data = await res.json();
-    const artist = (img.dataset.artist || '').toLowerCase();
-    const match = (data.results || []).find(r => r.artistName?.toLowerCase() === artist) || data.results?.[0];
-    if (match?.artworkUrl100) {
-      img.onerror = () => releaseImgFallback(img);
-      img.src = match.artworkUrl100.replace('100x100bb', '600x600bb');
-      return;
-    }
-  } catch (e) {}
-  releaseImgFallback(img);
-}
-
-async function tryLastFmFallback(img) {
-  if (!img.isConnected) return;
-  try {
-    const url = lfmUrl('album.getinfo', { artist: img.dataset.artist || '', album: img.dataset.title || '' });
-    const res = await fetch(url);
-    const data = await res.json();
-    const images = data.album?.image || [];
-    const best = [...images].reverse().find(i => i['#text'] && !i['#text'].includes('2a96cbd8b46e442fc41c2b86b821562f'));
-    if (best?.['#text']) {
-      img.onerror = () => releaseImgFallback(img);
-      img.src = best['#text'];
-      return;
-    }
-  } catch (e) {}
-  releaseImgFallback(img);
-}
-
-function showReleasePlaceholder(img) {
-  if (!img.isConnected) return;
-  const artist = img.dataset.artist || '';
-  const words = artist.replace(/^The\s+/i, '').split(/\s+/).filter(Boolean);
+function _releasePlaceholderDiv(artist) {
+  const words = (artist || '').replace(/^The\s+/i, '').split(/\s+/).filter(Boolean);
   const initials = words.slice(0, 2).map(w => w[0].toUpperCase()).join('');
   const colors = ['#0d2137', '#1a1040', '#0d2e1f', '#2b1a0d', '#0d1e2b', '#1f0d0d'];
-  const hash = artist.split('').reduce((a, c) => a + c.charCodeAt(0), 0);
+  const hash = (artist || '').split('').reduce((a, c) => a + c.charCodeAt(0), 0);
   const div = document.createElement('div');
   div.className = 'upcoming-card-placeholder';
   div.style.background = colors[hash % colors.length];
   div.textContent = initials;
-  img.parentNode.replaceChild(div, img);
+  return div;
+}
+
+// Show placeholder immediately (synchronous) then try to swap in a real image asynchronously.
+// This prevents a blank gap on slow mobile connections where the async fetches take several seconds.
+function releaseImgFallback(img) {
+  if (!img.isConnected) return;
+  const artist = img.dataset.artist || '';
+  const title = img.dataset.title || '';
+  const sources = (img.dataset.sources || '').split(',').filter(Boolean);
+  const card = img.closest('.upcoming-card');
+  img.onerror = null;
+  showReleasePlaceholder(img); // immediate visual — replaces img with initials div
+  if (sources.length && card) _tryReleaseImgAsync(card, artist, title, sources);
+}
+
+async function _tryReleaseImgAsync(card, artist, title, sources) {
+  for (const source of sources) {
+    if (!card.isConnected) return;
+    let url = null;
+    try {
+      if (source === 'itunes') {
+        const q = encodeURIComponent(artist + ' ' + title);
+        const res = await fetch(`https://itunes.apple.com/search?term=${q}&media=music&entity=album&limit=5`);
+        const data = await res.json();
+        const match = (data.results || []).find(r => r.artistName?.toLowerCase() === artist.toLowerCase()) || data.results?.[0];
+        if (match?.artworkUrl100) url = match.artworkUrl100.replace('100x100bb', '600x600bb');
+      } else if (source === 'lastfm') {
+        const res = await fetch(lfmUrl('album.getinfo', { artist, album: title }));
+        const data = await res.json();
+        const images = data.album?.image || [];
+        const best = [...images].reverse().find(i => i['#text'] && !i['#text'].includes('2a96cbd8b46e442fc41c2b86b821562f'));
+        if (best?.['#text']) url = best['#text'];
+      }
+    } catch (e) {}
+    if (!card.isConnected) return;
+    if (url) {
+      const ph = card.querySelector('.upcoming-card-placeholder');
+      if (!ph) return;
+      const newImg = document.createElement('img');
+      newImg.className = 'upcoming-card-img';
+      newImg.alt = '';
+      newImg.dataset.artist = artist;
+      newImg.dataset.title = title;
+      newImg.dataset.sources = '';
+      newImg.onerror = () => {
+        if (newImg.isConnected) newImg.parentNode.replaceChild(_releasePlaceholderDiv(artist), newImg);
+      };
+      newImg.src = url;
+      ph.parentNode.replaceChild(newImg, ph);
+      return;
+    }
+  }
+}
+
+function showReleasePlaceholder(img) {
+  if (!img.isConnected) return;
+  img.parentNode.replaceChild(_releasePlaceholderDiv(img.dataset.artist || ''), img);
 }
 
 function triggerPendingImgs(gridEl) {
@@ -7571,12 +7580,12 @@ async function loadUpcomingReleases(forceRefresh = false) {
       found++;
     }
 
-    // Progressive render — update grid as results come in
+    // Progressive render — update grid as results come in (no triggerPendingImgs here;
+    // those img elements get replaced on the next batch, orphaning any in-flight fetches)
     if (releases.length > 0) {
       const sorted = sortUpcomingReleases([...allReleases]);
       gridEl.innerHTML = sorted.map(({ release, artistName }) =>
         renderUpcomingCard(release, artistName)).join('');
-      triggerPendingImgs(gridEl);
     }
   }
 
@@ -7708,7 +7717,6 @@ async function loadRecentReleases(forceRefresh = false) {
       const sorted = sortRecentReleases([...allReleases]);
       gridEl.innerHTML = sorted.map(({ release, artistName }) =>
         renderRecentCard(release, artistName)).join('');
-      triggerPendingImgs(gridEl);
     }
   }
 
