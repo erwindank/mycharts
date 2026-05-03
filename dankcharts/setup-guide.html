@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Google Sheets Setup Guide — dankcharts.fm</title>
   <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <script src="translations.js"></script>
   <style>
     /* ── Base ── */
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -23,6 +24,118 @@
       --amber:   #fbbf24;
       --rose:    #fb7185;
     }
+
+    body.navy-light { --bg: #ddeeff; --bg2: #eef6ff; --bg3: #d4e8ff; --surface: #c0d8f5; --border: #90b8e0; --text: #040e1c; --text2: #0a2a50; --text3: #2a5888; --accent: #0852a8; }
+    body.purple      { --bg: #0a0812; --bg2: #110f1e; --bg3: #181528; --surface: #201c38; --border: #2c2850; --text: #f0eeff; --text2: #b8b0e0; --text3: #9080c8; --accent: #8878ff; }
+    body.purple-light{ --bg: #e8e2ff; --bg2: #f5f2ff; --bg3: #ddd5ff; --surface: #ccc0f8; --border: #a898e8; --text: #0e0820; --text2: #2a1860; --text3: #5040a0; --accent: #4430c0; }
+    body.red         { --bg: #0d0505; --bg2: #180808; --bg3: #220c0c; --surface: #2e1010; --border: #4a1818; --text: #ffffff; --text2: #ffffff; --text3: #e8e8e8; --accent: #ff3c3c; }
+    body.red-light   { --bg: #fff5f5; --bg2: #fef8f8; --bg3: #ffe8e8; --surface: #fdd8d8; --border: #f0b8b8; --text: #1c0a0a; --text2: #4a2828; --text3: #6e4040; --accent: #b01010; }
+    body.yellow      { --bg: #0d0d00; --bg2: #181800; --bg3: #222200; --surface: #2e2e00; --border: #484800; --text: #ffffff; --text2: #ffffff; --text3: #e8e8d0; --accent: #f5d000; }
+    body.yellow-light{ --bg: #fffdf0; --bg2: #fefef8; --bg3: #fff8d0; --surface: #fff0a0; --border: #e8d860; --text: #1a1800; --text2: #3a3400; --text3: #5a5000; --accent: #806800; }
+    body.pink        { --bg: #0d0008; --bg2: #180010; --bg3: #220018; --surface: #300020; --border: #500038; --text: #ffffff; --text2: #ffffff; --text3: #e8d0e0; --accent: #ff50b0; }
+    body.pink-light  { --bg: #fff5fb; --bg2: #fef8fd; --bg3: #ffe8f6; --surface: #ffd0ee; --border: #f0a8d8; --text: #1a0010; --text2: #4a0030; --text3: #6e3058; --accent: #b0006a; }
+
+    /* ── Guide controls bar ── */
+    .guide-controls {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      background: var(--bg2);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 6px;
+      padding: 0.45rem 1.5rem;
+    }
+    .guide-controls .ctrl-group {
+      display: flex;
+      align-items: center;
+      position: relative;
+    }
+    .guide-controls .ctrl-group-btn {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      height: 28px;
+      padding: 0 10px;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--text2);
+      cursor: pointer;
+      font-family: 'DM Mono', monospace;
+      font-size: 0.6rem;
+      letter-spacing: 0.12em;
+      white-space: nowrap;
+      transition: border-color 0.15s, background 0.15s, color 0.15s;
+    }
+    .guide-controls .ctrl-group-btn:hover,
+    .guide-controls .ctrl-group.open .ctrl-group-btn {
+      background: var(--surface);
+      border-color: var(--accent);
+      color: var(--text);
+    }
+    .guide-controls .ctrl-group-panel {
+      display: none;
+      position: absolute;
+      right: 0;
+      top: calc(100% + 6px);
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 6px 10px;
+      flex-direction: row;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 5px;
+      z-index: 100;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.35);
+      min-width: max-content;
+    }
+    .guide-controls .ctrl-group.open .ctrl-group-panel { display: flex; }
+    .guide-controls .ctrl-theme-dot {
+      width: 9px; height: 9px;
+      border-radius: 50%;
+      background: #1a6eb5;
+      display: inline-block;
+      flex-shrink: 0;
+    }
+    .guide-controls .theme-btn {
+      width: 18px; height: 18px;
+      border-radius: 50%;
+      border: 2px solid transparent;
+      cursor: pointer;
+      flex-shrink: 0;
+      transition: transform 0.1s, border-color 0.1s;
+    }
+    .guide-controls .theme-btn[data-theme="navy-dark"]    { background: #1a6eb5; }
+    .guide-controls .theme-btn[data-theme="navy-light"]   { background: #90c4f4; }
+    .guide-controls .theme-btn[data-theme="purple"]       { background: #7c6af7; }
+    .guide-controls .theme-btn[data-theme="purple-light"] { background: #c4b8ff; }
+    .guide-controls .theme-btn[data-theme="red"]          { background: #cc2020; }
+    .guide-controls .theme-btn[data-theme="red-light"]    { background: #ff9999; }
+    .guide-controls .theme-btn[data-theme="yellow"]       { background: #c8a800; }
+    .guide-controls .theme-btn[data-theme="yellow-light"] { background: #ffe040; }
+    .guide-controls .theme-btn[data-theme="pink"]         { background: #cc2090; }
+    .guide-controls .theme-btn[data-theme="pink-light"]   { background: #ffaadd; }
+    .guide-controls .theme-btn.active { border-color: var(--accent); transform: scale(1.2); }
+    .guide-controls .theme-btn:hover  { border-color: var(--text2);  transform: scale(1.15); }
+    .guide-controls .lang-switcher { display: flex; gap: 4px; }
+    .guide-controls .lang-btn {
+      background: transparent;
+      border: 1px solid var(--border);
+      border-radius: 5px;
+      color: var(--text2);
+      cursor: pointer;
+      font-family: 'DM Mono', monospace;
+      font-size: 0.7rem;
+      padding: 0.2rem 0.5rem;
+      white-space: nowrap;
+      transition: border-color 0.15s, background 0.15s, color 0.15s;
+    }
+    .guide-controls .lang-btn:hover { border-color: var(--accent); color: var(--text); }
+    .guide-controls .lang-btn.active { background: var(--surface); border-color: var(--accent); color: var(--text); }
 
     body {
       font-family: 'DM Sans', sans-serif;
@@ -338,6 +451,41 @@
   </style>
 </head>
 <body>
+
+<div class="guide-controls">
+  <div class="ctrl-group" id="guideThemeGroup">
+    <button class="ctrl-group-btn" aria-label="Theme" title="Theme">
+      <span class="ctrl-theme-dot"></span>
+      <span data-i18n="ctrl_btn_theme">THEME</span>
+    </button>
+    <div class="ctrl-group-panel">
+      <button class="theme-btn active" data-theme="navy-dark" data-i18n-title="tooltip_theme_navy_dark">●</button>
+      <button class="theme-btn" data-theme="navy-light" data-i18n-title="tooltip_theme_navy_light">●</button>
+      <button class="theme-btn" data-theme="purple" data-i18n-title="tooltip_theme_purple_dark">●</button>
+      <button class="theme-btn" data-theme="purple-light" data-i18n-title="tooltip_theme_purple_light">●</button>
+      <button class="theme-btn" data-theme="red" data-i18n-title="tooltip_theme_red_dark">●</button>
+      <button class="theme-btn" data-theme="red-light" data-i18n-title="tooltip_theme_red_light">●</button>
+      <button class="theme-btn" data-theme="yellow" data-i18n-title="tooltip_theme_yellow_dark">●</button>
+      <button class="theme-btn" data-theme="yellow-light" data-i18n-title="tooltip_theme_yellow_light">●</button>
+      <button class="theme-btn" data-theme="pink" data-i18n-title="tooltip_theme_pink_dark">●</button>
+      <button class="theme-btn" data-theme="pink-light" data-i18n-title="tooltip_theme_pink_light">●</button>
+    </div>
+  </div>
+  <div class="ctrl-group" id="guideLangGroup">
+    <button class="ctrl-group-btn" aria-label="Language" title="Language">
+      🌐 <span data-i18n="ctrl_btn_language">LANGUAGE</span>
+    </button>
+    <div class="ctrl-group-panel">
+      <div class="lang-switcher">
+        <button class="lang-btn active" data-lang="en" onclick="setLanguage('en')">🇺🇸 EN</button>
+        <button class="lang-btn" data-lang="es" onclick="setLanguage('es')">🇪🇸 ES</button>
+        <button class="lang-btn" data-lang="pt-BR" onclick="setLanguage('pt-BR')">🇧🇷 PT-BR</button>
+        <button class="lang-btn" data-lang="pt-PT" onclick="setLanguage('pt-PT')">🇵🇹 PT-PT</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <div class="page">
 
   <!-- Print button -->
@@ -564,6 +712,49 @@
   </div>
 
 </div>
+<script>
+(function () {
+  var THEME_CLASSES = ['navy-light','purple','purple-light','red','red-light','yellow','yellow-light','pink','pink-light'];
+  var THEME_DOT_COLORS = {
+    'navy-dark':'#1a6eb5','navy-light':'#90c4f4',
+    'purple':'#7c6af7','purple-light':'#c4b8ff',
+    'red':'#cc2020','red-light':'#ff9999',
+    'yellow':'#c8a800','yellow-light':'#ffe040',
+    'pink':'#cc2090','pink-light':'#ffaadd'
+  };
+
+  function applyTheme(theme) {
+    document.body.classList.remove.apply(document.body.classList, THEME_CLASSES);
+    if (theme !== 'navy-dark') document.body.classList.add(theme);
+    document.querySelectorAll('.theme-btn').forEach(function(b) {
+      b.classList.toggle('active', b.dataset.theme === theme);
+    });
+    var dotColor = THEME_DOT_COLORS[theme] || '#1a6eb5';
+    document.querySelectorAll('.ctrl-theme-dot').forEach(function(d) { d.style.background = dotColor; });
+    try { localStorage.setItem('dankcharts-theme', theme); } catch(e) {}
+  }
+
+  document.addEventListener('DOMContentLoaded', function () {
+    document.querySelectorAll('.guide-controls .theme-btn').forEach(function(btn) {
+      btn.addEventListener('click', function() { applyTheme(btn.dataset.theme); });
+    });
+    try { applyTheme(localStorage.getItem('dankcharts-theme') || 'navy-dark'); } catch(e) { applyTheme('navy-dark'); }
+
+    document.querySelectorAll('.guide-controls .ctrl-group-btn').forEach(function(btn) {
+      btn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        var group = btn.closest('.ctrl-group');
+        var wasOpen = group.classList.contains('open');
+        document.querySelectorAll('.ctrl-group.open').forEach(function(g) { g.classList.remove('open'); });
+        if (!wasOpen) group.classList.add('open');
+      });
+    });
+    document.addEventListener('click', function() {
+      document.querySelectorAll('.ctrl-group.open').forEach(function(g) { g.classList.remove('open'); });
+    });
+  });
+})();
+</script>
 <script type="text/javascript" id="zohodeskasap">var d=document;s=d.createElement("script"),s.type="text/javascript",s.id="zohodeskasapscript",s.defer=!0,s.src="https://desk.zoho.com/portal/api/web/asapApp/1336756000000408048?orgId=922864240",t=d.getElementsByTagName("script")[0],t.parentNode.insertBefore(s,t),window.ZohoDeskAsapReady=function(s){var e=window.ZohoDeskAsap__asyncalls=window.ZohoDeskAsap__asyncalls||[];window.ZohoDeskAsapReadyStatus?(s&&e.push(s),e.forEach(s=>s&&s()),window.ZohoDeskAsap__asyncalls=null):s&&e.push(s)};</script>
 </body>
 </html>

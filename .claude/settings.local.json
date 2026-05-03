@@ -47,7 +47,11 @@
       "Bash(grep -n \"updateMastheadDynamic\" dankcharts/translations.js)",
       "Bash(grep -rn \"function updateMastheadDynamic\" dankcharts/)",
       "Bash(awk '/^\\\\.masthead \\\\{/,/^\\\\}/' dankcharts/style.css)",
-      "Bash(awk 'NR==572,NR==599' dankcharts/style.css)"
+      "Bash(awk 'NR==572,NR==599' dankcharts/style.css)",
+      "Bash(Get-ChildItem -Path \"c:\\\\Users\\\\erwin\\\\Desktop\\\\mycharts\" -Recurse -Force)",
+      "Bash(Select-Object FullName)",
+      "PowerShell(Get-ChildItem -Path \"c:\\\\Users\\\\erwin\\\\Desktop\\\\mycharts\" -Recurse -Force | Where-Object { -not $_.PSIsContainer } | Select-Object -ExpandProperty FullName | Sort-Object)",
+      "PowerShell(Get-ChildItem -Path \"c:\\\\Users\\\\erwin\\\\Desktop\\\\mycharts\" -Depth 1 -Directory | Where-Object { $_.Name -notlike '.git' -and $_.Name -notlike 'venv' -and $_.Name -notlike 'backend' } | Select-Object -ExpandProperty FullName)"
     ]
   }
 }

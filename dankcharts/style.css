@@ -673,6 +673,92 @@
       color: rgba(4, 14, 28, 0.95);
     }
 
+    /* Light themes — control buttons (purple/red/yellow/pink) */
+    body.purple-light .ctrl-group-btn,
+    body.red-light .ctrl-group-btn,
+    body.yellow-light .ctrl-group-btn,
+    body.pink-light .ctrl-group-btn {
+      color: var(--text2);
+      border-color: var(--border);
+    }
+
+    body.purple-light .ctrl-group-btn:hover,
+    body.purple-light .ctrl-group.open .ctrl-group-btn,
+    body.red-light .ctrl-group-btn:hover,
+    body.red-light .ctrl-group.open .ctrl-group-btn,
+    body.yellow-light .ctrl-group-btn:hover,
+    body.yellow-light .ctrl-group.open .ctrl-group-btn,
+    body.pink-light .ctrl-group-btn:hover,
+    body.pink-light .ctrl-group.open .ctrl-group-btn {
+      background: var(--bg3);
+      border-color: var(--border2);
+      color: var(--text);
+    }
+
+    body.purple-light .day-btn,
+    body.purple-light .lang-btn,
+    body.red-light .day-btn,
+    body.red-light .lang-btn,
+    body.yellow-light .day-btn,
+    body.yellow-light .lang-btn,
+    body.pink-light .day-btn,
+    body.pink-light .lang-btn {
+      color: var(--text2);
+      border-color: var(--border);
+    }
+
+    body.purple-light .day-btn:hover,
+    body.purple-light .lang-btn:hover,
+    body.red-light .day-btn:hover,
+    body.red-light .lang-btn:hover,
+    body.yellow-light .day-btn:hover,
+    body.yellow-light .lang-btn:hover,
+    body.pink-light .day-btn:hover,
+    body.pink-light .lang-btn:hover {
+      border-color: var(--border2);
+      color: var(--text);
+    }
+
+    body.purple-light .day-btn.active,
+    body.purple-light .lang-btn.active,
+    body.red-light .day-btn.active,
+    body.red-light .lang-btn.active,
+    body.yellow-light .day-btn.active,
+    body.yellow-light .lang-btn.active,
+    body.pink-light .day-btn.active,
+    body.pink-light .lang-btn.active {
+      background: var(--bg3);
+      border-color: var(--border2);
+      color: var(--text);
+    }
+
+    /* Yellow light — border/border2 are too yellow to read as UI outlines; use text-based colors */
+    body.yellow-light .ctrl-group-btn {
+      border-color: var(--text3);
+    }
+
+    body.yellow-light .ctrl-group-btn:hover,
+    body.yellow-light .ctrl-group.open .ctrl-group-btn {
+      background: var(--surface);
+      border-color: var(--text2);
+    }
+
+    body.yellow-light .day-btn,
+    body.yellow-light .lang-btn {
+      border-color: var(--text3);
+    }
+
+    body.yellow-light .day-btn:hover,
+    body.yellow-light .lang-btn:hover {
+      border-color: var(--text2);
+    }
+
+    body.yellow-light .day-btn.active,
+    body.yellow-light .lang-btn.active {
+      background: var(--surface);
+      border-color: var(--text2);
+    }
+
     /* Purple Dark masthead */
     body.purple .masthead {
       background: linear-gradient(160deg, #12102a 0%, #1a1640 50%, #12102a 100%);
@@ -6608,13 +6694,38 @@ body {
 }
 
 /* Light-theme overrides for landing */
+body.navy-light .landing-screen,
+body.purple-light .landing-screen,
+body.red-light .landing-screen,
+body.yellow-light .landing-screen,
+body.pink-light .landing-screen {
+  background-image:
+    radial-gradient(ellipse at 20% 40%, rgba(0, 0, 0, 0.04) 0%, transparent 55%),
+    radial-gradient(ellipse at 80% 70%, rgba(0, 0, 0, 0.03) 0%, transparent 50%),
+    radial-gradient(ellipse at 55% 10%, rgba(0, 0, 0, 0.02) 0%, transparent 45%);
+}
+
+body.navy-light .landing-orb-1,
+body.navy-light .landing-orb-2,
+body.purple-light .landing-orb-1,
+body.purple-light .landing-orb-2,
+body.red-light .landing-orb-1,
+body.red-light .landing-orb-2,
+body.yellow-light .landing-orb-1,
+body.yellow-light .landing-orb-2,
+body.pink-light .landing-orb-1,
+body.pink-light .landing-orb-2 {
+  opacity: 0.12;
+}
+
 body.navy-light .landing-card,
 body.purple-light .landing-card,
 body.red-light .landing-card,
 body.yellow-light .landing-card,
 body.pink-light .landing-card {
-  background: rgba(0, 0, 0, 0.03);
-  border-color: rgba(0, 0, 0, 0.08);
+  background: var(--surface);
+  border-color: var(--border);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.07);
 }
 
 body.navy-light .landing-card:hover,
@@ -6622,8 +6733,9 @@ body.purple-light .landing-card:hover,
 body.red-light .landing-card:hover,
 body.yellow-light .landing-card:hover,
 body.pink-light .landing-card:hover {
-  background: rgba(0, 0, 0, 0.05);
-  border-color: rgba(0, 0, 0, 0.18);
+  background: var(--bg3);
+  border-color: var(--border2);
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.13);
 }
 
 body.navy-light .landing-card.active,
@@ -6631,8 +6743,17 @@ body.purple-light .landing-card.active,
 body.red-light .landing-card.active,
 body.yellow-light .landing-card.active,
 body.pink-light .landing-card.active {
-  background: rgba(var(--accent), 0.06);
+  background: var(--bg3);
   border-color: var(--accent);
+  box-shadow: 0 0 0 1px var(--accent), 0 8px 24px rgba(0, 0, 0, 0.13);
+}
+
+body.navy-light .landing-card-config,
+body.purple-light .landing-card-config,
+body.red-light .landing-card-config,
+body.yellow-light .landing-card-config,
+body.pink-light .landing-card-config {
+  border-top-color: var(--border);
 }
 
 body.navy-light .landing-card-config input,
@@ -6640,8 +6761,184 @@ body.purple-light .landing-card-config input,
 body.red-light .landing-card-config input,
 body.yellow-light .landing-card-config input,
 body.pink-light .landing-card-config input {
-  background: rgba(0, 0, 0, 0.05);
-  border-color: rgba(0, 0, 0, 0.15);
+  background: var(--bg2);
+  border-color: var(--border);
+}
+
+body.navy-light .landing-card-config input:focus,
+body.purple-light .landing-card-config input:focus,
+body.red-light .landing-card-config input:focus,
+body.yellow-light .landing-card-config input:focus,
+body.pink-light .landing-card-config input:focus {
+  border-color: var(--accent);
+  background: var(--bg2);
+}
+
+body.navy-light .landing-start-btn,
+body.purple-light .landing-start-btn,
+body.red-light .landing-start-btn,
+body.yellow-light .landing-start-btn,
+body.pink-light .landing-start-btn {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.18);
+}
+
+body.navy-light .landing-start-btn:hover,
+body.purple-light .landing-start-btn:hover,
+body.red-light .landing-start-btn:hover,
+body.yellow-light .landing-start-btn:hover,
+body.pink-light .landing-start-btn:hover {
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.28);
+}
+
+body.navy-light .lfm-new-user-info,
+body.purple-light .lfm-new-user-info,
+body.red-light .lfm-new-user-info,
+body.yellow-light .lfm-new-user-info,
+body.pink-light .lfm-new-user-info {
+  background: var(--bg2);
+  border-color: var(--border);
+}
+
+body.navy-light .lfm-new-user-body,
+body.purple-light .lfm-new-user-body,
+body.red-light .lfm-new-user-body,
+body.yellow-light .lfm-new-user-body,
+body.pink-light .lfm-new-user-body {
+  border-top-color: var(--border);
+}
+
+body.navy-light .lfm-services-chips span,
+body.purple-light .lfm-services-chips span,
+body.red-light .lfm-services-chips span,
+body.yellow-light .lfm-services-chips span,
+body.pink-light .lfm-services-chips span {
+  background: var(--bg3);
+  color: var(--accent);
+}
+
+body.navy-light .lfm-signup-link,
+body.purple-light .lfm-signup-link,
+body.red-light .lfm-signup-link,
+body.yellow-light .lfm-signup-link,
+body.pink-light .lfm-signup-link {
+  border-color: var(--border2);
+}
+
+body.navy-light .lfm-signup-link:hover,
+body.purple-light .lfm-signup-link:hover,
+body.red-light .lfm-signup-link:hover,
+body.yellow-light .lfm-signup-link:hover,
+body.pink-light .lfm-signup-link:hover {
+  background: var(--bg3);
+}
+
+/* Landing controls (theme + language) */
+.landing-controls {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  z-index: 10;
+}
+
+.landing-controls .ctrl-group-panel {
+  right: 0;
+  left: auto;
+  top: calc(100% + 6px);
+  transform: none;
+}
+
+#landingThemeGroup .ctrl-group-panel {
+  flex-wrap: nowrap;
+  gap: 3px;
+  padding: 8px;
+}
+
+#landingThemeGroup .ctrl-group-panel .theme-btn {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  flex-shrink: 0;
+}
+
+#landingThemeGroup .ctrl-group-panel .theme-btn.active {
+  border-color: rgba(255, 255, 255, 0.9);
+  transform: scale(1.2);
+}
+
+#landingThemeGroup .ctrl-group-panel .theme-btn:hover {
+  border-color: rgba(255, 255, 255, 0.6);
+  transform: scale(1.15);
+}
+
+body.navy-light #landingThemeGroup .ctrl-group-panel .theme-btn.active,
+body.purple-light #landingThemeGroup .ctrl-group-panel .theme-btn.active,
+body.red-light #landingThemeGroup .ctrl-group-panel .theme-btn.active,
+body.yellow-light #landingThemeGroup .ctrl-group-panel .theme-btn.active,
+body.pink-light #landingThemeGroup .ctrl-group-panel .theme-btn.active {
+  border-color: rgba(0, 0, 0, 0.7);
+}
+
+body.navy-light #landingThemeGroup .ctrl-group-panel .theme-btn:hover,
+body.purple-light #landingThemeGroup .ctrl-group-panel .theme-btn:hover,
+body.red-light #landingThemeGroup .ctrl-group-panel .theme-btn:hover,
+body.yellow-light #landingThemeGroup .ctrl-group-panel .theme-btn:hover,
+body.pink-light #landingThemeGroup .ctrl-group-panel .theme-btn:hover {
+  border-color: rgba(0, 0, 0, 0.45);
+}
+
+/* Landing wordmark — yellow/red/pink light themes use white in masthead, need dark on landing bg */
+body.yellow-light .landing-wordmark .wordmark-dank,
+body.red-light .landing-wordmark .wordmark-dank,
+body.pink-light .landing-wordmark .wordmark-dank {
+  color: var(--text);
+}
+
+body.yellow-light .landing-wordmark .wordmark-station,
+body.red-light .landing-wordmark .wordmark-station,
+body.pink-light .landing-wordmark .wordmark-station {
+  color: var(--text2);
+}
+
+body.yellow-light .landing-wordmark .wordmark-fm,
+body.red-light .landing-wordmark .wordmark-fm,
+body.pink-light .landing-wordmark .wordmark-fm {
+  color: var(--accent);
+  background: var(--bg3);
+  border-color: var(--border2);
+}
+
+/* Purple dark — cards nearly invisible on very dark bg; boost contrast */
+body.purple .landing-card {
+  background: var(--surface);
+  border-color: var(--border);
+}
+
+body.purple .landing-card:hover {
+  background: var(--bg3);
+  border-color: var(--border2);
+  box-shadow: 0 18px 48px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(136, 120, 255, 0.2);
+}
+
+body.purple .landing-card.active {
+  background: var(--bg3);
+}
+
+body.purple .landing-card-config {
+  border-top-color: var(--border);
+}
+
+body.purple .landing-card-config input {
+  background: var(--bg2);
+  border-color: var(--border);
+}
+
+body.purple .landing-card-config input:focus {
+  border-color: var(--accent);
+  background: var(--bg2);
 }
 
 /* Responsive landing */

@@ -24,6 +24,40 @@
 
   <!-- ── Landing / Onboarding Screen ── -->
   <div id="landingScreen" class="landing-screen" style="display:none;">
+
+    <div class="landing-controls">
+      <div class="ctrl-group" id="landingThemeGroup">
+        <button class="ctrl-group-btn" aria-label="Theme" title="Theme">
+          <span class="ctrl-btn-wide"><span class="ctrl-theme-dot"></span><span data-i18n="ctrl_btn_theme">THEME</span></span>
+        </button>
+        <div class="ctrl-group-panel">
+          <button class="theme-btn active" data-theme="navy-dark" data-i18n-title="tooltip_theme_navy_dark">●</button>
+          <button class="theme-btn" data-theme="navy-light" data-i18n-title="tooltip_theme_navy_light">●</button>
+          <button class="theme-btn" data-theme="purple" data-i18n-title="tooltip_theme_purple_dark">●</button>
+          <button class="theme-btn" data-theme="purple-light" data-i18n-title="tooltip_theme_purple_light">●</button>
+          <button class="theme-btn" data-theme="red" data-i18n-title="tooltip_theme_red_dark">●</button>
+          <button class="theme-btn" data-theme="red-light" data-i18n-title="tooltip_theme_red_light">●</button>
+          <button class="theme-btn" data-theme="yellow" data-i18n-title="tooltip_theme_yellow_dark">●</button>
+          <button class="theme-btn" data-theme="yellow-light" data-i18n-title="tooltip_theme_yellow_light">●</button>
+          <button class="theme-btn" data-theme="pink" data-i18n-title="tooltip_theme_pink_dark">●</button>
+          <button class="theme-btn" data-theme="pink-light" data-i18n-title="tooltip_theme_pink_light">●</button>
+        </div>
+      </div>
+      <div class="ctrl-group" id="landingLangGroup">
+        <button class="ctrl-group-btn" aria-label="Language" title="Language">
+          <span class="ctrl-btn-wide">🌐 <span data-i18n="ctrl_btn_language">LANGUAGE</span></span>
+        </button>
+        <div class="ctrl-group-panel">
+          <div class="lang-switcher">
+            <button class="lang-btn active" data-lang="en" onclick="setLanguage('en')">🇺🇸 EN</button>
+            <button class="lang-btn" data-lang="es" onclick="setLanguage('es')">🇪🇸 ES</button>
+            <button class="lang-btn" data-lang="pt-BR" onclick="setLanguage('pt-BR')">🇧🇷 PT-BR</button>
+            <button class="lang-btn" data-lang="pt-PT" onclick="setLanguage('pt-PT')">🇵🇹 PT-PT</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <div class="landing-orb landing-orb-1"></div>
     <div class="landing-orb landing-orb-2"></div>
 
@@ -41,23 +75,16 @@
       <div class="landing-card" id="landingCardSheets" onclick="selectLandingSource('sheets')">
         <div class="landing-card-icon">📊</div>
         <h3>Google Sheets</h3>
-        <p>Connect a shared spreadsheet with your scrobble history</p>
+        <p>Your full history, your way — no limits, no API restrictions</p>
         <div class="landing-card-config" id="landingConfigSheets" style="display:none;">
           <input type="text" id="landingSheetId" placeholder="Paste your Google Sheets URL or Sheet ID" onclick="event.stopPropagation()" autocomplete="off">
           <input type="text" id="landingSheetTab" placeholder="Tab name (default: Full Raw Listening History)" onclick="event.stopPropagation()" autocomplete="off">
           <p class="landing-hint">The sheet must be shared as "Anyone with the link can view"</p>
-          <p class="landing-hint" style="margin-top:0.3rem">No sheet yet? <a href="https://docs.google.com/spreadsheets/d/19brQQYXn1WQNhCkSMCYnGVYmxhmLzKOE2A3E3QFCeqk/copy" target="_blank" rel="noopener" onclick="event.stopPropagation()" style="color:var(--accent)">Copy our ready-to-use template →</a></p>
+          <p class="landing-hint" style="margin-top:0.3rem">No sheet yet? <a href="https://docs.google.com/spreadsheets/d/19brQQYXn1WQNhCkSMCYnGVYmxhmLzKOE2A3E3QFCeqk/copy" target="_blank" rel="noopener" onclick="event.stopPropagation()" style="color:var(--accent)">Copy our ready-to-use template →</a> &nbsp;·&nbsp; <a href="setup-guide.html" target="_blank" rel="noopener" onclick="event.stopPropagation()" style="color:var(--accent)">📄 Setup guide</a></p>
           <details class="lfm-new-user-info" onclick="event.stopPropagation()" style="margin-top:0.5rem">
             <summary style="font-size:0.8rem;color:var(--accent);cursor:pointer">How does this work?</summary>
             <div class="lfm-new-user-body" style="font-size:0.78rem;line-height:1.7;margin-top:0.4rem">
-              <p style="margin:0 0 0.4rem">Your Google Sheet is where all your listening history lives. Here's how to get it running:</p>
-              <ol style="margin:0 0 0 1.1rem;padding:0">
-                <li><strong>Copy the template</strong> using the link above and open it in your Google Drive</li>
-                <li>In the <strong>Settings</strong> tab, enter your Last.fm username in B1 and your API key in B2 — <a href="https://www.last.fm/api/account/create" target="_blank" rel="noopener" onclick="event.stopPropagation()" style="color:var(--accent)">get a free key here</a></li>
-                <li>To keep your sheet updated automatically, click <strong>Last.fm → Start Auto-Update (90 min)</strong> in the sheet's top menu — it will sync new plays every 90 minutes on its own</li>
-                <li>To add plays manually from this site, you'll need to do a one-time deploy — instructions are in the settings panel below</li>
-              </ol>
-              <p style="margin:0.6rem 0 0;color:var(--text2)"><strong>Seeing a "This app isn't verified" screen?</strong> That's normal — it's Google's standard warning for personal scripts. Click <strong>Advanced → Go to [app name] (unsafe) → Allow</strong> to continue. It's safe because the script only touches your own sheet.</p>
+              <p style="margin:0">Your music history lives in <em>your</em> spreadsheet — every song you've ever listened to, all in one place, with no limits. Last.fm tracks your plays automatically, and you keep full control: edit, add, or explore your data however you like. Full setup in the <a href="setup-guide.html" target="_blank" rel="noopener" onclick="event.stopPropagation()" style="color:var(--accent)">setup guide</a>.</p>
             </div>
           </details>
         </div>
