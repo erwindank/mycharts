@@ -784,6 +784,7 @@
                 class="sort-arrow">↕</span></th>
             <th class="raw-th" data-col="album" data-i18n-raw-th="raw_th_album">Album<span class="sort-arrow">↕</span>
             </th>
+            <th style="width:2rem;"></th>
           </tr>
         </thead>
         <tbody id="rawBody"></tbody>
@@ -1580,6 +1581,39 @@
 
   <button id="backToTop" data-i18n-title="tooltip_back_to_top" aria-label="Back to top">&#8679;</button>
 
+  <!-- ── Edit Scrobble Modal ── -->
+  <div id="editScrobbleModal" class="modal-overlay" role="dialog" aria-modal="true">
+    <div class="src-modal-box scrobble-modal-box">
+      <h3 class="src-modal-title">Edit Scrobble</h3>
+      <div class="src-field-group">
+        <label>
+          Artist *
+          <input type="text" id="editScrobbleArtist" placeholder="Artist name" autocomplete="off">
+        </label>
+        <label>
+          Track *
+          <input type="text" id="editScrobbleTrack" placeholder="Track title" autocomplete="off">
+        </label>
+        <label>
+          Album
+          <input type="text" id="editScrobbleAlbum" placeholder="Album (optional)" autocomplete="off">
+        </label>
+        <label>
+          Date &amp; Time
+          <input type="datetime-local" id="editScrobbleTime" step="1">
+        </label>
+      </div>
+      <p id="editScrobbleHint" style="font-size:0.7rem;color:var(--text3);margin:0.3rem 0 0.5rem;display:none">Pushing to Last.fm adds a corrected scrobble — remove the original manually on the Last.fm website.</p>
+      <div id="editScrobbleStatus" class="scrobble-status"></div>
+      <div class="src-modal-btns">
+        <button class="src-btn-cancel" onclick="closeEditScrobbleModal()">Cancel</button>
+        <button class="src-btn-save" id="editSaveLocalBtn" onclick="saveEditLocally()">Save Locally</button>
+        <button class="src-btn-save" id="editPushLfmBtn" onclick="pushEditToLastfm()" style="display:none">Push to Last.fm</button>
+        <button class="src-btn-save" id="editPushSheetBtn" onclick="pushEditToSheet()" style="display:none">Push to Sheet</button>
+      </div>
+    </div>
+  </div>
+
   <!-- ── Manual Scrobble Modal ── -->
   <div id="scrobbleModal" class="modal-overlay" role="dialog" aria-modal="true">
     <div class="src-modal-box scrobble-modal-box">
@@ -1875,10 +1909,34 @@ function doPost(e) {
       }
     }
 
-    // Format the timestamp in the sheet's local timezone
-    var tz  = ss.getSpreadsheetTimeZone();
-    var fmt = Utilities.formatDate(new Date(data.timestamp * 1000), tz, 'yyyy-MM-dd HH:mm:ss');
+    var tz = ss.getSpreadsheetTimeZone();
 
+    // Edit an existing row by matching its original timestamp
+    if (data.action === 'update') {
+      var origFmt = Utilities.formatDate(new Date(data.originalTimestamp * 1000), tz, 'yyyy-MM-dd HH:mm:ss');
+      var newFmt  = Utilities.formatDate(new Date(data.timestamp * 1000), tz, 'yyyy-MM-dd HH:mm:ss');
+      var lastRow = sheet.getLastRow();
+      if (lastRow &lt; 2) throw new Error('Sheet is empty');
+      var values = sheet.getRange(2, 1, lastRow - 1, lastCol).getValues();
+      for (var r = 0; r &lt; values.length; r++) {
+        var cell = values[r][colIdx.datetime];
+        var cellStr = cell instanceof Date
+          ? Utilities.formatDate(cell, tz, 'yyyy-MM-dd HH:mm:ss')
+          : cell.toString().trim().slice(0, 19);
+        if (cellStr === origFmt) {
+          if (colIdx.title    !== undefined) sheet.getRange(r + 2, colIdx.title    + 1).setValue(data.track  || '');
+          if (colIdx.artist   !== undefined) sheet.getRange(r + 2, colIdx.artist   + 1).setValue(data.artist || '');
+          if (colIdx.album    !== undefined) sheet.getRange(r + 2, colIdx.album    + 1).setValue(data.album  || '');
+          if (colIdx.datetime !== undefined) sheet.getRange(r + 2, colIdx.datetime + 1).setValue(newFmt);
+          return ContentService.createTextOutput(JSON.stringify({ status: 'ok', updated: true }))
+            .setMimeType(ContentService.MimeType.JSON);
+        }
+      }
+      throw new Error('Row not found for timestamp: ' + origFmt);
+    }
+
+    // Add a new row
+    var fmt = Utilities.formatDate(new Date(data.timestamp * 1000), tz, 'yyyy-MM-dd HH:mm:ss');
     var row = new Array(lastCol).fill('');
     if (colIdx.title    !== undefined) row[colIdx.title]    = data.track  || '';
     if (colIdx.artist   !== undefined) row[colIdx.artist]   = data.artist || '';

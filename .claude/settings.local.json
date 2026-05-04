@@ -51,7 +51,10 @@
       "Bash(Get-ChildItem -Path \"c:\\\\Users\\\\erwin\\\\Desktop\\\\mycharts\" -Recurse -Force)",
       "Bash(Select-Object FullName)",
       "PowerShell(Get-ChildItem -Path \"c:\\\\Users\\\\erwin\\\\Desktop\\\\mycharts\" -Recurse -Force | Where-Object { -not $_.PSIsContainer } | Select-Object -ExpandProperty FullName | Sort-Object)",
-      "PowerShell(Get-ChildItem -Path \"c:\\\\Users\\\\erwin\\\\Desktop\\\\mycharts\" -Depth 1 -Directory | Where-Object { $_.Name -notlike '.git' -and $_.Name -notlike 'venv' -and $_.Name -notlike 'backend' } | Select-Object -ExpandProperty FullName)"
+      "PowerShell(Get-ChildItem -Path \"c:\\\\Users\\\\erwin\\\\Desktop\\\\mycharts\" -Depth 1 -Directory | Where-Object { $_.Name -notlike '.git' -and $_.Name -notlike 'venv' -and $_.Name -notlike 'backend' } | Select-Object -ExpandProperty FullName)",
+      "Bash(Get-ChildItem -Path \"c:\\\\Users\\\\erwin_totaltransport\\\\Desktop\\\\mycharts\" -Recurse -ErrorAction SilentlyContinue)",
+      "Bash(ls *.js *.html *.css)",
+      "Bash(ls dankcharts/*.js dankcharts/*.html dankcharts/*.css)"
     ]
   }
 }

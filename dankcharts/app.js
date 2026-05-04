@@ -521,6 +521,130 @@ function copyAppsScript() {
   });
 }
 
+// ─── EDIT SCROBBLE ────────────────────────────────────────────
+
+let _editPlay   = null;
+let _editOrigTs = 0;
+
+function openEditScrobbleModal(rawIdx) {
+  const p = rawFiltered[rawIdx];
+  if (!p) return;
+  _editPlay   = p;
+  _editOrigTs = p.date.getTime();
+  document.getElementById('editScrobbleArtist').value = p.artist;
+  document.getElementById('editScrobbleTrack').value  = p.title;
+  document.getElementById('editScrobbleAlbum').value  = p.album === '—' ? '' : p.album;
+  document.getElementById('editScrobbleTime').value   = scrobbleDatetimeLocal(p.date);
+  document.getElementById('editScrobbleStatus').textContent = '';
+  document.getElementById('editScrobbleStatus').className   = 'scrobble-status';
+  const hasLfm   = !!(getScrobbleSession() && getScrobbleUser());
+  const hasSheet = !!(getSheetWriteUrl() && getDataSource() === 'sheets');
+  document.getElementById('editPushLfmBtn').style.display   = hasLfm   ? '' : 'none';
+  document.getElementById('editPushSheetBtn').style.display = hasSheet ? '' : 'none';
+  document.getElementById('editScrobbleHint').style.display = hasLfm   ? '' : 'none';
+  document.getElementById('editScrobbleModal').classList.add('open');
+}
+
+function closeEditScrobbleModal() {
+  document.getElementById('editScrobbleModal').classList.remove('open');
+  _editPlay = null;
+}
+
+function _readEditFields() {
+  const artist   = document.getElementById('editScrobbleArtist').value.trim();
+  const title    = document.getElementById('editScrobbleTrack').value.trim();
+  const album    = document.getElementById('editScrobbleAlbum').value.trim();
+  const timeVal  = document.getElementById('editScrobbleTime').value;
+  const statusEl = document.getElementById('editScrobbleStatus');
+  if (!artist || !title) {
+    statusEl.textContent = 'Artist and Track are required.';
+    statusEl.className   = 'scrobble-status err';
+    return null;
+  }
+  const ts = Math.floor(new Date(timeVal).getTime() / 1000);
+  if (isNaN(ts)) {
+    statusEl.textContent = 'Invalid date/time.';
+    statusEl.className   = 'scrobble-status err';
+    return null;
+  }
+  return { artist, title, album, ts, date: new Date(ts * 1000), statusEl };
+}
+
+function saveEditLocally() {
+  const f = _readEditFields();
+  if (!f || !_editPlay) return;
+  _editPlay.title   = f.title;
+  _editPlay.artist  = f.artist;
+  _editPlay.artists = splitArtists(f.artist);
+  _editPlay.album   = f.album || '—';
+  _editPlay.date    = f.date;
+  firstSeenMaps = null;
+  if (allPlays.length) {
+    window.firstScrobbleDate = allPlays.reduce((min, p) => p.date < min ? p.date : min, allPlays[0].date);
+  }
+  renderAll();
+  closeEditScrobbleModal();
+}
+
+async function pushEditToLastfm() {
+  const f = _readEditFields();
+  if (!f) return;
+  const btn      = document.getElementById('editPushLfmBtn');
+  const statusEl = f.statusEl;
+  btn.disabled = true;
+  statusEl.textContent = 'Pushing to Last.fm…';
+  statusEl.className   = 'scrobble-status loading';
+  try {
+    const params = { method: 'track.scrobble', artist: f.artist, track: f.title, timestamp: String(f.ts), sk: getScrobbleSession() };
+    if (f.album) params.album = f.album;
+    await lfmPost(params);
+    statusEl.textContent = '✓ Pushed to Last.fm! Remove the original scrobble manually on the Last.fm website.';
+    statusEl.className   = 'scrobble-status ok';
+  } catch (e) {
+    statusEl.textContent = 'Error: ' + e.message;
+    statusEl.className   = 'scrobble-status err';
+  }
+  btn.disabled = false;
+}
+
+async function pushEditToSheet() {
+  const f = _readEditFields();
+  if (!f) return;
+  const writeUrl = getSheetWriteUrl();
+  if (!writeUrl) {
+    f.statusEl.textContent = 'No Apps Script URL configured.';
+    f.statusEl.className   = 'scrobble-status err';
+    return;
+  }
+  const btn      = document.getElementById('editPushSheetBtn');
+  const statusEl = f.statusEl;
+  btn.disabled = true;
+  statusEl.textContent = 'Updating sheet…';
+  statusEl.className   = 'scrobble-status loading';
+  try {
+    const res  = await fetch(writeUrl, {
+      method: 'POST',
+      body: JSON.stringify({
+        action: 'update',
+        originalTimestamp: Math.floor(_editOrigTs / 1000),
+        artist: f.artist,
+        track:  f.title,
+        album:  f.album,
+        timestamp: f.ts,
+      }),
+    });
+    const data = await res.json();
+    if (data.status === 'error') throw new Error(data.message || 'Script error');
+    if (!data.updated) throw new Error('Apps Script is outdated — please redeploy the latest version from the setup guide to enable editing.');
+    statusEl.textContent = '✓ Sheet updated!';
+    statusEl.className   = 'scrobble-status ok';
+  } catch (e) {
+    statusEl.textContent = 'Error: ' + e.message;
+    statusEl.className   = 'scrobble-status err';
+  }
+  btn.disabled = false;
+}
+
 function bestImage(images) {
   if (!images || !images.length) return null;
   const order = ['extralarge', 'large', 'medium', 'small'];
@@ -3336,8 +3460,9 @@ function renderRawPage() {
       <td class="raw-title">${esc(p.title)}</td>
       <td>${esc(p.artist)}</td>
       <td class="raw-album">${esc(p.album)}</td>
+      <td class="raw-edit-cell"><button class="raw-edit-btn" title="Edit" onclick="openEditScrobbleModal(${start + i})">✎</button></td>
     </tr>`;
-  }).join('') || `<tr><td colspan="5" style="padding:1rem;color:var(--text3);font-style:italic;font-family:'DM Mono',monospace;font-size:0.72rem;">${t('raw_no_match')}</td></tr>`;
+  }).join('') || `<tr><td colspan="6" style="padding:1rem;color:var(--text3);font-style:italic;font-family:'DM Mono',monospace;font-size:0.72rem;">${t('raw_no_match')}</td></tr>`;
 
   // Pagination
   document.getElementById('rawPrevBtn').disabled = rawPage === 0;

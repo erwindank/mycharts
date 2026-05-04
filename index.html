@@ -6,10 +6,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>dankcharts.fm — Erwin's Personal Music Charts</title>
   <link
-    href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&family=DM+Mono:wght@400;500&display=swap"
+    href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&family=DM+Mono:wght@400;500&family=Instrument+Serif:ital@0;1&display=swap"
     rel="stylesheet">
   <script data-goatcounter="https://erwindank.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
   <link rel="stylesheet" href="style.css">
   <script src="translations.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
@@ -19,6 +21,117 @@
 </head>
 
 <body>
+
+  <!-- ── Landing / Onboarding Screen ── -->
+  <div id="landingScreen" class="landing-screen" style="display:none;">
+
+    <div class="landing-controls">
+      <div class="ctrl-group" id="landingThemeGroup">
+        <button class="ctrl-group-btn" aria-label="Theme" title="Theme">
+          <span class="ctrl-btn-wide"><span class="ctrl-theme-dot"></span><span data-i18n="ctrl_btn_theme">THEME</span></span>
+        </button>
+        <div class="ctrl-group-panel">
+          <button class="theme-btn active" data-theme="navy-dark" data-i18n-title="tooltip_theme_navy_dark">●</button>
+          <button class="theme-btn" data-theme="navy-light" data-i18n-title="tooltip_theme_navy_light">●</button>
+          <button class="theme-btn" data-theme="purple" data-i18n-title="tooltip_theme_purple_dark">●</button>
+          <button class="theme-btn" data-theme="purple-light" data-i18n-title="tooltip_theme_purple_light">●</button>
+          <button class="theme-btn" data-theme="red" data-i18n-title="tooltip_theme_red_dark">●</button>
+          <button class="theme-btn" data-theme="red-light" data-i18n-title="tooltip_theme_red_light">●</button>
+          <button class="theme-btn" data-theme="yellow" data-i18n-title="tooltip_theme_yellow_dark">●</button>
+          <button class="theme-btn" data-theme="yellow-light" data-i18n-title="tooltip_theme_yellow_light">●</button>
+          <button class="theme-btn" data-theme="pink" data-i18n-title="tooltip_theme_pink_dark">●</button>
+          <button class="theme-btn" data-theme="pink-light" data-i18n-title="tooltip_theme_pink_light">●</button>
+        </div>
+      </div>
+      <div class="ctrl-group" id="landingLangGroup">
+        <button class="ctrl-group-btn" aria-label="Language" title="Language">
+          <span class="ctrl-btn-wide">🌐 <span data-i18n="ctrl_btn_language">LANGUAGE</span></span>
+        </button>
+        <div class="ctrl-group-panel">
+          <div class="lang-switcher">
+            <button class="lang-btn active" data-lang="en" onclick="setLanguage('en')">🇺🇸 EN</button>
+            <button class="lang-btn" data-lang="es" onclick="setLanguage('es')">🇪🇸 ES</button>
+            <button class="lang-btn" data-lang="pt-BR" onclick="setLanguage('pt-BR')">🇧🇷 PT-BR</button>
+            <button class="lang-btn" data-lang="pt-PT" onclick="setLanguage('pt-PT')">🇵🇹 PT-PT</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="landing-orb landing-orb-1"></div>
+    <div class="landing-orb landing-orb-2"></div>
+
+    <div class="landing-hero">
+      <div class="wordmark landing-wordmark">
+        <span class="wordmark-dank">dank</span><span class="wordmark-station">charts</span><span class="wordmark-fm">.fm</span>
+      </div>
+      <p class="landing-tagline">Your listening history. Your charts. Your legacy.</p>
+    </div>
+
+    <h2 class="landing-section-title">How would you like to import your data?</h2>
+
+    <div class="landing-cards">
+
+      <div class="landing-card" id="landingCardSheets" onclick="selectLandingSource('sheets')">
+        <div class="landing-card-icon">📊</div>
+        <h3>Google Sheets</h3>
+        <p>Your full history, your way — no limits, no API restrictions</p>
+        <div class="landing-card-config" id="landingConfigSheets" style="display:none;">
+          <input type="text" id="landingSheetId" placeholder="Paste your Google Sheets URL or Sheet ID" onclick="event.stopPropagation()" autocomplete="off">
+          <input type="text" id="landingSheetTab" placeholder="Tab name (default: Full Raw Listening History)" onclick="event.stopPropagation()" autocomplete="off">
+          <p class="landing-hint">The sheet must be shared as "Anyone with the link can view"</p>
+          <p class="landing-hint" style="margin-top:0.3rem">No sheet yet? <a href="https://docs.google.com/spreadsheets/d/19brQQYXn1WQNhCkSMCYnGVYmxhmLzKOE2A3E3QFCeqk/copy" target="_blank" rel="noopener" onclick="event.stopPropagation()" style="color:var(--accent)">Copy our ready-to-use template →</a> &nbsp;·&nbsp; <a href="setup-guide.html" target="_blank" rel="noopener" onclick="event.stopPropagation()" style="color:var(--accent)">📄 Setup guide</a></p>
+          <details class="lfm-new-user-info" onclick="event.stopPropagation()" style="margin-top:0.5rem">
+            <summary style="font-size:0.8rem;color:var(--accent);cursor:pointer">How does this work?</summary>
+            <div class="lfm-new-user-body" style="font-size:0.78rem;line-height:1.7;margin-top:0.4rem">
+              <p style="margin:0">Your music history lives in <em>your</em> spreadsheet — every song you've ever listened to, all in one place, with no limits. Last.fm tracks your plays automatically, and you keep full control: edit, add, or explore your data however you like. Full setup in the <a href="setup-guide.html" target="_blank" rel="noopener" onclick="event.stopPropagation()" style="color:var(--accent)">setup guide</a>.</p>
+            </div>
+          </details>
+        </div>
+      </div>
+
+      <div class="landing-card" id="landingCardLastfm" onclick="selectLandingSource('lastfm')">
+        <div class="landing-card-icon">🎵</div>
+        <h3>Last.fm</h3>
+        <p>Load your full scrobble history directly from Last.fm</p>
+        <div class="landing-card-config" id="landingConfigLastfm" style="display:none;">
+          <details class="lfm-new-user-info" onclick="event.stopPropagation()">
+            <summary>New to Last.fm? Learn more</summary>
+            <div class="lfm-new-user-body">
+              <p><strong>Last.fm</strong> automatically tracks every song you listen to — this is called <em>scrobbling</em>. Over time it builds a complete history of your music taste that you can chart here.</p>
+              <p class="lfm-services-label">Compatible with:</p>
+              <div class="lfm-services-chips">
+                <span>Spotify</span><span>Apple Music</span><span>YouTube Music</span><span>Tidal</span><span>Deezer</span><span>Amazon Music</span><span>SoundCloud</span><span>Plex</span><span>Subsonic</span><span>+ many more</span>
+              </div>
+              <a href="https://www.last.fm/join" target="_blank" rel="noopener" class="lfm-signup-link">Create a free Last.fm account →</a>
+            </div>
+          </details>
+          <input type="text" id="landingLastfmUser" placeholder="Your Last.fm username" onclick="event.stopPropagation()" autocomplete="off">
+          <p class="landing-hint">Your complete listening history will be imported from Last.fm</p>
+        </div>
+      </div>
+
+      <div class="landing-card" id="landingCardFile" onclick="selectLandingSource('file')">
+        <div class="landing-card-icon">📂</div>
+        <h3>Upload File</h3>
+        <p>Import from CSV, Last.fm export, Spotify&nbsp;ZIP, or Deezer&nbsp;XLSX</p>
+        <div class="landing-card-config" id="landingConfigFile" style="display:none;">
+          <p class="landing-hint">You'll choose your file on the next screen</p>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="landing-cta" id="landingCta" style="display:none;">
+      <button class="landing-start-btn" onclick="startFromLanding()">Start Charting →</button>
+    </div>
+
+    <p class="landing-skip">Already set up? <a href="#" onclick="skipLanding(); return false;">Continue to charts</a></p>
+
+    <div class="landing-support-note">
+      Questions or need help? <button class="landing-support-link" onclick="window.ZohoDeskAsapReady&&window.ZohoDeskAsapReady(function(){window.ZohoDeskAsap&&window.ZohoDeskAsap.invoke('open')})">Contact Support</button>
+    </div>
+  </div>
 
   <div class="masthead">
     <div class="theme-toggle">
@@ -90,7 +203,7 @@
       <span id="syncStatus" data-i18n="sync_connecting">⟳ Connecting...</span>
       <button id="syncNowBtn" data-i18n="sync_now">↺ SYNC NOW</button>
       <button id="configureSourceBtn" onclick="openSourceModal()" title="Configure data source">⚙ Configure</button>
-      <button id="scrobbleBtn" onclick="openScrobbleModal()" title="Manually scrobble a track to Last.fm" style="display:none">✚ Scrobble</button>
+      <button id="scrobbleBtn" onclick="openScrobbleModal()" title="Add a play manually" style="display:none">✚ Add Play</button>
     </div>
 
     <div class="period-nav" id="periodNav">
@@ -194,9 +307,14 @@
           <tbody id="songsBody"></tbody>
         </table>
         <div class="page-nav" id="songsPagination" style="display:none;">
-          <button onclick="changePage('songs',-1)">◄ PREV</button>
-          <span id="songsPageLabel"></span>
-          <button onclick="changePage('songs',1)">NEXT ►</button>
+          <button class="page-nav-first" onclick="goToPage('songs',0)" title="First page">|◄</button>
+          <button class="page-nav-prev" onclick="changePage('songs',-1)">◄ PREV</button>
+          <span class="page-nav-center">
+            <span id="songsPageLabel"></span>
+            <span class="page-jump">· pg <input type="number" id="songsPageInput" class="page-input" min="1" onkeydown="if(event.key==='Enter')goToPageInput('songs',this.value)" /></span>
+          </span>
+          <button class="page-nav-next" onclick="changePage('songs',1)">NEXT ►</button>
+          <button class="page-nav-last" onclick="goToPage('songs',Infinity)" title="Last page">►|</button>
         </div>
         <div class="ig-share-bar" id="songsShareBar">
           <span data-i18n="btn_share">SHARE:</span>
@@ -225,6 +343,16 @@
           </thead>
           <tbody id="newSongsBody"></tbody>
         </table>
+        <div class="page-nav" id="newSongsPagination" style="display:none;">
+          <button class="page-nav-first" onclick="goToNewPage('newSongs',0)" title="First page">|◄</button>
+          <button class="page-nav-prev" onclick="changeNewPage('newSongs',-1)">◄ PREV</button>
+          <span class="page-nav-center">
+            <span id="newSongsPageLabel"></span>
+            <span class="page-jump">· pg <input type="number" id="newSongsPageInput" class="page-input" min="1" onkeydown="if(event.key==='Enter')goToNewPageInput('newSongs',this.value)" /></span>
+          </span>
+          <button class="page-nav-next" onclick="changeNewPage('newSongs',1)">NEXT ►</button>
+          <button class="page-nav-last" onclick="goToNewPage('newSongs',Infinity)" title="Last page">►|</button>
+        </div>
       </div>
     </div>
 
@@ -256,9 +384,14 @@
           <tbody id="artistsBody"></tbody>
         </table>
         <div class="page-nav" id="artistsPagination" style="display:none;">
-          <button onclick="changePage('artists',-1)">◄ PREV</button>
-          <span id="artistsPageLabel"></span>
-          <button onclick="changePage('artists',1)">NEXT ►</button>
+          <button class="page-nav-first" onclick="goToPage('artists',0)" title="First page">|◄</button>
+          <button class="page-nav-prev" onclick="changePage('artists',-1)">◄ PREV</button>
+          <span class="page-nav-center">
+            <span id="artistsPageLabel"></span>
+            <span class="page-jump">· pg <input type="number" id="artistsPageInput" class="page-input" min="1" onkeydown="if(event.key==='Enter')goToPageInput('artists',this.value)" /></span>
+          </span>
+          <button class="page-nav-next" onclick="changePage('artists',1)">NEXT ►</button>
+          <button class="page-nav-last" onclick="goToPage('artists',Infinity)" title="Last page">►|</button>
         </div>
         <div class="ig-share-bar" id="artistsShareBar">
           <span data-i18n="btn_share">SHARE:</span>
@@ -286,6 +419,16 @@
           </thead>
           <tbody id="newArtistsBody"></tbody>
         </table>
+        <div class="page-nav" id="newArtistsPagination" style="display:none;">
+          <button class="page-nav-first" onclick="goToNewPage('newArtists',0)" title="First page">|◄</button>
+          <button class="page-nav-prev" onclick="changeNewPage('newArtists',-1)">◄ PREV</button>
+          <span class="page-nav-center">
+            <span id="newArtistsPageLabel"></span>
+            <span class="page-jump">· pg <input type="number" id="newArtistsPageInput" class="page-input" min="1" onkeydown="if(event.key==='Enter')goToNewPageInput('newArtists',this.value)" /></span>
+          </span>
+          <button class="page-nav-next" onclick="changeNewPage('newArtists',1)">NEXT ►</button>
+          <button class="page-nav-last" onclick="goToNewPage('newArtists',Infinity)" title="Last page">►|</button>
+        </div>
       </div>
     </div>
 
@@ -317,9 +460,14 @@
           <tbody id="albumsBody"></tbody>
         </table>
         <div class="page-nav" id="albumsPagination" style="display:none;">
-          <button onclick="changePage('albums',-1)">◄ PREV</button>
-          <span id="albumsPageLabel"></span>
-          <button onclick="changePage('albums',1)">NEXT ►</button>
+          <button class="page-nav-first" onclick="goToPage('albums',0)" title="First page">|◄</button>
+          <button class="page-nav-prev" onclick="changePage('albums',-1)">◄ PREV</button>
+          <span class="page-nav-center">
+            <span id="albumsPageLabel"></span>
+            <span class="page-jump">· pg <input type="number" id="albumsPageInput" class="page-input" min="1" onkeydown="if(event.key==='Enter')goToPageInput('albums',this.value)" /></span>
+          </span>
+          <button class="page-nav-next" onclick="changePage('albums',1)">NEXT ►</button>
+          <button class="page-nav-last" onclick="goToPage('albums',Infinity)" title="Last page">►|</button>
         </div>
         <div class="ig-share-bar" id="albumsShareBar">
           <span data-i18n="btn_share">SHARE:</span>
@@ -347,6 +495,16 @@
           </thead>
           <tbody id="newAlbumsBody"></tbody>
         </table>
+        <div class="page-nav" id="newAlbumsPagination" style="display:none;">
+          <button class="page-nav-first" onclick="goToNewPage('newAlbums',0)" title="First page">|◄</button>
+          <button class="page-nav-prev" onclick="changeNewPage('newAlbums',-1)">◄ PREV</button>
+          <span class="page-nav-center">
+            <span id="newAlbumsPageLabel"></span>
+            <span class="page-jump">· pg <input type="number" id="newAlbumsPageInput" class="page-input" min="1" onkeydown="if(event.key==='Enter')goToNewPageInput('newAlbums',this.value)" /></span>
+          </span>
+          <button class="page-nav-next" onclick="changeNewPage('newAlbums',1)">NEXT ►</button>
+          <button class="page-nav-last" onclick="goToNewPage('newAlbums',Infinity)" title="Last page">►|</button>
+        </div>
       </div>
     </div>
 
@@ -626,6 +784,7 @@
                 class="sort-arrow">↕</span></th>
             <th class="raw-th" data-col="album" data-i18n-raw-th="raw_th_album">Album<span class="sort-arrow">↕</span>
             </th>
+            <th style="width:2rem;"></th>
           </tr>
         </thead>
         <tbody id="rawBody"></tbody>
@@ -832,6 +991,13 @@
   </div>
 
   <div id="igCardCanvas"></div>
+
+  <div class="app-support-bar">
+    <span>Questions or issues?</span>
+    <button class="app-support-btn" onclick="window.ZohoDeskAsapReady&&window.ZohoDeskAsapReady(function(){window.ZohoDeskAsap&&window.ZohoDeskAsap.invoke('open')})">Contact Support</button>
+    <span class="app-support-sep">·</span>
+    <a href="mailto:support@dankcharts.fm">support@dankcharts.fm</a>
+  </div>
 
   <div class="page-footer">
     <span data-i18n="footer_line1">dankcharts.fm · Erwin's Personal Music Charts · Est. 2016</span><br>
@@ -1415,6 +1581,39 @@
 
   <button id="backToTop" data-i18n-title="tooltip_back_to_top" aria-label="Back to top">&#8679;</button>
 
+  <!-- ── Edit Scrobble Modal ── -->
+  <div id="editScrobbleModal" class="modal-overlay" role="dialog" aria-modal="true">
+    <div class="src-modal-box scrobble-modal-box">
+      <h3 class="src-modal-title">Edit Scrobble</h3>
+      <div class="src-field-group">
+        <label>
+          Artist *
+          <input type="text" id="editScrobbleArtist" placeholder="Artist name" autocomplete="off">
+        </label>
+        <label>
+          Track *
+          <input type="text" id="editScrobbleTrack" placeholder="Track title" autocomplete="off">
+        </label>
+        <label>
+          Album
+          <input type="text" id="editScrobbleAlbum" placeholder="Album (optional)" autocomplete="off">
+        </label>
+        <label>
+          Date &amp; Time
+          <input type="datetime-local" id="editScrobbleTime" step="1">
+        </label>
+      </div>
+      <p id="editScrobbleHint" style="font-size:0.7rem;color:var(--text3);margin:0.3rem 0 0.5rem;display:none">Pushing to Last.fm adds a corrected scrobble — remove the original manually on the Last.fm website.</p>
+      <div id="editScrobbleStatus" class="scrobble-status"></div>
+      <div class="src-modal-btns">
+        <button class="src-btn-cancel" onclick="closeEditScrobbleModal()">Cancel</button>
+        <button class="src-btn-save" id="editSaveLocalBtn" onclick="saveEditLocally()">Save Locally</button>
+        <button class="src-btn-save" id="editPushLfmBtn" onclick="pushEditToLastfm()" style="display:none">Push to Last.fm</button>
+        <button class="src-btn-save" id="editPushSheetBtn" onclick="pushEditToSheet()" style="display:none">Push to Sheet</button>
+      </div>
+    </div>
+  </div>
+
   <!-- ── Manual Scrobble Modal ── -->
   <div id="scrobbleModal" class="modal-overlay" role="dialog" aria-modal="true">
     <div class="src-modal-box scrobble-modal-box">
@@ -1435,15 +1634,17 @@
         <label>
           Date &amp; Time
           <div class="scrobble-time-row">
-            <input type="datetime-local" id="scrobbleTime">
+            <input type="datetime-local" id="scrobbleTime" step="1">
             <button type="button" class="scrobble-now-btn" onclick="setScrobbleNow()">Now</button>
           </div>
         </label>
       </div>
       <div id="scrobbleStatus" class="scrobble-status"></div>
+      <div id="scrobbleNoTarget" class="scrobble-status" style="display:none">Connect Last.fm or configure a Sheet write URL in Settings to add plays.</div>
       <div class="src-modal-btns">
         <button class="src-btn-cancel" onclick="closeScrobbleModal()">Cancel</button>
-        <button class="src-btn-save" id="scrobbleSubmitBtn" onclick="submitScrobble()">Scrobble</button>
+        <button class="src-btn-save" id="scrobbleSheetBtn" onclick="submitToSheet()" style="display:none">Add to Sheet</button>
+        <button class="src-btn-save" id="scrobbleSubmitBtn" onclick="submitScrobble()" style="display:none">Scrobble to Last.fm</button>
       </div>
     </div>
   </div>
@@ -1480,11 +1681,16 @@
           <input type="radio" name="srcRadio" id="srcRadioLastfm" onchange="updateSourceModalFields()">
           Last.fm
         </label>
+        <label>
+          <input type="radio" name="srcRadio" id="srcRadioFile" onchange="updateSourceModalFields()">
+          Upload File
+        </label>
       </div>
 
       <div id="srcSheetsFields" class="src-field-group">
+        <p class="src-modal-hint" style="margin-bottom:0.7rem">No tracking sheet yet? <a href="https://docs.google.com/spreadsheets/d/19brQQYXn1WQNhCkSMCYnGVYmxhmLzKOE2A3E3QFCeqk/copy" target="_blank" rel="noopener" style="color:var(--accent);font-weight:500">Copy our ready-to-use template →</a> &nbsp;·&nbsp; <a href="setup-guide.html" target="_blank" rel="noopener" style="color:var(--accent)">📄 Setup guide</a></p>
         <label>
-          Sheet ID
+          Sheet URL or ID
           <input type="text" id="srcSheetId" placeholder="Paste your Google Sheets URL or Sheet ID">
         </label>
         <label>
@@ -1492,6 +1698,264 @@
           <input type="text" id="srcSheetTab" placeholder="Full Raw Listening History">
         </label>
         <p class="src-modal-hint">The sheet must be shared as "Anyone with the link can view"</p>
+        <details class="lfm-custom-creds" style="margin-top:0.9rem">
+          <summary>Enable auto-sync &amp; manual play entry (optional)</summary>
+          <div style="margin-top:0.7rem">
+            <label>
+              Apps Script Web App URL
+              <input type="url" id="srcSheetWriteUrl" placeholder="https://script.google.com/macros/s/…/exec" autocomplete="off" style="margin-top:0.3rem">
+            </label>
+            <p class="src-modal-hint" style="margin-top:0.4rem">Paste your deployed Apps Script URL here to enable the "Add Play" button.</p>
+            <details class="lfm-custom-creds" style="margin-top:0.6rem">
+              <summary>How to set this up</summary>
+              <ol class="src-modal-hint" style="margin:0.5rem 0 0 1.1rem;line-height:1.7">
+                <li>If using our template, fill in your details in the <strong>Settings</strong> tab (B1 = username, B2 = API key)</li>
+                <li>Open your sheet → <strong>Extensions → Apps Script</strong></li>
+                <li>Replace any existing code with the full script below and save (Ctrl+S)</li>
+                <li><strong>For auto-sync:</strong> click <strong>Last.fm → Start Auto-Update (90 min)</strong> in your sheet's menu bar</li>
+                <li><strong>For manual entry:</strong> click <strong>Deploy → New deployment</strong> → Type: Web app · Execute as: <strong>Me</strong> · Access: <strong>Anyone</strong> → copy the URL and paste it above</li>
+                <li><strong>Authorization warning:</strong> Google will show a "This app isn't verified" screen — this is normal for personal scripts. Click <strong>Advanced</strong> → <strong>Go to [app name] (unsafe)</strong> → <strong>Allow</strong>. It is safe because you own this script and it only accesses your own sheet.</li>
+              </ol>
+              <div style="position:relative;margin-top:0.6rem">
+                <pre id="appsScriptCode" style="background:var(--bg3,#111);border:1px solid var(--border);border-radius:4px;padding:0.7rem;font-size:0.7rem;overflow-x:auto;white-space:pre;color:var(--text2);margin:0;line-height:1.5">// =============================================================
+//  DANKCHARTS.FM — Google Sheet Sync Script
+// =============================================================
+//  SETUP (do this once):
+//  1. Fill in your details in the "Settings" tab:
+//       B1 = Your Last.fm username
+//       B2 = Your Last.fm API key  (free: last.fm/api/account/create)
+//       B3 = Data tab name         (default: Full Raw Listening History)
+//
+//  2. FOR AUTO-SYNC: click the button next to "Help" in the Google Sheets
+//     menu bar called "Last.fm" → select "Start Auto-Update (90 min)"
+//     It will sync new plays every 90 minutes.
+//
+//  3. FOR MANUAL ENTRY: Deploy this script as a Web App
+//     (Deploy → New deployment → Web app → Execute as: Me → Access: Anyone)
+//     then paste the generated URL into the dankcharts.fm settings.
+//
+//  NOTE — "This app isn't verified" warning:
+//  Google shows this screen the first time you authorize the script.
+//  It is normal for personal scripts. Click Advanced →
+//  "Go to [app name] (unsafe)" → Allow. It is safe because you
+//  own this script and it only accesses your own Google Sheet.
+// =============================================================
+
+
+// Reads your credentials from the Settings tab.
+// No need to edit this function.
+function getSettings_() {
+  var s = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Settings');
+  if (!s) throw new Error('"Settings" tab not found. Check your sheet setup.');
+  return {
+    user:    s.getRange('B1').getValue().toString().trim(),
+    apiKey:  s.getRange('B2').getValue().toString().trim(),
+    tabName: s.getRange('B3').getValue().toString().trim() || 'Full Raw Listening History'
+  };
+}
+
+
+// =============================================================
+//  AUTO-SYNC
+//  Fetches any new plays from Last.fm and appends them to your
+//  data tab. Runs every 90 minutes once you click
+//  Last.fm → Start Auto-Update in the sheet menu.
+// =============================================================
+function fetchAndLogLastFmHistory() {
+  var cfg = getSettings_();
+
+  // Stop if credentials are missing
+  if (!cfg.user || !cfg.apiKey) {
+    Logger.log('ERROR: Fill in your Last.fm Username (B1) and API Key (B2) in the Settings tab.');
+    return;
+  }
+
+  // Remove any existing triggers to avoid duplicates (Google limits you to 20)
+  ScriptApp.getProjectTriggers().forEach(function(t) {
+    if (t.getHandlerFunction() === 'fetchAndLogLastFmHistory') ScriptApp.deleteTrigger(t);
+  });
+
+  var ss    = SpreadsheetApp.getActiveSpreadsheet();
+  var sheet = ss.getSheetByName(cfg.tabName);
+  if (!sheet) {
+    Logger.log('ERROR: Tab "' + cfg.tabName + '" not found. Check B3 in the Settings tab.');
+    return;
+  }
+
+  // Use the sheet's own timezone so dates are stored in your local time
+  var tz = ss.getSpreadsheetTimeZone();
+
+  // Find the last recorded track so we only fetch plays newer than that
+  var maxRow = sheet.getLastRow(), lastTs = 0, actualLastRow = 0;
+  if (maxRow > 1) {
+    var vals = sheet.getRange(1, 4, maxRow, 1).getValues(); // column D = date
+    for (var i = vals.length - 1; i >= 0; i--) {
+      var v = vals[i][0];
+      if (v &amp;&amp; v !== '') {
+        actualLastRow = i + 1;
+        var str = v instanceof Date ? Utilities.formatDate(v, tz, 'yyyy-MM-dd HH:mm:ss') : String(v);
+        if (/\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}/.test(str))
+          lastTs = Math.floor(Utilities.parseDate(str, tz, 'yyyy-MM-dd HH:mm:ss').getTime() / 1000);
+        break;
+      }
+    }
+  }
+
+  // Build the Last.fm API request (fetches up to 200 new plays at a time)
+  var url = 'https://ws.audioscrobbler.com/2.0/?method=user.getrecenttracks'
+    + '&amp;user=' + encodeURIComponent(cfg.user) + '&amp;api_key=' + cfg.apiKey
+    + '&amp;format=json&amp;from=' + (lastTs + 1) + '&amp;limit=200';
+
+  // Fetch with up to 5 retries in case of rate limiting or network errors
+  var response, attempt = 0;
+  while (attempt &lt; 5) {
+    try {
+      response = UrlFetchApp.fetch(url, { muteHttpExceptions: true,
+        headers: { 'Cache-Control': 'no-cache', 'Pragma': 'no-cache' } });
+      if (response.getResponseCode() === 429 || response.getResponseCode() === 403)
+        throw new Error('Rate limited');
+      break;
+    } catch(e) {
+      if (++attempt >= 5) {
+        // Give up for now, try again in 90 minutes
+        ScriptApp.newTrigger('fetchAndLogLastFmHistory').timeBased().after(90*60*1000).create();
+        return;
+      }
+      Utilities.sleep(Math.pow(2, attempt) * 1000 + Math.floor(Math.random() * 1000));
+    }
+  }
+
+  var data = JSON.parse(response.getContentText());
+  if (data.error) {
+    Logger.log('Last.fm API error: ' + data.message);
+    ScriptApp.newTrigger('fetchAndLogLastFmHistory').timeBased().after(90*60*1000).create();
+    return;
+  }
+
+  // Write new tracks to the sheet (skip the "now playing" entry which has no timestamp)
+  var tracks = data.recenttracks &amp;&amp; data.recenttracks.track;
+  if (tracks &amp;&amp; tracks.length) {
+    var done = tracks.filter(function(t) { return t.date &amp;&amp; t.date.uts; });
+    if (done.length) {
+      done.sort(function(a, b) { return +a.date.uts - +b.date.uts; }); // oldest first
+      var rows = done.map(function(t) {
+        return [
+          t.name,
+          t.artist['#text'],
+          t.album['#text'],
+          Utilities.formatDate(new Date(+t.date.uts * 1000), tz, 'yyyy-MM-dd HH:mm:ss')
+        ];
+      });
+      sheet.getRange(actualLastRow + 1, 1, rows.length, 4).setValues(rows);
+      Logger.log('Added ' + rows.length + ' new track(s).');
+    }
+  } else {
+    Logger.log('No new tracks since last sync.');
+  }
+
+  // Schedule the next sync in 90 minutes
+  ScriptApp.newTrigger('fetchAndLogLastFmHistory').timeBased().after(90*60*1000).create();
+}
+
+
+// Run this once from Last.fm → Start Auto-Update to kick off the 90-minute cycle.
+function setupTrigger() {
+  ScriptApp.getProjectTriggers().forEach(function(t) {
+    if (t.getHandlerFunction() === 'fetchAndLogLastFmHistory') ScriptApp.deleteTrigger(t);
+  });
+  ScriptApp.newTrigger('fetchAndLogLastFmHistory').timeBased().after(60*1000).create();
+  Logger.log('All set! First sync in 1 minute, then every 90 minutes automatically.');
+}
+
+
+// Adds the "Last.fm" menu to your sheet when you open it.
+function onOpen() {
+  SpreadsheetApp.getUi().createMenu('Last.fm')
+    .addItem('Fetch Latest Tracks', 'fetchAndLogLastFmHistory')
+    .addItem('Start Auto-Update (90 min)', 'setupTrigger')
+    .addToUi();
+}
+
+
+// =============================================================
+//  MANUAL ENTRY (Web App)
+//  This function receives a play from dankcharts.fm and writes
+//  it to your sheet. Only needed if you want the "Add Play"
+//  button — requires deploying this script as a Web App.
+// =============================================================
+function doPost(e) {
+  try {
+    var data    = JSON.parse(e.postData.contents);
+    var ss      = SpreadsheetApp.getActiveSpreadsheet();
+    var cfg     = ss.getSheetByName('Settings');
+    var tabName = cfg ? cfg.getRange('B3').getValue().toString().trim() : '';
+    var sheet   = ss.getSheetByName(tabName || 'Full Raw Listening History') || ss.getSheets()[0];
+
+    // Detect which column is which by reading the header row
+    var lastCol = Math.max(sheet.getLastColumn(), 1);
+    var headers = sheet.getRange(1, 1, 1, lastCol).getValues()[0]
+      .map(function(h) { return h.toString().toLowerCase().trim(); });
+    var aliases = {
+      title:    ['song title', 'title', 'track', 'track name', 'song name'],
+      artist:   ['artist', 'artist name', 'performer'],
+      album:    ['album', 'album name', 'release'],
+      datetime: ['date and time', 'date', 'datetime', 'timestamp', 'time', 'played at', 'scrobble time']
+    };
+    var colIdx = {};
+    for (var key in aliases) {
+      for (var i = 0; i &lt; aliases[key].length; i++) {
+        var idx = headers.indexOf(aliases[key][i]);
+        if (idx !== -1) { colIdx[key] = idx; break; }
+      }
+    }
+
+    var tz = ss.getSpreadsheetTimeZone();
+
+    // Edit an existing row by matching its original timestamp
+    if (data.action === 'update') {
+      var origFmt = Utilities.formatDate(new Date(data.originalTimestamp * 1000), tz, 'yyyy-MM-dd HH:mm:ss');
+      var newFmt  = Utilities.formatDate(new Date(data.timestamp * 1000), tz, 'yyyy-MM-dd HH:mm:ss');
+      var lastRow = sheet.getLastRow();
+      if (lastRow &lt; 2) throw new Error('Sheet is empty');
+      var values = sheet.getRange(2, 1, lastRow - 1, lastCol).getValues();
+      for (var r = 0; r &lt; values.length; r++) {
+        var cell = values[r][colIdx.datetime];
+        var cellStr = cell instanceof Date
+          ? Utilities.formatDate(cell, tz, 'yyyy-MM-dd HH:mm:ss')
+          : cell.toString().trim().slice(0, 19);
+        if (cellStr === origFmt) {
+          if (colIdx.title    !== undefined) sheet.getRange(r + 2, colIdx.title    + 1).setValue(data.track  || '');
+          if (colIdx.artist   !== undefined) sheet.getRange(r + 2, colIdx.artist   + 1).setValue(data.artist || '');
+          if (colIdx.album    !== undefined) sheet.getRange(r + 2, colIdx.album    + 1).setValue(data.album  || '');
+          if (colIdx.datetime !== undefined) sheet.getRange(r + 2, colIdx.datetime + 1).setValue(newFmt);
+          return ContentService.createTextOutput(JSON.stringify({ status: 'ok', updated: true }))
+            .setMimeType(ContentService.MimeType.JSON);
+        }
+      }
+      throw new Error('Row not found for timestamp: ' + origFmt);
+    }
+
+    // Add a new row
+    var fmt = Utilities.formatDate(new Date(data.timestamp * 1000), tz, 'yyyy-MM-dd HH:mm:ss');
+    var row = new Array(lastCol).fill('');
+    if (colIdx.title    !== undefined) row[colIdx.title]    = data.track  || '';
+    if (colIdx.artist   !== undefined) row[colIdx.artist]   = data.artist || '';
+    if (colIdx.album    !== undefined) row[colIdx.album]    = data.album  || '';
+    if (colIdx.datetime !== undefined) row[colIdx.datetime] = fmt;
+    sheet.appendRow(row);
+
+    return ContentService.createTextOutput(JSON.stringify({ status: 'ok' }))
+      .setMimeType(ContentService.MimeType.JSON);
+  } catch(err) {
+    return ContentService.createTextOutput(JSON.stringify({ status: 'error', message: err.message }))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+}</pre>
+                <button type="button" onclick="copyAppsScript()" style="position:absolute;top:0.4rem;right:0.4rem;font-size:0.7rem;padding:0.2rem 0.5rem;border-radius:3px;border:1px solid var(--border);background:var(--bg2);color:var(--text2);cursor:pointer" id="copyAppsScriptBtn">Copy</button>
+              </div>
+            </details>
+          </div>
+        </details>
       </div>
 
       <div id="srcLastfmFields" class="src-field-group" style="display:none;">
@@ -1523,6 +1987,17 @@
             </div>
           </details>
         </div>
+      </div>
+
+      <div id="srcFileFields" class="src-field-group" style="display:none;">
+        <p class="src-modal-hint">Upload your listening history. Supported formats: <strong>Last.fm CSV</strong>, <strong>mycharts CSV</strong>, <strong>Spotify ZIP</strong> (extended streaming history), <strong>Deezer XLSX</strong>.</p>
+        <div id="srcFileDrop" style="border:2px dashed var(--border);border-radius:6px;padding:1.5rem;text-align:center;cursor:pointer;transition:border-color .15s;">
+          <div style="font-size:1.5rem;margin-bottom:0.4rem;">📂</div>
+          <div style="font-size:0.85rem;color:var(--text2);">Drop file here or click to browse</div>
+          <div style="font-size:0.72rem;color:var(--text3);margin-top:0.25rem;">.csv &nbsp;·&nbsp; .zip &nbsp;·&nbsp; .xlsx &nbsp;·&nbsp; .xls</div>
+        </div>
+        <input type="file" id="srcFileInput" accept=".csv,.zip,.xlsx,.xls" style="display:none">
+        <div id="srcFileStatus" class="src-modal-hint" style="margin-top:0.5rem;"></div>
       </div>
 
       <div class="cert-config-group">
@@ -1572,6 +2047,10 @@
     </div>
   </div>
 
+<script type="text/javascript" id="zohodeskasap">
+window.ZohoDeskAsapReady=function(s){var e=window.ZohoDeskAsap__asyncalls=window.ZohoDeskAsap__asyncalls||[];window.ZohoDeskAsapReadyStatus?(s&&e.push(s),e.forEach(function(f){f&&f()}),window.ZohoDeskAsap__asyncalls=null):s&&e.push(s)};
+window.addEventListener('load',function(){var d=document,s=d.createElement('script');s.type='text/javascript';s.id='zohodeskasapscript';s.async=true;s.src='https://desk.zoho.com/portal/api/web/asapApp/1336756000000408048?orgId=922864240';d.body.appendChild(s);});
+</script>
 </body>
 
 </html>

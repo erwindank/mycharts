@@ -49,11 +49,14 @@ let chartSizeAllTime = Infinity; // 0 = All Entries
 let recLimit = 25; // Records entries limit
 let eventsArtistLimit = parseInt(localStorage.getItem('dc_events_artist_limit') || '50') || 50;
 const PAGE_SIZE = 100;
-const pageState = { songs: 0, artists: 0, albums: 0 };
+const pageState = { songs: 0, artists: 0, albums: 0, newSongs: 0, newArtists: 0, newAlbums: 0 };
 const fullData = { songs: [], artists: [], albums: [] };
+const fullNewData = { newSongs: [], newArtists: [], newAlbums: [] };
 let lastPeriodStats = null;
 let lastPeaks = null;
 const searchState = { songs: '', artists: '', albums: '' };
+let imgObservers = [];
+let imgQueue = Promise.resolve();
 
 let certWallData   = [];
 let certWallFilter = 'all';
@@ -281,6 +284,7 @@ function getScrobbleKey()     { return localStorage.getItem('dc_lfm_api_key')   
 function getScrobbleSecret()  { return localStorage.getItem('dc_lfm_api_secret')  || SCROBBLE_DEFAULT_SECRET; }
 function getScrobbleSession() { return localStorage.getItem('dc_lfm_session_key') || ''; }
 function getScrobbleUser()    { return localStorage.getItem('dc_lfm_session_user')|| ''; }
+function getSheetWriteUrl()   { return localStorage.getItem('dc_sheet_write_url') || ''; }
 
 function lfmSig(params, secret) {
   return md5(Object.keys(params).sort().map(k => k + params[k]).join('') + secret);
@@ -300,24 +304,30 @@ async function lfmPost(params) {
   return data;
 }
 
+function updateScrobbleBtn() {
+  const scrobBtn = document.getElementById('scrobbleBtn');
+  if (!scrobBtn) return;
+  const hasLfm   = !!(getScrobbleSession() && getScrobbleUser());
+  const hasSheet = !!(getSheetWriteUrl() && getDataSource() === 'sheets');
+  scrobBtn.style.display = (hasLfm || hasSheet) ? '' : 'none';
+}
+
 function updateLfmAuthStatus() {
   const user      = getScrobbleUser();
   const sess      = getScrobbleSession();
   const statusEl  = document.getElementById('lfmAuthStatus');
   const connectBtn= document.getElementById('lfmConnectBtn');
   const disconnBtn= document.getElementById('lfmDisconnectBtn');
-  const scrobBtn  = document.getElementById('scrobbleBtn');
   if (sess && user) {
     if (statusEl)   statusEl.innerHTML = `<span class="lfm-auth-dot connected"></span> Connected as <strong>${user}</strong>`;
     if (connectBtn) connectBtn.style.display = 'none';
     if (disconnBtn) disconnBtn.style.display = '';
-    if (scrobBtn)   scrobBtn.style.display   = '';
   } else {
     if (statusEl)   statusEl.innerHTML = '<span class="lfm-auth-dot"></span> Not connected';
     if (connectBtn) { connectBtn.style.display = ''; connectBtn.textContent = 'Connect to Last.fm'; connectBtn.disabled = false; }
     if (disconnBtn) disconnBtn.style.display = 'none';
-    if (scrobBtn)   scrobBtn.style.display   = 'none';
   }
+  updateScrobbleBtn();
 }
 
 function lfmAuthBtnClick() {
@@ -387,7 +397,7 @@ function lfmAuthDisconnect() {
 
 // ─── SCROBBLE MODAL ────────────────────────────────────────────
 function scrobbleDatetimeLocal(d) {
-  return new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+  return new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 19);
 }
 
 function openScrobbleModal() {
@@ -398,6 +408,12 @@ function openScrobbleModal() {
   document.getElementById('scrobbleStatus').textContent = '';
   document.getElementById('scrobbleStatus').className   = 'scrobble-status';
   setScrobbleNow();
+
+  const hasLfm   = !!(getScrobbleSession() && getScrobbleUser());
+  const hasSheet = !!(getSheetWriteUrl() && getDataSource() === 'sheets');
+  document.getElementById('scrobbleSubmitBtn').style.display = hasLfm   ? '' : 'none';
+  document.getElementById('scrobbleSheetBtn').style.display  = hasSheet ? '' : 'none';
+  document.getElementById('scrobbleNoTarget').style.display  = (!hasLfm && !hasSheet) ? '' : 'none';
 }
 
 function closeScrobbleModal() {
@@ -406,7 +422,7 @@ function closeScrobbleModal() {
 
 function setScrobbleNow() {
   const now = new Date();
-  now.setSeconds(0, 0);
+  now.setMilliseconds(0);
   document.getElementById('scrobbleTime').value = scrobbleDatetimeLocal(now);
 }
 
@@ -441,6 +457,187 @@ async function submitScrobble() {
     statusEl.textContent = '✓ Scrobbled successfully!';
     statusEl.className   = 'scrobble-status ok';
     setTimeout(closeScrobbleModal, 1500);
+  } catch (e) {
+    statusEl.textContent = 'Error: ' + e.message;
+    statusEl.className   = 'scrobble-status err';
+  }
+  btn.disabled = false;
+}
+
+async function submitToSheet() {
+  const artist  = document.getElementById('scrobbleArtist').value.trim();
+  const track   = document.getElementById('scrobbleTrack').value.trim();
+  const album   = document.getElementById('scrobbleAlbum').value.trim();
+  const timeVal = document.getElementById('scrobbleTime').value;
+  const statusEl= document.getElementById('scrobbleStatus');
+
+  if (!artist || !track) {
+    statusEl.textContent = 'Artist and Track are required.';
+    statusEl.className   = 'scrobble-status err';
+    return;
+  }
+  const timestamp = Math.floor(new Date(timeVal).getTime() / 1000);
+  if (isNaN(timestamp)) {
+    statusEl.textContent = 'Invalid date/time.';
+    statusEl.className   = 'scrobble-status err';
+    return;
+  }
+
+  const writeUrl = getSheetWriteUrl();
+  if (!writeUrl) {
+    statusEl.textContent = 'No Apps Script URL configured.';
+    statusEl.className   = 'scrobble-status err';
+    return;
+  }
+
+  const btn = document.getElementById('scrobbleSheetBtn');
+  btn.disabled = true;
+  statusEl.textContent = 'Adding to sheet…';
+  statusEl.className   = 'scrobble-status loading';
+
+  try {
+    const res  = await fetch(writeUrl, {
+      method: 'POST',
+      body: JSON.stringify({ artist, track, album, timestamp }),
+    });
+    const data = await res.json();
+    if (data.status === 'error') throw new Error(data.message || 'Script error');
+    statusEl.textContent = '✓ Added to sheet!';
+    statusEl.className   = 'scrobble-status ok';
+    setTimeout(closeScrobbleModal, 1500);
+  } catch (e) {
+    statusEl.textContent = 'Error: ' + e.message;
+    statusEl.className   = 'scrobble-status err';
+  }
+  btn.disabled = false;
+}
+
+function copyAppsScript() {
+  const code = document.getElementById('appsScriptCode').textContent;
+  navigator.clipboard.writeText(code).then(() => {
+    const btn = document.getElementById('copyAppsScriptBtn');
+    btn.textContent = 'Copied!';
+    setTimeout(() => { btn.textContent = 'Copy'; }, 2000);
+  });
+}
+
+// ─── EDIT SCROBBLE ────────────────────────────────────────────
+
+let _editPlay   = null;
+let _editOrigTs = 0;
+
+function openEditScrobbleModal(rawIdx) {
+  const p = rawFiltered[rawIdx];
+  if (!p) return;
+  _editPlay   = p;
+  _editOrigTs = p.date.getTime();
+  document.getElementById('editScrobbleArtist').value = p.artist;
+  document.getElementById('editScrobbleTrack').value  = p.title;
+  document.getElementById('editScrobbleAlbum').value  = p.album === '—' ? '' : p.album;
+  document.getElementById('editScrobbleTime').value   = scrobbleDatetimeLocal(p.date);
+  document.getElementById('editScrobbleStatus').textContent = '';
+  document.getElementById('editScrobbleStatus').className   = 'scrobble-status';
+  const hasLfm   = !!(getScrobbleSession() && getScrobbleUser());
+  const hasSheet = !!(getSheetWriteUrl() && getDataSource() === 'sheets');
+  document.getElementById('editPushLfmBtn').style.display   = hasLfm   ? '' : 'none';
+  document.getElementById('editPushSheetBtn').style.display = hasSheet ? '' : 'none';
+  document.getElementById('editScrobbleHint').style.display = hasLfm   ? '' : 'none';
+  document.getElementById('editScrobbleModal').classList.add('open');
+}
+
+function closeEditScrobbleModal() {
+  document.getElementById('editScrobbleModal').classList.remove('open');
+  _editPlay = null;
+}
+
+function _readEditFields() {
+  const artist   = document.getElementById('editScrobbleArtist').value.trim();
+  const title    = document.getElementById('editScrobbleTrack').value.trim();
+  const album    = document.getElementById('editScrobbleAlbum').value.trim();
+  const timeVal  = document.getElementById('editScrobbleTime').value;
+  const statusEl = document.getElementById('editScrobbleStatus');
+  if (!artist || !title) {
+    statusEl.textContent = 'Artist and Track are required.';
+    statusEl.className   = 'scrobble-status err';
+    return null;
+  }
+  const ts = Math.floor(new Date(timeVal).getTime() / 1000);
+  if (isNaN(ts)) {
+    statusEl.textContent = 'Invalid date/time.';
+    statusEl.className   = 'scrobble-status err';
+    return null;
+  }
+  return { artist, title, album, ts, date: new Date(ts * 1000), statusEl };
+}
+
+function saveEditLocally() {
+  const f = _readEditFields();
+  if (!f || !_editPlay) return;
+  _editPlay.title   = f.title;
+  _editPlay.artist  = f.artist;
+  _editPlay.artists = splitArtists(f.artist);
+  _editPlay.album   = f.album || '—';
+  _editPlay.date    = f.date;
+  firstSeenMaps = null;
+  if (allPlays.length) {
+    window.firstScrobbleDate = allPlays.reduce((min, p) => p.date < min ? p.date : min, allPlays[0].date);
+  }
+  renderAll();
+  closeEditScrobbleModal();
+}
+
+async function pushEditToLastfm() {
+  const f = _readEditFields();
+  if (!f) return;
+  const btn      = document.getElementById('editPushLfmBtn');
+  const statusEl = f.statusEl;
+  btn.disabled = true;
+  statusEl.textContent = 'Pushing to Last.fm…';
+  statusEl.className   = 'scrobble-status loading';
+  try {
+    const params = { method: 'track.scrobble', artist: f.artist, track: f.title, timestamp: String(f.ts), sk: getScrobbleSession() };
+    if (f.album) params.album = f.album;
+    await lfmPost(params);
+    statusEl.textContent = '✓ Pushed to Last.fm! Remove the original scrobble manually on the Last.fm website.';
+    statusEl.className   = 'scrobble-status ok';
+  } catch (e) {
+    statusEl.textContent = 'Error: ' + e.message;
+    statusEl.className   = 'scrobble-status err';
+  }
+  btn.disabled = false;
+}
+
+async function pushEditToSheet() {
+  const f = _readEditFields();
+  if (!f) return;
+  const writeUrl = getSheetWriteUrl();
+  if (!writeUrl) {
+    f.statusEl.textContent = 'No Apps Script URL configured.';
+    f.statusEl.className   = 'scrobble-status err';
+    return;
+  }
+  const btn      = document.getElementById('editPushSheetBtn');
+  const statusEl = f.statusEl;
+  btn.disabled = true;
+  statusEl.textContent = 'Updating sheet…';
+  statusEl.className   = 'scrobble-status loading';
+  try {
+    const res  = await fetch(writeUrl, {
+      method: 'POST',
+      body: JSON.stringify({
+        action: 'update',
+        originalTimestamp: Math.floor(_editOrigTs / 1000),
+        artist: f.artist,
+        track:  f.title,
+        album:  f.album,
+        timestamp: f.ts,
+      }),
+    });
+    const data = await res.json();
+    if (data.status === 'error') throw new Error(data.message || 'Script error');
+    if (!data.updated) throw new Error('Apps Script is outdated — please redeploy the latest version from the setup guide to enable editing.');
+    statusEl.textContent = '✓ Sheet updated!';
+    statusEl.className   = 'scrobble-status ok';
   } catch (e) {
     statusEl.textContent = 'Error: ' + e.message;
     statusEl.className   = 'scrobble-status err';
@@ -514,6 +711,7 @@ async function ytSearch(query) {
   if (!YOUTUBE_KEY) return null;
   const q = encodeURIComponent(query);
   const r = await fetch(`https://www.googleapis.com/youtube/v3/search?part=snippet&q=${q}&type=video&maxResults=1&key=${YOUTUBE_KEY}`);
+  if (!r.ok) return null;
   const d = await r.json();
   const item = d?.items?.[0];
   if (!item) return null;
@@ -630,32 +828,114 @@ function thumbHtml(url, fallbackStr, isRank1) {
   return `<div class="thumb-initials">${esc(initials(fallbackStr))}</div>`;
 }
 
-// After render, fetch images async and inject them into existing rows
-async function loadImages(items, type) {
-  for (const item of items) {
-    const source = (item.prefKey && itemSourcePrefs[item.prefKey]) || 'deezer';
+// Called when a browser fails to render an image URL — cycles through remaining sources automatically.
+// Tracks tried sources via data-tried-src to prevent repeating and stops once all are exhausted.
+async function _imgFallback(img) {
+  const FALLBACK_SOURCES = ['deezer', 'itunes', 'lastfm', 'youtube'];
+  const tried = new Set(img.dataset.triedSrc ? img.dataset.triedSrc.split(',') : []);
+  const type = img.dataset.type || '';
+  const prefKey = img.dataset.prefkey || '';
+  const name = img.dataset.name || '';
+  const artist = img.dataset.artist || '';
+  const album = img.dataset.album || '';
+  const imgId = img.dataset.imgid || '';
+  const fallback = name || album || artist || '';
+  img.onerror = null; // prevent re-entry while async fetch is in flight
+  for (const source of FALLBACK_SOURCES) {
+    if (tried.has(source)) continue;
+    tried.add(source);
+    img.dataset.triedSrc = [...tried].join(',');
     let url = null;
-    if (source !== 'off') {
+    try {
+      if (type === 'artist') url = await getArtistImage(name, source);
+      else if (type === 'album') url = await getAlbumImage(album, artist, source);
+      else url = await getTrackImage(name, artist, source);
+    } catch (e) {}
+    if (!img.isConnected) return;
+    if (url) {
+      img.onerror = function() { _imgFallback(this); };
+      img.src = url;
+      if (imgId) {
+        const btn = document.getElementById('srcbtn-' + imgId);
+        if (btn) btn.textContent = srcLabel(source);
+      }
+      if (prefKey) {
+        itemSourcePrefs[prefKey] = source;
+        localStorage.setItem('itemSourcePrefs', JSON.stringify(itemSourcePrefs));
+      }
+      return;
+    }
+  }
+  // All sources exhausted — stay on initials, leave source button as-is (Deezer)
+  if (img.isConnected) img.outerHTML = `<div class="thumb-initials">${esc(initials(fallback))}</div>`;
+}
+
+// Fetch and inject a single image into its container element
+async function fetchAndInjectImage(el, item, type) {
+  const FALLBACK_SOURCES = ['deezer', 'itunes', 'lastfm', 'youtube'];
+  const preferredSource = (item.prefKey && itemSourcePrefs[item.prefKey]) || 'deezer';
+  let url = null;
+  let usedSource = preferredSource;
+
+  if (preferredSource !== 'off') {
+    const startIdx = Math.max(0, FALLBACK_SOURCES.indexOf(preferredSource));
+    for (let i = 0; i < FALLBACK_SOURCES.length; i++) {
+      const source = FALLBACK_SOURCES[(startIdx + i) % FALLBACK_SOURCES.length];
+      if (i > 0 && source === 'deezer') break;
       try {
         if (type === 'artist') url = await getArtistImage(item.name, source);
         else if (type === 'album') url = await getAlbumImage(item.album, item.artist, source);
-        else if (type === 'song') url = await getTrackImage(item.title, item.artist, source);
-      } catch (e) { }
-      // Throttle Deezer requests to avoid hitting corsproxy.io rate limits
+        else url = await getTrackImage(item.title, item.artist, source);
+      } catch (e) { url = null; }
       if (source === 'deezer') await new Promise(r => setTimeout(r, 120));
+      if (url) { usedSource = source; break; }
     }
+    if (!url) usedSource = 'deezer';
+  }
+
+  if (!document.getElementById(item.imgId)) return;
+  const fallback = item.name || item.title || item.album || '';
+  if (url) {
+    el.innerHTML = `<img class="thumb" alt="" loading="lazy" data-imgid="${esc(item.imgId || '')}" data-type="${esc(type)}" data-prefkey="${esc(item.prefKey || '')}" data-name="${esc(item.name || item.title || '')}" data-artist="${esc(item.artist || '')}" data-album="${esc(item.album || '')}" data-tried-src="${esc(usedSource)}">`;
+    const newImg = el.querySelector('img');
+    newImg.onerror = function() { _imgFallback(this); };
+    newImg.src = url;
+  } else {
+    el.innerHTML = `<div class="thumb-initials">${esc(initials(fallback))}</div>`;
+  }
+  if (item.prefKey) {
+    if (usedSource !== preferredSource) {
+      itemSourcePrefs[item.prefKey] = usedSource;
+      localStorage.setItem('itemSourcePrefs', JSON.stringify(itemSourcePrefs));
+    }
+    const btn = document.getElementById('srcbtn-' + item.imgId);
+    if (btn) btn.textContent = srcLabel(usedSource);
+  }
+}
+
+function clearImageObservers() {
+  imgObservers.forEach(o => o.disconnect());
+  imgObservers = [];
+  imgQueue = Promise.resolve();
+}
+
+// Set up IntersectionObserver so images only load when scrolled into view
+function loadImages(items, type) {
+  const observer = new IntersectionObserver((entries) => {
+    for (const entry of entries) {
+      if (!entry.isIntersecting) continue;
+      observer.unobserve(entry.target);
+      const item = entry.target._imgItem;
+      if (item) imgQueue = imgQueue.then(() => fetchAndInjectImage(entry.target, item, type));
+    }
+  }, { rootMargin: '300px' });
+  imgObservers.push(observer);
+
+  for (const item of items) {
     const el = document.getElementById(item.imgId);
     if (!el) continue;
-    const fallback = item.name || item.title || item.album;
-    if (url) {
-      el.innerHTML = `<img class="thumb" src="${esc(url)}" alt="" loading="lazy" onerror="this.outerHTML='<div class=thumb-initials>${esc(initials(fallback))}</div>'">`;
-    } else {
-      el.innerHTML = `<div class="thumb-initials">${esc(initials(fallback))}</div>`;
-    }
-    if (item.prefKey) {
-      const btn = document.getElementById('srcbtn-' + item.imgId);
-      if (btn) btn.textContent = srcLabel(source);
-    }
+    el._imgItem = item;
+    observer.observe(el);
   }
 }
 
@@ -699,10 +979,9 @@ document.addEventListener('click', e => {
 
 
 // ─── GOOGLE SHEETS SYNC ────────────────────────────────────────
-const DEFAULT_SHEET_ID  = '1ydtkm3-P_37mlOpim0IS5WfIs2LSlVRx_D8fOL4kFVM';
 const DEFAULT_SHEET_TAB = 'Full Raw Listening History';
 function getSheetUrl() {
-  const rawId = localStorage.getItem('dc_sheet_id') || DEFAULT_SHEET_ID;
+  const rawId = localStorage.getItem('dc_sheet_id') || '';
   const tab   = localStorage.getItem('dc_sheet_tab') || DEFAULT_SHEET_TAB;
   // Support stored full URLs (e.g. from the deployed modal's URL input field)
   const urlMatch = rawId.match(/spreadsheets\/d\/([^\/\?#]+)/);
@@ -728,6 +1007,8 @@ const IDB_NAME = 'dankcharts';
 const IDB_STORE = 'cache';
 const IDB_LASTFM_KEY = 'lastfm';
 const IDB_SHEETS_KEY = 'sheets';
+const IDB_FILE_KEY   = 'file_upload';
+const BACKEND_API    = 'https://dankcharts-api.onrender.com';
 
 function openIDB() {
   return new Promise((resolve, reject) => {
@@ -785,6 +1066,11 @@ function getSheetUrlFallback() {
 }
 
 async function syncFromSheets() {
+  if (!localStorage.getItem('dc_sheet_id')) {
+    setSyncStatus('No Google Sheet configured — click ⚙ Configure to set one up.', 'err');
+    document.getElementById('syncNowBtn').disabled = false;
+    return;
+  }
   const btn = document.getElementById('syncNowBtn');
   btn.disabled = true;
   setSyncStatus(t('sync_connecting'), 'loading');
@@ -802,9 +1088,15 @@ async function syncFromSheets() {
     await saveToIDB(IDB_SHEETS_KEY, { ts: lastSyncTime.getTime(), csv: text });
     setSyncStatus(t('sync_ok', { time: lastSyncTime.toLocaleTimeString(), n: allPlays.length.toLocaleString() }), 'ok');
   } catch (e) {
-    // If export?format=csv fails (e.g. CORS on some browsers), retry with gviz/tq
+    // Fallback 1: backend proxy (handles CORS, serves full file regardless of size)
     try {
-      const res2 = await fetch(getSheetUrlFallback() + '&t=' + Date.now());
+      const rawId = localStorage.getItem('dc_sheet_id') || DEFAULT_SHEET_ID;
+      const urlMatch = rawId.match(/spreadsheets\/d\/([^\/\?#]+)/);
+      const sheetId = urlMatch ? urlMatch[1] : rawId;
+      const gid = localStorage.getItem('dc_sheet_gid');
+      let proxyUrl = `${BACKEND_API}/api/sync/sheets-proxy?sheetId=${encodeURIComponent(sheetId)}`;
+      if (gid) proxyUrl += `&gid=${encodeURIComponent(gid)}`;
+      const res2 = await fetch(proxyUrl);
       if (!res2.ok) throw new Error('HTTP ' + res2.status);
       const buffer2 = await res2.arrayBuffer();
       const text2 = new TextDecoder('utf-8').decode(buffer2);
@@ -814,7 +1106,20 @@ async function syncFromSheets() {
       await saveToIDB(IDB_SHEETS_KEY, { ts: lastSyncTime.getTime(), csv: text2 });
       setSyncStatus(t('sync_ok', { time: lastSyncTime.toLocaleTimeString(), n: allPlays.length.toLocaleString() }), 'ok');
     } catch (e2) {
-      setSyncStatus(t('sync_failed', { error: e2.message }), 'err');
+      // Fallback 2: gviz/tq (may truncate very large sheets)
+      try {
+        const res3 = await fetch(getSheetUrlFallback() + '&t=' + Date.now());
+        if (!res3.ok) throw new Error('HTTP ' + res3.status);
+        const buffer3 = await res3.arrayBuffer();
+        const text3 = new TextDecoder('utf-8').decode(buffer3);
+        parseCsv(text3, true);
+        lastSyncTime = new Date();
+        localStorage.setItem('dc_sync_ts', lastSyncTime.getTime().toString());
+        await saveToIDB(IDB_SHEETS_KEY, { ts: lastSyncTime.getTime(), csv: text3 });
+        setSyncStatus(t('sync_ok', { time: lastSyncTime.toLocaleTimeString(), n: allPlays.length.toLocaleString() }), 'ok');
+      } catch (e3) {
+        setSyncStatus(t('sync_failed', { error: e3.message }), 'err');
+      }
     }
   }
   btn.disabled = false;
@@ -1117,11 +1422,14 @@ function openSourceModal() {
   const src = getDataSource();
   document.getElementById('srcRadioSheets').checked = src === 'sheets';
   document.getElementById('srcRadioLastfm').checked = src === 'lastfm';
+  const fileRadio = document.getElementById('srcRadioFile');
+  if (fileRadio) fileRadio.checked = src === 'file';
   document.getElementById('srcDisplayName').value  = localStorage.getItem('dc_display_name') || '';
   populateTzSelect();
   document.getElementById('srcTimezone').value = userTimezone;
-  document.getElementById('srcSheetId').value      = localStorage.getItem('dc_sheet_id')  || DEFAULT_SHEET_ID;
-  document.getElementById('srcSheetTab').value     = localStorage.getItem('dc_sheet_tab') || DEFAULT_SHEET_TAB;
+  document.getElementById('srcSheetId').value       = localStorage.getItem('dc_sheet_id')        || DEFAULT_SHEET_ID;
+  document.getElementById('srcSheetTab').value      = localStorage.getItem('dc_sheet_tab')       || DEFAULT_SHEET_TAB;
+  document.getElementById('srcSheetWriteUrl').value = localStorage.getItem('dc_sheet_write_url') || '';
   document.getElementById('srcLastfmUser').value   = getLastFmUser();
   document.getElementById('srcLfmApiKey').value    = getScrobbleKey();
   document.getElementById('srcLfmApiSecret').value = getScrobbleSecret();
@@ -1133,6 +1441,7 @@ function openSourceModal() {
   document.getElementById('certSongDiamond').value = CERT.song.diamond;
   document.getElementById('eventsArtistLimitSelect').value = eventsArtistLimit;
   updateSourceModalFields();
+  initSrcFileUpload();
 }
 
 function closeSourceModal() {
@@ -1150,9 +1459,12 @@ function resetCertDefaults() {
 
 function updateSourceModalFields() {
   const isSheets = document.getElementById('srcRadioSheets').checked;
-  document.getElementById('srcSheetsFields').style.display = isSheets ? '' : 'none';
-  document.getElementById('srcLastfmFields').style.display = isSheets ? 'none' : '';
-  if (!isSheets) updateLfmAuthStatus();
+  const isFile   = document.getElementById('srcRadioFile')?.checked;
+  document.getElementById('srcSheetsFields').style.display  = isSheets ? '' : 'none';
+  document.getElementById('srcLastfmFields').style.display  = (!isSheets && !isFile) ? '' : 'none';
+  const fileEl = document.getElementById('srcFileFields');
+  if (fileEl) fileEl.style.display = isFile ? '' : 'none';
+  if (!isSheets && !isFile) updateLfmAuthStatus();
 }
 
 function saveSourceConfig() {
@@ -1166,8 +1478,18 @@ function saveSourceConfig() {
     try { localStorage.setItem('dc_timezone', selTz); } catch(e) {}
   }
   updateMastheadDynamic();
-  const src = document.getElementById('srcRadioSheets').checked ? 'sheets' : 'lastfm';
+  const isFile   = document.getElementById('srcRadioFile')?.checked;
+  const src = document.getElementById('srcRadioSheets').checked ? 'sheets' : (isFile ? 'file' : 'lastfm');
   localStorage.setItem('dc_source', src);
+  if (src === 'file') {
+    deleteFromIDB(IDB_LASTFM_KEY);
+    deleteFromIDB(IDB_SHEETS_KEY);
+    localStorage.removeItem('dc_sync_ts');
+    localStorage.removeItem('dc_lastfm_ts');
+    closeSourceModal();
+    document.getElementById('srcFileInput')?.click();
+    return;
+  }
   if (src === 'sheets') {
     const rawInput = document.getElementById('srcSheetId').value.trim();
     const urlMatch = rawInput.match(/spreadsheets\/d\/([^\/\?#]+)/);
@@ -1177,6 +1499,10 @@ function saveSourceConfig() {
     if (gidMatch) localStorage.setItem('dc_sheet_gid', gidMatch[1]);
     else localStorage.removeItem('dc_sheet_gid');
     localStorage.setItem('dc_sheet_tab', document.getElementById('srcSheetTab').value.trim());
+    const writeUrl = document.getElementById('srcSheetWriteUrl').value.trim();
+    if (writeUrl) localStorage.setItem('dc_sheet_write_url', writeUrl);
+    else localStorage.removeItem('dc_sheet_write_url');
+    updateScrobbleBtn();
     deleteFromIDB(IDB_LASTFM_KEY);
     localStorage.removeItem('dc_lastfm_ts'); // clean up old key
   } else {
@@ -1212,12 +1538,84 @@ function saveSourceConfig() {
 
 document.getElementById('syncNowBtn').addEventListener('click', syncNow);
 
+// ─── LANDING / ONBOARDING ──────────────────────────────────────
+function needsOnboarding() {
+  if (!localStorage.getItem('dc_source')) return true;
+  const src = getDataSource();
+  if (src === 'sheets' && !localStorage.getItem('dc_sheet_id')) return true;
+  if (src === 'lastfm' && !getLastFmUser()) return true;
+  return false;
+}
+
+let _landingSrc = null;
+
+function selectLandingSource(src) {
+  _landingSrc = src;
+  document.querySelectorAll('.landing-card').forEach(c => c.classList.remove('active'));
+  document.querySelectorAll('.landing-card-config').forEach(c => { c.style.display = 'none'; });
+  const card = document.getElementById('landingCard' + src.charAt(0).toUpperCase() + src.slice(1));
+  if (card) card.classList.add('active');
+  const cfg = document.getElementById('landingConfig' + src.charAt(0).toUpperCase() + src.slice(1));
+  if (cfg) cfg.style.display = 'flex';
+  document.getElementById('landingCta').style.display = 'flex';
+}
+
+function startFromLanding() {
+  const src = _landingSrc;
+  if (!src) return;
+  if (src === 'sheets') {
+    const rawId = document.getElementById('landingSheetId').value.trim();
+    if (!rawId) {
+      document.getElementById('landingSheetId').focus();
+      document.getElementById('landingSheetId').classList.add('landing-input-error');
+      return;
+    }
+    document.getElementById('landingSheetId').classList.remove('landing-input-error');
+    const tab = document.getElementById('landingSheetTab').value.trim() || DEFAULT_SHEET_TAB;
+    localStorage.setItem('dc_source', 'sheets');
+    localStorage.setItem('dc_sheet_id', rawId);
+    localStorage.setItem('dc_sheet_tab', tab);
+  } else if (src === 'lastfm') {
+    const user = document.getElementById('landingLastfmUser').value.trim();
+    if (!user) {
+      document.getElementById('landingLastfmUser').focus();
+      document.getElementById('landingLastfmUser').classList.add('landing-input-error');
+      return;
+    }
+    document.getElementById('landingLastfmUser').classList.remove('landing-input-error');
+    localStorage.setItem('dc_source', 'lastfm');
+    localStorage.setItem('dc_lastfm_user', user);
+  } else if (src === 'file') {
+    localStorage.setItem('dc_source', 'file');
+  }
+  document.getElementById('landingScreen').style.display = 'none';
+  document.getElementById('mainApp').style.display = 'block';
+  updateMastheadDynamic();
+  if (src === 'sheets') syncFromSheets();
+  else if (src === 'lastfm') syncFromLastFm();
+  else {
+    document.getElementById('uploadZone').style.display = 'block';
+  }
+}
+
+function skipLanding() {
+  document.getElementById('landingScreen').style.display = 'none';
+  document.getElementById('mainApp').style.display = 'block';
+  syncNow();
+}
+
 // Auto-sync on page load — use cached data if synced within the last hour
 window.addEventListener('load', async () => {
-  document.getElementById('mainApp').style.display = 'block';
   updateMastheadDynamic();
   updateLfmAuthStatus();
   localStorage.removeItem('dc_sync_csv'); // clean up old oversized key if present
+
+  if (needsOnboarding()) {
+    document.getElementById('landingScreen').style.display = 'flex';
+    return;
+  }
+
+  document.getElementById('mainApp').style.display = 'block';
 
   if (!localStorage.getItem('dc_display_name')) {
     const btn = document.getElementById('configureSourceBtn');
@@ -1225,8 +1623,24 @@ window.addEventListener('load', async () => {
     btn.title = 'Start here — configure your data source';
   }
 
-  if (getDataSource() === 'lastfm') {
+  const src = getDataSource();
+  if (src === 'lastfm') {
     syncFromLastFm();
+    return;
+  }
+  if (src === 'file') {
+    const cached = await loadFromIDB(IDB_FILE_KEY);
+    if (cached && cached.data) {
+      allPlays = cached.data.map(([title, artist, album, uts]) => {
+        const ar = artist || '';
+        return { title, artist: ar, artists: splitArtists(ar), album: album || '—', date: new Date(uts * 1000) };
+      });
+      allPlays.sort((a, b) => b.date - a.date);
+      setSyncStatus(`✓ ${allPlays.length.toLocaleString()} plays loaded from file`, 'ok');
+      finalizeLoad();
+    } else {
+      setSyncStatus('No file loaded — click ⚙ Configure to upload a file.', 'err');
+    }
     return;
   }
 
@@ -3046,8 +3460,9 @@ function renderRawPage() {
       <td class="raw-title">${esc(p.title)}</td>
       <td>${esc(p.artist)}</td>
       <td class="raw-album">${esc(p.album)}</td>
+      <td class="raw-edit-cell"><button class="raw-edit-btn" title="Edit" onclick="openEditScrobbleModal(${start + i})">✎</button></td>
     </tr>`;
-  }).join('') || `<tr><td colspan="5" style="padding:1rem;color:var(--text3);font-style:italic;font-family:'DM Mono',monospace;font-size:0.72rem;">${t('raw_no_match')}</td></tr>`;
+  }).join('') || `<tr><td colspan="6" style="padding:1rem;color:var(--text3);font-style:italic;font-family:'DM Mono',monospace;font-size:0.72rem;">${t('raw_no_match')}</td></tr>`;
 
   // Pagination
   document.getElementById('rawPrevBtn').disabled = rawPage === 0;
@@ -3232,6 +3647,7 @@ function renderNewEntries(plays, start, end) {
   const show = plays.length > 0 && ['week', 'month', 'year'].includes(currentPeriod);
   if (!show) {
     NEW_ENTRY_SECTIONS.forEach(id => { const el = document.getElementById(id); if (el) el.style.display = 'none'; });
+    pageState.newSongs = 0; pageState.newArtists = 0; pageState.newAlbums = 0;
     return;
   }
 
@@ -3262,7 +3678,7 @@ function renderNewEntries(plays, start, end) {
   }
   const allNewSongs = Object.values(songCounts).map(s => { s.album = bestAlbum(s.title, s._albums); delete s._albums; return s; })
     .sort((a, b) => b.count - a.count);
-  const newSongs = isFinite(limit) ? allNewSongs.slice(0, limit) : allNewSongs;
+  fullNewData.newSongs = isFinite(limit) ? allNewSongs.slice(0, limit) : allNewSongs;
 
   // New artists
   const artistCounts = {};
@@ -3277,7 +3693,7 @@ function renderNewEntries(plays, start, end) {
     }
   }
   const allNewArtists = Object.values(artistCounts).sort((a, b) => b.count - a.count);
-  const newArtists = isFinite(limit) ? allNewArtists.slice(0, limit) : allNewArtists;
+  fullNewData.newArtists = isFinite(limit) ? allNewArtists.slice(0, limit) : allNewArtists;
 
   // New albums
   const albumCounts = {};
@@ -3292,80 +3708,141 @@ function renderNewEntries(plays, start, end) {
     }
   }
   const allNewAlbums = Object.values(albumCounts).sort((a, b) => b.count - a.count);
-  const newAlbums = isFinite(limit) ? allNewAlbums.slice(0, limit) : allNewAlbums;
+  fullNewData.newAlbums = isFinite(limit) ? allNewAlbums.slice(0, limit) : allNewAlbums;
 
-  // Update titles and visibility
-  const maxS = newSongs[0]?.count || 1;
-  const maxA = newArtists[0]?.count || 1;
-  const maxL = newAlbums[0]?.count || 1;
+  // Reset pages on each full data rebuild
+  pageState.newSongs = 0; pageState.newArtists = 0; pageState.newAlbums = 0;
 
+  // Update section visibility and titles
   const songSec = document.getElementById('newSongsSection');
   const artistSec = document.getElementById('newArtistsSection');
   const albumSec = document.getElementById('newAlbumsSection');
 
   if (songSec) {
-    songSec.style.display = newSongs.length > 0 ? '' : 'none';
-    const songPrefix = allNewSongs.length > newSongs.length ? `TOP ${newSongs.length}` : `${newSongs.length}`;
-    const songSuffix = allNewSongs.length > newSongs.length ? ` (out of ${allNewSongs.length} discovered for the first time)` : '';
-    document.getElementById('newSongsTitle').textContent = `✦ ${songPrefix} NEW SONG${newSongs.length !== 1 ? 'S' : ''} THIS ${periodLabel.toUpperCase()}${songSuffix}`;
+    const songShown = fullNewData.newSongs.length;
+    const songTotal = allNewSongs.length;
+    songSec.style.display = songShown > 0 ? '' : 'none';
+    const songPrefix = songTotal > songShown ? `TOP ${songShown}` : `${songShown}`;
+    const songSuffix = songTotal > songShown ? ` (out of ${songTotal} discovered for the first time)` : '';
+    document.getElementById('newSongsTitle').textContent = `✦ ${songPrefix} NEW SONG${songShown !== 1 ? 'S' : ''} THIS ${periodLabel.toUpperCase()}${songSuffix}`;
   }
   if (artistSec) {
-    artistSec.style.display = newArtists.length > 0 ? '' : 'none';
-    const artistPrefix = allNewArtists.length > newArtists.length ? `TOP ${newArtists.length}` : `${newArtists.length}`;
-    const artistSuffix = allNewArtists.length > newArtists.length ? ` (out of ${allNewArtists.length} discovered for the first time)` : '';
-    document.getElementById('newArtistsTitle').textContent = `✦ ${artistPrefix} NEW ARTIST${newArtists.length !== 1 ? 'S' : ''} THIS ${periodLabel.toUpperCase()}${artistSuffix}`;
+    const artistShown = fullNewData.newArtists.length;
+    const artistTotal = allNewArtists.length;
+    artistSec.style.display = artistShown > 0 ? '' : 'none';
+    const artistPrefix = artistTotal > artistShown ? `TOP ${artistShown}` : `${artistShown}`;
+    const artistSuffix = artistTotal > artistShown ? ` (out of ${artistTotal} discovered for the first time)` : '';
+    document.getElementById('newArtistsTitle').textContent = `✦ ${artistPrefix} NEW ARTIST${artistShown !== 1 ? 'S' : ''} THIS ${periodLabel.toUpperCase()}${artistSuffix}`;
   }
   if (albumSec) {
-    albumSec.style.display = newAlbums.length > 0 ? '' : 'none';
-    const albumPrefix = allNewAlbums.length > newAlbums.length ? `TOP ${newAlbums.length}` : `${newAlbums.length}`;
-    const albumSuffix = allNewAlbums.length > newAlbums.length ? ` (out of ${allNewAlbums.length} discovered for the first time)` : '';
-    document.getElementById('newAlbumsTitle').textContent = `✦ ${albumPrefix} NEW ALBUM${newAlbums.length !== 1 ? 'S' : ''} THIS ${periodLabel.toUpperCase()}${albumSuffix}`;
+    const albumShown = fullNewData.newAlbums.length;
+    const albumTotal = allNewAlbums.length;
+    albumSec.style.display = albumShown > 0 ? '' : 'none';
+    const albumPrefix = albumTotal > albumShown ? `TOP ${albumShown}` : `${albumShown}`;
+    const albumSuffix = albumTotal > albumShown ? ` (out of ${albumTotal} discovered for the first time)` : '';
+    document.getElementById('newAlbumsTitle').textContent = `✦ ${albumPrefix} NEW ALBUM${albumShown !== 1 ? 'S' : ''} THIS ${periodLabel.toUpperCase()}${albumSuffix}`;
   }
 
-  // Render new songs
-  const newSongImgs = [];
-  document.getElementById('newSongsBody').innerHTML = newSongs.map((s, i) => {
-    const imgId = 'nsimg-' + i;
-    const prefKey = 'song:' + s.artist.toLowerCase() + '|||' + s.title.toLowerCase();
-    newSongImgs.push({ imgId, title: s.title, artist: s.artist, album: s.album, prefKey });
-    return `<tr class="${i === 0 ? 'rank-1' : i === 1 ? 'rank-2' : i === 2 ? 'rank-3' : ''}">
-      <td class="rank-cell">${i + 1}</td>
+  renderNewPage('newSongs');
+  renderNewPage('newArtists');
+  renderNewPage('newAlbums');
+}
+
+function renderNewPage(type) {
+  const data = fullNewData[type];
+  const page = pageState[type];
+  const totalPages = Math.ceil(data.length / PAGE_SIZE);
+  const slice = data.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE);
+  const max = data[0]?.count || 1;
+
+  const paginationEl = document.getElementById(type + 'Pagination');
+  const labelEl = document.getElementById(type + 'PageLabel');
+  if (paginationEl && labelEl) {
+    if (data.length > PAGE_SIZE) {
+      const start = page * PAGE_SIZE + 1;
+      const end = Math.min((page + 1) * PAGE_SIZE, data.length);
+      labelEl.textContent = `#${start}–#${end} of ${data.length.toLocaleString()}`;
+      paginationEl.style.display = 'flex';
+      const atFirst = page === 0;
+      const atLast = page >= totalPages - 1;
+      paginationEl.querySelector('.page-nav-first').disabled = atFirst;
+      paginationEl.querySelector('.page-nav-prev').disabled = atFirst;
+      paginationEl.querySelector('.page-nav-next').disabled = atLast;
+      paginationEl.querySelector('.page-nav-last').disabled = atLast;
+      const pageInput = document.getElementById(type + 'PageInput');
+      if (pageInput) pageInput.value = page + 1;
+    } else {
+      paginationEl.style.display = 'none';
+    }
+  }
+
+  const imgs = [];
+  if (type === 'newSongs') {
+    document.getElementById('newSongsBody').innerHTML = slice.map((s, i) => {
+      const rank = page * PAGE_SIZE + i + 1;
+      const imgId = 'nsimg-' + i;
+      const prefKey = 'song:' + s.artist.toLowerCase() + '|||' + s.title.toLowerCase();
+      imgs.push({ imgId, title: s.title, artist: s.artist, album: s.album, prefKey });
+      return `<tr class="${rank === 1 ? 'rank-1' : rank === 2 ? 'rank-2' : rank === 3 ? 'rank-3' : ''}">
+      <td class="rank-cell">${rank}</td>
       <td class="thumb-cell"><div class="thumb-wrap"><div id="${imgId}"><div class="thumb-initials">${esc(initials(s.title))}</div></div><button id="srcbtn-${imgId}" class="img-src-btn" data-imgid="${imgId}" data-type="song" data-prefkey="${esc(prefKey)}" data-name="${esc(s.title)}" data-artist="${esc(s.artist)}" data-album="${esc(s.album)}">${srcLabel(itemSourcePrefs[prefKey] || 'deezer')}</button></div></td>
       <td><div class="song-title">${esc(s.title)}</div><div class="song-artist">${esc(s.artist)}</div></td>
-      <td><div class="play-count">${tCountHtml('plays', s.count)}</div><div class="play-bar"><div class="play-bar-fill" style="width:${Math.round(s.count / maxS * 100)}%"></div></div></td>
+      <td><div class="play-count">${tCountHtml('plays', s.count)}</div><div class="play-bar"><div class="play-bar-fill" style="width:${Math.round(s.count / max * 100)}%"></div></div></td>
     </tr>`;
-  }).join('');
-  loadImages(newSongImgs.map(i => ({ ...i, name: i.title })), 'song');
-
-  // Render new artists
-  const newArtistImgs = [];
-  document.getElementById('newArtistsBody').innerHTML = newArtists.map((a, i) => {
-    const imgId = 'naimg-' + i;
-    const prefKey = 'artist:' + a.name.toLowerCase();
-    newArtistImgs.push({ imgId, name: a.name, prefKey });
-    return `<tr class="${i === 0 ? 'rank-1' : i === 1 ? 'rank-2' : i === 2 ? 'rank-3' : ''} artist-row" data-artist="${esc(a.name)}">
-      <td class="rank-cell">${i + 1}</td>
+    }).join('');
+    loadImages(imgs.map(i => ({ ...i, name: i.title })), 'song');
+  } else if (type === 'newArtists') {
+    document.getElementById('newArtistsBody').innerHTML = slice.map((a, i) => {
+      const rank = page * PAGE_SIZE + i + 1;
+      const imgId = 'naimg-' + i;
+      const prefKey = 'artist:' + a.name.toLowerCase();
+      imgs.push({ imgId, name: a.name, prefKey });
+      return `<tr class="${rank === 1 ? 'rank-1' : rank === 2 ? 'rank-2' : rank === 3 ? 'rank-3' : ''} artist-row" data-artist="${esc(a.name)}">
+      <td class="rank-cell">${rank}</td>
       <td class="thumb-cell"><div class="thumb-wrap"><div id="${imgId}"><div class="thumb-initials">${esc(initials(a.name))}</div></div><button id="srcbtn-${imgId}" class="img-src-btn" data-imgid="${imgId}" data-type="artist" data-prefkey="${esc(prefKey)}" data-name="${esc(a.name)}" data-artist="${esc(a.name)}" data-album="">${srcLabel(itemSourcePrefs[prefKey] || 'deezer')}</button></div></td>
       <td><div class="song-title">${esc(a.name)}</div><div class="song-artist">${tCount('songs', a.songs.size)}</div></td>
-      <td><div class="play-count">${tCountHtml('plays', a.count)}</div><div class="play-bar"><div class="play-bar-fill" style="width:${Math.round(a.count / maxA * 100)}%"></div></div></td>
+      <td><div class="play-count">${tCountHtml('plays', a.count)}</div><div class="play-bar"><div class="play-bar-fill" style="width:${Math.round(a.count / max * 100)}%"></div></div></td>
     </tr>`;
-  }).join('');
-  loadImages(newArtistImgs, 'artist');
-
-  // Render new albums
-  const newAlbumImgs = [];
-  document.getElementById('newAlbumsBody').innerHTML = newAlbums.map((a, i) => {
-    const imgId = 'nlimg-' + i;
-    const prefKey = 'album:' + a.artist.toLowerCase() + '|||' + a.album.toLowerCase();
-    newAlbumImgs.push({ imgId, album: a.album, artist: a.artist, name: a.album, prefKey });
-    return `<tr class="${i === 0 ? 'rank-1' : i === 1 ? 'rank-2' : i === 2 ? 'rank-3' : ''} album-row" data-albumkey="${esc(a.album + '|||' + a.artist)}">
-      <td class="rank-cell">${i + 1}</td>
+    }).join('');
+    loadImages(imgs, 'artist');
+  } else if (type === 'newAlbums') {
+    document.getElementById('newAlbumsBody').innerHTML = slice.map((a, i) => {
+      const rank = page * PAGE_SIZE + i + 1;
+      const imgId = 'nlimg-' + i;
+      const prefKey = 'album:' + a.artist.toLowerCase() + '|||' + a.album.toLowerCase();
+      imgs.push({ imgId, album: a.album, artist: a.artist, name: a.album, prefKey });
+      return `<tr class="${rank === 1 ? 'rank-1' : rank === 2 ? 'rank-2' : rank === 3 ? 'rank-3' : ''} album-row" data-albumkey="${esc(a.album + '|||' + a.artist)}">
+      <td class="rank-cell">${rank}</td>
       <td class="thumb-cell"><div class="thumb-wrap"><div id="${imgId}"><div class="thumb-initials">${esc(initials(a.album))}</div></div><button id="srcbtn-${imgId}" class="img-src-btn" data-imgid="${imgId}" data-type="album" data-prefkey="${esc(prefKey)}" data-name="${esc(a.album)}" data-artist="${esc(a.artist)}" data-album="${esc(a.album)}">${srcLabel(itemSourcePrefs[prefKey] || 'deezer')}</button></div></td>
       <td><div class="song-title">${esc(a.album)}</div><div class="song-artist">${esc(a.artist)}</div></td>
-      <td><div class="play-count">${tCountHtml('plays', a.count)}</div><div class="play-bar"><div class="play-bar-fill" style="width:${Math.round(a.count / maxL * 100)}%"></div></div></td>
+      <td><div class="play-count">${tCountHtml('plays', a.count)}</div><div class="play-bar"><div class="play-bar-fill" style="width:${Math.round(a.count / max * 100)}%"></div></div></td>
     </tr>`;
-  }).join('');
-  loadImages(newAlbumImgs, 'album');
+    }).join('');
+    loadImages(imgs, 'album');
+  }
+}
+
+function changeNewPage(type, dir) {
+  const data = fullNewData[type];
+  const totalPages = Math.ceil(data.length / PAGE_SIZE);
+  pageState[type] = Math.max(0, Math.min(totalPages - 1, pageState[type] + dir));
+  renderNewPage(type);
+  const titleIds = { newSongs: 'newSongsTitle', newArtists: 'newArtistsTitle', newAlbums: 'newAlbumsTitle' };
+  document.getElementById(titleIds[type]).scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function goToNewPage(type, pageNum) {
+  const data = fullNewData[type];
+  const totalPages = Math.ceil(data.length / PAGE_SIZE);
+  pageState[type] = pageNum === Infinity ? totalPages - 1 : Math.max(0, Math.min(totalPages - 1, pageNum));
+  renderNewPage(type);
+  const titleIds = { newSongs: 'newSongsTitle', newArtists: 'newArtistsTitle', newAlbums: 'newAlbumsTitle' };
+  document.getElementById(titleIds[type]).scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function goToNewPageInput(type, val) {
+  const n = parseInt(val, 10);
+  if (!isNaN(n) && n >= 1) goToNewPage(type, n - 1);
 }
 
 // ─── RENDER ────────────────────────────────────────────────────
@@ -3389,6 +3866,7 @@ function renderTableHeaders() {
 
 function renderAll() {
   if (currentPeriod === 'rawdata') { applyRawFilters(); return; }
+  clearImageObservers();
   document.body.dataset.period = currentPeriod;
   // Exit early if no data has been loaded yet
   if (!allPlays || allPlays.length === 0) { return; }
@@ -3668,8 +4146,14 @@ function renderPage(type, peaks) {
     paginationEl.style.display = 'flex';
   }
   if (paginationEl.style.display === 'flex') {
-    paginationEl.querySelectorAll('button')[0].disabled = (page === 0);
-    paginationEl.querySelectorAll('button')[1].disabled = (page >= totalPages - 1);
+    const atFirst = page === 0;
+    const atLast = page >= totalPages - 1;
+    paginationEl.querySelector('.page-nav-first').disabled = atFirst;
+    paginationEl.querySelector('.page-nav-prev').disabled = atFirst;
+    paginationEl.querySelector('.page-nav-next').disabled = atLast;
+    paginationEl.querySelector('.page-nav-last').disabled = atLast;
+    const pageInput = document.getElementById(type + 'PageInput');
+    if (pageInput) pageInput.value = page + 1;
   }
 
   // rank = actual position in full (unfiltered) dataset, always
@@ -3802,14 +4286,24 @@ function filteredData(type) {
 }
 
 function changePage(type, dir) {
-  const data = fullData[type];
-  const totalPages = Math.ceil(data.length / PAGE_SIZE);
+  const totalPages = Math.ceil(filteredData(type).length / PAGE_SIZE);
   pageState[type] = Math.max(0, Math.min(totalPages - 1, pageState[type] + dir));
-  const peaks = buildPeaks();
-  renderPage(type, peaks);
-  // Scroll to the top of that section's table
+  renderPage(type, buildPeaks());
   const titles = { songs: 'songsSectionTitle', artists: 'artistsSectionTitle', albums: 'albumsSectionTitle' };
   document.getElementById(titles[type]).scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function goToPage(type, pageNum) {
+  const totalPages = Math.ceil(filteredData(type).length / PAGE_SIZE);
+  pageState[type] = pageNum === Infinity ? totalPages - 1 : Math.max(0, Math.min(totalPages - 1, pageNum));
+  renderPage(type, buildPeaks());
+  const titles = { songs: 'songsSectionTitle', artists: 'artistsSectionTitle', albums: 'albumsSectionTitle' };
+  document.getElementById(titles[type]).scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function goToPageInput(type, val) {
+  const n = parseInt(val, 10);
+  if (!isNaN(n) && n >= 1) goToPage(type, n - 1);
 }
 
 // ─── CHART RUN ─────────────────────────────────────────────────
@@ -5601,28 +6095,55 @@ function setEntPostImgSource(source) {
   _fetchEntPostImage(crIgState.type, crIgState.key);
 }
 
-async function _fetchEntPostImage(type, key) {
-  const source = crIgState.entPostImgSource;
+// Resolves a URL for the given type/key/source, returns null on any failure.
+async function _lookupImgUrl(type, key, source) {
   try {
-    let url = null;
-    const crAny = (allChartRun.year && allChartRun.year.result && allChartRun.year.result[type] && allChartRun.year.result[type][key])
-      || (allChartRun.month && allChartRun.month.result && allChartRun.month.result[type] && allChartRun.month.result[type][key])
-      || (allChartRun.week && allChartRun.week.result && allChartRun.week.result[type] && allChartRun.week.result[type][key]);
-    if (source !== 'off') {
-      if (type === 'artists') {
-        url = await getArtistImage(key, source);
-      } else if (type === 'songs') {
-        const artist2 = (crAny && crAny._artist) || key.split('|||')[1] || '';
-        const title2 = (crAny && crAny._title) || key.split('|||')[0] || key;
-        url = await getTrackImage(title2, artist2, source);
-      } else {
-        const artist2 = (crAny && crAny._artist) || key.split('|||')[1] || '';
-        const album2 = (crAny && crAny._album) || key.split('|||')[0] || key;
-        url = await getAlbumImage(album2, artist2, source);
-      }
+    const crAny = allChartRun.year?.result?.[type]?.[key]
+      || allChartRun.month?.result?.[type]?.[key]
+      || allChartRun.week?.result?.[type]?.[key];
+    if (type === 'artists') return await getArtistImage(key, source);
+    if (type === 'songs') {
+      return await getTrackImage(
+        crAny?._title || key.split('|||')[0] || key,
+        crAny?._artist || key.split('|||')[1] || '',
+        source
+      );
     }
-    crIgState.entPostImgUrl = url || null;
-  } catch (e) { crIgState.entPostImgUrl = null; }
+    return await getAlbumImage(
+      crAny?._album || key.split('|||')[0] || key,
+      crAny?._artist || key.split('|||')[1] || '',
+      source
+    );
+  } catch (e) { return null; }
+}
+
+const _CRIG_SOURCES = ['deezer', 'itunes', 'lastfm', 'youtube'];
+
+// Cycles through _CRIG_SOURCES starting from startSource, stops before looping back to 'deezer'.
+// Returns { url, source } for the first hit, or { url: null, source: 'deezer' } when all fail.
+async function _fetchWithSourceFallback(type, key, startSource) {
+  const startIdx = Math.max(0, _CRIG_SOURCES.indexOf(startSource));
+  for (let i = 0; i < _CRIG_SOURCES.length; i++) {
+    const source = _CRIG_SOURCES[(startIdx + i) % _CRIG_SOURCES.length];
+    if (i > 0 && source === 'deezer') break; // cycled back to sentinel — stop
+    const url = await _lookupImgUrl(type, key, source);
+    if (url) return { url, source };
+  }
+  return { url: null, source: 'deezer' };
+}
+
+async function _fetchEntPostImage(type, key) {
+  if (crIgState.entPostImgSource === 'off') {
+    crIgState.entPostImgUrl = null;
+    if (document.getElementById('crIgModal').classList.contains('open') && crIgState.key === key && crIgState.mode === 'entrypost') updateCrIgPreview();
+    return;
+  }
+  const { url, source } = await _fetchWithSourceFallback(type, key, crIgState.entPostImgSource || 'deezer');
+  if (source !== crIgState.entPostImgSource) {
+    crIgState.entPostImgSource = source;
+    _syncEntPostSrcBtns();
+  }
+  crIgState.entPostImgUrl = url || null;
   if (document.getElementById('crIgModal').classList.contains('open') && crIgState.key === key && crIgState.mode === 'entrypost') {
     updateCrIgPreview();
   }
@@ -5802,29 +6323,19 @@ function openCrIgModal(type, encodedKey, rank) {
   _fetchEntPostImage(type, key);
 }
 
-// Fetches cover art for the given type/key using crIgState.imgSource
+// Fetches cover art for the given type/key using crIgState.imgSource, with automatic source fallback.
 async function fetchCrIgImage(type, key) {
-  const source = crIgState.imgSource;
-  try {
-    let url = null;
-    if (source === 'off') {
-      crIgState.imgUrl = null;
-    } else {
-      const crAny2 = allChartRun.year?.result?.[type]?.[key] || allChartRun.month?.result?.[type]?.[key] || allChartRun.week?.result?.[type]?.[key];
-      if (type === 'artists') {
-        url = await getArtistImage(key, source);
-      } else if (type === 'songs') {
-        const artist2 = crAny2?._artist || key.split('|||')[1] || '';
-        const title2 = crAny2?._title || key.split('|||')[0] || key;
-        url = await getTrackImage(title2, artist2, source);
-      } else if (type === 'albums') {
-        const artist2 = crAny2?._artist || key.split('|||')[1] || '';
-        const album2 = crAny2?._album || key.split('|||')[0] || key;
-        url = await getAlbumImage(album2, artist2, source);
-      }
-      crIgState.imgUrl = url || null;
-    }
-  } catch (e) { crIgState.imgUrl = null; }
+  if (crIgState.imgSource === 'off') {
+    crIgState.imgUrl = null;
+    if (document.getElementById('crIgModal').classList.contains('open') && crIgState.key === key) updateCrIgPreview();
+    return;
+  }
+  const { url, source } = await _fetchWithSourceFallback(type, key, crIgState.imgSource || 'deezer');
+  if (source !== crIgState.imgSource) {
+    crIgState.imgSource = source;
+    _syncCrIgSrcBtns();
+  }
+  crIgState.imgUrl = url || null;
   if (document.getElementById('crIgModal').classList.contains('open') && crIgState.key === key) {
     updateCrIgPreview();
   }
@@ -7034,6 +7545,82 @@ async function fetchReleasesForMBID(mbid) {
   } catch (e) { return []; }
 }
 
+function _releasePlaceholderDiv(artist) {
+  const words = (artist || '').replace(/^The\s+/i, '').split(/\s+/).filter(Boolean);
+  const initials = words.slice(0, 2).map(w => w[0].toUpperCase()).join('');
+  const colors = ['#0d2137', '#1a1040', '#0d2e1f', '#2b1a0d', '#0d1e2b', '#1f0d0d'];
+  const hash = (artist || '').split('').reduce((a, c) => a + c.charCodeAt(0), 0);
+  const div = document.createElement('div');
+  div.className = 'upcoming-card-placeholder';
+  div.style.background = colors[hash % colors.length];
+  div.textContent = initials;
+  return div;
+}
+
+// Show placeholder immediately (synchronous) then try to swap in a real image asynchronously.
+// This prevents a blank gap on slow mobile connections where the async fetches take several seconds.
+function releaseImgFallback(img) {
+  if (!img.isConnected) return;
+  const artist = img.dataset.artist || '';
+  const title = img.dataset.title || '';
+  const sources = (img.dataset.sources || '').split(',').filter(Boolean);
+  const card = img.closest('.upcoming-card');
+  img.onerror = null;
+  showReleasePlaceholder(img); // immediate visual — replaces img with initials div
+  if (sources.length && card) _tryReleaseImgAsync(card, artist, title, sources);
+}
+
+async function _tryReleaseImgAsync(card, artist, title, sources) {
+  for (const source of sources) {
+    if (!card.isConnected) return;
+    let url = null;
+    try {
+      if (source === 'itunes') {
+        const q = encodeURIComponent(artist + ' ' + title);
+        const res = await fetch(`https://itunes.apple.com/search?term=${q}&media=music&entity=album&limit=5`);
+        const data = await res.json();
+        const match = (data.results || []).find(r => r.artistName?.toLowerCase() === artist.toLowerCase()) || data.results?.[0];
+        if (match?.artworkUrl100) url = match.artworkUrl100.replace('100x100bb', '600x600bb');
+      } else if (source === 'lastfm') {
+        const res = await fetch(lfmUrl('album.getinfo', { artist, album: title }));
+        const data = await res.json();
+        const images = data.album?.image || [];
+        const best = [...images].reverse().find(i => i['#text'] && !i['#text'].includes('2a96cbd8b46e442fc41c2b86b821562f'));
+        if (best?.['#text']) url = best['#text'];
+      }
+    } catch (e) {}
+    if (!card.isConnected) return;
+    if (url) {
+      const ph = card.querySelector('.upcoming-card-placeholder');
+      if (!ph) return;
+      const newImg = document.createElement('img');
+      newImg.className = 'upcoming-card-img';
+      newImg.alt = '';
+      newImg.dataset.artist = artist;
+      newImg.dataset.title = title;
+      newImg.dataset.sources = '';
+      newImg.onerror = () => {
+        if (newImg.isConnected) newImg.parentNode.replaceChild(_releasePlaceholderDiv(artist), newImg);
+      };
+      newImg.src = url;
+      ph.parentNode.replaceChild(newImg, ph);
+      return;
+    }
+  }
+}
+
+function showReleasePlaceholder(img) {
+  if (!img.isConnected) return;
+  img.parentNode.replaceChild(_releasePlaceholderDiv(img.dataset.artist || ''), img);
+}
+
+function triggerPendingImgs(gridEl) {
+  gridEl.querySelectorAll('.upcoming-card-img-pending').forEach(img => {
+    img.classList.remove('upcoming-card-img-pending');
+    releaseImgFallback(img);
+  });
+}
+
 function upcomingDateLabel(dateStr) {
   const d = new Date(dateStr + 'T00:00:00');
   const now = tzNow(); now.setHours(0, 0, 0, 0);
@@ -7047,7 +7634,8 @@ function renderUpcomingCard(release, artistName) {
   const typeKey = 'mb_type_' + (release.type || 'Release').toLowerCase();
   const typeLabel = t(typeKey) || release.type || 'Release';
   const searchUrl = `https://www.google.com/search?q=${encodeURIComponent(release.title + ' ' + artistName)}`;
-  const imgHtml = release.mbid ? `<img class="upcoming-card-img" src="https://coverartarchive.org/release-group/${release.mbid}/front-250" alt="" loading="lazy" onerror="this.remove()">` : '';
+  const imgSrc = release.mbid ? `https://coverartarchive.org/release-group/${release.mbid}/front-250` : null;
+  const imgHtml = `<img class="upcoming-card-img${imgSrc ? '' : ' upcoming-card-img-pending'}" ${imgSrc ? `src="${imgSrc}" onerror="releaseImgFallback(this)"` : ''} alt="" loading="lazy" data-artist="${esc(artistName)}" data-title="${esc(release.title)}" data-sources="itunes,lastfm">`;
   return `<a class="upcoming-card" href="${searchUrl}" target="_blank" rel="noopener noreferrer">
     ${imgHtml}
     <div class="upcoming-card-date${soon ? ' soon' : ''}" data-date="${esc(release.date)}">${esc(label)}</div>
@@ -7103,7 +7691,8 @@ async function loadUpcomingReleases(forceRefresh = false) {
       found++;
     }
 
-    // Progressive render — update grid as results come in
+    // Progressive render — update grid as results come in (no triggerPendingImgs here;
+    // those img elements get replaced on the next batch, orphaning any in-flight fetches)
     if (releases.length > 0) {
       const sorted = sortUpcomingReleases([...allReleases]);
       gridEl.innerHTML = sorted.map(({ release, artistName }) =>
@@ -7134,6 +7723,7 @@ function renderUpcomingResults(allReleases, artists, fromCache) {
   } else {
     gridEl.innerHTML = sorted.map(({ release, artistName }) =>
       renderUpcomingCard(release, artistName)).join('');
+    triggerPendingImgs(gridEl);
   }
 
   const cacheNote = fromCache ? t('mb_cached') : '';
@@ -7183,7 +7773,8 @@ function renderRecentCard(release, artistName) {
   const typeKey = 'mb_type_' + (release.type || 'Release').toLowerCase();
   const typeLabel = t(typeKey) || release.type || 'Release';
   const searchUrl = `https://www.google.com/search?q=${encodeURIComponent(release.title + ' ' + artistName)}`;
-  const imgHtml = release.mbid ? `<img class="upcoming-card-img" src="https://coverartarchive.org/release-group/${release.mbid}/front-250" alt="" loading="lazy" onerror="this.remove()">` : '';
+  const imgSrc = release.mbid ? `https://coverartarchive.org/release-group/${release.mbid}/front-250` : null;
+  const imgHtml = `<img class="upcoming-card-img${imgSrc ? '' : ' upcoming-card-img-pending'}" ${imgSrc ? `src="${imgSrc}" onerror="releaseImgFallback(this)"` : ''} alt="" loading="lazy" data-artist="${esc(artistName)}" data-title="${esc(release.title)}" data-sources="itunes,lastfm">`;
   return `<a class="upcoming-card" href="${searchUrl}" target="_blank" rel="noopener noreferrer">
     ${imgHtml}
     <div class="upcoming-card-date recent" data-date="${esc(release.date)}">${esc(label)}</div>
@@ -7258,6 +7849,7 @@ function renderRecentResults(allReleases, artists, fromCache) {
   } else {
     gridEl.innerHTML = sorted.map(({ release, artistName }) =>
       renderRecentCard(release, artistName)).join('');
+    triggerPendingImgs(gridEl);
   }
 
   const cacheNote = fromCache ? t('mb_cached') : '';
@@ -8919,5 +9511,165 @@ function eventsLimitChanged(val) {
   localStorage.setItem('dc_events_artist_limit', newLimit);
   localStorage.removeItem(EVENTS_CACHE_KEY);
   loadEvents(true);
+}
+
+// ── FILE IMPORT (Spotify ZIP, Deezer XLSX, CSV) ────────────────────
+
+function readFileAsText(file) {
+  return new Promise((resolve, reject) => {
+    const r = new FileReader();
+    r.onload = e => resolve(e.target.result);
+    r.onerror = () => reject(new Error('Could not read file'));
+    r.readAsText(file, 'utf-8');
+  });
+}
+
+function readFileAsBuffer(file) {
+  return new Promise((resolve, reject) => {
+    const r = new FileReader();
+    r.onload = e => resolve(e.target.result);
+    r.onerror = () => reject(new Error('Could not read file'));
+    r.readAsArrayBuffer(file);
+  });
+}
+
+// Flexible datetime parser for imported data
+const _IMPORT_ES_MONTHS = {ene:0,feb:1,mar:2,abr:3,may:4,jun:5,jul:6,ago:7,sep:8,oct:9,nov:10,dic:11};
+function parseDtStrImport(s) {
+  if (!s) return null;
+  s = s.trim();
+  if (/^\d{10,}$/.test(s)) return new Date(parseInt(s) * 1000);
+  if (/^\d{4}-\d{2}-\d{2}/.test(s)) {
+    const d = new Date(s.includes('T') ? s : s.replace(' ', 'T') + (s.length <= 10 ? 'T00:00:00Z' : 'Z'));
+    if (!isNaN(d)) return d;
+  }
+  const mES = s.match(/^(\d{1,2})\/([a-zA-Z]{3})\/(\d{4})\s+(\d{1,2}):(\d{2})(?::(\d{2}))?/);
+  if (mES) {
+    const mon = _IMPORT_ES_MONTHS[mES[2].toLowerCase()];
+    if (mon !== undefined) {
+      const d = new Date(Date.UTC(+mES[3], mon, +mES[1], +mES[4], +mES[5], +(mES[6]||0)));
+      if (!isNaN(d)) return d;
+    }
+  }
+  const d = new Date(s);
+  return isNaN(d) ? null : d;
+}
+
+async function parseSpotifyZip(file) {
+  if (!window.JSZip) throw new Error('JSZip library not loaded');
+  const buf = await readFileAsBuffer(file);
+  const zip = await window.JSZip.loadAsync(buf);
+  const scrobbles = [];
+  for (const [name, entry] of Object.entries(zip.files)) {
+    const lower = name.toLowerCase();
+    if (!lower.endsWith('.json')) continue;
+    if (!['streaming', 'endsong', 'audio'].some(k => lower.includes(k))) continue;
+    let data;
+    try { data = JSON.parse(await entry.async('string')); } catch { continue; }
+    if (!Array.isArray(data)) continue;
+    for (const item of data) {
+      if (!item || typeof item !== 'object') continue;
+      if (parseInt(item.ms_played || 0) < 30000) continue;
+      const dt = parseDtStrImport(item.ts || item.endTime || '');
+      if (!dt) continue;
+      const track  = item.master_metadata_track_name || item.trackName || '';
+      const artist = item.master_metadata_album_artist_name || item.artistName || '';
+      if (!track || !artist) continue;
+      scrobbles.push({ artist, album: item.master_metadata_album_album_name || '—', track, date: dt });
+    }
+  }
+  return scrobbles;
+}
+
+async function parseDeezerXlsx(file) {
+  if (!window.XLSX) throw new Error('SheetJS library not loaded');
+  const buf = await readFileAsBuffer(file);
+  const wb = window.XLSX.read(buf, { type: 'array', cellDates: true });
+  const ws = wb.Sheets[wb.SheetNames[0]];
+  const rows = window.XLSX.utils.sheet_to_json(ws, { header: 1, raw: false, dateNF: 'yyyy-mm-dd HH:mm:ss' });
+  if (rows.length < 2) return [];
+  const header = rows[0].map(h => String(h || '').toLowerCase().trim());
+  const col = {};
+  header.forEach((h, i) => {
+    if (['song','title','track','titre','piste'].some(x => h.includes(x))) { if (col.track == null) col.track = i; }
+    else if (['artist','artiste'].some(x => h.includes(x)))                { if (col.artist == null) col.artist = i; }
+    else if (h.includes('album'))                                           { if (col.album == null) col.album = i; }
+    else if (['date','time','listened','ecoute'].some(x => h.includes(x))) { if (col.ts == null) col.ts = i; }
+  });
+  const scrobbles = [];
+  for (const row of rows.slice(1)) {
+    const get = k => col[k] != null ? String(row[col[k]] || '') : '';
+    const dt = parseDtStrImport(get('ts'));
+    if (!dt) continue;
+    const artist = get('artist'), track = get('track');
+    if (!artist || !track) continue;
+    scrobbles.push({ artist, album: get('album') || '—', track, date: dt });
+  }
+  return scrobbles;
+}
+
+async function importFileData(file) {
+  if (!file) return;
+  const statusEl = document.getElementById('srcFileStatus');
+  if (statusEl) statusEl.textContent = `Parsing ${file.name}…`;
+  try {
+    const fname = file.name.toLowerCase();
+    if (fname.endsWith('.csv')) {
+      // CSV: delegate to existing parseCsv which sets allPlays and calls finalizeLoad
+      const text = await readFileAsText(file);
+      parseCsv(text, false);
+      if (!allPlays.length) { if (statusEl) statusEl.textContent = 'No valid records found.'; return; }
+      const compact = allPlays.map(p => [p.title, p.artist, p.album, Math.floor(p.date.getTime()/1000)]);
+      await saveToIDB(IDB_FILE_KEY, { ts: Date.now(), data: compact });
+      localStorage.setItem('dc_source', 'file');
+      if (statusEl) statusEl.textContent = `✓ ${allPlays.length.toLocaleString()} plays loaded`;
+      closeSourceModal();
+      return;
+    }
+    let plays = [];
+    if (fname.endsWith('.zip')) {
+      const scrobbles = await parseSpotifyZip(file);
+      plays = scrobbles.map(s => {
+        const ar = s.artist || '';
+        return { title: s.track || '', artist: ar, artists: splitArtists(ar), album: s.album || '—', date: s.date };
+      });
+    } else if (fname.endsWith('.xlsx') || fname.endsWith('.xls')) {
+      const scrobbles = await parseDeezerXlsx(file);
+      plays = scrobbles.map(s => {
+        const ar = s.artist || '';
+        return { title: s.track || '', artist: ar, artists: splitArtists(ar), album: s.album || '—', date: s.date };
+      });
+    } else {
+      if (statusEl) statusEl.textContent = 'Unsupported file type.';
+      return;
+    }
+    plays = plays.filter(p => p.title && p.artist && p.date && !isNaN(p.date));
+    if (!plays.length) { if (statusEl) statusEl.textContent = 'No valid records found.'; return; }
+    plays.sort((a, b) => b.date - a.date);
+    allPlays = plays;
+    const compact = allPlays.map(p => [p.title, p.artist, p.album, Math.floor(p.date.getTime()/1000)]);
+    await saveToIDB(IDB_FILE_KEY, { ts: Date.now(), data: compact });
+    localStorage.setItem('dc_source', 'file');
+    if (statusEl) statusEl.textContent = `✓ ${allPlays.length.toLocaleString()} plays loaded`;
+    closeSourceModal();
+    setSyncStatus(`✓ ${allPlays.length.toLocaleString()} plays loaded from ${file.name}`, 'ok');
+    finalizeLoad();
+  } catch (e) {
+    if (statusEl) statusEl.textContent = `Error: ${e.message}`;
+  }
+}
+
+function initSrcFileUpload() {
+  const zone = document.getElementById('srcFileDrop');
+  const input = document.getElementById('srcFileInput');
+  if (!zone || !input) return;
+  input.addEventListener('change', () => { if (input.files[0]) importFileData(input.files[0]); input.value = ''; });
+  zone.addEventListener('click', () => input.click());
+  zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('dragover'); });
+  zone.addEventListener('dragleave', () => zone.classList.remove('dragover'));
+  zone.addEventListener('drop', e => {
+    e.preventDefault(); zone.classList.remove('dragover');
+    if (e.dataTransfer.files[0]) importFileData(e.dataTransfer.files[0]);
+  });
 }
 

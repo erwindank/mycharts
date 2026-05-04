@@ -1684,9 +1684,6 @@
       border-radius: 12px;
       padding: 1.6rem;
       margin: auto;
-      position: relative;
-      top: 50%;
-      transform: translateY(-50%);
     }
 
     .src-modal-title {
@@ -3607,6 +3604,12 @@
       display: block;
     }
 
+    #sourceModal.open {
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+    }
+
     .modal-box {
       max-width: 820px;
       margin: 0 auto;
@@ -4620,6 +4623,31 @@
       color: var(--text3);
     }
 
+    .raw-edit-cell {
+      width: 2rem;
+      padding: 0.15rem 0.3rem !important;
+      text-align: center;
+    }
+
+    .raw-edit-btn {
+      background: none;
+      border: 1px solid var(--border2);
+      color: var(--text3);
+      font-size: 0.75rem;
+      width: 1.5rem;
+      height: 1.5rem;
+      border-radius: 3px;
+      cursor: pointer;
+      line-height: 1;
+      padding: 0;
+      transition: color 0.15s, border-color 0.15s;
+    }
+
+    .raw-edit-btn:hover {
+      color: var(--accent);
+      border-color: var(--accent);
+    }
+
     .raw-pagination {
       display: flex;
       align-items: center;
@@ -4794,13 +4822,6 @@
       .export-playlist-btn {
         width: 100%;
         text-align: center;
-      }
-
-      /* Source modal: remove desktop vertical-center trick, let it scroll naturally */
-      .src-modal-box {
-        top: auto;
-        transform: none;
-        margin: 0 auto;
       }
 
       /* IG share modal: stack preview above controls on narrow screens */
