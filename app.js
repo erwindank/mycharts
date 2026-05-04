@@ -5064,24 +5064,10 @@ function certBadge(plays, type) {
 
 // ─── EXPORT PLAYLIST ───────────────────────────────────────────
 function getCurrentChartSongs() {
-  // Returns [{title, artist}] for all songs currently visible in the chart
-  if (isPaginated()) {
-    // Yearly / All-Time: use fullData.songs (already limited by chart view setting)
-    return fullData.songs.map(s => ({ title: s.title, artist: s.artist }));
-  }
-  // Weekly / Monthly: re-derive from the current plays (same as renderSongs does)
-  const { start, end } = getDateRange();
-  const plays = currentPeriod === 'alltime'
-    ? allPlays
-    : allPlays.filter(p => { const _tp = tzDate(p.date); return _tp >= start && _tp <= end; });
-  const counts = {};
-  for (const p of plays) {
-    const k = songKey(p);
-    if (!counts[k]) counts[k] = { title: p.title, artist: p.artist, count: 0, firstAchieved: p.date };
-    counts[k].count++;
-  }
-  return Object.values(counts).sort(rankSort).slice(0, chartSize)
-    .map(s => ({ title: s.title, artist: s.artist }));
+  // fullData.songs is always set by renderSongs/buildSongsFull with the correct sort
+  // (rankSortWithStatus for weekly/monthly, rankSort for yearly/alltime) and the
+  // correct size limit, so use it directly for all periods.
+  return fullData.songs.map(s => ({ title: s.title, artist: s.artist }));
 }
 
 let exportReversed = false;
