@@ -770,6 +770,7 @@
             data-i18n-placeholder="raw_search_date">
         </div>
         <button class="raw-clear-btn" id="rawClearBtn" data-i18n="raw_clear">✕ Clear</button>
+        <button class="raw-clear-btn" id="manageRulesBtn" onclick="openRulesModal()" style="margin-left:auto">⚙ Auto-correct Rules</button>
       </div>
       <div class="raw-summary" id="rawSummary"></div>
       <table class="raw-table">
@@ -1604,12 +1605,34 @@
         </label>
       </div>
       <p id="editScrobbleHint" style="font-size:0.7rem;color:var(--text3);margin:0.3rem 0 0.5rem;display:none">Pushing to Last.fm adds a corrected scrobble — remove the original manually on the Last.fm website.</p>
+      <div style="display:flex;flex-direction:column;gap:0.3rem;margin:0.5rem 0 0.4rem">
+        <label style="display:flex;align-items:center;gap:0.5rem;font-size:0.78rem;color:var(--text2);cursor:pointer">
+          <input type="checkbox" id="editApplyAll">
+          Apply to all matching entries (same song, artist &amp; album)
+        </label>
+        <label style="display:flex;align-items:center;gap:0.5rem;font-size:0.78rem;color:var(--text2);cursor:pointer">
+          <input type="checkbox" id="editSaveRule">
+          Save as auto-correct rule for future imports
+        </label>
+      </div>
       <div id="editScrobbleStatus" class="scrobble-status"></div>
       <div class="src-modal-btns">
         <button class="src-btn-cancel" onclick="closeEditScrobbleModal()">Cancel</button>
         <button class="src-btn-save" id="editSaveLocalBtn" onclick="saveEditLocally()">Save Locally</button>
         <button class="src-btn-save" id="editPushLfmBtn" onclick="pushEditToLastfm()" style="display:none">Push to Last.fm</button>
         <button class="src-btn-save" id="editPushSheetBtn" onclick="pushEditToSheet()" style="display:none">Push to Sheet</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Auto-correct Rules Modal ── -->
+  <div id="rulesModal" class="modal-overlay" role="dialog" aria-modal="true">
+    <div class="src-modal-box">
+      <h3 class="src-modal-title">Auto-correct Rules</h3>
+      <p style="font-size:0.78rem;color:var(--text3);margin:0 0 0.7rem">Rules apply automatically on every data load. Each rule matches an exact Artist + Song + Album combination and replaces it with your corrected values.</p>
+      <div id="rulesList" style="max-height:320px;overflow-y:auto;"></div>
+      <div class="src-modal-btns" style="margin-top:0.8rem">
+        <button class="src-btn-cancel" onclick="closeRulesModal()">Close</button>
       </div>
     </div>
   </div>
@@ -1933,6 +1956,28 @@ function doPost(e) {
         }
       }
       throw new Error('Row not found for timestamp: ' + origFmt);
+    }
+
+    // Update all rows matching artist + title + album combination
+    if (data.action === 'batchUpdate') {
+      var count = 0;
+      var lastRow2 = sheet.getLastRow();
+      if (lastRow2 &gt;= 2) {
+        var vals = sheet.getRange(2, 1, lastRow2 - 1, lastCol).getValues();
+        for (var r = 0; r &lt; vals.length; r++) {
+          var rowArtist = colIdx.artist !== undefined ? vals[r][colIdx.artist].toString().trim() : '';
+          var rowTitle  = colIdx.title  !== undefined ? vals[r][colIdx.title].toString().trim()  : '';
+          var rowAlbum  = colIdx.album  !== undefined ? vals[r][colIdx.album].toString().trim()  : '';
+          if (rowArtist === data.matchArtist &amp;&amp; rowTitle === data.matchTitle &amp;&amp; rowAlbum === data.matchAlbum) {
+            if (colIdx.title  !== undefined) sheet.getRange(r + 2, colIdx.title  + 1).setValue(data.track  || '');
+            if (colIdx.artist !== undefined) sheet.getRange(r + 2, colIdx.artist + 1).setValue(data.artist || '');
+            if (colIdx.album  !== undefined) sheet.getRange(r + 2, colIdx.album  + 1).setValue(data.album  || '');
+            count++;
+          }
+        }
+      }
+      return ContentService.createTextOutput(JSON.stringify({ status: 'ok', updated: count }))
+        .setMimeType(ContentService.MimeType.JSON);
     }
 
     // Add a new row

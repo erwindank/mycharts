@@ -524,22 +524,127 @@ function copyAppsScript() {
   });
 }
 
+// ─── AUTO-CORRECT RULES ───────────────────────────────────────
+
+const RULES_KEY = 'dc_autocorrect_rules';
+
+function getAutocorrectRules() {
+  try { return JSON.parse(localStorage.getItem(RULES_KEY) || '[]'); } catch { return []; }
+}
+
+function saveAutocorrectRule(origArtist, origTitle, origAlbum, newArtist, newTitle, newAlbum) {
+  const rules = getAutocorrectRules().filter(r =>
+    !(r.match.artist === origArtist && r.match.title === origTitle && r.match.album === origAlbum)
+  );
+  rules.push({
+    id: Date.now().toString(36) + Math.random().toString(36).slice(2, 5),
+    match:   { artist: origArtist, title: origTitle, album: origAlbum },
+    replace: { artist: newArtist,  title: newTitle,  album: newAlbum  },
+    createdAt: Date.now()
+  });
+  localStorage.setItem(RULES_KEY, JSON.stringify(rules));
+}
+
+function deleteAutocorrectRule(id) {
+  const rules = getAutocorrectRules().filter(r => r.id !== id);
+  localStorage.setItem(RULES_KEY, JSON.stringify(rules));
+  renderRulesList();
+}
+
+function applyAutocorrectRules(plays) {
+  const rules = getAutocorrectRules();
+  if (!rules.length) return plays;
+  return plays.map(p => {
+    const rule = rules.find(r =>
+      r.match.artist === p.artist && r.match.title === p.title && r.match.album === p.album
+    );
+    if (!rule) return p;
+    const artist = rule.replace.artist;
+    const title  = rule.replace.title;
+    const album  = rule.replace.album;
+    return { ...p, artist, title, album, artists: splitArtists(artist) };
+  });
+}
+
+async function autoPushRulesToSheet(rules, writeUrl) {
+  let totalUpdated = 0;
+  let failed = 0;
+  for (const rule of rules) {
+    try {
+      const res = await fetch(writeUrl, {
+        method: 'POST',
+        body: JSON.stringify({
+          action:      'batchUpdate',
+          matchArtist: rule.match.artist,
+          matchTitle:  rule.match.title,
+          matchAlbum:  rule.match.album,
+          artist:      rule.replace.artist,
+          track:       rule.replace.title,
+          album:       rule.replace.album === '—' ? '' : rule.replace.album,
+        }),
+      });
+      const data = await res.json();
+      if (data.status === 'error') throw new Error(data.message || 'Script error');
+      totalUpdated += (data.updated || 0);
+    } catch (e) {
+      console.warn('Auto-correct: sheet push failed for rule:', rule.match, e.message);
+      failed++;
+    }
+  }
+  if (!failed) {
+    setSyncStatus(`✓ Auto-corrected ${totalUpdated} entr${totalUpdated === 1 ? 'y' : 'ies'} in sheet.`, 'ok');
+  } else {
+    setSyncStatus(`Auto-correct: ${rules.length - failed}/${rules.length} rules pushed to sheet (${failed} failed — check console).`, 'loading');
+  }
+}
+
+function openRulesModal() {
+  renderRulesList();
+  document.getElementById('rulesModal').classList.add('open');
+}
+
+function closeRulesModal() {
+  document.getElementById('rulesModal').classList.remove('open');
+}
+
+function renderRulesList() {
+  const rules = getAutocorrectRules();
+  const el = document.getElementById('rulesList');
+  if (!rules.length) {
+    el.innerHTML = '<p style="font-size:0.8rem;color:var(--text3);text-align:center;padding:1rem 0">No rules saved yet.</p>';
+    return;
+  }
+  el.innerHTML = rules.map(r => `
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;padding:0.5rem 0;border-bottom:1px solid var(--border);gap:0.7rem">
+      <div style="font-size:0.75rem;flex:1;min-width:0;line-height:1.5">
+        <div style="color:var(--text3)">Match: <span style="color:var(--text2)">${esc(r.match.artist)} &mdash; ${esc(r.match.title)} &mdash; ${esc(r.match.album)}</span></div>
+        <div style="color:var(--text3)">&rarr; Replace: <span style="color:var(--accent)">${esc(r.replace.artist)} &mdash; ${esc(r.replace.title)} &mdash; ${esc(r.replace.album)}</span></div>
+      </div>
+      <button onclick="deleteAutocorrectRule('${esc(r.id)}')" style="flex-shrink:0;font-size:0.72rem;padding:0.2rem 0.5rem;border:1px solid var(--border);border-radius:3px;background:var(--bg2);color:var(--text2);cursor:pointer">Delete</button>
+    </div>
+  `).join('');
+}
+
 // ─── EDIT SCROBBLE ────────────────────────────────────────────
 
-let _editPlay   = null;
-let _editOrigTs = 0;
+let _editPlay    = null;
+let _editOrigTs  = 0;
+let _editOrigMatch = null;
 
 function openEditScrobbleModal(rawIdx) {
   const p = rawFiltered[rawIdx];
   if (!p) return;
-  _editPlay   = p;
-  _editOrigTs = p.date.getTime();
+  _editPlay      = p;
+  _editOrigTs    = p.date.getTime();
+  _editOrigMatch = { artist: p.artist, title: p.title, album: p.album };
   document.getElementById('editScrobbleArtist').value = p.artist;
   document.getElementById('editScrobbleTrack').value  = p.title;
   document.getElementById('editScrobbleAlbum').value  = p.album === '—' ? '' : p.album;
   document.getElementById('editScrobbleTime').value   = scrobbleDatetimeLocal(p.date);
   document.getElementById('editScrobbleStatus').textContent = '';
   document.getElementById('editScrobbleStatus').className   = 'scrobble-status';
+  document.getElementById('editApplyAll').checked  = false;
+  document.getElementById('editSaveRule').checked  = false;
   const hasLfm   = !!(getScrobbleSession() && getScrobbleUser());
   const hasSheet = !!(getSheetWriteUrl() && getDataSource() === 'sheets');
   document.getElementById('editPushLfmBtn').style.display   = hasLfm   ? '' : 'none';
@@ -550,7 +655,8 @@ function openEditScrobbleModal(rawIdx) {
 
 function closeEditScrobbleModal() {
   document.getElementById('editScrobbleModal').classList.remove('open');
-  _editPlay = null;
+  _editPlay      = null;
+  _editOrigMatch = null;
 }
 
 function _readEditFields() {
@@ -576,11 +682,30 @@ function _readEditFields() {
 function saveEditLocally() {
   const f = _readEditFields();
   if (!f || !_editPlay) return;
-  _editPlay.title   = f.title;
-  _editPlay.artist  = f.artist;
-  _editPlay.artists = splitArtists(f.artist);
-  _editPlay.album   = f.album || '—';
-  _editPlay.date    = f.date;
+  const applyAll = document.getElementById('editApplyAll').checked;
+  const saveRule = document.getElementById('editSaveRule').checked;
+  const orig     = _editOrigMatch;
+  const newAlbum = f.album || '—';
+  if (saveRule && orig) {
+    saveAutocorrectRule(orig.artist, orig.title, orig.album, f.artist, f.title, newAlbum);
+  }
+  if (applyAll && orig) {
+    allPlays.forEach(p => {
+      if (p.artist === orig.artist && p.title === orig.title && p.album === orig.album) {
+        p.title   = f.title;
+        p.artist  = f.artist;
+        p.artists = splitArtists(f.artist);
+        p.album   = newAlbum;
+      }
+    });
+    _editPlay.date = f.date;
+  } else {
+    _editPlay.title   = f.title;
+    _editPlay.artist  = f.artist;
+    _editPlay.artists = splitArtists(f.artist);
+    _editPlay.album   = newAlbum;
+    _editPlay.date    = f.date;
+  }
   firstSeenMaps = null;
   if (allPlays.length) {
     window.firstScrobbleDate = allPlays.reduce((min, p) => p.date < min ? p.date : min, allPlays[0].date);
@@ -619,28 +744,67 @@ async function pushEditToSheet() {
     f.statusEl.className   = 'scrobble-status err';
     return;
   }
+  const applyAll = document.getElementById('editApplyAll').checked;
+  const saveRule = document.getElementById('editSaveRule').checked;
+  const orig     = _editOrigMatch;
+  const newAlbum = f.album || '—';
+  if (saveRule && orig) {
+    saveAutocorrectRule(orig.artist, orig.title, orig.album, f.artist, f.title, newAlbum);
+  }
   const btn      = document.getElementById('editPushSheetBtn');
   const statusEl = f.statusEl;
   btn.disabled = true;
-  statusEl.textContent = 'Updating sheet…';
-  statusEl.className   = 'scrobble-status loading';
   try {
-    const res  = await fetch(writeUrl, {
-      method: 'POST',
-      body: JSON.stringify({
-        action: 'update',
-        originalTimestamp: Math.floor(_editOrigTs / 1000),
-        artist: f.artist,
-        track:  f.title,
-        album:  f.album,
-        timestamp: f.ts,
-      }),
-    });
-    const data = await res.json();
-    if (data.status === 'error') throw new Error(data.message || 'Script error');
-    if (!data.updated) throw new Error('Apps Script is outdated — please redeploy the latest version from the setup guide to enable editing.');
-    statusEl.textContent = '✓ Sheet updated!';
-    statusEl.className   = 'scrobble-status ok';
+    if (applyAll && orig) {
+      statusEl.textContent = 'Updating all matching entries in sheet…';
+      statusEl.className   = 'scrobble-status loading';
+      const res  = await fetch(writeUrl, {
+        method: 'POST',
+        body: JSON.stringify({
+          action:      'batchUpdate',
+          matchArtist: orig.artist,
+          matchTitle:  orig.title,
+          matchAlbum:  orig.album,
+          artist: f.artist,
+          track:  f.title,
+          album:  f.album,
+        }),
+      });
+      const data = await res.json();
+      if (data.status === 'error') throw new Error(data.message || 'Script error');
+      if (data.updated === undefined) throw new Error('Apps Script is outdated — please redeploy the latest version from the setup guide to enable batch editing.');
+      allPlays.forEach(p => {
+        if (p.artist === orig.artist && p.title === orig.title && p.album === orig.album) {
+          p.title   = f.title;
+          p.artist  = f.artist;
+          p.artists = splitArtists(f.artist);
+          p.album   = newAlbum;
+        }
+      });
+      firstSeenMaps = null;
+      renderAll();
+      statusEl.textContent = `✓ Updated ${data.updated} entr${data.updated === 1 ? 'y' : 'ies'} in sheet!`;
+      statusEl.className   = 'scrobble-status ok';
+    } else {
+      statusEl.textContent = 'Updating sheet…';
+      statusEl.className   = 'scrobble-status loading';
+      const res  = await fetch(writeUrl, {
+        method: 'POST',
+        body: JSON.stringify({
+          action: 'update',
+          originalTimestamp: Math.floor(_editOrigTs / 1000),
+          artist: f.artist,
+          track:  f.title,
+          album:  f.album,
+          timestamp: f.ts,
+        }),
+      });
+      const data = await res.json();
+      if (data.status === 'error') throw new Error(data.message || 'Script error');
+      if (!data.updated) throw new Error('Apps Script is outdated — please redeploy the latest version from the setup guide to enable editing.');
+      statusEl.textContent = '✓ Sheet updated!';
+      statusEl.className   = 'scrobble-status ok';
+    }
   } catch (e) {
     const msg = e.message === 'Failed to fetch'
       ? 'Could not reach the Apps Script. Check that it is deployed as a Web App with access set to "Anyone".'
@@ -1164,10 +1328,10 @@ async function syncFromLastFm() {
   const age = cached ? Date.now() - cached.ts : Infinity;
   if (cached && age < SYNC_INTERVAL_MS) {
     try {
-      allPlays = cached.data.map(([title, artist, album, uts]) => {
+      allPlays = applyAutocorrectRules(cached.data.map(([title, artist, album, uts]) => {
         const ar = artist || '';
         return { title, artist: ar, artists: splitArtists(ar), album: album || '—', date: new Date(uts * 1000) };
-      });
+      }));
       lastSyncTime = new Date(cached.ts);
       const minsAgo = Math.round(age / 60000);
       setSyncStatus(t('sync_ok_cached', { time: lastSyncTime.toLocaleTimeString(), n: allPlays.length.toLocaleString(), mins: minsAgo }), 'ok');
@@ -1231,7 +1395,7 @@ async function syncFromLastFm() {
     return;
   }
 
-  allPlays = rawTracks.map(t => {
+  allPlays = applyAutocorrectRules(rawTracks.map(t => {
     const ar = (t.artist && t.artist['#text']) || '';
     return {
       title:   t.name || '',
@@ -1240,7 +1404,7 @@ async function syncFromLastFm() {
       album:   (t.album && t.album['#text']) || '—',
       date:    new Date(parseInt(t.date.uts) * 1000)
     };
-  });
+  }));
 
   const compact = rawTracks.map(t => [
     t.name || '',
@@ -1308,7 +1472,7 @@ function parsePlaysCsv(text) {
   }
   if (!plays.length) return null;
   plays.sort((a, b) => b.date - a.date);
-  return plays;
+  return applyAutocorrectRules(plays);
 }
 
 // Lightweight re-render after a background poll — does NOT restore settings or click period buttons.
@@ -1334,10 +1498,10 @@ async function pollLastFm() {
       const newestKnown = allPlays[0].date;
       const newTracks = tracks.filter(tr => tr.date?.uts && new Date(parseInt(tr.date.uts) * 1000) > newestKnown);
       if (newTracks.length > 0) {
-        const newPlays = newTracks.map(tr => {
+        const newPlays = applyAutocorrectRules(newTracks.map(tr => {
           const ar = (tr.artist?.['#text']) || '';
           return { title: tr.name || '', artist: ar, artists: splitArtists(ar), album: tr.album?.['#text'] || '—', date: new Date(parseInt(tr.date.uts) * 1000) };
-        });
+        }));
         allPlays = [...newPlays, ...allPlays];
         // Update IDB cache data while preserving the original ts so the 6-hour full sync still fires on schedule
         const cached = await loadFromIDB(IDB_LASTFM_KEY);
@@ -1637,10 +1801,10 @@ window.addEventListener('load', async () => {
   if (src === 'file') {
     const cached = await loadFromIDB(IDB_FILE_KEY);
     if (cached && cached.data) {
-      allPlays = cached.data.map(([title, artist, album, uts]) => {
+      allPlays = applyAutocorrectRules(cached.data.map(([title, artist, album, uts]) => {
         const ar = artist || '';
         return { title, artist: ar, artists: splitArtists(ar), album: album || '—', date: new Date(uts * 1000) };
-      });
+      }));
       allPlays.sort((a, b) => b.date - a.date);
       setSyncStatus(`✓ ${allPlays.length.toLocaleString()} plays loaded from file`, 'ok');
       finalizeLoad();
@@ -1744,6 +1908,19 @@ function parseCsv(text, fromSheets = false) {
   }
 
   allPlays.sort((a, b) => b.date - a.date);
+
+  if (fromSheets) {
+    const writeUrl = getSheetWriteUrl();
+    if (writeUrl) {
+      const rules = getAutocorrectRules();
+      const matchedRules = rules.filter(r =>
+        allPlays.some(p => p.artist === r.match.artist && p.title === r.match.title && p.album === r.match.album)
+      );
+      if (matchedRules.length) autoPushRulesToSheet(matchedRules, writeUrl);
+    }
+  }
+
+  allPlays = applyAutocorrectRules(allPlays);
   finalizeLoad();
 }
 
