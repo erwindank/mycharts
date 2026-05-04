@@ -506,7 +506,10 @@ async function submitToSheet() {
     statusEl.className   = 'scrobble-status ok';
     setTimeout(closeScrobbleModal, 1500);
   } catch (e) {
-    statusEl.textContent = 'Error: ' + e.message;
+    const msg = e.message === 'Failed to fetch'
+      ? 'Could not reach the Apps Script. Check that it is deployed as a Web App with access set to "Anyone".'
+      : e.message;
+    statusEl.textContent = 'Error: ' + msg;
     statusEl.className   = 'scrobble-status err';
   }
   btn.disabled = false;
@@ -639,7 +642,10 @@ async function pushEditToSheet() {
     statusEl.textContent = '✓ Sheet updated!';
     statusEl.className   = 'scrobble-status ok';
   } catch (e) {
-    statusEl.textContent = 'Error: ' + e.message;
+    const msg = e.message === 'Failed to fetch'
+      ? 'Could not reach the Apps Script. Check that it is deployed as a Web App with access set to "Anyone".'
+      : e.message;
+    statusEl.textContent = 'Error: ' + msg;
     statusEl.className   = 'scrobble-status err';
   }
   btn.disabled = false;
