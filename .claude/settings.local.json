@@ -60,7 +60,8 @@
       "Bash(powershell -NoProfile -Command \"Select-String -Path 'c:\\\\Users\\\\erwin_totaltransport\\\\Desktop\\\\mycharts\\\\dankcharts\\\\setup-guide.html' -Pattern 'appendValues|updateValues' -Context 5 | Select-Object -First 30\")",
       "Bash(powershell -NoProfile -Command \"Select-String -Path 'c:\\\\Users\\\\erwin_totaltransport\\\\Desktop\\\\mycharts\\\\dankcharts\\\\app.js' -Pattern 'appsScript|doPost|deploy|function.*append|function.*update' | Select-Object -First 20\")",
       "Bash(powershell -NoProfile -Command \"Select-String -Path 'c:\\\\Users\\\\erwin_totaltransport\\\\Desktop\\\\mycharts\\\\dankcharts\\\\index.html' -Pattern 'appsScriptCode' -Context 3 | head -50\")",
-      "Bash(Get-ChildItem -Path \"c:\\\\Users\\\\erwin\\\\Desktop\\\\mycharts\\\\dankcharts\\\\\" -Recurse -Force | Select-Object FullName, Extension | head -50)"
+      "Bash(Get-ChildItem -Path \"c:\\\\Users\\\\erwin\\\\Desktop\\\\mycharts\\\\dankcharts\\\\\" -Recurse -Force | Select-Object FullName, Extension | head -50)",
+      "Bash(Get-ChildItem -Path \"c:\\\\Users\\\\erwin_totaltransport\\\\Desktop\\\\mycharts\\\\dankcharts\" -Recurse -Filter \"*.html\")"
     ]
   }
 }

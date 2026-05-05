@@ -1,13 +1,14 @@
 // ── FIREBASE CONFIGURATION ─────────────────────────────────────────────────
 // After creating your Firebase project, paste your config here.
 // Firebase Console → Project Settings → Your apps → Web app → SDK setup & config
-const FIREBASE_CONFIG = {
-  apiKey:            "REPLACE_WITH_YOUR_API_KEY",
-  authDomain:        "REPLACE_WITH_YOUR_PROJECT_ID.firebaseapp.com",
-  projectId:         "REPLACE_WITH_YOUR_PROJECT_ID",
-  storageBucket:     "REPLACE_WITH_YOUR_PROJECT_ID.appspot.com",
-  messagingSenderId: "REPLACE_WITH_YOUR_MESSAGING_SENDER_ID",
-  appId:             "REPLACE_WITH_YOUR_APP_ID"
+const firebaseConfig = {
+  apiKey: "AIzaSyAftPCYx8Ja3z8n-gYAM5iDhJI_NfHwgTY",
+  authDomain: "dankcharts.firebaseapp.com",
+  projectId: "dankcharts",
+  storageBucket: "dankcharts.firebasestorage.app",
+  messagingSenderId: "1011392630181",
+  appId: "1:1011392630181:web:160d3c8d4125eeec71ac4c",
+  measurementId: "G-G5LQYKKD5G"
 };
 
 // localStorage keys that sync across devices (settings only — not cached data or timestamps)
@@ -101,7 +102,7 @@ window.dcSignOut        = dcSignOut;
 window.dcSaveUserConfig = dcSaveUserConfig;
 
 // ── INIT ────────────────────────────────────────────────────────────────────
-firebase.initializeApp(FIREBASE_CONFIG);
+firebase.initializeApp(firebaseConfig);
 _auth = firebase.auth();
 _db   = firebase.firestore();
 
