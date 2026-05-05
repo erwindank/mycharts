@@ -543,11 +543,13 @@ function saveAutocorrectRule(origArtist, origTitle, origAlbum, newArtist, newTit
     createdAt: Date.now()
   });
   localStorage.setItem(RULES_KEY, JSON.stringify(rules));
+  syncRulesToSheet();
 }
 
 function deleteAutocorrectRule(id) {
   const rules = getAutocorrectRules().filter(r => r.id !== id);
   localStorage.setItem(RULES_KEY, JSON.stringify(rules));
+  syncRulesToSheet();
   renderRulesList();
 }
 
@@ -596,6 +598,83 @@ async function autoPushRulesToSheet(rules, writeUrl) {
   } else {
     setSyncStatus(`Auto-correct: ${rules.length - failed}/${rules.length} rules pushed to sheet (${failed} failed — check console).`, 'loading');
   }
+}
+
+async function syncRulesToSheet() {
+  const writeUrl = getSheetWriteUrl();
+  if (!writeUrl) return;
+  try {
+    await fetch(writeUrl, {
+      method: 'POST',
+      body: JSON.stringify({ action: 'saveRules', rules: JSON.stringify(getAutocorrectRules()) }),
+    });
+  } catch { /* silently skip if sheet unreachable */ }
+}
+
+async function loadRulesFromSheet() {
+  const writeUrl = getSheetWriteUrl();
+  if (!writeUrl) return;
+  try {
+    const res = await fetch(writeUrl, { method: 'POST', body: JSON.stringify({ action: 'loadRules' }) });
+    if (!res.ok) return;
+    const data = await res.json();
+    if (data.status !== 'ok' || !data.rules) return;
+    const sheetRules = JSON.parse(data.rules);
+    if (!Array.isArray(sheetRules)) return;
+    const local = getAutocorrectRules();
+    const merged = [...sheetRules];
+    let addedFromLocal = 0;
+    for (const r of local) {
+      const key = r.match.artist + '|' + r.match.title + '|' + r.match.album;
+      if (!merged.some(s => s.match.artist + '|' + s.match.title + '|' + s.match.album === key)) {
+        merged.push(r);
+        addedFromLocal++;
+      }
+    }
+    localStorage.setItem(RULES_KEY, JSON.stringify(merged));
+    if (addedFromLocal > 0) syncRulesToSheet();
+  } catch { /* silently skip if sheet unreachable */ }
+}
+
+function exportRules() {
+  const rules = getAutocorrectRules();
+  if (!rules.length) { alert('No rules to export.'); return; }
+  const blob = new Blob([JSON.stringify(rules, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'autocorrect-rules.json';
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function importRules() {
+  const input = document.createElement('input');
+  input.type = 'file';
+  input.accept = '.json,application/json';
+  input.onchange = async e => {
+    const file = e.target.files[0];
+    if (!file) return;
+    try {
+      const imported = JSON.parse(await file.text());
+      if (!Array.isArray(imported)) throw new Error('invalid format');
+      const existing = getAutocorrectRules();
+      let added = 0;
+      for (const r of imported) {
+        const key = r.match?.artist + '|' + r.match?.title + '|' + r.match?.album;
+        if (!existing.some(x => x.match.artist + '|' + x.match.title + '|' + x.match.album === key)) {
+          existing.push(r);
+          added++;
+        }
+      }
+      localStorage.setItem(RULES_KEY, JSON.stringify(existing));
+      renderRulesList();
+      syncRulesToSheet();
+      const skipped = imported.length - added;
+      alert(`Imported ${added} new rule${added !== 1 ? 's' : ''}${skipped ? ` (${skipped} duplicate${skipped !== 1 ? 's' : ''} skipped)` : ''}.`);
+    } catch { alert('Could not import: invalid JSON file.'); }
+  };
+  input.click();
 }
 
 function openRulesModal() {
@@ -1837,6 +1916,7 @@ window.addEventListener('load', async () => {
   }
 
   document.getElementById('mainApp').style.display = 'block';
+  await loadRulesFromSheet();
 
   if (!localStorage.getItem('dc_display_name')) {
     const btn = document.getElementById('configureSourceBtn');
