@@ -1935,6 +1935,28 @@ function doPost(e) {
       throw new Error('Row not found for timestamp: ' + origFmt);
     }
 
+    // Update all rows matching artist + title + album combination
+    if (data.action === 'batchUpdate') {
+      var count = 0;
+      var lastRow2 = sheet.getLastRow();
+      if (lastRow2 &gt;= 2) {
+        var vals = sheet.getRange(2, 1, lastRow2 - 1, lastCol).getValues();
+        for (var r = 0; r &lt; vals.length; r++) {
+          var rowArtist = colIdx.artist !== undefined ? vals[r][colIdx.artist].toString().trim() : '';
+          var rowTitle  = colIdx.title  !== undefined ? vals[r][colIdx.title].toString().trim()  : '';
+          var rowAlbum  = colIdx.album  !== undefined ? vals[r][colIdx.album].toString().trim()  : '';
+          if (rowArtist === data.matchArtist &amp;&amp; rowTitle === data.matchTitle &amp;&amp; rowAlbum === data.matchAlbum) {
+            if (colIdx.title  !== undefined) sheet.getRange(r + 2, colIdx.title  + 1).setValue(data.track  || '');
+            if (colIdx.artist !== undefined) sheet.getRange(r + 2, colIdx.artist + 1).setValue(data.artist || '');
+            if (colIdx.album  !== undefined) sheet.getRange(r + 2, colIdx.album  + 1).setValue(data.album  || '');
+            count++;
+          }
+        }
+      }
+      return ContentService.createTextOutput(JSON.stringify({ status: 'ok', updated: count }))
+        .setMimeType(ContentService.MimeType.JSON);
+    }
+
     // Add a new row
     var fmt = Utilities.formatDate(new Date(data.timestamp * 1000), tz, 'yyyy-MM-dd HH:mm:ss');
     var row = new Array(lastCol).fill('');

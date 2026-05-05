@@ -735,6 +735,18 @@ async function pushEditToLastfm() {
   btn.disabled = false;
 }
 
+function _serializePlaysCsv() {
+  const pad = n => String(n).padStart(2, '0');
+  const esc = v => (v.includes(',') || v.includes('"') || v.includes('\n'))
+    ? '"' + v.replace(/"/g, '""') + '"' : v;
+  const fmtDate = d => `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+  const rows = ['Song Title,Artist,Album,Date and Time'];
+  for (const p of allPlays) {
+    rows.push([esc(p.title), esc(p.artist), esc(p.album === '—' ? '' : p.album), fmtDate(p.date)].join(','));
+  }
+  return rows.join('\n');
+}
+
 async function pushEditToSheet() {
   const f = _readEditFields();
   if (!f) return;
@@ -754,8 +766,10 @@ async function pushEditToSheet() {
   const btn      = document.getElementById('editPushSheetBtn');
   const statusEl = f.statusEl;
   btn.disabled = true;
+  let isBatchUpdate = false;
   try {
     if (applyAll && orig) {
+      isBatchUpdate = true;
       statusEl.textContent = 'Updating all matching entries in sheet…';
       statusEl.className   = 'scrobble-status loading';
       const res  = await fetch(writeUrl, {
@@ -764,7 +778,7 @@ async function pushEditToSheet() {
           action:      'batchUpdate',
           matchArtist: orig.artist,
           matchTitle:  orig.title,
-          matchAlbum:  orig.album,
+          matchAlbum:  orig.album === '—' ? '' : orig.album,
           artist: f.artist,
           track:  f.title,
           album:  f.album,
@@ -782,7 +796,11 @@ async function pushEditToSheet() {
         }
       });
       firstSeenMaps = null;
+      if (allPlays.length) {
+        window.firstScrobbleDate = allPlays.reduce((min, p) => p.date < min ? p.date : min, allPlays[0].date);
+      }
       renderAll();
+      saveToIDB(IDB_SHEETS_KEY, { ts: Date.now(), csv: _serializePlaysCsv() }).catch(() => {});
       statusEl.textContent = `✓ Updated ${data.updated} entr${data.updated === 1 ? 'y' : 'ies'} in sheet!`;
       statusEl.className   = 'scrobble-status ok';
     } else {
@@ -802,15 +820,48 @@ async function pushEditToSheet() {
       const data = await res.json();
       if (data.status === 'error') throw new Error(data.message || 'Script error');
       if (!data.updated) throw new Error('Apps Script is outdated — please redeploy the latest version from the setup guide to enable editing.');
+      _editPlay.title   = f.title;
+      _editPlay.artist  = f.artist;
+      _editPlay.artists = splitArtists(f.artist);
+      _editPlay.album   = newAlbum;
+      _editPlay.date    = f.date;
+      firstSeenMaps = null;
+      if (allPlays.length) {
+        window.firstScrobbleDate = allPlays.reduce((min, p) => p.date < min ? p.date : min, allPlays[0].date);
+      }
+      renderAll();
+      saveToIDB(IDB_SHEETS_KEY, { ts: Date.now(), csv: _serializePlaysCsv() }).catch(() => {});
       statusEl.textContent = '✓ Sheet updated!';
       statusEl.className   = 'scrobble-status ok';
     }
   } catch (e) {
-    const msg = e.message === 'Failed to fetch'
-      ? 'Could not reach the Apps Script. Check that it is deployed as a Web App with access set to "Anyone".'
-      : e.message;
-    statusEl.textContent = 'Error: ' + msg;
-    statusEl.className   = 'scrobble-status err';
+    const isFetchError = e.message === 'Failed to fetch' || e.name === 'TypeError';
+    if (isBatchUpdate && isFetchError) {
+      // Apps Script hit its 6-min execution limit and dropped the connection,
+      // but it likely finished writing before timing out — apply changes locally.
+      allPlays.forEach(p => {
+        if (p.artist === orig.artist && p.title === orig.title && p.album === orig.album) {
+          p.title   = f.title;
+          p.artist  = f.artist;
+          p.artists = splitArtists(f.artist);
+          p.album   = newAlbum;
+        }
+      });
+      firstSeenMaps = null;
+      if (allPlays.length) {
+        window.firstScrobbleDate = allPlays.reduce((min, p) => p.date < min ? p.date : min, allPlays[0].date);
+      }
+      renderAll();
+      saveToIDB(IDB_SHEETS_KEY, { ts: Date.now(), csv: _serializePlaysCsv() }).catch(() => {});
+      statusEl.textContent = '⚠ Sheet update likely completed but timed out (Google Apps Script 6-min limit). Local view updated. Reload from sheet to confirm.';
+      statusEl.className   = 'scrobble-status ok';
+    } else {
+      const msg = isFetchError
+        ? 'Could not reach the Apps Script. Check that it is deployed as a Web App with access set to "Anyone".'
+        : e.message;
+      statusEl.textContent = 'Error: ' + msg;
+      statusEl.className   = 'scrobble-status err';
+    }
   }
   btn.disabled = false;
 }

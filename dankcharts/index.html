@@ -1947,10 +1947,11 @@ function doPost(e) {
           ? Utilities.formatDate(cell, tz, 'yyyy-MM-dd HH:mm:ss')
           : cell.toString().trim().slice(0, 19);
         if (cellStr === origFmt) {
-          if (colIdx.title    !== undefined) sheet.getRange(r + 2, colIdx.title    + 1).setValue(data.track  || '');
-          if (colIdx.artist   !== undefined) sheet.getRange(r + 2, colIdx.artist   + 1).setValue(data.artist || '');
-          if (colIdx.album    !== undefined) sheet.getRange(r + 2, colIdx.album    + 1).setValue(data.album  || '');
-          if (colIdx.datetime !== undefined) sheet.getRange(r + 2, colIdx.datetime + 1).setValue(newFmt);
+          if (colIdx.title    !== undefined) values[r][colIdx.title]    = data.track  || '';
+          if (colIdx.artist   !== undefined) values[r][colIdx.artist]   = data.artist || '';
+          if (colIdx.album    !== undefined) values[r][colIdx.album]    = data.album  || '';
+          if (colIdx.datetime !== undefined) values[r][colIdx.datetime] = newFmt;
+          sheet.getRange(2, 1, lastRow - 1, lastCol).setValues(values);
           return ContentService.createTextOutput(JSON.stringify({ status: 'ok', updated: true }))
             .setMimeType(ContentService.MimeType.JSON);
         }
@@ -1969,12 +1970,13 @@ function doPost(e) {
           var rowTitle  = colIdx.title  !== undefined ? vals[r][colIdx.title].toString().trim()  : '';
           var rowAlbum  = colIdx.album  !== undefined ? vals[r][colIdx.album].toString().trim()  : '';
           if (rowArtist === data.matchArtist &amp;&amp; rowTitle === data.matchTitle &amp;&amp; rowAlbum === data.matchAlbum) {
-            if (colIdx.title  !== undefined) sheet.getRange(r + 2, colIdx.title  + 1).setValue(data.track  || '');
-            if (colIdx.artist !== undefined) sheet.getRange(r + 2, colIdx.artist + 1).setValue(data.artist || '');
-            if (colIdx.album  !== undefined) sheet.getRange(r + 2, colIdx.album  + 1).setValue(data.album  || '');
+            if (colIdx.title  !== undefined) vals[r][colIdx.title]  = data.track  || '';
+            if (colIdx.artist !== undefined) vals[r][colIdx.artist] = data.artist || '';
+            if (colIdx.album  !== undefined) vals[r][colIdx.album]  = data.album  || '';
             count++;
           }
         }
+        if (count > 0) sheet.getRange(2, 1, lastRow2 - 1, lastCol).setValues(vals);
       }
       return ContentService.createTextOutput(JSON.stringify({ status: 'ok', updated: count }))
         .setMimeType(ContentService.MimeType.JSON);
