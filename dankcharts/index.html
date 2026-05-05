@@ -300,6 +300,7 @@
         <button id="togglePlaysPeakBtn" class="display-toggle-btn active" onclick="toggleDisplay('plays-peak')">▲ PLAYS PEAK</button>
         <button id="togglePeakTagsBtn" class="display-toggle-btn active" onclick="toggleDisplay('peak-tags')">★ PEAK TAGS</button>
         <button id="srcToggleBtn" class="display-toggle-btn active" onclick="toggleSrcButtons()" title="Show/hide photo source buttons">📷 PIC SOURCE</button>
+        <button id="toggleYtBtnsBtn" class="display-toggle-btn active" onclick="toggleDisplay('yt-btns')" title="Show/hide YouTube play buttons">▶ YT BUTTONS</button>
       </div>
     </div>
 
@@ -2133,6 +2134,19 @@ function doPost(e) {
       </div>
     </div>
   </div>
+
+<!-- YouTube Mini Player -->
+<div id="ytMiniPlayer" style="display:none" class="yt-mini-player">
+  <div class="yt-mini-video">
+    <div id="yt-player-frame"></div>
+  </div>
+  <div class="yt-mini-info">
+    <div id="ytMiniTitle" class="yt-mini-title"></div>
+    <div id="ytMiniArtist" class="yt-mini-artist"></div>
+    <div id="ytMiniStatus" class="yt-mini-status"></div>
+  </div>
+  <button class="yt-mini-close" onclick="closeYtPlayer()" title="Close player">✕</button>
+</div>
 
 <script type="text/javascript" id="zohodeskasap">
 window.ZohoDeskAsapReady=function(s){var e=window.ZohoDeskAsap__asyncalls=window.ZohoDeskAsap__asyncalls||[];window.ZohoDeskAsapReadyStatus?(s&&e.push(s),e.forEach(function(f){f&&f()}),window.ZohoDeskAsap__asyncalls=null):s&&e.push(s)};

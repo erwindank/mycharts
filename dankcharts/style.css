@@ -7161,3 +7161,101 @@ body.purple .landing-card-config input:focus {
   line-height: 1;
 }
 .sync-signout-btn:hover { color: var(--text); }
+
+/* ── YouTube Mini Player ──────────────────────────────────── */
+.yt-mini-player {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 900;
+  background: var(--bg2);
+  border-top: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem 1rem;
+  box-shadow: 0 -3px 16px rgba(0,0,0,0.35);
+}
+
+.yt-mini-video {
+  flex-shrink: 0;
+  width: 160px;
+  height: 90px;
+  border-radius: 4px;
+  overflow: hidden;
+  background: #000;
+}
+
+.yt-mini-video iframe,
+.yt-mini-video > div {
+  width: 160px !important;
+  height: 90px !important;
+  border: none;
+}
+
+.yt-mini-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.yt-mini-title {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.yt-mini-artist {
+  font-size: 0.75rem;
+  color: var(--text2);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-top: 0.1rem;
+}
+
+.yt-mini-status {
+  font-size: 0.7rem;
+  color: var(--text3);
+  margin-top: 0.2rem;
+  min-height: 1em;
+}
+.yt-mini-status.ok  { color: var(--green); }
+.yt-mini-status.err { color: var(--rose); }
+
+.yt-mini-close {
+  flex-shrink: 0;
+  background: none;
+  border: 1px solid var(--border);
+  color: var(--text2);
+  border-radius: 4px;
+  padding: 0.3rem 0.6rem;
+  cursor: pointer;
+  font-size: 0.8rem;
+  line-height: 1;
+  transition: background 0.1s, color 0.1s;
+}
+.yt-mini-close:hover { background: var(--border); color: var(--text); }
+
+/* YouTube play button on each song row */
+.yt-play-btn {
+  display: inline-block;
+  background: none;
+  border: none;
+  color: #ff3333;
+  cursor: pointer;
+  font-size: 0.65rem;
+  font-family: inherit;
+  padding: 0.1rem 0.3rem;
+  margin-top: 0.2rem;
+  opacity: 0.6;
+  border-radius: 3px;
+  transition: opacity 0.15s, background 0.15s;
+  vertical-align: middle;
+  letter-spacing: 0.02em;
+}
+.yt-play-btn:hover { opacity: 1; background: rgba(255,51,51,0.12); }
+body.hide-yt-btns .yt-play-btn { display: none; }

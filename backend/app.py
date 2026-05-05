@@ -11,10 +11,12 @@ CORS(app, origins='*', supports_credentials=False)
 import lastfm
 import spotify
 import sync
+import youtube
 
 app.register_blueprint(lastfm.bp)
 app.register_blueprint(spotify.bp)
 app.register_blueprint(sync.bp)
+app.register_blueprint(youtube.bp)
 
 
 @app.route('/health')
