@@ -1833,6 +1833,7 @@ function saveSourceConfig() {
     if (sel) sel.value = eventsArtistLimit;
   }
   closeSourceModal();
+  if (typeof dcSaveUserConfig === 'function') dcSaveUserConfig();
   syncNow();
 }
 
@@ -1891,6 +1892,7 @@ function startFromLanding() {
   document.getElementById('landingScreen').style.display = 'none';
   document.getElementById('mainApp').style.display = 'block';
   updateMastheadDynamic();
+  if (typeof dcSaveUserConfig === 'function') dcSaveUserConfig();
   if (src === 'sheets') syncFromSheets();
   else if (src === 'lastfm') syncFromLastFm();
   else {

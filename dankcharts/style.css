@@ -7050,3 +7050,114 @@ body.purple .landing-card-config input:focus {
   padding: 0;
 }
 .landing-support-link:hover { opacity: 0.8; }
+
+/* ── Firebase auth UI ── */
+.landing-signin {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.6rem;
+  margin: 0.5rem 0 1.5rem;
+}
+
+.landing-google-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  background: var(--surface);
+  border: 1px solid var(--border2);
+  color: var(--text);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.88rem;
+  font-weight: 500;
+  padding: 0.6rem 1.2rem;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+.landing-google-btn:hover {
+  background: var(--surface2, var(--surface));
+  border-color: var(--accent);
+}
+
+.landing-user-badge {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+  color: var(--text);
+}
+.dc-user-avatar {
+  border-radius: 50%;
+  object-fit: cover;
+}
+.landing-signout-link {
+  background: none;
+  border: none;
+  color: var(--text3);
+  font-size: 0.78rem;
+  cursor: pointer;
+  text-decoration: underline;
+  padding: 0;
+  font-family: inherit;
+}
+.landing-signout-link:hover { color: var(--text); }
+
+.landing-signin-note {
+  font-size: 0.72rem;
+  color: var(--text3);
+  text-align: center;
+  max-width: 360px;
+  margin: 0;
+  line-height: 1.5;
+}
+
+/* Sync bar sign-in button */
+.sync-signin-btn {
+  background: none;
+  border: 1px solid var(--border);
+  color: var(--text3);
+  font-family: 'DM Mono', monospace;
+  font-size: 0.68rem;
+  letter-spacing: 0.04em;
+  padding: 0.3rem 0.6rem;
+  border-radius: 5px;
+  cursor: pointer;
+  margin-left: 0.4rem;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+.sync-signin-btn:hover {
+  background: var(--surface);
+  border-color: var(--border2);
+  color: var(--text);
+}
+
+/* Sync bar user badge */
+.sync-user-badge {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin-left: 0.4rem;
+  font-size: 0.75rem;
+  color: var(--text3);
+}
+.sync-user-badge .dc-user-avatar {
+  width: 20px;
+  height: 20px;
+}
+.sync-user-badge .dc-user-name {
+  max-width: 120px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.sync-signout-btn {
+  background: none;
+  border: none;
+  color: var(--text3);
+  font-size: 0.7rem;
+  cursor: pointer;
+  padding: 0 0.2rem;
+  line-height: 1;
+}
+.sync-signout-btn:hover { color: var(--text); }
