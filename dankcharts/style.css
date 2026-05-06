@@ -1453,6 +1453,25 @@
       border-radius: 8px 8px 0 0;
     }
 
+    .sync-bar-right {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .sync-bar-actions {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    .sync-bar-account {
+      display: flex;
+      align-items: center;
+      padding-left: 0.6rem;
+      border-left: 1px solid var(--border);
+    }
+
     .sync-bar #syncStatus {
       color: var(--text3);
     }
@@ -1509,7 +1528,6 @@
       padding: 0.2rem 0.6rem;
       cursor: pointer;
       border-radius: 4px;
-      margin-left: 0.4rem;
       transition: background 0.15s, border-color 0.15s, color 0.15s;
     }
 
@@ -7128,7 +7146,6 @@ body.purple .landing-card-config input:focus {
   padding: 0.3rem 0.6rem;
   border-radius: 5px;
   cursor: pointer;
-  margin-left: 0.4rem;
   transition: background 0.15s, border-color 0.15s, color 0.15s;
 }
 .sync-signin-btn:hover {
@@ -7142,7 +7159,6 @@ body.purple .landing-card-config input:focus {
   display: flex;
   align-items: center;
   gap: 0.35rem;
-  margin-left: 0.4rem;
   font-size: 0.75rem;
   color: var(--text3);
 }

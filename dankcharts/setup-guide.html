@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Google Sheets Setup Guide — dankcharts.fm</title>
+  <title>Setup Guide — dankcharts.fm</title>
   <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
   <script src="translations.js"></script>
   <style>
@@ -420,6 +420,37 @@
     }
     .support-btn:hover { opacity: 0.88; }
 
+    /* ── Tabs ── */
+    .guide-tabs {
+      display: flex;
+      gap: 0.5rem;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 2.5rem;
+    }
+    .guide-tab {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.72rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      padding: 0.55rem 1.1rem;
+      border: 1px solid transparent;
+      border-bottom: none;
+      border-radius: 6px 6px 0 0;
+      background: transparent;
+      color: var(--text3);
+      cursor: pointer;
+      transition: background 0.15s, color 0.15s, border-color 0.15s;
+      position: relative;
+      bottom: -1px;
+    }
+    .guide-tab:hover { color: var(--text2); background: var(--bg2); }
+    .guide-tab.active {
+      background: var(--bg);
+      color: var(--accent);
+      border-color: var(--border);
+      border-bottom-color: var(--bg);
+    }
+
     /* ── Print styles ── */
     @media print {
       :root {
@@ -498,9 +529,18 @@
   <!-- Header -->
   <div class="guide-header">
     <div class="guide-logo">dankcharts.fm</div>
-    <h1 class="guide-title">Google Sheets Setup Guide</h1>
-    <p class="guide-subtitle">How to connect your sheet, enable automatic syncing from Last.fm, and add plays manually from the site.</p>
+    <h1 class="guide-title">Setup Guide</h1>
+    <p class="guide-subtitle">Step-by-step guides for connecting your data source and setting up your account.</p>
   </div>
+
+  <!-- Tab nav -->
+  <div class="guide-tabs">
+    <button class="guide-tab active" data-tab="sheets">Google Sheets</button>
+    <button class="guide-tab" data-tab="lastfm">Last.fm Scrobbling</button>
+  </div>
+
+  <!-- ═══ SHEETS TAB ═══ -->
+  <div class="guide-tab-panel" id="tab-sheets">
 
   <!-- What you'll need -->
   <div class="needs-box">
@@ -705,6 +745,134 @@
     <p style="font-size:0.78rem;color:var(--text3);margin-top:0.6rem">or email <a href="mailto:support@dankcharts.fm" style="color:var(--text3)">support@dankcharts.fm</a></p>
   </div>
 
+  </div><!-- /tab-sheets -->
+
+  <!-- ═══ LAST.FM SCROBBLING TAB ═══ -->
+  <div class="guide-tab-panel" id="tab-lastfm" style="display:none">
+
+  <!-- What you'll need -->
+  <div class="needs-box">
+    <h3>What you'll need</h3>
+    <div class="need-item"><span class="dot"></span> A Last.fm account</div>
+    <div class="need-item"><span class="dot"></span> A free Last.fm API key &amp; shared secret — <a href="https://www.last.fm/api/account/create" target="_blank">last.fm/api/account/create</a></div>
+    <div class="need-item"><span class="dot"></span> dankcharts.fm loaded with your listening history</div>
+  </div>
+
+  <div class="steps">
+
+    <!-- Step 1 -->
+    <div class="step">
+      <div class="step-num">1</div>
+      <div class="step-body">
+        <div class="step-label">Step 1</div>
+        <div class="step-title">Create a Last.fm API application</div>
+        <p class="step-desc">Go to <a href="https://www.last.fm/api/account/create" target="_blank">last.fm/api/account/create</a> and fill in the form. The values can be anything — here's a quick example:</p>
+        <div class="sheet-visual">
+          <div class="sheet-visual-header"><span>Field</span><span>What to enter</span></div>
+          <div class="sheet-row"><span class="cell-a">Application name</span><span class="cell-b">My Music Charts</span></div>
+          <div class="sheet-row"><span class="cell-a">Description</span><span class="cell-b">Personal use</span></div>
+          <div class="sheet-row"><span class="cell-a">Application homepage</span><span class="cell-b">https://dankcharts.fm</span></div>
+          <div class="sheet-row"><span class="cell-a">Callback URL</span><span class="cell-b">https://dankcharts.fm</span></div>
+        </div>
+        <p class="step-desc" style="margin-top:0.7rem">After submitting, Last.fm will show you an <strong>API Key</strong> (32 characters) and a <strong>Shared Secret</strong>. Copy both — you'll need them in the next step.</p>
+        <div class="infobox tip">
+          <strong>Free and instant.</strong> No payment or approval needed. The application is only used by you personally.
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 2 -->
+    <div class="step">
+      <div class="step-num">2</div>
+      <div class="step-body">
+        <div class="step-label">Step 2</div>
+        <div class="step-title">Enter your credentials in dankcharts.fm</div>
+        <p class="step-desc">Open Settings (the ⚙ icon), select <strong>Last.fm</strong> as your data source, then scroll down to the <strong>Scrobble Setup</strong> section. Expand <strong>Use custom API credentials</strong> and paste in both values.</p>
+        <div class="path">
+          <span class="path-step">Settings ⚙</span>
+          <span class="path-arrow">→</span>
+          <span class="path-step">Last.fm</span>
+          <span class="path-arrow">→</span>
+          <span class="path-step">Scrobble Setup</span>
+          <span class="path-arrow">→</span>
+          <span class="path-step">Use custom API credentials</span>
+        </div>
+        <div class="infobox warning" style="margin-top:0.7rem">
+          <strong>Both fields are required.</strong> The Shared Secret is used to sign requests — without it the "Connect" button won't work.
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 3 -->
+    <div class="step">
+      <div class="step-num">3</div>
+      <div class="step-body">
+        <div class="step-label">Step 3</div>
+        <div class="step-title">Connect your Last.fm account</div>
+        <p class="step-desc">Click <strong>Connect to Last.fm</strong>. Last.fm will open in a new tab asking you to grant access to your account. Click <strong>Allow access</strong>, then come back to dankcharts.fm and click <strong>I've authorized ✓</strong>.</p>
+        <p class="step-desc">The status indicator will change to <span style="color:var(--green);font-weight:500">● Connected as [your username]</span> — you're all set.</p>
+        <div class="infobox">
+          <strong>This connection is stored in your browser only.</strong> If you switch browsers or clear site data, you'll need to reconnect. Each person connects their own Last.fm account — your credentials are never shared.
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 4 -->
+    <div class="step">
+      <div class="step-num">4</div>
+      <div class="step-body">
+        <div class="step-label">Step 4</div>
+        <div class="step-title">Edit and push scrobbles from Raw Data</div>
+        <p class="step-desc">Navigate to the <strong>Raw Data</strong> tab. Every row has a <strong>✎</strong> edit button on the right. Click it to open the edit panel for that entry — you can fix the artist, track title, album, or timestamp.</p>
+        <p class="step-desc">Once your corrections are ready, click <strong>Push to Last.fm</strong>. A corrected scrobble will be submitted to your Last.fm history with the details you entered.</p>
+        <div class="infobox warning">
+          <strong>Important limitation:</strong> Last.fm's public API can add scrobbles but cannot delete or modify existing ones. Pushing a correction adds a new scrobble — it does not replace the original. To fully correct an entry, you'll need to manually delete the original on the <a href="https://www.last.fm" target="_blank">Last.fm website</a>: go to your Profile → Scrobbles, find the entry, and delete it there.
+        </div>
+        <div class="infobox tip" style="margin-top:0.5rem">
+          <strong>Tip:</strong> Use <strong>Apply to all matching entries</strong> in the edit panel to fix the same artist/track combination across your entire local history in one go, then push once.
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /steps -->
+
+  <hr class="divider">
+
+  <!-- Troubleshooting -->
+  <div>
+    <div style="font-family:'DM Serif Display',serif;font-size:1.1rem;color:var(--text);margin-bottom:1rem">Troubleshooting</div>
+    <div style="display:flex;flex-direction:column;gap:0.8rem">
+      <div class="infobox">
+        <strong>The "Push to Last.fm" button doesn't appear in the edit panel.</strong><br>
+        You need to complete Step 3 first. Open Settings → Last.fm → Scrobble Setup and check that the status shows "Connected".
+      </div>
+      <div class="infobox">
+        <strong>Clicking "Connect to Last.fm" gives an error.</strong><br>
+        Make sure both your API Key and Shared Secret are filled in under "Use custom API credentials". The button won't work with just a username.
+      </div>
+      <div class="infobox">
+        <strong>"Push to Last.fm" shows an error after connecting.</strong><br>
+        Your session may have expired. Go to Settings → Disconnect, then reconnect following Step 3 again.
+      </div>
+      <div class="infobox">
+        <strong>The scrobble appears twice on Last.fm.</strong><br>
+        That's expected — the push added the corrected version but the original is still there. Delete the original manually on the Last.fm website (Profile → Scrobbles).
+      </div>
+    </div>
+  </div>
+
+  <!-- Support -->
+  <hr class="divider">
+  <div class="support-box">
+    <div style="font-size:1.6rem;margin-bottom:0.6rem">🎧</div>
+    <div style="font-family:'DM Serif Display',serif;font-size:1.25rem;color:var(--text);margin-bottom:0.4rem">Need help?</div>
+    <p style="color:var(--text2);font-size:0.88rem;max-width:380px;margin:0 auto 1.1rem;line-height:1.6">Can't get it working? Open a support ticket and we'll get back to you.</p>
+    <button class="support-btn" onclick="window.ZohoDeskAsapReady&&window.ZohoDeskAsapReady(function(){window.ZohoDeskAsap&&window.ZohoDeskAsap.invoke('open')})">Open a Support Ticket</button>
+    <p style="font-size:0.78rem;color:var(--text3);margin-top:0.6rem">or email <a href="mailto:support@dankcharts.fm" style="color:var(--text3)">support@dankcharts.fm</a></p>
+  </div>
+
+  </div><!-- /tab-lastfm -->
+
   <!-- Footer -->
   <div class="guide-footer">
     <p><a href="https://dankcharts.fm" class="print-no-url">dankcharts.fm</a> — your personal music charts</p>
@@ -734,6 +902,16 @@
     try { localStorage.setItem('dankcharts-theme', theme); } catch(e) {}
   }
 
+  function switchTab(tabName) {
+    document.querySelectorAll('.guide-tab').forEach(function(b) {
+      b.classList.toggle('active', b.dataset.tab === tabName);
+    });
+    document.querySelectorAll('.guide-tab-panel').forEach(function(p) {
+      p.style.display = p.id === 'tab-' + tabName ? '' : 'none';
+    });
+    try { history.replaceState(null, '', '?tab=' + tabName); } catch(e) {}
+  }
+
   document.addEventListener('DOMContentLoaded', function () {
     document.querySelectorAll('.guide-controls .theme-btn').forEach(function(btn) {
       btn.addEventListener('click', function() { applyTheme(btn.dataset.theme); });
@@ -752,6 +930,15 @@
     document.addEventListener('click', function() {
       document.querySelectorAll('.ctrl-group.open').forEach(function(g) { g.classList.remove('open'); });
     });
+
+    // Tab switching
+    document.querySelectorAll('.guide-tab').forEach(function(btn) {
+      btn.addEventListener('click', function() { switchTab(btn.dataset.tab); });
+    });
+
+    // Open tab from URL param (?tab=lastfm or ?tab=sheets)
+    var tabParam = new URLSearchParams(location.search).get('tab');
+    if (tabParam === 'lastfm' || tabParam === 'sheets') switchTab(tabParam);
   });
 })();
 </script>

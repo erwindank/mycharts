@@ -98,11 +98,11 @@
           <input type="text" id="landingSheetId" placeholder="Paste your Google Sheets URL or Sheet ID" onclick="event.stopPropagation()" autocomplete="off">
           <input type="text" id="landingSheetTab" placeholder="Tab name (default: Full Raw Listening History)" onclick="event.stopPropagation()" autocomplete="off">
           <p class="landing-hint">The sheet must be shared as "Anyone with the link can view"</p>
-          <p class="landing-hint" style="margin-top:0.3rem">No sheet yet? <a href="https://docs.google.com/spreadsheets/d/19brQQYXn1WQNhCkSMCYnGVYmxhmLzKOE2A3E3QFCeqk/copy" target="_blank" rel="noopener" onclick="event.stopPropagation()" style="color:var(--accent)">Copy our ready-to-use template →</a> &nbsp;·&nbsp; <a href="setup-guide.html" target="_blank" rel="noopener" onclick="event.stopPropagation()" style="color:var(--accent)">📄 Setup guide</a></p>
+          <p class="landing-hint" style="margin-top:0.3rem">No sheet yet? <a href="https://docs.google.com/spreadsheets/d/19brQQYXn1WQNhCkSMCYnGVYmxhmLzKOE2A3E3QFCeqk/copy" target="_blank" rel="noopener" onclick="event.stopPropagation()" style="color:var(--accent)">Copy our ready-to-use template →</a> &nbsp;·&nbsp; <a href="setup-guide.html?tab=sheets" target="_blank" rel="noopener" onclick="event.stopPropagation()" style="color:var(--accent)">📄 Setup guide</a></p>
           <details class="lfm-new-user-info" onclick="event.stopPropagation()" style="margin-top:0.5rem">
             <summary style="font-size:0.8rem;color:var(--accent);cursor:pointer">How does this work?</summary>
             <div class="lfm-new-user-body" style="font-size:0.78rem;line-height:1.7;margin-top:0.4rem">
-              <p style="margin:0">Your music history lives in <em>your</em> spreadsheet — every song you've ever listened to, all in one place, with no limits. Last.fm tracks your plays automatically, and you keep full control: edit, add, or explore your data however you like. Full setup in the <a href="setup-guide.html" target="_blank" rel="noopener" onclick="event.stopPropagation()" style="color:var(--accent)">setup guide</a>.</p>
+              <p style="margin:0">Your music history lives in <em>your</em> spreadsheet — every song you've ever listened to, all in one place, with no limits. Last.fm tracks your plays automatically, and you keep full control: edit, add, or explore your data however you like. Full setup in the <a href="setup-guide.html?tab=sheets" target="_blank" rel="noopener" onclick="event.stopPropagation()" style="color:var(--accent)">setup guide</a>.</p>
             </div>
           </details>
         </div>
@@ -219,14 +219,20 @@
 
     <div class="sync-bar" id="syncBar">
       <span id="syncStatus" data-i18n="sync_connecting">⟳ Connecting...</span>
-      <button id="syncNowBtn" data-i18n="sync_now">↺ SYNC NOW</button>
-      <button id="configureSourceBtn" onclick="openSourceModal()" title="Configure data source">⚙ Configure</button>
-      <button id="scrobbleBtn" onclick="openScrobbleModal()" title="Add a play manually" style="display:none">✚ Add Play</button>
-      <button class="dc-signin-btn sync-signin-btn" onclick="dcSignIn()" title="Sign in to sync settings across devices">Sign In</button>
-      <div class="dc-user-badge sync-user-badge" style="display:none;">
-        <img class="dc-user-avatar" src="" alt="">
-        <span class="dc-user-name"></span>
-        <button class="sync-signout-btn" onclick="dcSignOut()" title="Sign out">✕</button>
+      <div class="sync-bar-right">
+        <div class="sync-bar-actions">
+          <button id="scrobbleBtn" onclick="openScrobbleModal()" title="Add a play manually" style="display:none">✚ Add Play</button>
+          <button id="configureSourceBtn" onclick="openSourceModal()" title="Configure data source">⚙ Configure</button>
+          <button id="syncNowBtn" data-i18n="sync_now">↺ SYNC NOW</button>
+        </div>
+        <div class="sync-bar-account">
+          <button class="dc-signin-btn sync-signin-btn" onclick="dcSignIn()" title="Sign in to sync settings across devices">Sign In</button>
+          <div class="dc-user-badge sync-user-badge" style="display:none;">
+            <img class="dc-user-avatar" src="" alt="">
+            <span class="dc-user-name"></span>
+            <button class="sync-signout-btn" onclick="dcSignOut()" title="Sign out">✕</button>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -1746,7 +1752,7 @@
       </div>
 
       <div id="srcSheetsFields" class="src-field-group">
-        <p class="src-modal-hint" style="margin-bottom:0.7rem">No tracking sheet yet? <a href="https://docs.google.com/spreadsheets/d/19brQQYXn1WQNhCkSMCYnGVYmxhmLzKOE2A3E3QFCeqk/copy" target="_blank" rel="noopener" style="color:var(--accent);font-weight:500">Copy our ready-to-use template →</a> &nbsp;·&nbsp; <a href="setup-guide.html" target="_blank" rel="noopener" style="color:var(--accent)">📄 Setup guide</a></p>
+        <p class="src-modal-hint" style="margin-bottom:0.7rem">No tracking sheet yet? <a href="https://docs.google.com/spreadsheets/d/19brQQYXn1WQNhCkSMCYnGVYmxhmLzKOE2A3E3QFCeqk/copy" target="_blank" rel="noopener" style="color:var(--accent);font-weight:500">Copy our ready-to-use template →</a> &nbsp;·&nbsp; <a href="setup-guide.html?tab=sheets" target="_blank" rel="noopener" style="color:var(--accent)">📄 Setup guide</a></p>
         <label>
           Sheet URL or ID
           <input type="text" id="srcSheetId" placeholder="Paste your Google Sheets URL or Sheet ID">
@@ -2066,7 +2072,7 @@ function doPost(e) {
             <button type="button" id="lfmConnectBtn" class="lfm-connect-btn" onclick="lfmAuthBtnClick()">Connect to Last.fm</button>
             <button type="button" id="lfmDisconnectBtn" class="lfm-disconnect-btn" onclick="lfmAuthDisconnect()" style="display:none">Disconnect</button>
           </div>
-          <p id="lfmConnectHint" class="src-modal-hint">Connect to enable manual scrobbling from this app.</p>
+          <p id="lfmConnectHint" class="src-modal-hint">Connect to enable manual scrobbling from this app. &nbsp;<a href="setup-guide.html?tab=lastfm" target="_blank" rel="noopener" style="color:var(--accent)">📄 Setup guide</a></p>
           <details class="lfm-custom-creds">
             <summary>Use custom API credentials</summary>
             <div class="src-field-group" style="margin-top:0.7rem">
