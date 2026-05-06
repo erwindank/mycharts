@@ -6045,6 +6045,37 @@ function exportDownload() {
   a.click();
 }
 
+function buildExportCSV(songs) {
+  const list = exportReversed ? [...songs].reverse() : songs;
+  const escCSV = v => {
+    if (!v) return '';
+    v = String(v);
+    return (v.includes(',') || v.includes('"') || v.includes('\n'))
+      ? '"' + v.replace(/"/g, '""') + '"'
+      : v;
+  };
+  const rows = ['title,artist,album,isrc,'];
+  for (const s of list) {
+    const album = (s.album && s.album !== '—') ? s.album : '';
+    rows.push([escCSV(s.title), escCSV(s.artist), escCSV(album), '', ''].join(','));
+  }
+  return rows.join('\n');
+}
+
+function exportDownloadCSV() {
+  const songs = getCurrentChartSongs();
+  const csv = buildExportCSV(songs);
+  const subtitle = document.getElementById('exportModalSubtitle').textContent;
+  const name = 'playlist-' + subtitle.replace(/[^a-z0-9]+/gi, '-').toLowerCase() + '.csv';
+  const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = name;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
 // Show/hide export button — only when there are songs to export
 function updateExportBtn() {
   const btn = document.getElementById('exportPlaylistBtn');
