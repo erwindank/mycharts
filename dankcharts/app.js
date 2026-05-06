@@ -529,7 +529,30 @@ function copyAppsScript() {
 
 const RULES_KEY = 'dc_autocorrect_rules';
 
+let _rulesCache = null;
+window.dcResetRulesCache = () => { _rulesCache = null; };
+
+async function initRulesCache() {
+  const idbData = await loadFromIDB(IDB_RULES_KEY).catch(() => null);
+  const idbRules = (idbData && Array.isArray(idbData.rules)) ? idbData.rules : null;
+  const localRules = (() => { try { return JSON.parse(localStorage.getItem(RULES_KEY) || '[]'); } catch { return []; } })();
+  if (idbRules) {
+    _rulesCache = [...idbRules];
+    for (const r of localRules) {
+      const key = r.match.artist + '|' + r.match.title + '|' + r.match.album;
+      if (!_rulesCache.some(s => s.match.artist + '|' + s.match.title + '|' + s.match.album === key)) {
+        _rulesCache.push(r);
+      }
+    }
+  } else {
+    _rulesCache = localRules;
+  }
+  localStorage.setItem(RULES_KEY, JSON.stringify(_rulesCache));
+  if (_rulesCache.length > 0) saveToIDB(IDB_RULES_KEY, { rules: _rulesCache }).catch(() => {});
+}
+
 function getAutocorrectRules() {
+  if (_rulesCache !== null) return _rulesCache;
   try { return JSON.parse(localStorage.getItem(RULES_KEY) || '[]'); } catch { return []; }
 }
 
@@ -543,15 +566,21 @@ function saveAutocorrectRule(origArtist, origTitle, origAlbum, newArtist, newTit
     replace: { artist: newArtist,  title: newTitle,  album: newAlbum  },
     createdAt: Date.now()
   });
+  _rulesCache = rules;
   localStorage.setItem(RULES_KEY, JSON.stringify(rules));
+  saveToIDB(IDB_RULES_KEY, { rules }).catch(() => {});
   syncRulesToSheet();
+  if (typeof dcSaveUserConfig === 'function') dcSaveUserConfig();
 }
 
 function deleteAutocorrectRule(id) {
   const rules = getAutocorrectRules().filter(r => r.id !== id);
+  _rulesCache = rules;
   localStorage.setItem(RULES_KEY, JSON.stringify(rules));
+  saveToIDB(IDB_RULES_KEY, { rules }).catch(() => {});
   syncRulesToSheet();
   renderRulesList();
+  if (typeof dcSaveUserConfig === 'function') dcSaveUserConfig();
 }
 
 function applyAutocorrectRules(plays) {
@@ -632,7 +661,9 @@ async function loadRulesFromSheet() {
         addedFromLocal++;
       }
     }
+    _rulesCache = merged;
     localStorage.setItem(RULES_KEY, JSON.stringify(merged));
+    saveToIDB(IDB_RULES_KEY, { rules: merged }).catch(() => {});
     if (addedFromLocal > 0) syncRulesToSheet();
   } catch { /* silently skip if sheet unreachable */ }
 }
@@ -668,9 +699,12 @@ function importRules() {
           added++;
         }
       }
+      _rulesCache = existing;
       localStorage.setItem(RULES_KEY, JSON.stringify(existing));
+      saveToIDB(IDB_RULES_KEY, { rules: existing }).catch(() => {});
       renderRulesList();
       syncRulesToSheet();
+      if (typeof dcSaveUserConfig === 'function') dcSaveUserConfig();
       const skipped = imported.length - added;
       alert(`Imported ${added} new rule${added !== 1 ? 's' : ''}${skipped ? ` (${skipped} duplicate${skipped !== 1 ? 's' : ''} skipped)` : ''}.`);
     } catch { alert('Could not import: invalid JSON file.'); }
@@ -1309,6 +1343,7 @@ const IDB_STORE = 'cache';
 const IDB_LASTFM_KEY = 'lastfm';
 const IDB_SHEETS_KEY = 'sheets';
 const IDB_FILE_KEY   = 'file_upload';
+const IDB_RULES_KEY  = 'autocorrect_rules';
 const BACKEND_API    = 'https://dankcharts-api.onrender.com';
 
 function openIDB() {
@@ -1919,6 +1954,7 @@ window.addEventListener('load', async () => {
   }
 
   document.getElementById('mainApp').style.display = 'block';
+  await initRulesCache();
   await loadRulesFromSheet();
 
   if (!localStorage.getItem('dc_display_name')) {

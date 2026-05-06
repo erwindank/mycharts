@@ -17,7 +17,8 @@ const SYNC_KEYS = [
   'dc_sheet_write_url', 'dc_lastfm_user', 'dc_lfm_api_key',
   'dc_lfm_api_secret', 'dc_lfm_session_key', 'dc_lfm_session_user',
   'dc_display_name', 'dc_timezone', 'dc_cert_config',
-  'dc_events_artist_limit', 'dc_theme', 'dc_lang'
+  'dc_events_artist_limit', 'dc_theme', 'dc_lang',
+  'dc_autocorrect_rules'
 ];
 
 let _auth = null;
@@ -113,6 +114,7 @@ _auth.onAuthStateChanged(async (user) => {
   if (!user) return;
 
   const applied = await _loadAndApplyConfig(user.uid);
+  if (applied && typeof dcResetRulesCache === 'function') dcResetRulesCache();
   if (!applied) {
     // No Firestore data — if localStorage already has config (set up before Firebase
     // was added), migrate it up to Firestore so it syncs going forward.
