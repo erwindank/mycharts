@@ -3581,6 +3581,11 @@
       color: var(--green);
     }
 
+    .export-name-chip.active {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
     .export-note {
       font-family: 'DM Mono', monospace;
       font-size: 0.6rem;

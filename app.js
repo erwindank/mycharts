@@ -5567,21 +5567,33 @@ function getCurrentChartSongs() {
   // fullData.songs is always set by renderSongs/buildSongsFull with the correct sort
   // (rankSortWithStatus for weekly/monthly, rankSort for yearly/alltime) and the
   // correct size limit, so use it directly for all periods.
-  return fullData.songs.map(s => ({ title: s.title, artist: s.artist }));
+  return fullData.songs.map(s => ({ title: s.title, artist: s.artist, album: s.album || '' }));
 }
 
 let exportReversed = false;
+let exportWithAlbum = false;
 
 function buildExportText(songs) {
   const list = exportReversed ? [...songs].reverse() : songs;
-  return list.map(s => `${s.artist} - ${s.title}`).join('\n');
+  return list.map(s => {
+    const base = `${s.artist} - ${s.title}`;
+    return (exportWithAlbum && s.album && s.album !== '—') ? `${base} - ${s.album}` : base;
+  }).join('\n');
 }
 
 function toggleExportOrder() {
   exportReversed = !exportReversed;
   const btn = document.getElementById('exportOrderBtn');
   btn.textContent = exportReversed ? t('export_no1_last') : t('export_no1_first');
-  // Re-render tracklist with current songs
+  const songs = getCurrentChartSongs();
+  document.getElementById('exportTracklist').textContent = buildExportText(songs);
+}
+
+function toggleExportAlbum() {
+  exportWithAlbum = !exportWithAlbum;
+  const btn = document.getElementById('exportAlbumBtn');
+  btn.textContent = exportWithAlbum ? '✓ + Album' : '+ Album';
+  btn.classList.toggle('active', exportWithAlbum);
   const songs = getCurrentChartSongs();
   document.getElementById('exportTracklist').textContent = buildExportText(songs);
 }
@@ -5670,7 +5682,10 @@ function openExportModal() {
   ).join('');
 
   exportReversed = false;
+  exportWithAlbum = false;
   document.getElementById('exportOrderBtn').textContent = t('export_no1_first');
+  const albumBtn = document.getElementById('exportAlbumBtn');
+  if (albumBtn) { albumBtn.textContent = '+ Album'; albumBtn.classList.remove('active'); }
   document.getElementById('exportTracklist').textContent = buildExportText(songs);
 
   document.getElementById('exportNoteBody').innerHTML =
