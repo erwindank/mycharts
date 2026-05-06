@@ -113,14 +113,21 @@ _auth.onAuthStateChanged(async (user) => {
   if (!user) return;
 
   const applied = await _loadAndApplyConfig(user.uid);
-  if (!applied) return;
+  if (!applied) {
+    // No Firestore data — if localStorage already has config (set up before Firebase
+    // was added), migrate it up to Firestore so it syncs going forward.
+    const hasLocalConfig = SYNC_KEYS.some(k => localStorage.getItem(k) !== null);
+    if (!hasLocalConfig) return; // truly fresh user, nothing to do
+    await dcSaveUserConfig();
+  }
 
   // Refresh any UI that depends on the just-loaded settings
   if (typeof updateMastheadDynamic === 'function') updateMastheadDynamic();
   if (typeof updateLfmAuthStatus   === 'function') updateLfmAuthStatus();
   if (typeof updateScrobbleBtn     === 'function') updateScrobbleBtn();
 
-  // If the landing screen is visible and config is now complete, go to main app
+  // If the landing screen is visible and config is now complete, go to main app.
+  // Otherwise, re-sync in place so any "no config" banner from page-load clears.
   const landing = document.getElementById('landingScreen');
   const mainApp = document.getElementById('mainApp');
   if (landing && landing.style.display !== 'none') {
@@ -129,5 +136,7 @@ _auth.onAuthStateChanged(async (user) => {
       if (mainApp) mainApp.style.display = 'block';
       if (typeof syncNow === 'function') syncNow();
     }
+  } else {
+    if (typeof syncNow === 'function') syncNow();
   }
 });
