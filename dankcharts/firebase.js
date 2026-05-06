@@ -37,6 +37,12 @@ async function _loadAndApplyConfig(uid) {
     let applied = false;
     for (const key of SYNC_KEYS) {
       if (data[key] != null) {
+        // Don't let an empty Firestore rules value overwrite locally-stored rules.
+        // The auth callback's dcSaveUserConfig will push the local rules to Firestore.
+        if (key === 'dc_autocorrect_rules' && data[key] === '[]') {
+          const local = localStorage.getItem(key);
+          if (local && local !== '[]') { applied = true; continue; }
+        }
         localStorage.setItem(key, String(data[key]));
         applied = true;
       }
@@ -59,6 +65,15 @@ async function dcSaveUserConfig() {
     await _configRef(_currentUser.uid).set(cfg, { merge: true });
   } catch (err) {
     console.warn('[dankcharts] Firebase save error:', err);
+  }
+}
+
+async function dcSaveRulesToFirestore(rulesJson) {
+  if (!_currentUser) return;
+  try {
+    await _configRef(_currentUser.uid).set({ dc_autocorrect_rules: rulesJson }, { merge: true });
+  } catch (err) {
+    console.warn('[dankcharts] Firebase rules save error:', err);
   }
 }
 
@@ -98,9 +113,10 @@ function _refreshAuthUI(user) {
 }
 
 // Expose globally for HTML onclick handlers and app.js
-window.dcSignIn         = dcSignIn;
-window.dcSignOut        = dcSignOut;
-window.dcSaveUserConfig = dcSaveUserConfig;
+window.dcSignIn                = dcSignIn;
+window.dcSignOut               = dcSignOut;
+window.dcSaveUserConfig        = dcSaveUserConfig;
+window.dcSaveRulesToFirestore  = dcSaveRulesToFirestore;
 
 // ── INIT ────────────────────────────────────────────────────────────────────
 firebase.initializeApp(firebaseConfig);

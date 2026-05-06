@@ -569,20 +569,22 @@ function saveAutocorrectRule(origArtist, origTitle, origAlbum, newArtist, newTit
     createdAt: Date.now()
   });
   _rulesCache = rules;
-  localStorage.setItem(RULES_KEY, JSON.stringify(rules));
+  const rulesJson = JSON.stringify(rules);
+  localStorage.setItem(RULES_KEY, rulesJson);
   saveToIDB(IDB_RULES_KEY, { rules }).catch(() => {});
   syncRulesToSheet();
-  if (typeof dcSaveUserConfig === 'function') dcSaveUserConfig();
+  if (typeof dcSaveRulesToFirestore === 'function') dcSaveRulesToFirestore(rulesJson);
 }
 
 function deleteAutocorrectRule(id) {
   const rules = getAutocorrectRules().filter(r => r.id !== id);
   _rulesCache = rules;
-  localStorage.setItem(RULES_KEY, JSON.stringify(rules));
+  const rulesJson = JSON.stringify(rules);
+  localStorage.setItem(RULES_KEY, rulesJson);
   saveToIDB(IDB_RULES_KEY, { rules }).catch(() => {});
   syncRulesToSheet();
   renderRulesList();
-  if (typeof dcSaveUserConfig === 'function') dcSaveUserConfig();
+  if (typeof dcSaveRulesToFirestore === 'function') dcSaveRulesToFirestore(rulesJson);
 }
 
 function applyAutocorrectRules(plays) {
@@ -702,11 +704,12 @@ function importRules() {
         }
       }
       _rulesCache = existing;
-      localStorage.setItem(RULES_KEY, JSON.stringify(existing));
+      const rulesJson = JSON.stringify(existing);
+      localStorage.setItem(RULES_KEY, rulesJson);
       saveToIDB(IDB_RULES_KEY, { rules: existing }).catch(() => {});
       renderRulesList();
       syncRulesToSheet();
-      if (typeof dcSaveUserConfig === 'function') dcSaveUserConfig();
+      if (typeof dcSaveRulesToFirestore === 'function') dcSaveRulesToFirestore(rulesJson);
       const skipped = imported.length - added;
       alert(`Imported ${added} new rule${added !== 1 ? 's' : ''}${skipped ? ` (${skipped} duplicate${skipped !== 1 ? 's' : ''} skipped)` : ''}.`);
     } catch { alert('Could not import: invalid JSON file.'); }
