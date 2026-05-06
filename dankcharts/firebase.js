@@ -115,13 +115,13 @@ _auth.onAuthStateChanged(async (user) => {
 
   const applied = await _loadAndApplyConfig(user.uid);
   if (applied && typeof dcResetRulesCache === 'function') dcResetRulesCache();
-  if (!applied) {
-    // No Firestore data — if localStorage already has config (set up before Firebase
-    // was added), migrate it up to Firestore so it syncs going forward.
-    const hasLocalConfig = SYNC_KEYS.some(k => localStorage.getItem(k) !== null);
-    if (!hasLocalConfig) return; // truly fresh user, nothing to do
-    await dcSaveUserConfig();
-  }
+
+  const hasLocalConfig = SYNC_KEYS.some(k => localStorage.getItem(k) !== null);
+  if (!hasLocalConfig && !applied) return; // truly fresh user with no data anywhere
+
+  // Always push local config to Firestore — handles both first-time migration
+  // and new SYNC_KEYS (like dc_autocorrect_rules) not yet in the Firestore document.
+  await dcSaveUserConfig();
 
   // Refresh any UI that depends on the just-loaded settings
   if (typeof updateMastheadDynamic === 'function') updateMastheadDynamic();

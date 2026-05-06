@@ -547,8 +547,10 @@ async function initRulesCache() {
   } else {
     _rulesCache = localRules;
   }
-  localStorage.setItem(RULES_KEY, JSON.stringify(_rulesCache));
-  if (_rulesCache.length > 0) saveToIDB(IDB_RULES_KEY, { rules: _rulesCache }).catch(() => {});
+  if (_rulesCache.length > 0) {
+    localStorage.setItem(RULES_KEY, JSON.stringify(_rulesCache));
+    saveToIDB(IDB_RULES_KEY, { rules: _rulesCache }).catch(() => {});
+  }
 }
 
 function getAutocorrectRules() {
