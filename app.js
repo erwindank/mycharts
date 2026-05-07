@@ -667,16 +667,31 @@ function deezerValidUrl(url) {
   return /\/images\/[^/]+\/\//.test(url) ? null : url;
 }
 
-// Deezer requires a CORS proxy for browser requests
-const DEEZER_PROXY = 'https://corsproxy.io/?url=';
-function deezerFetch(endpoint) {
-  return fetch(DEEZER_PROXY + encodeURIComponent('https://api.deezer.com/' + endpoint));
-}
+// CORS proxies tried in order; switches to next on 4xx/network error
+const DEEZER_PROXIES = [
+  'https://api.allorigins.win/raw?url=',
+  'https://corsproxy.io/?url=',
+];
+let _deezerProxyIdx = 0;
 
-// Deezer placeholder URLs contain '//' after the image type (no real hash), e.g. /images/artist//500x500-...
-function deezerValidUrl(url) {
-  if (!url) return null;
-  return /\/images\/[^/]+\/\//.test(url) ? null : url;
+// Circuit breaker: after 3 consecutive failures, skip Deezer for 5 minutes
+const _deezerCB = { failures: 0, openUntil: 0 };
+async function deezerFetch(endpoint) {
+  if (_deezerCB.failures >= 3 && Date.now() < _deezerCB.openUntil) throw new Error('deezer:circuit-open');
+  const url = 'https://api.deezer.com/' + endpoint;
+  for (let i = 0; i < DEEZER_PROXIES.length; i++) {
+    const proxy = DEEZER_PROXIES[(_deezerProxyIdx + i) % DEEZER_PROXIES.length];
+    try {
+      const r = await fetch(proxy + encodeURIComponent(url));
+      if (r.ok) {
+        _deezerProxyIdx = (_deezerProxyIdx + i) % DEEZER_PROXIES.length;
+        _deezerCB.failures = 0;
+        return r;
+      }
+    } catch (_) {}
+  }
+  if (++_deezerCB.failures >= 3) _deezerCB.openUntil = Date.now() + 5 * 60 * 1000;
+  throw new Error('deezer:all-proxies-failed');
 }
 
 async function deezerArtistImage(artist) {
