@@ -558,7 +558,7 @@ function getAutocorrectRules() {
   try { return JSON.parse(localStorage.getItem(RULES_KEY) || '[]'); } catch { return []; }
 }
 
-function saveAutocorrectRule(origArtist, origTitle, origAlbum, newArtist, newTitle, newAlbum) {
+function saveAutocorrectRule(origArtist, origTitle, origAlbum, newArtist, newTitle, newAlbum, { skipSheetSync = false } = {}) {
   const rules = getAutocorrectRules().filter(r =>
     !(r.match.artist === origArtist && r.match.title === origTitle && r.match.album === origAlbum)
   );
@@ -572,7 +572,7 @@ function saveAutocorrectRule(origArtist, origTitle, origAlbum, newArtist, newTit
   const rulesJson = JSON.stringify(rules);
   localStorage.setItem(RULES_KEY, rulesJson);
   saveToIDB(IDB_RULES_KEY, { rules }).catch(() => {});
-  syncRulesToSheet();
+  if (!skipSheetSync) syncRulesToSheet();
   if (typeof dcSaveRulesToFirestore === 'function') dcSaveRulesToFirestore(rulesJson);
 }
 
@@ -880,7 +880,10 @@ async function pushEditToSheet() {
   const orig     = _editOrigMatch;
   const newAlbum = f.album || '—';
   if (saveRule && orig) {
-    saveAutocorrectRule(orig.artist, orig.title, orig.album, f.artist, f.title, newAlbum);
+    // skipSheetSync=true so we don't fire a concurrent saveRules request alongside batchUpdate.
+    // Apps Script serializes write requests; firing both at once just makes batchUpdate wait in queue.
+    // We sync rules after the batchUpdate completes instead.
+    saveAutocorrectRule(orig.artist, orig.title, orig.album, f.artist, f.title, newAlbum, { skipSheetSync: true });
   }
   const btn      = document.getElementById('editPushSheetBtn');
   const statusEl = f.statusEl;
@@ -920,6 +923,7 @@ async function pushEditToSheet() {
       }
       renderAll();
       saveToIDB(IDB_SHEETS_KEY, { ts: Date.now(), csv: _serializePlaysCsv() }).catch(() => {});
+      if (saveRule) syncRulesToSheet(); // fire-and-forget after batchUpdate, not before
       statusEl.textContent = `✓ Updated ${data.updated} entr${data.updated === 1 ? 'y' : 'ies'} in sheet!`;
       statusEl.className   = 'scrobble-status ok';
     } else {
@@ -950,6 +954,7 @@ async function pushEditToSheet() {
       }
       renderAll();
       saveToIDB(IDB_SHEETS_KEY, { ts: Date.now(), csv: _serializePlaysCsv() }).catch(() => {});
+      if (saveRule) syncRulesToSheet(); // fire-and-forget after update, not before
       statusEl.textContent = '✓ Sheet updated!';
       statusEl.className   = 'scrobble-status ok';
     }
@@ -2006,6 +2011,7 @@ window.addEventListener('load', async () => {
   }
 });
 
+let _rulesPushedToSheetThisSession = false;
 function parseCsv(text, fromSheets = false) {
   const lines = text.trim().split(/\r?\n/);
   if (lines.length < 2) {
@@ -2084,7 +2090,8 @@ function parseCsv(text, fromSheets = false) {
 
   allPlays.sort((a, b) => b.date - a.date);
 
-  if (fromSheets) {
+  if (fromSheets && !_rulesPushedToSheetThisSession) {
+    _rulesPushedToSheetThisSession = true;
     const writeUrl = getSheetWriteUrl();
     if (writeUrl) {
       const rules = getAutocorrectRules();
