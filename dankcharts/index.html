@@ -1949,7 +1949,20 @@ function onOpen() {
 // =============================================================
 function doPost(e) {
   try {
-    var data    = JSON.parse(e.postData.contents);
+    var data = JSON.parse(e.postData.contents);
+
+    // Handle rules early — no sheet access needed
+    if (data.action === 'saveRules') {
+      PropertiesService.getDocumentProperties().setProperty('dc_autocorrect_rules', data.rules || '[]');
+      return ContentService.createTextOutput(JSON.stringify({ status: 'ok' }))
+        .setMimeType(ContentService.MimeType.JSON);
+    }
+    if (data.action === 'loadRules') {
+      var savedRules = PropertiesService.getDocumentProperties().getProperty('dc_autocorrect_rules') || '[]';
+      return ContentService.createTextOutput(JSON.stringify({ status: 'ok', rules: savedRules }))
+        .setMimeType(ContentService.MimeType.JSON);
+    }
+
     var ss      = SpreadsheetApp.getActiveSpreadsheet();
     var cfg     = ss.getSheetByName('Settings');
     var tabName = cfg ? cfg.getRange('B3').getValue().toString().trim() : '';
@@ -1975,15 +1988,38 @@ function doPost(e) {
 
     var tz = ss.getSpreadsheetTimeZone();
 
-    // Save / load auto-correct rules (stored as a document property)
-    if (data.action === 'saveRules') {
-      PropertiesService.getDocumentProperties().setProperty('dc_autocorrect_rules', data.rules || '[]');
-      return ContentService.createTextOutput(JSON.stringify({ status: 'ok' }))
-        .setMimeType(ContentService.MimeType.JSON);
-    }
-    if (data.action === 'loadRules') {
-      var savedRules = PropertiesService.getDocumentProperties().getProperty('dc_autocorrect_rules') || '[]';
-      return ContentService.createTextOutput(JSON.stringify({ status: 'ok', rules: savedRules }))
+    // Correct multiple specific rows by timestamp — one sheet read, individual row writes
+    if (data.action === 'bulkUpdate') {
+      var updates = data.updates || [];
+      if (!updates.length)
+        return ContentService.createTextOutput(JSON.stringify({ status: 'ok', updated: 0 }))
+          .setMimeType(ContentService.MimeType.JSON);
+      var corrMap = {};
+      updates.forEach(function(u) {
+        corrMap[Utilities.formatDate(new Date(u.originalTimestamp * 1000), tz, 'yyyy-MM-dd HH:mm:ss')] = u;
+      });
+      var lastRow = sheet.getLastRow();
+      var changed = [];
+      if (lastRow >= 2) {
+        var values = sheet.getRange(2, 1, lastRow - 1, lastCol).getValues();
+        for (var r = 0; r &lt; values.length; r++) {
+          var cell = values[r][colIdx.datetime];
+          var cellStr = cell instanceof Date
+            ? Utilities.formatDate(cell, tz, 'yyyy-MM-dd HH:mm:ss')
+            : cell.toString().trim().slice(0, 19);
+          var corr = corrMap[cellStr];
+          if (corr) {
+            if (colIdx.title  !== undefined) values[r][colIdx.title]  = corr.track  || '';
+            if (colIdx.artist !== undefined) values[r][colIdx.artist] = corr.artist || '';
+            if (colIdx.album  !== undefined) values[r][colIdx.album]  = corr.album  || '';
+            changed.push({ index: r, row: values[r] });
+          }
+        }
+        changed.forEach(function(item) {
+          sheet.getRange(item.index + 2, 1, 1, lastCol).setValues([item.row]);
+        });
+      }
+      return ContentService.createTextOutput(JSON.stringify({ status: 'ok', updated: changed.length }))
         .setMimeType(ContentService.MimeType.JSON);
     }
 
@@ -2004,7 +2040,7 @@ function doPost(e) {
           if (colIdx.artist   !== undefined) values[r][colIdx.artist]   = data.artist || '';
           if (colIdx.album    !== undefined) values[r][colIdx.album]    = data.album  || '';
           if (colIdx.datetime !== undefined) values[r][colIdx.datetime] = newFmt;
-          sheet.getRange(2, 1, lastRow - 1, lastCol).setValues(values);
+          sheet.getRange(r + 2, 1, 1, lastCol).setValues([values[r]]);
           return ContentService.createTextOutput(JSON.stringify({ status: 'ok', updated: true }))
             .setMimeType(ContentService.MimeType.JSON);
         }

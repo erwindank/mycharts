@@ -602,35 +602,22 @@ function applyAutocorrectRules(plays) {
   });
 }
 
-async function autoPushRulesToSheet(rules, writeUrl) {
-  let totalUpdated = 0;
-  let failed = 0;
-  for (const rule of rules) {
-    try {
-      const res = await fetch(writeUrl, {
-        method: 'POST',
-        body: JSON.stringify({
-          action:      'batchUpdate',
-          matchArtist: rule.match.artist,
-          matchTitle:  rule.match.title,
-          matchAlbum:  rule.match.album,
-          artist:      rule.replace.artist,
-          track:       rule.replace.title,
-          album:       rule.replace.album === '—' ? '' : rule.replace.album,
-        }),
-      });
-      const data = await res.json();
-      if (data.status === 'error') throw new Error(data.message || 'Script error');
-      totalUpdated += (data.updated || 0);
-    } catch (e) {
-      console.warn('Auto-correct: sheet push failed for rule:', rule.match, e.message);
-      failed++;
-    }
-  }
-  if (!failed) {
-    setSyncStatus(`✓ Auto-corrected ${totalUpdated} entr${totalUpdated === 1 ? 'y' : 'ies'} in sheet.`, 'ok');
-  } else {
-    setSyncStatus(`Auto-correct: ${rules.length - failed}/${rules.length} rules pushed to sheet (${failed} failed — check console).`, 'loading');
+async function autoCorrectEntries(plays, writeUrl) {
+  const rules = getAutocorrectRules();
+  if (!rules.length) return;
+  const updates = plays.flatMap(p => {
+    const rule = rules.find(r => r.match.artist === p.artist && r.match.title === p.title && r.match.album === p.album);
+    if (!rule) return [];
+    return [{ originalTimestamp: Math.floor(p.date.getTime() / 1000), artist: rule.replace.artist, track: rule.replace.title, album: rule.replace.album === '—' ? '' : rule.replace.album }];
+  });
+  if (!updates.length) return;
+  try {
+    const res  = await fetch(writeUrl, { method: 'POST', body: JSON.stringify({ action: 'bulkUpdate', updates }) });
+    const data = await res.json();
+    if (data.status !== 'error' && data.updated > 0)
+      setSyncStatus(`✓ Auto-corrected ${data.updated} entr${data.updated === 1 ? 'y' : 'ies'} in sheet.`, 'ok');
+  } catch (e) {
+    console.warn('Auto-correct: bulk update failed:', e.message);
   }
 }
 
@@ -2011,7 +1998,6 @@ window.addEventListener('load', async () => {
   }
 });
 
-let _rulesPushedToSheetThisSession = false;
 function parseCsv(text, fromSheets = false) {
   const lines = text.trim().split(/\r?\n/);
   if (lines.length < 2) {
@@ -2090,16 +2076,9 @@ function parseCsv(text, fromSheets = false) {
 
   allPlays.sort((a, b) => b.date - a.date);
 
-  if (fromSheets && !_rulesPushedToSheetThisSession) {
-    _rulesPushedToSheetThisSession = true;
+  if (fromSheets) {
     const writeUrl = getSheetWriteUrl();
-    if (writeUrl) {
-      const rules = getAutocorrectRules();
-      const matchedRules = rules.filter(r =>
-        allPlays.some(p => p.artist === r.match.artist && p.title === r.match.title && p.album === r.match.album)
-      );
-      if (matchedRules.length) autoPushRulesToSheet(matchedRules, writeUrl);
-    }
+    if (writeUrl) autoCorrectEntries(allPlays, writeUrl);
   }
 
   allPlays = applyAutocorrectRules(allPlays);
