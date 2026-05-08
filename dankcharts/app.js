@@ -876,26 +876,37 @@ async function pushEditToSheet() {
   const statusEl = f.statusEl;
   btn.disabled = true;
   let isBatchUpdate = false;
+  let _batchDone = 0;
+  let _batchTotal = 0;
   try {
     if (applyAll && orig) {
       isBatchUpdate = true;
-      statusEl.textContent = 'Updating all matching entries in sheet…';
+      const matching = allPlays.filter(p =>
+        p.artist === orig.artist && p.title === orig.title && p.album === orig.album
+      );
+      _batchTotal = matching.length;
+      const CHUNK = 100;
+      const t0 = Date.now();
+      statusEl.textContent = `Updating 0 / ${_batchTotal} entries…`;
       statusEl.className   = 'scrobble-status loading';
-      const res  = await fetch(writeUrl, {
-        method: 'POST',
-        body: JSON.stringify({
-          action:      'batchUpdate',
-          matchArtist: orig.artist,
-          matchTitle:  orig.title,
-          matchAlbum:  orig.album === '—' ? '' : orig.album,
-          artist: f.artist,
-          track:  f.title,
-          album:  f.album,
-        }),
-      });
-      const data = await res.json();
-      if (data.status === 'error') throw new Error(data.message || 'Script error');
-      if (data.updated === undefined) throw new Error('Apps Script is outdated — please redeploy the latest version from the setup guide to enable batch editing.');
+      const updates = matching.map(p => ({
+        originalTimestamp: Math.floor(p.date.getTime() / 1000),
+        artist: f.artist,
+        track:  f.title,
+        album:  f.album,
+      }));
+      for (let i = 0; i < updates.length; i += CHUNK) {
+        const res = await fetch(writeUrl, {
+          method: 'POST',
+          body: JSON.stringify({ action: 'bulkUpdate', updates: updates.slice(i, i + CHUNK) }),
+        });
+        const data = await res.json();
+        if (data.status === 'error') throw new Error(data.message || 'Script error');
+        _batchDone += (data.updated || 0);
+        const pct = Math.round((_batchDone / _batchTotal) * 100);
+        const elapsed = ((Date.now() - t0) / 1000).toFixed(1);
+        statusEl.textContent = `Updated ${_batchDone} / ${_batchTotal} entries (${pct}%, ${elapsed}s)…`;
+      }
       allPlays.forEach(p => {
         if (p.artist === orig.artist && p.title === orig.title && p.album === orig.album) {
           p.title   = f.title;
@@ -910,8 +921,9 @@ async function pushEditToSheet() {
       }
       renderAll();
       saveToIDB(IDB_SHEETS_KEY, { ts: Date.now(), csv: _serializePlaysCsv() }).catch(() => {});
-      if (saveRule) syncRulesToSheet(); // fire-and-forget after batchUpdate, not before
-      statusEl.textContent = `✓ Updated ${data.updated} entr${data.updated === 1 ? 'y' : 'ies'} in sheet!`;
+      if (saveRule) syncRulesToSheet();
+      const elapsed = ((Date.now() - t0) / 1000).toFixed(1);
+      statusEl.textContent = `✓ Updated ${_batchDone} entr${_batchDone === 1 ? 'y' : 'ies'} in sheet! (${elapsed}s)`;
       statusEl.className   = 'scrobble-status ok';
     } else {
       statusEl.textContent = 'Updating sheet…';
@@ -948,8 +960,6 @@ async function pushEditToSheet() {
   } catch (e) {
     const isFetchError = e.message === 'Failed to fetch' || e.name === 'TypeError';
     if (isBatchUpdate && isFetchError) {
-      // Apps Script hit its 6-min execution limit and dropped the connection,
-      // but it likely finished writing before timing out — apply changes locally.
       allPlays.forEach(p => {
         if (p.artist === orig.artist && p.title === orig.title && p.album === orig.album) {
           p.title   = f.title;
@@ -964,7 +974,8 @@ async function pushEditToSheet() {
       }
       renderAll();
       saveToIDB(IDB_SHEETS_KEY, { ts: Date.now(), csv: _serializePlaysCsv() }).catch(() => {});
-      statusEl.textContent = '⚠ Sheet update likely completed but timed out (Google Apps Script 6-min limit). Local view updated. Reload from sheet to confirm.';
+      const partial = _batchDone > 0 ? ` (${_batchDone}/${_batchTotal} written)` : '';
+      statusEl.textContent = `⚠ Sheet update interrupted${partial}. Local view updated. Reload from sheet to confirm.`;
       statusEl.className   = 'scrobble-status ok';
     } else {
       const msg = isFetchError
