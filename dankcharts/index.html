@@ -1856,11 +1856,14 @@ function fetchAndLogLastFmHistory() {
     for (var i = vals.length - 1; i >= 0; i--) {
       var v = vals[i][0];
       if (v &amp;&amp; v !== '') {
-        actualLastRow = i + 1;
         var str = v instanceof Date ? Utilities.formatDate(v, tz, 'yyyy-MM-dd HH:mm:ss') : String(v);
-        if (/\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}/.test(str))
-          lastTs = Math.floor(Utilities.parseDate(str, tz, 'yyyy-MM-dd HH:mm:ss').getTime() / 1000);
-        break;
+        if (/\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}/.test(str)) {
+          var ts = Math.floor(Utilities.parseDate(str, tz, 'yyyy-MM-dd HH:mm:ss').getTime() / 1000);
+          if (ts > 0) { actualLastRow = i + 1; lastTs = ts; break; }
+        } else {
+          actualLastRow = i + 1;
+          break;
+        }
       }
     }
   }
@@ -1899,7 +1902,7 @@ function fetchAndLogLastFmHistory() {
   // Write new tracks to the sheet (skip the "now playing" entry which has no timestamp)
   var tracks = data.recenttracks &amp;&amp; data.recenttracks.track;
   if (tracks &amp;&amp; tracks.length) {
-    var done = tracks.filter(function(t) { return t.date &amp;&amp; t.date.uts; });
+    var done = tracks.filter(function(t) { return t.date &amp;&amp; +t.date.uts > 0; });
     if (done.length) {
       done.sort(function(a, b) { return +a.date.uts - +b.date.uts; }); // oldest first
       var rows = done.map(function(t) {
@@ -2072,6 +2075,9 @@ function doPost(e) {
     }
 
     // Add a new row
+    if (!data.timestamp || data.timestamp &lt;= 0)
+      return ContentService.createTextOutput(JSON.stringify({ status: 'error', message: 'Invalid timestamp' }))
+        .setMimeType(ContentService.MimeType.JSON);
     var fmt = Utilities.formatDate(new Date(data.timestamp * 1000), tz, 'yyyy-MM-dd HH:mm:ss');
     var row = new Array(lastCol).fill('');
     if (colIdx.title    !== undefined) row[colIdx.title]    = data.track  || '';
