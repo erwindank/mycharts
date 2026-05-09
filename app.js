@@ -1906,9 +1906,10 @@ function makeFastDateParser(sample) {
     return str => {
       const y = +str.slice(0, 4), mo = +str.slice(5, 7) - 1, d = +str.slice(8, 10);
       if (isNaN(y) || isNaN(mo) || isNaN(d)) return null;
-      const h = str.length > 10 ? +(str.slice(11, 13)) || 0 : 0;
+      const h  = str.length > 10 ? +(str.slice(11, 13)) || 0 : 0;
       const mi = str.length > 13 ? +(str.slice(14, 16)) || 0 : 0;
-      const dt = new Date(y, mo, d, h, mi);
+      const s  = str.length > 16 ? +(str.slice(17, 19)) || 0 : 0;
+      const dt = new Date(y, mo, d, h, mi, s);
       return isNaN(dt) ? null : dt;
     };
   }
