@@ -1999,6 +1999,7 @@ function doPost(e) {
           .setMimeType(ContentService.MimeType.JSON);
       var corrMap = {};
       updates.forEach(function(u) {
+        if (!u.originalTimestamp || u.originalTimestamp <= 0) return;
         corrMap[Utilities.formatDate(new Date(u.originalTimestamp * 1000), tz, 'yyyy-MM-dd HH:mm:ss')] = u;
       });
       var lastRow = sheet.getLastRow();
@@ -2028,6 +2029,9 @@ function doPost(e) {
 
     // Edit an existing row by matching its original timestamp
     if (data.action === 'update') {
+      if (!data.timestamp || data.timestamp <= 0)
+        return ContentService.createTextOutput(JSON.stringify({ status: 'error', message: 'Invalid new timestamp' }))
+          .setMimeType(ContentService.MimeType.JSON);
       var origFmt = Utilities.formatDate(new Date(data.originalTimestamp * 1000), tz, 'yyyy-MM-dd HH:mm:ss');
       var newFmt  = Utilities.formatDate(new Date(data.timestamp * 1000), tz, 'yyyy-MM-dd HH:mm:ss');
       var lastRow = sheet.getLastRow();

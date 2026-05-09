@@ -606,6 +606,7 @@ async function autoCorrectEntries(plays, writeUrl) {
   const rules = getAutocorrectRules();
   if (!rules.length) return;
   const updates = plays.flatMap(p => {
+    if (p.date.getFullYear() < 2000) return [];
     const rule = rules.find(r => r.match.artist === p.artist && r.match.title === p.title && r.match.album === p.album);
     if (!rule) return [];
     return [{ originalTimestamp: Math.floor(p.date.getTime() / 1000), artist: rule.replace.artist, track: rule.replace.title, album: rule.replace.album === '—' ? '' : rule.replace.album }];
@@ -1634,7 +1635,7 @@ function parsePlaysCsv(text) {
     const rawDate = get(colMap.datetime);
     let dt = fastDateParse(rawDate);
     if (!dt && fastDateParse !== parseDate) dt = parseDate(rawDate);
-    if (!dt) continue;
+    if (!dt || dt.getFullYear() < 2000) continue;
     const artistRaw = get(colMap.artist);
     plays.push({ title: get(colMap.title), artist: artistRaw, artists: splitArtists(artistRaw), album: get(colMap.album) || '—', date: dt });
   }
@@ -2053,7 +2054,7 @@ function parseCsv(text, fromSheets = false) {
     const rawDate = get(colMap.datetime);
     let dt = fastDateParse(rawDate);
     if (!dt && fastDateParse !== parseDate) dt = parseDate(rawDate); // rare fallback for outlier rows
-    if (!dt) {
+    if (!dt || dt.getFullYear() < 2000) {
       skippedDate++;
       if (skippedDateSamples.length < 20 && rawDate) skippedDateSamples.push(`row ${i + 1}: "${rawDate}"`);
       continue;
