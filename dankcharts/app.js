@@ -903,6 +903,7 @@ async function pushEditToSheet() {
         });
         const data = await res.json();
         if (data.status === 'error') throw new Error(data.message || 'Script error');
+        if (data.updated === undefined) throw new Error('Apps Script is outdated — copy the latest script from the Setup Guide and redeploy as a new version (it is adding empty rows to your sheet).');
         _batchDone += (data.updated || 0);
         const pct = Math.round((_batchDone / _batchTotal) * 100);
         const elapsed = ((Date.now() - t0) / 1000).toFixed(1);
