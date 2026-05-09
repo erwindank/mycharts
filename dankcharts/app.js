@@ -1005,13 +1005,9 @@ function deezerValidUrl(url) {
 }
 
 function deezerFetch(endpoint) {
-  return fetch('/deezer-proxy?url=' + encodeURIComponent(endpoint));
-}
-
-// Deezer placeholder URLs contain '//' after the image type (no real hash), e.g. /images/artist//500x500-...
-function deezerValidUrl(url) {
-  if (!url) return null;
-  return /\/images\/[^/]+\/\//.test(url) ? null : url;
+  const isLocal = location.hostname === 'localhost' || location.hostname === '127.0.0.1';
+  const base = isLocal ? 'https://dankcharts.fm/deezer-proxy' : '/deezer-proxy';
+  return fetch(base + '?url=' + encodeURIComponent(endpoint));
 }
 
 async function deezerArtistImage(artist) {
