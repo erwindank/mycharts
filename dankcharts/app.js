@@ -886,29 +886,34 @@ async function pushEditToSheet() {
         p.artist === orig.artist && p.title === orig.title && p.album === orig.album
       );
       _batchTotal = matching.length;
-      const CHUNK = 100;
       const t0 = Date.now();
-      statusEl.textContent = `Updating 0 / ${_batchTotal} entries…`;
+      statusEl.textContent = `Updating ${_batchTotal} entr${_batchTotal === 1 ? 'y' : 'ies'} in sheet…`;
       statusEl.className   = 'scrobble-status loading';
-      const updates = matching.map(p => ({
-        originalTimestamp: Math.floor(p.date.getTime() / 1000),
-        artist: f.artist,
-        track:  f.title,
-        album:  f.album,
-      }));
-      for (let i = 0; i < updates.length; i += CHUNK) {
-        const res = await fetch(writeUrl, {
-          method: 'POST',
-          body: JSON.stringify({ action: 'bulkUpdate', updates: updates.slice(i, i + CHUNK) }),
-        });
-        const data = await res.json();
-        if (data.status === 'error') throw new Error(data.message || 'Script error');
-        if (data.updated === undefined) throw new Error('Apps Script is outdated — copy the latest script from the Setup Guide and redeploy as a new version (it is adding empty rows to your sheet).');
-        _batchDone += (data.updated || 0);
-        const pct = Math.round((_batchDone / _batchTotal) * 100);
-        const elapsed = ((Date.now() - t0) / 1000).toFixed(1);
-        statusEl.textContent = `Updated ${_batchDone} / ${_batchTotal} entries (${pct}%, ${elapsed}s)…`;
-      }
+      // allPlays has autocorrected values; the sheet has the originals.
+      // Reverse-look up the autocorrect rule to find the original artist/title/album
+      // that is actually stored in the sheet, so batchUpdate can match on it.
+      const acRules = getAutocorrectRules();
+      const revRule = acRules.find(r =>
+        r.replace.artist === orig.artist &&
+        r.replace.title  === orig.title  &&
+        r.replace.album  === orig.album
+      );
+      const matchArtist = revRule ? revRule.match.artist : orig.artist;
+      const matchTitle  = revRule ? revRule.match.title  : orig.title;
+      const matchAlbum  = (revRule ? revRule.match.album : orig.album).replace(/^—$/, '');
+      const batchRes  = await fetch(writeUrl, {
+        method: 'POST',
+        body: JSON.stringify({
+          action: 'batchUpdate',
+          matchArtist, matchTitle, matchAlbum,
+          artist: f.artist,
+          track:  f.title,
+          album:  f.album,
+        }),
+      });
+      const batchData = await batchRes.json();
+      if (batchData.status === 'error') throw new Error(batchData.message || 'Script error');
+      _batchDone = batchData.updated || 0;
       allPlays.forEach(p => {
         if (p.artist === orig.artist && p.title === orig.title && p.album === orig.album) {
           p.title   = f.title;
