@@ -1004,10 +1004,8 @@ function deezerValidUrl(url) {
   return /\/images\/[^/]+\/\//.test(url) ? null : url;
 }
 
-// Deezer requires a CORS proxy for browser requests
-const DEEZER_PROXY = 'https://corsproxy.io/?url=';
 function deezerFetch(endpoint) {
-  return fetch(DEEZER_PROXY + encodeURIComponent('https://api.deezer.com/' + endpoint));
+  return fetch('/deezer-proxy?url=' + encodeURIComponent(endpoint));
 }
 
 // Deezer placeholder URLs contain '//' after the image type (no real hash), e.g. /images/artist//500x500-...
