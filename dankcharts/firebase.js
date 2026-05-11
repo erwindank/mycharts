@@ -121,13 +121,14 @@ window.dcSaveRulesToFirestore  = dcSaveRulesToFirestore;
 // ── INIT ────────────────────────────────────────────────────────────────────
 firebase.initializeApp(firebaseConfig);
 _auth = firebase.auth();
-_db   = firebase.firestore();
 
 _auth.onAuthStateChanged(async (user) => {
   _currentUser = user;
   _refreshAuthUI(user);
 
   if (!user) return;
+
+  if (!_db) _db = firebase.firestore();
 
   const applied = await _loadAndApplyConfig(user.uid);
   if (applied && typeof dcResetRulesCache === 'function') dcResetRulesCache();

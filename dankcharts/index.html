@@ -1819,6 +1819,28 @@ function getSettings_() {
 }
 
 
+// Removes rows that have no song/artist data but a pre-2000 date in column D.
+// These ghost rows (epoch-zero timestamps) accumulate when Last.fm returns
+// incomplete scrobbles and corrupt future syncs.
+function cleanupGhostRows_(sheet) {
+  var lastRow = sheet.getLastRow();
+  if (lastRow < 2) return;
+  var vals = sheet.getRange(2, 1, lastRow - 1, 4).getValues();
+  var toDelete = [];
+  for (var i = 0; i < vals.length; i++) {
+    var title = vals[i][0], artist = vals[i][1], album = vals[i][2], dt = vals[i][3];
+    if (!title &amp;&amp; !artist &amp;&amp; !album &amp;&amp; dt instanceof Date &amp;&amp; dt.getFullYear() &lt; 2000) {
+      toDelete.push(i + 2); // convert to 1-indexed sheet row
+    }
+  }
+  // Delete from bottom to top so row numbers stay valid
+  for (var j = toDelete.length - 1; j >= 0; j--) {
+    sheet.deleteRow(toDelete[j]);
+  }
+  if (toDelete.length) Logger.log('Cleaned up ' + toDelete.length + ' ghost row(s).');
+}
+
+
 // =============================================================
 //  AUTO-SYNC
 //  Fetches any new plays from Last.fm and appends them to your
@@ -1848,6 +1870,9 @@ function fetchAndLogLastFmHistory() {
 
   // Use the sheet's own timezone so dates are stored in your local time
   var tz = ss.getSpreadsheetTimeZone();
+
+  // Remove ghost rows (no song data, epoch-zero date) before scanning for lastTs
+  cleanupGhostRows_(sheet);
 
   // Find the last recorded track so we only fetch plays newer than that
   var maxRow = sheet.getLastRow(), lastTs = 0, actualLastRow = 0;
