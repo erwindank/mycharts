@@ -773,6 +773,31 @@
         <canvas id="gBarRace" style="width:100%;display:block;border-radius:6px;"></canvas>
       </div>
 
+      <!-- Chart 6: Listening Activity Heatmap -->
+      <div class="graph-card">
+        <div class="graph-card-title">🔥 Listening Activity Heatmap</div>
+        <div class="graph-card-sub">Daily scrobble volume — GitHub-style contribution grid. Hover a day for details.</div>
+        <div style="display:flex;align-items:center;gap:0.5rem;flex-wrap:wrap;margin-bottom:0.5rem;">
+          <span style="font-family:'DM Mono',monospace;font-size:0.62rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--text3);">View</span>
+          <div id="heatmapTypeBtns" style="display:flex;gap:4px;flex-wrap:wrap;">
+            <button class="graphs-btn active" data-hmtype="all">All</button>
+            <button class="graphs-btn" data-hmtype="artist">Artist</button>
+            <button class="graphs-btn" data-hmtype="song">Song</button>
+            <button class="graphs-btn" data-hmtype="album">Album</button>
+          </div>
+        </div>
+        <div id="heatmapFilterRow" style="display:none;align-items:center;gap:0.5rem;margin-bottom:0.5rem;">
+          <input id="heatmapFilterInput" type="text" list="heatmapFilterList" placeholder="Add an artist…"
+            style="flex:1;min-width:0;background:var(--bg2);border:1px solid var(--border2);color:var(--text);
+                 font-family:'DM Mono',monospace;font-size:0.7rem;padding:0.3rem 0.6rem;border-radius:4px;outline:none;">
+          <datalist id="heatmapFilterList"></datalist>
+          <button id="heatmapFilterBtn" class="graphs-btn active" style="white-space:nowrap;">+ Add</button>
+        </div>
+        <div id="heatmapChips" style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:0.6rem;min-height:0;"></div>
+        <div id="gHeatmap" style="overflow-x:auto;padding-bottom:0.25rem;"></div>
+      </div>
+      <div id="heatmapTooltip" style="display:none;position:fixed;pointer-events:none;z-index:9999;"></div>
+
     </div>
 
     <!-- RAW DATA VIEW -->

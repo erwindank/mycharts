@@ -8113,6 +8113,7 @@ function renderGraphs() {
       }
     }
   }
+  renderHeatmap();
 }
 
 let gCumulativeArtists = [];
@@ -8121,6 +8122,11 @@ let gVolumeLabels = false;
 let gVolumeArtists = [];
 let gTotalVolumeLabels = false;
 let gDiscoveriesLabels = false;
+
+let heatmapType = 'all';
+let heatmapFilters = [];
+let _hmDayMap = {};
+let _hmMsMap = {};
 
 function saveChartZoom(chart, key) {
   const scale = chart.scales && chart.scales.x;
@@ -9141,6 +9147,321 @@ async function downloadRaceGif() {
 }
 
 document.getElementById('raceGifBtn').addEventListener('click', downloadRaceGif);
+
+// ─── HEATMAP GRAPH ─────────────────────────────────────────────
+
+const HM_COLOR_STOPS = ['#1c2b3f', '#3a1858', '#6a28a0', '#c048cc', '#ff7ee0'];
+const HM_MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+const HM_DOW_LABELS = ['Mon', '', 'Wed', '', 'Fri', '', 'Sun'];
+
+function hmLerpColor(h1, h2, t) {
+  const p = s => parseInt(s, 16);
+  const r = v => Math.round(v).toString(16).padStart(2, '0');
+  const [r1, g1, b1] = [p(h1.slice(1, 3)), p(h1.slice(3, 5)), p(h1.slice(5, 7))];
+  const [r2, g2, b2] = [p(h2.slice(1, 3)), p(h2.slice(3, 5)), p(h2.slice(5, 7))];
+  return '#' + r(r1 + (r2 - r1) * t) + r(g1 + (g2 - g1) * t) + r(b1 + (b2 - b1) * t);
+}
+
+function hmCellColor(count, max) {
+  if (!count || !max) return '#1a2535';
+  const ratio = Math.min(Math.log1p(count) / Math.log1p(max), 1);
+  const idx = ratio * (HM_COLOR_STOPS.length - 1);
+  const lo = Math.floor(idx);
+  const hi = Math.min(lo + 1, HM_COLOR_STOPS.length - 1);
+  return lo === hi ? HM_COLOR_STOPS[lo] : hmLerpColor(HM_COLOR_STOPS[lo], HM_COLOR_STOPS[hi], idx - lo);
+}
+
+function hmOrdinal(n) {
+  const s = n % 100;
+  if (s >= 11 && s <= 13) return n + 'th';
+  switch (n % 10) {
+    case 1: return n + 'st';
+    case 2: return n + 'nd';
+    case 3: return n + 'rd';
+    default: return n + 'th';
+  }
+}
+
+function hmMatchesFilter(p) {
+  if (heatmapType === 'artist') return p.artists.some(a => heatmapFilters.includes(a));
+  if (heatmapType === 'song') return heatmapFilters.includes(`${p.title} • ${p.artist}`);
+  if (heatmapType === 'album') return heatmapFilters.includes(`${p.album} • ${albumArtist(p)}`);
+  return true;
+}
+
+function buildHeatmapData() {
+  const dayMap = {};
+  const msMap = {};
+  const chrono = [...allPlays].sort((a, b) => a.date - b.date);
+  const isFiltered = heatmapType !== 'all' && heatmapFilters.length > 0;
+
+  if (!isFiltered) {
+    for (const p of chrono) {
+      const dk = localDateStr(tzDate(p.date));
+      if (!dayMap[dk]) dayMap[dk] = { count: 0, plays: [] };
+      dayMap[dk].count++;
+      dayMap[dk].plays.push(p);
+    }
+    for (const [dk, data] of Object.entries(dayMap)) {
+      const ms = [];
+      for (const n of [1, 50, 100, 200, 500, 1000]) {
+        if (data.plays.length >= n) ms.push({ label: hmOrdinal(n) + ' scrobble', play: data.plays[n - 1] });
+      }
+      if (ms.length) msMap[dk] = ms;
+    }
+  } else {
+    const milestoneSet = new Set([1, 10, 25, 50, 100, 250, 500, 1000, 2500, 5000]);
+    let cumCount = 0;
+    for (const p of chrono) {
+      if (!hmMatchesFilter(p)) continue;
+      cumCount++;
+      const dk = localDateStr(tzDate(p.date));
+      if (!dayMap[dk]) dayMap[dk] = { count: 0, plays: [] };
+      dayMap[dk].count++;
+      dayMap[dk].plays.push(p);
+      if (milestoneSet.has(cumCount)) {
+        if (!msMap[dk]) msMap[dk] = [];
+        msMap[dk].push({ label: hmOrdinal(cumCount) + ' scrobble', play: p });
+      }
+    }
+  }
+  return { dayMap, msMap };
+}
+
+function updateHeatmapFilterList() {
+  const dl = document.getElementById('heatmapFilterList');
+  if (!dl) return;
+  if (heatmapType === 'artist') {
+    const totals = {};
+    for (const p of allPlays) for (const a of p.artists) totals[a] = (totals[a] || 0) + 1;
+    const sorted = Object.keys(totals).sort((a, b) => totals[b] - totals[a]);
+    dl.innerHTML = sorted.map(a => `<option value="${esc(a)}">`).join('');
+  } else if (heatmapType === 'song') {
+    const totals = {};
+    for (const p of allPlays) {
+      const k = `${p.title} • ${p.artist}`;
+      totals[k] = (totals[k] || 0) + 1;
+    }
+    const sorted = Object.keys(totals).sort((a, b) => totals[b] - totals[a]);
+    dl.innerHTML = sorted.map(s => `<option value="${esc(s)}">`).join('');
+  } else if (heatmapType === 'album') {
+    const totals = {};
+    for (const p of allPlays) {
+      if (!p.album || p.album === '—') continue;
+      const k = `${p.album} • ${albumArtist(p)}`;
+      totals[k] = (totals[k] || 0) + 1;
+    }
+    const sorted = Object.keys(totals).sort((a, b) => totals[b] - totals[a]);
+    dl.innerHTML = sorted.map(s => `<option value="${esc(s)}">`).join('');
+  }
+}
+
+function renderHeatmapChips() {
+  const wrap = document.getElementById('heatmapChips');
+  if (!wrap) return;
+  wrap.innerHTML = heatmapFilters.map((f, i) => {
+    const col = GRAPH_PALETTE[i % GRAPH_PALETTE.length];
+    return `<span style="display:inline-flex;align-items:center;gap:4px;background:${col}22;border:1px solid ${col};
+              color:${col};font-family:'DM Mono',monospace;font-size:0.65rem;padding:2px 8px;border-radius:20px;
+              letter-spacing:0.04em;">${esc(f)}
+              <button onclick="removeHeatmapFilter(${i})" style="background:none;border:none;color:${col};
+                cursor:pointer;font-size:0.75rem;line-height:1;padding:0 0 1px 2px;">×</button>
+            </span>`;
+  }).join('');
+}
+
+function removeHeatmapFilter(idx) {
+  heatmapFilters.splice(idx, 1);
+  renderHeatmapChips();
+  renderHeatmap();
+}
+
+function renderHeatmap() {
+  const container = document.getElementById('gHeatmap');
+  const tooltip = document.getElementById('heatmapTooltip');
+  if (!container || !allPlays.length) return;
+  if (tooltip) tooltip.style.display = 'none';
+
+  const { dayMap, msMap } = buildHeatmapData();
+  _hmDayMap = dayMap;
+  _hmMsMap = msMap;
+  updateHeatmapFilterList();
+
+  const today = localDateStr(tzNow());
+  const allDayKeys = Object.keys(dayMap).sort();
+
+  if (!allDayKeys.length) {
+    container.innerHTML = '<div style="font-family:\'DM Mono\',monospace;font-size:0.7rem;color:var(--text3);padding:1rem 0;">No scrobbles found for the selected filters.</div>';
+    return;
+  }
+
+  const firstDate = new Date(allDayKeys[0] + 'T00:00:00');
+  const lastDate = new Date(today + 'T00:00:00');
+
+  let maxCount = 1;
+  for (const d of Object.values(dayMap)) if (d.count > maxCount) maxCount = d.count;
+
+  // Pad grid start to Monday
+  const startDow = firstDate.getDay();
+  const padStart = startDow === 0 ? 6 : startDow - 1;
+  const gridStart = new Date(firstDate);
+  gridStart.setDate(gridStart.getDate() - padStart);
+
+  // Build year groups (ISO week year: year of the Thursday of that week)
+  const yearGroups = {};
+  const cur = new Date(gridStart);
+  while (cur <= lastDate) {
+    const thu = new Date(cur);
+    thu.setDate(thu.getDate() + 3);
+    const yr = thu.getFullYear();
+    if (!yearGroups[yr]) yearGroups[yr] = [];
+    const week = [];
+    for (let i = 0; i < 7; i++) {
+      const dk = localDateStr(cur);
+      const data = dayMap[dk] || null;
+      const inRange = cur >= firstDate && cur <= lastDate;
+      week.push({ dk, count: data ? data.count : 0, inRange });
+      cur.setDate(cur.getDate() + 1);
+    }
+    yearGroups[yr].push(week);
+  }
+
+  let html = '';
+  for (const yr of Object.keys(yearGroups).sort((a, b) => +a - +b)) {
+    const weeks = yearGroups[yr];
+
+    let monthHtml = '';
+    let lastMonth = -1;
+    for (const week of weeks) {
+      const monDate = new Date(week[0].dk + 'T00:00:00');
+      const month = monDate.getMonth();
+      if (week[0].inRange && month !== lastMonth) {
+        monthHtml += `<div class="heatmap-week-col heatmap-month-header-row" style="position:relative;"><span class="heatmap-month-label">${HM_MONTHS[month]}</span></div>`;
+        lastMonth = month;
+      } else {
+        monthHtml += '<div class="heatmap-week-col heatmap-month-header-row"></div>';
+      }
+    }
+
+    let cellsHtml = '';
+    for (const week of weeks) {
+      cellsHtml += '<div class="heatmap-week-col">';
+      for (const cell of week) {
+        const bg = cell.inRange ? hmCellColor(cell.count, maxCount) : 'transparent';
+        const hasData = cell.inRange && cell.count > 0;
+        cellsHtml += `<div class="heatmap-cell${hasData ? ' has-data' : ''}" style="background:${bg};"${hasData ? ` data-dk="${cell.dk}"` : ''}></div>`;
+      }
+      cellsHtml += '</div>';
+    }
+
+    html += `<div class="heatmap-year-block">
+      <div class="heatmap-year-header">${yr}</div>
+      <div class="heatmap-outer">
+        <div class="heatmap-dow-labels">${HM_DOW_LABELS.map(l => `<div class="heatmap-dow-label">${l}</div>`).join('')}</div>
+        <div class="heatmap-inner">
+          <div class="heatmap-grid-wrap">
+            <div class="heatmap-weeks-row" style="height:16px;margin-bottom:3px;">${monthHtml}</div>
+            <div class="heatmap-weeks-row">${cellsHtml}</div>
+          </div>
+        </div>
+      </div>
+    </div>`;
+  }
+
+  // Color legend
+  const legendCells = [0, 0.2, 0.45, 0.7, 1].map(r => {
+    const cnt = r === 0 ? 0 : Math.round(Math.exp(r * Math.log1p(maxCount)) - 1);
+    return `<div class="heatmap-cell" style="background:${hmCellColor(cnt, maxCount)};cursor:default;"></div>`;
+  }).join('');
+  html += `<div class="heatmap-legend"><span class="heatmap-legend-label">Less</span>${legendCells}<span class="heatmap-legend-label">More</span></div>`;
+
+  container.innerHTML = html;
+}
+
+// Heatmap tooltip — attached once to the static container
+(function () {
+  const cont = document.getElementById('gHeatmap');
+  const tip = document.getElementById('heatmapTooltip');
+  if (!cont || !tip) return;
+
+  cont.addEventListener('mouseover', e => {
+    const cell = e.target.closest('.heatmap-cell.has-data');
+    if (!cell) { tip.style.display = 'none'; return; }
+
+    const dk = cell.dataset.dk;
+    const data = _hmDayMap[dk];
+    const ms = _hmMsMap[dk] || [];
+    if (!data) return;
+
+    const d = new Date(dk + 'T00:00:00');
+    const dayName = d.toLocaleDateString('en-US', { weekday: 'long' });
+    const day = d.getDate();
+    const monthName = d.toLocaleDateString('en-US', { month: 'long' });
+    const yr = d.getFullYear();
+    const word = data.count === 1 ? 'scrobble' : 'scrobbles';
+
+    let msHtml = '';
+    if (ms.length) {
+      msHtml = '<hr class="hm-tt-rule">';
+      for (const m of ms) {
+        msHtml += `<div class="hm-tt-ms-wrap">
+          <div class="hm-tt-ms-label">🚩 ${esc(m.label)}</div>
+          <div class="hm-tt-ms-track">${esc(m.play.title)}</div>
+          <div class="hm-tt-ms-artist">${esc(m.play.artist)}</div>
+        </div>`;
+      }
+    }
+
+    tip.innerHTML = `<div class="hm-tt-date">${dayName} ${day} ${esc(monthName)} ${yr}</div>
+      <div class="hm-tt-count">${data.count.toLocaleString()} ${word}</div>${msHtml}`;
+    tip.style.display = 'block';
+
+    const rect = cell.getBoundingClientRect();
+    const margin = 12;
+    const tw = tip.offsetWidth || 220;
+    const th = tip.offsetHeight || 120;
+    let x = rect.right + margin;
+    let y = rect.top - 4;
+    if (x + tw > window.innerWidth - 8) x = rect.left - tw - margin;
+    if (y + th > window.innerHeight - 8) y = Math.max(8, window.innerHeight - th - 8);
+    tip.style.left = x + 'px';
+    tip.style.top = y + 'px';
+  });
+
+  cont.addEventListener('mouseleave', () => { tip.style.display = 'none'; });
+}());
+
+// Heatmap type buttons
+document.getElementById('heatmapTypeBtns').addEventListener('click', e => {
+  const btn = e.target.closest('button[data-hmtype]');
+  if (!btn) return;
+  document.querySelectorAll('#heatmapTypeBtns button').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  heatmapType = btn.dataset.hmtype;
+  heatmapFilters = [];
+  renderHeatmapChips();
+  const filterRow = document.getElementById('heatmapFilterRow');
+  filterRow.style.display = heatmapType === 'all' ? 'none' : 'flex';
+  const placeholders = { artist: 'Add an artist…', song: 'Add a song…', album: 'Add an album…' };
+  const inp = document.getElementById('heatmapFilterInput');
+  if (inp) inp.placeholder = placeholders[heatmapType] || 'Add filter…';
+  if (currentPeriod === 'graphs') renderHeatmap();
+});
+
+function hmAddFilter() {
+  const inp = document.getElementById('heatmapFilterInput');
+  const val = inp.value.trim();
+  if (!val || heatmapFilters.includes(val)) { inp.value = ''; return; }
+  heatmapFilters.push(val);
+  inp.value = '';
+  renderHeatmapChips();
+  if (currentPeriod === 'graphs') renderHeatmap();
+}
+
+document.getElementById('heatmapFilterBtn').addEventListener('click', hmAddFilter);
+document.getElementById('heatmapFilterInput').addEventListener('keydown', e => {
+  if (e.key === 'Enter') hmAddFilter();
+});
 
 document.getElementById('graphGranularity').addEventListener('click', e => {
   const btn = e.target.closest('button');
