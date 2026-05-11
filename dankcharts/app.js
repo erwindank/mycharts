@@ -4028,13 +4028,13 @@ function renderNewEntries(plays, start, end) {
     const sk = songKey(p);
     const first = songFirst[sk];
     if (first && first >= start && first <= end) {
-      if (!songCounts[sk]) songCounts[sk] = { title: p.title, artist: p.artist, count: 0, _albums: {} };
+      if (!songCounts[sk]) songCounts[sk] = { title: p.title, artist: p.artist, count: 0, _albums: {}, firstAchieved: p.date };
       songCounts[sk].count++;
       songCounts[sk]._albums[p.album] = (songCounts[sk]._albums[p.album] || 0) + 1;
     }
   }
   const allNewSongs = Object.values(songCounts).map(s => { s.album = bestAlbum(s.title, s._albums); delete s._albums; return s; })
-    .sort((a, b) => b.count - a.count);
+    .sort(rankSort);
   fullNewData.newSongs = isFinite(limit) ? allNewSongs.slice(0, limit) : allNewSongs;
 
   // New artists
@@ -4043,13 +4043,13 @@ function renderNewEntries(plays, start, end) {
     for (const artist of p.artists) {
       const first = artistFirst[artist];
       if (first && first >= start && first <= end) {
-        if (!artistCounts[artist]) artistCounts[artist] = { name: artist, count: 0, songs: new Set() };
+        if (!artistCounts[artist]) artistCounts[artist] = { name: artist, count: 0, songs: new Set(), firstAchieved: p.date };
         artistCounts[artist].count++;
         artistCounts[artist].songs.add(p.title);
       }
     }
   }
-  const allNewArtists = Object.values(artistCounts).sort((a, b) => b.count - a.count);
+  const allNewArtists = Object.values(artistCounts).sort(rankSort);
   fullNewData.newArtists = isFinite(limit) ? allNewArtists.slice(0, limit) : allNewArtists;
 
   // New albums
@@ -4059,12 +4059,12 @@ function renderNewEntries(plays, start, end) {
     const ak = p.album + '|||' + albumArtist(p);
     const first = albumFirst[ak];
     if (first && first >= start && first <= end) {
-      if (!albumCounts[ak]) albumCounts[ak] = { album: p.album, artist: albumArtist(p), count: 0, tracks: new Set() };
+      if (!albumCounts[ak]) albumCounts[ak] = { album: p.album, artist: albumArtist(p), count: 0, tracks: new Set(), firstAchieved: p.date };
       albumCounts[ak].count++;
       albumCounts[ak].tracks.add(p.title);
     }
   }
-  const allNewAlbums = Object.values(albumCounts).sort((a, b) => b.count - a.count);
+  const allNewAlbums = Object.values(albumCounts).sort(rankSort);
   fullNewData.newAlbums = isFinite(limit) ? allNewAlbums.slice(0, limit) : allNewAlbums;
 
   // Reset pages on each full data rebuild
@@ -5096,7 +5096,7 @@ function showCrPreview(periodKey, type, encodedKey, boxEl, periodName) {
   const period = crData.period;
   const title = crPeriodTitle(period, periodKey);
   const typeLabels = { songs: t('rec_th_songs'), artists: t('rec_th_artists'), albums: t('rec_th_albums') };
-  const ranked = Object.entries(pm[type]).sort(([, a], [, b]) => rankSort(a, b)).slice(0, Math.min(chartSize, 25));
+  const ranked = Object.entries(pm[type]).sort(([, a], [, b]) => rankSortWithStatus(a, b)).slice(0, Math.min(chartSize, 25));
   let items = ranked.map(([k, data], i) => {
     const rank = i + 1;
     const isActive = (k === key);
@@ -5489,17 +5489,19 @@ function buildPeriodPeaks(period) {
   // Must use rankSortWithStatus with proper prev/ever tracking so tie-breaking matches
   // what the render functions display — otherwise a seniority-based #2 could be recorded as #1.
   const ppEver = { songs: new Set(), artists: new Set(), albums: new Set() };
-  const ppPrev = { songs: new Set(), artists: new Set(), albums: new Set() };
+  const ppPrev = { songs: new Map(), artists: new Map(), albums: new Map() };
 
   for (const [pKey, pm] of Object.entries(periodMap).sort((a, b) => a[0].localeCompare(b[0]))) {
     if (pKey === curKey) continue; // current period handled by render reconciliation
     for (const type of ['songs', 'artists', 'albums']) {
       for (const [k, data] of Object.entries(pm[type])) {
-        data.chartStatus = ppPrev[type].has(k) ? 0 : ppEver[type].has(k) ? 1 : 2;
+        const prevRk = ppPrev[type].get(k);
+        data.chartStatus = prevRk !== undefined ? 0 : ppEver[type].has(k) ? 1 : 2;
+        data.prevRank = prevRk !== undefined ? prevRk : Infinity;
       }
-      const newPrev = new Set();
+      const newPrev = new Map();
       Object.entries(pm[type]).sort(([, a], [, b]) => rankSortWithStatus(a, b)).slice(0, chartSize).forEach(([k], i) => {
-        newPrev.add(k); ppEver[type].add(k);
+        newPrev.set(k, i + 1); ppEver[type].add(k);
         const rank = i + 1;
         if (type === 'songs') { if (!songPeakMap[k] || rank < songPeakMap[k]) songPeakMap[k] = rank; }
         if (type === 'artists') { if (!artistPeakMap[k] || rank < artistPeakMap[k]) artistPeakMap[k] = rank; }
