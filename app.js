@@ -4994,16 +4994,18 @@ function buildPeriodStats(period) {
   // Must track prev/ever sets in order to assign chartStatus for rankSortWithStatus,
   // so ties are broken by seniority — matching buildChartRun and the render functions exactly.
   const bpsEver = { songs: new Set(), artists: new Set(), albums: new Set() };
-  const bpsPrev = { songs: new Set(), artists: new Set(), albums: new Set() };
+  const bpsPrev = { songs: new Map(), artists: new Map(), albums: new Map() };
 
   for (const [mk, mm] of Object.entries(periodMap).sort((a, b) => a[0].localeCompare(b[0]))) {
     for (const type of ['songs', 'artists', 'albums']) {
       for (const [k, data] of Object.entries(mm[type])) {
-        data.chartStatus = bpsPrev[type].has(k) ? 0 : bpsEver[type].has(k) ? 1 : 2;
+        const prevRk = bpsPrev[type].get(k);
+        data.chartStatus = prevRk !== undefined ? 0 : bpsEver[type].has(k) ? 1 : 2;
+        data.prevRank = prevRk !== undefined ? prevRk : Infinity;
       }
-      const newPrev = new Set();
+      const newPrev = new Map();
       Object.entries(mm[type]).sort(([, a], [, b]) => rankSortWithStatus(a, b)).slice(0, chartSize).forEach(([k, data], i) => {
-        newPrev.add(k); bpsEver[type].add(k);
+        newPrev.set(k, i + 1); bpsEver[type].add(k);
         periodsOnChart[type][k] = (periodsOnChart[type][k] || 0) + 1;
         if (mk < curKey) everChartedBefore[type].add(k);
         if (mk === prevKey) prevChart[type][k] = { rank: i + 1, count: data.count };
@@ -5282,8 +5284,9 @@ function renderSongs(plays, peaks, monthlyStats) {
     delete entry._albums;
     if (monthlyStats) {
       const k = songKey(entry);
-      entry.chartStatus = monthlyStats.prevChart.songs[k] ? 0
-        : monthlyStats.everChartedBefore.songs.has(k) ? 1 : 2;
+      const prev = monthlyStats.prevChart.songs[k];
+      entry.chartStatus = prev ? 0 : monthlyStats.everChartedBefore.songs.has(k) ? 1 : 2;
+      entry.prevRank = prev ? prev.rank : Infinity;
     }
   }
   const sorted = Object.values(counts).sort(monthlyStats ? rankSortWithStatus : rankSort).slice(0, chartSize);
@@ -5341,8 +5344,9 @@ function renderArtists(plays, peaks, monthlyStats) {
   }
   if (monthlyStats) {
     for (const [artist, data] of Object.entries(counts)) {
-      data.chartStatus = monthlyStats.prevChart.artists[artist] ? 0
-        : monthlyStats.everChartedBefore.artists.has(artist) ? 1 : 2;
+      const prev = monthlyStats.prevChart.artists[artist];
+      data.chartStatus = prev ? 0 : monthlyStats.everChartedBefore.artists.has(artist) ? 1 : 2;
+      data.prevRank = prev ? prev.rank : Infinity;
     }
   }
   const sorted = Object.entries(counts).sort(([, a], [, b]) => monthlyStats ? rankSortWithStatus(a, b) : rankSort(a, b)).slice(0, chartSize);
@@ -5391,8 +5395,9 @@ function renderAlbums(plays, peaks, monthlyStats) {
   }
   if (monthlyStats) {
     for (const [k, entry] of Object.entries(counts)) {
-      entry.chartStatus = monthlyStats.prevChart.albums[k] ? 0
-        : monthlyStats.everChartedBefore.albums.has(k) ? 1 : 2;
+      const prev = monthlyStats.prevChart.albums[k];
+      entry.chartStatus = prev ? 0 : monthlyStats.everChartedBefore.albums.has(k) ? 1 : 2;
+      entry.prevRank = prev ? prev.rank : Infinity;
     }
   }
   const sorted = Object.values(counts).filter(a => a.album && a.album !== '—').sort(monthlyStats ? rankSortWithStatus : rankSort).slice(0, chartSize);
