@@ -2179,9 +2179,9 @@ function buildRecords() {
           lc[ak].count++;
         }
       }
-      for (const [k, d] of Object.entries(sc)) d.chartStatus = prevSong[k] ? 0 : everSong.has(k) ? 1 : 2;
-      for (const [k, d] of Object.entries(ac)) d.chartStatus = prevArtist[k] ? 0 : everArtist.has(k) ? 1 : 2;
-      for (const [k, d] of Object.entries(lc)) d.chartStatus = prevAlbum[k] ? 0 : everAlbum.has(k) ? 1 : 2;
+      for (const [k, d] of Object.entries(sc)) { d.chartStatus = prevSong[k] ? 0 : everSong.has(k) ? 1 : 2; d.prevRank = prevSong[k] || Infinity; }
+      for (const [k, d] of Object.entries(ac)) { d.chartStatus = prevArtist[k] ? 0 : everArtist.has(k) ? 1 : 2; d.prevRank = prevArtist[k] || Infinity; }
+      for (const [k, d] of Object.entries(lc)) { d.chartStatus = prevAlbum[k] ? 0 : everAlbum.has(k) ? 1 : 2; d.prevRank = prevAlbum[k] || Infinity; }
       const topSongs = Object.entries(sc).sort(([, a], [, b]) => rankSortWithStatus(a, b)).slice(0, size);
       const topArtists = Object.entries(ac).sort(([, a], [, b]) => rankSortWithStatus(a, b)).slice(0, size);
       const topAlbums = Object.entries(lc).sort(([, a], [, b]) => rankSortWithStatus(a, b)).slice(0, size);
@@ -4091,13 +4091,14 @@ function rankSort(a, b) {
   return a.firstAchieved - b.firstAchieved;
 }
 
-// rankSortWithStatus: count → chart status → timestamp (used for weekly / monthly renders)
+// rankSortWithStatus: count → chart status → prev rank → timestamp (used for weekly / monthly renders)
 // chartStatus: 0 = incumbent (was on chart last period)
 //              1 = re-entry  (charted before, but not last period)
 //              2 = debut     (never charted before)
 function rankSortWithStatus(a, b) {
   if (b.count !== a.count) return b.count - a.count;
   if (a.chartStatus !== b.chartStatus) return a.chartStatus - b.chartStatus;
+  if (a.prevRank !== b.prevRank) return a.prevRank - b.prevRank;
   return a.firstAchieved - b.firstAchieved;
 }
 
