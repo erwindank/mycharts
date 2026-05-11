@@ -4870,7 +4870,7 @@ function buildChartRun(period) {
   const dayFields = { songs: 'daySongs', artists: 'dayArtists', albums: 'dayAlbums' };
   // Track prev-period chart and ever-charted sets so we can assign chartStatus
   // exactly as the render functions do, making box ranks match displayed ranks.
-  const prevChartKeys = { songs: new Set(), artists: new Set(), albums: new Set() };
+  const prevChartKeys = { songs: new Map(), artists: new Map(), albums: new Map() };
   const everChartedKeys = { songs: new Set(), artists: new Set(), albums: new Set() };
   for (const pk of Object.keys(periodMap).sort()) {
     const pm = periodMap[pk];
@@ -4878,12 +4878,14 @@ function buildChartRun(period) {
     for (const type of ['songs', 'artists', 'albums']) {
       // Assign chartStatus to each item for this period
       for (const [k, data] of Object.entries(pm[type])) {
-        data.chartStatus = prevChartKeys[type].has(k) ? 0 : everChartedKeys[type].has(k) ? 1 : 2;
+        const prevRk = prevChartKeys[type].get(k);
+        data.chartStatus = prevRk !== undefined ? 0 : everChartedKeys[type].has(k) ? 1 : 2;
+        data.prevRank = prevRk !== undefined ? prevRk : Infinity;
       }
       const ranked = Object.entries(pm[type]).sort(([, a], [, b]) => rankSortWithStatus(a, b)).slice(0, period === 'year' ? Infinity : chartSize);
       // Update prev/ever sets for next period
-      const newPrevKeys = new Set();
-      ranked.forEach(([k]) => { newPrevKeys.add(k); everChartedKeys[type].add(k); });
+      const newPrevKeys = new Map();
+      ranked.forEach(([k], i) => { newPrevKeys.set(k, i + 1); everChartedKeys[type].add(k); });
       prevChartKeys[type] = newPrevKeys;
       ranked.forEach(([k, data], i) => {
         const rank = i + 1;
