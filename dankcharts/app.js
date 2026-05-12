@@ -949,6 +949,7 @@ async function pushEditToSheet() {
         body: JSON.stringify({
           action: 'update',
           originalTimestamp: Math.floor(_editOrigTs / 1000),
+          rowNumber: _editPlay._sheetRow,
           artist: f.artist,
           track:  f.title,
           album:  f.album,
@@ -2080,7 +2081,8 @@ function parseCsv(text, fromSheets = false) {
       artist: artistRaw,
       artists: splitArtists(artistRaw),
       album: get(colMap.album) || '—',
-      date: dt
+      date: dt,
+      _sheetRow: i + 1,
     });
   }
 

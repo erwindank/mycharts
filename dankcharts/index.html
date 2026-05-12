@@ -2077,32 +2077,46 @@ function doPost(e) {
         .setMimeType(ContentService.MimeType.JSON);
     }
 
-    // Edit an existing row by matching its original timestamp
+    // Edit an existing row — jump directly to the row using the hint from the client,
+    // fall back to a full scan only if the hint is stale (rows added/deleted since last sync).
     if (data.action === 'update') {
-      if (!data.timestamp || data.timestamp <= 0)
+      if (!data.timestamp || data.timestamp &lt;= 0)
         return ContentService.createTextOutput(JSON.stringify({ status: 'error', message: 'Invalid new timestamp' }))
           .setMimeType(ContentService.MimeType.JSON);
       var origFmt = Utilities.formatDate(new Date(data.originalTimestamp * 1000), tz, 'yyyy-MM-dd HH:mm:ss');
       var newFmt  = Utilities.formatDate(new Date(data.timestamp * 1000), tz, 'yyyy-MM-dd HH:mm:ss');
       var lastRow = sheet.getLastRow();
       if (lastRow &lt; 2) throw new Error('Sheet is empty');
-      var values = sheet.getRange(2, 1, lastRow - 1, lastCol).getValues();
-      for (var r = 0; r &lt; values.length; r++) {
-        var cell = values[r][colIdx.datetime];
-        var cellStr = cell instanceof Date
-          ? Utilities.formatDate(cell, tz, 'yyyy-MM-dd HH:mm:ss')
-          : cell.toString().trim().slice(0, 19);
-        if (cellStr === origFmt) {
-          if (colIdx.title    !== undefined) values[r][colIdx.title]    = data.track  || '';
-          if (colIdx.artist   !== undefined) values[r][colIdx.artist]   = data.artist || '';
-          if (colIdx.album    !== undefined) values[r][colIdx.album]    = data.album  || '';
-          if (colIdx.datetime !== undefined) values[r][colIdx.datetime] = newFmt;
-          sheet.getRange(r + 2, 1, 1, lastCol).setValues([values[r]]);
-          return ContentService.createTextOutput(JSON.stringify({ status: 'ok', updated: true }))
-            .setMimeType(ContentService.MimeType.JSON);
+      var targetRow = -1;
+      var targetValues = null;
+      // Fast path: client sends rowNumber — read just that one row instead of the whole sheet
+      if (data.rowNumber &amp;&amp; data.rowNumber &gt;= 2 &amp;&amp; data.rowNumber &lt;= lastRow) {
+        var hint = sheet.getRange(data.rowNumber, 1, 1, lastCol).getValues()[0];
+        var hintCell = hint[colIdx.datetime];
+        var hintStr = hintCell instanceof Date
+          ? Utilities.formatDate(hintCell, tz, 'yyyy-MM-dd HH:mm:ss')
+          : hintCell.toString().trim().slice(0, 19);
+        if (hintStr === origFmt) { targetRow = data.rowNumber; targetValues = hint; }
+      }
+      // Fallback: linear scan (used when rows have shifted since last sync)
+      if (targetRow === -1) {
+        var values = sheet.getRange(2, 1, lastRow - 1, lastCol).getValues();
+        for (var r = 0; r &lt; values.length; r++) {
+          var cell = values[r][colIdx.datetime];
+          var cellStr = cell instanceof Date
+            ? Utilities.formatDate(cell, tz, 'yyyy-MM-dd HH:mm:ss')
+            : cell.toString().trim().slice(0, 19);
+          if (cellStr === origFmt) { targetRow = r + 2; targetValues = values[r]; break; }
         }
       }
-      throw new Error('Row not found for timestamp: ' + origFmt);
+      if (targetRow === -1) throw new Error('Row not found for timestamp: ' + origFmt);
+      if (colIdx.title    !== undefined) targetValues[colIdx.title]    = data.track  || '';
+      if (colIdx.artist   !== undefined) targetValues[colIdx.artist]   = data.artist || '';
+      if (colIdx.album    !== undefined) targetValues[colIdx.album]    = data.album  || '';
+      if (colIdx.datetime !== undefined) targetValues[colIdx.datetime] = newFmt;
+      sheet.getRange(targetRow, 1, 1, lastCol).setValues([targetValues]);
+      return ContentService.createTextOutput(JSON.stringify({ status: 'ok', updated: true }))
+        .setMimeType(ContentService.MimeType.JSON);
     }
 
     // Update all rows matching artist + title + album combination
