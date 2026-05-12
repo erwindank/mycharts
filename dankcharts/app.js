@@ -605,20 +605,29 @@ function applyAutocorrectRules(plays) {
 async function autoCorrectEntries(plays, writeUrl) {
   const rules = getAutocorrectRules();
   if (!rules.length) return;
-  const updates = plays.flatMap(p => {
-    if (p.date.getFullYear() < 2000) return [];
-    const rule = rules.find(r => r.match.artist === p.artist && r.match.title === p.title && r.match.album === p.album);
-    if (!rule) return [];
-    return [{ originalTimestamp: Math.floor(p.date.getTime() / 1000), artist: rule.replace.artist, track: rule.replace.title, album: rule.replace.album === '—' ? '' : rule.replace.album }];
-  });
-  if (!updates.length) return;
+  const activeRules = rules
+    .filter(rule => plays.some(p => p.artist === rule.match.artist && p.title === rule.match.title && p.album === rule.match.album))
+    .map(rule => ({
+      matchArtist: rule.match.artist,
+      matchTitle:  rule.match.title,
+      matchAlbum:  rule.match.album === '—' ? '' : rule.match.album,
+      artist: rule.replace.artist,
+      track:  rule.replace.title,
+      album:  rule.replace.album === '—' ? '' : rule.replace.album,
+    }));
+  if (!activeRules.length) return;
   try {
-    const res  = await fetch(writeUrl, { method: 'POST', body: JSON.stringify({ action: 'bulkUpdate', updates }) });
+    const res = await fetch(writeUrl, {
+      method: 'POST',
+      body: JSON.stringify({ action: 'applyRules', rules: activeRules })
+    });
     const data = await res.json();
     if (data.status !== 'error' && data.updated > 0)
       setSyncStatus(`✓ Auto-corrected ${data.updated} entr${data.updated === 1 ? 'y' : 'ies'} in sheet.`, 'ok');
+    else if (data.status === 'error')
+      console.warn('Auto-correct: sheet update failed:', data.message);
   } catch (e) {
-    console.warn('Auto-correct: bulk update failed:', e.message);
+    console.warn('Auto-correct: sheet update failed:', e.message);
   }
 }
 
