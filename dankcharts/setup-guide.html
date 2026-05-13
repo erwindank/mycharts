@@ -1345,16 +1345,16 @@
     window.ZohoDeskAsapReady&&window.ZohoDeskAsapReady(function(){
       if(!window.ZohoDeskAsap)return;
       window.ZohoDeskAsap.invoke('open');
+      try{window.ZohoDeskAsap.on('close',function(){if(_ze)_ze.style.setProperty('display','none','important');});}catch(e){}
       if(!_ze)return;
-      try{window.ZohoDeskAsap.on('close',function(){_ze.style.setProperty('display','none','important');});}catch(e){}
-      var co=new MutationObserver(function(){
-        setTimeout(function(){
-          if(!_ze)return;
-          var r=_ze.getBoundingClientRect();
-          if(r.height>0&&r.height<120){_ze.style.setProperty('display','none','important');co.disconnect();}
-        },150);
-      });
-      co.observe(_ze,{attributes:true,childList:true,subtree:true});
+      var wasOpen=false;
+      var poll=setInterval(function(){
+        if(!_ze){clearInterval(poll);return;}
+        var h=_ze.getBoundingClientRect().height;
+        if(h>200) wasOpen=true;
+        if(wasOpen&&h>0&&h<120){_ze.style.setProperty('display','none','important');clearInterval(poll);}
+      },500);
+      setTimeout(function(){clearInterval(poll);},300000);
     });
   };
 })();
