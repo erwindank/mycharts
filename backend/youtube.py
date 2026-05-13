@@ -22,7 +22,7 @@ def search():
                 'part': 'snippet',
                 'type': 'video',
                 'q': q,
-                'maxResults': 1,
+                'maxResults': 5,
                 'videoCategoryId': '10',
                 'key': YOUTUBE_API_KEY,
             },
@@ -31,9 +31,25 @@ def search():
         data = resp.json()
         if 'error' in data:
             return jsonify({'error': data['error'].get('message', 'API error')}), 502
-        video_id = (data.get('items') or [{}])[0].get('id', {}).get('videoId')
-        if not video_id:
+        items = data.get('items') or []
+        video_ids = [item.get('id', {}).get('videoId') for item in items if item.get('id', {}).get('videoId')]
+        if not video_ids:
             return jsonify({'error': 'No results'}), 404
-        return jsonify({'videoId': video_id})
+
+        # Check which results allow embedding
+        status_resp = requests.get(
+            'https://www.googleapis.com/youtube/v3/videos',
+            params={'part': 'status', 'id': ','.join(video_ids), 'key': YOUTUBE_API_KEY},
+            timeout=8,
+        )
+        embeddable = {
+            v['id'] for v in (status_resp.json().get('items') or [])
+            if v.get('status', {}).get('embeddable')
+        }
+        for vid in video_ids:
+            if vid in embeddable:
+                return jsonify({'videoId': vid})
+        # All restricted — return first result and let client retry
+        return jsonify({'videoId': video_ids[0]})
     except Exception as e:
         return jsonify({'error': str(e)}), 500

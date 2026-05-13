@@ -2278,6 +2278,7 @@ function doPost(e) {
 
 <!-- YouTube Mini Player -->
 <div id="ytMiniPlayer" style="display:none" class="yt-mini-player">
+  <div class="yt-mini-drag-handle" title="Drag to move">⠿</div>
   <div class="yt-mini-video">
     <div id="yt-player-frame"></div>
   </div>
@@ -2285,8 +2286,21 @@ function doPost(e) {
     <div id="ytMiniTitle" class="yt-mini-title"></div>
     <div id="ytMiniArtist" class="yt-mini-artist"></div>
     <div id="ytMiniStatus" class="yt-mini-status"></div>
+    <div id="ytMiniQueue" class="yt-mini-queue" style="display:none"></div>
+    <div class="yt-mini-controls">
+      <button id="ytMiniPauseBtn" class="yt-mini-ctrl-btn" onclick="_ytPauseToggle()" title="Pause">⏸</button>
+      <button class="yt-mini-ctrl-btn" onclick="_ytOpenInYT()" title="Open in YouTube">↗ YT</button>
+      <button id="ytMiniExpandBtn" class="yt-mini-ctrl-btn" onclick="_ytExpand()" title="Expand player">⤢</button>
+      <button class="yt-mini-ctrl-btn yt-close-btn" onclick="closeYtPlayer()" title="Close player">✕</button>
+    </div>
   </div>
-  <button class="yt-mini-close" onclick="closeYtPlayer()" title="Close player">✕</button>
+</div>
+<!-- YouTube Queue Toast -->
+<div id="ytQueueToast" style="display:none" class="yt-queue-toast">
+  <span class="yt-queue-toast-label"></span>
+  <button class="yt-queue-now-btn">Play now</button>
+  <button class="yt-queue-add-btn">+ Queue</button>
+  <button class="yt-queue-dismiss-btn" onclick="document.getElementById('ytQueueToast').style.display='none'">✕</button>
 </div>
 
 <script type="text/javascript" id="zohodeskasap">

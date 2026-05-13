@@ -5681,7 +5681,7 @@ function renderSongs(plays, peaks, monthlyStats) {
       <td>
         <div class="song-title">${esc(s.title)}${pk ? peakBadge(pk) : ''}${certBadge(cumSongPlays, 'song')}</div>
         <div class="song-artist">${esc(s.artist)}</div>
-        <button class="yt-play-btn" data-title="${esc(s.title)}" data-artist="${esc(s.artist)}" data-album="${esc(s.album)}" onclick="event.stopPropagation();ytPlayFromBtn(this)" title="Play on YouTube">▶ YouTube</button>
+        <button class="yt-play-btn" data-title="${esc(s.title)}" data-artist="${esc(s.artist)}" data-album="${esc(s.album)}" onclick="event.stopPropagation();ytPlayFromBtn(this)" title="Play on YouTube"><span class="yt-btn-content"><svg class="yt-btn-icon" viewBox="0 0 24 24"><path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.5 12 3.5 12 3.5s-7.5 0-9.4.5A3 3 0 0 0 .5 6.2C0 8.1 0 12 0 12s0 3.9.5 5.8a3 3 0 0 0 2.1 2.1c1.9.5 9.4.5 9.4.5s7.5 0 9.4-.5a3 3 0 0 0 2.1-2.1C24 15.9 24 12 24 12s0-3.9-.5-5.8zM9.7 15.5V8.5l6.3 3.5-6.3 3.5z"/></svg>YouTube</span></button>
       </td>
       <td><div class="song-album">${esc(s.album)}${cumAlbumPlays ? certBadge(cumAlbumPlays, 'album') : ''}</div></td>
       ${monthlyStats ? mPrevCell(i + 1, k, 'songs', monthlyStats) : ''}
@@ -10124,12 +10124,19 @@ function initSrcFileUpload() {
 
 // ─── YOUTUBE PLAYER ───────────────────────────────────────────────────────────
 
-let _ytPlayer        = null;
-let _ytApiReady      = false;
-let _ytPendingVideo  = null; // video ID queued before API loaded
-let _ytScrobbleTimer = null;
-let _ytCurrentTrack  = null; // { title, artist, album }
-let _ytScrobbled     = false;
+let _ytPlayer          = null;
+let _ytApiReady        = false;
+let _ytPendingVideo    = null;
+let _ytScrobbleTimer   = null;
+let _ytCurrentTrack    = null;
+let _ytScrobbled       = false;
+let _ytActiveBtn       = null;
+let _ytCurrentVideoId  = null;
+let _ytQueue           = [];
+let _ytQueueToastTimer = null;
+let _ytDragInitialized = false;
+let _ytExpanded        = false;
+let _ytEmbedRetry      = 0;
 
 // Called automatically by the YouTube IFrame API script once it loads.
 function onYouTubeIframeAPIReady() {
@@ -10149,13 +10156,23 @@ function _ytInjectApi() {
 }
 
 function ytPlayFromBtn(btn) {
-  openYtPlayer(btn.dataset.title, btn.dataset.artist, btn.dataset.album);
+  const playerEl = document.getElementById('ytMiniPlayer');
+  if (_ytCurrentTrack && playerEl && playerEl.style.display !== 'none') {
+    _ytShowQueueToast(btn.dataset.title, btn.dataset.artist, btn.dataset.album, btn);
+  } else {
+    openYtPlayer(btn.dataset.title, btn.dataset.artist, btn.dataset.album, btn);
+  }
 }
 
-function openYtPlayer(title, artist, album) {
-  _ytCurrentTrack = { title, artist, album };
-  _ytScrobbled    = false;
+function openYtPlayer(title, artist, album, btn) {
+  if (_ytActiveBtn) _ytActiveBtn.classList.remove('yt-btn-loading', 'yt-btn-playing');
+  _ytCurrentTrack   = { title, artist, album };
+  _ytCurrentVideoId = null;
+  _ytScrobbled      = false;
+  _ytEmbedRetry     = 0;
   clearTimeout(_ytScrobbleTimer);
+  _ytActiveBtn = btn || null;
+  if (_ytActiveBtn) _ytActiveBtn.classList.add('yt-btn-loading');
   const player = document.getElementById('ytMiniPlayer');
   player.style.display = '';
   document.getElementById('ytMiniTitle').textContent  = title;
@@ -10163,18 +10180,25 @@ function openYtPlayer(title, artist, album) {
   const statusEl = document.getElementById('ytMiniStatus');
   statusEl.textContent = 'Searching…';
   statusEl.className   = 'yt-mini-status';
+  const pauseBtn = document.getElementById('ytMiniPauseBtn');
+  if (pauseBtn) { pauseBtn.textContent = '⏸'; pauseBtn.title = 'Pause'; }
+  if (!_ytDragInitialized) { _ytDragInitialized = true; _ytInitDrag(); }
   _ytInjectApi();
   _ytSearch(artist, title);
 }
 
-async function _ytSearch(artist, title) {
-  const query = artist + ' ' + title + ' official audio';
+async function _ytSearch(artist, title, overrideQuery) {
+  const query = overrideQuery || (artist + ' ' + title + ' official audio');
   try {
     const res  = await fetch(`${BACKEND_API}/api/youtube/search?q=${encodeURIComponent(query)}`);
     const data = await res.json();
     if (data.error) throw new Error(data.error);
     const videoId = data.videoId;
     if (!videoId) throw new Error('No results found');
+    _ytCurrentVideoId = videoId;
+    if ((data.videoTitle || data.title) && _ytActiveBtn) {
+      _ytActiveBtn.title = '▶ ' + (data.videoTitle || data.title);
+    }
     const statusEl = document.getElementById('ytMiniStatus');
     if (statusEl) { statusEl.textContent = ''; }
     if (_ytApiReady) {
@@ -10183,6 +10207,7 @@ async function _ytSearch(artist, title) {
       _ytPendingVideo = videoId;
     }
   } catch (e) {
+    if (_ytActiveBtn) _ytActiveBtn.classList.remove('yt-btn-loading', 'yt-btn-playing');
     const t = _ytCurrentTrack;
     if (t) window.open('https://www.youtube.com/results?search_query=' + encodeURIComponent(t.artist + ' ' + t.title), '_blank');
     closeYtPlayer();
@@ -10204,17 +10229,45 @@ function _ytLoadVideo(videoId) {
 }
 
 function _ytOnState(event) {
+  const pauseBtn = document.getElementById('ytMiniPauseBtn');
   if (event.data === YT.PlayerState.PLAYING) {
     clearTimeout(_ytScrobbleTimer);
     if (!_ytScrobbled) _ytScrobbleTimer = setTimeout(_ytScrobble, 30000);
+    if (pauseBtn) { pauseBtn.textContent = '⏸'; pauseBtn.title = 'Pause'; }
+    if (_ytActiveBtn) { _ytActiveBtn.classList.remove('yt-btn-loading'); _ytActiveBtn.classList.add('yt-btn-playing'); }
+  } else if (event.data === YT.PlayerState.PAUSED) {
+    clearTimeout(_ytScrobbleTimer);
+    if (pauseBtn) { pauseBtn.textContent = '▶'; pauseBtn.title = 'Resume'; }
+  } else if (event.data === YT.PlayerState.ENDED) {
+    clearTimeout(_ytScrobbleTimer);
+    if (_ytActiveBtn) _ytActiveBtn.classList.remove('yt-btn-loading', 'yt-btn-playing');
+    if (_ytQueue.length > 0) {
+      const next = _ytQueue.shift();
+      _ytUpdateQueueDisplay();
+      openYtPlayer(next.title, next.artist, next.album, next.btn || null);
+    }
   } else {
     clearTimeout(_ytScrobbleTimer);
   }
 }
 
-function _ytOnError() {
+function _ytOnError(event) {
   const statusEl = document.getElementById('ytMiniStatus');
-  if (statusEl) { statusEl.textContent = 'Playback unavailable'; statusEl.className = 'yt-mini-status err'; }
+  const code = event && event.data;
+  if ((code === 101 || code === 150) && _ytCurrentTrack && _ytEmbedRetry < 2) {
+    _ytEmbedRetry++;
+    const { title, artist } = _ytCurrentTrack;
+    const fallbacks = [`${artist} ${title} lyric video`, `${artist} ${title} audio`];
+    if (statusEl) { statusEl.textContent = 'Trying alternate…'; statusEl.className = 'yt-mini-status'; }
+    _ytSearch(null, null, fallbacks[_ytEmbedRetry - 1]);
+    return;
+  }
+  if (statusEl) {
+    const msg = (code === 101 || code === 150) ? 'Embedding disabled' : 'Playback unavailable';
+    statusEl.innerHTML = `${msg} — <button class="yt-err-open-btn" onclick="_ytOpenInYT()">open in YouTube ↗</button>`;
+    statusEl.className = 'yt-mini-status err';
+  }
+  if (_ytActiveBtn) _ytActiveBtn.classList.remove('yt-btn-loading', 'yt-btn-playing');
 }
 
 async function _ytScrobble() {
@@ -10254,16 +10307,159 @@ async function _ytScrobble() {
 
 function closeYtPlayer() {
   clearTimeout(_ytScrobbleTimer);
+  clearTimeout(_ytQueueToastTimer);
   if (_ytPlayer) {
     try { _ytPlayer.stopVideo(); } catch(e) {}
     try { _ytPlayer.destroy(); } catch(e) {}
     _ytPlayer = null;
   }
+  if (_ytActiveBtn) { _ytActiveBtn.classList.remove('yt-btn-loading', 'yt-btn-playing'); _ytActiveBtn = null; }
   const player = document.getElementById('ytMiniPlayer');
   if (player) player.style.display = 'none';
-  _ytCurrentTrack = null;
-  _ytScrobbled    = false;
+  const toast = document.getElementById('ytQueueToast');
+  if (toast) toast.style.display = 'none';
+  _ytCurrentTrack   = null;
+  _ytCurrentVideoId = null;
+  _ytScrobbled      = false;
+  _ytExpanded       = false;
+  _ytQueue          = [];
+  _ytUpdateQueueDisplay();
+  if (player) player.classList.remove('yt-expanded');
+  const expandBtn = document.getElementById('ytMiniExpandBtn');
+  if (expandBtn) { expandBtn.textContent = '⤢'; expandBtn.title = 'Expand player'; }
 }
+
+function _ytPauseToggle() {
+  if (!_ytPlayer) return;
+  const state = _ytPlayer.getPlayerState();
+  if (state === YT.PlayerState.PLAYING) { _ytPlayer.pauseVideo(); }
+  else { _ytPlayer.playVideo(); }
+}
+
+function _ytExpand() {
+  _ytExpanded = !_ytExpanded;
+  const player = document.getElementById('ytMiniPlayer');
+  player.classList.toggle('yt-expanded', _ytExpanded);
+  const btn = document.getElementById('ytMiniExpandBtn');
+  if (btn) { btn.textContent = _ytExpanded ? '⤡' : '⤢'; btn.title = _ytExpanded ? 'Shrink player' : 'Expand player'; }
+  if (_ytPlayer) {
+    try { _ytExpanded ? _ytPlayer.setSize(320, 180) : _ytPlayer.setSize(160, 90); } catch(e) {}
+  }
+}
+
+function _ytOpenInYT() {
+  if (_ytCurrentVideoId) {
+    window.open('https://www.youtube.com/watch?v=' + _ytCurrentVideoId, '_blank');
+  } else if (_ytCurrentTrack) {
+    window.open('https://www.youtube.com/results?search_query=' + encodeURIComponent(_ytCurrentTrack.artist + ' ' + _ytCurrentTrack.title), '_blank');
+  }
+}
+
+function _ytShowQueueToast(title, artist, album, btn) {
+  const toast = document.getElementById('ytQueueToast');
+  if (!toast) { openYtPlayer(title, artist, album, btn); return; }
+  toast.querySelector('.yt-queue-toast-label').textContent = '"' + title + '"';
+  const playerEl = document.getElementById('ytMiniPlayer');
+  if (playerEl) {
+    const r = playerEl.getBoundingClientRect();
+    toast.style.bottom = (window.innerHeight - r.top + 8) + 'px';
+    toast.style.right  = (window.innerWidth  - r.right) + 'px';
+    toast.style.left   = 'auto';
+    toast.style.top    = 'auto';
+  }
+  toast.style.display = 'flex';
+  toast.querySelector('.yt-queue-now-btn').onclick = () => {
+    toast.style.display = 'none';
+    openYtPlayer(title, artist, album, btn);
+  };
+  toast.querySelector('.yt-queue-add-btn').onclick = () => {
+    toast.style.display = 'none';
+    _ytQueue.push({ title, artist, album, btn });
+    _ytUpdateQueueDisplay();
+  };
+}
+
+function _ytUpdateQueueDisplay() {
+  const el = document.getElementById('ytMiniQueue');
+  if (!el) return;
+  if (_ytQueue.length === 0) { el.style.display = 'none'; el.innerHTML = ''; return; }
+  el.style.display = 'block';
+  el.innerHTML = _ytQueue.map((t, i) =>
+    `<div class="yt-mini-queue-item"><span class="yt-mini-queue-num">${i === 0 ? 'Next' : 'Then'}</span><span class="yt-mini-queue-title">${t.title}</span><button class="yt-mini-queue-rm" onclick="_ytRemoveFromQueue(${i})" title="Remove">✕</button></div>`
+  ).join('');
+}
+
+function _ytRemoveFromQueue(i) {
+  _ytQueue.splice(i, 1);
+  _ytUpdateQueueDisplay();
+}
+
+function _ytInitDrag() {
+  const player = document.getElementById('ytMiniPlayer');
+  if (!player) return;
+  try {
+    const saved = localStorage.getItem('yt-player-pos');
+    if (saved) {
+      const { left, top } = JSON.parse(saved);
+      const maxL = window.innerWidth  - player.offsetWidth  - 12;
+      const maxT = window.innerHeight - player.offsetHeight - 12;
+      player.style.left   = Math.max(12, Math.min(left, maxL)) + 'px';
+      player.style.top    = Math.max(12, Math.min(top,  maxT)) + 'px';
+      player.style.bottom = 'auto';
+      player.style.right  = 'auto';
+    }
+  } catch(e) {}
+  const handle = player.querySelector('.yt-mini-drag-handle');
+  if (!handle) return;
+  let dragging = false, sx, sy, sl, st;
+  function _snapSave() {
+    const r  = player.getBoundingClientRect();
+    const vw = window.innerWidth, vh = window.innerHeight;
+    const nl = r.left + r.width  / 2 < vw / 2 ? 12 : vw - r.width  - 12;
+    const nt = r.top  + r.height / 2 < vh / 2 ? 12 : vh - r.height - 12;
+    player.style.left = nl + 'px';
+    player.style.top  = nt + 'px';
+    try { localStorage.setItem('yt-player-pos', JSON.stringify({ left: nl, top: nt })); } catch(e) {}
+  }
+  handle.addEventListener('mousedown', e => {
+    dragging = true;
+    const r = player.getBoundingClientRect();
+    sx = e.clientX; sy = e.clientY; sl = r.left; st = r.top;
+    player.style.right = 'auto'; player.style.bottom = 'auto';
+    e.preventDefault();
+  });
+  document.addEventListener('mousemove', e => {
+    if (!dragging) return;
+    player.style.left = (sl + e.clientX - sx) + 'px';
+    player.style.top  = (st + e.clientY - sy) + 'px';
+  });
+  document.addEventListener('mouseup', () => { if (!dragging) return; dragging = false; _snapSave(); });
+  handle.addEventListener('touchstart', e => {
+    const t = e.touches[0]; dragging = true;
+    const r = player.getBoundingClientRect();
+    sx = t.clientX; sy = t.clientY; sl = r.left; st = r.top;
+    player.style.right = 'auto'; player.style.bottom = 'auto';
+  }, { passive: false });
+  document.addEventListener('touchmove', e => {
+    if (!dragging) return;
+    const t = e.touches[0];
+    player.style.left = (sl + t.clientX - sx) + 'px';
+    player.style.top  = (st + t.clientY - sy) + 'px';
+    e.preventDefault();
+  }, { passive: false });
+  document.addEventListener('touchend', () => { if (!dragging) return; dragging = false; _snapSave(); });
+}
+
+// Space bar toggles pause/resume when mini player is visible and no input is focused
+document.addEventListener('keydown', e => {
+  if (e.code !== 'Space') return;
+  const playerEl = document.getElementById('ytMiniPlayer');
+  if (!playerEl || playerEl.style.display === 'none') return;
+  const tag = document.activeElement && document.activeElement.tagName;
+  if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || (document.activeElement && document.activeElement.isContentEditable)) return;
+  e.preventDefault();
+  _ytPauseToggle();
+});
 
 // ── Listening Activity Heatmap ─────────────────────────────────────────────
 
