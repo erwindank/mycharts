@@ -11163,15 +11163,74 @@ function renderHeroStats() {
   if (!daySet.has(cur)) cur = prevDay(cur);
   while (daySet.has(cur)) { streak++; cur = prevDay(cur); }
 
+  // Personal best streak (longest consecutive run across all time)
+  const sortedDays = [...daySet].sort((a, b) => a - b);
+  let pb = streak || 1, pbCur = 1;
+  for (let i = 1; i < sortedDays.length; i++) {
+    const prev = sortedDays[i - 1];
+    const prevD = new Date(Math.floor(prev / 10000), Math.floor(prev / 100) % 100 - 1, prev % 100);
+    prevD.setDate(prevD.getDate() + 1);
+    if (toNum(prevD) === sortedDays[i]) { pbCur++; if (pbCur > pb) pb = pbCur; }
+    else pbCur = 1;
+  }
+
+  const avgPerDay = Math.round(total / days.size);
+  const streakFire = streak >= 7;
+
   el.innerHTML = `
-    <div class="hero-stat"><span class="hero-val">${total.toLocaleString()}</span><span class="hero-label">Total Plays</span></div>
+    <div class="hero-stat" data-tip="${total.toLocaleString()} plays across ${days.size.toLocaleString()} unique days">
+      <span class="hero-icon">🎵</span>
+      <span class="hero-val" data-countup="${total}">${total.toLocaleString()}</span>
+      <span class="hero-label">Total Plays</span>
+    </div>
     <div class="hero-stat-sep">·</div>
-    <div class="hero-stat"><span class="hero-val">${days.size.toLocaleString()}</span><span class="hero-label">Days Listened</span></div>
+    <div class="hero-stat" data-tip="${days.size.toLocaleString()} days you opened Last.fm">
+      <span class="hero-icon">📅</span>
+      <span class="hero-val" data-countup="${days.size}">${days.size.toLocaleString()}</span>
+      <span class="hero-label">Days Listened</span>
+    </div>
     <div class="hero-stat-sep">·</div>
-    <div class="hero-stat"><span class="hero-val">${topArtist ? topArtist[0] : '—'}</span><span class="hero-label">Top Artist</span></div>
+    <div class="hero-stat" data-tip="~${avgPerDay.toLocaleString()} plays on average per day listened">
+      <span class="hero-icon">📊</span>
+      <span class="hero-val" data-countup="${avgPerDay}">${avgPerDay.toLocaleString()}</span>
+      <span class="hero-label">Avg / Day</span>
+    </div>
     <div class="hero-stat-sep">·</div>
-    <div class="hero-stat"><span class="hero-val">${streak}</span><span class="hero-label">Day Streak</span></div>`;
+    <div class="hero-stat hero-stat-artist" data-tip="Click to jump to Top Artists">
+      <span class="hero-icon">🎤</span>
+      <span class="hero-val hero-val-artist">${topArtist ? topArtist[0] : '—'}</span>
+      <span class="hero-label">Top Artist</span>
+    </div>
+    <div class="hero-stat-sep">·</div>
+    <div class="hero-stat${streakFire ? ' hero-stat--fire' : ''}" data-tip="Current streak · Personal best: ${pb} day${pb === 1 ? '' : 's'}">
+      <span class="hero-icon">${streakFire ? '🔥' : '📆'}</span>
+      <span class="hero-val" data-countup="${streak}">${streak}</span>
+      <span class="hero-label">Day Streak</span>
+      <span class="hero-stat-pb">PB: ${pb}</span>
+    </div>`;
+
   el.style.display = 'flex';
+
+  // Scroll to artists section when Top Artist is clicked
+  el.querySelector('.hero-stat-artist').addEventListener('click', () => {
+    const sec = document.getElementById('artistsSection');
+    if (sec) sec.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  });
+
+  // Count-up animation for numeric values
+  el.querySelectorAll('[data-countup]').forEach(span => {
+    const target = parseInt(span.dataset.countup, 10);
+    if (!target) return;
+    const duration = 900;
+    const startTime = performance.now();
+    function frame(now) {
+      const progress = Math.min((now - startTime) / duration, 1);
+      const eased = 1 - Math.pow(1 - progress, 3);
+      span.textContent = Math.round(eased * target).toLocaleString();
+      if (progress < 1) requestAnimationFrame(frame);
+    }
+    requestAnimationFrame(frame);
+  });
 }
 
 // ─── PERIOD LABEL CLICK → OPEN PICKER ─────────────────────────

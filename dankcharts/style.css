@@ -7530,7 +7530,7 @@ body.hide-yt-btns .yt-play-btn { display: none; }
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 10px;
-  max-width: 680px;
+  max-width: 860px;
   margin-left: auto;
   margin-right: auto;
 }
@@ -7540,6 +7540,13 @@ body.hide-yt-btns .yt-play-btn { display: none; }
   flex-direction: column;
   align-items: center;
   gap: 0.15rem;
+  position: relative;
+}
+
+.hero-icon {
+  font-size: 0.85rem;
+  line-height: 1;
+  margin-bottom: 0.1rem;
 }
 
 .hero-val {
@@ -7548,6 +7555,7 @@ body.hide-yt-btns .yt-play-btn { display: none; }
   font-weight: 400;
   color: var(--text);
   line-height: 1;
+  transition: color 0.2s;
 }
 
 .hero-label {
@@ -7558,11 +7566,61 @@ body.hide-yt-btns .yt-play-btn { display: none; }
   color: var(--text3);
 }
 
+.hero-stat-pb {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.52rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text3);
+  opacity: 0.65;
+  margin-top: 0.1rem;
+}
+
 .hero-stat-sep {
   color: var(--border2);
   font-size: 1.2rem;
   line-height: 1;
   align-self: center;
+}
+
+/* Fire streak highlight */
+.hero-stat--fire .hero-val {
+  color: #ff8c00;
+  text-shadow: 0 0 14px rgba(255, 140, 0, 0.45);
+}
+
+/* Clickable Top Artist */
+.hero-stat-artist {
+  cursor: pointer;
+}
+.hero-stat-artist:hover .hero-val {
+  color: var(--accent, #5b8dee);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* Hover tooltip via data-tip */
+.hero-stat[data-tip]::after {
+  content: attr(data-tip);
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--bg2, #1a2033);
+  color: var(--text);
+  padding: 0.3rem 0.65rem;
+  border-radius: 6px;
+  font-family: 'DM Mono', monospace;
+  font-size: 0.57rem;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s;
+  border: 1px solid var(--border2, rgba(255,255,255,0.1));
+  z-index: 20;
+}
+.hero-stat[data-tip]:hover::after {
+  opacity: 1;
 }
 
 /* Light themes need inverted hero strip */
@@ -7573,6 +7631,27 @@ body.yellow-light .hero-stats,
 body.pink-light .hero-stats {
   background: rgba(0, 0, 0, 0.06);
   border-color: rgba(0, 0, 0, 0.12);
+}
+
+/* Mobile: 2×2 grid */
+@media (max-width: 560px) {
+  .hero-stats {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem 0.5rem;
+    padding: 0.75rem 1rem;
+  }
+  .hero-stat-sep {
+    display: none;
+  }
+  .hero-stat {
+    padding: 0.5rem 0.25rem;
+    background: rgba(255, 255, 255, 0.04);
+    border-radius: 8px;
+  }
+  .hero-stat:last-child {
+    grid-column: 1 / -1;
+  }
 }
 
 /* ── SKELETON SHIMMER ── */
