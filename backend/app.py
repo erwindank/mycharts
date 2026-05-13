@@ -8,11 +8,13 @@ load_dotenv()
 app = Flask(__name__)
 CORS(app, origins='*', supports_credentials=False)
 
+import mailer
 import lastfm
 import spotify
 import sync
 import youtube
 
+app.register_blueprint(mailer.bp)
 app.register_blueprint(lastfm.bp)
 app.register_blueprint(spotify.bp)
 app.register_blueprint(sync.bp)

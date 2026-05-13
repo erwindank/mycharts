@@ -81,12 +81,25 @@ async function dcSignIn() {
   if (!_auth) return;
   try {
     const provider = new firebase.auth.GoogleAuthProvider();
-    await _auth.signInWithPopup(provider);
+    const result = await _auth.signInWithPopup(provider);
+    if (result.additionalUserInfo && result.additionalUserInfo.isNewUser) {
+      _sendWelcomeEmail(result.user);
+    }
   } catch (err) {
     if (err.code !== 'auth/popup-closed-by-user') {
       console.error('[dankcharts] Sign-in error:', err);
     }
   }
+}
+
+async function _sendWelcomeEmail(user) {
+  try {
+    await fetch('https://dankcharts-api.onrender.com/send-welcome', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: user.email, displayName: user.displayName }),
+    });
+  } catch (_) {}
 }
 
 async function dcSignOut() {
