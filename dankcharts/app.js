@@ -78,7 +78,7 @@ const THEME_DOT_COLORS = {
   'pink': '#cc2090', 'pink-light': '#ffaadd'
 };
 
-function applyTheme(theme) {
+function applyTheme(theme, preview = false) {
   document.body.classList.remove(...THEME_CLASSES);
   if (theme !== 'navy-dark') document.body.classList.add(theme);
   const normalizedTheme = theme.includes('-') ? theme : theme + '-dark';
@@ -87,10 +87,19 @@ function applyTheme(theme) {
   themeBtns.forEach(b => b.classList.toggle('active', b.dataset.theme === theme));
   const dotColor = THEME_DOT_COLORS[theme] || '#1a6eb5';
   document.querySelectorAll('.ctrl-theme-dot').forEach(d => { d.style.background = dotColor; });
-  try { localStorage.setItem('dankcharts-theme', theme); } catch (e) { }
+  if (!preview) {
+    try { localStorage.setItem('dankcharts-theme', theme); } catch (e) { }
+  }
 }
 
-themeBtns.forEach(btn => btn.addEventListener('click', () => applyTheme(btn.dataset.theme)));
+themeBtns.forEach(btn => {
+  btn.addEventListener('click', () => applyTheme(btn.dataset.theme));
+  btn.addEventListener('mouseenter', () => applyTheme(btn.dataset.theme, true));
+  btn.addEventListener('mouseleave', () => {
+    const saved = localStorage.getItem('dankcharts-theme') || 'navy-dark';
+    applyTheme(saved, true);
+  });
+});
 
 // Restore saved preference, defaulting to navy-dark
 try {
@@ -1946,6 +1955,7 @@ function startFromLanding() {
   }
   document.getElementById('landingScreen').style.display = 'none';
   document.getElementById('mainApp').style.display = 'block';
+  showSkeleton();
   updateMastheadDynamic();
   if (typeof dcSaveUserConfig === 'function') dcSaveUserConfig();
   if (src === 'sheets') syncFromSheets();
@@ -1958,6 +1968,7 @@ function startFromLanding() {
 function skipLanding() {
   document.getElementById('landingScreen').style.display = 'none';
   document.getElementById('mainApp').style.display = 'block';
+  showSkeleton();
   syncNow();
 }
 
@@ -1973,6 +1984,7 @@ window.addEventListener('load', async () => {
   }
 
   document.getElementById('mainApp').style.display = 'block';
+  showSkeleton();
   await initRulesCache();
   await loadRulesFromSheet();
 
@@ -2226,6 +2238,8 @@ function finalizeLoad() {
       btn.classList.add('active');
     }
   }
+
+  renderHeroStats();
 }
 
 function splitCsvRow(row) {
@@ -10874,4 +10888,150 @@ document.getElementById('heatmapFilterBtn').addEventListener('click', hmAddFilte
 document.getElementById('heatmapFilterInput').addEventListener('keydown', e => {
   if (e.key === 'Enter') hmAddFilter();
 });
+
+// ─── STICKY NAV SENTINEL ───────────────────────────────────────
+(function () {
+  const sentinel = document.getElementById('stickyNavSentinel');
+  const bar = document.getElementById('stickyNavBar');
+  if (!sentinel || !bar) return;
+  const obs = new IntersectionObserver(
+    ([entry]) => bar.classList.toggle('is-stuck', !entry.isIntersecting),
+    { threshold: 0, rootMargin: '0px' }
+  );
+  obs.observe(sentinel);
+})();
+
+// ─── LOADING SKELETON ──────────────────────────────────────────
+function showSkeleton() {
+  const skRow = () => `
+    <tr class="skeleton-row">
+      <td><div class="skeleton-cell" style="width:28px"></div></td>
+      <td><div class="skeleton-cell skeleton-thumb"></div></td>
+      <td>
+        <div class="skeleton-cell" style="width:55%;margin-bottom:6px"></div>
+        <div class="skeleton-cell" style="width:35%"></div>
+      </td>
+      <td><div class="skeleton-cell" style="width:50%"></div></td>
+      <td><div class="skeleton-cell" style="width:32px;margin-left:auto"></div></td>
+    </tr>`;
+  ['songsBody', 'artistsBody', 'albumsBody'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el && !el.querySelector('tr:not(.skeleton-row)')) {
+      el.innerHTML = Array.from({ length: 6 }, skRow).join('');
+    }
+  });
+}
+
+// ─── HERO STATS ────────────────────────────────────────────────
+function renderHeroStats() {
+  const el = document.getElementById('heroStats');
+  if (!el || !allPlays.length) return;
+
+  const total = allPlays.length;
+
+  const days = new Set(allPlays.map(p => {
+    const d = tzDate(p.date);
+    return d.getFullYear() * 10000 + (d.getMonth() + 1) * 100 + d.getDate();
+  }));
+
+  const artistCounts = {};
+  for (const p of allPlays) {
+    for (const a of p.artists) {
+      artistCounts[a] = (artistCounts[a] || 0) + 1;
+    }
+  }
+  const topArtist = Object.entries(artistCounts).sort((a, b) => b[1] - a[1])[0];
+
+  // Consecutive day streak ending today (or yesterday if today has no plays yet)
+  const daySet = days;
+  const now = tzNow();
+  function toNum(d) { return d.getFullYear() * 10000 + (d.getMonth() + 1) * 100 + d.getDate(); }
+  function prevDay(n) {
+    const d = new Date(Math.floor(n / 10000), Math.floor(n / 100) % 100 - 1, n % 100);
+    d.setDate(d.getDate() - 1);
+    return toNum(d);
+  }
+  let streak = 0;
+  let cur = toNum(now);
+  if (!daySet.has(cur)) cur = prevDay(cur);
+  while (daySet.has(cur)) { streak++; cur = prevDay(cur); }
+
+  el.innerHTML = `
+    <div class="hero-stat"><span class="hero-val">${total.toLocaleString()}</span><span class="hero-label">Total Plays</span></div>
+    <div class="hero-stat-sep">·</div>
+    <div class="hero-stat"><span class="hero-val">${days.size.toLocaleString()}</span><span class="hero-label">Days Listened</span></div>
+    <div class="hero-stat-sep">·</div>
+    <div class="hero-stat"><span class="hero-val">${topArtist ? topArtist[0] : '—'}</span><span class="hero-label">Top Artist</span></div>
+    <div class="hero-stat-sep">·</div>
+    <div class="hero-stat"><span class="hero-val">${streak}</span><span class="hero-label">Day Streak</span></div>`;
+  el.style.display = 'flex';
+}
+
+// ─── PERIOD LABEL CLICK → OPEN PICKER ─────────────────────────
+document.getElementById('periodLabel').addEventListener('click', () => {
+  if (!['week', 'month', 'year'].includes(currentPeriod)) return;
+  const wp = document.getElementById('weekPicker');
+  const mp = document.getElementById('monthPicker');
+  const yp = document.getElementById('yearPicker');
+  if (currentPeriod === 'week') {
+    try { wp.showPicker(); } catch (e) { wp.focus(); }
+  } else if (currentPeriod === 'month') {
+    try { mp.showPicker(); } catch (e) { mp.focus(); }
+  } else {
+    yp.focus();
+  }
+});
+
+// ─── KEYBOARD NAVIGATION ──────────────────────────────────────
+document.addEventListener('keydown', e => {
+  const tag = document.activeElement?.tagName;
+  if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
+  if (document.activeElement?.isContentEditable) return;
+  if (document.querySelector('.modal.open, .source-modal.open, [class*="modal"].open')) return;
+  const mainApp = document.getElementById('mainApp');
+  if (!mainApp || mainApp.style.display === 'none') return;
+
+  const flash = btn => { if (btn) { btn.classList.remove('kb-flash'); void btn.offsetWidth; btn.classList.add('kb-flash'); } };
+
+  switch (e.key) {
+    case 'ArrowLeft': {
+      e.preventDefault();
+      const btn = document.getElementById('prevBtn');
+      if (btn && !btn.disabled) { btn.click(); flash(btn); }
+      break;
+    }
+    case 'ArrowRight': {
+      e.preventDefault();
+      const btn = document.getElementById('nextBtn');
+      if (btn && !btn.disabled) { btn.click(); flash(btn); }
+      break;
+    }
+    case 'w': case 'W': document.querySelector('#periodNav button[data-period="week"]')?.click(); break;
+    case 'm': case 'M': document.querySelector('#periodNav button[data-period="month"]')?.click(); break;
+    case 'y': case 'Y': document.querySelector('#periodNav button[data-period="year"]')?.click(); break;
+    case 'a': case 'A': document.querySelector('#periodNav button[data-period="alltime"]')?.click(); break;
+  }
+});
+
+// ─── SWIPE GESTURES (HammerJS) ────────────────────────────────
+(function initSwipe() {
+  if (typeof Hammer === 'undefined') return;
+  const el = document.getElementById('mainApp');
+  if (!el) return;
+  const mc = new Hammer.Manager(el);
+  mc.add(new Hammer.Swipe({ direction: Hammer.DIRECTION_HORIZONTAL, threshold: 25, velocity: 0.25 }));
+  mc.on('swipeleft swiperight', e => {
+    if (!['week', 'month', 'year'].includes(currentPeriod)) return;
+    if (e.srcEvent?.target?.tagName === 'CANVAS') return;
+    if (e.direction === Hammer.DIRECTION_LEFT) {
+      // Swipe left → go forward (earlier offset - 1)
+      const btn = document.getElementById('nextBtn');
+      if (btn && !btn.disabled) btn.click();
+    } else {
+      // Swipe right → go back (later offset + 1)
+      const btn = document.getElementById('prevBtn');
+      if (btn && !btn.disabled) btn.click();
+    }
+  });
+})();
 

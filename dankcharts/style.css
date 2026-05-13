@@ -7349,3 +7349,146 @@ body.purple .landing-card-config input:focus {
 }
 .yt-play-btn:hover { opacity: 1; background: rgba(255,51,51,0.12); }
 body.hide-yt-btns .yt-play-btn { display: none; }
+
+/* ── STICKY NAV BAR ── */
+#stickyNavSentinel {
+  position: absolute;
+  height: 1px;
+  pointer-events: none;
+}
+
+.sticky-nav-bar {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background: var(--bg);
+  margin-bottom: 1.75rem;
+  transition: box-shadow 0.2s;
+}
+
+/* When stuck, add a top border so it doesn't float disconnected */
+.sticky-nav-bar.is-stuck .period-nav {
+  border-top: 1px solid var(--border);
+}
+
+.sticky-nav-bar.is-stuck {
+  box-shadow: 0 3px 16px rgba(0, 0, 0, 0.4);
+}
+
+/* Remove the bottom margin and rounded bottom from date-nav since the wrapper owns the spacing */
+.sticky-nav-bar .date-nav {
+  margin-bottom: 0;
+  border-radius: 0 0 8px 8px;
+}
+
+/* ── HERO STATS (masthead data strip) ── */
+.hero-stats {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 0.5rem 1.5rem;
+  margin-top: 1.25rem;
+  padding: 0.75rem 1.5rem;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  max-width: 680px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.hero-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.15rem;
+}
+
+.hero-val {
+  font-family: 'DM Serif Display', serif;
+  font-size: 1.35rem;
+  font-weight: 400;
+  color: var(--text);
+  line-height: 1;
+}
+
+.hero-label {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.58rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text3);
+}
+
+.hero-stat-sep {
+  color: var(--border2);
+  font-size: 1.2rem;
+  line-height: 1;
+  align-self: center;
+}
+
+/* Light themes need inverted hero strip */
+body.navy-light .hero-stats,
+body.purple-light .hero-stats,
+body.red-light .hero-stats,
+body.yellow-light .hero-stats,
+body.pink-light .hero-stats {
+  background: rgba(0, 0, 0, 0.06);
+  border-color: rgba(0, 0, 0, 0.12);
+}
+
+/* ── SKELETON SHIMMER ── */
+@keyframes dc-shimmer {
+  0%   { background-position: -600px 0; }
+  100% { background-position: 600px 0; }
+}
+
+.skeleton-row td {
+  padding: 10px 8px;
+  border: none;
+}
+
+.skeleton-cell {
+  height: 12px;
+  border-radius: 5px;
+  background: linear-gradient(
+    90deg,
+    var(--bg2) 25%,
+    var(--surface) 50%,
+    var(--bg2) 75%
+  );
+  background-size: 1200px 100%;
+  animation: dc-shimmer 1.6s ease-in-out infinite;
+}
+
+.skeleton-thumb {
+  width: 40px;
+  height: 40px;
+  border-radius: 4px;
+}
+
+/* ── PERIOD LABEL — clickable jump hint ── */
+.period-label {
+  cursor: pointer;
+  user-select: none;
+}
+
+.period-label:hover strong {
+  color: var(--accent);
+}
+
+/* ── KEYBOARD NAV FLASH ── */
+@keyframes dc-nav-flash {
+  0%   { background: var(--accent); color: #fff; }
+  100% { background: inherit; color: inherit; }
+}
+
+.kb-flash {
+  animation: dc-nav-flash 0.22s ease-out;
+}
+
+/* ── SWIPE FEEDBACK (mobile) ── */
+#mainApp {
+  touch-action: pan-y;
+}

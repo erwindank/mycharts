@@ -5,6 +5,12 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>dankcharts.fm — Erwin's Personal Music Charts</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%23083060'/><text x='16' y='24' text-anchor='middle' font-family='sans-serif' font-weight='700' font-size='22' fill='%234aacff'>d</text></svg>">
+  <meta property="og:title" content="dankcharts.fm">
+  <meta property="og:description" content="Your listening history. Your charts. Your legacy.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://dankcharts.fm">
+  <meta name="theme-color" content="#08121e">
   <link
     href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&family=DM+Mono:wght@400;500&family=Instrument+Serif:ital@0;1&display=swap"
     rel="stylesheet">
@@ -204,6 +210,7 @@
     </div>
     <div class="tagline" data-i18n="masthead_tagline">Your listening history. Your charts. Your legacy.</div>
     <div class="masthead-rule" data-i18n="masthead_streaming">Streaming since January 9, 2016</div>
+    <div id="heroStats" class="hero-stats" style="display:none;"></div>
   </div>
 
   <div class="upload-zone" id="uploadZone" style="display:none;">
@@ -236,60 +243,63 @@
       </div>
     </div>
 
-    <div class="period-nav" id="periodNav">
-      <button class="active" data-period="week" data-i18n="nav_weekly">Weekly</button>
-      <button data-period="month" data-i18n="nav_monthly">Monthly</button>
-      <button data-period="year" data-i18n="nav_yearly">Yearly</button>
-      <button data-period="alltime" data-i18n="nav_alltime">All-Time</button>
-      <button data-period="rawdata" data-i18n="nav_rawdata">Raw Data</button>
-      <button data-period="graphs" data-i18n="nav_graphs">Graphs</button>
-      <button data-period="records" data-i18n="nav_records">Records</button>
-      <button data-period="events">Events</button>
-    </div>
+    <div id="stickyNavSentinel"></div>
+    <div id="stickyNavBar" class="sticky-nav-bar">
+      <div class="period-nav" id="periodNav">
+        <button class="active" data-period="week" data-i18n="nav_weekly">Weekly</button>
+        <button data-period="month" data-i18n="nav_monthly">Monthly</button>
+        <button data-period="year" data-i18n="nav_yearly">Yearly</button>
+        <button data-period="alltime" data-i18n="nav_alltime">All-Time</button>
+        <button data-period="rawdata" data-i18n="nav_rawdata">Raw Data</button>
+        <button data-period="graphs" data-i18n="nav_graphs">Graphs</button>
+        <button data-period="records" data-i18n="nav_records">Records</button>
+        <button data-period="events">Events</button>
+      </div>
 
-    <div class="chart-size-bar" id="chartSizeBar">
-      <label data-i18n="chartsize_label">Chart Size:</label>
-      <div class="size-btns" id="sizeBtnsWeekly">
-        <button data-size="10" class="active">Top 10</button>
-        <button data-size="20">Top 20</button>
-        <button data-size="50">Top 50</button>
-        <button data-size="100">Top 100</button>
-      </div>
-      <div class="size-btns" id="sizeBtnsMonthly" style="display:none">
-        <button data-size="50" class="active">Top 50</button>
-        <button data-size="100">Top 100</button>
-      </div>
-    </div>
-
-    <div class="chart-size-bar" id="paginatedSizeBar" style="display:none">
-      <label data-i18n="chartview_label">Chart View:</label>
-      <div class="size-btns" id="sizeBtnsYearly">
-        <button data-size="50">Top 50</button>
-        <button data-size="100">Top 100</button>
-        <button data-size="200">Top 200</button>
-        <button data-size="0" class="active" data-i18n="all_entries">All Entries</button>
-      </div>
-      <div class="size-btns" id="sizeBtnsAllTime" style="display:none">
-        <button data-size="50">Top 50</button>
-        <button data-size="100">Top 100</button>
-        <button data-size="200">Top 200</button>
-        <button data-size="0" class="active" data-i18n="all_entries">All Entries</button>
-      </div>
-    </div>
-
-    <div class="date-nav" id="dateNav">
-      <button id="prevBtn" data-i18n="btn_prev">◄ Prev</button>
-      <div class="date-nav-center">
-        <div class="period-label" id="periodLabel"><strong>Loading...</strong></div>
-        <div id="jumpPicker" style="display:none">
-          <input type="date" id="weekPicker" class="picker-input" data-i18n-title="tooltip_jump_to_week">
-          <input type="month" id="monthPicker" class="picker-input" style="display:none"
-            data-i18n-title="tooltip_jump_to_month">
-          <select id="yearPicker" class="picker-input" style="display:none"
-            data-i18n-title="tooltip_jump_to_year"></select>
+      <div class="chart-size-bar" id="chartSizeBar">
+        <label data-i18n="chartsize_label">Chart Size:</label>
+        <div class="size-btns" id="sizeBtnsWeekly">
+          <button data-size="10" class="active">Top 10</button>
+          <button data-size="20">Top 20</button>
+          <button data-size="50">Top 50</button>
+          <button data-size="100">Top 100</button>
+        </div>
+        <div class="size-btns" id="sizeBtnsMonthly" style="display:none">
+          <button data-size="50" class="active">Top 50</button>
+          <button data-size="100">Top 100</button>
         </div>
       </div>
-      <button id="nextBtn" data-i18n="btn_next">Next ►</button>
+
+      <div class="chart-size-bar" id="paginatedSizeBar" style="display:none">
+        <label data-i18n="chartview_label">Chart View:</label>
+        <div class="size-btns" id="sizeBtnsYearly">
+          <button data-size="50">Top 50</button>
+          <button data-size="100">Top 100</button>
+          <button data-size="200">Top 200</button>
+          <button data-size="0" class="active" data-i18n="all_entries">All Entries</button>
+        </div>
+        <div class="size-btns" id="sizeBtnsAllTime" style="display:none">
+          <button data-size="50">Top 50</button>
+          <button data-size="100">Top 100</button>
+          <button data-size="200">Top 200</button>
+          <button data-size="0" class="active" data-i18n="all_entries">All Entries</button>
+        </div>
+      </div>
+
+      <div class="date-nav" id="dateNav">
+        <button id="prevBtn" data-i18n="btn_prev">◄ Prev</button>
+        <div class="date-nav-center">
+          <div class="period-label" id="periodLabel" title="Click to jump to a date"><strong>Loading...</strong></div>
+          <div id="jumpPicker" style="display:none">
+            <input type="date" id="weekPicker" class="picker-input" data-i18n-title="tooltip_jump_to_week">
+            <input type="month" id="monthPicker" class="picker-input" style="display:none"
+              data-i18n-title="tooltip_jump_to_month">
+            <select id="yearPicker" class="picker-input" style="display:none"
+              data-i18n-title="tooltip_jump_to_year"></select>
+          </div>
+        </div>
+        <button id="nextBtn" data-i18n="btn_next">Next ►</button>
+      </div>
     </div>
 
     <div class="stats-strip" id="statsStrip"></div>
