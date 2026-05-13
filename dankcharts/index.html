@@ -154,7 +154,7 @@
     <p class="landing-skip">Already set up? <a href="#" onclick="skipLanding(); return false;">Continue to charts</a></p>
 
     <div class="landing-support-note">
-      Questions or need help? <button class="landing-support-link" onclick="window.ZohoDeskAsapReady&&window.ZohoDeskAsapReady(function(){window.ZohoDeskAsap&&window.ZohoDeskAsap.invoke('open')})">Contact Support</button>
+      Questions or need help? <button class="landing-support-link" onclick="openZohoSupport()">Contact Support</button>
       &nbsp;·&nbsp; <a href="terms.html" target="_blank" rel="noopener" style="color:var(--text3);font-size:0.8rem;">Terms &amp; Privacy</a>
     </div>
   </div>
@@ -1071,7 +1071,7 @@
 
   <div class="app-support-bar">
     <span>Questions or issues?</span>
-    <button class="app-support-btn" onclick="window.ZohoDeskAsapReady&&window.ZohoDeskAsapReady(function(){window.ZohoDeskAsap&&window.ZohoDeskAsap.invoke('open')})">Contact Support</button>
+    <button class="app-support-btn" onclick="openZohoSupport()">Contact Support</button>
     <span class="app-support-sep">·</span>
     <a href="mailto:support@dankcharts.fm">support@dankcharts.fm</a>
   </div>
@@ -2355,7 +2355,45 @@ window.ZohoDeskAsapReady=function(s){var e=window.ZohoDeskAsap__asyncalls=window
 window.addEventListener('load',function(){var d=document,s=d.createElement('script');s.type='text/javascript';s.id='zohodeskasapscript';s.async=true;s.src='https://desk.zoho.com/portal/api/web/asapApp/1336756000000408048?orgId=922864240';d.body.appendChild(s);});
 </script>
 <script>
-window.ZohoDeskAsapReady(function(){window.ZohoDeskAsap&&window.ZohoDeskAsap.invoke('hideLauncher');});
+(function(){
+  var _ze = null;
+  function isZohoNode(n){
+    if(!n||n.nodeType!==1)return false;
+    var id=(n.id||'').toLowerCase(), cl=(typeof n.className==='string'?n.className:'').toLowerCase();
+    return id.indexOf('zoho')>=0||id.indexOf('zd-asap')>=0||cl.indexOf('zoho')>=0||cl.indexOf('zd-asap')>=0;
+  }
+  var bodyObs=new MutationObserver(function(muts){
+    muts.forEach(function(m){
+      m.addedNodes.forEach(function(n){
+        if(isZohoNode(n)&&!_ze){_ze=n;n.style.setProperty('display','none','important');}
+      });
+    });
+  });
+  bodyObs.observe(document.body,{childList:true});
+
+  window.openZohoSupport=function(){
+    if(!_ze) _ze=document.querySelector('[id*="zohodesk"],[id*="zohoasap"],[id*="zd-asap"],[class*="zohodesk"]');
+    if(_ze) _ze.style.setProperty('display','block','important');
+    window.ZohoDeskAsapReady&&window.ZohoDeskAsapReady(function(){
+      if(!window.ZohoDeskAsap)return;
+      window.ZohoDeskAsap.invoke('open');
+      if(!_ze)return;
+      try{window.ZohoDeskAsap.on('close',function(){_ze.style.setProperty('display','none','important');});}catch(e){}
+      var co=new MutationObserver(function(){
+        setTimeout(function(){
+          if(!_ze)return;
+          var r=_ze.getBoundingClientRect();
+          if(r.height>0&&r.height<120){_ze.style.setProperty('display','none','important');co.disconnect();}
+        },150);
+      });
+      co.observe(_ze,{attributes:true,childList:true,subtree:true});
+    });
+  };
+})();
+window.ZohoDeskAsapReady(function(){
+  function h(){window.ZohoDeskAsap&&window.ZohoDeskAsap.invoke('hideLauncher');}
+  h(); setInterval(h,1000);
+});
 </script>
 </body>
 
