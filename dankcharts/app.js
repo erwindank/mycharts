@@ -8505,8 +8505,12 @@ let gDiscoveriesLabels = false;
 
 let heatmapType = 'all';
 let heatmapFilters = [];
+let hmTheme = 'default';
 let _hmDayMap = {};
 let _hmMsMap = {};
+let _hmBestDayDk = '';
+let _hmReturnMap = {};
+let _hmPercentileFn = null;
 
 function saveChartZoom(chart, key) {
   const scale = chart.scales && chart.scales.x;
@@ -10249,7 +10253,14 @@ function closeYtPlayer() {
 
 // ── Listening Activity Heatmap ─────────────────────────────────────────────
 
-const HM_COLOR_STOPS = ['#1c2b3f', '#3a1858', '#6a28a0', '#c048cc', '#ff7ee0'];
+const HM_THEMES = {
+  default: ['#1c2b3f', '#3a1858', '#6a28a0', '#c048cc', '#ff7ee0'],
+  fire:    ['#1a0900', '#5c1500', '#c03800', '#e87000', '#ffd030'],
+  ocean:   ['#030e1a', '#0d3060', '#0b6fa4', '#12b5d4', '#7ee8ff'],
+  forest:  ['#0a1a0a', '#174d17', '#2a8c2a', '#5cc45c', '#b0f0b0'],
+  ember:   ['#140303', '#4a0a08', '#991818', '#d44000', '#f09000'],
+};
+const HM_TYPE_THEME = { all: 'default', artist: 'fire', song: 'ocean', album: 'forest' };
 const HM_MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 const HM_DOW_LABELS = ['Mon', '', 'Wed', '', 'Fri', '', 'Sun'];
 
@@ -10262,12 +10273,13 @@ function hmLerpColor(h1, h2, t) {
 }
 
 function hmCellColor(count, max) {
-  if (!count || !max) return '#1a2535';
+  const stops = HM_THEMES[hmTheme] || HM_THEMES.default;
+  if (!count || !max) return stops[0];
   const ratio = Math.min(Math.log1p(count) / Math.log1p(max), 1);
-  const idx = ratio * (HM_COLOR_STOPS.length - 1);
+  const idx = ratio * (stops.length - 1);
   const lo = Math.floor(idx);
-  const hi = Math.min(lo + 1, HM_COLOR_STOPS.length - 1);
-  return lo === hi ? HM_COLOR_STOPS[lo] : hmLerpColor(HM_COLOR_STOPS[lo], HM_COLOR_STOPS[hi], idx - lo);
+  const hi = Math.min(lo + 1, stops.length - 1);
+  return lo === hi ? stops[lo] : hmLerpColor(stops[lo], stops[hi], idx - lo);
 }
 
 function hmOrdinal(n) {
@@ -10301,26 +10313,60 @@ function buildHeatmapData() {
       dayMap[dk].count++;
       dayMap[dk].plays.push(p);
     }
+    // First scrobble of each year milestone
+    const firstPlayOfYear = {};
+    for (const p of chrono) {
+      const yr = tzDate(p.date).getFullYear();
+      if (!firstPlayOfYear[yr]) firstPlayOfYear[yr] = p;
+    }
+    for (const [yr, p] of Object.entries(firstPlayOfYear)) {
+      const dk = localDateStr(tzDate(p.date));
+      if (!msMap[dk]) msMap[dk] = { daily: [], allTime: [] };
+      msMap[dk].allTime.push({ label: `First scrobble of ${yr}`, play: p, isYearFirst: true });
+    }
+    // Daily milestones: how many plays you hit within a single day
     for (const [dk, data] of Object.entries(dayMap)) {
-      const ms = [];
+      const daily = [];
       for (const n of [1, 50, 100, 200, 500, 1000]) {
-        if (data.plays.length >= n) ms.push({ label: hmOrdinal(n) + ' scrobble', play: data.plays[n - 1] });
+        if (data.plays.length >= n) daily.push({ label: hmOrdinal(n) + ' of the day', play: data.plays[n - 1] });
       }
-      if (ms.length) msMap[dk] = ms;
+      if (daily.length) {
+        if (!msMap[dk]) msMap[dk] = { daily: [], allTime: [] };
+        msMap[dk].daily = daily;
+      }
+    }
+    // All-time milestones: cumulative scrobble count across your entire history
+    const allTimeMilestones = new Set([100, 250, 500, 1000, 2500, 5000, 10000, 25000, 50000, 100000]);
+    let cumCount = 0;
+    for (const p of chrono) {
+      cumCount++;
+      if (allTimeMilestones.has(cumCount)) {
+        const dk = localDateStr(tzDate(p.date));
+        if (!msMap[dk]) msMap[dk] = { daily: [], allTime: [] };
+        msMap[dk].allTime.push({ label: hmOrdinal(cumCount) + ' scrobble ever', play: p });
+      }
     }
   } else {
-    const milestoneSet = new Set([1, 10, 25, 50, 100, 250, 500, 1000, 2500, 5000]);
+    const milestoneSet = new Set([1, 10, 25, 50, 100, 200, 250, 300, 400, 500, 600, 700, 800, 900, 1000, 1500, 2000, 2500, 5000, 10000]);
     let cumCount = 0;
     for (const p of chrono) {
       if (!hmMatchesFilter(p)) continue;
       cumCount++;
       const dk = localDateStr(tzDate(p.date));
-      if (!dayMap[dk]) dayMap[dk] = { count: 0, plays: [] };
+      if (!dayMap[dk]) dayMap[dk] = { count: 0, plays: [], chipIndices: new Set() };
       dayMap[dk].count++;
       dayMap[dk].plays.push(p);
+      // Track which filter chips contributed to each day (for split-color cells)
+      heatmapFilters.forEach((f, i) => {
+        let matched = false;
+        if (heatmapType === 'artist') matched = p.artists.some(a => a === f);
+        else if (heatmapType === 'song') matched = `${p.title} • ${p.artist}` === f;
+        else if (heatmapType === 'album') matched = `${p.album} • ${albumArtist(p)}` === f;
+        if (matched) dayMap[dk].chipIndices.add(i);
+      });
       if (milestoneSet.has(cumCount)) {
-        if (!msMap[dk]) msMap[dk] = [];
-        msMap[dk].push({ label: hmOrdinal(cumCount) + ' scrobble', play: p });
+        if (!msMap[dk]) msMap[dk] = { daily: [], allTime: [] };
+        msMap[dk].allTime.push({ label: hmOrdinal(cumCount) + ' scrobble', play: p });
       }
     }
   }
@@ -10375,6 +10421,147 @@ function removeHeatmapFilter(idx) {
   renderHeatmap();
 }
 
+function hmComputeStreaks(dayMap) {
+  const days = Object.keys(dayMap).filter(k => dayMap[k].count > 0).sort();
+  if (!days.length) return { best: 0, current: 0 };
+  let best = 1, streak = 1;
+  for (let i = 1; i < days.length; i++) {
+    const prev = new Date(days[i - 1] + 'T00:00:00');
+    const curr = new Date(days[i] + 'T00:00:00');
+    if ((curr - prev) / 86400000 === 1) { streak++; if (streak > best) best = streak; }
+    else streak = 1;
+  }
+  const today = localDateStr(tzNow());
+  const daysSet = new Set(days);
+  let cur = 0;
+  const check = new Date(today + 'T00:00:00');
+  while (daysSet.has(localDateStr(check))) { cur++; check.setDate(check.getDate() - 1); }
+  return { best, current: cur };
+}
+
+function hmComputeDroughts(dayMap) {
+  const days = Object.keys(dayMap).filter(k => dayMap[k].count > 0).sort();
+  const droughtCells = new Set();
+  const returnMap = {};
+  for (let i = 1; i < days.length; i++) {
+    const prev = new Date(days[i - 1] + 'T00:00:00');
+    const curr = new Date(days[i] + 'T00:00:00');
+    const gap = Math.round((curr - prev) / 86400000) - 1;
+    if (gap > 6) {
+      const d = new Date(prev);
+      d.setDate(d.getDate() + 1);
+      while (d < curr) { droughtCells.add(localDateStr(d)); d.setDate(d.getDate() + 1); }
+      returnMap[days[i]] = gap;
+    }
+  }
+  return { droughtCells, returnMap };
+}
+
+function hmComputePercentile(dayMap) {
+  const counts = Object.values(dayMap).map(d => d.count).sort((a, b) => a - b);
+  return count => {
+    const below = counts.filter(c => c < count).length;
+    return Math.round((below / counts.length) * 100);
+  };
+}
+
+function hmYearStats(dayMap) {
+  const yearStats = {};
+  const seenArtists = new Set();
+  const sortedKeys = Object.keys(dayMap).sort();
+  for (const dk of sortedKeys) {
+    const yr = new Date(dk + 'T00:00:00').getFullYear();
+    const data = dayMap[dk];
+    if (!yearStats[yr]) yearStats[yr] = { total: 0, artists: {}, newArtists: 0, bestDay: 0, bestDk: '' };
+    yearStats[yr].total += data.count;
+    if (data.count > yearStats[yr].bestDay) { yearStats[yr].bestDay = data.count; yearStats[yr].bestDk = dk; }
+    for (const p of data.plays) {
+      const artists = p.artists && p.artists.length ? p.artists : [p.artist];
+      for (const a of artists) {
+        yearStats[yr].artists[a] = (yearStats[yr].artists[a] || 0) + 1;
+        if (!seenArtists.has(a)) { seenArtists.add(a); yearStats[yr].newArtists++; }
+      }
+    }
+  }
+  for (const yr of Object.keys(yearStats)) {
+    const artists = yearStats[yr].artists;
+    yearStats[yr].topArtist = Object.keys(artists).sort((a, b) => artists[b] - artists[a])[0] || '';
+  }
+  return yearStats;
+}
+
+function hmRenderPatterns(dayMap) {
+  const dowLabels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+  const dowTotals = Array(7).fill(0);
+  const dowDayCount = Array(7).fill(0);
+  for (const [dk, data] of Object.entries(dayMap)) {
+    const dow = (new Date(dk + 'T00:00:00').getDay() + 6) % 7;
+    dowTotals[dow] += data.count;
+    dowDayCount[dow]++;
+  }
+  const dowAvg = dowTotals.map((t, i) => dowDayCount[i] > 0 ? t / dowDayCount[i] : 0);
+  const maxAvg = Math.max(...dowAvg, 1);
+
+  const grid = Array.from({ length: 7 }, () => Array(24).fill(0));
+  const plays = heatmapType !== 'all' && heatmapFilters.length > 0
+    ? allPlays.filter(p => hmMatchesFilter(p))
+    : allPlays;
+  for (const p of plays) {
+    const d = tzDate(p.date);
+    grid[(d.getDay() + 6) % 7][d.getHours()]++;
+  }
+  const maxHour = Math.max(...grid.flat(), 1);
+
+  const stops = HM_THEMES[hmTheme] || HM_THEMES.default;
+  const accent = stops[stops.length - 1];
+
+  const barsHtml = dowLabels.map((label, i) => {
+    const avg = dowAvg[i];
+    const w = Math.round((avg / maxAvg) * 100);
+    const alpha = 0.45 + 0.55 * (avg / maxAvg);
+    return `<div class="hm-pat-bar-row">
+      <span class="hm-pat-dow-label">${label}</span>
+      <div class="hm-pat-bar-track"><div class="hm-pat-bar-fill" style="width:${w}%;background:${accent};opacity:${alpha.toFixed(2)};"></div></div>
+      <span class="hm-pat-bar-val">${Number.isInteger(avg) ? avg : avg.toFixed(1)}/day</span>
+    </div>`;
+  }).join('');
+
+  const hourHeaderCells = Array(24).fill(0).map((_, h) => {
+    const label = h === 0 ? '12a' : h === 6 ? '6a' : h === 12 ? '12p' : h === 18 ? '6p' : '';
+    return `<div class="hm-pat-hour-label">${label}</div>`;
+  }).join('');
+
+  let gridRows = '';
+  for (let dow = 0; dow < 7; dow++) {
+    gridRows += '<div class="hm-pat-grid-row">';
+    for (let hr = 0; hr < 24; hr++) {
+      const cnt = grid[dow][hr];
+      const bg = hmCellColor(cnt, maxHour);
+      gridRows += cnt > 0
+        ? `<div class="hm-pat-cell has-data" style="background:${bg};" data-hm-pattern="${dow},${hr}" data-hm-pat-count="${cnt}"></div>`
+        : `<div class="hm-pat-cell" style="background:${stops[0]};"></div>`;
+    }
+    gridRows += '</div>';
+  }
+
+  return `<div class="hm-patterns-section">
+    <div class="hm-patterns-header">Listening Patterns</div>
+    <div class="hm-patterns-body">
+      <div class="hm-pat-weekday">
+        <div class="hm-pat-sublabel">Weekday rhythm</div>
+        <div class="hm-pat-bars">${barsHtml}</div>
+      </div>
+      <div class="hm-pat-hourblock">
+        <div class="hm-pat-sublabel">Hour of day</div>
+        <div class="hm-pat-hour-grid">
+          <div class="hm-pat-dow-col">${dowLabels.map(l => `<div class="hm-pat-dow-side-label">${l}</div>`).join('')}</div>
+          <div><div class="hm-pat-hour-row">${hourHeaderCells}</div>${gridRows}</div>
+        </div>
+      </div>
+    </div>
+  </div>`;
+}
+
 function renderHeatmap() {
   const container = document.getElementById('gHeatmap');
   const tooltip = document.getElementById('heatmapTooltip');
@@ -10397,8 +10584,33 @@ function renderHeatmap() {
   const firstDate = new Date(allDayKeys[0] + 'T00:00:00');
   const lastDate = new Date(today + 'T00:00:00');
 
+  // Find max count and best day
   let maxCount = 1;
-  for (const d of Object.values(dayMap)) if (d.count > maxCount) maxCount = d.count;
+  _hmBestDayDk = '';
+  for (const [dk, d] of Object.entries(dayMap)) {
+    if (d.count > maxCount) { maxCount = d.count; _hmBestDayDk = dk; }
+  }
+
+  // Streaks, droughts, percentile
+  const { best: bestStreak, current: curStreak } = hmComputeStreaks(dayMap);
+  const { droughtCells, returnMap } = hmComputeDroughts(dayMap);
+  _hmReturnMap = returnMap;
+  _hmPercentileFn = hmComputePercentile(dayMap);
+
+  // Year-in-review stats (ALL view only)
+  const isAll = heatmapType === 'all';
+  const yearStats = isAll ? hmYearStats(dayMap) : null;
+
+  const stops = HM_THEMES[hmTheme] || HM_THEMES.default;
+
+  // Streak bar
+  let streakHtml = '';
+  if (bestStreak > 1 || curStreak > 0) {
+    const chips = [];
+    if (curStreak > 0) chips.push(`<span class="hm-streak-chip">🔥 ${curStreak}-day streak</span>`);
+    if (bestStreak > 1) chips.push(`<span class="hm-streak-chip">Best: ${bestStreak} days</span>`);
+    streakHtml = `<div class="hm-streak-bar">${chips.join('')}</div>`;
+  }
 
   const startDow = firstDate.getDay();
   const padStart = startDow === 0 ? 6 : startDow - 1;
@@ -10417,7 +10629,7 @@ function renderHeatmap() {
       const dk = localDateStr(cur);
       const data = dayMap[dk] || null;
       const inRange = cur >= firstDate && cur <= lastDate;
-      week.push({ dk, count: data ? data.count : 0, inRange });
+      week.push({ dk, count: data ? data.count : 0, inRange, chipIndices: data ? data.chipIndices : null });
       cur.setDate(cur.getDate() + 1);
     }
     yearGroups[yr].push(week);
@@ -10444,11 +10656,45 @@ function renderHeatmap() {
     for (const week of weeks) {
       cellsHtml += '<div class="heatmap-week-col">';
       for (const cell of week) {
-        const bg = cell.inRange ? hmCellColor(cell.count, maxCount) : 'transparent';
-        const hasData = cell.inRange && cell.count > 0;
-        cellsHtml += `<div class="heatmap-cell${hasData ? ' has-data' : ''}" style="background:${bg};"${hasData ? ` data-dk="${cell.dk}"` : ''}></div>`;
+        let bg, cls = 'heatmap-cell', attr = '';
+        if (!cell.inRange) {
+          bg = 'transparent';
+        } else if (cell.count === 0) {
+          if (droughtCells.has(cell.dk)) { bg = 'rgba(180,80,20,0.13)'; cls += ' hm-drought'; }
+          else bg = 'transparent';
+        } else {
+          cls += ' has-data';
+          attr = ` data-dk="${cell.dk}"`;
+          if (cell.dk === _hmBestDayDk) cls += ' hm-best-day';
+          // Split-color for multi-chip overlap
+          if (cell.chipIndices && cell.chipIndices.size > 1) {
+            const idxs = [...cell.chipIndices].slice(0, 2);
+            const c1 = GRAPH_PALETTE[idxs[0] % GRAPH_PALETTE.length];
+            const c2 = GRAPH_PALETTE[idxs[1] % GRAPH_PALETTE.length];
+            bg = `linear-gradient(135deg,${c1} 50%,${c2} 50%)`;
+          } else {
+            bg = hmCellColor(cell.count, maxCount);
+          }
+        }
+        cellsHtml += `<div class="${cls}" style="background:${bg};"${attr}></div>`;
       }
       cellsHtml += '</div>';
+    }
+
+    // Year-in-review card
+    let reviewHtml = '';
+    if (yearStats && yearStats[yr]) {
+      const ys = yearStats[yr];
+      const bd = ys.bestDk ? new Date(ys.bestDk + 'T00:00:00') : null;
+      const bestDayStr = bd ? `${HM_MONTHS[bd.getMonth()]} ${bd.getDate()}` : '—';
+      reviewHtml = `<div class="hm-year-review">
+        <span class="hm-yr-stat"><span class="hm-yr-num">${ys.total.toLocaleString()}</span> plays</span>
+        <span class="hm-yr-dot">·</span>
+        <span class="hm-yr-stat">Best day <span class="hm-yr-num">${bestDayStr}</span> <span class="hm-yr-muted">(${ys.bestDay.toLocaleString()})</span></span>
+        <span class="hm-yr-dot">·</span>
+        <span class="hm-yr-stat">Top: <span class="hm-yr-name">${esc(ys.topArtist)}</span></span>
+        ${ys.newArtists > 0 ? `<span class="hm-yr-dot">·</span><span class="hm-yr-stat"><span class="hm-yr-num">${ys.newArtists.toLocaleString()}</span> new artists</span>` : ''}
+      </div>`;
     }
 
     html += `<div class="heatmap-year-block">
@@ -10462,6 +10708,7 @@ function renderHeatmap() {
           </div>
         </div>
       </div>
+      ${reviewHtml}
     </div>`;
   }
 
@@ -10471,7 +10718,9 @@ function renderHeatmap() {
   }).join('');
   html += `<div class="heatmap-legend"><span class="heatmap-legend-label">Less</span>${legendCells}<span class="heatmap-legend-label">More</span></div>`;
 
-  container.innerHTML = html;
+  html += hmRenderPatterns(dayMap);
+
+  container.innerHTML = streakHtml + html;
 }
 
 // Heatmap tooltip — attached once to the static container
@@ -10480,39 +10729,8 @@ function renderHeatmap() {
   const tip = document.getElementById('heatmapTooltip');
   if (!cont || !tip) return;
 
-  cont.addEventListener('mouseover', e => {
-    const cell = e.target.closest('.heatmap-cell.has-data');
-    if (!cell) { tip.style.display = 'none'; return; }
-
-    const dk = cell.dataset.dk;
-    const data = _hmDayMap[dk];
-    const ms = _hmMsMap[dk] || [];
-    if (!data) return;
-
-    const d = new Date(dk + 'T00:00:00');
-    const dayName = d.toLocaleDateString('en-US', { weekday: 'long' });
-    const day = d.getDate();
-    const monthName = d.toLocaleDateString('en-US', { month: 'long' });
-    const yr = d.getFullYear();
-    const word = data.count === 1 ? 'scrobble' : 'scrobbles';
-
-    let msHtml = '';
-    if (ms.length) {
-      msHtml = '<hr class="hm-tt-rule">';
-      for (const m of ms) {
-        msHtml += `<div class="hm-tt-ms-wrap">
-          <div class="hm-tt-ms-label">🚩 ${esc(m.label)}</div>
-          <div class="hm-tt-ms-track">${esc(m.play.title)}</div>
-          <div class="hm-tt-ms-artist">${esc(m.play.artist)}</div>
-        </div>`;
-      }
-    }
-
-    tip.innerHTML = `<div class="hm-tt-date">${dayName} ${day} ${esc(monthName)} ${yr}</div>
-      <div class="hm-tt-count">${data.count.toLocaleString()} ${word}</div>${msHtml}`;
-    tip.style.display = 'block';
-
-    const rect = cell.getBoundingClientRect();
+  function positionTip(refEl) {
+    const rect = refEl.getBoundingClientRect();
     const margin = 12;
     const tw = tip.offsetWidth || 220;
     const th = tip.offsetHeight || 120;
@@ -10522,6 +10740,89 @@ function renderHeatmap() {
     if (y + th > window.innerHeight - 8) y = Math.max(8, window.innerHeight - th - 8);
     tip.style.left = x + 'px';
     tip.style.top = y + 'px';
+  }
+
+  cont.addEventListener('mouseover', e => {
+    // Pattern cell (time-of-day grid)
+    const patCell = e.target.closest('.hm-pat-cell.has-data');
+    if (patCell && patCell.dataset.hmPattern) {
+      const [dow, hr] = patCell.dataset.hmPattern.split(',').map(Number);
+      const cnt = parseInt(patCell.dataset.hmPatCount) || 0;
+      const dowName = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'][dow];
+      const hrLabel = hr === 0 ? 'midnight' : hr < 12 ? `${hr}am` : hr === 12 ? 'noon' : `${hr - 12}pm`;
+      tip.innerHTML = `<div class="hm-tt-date">${dowName} · ${hrLabel}</div>
+        <div class="hm-tt-count">${cnt.toLocaleString()} scrobble${cnt !== 1 ? 's' : ''}</div>`;
+      tip.style.display = 'block';
+      positionTip(patCell);
+      return;
+    }
+
+    // Regular calendar cell
+    const cell = e.target.closest('.heatmap-cell.has-data');
+    if (!cell) { tip.style.display = 'none'; return; }
+
+    const dk = cell.dataset.dk;
+    const data = _hmDayMap[dk];
+    const msEntry = _hmMsMap[dk];
+    const ms = msEntry || { daily: [], allTime: [] };
+    const dailyMs = ms.daily || [];
+    const allTimeMs = ms.allTime || [];
+    if (!data) return;
+
+    const d = new Date(dk + 'T00:00:00');
+    const dayName = d.toLocaleDateString('en-US', { weekday: 'long' });
+    const day = d.getDate();
+    const monthName = d.toLocaleDateString('en-US', { month: 'long' });
+    const yr = d.getFullYear();
+    const word = data.count === 1 ? 'scrobble' : 'scrobbles';
+
+    // Best day badge
+    const bestHtml = dk === _hmBestDayDk
+      ? '<div class="hm-tt-best">⭐ Your best day ever</div>' : '';
+
+    // Percentile
+    const pct = _hmPercentileFn ? _hmPercentileFn(data.count) : null;
+    const topPct = pct !== null ? 100 - pct : null;
+    const pctHtml = (topPct !== null && topPct <= 20 && dk !== _hmBestDayDk)
+      ? `<div class="hm-tt-pct">Top ${topPct < 1 ? '<1' : topPct}% day</div>` : '';
+
+    // Drought return
+    const gapDays = _hmReturnMap && _hmReturnMap[dk];
+    const gapHtml = gapDays
+      ? `<div class="hm-tt-gap">🌧 Back after ${gapDays}-day break</div>` : '';
+
+    let msHtml = '';
+    const hasBoth = dailyMs.length > 0 && allTimeMs.length > 0;
+    if (dailyMs.length || allTimeMs.length) {
+      msHtml = '<hr class="hm-tt-rule">';
+      if (dailyMs.length) {
+        if (hasBoth) msHtml += '<div class="hm-tt-section-label">📅 Today</div>';
+        for (const m of dailyMs) {
+          msHtml += `<div class="hm-tt-ms-wrap">
+            <div class="hm-tt-ms-label">🚩 ${esc(m.label)}</div>
+            <div class="hm-tt-ms-track">${esc(m.play.title)}</div>
+            <div class="hm-tt-ms-artist">${esc(m.play.artist)}</div>
+          </div>`;
+        }
+      }
+      if (allTimeMs.length) {
+        if (hasBoth) msHtml += '<div class="hm-tt-rule-minor"></div><div class="hm-tt-section-label">🏆 All-time</div>';
+        for (const m of allTimeMs) {
+          const icon = m.isYearFirst ? '🎆' : '🏆';
+          msHtml += `<div class="hm-tt-ms-wrap">
+            <div class="hm-tt-ms-label hm-tt-ms-alltime">${icon} ${esc(m.label)}</div>
+            <div class="hm-tt-ms-track">${esc(m.play.title)}</div>
+            <div class="hm-tt-ms-artist">${esc(m.play.artist)}</div>
+          </div>`;
+        }
+      }
+    }
+
+    tip.innerHTML = `<div class="hm-tt-date">${dayName} ${day} ${esc(monthName)} ${yr}</div>
+      <div class="hm-tt-count">${data.count.toLocaleString()} ${word}</div>
+      ${bestHtml}${pctHtml}${gapHtml}${msHtml}`;
+    tip.style.display = 'block';
+    positionTip(cell);
   });
 
   cont.addEventListener('mouseleave', () => { tip.style.display = 'none'; });
@@ -10535,12 +10836,27 @@ document.getElementById('heatmapTypeBtns').addEventListener('click', e => {
   btn.classList.add('active');
   heatmapType = btn.dataset.hmtype;
   heatmapFilters = [];
+  // Auto-apply the default color theme for this view type
+  hmTheme = HM_TYPE_THEME[heatmapType] || 'default';
+  document.querySelectorAll('#heatmapThemeBtns button').forEach(b => {
+    b.classList.toggle('active', b.dataset.hmtheme === hmTheme);
+  });
   renderHeatmapChips();
   const filterRow = document.getElementById('heatmapFilterRow');
   filterRow.style.display = heatmapType === 'all' ? 'none' : 'flex';
   const placeholders = { artist: 'Add an artist…', song: 'Add a song…', album: 'Add an album…' };
   const inp = document.getElementById('heatmapFilterInput');
   if (inp) inp.placeholder = placeholders[heatmapType] || 'Add filter…';
+  if (currentPeriod === 'graphs') renderHeatmap();
+});
+
+// Heatmap theme swatches
+document.getElementById('heatmapThemeBtns').addEventListener('click', e => {
+  const btn = e.target.closest('button[data-hmtheme]');
+  if (!btn) return;
+  document.querySelectorAll('#heatmapThemeBtns button').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  hmTheme = btn.dataset.hmtheme;
   if (currentPeriod === 'graphs') renderHeatmap();
 });
 

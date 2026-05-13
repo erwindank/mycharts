@@ -776,7 +776,7 @@
       <!-- Chart 6: Listening Activity Heatmap -->
       <div class="graph-card">
         <div class="graph-card-title">🔥 Listening Activity Heatmap</div>
-        <div class="graph-card-sub">Daily scrobble volume — contribution grid. Hover a day for details.</div>
+        <div class="graph-card-sub">Your music mapped day by day — brighter squares mean more plays. Hover any square to explore what you were listening to.</div>
         <div style="display:flex;align-items:center;gap:0.5rem;flex-wrap:wrap;margin-bottom:0.5rem;">
           <span style="font-family:'DM Mono',monospace;font-size:0.62rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--text3);">View</span>
           <div id="heatmapTypeBtns" style="display:flex;gap:4px;flex-wrap:wrap;">
@@ -784,6 +784,14 @@
             <button class="graphs-btn" data-hmtype="artist">Artist</button>
             <button class="graphs-btn" data-hmtype="song">Song</button>
             <button class="graphs-btn" data-hmtype="album">Album</button>
+          </div>
+          <span style="display:inline-block;width:1px;height:14px;background:var(--border2);margin:0 2px;align-self:center;"></span>
+          <div id="heatmapThemeBtns" style="display:flex;gap:5px;align-items:center;" title="Color theme">
+            <button class="hm-theme-swatch active" data-hmtheme="default" title="Cosmic" style="background:linear-gradient(90deg,#3a1858,#ff7ee0);"></button>
+            <button class="hm-theme-swatch" data-hmtheme="fire" title="Fire" style="background:linear-gradient(90deg,#5c1500,#ffd030);"></button>
+            <button class="hm-theme-swatch" data-hmtheme="ocean" title="Ocean" style="background:linear-gradient(90deg,#0d3060,#7ee8ff);"></button>
+            <button class="hm-theme-swatch" data-hmtheme="forest" title="Forest" style="background:linear-gradient(90deg,#174d17,#b0f0b0);"></button>
+            <button class="hm-theme-swatch" data-hmtheme="ember" title="Ember" style="background:linear-gradient(90deg,#4a0a08,#f09000);"></button>
           </div>
         </div>
         <div id="heatmapFilterRow" style="display:none;align-items:center;gap:0.5rem;margin-bottom:0.5rem;">

@@ -3209,6 +3209,48 @@
     .hm-tt-ms-label { font-family: 'DM Mono', monospace; font-size: 0.58rem; color: #f0aa30; }
     .hm-tt-ms-track { font-family: 'DM Sans', sans-serif; font-size: 0.72rem; color: var(--text); font-weight: 600; line-height: 1.3; }
     .hm-tt-ms-artist { font-family: 'DM Sans', sans-serif; font-size: 0.67rem; color: var(--text3); }
+    .hm-tt-section-label { font-family: 'DM Mono', monospace; font-size: 0.5rem; color: var(--text3); text-transform: uppercase; letter-spacing: 0.09em; margin: 0.25rem 0 0.1rem; }
+    .hm-tt-rule-minor { border: none; border-top: 1px solid var(--border); margin: 0.3rem 0 0.15rem; opacity: 0.45; }
+    .hm-tt-ms-alltime { color: #ffd030; }
+    .hm-tt-best { font-family: 'DM Mono', monospace; font-size: 0.58rem; color: #ffd030; margin-top: 0.15rem; }
+    .hm-tt-pct { font-family: 'DM Mono', monospace; font-size: 0.54rem; color: var(--text3); margin-top: 0.08rem; }
+    .hm-tt-gap { font-family: 'DM Mono', monospace; font-size: 0.54rem; color: #c08848; margin-top: 0.08rem; }
+    .hm-theme-swatch { width: 28px; height: 12px; border-radius: 3px; border: 2px solid transparent; cursor: pointer; padding: 0; transition: border-color 0.15s, opacity 0.15s; flex-shrink: 0; }
+    .hm-theme-swatch.active { border-color: var(--text); }
+    .hm-theme-swatch:hover:not(.active) { opacity: 0.72; }
+    /* Streak bar */
+    .hm-streak-bar { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; margin-bottom: 0.55rem; }
+    .hm-streak-chip { font-family: 'DM Mono', monospace; font-size: 0.57rem; color: var(--text3); background: var(--bg2); border: 1px solid var(--border2); border-radius: 20px; padding: 2px 9px; letter-spacing: 0.03em; white-space: nowrap; }
+    /* Best day glow */
+    .heatmap-cell.hm-best-day { box-shadow: 0 0 0 1.5px #ffd030, 0 0 5px #ffd03055; }
+    /* Year-in-review card */
+    .hm-year-review { display: flex; align-items: center; flex-wrap: wrap; gap: 5px; margin-top: 0.45rem; padding: 0.32rem 0.55rem; background: var(--bg2); border-radius: 6px; border: 1px solid var(--border); }
+    .hm-yr-stat { font-family: 'DM Mono', monospace; font-size: 0.53rem; color: var(--text3); white-space: nowrap; }
+    .hm-yr-num { color: var(--text); font-weight: 600; }
+    .hm-yr-name { color: var(--text); }
+    .hm-yr-muted { opacity: 0.6; }
+    .hm-yr-dot { color: var(--text3); opacity: 0.4; }
+    /* Listening patterns section */
+    .hm-patterns-section { margin-top: 1.1rem; border-top: 1px solid var(--border); padding-top: 0.8rem; }
+    .hm-patterns-header { font-family: 'DM Mono', monospace; font-size: 0.52rem; color: var(--text3); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 0.7rem; }
+    .hm-patterns-body { display: flex; gap: 1.5rem; flex-wrap: wrap; align-items: flex-start; }
+    .hm-pat-weekday { flex: 0 0 auto; min-width: 155px; }
+    .hm-pat-hourblock { flex: 1 1 auto; min-width: 200px; overflow-x: auto; }
+    .hm-pat-sublabel { font-family: 'DM Mono', monospace; font-size: 0.48rem; color: var(--text3); letter-spacing: 0.07em; text-transform: uppercase; margin-bottom: 0.4rem; }
+    .hm-pat-bar-row { display: flex; align-items: center; gap: 5px; margin-bottom: 3px; }
+    .hm-pat-dow-label { font-family: 'DM Mono', monospace; font-size: 0.48rem; color: var(--text3); width: 22px; flex-shrink: 0; }
+    .hm-pat-bar-track { flex: 1; height: 7px; background: var(--bg2); border-radius: 3px; overflow: hidden; }
+    .hm-pat-bar-fill { height: 100%; border-radius: 3px; }
+    .hm-pat-bar-val { font-family: 'DM Mono', monospace; font-size: 0.46rem; color: var(--text3); width: 50px; text-align: right; flex-shrink: 0; }
+    .hm-pat-hour-grid { display: flex; gap: 3px; align-items: flex-start; }
+    .hm-pat-dow-col { display: flex; flex-direction: column; gap: 2px; padding-top: 14px; flex-shrink: 0; }
+    .hm-pat-dow-side-label { font-family: 'DM Mono', monospace; font-size: 0.45rem; color: var(--text3); height: 9px; display: flex; align-items: center; }
+    .hm-pat-hour-row { display: flex; gap: 2px; margin-bottom: 2px; }
+    .hm-pat-hour-label { width: 11px; font-family: 'DM Mono', monospace; font-size: 0.37rem; color: var(--text3); overflow: visible; white-space: nowrap; flex-shrink: 0; line-height: 1; }
+    .hm-pat-grid-row { display: flex; gap: 2px; margin-bottom: 2px; }
+    .hm-pat-cell { width: 9px; height: 9px; border-radius: 1px; flex-shrink: 0; }
+    .hm-pat-cell.has-data { cursor: pointer; }
+    .hm-pat-cell.has-data:hover { outline: 1px solid rgba(255,255,255,0.5); outline-offset: 0; }
 
     /* UPCOMING RELEASES */
     .upcoming-status {
