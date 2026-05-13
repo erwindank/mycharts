@@ -319,7 +319,7 @@ function updateScrobbleBtn() {
   if (!scrobBtn) return;
   const hasLfm   = !!(getScrobbleSession() && getScrobbleUser());
   const hasSheet = !!(getSheetWriteUrl() && getDataSource() === 'sheets');
-  scrobBtn.style.display = (hasLfm || hasSheet) ? '' : 'none';
+  scrobBtn.style.display = (currentPeriod === 'rawdata' && (hasLfm || hasSheet)) ? '' : 'none';
 }
 
 function updateLfmAuthStatus() {
@@ -434,6 +434,12 @@ function setScrobbleNow() {
   const now = new Date();
   now.setMilliseconds(0);
   document.getElementById('scrobbleTime').value = scrobbleDatetimeLocal(now);
+}
+
+function setEditScrobbleNow() {
+  const now = new Date();
+  now.setMilliseconds(0);
+  document.getElementById('editScrobbleTime').value = scrobbleDatetimeLocal(now);
 }
 
 async function submitScrobble() {
@@ -2429,6 +2435,7 @@ function navigateToRecPeriod(period, periodKey) {
       if (currentPeriod === 'graphs') destroyGraphCharts();
     }
     currentPeriod = period;
+    updateScrobbleBtn();
     localStorage.setItem('dc_period', currentPeriod);
     document.querySelectorAll('.period-nav button').forEach(b => b.classList.toggle('active', b.dataset.period === period));
     currentOffset = offset;
@@ -3603,6 +3610,7 @@ document.getElementById('periodNav').addEventListener('click', e => {
     const upcomingBtn = upcomingEl.querySelector('.section-collapse-btn');
     if (upcomingBtn) upcomingBtn.textContent = '+';
     applyRawFilters();
+    updateScrobbleBtn();
     return;
   }
 
@@ -3628,6 +3636,7 @@ document.getElementById('periodNav').addEventListener('click', e => {
     document.getElementById('rawDataView').style.display = 'none';
     document.getElementById('graphsView').style.display = 'block';
     if (allPlays.length) renderGraphs();
+    updateScrobbleBtn();
     return;
   }
 
@@ -3657,6 +3666,7 @@ document.getElementById('periodNav').addEventListener('click', e => {
     buildRecords();
     applyRecordsViewFilter(localStorage.getItem('dc_records_active_view') || 'recAllOnesSection');
     if (typeof window._refreshBackToTop === 'function') window._refreshBackToTop();
+    updateScrobbleBtn();
     return;
   }
 
@@ -3685,6 +3695,7 @@ document.getElementById('periodNav').addEventListener('click', e => {
     if (sel) sel.value = eventsArtistLimit;
     if (allPlays.length) loadEvents();
     if (typeof window._refreshBackToTop === 'function') window._refreshBackToTop();
+    updateScrobbleBtn();
     return;
   }
 
@@ -3710,6 +3721,7 @@ document.getElementById('periodNav').addEventListener('click', e => {
   currentOffset = savedOffsets[currentPeriod];
   restoreChartSectionCollapseState(currentPeriod);
   pageState.songs = 0; pageState.artists = 0; pageState.albums = 0;
+  updateScrobbleBtn();
   renderAll();
 });
 

@@ -230,9 +230,9 @@
       <span id="syncStatus" data-i18n="sync_connecting">⟳ Connecting...</span>
       <div class="sync-bar-right">
         <div class="sync-bar-actions">
-          <button id="scrobbleBtn" onclick="openScrobbleModal()" title="Add a play manually" style="display:none">✚ Add Play</button>
-          <button id="configureSourceBtn" onclick="openSourceModal()" title="Configure data source">⚙ Configure</button>
           <button id="syncNowBtn" data-i18n="sync_now">↺ SYNC NOW</button>
+          <button id="configureSourceBtn" onclick="openSourceModal()" title="Configure data source">⚙ Configure</button>
+          <button id="scrobbleBtn" onclick="openScrobbleModal()" title="Add a play manually" style="display:none">✚ Add Play</button>
         </div>
         <div class="sync-bar-account">
           <button class="dc-signin-btn sync-signin-btn" onclick="dcSignIn()" title="Sign in to sync settings across devices">Sign In</button>
@@ -1684,7 +1684,10 @@
         </label>
         <label>
           Date &amp; Time
-          <input type="datetime-local" id="editScrobbleTime" step="1">
+          <div class="scrobble-time-row">
+            <input type="datetime-local" id="editScrobbleTime" step="1">
+            <button type="button" class="scrobble-now-btn" onclick="setEditScrobbleNow()">Now</button>
+          </div>
         </label>
       </div>
       <p id="editScrobbleHint" style="font-size:0.7rem;color:var(--text3);margin:0.3rem 0 0.5rem;display:none">Pushing to Last.fm adds a corrected scrobble — remove the original manually on the Last.fm website.</p>
