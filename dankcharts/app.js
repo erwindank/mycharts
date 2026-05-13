@@ -11203,9 +11203,9 @@ function renderHeroStats() {
       <span class="hero-label">Top Artist</span>
     </div>
     <div class="hero-stat-sep">·</div>
-    <div class="hero-stat${streakTier > 0 ? ` hero-stat--streak-${streakTier}` : ''}" data-tip="Current streak · Personal best: ${pb} day${pb === 1 ? '' : 's'}">
-      <span class="hero-icon">${streakIcon}</span>
-      <span class="hero-val" data-countup="${streak}">${streak}</span>
+    <div class="hero-stat" id="hero-streak-stat" data-tip="Current streak · Personal best: ${pb} day${pb === 1 ? '' : 's'}">
+      <span class="hero-icon">📆</span>
+      <span class="hero-val">0</span>
       <span class="hero-label">Day Streak</span>
       <span class="hero-stat-pb">PB: ${pb}</span>
     </div>`;
@@ -11232,6 +11232,25 @@ function renderHeroStats() {
     }
     requestAnimationFrame(frame);
   });
+
+  // Streak count-up: slow linear animation that transitions through each tier
+  const streakEl = el.querySelector('#hero-streak-stat');
+  if (streakEl && streak > 0) {
+    const valSpan = streakEl.querySelector('.hero-val');
+    const iconSpan = streakEl.querySelector('.hero-icon');
+    const duration = 3000;
+    const startTime = performance.now();
+    function streakFrame(now) {
+      const progress = Math.min((now - startTime) / duration, 1);
+      const cur = Math.round(progress * streak);
+      valSpan.textContent = cur;
+      const t = cur >= 100 ? 6 : cur >= 60 ? 5 : cur >= 30 ? 4 : cur >= 14 ? 3 : cur >= 7 ? 2 : cur >= 1 ? 1 : 0;
+      streakEl.className = `hero-stat${t > 0 ? ` hero-stat--streak-${t}` : ''}`;
+      iconSpan.textContent = t >= 6 ? '🌟' : t >= 2 ? '🔥' : '📆';
+      if (progress < 1) requestAnimationFrame(streakFrame);
+    }
+    requestAnimationFrame(streakFrame);
+  }
 }
 
 // ─── PERIOD LABEL CLICK → OPEN PICKER ─────────────────────────
