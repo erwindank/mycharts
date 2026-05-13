@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <rect width="100" height="100" rx="20" fill="#09182a"/>
+  <!-- Blue outer arc — 340°, gap on right -->
+  <path d="M 92.3 57.5 A 43 43 0 1 1 92.3 42.5" fill="none" stroke="#4aacff" stroke-width="4" stroke-linecap="round"/>
+  <!-- Green arc — 300°, gap on right -->
+  <path d="M 82 68.5 A 37 37 0 1 1 82 31.5" fill="none" stroke="#2ecc71" stroke-width="6" stroke-linecap="round"/>
+  <!-- Yellow arc — 270°, gap on right -->
+  <path d="M 70.5 70.5 A 29 29 0 1 1 70.5 29.5" fill="none" stroke="#f1c40f" stroke-width="6" stroke-linecap="round"/>
+  <!-- Red arc — 240°, gap on right -->
+  <path d="M 60.5 68.2 A 21 21 0 1 1 60.5 31.8" fill="none" stroke="#e74c3c" stroke-width="6" stroke-linecap="round"/>
+  <!-- Purple arc — 210°, gap on right -->
+  <path d="M 53.4 62.6 A 13 13 0 1 1 53.4 37.4" fill="none" stroke="#9b59b6" stroke-width="6" stroke-linecap="round"/>
+  <!-- White 'd' -->
+  <text x="50" y="63" text-anchor="middle" font-family="'DM Sans', 'Arial Black', sans-serif" font-weight="900" font-size="26" fill="white">d</text>
+</svg>
