@@ -1325,6 +1325,8 @@
   var _ze=null;
   function isZohoNode(n){
     if(!n||n.nodeType!==1)return false;
+    var tag=n.tagName.toUpperCase();
+    if(tag==='SCRIPT'||tag==='LINK'||tag==='STYLE'||tag==='META'||tag==='NOSCRIPT')return false;
     var id=(n.id||'').toLowerCase(), cl=(typeof n.className==='string'?n.className:'').toLowerCase();
     return id.indexOf('zoho')>=0||id.indexOf('zd-asap')>=0||cl.indexOf('zoho')>=0||cl.indexOf('zd-asap')>=0;
   }
