@@ -11175,7 +11175,8 @@ function renderHeroStats() {
   }
 
   const avgPerDay = Math.round(total / days.size);
-  const streakFire = streak >= 7;
+  const streakTier = streak >= 100 ? 6 : streak >= 60 ? 5 : streak >= 30 ? 4 : streak >= 14 ? 3 : streak >= 7 ? 2 : streak >= 1 ? 1 : 0;
+  const streakIcon = streakTier >= 6 ? '🌟' : streakTier >= 2 ? '🔥' : '📆';
 
   el.innerHTML = `
     <div class="hero-stat" data-tip="${total.toLocaleString()} plays across ${days.size.toLocaleString()} unique days">
@@ -11202,8 +11203,8 @@ function renderHeroStats() {
       <span class="hero-label">Top Artist</span>
     </div>
     <div class="hero-stat-sep">·</div>
-    <div class="hero-stat${streakFire ? ' hero-stat--fire' : ''}" data-tip="Current streak · Personal best: ${pb} day${pb === 1 ? '' : 's'}">
-      <span class="hero-icon">${streakFire ? '🔥' : '📆'}</span>
+    <div class="hero-stat${streakTier > 0 ? ` hero-stat--streak-${streakTier}` : ''}" data-tip="Current streak · Personal best: ${pb} day${pb === 1 ? '' : 's'}">
+      <span class="hero-icon">${streakIcon}</span>
       <span class="hero-val" data-countup="${streak}">${streak}</span>
       <span class="hero-label">Day Streak</span>
       <span class="hero-stat-pb">PB: ${pb}</span>
