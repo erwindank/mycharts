@@ -2096,6 +2096,37 @@ function doPost(e) {
         .setMimeType(ContentService.MimeType.JSON);
     }
 
+    // Apply multiple autocorrect rules in one sheet read/write pass
+    if (data.action === 'applyRules') {
+      var rules = data.rules || [];
+      if (!rules.length)
+        return ContentService.createTextOutput(JSON.stringify({ status: 'ok', updated: 0 }))
+          .setMimeType(ContentService.MimeType.JSON);
+      var count = 0;
+      var lastRow2 = sheet.getLastRow();
+      if (lastRow2 &gt;= 2) {
+        var vals = sheet.getRange(2, 1, lastRow2 - 1, lastCol).getValues();
+        for (var r = 0; r &lt; vals.length; r++) {
+          var rowArtist = colIdx.artist !== undefined ? vals[r][colIdx.artist].toString().trim() : '';
+          var rowTitle  = colIdx.title  !== undefined ? vals[r][colIdx.title].toString().trim()  : '';
+          var rowAlbum  = colIdx.album  !== undefined ? vals[r][colIdx.album].toString().trim()  : '';
+          for (var ri = 0; ri &lt; rules.length; ri++) {
+            var rule = rules[ri];
+            if (rowArtist === rule.matchArtist &amp;&amp; rowTitle === rule.matchTitle &amp;&amp; rowAlbum === rule.matchAlbum) {
+              if (colIdx.title  !== undefined) vals[r][colIdx.title]  = rule.track  || '';
+              if (colIdx.artist !== undefined) vals[r][colIdx.artist] = rule.artist || '';
+              if (colIdx.album  !== undefined) vals[r][colIdx.album]  = rule.album  || '';
+              count++;
+              break;
+            }
+          }
+        }
+        if (count &gt; 0) sheet.getRange(2, 1, lastRow2 - 1, lastCol).setValues(vals);
+      }
+      return ContentService.createTextOutput(JSON.stringify({ status: 'ok', updated: count }))
+        .setMimeType(ContentService.MimeType.JSON);
+    }
+
     // Edit an existing row — jump directly to the row using the hint from the client,
     // fall back to a full scan only if the hint is stale (rows added/deleted since last sync).
     if (data.action === 'update') {
