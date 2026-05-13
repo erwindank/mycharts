@@ -7273,7 +7273,8 @@ body.purple .landing-card-config input:focus {
   user-select: none;
   transition: width 0.2s;
 }
-.yt-mini-player.yt-expanded { width: 570px; }
+.yt-mini-player.yt-expanded    { width: 570px; }
+.yt-mini-player.yt-expanded-lg { width: 730px; }
 
 .yt-mini-drag-handle {
   width: 18px;
@@ -7308,6 +7309,9 @@ body.purple .landing-card-config input:focus {
 .yt-mini-player.yt-expanded .yt-mini-video { width: 320px; height: 180px; }
 .yt-mini-player.yt-expanded .yt-mini-video iframe,
 .yt-mini-player.yt-expanded .yt-mini-video > div { width: 320px !important; height: 180px !important; }
+.yt-mini-player.yt-expanded-lg .yt-mini-video { width: 480px; height: 270px; }
+.yt-mini-player.yt-expanded-lg .yt-mini-video iframe,
+.yt-mini-player.yt-expanded-lg .yt-mini-video > div { width: 480px !important; height: 270px !important; }
 
 .yt-mini-info {
   flex: 1;
@@ -7625,3 +7629,46 @@ body.pink-light .hero-stats {
 #mainApp {
   touch-action: pan-y;
 }
+
+/* ── New Artist songs tooltip ── */
+.na-songs-trigger {
+  cursor: default;
+  text-decoration: underline dotted;
+  text-underline-offset: 2px;
+  transition: color 0.12s;
+}
+.na-songs-trigger:hover { color: var(--accent); }
+
+.na-songs-tooltip {
+  position: fixed;
+  z-index: 9999;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  padding: 0.4rem 0.45rem;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.45);
+  min-width: 170px;
+  max-width: 280px;
+  pointer-events: auto;
+}
+
+.na-tt-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.2rem 0.1rem;
+  border-bottom: 1px solid var(--border);
+}
+.na-tt-item:last-child { border-bottom: none; }
+
+.na-tt-name {
+  flex: 1;
+  font-family: 'DM Mono', monospace;
+  font-size: 0.7rem;
+  color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.na-tt-yt-btn { flex-shrink: 0; margin-top: 0; }

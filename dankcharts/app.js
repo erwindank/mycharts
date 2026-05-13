@@ -4168,7 +4168,7 @@ function renderNewPage(type) {
       return `<tr class="${rank === 1 ? 'rank-1' : rank === 2 ? 'rank-2' : rank === 3 ? 'rank-3' : ''}">
       <td class="rank-cell">${rank}</td>
       <td class="thumb-cell"><div class="thumb-wrap"><div id="${imgId}"><div class="thumb-initials">${esc(initials(s.title))}</div></div><button id="srcbtn-${imgId}" class="img-src-btn" data-imgid="${imgId}" data-type="song" data-prefkey="${esc(prefKey)}" data-name="${esc(s.title)}" data-artist="${esc(s.artist)}" data-album="${esc(s.album)}">${srcLabel(itemSourcePrefs[prefKey] || 'deezer')}</button></div></td>
-      <td><div class="song-title">${esc(s.title)}</div><div class="song-artist">${esc(s.artist)}</div></td>
+      <td><div class="song-title">${esc(s.title)}</div><div class="song-artist">${esc(s.artist)}</div><button class="yt-play-btn" data-title="${esc(s.title)}" data-artist="${esc(s.artist)}" data-album="${esc(s.album)}" onclick="event.stopPropagation();ytPlayFromBtn(this)" title="Play on YouTube"><span class="yt-btn-content"><svg class="yt-btn-icon" viewBox="0 0 24 24"><path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.5 12 3.5 12 3.5s-7.5 0-9.4.5A3 3 0 0 0 .5 6.2C0 8.1 0 12 0 12s0 3.9.5 5.8a3 3 0 0 0 2.1 2.1c1.9.5 9.4.5 9.4.5s7.5 0 9.4-.5a3 3 0 0 0 2.1-2.1C24 15.9 24 12 24 12s0-3.9-.5-5.8zM9.7 15.5V8.5l6.3 3.5-6.3 3.5z"/></svg>YouTube</span></button></td>
       <td><div class="play-count">${tCountHtml('plays', s.count)}</div><div class="play-bar"><div class="play-bar-fill" style="width:${Math.round(s.count / max * 100)}%"></div></div></td>
     </tr>`;
     }).join('');
@@ -4179,10 +4179,11 @@ function renderNewPage(type) {
       const imgId = 'naimg-' + i;
       const prefKey = 'artist:' + a.name.toLowerCase();
       imgs.push({ imgId, name: a.name, prefKey });
+      const songsJson = esc(JSON.stringify([...a.songs]));
       return `<tr class="${rank === 1 ? 'rank-1' : rank === 2 ? 'rank-2' : rank === 3 ? 'rank-3' : ''} artist-row" data-artist="${esc(a.name)}">
       <td class="rank-cell">${rank}</td>
       <td class="thumb-cell"><div class="thumb-wrap"><div id="${imgId}"><div class="thumb-initials">${esc(initials(a.name))}</div></div><button id="srcbtn-${imgId}" class="img-src-btn" data-imgid="${imgId}" data-type="artist" data-prefkey="${esc(prefKey)}" data-name="${esc(a.name)}" data-artist="${esc(a.name)}" data-album="">${srcLabel(itemSourcePrefs[prefKey] || 'deezer')}</button></div></td>
-      <td><div class="song-title">${esc(a.name)}</div><div class="song-artist">${tCount('songs', a.songs.size)}</div></td>
+      <td><div class="song-title">${esc(a.name)}</div><div class="song-artist"><span class="na-songs-trigger" data-artist="${esc(a.name)}" data-songs="${songsJson}">${tCount('songs', a.songs.size)}</span></div></td>
       <td><div class="play-count">${tCountHtml('plays', a.count)}</div><div class="play-bar"><div class="play-bar-fill" style="width:${Math.round(a.count / max * 100)}%"></div></div></td>
     </tr>`;
     }).join('');
@@ -10135,7 +10136,7 @@ let _ytCurrentVideoId  = null;
 let _ytQueue           = [];
 let _ytQueueToastTimer = null;
 let _ytDragInitialized = false;
-let _ytExpanded        = false;
+let _ytExpandSize      = 0; // 0=small, 1=medium, 2=large
 let _ytEmbedRetry      = 0;
 
 // Called automatically by the YouTube IFrame API script once it loads.
@@ -10321,10 +10322,10 @@ function closeYtPlayer() {
   _ytCurrentTrack   = null;
   _ytCurrentVideoId = null;
   _ytScrobbled      = false;
-  _ytExpanded       = false;
+  _ytExpandSize     = 0;
   _ytQueue          = [];
   _ytUpdateQueueDisplay();
-  if (player) player.classList.remove('yt-expanded');
+  if (player) player.classList.remove('yt-expanded', 'yt-expanded-lg');
   const expandBtn = document.getElementById('ytMiniExpandBtn');
   if (expandBtn) { expandBtn.textContent = '⤢'; expandBtn.title = 'Expand player'; }
 }
@@ -10336,15 +10337,20 @@ function _ytPauseToggle() {
   else { _ytPlayer.playVideo(); }
 }
 
+const _YT_SIZES = [
+  { w: 160, h: 90,  cls: '',              icon: '⤢', title: 'Expand player' },
+  { w: 320, h: 180, cls: 'yt-expanded',   icon: '⊞', title: 'Expand larger' },
+  { w: 480, h: 270, cls: 'yt-expanded-lg',icon: '⤡', title: 'Shrink player'  },
+];
 function _ytExpand() {
-  _ytExpanded = !_ytExpanded;
+  _ytExpandSize = (_ytExpandSize + 1) % _YT_SIZES.length;
+  const { w, h, cls, icon, title } = _YT_SIZES[_ytExpandSize];
   const player = document.getElementById('ytMiniPlayer');
-  player.classList.toggle('yt-expanded', _ytExpanded);
+  player.classList.remove('yt-expanded', 'yt-expanded-lg');
+  if (cls) player.classList.add(cls);
   const btn = document.getElementById('ytMiniExpandBtn');
-  if (btn) { btn.textContent = _ytExpanded ? '⤡' : '⤢'; btn.title = _ytExpanded ? 'Shrink player' : 'Expand player'; }
-  if (_ytPlayer) {
-    try { _ytExpanded ? _ytPlayer.setSize(320, 180) : _ytPlayer.setSize(160, 90); } catch(e) {}
-  }
+  if (btn) { btn.textContent = icon; btn.title = title; }
+  if (_ytPlayer) { try { _ytPlayer.setSize(w, h); } catch(e) {} }
 }
 
 function _ytOpenInYT() {
@@ -10362,10 +10368,15 @@ function _ytShowQueueToast(title, artist, album, btn) {
   const playerEl = document.getElementById('ytMiniPlayer');
   if (playerEl) {
     const r = playerEl.getBoundingClientRect();
-    toast.style.bottom = (window.innerHeight - r.top + 8) + 'px';
-    toast.style.right  = (window.innerWidth  - r.right) + 'px';
-    toast.style.left   = 'auto';
-    toast.style.top    = 'auto';
+    toast.style.right = (window.innerWidth - r.right) + 'px';
+    toast.style.left  = 'auto';
+    if (r.top < 80) {
+      toast.style.top    = (r.bottom + 8) + 'px';
+      toast.style.bottom = 'auto';
+    } else {
+      toast.style.bottom = (window.innerHeight - r.top + 8) + 'px';
+      toast.style.top    = 'auto';
+    }
   }
   toast.style.display = 'flex';
   toast.querySelector('.yt-queue-now-btn').onclick = () => {
@@ -11230,4 +11241,57 @@ document.addEventListener('keydown', e => {
     }
   });
 })();
+
+// ─── NEW ARTIST SONGS TOOLTIP ──────────────────────────────────
+const _naTooltip = (() => {
+  const el = document.createElement('div');
+  el.id = 'naSongsTooltip';
+  el.className = 'na-songs-tooltip';
+  el.style.display = 'none';
+  document.body.appendChild(el);
+  return el;
+})();
+
+let _naHideTimer = null;
+
+function _naShowTooltip(trigger) {
+  clearTimeout(_naHideTimer);
+  const artist = trigger.dataset.artist;
+  let songs;
+  try { songs = JSON.parse(trigger.dataset.songs); } catch { return; }
+  const ytSvg = `<svg class="yt-btn-icon" viewBox="0 0 24 24"><path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.5 12 3.5 12 3.5s-7.5 0-9.4.5A3 3 0 0 0 .5 6.2C0 8.1 0 12 0 12s0 3.9.5 5.8a3 3 0 0 0 2.1 2.1c1.9.5 9.4.5 9.4.5s7.5 0 9.4-.5a3 3 0 0 0 2.1-2.1C24 15.9 24 12 24 12s0-3.9-.5-5.8zM9.7 15.5V8.5l6.3 3.5-6.3 3.5z"/></svg>`;
+  _naTooltip.innerHTML = songs.map(title =>
+    `<div class="na-tt-item">
+      <span class="na-tt-name">${esc(title)}</span>
+      <button class="yt-play-btn na-tt-yt-btn" data-title="${esc(title)}" data-artist="${esc(artist)}" data-album="" onclick="event.stopPropagation();ytPlayFromBtn(this)" title="Play on YouTube"><span class="yt-btn-content">${ytSvg}YouTube</span></button>
+    </div>`
+  ).join('');
+  _naTooltip.style.display = 'block';
+  const rect = trigger.getBoundingClientRect();
+  const ttW = 280;
+  let left = rect.left;
+  let top = rect.bottom + 5;
+  if (left + ttW > window.innerWidth - 8) left = window.innerWidth - ttW - 8;
+  if (left < 8) left = 8;
+  if (top + _naTooltip.offsetHeight > window.innerHeight - 8) top = rect.top - _naTooltip.offsetHeight - 5;
+  _naTooltip.style.left = left + 'px';
+  _naTooltip.style.top = top + 'px';
+}
+
+function _naHideTooltip() {
+  _naHideTimer = setTimeout(() => { _naTooltip.style.display = 'none'; }, 130);
+}
+
+document.addEventListener('mouseover', e => {
+  const trigger = e.target.closest('.na-songs-trigger');
+  if (trigger) { _naShowTooltip(trigger); return; }
+  if (e.target.closest('#naSongsTooltip')) { clearTimeout(_naHideTimer); }
+});
+
+document.addEventListener('mouseout', e => {
+  if (!e.target.closest('.na-songs-trigger') && !e.target.closest('#naSongsTooltip')) return;
+  const to = e.relatedTarget;
+  if (to && (to.closest('.na-songs-trigger') || to.closest('#naSongsTooltip'))) return;
+  _naHideTooltip();
+});
 
