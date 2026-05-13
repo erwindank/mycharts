@@ -614,21 +614,22 @@ function applyAutocorrectRules(plays) {
 async function autoCorrectEntries(plays, writeUrl) {
   const rules = getAutocorrectRules();
   if (!rules.length) return;
-  const activeRules = rules
-    .filter(rule => plays.some(p => p.artist === rule.match.artist && p.title === rule.match.title && p.album === rule.match.album))
-    .map(rule => ({
-      matchArtist: rule.match.artist,
-      matchTitle:  rule.match.title,
-      matchAlbum:  rule.match.album === '—' ? '' : rule.match.album,
+  const activeRulesMap = {};
+  for (const rule of rules) {
+    if (!plays.some(p => p.artist === rule.match.artist && p.title === rule.match.title && p.album === rule.match.album)) continue;
+    const matchAlbum = rule.match.album === '—' ? '' : rule.match.album;
+    const key = rule.match.artist + '|' + rule.match.title + '|' + matchAlbum;
+    activeRulesMap[key] = {
       artist: rule.replace.artist,
       track:  rule.replace.title,
       album:  rule.replace.album === '—' ? '' : rule.replace.album,
-    }));
-  if (!activeRules.length) return;
+    };
+  }
+  if (!Object.keys(activeRulesMap).length) return;
   try {
     const res = await fetch(writeUrl, {
       method: 'POST',
-      body: JSON.stringify({ action: 'applyRules', rules: activeRules })
+      body: JSON.stringify({ action: 'applyRules', rules: activeRulesMap })
     });
     const data = await res.json();
     if (data.status !== 'error' && data.updated > 0)

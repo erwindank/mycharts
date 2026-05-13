@@ -2098,30 +2098,41 @@ function doPost(e) {
 
     // Apply multiple autocorrect rules in one sheet read/write pass
     if (data.action === 'applyRules') {
-      var rules = data.rules || [];
-      if (!rules.length)
+      var ruleMap = data.rules || {};
+      var ruleKeys = Object.keys(ruleMap);
+      if (!ruleKeys.length)
         return ContentService.createTextOutput(JSON.stringify({ status: 'ok', updated: 0 }))
           .setMimeType(ContentService.MimeType.JSON);
       var count = 0;
       var lastRow2 = sheet.getLastRow();
       if (lastRow2 &gt;= 2) {
         var vals = sheet.getRange(2, 1, lastRow2 - 1, lastCol).getValues();
+        var changedRows = [];
         for (var r = 0; r &lt; vals.length; r++) {
           var rowArtist = colIdx.artist !== undefined ? vals[r][colIdx.artist].toString().trim() : '';
           var rowTitle  = colIdx.title  !== undefined ? vals[r][colIdx.title].toString().trim()  : '';
           var rowAlbum  = colIdx.album  !== undefined ? vals[r][colIdx.album].toString().trim()  : '';
-          for (var ri = 0; ri &lt; rules.length; ri++) {
-            var rule = rules[ri];
-            if (rowArtist === rule.matchArtist &amp;&amp; rowTitle === rule.matchTitle &amp;&amp; rowAlbum === rule.matchAlbum) {
-              if (colIdx.title  !== undefined) vals[r][colIdx.title]  = rule.track  || '';
-              if (colIdx.artist !== undefined) vals[r][colIdx.artist] = rule.artist || '';
-              if (colIdx.album  !== undefined) vals[r][colIdx.album]  = rule.album  || '';
-              count++;
-              break;
-            }
+          var rule = ruleMap[rowArtist + '|' + rowTitle + '|' + rowAlbum];
+          if (rule) {
+            if (colIdx.title  !== undefined) vals[r][colIdx.title]  = rule.track  || '';
+            if (colIdx.artist !== undefined) vals[r][colIdx.artist] = rule.artist || '';
+            if (colIdx.album  !== undefined) vals[r][colIdx.album]  = rule.album  || '';
+            changedRows.push(r);
+            count++;
           }
         }
-        if (count &gt; 0) sheet.getRange(2, 1, lastRow2 - 1, lastCol).setValues(vals);
+        if (changedRows.length &gt; 0) {
+          var gs = changedRows[0], ge = changedRows[0];
+          for (var ci = 1; ci &lt; changedRows.length; ci++) {
+            if (changedRows[ci] === ge + 1) {
+              ge = changedRows[ci];
+            } else {
+              sheet.getRange(gs + 2, 1, ge - gs + 1, lastCol).setValues(vals.slice(gs, ge + 1));
+              gs = ge = changedRows[ci];
+            }
+          }
+          sheet.getRange(gs + 2, 1, ge - gs + 1, lastCol).setValues(vals.slice(gs, ge + 1));
+        }
       }
       return ContentService.createTextOutput(JSON.stringify({ status: 'ok', updated: count }))
         .setMimeType(ContentService.MimeType.JSON);
