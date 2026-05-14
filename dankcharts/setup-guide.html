@@ -1322,7 +1322,7 @@
 <script type="text/javascript" id="zohodeskasap">var d=document;s=d.createElement("script"),s.type="text/javascript",s.id="zohodeskasapscript",s.defer=!0,s.src="https://desk.zoho.com/portal/api/web/asapApp/1336756000000408048?orgId=922864240",t=d.getElementsByTagName("script")[0],t.parentNode.insertBefore(s,t),window.ZohoDeskAsapReady=function(s){var e=window.ZohoDeskAsap__asyncalls=window.ZohoDeskAsap__asyncalls||[];window.ZohoDeskAsapReadyStatus?(s&&e.push(s),e.forEach(s=>s&&s()),window.ZohoDeskAsap__asyncalls=null):s&&e.push(s)};</script>
 <script>
 (function(){
-  var _ze=null;
+  var _ze=null, _hideTimer=null;
   function isZohoNode(n){
     if(!n||n.nodeType!==1)return false;
     var tag=n.tagName.toUpperCase();
@@ -1339,29 +1339,38 @@
   });
   bodyObs.observe(document.body,{childList:true});
 
+  function startHide(){
+    function h(){window.ZohoDeskAsap&&window.ZohoDeskAsap.invoke('hideLauncher');}
+    if(_ze) _ze.style.setProperty('display','none','important');
+    h(); _hideTimer=setInterval(h,1000);
+  }
+  function stopHide(){
+    if(_hideTimer){clearInterval(_hideTimer);_hideTimer=null;}
+  }
+
   window.openZohoSupport=function(){
     if(!_ze) _ze=document.querySelector('[id*="zohodesk"],[id*="zohoasap"],[id*="zd-asap"],[class*="zohodesk"]');
+    stopHide();
     if(_ze) _ze.style.setProperty('display','block','important');
     window.ZohoDeskAsapReady&&window.ZohoDeskAsapReady(function(){
       if(!window.ZohoDeskAsap)return;
       window.ZohoDeskAsap.invoke('open');
-      try{window.ZohoDeskAsap.on('close',function(){if(_ze)_ze.style.setProperty('display','none','important');});}catch(e){}
+      function onClose(){startHide();}
+      try{window.ZohoDeskAsap.on('close',onClose);}catch(e){}
       if(!_ze)return;
       var wasOpen=false;
       var poll=setInterval(function(){
         if(!_ze){clearInterval(poll);return;}
         var h=_ze.getBoundingClientRect().height;
         if(h>200) wasOpen=true;
-        if(wasOpen&&h>0&&h<120){_ze.style.setProperty('display','none','important');clearInterval(poll);}
+        if(wasOpen&&h>0&&h<120){onClose();clearInterval(poll);}
       },500);
       setTimeout(function(){clearInterval(poll);},300000);
     });
   };
+
+  window.ZohoDeskAsapReady(function(){startHide();});
 })();
-window.ZohoDeskAsapReady(function(){
-  function h(){window.ZohoDeskAsap&&window.ZohoDeskAsap.invoke('hideLauncher');}
-  h(); setInterval(h,1000);
-});
 </script>
 </body>
 </html>
