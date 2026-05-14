@@ -11198,7 +11198,7 @@ function renderHeroStats() {
       <span class="hero-label">Total Plays</span>
     </div>
     <div class="hero-stat-sep">·</div>
-    <div class="hero-stat" data-tip="${days.size.toLocaleString()} days you opened Last.fm">
+    <div class="hero-stat" data-tip="${days.size.toLocaleString()} days you listened to music">
       <span class="hero-icon">📅</span>
       <span class="hero-val" data-countup="${days.size}">${days.size.toLocaleString()}</span>
       <span class="hero-label">Days Listened</span>
