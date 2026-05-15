@@ -308,6 +308,12 @@
       </div>
     </div>
 
+    <div id="navHint" class="nav-hint" style="display:none">
+      <span class="nav-hint-desktop"><kbd>←</kbd><kbd>→</kbd> arrow keys to navigate periods</span>
+      <span class="nav-hint-mobile">Swipe left or right to navigate periods</span>
+      <button class="nav-hint-close" onclick="dismissNavHint()">✕</button>
+    </div>
+
     <div class="stats-strip" id="statsStrip"></div>
 
     <button class="export-playlist-btn" id="exportPlaylistBtn"
@@ -790,7 +796,7 @@
       </div>
 
       <!-- Chart 6: Listening Activity Heatmap -->
-      <div class="graph-card">
+      <div class="graph-card" id="heatmapCard">
         <div class="graph-card-title">🔥 Listening Activity Heatmap</div>
         <div class="graph-card-sub">Your music mapped day by day — brighter squares mean more plays. Hover any square to explore what you were listening to.</div>
         <div style="display:flex;align-items:center;gap:0.5rem;flex-wrap:wrap;margin-bottom:0.5rem;">

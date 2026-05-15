@@ -11383,7 +11383,7 @@ function renderHeroStats() {
       <span class="hero-label">Total Plays</span>
     </div>
     <div class="hero-stat-sep">·</div>
-    <div class="hero-stat" data-tip="${days.size.toLocaleString()} days you listened to music">
+    <div class="hero-stat hero-stat-days" data-tip="Click to view your listening heatmap">
       <span class="hero-icon">📅</span>
       <span class="hero-val" data-countup="${days.size}">${days.size.toLocaleString()}</span>
       <span class="hero-label">Days Listened</span>
@@ -11410,17 +11410,37 @@ function renderHeroStats() {
 
   el.style.display = 'flex';
 
-  // Scroll to artists section when Top Artist is clicked
+  // Switch to All-Time tab and scroll to artists section when Top Artist is clicked
   el.querySelector('.hero-stat-artist').addEventListener('click', () => {
+    const alltimeBtn = document.querySelector('#periodNav button[data-period="alltime"]');
+    const needsSwitch = alltimeBtn && currentPeriod !== 'alltime';
+    if (needsSwitch) alltimeBtn.click();
     const sec = document.getElementById('artistsSection');
-    if (sec) sec.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    if (sec) {
+      if (needsSwitch) {
+        setTimeout(() => sec.scrollIntoView({ behavior: 'smooth', block: 'start' }), 150);
+      } else {
+        sec.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }
+  });
+
+  // Switch to Graphs tab and scroll to heatmap when Days Listened is clicked
+  el.querySelector('.hero-stat-days').addEventListener('click', () => {
+    const graphsBtn = document.querySelector('#periodNav button[data-period="graphs"]');
+    const needsSwitch = graphsBtn && currentPeriod !== 'graphs';
+    if (needsSwitch) graphsBtn.click();
+    const card = document.getElementById('heatmapCard');
+    if (card) {
+      setTimeout(() => card.scrollIntoView({ behavior: 'smooth', block: 'start' }), needsSwitch ? 300 : 0);
+    }
   });
 
   // Count-up animation for numeric values
   el.querySelectorAll('[data-countup]').forEach(span => {
     const target = parseInt(span.dataset.countup, 10);
     if (!target) return;
-    const duration = 900;
+    const duration = 2200;
     const startTime = performance.now();
     function frame(now) {
       const progress = Math.min((now - startTime) / duration, 1);
@@ -11436,7 +11456,7 @@ function renderHeroStats() {
   if (streakEl && streak > 0) {
     const valSpan = streakEl.querySelector('.hero-val');
     const iconSpan = streakEl.querySelector('.hero-icon');
-    const duration = 3000;
+    const duration = 5000;
     const startTime = performance.now();
     function streakFrame(now) {
       const progress = Math.min((now - startTime) / duration, 1);
@@ -11445,7 +11465,16 @@ function renderHeroStats() {
       const t = cur >= 100 ? 6 : cur >= 60 ? 5 : cur >= 30 ? 4 : cur >= 14 ? 3 : cur >= 7 ? 2 : cur >= 1 ? 1 : 0;
       streakEl.className = `hero-stat${t > 0 ? ` hero-stat--streak-${t}` : ''}`;
       iconSpan.textContent = t >= 6 ? '🌟' : t >= 2 ? '🔥' : '📆';
-      if (progress < 1) requestAnimationFrame(streakFrame);
+      if (progress < 1) {
+        requestAnimationFrame(streakFrame);
+      } else {
+        valSpan.style.animation = 'streak-finish-burst 1.4s ease-out forwards';
+        iconSpan.style.animation = 'streak-icon-burst 1.4s ease-out forwards';
+        setTimeout(() => {
+          valSpan.style.animation = '';
+          iconSpan.style.animation = '';
+        }, 1400);
+      }
     }
     requestAnimationFrame(streakFrame);
   }
@@ -11558,6 +11587,26 @@ function _naShowTooltip(trigger) {
 function _naHideTooltip() {
   _naHideTimer = setTimeout(() => { _naTooltip.style.display = 'none'; }, 130);
 }
+
+// ─── NAV HINT (one-time keyboard / swipe tip) ────────────────────
+function dismissNavHint() {
+  const el = document.getElementById('navHint');
+  if (!el || el.style.display === 'none') return;
+  el.classList.add('fade-out');
+  setTimeout(() => { el.style.display = 'none'; }, 500);
+  localStorage.setItem('navHintSeen', '1');
+}
+
+(function initNavHint() {
+  if (localStorage.getItem('navHintSeen')) return;
+  const el = document.getElementById('navHint');
+  if (!el) return;
+  el.style.display = 'flex';
+  const timer = setTimeout(() => dismissNavHint(), 4500);
+  ['prevBtn', 'nextBtn'].forEach(id => {
+    document.getElementById(id)?.addEventListener('click', () => { clearTimeout(timer); dismissNavHint(); }, { once: true });
+  });
+})();
 
 document.addEventListener('mouseover', e => {
   const trigger = e.target.closest('.na-songs-trigger');

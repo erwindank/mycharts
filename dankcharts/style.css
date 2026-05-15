@@ -7715,12 +7715,36 @@ body.hide-yt-btns .yt-play-btn { display: none; }
   0%   { background-position: 0% center; }
   100% { background-position: 200% center; }
 }
+@keyframes streak-finish-burst {
+  0%   { transform: scale(1);    filter: drop-shadow(0 0 0px transparent); }
+  20%  { transform: scale(2.4);  filter: drop-shadow(0 0 28px #ffd700) drop-shadow(0 0 64px #ff4500); }
+  45%  { transform: scale(2.1);  filter: drop-shadow(0 0 40px #ff8c00) drop-shadow(0 0 90px #ff2200); }
+  70%  { transform: scale(1.6);  filter: drop-shadow(0 0 22px #ff6a00) drop-shadow(0 0 48px #ff4500); }
+  100% { transform: scale(1);    filter: drop-shadow(0 0 0px transparent); }
+}
+@keyframes streak-icon-burst {
+  0%   { transform: scale(1)    rotate(0deg); }
+  20%  { transform: scale(2.8)  rotate(-15deg); }
+  45%  { transform: scale(2.4)  rotate(12deg); }
+  70%  { transform: scale(1.7)  rotate(-6deg); }
+  100% { transform: scale(1)    rotate(0deg); }
+}
 
 /* Clickable Top Artist */
 .hero-stat-artist {
   cursor: pointer;
 }
 .hero-stat-artist:hover .hero-val {
+  color: var(--accent, #5b8dee);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* Clickable Days Listened */
+.hero-stat-days {
+  cursor: pointer;
+}
+.hero-stat-days:hover .hero-val {
   color: var(--accent, #5b8dee);
   text-decoration: underline;
   text-underline-offset: 3px;
@@ -7891,3 +7915,63 @@ body.pink-light .hero-stats {
 
 /* Zoho Desk ASAP — hide launcher widget until user triggers it */
 [id*="zohodesk"],[id*="zohoasap"],[id*="zd-asap"],[class*="zohodesk"],[class*="zohoasap"],iframe[id*="zoho"] { display: none !important; }
+
+/* ── Nav hint (one-time keyboard/swipe tip) ── */
+.nav-hint {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  width: fit-content;
+  margin: -1.25rem auto 1.25rem;
+  padding: 0.3rem 0.75rem;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-top: none;
+  border-radius: 0 0 6px 6px;
+  font-family: 'DM Mono', monospace;
+  font-size: 0.65rem;
+  color: var(--text2);
+  opacity: 1;
+  transition: opacity 0.5s ease;
+  animation: navHintIn 0.4s ease;
+}
+
+.nav-hint.fade-out { opacity: 0; }
+
+.nav-hint kbd {
+  display: inline-block;
+  padding: 0.05rem 0.3rem;
+  border: 1px solid var(--border2);
+  border-radius: 3px;
+  font-family: inherit;
+  font-size: 0.65rem;
+  line-height: 1.4;
+  background: var(--surface);
+  color: var(--text);
+}
+
+.nav-hint-close {
+  background: none;
+  border: none;
+  color: var(--text2);
+  cursor: pointer;
+  font-size: 0.7rem;
+  padding: 0 0 0 0.35rem;
+  opacity: 0.6;
+  line-height: 1;
+}
+
+.nav-hint-close:hover { opacity: 1; }
+
+.nav-hint-mobile { display: none; }
+
+@media (max-width: 600px) {
+  .nav-hint-desktop { display: none; }
+  .nav-hint-mobile { display: inline; }
+}
+
+@keyframes navHintIn {
+  from { opacity: 0; transform: translateY(-4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
