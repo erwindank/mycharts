@@ -745,6 +745,8 @@ function importRules() {
 }
 
 function openRulesModal() {
+  const search = document.getElementById('rulesSearch');
+  if (search) search.value = '';
   renderRulesList();
   document.getElementById('rulesModal').classList.add('open');
 }
@@ -754,10 +756,18 @@ function closeRulesModal() {
 }
 
 function renderRulesList() {
-  const rules = getAutocorrectRules();
+  const allRules = getAutocorrectRules();
   const el = document.getElementById('rulesList');
-  if (!rules.length) {
+  const q = (document.getElementById('rulesSearch')?.value || '').trim().toLowerCase();
+  const rules = q
+    ? allRules.filter(r => [r.match.artist, r.match.title, r.match.album, r.replace.artist, r.replace.title, r.replace.album].some(s => s.toLowerCase().includes(q)))
+    : allRules;
+  if (!allRules.length) {
     el.innerHTML = '<p style="font-size:0.8rem;color:var(--text3);text-align:center;padding:1rem 0">No rules saved yet.</p>';
+    return;
+  }
+  if (!rules.length) {
+    el.innerHTML = '<p style="font-size:0.8rem;color:var(--text3);text-align:center;padding:1rem 0">No rules match your search.</p>';
     return;
   }
   el.innerHTML = rules.map(r => `

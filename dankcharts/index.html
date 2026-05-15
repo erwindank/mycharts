@@ -1720,7 +1720,8 @@
     <div class="src-modal-box">
       <h3 class="src-modal-title">Auto-correct Rules</h3>
       <p style="font-size:0.78rem;color:var(--text3);margin:0 0 0.7rem">Rules apply automatically on every data load. Each rule matches an exact Artist + Song + Album combination and replaces it with your corrected values.</p>
-      <div id="rulesList" style="max-height:320px;overflow-y:auto;"></div>
+      <input type="text" id="rulesSearch" placeholder="Search rules…" oninput="renderRulesList()" style="width:100%;box-sizing:border-box;margin-bottom:0.5rem;padding:0.35rem 0.6rem;font-size:0.8rem;border:1px solid var(--border);border-radius:4px;background:var(--bg2);color:var(--text2);outline:none">
+      <div id="rulesList" style="max-height:300px;overflow-y:auto;"></div>
       <div style="display:flex;justify-content:space-between;align-items:center;margin-top:0.8rem;gap:0.5rem;flex-wrap:wrap">
         <div style="display:flex;gap:0.4rem">
           <button onclick="exportRules()" style="font-size:0.75rem;padding:0.3rem 0.7rem;border:1px solid var(--border);border-radius:4px;background:var(--bg2);color:var(--text2);cursor:pointer">Export JSON</button>
