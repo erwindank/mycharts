@@ -5135,7 +5135,7 @@ function showCrPreview(periodKey, type, encodedKey, boxEl, periodName) {
   const period = crData.period;
   const title = crPeriodTitle(period, periodKey);
   const typeLabels = { songs: t('rec_th_songs'), artists: t('rec_th_artists'), albums: t('rec_th_albums') };
-  const ranked = Object.entries(pm[type]).sort(([, a], [, b]) => rankSortWithStatus(a, b)).slice(0, Math.min(chartSize, 25));
+  const ranked = Object.entries(pm[type]).sort(([, a], [, b]) => rankSortWithStatus(a, b)).slice(0, Math.min(chartSize, 30));
   let items = ranked.map(([k, data], i) => {
     const rank = i + 1;
     const isActive = (k === key);
