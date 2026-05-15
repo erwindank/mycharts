@@ -605,6 +605,121 @@ function deleteAutocorrectRule(id) {
   if (typeof dcSaveRulesToFirestore === 'function') dcSaveRulesToFirestore(rulesJson);
 }
 
+function findSimilarRules(origArtist, origTitle, origAlbum) {
+  const aLow = origArtist.toLowerCase();
+  const tLow = origTitle.toLowerCase();
+  const albLow = origAlbum.toLowerCase();
+  return getAutocorrectRules().filter(r =>
+    r.match.artist.toLowerCase() === aLow &&
+    r.match.title.toLowerCase()  === tLow  &&
+    r.match.album.toLowerCase()  !== albLow
+  );
+}
+
+function overrideSimilarRules(similar) {
+  if (!similar.length) return;
+  const ids  = new Set(similar.map(r => r.id));
+  const rules = getAutocorrectRules().filter(r => !ids.has(r.id));
+  _rulesCache  = rules;
+  const json   = JSON.stringify(rules);
+  localStorage.setItem(RULES_KEY, json);
+  saveToIDB(IDB_RULES_KEY, { rules }).catch(() => {});
+  if (typeof dcSaveRulesToFirestore === 'function') dcSaveRulesToFirestore(json);
+}
+
+function closeSimilarRuleModal() {
+  document.getElementById('similarRuleModal').classList.remove('open');
+}
+
+async function applyRuleToSheet(matchArtist, matchTitle, matchAlbum, newArtist, newTitle, newAlbum) {
+  const writeUrl = getSheetWriteUrl();
+  if (!writeUrl) return { updated: 0, error: 'No sheet URL' };
+  try {
+    const res = await fetch(writeUrl, {
+      method: 'POST',
+      body: JSON.stringify({
+        action: 'batchUpdate',
+        matchArtist,
+        matchTitle,
+        matchAlbum: matchAlbum === '—' ? '' : matchAlbum,
+        artist: newArtist,
+        track:  newTitle,
+        album:  newAlbum === '—' ? '' : newAlbum,
+      }),
+    });
+    const data = await res.json();
+    return { updated: data.updated || 0, error: data.status === 'error' ? (data.message || 'Script error') : null };
+  } catch (e) {
+    return { updated: 0, error: e.message };
+  }
+}
+
+function checkSimilarRules(origArtist, origTitle, origAlbum, newArtist, newTitle, newAlbum) {
+  const similar = findSimilarRules(origArtist, origTitle, origAlbum);
+  if (!similar.length) return Promise.resolve({ choice: 'add', idsToRemove: [] });
+  return new Promise(resolve => {
+    const details = document.getElementById('similarRuleDetails');
+    const hasSheet = !!getSheetWriteUrl();
+    details.innerHTML =
+      `<div style="font-size:0.72rem;color:var(--text3);margin-bottom:0.5rem">Check the rules below to remove them when saving. Uncheck any you want to keep.</div>` +
+      similar.map((r, i) => `
+        <div style="padding-bottom:0.5rem;margin-bottom:0.5rem;border-bottom:1px solid var(--border)">
+          <div style="display:flex;align-items:flex-start;gap:0.5rem">
+            <label style="display:flex;align-items:flex-start;gap:0.55rem;cursor:pointer;flex:1">
+              <input type="checkbox" class="similar-rule-cb" data-idx="${i}" checked style="margin-top:0.25rem;flex-shrink:0;cursor:pointer">
+              <div style="line-height:1.6">
+                <div>Match: <span style="color:var(--text2)">${esc(r.match.artist)} &mdash; ${esc(r.match.title)} &mdash; ${esc(r.match.album)}</span></div>
+                <div>&rarr; Replace: <span style="color:var(--accent)">${esc(r.replace.artist)} &mdash; ${esc(r.replace.title)} &mdash; ${esc(r.replace.album)}</span></div>
+              </div>
+            </label>
+            ${hasSheet ? `<button class="similar-rule-run-btn" data-idx="${i}" style="flex-shrink:0;font-size:0.7rem;padding:0.2rem 0.5rem;border:1px solid var(--border);border-radius:3px;background:var(--bg2);color:var(--text2);cursor:pointer;align-self:center">Run</button>` : ''}
+          </div>
+          <div class="similar-rule-run-status" data-idx="${i}" style="font-size:0.7rem;margin-top:0.25rem;display:none"></div>
+        </div>
+      `).join('') +
+      `<div style="margin-top:0.3rem;line-height:1.6">
+        <div style="color:var(--text3);font-size:0.72rem;margin-bottom:0.1rem">New rule being saved:</div>
+        <div>Match: <span style="color:var(--text2)">${esc(origArtist)} &mdash; ${esc(origTitle)} &mdash; ${esc(origAlbum || '&mdash;')}</span></div>
+        <div>&rarr; Replace: <span style="color:var(--accent)">${esc(newArtist)} &mdash; ${esc(newTitle)} &mdash; ${esc(newAlbum || '&mdash;')}</span></div>
+      </div>`;
+
+    details.querySelectorAll('.similar-rule-run-btn').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const r = similar[parseInt(btn.dataset.idx)];
+        const statusEl = details.querySelector(`.similar-rule-run-status[data-idx="${btn.dataset.idx}"]`);
+        btn.disabled = true;
+        btn.textContent = '…';
+        if (statusEl) { statusEl.style.display = ''; statusEl.textContent = 'Running…'; statusEl.style.color = 'var(--text3)'; }
+        const result = await applyRuleToSheet(r.match.artist, r.match.title, r.match.album, r.replace.artist, r.replace.title, r.replace.album);
+        btn.disabled = false;
+        btn.textContent = 'Run';
+        if (statusEl) {
+          if (result.error) {
+            statusEl.textContent = 'Failed: ' + result.error;
+            statusEl.style.color = 'var(--err, #ef4444)';
+          } else {
+            statusEl.textContent = `✓ ${result.updated} entr${result.updated === 1 ? 'y' : 'ies'} updated in sheet`;
+            statusEl.style.color = 'var(--accent)';
+          }
+        }
+      });
+    });
+
+    function getSelectedToRemove() {
+      return [...document.querySelectorAll('.similar-rule-cb:checked')]
+        .map(el => similar[parseInt(el.dataset.idx)]);
+    }
+
+    const runBtn = document.getElementById('similarRuleRunBtn');
+    runBtn.style.display = hasSheet ? '' : 'none';
+    document.getElementById('similarRuleCancelBtn').onclick   = () => { closeSimilarRuleModal(); resolve({ choice: 'cancel',   idsToRemove: [] }); };
+    document.getElementById('similarRuleAddBtn').onclick      = () => { closeSimilarRuleModal(); resolve({ choice: 'add',      idsToRemove: [] }); };
+    document.getElementById('similarRuleOverrideBtn').onclick = () => { closeSimilarRuleModal(); resolve({ choice: 'override', idsToRemove: getSelectedToRemove() }); };
+    runBtn.onclick                                            = () => { closeSimilarRuleModal(); resolve({ choice: 'run',      idsToRemove: getSelectedToRemove() }); };
+    document.getElementById('similarRuleModal').classList.add('open');
+  });
+}
+
 function applyAutocorrectRules(plays) {
   const rules = getAutocorrectRules();
   if (!rules.length) return plays;
@@ -835,7 +950,7 @@ function _readEditFields() {
   return { artist, title, album, ts, date: new Date(ts * 1000), statusEl };
 }
 
-function saveEditLocally() {
+async function saveEditLocally() {
   const f = _readEditFields();
   if (!f || !_editPlay) return;
   const applyAll = document.getElementById('editApplyAll').checked;
@@ -843,7 +958,27 @@ function saveEditLocally() {
   const orig     = _editOrigMatch;
   const newAlbum = f.album || '—';
   if (saveRule && orig) {
+    const { choice, idsToRemove } = await checkSimilarRules(orig.artist, orig.title, orig.album, f.artist, f.title, newAlbum);
+    if (choice === 'cancel') return;
+    if ((choice === 'override' || choice === 'run') && idsToRemove.length) overrideSimilarRules(idsToRemove);
     saveAutocorrectRule(orig.artist, orig.title, orig.album, f.artist, f.title, newAlbum);
+    if (choice === 'run') {
+      applyRuleToSheet(orig.artist, orig.title, orig.album, f.artist, f.title, newAlbum).then(r => {
+        const syncStatusEl = document.getElementById('syncStatus');
+        const prevMsg = syncStatusEl ? syncStatusEl.textContent : '';
+        const prevCls = syncStatusEl ? syncStatusEl.className : '';
+        if (!r.error) {
+          setSyncStatus(`✓ Applied rule: corrected ${r.updated} entr${r.updated === 1 ? 'y' : 'ies'} in sheet.`, 'ok');
+          const dismissBtn = document.getElementById('syncDismissBtn');
+          if (dismissBtn) {
+            dismissBtn.style.display = '';
+            dismissBtn.onclick = () => { setSyncStatus(prevMsg, prevCls); dismissBtn.style.display = 'none'; };
+          }
+        } else {
+          setSyncStatus('Rule saved, but sheet apply failed: ' + r.error, 'err');
+        }
+      });
+    }
   }
   if (applyAll && orig) {
     allPlays.forEach(p => {
@@ -916,11 +1051,16 @@ async function pushEditToSheet() {
   const saveRule = document.getElementById('editSaveRule').checked;
   const orig     = _editOrigMatch;
   const newAlbum = f.album || '—';
+  let _runRuleOnSheet = false;
   if (saveRule && orig) {
+    const { choice, idsToRemove } = await checkSimilarRules(orig.artist, orig.title, orig.album, f.artist, f.title, newAlbum);
+    if (choice === 'cancel') return;
+    if ((choice === 'override' || choice === 'run') && idsToRemove.length) overrideSimilarRules(idsToRemove);
     // skipSheetSync=true so we don't fire a concurrent saveRules request alongside batchUpdate.
     // Apps Script serializes write requests; firing both at once just makes batchUpdate wait in queue.
     // We sync rules after the batchUpdate completes instead.
     saveAutocorrectRule(orig.artist, orig.title, orig.album, f.artist, f.title, newAlbum, { skipSheetSync: true });
+    if (choice === 'run') _runRuleOnSheet = true;
   }
   const btn      = document.getElementById('editPushSheetBtn');
   const statusEl = f.statusEl;
@@ -1011,8 +1151,18 @@ async function pushEditToSheet() {
       renderAll();
       saveToIDB(IDB_SHEETS_KEY, { ts: Date.now(), csv: _serializePlaysCsv() }).catch(() => {});
       if (saveRule) syncRulesToSheet(); // fire-and-forget after update, not before
-      statusEl.textContent = '✓ Sheet updated!';
-      statusEl.className   = 'scrobble-status ok';
+      if (_runRuleOnSheet) {
+        statusEl.textContent = 'Applying rule to all matching entries…';
+        statusEl.className   = 'scrobble-status loading';
+        const r = await applyRuleToSheet(orig.artist, orig.title, orig.album, f.artist, f.title, newAlbum);
+        statusEl.textContent = r.error
+          ? `✓ Sheet updated! (Rule apply failed: ${r.error})`
+          : `✓ Sheet updated! Rule applied to ${r.updated} entr${r.updated === 1 ? 'y' : 'ies'}.`;
+        statusEl.className = 'scrobble-status ok';
+      } else {
+        statusEl.textContent = '✓ Sheet updated!';
+        statusEl.className   = 'scrobble-status ok';
+      }
     }
   } catch (e) {
     const isFetchError = e.message === 'Failed to fetch' || e.name === 'TypeError';
