@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Terms of Service & Privacy Policy — dankcharts.fm</title>
+  <title>Terms of Service — dankcharts.fm</title>
   <link rel="icon" type="image/svg+xml" href="favicon.svg">
   <link rel="apple-touch-icon" href="favicon.svg">
   <meta name="theme-color" content="#08121e">
@@ -180,7 +180,7 @@
       padding: 0.9rem 1.1rem;
       margin: 1rem 0;
       font-size: 0.9rem;
-      color: var(--text2);
+      color: var(--text);
     }
     .info-box strong { color: var(--text); }
 
@@ -219,16 +219,16 @@
           <span class="ctrl-theme-dot"></span> THEME
         </button>
         <div class="ctrl-group-panel">
-          <button class="theme-btn active" data-theme="navy-dark">●</button>
-          <button class="theme-btn" data-theme="navy-light">●</button>
-          <button class="theme-btn" data-theme="purple">●</button>
-          <button class="theme-btn" data-theme="purple-light">●</button>
-          <button class="theme-btn" data-theme="red">●</button>
-          <button class="theme-btn" data-theme="red-light">●</button>
-          <button class="theme-btn" data-theme="yellow">●</button>
-          <button class="theme-btn" data-theme="yellow-light">●</button>
-          <button class="theme-btn" data-theme="pink">●</button>
-          <button class="theme-btn" data-theme="pink-light">●</button>
+          <button class="theme-btn active" data-theme="navy-dark"></button>
+          <button class="theme-btn" data-theme="navy-light"></button>
+          <button class="theme-btn" data-theme="purple"></button>
+          <button class="theme-btn" data-theme="purple-light"></button>
+          <button class="theme-btn" data-theme="red"></button>
+          <button class="theme-btn" data-theme="red-light"></button>
+          <button class="theme-btn" data-theme="yellow"></button>
+          <button class="theme-btn" data-theme="yellow-light"></button>
+          <button class="theme-btn" data-theme="pink"></button>
+          <button class="theme-btn" data-theme="pink-light"></button>
         </div>
       </div>
     </div>
@@ -236,11 +236,11 @@
 
   <main class="terms-page">
 
-    <h1 class="terms-title">Terms of Service &amp; Privacy Policy</h1>
-    <p class="terms-meta">Effective date: May 13, 2026 &nbsp;·&nbsp; Last updated: May 13, 2026</p>
+    <h1 class="terms-title">Terms of Service</h1>
+    <p class="terms-meta">Effective date: May 13, 2026 &nbsp;·&nbsp; Last updated: May 14, 2026</p>
 
     <div class="info-box" style="margin-bottom:2.5rem; border-left-color: var(--green);">
-      <strong>TL;DR:</strong> Your music history stays in your browser — it never touches our servers. We only store your settings (theme, data source, etc.) if you sign in with Google. Analytics are cookie-free and collect no personal data. We don't sell your information to anyone.
+      <strong>TL;DR:</strong> dankcharts.fm is free to use. Your music data never leaves your browser. If you sign in with Google, we store your preferences so you don't have to set them up again. For full details on data collection and your privacy rights, see the <a href="privacy.html">Privacy Policy</a>.
     </div>
 
     <div class="terms-toc">
@@ -249,13 +249,7 @@
         <li><a href="#acceptance">Acceptance of Terms</a></li>
         <li><a href="#about">About the Service</a></li>
         <li><a href="#eligibility">Eligibility</a></li>
-        <li><a href="#data-collected">Data We Collect</a></li>
-        <li><a href="#data-use">How We Use Your Data</a></li>
-        <li><a href="#data-sharing">Data Sharing &amp; Third Parties</a></li>
-        <li><a href="#data-retention">Data Retention &amp; Deletion</a></li>
-        <li><a href="#gdpr">Your Rights (GDPR — EU/UK Users)</a></li>
-        <li><a href="#ccpa">Your Rights (CCPA — California Users)</a></li>
-        <li><a href="#cookies">Cookies &amp; Analytics</a></li>
+        <li><a href="#privacy">Privacy</a></li>
         <li><a href="#intellectual-property">Intellectual Property</a></li>
         <li><a href="#disclaimers">Disclaimers &amp; Limitations</a></li>
         <li><a href="#conduct">Acceptable Use</a></li>
@@ -268,7 +262,7 @@
     <!-- 1 -->
     <section class="terms-section" id="acceptance">
       <h2>1. Acceptance of Terms</h2>
-      <p>By accessing or using dankcharts.fm (the "Service"), you agree to be bound by these Terms of Service and Privacy Policy ("Terms"). If you do not agree, please do not use the Service.</p>
+      <p>By accessing or using dankcharts.fm (the "Service"), you agree to be bound by these Terms of Service ("Terms"). If you do not agree, please do not use the Service.</p>
       <p>These Terms constitute the entire agreement between you and Erwin Solorzano ("I", "me", "the operator"), an individual operating from Guatemala, regarding your use of the Service.</p>
     </section>
 
@@ -294,129 +288,23 @@
     </section>
 
     <!-- 4 -->
-    <section class="terms-section" id="data-collected">
-      <h2>4. Data We Collect</h2>
-
-      <h3>4.1 Account data (optional — only if you sign in)</h3>
-      <p>When you sign in with Google via Firebase Authentication, we receive from Google:</p>
-      <ul>
-        <li>Your Google account display name</li>
-        <li>Your Google account email address</li>
-        <li>Your Google account profile photo URL</li>
-        <li>A unique Google account identifier (UID)</li>
-      </ul>
-      <p>This information is used solely to identify your settings record in our database. We do not use it for marketing or share it with third parties outside of the Firebase service.</p>
-
-      <h3>4.2 Preferences data (optional — only if you sign in)</h3>
-      <p>If you sign in, the following preferences are stored in Firebase Firestore linked to your UID:</p>
-      <ul>
-        <li>Data source type (Last.fm, Google Sheets, or file)</li>
-        <li>Last.fm username (if provided)</li>
-        <li>Google Sheets URL or ID (if provided)</li>
-        <li>Tab/sheet name (if provided)</li>
-        <li>UI preferences: theme, language, week start day</li>
-      </ul>
-
-      <h3>4.3 Analytics data</h3>
-      <p>The Service uses <strong>GoatCounter</strong>, a privacy-respecting analytics tool. GoatCounter records page views without setting cookies, without collecting personal data, and without tracking you across sites. Aggregate traffic counts are visible publicly at <a href="https://erwindank.goatcounter.com" target="_blank" rel="noopener">erwindank.goatcounter.com</a>.</p>
-
-      <h3>4.4 Data we do NOT collect</h3>
-      <ul>
-        <li>Your listening history or music data — this never leaves your browser or its source</li>
-        <li>Spotify, Apple Music, or any streaming service credentials</li>
-        <li>Payment information — core features are free; if premium features are introduced, payment details would only be collected at that time</li>
-        <li>Device identifiers, IP addresses (beyond what Firebase logs by default), or precise location</li>
-      </ul>
+    <section class="terms-section" id="privacy">
+      <h2>4. Privacy</h2>
+      <p>Your privacy is important to us. How we collect, use, store, and protect your personal data — including your rights under GDPR, CCPA, and other applicable laws — is covered in full in our dedicated <a href="privacy.html">Privacy Policy</a>.</p>
+      <p>By using the Service, you acknowledge that you have read and understood the Privacy Policy. It forms part of these Terms by reference.</p>
     </section>
 
     <!-- 5 -->
-    <section class="terms-section" id="data-use">
-      <h2>5. How We Use Your Data</h2>
-      <p>The data described in Section 4 is used exclusively to:</p>
-      <ul>
-        <li>Authenticate you and identify your stored preferences</li>
-        <li>Restore your setup (sheet URL, theme, etc.) when you return to the Service</li>
-        <li>Understand aggregate usage patterns via GoatCounter (no personal data involved)</li>
-      </ul>
-      <p>We do not use your data for advertising, profiling, or any automated decision-making that produces legal effects.</p>
-    </section>
-
-    <!-- 6 -->
-    <section class="terms-section" id="data-sharing">
-      <h2>6. Data Sharing &amp; Third Parties</h2>
-      <p>We share minimal data with the following processors solely to provide the Service:</p>
-      <ul>
-        <li><strong>Google Firebase (Alphabet Inc.)</strong> — authentication and Firestore database hosting. <a href="https://firebase.google.com/support/privacy" target="_blank" rel="noopener">Firebase Privacy</a></li>
-        <li><strong>GoatCounter</strong> — privacy-first page-view analytics. <a href="https://www.goatcounter.com/help/privacy" target="_blank" rel="noopener">GoatCounter Privacy</a></li>
-        <li><strong>Last.fm (CBS Interactive)</strong> — only when you provide a Last.fm username; your browser fetches data directly from Last.fm's public API. <a href="https://www.last.fm/legal/privacy" target="_blank" rel="noopener">Last.fm Privacy</a></li>
-        <li><strong>Cloudflare Pages</strong> — static site hosting. <a href="https://www.cloudflare.com/privacypolicy/" target="_blank" rel="noopener">Cloudflare Privacy</a></li>
-      </ul>
-      <p>We do not sell, rent, or trade your personal information to any third parties.</p>
-    </section>
-
-    <!-- 7 -->
-    <section class="terms-section" id="data-retention">
-      <h2>7. Data Retention &amp; Deletion</h2>
-      <p>Your account and preferences data in Firebase is retained as long as you maintain a signed-in account with the Service. You can delete your data at any time by:</p>
-      <ol>
-        <li>Emailing us at <a href="mailto:support@dankcharts.fm">support@dankcharts.fm</a> with the subject line "Delete my account".</li>
-        <li>We will permanently delete your Firestore record and Firebase Auth entry within 30 days.</li>
-      </ol>
-      <p>If you never signed in, no personal data is stored and no action is needed.</p>
-    </section>
-
-    <!-- 8 -->
-    <section class="terms-section" id="gdpr">
-      <h2>8. Your Rights (GDPR — EU/UK Users)</h2>
-      <p>If you are located in the European Union or United Kingdom, you have the following rights under the General Data Protection Regulation (GDPR) and UK GDPR:</p>
-      <ul>
-        <li><strong>Right of access</strong> — request a copy of the personal data we hold about you.</li>
-        <li><strong>Right to rectification</strong> — ask us to correct inaccurate data.</li>
-        <li><strong>Right to erasure</strong> — ask us to delete your personal data ("right to be forgotten").</li>
-        <li><strong>Right to restriction</strong> — ask us to limit processing of your data.</li>
-        <li><strong>Right to data portability</strong> — receive your data in a structured, machine-readable format.</li>
-        <li><strong>Right to object</strong> — object to processing based on legitimate interests.</li>
-        <li><strong>Right to withdraw consent</strong> — where processing is based on consent, you may withdraw at any time.</li>
-      </ul>
-      <p>The lawful basis for processing your data (when you sign in) is <strong>contract performance</strong> — we process your account data to provide the settings-sync feature you requested. Analytics via GoatCounter do not process personal data and require no lawful basis.</p>
-      <p>To exercise any of these rights, contact us at <a href="mailto:yourdata@dankcharts.fm">yourdata@dankcharts.fm</a>. We will respond within 30 days. If you are unsatisfied with our response, you have the right to lodge a complaint with your local supervisory authority.</p>
-    </section>
-
-    <!-- 9 -->
-    <section class="terms-section" id="ccpa">
-      <h2>9. Your Rights (CCPA — California Users)</h2>
-      <p>If you are a California resident, the California Consumer Privacy Act (CCPA) grants you the following rights:</p>
-      <ul>
-        <li><strong>Right to know</strong> — request disclosure of the categories and specific pieces of personal information collected about you.</li>
-        <li><strong>Right to delete</strong> — request deletion of personal information we have collected from you.</li>
-        <li><strong>Right to opt out of sale</strong> — we do <em>not</em> sell personal information, so no opt-out mechanism is required.</li>
-        <li><strong>Right to non-discrimination</strong> — we will not discriminate against you for exercising your CCPA rights.</li>
-      </ul>
-      <p>To exercise these rights, email <a href="mailto:yourdata@dankcharts.fm">yourdata@dankcharts.fm</a>. We will respond within 45 days as required by law.</p>
-    </section>
-
-    <!-- 10 -->
-    <section class="terms-section" id="cookies">
-      <h2>10. Cookies &amp; Analytics</h2>
-      <p>The Service uses <strong>no advertising or tracking cookies</strong>. The only browser storage used is:</p>
-      <ul>
-        <li><strong>localStorage</strong> — stores your UI preferences (theme, language, source selection) locally in your browser. This data never leaves your device unless you sign in.</li>
-        <li><strong>Firebase session cookie</strong> — a short-lived authentication token set by Firebase Auth when you sign in. This is strictly necessary for the sign-in feature and is not used for tracking.</li>
-      </ul>
-      <p>GoatCounter analytics do not use cookies or collect personal data.</p>
-    </section>
-
-    <!-- 11 -->
     <section class="terms-section" id="intellectual-property">
-      <h2>11. Intellectual Property</h2>
+      <h2>5. Intellectual Property</h2>
       <p>The dankcharts.fm name, logo, and original code are owned by Erwin Solorzano. All rights reserved.</p>
       <p>Your music listening data remains entirely yours. We claim no rights over data you import into the Service. Chart images and exports you generate are yours to use freely.</p>
       <p>Last.fm, Spotify, Apple Music, Google, and other third-party names and logos are trademarks of their respective owners. Their use on this site is for identification purposes only and does not imply endorsement.</p>
     </section>
 
-    <!-- 12 -->
+    <!-- 6 -->
     <section class="terms-section" id="disclaimers">
-      <h2>12. Disclaimers &amp; Limitations</h2>
+      <h2>6. Disclaimers &amp; Limitations</h2>
       <p>The Service is provided <strong>"as is"</strong> without warranties of any kind, express or implied. To the fullest extent permitted by law:</p>
       <ul>
         <li>We do not warrant that the Service will be uninterrupted, error-free, or secure.</li>
@@ -427,9 +315,9 @@
       <p>Nothing in these Terms limits liability that cannot be excluded under applicable law (including consumer protection laws in your jurisdiction).</p>
     </section>
 
-    <!-- 13 -->
+    <!-- 7 -->
     <section class="terms-section" id="conduct">
-      <h2>13. Acceptable Use</h2>
+      <h2>7. Acceptable Use</h2>
       <p>You agree not to:</p>
       <ul>
         <li>Attempt to reverse-engineer, scrape, or abuse the Service in ways that harm its availability for other users.</li>
@@ -439,37 +327,37 @@
       </ul>
     </section>
 
-    <!-- 14 -->
+    <!-- 8 -->
     <section class="terms-section" id="changes">
-      <h2>14. Changes to These Terms</h2>
+      <h2>8. Changes to These Terms</h2>
       <p>We may update these Terms from time to time. When we do, we will update the "Last updated" date at the top of this page. Continued use of the Service after changes take effect constitutes acceptance of the revised Terms.</p>
-      <p>For material changes affecting privacy rights, we will make reasonable efforts to notify signed-in users (e.g., via a notice on the landing screen).</p>
+      <p>For material changes, we will make reasonable efforts to notify signed-in users (e.g., via a notice on the landing screen).</p>
     </section>
 
-    <!-- 15 -->
+    <!-- 9 -->
     <section class="terms-section" id="governing-law">
-      <h2>15. Governing Law</h2>
+      <h2>9. Governing Law</h2>
       <p>These Terms are governed by and construed in accordance with the laws of Guatemala. Any disputes arising from these Terms or your use of the Service shall be subject to the exclusive jurisdiction of the competent courts in Guatemala.</p>
       <p>If you are a consumer located in the European Union or United Kingdom, you retain the right to bring proceedings before the courts of your country of residence under applicable consumer protection laws.</p>
     </section>
 
-    <!-- 16 -->
+    <!-- 10 -->
     <section class="terms-section" id="contact">
-      <h2>16. Contact</h2>
-      <p>For questions, data requests, or complaints about these Terms:</p>
+      <h2>10. Contact</h2>
+      <p>For questions or complaints about these Terms:</p>
       <div class="contact-card">
         <p><strong>Operator:</strong> Erwin Solorzano</p>
         <p><strong>Location:</strong> Guatemala</p>
         <p><strong>Email:</strong> <a href="mailto:support@dankcharts.fm">support@dankcharts.fm</a></p>
         <p><strong>Website:</strong> <a href="https://dankcharts.fm">dankcharts.fm</a></p>
       </div>
-      <p style="margin-top:1rem;">We aim to respond to all inquiries within 30 days.</p>
+      <p style="margin-top:1rem;">For privacy and data requests, use <a href="mailto:yourdata@dankcharts.fm">yourdata@dankcharts.fm</a> or visit the <a href="privacy.html">Privacy Policy</a>. We aim to respond to all inquiries within 30 days.</p>
     </section>
 
   </main>
 
   <footer class="terms-footer">
-    <p>&copy; 2026 dankcharts.fm &nbsp;·&nbsp; <a href="index.html">Back to App</a> &nbsp;·&nbsp; <a href="setup-guide.html">Setup Guide</a></p>
+    <p>&copy; 2026 dankcharts.fm &nbsp;·&nbsp; <a href="index.html">Back to App</a> &nbsp;·&nbsp; <a href="privacy.html">Privacy Policy</a> &nbsp;·&nbsp; <a href="setup-guide.html">Setup Guide</a></p>
   </footer>
 
   <script>

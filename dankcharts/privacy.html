@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Privacy Policy — dankcharts.fm</title>
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+  <link rel="apple-touch-icon" href="favicon.svg">
+  <meta name="theme-color" content="#08121e">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:      #08121e;
+      --bg2:     #0e1e34;
+      --bg3:     #122444;
+      --surface: #173060;
+      --border:  #1e3d72;
+      --text:    #eaf2ff;
+      --text2:   #a8c8f0;
+      --text3:   #7aa0d0;
+      --accent:  #4aacff;
+      --green:   #34d399;
+      --amber:   #fbbf24;
+      --rose:    #fb7185;
+    }
+
+    body.navy-light  { --bg: #ddeeff; --bg2: #eef6ff; --bg3: #d4e8ff; --surface: #c0d8f5; --border: #90b8e0; --text: #040e1c; --text2: #0a2a50; --text3: #2a5888; --accent: #0852a8; }
+    body.purple      { --bg: #0a0812; --bg2: #110f1e; --bg3: #181528; --surface: #201c38; --border: #2c2850; --text: #f0eeff; --text2: #b8b0e0; --text3: #9080c8; --accent: #8878ff; }
+    body.purple-light{ --bg: #e8e2ff; --bg2: #f5f2ff; --bg3: #ddd5ff; --surface: #ccc0f8; --border: #a898e8; --text: #0e0820; --text2: #2a1860; --text3: #5040a0; --accent: #4430c0; }
+    body.red         { --bg: #0d0505; --bg2: #180808; --bg3: #220c0c; --surface: #2e1010; --border: #4a1818; --text: #ffffff; --text2: #ffffff; --text3: #e8e8e8; --accent: #ff3c3c; }
+    body.red-light   { --bg: #fff5f5; --bg2: #fef8f8; --bg3: #ffe8e8; --surface: #fdd8d8; --border: #f0b8b8; --text: #1c0a0a; --text2: #4a2828; --text3: #6e4040; --accent: #b01010; }
+    body.yellow      { --bg: #0d0d00; --bg2: #181800; --bg3: #222200; --surface: #2e2e00; --border: #484800; --text: #ffffff; --text2: #ffffff; --text3: #e8e8d0; --accent: #f5d000; }
+    body.yellow-light{ --bg: #fffdf0; --bg2: #fefef8; --bg3: #fff8d0; --surface: #fff0a0; --border: #e8d860; --text: #1a1800; --text2: #3a3400; --text3: #5a5000; --accent: #806800; }
+    body.pink        { --bg: #0d0008; --bg2: #180010; --bg3: #220018; --surface: #300020; --border: #500038; --text: #ffffff; --text2: #ffffff; --text3: #e8d0e0; --accent: #ff50b0; }
+    body.pink-light  { --bg: #fff5fb; --bg2: #fef8fd; --bg3: #ffe8f6; --surface: #ffd0ee; --border: #f0a8d8; --text: #1a0010; --text2: #4a0030; --text3: #6e3058; --accent: #b0006a; }
+
+    html, body { min-height: 100vh; background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 15px; line-height: 1.7; }
+
+    /* ── Header bar ── */
+    .terms-header {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      background: var(--bg2);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      padding: 0.55rem 1.5rem;
+    }
+    .terms-header-wordmark {
+      font-family: 'DM Serif Display', serif;
+      font-size: 1rem;
+      text-decoration: none;
+      color: var(--text);
+      display: flex;
+      align-items: baseline;
+      gap: 0;
+    }
+    .terms-header-wordmark .wm-dank    { color: var(--accent); }
+    .terms-header-wordmark .wm-charts  { color: var(--text); }
+    .terms-header-wordmark .wm-fm      { font-size: 0.65rem; color: var(--text3); margin-left: 1px; }
+    .back-btn {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: transparent;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--text2);
+      cursor: pointer;
+      font-family: 'DM Mono', monospace;
+      font-size: 0.6rem;
+      letter-spacing: 0.1em;
+      padding: 0.25rem 0.75rem;
+      text-decoration: none;
+      transition: border-color 0.15s, color 0.15s;
+    }
+    .back-btn:hover { border-color: var(--accent); color: var(--text); }
+
+    /* ── Theme controls ── */
+    .terms-controls { display: flex; align-items: center; gap: 6px; }
+    .ctrl-group { display: flex; align-items: center; position: relative; }
+    .ctrl-group-btn {
+      display: flex; align-items: center; gap: 7px;
+      height: 28px; padding: 0 10px;
+      border-radius: 6px; border: 1px solid var(--border);
+      background: transparent; color: var(--text2); cursor: pointer;
+      font-family: 'DM Mono', monospace; font-size: 0.6rem;
+      letter-spacing: 0.12em; white-space: nowrap;
+      transition: border-color 0.15s, background 0.15s, color 0.15s;
+    }
+    .ctrl-group-btn:hover, .ctrl-group.open .ctrl-group-btn { background: var(--surface); border-color: var(--accent); color: var(--text); }
+    .ctrl-group-panel {
+      display: none; position: absolute; right: 0; top: calc(100% + 6px);
+      background: var(--bg2); border: 1px solid var(--border); border-radius: 10px;
+      padding: 6px 10px; flex-direction: row; align-items: center; flex-wrap: wrap;
+      gap: 5px; z-index: 100; box-shadow: 0 4px 20px rgba(0,0,0,0.35); min-width: max-content;
+    }
+    .ctrl-group.open .ctrl-group-panel { display: flex; }
+    .ctrl-theme-dot { width: 9px; height: 9px; border-radius: 50%; background: #1a6eb5; display: inline-block; flex-shrink: 0; }
+    .theme-btn { width: 18px; height: 18px; border-radius: 50%; border: 2px solid transparent; cursor: pointer; flex-shrink: 0; transition: transform 0.1s, border-color 0.1s; }
+    .theme-btn[data-theme="navy-dark"]    { background: #1a6eb5; }
+    .theme-btn[data-theme="navy-light"]   { background: #90c4f4; }
+    .theme-btn[data-theme="purple"]       { background: #7c6af7; }
+    .theme-btn[data-theme="purple-light"] { background: #c4b8ff; }
+    .theme-btn[data-theme="red"]          { background: #cc2020; }
+    .theme-btn[data-theme="red-light"]    { background: #ff9999; }
+    .theme-btn[data-theme="yellow"]       { background: #c8a800; }
+    .theme-btn[data-theme="yellow-light"] { background: #ffe040; }
+    .theme-btn[data-theme="pink"]         { background: #cc2090; }
+    .theme-btn[data-theme="pink-light"]   { background: #ffaadd; }
+    .theme-btn.active { border-color: var(--accent); transform: scale(1.2); }
+    .theme-btn:hover  { border-color: var(--text2);  transform: scale(1.15); }
+
+    /* ── Page layout ── */
+    .terms-page {
+      max-width: 760px;
+      margin: 0 auto;
+      padding: 3rem 1.5rem 5rem;
+    }
+    .terms-title {
+      font-family: 'DM Serif Display', serif;
+      font-size: 2.2rem;
+      color: var(--text);
+      margin-bottom: 0.4rem;
+    }
+    .terms-meta {
+      font-size: 0.8rem;
+      color: var(--text3);
+      font-family: 'DM Mono', monospace;
+      margin-bottom: 2.5rem;
+    }
+
+    /* ── Section styling ── */
+    .terms-toc {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 1.2rem 1.5rem;
+      margin-bottom: 2.5rem;
+    }
+    .terms-toc h2 { font-size: 0.75rem; font-family: 'DM Mono', monospace; letter-spacing: 0.1em; color: var(--text3); text-transform: uppercase; margin-bottom: 0.75rem; }
+    .terms-toc ol { padding-left: 1.2rem; }
+    .terms-toc li { margin-bottom: 0.3rem; }
+    .terms-toc a { color: var(--accent); text-decoration: none; font-size: 0.9rem; }
+    .terms-toc a:hover { text-decoration: underline; }
+
+    .terms-section {
+      margin-bottom: 2.8rem;
+      scroll-margin-top: 70px;
+    }
+    .terms-section h2 {
+      font-family: 'DM Serif Display', serif;
+      font-size: 1.35rem;
+      color: var(--text);
+      margin-bottom: 0.8rem;
+      padding-bottom: 0.5rem;
+      border-bottom: 1px solid var(--border);
+    }
+    .terms-section h3 {
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: var(--text);
+      margin: 1.2rem 0 0.5rem;
+    }
+    .terms-section p { color: var(--text2); margin-bottom: 0.8rem; }
+    .terms-section p:last-child { margin-bottom: 0; }
+    .terms-section ul, .terms-section ol { color: var(--text2); padding-left: 1.4rem; margin-bottom: 0.8rem; }
+    .terms-section li { margin-bottom: 0.35rem; }
+    .terms-section a { color: var(--accent); }
+
+    .info-box {
+      background: var(--bg3);
+      border-left: 3px solid var(--accent);
+      border-radius: 0 8px 8px 0;
+      padding: 0.9rem 1.1rem;
+      margin: 1rem 0;
+      font-size: 0.9rem;
+      color: var(--text);
+    }
+    .info-box strong { color: var(--text); }
+
+    .data-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 1rem 0;
+      font-size: 0.88rem;
+    }
+    .data-table th {
+      text-align: left;
+      font-family: 'DM Mono', monospace;
+      font-size: 0.7rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--text3);
+      padding: 0.5rem 0.75rem;
+      border-bottom: 1px solid var(--border);
+    }
+    .data-table td {
+      padding: 0.55rem 0.75rem;
+      color: var(--text2);
+      border-bottom: 1px solid var(--bg3);
+      vertical-align: top;
+    }
+    .data-table tr:last-child td { border-bottom: none; }
+    .data-table td:first-child { color: var(--text); font-weight: 500; white-space: nowrap; }
+
+    .contact-card {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 1.2rem 1.5rem;
+      margin-top: 1rem;
+    }
+    .contact-card p { margin-bottom: 0.4rem; }
+    .contact-card a { color: var(--accent); }
+
+    /* ── Footer ── */
+    .terms-footer {
+      text-align: center;
+      padding: 2rem 1.5rem;
+      border-top: 1px solid var(--border);
+      color: var(--text3);
+      font-size: 0.8rem;
+    }
+    .terms-footer a { color: var(--text3); text-decoration: none; }
+    .terms-footer a:hover { color: var(--accent); }
+  </style>
+</head>
+<body>
+
+  <header class="terms-header">
+    <a href="index.html" class="terms-header-wordmark">
+      <span class="wm-dank">dank</span><span class="wm-charts">charts</span><span class="wm-fm">.fm</span>
+    </a>
+    <div class="terms-controls">
+      <a href="index.html" class="back-btn">← BACK TO APP</a>
+      <div class="ctrl-group" id="themeCtrlGroup">
+        <button class="ctrl-group-btn" onclick="toggleGroup('themeCtrlGroup')">
+          <span class="ctrl-theme-dot"></span> THEME
+        </button>
+        <div class="ctrl-group-panel">
+          <button class="theme-btn active" data-theme="navy-dark"></button>
+          <button class="theme-btn" data-theme="navy-light"></button>
+          <button class="theme-btn" data-theme="purple"></button>
+          <button class="theme-btn" data-theme="purple-light"></button>
+          <button class="theme-btn" data-theme="red"></button>
+          <button class="theme-btn" data-theme="red-light"></button>
+          <button class="theme-btn" data-theme="yellow"></button>
+          <button class="theme-btn" data-theme="yellow-light"></button>
+          <button class="theme-btn" data-theme="pink"></button>
+          <button class="theme-btn" data-theme="pink-light"></button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="terms-page">
+
+    <h1 class="terms-title">Privacy Policy</h1>
+    <p class="terms-meta">Effective date: May 14, 2026 &nbsp;·&nbsp; Last updated: May 14, 2026</p>
+
+    <div class="info-box" style="margin-bottom:2.5rem; border-left-color: var(--green);">
+      <strong>TL;DR:</strong> Your music history stays in your browser — it never touches our servers. We only store your settings (theme, data source, etc.) if you sign in with Google. Analytics are cookie-free and collect no personal data. We don't sell your information to anyone.
+    </div>
+
+    <div class="terms-toc">
+      <h2>Contents</h2>
+      <ol>
+        <li><a href="#controller">Data Controller</a></li>
+        <li><a href="#scope">Scope &amp; How the Service Works</a></li>
+        <li><a href="#data-collected">Data We Collect</a></li>
+        <li><a href="#legal-basis">Legal Basis for Processing</a></li>
+        <li><a href="#data-use">How We Use Your Data</a></li>
+        <li><a href="#data-sharing">Data Sharing &amp; Third-Party Processors</a></li>
+        <li><a href="#international">International Data Transfers</a></li>
+        <li><a href="#data-retention">Data Retention &amp; Deletion</a></li>
+        <li><a href="#cookies">Cookies &amp; Local Storage</a></li>
+        <li><a href="#gdpr">Your Rights — EU &amp; UK (GDPR)</a></li>
+        <li><a href="#ccpa">Your Rights — California (CCPA)</a></li>
+        <li><a href="#children">Children's Privacy</a></li>
+        <li><a href="#changes">Changes to This Policy</a></li>
+        <li><a href="#contact">Contact &amp; Data Requests</a></li>
+      </ol>
+    </div>
+
+    <!-- 1 -->
+    <section class="terms-section" id="controller">
+      <h2>1. Data Controller</h2>
+      <p>The data controller for dankcharts.fm is:</p>
+      <div class="contact-card">
+        <p><strong>Name:</strong> Erwin Solorzano</p>
+        <p><strong>Location:</strong> Guatemala</p>
+        <p><strong>Email:</strong> <a href="mailto:yourdata@dankcharts.fm">yourdata@dankcharts.fm</a></p>
+        <p><strong>Website:</strong> <a href="https://dankcharts.fm">dankcharts.fm</a></p>
+      </div>
+      <p style="margin-top:1rem;">This Privacy Policy applies to personal data collected when you use dankcharts.fm (the "Service"). It supplements but does not replace the <a href="terms.html">Terms of Service</a>, which govern the conditions of use of the Service.</p>
+    </section>
+
+    <!-- 2 -->
+    <section class="terms-section" id="scope">
+      <h2>2. Scope &amp; How the Service Works</h2>
+      <p>dankcharts.fm is a personal music chart visualization tool. It lets you explore your listening history by connecting to three data sources:</p>
+      <ul>
+        <li><strong>Last.fm</strong> — your scrobble history is fetched directly from Last.fm's public API using your username. The request goes from your browser to Last.fm; dankcharts.fm servers are never involved.</li>
+        <li><strong>Google Sheets</strong> — you provide a publicly shared spreadsheet URL; your browser reads it directly from Google. The data does not pass through our servers.</li>
+        <li><strong>File upload</strong> — you upload a local CSV, ZIP, or XLSX file; it is parsed entirely in your browser and never transmitted anywhere.</li>
+      </ul>
+      <div class="info-box" style="border-left-color: var(--green);">
+        <strong>Your music data never passes through our servers.</strong> All listening history processing happens locally in your browser or is fetched directly from its source. We do not store, copy, or retain any of your music history.
+      </div>
+      <p>Optional Google Sign-In allows the Service to remember your setup preferences across sessions. This is the only feature that involves storing personal data on our end.</p>
+    </section>
+
+    <!-- 3 -->
+    <section class="terms-section" id="data-collected">
+      <h2>3. Data We Collect</h2>
+
+      <h3>3.1 Account data — only when you sign in with Google</h3>
+      <p>When you choose to sign in via Google through Firebase Authentication, we receive the following from Google:</p>
+      <table class="data-table">
+        <thead>
+          <tr><th>Data point</th><th>Why we receive it</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Display name</td><td>Shown in the UI to confirm you are signed in</td></tr>
+          <tr><td>Email address</td><td>Used as a human-readable identifier for your account</td></tr>
+          <tr><td>Profile photo URL</td><td>Shown as your avatar in the UI</td></tr>
+          <tr><td>Google UID</td><td>Unique identifier that links your preferences record in our database</td></tr>
+        </tbody>
+      </table>
+      <p>Sign-in is entirely optional. If you never sign in, none of the above is collected.</p>
+
+      <h3>3.2 Preferences data — only when you sign in</h3>
+      <p>If you sign in, the following user preferences are stored in Firebase Firestore, linked to your Google UID:</p>
+      <ul>
+        <li>Data source type (Last.fm, Google Sheets, or file)</li>
+        <li>Last.fm username (if you provided one)</li>
+        <li>Google Sheets URL or ID (if you provided one)</li>
+        <li>Tab / sheet name (if applicable)</li>
+        <li>UI preferences: theme color, interface language, week start day</li>
+      </ul>
+      <p>This data is used exclusively to restore your setup when you return to the Service.</p>
+
+      <h3>3.3 Analytics data</h3>
+      <p>The Service uses <strong>GoatCounter</strong> for page-view analytics. GoatCounter is a privacy-respecting tool that:</p>
+      <ul>
+        <li>Sets no cookies</li>
+        <li>Collects no personal data or persistent identifiers</li>
+        <li>Does not track you across sites or sessions</li>
+        <li>Records only aggregate counts (page views, referrer domain, browser language, screen size)</li>
+      </ul>
+      <p>Aggregate traffic counts are publicly visible at <a href="https://erwindank.goatcounter.com" target="_blank" rel="noopener">erwindank.goatcounter.com</a>. No personal data is included.</p>
+
+      <h3>3.4 Data we do NOT collect</h3>
+      <ul>
+        <li>Your listening history, scrobbles, or any music data</li>
+        <li>Spotify, Apple Music, or any other streaming service credentials</li>
+        <li>Payment information (the core Service is free; if paid features are introduced, payment processing would be handled by a third-party provider at that time)</li>
+        <li>Precise location data</li>
+        <li>Device fingerprints or advertising identifiers</li>
+        <li>IP addresses beyond what Firebase may log as part of its standard infrastructure operation (see <a href="https://firebase.google.com/support/privacy" target="_blank" rel="noopener">Firebase Privacy</a>)</li>
+      </ul>
+    </section>
+
+    <!-- 4 -->
+    <section class="terms-section" id="legal-basis">
+      <h2>4. Legal Basis for Processing</h2>
+      <p>This section applies primarily to users in the European Union and United Kingdom, where a lawful basis is required under the GDPR for processing personal data.</p>
+      <table class="data-table">
+        <thead>
+          <tr><th>Processing activity</th><th>Lawful basis</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Account &amp; preferences data (signed-in users)</td><td><strong>Contract performance</strong> — you requested the settings-sync feature; processing your account data is necessary to provide it.</td></tr>
+          <tr><td>GoatCounter analytics</td><td><strong>No basis required</strong> — GoatCounter collects no personal data.</td></tr>
+          <tr><td>Cloudflare hosting infrastructure</td><td><strong>Legitimate interests</strong> — serving the website requires passing requests through Cloudflare's network.</td></tr>
+        </tbody>
+      </table>
+      <p>We do not use your data for advertising or automated profiling that produces legal effects.</p>
+    </section>
+
+    <!-- 5 -->
+    <section class="terms-section" id="data-use">
+      <h2>5. How We Use Your Data</h2>
+      <p>The data described in Section 3 is used exclusively to:</p>
+      <ul>
+        <li>Authenticate you and identify your stored preferences record</li>
+        <li>Restore your configuration (data source, sheet URL, theme, language, etc.) when you return to the Service</li>
+        <li>Understand aggregate, anonymous traffic patterns via GoatCounter</li>
+      </ul>
+      <p>We do not use your data for:</p>
+      <ul>
+        <li>Marketing or advertising (no ad network has access to your data)</li>
+        <li>Profiling or automated decision-making with legal or significant effects</li>
+        <li>Sharing, selling, or renting to third parties outside of the processors listed in Section 6</li>
+      </ul>
+    </section>
+
+    <!-- 6 -->
+    <section class="terms-section" id="data-sharing">
+      <h2>6. Data Sharing &amp; Third-Party Processors</h2>
+      <p>We share data only with the following sub-processors, solely to the extent necessary to provide the Service:</p>
+      <table class="data-table">
+        <thead>
+          <tr><th>Processor</th><th>Purpose</th><th>Data shared</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><a href="https://firebase.google.com/support/privacy" target="_blank" rel="noopener">Google Firebase</a></td>
+            <td>Authentication and Firestore database hosting</td>
+            <td>Account data, preferences data (signed-in users only)</td>
+          </tr>
+          <tr>
+            <td><a href="https://www.goatcounter.com/help/privacy" target="_blank" rel="noopener">GoatCounter</a></td>
+            <td>Privacy-first page-view analytics</td>
+            <td>No personal data — aggregate counts only</td>
+          </tr>
+          <tr>
+            <td><a href="https://www.cloudflare.com/privacypolicy/" target="_blank" rel="noopener">Cloudflare Pages</a></td>
+            <td>Static site hosting and CDN</td>
+            <td>Standard web request metadata (IP, user agent) as part of hosting</td>
+          </tr>
+          <tr>
+            <td><a href="https://www.last.fm/legal/privacy" target="_blank" rel="noopener">Last.fm</a></td>
+            <td>Music history API (direct browser-to-Last.fm)</td>
+            <td>Your Last.fm username is sent by your browser directly to Last.fm; dankcharts.fm is not involved</td>
+          </tr>
+        </tbody>
+      </table>
+      <p>We do not sell, rent, or trade your personal information to any third party.</p>
+    </section>
+
+    <!-- 7 -->
+    <section class="terms-section" id="international">
+      <h2>7. International Data Transfers</h2>
+      <p>dankcharts.fm is operated from Guatemala. If you are located in the European Economic Area (EEA) or United Kingdom, your data may be transferred to and processed in the United States (where Google Firebase's servers are located) and other countries.</p>
+      <p>Google Firebase relies on the EU–U.S. Data Privacy Framework and Standard Contractual Clauses as the legal mechanism for these transfers. You can review Google's data transfer safeguards in the <a href="https://firebase.google.com/support/privacy" target="_blank" rel="noopener">Firebase Privacy documentation</a>.</p>
+    </section>
+
+    <!-- 8 -->
+    <section class="terms-section" id="data-retention">
+      <h2>8. Data Retention &amp; Deletion</h2>
+      <p>Your account and preferences data in Firebase is retained for as long as you maintain a signed-in account with the Service.</p>
+      <p>To delete your data:</p>
+      <ol>
+        <li>Email <a href="mailto:yourdata@dankcharts.fm">yourdata@dankcharts.fm</a> with the subject line <strong>"Delete my account"</strong>.</li>
+        <li>We will permanently delete your Firestore record and Firebase Authentication entry within 30 days of your request.</li>
+      </ol>
+      <p>If you never signed in, no personal data was stored and no deletion action is needed.</p>
+      <p>GoatCounter analytics data contains no personal information and is retained indefinitely as aggregate statistics only.</p>
+    </section>
+
+    <!-- 9 -->
+    <section class="terms-section" id="cookies">
+      <h2>9. Cookies &amp; Local Storage</h2>
+      <p>The Service uses <strong>no advertising or tracking cookies</strong>. The only browser storage in use is:</p>
+      <table class="data-table">
+        <thead>
+          <tr><th>Storage type</th><th>What it holds</th><th>Leaves your device?</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>localStorage</td>
+            <td>UI preferences: theme, language, source selection, chart settings</td>
+            <td>No — stays in your browser. Synced to Firebase only if you sign in.</td>
+          </tr>
+          <tr>
+            <td>Firebase session cookie</td>
+            <td>Short-lived authentication token set by Firebase Auth</td>
+            <td>Yes — sent to Firebase on authenticated requests only. Not used for tracking.</td>
+          </tr>
+        </tbody>
+      </table>
+      <p>GoatCounter does not use cookies or any persistent identifiers.</p>
+      <p>You can clear localStorage at any time via your browser's developer tools or settings. Clearing it will reset your local preferences; your synced preferences in Firebase (if signed in) will be unaffected.</p>
+    </section>
+
+    <!-- 10 -->
+    <section class="terms-section" id="gdpr">
+      <h2>10. Your Rights — EU &amp; UK (GDPR)</h2>
+      <p>If you are located in the European Union or United Kingdom, you have the following rights under the GDPR and UK GDPR:</p>
+      <ul>
+        <li><strong>Right of access</strong> — request a copy of the personal data we hold about you.</li>
+        <li><strong>Right to rectification</strong> — ask us to correct inaccurate or incomplete data.</li>
+        <li><strong>Right to erasure</strong> — ask us to delete your personal data ("right to be forgotten").</li>
+        <li><strong>Right to restriction of processing</strong> — ask us to limit how we process your data.</li>
+        <li><strong>Right to data portability</strong> — receive your data in a structured, machine-readable format (e.g., JSON).</li>
+        <li><strong>Right to object</strong> — object to processing based on legitimate interests.</li>
+        <li><strong>Right to withdraw consent</strong> — where processing is based on consent, you may withdraw at any time without affecting the lawfulness of prior processing.</li>
+      </ul>
+      <p>To exercise any of these rights, contact us at <a href="mailto:yourdata@dankcharts.fm">yourdata@dankcharts.fm</a>. We will respond within 30 days. For complex requests we may extend this by a further two months, and will notify you accordingly.</p>
+      <p>If you are not satisfied with our response, you have the right to lodge a complaint with your local data protection supervisory authority (e.g., your national DPA within the EU, or the ICO in the UK).</p>
+    </section>
+
+    <!-- 11 -->
+    <section class="terms-section" id="ccpa">
+      <h2>11. Your Rights — California (CCPA)</h2>
+      <p>If you are a California resident, the California Consumer Privacy Act (CCPA) grants you the following rights:</p>
+      <ul>
+        <li><strong>Right to know</strong> — request disclosure of the categories and specific pieces of personal information we have collected about you.</li>
+        <li><strong>Right to delete</strong> — request deletion of personal information we have collected from you, subject to certain exceptions.</li>
+        <li><strong>Right to opt out of sale</strong> — we do <em>not</em> sell personal information, so no opt-out mechanism is required or provided.</li>
+        <li><strong>Right to non-discrimination</strong> — we will not discriminate against you for exercising any of your CCPA rights.</li>
+      </ul>
+      <p>To exercise these rights, email <a href="mailto:yourdata@dankcharts.fm">yourdata@dankcharts.fm</a>. We will respond within 45 days as required by California law, with the option to extend by a further 45 days when reasonably necessary.</p>
+    </section>
+
+    <!-- 12 -->
+    <section class="terms-section" id="children">
+      <h2>12. Children's Privacy</h2>
+      <p>The Service is not directed at children under 13. We do not knowingly collect personal data from children under 13. If you are under 16 (or the applicable age of digital consent in your country), you must have parental or guardian consent before signing in or providing any personal data.</p>
+      <p>If you believe we have inadvertently collected personal data from a child under 13, please contact us at <a href="mailto:yourdata@dankcharts.fm">yourdata@dankcharts.fm</a> and we will delete it promptly.</p>
+    </section>
+
+    <!-- 13 -->
+    <section class="terms-section" id="changes">
+      <h2>13. Changes to This Policy</h2>
+      <p>We may update this Privacy Policy from time to time. When we do, we will update the "Last updated" date at the top of this page. Continued use of the Service after changes take effect constitutes acknowledgment of the revised Policy.</p>
+      <p>For material changes that affect how your personal data is collected or used, we will make reasonable efforts to notify signed-in users (e.g., via a notice on the app's landing screen) before the changes take effect.</p>
+    </section>
+
+    <!-- 14 -->
+    <section class="terms-section" id="contact">
+      <h2>14. Contact &amp; Data Requests</h2>
+      <p>For any questions about this Privacy Policy, to exercise your data rights, or to report a privacy concern:</p>
+      <div class="contact-card">
+        <p><strong>Data Controller:</strong> Erwin Solorzano</p>
+        <p><strong>Location:</strong> Guatemala</p>
+        <p><strong>Privacy email:</strong> <a href="mailto:yourdata@dankcharts.fm">yourdata@dankcharts.fm</a></p>
+        <p><strong>General support:</strong> <a href="mailto:support@dankcharts.fm">support@dankcharts.fm</a></p>
+        <p><strong>Website:</strong> <a href="https://dankcharts.fm">dankcharts.fm</a></p>
+      </div>
+      <p style="margin-top:1rem;">We aim to respond to all privacy inquiries within 30 days.</p>
+    </section>
+
+  </main>
+
+  <footer class="terms-footer">
+    <p>&copy; 2026 dankcharts.fm &nbsp;·&nbsp; <a href="index.html">Back to App</a> &nbsp;·&nbsp; <a href="terms.html">Terms of Service</a> &nbsp;·&nbsp; <a href="setup-guide.html">Setup Guide</a></p>
+  </footer>
+
+  <script>
+    // ── Theme ──
+    const THEMES = ['navy-dark','navy-light','purple','purple-light','red','red-light','yellow','yellow-light','pink','pink-light'];
+
+    function applyTheme(t) {
+      document.body.className = t === 'navy-dark' ? '' : t;
+      document.querySelectorAll('.theme-btn').forEach(b => b.classList.toggle('active', b.dataset.theme === t));
+      const dots = document.querySelectorAll('.ctrl-theme-dot');
+      const colors = {'navy-dark':'#1a6eb5','navy-light':'#90c4f4','purple':'#7c6af7','purple-light':'#c4b8ff','red':'#cc2020','red-light':'#ff9999','yellow':'#c8a800','yellow-light':'#ffe040','pink':'#cc2090','pink-light':'#ffaadd'};
+      dots.forEach(d => d.style.background = colors[t] || '#1a6eb5');
+      localStorage.setItem('dankcharts-theme', t);
+    }
+
+    document.querySelectorAll('.theme-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        toggleGroup('themeCtrlGroup');
+        applyTheme(btn.dataset.theme);
+      });
+    });
+
+    // ── Ctrl group toggle ──
+    function toggleGroup(id) {
+      const g = document.getElementById(id);
+      const open = g.classList.contains('open');
+      document.querySelectorAll('.ctrl-group.open').forEach(el => el.classList.remove('open'));
+      if (!open) g.classList.add('open');
+    }
+    document.addEventListener('click', e => {
+      if (!e.target.closest('.ctrl-group')) {
+        document.querySelectorAll('.ctrl-group.open').forEach(el => el.classList.remove('open'));
+      }
+    });
+
+    // ── Restore saved theme ──
+    const saved = localStorage.getItem('dankcharts-theme') || 'navy-dark';
+    applyTheme(saved);
+  </script>
+</body>
+</html>
