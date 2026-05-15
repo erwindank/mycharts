@@ -7774,14 +7774,19 @@ body.hide-yt-btns .yt-play-btn { display: none; }
   opacity: 1;
 }
 
-/* Light themes need inverted hero strip */
+/* Light themes: masthead is a dark saturated color, so hero stats need white text */
 body.navy-light .hero-stats,
 body.purple-light .hero-stats,
 body.red-light .hero-stats,
 body.yellow-light .hero-stats,
 body.pink-light .hero-stats {
-  background: rgba(0, 0, 0, 0.06);
-  border-color: rgba(0, 0, 0, 0.12);
+  --text: rgba(255, 255, 255, 0.95);
+  --text2: rgba(255, 255, 255, 0.85);
+  --text3: rgba(255, 255, 255, 0.65);
+  --border2: rgba(255, 255, 255, 0.4);
+  --bg2: rgba(0, 0, 0, 0.75);
+  background: rgba(0, 0, 0, 0.15);
+  border-color: rgba(255, 255, 255, 0.18);
 }
 
 /* Mobile: 2×2 grid */
