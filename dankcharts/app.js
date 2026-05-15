@@ -11392,7 +11392,7 @@ function renderHeroStats() {
     <div class="hero-stat" data-tip="~${avgPerDay.toLocaleString()} plays on average per day listened">
       <span class="hero-icon">📊</span>
       <span class="hero-val" data-countup="${avgPerDay}">${avgPerDay.toLocaleString()}</span>
-      <span class="hero-label">Avg / Day</span>
+      <span class="hero-label">Plays / Day</span>
     </div>
     <div class="hero-stat-sep">·</div>
     <div class="hero-stat hero-stat-artist" data-tip="Click to jump to Top Artists">
