@@ -11588,25 +11588,6 @@ function _naHideTooltip() {
   _naHideTimer = setTimeout(() => { _naTooltip.style.display = 'none'; }, 130);
 }
 
-// ─── NAV HINT (one-time keyboard / swipe tip) ────────────────────
-function dismissNavHint() {
-  const el = document.getElementById('navHint');
-  if (!el || el.style.display === 'none') return;
-  el.classList.add('fade-out');
-  setTimeout(() => { el.style.display = 'none'; }, 500);
-  localStorage.setItem('navHintSeen', '1');
-}
-
-(function initNavHint() {
-  if (localStorage.getItem('navHintSeen')) return;
-  const el = document.getElementById('navHint');
-  if (!el) return;
-  el.style.display = 'flex';
-  const timer = setTimeout(() => dismissNavHint(), 4500);
-  ['prevBtn', 'nextBtn'].forEach(id => {
-    document.getElementById(id)?.addEventListener('click', () => { clearTimeout(timer); dismissNavHint(); }, { once: true });
-  });
-})();
 
 document.addEventListener('mouseover', e => {
   const trigger = e.target.closest('.na-songs-trigger');

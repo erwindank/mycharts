@@ -7916,7 +7916,7 @@ body.pink-light .hero-stats {
 /* Zoho Desk ASAP — hide launcher widget until user triggers it */
 [id*="zohodesk"],[id*="zohoasap"],[id*="zd-asap"],[class*="zohodesk"],[class*="zohoasap"],iframe[id*="zoho"] { display: none !important; }
 
-/* ── Nav hint (one-time keyboard/swipe tip) ── */
+/* ── Nav hint (keyboard shortcut reminder) ── */
 .nav-hint {
   display: flex;
   align-items: center;
@@ -7932,12 +7932,7 @@ body.pink-light .hero-stats {
   font-family: 'DM Mono', monospace;
   font-size: 0.65rem;
   color: var(--text2);
-  opacity: 1;
-  transition: opacity 0.5s ease;
-  animation: navHintIn 0.4s ease;
 }
-
-.nav-hint.fade-out { opacity: 0; }
 
 .nav-hint kbd {
   display: inline-block;
@@ -7951,27 +7946,6 @@ body.pink-light .hero-stats {
   color: var(--text);
 }
 
-.nav-hint-close {
-  background: none;
-  border: none;
-  color: var(--text2);
-  cursor: pointer;
-  font-size: 0.7rem;
-  padding: 0 0 0 0.35rem;
-  opacity: 0.6;
-  line-height: 1;
-}
-
-.nav-hint-close:hover { opacity: 1; }
-
-.nav-hint-mobile { display: none; }
-
 @media (max-width: 600px) {
-  .nav-hint-desktop { display: none; }
-  .nav-hint-mobile { display: inline; }
-}
-
-@keyframes navHintIn {
-  from { opacity: 0; transform: translateY(-4px); }
-  to   { opacity: 1; transform: translateY(0); }
+  .nav-hint { display: none; }
 }
