@@ -1949,16 +1949,21 @@ function doPost(e) {
       var lastRow2 = sheet.getLastRow();
       if (lastRow2 &gt;= 2) {
         var vals = sheet.getRange(2, 1, lastRow2 - 1, lastCol).getValues();
+        var matchedRows = [];
         for (var r = 0; r &lt; vals.length; r++) {
           var rowArtist = colIdx.artist !== undefined ? vals[r][colIdx.artist].toString().trim() : '';
           var rowTitle  = colIdx.title  !== undefined ? vals[r][colIdx.title].toString().trim()  : '';
           var rowAlbum  = colIdx.album  !== undefined ? vals[r][colIdx.album].toString().trim()  : '';
           if (rowArtist === data.matchArtist &amp;&amp; rowTitle === data.matchTitle &amp;&amp; rowAlbum === data.matchAlbum) {
-            if (colIdx.title  !== undefined) sheet.getRange(r + 2, colIdx.title  + 1).setValue(data.track  || '');
-            if (colIdx.artist !== undefined) sheet.getRange(r + 2, colIdx.artist + 1).setValue(data.artist || '');
-            if (colIdx.album  !== undefined) sheet.getRange(r + 2, colIdx.album  + 1).setValue(data.album  || '');
+            matchedRows.push(r + 2);
             count++;
           }
+        }
+        if (count &gt; 0) {
+          var colLetter = function(n) { var s = ''; while (n &gt; 0) { var m = (n-1) % 26; s = String.fromCharCode(65+m) + s; n = Math.floor((n-1) / 26); } return s; };
+          if (colIdx.artist !== undefined) sheet.getRangeList(matchedRows.map(function(r) { return colLetter(colIdx.artist + 1) + r; })).setValue(data.artist || '');
+          if (colIdx.title  !== undefined) sheet.getRangeList(matchedRows.map(function(r) { return colLetter(colIdx.title  + 1) + r; })).setValue(data.track  || '');
+          if (colIdx.album  !== undefined) sheet.getRangeList(matchedRows.map(function(r) { return colLetter(colIdx.album  + 1) + r; })).setValue(data.album  || '');
         }
       }
       return ContentService.createTextOutput(JSON.stringify({ status: 'ok', updated: count }))

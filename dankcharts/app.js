@@ -620,9 +620,11 @@ function applyAutocorrectRules(plays) {
 async function autoCorrectEntries(plays, writeUrl) {
   const rules = getAutocorrectRules();
   if (!rules.length) return;
+  // Build the full rule map without filtering by local plays. The local plays may already
+  // have corrected values (e.g. after a batchUpdate saves corrected CSV to IDB), which would
+  // cause the filter to skip rules that still have uncorrected entries in the actual sheet.
   const activeRulesMap = {};
   for (const rule of rules) {
-    if (!plays.some(p => p.artist === rule.match.artist && p.title === rule.match.title && p.album === rule.match.album)) continue;
     const matchAlbum = rule.match.album === '—' ? '' : rule.match.album;
     const key = rule.match.artist + '|' + rule.match.title + '|' + matchAlbum;
     activeRulesMap[key] = {
