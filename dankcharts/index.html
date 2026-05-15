@@ -2324,6 +2324,20 @@ function doPost(e) {
         </div>
       </div>
 
+      <div class="cert-config-group">
+        <div class="cert-config-title">Artist Names</div>
+        <div style="padding:0.4rem 0;">
+          <label class="src-switch-row">
+            <span class="src-switch-label">Keep comma-separated names as one artist</span>
+            <span class="src-switch">
+              <input type="checkbox" id="srcNoArtistSplit">
+              <span class="src-switch-slider"></span>
+            </span>
+          </label>
+          <p class="src-modal-hint" style="margin-top:0.4rem">"Artist A, Artist B" is counted as one artist instead of splitting into two. Useful if your data uses commas within a single artist name, or if you prefer Last.fm-style behavior where the full artist string is always kept intact.</p>
+        </div>
+      </div>
+
       <div class="src-modal-btns">
         <button class="src-btn-cancel" onclick="closeSourceModal()">Cancel</button>
         <button class="src-btn-save" onclick="saveSourceConfig()">Save &amp; Load</button>

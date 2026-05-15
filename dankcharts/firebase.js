@@ -18,7 +18,7 @@ const SYNC_KEYS = [
   'dc_lfm_api_secret', 'dc_lfm_session_key', 'dc_lfm_session_user',
   'dc_display_name', 'dc_timezone', 'dc_cert_config',
   'dc_events_artist_limit', 'dc_theme', 'dc_lang',
-  'dc_autocorrect_rules'
+  'dc_autocorrect_rules', 'dc_no_artist_split'
 ];
 
 let _auth = null;

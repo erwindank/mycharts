@@ -191,7 +191,8 @@ document.addEventListener('click', () => {
 // ─── SOURCE BUTTON TOGGLE ──────────────────────────────────────
 (function initSrcToggle() {
   try {
-    if (localStorage.getItem('dankcharts-hideSrcBtns') === '1') {
+    // Default to hidden; only show if user explicitly enabled it
+    if (localStorage.getItem('dankcharts-hideSrcBtns') !== '0') {
       document.body.classList.add('hide-src-btns');
       document.getElementById('srcToggleBtn')?.classList.remove('active');
     }
@@ -205,6 +206,8 @@ function toggleSrcButtons() {
 }
 
 // ─── ARTIST SPLITTING ──────────────────────────────────────────
+let noArtistSplit = localStorage.getItem('dc_no_artist_split') === '1';
+
 // Artists whose names contain commas — add entries here to prevent incorrect splitting
 const ARTIST_COMMA_EXCEPTIONS = [
   "Tyler, The Creator",
@@ -222,7 +225,7 @@ const _ARTIST_EXCEPTION_RES = ARTIST_COMMA_EXCEPTIONS.map((name, i) => ({
 // Names listed in ARTIST_COMMA_EXCEPTIONS are protected from splitting.
 function splitArtists(artistStr) {
   if (!artistStr) return [];
-  if (artistStr.indexOf(',') === -1) return [artistStr]; // fast path: no comma
+  if (noArtistSplit || artistStr.indexOf(',') === -1) return [artistStr];
   let str = artistStr;
   const activeTokens = {};
   for (const { re, token, name } of _ARTIST_EXCEPTION_RES) {
@@ -1813,6 +1816,7 @@ function openSourceModal() {
   document.getElementById('certSongPlat').value    = CERT.song.plat;
   document.getElementById('certSongDiamond').value = CERT.song.diamond;
   document.getElementById('eventsArtistLimitSelect').value = eventsArtistLimit;
+  document.getElementById('srcNoArtistSplit').checked = noArtistSplit;
   updateSourceModalFields();
   initSrcFileUpload();
 }
@@ -1905,6 +1909,9 @@ function saveSourceConfig() {
     const sel = document.getElementById('eventsLimitSelect');
     if (sel) sel.value = eventsArtistLimit;
   }
+  noArtistSplit = document.getElementById('srcNoArtistSplit').checked;
+  if (noArtistSplit) localStorage.setItem('dc_no_artist_split', '1');
+  else localStorage.removeItem('dc_no_artist_split');
   closeSourceModal();
   if (typeof dcSaveUserConfig === 'function') dcSaveUserConfig();
   syncNow();
@@ -4300,7 +4307,7 @@ function renderAll() {
 
   // Update date nav
   const pl = document.getElementById('periodLabel');
-  pl.innerHTML = `<strong>${label}</strong><span style="font-size:0.68rem;font-family:'DM Mono',monospace;color:var(--text3)">${sub}</span>`;
+  pl.innerHTML = `<strong>${label}</strong><span class="period-sub">${sub}</span>`;
   document.getElementById('prevBtn').disabled = (currentPeriod === 'alltime');
   document.getElementById('nextBtn').disabled = (currentOffset === 0 || currentPeriod === 'alltime');
   syncPicker();
