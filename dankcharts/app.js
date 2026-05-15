@@ -2779,7 +2779,7 @@ function buildRecords() {
   buildPeriodRecords('year', yearPlaysMap, yearKeys, ySize);
 
   // Play count milestones
-  const MILESTONES = [100, 250, 500, 1000, 2000, 3000, 5000, 10000];
+  const MILESTONES = [10, 25, 50, 100, 150, 200, 250, 300, 400, 500, 600, 750, 1000, 1250, 1500, 1750, 2000, 2500, 3000, 3500, 4000, 5000, 7500, 10000, 15000, 20000, 25000, 50000];
   const artistMS = {}, songMS = {}, artistFirst = {}, songFirst = {}, artistCP = {}, songCP = {};
   for (const p of chron) {
     for (const a of p.artists) {
@@ -3374,7 +3374,7 @@ function buildRecords() {
   }).filter(Boolean);
   mh += '<table class="milestone-table"><thead><tr><th>' + t('mil_th_plays') + '</th><th>' + t('mil_th_first_artist') + '</th><th>' + t('mil_th_date_reached') + '</th><th>' + t('mil_th_time_since') + '</th></tr></thead><tbody>' + (aMilRows.join('') || '<tr><td colspan="4" class="rec-empty">' + t('mil_no_data') + '</td></tr>') + '</tbody></table></div>';
   mh += '<div class="rec-section"><div class="rec-section-title">' + t('rec_songs_milestones') + '</div>';
-  const sMilRows = [50, 100, 200, 500, 1000].map(function (m) {
+  const sMilRows = MILESTONES.map(function (m) {
     const first = Object.entries(songMS).filter(function (e) { return e[1][m]; }).sort(function (a, b) { return a[1][m].date - b[1][m].date; })[0];
     if (!first) return '';
     const n = songNames[first[0]] || {}, ms = first[1][m];

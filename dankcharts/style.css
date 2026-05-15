@@ -4768,6 +4768,7 @@
       border-bottom: 1px solid var(--border);
       color: var(--text2);
       vertical-align: middle;
+      user-select: text;
     }
 
     .raw-table tr:hover td {
