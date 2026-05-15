@@ -1484,6 +1484,19 @@
       color: var(--amber);
     }
 
+    #syncDismissBtn {
+      background: none;
+      border: none;
+      color: var(--text3);
+      cursor: pointer;
+      font-size: 0.85rem;
+      line-height: 1;
+      margin-left: 0.25rem;
+      opacity: 0.6;
+      padding: 0 0.2rem;
+    }
+    #syncDismissBtn:hover { opacity: 1; }
+
     #syncNowBtn {
       background: none;
       border: 1px solid var(--border2);

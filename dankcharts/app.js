@@ -643,9 +643,18 @@ async function autoCorrectEntries(plays, writeUrl) {
       body: JSON.stringify({ action: 'applyRules', rules: activeRulesMap })
     });
     const data = await res.json();
-    if (data.status !== 'error' && data.updated > 0)
+    if (data.status !== 'error' && data.updated > 0) {
+      const statusEl = document.getElementById('syncStatus');
+      const prevMsg = statusEl.textContent;
+      const prevCls = statusEl.className;
       setSyncStatus(`✓ Auto-corrected ${data.updated} entr${data.updated === 1 ? 'y' : 'ies'} in sheet.`, 'ok');
-    else if (data.status === 'error')
+      const dismissBtn = document.getElementById('syncDismissBtn');
+      dismissBtn.style.display = '';
+      dismissBtn.onclick = () => {
+        setSyncStatus(prevMsg, prevCls);
+        dismissBtn.style.display = 'none';
+      };
+    } else if (data.status === 'error')
       console.warn('Auto-correct: sheet update failed:', data.message);
   } catch (e) {
     console.warn('Auto-correct: sheet update failed:', e.message);
