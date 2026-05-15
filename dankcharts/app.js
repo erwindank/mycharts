@@ -661,7 +661,7 @@ function checkSimilarRules(origArtist, origTitle, origAlbum, newArtist, newTitle
     details.innerHTML =
       `<div style="font-size:0.72rem;color:var(--text3);margin-bottom:0.5rem">Check the rules below to remove them when saving. Uncheck any you want to keep.</div>` +
       similar.map((r, i) => `
-        <div style="padding-bottom:0.5rem;margin-bottom:0.5rem;border-bottom:1px solid var(--border)">
+        <div data-rule-row="${i}" style="padding-bottom:0.5rem;margin-bottom:0.5rem;border-bottom:1px solid var(--border)">
           <div style="display:flex;align-items:flex-start;gap:0.5rem">
             <label style="display:flex;align-items:flex-start;gap:0.55rem;cursor:pointer;flex:1">
               <input type="checkbox" class="similar-rule-cb" data-idx="${i}" checked style="margin-top:0.25rem;flex-shrink:0;cursor:pointer">
@@ -671,6 +671,7 @@ function checkSimilarRules(origArtist, origTitle, origAlbum, newArtist, newTitle
               </div>
             </label>
             ${hasSheet ? `<button class="similar-rule-run-btn" data-idx="${i}" style="flex-shrink:0;font-size:0.7rem;padding:0.2rem 0.5rem;border:1px solid var(--border);border-radius:3px;background:var(--bg2);color:var(--text2);cursor:pointer;align-self:center">Run</button>` : ''}
+            <button class="similar-rule-del-btn" data-idx="${i}" title="Delete this rule" style="flex-shrink:0;padding:0.15rem 0.4rem;border:1px solid var(--border);border-radius:3px;background:var(--bg2);color:#ef4444;cursor:pointer;align-self:center;font-size:0.9rem;line-height:1">🗑</button>
           </div>
           <div class="similar-rule-run-status" data-idx="${i}" style="font-size:0.7rem;margin-top:0.25rem;display:none"></div>
         </div>
@@ -700,6 +701,14 @@ function checkSimilarRules(origArtist, origTitle, origAlbum, newArtist, newTitle
             statusEl.style.color = 'var(--accent)';
           }
         }
+      });
+    });
+
+    details.querySelectorAll('.similar-rule-del-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const r = similar[parseInt(btn.dataset.idx)];
+        deleteAutocorrectRule(r.id);
+        details.querySelector(`[data-rule-row="${btn.dataset.idx}"]`).remove();
       });
     });
 
