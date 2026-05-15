@@ -608,11 +608,9 @@ function deleteAutocorrectRule(id) {
 function findSimilarRules(origArtist, origTitle, origAlbum) {
   const aLow = origArtist.toLowerCase();
   const tLow = origTitle.toLowerCase();
-  const albLow = origAlbum.toLowerCase();
   return getAutocorrectRules().filter(r =>
     r.match.artist.toLowerCase() === aLow &&
-    r.match.title.toLowerCase()  === tLow  &&
-    r.match.album.toLowerCase()  !== albLow
+    r.match.title.toLowerCase()  === tLow
   );
 }
 
