@@ -5034,9 +5034,13 @@ function buildCrPanelHTML(type, key) {
       const crData = allChartRun[id];
       const rawD = crData?.result?.[type]?.[key];
       const d = filterCrD(rawD, id, getCrRangeMode(type, key), vy, cutoffKeys);
+      const bodyHtml = d ? `<div class="cr-stats">${crStats(type, key, id, null, d)}</div>${crBoxesHTML(type, key, null, d, id)}` : `<div style="font-size:0.6rem;color:var(--text3);padding:2px 0">${t('cr_no_history')}</div>`;
       return `<div class="cr-panel-section">
-        <div class="cr-panel-section-title">${label}</div>
-        ${d ? `<div class="cr-stats">${crStats(type, key, id, null, d)}</div>${crBoxesHTML(type, key, null, d, id)}` : `<div style="font-size:0.6rem;color:var(--text3);padding:2px 0">${t('cr_no_history')}</div>`}
+        <div class="cr-panel-section-header" onclick="toggleCrPanelSection(this)">
+          <span class="cr-subsection-toggle">▼</span>
+          <span class="cr-panel-section-title">${label}</span>
+        </div>
+        <div class="cr-panel-section-body">${bodyHtml}</div>
       </div>`;
     }).join('');
   } else {
@@ -5067,6 +5071,14 @@ function buildCrPanelHTML(type, key) {
   </div>`;
 
   return headerHtml + toggleHtml + sectionsHtml + heatmapHtml + rawDataHtml;
+}
+
+function toggleCrPanelSection(headerEl) {
+  const body = headerEl.nextElementSibling;
+  const toggle = headerEl.querySelector('.cr-subsection-toggle');
+  const isOpen = body.style.display !== 'none';
+  body.style.display = isOpen ? 'none' : '';
+  toggle.textContent = isOpen ? '▶' : '▼';
 }
 
 function toggleCrSubsection(headerEl) {

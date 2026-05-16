@@ -4200,13 +4200,27 @@
       margin-top: 0;
     }
 
+    .cr-panel-section-header {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+      user-select: none;
+      padding: 2px 0;
+      margin-bottom: 0.2rem;
+    }
+
+    .cr-panel-section-header:hover .cr-panel-section-title {
+      color: var(--accent);
+    }
+
     .cr-panel-section-title {
       font-family: 'DM Mono', monospace;
       font-size: 0.58rem;
       letter-spacing: 0.12em;
       color: var(--text3);
       text-transform: uppercase;
-      margin-bottom: 0.2rem;
+      transition: color 0.15s;
     }
 
     .cr-ig-share-btn {
