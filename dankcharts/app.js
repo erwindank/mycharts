@@ -11536,6 +11536,7 @@ document.addEventListener('keydown', e => {
   mc.on('swipeleft swiperight', e => {
     if (!['week', 'month', 'year'].includes(currentPeriod)) return;
     if (e.srcEvent?.target?.tagName === 'CANVAS') return;
+    document.getElementById('navHint')?.classList.add('swipe-done');
     if (e.direction === Hammer.DIRECTION_LEFT) {
       // Swipe left → go forward (earlier offset - 1)
       const btn = document.getElementById('nextBtn');

@@ -7953,8 +7953,49 @@ body.pink-light .hero-stats {
 }
 
 .nav-hint-swipe { display: none; }
+.swipe-arrow { display: inline-block; }
+
+@keyframes swipeHintGlow {
+  0%, 100% {
+    box-shadow: 0 2px 6px transparent;
+    border-color: var(--border);
+    color: var(--text2);
+    background: var(--bg3);
+  }
+  50% {
+    box-shadow: 0 2px 16px color-mix(in srgb, var(--accent) 50%, transparent);
+    border-color: var(--accent);
+    color: var(--accent);
+    background: color-mix(in srgb, var(--accent) 8%, var(--bg3));
+  }
+}
+@keyframes swipeNudgeLeft {
+  0%, 100% { transform: translateX(0); }
+  50% { transform: translateX(-4px); }
+}
+@keyframes swipeNudgeRight {
+  0%, 100% { transform: translateX(0); }
+  50% { transform: translateX(4px); }
+}
 
 @media (max-width: 600px) {
   .nav-hint-keyboard { display: none; }
-  .nav-hint-swipe { display: inline; }
+  .nav-hint-swipe {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+  }
+  .nav-hint:not(.swipe-done) {
+    animation: swipeHintGlow 1.8s ease-in-out infinite;
+  }
+  .nav-hint:not(.swipe-done) .swipe-arrow-left {
+    animation: swipeNudgeLeft 1.8s ease-in-out infinite;
+  }
+  .nav-hint:not(.swipe-done) .swipe-arrow-right {
+    animation: swipeNudgeRight 1.8s ease-in-out infinite;
+  }
+  .nav-hint.swipe-done {
+    animation: none;
+    transition: color 0.5s, border-color 0.5s, box-shadow 0.5s, background 0.5s;
+  }
 }
