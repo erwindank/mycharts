@@ -4466,9 +4466,11 @@ function renderAll() {
   document.getElementById('chartSizeBar').style.display = paginated ? 'none' : 'flex';
   document.getElementById('paginatedSizeBar').style.display = paginated ? 'flex' : 'none';
   document.getElementById('chartDisplayToggles').style.display =
-    ['week', 'month', 'year'].includes(currentPeriod) ? 'flex' : 'none';
+    ['week', 'month', 'year', 'alltime'].includes(currentPeriod) ? 'flex' : 'none';
   document.getElementById('togglePeakTagsBtn').style.display =
-    currentPeriod === 'year' ? 'none' : '';
+    (currentPeriod === 'year' || currentPeriod === 'alltime') ? 'none' : '';
+  document.getElementById('togglePlaysPeakBtn').style.display =
+    currentPeriod === 'alltime' ? 'none' : '';
   if (paginated) {
     document.getElementById('sizeBtnsYearly').style.display = currentPeriod === 'year' ? 'flex' : 'none';
     document.getElementById('sizeBtnsAllTime').style.display = currentPeriod === 'alltime' ? 'flex' : 'none';
@@ -4751,7 +4753,7 @@ function renderPage(type, peaks) {
   const rankMap = new Map(allData.map((item, i) => [item, i + 1]));
   const rankOf = (item) => rankMap.get(item) || 0;
 
-  const hasCR = (currentPeriod === 'year');
+  const hasCR = (currentPeriod === 'year' || currentPeriod === 'alltime');
   if (type === 'songs') {
     const imgItems = [];
     document.getElementById('songsBody').innerHTML = slice.flatMap((s, i) => {
@@ -4771,6 +4773,7 @@ function renderPage(type, peaks) {
         <td>
           <div class="song-title">${esc(s.title)}${certBadge(cumSongPlays, 'song')}</div>
           <div class="song-artist">${esc(s.artist)}</div>
+          <button class="yt-play-btn" data-title="${esc(s.title)}" data-artist="${esc(s.artist)}" data-album="${esc(s.album)}" onclick="event.stopPropagation();ytPlayFromBtn(this)" title="Play on YouTube"><span class="yt-btn-content"><svg class="yt-btn-icon" viewBox="0 0 24 24"><path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.5 12 3.5 12 3.5s-7.5 0-9.4.5A3 3 0 0 0 .5 6.2C0 8.1 0 12 0 12s0 3.9.5 5.8a3 3 0 0 0 2.1 2.1c1.9.5 9.4.5 9.4.5s7.5 0 9.4-.5a3 3 0 0 0 2.1-2.1C24 15.9 24 12 24 12s0-3.9-.5-5.8zM9.7 15.5V8.5l6.3 3.5-6.3 3.5z"/></svg>YouTube</span></button>
         </td>
         <td><div class="song-album">${esc(s.album)}${cumAlbumPlays ? certBadge(cumAlbumPlays, 'album') : ''}</div></td>
         <td>
@@ -4821,7 +4824,7 @@ function renderPage(type, peaks) {
         const ak = a.album + '|||' + a.artist;
         const prefKey = 'album:' + a.artist.toLowerCase() + '|||' + a.album.toLowerCase();
         const rowId = 'crr-yalbum-' + i;
-        const hasCR = chartRunData && !!chartRunData.result.albums[ak];
+        const hasCR = currentPeriod === 'alltime' || (chartRunData && !!chartRunData.result.albums[ak]);
         imgItems.push({ imgId, album: a.album, artist: a.artist, name: a.album, prefKey });
         const cumAlbumPlays = cumulativeMaps ? (cumulativeMaps.albums[ak] || a.count) : a.count;
         const histMaxAlbum = playsPeakMaps ? (playsPeakMaps.albums[ak] || 0) : 0;
@@ -5022,7 +5025,7 @@ function buildCrPanelHTML(type, key) {
   </div>`;
 
   let sectionsHtml = '';
-  if (currentPeriod === 'year') {
+  if (currentPeriod === 'year' || currentPeriod === 'alltime') {
     sectionsHtml = [
       { id: 'year', label: t('cr_yearly_label') },
       { id: 'month', label: t('cr_monthly_label') },
@@ -5044,7 +5047,315 @@ function buildCrPanelHTML(type, key) {
       ? `<div class="cr-stats">${crStats(type, key, currentPeriod, null, d)}</div>${crBoxesHTML(type, key, null, d, currentPeriod)}`
       : `<div style="font-size:0.6rem;color:var(--text3);padding:4px 0">${t('cr_no_history')}</div>`;
   }
-  return headerHtml + toggleHtml + sectionsHtml;
+
+  const encodedType = esc(type);
+  const encodedKey = esc(key);
+  const heatmapHtml = `<div class="cr-subsection">
+    <div class="cr-subsection-header" onclick="toggleCrSubsection(this)">
+      <span class="cr-subsection-toggle">▶</span>
+      <span class="cr-subsection-label">LISTENING HEATMAP</span>
+    </div>
+    <div class="cr-subsection-body" style="display:none;" data-crtype="${encodedType}" data-crkey="${encodedKey}" data-crkind="heatmap"></div>
+  </div>`;
+
+  const rawDataHtml = `<div class="cr-subsection">
+    <div class="cr-subsection-header" onclick="toggleCrSubsection(this)">
+      <span class="cr-subsection-toggle">▶</span>
+      <span class="cr-subsection-label">FULL STREAMING HISTORY</span>
+    </div>
+    <div class="cr-subsection-body" style="display:none;" data-crtype="${encodedType}" data-crkey="${encodedKey}" data-crkind="rawdata"></div>
+  </div>`;
+
+  return headerHtml + toggleHtml + sectionsHtml + heatmapHtml + rawDataHtml;
+}
+
+function toggleCrSubsection(headerEl) {
+  const body = headerEl.nextElementSibling;
+  const toggle = headerEl.querySelector('.cr-subsection-toggle');
+  const isOpen = body.style.display !== 'none';
+  if (!isOpen && !body.dataset.loaded) {
+    const type = body.dataset.crtype;
+    const key = body.dataset.crkey;
+    const kind = body.dataset.crkind;
+    if (kind === 'heatmap') body.innerHTML = buildItemHeatmapHTML(type, key);
+    else if (kind === 'rawdata') body.innerHTML = buildItemRawDataHTML(type, key);
+    body.dataset.loaded = '1';
+  }
+  body.style.display = isOpen ? 'none' : '';
+  toggle.textContent = isOpen ? '▶' : '▼';
+}
+
+const _crHeatmapData = new Map();
+
+// Delegated tooltip handler for item heatmaps embedded in cr-panels
+(function () {
+  document.addEventListener('mouseover', e => {
+    const cell = e.target.closest('.heatmap-cell.has-data');
+    if (!cell) return;
+    const container = cell.closest('.cr-item-heatmap');
+    if (!container) return;
+    const tip = document.getElementById('heatmapTooltip');
+    if (!tip) return;
+    const stored = _crHeatmapData.get(container.id);
+    if (!stored) return;
+
+    const dk = cell.dataset.dk;
+    const dayData = stored.dayMap[dk];
+    if (!dayData) return;
+
+    const msEntry = stored.msMap[dk];
+    const d = new Date(dk + 'T00:00:00');
+    const dayName = d.toLocaleDateString('en-US', { weekday: 'long' });
+    const monthName = d.toLocaleDateString('en-US', { month: 'long' });
+    const word = dayData.count === 1 ? 'play' : 'plays';
+    const bestHtml = dk === stored.bestDk ? '<div class="hm-tt-best">⭐ Best listening day for this item</div>' : '';
+
+    let msHtml = '';
+    if (msEntry && msEntry.allTime.length) {
+      msHtml = '<hr class="hm-tt-rule">';
+      for (const m of msEntry.allTime) {
+        const icon = m.isYearFirst ? '🎆' : '🏆';
+        msHtml += `<div class="hm-tt-ms-wrap">
+          <div class="hm-tt-ms-label hm-tt-ms-alltime">${icon} ${esc(m.label)}</div>
+          <div class="hm-tt-ms-track">${esc(m.play.title)}</div>
+          <div class="hm-tt-ms-artist">${esc(m.play.artist)}</div>
+        </div>`;
+      }
+    }
+
+    tip.innerHTML = `<div class="hm-tt-date">${dayName} ${d.getDate()} ${esc(monthName)} ${d.getFullYear()}</div>
+      <div class="hm-tt-count">${dayData.count.toLocaleString()} ${word}</div>
+      ${bestHtml}${msHtml}`;
+    tip.style.display = 'block';
+
+    const rect = cell.getBoundingClientRect();
+    const margin = 12;
+    const tw = tip.offsetWidth || 220;
+    const th = tip.offsetHeight || 120;
+    let x = rect.right + margin;
+    let y = rect.top - 4;
+    if (x + tw > window.innerWidth - 8) x = rect.left - tw - margin;
+    if (y + th > window.innerHeight - 8) y = Math.max(8, window.innerHeight - th - 8);
+    tip.style.left = x + 'px';
+    tip.style.top = y + 'px';
+  });
+
+  document.addEventListener('mouseout', e => {
+    const cell = e.target.closest('.heatmap-cell.has-data');
+    if (!cell || !cell.closest('.cr-item-heatmap')) return;
+    if (e.relatedTarget && e.relatedTarget.closest('.cr-item-heatmap')) return;
+    const tip = document.getElementById('heatmapTooltip');
+    if (tip) tip.style.display = 'none';
+  });
+}());
+
+function buildItemHeatmapHTML(type, key) {
+  const MILESTONES = new Set([1, 5, 10, 25, 50, 100, 250, 500, 1000, 2500, 5000, 10000]);
+
+  const itemPlays = allPlays.filter(p => {
+    if (type === 'songs') return songKey(p) === key;
+    if (type === 'artists') return p.artists.includes(key);
+    if (type === 'albums') { const parts = key.split('|||'); return p.album === parts[0] && albumArtist(p) === parts[1]; }
+    return false;
+  });
+  if (!itemPlays.length) return '<div style="font-size:0.6rem;color:var(--text3);padding:4px 0">No play history found.</div>';
+
+  const chrono = [...itemPlays].sort((a, b) => a.date - b.date);
+
+  // Build dayMap with play lists
+  const dayMap = {};
+  for (const p of chrono) {
+    const dk = localDateStr(tzDate(p.date));
+    if (!dayMap[dk]) dayMap[dk] = { count: 0, plays: [] };
+    dayMap[dk].count++;
+    dayMap[dk].plays.push(p);
+  }
+
+  // Build milestones — cumulative listens + first listen of each year
+  const msMap = {};
+  let cumCount = 0;
+  const firstPlayOfYear = {};
+  for (const p of chrono) {
+    cumCount++;
+    const dk = localDateStr(tzDate(p.date));
+    const yr = tzDate(p.date).getFullYear();
+    if (!firstPlayOfYear[yr]) {
+      firstPlayOfYear[yr] = p;
+      if (!msMap[dk]) msMap[dk] = { allTime: [] };
+      msMap[dk].allTime.push({ label: `First listen of ${yr}`, play: p, isYearFirst: true });
+    }
+    if (MILESTONES.has(cumCount) || (type === 'songs' && cumCount % 50 === 0)) {
+      if (!msMap[dk]) msMap[dk] = { allTime: [] };
+      msMap[dk].allTime.push({ label: `${hmOrdinal(cumCount)} listen`, play: p });
+    }
+  }
+
+  const allDayKeys = Object.keys(dayMap).sort();
+  const today = localDateStr(tzNow());
+  const firstDate = new Date(allDayKeys[0] + 'T00:00:00');
+  const lastDate = new Date(today + 'T00:00:00');
+
+  let maxCount = 1, bestDk = '';
+  for (const [dk, d] of Object.entries(dayMap)) {
+    if (d.count > maxCount) { maxCount = d.count; bestDk = dk; }
+  }
+
+  const containerId = 'crhm-' + Math.random().toString(36).slice(2, 10);
+  _crHeatmapData.set(containerId, { dayMap, msMap, bestDk });
+
+  const startDow = firstDate.getDay();
+  const padStart = startDow === 0 ? 6 : startDow - 1;
+  const gridStart = new Date(firstDate);
+  gridStart.setDate(gridStart.getDate() - padStart);
+
+  const yearGroups = {};
+  const cur = new Date(gridStart);
+  while (cur <= lastDate) {
+    const thu = new Date(cur); thu.setDate(thu.getDate() + 3);
+    const yr = thu.getFullYear();
+    if (!yearGroups[yr]) yearGroups[yr] = [];
+    const week = [];
+    for (let i = 0; i < 7; i++) {
+      const dk = localDateStr(cur);
+      week.push({ dk, count: dayMap[dk]?.count || 0, inRange: cur >= firstDate && cur <= lastDate });
+      cur.setDate(cur.getDate() + 1);
+    }
+    yearGroups[yr].push(week);
+  }
+
+  let html = '';
+  for (const yr of Object.keys(yearGroups).sort((a, b) => +a - +b)) {
+    const weeks = yearGroups[yr];
+    let monthHtml = '', lastMonth = -1;
+    for (const week of weeks) {
+      const month = new Date(week[0].dk + 'T00:00:00').getMonth();
+      if (week[0].inRange && month !== lastMonth) {
+        monthHtml += `<div class="heatmap-week-col heatmap-month-header-row" style="position:relative;"><span class="heatmap-month-label">${HM_MONTHS[month]}</span></div>`;
+        lastMonth = month;
+      } else monthHtml += '<div class="heatmap-week-col heatmap-month-header-row"></div>';
+    }
+    let cellsHtml = '';
+    for (const week of weeks) {
+      cellsHtml += '<div class="heatmap-week-col">';
+      for (const cell of week) {
+        if (!cell.inRange) { cellsHtml += '<div class="heatmap-cell" style="background:transparent;cursor:default;"></div>'; continue; }
+        const bg = cell.count === 0 ? 'transparent' : hmCellColor(cell.count, maxCount);
+        const cls = cell.count > 0 ? 'heatmap-cell has-data' : 'heatmap-cell';
+        const dkAttr = cell.count > 0 ? ` data-dk="${cell.dk}"` : '';
+        cellsHtml += `<div class="${cls}" style="background:${bg};"${dkAttr}></div>`;
+      }
+      cellsHtml += '</div>';
+    }
+    html += `<div class="heatmap-year-block">
+      <div class="heatmap-year-header">${yr}</div>
+      <div class="heatmap-outer">
+        <div class="heatmap-dow-labels">${HM_DOW_LABELS.map(l => `<div class="heatmap-dow-label">${l}</div>`).join('')}</div>
+        <div class="heatmap-inner"><div class="heatmap-grid-wrap">
+          <div class="heatmap-weeks-row" style="height:16px;margin-bottom:3px;">${monthHtml}</div>
+          <div class="heatmap-weeks-row">${cellsHtml}</div>
+        </div></div>
+      </div>
+    </div>`;
+  }
+  const legendCells = [0, 0.2, 0.45, 0.7, 1].map(r => {
+    const cnt = r === 0 ? 0 : Math.round(Math.exp(r * Math.log1p(maxCount)) - 1);
+    return `<div class="heatmap-cell" style="background:${hmCellColor(cnt, maxCount)};cursor:default;"></div>`;
+  }).join('');
+  html += `<div class="heatmap-legend" style="margin-top:0.5rem;"><span class="heatmap-legend-label">Less</span>${legendCells}<span class="heatmap-legend-label">More</span></div>`;
+  return `<div class="cr-item-heatmap" id="${containerId}">${html}</div>`;
+}
+
+let _rawDataCtr = 0;
+const _rawDataPlaysCache = new Map();
+
+function buildItemRawDataHTML(type, key) {
+  const itemPlays = allPlays.filter(p => {
+    if (type === 'songs') return songKey(p) === key;
+    if (type === 'artists') return p.artists.includes(key);
+    if (type === 'albums') { const parts = key.split('|||'); return p.album === parts[0] && albumArtist(p) === parts[1]; }
+    return false;
+  });
+  if (!itemPlays.length) return '<div style="font-size:0.6rem;color:var(--text3);padding:4px 0">No play history found.</div>';
+  const cid = 'rawdata-' + (++_rawDataCtr);
+  _rawDataPlaysCache.set(cid, itemPlays);
+  const initialRows = _rawDataRows(itemPlays, 'date', 'desc', '');
+  return `<div id="${cid}" class="cr-rawdata-wrap" data-sort="date" data-dir="desc">
+    <div class="cr-rawdata-controls">
+      <input class="cr-rawdata-search" type="text" placeholder="Search…" oninput="rawDataFilter('${cid}')">
+      <span class="cr-rawdata-count" id="${cid}-count">${itemPlays.length.toLocaleString()} plays</span>
+    </div>
+    <div style="overflow-x:auto;max-height:400px;overflow-y:auto;">
+      <table class="raw-table" style="font-size:0.62rem;">
+        <thead><tr>
+          <th class="raw-num">#</th>
+          <th data-col="date" class="sort-active" onclick="rawDataSort('${cid}','date')">Date <span class="sort-arrow">↓</span></th>
+          <th data-col="title" onclick="rawDataSort('${cid}','title')">Title <span class="sort-arrow">↕</span></th>
+          <th data-col="artist" onclick="rawDataSort('${cid}','artist')">Artist <span class="sort-arrow">↕</span></th>
+          <th data-col="album" class="raw-album" onclick="rawDataSort('${cid}','album')">Album <span class="sort-arrow">↕</span></th>
+        </tr></thead>
+        <tbody id="${cid}-body">${initialRows}</tbody>
+      </table>
+    </div>
+  </div>`;
+}
+
+function _rawDataRows(plays, sort, dir, query) {
+  let list = query ? plays.filter(p => {
+    const q = query.toLowerCase();
+    return p.title.toLowerCase().includes(q) || p.artist.toLowerCase().includes(q) || p.album.toLowerCase().includes(q);
+  }) : plays;
+  list = [...list].sort((a, b) => {
+    let cmp = 0;
+    if (sort === 'date') cmp = a.date - b.date;
+    else if (sort === 'title') cmp = a.title.localeCompare(b.title);
+    else if (sort === 'artist') cmp = a.artist.localeCompare(b.artist);
+    else if (sort === 'album') cmp = a.album.localeCompare(b.album);
+    return dir === 'asc' ? cmp : -cmp;
+  });
+  if (!list.length) return `<tr><td colspan="5" style="text-align:center;color:var(--text3);padding:8px 0;font-size:0.62rem;">No results</td></tr>`;
+  return list.map((p, i) => `<tr>
+    <td class="raw-num">${(i + 1).toLocaleString()}</td>
+    <td class="raw-date">${rawFmtDate(p.date)}</td>
+    <td class="raw-title">${esc(p.title)}</td>
+    <td>${esc(p.artist)}</td>
+    <td class="raw-album">${esc(p.album)}</td>
+  </tr>`).join('');
+}
+
+function rawDataFilter(cid) {
+  const wrap = document.getElementById(cid);
+  if (!wrap) return;
+  _rawDataRender(cid, wrap.dataset.sort, wrap.dataset.dir, wrap.querySelector('.cr-rawdata-search').value);
+}
+
+function rawDataSort(cid, col) {
+  const wrap = document.getElementById(cid);
+  if (!wrap) return;
+  const newDir = wrap.dataset.sort === col ? (wrap.dataset.dir === 'asc' ? 'desc' : 'asc') : (col === 'date' ? 'desc' : 'asc');
+  wrap.dataset.sort = col;
+  wrap.dataset.dir = newDir;
+  _rawDataRender(cid, col, newDir, wrap.querySelector('.cr-rawdata-search').value);
+}
+
+function _rawDataRender(cid, sort, dir, query) {
+  const wrap = document.getElementById(cid);
+  const tbody = document.getElementById(cid + '-body');
+  const countEl = document.getElementById(cid + '-count');
+  if (!wrap || !tbody) return;
+  const plays = _rawDataPlaysCache.get(cid) || [];
+  tbody.innerHTML = _rawDataRows(plays, sort, dir, query);
+  const visibleCount = query
+    ? plays.filter(p => { const q = query.toLowerCase(); return p.title.toLowerCase().includes(q) || p.artist.toLowerCase().includes(q) || p.album.toLowerCase().includes(q); }).length
+    : plays.length;
+  if (countEl) countEl.textContent = query
+    ? `${visibleCount.toLocaleString()} of ${plays.length.toLocaleString()} plays`
+    : `${plays.length.toLocaleString()} plays`;
+  wrap.querySelectorAll('thead th[data-col]').forEach(th => {
+    const active = th.dataset.col === sort;
+    th.classList.toggle('sort-active', active);
+    const arrow = th.querySelector('.sort-arrow');
+    if (arrow) arrow.textContent = active ? (dir === 'asc' ? '↑' : '↓') : '↕';
+  });
 }
 
 function setCrRangeMode(mode, type, encodedKey) {
