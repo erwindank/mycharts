@@ -7952,6 +7952,9 @@ body.pink-light .hero-stats {
   color: var(--text);
 }
 
+.nav-hint-swipe { display: none; }
+
 @media (max-width: 600px) {
-  .nav-hint { display: none; }
+  .nav-hint-keyboard { display: none; }
+  .nav-hint-swipe { display: inline; }
 }
