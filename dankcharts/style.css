@@ -7954,6 +7954,7 @@ body.pink-light .hero-stats {
 
 .nav-hint-swipe { display: none; }
 .swipe-arrow { display: inline-block; }
+.swipe-arrow.swipe-arrow-off { opacity: 0.2; animation: none !important; }
 
 @keyframes swipeHintGlow {
   0%, 100% {

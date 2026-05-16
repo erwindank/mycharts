@@ -4484,8 +4484,12 @@ function renderAll() {
   // Update date nav
   const pl = document.getElementById('periodLabel');
   pl.innerHTML = `<strong>${label}</strong><span class="period-sub">${sub}</span>`;
-  document.getElementById('prevBtn').disabled = (currentPeriod === 'alltime');
-  document.getElementById('nextBtn').disabled = (currentOffset === 0 || currentPeriod === 'alltime');
+  const _prevDis = (currentPeriod === 'alltime');
+  const _nextDis = (currentOffset === 0 || currentPeriod === 'alltime');
+  document.getElementById('prevBtn').disabled = _prevDis;
+  document.getElementById('nextBtn').disabled = _nextDis;
+  document.querySelector('.swipe-arrow-left')?.classList.toggle('swipe-arrow-off', _nextDis);
+  document.querySelector('.swipe-arrow-right')?.classList.toggle('swipe-arrow-off', _prevDis);
   syncPicker();
 
   // Stats — use split artists for accurate unique artist count
