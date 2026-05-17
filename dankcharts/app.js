@@ -3830,6 +3830,7 @@ document.getElementById('periodNav').addEventListener('click', e => {
     document.getElementById('recentSection').style.display = 'none';
     document.getElementById('recordsView').style.display = 'none';
     document.getElementById('rawDataView').style.display = 'none';
+    document.getElementById('eventsView').style.display = 'none';
     document.getElementById('graphsView').style.display = 'block';
     if (allPlays.length) renderGraphs();
     updateScrobbleBtn();
@@ -3858,6 +3859,7 @@ document.getElementById('periodNav').addEventListener('click', e => {
     document.getElementById('recentSection').style.display = 'none';
     document.getElementById('rawDataView').style.display = 'none';
     document.getElementById('graphsView').style.display = 'none';
+    document.getElementById('eventsView').style.display = 'none';
     document.getElementById('recordsView').style.display = 'block';
     initRecordsViewUI();
     restoreRecordSectionCollapseState();
