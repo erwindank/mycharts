@@ -4158,6 +4158,31 @@ function buildPeriodTypePeakStatsUpTo(periodType, cutoffKey) {
   return _maxStatsFromMap(_buildPeriodPlaysMap(periodType, cutoffKey));
 }
 
+// Returns the peak new-song/artist/album counts across all periods of this type, optionally capped at cutoffKey
+function buildNewEntryPeakStats(periodType, cutoffKey) {
+  if (!firstSeenMaps) firstSeenMaps = buildFirstSeenMaps();
+  const { songFirst, artistFirst, albumFirst } = firstSeenMaps;
+  const playsMap = _buildPeriodPlaysMap(periodType, cutoffKey);
+  let maxNewSongs = 0, maxNewArtists = 0, maxNewAlbums = 0;
+  for (const [key, pp] of Object.entries(playsMap)) {
+    let ps;
+    if (periodType === 'week') { const [y, m, d] = key.split('-').map(Number); ps = new Date(y, m - 1, d); }
+    else if (periodType === 'month') { const [y, m] = key.split('-').map(Number); ps = new Date(y, m - 1, 1); }
+    else { ps = new Date(Number(key), 0, 1); }
+    const ns = new Set(), na = new Set(), nb = new Set();
+    for (const p of pp) {
+      const sk = songKey(p);
+      if (songFirst[sk] && songFirst[sk] >= ps) ns.add(sk);
+      for (const a of p.artists) { if (artistFirst[a] && artistFirst[a] >= ps) na.add(a); }
+      if (p.album && p.album !== '—') { const ak = p.album + '|||' + albumArtist(p); if (albumFirst[ak] && albumFirst[ak] >= ps) nb.add(ak); }
+    }
+    maxNewSongs   = Math.max(maxNewSongs,   ns.size);
+    maxNewArtists = Math.max(maxNewArtists, na.size);
+    maxNewAlbums  = Math.max(maxNewAlbums,  nb.size);
+  }
+  return { maxNewSongs, maxNewArtists, maxNewAlbums };
+}
+
 // Returns the week key for the period currently being viewed (based on currentOffset).
 function currentViewWeekKey() {
   const now = tzNow();
@@ -4514,9 +4539,8 @@ function renderAll() {
   const albumSet = new Set(plays.map(p => p.album).filter(a => a && a !== '—'));
 
   // Compute previous period plays for delta comparison
-  let prevPlays = null;
+  let prevPlays = null, prevStart = null, prevEnd = null;
   if (currentPeriod !== 'alltime') {
-    let prevStart, prevEnd;
     const _pnow = tzNow();
     if (currentPeriod === 'week') {
       const dow = _pnow.getDay();
@@ -4537,9 +4561,8 @@ function renderAll() {
   }
 
   // Compute all-time peak stats and peak-at-the-time stats per period type
-  let peakStats = null, peakAtTimeStats = null;
+  let peakStats = null, peakAtTimeStats = null, cutoffKey = null;
   if (currentPeriod !== 'alltime') {
-    let cutoffKey;
     if (currentPeriod === 'week') {
       cutoffKey = localDateStr(start); // start is already the week-start fake-local Date
     } else if (currentPeriod === 'month') {
@@ -4589,14 +4612,31 @@ function renderAll() {
   const strip2El = document.getElementById('statsStrip2');
   const showStrip2 = ['week', 'month', 'year'].includes(currentPeriod) && plays.length > 0;
   if (showStrip2 && strip2El) {
-    // New songs/artists/albums: first-ever appearance falls within current period
-    const playsBeforeStart = allPlays.filter(p => tzDate(p.date) < start);
-    const songsBeforeStart  = new Set(playsBeforeStart.map(p => songKey(p)));
-    const artistsBeforeStart = new Set(playsBeforeStart.flatMap(p => p.artists));
-    const albumsBeforeStart  = new Set(playsBeforeStart.map(p => p.album).filter(a => a && a !== '—'));
-    const newSongsCount   = [...songSet].filter(s => !songsBeforeStart.has(s)).length;
-    const newArtistsCount = [...artistSet].filter(a => !artistsBeforeStart.has(a)).length;
-    const newAlbumsCount  = [...albumSet].filter(a => !albumsBeforeStart.has(a)).length;
+    if (!firstSeenMaps) firstSeenMaps = buildFirstSeenMaps();
+    const { songFirst, artistFirst, albumFirst } = firstSeenMaps;
+
+    // New songs/artists/albums in current period (first-ever appearance)
+    const newSongsCount   = [...songSet].filter(s => songFirst[s] && songFirst[s] >= start).length;
+    const newArtistsCount = [...artistSet].filter(a => artistFirst[a] && artistFirst[a] >= start).length;
+    const newAlbumsCount  = new Set(plays
+      .filter(p => p.album && p.album !== '—')
+      .map(p => p.album + '|||' + albumArtist(p))
+      .filter(ak => albumFirst[ak] && albumFirst[ak] >= start)).size;
+
+    // Previous period new counts
+    let prevNewSongs = null, prevNewArtists = null, prevNewAlbums = null;
+    if (prevPlays && prevStart) {
+      const pSongSet     = new Set(prevPlays.map(p => songKey(p)));
+      const pArtistSet   = new Set(prevPlays.flatMap(p => p.artists));
+      const pAlbumKeySet = new Set(prevPlays.filter(p => p.album && p.album !== '—').map(p => p.album + '|||' + albumArtist(p)));
+      prevNewSongs   = [...pSongSet].filter(s => songFirst[s] && songFirst[s] >= prevStart).length;
+      prevNewArtists = [...pArtistSet].filter(a => artistFirst[a] && artistFirst[a] >= prevStart).length;
+      prevNewAlbums  = [...pAlbumKeySet].filter(ak => albumFirst[ak] && albumFirst[ak] >= prevStart).length;
+    }
+
+    // All-time peak and peak-at-time for new entry counts
+    const newPeakStats       = buildNewEntryPeakStats(currentPeriod, null);
+    const newPeakAtTimeStats = buildNewEntryPeakStats(currentPeriod, cutoffKey);
 
     // Song of the moment: most played song in the 15 days ending at period end
     const sotmEnd   = end;
@@ -4612,6 +4652,19 @@ function renderAll() {
     }
     const sotmTitle = sotmKey ? sotmKey.split('|||')[0] : null;
 
+    function statBox2(val, label, prevVal, maxAllTime, maxAtTime) {
+      const isAllTimePeak = maxAllTime !== null && val > 0 && val >= maxAllTime;
+      const isAtTimePeak  = maxAtTime  !== null && val > 0 && val >= maxAtTime;
+      const allTimeBadge  = isAllTimePeak ? `<div class="stat-peak-badge stat-peak-badge-alltime">★ ALL-TIME PEAK</div>` : '';
+      const atTimeBadge   = isAtTimePeak  ? `<div class="stat-peak-badge stat-peak-badge-attime">◆ PEAK AT THE TIME</div>` : '';
+      const boxClass      = isAllTimePeak ? ' stat-peak-alltime' : isAtTimePeak ? ' stat-peak-attime' : '';
+      return `<div class="stat-box stat-box-sub${boxClass}">
+        <div class="stat-val">${val.toLocaleString()}</div>
+        <div class="stat-label">${label}</div>
+        ${statDelta(val, prevVal)}${allTimeBadge}${atTimeBadge}
+      </div>`;
+    }
+
     const sotmBox = sotmTitle
       ? `<div class="stat-box stat-box-sub">
           <div class="stat-val">${sotmCount}</div>
@@ -4624,9 +4677,9 @@ function renderAll() {
         </div>`;
 
     strip2El.innerHTML = sotmBox +
-      `<div class="stat-box stat-box-sub"><div class="stat-val">${newSongsCount}</div><div class="stat-label">NEW SONGS</div></div>` +
-      `<div class="stat-box stat-box-sub"><div class="stat-val">${newArtistsCount}</div><div class="stat-label">NEW ARTISTS</div></div>` +
-      `<div class="stat-box stat-box-sub"><div class="stat-val">${newAlbumsCount}</div><div class="stat-label">NEW ALBUMS</div></div>`;
+      statBox2(newSongsCount,   'NEW SONGS',   prevNewSongs,   newPeakStats.maxNewSongs,   newPeakAtTimeStats.maxNewSongs) +
+      statBox2(newArtistsCount, 'NEW ARTISTS', prevNewArtists, newPeakStats.maxNewArtists, newPeakAtTimeStats.maxNewArtists) +
+      statBox2(newAlbumsCount,  'NEW ALBUMS',  prevNewAlbums,  newPeakStats.maxNewAlbums,  newPeakAtTimeStats.maxNewAlbums);
     strip2El.style.display = '';
     if (strip1El) strip1El.style.marginBottom = '0';
   } else if (strip2El) {
