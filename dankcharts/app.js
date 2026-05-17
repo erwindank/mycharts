@@ -4183,6 +4183,57 @@ function buildNewEntryPeakStats(periodType, cutoffKey) {
   return { maxNewSongs, maxNewArtists, maxNewAlbums };
 }
 
+// ─── STAT STRIP HELPERS ────────────────────────────────────────
+
+function buildSparklineValues(periodType, cutoffKey, n) {
+  const playsMap = _buildPeriodPlaysMap(periodType, cutoffKey);
+  const keys = Object.keys(playsMap).sort().slice(-n);
+  return {
+    plays:   keys.map(k => playsMap[k].length),
+    songs:   keys.map(k => new Set(playsMap[k].map(p => songKey(p))).size),
+    artists: keys.map(k => new Set(playsMap[k].flatMap(p => p.artists)).size),
+    albums:  keys.map(k => new Set(playsMap[k].map(p => p.album).filter(a => a && a !== '—')).size),
+  };
+}
+
+function sparklineSvg(vals) {
+  if (!vals || vals.length < 2) return '';
+  const w = 56, h = 20;
+  const max = Math.max(...vals), min = Math.min(...vals);
+  const rng = max - min || 1;
+  const n = vals.length;
+  const pts = vals.map((v, i) =>
+    `${((i / (n - 1)) * w).toFixed(1)},${(h - 2 - ((v - min) / rng) * (h - 4)).toFixed(1)}`
+  ).join(' ');
+  const lx = w, ly = +(h - 2 - ((vals[n - 1] - min) / rng) * (h - 4)).toFixed(1);
+  return `<svg class="stat-sparkline" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none"><polyline points="${pts}"/><circle cx="${lx}" cy="${ly}" r="2.5"/></svg>`;
+}
+
+function animateStatStrip(containerEl) {
+  const targets = [...containerEl.querySelectorAll('.stat-val[data-val]')];
+  if (!targets.length) return;
+  const finals = targets.map(el => parseInt(el.dataset.val, 10));
+  const dur = 550;
+  const t0 = performance.now();
+  function tick(now) {
+    const p = Math.min((now - t0) / dur, 1);
+    const ease = 1 - Math.pow(1 - p, 3);
+    targets.forEach((el, i) => { if (!isNaN(finals[i])) el.textContent = Math.round(ease * finals[i]).toLocaleString(); });
+    if (p < 1) requestAnimationFrame(tick);
+  }
+  requestAnimationFrame(tick);
+}
+
+function dcScrollTo(sectionId) {
+  const el = document.getElementById(sectionId);
+  if (!el || el.style.display === 'none') return;
+  if (el.classList.contains('collapsed')) {
+    const btn = el.querySelector('.section-collapse-btn');
+    if (btn) btn.click();
+  }
+  setTimeout(() => el.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50);
+}
+
 // Returns the week key for the period currently being viewed (based on currentOffset).
 function currentViewWeekKey() {
   const now = tzNow();
@@ -4579,6 +4630,18 @@ function renderAll() {
   const prevSongSet   = prevPlays ? new Set(prevPlays.map(p => songKey(p))) : null;
   const prevAlbumSet  = prevPlays ? new Set(prevPlays.map(p => p.album).filter(a => a && a !== '—')) : null;
 
+  // Pre-compute extras for stat boxes
+  const _showStrip2 = ['week', 'month', 'year'].includes(currentPeriod) && plays.length > 0;
+  const _numDays = currentPeriod !== 'alltime' ? Math.max(1, Math.round((end - start) / 86400000) + 1) : null;
+  const playsPerDay = (_numDays && _numDays > 1 && plays.length > 0) ? (plays.length / _numDays).toFixed(1) : null;
+  const sparkData = cutoffKey ? buildSparklineValues(currentPeriod, cutoffKey, 8) : null;
+  let discoveryRate = null;
+  if (_showStrip2 && songSet.size > 0) {
+    if (!firstSeenMaps) firstSeenMaps = buildFirstSeenMaps();
+    const _nsr = [...songSet].filter(s => firstSeenMaps.songFirst[s] && firstSeenMaps.songFirst[s] >= start).length;
+    discoveryRate = Math.round(_nsr / songSet.size * 100);
+  }
+
   function statDelta(cur, prevVal) {
     if (prevVal === null) return '';
     const diff = cur - prevVal;
@@ -4587,30 +4650,33 @@ function renderAll() {
     return `<div class="stat-delta same">= same</div>`;
   }
 
-  function statBox(val, i18nKey, prevVal, maxAllTime, maxAtTime) {
+  function statBox(val, i18nKey, prevVal, maxAllTime, maxAtTime, opts) {
+    const { scrollTo, sparkVals, extraLabel } = opts || {};
     const isAllTimePeak  = maxAllTime !== null && val > 0 && val >= maxAllTime;
     const isAtTimePeak   = maxAtTime  !== null && val > 0 && val >= maxAtTime;
     const allTimeBadge   = isAllTimePeak ? `<div class="stat-peak-badge stat-peak-badge-alltime">★ ALL-TIME PEAK</div>` : '';
     const atTimeBadge    = isAtTimePeak  ? `<div class="stat-peak-badge stat-peak-badge-attime">◆ PEAK AT THE TIME</div>` : '';
     const deltaHtml      = statDelta(val, prevVal);
     const boxClass       = isAllTimePeak ? ' stat-peak-alltime' : isAtTimePeak ? ' stat-peak-attime' : '';
-    return `<div class="stat-box${boxClass}">
-      <div class="stat-val">${val.toLocaleString()}</div>
+    const clickAttr      = scrollTo ? ` onclick="dcScrollTo('${scrollTo}')" title="Jump to section"` : '';
+    return `<div class="stat-box${boxClass}${scrollTo ? ' stat-clickable' : ''}"${clickAttr}>
+      <div class="stat-val" data-val="${val}">${val.toLocaleString()}</div>
       <div class="stat-label" data-i18n="${i18nKey}">${t(i18nKey)}</div>
-      ${deltaHtml}${allTimeBadge}${atTimeBadge}
+      ${deltaHtml}${allTimeBadge}${atTimeBadge}${extraLabel ? `<div class="stat-rate">${extraLabel}</div>` : ''}${sparklineSvg(sparkVals)}
     </div>`;
   }
 
   document.getElementById('statsStrip').innerHTML =
-    statBox(plays.length,   'stat_total_plays',  prevPlays     ? prevPlays.length     : null, peakStats ? peakStats.maxPlays   : null, peakAtTimeStats ? peakAtTimeStats.maxPlays   : null) +
-    statBox(songSet.size,   'stat_unique_songs',  prevSongSet   ? prevSongSet.size     : null, peakStats ? peakStats.maxSongs   : null, peakAtTimeStats ? peakAtTimeStats.maxSongs   : null) +
-    statBox(artistSet.size, 'stat_artists',       prevArtistSet ? prevArtistSet.size   : null, peakStats ? peakStats.maxArtists : null, peakAtTimeStats ? peakAtTimeStats.maxArtists : null) +
-    statBox(albumSet.size,  'stat_albums',        prevAlbumSet  ? prevAlbumSet.size    : null, peakStats ? peakStats.maxAlbums  : null, peakAtTimeStats ? peakAtTimeStats.maxAlbums  : null);
+    statBox(plays.length,   'stat_total_plays',  prevPlays     ? prevPlays.length     : null, peakStats ? peakStats.maxPlays   : null, peakAtTimeStats ? peakAtTimeStats.maxPlays   : null, { scrollTo: 'songsSection',   sparkVals: sparkData && sparkData.plays,   extraLabel: playsPerDay ? playsPerDay + '/day' : null }) +
+    statBox(songSet.size,   'stat_unique_songs',  prevSongSet   ? prevSongSet.size     : null, peakStats ? peakStats.maxSongs   : null, peakAtTimeStats ? peakAtTimeStats.maxSongs   : null, { scrollTo: 'songsSection',   sparkVals: sparkData && sparkData.songs,   extraLabel: discoveryRate !== null ? discoveryRate + '% NEW' : null }) +
+    statBox(artistSet.size, 'stat_artists',       prevArtistSet ? prevArtistSet.size   : null, peakStats ? peakStats.maxArtists : null, peakAtTimeStats ? peakAtTimeStats.maxArtists : null, { scrollTo: 'artistsSection', sparkVals: sparkData && sparkData.artists }) +
+    statBox(albumSet.size,  'stat_albums',        prevAlbumSet  ? prevAlbumSet.size    : null, peakStats ? peakStats.maxAlbums  : null, peakAtTimeStats ? peakAtTimeStats.maxAlbums  : null, { scrollTo: 'albumsSection',  sparkVals: sparkData && sparkData.albums });
+  animateStatStrip(document.getElementById('statsStrip'));
 
   // Second stats strip: song of the moment + new songs/artists/albums
   const strip1El = document.getElementById('statsStrip');
   const strip2El = document.getElementById('statsStrip2');
-  const showStrip2 = ['week', 'month', 'year'].includes(currentPeriod) && plays.length > 0;
+  const showStrip2 = _showStrip2;
   if (showStrip2 && strip2El) {
     if (!firstSeenMaps) firstSeenMaps = buildFirstSeenMaps();
     const { songFirst, artistFirst, albumFirst } = firstSeenMaps;
@@ -4650,36 +4716,63 @@ function renderAll() {
     for (const [k, c] of Object.entries(songCounts15)) {
       if (c > sotmCount) { sotmKey = k; sotmCount = c; }
     }
-    const sotmTitle = sotmKey ? sotmKey.split('|||')[0] : null;
+    const sotmTitle  = sotmKey ? sotmKey.split('|||')[0] : null;
+    const sotmArtist = sotmKey ? sotmKey.split('|||')[1] : null;
 
-    function statBox2(val, label, prevVal, maxAllTime, maxAtTime) {
+    function statBox2(val, label, prevVal, maxAllTime, maxAtTime, scrollTo) {
       const isAllTimePeak = maxAllTime !== null && val > 0 && val >= maxAllTime;
       const isAtTimePeak  = maxAtTime  !== null && val > 0 && val >= maxAtTime;
       const allTimeBadge  = isAllTimePeak ? `<div class="stat-peak-badge stat-peak-badge-alltime">★ ALL-TIME PEAK</div>` : '';
       const atTimeBadge   = isAtTimePeak  ? `<div class="stat-peak-badge stat-peak-badge-attime">◆ PEAK AT THE TIME</div>` : '';
       const boxClass      = isAllTimePeak ? ' stat-peak-alltime' : isAtTimePeak ? ' stat-peak-attime' : '';
-      return `<div class="stat-box stat-box-sub${boxClass}">
-        <div class="stat-val">${val.toLocaleString()}</div>
+      const clickAttr     = scrollTo ? ` onclick="dcScrollTo('${scrollTo}')" title="Jump to section"` : '';
+      return `<div class="stat-box stat-box-sub${boxClass}${scrollTo ? ' stat-clickable' : ''}"${clickAttr}>
+        <div class="stat-val" data-val="${val}">${val.toLocaleString()}</div>
         <div class="stat-label">${label}</div>
         ${statDelta(val, prevVal)}${allTimeBadge}${atTimeBadge}
       </div>`;
     }
 
+    // Best day in the period being viewed
+    const _dayCounts = {};
+    for (const p of allPlays) {
+      const pd = tzDate(p.date);
+      if (pd < start || pd > end) continue;
+      const dk = localDateStr(pd);
+      _dayCounts[dk] = (_dayCounts[dk] || 0) + 1;
+    }
+    let bestDay = null, bestDayCount = 0;
+    for (const [dk, cnt] of Object.entries(_dayCounts)) {
+      if (cnt > bestDayCount) { bestDay = dk; bestDayCount = cnt; }
+    }
+    const _mos = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
+    const bestDayLabel = bestDay ? (() => { const [, m, d] = bestDay.split('-').map(Number); return _mos[m - 1] + ' ' + d; })() : null;
+    const bestDayBox = bestDay
+      ? `<div class="stat-box stat-box-sub stat-clickable" onclick="dcScrollTo('songsSection')" title="Jump to section">
+          <div class="stat-val" data-val="${bestDayCount}">${bestDayCount}</div>
+          <div class="stat-sotm-title">${bestDayLabel}</div>
+          <div class="stat-label">BEST DAY</div>
+        </div>`
+      : '';
+
     const sotmBox = sotmTitle
-      ? `<div class="stat-box stat-box-sub">
-          <div class="stat-val">${sotmCount}</div>
+      ? `<div class="stat-box stat-box-sub stat-clickable" onclick="dcScrollTo('songsSection')" title="Jump to section">
+          <div class="stat-val" data-val="${sotmCount}">${sotmCount}</div>
           <div class="stat-sotm-title">${esc(sotmTitle)}</div>
-          <div class="stat-label">SONG OF THE MOMENT</div>
+          <div class="stat-sotm-artist">${esc(sotmArtist)}</div>
+          <div class="stat-label stat-label-sotm">SONG OF THE MOMENT</div>
         </div>`
       : `<div class="stat-box stat-box-sub">
           <div class="stat-val">—</div>
-          <div class="stat-label">SONG OF THE MOMENT</div>
+          <div class="stat-label stat-label-sotm">SONG OF THE MOMENT</div>
         </div>`;
 
     strip2El.innerHTML = sotmBox +
-      statBox2(newSongsCount,   'NEW SONGS',   prevNewSongs,   newPeakStats.maxNewSongs,   newPeakAtTimeStats.maxNewSongs) +
-      statBox2(newArtistsCount, 'NEW ARTISTS', prevNewArtists, newPeakStats.maxNewArtists, newPeakAtTimeStats.maxNewArtists) +
-      statBox2(newAlbumsCount,  'NEW ALBUMS',  prevNewAlbums,  newPeakStats.maxNewAlbums,  newPeakAtTimeStats.maxNewAlbums);
+      statBox2(newSongsCount,   'NEW SONGS',   prevNewSongs,   newPeakStats.maxNewSongs,   newPeakAtTimeStats.maxNewSongs,   'newSongsSection') +
+      statBox2(newArtistsCount, 'NEW ARTISTS', prevNewArtists, newPeakStats.maxNewArtists, newPeakAtTimeStats.maxNewArtists, 'newArtistsSection') +
+      statBox2(newAlbumsCount,  'NEW ALBUMS',  prevNewAlbums,  newPeakStats.maxNewAlbums,  newPeakAtTimeStats.maxNewAlbums,  'newAlbumsSection') +
+      bestDayBox;
+    animateStatStrip(strip2El);
     strip2El.style.display = '';
     if (strip1El) strip1El.style.marginBottom = '0';
   } else if (strip2El) {
