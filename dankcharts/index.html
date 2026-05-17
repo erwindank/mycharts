@@ -1046,6 +1046,15 @@
         <button class="upcoming-refresh-btn" id="eventsRefreshBtn" onclick="loadEvents(true)" style="display:none">↺ Refresh</button>
       </div>
 
+      <div class="events-type-filters">
+        <span class="events-controls-label">Type:</span>
+        <button class="events-type-btn" data-etype="birthday" onclick="toggleEventsType('birthday')">🎂 Birthdays</button>
+        <button class="events-type-btn" data-etype="album" onclick="toggleEventsType('album')">💿 Albums</button>
+        <button class="events-type-btn" data-etype="single" onclick="toggleEventsType('single')">🎵 Singles</button>
+        <button class="events-type-btn" data-etype="ep" onclick="toggleEventsType('ep')">📀 EPs</button>
+        <button class="events-type-btn" data-etype="other" onclick="toggleEventsType('other')">🎶 Other</button>
+      </div>
+
       <div id="eventsStatus" class="upcoming-status"></div>
 
       <div class="events-calendar-wrap">
@@ -1053,6 +1062,11 @@
           <button class="cal-nav-btn" onclick="eventsCalendarPrev()">&#8249;</button>
           <span id="eventsCalendarTitle" class="cal-title"></span>
           <button class="cal-nav-btn" onclick="eventsCalendarNext()">&#8250;</button>
+          <div class="cal-view-btns">
+            <button class="cal-view-btn" data-view="month" onclick="setCalView('month')" title="Month view">Month</button>
+            <button class="cal-view-btn" data-view="week"  onclick="setCalView('week')"  title="Week view">Week</button>
+            <button class="cal-view-btn" data-view="day"   onclick="setCalView('day')"   title="Day view">Day</button>
+          </div>
         </div>
         <div class="events-cal-grid" id="eventsCalendarGrid"></div>
       </div>
@@ -1072,10 +1086,10 @@
       <div class="chart-section collapsed" id="anniversariesSection">
         <div class="section-header">
           <button class="section-collapse-btn" data-target="anniversariesSection" title="Expand">+</button>
-          <h2 class="section-header-h2">🎵 Album Anniversaries</h2>
+          <h2 class="section-header-h2">🎵 Anniversaries</h2>
           <div class="section-rule"></div>
         </div>
-        <div class="section-sub">Albums celebrating release anniversaries in the next 30 days</div>
+        <div class="section-sub">Releases celebrating anniversaries in the next 30 days</div>
         <div class="section-body">
           <div class="upcoming-grid" id="anniversariesGrid"></div>
         </div>

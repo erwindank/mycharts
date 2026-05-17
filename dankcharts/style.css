@@ -3489,6 +3489,39 @@
       cursor: pointer;
     }
 
+    .events-type-filters {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      padding: 0 0.85rem 0.6rem;
+      flex-wrap: wrap;
+    }
+
+    .events-type-btn {
+      background: none;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      color: var(--text3);
+      font-family: 'DM Mono', monospace;
+      font-size: 0.6rem;
+      font-weight: bold;
+      letter-spacing: 0.04em;
+      padding: 0.1rem 0.5rem 0.15rem;
+      cursor: pointer;
+      transition: color 0.15s, background 0.15s, border-color 0.15s;
+    }
+
+    .events-type-btn:hover {
+      background: var(--border);
+      color: var(--text1);
+    }
+
+    .events-type-btn.active {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #fff;
+    }
+
     .upcoming-card.event-today {
       border-color: var(--accent);
     }
@@ -3506,17 +3539,30 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 0.5rem 0.75rem;
+      padding: 0.7rem 0.75rem;
       border-bottom: 1px solid var(--border);
       background: var(--surface);
     }
 
     .cal-title {
       font-family: 'DM Mono', monospace;
-      font-size: 0.75rem;
       font-weight: bold;
       letter-spacing: 0.06em;
-      color: var(--text1);
+      display: flex;
+      align-items: baseline;
+      gap: 0.45em;
+    }
+
+    .cal-title-month {
+      font-size: 1.15rem;
+      color: var(--accent);
+      letter-spacing: 0.08em;
+    }
+
+    .cal-title-year {
+      font-size: 0.85rem;
+      color: var(--text2);
+      letter-spacing: 0.05em;
     }
 
     .cal-nav-btn {
@@ -3626,7 +3672,180 @@
     .cal-ev-past { opacity: 0.65; }
 
     .cal-ev-icon  { flex-shrink: 0; font-size: 0.52rem; }
-    .cal-ev-label { overflow: hidden; text-overflow: ellipsis; }
+    .cal-ev-text  { display: flex; flex-direction: column; min-width: 0; overflow: hidden; }
+    .cal-ev-label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .cal-ev-sub   { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 0.44rem; opacity: 0.65; line-height: 1.2; }
+
+    /* CALENDAR VIEW TOGGLE */
+    .events-calendar-header {
+      flex-wrap: wrap;
+      gap: 0.25rem;
+    }
+
+    .cal-view-btns {
+      display: flex;
+      gap: 2px;
+      margin-left: auto;
+    }
+
+    .cal-view-btn {
+      background: none;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      color: var(--text3);
+      font-family: 'DM Mono', monospace;
+      font-size: 0.6rem;
+      font-weight: bold;
+      letter-spacing: 0.06em;
+      padding: 0.1rem 0.45rem 0.15rem;
+      cursor: pointer;
+      transition: color 0.15s, background 0.15s, border-color 0.15s;
+    }
+
+    .cal-view-btn:hover {
+      background: var(--border);
+      color: var(--text1);
+    }
+
+    .cal-view-btn.active {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #fff;
+    }
+
+    /* WEEK VIEW */
+    .cal-week-grid {
+      grid-template-rows: auto 1fr;
+    }
+
+    .cal-week-dow {
+      background: var(--surface);
+      text-align: center;
+      padding: 0.35rem 0.15rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2px;
+    }
+
+    .cal-week-dow-name {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.55rem;
+      letter-spacing: 0.05em;
+      color: var(--text3);
+      text-transform: uppercase;
+    }
+
+    .cal-week-dow-num {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.85rem;
+      font-weight: bold;
+      color: var(--text2);
+      line-height: 1;
+    }
+
+    .cal-week-dow.cal-week-dow-today .cal-week-dow-name,
+    .cal-week-dow.cal-week-dow-today .cal-week-dow-num { color: var(--accent); }
+    .cal-week-dow.cal-week-dow-past .cal-week-dow-num { opacity: 0.45; }
+
+    .cal-week-cell {
+      min-height: 160px;
+      max-height: none;
+    }
+
+    .cal-week-cell .cal-ev-label { font-size: 0.54rem; }
+    .cal-week-cell .cal-ev-sub   { font-size: 0.46rem; }
+
+    /* DAY VIEW */
+    .events-cal-day {
+      padding: 0.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+      min-height: 80px;
+    }
+
+    .cal-day-empty {
+      font-family: 'DM Sans', sans-serif;
+      font-style: italic;
+      color: var(--text3);
+      font-size: 0.8rem;
+      text-align: center;
+      padding: 2rem 0;
+    }
+
+    .cal-day-item {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      padding: 0.45rem 0.5rem;
+      border-radius: 7px;
+      text-decoration: none;
+      color: var(--text1);
+      border-left: 3px solid transparent;
+      background: var(--surface);
+      transition: opacity 0.12s, background 0.12s;
+    }
+
+    .cal-day-item:hover { opacity: 0.82; background: var(--bg3); }
+
+    .cal-day-item.cal-ev-birthday    { border-left-color: var(--green); }
+    .cal-day-item.cal-ev-anniversary { border-left-color: var(--accent); }
+    .cal-day-item.cal-ev-release     { border-left-color: var(--text3); }
+    .cal-day-item.cal-ev-past        { opacity: 0.6; }
+
+    .cal-day-item-img-wrap {
+      flex-shrink: 0;
+      width: 48px;
+      height: 48px;
+      border-radius: 5px;
+      overflow: hidden;
+      background: var(--bg3);
+    }
+
+    .cal-day-item-img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .cal-day-item-body {
+      flex: 1;
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 1px;
+    }
+
+    .cal-day-item-title {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.72rem;
+      font-weight: bold;
+      color: var(--text1);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .cal-day-item-artist {
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.64rem;
+      color: var(--text2);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .cal-day-item-detail {
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.6rem;
+      color: var(--text3);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      margin-top: 2px;
+    }
 
     /* EMPTY STATE */
     .empty-state {
@@ -8142,6 +8361,102 @@ body.pink-light .hero-stats {
 }
 
 .na-tt-yt-btn { flex-shrink: 0; margin-top: 0; }
+
+/* ── Events Calendar mini-card tooltip ── */
+.cal-ev-tooltip {
+  position: fixed;
+  z-index: 9999;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 0.55rem;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.6);
+  min-width: 190px;
+  max-width: 260px;
+  pointer-events: none;
+}
+
+.ctt-img-wrap {
+  flex-shrink: 0;
+  width: 62px;
+  height: 62px;
+  border-radius: 6px;
+  overflow: hidden;
+  background: var(--bg3);
+}
+
+.ctt-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.ctt-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'DM Mono', monospace;
+  font-size: 1.1rem;
+  font-weight: bold;
+  color: rgba(255,255,255,0.65);
+  letter-spacing: 0.03em;
+}
+
+.ctt-body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding-top: 1px;
+}
+
+.ctt-date {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.55rem;
+  font-weight: bold;
+  letter-spacing: 0.08em;
+  color: var(--text3);
+  text-transform: uppercase;
+}
+.ctt-date.soon   { color: var(--accent); }
+.ctt-date.recent { color: var(--text3); }
+
+.ctt-title {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.7rem;
+  font-weight: bold;
+  color: var(--text1);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  line-height: 1.25;
+}
+
+.ctt-artist {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.63rem;
+  color: var(--text2);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ctt-type {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.58rem;
+  color: var(--text3);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  margin-top: 2px;
+}
 
 /* Zoho Desk ASAP — hide launcher widget until user triggers it */
 [id*="zohodesk"],[id*="zohoasap"],[id*="zd-asap"],[class*="zohodesk"],[class*="zohoasap"],iframe[id*="zoho"] { display: none !important; }

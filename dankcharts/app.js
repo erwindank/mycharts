@@ -50,7 +50,12 @@ let recLimit = 25; // Records entries limit
 let eventsArtistLimit = parseInt(localStorage.getItem('dc_events_artist_limit') || '50') || 50;
 let eventsCalendarYear = tzNow().getFullYear();
 let eventsCalendarMonth = tzNow().getMonth();
+let eventsCalendarDay = tzNow().getDate();
+let eventsCalendarView = localStorage.getItem('dc_cal_view') || 'month'; // 'month' | 'week' | 'day'
 let _eventsCalendarData = null;
+let _eventsRawData = null;
+let _eventsArtists = [];
+let eventsTypeFilter = new Set(JSON.parse(localStorage.getItem('dc_events_type_filter') || '["birthday","album","single","ep","other"]'));
 const PAGE_SIZE = 100;
 const pageState = { songs: 0, artists: 0, albums: 0, newSongs: 0, newArtists: 0, newAlbums: 0 };
 const fullData = { songs: [], artists: [], albums: [] };
@@ -3885,6 +3890,7 @@ document.getElementById('periodNav').addEventListener('click', e => {
     document.getElementById('eventsView').style.display = 'block';
     const sel = document.getElementById('eventsLimitSelect');
     if (sel) sel.value = eventsArtistLimit;
+    _syncEventsTypeFilter();
     if (allPlays.length) loadEvents();
     if (typeof window._refreshBackToTop === 'function') window._refreshBackToTop();
     updateScrobbleBtn();
@@ -8493,7 +8499,7 @@ const _mbReleasesCache = {};
 async function fetchAllReleasesRaw(mbid) {
   if (_mbReleasesCache[mbid] !== undefined) return _mbReleasesCache[mbid];
   try {
-    const d = await mbFetch(`release-group?artist=${mbid}&type=album|ep|single&fmt=json&limit=100`);
+    const d = await mbFetch(`release-group?artist=${mbid}&type=album|ep|single&fmt=json&limit=100&inc=releases`);
     _mbReleasesCache[mbid] = d['release-groups'] || [];
   } catch (e) { _mbReleasesCache[mbid] = []; }
   return _mbReleasesCache[mbid];
@@ -8560,6 +8566,8 @@ async function _tryReleaseImgAsync(card, artist, title, sources) {
         const images = data.album?.image || [];
         const best = [...images].reverse().find(i => i['#text'] && !i['#text'].includes('2a96cbd8b46e442fc41c2b86b821562f'));
         if (best?.['#text']) url = best['#text'];
+      } else if (source === 'deezer') {
+        url = await deezerAlbumImage(title, artist);
       } else if (source === 'deezer-artist') {
         url = await deezerArtistImage(artist);
       }
@@ -10274,7 +10282,54 @@ async function loadCertWallImages(items) {
   }
 }
 
-// ─── EVENTS CALENDAR (Birthdays & Album Anniversaries) ─────────
+// ─── EVENTS CALENDAR (Birthdays & Anniversaries) ─────────────
+function releaseIcon(type) {
+  const t = (type || '').toLowerCase();
+  if (t === 'single') return '🎵';
+  if (t === 'album')  return '💿';
+  if (t === 'ep')     return '📀';
+  return '🎶';
+}
+
+function _releaseTypeKey(type) {
+  const t = (type || '').toLowerCase();
+  if (t === 'album') return 'album';
+  if (t === 'single') return 'single';
+  if (t === 'ep') return 'ep';
+  return 'other';
+}
+
+function applyEventsTypeFilter(data) {
+  const { birthdays, anniversaries, recentBirthdays, recentAnniversaries, eventsUpcoming, eventsRecent } = data;
+  const showBirthday = eventsTypeFilter.has('birthday');
+  const rtMatch = (type) => eventsTypeFilter.has(_releaseTypeKey(type));
+  return {
+    birthdays: showBirthday ? birthdays : [],
+    recentBirthdays: showBirthday ? recentBirthdays : [],
+    anniversaries: anniversaries.filter(a => rtMatch(a.type)),
+    recentAnniversaries: recentAnniversaries.filter(a => rtMatch(a.type)),
+    eventsUpcoming: eventsUpcoming.filter(({ release }) => rtMatch(release.type)),
+    eventsRecent: eventsRecent.filter(({ release }) => rtMatch(release.type)),
+  };
+}
+
+function toggleEventsType(type) {
+  if (eventsTypeFilter.has(type)) {
+    eventsTypeFilter.delete(type);
+  } else {
+    eventsTypeFilter.add(type);
+  }
+  try { localStorage.setItem('dc_events_type_filter', JSON.stringify([...eventsTypeFilter])); } catch (e) {}
+  _syncEventsTypeFilter();
+  if (_eventsRawData) _renderEventsFromRaw(_eventsRawData, _eventsArtists, true);
+}
+
+function _syncEventsTypeFilter() {
+  document.querySelectorAll('.events-type-btn').forEach(btn => {
+    btn.classList.toggle('active', eventsTypeFilter.has(btn.dataset.etype));
+  });
+}
+
 const EVENTS_CACHE_KEY = 'dc_eventsCache';
 const EVENTS_CACHE_TTL = 24 * 60 * 60 * 1000;
 const EVENTS_WINDOW_DAYS = 30;
@@ -10399,13 +10454,13 @@ function renderAnniversaryCard(entry) {
   const countdownLabel = isToday ? 'TODAY' : `in ${daysUntil} day${daysUntil === 1 ? '' : 's'}`;
   const searchUrl = `https://www.google.com/search?q=${encodeURIComponent(title + ' ' + artistName)}`;
   const imgSrc = mbid ? `https://coverartarchive.org/release-group/${mbid}/front-250` : null;
-  const imgHtml = `<img class="upcoming-card-img${imgSrc ? '' : ' upcoming-card-img-pending'}" ${imgSrc ? `src="${imgSrc}" onerror="releaseImgFallback(this)"` : ''} alt="" loading="lazy" data-artist="${esc(artistName)}" data-title="${esc(title)}" data-sources="itunes,lastfm">`;
+  const imgHtml = `<img class="upcoming-card-img${imgSrc ? '' : ' upcoming-card-img-pending'}" ${imgSrc ? `src="${imgSrc}" onerror="releaseImgFallback(this)"` : ''} alt="" loading="lazy" data-artist="${esc(artistName)}" data-title="${esc(title)}" data-sources="deezer,itunes,lastfm">`;
   return `<a class="upcoming-card${isToday ? ' event-today' : ''}" href="${searchUrl}" target="_blank" rel="noopener noreferrer">
     ${imgHtml}
     <div class="upcoming-card-date${isToday ? ' soon' : ''}">${countdownLabel}</div>
     <div class="upcoming-card-title">${esc(title)}</div>
     <div class="upcoming-card-artist">${esc(artistName)}</div>
-    <div class="upcoming-card-type">🎵 ${ordinalSuffix(years)} Anniversary · ${esc(typeLabel)} · ${releaseDate.slice(0, 4)}</div>
+    <div class="upcoming-card-type">${releaseIcon(type)} ${ordinalSuffix(years)} Anniversary · ${esc(typeLabel)} · ${releaseDate.slice(0, 4)}</div>
   </a>`;
 }
 
@@ -10416,87 +10471,320 @@ function renderRecentAnniversaryCard(entry) {
   const daysAgoLabel = `${daysAgo} day${daysAgo === 1 ? '' : 's'} ago`;
   const searchUrl = `https://www.google.com/search?q=${encodeURIComponent(title + ' ' + artistName)}`;
   const imgSrc = mbid ? `https://coverartarchive.org/release-group/${mbid}/front-250` : null;
-  const imgHtml = `<img class="upcoming-card-img${imgSrc ? '' : ' upcoming-card-img-pending'}" ${imgSrc ? `src="${imgSrc}" onerror="releaseImgFallback(this)"` : ''} alt="" loading="lazy" data-artist="${esc(artistName)}" data-title="${esc(title)}" data-sources="itunes,lastfm">`;
+  const imgHtml = `<img class="upcoming-card-img${imgSrc ? '' : ' upcoming-card-img-pending'}" ${imgSrc ? `src="${imgSrc}" onerror="releaseImgFallback(this)"` : ''} alt="" loading="lazy" data-artist="${esc(artistName)}" data-title="${esc(title)}" data-sources="deezer,itunes,lastfm">`;
   return `<a class="upcoming-card" href="${searchUrl}" target="_blank" rel="noopener noreferrer">
     ${imgHtml}
     <div class="upcoming-card-date recent">${daysAgoLabel}</div>
     <div class="upcoming-card-title">${esc(title)}</div>
     <div class="upcoming-card-artist">${esc(artistName)}</div>
-    <div class="upcoming-card-type">🎵 ${ordinalSuffix(years)} Anniversary · ${esc(typeLabel)} · ${releaseDate.slice(0, 4)}</div>
+    <div class="upcoming-card-type">${releaseIcon(type)} ${ordinalSuffix(years)} Anniversary · ${esc(typeLabel)} · ${releaseDate.slice(0, 4)}</div>
   </a>`;
 }
 
 // ─── EVENTS CALENDAR VIEW ──────────────────────────────────────
 
 const _CAL_MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
-const _CAL_DAYS   = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+const _CAL_DAYS   = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
 
-function buildCalendarDayMap(data, year, month) {
+function buildCalendarDayMap(data, dateSet) {
   const { birthdays, anniversaries, recentBirthdays, recentAnniversaries, eventsUpcoming, eventsRecent } = data;
   const map = {};
   const add = (ds, ev) => { if (!map[ds]) map[ds] = []; map[ds].push(ev); };
-  const prefix = `${year}-${String(month + 1).padStart(2, '0')}`;
   const today = tzNow(); today.setHours(0, 0, 0, 0);
   const dateFromDelta = (delta) => {
     const d = new Date(today); d.setDate(d.getDate() + delta); return localDateStr(d);
   };
-  for (const b of birthdays)         { const ds = dateFromDelta(b.daysUntil);  if (ds.startsWith(prefix)) add(ds, { icon: '🎂', label: b.artistName, past: false, url: `https://www.google.com/search?q=${encodeURIComponent(b.artistName + ' birthday')}`, cls: 'cal-ev-birthday' }); }
-  for (const b of recentBirthdays)   { const ds = dateFromDelta(-b.daysAgo);   if (ds.startsWith(prefix)) add(ds, { icon: '🎂', label: b.artistName, past: true,  url: `https://www.google.com/search?q=${encodeURIComponent(b.artistName + ' birthday')}`, cls: 'cal-ev-birthday' }); }
-  for (const a of anniversaries)     { const ds = dateFromDelta(a.daysUntil);  if (ds.startsWith(prefix)) add(ds, { icon: '🎵', label: a.title, sub: a.artistName, past: false, url: `https://www.google.com/search?q=${encodeURIComponent(a.title + ' ' + a.artistName)}`, cls: 'cal-ev-anniversary' }); }
-  for (const a of recentAnniversaries){ const ds = dateFromDelta(-a.daysAgo); if (ds.startsWith(prefix)) add(ds, { icon: '🎵', label: a.title, sub: a.artistName, past: true,  url: `https://www.google.com/search?q=${encodeURIComponent(a.title + ' ' + a.artistName)}`, cls: 'cal-ev-anniversary' }); }
-  for (const { release: r, artistName } of eventsUpcoming) { if (r.date?.startsWith(prefix)) add(r.date, { icon: '🆕', label: r.title, sub: artistName, past: false, url: `https://www.google.com/search?q=${encodeURIComponent(r.title + ' ' + artistName)}`, cls: 'cal-ev-release' }); }
-  for (const { release: r, artistName } of eventsRecent)   { if (r.date?.startsWith(prefix)) add(r.date, { icon: '📅', label: r.title, sub: artistName, past: true,  url: `https://www.google.com/search?q=${encodeURIComponent(r.title + ' ' + artistName)}`, cls: 'cal-ev-release' }); }
+  const currentYear = tzNow().getFullYear();
+  for (const b of birthdays) {
+    const ds = dateFromDelta(b.daysUntil);
+    if (!dateSet.has(ds)) continue;
+    const isToday = b.daysUntil === 0;
+    const birthYear = parseInt(b.dateStr.slice(0, 4));
+    const age = currentYear - birthYear;
+    const [, mm, dd] = b.dateStr.split('-');
+    const dispDate = fmtDate(new Date(currentYear, parseInt(mm) - 1, parseInt(dd)));
+    add(ds, { icon: '🎂', label: b.artistName, past: false, url: `https://www.google.com/search?q=${encodeURIComponent(b.artistName + ' birthday')}`, cls: 'cal-ev-birthday',
+      ttType: 'birthday', ttArtist: b.artistName, ttTitle: b.artistName, ttMbid: '',
+      ttDetail: `🎂 Birthday · ${dispDate} · Turning ${age}`,
+      ttDateTxt: isToday ? 'TODAY' : `in ${b.daysUntil} day${b.daysUntil === 1 ? '' : 's'}`, ttDateCls: isToday ? 'soon' : '' });
+  }
+  for (const b of recentBirthdays) {
+    const ds = dateFromDelta(-b.daysAgo);
+    if (!dateSet.has(ds)) continue;
+    const birthYear = parseInt(b.dateStr.slice(0, 4));
+    const age = currentYear - birthYear;
+    const [, mm, dd] = b.dateStr.split('-');
+    const dispDate = fmtDate(new Date(currentYear, parseInt(mm) - 1, parseInt(dd)));
+    add(ds, { icon: '🎂', label: b.artistName, past: true, url: `https://www.google.com/search?q=${encodeURIComponent(b.artistName + ' birthday')}`, cls: 'cal-ev-birthday',
+      ttType: 'birthday', ttArtist: b.artistName, ttTitle: b.artistName, ttMbid: '',
+      ttDetail: `🎂 Birthday · ${dispDate} · Turned ${age}`,
+      ttDateTxt: `${b.daysAgo} day${b.daysAgo === 1 ? '' : 's'} ago`, ttDateCls: 'recent' });
+  }
+  for (const a of anniversaries) {
+    const ds = dateFromDelta(a.daysUntil);
+    if (!dateSet.has(ds)) continue;
+    const isToday = a.daysUntil === 0;
+    const typeKey = 'mb_type_' + (a.type || 'Release').toLowerCase();
+    const typeLabel = t(typeKey) || a.type || 'Release';
+    add(ds, { icon: releaseIcon(a.type), label: a.title, sub: a.artistName, past: false, url: `https://www.google.com/search?q=${encodeURIComponent(a.title + ' ' + a.artistName)}`, cls: 'cal-ev-anniversary',
+      ttType: 'anniversary', ttArtist: a.artistName, ttTitle: a.title, ttMbid: a.mbid || '',
+      ttDetail: `${releaseIcon(a.type)} ${ordinalSuffix(a.years)} Anniversary · ${typeLabel} · ${(a.releaseDate || '').slice(0, 4)}`,
+      ttDateTxt: isToday ? 'TODAY' : `in ${a.daysUntil} day${a.daysUntil === 1 ? '' : 's'}`, ttDateCls: isToday ? 'soon' : '' });
+  }
+  for (const a of recentAnniversaries) {
+    const ds = dateFromDelta(-a.daysAgo);
+    if (!dateSet.has(ds)) continue;
+    const typeKey = 'mb_type_' + (a.type || 'Release').toLowerCase();
+    const typeLabel = t(typeKey) || a.type || 'Release';
+    add(ds, { icon: releaseIcon(a.type), label: a.title, sub: a.artistName, past: true, url: `https://www.google.com/search?q=${encodeURIComponent(a.title + ' ' + a.artistName)}`, cls: 'cal-ev-anniversary',
+      ttType: 'anniversary', ttArtist: a.artistName, ttTitle: a.title, ttMbid: a.mbid || '',
+      ttDetail: `${releaseIcon(a.type)} ${ordinalSuffix(a.years)} Anniversary · ${typeLabel} · ${(a.releaseDate || '').slice(0, 4)}`,
+      ttDateTxt: `${a.daysAgo} day${a.daysAgo === 1 ? '' : 's'} ago`, ttDateCls: 'recent' });
+  }
+  for (const { release: r, artistName } of eventsUpcoming) {
+    if (!r.date || !dateSet.has(r.date)) continue;
+    const { label: dateLabel, soon } = upcomingDateLabel(r.date);
+    const typeKey = 'mb_type_' + (r.type || 'Release').toLowerCase();
+    const typeLabel = t(typeKey) || r.type || 'Release';
+    add(r.date, { icon: releaseIcon(r.type), label: r.title, sub: artistName, past: false, url: `https://www.google.com/search?q=${encodeURIComponent(r.title + ' ' + artistName)}`, cls: 'cal-ev-release',
+      ttType: 'release', ttArtist: artistName, ttTitle: r.title, ttMbid: r.mbid || '',
+      ttDetail: `${releaseIcon(r.type)} ${typeLabel}`,
+      ttDateTxt: dateLabel, ttDateCls: soon ? 'soon' : '' });
+  }
+  for (const { release: r, artistName } of eventsRecent) {
+    if (!r.date || !dateSet.has(r.date)) continue;
+    const typeKey = 'mb_type_' + (r.type || 'Release').toLowerCase();
+    const typeLabel = t(typeKey) || r.type || 'Release';
+    add(r.date, { icon: releaseIcon(r.type), label: r.title, sub: artistName, past: true, url: `https://www.google.com/search?q=${encodeURIComponent(r.title + ' ' + artistName)}`, cls: 'cal-ev-release',
+      ttType: 'release', ttArtist: artistName, ttTitle: r.title, ttMbid: r.mbid || '',
+      ttDetail: `${releaseIcon(r.type)} ${typeLabel}`,
+      ttDateTxt: fmtDate(new Date(r.date + 'T00:00:00')), ttDateCls: 'recent' });
+  }
   return map;
 }
 
-function renderEventsCalendar(data, year, month) {
-  const calEl = document.getElementById('eventsCalendarGrid');
-  const titleEl = document.getElementById('eventsCalendarTitle');
-  if (!calEl || !titleEl) return;
+// ── Calendar helpers ───────────────────────────────────────────
 
-  const dayMap = buildCalendarDayMap(data, year, month);
+function _calDateStr(y, m, d) {
+  return `${y}-${String(m + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+}
+
+function _calMonthDateSet(year, month) {
+  const days = new Date(year, month + 1, 0).getDate();
+  const p = `${year}-${String(month + 1).padStart(2, '0')}`;
+  return new Set(Array.from({ length: days }, (_, i) => `${p}-${String(i + 1).padStart(2, '0')}`));
+}
+
+function getWeekDates(year, month, day) {
+  const anchor = new Date(year, month, day);
+  const offset = (anchor.getDay() - weekStartDay + 7) % 7;
+  const start = new Date(anchor);
+  start.setDate(start.getDate() - offset);
+  return Array.from({ length: 7 }, (_, i) => {
+    const d = new Date(start); d.setDate(d.getDate() + i); return d;
+  });
+}
+
+function _calAdjustDate(year, month, day, delta) {
+  const d = new Date(year, month, day + delta);
+  return { year: d.getFullYear(), month: d.getMonth(), day: d.getDate() };
+}
+
+function renderCalEventsHtml(events) {
+  return `<div class="cal-cell-events">` + events.map(ev =>
+    `<a class="cal-ev ${ev.cls}${ev.past ? ' cal-ev-past' : ''}" href="${ev.url}" target="_blank" rel="noopener noreferrer" data-ctt="${esc(ev.ttType||'')}" data-cta="${esc(ev.ttArtist||'')}" data-ctl="${esc(ev.ttTitle||'')}" data-ctm="${esc(ev.ttMbid||'')}" data-ctd="${esc(ev.ttDetail||'')}" data-ctx="${esc(ev.ttDateTxt||'')}" data-ctf="${esc(ev.ttDateCls||'')}">
+      <span class="cal-ev-icon">${ev.icon}</span><span class="cal-ev-text"><span class="cal-ev-label">${esc(ev.label)}</span>${ev.sub ? `<span class="cal-ev-sub">${esc(ev.sub)}</span>` : ''}</span>
+    </a>`
+  ).join('') + `</div>`;
+}
+
+// ── Month view ─────────────────────────────────────────────────
+
+function renderCalMonth(calEl, titleEl, data, year, month) {
+  const dateSet = _calMonthDateSet(year, month);
+  const dayMap = buildCalendarDayMap(data, dateSet);
   const today = tzNow(); today.setHours(0, 0, 0, 0);
   const todayStr = localDateStr(today);
   const firstDow = new Date(year, month, 1).getDay();
   const daysInMonth = new Date(year, month + 1, 0).getDate();
 
-  titleEl.textContent = `${_CAL_MONTHS[month]} ${year}`;
+  titleEl.innerHTML = `<span class="cal-title-month">${_CAL_MONTHS[month]}</span><span class="cal-title-year">${year}</span>`;
 
   let html = _CAL_DAYS.map(d => `<div class="cal-dow">${d}</div>`).join('');
   for (let i = 0; i < firstDow; i++) html += `<div class="cal-cell cal-cell-empty"></div>`;
-
   for (let d = 1; d <= daysInMonth; d++) {
-    const ds = `${year}-${String(month + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+    const ds = _calDateStr(year, month, d);
     const events = dayMap[ds] || [];
     const isToday = ds === todayStr;
     const isPast  = ds < todayStr;
     html += `<div class="cal-cell${isToday ? ' cal-today' : ''}${isPast && !isToday ? ' cal-past' : ''}">
       <div class="cal-cell-num">${d}</div>`;
-    if (events.length) {
-      html += `<div class="cal-cell-events">` + events.map(ev =>
-        `<a class="cal-ev ${ev.cls}${ev.past ? ' cal-ev-past' : ''}" href="${ev.url}" target="_blank" rel="noopener noreferrer" title="${esc((ev.sub ? ev.label + ' · ' + ev.sub : ev.label))}">
-          <span class="cal-ev-icon">${ev.icon}</span><span class="cal-ev-label">${esc(ev.label)}</span>
-        </a>`
-      ).join('') + `</div>`;
-    }
+    if (events.length) html += renderCalEventsHtml(events);
     html += `</div>`;
   }
+  calEl.className = 'events-cal-grid';
   calEl.innerHTML = html;
 }
 
+// ── Week view ──────────────────────────────────────────────────
+
+function renderCalWeek(calEl, titleEl, data, year, month, day) {
+  const weekDates = getWeekDates(year, month, day);
+  const dateSet = new Set(weekDates.map(d => localDateStr(d)));
+  const dayMap = buildCalendarDayMap(data, dateSet);
+  const today = tzNow(); today.setHours(0, 0, 0, 0);
+  const todayStr = localDateStr(today);
+
+  const first = weekDates[0], last = weekDates[6];
+  const fm = _CAL_MONTHS[first.getMonth()], lm = _CAL_MONTHS[last.getMonth()];
+  titleEl.textContent = first.getMonth() === last.getMonth()
+    ? `${fm} ${first.getDate()}–${last.getDate()}, ${last.getFullYear()}`
+    : `${fm} ${first.getDate()} – ${lm} ${last.getDate()}, ${last.getFullYear()}`;
+
+  let html = weekDates.map(d => {
+    const ds = localDateStr(d);
+    const isToday = ds === todayStr;
+    const isPast  = ds < todayStr;
+    return `<div class="cal-dow cal-week-dow${isToday ? ' cal-week-dow-today' : ''}${isPast && !isToday ? ' cal-week-dow-past' : ''}">
+      <div class="cal-week-dow-name">${_CAL_DAYS[d.getDay()]}</div>
+      <div class="cal-week-dow-num">${d.getDate()}</div>
+    </div>`;
+  }).join('');
+
+  html += weekDates.map(d => {
+    const ds = localDateStr(d);
+    const events = dayMap[ds] || [];
+    const isToday = ds === todayStr;
+    const isPast  = ds < todayStr;
+    return `<div class="cal-cell cal-week-cell${isToday ? ' cal-today' : ''}${isPast && !isToday ? ' cal-past' : ''}">
+      ${events.length ? renderCalEventsHtml(events) : ''}
+    </div>`;
+  }).join('');
+
+  calEl.className = 'events-cal-grid cal-week-grid';
+  calEl.innerHTML = html;
+}
+
+// ── Day view ───────────────────────────────────────────────────
+
+const _CAL_DOW_FULL = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+
+function renderCalDay(calEl, titleEl, data, year, month, day) {
+  const dateObj = new Date(year, month, day);
+  const ds = localDateStr(dateObj);
+  const dateSet = new Set([ds]);
+  const dayMap = buildCalendarDayMap(data, dateSet);
+  const events = dayMap[ds] || [];
+
+  titleEl.textContent = `${_CAL_DOW_FULL[dateObj.getDay()]}, ${fmtDate(dateObj)}`;
+
+  if (!events.length) {
+    calEl.className = 'events-cal-day';
+    calEl.innerHTML = `<div class="cal-day-empty">No events on this day</div>`;
+    return;
+  }
+
+  const html = events.map(ev => {
+    const mainTitle = ev.ttType === 'birthday' ? ev.ttArtist : ev.ttTitle;
+    const artistLine = ev.ttType !== 'birthday' ? `<div class="cal-day-item-artist">${esc(ev.ttArtist)}</div>` : '';
+    return `<a class="cal-day-item ${ev.cls}${ev.past ? ' cal-ev-past' : ''}" href="${ev.url}" target="_blank" rel="noopener noreferrer" data-ctt="${esc(ev.ttType||'')}" data-cta="${esc(ev.ttArtist||'')}" data-ctl="${esc(ev.ttTitle||'')}" data-ctm="${esc(ev.ttMbid||'')}" data-ctd="${esc(ev.ttDetail||'')}" data-ctx="${esc(ev.ttDateTxt||'')}" data-ctf="${esc(ev.ttDateCls||'')}">
+      <div class="cal-day-item-img-wrap" data-mbid="${esc(ev.ttMbid||'')}" data-artist="${esc(ev.ttArtist||'')}" data-evtype="${esc(ev.ttType||'')}"></div>
+      <div class="cal-day-item-body">
+        <div class="cal-day-item-title">${esc(mainTitle)}</div>
+        ${artistLine}
+        <div class="cal-day-item-detail">${ev.ttDetail}</div>
+      </div>
+    </a>`;
+  }).join('');
+
+  calEl.className = 'events-cal-day';
+  calEl.innerHTML = html;
+  _triggerCalDayImgs(calEl);
+}
+
+function _triggerCalDayImgs(calEl) {
+  calEl.querySelectorAll('.cal-day-item-img-wrap').forEach(wrap => {
+    const { mbid, artist, evtype } = wrap.dataset;
+    if (mbid) {
+      const img = document.createElement('img');
+      img.className = 'cal-day-item-img';
+      img.alt = '';
+      img.onerror = () => { if (wrap.isConnected) wrap.innerHTML = _calTtPlaceholderHtml(artist); };
+      img.src = `https://coverartarchive.org/release-group/${mbid}/front-250`;
+      wrap.appendChild(img);
+    } else {
+      wrap.innerHTML = _calTtPlaceholderHtml(artist);
+      if (evtype === 'birthday' && artist) _loadCalTtArtistImg(wrap, artist);
+    }
+  });
+}
+
+// ── Dispatcher ─────────────────────────────────────────────────
+
+function renderEventsCalendar(data, year, month) {
+  const calEl = document.getElementById('eventsCalendarGrid');
+  const titleEl = document.getElementById('eventsCalendarTitle');
+  if (!calEl || !titleEl) return;
+  if (eventsCalendarView === 'week') {
+    renderCalWeek(calEl, titleEl, data, year, month, eventsCalendarDay);
+  } else if (eventsCalendarView === 'day') {
+    renderCalDay(calEl, titleEl, data, year, month, eventsCalendarDay);
+  } else {
+    renderCalMonth(calEl, titleEl, data, year, month);
+  }
+  _syncCalViewBtns();
+}
+
+function _syncCalViewBtns() {
+  document.querySelectorAll('.cal-view-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.view === eventsCalendarView);
+  });
+}
+
+function setCalView(view) {
+  eventsCalendarView = view;
+  try { localStorage.setItem('dc_cal_view', view); } catch (e) {}
+  if (view !== 'month') {
+    const tod = tzNow();
+    if (tod.getFullYear() === eventsCalendarYear && tod.getMonth() === eventsCalendarMonth) {
+      eventsCalendarDay = tod.getDate();
+    } else {
+      eventsCalendarDay = 1;
+    }
+  }
+  if (_eventsCalendarData) renderEventsCalendar(_eventsCalendarData, eventsCalendarYear, eventsCalendarMonth);
+}
+
 function eventsCalendarPrev() {
-  eventsCalendarMonth--;
-  if (eventsCalendarMonth < 0) { eventsCalendarMonth = 11; eventsCalendarYear--; }
+  if (eventsCalendarView === 'week') {
+    const r = _calAdjustDate(eventsCalendarYear, eventsCalendarMonth, eventsCalendarDay, -7);
+    eventsCalendarYear = r.year; eventsCalendarMonth = r.month; eventsCalendarDay = r.day;
+  } else if (eventsCalendarView === 'day') {
+    const r = _calAdjustDate(eventsCalendarYear, eventsCalendarMonth, eventsCalendarDay, -1);
+    eventsCalendarYear = r.year; eventsCalendarMonth = r.month; eventsCalendarDay = r.day;
+  } else {
+    eventsCalendarMonth--;
+    if (eventsCalendarMonth < 0) { eventsCalendarMonth = 11; eventsCalendarYear--; }
+  }
   if (_eventsCalendarData) renderEventsCalendar(_eventsCalendarData, eventsCalendarYear, eventsCalendarMonth);
 }
 
 function eventsCalendarNext() {
-  eventsCalendarMonth++;
-  if (eventsCalendarMonth > 11) { eventsCalendarMonth = 0; eventsCalendarYear++; }
+  if (eventsCalendarView === 'week') {
+    const r = _calAdjustDate(eventsCalendarYear, eventsCalendarMonth, eventsCalendarDay, 7);
+    eventsCalendarYear = r.year; eventsCalendarMonth = r.month; eventsCalendarDay = r.day;
+  } else if (eventsCalendarView === 'day') {
+    const r = _calAdjustDate(eventsCalendarYear, eventsCalendarMonth, eventsCalendarDay, 1);
+    eventsCalendarYear = r.year; eventsCalendarMonth = r.month; eventsCalendarDay = r.day;
+  } else {
+    eventsCalendarMonth++;
+    if (eventsCalendarMonth > 11) { eventsCalendarMonth = 0; eventsCalendarYear++; }
+  }
   if (_eventsCalendarData) renderEventsCalendar(_eventsCalendarData, eventsCalendarYear, eventsCalendarMonth);
 }
 
 function renderEventsPartial(birthdays, anniversaries, recentBirthdays, recentAnniversaries, eventsUpcoming, eventsRecent) {
+  const f = applyEventsTypeFilter({ birthdays, anniversaries, recentBirthdays, recentAnniversaries, eventsUpcoming, eventsRecent });
   const sortFn = (a, b) => a.daysUntil - b.daysUntil;
   const sortFnAgo = (a, b) => a.daysAgo - b.daysAgo;
   const bGrid = document.getElementById('birthdaysGrid');
@@ -10505,20 +10793,19 @@ function renderEventsPartial(birthdays, anniversaries, recentBirthdays, recentAn
   const raGrid = document.getElementById('eventsRecentAnniversariesGrid');
   const upGrid = document.getElementById('eventsUpcomingGrid');
   const recGrid = document.getElementById('eventsRecentGrid');
-  if (bGrid && birthdays.length) bGrid.innerHTML = [...birthdays].sort(sortFn).map(renderBirthdayCard).join('');
-  if (aGrid && anniversaries.length) aGrid.innerHTML = [...anniversaries].sort(sortFn).map(renderAnniversaryCard).join('');
-  if (rbGrid && recentBirthdays.length) rbGrid.innerHTML = [...recentBirthdays].sort(sortFnAgo).map(renderRecentBirthdayCard).join('');
-  if (raGrid && recentAnniversaries.length) raGrid.innerHTML = [...recentAnniversaries].sort(sortFnAgo).map(renderRecentAnniversaryCard).join('');
-  if (upGrid && eventsUpcoming.length) {
-    const sorted = sortUpcomingReleases([...eventsUpcoming]);
+  if (bGrid && f.birthdays.length) bGrid.innerHTML = [...f.birthdays].sort(sortFn).map(renderBirthdayCard).join('');
+  if (aGrid && f.anniversaries.length) aGrid.innerHTML = [...f.anniversaries].sort(sortFn).map(renderAnniversaryCard).join('');
+  if (rbGrid && f.recentBirthdays.length) rbGrid.innerHTML = [...f.recentBirthdays].sort(sortFnAgo).map(renderRecentBirthdayCard).join('');
+  if (raGrid && f.recentAnniversaries.length) raGrid.innerHTML = [...f.recentAnniversaries].sort(sortFnAgo).map(renderRecentAnniversaryCard).join('');
+  if (upGrid && f.eventsUpcoming.length) {
+    const sorted = sortUpcomingReleases([...f.eventsUpcoming]);
     upGrid.innerHTML = sorted.map(({ release, artistName }) => renderUpcomingCard(release, artistName)).join('');
   }
-  if (recGrid && eventsRecent.length) {
-    const sorted = sortRecentReleases([...eventsRecent]);
+  if (recGrid && f.eventsRecent.length) {
+    const sorted = sortRecentReleases([...f.eventsRecent]);
     recGrid.innerHTML = sorted.map(({ release, artistName }) => renderRecentCard(release, artistName)).join('');
   }
-  const partialData = { birthdays, anniversaries, recentBirthdays, recentAnniversaries, eventsUpcoming, eventsRecent };
-  renderEventsCalendar(partialData, eventsCalendarYear, eventsCalendarMonth);
+  renderEventsCalendar(f, eventsCalendarYear, eventsCalendarMonth);
 }
 
 async function loadEvents(forceRefresh = false) {
@@ -10577,20 +10864,25 @@ async function loadEvents(forceRefresh = false) {
       const groups = await fetchAllReleasesRaw(mbid);
       const currentYear = tzNow().getFullYear();
       for (const g of groups) {
-        const date = g['first-release-date'];
-        if (!date || date.length < 10) continue;
-        const mmdd = date.slice(5, 10);
-        if (mmdd.includes('00')) continue;
-        const releaseYear = parseInt(date.slice(0, 4));
-        if (releaseYear >= currentYear) continue;
-        const years = currentYear - releaseYear;
-        const days = daysUntilNextOccurrence(mmdd, EVENTS_WINDOW_DAYS);
-        if (days !== null) {
-          anniversaries.push({ artistName: name, title: g.title, type: g['primary-type'] || 'Release', releaseDate: date, years, mmdd, daysUntil: days, mbid: g.id });
-        }
-        const daysAgo = daysSinceLastOccurrence(mmdd, EVENTS_WINDOW_DAYS);
-        if (daysAgo !== null) {
-          recentAnniversaries.push({ artistName: name, title: g.title, type: g['primary-type'] || 'Release', releaseDate: date, years, mmdd, daysAgo, mbid: g.id });
+        const type = g['primary-type'] || 'Release';
+        const validReleases = (g.releases || []).filter(r => r.date && r.date.length >= 10 && !r.date.slice(5, 10).includes('00'));
+        const entries = validReleases.length > 0
+          ? validReleases.map(r => ({ date: r.date, title: r.title || g.title }))
+          : (g['first-release-date'] && g['first-release-date'].length >= 10 ? [{ date: g['first-release-date'], title: g.title }] : []);
+        for (const { date, title } of entries) {
+          const mmdd = date.slice(5, 10);
+          if (mmdd.includes('00')) continue;
+          const releaseYear = parseInt(date.slice(0, 4));
+          if (releaseYear >= currentYear) continue;
+          const years = currentYear - releaseYear;
+          const days = daysUntilNextOccurrence(mmdd, EVENTS_WINDOW_DAYS);
+          if (days !== null) {
+            anniversaries.push({ artistName: name, title, type, releaseDate: date, years, mmdd, daysUntil: days, mbid: g.id });
+          }
+          const daysAgo = daysSinceLastOccurrence(mmdd, EVENTS_WINDOW_DAYS);
+          if (daysAgo !== null) {
+            recentAnniversaries.push({ artistName: name, title, type, releaseDate: date, years, mmdd, daysAgo, mbid: g.id });
+          }
         }
       }
 
@@ -10613,16 +10905,23 @@ async function loadEvents(forceRefresh = false) {
 }
 
 function renderEventsResults(birthdays, anniversaries, recentBirthdays, recentAnniversaries, eventsUpcoming, eventsRecent, artists, fromCache) {
+  _eventsRawData = { birthdays, anniversaries, recentBirthdays, recentAnniversaries, eventsUpcoming, eventsRecent };
+  _eventsArtists = artists;
+  _renderEventsFromRaw(_eventsRawData, artists, fromCache);
+}
+
+function _renderEventsFromRaw(raw, artists, fromCache) {
+  const f = applyEventsTypeFilter(raw);
   const statusEl = document.getElementById('eventsStatus');
   const refreshEl = document.getElementById('eventsRefreshBtn');
   const sortFn = (a, b) => a.daysUntil - b.daysUntil;
   const sortFnAgo = (a, b) => a.daysAgo - b.daysAgo;
-  const sortedB = [...birthdays].sort(sortFn);
-  const sortedA = [...anniversaries].sort(sortFn);
-  const sortedRB = [...recentBirthdays].sort(sortFnAgo);
-  const sortedRA = [...recentAnniversaries].sort(sortFnAgo);
-  const sortedUp = sortUpcomingReleases([...eventsUpcoming]);
-  const sortedRec = sortRecentReleases([...eventsRecent]);
+  const sortedB = [...f.birthdays].sort(sortFn);
+  const sortedA = [...f.anniversaries].sort(sortFn);
+  const sortedRB = [...f.recentBirthdays].sort(sortFnAgo);
+  const sortedRA = [...f.recentAnniversaries].sort(sortFnAgo);
+  const sortedUp = sortUpcomingReleases([...f.eventsUpcoming]);
+  const sortedRec = sortRecentReleases([...f.eventsRecent]);
   const bGrid = document.getElementById('birthdaysGrid');
   const aGrid = document.getElementById('anniversariesGrid');
   const rbGrid = document.getElementById('eventsRecentBirthdaysGrid');
@@ -10636,7 +10935,7 @@ function renderEventsResults(birthdays, anniversaries, recentBirthdays, recentAn
 
   if (aGrid) aGrid.innerHTML = sortedA.length
     ? sortedA.map(renderAnniversaryCard).join('')
-    : `<div class="upcoming-empty">No album anniversaries found in the next ${EVENTS_WINDOW_DAYS} days for your top ${artists.length} artists.</div>`;
+    : `<div class="upcoming-empty">No anniversaries found in the next ${EVENTS_WINDOW_DAYS} days for your top ${artists.length} artists.</div>`;
 
   if (rbGrid) rbGrid.innerHTML = sortedRB.length
     ? sortedRB.map(renderRecentBirthdayCard).join('')
@@ -10644,7 +10943,7 @@ function renderEventsResults(birthdays, anniversaries, recentBirthdays, recentAn
 
   if (raGrid) raGrid.innerHTML = sortedRA.length
     ? sortedRA.map(renderRecentAnniversaryCard).join('')
-    : `<div class="upcoming-empty">No album anniversaries found in the past ${EVENTS_WINDOW_DAYS} days for your top ${artists.length} artists.</div>`;
+    : `<div class="upcoming-empty">No anniversaries found in the past ${EVENTS_WINDOW_DAYS} days for your top ${artists.length} artists.</div>`;
 
   if (upGrid) upGrid.innerHTML = sortedUp.length
     ? sortedUp.map(({ release, artistName }) => renderUpcomingCard(release, artistName)).join('')
@@ -10656,18 +10955,20 @@ function renderEventsResults(birthdays, anniversaries, recentBirthdays, recentAn
 
   [bGrid, aGrid, rbGrid, raGrid, upGrid, recGrid].forEach(g => g && triggerPendingImgs(g));
 
-  _eventsCalendarData = { birthdays, anniversaries, recentBirthdays, recentAnniversaries, eventsUpcoming, eventsRecent };
+  _eventsCalendarData = f;
   renderEventsCalendar(_eventsCalendarData, eventsCalendarYear, eventsCalendarMonth);
 
   const cacheNote = fromCache ? ' (cached)' : '';
   const ts = fromCache
     ? (() => { try { return new Date(JSON.parse(localStorage.getItem(EVENTS_CACHE_KEY)).ts).toLocaleString(); } catch (e) { return ''; } })()
     : new Date().toLocaleString();
-  if (statusEl) statusEl.textContent = `${sortedB.length} birthdays · ${sortedA.length} anniversaries · ${sortedUp.length} upcoming · ${sortedRec.length} recent · top ${artists.length} artists · ${ts}${cacheNote}`;
+  if (statusEl) statusEl.textContent = `${raw.birthdays.length} birthdays · ${raw.anniversaries.length} anniversaries · ${raw.eventsUpcoming.length} upcoming · ${raw.eventsRecent.length} recent · top ${artists.length} artists · ${ts}${cacheNote}`;
   if (refreshEl) refreshEl.style.display = 'block';
 
   const sel = document.getElementById('eventsLimitSelect');
   if (sel) sel.value = eventsArtistLimit;
+
+  _syncEventsTypeFilter();
 }
 
 function eventsLimitChanged(val) {
@@ -12119,5 +12420,99 @@ document.addEventListener('mouseout', e => {
   const to = e.relatedTarget;
   if (to && (to.closest('.na-songs-trigger') || to.closest('#naSongsTooltip'))) return;
   _naHideTooltip();
+});
+
+// ─── EVENTS CALENDAR MINI-CARD TOOLTIP ─────────────────────────
+const _calEvTooltip = (() => {
+  const el = document.createElement('div');
+  el.id = 'calEvTooltip';
+  el.className = 'cal-ev-tooltip';
+  el.style.display = 'none';
+  document.body.appendChild(el);
+  return el;
+})();
+
+let _calEvHideTimer = null;
+
+function _calTtPlaceholderHtml(artist) {
+  const words = (artist || '').replace(/^The\s+/i, '').split(/\s+/).filter(Boolean);
+  const inits = words.slice(0, 2).map(w => w[0].toUpperCase()).join('');
+  const colors = ['#0d2137', '#1a1040', '#0d2e1f', '#2b1a0d', '#0d1e2b', '#1f0d0d'];
+  const hash = (artist || '').split('').reduce((a, c) => a + c.charCodeAt(0), 0);
+  return `<div class="ctt-placeholder" style="background:${colors[hash % colors.length]}">${inits}</div>`;
+}
+
+async function _loadCalTtArtistImg(imgWrap, artist) {
+  try {
+    const url = await deezerArtistImage(artist);
+    if (!imgWrap.isConnected || !url) return;
+    const ph = imgWrap.querySelector('.ctt-placeholder');
+    if (!ph) return;
+    const img = document.createElement('img');
+    img.className = 'ctt-img';
+    img.alt = '';
+    img.onerror = () => {};
+    img.src = url;
+    imgWrap.replaceChild(img, ph);
+  } catch (e) {}
+}
+
+function _showCalEvTooltip(target) {
+  clearTimeout(_calEvHideTimer);
+  const { ctt: evType = '', cta: artist = '', ctl: title = '', ctm: mbid = '', ctd: detail = '', ctx: dtxt = '', ctf: dtf = '' } = target.dataset;
+
+  const mainTitle = evType === 'birthday' ? artist : title;
+  const artistLine = evType !== 'birthday' ? `<div class="ctt-artist">${esc(artist)}</div>` : '';
+  const dateLine = dtxt ? `<div class="ctt-date${dtf ? ' ' + dtf : ''}">${esc(dtxt)}</div>` : '';
+
+  _calEvTooltip.innerHTML = `
+    <div class="ctt-img-wrap"></div>
+    <div class="ctt-body">
+      ${dateLine}
+      <div class="ctt-title">${esc(mainTitle)}</div>
+      ${artistLine}
+      <div class="ctt-type">${detail}</div>
+    </div>`;
+
+  const imgWrap = _calEvTooltip.querySelector('.ctt-img-wrap');
+  if (mbid) {
+    const img = document.createElement('img');
+    img.className = 'ctt-img';
+    img.alt = '';
+    img.onerror = () => { if (imgWrap.isConnected) imgWrap.innerHTML = _calTtPlaceholderHtml(artist); };
+    img.src = `https://coverartarchive.org/release-group/${mbid}/front-250`;
+    imgWrap.appendChild(img);
+  } else {
+    imgWrap.innerHTML = _calTtPlaceholderHtml(artist);
+    if (evType === 'birthday' && artist) _loadCalTtArtistImg(imgWrap, artist);
+  }
+
+  _calEvTooltip.style.display = 'flex';
+  const rect = target.getBoundingClientRect();
+  const ttW = _calEvTooltip.offsetWidth || 220;
+  const ttH = _calEvTooltip.offsetHeight || 90;
+  let left = rect.right + 8;
+  let top = rect.top - 4;
+  if (left + ttW > window.innerWidth - 8) left = rect.left - ttW - 8;
+  if (top + ttH > window.innerHeight - 8) top = window.innerHeight - ttH - 8;
+  _calEvTooltip.style.left = `${Math.max(8, left)}px`;
+  _calEvTooltip.style.top = `${Math.max(8, top)}px`;
+}
+
+function _hideCalEvTooltip() {
+  _calEvHideTimer = setTimeout(() => { _calEvTooltip.style.display = 'none'; }, 130);
+}
+
+document.addEventListener('mouseover', e => {
+  const ev = e.target.closest('.cal-ev[data-ctt]');
+  if (ev) { _showCalEvTooltip(ev); return; }
+  if (e.target.closest('#calEvTooltip')) clearTimeout(_calEvHideTimer);
+});
+
+document.addEventListener('mouseout', e => {
+  if (!e.target.closest('.cal-ev[data-ctt]') && !e.target.closest('#calEvTooltip')) return;
+  const to = e.relatedTarget;
+  if (to && (to.closest('.cal-ev[data-ctt]') || to.closest('#calEvTooltip'))) return;
+  _hideCalEvTooltip();
 });
 
