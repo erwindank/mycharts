@@ -2609,6 +2609,26 @@
       box-shadow: inset 0 3px 0 var(--accent2);
     }
 
+    .stats-strip2 {
+      margin-top: 1px;
+    }
+
+    .stat-box-sub .stat-val {
+      font-size: 1.35rem;
+    }
+
+    .stat-sotm-title {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.62rem;
+      color: var(--text2);
+      margin-top: 0.2rem;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
     /* PAGINATED SEARCH */
     .paginated-search {
       display: none;
@@ -4917,6 +4937,7 @@
       .chart-size-bar,
       .date-nav,
       .stats-strip,
+      .stats-strip2,
       .chart-display-toggles {
         margin-left: -1rem;
         margin-right: -1rem;
@@ -4933,7 +4954,8 @@
       /* Remove corner rounding on elements that are now edge-to-edge */
       .sync-bar,
       .date-nav,
-      .stats-strip {
+      .stats-strip,
+      .stats-strip2 {
         border-radius: 0;
       }
 

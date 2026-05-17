@@ -4584,6 +4584,56 @@ function renderAll() {
     statBox(artistSet.size, 'stat_artists',       prevArtistSet ? prevArtistSet.size   : null, peakStats ? peakStats.maxArtists : null, peakAtTimeStats ? peakAtTimeStats.maxArtists : null) +
     statBox(albumSet.size,  'stat_albums',        prevAlbumSet  ? prevAlbumSet.size    : null, peakStats ? peakStats.maxAlbums  : null, peakAtTimeStats ? peakAtTimeStats.maxAlbums  : null);
 
+  // Second stats strip: song of the moment + new songs/artists/albums
+  const strip1El = document.getElementById('statsStrip');
+  const strip2El = document.getElementById('statsStrip2');
+  const showStrip2 = ['week', 'month', 'year'].includes(currentPeriod) && plays.length > 0;
+  if (showStrip2 && strip2El) {
+    // New songs/artists/albums: first-ever appearance falls within current period
+    const playsBeforeStart = allPlays.filter(p => tzDate(p.date) < start);
+    const songsBeforeStart  = new Set(playsBeforeStart.map(p => songKey(p)));
+    const artistsBeforeStart = new Set(playsBeforeStart.flatMap(p => p.artists));
+    const albumsBeforeStart  = new Set(playsBeforeStart.map(p => p.album).filter(a => a && a !== '—'));
+    const newSongsCount   = [...songSet].filter(s => !songsBeforeStart.has(s)).length;
+    const newArtistsCount = [...artistSet].filter(a => !artistsBeforeStart.has(a)).length;
+    const newAlbumsCount  = [...albumSet].filter(a => !albumsBeforeStart.has(a)).length;
+
+    // Song of the moment: most played song in the 15 days ending at period end
+    const sotmEnd   = end;
+    const sotmStart = new Date(sotmEnd.getTime() - 15 * 24 * 60 * 60 * 1000);
+    const songCounts15 = {};
+    for (const p of allPlays) {
+      const d = tzDate(p.date);
+      if (d >= sotmStart && d <= sotmEnd) songCounts15[songKey(p)] = (songCounts15[songKey(p)] || 0) + 1;
+    }
+    let sotmKey = null, sotmCount = 0;
+    for (const [k, c] of Object.entries(songCounts15)) {
+      if (c > sotmCount) { sotmKey = k; sotmCount = c; }
+    }
+    const sotmTitle = sotmKey ? sotmKey.split('|||')[0] : null;
+
+    const sotmBox = sotmTitle
+      ? `<div class="stat-box stat-box-sub">
+          <div class="stat-val">${sotmCount}</div>
+          <div class="stat-sotm-title">${esc(sotmTitle)}</div>
+          <div class="stat-label">SONG OF THE MOMENT</div>
+        </div>`
+      : `<div class="stat-box stat-box-sub">
+          <div class="stat-val">—</div>
+          <div class="stat-label">SONG OF THE MOMENT</div>
+        </div>`;
+
+    strip2El.innerHTML = sotmBox +
+      `<div class="stat-box stat-box-sub"><div class="stat-val">${newSongsCount}</div><div class="stat-label">NEW SONGS</div></div>` +
+      `<div class="stat-box stat-box-sub"><div class="stat-val">${newArtistsCount}</div><div class="stat-label">NEW ARTISTS</div></div>` +
+      `<div class="stat-box stat-box-sub"><div class="stat-val">${newAlbumsCount}</div><div class="stat-label">NEW ALBUMS</div></div>`;
+    strip2El.style.display = '';
+    if (strip1El) strip1El.style.marginBottom = '0';
+  } else if (strip2El) {
+    strip2El.style.display = 'none';
+    if (strip1El) strip1El.style.marginBottom = '';
+  }
+
   renderTableHeaders();
   const hasPeriodStats = currentPeriod === 'week' || currentPeriod === 'month';
   const colCount = hasPeriodStats ? 7 : 5;
