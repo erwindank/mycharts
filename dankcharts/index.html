@@ -1048,6 +1048,15 @@
 
       <div id="eventsStatus" class="upcoming-status"></div>
 
+      <div class="events-calendar-wrap">
+        <div class="events-calendar-header">
+          <button class="cal-nav-btn" onclick="eventsCalendarPrev()">&#8249;</button>
+          <span id="eventsCalendarTitle" class="cal-title"></span>
+          <button class="cal-nav-btn" onclick="eventsCalendarNext()">&#8250;</button>
+        </div>
+        <div class="events-cal-grid" id="eventsCalendarGrid"></div>
+      </div>
+
       <div class="chart-section" id="birthdaysSection">
         <div class="section-header">
           <button class="section-collapse-btn" data-target="birthdaysSection" title="Collapse">−</button>
@@ -1060,15 +1069,63 @@
         </div>
       </div>
 
-      <div class="chart-section" id="anniversariesSection">
+      <div class="chart-section collapsed" id="anniversariesSection">
         <div class="section-header">
-          <button class="section-collapse-btn" data-target="anniversariesSection" title="Collapse">−</button>
+          <button class="section-collapse-btn" data-target="anniversariesSection" title="Expand">+</button>
           <h2 class="section-header-h2">🎵 Album Anniversaries</h2>
           <div class="section-rule"></div>
         </div>
         <div class="section-sub">Albums celebrating release anniversaries in the next 30 days</div>
         <div class="section-body">
           <div class="upcoming-grid" id="anniversariesGrid"></div>
+        </div>
+      </div>
+
+      <div class="chart-section collapsed" id="eventsUpcomingSection">
+        <div class="section-header">
+          <button class="section-collapse-btn" data-target="eventsUpcomingSection" title="Expand">+</button>
+          <h2 class="section-header-h2">🆕 Upcoming Releases</h2>
+          <div class="section-rule"></div>
+        </div>
+        <div class="section-sub">Releases coming in the next 90 days from your top artists</div>
+        <div class="section-body">
+          <div class="upcoming-grid" id="eventsUpcomingGrid"></div>
+        </div>
+      </div>
+
+      <div class="chart-section collapsed" id="eventsRecentSection">
+        <div class="section-header">
+          <button class="section-collapse-btn" data-target="eventsRecentSection" title="Expand">+</button>
+          <h2 class="section-header-h2">📅 Recent Releases</h2>
+          <div class="section-rule"></div>
+        </div>
+        <div class="section-sub">Releases from the past 6 months from your top artists</div>
+        <div class="section-body">
+          <div class="upcoming-grid" id="eventsRecentGrid"></div>
+        </div>
+      </div>
+
+      <div class="chart-section collapsed" id="eventsRecentBirthdaysSection">
+        <div class="section-header">
+          <button class="section-collapse-btn" data-target="eventsRecentBirthdaysSection" title="Expand">+</button>
+          <h2 class="section-header-h2">🎂 Recent Birthdays</h2>
+          <div class="section-rule"></div>
+        </div>
+        <div class="section-sub">Artist birthdays from the past 30 days you may have missed</div>
+        <div class="section-body">
+          <div class="upcoming-grid" id="eventsRecentBirthdaysGrid"></div>
+        </div>
+      </div>
+
+      <div class="chart-section collapsed" id="eventsRecentAnniversariesSection">
+        <div class="section-header">
+          <button class="section-collapse-btn" data-target="eventsRecentAnniversariesSection" title="Expand">+</button>
+          <h2 class="section-header-h2">🎵 Recent Anniversaries</h2>
+          <div class="section-rule"></div>
+        </div>
+        <div class="section-sub">Album anniversaries from the past 30 days you may have missed</div>
+        <div class="section-body">
+          <div class="upcoming-grid" id="eventsRecentAnniversariesGrid"></div>
         </div>
       </div>
     </div>
