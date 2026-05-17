@@ -4099,7 +4099,7 @@ function renderAll() {
           <div class="stat-label">SONG OF THE MOMENT</div>
         </div>`;
 
-    strip2El.innerHTML = sotmBox +
+    strip2El.innerHTML = (currentPeriod === 'week' ? sotmBox : '') +
       statBox2(newSongsCount,   'NEW SONGS',   prevNewSongs,   newPeakStats.maxNewSongs,   newPeakAtTimeStats.maxNewSongs) +
       statBox2(newArtistsCount, 'NEW ARTISTS', prevNewArtists, newPeakStats.maxNewArtists, newPeakAtTimeStats.maxNewArtists) +
       statBox2(newAlbumsCount,  'NEW ALBUMS',  prevNewAlbums,  newPeakStats.maxNewAlbums,  newPeakAtTimeStats.maxNewAlbums);

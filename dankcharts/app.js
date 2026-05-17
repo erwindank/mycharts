@@ -2094,8 +2094,7 @@ function saveSourceConfig() {
     if (sel) sel.value = eventsArtistLimit;
   }
   noArtistSplit = document.getElementById('srcNoArtistSplit').checked;
-  if (noArtistSplit) localStorage.setItem('dc_no_artist_split', '1');
-  else localStorage.removeItem('dc_no_artist_split');
+  localStorage.setItem('dc_no_artist_split', noArtistSplit ? '1' : '0');
   closeSourceModal();
   if (typeof dcSaveUserConfig === 'function') dcSaveUserConfig();
   syncNow();
@@ -3786,6 +3785,7 @@ document.getElementById('periodNav').addEventListener('click', e => {
     document.getElementById('dateNav').style.display = 'none';
     document.getElementById('navHint').style.display = 'none';
     document.getElementById('statsStrip').style.display = 'none';
+    document.getElementById('statsStrip2').style.display = 'none';
     document.getElementById('songsSection').style.display = 'none';
     document.getElementById('artistsSection').style.display = 'none';
     document.getElementById('albumsSection').style.display = 'none';
@@ -3820,6 +3820,7 @@ document.getElementById('periodNav').addEventListener('click', e => {
     document.getElementById('dateNav').style.display = 'none';
     document.getElementById('navHint').style.display = 'none';
     document.getElementById('statsStrip').style.display = 'none';
+    document.getElementById('statsStrip2').style.display = 'none';
     document.getElementById('songsSection').style.display = 'none';
     document.getElementById('artistsSection').style.display = 'none';
     document.getElementById('albumsSection').style.display = 'none';
@@ -3847,6 +3848,7 @@ document.getElementById('periodNav').addEventListener('click', e => {
     document.getElementById('dateNav').style.display = 'none';
     document.getElementById('navHint').style.display = 'none';
     document.getElementById('statsStrip').style.display = 'none';
+    document.getElementById('statsStrip2').style.display = 'none';
     document.getElementById('songsSection').style.display = 'none';
     document.getElementById('artistsSection').style.display = 'none';
     document.getElementById('albumsSection').style.display = 'none';
@@ -3877,6 +3879,7 @@ document.getElementById('periodNav').addEventListener('click', e => {
     document.getElementById('dateNav').style.display = 'none';
     document.getElementById('navHint').style.display = 'none';
     document.getElementById('statsStrip').style.display = 'none';
+    document.getElementById('statsStrip2').style.display = 'none';
     document.getElementById('songsSection').style.display = 'none';
     document.getElementById('artistsSection').style.display = 'none';
     document.getElementById('albumsSection').style.display = 'none';
@@ -4667,10 +4670,10 @@ function renderAll() {
   }
 
   document.getElementById('statsStrip').innerHTML =
-    statBox(plays.length,   'stat_total_plays',  prevPlays     ? prevPlays.length     : null, peakStats ? peakStats.maxPlays   : null, peakAtTimeStats ? peakAtTimeStats.maxPlays   : null, { scrollTo: 'songsSection',   sparkVals: sparkData && sparkData.plays,   extraLabel: playsPerDay ? playsPerDay + '/day' : null }) +
-    statBox(songSet.size,   'stat_unique_songs',  prevSongSet   ? prevSongSet.size     : null, peakStats ? peakStats.maxSongs   : null, peakAtTimeStats ? peakAtTimeStats.maxSongs   : null, { scrollTo: 'songsSection',   sparkVals: sparkData && sparkData.songs,   extraLabel: discoveryRate !== null ? discoveryRate + '% NEW' : null }) +
-    statBox(artistSet.size, 'stat_artists',       prevArtistSet ? prevArtistSet.size   : null, peakStats ? peakStats.maxArtists : null, peakAtTimeStats ? peakAtTimeStats.maxArtists : null, { scrollTo: 'artistsSection', sparkVals: sparkData && sparkData.artists }) +
-    statBox(albumSet.size,  'stat_albums',        prevAlbumSet  ? prevAlbumSet.size    : null, peakStats ? peakStats.maxAlbums  : null, peakAtTimeStats ? peakAtTimeStats.maxAlbums  : null, { scrollTo: 'albumsSection',  sparkVals: sparkData && sparkData.albums });
+    statBox(plays.length,   'stat_total_plays',  prevPlays     ? prevPlays.length     : null, peakStats ? peakStats.maxPlays   : null, peakAtTimeStats ? peakAtTimeStats.maxPlays   : null, { scrollTo: 'songsSection',   extraLabel: playsPerDay ? playsPerDay + '/day' : null }) +
+    statBox(songSet.size,   'stat_unique_songs',  prevSongSet   ? prevSongSet.size     : null, peakStats ? peakStats.maxSongs   : null, peakAtTimeStats ? peakAtTimeStats.maxSongs   : null, { scrollTo: 'songsSection',   extraLabel: discoveryRate !== null ? discoveryRate + '% NEW' : null }) +
+    statBox(artistSet.size, 'stat_artists',       prevArtistSet ? prevArtistSet.size   : null, peakStats ? peakStats.maxArtists : null, peakAtTimeStats ? peakAtTimeStats.maxArtists : null, { scrollTo: 'artistsSection' }) +
+    statBox(albumSet.size,  'stat_albums',        prevAlbumSet  ? prevAlbumSet.size    : null, peakStats ? peakStats.maxAlbums  : null, peakAtTimeStats ? peakAtTimeStats.maxAlbums  : null, { scrollTo: 'albumsSection' });
   animateStatStrip(document.getElementById('statsStrip'));
 
   // Second stats strip: song of the moment + new songs/artists/albums
@@ -4757,9 +4760,11 @@ function renderAll() {
 
     const sotmBox = sotmTitle
       ? `<div class="stat-box stat-box-sub stat-clickable" onclick="dcScrollTo('songsSection')" title="Jump to section">
-          <div class="stat-val" data-val="${sotmCount}">${sotmCount}</div>
+          <div id="sotm-img" class="stat-rising-thumb"><div class="thumb-initials">${esc(initials(sotmTitle))}</div></div>
           <div class="stat-sotm-title">${esc(sotmTitle)}</div>
           <div class="stat-sotm-artist">${esc(sotmArtist)}</div>
+          <div class="stat-val" data-val="${sotmCount}">${sotmCount}</div>
+          <div class="stat-plays-sub">plays</div>
           <div class="stat-label stat-label-sotm">SONG OF THE MOMENT</div>
         </div>`
       : `<div class="stat-box stat-box-sub">
@@ -4767,12 +4772,66 @@ function renderAll() {
           <div class="stat-label stat-label-sotm">SONG OF THE MOMENT</div>
         </div>`;
 
-    strip2El.innerHTML = sotmBox +
+    // Rising artist: newest artist discovered in the last 45 days from the last day of the viewed week
+    let risingArtistBox = '';
+    let risingArtistName = null;
+    if (currentPeriod === 'week') {
+      const fortyFiveDaysAgo = new Date(end.getTime() - 45 * 24 * 60 * 60 * 1000);
+      // Artists first seen in the 45-day window ending on the last day of the viewed week
+      const newArtists45 = Object.entries(artistFirst)
+        .filter(([, fd]) => fd >= fortyFiveDaysAgo && fd <= end);
+      // Pick the most recently discovered artist
+      let latestDate = null;
+      for (const [a, fd] of newArtists45) {
+        if (!latestDate || fd > latestDate) { risingArtistName = a; latestDate = fd; }
+      }
+      // Count plays in the 45-day window for display
+      let risingCount = 0;
+      if (risingArtistName) {
+        for (const p of allPlays) {
+          const d = tzDate(p.date);
+          if (d < fortyFiveDaysAgo || d > end) continue;
+          if (p.artists.includes(risingArtistName)) risingCount++;
+        }
+      }
+      if (risingArtistName) {
+        risingArtistBox = `<div class="stat-box stat-box-sub stat-clickable" onclick="dcScrollTo('artistsSection')" title="Jump to section">
+          <div id="rising-artist-img" class="stat-rising-thumb"><div class="thumb-initials">${esc(initials(risingArtistName))}</div></div>
+          <div class="stat-sotm-title">${esc(risingArtistName)}</div>
+          <div class="stat-val" data-val="${risingCount}">${risingCount}</div>
+          <div class="stat-plays-sub">plays</div>
+          <div class="stat-label stat-label-rising">RISING ARTIST</div>
+        </div>`;
+      }
+    }
+
+    strip2El.innerHTML = bestDayBox +
       statBox2(newSongsCount,   'NEW SONGS',   prevNewSongs,   newPeakStats.maxNewSongs,   newPeakAtTimeStats.maxNewSongs,   'newSongsSection') +
       statBox2(newArtistsCount, 'NEW ARTISTS', prevNewArtists, newPeakStats.maxNewArtists, newPeakAtTimeStats.maxNewArtists, 'newArtistsSection') +
       statBox2(newAlbumsCount,  'NEW ALBUMS',  prevNewAlbums,  newPeakStats.maxNewAlbums,  newPeakAtTimeStats.maxNewAlbums,  'newAlbumsSection') +
-      bestDayBox;
+      (currentPeriod === 'week' ? sotmBox + risingArtistBox : '');
     animateStatStrip(strip2El);
+
+    const sotmImgEl = document.getElementById('sotm-img');
+    if (sotmImgEl && sotmTitle) {
+      fetchAndInjectImage(sotmImgEl, {
+        title: sotmTitle,
+        name: sotmTitle,
+        artist: sotmArtist || '',
+        imgId: 'sotm-img',
+        prefKey: 'track:' + sotmTitle.toLowerCase() + ':deezer'
+      }, 'track');
+    }
+
+    const risingImgEl = document.getElementById('rising-artist-img');
+    if (risingImgEl && risingArtistName) {
+      fetchAndInjectImage(risingImgEl, {
+        name: risingArtistName,
+        imgId: 'rising-artist-img',
+        prefKey: 'artist:' + risingArtistName.toLowerCase() + ':deezer'
+      }, 'artist');
+    }
+
     strip2El.style.display = '';
     if (strip1El) strip1El.style.marginBottom = '0';
   } else if (strip2El) {
