@@ -2677,7 +2677,7 @@
     .stat-box .stat-val {
       font-family: 'DM Serif Display', serif;
       font-size: 1.9rem;
-      color: var(--text);
+      color: var(--cat-color, var(--text));
       line-height: 1;
     }
 
@@ -2688,6 +2688,9 @@
       text-transform: uppercase;
       color: var(--text3);
       margin-top: 0.3rem;
+      border: 1px solid var(--cat-color, var(--border2));
+      border-radius: 99px;
+      padding: 0.15rem 0.6rem;
     }
 
     .stat-delta {
@@ -2798,6 +2801,11 @@
       text-transform: uppercase;
       letter-spacing: 0.05em;
     }
+    .stat-box .stat-label-sotm, .stat-box .stat-label-rising {
+      border: none;
+      border-radius: 0;
+      padding: 0;
+    }
     .stat-label-sotm {
       background: linear-gradient(90deg, var(--gold1), var(--gold2), var(--gold1));
       -webkit-background-clip: text;
@@ -2855,6 +2863,26 @@
       background-clip: text;
       filter: drop-shadow(0 0 4px color-mix(in srgb, var(--teal) 60%, transparent));
       letter-spacing: 0.2em;
+    }
+
+    /* Category color variables — drives left border, number tint, and bar fill */
+    .stat-box[data-cat="plays"]       { --cat-color: var(--accent); }
+    .stat-box[data-cat="songs"]       { --cat-color: var(--teal); }
+    .stat-box[data-cat="artists"]     { --cat-color: var(--rose); }
+    .stat-box[data-cat="albums"]      { --cat-color: var(--gold1); }
+    .stat-box[data-cat="bestday"]     { --cat-color: var(--amber); }
+    .stat-box[data-cat="new-songs"]   { --cat-color: var(--teal); }
+    .stat-box[data-cat="new-artists"] { --cat-color: var(--rose); }
+    .stat-box[data-cat="new-albums"]  { --cat-color: var(--gold1); }
+    .stat-box[data-cat="sotm"]        { --cat-color: var(--gold1); }
+    .stat-box[data-cat="rising"]      { --cat-color: var(--green); }
+
+    .stat-cat-icon {
+      font-size: 1.1rem;
+      line-height: 1;
+      margin-bottom: 0.3rem;
+      display: block;
+      opacity: 0.85;
     }
 
     /* PAGINATED SEARCH */
