@@ -2391,6 +2391,28 @@
       background: linear-gradient(90deg, var(--border2), transparent);
     }
 
+    .section-replay-btn {
+      flex-shrink: 0;
+      padding: 0.15rem 0.55rem;
+      border: 1px dashed var(--border2);
+      background: none;
+      color: var(--text3);
+      font-family: 'DM Mono', monospace;
+      font-size: 0.58rem;
+      letter-spacing: 0.08em;
+      cursor: pointer;
+      border-radius: 4px;
+      opacity: 0.55;
+      transition: opacity 0.15s, background 0.15s, color 0.15s, border-color 0.15s;
+    }
+    .section-replay-btn:hover {
+      opacity: 1;
+      background: var(--surface);
+      color: var(--text);
+      border-style: solid;
+      border-color: var(--accent);
+    }
+
     .section-sub {
       font-family: 'DM Mono', monospace;
       font-size: 0.65rem;
@@ -8666,4 +8688,29 @@ body.pink-light .hero-stats {
     animation: none;
     transition: color 0.5s, border-color 0.5s, box-shadow 0.5s, background 0.5s;
   }
+}
+
+/* ─── CHART ROW ENTRANCE ANIMATION ─────────────────────────────── */
+@keyframes chartRowFadeOut {
+  from { opacity: 1; }
+  to   { opacity: 0; }
+}
+.chart-row-fade-out {
+  animation: chartRowFadeOut 0.35s ease-in forwards;
+  pointer-events: none;
+}
+
+@keyframes chartRowSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(var(--crsi-offset, 0px));
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.chart-row-anim {
+  animation: chartRowSlideIn 1.6s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation-delay: var(--crsi-delay, 0ms);
 }

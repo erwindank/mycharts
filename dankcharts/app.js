@@ -62,6 +62,7 @@ const fullData = { songs: [], artists: [], albums: [] };
 const fullNewData = { newSongs: [], newArtists: [], newAlbums: [] };
 let lastPeriodStats = null;
 let lastPeaks = null;
+let _animPrevPlays = null; // previous-period plays used for chart entrance animation
 const searchState = { songs: '', artists: '', albums: '' };
 let imgObservers = [];
 let imgQueue = Promise.resolve();
@@ -147,6 +148,18 @@ function toggleDisplay(type) {
 }
 
 initDisplayToggles();
+
+function replayChartAnimation(type) {
+  const bodyId = type === 'songs' ? 'songsBody' : type === 'artists' ? 'artistsBody' : 'albumsBody';
+  const rows = [...document.querySelectorAll(`#${bodyId} .chart-row-anim`)];
+  if (rows.length === 0) return;
+  rows.forEach((r, i) => {
+    r.style.setProperty('--crsi-delay', `${Math.min(i * 350, 5000)}ms`);
+    r.classList.remove('chart-row-anim');
+  });
+  void document.body.offsetHeight;
+  rows.forEach(r => r.classList.add('chart-row-anim'));
+}
 
 // ─── WEEK START DAY SELECTOR ───────────────────────────────────
 const DAY_ABBREVS = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
@@ -4561,6 +4574,10 @@ function renderAll() {
     (currentPeriod === 'year' || currentPeriod === 'alltime') ? 'none' : '';
   document.getElementById('togglePlaysPeakBtn').style.display =
     currentPeriod === 'alltime' ? 'none' : '';
+  const _showReplay = (currentPeriod === 'week' || currentPeriod === 'month') ? '' : 'none';
+  ['songsReplayBtn', 'artistsReplayBtn', 'albumsReplayBtn'].forEach(id => {
+    document.getElementById(id).style.display = _showReplay;
+  });
   if (paginated) {
     document.getElementById('sizeBtnsYearly').style.display = currentPeriod === 'year' ? 'flex' : 'none';
     document.getElementById('sizeBtnsAllTime').style.display = currentPeriod === 'alltime' ? 'flex' : 'none';
@@ -4910,9 +4927,11 @@ function renderAll() {
     document.getElementById('albumsSectionTitle').textContent = t('sec_albums_top', { n: chartSize });
     const periodStats = hasPeriodStats ? buildPeriodStats(currentPeriod) : null;
     lastPeriodStats = periodStats;
+    _animPrevPlays = (prevPlays && prevPlays.length > 0) ? prevPlays : null;
     renderSongs(plays, peaks, periodStats);
     renderArtists(plays, peaks, periodStats);
     renderAlbums(plays, peaks, periodStats);
+    _animPrevPlays = null;
     renderDropouts(plays, periodStats);
   }
   renderNewEntries(plays, start, end);
@@ -4936,6 +4955,93 @@ function rankSortWithStatus(a, b) {
   if (a.chartStatus !== b.chartStatus) return a.chartStatus - b.chartStatus;
   if (a.prevRank !== b.prevRank) return a.prevRank - b.prevRank;
   return a.firstAchieved - b.firstAchieved;
+}
+
+// ─── PREV-PERIOD RANK MAP (for chart entrance animation) ───────
+// Returns a map of key → 0-based rank index for the previous period's chart.
+function buildPrevRankMap(prevPlays, type) {
+  if (!prevPlays || prevPlays.length === 0) return {};
+  const counts = {};
+  if (type === 'songs') {
+    for (const p of prevPlays) {
+      const k = songKey(p);
+      if (!counts[k]) counts[k] = { count: 0, firstAchieved: p.date };
+      counts[k].count++;
+    }
+  } else if (type === 'artists') {
+    for (const p of prevPlays) {
+      for (const artist of p.artists) {
+        if (!counts[artist]) counts[artist] = { count: 0, firstAchieved: p.date };
+        counts[artist].count++;
+      }
+    }
+  } else if (type === 'albums') {
+    for (const p of prevPlays) {
+      const k = p.album + '|||' + albumArtist(p);
+      if (!counts[k]) counts[k] = { count: 0, firstAchieved: p.date };
+      counts[k].count++;
+    }
+  }
+  const map = {};
+  Object.entries(counts).sort(([, a], [, b]) => rankSort(a, b)).forEach(([k], i) => { map[k] = i; });
+  return map;
+}
+
+// Returns sorted array of simplified entries for the previous period (used to build the "preview" chart).
+function buildPrevSortedEntries(prevPlays, type) {
+  if (!prevPlays || prevPlays.length === 0) return [];
+  const counts = {};
+  if (type === 'songs') {
+    for (const p of prevPlays) {
+      const k = songKey(p);
+      if (!counts[k]) counts[k] = { title: p.title, artist: p.artist, album: p.album, count: 0, firstAchieved: p.date };
+      counts[k].count++;
+    }
+  } else if (type === 'artists') {
+    for (const p of prevPlays) {
+      for (const artist of p.artists) {
+        if (!counts[artist]) counts[artist] = { name: artist, count: 0, firstAchieved: p.date };
+        counts[artist].count++;
+      }
+    }
+  } else if (type === 'albums') {
+    for (const p of prevPlays) {
+      const k = p.album + '|||' + albumArtist(p);
+      if (!counts[k]) counts[k] = { album: p.album, artist: albumArtist(p), count: 0, firstAchieved: p.date };
+      counts[k].count++;
+    }
+    return Object.values(counts).filter(a => a.album && a.album !== '—').sort(rankSort);
+  }
+  return Object.values(counts).sort(rankSort);
+}
+
+// Builds the simplified "previous period" tbody HTML shown before the current chart animates in.
+function buildPrevChartHtml(prevSorted, size, colCount, type) {
+  const extraCols = colCount > 5 ? '<td></td><td></td>' : '';
+  return Array.from({ length: size }, (_, i) => {
+    const e = prevSorted[i];
+    if (!e) return `<tr class="chart-row-prev"><td class="rank-cell">${i + 1}</td>${'<td></td>'.repeat(colCount - 1)}</tr>`;
+    if (type === 'songs') return `<tr class="chart-row-prev">
+      <td class="rank-cell">${i + 1}</td>
+      <td class="thumb-cell"><div class="thumb-wrap"><div><div class="thumb-initials">${esc(initials(e.title))}</div></div></div></td>
+      <td><div class="song-title">${esc(e.title)}</div><div class="song-artist">${esc(e.artist)}</div></td>
+      <td><div class="song-album">${esc(e.album || '—')}</div></td>
+      ${extraCols}
+      <td><div class="play-count">${e.count}</div></td></tr>`;
+    if (type === 'artists') return `<tr class="chart-row-prev">
+      <td class="rank-cell">${i + 1}</td>
+      <td class="thumb-cell"><div class="thumb-wrap"><div><div class="thumb-initials">${esc(initials(e.name))}</div></div></div></td>
+      <td><div class="song-title">${esc(e.name)}</div></td>
+      <td></td>${extraCols}
+      <td><div class="play-count">${e.count}</div></td></tr>`;
+    if (type === 'albums') return `<tr class="chart-row-prev">
+      <td class="rank-cell">${i + 1}</td>
+      <td class="thumb-cell"><div class="thumb-wrap"><div><div class="thumb-initials">${esc(initials(e.album))}</div></div></div></td>
+      <td><div class="song-title">${esc(e.album)}</div><div class="song-artist">${esc(e.artist)}</div></td>
+      <td></td>${extraCols}
+      <td><div class="play-count">${e.count}</div></td></tr>`;
+    return '';
+  }).join('');
 }
 
 // ─── FULL DATASET BUILDERS (for paginated yearly/alltime) ──────
@@ -6461,7 +6567,9 @@ function renderSongs(plays, peaks, monthlyStats) {
   const isAllTime = currentPeriod === 'alltime';
   const colCount = monthlyStats ? 7 : 5;
   const imgItems = [];
-  document.getElementById('songsBody').innerHTML = sorted.flatMap((s, i) => {
+  const _prevMapSongs = buildPrevRankMap(_animPrevPlays, 'songs');
+  const _animSongs = _animPrevPlays !== null;
+  const currPairsS = sorted.map((s, i) => {
     const k = songKey(s);
     const pk = !isAllTime ? peaks.songPeakMap[k] : null;
     const imgId = 'simg-' + i;
@@ -6472,7 +6580,11 @@ function renderSongs(plays, peaks, monthlyStats) {
     const cumAlbumPlays = cumulativeMaps && s.album ? (cumulativeMaps.albumsByName[s.album] || 0) : 0;
     const histMaxSong = playsPeakMaps ? (playsPeakMaps.songs[k] || 0) : 0;
     const isPlaysPeak = !isAllTime && histMaxSong > 0 && s.count >= histMaxSong;
-    const mainRow = `<tr class="${i === 0 ? 'rank-1' : i === 1 ? 'rank-2' : i === 2 ? 'rank-3' : ''}">
+    const _prevIdxS = _animSongs ? (_prevMapSongs[k] ?? chartSize * 2) : 0;
+    const _crsiOffsetS = _animSongs ? Math.max(-200, Math.min(200, (_prevIdxS - i) * 38)) : 0;
+    const _animAttrsS = _animSongs ? ` style="--crsi-offset:${_crsiOffsetS}px;--crsi-delay:0ms"` : '';
+    const _animClassS = _animSongs ? ' chart-row-anim' : '';
+    const mainRow = `<tr${_animAttrsS} class="${i === 0 ? 'rank-1' : i === 1 ? 'rank-2' : i === 2 ? 'rank-3' : ''}${_animClassS}">
       <td class="rank-cell"><button class="cr-toggle-btn" title="${t('tooltip_cr_toggle_btn_song')}" onclick="event.stopPropagation();toggleChartRun(this,'${rowId}')">📊</button>${i + 1}</td>
       <td class="thumb-cell"><div class="thumb-wrap"><div id="${imgId}"><div class="thumb-initials">${esc(initials(s.title))}</div></div><button id="srcbtn-${imgId}" class="img-src-btn" data-imgid="${imgId}" data-type="song" data-prefkey="${esc(prefKey)}" data-name="${esc(s.title)}" data-artist="${esc(s.artist)}" data-album="${esc(s.album)}">${srcLabel(itemSourcePrefs[prefKey] || 'deezer')}</button></div></td>
       <td>
@@ -6491,8 +6603,30 @@ function renderSongs(plays, peaks, monthlyStats) {
     </tr>`;
     const expandRow = `<tr class="cr-row" id="${rowId}"><td colspan="${colCount}"><div class="cr-panel" data-crtype="songs" data-crkey="${encodeURIComponent(k)}">${buildCrPanelHTML('songs', k)}</div></td></tr>`;
     return [mainRow, expandRow];
-  }).join('');
-  loadImages(imgItems.map(i => ({ ...i, name: i.title })), 'song');
+  });
+  const sbodyS = document.getElementById('songsBody');
+  if (_animSongs) {
+    sbodyS.innerHTML = buildPrevChartHtml(buildPrevSortedEntries(_animPrevPlays, 'songs'), sorted.length, colCount, 'songs');
+    const prevRowsS = [...sbodyS.querySelectorAll('tr')];
+    sorted.forEach((_, i) => {
+      setTimeout(() => {
+        const row = prevRowsS[i];
+        if (!row || !row.parentNode) return;
+        row.classList.add('chart-row-fade-out');
+        setTimeout(() => {
+          if (!row.parentNode) return;
+          const tmp = document.createElement('tbody');
+          tmp.innerHTML = currPairsS[i][0] + currPairsS[i][1];
+          const nodes = [...tmp.children];
+          row.replaceWith(...nodes);
+          if (imgItems[i]) loadImages([{ ...imgItems[i], name: imgItems[i].title }], 'song');
+        }, 380);
+      }, Math.min(i * 350, 5000));
+    });
+  } else {
+    sbodyS.innerHTML = currPairsS.flatMap(p => p).join('');
+    loadImages(imgItems.map(i => ({ ...i, name: i.title })), 'song');
+  }
 }
 
 function renderArtists(plays, peaks, monthlyStats) {
@@ -6521,7 +6655,9 @@ function renderArtists(plays, peaks, monthlyStats) {
   const isAllTime = currentPeriod === 'alltime';
   const colCount = monthlyStats ? 7 : 5;
   const imgItems = [];
-  document.getElementById('artistsBody').innerHTML = sorted.flatMap(([artist, data], i) => {
+  const _prevMapArtists = buildPrevRankMap(_animPrevPlays, 'artists');
+  const _animArtists = _animPrevPlays !== null;
+  const currPairsA = sorted.map(([artist, data], i) => {
     const pk = !isAllTime ? peaks.artistPeakMap[artist] : null;
     const imgId = 'aimg-' + i;
     const prefKey = 'artist:' + artist.toLowerCase();
@@ -6529,7 +6665,11 @@ function renderArtists(plays, peaks, monthlyStats) {
     imgItems.push({ imgId, name: artist, prefKey });
     const histMaxArtist = playsPeakMaps ? (playsPeakMaps.artists[artist] || 0) : 0;
     const isPlaysPeak = !isAllTime && histMaxArtist > 0 && data.count >= histMaxArtist;
-    const mainRow = `<tr class="${i === 0 ? 'rank-1' : i === 1 ? 'rank-2' : i === 2 ? 'rank-3' : ''} artist-row" data-artist="${esc(artist)}">
+    const _prevIdxA = _animArtists ? (_prevMapArtists[artist] ?? chartSize * 2) : 0;
+    const _crsiOffsetA = _animArtists ? Math.max(-200, Math.min(200, (_prevIdxA - i) * 38)) : 0;
+    const _animAttrsA = _animArtists ? ` style="--crsi-offset:${_crsiOffsetA}px;--crsi-delay:0ms"` : '';
+    const _animClassA = _animArtists ? ' chart-row-anim' : '';
+    const mainRow = `<tr${_animAttrsA} class="${i === 0 ? 'rank-1' : i === 1 ? 'rank-2' : i === 2 ? 'rank-3' : ''}${_animClassA} artist-row" data-artist="${esc(artist)}">
       <td class="rank-cell"><button class="cr-toggle-btn" title="${t('tooltip_cr_toggle_btn_artist')}" onclick="event.stopPropagation();toggleChartRun(this,'${rowId}')">📊</button>${i + 1}</td>
       <td class="thumb-cell"><div class="thumb-wrap"><div id="${imgId}"><div class="thumb-initials">${esc(initials(artist))}</div></div><button id="srcbtn-${imgId}" class="img-src-btn" data-imgid="${imgId}" data-type="artist" data-prefkey="${esc(prefKey)}" data-name="${esc(artist)}" data-artist="${esc(artist)}" data-album="">${srcLabel(itemSourcePrefs[prefKey] || 'deezer')}</button></div></td>
       <td><div class="song-title">${esc(artist)}${pk ? peakBadge(pk) : ''}</div><div class="song-artist" style="font-size:0.7rem;letter-spacing:0.06em;font-style:normal;font-family:'DM Mono',monospace;color:var(--text3)">${t('click_view_profile')}</div></td>
@@ -6543,8 +6683,30 @@ function renderArtists(plays, peaks, monthlyStats) {
     </tr>`;
     const expandRow = `<tr class="cr-row" id="${rowId}"><td colspan="${colCount}"><div class="cr-panel" data-crtype="artists" data-crkey="${encodeURIComponent(artist)}">${buildCrPanelHTML('artists', artist)}</div></td></tr>`;
     return [mainRow, expandRow];
-  }).join('');
-  loadImages(imgItems, 'artist');
+  });
+  const sbodyA = document.getElementById('artistsBody');
+  if (_animArtists) {
+    sbodyA.innerHTML = buildPrevChartHtml(buildPrevSortedEntries(_animPrevPlays, 'artists'), sorted.length, colCount, 'artists');
+    const prevRowsA = [...sbodyA.querySelectorAll('tr')];
+    sorted.forEach((_, i) => {
+      setTimeout(() => {
+        const row = prevRowsA[i];
+        if (!row || !row.parentNode) return;
+        row.classList.add('chart-row-fade-out');
+        setTimeout(() => {
+          if (!row.parentNode) return;
+          const tmp = document.createElement('tbody');
+          tmp.innerHTML = currPairsA[i][0] + currPairsA[i][1];
+          const nodes = [...tmp.children];
+          row.replaceWith(...nodes);
+          if (imgItems[i]) loadImages([imgItems[i]], 'artist');
+        }, 380);
+      }, Math.min(i * 350, 5000));
+    });
+  } else {
+    sbodyA.innerHTML = currPairsA.flatMap(p => p).join('');
+    loadImages(imgItems, 'artist');
+  }
 }
 
 function renderAlbums(plays, peaks, monthlyStats) {
@@ -6572,10 +6734,12 @@ function renderAlbums(plays, peaks, monthlyStats) {
   const isAllTime = currentPeriod === 'alltime';
   const colCount = monthlyStats ? 7 : 5;
   const imgItems = [];
+  const _prevMapAlbums = buildPrevRankMap(_animPrevPlays, 'albums');
+  const _animAlbums = _animPrevPlays !== null;
   if (sorted.length === 0) {
     document.getElementById('albumsBody').innerHTML = `<tr><td colspan="${colCount}"><div class="empty-state"><p>${t('empty_no_album_data_csv')}</p></div></td></tr>`;
   } else {
-    document.getElementById('albumsBody').innerHTML = sorted.flatMap(({ album, artist, count, tracks }, i) => {
+    const currPairsL = sorted.map(({ album, artist, count, tracks }, i) => {
       const ak = album + '|||' + artist;
       const pk = !isAllTime ? peaks.albumPeakMap[ak] : null;
       const imgId = 'limg-' + i;
@@ -6585,7 +6749,11 @@ function renderAlbums(plays, peaks, monthlyStats) {
       const cumAlbumPlays = cumulativeMaps ? (cumulativeMaps.albums[ak] || 0) : count;
       const histMaxAlbum = playsPeakMaps ? (playsPeakMaps.albums[ak] || 0) : 0;
       const isPlaysPeak = !isAllTime && histMaxAlbum > 0 && count >= histMaxAlbum;
-      const mainRow = `<tr class="${i === 0 ? 'rank-1' : i === 1 ? 'rank-2' : i === 2 ? 'rank-3' : ''} album-row" data-albumkey="${esc(ak)}">
+      const _prevIdxL = _animAlbums ? (_prevMapAlbums[ak] ?? chartSize * 2) : 0;
+      const _crsiOffsetL = _animAlbums ? Math.max(-200, Math.min(200, (_prevIdxL - i) * 38)) : 0;
+      const _animAttrsL = _animAlbums ? ` style="--crsi-offset:${_crsiOffsetL}px;--crsi-delay:0ms"` : '';
+      const _animClassL = _animAlbums ? ' chart-row-anim' : '';
+      const mainRow = `<tr${_animAttrsL} class="${i === 0 ? 'rank-1' : i === 1 ? 'rank-2' : i === 2 ? 'rank-3' : ''}${_animClassL} album-row" data-albumkey="${esc(ak)}">
       <td class="rank-cell"><button class="cr-toggle-btn" title="${t('tooltip_cr_toggle_btn_album')}" onclick="event.stopPropagation();toggleChartRun(this,'${rowId}')">📊</button>${i + 1}</td>
       <td class="thumb-cell"><div class="thumb-wrap"><div id="${imgId}"><div class="thumb-initials">${esc(initials(album))}</div></div><button id="srcbtn-${imgId}" class="img-src-btn" data-imgid="${imgId}" data-type="album" data-prefkey="${esc(prefKey)}" data-name="${esc(album)}" data-artist="${esc(artist)}" data-album="${esc(album)}">${srcLabel(itemSourcePrefs[prefKey] || 'deezer')}</button></div></td>
       <td>
@@ -6603,9 +6771,31 @@ function renderAlbums(plays, peaks, monthlyStats) {
     </tr>`;
       const expandRow = `<tr class="cr-row" id="${rowId}"><td colspan="${colCount}"><div class="cr-panel" data-crtype="albums" data-crkey="${encodeURIComponent(ak)}">${buildCrPanelHTML('albums', ak)}</div></td></tr>`;
       return [mainRow, expandRow];
-    }).join('');
+    });
+    const sbodyL = document.getElementById('albumsBody');
+    if (_animAlbums) {
+      sbodyL.innerHTML = buildPrevChartHtml(buildPrevSortedEntries(_animPrevPlays, 'albums'), sorted.length, colCount, 'albums');
+      const prevRowsL = [...sbodyL.querySelectorAll('tr')];
+      sorted.forEach((_, i) => {
+        setTimeout(() => {
+          const row = prevRowsL[i];
+          if (!row || !row.parentNode) return;
+          row.classList.add('chart-row-fade-out');
+          setTimeout(() => {
+            if (!row.parentNode) return;
+            const tmp = document.createElement('tbody');
+            tmp.innerHTML = currPairsL[i][0] + currPairsL[i][1];
+            const nodes = [...tmp.children];
+            row.replaceWith(...nodes);
+            if (imgItems[i]) loadImages([imgItems[i]], 'album');
+          }, 380);
+        }, Math.min(i * 350, 5000));
+      });
+    } else {
+      sbodyL.innerHTML = currPairsL.flatMap(p => p).join('');
+      loadImages(imgItems, 'album');
+    }
   }
-  loadImages(imgItems, 'album');
 }
 
 // ─── WEEKLY DROPOUTS ───────────────────────────────────────────
