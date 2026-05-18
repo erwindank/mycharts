@@ -2785,21 +2785,17 @@
       font-size: 0.62rem;
       color: var(--text2);
       margin-top: 0.2rem;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
       text-transform: uppercase;
       letter-spacing: 0.05em;
+      word-break: break-word;
     }
     .stat-sotm-artist {
       font-family: 'DM Mono', monospace;
       font-size: 0.55rem;
       color: var(--text3);
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
       text-transform: uppercase;
       letter-spacing: 0.05em;
+      word-break: break-word;
     }
     .stat-box .stat-label-sotm, .stat-box .stat-label-rising {
       border: none;
@@ -2813,7 +2809,6 @@
       background-clip: text;
       filter: drop-shadow(0 0 4px color-mix(in srgb, var(--gold1) 60%, transparent));
       letter-spacing: 0.1em;
-      white-space: nowrap;
     }
 
     .stat-plays-sub {
@@ -2852,7 +2847,13 @@
     }
     #sotm-img,
     #sotm-img .thumb,
-    #sotm-img .thumb-initials {
+    #sotm-img .thumb-initials,
+    #aotm-img,
+    #aotm-img .thumb,
+    #aotm-img .thumb-initials,
+    #albumotm-img,
+    #albumotm-img .thumb,
+    #albumotm-img .thumb-initials {
       border-radius: 4px;
     }
 
@@ -2863,6 +2864,33 @@
       background-clip: text;
       filter: drop-shadow(0 0 4px color-mix(in srgb, var(--teal) 60%, transparent));
       letter-spacing: 0.2em;
+    }
+
+    .stat-box .stat-label-aotm,
+    .stat-box .stat-label-albumotm {
+      border: none;
+      border-radius: 0;
+      padding: 0;
+    }
+
+    .stat-label-aotm {
+      background: linear-gradient(90deg, var(--rose), #ff9eb5, var(--rose));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      filter: drop-shadow(0 0 4px color-mix(in srgb, var(--rose) 60%, transparent));
+      letter-spacing: 0.08em;
+      white-space: nowrap;
+    }
+
+    .stat-label-albumotm {
+      background: linear-gradient(90deg, var(--amber), var(--gold2), var(--amber));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      filter: drop-shadow(0 0 4px color-mix(in srgb, var(--amber) 60%, transparent));
+      letter-spacing: 0.08em;
+      white-space: nowrap;
     }
 
     /* Category color variables — drives left border, number tint, and bar fill */
@@ -2876,6 +2904,8 @@
     .stat-box[data-cat="new-albums"]  { --cat-color: var(--gold1); }
     .stat-box[data-cat="sotm"]        { --cat-color: var(--gold1); }
     .stat-box[data-cat="rising"]      { --cat-color: var(--green); }
+    .stat-box[data-cat="aotm"]        { --cat-color: var(--rose); }
+    .stat-box[data-cat="albumotm"]    { --cat-color: var(--amber); }
 
     .stat-cat-icon {
       font-size: 1.1rem;

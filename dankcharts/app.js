@@ -3808,6 +3808,7 @@ document.getElementById('periodNav').addEventListener('click', e => {
     document.getElementById('navHint').style.display = 'none';
     document.getElementById('statsStrip').style.display = 'none';
     document.getElementById('statsStrip2').style.display = 'none';
+    const _s3 = document.getElementById('statsStrip3'); if (_s3) _s3.style.display = 'none';
     document.getElementById('songsSection').style.display = 'none';
     document.getElementById('artistsSection').style.display = 'none';
     document.getElementById('albumsSection').style.display = 'none';
@@ -3843,6 +3844,7 @@ document.getElementById('periodNav').addEventListener('click', e => {
     document.getElementById('navHint').style.display = 'none';
     document.getElementById('statsStrip').style.display = 'none';
     document.getElementById('statsStrip2').style.display = 'none';
+    const _s3 = document.getElementById('statsStrip3'); if (_s3) _s3.style.display = 'none';
     document.getElementById('songsSection').style.display = 'none';
     document.getElementById('artistsSection').style.display = 'none';
     document.getElementById('albumsSection').style.display = 'none';
@@ -3872,6 +3874,7 @@ document.getElementById('periodNav').addEventListener('click', e => {
     document.getElementById('navHint').style.display = 'none';
     document.getElementById('statsStrip').style.display = 'none';
     document.getElementById('statsStrip2').style.display = 'none';
+    const _s3 = document.getElementById('statsStrip3'); if (_s3) _s3.style.display = 'none';
     document.getElementById('songsSection').style.display = 'none';
     document.getElementById('artistsSection').style.display = 'none';
     document.getElementById('albumsSection').style.display = 'none';
@@ -3904,6 +3907,7 @@ document.getElementById('periodNav').addEventListener('click', e => {
     document.getElementById('navHint').style.display = 'none';
     document.getElementById('statsStrip').style.display = 'none';
     document.getElementById('statsStrip2').style.display = 'none';
+    const _s3 = document.getElementById('statsStrip3'); if (_s3) _s3.style.display = 'none';
     document.getElementById('songsSection').style.display = 'none';
     document.getElementById('artistsSection').style.display = 'none';
     document.getElementById('albumsSection').style.display = 'none';
@@ -4848,12 +4852,73 @@ function renderAll() {
       }
     }
 
+    // Artist of the moment: most-played artist in the last 21 days ending at period end
+    const aotmStart = new Date(end.getTime() - 21 * 24 * 60 * 60 * 1000);
+    const artistCounts21 = {};
+    for (const p of allPlays) {
+      const d = tzDate(p.date);
+      if (d >= aotmStart && d <= end) {
+        for (const a of p.artists) artistCounts21[a] = (artistCounts21[a] || 0) + 1;
+      }
+    }
+    let aotmArtistName = null, aotmArtistCount = 0;
+    for (const [a, c] of Object.entries(artistCounts21)) {
+      if (c > aotmArtistCount) { aotmArtistName = a; aotmArtistCount = c; }
+    }
+    const aotmBox = aotmArtistName
+      ? `<div class="stat-box stat-box-sub stat-clickable" onclick="dcScrollTo('artistsSection')" title="Jump to section" data-cat="aotm">
+          <div id="aotm-img" class="stat-rising-thumb"><div class="thumb-initials">${esc(initials(aotmArtistName))}</div></div>
+          <div class="stat-sotm-title">${esc(aotmArtistName)}</div>
+          <div class="stat-val" data-val="${aotmArtistCount}">${aotmArtistCount}</div>
+          <div class="stat-plays-sub">plays</div>
+          <div class="stat-label stat-label-aotm">ARTIST OF THE MOMENT</div>
+        </div>`
+      : '';
+
+    // Album of the moment: most-played album in the last 21 days ending at period end
+    const albumotmStart = new Date(end.getTime() - 21 * 24 * 60 * 60 * 1000);
+    const albumCounts21 = {};
+    for (const p of allPlays) {
+      const d = tzDate(p.date);
+      if (d >= albumotmStart && d <= end && p.album && p.album !== '—') {
+        const ak = p.album + '|||' + albumArtist(p);
+        albumCounts21[ak] = (albumCounts21[ak] || 0) + 1;
+      }
+    }
+    let albumotmKey = null, albumotmCount = 0;
+    for (const [ak, c] of Object.entries(albumCounts21)) {
+      if (c > albumotmCount) { albumotmKey = ak; albumotmCount = c; }
+    }
+    const albumotmTitle      = albumotmKey ? albumotmKey.split('|||')[0] : null;
+    const albumotmArtistName = albumotmKey ? albumotmKey.split('|||')[1] : null;
+    const albumotmBox = albumotmTitle
+      ? `<div class="stat-box stat-box-sub stat-clickable" onclick="dcScrollTo('albumsSection')" title="Jump to section" data-cat="albumotm">
+          <div id="albumotm-img" class="stat-rising-thumb"><div class="thumb-initials">${esc(initials(albumotmTitle))}</div></div>
+          <div class="stat-sotm-title">${esc(albumotmTitle)}</div>
+          <div class="stat-sotm-artist">${esc(albumotmArtistName)}</div>
+          <div class="stat-val" data-val="${albumotmCount}">${albumotmCount}</div>
+          <div class="stat-plays-sub">plays</div>
+          <div class="stat-label stat-label-albumotm">ALBUM OF THE MOMENT</div>
+        </div>`
+      : '';
+
     strip2El.innerHTML = bestDayBox +
       statBox2(newSongsCount,   'NEW SONGS',   prevNewSongs,   newPeakStats.maxNewSongs,   newPeakAtTimeStats.maxNewSongs,   'newSongsSection',   { emoji: '✨', cat: 'new-songs' }) +
       statBox2(newArtistsCount, 'NEW ARTISTS', prevNewArtists, newPeakStats.maxNewArtists, newPeakAtTimeStats.maxNewArtists, 'newArtistsSection', { emoji: '⭐', cat: 'new-artists' }) +
-      statBox2(newAlbumsCount,  'NEW ALBUMS',  prevNewAlbums,  newPeakStats.maxNewAlbums,  newPeakAtTimeStats.maxNewAlbums,  'newAlbumsSection',  { emoji: '🆕', cat: 'new-albums' }) +
-      (currentPeriod === 'week' ? sotmBox + risingArtistBox : '');
+      statBox2(newAlbumsCount,  'NEW ALBUMS',  prevNewAlbums,  newPeakStats.maxNewAlbums,  newPeakAtTimeStats.maxNewAlbums,  'newAlbumsSection',  { emoji: '🆕', cat: 'new-albums' });
     animateStatStrip(strip2El);
+
+    const strip3El = document.getElementById('statsStrip3');
+    if (strip3El) {
+      const strip3Content = (currentPeriod === 'week' ? sotmBox + risingArtistBox : '') + aotmBox + albumotmBox;
+      strip3El.innerHTML = strip3Content;
+      if (strip3Content) {
+        animateStatStrip(strip3El);
+        strip3El.style.display = '';
+      } else {
+        strip3El.style.display = 'none';
+      }
+    }
 
     const sotmImgEl = document.getElementById('sotm-img');
     if (sotmImgEl && sotmTitle) {
@@ -4875,10 +4940,32 @@ function renderAll() {
       }, 'artist');
     }
 
+    const aotmImgEl = document.getElementById('aotm-img');
+    if (aotmImgEl && aotmArtistName) {
+      fetchAndInjectImage(aotmImgEl, {
+        name: aotmArtistName,
+        imgId: 'aotm-img',
+        prefKey: 'artist:' + aotmArtistName.toLowerCase() + ':deezer'
+      }, 'artist');
+    }
+
+    const albumotmImgEl = document.getElementById('albumotm-img');
+    if (albumotmImgEl && albumotmTitle) {
+      fetchAndInjectImage(albumotmImgEl, {
+        album: albumotmTitle,
+        name: albumotmTitle,
+        artist: albumotmArtistName || '',
+        imgId: 'albumotm-img',
+        prefKey: 'album:' + albumotmTitle.toLowerCase() + ':deezer'
+      }, 'album');
+    }
+
     strip2El.style.display = '';
     if (strip1El) strip1El.style.marginBottom = '0';
   } else if (strip2El) {
     strip2El.style.display = 'none';
+    const strip3ElFallback = document.getElementById('statsStrip3');
+    if (strip3ElFallback) strip3ElFallback.style.display = 'none';
     if (strip1El) strip1El.style.marginBottom = '';
   }
 
