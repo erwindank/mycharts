@@ -8179,16 +8179,11 @@ body.hide-yt-btns .yt-play-btn { display: none; }
   transition: box-shadow 0.2s;
 }
 
-/* When stuck, add a top border so it doesn't float disconnected */
-.sticky-nav-bar.is-stuck .period-nav {
+.sticky-nav-bar.is-stuck {
+  box-shadow: 0 3px 16px rgba(0, 0, 0, 0.4);
   border-top: 1px solid var(--border);
 }
 
-.sticky-nav-bar.is-stuck {
-  box-shadow: 0 3px 16px rgba(0, 0, 0, 0.4);
-}
-
-/* Remove the bottom margin and rounded bottom from date-nav since the wrapper owns the spacing */
 .sticky-nav-bar .date-nav {
   margin-bottom: 0;
   border-radius: 0 0 8px 8px;

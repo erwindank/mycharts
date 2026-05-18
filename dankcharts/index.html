@@ -245,53 +245,53 @@
       </div>
     </div>
 
+    <div class="period-nav" id="periodNav">
+      <button class="active" data-period="week" data-i18n="nav_weekly">Weekly</button>
+      <button data-period="month" data-i18n="nav_monthly">Monthly</button>
+      <button data-period="year" data-i18n="nav_yearly">Yearly</button>
+      <button data-period="alltime" data-i18n="nav_alltime">All-Time</button>
+      <button data-period="rawdata" data-i18n="nav_rawdata">Raw Data</button>
+      <button data-period="graphs" data-i18n="nav_graphs">Graphs</button>
+      <button data-period="records" data-i18n="nav_records">Records</button>
+      <button data-period="events">Events</button>
+    </div>
+
+    <div class="chart-size-bar" id="chartSizeBar">
+      <label data-i18n="chartsize_label">Chart Size:</label>
+      <div class="size-btns" id="sizeBtnsWeekly">
+        <button data-size="10" class="active">Top 10</button>
+        <button data-size="20">Top 20</button>
+        <button data-size="25">Top 25</button>
+        <button data-size="30">Top 30</button>
+        <button data-size="50">Top 50</button>
+        <button data-size="100">Top 100</button>
+      </div>
+      <div class="size-btns" id="sizeBtnsMonthly" style="display:none">
+        <button data-size="25">Top 25</button>
+        <button data-size="30">Top 30</button>
+        <button data-size="50" class="active">Top 50</button>
+        <button data-size="100">Top 100</button>
+      </div>
+    </div>
+
+    <div class="chart-size-bar" id="paginatedSizeBar" style="display:none">
+      <label data-i18n="chartview_label">Chart View:</label>
+      <div class="size-btns" id="sizeBtnsYearly">
+        <button data-size="50">Top 50</button>
+        <button data-size="100">Top 100</button>
+        <button data-size="200">Top 200</button>
+        <button data-size="0" class="active" data-i18n="all_entries">All Entries</button>
+      </div>
+      <div class="size-btns" id="sizeBtnsAllTime" style="display:none">
+        <button data-size="50">Top 50</button>
+        <button data-size="100">Top 100</button>
+        <button data-size="200">Top 200</button>
+        <button data-size="0" class="active" data-i18n="all_entries">All Entries</button>
+      </div>
+    </div>
+
     <div id="stickyNavSentinel"></div>
     <div id="stickyNavBar" class="sticky-nav-bar">
-      <div class="period-nav" id="periodNav">
-        <button class="active" data-period="week" data-i18n="nav_weekly">Weekly</button>
-        <button data-period="month" data-i18n="nav_monthly">Monthly</button>
-        <button data-period="year" data-i18n="nav_yearly">Yearly</button>
-        <button data-period="alltime" data-i18n="nav_alltime">All-Time</button>
-        <button data-period="rawdata" data-i18n="nav_rawdata">Raw Data</button>
-        <button data-period="graphs" data-i18n="nav_graphs">Graphs</button>
-        <button data-period="records" data-i18n="nav_records">Records</button>
-        <button data-period="events">Events</button>
-      </div>
-
-      <div class="chart-size-bar" id="chartSizeBar">
-        <label data-i18n="chartsize_label">Chart Size:</label>
-        <div class="size-btns" id="sizeBtnsWeekly">
-          <button data-size="10" class="active">Top 10</button>
-          <button data-size="20">Top 20</button>
-          <button data-size="25">Top 25</button>
-          <button data-size="30">Top 30</button>
-          <button data-size="50">Top 50</button>
-          <button data-size="100">Top 100</button>
-        </div>
-        <div class="size-btns" id="sizeBtnsMonthly" style="display:none">
-          <button data-size="25">Top 25</button>
-          <button data-size="30">Top 30</button>
-          <button data-size="50" class="active">Top 50</button>
-          <button data-size="100">Top 100</button>
-        </div>
-      </div>
-
-      <div class="chart-size-bar" id="paginatedSizeBar" style="display:none">
-        <label data-i18n="chartview_label">Chart View:</label>
-        <div class="size-btns" id="sizeBtnsYearly">
-          <button data-size="50">Top 50</button>
-          <button data-size="100">Top 100</button>
-          <button data-size="200">Top 200</button>
-          <button data-size="0" class="active" data-i18n="all_entries">All Entries</button>
-        </div>
-        <div class="size-btns" id="sizeBtnsAllTime" style="display:none">
-          <button data-size="50">Top 50</button>
-          <button data-size="100">Top 100</button>
-          <button data-size="200">Top 200</button>
-          <button data-size="0" class="active" data-i18n="all_entries">All Entries</button>
-        </div>
-      </div>
-
       <div class="date-nav" id="dateNav">
         <button id="prevBtn" data-i18n="btn_prev">◄ Prev</button>
         <div class="date-nav-center">
