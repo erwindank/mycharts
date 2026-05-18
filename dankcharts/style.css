@@ -8685,6 +8685,14 @@ body.pink-light .hero-stats {
   }
 }
 
+/* ─── SLIDING-WINDOW ANIMATION HELPERS ──────────────────────────── */
+.sw-bar {
+  transition: width 0.45s ease;
+}
+.chart-row-prev {
+  will-change: transform;
+}
+
 /* ─── CHART ROW ENTRANCE ANIMATION ─────────────────────────────── */
 @keyframes chartRowFadeOut {
   from { opacity: 1; }
@@ -8706,6 +8714,6 @@ body.pink-light .hero-stats {
   }
 }
 .chart-row-anim {
-  animation: chartRowSlideIn 1.6s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation: chartRowSlideIn 2s cubic-bezier(0.22, 1, 0.36, 1) both;
   animation-delay: var(--crsi-delay, 0ms);
 }

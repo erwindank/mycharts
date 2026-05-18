@@ -63,6 +63,7 @@ const fullNewData = { newSongs: [], newArtists: [], newAlbums: [] };
 let lastPeriodStats = null;
 let lastPeaks = null;
 let _animPrevPlays = null; // previous-period plays used for chart entrance animation
+let _animCurrentPlays = null;
 const searchState = { songs: '', artists: '', albums: '' };
 let imgObservers = [];
 let imgQueue = Promise.resolve();
@@ -4928,10 +4929,12 @@ function renderAll() {
     const periodStats = hasPeriodStats ? buildPeriodStats(currentPeriod) : null;
     lastPeriodStats = periodStats;
     _animPrevPlays = (prevPlays && prevPlays.length > 0) ? prevPlays : null;
+    _animCurrentPlays = _animPrevPlays ? plays : null;
     renderSongs(plays, peaks, periodStats);
     renderArtists(plays, peaks, periodStats);
     renderAlbums(plays, peaks, periodStats);
     _animPrevPlays = null;
+    _animCurrentPlays = null;
     renderDropouts(plays, periodStats);
   }
   renderNewEntries(plays, start, end);
@@ -5015,33 +5018,167 @@ function buildPrevSortedEntries(prevPlays, type) {
   return Object.values(counts).sort(rankSort);
 }
 
-// Builds the simplified "previous period" tbody HTML shown before the current chart animates in.
+// Builds the simplified "previous period" tbody HTML shown before the sliding-window animation.
+// Each row gets data-chartkey (for FLIP keying), sw-count, and sw-bar for live updates.
 function buildPrevChartHtml(prevSorted, size, colCount, type) {
   const extraCols = colCount > 5 ? '<td></td><td></td>' : '';
+  const maxPrev = prevSorted[0]?.count || 1;
   return Array.from({ length: size }, (_, i) => {
     const e = prevSorted[i];
     if (!e) return `<tr class="chart-row-prev"><td class="rank-cell">${i + 1}</td>${'<td></td>'.repeat(colCount - 1)}</tr>`;
-    if (type === 'songs') return `<tr class="chart-row-prev">
+    const barPct = Math.round(e.count / maxPrev * 100);
+    const countCell = `<td><div class="play-count sw-count">${e.count}</div><div class="play-bar"><div class="play-bar-fill sw-bar" style="width:${barPct}%"></div></div></td>`;
+    if (type === 'songs') {
+      const key = songKey(e);
+      return `<tr class="chart-row-prev" data-chartkey="${esc(key)}">
       <td class="rank-cell">${i + 1}</td>
-      <td class="thumb-cell"><div class="thumb-wrap"><div><div class="thumb-initials">${esc(initials(e.title))}</div></div></div></td>
+      <td class="thumb-cell"><div class="thumb-wrap"><div id="pwsimg-${i}"><div class="thumb-initials">${esc(initials(e.title))}</div></div></div></td>
       <td><div class="song-title">${esc(e.title)}</div><div class="song-artist">${esc(e.artist)}</div></td>
       <td><div class="song-album">${esc(e.album || '—')}</div></td>
-      ${extraCols}
-      <td><div class="play-count">${e.count}</div></td></tr>`;
-    if (type === 'artists') return `<tr class="chart-row-prev">
+      ${extraCols}${countCell}</tr>`;
+    }
+    if (type === 'artists') {
+      return `<tr class="chart-row-prev" data-chartkey="${esc(e.name)}">
       <td class="rank-cell">${i + 1}</td>
-      <td class="thumb-cell"><div class="thumb-wrap"><div><div class="thumb-initials">${esc(initials(e.name))}</div></div></div></td>
+      <td class="thumb-cell"><div class="thumb-wrap"><div id="pwaimg-${i}"><div class="thumb-initials">${esc(initials(e.name))}</div></div></div></td>
       <td><div class="song-title">${esc(e.name)}</div></td>
-      <td></td>${extraCols}
-      <td><div class="play-count">${e.count}</div></td></tr>`;
-    if (type === 'albums') return `<tr class="chart-row-prev">
+      <td></td>${extraCols}${countCell}</tr>`;
+    }
+    if (type === 'albums') {
+      const key = e.album + '|||' + e.artist;
+      return `<tr class="chart-row-prev" data-chartkey="${esc(key)}">
       <td class="rank-cell">${i + 1}</td>
-      <td class="thumb-cell"><div class="thumb-wrap"><div><div class="thumb-initials">${esc(initials(e.album))}</div></div></div></td>
+      <td class="thumb-cell"><div class="thumb-wrap"><div id="pwlimg-${i}"><div class="thumb-initials">${esc(initials(e.album))}</div></div></div></td>
       <td><div class="song-title">${esc(e.album)}</div><div class="song-artist">${esc(e.artist)}</div></td>
-      <td></td>${extraCols}
-      <td><div class="play-count">${e.count}</div></td></tr>`;
+      <td></td>${extraCols}${countCell}</tr>`;
+    }
     return '';
   }).join('');
+}
+
+// ─── SLIDING-WINDOW CHART MORPH ────────────────────────────────
+// Computes chart counts for a sliding window that transitions from prevPlays to currPlays.
+// step 0 = full prevPlays, step totalSteps = full currPlays.
+function computeWindowCountsForType(pSorted, cSorted, step, totalSteps, type) {
+  const prevDrop = Math.round(step / totalSteps * pSorted.length);
+  const currAdd  = Math.round(step / totalSteps * cSorted.length);
+  const pool = pSorted.slice(prevDrop).concat(cSorted.slice(0, currAdd));
+  const counts = {};
+  if (type === 'songs') {
+    for (const p of pool) {
+      const k = songKey(p);
+      if (!counts[k]) counts[k] = { key: k, count: 0 };
+      counts[k].count++;
+    }
+  } else if (type === 'artists') {
+    for (const p of pool) {
+      for (const artist of p.artists) {
+        if (!counts[artist]) counts[artist] = { key: artist, count: 0 };
+        counts[artist].count++;
+      }
+    }
+  } else if (type === 'albums') {
+    for (const p of pool) {
+      if (!p.album || p.album === '—') continue;
+      const k = p.album + '|||' + albumArtist(p);
+      if (!counts[k]) counts[k] = { key: k, count: 0 };
+      counts[k].count++;
+    }
+  }
+  return Object.values(counts).sort((a, b) => b.count - a.count).slice(0, chartSize);
+}
+
+// Animates tbody rows through the sliding window from prev→curr period using FLIP.
+// Reads _animPrevPlays / _animCurrentPlays at call time. Calls onComplete() when done.
+// Uses a cancellation token so re-renders abort any in-progress animation on the same tbody.
+function runSlideWindowAnim(tbody, type, onComplete) {
+  const prevPlays = _animPrevPlays;
+  const currPlays = _animCurrentPlays;
+  if (!prevPlays || !currPlays) { onComplete(); return; }
+
+  // Cancel any prior animation on this tbody (stale row refs cause chaos on re-render)
+  const token = { cancelled: false };
+  if (tbody._swToken) tbody._swToken.cancelled = true;
+  tbody._swToken = token;
+
+  const STEPS   = 7;
+  const STEP_MS = 750;
+
+  const pSorted = [...prevPlays].sort((a, b) => a.date - b.date);
+  const cSorted = [...currPlays].sort((a, b) => a.date - b.date);
+
+  function getRowMap() {
+    const m = new Map();
+    for (const tr of tbody.querySelectorAll('tr[data-chartkey]')) m.set(tr.dataset.chartkey, tr);
+    return m;
+  }
+
+  if (getRowMap().size === 0) { onComplete(); return; }
+
+  function doStep(step) {
+    if (token.cancelled || !tbody.isConnected) return;
+    if (step > STEPS) { onComplete(); return; }
+
+    // Rebuild rowMap fresh each step — handles any re-render that replaced the DOM
+    const rowMap = getRowMap();
+    if (rowMap.size === 0) { onComplete(); return; }
+
+    const counts      = computeWindowCountsForType(pSorted, cSorted, step, STEPS, type);
+    const newTopSet   = new Set(counts.map(c => c.key));
+    const maxCount    = counts[0]?.count || 1;
+    const activeRows  = counts.map(c => rowMap.get(c.key)).filter(Boolean);
+    const droppedRows = [...rowMap.values()].filter(tr => !newTopSet.has(tr.dataset.chartkey));
+
+    // FLIP read-1: freeze in-progress transitions, measure positions before reorder
+    const firstTops = new Map();
+    for (const tr of rowMap.values()) {
+      tr.style.transition = 'none';
+      tr.style.transform  = '';
+      firstTops.set(tr, tr.getBoundingClientRect().top);
+    }
+
+    // DOM reorder: active rows in rank order, dropped rows after
+    for (const tr of activeRows)  tbody.appendChild(tr);
+    for (const tr of droppedRows) tbody.appendChild(tr);
+
+    // Content update: ranks, counts, bars
+    counts.forEach((c, i) => {
+      const tr = rowMap.get(c.key);
+      if (!tr) return;
+      const rankCell = tr.querySelector('.rank-cell');
+      const countEl  = tr.querySelector('.sw-count');
+      const barEl    = tr.querySelector('.sw-bar');
+      if (rankCell) rankCell.textContent = i + 1;
+      if (countEl)  countEl.textContent  = c.count;
+      if (barEl)    barEl.style.width    = Math.round(c.count / maxCount * 100) + '%';
+    });
+
+    // FLIP read-2: measure positions after reorder, apply inverse transforms
+    const lastTops = new Map();
+    for (const tr of rowMap.values()) lastTops.set(tr, tr.getBoundingClientRect().top);
+    for (const [tr, first] of firstTops) {
+      const dy = first - (lastTops.get(tr) ?? first);
+      if (Math.abs(dy) > 0.5) tr.style.transform = `translateY(${dy}px)`;
+    }
+
+    // FLIP play: transition rows to their natural positions
+    const transMs = Math.round(STEP_MS * 0.8);
+    const capturedActive = new Set(activeRows);
+    requestAnimationFrame(() => {
+      if (token.cancelled) return;
+      requestAnimationFrame(() => {
+        if (token.cancelled) return;
+        for (const tr of rowMap.values()) {
+          tr.style.transition = `transform ${transMs}ms cubic-bezier(0.4,0,0.2,1), opacity 0.4s ease`;
+          tr.style.transform  = '';
+          tr.style.opacity    = capturedActive.has(tr) ? '1' : '0.2';
+        }
+        setTimeout(() => doStep(step + 1), STEP_MS);
+      });
+    });
+  }
+
+  setTimeout(() => doStep(1), 900);
 }
 
 // ─── FULL DATASET BUILDERS (for paginated yearly/alltime) ──────
@@ -6582,7 +6719,7 @@ function renderSongs(plays, peaks, monthlyStats) {
     const isPlaysPeak = !isAllTime && histMaxSong > 0 && s.count >= histMaxSong;
     const _prevIdxS = _animSongs ? (_prevMapSongs[k] ?? chartSize * 2) : 0;
     const _crsiOffsetS = _animSongs ? Math.max(-200, Math.min(200, (_prevIdxS - i) * 38)) : 0;
-    const _animAttrsS = _animSongs ? ` style="--crsi-offset:${_crsiOffsetS}px;--crsi-delay:0ms"` : '';
+    const _animAttrsS = _animSongs ? ` style="--crsi-offset:${_crsiOffsetS}px;--crsi-delay:${i * 50}ms"` : '';
     const _animClassS = _animSongs ? ' chart-row-anim' : '';
     const mainRow = `<tr${_animAttrsS} class="${i === 0 ? 'rank-1' : i === 1 ? 'rank-2' : i === 2 ? 'rank-3' : ''}${_animClassS}">
       <td class="rank-cell"><button class="cr-toggle-btn" title="${t('tooltip_cr_toggle_btn_song')}" onclick="event.stopPropagation();toggleChartRun(this,'${rowId}')">📊</button>${i + 1}</td>
@@ -6606,22 +6743,19 @@ function renderSongs(plays, peaks, monthlyStats) {
   });
   const sbodyS = document.getElementById('songsBody');
   if (_animSongs) {
-    sbodyS.innerHTML = buildPrevChartHtml(buildPrevSortedEntries(_animPrevPlays, 'songs'), sorted.length, colCount, 'songs');
-    const prevRowsS = [...sbodyS.querySelectorAll('tr')];
-    sorted.forEach((_, i) => {
+    if (sbodyS._swToken) sbodyS._swToken.cancelled = true;
+    const _prevEntriesS = buildPrevSortedEntries(_animPrevPlays, 'songs');
+    sbodyS.innerHTML = buildPrevChartHtml(_prevEntriesS, sorted.length, colCount, 'songs');
+    loadImages(_prevEntriesS.map((e, i) => ({ imgId: `pwsimg-${i}`, title: e.title, artist: e.artist, album: e.album, type: 'song', prefKey: 'song:' + e.artist.toLowerCase() + '|||' + e.title.toLowerCase(), name: e.title })), 'song');
+    runSlideWindowAnim(sbodyS, 'songs', () => {
+      for (const tr of sbodyS.querySelectorAll('tr[data-chartkey]')) {
+        tr.style.transition = 'opacity 0.35s ease';
+        tr.style.opacity = '0';
+      }
       setTimeout(() => {
-        const row = prevRowsS[i];
-        if (!row || !row.parentNode) return;
-        row.classList.add('chart-row-fade-out');
-        setTimeout(() => {
-          if (!row.parentNode) return;
-          const tmp = document.createElement('tbody');
-          tmp.innerHTML = currPairsS[i][0] + currPairsS[i][1];
-          const nodes = [...tmp.children];
-          row.replaceWith(...nodes);
-          if (imgItems[i]) loadImages([{ ...imgItems[i], name: imgItems[i].title }], 'song');
-        }, 380);
-      }, Math.min(i * 350, 5000));
+        sbodyS.innerHTML = currPairsS.flatMap(p => p).join('');
+        loadImages(imgItems.map(i => ({ ...i, name: i.title })), 'song');
+      }, 380);
     });
   } else {
     sbodyS.innerHTML = currPairsS.flatMap(p => p).join('');
@@ -6667,7 +6801,7 @@ function renderArtists(plays, peaks, monthlyStats) {
     const isPlaysPeak = !isAllTime && histMaxArtist > 0 && data.count >= histMaxArtist;
     const _prevIdxA = _animArtists ? (_prevMapArtists[artist] ?? chartSize * 2) : 0;
     const _crsiOffsetA = _animArtists ? Math.max(-200, Math.min(200, (_prevIdxA - i) * 38)) : 0;
-    const _animAttrsA = _animArtists ? ` style="--crsi-offset:${_crsiOffsetA}px;--crsi-delay:0ms"` : '';
+    const _animAttrsA = _animArtists ? ` style="--crsi-offset:${_crsiOffsetA}px;--crsi-delay:${i * 50}ms"` : '';
     const _animClassA = _animArtists ? ' chart-row-anim' : '';
     const mainRow = `<tr${_animAttrsA} class="${i === 0 ? 'rank-1' : i === 1 ? 'rank-2' : i === 2 ? 'rank-3' : ''}${_animClassA} artist-row" data-artist="${esc(artist)}">
       <td class="rank-cell"><button class="cr-toggle-btn" title="${t('tooltip_cr_toggle_btn_artist')}" onclick="event.stopPropagation();toggleChartRun(this,'${rowId}')">📊</button>${i + 1}</td>
@@ -6686,22 +6820,19 @@ function renderArtists(plays, peaks, monthlyStats) {
   });
   const sbodyA = document.getElementById('artistsBody');
   if (_animArtists) {
-    sbodyA.innerHTML = buildPrevChartHtml(buildPrevSortedEntries(_animPrevPlays, 'artists'), sorted.length, colCount, 'artists');
-    const prevRowsA = [...sbodyA.querySelectorAll('tr')];
-    sorted.forEach((_, i) => {
+    if (sbodyA._swToken) sbodyA._swToken.cancelled = true;
+    const _prevEntriesA = buildPrevSortedEntries(_animPrevPlays, 'artists');
+    sbodyA.innerHTML = buildPrevChartHtml(_prevEntriesA, sorted.length, colCount, 'artists');
+    loadImages(_prevEntriesA.map((e, i) => ({ imgId: `pwaimg-${i}`, name: e.name, prefKey: 'artist:' + e.name.toLowerCase() })), 'artist');
+    runSlideWindowAnim(sbodyA, 'artists', () => {
+      for (const tr of sbodyA.querySelectorAll('tr[data-chartkey]')) {
+        tr.style.transition = 'opacity 0.35s ease';
+        tr.style.opacity = '0';
+      }
       setTimeout(() => {
-        const row = prevRowsA[i];
-        if (!row || !row.parentNode) return;
-        row.classList.add('chart-row-fade-out');
-        setTimeout(() => {
-          if (!row.parentNode) return;
-          const tmp = document.createElement('tbody');
-          tmp.innerHTML = currPairsA[i][0] + currPairsA[i][1];
-          const nodes = [...tmp.children];
-          row.replaceWith(...nodes);
-          if (imgItems[i]) loadImages([imgItems[i]], 'artist');
-        }, 380);
-      }, Math.min(i * 350, 5000));
+        sbodyA.innerHTML = currPairsA.flatMap(p => p).join('');
+        loadImages(imgItems, 'artist');
+      }, 380);
     });
   } else {
     sbodyA.innerHTML = currPairsA.flatMap(p => p).join('');
@@ -6751,7 +6882,7 @@ function renderAlbums(plays, peaks, monthlyStats) {
       const isPlaysPeak = !isAllTime && histMaxAlbum > 0 && count >= histMaxAlbum;
       const _prevIdxL = _animAlbums ? (_prevMapAlbums[ak] ?? chartSize * 2) : 0;
       const _crsiOffsetL = _animAlbums ? Math.max(-200, Math.min(200, (_prevIdxL - i) * 38)) : 0;
-      const _animAttrsL = _animAlbums ? ` style="--crsi-offset:${_crsiOffsetL}px;--crsi-delay:0ms"` : '';
+      const _animAttrsL = _animAlbums ? ` style="--crsi-offset:${_crsiOffsetL}px;--crsi-delay:${i * 50}ms"` : '';
       const _animClassL = _animAlbums ? ' chart-row-anim' : '';
       const mainRow = `<tr${_animAttrsL} class="${i === 0 ? 'rank-1' : i === 1 ? 'rank-2' : i === 2 ? 'rank-3' : ''}${_animClassL} album-row" data-albumkey="${esc(ak)}">
       <td class="rank-cell"><button class="cr-toggle-btn" title="${t('tooltip_cr_toggle_btn_album')}" onclick="event.stopPropagation();toggleChartRun(this,'${rowId}')">📊</button>${i + 1}</td>
@@ -6774,22 +6905,19 @@ function renderAlbums(plays, peaks, monthlyStats) {
     });
     const sbodyL = document.getElementById('albumsBody');
     if (_animAlbums) {
-      sbodyL.innerHTML = buildPrevChartHtml(buildPrevSortedEntries(_animPrevPlays, 'albums'), sorted.length, colCount, 'albums');
-      const prevRowsL = [...sbodyL.querySelectorAll('tr')];
-      sorted.forEach((_, i) => {
+      if (sbodyL._swToken) sbodyL._swToken.cancelled = true;
+      const _prevEntriesL = buildPrevSortedEntries(_animPrevPlays, 'albums');
+      sbodyL.innerHTML = buildPrevChartHtml(_prevEntriesL, sorted.length, colCount, 'albums');
+      loadImages(_prevEntriesL.map((e, i) => ({ imgId: `pwlimg-${i}`, album: e.album, artist: e.artist, name: e.album, prefKey: 'album:' + (e.album + '|||' + e.artist).toLowerCase() })), 'album');
+      runSlideWindowAnim(sbodyL, 'albums', () => {
+        for (const tr of sbodyL.querySelectorAll('tr[data-chartkey]')) {
+          tr.style.transition = 'opacity 0.35s ease';
+          tr.style.opacity = '0';
+        }
         setTimeout(() => {
-          const row = prevRowsL[i];
-          if (!row || !row.parentNode) return;
-          row.classList.add('chart-row-fade-out');
-          setTimeout(() => {
-            if (!row.parentNode) return;
-            const tmp = document.createElement('tbody');
-            tmp.innerHTML = currPairsL[i][0] + currPairsL[i][1];
-            const nodes = [...tmp.children];
-            row.replaceWith(...nodes);
-            if (imgItems[i]) loadImages([imgItems[i]], 'album');
-          }, 380);
-        }, Math.min(i * 350, 5000));
+          sbodyL.innerHTML = currPairsL.flatMap(p => p).join('');
+          loadImages(imgItems, 'album');
+        }, 380);
       });
     } else {
       sbodyL.innerHTML = currPairsL.flatMap(p => p).join('');
