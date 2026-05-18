@@ -2636,8 +2636,14 @@ function navigateToRecPeriod(period, periodKey) {
       document.getElementById('songsSection').style.display = '';
       document.getElementById('artistsSection').style.display = '';
       document.getElementById('albumsSection').style.display = '';
-      document.getElementById('upcomingSection').style.display = '';
-      document.getElementById('recentSection').style.display = '';
+      (['upcomingSection', 'recentSection']).forEach(id => {
+        const el = document.getElementById(id);
+        el.style.display = '';
+        const savedCollapsed = localStorage.getItem('dc_section_collapsed_' + id) === '1';
+        el.classList.toggle('collapsed', savedCollapsed);
+        const colBtn = el.querySelector('.section-collapse-btn');
+        if (colBtn) colBtn.textContent = savedCollapsed ? '+' : '−';
+      });
       if (currentPeriod === 'graphs') destroyGraphCharts();
     }
     currentPeriod = period;
@@ -3778,6 +3784,8 @@ document.addEventListener('click', e => {
     localStorage.setItem('dc_rec_section_collapsed_' + section.id, collapsed ? '1' : '0');
   } else if (CHART_COLLAPSIBLE_SECTIONS.includes(section.id)) {
     localStorage.setItem('dc_chart_section_collapsed_' + section.id + '_' + currentPeriod, collapsed ? '1' : '0');
+  } else if (section.id === 'upcomingSection' || section.id === 'recentSection') {
+    localStorage.setItem('dc_section_collapsed_' + section.id, collapsed ? '1' : '0');
   }
 });
 
@@ -3924,8 +3932,14 @@ document.getElementById('periodNav').addEventListener('click', e => {
     document.getElementById('songsSection').style.display = '';
     document.getElementById('artistsSection').style.display = '';
     document.getElementById('albumsSection').style.display = '';
-    document.getElementById('upcomingSection').style.display = '';
-    document.getElementById('recentSection').style.display = '';
+    (['upcomingSection', 'recentSection']).forEach(id => {
+      const el = document.getElementById(id);
+      el.style.display = '';
+      const savedCollapsed = localStorage.getItem('dc_section_collapsed_' + id) === '1';
+      el.classList.toggle('collapsed', savedCollapsed);
+      const colBtn = el.querySelector('.section-collapse-btn');
+      if (colBtn) colBtn.textContent = savedCollapsed ? '+' : '−';
+    });
     document.getElementById('rawDataView').style.display = 'none';
     document.getElementById('graphsView').style.display = 'none';
     document.getElementById('recordsView').style.display = 'none';
@@ -9213,7 +9227,12 @@ async function loadUpcomingReleases(forceRefresh = false) {
 
   // Show the section only on chart tabs (not events/graphs/rawdata/records)
   if (!['events', 'graphs', 'rawdata', 'records'].includes(currentPeriod)) {
-    document.getElementById('upcomingSection').style.display = '';
+    const el = document.getElementById('upcomingSection');
+    el.style.display = '';
+    const savedCollapsed = localStorage.getItem('dc_section_collapsed_upcomingSection') === '1';
+    el.classList.toggle('collapsed', savedCollapsed);
+    const btn = el.querySelector('.section-collapse-btn');
+    if (btn) btn.textContent = savedCollapsed ? '+' : '−';
   }
 
   // Check cache
@@ -9354,7 +9373,12 @@ async function loadRecentReleases(forceRefresh = false) {
 
   // Show the section only on chart tabs (not events/graphs/rawdata/records)
   if (!['events', 'graphs', 'rawdata', 'records'].includes(currentPeriod)) {
-    document.getElementById('recentSection').style.display = '';
+    const el = document.getElementById('recentSection');
+    el.style.display = '';
+    const savedCollapsed = localStorage.getItem('dc_section_collapsed_recentSection') === '1';
+    el.classList.toggle('collapsed', savedCollapsed);
+    const btn = el.querySelector('.section-collapse-btn');
+    if (btn) btn.textContent = savedCollapsed ? '+' : '−';
   }
 
   if (!forceRefresh) {

@@ -5524,6 +5524,32 @@
         grid-template-columns: 1fr 1fr;
       }
 
+      /* Raw Data table: hide # and Album cols, allow date to wrap, shrink to fit */
+      .raw-table th[data-col="num"],
+      .raw-table .raw-num {
+        display: none;
+      }
+
+      .raw-table th[data-col="album"],
+      .raw-table .raw-album {
+        display: none;
+      }
+
+      .raw-table .raw-date {
+        white-space: normal;
+        font-size: 0.6rem;
+        min-width: 4rem;
+      }
+
+      .raw-table th,
+      .raw-table td {
+        padding: 0.3rem 0.35rem;
+      }
+
+      .raw-table {
+        font-size: 0.7rem;
+      }
+
       .pak-item {
         grid-template-columns: auto 1fr auto;
       }
