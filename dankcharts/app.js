@@ -64,6 +64,7 @@ let lastPeriodStats = null;
 let lastPeaks = null;
 let _animPrevPlays = null; // previous-period plays used for chart entrance animation
 let _animCurrentPlays = null;
+const _replayFns = {}; // per-type full animation replay functions
 const searchState = { songs: '', artists: '', albums: '' };
 let imgObservers = [];
 let imgQueue = Promise.resolve();
@@ -151,15 +152,7 @@ function toggleDisplay(type) {
 initDisplayToggles();
 
 function replayChartAnimation(type) {
-  const bodyId = type === 'songs' ? 'songsBody' : type === 'artists' ? 'artistsBody' : 'albumsBody';
-  const rows = [...document.querySelectorAll(`#${bodyId} .chart-row-anim`)];
-  if (rows.length === 0) return;
-  rows.forEach((r, i) => {
-    r.style.setProperty('--crsi-delay', `${Math.min(i * 350, 5000)}ms`);
-    r.classList.remove('chart-row-anim');
-  });
-  void document.body.offsetHeight;
-  rows.forEach(r => r.classList.add('chart-row-anim'));
+  if (_replayFns[type]) { _replayFns[type](); return; }
 }
 
 // ─── WEEK START DAY SELECTOR ───────────────────────────────────
@@ -5201,9 +5194,7 @@ function computeWindowCountsForType(pSorted, cSorted, step, totalSteps, type) {
 // Animates tbody rows through the sliding window from prev→curr period using FLIP.
 // Reads _animPrevPlays / _animCurrentPlays at call time. Calls onComplete() when done.
 // Uses a cancellation token so re-renders abort any in-progress animation on the same tbody.
-function runSlideWindowAnim(tbody, type, onComplete) {
-  const prevPlays = _animPrevPlays;
-  const currPlays = _animCurrentPlays;
+function runSlideWindowAnim(tbody, type, prevPlays, currPlays, onComplete) {
   if (!prevPlays || !currPlays) { onComplete(); return; }
 
   // Cancel any prior animation on this tbody (stale row refs cause chaos on re-render)
@@ -5279,9 +5270,9 @@ function runSlideWindowAnim(tbody, type, onComplete) {
       requestAnimationFrame(() => {
         if (token.cancelled) return;
         for (const tr of rowMap.values()) {
-          tr.style.transition = `transform ${transMs}ms cubic-bezier(0.4,0,0.2,1), opacity 0.4s ease`;
+          tr.style.transition = `transform ${transMs}ms cubic-bezier(0.4,0,0.2,1)`;
           tr.style.transform  = '';
-          tr.style.opacity    = capturedActive.has(tr) ? '1' : '0.2';
+          tr.style.opacity    = '1';
         }
         setTimeout(() => doStep(step + 1), STEP_MS);
       });
@@ -6853,21 +6844,27 @@ function renderSongs(plays, peaks, monthlyStats) {
   });
   const sbodyS = document.getElementById('songsBody');
   if (_animSongs) {
-    if (sbodyS._swToken) sbodyS._swToken.cancelled = true;
-    const _prevEntriesS = buildPrevSortedEntries(_animPrevPlays, 'songs');
-    sbodyS.innerHTML = buildPrevChartHtml(_prevEntriesS, sorted.length, colCount, 'songs');
-    loadImages(_prevEntriesS.map((e, i) => ({ imgId: `pwsimg-${i}`, title: e.title, artist: e.artist, album: e.album, type: 'song', prefKey: 'song:' + e.artist.toLowerCase() + '|||' + e.title.toLowerCase(), name: e.title })), 'song');
-    runSlideWindowAnim(sbodyS, 'songs', () => {
-      for (const tr of sbodyS.querySelectorAll('tr[data-chartkey]')) {
-        tr.style.transition = 'opacity 0.35s ease';
-        tr.style.opacity = '0';
-      }
-      setTimeout(() => {
-        sbodyS.innerHTML = currPairsS.flatMap(p => p).join('');
-        loadImages(imgItems.map(i => ({ ...i, name: i.title })), 'song');
-      }, 380);
-    });
+    const _capPrevS = _animPrevPlays, _capCurrS = _animCurrentPlays;
+    const _startAnimS = () => {
+      if (sbodyS._swToken) sbodyS._swToken.cancelled = true;
+      const _prevEntriesS = buildPrevSortedEntries(_capPrevS, 'songs');
+      sbodyS.innerHTML = buildPrevChartHtml(_prevEntriesS, sorted.length, colCount, 'songs');
+      loadImages(_prevEntriesS.map((e, i) => ({ imgId: `pwsimg-${i}`, title: e.title, artist: e.artist, album: e.album, type: 'song', prefKey: 'song:' + e.artist.toLowerCase() + '|||' + e.title.toLowerCase(), name: e.title })), 'song');
+      runSlideWindowAnim(sbodyS, 'songs', _capPrevS, _capCurrS, () => {
+        for (const tr of sbodyS.querySelectorAll('tr[data-chartkey]')) {
+          tr.style.transition = 'opacity 0.35s ease';
+          tr.style.opacity = '0.75';
+        }
+        setTimeout(() => {
+          sbodyS.innerHTML = currPairsS.flatMap(p => p).join('');
+          loadImages(imgItems.map(i => ({ ...i, name: i.title })), 'song');
+        }, 380);
+      });
+    };
+    _replayFns['songs'] = _startAnimS;
+    _startAnimS();
   } else {
+    delete _replayFns['songs'];
     sbodyS.innerHTML = currPairsS.flatMap(p => p).join('');
     loadImages(imgItems.map(i => ({ ...i, name: i.title })), 'song');
   }
@@ -6930,21 +6927,27 @@ function renderArtists(plays, peaks, monthlyStats) {
   });
   const sbodyA = document.getElementById('artistsBody');
   if (_animArtists) {
-    if (sbodyA._swToken) sbodyA._swToken.cancelled = true;
-    const _prevEntriesA = buildPrevSortedEntries(_animPrevPlays, 'artists');
-    sbodyA.innerHTML = buildPrevChartHtml(_prevEntriesA, sorted.length, colCount, 'artists');
-    loadImages(_prevEntriesA.map((e, i) => ({ imgId: `pwaimg-${i}`, name: e.name, prefKey: 'artist:' + e.name.toLowerCase() })), 'artist');
-    runSlideWindowAnim(sbodyA, 'artists', () => {
-      for (const tr of sbodyA.querySelectorAll('tr[data-chartkey]')) {
-        tr.style.transition = 'opacity 0.35s ease';
-        tr.style.opacity = '0';
-      }
-      setTimeout(() => {
-        sbodyA.innerHTML = currPairsA.flatMap(p => p).join('');
-        loadImages(imgItems, 'artist');
-      }, 380);
-    });
+    const _capPrevA = _animPrevPlays, _capCurrA = _animCurrentPlays;
+    const _startAnimA = () => {
+      if (sbodyA._swToken) sbodyA._swToken.cancelled = true;
+      const _prevEntriesA = buildPrevSortedEntries(_capPrevA, 'artists');
+      sbodyA.innerHTML = buildPrevChartHtml(_prevEntriesA, sorted.length, colCount, 'artists');
+      loadImages(_prevEntriesA.map((e, i) => ({ imgId: `pwaimg-${i}`, name: e.name, prefKey: 'artist:' + e.name.toLowerCase() })), 'artist');
+      runSlideWindowAnim(sbodyA, 'artists', _capPrevA, _capCurrA, () => {
+        for (const tr of sbodyA.querySelectorAll('tr[data-chartkey]')) {
+          tr.style.transition = 'opacity 0.35s ease';
+          tr.style.opacity = '0.75';
+        }
+        setTimeout(() => {
+          sbodyA.innerHTML = currPairsA.flatMap(p => p).join('');
+          loadImages(imgItems, 'artist');
+        }, 380);
+      });
+    };
+    _replayFns['artists'] = _startAnimA;
+    _startAnimA();
   } else {
+    delete _replayFns['artists'];
     sbodyA.innerHTML = currPairsA.flatMap(p => p).join('');
     loadImages(imgItems, 'artist');
   }
@@ -7015,21 +7018,27 @@ function renderAlbums(plays, peaks, monthlyStats) {
     });
     const sbodyL = document.getElementById('albumsBody');
     if (_animAlbums) {
-      if (sbodyL._swToken) sbodyL._swToken.cancelled = true;
-      const _prevEntriesL = buildPrevSortedEntries(_animPrevPlays, 'albums');
-      sbodyL.innerHTML = buildPrevChartHtml(_prevEntriesL, sorted.length, colCount, 'albums');
-      loadImages(_prevEntriesL.map((e, i) => ({ imgId: `pwlimg-${i}`, album: e.album, artist: e.artist, name: e.album, prefKey: 'album:' + (e.album + '|||' + e.artist).toLowerCase() })), 'album');
-      runSlideWindowAnim(sbodyL, 'albums', () => {
-        for (const tr of sbodyL.querySelectorAll('tr[data-chartkey]')) {
-          tr.style.transition = 'opacity 0.35s ease';
-          tr.style.opacity = '0';
-        }
-        setTimeout(() => {
-          sbodyL.innerHTML = currPairsL.flatMap(p => p).join('');
-          loadImages(imgItems, 'album');
-        }, 380);
-      });
+      const _capPrevL = _animPrevPlays, _capCurrL = _animCurrentPlays;
+      const _startAnimL = () => {
+        if (sbodyL._swToken) sbodyL._swToken.cancelled = true;
+        const _prevEntriesL = buildPrevSortedEntries(_capPrevL, 'albums');
+        sbodyL.innerHTML = buildPrevChartHtml(_prevEntriesL, sorted.length, colCount, 'albums');
+        loadImages(_prevEntriesL.map((e, i) => ({ imgId: `pwlimg-${i}`, album: e.album, artist: e.artist, name: e.album, prefKey: 'album:' + (e.album + '|||' + e.artist).toLowerCase() })), 'album');
+        runSlideWindowAnim(sbodyL, 'albums', _capPrevL, _capCurrL, () => {
+          for (const tr of sbodyL.querySelectorAll('tr[data-chartkey]')) {
+            tr.style.transition = 'opacity 0.35s ease';
+            tr.style.opacity = '0.75';
+          }
+          setTimeout(() => {
+            sbodyL.innerHTML = currPairsL.flatMap(p => p).join('');
+            loadImages(imgItems, 'album');
+          }, 380);
+        });
+      };
+      _replayFns['albums'] = _startAnimL;
+      _startAnimL();
     } else {
+      delete _replayFns['albums'];
       sbodyL.innerHTML = currPairsL.flatMap(p => p).join('');
       loadImages(imgItems, 'album');
     }

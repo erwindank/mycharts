@@ -2895,11 +2895,11 @@
 
     /* Category color variables — drives left border, number tint, and bar fill */
     .stat-box[data-cat="plays"]       { --cat-color: var(--accent); }
-    .stat-box[data-cat="songs"]       { --cat-color: var(--teal); }
+    .stat-box[data-cat="songs"]       { --cat-color: var(--green); }
     .stat-box[data-cat="artists"]     { --cat-color: var(--rose); }
     .stat-box[data-cat="albums"]      { --cat-color: var(--gold1); }
     .stat-box[data-cat="bestday"]     { --cat-color: var(--amber); }
-    .stat-box[data-cat="new-songs"]   { --cat-color: var(--teal); }
+    .stat-box[data-cat="new-songs"]   { --cat-color: var(--green); }
     .stat-box[data-cat="new-artists"] { --cat-color: var(--rose); }
     .stat-box[data-cat="new-albums"]  { --cat-color: var(--gold1); }
     .stat-box[data-cat="sotm"]        { --cat-color: var(--gold1); }
@@ -8788,16 +8788,26 @@ body.pink-light .hero-stats {
 }
 
 @keyframes chartRowSlideIn {
-  from {
-    opacity: 0;
-    transform: translateY(var(--crsi-offset, 0px));
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0.75; }
+  to   { opacity: 1; }
 }
 .chart-row-anim {
-  animation: chartRowSlideIn 2s cubic-bezier(0.22, 1, 0.36, 1) both;
-  animation-delay: var(--crsi-delay, 0ms);
+  animation: chartRowSlideIn 0.6s ease-out both;
+}
+
+@keyframes chartBadgeFadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+.chart-row-anim .cert,
+.chart-row-anim .peak-badge-1,
+.chart-row-anim .peak-badge-2,
+.chart-row-anim .peak-badge-3,
+.chart-row-anim .peak-badge-other,
+.chart-row-anim .plays-peak-badge,
+.chart-row-anim .play-bar,
+.chart-row-anim .m-col {
+  opacity: 0;
+  animation: chartBadgeFadeIn 0.6s ease-out forwards;
+  animation-delay: 0.7s;
 }
