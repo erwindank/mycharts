@@ -4910,7 +4910,7 @@ function renderAll() {
 
     const strip3El = document.getElementById('statsStrip3');
     if (strip3El) {
-      const strip3Content = (currentPeriod === 'week' ? sotmBox + risingArtistBox : '') + aotmBox + albumotmBox;
+      const strip3Content = currentPeriod === 'week' ? sotmBox + risingArtistBox + aotmBox + albumotmBox : '';
       strip3El.innerHTML = strip3Content;
       if (strip3Content) {
         animateStatStrip(strip3El);
