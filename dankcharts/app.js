@@ -2731,6 +2731,21 @@ function buildRecords() {
   const artistPP = { week: {}, month: {}, year: {} };
   const albumPP = { week: {}, month: {}, year: {} };
   const pakWeeks = [];
+  const newCountPerPeriod = {
+    week: { songs: {}, artists: {}, albums: {} },
+    month: { songs: {}, artists: {}, albums: {} },
+    year: { songs: {}, artists: {}, albums: {} }
+  };
+  const newSongDebutsByArtist = { week: {}, month: {}, year: {} };
+  const newSongsByArtistPerPeriod = { week: {}, month: {}, year: {} };
+  const artistNewDebutPeriods = { week: {}, month: {}, year: {} };
+  const song1stNo1Period = { week: {}, month: {}, year: {} };
+  const albumNewTrackCount = { week: {}, month: {}, year: {} };
+  const rawNewCountPerPeriod = {
+    week: { songs: {}, artists: {}, albums: {} },
+    month: { songs: {}, artists: {}, albums: {} },
+    year: { songs: {}, artists: {}, albums: {} }
+  };
 
   function buildPeriodRecords(pt, playsMap, keys, size) {
     let prevSong = {}, prevArtist = {}, prevAlbum = {};
@@ -2759,17 +2774,30 @@ function buildRecords() {
       const topArtists = Object.entries(ac).sort(([, a], [, b]) => rankSortWithStatus(a, b)).slice(0, size);
       const topAlbums = Object.entries(lc).sort(([, a], [, b]) => rankSortWithStatus(a, b)).slice(0, size);
       const nPS = {}, nPA = {}, nPL = {};
+      const newSongKeysThisPeriod = new Set();
       topSongs.forEach(([k, d], i) => {
         nPS[k] = i + 1;
-        if (!everSong.has(k)) songDebuts[pt][k] = { rank: i + 1, period: pk, title: d.title, artist: d.artist, plays: d.count };
+        if (!everSong.has(k)) {
+          songDebuts[pt][k] = { rank: i + 1, period: pk, title: d.title, artist: d.artist, plays: d.count };
+          newSongKeysThisPeriod.add(k);
+          newCountPerPeriod[pt].songs[pk] = (newCountPerPeriod[pt].songs[pk] || 0) + 1;
+          newSongDebutsByArtist[pt][d.artist] = (newSongDebutsByArtist[pt][d.artist] || 0) + 1;
+          if (!newSongsByArtistPerPeriod[pt][pk]) newSongsByArtistPerPeriod[pt][pk] = {};
+          newSongsByArtistPerPeriod[pt][pk][d.artist] = (newSongsByArtistPerPeriod[pt][pk][d.artist] || 0) + 1;
+          if (!artistNewDebutPeriods[pt][d.artist]) artistNewDebutPeriods[pt][d.artist] = [];
+          artistNewDebutPeriods[pt][d.artist].push(pk);
+        }
         everSong.add(k);
-        if (i === 0) { if (!song1s[pt][k]) song1s[pt][k] = { title: d.title, artist: d.artist, album: d.album, count: 0, firstPeriod: pk, periods: [] }; song1s[pt][k].count++; song1s[pt][k].lastPeriod = pk; song1s[pt][k].periods.push(pk); }
+        if (i === 0) { if (!song1s[pt][k]) song1s[pt][k] = { title: d.title, artist: d.artist, album: d.album, count: 0, firstPeriod: pk, periods: [] }; song1s[pt][k].count++; song1s[pt][k].lastPeriod = pk; song1s[pt][k].periods.push(pk); if (!song1stNo1Period[pt][k]) song1stNo1Period[pt][k] = pk; }
         songApps[pt][k] = (songApps[pt][k] || 0) + 1;
         if (!songPP[pt][k] || d.count > songPP[pt][k].count) songPP[pt][k] = { count: d.count, period: pk, title: d.title, artist: d.artist };
       });
       topArtists.forEach(([a, d], i) => {
         nPA[a] = i + 1;
-        if (!everArtist.has(a)) artistDebuts[pt][a] = { rank: i + 1, period: pk, plays: d.count };
+        if (!everArtist.has(a)) {
+          artistDebuts[pt][a] = { rank: i + 1, period: pk, plays: d.count };
+          newCountPerPeriod[pt].artists[pk] = (newCountPerPeriod[pt].artists[pk] || 0) + 1;
+        }
         everArtist.add(a);
         if (i === 0) { if (!artist1s[pt][a]) artist1s[pt][a] = { count: 0, firstPeriod: pk, periods: [] }; artist1s[pt][a].count++; artist1s[pt][a].lastPeriod = pk; artist1s[pt][a].periods.push(pk); }
         artistApps[pt][a] = (artistApps[pt][a] || 0) + 1;
@@ -2777,7 +2805,13 @@ function buildRecords() {
       });
       topAlbums.forEach(([ak, d], i) => {
         nPL[ak] = i + 1;
-        if (!everAlbum.has(ak)) albumDebuts[pt][ak] = { rank: i + 1, period: pk, album: d.album, artist: d.artist, plays: d.count };
+        if (!everAlbum.has(ak)) {
+          albumDebuts[pt][ak] = { rank: i + 1, period: pk, album: d.album, artist: d.artist, plays: d.count };
+          newCountPerPeriod[pt].albums[pk] = (newCountPerPeriod[pt].albums[pk] || 0) + 1;
+          let newTrackCt = 0;
+          for (const sk of newSongKeysThisPeriod) { const sd = sc[sk]; if (sd && sd.album === d.album && albumArtist(sd) === d.artist) newTrackCt++; }
+          albumNewTrackCount[pt][ak] = newTrackCt;
+        }
         everAlbum.add(ak);
         if (i === 0) { if (!album1s[pt][ak]) album1s[pt][ak] = { album: d.album, artist: d.artist, count: 0, firstPeriod: pk, periods: [] }; album1s[pt][ak].count++; album1s[pt][ak].lastPeriod = pk; album1s[pt][ak].periods.push(pk); }
         albumApps[pt][ak] = (albumApps[pt][ak] || 0) + 1;
@@ -2797,6 +2831,54 @@ function buildRecords() {
   buildPeriodRecords('week', weekPlaysMap, weekKeys, wSize);
   buildPeriodRecords('month', monthPlaysMap, monthKeys, mSize);
   buildPeriodRecords('year', yearPlaysMap, yearKeys, ySize);
+
+  // ── New Charts Records: post-processing ──────────────────────
+  // Record 8: Longest consecutive periods where artist had a new debut
+  const artistConsecNewDebuts = { week: {}, month: {} };
+  for (const [pt, ptKeys] of [['week', weekKeys], ['month', monthKeys]]) {
+    const pidx = {};
+    ptKeys.forEach((k, i) => { pidx[k] = i; });
+    for (const [artist, periods] of Object.entries(artistNewDebutPeriods[pt])) {
+      const uniq = [...new Set(periods)].sort();
+      let max = 1, cur = 1;
+      for (let i = 1; i < uniq.length; i++) {
+        const pi = pidx[uniq[i - 1]], ci = pidx[uniq[i]];
+        if (pi !== undefined && ci !== undefined && ci === pi + 1) { if (++cur > max) max = cur; } else cur = 1;
+      }
+      artistConsecNewDebuts[pt][artist] = max;
+    }
+  }
+  // Record 9: New Song → #1 fastest (fewest periods from debut to first #1)
+  const songNewTo1 = { week: {}, month: {} };
+  for (const [pt, ptKeys] of [['week', weekKeys], ['month', monthKeys]]) {
+    const pidx = {};
+    ptKeys.forEach((k, i) => { pidx[k] = i; });
+    for (const [sk, deb] of Object.entries(songDebuts[pt])) {
+      if (!song1stNo1Period[pt][sk]) continue;
+      const di = pidx[deb.period], n1i = pidx[song1stNo1Period[pt][sk]];
+      if (di === undefined || n1i === undefined) continue;
+      songNewTo1[pt][sk] = { periods: n1i - di, debutPeriod: deb.period, no1Period: song1stNo1Period[pt][sk], debutPlays: deb.plays, title: deb.title, artist: deb.artist };
+    }
+  }
+
+  // Records 4 & 5: Raw new discovery counts — all unique first appearances,
+  // not limited by chart size
+  for (const [pt, playsMap, keys] of [['week', weekPlaysMap, weekKeys], ['month', monthPlaysMap, monthKeys], ['year', yearPlaysMap, yearKeys]]) {
+    const everS = new Set(), everA = new Set(), everL = new Set();
+    for (const pk of keys) {
+      for (const p of playsMap[pk]) {
+        const sk = songKey(p);
+        if (!everS.has(sk)) { everS.add(sk); rawNewCountPerPeriod[pt].songs[pk] = (rawNewCountPerPeriod[pt].songs[pk] || 0) + 1; }
+        for (const a of p.artists) {
+          if (!everA.has(a)) { everA.add(a); rawNewCountPerPeriod[pt].artists[pk] = (rawNewCountPerPeriod[pt].artists[pk] || 0) + 1; }
+        }
+        if (p.album && p.album !== '—') {
+          const ak = p.album + '|||' + albumArtist(p);
+          if (!everL.has(ak)) { everL.add(ak); rawNewCountPerPeriod[pt].albums[pk] = (rawNewCountPerPeriod[pt].albums[pk] || 0) + 1; }
+        }
+      }
+    }
+  }
 
   // Play count milestones
   const MILESTONES = [10, 25, 50, 100, 150, 200, 250, 300, 400, 500, 600, 750, 1000, 1250, 1500, 1750, 2000, 2500, 3000, 3500, 4000, 5000, 7500, 10000, 15000, 20000, 25000, 50000];
@@ -3513,6 +3595,123 @@ function buildRecords() {
   renderCertifications(wallItems);
   loadCertWallImages(wallItems);
 
+  // ── New Charts Records ────────────────────────────────────────
+  let nch = '';
+
+  // ── 1. Biggest New Song Debut ─────────────────────────────────
+  nch += '<div class="rec-section"><div class="rec-section-title">🎵 ' + t('rec_th_songs') + ' &mdash; Biggest New Chart Debut</div>';
+  for (const [pt, map] of [['week', songDebuts.week], ['month', songDebuts.month]]) {
+    const sorted = Object.entries(map).sort((a, b) => b[1].plays - a[1].plays || a[1].rank - b[1].rank || a[1].period.localeCompare(b[1].period));
+    nch += '<div class="rec-section-sub">' + (pt === 'week' ? 'Weekly' : 'Monthly') + '</div>';
+    nch += recTable(['#', t('rec_th_songs'), t('rec_th_artist'), t('rec_th_plays'), 'Debut Rank', pt === 'week' ? t('rec_th_week') : t('rec_th_month')],
+      sorted.map((e, i) => { const d = e[1]; return '<td class="rec-rank">' + (i + 1) + '</td><td><div class="rec-name">' + esc(d.title) + '</div></td><td><div class="rec-sub">' + esc(d.artist) + '</div></td><td class="rec-count">' + (d.plays || 0) + '</td><td class="rec-count">#' + d.rank + '</td><td class="rec-meta">' + fmtPeriodKey(d.period, pt) + '</td>'; }), lim);
+  }
+  nch += '</div>';
+
+  // ── 2. Biggest New Artist Debut ────────────────────────────────
+  nch += '<div class="rec-section"><div class="rec-section-title">♦ ' + t('rec_th_artists') + ' &mdash; Biggest New Chart Debut</div>';
+  for (const [pt, map] of [['week', artistDebuts.week], ['month', artistDebuts.month]]) {
+    const sorted = Object.entries(map).sort((a, b) => b[1].plays - a[1].plays || a[1].rank - b[1].rank || a[1].period.localeCompare(b[1].period));
+    nch += '<div class="rec-section-sub">' + (pt === 'week' ? 'Weekly' : 'Monthly') + '</div>';
+    nch += recTable(['#', t('rec_th_artist'), t('rec_th_plays'), 'Debut Rank', pt === 'week' ? t('rec_th_week') : t('rec_th_month')],
+      sorted.map((e, i) => { const d = e[1]; return '<td class="rec-rank">' + (i + 1) + '</td><td><div class="rec-name">' + esc(e[0]) + '</div></td><td class="rec-count">' + (d.plays || 0) + '</td><td class="rec-count">#' + d.rank + '</td><td class="rec-meta">' + fmtPeriodKey(d.period, pt) + '</td>'; }), lim);
+  }
+  nch += '</div>';
+
+  // ── 3. Biggest New Album Debut ─────────────────────────────────
+  nch += '<div class="rec-section"><div class="rec-section-title">💿 ' + t('rec_th_albums') + ' &mdash; Biggest New Chart Debut</div>';
+  for (const [pt, map] of [['week', albumDebuts.week], ['month', albumDebuts.month]]) {
+    const sorted = Object.entries(map).sort((a, b) => b[1].plays - a[1].plays || a[1].rank - b[1].rank || a[1].period.localeCompare(b[1].period));
+    nch += '<div class="rec-section-sub">' + (pt === 'week' ? 'Weekly' : 'Monthly') + '</div>';
+    nch += recTable(['#', t('rec_th_albums'), t('rec_th_artist'), t('rec_th_plays'), 'Debut Rank', pt === 'week' ? t('rec_th_week') : t('rec_th_month')],
+      sorted.map((e, i) => { const d = e[1]; return '<td class="rec-rank">' + (i + 1) + '</td><td><div class="rec-name">' + esc(d.album) + '</div></td><td><div class="rec-sub">' + esc(d.artist) + '</div></td><td class="rec-count">' + (d.plays || 0) + '</td><td class="rec-count">#' + d.rank + '</td><td class="rec-meta">' + fmtPeriodKey(d.period, pt) + '</td>'; }), lim);
+  }
+  nch += '</div>';
+
+  // ── 4. Busiest New Song Discovery Period ───────────────────────
+  nch += '<div class="rec-section"><div class="rec-section-title">🔢 ' + t('rec_th_songs') + ' &mdash; Busiest Discovery Period</div>';
+  for (const [pt, map] of [['week', rawNewCountPerPeriod.week.songs], ['month', rawNewCountPerPeriod.month.songs]]) {
+    const sorted = Object.entries(map).sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+    nch += '<div class="rec-section-sub">' + (pt === 'week' ? 'Weekly' : 'Monthly') + '</div>';
+    nch += recTable(['#', pt === 'week' ? t('rec_th_week') : t('rec_th_month'), 'New Songs'],
+      sorted.map((e, i) => '<td class="rec-rank">' + (i + 1) + '</td><td class="rec-meta">' + fmtPeriodKey(e[0], pt) + '</td><td class="rec-count">' + e[1] + '</td>'), lim);
+  }
+  nch += '</div>';
+
+  // ── 5. Busiest New Artist Discovery Period ─────────────────────
+  nch += '<div class="rec-section"><div class="rec-section-title">🔢 ' + t('rec_th_artists') + ' &mdash; Busiest Discovery Period</div>';
+  for (const [pt, map] of [['week', rawNewCountPerPeriod.week.artists], ['month', rawNewCountPerPeriod.month.artists]]) {
+    const sorted = Object.entries(map).sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+    nch += '<div class="rec-section-sub">' + (pt === 'week' ? 'Weekly' : 'Monthly') + '</div>';
+    nch += recTable(['#', pt === 'week' ? t('rec_th_week') : t('rec_th_month'), 'New Artists'],
+      sorted.map((e, i) => '<td class="rec-rank">' + (i + 1) + '</td><td class="rec-meta">' + fmtPeriodKey(e[0], pt) + '</td><td class="rec-count">' + e[1] + '</td>'), lim);
+  }
+  nch += '</div>';
+
+  // ── 6. Artist with Most Songs on One New Chart ─────────────────
+  nch += '<div class="rec-section"><div class="rec-section-title">🎵 Most Songs on a Single New Chart (by Artist)</div>';
+  for (const [pt, map] of [['week', newSongsByArtistPerPeriod.week], ['month', newSongsByArtistPerPeriod.month]]) {
+    const best = {};
+    for (const [pk, artists] of Object.entries(map)) {
+      for (const [artist, count] of Object.entries(artists)) {
+        if (!best[artist] || count > best[artist].count || (count === best[artist].count && pk < best[artist].period)) best[artist] = { count, period: pk };
+      }
+    }
+    const sorted = Object.entries(best).sort((a, b) => b[1].count - a[1].count || a[1].period.localeCompare(b[1].period));
+    nch += '<div class="rec-section-sub">' + (pt === 'week' ? 'Weekly' : 'Monthly') + '</div>';
+    nch += recTable(['#', t('rec_th_artist'), 'New Songs', pt === 'week' ? t('rec_th_week') : t('rec_th_month')],
+      sorted.map((e, i) => '<td class="rec-rank">' + (i + 1) + '</td><td><div class="rec-name">' + esc(e[0]) + '</div></td><td class="rec-count">' + e[1].count + '</td><td class="rec-meta">' + fmtPeriodKey(e[1].period, pt) + '</td>'), lim);
+  }
+  nch += '</div>';
+
+  // ── 7. Most New Song Debuts All-Time by Artist ─────────────────
+  nch += '<div class="rec-section"><div class="rec-section-title">📈 Most New Song Debuts (All-Time, by Artist)</div>';
+  for (const [pt, map] of [['week', newSongDebutsByArtist.week], ['month', newSongDebutsByArtist.month]]) {
+    const sorted = Object.entries(map).sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+    nch += '<div class="rec-section-sub">' + (pt === 'week' ? 'Weekly' : 'Monthly') + '</div>';
+    nch += recTable(['#', t('rec_th_artist'), 'Total Debut Appearances'],
+      sorted.map((e, i) => '<td class="rec-rank">' + (i + 1) + '</td><td><div class="rec-name">' + esc(e[0]) + '</div></td><td class="rec-count">' + e[1] + '</td>'), lim);
+  }
+  nch += '</div>';
+
+  // ── 8. Longest Consecutive Debut Streak by Artist ─────────────
+  nch += '<div class="rec-section"><div class="rec-section-title">🔁 Longest Consecutive Debut Streak (by Artist)</div>';
+  for (const [pt, map] of [['week', artistConsecNewDebuts.week], ['month', artistConsecNewDebuts.month]]) {
+    const sorted = Object.entries(map).sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+    nch += '<div class="rec-section-sub">' + (pt === 'week' ? 'Weekly' : 'Monthly') + '</div>';
+    nch += recTable(['#', t('rec_th_artist'), 'Consecutive ' + (pt === 'week' ? 'Weeks' : 'Months')],
+      sorted.map((e, i) => '<td class="rec-rank">' + (i + 1) + '</td><td><div class="rec-name">' + esc(e[0]) + '</div></td><td class="rec-count">' + e[1] + ' ' + tUnit(pt === 'week' ? 'weeks_full' : 'months', e[1]) + '</td>'), lim);
+  }
+  nch += '</div>';
+
+  // ── 9. New Song → #1 Fastest ──────────────────────────────────
+  nch += '<div class="rec-section"><div class="rec-section-title">⚡ New Song &rarr; #1 Fastest</div>';
+  for (const [pt, map] of [['week', songNewTo1.week], ['month', songNewTo1.month]]) {
+    const sorted = Object.entries(map).sort((a, b) => a[1].periods - b[1].periods || a[1].debutPeriod.localeCompare(b[1].debutPeriod) || b[1].debutPlays - a[1].debutPlays);
+    nch += '<div class="rec-section-sub">' + (pt === 'week' ? 'Weekly' : 'Monthly') + '</div>';
+    const colP = pt === 'week' ? 'Weeks to #1' : 'Months to #1';
+    nch += recTable(['#', t('rec_th_songs'), t('rec_th_artist'), colP, 'Debut', '#1 Achieved'],
+      sorted.map((e, i) => { const d = e[1]; const pStr = d.periods === 0 ? 'Debuted at #1' : d.periods + ' ' + tUnit(pt === 'week' ? 'weeks_full' : 'months', d.periods); return '<td class="rec-rank">' + (i + 1) + '</td><td><div class="rec-name">' + esc(d.title) + '</div></td><td><div class="rec-sub">' + esc(d.artist) + '</div></td><td class="rec-count">' + pStr + '</td><td class="rec-meta">' + fmtPeriodKey(d.debutPeriod, pt) + '</td><td class="rec-meta">' + fmtPeriodKey(d.no1Period, pt) + '</td>'; }), lim);
+  }
+  nch += '</div>';
+
+  // ── 10. New Album with Most Tracks Also Debuting ───────────────
+  nch += '<div class="rec-section"><div class="rec-section-title">💿 New Album with Most Tracks Also Debuting</div>';
+  for (const [pt, tMap, debMap] of [['week', albumNewTrackCount.week, albumDebuts.week], ['month', albumNewTrackCount.month, albumDebuts.month]]) {
+    const combined = Object.entries(tMap).filter(e => e[1] > 0).map(([ak, cnt]) => {
+      const deb = debMap[ak] || {};
+      return { ak, cnt, album: deb.album || ak.split('|||')[0], artist: deb.artist || '', plays: deb.plays || 0, period: deb.period || '', rank: deb.rank || 0 };
+    });
+    combined.sort((a, b) => b.cnt - a.cnt || b.plays - a.plays || a.period.localeCompare(b.period));
+    nch += '<div class="rec-section-sub">' + (pt === 'week' ? 'Weekly' : 'Monthly') + '</div>';
+    if (!combined.length) { nch += '<div class="rec-empty">' + t('rec_no_data') + '</div>'; continue; }
+    nch += recTable(['#', t('rec_th_albums'), t('rec_th_artist'), 'Tracks Debuting', t('rec_th_plays'), pt === 'week' ? t('rec_th_week') : t('rec_th_month')],
+      combined.map((e, i) => '<td class="rec-rank">' + (i + 1) + '</td><td><div class="rec-name">' + esc(e.album) + '</div></td><td><div class="rec-sub">' + esc(e.artist) + '</div></td><td class="rec-count">' + e.cnt + '</td><td class="rec-count">' + e.plays + '</td><td class="rec-meta">' + fmtPeriodKey(e.period, pt) + '</td>'), lim);
+  }
+  nch += '</div>';
+
+  document.getElementById('recNewChartsBody').innerHTML = nch;
+
   // ── Streak Records ────────────────────────────────────────────
   let sh = '';
   const topAS = Object.entries(artistStreaks).sort(function (a, b) { return b[1] - a[1]; });
@@ -3649,7 +3848,8 @@ function applyRecordsViewFilter(view) {
     'recMilestonesSection',
     'recFastestSection',
     'recCertsSection',
-    'recStreaksSection'
+    'recStreaksSection',
+    'recNewChartsSection'
   ];
   sectionIds.forEach(id => {
     const el = document.getElementById(id);
@@ -3672,7 +3872,8 @@ function restoreRecordSectionCollapseState() {
     'recMilestonesSection',
     'recFastestSection',
     'recCertsSection',
-    'recStreaksSection'
+    'recStreaksSection',
+    'recNewChartsSection'
   ];
   ids.forEach(id => {
     const section = document.getElementById(id);
