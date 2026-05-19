@@ -18,7 +18,7 @@ const SYNC_KEYS = [
   'dc_lfm_api_secret', 'dc_lfm_session_key', 'dc_lfm_session_user',
   'dc_display_name', 'dc_timezone', 'dc_cert_config',
   'dc_events_artist_limit', 'dc_theme', 'dc_lang',
-  'dc_autocorrect_rules', 'dc_no_artist_split'
+  'dc_autocorrect_rules', 'dc_no_artist_split', 'dc_tm_api_key'
 ];
 
 let _auth = null;
@@ -77,6 +77,30 @@ async function dcSaveRulesToFirestore(rulesJson) {
   }
 }
 
+function _eventsCacheRef(uid) {
+  return _db.collection('users').doc(uid).collection('data').doc('eventsCache');
+}
+
+async function dcSaveEventsCache(data) {
+  if (!_currentUser || !_db) return;
+  try {
+    await _eventsCacheRef(_currentUser.uid).set(data);
+  } catch (err) {
+    console.warn('[dankcharts] Events cache save error:', err);
+  }
+}
+
+async function dcLoadEventsCache() {
+  if (!_currentUser || !_db) return null;
+  try {
+    const snap = await _eventsCacheRef(_currentUser.uid).get();
+    return snap.exists ? snap.data() : null;
+  } catch (err) {
+    console.warn('[dankcharts] Events cache load error:', err);
+    return null;
+  }
+}
+
 async function dcSignIn() {
   if (!_auth) return;
   try {
@@ -130,6 +154,8 @@ window.dcSignIn                = dcSignIn;
 window.dcSignOut               = dcSignOut;
 window.dcSaveUserConfig        = dcSaveUserConfig;
 window.dcSaveRulesToFirestore  = dcSaveRulesToFirestore;
+window.dcSaveEventsCache       = dcSaveEventsCache;
+window.dcLoadEventsCache       = dcLoadEventsCache;
 
 // ── INIT ────────────────────────────────────────────────────────────────────
 firebase.initializeApp(firebaseConfig);

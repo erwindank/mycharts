@@ -55,7 +55,9 @@ let eventsCalendarView = localStorage.getItem('dc_cal_view') || 'month'; // 'mon
 let _eventsCalendarData = null;
 let _eventsRawData = null;
 let _eventsArtists = [];
-let eventsTypeFilter = new Set(JSON.parse(localStorage.getItem('dc_events_type_filter') || '["birthday","album","single","ep","other"]'));
+let eventsTypeFilter = new Set(JSON.parse(localStorage.getItem('dc_events_type_filter') || '["birthday","album","single","ep","other","show"]'));
+let tmApiKey = localStorage.getItem('dc_tm_api_key') || '';
+let _concertsData = null;
 const PAGE_SIZE = 100;
 const pageState = { songs: 0, artists: 0, albums: 0, newSongs: 0, newArtists: 0, newAlbums: 0 };
 const fullData = { songs: [], artists: [], albums: [] };
@@ -2007,6 +2009,7 @@ function openSourceModal() {
   document.getElementById('certSongPlat').value    = CERT.song.plat;
   document.getElementById('certSongDiamond').value = CERT.song.diamond;
   document.getElementById('eventsArtistLimitSelect').value = eventsArtistLimit;
+  document.getElementById('srcTmApiKey').value = localStorage.getItem('dc_tm_api_key') || '';
   document.getElementById('srcNoArtistSplit').checked = noArtistSplit;
   updateSourceModalFields();
   initSrcFileUpload();
@@ -2099,6 +2102,11 @@ function saveSourceConfig() {
     localStorage.removeItem(EVENTS_CACHE_KEY);
     const sel = document.getElementById('eventsLimitSelect');
     if (sel) sel.value = eventsArtistLimit;
+  }
+  const newTmKey = document.getElementById('srcTmApiKey').value.trim();
+  if (newTmKey !== (localStorage.getItem('dc_tm_api_key') || '')) {
+    localStorage.setItem('dc_tm_api_key', newTmKey);
+    localStorage.removeItem(CONCERTS_CACHE_KEY);
   }
   noArtistSplit = document.getElementById('srcNoArtistSplit').checked;
   localStorage.setItem('dc_no_artist_split', noArtistSplit ? '1' : '0');
@@ -4116,7 +4124,7 @@ document.getElementById('periodNav').addEventListener('click', e => {
     const sel = document.getElementById('eventsLimitSelect');
     if (sel) sel.value = eventsArtistLimit;
     _syncEventsTypeFilter();
-    if (allPlays.length) loadEvents();
+    if (allPlays.length) { loadEvents(); loadConcerts(); }
     if (typeof window._refreshBackToTop === 'function') window._refreshBackToTop();
     updateScrobbleBtn();
     return;
@@ -11226,18 +11234,37 @@ function toggleEventsType(type) {
   }
   try { localStorage.setItem('dc_events_type_filter', JSON.stringify([...eventsTypeFilter])); } catch (e) {}
   _syncEventsTypeFilter();
-  if (_eventsRawData) _renderEventsFromRaw(_eventsRawData, _eventsArtists, true);
+  if (type === 'show') {
+    _syncConcertsSectionVisibility();
+    if (_eventsCalendarData) renderEventsCalendar(_eventsCalendarData, eventsCalendarYear, eventsCalendarMonth);
+  } else {
+    if (_eventsRawData) _renderEventsFromRaw(_eventsRawData, _eventsArtists, true);
+  }
+}
+
+function _syncConcertsSectionVisibility() {
+  const section = document.getElementById('concertsSection');
+  const filterBtn = document.getElementById('showsFilterBtn');
+  const hasConcerts = !!(localStorage.getItem('dc_tm_api_key') || '');
+  if (filterBtn) filterBtn.style.display = hasConcerts ? '' : 'none';
+  if (!section) return;
+  const visible = hasConcerts && eventsTypeFilter.has('show');
+  section.style.display = visible ? '' : 'none';
 }
 
 function _syncEventsTypeFilter() {
   document.querySelectorAll('.events-type-btn').forEach(btn => {
     btn.classList.toggle('active', eventsTypeFilter.has(btn.dataset.etype));
   });
+  _syncConcertsSectionVisibility();
 }
 
 const EVENTS_CACHE_KEY = 'dc_eventsCache';
 const EVENTS_CACHE_TTL = 24 * 60 * 60 * 1000;
 const EVENTS_WINDOW_DAYS = 30;
+const CONCERTS_CACHE_KEY = 'dc_concertsCache';
+const CONCERTS_CACHE_TTL = 6 * 60 * 60 * 1000;
+const CONCERTS_ARTIST_LIMIT = 10;
 
 function getTopNArtists(n) {
   const counts = {};
@@ -11392,7 +11419,7 @@ const _CAL_MONTHS = ['January','February','March','April','May','June','July','A
 const _CAL_DAYS   = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
 
 function buildCalendarDayMap(data, dateSet) {
-  const { birthdays, anniversaries, recentBirthdays, recentAnniversaries, eventsUpcoming, eventsRecent } = data;
+  const { birthdays, anniversaries, recentBirthdays, recentAnniversaries, eventsUpcoming, eventsRecent, concerts = [] } = data;
   const map = {};
   const add = (ds, ev) => { if (!map[ds]) map[ds] = []; map[ds].push(ev); };
   const today = tzNow(); today.setHours(0, 0, 0, 0);
@@ -11464,6 +11491,27 @@ function buildCalendarDayMap(data, dateSet) {
       ttType: 'release', ttArtist: artistName, ttTitle: r.title, ttMbid: r.mbid || '',
       ttDetail: `${releaseIcon(r.type)} ${typeLabel}`,
       ttDateTxt: fmtDate(new Date(r.date + 'T00:00:00')), ttDateCls: 'recent' });
+  }
+  const todayCal = tzNow(); todayCal.setHours(0, 0, 0, 0);
+  for (const { event: ev, artistName } of concerts) {
+    const date = ev.dates?.start?.localDate;
+    if (!date || !dateSet.has(date)) continue;
+    const time = ev.dates?.start?.localTime || '';
+    const venue = ev._embedded?.venues?.[0];
+    const venueName = venue?.name || '';
+    const city = venue?.city?.name || '';
+    const stateCode = venue?.state?.stateCode || venue?.country?.countryCode || '';
+    const loc = [city, stateCode].filter(Boolean).join(', ');
+    const showDate = new Date(date + 'T00:00:00');
+    const isPast = showDate < todayCal;
+    const daysUntil = Math.round((showDate - todayCal) / 86400000);
+    const isToday = daysUntil === 0;
+    add(date, { icon: '🎤', label: artistName, sub: venueName + (loc ? ' · ' + loc : ''), past: isPast,
+      url: ev.url || `https://www.ticketmaster.com/search?q=${encodeURIComponent(artistName)}`, cls: 'cal-ev-concert',
+      ttType: 'concert', ttArtist: artistName, ttTitle: ev.name || artistName, ttMbid: '',
+      ttDetail: `🎤 Live Show · ${venueName}${loc ? ' · ' + loc : ''}${time ? ' · ' + time.slice(0, 5) : ''}`,
+      ttDateTxt: isToday ? 'TODAY' : isPast ? fmtDate(showDate) : `in ${daysUntil} day${daysUntil === 1 ? '' : 's'}`,
+      ttDateCls: isToday ? 'soon' : isPast ? 'recent' : '' });
   }
   return map;
 }
@@ -11630,12 +11678,13 @@ function renderEventsCalendar(data, year, month) {
   const calEl = document.getElementById('eventsCalendarGrid');
   const titleEl = document.getElementById('eventsCalendarTitle');
   if (!calEl || !titleEl) return;
+  const merged = { ...data, concerts: eventsTypeFilter.has('show') ? (_concertsData || []) : [] };
   if (eventsCalendarView === 'week') {
-    renderCalWeek(calEl, titleEl, data, year, month, eventsCalendarDay);
+    renderCalWeek(calEl, titleEl, merged, year, month, eventsCalendarDay);
   } else if (eventsCalendarView === 'day') {
-    renderCalDay(calEl, titleEl, data, year, month, eventsCalendarDay);
+    renderCalDay(calEl, titleEl, merged, year, month, eventsCalendarDay);
   } else {
-    renderCalMonth(calEl, titleEl, data, year, month);
+    renderCalMonth(calEl, titleEl, merged, year, month);
   }
   _syncCalViewBtns();
 }
@@ -11713,17 +11762,148 @@ function renderEventsPartial(birthdays, anniversaries, recentBirthdays, recentAn
   renderEventsCalendar(f, eventsCalendarYear, eventsCalendarMonth);
 }
 
-async function loadEvents(forceRefresh = false) {
+async function fetchConcertsForArtist(artistName, apiKey) {
+  const today = tzNow().toISOString().slice(0, 10) + 'T00:00:00Z';
+  const url = `https://app.ticketmaster.com/discovery/v2/events.json?keyword=${encodeURIComponent(artistName)}&classificationName=music&apikey=${encodeURIComponent(apiKey)}&size=5&sort=date,asc&startDateTime=${today}`;
+  try {
+    const resp = await fetch(url);
+    if (!resp.ok) return [];
+    const data = await resp.json();
+    return data._embedded?.events || [];
+  } catch (e) { return []; }
+}
+
+function renderConcertCard(event, artistName) {
+  const date = event.dates?.start?.localDate || '';
+  const time = event.dates?.start?.localTime || '';
+  const venue = event._embedded?.venues?.[0];
+  const venueName = venue?.name || '';
+  const city = venue?.city?.name || '';
+  const stateCode = venue?.state?.stateCode || venue?.country?.countryCode || '';
+  const location = [city, stateCode].filter(Boolean).join(', ');
+  const url = event.url || `https://www.ticketmaster.com/search?q=${encodeURIComponent(artistName)}`;
+
+  const today = tzNow();
+  const showDate = date ? new Date(date + 'T12:00:00') : null;
+  const daysUntil = showDate ? Math.round((showDate - today) / 86400000) : null;
+  const isToday = daysUntil === 0;
+  const countdownLabel = daysUntil === null ? '' : isToday ? 'TODAY' : `in ${daysUntil} day${daysUntil === 1 ? '' : 's'}`;
+  const isSoon = daysUntil !== null && daysUntil <= 7;
+  const displayDate = date ? fmtDate(showDate) : '';
+  const timeLabel = time ? ' · ' + time.slice(0, 5) : '';
+
+  const imgHtml = `<img class="upcoming-card-img upcoming-card-img-pending" alt="" loading="lazy" data-artist="${esc(artistName)}" data-title="" data-sources="deezer-artist">`;
+  return `<a class="upcoming-card${isToday ? ' event-today' : ''}" href="${esc(url)}" target="_blank" rel="noopener noreferrer">
+    ${imgHtml}
+    <div class="upcoming-card-date${isToday || isSoon ? ' soon' : ''}">${esc(countdownLabel)}</div>
+    <div class="upcoming-card-title">${esc(artistName)}</div>
+    <div class="upcoming-card-artist">${esc(venueName)}${location ? ' · ' + esc(location) : ''}</div>
+    <div class="upcoming-card-type">🎤 Live Show · ${esc(displayDate)}${esc(timeLabel)}</div>
+  </a>`;
+}
+
+async function loadConcerts(forceRefresh = false) {
+  tmApiKey = localStorage.getItem('dc_tm_api_key') || '';
+  _syncConcertsSectionVisibility();
+  if (!tmApiKey) return;
   if (!allPlays.length) return;
 
   if (!forceRefresh) {
     try {
-      const cached = JSON.parse(localStorage.getItem(EVENTS_CACHE_KEY) || 'null');
-      if (cached && Date.now() - cached.ts < EVENTS_CACHE_TTL && cached.limit === eventsArtistLimit && cached.eventsUpcoming) {
-        renderEventsResults(cached.birthdays, cached.anniversaries, cached.recentBirthdays || [], cached.recentAnniversaries || [], cached.eventsUpcoming || [], cached.eventsRecent || [], cached.artists, true);
+      const cached = JSON.parse(localStorage.getItem(CONCERTS_CACHE_KEY) || 'null');
+      if (cached && Date.now() - cached.ts < CONCERTS_CACHE_TTL) {
+        _renderConcerts(cached.shows, true);
         return;
       }
     } catch (e) {}
+  }
+
+  const artists = getTopNArtists(CONCERTS_ARTIST_LIMIT);
+  const statusEl = document.getElementById('concertsStatus');
+  const gridEl = document.getElementById('concertsGrid');
+  const refreshEl = document.getElementById('concertsRefreshBtn');
+  if (statusEl) statusEl.textContent = `Fetching shows for top ${artists.length} artists…`;
+  if (gridEl) gridEl.innerHTML = '';
+  if (refreshEl) refreshEl.style.display = 'none';
+
+  const allShows = [];
+  for (let i = 0; i < artists.length; i++) {
+    const name = artists[i];
+    if (statusEl) statusEl.textContent = `Fetching shows (${i + 1}/${artists.length}): ${name}`;
+    const events = await fetchConcertsForArtist(name, tmApiKey);
+    for (const ev of events) allShows.push({ event: ev, artistName: name });
+  }
+
+  allShows.sort((a, b) =>
+    (a.event.dates?.start?.localDate || '').localeCompare(b.event.dates?.start?.localDate || ''));
+
+  try {
+    localStorage.setItem(CONCERTS_CACHE_KEY, JSON.stringify({ ts: Date.now(), shows: allShows }));
+  } catch (e) {}
+
+  _renderConcerts(allShows, false);
+}
+
+function _renderConcerts(shows, fromCache) {
+  _concertsData = shows;
+  _syncConcertsSectionVisibility();
+  const grid = document.getElementById('concertsGrid');
+  const status = document.getElementById('concertsStatus');
+  const refreshBtn = document.getElementById('concertsRefreshBtn');
+
+  if (grid) {
+    grid.innerHTML = shows.length
+      ? shows.map(({ event, artistName }) => renderConcertCard(event, artistName)).join('')
+      : `<div class="upcoming-empty">No upcoming shows found for your top ${CONCERTS_ARTIST_LIMIT} artists.</div>`;
+    triggerPendingImgs(grid);
+  }
+  if (refreshBtn) refreshBtn.style.display = 'block';
+  if (status) {
+    const cacheNote = fromCache ? ' (cached)' : '';
+    const ts = fromCache
+      ? (() => { try { return new Date(JSON.parse(localStorage.getItem(CONCERTS_CACHE_KEY)).ts).toLocaleString(); } catch (e) { return ''; } })()
+      : new Date().toLocaleString();
+    status.textContent = `${shows.length} show${shows.length !== 1 ? 's' : ''} · top ${CONCERTS_ARTIST_LIMIT} artists · ${ts}${cacheNote}`;
+  }
+  if (_eventsCalendarData) renderEventsCalendar(_eventsCalendarData, eventsCalendarYear, eventsCalendarMonth);
+}
+
+function _eventsFromCache(cached) {
+  renderEventsResults(
+    cached.birthdays, cached.anniversaries,
+    cached.recentBirthdays || [], cached.recentAnniversaries || [],
+    cached.eventsUpcoming || [], cached.eventsRecent || [],
+    cached.artists, true
+  );
+}
+
+function _isCacheValid(cached) {
+  return cached && Date.now() - cached.ts < EVENTS_CACHE_TTL && cached.limit === eventsArtistLimit && cached.eventsUpcoming;
+}
+
+async function loadEvents(forceRefresh = false) {
+  if (!allPlays.length) return;
+
+  if (!forceRefresh) {
+    // 1. Check localStorage (instant, same device)
+    try {
+      const cached = JSON.parse(localStorage.getItem(EVENTS_CACHE_KEY) || 'null');
+      if (_isCacheValid(cached)) { _eventsFromCache(cached); return; }
+    } catch (e) {}
+
+    // 2. Check Firestore (cross-device, cross-login)
+    if (typeof dcLoadEventsCache === 'function') {
+      const statusEl2 = document.getElementById('eventsStatus');
+      if (statusEl2) statusEl2.textContent = 'Loading events…';
+      try {
+        const fsCached = await dcLoadEventsCache();
+        if (_isCacheValid(fsCached)) {
+          try { localStorage.setItem(EVENTS_CACHE_KEY, JSON.stringify(fsCached)); } catch (e) {}
+          _eventsFromCache(fsCached);
+          return;
+        }
+      } catch (e) {}
+    }
   }
 
   const artists = getTopNArtists(eventsArtistLimit);
@@ -11800,11 +11980,9 @@ async function loadEvents(forceRefresh = false) {
     if (i % 5 === 4 || i === artists.length - 1) renderEventsPartial(birthdays, anniversaries, recentBirthdays, recentAnniversaries, eventsUpcoming, eventsRecent);
   }
 
-  try {
-    localStorage.setItem(EVENTS_CACHE_KEY, JSON.stringify({
-      ts: Date.now(), limit: eventsArtistLimit, birthdays, anniversaries, recentBirthdays, recentAnniversaries, eventsUpcoming, eventsRecent, artists
-    }));
-  } catch (e) {}
+  const cacheData = { ts: Date.now(), limit: eventsArtistLimit, birthdays, anniversaries, recentBirthdays, recentAnniversaries, eventsUpcoming, eventsRecent, artists };
+  try { localStorage.setItem(EVENTS_CACHE_KEY, JSON.stringify(cacheData)); } catch (e) {}
+  if (typeof dcSaveEventsCache === 'function') dcSaveEventsCache(cacheData);
 
   renderEventsResults(birthdays, anniversaries, recentBirthdays, recentAnniversaries, eventsUpcoming, eventsRecent, artists, false);
 }

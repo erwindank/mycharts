@@ -3874,6 +3874,7 @@
     .cal-ev-birthday    { background: color-mix(in srgb, var(--green) 18%, transparent); }
     .cal-ev-anniversary { background: color-mix(in srgb, var(--accent) 18%, transparent); }
     .cal-ev-release     { background: color-mix(in srgb, var(--text3) 20%, transparent); }
+    .cal-ev-concert     { background: color-mix(in srgb, var(--teal) 18%, transparent); }
 
     .cal-ev-past { opacity: 0.65; }
 
@@ -3998,6 +3999,7 @@
     .cal-day-item.cal-ev-birthday    { border-left-color: var(--green); }
     .cal-day-item.cal-ev-anniversary { border-left-color: var(--accent); }
     .cal-day-item.cal-ev-release     { border-left-color: var(--text3); }
+    .cal-day-item.cal-ev-concert     { border-left-color: var(--teal); }
     .cal-day-item.cal-ev-past        { opacity: 0.6; }
 
     .cal-day-item-img-wrap {

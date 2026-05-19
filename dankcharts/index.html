@@ -1070,6 +1070,7 @@
         <button class="events-type-btn" data-etype="single" onclick="toggleEventsType('single')">🎵 Singles</button>
         <button class="events-type-btn" data-etype="ep" onclick="toggleEventsType('ep')">📀 EPs</button>
         <button class="events-type-btn" data-etype="other" onclick="toggleEventsType('other')">🎶 Other</button>
+        <button class="events-type-btn" id="showsFilterBtn" data-etype="show" onclick="toggleEventsType('show')" style="display:none">🎤 Shows</button>
       </div>
 
       <div id="eventsStatus" class="upcoming-status"></div>
@@ -1157,6 +1158,20 @@
         <div class="section-sub">Album anniversaries from the past 30 days you may have missed</div>
         <div class="section-body">
           <div class="upcoming-grid" id="eventsRecentAnniversariesGrid"></div>
+        </div>
+      </div>
+
+      <div class="chart-section collapsed" id="concertsSection" style="display:none;">
+        <div class="section-header">
+          <button class="section-collapse-btn" data-target="concertsSection" title="Expand">+</button>
+          <h2 class="section-header-h2">🎤 Upcoming Shows</h2>
+          <div class="section-rule"></div>
+        </div>
+        <div class="section-sub">Live concerts &amp; shows for your top 10 all-time artists · <a href="https://www.ticketmaster.com" target="_blank" rel="noopener" style="color:var(--accent)">Tickets via Ticketmaster</a></div>
+        <div id="concertsStatus" class="upcoming-status"></div>
+        <button class="upcoming-refresh-btn" id="concertsRefreshBtn" onclick="loadConcerts(true)" style="display:none">↺ Refresh</button>
+        <div class="section-body">
+          <div class="upcoming-grid" id="concertsGrid"></div>
         </div>
       </div>
     </div>
@@ -2429,6 +2444,13 @@ function doPost(e) {
             all-time artists
           </label>
           <p class="src-modal-hint">Number of top all-time artists to fetch birthdays &amp; anniversaries for</p>
+        </div>
+        <div style="padding:0.4rem 0;">
+          <label class="cert-row" style="flex-wrap:wrap;gap:0.4rem;">
+            Ticketmaster API key
+            <input type="text" id="srcTmApiKey" autocomplete="off" placeholder="Paste your free API key here" style="flex:1;min-width:200px;padding:0.22rem 0.45rem;border-radius:4px;border:1px solid var(--border);background:var(--bg2);color:var(--text1);font-family:'DM Mono',monospace;font-size:0.72rem;">
+          </label>
+          <p class="src-modal-hint">Shows upcoming concerts for your top 10 artists. <a href="https://developer.ticketmaster.com/products-and-docs/apis/getting-started/" target="_blank" rel="noopener" style="color:var(--accent)">Get a free key →</a></p>
         </div>
       </div>
 
