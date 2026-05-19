@@ -4153,6 +4153,22 @@ document.getElementById('periodNav').addEventListener('click', e => {
     if (currentPeriod === 'graphs') destroyGraphCharts();
   }
 
+  // Hide upcoming/recent on all-time and yearly; restore them when leaving those tabs
+  if (['alltime', 'year'].includes(btn.dataset.period)) {
+    ['upcomingSection', 'recentSection'].forEach(id => {
+      document.getElementById(id).style.display = 'none';
+    });
+  } else if (['alltime', 'year'].includes(currentPeriod)) {
+    ['upcomingSection', 'recentSection'].forEach(id => {
+      const el = document.getElementById(id);
+      el.style.display = '';
+      const savedCollapsed = localStorage.getItem('dc_section_collapsed_' + id) === '1';
+      el.classList.toggle('collapsed', savedCollapsed);
+      const colBtn = el.querySelector('.section-collapse-btn');
+      if (colBtn) colBtn.textContent = savedCollapsed ? '+' : '−';
+    });
+  }
+
   savedOffsets[(currentPeriod === 'rawdata' || currentPeriod === 'graphs' || currentPeriod === 'records' || currentPeriod === 'events') ? btn.dataset.period : currentPeriod] = currentOffset;
   currentPeriod = btn.dataset.period;
   localStorage.setItem('dc_period', currentPeriod);
@@ -9539,8 +9555,8 @@ function sortUpcomingReleases(releases) {
 async function loadUpcomingReleases(forceRefresh = false) {
   if (!allPlays.length) return;
 
-  // Show the section only on chart tabs (not events/graphs/rawdata/records)
-  if (!['events', 'graphs', 'rawdata', 'records'].includes(currentPeriod)) {
+  // Show the section only on chart tabs (not events/graphs/rawdata/records/alltime/year)
+  if (!['events', 'graphs', 'rawdata', 'records', 'alltime', 'year'].includes(currentPeriod)) {
     const el = document.getElementById('upcomingSection');
     el.style.display = '';
     const savedCollapsed = localStorage.getItem('dc_section_collapsed_upcomingSection') === '1';
@@ -9685,8 +9701,8 @@ function sortRecentReleases(releases) {
 async function loadRecentReleases(forceRefresh = false) {
   if (!allPlays.length) return;
 
-  // Show the section only on chart tabs (not events/graphs/rawdata/records)
-  if (!['events', 'graphs', 'rawdata', 'records'].includes(currentPeriod)) {
+  // Show the section only on chart tabs (not events/graphs/rawdata/records/alltime/year)
+  if (!['events', 'graphs', 'rawdata', 'records', 'alltime', 'year'].includes(currentPeriod)) {
     const el = document.getElementById('recentSection');
     el.style.display = '';
     const savedCollapsed = localStorage.getItem('dc_section_collapsed_recentSection') === '1';
