@@ -56,7 +56,7 @@ let _eventsCalendarData = null;
 let _eventsRawData = null;
 let _eventsArtists = [];
 let eventsTypeFilter = new Set(JSON.parse(localStorage.getItem('dc_events_type_filter') || '["birthday","album","single","ep","other","show"]'));
-let tmApiKey = localStorage.getItem('dc_tm_api_key') || '';
+const tmApiKey = 'jviFLz26pGGfyAAtaVop4U5V0IdqUcKf';
 let _concertsData = null;
 const PAGE_SIZE = 100;
 const pageState = { songs: 0, artists: 0, albums: 0, newSongs: 0, newArtists: 0, newAlbums: 0 };
@@ -2009,7 +2009,6 @@ function openSourceModal() {
   document.getElementById('certSongPlat').value    = CERT.song.plat;
   document.getElementById('certSongDiamond').value = CERT.song.diamond;
   document.getElementById('eventsArtistLimitSelect').value = eventsArtistLimit;
-  document.getElementById('srcTmApiKey').value = localStorage.getItem('dc_tm_api_key') || '';
   document.getElementById('srcNoArtistSplit').checked = noArtistSplit;
   updateSourceModalFields();
   initSrcFileUpload();
@@ -2102,11 +2101,6 @@ function saveSourceConfig() {
     localStorage.removeItem(EVENTS_CACHE_KEY);
     const sel = document.getElementById('eventsLimitSelect');
     if (sel) sel.value = eventsArtistLimit;
-  }
-  const newTmKey = document.getElementById('srcTmApiKey').value.trim();
-  if (newTmKey !== (localStorage.getItem('dc_tm_api_key') || '')) {
-    localStorage.setItem('dc_tm_api_key', newTmKey);
-    localStorage.removeItem(CONCERTS_CACHE_KEY);
   }
   noArtistSplit = document.getElementById('srcNoArtistSplit').checked;
   localStorage.setItem('dc_no_artist_split', noArtistSplit ? '1' : '0');
@@ -11661,7 +11655,7 @@ function toggleEventsType(type) {
 function _syncConcertsSectionVisibility() {
   const section = document.getElementById('concertsSection');
   const filterBtn = document.getElementById('showsFilterBtn');
-  const hasConcerts = !!(localStorage.getItem('dc_tm_api_key') || '');
+  const hasConcerts = true;
   if (filterBtn) filterBtn.style.display = hasConcerts ? '' : 'none';
   if (!section) return;
   const visible = hasConcerts && eventsTypeFilter.has('show');
@@ -12219,9 +12213,7 @@ function renderConcertCard(event, artistName) {
 }
 
 async function loadConcerts(forceRefresh = false) {
-  tmApiKey = localStorage.getItem('dc_tm_api_key') || '';
   _syncConcertsSectionVisibility();
-  if (!tmApiKey) return;
   if (!allPlays.length) return;
 
   if (!forceRefresh) {
