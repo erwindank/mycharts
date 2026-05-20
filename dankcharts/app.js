@@ -4106,6 +4106,8 @@ document.addEventListener('click', e => {
     localStorage.setItem('dc_chart_section_collapsed_' + section.id + '_' + currentPeriod, collapsed ? '1' : '0');
   } else if (section.id === 'upcomingSection' || section.id === 'recentSection') {
     localStorage.setItem('dc_section_collapsed_' + section.id, collapsed ? '1' : '0');
+  } else if (['birthdaysSection', 'anniversariesSection', 'eventsUpcomingSection', 'eventsRecentSection', 'eventsRecentBirthdaysSection', 'eventsRecentAnniversariesSection'].includes(section.id)) {
+    localStorage.setItem('dc_events_section_collapsed_' + section.id, collapsed ? '1' : '0');
   }
 });
 
@@ -4242,6 +4244,17 @@ document.getElementById('periodNav').addEventListener('click', e => {
     const sel = document.getElementById('eventsLimitSelect');
     if (sel) sel.value = eventsArtistLimit;
     _syncEventsTypeFilter();
+    ['birthdaysSection', 'anniversariesSection', 'eventsUpcomingSection', 'eventsRecentSection', 'eventsRecentBirthdaysSection', 'eventsRecentAnniversariesSection'].forEach(id => {
+      const el = document.getElementById(id);
+      if (!el) return;
+      const key = 'dc_events_section_collapsed_' + id;
+      const saved = localStorage.getItem(key);
+      const defaultCollapsed = ['eventsRecentBirthdaysSection', 'eventsRecentAnniversariesSection'].includes(id);
+      const collapsed = saved !== null ? saved === '1' : defaultCollapsed;
+      el.classList.toggle('collapsed', collapsed);
+      const btn = el.querySelector('.section-collapse-btn');
+      if (btn) { btn.textContent = collapsed ? '+' : '−'; btn.title = collapsed ? 'Expand' : 'Collapse'; }
+    });
     if (allPlays.length) { loadEvents(); loadConcerts(); }
     if (typeof window._refreshBackToTop === 'function') window._refreshBackToTop();
     updateScrobbleBtn();
@@ -9972,7 +9985,7 @@ async function searchArtistMBID(name) {
     const born = match?.['life-span']?.begin;
     if (born && born.length >= 10) _mbBirthdayCache[name] = born.slice(0, 10);
     return _mbidCache[name];
-  } catch (e) { _mbidCache[name] = null; return null; }
+  } catch (e) { return null; } // don't cache errors — allow retry on next call
 }
 
 // Shared cache for release-groups — avoids duplicate MB API calls across upcoming, recent, and events
@@ -9980,9 +9993,9 @@ const _mbReleasesCache = {};
 async function fetchAllReleasesRaw(mbid) {
   if (_mbReleasesCache[mbid] !== undefined) return _mbReleasesCache[mbid];
   try {
-    const d = await mbFetch(`release-group?artist=${mbid}&type=album|ep|single&fmt=json&limit=100&inc=releases`);
+    const d = await mbFetch(`release-group?artist=${mbid}&type=album%7Cep%7Csingle&fmt=json&limit=100`);
     _mbReleasesCache[mbid] = d['release-groups'] || [];
-  } catch (e) { _mbReleasesCache[mbid] = []; }
+  } catch (e) { _mbReleasesCache[mbid] = []; } // cache empty on error to avoid triple-requests
   return _mbReleasesCache[mbid];
 }
 
