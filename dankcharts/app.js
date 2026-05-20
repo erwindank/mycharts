@@ -2838,13 +2838,111 @@ function buildRecords() {
   buildPeriodRecords('month', monthPlaysMap, monthKeys, mSize);
   buildPeriodRecords('year', yearPlaysMap, yearKeys, ySize);
 
+  // ── New Charts Records: compute from actual New Songs/Artists/Albums charts ──
+  // Uses first-ever play per item, matching the renderNewEntries logic.
+  const ncSongDebuts = { week: {}, month: {}, year: {} };
+  const ncArtistDebuts = { week: {}, month: {}, year: {} };
+  const ncAlbumDebuts = { week: {}, month: {}, year: {} };
+  const ncNewSongDebutsByArtist = { week: {}, month: {}, year: {} };
+  const ncNewSongsByArtistPerPeriod = { week: {}, month: {}, year: {} };
+  const ncArtistNewDebutPeriods = { week: {}, month: {}, year: {} };
+  const ncAlbumNewTrackCount = { week: {}, month: {}, year: {} };
+  {
+    const sfp = { week: {}, month: {}, year: {} };
+    const afp = { week: {}, month: {}, year: {} };
+    const lfp = { week: {}, month: {}, year: {} };
+    for (const p of chron) {
+      const wk = playWeekKey(p.date);
+      const _td = tzDate(p.date);
+      const mk = _td.getFullYear() + '-' + String(_td.getMonth() + 1).padStart(2, '0');
+      const yk = String(_td.getFullYear());
+      const sk = songKey(p);
+      if (!sfp.week[sk]) sfp.week[sk] = { period: wk, title: p.title, artist: p.artist, album: p.album, artists_: p.artists };
+      if (!sfp.month[sk]) sfp.month[sk] = { period: mk, title: p.title, artist: p.artist, album: p.album, artists_: p.artists };
+      if (!sfp.year[sk]) sfp.year[sk] = { period: yk, title: p.title, artist: p.artist, album: p.album, artists_: p.artists };
+      for (const artist of p.artists) {
+        if (!afp.week[artist]) afp.week[artist] = wk;
+        if (!afp.month[artist]) afp.month[artist] = mk;
+        if (!afp.year[artist]) afp.year[artist] = yk;
+      }
+      if (p.album && p.album !== '—') {
+        const ak = p.album + '|||' + albumArtist(p);
+        if (!lfp.week[ak]) lfp.week[ak] = { period: wk, album: p.album, artist: albumArtist(p) };
+        if (!lfp.month[ak]) lfp.month[ak] = { period: mk, album: p.album, artist: albumArtist(p) };
+        if (!lfp.year[ak]) lfp.year[ak] = { period: yk, album: p.album, artist: albumArtist(p) };
+      }
+    }
+    for (const [pt, playsMap, keys] of [['week', weekPlaysMap, weekKeys], ['month', monthPlaysMap, monthKeys], ['year', yearPlaysMap, yearKeys]]) {
+      const sbyp = {};
+      for (const [sk, info] of Object.entries(sfp[pt])) {
+        const pk = info.period;
+        if (!sbyp[pk]) sbyp[pk] = {};
+        sbyp[pk][sk] = { title: info.title, artist: info.artist, album: info.album, artists_: info.artists_, plays: 0 };
+      }
+      for (const pk of keys) {
+        const ns = sbyp[pk]; if (!ns) continue;
+        for (const p of playsMap[pk]) { const sk = songKey(p); if (ns[sk]) ns[sk].plays++; }
+      }
+      for (const pk of keys) {
+        const ns = sbyp[pk]; if (!ns) continue;
+        Object.entries(ns).sort((a, b) => b[1].plays - a[1].plays).forEach(([sk, d], i) => {
+          ncSongDebuts[pt][sk] = { rank: i + 1, period: pk, title: d.title, artist: d.artist, plays: d.plays };
+          ncNewSongDebutsByArtist[pt][d.artist] = (ncNewSongDebutsByArtist[pt][d.artist] || 0) + 1;
+          if (!ncNewSongsByArtistPerPeriod[pt][pk]) ncNewSongsByArtistPerPeriod[pt][pk] = {};
+          ncNewSongsByArtistPerPeriod[pt][pk][d.artist] = (ncNewSongsByArtistPerPeriod[pt][pk][d.artist] || 0) + 1;
+          if (!ncArtistNewDebutPeriods[pt][d.artist]) ncArtistNewDebutPeriods[pt][d.artist] = [];
+          ncArtistNewDebutPeriods[pt][d.artist].push(pk);
+        });
+      }
+      const abyp = {};
+      for (const [artist, pk] of Object.entries(afp[pt])) {
+        if (!abyp[pk]) abyp[pk] = {};
+        abyp[pk][artist] = 0;
+      }
+      for (const pk of keys) {
+        const na = abyp[pk]; if (!na) continue;
+        for (const p of playsMap[pk]) { for (const a of p.artists) { if (na[a] !== undefined) na[a]++; } }
+      }
+      for (const pk of keys) {
+        const na = abyp[pk]; if (!na) continue;
+        Object.entries(na).sort((a, b) => b[1] - a[1]).forEach(([artist, plays], i) => {
+          ncArtistDebuts[pt][artist] = { rank: i + 1, period: pk, plays };
+        });
+      }
+      const lbyp = {};
+      for (const [ak, info] of Object.entries(lfp[pt])) {
+        const pk = info.period;
+        if (!lbyp[pk]) lbyp[pk] = {};
+        lbyp[pk][ak] = { album: info.album, artist: info.artist, plays: 0 };
+      }
+      for (const pk of keys) {
+        const nl = lbyp[pk]; if (!nl) continue;
+        for (const p of playsMap[pk]) {
+          if (!p.album || p.album === '—') continue;
+          const ak = p.album + '|||' + albumArtist(p);
+          if (nl[ak]) nl[ak].plays++;
+        }
+      }
+      for (const pk of keys) {
+        const nl = lbyp[pk]; if (!nl) continue;
+        const ns = sbyp[pk] || {};
+        Object.entries(nl).sort((a, b) => b[1].plays - a[1].plays).forEach(([ak, d], i) => {
+          ncAlbumDebuts[pt][ak] = { rank: i + 1, period: pk, album: d.album, artist: d.artist, plays: d.plays };
+          let nTracks = 0;
+          for (const [, sd] of Object.entries(ns)) { if (sd.album === d.album && (sd.artists_[0] || sd.artist) === d.artist) nTracks++; }
+          ncAlbumNewTrackCount[pt][ak] = nTracks;
+        });
+      }
+    }
+  }
+
   // ── New Charts Records: post-processing ──────────────────────
   // Record 8: Longest consecutive periods where artist had a new debut
   const artistConsecNewDebuts = { week: {}, month: {} };
   for (const [pt, ptKeys] of [['week', weekKeys], ['month', monthKeys]]) {
     const pidx = {};
     ptKeys.forEach((k, i) => { pidx[k] = i; });
-    for (const [artist, periods] of Object.entries(artistNewDebutPeriods[pt])) {
+    for (const [artist, periods] of Object.entries(ncArtistNewDebutPeriods[pt])) {
       const uniq = [...new Set(periods)].sort();
       let max = 1, cur = 1;
       for (let i = 1; i < uniq.length; i++) {
@@ -2854,12 +2952,12 @@ function buildRecords() {
       artistConsecNewDebuts[pt][artist] = max;
     }
   }
-  // Record 9: New Song → #1 fastest (fewest periods from debut to first #1)
+  // Record 9: New Song → #1 fastest (fewest periods from debut on New Songs chart to first main-chart #1)
   const songNewTo1 = { week: {}, month: {} };
   for (const [pt, ptKeys] of [['week', weekKeys], ['month', monthKeys]]) {
     const pidx = {};
     ptKeys.forEach((k, i) => { pidx[k] = i; });
-    for (const [sk, deb] of Object.entries(songDebuts[pt])) {
+    for (const [sk, deb] of Object.entries(ncSongDebuts[pt])) {
       if (!song1stNo1Period[pt][sk]) continue;
       const di = pidx[deb.period], n1i = pidx[song1stNo1Period[pt][sk]];
       if (di === undefined || n1i === undefined) continue;
@@ -3606,31 +3704,31 @@ function buildRecords() {
 
   // ── 1. Biggest New Song Debut ─────────────────────────────────
   nch += '<div class="rec-section"><div class="rec-section-title">🎵 ' + t('rec_th_songs') + ' &mdash; Biggest New Chart Debut</div>';
-  for (const [pt, map] of [['week', songDebuts.week], ['month', songDebuts.month]]) {
+  for (const [pt, map] of [['week', ncSongDebuts.week], ['month', ncSongDebuts.month]]) {
     const sorted = Object.entries(map).sort((a, b) => b[1].plays - a[1].plays || a[1].rank - b[1].rank || a[1].period.localeCompare(b[1].period));
     nch += '<div class="rec-section-sub">' + (pt === 'week' ? 'Weekly' : 'Monthly') + '</div>';
     nch += recTable(['#', t('rec_th_songs'), t('rec_th_artist'), t('rec_th_plays'), 'Debut Rank', pt === 'week' ? t('rec_th_week') : t('rec_th_month')],
-      sorted.map((e, i) => { const d = e[1]; return '<td class="rec-rank">' + (i + 1) + '</td><td><div class="rec-name">' + esc(d.title) + '</div></td><td><div class="rec-sub">' + esc(d.artist) + '</div></td><td class="rec-count">' + (d.plays || 0) + '</td><td class="rec-count">#' + d.rank + '</td><td class="rec-meta">' + fmtPeriodKey(d.period, pt) + '</td>'; }), lim);
+      sorted.map((e, i) => { const d = e[1]; return '<td class="rec-rank">' + (i + 1) + '</td><td><div class="rec-name">' + esc(d.title) + '</div></td><td><div class="rec-sub">' + esc(d.artist) + '</div></td><td class="rec-count">' + (d.plays || 0) + '</td><td class="rec-count">#' + d.rank + '</td><td class="rec-meta"><a href="javascript:void(0)" class="rec-date-link" onclick="showNewChartRecPreview(\'' + pt + '\',\'' + d.period + '\',this,event)">' + fmtPeriodKey(d.period, pt) + '</a></td>'; }), lim);
   }
   nch += '</div>';
 
   // ── 2. Biggest New Artist Debut ────────────────────────────────
   nch += '<div class="rec-section"><div class="rec-section-title">♦ ' + t('rec_th_artists') + ' &mdash; Biggest New Chart Debut</div>';
-  for (const [pt, map] of [['week', artistDebuts.week], ['month', artistDebuts.month]]) {
+  for (const [pt, map] of [['week', ncArtistDebuts.week], ['month', ncArtistDebuts.month]]) {
     const sorted = Object.entries(map).sort((a, b) => b[1].plays - a[1].plays || a[1].rank - b[1].rank || a[1].period.localeCompare(b[1].period));
     nch += '<div class="rec-section-sub">' + (pt === 'week' ? 'Weekly' : 'Monthly') + '</div>';
     nch += recTable(['#', t('rec_th_artist'), t('rec_th_plays'), 'Debut Rank', pt === 'week' ? t('rec_th_week') : t('rec_th_month')],
-      sorted.map((e, i) => { const d = e[1]; return '<td class="rec-rank">' + (i + 1) + '</td><td><div class="rec-name">' + esc(e[0]) + '</div></td><td class="rec-count">' + (d.plays || 0) + '</td><td class="rec-count">#' + d.rank + '</td><td class="rec-meta">' + fmtPeriodKey(d.period, pt) + '</td>'; }), lim);
+      sorted.map((e, i) => { const d = e[1]; return '<td class="rec-rank">' + (i + 1) + '</td><td><div class="rec-name">' + esc(e[0]) + '</div></td><td class="rec-count">' + (d.plays || 0) + '</td><td class="rec-count">#' + d.rank + '</td><td class="rec-meta"><a href="javascript:void(0)" class="rec-date-link" onclick="showNewChartRecPreview(\'' + pt + '\',\'' + d.period + '\',this,event)">' + fmtPeriodKey(d.period, pt) + '</a></td>'; }), lim);
   }
   nch += '</div>';
 
   // ── 3. Biggest New Album Debut ─────────────────────────────────
   nch += '<div class="rec-section"><div class="rec-section-title">💿 ' + t('rec_th_albums') + ' &mdash; Biggest New Chart Debut</div>';
-  for (const [pt, map] of [['week', albumDebuts.week], ['month', albumDebuts.month]]) {
+  for (const [pt, map] of [['week', ncAlbumDebuts.week], ['month', ncAlbumDebuts.month]]) {
     const sorted = Object.entries(map).sort((a, b) => b[1].plays - a[1].plays || a[1].rank - b[1].rank || a[1].period.localeCompare(b[1].period));
     nch += '<div class="rec-section-sub">' + (pt === 'week' ? 'Weekly' : 'Monthly') + '</div>';
     nch += recTable(['#', t('rec_th_albums'), t('rec_th_artist'), t('rec_th_plays'), 'Debut Rank', pt === 'week' ? t('rec_th_week') : t('rec_th_month')],
-      sorted.map((e, i) => { const d = e[1]; return '<td class="rec-rank">' + (i + 1) + '</td><td><div class="rec-name">' + esc(d.album) + '</div></td><td><div class="rec-sub">' + esc(d.artist) + '</div></td><td class="rec-count">' + (d.plays || 0) + '</td><td class="rec-count">#' + d.rank + '</td><td class="rec-meta">' + fmtPeriodKey(d.period, pt) + '</td>'; }), lim);
+      sorted.map((e, i) => { const d = e[1]; return '<td class="rec-rank">' + (i + 1) + '</td><td><div class="rec-name">' + esc(d.album) + '</div></td><td><div class="rec-sub">' + esc(d.artist) + '</div></td><td class="rec-count">' + (d.plays || 0) + '</td><td class="rec-count">#' + d.rank + '</td><td class="rec-meta"><a href="javascript:void(0)" class="rec-date-link" onclick="showNewChartRecPreview(\'' + pt + '\',\'' + d.period + '\',this,event)">' + fmtPeriodKey(d.period, pt) + '</a></td>'; }), lim);
   }
   nch += '</div>';
 
@@ -3640,7 +3738,7 @@ function buildRecords() {
     const sorted = Object.entries(map).sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
     nch += '<div class="rec-section-sub">' + (pt === 'week' ? 'Weekly' : 'Monthly') + '</div>';
     nch += recTable(['#', pt === 'week' ? t('rec_th_week') : t('rec_th_month'), 'New Songs'],
-      sorted.map((e, i) => '<td class="rec-rank">' + (i + 1) + '</td><td class="rec-meta">' + fmtPeriodKey(e[0], pt) + '</td><td class="rec-count">' + e[1] + '</td>'), lim);
+      sorted.map((e, i) => '<td class="rec-rank">' + (i + 1) + '</td><td class="rec-meta"><a href="javascript:void(0)" class="rec-date-link" onclick="showNewChartRecPreview(\'' + pt + '\',\'' + e[0] + '\',this,event)">' + fmtPeriodKey(e[0], pt) + '</a></td><td class="rec-count">' + e[1] + '</td>'), lim);
   }
   nch += '</div>';
 
@@ -3650,13 +3748,13 @@ function buildRecords() {
     const sorted = Object.entries(map).sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
     nch += '<div class="rec-section-sub">' + (pt === 'week' ? 'Weekly' : 'Monthly') + '</div>';
     nch += recTable(['#', pt === 'week' ? t('rec_th_week') : t('rec_th_month'), 'New Artists'],
-      sorted.map((e, i) => '<td class="rec-rank">' + (i + 1) + '</td><td class="rec-meta">' + fmtPeriodKey(e[0], pt) + '</td><td class="rec-count">' + e[1] + '</td>'), lim);
+      sorted.map((e, i) => '<td class="rec-rank">' + (i + 1) + '</td><td class="rec-meta"><a href="javascript:void(0)" class="rec-date-link" onclick="showNewChartRecPreview(\'' + pt + '\',\'' + e[0] + '\',this,event)">' + fmtPeriodKey(e[0], pt) + '</a></td><td class="rec-count">' + e[1] + '</td>'), lim);
   }
   nch += '</div>';
 
   // ── 6. Artist with Most Songs on One New Chart ─────────────────
   nch += '<div class="rec-section"><div class="rec-section-title">🎵 Most Songs on a Single New Chart (by Artist)</div>';
-  for (const [pt, map] of [['week', newSongsByArtistPerPeriod.week], ['month', newSongsByArtistPerPeriod.month]]) {
+  for (const [pt, map] of [['week', ncNewSongsByArtistPerPeriod.week], ['month', ncNewSongsByArtistPerPeriod.month]]) {
     const best = {};
     for (const [pk, artists] of Object.entries(map)) {
       for (const [artist, count] of Object.entries(artists)) {
@@ -3666,13 +3764,13 @@ function buildRecords() {
     const sorted = Object.entries(best).sort((a, b) => b[1].count - a[1].count || a[1].period.localeCompare(b[1].period));
     nch += '<div class="rec-section-sub">' + (pt === 'week' ? 'Weekly' : 'Monthly') + '</div>';
     nch += recTable(['#', t('rec_th_artist'), 'New Songs', pt === 'week' ? t('rec_th_week') : t('rec_th_month')],
-      sorted.map((e, i) => '<td class="rec-rank">' + (i + 1) + '</td><td><div class="rec-name">' + esc(e[0]) + '</div></td><td class="rec-count">' + e[1].count + '</td><td class="rec-meta">' + fmtPeriodKey(e[1].period, pt) + '</td>'), lim);
+      sorted.map((e, i) => '<td class="rec-rank">' + (i + 1) + '</td><td><div class="rec-name">' + esc(e[0]) + '</div></td><td class="rec-count">' + e[1].count + '</td><td class="rec-meta"><a href="javascript:void(0)" class="rec-date-link" onclick="showNewChartRecPreview(\'' + pt + '\',\'' + e[1].period + '\',this,event)">' + fmtPeriodKey(e[1].period, pt) + '</a></td>'), lim);
   }
   nch += '</div>';
 
   // ── 7. Most New Song Debuts All-Time by Artist ─────────────────
   nch += '<div class="rec-section"><div class="rec-section-title">📈 Most New Song Debuts (All-Time, by Artist)</div>';
-  for (const [pt, map] of [['week', newSongDebutsByArtist.week], ['month', newSongDebutsByArtist.month]]) {
+  for (const [pt, map] of [['week', ncNewSongDebutsByArtist.week], ['month', ncNewSongDebutsByArtist.month]]) {
     const sorted = Object.entries(map).sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
     nch += '<div class="rec-section-sub">' + (pt === 'week' ? 'Weekly' : 'Monthly') + '</div>';
     nch += recTable(['#', t('rec_th_artist'), 'Total Debut Appearances'],
@@ -3697,13 +3795,13 @@ function buildRecords() {
     nch += '<div class="rec-section-sub">' + (pt === 'week' ? 'Weekly' : 'Monthly') + '</div>';
     const colP = pt === 'week' ? 'Weeks to #1' : 'Months to #1';
     nch += recTable(['#', t('rec_th_songs'), t('rec_th_artist'), colP, 'Debut', '#1 Achieved'],
-      sorted.map((e, i) => { const d = e[1]; const pStr = d.periods === 0 ? 'Debuted at #1' : d.periods + ' ' + tUnit(pt === 'week' ? 'weeks_full' : 'months', d.periods); return '<td class="rec-rank">' + (i + 1) + '</td><td><div class="rec-name">' + esc(d.title) + '</div></td><td><div class="rec-sub">' + esc(d.artist) + '</div></td><td class="rec-count">' + pStr + '</td><td class="rec-meta">' + fmtPeriodKey(d.debutPeriod, pt) + '</td><td class="rec-meta">' + fmtPeriodKey(d.no1Period, pt) + '</td>'; }), lim);
+      sorted.map((e, i) => { const d = e[1]; const pStr = d.periods === 0 ? 'Debuted at #1' : d.periods + ' ' + tUnit(pt === 'week' ? 'weeks_full' : 'months', d.periods); return '<td class="rec-rank">' + (i + 1) + '</td><td><div class="rec-name">' + esc(d.title) + '</div></td><td><div class="rec-sub">' + esc(d.artist) + '</div></td><td class="rec-count">' + pStr + '</td><td class="rec-meta"><a href="javascript:void(0)" class="rec-date-link" onclick="showNewChartRecPreview(\'' + pt + '\',\'' + d.debutPeriod + '\',this,event)">' + fmtPeriodKey(d.debutPeriod, pt) + '</a></td><td class="rec-meta"><a href="javascript:void(0)" class="rec-date-link" onclick="showNewChartRecPreview(\'' + pt + '\',\'' + d.no1Period + '\',this,event)">' + fmtPeriodKey(d.no1Period, pt) + '</a></td>'; }), lim);
   }
   nch += '</div>';
 
   // ── 10. New Album with Most Tracks Also Debuting ───────────────
   nch += '<div class="rec-section"><div class="rec-section-title">💿 New Album with Most Tracks Also Debuting</div>';
-  for (const [pt, tMap, debMap] of [['week', albumNewTrackCount.week, albumDebuts.week], ['month', albumNewTrackCount.month, albumDebuts.month]]) {
+  for (const [pt, tMap, debMap] of [['week', ncAlbumNewTrackCount.week, ncAlbumDebuts.week], ['month', ncAlbumNewTrackCount.month, ncAlbumDebuts.month]]) {
     const combined = Object.entries(tMap).filter(e => e[1] > 0).map(([ak, cnt]) => {
       const deb = debMap[ak] || {};
       return { ak, cnt, album: deb.album || ak.split('|||')[0], artist: deb.artist || '', plays: deb.plays || 0, period: deb.period || '', rank: deb.rank || 0 };
@@ -3712,7 +3810,7 @@ function buildRecords() {
     nch += '<div class="rec-section-sub">' + (pt === 'week' ? 'Weekly' : 'Monthly') + '</div>';
     if (!combined.length) { nch += '<div class="rec-empty">' + t('rec_no_data') + '</div>'; continue; }
     nch += recTable(['#', t('rec_th_albums'), t('rec_th_artist'), 'Tracks Debuting', t('rec_th_plays'), pt === 'week' ? t('rec_th_week') : t('rec_th_month')],
-      combined.map((e, i) => '<td class="rec-rank">' + (i + 1) + '</td><td><div class="rec-name">' + esc(e.album) + '</div></td><td><div class="rec-sub">' + esc(e.artist) + '</div></td><td class="rec-count">' + e.cnt + '</td><td class="rec-count">' + e.plays + '</td><td class="rec-meta">' + fmtPeriodKey(e.period, pt) + '</td>'), lim);
+      combined.map((e, i) => '<td class="rec-rank">' + (i + 1) + '</td><td><div class="rec-name">' + esc(e.album) + '</div></td><td><div class="rec-sub">' + esc(e.artist) + '</div></td><td class="rec-count">' + e.cnt + '</td><td class="rec-count">' + e.plays + '</td><td class="rec-meta"><a href="javascript:void(0)" class="rec-date-link" onclick="showNewChartRecPreview(\'' + pt + '\',\'' + e.period + '\',this,event)">' + fmtPeriodKey(e.period, pt) + '</a></td>'), lim);
   }
   nch += '</div>';
 
@@ -6663,6 +6761,55 @@ function hideDebutWeekPreview() {
   const el = document.getElementById('debutWeekPreviewPopup');
   if (el) el.remove();
   if (_debutPreviewCleanup) { _debutPreviewCleanup(); _debutPreviewCleanup = null; }
+}
+
+let _newChartRecPreviewCleanup = null;
+function showNewChartRecPreview(pt, periodKey, triggerEl, event) {
+  if (event) event.stopPropagation();
+  hideNewChartRecPreview();
+  ensureAllChartRun();
+  const crData = allChartRun[pt];
+  const popup = document.createElement('div');
+  popup.className = 'cr-preview';
+  popup.id = 'newChartRecPreviewPopup';
+  popup.style.position = 'fixed';
+  const title = crPeriodTitle(pt, periodKey);
+  const navigateLink = `<a class="cr-preview-link" href="javascript:void(0)" onclick="hideNewChartRecPreview();navigateToRecPeriod('${pt}','${periodKey}')">${t('rec_pak_week_preview_link')}</a>`;
+  if (!crData || !crData.periodMap || !crData.periodMap[periodKey]) {
+    popup.innerHTML = `<button class="cr-preview-close" onclick="hideNewChartRecPreview()">✕</button><div class="cr-preview-title">${esc(title)}</div><div style="padding:4px 0;font-size:0.62rem;color:var(--text3);">${navigateLink}</div>`;
+  } else {
+    const pm = crData.periodMap[periodKey];
+    const types = [
+      { key: 'songs', icon: '🎵', label: t('rec_th_songs'), nameOf: function ([k, d]) { return d._title || k.split('|||')[0]; } },
+      { key: 'artists', icon: '♦', label: t('rec_th_artists'), nameOf: function ([k]) { return k; } },
+      { key: 'albums', icon: '💿', label: t('rec_th_albums'), nameOf: function ([k, d]) { return d._album || k.split('|||')[0]; } },
+    ];
+    let items = '';
+    for (const { key, icon, label, nameOf } of types) {
+      const ranked = Object.entries(pm[key]).sort(function ([, a], [, b]) { return rankSort(a, b); }).slice(0, Math.min(chartSize, 5));
+      if (!ranked.length) continue;
+      items += `<div class="cr-preview-section-label">${icon} ${label}</div>`;
+      items += ranked.map(function ([k, d], i) { return `<div class="cr-preview-item${i === 0 ? ' highlighted' : ''}"><span class="cr-preview-rank">${i + 1}</span><span>${esc(nameOf([k, d]))}</span></div>`; }).join('');
+    }
+    popup.innerHTML = `<button class="cr-preview-close" onclick="hideNewChartRecPreview()">✕</button><div class="cr-preview-title">${esc(title)}</div>${items}<div class="pak-preview-navlink">${navigateLink}</div>`;
+  }
+  document.body.appendChild(popup);
+  const rect = triggerEl.getBoundingClientRect();
+  const pw = 230, ph = 380;
+  let top = rect.bottom + 6, left = rect.left;
+  if (left + pw > window.innerWidth) left = window.innerWidth - pw - 8;
+  if (top + ph > window.innerHeight) top = rect.top - ph - 6;
+  popup.style.top = Math.max(4, top) + 'px';
+  popup.style.left = Math.max(4, left) + 'px';
+  const handler = function (e) { if (!popup.contains(e.target) && !e.target.closest('.rec-date-link')) hideNewChartRecPreview(); };
+  setTimeout(function () { document.addEventListener('click', handler, true); }, 0);
+  _newChartRecPreviewCleanup = function () { document.removeEventListener('click', handler, true); };
+}
+
+function hideNewChartRecPreview() {
+  const el = document.getElementById('newChartRecPreviewPopup');
+  if (el) el.remove();
+  if (_newChartRecPreviewCleanup) { _newChartRecPreviewCleanup(); _newChartRecPreviewCleanup = null; }
 }
 
 function navigateToCrChart(period, periodKey) {
