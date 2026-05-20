@@ -4745,6 +4745,86 @@
       display: table-row;
     }
 
+    /* ── Modal chart sections (artist/album modal 4-part layout) ── */
+    .modal-chart-section {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      margin-bottom: 0.6rem;
+      overflow: hidden;
+    }
+
+    .modal-chart-section-header {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.55rem 0.75rem;
+      cursor: pointer;
+      user-select: none;
+      background: rgba(255,255,255,0.02);
+    }
+
+    .modal-chart-section-header:hover {
+      background: rgba(255,255,255,0.05);
+    }
+
+    .mcs-tog {
+      font-size: 0.65rem;
+      color: var(--text3);
+      flex-shrink: 0;
+      width: 0.75rem;
+    }
+
+    .mcs-title {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.62rem;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      color: var(--text2);
+      text-transform: uppercase;
+    }
+
+    .mcs-count {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.6rem;
+      color: var(--text3);
+      margin-left: auto;
+    }
+
+    .modal-chart-section-body {
+      border-top: 1px solid var(--border);
+    }
+
+    .modal-chart-section-body .modal-table {
+      margin: 0;
+    }
+
+    .mcs-empty {
+      padding: 0.65rem 0.75rem;
+      font-style: italic;
+      font-size: 0.8rem;
+      color: var(--text3);
+    }
+
+    .modal-plays-col {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.75rem;
+      color: var(--text2);
+      white-space: nowrap;
+    }
+
+    .modal-period-link {
+      color: var(--accent);
+      font-family: 'DM Mono', monospace;
+      font-size: 0.65rem;
+      text-decoration: none;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    .modal-period-link:hover {
+      text-decoration: underline;
+    }
+
     .cr-row>td {
       padding: 0 !important;
       border-top: none !important;

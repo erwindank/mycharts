@@ -2613,6 +2613,8 @@ document.getElementById('sizeBtnsAllTime').addEventListener('click', e => {
 
 // ─── NAVIGATE TO RECORD PERIOD ────────────────────────────────
 function navigateToRecPeriod(period, periodKey) {
+  document.getElementById('artistModal')?.classList.remove('open');
+  document.getElementById('albumModal')?.classList.remove('open');
   const now = tzNow();
   let offset = 0;
   if (period === 'week') {
@@ -2624,6 +2626,8 @@ function navigateToRecPeriod(period, periodKey) {
   } else if (period === 'month') {
     const [yr, mo] = periodKey.split('-').map(Number);
     offset = (now.getFullYear() - yr) * 12 + (now.getMonth() + 1 - mo);
+  } else if (period === 'year') {
+    offset = now.getFullYear() - parseInt(periodKey, 10);
   }
   if (offset >= 0) {
     savedOffsets[currentPeriod] = currentOffset;
@@ -8939,10 +8943,49 @@ function goToWeek(offset) {
   renderAll();
 }
 
+function longestConsecutiveDays(daySet) {
+  const days = [...daySet].sort();
+  if (days.length < 2) return days.length;
+  let maxStreak = 1, streak = 1;
+  for (let i = 1; i < days.length; i++) {
+    const diff = Math.round((new Date(days[i] + 'T00:00:00') - new Date(days[i - 1] + 'T00:00:00')) / 86400000);
+    if (diff === 1) { if (++streak > maxStreak) maxStreak = streak; } else streak = 1;
+  }
+  return maxStreak;
+}
+
+function maxConsecutivePlaysWeek(sk, weekKey) {
+  const weekPlays = allPlays.filter(p => playWeekKey(p.date) === weekKey).sort((a, b) => a.date - b.date);
+  let max = 0, streak = 0;
+  for (const p of weekPlays) {
+    if (songKey(p) === sk) { if (++streak > max) max = streak; } else streak = 0;
+  }
+  return max;
+}
+
+function maxConsecutivePlaysWeekAlbum(albumCrKey, weekKey) {
+  const sepIdx = albumCrKey.indexOf('|||');
+  const albumName = albumCrKey.slice(0, sepIdx);
+  const albumArt = albumCrKey.slice(sepIdx + 3);
+  const weekPlays = allPlays.filter(p => playWeekKey(p.date) === weekKey).sort((a, b) => a.date - b.date);
+  let max = 0, streak = 0;
+  for (const p of weekPlays) {
+    if (p.album === albumName && albumArtist(p) === albumArt) { if (++streak > max) max = streak; } else streak = 0;
+  }
+  return max;
+}
+
+function goToPeriodFromArtistModal(period, periodKey) {
+  document.getElementById('artistModal').classList.remove('open');
+  navigateToRecPeriod(period, periodKey);
+}
+
 function openArtistModal(artistName) {
   // Close any open IG modals so they don't stack behind the artist modal
   document.getElementById('crIgModal')?.classList.remove('open');
   document.getElementById('igPreviewModal')?.classList.remove('open');
+  // Ensure all period chart runs are built (needed for weekly peak + new sections)
+  ensureAllChartRun();
   // Gather all-time data for this artist across ALL plays
   const artistPlays = allPlays.filter(p => p.artists.includes(artistName));
   const totalPlays = artistPlays.length;
@@ -8985,9 +9028,11 @@ function openArtistModal(artistName) {
   const platAlbums = allAlbumsSorted.filter(a => a.count >= CERT.album.plat).length;
   const diamondAlbums = allAlbumsSorted.filter(a => a.count >= CERT.album.diamond).length;
 
-  // Best chart position
+  // Best chart position (all-time for accomplishment fallback)
   const artistPeak = peaks.artistPeakMap[artistName];
   const bestSongPeak = chartSongs.length ? Math.min(...chartSongs.map(s => peaks.songPeakMap[songKey(s)])) : null;
+  // Peak position in weekly charts (shown in stat box)
+  const weeklyArtistPeak = allChartRun.week?.result?.artists[artistName]?.peak ?? null;
 
   // Populate modal
   document.getElementById('modalArtistName').textContent = artistName;
@@ -9010,8 +9055,8 @@ function openArtistModal(artistName) {
   document.getElementById('modalStats').innerHTML = `
     <div class="modal-stat"><div class="sv">${totalPlays.toLocaleString()}</div><div class="sl">${t('stat_total_plays')}</div></div>
     <div class="modal-stat"><div class="sv">${allSongsSorted.length}</div><div class="sl">${t('stat_unique_songs')}</div></div>
-    <div class="modal-stat"><div class="sv">${allAlbumsSorted.length}</div><div class="sl">${t('stat_albums')}</div></div>
-    <div class="modal-stat"><div class="sv">${artistPeak ? '#' + artistPeak : '—'}</div><div class="sl">${t('modal_artist_peak')}</div></div>
+    <div class="modal-stat"><div class="sv">${allAlbumsSorted.length}</div><div class="sl">Albums &amp; Singles</div></div>
+    <div class="modal-stat"><div class="sv">${weeklyArtistPeak ? '#' + weeklyArtistPeak : '—'}</div><div class="sl">${t('modal_artist_peak')}</div></div>
     <div class="modal-stat"><div class="sv">${chartSongs.length}</div><div class="sl">${t('modal_songs_charted')}</div></div>
     <div class="modal-stat"><div class="sv">${bestSongPeak ? '#' + bestSongPeak : '—'}</div><div class="sl">${t('modal_best_song_peak')}</div></div>
   `;
@@ -9063,10 +9108,37 @@ function openArtistModal(artistName) {
     acc.push(accRow('📈', t('acc_artist_peak', { peak: artistPeak, size: chartSize }), []));
   }
 
-  if (bestSongPeak === 1) {
-    const no1songs = chartSongs.filter(s => peaks.songPeakMap[songKey(s)] === 1);
-    acc.push(accRow('🎵', t('acc_no1_songs', { n: no1songs.length, unit: tUnit('songs', no1songs.length), size: chartSize }),
-      no1songs.map(s => ({ name: s.title + (s.album !== '—' ? ' · ' + s.album : ''), plays: s.count, date: firstPlay(s) }))));
+  // Weekly #1 songs
+  const weeklyNo1Songs = allSongsSorted.filter(s => allChartRun.week?.result.songs[songKey(s)]?.peak === 1);
+  if (weeklyNo1Songs.length) {
+    acc.push(accRow('🎵', `Has <strong style="color:var(--text)">${weeklyNo1Songs.length}</strong> #1 ${tUnit('songs', weeklyNo1Songs.length)} on the Weekly Songs chart`,
+      weeklyNo1Songs.map(s => {
+        const d = allChartRun.week.result.songs[songKey(s)];
+        const peakEntry = d.entries.find(e => e.rank === 1);
+        return { name: s.title + (s.album !== '—' ? ' · ' + s.album : ''), plays: peakEntry?.plays || s.count, date: peakEntry ? crPeriodLabel('week', peakEntry.periodKey) : '' };
+      })));
+  }
+  // Monthly #1 songs
+  const monthlyNo1Songs = allSongsSorted.filter(s => allChartRun.month?.result.songs[songKey(s)]?.peak === 1);
+  if (monthlyNo1Songs.length) {
+    acc.push(accRow('🎵', `Has <strong style="color:var(--text)">${monthlyNo1Songs.length}</strong> #1 ${tUnit('songs', monthlyNo1Songs.length)} on the Monthly Songs chart`,
+      monthlyNo1Songs.map(s => {
+        const d = allChartRun.month.result.songs[songKey(s)];
+        const peakEntry = d.entries.find(e => e.rank === 1);
+        return { name: s.title + (s.album !== '—' ? ' · ' + s.album : ''), plays: peakEntry?.plays || s.count, date: peakEntry ? crPeriodLabel('month', peakEntry.periodKey) : '' };
+      })));
+  }
+  // New songs chart #1 — songs that debuted at #1 on the weekly chart
+  const debutNo1Songs = allSongsSorted.filter(s => {
+    const d = allChartRun.week?.result.songs[songKey(s)];
+    return d && d.entries[0]?.rank === 1;
+  });
+  if (debutNo1Songs.length) {
+    acc.push(accRow('🌟', `<strong style="color:var(--text)">${debutNo1Songs.length}</strong> ${tUnit('songs', debutNo1Songs.length)} debuted at #1 on the Weekly New Songs chart`,
+      debutNo1Songs.map(s => {
+        const d = allChartRun.week.result.songs[songKey(s)];
+        return { name: s.title + (s.album !== '—' ? ' · ' + s.album : ''), plays: d.entries[0].plays, date: crPeriodLabel('week', d.entries[0].periodKey) };
+      })));
   }
 
   // Multi-level diamond songs (each song shows at its highest level only)
@@ -9114,52 +9186,269 @@ function openArtistModal(artistName) {
   if (!acc.length) acc.push(`<div style="font-family:'DM Sans',sans-serif;font-style:italic;font-size:0.85rem;color:var(--text3);padding:0.5rem 0;">${t('acc_none', { n: chartSize })}</div>`);
   document.getElementById('modalAccomplishments').innerHTML = acc.join('');
 
-  // Songs table — show all songs that charted, ranked by peak
-  const songsToShow = chartSongs.length > 0 ? chartSongs : allSongsSorted.slice(0, chartSize);
-  const songTableHeader = `<tr class="modal-table-header"><td></td><td></td><td>${t('th_song')}</td><td class="modal-date-col">${t('modal_first_played')}</td><td class="modal-date-col">${t('modal_last_played')}</td><td>${t('th_plays')}</td></tr>`;
-  document.getElementById('modalSongs').innerHTML = songTableHeader + songsToShow.flatMap((s, i) => {
-    const pk = peaks.songPeakMap[songKey(s)];
-    const crKey = songKey(s);
-    const hasCR = chartRunData && chartRunData.result.songs[crKey];
-    const rowId = 'modal-cr-song-' + i;
-    const mainRow = `<tr>
-      <td>${hasCR ? `<button class="cr-toggle-btn" title="${t('tooltip_cr_toggle_btn_song')}" onclick="event.stopPropagation();toggleChartRun(this,'${rowId}')">📊</button>` : ''}</td>
-      <td class="modal-rank-col">${pk ? '#' + pk : i + 1}</td>
-      <td>
-        <div class="song-title">${esc(s.title)}${certBadge(s.count, 'song')}</div>
-        <div class="song-album">${esc(s.album)}</div>
-      </td>
-      <td class="modal-date-col">${fmt(s.firstPlayed)}</td>
-      <td class="modal-date-col">${fmt(s.lastPlayed)}</td>
-      <td>${s.count} ${tUnit('plays', s.count)}</td>
-    </tr>`;
-    if (!hasCR) return [mainRow];
-    return [mainRow, `<tr class="cr-row" id="${rowId}"><td colspan="6"><div class="cr-panel" data-crtype="songs" data-crkey="${encodeURIComponent(crKey)}"><div class="cr-stats">${crStats('songs', crKey, chartRunData.period)}</div>${crBoxesHTML('songs', crKey)}</div></td></tr>`];
-  }).join('') || `<tr><td colspan="6" style="font-style:italic;color:var(--text3);padding:0.5rem">${t('modal_no_songs', { n: chartSize })}</td></tr>`;
+  // ─── SONGS ON CHART: 4 collapsible sections ──────────────────────────────
+  const crY = allChartRun.year, crM = allChartRun.month, crW = allChartRun.week;
 
-  // Albums table
-  const albumsToShow = allAlbumsSorted;
-  const albumTableHeader = `<tr class="modal-table-header"><td></td><td></td><td>${t('th_album')}</td><td class="modal-date-col">${t('modal_first_played')}</td><td class="modal-date-col">${t('modal_last_played')}</td><td>${t('th_plays')}</td></tr>`;
-  document.getElementById('modalAlbums').innerHTML = albumTableHeader + albumsToShow.flatMap((a, i) => {
-    const pkKey = Object.keys(peaks.albumPeakMap).find(k => k.startsWith(a.album + '|||'));
-    const pk = pkKey ? peaks.albumPeakMap[pkKey] : null;
-    const crKey = chartRunData ? Object.keys(chartRunData.result.albums).find(k => k.startsWith(a.album + '|||')) : null;
-    const hasCR = !!crKey;
-    const rowId = 'modal-cr-album-' + i;
-    const mainRow = `<tr>
-      <td>${hasCR ? `<button class="cr-toggle-btn" title="${t('tooltip_cr_toggle_btn_album')}" onclick="event.stopPropagation();toggleChartRun(this,'${rowId}')">📊</button>` : ''}</td>
-      <td class="modal-rank-col">${pk ? '#' + pk : '—'}</td>
-      <td>
-        <div class="song-title">${esc(a.album)}${certBadge(a.count, 'album')}</div>
-        <div class="song-album">${a.tracks.size} ${tUnit('tracks', a.tracks.size)}</div>
-      </td>
-      <td class="modal-date-col">${fmt(a.firstPlayed)}</td>
-      <td class="modal-date-col">${fmt(a.lastPlayed)}</td>
-      <td>${a.count} ${tUnit('plays', a.count)}</td>
-    </tr>`;
-    if (!hasCR) return [mainRow];
-    return [mainRow, `<tr class="cr-row" id="${rowId}"><td colspan="6"><div class="cr-panel" data-crtype="albums" data-crkey="${encodeURIComponent(crKey)}"><div class="cr-stats">${crStats('albums', crKey, chartRunData.period)}</div>${crBoxesHTML('albums', crKey)}</div></td></tr>`];
-  }).join('') || `<tr><td colspan="6" style="font-style:italic;color:var(--text3);padding:0.5rem">${t('empty_no_album_data')}</td></tr>`;
+  // Helper: collapsible section wrapper (starts collapsed)
+  let _mcsId = 0;
+  const mcsSection = (icon, title, count, noun, bodyHtml) => {
+    const id = 'mcs-' + artistName.replace(/\W/g, '') + '-' + (++_mcsId);
+    const countLabel = count + ' ' + (count === 1 ? noun.replace(/s$/, '') : noun);
+    return `<div class="modal-chart-section">
+      <div class="modal-chart-section-header" onclick="(function(){const b=document.getElementById('${id}-body');const t=document.getElementById('${id}-tog');const open=b.style.display!=='none';b.style.display=open?'none':'';t.textContent=open?'▶':'▼';})()" >
+        <span class="mcs-tog" id="${id}-tog">▶</span>
+        <span class="mcs-title">${icon} ${title}</span>
+        <span class="mcs-count">${countLabel}</span>
+      </div>
+      <div class="modal-chart-section-body" id="${id}-body" style="display:none;">${bodyHtml}</div>
+    </div>`;
+  };
+
+  // Helper: streaming history expand panel (heatmap + rawdata, lazy loaded)
+  const streamHistoryPanel = (crKey, colspan) =>
+    `<tr class="cr-row" id="${crKey}-sh"><td colspan="${colspan}"><div style="padding:0.5rem 0.5rem 0">
+      <div class="cr-subsection"><div class="cr-subsection-header" onclick="toggleCrSubsection(this)"><span class="cr-subsection-toggle">▶</span><span class="cr-subsection-label">LISTENING HEATMAP</span></div><div class="cr-subsection-body" style="display:none;" data-crtype="songs" data-crkey="${crKey}" data-crkind="heatmap"></div></div>
+      <div class="cr-subsection"><div class="cr-subsection-header" onclick="toggleCrSubsection(this)"><span class="cr-subsection-toggle">▶</span><span class="cr-subsection-label">FULL STREAMING HISTORY</span></div><div class="cr-subsection-body" style="display:none;" data-crtype="songs" data-crkey="${crKey}" data-crkind="rawdata"></div></div>
+    </div></td></tr>`;
+
+  // ── 1. All-time chart songs ───────────────────────────────────────────────
+  const allTimeSongs = chartSongs.length > 0 ? chartSongs : allSongsSorted.slice(0, chartSize);
+  const allTimeSongsHTML = (() => {
+    if (!allTimeSongs.length) return `<div class="mcs-empty">${t('modal_no_songs', { n: chartSize })}</div>`;
+    let rows = `<tr class="modal-table-header"><td></td><td>RANK</td><td>${t('th_song')}</td><td>${t('th_plays')}</td></tr>`;
+    allTimeSongs.forEach((s, i) => {
+      const pk = peaks.songPeakMap[songKey(s)];
+      const ek = encodeURIComponent(songKey(s));
+      const rowId = ek + '-sh';
+      rows += `<tr>
+        <td><button class="cr-toggle-btn" title="Streaming History" onclick="event.stopPropagation();toggleChartRun(this,'${rowId}')">🎵</button></td>
+        <td class="modal-rank-col">${pk ? '#' + pk : '#' + (i + 1)}</td>
+        <td><div class="song-title">${esc(s.title)}${certBadge(s.count, 'song')}</div><div class="song-album">${esc(s.album)}</div></td>
+        <td class="modal-plays-col">${s.count} ${tUnit('plays', s.count)}</td>
+      </tr>${streamHistoryPanel(ek, 4)}`;
+    });
+    return `<table class="modal-table"><tbody>${rows}</tbody></table>`;
+  })();
+
+  // ── 2. Yearly chart songs ─────────────────────────────────────────────────
+  const yearlySongsData = crY ? allSongsSorted
+    .map(s => ({ ...s, key: songKey(s), cr: crY.result.songs[songKey(s)] }))
+    .filter(s => s.cr).sort((a, b) => a.cr.peak - b.cr.peak) : [];
+  const yearlySongsHTML = (() => {
+    if (!yearlySongsData.length) return '<div class="mcs-empty">No songs on yearly charts.</div>';
+    let rows = `<tr class="modal-table-header"><td></td><td>RANK</td><td>${t('th_song')}</td><td>BEST YEAR</td><td>DAYS</td><td>STREAK</td><td>PLAYS</td></tr>`;
+    yearlySongsData.forEach((s, i) => {
+      const { cr } = s;
+      const peakEntry = cr.entries.find(e => e.rank === cr.peak) || cr.entries[0];
+      const bestYear = peakEntry.periodKey;
+      const daySet = crY.periodMap[bestYear]?.daySongs?.[s.key];
+      const streak = daySet ? longestConsecutiveDays(daySet) : 0;
+      const ek = encodeURIComponent(s.key);
+      const rowId = 'modal-yr-song-' + i;
+      rows += `<tr>
+        <td><button class="cr-toggle-btn" title="${t('tooltip_cr_toggle_btn_song')}" onclick="event.stopPropagation();toggleChartRun(this,'${rowId}')">📊</button></td>
+        <td class="modal-rank-col">#${cr.peak}</td>
+        <td><div class="song-title">${esc(s.title)}${certBadge(s.count, 'song')}</div><div class="song-album">${esc(s.album)}</div></td>
+        <td><a class="modal-period-link" href="javascript:void(0)" onclick="event.stopPropagation();goToPeriodFromArtistModal('year','${bestYear}')">${bestYear}</a></td>
+        <td class="modal-date-col">${peakEntry.days}d</td>
+        <td class="modal-date-col">${streak}d</td>
+        <td class="modal-plays-col">${peakEntry.plays}</td>
+      </tr>
+      <tr class="cr-row" id="${rowId}"><td colspan="7"><div class="cr-panel" data-crtype="songs" data-crkey="${ek}"><div class="cr-stats">${crStats('songs', s.key, 'year', crY)}</div>${crBoxesHTML('songs', s.key, crY, null, 'year')}</div></td></tr>`;
+    });
+    return `<table class="modal-table"><tbody>${rows}</tbody></table>`;
+  })();
+
+  // ── 3. Monthly chart songs ────────────────────────────────────────────────
+  const monthlySongsData = crM ? allSongsSorted
+    .map(s => ({ ...s, key: songKey(s), cr: crM.result.songs[songKey(s)] }))
+    .filter(s => s.cr).sort((a, b) => a.cr.peak - b.cr.peak) : [];
+  const monthlySongsHTML = (() => {
+    if (!monthlySongsData.length) return '<div class="mcs-empty">No songs on monthly charts.</div>';
+    let rows = `<tr class="modal-table-header"><td></td><td>RANK</td><td>${t('th_song')}</td><td>BEST MONTH</td><td>DAYS</td><td>STREAK</td><td>PLAYS</td></tr>`;
+    monthlySongsData.forEach((s, i) => {
+      const { cr } = s;
+      const peakEntry = cr.entries.find(e => e.rank === cr.peak) || cr.entries[0];
+      const bestMonth = peakEntry.periodKey;
+      const daySet = crM.periodMap[bestMonth]?.daySongs?.[s.key];
+      const streak = daySet ? longestConsecutiveDays(daySet) : 0;
+      const ek = encodeURIComponent(s.key);
+      const rowId = 'modal-mo-song-' + i;
+      rows += `<tr>
+        <td><button class="cr-toggle-btn" title="${t('tooltip_cr_toggle_btn_song')}" onclick="event.stopPropagation();toggleChartRun(this,'${rowId}')">📊</button></td>
+        <td class="modal-rank-col">#${cr.peak}</td>
+        <td><div class="song-title">${esc(s.title)}${certBadge(s.count, 'song')}</div><div class="song-album">${esc(s.album)}</div></td>
+        <td><a class="modal-period-link" href="javascript:void(0)" onclick="event.stopPropagation();goToPeriodFromArtistModal('month','${bestMonth}')">${crPeriodLabel('month', bestMonth)}</a></td>
+        <td class="modal-date-col">${peakEntry.days}d</td>
+        <td class="modal-date-col">${streak}d</td>
+        <td class="modal-plays-col">${peakEntry.plays}</td>
+      </tr>
+      <tr class="cr-row" id="${rowId}"><td colspan="7"><div class="cr-panel" data-crtype="songs" data-crkey="${ek}"><div class="cr-stats">${crStats('songs', s.key, 'month', crM)}</div>${crBoxesHTML('songs', s.key, crM, null, 'month')}</div></td></tr>`;
+    });
+    return `<table class="modal-table"><tbody>${rows}</tbody></table>`;
+  })();
+
+  // ── 4. Weekly chart songs ─────────────────────────────────────────────────
+  const weeklySongsData = crW ? allSongsSorted
+    .map(s => ({ ...s, key: songKey(s), cr: crW.result.songs[songKey(s)] }))
+    .filter(s => s.cr).sort((a, b) => a.cr.peak - b.cr.peak) : [];
+  const weeklySongsHTML = (() => {
+    if (!weeklySongsData.length) return '<div class="mcs-empty">No songs on weekly charts.</div>';
+    let rows = `<tr class="modal-table-header"><td></td><td>RANK</td><td>${t('th_song')}</td><td>BEST WEEK</td><td>DAYS</td><td>CONSEC.</td><td>PLAYS</td></tr>`;
+    weeklySongsData.forEach((s, i) => {
+      const { cr } = s;
+      const peakEntry = cr.entries.find(e => e.rank === cr.peak) || cr.entries[0];
+      const bestWeek = peakEntry.periodKey;
+      const consec = maxConsecutivePlaysWeek(s.key, bestWeek);
+      const ek = encodeURIComponent(s.key);
+      const rowId = 'modal-wk-song-' + i;
+      rows += `<tr>
+        <td><button class="cr-toggle-btn" title="${t('tooltip_cr_toggle_btn_song')}" onclick="event.stopPropagation();toggleChartRun(this,'${rowId}')">📊</button></td>
+        <td class="modal-rank-col">#${cr.peak}</td>
+        <td><div class="song-title">${esc(s.title)}${certBadge(s.count, 'song')}</div><div class="song-album">${esc(s.album)}</div></td>
+        <td><a class="modal-period-link" href="javascript:void(0)" onclick="event.stopPropagation();goToPeriodFromArtistModal('week','${bestWeek}')">${crPeriodLabel('week', bestWeek)}</a></td>
+        <td class="modal-date-col">${peakEntry.days}d</td>
+        <td class="modal-date-col">${consec > 1 ? consec + '×' : '—'}</td>
+        <td class="modal-plays-col">${peakEntry.plays}</td>
+      </tr>
+      <tr class="cr-row" id="${rowId}"><td colspan="7"><div class="cr-panel" data-crtype="songs" data-crkey="${ek}"><div class="cr-stats">${crStats('songs', s.key, 'week', crW)}</div>${crBoxesHTML('songs', s.key, crW, null, 'week')}</div></td></tr>`;
+    });
+    return `<table class="modal-table"><tbody>${rows}</tbody></table>`;
+  })();
+
+  document.getElementById('modalSongs').innerHTML =
+    mcsSection('♦', 'All-Time Chart', allTimeSongs.length, 'songs', allTimeSongsHTML) +
+    mcsSection('📅', 'Yearly Charts', yearlySongsData.length, 'songs', yearlySongsHTML) +
+    mcsSection('📆', 'Monthly Charts', monthlySongsData.length, 'songs', monthlySongsHTML) +
+    mcsSection('📇', 'Weekly Charts', weeklySongsData.length, 'songs', weeklySongsHTML);
+
+  // ─── ALBUMS ON CHART: 4 collapsible sections ──────────────────────────────
+
+  // Helper: streaming history for albums
+  const albumStreamPanel = (ek, colspan) =>
+    `<tr class="cr-row" id="${ek}-ash"><td colspan="${colspan}"><div style="padding:0.5rem 0.5rem 0">
+      <div class="cr-subsection"><div class="cr-subsection-header" onclick="toggleCrSubsection(this)"><span class="cr-subsection-toggle">▶</span><span class="cr-subsection-label">LISTENING HEATMAP</span></div><div class="cr-subsection-body" style="display:none;" data-crtype="albums" data-crkey="${ek}" data-crkind="heatmap"></div></div>
+      <div class="cr-subsection"><div class="cr-subsection-header" onclick="toggleCrSubsection(this)"><span class="cr-subsection-toggle">▶</span><span class="cr-subsection-label">FULL STREAMING HISTORY</span></div><div class="cr-subsection-body" style="display:none;" data-crtype="albums" data-crkey="${ek}" data-crkind="rawdata"></div></div>
+    </div></td></tr>`;
+
+  // Helper: find album chart run key
+  const findAlbumCrKey = (a, crData) => crData ? Object.keys(crData.result.albums).find(k => k.startsWith(a.album + '|||')) : null;
+
+  // ── 1. All-time chart albums ──────────────────────────────────────────────
+  const allTimeAlbums = chartAlbums;
+  const allTimeAlbumsHTML = (() => {
+    if (!allTimeAlbums.length) return '<div class="mcs-empty">No albums on all-time chart.</div>';
+    let rows = `<tr class="modal-table-header"><td></td><td>RANK</td><td>${t('th_album')}</td><td>${t('th_plays')}</td></tr>`;
+    allTimeAlbums.forEach((a, i) => {
+      const pkKey = Object.keys(peaks.albumPeakMap).find(k => k.startsWith(a.album + '|||'));
+      const pk = pkKey ? peaks.albumPeakMap[pkKey] : null;
+      const crKeyRaw = findAlbumCrKey(a, crY || crM || crW);
+      const ek = crKeyRaw ? encodeURIComponent(crKeyRaw) : encodeURIComponent(a.album + '|||' + artistName);
+      const rowId = ek + '-ash';
+      rows += `<tr>
+        <td><button class="cr-toggle-btn" title="Streaming History" onclick="event.stopPropagation();toggleChartRun(this,'${rowId}')">🎵</button></td>
+        <td class="modal-rank-col">${pk ? '#' + pk : '—'}</td>
+        <td><div class="song-title">${esc(a.album)}${certBadge(a.count, 'album')}</div><div class="song-album">${a.tracks.size} ${tUnit('tracks', a.tracks.size)}</div></td>
+        <td class="modal-plays-col">${a.count} ${tUnit('plays', a.count)}</td>
+      </tr>${albumStreamPanel(ek, 4)}`;
+    });
+    return `<table class="modal-table"><tbody>${rows}</tbody></table>`;
+  })();
+
+  // ── 2. Yearly chart albums ────────────────────────────────────────────────
+  const yearlyAlbumsData = crY ? allAlbumsSorted.map(a => {
+    const crKeyRaw = findAlbumCrKey(a, crY);
+    return { ...a, crKeyRaw, cr: crKeyRaw ? crY.result.albums[crKeyRaw] : null };
+  }).filter(a => a.cr).sort((a, b) => a.cr.peak - b.cr.peak) : [];
+  const yearlyAlbumsHTML = (() => {
+    if (!yearlyAlbumsData.length) return '<div class="mcs-empty">No albums on yearly charts.</div>';
+    let rows = `<tr class="modal-table-header"><td></td><td>RANK</td><td>${t('th_album')}</td><td>BEST YEAR</td><td>DAYS</td><td>STREAK</td><td>PLAYS</td></tr>`;
+    yearlyAlbumsData.forEach((a, i) => {
+      const { cr, crKeyRaw } = a;
+      const peakEntry = cr.entries.find(e => e.rank === cr.peak) || cr.entries[0];
+      const bestYear = peakEntry.periodKey;
+      const daySet = crY.periodMap[bestYear]?.dayAlbums?.[crKeyRaw];
+      const streak = daySet ? longestConsecutiveDays(daySet) : 0;
+      const ek = encodeURIComponent(crKeyRaw);
+      const rowId = 'modal-yr-album-' + i;
+      rows += `<tr>
+        <td><button class="cr-toggle-btn" title="${t('tooltip_cr_toggle_btn_album')}" onclick="event.stopPropagation();toggleChartRun(this,'${rowId}')">📊</button></td>
+        <td class="modal-rank-col">#${cr.peak}</td>
+        <td><div class="song-title">${esc(a.album)}${certBadge(a.count, 'album')}</div><div class="song-album">${a.tracks.size} ${tUnit('tracks', a.tracks.size)}</div></td>
+        <td><a class="modal-period-link" href="javascript:void(0)" onclick="event.stopPropagation();goToPeriodFromArtistModal('year','${bestYear}')">${bestYear}</a></td>
+        <td class="modal-date-col">${peakEntry.days}d</td>
+        <td class="modal-date-col">${streak}d</td>
+        <td class="modal-plays-col">${peakEntry.plays}</td>
+      </tr>
+      <tr class="cr-row" id="${rowId}"><td colspan="7"><div class="cr-panel" data-crtype="albums" data-crkey="${ek}"><div class="cr-stats">${crStats('albums', crKeyRaw, 'year', crY)}</div>${crBoxesHTML('albums', crKeyRaw, crY, null, 'year')}</div></td></tr>`;
+    });
+    return `<table class="modal-table"><tbody>${rows}</tbody></table>`;
+  })();
+
+  // ── 3. Monthly chart albums ───────────────────────────────────────────────
+  const monthlyAlbumsData = crM ? allAlbumsSorted.map(a => {
+    const crKeyRaw = findAlbumCrKey(a, crM);
+    return { ...a, crKeyRaw, cr: crKeyRaw ? crM.result.albums[crKeyRaw] : null };
+  }).filter(a => a.cr).sort((a, b) => a.cr.peak - b.cr.peak) : [];
+  const monthlyAlbumsHTML = (() => {
+    if (!monthlyAlbumsData.length) return '<div class="mcs-empty">No albums on monthly charts.</div>';
+    let rows = `<tr class="modal-table-header"><td></td><td>RANK</td><td>${t('th_album')}</td><td>BEST MONTH</td><td>DAYS</td><td>STREAK</td><td>PLAYS</td></tr>`;
+    monthlyAlbumsData.forEach((a, i) => {
+      const { cr, crKeyRaw } = a;
+      const peakEntry = cr.entries.find(e => e.rank === cr.peak) || cr.entries[0];
+      const bestMonth = peakEntry.periodKey;
+      const daySet = crM.periodMap[bestMonth]?.dayAlbums?.[crKeyRaw];
+      const streak = daySet ? longestConsecutiveDays(daySet) : 0;
+      const ek = encodeURIComponent(crKeyRaw);
+      const rowId = 'modal-mo-album-' + i;
+      rows += `<tr>
+        <td><button class="cr-toggle-btn" title="${t('tooltip_cr_toggle_btn_album')}" onclick="event.stopPropagation();toggleChartRun(this,'${rowId}')">📊</button></td>
+        <td class="modal-rank-col">#${cr.peak}</td>
+        <td><div class="song-title">${esc(a.album)}${certBadge(a.count, 'album')}</div><div class="song-album">${a.tracks.size} ${tUnit('tracks', a.tracks.size)}</div></td>
+        <td><a class="modal-period-link" href="javascript:void(0)" onclick="event.stopPropagation();goToPeriodFromArtistModal('month','${bestMonth}')">${crPeriodLabel('month', bestMonth)}</a></td>
+        <td class="modal-date-col">${peakEntry.days}d</td>
+        <td class="modal-date-col">${streak}d</td>
+        <td class="modal-plays-col">${peakEntry.plays}</td>
+      </tr>
+      <tr class="cr-row" id="${rowId}"><td colspan="7"><div class="cr-panel" data-crtype="albums" data-crkey="${ek}"><div class="cr-stats">${crStats('albums', crKeyRaw, 'month', crM)}</div>${crBoxesHTML('albums', crKeyRaw, crM, null, 'month')}</div></td></tr>`;
+    });
+    return `<table class="modal-table"><tbody>${rows}</tbody></table>`;
+  })();
+
+  // ── 4. Weekly chart albums ────────────────────────────────────────────────
+  const weeklyAlbumsData = crW ? allAlbumsSorted.map(a => {
+    const crKeyRaw = findAlbumCrKey(a, crW);
+    return { ...a, crKeyRaw, cr: crKeyRaw ? crW.result.albums[crKeyRaw] : null };
+  }).filter(a => a.cr).sort((a, b) => a.cr.peak - b.cr.peak) : [];
+  const weeklyAlbumsHTML = (() => {
+    if (!weeklyAlbumsData.length) return '<div class="mcs-empty">No albums on weekly charts.</div>';
+    let rows = `<tr class="modal-table-header"><td></td><td>RANK</td><td>${t('th_album')}</td><td>BEST WEEK</td><td>DAYS</td><td>CONSEC.</td><td>PLAYS</td></tr>`;
+    weeklyAlbumsData.forEach((a, i) => {
+      const { cr, crKeyRaw } = a;
+      const peakEntry = cr.entries.find(e => e.rank === cr.peak) || cr.entries[0];
+      const bestWeek = peakEntry.periodKey;
+      const consec = maxConsecutivePlaysWeekAlbum(crKeyRaw, bestWeek);
+      const ek = encodeURIComponent(crKeyRaw);
+      const rowId = 'modal-wk-album-' + i;
+      rows += `<tr>
+        <td><button class="cr-toggle-btn" title="${t('tooltip_cr_toggle_btn_album')}" onclick="event.stopPropagation();toggleChartRun(this,'${rowId}')">📊</button></td>
+        <td class="modal-rank-col">#${cr.peak}</td>
+        <td><div class="song-title">${esc(a.album)}${certBadge(a.count, 'album')}</div><div class="song-album">${a.tracks.size} ${tUnit('tracks', a.tracks.size)}</div></td>
+        <td><a class="modal-period-link" href="javascript:void(0)" onclick="event.stopPropagation();goToPeriodFromArtistModal('week','${bestWeek}')">${crPeriodLabel('week', bestWeek)}</a></td>
+        <td class="modal-date-col">${peakEntry.days}d</td>
+        <td class="modal-date-col">${consec > 1 ? consec + '×' : '—'}</td>
+        <td class="modal-plays-col">${peakEntry.plays}</td>
+      </tr>
+      <tr class="cr-row" id="${rowId}"><td colspan="7"><div class="cr-panel" data-crtype="albums" data-crkey="${ek}"><div class="cr-stats">${crStats('albums', crKeyRaw, 'week', crW)}</div>${crBoxesHTML('albums', crKeyRaw, crW, null, 'week')}</div></td></tr>`;
+    });
+    return `<table class="modal-table"><tbody>${rows}</tbody></table>`;
+  })();
+
+  document.getElementById('modalAlbums').innerHTML =
+    mcsSection('◈', 'All-Time Chart', allTimeAlbums.length, 'albums', allTimeAlbumsHTML) +
+    mcsSection('📅', 'Yearly Charts', yearlyAlbumsData.length, 'albums', yearlyAlbumsHTML) +
+    mcsSection('📆', 'Monthly Charts', monthlyAlbumsData.length, 'albums', monthlyAlbumsHTML) +
+    mcsSection('📇', 'Weekly Charts', weeklyAlbumsData.length, 'albums', weeklyAlbumsHTML);
 
   modal.classList.add('open');
   modal.scrollTop = 0;
