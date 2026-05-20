@@ -6281,7 +6281,8 @@ function buildChartRun(period) {
         data.chartStatus = prevRk !== undefined ? 0 : everChartedKeys[type].has(k) ? 1 : 2;
         data.prevRank = prevRk !== undefined ? prevRk : Infinity;
       }
-      const ranked = Object.entries(pm[type]).sort(([, a], [, b]) => rankSortWithStatus(a, b)).slice(0, period === 'year' ? Infinity : chartSize);
+      const sizeForPeriod = period === 'year' ? chartSizeYearly : period === 'month' ? chartSizeMonthly : chartSizeWeekly;
+      const ranked = Object.entries(pm[type]).sort(([, a], [, b]) => rankSortWithStatus(a, b)).slice(0, sizeForPeriod);
       // Update prev/ever sets for next period
       const newPrevKeys = new Map();
       ranked.forEach(([k], i) => { newPrevKeys.set(k, i + 1); everChartedKeys[type].add(k); });
@@ -6420,7 +6421,7 @@ function toggleRecRun(btn, runId) {
 
 function crBoxesHTML(type, key, crData, preD, periodOverride) {
   const data = crData || chartRunData;
-  const d = preD !== undefined ? preD : (data?.result?.[type]?.[key]);
+  const d = (preD !== undefined && preD !== null) ? preD : (data?.result?.[type]?.[key]);
   if (!d) return '<div style="font-size:0.6rem;color:var(--text3);padding:4px 0">No chart history yet.</div>';
   const period = periodOverride || data?.period || currentPeriod;
   const safeKey = encodeURIComponent(key);
@@ -9302,7 +9303,7 @@ function openArtistModal(artistName) {
     .filter(s => s.cr).sort((a, b) => a.cr.peak - b.cr.peak) : [];
   const weeklySongsHTML = (() => {
     if (!weeklySongsData.length) return '<div class="mcs-empty">No songs on weekly charts.</div>';
-    let rows = `<tr class="modal-table-header"><td></td><td>RANK</td><td>${t('th_song')}</td><td>BEST WEEK</td><td>DAYS</td><td>CONSEC.</td><td>PLAYS</td></tr>`;
+    let rows = `<tr class="modal-table-header"><td></td><td>RANK</td><td>${t('th_song')}</td><td>BEST WEEK</td><td>DAYS</td><td>CONSECUTIVE PLAYS</td><td>PLAYS</td></tr>`;
     weeklySongsData.forEach((s, i) => {
       const { cr } = s;
       const peakEntry = cr.entries.find(e => e.rank === cr.peak) || cr.entries[0];
@@ -9430,7 +9431,7 @@ function openArtistModal(artistName) {
   }).filter(a => a.cr).sort((a, b) => a.cr.peak - b.cr.peak) : [];
   const weeklyAlbumsHTML = (() => {
     if (!weeklyAlbumsData.length) return '<div class="mcs-empty">No albums on weekly charts.</div>';
-    let rows = `<tr class="modal-table-header"><td></td><td>RANK</td><td>${t('th_album')}</td><td>BEST WEEK</td><td>DAYS</td><td>CONSEC.</td><td>PLAYS</td></tr>`;
+    let rows = `<tr class="modal-table-header"><td></td><td>RANK</td><td>${t('th_album')}</td><td>BEST WEEK</td><td>DAYS</td><td>CONSECUTIVE PLAYS</td><td>PLAYS</td></tr>`;
     weeklyAlbumsData.forEach((a, i) => {
       const { cr, crKeyRaw } = a;
       const peakEntry = cr.entries.find(e => e.rank === cr.peak) || cr.entries[0];
