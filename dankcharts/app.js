@@ -9020,6 +9020,7 @@ function openArtistModal(artistName) {
 
   // Always use all-time peaks for the artist modal (modal always shows all-time profile)
   const peaks = buildAllTimePeaks();
+  const crY = allChartRun.year, crM = allChartRun.month, crW = allChartRun.week;
 
   // Songs that made it into the chart (have a peak position)
   const chartSongs = allSongsSorted.filter(s => peaks.songPeakMap[songKey(s)] !== undefined);
@@ -9033,11 +9034,35 @@ function openArtistModal(artistName) {
   const platAlbums = allAlbumsSorted.filter(a => a.count >= CERT.album.plat).length;
   const diamondAlbums = allAlbumsSorted.filter(a => a.count >= CERT.album.diamond).length;
 
-  // Best chart position (all-time for accomplishment fallback)
+  // All-time / per-period chart peaks
   const artistPeak = peaks.artistPeakMap[artistName];
+  const allTimeArtistRank = artistPeak ?? null;
   const bestSongPeak = chartSongs.length ? Math.min(...chartSongs.map(s => peaks.songPeakMap[songKey(s)])) : null;
-  // Peak position in weekly charts (shown in stat box)
-  const weeklyArtistPeak = allChartRun.week?.result?.artists[artistName]?.peak ?? null;
+  const allTimeBestAlbumPeak = chartAlbums.length ? Math.min(...chartAlbums.map(a => {
+    const k = Object.keys(peaks.albumPeakMap).find(pk => pk.startsWith(a.album + '|||'));
+    return k ? peaks.albumPeakMap[k] : 999;
+  })) : null;
+
+  const weeklyArtistPeak = crW?.result?.artists[artistName]?.peak ?? null;
+  const monthlyArtistPeak = crM?.result?.artists[artistName]?.peak ?? null;
+  const yearlyArtistPeak = crY?.result?.artists[artistName]?.peak ?? null;
+
+  // Per-chart-type song counts + best peaks
+  const weeklySongsCharted = crW ? allSongsSorted.filter(s => crW.result.songs[songKey(s)]) : [];
+  const weeklyBestSongPeak = weeklySongsCharted.length ? Math.min(...weeklySongsCharted.map(s => crW.result.songs[songKey(s)].peak)) : null;
+  const monthlySongsCharted = crM ? allSongsSorted.filter(s => crM.result.songs[songKey(s)]) : [];
+  const monthlyBestSongPeak = monthlySongsCharted.length ? Math.min(...monthlySongsCharted.map(s => crM.result.songs[songKey(s)].peak)) : null;
+  const yearlySongsCharted = crY ? allSongsSorted.filter(s => crY.result.songs[songKey(s)]) : [];
+  const yearlyBestSongPeak = yearlySongsCharted.length ? Math.min(...yearlySongsCharted.map(s => crY.result.songs[songKey(s)].peak)) : null;
+
+  // Per-chart-type album counts + best peaks
+  const _albumCrKey = (a, cr) => cr ? Object.keys(cr.result.albums).find(k => k.startsWith(a.album + '|||')) : null;
+  const weeklyAlbumsCharted = crW ? allAlbumsSorted.filter(a => _albumCrKey(a, crW)) : [];
+  const weeklyBestAlbumPeak = weeklyAlbumsCharted.length ? Math.min(...weeklyAlbumsCharted.map(a => { const k = _albumCrKey(a, crW); return k ? crW.result.albums[k].peak : 999; })) : null;
+  const monthlyAlbumsCharted = crM ? allAlbumsSorted.filter(a => _albumCrKey(a, crM)) : [];
+  const monthlyBestAlbumPeak = monthlyAlbumsCharted.length ? Math.min(...monthlyAlbumsCharted.map(a => { const k = _albumCrKey(a, crM); return k ? crM.result.albums[k].peak : 999; })) : null;
+  const yearlyAlbumsCharted = crY ? allAlbumsSorted.filter(a => _albumCrKey(a, crY)) : [];
+  const yearlyBestAlbumPeak = yearlyAlbumsCharted.length ? Math.min(...yearlyAlbumsCharted.map(a => { const k = _albumCrKey(a, crY); return k ? crY.result.albums[k].peak : 999; })) : null;
 
   // Populate modal
   document.getElementById('modalArtistName').textContent = artistName;
@@ -9056,14 +9081,49 @@ function openArtistModal(artistName) {
     });
   }
 
-  // Stats strip
+  // Stats strip — row 1: totals + all-time rank
   document.getElementById('modalStats').innerHTML = `
     <div class="modal-stat"><div class="sv">${totalPlays.toLocaleString()}</div><div class="sl">${t('stat_total_plays')}</div></div>
     <div class="modal-stat"><div class="sv">${allSongsSorted.length}</div><div class="sl">${t('stat_unique_songs')}</div></div>
     <div class="modal-stat"><div class="sv">${allAlbumsSorted.length}</div><div class="sl">Albums &amp; Singles</div></div>
-    <div class="modal-stat"><div class="sv">${weeklyArtistPeak ? '#' + weeklyArtistPeak : '—'}</div><div class="sl">${t('modal_artist_peak')}</div></div>
-    <div class="modal-stat"><div class="sv">${chartSongs.length}</div><div class="sl">${t('modal_songs_charted')}</div></div>
-    <div class="modal-stat"><div class="sv">${bestSongPeak ? '#' + bestSongPeak : '—'}</div><div class="sl">${t('modal_best_song_peak')}</div></div>
+    <div class="modal-stat"><div class="sv">${allTimeArtistRank ? '#' + allTimeArtistRank : '—'}</div><div class="sl">Most Heard Artist<br>of All Time</div></div>
+  `;
+
+  // Stats strip — row 2: artist chart peaks
+  document.getElementById('modalArtistPeaks').innerHTML = `
+    <div class="modal-stat"><div class="sv">${weeklyArtistPeak ? '#' + weeklyArtistPeak : '—'}</div><div class="sl">Weekly Artist Peak</div></div>
+    <div class="modal-stat"><div class="sv">${monthlyArtistPeak ? '#' + monthlyArtistPeak : '—'}</div><div class="sl">Monthly Artist Peak</div></div>
+    <div class="modal-stat"><div class="sv">${yearlyArtistPeak ? '#' + yearlyArtistPeak : '—'}</div><div class="sl">Yearly Artist Peak</div></div>
+  `;
+
+  // Chart breakdown grid: songs + albums across all chart types
+  const cbCell = (count, peak) => `<td class="modal-cb-cell"><div class="cv">${count > 0 ? count : '—'}</div>${count > 0 ? `<div class="cp">${peak ? 'Peak Rank #' + peak : '—'}</div>` : '<div class="cp"></div>'}</td>`;
+  document.getElementById('modalChartBreakdown').innerHTML = `
+    <table class="modal-cb-table">
+      <thead><tr>
+        <td class="modal-cb-empty"></td>
+        <th class="modal-cb-th">Weekly Chart</th>
+        <th class="modal-cb-th">Monthly Chart</th>
+        <th class="modal-cb-th">Yearly Chart</th>
+        <th class="modal-cb-th">All-Time Chart</th>
+      </tr></thead>
+      <tbody>
+        <tr>
+          <td class="modal-cb-label">♦ Songs</td>
+          ${cbCell(weeklySongsCharted.length, weeklyBestSongPeak)}
+          ${cbCell(monthlySongsCharted.length, monthlyBestSongPeak)}
+          ${cbCell(yearlySongsCharted.length, yearlyBestSongPeak)}
+          ${cbCell(chartSongs.length, bestSongPeak)}
+        </tr>
+        <tr>
+          <td class="modal-cb-label">🎵 Albums &amp; Singles</td>
+          ${cbCell(weeklyAlbumsCharted.length, weeklyBestAlbumPeak)}
+          ${cbCell(monthlyAlbumsCharted.length, monthlyBestAlbumPeak)}
+          ${cbCell(yearlyAlbumsCharted.length, yearlyBestAlbumPeak)}
+          ${cbCell(chartAlbums.length, allTimeBestAlbumPeak)}
+        </tr>
+      </tbody>
+    </table>
   `;
 
   // Accomplishments — with expandable detail panels
@@ -9192,7 +9252,6 @@ function openArtistModal(artistName) {
   document.getElementById('modalAccomplishments').innerHTML = acc.join('');
 
   // ─── SONGS ON CHART: 4 collapsible sections ──────────────────────────────
-  const crY = allChartRun.year, crM = allChartRun.month, crW = allChartRun.week;
 
   // Helper: collapsible section wrapper (starts collapsed)
   let _mcsId = 0;

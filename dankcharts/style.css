@@ -4462,6 +4462,73 @@
       margin-top: 0.25rem;
     }
 
+    /* CHART BREAKDOWN GRID */
+    .modal-chart-breakdown {
+      margin-bottom: 1.5rem;
+      border-radius: 8px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+    }
+
+    .modal-cb-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    .modal-cb-th {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.55rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--text3);
+      background: var(--bg2);
+      padding: 0.4rem 0.5rem;
+      text-align: center;
+      border: 1px solid var(--border);
+      font-weight: normal;
+    }
+
+    .modal-cb-empty {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      width: 5rem;
+    }
+
+    .modal-cb-label {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.58rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--text3);
+      background: var(--bg2);
+      padding: 0.5rem 0.75rem;
+      border: 1px solid var(--border);
+      white-space: nowrap;
+    }
+
+    .modal-cb-cell {
+      background: var(--bg3);
+      text-align: center;
+      padding: 0.5rem 0.5rem 0.4rem;
+      border: 1px solid var(--border);
+    }
+
+    .modal-cb-cell .cv {
+      font-family: 'DM Serif Display', serif;
+      font-size: 1.25rem;
+      color: var(--text);
+      line-height: 1;
+    }
+
+    .modal-cb-cell .cp {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.52rem;
+      letter-spacing: 0.08em;
+      color: var(--text3);
+      margin-top: 0.2rem;
+      min-height: 0.75rem;
+    }
+
     /* ACCOMPLISHMENT EXPAND */
     .acc-row {
       border-bottom: 1px solid var(--border);
