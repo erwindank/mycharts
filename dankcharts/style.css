@@ -4529,6 +4529,60 @@
       min-height: 0.75rem;
     }
 
+    /* STAT BOX EMOJI ICON */
+    .modal-stat .se {
+      font-size: 1.1rem;
+      line-height: 1;
+      margin-bottom: 0.15rem;
+    }
+
+    /* GOLD GLOW TILE — Most Heard Artist */
+    .modal-stat--gold {
+      background: linear-gradient(135deg, rgba(255,200,60,0.13), rgba(255,160,20,0.06));
+      animation: modalGoldPulse 2.5s ease-in-out infinite;
+    }
+
+    @keyframes modalGoldPulse {
+      0%, 100% { box-shadow: inset 0 0 0 1px rgba(255,200,60,0.3), 0 0 8px rgba(255,200,60,0.1); }
+      50%       { box-shadow: inset 0 0 0 1px rgba(255,200,60,0.65), 0 0 20px rgba(255,200,60,0.3); }
+    }
+
+    /* PEAK RANK TROPHY COLORS */
+    .sv--gold   { color: #ffd700; text-shadow: 0 0 14px rgba(255,215,0,0.55); }
+    .sv--silver { color: #c0c8d8; text-shadow: 0 0 10px rgba(192,200,216,0.4); }
+    .sv--bronze { color: #cd7f32; text-shadow: 0 0 10px rgba(205,127,50,0.4); }
+
+    /* GRAND SLAM BANNER */
+    .modal-grand-slam {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.65rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      text-align: center;
+      padding: 0.55rem 1rem;
+      background: linear-gradient(90deg, rgba(255,200,60,0.18), rgba(180,100,255,0.18), rgba(100,180,255,0.18), rgba(255,200,60,0.18));
+      background-size: 200% 100%;
+      color: #ffd700;
+      border-radius: 6px;
+      margin-bottom: 0.75rem;
+      animation: grandSlamShimmer 4s linear infinite;
+    }
+
+    @keyframes grandSlamShimmer {
+      0%   { background-position: 0% 50%; }
+      100% { background-position: 200% 50%; }
+    }
+
+    /* CHART BREAKDOWN COLORED COLUMN HEADERS */
+    .modal-cb-th--weekly  { color: #60a5fa !important; border-top: 2px solid #60a5fa; }
+    .modal-cb-th--monthly { color: #34d399 !important; border-top: 2px solid #34d399; }
+    .modal-cb-th--yearly  { color: #fb923c !important; border-top: 2px solid #fb923c; }
+    .modal-cb-th--alltime { color: #fbbf24 !important; border-top: 2px solid #fbbf24; }
+
+    /* CHART BREAKDOWN COLORED ROW LABELS */
+    .modal-cb-label--songs  { color: #93c5fd; border-left: 3px solid #60a5fa; }
+    .modal-cb-label--albums { color: #c4b5fd; border-left: 3px solid #a78bfa; }
+
     /* ACCOMPLISHMENT EXPAND */
     .acc-row {
       border-bottom: 1px solid var(--border);

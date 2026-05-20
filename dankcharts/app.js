@@ -4483,6 +4483,23 @@ function animateStatStrip(containerEl) {
   requestAnimationFrame(tick);
 }
 
+function animateModalCountup(containerEl) {
+  containerEl.querySelectorAll('[data-countup]').forEach(el => {
+    const target = parseInt(el.dataset.countup, 10);
+    if (!target) return;
+    const dur = 7500;
+    const t0 = performance.now();
+    el.textContent = '0';
+    function frame(now) {
+      const p = Math.min((now - t0) / dur, 1);
+      const ease = 1 - Math.pow(1 - p, 3);
+      el.textContent = Math.round(ease * target).toLocaleString();
+      if (p < 1) requestAnimationFrame(frame);
+    }
+    requestAnimationFrame(frame);
+  });
+}
+
 function dcScrollTo(sectionId) {
   const el = document.getElementById(sectionId);
   if (!el || el.style.display === 'none') return;
@@ -9022,8 +9039,27 @@ function openArtistModal(artistName) {
   const peaks = buildAllTimePeaks();
   const crY = allChartRun.year, crM = allChartRun.month, crW = allChartRun.week;
 
+  // Build the all-time song rank map inline so chart membership is always accurate.
+  // Using peaks.songPeakMap alone was unreliable: if chartSizeAllTime is unexpected or
+  // the external build has stale state, chartSongs would be empty and the fallback
+  // (allSongsSorted.slice(0, chartSizeAllTime)) would silently show the artist's own top-N
+  // songs instead of actual global chart songs.
+  const allTimeSongPeakMap = (() => {
+    const sp = {};
+    for (const p of allPlays) {
+      const k = songKey(p);
+      if (!sp[k]) sp[k] = { count: 0, firstAchieved: p.date };
+      sp[k].count++;
+    }
+    const lim = isFinite(chartSizeAllTime) ? chartSizeAllTime : undefined;
+    const m = {};
+    Object.entries(sp).sort(([, a], [, b]) => rankSort(a, b)).slice(0, lim)
+      .forEach(([k], i) => { m[k] = i + 1; });
+    return m;
+  })();
+
   // Songs that made it into the chart (have a peak position)
-  const chartSongs = allSongsSorted.filter(s => peaks.songPeakMap[songKey(s)] !== undefined);
+  const chartSongs = allSongsSorted.filter(s => allTimeSongPeakMap[songKey(s)] !== undefined);
   const chartAlbums = allAlbumsSorted.filter(a => peaks.albumPeakMap[a.album + '|||' + artistName] !== undefined || peaks.albumPeakMap[a.album + '|||' + a.album] !== undefined);
 
   // Certifications count
@@ -9037,7 +9073,7 @@ function openArtistModal(artistName) {
   // All-time / per-period chart peaks
   const artistPeak = peaks.artistPeakMap[artistName];
   const allTimeArtistRank = artistPeak ?? null;
-  const bestSongPeak = chartSongs.length ? Math.min(...chartSongs.map(s => peaks.songPeakMap[songKey(s)])) : null;
+  const bestSongPeak = chartSongs.length ? Math.min(...chartSongs.map(s => allTimeSongPeakMap[songKey(s)])) : null;
   const allTimeBestAlbumPeak = chartAlbums.length ? Math.min(...chartAlbums.map(a => {
     const k = Object.keys(peaks.albumPeakMap).find(pk => pk.startsWith(a.album + '|||'));
     return k ? peaks.albumPeakMap[k] : 999;
@@ -9082,18 +9118,25 @@ function openArtistModal(artistName) {
   }
 
   // Stats strip — row 1: totals + all-time rank
-  document.getElementById('modalStats').innerHTML = `
-    <div class="modal-stat"><div class="sv">${totalPlays.toLocaleString()}</div><div class="sl">${t('stat_total_plays')}</div></div>
-    <div class="modal-stat"><div class="sv">${allSongsSorted.length}</div><div class="sl">${t('stat_unique_songs')}</div></div>
-    <div class="modal-stat"><div class="sv">${allAlbumsSorted.length}</div><div class="sl">Albums &amp; Singles</div></div>
-    <div class="modal-stat"><div class="sv">${allTimeArtistRank ? '#' + allTimeArtistRank : '—'}</div><div class="sl">Most Heard Artist<br>of All Time</div></div>
+  const modalStatsEl = document.getElementById('modalStats');
+  modalStatsEl.innerHTML = `
+    <div class="modal-stat"><div class="se">🎧</div><div class="sv" data-countup="${totalPlays}">${totalPlays.toLocaleString()}</div><div class="sl">${t('stat_total_plays')}</div></div>
+    <div class="modal-stat"><div class="se">🎵</div><div class="sv" data-countup="${allSongsSorted.length}">${allSongsSorted.length}</div><div class="sl">${t('stat_unique_songs')}</div></div>
+    <div class="modal-stat"><div class="se">💿</div><div class="sv" data-countup="${allAlbumsSorted.length}">${allAlbumsSorted.length}</div><div class="sl">Albums &amp; Singles</div></div>
+    <div class="modal-stat modal-stat--gold"><div class="se">🏆</div><div class="sv">${allTimeArtistRank ? '#' + allTimeArtistRank : '—'}</div><div class="sl">Most Heard Artist<br>of All Time</div></div>
   `;
+  animateModalCountup(modalStatsEl);
 
   // Stats strip — row 2: artist chart peaks
+  const peakCls = r => r === 1 ? 'sv--gold' : r <= 3 ? 'sv--silver' : r <= 10 ? 'sv--bronze' : '';
+  const grandSlam = weeklyArtistPeak === 1 && monthlyArtistPeak === 1 && yearlyArtistPeak === 1;
+  document.getElementById('modalGrandSlam').innerHTML = grandSlam
+    ? '<div class="modal-grand-slam">✨ Grand Slam — #1 on Weekly, Monthly &amp; Yearly Charts ✨</div>'
+    : '';
   document.getElementById('modalArtistPeaks').innerHTML = `
-    <div class="modal-stat"><div class="sv">${weeklyArtistPeak ? '#' + weeklyArtistPeak : '—'}</div><div class="sl">Weekly Artist Peak</div></div>
-    <div class="modal-stat"><div class="sv">${monthlyArtistPeak ? '#' + monthlyArtistPeak : '—'}</div><div class="sl">Monthly Artist Peak</div></div>
-    <div class="modal-stat"><div class="sv">${yearlyArtistPeak ? '#' + yearlyArtistPeak : '—'}</div><div class="sl">Yearly Artist Peak</div></div>
+    <div class="modal-stat"><div class="se">📊</div><div class="sv ${peakCls(weeklyArtistPeak)}">${weeklyArtistPeak ? '#' + weeklyArtistPeak : '—'}</div><div class="sl">Weekly Artist Peak</div></div>
+    <div class="modal-stat"><div class="se">🌙</div><div class="sv ${peakCls(monthlyArtistPeak)}">${monthlyArtistPeak ? '#' + monthlyArtistPeak : '—'}</div><div class="sl">Monthly Artist Peak</div></div>
+    <div class="modal-stat"><div class="se">⭐</div><div class="sv ${peakCls(yearlyArtistPeak)}">${yearlyArtistPeak ? '#' + yearlyArtistPeak : '—'}</div><div class="sl">Yearly Artist Peak</div></div>
   `;
 
   // Chart breakdown grid: songs + albums across all chart types
@@ -9102,21 +9145,21 @@ function openArtistModal(artistName) {
     <table class="modal-cb-table">
       <thead><tr>
         <td class="modal-cb-empty"></td>
-        <th class="modal-cb-th">Weekly Chart</th>
-        <th class="modal-cb-th">Monthly Chart</th>
-        <th class="modal-cb-th">Yearly Chart</th>
-        <th class="modal-cb-th">All-Time Chart</th>
+        <th class="modal-cb-th modal-cb-th--weekly">📊 Weekly</th>
+        <th class="modal-cb-th modal-cb-th--monthly">🌙 Monthly</th>
+        <th class="modal-cb-th modal-cb-th--yearly">⭐ Yearly</th>
+        <th class="modal-cb-th modal-cb-th--alltime">🏆 All-Time</th>
       </tr></thead>
       <tbody>
         <tr>
-          <td class="modal-cb-label">♦ Songs</td>
+          <td class="modal-cb-label modal-cb-label--songs">🎵 Songs</td>
           ${cbCell(weeklySongsCharted.length, weeklyBestSongPeak)}
           ${cbCell(monthlySongsCharted.length, monthlyBestSongPeak)}
           ${cbCell(yearlySongsCharted.length, yearlyBestSongPeak)}
           ${cbCell(chartSongs.length, bestSongPeak)}
         </tr>
         <tr>
-          <td class="modal-cb-label">🎵 Albums &amp; Singles</td>
+          <td class="modal-cb-label modal-cb-label--albums">💿 Albums &amp; Singles</td>
           ${cbCell(weeklyAlbumsCharted.length, weeklyBestAlbumPeak)}
           ${cbCell(monthlyAlbumsCharted.length, monthlyBestAlbumPeak)}
           ${cbCell(yearlyAlbumsCharted.length, yearlyBestAlbumPeak)}
@@ -9277,12 +9320,12 @@ function openArtistModal(artistName) {
     </div></td></tr>`;
 
   // ── 1. All-time chart songs ───────────────────────────────────────────────
-  const allTimeSongs = chartSongs.length > 0 ? chartSongs : allSongsSorted.slice(0, chartSizeAllTime);
+  const allTimeSongs = chartSongs;
   const allTimeSongsHTML = (() => {
     if (!allTimeSongs.length) return `<div class="mcs-empty">${t('modal_no_songs', { n: chartSizeAllTime })}</div>`;
     let rows = `<tr class="modal-table-header"><td></td><td>RANK</td><td>${t('th_song')}</td><td>FIRST STREAM</td><td>LAST STREAM</td><td>${t('th_plays')}</td></tr>`;
     allTimeSongs.forEach((s, i) => {
-      const pk = peaks.songPeakMap[songKey(s)];
+      const pk = allTimeSongPeakMap[songKey(s)];
       const sk = songKey(s);
       const ek = encodeURIComponent(sk);
       const rowId = ek + '-sh';
