@@ -2936,6 +2936,28 @@ function buildRecords() {
     }
   }
 
+  // ── Build ncPeriodMap for tooltip use (inverted by period) ───
+  ncPeriodMap = { week: {}, month: {}, year: {} };
+  for (const pt of ['week', 'month', 'year']) {
+    for (const [sk, d] of Object.entries(ncSongDebuts[pt])) {
+      if (!ncPeriodMap[pt][d.period]) ncPeriodMap[pt][d.period] = { songs: [], artists: [], albums: [] };
+      ncPeriodMap[pt][d.period].songs.push({ rank: d.rank, title: d.title, artist: d.artist });
+    }
+    for (const [artist, d] of Object.entries(ncArtistDebuts[pt])) {
+      if (!ncPeriodMap[pt][d.period]) ncPeriodMap[pt][d.period] = { songs: [], artists: [], albums: [] };
+      ncPeriodMap[pt][d.period].artists.push({ rank: d.rank, name: artist });
+    }
+    for (const [ak, d] of Object.entries(ncAlbumDebuts[pt])) {
+      if (!ncPeriodMap[pt][d.period]) ncPeriodMap[pt][d.period] = { songs: [], artists: [], albums: [] };
+      ncPeriodMap[pt][d.period].albums.push({ rank: d.rank, album: d.album, artist: d.artist });
+    }
+    for (const pm of Object.values(ncPeriodMap[pt])) {
+      pm.songs.sort((a, b) => a.rank - b.rank);
+      pm.artists.sort((a, b) => a.rank - b.rank);
+      pm.albums.sort((a, b) => a.rank - b.rank);
+    }
+  }
+
   // ── New Charts Records: post-processing ──────────────────────
   // Record 8: Longest consecutive periods where artist had a new debut
   const artistConsecNewDebuts = { week: {}, month: {} };
@@ -5859,6 +5881,7 @@ function goToPageInput(type, val) {
 let chartRunData = null;
 let allChartRun = {};
 let allChartRunIsFullHistory = false; // true only when all 3 built with offset=0
+let ncPeriodMap = {}; // new-chart periodMap: { week: { periodKey: { songs, artists, albums } } }
 const crRangeModes = {}; // per-entry: keyed by type+'|'+key
 function getCrRangeMode(type, key) { return crRangeModes[type + '|' + key] || 'now'; }
 
@@ -6767,29 +6790,27 @@ let _newChartRecPreviewCleanup = null;
 function showNewChartRecPreview(pt, periodKey, triggerEl, event) {
   if (event) event.stopPropagation();
   hideNewChartRecPreview();
-  ensureAllChartRun();
-  const crData = allChartRun[pt];
+  const pm = ncPeriodMap[pt] && ncPeriodMap[pt][periodKey];
   const popup = document.createElement('div');
   popup.className = 'cr-preview';
   popup.id = 'newChartRecPreviewPopup';
   popup.style.position = 'fixed';
   const title = crPeriodTitle(pt, periodKey);
   const navigateLink = `<a class="cr-preview-link" href="javascript:void(0)" onclick="hideNewChartRecPreview();navigateToRecPeriod('${pt}','${periodKey}')">${t('rec_pak_week_preview_link')}</a>`;
-  if (!crData || !crData.periodMap || !crData.periodMap[periodKey]) {
+  if (!pm) {
     popup.innerHTML = `<button class="cr-preview-close" onclick="hideNewChartRecPreview()">✕</button><div class="cr-preview-title">${esc(title)}</div><div style="padding:4px 0;font-size:0.62rem;color:var(--text3);">${navigateLink}</div>`;
   } else {
-    const pm = crData.periodMap[periodKey];
     const types = [
-      { key: 'songs', icon: '🎵', label: t('rec_th_songs'), nameOf: function ([k, d]) { return d._title || k.split('|||')[0]; } },
-      { key: 'artists', icon: '♦', label: t('rec_th_artists'), nameOf: function ([k]) { return k; } },
-      { key: 'albums', icon: '💿', label: t('rec_th_albums'), nameOf: function ([k, d]) { return d._album || k.split('|||')[0]; } },
+      { key: 'songs', icon: '🎵', label: t('rec_th_songs'), nameOf: (d) => d.title },
+      { key: 'artists', icon: '♦', label: t('rec_th_artists'), nameOf: (d) => d.name },
+      { key: 'albums', icon: '💿', label: t('rec_th_albums'), nameOf: (d) => d.album },
     ];
     let items = '';
     for (const { key, icon, label, nameOf } of types) {
-      const ranked = Object.entries(pm[key]).sort(function ([, a], [, b]) { return rankSort(a, b); }).slice(0, Math.min(chartSize, 5));
+      const ranked = (pm[key] || []).slice(0, 5);
       if (!ranked.length) continue;
       items += `<div class="cr-preview-section-label">${icon} ${label}</div>`;
-      items += ranked.map(function ([k, d], i) { return `<div class="cr-preview-item${i === 0 ? ' highlighted' : ''}"><span class="cr-preview-rank">${i + 1}</span><span>${esc(nameOf([k, d]))}</span></div>`; }).join('');
+      items += ranked.map((d, i) => `<div class="cr-preview-item${i === 0 ? ' highlighted' : ''}"><span class="cr-preview-rank">${i + 1}</span><span>${esc(nameOf(d))}</span></div>`).join('');
     }
     popup.innerHTML = `<button class="cr-preview-close" onclick="hideNewChartRecPreview()">✕</button><div class="cr-preview-title">${esc(title)}</div>${items}<div class="pak-preview-navlink">${navigateLink}</div>`;
   }
