@@ -4797,6 +4797,10 @@ function renderTableHeaders() {
 function renderAll() {
   if (currentPeriod === 'rawdata') { applyRawFilters(); return; }
   clearImageObservers();
+  ['songsBody', 'artistsBody', 'albumsBody'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el && el._swToken) el._swToken.cancelled = true;
+  });
   document.body.dataset.period = currentPeriod;
   // Exit early if no data has been loaded yet
   if (!allPlays || allPlays.length === 0) { return; }
@@ -6796,11 +6800,11 @@ function buildAllTimePeaks() {
     if (!sp[k]) sp[k] = { count: 0, firstAchieved: p.date };
     sp[k].count++;
   }
-  const songsSorted = Object.entries(sp).sort(([, a], [, b]) => rankSort(a, b)).slice(0, chartSize);
+  const songsSorted = Object.entries(sp).sort(([, a], [, b]) => rankSort(a, b)).slice(0, chartSizeAllTime);
   const songPeakMap = {};
   songsSorted.forEach(([k], i) => { songPeakMap[k] = i + 1; });
 
-  // Artists (split) — rank within top chartSize
+  // Artists (split) — rank within top chartSizeAllTime
   const ap = {};
   for (const p of allPlays) {
     for (const a of p.artists) {
@@ -6809,18 +6813,18 @@ function buildAllTimePeaks() {
       ap[a].songs.add(p.title);
     }
   }
-  const artistsSorted = Object.entries(ap).sort(([, a], [, b]) => rankSort(a, b)).slice(0, chartSize);
+  const artistsSorted = Object.entries(ap).sort(([, a], [, b]) => rankSort(a, b)).slice(0, chartSizeAllTime);
   const artistPeakMap = {};
   artistsSorted.forEach(([name], i) => { artistPeakMap[name] = i + 1; });
 
-  // Albums — rank within top chartSize
+  // Albums — rank within top chartSizeAllTime
   const lp = {};
   for (const p of allPlays) {
     const k = p.album + '|||' + albumArtist(p);
     if (!lp[k]) lp[k] = { count: 0, firstAchieved: p.date };
     lp[k].count++;
   }
-  const albumsSorted = Object.entries(lp).sort(([, a], [, b]) => rankSort(a, b)).slice(0, chartSize);
+  const albumsSorted = Object.entries(lp).sort(([, a], [, b]) => rankSort(a, b)).slice(0, chartSizeAllTime);
   const albumPeakMap = {};
   albumsSorted.forEach(([k], i) => { albumPeakMap[k] = i + 1; });
 
@@ -9013,8 +9017,8 @@ function openArtistModal(artistName) {
   }
   const allAlbumsSorted = Object.values(albumCounts).sort((a, b) => b.count - a.count);
 
-  // Build peak maps using same period scope as the current chart
-  const peaks = buildPeaks();
+  // Always use all-time peaks for the artist modal (modal always shows all-time profile)
+  const peaks = buildAllTimePeaks();
 
   // Songs that made it into the chart (have a peak position)
   const chartSongs = allSongsSorted.filter(s => peaks.songPeakMap[songKey(s)] !== undefined);
@@ -9037,7 +9041,7 @@ function openArtistModal(artistName) {
   // Populate modal
   document.getElementById('modalArtistName').textContent = artistName;
   document.getElementById('modalArtistSub').textContent =
-    `Top ${chartSize} ${t('modal_chart_profile')} · ${t('period_alltime')}`;
+    `Top ${isFinite(chartSizeAllTime) ? chartSizeAllTime : '∞'} ${t('modal_chart_profile')} · ${t('period_alltime')}`;
 
   // Artist image
   const imgEl = document.getElementById('modalArtistImg');
@@ -9205,27 +9209,31 @@ function openArtistModal(artistName) {
   };
 
   // Helper: streaming history expand panel (heatmap + rawdata, lazy loaded)
-  const streamHistoryPanel = (crKey, colspan) =>
+  // crKey = URL-encoded key (for row id), rawKey = plain song key for data-crkey lookup
+  const streamHistoryPanel = (crKey, rawKey, colspan) =>
     `<tr class="cr-row" id="${crKey}-sh"><td colspan="${colspan}"><div style="padding:0.5rem 0.5rem 0">
-      <div class="cr-subsection"><div class="cr-subsection-header" onclick="toggleCrSubsection(this)"><span class="cr-subsection-toggle">▶</span><span class="cr-subsection-label">LISTENING HEATMAP</span></div><div class="cr-subsection-body" style="display:none;" data-crtype="songs" data-crkey="${crKey}" data-crkind="heatmap"></div></div>
-      <div class="cr-subsection"><div class="cr-subsection-header" onclick="toggleCrSubsection(this)"><span class="cr-subsection-toggle">▶</span><span class="cr-subsection-label">FULL STREAMING HISTORY</span></div><div class="cr-subsection-body" style="display:none;" data-crtype="songs" data-crkey="${crKey}" data-crkind="rawdata"></div></div>
+      <div class="cr-subsection"><div class="cr-subsection-header" onclick="toggleCrSubsection(this)"><span class="cr-subsection-toggle">▶</span><span class="cr-subsection-label">LISTENING HEATMAP</span></div><div class="cr-subsection-body" style="display:none;" data-crtype="songs" data-crkey="${esc(rawKey)}" data-crkind="heatmap"></div></div>
+      <div class="cr-subsection"><div class="cr-subsection-header" onclick="toggleCrSubsection(this)"><span class="cr-subsection-toggle">▶</span><span class="cr-subsection-label">FULL STREAMING HISTORY</span></div><div class="cr-subsection-body" style="display:none;" data-crtype="songs" data-crkey="${esc(rawKey)}" data-crkind="rawdata"></div></div>
     </div></td></tr>`;
 
   // ── 1. All-time chart songs ───────────────────────────────────────────────
-  const allTimeSongs = chartSongs.length > 0 ? chartSongs : allSongsSorted.slice(0, chartSize);
+  const allTimeSongs = chartSongs.length > 0 ? chartSongs : allSongsSorted.slice(0, chartSizeAllTime);
   const allTimeSongsHTML = (() => {
-    if (!allTimeSongs.length) return `<div class="mcs-empty">${t('modal_no_songs', { n: chartSize })}</div>`;
-    let rows = `<tr class="modal-table-header"><td></td><td>RANK</td><td>${t('th_song')}</td><td>${t('th_plays')}</td></tr>`;
+    if (!allTimeSongs.length) return `<div class="mcs-empty">${t('modal_no_songs', { n: chartSizeAllTime })}</div>`;
+    let rows = `<tr class="modal-table-header"><td></td><td>RANK</td><td>${t('th_song')}</td><td>FIRST STREAM</td><td>LAST STREAM</td><td>${t('th_plays')}</td></tr>`;
     allTimeSongs.forEach((s, i) => {
       const pk = peaks.songPeakMap[songKey(s)];
-      const ek = encodeURIComponent(songKey(s));
+      const sk = songKey(s);
+      const ek = encodeURIComponent(sk);
       const rowId = ek + '-sh';
       rows += `<tr>
         <td><button class="cr-toggle-btn" title="Streaming History" onclick="event.stopPropagation();toggleChartRun(this,'${rowId}')">🎵</button></td>
         <td class="modal-rank-col">${pk ? '#' + pk : '#' + (i + 1)}</td>
         <td><div class="song-title">${esc(s.title)}${certBadge(s.count, 'song')}</div><div class="song-album">${esc(s.album)}</div></td>
+        <td class="modal-date-col">${rawFmtDate(s.firstPlayed)}</td>
+        <td class="modal-date-col">${rawFmtDate(s.lastPlayed)}</td>
         <td class="modal-plays-col">${s.count} ${tUnit('plays', s.count)}</td>
-      </tr>${streamHistoryPanel(ek, 4)}`;
+      </tr>${streamHistoryPanel(ek, sk, 6)}`;
     });
     return `<table class="modal-table"><tbody>${rows}</tbody></table>`;
   })();
