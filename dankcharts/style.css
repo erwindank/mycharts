@@ -4999,6 +4999,42 @@
       color: #fff;
     }
 
+    .alb-track-toggle {
+      width: 26px;
+      height: 26px;
+      padding: 0;
+      margin-right: 2px;
+      border-radius: 50%;
+      border: 1.5px solid var(--accent);
+      background: transparent;
+      color: var(--accent);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1),
+                  background 0.2s, border-color 0.2s, color 0.2s, box-shadow 0.2s;
+    }
+
+    .alb-track-toggle:hover {
+      border-color: var(--accent2);
+      color: var(--accent2);
+      transform: scale(1.15);
+      box-shadow: 0 0 10px var(--accent);
+    }
+
+    .alb-track-toggle.active {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #fff;
+      transform: rotate(90deg);
+      box-shadow: 0 0 10px var(--accent);
+    }
+
+    .alb-track-icon {
+      display: block;
+      flex-shrink: 0;
+    }
+
     .cr-row {
       display: none;
     }

@@ -9363,7 +9363,7 @@ function _buildAlbTracksHTML(tracks, totalPlays, crY, crM, crW, allTimeSPM, albu
     const panelHTML = _buildAlbTrackPanelHTML(s, totalPlays, crY, crM, crW, allTimeSPM);
     rows += `<tr>
       <td style="width:28px">
-        <button class="cr-toggle-btn alb-track-toggle" title="Track Details" onclick="event.stopPropagation();(function(btn,id){const r=document.getElementById(id);const open=r.classList.toggle('open');btn.classList.toggle('active',open);})(this,'${rowId}')">▶</button>
+        <button class="cr-toggle-btn alb-track-toggle" title="Track Details" onclick="event.stopPropagation();(function(btn,id){const r=document.getElementById(id);const open=r.classList.toggle('open');btn.classList.toggle('active',open);})(this,'${rowId}')"><svg class="alb-track-icon" viewBox="0 0 8 10" width="8" height="10"><path d="M0 0 L8 5 L0 10 Z" fill="currentColor"/></svg></button>
       </td>
       <td class="modal-rank-col">${atRank ? '#' + atRank : '—'}</td>
       <td>
