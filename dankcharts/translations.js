@@ -948,7 +948,7 @@ const TRANSLATIONS = {
     btn_display_peak_tags: '★ ETIQ. PICO',
     btn_display_pic_source: '📷 FUENTE FOTO',
     btn_display_yt_btns: '▶ BOTONES YT',
-    nav_hint_keyboard: 'teclas de flecha para navegar períodos',
+    nav_hint_keyboard: 'Teclas de flecha para navegar entre periodos',
     nav_hint_swipe: 'deslizar para navegar',
     btn_prev_page: '◄ ANT.',
     btn_next_page: 'SIG. ►',
