@@ -5058,15 +5058,15 @@ function renderAll() {
     const diff = cur - prevVal;
     if (diff > 0) return `<div class="stat-delta up">▲ ${diff.toLocaleString()}</div>`;
     if (diff < 0) return `<div class="stat-delta down">▼ ${Math.abs(diff).toLocaleString()}</div>`;
-    return `<div class="stat-delta same">= same</div>`;
+    return `<div class="stat-delta same">${t('stat_same')}</div>`;
   }
 
   function statBox(val, i18nKey, prevVal, maxAllTime, maxAtTime, opts) {
     const { scrollTo, sparkVals, extraLabel, emoji, cat } = opts || {};
     const isAllTimePeak  = maxAllTime !== null && val > 0 && val >= maxAllTime;
     const isAtTimePeak   = maxAtTime  !== null && val > 0 && val >= maxAtTime;
-    const allTimeBadge   = isAllTimePeak ? `<div class="stat-peak-badge stat-peak-badge-alltime">★ ALL-TIME PEAK</div>` : '';
-    const atTimeBadge    = isAtTimePeak  ? `<div class="stat-peak-badge stat-peak-badge-attime">◆ PEAK AT THE TIME</div>` : '';
+    const allTimeBadge   = isAllTimePeak ? `<div class="stat-peak-badge stat-peak-badge-alltime">${t('stat_alltime_peak')}</div>` : '';
+    const atTimeBadge    = isAtTimePeak  ? `<div class="stat-peak-badge stat-peak-badge-attime">${t('stat_peak_at_time')}</div>` : '';
     const deltaHtml      = statDelta(val, prevVal);
     const boxClass       = isAllTimePeak ? ' stat-peak-alltime' : isAtTimePeak ? ' stat-peak-attime' : '';
     const clickAttr      = scrollTo ? ` onclick="dcScrollTo('${scrollTo}')" title="Jump to section"` : '';
@@ -5080,8 +5080,8 @@ function renderAll() {
   }
 
   document.getElementById('statsStrip').innerHTML =
-    statBox(plays.length,   'stat_total_plays',  prevPlays     ? prevPlays.length     : null, peakStats ? peakStats.maxPlays   : null, peakAtTimeStats ? peakAtTimeStats.maxPlays   : null, { scrollTo: 'songsSection',   emoji: '🎵', cat: 'plays',   extraLabel: playsPerDay ? playsPerDay + '/day' : null }) +
-    statBox(songSet.size,   'stat_unique_songs',  prevSongSet   ? prevSongSet.size     : null, peakStats ? peakStats.maxSongs   : null, peakAtTimeStats ? peakAtTimeStats.maxSongs   : null, { scrollTo: 'songsSection',   emoji: '🎶', cat: 'songs',   extraLabel: discoveryRate !== null ? discoveryRate + '% NEW' : null }) +
+    statBox(plays.length,   'stat_total_plays',  prevPlays     ? prevPlays.length     : null, peakStats ? peakStats.maxPlays   : null, peakAtTimeStats ? peakAtTimeStats.maxPlays   : null, { scrollTo: 'songsSection',   emoji: '🎵', cat: 'plays',   extraLabel: playsPerDay ? playsPerDay + t('stat_per_day') : null }) +
+    statBox(songSet.size,   'stat_unique_songs',  prevSongSet   ? prevSongSet.size     : null, peakStats ? peakStats.maxSongs   : null, peakAtTimeStats ? peakAtTimeStats.maxSongs   : null, { scrollTo: 'songsSection',   emoji: '🎶', cat: 'songs',   extraLabel: discoveryRate !== null ? discoveryRate + t('stat_pct_new') : null }) +
     statBox(artistSet.size, 'stat_artists',       prevArtistSet ? prevArtistSet.size   : null, peakStats ? peakStats.maxArtists : null, peakAtTimeStats ? peakAtTimeStats.maxArtists : null, { scrollTo: 'artistsSection', emoji: '🎤', cat: 'artists' }) +
     statBox(albumSet.size,  'stat_albums',        prevAlbumSet  ? prevAlbumSet.size    : null, peakStats ? peakStats.maxAlbums  : null, peakAtTimeStats ? peakAtTimeStats.maxAlbums  : null, { scrollTo: 'albumsSection',  emoji: '💿', cat: 'albums' });
   animateStatStrip(document.getElementById('statsStrip'));
@@ -5136,8 +5136,8 @@ function renderAll() {
       const { emoji, cat } = meta || {};
       const isAllTimePeak = maxAllTime !== null && val > 0 && val >= maxAllTime;
       const isAtTimePeak  = maxAtTime  !== null && val > 0 && val >= maxAtTime;
-      const allTimeBadge  = isAllTimePeak ? `<div class="stat-peak-badge stat-peak-badge-alltime">★ ALL-TIME PEAK</div>` : '';
-      const atTimeBadge   = isAtTimePeak  ? `<div class="stat-peak-badge stat-peak-badge-attime">◆ PEAK AT THE TIME</div>` : '';
+      const allTimeBadge  = isAllTimePeak ? `<div class="stat-peak-badge stat-peak-badge-alltime">${t('stat_alltime_peak')}</div>` : '';
+      const atTimeBadge   = isAtTimePeak  ? `<div class="stat-peak-badge stat-peak-badge-attime">${t('stat_peak_at_time')}</div>` : '';
       const boxClass      = isAllTimePeak ? ' stat-peak-alltime' : isAtTimePeak ? ' stat-peak-attime' : '';
       const clickAttr     = scrollTo ? ` onclick="dcScrollTo('${scrollTo}')" title="Jump to section"` : '';
       const catAttr       = cat ? ` data-cat="${cat}"` : '';
@@ -5161,15 +5161,15 @@ function renderAll() {
     for (const [dk, cnt] of Object.entries(_dayCounts)) {
       if (cnt > bestDayCount) { bestDay = dk; bestDayCount = cnt; }
     }
-    const _mos = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
+    const _mos = ['month_jan','month_feb','month_mar','month_apr','month_may_short','month_jun','month_jul','month_aug','month_sep','month_oct','month_nov','month_dec'].map(k => t(k).toUpperCase());
     const bestDayLabel = bestDay ? (() => { const [, m, d] = bestDay.split('-').map(Number); return _mos[m - 1] + ' ' + d; })() : null;
     const bestDayBox = bestDay
       ? `<div class="stat-box stat-box-sub stat-clickable" onclick="dcScrollTo('songsSection')" title="Jump to section" data-cat="bestday">
           <div class="stat-cat-icon">📅</div>
           <div class="stat-val" data-val="${bestDayCount}">${bestDayCount}</div>
-          <div class="stat-plays-sub">plays</div>
+          <div class="stat-plays-sub">${t('stat_plays_sub')}</div>
           <div class="stat-sotm-title">${bestDayLabel}</div>
-          <div class="stat-label">BEST DAY</div>
+          <div class="stat-label">${t('stat_best_day')}</div>
         </div>`
       : '';
 
@@ -5179,12 +5179,12 @@ function renderAll() {
           <div class="stat-sotm-title">${esc(sotmTitle)}</div>
           <div class="stat-sotm-artist">${esc(sotmArtist)}</div>
           <div class="stat-val" data-val="${sotmCount}">${sotmCount}</div>
-          <div class="stat-plays-sub">plays</div>
-          <div class="stat-label stat-label-sotm">SONG OF THE MOMENT</div>
+          <div class="stat-plays-sub">${t('stat_plays_sub')}</div>
+          <div class="stat-label stat-label-sotm">${t('stat_sotm')}</div>
         </div>`
       : `<div class="stat-box stat-box-sub" data-cat="sotm">
           <div class="stat-val">—</div>
-          <div class="stat-label stat-label-sotm">SONG OF THE MOMENT</div>
+          <div class="stat-label stat-label-sotm">${t('stat_sotm')}</div>
         </div>`;
 
     // Rising artist: most-played artist first discovered in the last 45 days from the last day of the viewed week
@@ -5216,8 +5216,8 @@ function renderAll() {
           <div id="rising-artist-img" class="stat-rising-thumb"><div class="thumb-initials">${esc(initials(risingArtistName))}</div></div>
           <div class="stat-sotm-title">${esc(risingArtistName)}</div>
           <div class="stat-val" data-val="${risingCount}">${risingCount}</div>
-          <div class="stat-plays-sub">plays</div>
-          <div class="stat-label stat-label-rising">RISING ARTIST</div>
+          <div class="stat-plays-sub">${t('stat_plays_sub')}</div>
+          <div class="stat-label stat-label-rising">${t('stat_rising_artist')}</div>
         </div>`;
       }
     }
@@ -5240,8 +5240,8 @@ function renderAll() {
           <div id="aotm-img" class="stat-rising-thumb"><div class="thumb-initials">${esc(initials(aotmArtistName))}</div></div>
           <div class="stat-sotm-title">${esc(aotmArtistName)}</div>
           <div class="stat-val" data-val="${aotmArtistCount}">${aotmArtistCount}</div>
-          <div class="stat-plays-sub">plays</div>
-          <div class="stat-label stat-label-aotm">ARTIST OF THE MOMENT</div>
+          <div class="stat-plays-sub">${t('stat_plays_sub')}</div>
+          <div class="stat-label stat-label-aotm">${t('stat_aotm')}</div>
         </div>`
       : '';
 
@@ -5267,15 +5267,15 @@ function renderAll() {
           <div class="stat-sotm-title">${esc(albumotmTitle)}</div>
           <div class="stat-sotm-artist">${esc(albumotmArtistName)}</div>
           <div class="stat-val" data-val="${albumotmCount}">${albumotmCount}</div>
-          <div class="stat-plays-sub">plays</div>
-          <div class="stat-label stat-label-albumotm">ALBUM OF THE MOMENT</div>
+          <div class="stat-plays-sub">${t('stat_plays_sub')}</div>
+          <div class="stat-label stat-label-albumotm">${t('stat_albumotm')}</div>
         </div>`
       : '';
 
     strip2El.innerHTML = bestDayBox +
-      statBox2(newSongsCount,   'NEW SONGS',   prevNewSongs,   newPeakStats.maxNewSongs,   newPeakAtTimeStats.maxNewSongs,   'newSongsSection',   { emoji: '✨', cat: 'new-songs' }) +
-      statBox2(newArtistsCount, 'NEW ARTISTS', prevNewArtists, newPeakStats.maxNewArtists, newPeakAtTimeStats.maxNewArtists, 'newArtistsSection', { emoji: '⭐', cat: 'new-artists' }) +
-      statBox2(newAlbumsCount,  'NEW ALBUMS',  prevNewAlbums,  newPeakStats.maxNewAlbums,  newPeakAtTimeStats.maxNewAlbums,  'newAlbumsSection',  { emoji: '🆕', cat: 'new-albums' });
+      statBox2(newSongsCount,   t('stat_new_songs'),   prevNewSongs,   newPeakStats.maxNewSongs,   newPeakAtTimeStats.maxNewSongs,   'newSongsSection',   { emoji: '✨', cat: 'new-songs' }) +
+      statBox2(newArtistsCount, t('stat_new_artists'), prevNewArtists, newPeakStats.maxNewArtists, newPeakAtTimeStats.maxNewArtists, 'newArtistsSection', { emoji: '⭐', cat: 'new-artists' }) +
+      statBox2(newAlbumsCount,  t('stat_new_albums'),  prevNewAlbums,  newPeakStats.maxNewAlbums,  newPeakAtTimeStats.maxNewAlbums,  'newAlbumsSection',  { emoji: '🆕', cat: 'new-albums' });
     animateStatStrip(strip2El);
 
     const strip3El = document.getElementById('statsStrip3');
