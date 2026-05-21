@@ -4796,7 +4796,7 @@ function renderNewEntries(plays, start, end) {
     const songTotal = allNewSongs.length;
     songSec.style.display = songShown > 0 ? '' : 'none';
     const songPrefix = songTotal > songShown ? `TOP ${songShown}` : `${songShown}`;
-    const songSuffix = songTotal > songShown ? t('new_chart_suffix', { n: songTotal }) : '';
+    const songSuffix = songTotal > songShown ? t('new_chart_suffix_f', { n: songTotal }) : '';
     document.getElementById('newSongsTitle').textContent = `✦ ${songPrefix} ${songShown !== 1 ? t('new_chart_songs') : t('new_chart_song')} ${periodLabel.toUpperCase()}${songSuffix}`;
   }
   if (artistSec) {
