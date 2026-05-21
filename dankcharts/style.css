@@ -4582,6 +4582,147 @@
     /* CHART BREAKDOWN COLORED ROW LABELS */
     .modal-cb-label--songs  { color: #93c5fd; border-left: 3px solid #60a5fa; }
     .modal-cb-label--albums { color: #c4b5fd; border-left: 3px solid #a78bfa; }
+    .modal-cb-label--tracks { color: #6ee7b7; border-left: 3px solid #34d399; }
+
+    /* ARTIST LINK IN ALBUM MODAL SUBTITLE */
+    .modal-artist-link {
+      color: var(--accent);
+      text-decoration: none;
+      cursor: pointer;
+    }
+    .modal-artist-link:hover { text-decoration: underline; }
+
+    /* ALBUM SPARKLINE */
+    .alb-sparkline-wrap {
+      padding: 0.5rem 0.75rem 0.6rem;
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 0.25rem;
+      margin-bottom: 0.75rem;
+    }
+    .alb-sparkline-label {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.52rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--text3);
+    }
+    .alb-sparkline {
+      display: flex;
+      align-items: flex-end;
+      gap: 2px;
+      height: 32px;
+      width: 100%;
+    }
+    .alb-spark-bar {
+      flex: 1;
+      min-width: 2px;
+      background: var(--accent);
+      opacity: 0.7;
+      border-radius: 1px 1px 0 0;
+      transition: opacity 0.15s;
+    }
+    .alb-spark-bar:hover { opacity: 1; }
+
+    /* ALBUM SORT BAR */
+    .alb-sort-bar {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      margin-bottom: 0.75rem;
+      flex-wrap: wrap;
+    }
+    .alb-sort-label {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.55rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--text3);
+      margin-right: 0.2rem;
+    }
+    .alb-sort-btn {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.6rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      padding: 0.25rem 0.6rem;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      background: var(--bg3);
+      color: var(--text3);
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .alb-sort-btn:hover { color: var(--text); border-color: var(--accent); }
+    .alb-sort-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+    /* TRACK SHARE BAR */
+    .alb-share-wrap { display: flex; align-items: center; gap: 0.4rem; }
+    .alb-share-bar {
+      width: 60px;
+      height: 4px;
+      background: var(--bg2);
+      border-radius: 2px;
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+    .alb-share-fill {
+      height: 100%;
+      background: var(--accent);
+      border-radius: 2px;
+    }
+    .alb-share-pct {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.55rem;
+      color: var(--text3);
+      min-width: 3ch;
+    }
+
+    /* TRACK EXPANDED PANEL */
+    .alb-track-panel {
+      padding: 0.75rem 0.5rem 0.5rem;
+      border-top: 1px solid var(--border);
+    }
+    .alb-track-stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+      gap: 1px;
+      background: var(--border);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      overflow: hidden;
+      margin-bottom: 0.75rem;
+    }
+    .alb-stat-item {
+      background: var(--bg3);
+      padding: 0.5rem 0.65rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.15rem;
+    }
+    .alb-stat-item strong {
+      font-family: 'DM Serif Display', serif;
+      font-size: 1.1rem;
+      color: var(--text);
+      line-height: 1;
+    }
+    .alb-stat-item span {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.52rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--text3);
+    }
+    .alb-stat-item .alb-stat-date {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.5rem;
+      color: var(--text2);
+      margin-top: 0.05rem;
+    }
 
     /* ACCOMPLISHMENT EXPAND */
     .acc-row {
