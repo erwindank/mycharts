@@ -7114,7 +7114,7 @@ function buildPeriodPeaks(period) {
 
 // Small badge shown on the play count when a period play count equals the all-time per-period peak.
 function playsPeakBadge() {
-  return `<span class="plays-peak-badge">▲ PLAYS PEAK</span>`;
+  return `<span class="plays-peak-badge">▲ ${t('badge_plays_peak')}</span>`;
 }
 
 // Cumulative plays per song/album up to endDate (for period cert badges).
