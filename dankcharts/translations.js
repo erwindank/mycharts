@@ -17,6 +17,8 @@ const TRANSLATIONS = {
     nav_rawdata: 'Raw Data',
     nav_graphs: 'Graphs',
     nav_records: 'Records',
+    nav_events: 'Events',
+    btn_configure: '⚙ Configure',
 
     // Chart size bar
     chartsize_label: 'Chart Size:',
@@ -802,6 +804,8 @@ const TRANSLATIONS = {
     nav_rawdata: 'BASE DE DATOS',
     nav_graphs: 'Gráficas',
     nav_records: 'Récords',
+    nav_events: 'Eventos',
+    btn_configure: '⚙ Configurar',
 
     // Chart size bar
     chartsize_label: 'Tamaño del Ranking:',
@@ -1587,6 +1591,8 @@ const TRANSLATIONS = {
     nav_rawdata: 'Dados Brutos',
     nav_graphs: 'Gráficos',
     nav_records: 'Recordes',
+    nav_events: 'Eventos',
+    btn_configure: '⚙ Configurar',
 
     // Chart size bar
     chartsize_label: 'Tamanho da Parada:',
@@ -2372,6 +2378,8 @@ const TRANSLATIONS = {
     nav_rawdata: 'Dados Brutos',
     nav_graphs: 'Gráficos',
     nav_records: 'Recordes',
+    nav_events: 'Eventos',
+    btn_configure: '⚙ Configurar',
 
     // Chart size bar
     chartsize_label: 'Tamanho do Top:',
