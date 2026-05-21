@@ -9209,7 +9209,114 @@ function longestConsecutivePlaysAllTime(sk) {
   return max;
 }
 
+let _albSparklinePlays = null;
+let _albTooltipInited = false;
+
+function _initAlbTooltip() {
+  if (_albTooltipInited) return;
+  _albTooltipInited = true;
+  let tip = document.getElementById('alb-float-tip');
+  if (!tip) {
+    tip = document.createElement('div');
+    tip.id = 'alb-float-tip';
+    tip.className = 'alb-float-tip';
+    document.body.appendChild(tip);
+  }
+  document.addEventListener('mousemove', e => {
+    const bar = e.target.closest ? e.target.closest('.alb-spark-bar[data-tip]') : null;
+    if (bar) {
+      tip.innerHTML = bar.dataset.tip.split('||').join('<br>');
+      tip.style.display = 'block';
+      tip.style.left = (e.clientX + 14) + 'px';
+      tip.style.top = Math.max(8, e.clientY - 54) + 'px';
+    } else {
+      tip.style.display = 'none';
+    }
+  });
+}
+
+function _albBarColor(ratio) {
+  const h = Math.round(210 - ratio * 15);
+  const s = Math.round(45 + ratio * 45);
+  const l = Math.round(28 + ratio * 33);
+  return `hsl(${h},${s}%,${l}%)`;
+}
+
+function _albFindLongestStreak(months) {
+  if (!months.length) return { start: 0, len: 0 };
+  let bestStart = 0, bestLen = 1, curStart = 0, curLen = 1;
+  for (let i = 1; i < months.length; i++) {
+    const [py, pm] = months[i - 1].split('-').map(Number);
+    const [cy, cm] = months[i].split('-').map(Number);
+    if (cy * 12 + cm - (py * 12 + pm) === 1) {
+      curLen++;
+      if (curLen > bestLen) { bestLen = curLen; bestStart = curStart; }
+    } else {
+      curStart = i;
+      curLen = 1;
+    }
+  }
+  return { start: bestStart, len: bestLen };
+}
+
+function albMonthClick(month) {
+  const panel = document.getElementById('alb-month-detail');
+  if (!panel || !_albSparklinePlays) return;
+  if (panel.dataset.month === month) {
+    panel.dataset.month = '';
+    panel.innerHTML = '';
+    panel.style.display = 'none';
+    document.querySelectorAll('.alb-spark-bar--active').forEach(b => b.classList.remove('alb-spark-bar--active'));
+    return;
+  }
+  document.querySelectorAll('.alb-spark-bar--active').forEach(b => b.classList.remove('alb-spark-bar--active'));
+  const activeBar = document.querySelector(`.alb-spark-bar[data-month="${month}"]`);
+  if (activeBar) activeBar.classList.add('alb-spark-bar--active');
+  const locale = { en: 'en-US', es: 'es', 'pt-BR': 'pt-BR', 'pt-PT': 'pt-PT' }[currentLang] || 'en-US';
+  const MO = Array.from({length: 12}, (_, i) => new Date(2000, i, 1).toLocaleString(locale, {month: 'short'}));
+  const [yr, mo] = month.split('-');
+  const label = `${MO[parseInt(mo) - 1]} ${yr}`;
+  const monthPlays = _albSparklinePlays.filter(p => {
+    const d = tzDate(p.date);
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}` === month;
+  });
+  const trackCounts = {};
+  for (const p of monthPlays) {
+    const sk = `${p.artist}|||${p.title}`;
+    if (!trackCounts[sk]) trackCounts[sk] = { count: 0, title: p.title };
+    trackCounts[sk].count++;
+  }
+  const topTracks = Object.values(trackCounts).sort((a, b) => b.count - a.count).slice(0, 5);
+  panel.dataset.month = month;
+  panel.style.display = 'block';
+  panel.innerHTML = `
+    <div class="alb-month-detail-header">📅 ${label} — ${tCount('plays', monthPlays.length)}</div>
+    <div class="alb-month-detail-tracks">
+      ${topTracks.map((t, i) => `<div class="alb-month-track">
+        <span class="alb-month-rank">#${i + 1}</span>
+        <span class="alb-month-title">${t.title}</span>
+        <span class="alb-month-count">${t.count}×</span>
+      </div>`).join('')}
+    </div>`;
+}
+
+function albChartPlay() {
+  const wrap = document.getElementById('albSparklineWrap');
+  if (!wrap) return;
+  const bars = wrap.querySelectorAll('.alb-spark-bar');
+  const btn = wrap.querySelector('.alb-play-btn');
+  if (btn) btn.disabled = true;
+  bars.forEach(b => { b.style.animation = 'none'; void b.offsetHeight; });
+  bars.forEach((b, i) => {
+    b.style.animation = '';
+    b.style.animationDelay = `${i * 22}ms`;
+  });
+  setTimeout(() => { if (btn) btn.disabled = false; }, bars.length * 22 + 450);
+}
+
 function buildAlbumSparklineHTML(albumPlays) {
+  _albSparklinePlays = albumPlays;
+  _initAlbTooltip();
   if (albumPlays.length < 2) return '';
   const monthCounts = {};
   for (const p of albumPlays) {
@@ -9220,15 +9327,68 @@ function buildAlbumSparklineHTML(albumPlays) {
   const months = Object.keys(monthCounts).sort();
   if (months.length < 2) return '';
   const maxVal = Math.max(...Object.values(monthCounts));
-  const MO = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-  const bars = months.map(m => {
-    const pct = Math.max(4, Math.round(monthCounts[m] / maxVal * 100));
+  const midVal = Math.round(maxVal / 2);
+  const avgVal = Math.round(Object.values(monthCounts).reduce((s, v) => s + v, 0) / months.length);
+  const avgPct = Math.round(avgVal / maxVal * 100);
+  const locale = { en: 'en-US', es: 'es', 'pt-BR': 'pt-BR', 'pt-PT': 'pt-PT' }[currentLang] || 'en-US';
+  const MO = Array.from({length: 12}, (_, i) => new Date(2000, i, 1).toLocaleString(locale, {month: 'short'}));
+  const total = months.length;
+  const labelEvery = total <= 6 ? 1 : total <= 12 ? 2 : total <= 24 ? 3 : total <= 48 ? 6 : 12;
+  const peakIdx = months.reduce((best, m, i) => monthCounts[m] > monthCounts[months[best]] ? i : best, 0);
+  const streak = _albFindLongestStreak(months);
+  const sortedVals = [...Object.values(monthCounts)].sort((a, b) => b - a);
+
+  let barsHTML = '', xlabelsHTML = '';
+  months.forEach((m, i) => {
     const [yr, mo] = m.split('-');
-    return `<div class="alb-spark-bar" style="height:${pct}%" title="${MO[parseInt(mo) - 1]} ${yr}: ${monthCounts[m]} plays"></div>`;
-  }).join('');
-  return `<div class="alb-sparkline-wrap">
-    <div class="alb-sparkline-label">Plays by Month</div>
-    <div class="alb-sparkline">${bars}</div>
+    const count = monthCounts[m];
+    const ratio = count / maxVal;
+    const pct = Math.max(2, Math.round(ratio * 100));
+    const color = _albBarColor(ratio);
+    const isPeak = i === peakIdx;
+    const inStreak = streak.len >= 3 && i >= streak.start && i < streak.start + streak.len;
+    const rank = sortedVals.indexOf(count) + 1;
+    const rankSuffix = rank === 1 ? t('alb_best_month_1') : rank === 2 ? t('alb_best_month_2') : rank === 3 ? t('alb_best_month_3') : '';
+    const tip = `${MO[parseInt(mo) - 1]} ${yr}||${tCount('plays', count)}${rankSuffix ? '||' + rankSuffix : ''}`;
+    const cls = ['alb-spark-bar', isPeak ? 'alb-spark-bar--peak' : '', inStreak ? 'alb-spark-bar--streak' : ''].filter(Boolean).join(' ');
+    const show = i === 0 || i === total - 1 || i % labelEvery === 0;
+
+    if (i > 0 && yr !== months[i - 1].split('-')[0]) {
+      barsHTML += `<div class="alb-year-sep"><span class="alb-year-sep-label">${yr}</span></div>`;
+      xlabelsHTML += `<span class="alb-year-sep-xl"></span>`;
+    }
+    barsHTML += `<div class="${cls}" style="height:${pct}%;background:${color};animation-delay:${i * 22}ms" data-month="${m}" data-tip="${tip}" onclick="albMonthClick('${m}')"></div>`;
+    xlabelsHTML += `<span class="alb-spark-xlabel${isPeak ? ' alb-spark-xlabel--peak' : ''}">${show ? `${MO[parseInt(mo) - 1]} '${yr.slice(2)}` : ''}</span>`;
+  });
+
+  const streakLabel = streak.len >= 3 ? `<div class="alb-streak-label">🔥 ${t('alb_streak_label', {n: streak.len})}</div>` : '';
+
+  return `<div class="alb-sparkline-wrap" id="albSparklineWrap">
+    <div class="alb-sparkline-header">
+      <div class="alb-sparkline-label">${t('alb_plays_by_month')}</div>
+      <button class="alb-play-btn" onclick="albChartPlay()" title="${t('alb_replay_title')}">${t('alb_replay_btn')}</button>
+    </div>
+    <div class="alb-chart-area">
+      <div class="alb-y-axis">
+        <span>${maxVal}</span>
+        <span>${midVal}</span>
+        <span>0</span>
+      </div>
+      <div class="alb-chart-body">
+        <div class="alb-bars-area">
+          <div class="alb-grid-line" style="top:0"></div>
+          <div class="alb-grid-line" style="top:50%"></div>
+          <div class="alb-grid-line" style="bottom:0"></div>
+          <div class="alb-avg-line" style="bottom:${avgPct}%">
+            <span class="alb-avg-label">${t('alb_avg_label', {n: avgVal})}</span>
+          </div>
+          ${barsHTML}
+        </div>
+        <div class="alb-x-labels">${xlabelsHTML}</div>
+        ${streakLabel}
+      </div>
+    </div>
+    <div id="alb-month-detail" class="alb-month-detail" style="display:none"></div>
   </div>`;
 }
 
@@ -10093,44 +10253,44 @@ function openAlbumModal(albumKey) {
     <div class="modal-stat"><div class="sv" style="font-size:0.9rem">${firstPlayed ? fmt(firstPlayed) : '—'}</div><div class="sl">${t('modal_first_played')}</div></div>
     <div class="modal-stat"><div class="sv" style="font-size:0.9rem">${lastPlayed ? fmt(lastPlayed) : '—'}</div><div class="sl">${t('modal_last_played')}</div></div>
     <div class="modal-stat"><div class="se">🎵</div><div class="sv">${allTracksSorted.length}</div><div class="sl">${t('modal_tracks')}</div></div>
-    <div class="modal-stat"><div class="se">📅</div><div class="sv">${calendarDays}</div><div class="sl">Calendar Days<br>Played</div></div>
-    <div class="modal-stat"><div class="se">📊</div><div class="sv">${avgPlaysPerTrack.toLocaleString()}</div><div class="sl">Avg Plays<br>Per Track</div></div>
-    <div class="modal-stat modal-stat--gold"><div class="se">🏆</div><div class="sv">${allTimeAlbumRank ? '#' + allTimeAlbumRank : '—'}</div><div class="sl">Most Heard Album<br>of All Time</div></div>
-    <div class="modal-stat"><div class="se">📊</div><div class="sv ${peakCls(weeklyAlbumPeak)}">${weeklyAlbumPeak ? '#' + weeklyAlbumPeak : '—'}</div><div class="sl">Weekly<br>Chart Peak</div></div>
-    <div class="modal-stat"><div class="se">🌙</div><div class="sv ${peakCls(monthlyAlbumPeak)}">${monthlyAlbumPeak ? '#' + monthlyAlbumPeak : '—'}</div><div class="sl">Monthly<br>Chart Peak</div></div>
-    <div class="modal-stat"><div class="se">⭐</div><div class="sv ${peakCls(yearlyAlbumPeak)}">${yearlyAlbumPeak ? '#' + yearlyAlbumPeak : '—'}</div><div class="sl">Yearly<br>Chart Peak</div></div>
-    <div class="modal-stat"><div class="se">🎤</div><div class="sv" style="font-size:0.72rem;line-height:1.3;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%">${allTracksSorted.length ? esc(allTracksSorted[0].title) : '—'}</div><div class="sl">Top Track</div></div>
-    <div class="modal-stat"><div class="se">🔥</div><div class="sv">${longestStreak}</div><div class="sl">Day<br>Streak</div></div>
-    <div class="modal-stat"><div class="se">📋</div><div class="sv">${chartTracksWeekly.length || '—'}</div><div class="sl">Tracks in<br>Weekly Chart</div></div>
-    ${nextCert ? `<div class="modal-stat"><div class="se">🎯</div><div class="sv">${(nextCert[0] - totalPlays).toLocaleString()}</div><div class="sl">Plays to ${nextCert[1]}</div></div>` : ''}
+    <div class="modal-stat"><div class="se">📅</div><div class="sv">${calendarDays}</div><div class="sl">${t('modal_calendar_days_played')}</div></div>
+    <div class="modal-stat"><div class="se">📊</div><div class="sv">${avgPlaysPerTrack.toLocaleString()}</div><div class="sl">${t('modal_avg_plays_per_track')}</div></div>
+    <div class="modal-stat modal-stat--gold"><div class="se">🏆</div><div class="sv">${allTimeAlbumRank ? '#' + allTimeAlbumRank : '—'}</div><div class="sl">${t('modal_most_heard_album')}</div></div>
+    <div class="modal-stat"><div class="se">📊</div><div class="sv ${peakCls(weeklyAlbumPeak)}">${weeklyAlbumPeak ? '#' + weeklyAlbumPeak : '—'}</div><div class="sl">${t('modal_weekly_peak_tile')}</div></div>
+    <div class="modal-stat"><div class="se">🌙</div><div class="sv ${peakCls(monthlyAlbumPeak)}">${monthlyAlbumPeak ? '#' + monthlyAlbumPeak : '—'}</div><div class="sl">${t('modal_monthly_peak_tile')}</div></div>
+    <div class="modal-stat"><div class="se">⭐</div><div class="sv ${peakCls(yearlyAlbumPeak)}">${yearlyAlbumPeak ? '#' + yearlyAlbumPeak : '—'}</div><div class="sl">${t('modal_yearly_peak_tile')}</div></div>
+    <div class="modal-stat"><div class="se">🎤</div><div class="sv" style="font-size:0.72rem;line-height:1.3;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%">${allTracksSorted.length ? esc(allTracksSorted[0].title) : '—'}</div><div class="sl">${t('modal_top_track')}</div></div>
+    <div class="modal-stat"><div class="se">🔥</div><div class="sv">${longestStreak}</div><div class="sl">${t('modal_day_streak')}</div></div>
+    <div class="modal-stat"><div class="se">📋</div><div class="sv">${chartTracksWeekly.length || '—'}</div><div class="sl">${t('modal_tracks_in_weekly')}</div></div>
+    ${nextCert ? `<div class="modal-stat"><div class="se">🎯</div><div class="sv">${(nextCert[0] - totalPlays).toLocaleString()}</div><div class="sl">${t('modal_plays_to_cert', { cert: nextCert[1] })}</div></div>` : ''}
   `;
 
   // ── GRAND SLAM BANNER ─────────────────────────────────────────────────────
   const grandSlam = weeklyAlbumPeak === 1 && monthlyAlbumPeak === 1 && yearlyAlbumPeak === 1;
   document.getElementById('albumModalGrandSlam').innerHTML = grandSlam
-    ? '<div class="modal-grand-slam">✨ Grand Slam — #1 on Weekly, Monthly &amp; Yearly Album Charts ✨</div>' : '';
+    ? `<div class="modal-grand-slam">✨ ${t('modal_grand_slam')} ✨</div>` : '';
 
   // ── STATS STRIP ROW 2: period peaks ──────────────────────────────────────
   document.getElementById('albumModalPeaks').innerHTML = `
-    <div class="modal-stat"><div class="se">📊</div><div class="sv ${peakCls(weeklyAlbumPeak)}">${weeklyAlbumPeak ? '#' + weeklyAlbumPeak : '—'}</div><div class="sl">Weekly Chart Peak</div></div>
-    <div class="modal-stat"><div class="se">🌙</div><div class="sv ${peakCls(monthlyAlbumPeak)}">${monthlyAlbumPeak ? '#' + monthlyAlbumPeak : '—'}</div><div class="sl">Monthly Chart Peak</div></div>
-    <div class="modal-stat"><div class="se">⭐</div><div class="sv ${peakCls(yearlyAlbumPeak)}">${yearlyAlbumPeak ? '#' + yearlyAlbumPeak : '—'}</div><div class="sl">Yearly Chart Peak</div></div>
+    <div class="modal-stat"><div class="se">📊</div><div class="sv ${peakCls(weeklyAlbumPeak)}">${weeklyAlbumPeak ? '#' + weeklyAlbumPeak : '—'}</div><div class="sl">${t('modal_weekly_chart_peak')}</div></div>
+    <div class="modal-stat"><div class="se">🌙</div><div class="sv ${peakCls(monthlyAlbumPeak)}">${monthlyAlbumPeak ? '#' + monthlyAlbumPeak : '—'}</div><div class="sl">${t('modal_monthly_chart_peak')}</div></div>
+    <div class="modal-stat"><div class="se">⭐</div><div class="sv ${peakCls(yearlyAlbumPeak)}">${yearlyAlbumPeak ? '#' + yearlyAlbumPeak : '—'}</div><div class="sl">${t('modal_yearly_chart_peak')}</div></div>
   `;
 
   // ── SPARKLINE + CHART BREAKDOWN GRID ─────────────────────────────────────
-  const cbCell = (count, peak) => `<td class="modal-cb-cell"><div class="cv">${count > 0 ? count : '—'}</div>${count > 0 ? `<div class="cp">${peak ? 'Best #' + peak : '—'}</div>` : '<div class="cp"></div>'}</td>`;
+  const cbCell = (count, peak) => `<td class="modal-cb-cell"><div class="cv">${count > 0 ? count : '—'}</div>${count > 0 ? `<div class="cp">${peak ? t('modal_best_peak', { n: peak }) : '—'}</div>` : '<div class="cp"></div>'}</td>`;
   document.getElementById('albumModalBreakdown').innerHTML =
     buildAlbumSparklineHTML(albumPlays) +
     `<div class="modal-chart-breakdown"><table class="modal-cb-table">
       <thead><tr>
         <td class="modal-cb-empty"></td>
-        <th class="modal-cb-th modal-cb-th--weekly">📊 Weekly</th>
-        <th class="modal-cb-th modal-cb-th--monthly">🌙 Monthly</th>
-        <th class="modal-cb-th modal-cb-th--yearly">⭐ Yearly</th>
-        <th class="modal-cb-th modal-cb-th--alltime">🏆 All-Time</th>
+        <th class="modal-cb-th modal-cb-th--weekly">${t('modal_cb_weekly')}</th>
+        <th class="modal-cb-th modal-cb-th--monthly">${t('modal_cb_monthly')}</th>
+        <th class="modal-cb-th modal-cb-th--yearly">${t('modal_cb_yearly')}</th>
+        <th class="modal-cb-th modal-cb-th--alltime">${t('modal_cb_alltime')}</th>
       </tr></thead>
       <tbody><tr>
-        <td class="modal-cb-label modal-cb-label--tracks">🎵 Tracks Charted</td>
+        <td class="modal-cb-label modal-cb-label--tracks">${t('modal_tracks_charted_row')}</td>
         ${cbCell(chartTracksWeekly.length, bestTrackPeakWeekly)}
         ${cbCell(chartTracksMonthly.length, bestTrackPeakMonthly)}
         ${cbCell(chartTracksYearly.length, bestTrackPeakYearly)}
@@ -10164,44 +10324,44 @@ function openAlbumModal(albumKey) {
   const acc = [];
 
   // All-time rank
-  if (allTimeAlbumRank) acc.push(albAccRow('🏆', `${ordinalSuffix(allTimeAlbumRank)} Most Heard Album of All Time`, []));
+  if (allTimeAlbumRank) acc.push(albAccRow('🏆', t('alb_acc_most_heard', { rank: ordinalSuffix(allTimeAlbumRank), n: allTimeAlbumRank }), []));
 
   // Weekly #1 / top 5 / top 10
   if (albumCrW) {
     const wNo1 = albumCrW.entries.filter(e => e.rank === 1);
-    if (wNo1.length) acc.push(albAccRow('🥇', `#1 Weekly Album — ${wNo1.length} ${tUnit('cr_week', wNo1.length)}`,
+    if (wNo1.length) acc.push(albAccRow('🥇', t('alb_acc_no1_weekly', { n: wNo1.length, unit: tUnit('cr_week', wNo1.length) }),
       wNo1.map(e => ({ name: crPeriodLabel('week', e.periodKey), plays: e.plays, weekOffset: weekOffset(new Date(e.periodKey + 'T00:00:00')) }))));
     const wTop5 = albumCrW.entries.filter(e => e.rank > 1 && e.rank <= 5);
-    if (wTop5.length) acc.push(albAccRow('🔝', `Top 5 Weekly — ${wTop5.length} additional ${tUnit('cr_week', wTop5.length)}`,
+    if (wTop5.length) acc.push(albAccRow('🔝', t('alb_acc_top5_weekly', { n: wTop5.length, unit: tUnit('cr_week', wTop5.length) }),
       wTop5.map(e => ({ name: `#${e.rank} · ${crPeriodLabel('week', e.periodKey)}`, plays: e.plays, weekOffset: weekOffset(new Date(e.periodKey + 'T00:00:00')) }))));
     const wTop10 = albumCrW.entries.filter(e => e.rank > 5 && e.rank <= 10);
-    if (wTop10.length) acc.push(albAccRow('📊', `Top 10 Weekly — ${wTop10.length} additional ${tUnit('cr_week', wTop10.length)}`,
+    if (wTop10.length) acc.push(albAccRow('📊', t('alb_acc_top10_weekly', { n: wTop10.length, unit: tUnit('cr_week', wTop10.length) }),
       wTop10.map(e => ({ name: `#${e.rank} · ${crPeriodLabel('week', e.periodKey)}`, plays: e.plays, weekOffset: weekOffset(new Date(e.periodKey + 'T00:00:00')) }))));
   }
 
   // Monthly #1 / top 5 / top 10
   if (albumCrM) {
     const mNo1 = albumCrM.entries.filter(e => e.rank === 1);
-    if (mNo1.length) acc.push(albAccRow('🥇', `#1 Monthly Album — ${mNo1.length} ${tUnit('months', mNo1.length)}`,
+    if (mNo1.length) acc.push(albAccRow('🥇', t('alb_acc_no1_monthly', { n: mNo1.length, unit: tUnit('months', mNo1.length) }),
       mNo1.map(e => ({ name: crPeriodLabel('month', e.periodKey), plays: e.plays, period: 'month', periodKey: e.periodKey }))));
     const mTop5 = albumCrM.entries.filter(e => e.rank > 1 && e.rank <= 5);
-    if (mTop5.length) acc.push(albAccRow('🔝', `Top 5 Monthly — ${mTop5.length} additional ${tUnit('months', mTop5.length)}`,
+    if (mTop5.length) acc.push(albAccRow('🔝', t('alb_acc_top5_monthly', { n: mTop5.length, unit: tUnit('months', mTop5.length) }),
       mTop5.map(e => ({ name: `#${e.rank} · ${crPeriodLabel('month', e.periodKey)}`, plays: e.plays, period: 'month', periodKey: e.periodKey }))));
     const mTop10 = albumCrM.entries.filter(e => e.rank > 5 && e.rank <= 10);
-    if (mTop10.length) acc.push(albAccRow('📆', `Top 10 Monthly — ${mTop10.length} additional ${tUnit('months', mTop10.length)}`,
+    if (mTop10.length) acc.push(albAccRow('📆', t('alb_acc_top10_monthly', { n: mTop10.length, unit: tUnit('months', mTop10.length) }),
       mTop10.map(e => ({ name: `#${e.rank} · ${crPeriodLabel('month', e.periodKey)}`, plays: e.plays, period: 'month', periodKey: e.periodKey }))));
   }
 
   // Yearly #1 / top 5 / top 10
   if (albumCrY) {
     const yNo1 = albumCrY.entries.filter(e => e.rank === 1);
-    if (yNo1.length) acc.push(albAccRow('🥇', `#1 Yearly Album — ${yNo1.length} ${tUnit('years', yNo1.length)}`,
+    if (yNo1.length) acc.push(albAccRow('🥇', t('alb_acc_no1_yearly', { n: yNo1.length, unit: tUnit('years', yNo1.length) }),
       yNo1.map(e => ({ name: e.periodKey, plays: e.plays, period: 'year', periodKey: e.periodKey }))));
     const yTop5 = albumCrY.entries.filter(e => e.rank > 1 && e.rank <= 5);
-    if (yTop5.length) acc.push(albAccRow('🔝', `Top 5 Yearly — ${yTop5.length} additional ${tUnit('years', yTop5.length)}`,
+    if (yTop5.length) acc.push(albAccRow('🔝', t('alb_acc_top5_yearly', { n: yTop5.length, unit: tUnit('years', yTop5.length) }),
       yTop5.map(e => ({ name: `#${e.rank} · ${e.periodKey}`, plays: e.plays, period: 'year', periodKey: e.periodKey }))));
     const yTop10 = albumCrY.entries.filter(e => e.rank > 5 && e.rank <= 10);
-    if (yTop10.length) acc.push(albAccRow('⭐', `Top 10 Yearly — ${yTop10.length} additional ${tUnit('years', yTop10.length)}`,
+    if (yTop10.length) acc.push(albAccRow('⭐', t('alb_acc_top10_yearly', { n: yTop10.length, unit: tUnit('years', yTop10.length) }),
       yTop10.map(e => ({ name: `#${e.rank} · ${e.periodKey}`, plays: e.plays, period: 'year', periodKey: e.periodKey }))));
   }
 
@@ -14236,31 +14396,31 @@ function renderHeroStats() {
     <div class="hero-stat" data-tip="${total.toLocaleString()} plays across ${days.size.toLocaleString()} unique days">
       <span class="hero-icon">🎵</span>
       <span class="hero-val" data-countup="${total}">${total.toLocaleString()}</span>
-      <span class="hero-label">Total Plays</span>
+      <span class="hero-label">${t('hero_total_plays')}</span>
     </div>
     <div class="hero-stat-sep">·</div>
     <div class="hero-stat hero-stat-days" data-tip="Click to view your listening heatmap">
       <span class="hero-icon">📅</span>
       <span class="hero-val" data-countup="${days.size}">${days.size.toLocaleString()}</span>
-      <span class="hero-label">Days Listened</span>
+      <span class="hero-label">${t('hero_days_listened')}</span>
     </div>
     <div class="hero-stat-sep">·</div>
     <div class="hero-stat" data-tip="~${avgPerDay.toLocaleString()} plays on average per day listened">
       <span class="hero-icon">📊</span>
       <span class="hero-val" data-countup="${avgPerDay}">${avgPerDay.toLocaleString()}</span>
-      <span class="hero-label">Plays / Day</span>
+      <span class="hero-label">${t('hero_plays_per_day')}</span>
     </div>
     <div class="hero-stat-sep">·</div>
     <div class="hero-stat hero-stat-artist" data-tip="Click to jump to Top Artists">
       <span class="hero-icon">🎤</span>
       <span class="hero-val hero-val-artist">${topArtist ? topArtist[0] : '—'}</span>
-      <span class="hero-label">Top Artist</span>
+      <span class="hero-label">${t('hero_top_artist')}</span>
     </div>
     <div class="hero-stat-sep">·</div>
     <div class="hero-stat" id="hero-streak-stat" data-tip="Current streak · Personal best: ${pb} day${pb === 1 ? '' : 's'}">
       <span class="hero-icon">📆</span>
       <span class="hero-val">0</span>
-      <span class="hero-label">Day Streak</span>
+      <span class="hero-label">${t('hero_day_streak')}</span>
       <span class="hero-stat-pb">PB: ${pb}</span>
     </div>`;
 
