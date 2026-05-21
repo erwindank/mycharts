@@ -852,7 +852,7 @@ const TRANSLATIONS = {
     stat_new_artists: 'ARTISTAS NUEVOS',
     stat_new_albums: 'ÁLBUMES NUEVOS',
     stat_sotm: 'CANCIÓN DEL MOMENTO',
-    stat_rising_artist: 'ARTISTA EN ALZA',
+    stat_rising_artist: 'ARTISTA EN ASCENSO',
     stat_aotm: 'ARTISTA DEL MOMENTO',
     stat_albumotm: 'ÁLBUM DEL MOMENTO',
     stat_alltime_peak: '★ PICO HISTÓRICO',
