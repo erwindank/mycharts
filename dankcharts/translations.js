@@ -120,6 +120,15 @@ const TRANSLATIONS = {
 
     // Period labels
     period_this_week: 'This Week',
+    period_this_month: 'This Month',
+    period_this_year: 'This Year',
+    new_chart_song: 'NEW SONG',
+    new_chart_songs: 'NEW SONGS',
+    new_chart_artist: 'NEW ARTIST',
+    new_chart_artists: 'NEW ARTISTS',
+    new_chart_album: 'NEW ALBUM',
+    new_chart_albums: 'NEW ALBUMS',
+    new_chart_suffix: ' (out of {{n}} discovered for the first time)',
     period_loading: 'Loading...',
     period_alltime: 'All-Time',
     period_alltime_sub: 'Every play since your first scrobble',
@@ -921,6 +930,15 @@ const TRANSLATIONS = {
 
     // Period labels
     period_this_week: 'Esta Semana',
+    period_this_month: 'Este Mes',
+    period_this_year: 'Este Año',
+    new_chart_song: 'CANCIÓN NUEVA',
+    new_chart_songs: 'CANCIONES NUEVAS',
+    new_chart_artist: 'ARTISTA NUEVO',
+    new_chart_artists: 'ARTISTAS NUEVOS',
+    new_chart_album: 'ÁLBUM NUEVO',
+    new_chart_albums: 'ÁLBUMES NUEVOS',
+    new_chart_suffix: ' (de {{n}} descubiertos por primera vez)',
     period_loading: 'Cargando...',
     period_alltime: 'Histórico',
     period_alltime_sub: 'Cada reproducción desde tu primer scrobble',
@@ -1722,6 +1740,15 @@ const TRANSLATIONS = {
 
     // Period labels
     period_this_week: 'Esta Semana',
+    period_this_month: 'Este Mês',
+    period_this_year: 'Este Ano',
+    new_chart_song: 'MÚSICA NOVA',
+    new_chart_songs: 'MÚSICAS NOVAS',
+    new_chart_artist: 'ARTISTA NOVO',
+    new_chart_artists: 'ARTISTAS NOVOS',
+    new_chart_album: 'ÁLBUM NOVO',
+    new_chart_albums: 'ÁLBUNS NOVOS',
+    new_chart_suffix: ' (de {{n}} descobertos pela primeira vez)',
     period_loading: 'Carregando...',
     period_alltime: 'Histórico',
     period_alltime_sub: 'Cada reprodução desde o seu primeiro scrobble',
@@ -2523,6 +2550,15 @@ const TRANSLATIONS = {
 
     // Period labels
     period_this_week: 'Esta Semana',
+    period_this_month: 'Este Mês',
+    period_this_year: 'Este Ano',
+    new_chart_song: 'MÚSICA NOVA',
+    new_chart_songs: 'MÚSICAS NOVAS',
+    new_chart_artist: 'ARTISTA NOVO',
+    new_chart_artists: 'ARTISTAS NOVOS',
+    new_chart_album: 'ÁLBUM NOVO',
+    new_chart_albums: 'ÁLBUNS NOVOS',
+    new_chart_suffix: ' (de {{n}} descobertos pela primeira vez)',
     period_loading: 'A carregar...',
     period_alltime: 'De Sempre',
     period_alltime_sub: 'Cada reprodução desde o seu primeiro scrobble',

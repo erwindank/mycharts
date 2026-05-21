@@ -4724,7 +4724,7 @@ function renderNewEntries(plays, start, end) {
     return;
   }
 
-  const periodLabel = currentPeriod === 'week' ? 'Week' : currentPeriod === 'month' ? 'Month' : 'Year';
+  const periodLabel = currentPeriod === 'week' ? t('period_this_week') : currentPeriod === 'month' ? t('period_this_month') : t('period_this_year');
 
   let limit;
   if (currentPeriod === 'week') {
@@ -4796,24 +4796,24 @@ function renderNewEntries(plays, start, end) {
     const songTotal = allNewSongs.length;
     songSec.style.display = songShown > 0 ? '' : 'none';
     const songPrefix = songTotal > songShown ? `TOP ${songShown}` : `${songShown}`;
-    const songSuffix = songTotal > songShown ? ` (out of ${songTotal} discovered for the first time)` : '';
-    document.getElementById('newSongsTitle').textContent = `✦ ${songPrefix} NEW SONG${songShown !== 1 ? 'S' : ''} THIS ${periodLabel.toUpperCase()}${songSuffix}`;
+    const songSuffix = songTotal > songShown ? t('new_chart_suffix', { n: songTotal }) : '';
+    document.getElementById('newSongsTitle').textContent = `✦ ${songPrefix} ${songShown !== 1 ? t('new_chart_songs') : t('new_chart_song')} ${periodLabel.toUpperCase()}${songSuffix}`;
   }
   if (artistSec) {
     const artistShown = fullNewData.newArtists.length;
     const artistTotal = allNewArtists.length;
     artistSec.style.display = artistShown > 0 ? '' : 'none';
     const artistPrefix = artistTotal > artistShown ? `TOP ${artistShown}` : `${artistShown}`;
-    const artistSuffix = artistTotal > artistShown ? ` (out of ${artistTotal} discovered for the first time)` : '';
-    document.getElementById('newArtistsTitle').textContent = `✦ ${artistPrefix} NEW ARTIST${artistShown !== 1 ? 'S' : ''} THIS ${periodLabel.toUpperCase()}${artistSuffix}`;
+    const artistSuffix = artistTotal > artistShown ? t('new_chart_suffix', { n: artistTotal }) : '';
+    document.getElementById('newArtistsTitle').textContent = `✦ ${artistPrefix} ${artistShown !== 1 ? t('new_chart_artists') : t('new_chart_artist')} ${periodLabel.toUpperCase()}${artistSuffix}`;
   }
   if (albumSec) {
     const albumShown = fullNewData.newAlbums.length;
     const albumTotal = allNewAlbums.length;
     albumSec.style.display = albumShown > 0 ? '' : 'none';
     const albumPrefix = albumTotal > albumShown ? `TOP ${albumShown}` : `${albumShown}`;
-    const albumSuffix = albumTotal > albumShown ? ` (out of ${albumTotal} discovered for the first time)` : '';
-    document.getElementById('newAlbumsTitle').textContent = `✦ ${albumPrefix} NEW ALBUM${albumShown !== 1 ? 'S' : ''} THIS ${periodLabel.toUpperCase()}${albumSuffix}`;
+    const albumSuffix = albumTotal > albumShown ? t('new_chart_suffix', { n: albumTotal }) : '';
+    document.getElementById('newAlbumsTitle').textContent = `✦ ${albumPrefix} ${albumShown !== 1 ? t('new_chart_albums') : t('new_chart_album')} ${periodLabel.toUpperCase()}${albumSuffix}`;
   }
 
   renderNewPage('newSongs');
