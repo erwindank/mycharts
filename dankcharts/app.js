@@ -10031,10 +10031,17 @@ function openAlbumModal(albumKey) {
   const monthlyAlbumPeak = albumCrM?.peak ?? null;
   const yearlyAlbumPeak = albumCrY?.peak ?? null;
 
-  // Calendar days played
+  // Calendar days played + longest consecutive day streak
   const daySet = new Set();
   for (const p of albumPlays) { const d = tzDate(p.date); daySet.add(localDateStr(d)); }
   const calendarDays = daySet.size;
+  const _sortedDays = [...daySet].sort();
+  let longestStreak = _sortedDays.length ? 1 : 0, _curStreak = 1;
+  for (let i = 1; i < _sortedDays.length; i++) {
+    const diff = Math.round((new Date(_sortedDays[i]) - new Date(_sortedDays[i - 1])) / 86400000);
+    _curStreak = diff === 1 ? _curStreak + 1 : 1;
+    if (_curStreak > longestStreak) longestStreak = _curStreak;
+  }
 
   // Tracks charted per period
   const chartTracksAllTime = allTracksSorted.filter(s => allTimeSPM[songKey(s)] !== undefined);
@@ -10050,8 +10057,13 @@ function openAlbumModal(albumKey) {
 
   // Avg plays per track + next cert milestone
   const avgPlaysPerTrack = allTracksSorted.length ? Math.round(totalPlays / allTracksSorted.length) : 0;
-  const _certLevels = [[CERT.album.gold, 'Gold'], [CERT.album.plat, 'Platinum'], [CERT.album.diamond, 'Diamond']];
-  const nextCert = _certLevels.find(([thr]) => totalPlays < thr);
+  let nextCert;
+  if (totalPlays >= CERT.album.diamond) {
+    const nextMult = Math.floor(totalPlays / CERT.album.diamond) + 1;
+    nextCert = [nextMult * CERT.album.diamond, diamondMultiLabel(nextMult).label];
+  } else {
+    nextCert = [[CERT.album.gold, 'Gold'], [CERT.album.plat, 'Platinum'], [CERT.album.diamond, 'Diamond']].find(([thr]) => totalPlays < thr);
+  }
 
   const peakCls = r => !r ? '' : r === 1 ? 'sv--gold' : r <= 3 ? 'sv--silver' : r <= 10 ? 'sv--bronze' : '';
 
@@ -10078,13 +10090,19 @@ function openAlbumModal(albumKey) {
   // ── STATS STRIP ROW 1: core totals + all-time hero ───────────────────────
   document.getElementById('albumModalStats').innerHTML = `
     <div class="modal-stat"><div class="se">🎧</div><div class="sv">${totalPlays.toLocaleString()}</div><div class="sl">${t('stat_total_plays')}</div></div>
+    <div class="modal-stat"><div class="sv" style="font-size:0.9rem">${firstPlayed ? fmt(firstPlayed) : '—'}</div><div class="sl">${t('modal_first_played')}</div></div>
+    <div class="modal-stat"><div class="sv" style="font-size:0.9rem">${lastPlayed ? fmt(lastPlayed) : '—'}</div><div class="sl">${t('modal_last_played')}</div></div>
     <div class="modal-stat"><div class="se">🎵</div><div class="sv">${allTracksSorted.length}</div><div class="sl">${t('modal_tracks')}</div></div>
     <div class="modal-stat"><div class="se">📅</div><div class="sv">${calendarDays}</div><div class="sl">Calendar Days<br>Played</div></div>
     <div class="modal-stat"><div class="se">📊</div><div class="sv">${avgPlaysPerTrack.toLocaleString()}</div><div class="sl">Avg Plays<br>Per Track</div></div>
     <div class="modal-stat modal-stat--gold"><div class="se">🏆</div><div class="sv">${allTimeAlbumRank ? '#' + allTimeAlbumRank : '—'}</div><div class="sl">Most Heard Album<br>of All Time</div></div>
+    <div class="modal-stat"><div class="se">📊</div><div class="sv ${peakCls(weeklyAlbumPeak)}">${weeklyAlbumPeak ? '#' + weeklyAlbumPeak : '—'}</div><div class="sl">Weekly<br>Chart Peak</div></div>
+    <div class="modal-stat"><div class="se">🌙</div><div class="sv ${peakCls(monthlyAlbumPeak)}">${monthlyAlbumPeak ? '#' + monthlyAlbumPeak : '—'}</div><div class="sl">Monthly<br>Chart Peak</div></div>
+    <div class="modal-stat"><div class="se">⭐</div><div class="sv ${peakCls(yearlyAlbumPeak)}">${yearlyAlbumPeak ? '#' + yearlyAlbumPeak : '—'}</div><div class="sl">Yearly<br>Chart Peak</div></div>
+    <div class="modal-stat"><div class="se">🎤</div><div class="sv" style="font-size:0.72rem;line-height:1.3;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%">${allTracksSorted.length ? esc(allTracksSorted[0].title) : '—'}</div><div class="sl">Top Track</div></div>
+    <div class="modal-stat"><div class="se">🔥</div><div class="sv">${longestStreak}</div><div class="sl">Day<br>Streak</div></div>
+    <div class="modal-stat"><div class="se">📋</div><div class="sv">${chartTracksWeekly.length || '—'}</div><div class="sl">Tracks in<br>Weekly Chart</div></div>
     ${nextCert ? `<div class="modal-stat"><div class="se">🎯</div><div class="sv">${(nextCert[0] - totalPlays).toLocaleString()}</div><div class="sl">Plays to ${nextCert[1]}</div></div>` : ''}
-    <div class="modal-stat"><div class="sv" style="font-size:0.9rem">${firstPlayed ? fmt(firstPlayed) : '—'}</div><div class="sl">${t('modal_first_played')}</div></div>
-    <div class="modal-stat"><div class="sv" style="font-size:0.9rem">${lastPlayed ? fmt(lastPlayed) : '—'}</div><div class="sl">${t('modal_last_played')}</div></div>
   `;
 
   // ── GRAND SLAM BANNER ─────────────────────────────────────────────────────
@@ -10094,9 +10112,9 @@ function openAlbumModal(albumKey) {
 
   // ── STATS STRIP ROW 2: period peaks ──────────────────────────────────────
   document.getElementById('albumModalPeaks').innerHTML = `
-    <div class="modal-stat"><div class="se">📊</div><div class="sv ${peakCls(weeklyAlbumPeak)}">${weeklyAlbumPeak ? '#' + weeklyAlbumPeak : '—'}</div><div class="sl">Weekly Album Peak</div></div>
-    <div class="modal-stat"><div class="se">🌙</div><div class="sv ${peakCls(monthlyAlbumPeak)}">${monthlyAlbumPeak ? '#' + monthlyAlbumPeak : '—'}</div><div class="sl">Monthly Album Peak</div></div>
-    <div class="modal-stat"><div class="se">⭐</div><div class="sv ${peakCls(yearlyAlbumPeak)}">${yearlyAlbumPeak ? '#' + yearlyAlbumPeak : '—'}</div><div class="sl">Yearly Album Peak</div></div>
+    <div class="modal-stat"><div class="se">📊</div><div class="sv ${peakCls(weeklyAlbumPeak)}">${weeklyAlbumPeak ? '#' + weeklyAlbumPeak : '—'}</div><div class="sl">Weekly Chart Peak</div></div>
+    <div class="modal-stat"><div class="se">🌙</div><div class="sv ${peakCls(monthlyAlbumPeak)}">${monthlyAlbumPeak ? '#' + monthlyAlbumPeak : '—'}</div><div class="sl">Monthly Chart Peak</div></div>
+    <div class="modal-stat"><div class="se">⭐</div><div class="sv ${peakCls(yearlyAlbumPeak)}">${yearlyAlbumPeak ? '#' + yearlyAlbumPeak : '—'}</div><div class="sl">Yearly Chart Peak</div></div>
   `;
 
   // ── SPARKLINE + CHART BREAKDOWN GRID ─────────────────────────────────────

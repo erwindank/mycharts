@@ -4444,6 +4444,10 @@
       background: var(--bg3);
       padding: 0.75rem;
       text-align: center;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
     }
 
     .modal-stat .sv {
