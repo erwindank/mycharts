@@ -10772,13 +10772,14 @@ function releaseImgFallback(img) {
   const artist = img.dataset.artist || '';
   const title = img.dataset.title || '';
   const sources = (img.dataset.sources || '').split(',').filter(Boolean);
-  const card = img.closest('.upcoming-card');
+  const card = img.closest('.upcoming-card, .ev-carousel-card');
+  const imgClass = img.className || 'upcoming-card-img';
   img.onerror = null;
   showReleasePlaceholder(img); // immediate visual — replaces img with initials div
-  if (sources.length && card) _tryReleaseImgAsync(card, artist, title, sources);
+  if (sources.length && card) _tryReleaseImgAsync(card, artist, title, sources, imgClass);
 }
 
-async function _tryReleaseImgAsync(card, artist, title, sources) {
+async function _tryReleaseImgAsync(card, artist, title, sources, imgClass = 'upcoming-card-img') {
   for (const source of sources) {
     if (!card.isConnected) return;
     let url = null;
@@ -10806,7 +10807,7 @@ async function _tryReleaseImgAsync(card, artist, title, sources) {
       const ph = card.querySelector('.upcoming-card-placeholder');
       if (!ph) return;
       const newImg = document.createElement('img');
-      newImg.className = 'upcoming-card-img';
+      newImg.className = imgClass;
       newImg.alt = '';
       newImg.dataset.artist = artist;
       newImg.dataset.title = title;
@@ -13075,8 +13076,8 @@ function eventsCalendarNext() {
 
 // ====== Events Section View Modes ======
 const eventsViewModes = {
-  birthdays: 'tiles', anniversaries: 'tiles', eventsUpcoming: 'tiles',
-  eventsRecent: 'tiles', recentBirthdays: 'tiles', recentAnniversaries: 'tiles', concerts: 'tiles'
+  birthdays: 'carousel', anniversaries: 'carousel', eventsUpcoming: 'carousel',
+  eventsRecent: 'carousel', recentBirthdays: 'carousel', recentAnniversaries: 'carousel', concerts: 'carousel'
 };
 let _eventsLastData = null;
 const EV_GRID_IDS = {
