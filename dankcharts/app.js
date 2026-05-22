@@ -58,6 +58,10 @@ let _eventsArtists = [];
 let eventsTypeFilter = new Set(JSON.parse(localStorage.getItem('dc_events_type_filter') || '["birthday","album","single","ep","other","show"]'));
 const tmApiKey = 'jviFLz26pGGfyAAtaVop4U5V0IdqUcKf';
 let _concertsData = null;
+let _nmfData = null;
+let _nmfCalYear = tzNow().getFullYear();
+let _nmfCalMonth = tzNow().getMonth();
+let _nmfCalSelectedFriday = null;
 const PAGE_SIZE = 100;
 const pageState = { songs: 0, artists: 0, albums: 0, newSongs: 0, newArtists: 0, newAlbums: 0 };
 const fullData = { songs: [], artists: [], albums: [] };
@@ -4106,7 +4110,7 @@ document.addEventListener('click', e => {
     localStorage.setItem('dc_chart_section_collapsed_' + section.id + '_' + currentPeriod, collapsed ? '1' : '0');
   } else if (section.id === 'upcomingSection' || section.id === 'recentSection') {
     localStorage.setItem('dc_section_collapsed_' + section.id, collapsed ? '1' : '0');
-  } else if (['birthdaysSection', 'anniversariesSection', 'eventsUpcomingSection', 'eventsRecentSection', 'eventsRecentBirthdaysSection', 'eventsRecentAnniversariesSection'].includes(section.id)) {
+  } else if (['birthdaysSection', 'anniversariesSection', 'eventsUpcomingSection', 'eventsRecentSection', 'eventsRecentBirthdaysSection', 'eventsRecentAnniversariesSection', 'nmfSection'].includes(section.id)) {
     localStorage.setItem('dc_events_section_collapsed_' + section.id, collapsed ? '1' : '0');
   }
 });
@@ -4244,18 +4248,18 @@ document.getElementById('periodNav').addEventListener('click', e => {
     const sel = document.getElementById('eventsLimitSelect');
     if (sel) sel.value = eventsArtistLimit;
     _syncEventsTypeFilter();
-    ['birthdaysSection', 'anniversariesSection', 'eventsUpcomingSection', 'eventsRecentSection', 'eventsRecentBirthdaysSection', 'eventsRecentAnniversariesSection'].forEach(id => {
+    ['birthdaysSection', 'anniversariesSection', 'eventsUpcomingSection', 'eventsRecentSection', 'eventsRecentBirthdaysSection', 'eventsRecentAnniversariesSection', 'nmfSection'].forEach(id => {
       const el = document.getElementById(id);
       if (!el) return;
       const key = 'dc_events_section_collapsed_' + id;
       const saved = localStorage.getItem(key);
-      const defaultCollapsed = ['eventsRecentBirthdaysSection', 'eventsRecentAnniversariesSection'].includes(id);
+      const defaultCollapsed = ['eventsRecentBirthdaysSection', 'eventsRecentAnniversariesSection', 'nmfSection'].includes(id);
       const collapsed = saved !== null ? saved === '1' : defaultCollapsed;
       el.classList.toggle('collapsed', collapsed);
       const btn = el.querySelector('.section-collapse-btn');
       if (btn) { btn.textContent = collapsed ? '+' : '−'; btn.title = collapsed ? 'Expand' : 'Collapse'; }
     });
-    if (allPlays.length) { loadEvents(); loadConcerts(); }
+    if (allPlays.length) { loadEvents(); loadConcerts(); loadNMF(); }
     if (typeof window._refreshBackToTop === 'function') window._refreshBackToTop();
     updateScrobbleBtn();
     return;
@@ -12592,6 +12596,10 @@ const EVENTS_CACHE_TTL = 24 * 60 * 60 * 1000;
 const EVENTS_WINDOW_DAYS = 30;
 const CONCERTS_CACHE_KEY = 'dc_concertsCache';
 const CONCERTS_CACHE_TTL = 6 * 60 * 60 * 1000;
+const NMF_CACHE_KEY = 'dc_nmfCache';
+const NMF_CACHE_TTL = 7 * 24 * 60 * 60 * 1000;
+const NMF_HISTORY_KEY = 'dc_nmfHistory';
+const NMF_HISTORY_MAX_WEEKS = 16;
 const CONCERTS_ARTIST_LIMIT = 10;
 
 function getTopNArtists(n) {
@@ -13077,14 +13085,15 @@ function eventsCalendarNext() {
 // ====== Events Section View Modes ======
 const eventsViewModes = {
   birthdays: 'carousel', anniversaries: 'carousel', eventsUpcoming: 'carousel',
-  eventsRecent: 'carousel', recentBirthdays: 'carousel', recentAnniversaries: 'carousel', concerts: 'carousel'
+  eventsRecent: 'carousel', recentBirthdays: 'carousel', recentAnniversaries: 'carousel', concerts: 'carousel',
+  nmf: 'carousel'
 };
 let _eventsLastData = null;
 const EV_GRID_IDS = {
   birthdays: 'birthdaysGrid', anniversaries: 'anniversariesGrid',
   eventsUpcoming: 'eventsUpcomingGrid', eventsRecent: 'eventsRecentGrid',
   recentBirthdays: 'eventsRecentBirthdaysGrid', recentAnniversaries: 'eventsRecentAnniversariesGrid',
-  concerts: 'concertsGrid'
+  concerts: 'concertsGrid', nmf: 'nmfGrid'
 };
 
 function setEventsView(sectionKey, mode) {
@@ -13097,6 +13106,10 @@ function setEventsView(sectionKey, mode) {
 function _evReRenderSection(sectionKey) {
   if (sectionKey === 'concerts') {
     if (_concertsData && _concertsData.length) _evRenderSectionByKey('concerts', _concertsData);
+    return;
+  }
+  if (sectionKey === 'nmf') {
+    if (_nmfData && _nmfData.length) _evRenderSectionByKey('nmf', _nmfData);
     return;
   }
   if (!_eventsLastData) return;
@@ -13183,6 +13196,25 @@ function _evNormalize(sectionKey, items) {
         imgSrc: mbid ? `https://coverartarchive.org/release-group/${mbid}/front-250` : null,
         imgAttr: { artist: artistName, title, sources: 'deezer,itunes,lastfm' }, isToday: false });
     }
+  } else if (sectionKey === 'nmf') {
+    const typeMap = { album: '💿 Album', single: '🎵 Single', ep: '📀 EP' };
+    for (const album of items) {
+      const typeLabel = typeMap[album.record_type] || '🎶 Release';
+      const href = album.link || `https://www.deezer.com/album/${album.id}`;
+      const dateStr = album.release_date || '';
+      out.push({
+        title: album.title || '',
+        artist: album.artist?.name || '',
+        dateLabel: dateStr ? fmtDate(new Date(dateStr + 'T00:00:00')) : '',
+        dateSort: dateStr,
+        artistSort: album.artist?.name || '',
+        typeLabel,
+        href,
+        imgSrc: album.cover_xl || album.cover_big || album.cover_medium || null,
+        imgAttr: { artist: album.artist?.name || '', title: album.title || '', sources: 'deezer' },
+        isToday: false
+      });
+    }
   } else if (sectionKey === 'concerts') {
     for (const { event, artistName } of items) {
       const date = event.dates?.start?.localDate || '';
@@ -13218,6 +13250,26 @@ function _evRenderSectionByKey(sectionKey, items) {
   const gridEl = document.getElementById(EV_GRID_IDS[sectionKey]);
   if (!gridEl) return;
   const mode = eventsViewModes[sectionKey] || 'tiles';
+
+  const nmfCalOuter = document.getElementById('nmfCalOuter');
+
+  if (sectionKey === 'nmf' && mode === 'calendar') {
+    if (nmfCalOuter) nmfCalOuter.style.display = '';
+    const history = _getNMFHistory();
+    const fridays = Object.keys(history).sort().reverse();
+    if (!_nmfCalSelectedFriday || !history[_nmfCalSelectedFriday]) {
+      _nmfCalSelectedFriday = fridays[0] || null;
+    }
+    renderNMFCalendar();
+    const selAlbums = (_nmfCalSelectedFriday && history[_nmfCalSelectedFriday]) || items || [];
+    gridEl.className = 'upcoming-grid';
+    gridEl.innerHTML = selAlbums.map(renderNMFCard).join('');
+    triggerPendingImgs(gridEl);
+    return;
+  }
+
+  if (sectionKey === 'nmf' && nmfCalOuter) nmfCalOuter.style.display = 'none';
+
   if (mode === 'tiles') {
     gridEl.className = 'upcoming-grid';
     if (!items.length) { gridEl.innerHTML = ''; return; }
@@ -13228,6 +13280,7 @@ function _evRenderSectionByKey(sectionKey, items) {
     else if (sectionKey === 'recentBirthdays') gridEl.innerHTML = items.map(renderRecentBirthdayCard).join('');
     else if (sectionKey === 'recentAnniversaries') gridEl.innerHTML = items.map(renderRecentAnniversaryCard).join('');
     else if (sectionKey === 'concerts') gridEl.innerHTML = items.map(({ event, artistName }) => renderConcertCard(event, artistName)).join('');
+    else if (sectionKey === 'nmf') gridEl.innerHTML = items.map(renderNMFCard).join('');
     triggerPendingImgs(gridEl);
     return;
   }
@@ -13346,6 +13399,221 @@ function renderConcertCard(event, artistName) {
     <div class="upcoming-card-artist">${esc(venueName)}${location ? ' · ' + esc(location) : ''}</div>
     <div class="upcoming-card-type">🎤 Live Show · ${esc(displayDate)}${esc(timeLabel)}</div>
   </a>`;
+}
+
+// ─── NMF History helpers ───────────────────────────────────────
+function _mostRecentFriday(refDate) {
+  const d = refDate || tzNow();
+  const offset = (d.getDay() - 5 + 7) % 7;
+  const friday = new Date(d);
+  friday.setDate(d.getDate() - offset);
+  return localDateStr(friday);
+}
+
+function _getNMFHistory() {
+  try { return JSON.parse(localStorage.getItem(NMF_HISTORY_KEY) || '{}'); } catch (e) { return {}; }
+}
+
+// Returns true if a new week was added. Idempotent — won't overwrite an existing Friday entry.
+function _saveNMFSnapshot(albums, ts) {
+  const refDate = ts ? new Date(ts) : tzNow();
+  const friday = _mostRecentFriday(refDate);
+  const history = _getNMFHistory();
+  if (history[friday]) return false;
+  history[friday] = albums.map(a => ({
+    id: a.id, title: a.title || '',
+    artist: { name: a.artist?.name || '' },
+    cover_medium: a.cover_medium || '',
+    cover_big: a.cover_big || '',
+    cover_xl: a.cover_xl || '',
+    link: a.link || '',
+    record_type: a.record_type || 'album',
+    release_date: a.release_date || ''
+  }));
+  const keys = Object.keys(history).sort().reverse();
+  keys.slice(NMF_HISTORY_MAX_WEEKS).forEach(k => delete history[k]);
+  try { localStorage.setItem(NMF_HISTORY_KEY, JSON.stringify(history)); } catch (e) {}
+  return true;
+}
+
+// ─── NMF Calendar ─────────────────────────────────────────────
+function renderNMFCalendar() {
+  const calGrid = document.getElementById('nmfCalGrid');
+  const titleEl = document.getElementById('nmfCalTitle');
+  if (!calGrid || !titleEl) return;
+
+  const history = _getNMFHistory();
+  const year = _nmfCalYear;
+  const month = _nmfCalMonth;
+  const todayStr = localDateStr(tzNow());
+  const firstDow = new Date(year, month, 1).getDay();
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+  titleEl.innerHTML = `<span class="cal-title-month">${_CAL_MONTHS[month]}</span><span class="cal-title-year">${year}</span>`;
+
+  let html = _CAL_DAYS.map(d => `<div class="cal-dow">${d}</div>`).join('');
+  for (let i = 0; i < firstDow; i++) html += '<div class="cal-cell cal-cell-empty"></div>';
+
+  for (let d = 1; d <= daysInMonth; d++) {
+    const ds = _calDateStr(year, month, d);
+    const isFriday = new Date(year, month, d).getDay() === 5;
+    const hasData = isFriday && !!history[ds];
+    const isSelected = ds === _nmfCalSelectedFriday;
+    const isToday = ds === todayStr;
+    const isPast = ds < todayStr;
+    const count = hasData ? history[ds].length : 0;
+
+    let cls = 'cal-cell';
+    if (isToday) cls += ' cal-today';
+    else if (isPast) cls += ' cal-past';
+    if (isFriday) cls += ' nmf-cal-friday';
+    if (hasData) cls += ' nmf-cal-has-data';
+    if (isSelected) cls += ' nmf-cal-selected';
+
+    const onclick = hasData ? ` onclick="selectNMFFriday('${ds}')"` : '';
+    html += `<div class="${cls}"${onclick}>` +
+      `<div class="cal-cell-num">${d}</div>` +
+      (hasData ? `<div class="nmf-cal-pill">${count} release${count !== 1 ? 's' : ''}</div>` : '') +
+      `</div>`;
+  }
+
+  calGrid.className = 'events-cal-grid';
+  calGrid.innerHTML = html;
+}
+
+function selectNMFFriday(dateStr) {
+  _nmfCalSelectedFriday = dateStr;
+  const history = _getNMFHistory();
+  const albums = history[dateStr] || [];
+  const gridEl = document.getElementById('nmfGrid');
+  if (gridEl) {
+    gridEl.className = 'upcoming-grid';
+    gridEl.innerHTML = albums.map(renderNMFCard).join('');
+    triggerPendingImgs(gridEl);
+  }
+  renderNMFCalendar();
+}
+
+function nmfCalPrev() {
+  _nmfCalMonth--;
+  if (_nmfCalMonth < 0) { _nmfCalMonth = 11; _nmfCalYear--; }
+  renderNMFCalendar();
+}
+
+function nmfCalNext() {
+  _nmfCalMonth++;
+  if (_nmfCalMonth > 11) { _nmfCalMonth = 0; _nmfCalYear++; }
+  renderNMFCalendar();
+}
+
+function renderNMFCard(album) {
+  const cover = album.cover_xl || album.cover_big || album.cover_medium || '';
+  const typeMap = { album: '💿 Album', single: '🎵 Single', ep: '📀 EP' };
+  const typeLabel = typeMap[album.record_type] || '🎶 Release';
+  const href = album.link || `https://www.deezer.com/album/${album.id}`;
+  const dateStr = album.release_date ? fmtDate(new Date(album.release_date + 'T00:00:00')) : '';
+  const imgHtml = cover
+    ? `<img class="upcoming-card-img" src="${esc(cover)}" onerror="releaseImgFallback(this)" alt="" loading="lazy" data-artist="${esc(album.artist?.name||'')}" data-title="${esc(album.title||'')}" data-sources="deezer">`
+    : `<img class="upcoming-card-img upcoming-card-img-pending" alt="" loading="lazy" data-artist="${esc(album.artist?.name||'')}" data-title="${esc(album.title||'')}" data-sources="deezer">`;
+  return `<a class="upcoming-card" href="${esc(href)}" target="_blank" rel="noopener noreferrer">
+    ${imgHtml}
+    <div class="upcoming-card-date">${esc(dateStr)}</div>
+    <div class="upcoming-card-title">${esc(album.title || '')}</div>
+    <div class="upcoming-card-artist">${esc(album.artist?.name || '')}</div>
+    <div class="upcoming-card-type">${esc(typeLabel)}</div>
+  </a>`;
+}
+
+function _renderNMF(albums, fromCache) {
+  _nmfData = albums;
+  if (albums.length) {
+    let snapshotTs = Date.now();
+    if (fromCache) {
+      try { snapshotTs = JSON.parse(localStorage.getItem(NMF_CACHE_KEY)).ts; } catch (e) {}
+    }
+    const addedNew = _saveNMFSnapshot(albums, snapshotTs);
+    if (addedNew && eventsViewModes['nmf'] === 'calendar') renderNMFCalendar();
+  }
+  const gridEl = document.getElementById('nmfGrid');
+  const status = document.getElementById('nmfStatus');
+  const refreshBtn = document.getElementById('nmfRefreshBtn');
+  if (gridEl) {
+    if (albums.length) {
+      _evRenderSectionByKey('nmf', albums);
+    } else {
+      gridEl.className = 'upcoming-grid';
+      gridEl.innerHTML = '<div class="upcoming-empty">No new releases found.</div>';
+    }
+  }
+  if (refreshBtn) refreshBtn.style.display = 'block';
+  if (status) {
+    const ts = fromCache
+      ? (() => { try { return new Date(JSON.parse(localStorage.getItem(NMF_CACHE_KEY)).ts).toLocaleString(); } catch (e) { return ''; } })()
+      : new Date().toLocaleString();
+    status.textContent = `${albums.length} release${albums.length !== 1 ? 's' : ''} · Deezer Editorial · ${ts}${fromCache ? ' (cached)' : ''}`;
+  }
+}
+
+async function loadNMF(forceRefresh = false) {
+  const status = document.getElementById('nmfStatus');
+  const refreshBtn = document.getElementById('nmfRefreshBtn');
+
+  if (!forceRefresh) {
+    try {
+      const cached = JSON.parse(localStorage.getItem(NMF_CACHE_KEY) || 'null');
+      if (cached && Date.now() - cached.ts < NMF_CACHE_TTL && cached.albums && cached.albums.length) {
+        _renderNMF(cached.albums, true);
+        return;
+      }
+    } catch (e) {}
+  }
+
+  if (status) status.textContent = 'Fetching new releases from Deezer…';
+  if (refreshBtn) refreshBtn.style.display = 'none';
+
+  try {
+    const [relR, tracksR] = await Promise.all([
+      deezerFetch('editorial/0/releases?limit=100'),
+      deezerFetch('chart/0/tracks?limit=100')
+    ]);
+
+    const albums = relR.ok ? ((await relR.json())?.data || []) : [];
+    const tracks = tracksR.ok ? ((await tracksR.json())?.data || []) : [];
+
+    // Add chart tracks released in the last 14 days that aren't already in the editorial list
+    const cutoff = new Date();
+    cutoff.setDate(cutoff.getDate() - 14);
+    const cutoffStr = localDateStr(cutoff);
+    const seenIds = new Set(albums.map(a => a.id));
+
+    for (const track of tracks) {
+      const alb = track.album;
+      if (!alb || !alb.release_date || alb.release_date < cutoffStr) continue;
+      if (seenIds.has(alb.id)) continue;
+      seenIds.add(alb.id);
+      albums.push({
+        id: alb.id,
+        title: alb.title || track.title,
+        link: alb.link || `https://www.deezer.com/album/${alb.id}`,
+        cover: alb.cover || '',
+        cover_medium: alb.cover_medium || '',
+        cover_big: alb.cover_big || '',
+        cover_xl: alb.cover_xl || '',
+        release_date: alb.release_date,
+        record_type: 'single',
+        artist: track.artist || {},
+        type: 'album'
+      });
+    }
+
+    albums.sort((a, b) => (b.release_date || '').localeCompare(a.release_date || ''));
+
+    try { localStorage.setItem(NMF_CACHE_KEY, JSON.stringify({ ts: Date.now(), albums })); } catch (e) {}
+    _renderNMF(albums, false);
+  } catch (e) {
+    if (status) status.textContent = 'Could not load new releases — try again later.';
+    if (refreshBtn) refreshBtn.style.display = 'block';
+  }
 }
 
 async function loadConcerts(forceRefresh = false) {
@@ -15216,12 +15484,14 @@ function renderTimeMachine(forceRebuild) {
   if (tmToggles.albums) entries = entries.concat(tmData.albums);
   entries = tmShuffle(entries);
 
+  const tickerOuter = document.getElementById('tmTickerOuter');
   if (entries.length === 0) {
-    section.style.display = 'none';
+    if (tickerOuter) tickerOuter.style.display = 'none';
     track.innerHTML = '';
     return;
   }
   section.style.display = '';
+  if (tickerOuter) tickerOuter.style.display = '';
 
   tmImgQueue = Promise.resolve();
   const myLoaderId = ++tmLoaderId;

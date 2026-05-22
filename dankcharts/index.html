@@ -1225,6 +1225,37 @@
         </div>
       </div>
 
+      <div class="chart-section collapsed" id="nmfSection">
+        <div class="section-header">
+          <button class="section-collapse-btn" data-target="nmfSection" title="Expand">+</button>
+          <h2 class="section-header-h2">🎧 New Music Friday</h2>
+          <span class="section-collapsed-label">collapsed — click + to expand</span>
+          <div class="section-rule"></div>
+          <div class="ev-view-btns" id="nmfViewBtns">
+            <button class="ev-view-btn active" data-view="carousel" onclick="setEventsView('nmf','carousel')">Reel</button>
+            <button class="ev-view-btn" data-view="tiles" onclick="setEventsView('nmf','tiles')">Tiles</button>
+            <button class="ev-view-btn" data-view="table" onclick="setEventsView('nmf','table')">Table</button>
+            <button class="ev-view-btn" data-view="list" onclick="setEventsView('nmf','list')">List</button>
+            <button class="ev-view-btn" data-view="calendar" onclick="setEventsView('nmf','calendar')">Calendar</button>
+          </div>
+        </div>
+        <div class="section-sub">New releases this week from Deezer · not filtered to your artists</div>
+        <div id="nmfStatus" class="upcoming-status"></div>
+        <button class="upcoming-refresh-btn" id="nmfRefreshBtn" onclick="loadNMF(true)" style="display:none">↺ Refresh</button>
+        <div class="section-body">
+          <div class="nmf-cal-outer" id="nmfCalOuter" style="display:none;">
+            <div class="events-calendar-header" style="margin-bottom:0.5rem;">
+              <button class="cal-nav-btn" onclick="nmfCalPrev()">&#8249;</button>
+              <span id="nmfCalTitle" class="cal-title"></span>
+              <button class="cal-nav-btn" onclick="nmfCalNext()">&#8250;</button>
+            </div>
+            <div id="nmfCalGrid"></div>
+            <div class="nmf-cal-legend">Fridays with stored releases are highlighted &mdash; click to view that week</div>
+          </div>
+          <div class="upcoming-grid" id="nmfGrid"></div>
+        </div>
+      </div>
+
       <div class="chart-section collapsed" id="concertsSection" style="display:none;">
         <div class="section-header">
           <button class="section-collapse-btn" data-target="concertsSection" title="Expand">+</button>
