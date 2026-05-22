@@ -817,6 +817,14 @@ const TRANSLATIONS = {
     desc_v_suffix_as_of: ' as of {{period}}',
     desc_v_prefix_snapshot: 'Current snapshot: ',
     desc_v_this_period: 'this period',
+
+    // Time Machine
+    time_machine_title: '⏳ TIME MACHINE',
+    time_machine_sub: 'On this day in past years you were listening to:',
+    time_machine_songs: 'Songs',
+    time_machine_artists: 'Artists',
+    time_machine_albums: 'Albums',
+    time_machine_no_data: 'No plays found for today\'s date in past years',
   },
 
   // ── SPANISH ───────────────────────────────────────────────────────────────────
@@ -1629,6 +1637,14 @@ const TRANSLATIONS = {
     desc_v_suffix_as_of: ' a fecha de {{period}}',
     desc_v_prefix_snapshot: 'Captura actual: ',
     desc_v_this_period: 'este período',
+
+    // Time Machine
+    time_machine_title: '⏳ MÁQUINA DEL TIEMPO',
+    time_machine_sub: 'En este día en años anteriores estabas escuchando:',
+    time_machine_songs: 'Canciones',
+    time_machine_artists: 'Artistas',
+    time_machine_albums: 'Álbumes',
+    time_machine_no_data: 'No se encontraron reproducciones para este día en años anteriores',
   },
 
   // ── PORTUGUESE — BRAZIL ───────────────────────────────────────────────────────
@@ -2441,6 +2457,14 @@ const TRANSLATIONS = {
     desc_v_suffix_as_of: ' em {{period}}',
     desc_v_prefix_snapshot: 'Situação atual: ',
     desc_v_this_period: 'este período',
+
+    // Time Machine
+    time_machine_title: '⏳ MÁQUINA DO TEMPO',
+    time_machine_sub: 'Neste dia em anos anteriores você ouvia:',
+    time_machine_songs: 'Músicas',
+    time_machine_artists: 'Artistas',
+    time_machine_albums: 'Álbuns',
+    time_machine_no_data: 'Nenhuma reprodução encontrada para este dia em anos anteriores',
   },
 
   // ── PORTUGUESE — EUROPEAN ─────────────────────────────────────────────────────
@@ -3253,6 +3277,14 @@ const TRANSLATIONS = {
     desc_v_suffix_as_of: ' em {{period}}',
     desc_v_prefix_snapshot: 'Situação atual: ',
     desc_v_this_period: 'este período',
+
+    // Time Machine
+    time_machine_title: '⏳ MÁQUINA DO TEMPO',
+    time_machine_sub: 'Neste dia em anos anteriores você ouvia:',
+    time_machine_songs: 'Músicas',
+    time_machine_artists: 'Artistas',
+    time_machine_albums: 'Álbuns',
+    time_machine_no_data: 'Nenhuma reprodução encontrada para este dia em anos anteriores',
   },
 };
 

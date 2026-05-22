@@ -317,6 +317,27 @@
     <div class="stats-strip stats-strip2" id="statsStrip2" style="display:none"></div>
     <div class="stats-strip stats-strip3" id="statsStrip3" style="display:none"></div>
 
+    <!-- TIME MACHINE -->
+    <div class="chart-section" id="timeMachineSection" style="display:none;">
+      <div class="section-header">
+        <button class="section-collapse-btn" data-target="timeMachineSection" data-i18n-title="tooltip_collapse">−</button>
+        <h2 class="section-title" data-i18n="time_machine_title">⏳ TIME MACHINE</h2>
+        <span class="section-collapsed-label" data-i18n="collapsed_hint">collapsed — click + to expand</span>
+        <div class="section-rule"></div>
+        <div class="tm-toggle-btns">
+          <button id="tmToggleSongs" class="tm-type-btn active" onclick="tmToggleType('songs')" data-i18n="time_machine_songs">Songs</button>
+          <button id="tmToggleArtists" class="tm-type-btn active" onclick="tmToggleType('artists')" data-i18n="time_machine_artists">Artists</button>
+          <button id="tmToggleAlbums" class="tm-type-btn active" onclick="tmToggleType('albums')" data-i18n="time_machine_albums">Albums</button>
+        </div>
+      </div>
+      <div class="section-sub" data-i18n="time_machine_sub">On this day in past years</div>
+      <div class="section-body">
+        <div class="tm-ticker-outer" id="tmTickerOuter">
+          <div class="tm-ticker-track" id="tmTickerTrack"></div>
+        </div>
+      </div>
+    </div>
+
     <button class="export-playlist-btn" id="exportPlaylistBtn"
       title="Export this chart as a playlist — save to Spotify, Last.fm, or a text file"
       data-i18n-title="tooltip_export_playlist" onclick="openExportModal()" data-i18n="btn_export_playlist">♫

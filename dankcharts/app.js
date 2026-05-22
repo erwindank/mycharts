@@ -5340,6 +5340,8 @@ function renderAll() {
   }
 
   renderTableHeaders();
+  renderTimeMachine();
+
   const hasPeriodStats = currentPeriod === 'week' || currentPeriod === 'month';
   const colCount = hasPeriodStats ? 7 : 5;
 
@@ -14930,4 +14932,181 @@ document.addEventListener('mouseout', e => {
   if (to && (to.closest('.cal-ev[data-ctt]') || to.closest('#calEvTooltip'))) return;
   _hideCalEvTooltip();
 });
+
+// ─── TIME MACHINE ──────────────────────────────────────────────
+const tmToggles = { songs: true, artists: true, albums: true };
+let tmData = null;
+let tmImgQueue = Promise.resolve();
+let tmLoaderId = 0;
+
+function buildTimeMachineData() {
+  const today = new Date();
+  const todayMonth = today.getMonth();
+  const todayDay = today.getDate();
+  const todayYear = today.getFullYear();
+
+  const pastPlays = allPlays.filter(p =>
+    p.date instanceof Date &&
+    p.date.getMonth() === todayMonth &&
+    p.date.getDate() === todayDay &&
+    p.date.getFullYear() < todayYear
+  );
+
+  const songsSeen = new Set();
+  const songs = [];
+  for (const p of pastPlays) {
+    const year = p.date.getFullYear();
+    const k = p.title + '\0' + p.artist + '\0' + year;
+    if (!songsSeen.has(k)) {
+      songsSeen.add(k);
+      songs.push({ type: 'song', title: p.title, artist: p.artist, album: p.album || '—', year });
+    }
+  }
+
+  const artistsSeen = new Set();
+  const artists = [];
+  for (const p of pastPlays) {
+    const year = p.date.getFullYear();
+    const list = (p.artists && p.artists.length) ? p.artists : [p.artist];
+    for (const ar of list) {
+      const k = ar + '\0' + year;
+      if (!artistsSeen.has(k)) {
+        artistsSeen.add(k);
+        artists.push({ type: 'artist', artist: ar, year });
+      }
+    }
+  }
+
+  const albumsSeen = new Set();
+  const albums = [];
+  for (const p of pastPlays) {
+    if (!p.album || p.album === '—') continue;
+    const year = p.date.getFullYear();
+    const aa = albumArtist(p);
+    const k = p.album + '\0' + aa + '\0' + year;
+    if (!albumsSeen.has(k)) {
+      albumsSeen.add(k);
+      albums.push({ type: 'album', album: p.album, artist: aa, year });
+    }
+  }
+
+  return { songs, artists, albums };
+}
+
+function tmShuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function renderTimeMachine(forceRebuild) {
+  const section = document.getElementById('timeMachineSection');
+  const track = document.getElementById('tmTickerTrack');
+  if (!section || !track || !allPlays.length) return;
+
+  const newData = buildTimeMachineData();
+  const newHash = newData.songs.length + '|' + newData.artists.length + '|' + newData.albums.length;
+
+  if (!forceRebuild && tmData && tmData._hash === newHash && track.firstChild) return;
+
+  newData._hash = newHash;
+  tmData = newData;
+
+  let entries = [];
+  if (tmToggles.songs) entries = entries.concat(tmData.songs);
+  if (tmToggles.artists) entries = entries.concat(tmData.artists);
+  if (tmToggles.albums) entries = entries.concat(tmData.albums);
+  entries = tmShuffle(entries);
+
+  if (entries.length === 0) {
+    section.style.display = 'none';
+    track.innerHTML = '';
+    return;
+  }
+  section.style.display = '';
+
+  tmImgQueue = Promise.resolve();
+  const myLoaderId = ++tmLoaderId;
+
+  const aSongItems = [], aArtistItems = [], aAlbumItems = [];
+  const bSongItems = [], bArtistItems = [], bAlbumItems = [];
+
+  function buildCard(entry, i, suffix, songArr, artistArr, albumArr) {
+    const imgId = 'tmimg-' + suffix + '-' + i;
+    if (entry.type === 'song') {
+      const sub = entry.artist + (entry.album && entry.album !== '—' ? ' · ' + entry.album : '');
+      const prefKey = 'song:' + entry.artist.toLowerCase() + '|||' + entry.title.toLowerCase();
+      songArr.push({ imgId, title: entry.title, artist: entry.artist, album: entry.album, name: entry.title, prefKey });
+      return '<div class="tm-card" data-type="song">' +
+        '<div class="tm-card-img" id="' + esc(imgId) + '"><div class="thumb-initials">' + esc(initials(entry.title)) + '</div></div>' +
+        '<div class="tm-card-info">' +
+        '<div class="tm-card-title">' + esc(entry.title) + '</div>' +
+        '<div class="tm-card-sub">' + esc(sub) + '</div>' +
+        '<div class="tm-card-year">' + entry.year + '</div>' +
+        '</div></div>';
+    } else if (entry.type === 'artist') {
+      const prefKey = 'artist:' + entry.artist.toLowerCase();
+      artistArr.push({ imgId, name: entry.artist, artist: entry.artist, album: '', title: '', prefKey });
+      return '<div class="tm-card" data-type="artist">' +
+        '<div class="tm-card-img" id="' + esc(imgId) + '"><div class="thumb-initials">' + esc(initials(entry.artist)) + '</div></div>' +
+        '<div class="tm-card-info">' +
+        '<div class="tm-card-title">' + esc(entry.artist) + '</div>' +
+        '<div class="tm-card-year">' + entry.year + '</div>' +
+        '</div></div>';
+    } else {
+      const prefKey = 'album:' + entry.artist.toLowerCase() + '|||' + entry.album.toLowerCase();
+      albumArr.push({ imgId, album: entry.album, artist: entry.artist, name: entry.album, title: '', prefKey });
+      return '<div class="tm-card" data-type="album">' +
+        '<div class="tm-card-img" id="' + esc(imgId) + '"><div class="thumb-initials">' + esc(initials(entry.album)) + '</div></div>' +
+        '<div class="tm-card-info">' +
+        '<div class="tm-card-title">' + esc(entry.album) + '</div>' +
+        '<div class="tm-card-sub">' + esc(entry.artist) + '</div>' +
+        '<div class="tm-card-year">' + entry.year + '</div>' +
+        '</div></div>';
+    }
+  }
+
+  const firstCopy = entries.map((e, i) => buildCard(e, i, 'a', aSongItems, aArtistItems, aAlbumItems)).join('');
+  const secondCopy = entries.map((e, i) => buildCard(e, i, 'b', bSongItems, bArtistItems, bAlbumItems)).join('');
+
+  track.innerHTML = firstCopy + secondCopy;
+  track.style.animationDuration = Math.max(20, entries.length * 4) + 's';
+
+  // Load images for a-copy in parallel batches; mirror results to b-copy (halves API calls)
+  async function loadTmBatch(aPairs, type, loaderId) {
+    const BATCH = 4;
+    for (let i = 0; i < aPairs.length; i += BATCH) {
+      if (tmLoaderId !== loaderId) return;
+      await Promise.all(aPairs.slice(i, i + BATCH).map(async ([aItem, bItem]) => {
+        if (tmLoaderId !== loaderId) return;
+        const aEl = document.getElementById(aItem.imgId);
+        if (!aEl) return;
+        await fetchAndInjectImage(aEl, aItem, type);
+        const bEl = document.getElementById(bItem.imgId);
+        if (bEl) bEl.innerHTML = aEl.innerHTML;
+      }));
+    }
+  }
+
+  const ldr = myLoaderId;
+  const songPairs  = aSongItems.map((a, i) => [a, bSongItems[i]]);
+  const artistPairs = aArtistItems.map((a, i) => [a, bArtistItems[i]]);
+  const albumPairs  = aAlbumItems.map((a, i) => [a, bAlbumItems[i]]);
+
+  tmImgQueue = tmImgQueue
+    .then(() => loadTmBatch(songPairs,   'song',   ldr))
+    .then(() => loadTmBatch(artistPairs, 'artist', ldr))
+    .then(() => loadTmBatch(albumPairs,  'album',  ldr));
+}
+
+function tmToggleType(type) {
+  tmToggles[type] = !tmToggles[type];
+  const id = 'tmToggle' + type.charAt(0).toUpperCase() + type.slice(1);
+  const btn = document.getElementById(id);
+  if (btn) btn.classList.toggle('active', tmToggles[type]);
+  renderTimeMachine(true);
+}
 
