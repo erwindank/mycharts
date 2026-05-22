@@ -3373,6 +3373,40 @@
       color: #1a1600;
     }
 
+    .ig-copy-btn {
+      background: transparent;
+      color: var(--accent);
+      border: 1px solid var(--accent);
+      font-family: 'DM Mono', monospace;
+      font-size: 0.68rem;
+      letter-spacing: 0.08em;
+      padding: 0.5rem 1rem;
+      border-radius: 4px;
+      cursor: pointer;
+      font-weight: 700;
+      transition: background 0.12s, color 0.12s;
+    }
+
+    .ig-copy-btn:hover {
+      background: color-mix(in srgb, var(--accent) 15%, transparent);
+    }
+
+    .ig-copy-btn:disabled {
+      opacity: 0.5;
+      cursor: default;
+    }
+
+    .ig-share-native-btn {
+      display: none;
+    }
+
+    @media (max-width: 768px) {
+      .ig-share-native-btn {
+        display: inline-flex;
+        align-items: center;
+      }
+    }
+
     /* GRAPHS VIEW */
     .graphs-controls {
       display: flex;
@@ -3918,6 +3952,27 @@
       background: var(--accent);
       border-color: var(--accent);
       color: #fff;
+    }
+
+    .cal-export-playlist-btn {
+      background: none;
+      border: 1px solid var(--border2);
+      border-radius: 4px;
+      color: var(--text2);
+      font-family: 'DM Mono', monospace;
+      font-size: 0.6rem;
+      font-weight: bold;
+      letter-spacing: 0.07em;
+      padding: 0.1rem 0.5rem 0.15rem;
+      cursor: pointer;
+      transition: background 0.12s, color 0.12s, border-color 0.12s;
+      margin-left: 0.4rem;
+    }
+
+    .cal-export-playlist-btn:hover {
+      background: var(--surface);
+      color: var(--text);
+      border-color: var(--accent);
     }
 
     /* WEEK VIEW */

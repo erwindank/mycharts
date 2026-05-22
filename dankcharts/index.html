@@ -1085,6 +1085,7 @@
             <button class="cal-view-btn" data-view="week"  onclick="setCalView('week')"  title="Week view">Week</button>
             <button class="cal-view-btn" data-view="day"   onclick="setCalView('day')"   title="Day view">Day</button>
           </div>
+          <button class="cal-export-playlist-btn" id="calExportPlaylistBtn" onclick="openCalendarExportModal()" title="Export singles as playlist" style="display:none">♫ Export Playlist</button>
         </div>
         <div class="events-cal-grid" id="eventsCalendarGrid"></div>
       </div>
@@ -1334,11 +1335,30 @@
                 onchange="updateIgPreview()"><span data-i18n="ig_date_period">Date / Period</span></label>
             <label class="ig-ctrl-row"><input type="checkbox" id="igOpt_showFooter" checked
                 onchange="updateIgPreview()"><span data-i18n="ig_footer_branding">Footer Branding</span></label>
+            <label class="ig-ctrl-row"><input type="checkbox" id="igOpt_showArt"
+                onchange="updateIgPreview()"><span>Album Art</span></label>
+            <div id="igArtSourceRow" style="display:flex;gap:0.3rem;margin-top:0.3rem;flex-wrap:wrap;">
+              <button class="ig-format-btn ig-art-src-btn active" data-src="deezer" onclick="setIgArtSource('deezer')">Deezer</button>
+              <button class="ig-format-btn ig-art-src-btn" data-src="itunes" onclick="setIgArtSource('itunes')">iTunes</button>
+              <button class="ig-format-btn ig-art-src-btn" data-src="lastfm" onclick="setIgArtSource('lastfm')">Last.fm</button>
+            </div>
+          </div>
+          <div class="ig-ctrl-group">
+            <div class="ig-ctrl-group-title">Entries</div>
+            <div style="display:flex;align-items:center;gap:0.6rem;">
+              <span style="font-family:'DM Mono',monospace;font-size:0.58rem;color:var(--text3);min-width:72px;">Top N</span>
+              <input type="range" id="igTopN" min="0" max="20" value="0" step="1"
+                oninput="updateIgPreview()" style="flex:1;accent-color:var(--accent);">
+              <span id="igTopNLabel" style="font-family:'DM Mono',monospace;font-size:0.7rem;color:var(--accent);min-width:36px;">Auto</span>
+            </div>
+            <div style="font-family:'DM Mono',monospace;font-size:0.55rem;color:var(--text3);letter-spacing:0.06em;">0 = use current chart size</div>
           </div>
         </div>
       </div>
       <div class="ig-modal-footer">
         <button class="ig-modal-close" onclick="closeIgPreviewModal()" data-i18n="btn_cancel">Cancel</button>
+        <button class="ig-copy-btn" id="igCopyBtn" onclick="copyIgFromPreview()">📋 Copy</button>
+        <button class="ig-copy-btn ig-share-native-btn" id="igShareNativeBtn" onclick="shareIgNative()">📤 Share</button>
         <button class="ig-download-btn" id="igDownloadBtn" onclick="downloadIgFromPreview()"
           data-i18n="btn_download_image">↓ Download Image</button>
       </div>

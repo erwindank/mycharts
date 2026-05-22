@@ -7616,7 +7616,10 @@ function certBadge(plays, type) {
 }
 
 // ─── EXPORT PLAYLIST ───────────────────────────────────────────
+let _exportSongsOverride = null;
+
 function getCurrentChartSongs() {
+  if (_exportSongsOverride) return _exportSongsOverride;
   // fullData.songs is always set by renderSongs/buildSongsFull with the correct sort
   // (rankSortWithStatus for weekly/monthly, rankSort for yearly/alltime) and the
   // correct size limit, so use it directly for all periods.
@@ -7763,7 +7766,53 @@ function copyChipName(btn, name) {
 }
 
 function closeExportModal() {
+  _exportSongsOverride = null;
   document.getElementById('exportModal').classList.remove('open');
+}
+
+function openCalendarExportModal() {
+  if (!_eventsCalendarData) return;
+  const dateObj = new Date(eventsCalendarYear, eventsCalendarMonth, eventsCalendarDay);
+  const ds = localDateStr(dateObj);
+  const dayMap = buildCalendarDayMap(
+    { ..._eventsCalendarData, concerts: [] },
+    new Set([ds])
+  );
+  const events = (dayMap[ds] || []).filter(ev => ev.ttType === 'anniversary' || ev.ttType === 'release');
+  if (!events.length) { alert('No singles found on this day.'); return; }
+
+  _exportSongsOverride = events.map(ev => ({ title: ev.ttTitle, artist: ev.ttArtist, album: '' }));
+  const dateLabel = fmtDate(dateObj);
+
+  document.getElementById('exportModalSubtitle').textContent =
+    `${tCount('songs', _exportSongsOverride.length)} · ${dateLabel}`;
+
+  const names = [
+    `Singles · ${dateLabel}`,
+    `New Releases · ${dateLabel}`,
+    `🎵 ${dateLabel}`,
+  ];
+  document.getElementById('exportNameChips').innerHTML = names.map(name =>
+    `<button class="export-name-chip" onclick="copyChipName(this,'${esc(name)}')">${esc(name)}</button>`
+  ).join('');
+
+  exportReversed = false;
+  exportWithAlbum = false;
+  document.getElementById('exportOrderBtn').textContent = t('export_no1_first');
+  const albumBtn = document.getElementById('exportAlbumBtn');
+  if (albumBtn) { albumBtn.textContent = '+ Album'; albumBtn.classList.remove('active'); }
+  document.getElementById('exportTracklist').textContent = buildExportText(_exportSongsOverride);
+
+  document.getElementById('exportNoteBody').innerHTML =
+    `<strong style="color:var(--text2)">${t('export_how_to_title')}</strong><br>` +
+    `1. ${t('export_how_to_step1')}<br>` +
+    `2. ${t('export_how_to_step2')}<br>` +
+    `&nbsp;&nbsp;&nbsp;${t('export_how_to_step2b')}<br>` +
+    `3. ${t('export_how_to_step3')}<br>` +
+    `4. ${t('export_how_to_step4')}<br><br>` +
+    t('export_format_used');
+
+  document.getElementById('exportModal').classList.add('open');
 }
 
 function exportCopy() {
@@ -7842,7 +7891,8 @@ function updateShareBtns() {
 // Collect current top N card data for a given type
 function getIgCardItems(type) {
   const items = fullData[type] || [];
-  const size = isPaginated() ? Math.min(currentPeriod === 'year' ? chartSizeYearly : chartSizeAllTime, 20) : Math.min(chartSize, 20);
+  const maxSize = isPaginated() ? Math.min(currentPeriod === 'year' ? chartSizeYearly : chartSizeAllTime, 20) : Math.min(chartSize, 20);
+  const size = (igOptions.topN > 0) ? Math.min(igOptions.topN, maxSize) : maxSize;
   return items.slice(0, size);
 }
 
@@ -7913,8 +7963,107 @@ const igOptions = {
   showSubtitle: true,
   showDate: true,
   showFooter: true,
+  showArt: false,
+  artSource: 'deezer',
+  topN: 0,
 };
 let igPreviewType = null;
+const igArtCache = {}; // `${key}:ig:${source}` → data URL or null
+
+function saveIgSettings() {
+  try {
+    localStorage.setItem('dc_igSettings', JSON.stringify({
+      format: igOptions.format, showMovement: igOptions.showMovement, showPeak: igOptions.showPeak,
+      showWeeks: igOptions.showWeeks, showPlays: igOptions.showPlays, showSubtitle: igOptions.showSubtitle,
+      showDate: igOptions.showDate, showFooter: igOptions.showFooter,
+      showArt: igOptions.showArt, artSource: igOptions.artSource, topN: igOptions.topN,
+    }));
+  } catch {}
+}
+
+function loadIgSettings() {
+  try {
+    const saved = JSON.parse(localStorage.getItem('dc_igSettings') || 'null');
+    if (saved && typeof saved === 'object') Object.assign(igOptions, saved);
+  } catch {}
+}
+
+async function _igToDataUrl(url) {
+  try {
+    const r = await fetch(url);
+    const blob = await r.blob();
+    return await new Promise((res) => {
+      const rd = new FileReader();
+      rd.onload = () => res(rd.result);
+      rd.onerror = () => res(null);
+      rd.readAsDataURL(blob);
+    });
+  } catch { return null; }
+}
+
+const _IG_SOURCES = ['deezer', 'itunes', 'lastfm', 'youtube'];
+
+// Tries preferred source first, then rotates through remaining sources until one has art.
+async function _igFetchArtWithFallback(type, item, preferredSource) {
+  const startIdx = Math.max(0, _IG_SOURCES.indexOf(preferredSource));
+  for (let i = 0; i < _IG_SOURCES.length; i++) {
+    const src = _IG_SOURCES[(startIdx + i) % _IG_SOURCES.length];
+    let url = null;
+    try {
+      if (type === 'songs') url = await getTrackImage(item.title, item.artist, src);
+      else if (type === 'artists') url = await getArtistImage(item.name, src);
+      else url = await getAlbumImage(item.album, item.artist, src);
+    } catch (e) {}
+    if (url) return url;
+  }
+  return null;
+}
+
+async function prefetchIgArt(type) {
+  const source = igOptions.artSource;
+  const items = (fullData[type] || []).slice(0, 20);
+  await Promise.all(items.map(async item => {
+    const itemKey = type === 'songs' ? songKey(item)
+                  : type === 'artists' ? item.name
+                  : item.album + '|||' + item.artist;
+    const ck = itemKey + ':ig:' + source;
+    if (ck in igArtCache) return;
+    const url = await _igFetchArtWithFallback(type, item, source);
+    igArtCache[ck] = url ? await _igToDataUrl(url) : null;
+  }));
+  if (document.getElementById('igPreviewModal').classList.contains('open') && igPreviewType === type) {
+    _renderIgPreview();
+  }
+}
+
+function setIgArtSource(src) {
+  igOptions.artSource = src;
+  document.querySelectorAll('.ig-art-src-btn').forEach(b => b.classList.toggle('active', b.dataset.src === src));
+  saveIgSettings();
+  if (igOptions.showArt && igPreviewType) prefetchIgArt(igPreviewType);
+}
+
+function _renderIgPreview() {
+  if (!igPreviewType) return;
+  const isPost = igOptions.format === 'post';
+  const cardW = 540, cardH = isPost ? 540 : 960;
+  const scale = isPost ? 0.5 : 0.4;
+  const html = buildIgCardHTML(igPreviewType, igOptions);
+  if (!html) return;
+  const frame = document.getElementById('igPreviewFrame');
+  const inner = document.getElementById('igPreviewInner');
+  frame.style.width = Math.round(cardW * scale) + 'px';
+  frame.style.height = Math.round(cardH * scale) + 'px';
+  inner.innerHTML = html;
+  inner.style.width = cardW + 'px';
+  inner.style.height = cardH + 'px';
+  inner.style.transform = `scale(${scale})`;
+  inner.style.transformOrigin = 'top left';
+  const canvas = document.getElementById('igCardCanvas');
+  canvas.innerHTML = html;
+  canvas.style.width = cardW + 'px';
+  canvas.style.height = cardH + 'px';
+}
 
 function buildIgCardHTML(type, opts) {
   const c = igColors();
@@ -7972,6 +8121,8 @@ function buildIgCardHTML(type, opts) {
   const songsWord = t('ig_songs_word');
   const personalCharts = t('ig_personal_charts');
 
+  const thumbSz = opts.showArt ? Math.min(rowH - 6, 52) : 0;
+
   const rows = items.map((item, i) => {
     const rank = i + 1;
     let key, name, sub2, songCount;
@@ -7986,9 +8137,18 @@ function buildIgCardHTML(type, opts) {
     const rowBg = i % 2 === 0 ? c.bg2 : c.bg;
     const rankColor = rank === 1 ? c.gold1 : rank === 2 ? c.text : rank === 3 ? c.amber : c.text3;
     const moveColor = moveCls[mvCls] || c.text3;
+    const artDataUrl = opts.showArt ? (igArtCache[key + ':ig:' + (opts.artSource || 'deezer')] ?? null) : null;
+    const thumbHtml = opts.showArt
+      ? `<div style="width:${thumbSz}px;height:${thumbSz}px;border-radius:3px;overflow:hidden;flex-shrink:0;background:${c.bg3};display:flex;align-items:center;justify-content:center;">${
+          artDataUrl
+            ? `<img src="${artDataUrl}" width="${thumbSz}" height="${thumbSz}" style="object-fit:cover;display:block;">`
+            : `<div style="font-size:${Math.max(9, Math.floor(thumbSz / 2.5))}px;color:${c.text3};font-weight:700;">${esc((name[0] || '?').toUpperCase())}</div>`
+        }</div>`
+      : '';
     return `<div style="display:flex;align-items:center;min-height:${rowH}px;padding:4px 10px;background:${rowBg};border-bottom:1px solid ${c.border};gap:6px;">
       <div style="font-family:'DM Mono',monospace;font-size:${rankFontSize}px;font-weight:700;color:${rankColor};min-width:28px;text-align:right;flex-shrink:0;">${rank}</div>
       ${opts.showMovement ? `<div style="font-family:'DM Mono',monospace;font-size:${Math.max(6,rankFontSize-3)}px;color:${moveColor};min-width:24px;text-align:center;line-height:1;flex-shrink:0;white-space:nowrap;">${mvLabel || '—'}</div>` : ''}
+      ${thumbHtml}
       <div style="flex:1;min-width:0;">
         <div style="font-family:'DM Sans',sans-serif;font-size:${titleFontSize}px;font-weight:600;color:${c.text};white-space:normal;word-break:break-word;line-height:1.25;">${esc(name)}</div>
         ${opts.showSubtitle && sub2 ? `<div style="font-family:'DM Sans',sans-serif;font-size:${songsCountFontSize}px;color:${c.text3};white-space:normal;word-break:break-word;line-height:1.25;">${esc(sub2)}</div>` : ''}
@@ -8062,10 +8222,11 @@ function setAllIgFonts(mode) {
 }
 
 function openIgPreviewModal(type) {
+  loadIgSettings();
   igPreviewType = type;
   const titleMap = { songs: `★ ${t('ig_type_songs')}`, artists: `♦ ${t('ig_type_artists')}`, albums: `◈ ${t('ig_type_albums')}` };
   document.getElementById('igPreviewTitle').textContent = t('ig_share_title') + ' — ' + titleMap[type];
-  // Reset all font sliders to Auto (0)
+  // Reset font sliders to Auto (0) — not persisted
   ['igTopBrandSize','igCardTitleSize','igDateSize','igRankSize','igTitleSize','igArtistSize',
    'igSongsCountSize','igPeakSize','igWeeksSize','igPlaysSize','igBottomBrandSize'].forEach(id => {
     const el = document.getElementById(id);
@@ -8086,12 +8247,22 @@ function openIgPreviewModal(type) {
     if (songsCountRowEl) songsCountRowEl.style.display = 'none';
   }
   updateIgFontLabels();
-  // Sync checkboxes
-  ['showMovement', 'showPeak', 'showWeeks', 'showPlays', 'showSubtitle', 'showDate', 'showFooter'].forEach(k => {
+  // Sync checkboxes (includes showArt)
+  ['showMovement', 'showPeak', 'showWeeks', 'showPlays', 'showSubtitle', 'showDate', 'showFooter', 'showArt'].forEach(k => {
     const el = document.getElementById('igOpt_' + k);
     if (el) el.checked = igOptions[k];
   });
+  // Sync art source buttons
+  document.querySelectorAll('.ig-art-src-btn').forEach(b => b.classList.toggle('active', b.dataset.src === igOptions.artSource));
+  // Sync topN slider
+  const topNEl = document.getElementById('igTopN');
+  if (topNEl) {
+    topNEl.value = igOptions.topN;
+    const topNLabel = document.getElementById('igTopNLabel');
+    if (topNLabel) topNLabel.textContent = igOptions.topN > 0 ? igOptions.topN : 'Auto';
+  }
   setIgFormat(igOptions.format);
+  if (igOptions.showArt) prefetchIgArt(type);
   updateIgPreview();
   document.getElementById('igPreviewModal').classList.add('open');
 }
@@ -8111,32 +8282,21 @@ function setIgFormat(fmt) {
 function updateIgPreview() {
   if (!igPreviewType) return;
   // Read checkboxes
-  ['showMovement', 'showPeak', 'showWeeks', 'showPlays', 'showSubtitle', 'showDate', 'showFooter'].forEach(k => {
+  ['showMovement', 'showPeak', 'showWeeks', 'showPlays', 'showSubtitle', 'showDate', 'showFooter', 'showArt'].forEach(k => {
     const el = document.getElementById('igOpt_' + k);
     if (el) igOptions[k] = el.checked;
   });
-  const isPost = igOptions.format === 'post';
-  const cardW = 540, cardH = isPost ? 540 : 960;
-  const scale = isPost ? 0.5 : 0.4;
-  const html = buildIgCardHTML(igPreviewType, igOptions);
-  if (!html) return;
-
-  // Update live preview (scaled)
-  const frame = document.getElementById('igPreviewFrame');
-  const inner = document.getElementById('igPreviewInner');
-  frame.style.width = Math.round(cardW * scale) + 'px';
-  frame.style.height = Math.round(cardH * scale) + 'px';
-  inner.innerHTML = html;
-  inner.style.width = cardW + 'px';
-  inner.style.height = cardH + 'px';
-  inner.style.transform = `scale(${scale})`;
-  inner.style.transformOrigin = 'top left';
-
-  // Update off-screen canvas for download
-  const canvas = document.getElementById('igCardCanvas');
-  canvas.innerHTML = html;
-  canvas.style.width = cardW + 'px';
-  canvas.style.height = cardH + 'px';
+  // Read topN slider
+  const topNEl = document.getElementById('igTopN');
+  if (topNEl) {
+    igOptions.topN = parseInt(topNEl.value) || 0;
+    const topNLabel = document.getElementById('igTopNLabel');
+    if (topNLabel) topNLabel.textContent = igOptions.topN > 0 ? igOptions.topN : 'Auto';
+  }
+  saveIgSettings();
+  // Kick off art prefetch when enabled (renders again when done)
+  if (igOptions.showArt) prefetchIgArt(igPreviewType);
+  _renderIgPreview();
 }
 
 function downloadIgFromPreview() {
@@ -8163,6 +8323,54 @@ function downloadIgFromPreview() {
     btn.textContent = origText;
     btn.disabled = false;
   });
+}
+
+async function copyIgFromPreview() {
+  if (!navigator.clipboard?.write) { downloadIgFromPreview(); return; }
+  const btn = document.getElementById('igCopyBtn');
+  const orig = btn.textContent;
+  btn.textContent = '⏳…';
+  btn.disabled = true;
+  try {
+    const isPost = igOptions.format === 'post';
+    const cardW = 540, cardH = isPost ? 540 : 960;
+    const canvas = document.getElementById('igCardCanvas');
+    const cvs = await html2canvas(canvas, { scale: 2, useCORS: false, allowTaint: true, backgroundColor: null, logging: false, width: cardW, height: cardH });
+    const blob = await new Promise(res => cvs.toBlob(res, 'image/png'));
+    await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
+    btn.textContent = '✓ Copied!';
+    setTimeout(() => { btn.textContent = orig; btn.disabled = false; }, 2000);
+  } catch {
+    btn.textContent = orig;
+    btn.disabled = false;
+    downloadIgFromPreview();
+  }
+}
+
+async function shareIgNative() {
+  const btn = document.getElementById('igShareNativeBtn');
+  const orig = btn.textContent;
+  btn.textContent = '⏳…';
+  btn.disabled = true;
+  try {
+    const isPost = igOptions.format === 'post';
+    const cardW = 540, cardH = isPost ? 540 : 960;
+    const canvas = document.getElementById('igCardCanvas');
+    const cvs = await html2canvas(canvas, { scale: 2, useCORS: false, allowTaint: true, backgroundColor: null, logging: false, width: cardW, height: cardH });
+    const blob = await new Promise(res => cvs.toBlob(res, 'image/png'));
+    const typeLabel = { songs: 'Songs', artists: 'Artists', albums: 'Albums' }[igPreviewType] || 'Chart';
+    const file = new File([blob], `dankcharts_${typeLabel}.png`, { type: 'image/png' });
+    if (navigator.canShare?.({ files: [file] })) {
+      await navigator.share({ files: [file], title: 'dankcharts.fm' });
+    } else {
+      const link = document.createElement('a');
+      link.download = file.name;
+      link.href = URL.createObjectURL(blob);
+      link.click();
+    }
+  } catch {}
+  btn.textContent = orig;
+  btn.disabled = false;
 }
 
 document.getElementById('igPreviewModal').addEventListener('click', e => {
@@ -12350,6 +12558,7 @@ function toggleEventsType(type) {
   }
   try { localStorage.setItem('dc_events_type_filter', JSON.stringify([...eventsTypeFilter])); } catch (e) {}
   _syncEventsTypeFilter();
+  _syncCalExportBtn();
   if (type === 'show') {
     _syncConcertsSectionVisibility();
     if (_eventsCalendarData) renderEventsCalendar(_eventsCalendarData, eventsCalendarYear, eventsCalendarMonth);
@@ -12809,6 +13018,15 @@ function _syncCalViewBtns() {
   document.querySelectorAll('.cal-view-btn').forEach(btn => {
     btn.classList.toggle('active', btn.dataset.view === eventsCalendarView);
   });
+  _syncCalExportBtn();
+}
+
+function _syncCalExportBtn() {
+  const btn = document.getElementById('calExportPlaylistBtn');
+  if (!btn) return;
+  const isDay = eventsCalendarView === 'day';
+  const singlesOnly = eventsTypeFilter.size === 1 && eventsTypeFilter.has('single');
+  btn.style.display = (isDay && singlesOnly) ? '' : 'none';
 }
 
 function setCalView(view) {
