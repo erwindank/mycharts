@@ -3766,6 +3766,217 @@
       border-color: var(--accent);
     }
 
+    /* EVENTS SECTION VIEW TOGGLE BUTTONS */
+    .ev-view-btns {
+      display: flex;
+      gap: 2px;
+      flex-shrink: 0;
+    }
+    .ev-view-btn {
+      background: none;
+      border: 1px solid var(--border);
+      border-radius: 3px;
+      color: var(--text3);
+      font-family: 'DM Mono', monospace;
+      font-size: 0.55rem;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      padding: 0.12rem 0.5rem;
+      cursor: pointer;
+      transition: color 0.15s, background 0.15s, border-color 0.15s;
+    }
+    .ev-view-btn:hover { background: var(--border); color: var(--text); }
+    .ev-view-btn.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+
+    /* TABLE VIEW */
+    .ev-table-wrap { overflow-x: auto; padding: 0 0.85rem 0.75rem; }
+    .ev-table { width: 100%; border-collapse: collapse; }
+    .ev-table th {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.55rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--text3);
+      text-align: left;
+      padding: 0.35rem 0.6rem;
+      border-bottom: 1px solid var(--border);
+      white-space: nowrap;
+    }
+    .ev-table td {
+      padding: 0.35rem 0.6rem;
+      border-bottom: 1px solid var(--border);
+      vertical-align: middle;
+      font-size: 0.8rem;
+    }
+    .ev-table tbody tr:last-child td { border-bottom: none; }
+    .ev-table tbody tr:hover td { background: var(--bg3); }
+    .ev-tbl-img { width: 42px; }
+    .ev-tbl-thumb {
+      width: 34px;
+      height: 34px;
+      object-fit: cover;
+      border-radius: 3px;
+      display: block;
+      background: var(--surface);
+    }
+    .ev-tbl-link { color: var(--accent); text-decoration: none; font-weight: 500; font-size: 0.82rem; }
+    .ev-tbl-link:hover { text-decoration: underline; }
+    .ev-tbl-artist { color: var(--text2); font-size: 0.75rem; }
+    .ev-tbl-date {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.62rem;
+      color: var(--accent);
+      white-space: nowrap;
+    }
+    .ev-tbl-type {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.58rem;
+      color: var(--text3);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      white-space: nowrap;
+    }
+
+    /* CAROUSEL (REEL) VIEW */
+    .ev-carousel-outer {
+      overflow: hidden;
+      width: 100%;
+      padding: 0.4rem 0 0.75rem;
+      mask-image: linear-gradient(to right, transparent 0%, black 3%, black 97%, transparent 100%);
+      -webkit-mask-image: linear-gradient(to right, transparent 0%, black 3%, black 97%, transparent 100%);
+    }
+    .ev-carousel-outer:hover .ev-carousel-track { animation-play-state: paused; }
+    .ev-carousel-track {
+      display: flex;
+      gap: 8px;
+      width: max-content;
+      animation: ev-reel-scroll 60s linear infinite;
+    }
+    @keyframes ev-reel-scroll {
+      from { transform: translateX(0); }
+      to   { transform: translateX(-50%); }
+    }
+    .ev-carousel-card {
+      width: 130px;
+      flex-shrink: 0;
+      display: flex;
+      flex-direction: column;
+      background: var(--surface);
+      border-radius: 5px;
+      border: 1px solid var(--border);
+      overflow: hidden;
+      text-decoration: none;
+      transition: border-color 0.15s;
+    }
+    .ev-carousel-card:hover { border-color: var(--border2); }
+    .ev-carousel-card.event-today { border-color: var(--accent); }
+    .ev-carousel-img {
+      width: 100%;
+      aspect-ratio: 1;
+      object-fit: cover;
+      display: block;
+      background: var(--bg3);
+      flex-shrink: 0;
+    }
+    .ev-carousel-date {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.5rem;
+      color: var(--accent);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      padding: 0.3rem 0.45rem 0;
+    }
+    .ev-carousel-title {
+      font-size: 0.7rem;
+      font-weight: 600;
+      color: var(--text);
+      padding: 0.1rem 0.45rem 0;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .ev-carousel-artist {
+      font-size: 0.6rem;
+      color: var(--text2);
+      padding: 0 0.45rem;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .ev-carousel-type {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.5rem;
+      color: var(--text3);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      padding: 0.1rem 0.45rem 0.45rem;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    /* LIST VIEW */
+    .ev-list-wrap { padding: 0 0.85rem 0.5rem; }
+    .ev-list-sort {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      margin-bottom: 0.45rem;
+    }
+    .ev-list-sort-lbl {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.58rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text3);
+    }
+    .ev-list-sort-btn {
+      background: none;
+      border: 1px solid var(--border);
+      border-radius: 3px;
+      color: var(--text3);
+      font-family: 'DM Mono', monospace;
+      font-size: 0.55rem;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      padding: 0.1rem 0.5rem;
+      cursor: pointer;
+      transition: color 0.15s, background 0.15s, border-color 0.15s;
+    }
+    .ev-list-sort-btn:hover { background: var(--border); color: var(--text); }
+    .ev-list-sort-btn.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+    .ev-list-items { display: flex; flex-direction: column; }
+    .ev-list-row {
+      display: grid;
+      grid-template-columns: 72px 1fr 1fr auto;
+      align-items: center;
+      gap: 0.6rem;
+      padding: 0.32rem 0.4rem;
+      border-radius: 4px;
+      text-decoration: none;
+      transition: background 0.1s;
+    }
+    .ev-list-row:hover { background: var(--bg3); }
+    .ev-list-row.event-today { background: color-mix(in srgb, var(--accent) 10%, transparent); }
+    .ev-list-date {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.6rem;
+      color: var(--accent);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      white-space: nowrap;
+    }
+    .ev-list-title { font-size: 0.82rem; font-weight: 500; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .ev-list-artist { font-size: 0.72rem; color: var(--text2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .ev-list-type {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.55rem;
+      color: var(--text3);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      white-space: nowrap;
+    }
+
     /* EVENTS CALENDAR */
     .events-calendar-wrap {
       margin: 0.75rem 0 1rem;

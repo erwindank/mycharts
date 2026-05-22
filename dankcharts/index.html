@@ -1117,6 +1117,12 @@
           <h2 class="section-header-h2">🎂 Artist Birthdays</h2>
           <span class="section-collapsed-label">collapsed — click + to expand</span>
           <div class="section-rule"></div>
+          <div class="ev-view-btns" id="birthdaysViewBtns">
+            <button class="ev-view-btn active" data-view="tiles" onclick="setEventsView('birthdays','tiles')">Tiles</button>
+            <button class="ev-view-btn" data-view="table" onclick="setEventsView('birthdays','table')">Table</button>
+            <button class="ev-view-btn" data-view="carousel" onclick="setEventsView('birthdays','carousel')">Reel</button>
+            <button class="ev-view-btn" data-view="list" onclick="setEventsView('birthdays','list')">List</button>
+          </div>
         </div>
         <div class="section-sub">Upcoming birthdays for your top artists — next 30 days</div>
         <div class="section-body">
@@ -1130,6 +1136,12 @@
           <h2 class="section-header-h2">🎵 Anniversaries</h2>
           <span class="section-collapsed-label">collapsed — click + to expand</span>
           <div class="section-rule"></div>
+          <div class="ev-view-btns" id="anniversariesViewBtns">
+            <button class="ev-view-btn active" data-view="tiles" onclick="setEventsView('anniversaries','tiles')">Tiles</button>
+            <button class="ev-view-btn" data-view="table" onclick="setEventsView('anniversaries','table')">Table</button>
+            <button class="ev-view-btn" data-view="carousel" onclick="setEventsView('anniversaries','carousel')">Reel</button>
+            <button class="ev-view-btn" data-view="list" onclick="setEventsView('anniversaries','list')">List</button>
+          </div>
         </div>
         <div class="section-sub">Releases celebrating anniversaries in the next 30 days</div>
         <div class="section-body">
@@ -1143,6 +1155,12 @@
           <h2 class="section-header-h2">🆕 Upcoming Releases</h2>
           <span class="section-collapsed-label">collapsed — click + to expand</span>
           <div class="section-rule"></div>
+          <div class="ev-view-btns" id="eventsUpcomingViewBtns">
+            <button class="ev-view-btn active" data-view="tiles" onclick="setEventsView('eventsUpcoming','tiles')">Tiles</button>
+            <button class="ev-view-btn" data-view="table" onclick="setEventsView('eventsUpcoming','table')">Table</button>
+            <button class="ev-view-btn" data-view="carousel" onclick="setEventsView('eventsUpcoming','carousel')">Reel</button>
+            <button class="ev-view-btn" data-view="list" onclick="setEventsView('eventsUpcoming','list')">List</button>
+          </div>
         </div>
         <div class="section-sub">Releases coming in the next 90 days from your top artists</div>
         <div class="section-body">
@@ -1156,6 +1174,12 @@
           <h2 class="section-header-h2">📅 Recent Releases</h2>
           <span class="section-collapsed-label">collapsed — click + to expand</span>
           <div class="section-rule"></div>
+          <div class="ev-view-btns" id="eventsRecentViewBtns">
+            <button class="ev-view-btn active" data-view="tiles" onclick="setEventsView('eventsRecent','tiles')">Tiles</button>
+            <button class="ev-view-btn" data-view="table" onclick="setEventsView('eventsRecent','table')">Table</button>
+            <button class="ev-view-btn" data-view="carousel" onclick="setEventsView('eventsRecent','carousel')">Reel</button>
+            <button class="ev-view-btn" data-view="list" onclick="setEventsView('eventsRecent','list')">List</button>
+          </div>
         </div>
         <div class="section-sub">Releases from the past 6 months from your top artists</div>
         <div class="section-body">
@@ -1169,6 +1193,12 @@
           <h2 class="section-header-h2">🎂 Recent Birthdays</h2>
           <span class="section-collapsed-label">collapsed — click + to expand</span>
           <div class="section-rule"></div>
+          <div class="ev-view-btns" id="recentBirthdaysViewBtns">
+            <button class="ev-view-btn active" data-view="tiles" onclick="setEventsView('recentBirthdays','tiles')">Tiles</button>
+            <button class="ev-view-btn" data-view="table" onclick="setEventsView('recentBirthdays','table')">Table</button>
+            <button class="ev-view-btn" data-view="carousel" onclick="setEventsView('recentBirthdays','carousel')">Reel</button>
+            <button class="ev-view-btn" data-view="list" onclick="setEventsView('recentBirthdays','list')">List</button>
+          </div>
         </div>
         <div class="section-sub">Artist birthdays from the past 30 days you may have missed</div>
         <div class="section-body">
@@ -1182,6 +1212,12 @@
           <h2 class="section-header-h2">🎵 Recent Anniversaries</h2>
           <span class="section-collapsed-label">collapsed — click + to expand</span>
           <div class="section-rule"></div>
+          <div class="ev-view-btns" id="recentAnniversariesViewBtns">
+            <button class="ev-view-btn active" data-view="tiles" onclick="setEventsView('recentAnniversaries','tiles')">Tiles</button>
+            <button class="ev-view-btn" data-view="table" onclick="setEventsView('recentAnniversaries','table')">Table</button>
+            <button class="ev-view-btn" data-view="carousel" onclick="setEventsView('recentAnniversaries','carousel')">Reel</button>
+            <button class="ev-view-btn" data-view="list" onclick="setEventsView('recentAnniversaries','list')">List</button>
+          </div>
         </div>
         <div class="section-sub">Album anniversaries from the past 30 days you may have missed</div>
         <div class="section-body">
@@ -1194,6 +1230,12 @@
           <button class="section-collapse-btn" data-target="concertsSection" title="Expand">+</button>
           <h2 class="section-header-h2">🎤 Upcoming Shows</h2>
           <div class="section-rule"></div>
+          <div class="ev-view-btns" id="concertsViewBtns">
+            <button class="ev-view-btn active" data-view="tiles" onclick="setEventsView('concerts','tiles')">Tiles</button>
+            <button class="ev-view-btn" data-view="table" onclick="setEventsView('concerts','table')">Table</button>
+            <button class="ev-view-btn" data-view="carousel" onclick="setEventsView('concerts','carousel')">Reel</button>
+            <button class="ev-view-btn" data-view="list" onclick="setEventsView('concerts','list')">List</button>
+          </div>
         </div>
         <div class="section-sub">Live concerts &amp; shows for your top 10 all-time artists · <a href="https://www.ticketmaster.com" target="_blank" rel="noopener" style="color:var(--accent)">Tickets via Ticketmaster</a></div>
         <div id="concertsStatus" class="upcoming-status"></div>
