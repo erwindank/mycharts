@@ -3773,6 +3773,8 @@
       flex-shrink: 0;
     }
     .ev-view-btn {
+      -webkit-appearance: none;
+      appearance: none;
       background: none;
       border: 1px solid var(--border);
       border-radius: 3px;
@@ -6669,6 +6671,22 @@
       /* Thin left-border keeps new-entry charts visually distinct as child sections */
       .new-entries-section {
         padding-left: 0.5rem;
+      }
+
+      /* Events view toggle buttons: wrap to their own row so they're reachable */
+      .section-header {
+        flex-wrap: wrap;
+        row-gap: 0.35rem;
+      }
+      .ev-view-btns {
+        order: 10;
+        flex-basis: 100%;
+        gap: 4px;
+        padding-left: calc(18px + 1rem);
+      }
+      .ev-view-btn {
+        padding: 0.2rem 0.65rem;
+        font-size: 0.58rem;
       }
     }
 
