@@ -2318,7 +2318,9 @@
       display: flex;
       align-items: center;
       gap: 1rem;
+      row-gap: 0.35rem;
       margin-bottom: 0.5rem;
+      flex-wrap: wrap;
     }
 
     .section-collapse-btn {
@@ -3790,6 +3792,15 @@
     .ev-view-btn:hover { background: var(--border); color: var(--text); }
     .ev-view-btn.active { background: var(--accent); border-color: var(--accent); color: #fff; }
 
+    @media (max-width: 768px) {
+      .ev-view-btns {
+        order: 10;
+        flex-basis: 100%;
+        gap: 4px;
+        padding-left: calc(18px + 1rem);
+      }
+    }
+
     /* TABLE VIEW */
     .ev-table-wrap { overflow-x: auto; padding: 0 0.85rem 0.75rem; }
     .ev-table { width: 100%; border-collapse: collapse; }
@@ -5185,6 +5196,7 @@
     .alb-track-panel {
       padding: 0.75rem 0.5rem 0.5rem;
       border-top: 1px solid var(--border);
+      overflow-x: hidden;
     }
     .alb-track-stats-grid {
       display: grid;
@@ -6673,20 +6685,16 @@
         padding-left: 0.5rem;
       }
 
-      /* Events view toggle buttons: wrap to their own row so they're reachable */
-      .section-header {
-        flex-wrap: wrap;
-        row-gap: 0.35rem;
-      }
-      .ev-view-btns {
-        order: 10;
-        flex-basis: 100%;
-        gap: 4px;
-        padding-left: calc(18px + 1rem);
-      }
+      /* Events view toggle buttons: compact size on small phones */
       .ev-view-btn {
         padding: 0.2rem 0.65rem;
         font-size: 0.58rem;
+      }
+
+      /* Album modal tracks: hide date columns so table fits within modal width,
+         preventing the expanded track panel from overflowing horizontally */
+      #albumModalTracks .modal-date-col {
+        display: none;
       }
     }
 
