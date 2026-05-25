@@ -5581,7 +5581,8 @@ function buildPrevChartHtml(prevSorted, size, colCount, type) {
 // ─── SLIDING-WINDOW CHART MORPH ────────────────────────────────
 // Computes chart counts for a sliding window that transitions from prevPlays to currPlays.
 // step 0 = full prevPlays, step totalSteps = full currPlays.
-function computeWindowCountsForType(pSorted, cSorted, step, totalSteps, type) {
+// forceKeys: Set of keys to always append after the top chartSize (new entrants below the fold).
+function computeWindowCountsForType(pSorted, cSorted, step, totalSteps, type, forceKeys) {
   const prevDrop = Math.round(step / totalSteps * pSorted.length);
   const currAdd  = Math.round(step / totalSteps * cSorted.length);
   const pool = pSorted.slice(prevDrop).concat(cSorted.slice(0, currAdd));
@@ -5607,25 +5608,51 @@ function computeWindowCountsForType(pSorted, cSorted, step, totalSteps, type) {
       counts[k].count++;
     }
   }
-  return Object.values(counts).sort((a, b) => b.count - a.count).slice(0, chartSize);
+  const sorted = Object.values(counts).sort((a, b) => b.count - a.count);
+  const topN = sorted.slice(0, chartSize);
+  if (!forceKeys || !forceKeys.size) return topN;
+  // Append forced new entrants not already in top N so they're always visible below the fold
+  const topNSet = new Set(topN.map(c => c.key));
+  const forced = [...forceKeys]
+    .filter(k => !topNSet.has(k))
+    .map(k => counts[k] || { key: k, count: 0 });
+  return [...topN, ...forced];
 }
 
 // Animates tbody rows through the sliding window from prev→curr period using FLIP.
 // Reads _animPrevPlays / _animCurrentPlays at call time. Calls onComplete() when done.
 // Uses a cancellation token so re-renders abort any in-progress animation on the same tbody.
+// Animates tbody rows by sliding the listening window play-by-play from prev→curr period.
+// The window starts fully loaded with prevPlays; each frame drops the oldest prev plays and
+// adds the oldest curr plays, so counts change continuously and entries visibly climb/fall.
 function runSlideWindowAnim(tbody, type, prevPlays, currPlays, onComplete) {
   if (!prevPlays || !currPlays) { onComplete(); return; }
 
-  // Cancel any prior animation on this tbody (stale row refs cause chaos on re-render)
   const token = { cancelled: false };
   if (tbody._swToken) tbody._swToken.cancelled = true;
   tbody._swToken = token;
 
-  const STEPS   = 7;
-  const STEP_MS = 750;
-
+  // Oldest-first: oldest prev plays drop first; oldest curr plays enter first
   const pSorted = [...prevPlays].sort((a, b) => a.date - b.date);
   const cSorted = [...currPlays].sort((a, b) => a.date - b.date);
+
+  // Build key → display metadata for placeholder rows
+  const keyToMeta = {};
+  for (const p of [...prevPlays, ...currPlays]) {
+    if (type === 'songs') {
+      const k = songKey(p);
+      if (!keyToMeta[k]) keyToMeta[k] = { title: p.title, artist: p.artist, album: p.album };
+    } else if (type === 'artists') {
+      for (const a of p.artists) {
+        if (!keyToMeta[a]) keyToMeta[a] = { name: a };
+      }
+    } else if (type === 'albums') {
+      if (p.album && p.album !== '—') {
+        const k = p.album + '|||' + albumArtist(p);
+        if (!keyToMeta[k]) keyToMeta[k] = { album: p.album, artist: albumArtist(p) };
+      }
+    }
+  }
 
   function getRowMap() {
     const m = new Map();
@@ -5633,23 +5660,142 @@ function runSlideWindowAnim(tbody, type, prevPlays, currPlays, onComplete) {
     return m;
   }
 
+  function getColCount() {
+    const r = tbody.querySelector('tr');
+    return r ? r.querySelectorAll('td').length : 5;
+  }
+
+  function buildNewRow(key, meta, colCount) {
+    const extraCols = colCount > 5 ? '<td></td><td></td>' : '';
+    const countCell = `<td><div class="play-count sw-count">0</div><div class="play-bar"><div class="play-bar-fill sw-bar" style="width:0%"></div></div></td>`;
+    const tr = document.createElement('tr');
+    tr.className = 'chart-row-prev';
+    tr.dataset.chartkey = key;
+    tr.style.opacity = '0';
+    if (type === 'songs') {
+      tr.innerHTML = `<td class="rank-cell">—</td>
+        <td class="thumb-cell"><div class="thumb-wrap"><div><div class="thumb-initials">${esc(initials(meta.title))}</div></div></div></td>
+        <td><div class="song-title">${esc(meta.title)}</div><div class="song-artist">${esc(meta.artist)}</div></td>
+        <td><div class="song-album">${esc(meta.album || '—')}</div></td>
+        ${extraCols}${countCell}`;
+    } else if (type === 'artists') {
+      tr.innerHTML = `<td class="rank-cell">—</td>
+        <td class="thumb-cell"><div class="thumb-wrap"><div><div class="thumb-initials">${esc(initials(meta.name))}</div></div></div></td>
+        <td><div class="song-title">${esc(meta.name)}</div></td>
+        <td></td>${extraCols}${countCell}`;
+    } else if (type === 'albums') {
+      tr.innerHTML = `<td class="rank-cell">—</td>
+        <td class="thumb-cell"><div class="thumb-wrap"><div><div class="thumb-initials">${esc(initials(meta.album))}</div></div></div></td>
+        <td><div class="song-title">${esc(meta.album)}</div><div class="song-artist">${esc(meta.artist)}</div></td>
+        <td></td>${extraCols}${countCell}`;
+    }
+    return tr;
+  }
+
   if (getRowMap().size === 0) { onComplete(); return; }
 
-  function doStep(step) {
-    if (token.cancelled || !tbody.isConnected) return;
-    if (step > STEPS) { onComplete(); return; }
+  // ── Running-counts window ─────────────────────────────────────
+  // rc is the live count map; seeded with all prev plays, then mutated frame-by-frame.
+  const rc = {};
+  function rcMutate(p, delta) {
+    if (type === 'songs') {
+      const k = songKey(p);
+      if (!rc[k]) rc[k] = { key: k, count: 0 };
+      rc[k].count += delta;
+      if (rc[k].count <= 0) delete rc[k];
+    } else if (type === 'artists') {
+      for (const a of p.artists) {
+        if (!rc[a]) rc[a] = { key: a, count: 0 };
+        rc[a].count += delta;
+        if (rc[a].count <= 0) delete rc[a];
+      }
+    } else if (type === 'albums') {
+      if (!p.album || p.album === '—') return;
+      const k = p.album + '|||' + albumArtist(p);
+      if (!rc[k]) rc[k] = { key: k, count: 0 };
+      rc[k].count += delta;
+      if (rc[k].count <= 0) delete rc[k];
+    }
+  }
 
-    // Rebuild rowMap fresh each step — handles any re-render that replaced the DOM
-    const rowMap = getRowMap();
+  for (const p of pSorted) rcMutate(p, 1); // seed: full prev window
+
+  // ── New entrants: entries in the final chart absent from the initial prev chart ──
+  // Pre-inject invisible rows for them now; forceKeys ensures they stay visible in
+  // every frame even before they accumulate enough plays to crack the top N.
+  const finalRc = {};
+  function finalRcAdd(p) {
+    if (type === 'songs') {
+      const k = songKey(p);
+      if (!finalRc[k]) finalRc[k] = { key: k, count: 0 };
+      finalRc[k].count++;
+    } else if (type === 'artists') {
+      for (const a of p.artists) {
+        if (!finalRc[a]) finalRc[a] = { key: a, count: 0 };
+        finalRc[a].count++;
+      }
+    } else if (type === 'albums') {
+      if (!p.album || p.album === '—') return;
+      const k = p.album + '|||' + albumArtist(p);
+      if (!finalRc[k]) finalRc[k] = { key: k, count: 0 };
+      finalRc[k].count++;
+    }
+  }
+  for (const p of cSorted) finalRcAdd(p);
+  const finalChart     = Object.values(finalRc).sort((a, b) => b.count - a.count).slice(0, chartSize);
+  const initRowMap     = getRowMap();
+  const newEntrantKeys = new Set(finalChart.map(c => c.key).filter(k => !initRowMap.has(k)));
+
+  if (newEntrantKeys.size > 0) {
+    const colCount = getColCount();
+    for (const key of newEntrantKeys) {
+      const meta = keyToMeta[key];
+      if (meta) tbody.appendChild(buildNewRow(key, meta, colCount));
+    }
+  }
+
+  // Returns the top chartSize entries plus any forced new entrants below the fold
+  function getCurrentCounts() {
+    const topN = Object.values(rc).sort((a, b) => b.count - a.count).slice(0, chartSize);
+    if (!newEntrantKeys.size) return topN;
+    const topNSet = new Set(topN.map(c => c.key));
+    const forced  = [...newEntrantKeys]
+      .filter(k => !topNSet.has(k))
+      .map(k => rc[k] || { key: k, count: 0 });
+    return [...topN, ...forced];
+  }
+
+  // ── Frame parameters ──────────────────────────────────────────
+  // Scale frame count to total plays so more plays = more granular journey,
+  // capped to keep total animation length reasonable.
+  const totalPlays   = pSorted.length + cSorted.length;
+  const FRAMES       = Math.max(20, Math.min(40, Math.ceil(totalPlays / 25)));
+  const FRAME_MS     = 250;
+  const prevPerFrame = pSorted.length / FRAMES;
+  const currPerFrame = cSorted.length / FRAMES;
+  let prevIdx = 0;
+  let currIdx = 0;
+
+  function doStep(frame) {
+    if (token.cancelled || !tbody.isConnected) return;
+    if (frame > FRAMES) { onComplete(); return; }
+
+    // Slide the window: drop the next batch of oldest prev plays, add next batch of curr plays
+    const nextPrevIdx = Math.round(frame * prevPerFrame);
+    const nextCurrIdx = Math.round(frame * currPerFrame);
+    while (prevIdx < nextPrevIdx) rcMutate(pSorted[prevIdx++], -1);
+    while (currIdx < nextCurrIdx) rcMutate(cSorted[currIdx++],  1);
+
+    const rowMap     = getRowMap();
     if (rowMap.size === 0) { onComplete(); return; }
 
-    const counts      = computeWindowCountsForType(pSorted, cSorted, step, STEPS, type);
+    const counts      = getCurrentCounts();
     const newTopSet   = new Set(counts.map(c => c.key));
     const maxCount    = counts[0]?.count || 1;
     const activeRows  = counts.map(c => rowMap.get(c.key)).filter(Boolean);
     const droppedRows = [...rowMap.values()].filter(tr => !newTopSet.has(tr.dataset.chartkey));
 
-    // FLIP read-1: freeze in-progress transitions, measure positions before reorder
+    // FLIP read-1: freeze transitions, measure positions before reorder
     const firstTops = new Map();
     for (const tr of rowMap.values()) {
       tr.style.transition = 'none';
@@ -5657,23 +5803,23 @@ function runSlideWindowAnim(tbody, type, prevPlays, currPlays, onComplete) {
       firstTops.set(tr, tr.getBoundingClientRect().top);
     }
 
-    // DOM reorder: active rows in rank order, dropped rows after
+    // DOM reorder: active in rank order, dropped after
     for (const tr of activeRows)  tbody.appendChild(tr);
     for (const tr of droppedRows) tbody.appendChild(tr);
 
-    // Content update: ranks, counts, bars
+    // Content update: rank number, count, bar width
     counts.forEach((c, i) => {
       const tr = rowMap.get(c.key);
       if (!tr) return;
       const rankCell = tr.querySelector('.rank-cell');
       const countEl  = tr.querySelector('.sw-count');
       const barEl    = tr.querySelector('.sw-bar');
-      if (rankCell) rankCell.textContent = i + 1;
+      if (rankCell) rankCell.textContent = i < chartSize ? (i + 1) : '↑';
       if (countEl)  countEl.textContent  = c.count;
       if (barEl)    barEl.style.width    = Math.round(c.count / maxCount * 100) + '%';
     });
 
-    // FLIP read-2: measure positions after reorder, apply inverse transforms
+    // FLIP read-2: measure after reorder, apply inverse transforms
     const lastTops = new Map();
     for (const tr of rowMap.values()) lastTops.set(tr, tr.getBoundingClientRect().top);
     for (const [tr, first] of firstTops) {
@@ -5681,19 +5827,25 @@ function runSlideWindowAnim(tbody, type, prevPlays, currPlays, onComplete) {
       if (Math.abs(dy) > 0.5) tr.style.transform = `translateY(${dy}px)`;
     }
 
-    // FLIP play: transition rows to their natural positions
-    const transMs = Math.round(STEP_MS * 0.8);
-    const capturedActive = new Set(activeRows);
+    // FLIP play: in-chart = full opacity; approaching below fold = 50%; dropouts stay visible
+    const transMs = Math.round(FRAME_MS * 0.75);
     requestAnimationFrame(() => {
       if (token.cancelled) return;
       requestAnimationFrame(() => {
         if (token.cancelled) return;
-        for (const tr of rowMap.values()) {
+        counts.forEach((c, i) => {
+          const tr = rowMap.get(c.key);
+          if (!tr) return;
+          tr.style.transition = `transform ${transMs}ms cubic-bezier(0.4,0,0.2,1), opacity ${transMs}ms ease`;
+          tr.style.transform  = '';
+          tr.style.opacity    = i < chartSize ? '1' : '0.5';
+        });
+        for (const tr of droppedRows) {
           tr.style.transition = `transform ${transMs}ms cubic-bezier(0.4,0,0.2,1)`;
           tr.style.transform  = '';
           tr.style.opacity    = '1';
         }
-        setTimeout(() => doStep(step + 1), STEP_MS);
+        setTimeout(() => doStep(frame + 1), FRAME_MS);
       });
     });
   }
@@ -15859,11 +16011,21 @@ async function _awardsGetCandidates(catDef, eligStart, eligEnd) {
     return _awardsTopN(m, 20, 1);
   }
   if (f === 'comeback') {
-    const prevS = new Date(start); prevS.setFullYear(prevS.getFullYear() - 1);
-    const prevE = new Date(start); prevE.setDate(prevE.getDate() - 1);
-    const prevSet = new Set(allPlays.filter(p => p.date >= prevS && p.date <= prevE).map(p => _pk(p)));
+    // Gap: 2 years before the selected year's start
+    const gapS = new Date(start); gapS.setFullYear(gapS.getFullYear() - 2);
+    const gapE = new Date(start); gapE.setDate(gapE.getDate() - 1);
+    // Before-gap: anything played before the 2-year gap
+    const beforeGapE = new Date(gapS); beforeGapE.setDate(beforeGapE.getDate() - 1);
+    const gapSet    = new Set(allPlays.filter(p => p.date >= gapS && p.date <= gapE).map(p => _pk(p)));
+    const historySet = new Set(allPlays.filter(p => p.date <= beforeGapE).map(p => _pk(p)));
     const m = {};
-    for (const p of inWin) { const k = _pk(p); if (prevSet.has(k)) continue; m[k] = m[k] || { artist: _pa(p), plays: 0 }; m[k].plays++; }
+    for (const p of inWin) {
+      const k = _pk(p);
+      if (gapSet.has(k)) continue;     // played within the 2-year gap → not a comeback
+      if (!historySet.has(k)) continue; // never played before the gap → new artist, not a comeback
+      m[k] = m[k] || { artist: _pa(p), plays: 0 };
+      m[k].plays++;
+    }
     return _awardsTopN(m, 20, 1);
   }
   if (f === 'growth') {
