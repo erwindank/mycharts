@@ -16164,22 +16164,30 @@ async function _awardsGetCandidates(catDef, eligStart, eligEnd) {
     return _awardsTopN(m, 20, 1);
   }
   if (f === 'late_disc') {
-    if (!firstSeenMaps) firstSeenMaps = buildFirstSeenMaps();
+    // Count plays per album strictly before the awards year window.
+    const priorPlays = {};
+    for (const p of allPlays) {
+      if (p.date >= start || !p.album) continue;
+      const k = _ak(p);
+      priorPlays[k] = (priorPlays[k] || 0) + 1;
+    }
     const m = {};
     for (const p of inWin) {
       if (!p.album) continue;
       const k = _ak(p);
-      const first = firstSeenMaps.albumFirst[k];
-      if (!first || first < start) continue;
+      // Allow albums the user barely knew before (≤20 prior plays) — covers both
+      // true first-time discoveries and slow burns that finally clicked this year.
+      if ((priorPlays[k] || 0) > 20) continue;
       m[k] = m[k] || { album: p.album, artist: p.artist, plays: 0 };
       m[k].plays++;
     }
-    // Fetch release years from iTunes for all candidates, then exclude albums
-    // released during the awards year itself (those aren't late discoveries).
+    // Exclude albums released during the awards year — those aren't late discoveries.
+    // (Only needed for the zero-prior-plays case; any prior play proves an earlier release.)
     const awardsYear = start.getFullYear();
     const candidates = Object.entries(m).map(([k, v]) => ({ k, ...v }));
     await Promise.all(candidates.map(c => _awardsGetAlbumYear(c.album, c.artist)));
     for (const { k, album, artist } of candidates) {
+      if (priorPlays[k]) continue; // prior plays already prove album predates the awards year
       const releaseYear = _awardsAlbumYearCache[album.toLowerCase() + '|||' + artist.toLowerCase()];
       if (releaseYear !== null && releaseYear >= awardsYear) delete m[k];
     }
