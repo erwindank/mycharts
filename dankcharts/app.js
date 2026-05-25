@@ -10951,7 +10951,7 @@ async function fetchAllReleasesRaw(mbid) {
   try {
     const d = await mbFetch(`release-group?artist=${mbid}&type=album%7Cep%7Csingle&fmt=json&limit=100`);
     _mbReleasesCache[mbid] = d['release-groups'] || [];
-  } catch (e) { _mbReleasesCache[mbid] = []; } // cache empty on error to avoid triple-requests
+  } catch (e) {} // don't cache errors — allows retry if rate-limited
   return _mbReleasesCache[mbid];
 }
 
@@ -15984,7 +15984,7 @@ async function _awardsGetAlbumYear(album, artist) {
     const match = results.find(x =>
       x.collectionName?.toLowerCase().includes(albumL) &&
       x.artistName?.toLowerCase().includes(artistW)
-    ) || results[0];
+    );
     if (match?.releaseDate) {
       const year = new Date(match.releaseDate).getFullYear();
       _awardsAlbumYearCache[key] = year;
@@ -16001,7 +16001,7 @@ async function _awardsGetAlbumYear(album, artist) {
       const match = items.find(x =>
         x.title?.toLowerCase().includes(albumL) &&
         x.artist?.name?.toLowerCase().includes(artistW)
-      ) || items[0];
+      );
       const year = match?.release_date ? parseInt(match.release_date.slice(0, 4), 10) : null;
       if (year) {
         _awardsAlbumYearCache[key] = year;
