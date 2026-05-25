@@ -7471,9 +7471,10 @@ function renderSongs(plays, peaks, monthlyStats) {
   const sbodyS = document.getElementById('songsBody');
   if (_animSongs) {
     const _capPrevS = _animPrevPlays, _capCurrS = _animCurrentPlays;
+    const _prevEntriesS = buildPrevSortedEntries(_capPrevS, 'songs');
+    sbodyS.innerHTML = buildPrevChartHtml(_prevEntriesS, sorted.length, colCount, 'songs');
     const _startAnimS = () => {
       if (sbodyS._swToken) sbodyS._swToken.cancelled = true;
-      const _prevEntriesS = buildPrevSortedEntries(_capPrevS, 'songs');
       sbodyS.innerHTML = buildPrevChartHtml(_prevEntriesS, sorted.length, colCount, 'songs');
       loadImages(_prevEntriesS.map((e, i) => ({ imgId: `pwsimg-${i}`, title: e.title, artist: e.artist, album: e.album, type: 'song', prefKey: 'song:' + e.artist.toLowerCase() + '|||' + e.title.toLowerCase(), name: e.title })), 'song');
       runSlideWindowAnim(sbodyS, 'songs', _capPrevS, _capCurrS, () => {
@@ -7488,7 +7489,15 @@ function renderSongs(plays, peaks, monthlyStats) {
       });
     };
     _replayFns['songs'] = _startAnimS;
-    _startAnimS();
+    if (sbodyS._visObs) sbodyS._visObs.disconnect();
+    const _obsS = new IntersectionObserver(([entry]) => {
+      if (!entry.isIntersecting) return;
+      _obsS.disconnect();
+      delete sbodyS._visObs;
+      _startAnimS();
+    }, { threshold: 0 });
+    sbodyS._visObs = _obsS;
+    _obsS.observe(sbodyS);
   } else {
     delete _replayFns['songs'];
     sbodyS.innerHTML = currPairsS.flatMap(p => p).join('');
@@ -7554,9 +7563,10 @@ function renderArtists(plays, peaks, monthlyStats) {
   const sbodyA = document.getElementById('artistsBody');
   if (_animArtists) {
     const _capPrevA = _animPrevPlays, _capCurrA = _animCurrentPlays;
+    const _prevEntriesA = buildPrevSortedEntries(_capPrevA, 'artists');
+    sbodyA.innerHTML = buildPrevChartHtml(_prevEntriesA, sorted.length, colCount, 'artists');
     const _startAnimA = () => {
       if (sbodyA._swToken) sbodyA._swToken.cancelled = true;
-      const _prevEntriesA = buildPrevSortedEntries(_capPrevA, 'artists');
       sbodyA.innerHTML = buildPrevChartHtml(_prevEntriesA, sorted.length, colCount, 'artists');
       loadImages(_prevEntriesA.map((e, i) => ({ imgId: `pwaimg-${i}`, name: e.name, prefKey: 'artist:' + e.name.toLowerCase() })), 'artist');
       runSlideWindowAnim(sbodyA, 'artists', _capPrevA, _capCurrA, () => {
@@ -7571,7 +7581,15 @@ function renderArtists(plays, peaks, monthlyStats) {
       });
     };
     _replayFns['artists'] = _startAnimA;
-    _startAnimA();
+    if (sbodyA._visObs) sbodyA._visObs.disconnect();
+    const _obsA = new IntersectionObserver(([entry]) => {
+      if (!entry.isIntersecting) return;
+      _obsA.disconnect();
+      delete sbodyA._visObs;
+      _startAnimA();
+    }, { threshold: 0 });
+    sbodyA._visObs = _obsA;
+    _obsA.observe(sbodyA);
   } else {
     delete _replayFns['artists'];
     sbodyA.innerHTML = currPairsA.flatMap(p => p).join('');
@@ -7645,9 +7663,10 @@ function renderAlbums(plays, peaks, monthlyStats) {
     const sbodyL = document.getElementById('albumsBody');
     if (_animAlbums) {
       const _capPrevL = _animPrevPlays, _capCurrL = _animCurrentPlays;
+      const _prevEntriesL = buildPrevSortedEntries(_capPrevL, 'albums');
+      sbodyL.innerHTML = buildPrevChartHtml(_prevEntriesL, sorted.length, colCount, 'albums');
       const _startAnimL = () => {
         if (sbodyL._swToken) sbodyL._swToken.cancelled = true;
-        const _prevEntriesL = buildPrevSortedEntries(_capPrevL, 'albums');
         sbodyL.innerHTML = buildPrevChartHtml(_prevEntriesL, sorted.length, colCount, 'albums');
         loadImages(_prevEntriesL.map((e, i) => ({ imgId: `pwlimg-${i}`, album: e.album, artist: e.artist, name: e.album, prefKey: 'album:' + (e.album + '|||' + e.artist).toLowerCase() })), 'album');
         runSlideWindowAnim(sbodyL, 'albums', _capPrevL, _capCurrL, () => {
@@ -7662,7 +7681,15 @@ function renderAlbums(plays, peaks, monthlyStats) {
         });
       };
       _replayFns['albums'] = _startAnimL;
-      _startAnimL();
+      if (sbodyL._visObs) sbodyL._visObs.disconnect();
+      const _obsL = new IntersectionObserver(([entry]) => {
+        if (!entry.isIntersecting) return;
+        _obsL.disconnect();
+        delete sbodyL._visObs;
+        _startAnimL();
+      }, { threshold: 0 });
+      sbodyL._visObs = _obsL;
+      _obsL.observe(sbodyL);
     } else {
       delete _replayFns['albums'];
       sbodyL.innerHTML = currPairsL.flatMap(p => p).join('');
