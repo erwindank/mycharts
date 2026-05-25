@@ -16204,6 +16204,7 @@ async function _awardsGetCandidates(catDef, eligStart, eligEnd) {
     for (const { k, album, artist } of candidates) {
       const releaseYear = _awardsAlbumYearCache[album.toLowerCase() + '|||' + artist.toLowerCase()];
       if (releaseYear !== null && releaseYear >= awardsYear) delete m[k];
+      else if (m[k]) m[k].releaseYear = releaseYear;
     }
     return _awardsTopN(m, 20, 2);
   }
@@ -16442,7 +16443,7 @@ function _awardsShowPicker(year, catId, candidates) {
         return `<label class="awards-picker-row${existing.has(ik) ? ' checked' : ''}">
           <input type="checkbox" ${chk} data-item='${esc(JSON.stringify(item))}'>
           <span class="awards-picker-lbl">${esc(lbl(item))}</span>
-          ${sub(item) ? `<span class="awards-picker-sub">${esc(sub(item))}</span>` : ''}
+          ${sub(item) ? `<span class="awards-picker-sub">${esc(sub(item))}${item.releaseYear ? ' · ' + item.releaseYear : item.releaseYear === null ? ' · year unknown' : ''}</span>` : ''}
           <span class="awards-picker-plays">${item.playLabel || item.plays + ' plays'}</span>
         </label>`;
       }).join('')
