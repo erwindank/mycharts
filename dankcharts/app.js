@@ -7707,25 +7707,40 @@ function renderDropouts(plays, periodStats) {
   dropoutsSubtitle.dataset.i18nN = chartSize;
   dropoutsSubtitle.textContent = t('sub_dropouts', { n: chartSize });
 
-  // Current week's chart keys
-  const curSongKeys = new Set();
-  const sc = {};
-  for (const p of plays) { const k = songKey(p); sc[k] = (sc[k] || 0) + 1; }
-  Object.entries(sc).sort((a, b) => b[1] - a[1]).slice(0, chartSize).forEach(([k]) => curSongKeys.add(k));
-
-  const curArtistKeys = new Set();
-  const ac = {};
-  for (const p of plays) { for (const a of p.artists) ac[a] = (ac[a] || 0) + 1; }
-  Object.entries(ac).sort((a, b) => b[1] - a[1]).slice(0, chartSize).forEach(([k]) => curArtistKeys.add(k));
-
-  const curAlbumKeys = new Set();
-  const lc = {};
+  // Current week's chart keys — must use rankSortWithStatus to match main chart tiebreakers
+  const sc = {}, ac = {}, lc = {};
   for (const p of plays) {
-    if (!p.album || p.album === '—') continue;
-    const k = p.album + '|||' + albumArtist(p);
-    lc[k] = (lc[k] || 0) + 1;
+    const sk = songKey(p);
+    if (!sc[sk]) sc[sk] = { count: 0, firstAchieved: p.date };
+    sc[sk].count++;
+    for (const a of p.artists) {
+      if (!ac[a]) ac[a] = { count: 0, firstAchieved: p.date };
+      ac[a].count++;
+    }
+    if (p.album && p.album !== '—') {
+      const ak = p.album + '|||' + albumArtist(p);
+      if (!lc[ak]) lc[ak] = { count: 0, firstAchieved: p.date };
+      lc[ak].count++;
+    }
   }
-  Object.entries(lc).sort((a, b) => b[1] - a[1]).slice(0, chartSize).forEach(([k]) => curAlbumKeys.add(k));
+  for (const [k, d] of Object.entries(sc)) {
+    const prev = periodStats.prevChart.songs[k];
+    d.chartStatus = prev !== undefined ? 0 : periodStats.everChartedBefore.songs.has(k) ? 1 : 2;
+    d.prevRank = prev !== undefined ? prev.rank : Infinity;
+  }
+  for (const [k, d] of Object.entries(ac)) {
+    const prev = periodStats.prevChart.artists[k];
+    d.chartStatus = prev !== undefined ? 0 : periodStats.everChartedBefore.artists.has(k) ? 1 : 2;
+    d.prevRank = prev !== undefined ? prev.rank : Infinity;
+  }
+  for (const [k, d] of Object.entries(lc)) {
+    const prev = periodStats.prevChart.albums[k];
+    d.chartStatus = prev !== undefined ? 0 : periodStats.everChartedBefore.albums.has(k) ? 1 : 2;
+    d.prevRank = prev !== undefined ? prev.rank : Infinity;
+  }
+  const curSongKeys = new Set(Object.entries(sc).sort(([, a], [, b]) => rankSortWithStatus(a, b)).slice(0, chartSize).map(([k]) => k));
+  const curArtistKeys = new Set(Object.entries(ac).sort(([, a], [, b]) => rankSortWithStatus(a, b)).slice(0, chartSize).map(([k]) => k));
+  const curAlbumKeys = new Set(Object.entries(lc).sort(([, a], [, b]) => rankSortWithStatus(a, b)).slice(0, chartSize).map(([k]) => k));
 
   // Dropouts: in previous week's chart but not in this week's
   const dropSongs = Object.entries(periodStats.prevChart.songs)
@@ -10951,7 +10966,7 @@ async function fetchAllReleasesRaw(mbid) {
   try {
     const d = await mbFetch(`release-group?artist=${mbid}&type=album%7Cep%7Csingle&fmt=json&limit=100`);
     _mbReleasesCache[mbid] = d['release-groups'] || [];
-  } catch (e) {} // don't cache errors — allows retry if rate-limited
+  } catch (e) { return []; } // don't cache errors — allows retry if rate-limited
   return _mbReleasesCache[mbid];
 }
 
@@ -15857,7 +15872,7 @@ const COLLAB_EXCEPTIONS = [
   'Of Monsters and Men', 'Panic! at the Disco', 'Portugal. The Man',
 ];
 
-let _awardsYear     = tzNow().getFullYear();
+let _awardsYear     = tzNow().getFullYear() - 1;
 let _awardsYearData = {};
 let _awardsSubTab   = 'mygrammys';
 let _awardsGenreCache = {};
