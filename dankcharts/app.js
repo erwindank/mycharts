@@ -16187,7 +16187,6 @@ async function _awardsGetCandidates(catDef, eligStart, eligEnd) {
     const candidates = Object.entries(m).map(([k, v]) => ({ k, ...v }));
     await Promise.all(candidates.map(c => _awardsGetAlbumYear(c.album, c.artist)));
     for (const { k, album, artist } of candidates) {
-      if (priorPlays[k]) continue; // prior plays already prove album predates the awards year
       const releaseYear = _awardsAlbumYearCache[album.toLowerCase() + '|||' + artist.toLowerCase()];
       if (releaseYear !== null && releaseYear >= awardsYear) delete m[k];
     }
