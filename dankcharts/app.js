@@ -16097,9 +16097,9 @@ async function _awardsGetCandidates(catDef, eligStart, eligEnd) {
   }
   if (f === 'one_hit') {
     const as = {};
-    for (const p of inWin) { const k = _pk(p); if (!as[k]) as[k] = { artist: _pa(p), songs: new Set(), plays: 0 }; as[k].songs.add(_sk(p)); as[k].plays++; }
+    for (const p of inWin) { const k = _pk(p); const sk = _sk(p); if (!as[k]) as[k] = { artist: _pa(p), songPlays: {}, songTitles: {} }; as[k].songPlays[sk] = (as[k].songPlays[sk] || 0) + 1; as[k].songTitles[sk] = p.title; }
     const m = {};
-    for (const [k, v] of Object.entries(as)) { if (v.songs.size === 1) m[k] = { artist: v.artist, plays: v.plays }; }
+    for (const [k, v] of Object.entries(as)) { const hits = Object.entries(v.songPlays).filter(([, c]) => c >= 10); if (hits.length === 1) { const [sk, plays] = hits[0]; m[k] = { artist: v.artist, song: v.songTitles[sk], plays }; } }
     return _awardsTopN(m, 20, 1);
   }
   if (f === 'late_disc') {
@@ -16239,7 +16239,7 @@ function _awardsRenderCatCard(cat, catData, year) {
     bodyHtml = nominees.map(item => {
       const ik  = _awardItemKey(item);
       const lbl = item.title || item.album || item.artist || '';
-      const sub = item.title ? item.artist : (item.album ? item.artist : '');
+      const sub = item.title ? item.artist : (item.album ? item.artist : (item.song || ''));
       return `<div class="awards-nominee-row${ik === winnerKey ? ' is-winner' : ''}" onclick="awardsPickWinner(${year},'${esc(cat.id)}',${esc(JSON.stringify(item))})">
         <span class="awards-nominee-icon">${ik === winnerKey ? '🏆' : '○'}</span>
         <span class="awards-nominee-label">${esc(lbl)}</span>
@@ -16341,7 +16341,7 @@ function _awardsShowPicker(year, catId, candidates) {
   if (!catDef) return;
   const existing = new Set((data.categories[catId]?.nominees || []).map(n => _awardItemKey(n)));
   const lbl = item => item.title || item.album || item.artist || '';
-  const sub = item => item.title ? item.artist : (item.album ? item.artist : '');
+  const sub = item => item.title ? item.artist : (item.album ? item.artist : (item.song || ''));
 
   const rows = candidates.length
     ? candidates.map(item => {
@@ -16547,7 +16547,7 @@ function _ceremonyDrawStage(data, idx) {
   document.getElementById('ceremonyNominees').innerHTML = nominees.map(n => {
     const nik = _awardItemKey(n);
     const lbl = n.title || n.album || n.artist || '';
-    const sub = n.title ? n.artist : (n.album ? n.artist : '');
+    const sub = n.title ? n.artist : (n.album ? n.artist : (n.song || ''));
     return `<div class="ceremony-nominee-row${nik === wk ? ' is-winner' : ''}">
       <span class="ceremony-nom-dot">${nik === wk ? '🏆' : '○'}</span>
       <span class="ceremony-nom-lbl">${esc(lbl)}</span>
