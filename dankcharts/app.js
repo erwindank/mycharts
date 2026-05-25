@@ -15988,11 +15988,13 @@ async function _awardsGetAlbumYear(album, artist) {
   const key = album.toLowerCase() + '|||' + artist.toLowerCase();
   if (key in _awardsAlbumYearCache) return _awardsAlbumYearCache[key];
   const albumL  = album.toLowerCase();
-  const artistW = artist.toLowerCase().split(/[\s,&]/)[0];
+  // Strip collab artists (everything after the first comma, feat., ft., &) for API queries
+  const primaryArtist = artist.split(/,|\s*&\s*|\s+(?:feat\.?|ft\.?)\s+/i)[0].trim();
+  const artistW = primaryArtist.toLowerCase().split(/\s+/)[0];
 
   // 1. iTunes
   try {
-    const q = encodeURIComponent(artist + ' ' + album);
+    const q = encodeURIComponent(primaryArtist + ' ' + album);
     const r = await fetch(`https://itunes.apple.com/search?term=${q}&entity=album&limit=10`);
     const d = await r.json();
     const results = d?.results || [];
@@ -16009,7 +16011,7 @@ async function _awardsGetAlbumYear(album, artist) {
 
   // 2. Deezer
   try {
-    const r = await deezerFetch(`search/album?q=${encodeURIComponent(artist + ' ' + album)}&limit=10`);
+    const r = await deezerFetch(`search/album?q=${encodeURIComponent(primaryArtist + ' ' + album)}&limit=10`);
     if (r.ok) {
       const d = await r.json();
       const items = d?.data || [];
@@ -16027,7 +16029,7 @@ async function _awardsGetAlbumYear(album, artist) {
 
   // 3. MusicBrainz
   try {
-    const mbid = await searchArtistMBID(artist);
+    const mbid = await searchArtistMBID(primaryArtist);
     if (mbid) {
       const groups = await fetchAllReleasesRaw(mbid);
       const match = groups.find(g => g.title?.toLowerCase() === albumL)
