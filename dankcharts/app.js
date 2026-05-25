@@ -15814,42 +15814,42 @@ function tmToggleType(type) {
 
 const AWARD_CATEGORIES = [
   // Core — always have data
-  { id: 'song_of_year',      label: 'Song of the Year',           type: 'song',   filter: 'all',         defaultOn: true  },
-  { id: 'album_of_year',     label: 'Album of the Year',          type: 'album',  filter: 'all',         defaultOn: true  },
-  { id: 'artist_of_year',    label: 'Artist of the Year',         type: 'artist', filter: 'all',         defaultOn: true  },
-  { id: 'new_artist',        label: 'New Artist of the Year',     type: 'artist', filter: 'new',         defaultOn: true  },
-  { id: 'best_collab',       label: 'Best Collaboration',         type: 'song',   filter: 'collab',      defaultOn: true  },
-  { id: 'best_duo',          label: 'Best Duo',                   type: 'song',   filter: 'duo',         defaultOn: false },
-  { id: 'song_summer',       label: 'Song of the Summer',         type: 'song',   filter: 'summer',      defaultOn: true  },
-  { id: 'best_comeback',     label: 'Best Comeback',              type: 'artist', filter: 'comeback',    defaultOn: true  },
-  { id: 'best_discovery',    label: 'Best Discovery',             type: 'artist', filter: 'discovery',   defaultOn: true  },
-  { id: 'most_growth',       label: 'Most Growth',                type: 'artist', filter: 'growth',      defaultOn: false },
-  { id: 'obsessive_play',    label: 'Most Obsessive Play',        type: 'song',   filter: 'spike',       defaultOn: true  },
-  { id: 'streak_song',       label: 'Streak Award',               type: 'song',   filter: 'streak',      defaultOn: false },
-  { id: 'one_hit_wonder',    label: 'One-Hit Wonder of the Year', type: 'artist', filter: 'one_hit',     defaultOn: false },
-  { id: 'best_remix',        label: 'Best Remix',                 type: 'song',   filter: 'remix',       defaultOn: false },
-  { id: 'late_discovery',    label: 'Album You Discovered Late',  type: 'album',  filter: 'late_disc',   defaultOn: false },
+  { id: 'song_of_year',      label: 'Song of the Year',           type: 'song',   filter: 'all',         defaultOn: true,  emoji: '🎵' },
+  { id: 'album_of_year',     label: 'Album of the Year',          type: 'album',  filter: 'all',         defaultOn: true,  emoji: '💿' },
+  { id: 'artist_of_year',    label: 'Artist of the Year',         type: 'artist', filter: 'all',         defaultOn: true,  emoji: '🎤' },
+  { id: 'new_artist',        label: 'New Artist of the Year',     type: 'artist', filter: 'new',         defaultOn: true,  emoji: '🌱' },
+  { id: 'best_collab',       label: 'Best Collaboration',         type: 'song',   filter: 'collab',      defaultOn: true,  emoji: '🤝' },
+  { id: 'best_duo',          label: 'Best Duo',                   type: 'song',   filter: 'duo',         defaultOn: false, emoji: '👥' },
+  { id: 'song_summer',       label: 'Song of the Summer',         type: 'song',   filter: 'summer',      defaultOn: true,  emoji: '🏖️' },
+  { id: 'best_comeback',     label: 'Best Comeback',              type: 'artist', filter: 'comeback',    defaultOn: true,  emoji: '💪' },
+  { id: 'best_discovery',    label: 'Best Discovery',             type: 'artist', filter: 'discovery',   defaultOn: true,  emoji: '🔭' },
+  { id: 'most_growth',       label: 'Most Growth',                type: 'artist', filter: 'growth',      defaultOn: false, emoji: '📈' },
+  { id: 'obsessive_play',    label: 'Most Obsessive Play',        type: 'song',   filter: 'spike',       defaultOn: true,  emoji: '🔁' },
+  { id: 'streak_song',       label: 'Streak Award',               type: 'song',   filter: 'streak',      defaultOn: false, emoji: '🔥' },
+  { id: 'one_hit_wonder',    label: 'One-Hit Wonder of the Year', type: 'artist', filter: 'one_hit',     defaultOn: false, emoji: '⚡' },
+  { id: 'best_remix',        label: 'Best Remix',                 type: 'song',   filter: 'remix',       defaultOn: false, emoji: '🎚️' },
+  { id: 'late_discovery',    label: 'Album You Discovered Late',  type: 'album',  filter: 'late_disc',   defaultOn: false, emoji: '🕰️' },
   // Genre-based songs (opt-in)
-  { id: 'best_pop_song',     label: 'Best Pop Song',              type: 'song',   filter: 'genre:pop',         defaultOn: false },
-  { id: 'best_rock_song',    label: 'Best Rock Song',             type: 'song',   filter: 'genre:rock',        defaultOn: false },
-  { id: 'best_alt_song',     label: 'Best Alternative Song',      type: 'song',   filter: 'genre:alternative', defaultOn: false },
-  { id: 'best_hiphop_song',  label: 'Best Hip-Hop/Rap Song',      type: 'song',   filter: 'genre:hip-hop',     defaultOn: false },
-  { id: 'best_rnb_song',     label: 'Best R&B/Soul Song',         type: 'song',   filter: 'genre:rnb',         defaultOn: false },
-  { id: 'best_latin_song',   label: 'Best Latin Song',            type: 'song',   filter: 'genre:latin',       defaultOn: false },
-  { id: 'best_electronic',   label: 'Best Electronic/Dance Song', type: 'song',   filter: 'genre:electronic',  defaultOn: false },
-  { id: 'best_kpop_song',    label: 'Best K-Pop Song',            type: 'song',   filter: 'genre:k-pop',       defaultOn: false },
-  { id: 'best_nonenglish',   label: 'Best Non-English Song',      type: 'song',   filter: 'nonenglish',        defaultOn: false },
+  { id: 'best_pop_song',     label: 'Best Pop Song',              type: 'song',   filter: 'genre:pop',         defaultOn: false, emoji: '🎀' },
+  { id: 'best_rock_song',    label: 'Best Rock Song',             type: 'song',   filter: 'genre:rock',        defaultOn: false, emoji: '🎸' },
+  { id: 'best_alt_song',     label: 'Best Alternative Song',      type: 'song',   filter: 'genre:alternative', defaultOn: false, emoji: '🤘' },
+  { id: 'best_hiphop_song',  label: 'Best Hip-Hop/Rap Song',      type: 'song',   filter: 'genre:hip-hop',     defaultOn: false, emoji: '🎧' },
+  { id: 'best_rnb_song',     label: 'Best R&B/Soul Song',         type: 'song',   filter: 'genre:rnb',         defaultOn: false, emoji: '🎷' },
+  { id: 'best_latin_song',   label: 'Best Latin Song',            type: 'song',   filter: 'genre:latin',       defaultOn: false, emoji: '💃' },
+  { id: 'best_electronic',   label: 'Best Electronic/Dance Song', type: 'song',   filter: 'genre:electronic',  defaultOn: false, emoji: '🪩' },
+  { id: 'best_kpop_song',    label: 'Best K-Pop Song',            type: 'song',   filter: 'genre:k-pop',       defaultOn: false, emoji: '💜' },
+  { id: 'best_nonenglish',   label: 'Best Non-English Song',      type: 'song',   filter: 'nonenglish',        defaultOn: false, emoji: '🌍' },
   // Genre-based albums (opt-in)
-  { id: 'best_pop_album',    label: 'Best Pop Album',             type: 'album',  filter: 'genre:pop',         defaultOn: false },
-  { id: 'best_rock_album',   label: 'Best Rock Album',            type: 'album',  filter: 'genre:rock',        defaultOn: false },
-  { id: 'best_alt_album',    label: 'Best Alternative Album',     type: 'album',  filter: 'genre:alternative', defaultOn: false },
-  { id: 'best_hiphop_album', label: 'Best Hip-Hop Album',         type: 'album',  filter: 'genre:hip-hop',     defaultOn: false },
-  { id: 'best_latin_album',  label: 'Best Latin Album',           type: 'album',  filter: 'genre:latin',       defaultOn: false },
-  { id: 'best_kpop_album',   label: 'Best K-Pop Album',           type: 'album',  filter: 'genre:k-pop',       defaultOn: false },
+  { id: 'best_pop_album',    label: 'Best Pop Album',             type: 'album',  filter: 'genre:pop',         defaultOn: false, emoji: '🎀' },
+  { id: 'best_rock_album',   label: 'Best Rock Album',            type: 'album',  filter: 'genre:rock',        defaultOn: false, emoji: '🎸' },
+  { id: 'best_alt_album',    label: 'Best Alternative Album',     type: 'album',  filter: 'genre:alternative', defaultOn: false, emoji: '🤘' },
+  { id: 'best_hiphop_album', label: 'Best Hip-Hop Album',         type: 'album',  filter: 'genre:hip-hop',     defaultOn: false, emoji: '🎧' },
+  { id: 'best_latin_album',  label: 'Best Latin Album',           type: 'album',  filter: 'genre:latin',       defaultOn: false, emoji: '💃' },
+  { id: 'best_kpop_album',   label: 'Best K-Pop Album',           type: 'album',  filter: 'genre:k-pop',       defaultOn: false, emoji: '💜' },
   // Stat awards (auto-awarded)
-  { id: 'stat_top_song',     label: 'Most Played Song',           type: 'song',   filter: 'stat',        defaultOn: true,  auto: true },
-  { id: 'stat_top_album',    label: 'Most Played Album',          type: 'album',  filter: 'stat',        defaultOn: true,  auto: true },
-  { id: 'stat_top_artist',   label: 'Most Played Artist',         type: 'artist', filter: 'stat',        defaultOn: true,  auto: true },
+  { id: 'stat_top_song',     label: 'Most Played Song',           type: 'song',   filter: 'stat',        defaultOn: true,  auto: true, emoji: '🎶' },
+  { id: 'stat_top_album',    label: 'Most Played Album',          type: 'album',  filter: 'stat',        defaultOn: true,  auto: true, emoji: '📀' },
+  { id: 'stat_top_artist',   label: 'Most Played Artist',         type: 'artist', filter: 'stat',        defaultOn: true,  auto: true, emoji: '⭐' },
 ];
 
 const COLLAB_EXCEPTIONS = [
@@ -16222,7 +16222,7 @@ function _awardsRenderCatCard(cat, catData, year) {
   const nominees  = catData.nominees || [];
   const winner    = catData.winner   || null;
   const winnerKey = winner ? _awardItemKey(winner) : null;
-  const emoji     = { song: '🎵', album: '💿', artist: '🎤' }[cat.type] || '🏆';
+  const emoji     = cat.emoji || { song: '🎵', album: '💿', artist: '🎤' }[cat.type] || '🏆';
 
   let bodyHtml = '';
   if (cat.auto && nominees.length) {
