@@ -15862,6 +15862,7 @@ let _awardsYearData = {};
 let _awardsSubTab   = 'mygrammys';
 let _awardsGenreCache = {};
 let _awardsGenreQueue = {};
+const _awardsAlbumYearCache = {};
 let _realLifeYear   = tzNow().getFullYear();
 
 function _awardsDefaultData(year) {
@@ -15966,6 +15967,66 @@ async function _awardsGetArtistGenre(artist) {
     return tags;
   }).catch(() => { _awardsGenreCache[key] = []; delete _awardsGenreQueue[key]; return []; });
   return _awardsGenreQueue[key];
+}
+
+async function _awardsGetAlbumYear(album, artist) {
+  const key = album.toLowerCase() + '|||' + artist.toLowerCase();
+  if (key in _awardsAlbumYearCache) return _awardsAlbumYearCache[key];
+  const albumL  = album.toLowerCase();
+  const artistW = artist.toLowerCase().split(/[\s,&]/)[0];
+
+  // 1. iTunes
+  try {
+    const q = encodeURIComponent(artist + ' ' + album);
+    const r = await fetch(`https://itunes.apple.com/search?term=${q}&entity=album&limit=10`);
+    const d = await r.json();
+    const results = d?.results || [];
+    const match = results.find(x =>
+      x.collectionName?.toLowerCase().includes(albumL) &&
+      x.artistName?.toLowerCase().includes(artistW)
+    ) || results[0];
+    if (match?.releaseDate) {
+      const year = new Date(match.releaseDate).getFullYear();
+      _awardsAlbumYearCache[key] = year;
+      return year;
+    }
+  } catch (e) {}
+
+  // 2. Deezer
+  try {
+    const r = await deezerFetch(`search/album?q=${encodeURIComponent(artist + ' ' + album)}&limit=10`);
+    if (r.ok) {
+      const d = await r.json();
+      const items = d?.data || [];
+      const match = items.find(x =>
+        x.title?.toLowerCase().includes(albumL) &&
+        x.artist?.name?.toLowerCase().includes(artistW)
+      ) || items[0];
+      const year = match?.release_date ? parseInt(match.release_date.slice(0, 4), 10) : null;
+      if (year) {
+        _awardsAlbumYearCache[key] = year;
+        return year;
+      }
+    }
+  } catch (e) {}
+
+  // 3. MusicBrainz
+  try {
+    const mbid = await searchArtistMBID(artist);
+    if (mbid) {
+      const groups = await fetchAllReleasesRaw(mbid);
+      const match = groups.find(g => g.title?.toLowerCase() === albumL)
+        || groups.find(g => g.title?.toLowerCase().includes(albumL));
+      const year = match?.['first-release-date'] ? parseInt(match['first-release-date'].slice(0, 4), 10) : null;
+      if (year) {
+        _awardsAlbumYearCache[key] = year;
+        return year;
+      }
+    }
+  } catch (e) {}
+
+  _awardsAlbumYearCache[key] = null;
+  return null;
 }
 
 function _genreMatch(tags, filterStr) {
@@ -16112,6 +16173,15 @@ async function _awardsGetCandidates(catDef, eligStart, eligEnd) {
       if (!first || first < start) continue;
       m[k] = m[k] || { album: p.album, artist: p.artist, plays: 0 };
       m[k].plays++;
+    }
+    // Fetch release years from iTunes for all candidates, then exclude albums
+    // released during the awards year itself (those aren't late discoveries).
+    const awardsYear = start.getFullYear();
+    const candidates = Object.entries(m).map(([k, v]) => ({ k, ...v }));
+    await Promise.all(candidates.map(c => _awardsGetAlbumYear(c.album, c.artist)));
+    for (const { k, album, artist } of candidates) {
+      const releaseYear = _awardsAlbumYearCache[album.toLowerCase() + '|||' + artist.toLowerCase()];
+      if (releaseYear !== null && releaseYear >= awardsYear) delete m[k];
     }
     return _awardsTopN(m, 20, 2);
   }
