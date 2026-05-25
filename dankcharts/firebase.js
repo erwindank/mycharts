@@ -18,7 +18,8 @@ const SYNC_KEYS = [
   'dc_lfm_api_secret', 'dc_lfm_session_key', 'dc_lfm_session_user',
   'dc_display_name', 'dc_timezone', 'dc_cert_config',
   'dc_events_artist_limit', 'dc_theme', 'dc_lang',
-  'dc_autocorrect_rules', 'dc_no_artist_split', 'dc_tm_api_key'
+  'dc_autocorrect_rules', 'dc_no_artist_split', 'dc_tm_api_key',
+  'dc_tm_toggles'
 ];
 
 let _auth = null;
@@ -79,6 +80,30 @@ async function dcSaveRulesToFirestore(rulesJson) {
 
 function _eventsCacheRef(uid) {
   return _db.collection('users').doc(uid).collection('data').doc('eventsCache');
+}
+
+function _awardsRef(uid, year) {
+  return _db.collection('users').doc(uid).collection('data').doc(`awards_${year}`);
+}
+
+async function dcSaveAwards(year, data) {
+  if (!_currentUser || !_db) return;
+  try {
+    await _awardsRef(_currentUser.uid, year).set(data);
+  } catch (err) {
+    console.warn('[dankcharts] Awards save error:', err);
+  }
+}
+
+async function dcLoadAwards(year) {
+  if (!_currentUser || !_db) return null;
+  try {
+    const snap = await _awardsRef(_currentUser.uid, year).get();
+    return snap.exists ? snap.data() : null;
+  } catch (err) {
+    console.warn('[dankcharts] Awards load error:', err);
+    return null;
+  }
 }
 
 async function dcSaveEventsCache(data) {
@@ -156,6 +181,8 @@ window.dcSaveUserConfig        = dcSaveUserConfig;
 window.dcSaveRulesToFirestore  = dcSaveRulesToFirestore;
 window.dcSaveEventsCache       = dcSaveEventsCache;
 window.dcLoadEventsCache       = dcLoadEventsCache;
+window.dcSaveAwards            = dcSaveAwards;
+window.dcLoadAwards            = dcLoadAwards;
 
 // ── INIT ────────────────────────────────────────────────────────────────────
 firebase.initializeApp(firebaseConfig);

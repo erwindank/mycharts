@@ -4244,6 +4244,7 @@ document.getElementById('periodNav').addEventListener('click', e => {
     document.getElementById('rawDataView').style.display = 'none';
     document.getElementById('graphsView').style.display = 'none';
     document.getElementById('recordsView').style.display = 'none';
+    document.getElementById('awardsView').style.display = 'none';
     document.getElementById('eventsView').style.display = 'block';
     const sel = document.getElementById('eventsLimitSelect');
     if (sel) sel.value = eventsArtistLimit;
@@ -4265,8 +4266,40 @@ document.getElementById('periodNav').addEventListener('click', e => {
     return;
   }
 
-  // Leaving raw data, graphs, records, or events view — restore chart UI
-  if (currentPeriod === 'rawdata' || currentPeriod === 'graphs' || currentPeriod === 'records' || currentPeriod === 'events') {
+  if (btn.dataset.period === 'awards') {
+    savedOffsets[currentPeriod] = currentOffset;
+    currentPeriod = 'awards';
+    localStorage.setItem('dc_period', currentPeriod);
+    document.getElementById('chartSizeBar').style.display = 'none';
+    document.getElementById('paginatedSizeBar').style.display = 'none';
+    document.getElementById('chartDisplayToggles').style.display = 'none';
+    document.getElementById('exportPlaylistBtn').style.display = 'none';
+    document.getElementById('dateNav').style.display = 'none';
+    document.getElementById('navHint').style.display = 'none';
+    document.getElementById('statsStrip').style.display = 'none';
+    document.getElementById('statsStrip2').style.display = 'none';
+    const _s3aw = document.getElementById('statsStrip3'); if (_s3aw) _s3aw.style.display = 'none';
+    document.getElementById('songsSection').style.display = 'none';
+    document.getElementById('artistsSection').style.display = 'none';
+    document.getElementById('albumsSection').style.display = 'none';
+    document.getElementById('dropoutsSection').style.display = 'none';
+    NEW_ENTRY_SECTIONS.forEach(id => { const el = document.getElementById(id); if (el) el.style.display = 'none'; });
+    document.getElementById('upcomingSection').style.display = 'none';
+    document.getElementById('recentSection').style.display = 'none';
+    document.getElementById('rawDataView').style.display = 'none';
+    document.getElementById('graphsView').style.display = 'none';
+    document.getElementById('recordsView').style.display = 'none';
+    document.getElementById('eventsView').style.display = 'none';
+    const _tmAw = document.getElementById('timeMachineSection'); if (_tmAw) _tmAw.style.display = 'none';
+    document.getElementById('awardsView').style.display = 'block';
+    awardsInit();
+    if (typeof window._refreshBackToTop === 'function') window._refreshBackToTop();
+    updateScrobbleBtn();
+    return;
+  }
+
+  // Leaving raw data, graphs, records, events, or awards view — restore chart UI
+  if (currentPeriod === 'rawdata' || currentPeriod === 'graphs' || currentPeriod === 'records' || currentPeriod === 'events' || currentPeriod === 'awards') {
     document.getElementById('dateNav').style.display = '';
     document.getElementById('navHint').style.display = '';
     document.getElementById('statsStrip').style.display = '';
@@ -4285,6 +4318,7 @@ document.getElementById('periodNav').addEventListener('click', e => {
     document.getElementById('graphsView').style.display = 'none';
     document.getElementById('recordsView').style.display = 'none';
     document.getElementById('eventsView').style.display = 'none';
+    document.getElementById('awardsView').style.display = 'none';
     if (currentPeriod === 'graphs') destroyGraphCharts();
   }
 
@@ -4304,7 +4338,7 @@ document.getElementById('periodNav').addEventListener('click', e => {
     });
   }
 
-  savedOffsets[(currentPeriod === 'rawdata' || currentPeriod === 'graphs' || currentPeriod === 'records' || currentPeriod === 'events') ? btn.dataset.period : currentPeriod] = currentOffset;
+  savedOffsets[(currentPeriod === 'rawdata' || currentPeriod === 'graphs' || currentPeriod === 'records' || currentPeriod === 'events' || currentPeriod === 'awards') ? btn.dataset.period : currentPeriod] = currentOffset;
   currentPeriod = btn.dataset.period;
   localStorage.setItem('dc_period', currentPeriod);
   currentOffset = savedOffsets[currentPeriod];
@@ -5166,7 +5200,9 @@ function renderAll() {
       if (cnt > bestDayCount) { bestDay = dk; bestDayCount = cnt; }
     }
     const _mos = ['month_jan','month_feb','month_mar','month_apr','month_may_short','month_jun','month_jul','month_aug','month_sep','month_oct','month_nov','month_dec'].map(k => t(k).toUpperCase());
-    const bestDayLabel = bestDay ? (() => { const [, m, d] = bestDay.split('-').map(Number); return _mos[m - 1] + ' ' + d; })() : null;
+    const _mosLong = ['month_january','month_february','month_march','month_april','month_may','month_june','month_july','month_august','month_september','month_october','month_november','month_december'].map(k => t(k).toUpperCase());
+    const _dows = ['day_sunday','day_monday','day_tuesday','day_wednesday','day_thursday','day_friday','day_saturday'].map(k => t(k).toUpperCase());
+    const bestDayLabel = bestDay ? (() => { const [y, m, d] = bestDay.split('-').map(Number); const dow = new Date(y, m - 1, d).getDay(); const monSpan = `<span class="bd-month-short">${_mos[m-1]}</span><span class="bd-month-long">${_mosLong[m-1]}</span>`; const datePart = currentLang === 'en' ? monSpan + ' ' + d : d + ' ' + monSpan; return _dows[dow] + ' ' + datePart; })() : null;
     const bestDayBox = bestDay
       ? `<div class="stat-box stat-box-sub stat-clickable" onclick="dcScrollTo('songsSection')" title="Jump to section" data-cat="bestday">
           <div class="stat-cat-icon">📅</div>
@@ -9302,6 +9338,7 @@ modal.addEventListener('click', e => { if (e.target === modal) modal.classList.r
 const artistsBody = document.getElementById('artistsBody');
 if (artistsBody) {
   artistsBody.addEventListener('click', e => {
+    if (window.getSelection && window.getSelection().toString().length > 0) return;
     let artistRow = e.target.closest('.artist-row');
     if (!artistRow || e.target.closest('button')) return;
     const artistName = artistRow.dataset.artist;
@@ -10339,6 +10376,7 @@ albumModal.addEventListener('click', e => { if (e.target === albumModal) albumMo
 const albumsBody = document.getElementById('albumsBody');
 if (albumsBody) {
   albumsBody.addEventListener('click', e => {
+    if (window.getSelection && window.getSelection().toString().length > 0) return;
     let albumRow = e.target.closest('.album-row');
     if (!albumRow || e.target.closest('button')) return;
     const albumKey = albumRow.dataset.albumkey;
@@ -10870,8 +10908,8 @@ function sortUpcomingReleases(releases) {
 async function loadUpcomingReleases(forceRefresh = false) {
   if (!allPlays.length) return;
 
-  // Show the section only on chart tabs (not events/graphs/rawdata/records/alltime/year)
-  if (!['events', 'graphs', 'rawdata', 'records', 'alltime', 'year'].includes(currentPeriod)) {
+  // Show the section only on chart tabs (not events/graphs/rawdata/records/awards/alltime/year)
+  if (!['events', 'graphs', 'rawdata', 'records', 'awards', 'alltime', 'year'].includes(currentPeriod)) {
     const el = document.getElementById('upcomingSection');
     el.style.display = '';
     const savedCollapsed = localStorage.getItem('dc_section_collapsed_upcomingSection') === '1';
@@ -11016,8 +11054,8 @@ function sortRecentReleases(releases) {
 async function loadRecentReleases(forceRefresh = false) {
   if (!allPlays.length) return;
 
-  // Show the section only on chart tabs (not events/graphs/rawdata/records/alltime/year)
-  if (!['events', 'graphs', 'rawdata', 'records', 'alltime', 'year'].includes(currentPeriod)) {
+  // Show the section only on chart tabs (not events/graphs/rawdata/records/awards/alltime/year)
+  if (!['events', 'graphs', 'rawdata', 'records', 'awards', 'alltime', 'year'].includes(currentPeriod)) {
     const el = document.getElementById('recentSection');
     el.style.display = '';
     const savedCollapsed = localStorage.getItem('dc_section_collapsed_recentSection') === '1';
@@ -15397,7 +15435,11 @@ document.addEventListener('mouseout', e => {
 });
 
 // ─── TIME MACHINE ──────────────────────────────────────────────
-const tmToggles = { songs: true, artists: true, albums: true };
+const tmToggles = (() => {
+  const saved = localStorage.getItem('dc_tm_toggles');
+  if (saved) { try { return JSON.parse(saved); } catch (e) {} }
+  return { songs: true, artists: true, albums: true };
+})();
 let tmData = null;
 let tmImgQueue = Promise.resolve();
 let tmLoaderId = 0;
@@ -15469,6 +15511,11 @@ function renderTimeMachine(forceRebuild) {
   const section = document.getElementById('timeMachineSection');
   const track = document.getElementById('tmTickerTrack');
   if (!section || !track || !allPlays.length) return;
+
+  for (const type of ['songs', 'artists', 'albums']) {
+    const btn = document.getElementById('tmToggle' + type.charAt(0).toUpperCase() + type.slice(1));
+    if (btn) btn.classList.toggle('active', !!tmToggles[type]);
+  }
 
   const newData = buildTimeMachineData();
   const newHash = newData.songs.length + '|' + newData.artists.length + '|' + newData.albums.length;
@@ -15572,6 +15619,812 @@ function tmToggleType(type) {
   const id = 'tmToggle' + type.charAt(0).toUpperCase() + type.slice(1);
   const btn = document.getElementById(id);
   if (btn) btn.classList.toggle('active', tmToggles[type]);
+  localStorage.setItem('dc_tm_toggles', JSON.stringify(tmToggles));
+  if (typeof dcSaveUserConfig === 'function') dcSaveUserConfig();
   renderTimeMachine(true);
+}
+
+// ─── AWARDS ──────────────────────────────────────────────────────────────────
+
+const AWARD_CATEGORIES = [
+  // Core — always have data
+  { id: 'song_of_year',      label: 'Song of the Year',           type: 'song',   filter: 'all',         defaultOn: true  },
+  { id: 'album_of_year',     label: 'Album of the Year',          type: 'album',  filter: 'all',         defaultOn: true  },
+  { id: 'artist_of_year',    label: 'Artist of the Year',         type: 'artist', filter: 'all',         defaultOn: true  },
+  { id: 'new_artist',        label: 'New Artist of the Year',     type: 'artist', filter: 'new',         defaultOn: true  },
+  { id: 'best_collab',       label: 'Best Collaboration',         type: 'song',   filter: 'collab',      defaultOn: true  },
+  { id: 'best_duo',          label: 'Best Duo',                   type: 'song',   filter: 'duo',         defaultOn: false },
+  { id: 'song_summer',       label: 'Song of the Summer',         type: 'song',   filter: 'summer',      defaultOn: true  },
+  { id: 'best_comeback',     label: 'Best Comeback',              type: 'artist', filter: 'comeback',    defaultOn: true  },
+  { id: 'best_discovery',    label: 'Best Discovery',             type: 'artist', filter: 'discovery',   defaultOn: true  },
+  { id: 'most_growth',       label: 'Most Growth',                type: 'artist', filter: 'growth',      defaultOn: false },
+  { id: 'obsessive_play',    label: 'Most Obsessive Play',        type: 'song',   filter: 'spike',       defaultOn: true  },
+  { id: 'streak_song',       label: 'Streak Award',               type: 'song',   filter: 'streak',      defaultOn: false },
+  { id: 'one_hit_wonder',    label: 'One-Hit Wonder of the Year', type: 'artist', filter: 'one_hit',     defaultOn: false },
+  { id: 'best_remix',        label: 'Best Remix',                 type: 'song',   filter: 'remix',       defaultOn: false },
+  { id: 'late_discovery',    label: 'Album You Discovered Late',  type: 'album',  filter: 'late_disc',   defaultOn: false },
+  // Genre-based songs (opt-in)
+  { id: 'best_pop_song',     label: 'Best Pop Song',              type: 'song',   filter: 'genre:pop',         defaultOn: false },
+  { id: 'best_rock_song',    label: 'Best Rock Song',             type: 'song',   filter: 'genre:rock',        defaultOn: false },
+  { id: 'best_alt_song',     label: 'Best Alternative Song',      type: 'song',   filter: 'genre:alternative', defaultOn: false },
+  { id: 'best_hiphop_song',  label: 'Best Hip-Hop/Rap Song',      type: 'song',   filter: 'genre:hip-hop',     defaultOn: false },
+  { id: 'best_rnb_song',     label: 'Best R&B/Soul Song',         type: 'song',   filter: 'genre:rnb',         defaultOn: false },
+  { id: 'best_latin_song',   label: 'Best Latin Song',            type: 'song',   filter: 'genre:latin',       defaultOn: false },
+  { id: 'best_electronic',   label: 'Best Electronic/Dance Song', type: 'song',   filter: 'genre:electronic',  defaultOn: false },
+  { id: 'best_kpop_song',    label: 'Best K-Pop Song',            type: 'song',   filter: 'genre:k-pop',       defaultOn: false },
+  { id: 'best_nonenglish',   label: 'Best Non-English Song',      type: 'song',   filter: 'nonenglish',        defaultOn: false },
+  // Genre-based albums (opt-in)
+  { id: 'best_pop_album',    label: 'Best Pop Album',             type: 'album',  filter: 'genre:pop',         defaultOn: false },
+  { id: 'best_rock_album',   label: 'Best Rock Album',            type: 'album',  filter: 'genre:rock',        defaultOn: false },
+  { id: 'best_alt_album',    label: 'Best Alternative Album',     type: 'album',  filter: 'genre:alternative', defaultOn: false },
+  { id: 'best_hiphop_album', label: 'Best Hip-Hop Album',         type: 'album',  filter: 'genre:hip-hop',     defaultOn: false },
+  { id: 'best_latin_album',  label: 'Best Latin Album',           type: 'album',  filter: 'genre:latin',       defaultOn: false },
+  { id: 'best_kpop_album',   label: 'Best K-Pop Album',           type: 'album',  filter: 'genre:k-pop',       defaultOn: false },
+  // Stat awards (auto-awarded)
+  { id: 'stat_top_song',     label: 'Most Played Song',           type: 'song',   filter: 'stat',        defaultOn: true,  auto: true },
+  { id: 'stat_top_album',    label: 'Most Played Album',          type: 'album',  filter: 'stat',        defaultOn: true,  auto: true },
+  { id: 'stat_top_artist',   label: 'Most Played Artist',         type: 'artist', filter: 'stat',        defaultOn: true,  auto: true },
+];
+
+const COLLAB_EXCEPTIONS = [
+  'Tyler, The Creator', 'Earth, Wind & Fire', 'Simon & Garfunkel',
+  'Of Monsters and Men', 'Panic! at the Disco', 'Portugal. The Man',
+];
+
+let _awardsYear     = tzNow().getFullYear();
+let _awardsYearData = {};
+let _awardsSubTab   = 'mygrammys';
+let _awardsGenreCache = {};
+let _awardsGenreQueue = {};
+let _realLifeYear   = tzNow().getFullYear();
+
+function _awardsDefaultData(year) {
+  const cats = {};
+  for (const cat of AWARD_CATEGORIES) {
+    cats[cat.id] = { enabled: cat.defaultOn, nominees: [], winner: null };
+  }
+  return { year, eligStart: `${year}-01-01`, eligEnd: `${year}-12-31`, categories: cats };
+}
+
+async function _awardsLoad(year) {
+  if (_awardsYearData[year]) return _awardsYearData[year];
+  const remote = (typeof dcLoadAwards === 'function') ? await dcLoadAwards(year) : null;
+  if (remote) {
+    // Ensure any newly-added categories exist in the loaded data
+    for (const cat of AWARD_CATEGORIES) {
+      if (!remote.categories[cat.id]) remote.categories[cat.id] = { enabled: cat.defaultOn, nominees: [], winner: null };
+    }
+    _awardsYearData[year] = remote;
+  } else {
+    _awardsYearData[year] = _awardsDefaultData(year);
+  }
+  return _awardsYearData[year];
+}
+
+async function _awardsSave(year) {
+  const data = _awardsYearData[year];
+  if (!data) return;
+  if (typeof dcSaveAwards === 'function') await dcSaveAwards(year, data);
+}
+
+function _isCollab(play) {
+  if (Array.isArray(play.artists) && play.artists.length > 1) return true;
+  const artist = play.artist || '';
+  const cleaned = COLLAB_EXCEPTIONS.reduce((s, ex) => s.replace(ex, ex.replace(/,/g, '​')), artist);
+  const parts = cleaned.split(/,|(?:\s+(?:&|feat\.?|ft\.?|x)\s+)/i).map(s => s.trim()).filter(Boolean);
+  return parts.length > 1;
+}
+
+function _isDuo(play) {
+  if (Array.isArray(play.artists)) return play.artists.length === 2;
+  const artist = play.artist || '';
+  const cleaned = COLLAB_EXCEPTIONS.reduce((s, ex) => s.replace(ex, ex.replace(/,/g, '​')), artist);
+  const parts = cleaned.split(/,|(?:\s+(?:&|feat\.?|ft\.?|x)\s+)/i).map(s => s.trim()).filter(Boolean);
+  return parts.length === 2;
+}
+
+function _isRemix(play) {
+  return /\b(remix|remaster|edit|version|cover)\b/i.test(play.title || '');
+}
+
+function _hasNonLatinScript(str) {
+  return /[Ѐ-ӿ؀-ۿऀ-ॿ぀-ヿ㐀-䶿一-鿿가-힯฀-๿ᄀ-ᇿ]/.test(str || '');
+}
+
+function _sk(p) { return `${(p.title||'').toLowerCase()}|||${(p.artist||'').toLowerCase()}`; }
+function _ak(p) { return `${(p.album||'').toLowerCase()}|||${(p.artist||'').toLowerCase()}`; }
+function _rk(p) { return (p.artist||'').toLowerCase(); }
+function _pa(p)  { return (Array.isArray(p.artists) && p.artists.length) ? p.artists[0] : (p.artist || ''); }
+function _pk(p)  { return _pa(p).toLowerCase(); }
+
+function _awardsCountMaps(plays) {
+  const songs = {}, albums = {}, artists = {};
+  for (const p of plays) {
+    const sk = _sk(p), ak = _ak(p), pk = _pk(p);
+    if (!songs[sk])   songs[sk]   = { title: p.title,  artist: p.artist, album: p.album, plays: 0 };
+    if (!albums[ak] && p.album) albums[ak] = { album: p.album, artist: p.artist, plays: 0 };
+    if (!artists[pk]) artists[pk] = { artist: _pa(p), plays: 0 };
+    songs[sk].plays++;
+    if (p.album) albums[ak].plays++;
+    artists[pk].plays++;
+  }
+  return { songs, albums, artists };
+}
+
+function _awardsTopN(map, n, cap) {
+  cap = cap || 3;
+  const sorted = Object.values(map).sort((a, b) => b.plays - a.plays);
+  const result = [], ac = {};
+  for (const item of sorted) {
+    const key = (item.artist || '').toLowerCase();
+    ac[key] = (ac[key] || 0);
+    if (ac[key] >= cap) continue;
+    ac[key]++;
+    result.push(item);
+    if (result.length >= n) break;
+  }
+  return result;
+}
+
+async function _awardsGetArtistGenre(artist) {
+  const key = (artist || '').toLowerCase();
+  if (_awardsGenreCache[key] !== undefined) return _awardsGenreCache[key];
+  if (_awardsGenreQueue[key]) return _awardsGenreQueue[key];
+  const apiKey = localStorage.getItem('dc_lfm_api_key') || 'a8a5bfd6f2e57c45c4bdf6b5c58e1cd5';
+  _awardsGenreQueue[key] = fetch(
+    `https://ws.audioscrobbler.com/2.0/?method=artist.gettoptags&artist=${encodeURIComponent(artist)}&api_key=${encodeURIComponent(apiKey)}&format=json`
+  ).then(r => r.json()).then(d => {
+    const tags = (d?.toptags?.tag || []).map(t => t.name.toLowerCase()).slice(0, 10);
+    _awardsGenreCache[key] = tags;
+    delete _awardsGenreQueue[key];
+    return tags;
+  }).catch(() => { _awardsGenreCache[key] = []; delete _awardsGenreQueue[key]; return []; });
+  return _awardsGenreQueue[key];
+}
+
+function _genreMatch(tags, filterStr) {
+  const g = filterStr.replace('genre:', '');
+  const aliases = {
+    'pop':         ['pop','dance pop','electropop','synth-pop','teen pop','pop rock','indie pop'],
+    'rock':        ['rock','classic rock','hard rock','indie rock','pop rock','punk rock','alternative rock'],
+    'alternative': ['alternative','indie','indie pop','indie rock','alternative rock','art pop','dream pop'],
+    'hip-hop':     ['hip-hop','hip hop','rap','trap','urban','conscious hip hop'],
+    'rnb':         ['r&b','soul','neo soul','contemporary r&b','rnb','rhythm and blues'],
+    'latin':       ['latin','reggaeton','latin pop','salsa','cumbia','bachata','latin rap','regional mexicano'],
+    'electronic':  ['electronic','edm','house','techno','dance','electro','synth','trance','ambient'],
+    'k-pop':       ['k-pop','kpop','korean pop','k pop','korean'],
+  };
+  const list = aliases[g] || [g];
+  return tags.some(t => list.some(m => t.includes(m)));
+}
+
+async function _awardsGetCandidates(catDef, eligStart, eligEnd) {
+  const start = new Date(eligStart + 'T00:00:00');
+  const end   = new Date(eligEnd   + 'T23:59:59');
+  const inWin = allPlays.filter(p => p.date >= start && p.date <= end);
+  if (!inWin.length) return [];
+  const { songs, albums, artists } = _awardsCountMaps(inWin);
+  const f = catDef.filter;
+
+  if (f === 'stat') {
+    if (catDef.type === 'song')   return _awardsTopN(songs,   1, 99);
+    if (catDef.type === 'album')  return _awardsTopN(albums,  1, 99);
+    if (catDef.type === 'artist') return _awardsTopN(artists, 1, 99);
+    return [];
+  }
+  if (f === 'all') {
+    if (catDef.type === 'song')   return _awardsTopN(songs,   20, 3);
+    if (catDef.type === 'album')  return _awardsTopN(albums,  20, 3);
+    if (catDef.type === 'artist') return _awardsTopN(artists, 20, 1);
+    return [];
+  }
+  if (f === 'collab') {
+    const m = {};
+    for (const p of inWin) { if (!_isCollab(p)) continue; const k = _sk(p); m[k] = m[k] || { title: p.title, artist: p.artist, album: p.album, plays: 0 }; m[k].plays++; }
+    return _awardsTopN(m, 20, 4);
+  }
+  if (f === 'duo') {
+    const m = {};
+    for (const p of inWin) { if (!_isDuo(p)) continue; const k = _sk(p); m[k] = m[k] || { title: p.title, artist: p.artist, album: p.album, plays: 0 }; m[k].plays++; }
+    return _awardsTopN(m, 20, 4);
+  }
+  if (f === 'remix') {
+    const m = {};
+    for (const p of inWin) { if (!_isRemix(p)) continue; const k = _sk(p); m[k] = m[k] || { title: p.title, artist: p.artist, album: p.album, plays: 0 }; m[k].plays++; }
+    return _awardsTopN(m, 20, 3);
+  }
+  if (f === 'summer') {
+    const sp = inWin.filter(p => { const m = tzDate(p.date).getMonth(); return m >= 5 && m <= 7; });
+    const { songs: ss } = _awardsCountMaps(sp);
+    return _awardsTopN(ss, 20, 3);
+  }
+  if (f === 'new' || f === 'discovery') {
+    if (!firstSeenMaps) firstSeenMaps = buildFirstSeenMaps();
+    const m = {};
+    for (const p of inWin) {
+      const pa = _pa(p);
+      const k  = pa.toLowerCase();
+      const first = firstSeenMaps.artistFirst[pa];
+      if (!first || first < start) continue;
+      m[k] = m[k] || { artist: pa, plays: 0 };
+      m[k].plays++;
+    }
+    return _awardsTopN(m, 20, 1);
+  }
+  if (f === 'comeback') {
+    const prevS = new Date(start); prevS.setFullYear(prevS.getFullYear() - 1);
+    const prevE = new Date(start); prevE.setDate(prevE.getDate() - 1);
+    const prevSet = new Set(allPlays.filter(p => p.date >= prevS && p.date <= prevE).map(p => _pk(p)));
+    const m = {};
+    for (const p of inWin) { const k = _pk(p); if (prevSet.has(k)) continue; m[k] = m[k] || { artist: _pa(p), plays: 0 }; m[k].plays++; }
+    return _awardsTopN(m, 20, 1);
+  }
+  if (f === 'growth') {
+    const prevS = new Date(start); prevS.setFullYear(prevS.getFullYear() - 1);
+    const prevE = new Date(start); prevE.setDate(prevE.getDate() - 1);
+    const { artists: prev } = _awardsCountMaps(allPlays.filter(p => p.date >= prevS && p.date <= prevE));
+    const m = {};
+    for (const [k, d] of Object.entries(artists)) {
+      const delta = d.plays - (prev[k]?.plays || 0);
+      if (delta > 0) m[k] = { artist: d.artist, plays: delta };
+    }
+    return _awardsTopN(m, 20, 1);
+  }
+  if (f === 'spike') {
+    const weekPeak = {};
+    for (const p of inWin) {
+      const d = tzDate(p.date);
+      const wk = `${d.getFullYear()}-${Math.floor((d.getDate() - 1) / 7)}`;
+      const k = _sk(p) + '|||' + wk;
+      weekPeak[k] = weekPeak[k] || { title: p.title, artist: p.artist, album: p.album, plays: 0, sk: _sk(p) };
+      weekPeak[k].plays++;
+    }
+    const best = {};
+    for (const v of Object.values(weekPeak)) { if (!best[v.sk] || v.plays > best[v.sk].plays) best[v.sk] = v; }
+    return _awardsTopN(best, 20, 3);
+  }
+  if (f === 'streak') {
+    const dayMap = {};
+    for (const p of inWin) {
+      const d = tzDate(p.date);
+      const day = `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
+      const k = _sk(p);
+      if (!dayMap[k]) dayMap[k] = { title: p.title, artist: p.artist, album: p.album, days: new Set() };
+      dayMap[k].days.add(day);
+    }
+    const m = {};
+    for (const [k, v] of Object.entries(dayMap)) m[k] = { title: v.title, artist: v.artist, album: v.album, plays: v.days.size };
+    return _awardsTopN(m, 20, 3);
+  }
+  if (f === 'one_hit') {
+    const as = {};
+    for (const p of inWin) { const k = _pk(p); if (!as[k]) as[k] = { artist: _pa(p), songs: new Set(), plays: 0 }; as[k].songs.add(_sk(p)); as[k].plays++; }
+    const m = {};
+    for (const [k, v] of Object.entries(as)) { if (v.songs.size === 1) m[k] = { artist: v.artist, plays: v.plays }; }
+    return _awardsTopN(m, 20, 1);
+  }
+  if (f === 'late_disc') {
+    if (!firstSeenMaps) firstSeenMaps = buildFirstSeenMaps();
+    const m = {};
+    for (const p of inWin) {
+      if (!p.album) continue;
+      const k = _ak(p);
+      const first = firstSeenMaps.albumFirst[k];
+      if (!first || first < start) continue;
+      m[k] = m[k] || { album: p.album, artist: p.artist, plays: 0 };
+      m[k].plays++;
+    }
+    return _awardsTopN(m, 20, 2);
+  }
+  if (f === 'nonenglish') {
+    const m = {};
+    for (const p of inWin) {
+      if (!_hasNonLatinScript(p.title) && !_hasNonLatinScript(p.artist)) continue;
+      const k = _sk(p); m[k] = m[k] || { title: p.title, artist: p.artist, album: p.album, plays: 0 }; m[k].plays++;
+    }
+    return _awardsTopN(m, 20, 3);
+  }
+  if (f.startsWith('genre:')) {
+    const uniq = [...new Set(inWin.map(p => p.artist))];
+    await Promise.all(uniq.slice(0, 60).map(a => _awardsGetArtistGenre(a)));
+    const gs = {}, ga = {}, gr = {};
+    for (const p of inWin) {
+      const tags = _awardsGenreCache[_rk(p)] || [];
+      if (!_genreMatch(tags, f)) continue;
+      const sk = _sk(p), ak = _ak(p), rk = _rk(p);
+      if (!gs[sk]) gs[sk] = { title: p.title, artist: p.artist, album: p.album, plays: 0 };
+      if (!ga[ak] && p.album) ga[ak] = { album: p.album, artist: p.artist, plays: 0 };
+      if (!gr[rk]) gr[rk] = { artist: p.artist, plays: 0 };
+      gs[sk].plays++; if (p.album) ga[ak].plays++; gr[rk].plays++;
+    }
+    if (catDef.type === 'song')   return _awardsTopN(gs, 20, 3);
+    if (catDef.type === 'album')  return _awardsTopN(ga, 20, 2);
+    if (catDef.type === 'artist') return _awardsTopN(gr, 20, 1);
+  }
+  return [];
+}
+
+// ── UI Rendering ──────────────────────────────────────────────────────────────
+
+async function awardsInit() {
+  document.getElementById('awardsYearLabel').textContent   = _awardsYear;
+  document.getElementById('realLifeYearLabel').textContent = _realLifeYear;
+  awardsSubTab(_awardsSubTab);
+}
+
+function awardsSubTab(tab) {
+  _awardsSubTab = tab;
+  document.querySelectorAll('.awards-subnav-btn').forEach(b => b.classList.toggle('active', b.dataset.awardsTab === tab));
+  document.getElementById('awardsMyGrammys').style.display = tab === 'mygrammys' ? '' : 'none';
+  document.getElementById('awardsRealLife').style.display  = tab === 'reallife'  ? '' : 'none';
+  if (tab === 'mygrammys') awardsRenderYear(_awardsYear);
+  if (tab === 'reallife')  loadRealLifeAwards(_realLifeYear);
+}
+
+function awardsChangeYear(delta) {
+  _awardsYear = Math.max(2000, Math.min(tzNow().getFullYear(), _awardsYear + delta));
+  document.getElementById('awardsYearLabel').textContent = _awardsYear;
+  awardsRenderYear(_awardsYear);
+}
+
+function realLifeAwardsChangeYear(delta) {
+  _realLifeYear = Math.max(2000, Math.min(tzNow().getFullYear(), _realLifeYear + delta));
+  document.getElementById('realLifeYearLabel').textContent = _realLifeYear;
+  loadRealLifeAwards(_realLifeYear);
+}
+
+async function awardsRenderYear(year) {
+  const statusEl = document.getElementById('awardsStatus');
+  statusEl.textContent = '';
+  if (!allPlays.length) {
+    statusEl.textContent = 'Load your music data to use My Grammys.';
+    document.getElementById('awardsCatList').innerHTML = '';
+    document.getElementById('awardsCeremonyBar').style.display = 'none';
+    return;
+  }
+  statusEl.textContent = 'Loading…';
+  const data = await _awardsLoad(year);
+  statusEl.textContent = '';
+  _awardsRenderCatToggles(data);
+  document.getElementById('awardsEligStart').value = data.eligStart;
+  document.getElementById('awardsEligEnd').value   = data.eligEnd;
+  _awardsRenderCatList(data);
+}
+
+function _awardsRenderCatToggles(data) {
+  const el = document.getElementById('awardsCatToggles');
+  if (!el) return;
+  el.innerHTML = AWARD_CATEGORIES.map(cat => {
+    const enabled = data.categories[cat.id]?.enabled ?? cat.defaultOn;
+    return `<label class="awards-cat-toggle-row">
+      <input type="checkbox" ${enabled ? 'checked' : ''} onchange="awardsToggleCat('${cat.id}',this.checked)">
+      <span class="awards-type-badge awards-type-${cat.type}">${cat.type}</span>
+      ${esc(t('awards_cat_' + cat.id))}${cat.auto ? ' <span class="awards-auto-badge">auto</span>' : ''}
+    </label>`;
+  }).join('');
+}
+
+function _awardsRenderCatList(data) {
+  const el = document.getElementById('awardsCatList');
+  if (!el) return;
+  const activeCats = AWARD_CATEGORIES.filter(c => data.categories[c.id]?.enabled ?? c.defaultOn);
+  if (!activeCats.length) {
+    el.innerHTML = `<div class="awards-empty">${t('awards_no_categories')}</div>`;
+    document.getElementById('awardsCeremonyBar').style.display = 'none';
+    return;
+  }
+  el.innerHTML = activeCats.map(cat => _awardsRenderCatCard(cat, data.categories[cat.id] || { enabled: true, nominees: [], winner: null }, data.year)).join('');
+  const hasWinner = activeCats.some(c => data.categories[c.id]?.winner);
+  document.getElementById('awardsCeremonyBar').style.display = hasWinner ? '' : 'none';
+}
+
+function _awardItemKey(item) {
+  return JSON.stringify({ t: item.title || '', al: item.album || '', ar: item.artist || '' });
+}
+
+function _awardsRenderCatCard(cat, catData, year) {
+  const nominees  = catData.nominees || [];
+  const winner    = catData.winner   || null;
+  const winnerKey = winner ? _awardItemKey(winner) : null;
+  const emoji     = { song: '🎵', album: '💿', artist: '🎤' }[cat.type] || '🏆';
+
+  let bodyHtml = '';
+  if (cat.auto && nominees.length) {
+    const w = nominees[0];
+    bodyHtml = `<div class="awards-auto-winner">
+      <span class="awards-winner-trophy">🏆</span>
+      <span class="awards-winner-text">${esc(w.title || w.album || w.artist || '')}</span>
+      ${(w.title || w.album) && w.artist ? `<span class="awards-winner-sub">${esc(w.artist)}</span>` : ''}
+    </div>`;
+  } else if (nominees.length) {
+    bodyHtml = nominees.map(item => {
+      const ik  = _awardItemKey(item);
+      const lbl = item.title || item.album || item.artist || '';
+      const sub = item.title ? item.artist : (item.album ? item.artist : '');
+      return `<div class="awards-nominee-row${ik === winnerKey ? ' is-winner' : ''}" onclick="awardsPickWinner(${year},'${esc(cat.id)}',${esc(JSON.stringify(item))})">
+        <span class="awards-nominee-icon">${ik === winnerKey ? '🏆' : '○'}</span>
+        <span class="awards-nominee-label">${esc(lbl)}</span>
+        ${sub ? `<span class="awards-nominee-sub">${esc(sub)}</span>` : ''}
+        <button class="awards-nominee-remove" onclick="awardsRemoveNominee(event,${year},'${esc(cat.id)}',${esc(JSON.stringify(item))})" title="Remove">✕</button>
+      </div>`;
+    }).join('') + (!winner ? `<div class="awards-pick-hint">${t('awards_pick_hint')}</div>` : '');
+  } else {
+    bodyHtml = `<div class="awards-no-nominees">${t('awards_no_nominees')}</div>`;
+  }
+
+  const genBtn = cat.auto ? '' : `<button class="awards-cat-action-btn" onclick="awardsGenerateCatCandidates(${year},'${esc(cat.id)}')" data-catid="${esc(cat.id)}">${nominees.length ? t('awards_change_btn') : t('awards_pick_nominees_btn')}</button>`;
+
+  return `<div class="awards-cat-card${winner ? ' has-winner' : ''}" id="awardsCat_${cat.id}">
+    <div class="awards-cat-header">
+      <span class="awards-cat-emoji">${emoji}</span>
+      <span class="awards-cat-name">${esc(t('awards_cat_' + cat.id))}</span>
+      ${cat.auto ? '<span class="awards-auto-tag">auto</span>' : ''}
+    </div>
+    <div class="awards-cat-body">${bodyHtml}</div>
+    <div class="awards-cat-footer">${genBtn}</div>
+  </div>`;
+}
+
+function awardsToggleConfig() {
+  const panel = document.getElementById('awardsConfigPanel');
+  const open = panel.style.display !== 'none';
+  panel.style.display = open ? 'none' : '';
+  document.getElementById('awardsConfigToggleBtn').classList.toggle('active', !open);
+}
+
+function awardsUpdateElig() {
+  const data = _awardsYearData[_awardsYear];
+  if (!data) return;
+  data.eligStart = document.getElementById('awardsEligStart').value;
+  data.eligEnd   = document.getElementById('awardsEligEnd').value;
+  _awardsSave(_awardsYear);
+}
+
+function awardsToggleCat(catId, enabled) {
+  const data = _awardsYearData[_awardsYear];
+  if (!data) return;
+  if (!data.categories[catId]) data.categories[catId] = { enabled, nominees: [], winner: null };
+  data.categories[catId].enabled = enabled;
+  _awardsSave(_awardsYear);
+  _awardsRenderCatList(data);
+}
+
+function awardsToggleAllCats(enabled) {
+  const data = _awardsYearData[_awardsYear];
+  if (!data) return;
+  for (const cat of AWARD_CATEGORIES) {
+    if (!data.categories[cat.id]) data.categories[cat.id] = { enabled, nominees: [], winner: null };
+    data.categories[cat.id].enabled = enabled;
+  }
+  _awardsRenderCatToggles(data);
+  _awardsSave(_awardsYear);
+  _awardsRenderCatList(data);
+}
+
+async function awardsGenerateCandidates() {
+  if (!allPlays.length) return;
+  const btn = document.getElementById('awardsGenerateBtn');
+  if (btn) { btn.disabled = true; btn.textContent = t('awards_generating'); }
+  const data = await _awardsLoad(_awardsYear);
+  const active = AWARD_CATEGORIES.filter(c => data.categories[c.id]?.enabled ?? c.defaultOn);
+
+  for (const cat of active) {
+    const cands = await _awardsGetCandidates(cat, data.eligStart, data.eligEnd);
+    const cd = data.categories[cat.id];
+    if (cat.auto) {
+      cd.nominees = cands.slice(0, 1);
+      cd.winner   = cands[0] || null;
+    } else if (!cd.nominees.length && cands.length) {
+      cd.nominees = cands.slice(0, 8);
+    }
+  }
+  await _awardsSave(_awardsYear);
+  if (btn) { btn.disabled = false; btn.textContent = t('awards_generate'); }
+  _awardsRenderCatList(data);
+}
+
+async function awardsGenerateCatCandidates(year, catId) {
+  const data = _awardsYearData[year] || await _awardsLoad(year);
+  if (!data) return;
+  const catDef = AWARD_CATEGORIES.find(c => c.id === catId);
+  if (!catDef) return;
+  const btn = document.querySelector(`[data-catid="${catId}"]`);
+  if (btn) btn.textContent = t('awards_loading');
+  const cands = await _awardsGetCandidates(catDef, data.eligStart, data.eligEnd);
+  if (btn) btn.textContent = t('awards_change_btn');
+  _awardsShowPicker(year, catId, cands);
+}
+
+function _awardsShowPicker(year, catId, candidates) {
+  const data = _awardsYearData[year];
+  if (!data) return;
+  const catDef = AWARD_CATEGORIES.find(c => c.id === catId);
+  if (!catDef) return;
+  const existing = new Set((data.categories[catId]?.nominees || []).map(n => _awardItemKey(n)));
+  const lbl = item => item.title || item.album || item.artist || '';
+  const sub = item => item.title ? item.artist : (item.album ? item.artist : '');
+
+  const rows = candidates.length
+    ? candidates.map(item => {
+        const ik = _awardItemKey(item);
+        const chk = existing.has(ik) ? 'checked' : '';
+        return `<label class="awards-picker-row${existing.has(ik) ? ' checked' : ''}">
+          <input type="checkbox" ${chk} data-item='${esc(JSON.stringify(item))}'>
+          <span class="awards-picker-lbl">${esc(lbl(item))}</span>
+          ${sub(item) ? `<span class="awards-picker-sub">${esc(sub(item))}</span>` : ''}
+          <span class="awards-picker-plays">${item.plays} plays</span>
+        </label>`;
+      }).join('')
+    : `<div class="awards-empty">${t('awards_no_candidates')}</div>`;
+
+  const html = `<div class="awards-picker-overlay" id="awardsPickerOverlay" onclick="awardsPickerBgClick(event)">
+    <div class="awards-picker-modal">
+      <div class="awards-picker-head">
+        <span class="awards-picker-title">${esc(t('awards_cat_' + catDef.id))}</span>
+        <span class="awards-picker-hint">${t('awards_picker_hint', {count: candidates.length})}</span>
+        <button class="awards-picker-close" onclick="awardsPickerClose()">✕</button>
+      </div>
+      <div class="awards-picker-body">${rows}</div>
+      <div class="awards-picker-foot">
+        <span class="awards-picker-count" id="awardsPickerCount">${t('awards_picker_selected', {count: existing.size})}</span>
+        <button class="awards-picker-save" onclick="awardsPickerSave(${year},'${catId}')">${t('awards_save_nominees')}</button>
+      </div>
+    </div>
+  </div>`;
+
+  const wrap = document.createElement('div');
+  wrap.innerHTML = html;
+  document.body.appendChild(wrap.firstElementChild);
+
+  document.querySelectorAll('#awardsPickerOverlay input[type=checkbox]').forEach(cb => {
+    cb.addEventListener('change', () => {
+      cb.closest('label').classList.toggle('checked', cb.checked);
+      const n = document.querySelectorAll('#awardsPickerOverlay input:checked').length;
+      const countEl = document.getElementById('awardsPickerCount');
+      if (countEl) countEl.textContent = t('awards_picker_selected', {count: n});
+    });
+  });
+}
+
+function awardsPickerBgClick(e) { if (e.target.id === 'awardsPickerOverlay') awardsPickerClose(); }
+function awardsPickerClose() { const el = document.getElementById('awardsPickerOverlay'); if (el) el.remove(); }
+
+async function awardsPickerSave(year, catId) {
+  const checks = [...document.querySelectorAll('#awardsPickerOverlay input:checked')];
+  const nominees = [];
+  checks.forEach(cb => { try { nominees.push(JSON.parse(cb.dataset.item)); } catch(_){} });
+  awardsPickerClose();
+  const data = _awardsYearData[year];
+  if (!data) return;
+  if (!data.categories[catId]) data.categories[catId] = { enabled: true, nominees: [], winner: null };
+  data.categories[catId].nominees = nominees;
+  const wk = data.categories[catId].winner ? _awardItemKey(data.categories[catId].winner) : null;
+  if (wk && !nominees.some(n => _awardItemKey(n) === wk)) data.categories[catId].winner = null;
+  await _awardsSave(year);
+  _awardsRenderCatList(data);
+}
+
+async function awardsPickWinner(year, catId, item) {
+  const data = _awardsYearData[year];
+  if (!data?.categories?.[catId]) return;
+  const curWk = data.categories[catId].winner ? _awardItemKey(data.categories[catId].winner) : null;
+  data.categories[catId].winner = (_awardItemKey(item) === curWk) ? null : item;
+  await _awardsSave(year);
+  _awardsRenderCatList(data);
+}
+
+async function awardsRemoveNominee(e, year, catId, item) {
+  e.stopPropagation();
+  const data = _awardsYearData[year];
+  if (!data?.categories?.[catId]) return;
+  const ik = _awardItemKey(item);
+  data.categories[catId].nominees = data.categories[catId].nominees.filter(n => _awardItemKey(n) !== ik);
+  if (data.categories[catId].winner && _awardItemKey(data.categories[catId].winner) === ik) data.categories[catId].winner = null;
+  await _awardsSave(year);
+  _awardsRenderCatList(data);
+}
+
+// ── Real-Life Awards ──────────────────────────────────────────────────────────
+
+async function loadRealLifeAwards(year) {
+  const contentEl = document.getElementById('realLifeContent');
+  const statusEl  = document.getElementById('realLifeStatus');
+  contentEl.innerHTML = '';
+  statusEl.textContent = `Looking up Grammy nominations for your top artists in ${year}…`;
+
+  const start = new Date(`${year}-01-01`);
+  const end   = new Date(`${year}-12-31T23:59:59`);
+  const inYear = allPlays.filter(p => p.date >= start && p.date <= end);
+  if (!inYear.length && !allPlays.length) {
+    statusEl.textContent = 'Load your music data first.';
+    return;
+  }
+  const pool = inYear.length ? inYear : allPlays;
+  const { artists } = _awardsCountMaps(pool);
+  const topArtists  = _awardsTopN(artists, 20, 1);
+
+  const results = [];
+  for (const a of topArtists) {
+    const awards = await _mbFetchAwards(a.artist, year);
+    if (awards.length) results.push({ artist: a.artist, awards });
+    await new Promise(r => setTimeout(r, 1100));
+  }
+
+  statusEl.textContent = '';
+  if (!results.length) {
+    contentEl.innerHTML = `<div class="awards-empty">No Grammy data found for your top ${topArtists.length} artists in ${year}. MusicBrainz coverage may be incomplete for this period.</div>`;
+    return;
+  }
+
+  contentEl.innerHTML = results.map(r =>
+    `<div class="awards-reallife-card">
+      <div class="awards-reallife-artist">${esc(r.artist)}</div>
+      ${r.awards.map(a => `<div class="awards-reallife-row">
+        <span class="awards-reallife-badge ${a.won ? 'won' : 'nom'}">${a.won ? '🏆 Won' : '🎗 Nominated'}</span>
+        <span class="awards-reallife-cat">${esc(a.category)}</span>
+        ${a.year ? `<span class="awards-reallife-year">${a.year}</span>` : ''}
+      </div>`).join('')}
+    </div>`
+  ).join('');
+}
+
+async function _mbFetchAwards(artist, year) {
+  try {
+    const r1 = await fetch(`https://musicbrainz.org/ws/2/artist/?query=${encodeURIComponent(`"${artist}"`)}&fmt=json&limit=1`);
+    const d1 = await r1.json();
+    const mbid = d1?.artists?.[0]?.id;
+    if (!mbid) return [];
+    await new Promise(r => setTimeout(r, 1100));
+    const r2 = await fetch(`https://musicbrainz.org/ws/2/artist/${mbid}?inc=artist-rels&fmt=json`);
+    const d2 = await r2.json();
+    const out = [];
+    for (const rel of (d2.relations || [])) {
+      if (!rel.series) continue;
+      const name = rel.series?.name || '';
+      if (!/grammy/i.test(name)) continue;
+      const relYear = (rel.begin || rel.end || '').split('-')[0];
+      if (relYear && Math.abs(parseInt(relYear) - year) > 1) continue;
+      out.push({ category: name, year: relYear, won: (rel.attributes || []).includes('Winner') });
+    }
+    return out;
+  } catch(_) { return []; }
+}
+
+// ── Ceremony ──────────────────────────────────────────────────────────────────
+
+let _ceremonyYear = null;
+let _ceremonyCats = [];
+let _ceremonyIdx  = 0;
+let _ceremonyRevealed = false;
+
+function startAwardsCeremony() {
+  const data = _awardsYearData[_awardsYear];
+  if (!data) return;
+  _ceremonyYear = _awardsYear;
+  _ceremonyCats = AWARD_CATEGORIES.filter(c => {
+    const cd = data.categories[c.id];
+    return cd?.enabled && (cd.nominees?.length > 0 || cd.winner);
+  });
+  if (!_ceremonyCats.length) return;
+  _ceremonyIdx = 0;
+  document.getElementById('awardsCeremonyOverlay').style.display = 'flex';
+  document.body.style.overflow = 'hidden';
+  _ceremonyDrawSidebar(data);
+  _ceremonyDrawStage(data, 0);
+}
+
+function closeCeremony() {
+  document.getElementById('awardsCeremonyOverlay').style.display = 'none';
+  document.body.style.overflow = '';
+}
+
+function ceremonyOverlayClick(e) {
+  if (e.target.id === 'awardsCeremonyOverlay') closeCeremony();
+}
+
+function _ceremonyDrawSidebar(data) {
+  document.getElementById('ceremonySidebar').innerHTML =
+    `<div class="ceremony-sidebar-title">${_ceremonyYear} My Grammys</div>` +
+    _ceremonyCats.map((cat, i) => {
+      const done = !!data.categories[cat.id]?.winner;
+      return `<div class="ceremony-sidebar-row${i === _ceremonyIdx ? ' active' : ''}${done ? ' done' : ''}" onclick="ceremonyGoTo(${i})">
+        <span>${done ? '🏆' : '○'}</span> ${esc(t('awards_cat_' + cat.id))}
+      </div>`;
+    }).join('');
+}
+
+function _ceremonyDrawStage(data, idx) {
+  _ceremonyIdx = idx;
+  const cat     = _ceremonyCats[idx];
+  const catData = data.categories[cat.id] || { nominees: [], winner: null };
+  const nominees = catData.nominees || [];
+  const winner   = catData.winner   || null;
+
+  document.getElementById('ceremonyYearBadge').textContent = `${_ceremonyYear} My Grammys`;
+  document.getElementById('ceremonyCatName').textContent   = t('awards_cat_' + cat.id);
+  document.getElementById('ceremonyProgress').textContent  = `${idx + 1} / ${_ceremonyCats.length}`;
+
+  const wk = winner ? _awardItemKey(winner) : null;
+  document.getElementById('ceremonyNominees').innerHTML = nominees.map(n => {
+    const nik = _awardItemKey(n);
+    const lbl = n.title || n.album || n.artist || '';
+    const sub = n.title ? n.artist : (n.album ? n.artist : '');
+    return `<div class="ceremony-nominee-row${nik === wk ? ' is-winner' : ''}">
+      <span class="ceremony-nom-dot">${nik === wk ? '🏆' : '○'}</span>
+      <span class="ceremony-nom-lbl">${esc(lbl)}</span>
+      ${sub ? `<span class="ceremony-nom-sub">${esc(sub)}</span>` : ''}
+    </div>`;
+  }).join('') || `<div class="ceremony-no-nom">${t('awards_ceremony_no_nom')}</div>`;
+
+  const revBtn  = document.getElementById('ceremonyRevealBtn');
+  const winWrap = document.getElementById('ceremonyWinnerWrap');
+
+  if (winner) {
+    _ceremonyRevealed = true;
+    revBtn.style.display  = 'none';
+    winWrap.style.display = '';
+    const lbl = winner.title || winner.album || winner.artist || '';
+    const sub = winner.title ? winner.artist : (winner.album ? winner.artist : '');
+    document.getElementById('ceremonyWinnerName').textContent = lbl;
+    document.getElementById('ceremonyWinnerSub').textContent  = sub || '';
+    _triggerConfetti();
+  } else {
+    _ceremonyRevealed = false;
+    revBtn.style.display  = '';
+    winWrap.style.display = 'none';
+  }
+  document.querySelectorAll('.ceremony-sidebar-row').forEach((el, i) => el.classList.toggle('active', i === idx));
+}
+
+function ceremonyReveal() {
+  if (_ceremonyRevealed) return;
+  const data   = _awardsYearData[_ceremonyYear];
+  if (!data) return;
+  const winner = data.categories[_ceremonyCats[_ceremonyIdx].id]?.winner;
+  document.getElementById('ceremonyRevealBtn').style.display = 'none';
+  const winWrap = document.getElementById('ceremonyWinnerWrap');
+  winWrap.style.display = '';
+  const lbl = winner ? (winner.title || winner.album || winner.artist || 'Unknown') : '—';
+  const sub = winner?.title ? winner.artist : (winner?.album ? winner.artist : '');
+  document.getElementById('ceremonyWinnerName').textContent = lbl;
+  document.getElementById('ceremonyWinnerSub').textContent  = sub || '';
+  if (winner) {
+    document.querySelectorAll('.ceremony-nominee-row').forEach(row => {
+      if (row.querySelector('.ceremony-nom-lbl')?.textContent === lbl) row.classList.add('is-winner', 'winner-flash');
+    });
+    _triggerConfetti();
+  }
+  _ceremonyRevealed = true;
+}
+
+function ceremonyNav(delta) {
+  const data = _awardsYearData[_ceremonyYear];
+  if (!data) return;
+  const newIdx = Math.max(0, Math.min(_ceremonyCats.length - 1, _ceremonyIdx + delta));
+  _ceremonyRevealed = false;
+  _ceremonyDrawStage(data, newIdx);
+  _ceremonyDrawSidebar(data);
+}
+
+function ceremonyGoTo(idx) {
+  const data = _awardsYearData[_ceremonyYear];
+  if (!data) return;
+  _ceremonyRevealed = false;
+  _ceremonyDrawStage(data, idx);
+  _ceremonyDrawSidebar(data);
+}
+
+function _triggerConfetti() {
+  const el = document.getElementById('ceremonyConfetti');
+  if (!el) return;
+  el.innerHTML = '';
+  const colors = ['#FFD700','#FF69B4','#00CED1','#FF6347','#7B68EE','#32CD32','#FF8C00'];
+  for (let i = 0; i < 60; i++) {
+    const p = document.createElement('div');
+    p.className = 'confetti-piece';
+    p.style.cssText = `left:${Math.random()*100}%;background:${colors[i%colors.length]};animation-delay:${(Math.random()*0.8).toFixed(2)}s;animation-duration:${(1+Math.random()).toFixed(2)}s;width:${6+Math.random()*6|0}px;height:${6+Math.random()*6|0}px;border-radius:${Math.random()>.5?'50%':'3px'};`;
+    el.appendChild(p);
+  }
+  setTimeout(() => { if (el) el.innerHTML = ''; }, 2500);
 }
 
