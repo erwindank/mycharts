@@ -16083,13 +16083,16 @@ async function _awardsGetCandidates(catDef, eligStart, eligEnd) {
     const dayMap = {};
     for (const p of inWin) {
       const d = tzDate(p.date);
-      const day = `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
+      const day = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
       const k = _sk(p);
       if (!dayMap[k]) dayMap[k] = { title: p.title, artist: p.artist, album: p.album, days: new Set() };
       dayMap[k].days.add(day);
     }
     const m = {};
-    for (const [k, v] of Object.entries(dayMap)) m[k] = { title: v.title, artist: v.artist, album: v.album, plays: v.days.size };
+    for (const [k, v] of Object.entries(dayMap)) {
+      const streak = longestConsecutiveDays(v.days);
+      if (streak >= 2) m[k] = { title: v.title, artist: v.artist, album: v.album, plays: streak, playLabel: `${streak}-day streak` };
+    }
     return _awardsTopN(m, 20, 3);
   }
   if (f === 'one_hit') {
@@ -16348,7 +16351,7 @@ function _awardsShowPicker(year, catId, candidates) {
           <input type="checkbox" ${chk} data-item='${esc(JSON.stringify(item))}'>
           <span class="awards-picker-lbl">${esc(lbl(item))}</span>
           ${sub(item) ? `<span class="awards-picker-sub">${esc(sub(item))}</span>` : ''}
-          <span class="awards-picker-plays">${item.plays} plays</span>
+          <span class="awards-picker-plays">${item.playLabel || item.plays + ' plays'}</span>
         </label>`;
       }).join('')
     : `<div class="awards-empty">${t('awards_no_candidates')}</div>`;
