@@ -12602,6 +12602,7 @@ function toggleEventsType(type) {
     eventsTypeFilter.add(type);
   }
   try { localStorage.setItem('dc_events_type_filter', JSON.stringify([...eventsTypeFilter])); } catch (e) {}
+  if (typeof dcSaveUserConfig === 'function') dcSaveUserConfig();
   _syncEventsTypeFilter();
   _syncCalExportBtn();
   if (type === 'show') {
@@ -13081,6 +13082,7 @@ function _syncCalExportBtn() {
 function setCalView(view) {
   eventsCalendarView = view;
   try { localStorage.setItem('dc_cal_view', view); } catch (e) {}
+  if (typeof dcSaveUserConfig === 'function') dcSaveUserConfig();
   if (view !== 'month') {
     const tod = tzNow();
     if (tod.getFullYear() === eventsCalendarYear && tod.getMonth() === eventsCalendarMonth) {
@@ -13121,11 +13123,14 @@ function eventsCalendarNext() {
 }
 
 // ====== Events Section View Modes ======
-const eventsViewModes = {
+const _eventsViewDefaults = {
   birthdays: 'carousel', anniversaries: 'carousel', eventsUpcoming: 'carousel',
   eventsRecent: 'carousel', recentBirthdays: 'carousel', recentAnniversaries: 'carousel', concerts: 'carousel',
   nmf: 'carousel'
 };
+const eventsViewModes = Object.assign({}, _eventsViewDefaults,
+  (() => { try { return JSON.parse(localStorage.getItem('dc_events_view_modes') || '{}'); } catch (e) { return {}; } })()
+);
 let _eventsLastData = null;
 const EV_GRID_IDS = {
   birthdays: 'birthdaysGrid', anniversaries: 'anniversariesGrid',
@@ -13136,6 +13141,8 @@ const EV_GRID_IDS = {
 
 function setEventsView(sectionKey, mode) {
   eventsViewModes[sectionKey] = mode;
+  try { localStorage.setItem('dc_events_view_modes', JSON.stringify(eventsViewModes)); } catch (e) {}
+  if (typeof dcSaveUserConfig === 'function') dcSaveUserConfig();
   document.querySelectorAll('#' + sectionKey + 'ViewBtns .ev-view-btn')
     .forEach(b => b.classList.toggle('active', b.dataset.view === mode));
   _evReRenderSection(sectionKey);

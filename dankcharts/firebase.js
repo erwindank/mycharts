@@ -19,7 +19,8 @@ const SYNC_KEYS = [
   'dc_display_name', 'dc_timezone', 'dc_cert_config',
   'dc_events_artist_limit', 'dc_theme', 'dc_lang',
   'dc_autocorrect_rules', 'dc_no_artist_split', 'dc_tm_api_key',
-  'dc_tm_toggles'
+  'dc_tm_toggles',
+  'dc_events_type_filter', 'dc_cal_view', 'dc_events_view_modes'
 ];
 
 let _auth = null;
