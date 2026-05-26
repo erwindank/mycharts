@@ -136,6 +136,7 @@ const TRANSLATIONS = {
     streak_section_artists: '🔥 Artists on streak',
     streak_section_albums: '🔥 Albums on streak',
     streak_section_songs: '🔥 Songs on streak',
+    streak_section_at_risk: '⚠️ At risk today',
     streak_section_lost: '💔 Recently lost',
     streak_none: 'None',
 
@@ -1058,6 +1059,7 @@ const TRANSLATIONS = {
     streak_section_artists: '🔥 Artistas en racha',
     streak_section_albums: '🔥 Álbumes en racha',
     streak_section_songs: '🔥 Canciones en racha',
+    streak_section_at_risk: '⚠️ En riesgo hoy',
     streak_section_lost: '💔 Rachas perdidas',
     streak_none: 'Ninguna',
 
@@ -1980,6 +1982,7 @@ const TRANSLATIONS = {
     streak_section_artists: '🔥 Artistas em sequência',
     streak_section_albums: '🔥 Álbuns em sequência',
     streak_section_songs: '🔥 Músicas em sequência',
+    streak_section_at_risk: '⚠️ Em risco hoje',
     streak_section_lost: '💔 Sequências perdidas',
     streak_none: 'Nenhuma',
 
@@ -2902,6 +2905,7 @@ const TRANSLATIONS = {
     streak_section_artists: '🔥 Artistas em sequência',
     streak_section_albums: '🔥 Álbuns em sequência',
     streak_section_songs: '🔥 Músicas em sequência',
+    streak_section_at_risk: '⚠️ Em risco hoje',
     streak_section_lost: '💔 Sequências perdidas',
     streak_none: 'Nenhuma',
 

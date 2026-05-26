@@ -10688,6 +10688,9 @@ body.pink-light .hero-stats {
 .streak-item--lost .streak-label,
 .streak-item--lost .streak-days { color: var(--text2); }
 
+.streak-item--risk .streak-label,
+.streak-item--risk .streak-days { color: #e8a020; }
+
 .streak-empty {
   font-family: 'DM Mono', monospace;
   font-size: 0.72rem;

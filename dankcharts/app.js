@@ -15470,20 +15470,41 @@ function openStreakModal() {
 
   const activeSongs = [], activeArtists = [], activeAlbums = [];
   for (const [sk, d] of Object.entries(songDays)) {
-    const len = streakEndingAt(d, yest);
+    const len = streakEndingAt(d, todayStr);
     if (len >= 2) activeSongs.push({ name: songInfo[sk].title, sub: songInfo[sk].artist, type: 'song', len });
   }
   for (const [a, d] of Object.entries(artistDays)) {
-    const len = streakEndingAt(d, yest);
+    const len = streakEndingAt(d, todayStr);
     if (len >= 2) activeArtists.push({ name: a, sub: '', type: 'artist', len });
   }
   for (const [ak, d] of Object.entries(albumDays)) {
-    const len = streakEndingAt(d, yest);
+    const len = streakEndingAt(d, todayStr);
     if (len >= 2) activeAlbums.push({ name: albumInfo[ak].album, sub: albumInfo[ak].artist, type: 'album', len });
   }
   activeSongs.sort((a, b) => b.len - a.len);
   activeArtists.sort((a, b) => b.len - a.len);
   activeAlbums.sort((a, b) => b.len - a.len);
+
+  const atRisk = [];
+  for (const [sk, d] of Object.entries(songDays)) {
+    if (d.has(yest) && !d.has(todayStr)) {
+      const len = streakEndingAt(d, yest);
+      if (len >= 2) atRisk.push({ name: songInfo[sk].title, sub: songInfo[sk].artist, type: 'song', len });
+    }
+  }
+  for (const [a, d] of Object.entries(artistDays)) {
+    if (d.has(yest) && !d.has(todayStr)) {
+      const len = streakEndingAt(d, yest);
+      if (len >= 2) atRisk.push({ name: a, sub: '', type: 'artist', len });
+    }
+  }
+  for (const [ak, d] of Object.entries(albumDays)) {
+    if (d.has(yest) && !d.has(todayStr)) {
+      const len = streakEndingAt(d, yest);
+      if (len >= 2) atRisk.push({ name: albumInfo[ak].album, sub: albumInfo[ak].artist, type: 'album', len });
+    }
+  }
+  atRisk.sort((a, b) => b.len - a.len);
 
   const lost = [];
   for (const [sk, d] of Object.entries(songDays)) {
@@ -15506,28 +15527,32 @@ function openStreakModal() {
   }
   lost.sort((a, b) => b.len - a.len);
 
-  function itemHtml(it, isLost) {
+  function itemHtml(it, mode) {
     const sub = it.sub ? `<span class="streak-sub"> — ${it.sub}</span>` : '';
-    const tag = isLost ? `<span class="streak-type-tag">${it.type}</span>` : '';
-    return `<div class="streak-item${isLost ? ' streak-item--lost' : ''}">` +
-      `<span class="streak-fire">${isLost ? '💔' : '🔥'}</span>` +
+    const tag = mode !== 'active' ? `<span class="streak-type-tag">${it.type}</span>` : '';
+    const icon = mode === 'lost' ? '💔' : mode === 'risk' ? '⚠️' : '🔥';
+    const cls = mode === 'lost' ? ' streak-item--lost' : mode === 'risk' ? ' streak-item--risk' : '';
+    return `<div class="streak-item${cls}">` +
+      `<span class="streak-fire">${icon}</span>` +
       `<span class="streak-days">${it.len}d</span>` +
       `<span class="streak-label">${it.name}${sub}</span>${tag}</div>`;
   }
 
-  function section(titleKey, items, isLost) {
+  function section(titleKey, items, mode) {
     const inner = items.length
-      ? items.map(it => itemHtml(it, isLost)).join('')
+      ? items.map(it => itemHtml(it, mode)).join('')
       : `<div class="streak-empty">${t('streak_none')}</div>`;
-    return `<div class="streak-section${isLost ? ' streak-section--lost' : ''}">` +
+    const cls = mode === 'lost' ? ' streak-section--lost' : mode === 'risk' ? ' streak-section--risk' : '';
+    return `<div class="streak-section${cls}">` +
       `<div class="streak-section-title">${t(titleKey)}</div>${inner}</div>`;
   }
 
   document.getElementById('streakModalBody').innerHTML =
-    section('streak_section_artists', activeArtists, false) +
-    section('streak_section_albums', activeAlbums, false) +
-    section('streak_section_songs', activeSongs, false) +
-    section('streak_section_lost', lost, true);
+    section('streak_section_artists', activeArtists, 'active') +
+    section('streak_section_albums', activeAlbums, 'active') +
+    section('streak_section_songs', activeSongs, 'active') +
+    section('streak_section_at_risk', atRisk, 'risk') +
+    section('streak_section_lost', lost, 'lost');
 
   document.getElementById('streakModal').classList.add('open');
 }
