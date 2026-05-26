@@ -4982,6 +4982,7 @@ function renderAll() {
   ['songsBody', 'artistsBody', 'albumsBody'].forEach(id => {
     const el = document.getElementById(id);
     if (el && el._swToken) el._swToken.cancelled = true;
+    if (el && el._visObs) { el._visObs.disconnect(); delete el._visObs; }
   });
   document.body.dataset.period = currentPeriod;
   // Exit early if no data has been loaded yet

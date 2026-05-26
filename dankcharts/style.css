@@ -2587,6 +2587,11 @@
       background: var(--gold1);
     }
 
+    body[data-period="year"] .play-bar-fill,
+    body[data-period="alltime"] .play-bar-fill {
+      transition: none;
+    }
+
     /* CHART THUMBNAILS */
     .thumb {
       width: 44px;
