@@ -130,6 +130,15 @@ const TRANSLATIONS = {
     hero_top_artist: 'Top Artist',
     hero_day_streak: 'Day Streak',
 
+    // Streak modal
+    streak_modal_title: 'Daily Streaks',
+    streak_modal_sub: 'Active as of yesterday',
+    streak_section_artists: '🔥 Artists on streak',
+    streak_section_albums: '🔥 Albums on streak',
+    streak_section_songs: '🔥 Songs on streak',
+    streak_section_lost: '💔 Recently lost',
+    streak_none: 'None',
+
     // Modal stats
     modal_artist_peak: 'Artist Peak',
     modal_songs_charted: 'Songs Charted',
@@ -1011,6 +1020,15 @@ const TRANSLATIONS = {
     hero_plays_per_day: 'Repros / Día',
     hero_top_artist: 'Artista Principal',
     hero_day_streak: 'Días de Racha',
+
+    // Streak modal
+    streak_modal_title: 'Rachas Diarias',
+    streak_modal_sub: 'Activo hasta ayer',
+    streak_section_artists: '🔥 Artistas en racha',
+    streak_section_albums: '🔥 Álbumes en racha',
+    streak_section_songs: '🔥 Canciones en racha',
+    streak_section_lost: '💔 Rachas perdidas',
+    streak_none: 'Ninguna',
 
     // Modal stats
     modal_artist_peak: 'Pico Artista',
@@ -1894,6 +1912,15 @@ const TRANSLATIONS = {
     hero_top_artist: 'Artista Principal',
     hero_day_streak: 'Sequência de Dias',
 
+    // Streak modal
+    streak_modal_title: 'Sequências Diárias',
+    streak_modal_sub: 'Ativo até ontem',
+    streak_section_artists: '🔥 Artistas em sequência',
+    streak_section_albums: '🔥 Álbuns em sequência',
+    streak_section_songs: '🔥 Músicas em sequência',
+    streak_section_lost: '💔 Sequências perdidas',
+    streak_none: 'Nenhuma',
+
     // Modal stats
     modal_artist_peak: 'Pico do Artista',
     modal_songs_charted: 'Músicas na Parada',
@@ -2775,6 +2802,15 @@ const TRANSLATIONS = {
     hero_plays_per_day: 'Repros / Dia',
     hero_top_artist: 'Artista Principal',
     hero_day_streak: 'Sequência de Dias',
+
+    // Streak modal
+    streak_modal_title: 'Sequências Diárias',
+    streak_modal_sub: 'Ativo até ontem',
+    streak_section_artists: '🔥 Artistas em sequência',
+    streak_section_albums: '🔥 Álbuns em sequência',
+    streak_section_songs: '🔥 Músicas em sequência',
+    streak_section_lost: '💔 Sequências perdidas',
+    streak_none: 'Nenhuma',
 
     // Modal stats
     modal_artist_peak: 'Pico do Artista',

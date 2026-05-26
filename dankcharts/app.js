@@ -15470,15 +15470,15 @@ function openStreakModal() {
   const activeSongs = [], activeArtists = [], activeAlbums = [];
   for (const [sk, d] of Object.entries(songDays)) {
     const len = streakEndingAt(d, yest);
-    if (len) activeSongs.push({ name: songInfo[sk].title, sub: songInfo[sk].artist, type: 'song', len });
+    if (len >= 2) activeSongs.push({ name: songInfo[sk].title, sub: songInfo[sk].artist, type: 'song', len });
   }
   for (const [a, d] of Object.entries(artistDays)) {
     const len = streakEndingAt(d, yest);
-    if (len) activeArtists.push({ name: a, sub: '', type: 'artist', len });
+    if (len >= 2) activeArtists.push({ name: a, sub: '', type: 'artist', len });
   }
   for (const [ak, d] of Object.entries(albumDays)) {
     const len = streakEndingAt(d, yest);
-    if (len) activeAlbums.push({ name: albumInfo[ak].album, sub: albumInfo[ak].artist, type: 'album', len });
+    if (len >= 2) activeAlbums.push({ name: albumInfo[ak].album, sub: albumInfo[ak].artist, type: 'album', len });
   }
   activeSongs.sort((a, b) => b.len - a.len);
   activeArtists.sort((a, b) => b.len - a.len);
@@ -15514,19 +15514,19 @@ function openStreakModal() {
       `<span class="streak-label">${it.name}${sub}</span>${tag}</div>`;
   }
 
-  function section(title, items, isLost) {
+  function section(titleKey, items, isLost) {
     const inner = items.length
       ? items.map(it => itemHtml(it, isLost)).join('')
-      : '<div class="streak-empty">None</div>';
+      : `<div class="streak-empty">${t('streak_none')}</div>`;
     return `<div class="streak-section${isLost ? ' streak-section--lost' : ''}">` +
-      `<div class="streak-section-title">${title}</div>${inner}</div>`;
+      `<div class="streak-section-title">${t(titleKey)}</div>${inner}</div>`;
   }
 
   document.getElementById('streakModalBody').innerHTML =
-    section('🔥 Artists on streak', activeArtists, false) +
-    section('🔥 Albums on streak', activeAlbums, false) +
-    section('🔥 Songs on streak', activeSongs, false) +
-    section('💔 Recently lost', lost, true);
+    section('streak_section_artists', activeArtists, false) +
+    section('streak_section_albums', activeAlbums, false) +
+    section('streak_section_songs', activeSongs, false) +
+    section('streak_section_lost', lost, true);
 
   document.getElementById('streakModal').classList.add('open');
 }

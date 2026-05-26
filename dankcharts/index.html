@@ -2778,12 +2778,12 @@ window.addEventListener('load',function(){var d=document,s=d.createElement('scri
   <!-- STREAK DETAILS MODAL -->
   <div id="streakModal" class="modal-overlay" onclick="if(event.target===this)closeStreakModal()">
     <div class="modal-box streak-modal-box">
-      <button class="modal-close" onclick="closeStreakModal()">✕ CLOSE</button>
+      <button class="modal-close" onclick="closeStreakModal()" data-i18n="btn_close">✕ CLOSE</button>
       <div class="streak-modal-header">
         <span class="streak-modal-icon">🔥</span>
         <div>
-          <div class="streak-modal-title">Daily Streaks</div>
-          <div class="streak-modal-sub">Active as of yesterday</div>
+          <div class="streak-modal-title" data-i18n="streak_modal_title">Daily Streaks</div>
+          <div class="streak-modal-sub" data-i18n="streak_modal_sub">Active as of yesterday</div>
         </div>
       </div>
       <div class="modal-body" id="streakModalBody"></div>
