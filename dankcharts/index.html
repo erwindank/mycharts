@@ -1310,6 +1310,10 @@
             <span data-i18n="awards_elig_to">to</span>
             <input type="date" id="awardsEligEnd" onchange="awardsUpdateElig()">
           </div>
+          <div class="awards-config-row awards-gemini-row">
+            <label>Gemini API Key <span class="awards-gemini-hint">for smarter genre detection — <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">get free key</a></span></label>
+            <input type="password" id="awardsGeminiKey" placeholder="AIza…" autocomplete="off" oninput="localStorage.setItem('dc_gemini_api_key',this.value.trim())">
+          </div>
           <div class="awards-cat-toggles-header">
             <span data-i18n="awards_categories_for_year">Categories for this year</span>
             <button class="awards-cat-toggle-all" onclick="awardsToggleAllCats(true)" data-i18n="awards_enable_all">Enable All</button>

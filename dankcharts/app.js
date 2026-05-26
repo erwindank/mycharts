@@ -10956,7 +10956,7 @@ async function searchArtistMBID(name) {
     const born = match?.['life-span']?.begin;
     if (born && born.length >= 10) _mbBirthdayCache[name] = born.slice(0, 10);
     return _mbidCache[name];
-  } catch (e) { return null; } // don't cache errors — allow retry on next call
+  } catch (e) { _mbidCache[name] = null; return null; }
 }
 
 // Shared cache for release-groups — avoids duplicate MB API calls across upcoming, recent, and events
@@ -10966,7 +10966,7 @@ async function fetchAllReleasesRaw(mbid) {
   try {
     const d = await mbFetch(`release-group?artist=${mbid}&type=album%7Cep%7Csingle&fmt=json&limit=100`);
     _mbReleasesCache[mbid] = d['release-groups'] || [];
-  } catch (e) { return []; } // don't cache errors — allows retry if rate-limited
+  } catch (e) { _mbReleasesCache[mbid] = []; return []; }
   return _mbReleasesCache[mbid];
 }
 
@@ -15878,6 +15878,10 @@ let _awardsSubTab   = 'mygrammys';
 let _awardsGenreCache = {};
 let _awardsGenreQueue = {};
 const _awardsAlbumYearCache = {};
+let _awardsPickerSelMap   = {};   // key → item, while picker modal is open
+let _awardsPickerCatType  = '';
+let _awardsPickerEligWin  = { start: '', end: '' };
+let _awardsPickerAutoCands = [];
 let _realLifeYear   = tzNow().getFullYear();
 
 function _awardsDefaultData(year) {
@@ -16049,16 +16053,46 @@ function _genreMatch(tags, filterStr) {
   const g = filterStr.replace('genre:', '');
   const aliases = {
     'pop':         ['pop','dance pop','electropop','synth-pop','teen pop','pop rock','indie pop'],
-    'rock':        ['rock','classic rock','hard rock','indie rock','pop rock','punk rock','alternative rock'],
-    'alternative': ['alternative','indie','indie pop','indie rock','alternative rock','art pop','dream pop'],
-    'hip-hop':     ['hip-hop','hip hop','rap','trap','urban','conscious hip hop'],
+    'rock':        ['rock','classic rock','hard rock','indie rock','punk rock','alternative rock','metal','emo','post-rock'],
+    'alternative': ['alternative','indie','indie rock','alternative rock','post-punk','dream pop','shoegaze'],
+    'hip-hop':     ['hip-hop','hip hop','rap','trap','conscious hip hop'],
     'rnb':         ['r&b','soul','neo soul','contemporary r&b','rnb','rhythm and blues'],
     'latin':       ['latin','reggaeton','latin pop','salsa','cumbia','bachata','latin rap','regional mexicano'],
-    'electronic':  ['electronic','edm','house','techno','dance','electro','synth','trance','ambient'],
+    'electronic':  ['electronic','edm','house','techno','dance','electro','synth-pop','trance','ambient'],
     'k-pop':       ['k-pop','kpop','korean pop','k pop','korean'],
   };
   const list = aliases[g] || [g];
-  return tags.some(t => list.some(m => t.includes(m)));
+  return tags.some(t => list.some(m => t === m));
+}
+
+async function _awardsGeminiClassifyArtists(artists) {
+  const apiKey = localStorage.getItem('dc_gemini_api_key');
+  if (!apiKey) return;
+  const needed = artists.filter(a => _awardsGenreCache[a.toLowerCase()] === undefined);
+  if (!needed.length) return;
+  const tags = 'rock, classic rock, hard rock, indie rock, punk rock, alternative rock, metal, emo, post-rock, alternative, indie, indie rock, post-punk, dream pop, shoegaze, hip-hop, hip hop, rap, trap, conscious hip hop, r&b, soul, neo soul, contemporary r&b, rnb, rhythm and blues, pop, dance pop, indie pop, pop rock, teen pop, synth-pop, electropop, latin, reggaeton, latin pop, salsa, cumbia, bachata, latin rap, regional mexicano, electronic, edm, house, techno, dance, electro, trance, ambient, k-pop, kpop, korean pop, k pop, korean';
+  const prompt = `Classify each music artist using ONLY these genre tags (use multiple per artist if applicable):\n${tags}\n\nReturn a JSON object: { "Artist Name": ["tag1", "tag2"] }. Include every artist listed, even if unsure — guess based on your knowledge.\n\nArtists to classify:\n${needed.join('\n')}`;
+  try {
+    const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${encodeURIComponent(apiKey)}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        contents: [{ parts: [{ text: prompt }] }],
+        generationConfig: { responseMimeType: 'application/json', temperature: 0 }
+      })
+    });
+    if (!res.ok) throw new Error('Gemini ' + res.status);
+    const d = await res.json();
+    const text = d?.candidates?.[0]?.content?.parts?.[0]?.text;
+    if (!text) throw new Error('empty response');
+    const map = JSON.parse(text);
+    for (const [artist, artistTags] of Object.entries(map)) {
+      const key = artist.toLowerCase();
+      if (needed.some(a => a.toLowerCase() === key)) {
+        _awardsGenreCache[key] = Array.isArray(artistTags) ? artistTags.map(t => String(t).toLowerCase()) : [];
+      }
+    }
+  } catch (e) { /* fall through to Last.fm */ }
 }
 
 async function _awardsGetCandidates(catDef, eligStart, eligEnd, log) {
@@ -16226,11 +16260,12 @@ async function _awardsGetCandidates(catDef, eligStart, eligEnd, log) {
     return _awardsTopN(m, 20, 3);
   }
   if (f.startsWith('genre:')) {
-    const uniq = [...new Set(inWin.map(p => p.artist))];
-    await Promise.all(uniq.slice(0, 60).map(a => _awardsGetArtistGenre(a)));
+    const uniq = [...new Set(inWin.map(p => _pa(p)))];
+    await _awardsGeminiClassifyArtists(uniq.slice(0, 150));
+    await Promise.all(uniq.filter(a => _awardsGenreCache[a.toLowerCase()] === undefined).slice(0, 60).map(a => _awardsGetArtistGenre(a)));
     const gs = {}, ga = {}, gr = {};
     for (const p of inWin) {
-      const tags = _awardsGenreCache[_rk(p)] || [];
+      const tags = _awardsGenreCache[_pa(p).toLowerCase()] || [];
       if (!_genreMatch(tags, f)) continue;
       const sk = _sk(p), ak = _ak(p), rk = _rk(p);
       if (!gs[sk]) gs[sk] = { title: p.title, artist: p.artist, album: p.album, plays: 0 };
@@ -16371,6 +16406,10 @@ function awardsToggleConfig() {
   const open = panel.style.display !== 'none';
   panel.style.display = open ? 'none' : '';
   document.getElementById('awardsConfigToggleBtn').classList.toggle('active', !open);
+  if (!open) {
+    const keyEl = document.getElementById('awardsGeminiKey');
+    if (keyEl) keyEl.value = localStorage.getItem('dc_gemini_api_key') || '';
+  }
 }
 
 function awardsUpdateElig() {
@@ -16443,38 +16482,79 @@ async function awardsGenerateCatCandidates(year, catId) {
   _awardsShowPicker(year, catId, cands);
 }
 
+function _awardsPickerResultRow(item) {
+  const lbl = item.title || item.album || item.artist || '';
+  const sub = item.title ? item.artist : (item.album ? item.artist : '');
+  const rel = item.releaseYear ? ' · ' + item.releaseYear : (item.releaseYear === null ? ' · year unknown' : '');
+  return `<div class="awards-picker-result-row" data-item="${esc(JSON.stringify(item))}" onclick="awardsPickerAddItem(this)">
+    <span class="awards-picker-add-icon">+</span>
+    <span class="awards-picker-lbl">${esc(lbl)}</span>
+    ${sub ? `<span class="awards-picker-sub">${esc(sub)}${rel}</span>` : ''}
+    <span class="awards-picker-plays">${item.playLabel || item.plays + ' plays'}</span>
+  </div>`;
+}
+
+function _awardsPickerSelHtml() {
+  const items = Object.values(_awardsPickerSelMap);
+  if (!items.length) return '<div class="awards-picker-nom-empty">No nominees selected — add from suggestions below</div>';
+  return items.map(item => {
+    const ik  = _awardItemKey(item);
+    const lbl = item.title || item.album || item.artist || '';
+    const sub = item.title ? item.artist : (item.album ? item.artist : '');
+    return `<div class="awards-picker-nom-row">
+      <span class="awards-picker-nom-lbl">${esc(lbl)}</span>
+      ${sub ? `<span class="awards-picker-nom-sub">${esc(sub)}</span>` : ''}
+      <span class="awards-picker-nom-plays">${item.playLabel || item.plays + ' plays'}</span>
+      <button class="awards-picker-nom-x" data-key="${esc(ik)}" onclick="awardsPickerRemoveNom(this)" title="Remove">✕</button>
+    </div>`;
+  }).join('');
+}
+
+function _awardsPickerBodyHtml() {
+  const avail = _awardsPickerAutoCands.filter(c => !_awardsPickerSelMap[_awardItemKey(c)]);
+  return avail.length
+    ? avail.map(_awardsPickerResultRow).join('')
+    : `<div class="awards-empty">${t('awards_no_candidates')}</div>`;
+}
+
+function _awardsPickerRefresh() {
+  const selEl  = document.getElementById('awardsPickerSelected');
+  const countEl = document.getElementById('awardsPickerCount');
+  if (selEl)   selEl.innerHTML = _awardsPickerSelHtml();
+  if (countEl) countEl.textContent = t('awards_picker_selected', {count: Object.keys(_awardsPickerSelMap).length});
+  const q = (document.getElementById('awardsPickerSearch')?.value || '').trim();
+  const bodyEl = document.getElementById('awardsPickerBody');
+  if (!bodyEl) return;
+  if (q) awardsPickerDoSearch(); else bodyEl.innerHTML = _awardsPickerBodyHtml();
+}
+
 function _awardsShowPicker(year, catId, candidates) {
   const data = _awardsYearData[year];
   if (!data) return;
   const catDef = AWARD_CATEGORIES.find(c => c.id === catId);
   if (!catDef) return;
-  const existing = new Set((data.categories[catId]?.nominees || []).map(n => _awardItemKey(n)));
-  const lbl = item => item.title || item.album || item.artist || '';
-  const sub = item => item.title ? item.artist : (item.album ? item.artist : (item.song || ''));
 
-  const rows = candidates.length
-    ? candidates.map(item => {
-        const ik = _awardItemKey(item);
-        const chk = existing.has(ik) ? 'checked' : '';
-        return `<label class="awards-picker-row${existing.has(ik) ? ' checked' : ''}">
-          <input type="checkbox" ${chk} data-item="${esc(JSON.stringify(item))}">
-          <span class="awards-picker-lbl">${esc(lbl(item))}</span>
-          ${sub(item) ? `<span class="awards-picker-sub">${esc(sub(item))}${item.releaseYear ? ' · ' + item.releaseYear : item.releaseYear === null ? ' · year unknown' : ''}</span>` : ''}
-          <span class="awards-picker-plays">${item.playLabel || item.plays + ' plays'}</span>
-        </label>`;
-      }).join('')
-    : `<div class="awards-empty">${t('awards_no_candidates')}</div>`;
+  const existingNominees = data.categories[catId]?.nominees || [];
+  _awardsPickerSelMap    = {};
+  existingNominees.forEach(n => { _awardsPickerSelMap[_awardItemKey(n)] = n; });
+  _awardsPickerCatType   = catDef.type;
+  _awardsPickerEligWin   = { start: data.eligStart, end: data.eligEnd };
+  _awardsPickerAutoCands = candidates;
 
+  const typeLabel = catDef.type === 'song' ? 'songs' : catDef.type === 'album' ? 'albums' : 'artists';
   const html = `<div class="awards-picker-overlay" id="awardsPickerOverlay" onclick="awardsPickerBgClick(event)">
     <div class="awards-picker-modal">
       <div class="awards-picker-head">
         <span class="awards-picker-title">${esc(t('awards_cat_' + catDef.id))}</span>
-        <span class="awards-picker-hint">${t('awards_picker_hint', {count: candidates.length})}</span>
         <button class="awards-picker-close" onclick="awardsPickerClose()">✕</button>
       </div>
-      <div class="awards-picker-body">${rows}</div>
+      <div class="awards-picker-selected" id="awardsPickerSelected">${_awardsPickerSelHtml()}</div>
+      <div class="awards-picker-search">
+        <input type="text" id="awardsPickerSearch" placeholder="Search ${typeLabel} from ${year}…" oninput="awardsPickerDoSearch()" autocomplete="off" spellcheck="false">
+      </div>
+      <div class="awards-picker-body" id="awardsPickerBody">${_awardsPickerBodyHtml()}</div>
       <div class="awards-picker-foot">
-        <span class="awards-picker-count" id="awardsPickerCount">${t('awards_picker_selected', {count: existing.size})}</span>
+        <span class="awards-picker-count" id="awardsPickerCount">${t('awards_picker_selected', {count: existingNominees.length})}</span>
         <button class="awards-picker-save" onclick="awardsPickerSave(${year},'${catId}')">${t('awards_save_nominees')}</button>
       </div>
     </div>
@@ -16483,24 +16563,68 @@ function _awardsShowPicker(year, catId, candidates) {
   const wrap = document.createElement('div');
   wrap.innerHTML = html;
   document.body.appendChild(wrap.firstElementChild);
+  requestAnimationFrame(() => document.getElementById('awardsPickerSearch')?.focus());
+}
 
-  document.querySelectorAll('#awardsPickerOverlay input[type=checkbox]').forEach(cb => {
-    cb.addEventListener('change', () => {
-      cb.closest('label').classList.toggle('checked', cb.checked);
-      const n = document.querySelectorAll('#awardsPickerOverlay input:checked').length;
-      const countEl = document.getElementById('awardsPickerCount');
-      if (countEl) countEl.textContent = t('awards_picker_selected', {count: n});
-    });
-  });
+function awardsPickerAddItem(el) {
+  const item = JSON.parse(el.dataset.item);
+  _awardsPickerSelMap[_awardItemKey(item)] = item;
+  _awardsPickerRefresh();
+}
+
+function awardsPickerRemoveNom(btn) {
+  delete _awardsPickerSelMap[btn.dataset.key];
+  _awardsPickerRefresh();
+}
+
+function awardsPickerDoSearch() {
+  const q      = (document.getElementById('awardsPickerSearch')?.value || '').toLowerCase().trim();
+  const bodyEl = document.getElementById('awardsPickerBody');
+  if (!bodyEl) return;
+  if (!q) { bodyEl.innerHTML = _awardsPickerBodyHtml(); return; }
+
+  const start = new Date(_awardsPickerEligWin.start + 'T00:00:00');
+  const end   = new Date(_awardsPickerEligWin.end   + 'T23:59:59');
+  const inWin = allPlays.filter(p => p.date >= start && p.date <= end);
+  const map   = {};
+
+  for (const p of inWin) {
+    if (_awardsPickerCatType === 'song') {
+      const k = _sk(p);
+      if (!map[k]) map[k] = { title: p.title, artist: p.artist, album: p.album, plays: 0 };
+      map[k].plays++;
+    } else if (_awardsPickerCatType === 'album') {
+      if (!p.album) continue;
+      const k = _ak(p);
+      if (!map[k]) map[k] = { album: p.album, artist: p.artist, plays: 0 };
+      map[k].plays++;
+    } else {
+      const k = _rk(p);
+      if (!map[k]) map[k] = { artist: p.artist, plays: 0 };
+      map[k].plays++;
+    }
+  }
+
+  const hits = Object.values(map)
+    .filter(item => !_awardsPickerSelMap[_awardItemKey(item)] &&
+      [item.title, item.album, item.artist].filter(Boolean).join(' ').toLowerCase().includes(q))
+    .sort((a, b) => b.plays - a.plays)
+    .slice(0, 50);
+
+  bodyEl.innerHTML = hits.length
+    ? hits.map(_awardsPickerResultRow).join('')
+    : `<div class="awards-empty">No results for "${esc(q)}"</div>`;
 }
 
 function awardsPickerBgClick(e) { if (e.target.id === 'awardsPickerOverlay') awardsPickerClose(); }
-function awardsPickerClose() { const el = document.getElementById('awardsPickerOverlay'); if (el) el.remove(); }
+function awardsPickerClose() {
+  const el = document.getElementById('awardsPickerOverlay');
+  if (el) el.remove();
+  _awardsPickerSelMap = {};
+}
 
 async function awardsPickerSave(year, catId) {
-  const checks = [...document.querySelectorAll('#awardsPickerOverlay input:checked')];
-  const nominees = [];
-  checks.forEach(cb => { try { nominees.push(JSON.parse(cb.dataset.item)); } catch(_){} });
+  const nominees = Object.values(_awardsPickerSelMap);
   awardsPickerClose();
   const data = _awardsYearData[year];
   if (!data) return;
