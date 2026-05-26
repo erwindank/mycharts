@@ -16457,7 +16457,7 @@ function _awardsShowPicker(year, catId, candidates) {
         const ik = _awardItemKey(item);
         const chk = existing.has(ik) ? 'checked' : '';
         return `<label class="awards-picker-row${existing.has(ik) ? ' checked' : ''}">
-          <input type="checkbox" ${chk} data-item='${esc(JSON.stringify(item))}'>
+          <input type="checkbox" ${chk} data-item="${esc(JSON.stringify(item))}">
           <span class="awards-picker-lbl">${esc(lbl(item))}</span>
           ${sub(item) ? `<span class="awards-picker-sub">${esc(sub(item))}${item.releaseYear ? ' · ' + item.releaseYear : item.releaseYear === null ? ' · year unknown' : ''}</span>` : ''}
           <span class="awards-picker-plays">${item.playLabel || item.plays + ' plays'}</span>
