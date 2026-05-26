@@ -5450,7 +5450,7 @@ function renderAll() {
     document.getElementById('albumsSectionTitle').textContent = t('sec_albums_top', { n: chartSize });
     const periodStats = hasPeriodStats ? buildPeriodStats(currentPeriod) : null;
     lastPeriodStats = periodStats;
-    _animPrevPlays = (prevPlays && prevPlays.length > 0) ? prevPlays : null;
+    _animPrevPlays = (prevPlays && prevPlays.length > 0 && (currentPeriod === 'week' || currentPeriod === 'month')) ? prevPlays : null;
     _animCurrentPlays = _animPrevPlays ? plays : null;
     renderSongs(plays, peaks, periodStats);
     renderArtists(plays, peaks, periodStats);
