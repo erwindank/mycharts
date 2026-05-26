@@ -16061,7 +16061,7 @@ function _genreMatch(tags, filterStr) {
   return tags.some(t => list.some(m => t.includes(m)));
 }
 
-async function _awardsGetCandidates(catDef, eligStart, eligEnd) {
+async function _awardsGetCandidates(catDef, eligStart, eligEnd, log) {
   const start = new Date(eligStart + 'T00:00:00');
   const end   = new Date(eligEnd   + 'T23:59:59');
   const inWin = allPlays.filter(p => p.date >= start && p.date <= end);
@@ -16201,11 +16201,19 @@ async function _awardsGetCandidates(catDef, eligStart, eligEnd) {
     // (Only needed for the zero-prior-plays case; any prior play proves an earlier release.)
     const awardsYear = start.getFullYear();
     const candidates = Object.entries(m).map(([k, v]) => ({ k, ...v }));
+    if (log) log(`Fetching release years for ${candidates.length} album${candidates.length !== 1 ? 's' : ''}…`);
     await Promise.all(candidates.map(c => _awardsGetAlbumYear(c.album, c.artist)));
     for (const { k, album, artist } of candidates) {
       const releaseYear = _awardsAlbumYearCache[album.toLowerCase() + '|||' + artist.toLowerCase()];
-      if (releaseYear !== null && releaseYear >= awardsYear) delete m[k];
-      else if (m[k]) m[k].releaseYear = releaseYear;
+      const prior = priorPlays[k] || 0;
+      // Exclude if release year is known and falls within the awards year.
+      // Also exclude if year is unknown AND prior plays = 0: any prior play proves an older
+      // release, but zero prior plays with no API result almost certainly means a new release.
+      if ((releaseYear !== null && releaseYear >= awardsYear) || (releaseYear === null && prior === 0)) {
+        delete m[k];
+      } else if (m[k]) {
+        m[k].releaseYear = releaseYear;
+      }
     }
     return _awardsTopN(m, 20, 2);
   }
@@ -16397,12 +16405,17 @@ function awardsToggleAllCats(enabled) {
 async function awardsGenerateCandidates() {
   if (!allPlays.length) return;
   const btn = document.getElementById('awardsGenerateBtn');
+  const statusEl = document.getElementById('awardsStatus');
+  const log = msg => { if (statusEl) statusEl.textContent = msg; };
+
   if (btn) { btn.disabled = true; btn.textContent = t('awards_generating'); }
+  log('Loading year data…');
   const data = await _awardsLoad(_awardsYear);
   const active = AWARD_CATEGORIES.filter(c => data.categories[c.id]?.enabled ?? c.defaultOn);
 
   for (const cat of active) {
-    const cands = await _awardsGetCandidates(cat, data.eligStart, data.eligEnd);
+    log(`Calculating ${cat.label}…`);
+    const cands = await _awardsGetCandidates(cat, data.eligStart, data.eligEnd, log);
     const cd = data.categories[cat.id];
     if (cat.auto) {
       cd.nominees = cands.slice(0, 1);
@@ -16411,8 +16424,10 @@ async function awardsGenerateCandidates() {
       cd.nominees = cands.slice(0, 8);
     }
   }
+  log('Saving…');
   await _awardsSave(_awardsYear);
   if (btn) { btn.disabled = false; btn.textContent = t('awards_generate'); }
+  if (statusEl) statusEl.textContent = '';
   _awardsRenderCatList(data);
 }
 
