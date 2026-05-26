@@ -15339,7 +15339,7 @@ function renderHeroStats() {
       <span class="hero-label">${t('hero_top_artist')}</span>
     </div>
     <div class="hero-stat-sep">·</div>
-    <div class="hero-stat" id="hero-streak-stat" data-tip="Current streak · Personal best: ${pb} day${pb === 1 ? '' : 's'}">
+    <div class="hero-stat" id="hero-streak-stat" data-tip="Click for streak details · Personal best: ${pb} day${pb === 1 ? '' : 's'}">
       <span class="hero-icon">📆</span>
       <span class="hero-val">0</span>
       <span class="hero-label">${t('hero_day_streak')}</span>
@@ -15373,6 +15373,10 @@ function renderHeroStats() {
       setTimeout(() => card.scrollIntoView({ behavior: 'smooth', block: 'start' }), needsSwitch ? 300 : 0);
     }
   });
+
+  // Open streak details modal when streak stat is clicked
+  const streakStatEl = el.querySelector('#hero-streak-stat');
+  if (streakStatEl) streakStatEl.addEventListener('click', openStreakModal);
 
   // Count-up animation for numeric values
   el.querySelectorAll('[data-countup]').forEach(span => {
@@ -15416,6 +15420,119 @@ function renderHeroStats() {
     }
     requestAnimationFrame(streakFrame);
   }
+}
+
+// ─── STREAK DETAILS MODAL ─────────────────────────────────────
+function openStreakModal() {
+  if (!allPlays.length) return;
+
+  function prevDs(ds) {
+    const d = new Date(ds + 'T12:00:00');
+    d.setDate(d.getDate() - 1);
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  }
+
+  const todayStr = localDateStr(tzNow());
+  const yest = prevDs(todayStr);
+  const dayBefore = prevDs(yest);
+
+  const songDays = {}, songInfo = {};
+  const artistDays = {};
+  const albumDays = {}, albumInfo = {};
+
+  for (const p of allPlays) {
+    const ds = localDateStr(tzDate(p.date));
+    const sk = songKey(p);
+    if (!songDays[sk]) { songDays[sk] = new Set(); songInfo[sk] = { title: p.title, artist: p.artist }; }
+    songDays[sk].add(ds);
+    for (const a of p.artists) {
+      if (!artistDays[a]) artistDays[a] = new Set();
+      artistDays[a].add(ds);
+    }
+    if (p.album && p.album !== '—') {
+      const ak = p.album + '|||' + albumArtist(p);
+      if (!albumDays[ak]) { albumDays[ak] = new Set(); albumInfo[ak] = { album: p.album, artist: albumArtist(p) }; }
+      albumDays[ak].add(ds);
+    }
+  }
+
+  function streakEndingAt(daySet, end) {
+    if (!daySet.has(end)) return 0;
+    let n = 1, cur = end;
+    while (true) {
+      const prev = prevDs(cur);
+      if (!daySet.has(prev)) break;
+      n++; cur = prev;
+    }
+    return n;
+  }
+
+  const activeSongs = [], activeArtists = [], activeAlbums = [];
+  for (const [sk, d] of Object.entries(songDays)) {
+    const len = streakEndingAt(d, yest);
+    if (len) activeSongs.push({ name: songInfo[sk].title, sub: songInfo[sk].artist, type: 'song', len });
+  }
+  for (const [a, d] of Object.entries(artistDays)) {
+    const len = streakEndingAt(d, yest);
+    if (len) activeArtists.push({ name: a, sub: '', type: 'artist', len });
+  }
+  for (const [ak, d] of Object.entries(albumDays)) {
+    const len = streakEndingAt(d, yest);
+    if (len) activeAlbums.push({ name: albumInfo[ak].album, sub: albumInfo[ak].artist, type: 'album', len });
+  }
+  activeSongs.sort((a, b) => b.len - a.len);
+  activeArtists.sort((a, b) => b.len - a.len);
+  activeAlbums.sort((a, b) => b.len - a.len);
+
+  const lost = [];
+  for (const [sk, d] of Object.entries(songDays)) {
+    if (!d.has(yest) && d.has(dayBefore)) {
+      const len = streakEndingAt(d, dayBefore);
+      if (len >= 2) lost.push({ name: songInfo[sk].title, sub: songInfo[sk].artist, type: 'song', len });
+    }
+  }
+  for (const [a, d] of Object.entries(artistDays)) {
+    if (!d.has(yest) && d.has(dayBefore)) {
+      const len = streakEndingAt(d, dayBefore);
+      if (len >= 2) lost.push({ name: a, sub: '', type: 'artist', len });
+    }
+  }
+  for (const [ak, d] of Object.entries(albumDays)) {
+    if (!d.has(yest) && d.has(dayBefore)) {
+      const len = streakEndingAt(d, dayBefore);
+      if (len >= 2) lost.push({ name: albumInfo[ak].album, sub: albumInfo[ak].artist, type: 'album', len });
+    }
+  }
+  lost.sort((a, b) => b.len - a.len);
+
+  function itemHtml(it, isLost) {
+    const sub = it.sub ? `<span class="streak-sub"> — ${it.sub}</span>` : '';
+    const tag = isLost ? `<span class="streak-type-tag">${it.type}</span>` : '';
+    return `<div class="streak-item${isLost ? ' streak-item--lost' : ''}">` +
+      `<span class="streak-fire">${isLost ? '💔' : '🔥'}</span>` +
+      `<span class="streak-days">${it.len}d</span>` +
+      `<span class="streak-label">${it.name}${sub}</span>${tag}</div>`;
+  }
+
+  function section(title, items, isLost) {
+    const inner = items.length
+      ? items.map(it => itemHtml(it, isLost)).join('')
+      : '<div class="streak-empty">None</div>';
+    return `<div class="streak-section${isLost ? ' streak-section--lost' : ''}">` +
+      `<div class="streak-section-title">${title}</div>${inner}</div>`;
+  }
+
+  document.getElementById('streakModalBody').innerHTML =
+    section('🔥 Artists on streak', activeArtists, false) +
+    section('🔥 Albums on streak', activeAlbums, false) +
+    section('🔥 Songs on streak', activeSongs, false) +
+    section('💔 Recently lost', lost, true);
+
+  document.getElementById('streakModal').classList.add('open');
+}
+
+function closeStreakModal() {
+  document.getElementById('streakModal').classList.remove('open');
 }
 
 // ─── PERIOD LABEL CLICK → OPEN PICKER ─────────────────────────

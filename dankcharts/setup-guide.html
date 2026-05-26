@@ -1091,7 +1091,7 @@
     '',
     '',
     '// Run this once from Last.fm → Start Auto-Update to kick off the 90-minute cycle.',
-    'function setupTrigger() {',
+    'function setupLastFmTrigger() {',
     '  ScriptApp.getProjectTriggers().forEach(function(t) {',
     '    if (t.getHandlerFunction() === \'fetchAndLogLastFmHistory\') ScriptApp.deleteTrigger(t);',
     '  });',
@@ -1104,7 +1104,10 @@
     'function onOpen() {',
     '  SpreadsheetApp.getUi().createMenu(\'Last.fm\')',
     '    .addItem(\'Fetch Latest Tracks\', \'fetchAndLogLastFmHistory\')',
-    '    .addItem(\'Start Auto-Update (90 min)\', \'setupTrigger\')',
+    '    .addItem(\'Start Auto-Update (90 min)\', \'setupLastFmTrigger\')',
+    '    .addSeparator()',
+    '    .addItem(\'Start Genre Fetcher\', \'setupGenreFetcherTrigger\')',
+    '    .addItem(\'Stop Genre Fetcher\', \'deleteGenreTriggers\')',
     '    .addToUi();',
     '}',
     '',
@@ -1321,16 +1324,119 @@
     '    return ContentService.createTextOutput(JSON.stringify({ status: \'error\', message: err.message }))',
     '      .setMimeType(ContentService.MimeType.JSON);',
     '  }',
+    '}',
+    '',
+    '',
+    '// =============================================================',
+    '//  BULK GENRE FETCHER',
+    '//  Fills columns E–I (Genre 1–5) by calling Last.fm\'s',
+    '//  track.gettoptags API for every row that has no genre yet.',
+    '//  Runs in batches of 50 rows every 5 minutes so it never',
+    '//  hits the 6-minute Apps Script execution limit.',
+    '//  Start it from Last.fm → Start Genre Fetcher in the sheet menu.',
+    '// =============================================================',
+    'function fetchGenresBatch() {',
+    '  var ss = SpreadsheetApp.getActiveSpreadsheet();',
+    '  var settingsSheet = ss.getSheetByName(\'Settings\');',
+    '  if (!settingsSheet) return;',
+    '  var apiKey = settingsSheet.getRange(\'B2\').getValue();',
+    '  var dataTabName = settingsSheet.getRange(\'B3\').getValue();',
+    '  var dataSheet = ss.getSheetByName(dataTabName);',
+    '  if (!apiKey || !dataSheet) return;',
+    '  var props = PropertiesService.getScriptProperties();',
+    '  var startRow = parseInt(props.getProperty(\'lastProcessedRow\')) || 2;',
+    '  var lastRow = dataSheet.getLastRow();',
+    '  if (startRow > lastRow) {',
+    '    deleteGenreTriggers();',
+    '    Logger.log(\'Genre fetcher complete — all rows processed.\');',
+    '    return;',
+    '  }',
+    '  var BATCH_SIZE = 50;',
+    '  var endRow = Math.min(startRow + BATCH_SIZE - 1, lastRow);',
+    '  var data = dataSheet.getRange(startRow, 1, endRow - startRow + 1, 9).getValues();',
+    '  var updates = [];',
+    '  for (var i = 0; i < data.length; i++) {',
+    '    var row = data[i];',
+    '    var track = row[0];',
+    '    var artist = row[1];',
+    '    var genre1 = row[4];',
+    '    if (track && artist && genre1 === \'\') {',
+    '      var genres = getGenresFromLastFm(artist, track, apiKey);',
+    '      var genresToUpdate = [\'\', \'\', \'\', \'\', \'\'];',
+    '      for (var g = 0; g < Math.min(genres.length, 5); g++) {',
+    '        genresToUpdate[g] = genres[g];',
+    '      }',
+    '      updates.push(genresToUpdate);',
+    '    } else {',
+    '      updates.push([row[4], row[5], row[6], row[7], row[8]]);',
+    '    }',
+    '  }',
+    '  dataSheet.getRange(startRow, 5, updates.length, 5).setValues(updates);',
+    '  props.setProperty(\'lastProcessedRow\', endRow + 1);',
+    '  Logger.log(\'Genre fetcher: processed rows \' + startRow + \' to \' + endRow + \'.\');',
+    '}',
+    '',
+    '',
+    'function getGenresFromLastFm(artist, track, apiKey) {',
+    '  var url = \'https://ws.audioscrobbler.com/2.0/?method=track.gettoptags\'',
+    '    + \'&artist=\' + encodeURIComponent(artist)',
+    '    + \'&track=\' + encodeURIComponent(track)',
+    '    + \'&api_key=\' + apiKey + \'&format=json\';',
+    '  try {',
+    '    var response = UrlFetchApp.fetch(url, { muteHttpExceptions: true });',
+    '    if (response.getResponseCode() === 200) {',
+    '      var json = JSON.parse(response.getContentText());',
+    '      if (json.toptags && json.toptags.tag) {',
+    '        return json.toptags.tag.map(function(t) { return t.name; });',
+    '      }',
+    '    }',
+    '  } catch(e) {}',
+    '  return [];',
+    '}',
+    '',
+    '',
+    'function setupGenreFetcherTrigger() {',
+    '  deleteGenreTriggers();',
+    '  ScriptApp.newTrigger(\'fetchGenresBatch\').timeBased().everyMinutes(5).create();',
+    '  PropertiesService.getScriptProperties().setProperty(\'lastProcessedRow\', \'2\');',
+    '  SpreadsheetApp.getUi().alert(\'Genre fetcher started! It will fill columns E–I every 5 minutes.\');',
+    '}',
+    '',
+    '',
+    'function deleteGenreTriggers() {',
+    '  var triggers = ScriptApp.getProjectTriggers();',
+    '  for (var i = 0; i < triggers.length; i++) {',
+    '    if (triggers[i].getHandlerFunction() === \'fetchGenresBatch\') {',
+    '      ScriptApp.deleteTrigger(triggers[i]);',
+    '    }',
+    '  }',
     '}'
   ].join('\n');
 
   function copyGuideAppsScript() {
     var code = document.getElementById('guideAppsScriptCode').textContent;
-    navigator.clipboard.writeText(code).then(function() {
-      var btn = document.getElementById('copyGuideAppsScriptBtn');
+    var btn = document.getElementById('copyGuideAppsScriptBtn');
+    function markCopied() {
       btn.textContent = 'Copied!';
       setTimeout(function() { btn.textContent = 'Copy'; }, 2000);
-    });
+    }
+    function fallbackCopy() {
+      var ta = document.createElement('textarea');
+      ta.value = code;
+      ta.style.position = 'fixed';
+      ta.style.top = '-9999px';
+      ta.style.left = '-9999px';
+      document.body.appendChild(ta);
+      ta.focus();
+      ta.select();
+      try { document.execCommand('copy'); markCopied(); } catch(e) {}
+      document.body.removeChild(ta);
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(code).then(markCopied).catch(fallbackCopy);
+    } else {
+      fallbackCopy();
+    }
   }
 
   document.addEventListener('DOMContentLoaded', function () {

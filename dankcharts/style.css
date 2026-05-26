@@ -10593,3 +10593,102 @@ body.pink-light .hero-stats {
   #awardsCatList { grid-template-columns: 1fr; }
   .awards-cat-toggles { grid-template-columns: 1fr; }
 }
+
+/* ─── STREAK DETAILS MODAL ──────────────────────────────────── */
+.streak-modal-box { max-width: 520px; }
+
+.streak-modal-header {
+  background: linear-gradient(135deg, #1a1635, #1f2335);
+  padding: 1.2rem 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.streak-modal-icon { font-size: 2rem; }
+
+.streak-modal-title {
+  font-family: 'DM Serif Display', serif;
+  font-size: 1.5rem;
+  color: var(--text);
+  line-height: 1.1;
+}
+
+.streak-modal-sub {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.65rem;
+  color: var(--accent2);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin-top: 0.25rem;
+}
+
+.streak-section {
+  padding: 1rem 1.4rem 0.6rem;
+  border-bottom: 1px solid var(--border);
+}
+.streak-section:last-child { border-bottom: none; }
+
+.streak-section-title {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.68rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--accent2);
+  margin-bottom: 0.55rem;
+}
+
+.streak-item {
+  display: flex;
+  align-items: baseline;
+  gap: 0.45rem;
+  padding: 0.26rem 0;
+  font-size: 0.87rem;
+  color: var(--text);
+  line-height: 1.3;
+}
+
+.streak-fire { font-size: 0.82rem; flex-shrink: 0; }
+
+.streak-days {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.7rem;
+  color: var(--accent);
+  min-width: 2.5rem;
+  flex-shrink: 0;
+}
+
+.streak-label {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.streak-sub { color: var(--text2); font-size: 0.82rem; }
+
+.streak-type-tag {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.58rem;
+  color: var(--text3);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  border: 1px solid var(--border2);
+  border-radius: 3px;
+  padding: 0.1rem 0.32rem;
+  flex-shrink: 0;
+}
+
+.streak-item--lost .streak-label,
+.streak-item--lost .streak-days { color: var(--text2); }
+
+.streak-empty {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.72rem;
+  color: var(--text3);
+  padding: 0.2rem 0 0.4rem;
+}
+
+#hero-streak-stat { cursor: pointer; }
+#hero-streak-stat:hover { opacity: 0.85; }

@@ -2774,6 +2774,22 @@ window.addEventListener('load',function(){var d=document,s=d.createElement('scri
   window.ZohoDeskAsapReady(function(){startHide();});
 })();
 </script>
+
+  <!-- STREAK DETAILS MODAL -->
+  <div id="streakModal" class="modal-overlay" onclick="if(event.target===this)closeStreakModal()">
+    <div class="modal-box streak-modal-box">
+      <button class="modal-close" onclick="closeStreakModal()">✕ CLOSE</button>
+      <div class="streak-modal-header">
+        <span class="streak-modal-icon">🔥</span>
+        <div>
+          <div class="streak-modal-title">Daily Streaks</div>
+          <div class="streak-modal-sub">Active as of yesterday</div>
+        </div>
+      </div>
+      <div class="modal-body" id="streakModalBody"></div>
+    </div>
+  </div>
+
 </body>
 
 </html>
