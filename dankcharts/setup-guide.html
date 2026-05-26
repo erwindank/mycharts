@@ -1420,22 +1420,18 @@
       btn.textContent = 'Copied!';
       setTimeout(function() { btn.textContent = 'Copy'; }, 2000);
     }
-    function fallbackCopy() {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(code).then(markCopied).catch(markCopied);
+    } else {
       var ta = document.createElement('textarea');
       ta.value = code;
-      ta.style.position = 'fixed';
-      ta.style.top = '-9999px';
-      ta.style.left = '-9999px';
+      ta.style.cssText = 'position:fixed;top:-9999px;left:-9999px';
       document.body.appendChild(ta);
       ta.focus();
       ta.select();
-      try { document.execCommand('copy'); markCopied(); } catch(e) {}
+      try { document.execCommand('copy'); } catch(e) {}
       document.body.removeChild(ta);
-    }
-    if (navigator.clipboard && navigator.clipboard.writeText) {
-      navigator.clipboard.writeText(code).then(markCopied).catch(fallbackCopy);
-    } else {
-      fallbackCopy();
+      markCopied();
     }
   }
 
