@@ -1656,7 +1656,6 @@ async function syncFromSheets() {
     const buffer = await res.arrayBuffer();
     const text = new TextDecoder('utf-8').decode(buffer);
     parseCsv(text, true); // true = from sheets (skip hide upload zone)
-    if (!allPlays.length) throw new Error('no_plays'); // let error from parseCsv show; try fallbacks
     lastSyncTime = new Date();
     localStorage.setItem('dc_sync_ts', lastSyncTime.getTime().toString());
     await saveToIDB(IDB_SHEETS_KEY, { ts: lastSyncTime.getTime(), csv: text });
@@ -1664,7 +1663,7 @@ async function syncFromSheets() {
   } catch (e) {
     // Fallback 1: backend proxy (handles CORS, serves full file regardless of size)
     try {
-      const rawId = localStorage.getItem('dc_sheet_id') || '';
+      const rawId = localStorage.getItem('dc_sheet_id') || DEFAULT_SHEET_ID;
       const urlMatch = rawId.match(/spreadsheets\/d\/([^\/\?#]+)/);
       const sheetId = urlMatch ? urlMatch[1] : rawId;
       const gid = localStorage.getItem('dc_sheet_gid');
@@ -1675,7 +1674,6 @@ async function syncFromSheets() {
       const buffer2 = await res2.arrayBuffer();
       const text2 = new TextDecoder('utf-8').decode(buffer2);
       parseCsv(text2, true);
-      if (!allPlays.length) throw new Error('no_plays');
       lastSyncTime = new Date();
       localStorage.setItem('dc_sync_ts', lastSyncTime.getTime().toString());
       await saveToIDB(IDB_SHEETS_KEY, { ts: lastSyncTime.getTime(), csv: text2 });
@@ -1688,16 +1686,12 @@ async function syncFromSheets() {
         const buffer3 = await res3.arrayBuffer();
         const text3 = new TextDecoder('utf-8').decode(buffer3);
         parseCsv(text3, true);
-        if (allPlays.length) {
-          lastSyncTime = new Date();
-          localStorage.setItem('dc_sync_ts', lastSyncTime.getTime().toString());
-          await saveToIDB(IDB_SHEETS_KEY, { ts: lastSyncTime.getTime(), csv: text3 });
-          setSyncStatus(t('sync_ok', { time: lastSyncTime.toLocaleTimeString(), n: allPlays.length.toLocaleString() }), 'ok');
-        }
-        // else: parseCsv already set the specific error (missing cols / no valid plays) — leave it visible
+        lastSyncTime = new Date();
+        localStorage.setItem('dc_sync_ts', lastSyncTime.getTime().toString());
+        await saveToIDB(IDB_SHEETS_KEY, { ts: lastSyncTime.getTime(), csv: text3 });
+        setSyncStatus(t('sync_ok', { time: lastSyncTime.toLocaleTimeString(), n: allPlays.length.toLocaleString() }), 'ok');
       } catch (e3) {
-        if (e3.message !== 'no_plays') setSyncStatus(t('sync_failed', { error: e3.message }), 'err');
-        // else: parseCsv error is already visible
+        setSyncStatus(t('sync_failed', { error: e3.message }), 'err');
       }
     }
   }
@@ -2235,23 +2229,19 @@ window.addEventListener('load', async () => {
 
   const cached = await loadFromIDB(IDB_SHEETS_KEY);
   const age = cached ? Date.now() - cached.ts : Infinity;
-  if (cached && cached.csv && age < SYNC_INTERVAL_MS) {
+  if (cached && age < SYNC_INTERVAL_MS) {
     // Load from IndexedDB cache (survives tab close / browser restart)
     lastSyncTime = new Date(cached.ts);
-    try { parseCsv(cached.csv, true); } catch (e) {
-      console.warn('dankcharts: cached CSV parse error, fetching fresh data', e);
-    }
-    if (allPlays.length > 0) {
-      const minsAgo = Math.round(age / 60000);
-      setSyncStatus(t('sync_ok_cached', { time: lastSyncTime.toLocaleTimeString(), n: allPlays.length.toLocaleString(), mins: minsAgo }), 'ok');
-      clearTimeout(syncTimer);
-      syncTimer = setTimeout(syncFromSheets, SYNC_INTERVAL_MS - age);
-      clearTimeout(pollTimer);
-      pollTimer = setTimeout(pollSheets, POLL_INTERVAL_MS);
-      return;
-    }
+    parseCsv(cached.csv, true);
+    const minsAgo = Math.round(age / 60000);
+    setSyncStatus(t('sync_ok_cached', { time: lastSyncTime.toLocaleTimeString(), n: allPlays.length.toLocaleString(), mins: minsAgo }), 'ok');
+    clearTimeout(syncTimer);
+    syncTimer = setTimeout(syncFromSheets, SYNC_INTERVAL_MS - age);
+    clearTimeout(pollTimer);
+    pollTimer = setTimeout(pollSheets, POLL_INTERVAL_MS);
+  } else {
+    syncFromSheets();
   }
-  syncFromSheets();
 });
 
 function parseCsv(text, fromSheets = false) {
