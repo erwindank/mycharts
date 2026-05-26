@@ -9,6 +9,10 @@
       --text: #eaf2ff;
       --text2: #a8c8f0;
       --text3: #7aa0d0;
+      --surface1: var(--bg2);
+      --surface2: var(--bg3);
+      --surface3: var(--surface);
+      --text1: var(--text);
       /* was #6090c0 — 3.96:1 on surface, now 4.88:1 */
       --accent: #4aacff;
       --accent2: #80c8ff;

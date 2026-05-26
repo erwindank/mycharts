@@ -16626,7 +16626,8 @@ function awardsPickerDoSearch() {
       if (isGenreCat) {
         const artistKey = _pa(item).toLowerCase();
         const tags = _awardsGenreCache[artistKey];
-        if (tags !== undefined) return _genreMatch(tags, _awardsPickerCatFilter);
+        if (tags === undefined) return false;
+        return _genreMatch(tags, _awardsPickerCatFilter);
       }
       return true;
     })
