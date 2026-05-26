@@ -10302,6 +10302,9 @@ body.pink-light .hero-stats {
 .awards-picker-result-row:hover .awards-picker-add-icon { color: var(--accent); }
 .awards-picker-lbl  { flex: 1; }
 .awards-picker-sub  { font-size: 0.72rem; color: var(--text3); }
+.awards-picker-genre-tags { display: inline-flex; gap: 3px; flex-shrink: 0; }
+.awards-picker-genre-tag  { font-size: 0.6rem; padding: 1px 5px; border-radius: 10px; background: var(--surface3); color: var(--text3); border: 1px solid var(--border); white-space: nowrap; }
+.awards-picker-genre-unk  { opacity: 0.5; font-style: italic; }
 .awards-picker-plays{ font-size: 0.7rem; color: var(--text3); font-family: 'DM Mono', monospace; }
 .awards-picker-foot {
   padding: 10px 14px;

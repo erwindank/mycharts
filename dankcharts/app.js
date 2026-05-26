@@ -15880,6 +15880,7 @@ let _awardsGenreQueue = {};
 const _awardsAlbumYearCache = {};
 let _awardsPickerSelMap   = {};   // key → item, while picker modal is open
 let _awardsPickerCatType  = '';
+let _awardsPickerCatFilter = '';
 let _awardsPickerEligWin  = { start: '', end: '' };
 let _awardsPickerAutoCands = [];
 let _realLifeYear   = tzNow().getFullYear();
@@ -15946,12 +15947,13 @@ function _pk(p)  { return _pa(p).toLowerCase(); }
 function _awardsCountMaps(plays) {
   const songs = {}, albums = {}, artists = {};
   for (const p of plays) {
-    const sk = _sk(p), ak = _ak(p), pk = _pk(p);
+    const sk = _sk(p), pk = _pk(p);
+    const albumKey = `${(p.album||'').toLowerCase()}|||${pk}`;
     if (!songs[sk])   songs[sk]   = { title: p.title,  artist: p.artist, album: p.album, plays: 0 };
-    if (!albums[ak] && p.album) albums[ak] = { album: p.album, artist: p.artist, plays: 0 };
+    if (!albums[albumKey] && p.album) albums[albumKey] = { album: p.album, artist: _pa(p), plays: 0 };
     if (!artists[pk]) artists[pk] = { artist: _pa(p), plays: 0 };
     songs[sk].plays++;
-    if (p.album) albums[ak].plays++;
+    if (p.album) albums[albumKey].plays++;
     artists[pk].plays++;
   }
   return { songs, albums, artists };
@@ -16486,10 +16488,20 @@ function _awardsPickerResultRow(item) {
   const lbl = item.title || item.album || item.artist || '';
   const sub = item.title ? item.artist : (item.album ? item.artist : '');
   const rel = item.releaseYear ? ' · ' + item.releaseYear : (item.releaseYear === null ? ' · year unknown' : '');
+  let genreHtml = '';
+  if (_awardsPickerCatFilter.startsWith('genre:')) {
+    const tags = _awardsGenreCache[_pa(item).toLowerCase()];
+    if (tags && tags.length) {
+      genreHtml = `<span class="awards-picker-genre-tags">${tags.slice(0, 3).map(t => `<span class="awards-picker-genre-tag">${esc(t)}</span>`).join('')}</span>`;
+    } else {
+      genreHtml = `<span class="awards-picker-genre-tags"><span class="awards-picker-genre-tag awards-picker-genre-unk">${tags === undefined ? '?' : 'no genre'}</span></span>`;
+    }
+  }
   return `<div class="awards-picker-result-row" data-item="${esc(JSON.stringify(item))}" onclick="awardsPickerAddItem(this)">
     <span class="awards-picker-add-icon">+</span>
     <span class="awards-picker-lbl">${esc(lbl)}</span>
     ${sub ? `<span class="awards-picker-sub">${esc(sub)}${rel}</span>` : ''}
+    ${genreHtml}
     <span class="awards-picker-plays">${item.playLabel || item.plays + ' plays'}</span>
   </div>`;
 }
@@ -16538,6 +16550,7 @@ function _awardsShowPicker(year, catId, candidates) {
   _awardsPickerSelMap    = {};
   existingNominees.forEach(n => { _awardsPickerSelMap[_awardItemKey(n)] = n; });
   _awardsPickerCatType   = catDef.type;
+  _awardsPickerCatFilter = catDef.filter || '';
   _awardsPickerEligWin   = { start: data.eligStart, end: data.eligEnd };
   _awardsPickerAutoCands = candidates;
 
@@ -16595,8 +16608,8 @@ function awardsPickerDoSearch() {
       map[k].plays++;
     } else if (_awardsPickerCatType === 'album') {
       if (!p.album) continue;
-      const k = _ak(p);
-      if (!map[k]) map[k] = { album: p.album, artist: p.artist, plays: 0 };
+      const k = `${p.album.toLowerCase()}|||${_pk(p)}`;
+      if (!map[k]) map[k] = { album: p.album, artist: _pa(p), plays: 0 };
       map[k].plays++;
     } else {
       const k = _rk(p);
@@ -16605,9 +16618,18 @@ function awardsPickerDoSearch() {
     }
   }
 
+  const isGenreCat = _awardsPickerCatFilter.startsWith('genre:');
   const hits = Object.values(map)
-    .filter(item => !_awardsPickerSelMap[_awardItemKey(item)] &&
-      [item.title, item.album, item.artist].filter(Boolean).join(' ').toLowerCase().includes(q))
+    .filter(item => {
+      if (_awardsPickerSelMap[_awardItemKey(item)]) return false;
+      if (!([item.title, item.album, item.artist].filter(Boolean).join(' ').toLowerCase().includes(q))) return false;
+      if (isGenreCat) {
+        const artistKey = _pa(item).toLowerCase();
+        const tags = _awardsGenreCache[artistKey];
+        if (tags !== undefined) return _genreMatch(tags, _awardsPickerCatFilter);
+      }
+      return true;
+    })
     .sort((a, b) => b.plays - a.plays)
     .slice(0, 50);
 
