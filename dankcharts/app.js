@@ -8118,10 +8118,7 @@ function updateExportBtn() {
 function updateChartExportBtns() {
   const curSize = currentPeriod === 'year' ? chartSizeYearly : chartSizeAllTime;
   const show = isPaginated() && !isFinite(curSize) && allPlays.length > 0;
-  ['songs', 'artists', 'albums'].forEach(type => {
-    const bar = document.getElementById(type + 'ExportBar');
-    if (bar) bar.classList.toggle('visible', show);
-  });
+  document.querySelectorAll('.chart-export-bar').forEach(bar => bar.classList.toggle('visible', show));
 }
 
 function exportChartData(type, format) {

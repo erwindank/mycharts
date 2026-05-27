@@ -370,6 +370,11 @@
         <span class="search-count" id="songsSearchCount"></span>
         <button class="search-clear" onclick="clearSearch('songs')" data-i18n-title="tooltip_clear">✕</button>
       </div>
+      <div class="chart-export-bar" id="songsExportBarTop">
+        <span>EXPORT:</span>
+        <button class="chart-export-btn" onclick="exportChartData('songs','txt')">⬇ TXT</button>
+        <button class="chart-export-btn" onclick="exportChartData('songs','csv')">⬇ CSV</button>
+      </div>
       <div class="section-body">
         <table class="chart-table" id="songsTable">
           <thead>
@@ -453,6 +458,11 @@
         <span class="search-count" id="artistsSearchCount"></span>
         <button class="search-clear" onclick="clearSearch('artists')" data-i18n-title="tooltip_clear">✕</button>
       </div>
+      <div class="chart-export-bar" id="artistsExportBarTop">
+        <span>EXPORT:</span>
+        <button class="chart-export-btn" onclick="exportChartData('artists','txt')">⬇ TXT</button>
+        <button class="chart-export-btn" onclick="exportChartData('artists','csv')">⬇ CSV</button>
+      </div>
       <div class="section-body">
         <table class="chart-table" id="artistsTable">
           <thead>
@@ -534,6 +544,11 @@
           oninput="applySearch('albums')" data-i18n-placeholder="search_albums_placeholder" />
         <span class="search-count" id="albumsSearchCount"></span>
         <button class="search-clear" onclick="clearSearch('albums')" data-i18n-title="tooltip_clear">✕</button>
+      </div>
+      <div class="chart-export-bar" id="albumsExportBarTop">
+        <span>EXPORT:</span>
+        <button class="chart-export-btn" onclick="exportChartData('albums','txt')">⬇ TXT</button>
+        <button class="chart-export-btn" onclick="exportChartData('albums','csv')">⬇ CSV</button>
       </div>
       <div class="section-body">
         <table class="chart-table" id="albumsTable">
