@@ -398,6 +398,11 @@
           <button class="ig-share-btn" data-i18n-title="tooltip_share_image" onclick="openIgPreviewModal('songs')"
             data-i18n="btn_share_image">📷 Share as Image</button>
         </div>
+        <div class="chart-export-bar" id="songsExportBar">
+          <span>EXPORT:</span>
+          <button class="chart-export-btn" onclick="exportChartData('songs','txt')">⬇ TXT</button>
+          <button class="chart-export-btn" onclick="exportChartData('songs','csv')">⬇ CSV</button>
+        </div>
       </div>
     </div>
 
@@ -475,6 +480,11 @@
           <span data-i18n="btn_share">SHARE:</span>
           <button class="ig-share-btn" data-i18n-title="tooltip_share_image" data-i18n="btn_share_image" onclick="openIgPreviewModal('artists')">📷 Share as Image</button>
         </div>
+        <div class="chart-export-bar" id="artistsExportBar">
+          <span>EXPORT:</span>
+          <button class="chart-export-btn" onclick="exportChartData('artists','txt')">⬇ TXT</button>
+          <button class="chart-export-btn" onclick="exportChartData('artists','csv')">⬇ CSV</button>
+        </div>
       </div>
     </div>
 
@@ -551,6 +561,11 @@
         <div class="ig-share-bar" id="albumsShareBar">
           <span data-i18n="btn_share">SHARE:</span>
           <button class="ig-share-btn" data-i18n-title="tooltip_share_image" data-i18n="btn_share_image" onclick="openIgPreviewModal('albums')">📷 Share as Image</button>
+        </div>
+        <div class="chart-export-bar" id="albumsExportBar">
+          <span>EXPORT:</span>
+          <button class="chart-export-btn" onclick="exportChartData('albums','txt')">⬇ TXT</button>
+          <button class="chart-export-btn" onclick="exportChartData('albums','csv')">⬇ CSV</button>
         </div>
       </div>
     </div>

@@ -5463,6 +5463,7 @@ function renderAll() {
   renderNewEntries(plays, start, end);
   updateExportBtn();
   updateShareBtns();
+  updateChartExportBtns();
 }
 
 // ─── TIE-BREAKING SORT ─────────────────────────────────────────
@@ -8111,6 +8112,73 @@ function updateExportBtn() {
   const isAllEntries = isPaginated() && !isFinite(curPaginatedSize);
   const show = currentPeriod !== 'rawdata' && allPlays.length > 0 && !isAllEntries;
   btn.style.display = show ? 'flex' : 'none';
+}
+
+// Show/hide per-section export bars — only in All Entries mode for year/alltime
+function updateChartExportBtns() {
+  const curSize = currentPeriod === 'year' ? chartSizeYearly : chartSizeAllTime;
+  const show = isPaginated() && !isFinite(curSize) && allPlays.length > 0;
+  ['songs', 'artists', 'albums'].forEach(type => {
+    const bar = document.getElementById(type + 'ExportBar');
+    if (bar) bar.classList.toggle('visible', show);
+  });
+}
+
+function exportChartData(type, format) {
+  const data = fullData[type] || [];
+  if (!data.length) return;
+  const { label } = getDateRange();
+  const periodSlug = label.replace(/[^a-z0-9]+/gi, '-').toLowerCase();
+  const filename = `${type}-${periodSlug}-all-entries.${format}`;
+  const escVal = v => {
+    if (!v && v !== 0) return '';
+    v = String(v);
+    return (v.includes(',') || v.includes('"') || v.includes('\n')) ? '"' + v.replace(/"/g, '""') + '"' : v;
+  };
+
+  let content;
+  if (format === 'txt') {
+    const title = type.charAt(0).toUpperCase() + type.slice(1);
+    const lines = [`${title} — ${label} (All Entries)`, ''];
+    data.forEach((entry, i) => {
+      const rank = `#${i + 1}`;
+      if (type === 'songs') {
+        const album = entry.album && entry.album !== '—' ? ` [${entry.album}]` : '';
+        lines.push(`${rank}: ${entry.title} — ${entry.artist}${album} (${entry.count} plays)`);
+      } else if (type === 'artists') {
+        lines.push(`${rank}: ${entry.name} (${entry.count} plays)`);
+      } else {
+        lines.push(`${rank}: ${entry.album} — ${entry.artist} (${entry.count} plays)`);
+      }
+    });
+    content = lines.join('\n');
+  } else {
+    const rows = [];
+    if (type === 'songs') {
+      rows.push('rank,title,artist,album,plays');
+      data.forEach((entry, i) => {
+        const album = (entry.album && entry.album !== '—') ? entry.album : '';
+        rows.push([i + 1, escVal(entry.title), escVal(entry.artist), escVal(album), entry.count].join(','));
+      });
+    } else if (type === 'artists') {
+      rows.push('rank,artist,plays');
+      data.forEach((entry, i) => rows.push([i + 1, escVal(entry.name), entry.count].join(',')));
+    } else {
+      rows.push('rank,album,artist,plays');
+      data.forEach((entry, i) => rows.push([i + 1, escVal(entry.album), escVal(entry.artist), entry.count].join(',')));
+    }
+    content = rows.join('\n');
+  }
+
+  const bom = format === 'csv' ? '﻿' : '';
+  const mime = format === 'csv' ? 'text/csv;charset=utf-8;' : 'text/plain;charset=utf-8;';
+  const blob = new Blob([bom + content], { type: mime });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(url);
 }
 
 // ─── SHARE AS IMAGE ─────────────────────────────────────────────

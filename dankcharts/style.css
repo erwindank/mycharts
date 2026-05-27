@@ -3066,7 +3066,8 @@
     }
 
     /* SHARE AS IMAGE BUTTONS */
-    .ig-share-bar {
+    .ig-share-bar,
+    .chart-export-bar {
       display: none;
       align-items: center;
       gap: 0.5rem;
@@ -3077,11 +3078,13 @@
       letter-spacing: 0.08em;
     }
 
-    .ig-share-bar.visible {
+    .ig-share-bar.visible,
+    .chart-export-bar.visible {
       display: flex;
     }
 
-    .ig-share-btn {
+    .ig-share-btn,
+    .chart-export-btn {
       background: none;
       border: 1px solid var(--border2);
       color: var(--text2);
@@ -3094,14 +3097,16 @@
       transition: background 0.12s, color 0.12s, font-weight 0.12s;
     }
 
-    .ig-share-btn:hover {
+    .ig-share-btn:hover,
+    .chart-export-btn:hover {
       background: var(--accent);
       color: #fff;
       font-weight: 700;
       border-color: var(--accent);
     }
 
-    body.yellow .ig-share-btn:hover {
+    body.yellow .ig-share-btn:hover,
+    body.yellow .chart-export-btn:hover {
       color: #1a1600;
     }
 
