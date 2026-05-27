@@ -153,9 +153,19 @@ function toggleDisplay(type) {
   if (btn) btn.classList.toggle('active', !nowVisible);
   document.body.classList.toggle(cfg.bodyClass, nowVisible);
   try { localStorage.setItem('dc_displayToggles', JSON.stringify(displayToggleState)); } catch(e) {}
+  if (typeof dcSaveUserConfig === 'function') dcSaveUserConfig();
 }
 
 initDisplayToggles();
+
+function dcApplyDisplayToggles() {
+  try {
+    const saved = JSON.parse(localStorage.getItem('dc_displayToggles') || '{}');
+    Object.assign(displayToggleState, saved);
+  } catch(e) {}
+  initDisplayToggles();
+}
+window.dcApplyDisplayToggles = dcApplyDisplayToggles;
 
 function replayChartAnimation(type) {
   if (_replayFns[type]) { _replayFns[type](); return; }

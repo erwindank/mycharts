@@ -20,7 +20,8 @@ const SYNC_KEYS = [
   'dc_events_artist_limit', 'dc_theme', 'dc_lang',
   'dc_autocorrect_rules', 'dc_no_artist_split', 'dc_tm_api_key',
   'dc_tm_toggles',
-  'dc_events_type_filter', 'dc_cal_view', 'dc_events_view_modes'
+  'dc_events_type_filter', 'dc_cal_view', 'dc_events_view_modes',
+  'dc_displayToggles'
 ];
 
 let _auth = null;
@@ -199,6 +200,7 @@ _auth.onAuthStateChanged(async (user) => {
 
   const applied = await _loadAndApplyConfig(user.uid);
   if (applied && typeof dcResetRulesCache === 'function') dcResetRulesCache();
+  if (applied && typeof dcApplyDisplayToggles === 'function') dcApplyDisplayToggles();
 
   const hasLocalConfig = SYNC_KEYS.some(k => localStorage.getItem(k) !== null);
   if (!hasLocalConfig && !applied) return; // truly fresh user with no data anywhere
