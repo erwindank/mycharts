@@ -249,6 +249,7 @@ const TRANSLATIONS = {
     // Upload zone
     upload_title: 'Load Your Listening History',
     upload_desc: 'Drop your CSV file here, or click to browse',
+    file_upload_hint: 'Upload your listening history. Supported formats: <strong>Last.fm CSV</strong>, <strong>mycharts CSV</strong>, <strong>Spotify ZIP</strong> (extended streaming history), <strong>Deezer XLSX</strong>.',
 
     // Buttons
     btn_export_playlist: '♫ EXPORT PLAYLIST',
@@ -1204,6 +1205,7 @@ const TRANSLATIONS = {
     // Upload zone
     upload_title: 'Carga tu Historial de Escucha',
     upload_desc: 'Suelta tu archivo CSV aquí, o haz clic para buscar',
+    file_upload_hint: 'Sube tu historial de escucha. Formatos compatibles: <strong>Last.fm CSV</strong>, <strong>mycharts CSV</strong>, <strong>Spotify ZIP</strong> (historial de streaming extendido), <strong>Deezer XLSX</strong>.',
 
     // Buttons
     btn_export_playlist: '♫ EXPORTAR PLAYLIST',
@@ -2159,6 +2161,7 @@ const TRANSLATIONS = {
     // Upload zone
     upload_title: 'Carregue seu Histórico de Escuta',
     upload_desc: 'Solte seu arquivo CSV aqui, ou clique para procurar',
+    file_upload_hint: 'Faça upload do seu histórico de escuta. Formatos suportados: <strong>Last.fm CSV</strong>, <strong>mycharts CSV</strong>, <strong>Spotify ZIP</strong> (histórico de streaming estendido), <strong>Deezer XLSX</strong>.',
 
     // Buttons
     btn_export_playlist: '♫ EXPORTAR PLAYLIST',
@@ -3114,6 +3117,7 @@ const TRANSLATIONS = {
     // Upload zone
     upload_title: 'Carregue o seu Histórico de Escuta',
     upload_desc: 'Largue o seu ficheiro CSV aqui, ou clique para procurar',
+    file_upload_hint: 'Carregue o seu histórico de escuta. Formatos suportados: <strong>Last.fm CSV</strong>, <strong>mycharts CSV</strong>, <strong>Spotify ZIP</strong> (histórico de streaming alargado), <strong>Deezer XLSX</strong>.',
 
     // Buttons
     btn_export_playlist: '♫ EXPORTAR PLAYLIST',
