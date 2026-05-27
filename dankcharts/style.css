@@ -10689,6 +10689,21 @@ body.pink-light .hero-stats {
   padding: 0.1rem 0.32rem;
   flex-shrink: 0;
 }
+.streak-type-tag--artist {
+  color: var(--accent);
+  border-color: var(--accent);
+  box-shadow: 0 0 5px color-mix(in srgb, var(--accent) 35%, transparent);
+}
+.streak-type-tag--song {
+  color: var(--green);
+  border-color: var(--green);
+  box-shadow: 0 0 5px color-mix(in srgb, var(--green) 35%, transparent);
+}
+.streak-type-tag--album {
+  color: var(--teal);
+  border-color: var(--teal);
+  box-shadow: 0 0 5px color-mix(in srgb, var(--teal) 35%, transparent);
+}
 
 .streak-item--lost .streak-label,
 .streak-item--lost .streak-days { color: var(--text2); }

@@ -15604,7 +15604,7 @@ function openStreakModal() {
 
   function itemHtml(it, mode) {
     const sub = it.sub ? `<span class="streak-sub"> — ${it.sub}</span>` : '';
-    const tag = mode !== 'active' ? `<span class="streak-type-tag">${it.type}</span>` : '';
+    const tag = mode !== 'active' ? `<span class="streak-type-tag streak-type-tag--${it.type}">${it.type}</span>` : '';
     const icon = mode === 'lost' ? '💔' : mode === 'risk' ? '⚠️' : '🔥';
     const cls = mode === 'lost' ? ' streak-item--lost' : mode === 'risk' ? ' streak-item--risk' : '';
     return `<div class="streak-item${cls}">` +
