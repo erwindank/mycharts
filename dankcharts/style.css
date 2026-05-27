@@ -10690,9 +10690,9 @@ body.pink-light .hero-stats {
   flex-shrink: 0;
 }
 .streak-type-tag--artist {
-  color: var(--accent);
-  border-color: var(--accent);
-  box-shadow: 0 0 5px color-mix(in srgb, var(--accent) 35%, transparent);
+  color: var(--rose);
+  border-color: var(--rose);
+  box-shadow: 0 0 5px color-mix(in srgb, var(--rose) 35%, transparent);
 }
 .streak-type-tag--song {
   color: var(--green);
