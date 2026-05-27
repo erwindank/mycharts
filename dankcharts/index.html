@@ -912,7 +912,7 @@
             data-i18n-placeholder="raw_search_date">
         </div>
         <button class="raw-clear-btn" id="rawClearBtn" data-i18n="raw_clear">✕ Clear</button>
-        <button class="raw-clear-btn" id="manageRulesBtn" onclick="openRulesModal()" style="margin-left:auto">⚙ Auto-correct Rules</button>
+        <button class="raw-clear-btn" id="manageRulesBtn" onclick="openRulesModal()" style="margin-left:auto" data-i18n="modal_rules_open_btn">⚙ Auto-correct Rules</button>
       </div>
       <div class="raw-summary" id="rawSummary"></div>
       <table class="raw-table">
@@ -2032,45 +2032,45 @@
   <!-- ── Edit Scrobble Modal ── -->
   <div id="editScrobbleModal" class="modal-overlay" role="dialog" aria-modal="true">
     <div class="src-modal-box scrobble-modal-box">
-      <h3 class="src-modal-title">Edit Scrobble</h3>
+      <h3 class="src-modal-title" data-i18n="modal_edit_title">Edit Scrobble</h3>
       <div class="src-field-group">
         <label>
-          Artist *
-          <input type="text" id="editScrobbleArtist" placeholder="Artist name" autocomplete="off">
+          <span data-i18n="modal_label_artist">Artist *</span>
+          <input type="text" id="editScrobbleArtist" placeholder="Artist name" data-i18n-placeholder="modal_placeholder_artist" autocomplete="off">
         </label>
         <label>
-          Track *
-          <input type="text" id="editScrobbleTrack" placeholder="Track title" autocomplete="off">
+          <span data-i18n="modal_label_track">Track *</span>
+          <input type="text" id="editScrobbleTrack" placeholder="Track title" data-i18n-placeholder="modal_placeholder_track" autocomplete="off">
         </label>
         <label>
-          Album
-          <input type="text" id="editScrobbleAlbum" placeholder="Album (optional)" autocomplete="off">
+          <span data-i18n="modal_label_album">Album</span>
+          <input type="text" id="editScrobbleAlbum" placeholder="Album (optional)" data-i18n-placeholder="modal_placeholder_album" autocomplete="off">
         </label>
         <label>
-          Date &amp; Time
+          <span data-i18n="modal_label_datetime">Date &amp; Time</span>
           <div class="scrobble-time-row">
             <input type="datetime-local" id="editScrobbleTime" step="1">
-            <button type="button" class="scrobble-now-btn" onclick="setEditScrobbleNow()">Now</button>
+            <button type="button" class="scrobble-now-btn" onclick="setEditScrobbleNow()" data-i18n="modal_now_btn">Now</button>
           </div>
         </label>
       </div>
-      <p id="editScrobbleHint" style="font-size:0.7rem;color:var(--text3);margin:0.3rem 0 0.5rem;display:none">Pushing to Last.fm adds a corrected scrobble — remove the original manually on the Last.fm website.</p>
+      <p id="editScrobbleHint" style="font-size:0.7rem;color:var(--text3);margin:0.3rem 0 0.5rem;display:none" data-i18n="modal_edit_hint">Pushing to Last.fm adds a corrected scrobble — remove the original manually on the Last.fm website.</p>
       <div style="display:flex;flex-direction:column;gap:0.3rem;margin:0.5rem 0 0.4rem">
         <label style="display:flex;align-items:center;gap:0.5rem;font-size:0.78rem;color:var(--text2);cursor:pointer">
           <input type="checkbox" id="editApplyAll">
-          Apply to all matching entries (same song, artist &amp; album)
+          <span data-i18n="modal_edit_apply_all">Apply to all matching entries (same song, artist &amp; album)</span>
         </label>
         <label style="display:flex;align-items:center;gap:0.5rem;font-size:0.78rem;color:var(--text2);cursor:pointer">
           <input type="checkbox" id="editSaveRule">
-          Save as auto-correct rule for future imports
+          <span data-i18n="modal_edit_save_rule">Save as auto-correct rule for future imports</span>
         </label>
       </div>
       <div id="editScrobbleStatus" class="scrobble-status"></div>
       <div class="src-modal-btns">
-        <button class="src-btn-cancel" onclick="closeEditScrobbleModal()">Cancel</button>
-        <button class="src-btn-save" id="editSaveLocalBtn" onclick="saveEditLocally()">Save Locally</button>
-        <button class="src-btn-save" id="editPushLfmBtn" onclick="pushEditToLastfm()" style="display:none">Push to Last.fm</button>
-        <button class="src-btn-save" id="editPushSheetBtn" onclick="pushEditToSheet()" style="display:none">Push to Sheet</button>
+        <button class="src-btn-cancel" onclick="closeEditScrobbleModal()" data-i18n="btn_cancel">Cancel</button>
+        <button class="src-btn-save" id="editSaveLocalBtn" onclick="saveEditLocally()" data-i18n="modal_save_locally">Save Locally</button>
+        <button class="src-btn-save" id="editPushLfmBtn" onclick="pushEditToLastfm()" style="display:none" data-i18n="modal_push_lfm">Push to Last.fm</button>
+        <button class="src-btn-save" id="editPushSheetBtn" onclick="pushEditToSheet()" style="display:none" data-i18n="modal_push_sheet">Push to Sheet</button>
       </div>
     </div>
   </div>
@@ -2078,16 +2078,16 @@
   <!-- ── Auto-correct Rules Modal ── -->
   <div id="rulesModal" class="modal-overlay" role="dialog" aria-modal="true">
     <div class="src-modal-box">
-      <h3 class="src-modal-title">Auto-correct Rules</h3>
-      <p style="font-size:0.78rem;color:var(--text3);margin:0 0 0.7rem">Rules apply automatically on every data load. Each rule matches an exact Artist + Song + Album combination and replaces it with your corrected values.</p>
-      <input type="text" id="rulesSearch" placeholder="Search rules…" oninput="renderRulesList()" style="width:100%;box-sizing:border-box;margin-bottom:0.5rem;padding:0.35rem 0.6rem;font-size:0.8rem;border:1px solid var(--border);border-radius:4px;background:var(--bg2);color:var(--text2);outline:none">
+      <h3 class="src-modal-title" data-i18n="modal_rules_title">Auto-correct Rules</h3>
+      <p style="font-size:0.78rem;color:var(--text3);margin:0 0 0.7rem" data-i18n="modal_rules_desc">Rules apply automatically on every data load. Each rule matches an exact Artist + Song + Album combination and replaces it with your corrected values.</p>
+      <input type="text" id="rulesSearch" placeholder="Search rules…" data-i18n-placeholder="modal_rules_search_placeholder" oninput="renderRulesList()" style="width:100%;box-sizing:border-box;margin-bottom:0.5rem;padding:0.35rem 0.6rem;font-size:0.8rem;border:1px solid var(--border);border-radius:4px;background:var(--bg2);color:var(--text2);outline:none">
       <div id="rulesList" style="max-height:300px;overflow-y:auto;"></div>
       <div style="display:flex;justify-content:space-between;align-items:center;margin-top:0.8rem;gap:0.5rem;flex-wrap:wrap">
         <div style="display:flex;gap:0.4rem">
-          <button onclick="exportRules()" style="font-size:0.75rem;padding:0.3rem 0.7rem;border:1px solid var(--border);border-radius:4px;background:var(--bg2);color:var(--text2);cursor:pointer">Export JSON</button>
-          <button onclick="importRules()" style="font-size:0.75rem;padding:0.3rem 0.7rem;border:1px solid var(--border);border-radius:4px;background:var(--bg2);color:var(--text2);cursor:pointer">Import JSON</button>
+          <button onclick="exportRules()" style="font-size:0.75rem;padding:0.3rem 0.7rem;border:1px solid var(--border);border-radius:4px;background:var(--bg2);color:var(--text2);cursor:pointer" data-i18n="modal_rules_export">Export JSON</button>
+          <button onclick="importRules()" style="font-size:0.75rem;padding:0.3rem 0.7rem;border:1px solid var(--border);border-radius:4px;background:var(--bg2);color:var(--text2);cursor:pointer" data-i18n="modal_rules_import">Import JSON</button>
         </div>
-        <button class="src-btn-cancel" onclick="closeRulesModal()">Close</button>
+        <button class="src-btn-cancel" onclick="closeRulesModal()" data-i18n="btn_cancel">Close</button>
       </div>
     </div>
   </div>
@@ -2095,14 +2095,14 @@
   <!-- ── Similar Rule Warning Modal ── -->
   <div id="similarRuleModal" class="modal-overlay" role="dialog" aria-modal="true">
     <div class="src-modal-box" style="max-width:440px">
-      <h3 class="src-modal-title">Similar Rule Already Exists</h3>
-      <p style="font-size:0.78rem;color:var(--text3);margin:0 0 0.8rem">A rule already exists for the same artist and track. Select which existing rules to remove, or add the new one alongside them.</p>
+      <h3 class="src-modal-title" data-i18n="modal_similar_title">Similar Rule Already Exists</h3>
+      <p style="font-size:0.78rem;color:var(--text3);margin:0 0 0.8rem" data-i18n="modal_similar_desc">A rule already exists for the same artist and track. Select which existing rules to remove, or add the new one alongside them.</p>
       <div id="similarRuleDetails" style="font-size:0.75rem;background:var(--bg2);border:1px solid var(--border);border-radius:5px;padding:0.6rem 0.8rem;margin-bottom:0.8rem;line-height:1.7"></div>
       <div class="src-modal-btns" style="flex-wrap:wrap;gap:0.4rem">
-        <button class="src-btn-cancel" id="similarRuleCancelBtn">Cancel</button>
-        <button id="similarRuleAddBtn" style="padding:0.4rem 0.9rem;border:1px solid var(--border);border-radius:5px;background:var(--bg2);color:var(--text2);cursor:pointer;font-size:0.82rem">Add Anyway</button>
-        <button id="similarRuleOverrideBtn" class="src-btn-save">Override</button>
-        <button id="similarRuleRunBtn" class="src-btn-save" style="background:var(--accent2,#7c3aed)">Override &amp; Apply to Sheet</button>
+        <button class="src-btn-cancel" id="similarRuleCancelBtn" data-i18n="btn_cancel">Cancel</button>
+        <button id="similarRuleAddBtn" style="padding:0.4rem 0.9rem;border:1px solid var(--border);border-radius:5px;background:var(--bg2);color:var(--text2);cursor:pointer;font-size:0.82rem" data-i18n="modal_similar_add">Add Anyway</button>
+        <button id="similarRuleOverrideBtn" class="src-btn-save" data-i18n="modal_similar_override">Override</button>
+        <button id="similarRuleRunBtn" class="src-btn-save" style="background:var(--accent2,#7c3aed)" data-i18n="modal_similar_run">Override &amp; Apply to Sheet</button>
       </div>
     </div>
   </div>
@@ -2110,34 +2110,34 @@
   <!-- ── Manual Scrobble Modal ── -->
   <div id="scrobbleModal" class="modal-overlay" role="dialog" aria-modal="true">
     <div class="src-modal-box scrobble-modal-box">
-      <h3 class="src-modal-title">Manual Scrobble</h3>
+      <h3 class="src-modal-title" data-i18n="modal_manual_title">Manual Scrobble</h3>
       <div class="src-field-group">
         <label>
-          Artist *
-          <input type="text" id="scrobbleArtist" placeholder="Artist name" autocomplete="off">
+          <span data-i18n="modal_label_artist">Artist *</span>
+          <input type="text" id="scrobbleArtist" placeholder="Artist name" data-i18n-placeholder="modal_placeholder_artist" autocomplete="off">
         </label>
         <label>
-          Track *
-          <input type="text" id="scrobbleTrack" placeholder="Track title" autocomplete="off">
+          <span data-i18n="modal_label_track">Track *</span>
+          <input type="text" id="scrobbleTrack" placeholder="Track title" data-i18n-placeholder="modal_placeholder_track" autocomplete="off">
         </label>
         <label>
-          Album
-          <input type="text" id="scrobbleAlbum" placeholder="Album (optional)" autocomplete="off">
+          <span data-i18n="modal_label_album">Album</span>
+          <input type="text" id="scrobbleAlbum" placeholder="Album (optional)" data-i18n-placeholder="modal_placeholder_album" autocomplete="off">
         </label>
         <label>
-          Date &amp; Time
+          <span data-i18n="modal_label_datetime">Date &amp; Time</span>
           <div class="scrobble-time-row">
             <input type="datetime-local" id="scrobbleTime" step="1">
-            <button type="button" class="scrobble-now-btn" onclick="setScrobbleNow()">Now</button>
+            <button type="button" class="scrobble-now-btn" onclick="setScrobbleNow()" data-i18n="modal_now_btn">Now</button>
           </div>
         </label>
       </div>
       <div id="scrobbleStatus" class="scrobble-status"></div>
-      <div id="scrobbleNoTarget" class="scrobble-status" style="display:none">Connect Last.fm or configure a Sheet write URL in Settings to add plays.</div>
+      <div id="scrobbleNoTarget" class="scrobble-status" style="display:none" data-i18n="modal_manual_no_target">Connect Last.fm or configure a Sheet write URL in Settings to add plays.</div>
       <div class="src-modal-btns">
-        <button class="src-btn-cancel" onclick="closeScrobbleModal()">Cancel</button>
-        <button class="src-btn-save" id="scrobbleSheetBtn" onclick="submitToSheet()" style="display:none">Add to Sheet</button>
-        <button class="src-btn-save" id="scrobbleSubmitBtn" onclick="submitScrobble()" style="display:none">Scrobble to Last.fm</button>
+        <button class="src-btn-cancel" onclick="closeScrobbleModal()" data-i18n="btn_cancel">Cancel</button>
+        <button class="src-btn-save" id="scrobbleSheetBtn" onclick="submitToSheet()" style="display:none" data-i18n="modal_manual_add_sheet">Add to Sheet</button>
+        <button class="src-btn-save" id="scrobbleSubmitBtn" onclick="submitScrobble()" style="display:none" data-i18n="modal_manual_scrobble">Scrobble to Last.fm</button>
       </div>
     </div>
   </div>
