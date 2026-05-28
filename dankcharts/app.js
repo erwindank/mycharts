@@ -10402,23 +10402,38 @@ function openArtistModal(artistName) {
   animateModalCountup(recordsEl);
 
   // Grammy strip — nominations and wins from My Grammies (_awardsYearData)
-  let grammyNoms = 0, grammyWins = 0;
-  for (const yearData of Object.values(_awardsYearData)) {
+  const _grammyCatMap = Object.fromEntries(AWARD_CATEGORIES.map(c => [c.id, c]));
+  const grammyEntries = [];
+  for (const [year, yearData] of Object.entries(_awardsYearData)) {
     if (!yearData?.categories) continue;
-    for (const cat of Object.values(yearData.categories)) {
+    for (const [catId, cat] of Object.entries(yearData.categories)) {
       if (!cat.enabled) continue;
+      const catInfo = _grammyCatMap[catId];
+      if (!catInfo) continue;
       const inNominees = (cat.nominees || []).some(n => n.artist === artistName);
       const isWinner = cat.winner?.artist === artistName;
-      if (inNominees || isWinner) grammyNoms++;
-      if (isWinner) grammyWins++;
+      if (inNominees || isWinner) grammyEntries.push({ year: parseInt(year), label: catInfo.label, emoji: catInfo.emoji, isWin: isWinner });
     }
   }
+  grammyEntries.sort((a, b) => (b.isWin - a.isWin) || (b.year - a.year));
+  const grammyNoms = grammyEntries.length;
+  const grammyWins = grammyEntries.filter(e => e.isWin).length;
   const grammyEl = document.getElementById('modalGrammyStrip');
   grammyEl.innerHTML = `
     <div class="modal-stat"><div class="se">🏅</div><div class="sv" data-countup="${grammyNoms}">${grammyNoms}</div><div class="sl">Nominations</div></div>
     <div class="modal-stat ${grammyWins > 0 ? 'modal-stat--gold' : ''}"><div class="se">🏆</div><div class="sv ${grammyWins > 0 ? 'sv--gold' : ''}" data-countup="${grammyWins}">${grammyWins}</div><div class="sl">Wins</div></div>
   `;
   animateModalCountup(grammyEl);
+  const grammyDetailEl = document.getElementById('modalGrammyDetail');
+  if (grammyEntries.length > 0) {
+    const n = grammyEntries.length;
+    const listHTML = grammyEntries.map(e =>
+      `<div class="modal-grammy-entry${e.isWin ? ' modal-grammy-entry--win' : ''}"><span class="mge-icon">${e.isWin ? '🏆' : '🏅'}</span><span class="mge-year">${e.year}</span><span class="mge-cat">${esc(e.label)}</span></div>`
+    ).join('');
+    grammyDetailEl.innerHTML = `<button class="modal-grammy-toggle" onclick="toggleModalGrammyDetail(this)" data-count="${n}">▾ Show all ${n} categor${n === 1 ? 'y' : 'ies'}</button><div class="modal-grammy-list" style="display:none">${listHTML}</div>`;
+  } else {
+    grammyDetailEl.innerHTML = '';
+  }
 
   // Plays by month chart
   document.getElementById('modalArtistChart').innerHTML = buildArtistSparklineHTML(artistPlays);
@@ -10851,6 +10866,14 @@ function openArtistModal(artistName) {
 
 function esc(str) {
   return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+function toggleModalGrammyDetail(btn) {
+  const list = btn.nextElementSibling;
+  const open = list.style.display !== 'none';
+  list.style.display = open ? 'none' : '';
+  const n = btn.dataset.count;
+  btn.textContent = open ? `▾ Show all ${n} categor${n == 1 ? 'y' : 'ies'}` : '▴ Hide categories';
 }
 
 // ─── ALBUM MODAL ───────────────────────────────────────────────

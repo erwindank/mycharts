@@ -5352,6 +5352,51 @@
       font-weight: 500;
     }
 
+    .modal-grammy-toggle {
+      display: block;
+      width: 100%;
+      background: none;
+      border: 1px dashed var(--border);
+      border-radius: 6px;
+      color: var(--text3);
+      font-family: 'DM Mono', monospace;
+      font-size: 0.68rem;
+      letter-spacing: 0.06em;
+      padding: 0.35rem 0.75rem;
+      margin-top: 0.5rem;
+      cursor: pointer;
+      text-align: left;
+      transition: color 0.15s, border-color 0.15s;
+    }
+    .modal-grammy-toggle:hover {
+      color: var(--text);
+      border-color: var(--accent2);
+    }
+    .modal-grammy-list {
+      margin-top: 0.4rem;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      overflow: hidden;
+    }
+    .modal-grammy-entry {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.4rem 0.75rem;
+      font-family: 'DM Mono', monospace;
+      font-size: 0.75rem;
+      color: var(--text);
+      border-bottom: 1px solid var(--border);
+    }
+    .modal-grammy-entry:last-child { border-bottom: none; }
+    .modal-grammy-entry--win {
+      background: linear-gradient(90deg, rgba(255,200,60,0.1), transparent);
+      color: var(--text);
+    }
+    .mge-icon { font-size: 0.9rem; flex-shrink: 0; }
+    .mge-year { color: var(--text3); flex-shrink: 0; min-width: 2.8rem; }
+    .mge-cat { flex: 1; }
+
     .modal-table {
       width: 100%;
       border-collapse: collapse;
