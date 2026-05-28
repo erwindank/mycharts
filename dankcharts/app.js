@@ -10334,6 +10334,7 @@ function openArtistModal(artistName) {
   }
   const avgPlaysPerSong = allSongsSorted.length ? Math.round(totalPlays / allSongsSorted.length) : 0;
   const topSong = allSongsSorted[0] || null;
+  const topAlbum = allAlbumsSorted[0] || null;
 
   // Stats strip — row 1: totals + all-time rank + peaks + extra stats
   const peakCls = r => !r ? '' : r === 1 ? 'sv--gold' : r <= 3 ? 'sv--silver' : r <= 10 ? 'sv--bronze' : '';
@@ -10345,12 +10346,10 @@ function openArtistModal(artistName) {
     <div class="modal-stat"><div class="se">🎵</div><div class="sv" data-countup="${allSongsSorted.length}">${allSongsSorted.length}</div><div class="sl">${t('stat_unique_songs')}</div></div>
     <div class="modal-stat"><div class="se">💿</div><div class="sv" data-countup="${allAlbumsSorted.length}">${allAlbumsSorted.length}</div><div class="sl">Albums &amp; Singles</div></div>
     <div class="modal-stat"><div class="se">📅</div><div class="sv" data-countup="${calendarDays}">${calendarDays}</div><div class="sl">${t('modal_calendar_days_played')}</div></div>
-    <div class="modal-stat"><div class="se">📊</div><div class="sv" data-countup="${avgPlaysPerSong}">${avgPlaysPerSong.toLocaleString()}</div><div class="sl">${t('modal_avg_plays_per_song')}</div></div>
     <div class="modal-stat modal-stat--gold"><div class="se">🏆</div><div class="sv">${allTimeArtistRank ? '#' + allTimeArtistRank : '—'}</div><div class="sl">Most Heard Artist<br>of All Time</div></div>
-    <div class="modal-stat"><div class="se">📊</div><div class="sv ${peakCls(weeklyArtistPeak)}">${weeklyArtistPeak ? '#' + weeklyArtistPeak : '—'}</div><div class="sl">${t('modal_weekly_peak_tile')}</div></div>
-    <div class="modal-stat"><div class="se">🌙</div><div class="sv ${peakCls(monthlyArtistPeak)}">${monthlyArtistPeak ? '#' + monthlyArtistPeak : '—'}</div><div class="sl">${t('modal_monthly_peak_tile')}</div></div>
-    <div class="modal-stat"><div class="se">⭐</div><div class="sv ${peakCls(yearlyArtistPeak)}">${yearlyArtistPeak ? '#' + yearlyArtistPeak : '—'}</div><div class="sl">${t('modal_yearly_peak_tile')}</div></div>
-    <div class="modal-stat"><div class="se">🎤</div><div class="sv" style="font-size:0.72rem;line-height:1.3;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%">${topSong ? esc(topSong.title) : '—'}</div><div class="sl">${t('modal_top_song')}</div></div>
+    <div class="modal-stat"><div class="se">📊</div><div class="sv" data-countup="${avgPlaysPerSong}">${avgPlaysPerSong.toLocaleString()}</div><div class="sl">${t('modal_avg_plays_per_song')}</div></div>
+    <div class="modal-stat"><div class="se">🎤</div><div class="sv" style="font-size:0.72rem;line-height:1.3;word-break:break-word;overflow-wrap:break-word;">${topSong ? esc(topSong.title) : '—'}</div><div class="sl">${t('modal_most_played_song')}</div></div>
+    <div class="modal-stat"><div class="se">💿</div><div class="sv" style="font-size:0.72rem;line-height:1.3;word-break:break-word;overflow-wrap:break-word;">${topAlbum ? esc(topAlbum.album) : '—'}</div><div class="sl">${t('modal_most_played_album')}</div></div>
     <div class="modal-stat"><div class="se">🔥</div><div class="sv" data-countup="${longestStreak}">${longestStreak}</div><div class="sl">${t('modal_listening_days_streak')}</div></div>
     <div class="modal-stat"><div class="se">📋</div><div class="sv">${weeklySongsCharted.length || '—'}</div><div class="sl">${t('modal_songs_in_weekly')}</div></div>
   `;
