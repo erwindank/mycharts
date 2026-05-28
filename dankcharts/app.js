@@ -10401,39 +10401,8 @@ function openArtistModal(artistName) {
   `;
   animateModalCountup(recordsEl);
 
-  // Grammy strip — nominations and wins from My Grammies (_awardsYearData)
-  const _grammyCatMap = Object.fromEntries(AWARD_CATEGORIES.map(c => [c.id, c]));
-  const grammyEntries = [];
-  for (const [year, yearData] of Object.entries(_awardsYearData)) {
-    if (!yearData?.categories) continue;
-    for (const [catId, cat] of Object.entries(yearData.categories)) {
-      if (!cat.enabled) continue;
-      const catInfo = _grammyCatMap[catId];
-      if (!catInfo) continue;
-      const inNominees = (cat.nominees || []).some(n => n.artist === artistName);
-      const isWinner = cat.winner?.artist === artistName;
-      if (inNominees || isWinner) grammyEntries.push({ year: parseInt(year), label: catInfo.label, emoji: catInfo.emoji, isWin: isWinner });
-    }
-  }
-  grammyEntries.sort((a, b) => (b.isWin - a.isWin) || (b.year - a.year));
-  const grammyNoms = grammyEntries.length;
-  const grammyWins = grammyEntries.filter(e => e.isWin).length;
-  const grammyEl = document.getElementById('modalGrammyStrip');
-  grammyEl.innerHTML = `
-    <div class="modal-stat"><div class="se">🏅</div><div class="sv" data-countup="${grammyNoms}">${grammyNoms}</div><div class="sl">Nominations</div></div>
-    <div class="modal-stat ${grammyWins > 0 ? 'modal-stat--gold' : ''}"><div class="se">🏆</div><div class="sv ${grammyWins > 0 ? 'sv--gold' : ''}" data-countup="${grammyWins}">${grammyWins}</div><div class="sl">Wins</div></div>
-  `;
-  animateModalCountup(grammyEl);
-  const grammyDetailEl = document.getElementById('modalGrammyDetail');
-  if (grammyEntries.length > 0) {
-    const n = grammyEntries.length;
-    const listHTML = grammyEntries.map(e =>
-      `<div class="modal-grammy-entry${e.isWin ? ' modal-grammy-entry--win' : ''}"><span class="mge-icon">${e.isWin ? '🏆' : '🏅'}</span><span class="mge-year">${e.year}</span><span class="mge-cat">${esc(e.label)}</span></div>`
-    ).join('');
-    grammyDetailEl.innerHTML = `<button class="modal-grammy-toggle" onclick="toggleModalGrammyDetail(this)" data-count="${n}">▾ Show all ${n} categor${n === 1 ? 'y' : 'ies'}</button><div class="modal-grammy-list" style="display:none">${listHTML}</div>`;
-  } else {
-    grammyDetailEl.innerHTML = '';
-  }
+  // Grammy strip — render current cache; async-loads any missing years after modal opens
+  _renderModalGrammyStrip(artistName);
 
   // Plays by month chart
   document.getElementById('modalArtistChart').innerHTML = buildArtistSparklineHTML(artistPlays);
@@ -10862,6 +10831,12 @@ function openArtistModal(artistName) {
 
   modal.classList.add('open');
   modal.scrollTop = 0;
+
+  // Load any awards years not yet in cache, then refresh Grammy strip
+  _awardsEnsureAllYearsLoaded().then(() => {
+    if (modal.classList.contains('open') && document.getElementById('modalArtistName').textContent === artistName)
+      _renderModalGrammyStrip(artistName);
+  });
 }
 
 function esc(str) {
@@ -16365,6 +16340,52 @@ async function _awardsLoad(year) {
     _awardsYearData[year] = _awardsDefaultData(year);
   }
   return _awardsYearData[year];
+}
+
+async function _awardsEnsureAllYearsLoaded() {
+  if (!allPlays.length) return;
+  const minYear = tzDate(allPlays[allPlays.length - 1].date).getFullYear();
+  const maxYear = tzNow().getFullYear();
+  const toLoad = [];
+  for (let y = minYear; y <= maxYear; y++) {
+    if (!_awardsYearData[y]) toLoad.push(_awardsLoad(y));
+  }
+  if (toLoad.length) await Promise.all(toLoad);
+}
+
+function _renderModalGrammyStrip(artistName) {
+  const catMap = Object.fromEntries(AWARD_CATEGORIES.map(c => [c.id, c]));
+  const entries = [];
+  for (const [year, yearData] of Object.entries(_awardsYearData)) {
+    if (!yearData?.categories) continue;
+    for (const [catId, cat] of Object.entries(yearData.categories)) {
+      if (!cat.enabled) continue;
+      const catInfo = catMap[catId];
+      if (!catInfo) continue;
+      const inNominees = (cat.nominees || []).some(n => n.artist === artistName);
+      const isWinner = cat.winner?.artist === artistName;
+      if (inNominees || isWinner) entries.push({ year: parseInt(year), label: catInfo.label, isWin: isWinner });
+    }
+  }
+  entries.sort((a, b) => (b.isWin - a.isWin) || (b.year - a.year));
+  const noms = entries.length;
+  const wins = entries.filter(e => e.isWin).length;
+  const grammyEl = document.getElementById('modalGrammyStrip');
+  grammyEl.innerHTML = `
+    <div class="modal-stat"><div class="se">🏅</div><div class="sv" data-countup="${noms}">${noms}</div><div class="sl">Nominations</div></div>
+    <div class="modal-stat ${wins > 0 ? 'modal-stat--gold' : ''}"><div class="se">🏆</div><div class="sv ${wins > 0 ? 'sv--gold' : ''}" data-countup="${wins}">${wins}</div><div class="sl">Wins</div></div>
+  `;
+  animateModalCountup(grammyEl);
+  const detailEl = document.getElementById('modalGrammyDetail');
+  if (entries.length > 0) {
+    const n = entries.length;
+    const listHTML = entries.map(e =>
+      `<div class="modal-grammy-entry${e.isWin ? ' modal-grammy-entry--win' : ''}"><span class="mge-icon">${e.isWin ? '🏆' : '🏅'}</span><span class="mge-year">${e.year}</span><span class="mge-cat">${esc(e.label)}</span></div>`
+    ).join('');
+    detailEl.innerHTML = `<button class="modal-grammy-toggle" onclick="toggleModalGrammyDetail(this)" data-count="${n}">▾ Show all ${n} categor${n === 1 ? 'y' : 'ies'}</button><div class="modal-grammy-list" style="display:none">${listHTML}</div>`;
+  } else {
+    detailEl.innerHTML = '';
+  }
 }
 
 async function _awardsSave(year) {
