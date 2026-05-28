@@ -21,7 +21,8 @@ const SYNC_KEYS = [
   'dc_autocorrect_rules', 'dc_no_artist_split', 'dc_tm_api_key',
   'dc_tm_toggles',
   'dc_events_type_filter', 'dc_cal_view', 'dc_events_view_modes',
-  'dc_displayToggles'
+  'dc_displayToggles',
+  'dc_chartSizeWeekly', 'dc_chartSizeMonthly', 'dc_chartSizeYearly', 'dc_chartSizeAllTime'
 ];
 
 let _auth = null;

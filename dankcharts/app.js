@@ -2581,6 +2581,7 @@ document.getElementById('sizeBtnsWeekly').addEventListener('click', e => {
   chartSizeWeekly = parseInt(btn.dataset.size);
   chartSize = chartSizeWeekly;
   localStorage.setItem('dc_chartSizeWeekly', btn.dataset.size);
+  if (typeof dcSaveUserConfig === 'function') dcSaveUserConfig();
   renderAll();
 });
 
@@ -2592,6 +2593,7 @@ document.getElementById('sizeBtnsMonthly').addEventListener('click', e => {
   chartSizeMonthly = parseInt(btn.dataset.size);
   chartSize = chartSizeMonthly;
   localStorage.setItem('dc_chartSizeMonthly', btn.dataset.size);
+  if (typeof dcSaveUserConfig === 'function') dcSaveUserConfig();
   renderAll();
 });
 
@@ -2603,6 +2605,7 @@ document.getElementById('sizeBtnsYearly').addEventListener('click', e => {
   const v = parseInt(btn.dataset.size);
   chartSizeYearly = v === 0 ? Infinity : v;
   localStorage.setItem('dc_chartSizeYearly', btn.dataset.size);
+  if (typeof dcSaveUserConfig === 'function') dcSaveUserConfig();
   ['songs', 'artists', 'albums'].forEach(t => { searchState[t] = ''; const inp = document.getElementById(t + 'SearchInput'); if (inp) inp.value = ''; pageState[t] = 0; });
   renderAll();
 });
@@ -2615,6 +2618,7 @@ document.getElementById('sizeBtnsAllTime').addEventListener('click', e => {
   const v = parseInt(btn.dataset.size);
   chartSizeAllTime = v === 0 ? Infinity : v;
   localStorage.setItem('dc_chartSizeAllTime', btn.dataset.size);
+  if (typeof dcSaveUserConfig === 'function') dcSaveUserConfig();
   ['songs', 'artists', 'albums'].forEach(t => { searchState[t] = ''; const inp = document.getElementById(t + 'SearchInput'); if (inp) inp.value = ''; pageState[t] = 0; });
   renderAll();
 });
