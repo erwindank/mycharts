@@ -10327,14 +10327,21 @@ function openArtistModal(artistName) {
   const firstPlayed = artistPlays.length ? artistPlays[artistPlays.length - 1].date : null;
   const lastPlayed = artistPlays.length ? artistPlays[0].date : null;
   const artistDaySet = new Set();
-  for (const p of artistPlays) { const d = tzDate(p.date); artistDaySet.add(localDateStr(d)); }
+  const dayPlayCounts = {};
+  for (const p of artistPlays) { const d = localDateStr(tzDate(p.date)); artistDaySet.add(d); dayPlayCounts[d] = (dayPlayCounts[d] || 0) + 1; }
   const calendarDays = artistDaySet.size;
+  const peakPlaysInDay = calendarDays ? Math.max(...Object.values(dayPlayCounts)) : 0;
   const _sortedArtistDays = [...artistDaySet].sort();
   let longestStreak = _sortedArtistDays.length ? 1 : 0, _curArtistStreak = 1;
   for (let i = 1; i < _sortedArtistDays.length; i++) {
     const diff = Math.round((new Date(_sortedArtistDays[i]) - new Date(_sortedArtistDays[i - 1])) / 86400000);
     _curArtistStreak = diff === 1 ? _curArtistStreak + 1 : 1;
     if (_curArtistStreak > longestStreak) longestStreak = _curArtistStreak;
+  }
+  let peakConsecutivePlays = 0, _curConsec = 0;
+  for (const p of allPlays) {
+    if (p.artists.includes(artistName)) { _curConsec++; if (_curConsec > peakConsecutivePlays) peakConsecutivePlays = _curConsec; }
+    else _curConsec = 0;
   }
   const avgPlaysPerSong = allSongsSorted.length ? Math.round(totalPlays / allSongsSorted.length) : 0;
   const topSong = allSongsSorted[0] || null;
@@ -10356,6 +10363,8 @@ function openArtistModal(artistName) {
     <div class="modal-stat"><div class="se">💿</div><div class="sv" style="font-size:0.72rem;line-height:1.3;word-break:break-word;overflow-wrap:break-word;">${topAlbum ? esc(topAlbum.album) : '—'}</div><div class="sl">${t('modal_most_played_album')}</div></div>
     <div class="modal-stat"><div class="se">🔥</div><div class="sv" data-countup="${longestStreak}">${longestStreak}</div><div class="sl">${t('modal_listening_days_streak')}</div></div>
     <div class="modal-stat"><div class="se">📋</div><div class="sv">${weeklySongsCharted.length || '—'}</div><div class="sl">${t('modal_songs_in_weekly')}</div></div>
+    <div class="modal-stat"><div class="se">⚡</div><div class="sv" data-countup="${peakPlaysInDay}">${peakPlaysInDay}</div><div class="sl">Peak Plays<br>in a Day</div></div>
+    <div class="modal-stat"><div class="se">🎯</div><div class="sv" data-countup="${peakConsecutivePlays}">${peakConsecutivePlays}</div><div class="sl">Peak Plays<br>Streak</div></div>
   `;
   animateModalCountup(modalStatsEl);
 
