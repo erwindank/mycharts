@@ -10379,6 +10379,47 @@ function openArtistModal(artistName) {
     <div class="modal-stat"><div class="se">⭐</div><div class="sv ${peakCls(yearlyArtistPeak)}">${yearlyArtistPeak ? '#' + yearlyArtistPeak : '—'}</div><div class="sl">Yearly Artist Peak</div></div>
   `;
 
+  // Records strip — chart appearance counts and #1 milestones from allChartRun
+  const artistCrW = crW?.result.artists[artistName];
+  const artistCrM = crM?.result.artists[artistName];
+  const artistCrY = crY?.result.artists[artistName];
+  const weeksAtNo1 = artistCrW?.entries.filter(e => e.rank === 1).length || 0;
+  const monthsAtNo1 = artistCrM?.entries.filter(e => e.rank === 1).length || 0;
+  const yearsAtNo1 = artistCrY?.entries.filter(e => e.rank === 1).length || 0;
+  const weeklyApps = artistCrW?.entries.length || 0;
+  const monthlyApps = artistCrM?.entries.length || 0;
+  const _firstWkEntry = artistCrW?.entries.slice().sort((a, b) => a.periodKey < b.periodKey ? -1 : 1)[0] ?? null;
+  const weeklyDebutRank = _firstWkEntry ? _firstWkEntry.rank : null;
+  const recordsEl = document.getElementById('modalRecordsStrip');
+  recordsEl.innerHTML = `
+    <div class="modal-stat ${weeksAtNo1 > 0 ? 'modal-stat--gold' : ''}"><div class="se">🥇</div><div class="sv ${weeksAtNo1 > 0 ? 'sv--gold' : ''}" data-countup="${weeksAtNo1}">${weeksAtNo1}</div><div class="sl">Weeks at #1</div></div>
+    <div class="modal-stat"><div class="se">🌙</div><div class="sv ${monthsAtNo1 > 0 ? 'sv--gold' : ''}" data-countup="${monthsAtNo1}">${monthsAtNo1}</div><div class="sl">Months at #1</div></div>
+    <div class="modal-stat"><div class="se">⭐</div><div class="sv ${yearsAtNo1 > 0 ? 'sv--gold' : ''}" data-countup="${yearsAtNo1}">${yearsAtNo1}</div><div class="sl">Years at #1</div></div>
+    <div class="modal-stat"><div class="se">📅</div><div class="sv" data-countup="${weeklyApps}">${weeklyApps}</div><div class="sl">Weekly Chart<br>Appearances</div></div>
+    <div class="modal-stat"><div class="se">🗓️</div><div class="sv" data-countup="${monthlyApps}">${monthlyApps}</div><div class="sl">Monthly Chart<br>Appearances</div></div>
+    ${weeklyDebutRank ? `<div class="modal-stat"><div class="se">🚀</div><div class="sv ${peakCls(weeklyDebutRank)}">#${weeklyDebutRank}</div><div class="sl">Weekly<br>Debut Rank</div></div>` : ''}
+  `;
+  animateModalCountup(recordsEl);
+
+  // Grammy strip — nominations and wins from My Grammies (_awardsYearData)
+  let grammyNoms = 0, grammyWins = 0;
+  for (const yearData of Object.values(_awardsYearData)) {
+    if (!yearData?.categories) continue;
+    for (const cat of Object.values(yearData.categories)) {
+      if (!cat.enabled) continue;
+      const inNominees = (cat.nominees || []).some(n => n.artist === artistName);
+      const isWinner = cat.winner?.artist === artistName;
+      if (inNominees || isWinner) grammyNoms++;
+      if (isWinner) grammyWins++;
+    }
+  }
+  const grammyEl = document.getElementById('modalGrammyStrip');
+  grammyEl.innerHTML = `
+    <div class="modal-stat"><div class="se">🏅</div><div class="sv" data-countup="${grammyNoms}">${grammyNoms}</div><div class="sl">Nominations</div></div>
+    <div class="modal-stat ${grammyWins > 0 ? 'modal-stat--gold' : ''}"><div class="se">🏆</div><div class="sv ${grammyWins > 0 ? 'sv--gold' : ''}" data-countup="${grammyWins}">${grammyWins}</div><div class="sl">Wins</div></div>
+  `;
+  animateModalCountup(grammyEl);
+
   // Plays by month chart
   document.getElementById('modalArtistChart').innerHTML = buildArtistSparklineHTML(artistPlays);
 
