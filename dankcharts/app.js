@@ -14631,6 +14631,15 @@ function ytPlayFromBtn(btn) {
   }
 }
 
+function _ytPlayOrQueue(title, artist, album) {
+  const playerEl = document.getElementById('ytMiniPlayer');
+  if (_ytCurrentTrack && playerEl && playerEl.style.display !== 'none') {
+    _ytShowQueueToast(title, artist, album, null);
+  } else {
+    openYtPlayer(title, artist, album, null);
+  }
+}
+
 function openYtPlayer(title, artist, album, btn) {
   if (_ytActiveBtn) _ytActiveBtn.classList.remove('yt-btn-loading', 'yt-btn-playing');
   _ytCurrentTrack   = { title, artist, album };
@@ -16225,7 +16234,7 @@ function renderTimeMachine(forceRebuild) {
       const sub = entry.artist + (entry.album && entry.album !== '—' ? ' · ' + entry.album : '');
       const prefKey = 'song:' + entry.artist.toLowerCase() + '|||' + entry.title.toLowerCase();
       songArr.push({ imgId, title: entry.title, artist: entry.artist, album: entry.album, name: entry.title, prefKey });
-      return '<div class="tm-card tm-card-song" data-type="song" onclick="_ytShowQueueToast(' + esc(JSON.stringify(entry.title)) + ',' + esc(JSON.stringify(entry.artist)) + ',' + esc(JSON.stringify(entry.album)) + ',null)">' +
+      return '<div class="tm-card tm-card-song" data-type="song" onclick="_ytPlayOrQueue(' + esc(JSON.stringify(entry.title)) + ',' + esc(JSON.stringify(entry.artist)) + ',' + esc(JSON.stringify(entry.album)) + ')">' +
         '<div class="tm-card-img" id="' + esc(imgId) + '"><div class="thumb-initials">' + esc(initials(entry.title)) + '</div></div>' +
         '<div class="tm-card-info">' +
         '<div class="tm-card-title">' + esc(entry.title) + '</div>' +
