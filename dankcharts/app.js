@@ -4157,6 +4157,7 @@ document.getElementById('periodNav').addEventListener('click', e => {
     document.getElementById('upcomingSection').style.display = 'none';
     document.getElementById('recentSection').style.display = 'none';
     document.getElementById('recordsView').style.display = 'none';
+    document.getElementById('soundtrackView').style.display = 'none';
     document.getElementById('rawDataView').style.display = 'block';
     const recentEl = document.getElementById('recentSection');
     recentEl.classList.add('collapsed');
@@ -4195,6 +4196,7 @@ document.getElementById('periodNav').addEventListener('click', e => {
     document.getElementById('recordsView').style.display = 'none';
     document.getElementById('rawDataView').style.display = 'none';
     document.getElementById('eventsView').style.display = 'none';
+    document.getElementById('soundtrackView').style.display = 'none';
     document.getElementById('graphsView').style.display = 'block';
     if (allPlays.length) renderGraphs();
     updateScrobbleBtn();
@@ -4225,6 +4227,7 @@ document.getElementById('periodNav').addEventListener('click', e => {
     document.getElementById('rawDataView').style.display = 'none';
     document.getElementById('graphsView').style.display = 'none';
     document.getElementById('eventsView').style.display = 'none';
+    document.getElementById('soundtrackView').style.display = 'none';
     document.getElementById('recordsView').style.display = 'block';
     initRecordsViewUI();
     restoreRecordSectionCollapseState();
@@ -4259,6 +4262,7 @@ document.getElementById('periodNav').addEventListener('click', e => {
     document.getElementById('graphsView').style.display = 'none';
     document.getElementById('recordsView').style.display = 'none';
     document.getElementById('awardsView').style.display = 'none';
+    document.getElementById('soundtrackView').style.display = 'none';
     document.getElementById('eventsView').style.display = 'block';
     const sel = document.getElementById('eventsLimitSelect');
     if (sel) sel.value = eventsArtistLimit;
@@ -4312,8 +4316,41 @@ document.getElementById('periodNav').addEventListener('click', e => {
     return;
   }
 
-  // Leaving raw data, graphs, records, events, or awards view — restore chart UI
-  if (currentPeriod === 'rawdata' || currentPeriod === 'graphs' || currentPeriod === 'records' || currentPeriod === 'events' || currentPeriod === 'awards') {
+  if (btn.dataset.period === 'soundtrack') {
+    savedOffsets[currentPeriod] = currentOffset;
+    currentPeriod = 'soundtrack';
+    localStorage.setItem('dc_period', currentPeriod);
+    document.getElementById('chartSizeBar').style.display = 'none';
+    document.getElementById('paginatedSizeBar').style.display = 'none';
+    document.getElementById('chartDisplayToggles').style.display = 'none';
+    document.getElementById('exportPlaylistBtn').style.display = 'none';
+    document.getElementById('dateNav').style.display = 'none';
+    document.getElementById('navHint').style.display = 'none';
+    document.getElementById('statsStrip').style.display = 'none';
+    document.getElementById('statsStrip2').style.display = 'none';
+    const _s3st = document.getElementById('statsStrip3'); if (_s3st) _s3st.style.display = 'none';
+    document.getElementById('songsSection').style.display = 'none';
+    document.getElementById('artistsSection').style.display = 'none';
+    document.getElementById('albumsSection').style.display = 'none';
+    document.getElementById('dropoutsSection').style.display = 'none';
+    NEW_ENTRY_SECTIONS.forEach(id => { const el = document.getElementById(id); if (el) el.style.display = 'none'; });
+    document.getElementById('upcomingSection').style.display = 'none';
+    document.getElementById('recentSection').style.display = 'none';
+    document.getElementById('rawDataView').style.display = 'none';
+    document.getElementById('graphsView').style.display = 'none';
+    document.getElementById('recordsView').style.display = 'none';
+    document.getElementById('eventsView').style.display = 'none';
+    document.getElementById('awardsView').style.display = 'none';
+    const _tmSt = document.getElementById('timeMachineSection'); if (_tmSt) _tmSt.style.display = 'none';
+    document.getElementById('soundtrackView').style.display = 'block';
+    renderSoundtrack();
+    if (typeof window._refreshBackToTop === 'function') window._refreshBackToTop();
+    updateScrobbleBtn();
+    return;
+  }
+
+  // Leaving raw data, graphs, records, events, awards, or soundtrack view — restore chart UI
+  if (currentPeriod === 'rawdata' || currentPeriod === 'graphs' || currentPeriod === 'records' || currentPeriod === 'events' || currentPeriod === 'awards' || currentPeriod === 'soundtrack') {
     document.getElementById('dateNav').style.display = '';
     document.getElementById('navHint').style.display = '';
     document.getElementById('statsStrip').style.display = '';
@@ -4333,6 +4370,7 @@ document.getElementById('periodNav').addEventListener('click', e => {
     document.getElementById('recordsView').style.display = 'none';
     document.getElementById('eventsView').style.display = 'none';
     document.getElementById('awardsView').style.display = 'none';
+    document.getElementById('soundtrackView').style.display = 'none';
     if (currentPeriod === 'graphs') destroyGraphCharts();
   }
 
@@ -16187,7 +16225,7 @@ function renderTimeMachine(forceRebuild) {
       const sub = entry.artist + (entry.album && entry.album !== '—' ? ' · ' + entry.album : '');
       const prefKey = 'song:' + entry.artist.toLowerCase() + '|||' + entry.title.toLowerCase();
       songArr.push({ imgId, title: entry.title, artist: entry.artist, album: entry.album, name: entry.title, prefKey });
-      return '<div class="tm-card" data-type="song">' +
+      return '<div class="tm-card tm-card-song" data-type="song" onclick="_ytShowQueueToast(' + esc(JSON.stringify(entry.title)) + ',' + esc(JSON.stringify(entry.artist)) + ',' + esc(JSON.stringify(entry.album)) + ',null)">' +
         '<div class="tm-card-img" id="' + esc(imgId) + '"><div class="thumb-initials">' + esc(initials(entry.title)) + '</div></div>' +
         '<div class="tm-card-info">' +
         '<div class="tm-card-title">' + esc(entry.title) + '</div>' +
@@ -16197,7 +16235,7 @@ function renderTimeMachine(forceRebuild) {
     } else if (entry.type === 'artist') {
       const prefKey = 'artist:' + entry.artist.toLowerCase();
       artistArr.push({ imgId, name: entry.artist, artist: entry.artist, album: '', title: '', prefKey });
-      return '<div class="tm-card" data-type="artist">' +
+      return '<div class="tm-card tm-card-search" data-type="artist" onclick="window.open(\'https://www.google.com/search?q=\'+encodeURIComponent(' + esc(JSON.stringify(entry.artist)) + '),\'_blank\')">' +
         '<div class="tm-card-img" id="' + esc(imgId) + '"><div class="thumb-initials">' + esc(initials(entry.artist)) + '</div></div>' +
         '<div class="tm-card-info">' +
         '<div class="tm-card-title">' + esc(entry.artist) + '</div>' +
@@ -16206,7 +16244,7 @@ function renderTimeMachine(forceRebuild) {
     } else {
       const prefKey = 'album:' + entry.artist.toLowerCase() + '|||' + entry.album.toLowerCase();
       albumArr.push({ imgId, album: entry.album, artist: entry.artist, name: entry.album, title: '', prefKey });
-      return '<div class="tm-card" data-type="album">' +
+      return '<div class="tm-card tm-card-search" data-type="album" onclick="window.open(\'https://www.google.com/search?q=\'+encodeURIComponent(' + esc(JSON.stringify(entry.album + ' ' + entry.artist)) + '),\'_blank\')">' +
         '<div class="tm-card-img" id="' + esc(imgId) + '"><div class="thumb-initials">' + esc(initials(entry.album)) + '</div></div>' +
         '<div class="tm-card-info">' +
         '<div class="tm-card-title">' + esc(entry.album) + '</div>' +
@@ -17361,5 +17399,754 @@ function _triggerConfetti() {
     el.appendChild(p);
   }
   setTimeout(() => { if (el) el.innerHTML = ''; }, 2500);
+}
+
+// ═══════════════════════════════════════════════════════════════
+// ─── YOUR SOUNDTRACK ───────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════════
+
+let stPeriodType = 'year';
+let stYear = tzNow().getFullYear();
+let stMonth = tzNow().getMonth() + 1;
+let _stCurrentPlays = [];
+let _stReplayTimer = null;
+let _stCardMode = null;
+
+function stGetPeriodPlays() {
+  if (stPeriodType === 'alltime') return allPlays.slice();
+  return allPlays.filter(p => {
+    const d = tzDate(p.date);
+    if (stPeriodType === 'year') return d.getFullYear() === stYear;
+    return d.getFullYear() === stYear && (d.getMonth() + 1) === stMonth;
+  });
+}
+
+const ST_MONTH_KEYS = ['month_jan','month_feb','month_mar','month_apr','month_may_short','month_jun','month_jul','month_aug','month_sep','month_oct','month_nov','month_dec'];
+
+function stGetPeriodLabel() {
+  if (stPeriodType === 'alltime') return t('st_period_alltime');
+  if (stPeriodType === 'year') return String(stYear);
+  return t(ST_MONTH_KEYS[stMonth - 1]) + ' ' + stYear;
+}
+
+function stSetPeriod(type) {
+  stPeriodType = type;
+  document.querySelectorAll('.st-period-btn').forEach(b => b.classList.toggle('active', b.dataset.stPeriod === type));
+  const navBar = document.getElementById('stNavBar');
+  if (navBar) navBar.style.display = type === 'alltime' ? 'none' : '';
+  if (type === 'year') { stYear = tzNow().getFullYear(); }
+  if (type === 'month') { stYear = tzNow().getFullYear(); stMonth = tzNow().getMonth() + 1; }
+  renderSoundtrack();
+}
+
+function stNavigate(dir) {
+  if (stPeriodType === 'year') {
+    const newYear = stYear + dir;
+    if (newYear > tzNow().getFullYear()) return;
+    stYear = newYear;
+  } else if (stPeriodType === 'month') {
+    let m = stMonth + dir, y = stYear;
+    if (m < 1) { m = 12; y--; }
+    if (m > 12) { m = 1; y++; }
+    const now = tzNow();
+    if (y > now.getFullYear() || (y === now.getFullYear() && m > now.getMonth() + 1)) return;
+    stYear = y; stMonth = m;
+  }
+  renderSoundtrack();
+}
+
+function renderSoundtrack() {
+  if (!allPlays.length) {
+    document.getElementById('stStatsStrip').innerHTML = `<div class="st-empty">${t('st_no_data')}</div>`;
+    return;
+  }
+  const plays = stGetPeriodPlays();
+  _stCurrentPlays = plays;
+
+  const navLabel = document.getElementById('stNavLabel');
+  if (navLabel) navLabel.textContent = stGetPeriodLabel();
+
+  stRenderStats(plays);
+  stRenderTopCharts(plays);
+  stRenderActivity(plays);
+  stRenderLoyalty(plays);
+  stRenderDiscoveries(plays);
+  stRenderMilestones(plays);
+  stRenderStreaks(plays);
+  stRenderGrammys(plays);
+  stRenderGem(plays);
+
+  // Reset replay
+  const replayCanvas = document.getElementById('stReplayCanvas');
+  const replayBtn = document.getElementById('stReplayBtn');
+  const replayStop = document.getElementById('stReplayStopBtn');
+  if (replayCanvas) replayCanvas.style.display = 'none';
+  if (replayBtn) replayBtn.style.display = '';
+  if (replayStop) replayStop.style.display = 'none';
+  if (_stReplayTimer) { clearInterval(_stReplayTimer); _stReplayTimer = null; }
+
+  // Close card preview
+  const cardPreview = document.getElementById('stCardPreview');
+  if (cardPreview) cardPreview.style.display = 'none';
+
+  // Section visibility
+  const isYear = stPeriodType === 'year';
+  const isAlltime = stPeriodType === 'alltime';
+  const loyaltySection = document.getElementById('stLoyaltySection');
+  const activitySection = document.getElementById('stActivitySection');
+  const replaySection = document.getElementById('stReplaySection');
+  if (loyaltySection) loyaltySection.style.display = isYear ? '' : 'none';
+  if (activitySection) activitySection.style.display = (isYear || isAlltime) ? '' : 'none';
+  if (replaySection) replaySection.style.display = isYear ? '' : 'none';
+}
+
+// ── Animated count-up ─────────────────────────────────────────
+function stCountUp(id, target) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  if (target === 0) { el.textContent = '0'; return; }
+  const dur = 900;
+  const start = Date.now();
+  const tick = () => {
+    const p = Math.min((Date.now() - start) / dur, 1);
+    const ease = 1 - Math.pow(1 - p, 3);
+    el.textContent = Math.round(ease * target).toLocaleString();
+    if (p < 1) requestAnimationFrame(tick);
+  };
+  requestAnimationFrame(tick);
+}
+
+// ── Stats strip ───────────────────────────────────────────────
+function stRenderStats(plays) {
+  const ids = ['stStatPlaysVal','stStatDaysVal','stStatArtistsVal','stStatNewVal','stStatStreakVal'];
+  if (!plays.length) { ids.forEach(id => { const el = document.getElementById(id); if (el) el.textContent = '0'; }); return; }
+
+  const daySet = new Set(plays.map(p => { const d = tzDate(p.date); return `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`; }));
+  const artistSet = new Set(plays.map(p => p.artist.toLowerCase()));
+
+  // New discoveries: artists whose first-ever play falls in this period
+  const fsMap = stGetFirstSeenArtists();
+  let newCount = 0;
+  for (const ak of artistSet) {
+    const fd = fsMap[ak];
+    if (!fd) continue;
+    const ftz = tzDate(fd);
+    const inPeriod = stPeriodType === 'alltime' ? true :
+      stPeriodType === 'year' ? ftz.getFullYear() === stYear :
+      ftz.getFullYear() === stYear && (ftz.getMonth() + 1) === stMonth;
+    if (inPeriod) newCount++;
+  }
+
+  // Best streak within period
+  const sortedDays = [...daySet].sort();
+  let best = sortedDays.length ? 1 : 0, cur = 1;
+  for (let i = 1; i < sortedDays.length; i++) {
+    const [ay, am, ad] = sortedDays[i-1].split('-').map(Number);
+    const [by, bm, bd] = sortedDays[i].split('-').map(Number);
+    const diff = Math.round((new Date(by, bm, bd) - new Date(ay, am, ad)) / 86400000);
+    cur = diff === 1 ? cur + 1 : 1;
+    if (cur > best) best = cur;
+  }
+
+  stCountUp('stStatPlaysVal', plays.length);
+  stCountUp('stStatDaysVal', daySet.size);
+  stCountUp('stStatArtistsVal', artistSet.size);
+  stCountUp('stStatNewVal', newCount);
+  stCountUp('stStatStreakVal', best);
+}
+
+function stGetFirstSeenArtists() {
+  if (firstSeenMaps && firstSeenMaps.artist) return firstSeenMaps.artist;
+  const map = {};
+  const sorted = [...allPlays].sort((a, b) => a.date - b.date);
+  for (const p of sorted) {
+    const ak = p.artist.toLowerCase();
+    if (!map[ak]) map[ak] = p.date;
+  }
+  if (!firstSeenMaps) firstSeenMaps = { artist: map, song: {} };
+  return map;
+}
+
+// ── Top 5 Artists + Songs ─────────────────────────────────────
+function stRenderTopCharts(plays) {
+  const artistCounts = {};
+  for (const p of plays) artistCounts[p.artist] = (artistCounts[p.artist] || 0) + 1;
+  const topArtists = Object.entries(artistCounts).sort((a, b) => b[1] - a[1]).slice(0, 5);
+  const maxA = topArtists[0]?.[1] || 1;
+
+  const songCounts = {};
+  for (const p of plays) {
+    const sk = songKey(p);
+    if (!songCounts[sk]) songCounts[sk] = { title: p.title, artist: p.artist, count: 0 };
+    songCounts[sk].count++;
+  }
+  const topSongs = Object.values(songCounts).sort((a, b) => b.count - a.count).slice(0, 5);
+  const maxS = topSongs[0]?.count || 1;
+
+  const rankIcon = i => ['🥇','🥈','🥉','4','5'][i];
+
+  const artistHTML = topArtists.length ? topArtists.map(([name, count], i) => `
+    <div class="st-top-item">
+      <span class="st-top-rank">${rankIcon(i)}</span>
+      <div class="st-top-info">
+        <div class="st-top-name">${esc(name)}</div>
+        <div class="st-top-bar-wrap"><div class="st-top-bar" style="width:${Math.round(count/maxA*100)}%"></div></div>
+      </div>
+      <span class="st-top-count">${count.toLocaleString()}</span>
+    </div>`).join('') : `<div class="st-empty">${t('st_no_data')}</div>`;
+
+  const songHTML = topSongs.length ? topSongs.map((s, i) => `
+    <div class="st-top-item">
+      <span class="st-top-rank">${rankIcon(i)}</span>
+      <div class="st-top-info">
+        <div class="st-top-name">${esc(s.title)}</div>
+        <div class="st-top-sub">${esc(s.artist)}</div>
+        <div class="st-top-bar-wrap"><div class="st-top-bar" style="width:${Math.round(s.count/maxS*100)}%"></div></div>
+      </div>
+      <span class="st-top-count">${s.count.toLocaleString()}</span>
+    </div>`).join('') : `<div class="st-empty">${t('st_no_data')}</div>`;
+
+  const taEl = document.getElementById('stTopArtists');
+  const tsEl = document.getElementById('stTopSongs');
+  if (taEl) taEl.innerHTML = artistHTML;
+  if (tsEl) tsEl.innerHTML = songHTML;
+}
+
+// ── Monthly Activity ──────────────────────────────────────────
+function stRenderActivity(plays) {
+  const el = document.getElementById('stActivityBars');
+  if (!el) return;
+  if (!plays.length) { el.innerHTML = ''; return; }
+
+  const byMonth = {};
+  for (const p of plays) {
+    const d = tzDate(p.date);
+    const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+    byMonth[key] = (byMonth[key] || 0) + 1;
+  }
+  const months = Object.keys(byMonth).sort();
+  if (!months.length) { el.innerHTML = ''; return; }
+
+  const max = Math.max(...Object.values(byMonth));
+  const peakKey = months.reduce((a, b) => byMonth[a] >= byMonth[b] ? a : b);
+  const lowKey = months.length > 1 ? months.reduce((a, b) => byMonth[a] <= byMonth[b] ? a : b) : null;
+
+  const barsHTML = months.map(mk => {
+    const [y, m] = mk.split('-');
+    const label = t(ST_MONTH_KEYS[parseInt(m) - 1]).substring(0, 3);
+    const count = byMonth[mk];
+    const pct = Math.round(count / max * 100);
+    const cls = mk === peakKey ? ' st-peak' : mk === lowKey ? ' st-low' : '';
+    return `<div class="st-activity-col${cls}">
+      <div class="st-activity-bar-wrap"><div class="st-activity-bar" style="height:${Math.max(pct,2)}%"></div></div>
+      <div class="st-activity-label">${label}${months.length > 12 ? '<br><span class="st-activity-year">' + y + '</span>' : ''}</div>
+      <div class="st-activity-count">${count.toLocaleString()}</div>
+    </div>`;
+  }).join('');
+
+  let caption = '';
+  if (months.length > 1) {
+    const [py, pm] = peakKey.split('-');
+    const peakName = t(ST_MONTH_KEYS[parseInt(pm) - 1]);
+    const [ly, lm] = lowKey.split('-');
+    const lowName = t(ST_MONTH_KEYS[parseInt(lm) - 1]);
+    const peakSuffix = py !== String(stYear) ? ' ' + py : '';
+    const lowSuffix = ly !== String(stYear) ? ' ' + ly : '';
+    caption = `<div class="st-activity-caption">
+      <span class="st-peak-label">📈 ${t('st_activity_peak')}: <strong>${peakName}${peakSuffix}</strong> (${byMonth[peakKey].toLocaleString()} ${tUnit('plays', byMonth[peakKey])})</span>
+      <span class="st-low-label">📉 ${t('st_activity_low')}: <strong>${lowName}${lowSuffix}</strong> (${byMonth[lowKey].toLocaleString()} ${tUnit('plays', byMonth[lowKey])})</span>
+    </div>`;
+  }
+
+  el.innerHTML = `<div class="st-activity-chart">${barsHTML}</div>${caption}`;
+}
+
+// ── Loyalty Score ─────────────────────────────────────────────
+function stRenderLoyalty(plays) {
+  const el = document.getElementById('stLoyaltyBody');
+  if (!el) return;
+  const prevYear = stYear - 1;
+  const prevPlays = allPlays.filter(p => tzDate(p.date).getFullYear() === prevYear);
+
+  if (!prevPlays.length || !plays.length) {
+    el.innerHTML = `<div class="st-empty">${t('st_loyalty_no_prev', { year: prevYear })}</div>`;
+    return;
+  }
+
+  const topN = ps => {
+    const counts = {};
+    for (const p of ps) counts[p.artist.toLowerCase()] = (counts[p.artist.toLowerCase()] || 0) + 1;
+    return new Set(Object.entries(counts).sort((a, b) => b[1] - a[1]).slice(0, 10).map(([a]) => a));
+  };
+
+  const prevTop = topN(prevPlays);
+  const curTop = topN(plays);
+  let returning = 0;
+  for (const a of curTop) if (prevTop.has(a)) returning++;
+
+  const total = Math.min(curTop.size, 10);
+  const score = total ? Math.round(returning / total * 100) : 0;
+  const label = score >= 80 ? t('st_loyalty_die_hard') : score >= 60 ? t('st_loyalty_loyal') : score >= 40 ? t('st_loyalty_mixed') : t('st_loyalty_explorer');
+
+  el.innerHTML = `
+    <div class="st-loyalty-score">
+      <div class="st-loyalty-pct">${score}%</div>
+      <div class="st-loyalty-verdict">${label}</div>
+      <div class="st-loyalty-sub">${t('st_loyalty_sub', { n: returning, year: prevYear })}</div>
+    </div>
+    <div class="st-loyalty-bar-wrap"><div class="st-loyalty-bar" style="width:${score}%"></div></div>`;
+}
+
+// ── New Discoveries ───────────────────────────────────────────
+function stRenderDiscoveries(plays) {
+  const el = document.getElementById('stDiscoveriesBody');
+  if (!el) return;
+  const fsMap = stGetFirstSeenArtists();
+  const discovered = [];
+  const seen = new Set();
+
+  for (const p of plays) {
+    const ak = p.artist.toLowerCase();
+    if (seen.has(ak)) continue;
+    seen.add(ak);
+    const fd = fsMap[ak];
+    if (!fd) continue;
+    const ftz = tzDate(fd);
+    const inPeriod = stPeriodType === 'alltime' ? true :
+      stPeriodType === 'year' ? ftz.getFullYear() === stYear :
+      ftz.getFullYear() === stYear && (ftz.getMonth() + 1) === stMonth;
+    if (inPeriod) discovered.push({ artist: p.artist, date: fd });
+  }
+
+  discovered.sort((a, b) => a.date - b.date);
+
+  if (!discovered.length) {
+    el.innerHTML = `<div class="st-empty">${t('st_discoveries_none')}</div>`;
+    return;
+  }
+
+  const top = discovered.slice(0, 12);
+  el.innerHTML = `
+    <div class="st-discoveries-count">${t('st_discoveries_count', { n: discovered.length })}</div>
+    <div class="st-discoveries-list">
+      ${top.map(d => `<div class="st-discovery-item">✨ ${esc(d.artist)}</div>`).join('')}
+      ${discovered.length > 12 ? `<div class="st-discovery-more">+${discovered.length - 12} ${t('st_discoveries_more')}</div>` : ''}
+    </div>`;
+}
+
+// ── Milestones ────────────────────────────────────────────────
+function stRenderMilestones(plays) {
+  const el = document.getElementById('stMilestonesBody');
+  if (!el) return;
+  if (!plays.length) { el.innerHTML = `<div class="st-empty">${t('st_milestones_none')}</div>`; return; }
+
+  const OVERALL_MS = [100,500,1000,2500,5000,10000,25000,50000,100000,250000,500000,1000000];
+  const ARTIST_MS  = [100,500,1000,2500,5000,10000];
+
+  const chron = [...allPlays].sort((a, b) => a.date - b.date);
+  const milestones = [];
+  let total = 0, nextIdx = 0;
+  const artistCounts = {};
+
+  for (const p of chron) {
+    total++;
+    const d = tzDate(p.date);
+    const inPeriod = stPeriodType === 'alltime' ? true :
+      stPeriodType === 'year' ? d.getFullYear() === stYear :
+      d.getFullYear() === stYear && (d.getMonth() + 1) === stMonth;
+
+    // Overall milestones
+    while (nextIdx < OVERALL_MS.length && total >= OVERALL_MS[nextIdx]) {
+      if (inPeriod) milestones.push({ icon:'🎵', text: t('st_milestone_overall', { n: OVERALL_MS[nextIdx].toLocaleString() }), sub: `"${esc(p.title)}" — ${esc(p.artist)}`, date: p.date });
+      nextIdx++;
+    }
+
+    // Per-artist milestones
+    const ak = p.artist.toLowerCase();
+    artistCounts[ak] = (artistCounts[ak] || 0) + 1;
+    if (inPeriod && ARTIST_MS.includes(artistCounts[ak])) {
+      milestones.push({ icon:'🎤', text: t('st_milestone_artist', { artist: esc(p.artist), n: artistCounts[ak].toLocaleString() }), sub: `"${esc(p.title)}"`, date: p.date });
+    }
+  }
+
+  milestones.sort((a, b) => a.date - b.date);
+
+  if (!milestones.length) { el.innerHTML = `<div class="st-empty">${t('st_milestones_none')}</div>`; return; }
+
+  el.innerHTML = milestones.map(m => {
+    const d = tzDate(m.date);
+    const ds = `${d.getDate()}/${d.getMonth()+1}/${d.getFullYear()}`;
+    return `<div class="st-milestone">
+      <span class="st-milestone-icon">${m.icon}</span>
+      <div class="st-milestone-info">
+        <div class="st-milestone-text">${m.text}</div>
+        <div class="st-milestone-sub">${m.sub}</div>
+      </div>
+      <div class="st-milestone-date">${ds}</div>
+    </div>`;
+  }).join('');
+}
+
+// ── Streaks ───────────────────────────────────────────────────
+function stRenderStreaks(plays) {
+  const el = document.getElementById('stStreaksBody');
+  if (!el) return;
+  if (!plays.length) { el.innerHTML = `<div class="st-empty">${t('st_no_data')}</div>`; return; }
+
+  const pad2 = n => String(n).padStart(2, '0');
+  const dayKey = d => { const tz = tzDate(d); return `${tz.getFullYear()}-${pad2(tz.getMonth()+1)}-${pad2(tz.getDate())}`; };
+
+  const allDaySet = new Set(allPlays.map(p => dayKey(p.date)));
+  const allDays = [...allDaySet].sort();
+
+  // Longest all-time streak
+  let longestAll = allDays.length ? 1 : 0, curAll = 1, longestStart = allDays[0] || '', longestEnd = allDays[0] || '', curStart = allDays[0] || '';
+  for (let i = 1; i < allDays.length; i++) {
+    const diff = Math.round((new Date(allDays[i]) - new Date(allDays[i-1])) / 86400000);
+    if (diff === 1) {
+      curAll++;
+    } else {
+      if (curAll > longestAll) { longestAll = curAll; longestStart = curStart; longestEnd = allDays[i-1]; }
+      curAll = 1; curStart = allDays[i];
+    }
+  }
+  if (curAll > longestAll) { longestAll = curAll; longestStart = curStart; longestEnd = allDays[allDays.length-1]; }
+
+  // Current streak (today or yesterday)
+  const now = tzNow();
+  const todayKey = `${now.getFullYear()}-${pad2(now.getMonth()+1)}-${pad2(now.getDate())}`;
+  const yd = new Date(now); yd.setDate(yd.getDate() - 1);
+  const yestKey = `${yd.getFullYear()}-${pad2(yd.getMonth()+1)}-${pad2(yd.getDate())}`;
+  let currentStreak = 0;
+  const anchorDay = allDaySet.has(todayKey) ? todayKey : (allDaySet.has(yestKey) ? yestKey : null);
+  if (anchorDay) {
+    let day = anchorDay;
+    while (allDaySet.has(day)) {
+      currentStreak++;
+      const d = new Date(day); d.setDate(d.getDate() - 1);
+      day = `${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}`;
+    }
+  }
+
+  // Longest streak in period
+  const periodDays = [...new Set(plays.map(p => dayKey(p.date)))].sort();
+  let longestPeriod = periodDays.length ? 1 : 0, curPeriod = 1;
+  for (let i = 1; i < periodDays.length; i++) {
+    const diff = Math.round((new Date(periodDays[i]) - new Date(periodDays[i-1])) / 86400000);
+    curPeriod = diff === 1 ? curPeriod + 1 : 1;
+    if (curPeriod > longestPeriod) longestPeriod = curPeriod;
+  }
+
+  const fmtDay = ds => { const d = new Date(ds); return `${d.getDate()}/${d.getMonth()+1}/${d.getFullYear()}`; };
+
+  el.innerHTML = `
+    <div class="st-streaks-grid">
+      <div class="st-streak-card">
+        <div class="st-streak-num">${currentStreak}🔥</div>
+        <div class="st-streak-lbl">${t('st_streak_current')}</div>
+      </div>
+      <div class="st-streak-card">
+        <div class="st-streak-num">${longestAll}</div>
+        <div class="st-streak-lbl">${t('st_streak_longest')}</div>
+        ${longestStart ? `<div class="st-streak-dates">${fmtDay(longestStart)} – ${fmtDay(longestEnd)}</div>` : ''}
+      </div>
+      ${stPeriodType !== 'alltime' ? `<div class="st-streak-card">
+        <div class="st-streak-num">${longestPeriod}</div>
+        <div class="st-streak-lbl">${t('st_streak_in_period', { period: stGetPeriodLabel() })}</div>
+      </div>` : ''}
+    </div>
+    <div class="st-streak-link"><a href="#" onclick="openStreakModal();return false;">${t('st_streak_details')}</a></div>`;
+}
+
+// ── Grammy Overlay ────────────────────────────────────────────
+function stRenderGrammys(plays) {
+  const el = document.getElementById('stGrammysBody');
+  if (!el) return;
+  if (!plays.length) { el.innerHTML = ''; return; }
+
+  const artistCounts = {};
+  for (const p of plays) artistCounts[p.artist.toLowerCase()] = (artistCounts[p.artist.toLowerCase()] || 0) + 1;
+  const topArtistKeys = Object.entries(artistCounts).sort((a, b) => b[1] - a[1]).slice(0, 20).map(([a]) => a);
+
+  // Build Grammy map from _awardsYearData (user's own awards across all loaded years)
+  const grammyMap = {};
+  if (typeof _awardsYearData !== 'undefined') {
+    for (const [yr, data] of Object.entries(_awardsYearData)) {
+      if (!data) continue;
+      // My Grammys: data is {categories: [{id, winner: {artist, title}}]}
+      const cats = data.categories || data.cats || [];
+      for (const cat of cats) {
+        if (!cat.winner || !cat.winner.artist) continue;
+        const ak = cat.winner.artist.toLowerCase();
+        if (!grammyMap[ak]) grammyMap[ak] = [];
+        grammyMap[ak].push({ year: yr, category: cat.label || cat.id || '', isWin: true });
+      }
+    }
+  }
+
+  const withAwards = topArtistKeys
+    .filter(ak => grammyMap[ak] && grammyMap[ak].length > 0)
+    .map(ak => ({
+      artist: plays.find(p => p.artist.toLowerCase() === ak)?.artist || ak,
+      plays: artistCounts[ak],
+      entries: grammyMap[ak]
+    }));
+
+  if (!withAwards.length) {
+    el.innerHTML = `<div class="st-empty">${t('st_grammys_none')}</div>`;
+    return;
+  }
+
+  el.innerHTML = withAwards.slice(0, 8).map(item => {
+    const wins = item.entries.filter(e => e.isWin).length;
+    return `<div class="st-grammy-item">
+      <div class="st-grammy-artist">${esc(item.artist)}</div>
+      <div class="st-grammy-badges">
+        <span class="st-grammy-win">🏆 ${wins} ${wins === 1 ? t('st_grammy_win') : t('st_grammy_wins')}</span>
+      </div>
+      <div class="st-grammy-plays">${item.plays.toLocaleString()} ${tUnit('plays', item.plays)}</div>
+    </div>`;
+  }).join('');
+}
+
+// ── Underrated Gem (Last.fm only) ─────────────────────────────
+function stRenderGem(plays) {
+  const gemSection = document.getElementById('stGemSection');
+  if (!gemSection) return;
+  const source = localStorage.getItem('dc_source') || '';
+  if (source !== 'lastfm') { gemSection.style.display = 'none'; return; }
+  gemSection.style.display = '';
+  const el = document.getElementById('stGemBody');
+  if (!plays.length) { el.innerHTML = ''; return; }
+
+  const apiKey = localStorage.getItem('dc_lfm_api_key') || '';
+  if (!apiKey) { gemSection.style.display = 'none'; return; }
+
+  const songCounts = {};
+  for (const p of plays) {
+    const sk = songKey(p);
+    if (!songCounts[sk]) songCounts[sk] = { title: p.title, artist: p.artist, count: 0 };
+    songCounts[sk].count++;
+  }
+  const topSongs = Object.values(songCounts).sort((a, b) => b.count - a.count).slice(0, 8);
+
+  el.innerHTML = `<div class="st-gem-loading">${t('st_gem_loading')}</div>`;
+
+  const fetches = topSongs.slice(0, 5).map(s =>
+    fetch(`https://ws.audioscrobbler.com/2.0/?method=track.getInfo&api_key=${encodeURIComponent(apiKey)}&artist=${encodeURIComponent(s.artist)}&track=${encodeURIComponent(s.title)}&format=json`)
+      .then(r => r.json())
+      .then(d => ({ ...s, listeners: parseInt(d?.track?.listeners || '0') || 0 }))
+      .catch(() => ({ ...s, listeners: 0 }))
+  );
+
+  Promise.all(fetches).then(results => {
+    const valid = results.filter(s => s.listeners > 100);
+    if (!valid.length) { gemSection.style.display = 'none'; return; }
+    valid.sort((a, b) => (b.count / Math.log(b.listeners + 1)) - (a.count / Math.log(a.listeners + 1)));
+    const gem = valid[0];
+    el.innerHTML = `
+      <div class="st-gem-card">
+        <div class="st-gem-icon">💎</div>
+        <div class="st-gem-info">
+          <div class="st-gem-title">${esc(gem.title)}</div>
+          <div class="st-gem-artist">${esc(gem.artist)}</div>
+          <div class="st-gem-stats">
+            <span>${t('st_gem_your_plays', { n: gem.count.toLocaleString() })}</span>
+            <span class="st-gem-sep">·</span>
+            <span>${t('st_gem_listeners', { n: gem.listeners.toLocaleString() })}</span>
+          </div>
+          <div class="st-gem-sub">${t('st_gem_sub')}</div>
+        </div>
+      </div>`;
+  });
+}
+
+// ── Chart History Replay ──────────────────────────────────────
+function stStartReplay() {
+  if (stPeriodType !== 'year' || !allPlays.length) return;
+  const replayBtn = document.getElementById('stReplayBtn');
+  const replayStop = document.getElementById('stReplayStopBtn');
+  const canvas = document.getElementById('stReplayCanvas');
+  if (!canvas) return;
+
+  replayBtn.style.display = 'none';
+  replayStop.style.display = '';
+  canvas.style.display = '';
+  canvas.innerHTML = `<div class="st-replay-loading">${t('st_replay_loading')}</div>`;
+
+  // Build weekly snapshots for the selected year
+  const yearPlays = allPlays.filter(p => tzDate(p.date).getFullYear() === stYear);
+  if (!yearPlays.length) { canvas.innerHTML = `<div class="st-empty">${t('st_no_data')}</div>`; return; }
+
+  // Group by week
+  const weekMap = {};
+  for (const p of yearPlays) {
+    const wk = playWeekKey(p.date);
+    (weekMap[wk] || (weekMap[wk] = [])).push(p);
+  }
+  const weeks = Object.keys(weekMap).sort();
+
+  // Build cumulative top artist per week snapshot
+  const snapshots = [];
+  const runningCounts = {};
+  for (const wk of weeks) {
+    for (const p of weekMap[wk]) {
+      runningCounts[p.artist] = (runningCounts[p.artist] || 0) + 1;
+    }
+    const top5 = Object.entries(runningCounts).sort((a, b) => b[1] - a[1]).slice(0, 5);
+    const [wy, wm, wd] = wk.split('-').map(Number);
+    snapshots.push({ week: wk, label: `${wd}/${wm}`, top5 });
+  }
+
+  if (_stReplayTimer) { clearInterval(_stReplayTimer); _stReplayTimer = null; }
+
+  let idx = 0;
+  const maxCount = Math.max(...snapshots.map(s => s.top5[0]?.[1] || 0));
+
+  const render = () => {
+    if (idx >= snapshots.length) { stStopReplay(); return; }
+    const snap = snapshots[idx];
+    const max = snap.top5[0]?.[1] || 1;
+    const rows = snap.top5.map(([name, count], i) => `
+      <div class="st-replay-row">
+        <span class="st-replay-rank">${i + 1}</span>
+        <div class="st-replay-bar-wrap">
+          <div class="st-replay-bar" style="width:${Math.round(count/maxCount*100)}%"></div>
+          <span class="st-replay-name">${esc(name)}</span>
+        </div>
+        <span class="st-replay-count">${count.toLocaleString()}</span>
+      </div>`).join('');
+    canvas.innerHTML = `
+      <div class="st-replay-week-label">${t('st_replay_week_of', { date: snap.label, year: stYear })}</div>
+      <div class="st-replay-progress">${t('st_replay_progress', { n: idx + 1, total: snapshots.length })}</div>
+      <div class="st-replay-rows">${rows}</div>`;
+    idx++;
+  };
+
+  render();
+  _stReplayTimer = setInterval(render, 600);
+}
+
+function stStopReplay() {
+  if (_stReplayTimer) { clearInterval(_stReplayTimer); _stReplayTimer = null; }
+  const replayBtn = document.getElementById('stReplayBtn');
+  const replayStop = document.getElementById('stReplayStopBtn');
+  if (replayBtn) replayBtn.style.display = '';
+  if (replayStop) replayStop.style.display = 'none';
+}
+
+// ── Shareable Card ────────────────────────────────────────────
+function stOpenCard(mode) {
+  _stCardMode = mode;
+  const preview = document.getElementById('stCardPreview');
+  const canvas = document.getElementById('stCardCanvas');
+  if (!preview || !canvas) return;
+
+  const isStory = mode === 'story';
+  const w = isStory ? 360 : 360;
+  const h = isStory ? 640 : 360;
+
+  canvas.innerHTML = stBuildCardHTML(mode);
+  canvas.style.width = w + 'px';
+  canvas.style.height = h + 'px';
+  preview.style.display = '';
+  preview.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+function stCloseCard() {
+  const preview = document.getElementById('stCardPreview');
+  if (preview) preview.style.display = 'none';
+  _stCardMode = null;
+}
+
+function stBuildCardHTML(mode) {
+  const plays = _stCurrentPlays;
+  const isStory = mode === 'story';
+  const label = stGetPeriodLabel();
+
+  const artistCounts = {};
+  for (const p of plays) artistCounts[p.artist] = (artistCounts[p.artist] || 0) + 1;
+  const topArtists = Object.entries(artistCounts).sort((a, b) => b[1] - a[1]).slice(0, 5);
+
+  const songCounts = {};
+  for (const p of plays) {
+    const sk = songKey(p);
+    if (!songCounts[sk]) songCounts[sk] = { title: p.title, artist: p.artist, count: 0 };
+    songCounts[sk].count++;
+  }
+  const topSongs = Object.values(songCounts).sort((a, b) => b.count - a.count).slice(0, 5);
+
+  const artistsHTML = topArtists.map(([name, count], i) =>
+    `<div class="stc-row"><span class="stc-rank">${i+1}</span><span class="stc-name">${esc(name)}</span><span class="stc-ct">${count.toLocaleString()}</span></div>`
+  ).join('');
+  const songsHTML = topSongs.map((s, i) =>
+    `<div class="stc-row"><span class="stc-rank">${i+1}</span><div class="stc-name-wrap"><span class="stc-name">${esc(s.title)}</span><span class="stc-sub">${esc(s.artist)}</span></div><span class="stc-ct">${s.count.toLocaleString()}</span></div>`
+  ).join('');
+
+  const totalPlays = plays.length;
+  const daySet = new Set(plays.map(p => { const d = tzDate(p.date); return `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`; }));
+  const artistSet = new Set(plays.map(p => p.artist.toLowerCase()));
+
+  const layout = isStory ? 'flex-direction:column;' : 'flex-direction:column;';
+  const cardH = isStory ? '640px' : '360px';
+  const cardW = '360px';
+  const topColDir = isStory ? 'column' : 'row';
+
+  return `<div class="stc-root" style="width:${cardW};height:${cardH};background:linear-gradient(135deg,#0d1117 0%,#1a1f2e 50%,#0d1117 100%);padding:20px;box-sizing:border-box;display:flex;flex-direction:column;font-family:'DM Mono',monospace;color:#e2e8f0;position:relative;overflow:hidden;">
+    <div style="position:absolute;top:-40px;right:-40px;width:200px;height:200px;background:radial-gradient(circle,rgba(99,102,241,0.15) 0%,transparent 70%);pointer-events:none;"></div>
+    <div class="stc-header" style="margin-bottom:${isStory?'16px':'10px'};">
+      <div style="font-size:0.6rem;letter-spacing:0.15em;color:#6366f1;text-transform:uppercase;margin-bottom:2px;">dankcharts.fm</div>
+      <div style="font-size:${isStory?'1.4rem':'1.1rem'};font-weight:700;color:#f8fafc;line-height:1.1;">${t('nav_soundtrack')}</div>
+      <div style="font-size:0.75rem;color:#94a3b8;">${label}</div>
+    </div>
+    <div class="stc-stats" style="display:flex;gap:12px;margin-bottom:${isStory?'14px':'10px'};">
+      <div style="text-align:center;flex:1;background:rgba(99,102,241,0.12);border-radius:8px;padding:8px 4px;">
+        <div style="font-size:1.1rem;font-weight:700;color:#818cf8;">${totalPlays.toLocaleString()}</div>
+        <div style="font-size:0.5rem;color:#94a3b8;letter-spacing:0.08em;text-transform:uppercase;">${tUnit('plays', totalPlays)}</div>
+      </div>
+      <div style="text-align:center;flex:1;background:rgba(99,102,241,0.12);border-radius:8px;padding:8px 4px;">
+        <div style="font-size:1.1rem;font-weight:700;color:#818cf8;">${daySet.size.toLocaleString()}</div>
+        <div style="font-size:0.5rem;color:#94a3b8;letter-spacing:0.08em;text-transform:uppercase;">${t('st_stat_days')}</div>
+      </div>
+      <div style="text-align:center;flex:1;background:rgba(99,102,241,0.12);border-radius:8px;padding:8px 4px;">
+        <div style="font-size:1.1rem;font-weight:700;color:#818cf8;">${artistSet.size.toLocaleString()}</div>
+        <div style="font-size:0.5rem;color:#94a3b8;letter-spacing:0.08em;text-transform:uppercase;">${t('st_stat_artists')}</div>
+      </div>
+    </div>
+    <div style="display:flex;gap:10px;flex:1;flex-direction:${topColDir};">
+      <div style="flex:1;">
+        <div style="font-size:0.55rem;letter-spacing:0.12em;color:#6366f1;text-transform:uppercase;margin-bottom:6px;">${t('st_top_artists')}</div>
+        ${artistsHTML}
+      </div>
+      <div style="flex:1;${isStory?'margin-top:10px;':''}">
+        <div style="font-size:0.55rem;letter-spacing:0.12em;color:#6366f1;text-transform:uppercase;margin-bottom:6px;">${t('st_top_songs')}</div>
+        ${songsHTML}
+      </div>
+    </div>
+    <div style="margin-top:auto;padding-top:8px;text-align:center;font-size:0.5rem;color:#475569;letter-spacing:0.1em;">dankcharts.fm · ${t('nav_soundtrack')}</div>
+  </div>
+  <style>
+    .stc-row{display:flex;align-items:center;gap:6px;margin-bottom:4px;font-size:0.65rem;}
+    .stc-rank{color:#6366f1;font-weight:700;min-width:12px;}
+    .stc-name{color:#e2e8f0;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+    .stc-sub{display:block;font-size:0.5rem;color:#94a3b8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+    .stc-name-wrap{flex:1;min-width:0;}
+    .stc-ct{color:#818cf8;font-size:0.6rem;white-space:nowrap;}
+  </style>`;
+}
+
+async function stDownloadCard() {
+  const canvas = document.getElementById('stCardCanvas');
+  if (!canvas || !_stCardMode) return;
+  const isStory = _stCardMode === 'story';
+  const w = isStory ? 720 : 720;
+  const h = isStory ? 1280 : 720;
+  try {
+    const cvs = await html2canvas(canvas, { scale: 2, useCORS: false, allowTaint: true, backgroundColor: null, logging: false, width: 360, height: isStory ? 640 : 360 });
+    const link = document.createElement('a');
+    link.download = `your-soundtrack-${stGetPeriodLabel().replace(/\s+/g,'-').toLowerCase()}-${_stCardMode}.png`;
+    link.href = cvs.toDataURL('image/png');
+    link.click();
+  } catch (e) { console.error('Card download failed', e); }
 }
 

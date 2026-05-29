@@ -255,6 +255,7 @@
       <button data-period="records" data-i18n="nav_records">Records</button>
       <button data-period="events" data-i18n="nav_events">Events</button>
       <button data-period="awards" data-i18n="nav_awards">Awards</button>
+      <button data-period="soundtrack" data-i18n="nav_soundtrack">Your Soundtrack</button>
     </div>
 
     <div class="chart-size-bar" id="chartSizeBar">
@@ -332,6 +333,7 @@
         </div>
       </div>
       <div class="section-sub" data-i18n="time_machine_sub">On this day in past years</div>
+      <div class="tm-hint">▶ Click a song to add to player queue &nbsp;·&nbsp; Click an artist or album to search Google</div>
       <div class="section-body">
         <div class="tm-ticker-outer" id="tmTickerOuter">
           <div class="tm-ticker-track" id="tmTickerTrack"></div>
@@ -1410,6 +1412,137 @@
     </div>
   </div>
   <!-- END CEREMONY OVERLAY -->
+
+  <!-- YOUR SOUNDTRACK VIEW -->
+  <div id="soundtrackView" style="display:none;">
+    <div class="st-header">
+      <div class="st-title-row">
+        <h2 class="st-title">🎬 <span data-i18n="nav_soundtrack">Your Soundtrack</span></h2>
+      </div>
+      <div class="st-controls">
+        <div class="st-period-nav" id="stPeriodNav">
+          <button class="st-period-btn active" data-st-period="year" onclick="stSetPeriod('year')" data-i18n="st_period_year">Year</button>
+          <button class="st-period-btn" data-st-period="month" onclick="stSetPeriod('month')" data-i18n="st_period_month">Month</button>
+          <button class="st-period-btn" data-st-period="alltime" onclick="stSetPeriod('alltime')" data-i18n="st_period_alltime">All-Time</button>
+        </div>
+        <div class="st-nav-bar" id="stNavBar">
+          <button class="st-nav-btn" onclick="stNavigate(-1)">◄</button>
+          <span class="st-nav-label" id="stNavLabel">2025</span>
+          <button class="st-nav-btn" onclick="stNavigate(1)">►</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Animated Stats Strip -->
+    <div class="st-stats-strip" id="stStatsStrip">
+      <div class="st-stat">
+        <div class="st-stat-icon">▶</div>
+        <div class="st-stat-val" id="stStatPlaysVal">—</div>
+        <div class="st-stat-label" data-i18n="st_stat_plays">Plays</div>
+      </div>
+      <div class="st-stat">
+        <div class="st-stat-icon">📅</div>
+        <div class="st-stat-val" id="stStatDaysVal">—</div>
+        <div class="st-stat-label" data-i18n="st_stat_days">Active Days</div>
+      </div>
+      <div class="st-stat">
+        <div class="st-stat-icon">🎤</div>
+        <div class="st-stat-val" id="stStatArtistsVal">—</div>
+        <div class="st-stat-label" data-i18n="st_stat_artists">Artists</div>
+      </div>
+      <div class="st-stat">
+        <div class="st-stat-icon">✨</div>
+        <div class="st-stat-val" id="stStatNewVal">—</div>
+        <div class="st-stat-label" data-i18n="st_stat_new_discoveries">New Discoveries</div>
+      </div>
+      <div class="st-stat">
+        <div class="st-stat-icon">🔥</div>
+        <div class="st-stat-val" id="stStatStreakVal">—</div>
+        <div class="st-stat-label" data-i18n="st_stat_best_streak">Best Streak</div>
+      </div>
+    </div>
+
+    <!-- Top Artists + Top Songs -->
+    <div class="st-top-grid">
+      <div class="st-top-col">
+        <div class="st-section-header" data-i18n="st_top_artists">Top Artists</div>
+        <div id="stTopArtists" class="st-top-list"></div>
+      </div>
+      <div class="st-top-col">
+        <div class="st-section-header" data-i18n="st_top_songs">Top Songs</div>
+        <div id="stTopSongs" class="st-top-list"></div>
+      </div>
+    </div>
+
+    <!-- Monthly Activity -->
+    <div class="st-section" id="stActivitySection">
+      <div class="st-section-title" data-i18n="st_activity_title">Monthly Activity</div>
+      <div id="stActivityBars"></div>
+    </div>
+
+    <!-- Loyalty Score + New Discoveries -->
+    <div class="st-two-col">
+      <div class="st-section" id="stLoyaltySection">
+        <div class="st-section-title" data-i18n="st_loyalty_title">Loyalty Score</div>
+        <div id="stLoyaltyBody"></div>
+      </div>
+      <div class="st-section" id="stDiscoveriesSection">
+        <div class="st-section-title" data-i18n="st_discoveries_title">New Discoveries</div>
+        <div id="stDiscoveriesBody"></div>
+      </div>
+    </div>
+
+    <!-- Milestones -->
+    <div class="st-section" id="stMilestonesSection">
+      <div class="st-section-title" data-i18n="st_milestones_title">Milestones</div>
+      <div id="stMilestonesBody"></div>
+    </div>
+
+    <!-- Streaks -->
+    <div class="st-section" id="stStreaksSection">
+      <div class="st-section-title" data-i18n="st_streaks_title">Listening Streaks</div>
+      <div id="stStreaksBody"></div>
+    </div>
+
+    <!-- Grammy Overlay -->
+    <div class="st-section" id="stGrammysSection">
+      <div class="st-section-title" data-i18n="st_grammys_title">Grammy Winners in Your Charts</div>
+      <div id="stGrammysBody"></div>
+    </div>
+
+    <!-- Underrated Gem (Last.fm only) -->
+    <div class="st-section" id="stGemSection" style="display:none;">
+      <div class="st-section-title" data-i18n="st_gem_title">Your Underrated Gem</div>
+      <div id="stGemBody"></div>
+    </div>
+
+    <!-- Chart History Replay -->
+    <div class="st-section" id="stReplaySection">
+      <div class="st-section-title" data-i18n="st_replay_title">Chart History Replay</div>
+      <div id="stReplayBody">
+        <button class="st-replay-btn" id="stReplayBtn" onclick="stStartReplay()" data-i18n="st_replay_btn">▶ Play Chart History</button>
+        <div id="stReplayCanvas" class="st-replay-canvas" style="display:none;"></div>
+        <button class="st-replay-stop-btn" id="stReplayStopBtn" onclick="stStopReplay()" style="display:none;" data-i18n="st_replay_stop">■ Stop</button>
+      </div>
+    </div>
+
+    <!-- Share Card -->
+    <div class="st-section" id="stCardSection">
+      <div class="st-section-title" data-i18n="st_card_title">Share Your Soundtrack</div>
+      <div class="st-card-actions">
+        <button class="st-card-btn" onclick="stOpenCard('story')" data-i18n="st_card_story">📱 Story (9:16)</button>
+        <button class="st-card-btn" onclick="stOpenCard('square')" data-i18n="st_card_square">⬜ Square (1:1)</button>
+      </div>
+      <div id="stCardPreview" style="display:none;">
+        <div id="stCardCanvas" class="st-card-canvas"></div>
+        <div class="st-card-download-row">
+          <button class="st-card-download-btn" onclick="stDownloadCard()" data-i18n="st_card_download">⬇ Download Image</button>
+          <button class="st-card-close-btn" onclick="stCloseCard()" data-i18n="btn_close">✕</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- END YOUR SOUNDTRACK VIEW -->
 
   <div id="igCardCanvas"></div>
 
