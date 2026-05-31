@@ -1899,6 +1899,7 @@ function refreshAfterPoll() {
   else if (currentPeriod === 'graphs') renderGraphs();
   else if (currentPeriod === 'records') buildRecords();
   else renderAll();
+  renderStreakBanner();
 }
 
 async function pollLastFm() {
@@ -2462,6 +2463,7 @@ function finalizeLoad() {
   }
 
   renderHeroStats();
+  renderStreakBanner();
 }
 
 function splitCsvRow(row) {
@@ -18157,5 +18159,150 @@ async function stDownloadCard() {
     link.href = cvs.toDataURL('image/png');
     link.click();
   } catch (e) { console.error('Card download failed', e); }
+}
+
+// ─── CURRENT STREAK BANNER ──────────────────────────────────
+function computeCurrentStreak(plays) {
+  if (!plays || plays.length < 3) return null;
+  const p0 = plays[0];
+  const sk0 = songKey(p0);
+
+  // 1. Song Streak — same song 3+ consecutive (highest precedence)
+  let songCount = 0;
+  for (const p of plays) {
+    if (songKey(p) === sk0) songCount++;
+    else break;
+  }
+  if (songCount >= 3) return { type: 'song', count: songCount, title: p0.title, artist: p0.artist, album: p0.album };
+
+  // 2. Album Streak — same album+artist 3+ consecutive
+  if (p0.album && p0.album !== '—') {
+    const aa0 = p0.album.toLowerCase().trim() + '\x00' + albumArtist(p0).toLowerCase().trim();
+    let albumCount = 0;
+    for (const p of plays) {
+      if (p.album && p.album !== '—' &&
+          p.album.toLowerCase().trim() + '\x00' + albumArtist(p).toLowerCase().trim() === aa0)
+        albumCount++;
+      else break;
+    }
+    if (albumCount >= 3) return { type: 'album', count: albumCount, album: p0.album, artist: albumArtist(p0) };
+  }
+
+  // 3. Artist Streak — same artist 3+ consecutive with different songs
+  const artist0 = p0.artist.toLowerCase().trim();
+  let artistCount = 0;
+  for (const p of plays) {
+    if (p.artist.toLowerCase().trim() === artist0) artistCount++;
+    else break;
+  }
+  if (artistCount >= 3) return { type: 'artist', count: artistCount, artist: p0.artist };
+
+  // 4. Shuffle Streak — 5+ plays with no artist appearing 3+ times in a row
+  let shuffleCount = 1;
+  let runArtist = plays[0].artist.toLowerCase().trim();
+  let runLen = 1;
+  for (let i = 1; i < plays.length; i++) {
+    const a = plays[i].artist.toLowerCase().trim();
+    if (a === runArtist) {
+      runLen++;
+      if (runLen > 2) break;
+    } else {
+      runArtist = a;
+      runLen = 1;
+    }
+    shuffleCount++;
+  }
+  if (shuffleCount >= 5) return { type: 'shuffle', count: shuffleCount };
+
+  return null;
+}
+
+function renderStreakBanner() {
+  const el = document.getElementById('streakBanner');
+  if (!el) return;
+  if (!allPlays.length) { el.style.display = 'none'; return; }
+
+  const streak = computeCurrentStreak(allPlays);
+  if (!streak) { el.style.display = 'none'; return; }
+
+  const icons  = { song: '🔂', album: '💿', artist: '🎤', shuffle: '🔀' };
+  const labels = { song: 'SONG STREAK', album: 'ALBUM STREAK', artist: 'ARTIST STREAK', shuffle: 'SHUFFLE STREAK' };
+
+  let subject = '';
+  if (streak.type === 'song')   subject = `<em>"${esc(streak.title)}"</em> · ${esc(streak.artist)}`;
+  else if (streak.type === 'album')  subject = `<em>${esc(streak.album)}</em> · ${esc(streak.artist)}`;
+  else if (streak.type === 'artist') subject = esc(streak.artist);
+
+  const thumbCount = Math.min(streak.count, 9);
+
+  let artFallback = '';
+  if (streak.type === 'artist') artFallback = initials(streak.artist);
+  else if (streak.type === 'album') artFallback = initials(streak.album);
+  else if (streak.type === 'song') artFallback = initials(streak.album && streak.album !== '—' ? streak.album : streak.title);
+  else artFallback = initials(allPlays[0].artist);
+
+  const thumbs = Array.from({ length: thumbCount }, (_, i) => {
+    const p = allPlays[i];
+    return `<div class="streak-mini-thumb" title="${esc(p.title)} · ${esc(p.artist)}"><div class="streak-mini-init">${esc(artFallback)}</div></div>`;
+  }).join('');
+
+  el.className = `streak-banner streak-banner-${streak.type}`;
+  el.innerHTML = `
+    <div class="streak-art-wrap">
+      <img id="streakArtImg" class="streak-art" src="" alt="" style="display:none;"
+           onerror="this.style.display='none';document.getElementById('streakArtInit').style.display='flex'">
+      <div id="streakArtInit" class="streak-art-init">${esc(artFallback)}</div>
+    </div>
+    <div class="streak-banner-left">
+      <span class="streak-banner-icon">${icons[streak.type]}</span>
+      <div class="streak-banner-meta">
+        <span class="streak-banner-type">${labels[streak.type]}</span>
+        ${subject ? `<span class="streak-banner-subject">${subject}</span>` : ''}
+      </div>
+    </div>
+    <div class="streak-banner-mid">${thumbs}</div>
+    <div class="streak-banner-right">
+      <span class="streak-banner-num">${streak.count}</span>
+      <span class="streak-banner-unit">in a row</span>
+    </div>
+  `;
+  el.style.display = '';
+
+  _fetchStreakArt(streak).then(url => {
+    const img = document.getElementById('streakArtImg');
+    const init = document.getElementById('streakArtInit');
+    if (img && init && url) {
+      img.src = url;
+      img.style.display = '';
+      init.style.display = 'none';
+    }
+    if (!url) return;
+    el.querySelectorAll('.streak-mini-thumb').forEach(thumb => {
+      const tImg = document.createElement('img');
+      tImg.className = 'streak-mini-img';
+      tImg.src = url;
+      tImg.alt = '';
+      tImg.onerror = () => tImg.remove();
+      thumb.innerHTML = '';
+      thumb.appendChild(tImg);
+    });
+  });
+}
+
+async function _fetchStreakArt(streak) {
+  try {
+    if (streak.type === 'song') {
+      return (streak.album && streak.album !== '—')
+        ? await getAlbumImage(streak.album, streak.artist)
+        : await getTrackImage(streak.title, streak.artist);
+    }
+    if (streak.type === 'album')  return await getAlbumImage(streak.album, streak.artist);
+    if (streak.type === 'artist') return await getArtistImage(streak.artist);
+    // Shuffle: most recent play's album art
+    const p = allPlays[0];
+    return (p.album && p.album !== '—')
+      ? await getAlbumImage(p.album, p.artist)
+      : await getArtistImage(p.artist);
+  } catch (e) { return null; }
 }
 
