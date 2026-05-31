@@ -17501,6 +17501,13 @@ function renderSoundtrack() {
   const navLabel = document.getElementById('stNavLabel');
   if (navLabel) navLabel.textContent = stGetPeriodLabel();
 
+  const heroPeriod = document.getElementById('stHeroPeriod');
+  if (heroPeriod) {
+    const label = stGetPeriodLabel();
+    heroPeriod.textContent = label;
+    heroPeriod.classList.toggle('st-hero-period--long', label.length > 7);
+  }
+
   stRenderStats(plays);
   stRenderTopCharts(plays);
   stRenderActivity(plays);
@@ -17664,6 +17671,19 @@ function stRenderTopCharts(plays) {
   const tsEl = document.getElementById('stTopSongs');
   if (taEl) taEl.innerHTML = artistHTML;
   if (tsEl) tsEl.innerHTML = songHTML;
+
+  const featuredEl = document.getElementById('stFeaturedArtist');
+  if (featuredEl) {
+    if (topArtists.length) {
+      const nameEl = document.getElementById('stFeaturedArtistName');
+      const countEl = document.getElementById('stFeaturedArtistCount');
+      if (nameEl) nameEl.textContent = topArtists[0][0];
+      if (countEl) countEl.textContent = `${topArtists[0][1].toLocaleString()} plays`;
+      featuredEl.style.display = '';
+    } else {
+      featuredEl.style.display = 'none';
+    }
+  }
 }
 
 // ── Monthly Activity ──────────────────────────────────────────

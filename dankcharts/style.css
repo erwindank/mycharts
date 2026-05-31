@@ -10847,11 +10847,12 @@ body.pink-light .hero-stats {
 
 .st-title {
   font-family: 'DM Mono', monospace;
-  font-size: 2rem;
-  font-weight: 700;
-  color: var(--text1);
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--text3);
   margin: 0;
-  letter-spacing: -0.03em;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
 }
 
 .st-controls {
@@ -10971,8 +10972,9 @@ body.pink-light .hero-stats {
 }
 
 .st-top-col {
-  background: var(--bg2);
+  background: linear-gradient(160deg, var(--bg2) 0%, color-mix(in srgb, var(--bg2) 80%, var(--accent)) 100%);
   border: 1px solid var(--border);
+  border-top: 2px solid color-mix(in srgb, var(--accent) 45%, transparent);
   border-radius: 10px;
   padding: 0.85rem;
 }
@@ -11577,6 +11579,89 @@ body.pink-light .hero-stats {
   cursor: pointer;
 }
 .st-card-close-btn:hover { background: var(--bg3); }
+
+/* ── Hero Card ───────────────────────────────────────────────── */
+.st-hero {
+  background: linear-gradient(135deg,
+    color-mix(in srgb, var(--accent) 65%, var(--bg1)) 0%,
+    color-mix(in srgb, var(--accent) 16%, var(--bg1)) 100%
+  );
+  border-radius: 16px;
+  padding: 2.4rem 1.5rem 2.2rem;
+  margin-bottom: 1.2rem;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+.st-hero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at 25% 35%, rgba(255,255,255,0.09) 0%, transparent 65%);
+  pointer-events: none;
+}
+.st-hero-eyebrow {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.55rem;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.5);
+  margin-bottom: 0.75rem;
+  position: relative;
+}
+.st-hero-period {
+  font-family: 'DM Mono', monospace;
+  font-size: 5.5rem;
+  font-weight: 700;
+  color: #fff;
+  letter-spacing: 0.02em;
+  line-height: 1;
+  text-shadow: 0 2px 28px rgba(0,0,0,0.4);
+  position: relative;
+}
+.st-hero-period--long {
+  font-size: 2.8rem;
+  letter-spacing: 0.01em;
+}
+@media (max-width: 480px) {
+  .st-hero-period { font-size: 3.5rem; }
+  .st-hero-period--long { font-size: 2rem; }
+}
+
+/* ── Featured #1 Artist ──────────────────────────────────────── */
+.st-featured {
+  background: linear-gradient(135deg,
+    color-mix(in srgb, var(--accent) 20%, var(--bg2)) 0%,
+    var(--bg2) 65%
+  );
+  border: 1px solid color-mix(in srgb, var(--accent) 40%, var(--border));
+  border-left: 4px solid var(--accent);
+  border-radius: 12px;
+  padding: 1.5rem 1.2rem;
+  margin-bottom: 1rem;
+  text-align: center;
+}
+.st-featured-label {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.55rem;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 0.5rem;
+}
+.st-featured-name {
+  font-family: 'DM Mono', monospace;
+  font-size: 2.3rem;
+  font-weight: 700;
+  color: var(--text1);
+  line-height: 1.1;
+  margin-bottom: 0.3rem;
+}
+.st-featured-count {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.8rem;
+  color: var(--text2);
+}
 
 /* ── Scroll Reveal ───────────────────────────────────────────── */
 .st-reveal {
