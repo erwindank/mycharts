@@ -11745,15 +11745,7 @@ body.pink-light .hero-stats {
   animation: streak-dot-pop 0.35s ease-out forwards;
 }
 .streak-mini-thumb:first-child { margin-left: 0; }
-.streak-mini-thumb:nth-child(1)  { animation-delay: 0.04s; }
-.streak-mini-thumb:nth-child(2)  { animation-delay: 0.08s; }
-.streak-mini-thumb:nth-child(3)  { animation-delay: 0.12s; }
-.streak-mini-thumb:nth-child(4)  { animation-delay: 0.16s; }
-.streak-mini-thumb:nth-child(5)  { animation-delay: 0.20s; }
-.streak-mini-thumb:nth-child(6)  { animation-delay: 0.24s; }
-.streak-mini-thumb:nth-child(7)  { animation-delay: 0.28s; }
-.streak-mini-thumb:nth-child(8)  { animation-delay: 0.32s; }
-.streak-mini-thumb:nth-child(9)  { animation-delay: 0.36s; }
+.streak-mini-thumb { animation-delay: calc(var(--i, 0) * 0.04s); }
 
 .streak-mini-img {
   width: 100%;

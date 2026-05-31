@@ -18261,7 +18261,7 @@ function renderStreakBanner() {
   else if (streak.type === 'album')  subject = `<em>${esc(streak.album)}</em> · ${esc(streak.artist)}`;
   else if (streak.type === 'artist') subject = esc(streak.artist);
 
-  const thumbCount = Math.min(streak.count, 9);
+  const thumbCount = streak.count;
 
   let artFallback = '';
   if (streak.type === 'artist') artFallback = initials(streak.artist);
@@ -18271,7 +18271,7 @@ function renderStreakBanner() {
 
   const thumbs = Array.from({ length: thumbCount }, (_, i) => {
     const p = allPlays[i];
-    return `<div class="streak-mini-thumb" title="${esc(p.title)} · ${esc(p.artist)}"><div class="streak-mini-init">${esc(artFallback)}</div></div>`;
+    return `<div class="streak-mini-thumb" style="--i:${i}" title="${esc(p.title)} · ${esc(p.artist)}"><div class="streak-mini-init">${esc(artFallback)}</div></div>`;
   }).join('');
 
   el.className = `streak-banner streak-banner-${streak.type}`;
@@ -18304,17 +18304,37 @@ function renderStreakBanner() {
       img.style.display = '';
       init.style.display = 'none';
     }
-    if (!url) return;
-    el.querySelectorAll('.streak-mini-thumb').forEach(thumb => {
-      const tImg = document.createElement('img');
-      tImg.className = 'streak-mini-img';
-      tImg.src = url;
-      tImg.alt = '';
-      tImg.onerror = () => tImg.remove();
-      thumb.innerHTML = '';
-      thumb.appendChild(tImg);
+    // Fetch per-play art for each mini thumb individually
+    el.querySelectorAll('.streak-mini-thumb').forEach((thumb, i) => {
+      const p = allPlays[i];
+      if (!p) return;
+      _fetchPlayArt(p).then(thumbUrl => {
+        const src = thumbUrl || url;
+        if (!src) return;
+        const tImg = document.createElement('img');
+        tImg.className = 'streak-mini-img';
+        tImg.src = src;
+        tImg.alt = '';
+        tImg.onerror = () => tImg.remove();
+        thumb.innerHTML = '';
+        thumb.appendChild(tImg);
+      });
     });
   });
+}
+
+async function _fetchPlayArt(p) {
+  try {
+    const primaryArtist = albumArtist(p);
+    if (p.album && p.album !== '—') {
+      const prefKey = 'album:' + primaryArtist.toLowerCase() + '|||' + p.album.toLowerCase();
+      const source = itemSourcePrefs[prefKey] || 'deezer';
+      return await getAlbumImage(p.album, primaryArtist, source);
+    }
+    const prefKey = 'song:' + p.artist.toLowerCase() + '|||' + p.title.toLowerCase();
+    const source = itemSourcePrefs[prefKey] || 'deezer';
+    return await getTrackImage(p.title, primaryArtist, source);
+  } catch (e) { return null; }
 }
 
 async function _fetchStreakArt(streak) {
