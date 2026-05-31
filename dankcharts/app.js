@@ -18290,8 +18290,11 @@ function renderStreakBanner() {
     </div>
     <div class="streak-banner-mid">${thumbs}</div>
     <div class="streak-banner-right">
-      <span class="streak-banner-num">${streak.count}</span>
-      <span class="streak-banner-unit">in a row</span>
+      <span class="streak-fire-icon">🔥</span>
+      <div class="streak-banner-count-col">
+        <span class="streak-banner-num">${streak.count}</span>
+        <span class="streak-banner-unit">in a row</span>
+      </div>
     </div>
   `;
   el.style.display = '';
