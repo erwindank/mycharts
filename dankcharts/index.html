@@ -365,7 +365,7 @@
         <h2 id="songsSectionTitle">★ Top 10 Songs</h2>
         <span class="section-collapsed-label" data-i18n="collapsed_hint">collapsed — click + to expand</span>
         <div class="section-rule"></div>
-        <button class="section-replay-btn" id="songsReplayBtn" onclick="replayChartAnimation('songs')" title="Replay chart animation" style="display:none">↺ REPLAY</button>
+        <button class="section-replay-btn" id="songsReplayBtn" onclick="replayChartAnimation('songs')" title="Animate chart — show rank changes from previous period" style="display:none">▶ Animate Chart</button>
       </div>
       <div class="section-sub" id="songsSubtitle" data-i18n="sub_songs">By play count for the selected period</div>
       <div class="paginated-search" id="songsSearch">
@@ -453,7 +453,7 @@
         <h2 id="artistsSectionTitle">♦ Top 10 Artists</h2>
         <span class="section-collapsed-label" data-i18n="collapsed_hint">collapsed — click + to expand</span>
         <div class="section-rule"></div>
-        <button class="section-replay-btn" id="artistsReplayBtn" onclick="replayChartAnimation('artists')" title="Replay chart animation" style="display:none">↺ REPLAY</button>
+        <button class="section-replay-btn" id="artistsReplayBtn" onclick="replayChartAnimation('artists')" title="Animate chart — show rank changes from previous period" style="display:none">▶ Animate Chart</button>
       </div>
       <div class="section-sub" data-i18n="sub_artists">By total play count across all songs</div>
       <div class="paginated-search" id="artistsSearch">
@@ -540,7 +540,7 @@
         <h2 id="albumsSectionTitle">◈ Top 10 Albums</h2>
         <span class="section-collapsed-label" data-i18n="collapsed_hint">collapsed — click + to expand</span>
         <div class="section-rule"></div>
-        <button class="section-replay-btn" id="albumsReplayBtn" onclick="replayChartAnimation('albums')" title="Replay chart animation" style="display:none">↺ REPLAY</button>
+        <button class="section-replay-btn" id="albumsReplayBtn" onclick="replayChartAnimation('albums')" title="Animate chart — show rank changes from previous period" style="display:none">▶ Animate Chart</button>
       </div>
       <div class="section-sub" data-i18n="sub_albums">By total play count across all tracks</div>
       <div class="paginated-search" id="albumsSearch">
@@ -2842,6 +2842,20 @@ function doPost(e) {
             all-time artists
           </label>
           <p class="src-modal-hint">Number of top all-time artists to fetch birthdays &amp; anniversaries for</p>
+        </div>
+      </div>
+
+      <div class="cert-config-group">
+        <div class="cert-config-title">Chart Display</div>
+        <div style="padding:0.4rem 0;">
+          <label class="src-switch-row">
+            <span class="src-switch-label">Animate chart on page load</span>
+            <span class="src-switch">
+              <input type="checkbox" id="srcChartAnim">
+              <span class="src-switch-slider"></span>
+            </span>
+          </label>
+          <p class="src-modal-hint" style="margin-top:0.4rem">When enabled, weekly and monthly charts animate on load to show how rankings shifted from the previous period. Turn this off to load charts instantly — you can still trigger the animation at any time using the <strong>▶ Animate Chart</strong> button above each chart.</p>
         </div>
       </div>
 

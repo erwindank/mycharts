@@ -236,6 +236,9 @@ function toggleSrcButtons() {
   try { localStorage.setItem('dankcharts-hideSrcBtns', hidden ? '1' : '0'); } catch (e) { }
 }
 
+// ─── CHART ANIMATION ───────────────────────────────────────────
+let chartAnimEnabled = localStorage.getItem('dc_chart_anim') !== '0';
+
 // ─── ARTIST SPLITTING ──────────────────────────────────────────
 let noArtistSplit = localStorage.getItem('dc_no_artist_split') === '1';
 
@@ -2026,6 +2029,7 @@ function openSourceModal() {
   document.getElementById('certSongDiamond').value = CERT.song.diamond;
   document.getElementById('eventsArtistLimitSelect').value = eventsArtistLimit;
   document.getElementById('srcNoArtistSplit').checked = noArtistSplit;
+  document.getElementById('srcChartAnim').checked = chartAnimEnabled;
   updateSourceModalFields();
   initSrcFileUpload();
 }
@@ -2120,6 +2124,8 @@ function saveSourceConfig() {
   }
   noArtistSplit = document.getElementById('srcNoArtistSplit').checked;
   localStorage.setItem('dc_no_artist_split', noArtistSplit ? '1' : '0');
+  chartAnimEnabled = document.getElementById('srcChartAnim').checked;
+  localStorage.setItem('dc_chart_anim', chartAnimEnabled ? '1' : '0');
   closeSourceModal();
   if (typeof dcSaveUserConfig === 'function') dcSaveUserConfig();
   syncNow();
@@ -5521,7 +5527,7 @@ function renderAll() {
     document.getElementById('albumsSectionTitle').textContent = t('sec_albums_top', { n: chartSize });
     const periodStats = hasPeriodStats ? buildPeriodStats(currentPeriod) : null;
     lastPeriodStats = periodStats;
-    _animPrevPlays = (prevPlays && prevPlays.length > 0 && (currentPeriod === 'week' || currentPeriod === 'month')) ? prevPlays : null;
+    _animPrevPlays = (chartAnimEnabled && prevPlays && prevPlays.length > 0 && (currentPeriod === 'week' || currentPeriod === 'month')) ? prevPlays : null;
     _animCurrentPlays = _animPrevPlays ? plays : null;
     renderSongs(plays, peaks, periodStats);
     renderArtists(plays, peaks, periodStats);
@@ -18204,14 +18210,20 @@ function computeCurrentStreak(plays) {
     if (albumCount >= 3) return { type: 'album', count: albumCount, album: p0.album, artist: albumArtist(p0) };
   }
 
-  // 3. Artist Streak — same artist 3+ consecutive with different songs
-  const artist0 = p0.artist.toLowerCase().trim();
-  let artistCount = 0;
-  for (const p of plays) {
-    if (p.artist.toLowerCase().trim() === artist0) artistCount++;
-    else break;
+  // 3. Artist Streak — same artist (respecting comma-split rule) 3+ consecutive plays
+  const artists0 = splitArtists(p0.artist);
+  let bestStreakArtist = null, bestStreakCount = 0;
+  for (const a0 of artists0) {
+    const a0lc = a0.toLowerCase().trim();
+    let cnt = 0;
+    for (const p of plays) {
+      const pArtists = (p.artists || splitArtists(p.artist)).map(a => a.toLowerCase().trim());
+      if (pArtists.includes(a0lc)) cnt++;
+      else break;
+    }
+    if (cnt > bestStreakCount) { bestStreakCount = cnt; bestStreakArtist = a0; }
   }
-  if (artistCount >= 3) return { type: 'artist', count: artistCount, artist: p0.artist };
+  if (bestStreakCount >= 3) return { type: 'artist', count: bestStreakCount, artist: bestStreakArtist };
 
   // 4. Shuffle Streak — 5+ plays with no artist appearing 3+ times in a row
   let shuffleCount = 1;

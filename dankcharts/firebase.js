@@ -22,7 +22,8 @@ const SYNC_KEYS = [
   'dc_tm_toggles',
   'dc_events_type_filter', 'dc_cal_view', 'dc_events_view_modes',
   'dc_displayToggles',
-  'dc_chartSizeWeekly', 'dc_chartSizeMonthly', 'dc_chartSizeYearly', 'dc_chartSizeAllTime'
+  'dc_chartSizeWeekly', 'dc_chartSizeMonthly', 'dc_chartSizeYearly', 'dc_chartSizeAllTime',
+  'dc_chart_anim'
 ];
 
 let _auth = null;
