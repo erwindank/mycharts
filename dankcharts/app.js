@@ -71,6 +71,7 @@ let lastPeaks = null;
 let _animPrevPlays = null; // previous-period plays used for chart entrance animation
 let _animCurrentPlays = null;
 const _replayFns = {}; // per-type full animation replay functions
+let _animSpeedFactor = 0.25; // default slow; >1 = faster, <1 = slower; controlled by speed slider
 const searchState = { songs: '', artists: '', albums: '' };
 let imgObservers = [];
 let imgQueue = Promise.resolve();
@@ -5698,11 +5699,9 @@ function computeWindowCountsForType(pSorted, cSorted, step, totalSteps, type, fo
 }
 
 // Animates tbody rows through the sliding window from prev→curr period using FLIP.
-// Reads _animPrevPlays / _animCurrentPlays at call time. Calls onComplete() when done.
+// Each frame drops the oldest prev plays and adds the oldest curr plays so counts
+// change continuously and entries visibly climb/fall through positions.
 // Uses a cancellation token so re-renders abort any in-progress animation on the same tbody.
-// Animates tbody rows by sliding the listening window play-by-play from prev→curr period.
-// The window starts fully loaded with prevPlays; each frame drops the oldest prev plays and
-// adds the oldest curr plays, so counts change continuously and entries visibly climb/fall.
 function runSlideWindowAnim(tbody, type, prevPlays, currPlays, onComplete) {
   if (!prevPlays || !currPlays) { onComplete(); return; }
 
@@ -5710,11 +5709,11 @@ function runSlideWindowAnim(tbody, type, prevPlays, currPlays, onComplete) {
   if (tbody._swToken) tbody._swToken.cancelled = true;
   tbody._swToken = token;
 
-  // Oldest-first: oldest prev plays drop first; oldest curr plays enter first
+  // Oldest-first so oldest prev plays drop first and oldest curr plays enter first
   const pSorted = [...prevPlays].sort((a, b) => a.date - b.date);
   const cSorted = [...currPlays].sort((a, b) => a.date - b.date);
 
-  // Build key → display metadata for placeholder rows
+  // key → display metadata; used to build rows for new entrants
   const keyToMeta = {};
   for (const p of [...prevPlays, ...currPlays]) {
     if (type === 'songs') {
@@ -5772,8 +5771,7 @@ function runSlideWindowAnim(tbody, type, prevPlays, currPlays, onComplete) {
 
   if (getRowMap().size === 0) { onComplete(); return; }
 
-  // ── Running-counts window ─────────────────────────────────────
-  // rc is the live count map; seeded with all prev plays, then mutated frame-by-frame.
+  // rc is the live count map; seeded with all prev plays, mutated frame-by-frame
   const rc = {};
   function rcMutate(p, delta) {
     if (type === 'songs') {
@@ -5795,95 +5793,91 @@ function runSlideWindowAnim(tbody, type, prevPlays, currPlays, onComplete) {
       if (rc[k].count <= 0) delete rc[k];
     }
   }
+  for (const p of pSorted) rcMutate(p, 1);
 
-  for (const p of pSorted) rcMutate(p, 1); // seed: full prev window
-
-  // ── New entrants: entries in the final chart absent from the initial prev chart ──
-  // Pre-inject invisible rows for them now; forceKeys ensures they stay visible in
-  // every frame even before they accumulate enough plays to crack the top N.
-  const finalRc = {};
-  function finalRcAdd(p) {
-    if (type === 'songs') {
-      const k = songKey(p);
-      if (!finalRc[k]) finalRc[k] = { key: k, count: 0 };
-      finalRc[k].count++;
-    } else if (type === 'artists') {
-      for (const a of p.artists) {
-        if (!finalRc[a]) finalRc[a] = { key: a, count: 0 };
-        finalRc[a].count++;
-      }
-    } else if (type === 'albums') {
-      if (!p.album || p.album === '—') return;
-      const k = p.album + '|||' + albumArtist(p);
-      if (!finalRc[k]) finalRc[k] = { key: k, count: 0 };
-      finalRc[k].count++;
-    }
-  }
-  for (const p of cSorted) finalRcAdd(p);
-  const finalChart     = Object.values(finalRc).sort((a, b) => b.count - a.count).slice(0, chartSize);
-  const initRowMap     = getRowMap();
-  const newEntrantKeys = new Set(finalChart.map(c => c.key).filter(k => !initRowMap.has(k)));
-
-  if (newEntrantKeys.size > 0) {
-    const colCount = getColCount();
-    for (const key of newEntrantKeys) {
-      const meta = keyToMeta[key];
-      if (meta) tbody.appendChild(buildNewRow(key, meta, colCount));
-    }
-  }
-
-  // Returns the top chartSize entries plus any forced new entrants below the fold
+  // Only show the current top-N; new entrants appear naturally when they earn a slot
   function getCurrentCounts() {
-    const topN = Object.values(rc).sort((a, b) => b.count - a.count).slice(0, chartSize);
-    if (!newEntrantKeys.size) return topN;
-    const topNSet = new Set(topN.map(c => c.key));
-    const forced  = [...newEntrantKeys]
-      .filter(k => !topNSet.has(k))
-      .map(k => rc[k] || { key: k, count: 0 });
-    return [...topN, ...forced];
+    return Object.values(rc).sort((a, b) => b.count - a.count).slice(0, chartSize);
   }
 
-  // ── Frame parameters ──────────────────────────────────────────
-  // Scale frame count to total plays so more plays = more granular journey,
-  // capped to keep total animation length reasonable.
-  const totalPlays   = pSorted.length + cSorted.length;
-  const FRAMES       = Math.max(20, Math.min(40, Math.ceil(totalPlays / 25)));
-  const FRAME_MS     = 250;
+  // FRAMES scaled so the top entry changes count ~once per frame (gradual readable steps)
+  const topCount = Object.values(rc).sort((a, b) => b.count - a.count)[0]?.count || 40;
+  const FRAMES = Math.max(40, Math.min(150, topCount));
   const prevPerFrame = pSorted.length / FRAMES;
   const currPerFrame = cSorted.length / FRAMES;
   let prevIdx = 0;
   let currIdx = 0;
 
-  function doStep(frame) {
-    if (token.cancelled || !tbody.isConnected) return;
-    if (frame > FRAMES) { onComplete(); return; }
+  // Speed slider — injected above the chart table, removed when animation ends
+  const tableEl = tbody.closest('table');
+  const sliderWrapId = 'sw-speed-' + type;
+  let sliderWrap = document.getElementById(sliderWrapId);
+  if (!sliderWrap && tableEl?.parentElement) {
+    sliderWrap = document.createElement('div');
+    sliderWrap.id = sliderWrapId;
+    sliderWrap.className = 'anim-speed-bar';
+    sliderWrap.innerHTML =
+      `<span class="anim-speed-label">Speed</span>` +
+      `<span class="anim-speed-emoji">🐢</span>` +
+      `<input type="range" min="0.25" max="4" step="0.25" value="${_animSpeedFactor}" class="anim-speed-slider">` +
+      `<span class="anim-speed-emoji">🐇</span>` +
+      `<span class="anim-speed-val">${_animSpeedFactor}&times;</span>`;
+    tableEl.parentElement.insertBefore(sliderWrap, tableEl);
+    sliderWrap.querySelector('.anim-speed-slider').addEventListener('input', e => {
+      _animSpeedFactor = parseFloat(e.target.value);
+      const valEl = document.getElementById(sliderWrapId)?.querySelector('.anim-speed-val');
+      if (valEl) valEl.textContent = _animSpeedFactor + '×';
+    });
+  }
 
-    // Slide the window: drop the next batch of oldest prev plays, add next batch of curr plays
+  function cleanupSlider() {
+    const el = document.getElementById(sliderWrapId);
+    if (el) el.remove();
+  }
+
+  function doStep(frame) {
+    if (token.cancelled || !tbody.isConnected) { cleanupSlider(); return; }
+    if (frame > FRAMES) { cleanupSlider(); onComplete(); return; }
+
+    // Slide the window: drop oldest prev plays, add oldest curr plays
     const nextPrevIdx = Math.round(frame * prevPerFrame);
     const nextCurrIdx = Math.round(frame * currPerFrame);
     while (prevIdx < nextPrevIdx) rcMutate(pSorted[prevIdx++], -1);
     while (currIdx < nextCurrIdx) rcMutate(cSorted[currIdx++],  1);
 
-    const rowMap     = getRowMap();
-    if (rowMap.size === 0) { onComplete(); return; }
+    const counts   = getCurrentCounts();
+    const newTopSet = new Set(counts.map(c => c.key));
+    const maxCount = counts[0]?.count || 1;
+    const colCount = getColCount();
 
-    const counts      = getCurrentCounts();
-    const newTopSet   = new Set(counts.map(c => c.key));
-    const maxCount    = counts[0]?.count || 1;
+    // Dynamically create rows for new entrants the moment they earn a chart slot
+    let rowMap = getRowMap();
+    for (const c of counts) {
+      if (!rowMap.has(c.key)) {
+        const meta = keyToMeta[c.key];
+        if (meta) tbody.appendChild(buildNewRow(c.key, meta, colCount));
+      }
+    }
+    rowMap = getRowMap();
+    if (rowMap.size === 0) { cleanupSlider(); onComplete(); return; }
+
     const activeRows  = counts.map(c => rowMap.get(c.key)).filter(Boolean);
     const droppedRows = [...rowMap.values()].filter(tr => !newTopSet.has(tr.dataset.chartkey));
 
-    // FLIP read-1: freeze transitions, measure positions before reorder
+    // Remove dropped rows from the DOM before measuring so they don't distort FLIP positions
+    const droppedFrag = document.createDocumentFragment();
+    for (const tr of droppedRows) droppedFrag.appendChild(tr);
+
+    // FLIP read-1: freeze transitions, measure current positions of active rows
     const firstTops = new Map();
-    for (const tr of rowMap.values()) {
+    for (const tr of activeRows) {
       tr.style.transition = 'none';
       tr.style.transform  = '';
       firstTops.set(tr, tr.getBoundingClientRect().top);
     }
 
-    // DOM reorder: active in rank order, dropped after
-    for (const tr of activeRows)  tbody.appendChild(tr);
-    for (const tr of droppedRows) tbody.appendChild(tr);
+    // DOM reorder: active rows in rank order
+    for (const tr of activeRows) tbody.appendChild(tr);
 
     // Content update: rank number, count, bar width
     counts.forEach((c, i) => {
@@ -5892,38 +5886,33 @@ function runSlideWindowAnim(tbody, type, prevPlays, currPlays, onComplete) {
       const rankCell = tr.querySelector('.rank-cell');
       const countEl  = tr.querySelector('.sw-count');
       const barEl    = tr.querySelector('.sw-bar');
-      if (rankCell) rankCell.textContent = i < chartSize ? (i + 1) : '↑';
+      if (rankCell) rankCell.textContent = i + 1;
       if (countEl)  countEl.textContent  = c.count;
       if (barEl)    barEl.style.width    = Math.round(c.count / maxCount * 100) + '%';
     });
 
-    // FLIP read-2: measure after reorder, apply inverse transforms
+    // FLIP read-2: measure after reorder, apply inverse transforms so rows appear unmoved
     const lastTops = new Map();
-    for (const tr of rowMap.values()) lastTops.set(tr, tr.getBoundingClientRect().top);
+    for (const [tr] of firstTops) lastTops.set(tr, tr.getBoundingClientRect().top);
     for (const [tr, first] of firstTops) {
       const dy = first - (lastTops.get(tr) ?? first);
       if (Math.abs(dy) > 0.5) tr.style.transform = `translateY(${dy}px)`;
     }
 
-    // FLIP play: in-chart = full opacity; approaching below fold = 50%; dropouts stay visible
-    const transMs = Math.round(FRAME_MS * 0.75);
+    const frameMs = Math.round(150 / _animSpeedFactor);
+    const transMs = Math.round(frameMs * 0.75);
+
+    // FLIP play: animate rows to their final positions and fade new entrants in
     requestAnimationFrame(() => {
       if (token.cancelled) return;
       requestAnimationFrame(() => {
         if (token.cancelled) return;
-        counts.forEach((c, i) => {
-          const tr = rowMap.get(c.key);
-          if (!tr) return;
+        for (const tr of activeRows) {
           tr.style.transition = `transform ${transMs}ms cubic-bezier(0.4,0,0.2,1), opacity ${transMs}ms ease`;
-          tr.style.transform  = '';
-          tr.style.opacity    = i < chartSize ? '1' : '0.5';
-        });
-        for (const tr of droppedRows) {
-          tr.style.transition = `transform ${transMs}ms cubic-bezier(0.4,0,0.2,1)`;
           tr.style.transform  = '';
           tr.style.opacity    = '1';
         }
-        setTimeout(() => doStep(frame + 1), FRAME_MS);
+        setTimeout(() => doStep(frame + 1), frameMs);
       });
     });
   }
