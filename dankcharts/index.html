@@ -641,6 +641,12 @@
         <h2 class="section-title" data-i18n="sec_upcoming_title">🔜 Upcoming Releases</h2>
         <span class="section-collapsed-label" data-i18n="collapsed_hint">collapsed — click + to expand</span>
         <div class="section-rule"></div>
+        <div class="ev-view-btns" id="upcomingViewBtns">
+          <button class="ev-view-btn active" data-view="carousel" onclick="setEventsView('upcoming','carousel')">Reel</button>
+          <button class="ev-view-btn" data-view="tiles" onclick="setEventsView('upcoming','tiles')">Tiles</button>
+          <button class="ev-view-btn" data-view="table" onclick="setEventsView('upcoming','table')">Table</button>
+          <button class="ev-view-btn" data-view="list" onclick="setEventsView('upcoming','list')">List</button>
+        </div>
       </div>
       <div class="section-sub" id="upcomingSubtitle" data-i18n="sub_upcoming">Next 90 days · Based on your Top 200
         All-Time Artists</div>
@@ -659,6 +665,12 @@
         <h2 class="section-title" data-i18n="sec_recent_title">🎉 Recent Releases</h2>
         <span class="section-collapsed-label" data-i18n="collapsed_hint">collapsed — click + to expand</span>
         <div class="section-rule"></div>
+        <div class="ev-view-btns" id="recentViewBtns">
+          <button class="ev-view-btn active" data-view="carousel" onclick="setEventsView('recent','carousel')">Reel</button>
+          <button class="ev-view-btn" data-view="tiles" onclick="setEventsView('recent','tiles')">Tiles</button>
+          <button class="ev-view-btn" data-view="table" onclick="setEventsView('recent','table')">Table</button>
+          <button class="ev-view-btn" data-view="list" onclick="setEventsView('recent','list')">List</button>
+        </div>
       </div>
       <div class="section-sub" id="recentSubtitle" data-i18n="sub_recent">Past 180 days · Based on your Top 200 All-Time
         Artists</div>

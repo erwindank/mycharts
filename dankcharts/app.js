@@ -11517,12 +11517,13 @@ function renderUpcomingResults(allReleases, artists, fromCache) {
   const refreshEl = document.getElementById('upcomingRefreshBtn');
 
   const sorted = sortUpcomingReleases([...allReleases]);
+  _upcomingLastData = sorted;
+  document.querySelectorAll('#upcomingViewBtns .ev-view-btn')
+    .forEach(b => b.classList.toggle('active', b.dataset.view === (eventsViewModes['upcoming'] || 'carousel')));
   if (sorted.length === 0) {
     gridEl.innerHTML = `<div class="upcoming-empty">${t('mb_upcoming_empty')}</div>`;
   } else {
-    gridEl.innerHTML = sorted.map(({ release, artistName }) =>
-      renderUpcomingCard(release, artistName)).join('');
-    triggerPendingImgs(gridEl);
+    _evRenderSectionByKey('upcoming', sorted);
   }
 
   const cacheNote = fromCache ? t('mb_cached') : '';
@@ -11651,12 +11652,13 @@ function renderRecentResults(allReleases, artists, fromCache) {
   const refreshEl = document.getElementById('recentRefreshBtn');
 
   const sorted = sortRecentReleases([...allReleases]);
+  _recentLastData = sorted;
+  document.querySelectorAll('#recentViewBtns .ev-view-btn')
+    .forEach(b => b.classList.toggle('active', b.dataset.view === (eventsViewModes['recent'] || 'carousel')));
   if (sorted.length === 0) {
     gridEl.innerHTML = `<div class="upcoming-empty">${t('mb_recent_empty')}</div>`;
   } else {
-    gridEl.innerHTML = sorted.map(({ release, artistName }) =>
-      renderRecentCard(release, artistName)).join('');
-    triggerPendingImgs(gridEl);
+    _evRenderSectionByKey('recent', sorted);
   }
 
   const cacheNote = fromCache ? t('mb_cached') : '';
@@ -13663,17 +13665,20 @@ function eventsCalendarNext() {
 const _eventsViewDefaults = {
   birthdays: 'carousel', anniversaries: 'carousel', eventsUpcoming: 'carousel',
   eventsRecent: 'carousel', recentBirthdays: 'carousel', recentAnniversaries: 'carousel', concerts: 'carousel',
-  nmf: 'carousel'
+  nmf: 'carousel', upcoming: 'carousel', recent: 'carousel'
 };
 const eventsViewModes = Object.assign({}, _eventsViewDefaults,
   (() => { try { return JSON.parse(localStorage.getItem('dc_events_view_modes') || '{}'); } catch (e) { return {}; } })()
 );
 let _eventsLastData = null;
+let _upcomingLastData = null;
+let _recentLastData = null;
 const EV_GRID_IDS = {
   birthdays: 'birthdaysGrid', anniversaries: 'anniversariesGrid',
   eventsUpcoming: 'eventsUpcomingGrid', eventsRecent: 'eventsRecentGrid',
   recentBirthdays: 'eventsRecentBirthdaysGrid', recentAnniversaries: 'eventsRecentAnniversariesGrid',
-  concerts: 'concertsGrid', nmf: 'nmfGrid'
+  concerts: 'concertsGrid', nmf: 'nmfGrid',
+  upcoming: 'upcomingGrid', recent: 'recentGrid'
 };
 
 function setEventsView(sectionKey, mode) {
@@ -13692,6 +13697,14 @@ function _evReRenderSection(sectionKey) {
   }
   if (sectionKey === 'nmf') {
     if (_nmfData && _nmfData.length) _evRenderSectionByKey('nmf', _nmfData);
+    return;
+  }
+  if (sectionKey === 'upcoming') {
+    if (_upcomingLastData) _evRenderSectionByKey('upcoming', sortUpcomingReleases([..._upcomingLastData]));
+    return;
+  }
+  if (sectionKey === 'recent') {
+    if (_recentLastData) _evRenderSectionByKey('recent', sortRecentReleases([..._recentLastData]));
     return;
   }
   if (!_eventsLastData) return;
@@ -13736,7 +13749,7 @@ function _evNormalize(sectionKey, items) {
         imgSrc: mbid ? `https://coverartarchive.org/release-group/${mbid}/front-250` : null,
         imgAttr: { artist: artistName, title, sources: 'deezer,itunes,lastfm' }, isToday });
     }
-  } else if (sectionKey === 'eventsUpcoming') {
+  } else if (sectionKey === 'eventsUpcoming' || sectionKey === 'upcoming') {
     for (const { release, artistName } of items) {
       const { label } = upcomingDateLabel(release.date);
       const tl = t('mb_type_' + (release.type || 'Release').toLowerCase()) || release.type || 'Release';
@@ -13746,7 +13759,7 @@ function _evNormalize(sectionKey, items) {
         imgSrc: release.mbid ? `https://coverartarchive.org/release-group/${release.mbid}/front-250` : null,
         imgAttr: { artist: artistName, title: release.title, sources: 'itunes,lastfm' }, isToday: false });
     }
-  } else if (sectionKey === 'eventsRecent') {
+  } else if (sectionKey === 'eventsRecent' || sectionKey === 'recent') {
     for (const { release, artistName } of items) {
       const tl = t('mb_type_' + (release.type || 'Release').toLowerCase()) || release.type || 'Release';
       out.push({ title: release.title, artist: artistName,
@@ -13857,8 +13870,8 @@ function _evRenderSectionByKey(sectionKey, items) {
     if (!items.length) { gridEl.innerHTML = ''; return; }
     if (sectionKey === 'birthdays') gridEl.innerHTML = items.map(renderBirthdayCard).join('');
     else if (sectionKey === 'anniversaries') gridEl.innerHTML = items.map(renderAnniversaryCard).join('');
-    else if (sectionKey === 'eventsUpcoming') gridEl.innerHTML = items.map(({ release, artistName }) => renderUpcomingCard(release, artistName)).join('');
-    else if (sectionKey === 'eventsRecent') gridEl.innerHTML = items.map(({ release, artistName }) => renderRecentCard(release, artistName)).join('');
+    else if (sectionKey === 'eventsUpcoming' || sectionKey === 'upcoming') gridEl.innerHTML = items.map(({ release, artistName }) => renderUpcomingCard(release, artistName)).join('');
+    else if (sectionKey === 'eventsRecent' || sectionKey === 'recent') gridEl.innerHTML = items.map(({ release, artistName }) => renderRecentCard(release, artistName)).join('');
     else if (sectionKey === 'recentBirthdays') gridEl.innerHTML = items.map(renderRecentBirthdayCard).join('');
     else if (sectionKey === 'recentAnniversaries') gridEl.innerHTML = items.map(renderRecentAnniversaryCard).join('');
     else if (sectionKey === 'concerts') gridEl.innerHTML = items.map(({ event, artistName }) => renderConcertCard(event, artistName)).join('');
