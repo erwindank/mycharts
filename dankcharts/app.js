@@ -17533,6 +17533,22 @@ function renderSoundtrack() {
   if (loyaltySection) loyaltySection.style.display = isYear ? '' : 'none';
   if (activitySection) activitySection.style.display = (isYear || isAlltime) ? '' : 'none';
   if (replaySection) replaySection.style.display = isYear ? '' : 'none';
+
+  requestAnimationFrame(stSetupReveal);
+}
+
+function stSetupReveal() {
+  if (!('IntersectionObserver' in window)) {
+    document.querySelectorAll('#soundtrackView .st-reveal').forEach(el => el.classList.add('st-in'));
+    return;
+  }
+  const obs = new IntersectionObserver((entries) => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('st-in'); obs.unobserve(e.target); } });
+  }, { threshold: 0.07, rootMargin: '0px 0px -20px 0px' });
+  document.querySelectorAll('#soundtrackView .st-reveal').forEach(el => {
+    el.classList.remove('st-in');
+    obs.observe(el);
+  });
 }
 
 // ── Animated count-up ─────────────────────────────────────────
@@ -17588,6 +17604,9 @@ function stRenderStats(plays) {
   stCountUp('stStatArtistsVal', artistSet.size);
   stCountUp('stStatNewVal', newCount);
   stCountUp('stStatStreakVal', best);
+
+  const noteEl = document.getElementById('stStatPlaysNote');
+  if (noteEl) noteEl.textContent = daySet.size > 0 ? `~${Math.round(plays.length / daySet.size).toLocaleString()}/day` : '';
 }
 
 function stGetFirstSeenArtists() {
@@ -17621,7 +17640,7 @@ function stRenderTopCharts(plays) {
   const rankIcon = i => ['🥇','🥈','🥉','4','5'][i];
 
   const artistHTML = topArtists.length ? topArtists.map(([name, count], i) => `
-    <div class="st-top-item">
+    <div class="st-top-item${i === 0 ? ' st-rank-1' : ''}">
       <span class="st-top-rank">${rankIcon(i)}</span>
       <div class="st-top-info">
         <div class="st-top-name">${esc(name)}</div>
@@ -17631,7 +17650,7 @@ function stRenderTopCharts(plays) {
     </div>`).join('') : `<div class="st-empty">${t('st_no_data')}</div>`;
 
   const songHTML = topSongs.length ? topSongs.map((s, i) => `
-    <div class="st-top-item">
+    <div class="st-top-item${i === 0 ? ' st-rank-1' : ''}">
       <span class="st-top-rank">${rankIcon(i)}</span>
       <div class="st-top-info">
         <div class="st-top-name">${esc(s.title)}</div>

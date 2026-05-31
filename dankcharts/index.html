@@ -1452,11 +1452,12 @@
     </div>
 
     <!-- Animated Stats Strip -->
-    <div class="st-stats-strip" id="stStatsStrip">
+    <div class="st-stats-strip st-reveal" id="stStatsStrip">
       <div class="st-stat">
         <div class="st-stat-icon">▶</div>
         <div class="st-stat-val" id="stStatPlaysVal">—</div>
         <div class="st-stat-label" data-i18n="st_stat_plays">Plays</div>
+        <div class="st-stat-note" id="stStatPlaysNote"></div>
       </div>
       <div class="st-stat">
         <div class="st-stat-icon">📅</div>
@@ -1481,7 +1482,7 @@
     </div>
 
     <!-- Top Artists + Top Songs -->
-    <div class="st-top-grid">
+    <div class="st-top-grid st-reveal">
       <div class="st-top-col">
         <div class="st-section-header" data-i18n="st_top_artists">Top Artists</div>
         <div id="stTopArtists" class="st-top-list"></div>
@@ -1493,13 +1494,13 @@
     </div>
 
     <!-- Monthly Activity -->
-    <div class="st-section" id="stActivitySection">
+    <div class="st-section st-reveal" id="stActivitySection">
       <div class="st-section-title" data-i18n="st_activity_title">Monthly Activity</div>
       <div id="stActivityBars"></div>
     </div>
 
     <!-- Loyalty Score + New Discoveries -->
-    <div class="st-two-col">
+    <div class="st-two-col st-reveal">
       <div class="st-section" id="stLoyaltySection">
         <div class="st-section-title" data-i18n="st_loyalty_title">Loyalty Score</div>
         <div id="stLoyaltyBody"></div>
@@ -1511,31 +1512,31 @@
     </div>
 
     <!-- Milestones -->
-    <div class="st-section" id="stMilestonesSection">
+    <div class="st-section st-reveal" id="stMilestonesSection">
       <div class="st-section-title" data-i18n="st_milestones_title">Milestones</div>
       <div id="stMilestonesBody"></div>
     </div>
 
     <!-- Streaks -->
-    <div class="st-section" id="stStreaksSection">
+    <div class="st-section st-reveal" id="stStreaksSection">
       <div class="st-section-title" data-i18n="st_streaks_title">Listening Streaks</div>
       <div id="stStreaksBody"></div>
     </div>
 
     <!-- Grammy Overlay -->
-    <div class="st-section" id="stGrammysSection">
+    <div class="st-section st-reveal" id="stGrammysSection">
       <div class="st-section-title" data-i18n="st_grammys_title">Grammy Winners in Your Charts</div>
       <div id="stGrammysBody"></div>
     </div>
 
     <!-- Underrated Gem (Last.fm only) -->
-    <div class="st-section" id="stGemSection" style="display:none;">
+    <div class="st-section st-reveal" id="stGemSection" style="display:none;">
       <div class="st-section-title" data-i18n="st_gem_title">Your Underrated Gem</div>
       <div id="stGemBody"></div>
     </div>
 
     <!-- Chart History Replay -->
-    <div class="st-section" id="stReplaySection">
+    <div class="st-section st-reveal" id="stReplaySection">
       <div class="st-section-title" data-i18n="st_replay_title">Chart History Replay</div>
       <div id="stReplayBody">
         <button class="st-replay-btn" id="stReplayBtn" onclick="stStartReplay()" data-i18n="st_replay_btn">▶ Play Chart History</button>
@@ -1545,7 +1546,7 @@
     </div>
 
     <!-- Share Card -->
-    <div class="st-section" id="stCardSection">
+    <div class="st-section st-reveal" id="stCardSection">
       <div class="st-section-title" data-i18n="st_card_title">Share Your Soundtrack</div>
       <div class="st-card-actions">
         <button class="st-card-btn" onclick="stOpenCard('story')" data-i18n="st_card_story">📱 Story (9:16)</button>
