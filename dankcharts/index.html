@@ -916,6 +916,10 @@
             data-i18n-placeholder="raw_search_date">
         </div>
         <button class="raw-clear-btn" id="rawClearBtn" data-i18n="raw_clear">✕ Clear</button>
+        <label class="raw-corrected-toggle" title="Show only entries that have been autocorrected by your rules">
+          <input type="checkbox" id="rawFilterCorrected">
+          <span>~ corrected only</span>
+        </label>
         <button class="raw-clear-btn" id="manageRulesBtn" onclick="openRulesModal()" style="margin-left:auto" data-i18n="modal_rules_open_btn">⚙ Auto-correct Rules</button>
       </div>
       <div class="raw-summary" id="rawSummary"></div>

@@ -6374,6 +6374,42 @@
       color: var(--text3);
     }
 
+    .raw-table tr.raw-corrected td:first-child {
+      border-left: 2px solid var(--accent2);
+    }
+
+    .raw-corrected-badge {
+      display: inline-block;
+      margin-left: 4px;
+      font-size: 0.65rem;
+      color: var(--accent2);
+      font-family: 'DM Mono', monospace;
+      cursor: default;
+      opacity: 0.8;
+    }
+
+    .raw-corrected-toggle {
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+      font-family: 'DM Mono', monospace;
+      font-size: 0.65rem;
+      color: var(--text3);
+      cursor: pointer;
+      white-space: nowrap;
+      padding: 0 0.4rem;
+      user-select: none;
+    }
+
+    .raw-corrected-toggle:hover {
+      color: var(--accent2);
+    }
+
+    .raw-corrected-toggle input[type="checkbox"] {
+      accent-color: var(--accent2);
+      cursor: pointer;
+    }
+
     .cr-rawdata-controls {
       display: flex;
       align-items: center;

@@ -769,7 +769,8 @@ function applyAutocorrectRules(plays) {
     const artist = rule.replace.artist;
     const title  = rule.replace.title;
     const album  = rule.replace.album;
-    return { ...p, artist, title, album, artists: splitArtists(artist) };
+    return { ...p, artist, title, album, artists: splitArtists(artist),
+      _corrected: true, _orig: { artist: p.artist, title: p.title, album: p.album } };
   });
 }
 
@@ -4486,12 +4487,14 @@ function applyRawFilters() {
   const fArtist = document.getElementById('rawFilterArtist').value.trim().toLowerCase();
   const fAlbum = document.getElementById('rawFilterAlbum').value.trim().toLowerCase();
   const fDate = document.getElementById('rawFilterDate').value.trim().toLowerCase();
+  const fCorrected = document.getElementById('rawFilterCorrected').checked;
 
   rawFiltered = allPlays.filter(p => {
     if (fSong && !p.title.toLowerCase().includes(fSong)) return false;
     if (fArtist && !p.artist.toLowerCase().includes(fArtist)) return false;
     if (fAlbum && !p.album.toLowerCase().includes(fAlbum)) return false;
     if (fDate && !rawFmtDate(p.date).toLowerCase().includes(fDate)) return false;
+    if (fCorrected && !p._corrected) return false;
     return true;
   });
 
@@ -4517,7 +4520,8 @@ function renderRawPage() {
   const slice = rawFiltered.slice(start, start + RAW_PAGE_SIZE);
 
   // Summary
-  const hasFilter = ['rawFilterSong', 'rawFilterArtist', 'rawFilterAlbum', 'rawFilterDate'].some(id => document.getElementById(id).value.trim());
+  const hasFilter = ['rawFilterSong', 'rawFilterArtist', 'rawFilterAlbum', 'rawFilterDate'].some(id => document.getElementById(id).value.trim())
+    || document.getElementById('rawFilterCorrected').checked;
   const totalAll = allPlays.length;
   document.getElementById('rawSummary').innerHTML = hasFilter
     ? t('raw_showing', { n: `<strong>${total.toLocaleString()}</strong>`, total: totalAll.toLocaleString() })
@@ -4526,8 +4530,17 @@ function renderRawPage() {
   // Rows
   document.getElementById('rawBody').innerHTML = slice.map((p, i) => {
     const n = start + i + 1;
-    return `<tr>
-      <td class="raw-num">${n.toLocaleString()}</td>
+    let correctedBadge = '';
+    if (p._corrected) {
+      const orig = p._orig;
+      const parts = [];
+      if (orig.artist !== p.artist) parts.push(`Artist: ${orig.artist}`);
+      if (orig.title  !== p.title)  parts.push(`Title: ${orig.title}`);
+      if (orig.album  !== p.album)  parts.push(`Album: ${orig.album}`);
+      correctedBadge = `<span class="raw-corrected-badge" title="Autocorrected from:\n${parts.join('\n')}">~</span>`;
+    }
+    return `<tr${p._corrected ? ' class="raw-corrected"' : ''}>
+      <td class="raw-num">${n.toLocaleString()}${correctedBadge}</td>
       <td class="raw-date">${rawFmtDate(p.date)}</td>
       <td class="raw-title">${esc(p.title)}</td>
       <td>${esc(p.artist)}</td>
@@ -4564,8 +4577,11 @@ document.getElementById('rawClearBtn').addEventListener('click', () => {
   ['rawFilterSong', 'rawFilterArtist', 'rawFilterAlbum', 'rawFilterDate'].forEach(id => {
     document.getElementById(id).value = '';
   });
+  document.getElementById('rawFilterCorrected').checked = false;
   applyRawFilters();
 });
+
+document.getElementById('rawFilterCorrected').addEventListener('change', applyRawFilters);
 
 document.getElementById('rawPrevBtn').addEventListener('click', () => { rawPage--; renderRawPage(); });
 document.getElementById('rawNextBtn').addEventListener('click', () => { rawPage++; renderRawPage(); });
