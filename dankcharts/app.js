@@ -2643,6 +2643,7 @@ document.getElementById('sizeBtnsAllTime').addEventListener('click', e => {
 function navigateToRecPeriod(period, periodKey) {
   document.getElementById('artistModal')?.classList.remove('open');
   document.getElementById('albumModal')?.classList.remove('open');
+  document.getElementById('songModal')?.classList.remove('open');
   const now = tzNow();
   let offset = 0;
   if (period === 'week') {
@@ -6032,7 +6033,7 @@ function renderPage(type, peaks) {
       const cumAlbumPlays = cumulativeMaps && s.album ? (cumulativeMaps.albumsByName[s.album] || 0) : 0;
       const histMaxSong = playsPeakMaps ? (playsPeakMaps.songs[k] || 0) : 0;
       const isPlaysPeak = histMaxSong > 0 && s.count >= histMaxSong;
-      const mainRow = `<tr class="${rank === 1 ? 'rank-1' : rank === 2 ? 'rank-2' : rank === 3 ? 'rank-3' : ''}">
+      const mainRow = `<tr data-songkey="${encodeURIComponent(k)}" class="${rank === 1 ? 'rank-1' : rank === 2 ? 'rank-2' : rank === 3 ? 'rank-3' : ''} song-row">
         <td class="rank-cell">${hasCR ? `<button class="cr-toggle-btn" title="${t('tooltip_cr_toggle_btn_song')}" onclick="event.stopPropagation();toggleChartRun(this,'${rowId}')">📊</button>` : ''} ${rank}</td>
         <td class="thumb-cell"><div class="thumb-wrap"><div id="${imgId}"><div class="thumb-initials">${esc(initials(s.title))}</div></div><button id="srcbtn-${imgId}" class="img-src-btn" data-imgid="${imgId}" data-type="song" data-prefkey="${esc(prefKey)}" data-name="${esc(s.title)}" data-artist="${esc(s.artist)}" data-album="${esc(s.album)}">${srcLabel(itemSourcePrefs[prefKey] || 'deezer')}</button></div></td>
         <td>
@@ -7536,7 +7537,9 @@ function renderSongs(plays, peaks, monthlyStats) {
     const _crsiOffsetS = _animSongs ? Math.max(-200, Math.min(200, (_prevIdxS - i) * 38)) : 0;
     const _animAttrsS = _animSongs ? ` style="--crsi-offset:${_crsiOffsetS}px;--crsi-delay:${i * 50}ms"` : '';
     const _animClassS = _animSongs ? ' chart-row-anim' : '';
-    const mainRow = `<tr${_animAttrsS} class="${i === 0 ? 'rank-1' : i === 1 ? 'rank-2' : i === 2 ? 'rank-3' : ''}${_animClassS}">
+    const _songModalClass = (isAllTime || currentPeriod === 'year') ? ' song-row' : '';
+    const _songModalAttr = (isAllTime || currentPeriod === 'year') ? ` data-songkey="${encodeURIComponent(k)}"` : '';
+    const mainRow = `<tr${_animAttrsS}${_songModalAttr} class="${i === 0 ? 'rank-1' : i === 1 ? 'rank-2' : i === 2 ? 'rank-3' : ''}${_animClassS}${_songModalClass}">
       <td class="rank-cell"><button class="cr-toggle-btn" title="${t('tooltip_cr_toggle_btn_song')}" onclick="event.stopPropagation();toggleChartRun(this,'${rowId}')">📊</button>${i + 1}</td>
       <td class="thumb-cell"><div class="thumb-wrap"><div id="${imgId}"><div class="thumb-initials">${esc(initials(s.title))}</div></div><button id="srcbtn-${imgId}" class="img-src-btn" data-imgid="${imgId}" data-type="song" data-prefkey="${esc(prefKey)}" data-name="${esc(s.title)}" data-artist="${esc(s.artist)}" data-album="${esc(s.album)}">${srcLabel(itemSourcePrefs[prefKey] || 'deezer')}</button></div></td>
       <td>
@@ -11432,6 +11435,40 @@ function openAlbumModal(albumKey) {
       <div class="cr-subsection-body" style="display:none;" data-crtype="albums" data-crkey="${esc(albumKey)}" data-crkind="rawdata"></div>
     </div>`;
 
+  // ── CERTIFICATION PLAQUES ─────────────────────────────────────────────────
+  const certTitleEl = document.getElementById('albumModalCertTitle');
+  const certPlaquesEl = document.getElementById('albumModalCertPlaques');
+  const plaqueItems = [];
+  if (totalPlays >= CERT.album.gold) {
+    const mult = totalPlays >= CERT.album.diamond ? Math.floor(totalPlays / CERT.album.diamond) : 0;
+    const tier = mult > 0 ? 'diamond' : totalPlays >= CERT.album.plat ? 'plat' : 'gold';
+    const { icon: dIcon, label: dLabel } = mult > 0 ? diamondMultiLabel(mult) : { icon: tier === 'plat' ? '💿' : '⭐', label: tier === 'plat' ? 'Platinum' : 'Gold' };
+    plaqueItems.push({ icon: dIcon, label: mult > 0 ? dLabel : (tier === 'plat' ? 'Platinum' : 'Gold'), plays: mult > 0 ? mult * CERT.album.diamond : (tier === 'plat' ? CERT.album.plat : CERT.album.gold), type: 'Album' });
+  }
+  for (const s of allTracksSorted) {
+    if (s.count >= CERT.song.gold) {
+      const mult = s.count >= CERT.song.diamond ? Math.floor(s.count / CERT.song.diamond) : 0;
+      const tier = mult > 0 ? 'diamond' : s.count >= CERT.song.plat ? 'plat' : 'gold';
+      const { icon: dIcon, label: dLabel } = mult > 0 ? diamondMultiLabel(mult) : { icon: tier === 'plat' ? '💿' : '⭐', label: tier === 'plat' ? 'Platinum' : 'Gold' };
+      plaqueItems.push({ icon: dIcon, label: mult > 0 ? dLabel : (tier === 'plat' ? 'Platinum' : 'Gold'), plays: s.count, type: 'Song', name: s.title });
+    }
+  }
+  if (plaqueItems.length) {
+    certTitleEl.style.display = '';
+    certPlaquesEl.innerHTML = `<div class="cert-plaques-grid">${plaqueItems.map(p =>
+      `<div class="cert-plaque cert-plaque--${p.label.toLowerCase().replace(/\s.*/,'')}">
+        <div class="cp-icon">${p.icon}</div>
+        <div class="cp-tier">${esc(p.label)}</div>
+        <div class="cp-name">${esc(p.name || albumName)}</div>
+        <div class="cp-type">${esc(p.type)}</div>
+        <div class="cp-plays">${p.plays.toLocaleString()} plays</div>
+      </div>`
+    ).join('')}</div>`;
+  } else {
+    certTitleEl.style.display = 'none';
+    certPlaquesEl.innerHTML = '';
+  }
+
   // ── TRACKS SECTION ────────────────────────────────────────────────────────
   _albCurrentAlbumCtx = { tracks: allTracksSorted, totalPlays, crY, crM, crW, allTimeSPM, ek };
   const sortedTracks = _sortAlbTracks([...allTracksSorted], _albCurrentTrackSort, crY, crM, crW, allTimeSPM);
@@ -11447,6 +11484,615 @@ function openAlbumModal(albumKey) {
 
   albumModal.classList.add('open');
   albumModal.scrollTop = 0;
+}
+
+// ─── SONG MODAL ────────────────────────────────────────────────
+const songModal = document.getElementById('songModal');
+document.getElementById('songModalClose').addEventListener('click', () => songModal.classList.remove('open'));
+songModal.addEventListener('click', e => { if (e.target === songModal) songModal.classList.remove('open'); });
+
+const songsBodyEl = document.getElementById('songsBody');
+if (songsBodyEl) {
+  songsBodyEl.addEventListener('click', e => {
+    if (window.getSelection && window.getSelection().toString().length > 0) return;
+    const songRow = e.target.closest('.song-row');
+    if (!songRow || e.target.closest('button')) return;
+    const key = decodeURIComponent(songRow.dataset.songkey || '');
+    if (key) { e.preventDefault(); e.stopPropagation(); openSongModal(key); }
+  }, false);
+}
+
+function goToPeriodFromSongModal(period, periodKey) {
+  songModal.classList.remove('open');
+  navigateToRecPeriod(period, periodKey);
+}
+
+let _currentSongKey = null;
+
+function openSongModal(key) {
+  _currentSongKey = key;
+  ensureAllChartRun();
+
+  // ── Plays + metadata ──────────────────────────────────────────
+  const songPlays = allPlays.filter(p => songKey(p) === key);
+  const totalPlays = songPlays.length;
+  const propTitle  = songPlays.length ? songPlays[songPlays.length - 1].title : key.split('|||')[0];
+  const propArtist = songPlays.length ? songPlays[songPlays.length - 1].artist : key.split('|||')[1];
+  const albumCounts = {};
+  for (const p of songPlays) albumCounts[p.album || ''] = (albumCounts[p.album || ''] || 0) + 1;
+  const propAlbum = Object.keys(albumCounts).length ? bestAlbum(propTitle, albumCounts) : '';
+
+  // allPlays is newest→oldest, so last = firstPlayed
+  const firstPlayed = songPlays.length ? songPlays[songPlays.length - 1].date : null;
+  const lastPlayed  = songPlays.length ? songPlays[0].date : null;
+
+  // ── Chart run data ────────────────────────────────────────────
+  const crY = allChartRun.year, crM = allChartRun.month, crW = allChartRun.week;
+  const songCrY = crY?.result?.songs?.[key];
+  const songCrM = crM?.result?.songs?.[key];
+  const songCrW = crW?.result?.songs?.[key];
+  const weeklySongPeak  = songCrW?.peak ?? null;
+  const monthlySongPeak = songCrM?.peak ?? null;
+  const yearlySongPeak  = songCrY?.peak ?? null;
+
+  // ── All-time rank ─────────────────────────────────────────────
+  const allTimePeaks    = buildAllTimePeaks();
+  const allTimeSongRank = allTimePeaks.songPeakMap[key];
+
+  // ── Current chart position (alltime or year tab) ──────────────
+  const currentRankIdx  = fullData.songs.findIndex(s => songKey(s) === key);
+  const chartPosition   = currentRankIdx >= 0 ? currentRankIdx + 1 : null;
+
+  // ── Per-day / per-month / per-year play counts ────────────────
+  const dayMap = {}, monthMap = {}, yearMap = {}, hourMap = {};
+  for (const p of songPlays) {
+    const d  = tzDate(p.date);
+    const dk = localDateStr(d);
+    const mk = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2,'0')}`;
+    const yk = String(d.getFullYear());
+    const hk = d.getHours();
+    dayMap[dk]   = (dayMap[dk]   || 0) + 1;
+    monthMap[mk] = (monthMap[mk] || 0) + 1;
+    yearMap[yk]  = (yearMap[yk]  || 0) + 1;
+    hourMap[hk]  = (hourMap[hk]  || 0) + 1;
+  }
+  const peakDayPlays  = Object.values(dayMap).length   ? Math.max(...Object.values(dayMap))   : 0;
+  const peakMonthPlays= Object.values(monthMap).length ? Math.max(...Object.values(monthMap)) : 0;
+  const peakYearPlays = Object.values(yearMap).length  ? Math.max(...Object.values(yearMap))  : 0;
+  const peakDayDate   = peakDayPlays  ? (Object.entries(dayMap).find(([,v]) => v === peakDayPlays)?.[0]   || null) : null;
+  const peakMonthKey  = peakMonthPlays? (Object.entries(monthMap).find(([,v]) => v === peakMonthPlays)?.[0]|| null) : null;
+  const peakYearKey   = peakYearPlays ? (Object.entries(yearMap).find(([,v]) => v === peakYearPlays)?.[0] || null) : null;
+
+  // ── Daily streaks (all of them) ───────────────────────────────
+  const sortedDays = Object.keys(dayMap).sort();
+  const allStreaks  = [];
+  if (sortedDays.length) {
+    let ss = sortedDays[0], sl = 1;
+    for (let i = 1; i < sortedDays.length; i++) {
+      const diff = Math.round((new Date(sortedDays[i]) - new Date(sortedDays[i-1])) / 86400000);
+      if (diff === 1) { sl++; } else { allStreaks.push({ start: ss, end: sortedDays[i-1], len: sl }); ss = sortedDays[i]; sl = 1; }
+    }
+    allStreaks.push({ start: ss, end: sortedDays[sortedDays.length-1], len: sl });
+  }
+  allStreaks.sort((a, b) => b.len - a.len);
+  const longestStreak  = allStreaks.length ? allStreaks[0].len : 0;
+  const calendarDays   = sortedDays.length;
+
+  // ── Re-entry count (weekly) ───────────────────────────────────
+  let reentries = 0;
+  if (songCrW?.entries?.length > 1) {
+    const wEnt = [...songCrW.entries].sort((a,b) => a.periodKey.localeCompare(b.periodKey));
+    for (let i = 1; i < wEnt.length; i++) {
+      if (crPeriodGap('week', wEnt[i-1].periodKey, wEnt[i].periodKey) > 1) reentries++;
+    }
+  }
+
+  // ── Chart longevity totals ────────────────────────────────────
+  const totalWeeksOnChart  = songCrW?.entries?.length || 0;
+  const totalMonthsOnChart = songCrM?.entries?.length || 0;
+  const totalYearsOnChart  = songCrY?.entries?.length || 0;
+
+  // ── Longest gap between plays ─────────────────────────────────
+  let longestGap = 0, longestGapStart = null, longestGapEnd = null;
+  for (let i = 1; i < sortedDays.length; i++) {
+    const g = Math.round((new Date(sortedDays[i]) - new Date(sortedDays[i-1])) / 86400000);
+    if (g > longestGap) { longestGap = g; longestGapStart = sortedDays[i-1]; longestGapEnd = sortedDays[i]; }
+  }
+
+  // ── Days to peak plays day ────────────────────────────────────
+  const daysToPeak = (firstPlayed && peakDayDate)
+    ? Math.round((new Date(peakDayDate) - new Date(firstPlayed)) / 86400000) : null;
+
+  // ── Peak hour & midnight flag ─────────────────────────────────
+  const peakHourEntry = Object.entries(hourMap).reduce((best,[h,c]) => c > best[1] ? [parseInt(h),c] : best, [-1,0]);
+  const peakHour = peakHourEntry[0] >= 0 ? peakHourEntry[0] : null;
+  const midnightPlays = Object.entries(hourMap).filter(([h])=>parseInt(h)<4).reduce((s,[,c])=>s+c,0);
+  const midnightPct   = totalPlays > 0 ? Math.round(midnightPlays / totalPlays * 100) : 0;
+  const fmtHour = h => { const ampm = h < 12 ? 'AM' : 'PM'; const h12 = h % 12 || 12; return `${h12}${ampm}`; };
+
+  // ── Replay depth (avg plays per day played) ───────────────────
+  const replayDepth = calendarDays > 0 ? (totalPlays / calendarDays).toFixed(1) : '0';
+
+  // ── Session co-plays (songs heard same session window ±30 min) ─
+  const SESSION_WINDOW = 30 * 60 * 1000;
+  const coMap = {};
+  for (const p of songPlays) {
+    const pt = new Date(p.date).getTime();
+    for (const op of allPlays) {
+      if (op === p) continue;
+      const ot = new Date(op.date).getTime();
+      if (Math.abs(ot - pt) <= SESSION_WINDOW) {
+        const ok = songKey(op);
+        if (ok !== key) {
+          if (!coMap[ok]) coMap[ok] = { title: op.title, artist: op.artist, count: 0 };
+          coMap[ok].count++;
+        }
+      }
+    }
+  }
+  const topCo = Object.values(coMap).sort((a,b)=>b.count-a.count).slice(0,8);
+
+  // ── Discovery context (first listening session) ───────────────
+  const discoveryPlay = songPlays.length ? songPlays[songPlays.length - 1] : null;
+  const discoveryPt   = discoveryPlay ? new Date(discoveryPlay.date).getTime() : null;
+  const discoveryBefore = discoveryPt ? allPlays.filter(p => {
+    const d = Math.abs(new Date(p.date).getTime() - discoveryPt);
+    return d > 0 && d <= SESSION_WINDOW && new Date(p.date).getTime() < discoveryPt;
+  }).slice(0, 3) : [];
+  const discoveryAfter = discoveryPt ? allPlays.filter(p => {
+    const d = Math.abs(new Date(p.date).getTime() - discoveryPt);
+    return d > 0 && d <= SESSION_WINDOW && new Date(p.date).getTime() > discoveryPt;
+  }).slice(0, 3) : [];
+
+  // ── Consecutive years charted ─────────────────────────────────
+  const chartedYears = Object.keys(yearMap).map(Number).sort();
+  let maxConsecYears = chartedYears.length ? 1 : 0, curConsec = 1;
+  for (let i = 1; i < chartedYears.length; i++) {
+    curConsec = chartedYears[i] - chartedYears[i-1] === 1 ? curConsec + 1 : 1;
+    if (curConsec > maxConsecYears) maxConsecYears = curConsec;
+  }
+
+  // ── Grammy data for this song ─────────────────────────────────
+  const grammyEntries = [];
+  if (typeof _awardsYearData !== 'undefined') {
+    const catMap = Object.fromEntries((typeof AWARD_CATEGORIES !== 'undefined' ? AWARD_CATEGORIES : []).map(c=>[c.id,c]));
+    for (const [year, yearData] of Object.entries(_awardsYearData)) {
+      if (!yearData?.categories) continue;
+      for (const [catId, cat] of Object.entries(yearData.categories)) {
+        if (!cat.enabled) continue;
+        const catInfo = catMap[catId];
+        const normTitle  = propTitle.toLowerCase().trim();
+        const normArtist = propArtist.toLowerCase().trim();
+        const inNom = (cat.nominees||[]).some(n => (n.title||'').toLowerCase().trim()===normTitle && (n.artist||'').toLowerCase().trim()===normArtist);
+        const isWin = cat.winner && (cat.winner.title||'').toLowerCase().trim()===normTitle && (cat.winner.artist||'').toLowerCase().trim()===normArtist;
+        if (inNom || isWin) grammyEntries.push({ year: parseInt(year), label: catInfo?.label || catId, isWin });
+      }
+    }
+  }
+  grammyEntries.sort((a,b)=>(b.isWin-a.isWin)||(b.year-a.year));
+  const grammyNoms = grammyEntries.length;
+  const grammyWins = grammyEntries.filter(e=>e.isWin).length;
+
+  // ── Certification ─────────────────────────────────────────────
+  const cumSongPlays = allTimePeaks ? (allTimePeaks.songPeakMap && totalPlays) : totalPlays;
+  const peakCls = r => !r ? '' : r===1 ? 'sv--gold' : r<=3 ? 'sv--silver' : r<=10 ? 'sv--bronze' : '';
+
+  // ── Chart debut ───────────────────────────────────────────────
+  let debutEntry = null, debutPeriod = null;
+  const allEntries = [
+    ...(songCrW?.entries||[]).map(e=>({...e,period:'week'})),
+    ...(songCrM?.entries||[]).map(e=>({...e,period:'month'})),
+    ...(songCrY?.entries||[]).map(e=>({...e,period:'year'})),
+  ];
+  if (allEntries.length) {
+    allEntries.sort((a,b)=>a.periodKey.localeCompare(b.periodKey));
+    debutEntry  = allEntries[0];
+    debutPeriod = debutEntry.period;
+  }
+
+  // ── HEADER ────────────────────────────────────────────────────
+  document.getElementById('songModalTitle').textContent = propTitle;
+  document.getElementById('songModalSub').innerHTML =
+    `By <a class="modal-artist-link" href="javascript:void(0)" onclick="songModal.classList.remove('open');setTimeout(()=>openArtistModal(${esc(JSON.stringify(propArtist))}),50)">${esc(propArtist)}</a>` +
+    (propAlbum ? ` · <a class="modal-artist-link" href="javascript:void(0)" onclick="songModal.classList.remove('open');setTimeout(()=>openAlbumModal(${esc(JSON.stringify(propAlbum + '|||' + propArtist))}),50)">${esc(propAlbum)}</a>` : '') +
+    ` · Song Profile`;
+
+  // ── IMAGE ─────────────────────────────────────────────────────
+  const imgEl  = document.getElementById('songModalImg');
+  const prefKey = 'song:' + propArtist.toLowerCase() + '|||' + propTitle.toLowerCase();
+  const source  = itemSourcePrefs[prefKey] || 'deezer';
+  const cacheKey = 'song:' + propTitle.toLowerCase() + ':' + source;
+  const cached   = imgCache[cacheKey] || imgCache['song:' + propTitle.toLowerCase() + ':deezer'];
+  if (cached) {
+    imgEl.innerHTML = `<img class="modal-artist-img" src="${esc(cached)}" alt="" onerror="this.outerHTML='<div class=modal-artist-initials>${esc(initials(propTitle))}</div>'">`;
+  } else {
+    imgEl.innerHTML = `<div class="modal-artist-initials">${esc(initials(propTitle))}</div>`;
+    getAlbumImage(propAlbum || propTitle, propArtist, source).then(url => {
+      if (url && imgEl.isConnected) imgEl.innerHTML = `<img class="modal-artist-img" src="${esc(url)}" alt="">`;
+    });
+  }
+
+  // ── RANK CARDS ────────────────────────────────────────────────
+  let rankCardsHTML = '';
+  if (allTimeSongRank) {
+    rankCardsHTML += `<div class="modal-rank-card modal-rank-card--gold">
+      <div class="mrc-icon">🏆</div>
+      <div class="mrc-rank">#${allTimeSongRank}</div>
+      <div class="mrc-label">Most Played Song of All Time</div>
+    </div>`;
+  }
+  if (chartPosition && currentPeriod === 'year') {
+    rankCardsHTML += `<div class="modal-rank-card modal-rank-card--year">
+      <div class="mrc-icon">⭐</div>
+      <div class="mrc-rank">#${chartPosition}</div>
+      <div class="mrc-label">Most Played Song of the Year</div>
+    </div>`;
+  }
+  if (debutEntry) {
+    const debutLabel = debutPeriod === 'week' ? crPeriodLabel('week', debutEntry.periodKey)
+                     : debutPeriod === 'month' ? crPeriodLabel('month', debutEntry.periodKey)
+                     : debutEntry.periodKey;
+    rankCardsHTML += `<div class="modal-rank-card">
+      <div class="mrc-icon">🚀</div>
+      <div class="mrc-rank">#${debutEntry.rank}</div>
+      <div class="mrc-label">Chart Debut · ${esc(debutLabel)}</div>
+    </div>`;
+  }
+  if (rankCardsHTML) {
+    rankCardsHTML = `<div class="modal-rank-cards-row">${rankCardsHTML}</div>`;
+  }
+  document.getElementById('songModalRankCards').innerHTML = rankCardsHTML;
+
+  // ── STATS STRIP ───────────────────────────────────────────────
+  const fmtDate = d => d ? fmt(d) : '—';
+  document.getElementById('songModalStats').innerHTML = `
+    <div class="modal-stat"><div class="se">🎧</div><div class="sv" data-countup="${totalPlays}">${totalPlays.toLocaleString()}</div><div class="sl">Total Plays</div></div>
+    <div class="modal-stat"><div class="sv" style="font-size:0.9rem">${fmtDate(firstPlayed)}</div><div class="sl">First Played</div></div>
+    <div class="modal-stat"><div class="sv" style="font-size:0.9rem">${fmtDate(lastPlayed)}</div><div class="sl">Last Played</div></div>
+    <div class="modal-stat"><div class="se">📅</div><div class="sv">${calendarDays}</div><div class="sl">Days Played</div></div>
+    <div class="modal-stat"><div class="se">🔥</div><div class="sv">${longestStreak}</div><div class="sl">Peak Day Streak</div></div>
+    <div class="modal-stat"><div class="se">📈</div><div class="sv">${peakDayPlays}</div><div class="sl">Peak Plays · Day${peakDayDate ? `<br><span style="font-size:0.65rem;color:var(--text3)">${fmtDate(new Date(peakDayDate))}</span>` : ''}</div></div>
+    <div class="modal-stat"><div class="se">📅</div><div class="sv">${peakMonthPlays}</div><div class="sl">Peak Plays · Month${peakMonthKey ? `<br><span style="font-size:0.65rem;color:var(--text3)">${peakMonthKey}</span>` : ''}</div></div>
+    <div class="modal-stat"><div class="se">⭐</div><div class="sv">${peakYearPlays}</div><div class="sl">Peak Plays · Year${peakYearKey ? `<br><span style="font-size:0.65rem;color:var(--text3)">${peakYearKey}</span>` : ''}</div></div>
+    <div class="modal-stat"><div class="se">⏰</div><div class="sv">${peakHour !== null ? fmtHour(peakHour) : '—'}</div><div class="sl">Peak Listen Hour</div></div>
+    <div class="modal-stat"><div class="se">🌙</div><div class="sv">${midnightPct}%</div><div class="sl">Late-Night Plays<br><span style="font-size:0.65rem;color:var(--text3)">12–4 AM</span></div></div>
+    <div class="modal-stat"><div class="se">🔄</div><div class="sv">${replayDepth}</div><div class="sl">Avg Plays/Day Played</div></div>
+    ${reentries > 0 ? `<div class="modal-stat"><div class="se">↩️</div><div class="sv">${reentries}</div><div class="sl">Chart Re-entries</div></div>` : ''}
+    ${longestGap > 1 ? `<div class="modal-stat"><div class="se">⏳</div><div class="sv">${longestGap}</div><div class="sl">Longest Gap (days)</div></div>` : ''}
+    ${daysToPeak !== null ? `<div class="modal-stat"><div class="se">🎯</div><div class="sv">${daysToPeak}</div><div class="sl">Days to Peak</div></div>` : ''}
+    ${maxConsecYears > 1 ? `<div class="modal-stat"><div class="se">🗓</div><div class="sv">${maxConsecYears}</div><div class="sl">Consecutive Years</div></div>` : ''}
+    ${totalWeeksOnChart ? `<div class="modal-stat"><div class="se">📊</div><div class="sv">${totalWeeksOnChart}</div><div class="sl">Weeks on Chart</div></div>` : ''}
+    ${totalMonthsOnChart ? `<div class="modal-stat"><div class="se">🌙</div><div class="sv">${totalMonthsOnChart}</div><div class="sl">Months on Chart</div></div>` : ''}
+    ${totalYearsOnChart ? `<div class="modal-stat"><div class="se">⭐</div><div class="sv">${totalYearsOnChart}</div><div class="sl">Years on Chart</div></div>` : ''}
+    ${certBadge(totalPlays, 'song') ? `<div class="modal-stat"><div class="sv" style="font-size:0.85rem">${certBadge(totalPlays, 'song')}</div><div class="sl">Certification</div></div>` : ''}
+  `;
+
+  // ── GRAND SLAM ────────────────────────────────────────────────
+  const grandSlam = weeklySongPeak===1 && monthlySongPeak===1 && yearlySongPeak===1 && allTimeSongRank===1;
+  document.getElementById('songModalGrandSlam').innerHTML = grandSlam
+    ? `<div class="modal-grand-slam">✨ Grand Slam — #1 Everywhere ✨</div>` : '';
+
+  // ── GRAMMY STRIP ──────────────────────────────────────────────
+  const grammyEl = document.getElementById('songModalGrammyStrip');
+  grammyEl.innerHTML = `
+    <div class="modal-stat"><div class="se">🏅</div><div class="sv" data-countup="${grammyNoms}">${grammyNoms}</div><div class="sl">Nominations</div></div>
+    <div class="modal-stat ${grammyWins>0?'modal-stat--gold':''}"><div class="se">🏆</div><div class="sv ${grammyWins>0?'sv--gold':''}" data-countup="${grammyWins}">${grammyWins}</div><div class="sl">Wins</div></div>
+  `;
+  animateModalCountup(grammyEl);
+  const grammyDetailEl = document.getElementById('songModalGrammyDetail');
+  if (grammyEntries.length) {
+    const listHTML = grammyEntries.map(e =>
+      `<div class="modal-grammy-entry${e.isWin?' modal-grammy-entry--win':''}"><span class="mge-icon">${e.isWin?'🏆':'🏅'}</span><span class="mge-year">${e.year}</span><span class="mge-cat">${esc(e.label)}</span></div>`
+    ).join('');
+    const n = grammyEntries.length;
+    grammyDetailEl.innerHTML = `<button class="modal-grammy-toggle" onclick="toggleSongModalGrammyDetail(this)" data-count="${n}">▾ Show all ${n} categor${n===1?'y':'ies'}</button><div class="modal-grammy-list" style="display:none">${listHTML}</div>`;
+  } else {
+    grammyDetailEl.innerHTML = '';
+  }
+
+  // ── PEAKS STRIP ───────────────────────────────────────────────
+  document.getElementById('songModalPeaks').innerHTML = `
+    <div class="modal-stat"><div class="se">📊</div><div class="sv ${peakCls(weeklySongPeak)}">${weeklySongPeak?'#'+weeklySongPeak:'—'}</div><div class="sl">Weekly Chart Peak</div></div>
+    <div class="modal-stat"><div class="se">🌙</div><div class="sv ${peakCls(monthlySongPeak)}">${monthlySongPeak?'#'+monthlySongPeak:'—'}</div><div class="sl">Monthly Chart Peak</div></div>
+    <div class="modal-stat"><div class="se">⭐</div><div class="sv ${peakCls(yearlySongPeak)}">${yearlySongPeak?'#'+yearlySongPeak:'—'}</div><div class="sl">Yearly Chart Peak</div></div>
+    ${allTimeSongRank?`<div class="modal-stat modal-stat--gold"><div class="se">🏆</div><div class="sv sv--gold">#${allTimeSongRank}</div><div class="sl">All-Time Rank</div></div>`:''}
+  `;
+
+  // ── RECORDS STRIP ─────────────────────────────────────────────
+  const records = [];
+  if (weeklySongPeak === 1 && songCrW) {
+    const no1Weeks = songCrW.entries.filter(e=>e.rank===1).length;
+    if (no1Weeks) records.push(`<div class="modal-stat"><div class="se">🥇</div><div class="sv">${no1Weeks}</div><div class="sl">Weeks at #1</div></div>`);
+  }
+  if (monthlySongPeak === 1 && songCrM) {
+    const no1Months = songCrM.entries.filter(e=>e.rank===1).length;
+    if (no1Months) records.push(`<div class="modal-stat"><div class="se">🥇</div><div class="sv">${no1Months}</div><div class="sl">Months at #1</div></div>`);
+  }
+  if (yearlySongPeak === 1 && songCrY) {
+    const no1Years = songCrY.entries.filter(e=>e.rank===1).length;
+    if (no1Years) records.push(`<div class="modal-stat"><div class="se">🥇</div><div class="sv">${no1Years}</div><div class="sl">Years at #1</div></div>`);
+  }
+  if (longestStreak >= 7) records.push(`<div class="modal-stat"><div class="se">🔥</div><div class="sv">${longestStreak}</div><div class="sl">Day Streak Record</div></div>`);
+  if (peakDayPlays >= 10) records.push(`<div class="modal-stat"><div class="se">📈</div><div class="sv">${peakDayPlays}</div><div class="sl">Plays in One Day</div></div>`);
+  document.getElementById('songModalRecords').innerHTML = records.length
+    ? records.join('') : `<div style="font-size:0.8rem;color:var(--text3);padding:0.4rem 0">No chart records yet.</div>`;
+
+  // ── ACCOMPLISHMENTS ───────────────────────────────────────────
+  let accId = 0;
+  const accRow = (icon, label, detailRows) => {
+    const id = 'song-acc-' + (accId++);
+    const detail = detailRows.length
+      ? detailRows.map(r => {
+          const navAttr = r.weekOffset !== undefined
+            ? ` onclick="goToWeek(${r.weekOffset});songModal.classList.remove('open')" style="cursor:pointer"`
+            : r.period ? ` onclick="goToPeriodFromSongModal('${r.period}','${r.periodKey}')" style="cursor:pointer"` : '';
+          const viewTag = (r.weekOffset !== undefined || r.period)
+            ? `<span style="color:var(--accent);font-size:0.6rem;flex-shrink:0;margin-left:0.5rem;letter-spacing:0.06em">→ VIEW</span>` : '';
+          return `<div class="acc-detail-row"${navAttr}><span class="acc-detail-name">${esc(r.name)}</span><span class="acc-detail-plays">${r.plays} ${tUnit('plays',r.plays)}</span>${r.date?`<span class="acc-detail-date">${r.date}</span>`:''}${viewTag}</div>`;
+        }).join('')
+      : `<div class="acc-detail-row"><span class="acc-detail-name" style="font-style:italic">${t('modal_no_detail')}</span></div>`;
+    return `<div class="acc-row">
+      <div class="acc-header"><button class="acc-toggle" onclick="const d=document.getElementById('${id}');const o=d.classList.toggle('open');this.textContent=o?'−':'+';" title="Expand">+</button><span>${icon} ${label}</span></div>
+      <div class="acc-detail" id="${id}">${detail}</div>
+    </div>`;
+  };
+  const acc = [];
+
+  // All-time rank
+  if (allTimeSongRank) acc.push(accRow('🏆', `${ordinalSuffix(allTimeSongRank)} Most Played Song of All Time`, []));
+
+  // Yearly #1 / top 5 / top 10
+  if (songCrY) {
+    const yNo1 = songCrY.entries.filter(e=>e.rank===1);
+    if (yNo1.length) acc.push(accRow('🥇', `#1 Song of the Year · ${yNo1.length} ${tUnit('years',yNo1.length)}`, yNo1.map(e=>({name:e.periodKey,plays:e.plays,period:'year',periodKey:e.periodKey}))));
+    const yTop5 = songCrY.entries.filter(e=>e.rank>1&&e.rank<=5);
+    if (yTop5.length) acc.push(accRow('🔝', `Top 5 Song of the Year · ${yTop5.length} ${tUnit('years',yTop5.length)}`, yTop5.map(e=>({name:`#${e.rank} · ${e.periodKey}`,plays:e.plays,period:'year',periodKey:e.periodKey}))));
+    const yTop10 = songCrY.entries.filter(e=>e.rank>5&&e.rank<=10);
+    if (yTop10.length) acc.push(accRow('⭐', `Top 10 Song of the Year · ${yTop10.length} ${tUnit('years',yTop10.length)}`, yTop10.map(e=>({name:`#${e.rank} · ${e.periodKey}`,plays:e.plays,period:'year',periodKey:e.periodKey}))));
+  }
+
+  // Monthly #1 / top 5 / top 10
+  if (songCrM) {
+    const mNo1 = songCrM.entries.filter(e=>e.rank===1);
+    if (mNo1.length) acc.push(accRow('🥇', `#1 Song of the Month · ${mNo1.length} ${tUnit('months',mNo1.length)}`, mNo1.map(e=>({name:crPeriodLabel('month',e.periodKey),plays:e.plays,period:'month',periodKey:e.periodKey}))));
+    const mTop5 = songCrM.entries.filter(e=>e.rank>1&&e.rank<=5);
+    if (mTop5.length) acc.push(accRow('🔝', `Top 5 Monthly · ${mTop5.length} ${tUnit('months',mTop5.length)}`, mTop5.map(e=>({name:`#${e.rank} · ${crPeriodLabel('month',e.periodKey)}`,plays:e.plays,period:'month',periodKey:e.periodKey}))));
+    const mTop10 = songCrM.entries.filter(e=>e.rank>5&&e.rank<=10);
+    if (mTop10.length) acc.push(accRow('📆', `Top 10 Monthly · ${mTop10.length} ${tUnit('months',mTop10.length)}`, mTop10.map(e=>({name:`#${e.rank} · ${crPeriodLabel('month',e.periodKey)}`,plays:e.plays,period:'month',periodKey:e.periodKey}))));
+  }
+
+  // Weekly #1 / top 5 / top 10
+  if (songCrW) {
+    const wNo1 = songCrW.entries.filter(e=>e.rank===1);
+    if (wNo1.length) acc.push(accRow('🥇', `#1 Song of the Week · ${wNo1.length} ${tUnit('cr_week',wNo1.length)}`, wNo1.map(e=>({name:crPeriodLabel('week',e.periodKey),plays:e.plays,weekOffset:weekOffset(new Date(e.periodKey+'T00:00:00'))}))));
+    const wTop5 = songCrW.entries.filter(e=>e.rank>1&&e.rank<=5);
+    if (wTop5.length) acc.push(accRow('🔝', `Top 5 Weekly · ${wTop5.length} ${tUnit('cr_week',wTop5.length)}`, wTop5.map(e=>({name:`#${e.rank} · ${crPeriodLabel('week',e.periodKey)}`,plays:e.plays,weekOffset:weekOffset(new Date(e.periodKey+'T00:00:00'))}))));
+    const wTop10 = songCrW.entries.filter(e=>e.rank>5&&e.rank<=10);
+    if (wTop10.length) acc.push(accRow('📊', `Top 10 Weekly · ${wTop10.length} ${tUnit('cr_week',wTop10.length)}`, wTop10.map(e=>({name:`#${e.rank} · ${crPeriodLabel('week',e.periodKey)}`,plays:e.plays,weekOffset:weekOffset(new Date(e.periodKey+'T00:00:00'))}))));
+  }
+
+  // Certifications
+  if (totalPlays >= CERT.song.diamond) {
+    const mult = Math.floor(totalPlays / CERT.song.diamond);
+    const { icon } = diamondMultiLabel(mult);
+    acc.push(accRow(icon, `${tDiamondLabel(mult)} Certification · ${(mult*CERT.song.diamond).toLocaleString()} ${tUnit('plays',mult*CERT.song.diamond)}`, []));
+  } else if (totalPlays >= CERT.song.plat) {
+    acc.push(accRow('💿', `Platinum Certification · ${CERT.song.plat.toLocaleString()} ${tUnit('plays',CERT.song.plat)}`, []));
+  } else if (totalPlays >= CERT.song.gold) {
+    acc.push(accRow('⭐', `Gold Certification · ${CERT.song.gold.toLocaleString()} ${tUnit('plays',CERT.song.gold)}`, []));
+  }
+
+  // Grammy wins
+  if (grammyWins > 0) acc.push(accRow('🏆', `${grammyWins} Grammy ${grammyWins===1?'Win':'Wins'}`, grammyEntries.filter(e=>e.isWin).map(e=>({name:`${e.year} — ${e.label}`,plays:0}))));
+  if (grammyNoms > grammyWins) acc.push(accRow('🏅', `${grammyNoms-grammyWins} Grammy ${(grammyNoms-grammyWins)===1?'Nomination':'Nominations'}`, grammyEntries.filter(e=>!e.isWin).map(e=>({name:`${e.year} — ${e.label}`,plays:0}))));
+
+  // Milestones
+  const milestones = [500,1000,2000,5000,10000].filter(m=>totalPlays>=m);
+  if (milestones.length) acc.push(accRow('🎯', `${milestones.length} Play Milestone${milestones.length>1?'s':''} Reached`, milestones.map(m=>({name:`${m.toLocaleString()} plays`,plays:m}))));
+
+  // Peak streak
+  if (longestStreak >= 3) acc.push(accRow('🔥', `Longest Listening Streak: ${longestStreak} days`, allStreaks.slice(0,5).map(s=>({name:`${fmtDate(new Date(s.start))} – ${fmtDate(new Date(s.end))}`,plays:s.len,date:`${s.len} days`}))));
+
+  // Discovery context
+  if (discoveryPlay) {
+    acc.push(accRow('🔍', `First Discovered: ${fmtDate(discoveryPlay.date)}`, [
+      ...discoveryBefore.map(p=>({name:`↑ ${p.title} — ${p.artist}`,plays:0,date:'before'})),
+      {name:`★ ${propTitle}`,plays:0,date:fmtDate(discoveryPlay.date)},
+      ...discoveryAfter.map(p=>({name:`↓ ${p.title} — ${p.artist}`,plays:0,date:'after'})),
+    ]));
+  }
+
+  // Session co-plays
+  if (topCo.length) {
+    acc.push(accRow('🎵', `Usually Heard With (top ${topCo.length} session neighbours)`, topCo.map(s=>({name:`${s.title} — ${s.artist}`,plays:s.count,date:`${s.count}×`}))));
+  }
+
+  // Longest gap
+  if (longestGap > 30) {
+    acc.push(accRow('⏳', `Longest Gap Between Plays: ${longestGap} days`, longestGapStart ? [{name:`${fmtDate(new Date(longestGapStart))} → ${fmtDate(new Date(longestGapEnd))}`,plays:longestGap,date:`${longestGap} days`}] : []));
+  }
+
+  // Year-by-year
+  if (Object.keys(yearMap).length) {
+    acc.push(accRow('📅', 'Year-by-Year Breakdown', Object.entries(yearMap).sort(([a],[b])=>b.localeCompare(a)).map(([yr,c])=>({name:yr,plays:c}))));
+  }
+
+  // Seasonal breakdown
+  const seasonMap = { Spring:0, Summer:0, Autumn:0, Winter:0 };
+  for (const p of songPlays) {
+    const mo = tzDate(p.date).getMonth();
+    if (mo>=2&&mo<=4) seasonMap.Spring++;
+    else if (mo>=5&&mo<=7) seasonMap.Summer++;
+    else if (mo>=8&&mo<=10) seasonMap.Autumn++;
+    else seasonMap.Winter++;
+  }
+  if (totalPlays > 0) {
+    acc.push(accRow('🌤', 'Seasonal Listening Breakdown', Object.entries(seasonMap).map(([s,c])=>({name:s,plays:c,date:`${Math.round(c/totalPlays*100)}%`}))));
+  }
+
+  // Daily streaming streaks list (all)
+  if (allStreaks.length) {
+    acc.push(accRow('🔥', `All Daily Streaming Streaks (${allStreaks.length} total)`, allStreaks.map(s=>({name:`${fmtDate(new Date(s.start))} – ${fmtDate(new Date(s.end))}`,plays:s.len,date:`${s.len} day${s.len>1?'s':''}`}))));
+  }
+
+  // Weekly chart appearances with links
+  if (songCrW?.entries?.length) {
+    const wEntSorted = [...songCrW.entries].sort((a,b)=>b.periodKey.localeCompare(a.periodKey));
+    acc.push(accRow('📊', `All ${wEntSorted.length} Weekly Chart Appearances`, wEntSorted.map(e=>({name:`${crPeriodLabel('week',e.periodKey)}`,plays:e.plays,date:`#${e.rank}`,weekOffset:weekOffset(new Date(e.periodKey+'T00:00:00'))}))));
+  }
+
+  // Chart longevity badge
+  const totalAppearances = totalWeeksOnChart + totalMonthsOnChart + totalYearsOnChart;
+  if (totalAppearances > 0) {
+    acc.push(accRow('📋', `Total Chart Appearances: ${totalAppearances}`, [
+      totalWeeksOnChart ? {name:'Weekly',plays:totalWeeksOnChart,date:'appearances'} : null,
+      totalMonthsOnChart ? {name:'Monthly',plays:totalMonthsOnChart,date:'appearances'} : null,
+      totalYearsOnChart ? {name:'Yearly',plays:totalYearsOnChart,date:'appearances'} : null,
+    ].filter(Boolean)));
+  }
+
+  if (!acc.length) acc.push(`<div style="font-style:italic;font-size:0.85rem;color:var(--text3);padding:0.5rem 0">No chart accomplishments yet.</div>`);
+  document.getElementById('songModalAccomplishments').innerHTML = acc.join('');
+
+  // ── SPARKLINE (listening pattern by month) ────────────────────
+  document.getElementById('songModalSparkline').innerHTML =
+    buildSongSparklineHTML(songPlays, propTitle, key);
+
+  // ── EXTRA STATS (position movement chart) ─────────────────────
+  let extraHTML = '';
+  if (songCrW?.entries?.length >= 3) {
+    const wEntAsc = [...songCrW.entries].sort((a,b)=>a.periodKey.localeCompare(b.periodKey));
+    const wRanks  = wEntAsc.map(e=>e.rank);
+    const minR = Math.min(...wRanks), maxR = Math.max(...wRanks);
+    const norm = r => maxR === minR ? 50 : Math.round((1 - (r - minR)/(maxR - minR)) * 80 + 10);
+    const w = 100, h = 60, step = w / (wRanks.length - 1);
+    const pts = wRanks.map((r,i)=>`${Math.round(i*step)},${h-norm(r)}`).join(' ');
+    extraHTML += `<div class="modal-section-title">📈 Weekly Position Movement</div>
+    <div class="song-pos-chart"><svg viewBox="0 0 ${w} ${h}" preserveAspectRatio="none" style="width:100%;height:80px;display:block">
+      <polyline points="${pts}" fill="none" stroke="var(--accent)" stroke-width="1.5"/>
+      <circle cx="${Math.round((wRanks.length-1)*step)}" cy="${h-norm(wRanks[wRanks.length-1])}" r="2.5" fill="var(--accent)"/>
+    </svg>
+    <div style="display:flex;justify-content:space-between;font-size:0.6rem;color:var(--text3);margin-top:0.2rem">
+      <span>${crPeriodLabel('week',wEntAsc[0].periodKey)}</span><span>#${Math.min(...wRanks)} Peak</span><span>${crPeriodLabel('week',wEntAsc[wEntAsc.length-1].periodKey)}</span>
+    </div></div>`;
+  }
+  document.getElementById('songModalExtraStats').innerHTML = extraHTML;
+
+  // ── HEATMAP ───────────────────────────────────────────────────
+  document.getElementById('songModalHeatmapSection').innerHTML = `
+    <div class="modal-section-title">🗓 Listening Heatmap</div>
+    <div class="cr-subsection">
+      <div class="cr-subsection-header" onclick="toggleCrSubsection(this)">
+        <span class="cr-subsection-toggle">▶</span><span class="cr-subsection-label">SHOW HEATMAP</span>
+      </div>
+      <div class="cr-subsection-body" style="display:none;" data-crtype="songs" data-crkey="${encodeURIComponent(key)}" data-crkind="heatmap"></div>
+    </div>`;
+
+  // ── STREAMING HISTORY ─────────────────────────────────────────
+  document.getElementById('songModalStreamSection').innerHTML = `
+    <div class="modal-section-title">📋 Streaming History</div>
+    <div class="cr-subsection">
+      <div class="cr-subsection-header" onclick="toggleCrSubsection(this)">
+        <span class="cr-subsection-toggle">▶</span><span class="cr-subsection-label">SHOW FULL HISTORY</span>
+      </div>
+      <div class="cr-subsection-body" style="display:none;" data-crtype="songs" data-crkey="${encodeURIComponent(key)}" data-crkind="rawdata"></div>
+    </div>`;
+
+  songModal.classList.add('open');
+  songModal.scrollTop = 0;
+  animateModalCountup(document.getElementById('songModalStats'));
+}
+
+function toggleSongModalGrammyDetail(btn) {
+  const list = btn.nextElementSibling;
+  const open = list.style.display !== 'none';
+  list.style.display = open ? 'none' : '';
+  const n = btn.dataset.count;
+  btn.textContent = open ? `▾ Show all ${n} categor${n==1?'y':'ies'}` : '▴ Hide categories';
+}
+
+// ─── SONG SPARKLINE ──────────────────────────────────────────────
+let _songSparklinePlays = null;
+let _songSparklineKey   = null;
+
+function songMonthClick(month) {
+  const panel = document.getElementById('song-month-detail');
+  if (!panel || !_songSparklinePlays) return;
+  if (panel.dataset.month === month) {
+    panel.dataset.month = '';
+    panel.innerHTML = '';
+    panel.style.display = 'none';
+    document.querySelectorAll('#songSparklineWrap .alb-spark-bar--active').forEach(b=>b.classList.remove('alb-spark-bar--active'));
+    return;
+  }
+  panel.dataset.month = month;
+  const plays = _songSparklinePlays.filter(p => {
+    const d = tzDate(p.date);
+    return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}` === month;
+  }).sort((a,b)=>new Date(b.date)-new Date(a.date));
+  document.querySelectorAll('#songSparklineWrap .alb-spark-bar--active').forEach(b=>b.classList.remove('alb-spark-bar--active'));
+  const bar = document.querySelector(`#songSparklineWrap [data-month="${month}"]`);
+  if (bar) bar.classList.add('alb-spark-bar--active');
+  panel.innerHTML = plays.map(p=>`<div class="alb-month-play-row"><span class="alb-mpr-date">${fmt(p.date)}</span><span class="alb-mpr-title">${esc(p.title)}</span></div>`).join('') || '<em>No plays</em>';
+  panel.style.display = '';
+}
+
+function buildSongSparklineHTML(plays, title, key) {
+  _songSparklinePlays = plays;
+  _songSparklineKey   = key;
+  if (plays.length < 2) return '';
+  const monthCounts = {};
+  for (const p of plays) {
+    const d = tzDate(p.date);
+    const mk = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+    monthCounts[mk] = (monthCounts[mk]||0) + 1;
+  }
+  const months = Object.keys(monthCounts).sort();
+  if (months.length < 2) return '';
+  const maxVal = Math.max(...Object.values(monthCounts));
+  const midVal = Math.round(maxVal/2);
+  const avgVal = Math.round(Object.values(monthCounts).reduce((s,v)=>s+v,0)/months.length);
+  const avgPct = Math.round(avgVal/maxVal*100);
+  const locale = {en:'en-US',es:'es','pt-BR':'pt-BR','pt-PT':'pt-PT'}[currentLang]||'en-US';
+  const MO = Array.from({length:12},(_,i)=>new Date(2000,i,1).toLocaleString(locale,{month:'short'}));
+  const total = months.length;
+  const labelEvery = total<=6?1:total<=12?2:total<=24?3:total<=48?6:12;
+  const peakIdx = months.reduce((best,m,i)=>monthCounts[m]>monthCounts[months[best]]?i:best,0);
+  const sortedVals = [...Object.values(monthCounts)].sort((a,b)=>b-a);
+  let barsHTML='',xlabelsHTML='';
+  months.forEach((m,i)=>{
+    const [yr,mo] = m.split('-');
+    const count   = monthCounts[m];
+    const ratio   = count/maxVal;
+    const pct     = Math.max(2,Math.round(ratio*100));
+    const color   = _albBarColor(ratio);
+    const isPeak  = i===peakIdx;
+    const rank    = sortedVals.indexOf(count)+1;
+    const tip = `${MO[parseInt(mo)-1]} ${yr}||${tCount('plays',count)}`;
+    const cls = ['alb-spark-bar',isPeak?'alb-spark-bar--peak':''].filter(Boolean).join(' ');
+    const show = i===0||i===total-1||i%labelEvery===0;
+    if (i>0&&yr!==months[i-1].split('-')[0]) { barsHTML+=`<div class="alb-year-sep"><span class="alb-year-sep-label">${yr}</span></div>`; xlabelsHTML+=`<span class="alb-year-sep-xl"></span>`; }
+    barsHTML+=`<div class="${cls}" style="height:${pct}%;background:${color}" data-month="${m}" data-tip="${tip}" onclick="songMonthClick('${m}')"></div>`;
+    xlabelsHTML+=`<span class="alb-spark-xlabel${isPeak?' alb-spark-xlabel--peak':''}">${show?`${MO[parseInt(mo)-1]} '${yr.slice(2)}`:''}</span>`;
+  });
+  return `<div class="modal-section-title">📊 Listening Pattern</div>
+  <div class="alb-sparkline-wrap" id="songSparklineWrap">
+    <div class="alb-sparkline-header"><div class="alb-sparkline-label">Plays by Month</div></div>
+    <div class="alb-chart-area">
+      <div class="alb-y-axis"><span>${maxVal}</span><span>${midVal}</span><span>0</span></div>
+      <div class="alb-chart-body">
+        <div class="alb-bars-area">
+          <div class="alb-grid-line" style="top:0"></div>
+          <div class="alb-grid-line" style="top:50%"></div>
+          <div class="alb-grid-line" style="bottom:0"></div>
+          <div class="alb-avg-line" style="bottom:${avgPct}%"><span class="alb-avg-label">Avg ${avgVal}</span></div>
+          ${barsHTML}
+        </div>
+        <div class="alb-x-labels">${xlabelsHTML}</div>
+      </div>
+    </div>
+    <div id="song-month-detail" class="alb-month-detail" style="display:none"></div>
+  </div>`;
 }
 
 // ─── UPCOMING RELEASES (MusicBrainz) ───────────────────────────

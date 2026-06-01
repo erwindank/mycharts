@@ -4925,6 +4925,94 @@
       100% { background-position: 200% 50%; }
     }
 
+    /* SONG MODAL — RANK CARDS ROW */
+    .modal-rank-cards-row {
+      display: flex;
+      gap: 0.6rem;
+      flex-wrap: wrap;
+      margin-bottom: 0.75rem;
+    }
+    .modal-rank-card {
+      flex: 1;
+      min-width: 120px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.2rem;
+      padding: 0.7rem 0.8rem;
+      border-radius: 8px;
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      text-align: center;
+    }
+    .modal-rank-card--gold {
+      background: linear-gradient(135deg, rgba(255,215,0,0.12), rgba(255,180,0,0.06));
+      border-color: rgba(255,215,0,0.35);
+    }
+    .modal-rank-card--year {
+      background: linear-gradient(135deg, rgba(100,180,255,0.12), rgba(60,130,255,0.06));
+      border-color: rgba(100,180,255,0.35);
+    }
+    .mrc-icon { font-size: 1.3rem; }
+    .mrc-rank {
+      font-family: 'DM Mono', monospace;
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--text1);
+      line-height: 1;
+    }
+    .modal-rank-card--gold .mrc-rank  { color: #ffd700; }
+    .modal-rank-card--year .mrc-rank  { color: #60a5fa; }
+    .mrc-label {
+      font-size: 0.62rem;
+      color: var(--text3);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      line-height: 1.3;
+    }
+    /* SONG MODAL — POSITION MOVEMENT CHART */
+    .song-pos-chart {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 0.6rem 0.8rem;
+      margin-bottom: 0.75rem;
+    }
+    /* SONG ROW clickable cursor on alltime/year */
+    #songsBody .song-row { cursor: pointer; }
+    #songsBody .song-row:hover { background: var(--bg2) !important; }
+
+    /* CERTIFICATION PLAQUES */
+    .cert-plaques-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.6rem;
+      margin-bottom: 0.75rem;
+    }
+    .cert-plaque {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.15rem;
+      padding: 0.75rem 1rem;
+      border-radius: 8px;
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      min-width: 110px;
+      text-align: center;
+    }
+    .cert-plaque--gold   { background: linear-gradient(135deg,rgba(255,215,0,0.12),rgba(255,180,0,0.04)); border-color: rgba(255,215,0,0.35); }
+    .cert-plaque--platinum { background: linear-gradient(135deg,rgba(200,210,255,0.12),rgba(160,180,255,0.04)); border-color: rgba(180,200,255,0.35); }
+    .cert-plaque--diamond { background: linear-gradient(135deg,rgba(100,220,255,0.15),rgba(60,160,255,0.04)); border-color: rgba(100,220,255,0.4); }
+    .cp-icon  { font-size: 1.4rem; }
+    .cp-tier  { font-family:'DM Mono',monospace; font-size:0.6rem; letter-spacing:0.1em; text-transform:uppercase; color:var(--text2); font-weight:600; }
+    .cert-plaque--gold .cp-tier    { color:#ffd700; }
+    .cert-plaque--platinum .cp-tier{ color:#a5b4fc; }
+    .cert-plaque--diamond .cp-tier { color:#67e8f9; }
+    .cp-name  { font-size:0.75rem; color:var(--text1); font-weight:600; max-width:140px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .cp-type  { font-size:0.6rem; color:var(--text3); text-transform:uppercase; letter-spacing:0.06em; }
+    .cp-plays { font-size:0.68rem; color:var(--text3); }
+
     /* CHART BREAKDOWN COLORED COLUMN HEADERS */
     .modal-cb-th--weekly  { color: #60a5fa !important; border-top: 2px solid #60a5fa; }
     .modal-cb-th--monthly { color: #34d399 !important; border-top: 2px solid #34d399; }
