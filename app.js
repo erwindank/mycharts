@@ -1580,6 +1580,11 @@ function loadSampleData() {
   input.classList.remove('landing-input-error');
 }
 
+function startWithSampleData() {
+  loadSampleData();
+  startFromLanding();
+}
+
 function selectLandingSource(src) {
   _landingSrc = src;
   document.querySelectorAll('.landing-card').forEach(c => c.classList.remove('active'));
