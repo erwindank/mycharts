@@ -12143,7 +12143,7 @@ const _mbReleasesCache = {};
 async function fetchAllReleasesRaw(mbid) {
   if (_mbReleasesCache[mbid] !== undefined) return _mbReleasesCache[mbid];
   try {
-    const d = await mbFetch(`release-group?artist=${mbid}&type=album%7Cep%7Csingle&fmt=json&limit=100`);
+    const d = await mbFetch(`release-group?artist=${mbid}&type=album%7Cep%7Csingle&fmt=json&limit=100&inc=releases`);
     _mbReleasesCache[mbid] = d['release-groups'] || [];
   } catch (e) { _mbReleasesCache[mbid] = []; return []; }
   return _mbReleasesCache[mbid];
@@ -15196,9 +15196,19 @@ async function loadEvents(forceRefresh = false) {
       for (const g of groups) {
         const type = g['primary-type'] || 'Release';
         const validReleases = (g.releases || []).filter(r => r.date && r.date.length >= 10 && !r.date.slice(5, 10).includes('00'));
-        const entries = validReleases.length > 0
-          ? validReleases.map(r => ({ date: r.date, title: r.title || g.title }))
-          : (g['first-release-date'] && g['first-release-date'].length >= 10 ? [{ date: g['first-release-date'], title: g.title }] : []);
+        let entryDate = null;
+        if (validReleases.length > 0) {
+          const mmddCounts = {};
+          for (const r of validReleases) {
+            const md = r.date.slice(5, 10);
+            mmddCounts[md] = (mmddCounts[md] || 0) + 1;
+          }
+          const modeMmdd = Object.entries(mmddCounts).sort((a, b) => b[1] - a[1])[0][0];
+          entryDate = validReleases.filter(r => r.date.slice(5, 10) === modeMmdd).sort((a, b) => a.date.localeCompare(b.date))[0].date;
+        } else if (g['first-release-date'] && g['first-release-date'].length >= 10) {
+          entryDate = g['first-release-date'];
+        }
+        const entries = entryDate ? [{ date: entryDate, title: g.title }] : [];
         for (const { date, title } of entries) {
           const mmdd = date.slice(5, 10);
           if (mmdd.includes('00')) continue;
