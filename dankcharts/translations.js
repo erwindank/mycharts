@@ -903,6 +903,7 @@ const TRANSLATIONS = {
     time_machine_songs: 'Songs',
     time_machine_artists: 'Artists',
     time_machine_albums: 'Albums',
+    tm_hint: '▶ Click a song to add to player queue &nbsp;·&nbsp; Click an artist or album to search Google',
     time_machine_no_data: 'No plays found for today\'s date in past years',
 
     // Landing / Onboarding
@@ -1923,6 +1924,7 @@ const TRANSLATIONS = {
     time_machine_songs: 'Canciones',
     time_machine_artists: 'Artistas',
     time_machine_albums: 'Álbumes',
+    tm_hint: '▶ Haz clic en una canción para añadirla a la cola &nbsp;·&nbsp; Haz clic en un artista o álbum para buscar en Google',
     time_machine_no_data: 'No se encontraron reproducciones para este día en años anteriores',
 
     // Landing / Onboarding
@@ -2943,6 +2945,7 @@ const TRANSLATIONS = {
     time_machine_songs: 'Músicas',
     time_machine_artists: 'Artistas',
     time_machine_albums: 'Álbuns',
+    tm_hint: '▶ Clique em uma música para adicioná-la à fila &nbsp;·&nbsp; Clique em um artista ou álbum para pesquisar no Google',
     time_machine_no_data: 'Nenhuma reprodução encontrada para este dia em anos anteriores',
 
     // Landing / Onboarding
@@ -3963,6 +3966,7 @@ const TRANSLATIONS = {
     time_machine_songs: 'Músicas',
     time_machine_artists: 'Artistas',
     time_machine_albums: 'Álbuns',
+    tm_hint: '▶ Clique numa música para a adicionar à fila &nbsp;·&nbsp; Clique num artista ou álbum para pesquisar no Google',
     time_machine_no_data: 'Nenhuma reprodução encontrada para este dia em anos anteriores',
 
     // Landing / Onboarding
