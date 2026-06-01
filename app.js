@@ -1571,6 +1571,15 @@ function needsOnboarding() {
 
 let _landingSrc = null;
 
+const SAMPLE_SHEET_URL = 'https://docs.google.com/spreadsheets/d/1ulWuTKxreKLUWGBEI0g2d5iMgjHu6y02IFzg6A7BzVA/edit?gid=287480472#gid=287480472';
+
+function loadSampleData() {
+  selectLandingSource('sheets');
+  const input = document.getElementById('landingSheetId');
+  input.value = SAMPLE_SHEET_URL;
+  input.classList.remove('landing-input-error');
+}
+
 function selectLandingSource(src) {
   _landingSrc = src;
   document.querySelectorAll('.landing-card').forEach(c => c.classList.remove('active'));
