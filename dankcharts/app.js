@@ -125,6 +125,12 @@ try {
   applyTheme(saved);
 } catch (e) { applyTheme('navy-dark'); }
 
+// ─── WEEKLY CHART VIEW MODE ────────────────────────────────────
+let weeklyChartViewMode = (() => { try { return localStorage.getItem('dc_weekly_chart_view') || 'table'; } catch(e) { return 'table'; } })();
+let _weeklyViewSongs = [], _weeklyViewMax = 1, _weeklyViewPeaks = null, _weeklyViewMonthlyStats = null;
+let _weeklyViewArtists = [], _weeklyViewArtistsMax = 1;
+let _weeklyViewAlbums  = [], _weeklyViewAlbumsMax  = 1;
+
 // ─── DISPLAY TOGGLES ──────────────────────────────────────────
 const DISPLAY_TOGGLE_CONFIG = {
   'cert':       { btnId: 'toggleCertBtn',      bodyClass: 'hide-cert' },
@@ -5075,6 +5081,17 @@ function renderAll() {
   document.getElementById('paginatedSizeBar').style.display = paginated ? 'flex' : 'none';
   document.getElementById('chartDisplayToggles').style.display =
     ['week', 'month', 'year', 'alltime'].includes(currentPeriod) ? 'flex' : 'none';
+  const _isWeek = currentPeriod === 'week';
+  ['songs','artists','albums'].forEach(tp => {
+    const bar = document.getElementById('weeklyViewBtns-' + tp);
+    if (bar) bar.style.display = _isWeek ? 'flex' : 'none';
+    if (!_isWeek) {
+      const alt = document.getElementById('weeklyAltView-' + tp);
+      if (alt) { alt.style.display = 'none'; alt.innerHTML = ''; }
+      const tbl = document.getElementById(tp + 'Table');
+      if (tbl) tbl.style.display = '';
+    }
+  });
   document.getElementById('togglePeakTagsBtn').style.display =
     (currentPeriod === 'year' || currentPeriod === 'alltime') ? 'none' : '';
   document.getElementById('togglePlaysPeakBtn').style.display =
@@ -7495,6 +7512,10 @@ function renderSongs(plays, peaks, monthlyStats) {
     sorted.forEach((s, i) => { const k = songKey(s); const r = i + 1; peaks.songPeakMap[k] = peaks.songPeakMap[k] ? Math.min(peaks.songPeakMap[k], r) : r; });
   }
   const max = sorted[0]?.count || 1;
+  if (currentPeriod === 'week') {
+    _weeklyViewSongs = sorted; _weeklyViewMax = max;
+    _weeklyViewPeaks = peaks; _weeklyViewMonthlyStats = monthlyStats;
+  }
   const isAllTime = currentPeriod === 'alltime';
   const colCount = monthlyStats ? 7 : 5;
   const imgItems = [];
@@ -7570,6 +7591,7 @@ function renderSongs(plays, peaks, monthlyStats) {
     sbodyS.innerHTML = currPairsS.flatMap(p => p).join('');
     loadImages(imgItems.map(i => ({ ...i, name: i.title })), 'song');
   }
+  if (currentPeriod === 'week') applyWeeklyChartView('songs');
 }
 
 function renderArtists(plays, peaks, monthlyStats) {
@@ -7595,6 +7617,7 @@ function renderArtists(plays, peaks, monthlyStats) {
     sorted.forEach(([artist], i) => { const r = i + 1; peaks.artistPeakMap[artist] = peaks.artistPeakMap[artist] ? Math.min(peaks.artistPeakMap[artist], r) : r; });
   }
   const max = sorted[0]?.[1].count || 1;
+  if (currentPeriod === 'week') { _weeklyViewArtists = fullData.artists; _weeklyViewArtistsMax = max; }
   const isAllTime = currentPeriod === 'alltime';
   const colCount = monthlyStats ? 7 : 5;
   const imgItems = [];
@@ -7662,6 +7685,7 @@ function renderArtists(plays, peaks, monthlyStats) {
     sbodyA.innerHTML = currPairsA.flatMap(p => p).join('');
     loadImages(imgItems, 'artist');
   }
+  if (currentPeriod === 'week') applyWeeklyChartView('artists');
 }
 
 function renderAlbums(plays, peaks, monthlyStats) {
@@ -7686,6 +7710,7 @@ function renderAlbums(plays, peaks, monthlyStats) {
     sorted.forEach(({ album, artist }, i) => { const ak = album + '|||' + artist; const r = i + 1; peaks.albumPeakMap[ak] = peaks.albumPeakMap[ak] ? Math.min(peaks.albumPeakMap[ak], r) : r; });
   }
   const max = sorted[0]?.count || 1;
+  if (currentPeriod === 'week') { _weeklyViewAlbums = fullData.albums; _weeklyViewAlbumsMax = max; }
   const isAllTime = currentPeriod === 'alltime';
   const colCount = monthlyStats ? 7 : 5;
   const imgItems = [];
@@ -7763,6 +7788,171 @@ function renderAlbums(plays, peaks, monthlyStats) {
       loadImages(imgItems, 'album');
     }
   }
+  if (currentPeriod === 'week') applyWeeklyChartView('albums');
+}
+
+// ─── WEEKLY CHART VIEWS ────────────────────────────────────────
+function setWeeklyChartView(mode) {
+  weeklyChartViewMode = mode;
+  try { localStorage.setItem('dc_weekly_chart_view', mode); } catch(e) {}
+  if (typeof dcSaveUserConfig === 'function') dcSaveUserConfig();
+  applyWeeklyChartView();
+}
+
+function applyWeeklyChartView(onlyType) {
+  if (currentPeriod !== 'week') return;
+  document.querySelectorAll('.weekly-view-btn').forEach(b => b.classList.toggle('active', b.dataset.view === weeklyChartViewMode));
+  const isAlt = weeklyChartViewMode !== 'table';
+  const types = onlyType ? [onlyType] : ['songs', 'artists', 'albums'];
+  for (const tp of types) {
+    const tbl = document.getElementById(tp + 'Table');
+    const altView = document.getElementById('weeklyAltView-' + tp);
+    const pgNav = document.getElementById(tp + 'Pagination');
+    if (tbl) tbl.style.display = isAlt ? 'none' : '';
+    if (pgNav) pgNav.style.display = isAlt ? 'none' : '';
+    if (altView) {
+      altView.style.display = isAlt ? 'block' : 'none';
+      if (isAlt) renderWeeklyAltView(tp);
+    }
+  }
+}
+
+function _wvMv(type, idx, k, ms) {
+  if (!ms) return '';
+  const prev = ms.prevChart[type][k];
+  if (!prev) {
+    return ms.everChartedBefore[type].has(k)
+      ? `<span class="wv-re">RE</span>`
+      : `<span class="wv-new">NEW</span>`;
+  }
+  const diff = prev.rank - (idx + 1);
+  if (diff > 0) return `<span class="wv-up">▲${diff}</span>`;
+  if (diff < 0) return `<span class="wv-down">▼${Math.abs(diff)}</span>`;
+  return `<span class="wv-same">—</span>`;
+}
+
+function _wvThumb(imgId, ttl) {
+  return `<div class="thumb-wrap"><div id="${imgId}"><div class="thumb-initials">${esc(initials(ttl))}</div></div></div>`;
+}
+
+function _wvDisp(type, item) {
+  if (type === 'artists') return { ttl: item.name,  sub: item.songs ? tCount('songs', item.songs.size) : '' };
+  if (type === 'albums')  return { ttl: item.album, sub: item.artist };
+  return { ttl: item.title, sub: item.artist };
+}
+
+function renderWeeklyAltView(type) {
+  type = type || 'songs';
+  const container = document.getElementById('weeklyAltView-' + type);
+  const items  = type === 'songs' ? _weeklyViewSongs : type === 'artists' ? _weeklyViewArtists : _weeklyViewAlbums;
+  const maxVal = type === 'songs' ? _weeklyViewMax   : type === 'artists' ? _weeklyViewArtistsMax : _weeklyViewAlbumsMax;
+  if (!container || !items.length) return;
+  const ms = _weeklyViewMonthlyStats;
+  const imgItems = [];
+  const renderers = { grid: _wvGrid, compact: _wvCompact, mosaic: _wvMosaic, filmstrip: _wvFilmstrip, stack: _wvStack };
+  const fn = renderers[weeklyChartViewMode];
+  container.innerHTML = fn ? fn(items, maxVal, ms, imgItems, type) : '';
+  if (imgItems.length) {
+    const imgType = type === 'songs' ? 'song' : type === 'artists' ? 'artist' : 'album';
+    loadImages(imgItems.map(i => ({ ...i, name: i.title || i.name || i.album })), imgType);
+  }
+}
+
+function _wvItem(type, item, i, ms, imgItems, imgPrefix) {
+  let k, prefKey;
+  const imgId = (imgPrefix || 'wv-' + type[0] + 'img') + '-' + i;
+  if (type === 'artists') {
+    k = item.name;
+    prefKey = 'artist:' + item.name.toLowerCase();
+    imgItems.push({ imgId, name: item.name, artist: item.name, prefKey });
+  } else if (type === 'albums') {
+    k = item.album + '|||' + item.artist;
+    prefKey = 'album:' + item.artist.toLowerCase() + '|||' + item.album.toLowerCase();
+    imgItems.push({ imgId, album: item.album, artist: item.artist, name: item.album, prefKey });
+  } else {
+    k = songKey(item);
+    prefKey = 'song:' + item.artist.toLowerCase() + '|||' + item.title.toLowerCase();
+    imgItems.push({ imgId, title: item.title, artist: item.artist, album: item.album, prefKey });
+  }
+  return { k, imgId, prefKey, mv: _wvMv(type, i, k, ms) };
+}
+
+function _wvGrid(items, max, ms, imgItems, type) {
+  type = type || 'songs';
+  return `<div class="wv-grid">${items.map((s, i) => {
+    const { k, imgId, mv } = _wvItem(type, s, i, ms, imgItems);
+    const { ttl, sub } = _wvDisp(type, s);
+    const barW = Math.round(s.count / max * 100);
+    return `<div class="wv-card wv-grid-card${i < 3 ? ' wv-r' + (i+1) : ''}">
+      <div class="wv-card-art"><div class="wv-thumb wv-thumb-lg">${_wvThumb(imgId, ttl)}</div>
+        <span class="wv-rank-badge">${i+1}</span>${mv ? `<span class="wv-mv-ov">${mv}</span>` : ''}</div>
+      <div class="wv-card-body"><div class="wv-ttl">${esc(ttl)}</div><div class="wv-art">${esc(sub)}</div>
+        <div class="wv-plays">${s.count} ${s.count===1?'play':'plays'}</div>
+        <div class="wv-bar"><div class="wv-bar-fill" style="width:${barW}%"></div></div></div></div>`;
+  }).join('')}</div>`;
+}
+
+function _wvCompact(items, max, ms, imgItems, type) {
+  type = type || 'songs';
+  return `<div class="wv-compact">${items.map((s, i) => {
+    const { k, imgId, mv } = _wvItem(type, s, i, ms, imgItems);
+    const { ttl, sub } = _wvDisp(type, s);
+    return `<div class="wv-cx-row${i < 3 ? ' wv-r' + (i+1) : ''}">
+      <span class="wv-cx-rank">${i+1}</span>
+      <div class="wv-thumb wv-thumb-sm">${_wvThumb(imgId, ttl)}</div>
+      <span class="wv-cx-title">${esc(ttl)}</span><span class="wv-cx-sep">—</span>
+      <span class="wv-cx-artist">${esc(sub)}</span>
+      <span class="wv-cx-mv">${mv}</span><span class="wv-cx-plays">${s.count}</span></div>`;
+  }).join('')}</div>`;
+}
+
+function _wvMosaic(items, max, ms, imgItems, type) {
+  type = type || 'songs';
+  return `<div class="wv-mosaic">${items.map((s, i) => {
+    const { k, imgId, mv } = _wvItem(type, s, i, ms, imgItems);
+    const { ttl, sub } = _wvDisp(type, s);
+    const sz = Math.max(56, Math.round(56 + (s.count / max) * 120));
+    return `<div class="wv-mos-item" style="width:${sz}px;height:${sz}px" title="#${i+1}: ${esc(ttl)} — ${esc(sub)}">
+      <div class="wv-thumb wv-thumb-full">${_wvThumb(imgId, ttl)}</div>
+      <span class="wv-rank-badge">${i+1}</span>
+      <div class="wv-mos-hover"><div class="wv-ttl">${esc(ttl)}</div><div class="wv-art">${esc(sub)}</div><div class="wv-plays">${s.count}</div></div>
+    </div>`;
+  }).join('')}</div>`;
+}
+
+function _wvFilmstrip(items, max, ms, imgItems, type) {
+  type = type || 'songs';
+  return `<div class="wv-filmstrip">${items.map((s, i) => {
+    const { k, imgId, mv } = _wvItem(type, s, i, ms, imgItems);
+    const { ttl, sub } = _wvDisp(type, s);
+    const barW = Math.round(s.count / max * 100);
+    return `<div class="wv-card wv-film-card${i < 3 ? ' wv-r' + (i+1) : ''}">
+      <div class="wv-film-rank">${i+1} ${mv}</div>
+      <div class="wv-thumb wv-thumb-lg">${_wvThumb(imgId, ttl)}</div>
+      <div class="wv-ttl">${esc(ttl)}</div><div class="wv-art">${esc(sub)}</div>
+      <div class="wv-plays">${s.count}</div>
+      <div class="wv-bar"><div class="wv-bar-fill" style="width:${barW}%"></div></div></div>`;
+  }).join('')}</div>`;
+}
+
+function _wvStack(items, max, ms, imgItems, type) {
+  type = type || 'songs';
+  return `<div class="wv-stack">${items.map((s, i) => {
+    const { k, imgId, mv } = _wvItem(type, s, i, ms, imgItems);
+    const { ttl, sub } = _wvDisp(type, s);
+    const pk = type === 'songs' ? _weeklyViewPeaks?.songPeakMap[k] : null;
+    const cumSongPlays = type === 'songs' && cumulativeMaps ? (cumulativeMaps.songs[k] || 0) : 0;
+    const weeks = ms ? (ms.periodsOnChart[type][k] || 1) : null;
+    const barW = Math.round(s.count / max * 100);
+    return `<div class="wv-stk-card${i < 3 ? ' wv-r' + (i+1) : ''}">
+      <div class="wv-stk-rank">${i+1}</div>
+      <div class="wv-thumb wv-thumb-lg">${_wvThumb(imgId, ttl)}</div>
+      <div class="wv-stk-body">
+        <div class="wv-ttl">${esc(ttl)}${pk ? peakBadge(pk) : ''}${type === 'songs' ? certBadge(cumSongPlays, 'song') : ''}</div>
+        <div class="wv-art">${esc(sub)}</div>
+        <div class="wv-stk-meta"><span class="wv-plays">${s.count} ${s.count===1?'play':'plays'}</span> ${mv}${weeks ? `<span class="wv-wks">${weeks}w</span>` : ''}</div>
+        <div class="wv-bar"><div class="wv-bar-fill" style="width:${barW}%"></div></div></div></div>`;
+  }).join('')}</div>`;
 }
 
 // ─── WEEKLY DROPOUTS ───────────────────────────────────────────

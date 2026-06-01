@@ -368,6 +368,17 @@
         <button class="section-replay-btn" id="songsReplayBtn" onclick="replayChartAnimation('songs')" title="Animate chart — show rank changes from previous period" style="display:none">▶ Animate Chart</button>
       </div>
       <div class="section-sub" id="songsSubtitle" data-i18n="sub_songs">By play count for the selected period</div>
+      <div class="weekly-view-bar" id="weeklyViewBtns-songs" style="display:none;">
+        <label class="weekly-view-label">VIEW:</label>
+        <div class="weekly-view-btns">
+          <button class="weekly-view-btn active" data-view="table"     onclick="setWeeklyChartView('table')">Table</button>
+          <button class="weekly-view-btn"         data-view="grid"      onclick="setWeeklyChartView('grid')">Card Grid</button>
+          <button class="weekly-view-btn"         data-view="compact"   onclick="setWeeklyChartView('compact')">Compact</button>
+          <button class="weekly-view-btn"         data-view="mosaic"    onclick="setWeeklyChartView('mosaic')">Mosaic</button>
+          <button class="weekly-view-btn"         data-view="filmstrip" onclick="setWeeklyChartView('filmstrip')">Filmstrip</button>
+          <button class="weekly-view-btn"         data-view="stack"     onclick="setWeeklyChartView('stack')">Stack</button>
+        </div>
+      </div>
       <div class="paginated-search" id="songsSearch">
         <input type="text" id="songsSearchInput" placeholder="Search songs or artists…" oninput="applySearch('songs')"
           data-i18n-placeholder="search_songs_placeholder" />
@@ -392,6 +403,7 @@
           </thead>
           <tbody id="songsBody"></tbody>
         </table>
+        <div id="weeklyAltView-songs" class="weekly-alt-view" style="display:none;"></div>
         <div class="page-nav" id="songsPagination" style="display:none;">
           <button class="page-nav-first" onclick="goToPage('songs',0)" title="First page">|◄</button>
           <button class="page-nav-prev" onclick="changePage('songs',-1)">◄ PREV</button>
@@ -456,6 +468,17 @@
         <button class="section-replay-btn" id="artistsReplayBtn" onclick="replayChartAnimation('artists')" title="Animate chart — show rank changes from previous period" style="display:none">▶ Animate Chart</button>
       </div>
       <div class="section-sub" data-i18n="sub_artists">By total play count across all songs</div>
+      <div class="weekly-view-bar" id="weeklyViewBtns-artists" style="display:none;">
+        <label class="weekly-view-label">VIEW:</label>
+        <div class="weekly-view-btns">
+          <button class="weekly-view-btn active" data-view="table"     onclick="setWeeklyChartView('table')">Table</button>
+          <button class="weekly-view-btn"         data-view="grid"      onclick="setWeeklyChartView('grid')">Card Grid</button>
+          <button class="weekly-view-btn"         data-view="compact"   onclick="setWeeklyChartView('compact')">Compact</button>
+          <button class="weekly-view-btn"         data-view="mosaic"    onclick="setWeeklyChartView('mosaic')">Mosaic</button>
+          <button class="weekly-view-btn"         data-view="filmstrip" onclick="setWeeklyChartView('filmstrip')">Filmstrip</button>
+          <button class="weekly-view-btn"         data-view="stack"     onclick="setWeeklyChartView('stack')">Stack</button>
+        </div>
+      </div>
       <div class="paginated-search" id="artistsSearch">
         <input type="text" id="artistsSearchInput" placeholder="Search artists…" oninput="applySearch('artists')"
           data-i18n-placeholder="search_artists_placeholder" />
@@ -480,6 +503,7 @@
           </thead>
           <tbody id="artistsBody"></tbody>
         </table>
+        <div id="weeklyAltView-artists" class="weekly-alt-view" style="display:none;"></div>
         <div class="page-nav" id="artistsPagination" style="display:none;">
           <button class="page-nav-first" onclick="goToPage('artists',0)" title="First page">|◄</button>
           <button class="page-nav-prev" onclick="changePage('artists',-1)">◄ PREV</button>
@@ -543,6 +567,17 @@
         <button class="section-replay-btn" id="albumsReplayBtn" onclick="replayChartAnimation('albums')" title="Animate chart — show rank changes from previous period" style="display:none">▶ Animate Chart</button>
       </div>
       <div class="section-sub" data-i18n="sub_albums">By total play count across all tracks</div>
+      <div class="weekly-view-bar" id="weeklyViewBtns-albums" style="display:none;">
+        <label class="weekly-view-label">VIEW:</label>
+        <div class="weekly-view-btns">
+          <button class="weekly-view-btn active" data-view="table"     onclick="setWeeklyChartView('table')">Table</button>
+          <button class="weekly-view-btn"         data-view="grid"      onclick="setWeeklyChartView('grid')">Card Grid</button>
+          <button class="weekly-view-btn"         data-view="compact"   onclick="setWeeklyChartView('compact')">Compact</button>
+          <button class="weekly-view-btn"         data-view="mosaic"    onclick="setWeeklyChartView('mosaic')">Mosaic</button>
+          <button class="weekly-view-btn"         data-view="filmstrip" onclick="setWeeklyChartView('filmstrip')">Filmstrip</button>
+          <button class="weekly-view-btn"         data-view="stack"     onclick="setWeeklyChartView('stack')">Stack</button>
+        </div>
+      </div>
       <div class="paginated-search" id="albumsSearch">
         <input type="text" id="albumsSearchInput" placeholder="Search albums or artists…"
           oninput="applySearch('albums')" data-i18n-placeholder="search_albums_placeholder" />
@@ -567,6 +602,7 @@
           </thead>
           <tbody id="albumsBody"></tbody>
         </table>
+        <div id="weeklyAltView-albums" class="weekly-alt-view" style="display:none;"></div>
         <div class="page-nav" id="albumsPagination" style="display:none;">
           <button class="page-nav-first" onclick="goToPage('albums',0)" title="First page">|◄</button>
           <button class="page-nav-prev" onclick="changePage('albums',-1)">◄ PREV</button>
