@@ -230,9 +230,9 @@
       <span id="syncStatus" data-i18n="sync_connecting">⟳ Connecting...</span><button id="syncDismissBtn" title="Dismiss" style="display:none">×</button>
       <div class="sync-bar-right">
         <div class="sync-bar-actions">
-          <button id="syncNowBtn" data-i18n="sync_now">↺ SYNC NOW</button>
-          <button id="configureSourceBtn" onclick="openSourceModal()" title="Configure data source" data-i18n="btn_configure">⚙ Configure</button>
-          <button id="scrobbleBtn" onclick="openScrobbleModal()" title="Add a play manually" style="display:none">✚ Add Play</button>
+          <button id="syncNowBtn" data-i18n-html="sync_now"><span class="btn-icon">↺</span> SYNC NOW</button>
+          <button id="configureSourceBtn" onclick="openSourceModal()" title="Configure data source" data-i18n-html="btn_configure"><span class="btn-icon">⚙</span> Configure</button>
+          <button id="scrobbleBtn" onclick="openScrobbleModal()" title="Add a play manually" style="display:none" data-i18n-html="btn_add_play"><span class="btn-icon">✚</span> Add Play</button>
         </div>
         <div class="sync-bar-account">
           <button class="dc-signin-btn sync-signin-btn" onclick="dcSignIn()" title="Sign in to sync settings across devices">Sign In</button>
@@ -966,7 +966,7 @@
         <button class="raw-clear-btn" id="rawClearBtn" data-i18n="raw_clear">✕ Clear</button>
         <label class="raw-corrected-toggle" title="Show only entries that have been autocorrected by your rules">
           <input type="checkbox" id="rawFilterCorrected">
-          <span>~ corrected only</span>
+          <span data-i18n="raw_corrected_only">~ corrected only</span>
         </label>
         <button class="raw-clear-btn" id="manageRulesBtn" onclick="openRulesModal()" style="margin-left:auto" data-i18n="modal_rules_open_btn">⚙ Auto-correct Rules</button>
       </div>

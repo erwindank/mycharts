@@ -80,7 +80,8 @@ const TRANSLATIONS = {
     awards_cat_stat_top_song: 'Most Played Song',
     awards_cat_stat_top_album: 'Most Played Album',
     awards_cat_stat_top_artist: 'Most Played Artist',
-    btn_configure: '⚙ Configure',
+    btn_configure: '<span class="btn-icon">⚙</span> Configure',
+    btn_add_play: '<span class="btn-icon">✚</span> Add Play',
 
     // Chart size bar
     chartsize_label: 'Chart Size:',
@@ -94,7 +95,7 @@ const TRANSLATIONS = {
 
     // Sync bar
     sync_connecting: '⟳ Connecting to Google Sheets...',
-    sync_now: '↺ SYNC NOW',
+    sync_now: '<span class="btn-icon">↺</span> SYNC NOW',
     sync_ok: '✓ Synced · {{time}}  ({{n}} plays loaded)',
     sync_ok_cached: '✓ Synced · {{time}}  ({{n}} plays loaded) · cached {{mins}}m ago',
     sync_failed: '✕ Sync failed — check sheet is public · {{error}}',
@@ -353,6 +354,7 @@ const TRANSLATIONS = {
     raw_search_albums: 'Search albums…',
     raw_search_date: 'e.g. 2024 or Mar 2024…',
     raw_clear: '✕ Clear',
+    raw_corrected_only: '~ corrected only',
     raw_th_num: '#',
     raw_th_date_time: 'Date & Time',
     raw_th_song_title: 'Song Title',
@@ -1101,7 +1103,8 @@ const TRANSLATIONS = {
     awards_cat_stat_top_song: 'Canción más Escuchada',
     awards_cat_stat_top_album: 'Álbum más Escuchado',
     awards_cat_stat_top_artist: 'Artista más Escuchado',
-    btn_configure: '⚙ Configurar',
+    btn_configure: '<span class="btn-icon">⚙</span> Configurar',
+    btn_add_play: '<span class="btn-icon">✚</span> Agregar',
 
     // Chart size bar
     chartsize_label: 'Tamaño del Ranking:',
@@ -1115,7 +1118,7 @@ const TRANSLATIONS = {
 
     // Sync bar
     sync_connecting: '⟳ Conectando con Google Sheets...',
-    sync_now: '↺ SINCRONIZAR',
+    sync_now: '<span class="btn-icon">↺</span> SINCRONIZAR',
     sync_ok: '✓ Sincronizado · {{time}}  ({{n}} reproducciones cargadas)',
     sync_ok_cached: '✓ Sincronizado · {{time}}  ({{n}} reproducciones cargadas) · caché hace {{mins}}m',
     sync_failed: '✕ Error de sincronización — verifica que la hoja sea pública · {{error}}',
@@ -1269,7 +1272,7 @@ const TRANSLATIONS = {
     mb_type_other: 'Otro',
     mb_type_release: 'Lanzamiento',
     sec_graphs_title: '📈 Gráficas Históricas',
-    sec_raw_data_title: '⊞ Datos Brutos de Scrobbles',
+    sec_raw_data_title: '⊞ Base de Datos de Registros de Streaming',
     sec_records_title: '🏆 Récords y Salón de la Fama',
     collapsed_hint: 'contraído — clic en + para expandir',
 
@@ -1374,6 +1377,7 @@ const TRANSLATIONS = {
     raw_search_albums: 'Buscar álbumes…',
     raw_search_date: 'ej. 2024 o Mar 2024…',
     raw_clear: '✕ Limpiar',
+    raw_corrected_only: '~ solo corregidos',
     raw_th_num: '#',
     raw_th_date_time: 'Fecha y Hora',
     raw_th_song_title: 'Título de Canción',
@@ -2122,7 +2126,8 @@ const TRANSLATIONS = {
     awards_cat_stat_top_song: 'Música mais Ouvida',
     awards_cat_stat_top_album: 'Álbum mais Ouvido',
     awards_cat_stat_top_artist: 'Artista mais Ouvido',
-    btn_configure: '⚙ Configurar',
+    btn_configure: '<span class="btn-icon">⚙</span> Configurar',
+    btn_add_play: '<span class="btn-icon">✚</span> Adicionar',
 
     // Chart size bar
     chartsize_label: 'Tamanho da Parada:',
@@ -2136,7 +2141,7 @@ const TRANSLATIONS = {
 
     // Sync bar
     sync_connecting: '⟳ Conectando ao Google Sheets...',
-    sync_now: '↺ SINCRONIZAR',
+    sync_now: '<span class="btn-icon">↺</span> SINCRONIZAR',
     sync_ok: '✓ Sincronizado · {{time}}  ({{n}} reproduções carregadas)',
     sync_ok_cached: '✓ Sincronizado · {{time}}  ({{n}} reproduções carregadas) · cache há {{mins}}m',
     sync_failed: '✕ Falha na sincronização — verifique se a planilha é pública · {{error}}',
@@ -2395,6 +2400,7 @@ const TRANSLATIONS = {
     raw_search_albums: 'Buscar álbuns…',
     raw_search_date: 'ex. 2024 ou Mar 2024…',
     raw_clear: '✕ Limpar',
+    raw_corrected_only: '~ só corrigidos',
     raw_th_num: '#',
     raw_th_date_time: 'Data e Hora',
     raw_th_song_title: 'Título da Música',
@@ -3143,7 +3149,8 @@ const TRANSLATIONS = {
     awards_cat_stat_top_song: 'Música mais Ouvida',
     awards_cat_stat_top_album: 'Álbum mais Ouvido',
     awards_cat_stat_top_artist: 'Artista mais Ouvido',
-    btn_configure: '⚙ Configurar',
+    btn_configure: '<span class="btn-icon">⚙</span> Configurar',
+    btn_add_play: '<span class="btn-icon">✚</span> Adicionar',
 
     // Chart size bar
     chartsize_label: 'Tamanho do Top:',
@@ -3157,7 +3164,7 @@ const TRANSLATIONS = {
 
     // Sync bar
     sync_connecting: '⟳ A ligar ao Google Sheets...',
-    sync_now: '↺ SINCRONIZAR',
+    sync_now: '<span class="btn-icon">↺</span> SINCRONIZAR',
     sync_ok: '✓ Sincronizado · {{time}}  ({{n}} reproduções carregadas)',
     sync_ok_cached: '✓ Sincronizado · {{time}}  ({{n}} reproduções carregadas) · cache há {{mins}}m',
     sync_failed: '✕ Falha na sincronização — verifique se a folha é pública · {{error}}',
@@ -3416,6 +3423,7 @@ const TRANSLATIONS = {
     raw_search_albums: 'Pesquisar álbuns…',
     raw_search_date: 'ex. 2024 ou Mar 2024…',
     raw_clear: '✕ Limpar',
+    raw_corrected_only: '~ só corrigidos',
     raw_th_num: '#',
     raw_th_date_time: 'Data e Hora',
     raw_th_song_title: 'Título da Música',

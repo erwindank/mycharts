@@ -1526,6 +1526,12 @@
       cursor: default;
     }
 
+    .sync-bar-actions .btn-icon {
+      font-size: 1.25em;
+      line-height: 1;
+      vertical-align: middle;
+    }
+
     @keyframes configure-attention-pulse {
       0%, 100% { box-shadow: 0 0 0 0 transparent; border-color: var(--gold1); color: var(--gold1); }
       50%       { box-shadow: 0 0 10px 3px var(--gold1); border-color: var(--gold2); color: var(--gold2); }
