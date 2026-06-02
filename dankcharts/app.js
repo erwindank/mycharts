@@ -2492,6 +2492,7 @@ function finalizeLoad() {
 
   renderHeroStats();
   renderStreakBanner();
+  handleChartHash();
 }
 
 function splitCsvRow(row) {
@@ -2704,6 +2705,14 @@ function navigateToRecPeriod(period, periodKey) {
     renderAll();
   }
 }
+
+// ─── CHART HASH ROUTING ───────────────────────────────────────
+// Allows "Open in new tab" on chart-period links via #chart/period/periodKey
+function handleChartHash() {
+  const m = window.location.hash.match(/^#chart\/(week|month|year)\/(.+)$/);
+  if (m) navigateToRecPeriod(m[1], m[2]);
+}
+window.addEventListener('hashchange', handleChartHash);
 
 // ─── RECORDS & HALL OF FAME ────────────────────────────────────
 function buildRecords() {
@@ -3189,7 +3198,7 @@ function buildRecords() {
           const runId = runBaseId + '-' + i;
           let row = ent.nameRow(e[0], e[1], i, imgId) + '<td class="rec-count">' + e[1].count + '</td><td class="rec-meta">' + fmtPeriodKey(e[1].firstPeriod, cfg.pt) + '</td>';
           if (cfg.pt !== 'year') {
-            row += '<td class="rec-meta"><a href="javascript:void(0)" class="rec-date-link" onclick="navigateToRecPeriod(\'' + cfg.pt + '\',\'' + e[1].lastPeriod + '\')">' + fmtPeriodKey(e[1].lastPeriod, cfg.pt) + '</a></td>';
+            row += '<td class="rec-meta"><a href="#chart/' + cfg.pt + '/' + e[1].lastPeriod + '" class="rec-date-link" onclick="event.preventDefault();navigateToRecPeriod(\'' + cfg.pt + '\',\'' + e[1].lastPeriod + '\')">' + fmtPeriodKey(e[1].lastPeriod, cfg.pt) + '</a></td>';
           }
           row += '<td class="rec-run-toggle-cell"><button class="rec-run-toggle-btn" onclick="event.stopPropagation();toggleRecRun(this,\'' + runId + '\')">▸</button></td>';
           return row;
@@ -3264,7 +3273,7 @@ function buildRecords() {
           + '<span class="pak-expand-album">💿 ' + esc(pw.album) + '</span>'
           + '<span class="pak-expand-song"><span class="pak-col-icon">🎵</span>' + esc(pw.song) + '</span>'
           + '<a class="pak-date pak-date-link" href="javascript:void(0)" onclick="showPakWeekPreview(\'' + pw.weekKey + '\',this)">' + fmtPeriodKey(pw.weekKey, 'week') + '</a>'
-          + '<a class="pak-expand-link" href="javascript:void(0)" onclick="navigateToRecPeriod(\'week\',\'' + pw.weekKey + '\')">' + t('rec_pak_week_preview_link') + '</a>'
+          + '<a class="pak-expand-link" href="#chart/week/' + pw.weekKey + '" onclick="event.preventDefault();navigateToRecPeriod(\'week\',\'' + pw.weekKey + '\')">' + t('rec_pak_week_preview_link') + '</a>'
           + '</div>';
       }
       ph += '</div></td></tr>';
@@ -6954,7 +6963,7 @@ function showCrPreview(periodKey, type, encodedKey, boxEl, periodName) {
   popup.className = 'cr-preview';
   popup.id = 'crPreviewPopup';
   popup.style.position = 'fixed';
-  popup.innerHTML = `<button class="cr-preview-close" onclick="hideCrPreview()">✕</button><div class="cr-preview-title"><a class="cr-preview-link" href="javascript:void(0)" onclick="navigateToCrChart('${period}','${periodKey}')">${esc(title)}</a> · ${typeLabels[type]}</div>${items}`;
+  popup.innerHTML = `<button class="cr-preview-close" onclick="hideCrPreview()">✕</button><div class="cr-preview-title"><a class="cr-preview-link" href="#chart/${period}/${periodKey}" onclick="event.preventDefault();navigateToCrChart('${period}','${periodKey}')">${esc(title)}</a> · ${typeLabels[type]}</div>${items}`;
   document.body.appendChild(popup);
   // Position near box
   const rect = boxEl.getBoundingClientRect();
@@ -7011,7 +7020,7 @@ function showPakWeekPreview(weekKey, triggerEl) {
   popup.id = 'pakWeekPreviewPopup';
   popup.style.position = 'fixed';
   const title = crPeriodTitle('week', weekKey);
-  const navigateLink = `<a class="cr-preview-link" href="javascript:void(0)" onclick="hidePakWeekPreview();navigateToRecPeriod('week','${weekKey}')">${t('rec_pak_week_preview_link')}</a>`;
+  const navigateLink = `<a class="cr-preview-link" href="#chart/week/${weekKey}" onclick="event.preventDefault();hidePakWeekPreview();navigateToRecPeriod('week','${weekKey}')">${t('rec_pak_week_preview_link')}</a>`;
   if (!crData || !crData.periodMap[weekKey]) {
     popup.innerHTML = `<button class="cr-preview-close" onclick="hidePakWeekPreview()">✕</button><div class="cr-preview-title">${esc(title)}</div><div style="padding:4px 0;font-size:0.62rem;color:var(--text3);">${navigateLink}</div>`;
   } else {
@@ -7060,7 +7069,7 @@ function showDebutWeekPreview(weekKey, triggerEl, event) {
   popup.id = 'debutWeekPreviewPopup';
   popup.style.position = 'fixed';
   const title = crPeriodTitle('week', weekKey);
-  const navigateLink = `<a class="cr-preview-link" href="javascript:void(0)" onclick="hideDebutWeekPreview();navigateToRecPeriod('week','${weekKey}')">${t('rec_pak_week_preview_link')}</a>`;
+  const navigateLink = `<a class="cr-preview-link" href="#chart/week/${weekKey}" onclick="event.preventDefault();hideDebutWeekPreview();navigateToRecPeriod('week','${weekKey}')">${t('rec_pak_week_preview_link')}</a>`;
   if (!crData || !crData.periodMap || !crData.periodMap[weekKey]) {
     popup.innerHTML = `<button class="cr-preview-close" onclick="hideDebutWeekPreview()">✕</button><div class="cr-preview-title">${esc(title)}</div><div style="padding:4px 0;font-size:0.62rem;color:var(--text3);">${navigateLink}</div>`;
   } else {
@@ -7108,7 +7117,7 @@ function showNewChartRecPreview(pt, periodKey, triggerEl, event) {
   popup.id = 'newChartRecPreviewPopup';
   popup.style.position = 'fixed';
   const title = crPeriodTitle(pt, periodKey);
-  const navigateLink = `<a class="cr-preview-link" href="javascript:void(0)" onclick="hideNewChartRecPreview();navigateToRecPeriod('${pt}','${periodKey}')">${t('rec_pak_week_preview_link')}</a>`;
+  const navigateLink = `<a class="cr-preview-link" href="#chart/${pt}/${periodKey}" onclick="event.preventDefault();hideNewChartRecPreview();navigateToRecPeriod('${pt}','${periodKey}')">${t('rec_pak_week_preview_link')}</a>`;
   if (!pm) {
     popup.innerHTML = `<button class="cr-preview-close" onclick="hideNewChartRecPreview()">✕</button><div class="cr-preview-title">${esc(title)}</div><div style="padding:4px 0;font-size:0.62rem;color:var(--text3);">${navigateLink}</div>`;
   } else {
@@ -10886,7 +10895,7 @@ function openArtistModal(artistName) {
         <td><button class="cr-toggle-btn" title="${t('tooltip_cr_toggle_btn_song')}" onclick="event.stopPropagation();toggleChartRun(this,'${rowId}')">📊</button></td>
         <td class="modal-rank-col">#${cr.peak}</td>
         <td><div class="song-title">${esc(s.title)}${certBadge(s.count, 'song')}</div><div class="song-album">${esc(s.album)}</div></td>
-        <td><a class="modal-period-link" href="javascript:void(0)" onclick="event.stopPropagation();goToPeriodFromArtistModal('year','${bestYear}')">${bestYear}</a></td>
+        <td><a class="modal-period-link" href="#chart/year/${bestYear}" onclick="event.preventDefault();event.stopPropagation();goToPeriodFromArtistModal('year','${bestYear}')">${bestYear}</a></td>
         <td class="modal-date-col">${peakEntry.days}d</td>
         <td class="modal-date-col">${streak}d</td>
         <td class="modal-plays-col">${peakEntry.plays}</td>
@@ -10915,7 +10924,7 @@ function openArtistModal(artistName) {
         <td><button class="cr-toggle-btn" title="${t('tooltip_cr_toggle_btn_song')}" onclick="event.stopPropagation();toggleChartRun(this,'${rowId}')">📊</button></td>
         <td class="modal-rank-col">#${cr.peak}</td>
         <td><div class="song-title">${esc(s.title)}${certBadge(s.count, 'song')}</div><div class="song-album">${esc(s.album)}</div></td>
-        <td><a class="modal-period-link" href="javascript:void(0)" onclick="event.stopPropagation();goToPeriodFromArtistModal('month','${bestMonth}')">${crPeriodLabel('month', bestMonth)}</a></td>
+        <td><a class="modal-period-link" href="#chart/month/${bestMonth}" onclick="event.preventDefault();event.stopPropagation();goToPeriodFromArtistModal('month','${bestMonth}')">${crPeriodLabel('month', bestMonth)}</a></td>
         <td class="modal-date-col">${peakEntry.days}d</td>
         <td class="modal-date-col">${streak}d</td>
         <td class="modal-plays-col">${peakEntry.plays}</td>
@@ -10943,7 +10952,7 @@ function openArtistModal(artistName) {
         <td><button class="cr-toggle-btn" title="${t('tooltip_cr_toggle_btn_song')}" onclick="event.stopPropagation();toggleChartRun(this,'${rowId}')">📊</button></td>
         <td class="modal-rank-col">#${cr.peak}</td>
         <td><div class="song-title">${esc(s.title)}${certBadge(s.count, 'song')}</div><div class="song-album">${esc(s.album)}</div></td>
-        <td><a class="modal-period-link" href="javascript:void(0)" onclick="event.stopPropagation();goToPeriodFromArtistModal('week','${bestWeek}')">${crPeriodLabel('week', bestWeek)}</a></td>
+        <td><a class="modal-period-link" href="#chart/week/${bestWeek}" onclick="event.preventDefault();event.stopPropagation();goToPeriodFromArtistModal('week','${bestWeek}')">${crPeriodLabel('week', bestWeek)}</a></td>
         <td class="modal-date-col">${peakEntry.days}d</td>
         <td class="modal-date-col">${consec > 1 ? consec + '×' : '—'}</td>
         <td class="modal-plays-col">${peakEntry.plays}</td>
@@ -11012,7 +11021,7 @@ function openArtistModal(artistName) {
         <td><button class="cr-toggle-btn" title="${t('tooltip_cr_toggle_btn_album')}" onclick="event.stopPropagation();toggleChartRun(this,'${rowId}')">📊</button></td>
         <td class="modal-rank-col">#${cr.peak}</td>
         <td><div class="song-title">${esc(a.album)}${certBadge(a.count, 'album')}</div><div class="song-album">${a.tracks.size} ${tUnit('tracks', a.tracks.size)}</div></td>
-        <td><a class="modal-period-link" href="javascript:void(0)" onclick="event.stopPropagation();goToPeriodFromArtistModal('year','${bestYear}')">${bestYear}</a></td>
+        <td><a class="modal-period-link" href="#chart/year/${bestYear}" onclick="event.preventDefault();event.stopPropagation();goToPeriodFromArtistModal('year','${bestYear}')">${bestYear}</a></td>
         <td class="modal-date-col">${peakEntry.days}d</td>
         <td class="modal-date-col">${streak}d</td>
         <td class="modal-plays-col">${peakEntry.plays}</td>
@@ -11042,7 +11051,7 @@ function openArtistModal(artistName) {
         <td><button class="cr-toggle-btn" title="${t('tooltip_cr_toggle_btn_album')}" onclick="event.stopPropagation();toggleChartRun(this,'${rowId}')">📊</button></td>
         <td class="modal-rank-col">#${cr.peak}</td>
         <td><div class="song-title">${esc(a.album)}${certBadge(a.count, 'album')}</div><div class="song-album">${a.tracks.size} ${tUnit('tracks', a.tracks.size)}</div></td>
-        <td><a class="modal-period-link" href="javascript:void(0)" onclick="event.stopPropagation();goToPeriodFromArtistModal('month','${bestMonth}')">${crPeriodLabel('month', bestMonth)}</a></td>
+        <td><a class="modal-period-link" href="#chart/month/${bestMonth}" onclick="event.preventDefault();event.stopPropagation();goToPeriodFromArtistModal('month','${bestMonth}')">${crPeriodLabel('month', bestMonth)}</a></td>
         <td class="modal-date-col">${peakEntry.days}d</td>
         <td class="modal-date-col">${streak}d</td>
         <td class="modal-plays-col">${peakEntry.plays}</td>
@@ -11071,7 +11080,7 @@ function openArtistModal(artistName) {
         <td><button class="cr-toggle-btn" title="${t('tooltip_cr_toggle_btn_album')}" onclick="event.stopPropagation();toggleChartRun(this,'${rowId}')">📊</button></td>
         <td class="modal-rank-col">#${cr.peak}</td>
         <td><div class="song-title">${esc(a.album)}${certBadge(a.count, 'album')}</div><div class="song-album">${a.tracks.size} ${tUnit('tracks', a.tracks.size)}</div></td>
-        <td><a class="modal-period-link" href="javascript:void(0)" onclick="event.stopPropagation();goToPeriodFromArtistModal('week','${bestWeek}')">${crPeriodLabel('week', bestWeek)}</a></td>
+        <td><a class="modal-period-link" href="#chart/week/${bestWeek}" onclick="event.preventDefault();event.stopPropagation();goToPeriodFromArtistModal('week','${bestWeek}')">${crPeriodLabel('week', bestWeek)}</a></td>
         <td class="modal-date-col">${peakEntry.days}d</td>
         <td class="modal-date-col">${consec > 1 ? consec + '×' : '—'}</td>
         <td class="modal-plays-col">${peakEntry.plays}</td>
