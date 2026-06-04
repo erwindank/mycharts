@@ -1136,7 +1136,7 @@ const TRANSLATIONS = {
     stat_total_plays: 'Reproducciones',
     stat_unique_songs: 'Canciones Únicas',
     stat_artists: 'Artistas',
-    stat_albums: 'Álbumes y Singles',
+    stat_albums: 'Álbumes y Sencillos',
     stat_best_day: 'MEJOR DÍA',
     stat_new_songs: 'CANCIONES NUEVAS',
     stat_new_artists: 'ARTISTAS NUEVOS',
