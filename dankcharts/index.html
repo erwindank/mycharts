@@ -2279,7 +2279,8 @@
 
   <!-- ── Edit Scrobble Modal ── -->
   <div id="editScrobbleModal" class="modal-overlay" role="dialog" aria-modal="true">
-    <div class="src-modal-box scrobble-modal-box">
+    <div class="src-modal-box scrobble-modal-box" style="position:relative">
+      <button onclick="closeEditScrobbleModal()" aria-label="Close" style="position:absolute;top:0.6rem;right:0.7rem;background:none;border:none;color:var(--text3);font-size:1.3rem;line-height:1;cursor:pointer;padding:0.1rem 0.3rem;">&times;</button>
       <h3 class="src-modal-title" data-i18n="modal_edit_title">Edit Scrobble</h3>
       <div class="src-field-group">
         <label>
