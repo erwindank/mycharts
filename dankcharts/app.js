@@ -7835,7 +7835,7 @@ function applyWeeklyChartView(onlyType) {
     const altView = document.getElementById('weeklyAltView-' + tp);
     const pgNav = document.getElementById(tp + 'Pagination');
     if (tbl) tbl.style.display = isAlt ? 'none' : '';
-    if (pgNav) pgNav.style.display = isAlt ? 'none' : '';
+    if (pgNav) pgNav.style.display = 'none';
     if (altView) {
       altView.style.display = isAlt ? 'block' : 'none';
       if (isAlt) renderWeeklyAltView(tp);
