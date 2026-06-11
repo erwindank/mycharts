@@ -16236,11 +16236,13 @@ document.addEventListener('keydown', e => {
   else if (key === 'Escape')          { e.preventDefault(); closeYtPlayer(); }
 });
 
-// Scroll wheel on mini player changes volume
+// Scroll wheel on mini player changes volume (but not when scrolling the queue list)
 document.addEventListener('wheel', e => {
   const playerEl = document.getElementById('ytMiniPlayer');
   if (!playerEl || playerEl.style.display === 'none') return;
   if (!playerEl.contains(e.target)) return;
+  const queueEl = document.getElementById('ytMiniQueue');
+  if (queueEl && queueEl.contains(e.target)) return;
   e.preventDefault();
   _ytSetVolume(_ytVolume + (e.deltaY < 0 ? 5 : -5));
 }, { passive: false });
