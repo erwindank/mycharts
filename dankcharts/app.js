@@ -16405,6 +16405,8 @@ document.addEventListener('wheel', e => {
   if (!playerEl.contains(e.target)) return;
   const queueEl = document.getElementById('ytMiniQueue');
   if (queueEl && queueEl.contains(e.target)) return;
+  const lyricsEl = document.getElementById('ytLyricsPanel');
+  if (lyricsEl && lyricsEl.contains(e.target)) return;
   e.preventDefault();
   _ytSetVolume(_ytVolume + (e.deltaY < 0 ? 5 : -5));
 }, { passive: false });
