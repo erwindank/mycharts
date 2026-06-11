@@ -10091,6 +10091,11 @@ body.pink-light .hero-stats {
   background: var(--surface2, var(--bg3));
 }
 
+body[class*="-light"] .tm-card-song:hover,
+body[class*="-light"] .tm-card-search:hover {
+  background: var(--border);
+}
+
 .tm-hint {
   font-size: 0.62rem;
   color: var(--text3);
