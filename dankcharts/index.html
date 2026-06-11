@@ -373,6 +373,10 @@
         <span class="section-collapsed-label" data-i18n="collapsed_hint">collapsed — click + to expand</span>
         <div class="section-rule"></div>
         <button class="section-replay-btn" id="songsReplayBtn" onclick="replayChartAnimation('songs')" title="Animate chart — show rank changes from previous period" style="display:none">▶ Animate Chart</button>
+        <div class="yt-playall-row" id="ytPlayAllRow" style="display:none">
+          <button class="yt-playall-btn" onclick="ytPlayAll()" title="Play all visible songs in order">▶ Play All</button>
+          <button class="yt-playall-btn" onclick="ytShuffleAll()" title="Play all visible songs in random order">⇀ Shuffle</button>
+        </div>
       </div>
       <div class="section-sub" id="songsSubtitle" data-i18n="sub_songs">By play count for the selected period</div>
       <div class="weekly-view-bar" id="weeklyViewBtns-songs" style="display:none;">
@@ -2994,12 +2998,57 @@ function doPost(e) {
     <div id="ytMiniTitle" class="yt-mini-title"></div>
     <div id="ytMiniArtist" class="yt-mini-artist"></div>
     <div id="ytMiniStatus" class="yt-mini-status"></div>
+    <div id="ytMiniSearchBox" class="yt-mini-search-box" style="display:none">
+      <input id="ytMiniSearchInput" class="yt-mini-search-input" type="text" placeholder="Search YouTube…" onkeydown="if(event.key==='Enter')_ytRunCustomSearch();else if(event.key==='Escape')_ytToggleSearch();">
+      <button class="yt-mini-search-go" onclick="_ytRunCustomSearch()" title="Search">↵</button>
+    </div>
+    <div id="ytSearchResults" class="yt-search-results" style="display:none"></div>
+    <div id="ytMiniHistory" class="yt-mini-history" style="display:none"></div>
+    <div id="ytShortcutsPanel" class="yt-shortcuts-panel" style="display:none">
+      <div class="yt-shortcut-row"><kbd>Space</kbd><span>Pause / Resume</span></div>
+      <div class="yt-shortcut-row"><kbd>N</kbd><span>Skip to next</span></div>
+      <div class="yt-shortcut-row"><kbd>F</kbd><span>Search alternate</span></div>
+      <div class="yt-shortcut-row"><kbd>H</kbd><span>History</span></div>
+      <div class="yt-shortcut-row"><kbd>?</kbd><span>These shortcuts</span></div>
+      <div class="yt-shortcut-row"><kbd>Esc</kbd><span>Close player</span></div>
+    </div>
     <div id="ytMiniQueue" class="yt-mini-queue" style="display:none"></div>
+    <div class="yt-volume-row">
+      <button class="yt-vol-icon-btn" id="ytVolIconBtn" onclick="_ytToggleMute()" title="Mute/Unmute">
+        <svg id="ytVolIconSvg" class="yt-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11,5 6,9 2,9 2,15 6,15 11,19" fill="currentColor" stroke="none"/><path id="ytVolPath" d="M15.54,8.46a5,5,0,0,1,0,7.07M19.07,4.93a10,10,0,0,1,0,14.14"/></svg>
+      </button>
+      <input id="ytVolumeSlider" type="range" min="0" max="100" value="80" class="yt-volume-slider" oninput="_ytSetVolume(+this.value)">
+    </div>
     <div class="yt-mini-controls">
-      <button id="ytMiniPauseBtn" class="yt-mini-ctrl-btn" onclick="_ytPauseToggle()" title="Pause">⏸</button>
-      <button class="yt-mini-ctrl-btn" onclick="_ytOpenInYT()" title="Open in YouTube">↗ YT</button>
-      <button id="ytMiniExpandBtn" class="yt-mini-ctrl-btn" onclick="_ytExpand()" title="Expand player">⤢</button>
-      <button class="yt-mini-ctrl-btn yt-close-btn" onclick="closeYtPlayer()" title="Close player">✕</button>
+      <div class="yt-pause-wrap">
+        <button id="ytMiniPauseBtn" class="yt-mini-ctrl-btn" onclick="_ytPauseToggle()" title="Pause/Resume [Space]">
+          <svg class="yt-icon" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
+        </button>
+      </div>
+      <button class="yt-mini-ctrl-btn" onclick="_ytSkip()" title="Skip to next [N]">
+        <svg class="yt-icon" viewBox="0 0 24 24" fill="currentColor"><polygon points="5,3 15,12 5,21"/><rect x="17" y="3" width="3" height="18"/></svg>
+      </button>
+      <button id="ytMiniSearchBtn" class="yt-mini-ctrl-btn" onclick="_ytToggleSearch()" title="Search alternate [F]">
+        <svg class="yt-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><line x1="16.5" y1="16.5" x2="21" y2="21"/></svg>
+      </button>
+      <button class="yt-mini-ctrl-btn" onclick="_ytOpenInYT()" title="Open in YouTube">
+        <svg class="yt-icon" viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="3" fill="none" stroke="currentColor" stroke-width="2"/><polygon points="9,8 18,12 9,16" fill="currentColor"/></svg>
+      </button>
+      <button id="ytMiniExpandBtn" class="yt-mini-ctrl-btn" onclick="_ytExpand()" title="Size: S → M">
+        <svg class="yt-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15,3 21,3 21,9"/><polyline points="9,21 3,21 3,15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg>
+      </button>
+      <button id="ytMiniHistoryBtn" class="yt-mini-ctrl-btn" onclick="_ytToggleHistory()" title="History [H]">
+        <svg class="yt-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1,4 1,10 7,10"/><path d="M3.51,15a9,9,0,1,0,.49-4.49"/></svg>
+      </button>
+      <button id="ytMiniCollapseBtn" class="yt-mini-ctrl-btn" onclick="_ytToggleCollapse()" title="Collapse player">
+        <svg class="yt-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6,9 12,15 18,9"/></svg>
+      </button>
+      <button id="ytMiniShortcutsBtn" class="yt-mini-ctrl-btn" onclick="_ytToggleShortcuts()" title="Keyboard shortcuts [?]">
+        <svg class="yt-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="13" rx="2"/><path d="M6 10h.01M10 10h.01M14 10h.01M18 10h.01M8 14h8"/></svg>
+      </button>
+      <button class="yt-mini-ctrl-btn yt-close-btn" onclick="closeYtPlayer()" title="Close [Esc]">
+        <svg class="yt-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
     </div>
   </div>
 </div>

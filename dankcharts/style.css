@@ -9182,9 +9182,36 @@ body.purple .landing-card-config input:focus {
 .sync-signout-btn:hover { color: var(--text); }
 
 /* ── YouTube Mini Player ──────────────────────────────────── */
-@keyframes yt-spin     { to { transform: translate(-50%,-50%) rotate(360deg); } }
-@keyframes yt-btn-pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.65; } }
-@keyframes yt-toast-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+@keyframes yt-spin        { to { transform: translate(-50%,-50%) rotate(360deg); } }
+@keyframes yt-btn-pulse   { 0%,100% { opacity: 1; } 50% { opacity: 0.65; } }
+@keyframes yt-toast-in    { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+@keyframes yt-ring-flash  { 0%,100% { opacity: 0.7; } 50% { opacity: 1; } }
+
+/* ── Now-playing row highlight ─── */
+.yt-now-playing-row { background: rgba(255,0,0,0.055) !important; }
+.yt-now-playing-row > td:first-child { box-shadow: inset 2px 0 0 #FF0000; }
+
+/* ── Play All / Shuffle row ─── */
+.yt-playall-row {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin-left: 0.6rem;
+}
+.yt-playall-btn {
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  color: var(--text2);
+  cursor: pointer;
+  font-size: 0.65rem;
+  font-family: inherit;
+  font-weight: 600;
+  padding: 0.2rem 0.55rem;
+  transition: background 0.12s, color 0.12s, border-color 0.12s;
+  white-space: nowrap;
+}
+.yt-playall-btn:hover { background: rgba(255,0,0,0.08); border-color: #FF0000; color: #FF0000; }
 
 .yt-mini-player {
   position: fixed;
@@ -9195,15 +9222,15 @@ body.purple .landing-card-config input:focus {
   border: 1px solid var(--border);
   border-radius: 10px;
   display: flex;
-  align-items: stretch;
+  align-items: flex-start;
   box-shadow: 0 4px 24px rgba(0,0,0,0.45);
   width: 390px;
-  overflow: hidden;
   user-select: none;
   transition: width 0.2s;
 }
 .yt-mini-player.yt-expanded    { width: 570px; }
 .yt-mini-player.yt-expanded-lg { width: 730px; }
+.yt-mini-player.yt-expanded-xl { width: 890px; }
 
 .yt-mini-drag-handle {
   width: 18px;
@@ -9217,6 +9244,9 @@ body.purple .landing-card-config input:focus {
   flex-shrink: 0;
   border-right: 1px solid var(--border);
   letter-spacing: -2px;
+  border-radius: 10px 0 0 10px;
+  align-self: stretch;
+  min-height: 90px;
 }
 .yt-mini-drag-handle:active { cursor: grabbing; }
 
@@ -9241,6 +9271,9 @@ body.purple .landing-card-config input:focus {
 .yt-mini-player.yt-expanded-lg .yt-mini-video { width: 480px; height: 270px; }
 .yt-mini-player.yt-expanded-lg .yt-mini-video iframe,
 .yt-mini-player.yt-expanded-lg .yt-mini-video > div { width: 480px !important; height: 270px !important; }
+.yt-mini-player.yt-expanded-xl .yt-mini-video { width: 640px; height: 360px; }
+.yt-mini-player.yt-expanded-xl .yt-mini-video iframe,
+.yt-mini-player.yt-expanded-xl .yt-mini-video > div { width: 640px !important; height: 360px !important; }
 
 .yt-mini-info {
   flex: 1;
@@ -9293,10 +9326,15 @@ body.purple .landing-card-config input:focus {
   padding: 0.05em 0;
   line-height: 1.3;
 }
-.yt-mini-queue-num   { color: var(--text3); flex-shrink: 0; min-width: 2em; }
+.yt-mini-queue-drag  { cursor: grab; color: var(--text3); font-size: 0.7rem; flex-shrink: 0; opacity: 0.5; line-height: 1; letter-spacing: -2px; }
+.yt-mini-queue-drag:hover { opacity: 1; }
+.yt-mini-queue-drag:active { cursor: grabbing; }
+.yt-mini-queue-num   { color: var(--text3); flex-shrink: 0; min-width: 1.5em; font-size: 0.6rem; }
 .yt-mini-queue-title { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--text2); }
 .yt-mini-queue-rm    { cursor: pointer; opacity: 0.45; flex-shrink: 0; background: none; border: none; color: inherit; padding: 0; font-size: inherit; line-height: 1; }
 .yt-mini-queue-rm:hover { opacity: 1; }
+.yt-queue-dragging   { opacity: 0.4; }
+.yt-queue-drag-over  { background: rgba(255,0,0,0.07); border-radius: 3px; outline: 1px solid rgba(255,0,0,0.25); }
 
 /* Error state open-in-yt button */
 .yt-err-open-btn {
@@ -9310,26 +9348,230 @@ body.purple .landing-card-config input:focus {
   font-family: inherit;
 }
 
+/* Search box inside mini player */
+.yt-mini-search-box {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  margin-top: 0.25rem;
+}
+.yt-mini-search-input {
+  flex: 1;
+  min-width: 0;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  color: var(--text);
+  font-family: inherit;
+  font-size: 0.68rem;
+  padding: 0.2rem 0.4rem;
+  outline: none;
+}
+.yt-mini-search-input:focus { border-color: #FF0000; }
+.yt-mini-search-go {
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  color: var(--text2);
+  cursor: pointer;
+  font-size: 0.75rem;
+  padding: 0.18rem 0.4rem;
+  flex-shrink: 0;
+  transition: background 0.12s;
+}
+.yt-mini-search-go:hover { background: var(--border); color: var(--text); }
+
 .yt-mini-controls {
   display: flex;
   align-items: center;
-  gap: 0.28rem;
+  gap: 0.22rem;
   margin-top: 0.35rem;
 }
 .yt-mini-ctrl-btn {
-  background: none;
-  border: 1px solid var(--border);
-  color: var(--text2);
-  border-radius: 4px;
-  padding: 0.18rem 0.4rem;
+  background: rgba(128,128,128,0.1);
+  border: none;
+  border-radius: 50%;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   cursor: pointer;
-  font-size: 0.72rem;
-  line-height: 1;
-  transition: background 0.12s, color 0.12s;
-  white-space: nowrap;
+  color: var(--text2);
+  padding: 0;
+  transition: background 0.15s, color 0.15s, transform 0.1s;
+  flex-shrink: 0;
 }
-.yt-mini-ctrl-btn:hover { background: var(--border); color: var(--text); }
+.yt-mini-ctrl-btn:hover { background: rgba(128,128,128,0.25); color: var(--text); transform: scale(1.1); }
+.yt-mini-ctrl-btn:active { transform: scale(0.92); }
 .yt-mini-ctrl-btn.yt-close-btn { margin-left: auto; }
+.yt-mini-ctrl-btn.yt-ctrl-active { background: rgba(255,0,0,0.15); color: #FF0000; }
+.yt-icon { width: 13px; height: 13px; display: block; flex-shrink: 0; }
+
+/* ── Scrobble progress ring ─── */
+.yt-pause-wrap {
+  position: relative;
+  width: 28px;
+  height: 28px;
+  flex-shrink: 0;
+}
+.yt-pause-wrap::after {
+  content: '';
+  position: absolute;
+  inset: -3px;
+  border-radius: 50%;
+  background: conic-gradient(#FF0000 calc(var(--yt-sp, 0) * 1turn), transparent 0);
+  opacity: 0;
+  z-index: 0;
+  pointer-events: none;
+  transition: opacity 0.4s;
+}
+.yt-pause-wrap.yt-scrobbling::after { opacity: 0.65; }
+.yt-pause-wrap.yt-scrobbled::after  { animation: yt-ring-flash 0.5s ease 3; opacity: 0; }
+#ytMiniPauseBtn { position: relative; z-index: 1; width: 100%; height: 100%; border-radius: 50%; }
+
+/* ── Volume row ─── */
+.yt-volume-row {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin-top: 0.3rem;
+}
+.yt-vol-icon-btn {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  color: var(--text3);
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  transition: color 0.12s;
+}
+.yt-vol-icon-btn:hover { color: var(--text2); }
+.yt-volume-slider {
+  flex: 1;
+  height: 3px;
+  accent-color: #FF0000;
+  cursor: pointer;
+  min-width: 0;
+}
+
+/* ── Search results picker ─── */
+.yt-search-results {
+  margin-top: 0.25rem;
+  max-height: 5rem;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+.yt-sr-item {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.15rem 0.25rem;
+  cursor: pointer;
+  border-radius: 3px;
+  transition: background 0.1s;
+}
+.yt-sr-item:hover { background: rgba(255,0,0,0.08); }
+.yt-sr-thumb {
+  width: 40px;
+  height: 28px;
+  object-fit: cover;
+  border-radius: 2px;
+  flex-shrink: 0;
+  background: var(--bg3);
+}
+.yt-sr-title {
+  flex: 1;
+  min-width: 0;
+  font-size: 0.62rem;
+  color: var(--text2);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.yt-sr-loading { font-size: 0.62rem; color: var(--text3); padding: 0.15rem 0.25rem; }
+.yt-sr-no-results { font-size: 0.62rem; color: var(--rose); padding: 0.15rem 0.25rem; }
+
+/* ── History panel ─── */
+.yt-mini-history {
+  margin-top: 0.25rem;
+  max-height: 5rem;
+  overflow-y: auto;
+  font-size: 0.63rem;
+}
+.yt-hist-item {
+  display: flex;
+  align-items: center;
+  gap: 0.3em;
+  padding: 0.07em 0;
+  line-height: 1.3;
+}
+.yt-hist-title {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--text2);
+}
+.yt-hist-play {
+  background: none;
+  border: none;
+  color: var(--text3);
+  cursor: pointer;
+  font-size: 0.6rem;
+  padding: 0;
+  flex-shrink: 0;
+  line-height: 1;
+  opacity: 0.6;
+}
+.yt-hist-play:hover { opacity: 1; color: #FF0000; }
+.yt-hist-empty { font-size: 0.62rem; color: var(--text3); padding: 0.1rem 0; }
+
+/* ── Shortcuts panel ─── */
+.yt-shortcuts-panel {
+  margin-top: 0.25rem;
+  padding: 0.35rem 0.4rem;
+  background: var(--bg3);
+  border-radius: 5px;
+  font-size: 0.62rem;
+}
+.yt-shortcut-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.1rem 0;
+  color: var(--text2);
+}
+.yt-shortcuts-panel kbd {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  padding: 0.05rem 0.3rem;
+  font-size: 0.6rem;
+  font-family: monospace;
+  color: var(--text);
+  flex-shrink: 0;
+  min-width: 2.8em;
+  text-align: center;
+}
+
+/* ── Collapsed player ─── */
+.yt-mini-player.yt-mini-collapsed .yt-mini-video { display: none; }
+.yt-mini-player.yt-mini-collapsed .yt-mini-artist,
+.yt-mini-player.yt-mini-collapsed .yt-mini-status,
+.yt-mini-player.yt-mini-collapsed .yt-mini-search-box,
+.yt-mini-player.yt-mini-collapsed #ytSearchResults,
+.yt-mini-player.yt-mini-collapsed .yt-mini-history,
+.yt-mini-player.yt-mini-collapsed .yt-shortcuts-panel,
+.yt-mini-player.yt-mini-collapsed .yt-mini-queue,
+.yt-mini-player.yt-mini-collapsed .yt-volume-row { display: none !important; }
+.yt-mini-player.yt-mini-collapsed .yt-mini-info { justify-content: center; padding: 0.28rem 0.6rem; }
+.yt-mini-player.yt-mini-collapsed .yt-mini-title { font-size: 0.74rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
 /* Queue toast — appears above the mini player */
 .yt-queue-toast {

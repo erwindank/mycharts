@@ -6075,6 +6075,8 @@ function renderPage(type, peaks) {
       return [mainRow, `<tr class="cr-row" id="${rowId}"><td colspan="5"><div class="cr-panel" data-crtype="songs" data-crkey="${encodeURIComponent(k)}">${buildCrPanelHTML('songs', k)}</div></td></tr>`];
     }).join('');
     loadImages(imgItems.map(i => ({ ...i, name: i.title })), 'song');
+    const playAllRow = document.getElementById('ytPlayAllRow');
+    if (playAllRow) playAllRow.style.display = slice.length > 0 ? '' : 'none';
 
   } else if (type === 'artists') {
     const imgItems = [];
@@ -15497,9 +15499,17 @@ let _ytActiveBtn       = null;
 let _ytCurrentVideoId  = null;
 let _ytQueue           = [];
 let _ytQueueToastTimer = null;
-let _ytDragInitialized = false;
-let _ytExpandSize      = 0; // 0=small, 1=medium, 2=large
-let _ytEmbedRetry      = 0;
+let _ytDragInitialized   = false;
+let _ytExpandSize        = 0;
+let _ytEmbedRetry        = 0;
+let _ytQueueDragSrc      = null;
+let _ytHistory           = [];
+let _ytHistoryRecorded   = false;
+let _ytVolume            = 80;
+let _ytMuted             = false;
+let _ytPreMuteVol        = 80;
+let _ytScrobbleInterval  = null;
+let _ytPlayStart         = null;
 
 // Called automatically by the YouTube IFrame API script once it loads.
 function onYouTubeIframeAPIReady() {
@@ -15538,13 +15548,20 @@ function _ytPlayOrQueue(title, artist, album) {
 
 function openYtPlayer(title, artist, album, btn) {
   if (_ytActiveBtn) _ytActiveBtn.classList.remove('yt-btn-loading', 'yt-btn-playing');
-  _ytCurrentTrack   = { title, artist, album };
-  _ytCurrentVideoId = null;
-  _ytScrobbled      = false;
-  _ytEmbedRetry     = 0;
+  document.querySelectorAll('.yt-now-playing-row').forEach(r => r.classList.remove('yt-now-playing-row'));
+  _ytStopScrobbleRing();
+  _ytCurrentTrack    = { title, artist, album };
+  _ytCurrentVideoId  = null;
+  _ytScrobbled       = false;
+  _ytHistoryRecorded = false;
+  _ytEmbedRetry      = 0;
   clearTimeout(_ytScrobbleTimer);
   _ytActiveBtn = btn || null;
-  if (_ytActiveBtn) _ytActiveBtn.classList.add('yt-btn-loading');
+  if (_ytActiveBtn) {
+    _ytActiveBtn.classList.add('yt-btn-loading');
+    const row = _ytActiveBtn.closest('tr');
+    if (row) row.classList.add('yt-now-playing-row');
+  }
   const player = document.getElementById('ytMiniPlayer');
   player.style.display = '';
   document.getElementById('ytMiniTitle').textContent  = title;
@@ -15553,8 +15570,10 @@ function openYtPlayer(title, artist, album, btn) {
   statusEl.textContent = 'Searching…';
   statusEl.className   = 'yt-mini-status';
   const pauseBtn = document.getElementById('ytMiniPauseBtn');
-  if (pauseBtn) { pauseBtn.textContent = '⏸'; pauseBtn.title = 'Pause'; }
+  if (pauseBtn) { pauseBtn.innerHTML = _YT_IC.pause; pauseBtn.title = 'Pause'; }
   if (!_ytDragInitialized) { _ytDragInitialized = true; _ytInitDrag(); }
+  _ytLoadVolume();
+  requestAnimationFrame(_ytClampToViewport);
   _ytInjectApi();
   _ytSearch(artist, title);
 }
@@ -15580,9 +15599,12 @@ async function _ytSearch(artist, title, overrideQuery) {
     }
   } catch (e) {
     if (_ytActiveBtn) _ytActiveBtn.classList.remove('yt-btn-loading', 'yt-btn-playing');
-    const t = _ytCurrentTrack;
-    if (t) window.open('https://www.youtube.com/results?search_query=' + encodeURIComponent(t.artist + ' ' + t.title), '_blank');
-    closeYtPlayer();
+    const statusEl = document.getElementById('ytMiniStatus');
+    if (statusEl) {
+      const skipPart = _ytQueue.length > 0 ? ` — <button class="yt-err-open-btn" onclick="_ytSkip()">skip ⏭</button>` : '';
+      statusEl.innerHTML = `Not found — <button class="yt-err-open-btn" onclick="_ytOpenInYT()">search YouTube ↗</button>${skipPart}`;
+      statusEl.className = 'yt-mini-status err';
+    }
   }
 }
 
@@ -15604,18 +15626,27 @@ function _ytOnState(event) {
   const pauseBtn = document.getElementById('ytMiniPauseBtn');
   if (event.data === YT.PlayerState.PLAYING) {
     clearTimeout(_ytScrobbleTimer);
-    if (!_ytScrobbled) _ytScrobbleTimer = setTimeout(_ytScrobble, 30000);
-    if (pauseBtn) { pauseBtn.textContent = '⏸'; pauseBtn.title = 'Pause'; }
+    if (!_ytScrobbled) {
+      _ytScrobbleTimer = setTimeout(_ytScrobble, 30000);
+      _ytStartScrobbleRing();
+    }
+    if (pauseBtn) { pauseBtn.innerHTML = _YT_IC.pause; pauseBtn.title = 'Pause'; }
     if (_ytActiveBtn) { _ytActiveBtn.classList.remove('yt-btn-loading'); _ytActiveBtn.classList.add('yt-btn-playing'); }
+    if (!_ytHistoryRecorded && _ytCurrentTrack) {
+      _ytHistoryRecorded = true;
+      _ytRecordHistory(_ytCurrentTrack.title, _ytCurrentTrack.artist, _ytCurrentTrack.album);
+    }
   } else if (event.data === YT.PlayerState.PAUSED) {
     clearTimeout(_ytScrobbleTimer);
-    if (pauseBtn) { pauseBtn.textContent = '▶'; pauseBtn.title = 'Resume'; }
+    _ytStopScrobbleRing();
+    if (pauseBtn) { pauseBtn.innerHTML = _YT_IC.play; pauseBtn.title = 'Resume'; }
   } else if (event.data === YT.PlayerState.ENDED) {
     clearTimeout(_ytScrobbleTimer);
     if (_ytActiveBtn) _ytActiveBtn.classList.remove('yt-btn-loading', 'yt-btn-playing');
     if (_ytQueue.length > 0) {
       const next = _ytQueue.shift();
       _ytUpdateQueueDisplay();
+      _ytSaveQueue();
       openYtPlayer(next.title, next.artist, next.album, next.btn || null);
     }
   } else {
@@ -15626,12 +15657,24 @@ function _ytOnState(event) {
 function _ytOnError(event) {
   const statusEl = document.getElementById('ytMiniStatus');
   const code = event && event.data;
-  if ((code === 101 || code === 150) && _ytCurrentTrack && _ytEmbedRetry < 2) {
+  if (_ytCurrentTrack && _ytEmbedRetry < 5) {
     _ytEmbedRetry++;
     const { title, artist } = _ytCurrentTrack;
-    const fallbacks = [`${artist} ${title} lyric video`, `${artist} ${title} audio`];
-    if (statusEl) { statusEl.textContent = 'Trying alternate…'; statusEl.className = 'yt-mini-status'; }
+    const fallbacks = [
+      `${artist} ${title} lyric video`,
+      `${artist} ${title} official`,
+      `${artist} ${title} - Topic`,
+      `${artist} ${title} audio`,
+      `${artist} ${title} remastered`,
+    ];
+    if (statusEl) { statusEl.textContent = `Trying alternate ${_ytEmbedRetry}/5…`; statusEl.className = 'yt-mini-status'; }
     _ytSearch(null, null, fallbacks[_ytEmbedRetry - 1]);
+    return;
+  }
+  if (_ytActiveBtn) _ytActiveBtn.classList.remove('yt-btn-loading', 'yt-btn-playing');
+  if (_ytQueue.length > 0) {
+    if (statusEl) { statusEl.textContent = 'Skipping unavailable…'; statusEl.className = 'yt-mini-status'; }
+    setTimeout(_ytSkip, 1500);
     return;
   }
   if (statusEl) {
@@ -15639,7 +15682,6 @@ function _ytOnError(event) {
     statusEl.innerHTML = `${msg} — <button class="yt-err-open-btn" onclick="_ytOpenInYT()">open in YouTube ↗</button>`;
     statusEl.className = 'yt-mini-status err';
   }
-  if (_ytActiveBtn) _ytActiveBtn.classList.remove('yt-btn-loading', 'yt-btn-playing');
 }
 
 async function _ytScrobble() {
@@ -15671,6 +15713,7 @@ async function _ytScrobble() {
       throw new Error('No scrobble destination');
     }
     if (statusEl) { statusEl.textContent = '✓ Scrobbled'; statusEl.className = 'yt-mini-status ok'; }
+    _ytFlashScrobbleRing();
   } catch (e) {
     _ytScrobbled = false;
     if (statusEl) { statusEl.textContent = 'Scrobble failed'; statusEl.className = 'yt-mini-status err'; }
@@ -15680,12 +15723,14 @@ async function _ytScrobble() {
 function closeYtPlayer() {
   clearTimeout(_ytScrobbleTimer);
   clearTimeout(_ytQueueToastTimer);
+  _ytStopScrobbleRing();
   if (_ytPlayer) {
     try { _ytPlayer.stopVideo(); } catch(e) {}
     try { _ytPlayer.destroy(); } catch(e) {}
     _ytPlayer = null;
   }
   if (_ytActiveBtn) { _ytActiveBtn.classList.remove('yt-btn-loading', 'yt-btn-playing'); _ytActiveBtn = null; }
+  document.querySelectorAll('.yt-now-playing-row').forEach(r => r.classList.remove('yt-now-playing-row'));
   const player = document.getElementById('ytMiniPlayer');
   if (player) player.style.display = 'none';
   const toast = document.getElementById('ytQueueToast');
@@ -15695,10 +15740,21 @@ function closeYtPlayer() {
   _ytScrobbled      = false;
   _ytExpandSize     = 0;
   _ytQueue          = [];
+  _ytSaveQueue();
   _ytUpdateQueueDisplay();
-  if (player) player.classList.remove('yt-expanded', 'yt-expanded-lg');
+  if (player) player.classList.remove('yt-expanded', 'yt-expanded-lg', 'yt-expanded-xl', 'yt-mini-collapsed');
   const expandBtn = document.getElementById('ytMiniExpandBtn');
-  if (expandBtn) { expandBtn.textContent = '⤢'; expandBtn.title = 'Expand player'; }
+  if (expandBtn) { expandBtn.innerHTML = _YT_IC.expand; expandBtn.title = 'Size: S → M'; }
+  const collapseBtn = document.getElementById('ytMiniCollapseBtn');
+  if (collapseBtn) { collapseBtn.innerHTML = _YT_IC.collapseV; collapseBtn.title = 'Collapse player'; }
+  ['ytMiniSearchBox','ytSearchResults','ytMiniHistory','ytShortcutsPanel'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.style.display = 'none';
+  });
+  ['ytMiniSearchBtn','ytMiniHistoryBtn','ytMiniShortcutsBtn'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.classList.remove('yt-ctrl-active');
+  });
 }
 
 function _ytPauseToggle() {
@@ -15708,19 +15764,29 @@ function _ytPauseToggle() {
   else { _ytPlayer.playVideo(); }
 }
 
+const _YT_IC = {
+  pause:    `<svg class="yt-icon" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>`,
+  play:     `<svg class="yt-icon" viewBox="0 0 24 24" fill="currentColor"><polygon points="5,3 19,12 5,21"/></svg>`,
+  expand:   `<svg class="yt-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15,3 21,3 21,9"/><polyline points="9,21 3,21 3,15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg>`,
+  shrink:   `<svg class="yt-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="4,14 10,14 10,20"/><polyline points="20,10 14,10 14,4"/><line x1="10" y1="14" x2="3" y2="21"/><line x1="21" y1="3" x2="14" y2="10"/></svg>`,
+  collapseV:`<svg class="yt-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6,9 12,15 18,9"/></svg>`,
+  expandV:  `<svg class="yt-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6,15 12,9 18,15"/></svg>`,
+};
+
 const _YT_SIZES = [
-  { w: 160, h: 90,  cls: '',              icon: '⤢', title: 'Expand player' },
-  { w: 320, h: 180, cls: 'yt-expanded',   icon: '⊞', title: 'Expand larger' },
-  { w: 480, h: 270, cls: 'yt-expanded-lg',icon: '⤡', title: 'Shrink player'  },
+  { w: 160, h: 90,  cls: '',               iconKey: 'expand', title: 'Size: S → M'  },
+  { w: 320, h: 180, cls: 'yt-expanded',    iconKey: 'expand', title: 'Size: M → L'  },
+  { w: 480, h: 270, cls: 'yt-expanded-lg', iconKey: 'expand', title: 'Size: L → XL' },
+  { w: 640, h: 360, cls: 'yt-expanded-xl', iconKey: 'shrink', title: 'Size: XL → S' },
 ];
 function _ytExpand() {
   _ytExpandSize = (_ytExpandSize + 1) % _YT_SIZES.length;
-  const { w, h, cls, icon, title } = _YT_SIZES[_ytExpandSize];
+  const { w, h, cls, iconKey, title } = _YT_SIZES[_ytExpandSize];
   const player = document.getElementById('ytMiniPlayer');
-  player.classList.remove('yt-expanded', 'yt-expanded-lg');
+  player.classList.remove('yt-expanded', 'yt-expanded-lg', 'yt-expanded-xl');
   if (cls) player.classList.add(cls);
   const btn = document.getElementById('ytMiniExpandBtn');
-  if (btn) { btn.textContent = icon; btn.title = title; }
+  if (btn) { btn.innerHTML = _YT_IC[iconKey]; btn.title = title; }
   if (_ytPlayer) { try { _ytPlayer.setSize(w, h); } catch(e) {} }
 }
 
@@ -15730,6 +15796,258 @@ function _ytOpenInYT() {
   } else if (_ytCurrentTrack) {
     window.open('https://www.youtube.com/results?search_query=' + encodeURIComponent(_ytCurrentTrack.artist + ' ' + _ytCurrentTrack.title), '_blank');
   }
+}
+
+function _ytSkip() {
+  if (_ytQueue.length > 0) {
+    const next = _ytQueue.shift();
+    _ytUpdateQueueDisplay();
+    _ytSaveQueue();
+    openYtPlayer(next.title, next.artist, next.album, next.btn || null);
+  } else {
+    const statusEl = document.getElementById('ytMiniStatus');
+    if (statusEl) {
+      const prev = statusEl.innerHTML;
+      statusEl.textContent = 'Nothing queued';
+      statusEl.className = 'yt-mini-status';
+      setTimeout(() => { if (statusEl.textContent === 'Nothing queued') { statusEl.innerHTML = prev; } }, 2000);
+    }
+  }
+}
+
+function _ytToggleSearch() {
+  const box = document.getElementById('ytMiniSearchBox');
+  if (!box) return;
+  const isVisible = box.style.display !== 'none';
+  box.style.display = isVisible ? 'none' : 'flex';
+  const btn = document.getElementById('ytMiniSearchBtn');
+  if (btn) btn.classList.toggle('yt-ctrl-active', !isVisible);
+  if (!isVisible) {
+    const input = document.getElementById('ytMiniSearchInput');
+    if (input) {
+      if (_ytCurrentTrack) input.value = _ytCurrentTrack.artist + ' ' + _ytCurrentTrack.title;
+      input.focus();
+      input.select();
+    }
+  }
+}
+
+function _ytRunCustomSearch() {
+  const input = document.getElementById('ytMiniSearchInput');
+  if (!input || !input.value.trim()) return;
+  const q = input.value.trim();
+  _ytToggleSearch();
+  _ytEmbedRetry = 0;
+  _ytSearchMulti(q);
+}
+
+async function _ytSearchMulti(baseQuery) {
+  const resultsEl = document.getElementById('ytSearchResults');
+  const statusEl  = document.getElementById('ytMiniStatus');
+  if (resultsEl) { resultsEl.style.display = 'block'; resultsEl.innerHTML = '<div class="yt-sr-loading">Searching…</div>'; }
+  if (statusEl)  { statusEl.textContent = ''; }
+  const variants = ['official audio', 'official video', 'lyric video'];
+  const needsVariants = !/(official|lyric|audio|video|live|acoustic|cover)/i.test(baseQuery);
+  const queries = needsVariants ? variants.map(v => `${baseQuery} ${v}`) : [baseQuery];
+  const settled = await Promise.allSettled(
+    queries.map(q => fetch(`${BACKEND_API}/api/youtube/search?q=${encodeURIComponent(q)}`).then(r => r.json()))
+  );
+  const seen = new Set();
+  const hits = settled
+    .filter(r => r.status === 'fulfilled' && r.value && r.value.videoId)
+    .map(r => r.value)
+    .filter(v => { if (seen.has(v.videoId)) return false; seen.add(v.videoId); return true; });
+  if (!resultsEl) return;
+  if (hits.length === 0) { resultsEl.innerHTML = '<div class="yt-sr-no-results">No results found</div>'; return; }
+  if (hits.length === 1) { resultsEl.style.display = 'none'; _ytPickResult(hits[0].videoId); return; }
+  resultsEl.innerHTML = hits.map(h =>
+    `<div class="yt-sr-item" data-vid="${h.videoId}" onclick="_ytPickResult(this.dataset.vid)">` +
+    `<img class="yt-sr-thumb" src="https://img.youtube.com/vi/${h.videoId}/default.jpg" loading="lazy" onerror="this.style.display='none'">` +
+    `<span class="yt-sr-title">${esc(h.videoTitle || h.title || 'Unknown')}</span>` +
+    `</div>`
+  ).join('');
+}
+
+function _ytPickResult(videoId) {
+  const resultsEl = document.getElementById('ytSearchResults');
+  if (resultsEl) resultsEl.style.display = 'none';
+  _ytCurrentVideoId = videoId;
+  const statusEl = document.getElementById('ytMiniStatus');
+  if (statusEl) { statusEl.textContent = ''; statusEl.className = 'yt-mini-status'; }
+  if (_ytApiReady) { _ytLoadVideo(videoId); } else { _ytPendingVideo = videoId; }
+}
+
+function _ytSaveQueue() {
+  try {
+    const saveable = _ytQueue.map(({ title, artist, album }) => ({ title, artist, album }));
+    localStorage.setItem('yt-player-queue', JSON.stringify(saveable));
+  } catch(e) {}
+}
+
+function _ytLoadQueue() {
+  try {
+    const saved = localStorage.getItem('yt-player-queue');
+    if (saved) {
+      const items = JSON.parse(saved);
+      if (Array.isArray(items) && items.length > 0) {
+        _ytQueue = items;
+        _ytUpdateQueueDisplay();
+      }
+    }
+  } catch(e) {}
+}
+
+function _ytLoadVolume() {
+  try {
+    const v = localStorage.getItem('yt-volume');
+    if (v !== null) _ytVolume = Math.max(0, Math.min(100, parseInt(v)));
+  } catch(e) {}
+  const slider = document.getElementById('ytVolumeSlider');
+  if (slider) slider.value = _ytVolume;
+  _ytUpdateVolIcon();
+  if (_ytPlayer) { try { _ytPlayer.setVolume(_ytVolume); } catch(e) {} }
+}
+
+function _ytSetVolume(v) {
+  _ytVolume = Math.max(0, Math.min(100, v));
+  _ytMuted  = _ytVolume === 0;
+  const slider = document.getElementById('ytVolumeSlider');
+  if (slider) slider.value = _ytVolume;
+  if (_ytPlayer) { try { _ytPlayer.setVolume(_ytVolume); } catch(e) {} }
+  try { localStorage.setItem('yt-volume', _ytVolume); } catch(e) {}
+  _ytUpdateVolIcon();
+}
+
+function _ytToggleMute() {
+  if (_ytMuted) {
+    _ytMuted = false;
+    _ytSetVolume(_ytPreMuteVol || 80);
+  } else {
+    _ytPreMuteVol = _ytVolume || 80;
+    _ytMuted = true;
+    _ytSetVolume(0);
+  }
+}
+
+function _ytUpdateVolIcon() {
+  const path = document.getElementById('ytVolPath');
+  if (!path) return;
+  if (_ytVolume === 0) {
+    path.setAttribute('d', 'M23,9l-6,6M17,9l6,6');
+  } else if (_ytVolume < 50) {
+    path.setAttribute('d', 'M15.54,8.46a5,5,0,0,1,0,7.07');
+  } else {
+    path.setAttribute('d', 'M15.54,8.46a5,5,0,0,1,0,7.07M19.07,4.93a10,10,0,0,1,0,14.14');
+  }
+}
+
+function _ytRecordHistory(title, artist, album) {
+  _ytHistory = _ytHistory.filter(h => !(h.title === title && h.artist === artist));
+  _ytHistory.unshift({ title, artist, album });
+  if (_ytHistory.length > 20) _ytHistory.pop();
+}
+
+function _ytToggleHistory() {
+  const el  = document.getElementById('ytMiniHistory');
+  const btn = document.getElementById('ytMiniHistoryBtn');
+  if (!el) return;
+  const visible = el.style.display !== 'none';
+  ['ytSearchResults','ytShortcutsPanel'].forEach(id => { const e = document.getElementById(id); if (e) e.style.display = 'none'; });
+  ['ytMiniShortcutsBtn'].forEach(id => { const e = document.getElementById(id); if (e) e.classList.remove('yt-ctrl-active'); });
+  el.style.display = visible ? 'none' : 'block';
+  if (btn) btn.classList.toggle('yt-ctrl-active', !visible);
+  if (!visible) _ytRenderHistory();
+}
+
+function _ytRenderHistory() {
+  const el = document.getElementById('ytMiniHistory');
+  if (!el) return;
+  if (_ytHistory.length === 0) { el.innerHTML = '<div class="yt-hist-empty">No history yet</div>'; return; }
+  el.innerHTML = _ytHistory.map((h, i) =>
+    `<div class="yt-hist-item">` +
+    `<span class="yt-hist-title">${esc(h.title)}</span>` +
+    `<button class="yt-hist-play" onclick="_ytPlayFromHistory(${i})" title="Play">▶</button>` +
+    `</div>`
+  ).join('');
+}
+
+function _ytPlayFromHistory(i) {
+  const h = _ytHistory[i];
+  if (h) openYtPlayer(h.title, h.artist, h.album, null);
+}
+
+function _ytToggleCollapse() {
+  const player = document.getElementById('ytMiniPlayer');
+  if (!player) return;
+  const collapsed = player.classList.toggle('yt-mini-collapsed');
+  const btn = document.getElementById('ytMiniCollapseBtn');
+  if (btn) { btn.innerHTML = collapsed ? _YT_IC.expandV : _YT_IC.collapseV; btn.title = collapsed ? 'Expand player' : 'Collapse player'; }
+}
+
+function _ytToggleShortcuts() {
+  const el  = document.getElementById('ytShortcutsPanel');
+  const btn = document.getElementById('ytMiniShortcutsBtn');
+  if (!el) return;
+  const visible = el.style.display !== 'none';
+  ['ytMiniHistory','ytSearchResults'].forEach(id => { const e = document.getElementById(id); if (e) e.style.display = 'none'; });
+  ['ytMiniHistoryBtn'].forEach(id => { const e = document.getElementById(id); if (e) e.classList.remove('yt-ctrl-active'); });
+  el.style.display = visible ? 'none' : 'block';
+  if (btn) btn.classList.toggle('yt-ctrl-active', !visible);
+}
+
+function _ytStartScrobbleRing() {
+  const wrap = document.querySelector('.yt-pause-wrap');
+  if (!wrap) return;
+  _ytPlayStart = Date.now();
+  wrap.style.setProperty('--yt-sp', 0);
+  wrap.classList.remove('yt-scrobbled');
+  wrap.classList.add('yt-scrobbling');
+  clearInterval(_ytScrobbleInterval);
+  _ytScrobbleInterval = setInterval(() => {
+    const progress = Math.min((Date.now() - _ytPlayStart) / 30000, 1);
+    wrap.style.setProperty('--yt-sp', progress);
+    if (progress >= 1) { clearInterval(_ytScrobbleInterval); _ytScrobbleInterval = null; }
+  }, 500);
+}
+
+function _ytStopScrobbleRing() {
+  clearInterval(_ytScrobbleInterval);
+  _ytScrobbleInterval = null;
+  _ytPlayStart = null;
+  const wrap = document.querySelector('.yt-pause-wrap');
+  if (wrap) { wrap.classList.remove('yt-scrobbling', 'yt-scrobbled'); wrap.style.setProperty('--yt-sp', 0); }
+}
+
+function _ytFlashScrobbleRing() {
+  const wrap = document.querySelector('.yt-pause-wrap');
+  if (!wrap) return;
+  wrap.classList.remove('yt-scrobbling');
+  wrap.classList.add('yt-scrobbled');
+  setTimeout(() => { if (wrap) { wrap.classList.remove('yt-scrobbled'); wrap.style.setProperty('--yt-sp', 0); } }, 2000);
+}
+
+function ytPlayAll() {
+  const btns = [...document.querySelectorAll('#songsBody .yt-play-btn')];
+  if (btns.length === 0) return;
+  const [first, ...rest] = btns;
+  openYtPlayer(first.dataset.title, first.dataset.artist, first.dataset.album, first);
+  rest.forEach(b => _ytQueue.push({ title: b.dataset.title, artist: b.dataset.artist, album: b.dataset.album, btn: b }));
+  _ytUpdateQueueDisplay();
+  _ytSaveQueue();
+}
+
+function ytShuffleAll() {
+  const btns = [...document.querySelectorAll('#songsBody .yt-play-btn')];
+  if (btns.length === 0) return;
+  for (let i = btns.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [btns[i], btns[j]] = [btns[j], btns[i]];
+  }
+  const [first, ...rest] = btns;
+  openYtPlayer(first.dataset.title, first.dataset.artist, first.dataset.album, first);
+  rest.forEach(b => _ytQueue.push({ title: b.dataset.title, artist: b.dataset.artist, album: b.dataset.album, btn: b }));
+  _ytUpdateQueueDisplay();
+  _ytSaveQueue();
 }
 
 function _ytShowQueueToast(title, artist, album, btn) {
@@ -15758,6 +16076,7 @@ function _ytShowQueueToast(title, artist, album, btn) {
     toast.style.display = 'none';
     _ytQueue.push({ title, artist, album, btn });
     _ytUpdateQueueDisplay();
+    _ytSaveQueue();
   };
 }
 
@@ -15767,13 +16086,66 @@ function _ytUpdateQueueDisplay() {
   if (_ytQueue.length === 0) { el.style.display = 'none'; el.innerHTML = ''; return; }
   el.style.display = 'block';
   el.innerHTML = _ytQueue.map((t, i) =>
-    `<div class="yt-mini-queue-item"><span class="yt-mini-queue-num">${i === 0 ? 'Next' : 'Then'}</span><span class="yt-mini-queue-title">${t.title}</span><button class="yt-mini-queue-rm" onclick="_ytRemoveFromQueue(${i})" title="Remove">✕</button></div>`
+    `<div class="yt-mini-queue-item" draggable="true" data-qi="${i}">` +
+    `<span class="yt-mini-queue-drag" title="Drag to reorder">⠿</span>` +
+    `<span class="yt-mini-queue-num">${i === 0 ? '▶' : i + 1}</span>` +
+    `<span class="yt-mini-queue-title">${esc(t.title)}</span>` +
+    `<button class="yt-mini-queue-rm" onclick="_ytRemoveFromQueue(${i})" title="Remove">✕</button>` +
+    `</div>`
   ).join('');
+  _ytInitQueueDrag(el);
+}
+
+function _ytInitQueueDrag(container) {
+  container.querySelectorAll('.yt-mini-queue-item').forEach(item => {
+    item.addEventListener('dragstart', e => {
+      _ytQueueDragSrc = item;
+      item.classList.add('yt-queue-dragging');
+      e.dataTransfer.effectAllowed = 'move';
+    });
+    item.addEventListener('dragend', () => {
+      _ytQueueDragSrc = null;
+      container.querySelectorAll('.yt-mini-queue-item').forEach(i => i.classList.remove('yt-queue-dragging', 'yt-queue-drag-over'));
+    });
+    item.addEventListener('dragover', e => {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'move';
+      container.querySelectorAll('.yt-mini-queue-item').forEach(i => i.classList.remove('yt-queue-drag-over'));
+      if (item !== _ytQueueDragSrc) item.classList.add('yt-queue-drag-over');
+    });
+    item.addEventListener('dragleave', () => item.classList.remove('yt-queue-drag-over'));
+    item.addEventListener('drop', e => {
+      e.preventDefault();
+      if (_ytQueueDragSrc && _ytQueueDragSrc !== item) {
+        const fromIdx = parseInt(_ytQueueDragSrc.dataset.qi);
+        const toIdx   = parseInt(item.dataset.qi);
+        const [moved] = _ytQueue.splice(fromIdx, 1);
+        _ytQueue.splice(toIdx, 0, moved);
+        _ytUpdateQueueDisplay();
+        _ytSaveQueue();
+      }
+    });
+  });
 }
 
 function _ytRemoveFromQueue(i) {
   _ytQueue.splice(i, 1);
   _ytUpdateQueueDisplay();
+  _ytSaveQueue();
+}
+
+function _ytClampToViewport() {
+  const player = document.getElementById('ytMiniPlayer');
+  if (!player || player.style.display === 'none') return;
+  const r  = player.getBoundingClientRect();
+  const vw = window.innerWidth, vh = window.innerHeight;
+  const nl = Math.max(12, Math.min(r.left, vw - r.width  - 12));
+  const nt = Math.max(12, Math.min(r.top,  vh - r.height - 12));
+  player.style.left   = nl + 'px';
+  player.style.top    = nt + 'px';
+  player.style.bottom = 'auto';
+  player.style.right  = 'auto';
+  try { localStorage.setItem('yt-player-pos', JSON.stringify({ left: nl, top: nt })); } catch(e) {}
 }
 
 function _ytInitDrag() {
@@ -15783,22 +16155,32 @@ function _ytInitDrag() {
     const saved = localStorage.getItem('yt-player-pos');
     if (saved) {
       const { left, top } = JSON.parse(saved);
-      const maxL = window.innerWidth  - player.offsetWidth  - 12;
-      const maxT = window.innerHeight - player.offsetHeight - 12;
-      player.style.left   = Math.max(12, Math.min(left, maxL)) + 'px';
-      player.style.top    = Math.max(12, Math.min(top,  maxT)) + 'px';
-      player.style.bottom = 'auto';
-      player.style.right  = 'auto';
+      const vw = window.innerWidth, vh = window.innerHeight;
+      // Discard stale positions that are too close to any edge; fall back to CSS bottom-right default
+      const safeTop  = Math.max(12, Math.min(top,  vh - 120));
+      const safeLeft = Math.max(12, Math.min(left, vw - 200));
+      if (top >= 60 && top < vh - 60) {
+        player.style.left   = safeLeft + 'px';
+        player.style.top    = safeTop  + 'px';
+        player.style.bottom = 'auto';
+        player.style.right  = 'auto';
+      } else {
+        localStorage.removeItem('yt-player-pos');
+      }
     }
   } catch(e) {}
+  // Re-clamp whenever the player grows (panels opening, queue items, etc.)
+  if (typeof ResizeObserver !== 'undefined') {
+    new ResizeObserver(() => { if (!dragging) _ytClampToViewport(); }).observe(player);
+  }
   const handle = player.querySelector('.yt-mini-drag-handle');
   if (!handle) return;
   let dragging = false, sx, sy, sl, st;
-  function _snapSave() {
+  function _savePos() {
     const r  = player.getBoundingClientRect();
     const vw = window.innerWidth, vh = window.innerHeight;
-    const nl = r.left + r.width  / 2 < vw / 2 ? 12 : vw - r.width  - 12;
-    const nt = r.top  + r.height / 2 < vh / 2 ? 12 : vh - r.height - 12;
+    const nl = Math.max(12, Math.min(r.left, vw - r.width  - 12));
+    const nt = Math.max(12, Math.min(r.top,  vh - r.height - 12));
     player.style.left = nl + 'px';
     player.style.top  = nt + 'px';
     try { localStorage.setItem('yt-player-pos', JSON.stringify({ left: nl, top: nt })); } catch(e) {}
@@ -15815,7 +16197,7 @@ function _ytInitDrag() {
     player.style.left = (sl + e.clientX - sx) + 'px';
     player.style.top  = (st + e.clientY - sy) + 'px';
   });
-  document.addEventListener('mouseup', () => { if (!dragging) return; dragging = false; _snapSave(); });
+  document.addEventListener('mouseup', () => { if (!dragging) return; dragging = false; _savePos(); });
   handle.addEventListener('touchstart', e => {
     const t = e.touches[0]; dragging = true;
     const r = player.getBoundingClientRect();
@@ -15829,19 +16211,39 @@ function _ytInitDrag() {
     player.style.top  = (st + t.clientY - sy) + 'px';
     e.preventDefault();
   }, { passive: false });
-  document.addEventListener('touchend', () => { if (!dragging) return; dragging = false; _snapSave(); });
+  document.addEventListener('touchend', () => { if (!dragging) return; dragging = false; _savePos(); });
 }
 
-// Space bar toggles pause/resume when mini player is visible and no input is focused
+// Keyboard shortcuts when mini player is visible and no input is focused
 document.addEventListener('keydown', e => {
-  if (e.code !== 'Space') return;
   const playerEl = document.getElementById('ytMiniPlayer');
   if (!playerEl || playerEl.style.display === 'none') return;
   const tag = document.activeElement && document.activeElement.tagName;
   if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || (document.activeElement && document.activeElement.isContentEditable)) return;
-  e.preventDefault();
-  _ytPauseToggle();
+  const key = e.key;
+  if (e.code === 'Space')           { e.preventDefault(); _ytPauseToggle(); }
+  else if (key === 'n' || key === 'N') { e.preventDefault(); _ytSkip(); }
+  else if (key === 'f' || key === 'F') { e.preventDefault(); _ytToggleSearch(); }
+  else if (key === 'h' || key === 'H') { e.preventDefault(); _ytToggleHistory(); }
+  else if (key === '?')               { e.preventDefault(); _ytToggleShortcuts(); }
+  else if (key === 'Escape')          { e.preventDefault(); closeYtPlayer(); }
 });
+
+// Scroll wheel on mini player changes volume
+document.addEventListener('wheel', e => {
+  const playerEl = document.getElementById('ytMiniPlayer');
+  if (!playerEl || playerEl.style.display === 'none') return;
+  if (!playerEl.contains(e.target)) return;
+  e.preventDefault();
+  _ytSetVolume(_ytVolume + (e.deltaY < 0 ? 5 : -5));
+}, { passive: false });
+
+// Load persisted queue and volume on page load
+_ytLoadQueue();
+try {
+  const sv = localStorage.getItem('yt-volume');
+  if (sv !== null) { _ytVolume = Math.max(0, Math.min(100, parseInt(sv))); }
+} catch(e) {}
 
 // ── Listening Activity Heatmap ─────────────────────────────────────────────
 
