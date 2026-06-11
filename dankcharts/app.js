@@ -12166,7 +12166,7 @@ const _mbReleasesCache = {};
 async function fetchAllReleasesRaw(mbid) {
   if (_mbReleasesCache[mbid] !== undefined) return _mbReleasesCache[mbid];
   try {
-    const d = await mbFetch(`release-group?artist=${mbid}&type=album%7Cep%7Csingle&fmt=json&limit=100&inc=releases`);
+    const d = await mbFetch(`release-group?artist=${mbid}&type=album%7Cep%7Csingle&fmt=json&limit=100`);
     _mbReleasesCache[mbid] = d['release-groups'] || [];
   } catch (e) { _mbReleasesCache[mbid] = []; return []; }
   return _mbReleasesCache[mbid];
@@ -14029,6 +14029,7 @@ function _syncEventsTypeFilter() {
 }
 
 const EVENTS_CACHE_KEY = 'dc_eventsCache';
+const EVENTS_CACHE_VER = 2;
 const EVENTS_CACHE_TTL = 24 * 60 * 60 * 1000;
 const EVENTS_WINDOW_DAYS = 30;
 const CONCERTS_CACHE_KEY = 'dc_concertsCache';
@@ -15146,7 +15147,7 @@ function _eventsFromCache(cached) {
 }
 
 function _isCacheValid(cached) {
-  return cached && Date.now() - cached.ts < EVENTS_CACHE_TTL && cached.limit === eventsArtistLimit && cached.eventsUpcoming;
+  return cached && cached.ver === EVENTS_CACHE_VER && Date.now() - cached.ts < EVENTS_CACHE_TTL && cached.limit === eventsArtistLimit && cached.eventsUpcoming;
 }
 
 async function loadEvents(forceRefresh = false) {
@@ -15258,7 +15259,7 @@ async function loadEvents(forceRefresh = false) {
     if (i % 5 === 4 || i === artists.length - 1) renderEventsPartial(birthdays, anniversaries, recentBirthdays, recentAnniversaries, eventsUpcoming, eventsRecent);
   }
 
-  const cacheData = { ts: Date.now(), limit: eventsArtistLimit, birthdays, anniversaries, recentBirthdays, recentAnniversaries, eventsUpcoming, eventsRecent, artists };
+  const cacheData = { ver: EVENTS_CACHE_VER, ts: Date.now(), limit: eventsArtistLimit, birthdays, anniversaries, recentBirthdays, recentAnniversaries, eventsUpcoming, eventsRecent, artists };
   try { localStorage.setItem(EVENTS_CACHE_KEY, JSON.stringify(cacheData)); } catch (e) {}
   if (typeof dcSaveEventsCache === 'function') dcSaveEventsCache(cacheData);
 
