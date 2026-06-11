@@ -1117,6 +1117,20 @@
       font-weight: 700;
     }
 
+    body.navy-light .period-nav button:not(.active):hover,
+    body.navy-light .chart-size-bar .size-btns button:not(.active):hover,
+    body.purple-light .period-nav button:not(.active):hover,
+    body.purple-light .chart-size-bar .size-btns button:not(.active):hover,
+    body.red-light .period-nav button:not(.active):hover,
+    body.red-light .chart-size-bar .size-btns button:not(.active):hover,
+    body.yellow-light .period-nav button:not(.active):hover,
+    body.yellow-light .chart-size-bar .size-btns button:not(.active):hover,
+    body.pink-light .period-nav button:not(.active):hover,
+    body.pink-light .chart-size-bar .size-btns button:not(.active):hover {
+      color: var(--text);
+      font-weight: 700;
+    }
+
     body.yellow #syncNowBtn:hover {
       color: #1a1a00;
     }
@@ -9602,9 +9616,28 @@ body.hide-yt-btns .yt-play-btn { display: none; }
   opacity: 1;
 }
 
-/* Light themes: masthead is a dark saturated color, so hero stats need white text */
-body.navy-light .hero-stats,
-body.purple-light .hero-stats,
+/* Light themes with pale mastheads (navy/purple) — use dark text for contrast */
+body.navy-light .hero-stats {
+  --text: rgba(10, 40, 80, 0.95);
+  --text2: rgba(10, 40, 80, 0.85);
+  --text3: rgba(10, 40, 80, 0.6);
+  --border2: rgba(15, 53, 96, 0.35);
+  --bg2: rgba(255, 255, 255, 0.85);
+  background: rgba(255, 255, 255, 0.35);
+  border-color: rgba(15, 53, 96, 0.25);
+}
+
+body.purple-light .hero-stats {
+  --text: rgba(36, 28, 80, 0.95);
+  --text2: rgba(36, 28, 80, 0.85);
+  --text3: rgba(36, 28, 80, 0.6);
+  --border2: rgba(68, 48, 192, 0.35);
+  --bg2: rgba(255, 255, 255, 0.85);
+  background: rgba(255, 255, 255, 0.35);
+  border-color: rgba(68, 48, 192, 0.22);
+}
+
+/* Light themes with dark mastheads (red/yellow/pink) — white text */
 body.red-light .hero-stats,
 body.yellow-light .hero-stats,
 body.pink-light .hero-stats {
