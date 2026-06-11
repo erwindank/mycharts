@@ -16096,7 +16096,7 @@ function _ytUpdateQueueDisplay() {
     `<div class="yt-mini-queue-item" draggable="true" data-qi="${i}">` +
     `<span class="yt-mini-queue-drag" title="Drag to reorder">⠿</span>` +
     `<span class="yt-mini-queue-num">${i === 0 ? '▶' : i + 1}</span>` +
-    `<span class="yt-mini-queue-title">${esc(t.title)}</span>` +
+    `<span class="yt-mini-queue-title">${esc(t.title)}${t.artist ? `<span class="yt-mini-queue-artist"> · ${esc(t.artist)}</span>` : ''}</span>` +
     `<button class="yt-mini-queue-rm" onclick="_ytRemoveFromQueue(${i})" title="Remove">✕</button>` +
     `</div>`
   ).join('');

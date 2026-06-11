@@ -9331,6 +9331,7 @@ body.purple .landing-card-config input:focus {
 .yt-mini-queue-drag:active { cursor: grabbing; }
 .yt-mini-queue-num   { color: var(--text3); flex-shrink: 0; min-width: 1.5em; font-size: 0.6rem; }
 .yt-mini-queue-title { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--text2); }
+.yt-mini-queue-artist { color: var(--text3); font-size: 0.9em; }
 .yt-mini-queue-rm    { cursor: pointer; opacity: 0.45; flex-shrink: 0; background: none; border: none; color: inherit; padding: 0; font-size: inherit; line-height: 1; }
 .yt-mini-queue-rm:hover { opacity: 1; }
 .yt-queue-dragging   { opacity: 0.4; }
