@@ -12807,10 +12807,63 @@ body[class*="-light"] .tm-card-search:hover {
 .wv-card-body { padding: 0.4rem 0.5rem 0.5rem; }
 
 /* ── CARD GRID ── */
-.wv-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 8px; padding: 4px; }
+.wv-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; padding: 4px 0 4px 4px; }
+.wv-grid-lg { grid-template-columns: repeat(3, 1fr); }
 .wv-grid-card .wv-card-art .wv-thumb-lg { width: 100%; }
+.wv-grid-card .wv-card-art .wv-thumb-lg .thumb-wrap { width: 100%; }
+.wv-grid-card .wv-card-art .wv-thumb-lg .thumb-wrap > div { width: 100%; }
 .wv-grid-card .wv-card-art .wv-thumb-lg .thumb-initials,
-.wv-grid-card .wv-card-art .wv-thumb-lg .thumb { width: 100%; height: 110px; border-radius: 0; }
+.wv-grid-card .wv-card-art .wv-thumb-lg .thumb { width: 100%; height: 140px; border-radius: 0; }
+.wv-grid-lg .wv-grid-card .wv-card-art .wv-thumb-lg .thumb-initials,
+.wv-grid-lg .wv-grid-card .wv-card-art .wv-thumb-lg .thumb { height: 210px; }
+
+/* density toggle toolbar */
+.wv-grid-toolbar { display: flex; justify-content: flex-end; padding: 0 4px 6px; }
+.wv-grid-density-btn { font-size: 0.7rem; font-family: 'DM Mono', monospace; padding: 3px 9px; border-radius: 4px; border: 1px solid var(--border2); background: var(--bg2); color: var(--text2); cursor: pointer; letter-spacing: 0.04em; transition: border-color 0.15s, color 0.15s; }
+.wv-grid-density-btn:hover, .wv-grid-density-btn.active { border-color: var(--accent); color: var(--accent); }
+
+/* bigger rank badge for grid cards */
+.wv-grid-card .wv-rank-badge { font-size: 0.95rem; padding: 2px 7px; border-radius: 4px; }
+
+/* click-to-play cursor */
+.wv-grid-card[onclick] { cursor: pointer; }
+
+/* allow title/artist to wrap in grid cards */
+.wv-grid-card .wv-ttl,
+.wv-grid-card .wv-art { white-space: normal; overflow: visible; text-overflow: unset; }
+
+/* plays row: count left, movement badge right */
+.wv-gc-plays-row { display: flex; align-items: center; justify-content: space-between; gap: 4px; }
+.wv-gc-plays-row .wv-same { display: none; }
+
+/* hover play overlay */
+.wv-gc-hover { position: absolute; inset: 0; background: rgba(0,0,0,0.45); display: flex; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.18s; pointer-events: none; }
+.wv-grid-card:hover .wv-gc-hover { opacity: 1; pointer-events: auto; }
+.wv-gc-play-btn { width: 38px; height: 38px; border-radius: 50%; background: rgba(255,255,255,0.92); color: #111; border: none; cursor: pointer; font-size: 1rem; display: flex; align-items: center; justify-content: center; padding-left: 3px; box-shadow: 0 2px 8px rgba(0,0,0,0.4); transition: transform 0.12s; }
+.wv-gc-play-btn:hover { transform: scale(1.1); }
+
+/* cert badge overlaid on card art */
+.wv-gc-cert { position: absolute; bottom: 0; left: 0; right: 0; display: flex; justify-content: center; padding-bottom: 3px; pointer-events: none; }
+.wv-gc-cert .cert { margin-left: 0; font-size: 0.48rem; padding: 1px 4px; background: rgba(0,0,0,0.72) !important; backdrop-filter: blur(2px); }
+.wv-gc-cert .cert-icon { font-size: 8px; }
+
+/* movement border tints (ranks 4+) */
+.wv-gc-entry.wv-card { border-color: rgba(74,222,128,0.4); box-shadow: 0 0 0 1px rgba(74,222,128,0.15) inset; }
+.wv-gc-up.wv-card    { border-color: rgba(74,222,128,0.28); }
+.wv-gc-down.wv-card  { border-color: rgba(248,113,113,0.3); }
+
+/* entry animation */
+@keyframes wvCardIn {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.wv-gc-anim { animation: wvCardIn 0.32s ease both; }
+
+/* context menu */
+.wv-ctx-menu { position: fixed; z-index: 9999; background: var(--bg2); border: 1px solid var(--border2); border-radius: 6px; box-shadow: 0 8px 24px rgba(0,0,0,0.5); min-width: 170px; padding: 4px 0; display: none; font-size: 0.8rem; }
+.wv-ctx-item { padding: 7px 14px; color: var(--text); cursor: pointer; white-space: nowrap; display: flex; align-items: center; gap: 6px; }
+.wv-ctx-item:hover { background: var(--bg3, var(--border)); color: var(--accent); }
+.wv-ctx-sep { height: 1px; background: var(--border); margin: 3px 0; }
 
 /* ── COMPACT LIST ── */
 .wv-compact { display: flex; flex-direction: column; }
@@ -12862,6 +12915,6 @@ body[class*="-light"] .tm-card-search:hover {
 
 /* ── RESPONSIVE ── */
 @media (max-width: 600px) {
-  .wv-grid { grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); }
+  .wv-grid { grid-template-columns: repeat(2, 1fr); }
 }
 

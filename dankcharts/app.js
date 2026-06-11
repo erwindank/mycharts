@@ -130,6 +130,7 @@ let weeklyChartViewMode = (() => { try { return localStorage.getItem('dc_weekly_
 let _weeklyViewSongs = [], _weeklyViewMax = 1, _weeklyViewPeaks = null, _weeklyViewMonthlyStats = null;
 let _weeklyViewArtists = [], _weeklyViewArtistsMax = 1;
 let _weeklyViewAlbums  = [], _weeklyViewAlbumsMax  = 1;
+let _wvGridLarge = (() => { try { return localStorage.getItem('dc_grid_density') === 'lg'; } catch(e) { return false; } })();
 
 // ─── DISPLAY TOGGLES ──────────────────────────────────────────
 const DISPLAY_TOGGLE_CONFIG = {
@@ -7909,17 +7910,119 @@ function _wvItem(type, item, i, ms, imgItems, imgPrefix) {
 
 function _wvGrid(items, max, ms, imgItems, type) {
   type = type || 'songs';
-  return `<div class="wv-grid">${items.map((s, i) => {
-    const { k, imgId, mv } = _wvItem(type, s, i, ms, imgItems);
+  // First pass: build all item data so we can compute drama scores for animation order
+  const itemData = items.map((s, i) => {
+    const d = _wvItem(type, s, i, ms, imgItems);
     const { ttl, sub } = _wvDisp(type, s);
+    return { ...d, s, i, ttl, sub };
+  });
+  // Biggest movers (NEW/RE/large ▲) animate first; drops last
+  const drama = itemData.map(({ mv }) => {
+    if (!mv) return 0;
+    if (mv.includes('wv-new') || mv.includes('wv-re')) return 9999;
+    const u = mv.match(/▲(\d+)/); if (u) return parseInt(u[1]);
+    const dn = mv.match(/▼(\d+)/); if (dn) return parseInt(dn[1]);
+    return 0;
+  });
+  const order = [...itemData.keys()].sort((a, b) => drama[b] - drama[a]);
+  const animDelay = new Array(itemData.length);
+  order.forEach((origIdx, pos) => { animDelay[origIdx] = pos * 45; });
+  const canPlay = type === 'songs' || type === 'albums';
+  const toolbar = `<div class="wv-grid-toolbar"><button class="wv-grid-density-btn${_wvGridLarge ? ' active' : ''}" onclick="toggleGridDensity()" title="Toggle card size">⊞ ${_wvGridLarge ? 'Compact' : 'Large'}</button></div>`;
+  const grid = `<div class="wv-grid${_wvGridLarge ? ' wv-grid-lg' : ''}">${itemData.map(({ k, imgId, mv, s, i, ttl, sub }) => {
     const barW = Math.round(s.count / max * 100);
-    return `<div class="wv-card wv-grid-card${i < 3 ? ' wv-r' + (i+1) : ''}">
-      <div class="wv-card-art"><div class="wv-thumb wv-thumb-lg">${_wvThumb(imgId, ttl)}</div>
-        <span class="wv-rank-badge">${i+1}</span>${mv ? `<span class="wv-mv-ov">${mv}</span>` : ''}</div>
-      <div class="wv-card-body"><div class="wv-ttl">${esc(ttl)}</div><div class="wv-art">${esc(sub)}</div>
-        <div class="wv-plays">${s.count} ${s.count===1?'play':'plays'}</div>
-        <div class="wv-bar"><div class="wv-bar-fill" style="width:${barW}%"></div></div></div></div>`;
+    const pk = type === 'songs' ? _weeklyViewPeaks?.songPeakMap[k] : null;
+    const cumPlays = type === 'songs' && cumulativeMaps ? (cumulativeMaps.songs[k] || 0) : 0;
+    const cert = type === 'songs' ? certBadge(cumPlays, 'song') : '';
+    const mvClass = i >= 3 ? (
+      mv.includes('wv-new') || mv.includes('wv-re') ? ' wv-gc-entry' :
+      mv.includes('wv-up') ? ' wv-gc-up' :
+      mv.includes('wv-down') ? ' wv-gc-down' : ''
+    ) : '';
+    const jt = esc(JSON.stringify(ttl)), jar = esc(JSON.stringify(sub)), jal = esc(JSON.stringify(s.album || ''));
+    const jtype = esc(JSON.stringify(type));
+    const clickAttr = canPlay ? ` onclick="_ytPlayOrQueue(${jt},${jar},${jal})"` : '';
+    const ctxAttr = ` oncontextmenu="_wvGridCtx(event,${jtype},${jt},${jar},${jal});return false"`;
+    return `<div class="wv-card wv-grid-card wv-gc-anim${i < 3 ? ' wv-r' + (i+1) : ''}${mvClass}" style="animation-delay:${animDelay[i]}ms"${clickAttr}${ctxAttr}>` +
+      `<div class="wv-card-art"><div class="wv-thumb wv-thumb-lg">${_wvThumb(imgId, ttl)}</div>` +
+      `<span class="wv-rank-badge">${i+1}</span>` +
+      (cert ? `<span class="wv-gc-cert">${cert}</span>` : '') +
+      (canPlay ? `<div class="wv-gc-hover"><button class="wv-gc-play-btn" onclick="event.stopPropagation();_ytPlayOrQueue(${jt},${jar},${jal})" title="Play Now">▶</button></div>` : '') +
+      `</div><div class="wv-card-body">` +
+      `<div class="wv-ttl">${esc(ttl)}${pk ? peakBadge(pk) : ''}</div>` +
+      `<div class="wv-art">${esc(sub)}</div>` +
+      `<div class="wv-gc-plays-row"><span class="wv-plays">${s.count} ${s.count===1?'play':'plays'}</span>${mv || ''}</div>` +
+      `<div class="wv-bar"><div class="wv-bar-fill" style="width:${barW}%"></div></div>` +
+      `</div></div>`;
   }).join('')}</div>`;
+  return toolbar + grid;
+}
+
+function toggleGridDensity() {
+  _wvGridLarge = !_wvGridLarge;
+  try { localStorage.setItem('dc_grid_density', _wvGridLarge ? 'lg' : 'sm'); } catch(e) {}
+  document.querySelectorAll('.wv-grid').forEach(g => g.classList.toggle('wv-grid-lg', _wvGridLarge));
+  document.querySelectorAll('.wv-grid-density-btn').forEach(b => {
+    b.textContent = `⊞ ${_wvGridLarge ? 'Compact' : 'Large'}`;
+    b.classList.toggle('active', _wvGridLarge);
+  });
+}
+
+function _wvGridCtx(e, type, title, artist, album) {
+  e.preventDefault();
+  let menu = document.getElementById('wvGridCtxMenu');
+  if (!menu) {
+    menu = document.createElement('div');
+    menu.id = 'wvGridCtxMenu';
+    menu.className = 'wv-ctx-menu';
+    document.body.appendChild(menu);
+    menu.addEventListener('click', function(ev) {
+      const item = ev.target.closest('.wv-ctx-item[data-action]');
+      if (!item) return;
+      const action = item.dataset.action;
+      const t  = JSON.parse(menu.dataset.t);
+      const ar = JSON.parse(menu.dataset.ar);
+      const al = JSON.parse(menu.dataset.al);
+      if (action === 'play') {
+        _ytPlayOrQueue(t, ar, al);
+      } else if (action === 'next') {
+        _ytQueue.unshift({ title: t, artist: ar, album: al, btn: null });
+        _ytUpdateQueueDisplay(); _ytSaveQueue();
+      } else if (action === 'queue') {
+        _ytQueue.push({ title: t, artist: ar, album: al, btn: null });
+        _ytUpdateQueueDisplay(); _ytSaveQueue();
+      } else if (action === 'similar') {
+        const others = _weeklyViewSongs.filter(s =>
+          s.artist.toLowerCase() === ar.toLowerCase() && !(s.title === t && s.artist === ar));
+        others.forEach(s => _ytQueue.push({ title: s.title, artist: s.artist, album: s.album || '', btn: null }));
+        _ytUpdateQueueDisplay(); _ytSaveQueue();
+        const statusEl = document.getElementById('ytMiniStatus');
+        if (statusEl) { statusEl.textContent = others.length ? `+${others.length} by ${ar} queued` : `No other songs by ${ar} in chart`; statusEl.className = 'yt-mini-status' + (others.length ? ' ok' : ''); setTimeout(() => { if (statusEl.textContent.includes('queued') || statusEl.textContent.includes('No other')) { statusEl.textContent = ''; statusEl.className = 'yt-mini-status'; } }, 2500); }
+      } else if (action === 'yt') {
+        window.open('https://www.youtube.com/results?search_query=' + encodeURIComponent(ar + ' ' + t), '_blank');
+      }
+      menu.style.display = 'none';
+    });
+    document.addEventListener('click', (ev) => { if (!menu.contains(ev.target)) menu.style.display = 'none'; }, true);
+    document.addEventListener('keydown', (ev) => { if (ev.key === 'Escape') menu.style.display = 'none'; });
+  }
+  menu.dataset.t  = JSON.stringify(title);
+  menu.dataset.ar = JSON.stringify(artist);
+  menu.dataset.al = JSON.stringify(album);
+  const playerEl = document.getElementById('ytMiniPlayer');
+  const playerActive = typeof _ytCurrentTrack !== 'undefined' && _ytCurrentTrack && playerEl && playerEl.style.display !== 'none';
+  const isSong = type === 'songs';
+  menu.innerHTML =
+    `<div class="wv-ctx-item" data-action="play">▶ Play Now</div>` +
+    (playerActive ? `<div class="wv-ctx-item" data-action="next">⏭ Play Next</div><div class="wv-ctx-item" data-action="queue">＋ Add to Queue</div>` : '') +
+    (isSong && playerActive ? `<div class="wv-ctx-item" data-action="similar">♪ Play Similar</div>` : '') +
+    `<div class="wv-ctx-sep"></div>` +
+    `<div class="wv-ctx-item" data-action="yt">🔍 Search on YouTube</div>`;
+  menu.style.display = 'block';
+  const mw = menu.offsetWidth || 180, mh = menu.offsetHeight || 140;
+  const vw = window.innerWidth, vh = window.innerHeight;
+  menu.style.left = Math.min(e.clientX, vw - mw - 8) + 'px';
+  menu.style.top  = Math.min(e.clientY, vh - mh - 8) + 'px';
 }
 
 function _wvCompact(items, max, ms, imgItems, type) {
