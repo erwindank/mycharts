@@ -15553,6 +15553,7 @@ function openYtPlayer(title, artist, album, btn) {
   document.querySelectorAll('.yt-now-playing-row').forEach(r => r.classList.remove('yt-now-playing-row'));
   _ytStopScrobbleRing();
   _ytCurrentTrack    = { title, artist, album };
+  try { localStorage.setItem('yt-player-current', JSON.stringify({ title, artist, album })); } catch(e) {}
   _ytCurrentVideoId  = null;
   _ytScrobbled       = false;
   _ytHistoryRecorded = false;
@@ -15738,6 +15739,7 @@ function closeYtPlayer() {
   const toast = document.getElementById('ytQueueToast');
   if (toast) toast.style.display = 'none';
   _ytCurrentTrack   = null;
+  try { localStorage.removeItem('yt-player-current'); } catch(e) {}
   _ytCurrentVideoId = null;
   _ytScrobbled      = false;
   _ytExpandSize     = 0;
@@ -15760,7 +15762,10 @@ function closeYtPlayer() {
 }
 
 function _ytPauseToggle() {
-  if (!_ytPlayer) return;
+  if (!_ytPlayer) {
+    if (_ytCurrentTrack) openYtPlayer(_ytCurrentTrack.title, _ytCurrentTrack.artist, _ytCurrentTrack.album, null);
+    return;
+  }
   const state = _ytPlayer.getPlayerState();
   if (state === YT.PlayerState.PLAYING) { _ytPlayer.pauseVideo(); }
   else { _ytPlayer.playVideo(); }
@@ -16245,6 +16250,32 @@ _ytLoadQueue();
 try {
   const sv = localStorage.getItem('yt-volume');
   if (sv !== null) { _ytVolume = Math.max(0, Math.min(100, parseInt(sv))); }
+} catch(e) {}
+
+// Restore last-playing track from previous session
+try {
+  const savedTrack = localStorage.getItem('yt-player-current');
+  if (savedTrack) {
+    const track = JSON.parse(savedTrack);
+    if (track && track.title) {
+      _ytCurrentTrack = track;
+      const player = document.getElementById('ytMiniPlayer');
+      if (player) {
+        player.style.display = '';
+        const titleEl  = document.getElementById('ytMiniTitle');
+        const artistEl = document.getElementById('ytMiniArtist');
+        const statusEl = document.getElementById('ytMiniStatus');
+        const pauseBtn = document.getElementById('ytMiniPauseBtn');
+        if (titleEl)  titleEl.textContent  = track.title;
+        if (artistEl) artistEl.textContent = track.artist || '';
+        if (statusEl) { statusEl.textContent = 'Tap ▶ to resume'; statusEl.className = 'yt-mini-status'; }
+        if (pauseBtn) { pauseBtn.innerHTML = _YT_IC.play; pauseBtn.title = 'Play'; }
+        if (!_ytDragInitialized) { _ytDragInitialized = true; _ytInitDrag(); }
+        _ytLoadVolume();
+        requestAnimationFrame(_ytClampToViewport);
+      }
+    }
+  }
 } catch(e) {}
 
 // ── Listening Activity Heatmap ─────────────────────────────────────────────
