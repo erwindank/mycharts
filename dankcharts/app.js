@@ -15515,6 +15515,19 @@ let _ytPlayStart         = null;
 let _ytRepeat            = parseInt(localStorage.getItem('yt-repeat') || '0'); // 0=off,1=one,2=all
 let _ytSeekInterval      = null;
 let _ytSeekDragging      = false;
+let _ytSleepRemaining    = 0;
+let _ytSleepInterval     = null;
+let _ytSpeedIdx          = (() => { try { return Math.min(4, Math.max(0, parseInt(localStorage.getItem('yt-speed-idx') || '1'))); } catch(e) { return 1; } })();
+let _ytSpeed             = [0.75, 1, 1.25, 1.5, 2][_ytSpeedIdx] || 1;
+let _ytCrossfade         = parseInt(localStorage.getItem('yt-crossfade') || '0');
+let _ytCrossfadeRamp     = null;
+let _ytCrossfadingOut    = false;
+let _ytNewTrackFade      = false;
+let _ytScrobbleThreshold = localStorage.getItem('yt-scrobble-threshold') || '30s';
+let _ytPlaylists         = {};
+let _ytPipWindow         = null;
+let _ytPipUpdate         = null;
+let _ytLyricsCache       = {};
 
 // Called automatically by the YouTube IFrame API script once it loads.
 function onYouTubeIframeAPIReady() {
@@ -15561,6 +15574,8 @@ function openYtPlayer(title, artist, album, btn) {
   _ytScrobbled       = false;
   _ytHistoryRecorded = false;
   _ytEmbedRetry      = 0;
+  _ytCrossfadingOut  = false;
+  if (_ytCrossfade > 0) _ytNewTrackFade = true;
   clearTimeout(_ytScrobbleTimer);
   _ytActiveBtn = btn || null;
   if (_ytActiveBtn) {
@@ -15639,16 +15654,21 @@ function _ytOnState(event) {
   if (event.data === YT.PlayerState.PLAYING) {
     clearTimeout(_ytScrobbleTimer);
     if (!_ytScrobbled) {
-      _ytScrobbleTimer = setTimeout(_ytScrobble, 30000);
-      _ytStartScrobbleRing();
+      if (_ytScrobbleThreshold === '30s') {
+        _ytScrobbleTimer = setTimeout(_ytScrobble, 30000);
+        _ytStartScrobbleRing();
+      }
     }
     _ytStartSeekUpdate();
+    _ytApplySpeed();
+    if (_ytCrossfade > 0 && _ytNewTrackFade) { _ytNewTrackFade = false; _ytStartFadeIn(); }
     if (pauseBtn) { pauseBtn.innerHTML = _YT_IC.pause; pauseBtn.title = 'Pause'; }
     if (_ytActiveBtn) { _ytActiveBtn.classList.remove('yt-btn-loading'); _ytActiveBtn.classList.add('yt-btn-playing'); }
     if (!_ytHistoryRecorded && _ytCurrentTrack) {
       _ytHistoryRecorded = true;
       _ytRecordHistory(_ytCurrentTrack.title, _ytCurrentTrack.artist, _ytCurrentTrack.album);
     }
+    if (_ytPipUpdate) _ytPipUpdate();
   } else if (event.data === YT.PlayerState.PAUSED) {
     clearTimeout(_ytScrobbleTimer);
     _ytStopScrobbleRing();
@@ -15657,6 +15677,7 @@ function _ytOnState(event) {
   } else if (event.data === YT.PlayerState.ENDED) {
     clearTimeout(_ytScrobbleTimer);
     _ytStopSeekUpdate();
+    if (!_ytScrobbled && _ytScrobbleThreshold === 'end') _ytScrobble();
     if (_ytActiveBtn) _ytActiveBtn.classList.remove('yt-btn-loading', 'yt-btn-playing');
     if (_ytRepeat === 1 && _ytCurrentTrack) {
       openYtPlayer(_ytCurrentTrack.title, _ytCurrentTrack.artist, _ytCurrentTrack.album, _ytActiveBtn);
@@ -15744,6 +15765,9 @@ function closeYtPlayer() {
   clearTimeout(_ytQueueToastTimer);
   _ytStopScrobbleRing();
   _ytStopSeekUpdate();
+  clearInterval(_ytSleepInterval); _ytSleepInterval = null; _ytSleepRemaining = 0; _ytUpdateSleepBtn();
+  clearInterval(_ytCrossfadeRamp); _ytCrossfadeRamp = null; _ytCrossfadingOut = false; _ytNewTrackFade = false;
+  if (_ytPipWindow) { try { _ytPipWindow.close(); } catch(e) {} _ytPipWindow = null; _ytPipUpdate = null; _ytUpdatePipBtn(); }
   const seekWrap = document.getElementById('ytSeekBarWrap');
   if (seekWrap) seekWrap.style.display = 'none';
   if (_ytPlayer) {
@@ -15770,11 +15794,11 @@ function closeYtPlayer() {
   if (expandBtn) { expandBtn.innerHTML = _YT_IC.expand; expandBtn.title = 'Size: S → M'; }
   const collapseBtn = document.getElementById('ytMiniCollapseBtn');
   if (collapseBtn) { collapseBtn.innerHTML = _YT_IC.collapseV; collapseBtn.title = 'Collapse player'; }
-  ['ytMiniSearchBox','ytSearchResults','ytMiniHistory','ytShortcutsPanel'].forEach(id => {
+  ['ytMiniSearchBox','ytSearchResults','ytMiniHistory','ytShortcutsPanel','ytLyricsPanel','ytSleepPanel','ytPlaylistsPanel'].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.style.display = 'none';
   });
-  ['ytMiniSearchBtn','ytMiniHistoryBtn','ytMiniShortcutsBtn'].forEach(id => {
+  ['ytMiniSearchBtn','ytMiniHistoryBtn','ytMiniShortcutsBtn','ytLyricsBtn','ytSleepBtn','ytPlaylistsBtn'].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.classList.remove('yt-ctrl-active');
   });
@@ -15979,8 +16003,8 @@ function _ytToggleHistory() {
   const btn = document.getElementById('ytMiniHistoryBtn');
   if (!el) return;
   const visible = el.style.display !== 'none';
-  ['ytSearchResults','ytShortcutsPanel'].forEach(id => { const e = document.getElementById(id); if (e) e.style.display = 'none'; });
-  ['ytMiniShortcutsBtn'].forEach(id => { const e = document.getElementById(id); if (e) e.classList.remove('yt-ctrl-active'); });
+  ['ytSearchResults','ytShortcutsPanel','ytLyricsPanel','ytSleepPanel','ytPlaylistsPanel'].forEach(id => { const e = document.getElementById(id); if (e) e.style.display = 'none'; });
+  ['ytMiniShortcutsBtn','ytLyricsBtn','ytSleepBtn','ytPlaylistsBtn'].forEach(id => { const e = document.getElementById(id); if (e) e.classList.remove('yt-ctrl-active'); });
   el.style.display = visible ? 'none' : 'block';
   if (btn) btn.classList.toggle('yt-ctrl-active', !visible);
   if (!visible) _ytRenderHistory();
@@ -16020,8 +16044,8 @@ function _ytToggleShortcuts() {
   const btn = document.getElementById('ytMiniShortcutsBtn');
   if (!el) return;
   const visible = el.style.display !== 'none';
-  ['ytMiniHistory','ytSearchResults'].forEach(id => { const e = document.getElementById(id); if (e) e.style.display = 'none'; });
-  ['ytMiniHistoryBtn'].forEach(id => { const e = document.getElementById(id); if (e) e.classList.remove('yt-ctrl-active'); });
+  ['ytMiniHistory','ytSearchResults','ytLyricsPanel','ytSleepPanel','ytPlaylistsPanel'].forEach(id => { const e = document.getElementById(id); if (e) e.style.display = 'none'; });
+  ['ytMiniHistoryBtn','ytLyricsBtn','ytSleepBtn','ytPlaylistsBtn'].forEach(id => { const e = document.getElementById(id); if (e) e.classList.remove('yt-ctrl-active'); });
   el.style.display = visible ? 'none' : 'block';
   if (btn) btn.classList.toggle('yt-ctrl-active', !visible);
 }
@@ -16082,6 +16106,14 @@ function _ytUpdateSeekBar() {
     if (bar)   { bar.max = dur; bar.value = cur; }
     if (curEl) curEl.textContent = _ytFmtTime(cur);
     if (durEl) durEl.textContent = _ytFmtTime(dur);
+    if (!_ytScrobbled && (_ytScrobbleThreshold === '50%' || _ytScrobbleThreshold === '70%')) {
+      const pct = parseFloat(_ytScrobbleThreshold) / 100;
+      if (cur / dur >= pct) _ytScrobble();
+    }
+    if (_ytCrossfade > 0 && !_ytCrossfadingOut && _ytQueue.length > 0) {
+      const remaining = dur - cur;
+      if (remaining > 0 && remaining <= _ytCrossfade) { _ytCrossfadingOut = true; _ytStartFadeOut(); }
+    }
   } catch(e) {}
 }
 
@@ -16359,6 +16391,9 @@ document.addEventListener('keydown', e => {
   else if (key === 'r' || key === 'R') { e.preventDefault(); _ytCycleRepeat(); }
   else if (key === 'f' || key === 'F') { e.preventDefault(); _ytToggleSearch(); }
   else if (key === 'h' || key === 'H') { e.preventDefault(); _ytToggleHistory(); }
+  else if (key === 'l' || key === 'L') { e.preventDefault(); _ytToggleLyrics(); }
+  else if (key === 't' || key === 'T') { e.preventDefault(); _ytToggleSleep(); }
+  else if (key === 's' || key === 'S') { e.preventDefault(); _ytCycleSpeed(); }
   else if (key === '?')                { e.preventDefault(); _ytToggleShortcuts(); }
   else if (key === 'Escape')           { e.preventDefault(); closeYtPlayer(); }
 });
@@ -16377,6 +16412,10 @@ document.addEventListener('wheel', e => {
 // Load persisted queue, volume, and repeat state on page load
 _ytLoadQueue();
 _ytUpdateRepeatBtn();
+_ytLoadPlaylists();
+_ytUpdateSpeedBtn();
+_ytUpdateCrossfadeBtn();
+_ytUpdateScrobbleThresholdBtn();
 try {
   const sv = localStorage.getItem('yt-volume');
   if (sv !== null) { _ytVolume = Math.max(0, Math.min(100, parseInt(sv))); }
@@ -16407,6 +16446,345 @@ try {
     }
   }
 } catch(e) {}
+
+// ── NEW PLAYER FEATURES ───────────────────────────────────────────────────
+
+// ── 1. Sleep timer ────────────────────────────────────────────────
+function _ytToggleSleep() {
+  const panel = document.getElementById('ytSleepPanel');
+  if (!panel) return;
+  const visible = panel.style.display !== 'none';
+  _ytCloseExtraPanels(['ytSleepPanel']);
+  panel.style.display = visible ? 'none' : 'block';
+  const btn = document.getElementById('ytSleepBtn');
+  if (btn) btn.classList.toggle('yt-ctrl-active', !visible && _ytSleepRemaining === 0);
+}
+
+function _ytStartSleep(minutes) {
+  clearInterval(_ytSleepInterval);
+  _ytSleepRemaining = minutes * 60;
+  _ytSleepInterval  = setInterval(() => {
+    _ytSleepRemaining--;
+    _ytUpdateSleepBtn();
+    if (_ytSleepRemaining <= 0) {
+      clearInterval(_ytSleepInterval); _ytSleepInterval = null; _ytSleepRemaining = 0;
+      _ytUpdateSleepBtn();
+      if (_ytPlayer) { try { _ytPlayer.pauseVideo(); } catch(e) {} }
+    }
+  }, 1000);
+  _ytUpdateSleepBtn();
+  const panel = document.getElementById('ytSleepPanel');
+  if (panel) panel.style.display = 'none';
+}
+
+function _ytCancelSleep() {
+  clearInterval(_ytSleepInterval); _ytSleepInterval = null; _ytSleepRemaining = 0;
+  _ytUpdateSleepBtn();
+  const panel = document.getElementById('ytSleepPanel');
+  if (panel) panel.style.display = 'none';
+  const btn = document.getElementById('ytSleepBtn');
+  if (btn) btn.classList.remove('yt-ctrl-active');
+}
+
+function _ytUpdateSleepBtn() {
+  const btn   = document.getElementById('ytSleepBtn');
+  const badge = document.getElementById('ytSleepBadge');
+  if (!btn) return;
+  if (_ytSleepRemaining > 0) {
+    btn.classList.add('yt-ctrl-active');
+    const m = Math.ceil(_ytSleepRemaining / 60);
+    if (badge) { badge.textContent = m + 'm'; badge.style.display = ''; }
+    btn.title = `Sleep in ${m}m (click to edit)`;
+  } else {
+    btn.classList.remove('yt-ctrl-active');
+    if (badge) badge.style.display = 'none';
+    btn.title = 'Sleep timer [T]';
+  }
+}
+
+// ── 2. Crossfade ──────────────────────────────────────────────────
+const _YT_CROSSFADE_OPTIONS = [0, 3, 5, 8];
+
+function _ytCycleCrossfade() {
+  const idx    = _YT_CROSSFADE_OPTIONS.indexOf(_ytCrossfade);
+  _ytCrossfade = _YT_CROSSFADE_OPTIONS[(idx + 1) % _YT_CROSSFADE_OPTIONS.length];
+  try { localStorage.setItem('yt-crossfade', _ytCrossfade); } catch(e) {}
+  _ytUpdateCrossfadeBtn();
+}
+
+function _ytUpdateCrossfadeBtn() {
+  const btn = document.getElementById('ytCrossfadeBtn');
+  if (!btn) return;
+  btn.textContent = _ytCrossfade === 0 ? 'Off' : `${_ytCrossfade}s`;
+  btn.classList.toggle('yt-setting-active', _ytCrossfade > 0);
+}
+
+function _ytStartFadeOut() {
+  if (!_ytPlayer) return;
+  clearInterval(_ytCrossfadeRamp);
+  const startVol = _ytVolume;
+  const steps    = _ytCrossfade * 10;
+  let   done     = 0;
+  _ytCrossfadeRamp = setInterval(() => {
+    done++;
+    const newVol = Math.max(0, Math.round(startVol * (1 - done / steps)));
+    try { if (_ytPlayer) _ytPlayer.setVolume(newVol); } catch(e) {}
+    if (done >= steps) { clearInterval(_ytCrossfadeRamp); _ytCrossfadeRamp = null; }
+  }, 100);
+}
+
+function _ytStartFadeIn() {
+  if (!_ytPlayer) return;
+  clearInterval(_ytCrossfadeRamp);
+  try { _ytPlayer.setVolume(0); } catch(e) {}
+  const targetVol = _ytVolume;
+  const steps     = _ytCrossfade * 10;
+  let   done      = 0;
+  _ytCrossfadeRamp = setInterval(() => {
+    done++;
+    const newVol = Math.min(targetVol, Math.round(targetVol * done / steps));
+    try { if (_ytPlayer) _ytPlayer.setVolume(newVol); } catch(e) {}
+    if (done >= steps) {
+      clearInterval(_ytCrossfadeRamp); _ytCrossfadeRamp = null;
+      try { if (_ytPlayer) _ytPlayer.setVolume(targetVol); } catch(e) {}
+    }
+  }, 100);
+}
+
+// ── 3. Lyrics panel ───────────────────────────────────────────────
+function _ytToggleLyrics() {
+  const el  = document.getElementById('ytLyricsPanel');
+  const btn = document.getElementById('ytLyricsBtn');
+  if (!el) return;
+  const visible = el.style.display !== 'none';
+  _ytCloseExtraPanels(['ytLyricsPanel']);
+  el.style.display = visible ? 'none' : 'block';
+  if (btn) btn.classList.toggle('yt-ctrl-active', !visible);
+  if (!visible) _ytFetchLyrics();
+}
+
+async function _ytFetchLyrics() {
+  const el = document.getElementById('ytLyricsPanel');
+  if (!el || !_ytCurrentTrack) return;
+  const { artist, title } = _ytCurrentTrack;
+  const key = artist + '|||' + title;
+  if (_ytLyricsCache[key]) { el.innerHTML = _ytLyricsCache[key]; return; }
+  el.innerHTML = '<div class="yt-lyrics-loading">Loading lyrics…</div>';
+  try {
+    const res  = await fetch(`https://api.lyrics.ovh/v1/${encodeURIComponent(artist)}/${encodeURIComponent(title)}`);
+    const data = await res.json();
+    if (data.lyrics) {
+      const html = `<div class="yt-lyrics-text">${esc(data.lyrics).replace(/\n/g, '<br>')}</div>`;
+      _ytLyricsCache[key] = html;
+      el.innerHTML = html;
+    } else {
+      el.innerHTML = '<div class="yt-lyrics-empty">No lyrics found</div>';
+    }
+  } catch(e) {
+    el.innerHTML = '<div class="yt-lyrics-empty">Lyrics unavailable</div>';
+  }
+}
+
+// ── 4. Scrobble threshold ─────────────────────────────────────────
+const _YT_SCROBBLE_OPTIONS = ['30s', '50%', '70%', 'end'];
+
+function _ytCycleScrobbleThreshold() {
+  const idx            = _YT_SCROBBLE_OPTIONS.indexOf(_ytScrobbleThreshold);
+  _ytScrobbleThreshold = _YT_SCROBBLE_OPTIONS[(idx + 1) % _YT_SCROBBLE_OPTIONS.length];
+  try { localStorage.setItem('yt-scrobble-threshold', _ytScrobbleThreshold); } catch(e) {}
+  _ytUpdateScrobbleThresholdBtn();
+}
+
+function _ytUpdateScrobbleThresholdBtn() {
+  const btn = document.getElementById('ytScrobbleThresholdBtn');
+  if (btn) btn.textContent = _ytScrobbleThreshold;
+}
+
+// ── 6. Named playlists ────────────────────────────────────────────
+function _ytLoadPlaylists() {
+  try { const s = localStorage.getItem('yt-playlists'); if (s) _ytPlaylists = JSON.parse(s); } catch(e) { _ytPlaylists = {}; }
+}
+
+function _ytSavePlaylists() {
+  try { localStorage.setItem('yt-playlists', JSON.stringify(_ytPlaylists)); } catch(e) {}
+}
+
+function _ytTogglePlaylists() {
+  const el  = document.getElementById('ytPlaylistsPanel');
+  const btn = document.getElementById('ytPlaylistsBtn');
+  if (!el) return;
+  const visible = el.style.display !== 'none';
+  _ytCloseExtraPanels(['ytPlaylistsPanel']);
+  el.style.display = visible ? 'none' : 'block';
+  if (btn) btn.classList.toggle('yt-ctrl-active', !visible);
+  if (!visible) _ytRenderPlaylists();
+}
+
+function _ytRenderPlaylists() {
+  const el = document.getElementById('ytPlaylistsPanel');
+  if (!el) return;
+  const names = Object.keys(_ytPlaylists);
+  let html = `<div class="yt-pl-save-row">` +
+    `<input id="ytPlNewName" class="yt-pl-name-input" type="text" placeholder="Playlist name…" maxlength="40" onkeydown="if(event.key==='Enter')_ytSaveCurrentQueue(this.value.trim())">` +
+    `<button class="yt-pl-save-btn" onclick="_ytSaveCurrentQueue(document.getElementById('ytPlNewName').value.trim())">Save</button>` +
+    `</div>`;
+  if (names.length === 0) {
+    html += '<div class="yt-pl-empty">No saved playlists</div>';
+  } else {
+    html += names.map(n =>
+      `<div class="yt-pl-item">` +
+      `<button class="yt-pl-load-btn" onclick="_ytLoadPlaylist(${JSON.stringify(n)})" title="Load">${esc(n)}</button>` +
+      `<span class="yt-pl-count">${_ytPlaylists[n].length}</span>` +
+      `<button class="yt-pl-del-btn" onclick="_ytDeletePlaylist(${JSON.stringify(n)})" title="Delete">✕</button>` +
+      `</div>`
+    ).join('');
+  }
+  el.innerHTML = html;
+}
+
+function _ytSaveCurrentQueue(name) {
+  if (!name) return;
+  const tracks = [];
+  if (_ytCurrentTrack) tracks.push({ title: _ytCurrentTrack.title, artist: _ytCurrentTrack.artist, album: _ytCurrentTrack.album });
+  _ytQueue.forEach(t => tracks.push({ title: t.title, artist: t.artist, album: t.album }));
+  if (!tracks.length) return;
+  _ytPlaylists[name] = tracks;
+  _ytSavePlaylists();
+  _ytRenderPlaylists();
+}
+
+function _ytLoadPlaylist(name) {
+  const pl = _ytPlaylists[name];
+  if (!pl || !pl.length) return;
+  const [first, ...rest] = pl;
+  openYtPlayer(first.title, first.artist, first.album, null);
+  rest.forEach(t => _ytQueue.push({ title: t.title, artist: t.artist, album: t.album, btn: null }));
+  _ytUpdateQueueDisplay();
+  _ytSaveQueue();
+  _ytTogglePlaylists();
+}
+
+function _ytDeletePlaylist(name) {
+  delete _ytPlaylists[name];
+  _ytSavePlaylists();
+  _ytRenderPlaylists();
+}
+
+// ── 7. Play Similar ───────────────────────────────────────────────
+function _ytPlaySimilar() {
+  if (!_ytCurrentTrack) return;
+  const { artist, title } = _ytCurrentTrack;
+  const btns = [...document.querySelectorAll('#songsBody .yt-play-btn')]
+    .filter(b => b.dataset.artist && b.dataset.artist.toLowerCase() === artist.toLowerCase()
+      && !(b.dataset.title === title && b.dataset.artist === artist));
+  const statusEl = document.getElementById('ytMiniStatus');
+  if (btns.length === 0) {
+    if (statusEl) { statusEl.textContent = `No other songs by ${artist} in chart`; statusEl.className = 'yt-mini-status'; setTimeout(() => { if (statusEl.textContent.startsWith('No other')) { statusEl.textContent = ''; statusEl.className = 'yt-mini-status'; } }, 3000); }
+    return;
+  }
+  btns.forEach(b => _ytQueue.push({ title: b.dataset.title, artist: b.dataset.artist, album: b.dataset.album, btn: b }));
+  _ytUpdateQueueDisplay();
+  _ytSaveQueue();
+  if (statusEl) { statusEl.textContent = `+${btns.length} by ${artist} queued`; statusEl.className = 'yt-mini-status ok'; setTimeout(() => { if (statusEl.textContent.includes('queued')) { statusEl.textContent = ''; statusEl.className = 'yt-mini-status'; } }, 2000); }
+}
+
+// ── 8. Picture-in-Picture ─────────────────────────────────────────
+async function _ytTogglePiP() {
+  if (_ytPipWindow) {
+    try { _ytPipWindow.close(); } catch(e) {}
+    _ytPipWindow = null; _ytPipUpdate = null;
+    _ytUpdatePipBtn(); return;
+  }
+  if (!window.documentPictureInPicture) {
+    const statusEl = document.getElementById('ytMiniStatus');
+    if (statusEl) { statusEl.textContent = 'PiP requires Chrome 116+'; statusEl.className = 'yt-mini-status err'; setTimeout(() => { statusEl.textContent = ''; statusEl.className = 'yt-mini-status'; }, 3000); }
+    return;
+  }
+  try {
+    const pipWin = await window.documentPictureInPicture.requestWindow({ width: 280, height: 130 });
+    _ytPipWindow  = pipWin;
+    function pipRender() {
+      if (!_ytPipWindow) return;
+      const t   = _ytCurrentTrack;
+      const vid = _ytCurrentVideoId;
+      pipWin.document.body.innerHTML = '';
+      pipWin.document.body.style.cssText = 'margin:0;padding:10px;background:#111;color:#fff;font-family:system-ui,sans-serif;box-sizing:border-box;overflow:hidden;';
+      const wrap = pipWin.document.createElement('div');
+      wrap.innerHTML =
+        `<style>.pi{display:flex;gap:8px;align-items:flex-start;margin-bottom:8px}.pt{width:72px;height:41px;object-fit:cover;border-radius:3px;background:#222;flex-shrink:0}.pm{flex:1;min-width:0}.pn{font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.pa{font-size:10px;color:#aaa;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.pb{display:flex;gap:6px}button{background:#333;border:none;color:#fff;padding:4px 10px;border-radius:4px;cursor:pointer;font-size:14px;transition:background .12s}button:hover{background:#e00}</style>` +
+        `<div class="pi">${vid ? `<img class="pt" src="https://img.youtube.com/vi/${vid}/default.jpg" onerror="this.style.display='none'">` : ''}<div class="pm"><div class="pn">${t ? esc(t.title) : '—'}</div><div class="pa">${t ? esc(t.artist || '') : ''}</div></div></div>` +
+        `<div class="pb"><button id="pp">⏯</button><button id="ps">⏭</button></div>`;
+      pipWin.document.body.appendChild(wrap);
+      pipWin.document.getElementById('pp').onclick = () => _ytPauseToggle();
+      pipWin.document.getElementById('ps').onclick = () => _ytSkip();
+    }
+    pipRender();
+    _ytPipUpdate = pipRender;
+    pipWin.addEventListener('pagehide', () => { _ytPipWindow = null; _ytPipUpdate = null; _ytUpdatePipBtn(); });
+    _ytUpdatePipBtn();
+  } catch(e) { console.error('PiP error:', e); }
+}
+
+function _ytUpdatePipBtn() {
+  const btn = document.getElementById('ytPipBtn');
+  if (!btn) return;
+  btn.classList.toggle('yt-ctrl-active', !!_ytPipWindow);
+  btn.title = _ytPipWindow ? 'Close Picture-in-Picture' : 'Picture-in-Picture';
+}
+
+// ── 9. Playback speed ─────────────────────────────────────────────
+const _YT_SPEEDS = [0.75, 1, 1.25, 1.5, 2];
+
+function _ytCycleSpeed() {
+  _ytSpeedIdx = (_ytSpeedIdx + 1) % _YT_SPEEDS.length;
+  _ytSpeed    = _YT_SPEEDS[_ytSpeedIdx];
+  _ytApplySpeed();
+  try { localStorage.setItem('yt-speed-idx', _ytSpeedIdx); } catch(e) {}
+  _ytUpdateSpeedBtn();
+}
+
+function _ytApplySpeed() {
+  if (_ytPlayer && _ytSpeed !== undefined) { try { _ytPlayer.setPlaybackRate(_ytSpeed); } catch(e) {} }
+}
+
+function _ytUpdateSpeedBtn() {
+  const btn   = document.getElementById('ytSpeedBtn');
+  const badge = document.getElementById('ytSpeedBadge');
+  if (!btn) return;
+  btn.classList.toggle('yt-ctrl-active', _ytSpeed !== 1);
+  btn.title = `Speed: ${_ytSpeed}x [S]`;
+  if (badge) { badge.textContent = _ytSpeed === 1 ? '' : _ytSpeed + 'x'; badge.style.display = _ytSpeed === 1 ? 'none' : ''; }
+}
+
+// ── 10. Share card ────────────────────────────────────────────────
+async function _ytShare() {
+  if (!_ytCurrentTrack) return;
+  const { title, artist, album } = _ytCurrentTrack;
+  const vid     = _ytCurrentVideoId;
+  const dateStr = new Date().toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' });
+  const lines   = [`🎵 ${title}${artist ? ` — ${artist}` : ''}${album ? ` (${album})` : ''}`, `dankcharts.fm  ·  ${dateStr}`];
+  if (vid) lines.push(`https://www.youtube.com/watch?v=${vid}`);
+  const text    = lines.join('\n');
+  const statusEl = document.getElementById('ytMiniStatus');
+  try {
+    await navigator.clipboard.writeText(text);
+    if (statusEl) { statusEl.textContent = '✓ Copied!'; statusEl.className = 'yt-mini-status ok'; setTimeout(() => { if (statusEl.textContent === '✓ Copied!') { statusEl.textContent = ''; statusEl.className = 'yt-mini-status'; } }, 2000); }
+    const btn = document.getElementById('ytShareBtn');
+    if (btn) { btn.classList.add('yt-ctrl-active'); setTimeout(() => btn && btn.classList.remove('yt-ctrl-active'), 1500); }
+  } catch(e) {
+    if (statusEl) { statusEl.textContent = 'Copy failed'; statusEl.className = 'yt-mini-status err'; setTimeout(() => { statusEl.textContent = ''; statusEl.className = 'yt-mini-status'; }, 2000); }
+  }
+}
+
+// ── Panel helper (close all extra panels except the listed ones) ───
+function _ytCloseExtraPanels(keep = []) {
+  const map = { ytSleepPanel: 'ytSleepBtn', ytLyricsPanel: 'ytLyricsBtn', ytPlaylistsPanel: 'ytPlaylistsBtn' };
+  Object.entries(map).forEach(([panelId, btnId]) => {
+    if (keep.includes(panelId)) return;
+    const el = document.getElementById(panelId); if (el) el.style.display = 'none';
+    const b  = document.getElementById(btnId);   if (b)  b.classList.remove('yt-ctrl-active');
+  });
+}
 
 // ── Listening Activity Heatmap ─────────────────────────────────────────────
 

@@ -3014,16 +3014,40 @@ function doPost(e) {
     </div>
     <div id="ytSearchResults" class="yt-search-results" style="display:none"></div>
     <div id="ytMiniHistory" class="yt-mini-history" style="display:none"></div>
+    <div id="ytLyricsPanel" class="yt-lyrics-panel" style="display:none"></div>
+    <div id="ytSleepPanel" class="yt-sleep-panel" style="display:none">
+      <div class="yt-sleep-header">Sleep timer</div>
+      <div class="yt-sleep-presets">
+        <button class="yt-sleep-preset" onclick="_ytStartSleep(15)">15m</button>
+        <button class="yt-sleep-preset" onclick="_ytStartSleep(30)">30m</button>
+        <button class="yt-sleep-preset" onclick="_ytStartSleep(45)">45m</button>
+        <button class="yt-sleep-preset" onclick="_ytStartSleep(60)">60m</button>
+        <button class="yt-sleep-cancel" onclick="_ytCancelSleep()">Cancel</button>
+      </div>
+    </div>
+    <div id="ytPlaylistsPanel" class="yt-playlists-panel" style="display:none"></div>
     <div id="ytShortcutsPanel" class="yt-shortcuts-panel" style="display:none">
       <div class="yt-shortcut-row"><kbd>Space</kbd><span>Pause / Resume</span></div>
       <div class="yt-shortcut-row"><kbd>N</kbd><span>Skip to next</span></div>
       <div class="yt-shortcut-row"><kbd>← →</kbd><span>Seek ±10s</span></div>
       <div class="yt-shortcut-row"><kbd>↑ ↓</kbd><span>Volume ±5%</span></div>
-      <div class="yt-shortcut-row"><kbd>R</kbd><span>Cycle repeat mode</span></div>
+      <div class="yt-shortcut-row"><kbd>R</kbd><span>Cycle repeat</span></div>
+      <div class="yt-shortcut-row"><kbd>S</kbd><span>Cycle speed</span></div>
+      <div class="yt-shortcut-row"><kbd>L</kbd><span>Lyrics</span></div>
+      <div class="yt-shortcut-row"><kbd>T</kbd><span>Sleep timer</span></div>
       <div class="yt-shortcut-row"><kbd>F</kbd><span>Search alternate</span></div>
       <div class="yt-shortcut-row"><kbd>H</kbd><span>History</span></div>
       <div class="yt-shortcut-row"><kbd>?</kbd><span>These shortcuts</span></div>
       <div class="yt-shortcut-row"><kbd>Esc</kbd><span>Close player</span></div>
+      <div class="yt-shortcut-divider"></div>
+      <div class="yt-shortcut-row yt-setting-row">
+        <span class="yt-setting-label">Scrobble at</span>
+        <button id="ytScrobbleThresholdBtn" class="yt-setting-cycle" onclick="_ytCycleScrobbleThreshold()">30s</button>
+      </div>
+      <div class="yt-shortcut-row yt-setting-row">
+        <span class="yt-setting-label">Crossfade</span>
+        <button id="ytCrossfadeBtn" class="yt-setting-cycle" onclick="_ytCycleCrossfade()">Off</button>
+      </div>
     </div>
     <div id="ytMiniQueue" class="yt-mini-queue" style="display:none"></div>
     <div class="yt-volume-row">
@@ -3060,8 +3084,31 @@ function doPost(e) {
       <button id="ytMiniCollapseBtn" class="yt-mini-ctrl-btn" onclick="_ytToggleCollapse()" title="Collapse player">
         <svg class="yt-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6,9 12,15 18,9"/></svg>
       </button>
-      <button id="ytMiniShortcutsBtn" class="yt-mini-ctrl-btn" onclick="_ytToggleShortcuts()" title="Keyboard shortcuts [?]">
+      <button id="ytMiniShortcutsBtn" class="yt-mini-ctrl-btn" onclick="_ytToggleShortcuts()" title="Shortcuts &amp; settings [?]">
         <svg class="yt-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="13" rx="2"/><path d="M6 10h.01M10 10h.01M14 10h.01M18 10h.01M8 14h8"/></svg>
+      </button>
+      <button id="ytSleepBtn" class="yt-mini-ctrl-btn" onclick="_ytToggleSleep()" title="Sleep timer [T]">
+        <svg class="yt-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+        <span id="ytSleepBadge" class="yt-sleep-badge" style="display:none"></span>
+      </button>
+      <button id="ytLyricsBtn" class="yt-mini-ctrl-btn" onclick="_ytToggleLyrics()" title="Lyrics [L]">
+        <svg class="yt-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+      </button>
+      <button id="ytSpeedBtn" class="yt-mini-ctrl-btn" onclick="_ytCycleSpeed()" title="Speed: 1x [S]">
+        <svg class="yt-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+        <span id="ytSpeedBadge" class="yt-speed-badge" style="display:none"></span>
+      </button>
+      <button id="ytSimilarBtn" class="yt-mini-ctrl-btn" onclick="_ytPlaySimilar()" title="Queue same-artist songs from chart">
+        <svg class="yt-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+      </button>
+      <button id="ytPlaylistsBtn" class="yt-mini-ctrl-btn" onclick="_ytTogglePlaylists()" title="Saved playlists">
+        <svg class="yt-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+      </button>
+      <button id="ytShareBtn" class="yt-mini-ctrl-btn" onclick="_ytShare()" title="Copy share card">
+        <svg class="yt-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
+      </button>
+      <button id="ytPipBtn" class="yt-mini-ctrl-btn" onclick="_ytTogglePiP()" title="Picture-in-Picture">
+        <svg class="yt-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><rect x="13" y="11" width="8" height="6" rx="1"/></svg>
       </button>
       <button class="yt-mini-ctrl-btn yt-close-btn" onclick="closeYtPlayer()" title="Close [Esc]">
         <svg class="yt-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>

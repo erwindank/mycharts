@@ -9291,7 +9291,7 @@ body.purple .landing-card-config input:focus {
   min-width: 0;
 }
 .yt-mini-thumb {
-  display: none;
+  display: block;
   width: 40px;
   height: 28px;
   object-fit: cover;
@@ -9664,7 +9664,10 @@ body.purple .landing-card-config input:focus {
 .yt-mini-player.yt-mini-collapsed .yt-shortcuts-panel,
 .yt-mini-player.yt-mini-collapsed .yt-mini-queue,
 .yt-mini-player.yt-mini-collapsed .yt-seek-bar-wrap,
-.yt-mini-player.yt-mini-collapsed .yt-volume-row { display: none !important; }
+.yt-mini-player.yt-mini-collapsed .yt-volume-row,
+.yt-mini-player.yt-mini-collapsed .yt-lyrics-panel,
+.yt-mini-player.yt-mini-collapsed .yt-sleep-panel,
+.yt-mini-player.yt-mini-collapsed .yt-playlists-panel { display: none !important; }
 .yt-mini-player.yt-mini-collapsed .yt-mini-info { justify-content: center; padding: 0.28rem 0.6rem; }
 .yt-mini-player.yt-mini-collapsed .yt-mini-title { font-size: 0.74rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .yt-mini-player.yt-mini-collapsed .yt-mini-thumb { display: block; }
@@ -9756,6 +9759,210 @@ body.purple .landing-card-config input:focus {
 .yt-play-btn.yt-btn-playing .yt-btn-content::before { content: '●'; font-size: 0.55em; margin-right: 0.1em; line-height: 1; }
 
 body.hide-yt-btns .yt-play-btn { display: none; }
+
+/* ── Sleep timer panel ── */
+.yt-sleep-panel {
+  margin-top: 0.25rem;
+  padding: 0.35rem 0.4rem;
+  background: var(--bg3);
+  border-radius: 5px;
+  font-size: 0.62rem;
+}
+.yt-sleep-header {
+  color: var(--text3);
+  margin-bottom: 0.3rem;
+  font-size: 0.6rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.yt-sleep-presets {
+  display: flex;
+  gap: 0.25rem;
+  flex-wrap: wrap;
+}
+.yt-sleep-preset {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  color: var(--text2);
+  cursor: pointer;
+  font-size: 0.62rem;
+  padding: 0.18rem 0.45rem;
+  font-family: inherit;
+  transition: background 0.1s, border-color 0.1s, color 0.1s;
+}
+.yt-sleep-preset:hover { background: rgba(255,0,0,0.08); border-color: #FF0000; color: #FF0000; }
+.yt-sleep-cancel {
+  background: none;
+  border: 1px dashed var(--border);
+  border-radius: 4px;
+  color: var(--text3);
+  cursor: pointer;
+  font-size: 0.62rem;
+  padding: 0.18rem 0.45rem;
+  font-family: inherit;
+  margin-left: auto;
+  transition: background 0.1s, color 0.1s;
+}
+.yt-sleep-cancel:hover { background: var(--border); color: var(--text); }
+.yt-sleep-badge {
+  position: absolute;
+  bottom: 1px;
+  right: 1px;
+  font-size: 6px;
+  font-weight: 700;
+  line-height: 1;
+  color: #FF0000;
+  pointer-events: none;
+  background: rgba(17,17,17,0.8);
+  border-radius: 2px;
+  padding: 0 1px;
+}
+
+/* ── Lyrics panel ── */
+.yt-lyrics-panel {
+  margin-top: 0.25rem;
+  max-height: 7rem;
+  overflow-y: auto;
+  font-size: 0.62rem;
+  background: var(--bg3);
+  border-radius: 5px;
+  padding: 0.35rem 0.5rem;
+}
+.yt-lyrics-text {
+  color: var(--text2);
+  line-height: 1.55;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+.yt-lyrics-loading { color: var(--text3); font-style: italic; }
+.yt-lyrics-empty   { color: var(--text3); }
+
+/* ── Named playlists panel ── */
+.yt-playlists-panel {
+  margin-top: 0.25rem;
+  background: var(--bg3);
+  border-radius: 5px;
+  padding: 0.35rem 0.4rem;
+  font-size: 0.62rem;
+}
+.yt-pl-save-row {
+  display: flex;
+  gap: 0.3rem;
+  margin-bottom: 0.3rem;
+}
+.yt-pl-name-input {
+  flex: 1;
+  min-width: 0;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  color: var(--text);
+  font-family: inherit;
+  font-size: 0.62rem;
+  padding: 0.18rem 0.35rem;
+  outline: none;
+}
+.yt-pl-name-input:focus { border-color: #FF0000; }
+.yt-pl-save-btn {
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  color: var(--text2);
+  cursor: pointer;
+  font-size: 0.62rem;
+  padding: 0.18rem 0.4rem;
+  font-family: inherit;
+  white-space: nowrap;
+  transition: background 0.1s, border-color 0.1s, color 0.1s;
+  flex-shrink: 0;
+}
+.yt-pl-save-btn:hover { background: rgba(255,0,0,0.08); border-color: #FF0000; color: #FF0000; }
+.yt-pl-empty { color: var(--text3); font-size: 0.6rem; }
+.yt-pl-item {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.06rem 0;
+}
+.yt-pl-load-btn {
+  flex: 1;
+  min-width: 0;
+  background: none;
+  border: none;
+  color: var(--text2);
+  cursor: pointer;
+  font-size: 0.62rem;
+  font-family: inherit;
+  text-align: left;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  padding: 0;
+  transition: color 0.1s;
+}
+.yt-pl-load-btn:hover { color: #FF0000; }
+.yt-pl-count {
+  color: var(--text3);
+  font-size: 0.58rem;
+  flex-shrink: 0;
+}
+.yt-pl-del-btn {
+  background: none;
+  border: none;
+  color: var(--text3);
+  cursor: pointer;
+  font-size: 0.6rem;
+  padding: 0;
+  flex-shrink: 0;
+  opacity: 0.5;
+  line-height: 1;
+  transition: opacity 0.1s, color 0.1s;
+}
+.yt-pl-del-btn:hover { opacity: 1; color: var(--rose); }
+
+/* ── Speed badge ── */
+.yt-speed-badge {
+  position: absolute;
+  bottom: 1px;
+  right: 1px;
+  font-size: 6px;
+  font-weight: 700;
+  line-height: 1;
+  color: #FF0000;
+  pointer-events: none;
+  background: rgba(17,17,17,0.8);
+  border-radius: 2px;
+  padding: 0 1px;
+}
+
+/* ── Settings rows inside shortcuts panel ── */
+.yt-shortcut-divider {
+  border-top: 1px solid var(--border);
+  margin: 0.3rem 0 0.15rem;
+}
+.yt-setting-row {
+  justify-content: space-between;
+}
+.yt-setting-label {
+  color: var(--text3);
+  font-size: 0.6rem;
+}
+.yt-setting-cycle {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  color: var(--text2);
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 0.6rem;
+  padding: 0.1rem 0.4rem;
+  min-width: 2.8rem;
+  text-align: center;
+  transition: border-color 0.12s, color 0.12s, background 0.12s;
+}
+.yt-setting-cycle:hover { border-color: #FF0000; color: #FF0000; }
+.yt-setting-cycle.yt-setting-active { border-color: #FF0000; color: #FF0000; background: rgba(255,0,0,0.08); }
 
 /* ── STICKY NAV BAR ── */
 #stickyNavSentinel {
