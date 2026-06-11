@@ -2995,9 +2995,19 @@ function doPost(e) {
     <div id="yt-player-frame"></div>
   </div>
   <div class="yt-mini-info">
-    <div id="ytMiniTitle" class="yt-mini-title"></div>
+    <div class="yt-mini-title-row">
+      <img id="ytMiniThumb" class="yt-mini-thumb" src="" alt="">
+      <div id="ytMiniTitle" class="yt-mini-title"></div>
+    </div>
     <div id="ytMiniArtist" class="yt-mini-artist"></div>
     <div id="ytMiniStatus" class="yt-mini-status"></div>
+    <div id="ytSeekBarWrap" class="yt-seek-bar-wrap" style="display:none">
+      <span id="ytSeekCurrent" class="yt-seek-time">0:00</span>
+      <input id="ytSeekBar" type="range" min="0" max="100" value="0" step="1" class="yt-seek-bar"
+        onmousedown="_ytSeekDragging=true" onmouseup="_ytSeekDragging=false;_ytSeek(+this.value)"
+        ontouchstart="_ytSeekDragging=true" ontouchend="_ytSeekDragging=false;_ytSeek(+this.value)">
+      <span id="ytSeekDuration" class="yt-seek-time">0:00</span>
+    </div>
     <div id="ytMiniSearchBox" class="yt-mini-search-box" style="display:none">
       <input id="ytMiniSearchInput" class="yt-mini-search-input" type="text" placeholder="Search YouTube…" onkeydown="if(event.key==='Enter')_ytRunCustomSearch();else if(event.key==='Escape')_ytToggleSearch();">
       <button class="yt-mini-search-go" onclick="_ytRunCustomSearch()" title="Search">↵</button>
@@ -3007,6 +3017,9 @@ function doPost(e) {
     <div id="ytShortcutsPanel" class="yt-shortcuts-panel" style="display:none">
       <div class="yt-shortcut-row"><kbd>Space</kbd><span>Pause / Resume</span></div>
       <div class="yt-shortcut-row"><kbd>N</kbd><span>Skip to next</span></div>
+      <div class="yt-shortcut-row"><kbd>← →</kbd><span>Seek ±10s</span></div>
+      <div class="yt-shortcut-row"><kbd>↑ ↓</kbd><span>Volume ±5%</span></div>
+      <div class="yt-shortcut-row"><kbd>R</kbd><span>Cycle repeat mode</span></div>
       <div class="yt-shortcut-row"><kbd>F</kbd><span>Search alternate</span></div>
       <div class="yt-shortcut-row"><kbd>H</kbd><span>History</span></div>
       <div class="yt-shortcut-row"><kbd>?</kbd><span>These shortcuts</span></div>
@@ -3027,6 +3040,10 @@ function doPost(e) {
       </div>
       <button class="yt-mini-ctrl-btn" onclick="_ytSkip()" title="Skip to next [N]">
         <svg class="yt-icon" viewBox="0 0 24 24" fill="currentColor"><polygon points="5,3 15,12 5,21"/><rect x="17" y="3" width="3" height="18"/></svg>
+      </button>
+      <button id="ytMiniRepeatBtn" class="yt-mini-ctrl-btn" onclick="_ytCycleRepeat()" title="Repeat: Off">
+        <svg class="yt-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="17,1 21,5 17,9"/><path d="M3,11V9a4,4,0,0,1,4-4h14"/><polyline points="7,23 3,19 7,15"/><path d="M21,13v2a4,4,0,0,1-4,4H3"/></svg>
+        <span id="ytRepeatBadge" class="yt-repeat-badge" style="display:none">1</span>
       </button>
       <button id="ytMiniSearchBtn" class="yt-mini-ctrl-btn" onclick="_ytToggleSearch()" title="Search alternate [F]">
         <svg class="yt-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><line x1="16.5" y1="16.5" x2="21" y2="21"/></svg>
@@ -3055,7 +3072,8 @@ function doPost(e) {
 <!-- YouTube Queue Toast -->
 <div id="ytQueueToast" style="display:none" class="yt-queue-toast">
   <span class="yt-queue-toast-label"></span>
-  <button class="yt-queue-now-btn">Play now</button>
+  <button class="yt-queue-now-btn">▶ Now</button>
+  <button class="yt-queue-next-btn">⏭ Next</button>
   <button class="yt-queue-add-btn">+ Queue</button>
   <button class="yt-queue-dismiss-btn" onclick="document.getElementById('ytQueueToast').style.display='none'">✕</button>
 </div>

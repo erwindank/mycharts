@@ -15512,6 +15512,9 @@ let _ytMuted             = false;
 let _ytPreMuteVol        = 80;
 let _ytScrobbleInterval  = null;
 let _ytPlayStart         = null;
+let _ytRepeat            = parseInt(localStorage.getItem('yt-repeat') || '0'); // 0=off,1=one,2=all
+let _ytSeekInterval      = null;
+let _ytSeekDragging      = false;
 
 // Called automatically by the YouTube IFrame API script once it loads.
 function onYouTubeIframeAPIReady() {
@@ -15572,6 +15575,11 @@ function openYtPlayer(title, artist, album, btn) {
   const statusEl = document.getElementById('ytMiniStatus');
   statusEl.textContent = 'Searching…';
   statusEl.className   = 'yt-mini-status';
+  const seekWrap = document.getElementById('ytSeekBarWrap');
+  if (seekWrap) seekWrap.style.display = 'none';
+  const seekBar = document.getElementById('ytSeekBar');
+  if (seekBar) seekBar.value = 0;
+  _ytStopSeekUpdate();
   const pauseBtn = document.getElementById('ytMiniPauseBtn');
   if (pauseBtn) { pauseBtn.innerHTML = _YT_IC.pause; pauseBtn.title = 'Pause'; }
   if (!_ytDragInitialized) { _ytDragInitialized = true; _ytInitDrag(); }
@@ -15590,6 +15598,7 @@ async function _ytSearch(artist, title, overrideQuery) {
     const videoId = data.videoId;
     if (!videoId) throw new Error('No results found');
     _ytCurrentVideoId = videoId;
+    _ytUpdateThumb();
     if ((data.videoTitle || data.title) && _ytActiveBtn) {
       _ytActiveBtn.title = '▶ ' + (data.videoTitle || data.title);
     }
@@ -15633,6 +15642,7 @@ function _ytOnState(event) {
       _ytScrobbleTimer = setTimeout(_ytScrobble, 30000);
       _ytStartScrobbleRing();
     }
+    _ytStartSeekUpdate();
     if (pauseBtn) { pauseBtn.innerHTML = _YT_IC.pause; pauseBtn.title = 'Pause'; }
     if (_ytActiveBtn) { _ytActiveBtn.classList.remove('yt-btn-loading'); _ytActiveBtn.classList.add('yt-btn-playing'); }
     if (!_ytHistoryRecorded && _ytCurrentTrack) {
@@ -15642,15 +15652,21 @@ function _ytOnState(event) {
   } else if (event.data === YT.PlayerState.PAUSED) {
     clearTimeout(_ytScrobbleTimer);
     _ytStopScrobbleRing();
+    _ytStopSeekUpdate();
     if (pauseBtn) { pauseBtn.innerHTML = _YT_IC.play; pauseBtn.title = 'Resume'; }
   } else if (event.data === YT.PlayerState.ENDED) {
     clearTimeout(_ytScrobbleTimer);
+    _ytStopSeekUpdate();
     if (_ytActiveBtn) _ytActiveBtn.classList.remove('yt-btn-loading', 'yt-btn-playing');
-    if (_ytQueue.length > 0) {
+    if (_ytRepeat === 1 && _ytCurrentTrack) {
+      openYtPlayer(_ytCurrentTrack.title, _ytCurrentTrack.artist, _ytCurrentTrack.album, _ytActiveBtn);
+    } else if (_ytQueue.length > 0) {
       const next = _ytQueue.shift();
       _ytUpdateQueueDisplay();
       _ytSaveQueue();
       openYtPlayer(next.title, next.artist, next.album, next.btn || null);
+    } else if (_ytRepeat === 2 && _ytCurrentTrack) {
+      openYtPlayer(_ytCurrentTrack.title, _ytCurrentTrack.artist, _ytCurrentTrack.album, _ytActiveBtn);
     }
   } else {
     clearTimeout(_ytScrobbleTimer);
@@ -15727,6 +15743,9 @@ function closeYtPlayer() {
   clearTimeout(_ytScrobbleTimer);
   clearTimeout(_ytQueueToastTimer);
   _ytStopScrobbleRing();
+  _ytStopSeekUpdate();
+  const seekWrap = document.getElementById('ytSeekBarWrap');
+  if (seekWrap) seekWrap.style.display = 'none';
   if (_ytPlayer) {
     try { _ytPlayer.stopVideo(); } catch(e) {}
     try { _ytPlayer.destroy(); } catch(e) {}
@@ -15879,6 +15898,7 @@ function _ytPickResult(videoId) {
   const resultsEl = document.getElementById('ytSearchResults');
   if (resultsEl) resultsEl.style.display = 'none';
   _ytCurrentVideoId = videoId;
+  _ytUpdateThumb();
   const statusEl = document.getElementById('ytMiniStatus');
   if (statusEl) { statusEl.textContent = ''; statusEl.className = 'yt-mini-status'; }
   if (_ytApiReady) { _ytLoadVideo(videoId); } else { _ytPendingVideo = videoId; }
@@ -15970,7 +15990,11 @@ function _ytRenderHistory() {
   const el = document.getElementById('ytMiniHistory');
   if (!el) return;
   if (_ytHistory.length === 0) { el.innerHTML = '<div class="yt-hist-empty">No history yet</div>'; return; }
-  el.innerHTML = _ytHistory.map((h, i) =>
+  el.innerHTML =
+    `<div class="yt-hist-header">` +
+    `<button class="yt-hist-addall-btn" onclick="_ytAddHistoryToQueue()" title="Add all to queue">+ Queue all</button>` +
+    `</div>` +
+    _ytHistory.map((h, i) =>
     `<div class="yt-hist-item">` +
     `<span class="yt-hist-title">${esc(h.title)}</span>` +
     `<button class="yt-hist-play" onclick="_ytPlayFromHistory(${i})" title="Play">▶</button>` +
@@ -16033,6 +16057,91 @@ function _ytFlashScrobbleRing() {
   setTimeout(() => { if (wrap) { wrap.classList.remove('yt-scrobbled'); wrap.style.setProperty('--yt-sp', 0); } }, 2000);
 }
 
+// ── Seek bar helpers ───────────────────────────────────────────────
+function _ytStartSeekUpdate() {
+  clearInterval(_ytSeekInterval);
+  _ytSeekInterval = setInterval(_ytUpdateSeekBar, 500);
+}
+
+function _ytStopSeekUpdate() {
+  clearInterval(_ytSeekInterval);
+  _ytSeekInterval = null;
+}
+
+function _ytUpdateSeekBar() {
+  if (!_ytPlayer || _ytSeekDragging) return;
+  try {
+    const dur = _ytPlayer.getDuration();
+    const cur = _ytPlayer.getCurrentTime();
+    if (!dur) return;
+    const wrap   = document.getElementById('ytSeekBarWrap');
+    const bar    = document.getElementById('ytSeekBar');
+    const curEl  = document.getElementById('ytSeekCurrent');
+    const durEl  = document.getElementById('ytSeekDuration');
+    if (wrap && wrap.style.display === 'none') wrap.style.display = '';
+    if (bar)   { bar.max = dur; bar.value = cur; }
+    if (curEl) curEl.textContent = _ytFmtTime(cur);
+    if (durEl) durEl.textContent = _ytFmtTime(dur);
+  } catch(e) {}
+}
+
+function _ytFmtTime(s) {
+  s = Math.max(0, Math.floor(s));
+  const m = Math.floor(s / 60);
+  const sec = (s % 60).toString().padStart(2, '0');
+  return `${m}:${sec}`;
+}
+
+function _ytSeek(val) {
+  if (_ytPlayer) { try { _ytPlayer.seekTo(val, true); } catch(e) {} }
+}
+
+// ── Repeat mode ────────────────────────────────────────────────────
+function _ytCycleRepeat() {
+  _ytRepeat = (_ytRepeat + 1) % 3;
+  try { localStorage.setItem('yt-repeat', _ytRepeat); } catch(e) {}
+  _ytUpdateRepeatBtn();
+}
+
+function _ytUpdateRepeatBtn() {
+  const btn   = document.getElementById('ytMiniRepeatBtn');
+  const badge = document.getElementById('ytRepeatBadge');
+  if (!btn) return;
+  const labels = ['Repeat: Off', 'Repeat: One', 'Repeat: All'];
+  btn.title = labels[_ytRepeat];
+  btn.classList.toggle('yt-ctrl-active', _ytRepeat > 0);
+  if (badge) badge.style.display = _ytRepeat === 1 ? '' : 'none';
+}
+
+// ── Thumbnail helper ────────────────────────────────────────────────
+function _ytUpdateThumb() {
+  const img = document.getElementById('ytMiniThumb');
+  if (!img) return;
+  if (_ytCurrentVideoId) {
+    img.src = `https://img.youtube.com/vi/${_ytCurrentVideoId}/default.jpg`;
+  } else {
+    img.src = '';
+  }
+}
+
+// ── Queue shuffle ───────────────────────────────────────────────────
+function _ytShuffleQueue() {
+  for (let i = _ytQueue.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [_ytQueue[i], _ytQueue[j]] = [_ytQueue[j], _ytQueue[i]];
+  }
+  _ytUpdateQueueDisplay();
+  _ytSaveQueue();
+}
+
+// ── History bulk-queue ──────────────────────────────────────────────
+function _ytAddHistoryToQueue() {
+  _ytHistory.forEach(h => _ytQueue.push({ title: h.title, artist: h.artist, album: h.album, btn: null }));
+  _ytUpdateQueueDisplay();
+  _ytSaveQueue();
+  _ytToggleHistory();
+}
+
 function ytPlayAll() {
   const btns = [...document.querySelectorAll('#songsBody .yt-play-btn')];
   if (btns.length === 0) return;
@@ -16079,6 +16188,12 @@ function _ytShowQueueToast(title, artist, album, btn) {
     toast.style.display = 'none';
     openYtPlayer(title, artist, album, btn);
   };
+  toast.querySelector('.yt-queue-next-btn').onclick = () => {
+    toast.style.display = 'none';
+    _ytQueue.unshift({ title, artist, album, btn });
+    _ytUpdateQueueDisplay();
+    _ytSaveQueue();
+  };
   toast.querySelector('.yt-queue-add-btn').onclick = () => {
     toast.style.display = 'none';
     _ytQueue.push({ title, artist, album, btn });
@@ -16092,7 +16207,14 @@ function _ytUpdateQueueDisplay() {
   if (!el) return;
   if (_ytQueue.length === 0) { el.style.display = 'none'; el.innerHTML = ''; return; }
   el.style.display = 'block';
-  el.innerHTML = _ytQueue.map((t, i) =>
+  el.innerHTML =
+    `<div class="yt-queue-header">` +
+    `<span class="yt-queue-header-count">${_ytQueue.length} up next</span>` +
+    `<button class="yt-queue-shuffle-btn" onclick="_ytShuffleQueue()" title="Shuffle queue">` +
+    `<svg class="yt-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16,3 21,3 21,8"/><line x1="4" y1="20" x2="21" y2="3"/><polyline points="21,16 21,21 16,21"/><line x1="15" y1="15" x2="21" y2="21"/></svg>` +
+    ` Shuffle</button>` +
+    `</div>` +
+    _ytQueue.map((t, i) =>
     `<div class="yt-mini-queue-item" draggable="true" data-qi="${i}">` +
     `<span class="yt-mini-queue-drag" title="Drag to reorder">⠿</span>` +
     `<span class="yt-mini-queue-num">${i === 0 ? '▶' : i + 1}</span>` +
@@ -16228,12 +16350,17 @@ document.addEventListener('keydown', e => {
   const tag = document.activeElement && document.activeElement.tagName;
   if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || (document.activeElement && document.activeElement.isContentEditable)) return;
   const key = e.key;
-  if (e.code === 'Space')           { e.preventDefault(); _ytPauseToggle(); }
+  if (e.code === 'Space')              { e.preventDefault(); _ytPauseToggle(); }
   else if (key === 'n' || key === 'N') { e.preventDefault(); _ytSkip(); }
+  else if (key === 'ArrowLeft')        { e.preventDefault(); if (_ytPlayer) { try { _ytPlayer.seekTo(Math.max(0, _ytPlayer.getCurrentTime() - 10), true); } catch(ex) {} } }
+  else if (key === 'ArrowRight')       { e.preventDefault(); if (_ytPlayer) { try { _ytPlayer.seekTo(_ytPlayer.getCurrentTime() + 10, true); } catch(ex) {} } }
+  else if (key === 'ArrowUp')          { e.preventDefault(); _ytSetVolume(_ytVolume + 5); }
+  else if (key === 'ArrowDown')        { e.preventDefault(); _ytSetVolume(_ytVolume - 5); }
+  else if (key === 'r' || key === 'R') { e.preventDefault(); _ytCycleRepeat(); }
   else if (key === 'f' || key === 'F') { e.preventDefault(); _ytToggleSearch(); }
   else if (key === 'h' || key === 'H') { e.preventDefault(); _ytToggleHistory(); }
-  else if (key === '?')               { e.preventDefault(); _ytToggleShortcuts(); }
-  else if (key === 'Escape')          { e.preventDefault(); closeYtPlayer(); }
+  else if (key === '?')                { e.preventDefault(); _ytToggleShortcuts(); }
+  else if (key === 'Escape')           { e.preventDefault(); closeYtPlayer(); }
 });
 
 // Scroll wheel on mini player changes volume (but not when scrolling the queue list)
@@ -16247,8 +16374,9 @@ document.addEventListener('wheel', e => {
   _ytSetVolume(_ytVolume + (e.deltaY < 0 ? 5 : -5));
 }, { passive: false });
 
-// Load persisted queue and volume on page load
+// Load persisted queue, volume, and repeat state on page load
 _ytLoadQueue();
+_ytUpdateRepeatBtn();
 try {
   const sv = localStorage.getItem('yt-volume');
   if (sv !== null) { _ytVolume = Math.max(0, Math.min(100, parseInt(sv))); }
