@@ -9386,6 +9386,7 @@ body.purple .landing-card-config input:focus {
   align-items: center;
   gap: 0.22rem;
   margin-top: 0.35rem;
+  flex-wrap: wrap;
 }
 .yt-mini-ctrl-btn {
   background: rgba(128,128,128,0.1);
@@ -9404,7 +9405,7 @@ body.purple .landing-card-config input:focus {
 }
 .yt-mini-ctrl-btn:hover { background: rgba(128,128,128,0.25); color: var(--text); transform: scale(1.1); }
 .yt-mini-ctrl-btn:active { transform: scale(0.92); }
-.yt-mini-ctrl-btn.yt-close-btn { margin-left: auto; }
+.yt-mini-ctrl-btn.yt-close-btn { margin-left: 0.5rem; }
 .yt-mini-ctrl-btn.yt-ctrl-active { background: rgba(255,0,0,0.15); color: #FF0000; }
 .yt-icon { width: 13px; height: 13px; display: block; flex-shrink: 0; }
 
