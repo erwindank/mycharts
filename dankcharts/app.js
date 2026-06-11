@@ -7619,6 +7619,8 @@ function renderSongs(plays, peaks, monthlyStats) {
     sbodyS.innerHTML = currPairsS.flatMap(p => p).join('');
     loadImages(imgItems.map(i => ({ ...i, name: i.title })), 'song');
   }
+  const playAllRow = document.getElementById('ytPlayAllRow');
+  if (playAllRow) playAllRow.style.display = sorted.length > 0 ? '' : 'none';
   if (currentPeriod === 'week') applyWeeklyChartView('songs');
 }
 
