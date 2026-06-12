@@ -8027,16 +8027,81 @@ function _wvGridCtx(e, type, title, artist, album) {
 
 function _wvCompact(items, max, ms, imgItems, type) {
   type = type || 'songs';
-  return `<div class="wv-compact">${items.map((s, i) => {
-    const { k, imgId, mv } = _wvItem(type, s, i, ms, imgItems);
+  const canPlay = type === 'songs' || type === 'albums';
+  const MEDALS = ['🥇', '🥈', '🥉'];
+
+  const header = `<div class="wv-cx-header">` +
+    `<span class="wv-cx-rank">#</span>` +
+    `<div class="wv-cx-hd-spacer"></div>` +
+    `<span class="wv-cx-hd-title">Title — Artist</span>` +
+    `<span class="wv-cx-hd-right">Mv&nbsp;&nbsp;Plays</span>` +
+    `</div>`;
+
+  const rows = items.map((s, i) => {
+    const { k, imgId, mv, prefKey } = _wvItem(type, s, i, ms, imgItems);
     const { ttl, sub } = _wvDisp(type, s);
-    return `<div class="wv-cx-row${i < 3 ? ' wv-r' + (i+1) : ''}">
-      <span class="wv-cx-rank">${i+1}</span>
-      <div class="wv-thumb wv-thumb-sm">${_wvThumb(imgId, ttl)}</div>
-      <span class="wv-cx-title">${esc(ttl)}</span><span class="wv-cx-sep">—</span>
-      <span class="wv-cx-artist">${esc(sub)}</span>
-      <span class="wv-cx-mv">${mv}</span><span class="wv-cx-plays">${s.count}</span></div>`;
-  }).join('')}</div>`;
+    const pk        = type === 'songs' ? _weeklyViewPeaks?.songPeakMap[k] : null;
+    const cumPlays  = type === 'songs' && cumulativeMaps ? (cumulativeMaps.songs[k] || 0) : 0;
+    const weeks     = ms ? (ms.periodsOnChart[type][k] || 1) : null;
+    const cert      = type === 'songs' ? certBadge(cumPlays, 'song') : '';
+    const album     = s.album || '';
+
+    // Feature 8: medal rank for top 3
+    const rankHtml = i < 3 ? `<span class="wv-cx-medal">${MEDALS[i]}</span>` : `${i + 1}`;
+
+    // Feature 9: art tooltip — second image element with same prefKey so cache is shared
+    const tipId = 'wv-sart-tip-' + i;
+    if (type === 'artists') imgItems.push({ imgId: tipId, name: s.name, artist: s.name, prefKey });
+    else if (type === 'albums') imgItems.push({ imgId: tipId, album: s.album, artist: s.artist, name: s.album, prefKey });
+    else imgItems.push({ imgId: tipId, title: s.title, artist: s.artist, album: s.album, prefKey });
+    const artTip = `<div class="wv-cx-art-tip">` +
+      `<div class="wv-thumb wv-thumb-lg"><div class="thumb-wrap"><div id="${tipId}"><div class="thumb-initials">${esc(initials(ttl))}</div></div></div></div>` +
+      (album && album !== '—' ? `<span class="wv-cx-art-alb">${esc(album)}</span>` : '') +
+      `</div>`;
+
+    // Feature 6: play button (songs + albums only)
+    const jt = esc(JSON.stringify(ttl)), jar = esc(JSON.stringify(sub)), jal = esc(JSON.stringify(album));
+    const playBtn = canPlay
+      ? `<button class="wv-cx-play-btn" onclick="event.stopPropagation();_ytPlayOrQueue(${jt},${jar},${jal})" title="Play">▶</button>`
+      : '';
+
+    // Feature 2: weeks-on-chart badge
+    const weeksBadge = weeks ? `<span class="wv-cx-wks">${weeks}w</span>` : '';
+
+    // Feature 7: color-scaled play count
+    const ratio = max > 0 ? s.count / max : 0;
+    const playsColor = ratio > 0.6 ? 'var(--accent)' : ratio > 0.3 ? 'var(--text)' : '';
+    const playsStyle = playsColor ? ` style="color:${playsColor}"` : '';
+
+    // Feature 5: expand-on-click accordion shelf
+    const shelfParts = [];
+    if (album && album !== '—') shelfParts.push(`<span class="wv-cx-shelf-item">💿 ${esc(album)}</span>`);
+    if (pk) shelfParts.push(`<span class="wv-cx-shelf-item">${peakBadge(pk)}</span>`);
+    if (cumPlays > 0) shelfParts.push(`<span class="wv-cx-shelf-item wv-cx-shelf-total">${cumPlays} all-time</span>`);
+    if (weeks && weeks > 1) shelfParts.push(`<span class="wv-cx-shelf-item wv-cx-shelf-wks">${weeks}w on chart</span>`);
+    const shelf = shelfParts.length ? `<div class="wv-cx-shelf">${shelfParts.join('')}</div>` : '';
+
+    return `<div class="wv-cx-row${i < 3 ? ' wv-r' + (i + 1) : ''}" onclick="toggleCxExpand(this)">` +
+      `<span class="wv-cx-rank">${rankHtml}</span>` +
+      `<div class="wv-cx-art-wrap" onclick="event.stopPropagation()">` +
+        `<div class="wv-thumb wv-thumb-sm">${_wvThumb(imgId, ttl)}</div>` +
+        artTip +
+      `</div>` +
+      `<span class="wv-cx-title">${esc(ttl)}${pk ? peakBadge(pk) : ''}${cert}</span>` +
+      `<span class="wv-cx-sep">—</span>` +
+      `<span class="wv-cx-artist">${esc(sub)}</span>` +
+      playBtn + weeksBadge +
+      `<span class="wv-cx-mv">${mv}</span>` +
+      `<span class="wv-cx-plays"${playsStyle}>${s.count}</span>` +
+      shelf +
+      `</div>`;
+  }).join('');
+
+  return `<div class="wv-compact">${header}${rows}</div>`;
+}
+
+function toggleCxExpand(row) {
+  row.classList.toggle('wv-cx-open');
 }
 
 function _wvMosaic(items, max, ms, imgItems, type) {
