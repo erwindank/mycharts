@@ -12952,6 +12952,20 @@ body[class*="-light"] .tm-card-search:hover {
 .wv-mos-bot .wv-ttl { font-size: 0.72rem; color: #fff; }
 .wv-mos-bot .wv-art { font-size: 0.62rem; color: rgba(255,255,255,0.72); }
 .wv-mos-bot .wv-plays { font-size: 0.58rem; color: rgba(255,255,255,0.5); font-family: 'DM Mono', monospace; }
+.wv-mos-item { transition: transform 0.2s ease, z-index 0s; }
+.wv-mos-item:hover { transform: scale(1.04); z-index: 10; }
+.wv-mos-hcard { position: absolute; inset: 0; top: auto; background: rgba(8,18,30,0.82); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); padding: 10px 8px 8px; transform: translateY(100%); transition: transform 0.25s ease; z-index: 4; display: flex; flex-direction: column; justify-content: flex-end; }
+.wv-mos-item:hover .wv-mos-hcard { transform: translateY(0); }
+.wv-mos-play-btn { position: absolute; top: 8px; right: 8px; width: 30px; height: 30px; border-radius: 50%; background: rgba(220,38,38,0.9); border: none; color: #fff; cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 0; transition: transform 0.15s, background 0.15s; }
+.wv-mos-play-btn svg { width: 16px; height: 16px; }
+.wv-mos-play-btn:hover { transform: scale(1.12); background: rgba(220,38,38,1); }
+.wv-mos-hcard-ttl { font-size: 0.75rem; font-weight: 600; color: #fff; white-space: normal; line-height: 1.25; margin-bottom: 2px; }
+.wv-mos-hcard-art { font-size: 0.62rem; color: rgba(255,255,255,0.65); margin-bottom: 6px; }
+.wv-mos-hcard-stats { display: flex; align-items: center; gap: 6px; margin-bottom: 4px; flex-wrap: wrap; }
+.wv-mos-hcard-wks { font-size: 0.58rem; color: rgba(255,255,255,0.5); font-family: 'DM Mono', monospace; background: rgba(255,255,255,0.1); padding: 1px 5px; border-radius: 3px; }
+.wv-mos-hcard-alltime { font-size: 0.58rem; color: rgba(255,255,255,0.5); font-family: 'DM Mono', monospace; margin-bottom: 6px; display: flex; align-items: center; gap: 4px; flex-wrap: wrap; }
+.wv-mos-hcard-bar { height: 3px; background: rgba(255,255,255,0.12); border-radius: 2px; overflow: hidden; margin-top: 2px; }
+.wv-mos-hcard-fill { height: 100%; width: var(--bar-w); background: var(--accent); border-radius: 2px; }
 .wv-mos-item .wv-mv-ov { background: rgba(0,0,0,0.82); padding: 0; border-radius: 4px; z-index: 3; }
 .wv-mos-item .wv-up   { color: #86efac; font-size: 0.78rem; padding: 2px 6px; border-radius: 4px; background: rgba(74,222,128,0.25); border: none; display: inline-block; }
 .wv-mos-item .wv-down { color: #fca5a5; font-size: 0.78rem; padding: 2px 6px; border-radius: 4px; background: rgba(248,113,113,0.25); border: none; display: inline-block; }

@@ -8149,8 +8149,18 @@ function _wvMosaic(items, max, ms, imgItems, type) {
     const { k, imgId, mv } = _wvItem(type, s, i, ms, imgItems);
     const { ttl, sub } = _wvDisp(type, s);
     const [rx, ry, rw, rh] = rects[i];
-    const st = `left:${(rx/W*100).toFixed(2)}%;top:${(ry/H*100).toFixed(2)}%;width:${(rw/W*100).toFixed(2)}%;height:${(rh/H*100).toFixed(2)}%`;
+    const st = `left:${(rx/W*100).toFixed(2)}%;top:${(ry/H*100).toFixed(2)}%;width:${(rw/W*100).toFixed(2)}%;height:${(rh/H*100).toFixed(2)}%;--bar-w:${Math.round(s.count/max*100)}%`;
     const rc = i < 3 ? ` wv-r${i+1}` : '';
+    const pk = type === 'songs' ? _weeklyViewPeaks?.songPeakMap[k]
+             : type === 'artists' ? _weeklyViewPeaks?.artistPeakMap[k]
+             : _weeklyViewPeaks?.albumPeakMap[k];
+    const wks = ms?.periodsOnChart[type][k] || null;
+    const cumPlays = type === 'songs' ? (cumulativeMaps?.songs[k] || 0)
+                   : type === 'albums' ? (cumulativeMaps?.albums[k] || 0) : 0;
+    const cert = (type !== 'artists' && cumPlays) ? certBadge(cumPlays, type === 'songs' ? 'song' : 'album') : '';
+    const playTitle  = type === 'songs' ? s.title  : type === 'artists' ? s.name  : s.album;
+    const playArtist = type === 'songs' ? s.artist : type === 'artists' ? s.name  : s.artist;
+    const playAlbum  = type === 'songs' ? (s.album || '') : type === 'artists' ? '' : s.album;
     return `<div class="wv-mos-item${rc}" style="${st}" title="#${i+1}: ${esc(ttl)} — ${esc(sub)}">
       <div class="wv-mos-item-inner">
         <div class="wv-thumb wv-thumb-full">${_wvThumb(imgId, ttl)}</div>
@@ -8158,6 +8168,17 @@ function _wvMosaic(items, max, ms, imgItems, type) {
         <span class="wv-rank-badge">${i+1}</span>
         ${mv ? `<div class="wv-mv-ov">${mv}</div>` : ''}
         <div class="wv-mos-bot"><div class="wv-ttl">${esc(ttl)}</div><div class="wv-art">${esc(sub)}</div><div class="wv-plays">${s.count} ${tUnit('plays', s.count)}</div></div>
+        <div class="wv-mos-hcard">
+          <button class="yt-play-btn wv-mos-play-btn" data-title="${esc(playTitle)}" data-artist="${esc(playArtist)}" data-album="${esc(playAlbum)}" onclick="event.stopPropagation();ytPlayFromBtn(this)" title="Play on YouTube"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></button>
+          <div class="wv-mos-hcard-ttl">${esc(ttl)}</div>
+          <div class="wv-mos-hcard-art">${esc(sub)}</div>
+          <div class="wv-mos-hcard-stats">
+            ${pk ? peakBadge(pk) : ''}
+            ${wks ? `<span class="wv-mos-hcard-wks">${wks} ${tUnit('weeks_full', wks)}</span>` : ''}
+          </div>
+          ${cumPlays ? `<div class="wv-mos-hcard-alltime">${cumPlays.toLocaleString()} ${tUnit('plays', cumPlays)} · ${t('nav_alltime')}${cert}</div>` : ''}
+          <div class="wv-mos-hcard-bar"><div class="wv-mos-hcard-fill"></div></div>
+        </div>
       </div>
     </div>`;
   }).join('')}</div>`;
