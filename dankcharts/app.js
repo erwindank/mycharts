@@ -8104,16 +8104,60 @@ function toggleCxExpand(row) {
   row.classList.toggle('wv-cx-open');
 }
 
+function _tmWorst(row, l) {
+  const s = row.reduce((a, b) => a + b, 0);
+  const maxA = Math.max(...row), minA = Math.min(...row);
+  return Math.max((l * l * maxA) / (s * s), (s * s) / (l * l * minA));
+}
+function _tmRow(row, x, y, w, h) {
+  const s = row.reduce((a, b) => a + b, 0);
+  const out = [];
+  if (w >= h) {
+    const sw = s / h; let p = y;
+    for (const a of row) { const ih = (a / s) * h; out.push([x, p, sw, ih]); p += ih; }
+  } else {
+    const sh = s / w; let p = x;
+    for (const a of row) { const iw = (a / s) * w; out.push([p, y, iw, sh]); p += iw; }
+  }
+  return out;
+}
+function _computeTreemap(values, W, H) {
+  const total = values.reduce((a, b) => a + b, 0);
+  const areas = values.map(v => (v / total) * W * H);
+  const all = [];
+  let rem = [...areas], x = 0, y = 0, w = W, h = H;
+  while (rem.length) {
+    const l = Math.min(w, h);
+    let row = [rem.shift()];
+    while (rem.length) {
+      const next = [...row, rem[0]];
+      if (_tmWorst(next, l) <= _tmWorst(row, l)) { row = next; rem.shift(); } else break;
+    }
+    all.push(..._tmRow(row, x, y, w, h));
+    const rs = row.reduce((a, b) => a + b, 0);
+    if (w >= h) { const sw = rs / h; x += sw; w -= sw; }
+    else { const sh = rs / w; y += sh; h -= sh; }
+  }
+  return all;
+}
 function _wvMosaic(items, max, ms, imgItems, type) {
   type = type || 'songs';
+  const W = 1000, H = 500;
+  const vals = items.map(s => Math.sqrt(s.count));
+  const rects = _computeTreemap(vals, W, H);
   return `<div class="wv-mosaic">${items.map((s, i) => {
     const { k, imgId, mv } = _wvItem(type, s, i, ms, imgItems);
     const { ttl, sub } = _wvDisp(type, s);
-    const sz = Math.max(56, Math.round(56 + (s.count / max) * 120));
-    return `<div class="wv-mos-item" style="width:${sz}px;height:${sz}px" title="#${i+1}: ${esc(ttl)} — ${esc(sub)}">
-      <div class="wv-thumb wv-thumb-full">${_wvThumb(imgId, ttl)}</div>
-      <span class="wv-rank-badge">${i+1}</span>
-      <div class="wv-mos-hover"><div class="wv-ttl">${esc(ttl)}</div><div class="wv-art">${esc(sub)}</div><div class="wv-plays">${s.count}</div></div>
+    const [rx, ry, rw, rh] = rects[i];
+    const st = `left:${(rx/W*100).toFixed(2)}%;top:${(ry/H*100).toFixed(2)}%;width:${(rw/W*100).toFixed(2)}%;height:${(rh/H*100).toFixed(2)}%`;
+    const rc = i < 3 ? ` wv-r${i+1}` : '';
+    return `<div class="wv-mos-item${rc}" style="${st}" title="#${i+1}: ${esc(ttl)} — ${esc(sub)}">
+      <div class="wv-mos-item-inner">
+        <div class="wv-thumb wv-thumb-full">${_wvThumb(imgId, ttl)}</div>
+        <div class="wv-mos-top"></div>
+        <span class="wv-rank-badge">${i+1}</span>
+        <div class="wv-mos-bot"><div class="wv-ttl">${esc(ttl)}</div><div class="wv-art">${esc(sub)}</div><div class="wv-plays">${s.count}</div></div>
+      </div>
     </div>`;
   }).join('')}</div>`;
 }
