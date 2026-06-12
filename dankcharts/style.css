@@ -12943,8 +12943,8 @@ body[class*="-light"] .tm-card-search:hover {
 .wv-cx-shelf-wks { color: var(--text3); }
 
 /* ── MOSAIC (TREEMAP) ── */
-.wv-mosaic { position: relative; width: 100%; height: 480px; }
-.wv-mos-item { position: absolute; box-sizing: border-box; padding: 2px; cursor: pointer; }
+.wv-mosaic { position: relative; width: 100%; min-height: 480px; }
+.wv-mos-item { position: absolute; box-sizing: border-box; padding: 2px; cursor: pointer; container-type: size; container-name: mos-tile; }
 .wv-mos-item-inner { position: relative; width: 100%; height: 100%; border-radius: 12px; overflow: hidden; }
 .wv-mos-item .wv-thumb-full { width: 100%; height: 100%; }
 .wv-mos-top { position: absolute; top: 0; left: 0; right: 0; height: 40%; background: linear-gradient(to bottom, rgba(0,0,0,0.78) 0%, transparent 100%); pointer-events: none; z-index: 1; }
@@ -13027,6 +13027,80 @@ body[class*="-light"] .tm-card-search:hover {
 }
 .wv-mos-back-play-btn svg { width: 12px; height: 12px; flex-shrink: 0; }
 .wv-mos-back-play-btn:hover { background: rgb(220,38,38); }
+.wv-btn-short { display: none; }
+.wv-mos-back .wv-mos-hcard-bar { display: none; }
+
+/* ── MOSAIC BACK CARD: responsive to tile size via container queries ── */
+/* All selectors scoped to .wv-mos-back so front card tiles are never affected */
+@container mos-tile (max-width: 89px) {
+  .wv-mos-back { padding: 5px; gap: 1px; }
+  .wv-mos-back-close { width: 14px; height: 14px; top: 3px; right: 3px; font-size: 0.58rem; }
+  .wv-mos-back-header { margin-bottom: 1px; gap: 3px; }
+  .wv-mos-back-img { display: none; }
+  .wv-mos-back-rank-row { gap: 3px; }
+  .wv-mos-back-ranknum { font-size: 0.52rem; }
+  .wv-mos-back-ttl { font-size: 0.48rem; }
+  .wv-mos-back-sub { display: none; }
+  .wv-mos-back-plays { font-size: 0.82rem; margin: 1px 0; }
+  .wv-mos-back-plays-unit { font-size: 0.36rem; }
+  .wv-mos-back-stats { gap: 2px; margin: 0; }
+  .wv-mos-back-stats .wv-peak-badge { font-size: 0.38rem; padding: 1px 3px; }
+  .wv-mos-back .wv-mos-hcard-wks { font-size: 0.36rem; padding: 1px 3px; }
+  .wv-mos-back .wv-mos-hcard-alltime { display: none; }
+  .wv-mos-back .wv-mv-ov { font-size: 0.55rem; }
+  .wv-mos-back-play-btn { margin-top: auto; padding: 2px 4px; font-size: 0.42rem; border-radius: 4px; width: auto; height: auto; }
+  .wv-mos-back-play-btn svg { width: 8px; height: 8px; }
+  .wv-mos-back-play-btn .wv-btn-full { display: none; }
+  .wv-mos-back-play-btn .wv-btn-short { display: inline; }
+}
+@container mos-tile (min-width: 90px) and (max-width: 149px) {
+  .wv-mos-back { padding: 8px 7px 6px; gap: 2px; }
+  .wv-mos-back-close { width: 18px; height: 18px; top: 4px; right: 4px; font-size: 0.72rem; }
+  .wv-mos-back-header { margin-bottom: 3px; }
+  .wv-mos-back-img { width: 36px; height: 36px; }
+  .wv-mos-back-ranknum { font-size: 0.7rem; }
+  .wv-mos-back-ttl { font-size: 0.6rem; }
+  .wv-mos-back-sub { font-size: 0.5rem; }
+  .wv-mos-back-plays { font-size: 1.05rem; margin: 2px 0 1px; }
+  .wv-mos-back .wv-mos-hcard-alltime { display: none; }
+  .wv-mos-back-play-btn { margin-top: auto; padding: 3px 6px; font-size: 0.5rem; border-radius: 4px; width: auto; height: auto; }
+  .wv-mos-back-play-btn svg { width: 9px; height: 9px; }
+  .wv-mos-back-play-btn .wv-btn-full { display: none; }
+  .wv-mos-back-play-btn .wv-btn-short { display: inline; }
+}
+@container mos-tile (max-height: 99px) {
+  .wv-mos-back { padding: 5px 6px; gap: 1px; }
+  .wv-mos-back-close { width: 15px; height: 15px; top: 3px; right: 3px; font-size: 0.6rem; }
+  .wv-mos-back-header { margin-bottom: 1px; gap: 5px; }
+  .wv-mos-back-img { width: 34px; height: 34px; }
+  .wv-mos-back-ranknum { font-size: 0.6rem; }
+  .wv-mos-back-ttl { font-size: 0.54rem; }
+  .wv-mos-back-sub { font-size: 0.46rem; }
+  .wv-mos-back-plays { font-size: 0.85rem; margin: 1px 0; }
+  .wv-mos-back-plays-unit { font-size: 0.4rem; }
+  .wv-mos-back-stats { gap: 3px; margin: 0; }
+  .wv-mos-back .wv-mos-hcard-alltime { display: none; }
+  .wv-mos-back-play-btn { margin-top: auto; padding: 2px 5px; font-size: 0.44rem; border-radius: 4px; width: auto; height: auto; }
+  .wv-mos-back-play-btn svg { width: 8px; height: 8px; }
+  .wv-mos-back-play-btn .wv-btn-full { display: none; }
+  .wv-mos-back-play-btn .wv-btn-short { display: inline; }
+}
+@container mos-tile (min-height: 100px) and (max-height: 149px) {
+  .wv-mos-back { padding: 7px 8px; gap: 2px; }
+  .wv-mos-back-close { width: 17px; height: 17px; top: 4px; right: 4px; font-size: 0.68rem; }
+  .wv-mos-back-header { margin-bottom: 2px; }
+  .wv-mos-back-img { width: 42px; height: 42px; }
+  .wv-mos-back-ranknum { font-size: 0.72rem; }
+  .wv-mos-back-ttl { font-size: 0.64rem; }
+  .wv-mos-back-sub { font-size: 0.52rem; }
+  .wv-mos-back-plays { font-size: 1.05rem; margin: 2px 0 1px; }
+  .wv-mos-back-plays-unit { font-size: 0.5rem; }
+  .wv-mos-back .wv-mos-hcard-alltime { display: none; }
+  .wv-mos-back-play-btn { margin-top: auto; padding: 3px 6px; font-size: 0.5rem; border-radius: 4px; width: auto; height: auto; }
+  .wv-mos-back-play-btn svg { width: 9px; height: 9px; }
+  .wv-mos-back-play-btn .wv-btn-full { display: none; }
+  .wv-mos-back-play-btn .wv-btn-short { display: inline; }
+}
 
 /* ── FILMSTRIP ── */
 .wv-filmstrip { display: flex; gap: 8px; overflow-x: auto; padding: 4px 4px 12px; scroll-snap-type: x mandatory; }

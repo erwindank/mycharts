@@ -8175,10 +8175,11 @@ function _computeTreemap(values, W, H) {
 }
 function _wvMosaic(items, max, ms, imgItems, type) {
   type = type || 'songs';
-  const W = 1000, H = 500;
+  const W = 1000;
+  const H = Math.min(2800, 480 + items.length * 22);
   const vals = items.map(s => Math.sqrt(s.count));
   const rects = _computeTreemap(vals, W, H);
-  return `<div class="wv-mosaic">${items.map((s, i) => {
+  return `<div class="wv-mosaic" style="height:${H}px">${items.map((s, i) => {
     const { k, imgId, mv, prefKey } = _wvItem(type, s, i, ms, imgItems);
     const backImgId = imgId + 'b';
     if (type === 'artists') imgItems.push({ imgId: backImgId, name: s.name, artist: s.name, prefKey });
@@ -8235,7 +8236,7 @@ function _wvMosaic(items, max, ms, imgItems, type) {
           </div>
           ${cumPlays ? `<div class="wv-mos-hcard-alltime">${cumPlays.toLocaleString()} ${tUnit('plays', cumPlays)} · ${t('nav_alltime')}${cert}</div>` : ''}
           <div class="wv-mos-hcard-bar"><div class="wv-mos-hcard-fill"></div></div>
-          <button class="yt-play-btn wv-mos-play-btn wv-mos-back-play-btn" data-title="${esc(playTitle)}" data-artist="${esc(playArtist)}" data-album="${esc(playAlbum)}" onclick="event.stopPropagation();ytPlayFromBtn(this)" title="Play on YouTube"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg> Play on YouTube</button>
+          <button class="yt-play-btn wv-mos-play-btn wv-mos-back-play-btn" data-title="${esc(playTitle)}" data-artist="${esc(playArtist)}" data-album="${esc(playAlbum)}" onclick="event.stopPropagation();ytPlayFromBtn(this)" title="Play on YouTube"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg><span class="wv-btn-full"> Play on YouTube</span><span class="wv-btn-short">PLAY</span></button>
         </div>
       </div>
     </div>`;
