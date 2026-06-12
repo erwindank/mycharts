@@ -12943,7 +12943,7 @@ body[class*="-light"] .tm-card-search:hover {
 .wv-cx-shelf-wks { color: var(--text3); }
 
 /* ── MOSAIC (TREEMAP) ── */
-.wv-mosaic { position: relative; width: 100%; height: 480px; background: var(--bg2); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+.wv-mosaic { position: relative; width: 100%; height: 480px; }
 .wv-mos-item { position: absolute; box-sizing: border-box; padding: 2px; cursor: default; }
 .wv-mos-item-inner { position: relative; width: 100%; height: 100%; border-radius: 12px; overflow: hidden; }
 .wv-mos-item .wv-thumb-full { width: 100%; height: 100%; }
@@ -12952,8 +12952,10 @@ body[class*="-light"] .tm-card-search:hover {
 .wv-mos-bot .wv-ttl { font-size: 0.72rem; color: #fff; }
 .wv-mos-bot .wv-art { font-size: 0.62rem; color: rgba(255,255,255,0.72); }
 .wv-mos-bot .wv-plays { font-size: 0.58rem; color: rgba(255,255,255,0.5); font-family: 'DM Mono', monospace; }
-.wv-mos-item { transition: transform 0.2s ease, z-index 0s; }
+.wv-mos-item { transition: transform 0.2s ease, opacity 0.25s ease, z-index 0s; }
 .wv-mos-item:hover { transform: scale(1.04); z-index: 10; }
+.wv-mosaic:has(.wv-mos-item:hover) .wv-mos-item { opacity: 0.45; }
+.wv-mosaic:has(.wv-mos-item:hover) .wv-mos-item:hover { opacity: 1; }
 .wv-mos-hcard { position: absolute; inset: 0; top: auto; background: rgba(8,18,30,0.82); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); padding: 10px 8px 8px; transform: translateY(100%); transition: transform 0.25s ease; z-index: 4; display: flex; flex-direction: column; justify-content: flex-end; }
 .wv-mos-item:hover .wv-mos-hcard { transform: translateY(0); }
 .wv-mos-play-btn { position: absolute; top: 8px; right: 8px; width: 30px; height: 30px; border-radius: 50%; background: rgba(220,38,38,0.9); border: none; color: #fff; cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 0; transition: transform 0.15s, background 0.15s; }
