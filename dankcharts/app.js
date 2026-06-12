@@ -8183,9 +8183,14 @@ function _wvMosaic(items, max, ms, imgItems, type) {
         </div>
         <div class="wv-mos-back">
           <button class="wv-mos-back-close" onclick="event.stopPropagation();wvMosaicCloseAll(this.closest('.wv-mosaic'))">×</button>
-          <div class="wv-mos-back-rank-row"><span class="wv-mos-back-ranknum">#${i+1}</span>${mv ? `<span class="wv-mv-ov">${mv}</span>` : ''}</div>
-          <div class="wv-mos-back-ttl">${esc(ttl)}</div>
-          <div class="wv-mos-back-sub">${esc(sub)}</div>
+          <div class="wv-mos-back-header">
+            <div class="wv-mos-back-img">${_wvThumb(imgId, ttl)}</div>
+            <div class="wv-mos-back-meta">
+              <div class="wv-mos-back-rank-row"><span class="wv-mos-back-ranknum">#${i+1}</span>${mv ? `<span class="wv-mv-ov">${mv}</span>` : ''}</div>
+              <div class="wv-mos-back-ttl">${esc(ttl)}</div>
+              <div class="wv-mos-back-sub">${esc(sub)}</div>
+            </div>
+          </div>
           <div class="wv-mos-back-plays">${s.count}<span class="wv-mos-back-plays-unit"> ${tUnit('plays', s.count)}</span></div>
           <div class="wv-mos-back-stats">
             ${pk ? peakBadge(pk) : ''}
