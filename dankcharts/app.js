@@ -8156,7 +8156,7 @@ function _wvMosaic(items, max, ms, imgItems, type) {
         <div class="wv-thumb wv-thumb-full">${_wvThumb(imgId, ttl)}</div>
         <div class="wv-mos-top"></div>
         <span class="wv-rank-badge">${i+1}</span>
-        <div class="wv-mos-bot"><div class="wv-ttl">${esc(ttl)}</div><div class="wv-art">${esc(sub)}</div><div class="wv-plays">${s.count}</div></div>
+        <div class="wv-mos-bot"><div class="wv-ttl">${esc(ttl)}</div><div class="wv-art">${esc(sub)}</div><div class="wv-plays">${s.count} ${tUnit('plays', s.count)}</div></div>
       </div>
     </div>`;
   }).join('')}</div>`;
