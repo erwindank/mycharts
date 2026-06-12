@@ -8161,27 +8161,73 @@ function _wvMosaic(items, max, ms, imgItems, type) {
     const playTitle  = type === 'songs' ? s.title  : type === 'artists' ? s.name  : s.album;
     const playArtist = type === 'songs' ? s.artist : type === 'artists' ? s.name  : s.artist;
     const playAlbum  = type === 'songs' ? (s.album || '') : type === 'artists' ? '' : s.album;
-    return `<div class="wv-mos-item${rc}" style="${st}" title="#${i+1}: ${esc(ttl)} — ${esc(sub)}">
+    return `<div class="wv-mos-item${rc}" style="${st}" title="#${i+1}: ${esc(ttl)} — ${esc(sub)}" onclick="wvMosTileClick(event,this)">
       <div class="wv-mos-item-inner">
-        <div class="wv-thumb wv-thumb-full">${_wvThumb(imgId, ttl)}</div>
-        <div class="wv-mos-top"></div>
-        <span class="wv-rank-badge">${i+1}</span>
-        ${mv ? `<div class="wv-mv-ov">${mv}</div>` : ''}
-        <div class="wv-mos-bot"><div class="wv-ttl">${esc(ttl)}</div><div class="wv-art">${esc(sub)}</div><div class="wv-plays">${s.count} ${tUnit('plays', s.count)}</div></div>
-        <div class="wv-mos-hcard">
-          <button class="yt-play-btn wv-mos-play-btn" data-title="${esc(playTitle)}" data-artist="${esc(playArtist)}" data-album="${esc(playAlbum)}" onclick="event.stopPropagation();ytPlayFromBtn(this)" title="Play on YouTube"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></button>
-          <div class="wv-mos-hcard-ttl">${esc(ttl)}</div>
-          <div class="wv-mos-hcard-art">${esc(sub)}</div>
-          <div class="wv-mos-hcard-stats">
+        <div class="wv-mos-front">
+          <div class="wv-thumb wv-thumb-full">${_wvThumb(imgId, ttl)}</div>
+          <div class="wv-mos-top"></div>
+          <span class="wv-rank-badge">${i+1}</span>
+          ${mv ? `<div class="wv-mv-ov">${mv}</div>` : ''}
+          <div class="wv-mos-bot"><div class="wv-ttl">${esc(ttl)}</div><div class="wv-art">${esc(sub)}</div><div class="wv-plays">${s.count} ${tUnit('plays', s.count)}</div></div>
+          <div class="wv-mos-hcard">
+            <button class="yt-play-btn wv-mos-play-btn" data-title="${esc(playTitle)}" data-artist="${esc(playArtist)}" data-album="${esc(playAlbum)}" onclick="event.stopPropagation();ytPlayFromBtn(this)" title="Play on YouTube"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></button>
+            <div class="wv-mos-hcard-ttl">${esc(ttl)}</div>
+            <div class="wv-mos-hcard-art">${esc(sub)}</div>
+            <div class="wv-mos-hcard-stats">
+              ${pk ? peakBadge(pk) : ''}
+              ${wks ? `<span class="wv-mos-hcard-wks">${wks} ${tUnit('weeks_full', wks)}</span>` : ''}
+            </div>
+            ${cumPlays ? `<div class="wv-mos-hcard-alltime">${cumPlays.toLocaleString()} ${tUnit('plays', cumPlays)} · ${t('nav_alltime')}${cert}</div>` : ''}
+            <div class="wv-mos-hcard-bar"><div class="wv-mos-hcard-fill"></div></div>
+          </div>
+        </div>
+        <div class="wv-mos-back">
+          <button class="wv-mos-back-close" onclick="event.stopPropagation();wvMosaicCloseAll(this.closest('.wv-mosaic'))">×</button>
+          <div class="wv-mos-back-rank-row"><span class="wv-mos-back-ranknum">#${i+1}</span>${mv ? `<span class="wv-mv-ov">${mv}</span>` : ''}</div>
+          <div class="wv-mos-back-ttl">${esc(ttl)}</div>
+          <div class="wv-mos-back-sub">${esc(sub)}</div>
+          <div class="wv-mos-back-plays">${s.count}<span class="wv-mos-back-plays-unit"> ${tUnit('plays', s.count)}</span></div>
+          <div class="wv-mos-back-stats">
             ${pk ? peakBadge(pk) : ''}
             ${wks ? `<span class="wv-mos-hcard-wks">${wks} ${tUnit('weeks_full', wks)}</span>` : ''}
           </div>
           ${cumPlays ? `<div class="wv-mos-hcard-alltime">${cumPlays.toLocaleString()} ${tUnit('plays', cumPlays)} · ${t('nav_alltime')}${cert}</div>` : ''}
           <div class="wv-mos-hcard-bar"><div class="wv-mos-hcard-fill"></div></div>
+          <button class="yt-play-btn wv-mos-play-btn wv-mos-back-play-btn" data-title="${esc(playTitle)}" data-artist="${esc(playArtist)}" data-album="${esc(playAlbum)}" onclick="event.stopPropagation();ytPlayFromBtn(this)" title="Play on YouTube"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg> Play on YouTube</button>
         </div>
       </div>
     </div>`;
   }).join('')}</div>`;
+}
+
+function wvMosTileClick(e, el) {
+  e.stopPropagation();
+  const mosaic = el.closest('.wv-mosaic');
+  const wasFlipped = el.classList.contains('wv-mos-flipped');
+  wvMosaicCloseAll(mosaic);
+  if (!wasFlipped) {
+    const eRect = el.getBoundingClientRect();
+    const mRect = mosaic.getBoundingClientRect();
+    const minPx = 190;
+    const scale = Math.min(Math.max(1, minPx / Math.min(eRect.width, eRect.height)), 2.8);
+    if (scale > 1.05) {
+      const cx = (eRect.left + eRect.width / 2 - mRect.left) / mRect.width;
+      const cy = (eRect.top + eRect.height / 2 - mRect.top) / mRect.height;
+      const ox = cx < 0.35 ? 'left' : cx > 0.65 ? 'right' : 'center';
+      const oy = cy < 0.35 ? 'top' : cy > 0.65 ? 'bottom' : 'center';
+      el.style.transformOrigin = `${oy} ${ox}`;
+      el.style.transform = `scale(${scale.toFixed(2)})`;
+    }
+    el.classList.add('wv-mos-flipped');
+  }
+}
+function wvMosaicCloseAll(mosaic) {
+  if (!mosaic) return;
+  mosaic.querySelectorAll('.wv-mos-flipped').forEach(t => {
+    t.style.transform = '';
+    t.style.transformOrigin = '';
+    t.classList.remove('wv-mos-flipped');
+  });
 }
 
 function _wvFilmstrip(items, max, ms, imgItems, type) {
