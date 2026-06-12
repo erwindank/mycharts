@@ -1494,6 +1494,10 @@ async function fetchAndInjectImage(el, item, type) {
     const newImg = el.querySelector('img');
     newImg.onerror = function() { _imgFallback(this); };
     newImg.src = url;
+    const _mosTile = el.closest && el.closest('.wv-mos-item');
+    if (_mosTile && !_mosTile.classList.contains('wv-r1') && !_mosTile.classList.contains('wv-r2') && !_mosTile.classList.contains('wv-r3')) {
+      _mosDominantGlow(url, _mosTile);
+    }
   } else {
     el.innerHTML = `<div class="thumb-initials">${esc(initials(fallback))}</div>`;
   }
@@ -1559,6 +1563,35 @@ function cycleImgSrc(imgId, type, prefKey, name, artist, album) {
       el.innerHTML = `<div class="thumb-initials">${esc(initials(fallback))}</div>`;
     }
   });
+}
+
+function _mosDominantGlow(url, tile) {
+  const probe = new Image();
+  probe.crossOrigin = 'anonymous';
+  probe.onload = function() {
+    try {
+      const sz = 20;
+      const canvas = document.createElement('canvas');
+      canvas.width = canvas.height = sz;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(this, 0, 0, sz, sz);
+      const data = ctx.getImageData(0, 0, sz, sz).data;
+      let bestR = 0, bestG = 0, bestB = 0, bestSat = -1;
+      for (let i = 0; i < data.length; i += 4) {
+        const r = data[i], g = data[i+1], b = data[i+2], a = data[i+3];
+        if (a < 128) continue;
+        const max = Math.max(r, g, b), min = Math.min(r, g, b);
+        const l = (max + min) / 510;
+        if (l < 0.1 || l > 0.92) continue;
+        const sat = max === 0 ? 0 : (max - min) / max;
+        if (sat > bestSat) { bestSat = sat; bestR = r; bestG = g; bestB = b; }
+      }
+      if (bestSat < 0.2 || !tile.isConnected) return;
+      const inner = tile.querySelector('.wv-mos-item-inner');
+      if (inner) inner.style.boxShadow = `0 0 0 2px rgba(${bestR},${bestG},${bestB},0.8), 0 0 14px rgba(${bestR},${bestG},${bestB},0.3)`;
+    } catch(e) {}
+  };
+  probe.src = url;
 }
 
 // Handle source-cycle button clicks (capture phase so it beats artist-row handler)
