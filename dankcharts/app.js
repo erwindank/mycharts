@@ -15891,31 +15891,49 @@ function openYtPlayer(title, artist, album, btn) {
 
 async function _ytSearch(artist, title, overrideQuery) {
   const query = overrideQuery || (artist + ' ' + title + ' official audio');
-  try {
-    const res  = await fetch(`${BACKEND_API}/api/youtube/search?q=${encodeURIComponent(query)}`);
-    const data = await res.json();
-    if (data.error) throw new Error(data.error);
-    const videoId = data.videoId;
-    if (!videoId) throw new Error('No results found');
-    _ytCurrentVideoId = videoId;
-    _ytUpdateThumb();
-    if ((data.videoTitle || data.title) && _ytActiveBtn) {
-      _ytActiveBtn.title = '▶ ' + (data.videoTitle || data.title);
-    }
-    const statusEl = document.getElementById('ytMiniStatus');
-    if (statusEl) { statusEl.textContent = ''; }
-    if (_ytApiReady) {
-      _ytLoadVideo(videoId);
-    } else {
-      _ytPendingVideo = videoId;
-    }
-  } catch (e) {
-    if (_ytActiveBtn) _ytActiveBtn.classList.remove('yt-btn-loading', 'yt-btn-playing');
-    const statusEl = document.getElementById('ytMiniStatus');
-    if (statusEl) {
-      const skipPart = _ytQueue.length > 0 ? ` — <button class="yt-err-open-btn" onclick="_ytSkip()">skip ⏭</button>` : '';
-      statusEl.innerHTML = `Not found — <button class="yt-err-open-btn" onclick="_ytOpenInYT()">search YouTube ↗</button>${skipPart}`;
-      statusEl.className = 'yt-mini-status err';
+  const statusEl = document.getElementById('ytMiniStatus');
+  const MAX_RETRIES = 3;
+  const RETRY_DELAY_MS = 4000;
+  for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
+    try {
+      const res  = await fetch(`${BACKEND_API}/api/youtube/search?q=${encodeURIComponent(query)}`);
+      if (res.status === 502 || res.status === 503) {
+        if (attempt < MAX_RETRIES) {
+          if (statusEl) { statusEl.textContent = 'Waking up server…'; statusEl.className = 'yt-mini-status'; }
+          await new Promise(r => setTimeout(r, RETRY_DELAY_MS));
+          continue;
+        }
+        throw new Error('Server unavailable');
+      }
+      const data = await res.json();
+      if (data.error) throw new Error(data.error);
+      const videoId = data.videoId;
+      if (!videoId) throw new Error('No results found');
+      _ytCurrentVideoId = videoId;
+      _ytUpdateThumb();
+      if ((data.videoTitle || data.title) && _ytActiveBtn) {
+        _ytActiveBtn.title = '▶ ' + (data.videoTitle || data.title);
+      }
+      if (statusEl) { statusEl.textContent = ''; }
+      if (_ytApiReady) {
+        _ytLoadVideo(videoId);
+      } else {
+        _ytPendingVideo = videoId;
+      }
+      return;
+    } catch (e) {
+      if (attempt < MAX_RETRIES && (e.message === 'Server unavailable' || e.name === 'TypeError')) {
+        if (statusEl) { statusEl.textContent = 'Waking up server…'; statusEl.className = 'yt-mini-status'; }
+        await new Promise(r => setTimeout(r, RETRY_DELAY_MS));
+        continue;
+      }
+      if (_ytActiveBtn) _ytActiveBtn.classList.remove('yt-btn-loading', 'yt-btn-playing');
+      if (statusEl) {
+        const skipPart = _ytQueue.length > 0 ? ` — <button class="yt-err-open-btn" onclick="_ytSkip()">skip ⏭</button>` : '';
+        statusEl.innerHTML = `Not found — <button class="yt-err-open-btn" onclick="_ytOpenInYT()">search YouTube ↗</button>${skipPart}`;
+        statusEl.className = 'yt-mini-status err';
+      }
+      return;
     }
   }
 }
