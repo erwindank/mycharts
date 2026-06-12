@@ -8146,7 +8146,11 @@ function _wvMosaic(items, max, ms, imgItems, type) {
   const vals = items.map(s => Math.sqrt(s.count));
   const rects = _computeTreemap(vals, W, H);
   return `<div class="wv-mosaic">${items.map((s, i) => {
-    const { k, imgId, mv } = _wvItem(type, s, i, ms, imgItems);
+    const { k, imgId, mv, prefKey } = _wvItem(type, s, i, ms, imgItems);
+    const backImgId = imgId + 'b';
+    if (type === 'artists') imgItems.push({ imgId: backImgId, name: s.name, artist: s.name, prefKey });
+    else if (type === 'albums') imgItems.push({ imgId: backImgId, album: s.album, artist: s.artist, name: s.album, prefKey });
+    else imgItems.push({ imgId: backImgId, title: s.title, artist: s.artist, album: s.album, prefKey });
     const { ttl, sub } = _wvDisp(type, s);
     const [rx, ry, rw, rh] = rects[i];
     const st = `left:${(rx/W*100).toFixed(2)}%;top:${(ry/H*100).toFixed(2)}%;width:${(rw/W*100).toFixed(2)}%;height:${(rh/H*100).toFixed(2)}%;--bar-w:${Math.round(s.count/max*100)}%`;
@@ -8184,7 +8188,7 @@ function _wvMosaic(items, max, ms, imgItems, type) {
         <div class="wv-mos-back">
           <button class="wv-mos-back-close" onclick="event.stopPropagation();wvMosaicCloseAll(this.closest('.wv-mosaic'))">×</button>
           <div class="wv-mos-back-header">
-            <div class="wv-mos-back-img">${_wvThumb(imgId, ttl)}</div>
+            <div class="wv-mos-back-img">${_wvThumb(backImgId, ttl)}</div>
             <div class="wv-mos-back-meta">
               <div class="wv-mos-back-rank-row"><span class="wv-mos-back-ranknum">#${i+1}</span>${mv ? `<span class="wv-mv-ov">${mv}</span>` : ''}</div>
               <div class="wv-mos-back-ttl">${esc(ttl)}</div>
