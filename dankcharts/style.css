@@ -12978,9 +12978,9 @@ body[class*="-light"] .tm-card-search:hover {
 .wv-mos-item.wv-r1 .wv-rank-badge { background: none; color: rgba(240,170,48,0.75); }
 .wv-mos-item.wv-r2 .wv-rank-badge { background: none; color: rgba(148,163,184,0.75); }
 .wv-mos-item.wv-r3 .wv-rank-badge { background: none; color: rgba(180,83,9,0.85); }
-.wv-r1 .wv-mos-item-inner { box-shadow: 0 0 0 2px rgba(240,170,48,0.85), 0 0 18px rgba(240,170,48,0.35); }
-.wv-r2 .wv-mos-item-inner { box-shadow: 0 0 0 2px rgba(148,163,184,0.75), 0 0 14px rgba(148,163,184,0.25); }
-.wv-r3 .wv-mos-item-inner { box-shadow: 0 0 0 2px rgba(180,83,9,0.75), 0 0 14px rgba(180,83,9,0.25); }
+.wv-r1 .wv-mos-item-inner { box-shadow: 0 0 0 3px rgba(240,170,48,1), 0 0 28px rgba(240,170,48,0.65), 0 0 50px rgba(240,170,48,0.25); }
+.wv-r2 .wv-mos-item-inner { box-shadow: 0 0 0 3px rgba(148,163,184,0.95), 0 0 22px rgba(148,163,184,0.55), 0 0 40px rgba(148,163,184,0.2); }
+.wv-r3 .wv-mos-item-inner { box-shadow: 0 0 0 3px rgba(205,110,40,0.95), 0 0 22px rgba(205,110,40,0.55), 0 0 40px rgba(205,110,40,0.2); }
 
 /* ── MOSAIC CLICK-TO-EXPAND ── */
 .wv-mos-front { position: absolute; inset: 0; transition: opacity 0.2s ease; }
