@@ -8307,17 +8307,15 @@ function _wvFilmstrip(items, max, ms, imgItems, type) {
         <div class="wv-film-thumb-hover">
           <button class="yt-play-btn wv-film-yt-btn" data-title="${esc(playTitle)}" data-artist="${esc(playArtist)}" data-album="${esc(playAlbum)}" onclick="event.stopPropagation();ytPlayFromBtn(this)" title="Play on YouTube">${ytSvg}</button>
         </div>
-        ${pk ? `<div class="wv-film-peak-ov">${peakBadge(pk)}</div>` : ''}
-        ${cert ? `<div class="wv-film-cert-ov">${cert}</div>` : ''}
       </div>
       <div class="wv-ttl">${esc(ttl)}</div>
       <div class="wv-art">${esc(sub)}</div>
       <div class="wv-plays">${s.count} plays</div>
       <div class="wv-bar"><div class="wv-bar-fill" style="width:${barW}%"></div></div>
       <div class="wv-film-expand"><div class="wv-film-expand-inner">
-        ${pk ? `<div>${peakBadge(pk)}</div>` : ''}
-        ${wks ? `<div class="wv-film-exp-wks">${wks} wk${wks !== 1 ? 's' : ''} on chart</div>` : ''}
-        ${cumPlays ? `<div class="wv-film-exp-alltime">${cumPlays.toLocaleString()} all-time${cert}</div>` : ''}
+        ${(pk || cert) ? `<div class="wv-film-exp-badges">${pk ? peakBadge(pk) : ''}${cert}</div>` : ''}
+        ${wks ? `<div class="wv-film-exp-wks">${tCount('weeks_full', wks)} ${t('film_on_chart')}</div>` : ''}
+        ${cumPlays ? `<div class="wv-film-exp-alltime">${cumPlays.toLocaleString()} ${t('film_alltime_plays')}</div>` : ''}
         <button class="yt-play-btn" data-title="${esc(playTitle)}" data-artist="${esc(playArtist)}" data-album="${esc(playAlbum)}" onclick="event.stopPropagation();ytPlayFromBtn(this)" style="margin-top:4px">${ytSvgSm}Play on YouTube</button>
       </div></div>
     </div>`;
@@ -8420,6 +8418,13 @@ function initFilmstripInteractions(type) {
   const endDrag = () => { isDragging = false; strip.classList.remove('is-dragging'); };
   strip.addEventListener('mouseup', endDrag);
   strip.addEventListener('mouseleave', endDrag);
+
+  // Mouse wheel scrolls horizontally
+  strip.addEventListener('wheel', e => {
+    if (e.deltaY === 0) return;
+    e.preventDefault();
+    strip.scrollLeft += e.deltaY;
+  }, { passive: false });
 
   // Scroll position indicator
   const fill = document.getElementById('wv-film-fill-' + type);

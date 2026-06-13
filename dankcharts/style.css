@@ -13189,6 +13189,8 @@ body.hide-cert .wv-film-cert-ov { display: none; }
 .wv-film-expand { width: 100%; overflow: hidden; max-height: 0; transition: max-height 0.28s ease; }
 .wv-film-card.wv-film-open .wv-film-expand { max-height: 200px; }
 .wv-film-expand-inner { border-top: 1px solid var(--border); padding-top: 6px; margin-top: 4px; display: flex; flex-direction: column; gap: 4px; align-items: center; font-size: 0.62rem; }
+.wv-film-exp-badges { display: flex; flex-direction: row; align-items: center; justify-content: center; gap: 4px; flex-wrap: wrap; }
+.wv-film-exp-badges .peak-badge, .wv-film-exp-badges .peak-badge-1, .wv-film-exp-badges .peak-badge-2, .wv-film-exp-badges .peak-badge-3, .wv-film-exp-badges .cert { margin-left: 0; }
 .wv-film-exp-wks { color: var(--text3); }
 .wv-film-exp-alltime { color: var(--text3); text-align: center; }
 .wv-film-expand-inner .peak-badge, .wv-film-expand-inner .peak-badge-1, .wv-film-expand-inner .peak-badge-2, .wv-film-expand-inner .peak-badge-3 { margin-left: 0; }
