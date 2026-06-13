@@ -18315,6 +18315,7 @@ document.addEventListener('keydown', e => {
   const mc = new Hammer.Manager(el);
   mc.add(new Hammer.Swipe({ direction: Hammer.DIRECTION_HORIZONTAL, threshold: 25, velocity: 0.25 }));
   mc.on('swipeleft swiperight', e => {
+    if (e.pointerType !== 'touch') return;
     if (!['week', 'month', 'year'].includes(currentPeriod)) return;
     if (e.srcEvent?.target?.tagName === 'CANVAS') return;
     document.getElementById('navHint')?.classList.add('swipe-done');
