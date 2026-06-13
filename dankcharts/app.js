@@ -8324,14 +8324,16 @@ function _wvFilmstrip(items, max, ms, imgItems, type) {
   }).join('');
 
   const jumpBtns = decades.map(d =>
-    `<button class="wv-film-jump-btn" onclick="wvFilmJump(${d},'${type}')">${d+1}–${Math.min(d+10,items.length)}</button>`
+    `<button class="wv-film-jump-btn" onclick="wvFilmJump(${d},'${type}')">#${d+1}</button>`
   ).join('');
 
   return `<div class="wv-film-wrap">
     <div class="wv-film-controls">
       <div class="wv-film-jump-btns">${jumpBtns}</div>
-      <button class="wv-film-auto-btn" id="wv-film-auto-${type}" onclick="wvFilmAutoScroll('${type}')">▶ Auto</button>
-      <button class="wv-film-share-btn" onclick="shareFilmstrip('${type}')">⬇ Save Image</button>
+      <div class="wv-film-action-btns">
+        <button class="wv-film-auto-btn" id="wv-film-auto-${type}" onclick="wvFilmAutoScroll('${type}')">▶ Auto</button>
+        <button class="wv-film-share-btn" onclick="shareFilmstrip('${type}')">⬇ Save</button>
+      </div>
     </div>
     <div class="wv-filmstrip" id="wv-filmstrip-${type}">${cards}</div>
     <div class="wv-film-scrolltrack" id="wv-film-track-${type}">

@@ -13133,13 +13133,14 @@ body[class*="-light"] .tm-card-search:hover {
 .wv-film-wrap { display: flex; flex-direction: column; gap: 6px; }
 
 /* Controls bar */
-.wv-film-controls { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; padding: 0 2px; }
-.wv-film-jump-btns { display: flex; gap: 3px; flex-wrap: wrap; }
-.wv-film-jump-btn { font-family: 'DM Mono', monospace; font-size: 0.58rem; background: var(--bg3); border: 1px solid var(--border); color: var(--text3); border-radius: 4px; padding: 3px 6px; cursor: pointer; transition: background 0.12s, color 0.12s; white-space: nowrap; }
-.wv-film-jump-btn:hover { background: var(--border2); color: var(--text1); }
-.wv-film-auto-btn, .wv-film-share-btn { font-family: 'DM Mono', monospace; font-size: 0.58rem; background: var(--bg3); border: 1px solid var(--border); color: var(--text3); border-radius: 4px; padding: 3px 8px; cursor: pointer; transition: background 0.12s, color 0.12s; white-space: nowrap; }
-.wv-film-auto-btn:hover, .wv-film-share-btn:hover { background: var(--border2); color: var(--text1); }
-.wv-film-auto-btn.wv-film-auto-on { background: var(--gold1); color: #000; border-color: var(--gold1); }
+.wv-film-controls { display: flex; align-items: center; gap: 8px; padding: 0 2px; }
+.wv-film-jump-btns { display: flex; gap: 3px; flex: 1; flex-wrap: wrap; }
+.wv-film-jump-btn { -webkit-appearance: none; appearance: none; background: none; border: 1px solid var(--border); border-radius: 3px; color: var(--text3); font-family: 'DM Mono', monospace; font-size: 0.55rem; letter-spacing: 0.06em; text-transform: uppercase; padding: 0.12rem 0.5rem; cursor: pointer; transition: color 0.15s, background 0.15s, border-color 0.15s; white-space: nowrap; }
+.wv-film-jump-btn:hover { background: var(--border); color: var(--text); }
+.wv-film-action-btns { display: flex; gap: 4px; flex-shrink: 0; }
+.wv-film-auto-btn, .wv-film-share-btn { -webkit-appearance: none; appearance: none; background: none; border: 1px solid var(--border); border-radius: 3px; color: var(--text3); font-family: 'DM Mono', monospace; font-size: 0.55rem; letter-spacing: 0.06em; text-transform: uppercase; padding: 0.12rem 0.55rem; cursor: pointer; transition: color 0.15s, background 0.15s, border-color 0.15s; white-space: nowrap; }
+.wv-film-auto-btn:hover, .wv-film-share-btn:hover { background: var(--border); color: var(--text); }
+.wv-film-auto-btn.wv-film-auto-on { background: var(--accent); border-color: var(--accent); color: #fff; }
 
 /* Strip */
 .wv-filmstrip { display: flex; gap: 10px; overflow-x: auto; padding: 6px 6px 10px; scroll-snap-type: x mandatory; cursor: grab; user-select: none; }
@@ -13151,12 +13152,12 @@ body[class*="-light"] .tm-card-search:hover {
 .wv-film-scrollfill { position: absolute; left: 0; top: 0; height: 100%; width: 6%; background: var(--border2); border-radius: 2px; transition: width 0.12s; }
 
 /* Cards */
-.wv-film-card { flex: 0 0 155px; scroll-snap-align: start; display: flex; flex-direction: column; align-items: center; gap: 5px; padding: 10px 8px 8px; background: var(--bg2); border: 1px solid var(--border); border-radius: 8px; overflow: hidden; text-align: center; cursor: pointer; transition: border-color 0.15s; }
+.wv-film-card { flex: 0 0 190px; scroll-snap-align: start; display: flex; flex-direction: column; align-items: center; gap: 5px; padding: 10px 10px 8px; background: var(--bg2); border: 1px solid var(--border); border-radius: 8px; overflow: hidden; text-align: center; cursor: pointer; transition: border-color 0.15s; }
 .wv-film-card:hover { border-color: var(--border2); }
 .wv-film-card:focus { outline: 2px solid var(--gold1); outline-offset: 1px; }
-.wv-r1.wv-film-card { flex: 0 0 180px; border-color: rgba(240,170,48,0.35); background: rgba(240,170,48,0.05); }
-.wv-r2.wv-film-card { flex: 0 0 165px; border-color: rgba(148,163,184,0.35); }
-.wv-r3.wv-film-card { flex: 0 0 158px; border-color: rgba(180,83,9,0.35); }
+.wv-r1.wv-film-card { flex: 0 0 220px; border-color: rgba(240,170,48,0.35); background: rgba(240,170,48,0.05); }
+.wv-r2.wv-film-card { flex: 0 0 205px; border-color: rgba(148,163,184,0.35); }
+.wv-r3.wv-film-card { flex: 0 0 198px; border-color: rgba(180,83,9,0.35); }
 
 /* Rank row */
 .wv-film-rank-row { display: flex; align-items: center; justify-content: center; gap: 5px; width: 100%; }
