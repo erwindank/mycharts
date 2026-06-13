@@ -8355,28 +8355,38 @@ function wvFilmJump(idx, type) {
   }
 }
 
-let _filmAutoTimer = {};
 function wvFilmAutoScroll(type) {
   const strip = document.getElementById('wv-filmstrip-' + type);
   const btn = document.getElementById('wv-film-auto-' + type);
+  const scrollTrack = document.getElementById('wv-film-track-' + type);
   if (!strip || !btn) return;
-  if (_filmAutoTimer[type]) {
-    clearInterval(_filmAutoTimer[type]);
-    delete _filmAutoTimer[type];
+
+  if (strip.classList.contains('wv-film-auto-mode')) {
+    // Stop: unwrap the auto track, restore original cards
+    const track = strip.querySelector('.wv-film-auto-track');
+    if (track) {
+      Array.from(track.querySelectorAll('.wv-film-card:not([data-auto-clone])')).forEach(c => strip.appendChild(c));
+      track.remove();
+    }
+    strip.classList.remove('wv-film-auto-mode');
     btn.classList.remove('wv-film-auto-on');
     btn.textContent = '▶ Auto';
+    if (scrollTrack) scrollTrack.style.display = '';
   } else {
+    // Start: wrap cards in a track, duplicate, animate infinitely
+    const cards = Array.from(strip.querySelectorAll('.wv-film-card'));
+    if (!cards.length) return;
+    const track = document.createElement('div');
+    track.className = 'wv-film-auto-track';
+    cards.forEach(c => track.appendChild(c));
+    cards.map(c => { const cl = c.cloneNode(true); cl.setAttribute('data-auto-clone', '1'); return cl; })
+         .forEach(c => track.appendChild(c));
+    strip.appendChild(track);
+    track.style.animationDuration = Math.max(20, cards.length * 3) + 's';
+    strip.classList.add('wv-film-auto-mode');
     btn.classList.add('wv-film-auto-on');
     btn.textContent = '⏸ Auto';
-    _filmAutoTimer[type] = setInterval(() => {
-      const maxScroll = strip.scrollWidth - strip.clientWidth;
-      if (strip.scrollLeft >= maxScroll - 4) {
-        strip.scrollTo({ left: 0, behavior: 'smooth' });
-      } else {
-        const cardW = (strip.querySelector('.wv-film-card')?.offsetWidth || 155) + 10;
-        strip.scrollBy({ left: cardW, behavior: 'smooth' });
-      }
-    }, 1800);
+    if (scrollTrack) scrollTrack.style.display = 'none';
   }
 }
 

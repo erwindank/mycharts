@@ -13142,6 +13142,12 @@ body[class*="-light"] .tm-card-search:hover {
 .wv-film-auto-btn:hover, .wv-film-share-btn:hover { background: var(--border); color: var(--text); }
 .wv-film-auto-btn.wv-film-auto-on { background: var(--accent); border-color: var(--accent); color: #fff; }
 
+/* Auto-scroll infinite loop (mirrors Time Machine ticker) */
+.wv-filmstrip.wv-film-auto-mode { display: block; overflow: hidden; padding: 0; cursor: default; scroll-snap-type: none; mask-image: linear-gradient(to right, transparent 0%, black 2%, black 98%, transparent 100%); -webkit-mask-image: linear-gradient(to right, transparent 0%, black 2%, black 98%, transparent 100%); }
+.wv-filmstrip.wv-film-auto-mode:hover .wv-film-auto-track { animation-play-state: paused; }
+.wv-film-auto-track { display: flex; gap: 10px; padding: 6px 6px 10px; width: max-content; animation: wv-film-scroll 60s linear infinite; }
+@keyframes wv-film-scroll { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+
 /* Strip */
 .wv-filmstrip { display: flex; gap: 10px; overflow-x: auto; padding: 6px 6px 10px; scroll-snap-type: x mandatory; cursor: grab; user-select: none; }
 .wv-filmstrip.is-dragging { cursor: grabbing; }
