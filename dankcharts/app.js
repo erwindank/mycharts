@@ -7916,6 +7916,7 @@ function renderWeeklyAltView(type) {
   const renderers = { grid: _wvGrid, compact: _wvCompact, mosaic: _wvMosaic, filmstrip: _wvFilmstrip, stack: _wvStack };
   const fn = renderers[weeklyChartViewMode];
   container.innerHTML = fn ? fn(items, maxVal, ms, imgItems, type) : '';
+  if (weeklyChartViewMode === 'filmstrip') initFilmstripInteractions(type);
   if (imgItems.length) {
     const imgType = type === 'songs' ? 'song' : type === 'artists' ? 'artist' : 'album';
     loadImages(imgItems.map(i => ({ ...i, name: i.title || i.name || i.album })), imgType);
@@ -8275,17 +8276,194 @@ function wvMosaicCloseAll(mosaic) {
 
 function _wvFilmstrip(items, max, ms, imgItems, type) {
   type = type || 'songs';
-  return `<div class="wv-filmstrip">${items.map((s, i) => {
+  const decades = [];
+  for (let d = 0; d < items.length; d += 10) decades.push(d);
+
+  const cards = items.map((s, i) => {
     const { k, imgId, mv } = _wvItem(type, s, i, ms, imgItems);
     const { ttl, sub } = _wvDisp(type, s);
     const barW = Math.round(s.count / max * 100);
-    return `<div class="wv-card wv-film-card${i < 3 ? ' wv-r' + (i+1) : ''}">
-      <div class="wv-film-rank">${i+1} ${mv}</div>
-      <div class="wv-thumb wv-thumb-lg">${_wvThumb(imgId, ttl)}</div>
-      <div class="wv-ttl">${esc(ttl)}</div><div class="wv-art">${esc(sub)}</div>
-      <div class="wv-plays">${s.count}</div>
-      <div class="wv-bar"><div class="wv-bar-fill" style="width:${barW}%"></div></div></div>`;
-  }).join('')}</div>`;
+    const pk = type === 'songs' ? _weeklyViewPeaks?.songPeakMap[k]
+             : type === 'artists' ? _weeklyViewPeaks?.artistPeakMap[k]
+             : _weeklyViewPeaks?.albumPeakMap[k];
+    const wks = ms?.periodsOnChart?.[type]?.[k] || null;
+    const cumPlays = type === 'songs' ? (cumulativeMaps?.songs[k] || 0)
+                   : type === 'albums' ? (cumulativeMaps?.albums[k] || 0) : 0;
+    const cert = (type !== 'artists' && cumPlays) ? certBadge(cumPlays, type === 'songs' ? 'song' : 'album') : '';
+    const playTitle  = type === 'songs' ? s.title  : type === 'artists' ? s.name  : s.album;
+    const playArtist = type === 'songs' ? s.artist : type === 'artists' ? s.name  : s.artist;
+    const playAlbum  = type === 'songs' ? (s.album || '') : type === 'artists' ? '' : s.album;
+    const rc = i < 3 ? ` wv-r${i+1}` : '';
+    const thumbCls = i < 3 ? 'wv-thumb-xl' : 'wv-thumb-lg';
+    const ytSvg = `<svg viewBox="0 0 24 24" fill="currentColor" style="width:14px;height:14px"><path d="M8 5v14l11-7z"/></svg>`;
+    const ytSvgSm = `<svg viewBox="0 0 24 24" fill="currentColor" style="width:10px;height:10px;margin-right:3px"><path d="M8 5v14l11-7z"/></svg>`;
+    return `<div class="wv-card wv-film-card${rc}" tabindex="0" data-idx="${i}" onclick="wvFilmCardClick(event,this)">
+      <div class="wv-film-rank-row">
+        <span class="wv-film-ranknum">${i+1}</span>
+        ${mv ? `<span class="wv-film-mv">${mv}</span>` : ''}
+      </div>
+      <div class="wv-film-thumb-wrap">
+        <div class="wv-thumb ${thumbCls}">${_wvThumb(imgId, ttl)}</div>
+        <div class="wv-film-thumb-hover">
+          <button class="yt-play-btn wv-film-yt-btn" data-title="${esc(playTitle)}" data-artist="${esc(playArtist)}" data-album="${esc(playAlbum)}" onclick="event.stopPropagation();ytPlayFromBtn(this)" title="Play on YouTube">${ytSvg}</button>
+        </div>
+        ${pk ? `<div class="wv-film-peak-ov">${peakBadge(pk)}</div>` : ''}
+        ${cert ? `<div class="wv-film-cert-ov">${cert}</div>` : ''}
+      </div>
+      <div class="wv-ttl">${esc(ttl)}</div>
+      <div class="wv-art">${esc(sub)}</div>
+      <div class="wv-plays">${s.count} plays</div>
+      <div class="wv-bar"><div class="wv-bar-fill" style="width:${barW}%"></div></div>
+      <div class="wv-film-expand"><div class="wv-film-expand-inner">
+        ${pk ? `<div>${peakBadge(pk)}</div>` : ''}
+        ${wks ? `<div class="wv-film-exp-wks">${wks} wk${wks !== 1 ? 's' : ''} on chart</div>` : ''}
+        ${cumPlays ? `<div class="wv-film-exp-alltime">${cumPlays.toLocaleString()} all-time${cert}</div>` : ''}
+        <button class="yt-play-btn" data-title="${esc(playTitle)}" data-artist="${esc(playArtist)}" data-album="${esc(playAlbum)}" onclick="event.stopPropagation();ytPlayFromBtn(this)" style="margin-top:4px">${ytSvgSm}Play on YouTube</button>
+      </div></div>
+    </div>`;
+  }).join('');
+
+  const jumpBtns = decades.map(d =>
+    `<button class="wv-film-jump-btn" onclick="wvFilmJump(${d},'${type}')">${d+1}–${Math.min(d+10,items.length)}</button>`
+  ).join('');
+
+  return `<div class="wv-film-wrap">
+    <div class="wv-film-controls">
+      <div class="wv-film-jump-btns">${jumpBtns}</div>
+      <button class="wv-film-auto-btn" id="wv-film-auto-${type}" onclick="wvFilmAutoScroll('${type}')">▶ Auto</button>
+      <button class="wv-film-share-btn" onclick="shareFilmstrip('${type}')">⬇ Save Image</button>
+    </div>
+    <div class="wv-filmstrip" id="wv-filmstrip-${type}">${cards}</div>
+    <div class="wv-film-scrolltrack" id="wv-film-track-${type}">
+      <div class="wv-film-scrollfill" id="wv-film-fill-${type}"></div>
+    </div>
+  </div>`;
+}
+
+function wvFilmCardClick(event, card) {
+  if (event.target.closest('button')) return;
+  card.classList.toggle('wv-film-open');
+}
+
+function wvFilmJump(idx, type) {
+  const strip = document.getElementById('wv-filmstrip-' + type);
+  if (!strip) return;
+  const card = strip.querySelectorAll('.wv-film-card')[idx];
+  if (card) {
+    strip.scrollTo({ left: card.offsetLeft - 8, behavior: 'smooth' });
+    card.focus({ preventScroll: true });
+  }
+}
+
+let _filmAutoTimer = {};
+function wvFilmAutoScroll(type) {
+  const strip = document.getElementById('wv-filmstrip-' + type);
+  const btn = document.getElementById('wv-film-auto-' + type);
+  if (!strip || !btn) return;
+  if (_filmAutoTimer[type]) {
+    clearInterval(_filmAutoTimer[type]);
+    delete _filmAutoTimer[type];
+    btn.classList.remove('wv-film-auto-on');
+    btn.textContent = '▶ Auto';
+  } else {
+    btn.classList.add('wv-film-auto-on');
+    btn.textContent = '⏸ Auto';
+    _filmAutoTimer[type] = setInterval(() => {
+      const maxScroll = strip.scrollWidth - strip.clientWidth;
+      if (strip.scrollLeft >= maxScroll - 4) {
+        strip.scrollTo({ left: 0, behavior: 'smooth' });
+      } else {
+        const cardW = (strip.querySelector('.wv-film-card')?.offsetWidth || 155) + 10;
+        strip.scrollBy({ left: cardW, behavior: 'smooth' });
+      }
+    }, 1800);
+  }
+}
+
+async function shareFilmstrip(type) {
+  const strip = document.getElementById('wv-filmstrip-' + type);
+  if (!strip || typeof html2canvas === 'undefined') return;
+  const origScroll = strip.scrollLeft;
+  strip.scrollLeft = 0;
+  await new Promise(r => setTimeout(r, 80));
+  try {
+    const cvs = await html2canvas(strip, { scale: 2, useCORS: false, allowTaint: true, backgroundColor: '#0f172a', logging: false });
+    const link = document.createElement('a');
+    const { label } = getDateRange();
+    link.download = `filmstrip-${type}-${(label||'chart').replace(/[^a-z0-9]/gi,'-')}.png`;
+    link.href = cvs.toDataURL('image/png');
+    link.click();
+  } catch(e) { console.error('shareFilmstrip', e); }
+  strip.scrollLeft = origScroll;
+}
+
+function initFilmstripInteractions(type) {
+  const strip = document.getElementById('wv-filmstrip-' + type);
+  if (!strip) return;
+
+  // Drag to scroll
+  let isDragging = false, dragStartX = 0, dragScrollLeft = 0;
+  strip.addEventListener('mousedown', e => {
+    if (e.button !== 0) return;
+    isDragging = true;
+    dragStartX = e.pageX - strip.getBoundingClientRect().left;
+    dragScrollLeft = strip.scrollLeft;
+    strip.classList.add('is-dragging');
+  });
+  strip.addEventListener('mousemove', e => {
+    if (!isDragging) return;
+    e.preventDefault();
+    strip.scrollLeft = dragScrollLeft - (e.pageX - strip.getBoundingClientRect().left - dragStartX);
+  });
+  const endDrag = () => { isDragging = false; strip.classList.remove('is-dragging'); };
+  strip.addEventListener('mouseup', endDrag);
+  strip.addEventListener('mouseleave', endDrag);
+
+  // Scroll position indicator
+  const fill = document.getElementById('wv-film-fill-' + type);
+  if (fill) {
+    const updateFill = () => {
+      const maxScroll = strip.scrollWidth - strip.clientWidth;
+      const pct = maxScroll > 0 ? strip.scrollLeft / maxScroll : 0;
+      fill.style.width = Math.max(6, Math.round(pct * 94) + 6) + '%';
+    };
+    strip.addEventListener('scroll', updateFill, { passive: true });
+    updateFill();
+  }
+
+  // Keyboard navigation
+  strip.addEventListener('keydown', e => {
+    const cards = Array.from(strip.querySelectorAll('.wv-film-card'));
+    const focused = strip.querySelector('.wv-film-card:focus');
+    if (!focused) return;
+    const idx = cards.indexOf(focused);
+    if (e.key === 'ArrowRight' && idx < cards.length - 1) {
+      cards[idx + 1].focus();
+      cards[idx + 1].scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'start' });
+      e.preventDefault();
+    } else if (e.key === 'ArrowLeft' && idx > 0) {
+      cards[idx - 1].focus();
+      cards[idx - 1].scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'start' });
+      e.preventDefault();
+    }
+  });
+
+  // Pinch to zoom (touch)
+  let pinchDist0 = null, pinchBaseW = null;
+  strip.addEventListener('touchstart', e => {
+    if (e.touches.length === 2) {
+      pinchDist0 = Math.hypot(e.touches[0].pageX - e.touches[1].pageX, e.touches[0].pageY - e.touches[1].pageY);
+      const first = strip.querySelector('.wv-film-card');
+      pinchBaseW = first ? first.offsetWidth : 155;
+    }
+  }, { passive: true });
+  strip.addEventListener('touchmove', e => {
+    if (e.touches.length !== 2 || !pinchDist0) return;
+    const dist = Math.hypot(e.touches[0].pageX - e.touches[1].pageX, e.touches[0].pageY - e.touches[1].pageY);
+    const newW = Math.max(90, Math.min(240, Math.round(pinchBaseW * dist / pinchDist0)));
+    strip.querySelectorAll('.wv-film-card').forEach(c => { c.style.flex = `0 0 ${newW}px`; });
+  }, { passive: true });
+  strip.addEventListener('touchend', () => { pinchDist0 = null; }, { passive: true });
 }
 
 function _wvStack(items, max, ms, imgItems, type) {

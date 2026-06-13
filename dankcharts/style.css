@@ -13130,17 +13130,67 @@ body[class*="-light"] .tm-card-search:hover {
 }
 
 /* ── FILMSTRIP ── */
-.wv-filmstrip { display: flex; gap: 8px; overflow-x: auto; padding: 4px 4px 12px; scroll-snap-type: x mandatory; }
-.wv-filmstrip::-webkit-scrollbar { height: 4px; }
-.wv-filmstrip::-webkit-scrollbar-track { background: var(--bg2); }
-.wv-filmstrip::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
-.wv-film-card { flex: 0 0 120px; scroll-snap-align: start; display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 8px 6px; background: var(--bg2); border: 1px solid var(--border); border-radius: 6px; overflow: hidden; text-align: center; }
-.wv-r1.wv-film-card { border-color: rgba(240,170,48,0.35); background: rgba(240,170,48,0.05); }
-.wv-r2.wv-film-card { border-color: rgba(148,163,184,0.35); }
-.wv-r3.wv-film-card { border-color: rgba(180,83,9,0.35); }
-.wv-film-rank { font-family: 'DM Mono', monospace; font-size: 0.65rem; font-weight: 700; color: var(--text3); }
-.wv-film-card .wv-ttl, .wv-film-card .wv-art { text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%; }
+.wv-film-wrap { display: flex; flex-direction: column; gap: 6px; }
+
+/* Controls bar */
+.wv-film-controls { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; padding: 0 2px; }
+.wv-film-jump-btns { display: flex; gap: 3px; flex-wrap: wrap; }
+.wv-film-jump-btn { font-family: 'DM Mono', monospace; font-size: 0.58rem; background: var(--bg3); border: 1px solid var(--border); color: var(--text3); border-radius: 4px; padding: 3px 6px; cursor: pointer; transition: background 0.12s, color 0.12s; white-space: nowrap; }
+.wv-film-jump-btn:hover { background: var(--border2); color: var(--text1); }
+.wv-film-auto-btn, .wv-film-share-btn { font-family: 'DM Mono', monospace; font-size: 0.58rem; background: var(--bg3); border: 1px solid var(--border); color: var(--text3); border-radius: 4px; padding: 3px 8px; cursor: pointer; transition: background 0.12s, color 0.12s; white-space: nowrap; }
+.wv-film-auto-btn:hover, .wv-film-share-btn:hover { background: var(--border2); color: var(--text1); }
+.wv-film-auto-btn.wv-film-auto-on { background: var(--gold1); color: #000; border-color: var(--gold1); }
+
+/* Strip */
+.wv-filmstrip { display: flex; gap: 10px; overflow-x: auto; padding: 6px 6px 10px; scroll-snap-type: x mandatory; cursor: grab; user-select: none; }
+.wv-filmstrip.is-dragging { cursor: grabbing; }
+.wv-filmstrip::-webkit-scrollbar { height: 0; }
+
+/* Scroll indicator */
+.wv-film-scrolltrack { height: 4px; background: var(--bg3); border-radius: 2px; margin: 0 4px; position: relative; overflow: hidden; }
+.wv-film-scrollfill { position: absolute; left: 0; top: 0; height: 100%; width: 6%; background: var(--border2); border-radius: 2px; transition: width 0.12s; }
+
+/* Cards */
+.wv-film-card { flex: 0 0 155px; scroll-snap-align: start; display: flex; flex-direction: column; align-items: center; gap: 5px; padding: 10px 8px 8px; background: var(--bg2); border: 1px solid var(--border); border-radius: 8px; overflow: hidden; text-align: center; cursor: pointer; transition: border-color 0.15s; }
+.wv-film-card:hover { border-color: var(--border2); }
+.wv-film-card:focus { outline: 2px solid var(--gold1); outline-offset: 1px; }
+.wv-r1.wv-film-card { flex: 0 0 180px; border-color: rgba(240,170,48,0.35); background: rgba(240,170,48,0.05); }
+.wv-r2.wv-film-card { flex: 0 0 165px; border-color: rgba(148,163,184,0.35); }
+.wv-r3.wv-film-card { flex: 0 0 158px; border-color: rgba(180,83,9,0.35); }
+
+/* Rank row */
+.wv-film-rank-row { display: flex; align-items: center; justify-content: center; gap: 5px; width: 100%; }
+.wv-film-ranknum { font-family: 'DM Mono', monospace; font-size: 0.75rem; font-weight: 700; color: var(--text2); }
+.wv-r1 .wv-film-ranknum { color: var(--gold1); }
+.wv-r2 .wv-film-ranknum { color: #94a3b8; }
+.wv-r3 .wv-film-ranknum { color: #b45309; }
+.wv-film-mv { font-family: 'DM Mono', monospace; font-size: 0.6rem; }
+
+/* Thumbnail wrapper with overlays */
+.wv-film-thumb-wrap { position: relative; width: 100%; display: flex; justify-content: center; }
+.wv-film-thumb-hover { position: absolute; inset: 0; background: rgba(0,0,0,0.48); display: flex; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.18s; border-radius: 4px; pointer-events: none; }
+.wv-film-card:hover .wv-film-thumb-hover { opacity: 1; pointer-events: auto; }
+body.hide-yt-btns .wv-film-thumb-hover { display: none; }
+.wv-film-peak-ov { position: absolute; bottom: 3px; left: 3px; pointer-events: none; line-height: 1; }
+.wv-film-peak-ov .peak-badge, .wv-film-peak-ov .peak-badge-1, .wv-film-peak-ov .peak-badge-2, .wv-film-peak-ov .peak-badge-3 { font-size: 0.45rem; padding: 1px 3px; margin-left: 0; background: rgba(0,0,0,0.72) !important; border-color: transparent !important; }
+body.hide-peak-tags .wv-film-peak-ov { display: none; }
+.wv-film-cert-ov { position: absolute; top: 3px; right: 3px; pointer-events: none; line-height: 1; }
+.wv-film-cert-ov .cert { font-size: 0.44rem; padding: 1px 3px; margin-left: 0; background: rgba(0,0,0,0.72) !important; backdrop-filter: blur(2px); }
+body.hide-cert .wv-film-cert-ov { display: none; }
+
+/* Text — wrapping */
+.wv-film-card .wv-ttl { text-align: center; width: 100%; font-size: 0.78rem; font-weight: 600; line-height: 1.3; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+.wv-film-card .wv-art { text-align: center; width: 100%; font-size: 0.68rem; color: var(--text3); line-height: 1.3; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+.wv-film-card .wv-plays { font-size: 0.65rem; color: var(--text3); }
 .wv-film-card .wv-bar { width: 100%; }
+
+/* Inline expand panel */
+.wv-film-expand { width: 100%; overflow: hidden; max-height: 0; transition: max-height 0.28s ease; }
+.wv-film-card.wv-film-open .wv-film-expand { max-height: 200px; }
+.wv-film-expand-inner { border-top: 1px solid var(--border); padding-top: 6px; margin-top: 4px; display: flex; flex-direction: column; gap: 4px; align-items: center; font-size: 0.62rem; }
+.wv-film-exp-wks { color: var(--text3); }
+.wv-film-exp-alltime { color: var(--text3); text-align: center; }
+.wv-film-expand-inner .peak-badge, .wv-film-expand-inner .peak-badge-1, .wv-film-expand-inner .peak-badge-2, .wv-film-expand-inner .peak-badge-3 { margin-left: 0; }
 
 /* ── STACK ── */
 .wv-stack { display: flex; flex-direction: column; gap: 6px; padding: 4px; }
