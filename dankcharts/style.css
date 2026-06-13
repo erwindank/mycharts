@@ -12824,9 +12824,9 @@ body[class*="-light"] .tm-card-search:hover {
 
 /* shared card base */
 .wv-card { background: var(--bg2); border: 1px solid var(--border); border-radius: 6px; overflow: hidden; }
-.wv-r1.wv-card { border-color: rgba(240,170,48,0.35); background: rgba(240,170,48,0.05); }
-.wv-r2.wv-card { border-color: rgba(148,163,184,0.35); }
-.wv-r3.wv-card { border-color: rgba(180,83,9,0.35); }
+.wv-r1.wv-card { border-color: rgba(240,170,48,0.8); background: rgba(240,170,48,0.05); box-shadow: 0 0 0 2px rgba(240,170,48,0.9), 0 0 28px rgba(240,170,48,0.55), 0 0 50px rgba(240,170,48,0.2); }
+.wv-r2.wv-card { border-color: rgba(148,163,184,0.8); box-shadow: 0 0 0 2px rgba(148,163,184,0.85), 0 0 22px rgba(148,163,184,0.45), 0 0 40px rgba(148,163,184,0.15); }
+.wv-r3.wv-card { border-color: rgba(205,110,40,0.8); box-shadow: 0 0 0 2px rgba(205,110,40,0.85), 0 0 22px rgba(205,110,40,0.45), 0 0 40px rgba(205,110,40,0.15); }
 .wv-card-art { position: relative; }
 .wv-card-body { padding: 0.4rem 0.5rem 0.5rem; }
 
