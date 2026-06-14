@@ -127,6 +127,7 @@ try {
 
 // ─── WEEKLY CHART VIEW MODE ────────────────────────────────────
 let weeklyChartViewMode = (() => { try { return localStorage.getItem('dc_weekly_chart_view') || 'table'; } catch(e) { return 'table'; } })();
+let _stkTwoCol = (() => { try { return localStorage.getItem('dc_stk_2col') === '1'; } catch(e) { return false; } })();
 let _weeklyViewSongs = [], _weeklyViewMax = 1, _weeklyViewPeaks = null, _weeklyViewMonthlyStats = null;
 let _weeklyViewArtists = [], _weeklyViewArtistsMax = 1;
 let _weeklyViewAlbums  = [], _weeklyViewAlbumsMax  = 1;
@@ -7890,6 +7891,7 @@ function setWeeklyChartView(mode) {
 function applyWeeklyChartView(onlyType) {
   if (currentPeriod !== 'week') return;
   document.querySelectorAll('.weekly-view-btn').forEach(b => b.classList.toggle('active', b.dataset.view === weeklyChartViewMode));
+  document.querySelectorAll('.stk-2col-btn').forEach(b => { b.style.display = weeklyChartViewMode === 'stack' ? '' : 'none'; b.classList.toggle('active', _stkTwoCol); });
   const isAlt = weeklyChartViewMode !== 'table';
   const types = onlyType ? [onlyType] : ['songs', 'artists', 'albums'];
   for (const tp of types) {
@@ -7941,6 +7943,7 @@ function renderWeeklyAltView(type) {
   const fn = renderers[weeklyChartViewMode];
   container.innerHTML = fn ? fn(items, maxVal, ms, imgItems, type) : '';
   if (weeklyChartViewMode === 'filmstrip') initFilmstripInteractions(type);
+  if (weeklyChartViewMode === 'stack') initStkInteractions(type);
   if (imgItems.length) {
     const imgType = type === 'songs' ? 'song' : type === 'artists' ? 'artist' : 'album';
     loadImages(imgItems.map(i => ({ ...i, name: i.title || i.name || i.album })), imgType);
@@ -8552,22 +8555,108 @@ function initFilmstripInteractions(type) {
 
 function _wvStack(items, max, ms, imgItems, type) {
   type = type || 'songs';
-  return `<div class="wv-stack">${items.map((s, i) => {
+  const canPlay = type === 'songs' || type === 'albums';
+  const crData = allChartRun?.week || chartRunData;
+  return `<div class="wv-stack${_stkTwoCol ? ' wv-stack-2col' : ''}">${items.map((s, i) => {
     const { k, imgId, mv } = _wvItem(type, s, i, ms, imgItems);
     const { ttl, sub } = _wvDisp(type, s);
     const pk = type === 'songs' ? _weeklyViewPeaks?.songPeakMap[k] : null;
     const cumSongPlays = type === 'songs' && cumulativeMaps ? (cumulativeMaps.songs[k] || 0) : 0;
     const weeks = ms ? (ms.periodsOnChart[type][k] || 1) : null;
+    const weeksText = weeks ? `<span class="wv-wks">${weeks} ${weeks === 1 ? 'week' : 'weeks'}</span>` : '';
     const barW = Math.round(s.count / max * 100);
-    return `<div class="wv-stk-card${i < 3 ? ' wv-r' + (i+1) : ''}">
-      <div class="wv-stk-rank">${i+1}</div>
-      <div class="wv-thumb wv-thumb-lg">${_wvThumb(imgId, ttl)}</div>
-      <div class="wv-stk-body">
-        <div class="wv-ttl">${esc(ttl)}${pk ? peakBadge(pk) : ''}${type === 'songs' ? certBadge(cumSongPlays, 'song') : ''}</div>
-        <div class="wv-art">${esc(sub)}</div>
-        <div class="wv-stk-meta"><span class="wv-plays">${s.count} ${s.count===1?'play':'plays'}</span> ${mv}${weeks ? `<span class="wv-wks">${weeks}w</span>` : ''}</div>
-        <div class="wv-bar"><div class="wv-bar-fill" style="width:${barW}%"></div></div></div></div>`;
+
+    // Movement direction for bar color and debut/re border
+    const prevEntry = ms ? ms.prevChart[type][k] : null;
+    const isNew = ms && !prevEntry && !ms.everChartedBefore[type].has(k);
+    const isRe  = ms && !prevEntry &&  ms.everChartedBefore[type].has(k);
+    const mvDiff = prevEntry ? (prevEntry.rank - (i + 1)) : null;
+    const barCls = isNew ? 'wv-bar-new' : isRe ? 'wv-bar-re' : mvDiff > 0 ? 'wv-bar-up' : mvDiff < 0 ? 'wv-bar-down' : '';
+    const statusCls = isNew ? ' wv-stk-new' : isRe ? ' wv-stk-re' : '';
+
+    // Album inline (songs only, same title row, dimmed)
+    const albumName = type === 'songs' && s.album && s.album !== '—' ? s.album : '';
+    const albumInline = albumName ? ` <span class="wv-stk-alb-inline">· ${esc(albumName)}</span>` : '';
+
+    // Cumulative plays
+    const cumHtml = cumSongPlays > 0 ? `<span class="wv-stk-cum">${cumSongPlays} all-time</span>` : '';
+
+    // YT play button
+    const jt = esc(JSON.stringify(ttl));
+    const jar = esc(JSON.stringify(type !== 'artists' ? sub : ''));
+    const jal = esc(JSON.stringify(s.album || ''));
+    const ytBtn = canPlay ? `<button class="wv-stk-yt-btn" onclick="event.stopPropagation();_ytPlayOrQueue(${jt},${jar},${jal})" title="Play on YouTube">▶</button>` : '';
+
+    // Artist line — clickable → artist modal (songs & albums only)
+    const jartist = esc(JSON.stringify(type !== 'artists' ? sub : ttl));
+    const artistLine = (type === 'songs' || type === 'albums') && sub
+      ? `<div class="wv-art wv-stk-artist" onclick="event.stopPropagation();openArtistModal(${jartist})">${esc(sub)}</div>`
+      : `<div class="wv-art">${esc(sub)}</div>`;
+
+    // Expand shelf: chart run summary + squares
+    const crD = crData?.result?.[type]?.[k];
+    const crPeak = crD ? crD.peak : null;
+    const crWks  = crD ? crD.entries.length : null;
+    const sumParts = [];
+    if (crWks)  sumParts.push(`${crWks} ${crWks === 1 ? 'week' : 'weeks'} on chart`);
+    if (crPeak) sumParts.push(`peaked #${crPeak}`);
+    const summaryHtml = sumParts.length ? `<div class="wv-stk-shelf-sum">${sumParts.join(' · ')}</div>` : '';
+    const shelf = `<div class="wv-stk-shelf">${summaryHtml}${crBoxesHTML(type, k, crData)}</div>`;
+
+    return `<div class="wv-stk-card${i < 3 ? ' wv-r' + (i+1) : ''}${statusCls}" tabindex="0" onclick="toggleStkExpand(this)">
+      <div class="wv-stk-row">
+        <div class="wv-stk-rank">${i+1}</div>
+        <div class="wv-thumb wv-thumb-lg">${_wvThumb(imgId, ttl)}</div>
+        <div class="wv-stk-body">
+          <div class="wv-ttl">${esc(ttl)}${albumInline}${pk ? peakBadge(pk) : ''}${type === 'songs' ? certBadge(cumSongPlays, 'song') : ''}</div>
+          ${artistLine}
+          <div class="wv-stk-meta">${ytBtn}<span class="wv-plays">${s.count} ${s.count===1?'play':'plays'}</span> ${mv}${weeksText}${cumHtml}</div>
+          <div class="wv-bar"><div class="wv-bar-fill${barCls ? ' '+barCls : ''}" style="width:${barW}%"></div></div>
+        </div>
+      </div>
+      ${shelf}
+    </div>`;
   }).join('')}</div>`;
+}
+
+function toggleStkExpand(card) {
+  card.classList.toggle('wv-stk-open');
+}
+
+function toggleStkTwoCol() {
+  _stkTwoCol = !_stkTwoCol;
+  try { localStorage.setItem('dc_stk_2col', _stkTwoCol ? '1' : '0'); } catch(e) {}
+  document.querySelectorAll('.stk-2col-btn').forEach(b => b.classList.toggle('active', _stkTwoCol));
+  applyWeeklyChartView();
+}
+
+function initStkInteractions(type) {
+  const container = document.getElementById('weeklyAltView-' + type);
+  if (!container) return;
+
+  // Keyboard: ↑↓ navigate, Enter/Space expand, P play
+  container.addEventListener('keydown', e => {
+    const focused = document.activeElement;
+    if (!focused?.classList.contains('wv-stk-card')) return;
+    const cards = Array.from(container.querySelectorAll('.wv-stk-card'));
+    const idx = cards.indexOf(focused);
+    if (idx === -1) return;
+    if (e.key === 'ArrowDown') { e.preventDefault(); cards[Math.min(idx + 1, cards.length - 1)]?.focus(); }
+    else if (e.key === 'ArrowUp') { e.preventDefault(); cards[Math.max(idx - 1, 0)]?.focus(); }
+    else if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleStkExpand(focused); }
+    else if (e.key === 'p' || e.key === 'P') { e.preventDefault(); focused.querySelector('.wv-stk-yt-btn')?.click(); }
+  });
+
+  // Swipe right → play on YT
+  container.querySelectorAll('.wv-stk-card').forEach(card => {
+    let tx0 = 0, ty0 = 0;
+    card.addEventListener('touchstart', e => { tx0 = e.changedTouches[0].clientX; ty0 = e.changedTouches[0].clientY; }, { passive: true });
+    card.addEventListener('touchend', e => {
+      const dx = e.changedTouches[0].clientX - tx0;
+      const dy = e.changedTouches[0].clientY - ty0;
+      if (Math.abs(dx) > 55 && Math.abs(dy) < 35 && dx > 0) card.querySelector('.wv-stk-yt-btn')?.click();
+    }, { passive: true });
+  });
 }
 
 // ─── WEEKLY DROPOUTS ───────────────────────────────────────────
