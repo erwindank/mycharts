@@ -18142,19 +18142,47 @@ function renderHeroStats() {
 function openStreakModal() {
   if (!allPlays.length) return;
 
+  // ── Helpers ─────────────────────────────────────────────────────
   function prevDs(ds) {
     const d = new Date(ds + 'T12:00:00');
     d.setDate(d.getDate() - 1);
     return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
   }
+  function longestInSet(daySet) {
+    if (daySet.size < 2) return daySet.size;
+    const s = [...daySet].sort();
+    let best = 1, cur = 1;
+    for (let i = 1; i < s.length; i++) {
+      const diff = Math.round((+new Date(s[i] + 'T12:00:00') - +new Date(s[i - 1] + 'T12:00:00')) / 86400000);
+      if (diff === 1) { if (++cur > best) best = cur; } else cur = 1;
+    }
+    return best;
+  }
+  function streakStartDs(endDs, len) {
+    let c = endDs;
+    for (let i = 1; i < len; i++) c = prevDs(c);
+    return c;
+  }
+  function fmtD(ds) {
+    return new Date(ds + 'T12:00:00').toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+  }
+  const MILESTONES = [7, 14, 30, 50, 100, 200, 365];
+  function nextMs(len) { return MILESTONES.find(m => m > len) || null; }
 
+  // ── Date anchors ─────────────────────────────────────────────────
   const todayStr = localDateStr(tzNow());
   const yest = prevDs(todayStr);
   const dayBefore = prevDs(yest);
+  const nowDate = new Date();
+  const hour = nowDate.getHours();
+  const weekAgo = new Date(nowDate); weekAgo.setDate(nowDate.getDate() - 6);
+  const weekAgoStr = localDateStr(weekAgo);
 
+  // ── Build day-sets + last-5-songs maps ───────────────────────────
   const songDays = {}, songInfo = {};
   const artistDays = {};
   const albumDays = {}, albumInfo = {};
+  const artLastSongs = {}, albLastSongs = {};
 
   for (const p of allPlays) {
     const ds = localDateStr(tzDate(p.date));
@@ -18164,117 +18192,331 @@ function openStreakModal() {
     for (const a of p.artists) {
       if (!artistDays[a]) artistDays[a] = new Set();
       artistDays[a].add(ds);
+      if (!artLastSongs[a]) artLastSongs[a] = [];
+      if (artLastSongs[a].length < 5) artLastSongs[a].push({ title: p.title, artist: p.artist, album: p.album || '' });
     }
     if (p.album && p.album !== '—') {
       const ak = p.album + '|||' + albumArtist(p);
       if (!albumDays[ak]) { albumDays[ak] = new Set(); albumInfo[ak] = { album: p.album, artist: albumArtist(p) }; }
       albumDays[ak].add(ds);
+      if (!albLastSongs[ak]) albLastSongs[ak] = [];
+      if (albLastSongs[ak].length < 5) albLastSongs[ak].push({ title: p.title, artist: p.artist, album: p.album });
     }
   }
 
+  // ── Streak helpers ───────────────────────────────────────────────
   function streakEndingAt(daySet, end) {
     if (!daySet.has(end)) return 0;
     let n = 1, cur = end;
-    while (true) {
-      const prev = prevDs(cur);
-      if (!daySet.has(prev)) break;
-      n++; cur = prev;
-    }
+    while (true) { const prev = prevDs(cur); if (!daySet.has(prev)) break; n++; cur = prev; }
     return n;
   }
+  function cal14(daySet) {
+    const arr = []; let cur = todayStr;
+    for (let i = 0; i < 14; i++) { arr.unshift(daySet.has(cur) ? 1 : 0); cur = prevDs(cur); }
+    return arr;
+  }
 
+  // ── All-time bests ───────────────────────────────────────────────
+  const songBest = {}, artBest = {}, albBest = {};
+  for (const [k, d] of Object.entries(songDays)) songBest[k] = longestInSet(d);
+  for (const [k, d] of Object.entries(artistDays)) artBest[k] = longestInSet(d);
+  for (const [k, d] of Object.entries(albumDays)) albBest[k] = longestInSet(d);
+
+  // ── Heatmap data ─────────────────────────────────────────────────
+  const hmCount = {};
+  function accHm(daySet) {
+    const s = [...daySet].sort();
+    for (let i = 1; i < s.length; i++) {
+      const diff = Math.round((+new Date(s[i] + 'T12:00:00') - +new Date(s[i - 1] + 'T12:00:00')) / 86400000);
+      if (diff === 1) hmCount[s[i]] = (hmCount[s[i]] || 0) + 1;
+    }
+  }
+  for (const d of Object.values(songDays)) accHm(d);
+  for (const d of Object.values(artistDays)) accHm(d);
+  for (const d of Object.values(albumDays)) accHm(d);
+
+  // ── Build enriched item ──────────────────────────────────────────
+  function mkItem(name, sub, type, len, key, endD) {
+    const best = type === 'song' ? songBest[key] || len : type === 'artist' ? artBest[key] || len : albBest[key] || len;
+    const ds = type === 'song' ? songDays[key] : type === 'artist' ? artistDays[key] : albumDays[key];
+    return { name, sub, type, len, key, endDs: endD, startDs: streakStartDs(endD, len), best, milestone: nextMs(len), cal: ds ? cal14(ds) : [] };
+  }
+
+  // ── Active, at-risk, lost ────────────────────────────────────────
   const activeSongs = [], activeArtists = [], activeAlbums = [];
-  for (const [sk, d] of Object.entries(songDays)) {
-    const len = streakEndingAt(d, todayStr);
-    if (len >= 2) activeSongs.push({ name: songInfo[sk].title, sub: songInfo[sk].artist, type: 'song', len });
-  }
-  for (const [a, d] of Object.entries(artistDays)) {
-    const len = streakEndingAt(d, todayStr);
-    if (len >= 2) activeArtists.push({ name: a, sub: '', type: 'artist', len });
-  }
-  for (const [ak, d] of Object.entries(albumDays)) {
-    const len = streakEndingAt(d, todayStr);
-    if (len >= 2) activeAlbums.push({ name: albumInfo[ak].album, sub: albumInfo[ak].artist, type: 'album', len });
-  }
+  for (const [sk, d] of Object.entries(songDays)) { const l = streakEndingAt(d, todayStr); if (l >= 2) activeSongs.push(mkItem(songInfo[sk].title, songInfo[sk].artist, 'song', l, sk, todayStr)); }
+  for (const [a, d] of Object.entries(artistDays)) { const l = streakEndingAt(d, todayStr); if (l >= 2) activeArtists.push(mkItem(a, '', 'artist', l, a, todayStr)); }
+  for (const [ak, d] of Object.entries(albumDays)) { const l = streakEndingAt(d, todayStr); if (l >= 2) activeAlbums.push(mkItem(albumInfo[ak].album, albumInfo[ak].artist, 'album', l, ak, todayStr)); }
   activeSongs.sort((a, b) => b.len - a.len);
   activeArtists.sort((a, b) => b.len - a.len);
   activeAlbums.sort((a, b) => b.len - a.len);
 
   const atRisk = [];
-  for (const [sk, d] of Object.entries(songDays)) {
-    if (d.has(yest) && !d.has(todayStr)) {
-      const len = streakEndingAt(d, yest);
-      if (len >= 2) atRisk.push({ name: songInfo[sk].title, sub: songInfo[sk].artist, type: 'song', len });
-    }
-  }
-  for (const [a, d] of Object.entries(artistDays)) {
-    if (d.has(yest) && !d.has(todayStr)) {
-      const len = streakEndingAt(d, yest);
-      if (len >= 2) atRisk.push({ name: a, sub: '', type: 'artist', len });
-    }
-  }
-  for (const [ak, d] of Object.entries(albumDays)) {
-    if (d.has(yest) && !d.has(todayStr)) {
-      const len = streakEndingAt(d, yest);
-      if (len >= 2) atRisk.push({ name: albumInfo[ak].album, sub: albumInfo[ak].artist, type: 'album', len });
-    }
-  }
+  for (const [sk, d] of Object.entries(songDays)) { if (d.has(yest) && !d.has(todayStr)) { const l = streakEndingAt(d, yest); if (l >= 2) atRisk.push(mkItem(songInfo[sk].title, songInfo[sk].artist, 'song', l, sk, yest)); } }
+  for (const [a, d] of Object.entries(artistDays)) { if (d.has(yest) && !d.has(todayStr)) { const l = streakEndingAt(d, yest); if (l >= 2) atRisk.push(mkItem(a, '', 'artist', l, a, yest)); } }
+  for (const [ak, d] of Object.entries(albumDays)) { if (d.has(yest) && !d.has(todayStr)) { const l = streakEndingAt(d, yest); if (l >= 2) atRisk.push(mkItem(albumInfo[ak].album, albumInfo[ak].artist, 'album', l, ak, yest)); } }
   atRisk.sort((a, b) => b.len - a.len);
 
   const lost = [];
-  for (const [sk, d] of Object.entries(songDays)) {
-    if (!d.has(yest) && d.has(dayBefore)) {
-      const len = streakEndingAt(d, dayBefore);
-      if (len >= 2) lost.push({ name: songInfo[sk].title, sub: songInfo[sk].artist, type: 'song', len });
-    }
-  }
-  for (const [a, d] of Object.entries(artistDays)) {
-    if (!d.has(yest) && d.has(dayBefore)) {
-      const len = streakEndingAt(d, dayBefore);
-      if (len >= 2) lost.push({ name: a, sub: '', type: 'artist', len });
-    }
-  }
-  for (const [ak, d] of Object.entries(albumDays)) {
-    if (!d.has(yest) && d.has(dayBefore)) {
-      const len = streakEndingAt(d, dayBefore);
-      if (len >= 2) lost.push({ name: albumInfo[ak].album, sub: albumInfo[ak].artist, type: 'album', len });
-    }
-  }
+  for (const [sk, d] of Object.entries(songDays)) { if (!d.has(yest) && d.has(dayBefore)) { const l = streakEndingAt(d, dayBefore); if (l >= 2) lost.push(mkItem(songInfo[sk].title, songInfo[sk].artist, 'song', l, sk, dayBefore)); } }
+  for (const [a, d] of Object.entries(artistDays)) { if (!d.has(yest) && d.has(dayBefore)) { const l = streakEndingAt(d, dayBefore); if (l >= 2) lost.push(mkItem(a, '', 'artist', l, a, dayBefore)); } }
+  for (const [ak, d] of Object.entries(albumDays)) { if (!d.has(yest) && d.has(dayBefore)) { const l = streakEndingAt(d, dayBefore); if (l >= 2) lost.push(mkItem(albumInfo[ak].album, albumInfo[ak].artist, 'album', l, ak, dayBefore)); } }
   lost.sort((a, b) => b.len - a.len);
 
+  // ── Hall of Fame & Graveyard ─────────────────────────────────────
+  const fameCandidates = [];
+  for (const [sk] of Object.entries(songDays)) { const b = songBest[sk]; if (b >= 7) fameCandidates.push({ name: songInfo[sk].title, sub: songInfo[sk].artist, type: 'song', len: b, key: sk, best: b, milestone: nextMs(b), cal: cal14(songDays[sk]) }); }
+  for (const [a] of Object.entries(artistDays)) { const b = artBest[a]; if (b >= 7) fameCandidates.push({ name: a, sub: '', type: 'artist', len: b, key: a, best: b, milestone: nextMs(b), cal: cal14(artistDays[a]) }); }
+  for (const [ak] of Object.entries(albumDays)) { const b = albBest[ak]; if (b >= 7) fameCandidates.push({ name: albumInfo[ak].album, sub: albumInfo[ak].artist, type: 'album', len: b, key: ak, best: b, milestone: nextMs(b), cal: cal14(albumDays[ak]) }); }
+  fameCandidates.sort((a, b) => b.len - a.len);
+  const hallOfFame = fameCandidates.slice(0, 10);
+  const activeKeys = new Set([...activeSongs, ...activeArtists, ...activeAlbums, ...atRisk].map(it => it.key));
+  const graveyard = fameCandidates.filter(it => !activeKeys.has(it.key)).slice(0, 25);
+
+  // ── Weekly digest ─────────────────────────────────────────────────
+  const allAR = [...activeSongs, ...activeArtists, ...activeAlbums, ...atRisk];
+  const weekStarted = allAR.filter(it => it.startDs >= weekAgoStr).length;
+  let weekEnded = 0;
+  const _chkEnded = entries => { for (const [, d] of entries) { const s = [...d].sort(); const last = s[s.length - 1]; if (last >= weekAgoStr && last < yest && streakEndingAt(d, last) >= 2) weekEnded++; } };
+  _chkEnded(Object.entries(songDays)); _chkEnded(Object.entries(artistDays)); _chkEnded(Object.entries(albumDays));
+
+  // ── Item HTML ────────────────────────────────────────────────────
   function itemHtml(it, mode) {
     const sub = it.sub ? `<span class="streak-sub"> — ${it.sub}</span>` : '';
-    const tag = mode !== 'active' ? `<span class="streak-type-tag streak-type-tag--${it.type}">${it.type}</span>` : '';
-    const icon = mode === 'lost' ? '💔' : mode === 'risk' ? '⚠️' : '🔥';
+    const icon = mode === 'lost' ? '💔' : mode === 'risk' ? '⚠️' : mode === 'fame' ? '🏅' : '🔥';
     const cls = mode === 'lost' ? ' streak-item--lost' : mode === 'risk' ? ' streak-item--risk' : '';
+    const tag = mode !== 'active' ? `<span class="streak-type-tag streak-type-tag--${it.type}">${it.type}</span>` : '';
+    const since = it.startDs && it.len >= 3 ? `<span class="sk-since">since ${fmtD(it.startDs)}</span>` : '';
+    const pb = it.best && it.len >= it.best && it.len >= 7 ? `<span class="sk-pb" title="Personal best!">🏆</span>` : '';
+    const ms = it.milestone; const msLeft = ms ? ms - it.len : null;
+    const msB = msLeft !== null && msLeft >= 1 && msLeft <= 3 ? `<span class="sk-ms" title="${ms}d milestone in ${msLeft}d">🎯 ${ms}d</span>` : '';
+    const calAttr = it.cal && it.cal.length ? `data-skc="${esc(JSON.stringify(it.cal))}" data-skn="${esc(it.name)}"` : '';
+    const calBtn = calAttr ? `<span class="sk-cal-trig" ${calAttr}>◈</span>` : '';
+    let nameHtml, spLink = '';
+    if (mode === 'risk') {
+      if (it.type === 'song') {
+        const q = encodeURIComponent(it.name + (it.sub ? ' ' + it.sub : ''));
+        nameHtml = `<a class="streak-name-link" href="https://www.youtube.com/results?search_query=${q}" target="_blank" rel="noopener">${it.name}${sub}</a>`;
+        spLink = `<a class="sk-sp-link" href="https://open.spotify.com/search/${q}" target="_blank" rel="noopener" title="Spotify">♫</a>`;
+      } else {
+        const songs = it.type === 'artist' ? (artLastSongs[it.key] || []) : (albLastSongs[it.key] || []);
+        nameHtml = `<span class="streak-entity-trigger streak-name-link" data-ske="${esc(JSON.stringify(songs))}" data-sken="${esc(it.name)}">${it.name}${sub}</span>`;
+      }
+    } else {
+      nameHtml = `${it.name}${sub}`;
+    }
     return `<div class="streak-item${cls}">` +
       `<span class="streak-fire">${icon}</span>` +
-      `<span class="streak-days">${it.len}d</span>` +
-      `<span class="streak-label">${it.name}${sub}</span>${tag}</div>`;
+      `<span class="streak-days" data-len="${it.len}">0d</span>` +
+      `<span class="streak-label">${nameHtml}</span>${spLink}` +
+      `${since}${pb}${msB}${tag}${calBtn}</div>`;
   }
 
-  function section(titleKey, items, mode) {
-    const inner = items.length
-      ? items.map(it => itemHtml(it, mode)).join('')
-      : `<div class="streak-empty">${t('streak_none')}</div>`;
-    const cls = mode === 'lost' ? ' streak-section--lost' : mode === 'risk' ? ' streak-section--risk' : '';
-    return `<div class="streak-section${cls}">` +
-      `<div class="streak-section-title">${t(titleKey)}</div>${inner}</div>`;
+  // ── Section HTML ─────────────────────────────────────────────────
+  function section(title, items, mode, sid) {
+    const collapsed = localStorage.getItem('skc-' + sid) === '1';
+    const inner = items.length ? items.map(it => itemHtml(it, mode)).join('') : `<div class="streak-empty">${t('streak_none')}</div>`;
+    const cls = mode === 'lost' ? ' streak-section--lost' : mode === 'risk' ? ' streak-section--risk' : mode === 'fame' ? ' streak-section--fame' : '';
+    const chev = collapsed ? '▶' : '▼';
+    return `<div class="streak-section${cls}${collapsed ? ' streak-section--collapsed' : ''}" data-skid="${sid}">` +
+      `<div class="streak-section-title" onclick="_streakToggleSection(this.closest('.streak-section'))"><span class="sk-chev">${chev}</span> ${title} <span class="streak-count">(${items.length})</span></div>` +
+      `<div class="sk-sec-body${collapsed ? ' sk-sec-hidden' : ''}">${inner}</div></div>`;
   }
+
+  // ── Urgency banner ───────────────────────────────────────────────
+  const urgency = atRisk.length ? (
+    hour >= 21 ? `<div class="sk-urgency sk-urg--critical">🚨 ${24 - hour}h or less left today — listen now to save your streaks!</div>` :
+    hour >= 18 ? `<div class="sk-urgency sk-urg--warning">⏰ Evening — a few hours left to save these.</div>` :
+    hour >= 13 ? `<div class="sk-urgency sk-urg--mild">☀️ Afternoon — you still have time today.</div>` :
+    `<div class="sk-urgency sk-urg--safe">🌅 Day is young — come back later to listen.</div>`
+  ) : '';
+
+  // ── Summary stat ─────────────────────────────────────────────────
+  const totalActive = activeSongs.length + activeArtists.length + activeAlbums.length;
+  const summaryEl = document.getElementById('streakSummaryStat');
+  if (summaryEl) summaryEl.innerHTML =
+    `<span class="sk-stat">🔥 ${totalActive}</span>` +
+    `<span class="sk-stat sk-stat--risk">⚠️ ${atRisk.length}</span>` +
+    `<span class="sk-stat sk-stat--lost">💔 ${lost.length}</span>`;
+
+  // ── Weekly digest HTML ────────────────────────────────────────────
+  const weeklyHtml = weekStarted || weekEnded
+    ? `<div class="sk-weekly">📅 <strong>This week:</strong> ` +
+      (weekStarted ? `${weekStarted} streak${weekStarted !== 1 ? 's' : ''} started` : '') +
+      (weekStarted && weekEnded ? ' · ' : '') +
+      (weekEnded ? `${weekEnded} ended` : '') + `</div>`
+    : '';
+
+  // ── Heatmap builder ──────────────────────────────────────────────
+  function buildHeatmap() {
+    const vals = Object.values(hmCount);
+    const maxV = vals.length ? Math.max(...vals) : 1;
+    const base = new Date(nowDate); base.setDate(nowDate.getDate() - 363); base.setDate(base.getDate() - base.getDay());
+    const baseT = base.getTime();
+    let out = `<div class="sk-hm-title">Concurrent active streaks per day (past year)</div><div class="sk-hm-scroll"><div class="sk-hm-grid">`;
+    for (let w = 0; w < 54; w++) {
+      out += '<div class="sk-hm-col">';
+      for (let d = 0; d < 7; d++) {
+        const dt = new Date(baseT + (w * 7 + d) * 86400000);
+        if (dt > nowDate) { out += '<div class="sk-hm-cell sk-hm-0"></div>'; continue; }
+        const ds = localDateStr(dt);
+        const cnt = hmCount[ds] || 0;
+        const lvl = cnt === 0 ? 0 : Math.min(4, Math.ceil(cnt / maxV * 4));
+        out += `<div class="sk-hm-cell sk-hm-${lvl}" title="${ds}: ${cnt} streak${cnt !== 1 ? 's' : ''}"></div>`;
+      }
+      out += '</div>';
+    }
+    out += `</div></div><div class="sk-hm-legend"><span>Less</span>${[0, 1, 2, 3, 4].map(l => `<div class="sk-hm-cell sk-hm-${l}"></div>`).join('')}<span>More</span></div>`;
+    return out;
+  }
+
+  // ── Render ───────────────────────────────────────────────────────
+  const streaksHtml =
+    weeklyHtml +
+    `<div class="sk-toolbar"><input type="text" id="skFilter" class="sk-filter" placeholder="Filter…"><button id="skSortBtn" class="sk-sort-btn" data-mode="len">⬇ Length</button></div>` +
+    section(t('streak_section_artists'), activeArtists, 'active', 'artists') +
+    section(t('streak_section_albums'), activeAlbums, 'active', 'albums') +
+    section(t('streak_section_songs'), activeSongs, 'active', 'songs') +
+    urgency +
+    section(t('streak_section_at_risk'), atRisk, 'risk', 'atrisk') +
+    section(t('streak_section_lost'), lost, 'lost', 'lost') +
+    (hallOfFame.length ? section('🏅 Hall of Fame', hallOfFame, 'fame', 'fame') : '');
+
+  const graveyardHtml = graveyard.length
+    ? `<div class="sk-grave-hdr">All-time ended streaks (≥ 7 days)</div>` + graveyard.map(it => itemHtml(it, 'fame')).join('')
+    : `<div class="streak-empty" style="padding:1.2rem 1.4rem">No ended streaks ≥ 7 days yet.</div>`;
 
   document.getElementById('streakModalBody').innerHTML =
-    section('streak_section_artists', activeArtists, 'active') +
-    section('streak_section_albums', activeAlbums, 'active') +
-    section('streak_section_songs', activeSongs, 'active') +
-    section('streak_section_at_risk', atRisk, 'risk') +
-    section('streak_section_lost', lost, 'lost');
+    `<div id="skTabStreaks" class="sk-tab-pane">${streaksHtml}</div>` +
+    `<div id="skTabHeatmap" class="sk-tab-pane" style="display:none">${buildHeatmap()}</div>` +
+    `<div id="skTabGraveyard" class="sk-tab-pane" style="display:none">${graveyardHtml}</div>`;
+
+  _streakSwitchTab(sessionStorage.getItem('sk-tab') || 'streaks');
+
+  document.getElementById('skFilter')?.addEventListener('input', e => {
+    const q = e.target.value.toLowerCase();
+    document.querySelectorAll('#skTabStreaks .streak-item').forEach(el => {
+      el.style.display = !q || (el.querySelector('.streak-label')?.textContent || '').toLowerCase().includes(q) ? '' : 'none';
+    });
+  });
+  document.getElementById('skSortBtn')?.addEventListener('click', function() {
+    const mode = this.dataset.mode === 'len' ? 'alpha' : 'len';
+    this.dataset.mode = mode; this.textContent = mode === 'len' ? '⬇ Length' : '🔤 A–Z';
+    document.querySelectorAll('#skTabStreaks .sk-sec-body').forEach(body => {
+      const items = [...body.querySelectorAll('.streak-item')];
+      if (mode === 'alpha') items.sort((a, b) => (a.querySelector('.streak-label')?.textContent || '').localeCompare(b.querySelector('.streak-label')?.textContent || ''));
+      else items.sort((a, b) => +(b.querySelector('.streak-days')?.dataset.len || 0) - +(a.querySelector('.streak-days')?.dataset.len || 0));
+      items.forEach(el => body.appendChild(el));
+    });
+  });
 
   document.getElementById('streakModal').classList.add('open');
+  const cEls = document.querySelectorAll('#streakModalBody .streak-days[data-len]');
+  const t0 = performance.now();
+  (function tick(ts) {
+    const prog = Math.min((ts - t0) / 700, 1), ease = 1 - Math.pow(1 - prog, 3);
+    cEls.forEach(el => { el.textContent = Math.round(ease * +el.dataset.len) + 'd'; });
+    if (prog < 1) requestAnimationFrame(tick);
+  })(t0);
 }
 
 function closeStreakModal() {
   document.getElementById('streakModal').classList.remove('open');
 }
+
+// ─── STREAK MODAL HELPERS ──────────────────────────────────────
+
+function _streakToggleSection(sectionEl) {
+  const c = sectionEl.classList.toggle('streak-section--collapsed');
+  const body = sectionEl.querySelector('.sk-sec-body');
+  const chev = sectionEl.querySelector('.sk-chev');
+  if (c) { body?.classList.add('sk-sec-hidden'); if (chev) chev.textContent = '▶'; }
+  else { body?.classList.remove('sk-sec-hidden'); if (chev) chev.textContent = '▼'; }
+  try { localStorage.setItem('skc-' + sectionEl.dataset.skid, c ? '1' : '0'); } catch(e) {}
+}
+
+function _streakSwitchTab(tab) {
+  document.querySelectorAll('.sk-tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
+  ['Streaks', 'Heatmap', 'Graveyard'].forEach(n => {
+    const el = document.getElementById('skTab' + n);
+    if (el) el.style.display = n.toLowerCase() === tab ? '' : 'none';
+  });
+  try { sessionStorage.setItem('sk-tab', tab); } catch(e) {}
+}
+
+// Calendar strip tooltip
+const _skCalTip = (() => {
+  const el = document.createElement('div');
+  el.id = 'skCalTip'; el.className = 'sk-cal-tip'; el.style.display = 'none';
+  document.body.appendChild(el); return el;
+})();
+let _skCalTimer = null;
+
+function _skShowCalTip(trig) {
+  clearTimeout(_skCalTimer);
+  let days; try { days = JSON.parse(trig.dataset.skc); } catch { return; }
+  const name = trig.dataset.skn || '';
+  const today = new Date();
+  const labels = Array.from({ length: 14 }, (_, i) => {
+    const d = new Date(today); d.setDate(d.getDate() - (13 - i));
+    return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+  });
+  _skCalTip.innerHTML = `<div class="sk-ct-name">${esc(name)}</div>` +
+    `<div class="sk-ct-grid">${days.map((v, i) => `<span class="sk-ct-dot${v ? ' sk-ct-on' : ''}" title="${labels[i]}"></span>`).join('')}</div>` +
+    `<div class="sk-ct-foot"><span>${labels[0]}</span><span>${labels[13]}</span></div>`;
+  _skCalTip.style.display = 'block';
+  const r = trig.getBoundingClientRect(), w = 220;
+  let l = r.left; if (l + w > innerWidth - 8) l = innerWidth - w - 8; if (l < 8) l = 8;
+  let top = r.bottom + 4; if (top + (_skCalTip.offsetHeight || 60) > innerHeight - 8) top = r.top - (_skCalTip.offsetHeight || 60) - 4;
+  _skCalTip.style.left = l + 'px'; _skCalTip.style.top = top + 'px';
+}
+
+// Entity tooltip (artist/album → last 5 songs)
+const _skEntTip = (() => {
+  const el = document.createElement('div');
+  el.id = 'skEntTip'; el.className = 'sk-ent-tip'; el.style.display = 'none';
+  document.body.appendChild(el); return el;
+})();
+let _skEntTimer = null;
+
+function _skShowEntTip(trig) {
+  clearTimeout(_skEntTimer);
+  let songs; try { songs = JSON.parse(trig.dataset.ske); } catch { return; }
+  if (!songs.length) return;
+  const name = trig.dataset.sken || '';
+  const ytSvg = `<svg class="yt-btn-icon" viewBox="0 0 24 24"><path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.5 12 3.5 12 3.5s-7.5 0-9.4.5A3 3 0 0 0 .5 6.2C0 8.1 0 12 0 12s0 3.9.5 5.8a3 3 0 0 0 2.1 2.1c1.9.5 9.4.5 9.4.5s7.5 0 9.4-.5a3 3 0 0 0 2.1-2.1C24 15.9 24 12 24 12s0-3.9-.5-5.8zM9.7 15.5V8.5l6.3 3.5-6.3 3.5z"/></svg>`;
+  _skEntTip.innerHTML = `<div class="sk-et-hdr">Last played from <strong>${esc(name)}</strong></div>` +
+    songs.map(s => `<div class="sk-et-row"><span class="sk-et-name">${esc(s.title)}</span>` +
+      `<button class="yt-play-btn sk-et-yt" data-title="${esc(s.title)}" data-artist="${esc(s.artist)}" data-album="${esc(s.album || '')}" onclick="event.stopPropagation();_ytPlayOrQueue(this.dataset.title,this.dataset.artist,this.dataset.album)" title="Play on YouTube"><span class="yt-btn-content">${ytSvg}</span></button>` +
+    `</div>`).join('');
+  _skEntTip.style.display = 'block';
+  const r = trig.getBoundingClientRect(), w = 300;
+  let l = r.left; if (l + w > innerWidth - 8) l = innerWidth - w - 8; if (l < 8) l = 8;
+  let top = r.bottom + 4; if (top + (_skEntTip.offsetHeight || 150) > innerHeight - 8) top = r.top - (_skEntTip.offsetHeight || 150) - 4;
+  _skEntTip.style.left = l + 'px'; _skEntTip.style.top = top + 'px';
+}
+
+document.addEventListener('mouseover', e => {
+  const ct = e.target.closest('.sk-cal-trig');
+  if (ct) { _skShowCalTip(ct); return; }
+  if (e.target.closest('#skCalTip')) { clearTimeout(_skCalTimer); return; }
+  const et = e.target.closest('.streak-entity-trigger');
+  if (et) { _skShowEntTip(et); return; }
+  if (e.target.closest('#skEntTip')) { clearTimeout(_skEntTimer); return; }
+});
+document.addEventListener('mouseout', e => {
+  if (e.target.closest('.sk-cal-trig') || e.target.closest('#skCalTip')) {
+    const to = e.relatedTarget;
+    if (to && (to.closest('.sk-cal-trig') || to.closest('#skCalTip'))) return;
+    _skCalTimer = setTimeout(() => { _skCalTip.style.display = 'none'; }, 130);
+  }
+  if (e.target.closest('.streak-entity-trigger') || e.target.closest('#skEntTip')) {
+    const to = e.relatedTarget;
+    if (to && (to.closest('.streak-entity-trigger') || to.closest('#skEntTip'))) return;
+    _skEntTimer = setTimeout(() => { _skEntTip.style.display = 'none'; }, 130);
+  }
+});
 
 // ─── PERIOD LABEL CLICK → OPEN PICKER ─────────────────────────
 document.getElementById('periodLabel').addEventListener('click', () => {

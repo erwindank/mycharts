@@ -3188,10 +3188,16 @@ window.addEventListener('load',function(){var d=document,s=d.createElement('scri
       <button class="modal-close" onclick="closeStreakModal()" data-i18n="btn_close">✕ CLOSE</button>
       <div class="streak-modal-header">
         <span class="streak-modal-icon">🔥</span>
-        <div>
+        <div class="streak-hdr-text">
           <div class="streak-modal-title" data-i18n="streak_modal_title">Daily Streaks</div>
           <div class="streak-modal-sub" data-i18n="streak_modal_sub">Active as of yesterday</div>
         </div>
+        <div id="streakSummaryStat" class="sk-summary"></div>
+      </div>
+      <div class="sk-tab-bar">
+        <button class="sk-tab-btn active" data-tab="streaks" onclick="_streakSwitchTab('streaks')">Streaks</button>
+        <button class="sk-tab-btn" data-tab="heatmap" onclick="_streakSwitchTab('heatmap')">Heatmap</button>
+        <button class="sk-tab-btn" data-tab="graveyard" onclick="_streakSwitchTab('graveyard')">Graveyard</button>
       </div>
       <div class="modal-body" id="streakModalBody"></div>
     </div>

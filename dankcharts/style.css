@@ -11539,6 +11539,15 @@ body[class*="-light"] .tm-card-search:hover {
 
 .streak-sub { color: var(--text2); font-size: 0.82rem; }
 
+.streak-name-link {
+  color: inherit;
+  text-decoration: none;
+}
+.streak-name-link:hover {
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
 .streak-type-tag {
   font-family: 'DM Mono', monospace;
   font-size: 0.58rem;
@@ -11580,6 +11589,266 @@ body[class*="-light"] .tm-card-search:hover {
 }
 
 #hero-streak-stat { cursor: pointer; }
+
+/* ── Streak modal: expanded layout ── */
+.streak-modal-box { max-width: 640px; }
+.streak-modal-header { align-items: flex-start; flex-wrap: wrap; gap: 0.6rem; }
+.streak-hdr-text { flex: 1; min-width: 0; }
+
+.sk-summary {
+  display: flex;
+  gap: 0.4rem;
+  align-items: center;
+  flex-shrink: 0;
+  margin-top: 0.1rem;
+}
+.sk-stat {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.68rem;
+  color: var(--text2);
+  background: rgba(255,255,255,0.04);
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  padding: 0.15rem 0.45rem;
+}
+.sk-stat--risk { color: #e8a020; border-color: rgba(232,160,32,0.3); }
+.sk-stat--lost { color: var(--text3); }
+
+/* ── Tab bar ── */
+.sk-tab-bar {
+  display: flex;
+  background: var(--bg);
+  border-bottom: 1px solid var(--border);
+}
+.sk-tab-btn {
+  flex: 1;
+  padding: 0.55rem 0.5rem;
+  font-family: 'DM Mono', monospace;
+  font-size: 0.63rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text3);
+  background: none;
+  border: none;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  transition: color 0.15s, border-color 0.15s;
+}
+.sk-tab-btn:hover { color: var(--text2); }
+.sk-tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+/* ── Modal body reset ── */
+.streak-modal-box .modal-body { padding: 0; }
+.sk-tab-pane { padding-bottom: 0.5rem; }
+
+/* ── Toolbar ── */
+.sk-toolbar {
+  display: flex;
+  gap: 0.5rem;
+  padding: 0.65rem 1.4rem 0.5rem;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg2);
+  position: sticky;
+  top: 0;
+  z-index: 2;
+}
+.sk-filter {
+  flex: 1;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  padding: 0.28rem 0.6rem;
+  font-family: 'DM Mono', monospace;
+  font-size: 0.72rem;
+  color: var(--text);
+  outline: none;
+}
+.sk-filter:focus { border-color: var(--accent); }
+.sk-sort-btn {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  padding: 0.28rem 0.6rem;
+  font-family: 'DM Mono', monospace;
+  font-size: 0.67rem;
+  color: var(--text2);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: border-color 0.15s, color 0.15s;
+}
+.sk-sort-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+/* ── Collapsible sections ── */
+.sk-sec-hidden { display: none; }
+.streak-section-title { cursor: pointer; user-select: none; display: flex; align-items: center; gap: 0.3rem; }
+.streak-section-title:hover { color: var(--text); }
+.sk-chev { font-size: 0.58rem; flex-shrink: 0; }
+.streak-count { font-size: 0.6rem; opacity: 0.55; font-weight: normal; }
+
+/* ── Item extras ── */
+.sk-since {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.6rem;
+  color: var(--text3);
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+.sk-pb { font-size: 0.72rem; flex-shrink: 0; cursor: default; line-height: 1; }
+.sk-ms {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.58rem;
+  color: var(--accent2);
+  background: rgba(99,255,180,0.07);
+  border: 1px solid rgba(99,255,180,0.2);
+  border-radius: 4px;
+  padding: 0.08rem 0.28rem;
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+.sk-sp-link {
+  color: #1DB954;
+  font-size: 0.78rem;
+  flex-shrink: 0;
+  text-decoration: none;
+  opacity: 0.7;
+  transition: opacity 0.15s;
+  line-height: 1;
+}
+.sk-sp-link:hover { opacity: 1; }
+.streak-entity-trigger { cursor: pointer; }
+.sk-cal-trig {
+  font-size: 0.62rem;
+  color: var(--text3);
+  cursor: pointer;
+  flex-shrink: 0;
+  opacity: 0.45;
+  transition: opacity 0.15s, color 0.15s;
+  line-height: 1;
+}
+.sk-cal-trig:hover { opacity: 1; color: var(--accent); }
+
+/* ── Urgency banners ── */
+.sk-urgency {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.67rem;
+  padding: 0.45rem 1.4rem;
+  border-bottom: 1px solid var(--border);
+}
+.sk-urg--critical { background: rgba(220,50,50,0.1); color: #ff7070; }
+.sk-urg--warning  { background: rgba(232,160,32,0.09); color: #e8a020; }
+.sk-urg--mild     { background: rgba(255,200,80,0.05); color: var(--text2); }
+.sk-urg--safe     { color: var(--text3); }
+
+/* ── Weekly digest ── */
+.sk-weekly {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.67rem;
+  color: var(--text2);
+  padding: 0.5rem 1.4rem;
+  border-bottom: 1px solid var(--border);
+  background: rgba(255,255,255,0.015);
+}
+.sk-weekly strong { color: var(--text); }
+
+/* ── Hall of Fame section ── */
+.streak-section--fame .streak-section-title { color: #f0c040; }
+
+/* ── Graveyard tab ── */
+.sk-grave-hdr {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.66rem;
+  color: var(--text3);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 0.8rem 1.4rem 0.3rem;
+}
+.sk-tab-pane > .streak-item { padding: 0.26rem 1.4rem; }
+
+/* ── Calendar strip tooltip ── */
+.sk-cal-tip {
+  position: fixed;
+  z-index: 10000;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  padding: 0.5rem 0.65rem;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+  min-width: 210px;
+  pointer-events: auto;
+}
+.sk-ct-name {
+  font-size: 0.68rem;
+  color: var(--text2);
+  margin-bottom: 0.4rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 200px;
+}
+.sk-ct-grid { display: flex; gap: 3px; margin-bottom: 0.3rem; }
+.sk-ct-dot {
+  width: 11px; height: 11px; border-radius: 2px;
+  background: var(--bg); border: 1px solid var(--border); flex-shrink: 0;
+}
+.sk-ct-dot.sk-ct-on { background: var(--accent); border-color: var(--accent); }
+.sk-ct-foot {
+  display: flex; justify-content: space-between;
+  font-family: 'DM Mono', monospace; font-size: 0.55rem; color: var(--text3);
+}
+
+/* ── Entity tooltip (artist/album songs) ── */
+.sk-ent-tip {
+  position: fixed;
+  z-index: 10000;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  padding: 0.35rem 0.4rem;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+  min-width: 200px;
+  max-width: 310px;
+  pointer-events: auto;
+}
+.sk-et-hdr {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.6rem;
+  color: var(--text3);
+  padding: 0.1rem 0.1rem 0.35rem;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 0.15rem;
+}
+.sk-et-hdr strong { color: var(--text2); }
+.sk-et-row {
+  display: flex; align-items: center; gap: 0.4rem;
+  padding: 0.18rem 0.1rem; border-bottom: 1px solid var(--border);
+}
+.sk-et-row:last-child { border-bottom: none; }
+.sk-et-name {
+  flex: 1; font-family: 'DM Mono', monospace; font-size: 0.69rem;
+  color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.sk-et-yt { flex-shrink: 0; }
+
+/* ── Heatmap tab ── */
+.sk-hm-title {
+  font-family: 'DM Mono', monospace; font-size: 0.6rem; color: var(--text3);
+  padding: 1rem 1.4rem 0.5rem; text-transform: uppercase; letter-spacing: 0.08em;
+}
+.sk-hm-scroll { overflow-x: auto; padding: 0 1.4rem; }
+.sk-hm-grid { display: flex; gap: 2px; padding-bottom: 0.5rem; min-width: max-content; }
+.sk-hm-col { display: flex; flex-direction: column; gap: 2px; }
+.sk-hm-cell { width: 9px; height: 9px; border-radius: 1.5px; flex-shrink: 0; }
+.sk-hm-0 { background: rgba(255,255,255,0.05); }
+.sk-hm-1 { background: color-mix(in srgb, var(--accent) 22%, transparent); }
+.sk-hm-2 { background: color-mix(in srgb, var(--accent) 45%, transparent); }
+.sk-hm-3 { background: color-mix(in srgb, var(--accent) 70%, transparent); }
+.sk-hm-4 { background: var(--accent); }
+.sk-hm-legend {
+  display: flex; align-items: center; gap: 3px;
+  padding: 0.3rem 1.4rem 1rem;
+  font-family: 'DM Mono', monospace; font-size: 0.58rem; color: var(--text3);
+}
+.sk-hm-legend span { margin: 0 0.2rem; }
 #hero-streak-stat:hover { opacity: 0.85; }
 
 /* ═══════════════════════════════════════════════════════════════
