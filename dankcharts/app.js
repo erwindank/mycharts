@@ -8393,18 +8393,60 @@ function wvFilmAutoScroll(type) {
 async function shareFilmstrip(type) {
   const strip = document.getElementById('wv-filmstrip-' + type);
   if (!strip || typeof html2canvas === 'undefined') return;
-  const origScroll = strip.scrollLeft;
-  strip.scrollLeft = 0;
-  await new Promise(r => setTimeout(r, 80));
+
+  const btn = strip.closest('.wv-film-wrap')?.querySelector('.wv-film-share-btn');
+  const origText = btn ? btn.textContent : '';
+  if (btn) { btn.disabled = true; btn.textContent = '⏳ Saving…'; }
+
+  // Clone off-screen at full scrollable width so html2canvas captures all cards
+  const fullW = strip.scrollWidth;
+  const fullH = strip.scrollHeight;
+  const clone = strip.cloneNode(true);
+  Object.assign(clone.style, {
+    position: 'fixed', left: '-99999px', top: '0',
+    overflow: 'visible', width: fullW + 'px', height: fullH + 'px',
+    flexShrink: '0', animation: 'none'
+  });
+  document.body.appendChild(clone);
+
+  // Pre-convert cross-origin images to data URLs so the canvas isn't tainted
+  await Promise.all(Array.from(clone.querySelectorAll('img')).map(img => new Promise(resolve => {
+    if (!img.src || img.src.startsWith('data:')) { resolve(); return; }
+    const t = new Image();
+    t.crossOrigin = 'anonymous';
+    const timer = setTimeout(() => { img.style.visibility = 'hidden'; resolve(); }, 3000);
+    t.onload = () => {
+      clearTimeout(timer);
+      try {
+        const c = document.createElement('canvas');
+        c.width = t.naturalWidth; c.height = t.naturalHeight;
+        c.getContext('2d').drawImage(t, 0, 0);
+        img.src = c.toDataURL();
+      } catch { img.style.visibility = 'hidden'; }
+      resolve();
+    };
+    t.onerror = () => { clearTimeout(timer); img.style.visibility = 'hidden'; resolve(); };
+    t.src = img.src;
+  })));
+
   try {
-    const cvs = await html2canvas(strip, { scale: 2, useCORS: false, allowTaint: true, backgroundColor: '#0f172a', logging: false });
+    const cvs = await html2canvas(clone, {
+      scale: 2, useCORS: false, allowTaint: false,
+      backgroundColor: '#0f172a', logging: false,
+      width: fullW, height: fullH
+    });
     const link = document.createElement('a');
     const { label } = getDateRange();
     link.download = `filmstrip-${type}-${(label||'chart').replace(/[^a-z0-9]/gi,'-')}.png`;
     link.href = cvs.toDataURL('image/png');
     link.click();
-  } catch(e) { console.error('shareFilmstrip', e); }
-  strip.scrollLeft = origScroll;
+    if (btn) { btn.textContent = '✓ Saved'; setTimeout(() => { btn.textContent = origText; btn.disabled = false; }, 2000); }
+  } catch(e) {
+    console.error('shareFilmstrip', e);
+    if (btn) { btn.textContent = origText; btn.disabled = false; }
+  } finally {
+    clone.remove();
+  }
 }
 
 function initFilmstripInteractions(type) {
