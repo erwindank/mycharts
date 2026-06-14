@@ -18213,6 +18213,17 @@ function openStreakModal() {
     }
     return best;
   }
+  function longestStreakRange(daySet) {
+    if (!daySet.size) return { len: 0, startDs: '', endDs: '' };
+    const s = [...daySet].sort();
+    if (s.length === 1) return { len: 1, startDs: s[0], endDs: s[0] };
+    let best = 1, bestEndIdx = 0, cur = 1;
+    for (let i = 1; i < s.length; i++) {
+      const diff = Math.round((+new Date(s[i] + 'T12:00:00') - +new Date(s[i - 1] + 'T12:00:00')) / 86400000);
+      if (diff === 1) { cur++; if (cur > best) { best = cur; bestEndIdx = i; } } else cur = 1;
+    }
+    return { len: best, startDs: streakStartDs(s[bestEndIdx], best), endDs: s[bestEndIdx] };
+  }
   function streakStartDs(endDs, len) {
     let c = endDs;
     for (let i = 1; i < len; i++) c = prevDs(c);
@@ -18321,9 +18332,9 @@ function openStreakModal() {
 
   // ── Hall of Fame & Graveyard ─────────────────────────────────────
   const fameCandidates = [];
-  for (const [sk] of Object.entries(songDays)) { const b = songBest[sk]; if (b >= 7) fameCandidates.push({ name: songInfo[sk].title, sub: songInfo[sk].artist, type: 'song', len: b, key: sk, best: b, milestone: nextMs(b), cal: cal14(songDays[sk]) }); }
-  for (const [a] of Object.entries(artistDays)) { const b = artBest[a]; if (b >= 7) fameCandidates.push({ name: a, sub: '', type: 'artist', len: b, key: a, best: b, milestone: nextMs(b), cal: cal14(artistDays[a]) }); }
-  for (const [ak] of Object.entries(albumDays)) { const b = albBest[ak]; if (b >= 7) fameCandidates.push({ name: albumInfo[ak].album, sub: albumInfo[ak].artist, type: 'album', len: b, key: ak, best: b, milestone: nextMs(b), cal: cal14(albumDays[ak]) }); }
+  for (const [sk] of Object.entries(songDays)) { const b = songBest[sk]; if (b >= 7) { const r = longestStreakRange(songDays[sk]); fameCandidates.push({ name: songInfo[sk].title, sub: songInfo[sk].artist, type: 'song', len: b, key: sk, best: b, milestone: nextMs(b), cal: cal14(songDays[sk]), startDs: r.startDs, endDs: r.endDs }); } }
+  for (const [a] of Object.entries(artistDays)) { const b = artBest[a]; if (b >= 7) { const r = longestStreakRange(artistDays[a]); fameCandidates.push({ name: a, sub: '', type: 'artist', len: b, key: a, best: b, milestone: nextMs(b), cal: cal14(artistDays[a]), startDs: r.startDs, endDs: r.endDs }); } }
+  for (const [ak] of Object.entries(albumDays)) { const b = albBest[ak]; if (b >= 7) { const r = longestStreakRange(albumDays[ak]); fameCandidates.push({ name: albumInfo[ak].album, sub: albumInfo[ak].artist, type: 'album', len: b, key: ak, best: b, milestone: nextMs(b), cal: cal14(albumDays[ak]), startDs: r.startDs, endDs: r.endDs }); } }
   fameCandidates.sort((a, b) => b.len - a.len);
   const hallOfFame = fameCandidates.slice(0, 10);
   const activeKeys = new Set([...activeSongs, ...activeArtists, ...activeAlbums, ...atRisk].map(it => it.key));
@@ -18335,6 +18346,38 @@ function openStreakModal() {
   let weekEnded = 0;
   const _chkEnded = entries => { for (const [, d] of entries) { const s = [...d].sort(); const last = s[s.length - 1]; if (last >= weekAgoStr && last < yest && streakEndingAt(d, last) >= 2) weekEnded++; } };
   _chkEnded(Object.entries(songDays)); _chkEnded(Object.entries(artistDays)); _chkEnded(Object.entries(albumDays));
+
+  // ── Hall of Fame plaque card ─────────────────────────────────────
+  function hofItemHtml(it, rank, isActive) {
+    const typeTag = `<span class="streak-type-tag streak-type-tag--${it.type}">${it.type}</span>`;
+    const sub = it.sub ? `<div class="sk-hof-sub">${it.sub}</div>` : '';
+    const cy = String(nowDate.getFullYear());
+    const fmtDY = ds => new Date(ds + 'T12:00:00').toLocaleDateString(undefined, { month: 'short', day: 'numeric', ...(ds.slice(0, 4) !== cy ? { year: 'numeric' } : {}) });
+    const dateRange = it.startDs && it.endDs ? `${fmtDY(it.startDs)} – ${fmtDY(it.endDs)}` : '';
+    const statusBadge = isActive
+      ? `<span class="sk-hof-badge sk-hof-badge--active">🔥 Active</span>`
+      : `<span class="sk-hof-badge sk-hof-badge--ended">Ended</span>`;
+    const calAttr = it.cal && it.cal.length ? `data-skc="${esc(JSON.stringify(it.cal))}" data-skn="${esc(it.name)}"` : '';
+    const calBtn = calAttr ? `<span class="sk-cal-trig sk-hof-cal" ${calAttr}>◈</span>` : '';
+    return `<div class="sk-hof-card">` +
+      `<div class="sk-hof-rank">#${rank}</div>` +
+      `<div class="sk-hof-body">` +
+      `<div class="sk-hof-name">${it.name}${typeTag}</div>` +
+      sub +
+      `<div class="sk-hof-record">🏆 <span class="streak-days" data-len="${it.len}">0d</span> record</div>` +
+      (dateRange ? `<div class="sk-hof-dates">${dateRange}</div>` : '') +
+      `<div class="sk-hof-foot">${statusBadge}${calBtn}</div>` +
+      `</div></div>`;
+  }
+  function hofSection() {
+    if (!hallOfFame.length) return '';
+    const collapsed = localStorage.getItem('skc-fame') === '1';
+    const chev = collapsed ? '▶' : '▼';
+    const inner = `<div class="sk-hof-grid">${hallOfFame.map((it, i) => hofItemHtml(it, i + 1, activeKeys.has(it.key))).join('')}</div>`;
+    return `<div class="streak-section streak-section--fame${collapsed ? ' streak-section--collapsed' : ''}" data-skid="fame">` +
+      `<div class="streak-section-title" onclick="_streakToggleSection(this.closest('.streak-section'))"><span class="sk-chev">${chev}</span> 🏅 Hall of Fame <span class="streak-count">(${hallOfFame.length})</span></div>` +
+      `<div class="sk-sec-body${collapsed ? ' sk-sec-hidden' : ''}">${inner}</div></div>`;
+  }
 
   // ── Item HTML ────────────────────────────────────────────────────
   function itemHtml(it, mode) {
@@ -18437,7 +18480,7 @@ function openStreakModal() {
     urgency +
     section(t('streak_section_at_risk'), atRisk, 'risk', 'atrisk') +
     section(t('streak_section_lost'), lost, 'lost', 'lost') +
-    (hallOfFame.length ? section('🏅 Hall of Fame', hallOfFame, 'fame', 'fame') : '');
+    hofSection();
 
   const graveyardHtml = graveyard.length
     ? `<div class="sk-grave-hdr">All-time ended streaks (≥ 7 days)</div>` + graveyard.map(it => itemHtml(it, 'fame')).join('')

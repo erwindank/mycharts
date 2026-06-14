@@ -11756,6 +11756,88 @@ body[class*="-light"] .tm-card-search:hover {
 /* ── Hall of Fame section ── */
 .streak-section--fame .streak-section-title { color: #f0c040; }
 
+/* ── Hall of Fame plaque grid ── */
+.sk-hof-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+  gap: 0.55rem;
+  padding: 0.65rem 0.9rem 0.9rem;
+}
+.sk-hof-card {
+  display: flex;
+  gap: 0.55rem;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-left: 3px solid #c89b3c;
+  border-radius: 6px;
+  padding: 0.6rem 0.7rem;
+}
+.sk-hof-rank {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: #c89b3c;
+  min-width: 1.6rem;
+  padding-top: 0.1rem;
+  flex-shrink: 0;
+}
+.sk-hof-body { flex: 1; min-width: 0; }
+.sk-hof-name {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  flex-wrap: wrap;
+  line-height: 1.3;
+  margin-bottom: 0.1rem;
+}
+.sk-hof-sub {
+  font-size: 0.67rem;
+  color: var(--text2);
+  margin-bottom: 0.28rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.sk-hof-record {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.72rem;
+  color: #f0c040;
+  font-weight: 700;
+  margin-bottom: 0.18rem;
+}
+.sk-hof-record .streak-days { font-size: 0.88rem; }
+.sk-hof-dates {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.58rem;
+  color: var(--text3);
+  margin-bottom: 0.28rem;
+  letter-spacing: 0.01em;
+}
+.sk-hof-foot { display: flex; align-items: center; gap: 0.35rem; }
+.sk-hof-badge {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.54rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: 0.1rem 0.3rem;
+  border-radius: 3px;
+}
+.sk-hof-badge--active {
+  background: rgba(255, 120, 40, 0.13);
+  color: #ff8840;
+  border: 1px solid rgba(255, 120, 40, 0.28);
+}
+.sk-hof-badge--ended {
+  background: transparent;
+  color: var(--text3);
+  border: 1px solid var(--border);
+}
+.sk-hof-cal { font-size: 0.68rem; color: var(--text3); cursor: pointer; }
+.sk-hof-cal:hover { color: var(--text2); }
+
 /* ── Graveyard tab ── */
 .sk-grave-hdr {
   font-family: 'DM Mono', monospace;
