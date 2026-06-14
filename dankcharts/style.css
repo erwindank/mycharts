@@ -11547,6 +11547,9 @@ body[class*="-light"] .tm-card-search:hover {
   text-decoration: underline;
   text-underline-offset: 2px;
 }
+.streak-name-link--play {
+  cursor: pointer;
+}
 
 .streak-type-tag {
   font-family: 'DM Mono', monospace;
@@ -11592,7 +11595,7 @@ body[class*="-light"] .tm-card-search:hover {
 
 /* ── Streak modal: expanded layout ── */
 .streak-modal-box { max-width: 640px; }
-.streak-modal-header { align-items: flex-start; flex-wrap: wrap; gap: 0.6rem; }
+.streak-modal-header { align-items: flex-start; flex-wrap: wrap; gap: 0.6rem; padding-right: 6.5rem; }
 .streak-hdr-text { flex: 1; min-width: 0; }
 
 .sk-summary {

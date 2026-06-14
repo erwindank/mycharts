@@ -16082,6 +16082,18 @@ function _ytPlayOrQueue(title, artist, album) {
   }
 }
 
+function _ytStreakPlay(title, artist) {
+  const playerEl = document.getElementById('ytMiniPlayer');
+  if (_ytCurrentTrack && playerEl && playerEl.style.display !== 'none') {
+    _ytQueue.push({ title, artist, album: '', btn: null });
+    _ytUpdateQueueDisplay(); _ytSaveQueue();
+    const statusEl = document.getElementById('ytMiniStatus');
+    if (statusEl) { statusEl.textContent = `"${title}" added to queue`; statusEl.className = 'yt-mini-status ok'; setTimeout(() => { if (statusEl.textContent.includes('added to queue')) { statusEl.textContent = ''; statusEl.className = 'yt-mini-status'; } }, 2500); }
+  } else {
+    openYtPlayer(title, artist, '', null);
+  }
+}
+
 function openYtPlayer(title, artist, album, btn) {
   if (_ytActiveBtn) _ytActiveBtn.classList.remove('yt-btn-loading', 'yt-btn-playing');
   document.querySelectorAll('.yt-now-playing-row').forEach(r => r.classList.remove('yt-now-playing-row'));
@@ -18193,14 +18205,14 @@ function openStreakModal() {
       if (!artistDays[a]) artistDays[a] = new Set();
       artistDays[a].add(ds);
       if (!artLastSongs[a]) artLastSongs[a] = [];
-      if (artLastSongs[a].length < 5) artLastSongs[a].push({ title: p.title, artist: p.artist, album: p.album || '' });
+      if (artLastSongs[a].length < 5 && !artLastSongs[a].some(s => s.title === p.title)) artLastSongs[a].push({ title: p.title, artist: p.artist, album: p.album || '' });
     }
     if (p.album && p.album !== '—') {
       const ak = p.album + '|||' + albumArtist(p);
       if (!albumDays[ak]) { albumDays[ak] = new Set(); albumInfo[ak] = { album: p.album, artist: albumArtist(p) }; }
       albumDays[ak].add(ds);
       if (!albLastSongs[ak]) albLastSongs[ak] = [];
-      if (albLastSongs[ak].length < 5) albLastSongs[ak].push({ title: p.title, artist: p.artist, album: p.album });
+      if (albLastSongs[ak].length < 5 && !albLastSongs[ak].some(s => s.title === p.title)) albLastSongs[ak].push({ title: p.title, artist: p.artist, album: p.album });
     }
   }
 
@@ -18297,7 +18309,8 @@ function openStreakModal() {
     if (mode === 'risk') {
       if (it.type === 'song') {
         const q = encodeURIComponent(it.name + (it.sub ? ' ' + it.sub : ''));
-        nameHtml = `<a class="streak-name-link" href="https://www.youtube.com/results?search_query=${q}" target="_blank" rel="noopener">${it.name}${sub}</a>`;
+        const jt = esc(JSON.stringify(it.name)); const jar = esc(JSON.stringify(it.sub || ''));
+        nameHtml = `<span class="streak-name-link streak-name-link--play" onclick="_ytStreakPlay(${jt},${jar})" title="Play in player">${it.name}${sub}</span>`;
         spLink = `<a class="sk-sp-link" href="https://open.spotify.com/search/${q}" target="_blank" rel="noopener" title="Spotify">♫</a>`;
       } else {
         const songs = it.type === 'artist' ? (artLastSongs[it.key] || []) : (albLastSongs[it.key] || []);
@@ -18488,7 +18501,7 @@ function _skShowEntTip(trig) {
   const ytSvg = `<svg class="yt-btn-icon" viewBox="0 0 24 24"><path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.5 12 3.5 12 3.5s-7.5 0-9.4.5A3 3 0 0 0 .5 6.2C0 8.1 0 12 0 12s0 3.9.5 5.8a3 3 0 0 0 2.1 2.1c1.9.5 9.4.5 9.4.5s7.5 0 9.4-.5a3 3 0 0 0 2.1-2.1C24 15.9 24 12 24 12s0-3.9-.5-5.8zM9.7 15.5V8.5l6.3 3.5-6.3 3.5z"/></svg>`;
   _skEntTip.innerHTML = `<div class="sk-et-hdr">Last played from <strong>${esc(name)}</strong></div>` +
     songs.map(s => `<div class="sk-et-row"><span class="sk-et-name">${esc(s.title)}</span>` +
-      `<button class="yt-play-btn sk-et-yt" data-title="${esc(s.title)}" data-artist="${esc(s.artist)}" data-album="${esc(s.album || '')}" onclick="event.stopPropagation();_ytPlayOrQueue(this.dataset.title,this.dataset.artist,this.dataset.album)" title="Play on YouTube"><span class="yt-btn-content">${ytSvg}</span></button>` +
+      `<button class="yt-play-btn sk-et-yt" data-title="${esc(s.title)}" data-artist="${esc(s.artist)}" data-album="${esc(s.album || '')}" onclick="event.stopPropagation();_ytStreakPlay(this.dataset.title,this.dataset.artist)" title="Play / Add to Queue"><span class="yt-btn-content">${ytSvg}</span></button>` +
     `</div>`).join('');
   _skEntTip.style.display = 'block';
   const r = trig.getBoundingClientRect(), w = 300;
