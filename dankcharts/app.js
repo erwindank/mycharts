@@ -18221,7 +18221,7 @@ function renderHeroStats() {
 // ─── STREAK HEATMAP STATE ─────────────────────────────────────
 let _skHmTheme = localStorage.getItem('sk-hm-theme') || 'ocean';
 let _skHmRange = 'year';
-let _skHmCount = {}, _skHmNames = {}, _skHmByType = {};
+let _skHmCount = {}, _skHmNames = {}, _skHmByType = {}, _skHmNamesByType = {};
 
 // ─── STREAK DETAILS MODAL ─────────────────────────────────────
 function openStreakModal() {
@@ -18320,7 +18320,7 @@ function openStreakModal() {
   for (const [k, d] of Object.entries(albumDays)) albBest[k] = longestInSet(d);
 
   // ── Heatmap data ─────────────────────────────────────────────────
-  _skHmCount = {}; _skHmNames = {}; _skHmByType = {};
+  _skHmCount = {}; _skHmNames = {}; _skHmByType = {}; _skHmNamesByType = {};
   function accHm(daySet, name, type) {
     const s = [...daySet].sort();
     for (let i = 1; i < s.length; i++) {
@@ -18330,6 +18330,8 @@ function openStreakModal() {
         (_skHmNames[s[i]] = _skHmNames[s[i]] || []).push(name);
         if (!_skHmByType[s[i]]) _skHmByType[s[i]] = { artist: 0, album: 0, song: 0 };
         _skHmByType[s[i]][type]++;
+        if (!_skHmNamesByType[s[i]]) _skHmNamesByType[s[i]] = { artist: [], song: [], album: [] };
+        _skHmNamesByType[s[i]][type].push(name);
       }
     }
   }
@@ -18616,7 +18618,47 @@ function _skHmShowDrill(ds) {
   drill.style.display = '';
 }
 
+function _skHmShowCatTip(cell, ev) {
+  const ds = cell.dataset.ds;
+  const type = cell.dataset.type;
+  const cnt = +cell.dataset.cnt || 0;
+  if (!cnt) return;
+  const names = (_skHmNamesByType[ds] || {})[type] || [];
+  const typeLabel = type === 'artist' ? 'artist' : type === 'song' ? 'song' : 'album';
+  const fmtDs = new Date(ds + 'T12:00:00').toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
+  const top6 = names.slice(0, 6);
+  const extra = names.length - top6.length;
+  _skHmTip.innerHTML =
+    `<div class="sk-hm-tip-date">${fmtDs}</div>` +
+    `<div class="sk-hm-tip-count">${cnt} ${typeLabel} streak${cnt !== 1 ? 's' : ''}</div>` +
+    (top6.length ? `<ul class="sk-hm-tip-list">${top6.map(n => `<li>${esc(n)}</li>`).join('')}${extra ? `<li class="sk-hm-tip-more">+${extra} more</li>` : ''}</ul>` : '');
+  _skHmTip.style.display = 'block';
+  const cx = ev.clientX != null ? ev.clientX : ev.pageX - window.scrollX;
+  const cy = ev.clientY != null ? ev.clientY : ev.pageY - window.scrollY;
+  const W = _skHmTip.offsetWidth || 190, H = _skHmTip.offsetHeight || 100;
+  let l = cx + 12, top = cy + 12;
+  if (l + W > innerWidth - 8) l = cx - W - 12;
+  if (top + H > innerHeight - 8) top = cy - H - 12;
+  _skHmTip.style.left = l + 'px'; _skHmTip.style.top = top + 'px';
+}
+
+function _skHmShowCatDrill(ds, type) {
+  const drill = document.getElementById('skHmDrill');
+  if (!drill) return;
+  const names = (_skHmNamesByType[ds] || {})[type] || [];
+  const cnt = names.length;
+  if (!cnt) { drill.style.display = 'none'; return; }
+  const fmtDs = new Date(ds + 'T12:00:00').toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' });
+  const typeLabel = type === 'artist' ? 'artist' : type === 'song' ? 'song' : 'album';
+  drill.innerHTML =
+    `<div class="sk-hm-drill-hdr">${fmtDs} — ${cnt} ${typeLabel} streak${cnt !== 1 ? 's' : ''}</div>` +
+    `<ul class="sk-hm-drill-list">${names.map(n => `<li>${esc(n)}</li>`).join('')}</ul>`;
+  drill.style.display = '';
+}
+
 function _skHmOnMouseover(e) {
+  const catCell = e.target.closest('.sk-hm-cat-has');
+  if (catCell) { _skHmShowCatTip(catCell, e); return; }
   const cell = e.target.closest('.sk-hm-has');
   if (!cell) { _skHmTip.style.display = 'none'; return; }
   _skHmShowTip(cell, e);
@@ -18625,11 +18667,15 @@ function _skHmOnMouseout(e) {
   if (!e.relatedTarget?.closest('#skTabHeatmap')) _skHmTip.style.display = 'none';
 }
 function _skHmOnClick(e) {
+  const catCell = e.target.closest('.sk-hm-cat-has');
+  if (catCell) { _skHmShowCatDrill(catCell.dataset.ds, catCell.dataset.type); return; }
   const cell = e.target.closest('.sk-hm-has');
   if (!cell) { const d = document.getElementById('skHmDrill'); if (d) d.style.display = 'none'; return; }
   _skHmShowDrill(cell.dataset.ds);
 }
 function _skHmOnTouchend(e) {
+  const catCell = e.target.closest('.sk-hm-cat-has');
+  if (catCell) { e.preventDefault(); _skHmShowCatTip(catCell, e.changedTouches[0]); return; }
   const cell = e.target.closest('.sk-hm-has');
   if (!cell) return;
   e.preventDefault();
@@ -18852,18 +18898,44 @@ function _skHmGenHTML() {
       const lo = Math.floor(idx), hi = Math.min(lo + 1, stops.length - 1);
       return hmLerpColor(stops[lo], stops[hi], idx - lo);
     }
-    let cells = '';
+    let catMonthRow = '', lastCatMonth = -1;
     for (let w = 0; w < numWeeks; w++) {
-      cells += '<div class="sk-hm-cat-col">';
+      const dt = new Date(baseT + w * 7 * 86400000);
+      const m = dt.getMonth();
+      if (dt <= rangeEnd && dt <= todayD && m !== lastCatMonth) {
+        catMonthRow += `<div class="sk-hm-month-cell"><span class="sk-hm-month-lbl">${HM_MONTHS[m]}</span></div>`;
+        lastCatMonth = m;
+      } else {
+        catMonthRow += '<div class="sk-hm-month-cell"></div>';
+      }
+    }
+    const catDowHtml = `<div class="sk-hm-dow-col">${['Mon','','Wed','','Fri','',''].map(l => `<div class="sk-hm-dow-label">${l}</div>`).join('')}</div>`;
+    let cols = '';
+    for (let w = 0; w < numWeeks; w++) {
+      cols += '<div class="sk-hm-cat-col">';
       for (let d = 0; d < 7; d++) {
         const dt = new Date(baseT + (w * 7 + d) * 86400000);
-        if (dt > rangeEnd || dt > todayD) { cells += '<div class="sk-hm-cat-cell" style="background:transparent"></div>'; continue; }
-        const cnt = (byType[localDateStr(dt)] || {})[type] || 0;
-        cells += `<div class="sk-hm-cat-cell" style="background:${miniColor(cnt)}"></div>`;
+        if (dt > rangeEnd || dt > todayD) { cols += '<div class="sk-hm-cat-cell" style="background:transparent"></div>'; continue; }
+        const ds = localDateStr(dt);
+        const cnt = (byType[ds] || {})[type] || 0;
+        cols += cnt > 0
+          ? `<div class="sk-hm-cat-cell sk-hm-cat-has" style="background:${miniColor(cnt)}" data-ds="${ds}" data-cnt="${cnt}" data-type="${type}"></div>`
+          : `<div class="sk-hm-cat-cell" style="background:rgba(255,255,255,0.05)"></div>`;
       }
-      cells += '</div>';
+      cols += '</div>';
     }
-    return `<div class="sk-hm-cat"><div class="sk-hm-cat-label">${label}</div><div class="sk-hm-cat-grid">${cells}</div></div>`;
+    return `<div class="sk-hm-cat">
+      <div class="sk-hm-cat-label">${label}</div>
+      <div class="sk-hm-outer">
+        ${catDowHtml}
+        <div class="sk-hm-scroll">
+          <div class="sk-hm-grid-wrap">
+            <div class="sk-hm-month-row-outer">${catMonthRow}</div>
+            <div class="sk-hm-cat-grid">${cols}</div>
+          </div>
+        </div>
+      </div>
+    </div>`;
   }
   const catsHtml = `<div class="sk-hm-cats">` +
     miniGrid('artist', '🎤 Artists', 'fire') +

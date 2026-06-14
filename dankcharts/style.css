@@ -11965,11 +11965,12 @@ body[class*="-light"] .tm-card-search:hover {
 .sk-hm-col-anim { animation: sk-hm-pop 0.18s ease-out both; transform-origin: bottom; }
 
 /* Category breakdown */
-.sk-hm-cats { margin-top: 0.85rem; display: flex; flex-direction: column; gap: 0.45rem; }
+.sk-hm-cats { margin-top: 1.2rem; display: flex; flex-direction: column; gap: 1.1rem; }
 .sk-hm-cat-label { font-family: 'DM Mono', monospace; font-size: 0.52rem; color: var(--text3); letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 3px; }
-.sk-hm-cat-grid { display: flex; gap: 1px; overflow-x: auto; padding-bottom: 1px; }
-.sk-hm-cat-col { display: flex; flex-direction: column; gap: 1px; }
-.sk-hm-cat-cell { width: 4px; height: 4px; border-radius: 0.5px; flex-shrink: 0; }
+.sk-hm-cat-grid { display: flex; gap: 2px; }
+.sk-hm-cat-col { display: flex; flex-direction: column; gap: 2px; }
+.sk-hm-cat-cell { width: 9px; height: 9px; border-radius: 1.5px; flex-shrink: 0; }
+.sk-hm-cat-has { cursor: pointer; }
 
 /* Legend row */
 .sk-hm-leg-row { display: flex; align-items: center; justify-content: space-between; margin-top: 0.7rem; }
