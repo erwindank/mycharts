@@ -7925,7 +7925,8 @@ function renderWeeklyAltView(type) {
 
 function _wvItem(type, item, i, ms, imgItems, imgPrefix) {
   let k, prefKey;
-  const imgId = (imgPrefix || 'wv-' + type[0] + 'img') + '-' + i;
+  const _typePrefix = { songs: 'so', artists: 'ar', albums: 'al' };
+  const imgId = (imgPrefix || 'wv-' + (_typePrefix[type] || type[0]) + 'img') + '-' + i;
   if (type === 'artists') {
     k = item.name;
     prefKey = 'artist:' + item.name.toLowerCase();
