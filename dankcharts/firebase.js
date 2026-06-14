@@ -203,6 +203,7 @@ _auth.onAuthStateChanged(async (user) => {
   const applied = await _loadAndApplyConfig(user.uid);
   if (applied && typeof dcResetRulesCache === 'function') dcResetRulesCache();
   if (applied && typeof dcApplyDisplayToggles === 'function') dcApplyDisplayToggles();
+  if (applied && typeof dcApplyAllSettings    === 'function') dcApplyAllSettings();
 
   const hasLocalConfig = SYNC_KEYS.some(k => localStorage.getItem(k) !== null);
   if (!hasLocalConfig && !applied) return; // truly fresh user with no data anywhere

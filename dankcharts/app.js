@@ -175,6 +175,30 @@ function dcApplyDisplayToggles() {
 }
 window.dcApplyDisplayToggles = dcApplyDisplayToggles;
 
+// Re-reads primitive settings from localStorage into in-memory variables after Firestore sync.
+// Called by firebase.js after _loadAndApplyConfig so the settings modal and runtime behaviour
+// reflect the just-loaded cloud values rather than the stale startup defaults.
+function dcApplyAllSettings() {
+  chartAnimEnabled  = localStorage.getItem('dc_chart_anim') !== '0';
+  eventsArtistLimit = parseInt(localStorage.getItem('dc_events_artist_limit') || '50') || 50;
+  noArtistSplit     = localStorage.getItem('dc_no_artist_split') === '1';
+  const evSel = document.getElementById('eventsLimitSelect');
+  if (evSel) evSel.value = eventsArtistLimit;
+  // tmToggles is a const object — mutate in place so the TM section reflects the loaded state
+  const savedTm = localStorage.getItem('dc_tm_toggles');
+  if (savedTm) {
+    try {
+      Object.assign(tmToggles, JSON.parse(savedTm));
+      ['songs', 'artists', 'albums'].forEach(type => {
+        const id  = 'tmToggle' + type.charAt(0).toUpperCase() + type.slice(1);
+        const btn = document.getElementById(id);
+        if (btn) btn.classList.toggle('active', tmToggles[type] !== false);
+      });
+    } catch(e) {}
+  }
+}
+window.dcApplyAllSettings = dcApplyAllSettings;
+
 function replayChartAnimation(type) {
   if (_replayFns[type]) { _replayFns[type](); return; }
 }
@@ -15887,6 +15911,7 @@ function eventsLimitChanged(val) {
   eventsArtistLimit = newLimit;
   localStorage.setItem('dc_events_artist_limit', newLimit);
   localStorage.removeItem(EVENTS_CACHE_KEY);
+  if (typeof dcSaveUserConfig === 'function') dcSaveUserConfig();
   loadEvents(true);
 }
 
@@ -18193,6 +18218,11 @@ function renderHeroStats() {
   }
 }
 
+// ─── STREAK HEATMAP STATE ─────────────────────────────────────
+let _skHmTheme = localStorage.getItem('sk-hm-theme') || 'ocean';
+let _skHmRange = 'year';
+let _skHmCount = {}, _skHmNames = {}, _skHmByType = {};
+
 // ─── STREAK DETAILS MODAL ─────────────────────────────────────
 function openStreakModal() {
   if (!allPlays.length) return;
@@ -18290,17 +18320,22 @@ function openStreakModal() {
   for (const [k, d] of Object.entries(albumDays)) albBest[k] = longestInSet(d);
 
   // ── Heatmap data ─────────────────────────────────────────────────
-  const hmCount = {};
-  function accHm(daySet) {
+  _skHmCount = {}; _skHmNames = {}; _skHmByType = {};
+  function accHm(daySet, name, type) {
     const s = [...daySet].sort();
     for (let i = 1; i < s.length; i++) {
       const diff = Math.round((+new Date(s[i] + 'T12:00:00') - +new Date(s[i - 1] + 'T12:00:00')) / 86400000);
-      if (diff === 1) hmCount[s[i]] = (hmCount[s[i]] || 0) + 1;
+      if (diff === 1) {
+        _skHmCount[s[i]] = (_skHmCount[s[i]] || 0) + 1;
+        (_skHmNames[s[i]] = _skHmNames[s[i]] || []).push(name);
+        if (!_skHmByType[s[i]]) _skHmByType[s[i]] = { artist: 0, album: 0, song: 0 };
+        _skHmByType[s[i]][type]++;
+      }
     }
   }
-  for (const d of Object.values(songDays)) accHm(d);
-  for (const d of Object.values(artistDays)) accHm(d);
-  for (const d of Object.values(albumDays)) accHm(d);
+  for (const [a, d] of Object.entries(artistDays)) accHm(d, a, 'artist');
+  for (const [sk, d] of Object.entries(songDays)) accHm(d, songInfo[sk].title + ' · ' + songInfo[sk].artist, 'song');
+  for (const [ak, d] of Object.entries(albumDays)) accHm(d, albumInfo[ak].album + ' · ' + albumInfo[ak].artist, 'album');
 
   // ── Build enriched item ──────────────────────────────────────────
   function mkItem(name, sub, type, len, key, endD) {
@@ -18447,29 +18482,6 @@ function openStreakModal() {
       (weekEnded ? `${weekEnded} ended` : '') + `</div>`
     : '';
 
-  // ── Heatmap builder ──────────────────────────────────────────────
-  function buildHeatmap() {
-    const vals = Object.values(hmCount);
-    const maxV = vals.length ? Math.max(...vals) : 1;
-    const base = new Date(nowDate); base.setDate(nowDate.getDate() - 363); base.setDate(base.getDate() - base.getDay());
-    const baseT = base.getTime();
-    let out = `<div class="sk-hm-title">Concurrent active streaks per day (past year)</div><div class="sk-hm-scroll"><div class="sk-hm-grid">`;
-    for (let w = 0; w < 54; w++) {
-      out += '<div class="sk-hm-col">';
-      for (let d = 0; d < 7; d++) {
-        const dt = new Date(baseT + (w * 7 + d) * 86400000);
-        if (dt > nowDate) { out += '<div class="sk-hm-cell sk-hm-0"></div>'; continue; }
-        const ds = localDateStr(dt);
-        const cnt = hmCount[ds] || 0;
-        const lvl = cnt === 0 ? 0 : Math.min(4, Math.ceil(cnt / maxV * 4));
-        out += `<div class="sk-hm-cell sk-hm-${lvl}" title="${ds}: ${cnt} streak${cnt !== 1 ? 's' : ''}"></div>`;
-      }
-      out += '</div>';
-    }
-    out += `</div></div><div class="sk-hm-legend"><span>Less</span>${[0, 1, 2, 3, 4].map(l => `<div class="sk-hm-cell sk-hm-${l}"></div>`).join('')}<span>More</span></div>`;
-    return out;
-  }
-
   // ── Render ───────────────────────────────────────────────────────
   const streaksHtml =
     weeklyHtml +
@@ -18488,8 +18500,14 @@ function openStreakModal() {
 
   document.getElementById('streakModalBody').innerHTML =
     `<div id="skTabStreaks" class="sk-tab-pane">${streaksHtml}</div>` +
-    `<div id="skTabHeatmap" class="sk-tab-pane" style="display:none">${buildHeatmap()}</div>` +
+    `<div id="skTabHeatmap" class="sk-tab-pane" style="display:none"></div>` +
     `<div id="skTabGraveyard" class="sk-tab-pane" style="display:none">${graveyardHtml}</div>`;
+
+  // restore last-used range, validating it's a known year or keyword
+  const _skHmValidYrs = new Set(Object.keys(_skHmCount).map(d => d.slice(0, 4)));
+  const _skHmStoredRange = sessionStorage.getItem('sk-hm-range') || 'year';
+  _skHmRange = (['year', 'all'].includes(_skHmStoredRange) || _skHmValidYrs.has(_skHmStoredRange)) ? _skHmStoredRange : 'year';
+  _skHmBuild();
 
   _streakSwitchTab(sessionStorage.getItem('sk-tab') || 'streaks');
 
@@ -18509,6 +18527,15 @@ function openStreakModal() {
       items.forEach(el => body.appendChild(el));
     });
   });
+
+  // ── Heatmap interaction (delegated on persistent pane element) ────
+  const _skHmPane = document.getElementById('skTabHeatmap');
+  if (_skHmPane) {
+    _skHmPane.addEventListener('mouseover', _skHmOnMouseover);
+    _skHmPane.addEventListener('mouseout', _skHmOnMouseout);
+    _skHmPane.addEventListener('click', _skHmOnClick);
+    _skHmPane.addEventListener('touchend', _skHmOnTouchend, { passive: false });
+  }
 
   document.getElementById('streakModal').classList.add('open');
   const cEls = document.querySelectorAll('#streakModalBody .streak-days[data-len]');
@@ -18541,7 +18568,341 @@ function _streakSwitchTab(tab) {
     const el = document.getElementById('skTab' + n);
     if (el) el.style.display = n.toLowerCase() === tab ? '' : 'none';
   });
+  if (tab === 'heatmap') _skHmAnimate();
   try { sessionStorage.setItem('sk-tab', tab); } catch(e) {}
+}
+
+// ─── STREAK HEATMAP FUNCTIONS ─────────────────────────────────
+
+// Persistent tooltip div
+const _skHmTip = (() => {
+  const el = document.createElement('div');
+  el.id = 'skHmTip'; el.className = 'sk-hm-tip'; el.style.display = 'none';
+  document.body.appendChild(el); return el;
+})();
+
+function _skHmShowTip(cell, ev) {
+  const ds = cell.dataset.ds;
+  const cnt = +cell.dataset.cnt || 0;
+  if (!cnt) return;
+  const names = _skHmNames[ds] || [];
+  const fmtDs = new Date(ds + 'T12:00:00').toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
+  const top6 = names.slice(0, 6);
+  const extra = names.length - top6.length;
+  _skHmTip.innerHTML =
+    `<div class="sk-hm-tip-date">${fmtDs}</div>` +
+    `<div class="sk-hm-tip-count">${cnt} active streak${cnt !== 1 ? 's' : ''}</div>` +
+    (top6.length ? `<ul class="sk-hm-tip-list">${top6.map(n => `<li>${esc(n)}</li>`).join('')}${extra ? `<li class="sk-hm-tip-more">+${extra} more</li>` : ''}</ul>` : '');
+  _skHmTip.style.display = 'block';
+  const cx = ev.clientX != null ? ev.clientX : ev.pageX - window.scrollX;
+  const cy = ev.clientY != null ? ev.clientY : ev.pageY - window.scrollY;
+  const W = _skHmTip.offsetWidth || 190, H = _skHmTip.offsetHeight || 100;
+  let l = cx + 12, top = cy + 12;
+  if (l + W > innerWidth - 8) l = cx - W - 12;
+  if (top + H > innerHeight - 8) top = cy - H - 12;
+  _skHmTip.style.left = l + 'px'; _skHmTip.style.top = top + 'px';
+}
+
+function _skHmShowDrill(ds) {
+  const drill = document.getElementById('skHmDrill');
+  if (!drill) return;
+  const names = _skHmNames[ds] || [];
+  const cnt = _skHmCount[ds] || 0;
+  if (!cnt) { drill.style.display = 'none'; return; }
+  const fmtDs = new Date(ds + 'T12:00:00').toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' });
+  drill.innerHTML =
+    `<div class="sk-hm-drill-hdr">${fmtDs} — ${cnt} active streak${cnt !== 1 ? 's' : ''}</div>` +
+    `<ul class="sk-hm-drill-list">${names.map(n => `<li>${esc(n)}</li>`).join('')}</ul>`;
+  drill.style.display = '';
+}
+
+function _skHmOnMouseover(e) {
+  const cell = e.target.closest('.sk-hm-has');
+  if (!cell) { _skHmTip.style.display = 'none'; return; }
+  _skHmShowTip(cell, e);
+}
+function _skHmOnMouseout(e) {
+  if (!e.relatedTarget?.closest('#skTabHeatmap')) _skHmTip.style.display = 'none';
+}
+function _skHmOnClick(e) {
+  const cell = e.target.closest('.sk-hm-has');
+  if (!cell) { const d = document.getElementById('skHmDrill'); if (d) d.style.display = 'none'; return; }
+  _skHmShowDrill(cell.dataset.ds);
+}
+function _skHmOnTouchend(e) {
+  const cell = e.target.closest('.sk-hm-has');
+  if (!cell) return;
+  e.preventDefault();
+  _skHmShowTip(cell, e.changedTouches[0]);
+}
+
+function _skHmAnimate() {
+  document.querySelectorAll('#skTabHeatmap .sk-hm-col-anim').forEach((col, i) => {
+    col.style.animation = 'none';
+    col.offsetHeight; // force reflow to restart animation
+    col.style.animation = '';
+    col.style.animationDelay = (i * 5) + 'ms';
+  });
+}
+
+function _skHmSetRange(r) {
+  _skHmRange = String(r);
+  try { sessionStorage.setItem('sk-hm-range', _skHmRange); } catch(e) {}
+  _skHmBuild();
+}
+
+function _skHmSetTheme(t) {
+  _skHmTheme = t;
+  try { localStorage.setItem('sk-hm-theme', t); } catch(e) {}
+  _skHmBuild();
+}
+
+function _skHmBuild() {
+  const pane = document.getElementById('skTabHeatmap');
+  if (!pane) return;
+  pane.innerHTML = _skHmGenHTML();
+}
+
+function _skHmCopyImg() {
+  const grid = document.querySelector('#skTabHeatmap .sk-hm-grid');
+  if (!grid) return;
+  const cols = [...grid.querySelectorAll('.sk-hm-col')];
+  const CELL = 10, GAP = 2, ROWS = 7;
+  const W = cols.length * (CELL + GAP) - GAP, H = ROWS * (CELL + GAP) - GAP;
+  const canvas = document.createElement('canvas');
+  canvas.width = W; canvas.height = H;
+  const ctx = canvas.getContext('2d');
+  ctx.fillStyle = '#0b0f1e'; ctx.fillRect(0, 0, W, H);
+  cols.forEach((col, ci) => {
+    [...col.querySelectorAll('.sk-hm-cell')].forEach((cell, ri) => {
+      const bg = cell.style.background;
+      ctx.fillStyle = (bg && bg !== 'transparent') ? bg : 'rgba(255,255,255,0.05)';
+      ctx.beginPath();
+      const x = ci * (CELL + GAP), y = ri * (CELL + GAP);
+      try { ctx.roundRect(x, y, CELL, CELL, 2); } catch { ctx.rect(x, y, CELL, CELL); }
+      ctx.fill();
+    });
+  });
+  canvas.toBlob(blob => {
+    if (!blob) return;
+    const btn = document.querySelector('.sk-hm-copy-btn');
+    navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })])
+      .then(() => { if (btn) { btn.textContent = '✓ Copied'; setTimeout(() => btn.textContent = '📋 Copy', 1500); } })
+      .catch(() => { const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'streaks-heatmap.png'; a.click(); });
+  });
+}
+
+function _skHmGenHTML() {
+  const count = _skHmCount, byType = _skHmByType;
+  const todayD = new Date(), todayS = localDateStr(todayD);
+  const allDates = Object.keys(count).sort();
+
+  // ── Determine date range ──────────────────────────────────────
+  let rangeStart, rangeEnd, numWeeks;
+  if (_skHmRange === 'year') {
+    rangeEnd = todayD;
+    const base = new Date(todayD); base.setDate(todayD.getDate() - 363);
+    base.setDate(base.getDate() - base.getDay());
+    rangeStart = base; numWeeks = 54;
+  } else if (_skHmRange === 'all') {
+    if (!allDates.length) {
+      rangeEnd = todayD;
+      rangeStart = new Date(todayD); rangeStart.setFullYear(rangeStart.getFullYear() - 1);
+    } else {
+      const fd = new Date(allDates[0] + 'T12:00:00');
+      fd.setDate(fd.getDate() - fd.getDay()); rangeStart = fd; rangeEnd = todayD;
+    }
+    numWeeks = Math.ceil(Math.round((rangeEnd - rangeStart) / 86400000) / 7) + 2;
+  } else {
+    const yr = +_skHmRange;
+    rangeStart = new Date(yr, 0, 1);
+    rangeStart.setDate(rangeStart.getDate() - rangeStart.getDay());
+    rangeEnd = new Date(yr, 11, 31);
+    if (rangeEnd > todayD) rangeEnd = todayD;
+    numWeeks = 54;
+  }
+  const baseT = rangeStart.getTime();
+
+  // ── Compute stats ─────────────────────────────────────────────
+  let activeDays = 0, totalStreakDays = 0, maxCount = 0, maxDate = '';
+  const peakSet = new Set();
+  let rangeDays = 0;
+  for (let i = 0; i < numWeeks * 7; i++) {
+    const dt = new Date(baseT + i * 86400000);
+    if (dt > rangeEnd || dt > todayD) break;
+    rangeDays++;
+    const ds = localDateStr(dt);
+    const cnt = count[ds] || 0;
+    if (cnt > 0) { activeDays++; totalStreakDays += cnt; }
+    if (cnt > maxCount) { maxCount = cnt; maxDate = ds; peakSet.clear(); peakSet.add(ds); }
+    else if (cnt === maxCount && cnt > 0) peakSet.add(ds);
+  }
+  const avgPerActive = activeDays > 0 ? (totalStreakDays / activeDays).toFixed(1) : '0';
+
+  // Busiest week
+  let bestWeekStart = '', bestWeekSum = 0;
+  for (let w = 0; w < numWeeks; w++) {
+    let sum = 0;
+    for (let d = 0; d < 7; d++) {
+      const dt = new Date(baseT + (w * 7 + d) * 86400000);
+      if (dt > rangeEnd || dt > todayD) break;
+      sum += count[localDateStr(dt)] || 0;
+    }
+    if (sum > bestWeekSum) { bestWeekSum = sum; bestWeekStart = localDateStr(new Date(baseT + w * 7 * 86400000)); }
+  }
+
+  // Longest dense run (≥2 concurrent streaks per day)
+  let longestRun = 0, curRun = 0;
+  for (let i = 0; i < numWeeks * 7; i++) {
+    const dt = new Date(baseT + i * 86400000);
+    if (dt > rangeEnd || dt > todayD) break;
+    (count[localDateStr(dt)] || 0) >= 2 ? (++curRun > longestRun && (longestRun = curRun)) : (curRun = 0);
+  }
+
+  // ── Color function (continuous, logarithmic) ──────────────────
+  const themeStops = HM_THEMES[_skHmTheme] || HM_THEMES.ocean;
+  function cellBg(cnt) {
+    if (!cnt || !maxCount) return 'rgba(255,255,255,0.05)';
+    const ratio = Math.min(Math.log1p(cnt) / Math.log1p(maxCount), 1);
+    const idx = ratio * (themeStops.length - 1);
+    const lo = Math.floor(idx), hi = Math.min(lo + 1, themeStops.length - 1);
+    return hmLerpColor(themeStops[lo], themeStops[hi], idx - lo);
+  }
+
+  // ── Controls ──────────────────────────────────────────────────
+  const availYears = [...new Set(allDates.map(d => d.slice(0, 4)))].sort();
+  const rangeBtns =
+    `<button class="sk-hm-rbtn${_skHmRange === 'year' ? ' active' : ''}" onclick="_skHmSetRange('year')">Past Year</button>` +
+    availYears.map(y => `<button class="sk-hm-rbtn${_skHmRange === y ? ' active' : ''}" onclick="_skHmSetRange('${y}')">${y}</button>`).join('') +
+    `<button class="sk-hm-rbtn${_skHmRange === 'all' ? ' active' : ''}" onclick="_skHmSetRange('all')">All Time</button>`;
+  const themeSwatches = Object.entries(HM_THEMES).map(([k, stops]) =>
+    `<div class="sk-hm-tswatch${_skHmTheme === k ? ' active' : ''}" style="background:linear-gradient(90deg,${stops[0]},${stops[stops.length - 1]})" onclick="_skHmSetTheme('${k}')" title="${k}"></div>`
+  ).join('');
+
+  // ── Summary stats ─────────────────────────────────────────────
+  const peakFmt = maxDate ? new Date(maxDate + 'T12:00:00').toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) : '';
+  const summaryHtml =
+    `<div class="sk-hm-summary">` +
+    (maxDate ? `<span class="sk-hm-stat">Peak: <strong>${maxCount}</strong> on ${peakFmt}</span>` : '') +
+    `<span class="sk-hm-stat">Active: <strong>${activeDays}</strong>/${rangeDays} days</span>` +
+    `<span class="sk-hm-stat">Avg: <strong>${avgPerActive}</strong>/active day</span>` +
+    `</div>`;
+
+  // ── Callout bar (busiest week + dense run) ─────────────────────
+  let calloutParts = [];
+  if (bestWeekStart && bestWeekSum > 0) {
+    const wEnd = new Date(new Date(bestWeekStart + 'T12:00:00').getTime() + 6 * 86400000);
+    const wFmt = d => new Date(d + 'T12:00:00').toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+    calloutParts.push(`📅 Busiest week: ${wFmt(bestWeekStart)}–${wFmt(localDateStr(wEnd))} (${(bestWeekSum / 7).toFixed(1)} avg/day)`);
+  }
+  if (longestRun >= 3) calloutParts.push(`🔥 Longest dense run: ${longestRun} consecutive days with ≥2 active`);
+  const calloutHtml = calloutParts.length ? `<div class="sk-hm-callout">${calloutParts.join(' · ')}</div>` : '';
+
+  // ── Month label row ───────────────────────────────────────────
+  let monthRowHtml = '';
+  let lastMonth = -1;
+  for (let w = 0; w < numWeeks; w++) {
+    const dt = new Date(baseT + w * 7 * 86400000);
+    const m = dt.getMonth();
+    if (dt <= rangeEnd && dt <= todayD && m !== lastMonth) {
+      monthRowHtml += `<div class="sk-hm-month-cell"><span class="sk-hm-month-lbl">${HM_MONTHS[m]}</span></div>`;
+      lastMonth = m;
+    } else {
+      monthRowHtml += '<div class="sk-hm-month-cell"></div>';
+    }
+  }
+
+  // ── Day-of-week labels ────────────────────────────────────────
+  const DOW_LABELS = ['Mon', '', 'Wed', '', 'Fri', '', ''];
+  const dowHtml = `<div class="sk-hm-dow-col">${DOW_LABELS.map(l => `<div class="sk-hm-dow-label">${l}</div>`).join('')}</div>`;
+
+  // ── Main grid ─────────────────────────────────────────────────
+  let gridHtml = '';
+  for (let w = 0; w < numWeeks; w++) {
+    gridHtml += `<div class="sk-hm-col sk-hm-col-anim" style="animation-delay:${w * 5}ms">`;
+    for (let d = 0; d < 7; d++) {
+      const dt = new Date(baseT + (w * 7 + d) * 86400000);
+      if (dt > rangeEnd || dt > todayD) { gridHtml += '<div class="sk-hm-cell" style="background:transparent"></div>'; continue; }
+      const ds = localDateStr(dt);
+      const cnt = count[ds] || 0;
+      const bg = cellBg(cnt);
+      let cls = 'sk-hm-cell';
+      if (cnt > 0) cls += ' sk-hm-has';
+      if (ds === todayS) cls += ' sk-hm-today';
+      if (peakSet.has(ds)) cls += ' sk-hm-peak';
+      gridHtml += `<div class="${cls}" style="background:${bg}" data-ds="${ds}" data-cnt="${cnt}"></div>`;
+    }
+    gridHtml += '</div>';
+  }
+
+  // ── Category breakdown (mini grids) ──────────────────────────
+  function miniGrid(type, label, themeKey) {
+    const stops = HM_THEMES[themeKey] || HM_THEMES.default;
+    let maxV = 0;
+    for (let i = 0; i < numWeeks * 7; i++) {
+      const dt = new Date(baseT + i * 86400000);
+      if (dt > rangeEnd || dt > todayD) break;
+      const v = (byType[localDateStr(dt)] || {})[type] || 0;
+      if (v > maxV) maxV = v;
+    }
+    function miniColor(cnt) {
+      if (!cnt || !maxV) return 'rgba(255,255,255,0.05)';
+      const r = Math.min(Math.log1p(cnt) / Math.log1p(maxV), 1);
+      const idx = r * (stops.length - 1);
+      const lo = Math.floor(idx), hi = Math.min(lo + 1, stops.length - 1);
+      return hmLerpColor(stops[lo], stops[hi], idx - lo);
+    }
+    let cells = '';
+    for (let w = 0; w < numWeeks; w++) {
+      cells += '<div class="sk-hm-cat-col">';
+      for (let d = 0; d < 7; d++) {
+        const dt = new Date(baseT + (w * 7 + d) * 86400000);
+        if (dt > rangeEnd || dt > todayD) { cells += '<div class="sk-hm-cat-cell" style="background:transparent"></div>'; continue; }
+        const cnt = (byType[localDateStr(dt)] || {})[type] || 0;
+        cells += `<div class="sk-hm-cat-cell" style="background:${miniColor(cnt)}"></div>`;
+      }
+      cells += '</div>';
+    }
+    return `<div class="sk-hm-cat"><div class="sk-hm-cat-label">${label}</div><div class="sk-hm-cat-grid">${cells}</div></div>`;
+  }
+  const catsHtml = `<div class="sk-hm-cats">` +
+    miniGrid('artist', '🎤 Artists', 'fire') +
+    miniGrid('song', '🎵 Songs', 'ocean') +
+    miniGrid('album', '💿 Albums', 'forest') +
+    `</div>`;
+
+  // ── Numbered legend ───────────────────────────────────────────
+  const lgRatios = [0, 0.25, 0.5, 0.75, 1];
+  const lgCells = lgRatios.map((r, i) => {
+    const cnt = r === 0 ? 0 : Math.max(1, Math.round(Math.exp(r * Math.log1p(maxCount)) - 1));
+    const bg = cellBg(cnt);
+    const lbl = i === 0 ? '0' : (i === lgRatios.length - 1 && maxCount > 0 ? `${cnt}+` : String(cnt));
+    return `<div class="sk-hm-leg-wrap"><div class="sk-hm-cell" style="background:${bg};width:9px;height:9px;border-radius:1.5px;flex-shrink:0"></div><span class="sk-hm-leg-num">${lbl}</span></div>`;
+  }).join('');
+
+  return `<div class="sk-hm-wrap">
+    <div class="sk-hm-controls">
+      <div class="sk-hm-ranges">${rangeBtns}</div>
+      <div class="sk-hm-themes">${themeSwatches}</div>
+    </div>
+    ${summaryHtml}
+    ${calloutHtml}
+    <div class="sk-hm-outer">
+      ${dowHtml}
+      <div class="sk-hm-scroll">
+        <div class="sk-hm-grid-wrap">
+          <div class="sk-hm-month-row-outer">${monthRowHtml}</div>
+          <div class="sk-hm-grid">${gridHtml}</div>
+        </div>
+      </div>
+    </div>
+    ${catsHtml}
+    <div class="sk-hm-leg-row">
+      <div class="sk-hm-legend-inner"><span>Less</span>${lgCells}<span>More</span></div>
+      <button class="sk-hm-copy-btn" onclick="_skHmCopyImg()" title="Copy heatmap as image">📋 Copy</button>
+    </div>
+    <div id="skHmDrill" class="sk-hm-drill" style="display:none"></div>
+  </div>`;
 }
 
 // Calendar strip tooltip
