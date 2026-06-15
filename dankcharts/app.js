@@ -8601,11 +8601,16 @@ function _wvStack(items, max, ms, imgItems, type) {
     const jal = esc(JSON.stringify(s.album || ''));
     const ytBtn = canPlay ? `<button class="wv-stk-yt-btn" onclick="event.stopPropagation();_ytPlayOrQueue(${jt},${jar},${jal})" title="Play on YouTube">▶</button>` : '';
 
-    // Artist line — clickable → artist modal (songs & albums only)
-    const jartist = esc(JSON.stringify(type !== 'artists' ? sub : ttl));
-    const artistLine = (type === 'songs' || type === 'albums') && sub
-      ? `<div class="wv-art wv-stk-artist" onclick="event.stopPropagation();openArtistModal(${jartist})">${esc(sub)}</div>`
-      : `<div class="wv-art">${esc(sub)}</div>`;
+    // Artist line — plain display only; no modal opens from here
+    const artistLine = `<div class="wv-art">${esc(sub)}</div>`;
+
+    // Title — clickable → artist modal (artists) or album modal (albums); songs: no title click
+    const jmodalKey = type === 'artists' ? esc(JSON.stringify(ttl)) : type === 'albums' ? esc(JSON.stringify(k)) : null;
+    const ttlInner = type === 'artists'
+      ? `<span class="wv-stk-artist" onclick="event.stopPropagation();openArtistModal(${jmodalKey})">${esc(ttl)}</span>`
+      : type === 'albums'
+      ? `<span class="wv-stk-artist" onclick="event.stopPropagation();openAlbumModal(${jmodalKey})">${esc(ttl)}</span>`
+      : esc(ttl);
 
     // Expand shelf: chart run summary + squares
     const crD = crData?.result?.[type]?.[k];
@@ -8622,7 +8627,7 @@ function _wvStack(items, max, ms, imgItems, type) {
         <div class="wv-stk-rank">${i+1}</div>
         <div class="wv-thumb wv-thumb-lg">${_wvThumb(imgId, ttl)}</div>
         <div class="wv-stk-body">
-          <div class="wv-ttl">${esc(ttl)}${albumInline}${pk ? peakBadge(pk) : ''}${type === 'songs' ? certBadge(cumSongPlays, 'song') : ''}</div>
+          <div class="wv-ttl">${ttlInner}${albumInline}${pk ? peakBadge(pk) : ''}${type === 'songs' ? certBadge(cumSongPlays, 'song') : ''}</div>
           ${artistLine}
           <div class="wv-stk-meta">${ytBtn}<span class="wv-plays">${s.count} ${s.count===1?'play':'plays'}</span> ${mv}${weeksText}${cumHtml}</div>
           <div class="wv-bar"><div class="wv-bar-fill${barCls ? ' '+barCls : ''}" style="width:${barW}%"></div></div>
