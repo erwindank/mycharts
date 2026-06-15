@@ -8101,13 +8101,13 @@ function _wvGridCtx(e, type, title, artist, album) {
 function _wvCompact(items, max, ms, imgItems, type) {
   type = type || 'songs';
   const canPlay = type === 'songs' || type === 'albums';
-  const MEDALS = ['🥇', '🥈', '🥉'];
-
   const header = `<div class="wv-cx-header">` +
     `<span class="wv-cx-rank">#</span>` +
     `<div class="wv-cx-hd-spacer"></div>` +
     `<span class="wv-cx-hd-title">Title — Artist</span>` +
-    `<span class="wv-cx-hd-right">Mv&nbsp;&nbsp;Plays</span>` +
+    `<span class="wv-cx-hd-wks">Weeks</span>` +
+    `<span class="wv-cx-hd-prev">Previous</span>` +
+    `<span class="wv-cx-hd-plays">Plays</span>` +
     `</div>`;
 
   const rows = items.map((s, i) => {
@@ -8119,8 +8119,8 @@ function _wvCompact(items, max, ms, imgItems, type) {
     const cert      = type === 'songs' ? certBadge(cumPlays, 'song') : '';
     const album     = s.album || '';
 
-    // Feature 8: medal rank for top 3
-    const rankHtml = i < 3 ? `<span class="wv-cx-medal">${MEDALS[i]}</span>` : `${i + 1}`;
+    // Feature 8: number rank for all positions, colored gold/silver/bronze for top 3
+    const rankHtml = `${i + 1}`;
 
     // Feature 9: art tooltip — second image element with same prefKey so cache is shared
     const tipId = 'wv-sart-tip-' + i;
@@ -8138,8 +8138,24 @@ function _wvCompact(items, max, ms, imgItems, type) {
       ? `<button class="wv-cx-play-btn" onclick="event.stopPropagation();_ytPlayOrQueue(${jt},${jar},${jal})" title="Play">▶</button>`
       : '';
 
-    // Feature 2: weeks-on-chart badge
-    const weeksBadge = weeks ? `<span class="wv-cx-wks">${weeks}w</span>` : '';
+    // Feature 2: weeks-on-chart column (spelled out)
+    const weeksText = weeks ? (weeks === 1 ? '1 Week' : `${weeks} Weeks`) : '';
+
+    // Previous column: movement arrow + previous rank, like the table view
+    const prevContent = (() => {
+      if (!ms) return '';
+      const prev = ms.prevChart[type][k];
+      if (!prev) {
+        return ms.everChartedBefore[type].has(k)
+          ? `<span class="wv-re">RE</span>`
+          : `<span class="wv-new">NEW</span>`;
+      }
+      const diff = prev.rank - (i + 1);
+      if (diff === 0) return `<span class="wv-same">—</span><div class="wv-cx-prev-rank">#${prev.rank}</div>`;
+      const dir = diff > 0 ? 'up' : 'down';
+      const arrow = diff > 0 ? '▲' : '▼';
+      return `<span class="wv-${dir}">${arrow}${Math.abs(diff)}</span><div class="wv-cx-prev-rank">#${prev.rank}</div>`;
+    })();
 
     // Feature 7: color-scaled play count
     const ratio = max > 0 ? s.count / max : 0;
@@ -8164,8 +8180,9 @@ function _wvCompact(items, max, ms, imgItems, type) {
       `<span class="wv-cx-title">${esc(ttl)}${pk ? peakBadge(pk) : ''}${cert}</span>` +
       `<span class="wv-cx-sep">—</span>` +
       `<span class="wv-cx-artist">${esc(sub)}</span>` +
-      playBtn + weeksBadge +
-      `<span class="wv-cx-mv">${mv}</span>` +
+      playBtn +
+      `<span class="wv-cx-wks">${weeksText}</span>` +
+      `<span class="wv-cx-prev">${prevContent}</span>` +
       `<span class="wv-cx-plays"${playsStyle}>${s.count}</span>` +
       shelf +
       `</div>`;

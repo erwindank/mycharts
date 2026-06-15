@@ -13328,7 +13328,9 @@ body[class*="-light"] .tm-card-search:hover {
 }
 .wv-cx-hd-spacer { width: 28px; flex-shrink: 0; }
 .wv-cx-hd-title { flex: 1; min-width: 0; }
-.wv-cx-hd-right { flex-shrink: 0; }
+.wv-cx-hd-wks { flex-shrink: 0; width: 60px; text-align: right; }
+.wv-cx-hd-prev { flex-shrink: 0; width: 50px; text-align: center; }
+.wv-cx-hd-plays { flex-shrink: 0; min-width: 24px; text-align: right; }
 
 /* Row — flex-wrap so accordion shelf wraps to its own line */
 .wv-cx-row { display: flex; align-items: center; flex-wrap: wrap; gap: 0.4rem; padding: 0.3rem 0.5rem; border-bottom: 1px solid var(--border); min-height: 40px; cursor: pointer; }
@@ -13342,10 +13344,11 @@ body[class*="-light"] .tm-card-search:hover {
 .wv-r3.wv-cx-row { background: rgba(180,83,9,0.08); }
 .wv-cx-row.wv-cx-open { background: rgba(255,255,255,0.05) !important; }
 
-/* Feature 8: rank + medals */
-.wv-cx-rank { font-family: 'DM Mono', monospace; font-size: 0.7rem; font-weight: 700; color: var(--text3); min-width: 20px; text-align: right; flex-shrink: 0; }
+/* Feature 8: rank numbers (all positions), gold/silver/bronze for top 3 */
+.wv-cx-rank { font-family: 'DM Mono', monospace; font-size: 1rem; font-weight: 700; color: var(--text3); min-width: 20px; text-align: right; flex-shrink: 0; }
 .wv-r1 .wv-cx-rank { color: var(--gold1); }
-.wv-cx-medal { font-size: 0.95rem; line-height: 1; }
+.wv-r2 .wv-cx-rank { color: #94a3b8; }
+.wv-r3 .wv-cx-rank { color: #b45309; }
 
 /* Feature 9: art wrap + tooltip */
 .wv-cx-art-wrap { position: relative; flex-shrink: 0; }
@@ -13375,10 +13378,12 @@ body[class*="-light"] .tm-card-search:hover {
 .wv-cx-row:hover .wv-cx-play-btn { opacity: 1; }
 .wv-cx-play-btn:hover { background: #cc0000; }
 
-/* Feature 2: weeks badge */
-.wv-cx-wks { font-size: 0.62rem; color: var(--text3); flex-shrink: 0; }
+/* Feature 2: weeks column (spelled out) */
+.wv-cx-wks { font-family: 'DM Mono', monospace; font-size: 0.62rem; color: var(--text3); flex-shrink: 0; width: 60px; text-align: right; }
 
-.wv-cx-mv { flex-shrink: 0; min-width: 28px; }
+/* Previous column: movement arrow + prev rank below */
+.wv-cx-prev { flex-shrink: 0; width: 50px; display: flex; flex-direction: column; align-items: center; gap: 1px; }
+.wv-cx-prev-rank { font-family: 'DM Mono', monospace; font-size: 0.52rem; color: var(--text3); }
 
 /* Feature 7: color-scaled play count */
 .wv-cx-plays { font-family: 'DM Mono', monospace; font-size: 0.7rem; font-weight: 600; color: var(--text3); flex-shrink: 0; min-width: 24px; text-align: right; transition: color 0.2s; }
