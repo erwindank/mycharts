@@ -2338,6 +2338,260 @@
       white-space: nowrap;
     }
 
+    /* =============================================
+       BUBBLING UNDER SECTION
+       Ideas: 1 (size), 5 (accordion+bubbles), 6 (faded),
+              8 (italic rank), 9 (toggle), 13 (plays away),
+              14 (weeks BU), 15 (fading), 16 (break), 17 (pill)
+       ============================================= */
+
+    .bu-section {
+      margin-top: -1rem;
+      margin-bottom: 2rem;
+      padding-left: 1rem;
+      border-left: 2px solid rgba(125, 211, 252, 0.25);
+    }
+
+    /* Idea 17: header looks like a clickable tab/pill row */
+    .bu-section-header {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      cursor: pointer;
+      user-select: none;
+      padding: 0.45rem 0.6rem;
+      border-radius: 8px;
+      transition: background 0.15s;
+      flex-wrap: wrap;
+      border: 1px solid rgba(125, 211, 252, 0.18);
+      background: rgba(125, 211, 252, 0.04);
+    }
+    .bu-section-header:hover {
+      background: rgba(125, 211, 252, 0.1);
+      border-color: rgba(125, 211, 252, 0.35);
+    }
+
+    /* Idea 5: bubble emoji — animated float */
+    .bu-bubble-emoji {
+      font-size: 1.1rem;
+      animation: buFloat 3s ease-in-out infinite;
+      display: inline-block;
+    }
+    @keyframes buFloat {
+      0%, 100% { transform: translateY(0); }
+      50%       { transform: translateY(-4px); }
+    }
+
+    /* Idea 17: title styled like a section pill */
+    .bu-section-title {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.62rem;
+      letter-spacing: 0.15em;
+      font-weight: 700;
+      color: #7dd3fc;
+      white-space: nowrap;
+    }
+
+    .bu-type-label {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.6rem;
+      letter-spacing: 0.08em;
+      color: var(--text2);
+      white-space: nowrap;
+    }
+
+    /* Idea 9: count badge */
+    .bu-count-pill {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 20px;
+      background: rgba(125, 211, 252, 0.15);
+      color: #7dd3fc;
+      font-size: 0.6rem;
+      font-weight: 700;
+      padding: 1px 6px;
+      border-radius: 20px;
+      border: 1px solid rgba(125, 211, 252, 0.3);
+      font-family: 'DM Mono', monospace;
+    }
+
+    .bu-toggle-icon {
+      font-size: 0.55rem;
+      color: var(--text3);
+      margin-left: auto;
+    }
+
+    /* Idea 5: accordion body */
+    .bu-body {
+      overflow: hidden;
+      padding-top: 0.4rem;
+    }
+
+    .bu-sub {
+      font-size: 0.65rem;
+      color: var(--text3);
+      font-style: italic;
+      margin-bottom: 0.5rem;
+      padding-left: 0.25rem;
+    }
+
+    /* Idea 6: muted table opacity */
+    .bu-table {
+      width: 100%;
+      opacity: 0.72;
+    }
+    .bu-table tr:hover {
+      opacity: 1;
+    }
+
+    .bu-row td {
+      padding: 0.3rem 0.5rem;
+      font-size: 0.82rem;
+      border-bottom: 1px solid rgba(255,255,255,0.04);
+      vertical-align: top;
+    }
+
+    /* Idea 8: italic, muted rank numbers */
+    .bu-rank-cell {
+      font-style: italic;
+      color: var(--text3);
+      font-size: 0.75rem;
+      font-family: 'DM Mono', monospace;
+      text-align: right;
+      white-space: nowrap;
+      width: 46px;
+      vertical-align: middle;
+    }
+
+    .bu-name-cell {
+      padding-left: 0.75rem !important;
+    }
+
+    .bu-display-name {
+      font-size: 0.84rem;
+      font-weight: 500;
+      color: var(--text);
+      line-height: 1.3;
+    }
+
+    .bu-sub-name {
+      font-size: 0.7rem;
+      color: var(--text2);
+      margin-top: 1px;
+      line-height: 1.3;
+    }
+
+    .bu-badges {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 3px;
+      margin-top: 4px;
+    }
+
+    /* Badges — ideas 13, 14, 15, 16 */
+    .bu-badge {
+      font-size: 0.58rem;
+      font-family: 'DM Mono', monospace;
+      padding: 1px 5px;
+      border-radius: 4px;
+      white-space: nowrap;
+      letter-spacing: 0.02em;
+      cursor: default;
+    }
+
+    /* Idea 13: plays away (cyan) */
+    .bu-badge-away {
+      background: rgba(125, 211, 252, 0.12);
+      color: #7dd3fc;
+      border: 1px solid rgba(125, 211, 252, 0.25);
+    }
+
+    /* Idea 15: fading — was on chart, now below (orange) */
+    .bu-badge-fading {
+      background: rgba(251, 146, 60, 0.12);
+      color: #fb923c;
+      border: 1px solid rgba(251, 146, 60, 0.25);
+    }
+
+    /* Idea 16: potential break — first time near chart (green) */
+    .bu-badge-breaking {
+      background: rgba(74, 222, 128, 0.12);
+      color: #4ade80;
+      border: 1px solid rgba(74, 222, 128, 0.25);
+    }
+
+    /* Idea 14: consecutive weeks in BU (purple) */
+    .bu-badge-weeks {
+      background: rgba(167, 139, 250, 0.12);
+      color: #a78bfa;
+      border: 1px solid rgba(167, 139, 250, 0.25);
+    }
+
+    .bu-plays-cell {
+      text-align: right;
+      white-space: nowrap;
+      vertical-align: middle;
+    }
+
+    .bu-play-count {
+      font-size: 0.76rem;
+      color: var(--text2);
+      font-family: 'DM Mono', monospace;
+    }
+
+    /* =============================================
+       NEW ENTRIES SECTION HEADER — pill style
+       Matches the BU section header visual language
+       but with a teal/accent sparkle tone
+       ============================================= */
+
+    .ne-section-header {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.4rem 0.6rem;
+      border-radius: 8px;
+      border: 1px solid rgba(45, 212, 191, 0.2);
+      background: rgba(45, 212, 191, 0.04);
+      transition: background 0.15s, border-color 0.15s;
+      flex-wrap: wrap;
+      margin-bottom: 0.5rem;
+    }
+    .ne-section-header:hover {
+      background: rgba(45, 212, 191, 0.09);
+      border-color: rgba(45, 212, 191, 0.35);
+    }
+
+    /* The ✦ icon — subtle pulse to signal "new" */
+    .ne-sparkle-emoji {
+      font-size: 0.9rem;
+      color: #2dd4bf;
+      animation: neSparkle 2.5s ease-in-out infinite;
+      display: inline-block;
+    }
+    @keyframes neSparkle {
+      0%, 100% { opacity: 1;   transform: scale(1); }
+      50%       { opacity: 0.6; transform: scale(0.88); }
+    }
+
+    /* Title text inherits the same monospace font treatment as BU */
+    .ne-title-text {
+      font-family: 'DM Mono', monospace !important;
+      font-size: 0.62rem !important;
+      letter-spacing: 0.1em !important;
+      font-weight: 600 !important;
+      color: #2dd4bf !important;
+      white-space: nowrap;
+    }
+
+    /* Arrow toggle — sits right after the title text, no spacer */
+    .ne-toggle-icon {
+      font-size: 0.55rem;
+      color: var(--text3);
+      flex-shrink: 0;
+    }
+
     .section-header {
       display: flex;
       align-items: center;
@@ -2502,15 +2756,15 @@
     }
 
     .chart-table tbody tr.rank-1:hover {
-      background: rgba(240, 170, 48, 0.16);
+      background: rgba(240, 170, 48, 0.26);
     }
 
     .chart-table tbody tr.rank-2:hover {
-      background: rgba(148, 163, 184, 0.13);
+      background: rgba(148, 163, 184, 0.20);
     }
 
     .chart-table tbody tr.rank-3:hover {
-      background: rgba(192, 120, 80, 0.13);
+      background: rgba(192, 120, 80, 0.20);
     }
 
     .chart-table td {
@@ -2530,27 +2784,30 @@
     }
 
     .rank-1 {
-      background: rgba(240, 170, 48, 0.1);
+      background: rgba(240, 170, 48, 0.18);
     }
 
     .rank-2 {
-      background: rgba(148, 163, 184, 0.08);
+      background: rgba(148, 163, 184, 0.13);
     }
 
     .rank-3 {
-      background: rgba(192, 120, 80, 0.08);
+      background: rgba(192, 120, 80, 0.13);
     }
 
     .rank-1 .rank-cell {
       color: var(--gold1);
+      border-left: 3px solid rgba(240, 170, 48, 0.75);
     }
 
     .rank-2 .rank-cell {
       color: #94a3b8;
+      border-left: 3px solid rgba(148, 163, 184, 0.55);
     }
 
     .rank-3 .rank-cell {
       color: #c07850;
+      border-left: 3px solid rgba(192, 120, 80, 0.55);
     }
 
     .badge-new,

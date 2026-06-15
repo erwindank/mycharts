@@ -439,11 +439,30 @@
       </div>
     </div>
 
+    <!-- BUBBLING UNDER — SONGS (weekly only, idea 1/5/6/8/9/13/14/15/16/17) -->
+    <div class="chart-section bu-section" id="buSongsSection" style="display:none;">
+      <div class="bu-section-header" onclick="toggleBuSection('songs')">
+        <span class="bu-bubble-emoji">🫧</span>
+        <span class="bu-section-title">BUBBLING UNDER</span>
+        <span class="bu-type-label">Songs</span>
+        <span class="bu-count-pill" id="buSongsCount">0</span>
+        <span class="bu-toggle-icon" id="buSongsToggleIcon">▼</span>
+        <div class="section-rule"></div>
+      </div>
+      <div class="bu-body" id="buSongsBody" style="display:none;">
+        <div class="bu-sub">Songs just outside the chart — ranked by plays this week</div>
+        <table class="chart-table bu-table">
+          <tbody id="buSongsTableBody"></tbody>
+        </table>
+      </div>
+    </div>
+
     <div class="chart-section new-entries-section" id="newSongsSection" style="display:none;">
-      <div class="section-header">
-        <button class="section-collapse-btn" data-target="newSongsSection" title="Collapse">−</button>
-        <span id="newSongsTitle" class="new-entries-title">✦ New Songs This Week</span>
-        <span class="section-collapsed-label" data-i18n="collapsed_hint">collapsed — click + to expand</span>
+      <div class="section-header ne-section-header" onclick="toggleNeSection('songs')">
+        <span class="ne-sparkle-emoji">✦</span>
+        <span id="newSongsTitle" class="new-entries-title ne-title-text">New Songs This Week</span>
+        <span class="ne-toggle-icon" id="neSongsToggleIcon">▲</span>
+        <span class="section-collapsed-label">collapsed — click ✦ to expand</span>
         <div class="section-rule"></div>
       </div>
       <div class="section-body">
@@ -539,11 +558,30 @@
       </div>
     </div>
 
+    <!-- BUBBLING UNDER — ARTISTS (weekly only) -->
+    <div class="chart-section bu-section" id="buArtistsSection" style="display:none;">
+      <div class="bu-section-header" onclick="toggleBuSection('artists')">
+        <span class="bu-bubble-emoji">🫧</span>
+        <span class="bu-section-title">BUBBLING UNDER</span>
+        <span class="bu-type-label">Artists</span>
+        <span class="bu-count-pill" id="buArtistsCount">0</span>
+        <span class="bu-toggle-icon" id="buArtistsToggleIcon">▼</span>
+        <div class="section-rule"></div>
+      </div>
+      <div class="bu-body" id="buArtistsBody" style="display:none;">
+        <div class="bu-sub">Artists just outside the chart — ranked by plays this week</div>
+        <table class="chart-table bu-table">
+          <tbody id="buArtistsTableBody"></tbody>
+        </table>
+      </div>
+    </div>
+
     <div class="chart-section new-entries-section" id="newArtistsSection" style="display:none;">
-      <div class="section-header">
-        <button class="section-collapse-btn" data-target="newArtistsSection" title="Collapse">−</button>
-        <span id="newArtistsTitle" class="new-entries-title">✦ New Artists This Week</span>
-        <span class="section-collapsed-label" data-i18n="collapsed_hint">collapsed — click + to expand</span>
+      <div class="section-header ne-section-header" onclick="toggleNeSection('artists')">
+        <span class="ne-sparkle-emoji">✦</span>
+        <span id="newArtistsTitle" class="new-entries-title ne-title-text">New Artists This Week</span>
+        <span class="ne-toggle-icon" id="neArtistsToggleIcon">▲</span>
+        <span class="section-collapsed-label">collapsed — click ✦ to expand</span>
         <div class="section-rule"></div>
       </div>
       <div class="section-body">
@@ -639,11 +677,30 @@
       </div>
     </div>
 
+    <!-- BUBBLING UNDER — ALBUMS (weekly only) -->
+    <div class="chart-section bu-section" id="buAlbumsSection" style="display:none;">
+      <div class="bu-section-header" onclick="toggleBuSection('albums')">
+        <span class="bu-bubble-emoji">🫧</span>
+        <span class="bu-section-title">BUBBLING UNDER</span>
+        <span class="bu-type-label">Albums</span>
+        <span class="bu-count-pill" id="buAlbumsCount">0</span>
+        <span class="bu-toggle-icon" id="buAlbumsToggleIcon">▼</span>
+        <div class="section-rule"></div>
+      </div>
+      <div class="bu-body" id="buAlbumsBody" style="display:none;">
+        <div class="bu-sub">Albums just outside the chart — ranked by plays this week</div>
+        <table class="chart-table bu-table">
+          <tbody id="buAlbumsTableBody"></tbody>
+        </table>
+      </div>
+    </div>
+
     <div class="chart-section new-entries-section" id="newAlbumsSection" style="display:none;">
-      <div class="section-header">
-        <button class="section-collapse-btn" data-target="newAlbumsSection" title="Collapse">−</button>
-        <span id="newAlbumsTitle" class="new-entries-title">✦ New Albums This Week</span>
-        <span class="section-collapsed-label" data-i18n="collapsed_hint">collapsed — click + to expand</span>
+      <div class="section-header ne-section-header" onclick="toggleNeSection('albums')">
+        <span class="ne-sparkle-emoji">✦</span>
+        <span id="newAlbumsTitle" class="new-entries-title ne-title-text">New Albums This Week</span>
+        <span class="ne-toggle-icon" id="neAlbumsToggleIcon">▲</span>
+        <span class="section-collapsed-label">collapsed — click ✦ to expand</span>
         <div class="section-rule"></div>
       </div>
       <div class="section-body">

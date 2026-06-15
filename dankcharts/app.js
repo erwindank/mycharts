@@ -4196,15 +4196,28 @@ document.addEventListener('click', e => {
 const CHART_COLLAPSIBLE_SECTIONS = ['songsSection', 'artistsSection', 'albumsSection', 'dropoutsSection', 'newSongsSection', 'newArtistsSection', 'newAlbumsSection'];
 
 function restoreChartSectionCollapseState(period) {
+  // Map of new-entries section IDs to their arrow icon element IDs
+  const neArrowIds = {
+    newSongsSection:   'neSongsToggleIcon',
+    newArtistsSection: 'neArtistsToggleIcon',
+    newAlbumsSection:  'neAlbumsToggleIcon',
+  };
   CHART_COLLAPSIBLE_SECTIONS.forEach(id => {
     const section = document.getElementById(id);
     if (!section) return;
     const collapsed = localStorage.getItem('dc_chart_section_collapsed_' + id + '_' + period) === '1';
     section.classList.toggle('collapsed', collapsed);
+    // Old-style sections still have a collapse button — update it if present
     const btn = section.querySelector('.section-collapse-btn');
     if (btn) {
       btn.textContent = collapsed ? '+' : '−';
       btn.title = collapsed ? 'Expand' : 'Collapse';
+    }
+    // New-entries sections use an arrow icon instead of a button
+    const arrowId = neArrowIds[id];
+    if (arrowId) {
+      const iconEl = document.getElementById(arrowId);
+      if (iconEl) iconEl.textContent = collapsed ? '▼' : '▲';
     }
   });
 }
@@ -5001,7 +5014,7 @@ function renderNewEntries(plays, start, end) {
     songSec.style.display = songShown > 0 ? '' : 'none';
     const songPrefix = songTotal > songShown ? `TOP ${songShown}` : `${songShown}`;
     const songSuffix = songTotal > songShown ? t('new_chart_suffix_f', { n: songTotal }) : '';
-    document.getElementById('newSongsTitle').textContent = `✦ ${songPrefix} ${songShown !== 1 ? t('new_chart_songs') : t('new_chart_song')} ${periodLabel.toUpperCase()}${songSuffix}`;
+    document.getElementById('newSongsTitle').textContent = `${songPrefix} ${songShown !== 1 ? t('new_chart_songs') : t('new_chart_song')} ${periodLabel.toUpperCase()}${songSuffix}`;
   }
   if (artistSec) {
     const artistShown = fullNewData.newArtists.length;
@@ -5009,7 +5022,7 @@ function renderNewEntries(plays, start, end) {
     artistSec.style.display = artistShown > 0 ? '' : 'none';
     const artistPrefix = artistTotal > artistShown ? `TOP ${artistShown}` : `${artistShown}`;
     const artistSuffix = artistTotal > artistShown ? t('new_chart_suffix', { n: artistTotal }) : '';
-    document.getElementById('newArtistsTitle').textContent = `✦ ${artistPrefix} ${artistShown !== 1 ? t('new_chart_artists') : t('new_chart_artist')} ${periodLabel.toUpperCase()}${artistSuffix}`;
+    document.getElementById('newArtistsTitle').textContent = `${artistPrefix} ${artistShown !== 1 ? t('new_chart_artists') : t('new_chart_artist')} ${periodLabel.toUpperCase()}${artistSuffix}`;
   }
   if (albumSec) {
     const albumShown = fullNewData.newAlbums.length;
@@ -5017,7 +5030,7 @@ function renderNewEntries(plays, start, end) {
     albumSec.style.display = albumShown > 0 ? '' : 'none';
     const albumPrefix = albumTotal > albumShown ? `TOP ${albumShown}` : `${albumShown}`;
     const albumSuffix = albumTotal > albumShown ? t('new_chart_suffix', { n: albumTotal }) : '';
-    document.getElementById('newAlbumsTitle').textContent = `✦ ${albumPrefix} ${albumShown !== 1 ? t('new_chart_albums') : t('new_chart_album')} ${periodLabel.toUpperCase()}${albumSuffix}`;
+    document.getElementById('newAlbumsTitle').textContent = `${albumPrefix} ${albumShown !== 1 ? t('new_chart_albums') : t('new_chart_album')} ${periodLabel.toUpperCase()}${albumSuffix}`;
   }
 
   renderNewPage('newSongs');
@@ -7294,6 +7307,13 @@ function buildPeriodStats(period) {
   const bpsEver = { songs: new Set(), artists: new Set(), albums: new Set() };
   const bpsPrev = { songs: new Map(), artists: new Map(), albums: new Map() };
 
+  // Bubbling Under tracking: how many total weeks each entry has appeared in the BU zone,
+  // and what each entry's count was in the previous period (for "plays away" delta).
+  const bubblingUnderWeeks = { songs: {}, artists: {}, albums: {} };
+  const prevBubblingUnder = { songs: {}, artists: {}, albums: {} };
+  // buSize matches the render functions: 50 for Top 100, else 10
+  const _bpsBuSize = chartSize >= 100 ? 50 : 10;
+
   for (const [mk, mm] of Object.entries(periodMap).sort((a, b) => a[0].localeCompare(b[0]))) {
     for (const type of ['songs', 'artists', 'albums']) {
       for (const [k, data] of Object.entries(mm[type])) {
@@ -7301,18 +7321,25 @@ function buildPeriodStats(period) {
         data.chartStatus = prevRk !== undefined ? 0 : bpsEver[type].has(k) ? 1 : 2;
         data.prevRank = prevRk !== undefined ? prevRk : Infinity;
       }
+      // Sort once — reused for both chart entries and BU zone entries
+      const _bpsAllSorted = Object.entries(mm[type]).sort(([, a], [, b]) => rankSortWithStatus(a, b));
       const newPrev = new Map();
-      Object.entries(mm[type]).sort(([, a], [, b]) => rankSortWithStatus(a, b)).slice(0, chartSize).forEach(([k, data], i) => {
+      _bpsAllSorted.slice(0, chartSize).forEach(([k, data], i) => {
         newPrev.set(k, i + 1); bpsEver[type].add(k);
         periodsOnChart[type][k] = (periodsOnChart[type][k] || 0) + 1;
         if (mk < curKey) everChartedBefore[type].add(k);
         if (mk === prevKey) prevChart[type][k] = { rank: i + 1, count: data.count };
       });
+      // Track BU zone entries (ranks chartSize+1 through chartSize+buSize)
+      _bpsAllSorted.slice(chartSize, chartSize + _bpsBuSize).forEach(([k, data]) => {
+        bubblingUnderWeeks[type][k] = (bubblingUnderWeeks[type][k] || 0) + 1;
+        if (mk === prevKey) prevBubblingUnder[type][k] = { count: data.count };
+      });
       bpsPrev[type] = newPrev;
     }
   }
 
-  return { periodsOnChart, prevChart, everChartedBefore };
+  return { periodsOnChart, prevChart, everChartedBefore, bubblingUnderWeeks, prevBubblingUnder };
 }
 
 function mPrevCell(curRank, key, type, ms) {
@@ -7589,7 +7616,11 @@ function renderSongs(plays, peaks, monthlyStats) {
       entry.prevRank = prev ? prev.rank : Infinity;
     }
   }
-  const sorted = Object.values(counts).sort(monthlyStats ? rankSortWithStatus : rankSort).slice(0, chartSize);
+  // Sort once; BU pool is the slice just beyond chartSize
+  const _buSizeSongs = chartSize >= 100 ? 50 : 10;
+  const _allSortedSongs = Object.values(counts).sort(monthlyStats ? rankSortWithStatus : rankSort);
+  const sorted = _allSortedSongs.slice(0, chartSize);
+  const _buPoolSongs = (currentPeriod === 'week' && monthlyStats) ? _allSortedSongs.slice(chartSize, chartSize + _buSizeSongs) : [];
   fullData.songs = sorted;
   // Reconcile peak map: current period was excluded from buildPeriodPeaks (which uses rankSort),
   // so apply the actual rendered rank here. Take the min vs any historical peak from past periods.
@@ -7684,6 +7715,15 @@ function renderSongs(plays, peaks, monthlyStats) {
   const playAllRow = document.getElementById('ytPlayAllRow');
   if (playAllRow) playAllRow.style.display = sorted.length > 0 ? '' : 'none';
   if (currentPeriod === 'week') applyWeeklyChartView('songs');
+  // Render Bubbling Under section (weekly only, requires history stats)
+  if (currentPeriod === 'week' && monthlyStats) {
+    const _buNormSongs = _buPoolSongs.map(s => ({
+      key: songKey(s), displayName: s.title, subName: s.artist, count: s.count
+    }));
+    renderBubblingUnder('songs', _buNormSongs, monthlyStats, sorted[sorted.length - 1]?.count || 0);
+  } else {
+    hideBuSection('songs');
+  }
 }
 
 function renderArtists(plays, peaks, monthlyStats) {
@@ -7702,7 +7742,11 @@ function renderArtists(plays, peaks, monthlyStats) {
       data.prevRank = prev ? prev.rank : Infinity;
     }
   }
-  const sorted = Object.entries(counts).sort(([, a], [, b]) => monthlyStats ? rankSortWithStatus(a, b) : rankSort(a, b)).slice(0, chartSize);
+  // Sort once; BU pool is the slice just beyond chartSize
+  const _buSizeArtists = chartSize >= 100 ? 50 : 10;
+  const _allSortedArtists = Object.entries(counts).sort(([, a], [, b]) => monthlyStats ? rankSortWithStatus(a, b) : rankSort(a, b));
+  const sorted = _allSortedArtists.slice(0, chartSize);
+  const _buPoolArtists = (currentPeriod === 'week' && monthlyStats) ? _allSortedArtists.slice(chartSize, chartSize + _buSizeArtists) : [];
   fullData.artists = sorted.map(([name, data]) => ({ name, ...data }));
   // Reconcile peak map with actual chart ranks (current period excluded from buildPeriodPeaks)
   if (currentPeriod !== 'alltime') {
@@ -7781,6 +7825,15 @@ function renderArtists(plays, peaks, monthlyStats) {
     loadImages(imgItems, 'artist');
   }
   if (currentPeriod === 'week') applyWeeklyChartView('artists');
+  // Render Bubbling Under section (weekly only, requires history stats)
+  if (currentPeriod === 'week' && monthlyStats) {
+    const _buNormArtists = _buPoolArtists.map(([name, data]) => ({
+      key: name, displayName: name, subName: '', count: data.count
+    }));
+    renderBubblingUnder('artists', _buNormArtists, monthlyStats, sorted[sorted.length - 1]?.[1].count || 0);
+  } else {
+    hideBuSection('artists');
+  }
 }
 
 function renderAlbums(plays, peaks, monthlyStats) {
@@ -7798,7 +7851,11 @@ function renderAlbums(plays, peaks, monthlyStats) {
       entry.prevRank = prev ? prev.rank : Infinity;
     }
   }
-  const sorted = Object.values(counts).filter(a => a.album && a.album !== '—').sort(monthlyStats ? rankSortWithStatus : rankSort).slice(0, chartSize);
+  // Sort once; BU pool is the slice just beyond chartSize
+  const _buSizeAlbums = chartSize >= 100 ? 50 : 10;
+  const _allSortedAlbums = Object.values(counts).filter(a => a.album && a.album !== '—').sort(monthlyStats ? rankSortWithStatus : rankSort);
+  const sorted = _allSortedAlbums.slice(0, chartSize);
+  const _buPoolAlbums = (currentPeriod === 'week' && monthlyStats) ? _allSortedAlbums.slice(chartSize, chartSize + _buSizeAlbums) : [];
   fullData.albums = sorted;
   // Reconcile peak map with actual chart ranks (current period excluded from buildPeriodPeaks)
   if (currentPeriod !== 'alltime') {
@@ -7887,6 +7944,114 @@ function renderAlbums(plays, peaks, monthlyStats) {
     }
   }
   if (currentPeriod === 'week') applyWeeklyChartView('albums');
+  // Render Bubbling Under section (weekly only, requires history stats)
+  if (currentPeriod === 'week' && monthlyStats) {
+    const _buNormAlbums = _buPoolAlbums.map(a => ({
+      key: a.album + '|||' + albumArtist(a), displayName: a.album, subName: albumArtist(a), count: a.count
+    }));
+    renderBubblingUnder('albums', _buNormAlbums, monthlyStats, sorted[sorted.length - 1]?.count || 0);
+  } else {
+    hideBuSection('albums');
+  }
+}
+
+// ─── BUBBLING UNDER ─────────────────────────────────────────────
+// Tracks open/closed state of the accordion per type (songs/artists/albums)
+const _buOpen = { songs: false, artists: false, albums: false };
+
+function toggleBuSection(type) {
+  _buOpen[type] = !_buOpen[type];
+  const ucType = type.charAt(0).toUpperCase() + type.slice(1);
+  const bodyEl = document.getElementById('bu' + ucType + 'Body');
+  const iconEl = document.getElementById('bu' + ucType + 'ToggleIcon');
+  if (bodyEl) bodyEl.style.display = _buOpen[type] ? '' : 'none';
+  if (iconEl) iconEl.textContent = _buOpen[type] ? '▲' : '▼';
+}
+
+// Toggles the New Entries section (songs/artists/albums) using the same
+// collapsed class + localStorage key as the existing section system.
+function toggleNeSection(type) {
+  const ucType = type.charAt(0).toUpperCase() + type.slice(1);
+  const sectionId = 'new' + ucType + 'Section';
+  const sectionEl = document.getElementById(sectionId);
+  const iconEl    = document.getElementById('ne' + ucType + 'ToggleIcon');
+  if (!sectionEl) return;
+  const collapsed = sectionEl.classList.toggle('collapsed');
+  if (iconEl) iconEl.textContent = collapsed ? '▼' : '▲';
+  // Persist via the same key used by restoreChartSectionCollapseState
+  localStorage.setItem('dc_chart_section_collapsed_' + sectionId + '_' + currentPeriod, collapsed ? '1' : '0');
+}
+
+function hideBuSection(type) {
+  const ucType = type.charAt(0).toUpperCase() + type.slice(1);
+  const sectionEl = document.getElementById('bu' + ucType + 'Section');
+  if (sectionEl) sectionEl.style.display = 'none';
+}
+
+// Renders the Bubbling Under section for songs, artists, or albums.
+// normalizedPool: array of { key, displayName, subName, count }
+// ms: monthlyStats (must have bubblingUnderWeeks, prevBubblingUnder, everChartedBefore, prevChart)
+// lowestChartCount: play count of the last entry on the main chart (for "X plays away")
+function renderBubblingUnder(type, normalizedPool, ms, lowestChartCount) {
+  const ucType = type.charAt(0).toUpperCase() + type.slice(1);
+  const sectionEl  = document.getElementById('bu' + ucType + 'Section');
+  const countEl    = document.getElementById('bu' + ucType + 'Count');
+  const bodyEl     = document.getElementById('bu' + ucType + 'Body');
+  const tbodyEl    = document.getElementById('bu' + ucType + 'TableBody');
+  const iconEl     = document.getElementById('bu' + ucType + 'ToggleIcon');
+
+  if (!sectionEl) return;
+
+  if (!normalizedPool || normalizedPool.length === 0) {
+    sectionEl.style.display = 'none';
+    return;
+  }
+
+  sectionEl.style.display = '';
+  if (countEl) countEl.textContent = normalizedPool.length;
+  if (bodyEl)  bodyEl.style.display = _buOpen[type] ? '' : 'none';
+  if (iconEl)  iconEl.textContent = _buOpen[type] ? '▲' : '▼';
+
+  const rows = normalizedPool.map((item, i) => {
+    const rank = chartSize + 1 + i;
+    const { key, displayName, subName, count } = item;
+
+    // Idea 13: plays away from entering the chart
+    const playsAway = Math.max(0, lowestChartCount - count);
+
+    // Idea 14: total weeks this entry has appeared in the BU zone (current week = +1)
+    const totalBuWeeks = (ms.bubblingUnderWeeks?.[type]?.[key] || 0) + 1;
+
+    // Idea 15: was ever on the chart but isn't now → fading
+    const everCharted    = ms.everChartedBefore[type].has(key);
+    const wasOnLastWeek  = !!ms.prevChart[type][key];
+    const isFading       = everCharted && !wasOnLastWeek;
+
+    // Idea 16: never charted, never in BU before → potential break
+    const wasBuLastWeek  = !!(ms.prevBubblingUnder?.[type]?.[key]);
+    const isBreaking     = !everCharted && !wasBuLastWeek;
+
+    // Build badges (ideas 13, 14, 15, 16)
+    let badges = '';
+    if (playsAway > 0) badges += `<span class="bu-badge bu-badge-away" title="${playsAway} more play${playsAway !== 1 ? 's' : ''} needed to enter the chart">${playsAway} play${playsAway !== 1 ? 's' : ''} away</span>`;
+    if (isFading)      badges += `<span class="bu-badge bu-badge-fading" title="Previously on the chart, now bubbling under">📉 Fading</span>`;
+    if (isBreaking)    badges += `<span class="bu-badge bu-badge-breaking" title="First time near the chart — potential break">🔥 Break</span>`;
+    if (totalBuWeeks >= 2) badges += `<span class="bu-badge bu-badge-weeks" title="${totalBuWeeks} total weeks in the Bubbling Under zone">🫧 ${totalBuWeeks}wk</span>`;
+
+    return `<tr class="bu-row">
+      <td class="bu-rank-cell">#${rank}</td>
+      <td class="bu-name-cell">
+        <div class="bu-display-name">${esc(displayName)}</div>
+        ${subName ? `<div class="bu-sub-name">${esc(subName)}</div>` : ''}
+        ${badges ? `<div class="bu-badges">${badges}</div>` : ''}
+      </td>
+      <td class="bu-plays-cell">
+        <div class="bu-play-count">${tCountHtml('plays', count)}</div>
+      </td>
+    </tr>`;
+  });
+
+  if (tbodyEl) tbodyEl.innerHTML = rows.join('');
 }
 
 // ─── WEEKLY CHART VIEWS ────────────────────────────────────────
