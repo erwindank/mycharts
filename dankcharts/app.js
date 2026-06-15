@@ -4264,6 +4264,9 @@ document.getElementById('periodNav').addEventListener('click', e => {
     document.getElementById('songsSection').style.display = 'none';
     document.getElementById('artistsSection').style.display = 'none';
     document.getElementById('albumsSection').style.display = 'none';
+    document.getElementById('buSongsSection').style.display = 'none';
+    document.getElementById('buArtistsSection').style.display = 'none';
+    document.getElementById('buAlbumsSection').style.display = 'none';
     document.getElementById('dropoutsSection').style.display = 'none';
     NEW_ENTRY_SECTIONS.forEach(id => { const el = document.getElementById(id); if (el) el.style.display = 'none'; });
     document.getElementById('upcomingSection').style.display = 'none';
@@ -4301,6 +4304,9 @@ document.getElementById('periodNav').addEventListener('click', e => {
     document.getElementById('songsSection').style.display = 'none';
     document.getElementById('artistsSection').style.display = 'none';
     document.getElementById('albumsSection').style.display = 'none';
+    document.getElementById('buSongsSection').style.display = 'none';
+    document.getElementById('buArtistsSection').style.display = 'none';
+    document.getElementById('buAlbumsSection').style.display = 'none';
     document.getElementById('dropoutsSection').style.display = 'none';
     NEW_ENTRY_SECTIONS.forEach(id => { const el = document.getElementById(id); if (el) el.style.display = 'none'; });
     document.getElementById('upcomingSection').style.display = 'none';
@@ -4332,6 +4338,9 @@ document.getElementById('periodNav').addEventListener('click', e => {
     document.getElementById('songsSection').style.display = 'none';
     document.getElementById('artistsSection').style.display = 'none';
     document.getElementById('albumsSection').style.display = 'none';
+    document.getElementById('buSongsSection').style.display = 'none';
+    document.getElementById('buArtistsSection').style.display = 'none';
+    document.getElementById('buAlbumsSection').style.display = 'none';
     document.getElementById('dropoutsSection').style.display = 'none';
     NEW_ENTRY_SECTIONS.forEach(id => { const el = document.getElementById(id); if (el) el.style.display = 'none'; });
     document.getElementById('upcomingSection').style.display = 'none';
@@ -4366,6 +4375,9 @@ document.getElementById('periodNav').addEventListener('click', e => {
     document.getElementById('songsSection').style.display = 'none';
     document.getElementById('artistsSection').style.display = 'none';
     document.getElementById('albumsSection').style.display = 'none';
+    document.getElementById('buSongsSection').style.display = 'none';
+    document.getElementById('buArtistsSection').style.display = 'none';
+    document.getElementById('buAlbumsSection').style.display = 'none';
     document.getElementById('dropoutsSection').style.display = 'none';
     NEW_ENTRY_SECTIONS.forEach(id => { const el = document.getElementById(id); if (el) el.style.display = 'none'; });
     document.getElementById('upcomingSection').style.display = 'none';
@@ -4412,6 +4424,9 @@ document.getElementById('periodNav').addEventListener('click', e => {
     document.getElementById('songsSection').style.display = 'none';
     document.getElementById('artistsSection').style.display = 'none';
     document.getElementById('albumsSection').style.display = 'none';
+    document.getElementById('buSongsSection').style.display = 'none';
+    document.getElementById('buArtistsSection').style.display = 'none';
+    document.getElementById('buAlbumsSection').style.display = 'none';
     document.getElementById('dropoutsSection').style.display = 'none';
     NEW_ENTRY_SECTIONS.forEach(id => { const el = document.getElementById(id); if (el) el.style.display = 'none'; });
     document.getElementById('upcomingSection').style.display = 'none';
@@ -4444,6 +4459,9 @@ document.getElementById('periodNav').addEventListener('click', e => {
     document.getElementById('songsSection').style.display = 'none';
     document.getElementById('artistsSection').style.display = 'none';
     document.getElementById('albumsSection').style.display = 'none';
+    document.getElementById('buSongsSection').style.display = 'none';
+    document.getElementById('buArtistsSection').style.display = 'none';
+    document.getElementById('buAlbumsSection').style.display = 'none';
     document.getElementById('dropoutsSection').style.display = 'none';
     NEW_ENTRY_SECTIONS.forEach(id => { const el = document.getElementById(id); if (el) el.style.display = 'none'; });
     document.getElementById('upcomingSection').style.display = 'none';
