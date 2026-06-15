@@ -13366,12 +13366,14 @@ body[class*="-light"] .tm-card-search:hover {
 /* Feature 6: play-on-hover button */
 .wv-cx-play-btn {
   opacity: 0; flex-shrink: 0;
-  background: var(--accent); color: #fff; border: none; border-radius: 50%;
+  background: #FF0000; color: #fff; border: none; border-radius: 50%;
   width: 22px; height: 22px; font-size: 0.55rem; line-height: 1; cursor: pointer;
   display: flex; align-items: center; justify-content: center;
-  transition: opacity 0.15s;
+  padding-left: 2px; padding-top: 1px;
+  transition: opacity 0.15s, background 0.15s;
 }
 .wv-cx-row:hover .wv-cx-play-btn { opacity: 1; }
+.wv-cx-play-btn:hover { background: #cc0000; }
 
 /* Feature 2: weeks badge */
 .wv-cx-wks { font-size: 0.62rem; color: var(--text3); flex-shrink: 0; }
