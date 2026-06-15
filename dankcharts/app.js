@@ -8078,9 +8078,10 @@ function renderBubblingUnder(type, normalizedPool, ms, lowestChartCount) {
     // Idea 16c: previously charted, has been in BU multiple weeks trying to return → resurgent
     const isResurgent      = everCharted && !wasOnLastWeek && wasBuLastWeek;
 
-    // Idea 19: was ever a top-5 hit, now in BU → fallen
+    // Idea 19: was in top 3 last week, now dropped into BU → fallen
     const histPeak         = ms.peakRank?.[type]?.[key];
-    const isFallen         = histPeak !== undefined && histPeak <= 3;
+    const lastWeekRank     = ms.prevChart[type][key]?.rank;
+    const isFallen         = wasOnLastWeek && lastWeekRank <= 3;
 
     // Idea 17: biggest week-over-week play gainer in the BU pool this week → surging
     const isSurging        = key === surgingKey;
@@ -8094,7 +8095,7 @@ function renderBubblingUnder(type, normalizedPool, ms, lowestChartCount) {
     if (isPersistent)   badges += `<span class="bu-badge bu-badge-persistent" title="Has never charted — ${totalBuWeeks} weeks of showing up in the Bubbling Under zone">🏅 Persistent</span>`;
     if (isResurgence)   badges += `<span class="bu-badge bu-badge-resurgence" title="Previously on the chart — making a comeback">🌊 Resurgence</span>`;
     if (isResurgent)    badges += `<span class="bu-badge bu-badge-resurgent" title="Previously on the chart — persisting in the Bubbling Under zone">🔁 Resurgent</span>`;
-    if (isFallen)       badges += `<span class="bu-badge bu-badge-fallen" title="Former Peak #${histPeak} — now in the Bubbling Under zone">👑 Fallen</span>`;
+    if (isFallen)       badges += `<span class="bu-badge bu-badge-fallen" title="Was #${lastWeekRank} last week — now in the Bubbling Under zone">👑 Fallen</span>`;
     if (isSurging)      badges += `<span class="bu-badge bu-badge-surging" title="Biggest play increase in the Bubbling Under zone this week (+${bestSurgeDelta})">⚡ Surging</span>`;
     if (totalBuWeeks >= 2) badges += `<span class="bu-badge bu-badge-weeks" title="${totalBuWeeks} total weeks in the Bubbling Under zone">🫧 ${totalBuWeeks} ${totalBuWeeks === 1 ? 'week' : 'weeks'}</span>`;
 
