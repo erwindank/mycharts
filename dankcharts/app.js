@@ -7617,13 +7617,16 @@ function renderSongs(plays, peaks, monthlyStats) {
     const cumAlbumPlays = cumulativeMaps && s.album ? (cumulativeMaps.albumsByName[s.album] || 0) : 0;
     const histMaxSong = playsPeakMaps ? (playsPeakMaps.songs[k] || 0) : 0;
     const isPlaysPeak = !isAllTime && histMaxSong > 0 && s.count >= histMaxSong;
+    const _sPrev = monthlyStats ? monthlyStats.prevChart.songs[k] : null;
+    const barCls = !monthlyStats ? '' : !_sPrev && !monthlyStats.everChartedBefore.songs.has(k) ? ' wv-bar-new' : !_sPrev ? ' wv-bar-re' : (_sPrev.rank-(i+1)) > 0 ? ' wv-bar-up' : (_sPrev.rank-(i+1)) < 0 ? ' wv-bar-down' : '';
+    const statusCls = barCls === ' wv-bar-new' ? ' wv-row-new' : barCls === ' wv-bar-re' ? ' wv-row-re' : '';
     const _prevIdxS = _animSongs ? (_prevMapSongs[k] ?? chartSize * 2) : 0;
     const _crsiOffsetS = _animSongs ? Math.max(-200, Math.min(200, (_prevIdxS - i) * 38)) : 0;
     const _animAttrsS = _animSongs ? ` style="--crsi-offset:${_crsiOffsetS}px;--crsi-delay:${i * 50}ms"` : '';
     const _animClassS = _animSongs ? ' chart-row-anim' : '';
     const _songModalClass = (isAllTime || currentPeriod === 'year') ? ' song-row' : '';
     const _songModalAttr = (isAllTime || currentPeriod === 'year') ? ` data-songkey="${encodeURIComponent(k)}"` : '';
-    const mainRow = `<tr${_animAttrsS}${_songModalAttr} class="${i === 0 ? 'rank-1' : i === 1 ? 'rank-2' : i === 2 ? 'rank-3' : ''}${_animClassS}${_songModalClass}">
+    const mainRow = `<tr${_animAttrsS}${_songModalAttr} class="${i === 0 ? 'rank-1' : i === 1 ? 'rank-2' : i === 2 ? 'rank-3' : ''}${_animClassS}${_songModalClass}${statusCls}">
       <td class="rank-cell"><button class="cr-toggle-btn" title="${t('tooltip_cr_toggle_btn_song')}" onclick="event.stopPropagation();toggleChartRun(this,'${rowId}')">📊</button>${i + 1}</td>
       <td class="thumb-cell"><div class="thumb-wrap"><div id="${imgId}"><div class="thumb-initials">${esc(initials(s.title))}</div></div><button id="srcbtn-${imgId}" class="img-src-btn" data-imgid="${imgId}" data-type="song" data-prefkey="${esc(prefKey)}" data-name="${esc(s.title)}" data-artist="${esc(s.artist)}" data-album="${esc(s.album)}">${srcLabel(itemSourcePrefs[prefKey] || 'deezer')}</button></div></td>
       <td>
@@ -7636,7 +7639,7 @@ function renderSongs(plays, peaks, monthlyStats) {
       ${monthlyStats ? mMthsCell(k, 'songs', monthlyStats) : ''}
       <td>
         <div class="play-count">${tCountHtml('plays', s.count)}${monthlyStats ? deltaInline(s.count, k, 'songs', monthlyStats) : ''}</div>
-        <div class="play-bar"><div class="play-bar-fill" style="width:${Math.round(s.count / max * 100)}%"></div></div>
+        <div class="play-bar"><div class="play-bar-fill${barCls}" style="width:${Math.round(s.count / max * 100)}%"></div></div>
         ${isPlaysPeak ? playsPeakBadge() : ''}
       </td>
     </tr>`;
@@ -7720,11 +7723,14 @@ function renderArtists(plays, peaks, monthlyStats) {
     imgItems.push({ imgId, name: artist, prefKey });
     const histMaxArtist = playsPeakMaps ? (playsPeakMaps.artists[artist] || 0) : 0;
     const isPlaysPeak = !isAllTime && histMaxArtist > 0 && data.count >= histMaxArtist;
+    const _aPrev = monthlyStats ? monthlyStats.prevChart.artists[artist] : null;
+    const barCls = !monthlyStats ? '' : !_aPrev && !monthlyStats.everChartedBefore.artists.has(artist) ? ' wv-bar-new' : !_aPrev ? ' wv-bar-re' : (_aPrev.rank-(i+1)) > 0 ? ' wv-bar-up' : (_aPrev.rank-(i+1)) < 0 ? ' wv-bar-down' : '';
+    const statusCls = barCls === ' wv-bar-new' ? ' wv-row-new' : barCls === ' wv-bar-re' ? ' wv-row-re' : '';
     const _prevIdxA = _animArtists ? (_prevMapArtists[artist] ?? chartSize * 2) : 0;
     const _crsiOffsetA = _animArtists ? Math.max(-200, Math.min(200, (_prevIdxA - i) * 38)) : 0;
     const _animAttrsA = _animArtists ? ` style="--crsi-offset:${_crsiOffsetA}px;--crsi-delay:${i * 50}ms"` : '';
     const _animClassA = _animArtists ? ' chart-row-anim' : '';
-    const mainRow = `<tr${_animAttrsA} class="${i === 0 ? 'rank-1' : i === 1 ? 'rank-2' : i === 2 ? 'rank-3' : ''}${_animClassA} artist-row" data-artist="${esc(artist)}">
+    const mainRow = `<tr${_animAttrsA} class="${i === 0 ? 'rank-1' : i === 1 ? 'rank-2' : i === 2 ? 'rank-3' : ''}${_animClassA} artist-row${statusCls}" data-artist="${esc(artist)}">
       <td class="rank-cell"><button class="cr-toggle-btn" title="${t('tooltip_cr_toggle_btn_artist')}" onclick="event.stopPropagation();toggleChartRun(this,'${rowId}')">📊</button>${i + 1}</td>
       <td class="thumb-cell"><div class="thumb-wrap"><div id="${imgId}"><div class="thumb-initials">${esc(initials(artist))}</div></div><button id="srcbtn-${imgId}" class="img-src-btn" data-imgid="${imgId}" data-type="artist" data-prefkey="${esc(prefKey)}" data-name="${esc(artist)}" data-artist="${esc(artist)}" data-album="">${srcLabel(itemSourcePrefs[prefKey] || 'deezer')}</button></div></td>
       <td><div class="song-title">${esc(artist)}${pk ? peakBadge(pk) : ''}</div><div class="song-artist" style="font-size:0.7rem;letter-spacing:0.06em;font-style:normal;font-family:'DM Mono',monospace;color:var(--text3)">${t('click_view_profile')}</div></td>
@@ -7733,7 +7739,7 @@ function renderArtists(plays, peaks, monthlyStats) {
       ${monthlyStats ? mMthsCell(artist, 'artists', monthlyStats) : ''}
       <td>
         <div class="play-count">${isPlaysPeak ? playsPeakBadge() : ''}${tCountHtml('plays', data.count)}${monthlyStats ? deltaInline(data.count, artist, 'artists', monthlyStats) : ''}</div>
-        <div class="play-bar"><div class="play-bar-fill" style="width:${Math.round(data.count / max * 100)}%"></div></div>
+        <div class="play-bar"><div class="play-bar-fill${barCls}" style="width:${Math.round(data.count / max * 100)}%"></div></div>
       </td>
     </tr>`;
     const expandRow = `<tr class="cr-row" id="${rowId}"><td colspan="${colCount}"><div class="cr-panel" data-crtype="artists" data-crkey="${encodeURIComponent(artist)}">${buildCrPanelHTML('artists', artist)}</div></td></tr>`;
@@ -7818,11 +7824,14 @@ function renderAlbums(plays, peaks, monthlyStats) {
       const cumAlbumPlays = cumulativeMaps ? (cumulativeMaps.albums[ak] || 0) : count;
       const histMaxAlbum = playsPeakMaps ? (playsPeakMaps.albums[ak] || 0) : 0;
       const isPlaysPeak = !isAllTime && histMaxAlbum > 0 && count >= histMaxAlbum;
+      const _lPrev = monthlyStats ? monthlyStats.prevChart.albums[ak] : null;
+      const barCls = !monthlyStats ? '' : !_lPrev && !monthlyStats.everChartedBefore.albums.has(ak) ? ' wv-bar-new' : !_lPrev ? ' wv-bar-re' : (_lPrev.rank-(i+1)) > 0 ? ' wv-bar-up' : (_lPrev.rank-(i+1)) < 0 ? ' wv-bar-down' : '';
+      const statusCls = barCls === ' wv-bar-new' ? ' wv-row-new' : barCls === ' wv-bar-re' ? ' wv-row-re' : '';
       const _prevIdxL = _animAlbums ? (_prevMapAlbums[ak] ?? chartSize * 2) : 0;
       const _crsiOffsetL = _animAlbums ? Math.max(-200, Math.min(200, (_prevIdxL - i) * 38)) : 0;
       const _animAttrsL = _animAlbums ? ` style="--crsi-offset:${_crsiOffsetL}px;--crsi-delay:${i * 50}ms"` : '';
       const _animClassL = _animAlbums ? ' chart-row-anim' : '';
-      const mainRow = `<tr${_animAttrsL} class="${i === 0 ? 'rank-1' : i === 1 ? 'rank-2' : i === 2 ? 'rank-3' : ''}${_animClassL} album-row" data-albumkey="${esc(ak)}">
+      const mainRow = `<tr${_animAttrsL} class="${i === 0 ? 'rank-1' : i === 1 ? 'rank-2' : i === 2 ? 'rank-3' : ''}${_animClassL} album-row${statusCls}" data-albumkey="${esc(ak)}">
       <td class="rank-cell"><button class="cr-toggle-btn" title="${t('tooltip_cr_toggle_btn_album')}" onclick="event.stopPropagation();toggleChartRun(this,'${rowId}')">📊</button>${i + 1}</td>
       <td class="thumb-cell"><div class="thumb-wrap"><div id="${imgId}"><div class="thumb-initials">${esc(initials(album))}</div></div><button id="srcbtn-${imgId}" class="img-src-btn" data-imgid="${imgId}" data-type="album" data-prefkey="${esc(prefKey)}" data-name="${esc(album)}" data-artist="${esc(artist)}" data-album="${esc(album)}">${srcLabel(itemSourcePrefs[prefKey] || 'deezer')}</button></div></td>
       <td>
@@ -7835,7 +7844,7 @@ function renderAlbums(plays, peaks, monthlyStats) {
       ${monthlyStats ? mMthsCell(ak, 'albums', monthlyStats) : ''}
       <td>
         <div class="play-count">${isPlaysPeak ? playsPeakBadge() : ''}${tCountHtml('plays', count)}${monthlyStats ? deltaInline(count, ak, 'albums', monthlyStats) : ''}</div>
-        <div class="play-bar"><div class="play-bar-fill" style="width:${Math.round(count / max * 100)}%"></div></div>
+        <div class="play-bar"><div class="play-bar-fill${barCls}" style="width:${Math.round(count / max * 100)}%"></div></div>
       </td>
     </tr>`;
       const expandRow = `<tr class="cr-row" id="${rowId}"><td colspan="${colCount}"><div class="cr-panel" data-crtype="albums" data-crkey="${encodeURIComponent(ak)}">${buildCrPanelHTML('albums', ak)}</div></td></tr>`;
@@ -7993,6 +8002,8 @@ function _wvGrid(items, max, ms, imgItems, type) {
   const toolbar = `<div class="wv-grid-toolbar"><button class="wv-grid-density-btn${_wvGridLarge ? ' active' : ''}" onclick="toggleGridDensity()" title="Toggle card size">⊞ ${_wvGridLarge ? 'Compact' : 'Large'}</button></div>`;
   const grid = `<div class="wv-grid${_wvGridLarge ? ' wv-grid-lg' : ''}">${itemData.map(({ k, imgId, mv, s, i, ttl, sub }) => {
     const barW = Math.round(s.count / max * 100);
+    const _gPrev = ms ? ms.prevChart[type][k] : null;
+    const barCls = !ms ? '' : !_gPrev && !ms.everChartedBefore[type].has(k) ? 'wv-bar-new' : !_gPrev ? 'wv-bar-re' : (_gPrev.rank-(i+1)) > 0 ? 'wv-bar-up' : (_gPrev.rank-(i+1)) < 0 ? 'wv-bar-down' : '';
     const pk = type === 'songs' ? _weeklyViewPeaks?.songPeakMap[k] : null;
     const cumPlays = type === 'songs' && cumulativeMaps ? (cumulativeMaps.songs[k] || 0) : 0;
     const cert = type === 'songs' ? certBadge(cumPlays, 'song') : '';
@@ -8014,7 +8025,7 @@ function _wvGrid(items, max, ms, imgItems, type) {
       `<div class="wv-ttl">${esc(ttl)}${pk ? peakBadge(pk) : ''}</div>` +
       `<div class="wv-art">${esc(sub)}</div>` +
       `<div class="wv-gc-plays-row"><span class="wv-plays">${s.count} ${s.count===1?'play':'plays'}</span>${mv || ''}</div>` +
-      `<div class="wv-bar"><div class="wv-bar-fill" style="width:${barW}%"></div></div>` +
+      `<div class="wv-bar"><div class="wv-bar-fill${barCls ? ' '+barCls : ''}" style="width:${barW}%"></div></div>` +
       `</div></div>`;
   }).join('')}</div>`;
   return toolbar + grid;
@@ -8142,8 +8153,9 @@ function _wvCompact(items, max, ms, imgItems, type) {
     if (cumPlays > 0) shelfParts.push(`<span class="wv-cx-shelf-item wv-cx-shelf-total">${cumPlays} all-time</span>`);
     if (weeks && weeks > 1) shelfParts.push(`<span class="wv-cx-shelf-item wv-cx-shelf-wks">${weeks}w on chart</span>`);
     const shelf = shelfParts.length ? `<div class="wv-cx-shelf">${shelfParts.join('')}</div>` : '';
+    const statusCls = mv.includes('wv-new') ? ' wv-stk-new' : mv.includes('wv-re') ? ' wv-stk-re' : '';
 
-    return `<div class="wv-cx-row${i < 3 ? ' wv-r' + (i + 1) : ''}" onclick="toggleCxExpand(this)">` +
+    return `<div class="wv-cx-row${i < 3 ? ' wv-r' + (i + 1) : ''}${statusCls}" onclick="toggleCxExpand(this)">` +
       `<span class="wv-cx-rank">${rankHtml}</span>` +
       `<div class="wv-cx-art-wrap" onclick="event.stopPropagation()">` +
         `<div class="wv-thumb wv-thumb-sm">${_wvThumb(imgId, ttl)}</div>` +
@@ -8311,6 +8323,8 @@ function _wvFilmstrip(items, max, ms, imgItems, type) {
     const { k, imgId, mv } = _wvItem(type, s, i, ms, imgItems);
     const { ttl, sub } = _wvDisp(type, s);
     const barW = Math.round(s.count / max * 100);
+    const _fPrev = ms ? ms.prevChart[type][k] : null;
+    const barCls = !ms ? '' : !_fPrev && !ms.everChartedBefore[type].has(k) ? 'wv-bar-new' : !_fPrev ? 'wv-bar-re' : (_fPrev.rank-(i+1)) > 0 ? 'wv-bar-up' : (_fPrev.rank-(i+1)) < 0 ? 'wv-bar-down' : '';
     const pk = type === 'songs' ? _weeklyViewPeaks?.songPeakMap[k]
              : type === 'artists' ? _weeklyViewPeaks?.artistPeakMap[k]
              : _weeklyViewPeaks?.albumPeakMap[k];
@@ -8339,7 +8353,7 @@ function _wvFilmstrip(items, max, ms, imgItems, type) {
       <div class="wv-ttl">${esc(ttl)}</div>
       <div class="wv-art">${esc(sub)}</div>
       <div class="wv-plays">${s.count} plays</div>
-      <div class="wv-bar"><div class="wv-bar-fill" style="width:${barW}%"></div></div>
+      <div class="wv-bar"><div class="wv-bar-fill${barCls ? ' '+barCls : ''}" style="width:${barW}%"></div></div>
       <div class="wv-film-expand"><div class="wv-film-expand-inner">
         ${(pk || cert) ? `<div class="wv-film-exp-badges">${pk ? peakBadge(pk) : ''}${cert}</div>` : ''}
         ${wks ? `<div class="wv-film-exp-wks">${tCount('weeks_full', wks)} ${t('film_on_chart')}</div>` : ''}
