@@ -2489,6 +2489,28 @@
       margin-top: 4px;
     }
 
+    .bu-legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.35rem 1rem;
+      padding: 0.5rem 0 0.6rem;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+      margin-bottom: 0.4rem;
+    }
+
+    .bu-legend-item {
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+    }
+
+    .bu-legend-desc {
+      font-size: 0.58rem;
+      font-family: 'DM Sans', sans-serif;
+      color: var(--text3);
+      white-space: nowrap;
+    }
+
     /* Badges — ideas 13, 14, 15, 16 */
     .bu-badge {
       font-size: 0.58rem;
@@ -2514,11 +2536,53 @@
       border: 1px solid rgba(251, 146, 60, 0.25);
     }
 
-    /* Idea 16: potential break — first time near chart (green) */
-    .bu-badge-breaking {
+    /* Idea 16: trending — never charted, steadily in BU (green) */
+    .bu-badge-trending {
       background: rgba(74, 222, 128, 0.12);
       color: #4ade80;
       border: 1px solid rgba(74, 222, 128, 0.25);
+    }
+
+    /* Idea 18: debut — first time ever in BU (white/silver) */
+    .bu-badge-debut {
+      background: rgba(248, 250, 252, 0.08);
+      color: #e2e8f0;
+      border: 1px solid rgba(248, 250, 252, 0.2);
+    }
+
+    /* Idea 16a-2: persistent — never charted, 5+ weeks in BU (gold) */
+    .bu-badge-persistent {
+      background: rgba(251, 191, 36, 0.12);
+      color: #fbbf24;
+      border: 1px solid rgba(251, 191, 36, 0.25);
+    }
+
+    /* Idea 19: fallen — former top-5 hit now in BU (rose) */
+    .bu-badge-fallen {
+      background: rgba(251, 113, 133, 0.12);
+      color: #fb7185;
+      border: 1px solid rgba(251, 113, 133, 0.25);
+    }
+
+    /* Idea 17: surging — biggest week-over-week gainer in BU (yellow) */
+    .bu-badge-surging {
+      background: rgba(250, 204, 21, 0.12);
+      color: #facc15;
+      border: 1px solid rgba(250, 204, 21, 0.25);
+    }
+
+    /* Idea 16b: resurgence — first time back in BU after a chart stint (teal) */
+    .bu-badge-resurgence {
+      background: rgba(45, 212, 191, 0.12);
+      color: #2dd4bf;
+      border: 1px solid rgba(45, 212, 191, 0.25);
+    }
+
+    /* Idea 16c: resurgent — persisting in BU after a chart stint (blue-teal) */
+    .bu-badge-resurgent {
+      background: rgba(99, 102, 241, 0.12);
+      color: #818cf8;
+      border: 1px solid rgba(99, 102, 241, 0.25);
     }
 
     /* Idea 14: consecutive weeks in BU (purple) */

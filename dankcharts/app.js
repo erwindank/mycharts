@@ -7336,6 +7336,9 @@ function buildPeriodStats(period) {
   // buSize matches the render functions: 50 for Top 100, else 10
   const _bpsBuSize = chartSize >= 100 ? 50 : 10;
 
+  // Peak rank tracking: best (lowest) rank each entry ever achieved before the current period
+  const peakRank = { songs: {}, artists: {}, albums: {} };
+
   for (const [mk, mm] of Object.entries(periodMap).sort((a, b) => a[0].localeCompare(b[0]))) {
     for (const type of ['songs', 'artists', 'albums']) {
       for (const [k, data] of Object.entries(mm[type])) {
@@ -7349,7 +7352,10 @@ function buildPeriodStats(period) {
       _bpsAllSorted.slice(0, chartSize).forEach(([k, data], i) => {
         newPrev.set(k, i + 1); bpsEver[type].add(k);
         periodsOnChart[type][k] = (periodsOnChart[type][k] || 0) + 1;
-        if (mk < curKey) everChartedBefore[type].add(k);
+        if (mk < curKey) {
+          everChartedBefore[type].add(k);
+          if ((peakRank[type][k] ?? Infinity) > i + 1) peakRank[type][k] = i + 1;
+        }
         if (mk === prevKey) prevChart[type][k] = { rank: i + 1, count: data.count };
       });
       // Track BU zone entries (ranks chartSize+1 through chartSize+buSize)
@@ -7361,7 +7367,7 @@ function buildPeriodStats(period) {
     }
   }
 
-  return { periodsOnChart, prevChart, everChartedBefore, bubblingUnderWeeks, prevBubblingUnder };
+  return { periodsOnChart, prevChart, everChartedBefore, bubblingUnderWeeks, prevBubblingUnder, peakRank };
 }
 
 function mPrevCell(curRank, key, type, ms) {
@@ -8034,6 +8040,16 @@ function renderBubblingUnder(type, normalizedPool, ms, lowestChartCount) {
   if (bodyEl)  bodyEl.style.display = _buOpen[type] ? '' : 'none';
   if (iconEl)  iconEl.textContent = _buOpen[type] ? '▲' : '▼';
 
+  // Idea 17: find the top week-over-week gainer among entries that were also in BU last week
+  let surgingKey = null;
+  let bestSurgeDelta = 1; // minimum gain of 1 play required
+  for (const item of normalizedPool) {
+    const prevCount = ms.prevBubblingUnder?.[type]?.[item.key]?.count;
+    if (prevCount === undefined) continue;
+    const delta = item.count - prevCount;
+    if (delta > bestSurgeDelta) { bestSurgeDelta = delta; surgingKey = item.key; }
+  }
+
   const rows = normalizedPool.map((item, i) => {
     const rank = chartSize + 1 + i;
     const { key, displayName, subName, count } = item;
@@ -8044,20 +8060,42 @@ function renderBubblingUnder(type, normalizedPool, ms, lowestChartCount) {
     // Idea 14: total weeks this entry has appeared in the BU zone (current week = +1)
     const totalBuWeeks = (ms.bubblingUnderWeeks?.[type]?.[key] || 0) + 1;
 
-    // Idea 15: was ever on the chart but isn't now → fading
-    const everCharted    = ms.everChartedBefore[type].has(key);
-    const wasOnLastWeek  = !!ms.prevChart[type][key];
-    const isFading       = everCharted && !wasOnLastWeek;
+    // Idea 15: dropped off the chart since last week → fading
+    const everCharted      = ms.everChartedBefore[type].has(key);
+    const wasOnLastWeek    = !!ms.prevChart[type][key];
+    const isFading         = wasOnLastWeek;
 
-    // Idea 16: never charted, never in BU before → potential break
-    const wasBuLastWeek  = !!(ms.prevBubblingUnder?.[type]?.[key]);
-    const isBreaking     = !everCharted && !wasBuLastWeek;
+    // Idea 16a: never charted + was already in BU last week → trending toward the chart
+    const wasBuLastWeek    = !!(ms.prevBubblingUnder?.[type]?.[key]);
+    const isPersistent     = !everCharted && totalBuWeeks >= 5;
+    const isTrending       = !everCharted && wasBuLastWeek && !isPersistent;
 
-    // Build badges (ideas 13, 14, 15, 16)
+    // Idea 18: never charted, never in BU before this week → debut
+    const isDebut          = !everCharted && (ms.bubblingUnderWeeks?.[type]?.[key] || 0) === 0;
+
+    // Idea 16b: previously charted, first time back in BU after absence → resurgence
+    const isResurgence     = everCharted && !wasOnLastWeek && !wasBuLastWeek;
+    // Idea 16c: previously charted, has been in BU multiple weeks trying to return → resurgent
+    const isResurgent      = everCharted && !wasOnLastWeek && wasBuLastWeek;
+
+    // Idea 19: was ever a top-5 hit, now in BU → fallen
+    const histPeak         = ms.peakRank?.[type]?.[key];
+    const isFallen         = histPeak !== undefined && histPeak <= 3;
+
+    // Idea 17: biggest week-over-week play gainer in the BU pool this week → surging
+    const isSurging        = key === surgingKey;
+
+    // Build badges (ideas 13, 14, 15, 16, 17)
     let badges = '';
-    if (playsAway > 0) badges += `<span class="bu-badge bu-badge-away" title="${playsAway} more play${playsAway !== 1 ? 's' : ''} needed to enter the chart">${playsAway} play${playsAway !== 1 ? 's' : ''} away</span>`;
-    if (isFading)      badges += `<span class="bu-badge bu-badge-fading" title="Previously on the chart, now bubbling under">📉 Fading</span>`;
-    if (isBreaking)    badges += `<span class="bu-badge bu-badge-breaking" title="First time near the chart — potential break">🔥 Break</span>`;
+    if (playsAway > 0)  badges += `<span class="bu-badge bu-badge-away" title="${playsAway} more play${playsAway !== 1 ? 's' : ''} needed to enter the chart">${playsAway} play${playsAway !== 1 ? 's' : ''} away</span>`;
+    if (isFading)       badges += `<span class="bu-badge bu-badge-fading" title="Dropped off the chart since last week">📉 Fading</span>`;
+    if (isDebut)        badges += `<span class="bu-badge bu-badge-debut" title="First time ever in the Bubbling Under zone">✨ Fresh</span>`;
+    if (isTrending)     badges += `<span class="bu-badge bu-badge-trending" title="Has never charted — steadily building momentum">📈 Trending</span>`;
+    if (isPersistent)   badges += `<span class="bu-badge bu-badge-persistent" title="Has never charted — ${totalBuWeeks} weeks of showing up in the Bubbling Under zone">🏅 Persistent</span>`;
+    if (isResurgence)   badges += `<span class="bu-badge bu-badge-resurgence" title="Previously on the chart — making a comeback">🌊 Resurgence</span>`;
+    if (isResurgent)    badges += `<span class="bu-badge bu-badge-resurgent" title="Previously on the chart — persisting in the Bubbling Under zone">🔁 Resurgent</span>`;
+    if (isFallen)       badges += `<span class="bu-badge bu-badge-fallen" title="Former Peak #${histPeak} — now in the Bubbling Under zone">👑 Fallen</span>`;
+    if (isSurging)      badges += `<span class="bu-badge bu-badge-surging" title="Biggest play increase in the Bubbling Under zone this week (+${bestSurgeDelta})">⚡ Surging</span>`;
     if (totalBuWeeks >= 2) badges += `<span class="bu-badge bu-badge-weeks" title="${totalBuWeeks} total weeks in the Bubbling Under zone">🫧 ${totalBuWeeks} ${totalBuWeeks === 1 ? 'week' : 'weeks'}</span>`;
 
     return `<tr class="bu-row">
@@ -8074,6 +8112,19 @@ function renderBubblingUnder(type, normalizedPool, ms, lowestChartCount) {
   });
 
   if (tbodyEl) tbodyEl.innerHTML = rows.join('');
+
+  const legendEl = document.getElementById('bu' + ucType + 'Legend');
+  if (legendEl) legendEl.innerHTML = `
+    <div class="bu-legend-item"><span class="bu-badge bu-badge-debut">✨ Fresh</span><span class="bu-legend-desc">First time ever in Bubbling Under</span></div>
+    <div class="bu-legend-item"><span class="bu-badge bu-badge-trending">📈 Trending</span><span class="bu-legend-desc">Never charted, building momentum</span></div>
+    <div class="bu-legend-item"><span class="bu-badge bu-badge-persistent">🏅 Persistent</span><span class="bu-legend-desc">Never charted, 5+ weeks in BU</span></div>
+    <div class="bu-legend-item"><span class="bu-badge bu-badge-fading">📉 Fading</span><span class="bu-legend-desc">Dropped off the chart last week</span></div>
+    <div class="bu-legend-item"><span class="bu-badge bu-badge-resurgence">🌊 Resurgence</span><span class="bu-legend-desc">Ex-chart entry, first week back in BU</span></div>
+    <div class="bu-legend-item"><span class="bu-badge bu-badge-resurgent">🔁 Resurgent</span><span class="bu-legend-desc">Ex-chart entry, persisting in BU</span></div>
+    <div class="bu-legend-item"><span class="bu-badge bu-badge-fallen">👑 Fallen</span><span class="bu-legend-desc">Former top-3 hit, now in BU</span></div>
+    <div class="bu-legend-item"><span class="bu-badge bu-badge-surging">⚡ Surging</span><span class="bu-legend-desc">Biggest play gain this week</span></div>
+    <div class="bu-legend-item"><span class="bu-badge bu-badge-weeks">🫧 N weeks</span><span class="bu-legend-desc">Total weeks ever in Bubbling Under</span></div>
+  `;
 }
 
 // ─── WEEKLY CHART VIEWS ────────────────────────────────────────
