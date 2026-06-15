@@ -7332,6 +7332,7 @@ function buildPeriodStats(period) {
   // Bubbling Under tracking: how many total weeks each entry has appeared in the BU zone,
   // and what each entry's count was in the previous period (for "plays away" delta).
   const bubblingUnderWeeks = { songs: {}, artists: {}, albums: {} };
+  const bubblingUnderStreak = { songs: {}, artists: {}, albums: {} };
   const prevBubblingUnder = { songs: {}, artists: {}, albums: {} };
   // buSize matches the render functions: 50 for Top 100, else 10
   const _bpsBuSize = chartSize >= 100 ? 50 : 10;
@@ -7359,15 +7360,22 @@ function buildPeriodStats(period) {
         if (mk === prevKey) prevChart[type][k] = { rank: i + 1, count: data.count };
       });
       // Track BU zone entries (ranks chartSize+1 through chartSize+buSize)
+      const _buKeysThisPeriod = new Set();
       _bpsAllSorted.slice(chartSize, chartSize + _bpsBuSize).forEach(([k, data]) => {
         bubblingUnderWeeks[type][k] = (bubblingUnderWeeks[type][k] || 0) + 1;
+        bubblingUnderStreak[type][k] = (bubblingUnderStreak[type][k] || 0) + 1;
+        _buKeysThisPeriod.add(k);
         if (mk === prevKey) prevBubblingUnder[type][k] = { count: data.count };
       });
+      // Reset streak for entries that had a streak but are no longer in the BU zone
+      for (const k of Object.keys(bubblingUnderStreak[type])) {
+        if (!_buKeysThisPeriod.has(k)) bubblingUnderStreak[type][k] = 0;
+      }
       bpsPrev[type] = newPrev;
     }
   }
 
-  return { periodsOnChart, prevChart, everChartedBefore, bubblingUnderWeeks, prevBubblingUnder, peakRank };
+  return { periodsOnChart, prevChart, everChartedBefore, bubblingUnderWeeks, bubblingUnderStreak, prevBubblingUnder, peakRank };
 }
 
 function mPrevCell(curRank, key, type, ms) {
@@ -8059,6 +8067,7 @@ function renderBubblingUnder(type, normalizedPool, ms, lowestChartCount) {
 
     // Idea 14: total weeks this entry has appeared in the BU zone (current week = +1)
     const totalBuWeeks = (ms.bubblingUnderWeeks?.[type]?.[key] || 0) + 1;
+    const consecutiveBuWeeks = ms.bubblingUnderStreak?.[type]?.[key] || 0;
 
     // Idea 15: dropped off the chart since last week → fading
     const everCharted      = ms.everChartedBefore[type].has(key);
@@ -8097,7 +8106,8 @@ function renderBubblingUnder(type, normalizedPool, ms, lowestChartCount) {
     if (isResurgent)    badges += `<span class="bu-badge bu-badge-resurgent" title="Previously on the chart — persisting in the Bubbling Under zone">🔁 Resurgent</span>`;
     if (isFallen)       badges += `<span class="bu-badge bu-badge-fallen" title="Was #${lastWeekRank} last week — now in the Bubbling Under zone">👑 Fallen</span>`;
     if (isSurging)      badges += `<span class="bu-badge bu-badge-surging" title="Biggest play increase in the Bubbling Under zone this week (+${bestSurgeDelta})">⚡ Surging</span>`;
-    if (totalBuWeeks >= 2) badges += `<span class="bu-badge bu-badge-weeks" title="${totalBuWeeks} total weeks in the Bubbling Under zone">🫧 ${totalBuWeeks} ${totalBuWeeks === 1 ? 'week' : 'weeks'}</span>`;
+    if (totalBuWeeks >= 2) badges += `<span class="bu-badge bu-badge-weeks" title="${totalBuWeeks} total weeks ever in the Bubbling Under zone">🫧 ${totalBuWeeks} ${totalBuWeeks === 1 ? 'week' : 'weeks'}</span>`;
+    if (consecutiveBuWeeks >= 2) badges += `<span class="bu-badge bu-badge-streak" title="${consecutiveBuWeeks} consecutive weeks in the Bubbling Under zone">🔥 ${consecutiveBuWeeks}-week streak</span>`;
 
     return `<tr class="bu-row">
       <td class="bu-rank-cell">#${rank}</td>
@@ -8125,6 +8135,7 @@ function renderBubblingUnder(type, normalizedPool, ms, lowestChartCount) {
     <div class="bu-legend-item"><span class="bu-badge bu-badge-fallen">👑 Fallen</span><span class="bu-legend-desc">Former top-3 hit, now in BU</span></div>
     <div class="bu-legend-item"><span class="bu-badge bu-badge-surging">⚡ Surging</span><span class="bu-legend-desc">Biggest play gain this week</span></div>
     <div class="bu-legend-item"><span class="bu-badge bu-badge-weeks">🫧 N weeks</span><span class="bu-legend-desc">Total weeks ever in Bubbling Under</span></div>
+    <div class="bu-legend-item"><span class="bu-badge bu-badge-streak">🔥 N-week streak</span><span class="bu-legend-desc">Consecutive weeks in current BU streak</span></div>
   `;
 }
 

@@ -2585,11 +2585,18 @@
       border: 1px solid rgba(99, 102, 241, 0.25);
     }
 
-    /* Idea 14: consecutive weeks in BU (purple) */
+    /* Idea 14: total weeks in BU (purple) */
     .bu-badge-weeks {
       background: rgba(167, 139, 250, 0.12);
       color: #a78bfa;
       border: 1px solid rgba(167, 139, 250, 0.25);
+    }
+
+    /* Idea 14b: consecutive streak in BU (fuchsia) */
+    .bu-badge-streak {
+      background: rgba(232, 121, 249, 0.12);
+      color: #e879f9;
+      border: 1px solid rgba(232, 121, 249, 0.25);
     }
 
     .bu-plays-cell {
