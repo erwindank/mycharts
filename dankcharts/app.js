@@ -5648,6 +5648,10 @@ function renderAll() {
     renderPage('songs', peaks);
     renderPage('artists', peaks);
     renderPage('albums', peaks);
+    // Bubbling Under is weekly-only; always hide in paginated (yearly/alltime) views
+    hideBuSection('songs');
+    hideBuSection('artists');
+    hideBuSection('albums');
     document.getElementById('dropoutsSection').style.display = 'none';
   } else {
     // Top-N mode
