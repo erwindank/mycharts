@@ -8058,7 +8058,7 @@ function renderBubblingUnder(type, normalizedPool, ms, lowestChartCount) {
     if (playsAway > 0) badges += `<span class="bu-badge bu-badge-away" title="${playsAway} more play${playsAway !== 1 ? 's' : ''} needed to enter the chart">${playsAway} play${playsAway !== 1 ? 's' : ''} away</span>`;
     if (isFading)      badges += `<span class="bu-badge bu-badge-fading" title="Previously on the chart, now bubbling under">📉 Fading</span>`;
     if (isBreaking)    badges += `<span class="bu-badge bu-badge-breaking" title="First time near the chart — potential break">🔥 Break</span>`;
-    if (totalBuWeeks >= 2) badges += `<span class="bu-badge bu-badge-weeks" title="${totalBuWeeks} total weeks in the Bubbling Under zone">🫧 ${totalBuWeeks}wk</span>`;
+    if (totalBuWeeks >= 2) badges += `<span class="bu-badge bu-badge-weeks" title="${totalBuWeeks} total weeks in the Bubbling Under zone">🫧 ${totalBuWeeks} ${totalBuWeeks === 1 ? 'week' : 'weeks'}</span>`;
 
     return `<tr class="bu-row">
       <td class="bu-rank-cell">#${rank}</td>
