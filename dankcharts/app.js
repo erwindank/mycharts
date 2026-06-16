@@ -9051,7 +9051,7 @@ function renderDropouts(plays, periodStats) {
         </div>
         <div class="dropout-stats">
           <span class="dropout-plays">${tCountHtml('plays', count)}</span>
-          <span class="dropout-wks">${wks} ${tUnit('weeks', wks)}</span>
+          <span class="dropout-wks">${wks} ${tUnit('weeks_full', wks)}</span>
         </div>
       </div>`;
     }).join('');
