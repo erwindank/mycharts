@@ -2599,6 +2599,20 @@
       border: 1px solid rgba(232, 121, 249, 0.25);
     }
 
+    /* Freefall: biggest play drop in BU this week (red) */
+    .bu-badge-freefall {
+      background: rgba(239, 68, 68, 0.12);
+      color: #f87171;
+      border: 1px solid rgba(239, 68, 68, 0.25);
+    }
+
+    /* Yo-Yo: 3+ separate BU stints (lime) */
+    .bu-badge-yoyo {
+      background: rgba(163, 230, 53, 0.12);
+      color: #a3e635;
+      border: 1px solid rgba(163, 230, 53, 0.25);
+    }
+
     .bu-plays-cell {
       text-align: right;
       white-space: nowrap;

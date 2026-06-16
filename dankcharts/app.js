@@ -7357,6 +7357,9 @@ function buildPeriodStats(period) {
   // and what each entry's count was in the previous period (for "plays away" delta).
   const bubblingUnderWeeks = { songs: {}, artists: {}, albums: {} };
   const bubblingUnderStreak = { songs: {}, artists: {}, albums: {} };
+  // bubblingUnderRuns: how many separate BU stints an entry has had (incremented each time
+  // it enters BU fresh after an absence — i.e. streak was 0 and is now becoming 1).
+  const bubblingUnderRuns = { songs: {}, artists: {}, albums: {} };
   const prevBubblingUnder = { songs: {}, artists: {}, albums: {} };
   // buSize matches the render functions: 50 for Top 100, else 10
   const _bpsBuSize = chartSize >= 100 ? 50 : 10;
@@ -7387,6 +7390,8 @@ function buildPeriodStats(period) {
       const _buKeysThisPeriod = new Set();
       _bpsAllSorted.slice(chartSize, chartSize + _bpsBuSize).forEach(([k, data]) => {
         bubblingUnderWeeks[type][k] = (bubblingUnderWeeks[type][k] || 0) + 1;
+        // New BU stint: streak was 0 (or never set) → increment the runs counter
+        if (!bubblingUnderStreak[type][k]) bubblingUnderRuns[type][k] = (bubblingUnderRuns[type][k] || 0) + 1;
         bubblingUnderStreak[type][k] = (bubblingUnderStreak[type][k] || 0) + 1;
         _buKeysThisPeriod.add(k);
         if (mk === prevKey) prevBubblingUnder[type][k] = { count: data.count };
@@ -7399,7 +7404,7 @@ function buildPeriodStats(period) {
     }
   }
 
-  return { periodsOnChart, prevChart, everChartedBefore, bubblingUnderWeeks, bubblingUnderStreak, prevBubblingUnder, peakRank };
+  return { periodsOnChart, prevChart, everChartedBefore, bubblingUnderWeeks, bubblingUnderStreak, bubblingUnderRuns, prevBubblingUnder, peakRank };
 }
 
 function mPrevCell(curRank, key, type, ms) {
@@ -8075,11 +8080,15 @@ function renderBubblingUnder(type, normalizedPool, ms, lowestChartCount) {
   // Idea 17: find the top week-over-week gainer among entries that were also in BU last week
   let surgingKey = null;
   let bestSurgeDelta = 1; // minimum gain of 1 play required
+  // Freefall: biggest week-over-week loser in the BU pool (counterpart to Surging)
+  let freefallKey = null;
+  let bestFreefallDelta = 1; // minimum drop of 1 play required
   for (const item of normalizedPool) {
     const prevCount = ms.prevBubblingUnder?.[type]?.[item.key]?.count;
     if (prevCount === undefined) continue;
     const delta = item.count - prevCount;
     if (delta > bestSurgeDelta) { bestSurgeDelta = delta; surgingKey = item.key; }
+    if (-delta > bestFreefallDelta) { bestFreefallDelta = -delta; freefallKey = item.key; }
   }
 
   const rows = normalizedPool.map((item, i) => {
@@ -8118,8 +8127,13 @@ function renderBubblingUnder(type, normalizedPool, ms, lowestChartCount) {
 
     // Idea 17: biggest week-over-week play gainer in the BU pool this week → surging
     const isSurging        = key === surgingKey;
+    // Freefall: biggest week-over-week play loser in the BU pool this week
+    const isFreefall       = key === freefallKey;
+    // Yo-Yo: has entered and exited the BU zone 3+ separate times
+    const buRuns           = ms.bubblingUnderRuns?.[type]?.[key] || 0;
+    const isYoYo           = buRuns >= 3;
 
-    // Build badges (ideas 13, 14, 15, 16, 17)
+    // Build badges (ideas 13, 14, 15, 16, 17 + Freefall + Yo-Yo)
     let badges = '';
     if (playsAway > 0)  badges += `<span class="bu-badge bu-badge-away" title="${playsAway} more play${playsAway !== 1 ? 's' : ''} needed to enter the chart">${playsAway} play${playsAway !== 1 ? 's' : ''} away</span>`;
     if (isFading)       badges += `<span class="bu-badge bu-badge-fading" title="Dropped off the chart since last week">📉 Fading</span>`;
@@ -8130,6 +8144,8 @@ function renderBubblingUnder(type, normalizedPool, ms, lowestChartCount) {
     if (isResurgent)    badges += `<span class="bu-badge bu-badge-resurgent" title="Previously on the chart — persisting in the Bubbling Under zone">🔁 Resurgent</span>`;
     if (isFallen)       badges += `<span class="bu-badge bu-badge-fallen" title="Was #${lastWeekRank} last week — now in the Bubbling Under zone">👑 Fallen</span>`;
     if (isSurging)      badges += `<span class="bu-badge bu-badge-surging" title="Biggest play increase in the Bubbling Under zone this week (+${bestSurgeDelta})">⚡ Surging</span>`;
+    if (isFreefall)     badges += `<span class="bu-badge bu-badge-freefall" title="Biggest play drop in the Bubbling Under zone this week (-${bestFreefallDelta})">🔻 Freefall</span>`;
+    if (isYoYo)         badges += `<span class="bu-badge bu-badge-yoyo" title="${buRuns} separate stints in the Bubbling Under zone — keeps bouncing in and out">🪀 Yo-Yo</span>`;
     if (totalBuWeeks >= 2) badges += `<span class="bu-badge bu-badge-weeks" title="${totalBuWeeks} total weeks ever in the Bubbling Under zone">🫧 ${totalBuWeeks} ${totalBuWeeks === 1 ? 'week' : 'weeks'}</span>`;
     if (consecutiveBuWeeks >= 2) badges += `<span class="bu-badge bu-badge-streak" title="${consecutiveBuWeeks} consecutive weeks in the Bubbling Under zone">🔥 ${consecutiveBuWeeks}-week streak</span>`;
 
@@ -8158,6 +8174,8 @@ function renderBubblingUnder(type, normalizedPool, ms, lowestChartCount) {
     <div class="bu-legend-item"><span class="bu-badge bu-badge-resurgent">🔁 Resurgent</span><span class="bu-legend-desc">Ex-chart entry, persisting in BU</span></div>
     <div class="bu-legend-item"><span class="bu-badge bu-badge-fallen">👑 Fallen</span><span class="bu-legend-desc">Former top-3 hit, now in BU</span></div>
     <div class="bu-legend-item"><span class="bu-badge bu-badge-surging">⚡ Surging</span><span class="bu-legend-desc">Biggest play gain this week</span></div>
+    <div class="bu-legend-item"><span class="bu-badge bu-badge-freefall">🔻 Freefall</span><span class="bu-legend-desc">Biggest play drop this week</span></div>
+    <div class="bu-legend-item"><span class="bu-badge bu-badge-yoyo">🪀 Yo-Yo</span><span class="bu-legend-desc">Keeps bouncing in and out of BU (3+ stints)</span></div>
     <div class="bu-legend-item"><span class="bu-badge bu-badge-weeks">🫧 N weeks</span><span class="bu-legend-desc">Total weeks ever in Bubbling Under</span></div>
     <div class="bu-legend-item"><span class="bu-badge bu-badge-streak">🔥 N-week streak</span><span class="bu-legend-desc">Consecutive weeks in current BU streak</span></div>
   `;
