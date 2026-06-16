@@ -977,9 +977,33 @@ let _editPlay    = null;
 let _editOrigTs  = 0;
 let _editOrigMatch = null;
 
+// Populate artist/track/album datalists from allPlays for autocomplete suggestions
+function _populateEditSuggestions() {
+  const artists = new Set(), tracks = new Set(), albums = new Set();
+  for (const p of allPlays) {
+    if (p.artist) artists.add(p.artist);
+    if (p.title)  tracks.add(p.title);
+    if (p.album && p.album !== '—') albums.add(p.album);
+  }
+  const fill = (id, vals) => {
+    const dl = document.getElementById(id);
+    if (!dl) return;
+    dl.innerHTML = '';
+    for (const v of vals) {
+      const opt = document.createElement('option');
+      opt.value = v;
+      dl.appendChild(opt);
+    }
+  };
+  fill('editArtistList', artists);
+  fill('editTrackList',  tracks);
+  fill('editAlbumList',  albums);
+}
+
 function openEditScrobbleModal(rawIdx) {
   const p = rawFiltered[rawIdx];
   if (!p) return;
+  _populateEditSuggestions();
   _editPlay      = p;
   _editOrigTs    = p.date.getTime();
   _editOrigMatch = { artist: p.artist, title: p.title, album: p.album };

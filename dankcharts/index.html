@@ -2352,15 +2352,18 @@
       <div class="src-field-group">
         <label>
           <span data-i18n="modal_label_artist">Artist *</span>
-          <input type="text" id="editScrobbleArtist" placeholder="Artist name" data-i18n-placeholder="modal_placeholder_artist" autocomplete="off">
+          <input type="text" id="editScrobbleArtist" placeholder="Artist name" data-i18n-placeholder="modal_placeholder_artist" list="editArtistList" autocomplete="off">
+          <datalist id="editArtistList"></datalist>
         </label>
         <label>
           <span data-i18n="modal_label_track">Track *</span>
-          <input type="text" id="editScrobbleTrack" placeholder="Track title" data-i18n-placeholder="modal_placeholder_track" autocomplete="off">
+          <input type="text" id="editScrobbleTrack" placeholder="Track title" data-i18n-placeholder="modal_placeholder_track" list="editTrackList" autocomplete="off">
+          <datalist id="editTrackList"></datalist>
         </label>
         <label>
           <span data-i18n="modal_label_album">Album</span>
-          <input type="text" id="editScrobbleAlbum" placeholder="Album (optional)" data-i18n-placeholder="modal_placeholder_album" autocomplete="off">
+          <input type="text" id="editScrobbleAlbum" placeholder="Album (optional)" data-i18n-placeholder="modal_placeholder_album" list="editAlbumList" autocomplete="off">
+          <datalist id="editAlbumList"></datalist>
         </label>
         <label>
           <span data-i18n="modal_label_datetime">Date &amp; Time</span>
