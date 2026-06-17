@@ -16583,6 +16583,8 @@ function openYtPlayer(title, artist, album, btn) {
   if (_ytActiveBtn) _ytActiveBtn.classList.remove('yt-btn-loading', 'yt-btn-playing');
   document.querySelectorAll('.yt-now-playing-row').forEach(r => r.classList.remove('yt-now-playing-row'));
   _ytStopScrobbleRing();
+  // Treat '—' placeholder as empty so it isn't sent as an album name when scrobbling
+  album = (album && album !== '—') ? album : '';
   _ytCurrentTrack    = { title, artist, album };
   try { localStorage.setItem('yt-player-current', JSON.stringify({ title, artist, album })); } catch(e) {}
   _ytCurrentVideoId  = null;
