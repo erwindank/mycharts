@@ -317,6 +317,26 @@ function albumArtist(p) {
   return (p.artists && p.artists[0]) || p.artist;
 }
 
+// Strips featured/collaboration artists from an artist string and returns just the
+// primary artist. Used for Last.fm albumArtist and track.getInfo lookups so that
+// "Artist1 feat. Artist2" or "Artist1, Artist2" resolves to "Artist1".
+function _primaryArtist(artist) {
+  return artist.split(/\s*,\s*|\s+(?:feat\.?|ft\.?|featuring)\s+/i)[0].trim();
+}
+
+// Looks up the album for a track from the site's own play data.
+// Returns the album name string, or '' if not found.
+function _lookupAlbumFromData(title, artist) {
+  const tLc = title.toLowerCase();
+  const aLc = artist.toLowerCase();
+  const match = allPlays.find(p =>
+    p.album && p.album !== '—' &&
+    p.title  && p.title.toLowerCase()  === tLc &&
+    p.artist && p.artist.toLowerCase() === aLc
+  );
+  return match ? match.album : '';
+}
+
 // Key songs by title + artist only (album excluded) so the same song played as a
 // single or from an album is counted as one entry in the songs chart.
 function songKey(p) {
@@ -539,6 +559,8 @@ async function submitScrobble() {
   try {
     const params = { method: 'track.scrobble', artist, track, timestamp: String(timestamp), sk: getScrobbleSession() };
     if (album) params.album = album;
+    const primaryArt = _primaryArtist(artist);
+    if (primaryArt !== artist) params.albumArtist = primaryArt;
     await lfmPost(params);
     statusEl.textContent = '✓ Scrobbled successfully!';
     statusEl.className   = 'scrobble-status ok';
@@ -1115,6 +1137,8 @@ async function pushEditToLastfm() {
   try {
     const params = { method: 'track.scrobble', artist: f.artist, track: f.title, timestamp: String(f.ts), sk: getScrobbleSession() };
     if (f.album) params.album = f.album;
+    const primaryArt = _primaryArtist(f.artist);
+    if (primaryArt !== f.artist) params.albumArtist = primaryArt;
     await lfmPost(params);
     statusEl.textContent = '✓ Pushed to Last.fm! Remove the original scrobble manually on the Last.fm website.';
     statusEl.className   = 'scrobble-status ok';
@@ -16632,16 +16656,24 @@ function openYtPlayer(title, artist, album, btn) {
   requestAnimationFrame(_ytClampToViewport);
   _ytInjectApi();
   _ytSearch(artist, title);
-  // If album is unknown, look it up from Last.fm so the scrobble includes it.
-  // Runs async — the 30s scrobble timer gives plenty of time for this to resolve.
-  if (!album) _ytFetchAlbum(title, artist);
+  // If album is unknown, first try the site's own play data, then fall back to Last.fm.
+  if (!album) {
+    const dataAlbum = _lookupAlbumFromData(title, artist);
+    if (dataAlbum) {
+      _ytCurrentTrack.album = dataAlbum;
+    } else {
+      _ytFetchAlbum(title, artist);
+    }
+  }
 }
 
 // Looks up the album for the currently playing track via Last.fm track.getInfo.
 // Updates _ytCurrentTrack.album if the same track is still playing when it resolves.
 async function _ytFetchAlbum(title, artist) {
   try {
-    const url = lfmUrl('track.getInfo', { track: title, artist, autocorrect: 1 });
+    // Use only the primary artist for the lookup — feat. artists cause track.getInfo to fail
+    const lookupArtist = _primaryArtist(artist);
+    const url = lfmUrl('track.getInfo', { track: title, artist: lookupArtist, autocorrect: 1 });
     const r = await fetch(url);
     const d = await r.json();
     const albumName = d?.track?.album?.title;
@@ -16806,6 +16838,9 @@ async function _ytScrobble() {
     if (hasLfm) {
       const params = { method: 'track.scrobble', artist, track: title, timestamp: String(timestamp), sk: getScrobbleSession() };
       if (album) params.album = album;
+      // Only send albumArtist when it differs from artist (collaboration tracks)
+      const primaryArt = _primaryArtist(artist);
+      if (primaryArt !== artist) params.albumArtist = primaryArt;
       await lfmPost(params);
     } else if (hasSheet) {
       const res  = await fetch(getSheetWriteUrl(), { method: 'POST', body: JSON.stringify({ artist, track: title, album, timestamp }) });
