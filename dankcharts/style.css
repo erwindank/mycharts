@@ -4082,6 +4082,12 @@
       margin-top: 0.1rem;
     }
 
+    /* Play button on single-song release cards */
+    .upcoming-card-play-btn {
+      margin-top: 0.4rem;
+      align-self: flex-start;
+    }
+
     .upcoming-empty {
       font-family: 'DM Mono', monospace;
       font-size: 0.65rem;

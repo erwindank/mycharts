@@ -13447,12 +13447,18 @@ function renderRecentCard(release, artistName) {
   const searchUrl = `https://www.google.com/search?q=${encodeURIComponent(release.title + ' ' + artistName)}`;
   const imgSrc = release.mbid ? `https://coverartarchive.org/release-group/${release.mbid}/front-250` : null;
   const imgHtml = `<img class="upcoming-card-img${imgSrc ? '' : ' upcoming-card-img-pending'}" ${imgSrc ? `src="${imgSrc}" onerror="releaseImgFallback(this)"` : ''} alt="" loading="lazy" data-artist="${esc(artistName)}" data-title="${esc(release.title)}" data-sources="itunes,lastfm">`;
+  // Show play button for Singles (single-song releases) — stopPropagation prevents the card link from firing
+  const isSingle = (release.type || '').toLowerCase() === 'single';
+  const playBtn = isSingle
+    ? `<button class="yt-play-btn upcoming-card-play-btn" data-title="${esc(release.title)}" data-artist="${esc(artistName)}" data-album="" onclick="event.stopPropagation();ytPlayFromBtn(this)" title="Play on YouTube"><span class="yt-btn-content"><svg class="yt-btn-icon" viewBox="0 0 24 24"><path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.5 12 3.5 12 3.5s-7.5 0-9.4.5A3 3 0 0 0 .5 6.2C0 8.1 0 12 0 12s0 3.9.5 5.8a3 3 0 0 0 2.1 2.1c1.9.5 9.4.5 9.4.5s7.5 0 9.4-.5a3 3 0 0 0 2.1-2.1C24 15.9 24 12 24 12s0-3.9-.5-5.8zM9.7 15.5V8.5l6.3 3.5-6.3 3.5z"/></svg>YouTube</span></button>`
+    : '';
   return `<a class="upcoming-card" href="${searchUrl}" target="_blank" rel="noopener noreferrer">
     ${imgHtml}
     <div class="upcoming-card-date recent" data-date="${esc(release.date)}">${esc(label)}</div>
     <div class="upcoming-card-title">${esc(release.title)}</div>
     <div class="upcoming-card-artist">${esc(artistName)}</div>
     <div class="upcoming-card-type" data-mbtype="${esc(release.type || 'Release')}">${esc(typeLabel)}</div>
+    ${playBtn}
   </a>`;
 }
 
