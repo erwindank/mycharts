@@ -16619,6 +16619,27 @@ function openYtPlayer(title, artist, album, btn) {
   requestAnimationFrame(_ytClampToViewport);
   _ytInjectApi();
   _ytSearch(artist, title);
+  // If album is unknown, look it up from Last.fm so the scrobble includes it.
+  // Runs async — the 30s scrobble timer gives plenty of time for this to resolve.
+  if (!album) _ytFetchAlbum(title, artist);
+}
+
+// Looks up the album for the currently playing track via Last.fm track.getInfo.
+// Updates _ytCurrentTrack.album if the same track is still playing when it resolves.
+async function _ytFetchAlbum(title, artist) {
+  try {
+    const url = lfmUrl('track.getInfo', { track: title, artist, autocorrect: 1 });
+    const r = await fetch(url);
+    const d = await r.json();
+    const albumName = d?.track?.album?.title;
+    // Only update if we're still on the same track and haven't already scrobbled
+    if (albumName && _ytCurrentTrack && !_ytScrobbled &&
+        _ytCurrentTrack.title === title && _ytCurrentTrack.artist === artist) {
+      _ytCurrentTrack.album = albumName;
+    }
+  } catch(e) {
+    // Silently fail — scrobble will just go through without album
+  }
 }
 
 async function _ytSearch(artist, title, overrideQuery) {
