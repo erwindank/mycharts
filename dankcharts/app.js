@@ -7783,7 +7783,7 @@ function renderSongs(plays, peaks, monthlyStats) {
   // Render Bubbling Under section (weekly only, requires history stats)
   if (currentPeriod === 'week' && monthlyStats) {
     const _buNormSongs = _buPoolSongs.map(s => ({
-      key: songKey(s), displayName: s.title, subName: s.artist, count: s.count
+      key: songKey(s), displayName: s.title, subName: s.artist, album: s.album, count: s.count
     }));
     renderBubblingUnder('songs', _buNormSongs, monthlyStats, sorted[sorted.length - 1]?.count || 0);
   } else {
@@ -8093,7 +8093,7 @@ function renderBubblingUnder(type, normalizedPool, ms, lowestChartCount) {
 
   const rows = normalizedPool.map((item, i) => {
     const rank = chartSize + 1 + i;
-    const { key, displayName, subName, count } = item;
+    const { key, displayName, subName, album, count } = item;
 
     // Idea 13: plays away from entering the chart
     const playsAway = Math.max(0, lowestChartCount - count);
@@ -8149,11 +8149,18 @@ function renderBubblingUnder(type, normalizedPool, ms, lowestChartCount) {
     if (totalBuWeeks >= 2) badges += `<span class="bu-badge bu-badge-weeks" title="${totalBuWeeks} total weeks ever in the Bubbling Under zone">🫧 ${totalBuWeeks} ${totalBuWeeks === 1 ? 'week' : 'weeks'}</span>`;
     if (consecutiveBuWeeks >= 2) badges += `<span class="bu-badge bu-badge-streak" title="${consecutiveBuWeeks} consecutive weeks in the Bubbling Under zone">🔥 ${consecutiveBuWeeks}-week streak</span>`;
 
+    // Build YouTube button data attrs based on entry type
+    const ytTitle  = type === 'songs'   ? displayName : '';
+    const ytArtist = type === 'artists' ? displayName : subName;
+    const ytAlbum  = type === 'albums'  ? displayName : (type === 'songs' ? (album || '') : '');
+    const ytBtn = `<button class="yt-play-btn bu-yt-btn" data-title="${esc(ytTitle)}" data-artist="${esc(ytArtist)}" data-album="${esc(ytAlbum)}" onclick="event.stopPropagation();ytPlayFromBtn(this)" title="Play on YouTube"><span class="yt-btn-content"><svg class="yt-btn-icon" viewBox="0 0 24 24"><path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.5 12 3.5 12 3.5s-7.5 0-9.4.5A3 3 0 0 0 .5 6.2C0 8.1 0 12 0 12s0 3.9.5 5.8a3 3 0 0 0 2.1 2.1c1.9.5 9.4.5 9.4.5s7.5 0 9.4-.5a3 3 0 0 0 2.1-2.1C24 15.9 24 12 24 12s0-3.9-.5-5.8zM9.7 15.5V8.5l6.3 3.5-6.3 3.5z"/></svg>YouTube</span></button>`;
+
     return `<tr class="bu-row">
       <td class="bu-rank-cell">#${rank}</td>
       <td class="bu-name-cell">
         <div class="bu-display-name">${esc(displayName)}</div>
         ${subName ? `<div class="bu-sub-name">${esc(subName)}</div>` : ''}
+        ${ytBtn}
         ${badges ? `<div class="bu-badges">${badges}</div>` : ''}
       </td>
       <td class="bu-plays-cell">
