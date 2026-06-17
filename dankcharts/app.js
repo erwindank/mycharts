@@ -8122,8 +8122,8 @@ function renderBubblingUnder(type, normalizedPool, ms, lowestChartCount) {
     // Idea 13: plays away from entering the chart
     const playsAway = Math.max(0, lowestChartCount - count);
 
-    // Idea 14: total weeks this entry has appeared in the BU zone (current week = +1)
-    const totalBuWeeks = (ms.bubblingUnderWeeks?.[type]?.[key] || 0) + 1;
+    // Idea 14: total weeks this entry has appeared in the BU zone (loop already includes current week)
+    const totalBuWeeks = ms.bubblingUnderWeeks?.[type]?.[key] || 0;
     const consecutiveBuWeeks = ms.bubblingUnderStreak?.[type]?.[key] || 0;
 
     // Idea 15: dropped off the chart since last week → fading
@@ -8136,8 +8136,8 @@ function renderBubblingUnder(type, normalizedPool, ms, lowestChartCount) {
     const isPersistent     = !everCharted && totalBuWeeks >= 5;
     const isTrending       = !everCharted && wasBuLastWeek && !isPersistent;
 
-    // Idea 18: never charted, never in BU before this week → debut
-    const isDebut          = !everCharted && (ms.bubblingUnderWeeks?.[type]?.[key] || 0) === 0;
+    // Idea 18: never charted, first time ever in BU this week → debut (bubblingUnderWeeks === 1 because loop counted current week)
+    const isDebut          = !everCharted && totalBuWeeks === 1;
 
     // Idea 16b: previously charted, first time back in BU after absence → resurgence
     const isResurgence     = everCharted && !wasOnLastWeek && !wasBuLastWeek;
