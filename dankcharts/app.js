@@ -8148,6 +8148,7 @@ function renderBubblingUnder(type, normalizedPool, ms, lowestChartCount) {
   const bodyEl     = document.getElementById('bu' + ucType + 'Body');
   const tbodyEl    = document.getElementById('bu' + ucType + 'TableBody');
   const iconEl     = document.getElementById('bu' + ucType + 'ToggleIcon');
+  const titleEl    = document.getElementById('bu' + ucType + 'SectionTitle');
 
   if (!sectionEl) return;
 
@@ -8157,6 +8158,8 @@ function renderBubblingUnder(type, normalizedPool, ms, lowestChartCount) {
   }
 
   sectionEl.style.display = '';
+  // Update title to show which chart size this BU section sits below (e.g. "BUBBLING UNDER TOP 10")
+  if (titleEl) titleEl.textContent = 'BUBBLING UNDER TOP ' + chartSize;
   if (countEl) countEl.textContent = normalizedPool.length;
   if (bodyEl)  bodyEl.style.display = _buOpen[type] ? '' : 'none';
   if (iconEl)  iconEl.textContent = _buOpen[type] ? '▲' : '▼';
