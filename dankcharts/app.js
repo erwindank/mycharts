@@ -17297,9 +17297,30 @@ async function _ytSearchMulti(baseQuery) {
   const variants = ['official audio', 'official video', 'lyric video'];
   const needsVariants = !/(official|lyric|audio|video|live|acoustic|cover)/i.test(baseQuery);
   const queries = needsVariants ? variants.map(v => `${baseQuery} ${v}`) : [baseQuery];
-  const settled = await Promise.allSettled(
-    queries.map(q => fetch(`${BACKEND_API}/api/youtube/search?q=${encodeURIComponent(q)}`).then(r => r.json()))
-  );
+
+  // Retry loop for server wake-up (Render free tier sleeps after inactivity)
+  const MAX_RETRIES = 3;
+  const RETRY_DELAY_MS = 4000;
+  let settled;
+  for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
+    settled = await Promise.allSettled(
+      queries.map(q => fetch(`${BACKEND_API}/api/youtube/search?q=${encodeURIComponent(q)}`).then(r => {
+        if (r.status === 502 || r.status === 503) throw new Error('server_unavailable');
+        return r.json();
+      }))
+    );
+    // Check if all failed with server_unavailable — if so, retry after delay
+    const allUnavailable = settled.every(r => r.status === 'rejected' && r.reason && r.reason.message === 'server_unavailable');
+    if (allUnavailable && attempt < MAX_RETRIES) {
+      if (statusEl)  { statusEl.textContent = 'Waking up server…'; statusEl.className = 'yt-mini-status'; }
+      if (resultsEl) { resultsEl.innerHTML = '<div class="yt-sr-loading">Waking up server…</div>'; }
+      await new Promise(r => setTimeout(r, RETRY_DELAY_MS));
+      continue;
+    }
+    break;
+  }
+  if (statusEl) { statusEl.textContent = ''; }
+
   const seen = new Set();
   const hits = settled
     .filter(r => r.status === 'fulfilled' && r.value && r.value.videoId)
