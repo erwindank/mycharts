@@ -5217,7 +5217,7 @@ function renderNewPage(type) {
       return `<tr class="${rank === 1 ? 'rank-1' : rank === 2 ? 'rank-2' : rank === 3 ? 'rank-3' : ''} artist-row" data-artist="${esc(a.name)}">
       <td class="rank-cell">${rank}</td>
       <td class="thumb-cell"><div class="thumb-wrap"><div id="${imgId}"><div class="thumb-initials">${esc(initials(a.name))}</div></div><button id="srcbtn-${imgId}" class="img-src-btn" data-imgid="${imgId}" data-type="artist" data-prefkey="${esc(prefKey)}" data-name="${esc(a.name)}" data-artist="${esc(a.name)}" data-album="">${srcLabel(itemSourcePrefs[prefKey] || 'deezer')}</button></div></td>
-      <td><div class="song-title">${esc(a.name)}</div><div class="song-artist"><span class="na-songs-trigger" data-artist="${esc(a.name)}" data-songs="${songsJson}">${tCount('songs', a.songs.size)}</span></div></td>
+      <td><div class="song-title">${esc(a.name)}</div><div class="song-artist"><span class="na-songs-trigger" data-artist="${esc(a.name)}" data-songs="${songsJson}">${tCount('songs', a.songs.size)}</span></div><button class="yt-play-btn" data-title="" data-artist="${esc(a.name)}" data-album="" onclick="event.stopPropagation();buShowTrackList(this,'artists')" title="Show recently played tracks"><span class="yt-btn-content"><svg class="yt-btn-icon" viewBox="0 0 24 24"><path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.5 12 3.5 12 3.5s-7.5 0-9.4.5A3 3 0 0 0 .5 6.2C0 8.1 0 12 0 12s0 3.9.5 5.8a3 3 0 0 0 2.1 2.1c1.9.5 9.4.5 9.4.5s7.5 0 9.4-.5a3 3 0 0 0 2.1-2.1C24 15.9 24 12 24 12s0-3.9-.5-5.8zM9.7 15.5V8.5l6.3 3.5-6.3 3.5z"/></svg>YouTube</span></button></td>
       <td><div class="play-count">${tCountHtml('plays', a.count)}</div><div class="play-bar"><div class="play-bar-fill" style="width:${Math.round(a.count / max * 100)}%"></div></div></td>
     </tr>`;
     }).join('');
@@ -5231,7 +5231,7 @@ function renderNewPage(type) {
       return `<tr class="${rank === 1 ? 'rank-1' : rank === 2 ? 'rank-2' : rank === 3 ? 'rank-3' : ''} album-row" data-albumkey="${esc(a.album + '|||' + a.artist)}">
       <td class="rank-cell">${rank}</td>
       <td class="thumb-cell"><div class="thumb-wrap"><div id="${imgId}"><div class="thumb-initials">${esc(initials(a.album))}</div></div><button id="srcbtn-${imgId}" class="img-src-btn" data-imgid="${imgId}" data-type="album" data-prefkey="${esc(prefKey)}" data-name="${esc(a.album)}" data-artist="${esc(a.artist)}" data-album="${esc(a.album)}">${srcLabel(itemSourcePrefs[prefKey] || 'deezer')}</button></div></td>
-      <td><div class="song-title">${esc(a.album)}</div><div class="song-artist">${esc(a.artist)}</div></td>
+      <td><div class="song-title">${esc(a.album)}</div><div class="song-artist">${esc(a.artist)}</div><button class="yt-play-btn" data-title="" data-artist="${esc(a.artist)}" data-album="${esc(a.album)}" onclick="event.stopPropagation();buShowTrackList(this,'albums')" title="Show recently played tracks"><span class="yt-btn-content"><svg class="yt-btn-icon" viewBox="0 0 24 24"><path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.5 12 3.5 12 3.5s-7.5 0-9.4.5A3 3 0 0 0 .5 6.2C0 8.1 0 12 0 12s0 3.9.5 5.8a3 3 0 0 0 2.1 2.1c1.9.5 9.4.5 9.4.5s7.5 0 9.4-.5a3 3 0 0 0 2.1-2.1C24 15.9 24 12 24 12s0-3.9-.5-5.8zM9.7 15.5V8.5l6.3 3.5-6.3 3.5z"/></svg>YouTube</span></button></td>
       <td><div class="play-count">${tCountHtml('plays', a.count)}</div><div class="play-bar"><div class="play-bar-fill" style="width:${Math.round(a.count / max * 100)}%"></div></div></td>
     </tr>`;
     }).join('');
@@ -6293,7 +6293,7 @@ function renderPage(type, peaks) {
       const mainRow = `<tr class="${rank === 1 ? 'rank-1' : rank === 2 ? 'rank-2' : rank === 3 ? 'rank-3' : ''} artist-row" data-artist="${esc(a.name)}">
         <td class="rank-cell">${hasCR ? `<button class="cr-toggle-btn" title="${t('tooltip_cr_toggle_btn_artist')}" onclick="event.stopPropagation();toggleChartRun(this,'${rowId}')">📊</button>` : ''} ${rank}</td>
         <td class="thumb-cell"><div class="thumb-wrap"><div id="${imgId}"><div class="thumb-initials">${esc(initials(a.name))}</div></div><button id="srcbtn-${imgId}" class="img-src-btn" data-imgid="${imgId}" data-type="artist" data-prefkey="${esc(prefKey)}" data-name="${esc(a.name)}" data-artist="${esc(a.name)}" data-album="">${srcLabel(itemSourcePrefs[prefKey] || 'deezer')}</button></div></td>
-        <td><div class="song-title">${esc(a.name)}</div><div class="song-artist" style="font-size:0.7rem;letter-spacing:0.06em;font-style:normal;font-family:'DM Mono',monospace;color:var(--text3)">${t('click_view_profile')}</div></td>
+        <td><div class="song-title">${esc(a.name)}</div><div class="song-artist" style="font-size:0.7rem;letter-spacing:0.06em;font-style:normal;font-family:'DM Mono',monospace;color:var(--text3)">${t('click_view_profile')}</div><button class="yt-play-btn" data-title="" data-artist="${esc(a.name)}" data-album="" onclick="event.stopPropagation();buShowTrackList(this,'artists')" title="Show recently played tracks"><span class="yt-btn-content"><svg class="yt-btn-icon" viewBox="0 0 24 24"><path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.5 12 3.5 12 3.5s-7.5 0-9.4.5A3 3 0 0 0 .5 6.2C0 8.1 0 12 0 12s0 3.9.5 5.8a3 3 0 0 0 2.1 2.1c1.9.5 9.4.5 9.4.5s7.5 0 9.4-.5a3 3 0 0 0 2.1-2.1C24 15.9 24 12 24 12s0-3.9-.5-5.8zM9.7 15.5V8.5l6.3 3.5-6.3 3.5z"/></svg>YouTube</span></button></td>
         <td><div class="song-artist">${tCount('songs', a.songs.size)}</div></td>
         <td>
           <div class="play-count">${tCountHtml('plays', a.count)}</div>
@@ -6329,6 +6329,7 @@ function renderPage(type, peaks) {
           <div class="song-title">${esc(a.album)}${certBadge(cumAlbumPlays, 'album')}</div>
           <div class="song-artist">${esc(a.artist)}</div>
           <div class="song-artist" style="font-size:0.65rem;letter-spacing:0.06em;font-style:normal;font-family:'DM Mono',monospace;color:var(--text3)">${t('click_view_album')}</div>
+          <button class="yt-play-btn" data-title="" data-artist="${esc(a.artist)}" data-album="${esc(a.album)}" onclick="event.stopPropagation();buShowTrackList(this,'albums')" title="Show recently played tracks"><span class="yt-btn-content"><svg class="yt-btn-icon" viewBox="0 0 24 24"><path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.5 12 3.5 12 3.5s-7.5 0-9.4.5A3 3 0 0 0 .5 6.2C0 8.1 0 12 0 12s0 3.9.5 5.8a3 3 0 0 0 2.1 2.1c1.9.5 9.4.5 9.4.5s7.5 0 9.4-.5a3 3 0 0 0 2.1-2.1C24 15.9 24 12 24 12s0-3.9-.5-5.8zM9.7 15.5V8.5l6.3 3.5-6.3 3.5z"/></svg>YouTube</span></button>
         </td>
         <td><div class="song-artist">${tCount('tracks', a.tracks.size)}</div></td>
         <td>
@@ -7926,7 +7927,7 @@ function renderArtists(plays, peaks, monthlyStats) {
     const mainRow = `<tr${_animAttrsA} class="${i === 0 ? 'rank-1' : i === 1 ? 'rank-2' : i === 2 ? 'rank-3' : ''}${_animClassA} artist-row${statusCls}" data-artist="${esc(artist)}">
       <td class="rank-cell"><button class="cr-toggle-btn" title="${t('tooltip_cr_toggle_btn_artist')}" onclick="event.stopPropagation();toggleChartRun(this,'${rowId}')">📊</button>${i + 1}</td>
       <td class="thumb-cell"><div class="thumb-wrap"><div id="${imgId}"><div class="thumb-initials">${esc(initials(artist))}</div></div><button id="srcbtn-${imgId}" class="img-src-btn" data-imgid="${imgId}" data-type="artist" data-prefkey="${esc(prefKey)}" data-name="${esc(artist)}" data-artist="${esc(artist)}" data-album="">${srcLabel(itemSourcePrefs[prefKey] || 'deezer')}</button></div></td>
-      <td><div class="song-title">${esc(artist)}${pk ? peakBadge(pk) : ''}</div><div class="song-artist" style="font-size:0.7rem;letter-spacing:0.06em;font-style:normal;font-family:'DM Mono',monospace;color:var(--text3)">${t('click_view_profile')}</div></td>
+      <td><div class="song-title">${esc(artist)}${pk ? peakBadge(pk) : ''}</div><div class="song-artist" style="font-size:0.7rem;letter-spacing:0.06em;font-style:normal;font-family:'DM Mono',monospace;color:var(--text3)">${t('click_view_profile')}</div><button class="yt-play-btn" data-title="" data-artist="${esc(artist)}" data-album="" onclick="event.stopPropagation();buShowTrackList(this,'artists')" title="Show recently played tracks"><span class="yt-btn-content"><svg class="yt-btn-icon" viewBox="0 0 24 24"><path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.5 12 3.5 12 3.5s-7.5 0-9.4.5A3 3 0 0 0 .5 6.2C0 8.1 0 12 0 12s0 3.9.5 5.8a3 3 0 0 0 2.1 2.1c1.9.5 9.4.5 9.4.5s7.5 0 9.4-.5a3 3 0 0 0 2.1-2.1C24 15.9 24 12 24 12s0-3.9-.5-5.8zM9.7 15.5V8.5l6.3 3.5-6.3 3.5z"/></svg>YouTube</span></button></td>
       <td><div class="song-artist">${tCount('songs', data.songs.size)}</div></td>
       ${monthlyStats ? mPrevCell(i + 1, artist, 'artists', monthlyStats) : ''}
       ${monthlyStats ? mMthsCell(artist, 'artists', monthlyStats) : ''}
@@ -8044,6 +8045,7 @@ function renderAlbums(plays, peaks, monthlyStats) {
         <div class="song-title">${esc(album)}${pk ? peakBadge(pk) : ''}${certBadge(cumAlbumPlays, 'album')}</div>
         <div class="song-artist">${esc(artist)}</div>
         <div class="song-artist" style="font-size:0.65rem;letter-spacing:0.06em;font-style:normal;font-family:'DM Mono',monospace;color:var(--text3)">${t('click_view_album')}</div>
+        <button class="yt-play-btn" data-title="" data-artist="${esc(artist)}" data-album="${esc(album)}" onclick="event.stopPropagation();buShowTrackList(this,'albums')" title="Show recently played tracks"><span class="yt-btn-content"><svg class="yt-btn-icon" viewBox="0 0 24 24"><path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.5 12 3.5 12 3.5s-7.5 0-9.4.5A3 3 0 0 0 .5 6.2C0 8.1 0 12 0 12s0 3.9.5 5.8a3 3 0 0 0 2.1 2.1c1.9.5 9.4.5 9.4.5s7.5 0 9.4-.5a3 3 0 0 0 2.1-2.1C24 15.9 24 12 24 12s0-3.9-.5-5.8zM9.7 15.5V8.5l6.3 3.5-6.3 3.5z"/></svg>YouTube</span></button>
       </td>
       <td><div class="song-artist">${tCount('tracks', tracks.size)}</div></td>
       ${monthlyStats ? mPrevCell(i + 1, ak, 'albums', monthlyStats) : ''}
@@ -8240,7 +8242,12 @@ function renderBubblingUnder(type, normalizedPool, ms, lowestChartCount) {
     const ytTitle  = type === 'songs'   ? displayName : '';
     const ytArtist = type === 'artists' ? displayName : subName;
     const ytAlbum  = type === 'albums'  ? displayName : (type === 'songs' ? (album || '') : '');
-    const ytBtn = `<button class="yt-play-btn bu-yt-btn" data-title="${esc(ytTitle)}" data-artist="${esc(ytArtist)}" data-album="${esc(ytAlbum)}" onclick="event.stopPropagation();ytPlayFromBtn(this)" title="Play on YouTube"><span class="yt-btn-content"><svg class="yt-btn-icon" viewBox="0 0 24 24"><path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.5 12 3.5 12 3.5s-7.5 0-9.4.5A3 3 0 0 0 .5 6.2C0 8.1 0 12 0 12s0 3.9.5 5.8a3 3 0 0 0 2.1 2.1c1.9.5 9.4.5 9.4.5s7.5 0 9.4-.5a3 3 0 0 0 2.1-2.1C24 15.9 24 12 24 12s0-3.9-.5-5.8zM9.7 15.5V8.5l6.3 3.5-6.3 3.5z"/></svg>YouTube</span></button>`;
+    // Songs: play immediately. Artists/albums: show last-10 track picker dropdown.
+    const ytBtnOnclick = type === 'songs'
+      ? `event.stopPropagation();ytPlayFromBtn(this)`
+      : `event.stopPropagation();buShowTrackList(this,${esc(JSON.stringify(type))})`;
+    const ytBtnTitle = type === 'songs' ? 'Play on YouTube' : 'Show recently played tracks';
+    const ytBtn = `<button class="yt-play-btn bu-yt-btn" data-title="${esc(ytTitle)}" data-artist="${esc(ytArtist)}" data-album="${esc(ytAlbum)}" onclick="${ytBtnOnclick}" title="${ytBtnTitle}"><span class="yt-btn-content"><svg class="yt-btn-icon" viewBox="0 0 24 24"><path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.5 12 3.5 12 3.5s-7.5 0-9.4.5A3 3 0 0 0 .5 6.2C0 8.1 0 12 0 12s0 3.9.5 5.8a3 3 0 0 0 2.1 2.1c1.9.5 9.4.5 9.4.5s7.5 0 9.4-.5a3 3 0 0 0 2.1-2.1C24 15.9 24 12 24 12s0-3.9-.5-5.8zM9.7 15.5V8.5l6.3 3.5-6.3 3.5z"/></svg>YouTube</span></button>`;
 
     return `<tr class="bu-row">
       <td class="bu-rank-cell">#${rank}</td>
@@ -8273,6 +8280,167 @@ function renderBubblingUnder(type, normalizedPool, ms, lowestChartCount) {
     <div class="bu-legend-item"><span class="bu-badge bu-badge-weeks">🫧 N weeks</span><span class="bu-legend-desc">Total weeks ever in Bubbling Under</span></div>
     <div class="bu-legend-item"><span class="bu-badge bu-badge-streak">🔥 N-week streak</span><span class="bu-legend-desc">Consecutive weeks in current BU streak</span></div>
   `;
+}
+
+// ─── BU TRACK LIST DROPDOWN ──────────────────────────────────────
+// Opens a floating panel listing the last 10 unique tracks played from an
+// artist or album BU entry, with Play / Queue buttons for each track.
+// btn must be the YouTube button in a BU row (has data-artist / data-album).
+function buShowTrackList(btn, type) {
+  const existing = document.getElementById('buTrackListDrop');
+  if (existing) {
+    existing.remove();
+    // Toggle: clicking the same button again closes the dropdown
+    if (existing._sourceBtn === btn) return;
+  }
+
+  const artistName = btn.dataset.artist || '';
+  const albumName  = btn.dataset.album  || '';
+
+  // Filter allPlays (newest→oldest) to this artist or album
+  let filtered;
+  if (type === 'artists') {
+    filtered = allPlays.filter(p => p.artists && p.artists.includes(artistName));
+  } else {
+    // Albums: match album name AND artist so same-titled albums from different artists don't collide
+    filtered = allPlays.filter(p => p.album === albumName && p.artists && p.artists.includes(artistName));
+  }
+
+  // Deduplicate by song key, keeping most-recently-played occurrence first
+  const seen = new Set();
+  const tracks = [];
+  for (const p of filtered) {
+    const k = songKey(p);
+    if (!seen.has(k)) {
+      seen.add(k);
+      tracks.push(p);
+      if (tracks.length >= 10) break;
+    }
+  }
+
+  if (!tracks.length) return;
+
+  const headerLabel = type === 'artists'
+    ? `Last ${tracks.length} tracks · ${artistName}`
+    : `Last ${tracks.length} tracks · ${albumName}`;
+
+  const rows = tracks.map((p, i) => {
+    const safeTitle  = esc(p.title);
+    const safeArtist = esc(p.artist);
+    const safeAlbum  = esc(p.album || '');
+    // Show album name below title in artist view for extra context
+    const albumDisp = type === 'artists' && p.album
+      ? `<span class="bu-tl-album">${esc(p.album)}</span>` : '';
+    return `<div class="bu-tl-row">` +
+      `<div class="bu-tl-info"><div><span class="bu-tl-num">${i + 1}</span><span class="bu-tl-title">${safeTitle}</span></div>${albumDisp}</div>` +
+      `<div class="bu-tl-btns">` +
+      `<button class="bu-tl-play-btn" data-title="${safeTitle}" data-artist="${safeArtist}" data-album="${safeAlbum}" onclick="buTlPlay(this)" title="Play on YouTube">▶ Play</button>` +
+      `<button class="bu-tl-queue-btn" data-title="${safeTitle}" data-artist="${safeArtist}" data-album="${safeAlbum}" onclick="buTlQueue(this)" title="Add to queue">+ Queue</button>` +
+      `</div></div>`;
+  }).join('');
+
+  const drop = document.createElement('div');
+  drop.id = 'buTrackListDrop';
+  drop.className = 'bu-tracklist-drop';
+  drop._sourceBtn = btn; // remember source to support toggle-close
+  drop.innerHTML =
+    `<div class="bu-tl-header">` +
+    `<span class="bu-tl-header-label">🎵 ${esc(headerLabel)}</span>` +
+    `<button class="bu-tl-playall-btn" onclick="buTlPlayAll()" title="Play all tracks">▶▶ Play All</button>` +
+    `<button class="bu-tl-queueall-btn" onclick="buTlQueueAll()" title="Add all to queue">+ Queue All</button>` +
+    `<button class="bu-tl-close-btn" onclick="document.getElementById('buTrackListDrop')?.remove()" title="Close">✕</button>` +
+    `</div>` +
+    `<div class="bu-tl-scroll">${rows}</div>`;
+
+  document.body.appendChild(drop);
+
+  // Position anchored below the button; flip above if near the bottom edge
+  const dropW   = 340;
+  const dropMaxH = 320;
+  const r = btn.getBoundingClientRect();
+  let left = r.left;
+  let top  = r.bottom + 6;
+  if (left + dropW > window.innerWidth - 12) left = Math.max(8, window.innerWidth - dropW - 12);
+  if (top + dropMaxH > window.innerHeight - 12) top = Math.max(8, r.top - dropMaxH - 6);
+  drop.style.left = left + 'px';
+  drop.style.top  = top  + 'px';
+
+  // Dismiss on outside click
+  const closeOnOut = e => {
+    if (!drop.contains(e.target) && e.target !== btn) {
+      drop.remove();
+      document.removeEventListener('mousedown', closeOnOut, true);
+    }
+  };
+  setTimeout(() => document.addEventListener('mousedown', closeOnOut, true), 50);
+}
+
+// Play a track from the BU track-list dropdown immediately.
+function buTlPlay(btn) {
+  document.getElementById('buTrackListDrop')?.remove();
+  openYtPlayer(btn.dataset.title, btn.dataset.artist, btn.dataset.album, null);
+}
+
+// Add a track from the BU track-list dropdown to the queue (or start playing if nothing is active).
+function buTlQueue(btn) {
+  const { title, artist, album } = btn.dataset;
+  const playerEl = document.getElementById('ytMiniPlayer');
+  if (_ytCurrentTrack && playerEl && playerEl.style.display !== 'none') {
+    _ytQueue.push({ title, artist, album, btn: null });
+    _ytUpdateQueueDisplay();
+    _ytSaveQueue();
+    // Brief checkmark feedback on the button
+    const orig = btn.textContent;
+    btn.textContent = '✓';
+    setTimeout(() => { if (btn.isConnected) btn.textContent = orig; }, 1200);
+  } else {
+    document.getElementById('buTrackListDrop')?.remove();
+    openYtPlayer(title, artist, album, null);
+  }
+}
+
+// Add all tracks in the BU track-list dropdown to the queue without closing it.
+function buTlQueueAll() {
+  const drop = document.getElementById('buTrackListDrop');
+  if (!drop) return;
+  const playBtns = [...drop.querySelectorAll('.bu-tl-play-btn')];
+  if (!playBtns.length) return;
+  const playerEl = document.getElementById('ytMiniPlayer');
+  if (_ytCurrentTrack && playerEl && playerEl.style.display !== 'none') {
+    // Player is active — append all to queue
+    playBtns.forEach(b => _ytQueue.push({ title: b.dataset.title, artist: b.dataset.artist, album: b.dataset.album, btn: null }));
+    _ytUpdateQueueDisplay();
+    _ytSaveQueue();
+    // Brief feedback on the button
+    const queueAllBtn = drop.querySelector('.bu-tl-queueall-btn');
+    if (queueAllBtn) {
+      const orig = queueAllBtn.textContent;
+      queueAllBtn.textContent = '✓ Added';
+      setTimeout(() => { if (queueAllBtn.isConnected) queueAllBtn.textContent = orig; }, 1500);
+    }
+  } else {
+    // Nothing playing — start first, queue the rest
+    drop.remove();
+    const [first, ...rest] = playBtns;
+    openYtPlayer(first.dataset.title, first.dataset.artist, first.dataset.album, null);
+    rest.forEach(b => _ytQueue.push({ title: b.dataset.title, artist: b.dataset.artist, album: b.dataset.album, btn: null }));
+    _ytUpdateQueueDisplay();
+    _ytSaveQueue();
+  }
+}
+
+// Play all tracks in the BU track-list dropdown: start the first, queue the rest.
+function buTlPlayAll() {
+  const drop = document.getElementById('buTrackListDrop');
+  if (!drop) return;
+  const playBtns = [...drop.querySelectorAll('.bu-tl-play-btn')];
+  if (!playBtns.length) return;
+  drop.remove();
+  const [first, ...rest] = playBtns;
+  openYtPlayer(first.dataset.title, first.dataset.artist, first.dataset.album, null);
+  rest.forEach(b => _ytQueue.push({ title: b.dataset.title, artist: b.dataset.artist, album: b.dataset.album, btn: null }));
+  _ytUpdateQueueDisplay();
+  _ytSaveQueue();
 }
 
 // ─── WEEKLY CHART VIEWS ────────────────────────────────────────
