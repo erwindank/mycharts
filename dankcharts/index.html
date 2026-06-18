@@ -1268,6 +1268,8 @@
             <button class="cal-view-btn" data-view="week"  onclick="setCalView('week')"  title="Week view">Week</button>
             <button class="cal-view-btn" data-view="day"   onclick="setCalView('day')"   title="Day view">Day</button>
           </div>
+          <button class="cal-play-all-btn" id="calPlayAllBtn" onclick="calPlayAll()" title="Play all singles in the music player" style="display:none">▶ Play All</button>
+          <button class="cal-create-pl-btn" id="calCreatePlBtn" onclick="openCalCreatePlModal()" title="Save today's singles as an in-site playlist" style="display:none">+ Create Playlist</button>
           <button class="cal-export-playlist-btn" id="calExportPlaylistBtn" onclick="openCalendarExportModal()" title="Export singles as playlist" style="display:none">♫ Export Playlist</button>
         </div>
         <div class="events-cal-grid" id="eventsCalendarGrid"></div>
@@ -2252,6 +2254,23 @@
           data-i18n="btn_soundiiz">↗ GO TO SOUNDIIZ</a>
       </div>
       <div class="export-note" id="exportNoteBody"></div>
+    </div>
+  </div>
+
+  <!-- CAL CREATE PLAYLIST MODAL -->
+  <div class="modal-overlay" id="calCreatePlModal" onclick="if(event.target===this)closeCalCreatePlModal()">
+    <div class="cal-create-pl-box">
+      <div class="cal-create-pl-header">
+        <div class="cal-create-pl-title">+ Create Playlist</div>
+        <button class="modal-close" onclick="closeCalCreatePlModal()">✕ CLOSE</button>
+      </div>
+      <div class="cal-create-pl-sub" id="calCreatePlSub"></div>
+      <input class="cal-create-pl-input" id="calCreatePlName" type="text" maxlength="60" placeholder="Playlist name…"
+        onkeydown="if(event.key==='Enter')_calCreatePlConfirm()">
+      <div class="cal-create-pl-actions">
+        <button class="cal-create-pl-confirm-btn" onclick="_calCreatePlConfirm()">✓ Create Playlist</button>
+        <button class="cal-create-pl-cancel-btn" onclick="closeCalCreatePlModal()">Cancel</button>
+      </div>
     </div>
   </div>
 

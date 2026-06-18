@@ -4616,6 +4616,140 @@
       border-color: var(--accent);
     }
 
+    .cal-play-all-btn {
+      background: none;
+      border: 1px solid var(--border2);
+      border-radius: 4px;
+      color: var(--text2);
+      font-family: 'DM Mono', monospace;
+      font-size: 0.6rem;
+      font-weight: bold;
+      letter-spacing: 0.07em;
+      padding: 0.1rem 0.5rem 0.15rem;
+      cursor: pointer;
+      transition: background 0.12s, color 0.12s, border-color 0.12s;
+      margin-left: 0.4rem;
+    }
+
+    .cal-play-all-btn:hover {
+      background: var(--surface);
+      color: #FF0000;
+      border-color: #FF0000;
+    }
+
+    .cal-create-pl-btn {
+      background: none;
+      border: 1px solid var(--border2);
+      border-radius: 4px;
+      color: var(--text2);
+      font-family: 'DM Mono', monospace;
+      font-size: 0.6rem;
+      font-weight: bold;
+      letter-spacing: 0.07em;
+      padding: 0.1rem 0.5rem 0.15rem;
+      cursor: pointer;
+      transition: background 0.12s, color 0.12s, border-color 0.12s;
+      margin-left: 0.4rem;
+    }
+
+    .cal-create-pl-btn:hover {
+      background: var(--surface);
+      color: var(--accent);
+      border-color: var(--accent);
+    }
+
+    /* CAL CREATE PLAYLIST MODAL */
+    .cal-create-pl-box {
+      background: var(--bg2);
+      border: 1px solid var(--border2);
+      border-radius: 12px;
+      max-width: 420px;
+      margin: 0 auto;
+      padding: 1.5rem;
+    }
+
+    .cal-create-pl-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 0.75rem;
+    }
+
+    .cal-create-pl-title {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.85rem;
+      font-weight: bold;
+      letter-spacing: 0.08em;
+      color: var(--text);
+    }
+
+    .cal-create-pl-sub {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.65rem;
+      color: var(--text3);
+      letter-spacing: 0.05em;
+      margin-bottom: 1rem;
+    }
+
+    .cal-create-pl-input {
+      width: 100%;
+      box-sizing: border-box;
+      background: var(--surface);
+      border: 1px solid var(--border2);
+      border-radius: 6px;
+      color: var(--text);
+      font-family: 'DM Mono', monospace;
+      font-size: 0.75rem;
+      padding: 0.5rem 0.75rem;
+      margin-bottom: 1rem;
+      outline: none;
+      transition: border-color 0.12s;
+    }
+
+    .cal-create-pl-input:focus {
+      border-color: var(--accent);
+    }
+
+    .cal-create-pl-actions {
+      display: flex;
+      gap: 0.5rem;
+      justify-content: flex-end;
+    }
+
+    .cal-create-pl-confirm-btn {
+      background: var(--accent);
+      border: none;
+      border-radius: 5px;
+      color: #fff;
+      font-family: 'DM Mono', monospace;
+      font-size: 0.65rem;
+      font-weight: bold;
+      letter-spacing: 0.07em;
+      padding: 0.4rem 0.9rem;
+      cursor: pointer;
+      transition: opacity 0.12s;
+    }
+
+    .cal-create-pl-confirm-btn:hover { opacity: 0.85; }
+
+    .cal-create-pl-cancel-btn {
+      background: none;
+      border: 1px solid var(--border2);
+      border-radius: 5px;
+      color: var(--text2);
+      font-family: 'DM Mono', monospace;
+      font-size: 0.65rem;
+      letter-spacing: 0.07em;
+      padding: 0.4rem 0.9rem;
+      cursor: pointer;
+      transition: border-color 0.12s, color 0.12s;
+    }
+
+    .cal-create-pl-cancel-btn:hover {
+      border-color: var(--text2);
+      color: var(--text);
+    }
+
     /* WEEK VIEW */
     .cal-week-grid {
       grid-template-rows: auto 1fr;

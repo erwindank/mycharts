@@ -9386,6 +9386,65 @@ function closeExportModal() {
   document.getElementById('exportModal').classList.remove('open');
 }
 
+// Play all singles for the currently viewed day in the in-site music player
+function calPlayAll() {
+  if (!_eventsCalendarData) return;
+  const dateObj = new Date(eventsCalendarYear, eventsCalendarMonth, eventsCalendarDay);
+  const ds = localDateStr(dateObj);
+  const dayMap = buildCalendarDayMap(
+    { ..._eventsCalendarData, concerts: [] },
+    new Set([ds])
+  );
+  const events = (dayMap[ds] || []).filter(ev => ev.ttType === 'anniversary' || ev.ttType === 'release');
+  if (!events.length) return;
+  const tracks = events.map(ev => ({ title: ev.ttTitle, artist: ev.ttArtist }));
+  const [first, ...rest] = tracks;
+  openYtPlayer(first.title, first.artist, '', null);
+  rest.forEach(t => _ytQueue.push({ title: t.title, artist: t.artist, album: '', btn: null }));
+  _ytUpdateQueueDisplay();
+  _ytSaveQueue();
+}
+
+let _calCreatePlTracks = null; // tracks staged for the create-playlist modal
+
+function openCalCreatePlModal() {
+  if (!_eventsCalendarData) return;
+  const dateObj = new Date(eventsCalendarYear, eventsCalendarMonth, eventsCalendarDay);
+  const ds = localDateStr(dateObj);
+  const dayMap = buildCalendarDayMap(
+    { ..._eventsCalendarData, concerts: [] },
+    new Set([ds])
+  );
+  const events = (dayMap[ds] || []).filter(ev => ev.ttType === 'anniversary' || ev.ttType === 'release');
+  if (!events.length) { alert('No singles found on this day.'); return; }
+  _calCreatePlTracks = events.map(ev => ({ title: ev.ttTitle, artist: ev.ttArtist, album: '' }));
+  const dateLabel = fmtDate(dateObj);
+  document.getElementById('calCreatePlSub').textContent = `${tCount('songs', _calCreatePlTracks.length)} · ${dateLabel}`;
+  const nameInput = document.getElementById('calCreatePlName');
+  nameInput.value = `Singles · ${dateLabel}`;
+  document.getElementById('calCreatePlModal').classList.add('open');
+  // Pre-select so user can immediately type a new name
+  setTimeout(() => nameInput.select(), 80);
+}
+
+function closeCalCreatePlModal() {
+  document.getElementById('calCreatePlModal').classList.remove('open');
+  _calCreatePlTracks = null;
+}
+
+function _calCreatePlConfirm() {
+  const nameInput = document.getElementById('calCreatePlName');
+  const name = nameInput.value.trim();
+  if (!name) { nameInput.focus(); return; }
+  if (!_calCreatePlTracks || !_calCreatePlTracks.length) return;
+  _ytPlaylists[name] = _calCreatePlTracks;
+  _ytSavePlaylists();
+  _ytRenderPlaylists();
+  // Refresh the Playlists tab manager if it's currently open
+  if (typeof currentPeriod !== 'undefined' && currentPeriod === 'playlists') dcRenderPlaylistsView();
+  closeCalCreatePlModal();
+}
+
 function openCalendarExportModal() {
   if (!_eventsCalendarData) return;
   const dateObj = new Date(eventsCalendarYear, eventsCalendarMonth, eventsCalendarDay);
@@ -15575,10 +15634,14 @@ function _syncCalViewBtns() {
 
 function _syncCalExportBtn() {
   const btn = document.getElementById('calExportPlaylistBtn');
-  if (!btn) return;
+  const playBtn = document.getElementById('calPlayAllBtn');
+  const createPlBtn = document.getElementById('calCreatePlBtn');
   const isDay = eventsCalendarView === 'day';
   const singlesOnly = eventsTypeFilter.size === 1 && eventsTypeFilter.has('single');
-  btn.style.display = (isDay && singlesOnly) ? '' : 'none';
+  const show = (isDay && singlesOnly) ? '' : 'none';
+  if (btn) btn.style.display = show;
+  if (playBtn) playBtn.style.display = show;
+  if (createPlBtn) createPlBtn.style.display = show;
 }
 
 function setCalView(view) {
