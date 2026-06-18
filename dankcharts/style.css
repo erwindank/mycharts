@@ -10293,6 +10293,212 @@ body.hide-yt-btns .yt-play-btn { display: none; }
 }
 .yt-pl-del-btn:hover { opacity: 1; color: var(--rose); }
 
+/* ── Full Playlist Manager View ── */
+/* Hide everything inside eventsView except anniversariesSection when shown on the Playlists tab */
+#eventsView.dc-pl-mode > :not(#anniversariesSection) { display: none !important; }
+
+.dc-pl-view {
+  max-width: 780px;
+  margin: 0 auto;
+  padding: 1rem 0.75rem 4rem;
+}
+.dc-pl-header {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  margin-bottom: 1.25rem;
+}
+.dc-pl-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--text1);
+  margin: 0;
+}
+.dc-pl-save-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+.dc-pl-name-input {
+  flex: 1;
+  min-width: 180px;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 0.35rem 0.5rem;
+  font-size: 0.82rem;
+  color: var(--text1);
+  outline: none;
+}
+.dc-pl-name-input:focus { border-color: var(--accent); }
+.dc-pl-save-btn {
+  background: var(--accent);
+  border: none;
+  border-radius: 4px;
+  padding: 0.35rem 0.75rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #fff;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: opacity 0.1s;
+}
+.dc-pl-save-btn:hover { opacity: 0.85; }
+.dc-pl-status {
+  font-size: 0.78rem;
+  color: var(--text2);
+  opacity: 0;
+  transition: opacity 0.25s;
+  flex-shrink: 0;
+}
+.dc-pl-empty-state {
+  text-align: center;
+  color: var(--text3);
+  font-size: 0.88rem;
+  padding: 3rem 1rem;
+  line-height: 1.6;
+}
+.dc-pl-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.dc-pl-card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  overflow: hidden;
+  transition: border-color 0.1s;
+}
+.dc-pl-card-open {
+  border-color: var(--accent);
+}
+.dc-pl-card-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.55rem 0.65rem;
+  cursor: pointer;
+  user-select: none;
+}
+.dc-pl-card-header:hover { background: var(--bg3); }
+.dc-pl-chevron {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+  color: var(--text3);
+  transition: transform 0.18s;
+}
+.dc-pl-chevron-open { transform: rotate(90deg); }
+.dc-pl-name {
+  flex: 1;
+  min-width: 0;
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--text1);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.dc-pl-name-edit {
+  flex: 1;
+  min-width: 80px;
+  background: var(--bg1);
+  border: 1px solid var(--accent);
+  border-radius: 3px;
+  padding: 0.1rem 0.35rem;
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--text1);
+  outline: none;
+}
+.dc-pl-count {
+  font-size: 0.72rem;
+  color: var(--text3);
+  flex-shrink: 0;
+}
+.dc-pl-actions {
+  display: flex;
+  gap: 0.15rem;
+  flex-shrink: 0;
+}
+.dc-pl-play-btn,
+.dc-pl-rename-btn,
+.dc-pl-del-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.2rem;
+  border-radius: 3px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text3);
+  transition: color 0.1s, background 0.1s;
+}
+.dc-pl-ic {
+  width: 15px;
+  height: 15px;
+}
+.dc-pl-play-btn:hover   { color: var(--accent); background: rgba(255,0,0,0.08); }
+.dc-pl-rename-btn:hover { color: var(--text1);  background: var(--bg3); }
+.dc-pl-del-btn:hover    { color: var(--rose);   background: rgba(255,80,80,0.08); }
+.dc-pl-tracks {
+  border-top: 1px solid var(--border);
+  padding: 0.2rem 0;
+}
+.dc-pl-track {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.3rem 0.65rem;
+  cursor: default;
+  transition: background 0.1s;
+}
+.dc-pl-track:hover { background: var(--bg3); }
+.dc-pl-track.dc-pl-drag-over { background: var(--bg3); outline: 2px dashed var(--accent); outline-offset: -2px; }
+.dc-pl-drag-handle {
+  color: var(--text3);
+  cursor: grab;
+  font-size: 1rem;
+  flex-shrink: 0;
+  user-select: none;
+}
+.dc-pl-drag-handle:active { cursor: grabbing; }
+.dc-pl-track-info {
+  flex: 1;
+  min-width: 0;
+  font-size: 0.82rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.dc-pl-track-title  { color: var(--text1); font-weight: 500; }
+.dc-pl-track-sep    { color: var(--text3); }
+.dc-pl-track-artist { color: var(--text2); }
+.dc-pl-track-actions {
+  display: flex;
+  gap: 0.2rem;
+  flex-shrink: 0;
+  opacity: 0;
+  transition: opacity 0.1s;
+}
+.dc-pl-track:hover .dc-pl-track-actions { opacity: 1; }
+.dc-pl-track-play-btn,
+.dc-pl-track-del-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 0.7rem;
+  padding: 0.15rem 0.3rem;
+  border-radius: 3px;
+  color: var(--text3);
+  transition: color 0.1s, background 0.1s;
+}
+.dc-pl-track-play-btn:hover { color: var(--accent); background: rgba(255,0,0,0.08); }
+.dc-pl-track-del-btn:hover  { color: var(--rose);   background: rgba(255,80,80,0.08); }
+
 /* ── Speed badge ── */
 .yt-speed-badge {
   position: absolute;

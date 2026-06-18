@@ -90,6 +90,30 @@ function _awardsRef(uid, year) {
   return _db.collection('users').doc(uid).collection('data').doc(`awards_${year}`);
 }
 
+function _playlistsRef(uid) {
+  return _db.collection('users').doc(uid).collection('data').doc('playlists');
+}
+
+async function dcSavePlaylistsToFirestore(playlistsJson) {
+  if (!_currentUser || !_db) return;
+  try {
+    await _playlistsRef(_currentUser.uid).set({ data: playlistsJson });
+  } catch (err) {
+    console.warn('[dankcharts] Playlists save error:', err);
+  }
+}
+
+async function dcLoadPlaylistsFromFirestore() {
+  if (!_currentUser || !_db) return null;
+  try {
+    const snap = await _playlistsRef(_currentUser.uid).get();
+    return snap.exists ? snap.data().data : null;
+  } catch (err) {
+    console.warn('[dankcharts] Playlists load error:', err);
+    return null;
+  }
+}
+
 async function dcSaveAwards(year, data) {
   if (!_currentUser || !_db) return;
   try {
@@ -179,14 +203,16 @@ function _refreshAuthUI(user) {
 }
 
 // Expose globally for HTML onclick handlers and app.js
-window.dcSignIn                = dcSignIn;
-window.dcSignOut               = dcSignOut;
-window.dcSaveUserConfig        = dcSaveUserConfig;
-window.dcSaveRulesToFirestore  = dcSaveRulesToFirestore;
-window.dcSaveEventsCache       = dcSaveEventsCache;
-window.dcLoadEventsCache       = dcLoadEventsCache;
-window.dcSaveAwards            = dcSaveAwards;
-window.dcLoadAwards            = dcLoadAwards;
+window.dcSignIn                    = dcSignIn;
+window.dcSignOut                   = dcSignOut;
+window.dcSaveUserConfig            = dcSaveUserConfig;
+window.dcSaveRulesToFirestore      = dcSaveRulesToFirestore;
+window.dcSaveEventsCache           = dcSaveEventsCache;
+window.dcLoadEventsCache           = dcLoadEventsCache;
+window.dcSaveAwards                = dcSaveAwards;
+window.dcLoadAwards                = dcLoadAwards;
+window.dcSavePlaylistsToFirestore  = dcSavePlaylistsToFirestore;
+window.dcLoadPlaylistsFromFirestore = dcLoadPlaylistsFromFirestore;
 
 // ── INIT ────────────────────────────────────────────────────────────────────
 firebase.initializeApp(firebaseConfig);
@@ -204,6 +230,10 @@ _auth.onAuthStateChanged(async (user) => {
   if (applied && typeof dcResetRulesCache === 'function') dcResetRulesCache();
   if (applied && typeof dcApplyDisplayToggles === 'function') dcApplyDisplayToggles();
   if (applied && typeof dcApplyAllSettings    === 'function') dcApplyAllSettings();
+
+  // Sync playlists from Firestore and merge with any locally-saved playlists
+  const remotePlJson = await dcLoadPlaylistsFromFirestore();
+  if (remotePlJson && typeof _ytMergePlaylists === 'function') _ytMergePlaylists(remotePlJson);
 
   const hasLocalConfig = SYNC_KEYS.some(k => localStorage.getItem(k) !== null);
   if (!hasLocalConfig && !applied) return; // truly fresh user with no data anywhere

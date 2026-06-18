@@ -4321,6 +4321,7 @@ document.getElementById('periodNav').addEventListener('click', e => {
     document.getElementById('recentSection').style.display = 'none';
     document.getElementById('recordsView').style.display = 'none';
     document.getElementById('soundtrackView').style.display = 'none';
+    document.getElementById('playlistsView').style.display = 'none';
     document.getElementById('rawDataView').style.display = 'block';
     const recentEl = document.getElementById('recentSection');
     recentEl.classList.add('collapsed');
@@ -4363,6 +4364,7 @@ document.getElementById('periodNav').addEventListener('click', e => {
     document.getElementById('rawDataView').style.display = 'none';
     document.getElementById('eventsView').style.display = 'none';
     document.getElementById('soundtrackView').style.display = 'none';
+    document.getElementById('playlistsView').style.display = 'none';
     document.getElementById('graphsView').style.display = 'block';
     if (allPlays.length) renderGraphs();
     updateScrobbleBtn();
@@ -4397,6 +4399,7 @@ document.getElementById('periodNav').addEventListener('click', e => {
     document.getElementById('graphsView').style.display = 'none';
     document.getElementById('eventsView').style.display = 'none';
     document.getElementById('soundtrackView').style.display = 'none';
+    document.getElementById('playlistsView').style.display = 'none';
     document.getElementById('recordsView').style.display = 'block';
     initRecordsViewUI();
     restoreRecordSectionCollapseState();
@@ -4435,6 +4438,8 @@ document.getElementById('periodNav').addEventListener('click', e => {
     document.getElementById('recordsView').style.display = 'none';
     document.getElementById('awardsView').style.display = 'none';
     document.getElementById('soundtrackView').style.display = 'none';
+    document.getElementById('playlistsView').style.display = 'none';
+    document.getElementById('eventsView').classList.remove('dc-pl-mode'); // restore full events view
     document.getElementById('eventsView').style.display = 'block';
     const sel = document.getElementById('eventsLimitSelect');
     if (sel) sel.value = eventsArtistLimit;
@@ -4483,6 +4488,7 @@ document.getElementById('periodNav').addEventListener('click', e => {
     document.getElementById('graphsView').style.display = 'none';
     document.getElementById('recordsView').style.display = 'none';
     document.getElementById('eventsView').style.display = 'none';
+    document.getElementById('playlistsView').style.display = 'none';
     const _tmAw = document.getElementById('timeMachineSection'); if (_tmAw) _tmAw.style.display = 'none';
     document.getElementById('awardsView').style.display = 'block';
     awardsInit();
@@ -4519,6 +4525,7 @@ document.getElementById('periodNav').addEventListener('click', e => {
     document.getElementById('recordsView').style.display = 'none';
     document.getElementById('eventsView').style.display = 'none';
     document.getElementById('awardsView').style.display = 'none';
+    document.getElementById('playlistsView').style.display = 'none';
     const _tmSt = document.getElementById('timeMachineSection'); if (_tmSt) _tmSt.style.display = 'none';
     document.getElementById('soundtrackView').style.display = 'block';
     renderSoundtrack();
@@ -4527,8 +4534,59 @@ document.getElementById('periodNav').addEventListener('click', e => {
     return;
   }
 
-  // Leaving raw data, graphs, records, events, awards, or soundtrack view — restore chart UI
-  if (currentPeriod === 'rawdata' || currentPeriod === 'graphs' || currentPeriod === 'records' || currentPeriod === 'events' || currentPeriod === 'awards' || currentPeriod === 'soundtrack') {
+  if (btn.dataset.period === 'playlists') {
+    // Switch to playlists manager view
+    savedOffsets[currentPeriod] = currentOffset;
+    currentPeriod = 'playlists';
+    localStorage.setItem('dc_period', currentPeriod);
+    document.getElementById('chartSizeBar').style.display = 'none';
+    document.getElementById('paginatedSizeBar').style.display = 'none';
+    document.getElementById('chartDisplayToggles').style.display = 'none';
+    document.getElementById('exportPlaylistBtn').style.display = 'none';
+    document.getElementById('dateNav').style.display = 'none';
+    document.getElementById('navHint').style.display = 'none';
+    document.getElementById('statsStrip').style.display = 'none';
+    document.getElementById('statsStrip2').style.display = 'none';
+    const _s3pl = document.getElementById('statsStrip3'); if (_s3pl) _s3pl.style.display = 'none';
+    document.getElementById('songsSection').style.display = 'none';
+    document.getElementById('artistsSection').style.display = 'none';
+    document.getElementById('albumsSection').style.display = 'none';
+    document.getElementById('buSongsSection').style.display = 'none';
+    document.getElementById('buArtistsSection').style.display = 'none';
+    document.getElementById('buAlbumsSection').style.display = 'none';
+    document.getElementById('dropoutsSection').style.display = 'none';
+    NEW_ENTRY_SECTIONS.forEach(id => { const el = document.getElementById(id); if (el) el.style.display = 'none'; });
+    document.getElementById('upcomingSection').style.display = 'none';
+    document.getElementById('rawDataView').style.display = 'none';
+    document.getElementById('graphsView').style.display = 'none';
+    document.getElementById('recordsView').style.display = 'none';
+    document.getElementById('awardsView').style.display = 'none';
+    document.getElementById('soundtrackView').style.display = 'none';
+    // Show Recent Releases, Time Machine and Anniversaries alongside the playlist manager
+    const _rcPl = document.getElementById('recentSection');
+    if (_rcPl) {
+      _rcPl.style.display = 'block';
+      _rcPl.classList.remove('collapsed'); // ensure it's expanded
+      const _rcBtn = _rcPl.querySelector('.section-collapse-btn');
+      if (_rcBtn) { _rcBtn.textContent = '−'; _rcBtn.title = 'Collapse'; }
+    }
+    const _tmPl = document.getElementById('timeMachineSection'); if (_tmPl) _tmPl.style.display = 'block';
+    const _evPl = document.getElementById('eventsView');
+    if (_evPl) { _evPl.classList.add('dc-pl-mode'); _evPl.style.display = 'block'; }
+    // Default all sections to Reel (carousel) view for easy browsing
+    if (typeof setEventsView === 'function') {
+      setEventsView('recent', 'carousel');
+      setEventsView('anniversaries', 'carousel');
+    }
+    document.getElementById('playlistsView').style.display = 'block';
+    dcRenderPlaylistsView();
+    if (typeof window._refreshBackToTop === 'function') window._refreshBackToTop();
+    updateScrobbleBtn();
+    return;
+  }
+
+  // Leaving raw data, graphs, records, events, awards, soundtrack, or playlists view — restore chart UI
+  if (currentPeriod === 'rawdata' || currentPeriod === 'graphs' || currentPeriod === 'records' || currentPeriod === 'events' || currentPeriod === 'awards' || currentPeriod === 'soundtrack' || currentPeriod === 'playlists') {
     document.getElementById('dateNav').style.display = '';
     document.getElementById('navHint').style.display = '';
     document.getElementById('statsStrip').style.display = '';
@@ -4546,9 +4604,11 @@ document.getElementById('periodNav').addEventListener('click', e => {
     document.getElementById('rawDataView').style.display = 'none';
     document.getElementById('graphsView').style.display = 'none';
     document.getElementById('recordsView').style.display = 'none';
+    document.getElementById('eventsView').classList.remove('dc-pl-mode'); // restore full events view if we were in playlists mode
     document.getElementById('eventsView').style.display = 'none';
     document.getElementById('awardsView').style.display = 'none';
     document.getElementById('soundtrackView').style.display = 'none';
+    document.getElementById('playlistsView').style.display = 'none';
     if (currentPeriod === 'graphs') destroyGraphCharts();
   }
 
@@ -4568,7 +4628,7 @@ document.getElementById('periodNav').addEventListener('click', e => {
     });
   }
 
-  savedOffsets[(currentPeriod === 'rawdata' || currentPeriod === 'graphs' || currentPeriod === 'records' || currentPeriod === 'events' || currentPeriod === 'awards') ? btn.dataset.period : currentPeriod] = currentOffset;
+  savedOffsets[(currentPeriod === 'rawdata' || currentPeriod === 'graphs' || currentPeriod === 'records' || currentPeriod === 'events' || currentPeriod === 'awards' || currentPeriod === 'playlists') ? btn.dataset.period : currentPeriod] = currentOffset;
   currentPeriod = btn.dataset.period;
   localStorage.setItem('dc_period', currentPeriod);
   currentOffset = savedOffsets[currentPeriod];
@@ -17712,7 +17772,24 @@ function _ytLoadPlaylists() {
 }
 
 function _ytSavePlaylists() {
-  try { localStorage.setItem('yt-playlists', JSON.stringify(_ytPlaylists)); } catch(e) {}
+  const json = JSON.stringify(_ytPlaylists);
+  try { localStorage.setItem('yt-playlists', json); } catch(e) {}
+  // Sync to Firestore if the user is logged in
+  if (typeof dcSavePlaylistsToFirestore === 'function') dcSavePlaylistsToFirestore(json);
+}
+
+// Merge remote (Firestore) playlists with local ones — local wins on same-name conflict
+function _ytMergePlaylists(remoteJson) {
+  try {
+    const remote = JSON.parse(remoteJson);
+    _ytPlaylists = Object.assign({}, remote, _ytPlaylists); // local keys override remote
+    try { localStorage.setItem('yt-playlists', JSON.stringify(_ytPlaylists)); } catch(e) {}
+    // Refresh the player panel if it's open
+    const panel = document.getElementById('ytPlaylistsPanel');
+    if (panel && panel.style.display !== 'none') _ytRenderPlaylists();
+    // Refresh the full manager view if it's the active tab
+    if (typeof currentPeriod !== 'undefined' && currentPeriod === 'playlists') dcRenderPlaylistsView();
+  } catch(e) { console.warn('[dankcharts] Playlist merge error:', e); }
 }
 
 function _ytTogglePlaylists() {
@@ -17757,6 +17834,8 @@ function _ytSaveCurrentQueue(name) {
   _ytPlaylists[name] = tracks;
   _ytSavePlaylists();
   _ytRenderPlaylists();
+  // Also refresh the full manager view if it's the active tab
+  if (typeof currentPeriod !== 'undefined' && currentPeriod === 'playlists') dcRenderPlaylistsView();
 }
 
 function _ytLoadPlaylist(name) {
@@ -17774,6 +17853,219 @@ function _ytDeletePlaylist(name) {
   delete _ytPlaylists[name];
   _ytSavePlaylists();
   _ytRenderPlaylists();
+  if (typeof currentPeriod !== 'undefined' && currentPeriod === 'playlists') dcRenderPlaylistsView();
+}
+
+// ── Full Playlist Manager View ─────────────────────────────────────────────
+
+let _dcPlExpandedName = null; // name of the playlist currently expanded in the manager
+let _dcPlDragSrc      = null; // index of the track being dragged for reorder
+
+function dcRenderPlaylistsView() {
+  const el = document.getElementById('playlistsView');
+  if (!el) return;
+  const names = Object.keys(_ytPlaylists);
+
+  // Header with title and save-current-queue form
+  let html = `<div class="dc-pl-view">` +
+    `<div class="dc-pl-header">` +
+    `<h2 class="dc-pl-title">My Playlists</h2>` +
+    `<div class="dc-pl-save-row">` +
+    `<input id="dcPlNewName" class="dc-pl-name-input" type="text" placeholder="Save current queue as…" maxlength="40" ` +
+    `onkeydown="if(event.key==='Enter'){dcPlSaveQueue(this.value.trim());}">` +
+    `<button class="dc-pl-save-btn" onclick="dcPlSaveQueue(document.getElementById('dcPlNewName').value.trim())">Save Queue</button>` +
+    `<span id="dcPlStatus" class="dc-pl-status"></span>` +
+    `</div>` +
+    `</div>`;
+
+  if (names.length === 0) {
+    html += `<div class="dc-pl-empty-state">No saved playlists yet.<br>Start playing music and use the <strong>Save Queue</strong> button above (or the save icon in the player) to save your queue here.</div>`;
+  } else {
+    html += `<div class="dc-pl-list">`;
+    names.forEach(name => {
+      const tracks = _ytPlaylists[name];
+      const isExpanded = _dcPlExpandedName === name;
+      const nameEsc  = esc(name);
+      const nameJson = esc(JSON.stringify(name)); // must escape " so it doesn't break the onclick="" attribute
+
+      html += `<div class="dc-pl-card${isExpanded ? ' dc-pl-card-open' : ''}">` +
+        `<div class="dc-pl-card-header" onclick="dcPlToggleExpand(${nameJson})">` +
+        `<svg class="dc-pl-chevron${isExpanded ? ' dc-pl-chevron-open' : ''}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9,18 15,12 9,6"/></svg>` +
+        `<span class="dc-pl-name">${nameEsc}</span>` +
+        `<span class="dc-pl-count">${tracks.length} track${tracks.length !== 1 ? 's' : ''}</span>` +
+        `<div class="dc-pl-actions" onclick="event.stopPropagation()">` +
+        `<button class="dc-pl-play-btn" onclick="dcPlPlayFromStart(${nameJson})" title="Play playlist">` +
+        `<svg class="dc-pl-ic" viewBox="0 0 24 24" fill="currentColor"><polygon points="5,3 19,12 5,21"/></svg>` +
+        `</button>` +
+        `<button class="dc-pl-rename-btn" onclick="dcPlStartRename(${nameJson})" title="Rename">` +
+        `<svg class="dc-pl-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>` +
+        `</button>` +
+        `<button class="dc-pl-del-btn" onclick="dcPlDeleteFromView(${nameJson})" title="Delete playlist">` +
+        `<svg class="dc-pl-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3,6 5,6 21,6"/><path d="M19,6l-1,14a2,2,0,0,1-2,2H8a2,2,0,0,1-2-2L5,6"/><path d="M10,11v6"/><path d="M14,11v6"/><path d="M9,6V4a1,1,0,0,1,1-1h4a1,1,0,0,1,1,1v2"/></svg>` +
+        `</button>` +
+        `</div>` +
+        `</div>`; // end card-header
+
+      if (isExpanded) {
+        html += `<div class="dc-pl-tracks">`;
+        tracks.forEach((t, idx) => {
+          html += `<div class="dc-pl-track" draggable="true" ` +
+            `ondragstart="event.stopPropagation();dcPlDragStart(event,${nameJson},${idx})" ` +
+            `ondragover="event.preventDefault();event.currentTarget.classList.add('dc-pl-drag-over')" ` +
+            `ondragleave="event.currentTarget.classList.remove('dc-pl-drag-over')" ` +
+            `ondrop="dcPlDrop(event,${nameJson},${idx})">` +
+            `<span class="dc-pl-drag-handle" title="Drag to reorder">⠿</span>` +
+            `<div class="dc-pl-track-info">` +
+            `<span class="dc-pl-track-title">${esc(t.title)}</span>` +
+            `<span class="dc-pl-track-sep"> – </span>` +
+            `<span class="dc-pl-track-artist">${esc(t.artist)}</span>` +
+            `</div>` +
+            `<div class="dc-pl-track-actions">` +
+            `<button class="dc-pl-track-play-btn" onclick="dcPlPlayFromTrack(${nameJson},${idx})" title="Play from here">▶</button>` +
+            `<button class="dc-pl-track-del-btn" onclick="dcPlRemoveTrack(${nameJson},${idx})" title="Remove track">✕</button>` +
+            `</div>` +
+            `</div>`; // end track
+        });
+        html += `</div>`; // end tracks
+      }
+
+      html += `</div>`; // end card
+    });
+    html += `</div>`; // end list
+  }
+
+  html += `</div>`; // end view
+  el.innerHTML = html;
+}
+
+// Toggle a playlist's track list open/closed
+function dcPlToggleExpand(name) {
+  _dcPlExpandedName = _dcPlExpandedName === name ? null : name;
+  dcRenderPlaylistsView();
+}
+
+// Load a playlist into the player (player floats over the page, no tab switch needed)
+function dcPlPlayFromStart(name) {
+  _ytLoadPlaylist(name);
+}
+
+// Play a playlist starting from a specific track index
+function dcPlPlayFromTrack(name, idx) {
+  const pl = _ytPlaylists[name];
+  if (!pl || idx >= pl.length) return;
+  const tracks = pl.slice(idx);
+  const [first, ...rest] = tracks;
+  openYtPlayer(first.title, first.artist, first.album, null);
+  rest.forEach(t => _ytQueue.push({ title: t.title, artist: t.artist, album: t.album, btn: null }));
+  _ytUpdateQueueDisplay();
+  _ytSaveQueue();
+}
+
+// Replace the name span with an inline input to rename a playlist in-place
+function dcPlStartRename(oldName) {
+  const nameEls = document.querySelectorAll('.dc-pl-name');
+  let targetEl = null;
+  nameEls.forEach(el => { if (el.textContent === oldName) targetEl = el; });
+  if (!targetEl) return;
+  const input = document.createElement('input');
+  input.type      = 'text';
+  input.value     = oldName;
+  input.maxLength = 40;
+  input.className = 'dc-pl-name-edit';
+  let confirmed = false;
+  const doConfirm = () => {
+    if (confirmed) return;
+    confirmed = true;
+    dcPlConfirmRename(oldName, input.value.trim());
+  };
+  input.addEventListener('blur',    doConfirm);
+  input.addEventListener('click',   e => e.stopPropagation()); // don't collapse card
+  input.addEventListener('keydown', e => {
+    if (e.key === 'Enter')  { e.preventDefault(); doConfirm(); }
+    if (e.key === 'Escape') { confirmed = true; dcRenderPlaylistsView(); }
+  });
+  targetEl.replaceWith(input);
+  input.focus();
+  input.select();
+}
+
+// Commit an in-place rename — rebuilds the playlist object to preserve order
+function dcPlConfirmRename(oldName, newName) {
+  if (!newName || newName === oldName) { dcRenderPlaylistsView(); return; }
+  if (_ytPlaylists[newName] !== undefined) {
+    if (!confirm(`A playlist named "${newName}" already exists. Overwrite it?`)) { dcRenderPlaylistsView(); return; }
+  }
+  const rebuilt = {};
+  Object.keys(_ytPlaylists).forEach(k => {
+    if (k === oldName)  rebuilt[newName] = _ytPlaylists[k];       // rename in-place
+    else if (k !== newName) rebuilt[k]   = _ytPlaylists[k];       // skip old target (overwrite)
+  });
+  _ytPlaylists = rebuilt;
+  if (_dcPlExpandedName === oldName) _dcPlExpandedName = newName;
+  _ytSavePlaylists();
+  dcRenderPlaylistsView();
+}
+
+// Delete a playlist from the manager view
+function dcPlDeleteFromView(name) {
+  delete _ytPlaylists[name];
+  if (_dcPlExpandedName === name) _dcPlExpandedName = null;
+  _ytSavePlaylists();
+  dcRenderPlaylistsView();
+}
+
+// Remove a single track from a playlist
+function dcPlRemoveTrack(name, idx) {
+  const pl = _ytPlaylists[name];
+  if (!pl) return;
+  pl.splice(idx, 1);
+  if (pl.length === 0) {
+    delete _ytPlaylists[name];
+    if (_dcPlExpandedName === name) _dcPlExpandedName = null;
+  }
+  _ytSavePlaylists();
+  dcRenderPlaylistsView();
+}
+
+// Drag-and-drop handlers for track reordering
+function dcPlDragStart(event, name, idx) {
+  _dcPlDragSrc = idx;
+  event.dataTransfer.effectAllowed = 'move';
+  event.dataTransfer.setData('text/plain', String(idx));
+}
+
+function dcPlDrop(event, name, toIdx) {
+  event.preventDefault();
+  event.currentTarget.classList.remove('dc-pl-drag-over');
+  if (_dcPlDragSrc === null || _dcPlDragSrc === toIdx) { _dcPlDragSrc = null; return; }
+  const pl = _ytPlaylists[name];
+  if (!pl) return;
+  const [moved] = pl.splice(_dcPlDragSrc, 1);
+  pl.splice(toIdx, 0, moved);
+  _dcPlDragSrc = null;
+  _ytSavePlaylists();
+  dcRenderPlaylistsView();
+}
+
+// Save the current player queue as a named playlist from the manager view
+function dcPlSaveQueue(name) {
+  if (!name) { dcPlShowStatus('Enter a playlist name first'); return; }
+  if (!_ytCurrentTrack && !_ytQueue.length) { dcPlShowStatus('No active playback to save — start playing music first'); return; }
+  _ytSaveCurrentQueue(name);
+  const input = document.getElementById('dcPlNewName');
+  if (input) input.value = '';
+  dcPlShowStatus(`Saved "${name}"`);
+  dcRenderPlaylistsView();
+}
+
+// Show a brief status message below the save form
+function dcPlShowStatus(msg) {
+  const el = document.getElementById('dcPlStatus');
+  if (!el) return;
+  el.textContent = msg;
+  el.style.opacity = '1';
+  clearTimeout(el._hideTimer);
+  el._hideTimer = setTimeout(() => { el.style.opacity = '0'; }, 2500);
 }
 
 // ── 7. Play Similar ───────────────────────────────────────────────
