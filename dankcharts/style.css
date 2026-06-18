@@ -12489,6 +12489,22 @@ body[class*="-light"] .tm-card-search:hover {
 .sk-chev { font-size: 0.58rem; flex-shrink: 0; }
 .streak-count { font-size: 0.6rem; opacity: 0.55; font-weight: normal; }
 
+/* ── At Risk section action buttons (Play All / Queue All / Save Playlist) ── */
+.sk-sec-btns { display: inline-flex; align-items: center; gap: 0.3rem; margin-left: 0.4rem; }
+.sk-atrisk-btn {
+  background: none;
+  border: 1px solid var(--border2);
+  border-radius: 4px;
+  color: var(--text2);
+  cursor: pointer;
+  font-family: 'DM Mono', monospace;
+  font-size: 0.6rem;
+  padding: 2px 6px;
+  white-space: nowrap;
+  transition: color 0.15s, border-color 0.15s;
+}
+.sk-atrisk-btn:hover { background: var(--surface); color: #FF0000; border-color: #FF0000; }
+
 /* ── Item extras ── */
 .sk-since {
   font-family: 'DM Mono', monospace;

@@ -19464,13 +19464,13 @@ function openStreakModal() {
   }
 
   // ── Section HTML ─────────────────────────────────────────────────
-  function section(title, items, mode, sid) {
+  function section(title, items, mode, sid, extraTitleHtml = '') {
     const collapsed = localStorage.getItem('skc-' + sid) === '1';
     const inner = items.length ? items.map(it => itemHtml(it, mode)).join('') : `<div class="streak-empty">${t('streak_none')}</div>`;
     const cls = mode === 'lost' ? ' streak-section--lost' : mode === 'risk' ? ' streak-section--risk' : mode === 'fame' ? ' streak-section--fame' : '';
     const chev = collapsed ? '▶' : '▼';
     return `<div class="streak-section${cls}${collapsed ? ' streak-section--collapsed' : ''}" data-skid="${sid}">` +
-      `<div class="streak-section-title" onclick="_streakToggleSection(this.closest('.streak-section'))"><span class="sk-chev">${chev}</span> ${title} <span class="streak-count">(${items.length})</span></div>` +
+      `<div class="streak-section-title" onclick="_streakToggleSection(this.closest('.streak-section'))"><span class="sk-chev">${chev}</span> ${title} <span class="streak-count">(${items.length})</span>${extraTitleHtml}</div>` +
       `<div class="sk-sec-body${collapsed ? ' sk-sec-hidden' : ''}">${inner}</div></div>`;
   }
 
@@ -19498,6 +19498,15 @@ function openStreakModal() {
       (weekEnded ? `${weekEnded} ended` : '') + `</div>`
     : '';
 
+  // ── At Risk — store songs for global play/queue/save functions ──
+  window._skAtRiskSongs = atRisk.filter(it => it.type === 'song');
+  const _atRiskSongBtns = window._skAtRiskSongs.length > 0
+    ? `<span class="sk-sec-btns" onclick="event.stopPropagation()">` +
+      `<button class="sk-atrisk-btn" onclick="skAtRiskPlayAll()" title="Play all at-risk songs in the music player">▶ Play All</button>` +
+      `<button class="sk-atrisk-btn" onclick="skAtRiskQueueAll()" title="Add all at-risk songs to the queue">+ Queue All</button>` +
+      `<button class="sk-atrisk-btn" onclick="skAtRiskSavePl()" title="Save at-risk songs as a playlist">♫ Save Playlist</button>` +
+      `</span>` : '';
+
   // ── Render ───────────────────────────────────────────────────────
   const streaksHtml =
     weeklyHtml +
@@ -19506,7 +19515,7 @@ function openStreakModal() {
     section(t('streak_section_albums'), activeAlbums, 'active', 'albums') +
     section(t('streak_section_songs'), activeSongs, 'active', 'songs') +
     urgency +
-    section(t('streak_section_at_risk'), atRisk, 'risk', 'atrisk') +
+    section(t('streak_section_at_risk'), atRisk, 'risk', 'atrisk', _atRiskSongBtns) +
     section(t('streak_section_lost'), lost, 'lost', 'lost') +
     hofSection();
 
@@ -19576,6 +19585,48 @@ function _streakToggleSection(sectionEl) {
   if (c) { body?.classList.add('sk-sec-hidden'); if (chev) chev.textContent = '▶'; }
   else { body?.classList.remove('sk-sec-hidden'); if (chev) chev.textContent = '▼'; }
   try { localStorage.setItem('skc-' + sectionEl.dataset.skid, c ? '1' : '0'); } catch(e) {}
+}
+
+// ── At Risk Today — Play All / Queue All / Save Playlist ────────────────────
+// These operate only on songs (artists/albums are excluded) from the AT RISK TODAY section.
+
+function skAtRiskPlayAll() {
+  const songs = window._skAtRiskSongs || [];
+  if (!songs.length) return;
+  const [first, ...rest] = songs;
+  openYtPlayer(first.name, first.sub, '', null);
+  rest.forEach(s => _ytQueue.push({ title: s.name, artist: s.sub, album: '', btn: null }));
+  _ytUpdateQueueDisplay();
+  _ytSaveQueue();
+}
+
+function skAtRiskQueueAll() {
+  const songs = window._skAtRiskSongs || [];
+  if (!songs.length) return;
+  songs.forEach(s => _ytQueue.push({ title: s.name, artist: s.sub, album: '', btn: null }));
+  _ytUpdateQueueDisplay();
+  _ytSaveQueue();
+  const statusEl = document.getElementById('ytMiniStatus');
+  if (statusEl) {
+    statusEl.textContent = `${songs.length} at-risk song${songs.length !== 1 ? 's' : ''} added to queue`;
+    statusEl.className = 'yt-mini-status ok';
+    setTimeout(() => { if (statusEl.textContent.includes('at-risk')) { statusEl.textContent = ''; statusEl.className = 'yt-mini-status'; } }, 2500);
+  }
+}
+
+function skAtRiskSavePl() {
+  const songs = window._skAtRiskSongs || [];
+  if (!songs.length) return;
+  // Reuse the calendar create-playlist modal — populate it with at-risk songs
+  _calCreatePlTracks = songs.map(s => ({ title: s.name, artist: s.sub, album: '' }));
+  const today = new Date();
+  const dateLabel = today.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  const subEl = document.getElementById('calCreatePlSub');
+  if (subEl) subEl.textContent = `${songs.length} song${songs.length !== 1 ? 's' : ''} · At Risk Today`;
+  const nameInput = document.getElementById('calCreatePlName');
+  if (nameInput) nameInput.value = `At Risk · ${dateLabel}`;
+  const modal = document.getElementById('calCreatePlModal');
+  if (modal) { modal.classList.add('open'); setTimeout(() => nameInput && nameInput.select(), 80); }
 }
 
 function _streakSwitchTab(tab) {
