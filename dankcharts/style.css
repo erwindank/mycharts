@@ -2439,10 +2439,27 @@
     /* Idea 6: muted table opacity */
     .bu-table {
       width: 100%;
+    }
+    /* Move opacity to individual bu-rows so the expand cr-row is always at full opacity */
+    .bu-table .bu-row {
       opacity: 0.72;
     }
-    .bu-table tr:hover {
+    .bu-table .bu-row:hover {
       opacity: 1;
+    }
+
+    /* BU chart run expand row — uses .cr-row display:none/.cr-row.open display:table-row */
+    .bu-cr-panel {
+      border-top: 2px solid var(--accent2);
+    }
+    /* The 📊 button in the BU rank cell — stacked above the rank number, overrides italic */
+    .bu-cr-btn {
+      display: block;
+      font-size: 0.6rem;
+      font-style: normal;
+      padding: 1px 4px;
+      margin: 0 auto 3px;
+      width: fit-content;
     }
 
     .bu-row td {
@@ -2458,9 +2475,9 @@
       color: var(--text3);
       font-size: 0.75rem;
       font-family: 'DM Mono', monospace;
-      text-align: right;
+      text-align: center;
       white-space: nowrap;
-      width: 46px;
+      width: 58px;
       vertical-align: middle;
     }
 

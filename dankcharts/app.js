@@ -5726,6 +5726,7 @@ function renderAll() {
   chartRunData = null;
   allChartRun = {};
   allChartRunIsFullHistory = false;
+  buChartRunData = null; // invalidate BU chart run cache on each new render
   if (currentPeriod === 'year') {
     buildAllChartRun(); // builds all 3 with offset=0 and sets allChartRunIsFullHistory
   } else if (currentPeriod === 'week' || currentPeriod === 'month') {
@@ -8106,6 +8107,141 @@ function renderAlbums(plays, peaks, monthlyStats) {
   }
 }
 
+// ─── BUBBLING UNDER CHART RUN ────────────────────────────────────
+// Cached result of buildBuChartRun(); reset to null on each new render cycle.
+let buChartRunData = null;
+
+// Builds a weekly chart-run history for the BU zone (ranks chartSize+1 through chartSize+buSize).
+// Uses the same chartStatus/rankSortWithStatus logic as buildChartRun so rankings match.
+function buildBuChartRun() {
+  const curKey = currentViewWeekKey();
+  const buSize = chartSize >= 100 ? 50 : 10;
+
+  // Collect weekly play counts for all entries
+  const periodMap = {};
+  for (const p of allPlays) {
+    const pk = playWeekKey(p.date);
+    if (pk > curKey) continue;
+    if (!periodMap[pk]) periodMap[pk] = { songs: {}, artists: {}, albums: {} };
+    const pm = periodMap[pk];
+    const sk = songKey(p);
+    if (!pm.songs[sk]) pm.songs[sk] = { count: 0, firstAchieved: p.date, _title: p.title, _artist: p.artist };
+    pm.songs[sk].count++;
+    for (const a of p.artists) {
+      if (!pm.artists[a]) pm.artists[a] = { count: 0, firstAchieved: p.date };
+      pm.artists[a].count++;
+    }
+    const ak = p.album + '|||' + albumArtist(p);
+    if (!pm.albums[ak]) pm.albums[ak] = { count: 0, firstAchieved: p.date };
+    pm.albums[ak].count++;
+  }
+
+  const result = { songs: {}, artists: {}, albums: {} };
+  // Track prev/ever chart sets so chartStatus matches the main render functions
+  const prevChartKeys = { songs: new Map(), artists: new Map(), albums: new Map() };
+  const everChartedKeys = { songs: new Set(), artists: new Set(), albums: new Set() };
+
+  for (const pk of Object.keys(periodMap).sort()) {
+    const pm = periodMap[pk];
+    const lbl = crPeriodLabel('week', pk);
+    for (const type of ['songs', 'artists', 'albums']) {
+      // Assign chartStatus so the sort matches how the main render functions rank entries
+      for (const [k, data] of Object.entries(pm[type])) {
+        const prevRk = prevChartKeys[type].get(k);
+        data.chartStatus = prevRk !== undefined ? 0 : everChartedKeys[type].has(k) ? 1 : 2;
+        data.prevRank = prevRk !== undefined ? prevRk : Infinity;
+      }
+      const allSorted = Object.entries(pm[type]).sort(([, a], [, b]) => rankSortWithStatus(a, b));
+      // Update chart-zone prev/ever sets for the next period
+      const newPrev = new Map();
+      allSorted.slice(0, chartSize).forEach(([k], i) => { newPrev.set(k, i + 1); everChartedKeys[type].add(k); });
+      prevChartKeys[type] = newPrev;
+      // Record BU zone entries (buRank 1 = just below the chart, highest possible position in BU)
+      allSorted.slice(chartSize, chartSize + buSize).forEach(([k, data], i) => {
+        const buRank = i + 1;
+        if (!result[type][k]) result[type][k] = { entries: [], peakBuRank: buRank, peakPlays: 0 };
+        result[type][k].entries.push({ periodKey: pk, label: lbl, buRank, plays: data.count });
+        if (buRank < result[type][k].peakBuRank) result[type][k].peakBuRank = buRank;
+        if (data.count > result[type][k].peakPlays) result[type][k].peakPlays = data.count;
+      });
+    }
+  }
+
+  buChartRunData = { period: 'week', curKey, result };
+  return buChartRunData;
+}
+
+// Renders the colored BU-rank boxes for an entry's BU chart run.
+// buRank 1 = closest position to the main chart in that week.
+function buCrBoxesHTML(type, key) {
+  const d = buChartRunData?.result?.[type]?.[key];
+  if (!d || !d.entries.length) return '<div style="font-size:0.6rem;color:var(--text3);padding:4px 0">No Bubbling Under history yet.</div>';
+  const boxes = d.entries.flatMap((e, i) => {
+    const isPeak = (e.buRank === d.peakBuRank);
+    const cls = isPeak ? 'cr-box cr-box-peak' : 'cr-box';
+    const box = `<div class="${cls}">
+      <div class="cr-box-rank">BU${e.buRank}</div>
+      <div class="cr-box-label">${esc(e.label)}</div>
+    </div>`;
+    if (i === 0) return [box];
+    const gap = crPeriodGap('week', d.entries[i - 1].periodKey, e.periodKey);
+    if (gap <= 0) return [box];
+    const gapEl = `<div class="cr-box-gap"><div class="cr-box-gap-label">✕${gap}</div><div class="cr-box-gap-unit">${tUnit('weeks', gap)}</div></div>`;
+    return [gapEl, box];
+  }).join('');
+  return `<div class="cr-boxes-wrap"><div class="cr-boxes">${boxes}</div></div>`;
+}
+
+// Builds the full BU chart run panel HTML (header + stats + boxes).
+function buildBuCrPanelHTML(type, key) {
+  const d = buChartRunData?.result?.[type]?.[key];
+  const headerHtml = `<div style="margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid var(--border);">
+    <div style="font-family:'DM Mono',monospace;font-size:0.65rem;font-weight:700;letter-spacing:0.18em;color:var(--text);text-transform:uppercase;">🫧 BU CHART RUN</div>
+    <div style="font-family:'DM Mono',monospace;font-size:0.54rem;letter-spacing:0.07em;color:var(--text3);margin-top:2px;">Bubbling Under zone history · weekly</div>
+  </div>`;
+
+  if (!d || !d.entries.length) {
+    return headerHtml + `<div style="font-size:0.6rem;color:var(--text3);padding:4px 0">No Bubbling Under history yet.</div>`;
+  }
+
+  // Compute streak and stints from the entries (which are already in chronological order)
+  let longestStreak = 0, curStreak = 0, stints = 0;
+  for (let i = 0; i < d.entries.length; i++) {
+    if (i === 0) { curStreak = 1; stints = 1; }
+    else {
+      const gap = crPeriodGap('week', d.entries[i - 1].periodKey, d.entries[i].periodKey);
+      if (gap === 0) { curStreak++; }
+      else { longestStreak = Math.max(longestStreak, curStreak); curStreak = 1; stints++; }
+    }
+  }
+  longestStreak = Math.max(longestStreak, curStreak);
+
+  const n = d.entries.length;
+  const peak = d.peakBuRank; // 1 = closest to the chart
+  const at1 = d.entries.filter(e => e.buRank === 1).length; // weeks at BU#1 (highest BU spot)
+
+  const statsHtml = `<div class="cr-stats">
+    <div class="cr-stat"><strong>${n} ${tUnit('weeks', n)}</strong> in Bubbling Under</div>
+    <div class="cr-stat"><strong>Peak BU${peak}</strong>${peak === 1 ? ' · closest to the chart' : ''} (chart rank #${chartSize + peak})</div>
+    ${at1 ? `<div class="cr-stat"><strong>${at1} ${tUnit('weeks', at1)}</strong> at BU#1</div>` : ''}
+    ${longestStreak > 1 ? `<div class="cr-stat"><strong>${longestStreak}-week</strong> longest streak</div>` : ''}
+    ${stints > 1 ? `<div class="cr-stat"><strong>${stints} stints</strong> in Bubbling Under</div>` : ''}
+    <div class="cr-stat"><strong>${d.peakPlays}</strong> peak plays in a single week</div>
+  </div>`;
+
+  return headerHtml + statsHtml + buCrBoxesHTML(type, key);
+}
+
+// Toggles a BU chart run expand row (same pattern as toggleChartRun).
+function toggleBuCr(btn, rowId) {
+  event.stopPropagation();
+  const row = document.getElementById(rowId);
+  if (!row) return;
+  const open = !row.classList.contains('open');
+  row.classList.toggle('open', open);
+  btn.classList.toggle('active', open);
+}
+
 // ─── BUBBLING UNDER ─────────────────────────────────────────────
 // Tracks open/closed state of the accordion per type (songs/artists/albums)
 const _buOpen = { songs: false, artists: false, albums: false };
@@ -8166,6 +8302,9 @@ function renderBubblingUnder(type, normalizedPool, ms, lowestChartCount) {
   if (bodyEl)  bodyEl.style.display = _buOpen[type] ? '' : 'none';
   if (iconEl)  iconEl.textContent = _buOpen[type] ? '▲' : '▼';
 
+  // Build BU chart run history once for this render cycle (cached in buChartRunData)
+  if (!buChartRunData) buildBuChartRun();
+
   // Idea 17: find the top week-over-week gainer among entries that were also in BU last week
   let surgingKey = null;
   let bestSurgeDelta = 1; // minimum gain of 1 play required
@@ -8180,7 +8319,7 @@ function renderBubblingUnder(type, normalizedPool, ms, lowestChartCount) {
     if (-delta > bestFreefallDelta) { bestFreefallDelta = -delta; freefallKey = item.key; }
   }
 
-  const rows = normalizedPool.map((item, i) => {
+  const rows = normalizedPool.flatMap((item, i) => {
     const rank = chartSize + 1 + i;
     const { key, displayName, subName, album, count } = item;
 
@@ -8249,8 +8388,12 @@ function renderBubblingUnder(type, normalizedPool, ms, lowestChartCount) {
     const ytBtnTitle = type === 'songs' ? 'Play on YouTube' : 'Show recently played tracks';
     const ytBtn = `<button class="yt-play-btn bu-yt-btn" data-title="${esc(ytTitle)}" data-artist="${esc(ytArtist)}" data-album="${esc(ytAlbum)}" onclick="${ytBtnOnclick}" title="${ytBtnTitle}"><span class="yt-btn-content"><svg class="yt-btn-icon" viewBox="0 0 24 24"><path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.5 12 3.5 12 3.5s-7.5 0-9.4.5A3 3 0 0 0 .5 6.2C0 8.1 0 12 0 12s0 3.9.5 5.8a3 3 0 0 0 2.1 2.1c1.9.5 9.4.5 9.4.5s7.5 0 9.4-.5a3 3 0 0 0 2.1-2.1C24 15.9 24 12 24 12s0-3.9-.5-5.8zM9.7 15.5V8.5l6.3 3.5-6.3 3.5z"/></svg>YouTube</span></button>`;
 
-    return `<tr class="bu-row">
-      <td class="bu-rank-cell">#${rank}</td>
+    // BU chart run expand row — toggled by the 📊 button in the rank cell
+    const buCrRowId = `bu-cr-${type}-${i}`;
+    const mainRow = `<tr class="bu-row">
+      <td class="bu-rank-cell">
+        <button class="cr-toggle-btn bu-cr-btn" title="BU Chart Run — Bubbling Under history" onclick="event.stopPropagation();toggleBuCr(this,'${buCrRowId}')">📊</button>#${rank}
+      </td>
       <td class="bu-name-cell">
         <div class="bu-display-name">${esc(displayName)}</div>
         ${subName ? `<div class="bu-sub-name">${esc(subName)}</div>` : ''}
@@ -8261,6 +8404,8 @@ function renderBubblingUnder(type, normalizedPool, ms, lowestChartCount) {
         <div class="bu-play-count">${tCountHtml('plays', count)}</div>
       </td>
     </tr>`;
+    const expandRow = `<tr class="bu-cr-row cr-row" id="${buCrRowId}"><td colspan="3"><div class="cr-panel bu-cr-panel">${buildBuCrPanelHTML(type, key)}</div></td></tr>`;
+    return [mainRow, expandRow];
   });
 
   if (tbodyEl) tbodyEl.innerHTML = rows.join('');
