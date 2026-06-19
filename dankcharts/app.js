@@ -17136,6 +17136,8 @@ let _ytPlaylists         = {};
 let _ytPipWindow         = null;
 let _ytPipUpdate         = null;
 let _ytLyricsCache       = {};
+// True when Chrome auto-paused the iframe because the page went to background
+let _ytHiddenWhilePlaying = false;
 
 // Called automatically by the YouTube IFrame API script once it loads.
 function onYouTubeIframeAPIReady() {
@@ -17339,9 +17341,24 @@ function _ytOnState(event) {
     }
     if (_ytPipUpdate) _ytPipUpdate();
     // Register with OS for lock screen controls and background audio permission
+    _ytHiddenWhilePlaying = false;
     _ytSetMediaSession();
     if ('mediaSession' in navigator) navigator.mediaSession.playbackState = 'playing';
+    // Re-assert our handlers after YouTube's iframe may override them (needed for prev/next buttons)
+    setTimeout(() => {
+      _ytSetMediaSession();
+      if ('mediaSession' in navigator) navigator.mediaSession.playbackState = 'playing';
+    }, 800);
   } else if (event.data === YT.PlayerState.PAUSED) {
+    // If the page is hidden, YouTube auto-paused us — resume and keep the notification alive
+    if (document.hidden && _ytHiddenWhilePlaying) {
+      setTimeout(() => {
+        if (_ytPlayer && document.hidden) {
+          try { _ytPlayer.playVideo(); } catch(e) {}
+        }
+      }, 300);
+      return;
+    }
     clearTimeout(_ytScrobbleTimer);
     _ytStopScrobbleRing();
     _ytStopSeekUpdate();
@@ -17816,6 +17833,10 @@ function _ytUpdateSeekBar() {
       const remaining = dur - cur;
       if (remaining > 0 && remaining <= _ytCrossfade) { _ytCrossfadingOut = true; _ytStartFadeOut(); }
     }
+    // Keep OS media controls position updated (required for prev/next to stay visible)
+    if ('mediaSession' in navigator && navigator.mediaSession.metadata) {
+      try { navigator.mediaSession.setPositionState({ duration: dur, playbackRate: _ytSpeed || 1, position: Math.min(cur, dur) }); } catch(e2) {}
+    }
   } catch(e) {}
 }
 
@@ -17887,7 +17908,41 @@ function _ytSetMediaSession() {
       try { _ytPlayer.seekTo(e.seekTime, true); } catch(e2) {}
     }
   });
+  // Provide position state so Chrome shows prev/next buttons and a seek bar
+  if (_ytPlayer) {
+    try {
+      const dur = _ytPlayer.getDuration();
+      const cur = _ytPlayer.getCurrentTime();
+      if (dur > 0) {
+        navigator.mediaSession.setPositionState({ duration: dur, playbackRate: _ytSpeed || 1, position: Math.min(cur, dur) });
+      }
+    } catch(e) {}
+  }
 }
+
+// ── Background-play guard ───────────────────────────────────────────
+// Chrome/Android pauses YouTube iframes when the page goes hidden. We track
+// whether we were playing before hiding and auto-resume in two ways:
+//   1. Directly in _ytOnState (PAUSED) when document.hidden is true
+//   2. Here on visibilitychange when returning to foreground (belt-and-suspenders)
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden) {
+    // Record whether playback was active so the PAUSED handler can decide
+    if (_ytPlayer) {
+      try { _ytHiddenWhilePlaying = _ytPlayer.getPlayerState() === YT.PlayerState.PLAYING; } catch(e) {}
+    }
+  } else {
+    // Returning to foreground — resume if we were playing when we left
+    if (_ytHiddenWhilePlaying) {
+      _ytHiddenWhilePlaying = false;
+      setTimeout(() => {
+        if (_ytPlayer) {
+          try { _ytPlayer.playVideo(); } catch(e) {}
+        }
+      }, 200);
+    }
+  }
+});
 
 // ── Queue shuffle ───────────────────────────────────────────────────
 function _ytShuffleQueue() {
