@@ -17064,11 +17064,15 @@ function _ytOnState(event) {
       _ytRecordHistory(_ytCurrentTrack.title, _ytCurrentTrack.artist, _ytCurrentTrack.album);
     }
     if (_ytPipUpdate) _ytPipUpdate();
+    // Register with OS for lock screen controls and background audio permission
+    _ytSetMediaSession();
+    if ('mediaSession' in navigator) navigator.mediaSession.playbackState = 'playing';
   } else if (event.data === YT.PlayerState.PAUSED) {
     clearTimeout(_ytScrobbleTimer);
     _ytStopScrobbleRing();
     _ytStopSeekUpdate();
     if (pauseBtn) { pauseBtn.innerHTML = _YT_IC.play; pauseBtn.title = 'Resume'; }
+    if ('mediaSession' in navigator) navigator.mediaSession.playbackState = 'paused';
   } else if (event.data === YT.PlayerState.ENDED) {
     clearTimeout(_ytScrobbleTimer);
     _ytStopSeekUpdate();
@@ -17183,6 +17187,11 @@ function closeYtPlayer() {
   try { localStorage.removeItem('yt-player-current'); } catch(e) {}
   _ytCurrentVideoId = null;
   _ytScrobbled      = false;
+  // Clear OS lock screen / media controls
+  if ('mediaSession' in navigator) {
+    try { navigator.mediaSession.metadata = null; } catch(e) {}
+    try { navigator.mediaSession.playbackState = 'none'; } catch(e) {}
+  }
   _ytExpandSize     = 0;
   _ytQueue          = [];
   _ytSaveQueue();
@@ -17573,6 +17582,37 @@ function _ytUpdateThumb() {
   } else {
     img.src = '';
   }
+}
+
+// ── Media Session API ──────────────────────────────────────────────────────
+// Registers the current track with the OS so playback can continue on the
+// lock screen and hardware media keys (headphones, Bluetooth) work correctly.
+function _ytSetMediaSession() {
+  if (!('mediaSession' in navigator) || !_ytCurrentTrack) return;
+  const { title, artist, album } = _ytCurrentTrack;
+  // Use YouTube thumbnails for artwork when a video ID is known
+  const artwork = _ytCurrentVideoId ? [
+    { src: `https://img.youtube.com/vi/${_ytCurrentVideoId}/mqdefault.jpg`,  sizes: '320x180', type: 'image/jpeg' },
+    { src: `https://img.youtube.com/vi/${_ytCurrentVideoId}/hqdefault.jpg`,  sizes: '480x360', type: 'image/jpeg' },
+    { src: `https://img.youtube.com/vi/${_ytCurrentVideoId}/maxresdefault.jpg`, sizes: '1280x720', type: 'image/jpeg' },
+  ] : [];
+  navigator.mediaSession.metadata = new MediaMetadata({ title, artist, album: album || '', artwork });
+  // Wire OS/hardware controls to the existing player functions
+  navigator.mediaSession.setActionHandler('play',          () => { if (_ytPlayer) _ytPlayer.playVideo(); });
+  navigator.mediaSession.setActionHandler('pause',         () => { if (_ytPlayer) _ytPlayer.pauseVideo(); });
+  navigator.mediaSession.setActionHandler('stop',          () => closeYtPlayer());
+  navigator.mediaSession.setActionHandler('nexttrack',     () => _ytSkip());
+  // Previous: restart the track (or seek to 0 if already near the start)
+  navigator.mediaSession.setActionHandler('previoustrack', () => {
+    if (_ytPlayer) {
+      try { _ytPlayer.seekTo(0, true); } catch(e) {}
+    }
+  });
+  navigator.mediaSession.setActionHandler('seekto', e => {
+    if (_ytPlayer && e.seekTime != null) {
+      try { _ytPlayer.seekTo(e.seekTime, true); } catch(e2) {}
+    }
+  });
 }
 
 // ── Queue shuffle ───────────────────────────────────────────────────
