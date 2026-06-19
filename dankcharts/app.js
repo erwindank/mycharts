@@ -8137,6 +8137,8 @@ function buildBuChartRun() {
   }
 
   const result = { songs: {}, artists: {}, albums: {} };
+  // Stores BU zone snapshot per week for the tooltip preview (key → { songs: [], artists: [], albums: [] })
+  const buPeriodMap = {};
   // Track prev/ever chart sets so chartStatus matches the main render functions
   const prevChartKeys = { songs: new Map(), artists: new Map(), albums: new Map() };
   const everChartedKeys = { songs: new Set(), artists: new Set(), albums: new Set() };
@@ -8157,8 +8159,11 @@ function buildBuChartRun() {
       allSorted.slice(0, chartSize).forEach(([k], i) => { newPrev.set(k, i + 1); everChartedKeys[type].add(k); });
       prevChartKeys[type] = newPrev;
       // Record BU zone entries (buRank 1 = just below the chart, highest possible position in BU)
+      if (!buPeriodMap[pk]) buPeriodMap[pk] = { songs: [], artists: [], albums: [] };
       allSorted.slice(chartSize, chartSize + buSize).forEach(([k, data], i) => {
         const buRank = i + 1;
+        const displayName = type === 'songs' ? (data._title || k.split('|||')[0]) : k.split('|||')[0];
+        buPeriodMap[pk][type].push({ key: k, buRank, plays: data.count, displayName });
         if (!result[type][k]) result[type][k] = { entries: [], peakBuRank: buRank, peakPlays: 0 };
         result[type][k].entries.push({ periodKey: pk, label: lbl, buRank, plays: data.count });
         if (buRank < result[type][k].peakBuRank) result[type][k].peakBuRank = buRank;
@@ -8167,19 +8172,21 @@ function buildBuChartRun() {
     }
   }
 
-  buChartRunData = { period: 'week', curKey, result };
+  buChartRunData = { period: 'week', curKey, result, buPeriodMap };
   return buChartRunData;
 }
 
 // Renders the colored BU-rank boxes for an entry's BU chart run.
 // buRank 1 = closest position to the main chart in that week.
+// Each box is clickable: shows a tooltip with the full BU chart for that week + a link to navigate there.
 function buCrBoxesHTML(type, key) {
   const d = buChartRunData?.result?.[type]?.[key];
   if (!d || !d.entries.length) return '<div style="font-size:0.6rem;color:var(--text3);padding:4px 0">No Bubbling Under history yet.</div>';
+  const safeKey = encodeURIComponent(key);
   const boxes = d.entries.flatMap((e, i) => {
     const isPeak = (e.buRank === d.peakBuRank);
     const cls = isPeak ? 'cr-box cr-box-peak' : 'cr-box';
-    const box = `<div class="${cls}">
+    const box = `<div class="${cls}" onclick="showBuCrPreview('${esc(e.periodKey)}','${type}','${safeKey}',this)">
       <div class="cr-box-rank">BU${e.buRank}</div>
       <div class="cr-box-label">${esc(e.label)}</div>
     </div>`;
@@ -8240,6 +8247,49 @@ function toggleBuCr(btn, rowId) {
   const open = !row.classList.contains('open');
   row.classList.toggle('open', open);
   btn.classList.toggle('active', open);
+}
+
+// Shows a popup tooltip for a BU chart run box — same pattern as showCrPreview.
+// Lists the full BU zone ranking for that week with the active entry highlighted,
+// plus a link to navigate to that week's chart.
+let _buCrPreviewCleanup = null;
+function showBuCrPreview(periodKey, type, encodedKey, boxEl) {
+  hideBuCrPreview();
+  if (!buChartRunData?.buPeriodMap?.[periodKey]) return;
+  const key = decodeURIComponent(encodedKey);
+  const entries = buChartRunData.buPeriodMap[periodKey][type] || [];
+  const title = crPeriodTitle('week', periodKey);
+  const typeLabels = { songs: t('rec_th_songs'), artists: t('rec_th_artists'), albums: t('rec_th_albums') };
+  const items = entries.map(e => {
+    const isActive = (e.key === key);
+    return `<div class="cr-preview-item${isActive ? ' highlighted' : ''}"><span class="cr-preview-rank">BU${e.buRank}</span><span>${esc(e.displayName)}</span></div>`;
+  }).join('');
+  const popup = document.createElement('div');
+  popup.className = 'cr-preview';
+  popup.id = 'buCrPreviewPopup';
+  popup.style.position = 'fixed';
+  popup.innerHTML = `<button class="cr-preview-close" onclick="hideBuCrPreview()">✕</button>`
+    + `<div class="cr-preview-title"><a class="cr-preview-link" href="#chart/week/${periodKey}" onclick="event.preventDefault();navigateToCrChart('week','${periodKey}')">${esc(title)}</a> · BU ${typeLabels[type]}</div>`
+    + items;
+  document.body.appendChild(popup);
+  // Position near the box, keep within viewport
+  const rect = boxEl.getBoundingClientRect();
+  let top = rect.bottom + 6, left = rect.left;
+  const pw = 250, ph = 300;
+  if (left + pw > window.innerWidth) left = window.innerWidth - pw - 8;
+  if (top + ph > window.innerHeight) top = rect.top - ph - 6;
+  popup.style.top = Math.max(4, top) + 'px';
+  popup.style.left = Math.max(4, left) + 'px';
+  // Close on outside click (same guard as showCrPreview)
+  const handler = e => { if (!popup.contains(e.target) && !e.target.closest('.cr-box')) hideBuCrPreview(); };
+  setTimeout(() => document.addEventListener('click', handler, true), 0);
+  _buCrPreviewCleanup = () => document.removeEventListener('click', handler, true);
+}
+
+function hideBuCrPreview() {
+  const el = document.getElementById('buCrPreviewPopup');
+  if (el) el.remove();
+  if (_buCrPreviewCleanup) { _buCrPreviewCleanup(); _buCrPreviewCleanup = null; }
 }
 
 // ─── BUBBLING UNDER ─────────────────────────────────────────────
