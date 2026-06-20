@@ -5283,6 +5283,8 @@ function renderTableHeaders() {
 
 function renderAll() {
   if (currentPeriod === 'rawdata') { applyRawFilters(); return; }
+  // Wake the backend early — user is browsing and may want to play a track soon
+  _ytPrewarmBackend();
   clearImageObservers();
   ['songsBody', 'artistsBody', 'albumsBody'].forEach(id => {
     const el = document.getElementById(id);
@@ -17156,6 +17158,16 @@ function _ytInjectApi() {
   document.head.appendChild(s);
 }
 
+// Fire-and-forget ping to wake Render's free-tier backend before the user clicks play.
+// Uses a 10-minute cooldown so page navigation doesn't spam the endpoint.
+let _ytLastPrewarm = 0;
+function _ytPrewarmBackend() {
+  const now = Date.now();
+  if (now - _ytLastPrewarm < 10 * 60 * 1000) return;
+  _ytLastPrewarm = now;
+  fetch(`${BACKEND_API}/health`).catch(() => {});
+}
+
 function ytPlayFromBtn(btn) {
   const playerEl = document.getElementById('ytMiniPlayer');
   if (_ytCurrentTrack && playerEl && playerEl.style.display !== 'none') {
@@ -17260,8 +17272,9 @@ async function _ytFetchAlbum(title, artist) {
 async function _ytSearch(artist, title, overrideQuery) {
   const query = overrideQuery || (artist + ' ' + title + ' official audio');
   const statusEl = document.getElementById('ytMiniStatus');
-  const MAX_RETRIES = 3;
-  const RETRY_DELAY_MS = 4000;
+  // Render free tier cold starts take up to ~30s; 5 retries × 6s = 30s total wait
+  const MAX_RETRIES = 5;
+  const RETRY_DELAY_MS = 6000;
   for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
     try {
       const res  = await fetch(`${BACKEND_API}/api/youtube/search?q=${encodeURIComponent(query)}`);
@@ -17598,9 +17611,9 @@ async function _ytSearchMulti(baseQuery) {
   const needsVariants = !/(official|lyric|audio|video|live|acoustic|cover)/i.test(baseQuery);
   const queries = needsVariants ? variants.map(v => `${baseQuery} ${v}`) : [baseQuery];
 
-  // Retry loop for server wake-up (Render free tier sleeps after inactivity)
-  const MAX_RETRIES = 3;
-  const RETRY_DELAY_MS = 4000;
+  // Retry loop for server wake-up (Render free tier sleeps after inactivity; cold start ~30s)
+  const MAX_RETRIES = 5;
+  const RETRY_DELAY_MS = 6000;
   let settled;
   for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
     settled = await Promise.allSettled(
@@ -22978,4 +22991,7 @@ async function _fetchStreakArt(streak) {
       : await getArtistImage(p.artist);
   } catch (e) { return null; }
 }
+
+// Proactively wake the Render backend on page load so it's ready before the first play button click
+_ytPrewarmBackend();
 
