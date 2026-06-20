@@ -17139,7 +17139,8 @@ let _ytPipWindow         = null;
 let _ytPipUpdate         = null;
 let _ytLyricsCache       = {};
 // True when Chrome auto-paused the iframe because the page went to background
-let _ytHiddenWhilePlaying = false;
+let _ytHiddenWhilePlaying  = false;
+let _ytHiddenResumeIv      = null; // interval that keeps re-asserting playback while tab is hidden
 
 // Called automatically by the YouTube IFrame API script once it loads.
 function onYouTubeIframeAPIReady() {
@@ -17354,7 +17355,9 @@ function _ytOnState(event) {
     }
     if (_ytPipUpdate) _ytPipUpdate();
     // Register with OS for lock screen controls and background audio permission
-    _ytHiddenWhilePlaying = false;
+    // Only clear the hidden flag when we're actually in the foreground; if Chrome
+    // let us resume briefly while still hidden we want the guard to keep retrying.
+    if (!document.hidden) _ytHiddenWhilePlaying = false;
     _ytSetMediaSession();
     if ('mediaSession' in navigator) navigator.mediaSession.playbackState = 'playing';
     // Re-assert our handlers after YouTube's iframe may override them (needed for prev/next buttons)
@@ -17363,13 +17366,23 @@ function _ytOnState(event) {
       if ('mediaSession' in navigator) navigator.mediaSession.playbackState = 'playing';
     }, 800);
   } else if (event.data === YT.PlayerState.PAUSED) {
-    // If the page is hidden, YouTube auto-paused us — resume and keep the notification alive
+    // If the page is hidden, YouTube auto-paused us — keep retrying until we're back in foreground
     if (document.hidden && _ytHiddenWhilePlaying) {
-      setTimeout(() => {
-        if (_ytPlayer && document.hidden) {
-          try { _ytPlayer.playVideo(); } catch(e) {}
+      clearInterval(_ytHiddenResumeIv);
+      _ytHiddenResumeIv = setInterval(() => {
+        if (!document.hidden || !_ytHiddenWhilePlaying) {
+          clearInterval(_ytHiddenResumeIv);
+          _ytHiddenResumeIv = null;
+          return;
         }
-      }, 300);
+        if (_ytPlayer) {
+          try {
+            if (_ytPlayer.getPlayerState() !== YT.PlayerState.PLAYING) _ytPlayer.playVideo();
+          } catch(e) {}
+        }
+      }, 600);
+      // First attempt immediately
+      setTimeout(() => { if (_ytPlayer && document.hidden) { try { _ytPlayer.playVideo(); } catch(e) {} } }, 300);
       return;
     }
     clearTimeout(_ytScrobbleTimer);
@@ -17945,7 +17958,9 @@ document.addEventListener('visibilitychange', () => {
       try { _ytHiddenWhilePlaying = _ytPlayer.getPlayerState() === YT.PlayerState.PLAYING; } catch(e) {}
     }
   } else {
-    // Returning to foreground — resume if we were playing when we left
+    // Returning to foreground — stop the retry interval and resume if we were playing
+    clearInterval(_ytHiddenResumeIv);
+    _ytHiddenResumeIv = null;
     if (_ytHiddenWhilePlaying) {
       _ytHiddenWhilePlaying = false;
       setTimeout(() => {
