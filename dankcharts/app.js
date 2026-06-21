@@ -6510,9 +6510,19 @@ function buildCrPanelHTML(type, key) {
   } else {
     modeLabels = { year: t('cr_year_only_label', { year: vy }), uptoYear: t('cr_up_to_year_label', { year: vy }), now: t('cr_all_time') };
   }
-  const headerHtml = `<div style="margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid var(--border);">
-    <div style="font-family:'DM Mono',monospace;font-size:0.65rem;font-weight:700;letter-spacing:0.18em;color:var(--text);text-transform:uppercase;">${t('cr_chart_run')}</div>
-    <div style="font-family:'DM Mono',monospace;font-size:0.54rem;letter-spacing:0.07em;color:var(--text3);margin-top:2px;">${t('cr_rank_history')}</div>
+  // Show "+ BU" toggle only in weekly view when BU history exists for this entry.
+  // Build BU data now if not already cached (normally only built when the BU table is opened).
+  if (currentPeriod === 'week' && !buChartRunData) buildBuChartRun();
+  const hasBuData = currentPeriod === 'week' && !!(buChartRunData?.result?.[type]?.[key]?.entries?.length);
+  const buToggleBtn = hasBuData
+    ? `<button class="cr-bu-toggle" onclick="toggleCrBuView(this)" title="Toggle combined Chart + BU timeline">+ BU</button>`
+    : '';
+  const headerHtml = `<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid var(--border);">
+    <div>
+      <div style="font-family:'DM Mono',monospace;font-size:0.65rem;font-weight:700;letter-spacing:0.18em;color:var(--text);text-transform:uppercase;">${t('cr_chart_run')}</div>
+      <div style="font-family:'DM Mono',monospace;font-size:0.54rem;letter-spacing:0.07em;color:var(--text3);margin-top:2px;">${t('cr_rank_history')}</div>
+    </div>
+    ${buToggleBtn}
   </div>`;
   const toggleHtml = `<div class="cr-range-bar">
     <span class="cr-range-label">${t('cr_range')}</span>
@@ -6545,9 +6555,16 @@ function buildCrPanelHTML(type, key) {
     const crData = allChartRun[currentPeriod] || chartRunData;
     const rawD = crData?.result?.[type]?.[key];
     const d = filterCrD(rawD, currentPeriod, getCrRangeMode(type, key), vy, cutoffKeys);
-    sectionsHtml = d
-      ? `<div class="cr-stats">${crStats(type, key, currentPeriod, null, d)}</div>${crBoxesHTML(type, key, null, d, currentPeriod)}`
-      : `<div style="font-size:0.6rem;color:var(--text3);padding:4px 0">${t('cr_no_history')}</div>`;
+    if (d && hasBuData) {
+      // Two-view wrapper: chart-only (default) and combined chart+BU timeline
+      sectionsHtml = `<div class="cr-stats">${crStats(type, key, currentPeriod, null, d)}</div>
+        <div class="cr-view-chart">${crBoxesHTML(type, key, null, d, currentPeriod)}</div>
+        <div class="cr-view-combined" style="display:none;">${buildCrWithBuBoxesHTML(type, key, d)}</div>`;
+    } else {
+      sectionsHtml = d
+        ? `<div class="cr-stats">${crStats(type, key, currentPeriod, null, d)}</div>${crBoxesHTML(type, key, null, d, currentPeriod)}`
+        : `<div style="font-size:0.6rem;color:var(--text3);padding:4px 0">${t('cr_no_history')}</div>`;
+    }
   }
 
   const encodedType = esc(type);
@@ -8250,6 +8267,51 @@ function buildCombinedCrBoxesHTML(type, key) {
   return legend + `<div class="cr-boxes-wrap"><div class="cr-boxes">${boxes}</div></div>`;
 }
 
+// Builds combined chart + BU boxes for the normal chart run panel.
+// Chart weeks keep their standard styling; BU weeks appear in orange/red to mark
+// "almost made it" weeks where the entry was in the BU zone but missed the official chart.
+function buildCrWithBuBoxesHTML(type, key, d) {
+  const buD = buChartRunData?.result?.[type]?.[key];
+  if (!buD || !buD.entries.length) return '';
+
+  // Merge chart entries (already filtered by range) with all BU entries, sorted chronologically
+  const all = [];
+  if (d) d.entries.forEach(e => all.push({ periodKey: e.periodKey, label: e.label, zone: 'chart', rank: e.rank }));
+  buD.entries.forEach(e => all.push({ periodKey: e.periodKey, label: e.label, zone: 'bu', buRank: e.buRank }));
+  all.sort((a, b) => a.periodKey < b.periodKey ? -1 : a.periodKey > b.periodKey ? 1 : 0);
+
+  const safeKey = encodeURIComponent(key);
+  const boxes = all.flatMap((e, i) => {
+    let cls, rankText, onclk;
+    if (e.zone === 'chart') {
+      const isPeak = d && e.rank === d.peak;
+      cls = isPeak ? 'cr-box cr-box-peak' : 'cr-box';
+      rankText = `#${e.rank}`;
+      onclk = `showCrPreview('${esc(e.periodKey)}','${type}','${safeKey}',this,'week')`;
+    } else {
+      const isPeak = buD && e.buRank === buD.peakBuRank;
+      cls = isPeak ? 'cr-box cr-box-bu-miss cr-box-bu-miss-peak' : 'cr-box cr-box-bu-miss';
+      rankText = `BU${e.buRank}`;
+      onclk = `showBuCrPreview('${esc(e.periodKey)}','${type}','${safeKey}',this)`;
+    }
+    const box = `<div class="${cls}" onclick="${onclk}">
+      <div class="cr-box-rank">${rankText}</div>
+      <div class="cr-box-label">${esc(e.label)}</div>
+    </div>`;
+    if (i === 0) return [box];
+    const gap = crPeriodGap('week', all[i - 1].periodKey, e.periodKey);
+    if (gap <= 0) return [box];
+    const gapEl = `<div class="cr-box-gap"><div class="cr-box-gap-label">✕${gap}</div><div class="cr-box-gap-unit">${tUnit('weeks', gap)}</div></div>`;
+    return [gapEl, box];
+  }).join('');
+
+  const legend = `<div class="bu-combined-legend">
+    <span class="bu-combined-legend-cr">■ Chart</span>
+    <span class="bu-combined-legend-bu-miss">■ BU</span>
+  </div>`;
+  return legend + `<div class="cr-boxes-wrap"><div class="cr-boxes">${boxes}</div></div>`;
+}
+
 // Toggles between BU-only and combined (BU + chart) timeline views in a BU panel.
 function toggleBuCombinedView(btn) {
   const panel = btn.closest('.bu-cr-panel');
@@ -8262,6 +8324,20 @@ function toggleBuCombinedView(btn) {
   combinedView.style.display = showingBu ? '' : 'none';
   btn.classList.toggle('active', showingBu);
   btn.textContent = showingBu ? 'BU only' : '+ Chart';
+}
+
+// Toggles between chart-only and combined (chart + BU) timeline views in the normal chart run panel.
+function toggleCrBuView(btn) {
+  const panel = btn.closest('.cr-panel');
+  if (!panel) return;
+  const chartView = panel.querySelector('.cr-view-chart');
+  const combinedView = panel.querySelector('.cr-view-combined');
+  if (!chartView || !combinedView) return;
+  const showingChart = chartView.style.display !== 'none';
+  chartView.style.display = showingChart ? 'none' : '';
+  combinedView.style.display = showingChart ? '' : 'none';
+  btn.classList.toggle('active', showingChart);
+  btn.textContent = showingChart ? 'Chart only' : '+ BU';
 }
 
 // Builds the full BU chart run panel HTML (header + stats + boxes).

@@ -6833,6 +6833,68 @@
       color: #a5b4fc;
     }
 
+    /* Legend entries for combined view in normal chart run panel */
+    .bu-combined-legend-cr {
+      color: var(--text2);
+    }
+
+    .bu-combined-legend-bu-miss {
+      color: #f87171; /* red — BU weeks "missed" the chart */
+    }
+
+    /* CHART RUN PANEL: "+ BU" toggle button */
+    .cr-bu-toggle {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.5rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--text3);
+      padding: 3px 7px;
+      border-radius: 4px;
+      cursor: pointer;
+      white-space: nowrap;
+      flex-shrink: 0;
+      align-self: center;
+    }
+
+    .cr-bu-toggle:hover {
+      border-color: var(--accent2);
+      color: var(--text);
+    }
+
+    .cr-bu-toggle.active {
+      background: rgba(220, 38, 38, 0.1);
+      border-color: rgba(220, 38, 38, 0.45);
+      color: #f87171;
+    }
+
+    /* BU week box in the normal chart run combined timeline — red = "missed the chart" */
+    .cr-box-bu-miss {
+      background: rgba(220, 38, 38, 0.1);
+      border-color: rgba(220, 38, 38, 0.38);
+    }
+
+    .cr-box-bu-miss:hover {
+      background: rgba(220, 38, 38, 0.18);
+      border-color: rgba(220, 38, 38, 0.6);
+    }
+
+    .cr-box-bu-miss .cr-box-rank {
+      color: #f87171; /* red-400 */
+    }
+
+    .cr-box-bu-miss.cr-box-bu-miss-peak {
+      background: rgba(220, 38, 38, 0.16);
+      border-color: rgba(220, 38, 38, 0.55);
+    }
+
+    .cr-box-bu-miss.cr-box-bu-miss-peak .cr-box-rank {
+      color: #fca5a5; /* red-300, brighter for peak BU */
+    }
+
     /* CHART RUN PREVIEW POPUP */
     .cr-preview {
       position: fixed;
