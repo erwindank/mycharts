@@ -18134,9 +18134,12 @@ function _ytUpdateQueueDisplay() {
   el.innerHTML =
     `<div class="yt-queue-header">` +
     `<span class="yt-queue-header-count">${_ytQueue.length} up next</span>` +
+    `<div class="yt-queue-header-btns">` +
     `<button class="yt-queue-shuffle-btn" onclick="_ytShuffleQueue()" title="Shuffle queue">` +
     `<svg class="yt-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16,3 21,3 21,8"/><line x1="4" y1="20" x2="21" y2="3"/><polyline points="21,16 21,21 16,21"/><line x1="15" y1="15" x2="21" y2="21"/></svg>` +
     ` Shuffle</button>` +
+    `<button class="yt-queue-clear-btn" onclick="_ytClearQueue()" title="Clear queue">✕ Clear</button>` +
+    `</div>` +
     `</div>` +
     _ytQueue.map((t, i) =>
     `<div class="yt-mini-queue-item" draggable="true" data-qi="${i}">` +
@@ -18183,6 +18186,12 @@ function _ytInitQueueDrag(container) {
 
 function _ytRemoveFromQueue(i) {
   _ytQueue.splice(i, 1);
+  _ytUpdateQueueDisplay();
+  _ytSaveQueue();
+}
+
+function _ytClearQueue() {
+  _ytQueue = [];
   _ytUpdateQueueDisplay();
   _ytSaveQueue();
 }
@@ -18594,10 +18603,22 @@ function dcRenderPlaylistsView() {
   if (!el) return;
   const names = Object.keys(_ytPlaylists);
 
-  // Header with title and save-current-queue form
+  // Header with title, optional resume row, and save-current-queue form
   let html = `<div class="dc-pl-view">` +
     `<div class="dc-pl-header">` +
-    `<h2 class="dc-pl-title">My Playlists</h2>` +
+    `<h2 class="dc-pl-title">My Playlists</h2>`;
+
+  // Resume row: show if a track was playing (this session or restored from a prior session)
+  if (_ytCurrentTrack && _ytCurrentTrack.title) {
+    const resumeLabel = esc(_ytCurrentTrack.title) + (_ytCurrentTrack.artist ? ` – ${esc(_ytCurrentTrack.artist)}` : '');
+    html +=
+      `<div class="dc-pl-resume-row">` +
+      `<button class="dc-pl-resume-btn" onclick="dcPlResume()" title="Resume where you left off">▶ Resume: ${resumeLabel}</button>` +
+      (_ytQueue.length > 0 ? `<span class="dc-pl-resume-hint">+ ${_ytQueue.length} in queue</span>` : '') +
+      `</div>`;
+  }
+
+  html +=
     `<div class="dc-pl-save-row">` +
     `<input id="dcPlNewName" class="dc-pl-name-input" type="text" placeholder="Save current queue as…" maxlength="40" ` +
     `onkeydown="if(event.key==='Enter'){dcPlSaveQueue(this.value.trim());}">` +
@@ -18687,6 +18708,12 @@ function dcPlPlayFromTrack(name, idx) {
   rest.forEach(t => _ytQueue.push({ title: t.title, artist: t.artist, album: t.album, btn: null }));
   _ytUpdateQueueDisplay();
   _ytSaveQueue();
+}
+
+// Resume the last-played track (with queue already loaded from localStorage on startup)
+function dcPlResume() {
+  if (!_ytCurrentTrack || !_ytCurrentTrack.title) return;
+  openYtPlayer(_ytCurrentTrack.title, _ytCurrentTrack.artist, _ytCurrentTrack.album, null);
 }
 
 // Replace the name span with an inline input to rename a playlist in-place

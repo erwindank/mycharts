@@ -10196,6 +10196,22 @@ body.purple .landing-card-config input:focus {
 }
 .yt-queue-shuffle-btn:hover { color: var(--text); }
 .yt-queue-shuffle-btn .yt-icon { width: 10px; height: 10px; }
+/* Wrapper for shuffle + clear buttons in the queue header */
+.yt-queue-header-btns { display: flex; align-items: center; gap: 0.4em; }
+.yt-queue-clear-btn {
+  background: none;
+  border: none;
+  color: var(--text3);
+  cursor: pointer;
+  font-size: 0.6rem;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 0.2em;
+  padding: 0;
+  transition: color 0.12s;
+}
+.yt-queue-clear-btn:hover { color: var(--text); }
 
 /* Error state open-in-yt button */
 .yt-err-open-btn {
@@ -10776,6 +10792,34 @@ body.hide-yt-btns .yt-play-btn { display: none; }
   opacity: 0;
   transition: opacity 0.25s;
   flex-shrink: 0;
+}
+/* Resume row – appears when a previous track is loaded */
+.dc-pl-resume-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+.dc-pl-resume-btn {
+  background: var(--accent);
+  border: none;
+  border-radius: 4px;
+  padding: 0.35rem 0.75rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #fff;
+  cursor: pointer;
+  flex-shrink: 0;
+  max-width: 360px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  transition: opacity 0.1s;
+}
+.dc-pl-resume-btn:hover { opacity: 0.85; }
+.dc-pl-resume-hint {
+  font-size: 0.75rem;
+  color: var(--text3);
 }
 .dc-pl-empty-state {
   text-align: center;
