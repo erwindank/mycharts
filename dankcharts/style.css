@@ -10503,7 +10503,7 @@ body.purple .landing-card-config input:focus {
 .yt-mini-queue {
   font-size: 0.64rem;
   color: var(--text3);
-  max-height: 120px;
+  max-height: 180px; /* expanded to accommodate played + current + upcoming rows */
   overflow-y: auto;
   padding: 0.1rem 0;
 }
@@ -10617,6 +10617,206 @@ body.purple .landing-card-config input:focus {
 .yt-queue-next-btn:hover { border-style: solid; color: var(--text); }
 .yt-queue-add-btn { border-color: #FF0000; color: #FF0000; }
 .yt-queue-add-btn:hover { background: rgba(255,0,0,0.08); }
+
+/* ── Played items (greyed out, already played from queue) ── */
+.yt-mini-queue-played { padding: 0.03rem 0; }
+.yt-mini-queue-played-item { opacity: 0.38; pointer-events: none; }
+.yt-mini-queue-played-item .yt-mini-queue-num { color: var(--text3); font-size: 0.6rem; }
+
+/* ── Currently-playing item inside the queue (highlighted) ── */
+.yt-mini-queue-now-item {
+  background: rgba(255,255,255,0.055);
+  border-radius: 3px;
+  padding-left: 0.25em;
+  margin: 0.06em 0;
+}
+.yt-mini-queue-now-item .yt-mini-queue-num  { color: #FF0000; font-size: 0.7rem; }
+.yt-mini-queue-now-item .yt-mini-queue-title { color: var(--text); font-weight: 500; }
+
+/* ── Move-to-top button (↑) per queue item (#5) ── */
+.yt-mini-queue-move-top {
+  background: none;
+  border: none;
+  color: var(--text3);
+  cursor: pointer;
+  font-size: 0.68rem;
+  padding: 0 0.1em;
+  opacity: 0;
+  flex-shrink: 0;
+  line-height: 1;
+  transition: opacity 0.1s, color 0.1s;
+}
+.yt-mini-queue-item:hover .yt-mini-queue-move-top { opacity: 0.7; }
+.yt-mini-queue-move-top:hover { opacity: 1 !important; color: var(--text); }
+
+/* ── Reverse (#16) / Dedup (#7) / Save (#8) header buttons ── */
+.yt-queue-reverse-btn, .yt-queue-dedup-btn, .yt-queue-save-btn {
+  background: none;
+  border: none;
+  color: var(--text3);
+  cursor: pointer;
+  font-size: 0.57rem;
+  font-weight: 500;
+  padding: 0;
+  line-height: 1;
+  transition: color 0.12s;
+}
+.yt-queue-reverse-btn:hover, .yt-queue-dedup-btn:hover, .yt-queue-save-btn:hover { color: var(--text); }
+
+/* ── Multi-select toggle button (#9) ── */
+.yt-queue-multi-btn {
+  background: none;
+  border: none;
+  color: var(--text3);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  padding: 0;
+  transition: color 0.12s;
+}
+.yt-queue-multi-btn .yt-icon { width: 10px; height: 10px; }
+.yt-queue-multi-btn:hover, .yt-queue-multi-btn.yt-ctrl-active { color: var(--text); }
+
+/* ── Batch-action row shown when items are selected (#9) ── */
+.yt-queue-multi-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.4em;
+  padding: 0.1em 0 0.15em;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 0.1em;
+}
+.yt-queue-sel-count { color: var(--text3); font-size: 0.58rem; flex: 1; }
+.yt-queue-multi-act-btn {
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  color: var(--text2);
+  cursor: pointer;
+  font-size: 0.54rem;
+  padding: 0.1em 0.45em;
+  font-family: inherit;
+  transition: color 0.1s, border-color 0.1s;
+}
+.yt-queue-multi-act-btn:hover  { color: var(--text); border-color: var(--text3); }
+.yt-queue-multi-del-btn:hover  { color: #FF0000;   border-color: #FF0000; }
+
+/* ── Checkbox in multi-select mode ── */
+.yt-mini-queue-cb { flex-shrink: 0; cursor: pointer; accent-color: #FF0000; width: 12px; height: 12px; }
+
+/* ── Highlighted background for selected items ── */
+.yt-queue-item-selected { background: rgba(255,0,0,0.06); border-radius: 3px; }
+
+/* ── Undo bar after removal (#6) ── */
+.yt-queue-undo-bar {
+  display: flex;
+  align-items: center;
+  gap: 0.5em;
+  padding: 0.18em 0 0.05em;
+  border-top: 1px solid var(--border);
+  margin-top: 0.12em;
+}
+.yt-queue-undo-label {
+  color: var(--text3);
+  font-size: 0.57rem;
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.yt-queue-undo-btn {
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  color: var(--text2);
+  cursor: pointer;
+  font-size: 0.54rem;
+  padding: 0.1em 0.5em;
+  flex-shrink: 0;
+  font-family: inherit;
+  transition: color 0.1s, border-color 0.1s;
+}
+.yt-queue-undo-btn:hover { color: var(--text); border-color: var(--text3); }
+
+/* ── Right-click context menu (#10 / #17) ── */
+.yt-queue-ctx {
+  position: fixed;
+  z-index: 9999;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 0.25rem 0;
+  box-shadow: 0 4px 18px rgba(0,0,0,0.45);
+  min-width: 168px;
+}
+.yt-queue-ctx button {
+  display: block;
+  width: 100%;
+  background: none;
+  border: none;
+  color: var(--text2);
+  cursor: pointer;
+  font-size: 0.7rem;
+  padding: 0.38em 0.85em;
+  text-align: left;
+  font-family: inherit;
+  transition: background 0.1s, color 0.1s;
+}
+.yt-queue-ctx button:hover { background: rgba(255,255,255,0.07); color: var(--text); }
+
+/* ── Touch drag ghost element (#19) ── */
+.yt-touch-drag-ghost {
+  opacity: 0.82;
+  background: var(--bg2) !important;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 0.15em 0.4em;
+  box-shadow: 0 4px 14px rgba(0,0,0,0.35);
+  font-size: 0.72rem;
+}
+
+/* ── Collapsed-player queue count badge (#14) ── */
+.yt-queue-collapsed-count {
+  font-size: 0.54rem;
+  color: var(--text3);
+  display: none;
+  line-height: 1.3;
+}
+
+/* ── Queue button count badge (#11) ── */
+.yt-queue-badge {
+  position: absolute;
+  bottom: 1px;
+  right: 1px;
+  font-size: 6px;
+  font-weight: 700;
+  line-height: 1;
+  color: #FF0000;
+  pointer-events: none;
+  background: rgba(17,17,17,0.85);
+  border-radius: 2px;
+  padding: 0 1px;
+  min-width: 8px;
+  text-align: center;
+}
+
+/* ── Empty-state prompt when queue panel is open but empty (#12) ── */
+.yt-queue-empty {
+  padding: 0.5rem 0.2rem 0.4rem;
+  text-align: center;
+}
+.yt-queue-empty-msg {
+  color: var(--text3);
+  font-size: 0.62rem;
+  font-weight: 500;
+  margin-bottom: 0.2em;
+}
+.yt-queue-empty-hint {
+  color: var(--text3);
+  font-size: 0.56rem;
+  opacity: 0.7;
+  line-height: 1.4;
+}
 
 /* YouTube play button on each song row */
 .yt-play-btn {

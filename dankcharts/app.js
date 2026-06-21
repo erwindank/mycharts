@@ -17218,6 +17218,28 @@ let _ytLyricsCache       = {};
 let _ytHiddenWhilePlaying  = false;
 let _ytHiddenResumeIv      = null; // interval that keeps re-asserting playback while tab is hidden
 
+// ── Queue history / played-track tracking ──────────────────────────────────────
+let _ytQueuePlayed       = [];    // items already played from the queue; shown dimmed above current
+let _ytCurrentFromQueue  = null;  // the queue item currently playing (null = playing from chart)
+let _ytAdvancingQueue    = false; // flag: openYtPlayer was called by _ytAdvanceFromQueue, not user
+
+// ── Queue management helpers ────────────────────────────────────────────────────
+let _ytLastRemovedItem   = null;  // { item, idx } saved for one-step undo
+let _ytUndoTimer         = null;  // auto-clear handle for undo toast
+let _ytQueueMultiSelect  = false; // whether multi-select mode is active
+let _ytQueueSelected     = new Set(); // set of selected queue indices
+let _ytQueueLastChecked  = null;  // last-checked index for shift-range multi-select
+
+// ── Queue panel visibility (#11 badge / #12 empty state) ──────────────────────
+let _ytQueueHidden    = false; // user has manually hidden the queue panel
+let _ytQueuePrevCount = 0;     // tracks previous total to detect first-add auto-open
+
+// ── Touch drag (long-press to reorder on mobile, feature #19) ──────────────────
+let _ytQueueTouchTimer = null;  // long-press countdown
+let _ytTouchDragSrc    = null;  // item being dragged by touch
+let _ytTouchDragClone  = null;  // ghost element shown during touch drag
+let _ytTouchDragOver   = null;  // current drop target during touch drag
+
 // Called automatically by the YouTube IFrame API script once it loads.
 function onYouTubeIframeAPIReady() {
   _ytApiReady = true;
@@ -17279,6 +17301,16 @@ function openYtPlayer(title, artist, album, btn) {
   if (_ytActiveBtn) _ytActiveBtn.classList.remove('yt-btn-loading', 'yt-btn-playing');
   document.querySelectorAll('.yt-now-playing-row').forEach(r => r.classList.remove('yt-now-playing-row'));
   _ytStopScrobbleRing();
+  // When a song is started directly by the user (not by auto-advancing the queue),
+  // reset played history so the queue shows a clean upcoming list.
+  if (!_ytAdvancingQueue) {
+    _ytQueuePlayed      = [];
+    _ytCurrentFromQueue = null;
+    _ytQueueMultiSelect = false;
+    _ytQueueSelected    = new Set();
+    _ytUpdateQueueDisplay();
+  }
+  _ytAdvancingQueue = false; // always reset the flag
   // Treat '—' placeholder as empty so it isn't sent as an album name when scrobbling
   album = (album && album !== '—') ? album : '';
   _ytCurrentTrack    = { title, artist, album };
@@ -17474,10 +17506,7 @@ function _ytOnState(event) {
     if (_ytRepeat === 1 && _ytCurrentTrack) {
       openYtPlayer(_ytCurrentTrack.title, _ytCurrentTrack.artist, _ytCurrentTrack.album, _ytActiveBtn);
     } else if (_ytQueue.length > 0) {
-      const next = _ytQueue.shift();
-      _ytUpdateQueueDisplay();
-      _ytSaveQueue();
-      openYtPlayer(next.title, next.artist, next.album, next.btn || null);
+      _ytAdvanceFromQueue();
     } else if (_ytRepeat === 2 && _ytCurrentTrack) {
       openYtPlayer(_ytCurrentTrack.title, _ytCurrentTrack.artist, _ytCurrentTrack.album, _ytActiveBtn);
     }
@@ -17585,8 +17614,17 @@ function closeYtPlayer() {
     try { navigator.mediaSession.metadata = null; } catch(e) {}
     try { navigator.mediaSession.playbackState = 'none'; } catch(e) {}
   }
-  _ytExpandSize     = 0;
-  _ytQueue          = [];
+  _ytExpandSize       = 0;
+  _ytQueue            = [];
+  _ytQueuePlayed      = [];
+  _ytCurrentFromQueue = null;
+  _ytQueueMultiSelect = false;
+  _ytQueueSelected    = new Set();
+  clearTimeout(_ytUndoTimer);
+  _ytLastRemovedItem  = null;
+  _ytUndoTimer        = null;
+  _ytQueueHidden      = false; // panel will re-auto-open on next add
+  _ytQueuePrevCount   = 0;    // reset so next add triggers auto-open
   _ytSaveQueue();
   _ytUpdateQueueDisplay();
   if (player) player.classList.remove('yt-expanded', 'yt-expanded-lg', 'yt-expanded-xl', 'yt-mini-collapsed');
@@ -17650,10 +17688,7 @@ function _ytOpenInYT() {
 
 function _ytSkip() {
   if (_ytQueue.length > 0) {
-    const next = _ytQueue.shift();
-    _ytUpdateQueueDisplay();
-    _ytSaveQueue();
-    openYtPlayer(next.title, next.artist, next.album, next.btn || null);
+    _ytAdvanceFromQueue();
   } else {
     const statusEl = document.getElementById('ytMiniStatus');
     if (statusEl) {
@@ -17858,6 +17893,7 @@ function _ytToggleCollapse() {
   const collapsed = player.classList.toggle('yt-mini-collapsed');
   const btn = document.getElementById('ytMiniCollapseBtn');
   if (btn) { btn.innerHTML = collapsed ? _YT_IC.expandV : _YT_IC.collapseV; btn.title = collapsed ? 'Expand player' : 'Collapse player'; }
+  _ytUpdateCollapsedCount(); // show/hide queue count badge (#14)
 }
 
 function _ytToggleShortcuts() {
@@ -18129,31 +18165,134 @@ function _ytShowQueueToast(title, artist, album, btn) {
 function _ytUpdateQueueDisplay() {
   const el = document.getElementById('ytMiniQueue');
   if (!el) return;
-  if (_ytQueue.length === 0) { el.style.display = 'none'; el.innerHTML = ''; return; }
+  const totalVisible = _ytQueuePlayed.length + (_ytCurrentFromQueue ? 1 : 0) + _ytQueue.length;
+
+  // Auto-open the panel when the queue goes from empty → non-empty (#11)
+  if (totalVisible > 0 && _ytQueuePrevCount === 0) {
+    _ytQueueHidden = false;
+    const btn = document.getElementById('ytQueueBtn');
+    if (btn) btn.classList.add('yt-ctrl-active');
+  }
+  _ytQueuePrevCount = totalVisible;
+
+  // Update the count badge on the toggle button (#11) and collapsed badge (#14)
+  _ytUpdateQueueBadge();
+  _ytUpdateCollapsedCount();
+
+  // Panel is manually hidden — keep it off-screen but badges are already updated
+  if (_ytQueueHidden) { el.style.display = 'none'; return; }
+
+  // Empty-state prompt (#12): show a hint instead of disappearing entirely
+  if (totalVisible === 0) {
+    el.style.display = 'block';
+    el.innerHTML =
+      `<div class="yt-queue-empty">` +
+      `<div class="yt-queue-empty-msg">Queue is empty</div>` +
+      `<div class="yt-queue-empty-hint">Click ▶ on any song to play it, or ⏭ Next to queue it</div>` +
+      `</div>`;
+    return;
+  }
+
   el.style.display = 'block';
-  el.innerHTML =
+
+  // ── Header row ──────────────────────────────────────────────────────────────
+  const selCount = _ytQueueSelected.size;
+  let html =
     `<div class="yt-queue-header">` +
     `<span class="yt-queue-header-count">${_ytQueue.length} up next</span>` +
     `<div class="yt-queue-header-btns">` +
+    // Multi-select toggle (#9)
+    `<button class="yt-queue-multi-btn${_ytQueueMultiSelect ? ' yt-ctrl-active' : ''}" onclick="_ytToggleQueueMultiSelect()" title="Multi-select">` +
+    `<svg class="yt-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="4" height="4" rx="0.5"/><rect x="3" y="11" width="4" height="4" rx="0.5"/><rect x="3" y="17" width="4" height="4" rx="0.5"/><line x1="10" y1="7" x2="21" y2="7"/><line x1="10" y1="13" x2="21" y2="13"/><line x1="10" y1="19" x2="21" y2="19"/></svg>` +
+    `</button>` +
     `<button class="yt-queue-shuffle-btn" onclick="_ytShuffleQueue()" title="Shuffle queue">` +
     `<svg class="yt-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16,3 21,3 21,8"/><line x1="4" y1="20" x2="21" y2="3"/><polyline points="21,16 21,21 16,21"/><line x1="15" y1="15" x2="21" y2="21"/></svg>` +
     ` Shuffle</button>` +
+    `<button class="yt-queue-reverse-btn" onclick="_ytReverseQueue()" title="Reverse queue order">↕ Rev</button>` + // #16
+    `<button class="yt-queue-dedup-btn" onclick="_ytDeduplicateQueue()" title="Remove duplicates">Dedup</button>` + // #7
+    `<button class="yt-queue-save-btn" onclick="_ytSaveQueueAsPlaylist()" title="Save queue as playlist">💾</button>` + // #8
     `<button class="yt-queue-clear-btn" onclick="_ytClearQueue()" title="Clear queue">✕ Clear</button>` +
     `</div>` +
-    `</div>` +
-    _ytQueue.map((t, i) =>
-    `<div class="yt-mini-queue-item" draggable="true" data-qi="${i}">` +
-    `<span class="yt-mini-queue-drag" title="Drag to reorder">⠿</span>` +
-    `<span class="yt-mini-queue-num">${i === 0 ? '▶' : i + 1}</span>` +
-    `<span class="yt-mini-queue-title">${esc(t.title)}${t.artist ? `<span class="yt-mini-queue-artist"> · ${esc(t.artist)}</span>` : ''}</span>` +
-    `<button class="yt-mini-queue-rm" onclick="_ytRemoveFromQueue(${i})" title="Remove">✕</button>` +
-    `</div>`
-  ).join('');
+    `</div>`;
+
+  // ── Multi-select batch actions (#9) ─────────────────────────────────────────
+  if (_ytQueueMultiSelect && selCount > 0) {
+    html +=
+      `<div class="yt-queue-multi-actions">` +
+      `<span class="yt-queue-sel-count">${selCount} selected</span>` +
+      `<button class="yt-queue-multi-act-btn" onclick="_ytMoveSelectedToTop()" title="Move selected to top">↑ Top</button>` +
+      `<button class="yt-queue-multi-act-btn yt-queue-multi-del-btn" onclick="_ytDeleteSelected()" title="Delete selected">✕ Del</button>` +
+      `</div>`;
+  }
+
+  // ── Played items (dimmed) — shown when playing from queue ───────────────────
+  if (_ytQueuePlayed.length > 0) {
+    html += `<div class="yt-mini-queue-played">`;
+    _ytQueuePlayed.forEach(t => {
+      html +=
+        `<div class="yt-mini-queue-item yt-mini-queue-played-item">` +
+        `<span class="yt-mini-queue-num">✓</span>` +
+        `<span class="yt-mini-queue-title">${esc(t.title)}` +
+        (t.artist ? `<span class="yt-mini-queue-artist"> · ${esc(t.artist)}</span>` : '') +
+        `</span>` +
+        `</div>`;
+    });
+    html += `</div>`;
+  }
+
+  // ── Currently playing from queue (highlighted) ──────────────────────────────
+  if (_ytCurrentFromQueue) {
+    const t = _ytCurrentFromQueue;
+    html +=
+      `<div class="yt-mini-queue-item yt-mini-queue-now-item">` +
+      `<span class="yt-mini-queue-num">▶</span>` +
+      `<span class="yt-mini-queue-title">${esc(t.title)}` +
+      (t.artist ? `<span class="yt-mini-queue-artist"> · ${esc(t.artist)}</span>` : '') +
+      `</span>` +
+      `</div>`;
+  }
+
+  // ── Upcoming queue items ─────────────────────────────────────────────────────
+  html += _ytQueue.map((t, i) => {
+    const jt  = JSON.stringify(t.title);
+    const jar = JSON.stringify(t.artist  || '');
+    const jal = JSON.stringify(t.album   || '');
+    const isSel = _ytQueueMultiSelect && _ytQueueSelected.has(i);
+    return (
+      `<div class="yt-mini-queue-item${isSel ? ' yt-queue-item-selected' : ''}" draggable="true" data-qi="${i}"` +
+      ` oncontextmenu="event.preventDefault();_ytShowQueueContextMenu(event,${i})">` +
+      // Left side: checkbox (multi-select) or drag handle
+      (_ytQueueMultiSelect
+        ? `<input type="checkbox" class="yt-mini-queue-cb"${isSel ? ' checked' : ''} onclick="event.stopPropagation();_ytQueueCheckbox(${i},event)">`
+        : `<span class="yt-mini-queue-drag" title="Long-press on mobile / drag on desktop to reorder">⠿</span>`) +
+      `<span class="yt-mini-queue-num">${i + 1}</span>` +
+      `<button class="yt-mini-queue-move-top" onclick="_ytMoveToTop(${i})" title="Move to top (play next)">↑</button>` + // #5
+      `<span class="yt-mini-queue-title">${esc(t.title)}` +
+      (t.artist ? `<span class="yt-mini-queue-artist"> · ${esc(t.artist)}</span>` : '') +
+      `</span>` +
+      `<button class="yt-mini-queue-rm" onclick="_ytRemoveFromQueue(${i})" title="Remove">✕</button>` +
+      `</div>`
+    );
+  }).join('');
+
+  // ── Undo bar (#6) ────────────────────────────────────────────────────────────
+  if (_ytLastRemovedItem) {
+    html +=
+      `<div class="yt-queue-undo-bar">` +
+      `<span class="yt-queue-undo-label">Removed "${esc(_ytLastRemovedItem.item.title)}"</span>` +
+      `<button class="yt-queue-undo-btn" onclick="_ytUndoRemove()">Undo</button>` +
+      `</div>`;
+  }
+
+  el.innerHTML = html;
   _ytInitQueueDrag(el);
 }
 
 function _ytInitQueueDrag(container) {
-  container.querySelectorAll('.yt-mini-queue-item').forEach(item => {
+  // Only draggable items (upcoming queue items) get drag/touch events
+  container.querySelectorAll('.yt-mini-queue-item[draggable]').forEach(item => {
+
+    // ── Desktop HTML5 drag-and-drop ──────────────────────────────────────────
     item.addEventListener('dragstart', e => {
       _ytQueueDragSrc = item;
       item.classList.add('yt-queue-dragging');
@@ -18181,19 +18320,299 @@ function _ytInitQueueDrag(container) {
         _ytSaveQueue();
       }
     });
+
+    // ── Mobile: long-press (400ms) to start touch drag (#19) ─────────────────
+    item.addEventListener('touchstart', e => {
+      // Don't start a drag timer on checkbox or button taps
+      if (e.target.tagName === 'INPUT' || e.target.tagName === 'BUTTON') return;
+      const touch = e.touches[0];
+      clearTimeout(_ytQueueTouchTimer);
+      _ytQueueTouchTimer = setTimeout(() => {
+        _ytTouchDragSrc = item;
+        item.classList.add('yt-queue-dragging');
+        // Build a ghost clone anchored to the touch point
+        const clone = item.cloneNode(true);
+        clone.className = 'yt-mini-queue-item yt-touch-drag-ghost';
+        clone.style.cssText = `position:fixed;width:${item.offsetWidth}px;` +
+          `left:${touch.clientX - 20}px;top:${touch.clientY - 20}px;` +
+          `pointer-events:none;z-index:9999;`;
+        document.body.appendChild(clone);
+        _ytTouchDragClone = clone;
+        // Haptic feedback where available
+        if (navigator.vibrate) navigator.vibrate(30);
+      }, 400);
+    }, { passive: true });
+
+    item.addEventListener('touchmove', e => {
+      if (!_ytTouchDragSrc) { clearTimeout(_ytQueueTouchTimer); return; }
+      e.preventDefault(); // block scroll while dragging
+      const touch = e.touches[0];
+      if (_ytTouchDragClone) {
+        _ytTouchDragClone.style.left = (touch.clientX - 20) + 'px';
+        _ytTouchDragClone.style.top  = (touch.clientY - 20) + 'px';
+      }
+      // Determine which item the finger is over
+      let newOver = null;
+      container.querySelectorAll('.yt-mini-queue-item[draggable]').forEach(el => {
+        const r = el.getBoundingClientRect();
+        el.classList.remove('yt-queue-drag-over');
+        if (touch.clientY >= r.top && touch.clientY <= r.bottom && el !== _ytTouchDragSrc) newOver = el;
+      });
+      if (newOver) { newOver.classList.add('yt-queue-drag-over'); _ytTouchDragOver = newOver; }
+      else _ytTouchDragOver = null;
+    }, { passive: false });
+
+    const _ytFinishTouchDrag = () => {
+      clearTimeout(_ytQueueTouchTimer);
+      if (_ytTouchDragClone) { _ytTouchDragClone.remove(); _ytTouchDragClone = null; }
+      if (_ytTouchDragSrc && _ytTouchDragOver) {
+        const from = parseInt(_ytTouchDragSrc.dataset.qi);
+        const to   = parseInt(_ytTouchDragOver.dataset.qi);
+        if (from !== to) {
+          const [moved] = _ytQueue.splice(from, 1);
+          _ytQueue.splice(to, 0, moved);
+          _ytUpdateQueueDisplay();
+          _ytSaveQueue();
+        }
+      }
+      if (_ytTouchDragSrc) _ytTouchDragSrc.classList.remove('yt-queue-dragging');
+      container.querySelectorAll('.yt-mini-queue-item').forEach(i => i.classList.remove('yt-queue-drag-over'));
+      _ytTouchDragSrc  = null;
+      _ytTouchDragOver = null;
+    };
+
+    item.addEventListener('touchend',    _ytFinishTouchDrag);
+    item.addEventListener('touchcancel', _ytFinishTouchDrag);
   });
 }
 
 function _ytRemoveFromQueue(i) {
+  // Save for one-step undo (#6)
+  clearTimeout(_ytUndoTimer);
+  _ytLastRemovedItem = { item: _ytQueue[i], idx: i };
   _ytQueue.splice(i, 1);
+  _ytQueueSelected.delete(i); // keep selection coherent
+  _ytUpdateQueueDisplay();
+  _ytSaveQueue();
+  // Auto-expire undo after 4s
+  _ytUndoTimer = setTimeout(() => {
+    _ytLastRemovedItem = null;
+    _ytUndoTimer       = null;
+    _ytUpdateQueueDisplay();
+  }, 4000);
+}
+
+function _ytClearQueue() {
+  _ytQueue            = [];
+  _ytQueuePlayed      = [];
+  _ytCurrentFromQueue = null;
+  _ytQueueMultiSelect = false;
+  _ytQueueSelected    = new Set();
+  clearTimeout(_ytUndoTimer);
+  _ytLastRemovedItem  = null;
+  _ytUndoTimer        = null;
+  _ytQueuePrevCount   = 0;   // reset so next add auto-re-opens
+  // Keep _ytQueueHidden as-is: if panel was open it stays open showing empty state
   _ytUpdateQueueDisplay();
   _ytSaveQueue();
 }
 
-function _ytClearQueue() {
-  _ytQueue = [];
+// ── Queue advance: move to played history, pop next, and play (#songs-don't-disappear) ──
+function _ytAdvanceFromQueue() {
+  if (_ytCurrentFromQueue) _ytQueuePlayed.push(_ytCurrentFromQueue);
+  const next = _ytQueue.shift();
+  _ytCurrentFromQueue = next;
   _ytUpdateQueueDisplay();
   _ytSaveQueue();
+  _ytAdvancingQueue = true; // tell openYtPlayer not to wipe played history
+  openYtPlayer(next.title, next.artist, next.album, next.btn || null);
+}
+
+// ── #5: Move item at index i to position 0 (plays next) ──────────────────────
+function _ytMoveToTop(i) {
+  if (i <= 0 || i >= _ytQueue.length) return;
+  const [item] = _ytQueue.splice(i, 1);
+  _ytQueue.unshift(item);
+  _ytUpdateQueueDisplay();
+  _ytSaveQueue();
+}
+
+// ── #7: Remove duplicate entries (same title + artist) ───────────────────────
+function _ytDeduplicateQueue() {
+  const seen = new Set();
+  _ytQueue = _ytQueue.filter(t => {
+    const key = (t.title + '|||' + (t.artist || '')).toLowerCase();
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+  _ytQueueSelected = new Set(); // reset selection after dedup
+  _ytUpdateQueueDisplay();
+  _ytSaveQueue();
+}
+
+// ── #16: Reverse the queue order ─────────────────────────────────────────────
+function _ytReverseQueue() {
+  _ytQueue.reverse();
+  _ytQueueSelected = new Set();
+  _ytUpdateQueueDisplay();
+  _ytSaveQueue();
+}
+
+// ── #17: Remove all items by a specific artist ────────────────────────────────
+function _ytRemoveByArtist(artist) {
+  _ytHideQueueContextMenu();
+  _ytQueue = _ytQueue.filter(t => (t.artist || '').toLowerCase() !== artist.toLowerCase());
+  _ytQueueSelected = new Set();
+  _ytUpdateQueueDisplay();
+  _ytSaveQueue();
+}
+
+// ── #8: Save current queue as a named playlist ────────────────────────────────
+function _ytSaveQueueAsPlaylist() {
+  const name = prompt('Save queue as playlist:', '');
+  if (name && name.trim()) _ytSaveCurrentQueue(name.trim());
+}
+
+// ── #6: Undo last removal ─────────────────────────────────────────────────────
+function _ytUndoRemove() {
+  if (!_ytLastRemovedItem) return;
+  clearTimeout(_ytUndoTimer);
+  const { item, idx } = _ytLastRemovedItem;
+  _ytLastRemovedItem = null;
+  _ytUndoTimer       = null;
+  // Re-insert at original position, clamped if queue is shorter now
+  _ytQueue.splice(Math.min(idx, _ytQueue.length), 0, item);
+  _ytUpdateQueueDisplay();
+  _ytSaveQueue();
+}
+
+// ── #10 + #17: Queue item right-click context menu ────────────────────────────
+function _ytShowQueueContextMenu(e, i) {
+  _ytHideQueueContextMenu();
+  const t = _ytQueue[i];
+  if (!t) return;
+  const jt  = JSON.stringify(t.title);
+  const jar = JSON.stringify(t.artist  || '');
+  const jal = JSON.stringify(t.album   || '');
+  const menu = document.createElement('div');
+  menu.id        = 'ytQueueCtx';
+  menu.className = 'yt-queue-ctx';
+  menu.innerHTML =
+    // Play now: remove from queue then open directly
+    `<button onclick="_ytQueuePlayNow(${i})">▶ Play now</button>` +
+    // Play next: move to top of upcoming list
+    `<button onclick="_ytHideQueueContextMenu();_ytMoveToTop(${i})">⏭ Play next</button>` +
+    // Remove with undo support
+    `<button onclick="_ytHideQueueContextMenu();_ytRemoveFromQueue(${i})">✕ Remove</button>` +
+    // Remove all by artist (only if artist is set)
+    (t.artist ? `<button onclick="_ytRemoveByArtist(${jar})">🗑 Remove all by ${esc(t.artist)}</button>` : '');
+  // Position near cursor, clamped to viewport edges
+  const x = Math.min(e.clientX, window.innerWidth  - 185);
+  const y = Math.min(e.clientY, window.innerHeight - 150);
+  menu.style.left = x + 'px';
+  menu.style.top  = y + 'px';
+  document.body.appendChild(menu);
+  // Dismiss on any click outside
+  setTimeout(() => document.addEventListener('click', _ytHideQueueContextMenu, { once: true }), 0);
+}
+
+function _ytHideQueueContextMenu() {
+  const m = document.getElementById('ytQueueCtx');
+  if (m) m.remove();
+}
+
+// "Play now" from context menu: remove from queue, play directly (clears played history)
+function _ytQueuePlayNow(i) {
+  _ytHideQueueContextMenu();
+  const item = _ytQueue.splice(i, 1)[0];
+  if (!item) return;
+  _ytQueueSelected.delete(i);
+  _ytUpdateQueueDisplay();
+  _ytSaveQueue();
+  openYtPlayer(item.title, item.artist, item.album, item.btn || null);
+}
+
+// ── #9: Multi-select mode ─────────────────────────────────────────────────────
+function _ytToggleQueueMultiSelect() {
+  _ytQueueMultiSelect = !_ytQueueMultiSelect;
+  if (!_ytQueueMultiSelect) { _ytQueueSelected = new Set(); _ytQueueLastChecked = null; }
+  _ytUpdateQueueDisplay();
+}
+
+function _ytQueueCheckbox(i, e) {
+  // Shift+click extends the selection range from the last-checked item
+  if (e.shiftKey && _ytQueueLastChecked !== null) {
+    const lo = Math.min(i, _ytQueueLastChecked);
+    const hi = Math.max(i, _ytQueueLastChecked);
+    const addMode = _ytQueueSelected.has(_ytQueueLastChecked);
+    for (let k = lo; k <= hi; k++) {
+      if (addMode) _ytQueueSelected.add(k);
+      else         _ytQueueSelected.delete(k);
+    }
+  } else {
+    if (_ytQueueSelected.has(i)) _ytQueueSelected.delete(i);
+    else                          _ytQueueSelected.add(i);
+    _ytQueueLastChecked = i;
+  }
+  _ytUpdateQueueDisplay();
+}
+
+function _ytDeleteSelected() {
+  // Delete from highest index down to preserve lower indices
+  [..._ytQueueSelected].sort((a, b) => b - a).forEach(i => _ytQueue.splice(i, 1));
+  _ytQueueSelected    = new Set();
+  _ytQueueLastChecked = null;
+  _ytUpdateQueueDisplay();
+  _ytSaveQueue();
+}
+
+function _ytMoveSelectedToTop() {
+  const sorted = [..._ytQueueSelected].sort((a, b) => a - b);
+  const items  = sorted.map(i => _ytQueue[i]);
+  // Remove from end to keep earlier indices valid
+  [..._ytQueueSelected].sort((a, b) => b - a).forEach(i => _ytQueue.splice(i, 1));
+  _ytQueue.unshift(...items); // restore at top in original order
+  _ytQueueSelected    = new Set();
+  _ytQueueLastChecked = null;
+  _ytUpdateQueueDisplay();
+  _ytSaveQueue();
+}
+
+// ── #11: Count badge on the queue toggle button ───────────────────────────────
+function _ytUpdateQueueBadge() {
+  const badge = document.getElementById('ytQueueBadge');
+  if (!badge) return;
+  const count = _ytQueue.length;
+  if (count > 0) {
+    badge.textContent  = count > 99 ? '99+' : count;
+    badge.style.display = '';
+  } else {
+    badge.style.display = 'none';
+  }
+}
+
+// ── #11: Toggle queue panel open / closed ─────────────────────────────────────
+function _ytToggleQueue() {
+  _ytQueueHidden = !_ytQueueHidden;
+  const btn = document.getElementById('ytQueueBtn');
+  if (btn) btn.classList.toggle('yt-ctrl-active', !_ytQueueHidden);
+  _ytUpdateQueueDisplay();
+}
+
+// ── #14: Collapsed count badge ────────────────────────────────────────────────
+function _ytUpdateCollapsedCount() {
+  const el     = document.getElementById('ytQueueCollapsedCount');
+  const player = document.getElementById('ytMiniPlayer');
+  if (!el || !player) return;
+  const count     = _ytQueue.length;
+  const collapsed = player.classList.contains('yt-mini-collapsed');
+  if (collapsed && count > 0) {
+    el.textContent = `+${count} queued`;
+    el.style.display = 'block';
+  } else {
+    el.style.display = 'none';
+  }
 }
 
 function _ytClampToViewport() {
