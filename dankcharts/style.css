@@ -15256,6 +15256,111 @@ body.red-light .bu-count-pill {
   border-color: var(--border2);
 }
 
+/* 7b. BU badges — neon colors are unreadable on light backgrounds; use very dark text + subtle bg/border */
+body.navy-light .bu-badge-away,   body.purple-light .bu-badge-away,
+body.yellow-light .bu-badge-away, body.pink-light .bu-badge-away,
+body.red-light .bu-badge-away {
+  color: #0c4a6e;
+  background: rgba(12, 74, 110, 0.07);
+  border-color: rgba(12, 74, 110, 0.3);
+}
+
+body.navy-light .bu-badge-fading,   body.purple-light .bu-badge-fading,
+body.yellow-light .bu-badge-fading, body.pink-light .bu-badge-fading,
+body.red-light .bu-badge-fading {
+  color: #7c2d12;
+  background: rgba(124, 45, 18, 0.07);
+  border-color: rgba(124, 45, 18, 0.3);
+}
+
+body.navy-light .bu-badge-trending,   body.purple-light .bu-badge-trending,
+body.yellow-light .bu-badge-trending, body.pink-light .bu-badge-trending,
+body.red-light .bu-badge-trending {
+  color: #14532d;
+  background: rgba(20, 83, 45, 0.07);
+  border-color: rgba(20, 83, 45, 0.3);
+}
+
+body.navy-light .bu-badge-debut,   body.purple-light .bu-badge-debut,
+body.yellow-light .bu-badge-debut, body.pink-light .bu-badge-debut,
+body.red-light .bu-badge-debut {
+  color: #1e293b;
+  background: rgba(30, 41, 59, 0.07);
+  border-color: rgba(30, 41, 59, 0.3);
+}
+
+body.navy-light .bu-badge-persistent,   body.purple-light .bu-badge-persistent,
+body.yellow-light .bu-badge-persistent, body.pink-light .bu-badge-persistent,
+body.red-light .bu-badge-persistent {
+  color: #78350f;
+  background: rgba(120, 53, 15, 0.07);
+  border-color: rgba(120, 53, 15, 0.3);
+}
+
+body.navy-light .bu-badge-fallen,   body.purple-light .bu-badge-fallen,
+body.yellow-light .bu-badge-fallen, body.pink-light .bu-badge-fallen,
+body.red-light .bu-badge-fallen {
+  color: #881337;
+  background: rgba(136, 19, 55, 0.07);
+  border-color: rgba(136, 19, 55, 0.3);
+}
+
+body.navy-light .bu-badge-surging,   body.purple-light .bu-badge-surging,
+body.yellow-light .bu-badge-surging, body.pink-light .bu-badge-surging,
+body.red-light .bu-badge-surging {
+  color: #713f12;
+  background: rgba(113, 63, 18, 0.07);
+  border-color: rgba(113, 63, 18, 0.3);
+}
+
+body.navy-light .bu-badge-resurgence,   body.purple-light .bu-badge-resurgence,
+body.yellow-light .bu-badge-resurgence, body.pink-light .bu-badge-resurgence,
+body.red-light .bu-badge-resurgence {
+  color: #134e4a;
+  background: rgba(19, 78, 74, 0.07);
+  border-color: rgba(19, 78, 74, 0.3);
+}
+
+body.navy-light .bu-badge-resurgent,   body.purple-light .bu-badge-resurgent,
+body.yellow-light .bu-badge-resurgent, body.pink-light .bu-badge-resurgent,
+body.red-light .bu-badge-resurgent {
+  color: #312e81;
+  background: rgba(49, 46, 129, 0.07);
+  border-color: rgba(49, 46, 129, 0.3);
+}
+
+body.navy-light .bu-badge-weeks,   body.purple-light .bu-badge-weeks,
+body.yellow-light .bu-badge-weeks, body.pink-light .bu-badge-weeks,
+body.red-light .bu-badge-weeks {
+  color: #4c1d95;
+  background: rgba(76, 29, 149, 0.07);
+  border-color: rgba(76, 29, 149, 0.3);
+}
+
+body.navy-light .bu-badge-streak,   body.purple-light .bu-badge-streak,
+body.yellow-light .bu-badge-streak, body.pink-light .bu-badge-streak,
+body.red-light .bu-badge-streak {
+  color: #701a75;
+  background: rgba(112, 26, 117, 0.07);
+  border-color: rgba(112, 26, 117, 0.3);
+}
+
+body.navy-light .bu-badge-freefall,   body.purple-light .bu-badge-freefall,
+body.yellow-light .bu-badge-freefall, body.pink-light .bu-badge-freefall,
+body.red-light .bu-badge-freefall {
+  color: #7f1d1d;
+  background: rgba(127, 29, 29, 0.07);
+  border-color: rgba(127, 29, 29, 0.3);
+}
+
+body.navy-light .bu-badge-yoyo,   body.purple-light .bu-badge-yoyo,
+body.yellow-light .bu-badge-yoyo, body.pink-light .bu-badge-yoyo,
+body.red-light .bu-badge-yoyo {
+  color: #365314;
+  background: rgba(54, 83, 20, 0.07);
+  border-color: rgba(54, 83, 20, 0.3);
+}
+
 /* 8. New Entries section — hardcoded #2dd4bf is near-invisible on light backgrounds */
 body.navy-light .ne-section-header,   body.purple-light .ne-section-header,
 body.yellow-light .ne-section-header, body.pink-light .ne-section-header,
@@ -15284,7 +15389,7 @@ body.navy-light .peak-badge-2,   body.purple-light .peak-badge-2,
 body.yellow-light .peak-badge-2, body.pink-light .peak-badge-2,
 body.red-light .peak-badge-2 {
   color: #475569;
-  background: rgba(71, 85, 105, 0.1);
+  background: rgba(71, 85, 105, 0.05);
   border-color: rgba(71, 85, 105, 0.35);
 }
 
