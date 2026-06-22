@@ -6860,12 +6860,13 @@
     }
 
     .cr-box-peak {
-      background: rgba(245, 158, 11, 0.1);
-      border-color: rgba(245, 158, 11, 0.45);
+      background: rgba(245, 158, 11, 0.2);
+      border-color: rgba(245, 158, 11, 0.7);
+      box-shadow: 0 0 7px rgba(245, 158, 11, 0.35);
     }
 
     .cr-box-peak:hover {
-      background: rgba(245, 158, 11, 0.18);
+      background: rgba(245, 158, 11, 0.28);
     }
 
     .cr-box-rank {
@@ -6963,13 +6964,15 @@
       color: #4ade80;
     }
 
+    /* Peak chart box: green body + gold border + gold glow = chart identity + peak status */
     .cr-box-official.cr-box-official-peak {
-      background: rgba(34, 197, 94, 0.14);
-      border-color: rgba(34, 197, 94, 0.55);
+      background: rgba(34, 197, 94, 0.2);
+      border-color: rgba(245, 158, 11, 0.75);
+      box-shadow: 0 0 7px rgba(245, 158, 11, 0.35);
     }
 
     .cr-box-official.cr-box-official-peak .cr-box-rank {
-      color: #86efac;
+      color: var(--gold1);
     }
 
     /* BU box (indigo/blue) in combined timeline */
@@ -6987,13 +6990,15 @@
       color: #a5b4fc;
     }
 
+    /* Peak BU entry: gold/orange fill + purple border — BU identity (indigo) marks the edge */
     .cr-box-bu-entry.cr-box-peak {
-      background: rgba(245, 158, 11, 0.08);
-      border-color: rgba(245, 158, 11, 0.4);
+      background: rgba(245, 158, 11, 0.2);
+      border-color: rgba(167, 139, 250, 0.85);
+      box-shadow: 0 0 7px rgba(167, 139, 250, 0.3);
     }
 
     .cr-box-bu-entry.cr-box-peak .cr-box-rank {
-      color: var(--gold1);
+      color: #c4b5fd; /* violet-300 — bright purple */
     }
 
     /* Legend strip above combined boxes */
@@ -7069,13 +7074,14 @@
       color: #f87171; /* red-400 */
     }
 
+    /* Peak BU miss: amber-orange inside, red edge — gold-hot with BU red identity */
     .cr-box-bu-miss.cr-box-bu-miss-peak {
-      background: rgba(220, 38, 38, 0.16);
-      border-color: rgba(220, 38, 38, 0.55);
+      background: rgba(251, 146, 60, 0.2);
+      border-color: rgba(239, 68, 68, 0.85);
     }
 
     .cr-box-bu-miss.cr-box-bu-miss-peak .cr-box-rank {
-      color: #fca5a5; /* red-300, brighter for peak BU */
+      color: #fdba74; /* orange-300 — warm gold-red, distinct from regular #f87171 */
     }
 
     /* CHART RUN PREVIEW POPUP */
@@ -15369,7 +15375,24 @@ body.red-light .cr-box {
   border-color: var(--border2);
 }
 
-/* Peak box (amber) — boost opacity so it shows on light background */
+/* BU-only view: give plain boxes an indigo tint (scoped to .bu-cr-view-bu so it
+   doesn't interfere with .cr-box-official / .cr-box-bu-entry in combined view) */
+body.navy-light .bu-cr-view-bu .cr-box,   body.purple-light .bu-cr-view-bu .cr-box,
+body.yellow-light .bu-cr-view-bu .cr-box, body.pink-light .bu-cr-view-bu .cr-box,
+body.red-light .bu-cr-view-bu .cr-box {
+  background: rgba(99, 102, 241, 0.18);
+  border-color: rgba(99, 102, 241, 0.45);
+}
+
+/* Peak box in BU-only view: override the indigo above with gold (higher specificity) */
+body.navy-light .bu-cr-view-bu .cr-box.cr-box-peak,   body.purple-light .bu-cr-view-bu .cr-box.cr-box-peak,
+body.yellow-light .bu-cr-view-bu .cr-box.cr-box-peak, body.pink-light .bu-cr-view-bu .cr-box.cr-box-peak,
+body.red-light .bu-cr-view-bu .cr-box.cr-box-peak {
+  background: rgba(245, 158, 11, 0.22);
+  border-color: rgba(245, 158, 11, 0.6);
+}
+
+/* Peak box anywhere (amber) — boost so the gold highlight shows on light */
 body.navy-light .cr-box-peak,   body.purple-light .cr-box-peak,
 body.yellow-light .cr-box-peak, body.pink-light .cr-box-peak,
 body.red-light .cr-box-peak {
@@ -15377,12 +15400,12 @@ body.red-light .cr-box-peak {
   border-color: rgba(245, 158, 11, 0.55);
 }
 
-/* Official chart box (green) — boost opacity + dark rank text */
+/* Official chart box (green) — strong tint so chart vs BU is obvious at a glance */
 body.navy-light .cr-box-official,   body.purple-light .cr-box-official,
 body.yellow-light .cr-box-official, body.pink-light .cr-box-official,
 body.red-light .cr-box-official {
-  background: rgba(34, 197, 94, 0.18);
-  border-color: rgba(34, 197, 94, 0.45);
+  background: rgba(34, 197, 94, 0.32);
+  border-color: rgba(34, 197, 94, 0.65);
 }
 
 /* BU entry box (indigo) — boost opacity + dark rank text */
@@ -15401,6 +15424,33 @@ body.red-light .cr-box-bu-miss {
   border-color: rgba(220, 38, 38, 0.45);
 }
 
+/* Peak overrides — specificity (0,3,0) beats the general (0,2,0) rules above.
+   cr-box-bu-entry.cr-box-peak and cr-box-official.cr-box-official-peak must
+   restore their gold/green peak highlight, which the general rules would stomp. */
+body.navy-light .cr-box-bu-entry.cr-box-peak,   body.purple-light .cr-box-bu-entry.cr-box-peak,
+body.yellow-light .cr-box-bu-entry.cr-box-peak, body.pink-light .cr-box-bu-entry.cr-box-peak,
+body.red-light .cr-box-bu-entry.cr-box-peak {
+  background: rgba(245, 158, 11, 0.22);
+  border-color: rgba(109, 40, 217, 0.7);
+  box-shadow: 0 0 6px rgba(109, 40, 217, 0.2);
+}
+
+body.navy-light .cr-box-bu-entry.cr-box-peak .cr-box-rank,
+body.purple-light .cr-box-bu-entry.cr-box-peak .cr-box-rank,
+body.yellow-light .cr-box-bu-entry.cr-box-peak .cr-box-rank,
+body.pink-light .cr-box-bu-entry.cr-box-peak .cr-box-rank,
+body.red-light .cr-box-bu-entry.cr-box-peak .cr-box-rank {
+  color: #5b21b6; /* dark violet, readable on light */
+}
+
+body.navy-light .cr-box-official.cr-box-official-peak,   body.purple-light .cr-box-official.cr-box-official-peak,
+body.yellow-light .cr-box-official.cr-box-official-peak, body.pink-light .cr-box-official.cr-box-official-peak,
+body.red-light .cr-box-official.cr-box-official-peak {
+  background: rgba(34, 197, 94, 0.38);
+  border-color: rgba(245, 158, 11, 0.7);
+  box-shadow: 0 0 6px rgba(245, 158, 11, 0.25);
+}
+
 /* Combined view: official chart box rank text — #4ade80 / #86efac are neon on light */
 body.navy-light .cr-box-official .cr-box-rank,   body.purple-light .cr-box-official .cr-box-rank,
 body.yellow-light .cr-box-official .cr-box-rank, body.pink-light .cr-box-official .cr-box-rank,
@@ -15413,7 +15463,7 @@ body.purple-light .cr-box-official.cr-box-official-peak .cr-box-rank,
 body.yellow-light .cr-box-official.cr-box-official-peak .cr-box-rank,
 body.pink-light .cr-box-official.cr-box-official-peak .cr-box-rank,
 body.red-light .cr-box-official.cr-box-official-peak .cr-box-rank {
-  color: #14532d;
+  color: var(--gold1); /* dark amber on light themes, matches peak visual language */
 }
 
 /* Combined view: BU entry box rank text — #a5b4fc lavender is unreadable on light */
@@ -15430,12 +15480,21 @@ body.red-light .cr-box-bu-miss .cr-box-rank {
   color: #991b1b;
 }
 
+body.navy-light .cr-box-bu-miss.cr-box-bu-miss-peak,
+body.purple-light .cr-box-bu-miss.cr-box-bu-miss-peak,
+body.yellow-light .cr-box-bu-miss.cr-box-bu-miss-peak,
+body.pink-light .cr-box-bu-miss.cr-box-bu-miss-peak,
+body.red-light .cr-box-bu-miss.cr-box-bu-miss-peak {
+  background: rgba(251, 146, 60, 0.22);
+  border-color: rgba(220, 38, 38, 0.75);
+}
+
 body.navy-light .cr-box-bu-miss.cr-box-bu-miss-peak .cr-box-rank,
 body.purple-light .cr-box-bu-miss.cr-box-bu-miss-peak .cr-box-rank,
 body.yellow-light .cr-box-bu-miss.cr-box-bu-miss-peak .cr-box-rank,
 body.pink-light .cr-box-bu-miss.cr-box-bu-miss-peak .cr-box-rank,
 body.red-light .cr-box-bu-miss.cr-box-bu-miss-peak .cr-box-rank {
-  color: #7f1d1d;
+  color: #92400e; /* dark amber, matches the orange-gold peak styling */
 }
 
 /* "+ Chart" toggle (BU panel) active state — #4ade80 neon green is unreadable on light */
