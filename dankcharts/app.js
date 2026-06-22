@@ -4268,6 +4268,94 @@ function restoreChartSectionCollapseState(period) {
       if (iconEl) iconEl.textContent = collapsed ? '▼' : '▲';
     }
   });
+  syncCollapseAllBtn();
+}
+
+// Sections controlled by the Collapse All toggle
+const COLLAPSE_ALL_SECTIONS = ['songsSection', 'artistsSection', 'albumsSection', 'dropoutsSection'];
+// Type names used for both bubbling-under and new-entries sub-sections
+const COLLAPSE_ALL_TYPES = ['songs', 'artists', 'albums'];
+// Arrow icon IDs for new-entries sections
+const NE_ARROW_IDS = { songs: 'neSongsToggleIcon', artists: 'neArtistsToggleIcon', albums: 'neAlbumsToggleIcon' };
+
+// Returns true only when all visible chart sections are collapsed/closed
+function _isEverythingCollapsed() {
+  const mainOk = COLLAPSE_ALL_SECTIONS.every(id => {
+    const el = document.getElementById(id);
+    return !el || el.style.display === 'none' || el.classList.contains('collapsed');
+  });
+  const neOk = COLLAPSE_ALL_TYPES.every(type => {
+    const ucType = type.charAt(0).toUpperCase() + type.slice(1);
+    const el = document.getElementById('new' + ucType + 'Section');
+    return !el || el.style.display === 'none' || el.classList.contains('collapsed');
+  });
+  // Check bu body display directly — more reliable than reading _buOpen state
+  const buOk = COLLAPSE_ALL_TYPES.every(type => {
+    const ucType = type.charAt(0).toUpperCase() + type.slice(1);
+    const sectionEl = document.getElementById('bu' + ucType + 'Section');
+    if (!sectionEl || sectionEl.style.display === 'none') return true;
+    const bodyEl = document.getElementById('bu' + ucType + 'Body');
+    return !bodyEl || bodyEl.style.display === 'none';
+  });
+  return mainOk && neOk && buOk;
+}
+
+// Toggle collapse/expand all main chart sections at once
+function toggleCollapseAllCharts() {
+  const shouldCollapse = !_isEverythingCollapsed();
+
+  // Main sections + Off The Chart (use .collapsed class + collapse button)
+  COLLAPSE_ALL_SECTIONS.forEach(id => {
+    const section = document.getElementById(id);
+    if (!section || section.style.display === 'none') return;
+    section.classList.toggle('collapsed', shouldCollapse);
+    const btn = section.querySelector('.section-collapse-btn');
+    if (btn) {
+      btn.textContent = shouldCollapse ? '+' : '−';
+      btn.title = shouldCollapse ? 'Expand' : 'Collapse';
+    }
+    localStorage.setItem('dc_chart_section_collapsed_' + id + '_' + currentPeriod, shouldCollapse ? '1' : '0');
+  });
+
+  // New-entries sections (use .collapsed class + arrow icon, no collapse button)
+  COLLAPSE_ALL_TYPES.forEach(type => {
+    const ucType = type.charAt(0).toUpperCase() + type.slice(1);
+    const sectionId = 'new' + ucType + 'Section';
+    const section = document.getElementById(sectionId);
+    if (!section || section.style.display === 'none') return;
+    section.classList.toggle('collapsed', shouldCollapse);
+    const iconEl = document.getElementById(NE_ARROW_IDS[type]);
+    if (iconEl) iconEl.textContent = shouldCollapse ? '▼' : '▲';
+    localStorage.setItem('dc_chart_section_collapsed_' + sectionId + '_' + currentPeriod, shouldCollapse ? '1' : '0');
+  });
+
+  // Bubbling Under sections (use _buOpen state + body display)
+  COLLAPSE_ALL_TYPES.forEach(type => {
+    const ucType = type.charAt(0).toUpperCase() + type.slice(1);
+    const sectionEl = document.getElementById('bu' + ucType + 'Section');
+    if (!sectionEl || sectionEl.style.display === 'none') return;
+    _buOpen[type] = !shouldCollapse;
+    const bodyEl = document.getElementById('bu' + ucType + 'Body');
+    const iconEl = document.getElementById('bu' + ucType + 'ToggleIcon');
+    if (bodyEl) bodyEl.style.display = _buOpen[type] ? '' : 'none';
+    if (iconEl) iconEl.textContent = _buOpen[type] ? '▲' : '▼';
+  });
+
+  // Directly set button text — we know exactly what state we just applied
+  const toggleBtn = document.getElementById('collapseAllToggleBtn');
+  if (toggleBtn) {
+    toggleBtn.textContent = shouldCollapse ? '+ Expand All' : '− Collapse All';
+    toggleBtn.title = shouldCollapse ? 'Expand all sections' : 'Collapse all sections';
+  }
+}
+
+// Keep the Collapse All / Expand All button in sync when individual sections are toggled
+function syncCollapseAllBtn() {
+  const toggleBtn = document.getElementById('collapseAllToggleBtn');
+  if (!toggleBtn) return;
+  const allCollapsed = _isEverythingCollapsed();
+  toggleBtn.textContent = allCollapsed ? '+ Expand All' : '− Collapse All';
+  toggleBtn.title = allCollapsed ? 'Expand all sections' : 'Collapse all sections';
 }
 
 document.addEventListener('click', e => {
@@ -4287,6 +4375,8 @@ document.addEventListener('click', e => {
   } else if (['birthdaysSection', 'anniversariesSection', 'eventsUpcomingSection', 'eventsRecentSection', 'eventsRecentBirthdaysSection', 'eventsRecentAnniversariesSection', 'nmfSection'].includes(section.id)) {
     localStorage.setItem('dc_events_section_collapsed_' + section.id, collapsed ? '1' : '0');
   }
+  // Keep Collapse All toggle in sync when individual sections are toggled
+  syncCollapseAllBtn();
 });
 
 document.getElementById('periodNav').addEventListener('click', e => {
@@ -4303,6 +4393,7 @@ document.getElementById('periodNav').addEventListener('click', e => {
     document.getElementById('chartSizeBar').style.display = 'none';
     document.getElementById('paginatedSizeBar').style.display = 'none';
     document.getElementById('chartDisplayToggles').style.display = 'none';
+    document.getElementById('collapseAllBar').style.display = 'none';
     document.getElementById('exportPlaylistBtn').style.display = 'none';
     document.getElementById('dateNav').style.display = 'none';
     document.getElementById('navHint').style.display = 'none';
@@ -4344,6 +4435,7 @@ document.getElementById('periodNav').addEventListener('click', e => {
     document.getElementById('chartSizeBar').style.display = 'none';
     document.getElementById('paginatedSizeBar').style.display = 'none';
     document.getElementById('chartDisplayToggles').style.display = 'none';
+    document.getElementById('collapseAllBar').style.display = 'none';
     document.getElementById('exportPlaylistBtn').style.display = 'none';
     document.getElementById('dateNav').style.display = 'none';
     document.getElementById('navHint').style.display = 'none';
@@ -4379,6 +4471,7 @@ document.getElementById('periodNav').addEventListener('click', e => {
     document.getElementById('chartSizeBar').style.display = 'none';
     document.getElementById('paginatedSizeBar').style.display = 'none';
     document.getElementById('chartDisplayToggles').style.display = 'none';
+    document.getElementById('collapseAllBar').style.display = 'none';
     document.getElementById('exportPlaylistBtn').style.display = 'none';
     document.getElementById('dateNav').style.display = 'none';
     document.getElementById('navHint').style.display = 'none';
@@ -4417,6 +4510,7 @@ document.getElementById('periodNav').addEventListener('click', e => {
     document.getElementById('chartSizeBar').style.display = 'none';
     document.getElementById('paginatedSizeBar').style.display = 'none';
     document.getElementById('chartDisplayToggles').style.display = 'none';
+    document.getElementById('collapseAllBar').style.display = 'none';
     document.getElementById('exportPlaylistBtn').style.display = 'none';
     document.getElementById('dateNav').style.display = 'none';
     document.getElementById('navHint').style.display = 'none';
@@ -4468,6 +4562,7 @@ document.getElementById('periodNav').addEventListener('click', e => {
     document.getElementById('chartSizeBar').style.display = 'none';
     document.getElementById('paginatedSizeBar').style.display = 'none';
     document.getElementById('chartDisplayToggles').style.display = 'none';
+    document.getElementById('collapseAllBar').style.display = 'none';
     document.getElementById('exportPlaylistBtn').style.display = 'none';
     document.getElementById('dateNav').style.display = 'none';
     document.getElementById('navHint').style.display = 'none';
@@ -4504,6 +4599,7 @@ document.getElementById('periodNav').addEventListener('click', e => {
     document.getElementById('chartSizeBar').style.display = 'none';
     document.getElementById('paginatedSizeBar').style.display = 'none';
     document.getElementById('chartDisplayToggles').style.display = 'none';
+    document.getElementById('collapseAllBar').style.display = 'none';
     document.getElementById('exportPlaylistBtn').style.display = 'none';
     document.getElementById('dateNav').style.display = 'none';
     document.getElementById('navHint').style.display = 'none';
@@ -4542,6 +4638,7 @@ document.getElementById('periodNav').addEventListener('click', e => {
     document.getElementById('chartSizeBar').style.display = 'none';
     document.getElementById('paginatedSizeBar').style.display = 'none';
     document.getElementById('chartDisplayToggles').style.display = 'none';
+    document.getElementById('collapseAllBar').style.display = 'none';
     document.getElementById('exportPlaylistBtn').style.display = 'none';
     document.getElementById('dateNav').style.display = 'none';
     document.getElementById('navHint').style.display = 'none';
@@ -5304,6 +5401,8 @@ function renderAll() {
   document.getElementById('chartSizeBar').style.display = paginated ? 'none' : 'flex';
   document.getElementById('paginatedSizeBar').style.display = paginated ? 'flex' : 'none';
   document.getElementById('chartDisplayToggles').style.display =
+    ['week', 'month', 'year', 'alltime'].includes(currentPeriod) ? 'flex' : 'none';
+  document.getElementById('collapseAllBar').style.display =
     ['week', 'month', 'year', 'alltime'].includes(currentPeriod) ? 'flex' : 'none';
   const _isWeek = currentPeriod === 'week';
   ['songs','artists','albums'].forEach(tp => {
@@ -8460,6 +8559,7 @@ function toggleBuSection(type) {
   const iconEl = document.getElementById('bu' + ucType + 'ToggleIcon');
   if (bodyEl) bodyEl.style.display = _buOpen[type] ? '' : 'none';
   if (iconEl) iconEl.textContent = _buOpen[type] ? '▲' : '▼';
+  syncCollapseAllBtn();
 }
 
 // Toggles the New Entries section (songs/artists/albums) using the same
@@ -8474,6 +8574,7 @@ function toggleNeSection(type) {
   if (iconEl) iconEl.textContent = collapsed ? '▼' : '▲';
   // Persist via the same key used by restoreChartSectionCollapseState
   localStorage.setItem('dc_chart_section_collapsed_' + sectionId + '_' + currentPeriod, collapsed ? '1' : '0');
+  syncCollapseAllBtn();
 }
 
 function hideBuSection(type) {
