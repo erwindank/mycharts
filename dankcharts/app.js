@@ -7,6 +7,7 @@
   };
 })();
 
+
 let allPlays = [];
 let currentPeriod = 'week';
 let currentOffset = 0;

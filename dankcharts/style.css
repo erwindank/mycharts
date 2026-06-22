@@ -1966,7 +1966,8 @@
       flex-direction: column;
       background: var(--bg2);
       border: 1px solid var(--border);
-      border-top: none;
+      border-radius: 8px;
+      overflow: hidden; /* clip button hover backgrounds to rounded corners */
       font-family: 'DM Mono', monospace;
       font-size: 0.72rem;
       letter-spacing: 0.08em;
@@ -1976,11 +1977,12 @@
     /* Each row of nav buttons */
     .period-nav-row {
       display: flex;
+      border-bottom: 1px solid var(--border);
     }
 
     /* Row 2: tinted bg (feature 4) + separator + collapse support (feature 18) */
     .period-nav-row-2 {
-      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
       background: var(--bg3);
       overflow: hidden;
       max-height: 60px;
@@ -1990,6 +1992,7 @@
     .period-nav-row-2.nav-row2-collapsed {
       max-height: 0;
       opacity: 0;
+      border-bottom: none; /* hide border when collapsed so no phantom line shows */
     }
 
     /* Row 2 collapse toggle button (feature 18) */
@@ -2006,7 +2009,7 @@
       cursor: pointer;
       padding: 0.2rem 0.65rem;
       text-align: center;
-      transition: color 0.15s, background 0.15s;
+      transition: color 0.2s ease, background 0.2s ease;
       display: block;
     }
     .period-nav-toggle:hover {
@@ -2028,7 +2031,7 @@
       font-size: inherit;
       letter-spacing: inherit;
       text-transform: inherit;
-      transition: background 0.15s, color 0.15s, border-bottom-color 0.15s;
+      transition: background 0.2s ease, color 0.2s ease, border-bottom-color 0.2s ease;
       /* align icon + label side by side */
       display: inline-flex;
       align-items: center;
@@ -14419,6 +14422,7 @@ body[class*="-light"] .tm-card-search:hover {
   align-items: center;
   gap: 1rem;
   padding: 0.55rem 1rem;
+  margin-bottom: 10px; /* breathing room so the glow doesn't bleed over the nav tabs */
   background: var(--bg2);
   border-top: 1px solid var(--border);
   border-bottom: 1px solid var(--border);
