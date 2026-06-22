@@ -26,12 +26,12 @@
 
     /* ── NAVY LIGHT ── */
     body.navy-light {
-      --bg: #ddeeff;
-      --bg2: #eef6ff;
-      --bg3: #d4e8ff;
-      --surface: #c0d8f5;
-      --border: #90b8e0;
-      --border2: #5a90cc;
+      --bg: #bed8f5;
+      --bg2: #ffffff;
+      --bg3: #e8f3ff;
+      --surface: #cfe4ff;
+      --border: #88aed5;
+      --border2: #4e82c2;
       --text: #040e1c;
       --text2: #0a2a50;
       --text3: #2a5888;
@@ -76,12 +76,12 @@
 
     /* ── PURPLE LIGHT ── */
     body.purple-light {
-      --bg: #e8e2ff;
-      --bg2: #f5f2ff;
-      --bg3: #ddd5ff;
-      --surface: #ccc0f8;
-      --border: #a898e8;
-      --border2: #8068d0;
+      --bg: #cac0f5;
+      --bg2: #ffffff;
+      --bg3: #edeaff;
+      --surface: #d8d0ff;
+      --border: #9e90dc;
+      --border2: #7262c8;
       --text: #0e0820;
       --text2: #2a1860;
       --text3: #5040a0;
@@ -124,12 +124,12 @@
 
     /* ── YELLOW LIGHT ── */
     body.yellow-light {
-      --bg: #fffdf0;
-      --bg2: #fefef8;
-      --bg3: #fff8d0;
-      --surface: #fff0a0;
-      --border: #e8d860;
-      --border2: #c8b020;
+      --bg: #f5e880;
+      --bg2: #ffffff;
+      --bg3: #fffbe0;
+      --surface: #fff3b0;
+      --border: #ccc040;
+      --border2: #b0a018;
       --text: #1a1800;
       --text2: #3a3400;
       --text3: #5a5000;
@@ -166,12 +166,12 @@
 
     /* ── PINK LIGHT ── */
     body.pink-light {
-      --bg: #fff5fb;
-      --bg2: #fef8fd;
-      --bg3: #ffe8f6;
-      --surface: #ffd0ee;
-      --border: #f0a8d8;
-      --border2: #d060a0;
+      --bg: #f5c0e8;
+      --bg2: #ffffff;
+      --bg3: #fff0fa;
+      --surface: #ffd8f2;
+      --border: #e090cc;
+      --border2: #c24898;
       --text: #1a0010;
       --text2: #4a0030;
       --text3: #6e3058;
@@ -208,12 +208,12 @@
 
     /* ── RED LIGHT ── */
     body.red-light {
-      --bg: #fff5f5;
-      --bg2: #fef8f8;
-      --bg3: #ffe8e8;
-      --surface: #fdd8d8;
-      --border: #f0b8b8;
-      --border2: #d46060;
+      --bg: #f5c0c0;
+      --bg2: #ffffff;
+      --bg3: #ffeeee;
+      --surface: #ffd8d8;
+      --border: #d89898;
+      --border2: #c44040;
       --text: #1c0a0a;
       --text2: #4a2828;
       --text3: #6e4040;
@@ -598,8 +598,8 @@
 
     /* Navy Light masthead — darker, clearly separated from page */
     body.navy-light .masthead {
-      background: linear-gradient(160deg, #a8ccee 0%, #bcd8f8 50%, #a8ccee 100%);
-      border-bottom: 1px solid rgba(10, 92, 184, 0.3);
+      background: linear-gradient(160deg, #5898d0 0%, #70aee0 50%, #5898d0 100%);
+      border-bottom: 1px solid rgba(10, 72, 160, 0.4);
     }
 
     body.navy-light .masthead::before {
@@ -797,10 +797,10 @@
     }
 
 
-    /* Purple Light masthead — darker lavender, clearly separated from page */
+    /* Purple Light masthead — deeper purple, clearly separated from page */
     body.purple-light .masthead {
-      background: linear-gradient(160deg, #b8aaee 0%, #ccc0ff 50%, #b8aaee 100%);
-      border-bottom: 1px solid rgba(68, 48, 192, 0.3);
+      background: linear-gradient(160deg, #8878c8 0%, #9a88d8 50%, #8878c8 100%);
+      border-bottom: 1px solid rgba(48, 30, 160, 0.4);
     }
 
     body.purple-light .masthead::before {
