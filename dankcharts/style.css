@@ -1962,6 +1962,7 @@
     /* PERIOD NAV */
     .period-nav {
       display: flex;
+      flex-direction: column;
       background: var(--bg2);
       border: 1px solid var(--border);
       border-top: none;
@@ -1969,6 +1970,16 @@
       font-size: 0.72rem;
       letter-spacing: 0.08em;
       text-transform: uppercase;
+    }
+
+    /* Each row of nav buttons */
+    .period-nav-row {
+      display: flex;
+    }
+
+    /* Row 2 gets a separator line from row 1 */
+    .period-nav-row-2 {
+      border-top: 1px solid var(--border);
     }
 
     .period-nav button {
@@ -1986,7 +1997,8 @@
       transition: background 0.15s, color 0.15s;
     }
 
-    .period-nav button:last-child {
+    /* Last button in each row has no right border */
+    .period-nav-row button:last-child {
       border-right: none;
     }
 
@@ -8675,15 +8687,15 @@
       }
     }
 
-    /* Period nav: scroll horizontally if buttons get too squished */
+    /* Period nav rows: scroll horizontally if buttons get too squished */
     @media (max-width: 480px) {
-      .period-nav {
+      .period-nav-row {
         overflow-x: auto;
         -webkit-overflow-scrolling: touch;
         scrollbar-width: none;
       }
 
-      .period-nav::-webkit-scrollbar {
+      .period-nav-row::-webkit-scrollbar {
         display: none;
       }
 
@@ -15030,6 +15042,162 @@ body.hide-yt-btns .wv-stk-yt-btn { display: none; }
 .wv-bar-fill.wv-bar-down, .play-bar-fill.wv-bar-down { background: #f87171; }
 .wv-bar-fill.wv-bar-new,  .play-bar-fill.wv-bar-new  { background: var(--gold1); }
 .wv-bar-fill.wv-bar-re,   .play-bar-fill.wv-bar-re   { background: #a78bfa; }
+
+/* ═══════════════════════════════════════════════════════════════════════
+   LIGHT THEME CONTRAST FIXES
+   Hardcoded dark-theme colors that fail on light backgrounds, plus
+   visibility boosts for elements that read fine on dark but not light.
+   ═══════════════════════════════════════════════════════════════════════ */
+
+/* 1. Column headers — heavier weight so they don't fade into the tinted thead */
+body.navy-light .chart-table thead th,
+body.purple-light .chart-table thead th,
+body.yellow-light .chart-table thead th,
+body.pink-light .chart-table thead th,
+body.red-light .chart-table thead th { font-weight: 700; }
+
+/* 2 & 3. RE / NEW / delta in plays column — bolder + slightly larger to overcome tiny inline size */
+body.navy-light .play-count .m-re,   body.navy-light .play-count .m-new,
+body.navy-light .play-count .m-up,   body.navy-light .play-count .m-down,
+body.purple-light .play-count .m-re, body.purple-light .play-count .m-new,
+body.purple-light .play-count .m-up, body.purple-light .play-count .m-down,
+body.yellow-light .play-count .m-re, body.yellow-light .play-count .m-new,
+body.yellow-light .play-count .m-up, body.yellow-light .play-count .m-down,
+body.pink-light .play-count .m-re,   body.pink-light .play-count .m-new,
+body.pink-light .play-count .m-up,   body.pink-light .play-count .m-down,
+body.red-light .play-count .m-re,    body.red-light .play-count .m-new,
+body.red-light .play-count .m-up,    body.red-light .play-count .m-down {
+  font-size: 0.68rem !important;
+  font-weight: 700;
+}
+
+/* 4. Cert badges — bright dark-theme hues (#fbbf24, #cbd5e1, #38bdf8) fail on white cards */
+body.navy-light .cert-gold,   body.purple-light .cert-gold,
+body.yellow-light .cert-gold, body.pink-light .cert-gold,
+body.red-light .cert-gold {
+  color: var(--gold1);
+  background: rgba(120, 56, 14, 0.08);
+  border-color: rgba(120, 56, 14, 0.35);
+}
+
+body.navy-light .cert-plat,   body.purple-light .cert-plat,
+body.yellow-light .cert-plat, body.pink-light .cert-plat,
+body.red-light .cert-plat {
+  color: #475569;
+  background: rgba(71, 85, 105, 0.08);
+  border-color: rgba(71, 85, 105, 0.35);
+}
+
+body.navy-light .cert-diamond,   body.purple-light .cert-diamond,
+body.yellow-light .cert-diamond, body.pink-light .cert-diamond,
+body.red-light .cert-diamond {
+  color: var(--teal);
+  background: rgba(12, 74, 110, 0.08);
+  border-color: rgba(12, 74, 110, 0.35);
+}
+
+/* 6. Album text — bump from text3 to text2 so the smaller monospace stays legible */
+body.navy-light .song-album,   body.purple-light .song-album,
+body.yellow-light .song-album, body.pink-light .song-album,
+body.red-light .song-album { color: var(--text2); }
+
+/* 7. Bubbling Under section — hardcoded #7dd3fc is invisible on light backgrounds */
+body.navy-light .bu-section,   body.purple-light .bu-section,
+body.yellow-light .bu-section, body.pink-light .bu-section,
+body.red-light .bu-section { border-left-color: var(--border2); }
+
+body.navy-light .bu-section-header,   body.purple-light .bu-section-header,
+body.yellow-light .bu-section-header, body.pink-light .bu-section-header,
+body.red-light .bu-section-header {
+  border-color: var(--border);
+  background: var(--surface);
+}
+
+body.navy-light .bu-section-header:hover,   body.purple-light .bu-section-header:hover,
+body.yellow-light .bu-section-header:hover, body.pink-light .bu-section-header:hover,
+body.red-light .bu-section-header:hover {
+  background: var(--bg3);
+  border-color: var(--border2);
+}
+
+body.navy-light .bu-section-title,   body.purple-light .bu-section-title,
+body.yellow-light .bu-section-title, body.pink-light .bu-section-title,
+body.red-light .bu-section-title { color: var(--teal); }
+
+body.navy-light .bu-count-pill,   body.purple-light .bu-count-pill,
+body.yellow-light .bu-count-pill, body.pink-light .bu-count-pill,
+body.red-light .bu-count-pill {
+  color: var(--teal);
+  background: var(--surface);
+  border-color: var(--border2);
+}
+
+/* 8. New Entries section — hardcoded #2dd4bf is near-invisible on light backgrounds */
+body.navy-light .ne-section-header,   body.purple-light .ne-section-header,
+body.yellow-light .ne-section-header, body.pink-light .ne-section-header,
+body.red-light .ne-section-header {
+  border-color: var(--border);
+  background: var(--surface);
+}
+
+body.navy-light .ne-section-header:hover,   body.purple-light .ne-section-header:hover,
+body.yellow-light .ne-section-header:hover, body.pink-light .ne-section-header:hover,
+body.red-light .ne-section-header:hover {
+  background: var(--bg3);
+  border-color: var(--border2);
+}
+
+body.navy-light .ne-title-text,   body.purple-light .ne-title-text,
+body.yellow-light .ne-title-text, body.pink-light .ne-title-text,
+body.red-light .ne-title-text { color: var(--teal) !important; }
+
+body.navy-light .ne-sparkle-emoji,   body.purple-light .ne-sparkle-emoji,
+body.yellow-light .ne-sparkle-emoji, body.pink-light .ne-sparkle-emoji,
+body.red-light .ne-sparkle-emoji { color: var(--teal); }
+
+/* 9. Peak badges — #94a3b8 (silver) and #c07850 (medium bronze) fail on white cards */
+body.navy-light .peak-badge-2,   body.purple-light .peak-badge-2,
+body.yellow-light .peak-badge-2, body.pink-light .peak-badge-2,
+body.red-light .peak-badge-2 {
+  color: #475569;
+  background: rgba(71, 85, 105, 0.1);
+  border-color: rgba(71, 85, 105, 0.35);
+}
+
+body.navy-light .peak-badge-3,   body.purple-light .peak-badge-3,
+body.yellow-light .peak-badge-3, body.pink-light .peak-badge-3,
+body.red-light .peak-badge-3 {
+  color: #7c4b2a;
+  background: rgba(124, 75, 42, 0.08);
+  border-color: rgba(124, 75, 42, 0.3);
+}
+
+/* 10. Play bars — thicker track + swap bright animated colors for dark CSS-variable versions */
+body.navy-light .play-bar,   body.purple-light .play-bar,
+body.yellow-light .play-bar, body.pink-light .play-bar,
+body.red-light .play-bar { height: 4px; }
+
+body.navy-light .play-bar-fill.wv-bar-up,    body.navy-light .wv-bar-fill.wv-bar-up,
+body.purple-light .play-bar-fill.wv-bar-up,  body.purple-light .wv-bar-fill.wv-bar-up,
+body.yellow-light .play-bar-fill.wv-bar-up,  body.yellow-light .wv-bar-fill.wv-bar-up,
+body.pink-light .play-bar-fill.wv-bar-up,    body.pink-light .wv-bar-fill.wv-bar-up,
+body.red-light .play-bar-fill.wv-bar-up,     body.red-light .wv-bar-fill.wv-bar-up { background: var(--green); }
+
+body.navy-light .play-bar-fill.wv-bar-down,    body.navy-light .wv-bar-fill.wv-bar-down,
+body.purple-light .play-bar-fill.wv-bar-down,  body.purple-light .wv-bar-fill.wv-bar-down,
+body.yellow-light .play-bar-fill.wv-bar-down,  body.yellow-light .wv-bar-fill.wv-bar-down,
+body.pink-light .play-bar-fill.wv-bar-down,    body.pink-light .wv-bar-fill.wv-bar-down,
+body.red-light .play-bar-fill.wv-bar-down,     body.red-light .wv-bar-fill.wv-bar-down { background: var(--rose); }
+
+body.navy-light .play-bar-fill.wv-bar-re,    body.navy-light .wv-bar-fill.wv-bar-re,
+body.purple-light .play-bar-fill.wv-bar-re,  body.purple-light .wv-bar-fill.wv-bar-re,
+body.yellow-light .play-bar-fill.wv-bar-re,  body.yellow-light .wv-bar-fill.wv-bar-re,
+body.pink-light .play-bar-fill.wv-bar-re,    body.pink-light .wv-bar-fill.wv-bar-re,
+body.red-light .play-bar-fill.wv-bar-re,     body.red-light .wv-bar-fill.wv-bar-re { background: var(--accent2); }
+
+/* section-sub: yellow-light / pink-light were missing from the existing override (white on light bg) */
+body.yellow-light .section-sub,
+body.pink-light .section-sub { color: var(--text3); }
 .wv-r1.wv-stk-card .wv-bar-fill { background: var(--gold1) !important; }
 .wv-stk-shelf { display: none; padding: 0 10px 10px; border-top: 1px solid var(--border); padding-top: 8px; }
 .wv-stk-card.wv-stk-open .wv-stk-shelf { display: block; }

@@ -255,17 +255,24 @@
     <div id="streakBanner" class="streak-banner" style="display:none;"></div>
 
     <div class="period-nav" id="periodNav">
-      <button class="active" data-period="week" data-i18n="nav_weekly">Weekly</button>
-      <button data-period="month" data-i18n="nav_monthly">Monthly</button>
-      <button data-period="year" data-i18n="nav_yearly">Yearly</button>
-      <button data-period="alltime" data-i18n="nav_alltime">All-Time</button>
-      <button data-period="rawdata" data-i18n="nav_rawdata">Raw Data</button>
-      <button data-period="graphs" data-i18n="nav_graphs">Graphs</button>
-      <button data-period="records" data-i18n="nav_records">Records</button>
-      <button data-period="events" data-i18n="nav_events">Events</button>
-      <button data-period="awards" data-i18n="nav_awards">Awards</button>
-      <button data-period="soundtrack" data-i18n="nav_soundtrack">Your Soundtrack</button>
-      <button data-period="playlists" data-i18n="nav_playlists">Playlists</button>
+      <!-- Row 1: Chart views -->
+      <div class="period-nav-row">
+        <button class="active" data-period="week" data-i18n="nav_weekly">Weekly</button>
+        <button data-period="month" data-i18n="nav_monthly">Monthly</button>
+        <button data-period="year" data-i18n="nav_yearly">Yearly</button>
+        <button data-period="alltime" data-i18n="nav_alltime">All-Time</button>
+        <button data-period="rawdata" data-i18n="nav_rawdata">Raw Data</button>
+        <button data-period="graphs" data-i18n="nav_graphs">Graphs</button>
+      </div>
+      <!-- Row 2: Insight views -->
+      <div class="period-nav-row period-nav-row-2">
+        <button data-period="records" data-i18n="nav_records">Records</button>
+        <button data-period="events" data-i18n="nav_events">Events</button>
+        <button data-period="awards" data-i18n="nav_awards">Awards</button>
+        <button data-period="soundtrack" data-i18n="nav_soundtrack">Your Soundtrack</button>
+        <button data-period="playlists" data-i18n="nav_playlists">Playlists</button>
+        <button data-period="chartsguide" data-i18n="nav_chartsguide">Charts Guide</button>
+      </div>
     </div>
 
     <div class="chart-size-bar" id="chartSizeBar">
@@ -1699,6 +1706,12 @@
     <!-- Rendered by dcRenderPlaylistsView() -->
   </div>
   <!-- END PLAYLISTS VIEW -->
+
+  <!-- CHARTS GUIDE VIEW -->
+  <div id="chartsguideView" style="display:none;">
+    <!-- Rendered by dcRenderChartsGuideView() -->
+  </div>
+  <!-- END CHARTS GUIDE VIEW -->
 
   <div id="igCardCanvas"></div>
 

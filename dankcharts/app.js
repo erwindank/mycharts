@@ -4413,6 +4413,7 @@ document.getElementById('periodNav').addEventListener('click', e => {
     document.getElementById('recordsView').style.display = 'none';
     document.getElementById('soundtrackView').style.display = 'none';
     document.getElementById('playlistsView').style.display = 'none';
+    document.getElementById('chartsguideView').style.display = 'none';
     document.getElementById('rawDataView').style.display = 'block';
     const recentEl = document.getElementById('recentSection');
     recentEl.classList.add('collapsed');
@@ -4457,6 +4458,7 @@ document.getElementById('periodNav').addEventListener('click', e => {
     document.getElementById('eventsView').style.display = 'none';
     document.getElementById('soundtrackView').style.display = 'none';
     document.getElementById('playlistsView').style.display = 'none';
+    document.getElementById('chartsguideView').style.display = 'none';
     document.getElementById('graphsView').style.display = 'block';
     if (allPlays.length) renderGraphs();
     updateScrobbleBtn();
@@ -4493,6 +4495,7 @@ document.getElementById('periodNav').addEventListener('click', e => {
     document.getElementById('eventsView').style.display = 'none';
     document.getElementById('soundtrackView').style.display = 'none';
     document.getElementById('playlistsView').style.display = 'none';
+    document.getElementById('chartsguideView').style.display = 'none';
     document.getElementById('recordsView').style.display = 'block';
     initRecordsViewUI();
     restoreRecordSectionCollapseState();
@@ -4533,6 +4536,7 @@ document.getElementById('periodNav').addEventListener('click', e => {
     document.getElementById('awardsView').style.display = 'none';
     document.getElementById('soundtrackView').style.display = 'none';
     document.getElementById('playlistsView').style.display = 'none';
+    document.getElementById('chartsguideView').style.display = 'none';
     document.getElementById('eventsView').classList.remove('dc-pl-mode'); // restore full events view
     document.getElementById('eventsView').style.display = 'block';
     const sel = document.getElementById('eventsLimitSelect');
@@ -4584,6 +4588,7 @@ document.getElementById('periodNav').addEventListener('click', e => {
     document.getElementById('recordsView').style.display = 'none';
     document.getElementById('eventsView').style.display = 'none';
     document.getElementById('playlistsView').style.display = 'none';
+    document.getElementById('chartsguideView').style.display = 'none';
     const _tmAw = document.getElementById('timeMachineSection'); if (_tmAw) _tmAw.style.display = 'none';
     document.getElementById('awardsView').style.display = 'block';
     awardsInit();
@@ -4622,6 +4627,7 @@ document.getElementById('periodNav').addEventListener('click', e => {
     document.getElementById('eventsView').style.display = 'none';
     document.getElementById('awardsView').style.display = 'none';
     document.getElementById('playlistsView').style.display = 'none';
+    document.getElementById('chartsguideView').style.display = 'none';
     const _tmSt = document.getElementById('timeMachineSection'); if (_tmSt) _tmSt.style.display = 'none';
     document.getElementById('soundtrackView').style.display = 'block';
     renderSoundtrack();
@@ -4659,6 +4665,7 @@ document.getElementById('periodNav').addEventListener('click', e => {
     document.getElementById('recordsView').style.display = 'none';
     document.getElementById('awardsView').style.display = 'none';
     document.getElementById('soundtrackView').style.display = 'none';
+    document.getElementById('chartsguideView').style.display = 'none';
     // Show Recent Releases, Time Machine and Anniversaries alongside the playlist manager
     const _rcPl = document.getElementById('recentSection');
     if (_rcPl) {
@@ -4682,8 +4689,46 @@ document.getElementById('periodNav').addEventListener('click', e => {
     return;
   }
 
-  // Leaving raw data, graphs, records, events, awards, soundtrack, or playlists view — restore chart UI
-  if (currentPeriod === 'rawdata' || currentPeriod === 'graphs' || currentPeriod === 'records' || currentPeriod === 'events' || currentPeriod === 'awards' || currentPeriod === 'soundtrack' || currentPeriod === 'playlists') {
+  if (btn.dataset.period === 'chartsguide') {
+    // Switch to charts guide view
+    savedOffsets[currentPeriod] = currentOffset;
+    currentPeriod = 'chartsguide';
+    localStorage.setItem('dc_period', currentPeriod);
+    document.getElementById('chartSizeBar').style.display = 'none';
+    document.getElementById('paginatedSizeBar').style.display = 'none';
+    document.getElementById('chartDisplayToggles').style.display = 'none';
+    document.getElementById('collapseAllBar').style.display = 'none';
+    document.getElementById('exportPlaylistBtn').style.display = 'none';
+    document.getElementById('dateNav').style.display = 'none';
+    document.getElementById('navHint').style.display = 'none';
+    document.getElementById('statsStrip').style.display = 'none';
+    document.getElementById('statsStrip2').style.display = 'none';
+    const _s3cg = document.getElementById('statsStrip3'); if (_s3cg) _s3cg.style.display = 'none';
+    document.getElementById('songsSection').style.display = 'none';
+    document.getElementById('artistsSection').style.display = 'none';
+    document.getElementById('albumsSection').style.display = 'none';
+    document.getElementById('buSongsSection').style.display = 'none';
+    document.getElementById('buArtistsSection').style.display = 'none';
+    document.getElementById('buAlbumsSection').style.display = 'none';
+    document.getElementById('dropoutsSection').style.display = 'none';
+    NEW_ENTRY_SECTIONS.forEach(id => { const el = document.getElementById(id); if (el) el.style.display = 'none'; });
+    document.getElementById('upcomingSection').style.display = 'none';
+    document.getElementById('recentSection').style.display = 'none';
+    document.getElementById('rawDataView').style.display = 'none';
+    document.getElementById('graphsView').style.display = 'none';
+    document.getElementById('recordsView').style.display = 'none';
+    document.getElementById('eventsView').style.display = 'none';
+    document.getElementById('awardsView').style.display = 'none';
+    document.getElementById('soundtrackView').style.display = 'none';
+    document.getElementById('playlistsView').style.display = 'none';
+    document.getElementById('chartsguideView').style.display = 'block';
+    if (typeof window._refreshBackToTop === 'function') window._refreshBackToTop();
+    updateScrobbleBtn();
+    return;
+  }
+
+  // Leaving raw data, graphs, records, events, awards, soundtrack, playlists, or chartsguide view — restore chart UI
+  if (currentPeriod === 'rawdata' || currentPeriod === 'graphs' || currentPeriod === 'records' || currentPeriod === 'events' || currentPeriod === 'awards' || currentPeriod === 'soundtrack' || currentPeriod === 'playlists' || currentPeriod === 'chartsguide') {
     document.getElementById('dateNav').style.display = '';
     document.getElementById('navHint').style.display = '';
     document.getElementById('statsStrip').style.display = '';
@@ -4706,6 +4751,7 @@ document.getElementById('periodNav').addEventListener('click', e => {
     document.getElementById('awardsView').style.display = 'none';
     document.getElementById('soundtrackView').style.display = 'none';
     document.getElementById('playlistsView').style.display = 'none';
+    document.getElementById('chartsguideView').style.display = 'none';
     if (currentPeriod === 'graphs') destroyGraphCharts();
   }
 
@@ -4725,7 +4771,7 @@ document.getElementById('periodNav').addEventListener('click', e => {
     });
   }
 
-  savedOffsets[(currentPeriod === 'rawdata' || currentPeriod === 'graphs' || currentPeriod === 'records' || currentPeriod === 'events' || currentPeriod === 'awards' || currentPeriod === 'playlists') ? btn.dataset.period : currentPeriod] = currentOffset;
+  savedOffsets[(currentPeriod === 'rawdata' || currentPeriod === 'graphs' || currentPeriod === 'records' || currentPeriod === 'events' || currentPeriod === 'awards' || currentPeriod === 'playlists' || currentPeriod === 'chartsguide') ? btn.dataset.period : currentPeriod] = currentOffset;
   currentPeriod = btn.dataset.period;
   localStorage.setItem('dc_period', currentPeriod);
   currentOffset = savedOffsets[currentPeriod];
