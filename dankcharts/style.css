@@ -15361,6 +15361,121 @@ body.red-light .bu-badge-yoyo {
   border-color: rgba(54, 83, 20, 0.3);
 }
 
+/* 7c. BU chart run boxes + toggle buttons — neon rank text and invisible white border */
+/* Regular cr-box: white border is invisible on light; swap for a real dark border */
+body.navy-light .cr-box,   body.purple-light .cr-box,
+body.yellow-light .cr-box, body.pink-light .cr-box,
+body.red-light .cr-box {
+  border-color: var(--border2);
+}
+
+/* Peak box (amber) — boost opacity so it shows on light background */
+body.navy-light .cr-box-peak,   body.purple-light .cr-box-peak,
+body.yellow-light .cr-box-peak, body.pink-light .cr-box-peak,
+body.red-light .cr-box-peak {
+  background: rgba(245, 158, 11, 0.18);
+  border-color: rgba(245, 158, 11, 0.55);
+}
+
+/* Official chart box (green) — boost opacity + dark rank text */
+body.navy-light .cr-box-official,   body.purple-light .cr-box-official,
+body.yellow-light .cr-box-official, body.pink-light .cr-box-official,
+body.red-light .cr-box-official {
+  background: rgba(34, 197, 94, 0.18);
+  border-color: rgba(34, 197, 94, 0.45);
+}
+
+/* BU entry box (indigo) — boost opacity + dark rank text */
+body.navy-light .cr-box-bu-entry,   body.purple-light .cr-box-bu-entry,
+body.yellow-light .cr-box-bu-entry, body.pink-light .cr-box-bu-entry,
+body.red-light .cr-box-bu-entry {
+  background: rgba(99, 102, 241, 0.18);
+  border-color: rgba(99, 102, 241, 0.45);
+}
+
+/* BU miss box (red) — boost opacity + dark rank text */
+body.navy-light .cr-box-bu-miss,   body.purple-light .cr-box-bu-miss,
+body.yellow-light .cr-box-bu-miss, body.pink-light .cr-box-bu-miss,
+body.red-light .cr-box-bu-miss {
+  background: rgba(220, 38, 38, 0.18);
+  border-color: rgba(220, 38, 38, 0.45);
+}
+
+/* Combined view: official chart box rank text — #4ade80 / #86efac are neon on light */
+body.navy-light .cr-box-official .cr-box-rank,   body.purple-light .cr-box-official .cr-box-rank,
+body.yellow-light .cr-box-official .cr-box-rank, body.pink-light .cr-box-official .cr-box-rank,
+body.red-light .cr-box-official .cr-box-rank {
+  color: #166534;
+}
+
+body.navy-light .cr-box-official.cr-box-official-peak .cr-box-rank,
+body.purple-light .cr-box-official.cr-box-official-peak .cr-box-rank,
+body.yellow-light .cr-box-official.cr-box-official-peak .cr-box-rank,
+body.pink-light .cr-box-official.cr-box-official-peak .cr-box-rank,
+body.red-light .cr-box-official.cr-box-official-peak .cr-box-rank {
+  color: #14532d;
+}
+
+/* Combined view: BU entry box rank text — #a5b4fc lavender is unreadable on light */
+body.navy-light .cr-box-bu-entry .cr-box-rank,   body.purple-light .cr-box-bu-entry .cr-box-rank,
+body.yellow-light .cr-box-bu-entry .cr-box-rank, body.pink-light .cr-box-bu-entry .cr-box-rank,
+body.red-light .cr-box-bu-entry .cr-box-rank {
+  color: #3730a3;
+}
+
+/* Chart run + BU view: BU miss boxes — #f87171 / #fca5a5 are too light on light themes */
+body.navy-light .cr-box-bu-miss .cr-box-rank,   body.purple-light .cr-box-bu-miss .cr-box-rank,
+body.yellow-light .cr-box-bu-miss .cr-box-rank, body.pink-light .cr-box-bu-miss .cr-box-rank,
+body.red-light .cr-box-bu-miss .cr-box-rank {
+  color: #991b1b;
+}
+
+body.navy-light .cr-box-bu-miss.cr-box-bu-miss-peak .cr-box-rank,
+body.purple-light .cr-box-bu-miss.cr-box-bu-miss-peak .cr-box-rank,
+body.yellow-light .cr-box-bu-miss.cr-box-bu-miss-peak .cr-box-rank,
+body.pink-light .cr-box-bu-miss.cr-box-bu-miss-peak .cr-box-rank,
+body.red-light .cr-box-bu-miss.cr-box-bu-miss-peak .cr-box-rank {
+  color: #7f1d1d;
+}
+
+/* "+ Chart" toggle (BU panel) active state — #4ade80 neon green is unreadable on light */
+body.navy-light .bu-combined-toggle.active,   body.purple-light .bu-combined-toggle.active,
+body.yellow-light .bu-combined-toggle.active, body.pink-light .bu-combined-toggle.active,
+body.red-light .bu-combined-toggle.active {
+  color: #166534;
+  background: rgba(22, 101, 52, 0.07);
+  border-color: rgba(22, 101, 52, 0.35);
+}
+
+/* "+ BU" toggle (chart run panel) active state — #f87171 neon red is unreadable on light */
+body.navy-light .cr-bu-toggle.active,   body.purple-light .cr-bu-toggle.active,
+body.yellow-light .cr-bu-toggle.active, body.pink-light .cr-bu-toggle.active,
+body.red-light .cr-bu-toggle.active {
+  color: #991b1b;
+  background: rgba(153, 27, 27, 0.07);
+  border-color: rgba(153, 27, 27, 0.35);
+}
+
+/* Legend labels in combined BU+Chart view — #4ade80 green and #a5b4fc lavender */
+body.navy-light .bu-combined-legend-chart,   body.purple-light .bu-combined-legend-chart,
+body.yellow-light .bu-combined-legend-chart, body.pink-light .bu-combined-legend-chart,
+body.red-light .bu-combined-legend-chart {
+  color: #166534;
+}
+
+body.navy-light .bu-combined-legend-bu,   body.purple-light .bu-combined-legend-bu,
+body.yellow-light .bu-combined-legend-bu, body.pink-light .bu-combined-legend-bu,
+body.red-light .bu-combined-legend-bu {
+  color: #3730a3;
+}
+
+/* Legend label in chart run + BU view — #f87171 light red */
+body.navy-light .bu-combined-legend-bu-miss,   body.purple-light .bu-combined-legend-bu-miss,
+body.yellow-light .bu-combined-legend-bu-miss, body.pink-light .bu-combined-legend-bu-miss,
+body.red-light .bu-combined-legend-bu-miss {
+  color: #991b1b;
+}
+
 /* 8. New Entries section — hardcoded #2dd4bf is near-invisible on light backgrounds */
 body.navy-light .ne-section-header,   body.purple-light .ne-section-header,
 body.yellow-light .ne-section-header, body.pink-light .ne-section-header,
