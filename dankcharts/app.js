@@ -4722,6 +4722,7 @@ document.getElementById('periodNav').addEventListener('click', e => {
     document.getElementById('soundtrackView').style.display = 'none';
     document.getElementById('playlistsView').style.display = 'none';
     document.getElementById('chartsguideView').style.display = 'block';
+    dcRenderChartsGuideView(); // render all 20 sections fresh each visit
     if (typeof window._refreshBackToTop === 'function') window._refreshBackToTop();
     updateScrobbleBtn();
     return;
@@ -23678,4 +23679,542 @@ async function _fetchStreakArt(streak) {
 
 // Proactively wake the Render backend on page load so it's ready before the first play button click
 _ytPrewarmBackend();
+
+// ─── CHARTS GUIDE VIEW ─────────────────────────────────────────
+
+/* Tour state */
+let _cgTourStep = 0;
+const _cgTourSteps = [
+  { title: 'Step 1 of 9 · Welcome',           content: 'dankcharts turns your scrobbles into beautiful charts. This tour will walk you through each major section.',                              nav: null },
+  { title: 'Step 2 of 9 · Chart Tabs',         content: 'Row 1 tabs are your core chart views: Weekly, Monthly, Yearly, All-Time, Raw Data, and Graphs.',                                     nav: 'week' },
+  { title: 'Step 3 of 9 · Insight Tabs',       content: 'Row 2 tabs are your insight views: Records, Events, Awards, Your Soundtrack, Playlists, and Charts Guide.',                          nav: null },
+  { title: 'Step 4 of 9 · Chart Size',         content: 'The Chart Size bar lets you switch between Top 10, 20, 25, 30, 50, and 100 entries per period.',                                    nav: null },
+  { title: 'Step 5 of 9 · Period Navigation',  content: 'Use Prev / Next (or the ← → arrow keys) to move between weeks, months, or years.',                                                  nav: null },
+  { title: 'Step 6 of 9 · Graphs',             content: 'The Graphs tab has listening heatmaps, artist streak charts, cumulative play trends, and a graveyard of dormant artists.',           nav: 'graphs' },
+  { title: 'Step 7 of 9 · Records',            content: 'The Records tab shows your all-time chart records — longest runs, best single weeks, and full chart history.',                       nav: 'records' },
+  { title: 'Step 8 of 9 · Awards',             content: 'The Awards tab runs a Grammy-style ceremony for any year — nominees come from your actual chart data.',                               nav: 'awards' },
+  { title: 'Step 9 of 9 · Done!',              content: 'Tour complete! Head back to Charts Guide any time for shortcuts, glossary, FAQ, feature tips, and your listening milestones.',         nav: 'chartsguide' },
+];
+
+function dcStartChartsGuideTour() {
+  _cgTourStep = 0;
+  document.getElementById('cgTourBanner').style.display = 'flex';
+  _dcApplyTourStep();
+  dcGuideCheck('tour', true); // mark checklist item complete
+}
+
+function _dcApplyTourStep() {
+  const step = _cgTourSteps[_cgTourStep];
+  if (!step) return;
+  document.getElementById('cgTourStepLabel').textContent = step.title;
+  document.getElementById('cgTourContent').textContent   = step.content;
+  document.getElementById('cgTourPrev').disabled         = _cgTourStep === 0;
+  document.getElementById('cgTourNext').textContent      = _cgTourStep === _cgTourSteps.length - 1 ? '✓ Finish' : 'Next →';
+  if (step.nav) {
+    const btn = document.querySelector(`#periodNav button[data-period="${step.nav}"]`);
+    if (btn) btn.click();
+  }
+}
+
+function dcTourStep(dir) {
+  if (dir > 0 && _cgTourStep === _cgTourSteps.length - 1) { dcEndTour(); return; }
+  _cgTourStep = Math.max(0, Math.min(_cgTourSteps.length - 1, _cgTourStep + dir));
+  _dcApplyTourStep();
+}
+
+function dcEndTour() {
+  document.getElementById('cgTourBanner').style.display = 'none';
+  _cgTourStep = 0;
+}
+
+/* Search across app */
+function dcToggleGuideSearch() {
+  const bar = document.getElementById('cgSearchBar');
+  if (!bar) return;
+  const hidden = bar.style.display === 'none';
+  bar.style.display = hidden ? 'block' : 'none';
+  if (hidden) document.getElementById('cgSearchInput')?.focus();
+}
+
+function dcGuideSearch(q) {
+  const resultsEl = document.getElementById('cgSearchResults');
+  if (!resultsEl) return;
+  q = q.trim().toLowerCase();
+  if (!q || !allPlays.length) { resultsEl.innerHTML = ''; return; }
+
+  const artistSet  = new Set();
+  const trackItems = []; // { title, artist }
+  for (const p of allPlays) {
+    if (artistSet.size < 5 && p.artist.toLowerCase().includes(q)) artistSet.add(p.artist);
+    if (trackItems.length < 5 && (p.title.toLowerCase().includes(q))) {
+      const key = p.title + '|||' + p.artist;
+      if (!trackItems.some(t => t.key === key)) trackItems.push({ key, title: p.title, artist: p.artist });
+    }
+  }
+
+  let html = '';
+  for (const a of artistSet) {
+    html += `<div class="cg-search-item" onclick="dcGuideGoArtist(${JSON.stringify(a)})">🎤 <strong>${esc(a)}</strong></div>`;
+  }
+  for (const t of trackItems) {
+    html += `<div class="cg-search-item" onclick="dcGuideGoTrack(${JSON.stringify(t.title)},${JSON.stringify(t.artist)})">🎵 ${esc(t.title)} <span class="cg-search-by">— ${esc(t.artist)}</span></div>`;
+  }
+  if (!html) html = `<div class="cg-search-empty">No results for "${esc(q)}"</div>`;
+  resultsEl.innerHTML = html;
+}
+
+function dcGuideGoArtist(artist) {
+  document.querySelector('#periodNav button[data-period="alltime"]')?.click();
+  setTimeout(() => document.getElementById('artistsSection')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 350);
+  document.getElementById('cgSearchBar').style.display = 'none';
+}
+
+function dcGuideGoTrack(title, artist) {
+  document.querySelector('#periodNav button[data-period="alltime"]')?.click();
+  setTimeout(() => document.getElementById('songsSection')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 350);
+  document.getElementById('cgSearchBar').style.display = 'none';
+}
+
+/* Quick start checklist */
+function dcGuideCheck(id, checked) {
+  const key = 'dc_guide_checks';
+  let checks = {};
+  try { checks = JSON.parse(localStorage.getItem(key) || '{}'); } catch(e) {}
+  if (checked) checks[id] = true; else delete checks[id];
+  try { localStorage.setItem(key, JSON.stringify(checks)); } catch(e) {}
+  // Update progress bar live
+  const inputs = [...document.querySelectorAll('.cg-check-item input[type=checkbox]')];
+  const done   = inputs.filter(i => i.checked).length;
+  const total  = inputs.length;
+  const bar  = document.querySelector('.cg-checklist-bar');
+  const frac = document.querySelector('.cg-checklist-frac');
+  if (bar)  bar.style.width   = (total ? Math.round(done / total * 100) : 0) + '%';
+  if (frac) frac.textContent  = done + ' / ' + total + ' completed';
+}
+
+/* Feedback form */
+function dcGuideSaveFeedback() {
+  const text = document.getElementById('cgFeedbackText')?.value || '';
+  try { localStorage.setItem('dc_guide_feedback', text); } catch(e) {}
+  const status = document.getElementById('cgFeedbackStatus');
+  if (status) { status.textContent = 'Saved!'; setTimeout(() => { status.textContent = ''; }, 2000); }
+}
+
+/* Main render */
+function dcRenderChartsGuideView() {
+  const el = document.getElementById('chartsguideView');
+  if (!el) return;
+
+  /* ── 2+12 · Source / setup ────────────────────────────────────── */
+  const src         = getDataSource();
+  const lfmUser     = getLastFmUser();
+  const displayName = localStorage.getItem('dc_display_name') || lfmUser || '';
+  const n           = allPlays.length;
+
+  /* ── 16 · Stats at a glance ───────────────────────────────────── */
+  const uniqueArtists = n ? new Set(allPlays.map(p => p.artist)).size : 0;
+  const uniqueTracks  = n ? new Set(allPlays.map(p => p.title + '|||' + p.artist)).size : 0;
+  const uniqueAlbums  = n ? new Set(allPlays.filter(p => p.album && p.album !== '—').map(p => p.album + '|||' + p.artist)).size : 0;
+  const firstDate     = n ? (window.firstScrobbleDate || allPlays.reduce((min, p) => p.date < min ? p.date : min, allPlays[0].date)) : null;
+  const yearsMs       = firstDate ? new Date() - firstDate : 0;
+  const yearsFmt      = yearsMs >= 365 * 24 * 3600 * 1000 ? (yearsMs / (365.25 * 24 * 3600 * 1000)).toFixed(1) + ' yrs' : Math.round(yearsMs / (24 * 3600 * 1000)) + ' days';
+  const uniqueDays    = n ? new Set(allPlays.map(p => { const d = tzDate(p.date); return d.getFullYear() + '-' + d.getMonth() + '-' + d.getDate(); })).size : 0;
+
+  /* ── 18 · On this day ─────────────────────────────────────────── */
+  const today  = tzNow();
+  const todayM = today.getMonth(), todayD = today.getDate(), todayY = today.getFullYear();
+  const onThisDay = [];
+  if (n && firstDate) {
+    for (let y = todayY - 1; y >= Math.max(todayY - 5, firstDate.getFullYear()); y--) {
+      const dp = allPlays.filter(p => { const d = tzDate(p.date); return d.getMonth() === todayM && d.getDate() === todayD && d.getFullYear() === y; });
+      if (dp.length > 0) {
+        const ac = {};
+        dp.forEach(p => { ac[p.artist] = (ac[p.artist] || 0) + 1; });
+        const top = Object.entries(ac).sort((a, b) => b[1] - a[1])[0];
+        onThisDay.push({ year: y, plays: dp.length, artist: top ? top[0] : null, count: top ? top[1] : 0 });
+      }
+    }
+  }
+
+  /* ── 17 · Chart history milestones ───────────────────────────── */
+  const milestones = [];
+  if (n && firstDate) {
+    const sorted = [...allPlays].sort((a, b) => a.date - b.date);
+    const first  = sorted[0];
+    milestones.push({ label: 'First scrobble', date: firstDate, detail: first ? esc(first.title) + ' by ' + esc(first.artist) : '' });
+    for (const cnt of [100, 500, 1000, 5000, 10000, 25000, 50000, 100000, 250000, 500000]) {
+      if (sorted.length >= cnt) {
+        const p = sorted[cnt - 1];
+        milestones.push({ label: cnt.toLocaleString() + 'th play', date: p.date, detail: esc(p.title) + ' by ' + esc(p.artist) });
+      }
+    }
+  }
+
+  /* ── 9 · Smart suggestions ────────────────────────────────────── */
+  const suggestions = [];
+  if (n === 0) {
+    suggestions.push({ icon: '⚙️', text: 'Set up your data source to start exploring your charts', btn: 'Configure', action: 'openSourceModal()' });
+  } else {
+    suggestions.push({ icon: '🏆', text: 'See all-time chart records — longest runs, best weeks, streaks', btn: 'Go to Records', action: 'document.querySelector(\'#periodNav button[data-period="records"]\').click()' });
+    if (uniqueArtists > 20) suggestions.push({ icon: '📅', text: 'See upcoming birthdays and album anniversaries for your artists', btn: 'Go to Events', action: 'document.querySelector(\'#periodNav button[data-period="events"]\').click()' });
+    if (n > 500)  suggestions.push({ icon: '📈', text: 'Visualize your heatmap, listening trends, and artist streaks', btn: 'Go to Graphs', action: 'document.querySelector(\'#periodNav button[data-period="graphs"]\').click()' });
+    if (n > 1000) suggestions.push({ icon: '🎵', text: 'Build and save playlists from any chart period', btn: 'Go to Playlists', action: 'document.querySelector(\'#periodNav button[data-period="playlists"]\').click()' });
+    suggestions.push({ icon: '🎬', text: 'Create a shareable image card from your current Weekly chart', btn: 'Go to Weekly', action: 'document.querySelector(\'#periodNav button[data-period="week"]\').click()' });
+  }
+
+  /* ── 11 · Data quality ────────────────────────────────────────── */
+  const warnings = [];
+  if (n === 0) {
+    warnings.push({ type: 'error', msg: 'No plays loaded — check your data source in Configure.' });
+  } else {
+    const srcName = src === 'lastfm' ? 'Last.fm' : src === 'sheets' ? 'Google Sheets' : 'CSV file';
+    warnings.push({ type: 'ok', msg: n.toLocaleString() + ' plays loaded from ' + srcName + '.' });
+    if (uniqueTracks < 10) warnings.push({ type: 'warn', msg: 'Very few unique tracks detected — data may be incomplete.' });
+    if (!firstDate) warnings.push({ type: 'warn', msg: 'Could not determine your earliest scrobble date.' });
+    const noAlbum = allPlays.filter(p => !p.album || p.album === '—').length;
+    if (n > 100 && noAlbum / n > 0.3) warnings.push({ type: 'warn', msg: Math.round(noAlbum / n * 100) + '% of plays have no album — album charts may be sparse.' });
+  }
+  if (src === 'lastfm' && !lfmUser) warnings.push({ type: 'warn', msg: 'Last.fm selected but no username configured.' });
+
+  /* ── 12 · Setup status ────────────────────────────────────────── */
+  const srcLabel   = src === 'lastfm' ? 'Last.fm' : src === 'sheets' ? 'Google Sheets' : 'CSV Upload';
+  const srcOk      = src === 'lastfm' ? !!lfmUser : src === 'sheets' ? !!localStorage.getItem('dc_sheet_id') : n > 0;
+  const hasDisplay = !!localStorage.getItem('dc_display_name');
+  const hasTz      = !!localStorage.getItem('dc_timezone');
+
+  /* ── 3 · Quick start checklist ───────────────────────────────── */
+  let checks = {};
+  try { checks = JSON.parse(localStorage.getItem('dc_guide_checks') || '{}'); } catch(e) {}
+  if (srcOk && n > 0) checks.data  = true; // auto-complete when data is loaded
+  if (n > 0)          checks.chart = true; // auto-complete once any plays exist
+  const checkItems = [
+    { id: 'data',     label: 'Load your listening data',         done: !!checks.data },
+    { id: 'chart',    label: 'View your Weekly chart',           done: !!checks.chart },
+    { id: 'explore',  label: 'Explore 3 different tabs',         done: !!checks.explore },
+    { id: 'size',     label: 'Change chart size (Top 10 → 50)',  done: !!checks.size },
+    { id: 'card',     label: 'Generate a shareable image card',  done: !!checks.card },
+    { id: 'playlist', label: 'Save a chart as a playlist',       done: !!checks.playlist },
+    { id: 'tour',     label: 'Take the interactive tour',        done: !!checks.tour },
+  ];
+  const doneCount = checkItems.filter(c => c.done).length;
+
+  /* ── 5 · Feature spotlight ────────────────────────────────────── */
+  const spotlights = [
+    { icon: '📊', title: 'Six Chart Views',   body: 'Switch between Table, Card Grid, Compact, Mosaic, Filmstrip, and Stack layouts in any chart period.' },
+    { icon: '🔥', title: 'Streak Tracking',   body: 'The Graphs tab tracks how many consecutive weeks each artist has stayed in your chart — with heatmap and graveyard.' },
+    { icon: '⏰', title: 'Time Machine',       body: 'In the Playlists tab, the Time Machine shows exactly what you were playing on any past date.' },
+    { icon: '🖼', title: 'Image Card Export', body: 'Export any Weekly, Monthly, or Yearly chart as a styled PNG image card, ready for social media.' },
+    { icon: '✏️', title: 'Autocorrect Rules', body: 'Fix misspelled artist or track names globally via Configure → Autocorrect. Changes apply instantly to all charts.' },
+    { icon: '🎂', title: 'Artist Birthdays',  body: 'The Events tab shows upcoming birthdays and album anniversaries for every artist in your charts.' },
+    { icon: '🏅', title: 'Your Grammys',      body: 'The Awards tab runs a Grammy-style ceremony — nominees are pulled from your actual chart data for any year.' },
+    { icon: '🎬', title: 'Your Soundtrack',   body: 'Soundtrack tab finds the era-defining song for each chapter of your life, based on listening intensity over time.' },
+  ];
+
+  /* ── 7 · Hidden gems ─────────────────────────────────────────── */
+  const gems = [
+    'Press <kbd>W</kbd>, <kbd>M</kbd>, <kbd>Y</kbd>, <kbd>A</kbd> to jump to Weekly / Monthly / Yearly / All-Time instantly.',
+    'Click the <strong>Days Listened</strong> stat badge to jump directly to the listening heatmap in Graphs.',
+    'Click the <strong>Top Artist</strong> stat badge to jump directly to the Artists chart section.',
+    'Use <kbd>←</kbd> <kbd>→</kbd> arrow keys (or <kbd>+</kbd> <kbd>−</kbd> buttons) to navigate chart periods without touching the mouse.',
+    'In <strong>Raw Data</strong>, you can edit or delete individual scrobbles — great for fixing wrong timestamps.',
+    'Bullet, Dropout, and New Entry badges in weekly charts track chart movement automatically from week to week.',
+    'In <strong>Graphs → Graveyard</strong>, see artists that appeared in your charts but have had no plays for a long time.',
+    'The chart size selector saves <strong>separately</strong> for Weekly vs Monthly charts — they remember independently.',
+    'Autocorrect rules sync to <strong>Firestore</strong> — so they apply across all your devices automatically.',
+    'Click any section header in the chart to <strong>collapse</strong> it and focus on just songs, just artists, or just albums.',
+  ];
+
+  /* ── 4 · Keyboard shortcuts ──────────────────────────────────── */
+  const shortcuts = [
+    ['W / M / Y / A',     'Jump to Weekly / Monthly / Yearly / All-Time'],
+    ['← → (or + −)',      'Navigate to previous / next chart period'],
+    ['Click stat badge',  'Jump to the related chart section (songs, artists, albums)'],
+    ['Click Days Listened','Jump to the listening heatmap in Graphs'],
+    ['Click Top Artist',  'Jump to the Artists section of the chart'],
+    ['Esc',               'Close any open panel or modal'],
+  ];
+
+  /* ── 8 · Tab-by-tab breakdown ────────────────────────────────── */
+  const tabInfo = [
+    { name: 'Weekly',         period: 'week',        icon: '📅', desc: 'Your top songs, artists, and albums for each 7-day period. Navigate week-by-week with arrow keys or Prev/Next.' },
+    { name: 'Monthly',        period: 'month',       icon: '🗓', desc: 'Top 25–100 entries per calendar month. Great for spotting longer-term listening trends.' },
+    { name: 'Yearly',         period: 'year',        icon: '📆', desc: 'Year-end charts showing your top tracks, artists, and albums for each calendar year.' },
+    { name: 'All-Time',       period: 'alltime',     icon: '♾️', desc: 'Cumulative chart aggregating every scrobble ever recorded — your true all-time rankings.' },
+    { name: 'Raw Data',       period: 'rawdata',     icon: '🗃', desc: 'Browse, filter, search, edit, or delete individual scrobbles. Export your full history as CSV.' },
+    { name: 'Graphs',         period: 'graphs',      icon: '📈', desc: 'Heatmaps, artist streak charts, cumulative play trends, and a graveyard of dormant artists.' },
+    { name: 'Records',        period: 'records',     icon: '🏆', desc: 'All-time chart records — longest streaks, most plays in a single week, longest chart runs, and more.' },
+    { name: 'Events',         period: 'events',      icon: '🎂', desc: 'Calendar of upcoming artist birthdays, album anniversaries, and new releases (NMF) from artists in your charts.' },
+    { name: 'Awards',         period: 'awards',      icon: '🏅', desc: 'Run your own Grammy-style ceremony for any year — nominees generated from your actual chart data.' },
+    { name: 'Your Soundtrack',period: 'soundtrack',  icon: '🎬', desc: 'Finds the era-defining song for each chapter of your life, based on relative listening intensity over time.' },
+    { name: 'Playlists',      period: 'playlists',   icon: '🎵', desc: 'Save any chart as a named playlist. Includes a Time Machine of what you were listening to on any past date.' },
+    { name: 'Charts Guide',   period: 'chartsguide', icon: '📖', desc: 'You\'re here — your reference hub for features, shortcuts, glossary, FAQ, stats, and listening milestones.' },
+  ];
+
+  /* ── 15 · Glossary ───────────────────────────────────────────── */
+  const glossary = [
+    { term: 'Scrobble',     def: 'A single recorded play of a track. When a song finishes, it is "scrobbled" — logged to your listening history.' },
+    { term: 'Bullet',       def: 'A chart entry rising to a position it has not previously held this period. Shown with an upward arrow.' },
+    { term: 'Dropout',      def: 'An entry present on last period\'s chart that is completely absent from this one.' },
+    { term: 'Chart Run',    def: 'The number of consecutive periods an entry has appeared on the chart without a break.' },
+    { term: 'Streak',       def: 'Consecutive weeks an artist has appeared in your charts — tracked in the Graphs tab.' },
+    { term: 'Graveyard',    def: 'Artists or songs that appeared in your charts but have had zero plays for a significant time.' },
+    { term: 'NMF',          def: 'New Music Friday — new releases from artists in your charts, surfaced in the Events tab.' },
+    { term: 'Peak',         def: 'The highest chart position an entry has ever achieved.' },
+    { term: 'Re-entry',     def: 'An entry that previously dropped off the chart and has now returned.' },
+    { term: 'Era Song',     def: 'The track you played most intensely during a specific window of your life — shown in Your Soundtrack.' },
+    { term: 'Image Card',   def: 'A shareable PNG export of any chart, styled and sized for social media.' },
+    { term: 'Time Machine', def: 'In Playlists, shows what you were actively listening to on any specific past date.' },
+    { term: 'Autocorrect',  def: 'A rule that silently renames a misspelled artist or track across all your charts, applied at parse time.' },
+  ];
+
+  /* ── 10 · FAQ ────────────────────────────────────────────────── */
+  const faqs = [
+    { q: 'Why are my play counts different from Last.fm\'s site?', a: 'Last.fm sometimes delays scrobbles or deduplicates differently. Use "Sync Now" to fetch the latest data from the API.' },
+    { q: 'What does "Top 10" mean for All-Time?', a: 'It shows the 10 artists, songs, or albums with the most cumulative plays across your entire listening history.' },
+    { q: 'How do I fix a misspelled artist name?', a: 'Go to Configure → Autocorrect and add a rule: wrong name → correct name. It applies instantly across all charts.' },
+    { q: 'Why does a period show no data?', a: 'You may not have scrobbled anything that week/month/year, or your data source may not cover that date range. Check your sync status.' },
+    { q: 'How do I share my chart as an image?', a: 'Navigate to any Weekly, Monthly, or Yearly chart, then click the camera/share icon near the chart header to export a PNG.' },
+    { q: 'What\'s the difference between Weekly and Monthly?', a: 'Weekly uses 7-day rolling windows from your configured week-start day. Monthly covers full calendar months.' },
+    { q: 'Can I use this with Spotify or Apple Music directly?', a: 'Not directly — but Last.fm scrobbles from Spotify and 100+ other apps. Connect your service to Last.fm first, then use Last.fm as your source here.' },
+    { q: 'How does "Your Soundtrack" pick the era song?', a: 'It finds the track with the highest relative listening intensity — played more often than your background rate — during each time window.' },
+  ];
+
+  /* ── 6 · Changelog ───────────────────────────────────────────── */
+  const changelog = [
+    { version: 'Jun 2026', items: ['Added Charts Guide tab with 20 built-in features: stats, tour, search, glossary, FAQ, keyboard shortcuts, milestones, and more', 'Split the navigation bar into two rows: Chart views on top, Insight views on the second row', '"Charts Guide" is now a permanent tab in the insight row'] },
+    { version: 'May 2026', items: ['Music player overhaul: 12 queue management improvements', 'Collapse All toggle bar above chart sections', 'Redesigned light themes: white cards on tinted page backgrounds'] },
+    { version: 'Apr 2026', items: ['Real-life awards panel in the Awards tab', 'New Music Friday integration in Events', 'Time Machine section in the Playlists tab'] },
+    { version: 'Mar 2026', items: ['Your Soundtrack: era-song detection algorithm', 'Graveyard view in Graphs for dormant artists', 'Firestore sync for autocorrect rules across devices'] },
+    { version: 'Feb 2026', items: ['Records tab: chart run statistics and all-time bests', 'Streak banners on weekly charts', 'CSV file upload as a third data source option'] },
+  ];
+
+  /* ── 19 · Export & share guide ───────────────────────────────── */
+  const exportGuide = [
+    { icon: '🖼', title: 'Image Card (IG Card)', steps: ['Go to any Weekly, Monthly, or Yearly chart', 'Click the camera / share icon near the chart header', 'Customize style, size, and color', 'Click Download to save as PNG'] },
+    { icon: '📋', title: 'Raw Data CSV',         steps: ['Go to the Raw Data tab', 'Apply filters if needed, then click Export CSV', 'A file of all your scrobbles downloads to your device'] },
+    { icon: '🎵', title: 'Playlist Export',      steps: ['Go to the Playlists tab', 'Queue tracks from any chart with + Play', 'Click Save Queue and give it a name', 'Use the share icon to export the track list'] },
+  ];
+
+  /* ── BUILD HTML ──────────────────────────────────────────────── */
+  const srcDescs = {
+    lastfm:  'Last.fm tracks every song you play via scrobbling from Spotify, Apple Music, and 100+ apps. Plays are fetched directly from the Last.fm API.',
+    sheets:  'Your plays are stored in a Google Sheet. The app reads data via the Sheets API and syncs on each page load.',
+    file:    'You uploaded a CSV file of your scrobbles. Data is loaded locally — re-upload to refresh.',
+  };
+
+  let h = `<div class="cg-view">`;
+
+  /* 1 · Welcome banner */
+  const greeting = displayName ? ', ' + esc(displayName) : '';
+  h += `<div class="cg-welcome">
+    <div class="cg-welcome-text">
+      <h2 class="cg-welcome-title">Charts Guide${greeting}</h2>
+      <p class="cg-welcome-sub">Your reference hub — feature tips, keyboard shortcuts, glossary, FAQ, and insights about your listening data.</p>
+    </div>
+    <div class="cg-welcome-actions">
+      <button class="cg-tour-start-btn" onclick="dcStartChartsGuideTour()">▶ Take the Tour</button>
+      <button class="cg-search-toggle-btn" onclick="dcToggleGuideSearch()">🔍 Search App</button>
+    </div>
+  </div>`;
+
+  /* 14 · Search bar */
+  h += `<div class="cg-search-bar" id="cgSearchBar" style="display:none">
+    <input type="text" id="cgSearchInput" class="cg-search-input"
+      placeholder="Search artists, songs, or albums in your history…"
+      oninput="dcGuideSearch(this.value)" autocomplete="off">
+    <div id="cgSearchResults" class="cg-search-results"></div>
+  </div>`;
+
+  /* 16 · Stats at a glance */
+  h += `<div class="cg-section-label">Your Stats at a Glance</div>
+  <div class="cg-stats-row">
+    <div class="cg-stat-card"><span class="cg-stat-num">${n.toLocaleString()}</span><span class="cg-stat-lbl">Total Plays</span></div>
+    <div class="cg-stat-card"><span class="cg-stat-num">${uniqueArtists.toLocaleString()}</span><span class="cg-stat-lbl">Artists</span></div>
+    <div class="cg-stat-card"><span class="cg-stat-num">${uniqueTracks.toLocaleString()}</span><span class="cg-stat-lbl">Unique Tracks</span></div>
+    <div class="cg-stat-card"><span class="cg-stat-num">${uniqueAlbums.toLocaleString()}</span><span class="cg-stat-lbl">Albums</span></div>
+    <div class="cg-stat-card"><span class="cg-stat-num">${uniqueDays.toLocaleString()}</span><span class="cg-stat-lbl">Days Listened</span></div>
+    <div class="cg-stat-card"><span class="cg-stat-num">${n ? yearsFmt : '—'}</span><span class="cg-stat-lbl">Listening History</span></div>
+  </div>`;
+
+  /* 11+12+2 · Status row */
+  h += `<div class="cg-status-row">
+    <div class="cg-panel">
+      <div class="cg-panel-title">⚙ Setup Status</div>
+      <div class="cg-status-items">
+        <div class="cg-si ${srcOk ? 'ok' : 'warn'}"><span>${srcOk ? '✓' : '!'}</span>${srcLabel} ${srcOk ? 'connected' : 'not configured'}</div>
+        <div class="cg-si ${n > 0 ? 'ok' : 'warn'}"><span>${n > 0 ? '✓' : '!'}</span>${n > 0 ? n.toLocaleString() + ' plays loaded' : 'No plays loaded'}</div>
+        <div class="cg-si ${hasDisplay ? 'ok' : 'neutral'}"><span>${hasDisplay ? '✓' : '○'}</span>Display name ${hasDisplay ? 'set' : 'not set (optional)'}</div>
+        <div class="cg-si ${hasTz ? 'ok' : 'neutral'}"><span>${hasTz ? '✓' : '○'}</span>Timezone ${hasTz ? 'configured' : 'using browser default'}</div>
+      </div>
+      <button class="cg-mini-btn" onclick="openSourceModal()">Open Configure →</button>
+    </div>
+    <div class="cg-panel">
+      <div class="cg-panel-title">📋 Data Quality</div>
+      <div class="cg-status-items">
+        ${warnings.map(w => `<div class="cg-si ${w.type}"><span>${w.type === 'ok' ? '✓' : w.type === 'error' ? '✗' : '!'}</span>${esc(w.msg)}</div>`).join('')}
+      </div>
+    </div>
+    <div class="cg-panel">
+      <div class="cg-panel-title">📡 Data Source: ${srcLabel}</div>
+      <p class="cg-source-desc">${srcDescs[src] || ''}</p>
+      <div class="cg-source-dots">
+        <span class="cg-dot ${src === 'lastfm' ? 'active' : ''}">Last.fm</span>
+        <span class="cg-dot ${src === 'sheets' ? 'active' : ''}">Sheets</span>
+        <span class="cg-dot ${src === 'file'   ? 'active' : ''}">CSV</span>
+      </div>
+    </div>
+  </div>`;
+
+  /* 3+18 · Checklist + On This Day */
+  const todayFmt = today.toLocaleDateString('en', { month: 'long', day: 'numeric' });
+  h += `<div class="cg-dual-row">
+    <div class="cg-panel">
+      <div class="cg-panel-title">✅ Quick Start Checklist</div>
+      <div class="cg-progress-track"><div class="cg-checklist-bar" style="width:${Math.round(doneCount / checkItems.length * 100)}%"></div></div>
+      <div class="cg-checklist-frac">${doneCount} / ${checkItems.length} completed</div>
+      ${checkItems.map(item => `<label class="cg-check-item ${item.done ? 'done' : ''}">
+        <input type="checkbox" ${item.done ? 'checked' : ''} onchange="this.closest('.cg-check-item').classList.toggle('done',this.checked);dcGuideCheck('${item.id}',this.checked)">
+        <span>${esc(item.label)}</span>
+      </label>`).join('')}
+    </div>
+    <div class="cg-panel">
+      <div class="cg-panel-title">📅 On This Day — ${esc(todayFmt)}</div>
+      ${onThisDay.length === 0
+        ? `<p class="cg-empty">${n === 0 ? 'Load your plays to see what you were listening to on this day in past years.' : 'No plays found on this date in previous years.'}</p>`
+        : onThisDay.map(r => `<div class="cg-otd-row">
+            <span class="cg-otd-year">${r.year}</span>
+            <span class="cg-otd-detail">${r.plays} plays · top: <strong>${esc(r.artist)}</strong> (${r.count}×)</span>
+          </div>`).join('')}
+    </div>
+  </div>`;
+
+  /* 9 · Smart suggestions */
+  h += `<div class="cg-section-label">Suggested for You</div>
+  <div class="cg-suggestions">
+    ${suggestions.map(s => `<div class="cg-suggestion" onclick="${s.action}">
+      <span class="cg-sugg-icon">${s.icon}</span>
+      <span class="cg-sugg-text">${esc(s.text)}</span>
+      <span class="cg-sugg-btn">${esc(s.btn)} →</span>
+    </div>`).join('')}
+  </div>`;
+
+  /* 5 · Feature spotlight */
+  h += `<div class="cg-section-label">Feature Spotlight</div>
+  <div class="cg-spotlight-row">
+    ${spotlights.map(s => `<div class="cg-spotlight-card">
+      <div class="cg-spotlight-icon">${s.icon}</div>
+      <div class="cg-spotlight-title">${esc(s.title)}</div>
+      <div class="cg-spotlight-body">${esc(s.body)}</div>
+    </div>`).join('')}
+  </div>`;
+
+  /* 7 · Hidden gems */
+  h += `<div class="cg-section-label">Hidden Gems 💎</div>
+  <div class="cg-panel cg-gems">
+    ${gems.map(g => `<div class="cg-gem">• ${g}</div>`).join('')}
+  </div>`;
+
+  /* 4 · Keyboard shortcuts */
+  h += `<div class="cg-section-label">Keyboard Shortcuts</div>
+  <div class="cg-panel cg-shortcuts">
+    ${shortcuts.map(([keys, desc]) => `<div class="cg-shortcut-row">
+      <span class="cg-shortcut-keys">${esc(keys)}</span>
+      <span class="cg-shortcut-desc">${esc(desc)}</span>
+    </div>`).join('')}
+  </div>`;
+
+  /* 8 · Tab breakdown */
+  h += `<div class="cg-section-label">Tab-by-Tab Breakdown</div>
+  <div class="cg-accordion">
+    ${tabInfo.map(tab => `<div class="cg-acc-row" onclick="this.classList.toggle('open')">
+      <div class="cg-acc-head">
+        <span class="cg-acc-icon">${tab.icon}</span>
+        <span class="cg-acc-name">${esc(tab.name)}</span>
+        <span class="cg-acc-chev">›</span>
+      </div>
+      <div class="cg-acc-body">
+        <p>${esc(tab.desc)}</p>
+        ${tab.period !== 'chartsguide' ? `<button class="cg-mini-btn" onclick="event.stopPropagation();document.querySelector('#periodNav button[data-period=\\"${tab.period}\\"]')?.click()">Go to ${esc(tab.name)} →</button>` : ''}
+      </div>
+    </div>`).join('')}
+  </div>`;
+
+  /* 15 · Glossary */
+  h += `<div class="cg-section-label">Glossary</div>
+  <div class="cg-accordion">
+    ${glossary.map(g => `<div class="cg-acc-row" onclick="this.classList.toggle('open')">
+      <div class="cg-acc-head">
+        <span class="cg-acc-name">${esc(g.term)}</span>
+        <span class="cg-acc-chev">›</span>
+      </div>
+      <div class="cg-acc-body"><p>${esc(g.def)}</p></div>
+    </div>`).join('')}
+  </div>`;
+
+  /* 10 · FAQ */
+  h += `<div class="cg-section-label">FAQ</div>
+  <div class="cg-accordion">
+    ${faqs.map(f => `<div class="cg-acc-row" onclick="this.classList.toggle('open')">
+      <div class="cg-acc-head">
+        <span class="cg-acc-name">${esc(f.q)}</span>
+        <span class="cg-acc-chev">›</span>
+      </div>
+      <div class="cg-acc-body"><p>${esc(f.a)}</p></div>
+    </div>`).join('')}
+  </div>`;
+
+  /* 17 · Chart history timeline */
+  h += `<div class="cg-section-label">Your Chart History Timeline</div>`;
+  if (milestones.length === 0) {
+    h += `<div class="cg-panel cg-empty">Load your plays to see your listening milestones.</div>`;
+  } else {
+    h += `<div class="cg-timeline">` +
+      milestones.map(m => {
+        const df = m.date.toLocaleDateString('en', { year: 'numeric', month: 'short', day: 'numeric' });
+        return `<div class="cg-tl-item">
+          <div class="cg-tl-dot"></div>
+          <div class="cg-tl-content">
+            <div class="cg-tl-label">${esc(m.label)}</div>
+            <div class="cg-tl-date">${df}</div>
+            ${m.detail ? `<div class="cg-tl-detail">${m.detail}</div>` : ''}
+          </div>
+        </div>`;
+      }).join('') +
+    `</div>`;
+  }
+
+  /* 6 · Changelog */
+  h += `<div class="cg-section-label">What's New</div>
+  <div class="cg-changelog">
+    ${changelog.map(entry => `<div class="cg-cl-entry">
+      <div class="cg-cl-version">${esc(entry.version)}</div>
+      <ul class="cg-cl-items">${entry.items.map(i => `<li>${esc(i)}</li>`).join('')}</ul>
+    </div>`).join('')}
+  </div>`;
+
+  /* 19 · Export & share */
+  h += `<div class="cg-section-label">Export &amp; Share</div>
+  <div class="cg-export-grid">
+    ${exportGuide.map(eg => `<div class="cg-panel">
+      <div class="cg-export-icon">${eg.icon}</div>
+      <div class="cg-panel-title">${esc(eg.title)}</div>
+      <ol class="cg-export-steps">${eg.steps.map(s => `<li>${esc(s)}</li>`).join('')}</ol>
+    </div>`).join('')}
+  </div>`;
+
+  /* 20 · Feedback */
+  const savedFeedback = (() => { try { return localStorage.getItem('dc_guide_feedback') || ''; } catch(e) { return ''; } })();
+  h += `<div class="cg-section-label">Feedback &amp; Suggestions</div>
+  <div class="cg-panel cg-feedback">
+    <p class="cg-feedback-intro">Have an idea or found a bug? Write it here — saved locally and visible on your next visit.</p>
+    <textarea id="cgFeedbackText" class="cg-feedback-textarea" rows="4" placeholder="Your idea or feedback…">${esc(savedFeedback)}</textarea>
+    <div class="cg-feedback-row">
+      <button class="cg-mini-btn" onclick="dcGuideSaveFeedback()">Save Note</button>
+      <span id="cgFeedbackStatus" class="cg-feedback-status"></span>
+    </div>
+  </div>`;
+
+  h += `</div>`; // end .cg-view
+  el.innerHTML = h;
+}
 

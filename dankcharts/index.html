@@ -1713,6 +1713,20 @@
   </div>
   <!-- END CHARTS GUIDE VIEW -->
 
+  <!-- INTERACTIVE TOUR BANNER (fixed overlay, persists across tab switches) -->
+  <div id="cgTourBanner" class="cg-tour-banner" style="display:none">
+    <div class="cg-tour-inner">
+      <div class="cg-tour-meta" id="cgTourStepLabel"></div>
+      <div class="cg-tour-content" id="cgTourContent"></div>
+      <div class="cg-tour-controls">
+        <button class="cg-tour-ctrl" id="cgTourPrev" onclick="dcTourStep(-1)">← Prev</button>
+        <button class="cg-tour-ctrl cg-tour-next-btn" id="cgTourNext" onclick="dcTourStep(1)">Next →</button>
+        <button class="cg-tour-ctrl cg-tour-end-btn" onclick="dcEndTour()">✕ End Tour</button>
+      </div>
+    </div>
+  </div>
+  <!-- END INTERACTIVE TOUR BANNER -->
+
   <div id="igCardCanvas"></div>
 
   <div class="app-support-bar">
