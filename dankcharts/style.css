@@ -893,7 +893,8 @@
     }
 
     body.red .period-nav button.active {
-      background: #8a0c0c;
+      border-bottom-color: #8a0c0c;
+      color: #8a0c0c;
     }
 
     body.red .chart-size-bar .size-btns button.active {
@@ -1098,7 +1099,7 @@
       background: linear-gradient(90deg, transparent, rgba(240, 200, 0, 0.5), transparent);
     }
 
-    body.yellow .period-nav button.active,
+    /* Yellow dark: accent (#f5d000) on dark bg is fine; no override needed for period-nav (uses var(--accent)) */
     body.yellow .chart-size-bar .size-btns button.active {
       color: #1a1a00;
     }
@@ -1977,24 +1978,100 @@
       display: flex;
     }
 
-    /* Row 2 gets a separator line from row 1 */
+    /* Row 2: tinted bg (feature 4) + separator + collapse support (feature 18) */
     .period-nav-row-2 {
       border-top: 1px solid var(--border);
+      background: var(--bg3);
+      overflow: hidden;
+      max-height: 60px;
+      transition: max-height 0.25s ease, opacity 0.25s ease;
+      opacity: 1;
+    }
+    .period-nav-row-2.nav-row2-collapsed {
+      max-height: 0;
+      opacity: 0;
+    }
+
+    /* Row 2 collapse toggle button (feature 18) */
+    .period-nav-toggle {
+      width: 100%;
+      background: var(--bg3);
+      border: none;
+      border-top: 1px solid var(--border);
+      color: var(--text3);
+      font-family: 'DM Mono', monospace;
+      font-size: 0.58rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      cursor: pointer;
+      padding: 0.2rem 0.65rem;
+      text-align: center;
+      transition: color 0.15s, background 0.15s;
+      display: block;
+    }
+    .period-nav-toggle:hover {
+      color: var(--text);
+      background: var(--bg2);
     }
 
     .period-nav button {
       flex: 1;
-      padding: 0.65rem;
+      padding: 0.55rem 0.65rem;
       background: none;
       border: none;
       border-right: 1px solid var(--border);
+      /* bottom border slot for active underline (feature 3) */
+      border-bottom: 3px solid transparent;
       cursor: pointer;
       color: var(--text3);
       font-family: inherit;
       font-size: inherit;
       letter-spacing: inherit;
       text-transform: inherit;
-      transition: background 0.15s, color 0.15s;
+      transition: background 0.15s, color 0.15s, border-bottom-color 0.15s;
+      /* align icon + label side by side */
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.35em;
+      position: relative;
+    }
+
+    /* Icon (feature 2) */
+    .nav-icon {
+      font-size: 0.85em;
+      line-height: 1;
+      flex-shrink: 0;
+      /* don't inherit text-transform so emoji renders correctly */
+      text-transform: none;
+      letter-spacing: 0;
+    }
+
+    /* Keyboard shortcut badge (feature 6) */
+    .nav-key {
+      font-size: 0.52rem;
+      opacity: 0.38;
+      line-height: 1;
+      position: absolute;
+      top: 3px;
+      right: 4px;
+      letter-spacing: 0;
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* New-content pulsing dot (features 9 + 17) */
+    .nav-badge {
+      display: inline-block;
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: var(--accent);
+      flex-shrink: 0;
+      animation: nav-badge-pulse 1.6s ease-in-out infinite;
+    }
+    @keyframes nav-badge-pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.35; transform: scale(0.7); }
     }
 
     /* Last button in each row has no right border */
@@ -2007,9 +2084,52 @@
       color: var(--text);
     }
 
+    /* Active underline instead of filled background (feature 3) */
     .period-nav button.active {
-      background: var(--accent);
-      color: #fff;
+      background: none;
+      color: var(--accent);
+      border-bottom-color: var(--accent);
+      font-weight: 600;
+    }
+
+    /* Loading shimmer on active tab while switching (feature 15) */
+    @keyframes nav-tab-shimmer {
+      0%, 100% { border-bottom-color: var(--accent); opacity: 1; }
+      50%        { border-bottom-color: var(--accent2); opacity: 0.55; }
+    }
+    .period-nav button.active.nav-loading {
+      animation: nav-tab-shimmer 0.7s ease-in-out infinite;
+    }
+
+    /* Shrunk state when user scrolls down (feature 20) */
+    .period-nav.nav-shrunk button {
+      padding: 0.32rem 0.5rem;
+      font-size: 0.64rem;
+    }
+    .period-nav.nav-shrunk .nav-key {
+      display: none;
+    }
+
+    /* Hover preview card (feature 5) */
+    .nav-preview-card {
+      position: fixed;
+      z-index: 300;
+      background: var(--bg3);
+      border: 1px solid var(--border2);
+      padding: 0.5rem 0.8rem;
+      font-size: 0.7rem;
+      font-family: 'DM Mono', monospace;
+      letter-spacing: 0.03em;
+      color: var(--text);
+      max-width: 260px;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.12s;
+      transform: translateX(-50%);
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35);
+    }
+    .nav-preview-card.nav-preview-visible {
+      opacity: 1;
     }
 
     /* CHART SIZE SELECTOR */

@@ -2013,6 +2013,8 @@ function refreshAfterPoll() {
   window.firstScrobbleDate = allPlays.reduce((min, p) => p.date < min ? p.date : min, allPlays[0].date);
   updateMastheadDynamic();
   populateYearPicker();
+  // New data arrived via poll — flag unvisited tabs with badge (features 9/17)
+  dcNavMarkDataLoaded();
   if (currentPeriod === 'rawdata') applyRawFilters();
   else if (currentPeriod === 'graphs') renderGraphs();
   else if (currentPeriod === 'records') buildRecords();
@@ -2485,6 +2487,8 @@ function finalizeLoad() {
     updateMastheadDynamic();
   }
   populateYearPicker();
+  // Track data loads so unvisited tabs show "new" badge after a refresh (features 9/17)
+  dcNavMarkDataLoaded();
 
   // Restore saved granularity before rendering
   const savedGran = localStorage.getItem('dc_gran');
@@ -4380,10 +4384,17 @@ document.addEventListener('click', e => {
 });
 
 document.getElementById('periodNav').addEventListener('click', e => {
-  const btn = e.target.closest('button');
+  const btn = e.target.closest('button[data-period]');
   if (!btn) return;
   document.querySelectorAll('.period-nav button').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
+  // Loading shimmer: brief pulse to confirm tab switch (feature 15)
+  btn.classList.add('nav-loading');
+  setTimeout(() => btn.classList.remove('nav-loading'), 500);
+  // Deep link: update URL hash so tab is bookmarkable/shareable (feature 13)
+  history.replaceState(null, '', '#t=' + btn.dataset.period);
+  // Mark this tab visited so badge disappears (features 9 + 17)
+  dcNavMarkTabVisited(btn.dataset.period);
 
   if (btn.dataset.period === 'rawdata') {
     // Switch to raw data view
@@ -4784,6 +4795,137 @@ document.getElementById('periodNav').addEventListener('click', e => {
 
 document.getElementById('prevBtn').addEventListener('click', () => { currentOffset++; pageState.songs = 0; pageState.artists = 0; pageState.albums = 0; renderAll(); });
 document.getElementById('nextBtn').addEventListener('click', () => { currentOffset = Math.max(0, currentOffset - 1); pageState.songs = 0; pageState.artists = 0; pageState.albums = 0; renderAll(); });
+
+// ─── NAV ENHANCEMENTS ──────────────────────────────────────────
+
+// --- Feature 9/17: New-content badge tracking ---
+let _dcNavDataVersion = 0;
+const _dcNavVisitedVersion = {};
+
+function dcNavMarkDataLoaded() {
+  // Only show "new" badges after the first initial load (not on first page open)
+  _dcNavDataVersion++;
+  _dcNavVisitedVersion[currentPeriod] = _dcNavDataVersion; // current tab is already "seen"
+  if (_dcNavDataVersion > 1) dcNavUpdateBadges();
+}
+
+function dcNavMarkTabVisited(period) {
+  _dcNavVisitedVersion[period] = _dcNavDataVersion;
+  dcNavUpdateBadges();
+}
+
+function dcNavUpdateBadges() {
+  document.querySelectorAll('#periodNav button[data-period]').forEach(btn => {
+    const period = btn.dataset.period;
+    const isNew = (_dcNavVisitedVersion[period] || 0) < _dcNavDataVersion && _dcNavDataVersion > 1;
+    let badge = btn.querySelector('.nav-badge');
+    if (isNew && period !== currentPeriod) {
+      if (!badge) {
+        badge = document.createElement('span');
+        badge.className = 'nav-badge';
+        badge.setAttribute('aria-hidden', 'true');
+        btn.appendChild(badge);
+      }
+    } else if (badge) {
+      badge.remove();
+    }
+  });
+}
+
+// --- Feature 5: Hover preview card ---
+(function initNavPreview() {
+  const card = document.getElementById('navPreviewCard');
+  if (!card) return;
+  document.querySelectorAll('#periodNav button[data-preview]').forEach(btn => {
+    btn.addEventListener('mouseenter', () => {
+      const rect = btn.getBoundingClientRect();
+      card.textContent = btn.dataset.preview;
+      card.style.left = (rect.left + rect.width / 2) + 'px';
+      card.style.top = (rect.bottom + 6) + 'px';
+      card.classList.add('nav-preview-visible');
+    });
+    btn.addEventListener('mouseleave', () => {
+      card.classList.remove('nav-preview-visible');
+    });
+  });
+  // Also hide on scroll so card doesn't drift
+  window.addEventListener('scroll', () => card.classList.remove('nav-preview-visible'), { passive: true });
+})();
+
+// --- Feature 6: Keyboard shortcuts (1–9 jump to tabs) ---
+(function initNavShortcuts() {
+  const shortcuts = { '1': 'week', '2': 'month', '3': 'year', '4': 'alltime', '5': 'rawdata', '6': 'graphs',
+                      '7': 'records', '8': 'events', '9': 'awards' };
+  document.addEventListener('keydown', e => {
+    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' ||
+        e.target.tagName === 'SELECT' || e.target.isContentEditable) return;
+    if (e.metaKey || e.ctrlKey || e.altKey || e.shiftKey) return;
+    const period = shortcuts[e.key];
+    if (!period) return;
+    const btn = document.querySelector('#periodNav button[data-period="' + period + '"]');
+    if (btn) { e.preventDefault(); btn.click(); }
+  });
+})();
+
+// --- Feature 18: Collapsible row 2 ---
+(function initNavRow2Toggle() {
+  const toggle = document.getElementById('periodNavToggle');
+  const row2 = document.getElementById('periodNavRow2');
+  if (!toggle || !row2) return;
+
+  // Default: collapsed (unless a row-2 tab is active or user previously expanded)
+  const ROW2_KEY = 'dc_nav_row2_open';
+  const row2Periods = ['records', 'events', 'awards', 'soundtrack', 'playlists', 'chartsguide'];
+  const isRow2Active = row2Periods.includes(currentPeriod);
+  const savedOpen = localStorage.getItem(ROW2_KEY) === '1';
+  const startOpen = isRow2Active || savedOpen;
+
+  function setRow2Open(open) {
+    row2.classList.toggle('nav-row2-collapsed', !open);
+    toggle.textContent = open ? 'LESS ▲' : 'MORE ▾';
+    try { localStorage.setItem(ROW2_KEY, open ? '1' : '0'); } catch (e) {}
+  }
+
+  setRow2Open(startOpen);
+
+  toggle.addEventListener('click', () => {
+    const isOpen = !row2.classList.contains('nav-row2-collapsed');
+    setRow2Open(!isOpen);
+  });
+
+  // When a row-2 tab is activated from the nav, auto-expand row 2
+  document.getElementById('periodNav').addEventListener('click', e => {
+    const btn = e.target.closest('button[data-period]');
+    if (btn && row2Periods.includes(btn.dataset.period)) setRow2Open(true);
+  });
+})();
+
+// --- Feature 20: Shrink nav on scroll ---
+(function initNavShrink() {
+  const nav = document.getElementById('periodNav');
+  if (!nav) return;
+  let shrunk = false;
+  window.addEventListener('scroll', () => {
+    const shouldShrink = window.scrollY > 55;
+    if (shouldShrink !== shrunk) {
+      shrunk = shouldShrink;
+      nav.classList.toggle('nav-shrunk', shrunk);
+    }
+  }, { passive: true });
+})();
+
+// --- Feature 13: Deep link — restore tab from URL hash on load ---
+// Hash wins over savedPeriod only if it looks like an explicit share/bookmark link
+// (i.e. hash present and different from what localStorage would restore anyway)
+(function initNavHashRestore() {
+  const m = window.location.hash.match(/^#t=(\w+)$/);
+  if (!m) return;
+  const savedPeriod = localStorage.getItem('dc_period');
+  // If user has a saved period that differs from the hash, let finalizeLoad handle it
+  if (savedPeriod && savedPeriod !== m[1] && savedPeriod !== 'week') return;
+  const btn = document.querySelector('#periodNav button[data-period="' + m[1] + '"]');
+  if (btn) btn.click();
+})();
 
 // ─── JUMP PICKER ───────────────────────────────────────────────
 function syncPicker() {
