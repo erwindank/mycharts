@@ -20736,7 +20736,7 @@ function openStreakModal() {
       `<button class="sk-atrisk-btn" onclick="skAtRiskPlayAll()" title="Play all at-risk songs in the music player">▶ Play All</button>` +
       `<button class="sk-atrisk-btn" onclick="skAtRiskQueueAll()" title="Add all at-risk songs to the queue">+ Queue All</button>` +
       `<button class="sk-atrisk-btn" onclick="skAtRiskSavePl()" title="Save at-risk songs as a playlist">♫ Save Playlist</button>` +
-      `<button class="sk-atrisk-btn" onclick="skAtRiskExport()" title="Export at-risk songs as text for Soundiiz">↓ Export Text</button>` +
+      `<button class="sk-atrisk-btn" onclick="skAtRiskExport()" title="Copy at-risk song tracklist for Soundiiz">📋 Copy Tracklist</button>` +
       `</span>` : '';
 
   // ── Render ───────────────────────────────────────────────────────
@@ -20864,17 +20864,24 @@ function skAtRiskSavePl() {
 function skAtRiskExport() {
   const songs = window._skAtRiskSongs || [];
   if (!songs.length) return;
-  // Pre-load at-risk songs into the export modal (format: Artist - Title, for Soundiiz)
-  _exportSongsOverride = songs.map(s => ({ title: s.name, artist: s.sub, album: '' }));
+  // Build tracklist text (Artist - Title per line, Soundiiz-compatible)
+  const mapped = songs.map(s => ({ title: s.name, artist: s.sub, album: '' }));
+  const text = mapped.map(s => `${s.artist} - ${s.title}`).join('\n');
+
+  // Auto-copy to clipboard immediately
+  navigator.clipboard.writeText(text).catch(() => {});
+
+  // Pre-load into export modal so user can see the list and pick a playlist name
+  _exportSongsOverride = mapped;
   openExportModal();
   // Override subtitle and playlist name chips with at-risk-specific content
   const today = new Date();
   const dateLabel = today.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
   const subEl = document.getElementById('exportModalSubtitle');
-  if (subEl) subEl.textContent = `${songs.length} song${songs.length !== 1 ? 's' : ''} · At Risk Today · ${dateLabel}`;
+  if (subEl) subEl.textContent = `${songs.length} song${songs.length !== 1 ? 's' : ''} · At Risk Today · ${dateLabel} — ✓ Copied to clipboard`;
   const chipsEl = document.getElementById('exportNameChips');
   if (chipsEl) {
-    const names = _genAtRiskPlNames(songs, dateLabel);
+    const names = _genAtRiskPlNames(mapped, dateLabel);
     chipsEl.innerHTML = names.map(n => `<button class="export-name-chip" onclick="copyChipName(this,'${esc(n)}')">${esc(n)}</button>`).join('');
   }
 }
