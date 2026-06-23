@@ -20736,6 +20736,7 @@ function openStreakModal() {
       `<button class="sk-atrisk-btn" onclick="skAtRiskPlayAll()" title="Play all at-risk songs in the music player">▶ Play All</button>` +
       `<button class="sk-atrisk-btn" onclick="skAtRiskQueueAll()" title="Add all at-risk songs to the queue">+ Queue All</button>` +
       `<button class="sk-atrisk-btn" onclick="skAtRiskSavePl()" title="Save at-risk songs as a playlist">♫ Save Playlist</button>` +
+      `<button class="sk-atrisk-btn" onclick="skAtRiskExport()" title="Export at-risk songs as text for Soundiiz">↓ Export Text</button>` +
       `</span>` : '';
 
   // ── Render ───────────────────────────────────────────────────────
@@ -20858,6 +20859,49 @@ function skAtRiskSavePl() {
   if (nameInput) nameInput.value = `At Risk · ${dateLabel}`;
   const modal = document.getElementById('calCreatePlModal');
   if (modal) { modal.classList.add('open'); setTimeout(() => nameInput && nameInput.select(), 80); }
+}
+
+function skAtRiskExport() {
+  const songs = window._skAtRiskSongs || [];
+  if (!songs.length) return;
+  // Pre-load at-risk songs into the export modal (format: Artist - Title, for Soundiiz)
+  _exportSongsOverride = songs.map(s => ({ title: s.name, artist: s.sub, album: '' }));
+  openExportModal();
+  // Override subtitle and playlist name chips with at-risk-specific content
+  const today = new Date();
+  const dateLabel = today.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  const subEl = document.getElementById('exportModalSubtitle');
+  if (subEl) subEl.textContent = `${songs.length} song${songs.length !== 1 ? 's' : ''} · At Risk Today · ${dateLabel}`;
+  const chipsEl = document.getElementById('exportNameChips');
+  if (chipsEl) {
+    const names = _genAtRiskPlNames(songs, dateLabel);
+    chipsEl.innerHTML = names.map(n => `<button class="export-name-chip" onclick="copyChipName(this,'${esc(n)}')">${esc(n)}</button>`).join('');
+  }
+}
+
+// Generate playlist name suggestions tailored for the At Risk Today export
+function _genAtRiskPlNames(songs, dateLabel) {
+  const names = [];
+  names.push(`At Risk · ${dateLabel}`);
+  names.push(`Streak Savers · ${dateLabel}`);
+  names.push(`Save My Streaks · ${dateLabel}`);
+  names.push(`Don't Break the Streak · ${dateLabel}`);
+  names.push(`Listen Today · ${dateLabel}`);
+
+  // Add artist-based suggestions if one artist dominates
+  const artistCount = {};
+  for (const s of songs) {
+    const primary = s.artist.split(',')[0].trim();
+    artistCount[primary] = (artistCount[primary] || 0) + 1;
+  }
+  const top = Object.entries(artistCount).sort((a, b) => b[1] - a[1]);
+  if (top.length && top[0][1] / songs.length >= 0.3) {
+    const a1 = top[0][0];
+    names.push(`${a1} – Streak Songs`);
+    if (top[1] && top[1][1] / songs.length >= 0.2) names.push(`${a1} & ${top[1][0]} – At Risk`);
+  }
+
+  return names;
 }
 
 function _streakSwitchTab(tab) {
