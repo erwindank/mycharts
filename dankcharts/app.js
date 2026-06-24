@@ -131,8 +131,8 @@ try {
 // Falls back to the old shared key for backward compat on first load.
 const weeklyChartViewMode = {
   songs:   (() => { try { return localStorage.getItem('dc_weekly_chart_view_songs')   || localStorage.getItem('dc_weekly_chart_view') || 'table'; } catch(e) { return 'table'; } })(),
-  artists: (() => { try { return localStorage.getItem('dc_weekly_chart_view_artists') || localStorage.getItem('dc_weekly_chart_view') || 'table'; } catch(e) { return 'table'; } })(),
-  albums:  (() => { try { return localStorage.getItem('dc_weekly_chart_view_albums')  || localStorage.getItem('dc_weekly_chart_view') || 'table'; } catch(e) { return 'table'; } })(),
+  artists: (() => { try { return localStorage.getItem('dc_weekly_chart_view_artists') || localStorage.getItem('dc_weekly_chart_view') || 'mosaic'; } catch(e) { return 'mosaic'; } })(),
+  albums:  (() => { try { return localStorage.getItem('dc_weekly_chart_view_albums')  || localStorage.getItem('dc_weekly_chart_view') || 'grid'; } catch(e) { return 'grid'; } })(),
 };
 let _stkTwoCol = (() => { try { return localStorage.getItem('dc_stk_2col') === '1'; } catch(e) { return false; } })();
 let _weeklyViewSongs = [], _weeklyViewMax = 1, _weeklyViewPeaks = null, _weeklyViewMonthlyStats = null;
