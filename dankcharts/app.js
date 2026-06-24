@@ -135,47 +135,92 @@ let _weeklyViewAlbums  = [], _weeklyViewAlbumsMax  = 1;
 let _wvGridLarge = (() => { try { return localStorage.getItem('dc_grid_density') === 'lg'; } catch(e) { return false; } })();
 
 // ─── DISPLAY TOGGLES ──────────────────────────────────────────
-const DISPLAY_TOGGLE_CONFIG = {
-  'cert':       { btnId: 'toggleCertBtn',      bodyClass: 'hide-cert' },
-  'plays-peak': { btnId: 'togglePlaysPeakBtn', bodyClass: 'hide-plays-peak' },
-  'peak-tags':  { btnId: 'togglePeakTagsBtn',  bodyClass: 'hide-peak-tags' },
-  'yt-btns':    { btnId: 'toggleYtBtnsBtn',    bodyClass: 'hide-yt-btns' }
+// Per-section display toggle config — each section controls its own visibility independently
+const SECTION_TOGGLE_CONFIG = {
+  songs: {
+    'cert':       { btnId: 'toggleCertBtn',             bodyClass: 'songs-hide-cert' },
+    'plays-peak': { btnId: 'togglePlaysPeakBtn',        bodyClass: 'songs-hide-plays-peak' },
+    'peak-tags':  { btnId: 'togglePeakTagsBtn',         bodyClass: 'songs-hide-peak-tags' },
+    'yt-btns':    { btnId: 'toggleYtBtnsBtn',           bodyClass: 'songs-hide-yt-btns' },
+    'src':        { btnId: 'srcToggleBtn',               bodyClass: 'songs-hide-src-btns' }
+  },
+  artists: {
+    'cert':       { btnId: 'toggleCertBtnArtists',      bodyClass: 'artists-hide-cert' },
+    'plays-peak': { btnId: 'togglePlaysPeakBtnArtists', bodyClass: 'artists-hide-plays-peak' },
+    'peak-tags':  { btnId: 'togglePeakTagsBtnArtists',  bodyClass: 'artists-hide-peak-tags' },
+    'yt-btns':    { btnId: 'toggleYtBtnsBtnArtists',    bodyClass: 'artists-hide-yt-btns' },
+    'src':        { btnId: 'srcToggleBtnArtists',        bodyClass: 'artists-hide-src-btns' }
+  },
+  albums: {
+    'cert':       { btnId: 'toggleCertBtnAlbums',       bodyClass: 'albums-hide-cert' },
+    'plays-peak': { btnId: 'togglePlaysPeakBtnAlbums',  bodyClass: 'albums-hide-plays-peak' },
+    'peak-tags':  { btnId: 'togglePeakTagsBtnAlbums',   bodyClass: 'albums-hide-peak-tags' },
+    'yt-btns':    { btnId: 'toggleYtBtnsBtnAlbums',     bodyClass: 'albums-hide-yt-btns' },
+    'src':        { btnId: 'srcToggleBtnAlbums',         bodyClass: 'albums-hide-src-btns' }
+  }
 };
-const displayToggleState = (() => {
-  try { return JSON.parse(localStorage.getItem('dc_displayToggles') || '{}'); } catch(e) { return {}; }
+
+// Per-section state — cert/plays-peak/peak-tags/yt-btns default on; src defaults off
+const sectionToggleState = (() => {
+  function withDefaults(s) {
+    const d = { cert: true, 'plays-peak': true, 'peak-tags': true, 'yt-btns': true, src: false };
+    return Object.assign(d, s || {});
+  }
+  try {
+    const saved = JSON.parse(localStorage.getItem('dc_sectionDisplayToggles') || 'null');
+    if (saved && saved.songs) return { songs: withDefaults(saved.songs), artists: withDefaults(saved.artists), albums: withDefaults(saved.albums) };
+  } catch(e) {}
+  // Migrate from old flat dc_displayToggles + dankcharts-hideSrcBtns (applies to all sections)
+  try {
+    const old = JSON.parse(localStorage.getItem('dc_displayToggles') || '{}');
+    const srcOn = localStorage.getItem('dankcharts-hideSrcBtns') === '0';
+    const m = { cert: old.cert !== false, 'plays-peak': old['plays-peak'] !== false, 'peak-tags': old['peak-tags'] !== false, 'yt-btns': old['yt-btns'] !== false, src: srcOn };
+    return { songs: { ...m }, artists: { ...m }, albums: { ...m } };
+  } catch(e) {}
+  return { songs: withDefaults(), artists: withDefaults(), albums: withDefaults() };
 })();
 
-function initDisplayToggles() {
-  for (const [type, cfg] of Object.entries(DISPLAY_TOGGLE_CONFIG)) {
-    const visible = displayToggleState[type] !== false;
-    const btn = document.getElementById(cfg.btnId);
-    if (btn) btn.classList.toggle('active', visible);
-    document.body.classList.toggle(cfg.bodyClass, !visible);
-  }
+function initSectionDisplayToggles() {
+  ['songs', 'artists', 'albums'].forEach(section => {
+    const sectionCfg = SECTION_TOGGLE_CONFIG[section];
+    const state = sectionToggleState[section];
+    for (const [type, cfg] of Object.entries(sectionCfg)) {
+      const visible = Boolean(state[type]);
+      const btn = document.getElementById(cfg.btnId);
+      if (btn) btn.classList.toggle('active', visible);
+      document.body.classList.toggle(cfg.bodyClass, !visible);
+    }
+  });
 }
 
-function toggleDisplay(type) {
-  const cfg = DISPLAY_TOGGLE_CONFIG[type];
+function toggleSectionDisplay(type, section) {
+  const cfg = SECTION_TOGGLE_CONFIG[section]?.[type];
   if (!cfg) return;
-  const nowVisible = displayToggleState[type] !== false;
-  displayToggleState[type] = !nowVisible;
+  const nowVisible = Boolean((sectionToggleState[section] || {})[type]);
+  if (!sectionToggleState[section]) sectionToggleState[section] = {};
+  sectionToggleState[section][type] = !nowVisible;
   const btn = document.getElementById(cfg.btnId);
   if (btn) btn.classList.toggle('active', !nowVisible);
   document.body.classList.toggle(cfg.bodyClass, nowVisible);
-  try { localStorage.setItem('dc_displayToggles', JSON.stringify(displayToggleState)); } catch(e) {}
+  try { localStorage.setItem('dc_sectionDisplayToggles', JSON.stringify(sectionToggleState)); } catch(e) {}
   if (typeof dcSaveUserConfig === 'function') dcSaveUserConfig();
 }
 
-initDisplayToggles();
+initSectionDisplayToggles();
 
-function dcApplyDisplayToggles() {
+function dcApplySectionDisplayToggles() {
   try {
-    const saved = JSON.parse(localStorage.getItem('dc_displayToggles') || '{}');
-    Object.assign(displayToggleState, saved);
+    const saved = JSON.parse(localStorage.getItem('dc_sectionDisplayToggles') || 'null');
+    if (saved && typeof saved === 'object') {
+      ['songs', 'artists', 'albums'].forEach(s => {
+        if (saved[s] && sectionToggleState[s]) Object.assign(sectionToggleState[s], saved[s]);
+      });
+    }
   } catch(e) {}
-  initDisplayToggles();
+  initSectionDisplayToggles();
 }
-window.dcApplyDisplayToggles = dcApplyDisplayToggles;
+// Keep old export name so firebase.js sync hooks still work
+window.dcApplyDisplayToggles = dcApplySectionDisplayToggles;
 
 // Re-reads primitive settings from localStorage into in-memory variables after Firestore sync.
 // Called by firebase.js after _loadAndApplyConfig so the settings modal and runtime behaviour
@@ -254,21 +299,8 @@ document.addEventListener('click', () => {
 });
 
 // ─── SOURCE BUTTON TOGGLE ──────────────────────────────────────
-(function initSrcToggle() {
-  try {
-    // Default to hidden; only show if user explicitly enabled it
-    if (localStorage.getItem('dankcharts-hideSrcBtns') !== '0') {
-      document.body.classList.add('hide-src-btns');
-      document.getElementById('srcToggleBtn')?.classList.remove('active');
-    }
-  } catch (e) { }
-})();
-
-function toggleSrcButtons() {
-  const hidden = document.body.classList.toggle('hide-src-btns');
-  document.getElementById('srcToggleBtn')?.classList.toggle('active', !hidden);
-  try { localStorage.setItem('dankcharts-hideSrcBtns', hidden ? '1' : '0'); } catch (e) { }
-}
+// Source toggle is now per-section via toggleSectionDisplay('src', section)
+// No global initSrcToggle needed — initSectionDisplayToggles handles all sections including src
 
 // ─── CHART ANIMATION ───────────────────────────────────────────
 let chartAnimEnabled = localStorage.getItem('dc_chart_anim') !== '0';
@@ -4404,7 +4436,6 @@ document.getElementById('periodNav').addEventListener('click', e => {
     localStorage.setItem('dc_period', currentPeriod);
     document.getElementById('chartSizeBar').style.display = 'none';
     document.getElementById('paginatedSizeBar').style.display = 'none';
-    document.getElementById('chartDisplayToggles').style.display = 'none';
     document.getElementById('collapseAllBar').style.display = 'none';
     document.getElementById('exportPlaylistBtn').style.display = 'none';
     document.getElementById('dateNav').style.display = 'none';
@@ -4447,7 +4478,6 @@ document.getElementById('periodNav').addEventListener('click', e => {
     localStorage.setItem('dc_period', currentPeriod);
     document.getElementById('chartSizeBar').style.display = 'none';
     document.getElementById('paginatedSizeBar').style.display = 'none';
-    document.getElementById('chartDisplayToggles').style.display = 'none';
     document.getElementById('collapseAllBar').style.display = 'none';
     document.getElementById('exportPlaylistBtn').style.display = 'none';
     document.getElementById('dateNav').style.display = 'none';
@@ -4484,7 +4514,6 @@ document.getElementById('periodNav').addEventListener('click', e => {
     localStorage.setItem('dc_period', currentPeriod);
     document.getElementById('chartSizeBar').style.display = 'none';
     document.getElementById('paginatedSizeBar').style.display = 'none';
-    document.getElementById('chartDisplayToggles').style.display = 'none';
     document.getElementById('collapseAllBar').style.display = 'none';
     document.getElementById('exportPlaylistBtn').style.display = 'none';
     document.getElementById('dateNav').style.display = 'none';
@@ -4524,7 +4553,6 @@ document.getElementById('periodNav').addEventListener('click', e => {
     localStorage.setItem('dc_period', currentPeriod);
     document.getElementById('chartSizeBar').style.display = 'none';
     document.getElementById('paginatedSizeBar').style.display = 'none';
-    document.getElementById('chartDisplayToggles').style.display = 'none';
     document.getElementById('collapseAllBar').style.display = 'none';
     document.getElementById('exportPlaylistBtn').style.display = 'none';
     document.getElementById('dateNav').style.display = 'none';
@@ -4577,7 +4605,6 @@ document.getElementById('periodNav').addEventListener('click', e => {
     localStorage.setItem('dc_period', currentPeriod);
     document.getElementById('chartSizeBar').style.display = 'none';
     document.getElementById('paginatedSizeBar').style.display = 'none';
-    document.getElementById('chartDisplayToggles').style.display = 'none';
     document.getElementById('collapseAllBar').style.display = 'none';
     document.getElementById('exportPlaylistBtn').style.display = 'none';
     document.getElementById('dateNav').style.display = 'none';
@@ -4615,7 +4642,6 @@ document.getElementById('periodNav').addEventListener('click', e => {
     localStorage.setItem('dc_period', currentPeriod);
     document.getElementById('chartSizeBar').style.display = 'none';
     document.getElementById('paginatedSizeBar').style.display = 'none';
-    document.getElementById('chartDisplayToggles').style.display = 'none';
     document.getElementById('collapseAllBar').style.display = 'none';
     document.getElementById('exportPlaylistBtn').style.display = 'none';
     document.getElementById('dateNav').style.display = 'none';
@@ -4655,7 +4681,6 @@ document.getElementById('periodNav').addEventListener('click', e => {
     localStorage.setItem('dc_period', currentPeriod);
     document.getElementById('chartSizeBar').style.display = 'none';
     document.getElementById('paginatedSizeBar').style.display = 'none';
-    document.getElementById('chartDisplayToggles').style.display = 'none';
     document.getElementById('collapseAllBar').style.display = 'none';
     document.getElementById('exportPlaylistBtn').style.display = 'none';
     document.getElementById('dateNav').style.display = 'none';
@@ -4708,7 +4733,6 @@ document.getElementById('periodNav').addEventListener('click', e => {
     localStorage.setItem('dc_period', currentPeriod);
     document.getElementById('chartSizeBar').style.display = 'none';
     document.getElementById('paginatedSizeBar').style.display = 'none';
-    document.getElementById('chartDisplayToggles').style.display = 'none';
     document.getElementById('collapseAllBar').style.display = 'none';
     document.getElementById('exportPlaylistBtn').style.display = 'none';
     document.getElementById('dateNav').style.display = 'none';
@@ -5590,8 +5614,6 @@ function renderAll() {
   const paginated = isPaginated();
   document.getElementById('chartSizeBar').style.display = paginated ? 'none' : 'flex';
   document.getElementById('paginatedSizeBar').style.display = paginated ? 'flex' : 'none';
-  document.getElementById('chartDisplayToggles').style.display =
-    ['week', 'month', 'year', 'alltime'].includes(currentPeriod) ? 'flex' : 'none';
   document.getElementById('collapseAllBar').style.display =
     ['week', 'month', 'year', 'alltime'].includes(currentPeriod) ? 'flex' : 'none';
   const _isWeek = currentPeriod === 'week';
@@ -5605,10 +5627,16 @@ function renderAll() {
       if (tbl) tbl.style.display = '';
     }
   });
-  document.getElementById('togglePeakTagsBtn').style.display =
-    (currentPeriod === 'year' || currentPeriod === 'alltime') ? 'none' : '';
-  document.getElementById('togglePlaysPeakBtn').style.display =
-    currentPeriod === 'alltime' ? 'none' : '';
+  // Hide PEAK TAGS for year/alltime across all three section control bars
+  ['togglePeakTagsBtn', 'togglePeakTagsBtnArtists', 'togglePeakTagsBtnAlbums'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.style.display = (currentPeriod === 'year' || currentPeriod === 'alltime') ? 'none' : '';
+  });
+  // Hide PLAYS PEAK for alltime across all three section control bars
+  ['togglePlaysPeakBtn', 'togglePlaysPeakBtnArtists', 'togglePlaysPeakBtnAlbums'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.style.display = currentPeriod === 'alltime' ? 'none' : '';
+  });
   const _showReplay = (currentPeriod === 'week' || currentPeriod === 'month') ? '' : 'none';
   ['songsReplayBtn', 'artistsReplayBtn', 'albumsReplayBtn'].forEach(id => {
     document.getElementById(id).style.display = _showReplay;

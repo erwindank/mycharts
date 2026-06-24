@@ -386,21 +386,6 @@
       </div>
     </div>
 
-    <button class="export-playlist-btn" id="exportPlaylistBtn"
-      title="Export this chart as a playlist — save to Spotify, Last.fm, or a text file"
-      data-i18n-title="tooltip_export_playlist" onclick="openExportModal()" data-i18n="btn_export_playlist">♫
-      EXPORT PLAYLIST</button>
-
-    <div class="chart-display-toggles" id="chartDisplayToggles" style="display:none;">
-      <label data-i18n="display_label">DISPLAY:</label>
-      <div class="toggle-btns">
-        <button id="toggleCertBtn" class="display-toggle-btn active" onclick="toggleDisplay('cert')" data-i18n="btn_display_cert">⭐ CERT BADGES</button>
-        <button id="togglePlaysPeakBtn" class="display-toggle-btn active" onclick="toggleDisplay('plays-peak')" data-i18n="btn_display_plays_peak">▲ PLAYS PEAK</button>
-        <button id="togglePeakTagsBtn" class="display-toggle-btn active" onclick="toggleDisplay('peak-tags')" data-i18n="btn_display_peak_tags">★ PEAK TAGS</button>
-        <button id="srcToggleBtn" class="display-toggle-btn active" onclick="toggleSrcButtons()" title="Show/hide photo source buttons" data-i18n="btn_display_pic_source">📷 PIC SOURCE</button>
-        <button id="toggleYtBtnsBtn" class="display-toggle-btn active" onclick="toggleDisplay('yt-btns')" title="Show/hide YouTube play buttons" data-i18n="btn_display_yt_btns">▶ YT BUTTONS</button>
-      </div>
-    </div>
 
     <!-- Collapse All toggle bar — shown on chart period views -->
     <div class="collapse-all-bar" id="collapseAllBar" style="display:none;">
@@ -414,9 +399,18 @@
         <span class="section-collapsed-label" data-i18n="collapsed_hint">collapsed — click + to expand</span>
         <div class="section-rule"></div>
         <button class="section-replay-btn" id="songsReplayBtn" onclick="replayChartAnimation('songs')" title="Animate chart — show rank changes from previous period" style="display:none">▶ Animate Chart</button>
-        <div class="yt-playall-row" id="ytPlayAllRow" style="display:none">
-          <button class="yt-playall-btn" onclick="ytPlayAll()" title="Play all visible songs in order">▶ Play All</button>
-          <button class="yt-playall-btn" onclick="ytShuffleAll()" title="Play all visible songs in random order">⇀ Shuffle</button>
+        <!-- Display toggles + playback + export — integrated into section header -->
+        <div class="section-controls" id="songsControls">
+          <button id="toggleCertBtn" class="display-toggle-btn active" onclick="toggleSectionDisplay('cert', 'songs')" data-i18n="btn_display_cert">⭐ CERT BADGES</button>
+          <button id="togglePlaysPeakBtn" class="display-toggle-btn active" onclick="toggleSectionDisplay('plays-peak', 'songs')" data-i18n="btn_display_plays_peak">▲ PLAYS PEAK</button>
+          <button id="togglePeakTagsBtn" class="display-toggle-btn active" onclick="toggleSectionDisplay('peak-tags', 'songs')" data-i18n="btn_display_peak_tags">★ PEAK TAGS</button>
+          <button id="srcToggleBtn" class="display-toggle-btn active" onclick="toggleSectionDisplay('src', 'songs')" title="Show/hide photo source buttons" data-i18n="btn_display_pic_source">📷 PIC SOURCE</button>
+          <button id="toggleYtBtnsBtn" class="display-toggle-btn active" onclick="toggleSectionDisplay('yt-btns', 'songs')" title="Show/hide YouTube play buttons" data-i18n="btn_display_yt_btns">▶ YT BUTTONS</button>
+          <div id="ytPlayAllRow" style="display:none">
+            <button class="yt-playall-btn" onclick="ytPlayAll()" title="Play all visible songs in order">▶ Play All</button>
+            <button class="yt-playall-btn" onclick="ytShuffleAll()" title="Play all visible songs in random order">⇀ Shuffle</button>
+          </div>
+          <button class="export-playlist-btn" id="exportPlaylistBtn" title="Export this chart as a playlist — save to Spotify, Last.fm, or a text file" data-i18n-title="tooltip_export_playlist" onclick="openExportModal()" data-i18n="btn_export_playlist">♫ EXPORT PLAYLIST</button>
         </div>
       </div>
       <div class="section-sub" id="songsSubtitle" data-i18n="sub_songs">By play count for the selected period</div>
@@ -539,6 +533,14 @@
         <span class="section-collapsed-label" data-i18n="collapsed_hint">collapsed — click + to expand</span>
         <div class="section-rule"></div>
         <button class="section-replay-btn" id="artistsReplayBtn" onclick="replayChartAnimation('artists')" title="Animate chart — show rank changes from previous period" style="display:none">▶ Animate Chart</button>
+        <!-- Artist display controls — independent from songs/albums -->
+        <div class="section-controls" id="artistsControls">
+          <button id="toggleCertBtnArtists" class="display-toggle-btn active" onclick="toggleSectionDisplay('cert', 'artists')" data-i18n="btn_display_cert">⭐ CERT BADGES</button>
+          <button id="togglePlaysPeakBtnArtists" class="display-toggle-btn active" onclick="toggleSectionDisplay('plays-peak', 'artists')" data-i18n="btn_display_plays_peak">▲ PLAYS PEAK</button>
+          <button id="togglePeakTagsBtnArtists" class="display-toggle-btn active" onclick="toggleSectionDisplay('peak-tags', 'artists')" data-i18n="btn_display_peak_tags">★ PEAK TAGS</button>
+          <button id="srcToggleBtnArtists" class="display-toggle-btn active" onclick="toggleSectionDisplay('src', 'artists')" title="Show/hide photo source buttons" data-i18n="btn_display_pic_source">📷 PIC SOURCE</button>
+          <button id="toggleYtBtnsBtnArtists" class="display-toggle-btn active" onclick="toggleSectionDisplay('yt-btns', 'artists')" title="Show/hide YouTube play buttons" data-i18n="btn_display_yt_btns">▶ YT BUTTONS</button>
+        </div>
       </div>
       <div class="section-sub" data-i18n="sub_artists">By total play count across all songs</div>
       <div class="weekly-view-bar" id="weeklyViewBtns-artists" style="display:none;">
@@ -659,6 +661,14 @@
         <span class="section-collapsed-label" data-i18n="collapsed_hint">collapsed — click + to expand</span>
         <div class="section-rule"></div>
         <button class="section-replay-btn" id="albumsReplayBtn" onclick="replayChartAnimation('albums')" title="Animate chart — show rank changes from previous period" style="display:none">▶ Animate Chart</button>
+        <!-- Album display controls — independent from songs/artists -->
+        <div class="section-controls" id="albumsControls">
+          <button id="toggleCertBtnAlbums" class="display-toggle-btn active" onclick="toggleSectionDisplay('cert', 'albums')" data-i18n="btn_display_cert">⭐ CERT BADGES</button>
+          <button id="togglePlaysPeakBtnAlbums" class="display-toggle-btn active" onclick="toggleSectionDisplay('plays-peak', 'albums')" data-i18n="btn_display_plays_peak">▲ PLAYS PEAK</button>
+          <button id="togglePeakTagsBtnAlbums" class="display-toggle-btn active" onclick="toggleSectionDisplay('peak-tags', 'albums')" data-i18n="btn_display_peak_tags">★ PEAK TAGS</button>
+          <button id="srcToggleBtnAlbums" class="display-toggle-btn active" onclick="toggleSectionDisplay('src', 'albums')" title="Show/hide photo source buttons" data-i18n="btn_display_pic_source">📷 PIC SOURCE</button>
+          <button id="toggleYtBtnsBtnAlbums" class="display-toggle-btn active" onclick="toggleSectionDisplay('yt-btns', 'albums')" title="Show/hide YouTube play buttons" data-i18n="btn_display_yt_btns">▶ YT BUTTONS</button>
+        </div>
       </div>
       <div class="section-sub" data-i18n="sub_albums">By total play count across all tracks</div>
       <div class="weekly-view-bar" id="weeklyViewBtns-albums" style="display:none;">
