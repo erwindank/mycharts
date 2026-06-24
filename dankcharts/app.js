@@ -126,8 +126,14 @@ try {
   applyTheme(saved);
 } catch (e) { applyTheme('navy-dark'); }
 
-// ─── WEEKLY CHART VIEW MODE ────────────────────────────────────
-let weeklyChartViewMode = (() => { try { return localStorage.getItem('dc_weekly_chart_view') || 'table'; } catch(e) { return 'table'; } })();
+// ─── WEEKLY CHART VIEW MODE (per section) ──────────────────────
+// Each chart type (songs/artists/albums) has its own independent view mode.
+// Falls back to the old shared key for backward compat on first load.
+const weeklyChartViewMode = {
+  songs:   (() => { try { return localStorage.getItem('dc_weekly_chart_view_songs')   || localStorage.getItem('dc_weekly_chart_view') || 'table'; } catch(e) { return 'table'; } })(),
+  artists: (() => { try { return localStorage.getItem('dc_weekly_chart_view_artists') || localStorage.getItem('dc_weekly_chart_view') || 'table'; } catch(e) { return 'table'; } })(),
+  albums:  (() => { try { return localStorage.getItem('dc_weekly_chart_view_albums')  || localStorage.getItem('dc_weekly_chart_view') || 'table'; } catch(e) { return 'table'; } })(),
+};
 let _stkTwoCol = (() => { try { return localStorage.getItem('dc_stk_2col') === '1'; } catch(e) { return false; } })();
 let _weeklyViewSongs = [], _weeklyViewMax = 1, _weeklyViewPeaks = null, _weeklyViewMonthlyStats = null;
 let _weeklyViewArtists = [], _weeklyViewArtistsMax = 1;
@@ -9115,20 +9121,26 @@ function buTlPlayAll() {
 }
 
 // ─── WEEKLY CHART VIEWS ────────────────────────────────────────
-function setWeeklyChartView(mode) {
-  weeklyChartViewMode = mode;
-  try { localStorage.setItem('dc_weekly_chart_view', mode); } catch(e) {}
+function setWeeklyChartView(mode, type) {
+  weeklyChartViewMode[type] = mode;
+  try { localStorage.setItem('dc_weekly_chart_view_' + type, mode); } catch(e) {}
   if (typeof dcSaveUserConfig === 'function') dcSaveUserConfig();
-  applyWeeklyChartView();
+  applyWeeklyChartView(type);
 }
 
 function applyWeeklyChartView(onlyType) {
   if (currentPeriod !== 'week') return;
-  document.querySelectorAll('.weekly-view-btn').forEach(b => b.classList.toggle('active', b.dataset.view === weeklyChartViewMode));
-  document.querySelectorAll('.stk-2col-btn').forEach(b => { b.style.display = weeklyChartViewMode === 'stack' ? '' : 'none'; b.classList.toggle('active', _stkTwoCol); });
-  const isAlt = weeklyChartViewMode !== 'table';
   const types = onlyType ? [onlyType] : ['songs', 'artists', 'albums'];
   for (const tp of types) {
+    const mode = weeklyChartViewMode[tp];
+    // Update button active states and stk-2col visibility scoped to this section's bar
+    const bar = document.getElementById('weeklyViewBtns-' + tp);
+    if (bar) {
+      bar.querySelectorAll('.weekly-view-btn:not(.stk-2col-btn)').forEach(b => b.classList.toggle('active', b.dataset.view === mode));
+      const stkBtn = bar.querySelector('.stk-2col-btn');
+      if (stkBtn) { stkBtn.style.display = mode === 'stack' ? '' : 'none'; stkBtn.classList.toggle('active', _stkTwoCol); }
+    }
+    const isAlt = mode !== 'table';
     const tbl = document.getElementById(tp + 'Table');
     const altView = document.getElementById('weeklyAltView-' + tp);
     const pgNav = document.getElementById(tp + 'Pagination');
@@ -9174,10 +9186,11 @@ function renderWeeklyAltView(type) {
   const ms = _weeklyViewMonthlyStats;
   const imgItems = [];
   const renderers = { grid: _wvGrid, compact: _wvCompact, mosaic: _wvMosaic, filmstrip: _wvFilmstrip, stack: _wvStack };
-  const fn = renderers[weeklyChartViewMode];
+  const mode = weeklyChartViewMode[type];
+  const fn = renderers[mode];
   container.innerHTML = fn ? fn(items, maxVal, ms, imgItems, type) : '';
-  if (weeklyChartViewMode === 'filmstrip') initFilmstripInteractions(type);
-  if (weeklyChartViewMode === 'stack') initStkInteractions(type);
+  if (mode === 'filmstrip') initFilmstripInteractions(type);
+  if (mode === 'stack') initStkInteractions(type);
   if (imgItems.length) {
     const imgType = type === 'songs' ? 'song' : type === 'artists' ? 'artist' : 'album';
     loadImages(imgItems.map(i => ({ ...i, name: i.title || i.name || i.album })), imgType);
