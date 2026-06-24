@@ -2275,17 +2275,21 @@
       display: block;
     }
 
-    /* Section controls row — houses display toggles + playback + export inside each chart section header */
+    /* Section controls row — below subtitle, above chart table */
     .section-controls {
       display: flex;
       align-items: center;
+      justify-content: center;
       gap: 4px;
       flex-wrap: wrap;
+      margin-top: 0.5rem;
+      margin-bottom: 0.75rem;
     }
 
-    /* Flex spacer — pushes display toggles to the right edge of section-controls */
+    /* Fixed-width gap between action buttons and display toggles */
     .controls-spacer {
-      flex: 1;
+      width: 0.75rem;
+      flex-shrink: 0;
     }
 
     /* Action buttons group — left side of section-controls */
@@ -2309,7 +2313,17 @@
       margin: 0;
       width: auto;
       font-size: 0.62rem;
+      font-weight: 400;
       letter-spacing: 0.06em;
+      padding: 0.2rem 0.7rem;
+      border-color: var(--border);
+      border-radius: 4px;
+    }
+    .section-controls .export-playlist-btn:hover {
+      background: var(--bg3);
+      border-color: var(--accent);
+      color: var(--text);
+      font-weight: 700;
     }
 
     /* Share as image button inside section controls — matches yt-playall-btn style */
@@ -2327,7 +2341,7 @@
       background: var(--bg3);
       border-color: var(--accent);
       color: var(--text);
-      font-weight: normal;
+      font-weight: 700;
     }
 
     /* Per-section cert badge visibility */
@@ -10300,14 +10314,13 @@ body.purple .landing-card-config input:focus {
   cursor: pointer;
   font-size: 0.62rem;
   font-family: 'DM Mono', monospace;
-  font-weight: 600;
+  font-weight: 400;
   letter-spacing: 0.06em;
   padding: 0.2rem 0.7rem;
   transition: background 0.15s, color 0.15s, border-color 0.15s;
   white-space: nowrap;
 }
-/* Hover matches display-toggle-btn aesthetic (accent, not YouTube red) */
-.yt-playall-btn:hover { background: var(--bg3); border-color: var(--accent); color: var(--text); }
+.yt-playall-btn:hover { background: var(--bg3); border-color: var(--accent); color: var(--text); font-weight: 700; }
 
 /* ═══════════════════════════════════════════════════
    Music Player — redesigned vertical card
