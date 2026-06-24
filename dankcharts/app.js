@@ -9252,13 +9252,16 @@ function _wvGrid(items, max, ms, imgItems, type) {
     ) : '';
     const jt = esc(JSON.stringify(ttl)), jar = esc(JSON.stringify(sub)), jal = esc(JSON.stringify(s.album || ''));
     const jtype = esc(JSON.stringify(type));
-    const clickAttr = canPlay ? ` onclick="_ytPlayOrQueue(${jt},${jar},${jal})"` : '';
+    // Albums show track-list picker; songs play directly
+    const clickAttr = type === 'albums'
+      ? ` onclick="buShowTrackList(this,'albums')" data-artist="${esc(s.artist)}" data-album="${esc(s.album)}"`
+      : (type === 'songs' ? ` onclick="_ytPlayOrQueue(${jt},${jar},${jal})"` : '');
     const ctxAttr = ` oncontextmenu="_wvGridCtx(event,${jtype},${jt},${jar},${jal});return false"`;
     return `<div class="wv-card wv-grid-card wv-gc-anim${i < 3 ? ' wv-r' + (i+1) : ''}${mvClass}" style="animation-delay:${animDelay[i]}ms"${clickAttr}${ctxAttr}>` +
       `<div class="wv-card-art"><div class="wv-thumb wv-thumb-lg">${_wvThumb(imgId, ttl)}</div>` +
       `<span class="wv-rank-badge">${i+1}</span>` +
       (cert ? `<span class="wv-gc-cert">${cert}</span>` : '') +
-      (canPlay ? `<div class="wv-gc-hover"><button class="wv-gc-play-btn" onclick="event.stopPropagation();_ytPlayOrQueue(${jt},${jar},${jal})" title="Play Now">▶</button></div>` : '') +
+      (type === 'albums' ? `<div class="wv-gc-hover"><button class="wv-gc-play-btn" data-artist="${esc(s.artist)}" data-album="${esc(s.album)}" onclick="event.stopPropagation();buShowTrackList(this,'albums')" title="Show recently played tracks">▶</button></div>` : type === 'songs' ? `<div class="wv-gc-hover"><button class="wv-gc-play-btn" onclick="event.stopPropagation();_ytPlayOrQueue(${jt},${jar},${jal})" title="Play Now">▶</button></div>` : '') +
       `</div><div class="wv-card-body">` +
       `<div class="wv-ttl">${esc(ttl)}${pk ? peakBadge(pk) : ''}</div>` +
       `<div class="wv-art">${esc(sub)}</div>` +
@@ -9370,9 +9373,11 @@ function _wvCompact(items, max, ms, imgItems, type) {
       (album && album !== '—' ? `<span class="wv-cx-art-alb">${esc(album)}</span>` : '') +
       `</div>`;
 
-    // Feature 6: play button (songs + albums only)
+    // Feature 6: play button (songs play directly; albums show track-list picker)
     const jt = esc(JSON.stringify(ttl)), jar = esc(JSON.stringify(sub)), jal = esc(JSON.stringify(album));
-    const playBtn = canPlay
+    const playBtn = type === 'albums'
+      ? `<button class="wv-cx-play-btn" data-artist="${esc(s.artist)}" data-album="${esc(s.album)}" onclick="event.stopPropagation();buShowTrackList(this,'albums')" title="Show recently played tracks">▶</button>`
+      : type === 'songs'
       ? `<button class="wv-cx-play-btn" onclick="event.stopPropagation();_ytPlayOrQueue(${jt},${jar},${jal})" title="Play">▶</button>`
       : '';
 
@@ -9495,6 +9500,9 @@ function _wvMosaic(items, max, ms, imgItems, type) {
     const playTitle  = type === 'songs' ? s.title  : type === 'artists' ? s.name  : s.album;
     const playArtist = type === 'songs' ? s.artist : type === 'artists' ? s.name  : s.artist;
     const playAlbum  = type === 'songs' ? (s.album || '') : type === 'artists' ? '' : s.album;
+    // Albums show track-list picker; all other types play directly
+    const mosYtOnclick = type === 'albums' ? `event.stopPropagation();buShowTrackList(this,'albums')` : `event.stopPropagation();ytPlayFromBtn(this)`;
+    const mosYtTitle = type === 'albums' ? 'Show recently played tracks' : 'Play on YouTube';
     return `<div class="wv-mos-item${rc}" style="${st}" title="#${i+1}: ${esc(ttl)} — ${esc(sub)}" onclick="wvMosTileClick(event,this)">
       <div class="wv-mos-item-inner">
         <div class="wv-mos-front">
@@ -9504,7 +9512,7 @@ function _wvMosaic(items, max, ms, imgItems, type) {
           ${mv ? `<div class="wv-mv-ov">${mv}</div>` : ''}
           <div class="wv-mos-bot"><div class="wv-ttl">${esc(ttl)}</div><div class="wv-art">${esc(sub)}</div><div class="wv-plays">${s.count} ${tUnit('plays', s.count)}</div></div>
           <div class="wv-mos-hcard">
-            <button class="yt-play-btn wv-mos-play-btn" data-title="${esc(playTitle)}" data-artist="${esc(playArtist)}" data-album="${esc(playAlbum)}" onclick="event.stopPropagation();ytPlayFromBtn(this)" title="Play on YouTube"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></button>
+            <button class="yt-play-btn wv-mos-play-btn" data-title="${esc(playTitle)}" data-artist="${esc(playArtist)}" data-album="${esc(playAlbum)}" onclick="${mosYtOnclick}" title="${mosYtTitle}"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></button>
             <div class="wv-mos-hcard-ttl">${esc(ttl)}</div>
             <div class="wv-mos-hcard-art">${esc(sub)}</div>
             <div class="wv-mos-hcard-stats">
@@ -9532,7 +9540,7 @@ function _wvMosaic(items, max, ms, imgItems, type) {
           </div>
           ${cumPlays ? `<div class="wv-mos-hcard-alltime">${cumPlays.toLocaleString()} ${tUnit('plays', cumPlays)} · ${t('nav_alltime')}${cert}</div>` : ''}
           <div class="wv-mos-hcard-bar"><div class="wv-mos-hcard-fill"></div></div>
-          <button class="yt-play-btn wv-mos-play-btn wv-mos-back-play-btn" data-title="${esc(playTitle)}" data-artist="${esc(playArtist)}" data-album="${esc(playAlbum)}" onclick="event.stopPropagation();ytPlayFromBtn(this)" title="Play on YouTube"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg><span class="wv-btn-full"> Play on YouTube</span><span class="wv-btn-short">PLAY</span></button>
+          <button class="yt-play-btn wv-mos-play-btn wv-mos-back-play-btn" data-title="${esc(playTitle)}" data-artist="${esc(playArtist)}" data-album="${esc(playAlbum)}" onclick="${mosYtOnclick}" title="${mosYtTitle}"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg><span class="wv-btn-full"> ${mosYtTitle}</span><span class="wv-btn-short">${type === 'albums' ? 'TRACKS' : 'PLAY'}</span></button>
         </div>
       </div>
     </div>`;
@@ -9594,6 +9602,10 @@ function _wvFilmstrip(items, max, ms, imgItems, type) {
     const thumbCls = i < 3 ? 'wv-thumb-xl' : 'wv-thumb-lg';
     const ytSvg = `<svg viewBox="0 0 24 24" fill="currentColor" style="width:14px;height:14px"><path d="M8 5v14l11-7z"/></svg>`;
     const ytSvgSm = `<svg viewBox="0 0 24 24" fill="currentColor" style="width:10px;height:10px;margin-right:3px"><path d="M8 5v14l11-7z"/></svg>`;
+    // Albums show track-list picker; all other types play directly
+    const filmYtOnclick = type === 'albums' ? `event.stopPropagation();buShowTrackList(this,'albums')` : `event.stopPropagation();ytPlayFromBtn(this)`;
+    const filmYtTitle = type === 'albums' ? 'Show recently played tracks' : 'Play on YouTube';
+    const filmYtLabel = type === 'albums' ? 'Show Tracks' : 'Play on YouTube';
     return `<div class="wv-card wv-film-card${rc}" tabindex="0" data-idx="${i}" onclick="wvFilmCardClick(event,this)">
       <div class="wv-film-rank-row">
         <span class="wv-film-ranknum">${i+1}</span>
@@ -9602,7 +9614,7 @@ function _wvFilmstrip(items, max, ms, imgItems, type) {
       <div class="wv-film-thumb-wrap">
         <div class="wv-thumb ${thumbCls}">${_wvThumb(imgId, ttl)}</div>
         <div class="wv-film-thumb-hover">
-          <button class="yt-play-btn wv-film-yt-btn" data-title="${esc(playTitle)}" data-artist="${esc(playArtist)}" data-album="${esc(playAlbum)}" onclick="event.stopPropagation();ytPlayFromBtn(this)" title="Play on YouTube">${ytSvg}</button>
+          <button class="yt-play-btn wv-film-yt-btn" data-title="${esc(playTitle)}" data-artist="${esc(playArtist)}" data-album="${esc(playAlbum)}" onclick="${filmYtOnclick}" title="${filmYtTitle}">${ytSvg}</button>
         </div>
       </div>
       <div class="wv-ttl">${esc(ttl)}</div>
@@ -9613,7 +9625,7 @@ function _wvFilmstrip(items, max, ms, imgItems, type) {
         ${(pk || cert) ? `<div class="wv-film-exp-badges">${pk ? peakBadge(pk) : ''}${cert}</div>` : ''}
         ${wks ? `<div class="wv-film-exp-wks">${tCount('weeks_full', wks)} ${t('film_on_chart')}</div>` : ''}
         ${cumPlays ? `<div class="wv-film-exp-alltime">${cumPlays.toLocaleString()} ${t('film_alltime_plays')}</div>` : ''}
-        <button class="yt-play-btn" data-title="${esc(playTitle)}" data-artist="${esc(playArtist)}" data-album="${esc(playAlbum)}" onclick="event.stopPropagation();ytPlayFromBtn(this)" style="margin-top:4px">${ytSvgSm}Play on YouTube</button>
+        <button class="yt-play-btn" data-title="${esc(playTitle)}" data-artist="${esc(playArtist)}" data-album="${esc(playAlbum)}" onclick="${filmYtOnclick}" title="${filmYtTitle}" style="margin-top:4px">${ytSvgSm}${filmYtLabel}</button>
       </div></div>
     </div>`;
   }).join('');
@@ -9854,7 +9866,12 @@ function _wvStack(items, max, ms, imgItems, type) {
     const jt = esc(JSON.stringify(ttl));
     const jar = esc(JSON.stringify(type !== 'artists' ? sub : ''));
     const jal = esc(JSON.stringify(s.album || ''));
-    const ytBtn = canPlay ? `<button class="wv-stk-yt-btn" onclick="event.stopPropagation();_ytPlayOrQueue(${jt},${jar},${jal})" title="Play on YouTube">▶</button>` : '';
+    // Albums show track-list picker; songs play directly
+    const ytBtn = type === 'albums'
+      ? `<button class="wv-stk-yt-btn" data-artist="${esc(s.artist)}" data-album="${esc(s.album)}" onclick="event.stopPropagation();buShowTrackList(this,'albums')" title="Show recently played tracks">▶</button>`
+      : type === 'songs'
+      ? `<button class="wv-stk-yt-btn" onclick="event.stopPropagation();_ytPlayOrQueue(${jt},${jar},${jal})" title="Play on YouTube">▶</button>`
+      : '';
 
     // Artist line — plain display only; no modal opens from here
     const artistLine = `<div class="wv-art">${esc(sub)}</div>`;
