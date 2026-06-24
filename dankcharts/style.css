@@ -2148,6 +2148,15 @@
       gap: 0.75rem;
     }
 
+    /* Section-embedded size bars sit inside chart sections — restore the top border
+       and break through the section's 2rem horizontal padding to span full card width */
+    .chart-size-bar.section-size-bar {
+      border-top: 1px solid var(--border);
+      margin-left: -2rem;
+      margin-right: -2rem;
+      width: calc(100% + 4rem);
+    }
+
     .chart-size-bar label {
       font-family: 'DM Mono', monospace;
       font-size: 0.65rem;
@@ -7970,9 +7979,10 @@
       }
 
       /* Full-bleed: punch bar elements through the 1rem container padding */
+      /* .section-size-bar is excluded — it lives inside a chart-section with its own padding */
       .sync-bar,
       .period-nav,
-      .chart-size-bar,
+      .chart-size-bar:not(.section-size-bar),
       .date-nav,
       .stats-strip,
       .stats-strip2,

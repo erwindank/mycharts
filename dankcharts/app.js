@@ -40,13 +40,20 @@ function tzDate(d) {
 function tzNow() { return tzDate(new Date()); }
 const savedOffsets = { week: 0, month: 0, year: 0, alltime: 0, records: 0 };
 let chartSize = 10;
-let chartSizeWeekly = 10;
-let chartSizeMonthly = 50;
+let chartSizeWeekly = 10;   // compat — mirrors chartSizeSongsW
+let chartSizeMonthly = 50;  // compat — mirrors chartSizeSongsM
 let firstSeenMaps = null; // cached first-ever play dates per song/artist/album
 let cumulativeMaps = null;   // cumulative plays up to end of current period
 let playsPeakMaps = null;    // historical max per-period plays for peak badge
-let chartSizeYearly = Infinity; // 0 = All Entries
-let chartSizeAllTime = Infinity; // 0 = All Entries
+let chartSizeYearly = Infinity; // compat — mirrors chartSizeSongsY
+let chartSizeAllTime = Infinity; // compat — mirrors chartSizeSongsAT
+// Per-section chart sizes — each section is independent and remembers per period
+let chartSizeSongsW = 10,    chartSizeArtistsW = 10,    chartSizeAlbumsW = 10;
+let chartSizeSongsM = 50,    chartSizeArtistsM = 50,    chartSizeAlbumsM = 50;
+let chartSizeSongsY = Infinity, chartSizeArtistsY = Infinity, chartSizeAlbumsY = Infinity;
+let chartSizeSongsAT = Infinity, chartSizeArtistsAT = Infinity, chartSizeAlbumsAT = Infinity;
+// Active per-section sizes (set at the start of renderAll for the current period)
+let chartSizeSongs = 10, chartSizeArtists = 10, chartSizeAlbums = 10;
 let recLimit = 25; // Records entries limit
 let eventsArtistLimit = parseInt(localStorage.getItem('dc_events_artist_limit') || '50') || 50;
 let eventsCalendarYear = tzNow().getFullYear();
@@ -2538,29 +2545,48 @@ function finalizeLoad() {
     });
   }
 
-  // Restore chart sizes
-  const savedWeekly = localStorage.getItem('dc_chartSizeWeekly');
-  if (savedWeekly) {
-    chartSizeWeekly = parseInt(savedWeekly);
-    document.querySelectorAll('#sizeBtnsWeekly button').forEach(b => b.classList.toggle('active', b.dataset.size === savedWeekly));
+  // Restore per-section chart sizes — falls back to old global keys for migration
+  function _loadSectionSize(key, globalKey, def) {
+    const saved = localStorage.getItem(key);
+    if (saved != null) { const v = parseInt(saved); return v === 0 ? Infinity : v; }
+    const globalSaved = globalKey ? localStorage.getItem(globalKey) : null;
+    if (globalSaved != null) { const v = parseInt(globalSaved); return v === 0 ? Infinity : v; }
+    return def;
   }
-  const savedMonthly = localStorage.getItem('dc_chartSizeMonthly');
-  if (savedMonthly) {
-    chartSizeMonthly = parseInt(savedMonthly);
-    document.querySelectorAll('#sizeBtnsMonthly button').forEach(b => b.classList.toggle('active', b.dataset.size === savedMonthly));
+  chartSizeSongsW    = _loadSectionSize('dc_chartSizeSongsW',    'dc_chartSizeWeekly',  10);
+  chartSizeSongsM    = _loadSectionSize('dc_chartSizeSongsM',    'dc_chartSizeMonthly', 50);
+  chartSizeSongsY    = _loadSectionSize('dc_chartSizeSongsY',    'dc_chartSizeYearly',  Infinity);
+  chartSizeSongsAT   = _loadSectionSize('dc_chartSizeSongsAT',   'dc_chartSizeAllTime', Infinity);
+  chartSizeArtistsW  = _loadSectionSize('dc_chartSizeArtistsW',  'dc_chartSizeWeekly',  10);
+  chartSizeArtistsM  = _loadSectionSize('dc_chartSizeArtistsM',  'dc_chartSizeMonthly', 50);
+  chartSizeArtistsY  = _loadSectionSize('dc_chartSizeArtistsY',  'dc_chartSizeYearly',  Infinity);
+  chartSizeArtistsAT = _loadSectionSize('dc_chartSizeArtistsAT', 'dc_chartSizeAllTime', Infinity);
+  chartSizeAlbumsW   = _loadSectionSize('dc_chartSizeAlbumsW',   'dc_chartSizeWeekly',  10);
+  chartSizeAlbumsM   = _loadSectionSize('dc_chartSizeAlbumsM',   'dc_chartSizeMonthly', 50);
+  chartSizeAlbumsY   = _loadSectionSize('dc_chartSizeAlbumsY',   'dc_chartSizeYearly',  Infinity);
+  chartSizeAlbumsAT  = _loadSectionSize('dc_chartSizeAlbumsAT',  'dc_chartSizeAllTime', Infinity);
+  // Keep compat vars in sync with songs (songs = primary chart)
+  chartSizeWeekly  = chartSizeSongsW;
+  chartSizeMonthly = chartSizeSongsM;
+  chartSizeYearly  = chartSizeSongsY;
+  chartSizeAllTime = chartSizeSongsAT;
+  // Sync active state of all per-section size buttons
+  function _syncSizeBtns(id, val) {
+    const str = isFinite(val) ? String(val) : '0';
+    document.querySelectorAll('#' + id + ' button').forEach(b => b.classList.toggle('active', b.dataset.size === str));
   }
-  const savedYearly = localStorage.getItem('dc_chartSizeYearly');
-  if (savedYearly) {
-    const pv = parseInt(savedYearly);
-    chartSizeYearly = pv === 0 ? Infinity : pv;
-    document.querySelectorAll('#sizeBtnsYearly button').forEach(b => b.classList.toggle('active', b.dataset.size === savedYearly));
-  }
-  const savedAllTime = localStorage.getItem('dc_chartSizeAllTime');
-  if (savedAllTime) {
-    const pv = parseInt(savedAllTime);
-    chartSizeAllTime = pv === 0 ? Infinity : pv;
-    document.querySelectorAll('#sizeBtnsAllTime button').forEach(b => b.classList.toggle('active', b.dataset.size === savedAllTime));
-  }
+  _syncSizeBtns('sizeBtnsSongsW',    chartSizeSongsW);
+  _syncSizeBtns('sizeBtnsSongsM',    chartSizeSongsM);
+  _syncSizeBtns('sizeBtnsSongsY',    chartSizeSongsY);
+  _syncSizeBtns('sizeBtnsSongsAT',   chartSizeSongsAT);
+  _syncSizeBtns('sizeBtnsArtistsW',  chartSizeArtistsW);
+  _syncSizeBtns('sizeBtnsArtistsM',  chartSizeArtistsM);
+  _syncSizeBtns('sizeBtnsArtistsY',  chartSizeArtistsY);
+  _syncSizeBtns('sizeBtnsArtistsAT', chartSizeArtistsAT);
+  _syncSizeBtns('sizeBtnsAlbumsW',   chartSizeAlbumsW);
+  _syncSizeBtns('sizeBtnsAlbumsM',   chartSizeAlbumsM);
+  _syncSizeBtns('sizeBtnsAlbumsY',   chartSizeAlbumsY);
+  _syncSizeBtns('sizeBtnsAlbumsAT',  chartSizeAlbumsAT);
 
   // Restore graph settings (cumulative, total volume, volume comparison)
   const savedCumArtists = localStorage.getItem('dc_gCumulativeArtists');
@@ -2754,55 +2780,44 @@ function parseDate(str) {
 }
 
 // ─── PERIOD NAV ────────────────────────────────────────────────
-document.getElementById('sizeBtnsWeekly').addEventListener('click', e => {
-  const btn = e.target.closest('button');
-  if (!btn) return;
-  document.querySelectorAll('#sizeBtnsWeekly button').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
-  chartSizeWeekly = parseInt(btn.dataset.size);
-  chartSize = chartSizeWeekly;
-  localStorage.setItem('dc_chartSizeWeekly', btn.dataset.size);
-  if (typeof dcSaveUserConfig === 'function') dcSaveUserConfig();
-  renderAll();
-});
-
-document.getElementById('sizeBtnsMonthly').addEventListener('click', e => {
-  const btn = e.target.closest('button');
-  if (!btn) return;
-  document.querySelectorAll('#sizeBtnsMonthly button').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
-  chartSizeMonthly = parseInt(btn.dataset.size);
-  chartSize = chartSizeMonthly;
-  localStorage.setItem('dc_chartSizeMonthly', btn.dataset.size);
-  if (typeof dcSaveUserConfig === 'function') dcSaveUserConfig();
-  renderAll();
-});
-
-document.getElementById('sizeBtnsYearly').addEventListener('click', e => {
-  const btn = e.target.closest('button');
-  if (!btn) return;
-  document.querySelectorAll('#sizeBtnsYearly button').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
-  const v = parseInt(btn.dataset.size);
-  chartSizeYearly = v === 0 ? Infinity : v;
-  localStorage.setItem('dc_chartSizeYearly', btn.dataset.size);
-  if (typeof dcSaveUserConfig === 'function') dcSaveUserConfig();
-  ['songs', 'artists', 'albums'].forEach(t => { searchState[t] = ''; const inp = document.getElementById(t + 'SearchInput'); if (inp) inp.value = ''; pageState[t] = 0; });
-  renderAll();
-});
-
-document.getElementById('sizeBtnsAllTime').addEventListener('click', e => {
-  const btn = e.target.closest('button');
-  if (!btn) return;
-  document.querySelectorAll('#sizeBtnsAllTime button').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
-  const v = parseInt(btn.dataset.size);
-  chartSizeAllTime = v === 0 ? Infinity : v;
-  localStorage.setItem('dc_chartSizeAllTime', btn.dataset.size);
-  if (typeof dcSaveUserConfig === 'function') dcSaveUserConfig();
-  ['songs', 'artists', 'albums'].forEach(t => { searchState[t] = ''; const inp = document.getElementById(t + 'SearchInput'); if (inp) inp.value = ''; pageState[t] = 0; });
-  renderAll();
-});
+// Per-section chart size button handlers
+// Each button group is independent; paginated=true resets search/pagination state
+function _bindSectionSizeBar(id, setter, lsKey, paginated) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.addEventListener('click', e => {
+    const btn = e.target.closest('[data-size]'); if (!btn) return;
+    el.querySelectorAll('button').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    const rawV = parseInt(btn.dataset.size);
+    setter(rawV === 0 ? Infinity : rawV);
+    localStorage.setItem(lsKey, btn.dataset.size);
+    if (typeof dcSaveUserConfig === 'function') dcSaveUserConfig();
+    if (paginated) {
+      ['songs', 'artists', 'albums'].forEach(t => {
+        searchState[t] = ''; const inp = document.getElementById(t + 'SearchInput');
+        if (inp) inp.value = ''; pageState[t] = 0;
+      });
+    }
+    renderAll();
+  });
+}
+// Weekly size bars (non-paginated)
+_bindSectionSizeBar('sizeBtnsSongsW',   v => { chartSizeSongsW   = v; chartSizeWeekly = v; }, 'dc_chartSizeSongsW',   false);
+_bindSectionSizeBar('sizeBtnsArtistsW', v => { chartSizeArtistsW = v; },                      'dc_chartSizeArtistsW', false);
+_bindSectionSizeBar('sizeBtnsAlbumsW',  v => { chartSizeAlbumsW  = v; },                      'dc_chartSizeAlbumsW',  false);
+// Monthly size bars (non-paginated)
+_bindSectionSizeBar('sizeBtnsSongsM',   v => { chartSizeSongsM   = v; chartSizeMonthly = v; }, 'dc_chartSizeSongsM',   false);
+_bindSectionSizeBar('sizeBtnsArtistsM', v => { chartSizeArtistsM = v; },                       'dc_chartSizeArtistsM', false);
+_bindSectionSizeBar('sizeBtnsAlbumsM',  v => { chartSizeAlbumsM  = v; },                       'dc_chartSizeAlbumsM',  false);
+// Yearly size bars (paginated)
+_bindSectionSizeBar('sizeBtnsSongsY',   v => { chartSizeSongsY   = v; chartSizeYearly = v; }, 'dc_chartSizeSongsY',   true);
+_bindSectionSizeBar('sizeBtnsArtistsY', v => { chartSizeArtistsY = v; },                      'dc_chartSizeArtistsY', true);
+_bindSectionSizeBar('sizeBtnsAlbumsY',  v => { chartSizeAlbumsY  = v; },                      'dc_chartSizeAlbumsY',  true);
+// All-time size bars (paginated)
+_bindSectionSizeBar('sizeBtnsSongsAT',   v => { chartSizeSongsAT   = v; chartSizeAllTime = v; }, 'dc_chartSizeSongsAT',   true);
+_bindSectionSizeBar('sizeBtnsArtistsAT', v => { chartSizeArtistsAT = v; },                       'dc_chartSizeArtistsAT', true);
+_bindSectionSizeBar('sizeBtnsAlbumsAT',  v => { chartSizeAlbumsAT  = v; },                       'dc_chartSizeAlbumsAT',  true);
 
 // ─── NAVIGATE TO RECORD PERIOD ────────────────────────────────
 function navigateToRecPeriod(period, periodKey) {
@@ -4440,8 +4455,6 @@ document.getElementById('periodNav').addEventListener('click', e => {
     savedOffsets[currentPeriod] = currentOffset;
     currentPeriod = 'rawdata';
     localStorage.setItem('dc_period', currentPeriod);
-    document.getElementById('chartSizeBar').style.display = 'none';
-    document.getElementById('paginatedSizeBar').style.display = 'none';
     document.getElementById('collapseAllBar').style.display = 'none';
     document.getElementById('exportPlaylistBtn').style.display = 'none';
     document.getElementById('dateNav').style.display = 'none';
@@ -4482,8 +4495,6 @@ document.getElementById('periodNav').addEventListener('click', e => {
     savedOffsets[currentPeriod] = currentOffset;
     currentPeriod = 'graphs';
     localStorage.setItem('dc_period', currentPeriod);
-    document.getElementById('chartSizeBar').style.display = 'none';
-    document.getElementById('paginatedSizeBar').style.display = 'none';
     document.getElementById('collapseAllBar').style.display = 'none';
     document.getElementById('exportPlaylistBtn').style.display = 'none';
     document.getElementById('dateNav').style.display = 'none';
@@ -4518,8 +4529,6 @@ document.getElementById('periodNav').addEventListener('click', e => {
     savedOffsets[currentPeriod] = currentOffset;
     currentPeriod = 'records';
     localStorage.setItem('dc_period', currentPeriod);
-    document.getElementById('chartSizeBar').style.display = 'none';
-    document.getElementById('paginatedSizeBar').style.display = 'none';
     document.getElementById('collapseAllBar').style.display = 'none';
     document.getElementById('exportPlaylistBtn').style.display = 'none';
     document.getElementById('dateNav').style.display = 'none';
@@ -4557,8 +4566,6 @@ document.getElementById('periodNav').addEventListener('click', e => {
     savedOffsets[currentPeriod] = currentOffset;
     currentPeriod = 'events';
     localStorage.setItem('dc_period', currentPeriod);
-    document.getElementById('chartSizeBar').style.display = 'none';
-    document.getElementById('paginatedSizeBar').style.display = 'none';
     document.getElementById('collapseAllBar').style.display = 'none';
     document.getElementById('exportPlaylistBtn').style.display = 'none';
     document.getElementById('dateNav').style.display = 'none';
@@ -4609,8 +4616,6 @@ document.getElementById('periodNav').addEventListener('click', e => {
     savedOffsets[currentPeriod] = currentOffset;
     currentPeriod = 'awards';
     localStorage.setItem('dc_period', currentPeriod);
-    document.getElementById('chartSizeBar').style.display = 'none';
-    document.getElementById('paginatedSizeBar').style.display = 'none';
     document.getElementById('collapseAllBar').style.display = 'none';
     document.getElementById('exportPlaylistBtn').style.display = 'none';
     document.getElementById('dateNav').style.display = 'none';
@@ -4646,8 +4651,6 @@ document.getElementById('periodNav').addEventListener('click', e => {
     savedOffsets[currentPeriod] = currentOffset;
     currentPeriod = 'soundtrack';
     localStorage.setItem('dc_period', currentPeriod);
-    document.getElementById('chartSizeBar').style.display = 'none';
-    document.getElementById('paginatedSizeBar').style.display = 'none';
     document.getElementById('collapseAllBar').style.display = 'none';
     document.getElementById('exportPlaylistBtn').style.display = 'none';
     document.getElementById('dateNav').style.display = 'none';
@@ -4685,8 +4688,6 @@ document.getElementById('periodNav').addEventListener('click', e => {
     savedOffsets[currentPeriod] = currentOffset;
     currentPeriod = 'playlists';
     localStorage.setItem('dc_period', currentPeriod);
-    document.getElementById('chartSizeBar').style.display = 'none';
-    document.getElementById('paginatedSizeBar').style.display = 'none';
     document.getElementById('collapseAllBar').style.display = 'none';
     document.getElementById('exportPlaylistBtn').style.display = 'none';
     document.getElementById('dateNav').style.display = 'none';
@@ -4737,8 +4738,6 @@ document.getElementById('periodNav').addEventListener('click', e => {
     savedOffsets[currentPeriod] = currentOffset;
     currentPeriod = 'chartsguide';
     localStorage.setItem('dc_period', currentPeriod);
-    document.getElementById('chartSizeBar').style.display = 'none';
-    document.getElementById('paginatedSizeBar').style.display = 'none';
     document.getElementById('collapseAllBar').style.display = 'none';
     document.getElementById('exportPlaylistBtn').style.display = 'none';
     document.getElementById('dateNav').style.display = 'none';
@@ -5616,10 +5615,32 @@ function renderAll() {
     ? allPlays
     : allPlays.filter(p => { const _tp = tzDate(p.date); return _tp >= start && _tp <= end; });
 
-  // Show/hide chart size bar and switch between weekly/monthly size buttons
+  // Per-section size bars: show the correct button group for the current period
   const paginated = isPaginated();
-  document.getElementById('chartSizeBar').style.display = paginated ? 'none' : 'flex';
-  document.getElementById('paginatedSizeBar').style.display = paginated ? 'flex' : 'none';
+  const _szTag = !paginated ? (currentPeriod === 'month' ? 'M' : 'W') : (currentPeriod === 'year' ? 'Y' : 'AT');
+  ['Songs', 'Artists', 'Albums'].forEach(sec => {
+    ['W', 'M', 'Y', 'AT'].forEach(p => {
+      const el = document.getElementById('sizeBtns' + sec + p);
+      if (el) el.style.display = p === _szTag ? 'flex' : 'none';
+    });
+  });
+  // Set active per-section sizes and keep compat vars in sync
+  if (!paginated) {
+    const _isM = currentPeriod === 'month';
+    chartSizeSongs   = _isM ? chartSizeSongsM   : chartSizeSongsW;
+    chartSizeArtists = _isM ? chartSizeArtistsM : chartSizeArtistsW;
+    chartSizeAlbums  = _isM ? chartSizeAlbumsM  : chartSizeAlbumsW;
+    chartSizeWeekly  = chartSizeSongsW;
+    chartSizeMonthly = chartSizeSongsM;
+  } else {
+    const _isY = currentPeriod === 'year';
+    chartSizeSongs   = _isY ? chartSizeSongsY   : chartSizeSongsAT;
+    chartSizeArtists = _isY ? chartSizeArtistsY : chartSizeArtistsAT;
+    chartSizeAlbums  = _isY ? chartSizeAlbumsY  : chartSizeAlbumsAT;
+    chartSizeYearly  = chartSizeSongsY;
+    chartSizeAllTime = chartSizeSongsAT;
+  }
+  chartSize = chartSizeSongs; // default compat value (overridden per-section before each render)
   document.getElementById('collapseAllBar').style.display =
     ['week', 'month', 'year', 'alltime'].includes(currentPeriod) ? 'flex' : 'none';
   const _isWeek = currentPeriod === 'week';
@@ -5647,22 +5668,12 @@ function renderAll() {
   ['songsReplayBtn', 'artistsReplayBtn', 'albumsReplayBtn'].forEach(id => {
     document.getElementById(id).style.display = _showReplay;
   });
-  if (paginated) {
-    document.getElementById('sizeBtnsYearly').style.display = currentPeriod === 'year' ? 'flex' : 'none';
-    document.getElementById('sizeBtnsAllTime').style.display = currentPeriod === 'alltime' ? 'flex' : 'none';
-  }
   // Show/hide search bars; clear search state on period change
   ['songs', 'artists', 'albums'].forEach(t => {
     const el = document.getElementById(t + 'Search');
     if (el) el.style.display = paginated ? 'flex' : 'none';
     if (!paginated) { searchState[t] = ''; const inp = document.getElementById(t + 'SearchInput'); if (inp) inp.value = ''; }
   });
-  if (!paginated) {
-    const isMonthly = currentPeriod === 'month';
-    document.getElementById('sizeBtnsWeekly').style.display = isMonthly ? 'none' : 'flex';
-    document.getElementById('sizeBtnsMonthly').style.display = isMonthly ? 'flex' : 'none';
-    chartSize = isMonthly ? chartSizeMonthly : chartSizeWeekly;
-  }
 
   // Update date nav
   const pl = document.getElementById('periodLabel');
@@ -6062,21 +6073,19 @@ function renderAll() {
   }
 
   if (isPaginated()) {
-    // Build full sorted datasets and apply chart view limit
-    const lim = currentPeriod === 'year' ? chartSizeYearly : chartSizeAllTime;
-    fullData.songs = buildSongsFull(plays).slice(0, lim);
-    fullData.artists = buildArtistsFull(plays).slice(0, lim);
-    fullData.albums = buildAlbumsFull(plays).slice(0, lim);
+    // Build full sorted datasets — each section uses its own per-section size limit
+    const limSongs   = currentPeriod === 'year' ? chartSizeSongsY   : chartSizeSongsAT;
+    const limArtists = currentPeriod === 'year' ? chartSizeArtistsY : chartSizeArtistsAT;
+    const limAlbums  = currentPeriod === 'year' ? chartSizeAlbumsY  : chartSizeAlbumsAT;
+    fullData.songs   = buildSongsFull(plays).slice(0, limSongs);
+    fullData.artists = buildArtistsFull(plays).slice(0, limArtists);
+    fullData.albums  = buildAlbumsFull(plays).slice(0, limAlbums);
     // Reset to page 0 when period/year/view changes
     pageState.songs = 0; pageState.artists = 0; pageState.albums = 0;
 
-    const isLimited = isFinite(lim);
-    const sizeLabel = isLimited ? `Top ${lim}` : `All`;
-    const totalEntries = Math.max(fullData.songs.length, fullData.artists.length, fullData.albums.length);
-    const totalPages = Math.ceil(totalEntries / PAGE_SIZE);
-    document.getElementById('songsSectionTitle').textContent = isLimited ? t('sec_songs_top', { n: lim }) : t('sec_songs_all', { n: fullData.songs.length.toLocaleString() });
-    document.getElementById('artistsSectionTitle').textContent = isLimited ? t('sec_artists_top', { n: lim }) : t('sec_artists_all', { n: fullData.artists.length.toLocaleString() });
-    document.getElementById('albumsSectionTitle').textContent = isLimited ? t('sec_albums_top', { n: lim }) : t('sec_albums_all', { n: fullData.albums.length.toLocaleString() });
+    document.getElementById('songsSectionTitle').textContent   = isFinite(limSongs)   ? t('sec_songs_top',   { n: limSongs   }) : t('sec_songs_all',   { n: fullData.songs.length.toLocaleString()   });
+    document.getElementById('artistsSectionTitle').textContent = isFinite(limArtists) ? t('sec_artists_top', { n: limArtists }) : t('sec_artists_all', { n: fullData.artists.length.toLocaleString() });
+    document.getElementById('albumsSectionTitle').textContent  = isFinite(limAlbums)  ? t('sec_albums_top',  { n: limAlbums  }) : t('sec_albums_all',  { n: fullData.albums.length.toLocaleString()  });
 
     lastPeriodStats = null;
     renderPage('songs', peaks);
@@ -6088,20 +6097,21 @@ function renderAll() {
     hideBuSection('albums');
     document.getElementById('dropoutsSection').style.display = 'none';
   } else {
-    // Top-N mode
+    // Top-N mode — each section renders with its own independent chart size
     ['songsPagination', 'artistsPagination', 'albumsPagination'].forEach(id => {
       document.getElementById(id).style.display = 'none';
     });
-    document.getElementById('songsSectionTitle').textContent = t('sec_songs_top', { n: chartSize });
-    document.getElementById('artistsSectionTitle').textContent = t('sec_artists_top', { n: chartSize });
-    document.getElementById('albumsSectionTitle').textContent = t('sec_albums_top', { n: chartSize });
+    document.getElementById('songsSectionTitle').textContent   = t('sec_songs_top',   { n: chartSizeSongs   });
+    document.getElementById('artistsSectionTitle').textContent = t('sec_artists_top', { n: chartSizeArtists });
+    document.getElementById('albumsSectionTitle').textContent  = t('sec_albums_top',  { n: chartSizeAlbums  });
     const periodStats = hasPeriodStats ? buildPeriodStats(currentPeriod) : null;
     lastPeriodStats = periodStats;
     _animPrevPlays = (chartAnimEnabled && prevPlays && prevPlays.length > 0 && (currentPeriod === 'week' || currentPeriod === 'month')) ? prevPlays : null;
     _animCurrentPlays = _animPrevPlays ? plays : null;
-    renderSongs(plays, peaks, periodStats);
-    renderArtists(plays, peaks, periodStats);
-    renderAlbums(plays, peaks, periodStats);
+    chartSize = chartSizeSongs;   renderSongs(plays, peaks, periodStats);
+    chartSize = chartSizeArtists; renderArtists(plays, peaks, periodStats);
+    chartSize = chartSizeAlbums;  renderAlbums(plays, peaks, periodStats);
+    chartSize = chartSizeSongs;   // reset to songs for renderDropouts (which uses per-section globals directly)
     _animPrevPlays = null;
     _animCurrentPlays = null;
     renderDropouts(plays, periodStats);
@@ -7789,14 +7799,15 @@ function buildPeriodStats(period) {
   // it enters BU fresh after an absence — i.e. streak was 0 and is now becoming 1).
   const bubblingUnderRuns = { songs: {}, artists: {}, albums: {} };
   const prevBubblingUnder = { songs: {}, artists: {}, albums: {} };
-  // buSize matches the render functions: 50 for Top 100, else 10
-  const _bpsBuSize = chartSize >= 100 ? 50 : 10;
 
   // Peak rank tracking: best (lowest) rank each entry ever achieved before the current period
   const peakRank = { songs: {}, artists: {}, albums: {} };
 
   for (const [mk, mm] of Object.entries(periodMap).sort((a, b) => a[0].localeCompare(b[0]))) {
     for (const type of ['songs', 'artists', 'albums']) {
+      // Use per-section chart size so each section's BU/prev-chart tracking matches what's rendered
+      const _typeChartSize = type === 'songs' ? chartSizeSongs : type === 'artists' ? chartSizeArtists : chartSizeAlbums;
+      const _bpsBuSize = _typeChartSize >= 100 ? 50 : 10;
       for (const [k, data] of Object.entries(mm[type])) {
         const prevRk = bpsPrev[type].get(k);
         data.chartStatus = prevRk !== undefined ? 0 : bpsEver[type].has(k) ? 1 : 2;
@@ -7805,7 +7816,7 @@ function buildPeriodStats(period) {
       // Sort once — reused for both chart entries and BU zone entries
       const _bpsAllSorted = Object.entries(mm[type]).sort(([, a], [, b]) => rankSortWithStatus(a, b));
       const newPrev = new Map();
-      _bpsAllSorted.slice(0, chartSize).forEach(([k, data], i) => {
+      _bpsAllSorted.slice(0, _typeChartSize).forEach(([k, data], i) => {
         newPrev.set(k, i + 1); bpsEver[type].add(k);
         periodsOnChart[type][k] = (periodsOnChart[type][k] || 0) + 1;
         if (mk < curKey) {
@@ -7814,9 +7825,9 @@ function buildPeriodStats(period) {
         }
         if (mk === prevKey) prevChart[type][k] = { rank: i + 1, count: data.count };
       });
-      // Track BU zone entries (ranks chartSize+1 through chartSize+buSize)
+      // Track BU zone entries (ranks _typeChartSize+1 through _typeChartSize+buSize)
       const _buKeysThisPeriod = new Set();
-      _bpsAllSorted.slice(chartSize, chartSize + _bpsBuSize).forEach(([k, data]) => {
+      _bpsAllSorted.slice(_typeChartSize, _typeChartSize + _bpsBuSize).forEach(([k, data]) => {
         bubblingUnderWeeks[type][k] = (bubblingUnderWeeks[type][k] || 0) + 1;
         // New BU stint: streak was 0 (or never set) → increment the runs counter
         if (!bubblingUnderStreak[type][k]) bubblingUnderRuns[type][k] = (bubblingUnderRuns[type][k] || 0) + 1;
@@ -9956,8 +9967,8 @@ function renderDropouts(plays, periodStats) {
   if (!periodStats || currentPeriod !== 'week') { section.style.display = 'none'; return; }
 
   const dropoutsSubtitle = document.getElementById('dropoutsSubtitle');
-  dropoutsSubtitle.dataset.i18nN = chartSize;
-  dropoutsSubtitle.textContent = t('sub_dropouts', { n: chartSize });
+  dropoutsSubtitle.dataset.i18nN = chartSizeSongs;
+  dropoutsSubtitle.textContent = t('sub_dropouts', { n: chartSizeSongs });
 
   // Current week's chart keys — must use rankSortWithStatus to match main chart tiebreakers
   const sc = {}, ac = {}, lc = {};
@@ -9990,9 +10001,9 @@ function renderDropouts(plays, periodStats) {
     d.chartStatus = prev !== undefined ? 0 : periodStats.everChartedBefore.albums.has(k) ? 1 : 2;
     d.prevRank = prev !== undefined ? prev.rank : Infinity;
   }
-  const curSongKeys = new Set(Object.entries(sc).sort(([, a], [, b]) => rankSortWithStatus(a, b)).slice(0, chartSize).map(([k]) => k));
-  const curArtistKeys = new Set(Object.entries(ac).sort(([, a], [, b]) => rankSortWithStatus(a, b)).slice(0, chartSize).map(([k]) => k));
-  const curAlbumKeys = new Set(Object.entries(lc).sort(([, a], [, b]) => rankSortWithStatus(a, b)).slice(0, chartSize).map(([k]) => k));
+  const curSongKeys   = new Set(Object.entries(sc).sort(([, a], [, b]) => rankSortWithStatus(a, b)).slice(0, chartSizeSongs).map(([k]) => k));
+  const curArtistKeys = new Set(Object.entries(ac).sort(([, a], [, b]) => rankSortWithStatus(a, b)).slice(0, chartSizeArtists).map(([k]) => k));
+  const curAlbumKeys  = new Set(Object.entries(lc).sort(([, a], [, b]) => rankSortWithStatus(a, b)).slice(0, chartSizeAlbums).map(([k]) => k));
 
   // Dropouts: in previous week's chart but not in this week's
   const dropSongs = Object.entries(periodStats.prevChart.songs)

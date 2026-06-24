@@ -303,39 +303,7 @@
     <!-- Hover preview card for nav tabs (feature 5) -->
     <div class="nav-preview-card" id="navPreviewCard" aria-hidden="true"></div>
 
-    <div class="chart-size-bar" id="chartSizeBar">
-      <label data-i18n="chartsize_label">Chart Size:</label>
-      <div class="size-btns" id="sizeBtnsWeekly">
-        <button data-size="10" class="active">Top 10</button>
-        <button data-size="20">Top 20</button>
-        <button data-size="25">Top 25</button>
-        <button data-size="30">Top 30</button>
-        <button data-size="50">Top 50</button>
-        <button data-size="100">Top 100</button>
-      </div>
-      <div class="size-btns" id="sizeBtnsMonthly" style="display:none">
-        <button data-size="25">Top 25</button>
-        <button data-size="30">Top 30</button>
-        <button data-size="50" class="active">Top 50</button>
-        <button data-size="100">Top 100</button>
-      </div>
-    </div>
-
-    <div class="chart-size-bar" id="paginatedSizeBar" style="display:none">
-      <label data-i18n="chartview_label">Chart View:</label>
-      <div class="size-btns" id="sizeBtnsYearly">
-        <button data-size="50">Top 50</button>
-        <button data-size="100">Top 100</button>
-        <button data-size="200">Top 200</button>
-        <button data-size="0" class="active" data-i18n="all_entries">All Entries</button>
-      </div>
-      <div class="size-btns" id="sizeBtnsAllTime" style="display:none">
-        <button data-size="50">Top 50</button>
-        <button data-size="100">Top 100</button>
-        <button data-size="200">Top 200</button>
-        <button data-size="0" class="active" data-i18n="all_entries">All Entries</button>
-      </div>
-    </div>
+    <!-- Global size bars removed — chart size is now per-section (embedded in each chart section) -->
 
     <div id="stickyNavSentinel"></div>
     <div id="stickyNavBar" class="sticky-nav-bar">
@@ -422,6 +390,36 @@
           <button id="togglePeakTagsBtn" class="display-toggle-btn active" onclick="toggleSectionDisplay('peak-tags', 'songs')" data-i18n="btn_display_peak_tags">🏷️ PEAK TAGS</button>
           <button id="srcToggleBtn" class="display-toggle-btn active" onclick="toggleSectionDisplay('src', 'songs')" title="Show/hide photo source buttons" data-i18n="btn_display_pic_source">🖼️ PIC SOURCE</button>
           <button id="toggleYtBtnsBtn" class="display-toggle-btn active yt-toggle-btn" onclick="toggleSectionDisplay('yt-btns', 'songs')" title="Show/hide YouTube play buttons"><span class="yt-toggle-content"><svg class="yt-btn-icon" viewBox="0 0 24 24"><path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.5 12 3.5 12 3.5s-7.5 0-9.4.5A3 3 0 0 0 .5 6.2C0 8.1 0 12 0 12s0 3.9.5 5.8a3 3 0 0 0 2.1 2.1c1.9.5 9.4.5 9.4.5s7.5 0 9.4-.5a3 3 0 0 0 2.1-2.1C24 15.9 24 12 24 12s0-3.9-.5-5.8zM9.7 15.5V8.5l6.3 3.5-6.3 3.5z"/></svg><span data-i18n="btn_display_yt_btns">YOUTUBE</span></span></button>
+        </div>
+      </div>
+      <!-- Songs chart size — independent from artists/albums, remembered per period -->
+      <div class="chart-size-bar section-size-bar" id="sizeBarSongs">
+        <label>SIZE:</label>
+        <div class="size-btns" id="sizeBtnsSongsW">
+          <button data-size="10" class="active">Top 10</button>
+          <button data-size="20">Top 20</button>
+          <button data-size="25">Top 25</button>
+          <button data-size="30">Top 30</button>
+          <button data-size="50">Top 50</button>
+          <button data-size="100">Top 100</button>
+        </div>
+        <div class="size-btns" id="sizeBtnsSongsM" style="display:none">
+          <button data-size="25">Top 25</button>
+          <button data-size="30">Top 30</button>
+          <button data-size="50" class="active">Top 50</button>
+          <button data-size="100">Top 100</button>
+        </div>
+        <div class="size-btns" id="sizeBtnsSongsY" style="display:none">
+          <button data-size="50">Top 50</button>
+          <button data-size="100">Top 100</button>
+          <button data-size="200">Top 200</button>
+          <button data-size="0" class="active" data-i18n="all_entries">All Entries</button>
+        </div>
+        <div class="size-btns" id="sizeBtnsSongsAT" style="display:none">
+          <button data-size="50">Top 50</button>
+          <button data-size="100">Top 100</button>
+          <button data-size="200">Top 200</button>
+          <button data-size="0" class="active" data-i18n="all_entries">All Entries</button>
         </div>
       </div>
       <div class="weekly-view-bar" id="weeklyViewBtns-songs" style="display:none;">
@@ -557,6 +555,36 @@
           <button id="artistsShareBtn" class="ig-share-btn section-share-btn" data-i18n-title="tooltip_share_image" onclick="openIgPreviewModal('artists')" data-i18n="btn_share_image" style="display:none">📷 SHARE AS IMAGE</button>
         </div>
       </div>
+      <!-- Artists chart size — independent from songs/albums, remembered per period -->
+      <div class="chart-size-bar section-size-bar" id="sizeBarArtists">
+        <label>SIZE:</label>
+        <div class="size-btns" id="sizeBtnsArtistsW">
+          <button data-size="10" class="active">Top 10</button>
+          <button data-size="20">Top 20</button>
+          <button data-size="25">Top 25</button>
+          <button data-size="30">Top 30</button>
+          <button data-size="50">Top 50</button>
+          <button data-size="100">Top 100</button>
+        </div>
+        <div class="size-btns" id="sizeBtnsArtistsM" style="display:none">
+          <button data-size="25">Top 25</button>
+          <button data-size="30">Top 30</button>
+          <button data-size="50" class="active">Top 50</button>
+          <button data-size="100">Top 100</button>
+        </div>
+        <div class="size-btns" id="sizeBtnsArtistsY" style="display:none">
+          <button data-size="50">Top 50</button>
+          <button data-size="100">Top 100</button>
+          <button data-size="200">Top 200</button>
+          <button data-size="0" class="active" data-i18n="all_entries">All Entries</button>
+        </div>
+        <div class="size-btns" id="sizeBtnsArtistsAT" style="display:none">
+          <button data-size="50">Top 50</button>
+          <button data-size="100">Top 100</button>
+          <button data-size="200">Top 200</button>
+          <button data-size="0" class="active" data-i18n="all_entries">All Entries</button>
+        </div>
+      </div>
       <div class="weekly-view-bar" id="weeklyViewBtns-artists" style="display:none;">
         <label class="weekly-view-label">VIEW:</label>
         <div class="weekly-view-btns">
@@ -688,6 +716,36 @@
           <button id="toggleYtBtnsBtnAlbums" class="display-toggle-btn active yt-toggle-btn" onclick="toggleSectionDisplay('yt-btns', 'albums')" title="Show/hide YouTube play buttons"><span class="yt-toggle-content"><svg class="yt-btn-icon" viewBox="0 0 24 24"><path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.5 12 3.5 12 3.5s-7.5 0-9.4.5A3 3 0 0 0 .5 6.2C0 8.1 0 12 0 12s0 3.9.5 5.8a3 3 0 0 0 2.1 2.1c1.9.5 9.4.5 9.4.5s7.5 0 9.4-.5a3 3 0 0 0 2.1-2.1C24 15.9 24 12 24 12s0-3.9-.5-5.8zM9.7 15.5V8.5l6.3 3.5-6.3 3.5z"/></svg><span data-i18n="btn_display_yt_btns">YOUTUBE</span></span></button>
           <!-- Share as image — on the right for albums -->
           <button id="albumsShareBtn" class="ig-share-btn section-share-btn" data-i18n-title="tooltip_share_image" onclick="openIgPreviewModal('albums')" data-i18n="btn_share_image" style="display:none">📷 SHARE AS IMAGE</button>
+        </div>
+      </div>
+      <!-- Albums chart size — independent from songs/artists, remembered per period -->
+      <div class="chart-size-bar section-size-bar" id="sizeBarAlbums">
+        <label>SIZE:</label>
+        <div class="size-btns" id="sizeBtnsAlbumsW">
+          <button data-size="10" class="active">Top 10</button>
+          <button data-size="20">Top 20</button>
+          <button data-size="25">Top 25</button>
+          <button data-size="30">Top 30</button>
+          <button data-size="50">Top 50</button>
+          <button data-size="100">Top 100</button>
+        </div>
+        <div class="size-btns" id="sizeBtnsAlbumsM" style="display:none">
+          <button data-size="25">Top 25</button>
+          <button data-size="30">Top 30</button>
+          <button data-size="50" class="active">Top 50</button>
+          <button data-size="100">Top 100</button>
+        </div>
+        <div class="size-btns" id="sizeBtnsAlbumsY" style="display:none">
+          <button data-size="50">Top 50</button>
+          <button data-size="100">Top 100</button>
+          <button data-size="200">Top 200</button>
+          <button data-size="0" class="active" data-i18n="all_entries">All Entries</button>
+        </div>
+        <div class="size-btns" id="sizeBtnsAlbumsAT" style="display:none">
+          <button data-size="50">Top 50</button>
+          <button data-size="100">Top 100</button>
+          <button data-size="200">Top 200</button>
+          <button data-size="0" class="active" data-i18n="all_entries">All Entries</button>
         </div>
       </div>
       <div class="weekly-view-bar" id="weeklyViewBtns-albums" style="display:none;">
