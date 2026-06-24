@@ -10476,9 +10476,10 @@ function updateShareBtns() {
   const curPaginatedSize2 = currentPeriod === 'year' ? chartSizeYearly : chartSizeAllTime;
   const isAllEntries = isPaginated() && !isFinite(curPaginatedSize2);
   const allowed = show && !isAllEntries;
+  // Buttons are now in each section-controls row (header area)
   ['songs', 'artists', 'albums'].forEach(t => {
-    const bar = document.getElementById(t + 'ShareBar');
-    if (bar) bar.classList.toggle('visible', allowed);
+    const btn = document.getElementById(t + 'ShareBtn');
+    if (btn) btn.style.display = allowed ? 'inline-flex' : 'none';
   });
 }
 

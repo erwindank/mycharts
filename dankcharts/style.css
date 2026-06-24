@@ -2243,8 +2243,61 @@
       color: #0d0d00;
     }
 
+    /* YT BUTTONS toggle — styled to match inline YouTube play buttons */
+    .display-toggle-btn.yt-toggle-btn {
+      border-color: #FF0000;
+      color: #FF0000;
+      opacity: 0.5;
+    }
+    .display-toggle-btn.yt-toggle-btn:hover {
+      background: rgba(255, 0, 0, 0.12);
+      border-color: #FF0000;
+      color: #FF0000;
+      opacity: 0.85;
+    }
+    .display-toggle-btn.yt-toggle-btn.active {
+      background: #FF0000;
+      border-color: #FF0000;
+      color: #fff;
+      opacity: 1;
+    }
+    .yt-toggle-content {
+      display: flex;
+      align-items: center;
+      gap: 0.3em;
+      pointer-events: none;
+    }
+    .yt-toggle-content .yt-btn-icon {
+      width: 10px;
+      height: 10px;
+      fill: currentColor;
+      flex-shrink: 0;
+      display: block;
+    }
+
     /* Section controls row — houses display toggles + playback + export inside each chart section header */
     .section-controls {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      flex-wrap: wrap;
+    }
+
+    /* Flex spacer — pushes display toggles to the right edge of section-controls */
+    .controls-spacer {
+      flex: 1;
+    }
+
+    /* Action buttons group — left side of section-controls */
+    .controls-actions {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      flex-wrap: wrap;
+    }
+
+    /* Display toggles group — right side of section-controls */
+    .controls-toggles {
       display: flex;
       align-items: center;
       gap: 4px;
@@ -2257,6 +2310,24 @@
       width: auto;
       font-size: 0.62rem;
       letter-spacing: 0.06em;
+    }
+
+    /* Share as image button inside section controls — matches yt-playall-btn style */
+    .section-controls .ig-share-btn.section-share-btn {
+      margin: 0;
+      width: auto;
+      font-size: 0.62rem;
+      letter-spacing: 0.06em;
+      padding: 0.2rem 0.7rem;
+      border-radius: 4px;
+      border-color: var(--border);
+      transition: background 0.15s, color 0.15s, border-color 0.15s;
+    }
+    .section-controls .ig-share-btn.section-share-btn:hover {
+      background: var(--bg3);
+      border-color: var(--accent);
+      color: var(--text);
+      font-weight: normal;
     }
 
     /* Per-section cert badge visibility */
@@ -15650,6 +15721,84 @@ body.red-light .play-bar-fill.wv-bar-re,     body.red-light .wv-bar-fill.wv-bar-
 /* section-sub: yellow-light / pink-light were missing from the existing override (white on light bg) */
 body.yellow-light .section-sub,
 body.pink-light .section-sub { color: var(--text3); }
+
+/* ── STREAK MODAL: light theme overrides ───────────────────── */
+/* Header has a hardcoded dark gradient; on light themes --text is dark → dark-on-dark */
+body.navy-light .streak-modal-header,   body.purple-light .streak-modal-header,
+body.yellow-light .streak-modal-header, body.pink-light .streak-modal-header,
+body.red-light .streak-modal-header {
+  background: linear-gradient(135deg, var(--surface), var(--bg3));
+}
+
+/* Urgency banners: neon colors unreadable on light backgrounds */
+body.navy-light .sk-urg--critical,   body.purple-light .sk-urg--critical,
+body.yellow-light .sk-urg--critical, body.pink-light .sk-urg--critical,
+body.red-light .sk-urg--critical {
+  color: #b91c1c;
+  background: rgba(220, 38, 38, 0.08);
+}
+
+body.navy-light .sk-urg--warning,   body.purple-light .sk-urg--warning,
+body.yellow-light .sk-urg--warning, body.pink-light .sk-urg--warning,
+body.red-light .sk-urg--warning {
+  color: #92400e;
+  background: rgba(146, 64, 14, 0.07);
+}
+
+/* At-risk streak items: #e8a020 orange too light on light backgrounds */
+body.navy-light .streak-item--risk .streak-label,
+body.navy-light .streak-item--risk .streak-days,
+body.purple-light .streak-item--risk .streak-label,
+body.purple-light .streak-item--risk .streak-days,
+body.yellow-light .streak-item--risk .streak-label,
+body.yellow-light .streak-item--risk .streak-days,
+body.pink-light .streak-item--risk .streak-label,
+body.pink-light .streak-item--risk .streak-days,
+body.red-light .streak-item--risk .streak-label,
+body.red-light .streak-item--risk .streak-days {
+  color: #92400e;
+}
+
+/* Risk stat chip in modal header */
+body.navy-light .sk-stat--risk,   body.purple-light .sk-stat--risk,
+body.yellow-light .sk-stat--risk, body.pink-light .sk-stat--risk,
+body.red-light .sk-stat--risk {
+  color: #92400e;
+  border-color: rgba(146, 64, 14, 0.3);
+}
+
+/* Hall of Fame: gold #f0c040 near-invisible on white/light backgrounds */
+body.navy-light .sk-hof-record,   body.purple-light .sk-hof-record,
+body.yellow-light .sk-hof-record, body.pink-light .sk-hof-record,
+body.red-light .sk-hof-record {
+  color: #92400e;
+}
+
+body.navy-light .streak-section--fame .streak-section-title,
+body.purple-light .streak-section--fame .streak-section-title,
+body.yellow-light .streak-section--fame .streak-section-title,
+body.pink-light .streak-section--fame .streak-section-title,
+body.red-light .streak-section--fame .streak-section-title {
+  color: #92400e;
+}
+
+/* HoF active badge: #ff8840 orange unreadable on light */
+body.navy-light .sk-hof-badge--active,   body.purple-light .sk-hof-badge--active,
+body.yellow-light .sk-hof-badge--active, body.pink-light .sk-hof-badge--active,
+body.red-light .sk-hof-badge--active {
+  color: #92400e;
+  background: rgba(146, 64, 14, 0.09);
+  border-color: rgba(146, 64, 14, 0.28);
+}
+
+/* Milestone badge: neon green tint invisible/jarring on light backgrounds */
+body.navy-light .sk-ms,   body.purple-light .sk-ms,
+body.yellow-light .sk-ms, body.pink-light .sk-ms,
+body.red-light .sk-ms {
+  background: rgba(0, 0, 0, 0.04);
+  border-color: rgba(0, 0, 0, 0.15);
+}
+
 .wv-r1.wv-stk-card .wv-bar-fill { background: var(--gold1) !important; }
 .wv-stk-shelf { display: none; padding: 0 10px 10px; border-top: 1px solid var(--border); padding-top: 8px; }
 .wv-stk-card.wv-stk-open .wv-stk-shelf { display: block; }
