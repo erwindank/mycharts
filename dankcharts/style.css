@@ -2877,6 +2877,13 @@
       border: 1px solid rgba(99, 102, 241, 0.25);
     }
 
+    /* Clinging — dropped from chart directly into BU, still holding on (amber) */
+    .bu-badge-clinging {
+      background: rgba(251, 146, 60, 0.12);
+      color: #fb923c;
+      border: 1px solid rgba(251, 146, 60, 0.25);
+    }
+
     /* Idea 14: total weeks in BU (purple) */
     .bu-badge-weeks {
       background: rgba(167, 139, 250, 0.12);
@@ -15476,6 +15483,14 @@ body.red-light .bu-badge-resurgent {
   color: #312e81;
   background: rgba(49, 46, 129, 0.07);
   border-color: rgba(49, 46, 129, 0.3);
+}
+
+body.navy-light .bu-badge-clinging,   body.purple-light .bu-badge-clinging,
+body.yellow-light .bu-badge-clinging, body.pink-light .bu-badge-clinging,
+body.red-light .bu-badge-clinging {
+  color: #7c2d12;
+  background: rgba(124, 45, 18, 0.07);
+  border-color: rgba(124, 45, 18, 0.3);
 }
 
 body.navy-light .bu-badge-weeks,   body.purple-light .bu-badge-weeks,
