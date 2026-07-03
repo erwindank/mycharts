@@ -78,5 +78,21 @@
       "Bash(git -C \"c:\\\\Users\\\\erwin_totaltransport\\\\Desktop\\\\mycharts\" log --oneline -3)",
       "Bash(git -C \"c:\\\\Users\\\\erwin_totaltransport\\\\Desktop\\\\mycharts\" add backend/mailer.py backend/app.py backend/requirements.txt dankcharts/firebase.js)"
     ]
-  }
+  },
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PROJECT_DIR}/.claude/skills/impeccable/scripts/hook.mjs\"",
+            "timeout": 5,
+            "statusMessage": "Checking UI changes"
+          }
+        ]
+      }
+    ]
+  },
+  "description": "Impeccable design detector: runs after Edit/Write/MultiEdit on UI files and surfaces findings as system reminders."
 }
