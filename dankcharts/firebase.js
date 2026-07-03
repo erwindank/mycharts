@@ -67,7 +67,10 @@ async function dcSaveUserConfig() {
   const cfg = {};
   for (const key of SYNC_KEYS) {
     const v = localStorage.getItem(key);
-    if (v !== null) cfg[key] = v;
+    // A cleared key must be explicitly deleted, not omitted — with merge:true, an
+    // omitted key just leaves whatever value Firestore already has untouched, so a
+    // setting the user reset locally would otherwise persist remotely forever.
+    cfg[key] = v !== null ? v : firebase.firestore.FieldValue.delete();
   }
   try {
     await _configRef(_currentUser.uid).set(cfg, { merge: true });
@@ -97,10 +100,10 @@ function _playlistsRef(uid) {
   return _db.collection('users').doc(uid).collection('data').doc('playlists');
 }
 
-async function dcSavePlaylistsToFirestore(playlistsJson) {
+async function dcSavePlaylistsToFirestore(playlistsJson, modifiedJson, deletedJson) {
   if (!_currentUser || !_db) return;
   try {
-    await _playlistsRef(_currentUser.uid).set({ data: playlistsJson });
+    await _playlistsRef(_currentUser.uid).set({ data: playlistsJson, modified: modifiedJson || '{}', deleted: deletedJson || '{}' });
   } catch (err) {
     console.warn('[dankcharts] Playlists save error:', err);
   }
@@ -110,7 +113,9 @@ async function dcLoadPlaylistsFromFirestore() {
   if (!_currentUser || !_db) return null;
   try {
     const snap = await _playlistsRef(_currentUser.uid).get();
-    return snap.exists ? snap.data().data : null;
+    if (!snap.exists) return null;
+    const d = snap.data();
+    return { data: d.data, modified: d.modified, deleted: d.deleted };
   } catch (err) {
     console.warn('[dankcharts] Playlists load error:', err);
     return null;
@@ -235,8 +240,8 @@ _auth.onAuthStateChanged(async (user) => {
   if (applied && typeof dcApplyAllSettings    === 'function') dcApplyAllSettings();
 
   // Sync playlists from Firestore and merge with any locally-saved playlists
-  const remotePlJson = await dcLoadPlaylistsFromFirestore();
-  if (remotePlJson && typeof _ytMergePlaylists === 'function') _ytMergePlaylists(remotePlJson);
+  const remotePlaylistData = await dcLoadPlaylistsFromFirestore();
+  if (remotePlaylistData && typeof _ytMergePlaylists === 'function') _ytMergePlaylists(remotePlaylistData);
 
   const hasLocalConfig = SYNC_KEYS.some(k => localStorage.getItem(k) !== null);
   if (!hasLocalConfig && !applied) return; // truly fresh user with no data anywhere

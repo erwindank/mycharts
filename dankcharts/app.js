@@ -792,7 +792,7 @@ function checkSimilarRules(origArtist, origTitle, origAlbum, newArtist, newTitle
   if (!similar.length) return Promise.resolve({ choice: 'add', idsToRemove: [] });
   return new Promise(resolve => {
     const details = document.getElementById('similarRuleDetails');
-    const hasSheet = !!getSheetWriteUrl();
+    const hasSheet = !!(getSheetWriteUrl() && getDataSource() === 'sheets');
     details.innerHTML =
       `<div style="font-size:0.72rem;color:var(--text3);margin-bottom:0.5rem">Check the rules below to remove them when saving. Uncheck any you want to keep.</div>` +
       similar.map((r, i) => `
@@ -951,9 +951,11 @@ async function loadRulesFromSheet() {
       }
     }
     _rulesCache = merged;
-    localStorage.setItem(RULES_KEY, JSON.stringify(merged));
+    const mergedJson = JSON.stringify(merged);
+    localStorage.setItem(RULES_KEY, mergedJson);
     saveToIDB(IDB_RULES_KEY, { rules: merged }).catch(() => {});
     if (addedFromLocal > 0) syncRulesToSheet();
+    if (typeof dcSaveRulesToFirestore === 'function') dcSaveRulesToFirestore(mergedJson);
   } catch { /* silently skip if sheet unreachable */ }
 }
 
@@ -2238,6 +2240,13 @@ function saveSourceConfig() {
     deleteFromIDB(IDB_SHEETS_KEY);
     localStorage.removeItem('dc_sync_ts');
     localStorage.removeItem('dc_lastfm_ts');
+    // Clean up sheet config left over from a prior Sheets setup — otherwise code that
+    // checks for a configured sheet by key presence alone (without also checking
+    // getDataSource()==='sheets') can still see a stale write URL after switching away.
+    localStorage.removeItem('dc_sheet_id');
+    localStorage.removeItem('dc_sheet_tab');
+    localStorage.removeItem('dc_sheet_gid');
+    localStorage.removeItem('dc_sheet_write_url');
     closeSourceModal();
     document.getElementById('srcFileInput')?.click();
     return;
@@ -2261,6 +2270,12 @@ function saveSourceConfig() {
     localStorage.setItem('dc_lastfm_user', document.getElementById('srcLastfmUser').value.trim());
     deleteFromIDB(IDB_SHEETS_KEY);
     localStorage.removeItem('dc_sync_ts');
+    // Same cleanup as the file branch above — a prior Sheets setup shouldn't outlive
+    // switching to Last.fm (see comment there).
+    localStorage.removeItem('dc_sheet_id');
+    localStorage.removeItem('dc_sheet_tab');
+    localStorage.removeItem('dc_sheet_gid');
+    localStorage.removeItem('dc_sheet_write_url');
   }
   // Always persist LFM API credentials when filled in (used for scrobbling regardless of data source)
   const apiKey    = document.getElementById('srcLfmApiKey').value.trim();
@@ -2441,8 +2456,8 @@ window.addEventListener('load', async () => {
 function parseCsv(text, fromSheets = false) {
   const lines = text.trim().split(/\r?\n/);
   if (lines.length < 2) {
-    if (!fromSheets) return;
-    setSyncStatus(t('sync_empty'), 'err'); return;
+    if (!fromSheets) return false;
+    setSyncStatus(t('sync_empty'), 'err'); return false;
   }
 
   const headers = lines[0].split(',').map(h => h.replace(/^"|"$/g, '').trim().toLowerCase());
@@ -2462,7 +2477,7 @@ function parseCsv(text, fromSheets = false) {
   }
 
   if (colMap.title === undefined || colMap.artist === undefined || colMap.datetime === undefined) {
-    setSyncStatus(t('sync_missing_cols'), 'err'); return;
+    setSyncStatus(t('sync_missing_cols'), 'err'); return false;
   }
 
   allPlays = [];
@@ -2512,7 +2527,7 @@ function parseCsv(text, fromSheets = false) {
   }
 
   if (allPlays.length === 0) {
-    setSyncStatus(t('sync_no_valid'), 'err'); return;
+    setSyncStatus(t('sync_no_valid'), 'err'); return false;
   }
 
   allPlays.sort((a, b) => b.date - a.date);
@@ -2524,6 +2539,7 @@ function parseCsv(text, fromSheets = false) {
 
   allPlays = applyAutocorrectRules(allPlays);
   finalizeLoad();
+  return true;
 }
 
 function finalizeLoad() {
@@ -2883,9 +2899,11 @@ window.addEventListener('hashchange', handleChartHash);
 function buildRecords() {
   if (!allPlays.length) return;
 
-  const wSize = chartSizeWeekly;
-  const mSize = chartSizeMonthly;
-  const ySize = isFinite(chartSizeYearly) ? chartSizeYearly : 999999;
+  const wSizeSongs = chartSizeSongsW, wSizeArtists = chartSizeArtistsW, wSizeAlbums = chartSizeAlbumsW;
+  const mSizeSongs = chartSizeSongsM, mSizeArtists = chartSizeArtistsM, mSizeAlbums = chartSizeAlbumsM;
+  const ySizeSongs   = isFinite(chartSizeSongsY)   ? chartSizeSongsY   : 999999;
+  const ySizeArtists = isFinite(chartSizeArtistsY) ? chartSizeArtistsY : 999999;
+  const ySizeAlbums  = isFinite(chartSizeAlbumsY)  ? chartSizeAlbumsY  : 999999;
 
   // Name lookup tables
   const songNames = {}, albumNames = {};
@@ -2976,7 +2994,7 @@ function buildRecords() {
     year: { songs: {}, artists: {}, albums: {} }
   };
 
-  function buildPeriodRecords(pt, playsMap, keys, size) {
+  function buildPeriodRecords(pt, playsMap, keys, sizeSongs, sizeArtists, sizeAlbums) {
     let prevSong = {}, prevArtist = {}, prevAlbum = {};
     const everSong = new Set(), everArtist = new Set(), everAlbum = new Set();
     for (const pk of keys) {
@@ -2999,9 +3017,9 @@ function buildRecords() {
       for (const [k, d] of Object.entries(sc)) { d.chartStatus = prevSong[k] ? 0 : everSong.has(k) ? 1 : 2; d.prevRank = prevSong[k] || Infinity; }
       for (const [k, d] of Object.entries(ac)) { d.chartStatus = prevArtist[k] ? 0 : everArtist.has(k) ? 1 : 2; d.prevRank = prevArtist[k] || Infinity; }
       for (const [k, d] of Object.entries(lc)) { d.chartStatus = prevAlbum[k] ? 0 : everAlbum.has(k) ? 1 : 2; d.prevRank = prevAlbum[k] || Infinity; }
-      const topSongs = Object.entries(sc).sort(([, a], [, b]) => rankSortWithStatus(a, b)).slice(0, size);
-      const topArtists = Object.entries(ac).sort(([, a], [, b]) => rankSortWithStatus(a, b)).slice(0, size);
-      const topAlbums = Object.entries(lc).sort(([, a], [, b]) => rankSortWithStatus(a, b)).slice(0, size);
+      const topSongs = Object.entries(sc).sort(([, a], [, b]) => rankSortWithStatus(a, b)).slice(0, sizeSongs);
+      const topArtists = Object.entries(ac).sort(([, a], [, b]) => rankSortWithStatus(a, b)).slice(0, sizeArtists);
+      const topAlbums = Object.entries(lc).sort(([, a], [, b]) => rankSortWithStatus(a, b)).slice(0, sizeAlbums);
       const nPS = {}, nPA = {}, nPL = {};
       const newSongKeysThisPeriod = new Set();
       topSongs.forEach(([k, d], i) => {
@@ -3057,9 +3075,9 @@ function buildRecords() {
     }
   }
 
-  buildPeriodRecords('week', weekPlaysMap, weekKeys, wSize);
-  buildPeriodRecords('month', monthPlaysMap, monthKeys, mSize);
-  buildPeriodRecords('year', yearPlaysMap, yearKeys, ySize);
+  buildPeriodRecords('week', weekPlaysMap, weekKeys, wSizeSongs, wSizeArtists, wSizeAlbums);
+  buildPeriodRecords('month', monthPlaysMap, monthKeys, mSizeSongs, mSizeArtists, mSizeAlbums);
+  buildPeriodRecords('year', yearPlaysMap, yearKeys, ySizeSongs, ySizeArtists, ySizeAlbums);
 
   // ── New Charts Records: compute from actual New Songs/Artists/Albums charts ──
   // Uses first-ever play per item, matching the renderNewEntries logic.
@@ -3300,7 +3318,7 @@ function buildRecords() {
   // ── RENDERING ────────────────────────────────────────────────
   const yTopLabel = isFinite(chartSizeYearly) ? t('rec_yearly_top', { n: chartSizeYearly }) : t('rec_yearly_all');
   document.getElementById('recIntro').innerHTML =
-    t('rec_intro_prefix') + ' <strong>' + t('rec_weekly_top', { n: wSize }) + '</strong> &middot; <strong>' + t('rec_monthly_top', { n: mSize }) + '</strong> &middot; <strong>' + yTopLabel + '</strong> &nbsp;|&nbsp; ' +
+    t('rec_intro_prefix') + ' <strong>' + t('rec_weekly_top', { n: wSizeSongs }) + '</strong> &middot; <strong>' + t('rec_monthly_top', { n: mSizeSongs }) + '</strong> &middot; <strong>' + yTopLabel + '</strong> &nbsp;|&nbsp; ' +
     t('rec_data_summary', { weeks: weekKeys.length, months: monthKeys.length, years: yearKeys.length });
 
   function recTable(headers, rows, limit, detailRows, tableId) {
@@ -3322,9 +3340,9 @@ function buildRecords() {
 
   // ── All #1s ──────────────────────────────────────────────────
   const typeConfig = [
-    { pt: 'week', label: t('rec_weekly_label'), size: wSize },
-    { pt: 'month', label: t('rec_monthly_label'), size: mSize },
-    { pt: 'year', label: t('rec_yearly_label'), size: isFinite(chartSizeYearly) ? chartSizeYearly : '∞' },
+    { pt: 'week', label: t('rec_weekly_label'), size: wSizeSongs },
+    { pt: 'month', label: t('rec_monthly_label'), size: mSizeSongs },
+    { pt: 'year', label: t('rec_yearly_label'), size: isFinite(chartSizeSongsY) ? chartSizeSongsY : '∞' },
   ];
   const entityConfig = [
     {
@@ -3399,7 +3417,7 @@ function buildRecords() {
 
   // ── Perfect All Kill ─────────────────────────────────────────
   if (!pakWeeks.length) {
-    document.getElementById('recPAKBody').innerHTML = '<div class="rec-empty">' + t('rec_no_pak', { n: wSize }) + '</div>';
+    document.getElementById('recPAKBody').innerHTML = '<div class="rec-empty">' + t('rec_no_pak', { n: wSizeSongs }) + '</div>';
   } else {
     const byArtist = {};
     for (const pw of pakWeeks) { (byArtist[pw.artist] || (byArtist[pw.artist] = [])).push(pw); }
@@ -5385,13 +5403,21 @@ function renderNewEntries(plays, start, end) {
 
   const periodLabel = currentPeriod === 'week' ? t('period_this_week') : currentPeriod === 'month' ? t('period_this_month') : t('period_this_year');
 
-  let limit;
+  // Each section's own SIZE setting, not the (Songs-only) compat globals — otherwise
+  // the Artists/Albums SIZE bar has no effect on how many New Entries are shown.
+  let limitSongs, limitArtists, limitAlbums;
   if (currentPeriod === 'week') {
-    limit = Math.max(20, chartSizeWeekly);
+    limitSongs   = Math.max(20, chartSizeSongsW);
+    limitArtists = Math.max(20, chartSizeArtistsW);
+    limitAlbums  = Math.max(20, chartSizeAlbumsW);
   } else if (currentPeriod === 'month') {
-    limit = chartSizeMonthly;
+    limitSongs   = chartSizeSongsM;
+    limitArtists = chartSizeArtistsM;
+    limitAlbums  = chartSizeAlbumsM;
   } else {
-    limit = chartSizeYearly; // Infinity = All Entries
+    limitSongs   = chartSizeSongsY; // Infinity = All Entries
+    limitArtists = chartSizeArtistsY;
+    limitAlbums  = chartSizeAlbumsY;
   }
 
   if (!firstSeenMaps) firstSeenMaps = buildFirstSeenMaps();
@@ -5410,7 +5436,7 @@ function renderNewEntries(plays, start, end) {
   }
   const allNewSongs = Object.values(songCounts).map(s => { s.album = bestAlbum(s.title, s._albums); delete s._albums; return s; })
     .sort(rankSort);
-  fullNewData.newSongs = isFinite(limit) ? allNewSongs.slice(0, limit) : allNewSongs;
+  fullNewData.newSongs = isFinite(limitSongs) ? allNewSongs.slice(0, limitSongs) : allNewSongs;
 
   // New artists
   const artistCounts = {};
@@ -5425,7 +5451,7 @@ function renderNewEntries(plays, start, end) {
     }
   }
   const allNewArtists = Object.values(artistCounts).sort(rankSort);
-  fullNewData.newArtists = isFinite(limit) ? allNewArtists.slice(0, limit) : allNewArtists;
+  fullNewData.newArtists = isFinite(limitArtists) ? allNewArtists.slice(0, limitArtists) : allNewArtists;
 
   // New albums
   const albumCounts = {};
@@ -5440,7 +5466,7 @@ function renderNewEntries(plays, start, end) {
     }
   }
   const allNewAlbums = Object.values(albumCounts).sort(rankSort);
-  fullNewData.newAlbums = isFinite(limit) ? allNewAlbums.slice(0, limit) : allNewAlbums;
+  fullNewData.newAlbums = isFinite(limitAlbums) ? allNewAlbums.slice(0, limitAlbums) : allNewAlbums;
 
   // Reset pages on each full data rebuild
   pageState.newSongs = 0; pageState.newArtists = 0; pageState.newAlbums = 0;
@@ -6860,9 +6886,9 @@ function buildCrPanelHTML(type, key) {
   const toggleHtml = `<div class="cr-range-bar">
     <span class="cr-range-label">${t('cr_range')}</span>
     ${['year', 'uptoYear', 'now'].map(m =>
-    `<button class="cr-range-btn${getCrRangeMode(type, key) === m ? ' active' : ''}" onclick="setCrRangeMode('${m}','${type}','${encodeURIComponent(key)}');event.stopPropagation()">${modeLabels[m]}</button>`
+    `<button class="cr-range-btn${getCrRangeMode(type, key) === m ? ' active' : ''}" onclick="setCrRangeMode('${m}','${type}','${encodeKeyForOnclick(key)}');event.stopPropagation()">${modeLabels[m]}</button>`
   ).join('')}
-    <button class="cr-ig-share-btn" style="margin-left:auto;" onclick="openCrIgModalFromPanel('${type}','${encodeURIComponent(key)}');event.stopPropagation()">${t('cr_share_btn')}</button>
+    <button class="cr-ig-share-btn" style="margin-left:auto;" onclick="openCrIgModalFromPanel('${type}','${encodeKeyForOnclick(key)}');event.stopPropagation()">${t('cr_share_btn')}</button>
   </div>`;
 
   let sectionsHtml = '';
@@ -7282,6 +7308,13 @@ function buildChartRun(period) {
   // exactly as the render functions do, making box ranks match displayed ranks.
   const prevChartKeys = { songs: new Map(), artists: new Map(), albums: new Map() };
   const everChartedKeys = { songs: new Set(), artists: new Set(), albums: new Set() };
+  // Each type's own per-period SIZE setting — not one shared (Songs-only) size —
+  // so the Artists/Albums SIZE bar actually affects their chart-run truncation.
+  const sizeByType = {
+    songs:   period === 'year' ? chartSizeSongsY   : period === 'month' ? chartSizeSongsM   : chartSizeSongsW,
+    artists: period === 'year' ? chartSizeArtistsY : period === 'month' ? chartSizeArtistsM : chartSizeArtistsW,
+    albums:  period === 'year' ? chartSizeAlbumsY  : period === 'month' ? chartSizeAlbumsM  : chartSizeAlbumsW,
+  };
   for (const pk of Object.keys(periodMap).sort()) {
     const pm = periodMap[pk];
     const lbl = crPeriodLabel(period, pk);
@@ -7292,7 +7325,7 @@ function buildChartRun(period) {
         data.chartStatus = prevRk !== undefined ? 0 : everChartedKeys[type].has(k) ? 1 : 2;
         data.prevRank = prevRk !== undefined ? prevRk : Infinity;
       }
-      const sizeForPeriod = period === 'year' ? chartSizeYearly : period === 'month' ? chartSizeMonthly : chartSizeWeekly;
+      const sizeForPeriod = sizeByType[type];
       const ranked = Object.entries(pm[type]).sort(([, a], [, b]) => rankSortWithStatus(a, b)).slice(0, sizeForPeriod);
       // Update prev/ever sets for next period
       const newPrevKeys = new Map();
@@ -7435,7 +7468,7 @@ function crBoxesHTML(type, key, crData, preD, periodOverride) {
   const d = (preD !== undefined && preD !== null) ? preD : (data?.result?.[type]?.[key]);
   if (!d) return '<div style="font-size:0.6rem;color:var(--text3);padding:4px 0">No chart history yet.</div>';
   const period = periodOverride || data?.period || currentPeriod;
-  const safeKey = encodeURIComponent(key);
+  const safeKey = encodeKeyForOnclick(key);
   const unit = (gap) => period === 'week' ? tUnit('weeks', gap) : period === 'month' ? tUnit('months', gap) : tUnit('years', gap);
   const boxes = d.entries.flatMap((e, i) => {
     const isPeak = (e.rank === d.peak);
@@ -8544,7 +8577,7 @@ function buildBuChartRun() {
 function buCrBoxesHTML(type, key) {
   const d = buChartRunData?.result?.[type]?.[key];
   if (!d || !d.entries.length) return '<div style="font-size:0.6rem;color:var(--text3);padding:4px 0">No Bubbling Under history yet.</div>';
-  const safeKey = encodeURIComponent(key);
+  const safeKey = encodeKeyForOnclick(key);
   const boxes = d.entries.flatMap((e, i) => {
     const isPeak = (e.buRank === d.peakBuRank);
     const cls = isPeak ? 'cr-box cr-box-peak' : 'cr-box';
@@ -8578,7 +8611,7 @@ function buildCombinedCrBoxesHTML(type, key) {
   if (buD) buD.entries.forEach(e => all.push({ periodKey: e.periodKey, label: e.label, zone: 'bu', buRank: e.buRank }));
   all.sort((a, b) => a.periodKey < b.periodKey ? -1 : a.periodKey > b.periodKey ? 1 : 0);
 
-  const safeKey = encodeURIComponent(key);
+  const safeKey = encodeKeyForOnclick(key);
   const boxes = all.flatMap((e, i) => {
     let cls, rankText, onclk;
     if (e.zone === 'chart') {
@@ -8623,7 +8656,7 @@ function buildCrWithBuBoxesHTML(type, key, d) {
   buD.entries.forEach(e => all.push({ periodKey: e.periodKey, label: e.label, zone: 'bu', buRank: e.buRank }));
   all.sort((a, b) => a.periodKey < b.periodKey ? -1 : a.periodKey > b.periodKey ? 1 : 0);
 
-  const safeKey = encodeURIComponent(key);
+  const safeKey = encodeKeyForOnclick(key);
   const boxes = all.flatMap((e, i) => {
     let cls, rankText, onclk;
     if (e.zone === 'chart') {
@@ -10336,6 +10369,7 @@ function _calCreatePlConfirm() {
   if (!name) { nameInput.focus(); return; }
   if (!_calCreatePlTracks || !_calCreatePlTracks.length) return;
   _ytPlaylists[name] = _calCreatePlTracks;
+  _ytTouchPlaylist(name);
   _ytSavePlaylists();
   _ytRenderPlaylists();
   // Refresh the Playlists tab manager if it's currently open
@@ -12556,7 +12590,10 @@ function openArtistModal(artistName) {
   for (const p of artistPlays) {
     if (!p.album || p.album === '—') continue;
     const k = p.album;
-    if (!albumCounts[k]) albumCounts[k] = { album: p.album, count: 0, tracks: new Set(), firstPlayed: p.date, lastPlayed: p.date };
+    // Track the album's primary artist (may differ from artistName when this
+    // artist only appears as a featured/secondary credit) so chartAlbums below
+    // can look it up in peaks.albumPeakMap, which is always keyed by primary artist.
+    if (!albumCounts[k]) albumCounts[k] = { album: p.album, primaryArtist: albumArtist(p), count: 0, tracks: new Set(), firstPlayed: p.date, lastPlayed: p.date };
     else albumCounts[k].firstPlayed = p.date;
     albumCounts[k].count++;
     albumCounts[k].tracks.add(p.title);
@@ -12588,7 +12625,7 @@ function openArtistModal(artistName) {
 
   // Songs that made it into the chart (have a peak position)
   const chartSongs = allSongsSorted.filter(s => allTimeSongPeakMap[songKey(s)] !== undefined);
-  const chartAlbums = allAlbumsSorted.filter(a => peaks.albumPeakMap[a.album + '|||' + artistName] !== undefined || peaks.albumPeakMap[a.album + '|||' + a.album] !== undefined);
+  const chartAlbums = allAlbumsSorted.filter(a => peaks.albumPeakMap[a.album + '|||' + a.primaryArtist] !== undefined || peaks.albumPeakMap[a.album + '|||' + artistName] !== undefined);
 
   // Certifications count
   const goldSongs = allSongsSorted.filter(s => s.count >= CERT.song.gold).length;
@@ -13163,6 +13200,15 @@ function openArtistModal(artistName) {
 
 function esc(str) {
   return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+// encodeURIComponent leaves ' unescaped, which breaks out of the single-quoted
+// JS string literals used for onclick="fn('...','${key}')" handlers. Use this
+// instead of a bare encodeURIComponent(key) wherever the encoded value is
+// embedded inside a single-quoted onclick argument (decodeURIComponent on the
+// receiving end still works unchanged, since %27 decodes back to ').
+function encodeKeyForOnclick(key) {
+  return encodeURIComponent(key).replace(/'/g, '%27');
 }
 
 function toggleModalGrammyDetail(btn) {
@@ -14063,7 +14109,7 @@ function openSongModal(key) {
       <div class="cr-subsection-header" onclick="toggleCrSubsection(this)">
         <span class="cr-subsection-toggle">▶</span><span class="cr-subsection-label">SHOW HEATMAP</span>
       </div>
-      <div class="cr-subsection-body" style="display:none;" data-crtype="songs" data-crkey="${encodeURIComponent(key)}" data-crkind="heatmap"></div>
+      <div class="cr-subsection-body" style="display:none;" data-crtype="songs" data-crkey="${esc(key)}" data-crkind="heatmap"></div>
     </div>`;
 
   // ── STREAMING HISTORY ─────────────────────────────────────────
@@ -14073,7 +14119,7 @@ function openSongModal(key) {
       <div class="cr-subsection-header" onclick="toggleCrSubsection(this)">
         <span class="cr-subsection-toggle">▶</span><span class="cr-subsection-label">SHOW FULL HISTORY</span>
       </div>
-      <div class="cr-subsection-body" style="display:none;" data-crtype="songs" data-crkey="${encodeURIComponent(key)}" data-crkind="rawdata"></div>
+      <div class="cr-subsection-body" style="display:none;" data-crtype="songs" data-crkey="${esc(key)}" data-crkind="rawdata"></div>
     </div>`;
 
   songModal.classList.add('open');
@@ -17587,6 +17633,8 @@ let _ytCrossfadingOut    = false;
 let _ytNewTrackFade      = false;
 let _ytScrobbleThreshold = localStorage.getItem('yt-scrobble-threshold') || '30s';
 let _ytPlaylists         = {};
+let _ytPlaylistModified  = {}; // name -> last-modified timestamp
+let _ytDeletedPlaylists  = {}; // name -> deletion timestamp (tombstone so a delete on one device isn't undone by a stale copy on another — see _ytMergePlaylists)
 let _ytPipWindow         = null;
 let _ytPipUpdate         = null;
 let _ytLyricsCache       = {};
@@ -19301,21 +19349,80 @@ function _ytUpdateScrobbleThresholdBtn() {
 // ── 6. Named playlists ────────────────────────────────────────────
 function _ytLoadPlaylists() {
   try { const s = localStorage.getItem('yt-playlists'); if (s) _ytPlaylists = JSON.parse(s); } catch(e) { _ytPlaylists = {}; }
+  try { const s = localStorage.getItem('yt-playlists-modified'); _ytPlaylistModified = s ? JSON.parse(s) : {}; } catch(e) { _ytPlaylistModified = {}; }
+  try { const s = localStorage.getItem('yt-playlists-deleted'); _ytDeletedPlaylists = s ? JSON.parse(s) : {}; } catch(e) { _ytDeletedPlaylists = {}; }
+}
+
+// Call whenever a playlist is created or its contents/order change, so a later merge
+// can tell a genuine recreation/edit apart from a stale copy that never received a
+// remote deletion (see _ytMergePlaylists).
+function _ytTouchPlaylist(name) {
+  _ytPlaylistModified[name] = Date.now();
+  delete _ytDeletedPlaylists[name];
+}
+
+// Call whenever a playlist is deleted, so the deletion propagates correctly even if
+// another device still has a stale local copy (see _ytMergePlaylists).
+function _ytMarkPlaylistDeleted(name) {
+  delete _ytPlaylists[name];
+  delete _ytPlaylistModified[name];
+  _ytDeletedPlaylists[name] = Date.now();
 }
 
 function _ytSavePlaylists() {
   const json = JSON.stringify(_ytPlaylists);
-  try { localStorage.setItem('yt-playlists', json); } catch(e) {}
+  const modifiedJson = JSON.stringify(_ytPlaylistModified);
+  const deletedJson = JSON.stringify(_ytDeletedPlaylists);
+  try {
+    localStorage.setItem('yt-playlists', json);
+    localStorage.setItem('yt-playlists-modified', modifiedJson);
+    localStorage.setItem('yt-playlists-deleted', deletedJson);
+  } catch(e) {}
   // Sync to Firestore if the user is logged in
-  if (typeof dcSavePlaylistsToFirestore === 'function') dcSavePlaylistsToFirestore(json);
+  if (typeof dcSavePlaylistsToFirestore === 'function') dcSavePlaylistsToFirestore(json, modifiedJson, deletedJson);
 }
 
-// Merge remote (Firestore) playlists with local ones — local wins on same-name conflict
-function _ytMergePlaylists(remoteJson) {
+// Merge remote (Firestore) playlists with local ones. A name is kept if its most
+// recent local-or-remote action was a create/edit; it's dropped if its most recent
+// action was a delete — so a deletion on one device isn't undone by a stale copy
+// that another device never received the delete for.
+function _ytMergePlaylists(remote) {
   try {
-    const remote = JSON.parse(remoteJson);
-    _ytPlaylists = Object.assign({}, remote, _ytPlaylists); // local keys override remote
-    try { localStorage.setItem('yt-playlists', JSON.stringify(_ytPlaylists)); } catch(e) {}
+    const remotePlaylists = JSON.parse(remote.data || '{}');
+    const remoteModified  = remote.modified ? JSON.parse(remote.modified) : {};
+    const remoteDeleted   = remote.deleted  ? JSON.parse(remote.deleted)  : {};
+
+    const mergedModified = Object.assign({}, remoteModified);
+    for (const [name, ts] of Object.entries(_ytPlaylistModified)) {
+      if (!mergedModified[name] || ts > mergedModified[name]) mergedModified[name] = ts;
+    }
+    const mergedDeleted = Object.assign({}, remoteDeleted);
+    for (const [name, ts] of Object.entries(_ytDeletedPlaylists)) {
+      if (!mergedDeleted[name] || ts > mergedDeleted[name]) mergedDeleted[name] = ts;
+    }
+
+    const mergedPlaylists = Object.assign({}, remotePlaylists, _ytPlaylists); // local wins on same-name conflict
+    for (const name of Object.keys(mergedPlaylists)) {
+      const deletedAt = mergedDeleted[name] || 0;
+      const modifiedAt = mergedModified[name] || 0;
+      if (deletedAt > modifiedAt) delete mergedPlaylists[name];
+    }
+    for (const name of Object.keys(mergedDeleted)) {
+      if (!(name in mergedPlaylists)) delete mergedDeleted[name]; // nothing left to remember deleting
+    }
+
+    _ytPlaylists = mergedPlaylists;
+    _ytPlaylistModified = mergedModified;
+    _ytDeletedPlaylists = mergedDeleted;
+    try {
+      localStorage.setItem('yt-playlists', JSON.stringify(_ytPlaylists));
+      localStorage.setItem('yt-playlists-modified', JSON.stringify(_ytPlaylistModified));
+      localStorage.setItem('yt-playlists-deleted', JSON.stringify(_ytDeletedPlaylists));
+    } catch(e) {}
+    // Push the merged result back so every device converges on the same state
+    if (typeof dcSavePlaylistsToFirestore === 'function') {
+      dcSavePlaylistsToFirestore(JSON.stringify(_ytPlaylists), JSON.stringify(_ytPlaylistModified), JSON.stringify(_ytDeletedPlaylists));
+    }
     // Refresh the player panel if it's open
     const panel = document.getElementById('ytPlaylistsPanel');
     if (panel && panel.style.display !== 'none') _ytRenderPlaylists();
@@ -19364,6 +19471,7 @@ function _ytSaveCurrentQueue(name) {
   _ytQueue.forEach(t => tracks.push({ title: t.title, artist: t.artist, album: t.album }));
   if (!tracks.length) return;
   _ytPlaylists[name] = tracks;
+  _ytTouchPlaylist(name);
   _ytSavePlaylists();
   _ytRenderPlaylists();
   // Also refresh the full manager view if it's the active tab
@@ -19382,7 +19490,7 @@ function _ytLoadPlaylist(name) {
 }
 
 function _ytDeletePlaylist(name) {
-  delete _ytPlaylists[name];
+  _ytMarkPlaylistDeleted(name);
   _ytSavePlaylists();
   _ytRenderPlaylists();
   if (typeof currentPeriod !== 'undefined' && currentPeriod === 'playlists') dcRenderPlaylistsView();
@@ -19551,6 +19659,8 @@ function dcPlConfirmRename(oldName, newName) {
     else if (k !== newName) rebuilt[k]   = _ytPlaylists[k];       // skip old target (overwrite)
   });
   _ytPlaylists = rebuilt;
+  _ytMarkPlaylistDeleted(oldName);
+  _ytTouchPlaylist(newName);
   if (_dcPlExpandedName === oldName) _dcPlExpandedName = newName;
   _ytSavePlaylists();
   dcRenderPlaylistsView();
@@ -19558,7 +19668,7 @@ function dcPlConfirmRename(oldName, newName) {
 
 // Delete a playlist from the manager view
 function dcPlDeleteFromView(name) {
-  delete _ytPlaylists[name];
+  _ytMarkPlaylistDeleted(name);
   if (_dcPlExpandedName === name) _dcPlExpandedName = null;
   _ytSavePlaylists();
   dcRenderPlaylistsView();
@@ -19570,8 +19680,10 @@ function dcPlRemoveTrack(name, idx) {
   if (!pl) return;
   pl.splice(idx, 1);
   if (pl.length === 0) {
-    delete _ytPlaylists[name];
+    _ytMarkPlaylistDeleted(name);
     if (_dcPlExpandedName === name) _dcPlExpandedName = null;
+  } else {
+    _ytTouchPlaylist(name);
   }
   _ytSavePlaylists();
   dcRenderPlaylistsView();
@@ -19593,6 +19705,7 @@ function dcPlDrop(event, name, toIdx) {
   const [moved] = pl.splice(_dcPlDragSrc, 1);
   pl.splice(toIdx, 0, moved);
   _dcPlDragSrc = null;
+  _ytTouchPlaylist(name);
   _ytSavePlaylists();
   dcRenderPlaylistsView();
 }
@@ -22049,11 +22162,17 @@ function _hasNonLatinScript(str) {
   return /[Ѐ-ӿ؀-ۿऀ-ॿ぀-ヿ㐀-䶿一-鿿가-힯฀-๿ᄀ-ᇿ]/.test(str || '');
 }
 
-function _sk(p) { return `${(p.title||'').toLowerCase()}|||${(p.artist||'').toLowerCase()}`; }
-function _ak(p) { return `${(p.album||'').toLowerCase()}|||${(p.artist||'').toLowerCase()}`; }
-function _rk(p) { return (p.artist||'').toLowerCase(); }
+// Matches the app-wide songKey() convention (title+full-artist, trimmed) so a song's
+// play count in Awards never splits from its count on the main Songs chart due to
+// stray whitespace from CSV/Sheets imports.
+function _sk(p) { return `${(p.title||'').toLowerCase().trim()}|||${(p.artist||'').toLowerCase().trim()}`; }
 function _pa(p)  { return (Array.isArray(p.artists) && p.artists.length) ? p.artists[0] : (p.artist || ''); }
 function _pk(p)  { return _pa(p).toLowerCase(); }
+// Album/artist keys use the primary artist (via _pk), matching _awardsCountMaps and the
+// app-wide albumArtist() convention — keeps every Awards category consistent so a collab
+// track's album/artist isn't treated as a different entity depending on which category built it.
+function _ak(p) { return `${(p.album||'').toLowerCase()}|||${_pk(p)}`; }
+function _rk(p) { return _pk(p); }
 
 function _awardsCountMaps(plays) {
   const songs = {}, albums = {}, artists = {};
