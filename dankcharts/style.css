@@ -3426,8 +3426,8 @@
       width: 100%;
       border-collapse: collapse;
       background: var(--bg2);
-      border: 1px solid var(--border);
-      border-radius: 8px;
+      border: 1px solid var(--border-t);
+      border-radius: var(--r-md);
       overflow: hidden;
     }
 
@@ -3458,7 +3458,7 @@
 
     .chart-table tbody tr {
       border-bottom: 1px solid var(--border);
-      transition: background 0.12s;
+      transition: background var(--t-fast) var(--ease);
     }
 
     .chart-table tbody tr:last-child {
@@ -3466,7 +3466,7 @@
     }
 
     .chart-table tbody tr:hover {
-      background: var(--bg3);
+      background: var(--hover);
     }
 
     .chart-table tbody tr.rank-1:hover {
@@ -3491,6 +3491,8 @@
     .rank-cell {
       text-align: center;
       font-family: var(--font-display);
+      font-weight: 600;
+      letter-spacing: -0.02em;
       font-size: 1.6rem !important;
       color: var(--text3);
       width: 110px;
@@ -3509,19 +3511,18 @@
       background: rgba(192, 120, 80, 0.13);
     }
 
+    /* medal colors via tokens — light themes flip to dark AA values; the old
+       3px side stripes were dropped, the row bg tint already signals top-3 */
     .rank-1 .rank-cell {
-      color: var(--gold1);
-      border-left: 3px solid rgba(240, 170, 48, 0.75);
+      color: var(--medal-gold);
     }
 
     .rank-2 .rank-cell {
-      color: #94a3b8;
-      border-left: 3px solid rgba(148, 163, 184, 0.55);
+      color: var(--medal-silver);
     }
 
     .rank-3 .rank-cell {
-      color: #c07850;
-      border-left: 3px solid rgba(192, 120, 80, 0.55);
+      color: var(--medal-bronze);
     }
 
     .badge-new,
@@ -3612,8 +3613,8 @@
       width: 44px;
       height: 44px;
       object-fit: cover;
-      border-radius: 4px;
-      border: 1px solid var(--border);
+      border-radius: var(--r-sm);
+      border: 1px solid var(--border-t);
       display: block;
       background: var(--surface);
       flex-shrink: 0;
@@ -3630,8 +3631,8 @@
       align-items: center;
       justify-content: center;
       flex-shrink: 0;
-      border: 1px solid var(--border);
-      border-radius: 4px;
+      border: 1px solid var(--border-t);
+      border-radius: var(--r-sm);
     }
 
     .rank-1 .thumb-initials {
@@ -4516,8 +4517,9 @@
 
     .graph-card {
       background: var(--bg2);
-      border: 1px solid var(--border);
-      border-radius: 8px;
+      border: 1px solid var(--border-t);
+      border-radius: var(--r-md);
+      box-shadow: var(--shadow-1);
       padding: 1.1rem 1.1rem 0.75rem;
       margin-bottom: 1.25rem;
     }
@@ -4876,7 +4878,7 @@
       font-size: 0.8rem;
     }
     .ev-table tbody tr:last-child td { border-bottom: none; }
-    .ev-table tbody tr:hover td { background: var(--bg3); }
+    .ev-table tbody tr:hover td { background: var(--hover); }
     .ev-tbl-img { width: 42px; }
     .ev-tbl-thumb {
       width: 34px;
@@ -7679,6 +7681,9 @@
       display: flex;
       flex-direction: column;
       gap: 0.3rem;
+      /* allow grid tracks to shrink below the input's intrinsic width —
+         without this the filters overflow the page on narrow screens */
+      min-width: 0;
     }
 
     .raw-filter-group label {
@@ -7696,9 +7701,11 @@
       font-family: var(--font-mono);
       font-size: 0.72rem;
       padding: 0.35rem 0.6rem;
-      border-radius: 4px;
+      border-radius: var(--r-sm);
       outline: none;
-      transition: border-color 0.15s;
+      transition: border-color var(--t-fast) var(--ease);
+      min-width: 0;
+      width: 100%;
     }
 
     .raw-filter-group input:focus {
@@ -7790,7 +7797,7 @@
     }
 
     .raw-table tr:hover td {
-      background: var(--bg3);
+      background: var(--hover);
     }
 
     .raw-table .raw-num {
@@ -15248,9 +15255,9 @@ body[class*="-light"] .tm-card-search:hover {
 
 /* Feature 8: rank numbers (all positions), gold/silver/bronze for top 3 */
 .wv-cx-rank { font-family: var(--font-mono); font-size: 1rem; font-weight: 700; color: var(--text3); min-width: 20px; text-align: right; flex-shrink: 0; }
-.wv-r1 .wv-cx-rank { color: var(--gold1); }
-.wv-r2 .wv-cx-rank { color: #94a3b8; }
-.wv-r3 .wv-cx-rank { color: #b45309; }
+.wv-r1 .wv-cx-rank { color: var(--medal-gold); }
+.wv-r2 .wv-cx-rank { color: var(--medal-silver); }
+.wv-r3 .wv-cx-rank { color: var(--medal-bronze); }
 
 /* Feature 9: art wrap + tooltip */
 .wv-cx-art-wrap { position: relative; flex-shrink: 0; }
