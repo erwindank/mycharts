@@ -28,13 +28,20 @@
       --ease: cubic-bezier(0.2, 0.7, 0.3, 1); /* soft ease-out */
 
       /* Z-index scale (legacy ad-hoc values migrate onto this) */
+      /* Tiers mirror the app's existing stacking order:
+         nav/preview(100-300) < mini-player(900-902) < modal(1000)
+         < picker popover(1200) < awards stage / chart-run preview(2000)
+         < mobile tour sheet(9000) < context menus, toasts & tooltips(9999)
+         < drill-down + streak tooltips(10000) */
       --z-nav: 100;
       --z-dropdown: 500;
       --z-overlay: 900;
       --z-modal: 1000;
-      --z-popover: 1100;
-      --z-toast: 1200;
-      --z-max: 2000;
+      --z-popover: 1200;
+      --z-stage: 2000;
+      --z-sheet: 9000;
+      --z-float: 9999;
+      --z-max: 10000;
 
       /* Spacing scale (4px base) */
       --sp-1: 4px;
@@ -8250,12 +8257,12 @@
 
       /* Full-bleed: punch bar elements through the 1rem container padding */
       /* .section-size-bar is excluded — it lives inside a chart-section with its own padding */
+      /* stats strips excluded since the 2026 redesign: they are separated
+         rounded cards now, and full-bleed would clip their borders/shadows */
       .sync-bar,
       .period-nav,
       .chart-size-bar:not(.section-size-bar),
       .date-nav,
-      .stats-strip,
-      .stats-strip2,
       .chart-display-toggles {
         margin-left: -1rem;
         margin-right: -1rem;
@@ -8271,20 +8278,24 @@
 
       /* Remove corner rounding on elements that are now edge-to-edge */
       .sync-bar,
-      .date-nav,
-      .stats-strip,
-      .stats-strip2 {
+      .date-nav {
         border-radius: 0;
       }
 
-      /* Stats: 2×2 grid on mobile */
+      /* Stats: 2×2 grid on mobile — minmax(0,1fr) lets cards shrink below
+         their content's intrinsic width so the grid never overflows 375px */
       .stats-strip {
-        grid-template-columns: 1fr 1fr;
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+        gap: 8px;
+      }
+      .stat-box {
+        min-width: 0;
       }
 
-      /* Thin left-border keeps new-entry charts visually distinct as child sections */
+      /* Tinted new-entries panel: tighter symmetric padding on phones */
       .new-entries-section {
         padding-left: 0.5rem;
+        padding-right: 0.5rem;
       }
 
       /* Events view toggle buttons: compact size on small phones */
