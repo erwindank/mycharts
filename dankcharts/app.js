@@ -5116,7 +5116,7 @@ function renderRawPage() {
       <td class="raw-album">${esc(p.album)}</td>
       <td class="raw-edit-cell"><button class="raw-edit-btn" title="Edit" onclick="openEditScrobbleModal(${start + i})">✎</button></td>
     </tr>`;
-  }).join('') || `<tr><td colspan="6" style="padding:1rem;color:var(--text3);font-style:italic;font-family:'DM Mono',monospace;font-size:0.72rem;">${t('raw_no_match')}</td></tr>`;
+  }).join('') || `<tr><td colspan="6" style="padding:1rem;color:var(--text3);font-style:italic;font-family:var(--font-mono);font-size:0.72rem;">${t('raw_no_match')}</td></tr>`;
 
   // Pagination
   document.getElementById('rawPrevBtn').disabled = rawPage === 0;
@@ -6658,7 +6658,7 @@ function renderPage(type, peaks) {
       const mainRow = `<tr class="${rank === 1 ? 'rank-1' : rank === 2 ? 'rank-2' : rank === 3 ? 'rank-3' : ''} artist-row" data-artist="${esc(a.name)}">
         <td class="rank-cell">${hasCR ? `<button class="cr-toggle-btn" title="${t('tooltip_cr_toggle_btn_artist')}" onclick="event.stopPropagation();toggleChartRun(this,'${rowId}')">📊</button>` : ''} ${rank}</td>
         <td class="thumb-cell"><div class="thumb-wrap"><div id="${imgId}"><div class="thumb-initials">${esc(initials(a.name))}</div></div><button id="srcbtn-${imgId}" class="img-src-btn" data-imgid="${imgId}" data-type="artist" data-prefkey="${esc(prefKey)}" data-name="${esc(a.name)}" data-artist="${esc(a.name)}" data-album="">${srcLabel(itemSourcePrefs[prefKey] || 'deezer')}</button></div></td>
-        <td><div class="song-title">${esc(a.name)}</div><div class="song-artist" style="font-size:0.7rem;letter-spacing:0.06em;font-style:normal;font-family:'DM Mono',monospace;color:var(--text3)">${t('click_view_profile')}</div><button class="yt-play-btn" data-title="" data-artist="${esc(a.name)}" data-album="" onclick="event.stopPropagation();buShowTrackList(this,'artists')" title="Show recently played tracks"><span class="yt-btn-content"><svg class="yt-btn-icon" viewBox="0 0 24 24"><path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.5 12 3.5 12 3.5s-7.5 0-9.4.5A3 3 0 0 0 .5 6.2C0 8.1 0 12 0 12s0 3.9.5 5.8a3 3 0 0 0 2.1 2.1c1.9.5 9.4.5 9.4.5s7.5 0 9.4-.5a3 3 0 0 0 2.1-2.1C24 15.9 24 12 24 12s0-3.9-.5-5.8zM9.7 15.5V8.5l6.3 3.5-6.3 3.5z"/></svg>YouTube</span></button></td>
+        <td><div class="song-title">${esc(a.name)}</div><div class="song-artist" style="font-size:0.7rem;letter-spacing:0.06em;font-style:normal;font-family:var(--font-mono);color:var(--text3)">${t('click_view_profile')}</div><button class="yt-play-btn" data-title="" data-artist="${esc(a.name)}" data-album="" onclick="event.stopPropagation();buShowTrackList(this,'artists')" title="Show recently played tracks"><span class="yt-btn-content"><svg class="yt-btn-icon" viewBox="0 0 24 24"><path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.5 12 3.5 12 3.5s-7.5 0-9.4.5A3 3 0 0 0 .5 6.2C0 8.1 0 12 0 12s0 3.9.5 5.8a3 3 0 0 0 2.1 2.1c1.9.5 9.4.5 9.4.5s7.5 0 9.4-.5a3 3 0 0 0 2.1-2.1C24 15.9 24 12 24 12s0-3.9-.5-5.8zM9.7 15.5V8.5l6.3 3.5-6.3 3.5z"/></svg>YouTube</span></button></td>
         <td><div class="song-artist">${tCount('songs', a.songs.size)}</div></td>
         <td>
           <div class="play-count">${tCountHtml('plays', a.count)}</div>
@@ -6693,7 +6693,7 @@ function renderPage(type, peaks) {
         <td>
           <div class="song-title">${esc(a.album)}${certBadge(cumAlbumPlays, 'album')}</div>
           <div class="song-artist">${esc(a.artist)}</div>
-          <div class="song-artist" style="font-size:0.65rem;letter-spacing:0.06em;font-style:normal;font-family:'DM Mono',monospace;color:var(--text3)">${t('click_view_album')}</div>
+          <div class="song-artist" style="font-size:0.65rem;letter-spacing:0.06em;font-style:normal;font-family:var(--font-mono);color:var(--text3)">${t('click_view_album')}</div>
           <button class="yt-play-btn" data-title="" data-artist="${esc(a.artist)}" data-album="${esc(a.album)}" onclick="event.stopPropagation();buShowTrackList(this,'albums')" title="Show recently played tracks"><span class="yt-btn-content"><svg class="yt-btn-icon" viewBox="0 0 24 24"><path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.5 12 3.5 12 3.5s-7.5 0-9.4.5A3 3 0 0 0 .5 6.2C0 8.1 0 12 0 12s0 3.9.5 5.8a3 3 0 0 0 2.1 2.1c1.9.5 9.4.5 9.4.5s7.5 0 9.4-.5a3 3 0 0 0 2.1-2.1C24 15.9 24 12 24 12s0-3.9-.5-5.8zM9.7 15.5V8.5l6.3 3.5-6.3 3.5z"/></svg>YouTube</span></button>
         </td>
         <td><div class="song-artist">${tCount('tracks', a.tracks.size)}</div></td>
@@ -6881,8 +6881,8 @@ function buildCrPanelHTML(type, key) {
     : '';
   const headerHtml = `<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid var(--border);">
     <div>
-      <div style="font-family:'DM Mono',monospace;font-size:0.65rem;font-weight:700;letter-spacing:0.18em;color:var(--text);text-transform:uppercase;">${t('cr_chart_run')}</div>
-      <div style="font-family:'DM Mono',monospace;font-size:0.54rem;letter-spacing:0.07em;color:var(--text3);margin-top:2px;">${t('cr_rank_history')}</div>
+      <div style="font-family:var(--font-mono);font-size:0.65rem;font-weight:700;letter-spacing:0.18em;color:var(--text);text-transform:uppercase;">${t('cr_chart_run')}</div>
+      <div style="font-family:var(--font-mono);font-size:0.54rem;letter-spacing:0.07em;color:var(--text3);margin-top:2px;">${t('cr_rank_history')}</div>
     </div>
     ${buToggleBtn}
   </div>`;
@@ -8326,7 +8326,7 @@ function renderArtists(plays, peaks, monthlyStats) {
     const mainRow = `<tr${_animAttrsA} class="${i === 0 ? 'rank-1' : i === 1 ? 'rank-2' : i === 2 ? 'rank-3' : ''}${_animClassA} artist-row${statusCls}" data-artist="${esc(artist)}">
       <td class="rank-cell"><button class="cr-toggle-btn" title="${t('tooltip_cr_toggle_btn_artist')}" onclick="event.stopPropagation();toggleChartRun(this,'${rowId}')">📊</button>${i + 1}</td>
       <td class="thumb-cell"><div class="thumb-wrap"><div id="${imgId}"><div class="thumb-initials">${esc(initials(artist))}</div></div><button id="srcbtn-${imgId}" class="img-src-btn" data-imgid="${imgId}" data-type="artist" data-prefkey="${esc(prefKey)}" data-name="${esc(artist)}" data-artist="${esc(artist)}" data-album="">${srcLabel(itemSourcePrefs[prefKey] || 'deezer')}</button></div></td>
-      <td><div class="song-title">${esc(artist)}${pk ? peakBadge(pk) : ''}</div><div class="song-artist" style="font-size:0.7rem;letter-spacing:0.06em;font-style:normal;font-family:'DM Mono',monospace;color:var(--text3)">${t('click_view_profile')}</div><button class="yt-play-btn" data-title="" data-artist="${esc(artist)}" data-album="" onclick="event.stopPropagation();buShowTrackList(this,'artists')" title="Show recently played tracks"><span class="yt-btn-content"><svg class="yt-btn-icon" viewBox="0 0 24 24"><path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.5 12 3.5 12 3.5s-7.5 0-9.4.5A3 3 0 0 0 .5 6.2C0 8.1 0 12 0 12s0 3.9.5 5.8a3 3 0 0 0 2.1 2.1c1.9.5 9.4.5 9.4.5s7.5 0 9.4-.5a3 3 0 0 0 2.1-2.1C24 15.9 24 12 24 12s0-3.9-.5-5.8zM9.7 15.5V8.5l6.3 3.5-6.3 3.5z"/></svg>YouTube</span></button></td>
+      <td><div class="song-title">${esc(artist)}${pk ? peakBadge(pk) : ''}</div><div class="song-artist" style="font-size:0.7rem;letter-spacing:0.06em;font-style:normal;font-family:var(--font-mono);color:var(--text3)">${t('click_view_profile')}</div><button class="yt-play-btn" data-title="" data-artist="${esc(artist)}" data-album="" onclick="event.stopPropagation();buShowTrackList(this,'artists')" title="Show recently played tracks"><span class="yt-btn-content"><svg class="yt-btn-icon" viewBox="0 0 24 24"><path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.5 12 3.5 12 3.5s-7.5 0-9.4.5A3 3 0 0 0 .5 6.2C0 8.1 0 12 0 12s0 3.9.5 5.8a3 3 0 0 0 2.1 2.1c1.9.5 9.4.5 9.4.5s7.5 0 9.4-.5a3 3 0 0 0 2.1-2.1C24 15.9 24 12 24 12s0-3.9-.5-5.8zM9.7 15.5V8.5l6.3 3.5-6.3 3.5z"/></svg>YouTube</span></button></td>
       <td><div class="song-artist">${tCount('songs', data.songs.size)}</div></td>
       ${monthlyStats ? mPrevCell(i + 1, artist, 'artists', monthlyStats) : ''}
       ${monthlyStats ? mMthsCell(artist, 'artists', monthlyStats) : ''}
@@ -8443,7 +8443,7 @@ function renderAlbums(plays, peaks, monthlyStats) {
       <td>
         <div class="song-title">${esc(album)}${pk ? peakBadge(pk) : ''}${certBadge(cumAlbumPlays, 'album')}</div>
         <div class="song-artist">${esc(artist)}</div>
-        <div class="song-artist" style="font-size:0.65rem;letter-spacing:0.06em;font-style:normal;font-family:'DM Mono',monospace;color:var(--text3)">${t('click_view_album')}</div>
+        <div class="song-artist" style="font-size:0.65rem;letter-spacing:0.06em;font-style:normal;font-family:var(--font-mono);color:var(--text3)">${t('click_view_album')}</div>
         <button class="yt-play-btn" data-title="" data-artist="${esc(artist)}" data-album="${esc(album)}" onclick="event.stopPropagation();buShowTrackList(this,'albums')" title="Show recently played tracks"><span class="yt-btn-content"><svg class="yt-btn-icon" viewBox="0 0 24 24"><path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.5 12 3.5 12 3.5s-7.5 0-9.4.5A3 3 0 0 0 .5 6.2C0 8.1 0 12 0 12s0 3.9.5 5.8a3 3 0 0 0 2.1 2.1c1.9.5 9.4.5 9.4.5s7.5 0 9.4-.5a3 3 0 0 0 2.1-2.1C24 15.9 24 12 24 12s0-3.9-.5-5.8zM9.7 15.5V8.5l6.3 3.5-6.3 3.5z"/></svg>YouTube</span></button>
       </td>
       <td><div class="song-artist">${tCount('tracks', tracks.size)}</div></td>
@@ -8731,8 +8731,8 @@ function buildBuCrPanelHTML(type, key) {
 
   const headerHtml = `<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid var(--border);">
     <div>
-      <div style="font-family:'DM Mono',monospace;font-size:0.65rem;font-weight:700;letter-spacing:0.18em;color:var(--text);text-transform:uppercase;">🫧 BU CHART RUN</div>
-      <div style="font-family:'DM Mono',monospace;font-size:0.54rem;letter-spacing:0.07em;color:var(--text3);margin-top:2px;">Bubbling Under zone history · weekly</div>
+      <div style="font-family:var(--font-mono);font-size:0.65rem;font-weight:700;letter-spacing:0.18em;color:var(--text);text-transform:uppercase;">🫧 BU CHART RUN</div>
+      <div style="font-family:var(--font-mono);font-size:0.54rem;letter-spacing:0.07em;color:var(--text3);margin-top:2px;">Bubbling Under zone history · weekly</div>
     </div>
     ${toggleBtn}
   </div>`;
@@ -10594,10 +10594,10 @@ function igPeak(key, type, peaks, fontSize) {
   if (!peak) return '';
   const fs = fontSize + 'px'; // caller already computes the desired badge font size
   const peakLabel = t('peak_label');
-  if (peak === 1) return `<span style="font-family:'DM Mono',monospace;font-size:${fs};background:rgba(245,158,11,0.2);color:#f0aa30;padding:1px 5px;border-radius:3px;border:1px solid rgba(245,158,11,0.35);letter-spacing:0.05em;white-space:nowrap;">${peakLabel} #1</span>`;
-  if (peak === 2) return `<span style="font-family:'DM Mono',monospace;font-size:${fs};background:rgba(148,163,184,0.2);color:#94a3b8;padding:1px 5px;border-radius:3px;border:1px solid rgba(148,163,184,0.35);letter-spacing:0.05em;white-space:nowrap;">${peakLabel} #2</span>`;
-  if (peak === 3) return `<span style="font-family:'DM Mono',monospace;font-size:${fs};background:rgba(192,120,80,0.2);color:#c07850;padding:1px 5px;border-radius:3px;border:1px solid rgba(192,120,80,0.35);letter-spacing:0.05em;white-space:nowrap;">${peakLabel} #3</span>`;
-  return `<span style="font-family:'DM Mono',monospace;font-size:${fs};background:rgba(255,255,255,0.08);color:#7aa0d0;padding:1px 5px;border-radius:3px;border:1px solid rgba(255,255,255,0.12);letter-spacing:0.05em;white-space:nowrap;">${peakLabel} #${peak}</span>`;
+  if (peak === 1) return `<span style="font-family:var(--font-mono);font-size:${fs};background:rgba(245,158,11,0.2);color:#f0aa30;padding:1px 5px;border-radius:3px;border:1px solid rgba(245,158,11,0.35);letter-spacing:0.05em;white-space:nowrap;">${peakLabel} #1</span>`;
+  if (peak === 2) return `<span style="font-family:var(--font-mono);font-size:${fs};background:rgba(148,163,184,0.2);color:#94a3b8;padding:1px 5px;border-radius:3px;border:1px solid rgba(148,163,184,0.35);letter-spacing:0.05em;white-space:nowrap;">${peakLabel} #2</span>`;
+  if (peak === 3) return `<span style="font-family:var(--font-mono);font-size:${fs};background:rgba(192,120,80,0.2);color:#c07850;padding:1px 5px;border-radius:3px;border:1px solid rgba(192,120,80,0.35);letter-spacing:0.05em;white-space:nowrap;">${peakLabel} #3</span>`;
+  return `<span style="font-family:var(--font-mono);font-size:${fs};background:rgba(255,255,255,0.08);color:#7aa0d0;padding:1px 5px;border-radius:3px;border:1px solid rgba(255,255,255,0.12);letter-spacing:0.05em;white-space:nowrap;">${peakLabel} #${peak}</span>`;
 }
 
 // Theme-aware color getter
@@ -10821,30 +10821,30 @@ function buildIgCardHTML(type, opts) {
         }</div>`
       : '';
     return `<div style="display:flex;align-items:center;min-height:${rowH}px;padding:4px 10px;background:${rowBg};border-bottom:1px solid ${c.border};gap:6px;">
-      <div style="font-family:'DM Mono',monospace;font-size:${rankFontSize}px;font-weight:700;color:${rankColor};min-width:28px;text-align:right;flex-shrink:0;">${rank}</div>
-      ${opts.showMovement ? `<div style="font-family:'DM Mono',monospace;font-size:${Math.max(6,rankFontSize-3)}px;color:${moveColor};min-width:24px;text-align:center;line-height:1;flex-shrink:0;white-space:nowrap;">${mvLabel || '—'}</div>` : ''}
+      <div style="font-family:var(--font-mono);font-size:${rankFontSize}px;font-weight:700;color:${rankColor};min-width:28px;text-align:right;flex-shrink:0;">${rank}</div>
+      ${opts.showMovement ? `<div style="font-family:var(--font-mono);font-size:${Math.max(6,rankFontSize-3)}px;color:${moveColor};min-width:24px;text-align:center;line-height:1;flex-shrink:0;white-space:nowrap;">${mvLabel || '—'}</div>` : ''}
       ${thumbHtml}
       <div style="flex:1;min-width:0;">
-        <div style="font-family:'DM Sans',sans-serif;font-size:${titleFontSize}px;font-weight:600;color:${c.text};white-space:normal;word-break:break-word;line-height:1.25;">${esc(name)}</div>
-        ${opts.showSubtitle && sub2 ? `<div style="font-family:'DM Sans',sans-serif;font-size:${songsCountFontSize}px;color:${c.text3};white-space:normal;word-break:break-word;line-height:1.25;">${esc(sub2)}</div>` : ''}
+        <div style="font-family:var(--font-sans);font-size:${titleFontSize}px;font-weight:600;color:${c.text};white-space:normal;word-break:break-word;line-height:1.25;">${esc(name)}</div>
+        ${opts.showSubtitle && sub2 ? `<div style="font-family:var(--font-sans);font-size:${songsCountFontSize}px;color:${c.text3};white-space:normal;word-break:break-word;line-height:1.25;">${esc(sub2)}</div>` : ''}
       </div>
-      ${opts.showSubtitle && songCount !== null ? `<div style="font-family:'DM Mono',monospace;font-size:${songsCountFontSize}px;color:${c.text3};font-weight:600;white-space:nowrap;text-align:right;flex-shrink:0;">${songCount} <span style="font-size:${Math.max(5,songsCountFontSize-3)}px;font-weight:400;opacity:0.75;">${songsWord}</span></div>` : ''}
+      ${opts.showSubtitle && songCount !== null ? `<div style="font-family:var(--font-mono);font-size:${songsCountFontSize}px;color:${c.text3};font-weight:600;white-space:nowrap;text-align:right;flex-shrink:0;">${songCount} <span style="font-size:${Math.max(5,songsCountFontSize-3)}px;font-weight:400;opacity:0.75;">${songsWord}</span></div>` : ''}
       ${opts.showPeak && peak ? `<div style="flex-shrink:0;">${peak}</div>` : ''}
-      ${opts.showWeeks && weeksLabel ? `<div style="font-family:'DM Mono',monospace;font-size:${weeksFontSize}px;color:${c.text3};white-space:nowrap;flex-shrink:0;">${weeksLabel}</div>` : ''}
-      ${opts.showPlays ? `<div style="font-family:'DM Mono',monospace;font-size:${playsFontSize}px;color:${c.accent};font-weight:700;white-space:nowrap;min-width:40px;text-align:right;flex-shrink:0;">${plays} <span style="font-size:${Math.max(5,playsFontSize-3)}px;font-weight:400;opacity:0.75;">${playsWord}</span></div>` : ''}
+      ${opts.showWeeks && weeksLabel ? `<div style="font-family:var(--font-mono);font-size:${weeksFontSize}px;color:${c.text3};white-space:nowrap;flex-shrink:0;">${weeksLabel}</div>` : ''}
+      ${opts.showPlays ? `<div style="font-family:var(--font-mono);font-size:${playsFontSize}px;color:${c.accent};font-weight:700;white-space:nowrap;min-width:40px;text-align:right;flex-shrink:0;">${plays} <span style="font-size:${Math.max(5,playsFontSize-3)}px;font-weight:400;opacity:0.75;">${playsWord}</span></div>` : ''}
     </div>`;
   }).join('');
 
-  return `<div style="width:${cardW}px;height:${cardH}px;background:${c.bg};overflow:hidden;display:flex;flex-direction:column;font-family:'DM Sans',sans-serif;">
+  return `<div style="width:${cardW}px;height:${cardH}px;background:${c.bg};overflow:hidden;display:flex;flex-direction:column;font-family:var(--font-sans);">
     <div style="background:linear-gradient(135deg,${c.bg3},${c.surface});padding:${headerPadding};border-bottom:2px solid ${c.accent};">
-      <div style="font-family:'DM Mono',monospace;font-size:${topBrandSize}px;letter-spacing:0.2em;color:${c.accent};text-transform:uppercase;margin-bottom:4px;">dankcharts.fm</div>
-      <div style="font-family:'DM Sans',sans-serif;font-size:${cardTitleSize}px;font-weight:700;color:${c.text};letter-spacing:-0.02em;line-height:1.15;">${esc(cardTitle)}</div>
-      ${opts.showDate ? `<div style="font-family:'DM Mono',monospace;font-size:${dateFontSize}px;color:${c.text2};margin-top:4px;letter-spacing:0.05em;">${esc(periodLine)}</div>` : ''}
+      <div style="font-family:var(--font-mono);font-size:${topBrandSize}px;letter-spacing:0.2em;color:${c.accent};text-transform:uppercase;margin-bottom:4px;">dankcharts.fm</div>
+      <div style="font-family:var(--font-sans);font-size:${cardTitleSize}px;font-weight:700;color:${c.text};letter-spacing:-0.02em;line-height:1.15;">${esc(cardTitle)}</div>
+      ${opts.showDate ? `<div style="font-family:var(--font-mono);font-size:${dateFontSize}px;color:${c.text2};margin-top:4px;letter-spacing:0.05em;">${esc(periodLine)}</div>` : ''}
     </div>
     <div style="flex:1;overflow:hidden;">${rows}</div>
     ${opts.showFooter ? `<div style="padding:8px 12px;background:${c.bg3};border-top:1px solid ${c.border};display:flex;justify-content:space-between;align-items:center;">
-      <div style="font-family:'DM Mono',monospace;font-size:${bottomBrandSize}px;color:${c.text3};letter-spacing:0.12em;">dankcharts.fm · ${personalCharts}</div>
-      <div style="font-family:'DM Mono',monospace;font-size:8px;color:${c.accent};letter-spacing:0.08em;text-transform:uppercase;">${playsWord}</div>
+      <div style="font-family:var(--font-mono);font-size:${bottomBrandSize}px;color:${c.text3};letter-spacing:0.12em;">dankcharts.fm · ${personalCharts}</div>
+      <div style="font-family:var(--font-mono);font-size:8px;color:${c.accent};letter-spacing:0.08em;text-transform:uppercase;">${playsWord}</div>
     </div>` : ''}
   </div>`;
 }
@@ -11490,7 +11490,7 @@ function buildCrIgCardHTML(type, key, opts) {
     const truncated = d.entries.length > maxBoxes;
 
     const secSize = opts.sectionSize || 8;
-    const lFont = `'${opts.labelFont || 'DM Mono'}',monospace`;
+    const lFont = `'${opts.labelFont || 'JetBrains Mono'}',monospace`;
 
     // Inline peak badge matching chart style (gold/silver/bronze)
     const _peakBadge = (p) => {
@@ -11511,7 +11511,7 @@ function buildCrIgCardHTML(type, key, opts) {
       const border = isPeak ? 'rgba(245,158,11,0.45)' : 'rgba(255,255,255,0.22)';
       const rc = isPeak ? c.gold1 : c.text;
       return `<div style="background:${bg};border:1px solid ${border};border-radius:4px;padding:${pad}px ${pad + 1}px;text-align:center;min-width:${boxW}px;flex-shrink:0;">
-        <div style="font-family:'DM Serif Display',serif;font-size:${boxRankSize}px;font-weight:700;color:${rc};line-height:1.1">#${e.rank}</div>
+        <div style="font-family:var(--font-display);font-size:${boxRankSize}px;font-weight:700;color:${rc};line-height:1.1">#${e.rank}</div>
         <div style="font-family:${lFont};font-size:${boxLabelSize}px;color:${c.text3};white-space:nowrap;margin-top:2px">${e.label}</div>
       </div>`;
     }).join('');
@@ -11532,8 +11532,8 @@ function buildCrIgCardHTML(type, key, opts) {
 
   if (!sections.length) return '';
 
-  const tFont = `'${opts.titleFont || 'DM Sans'}',sans-serif`;
-  const lFont2 = `'${opts.labelFont || 'DM Mono'}',monospace`;
+  const tFont = `'${opts.titleFont || 'IBM Plex Sans'}',sans-serif`;
+  const lFont2 = `'${opts.labelFont || 'JetBrains Mono'}',monospace`;
   const autoTitleSize = isPost ? 17 : 22;
   const titleFontSize = opts.titleSize || autoTitleSize;
   const subtitleSize = Math.max(10, titleFontSize - 6);
@@ -11622,8 +11622,8 @@ function updateCrIgPreview() {
       showImage: document.getElementById('crIgOpt_showImage')?.checked ?? true,
       showSectionSummary: document.getElementById('crIgOpt_showSectionSummary')?.checked ?? true,
       imgUrl: crIgState.imgUrl,
-      titleFont: document.getElementById('crIgTitleFont')?.value || 'DM Sans',
-      labelFont: document.getElementById('crIgLabelFont')?.value || 'DM Mono',
+      titleFont: document.getElementById('crIgTitleFont')?.value || 'IBM Plex Sans',
+      labelFont: document.getElementById('crIgLabelFont')?.value || 'JetBrains Mono',
       titleSize: _sz('crIgTitleSize'),
       brandSize: _sz('crIgBrandSize'),
       weekDateSize: _sz('crIgWeekDateSize'),
@@ -11784,12 +11784,12 @@ function buildEntryIgCardHTML(type, key, rank, opts) {
 
   const imgHTML = (opts.showImage && opts.imgUrl)
     ? '<img src="' + opts.imgUrl + '" crossorigin="anonymous" style="width:' + imgSize + 'px;height:' + imgSize + 'px;object-fit:cover;border-radius:' + (isPost ? 10 : 14) + 'px;box-shadow:0 8px 32px rgba(0,0,0,0.55);border:1px solid ' + c.border + ';display:block;">'
-    : '<div style="width:' + imgSize + 'px;height:' + imgSize + 'px;background:' + c.surface + ';border-radius:' + (isPost ? 10 : 14) + 'px;border:1px solid ' + c.border + ';display:flex;align-items:center;justify-content:center;"><span style="font-family:\'DM Serif Display\',serif;font-size:' + Math.round(imgSize * 0.32) + 'px;color:' + c.accent2 + ';">' + esc(initials(displayName)) + '</span></div>';
+    : '<div style="width:' + imgSize + 'px;height:' + imgSize + 'px;background:' + c.surface + ';border-radius:' + (isPost ? 10 : 14) + 'px;border:1px solid ' + c.border + ';display:flex;align-items:center;justify-content:center;"><span style="font-family:var(--font-display);font-size:' + Math.round(imgSize * 0.32) + 'px;color:' + c.accent2 + ';">' + esc(initials(displayName)) + '</span></div>';
 
   const header = '<div style="padding:' + (isPost ? '24px 22px 14px' : '86px 26px 18px') + ';background:linear-gradient(135deg,' + c.bg3 + ',' + c.surface + ');border-bottom:2px solid ' + c.accent + ';flex-shrink:0;min-height:' + headerMinH + 'px;box-sizing:border-box;display:flex;flex-direction:column;justify-content:flex-start;">'
-    + '<div style="font-family:\'DM Mono\',monospace;font-size:' + brandFont + 'px;letter-spacing:0.22em;color:' + c.accent + ';text-transform:uppercase;margin-bottom:3px;">dankcharts.fm \u00b7 ' + esc(typeLabel) + '</div>'
-    + '<div style="font-family:\'DM Serif Display\',serif;font-size:' + chartNameFont + 'px;color:' + c.text + ';line-height:1.1;">' + esc(chartName) + '</div>'
-    + (opts.showWeekDate && periodLine ? '<div style="font-family:\'DM Mono\',monospace;font-size:' + weekDateFont + 'px;color:' + c.text3 + ';letter-spacing:0.1em;margin-top:4px;text-transform:uppercase;">' + esc(periodLine) + '</div>' : '')
+    + '<div style="font-family:var(--font-mono);font-size:' + brandFont + 'px;letter-spacing:0.22em;color:' + c.accent + ';text-transform:uppercase;margin-bottom:3px;">dankcharts.fm \u00b7 ' + esc(typeLabel) + '</div>'
+    + '<div style="font-family:var(--font-display);font-size:' + chartNameFont + 'px;color:' + c.text + ';line-height:1.1;">' + esc(chartName) + '</div>'
+    + (opts.showWeekDate && periodLine ? '<div style="font-family:var(--font-mono);font-size:' + weekDateFont + 'px;color:' + c.text3 + ';letter-spacing:0.1em;margin-top:4px;text-transform:uppercase;">' + esc(periodLine) + '</div>' : '')
     + '</div>';
 
   const body = '<div style="flex:1;overflow:hidden;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:' + (isPost ? ('12px 22px ' + bodyPadBottom + 'px') : ('22px 28px ' + bodyPadBottom + 'px')) + ';position:relative;">'
@@ -11797,11 +11797,11 @@ function buildEntryIgCardHTML(type, key, rank, opts) {
     + '<div style="position:relative;margin-bottom:' + nameMT + 'px;display:flex;flex-direction:column;align-items:center;">' + imgHTML
     + '</div>'
     + '<div style="text-align:center;width:100%;position:relative;">'
-    + '<div style="font-family:\'DM Sans\',sans-serif;font-size:' + titleFont + 'px;font-weight:700;color:' + c.text + ';line-height:1.2;margin-bottom:2px;max-height:' + (isPost ? 54 : 78) + 'px;overflow:hidden;">' + esc(displayName) + '</div>'
-    + (opts.showSubtitle && artistName ? '<div style="font-family:\'DM Sans\',sans-serif;font-size:' + subFont + 'px;color:' + c.text2 + ';line-height:1.25;margin-bottom:1px;max-height:' + (isPost ? 34 : 48) + 'px;overflow:hidden;">' + esc(artistName) + '</div>' : '')
-    + (opts.showSubtitle && type === 'songs' && albumName ? '<div style="font-family:\'DM Mono\',monospace;font-size:' + monoFont + 'px;color:' + c.text3 + ';letter-spacing:0.06em;margin-bottom:2px;">' + esc(albumName) + '</div>' : '')
-    + (descInMediaZone ? '<div style="margin-top:' + (isPost ? 6 : 8) + 'px;max-width:' + (isPost ? '92%' : '88%') + ';max-height:' + descOverlayMaxH + 'px;overflow:hidden;padding:' + (isPost ? '6px 8px' : '8px 10px') + ';font-family:\'DM Sans\',sans-serif;font-size:' + descOverlayFont + 'px;color:' + c.text + ';font-style:italic;line-height:1.35;background:' + (c.isDark ? 'linear-gradient(180deg, rgba(8,18,30,0.28), rgba(8,18,30,0.72))' : c.bg2 + 'cc') + ';border:1px solid ' + (c.isDark ? 'rgba(255,255,255,0.22)' : c.border) + ';border-radius:' + (isPost ? 8 : 10) + 'px;' + (c.isDark ? 'text-shadow:0 1px 2px rgba(0,0,0,0.7);' : '') + 'margin-left:auto;margin-right:auto;">' + esc(desc) + '</div>' : '')
-    + (desc && !descInMediaZone ? '<div style="font-family:\'DM Sans\',sans-serif;font-size:' + descFont + 'px;color:' + c.text3 + ';margin-top:' + (isPost ? 6 : 8) + 'px;font-style:italic;line-height:1.45;padding:0 6px;max-height:' + descMaxH + 'px;overflow:hidden;">' + esc(desc) + '</div>' : '')
+    + '<div style="font-family:var(--font-sans);font-size:' + titleFont + 'px;font-weight:700;color:' + c.text + ';line-height:1.2;margin-bottom:2px;max-height:' + (isPost ? 54 : 78) + 'px;overflow:hidden;">' + esc(displayName) + '</div>'
+    + (opts.showSubtitle && artistName ? '<div style="font-family:var(--font-sans);font-size:' + subFont + 'px;color:' + c.text2 + ';line-height:1.25;margin-bottom:1px;max-height:' + (isPost ? 34 : 48) + 'px;overflow:hidden;">' + esc(artistName) + '</div>' : '')
+    + (opts.showSubtitle && type === 'songs' && albumName ? '<div style="font-family:var(--font-mono);font-size:' + monoFont + 'px;color:' + c.text3 + ';letter-spacing:0.06em;margin-bottom:2px;">' + esc(albumName) + '</div>' : '')
+    + (descInMediaZone ? '<div style="margin-top:' + (isPost ? 6 : 8) + 'px;max-width:' + (isPost ? '92%' : '88%') + ';max-height:' + descOverlayMaxH + 'px;overflow:hidden;padding:' + (isPost ? '6px 8px' : '8px 10px') + ';font-family:var(--font-sans);font-size:' + descOverlayFont + 'px;color:' + c.text + ';font-style:italic;line-height:1.35;background:' + (c.isDark ? 'linear-gradient(180deg, rgba(8,18,30,0.28), rgba(8,18,30,0.72))' : c.bg2 + 'cc') + ';border:1px solid ' + (c.isDark ? 'rgba(255,255,255,0.22)' : c.border) + ';border-radius:' + (isPost ? 8 : 10) + 'px;' + (c.isDark ? 'text-shadow:0 1px 2px rgba(0,0,0,0.7);' : '') + 'margin-left:auto;margin-right:auto;">' + esc(desc) + '</div>' : '')
+    + (desc && !descInMediaZone ? '<div style="font-family:var(--font-sans);font-size:' + descFont + 'px;color:' + c.text3 + ';margin-top:' + (isPost ? 6 : 8) + 'px;font-style:italic;line-height:1.45;padding:0 6px;max-height:' + descMaxH + 'px;overflow:hidden;">' + esc(desc) + '</div>' : '')
     + (isPost
       ? '<div style="display:flex;justify-content:center;margin-top:4px;"><div style="display:flex;align-items:center;justify-content:space-between;width:100%;padding:0 4px;">'
       : '')
@@ -11809,19 +11809,19 @@ function buildEntryIgCardHTML(type, key, rank, opts) {
       ? '<div style="position:absolute;left:28px;right:28px;bottom:16px;transform:translateY(' + storyStatusY + 'px);display:flex;align-items:center;justify-content:space-between;">'
       : '')
     + (opts.showMovement
-      ? '<div style="font-family:\'DM Mono\',monospace;font-size:' + metaMvSize + 'px;color:' + mvColor + ';font-weight:700;letter-spacing:0.07em;line-height:1;">' + esc(mvText) + '</div>'
+      ? '<div style="font-family:var(--font-mono);font-size:' + metaMvSize + 'px;color:' + mvColor + ';font-weight:700;letter-spacing:0.07em;line-height:1;">' + esc(mvText) + '</div>'
       : '<div style="width:1px;height:1px;"></div>')
-    + '<div style="font-family:\'DM Serif Display\',serif;font-size:' + metaRankSize + 'px;color:' + rankColor + ';line-height:1;letter-spacing:-0.02em;">#' + rank + '</div>'
+    + '<div style="font-family:var(--font-display);font-size:' + metaRankSize + 'px;color:' + rankColor + ';line-height:1;letter-spacing:-0.02em;">#' + rank + '</div>'
     + '</div>'
     + (isPost ? '</div>' : '')
     + '</div>'
     + '</div>';
 
   const footer = opts.showFooter
-    ? '<div style="padding:5px 14px;background:' + c.bg3 + ';border-top:1px solid ' + c.border + ';flex-shrink:0;"><div style="font-family:\'DM Mono\',monospace;font-size:7px;color:' + c.text3 + ';letter-spacing:0.12em;">dankcharts.fm \u00b7 PERSONAL MUSIC CHARTS</div></div>'
+    ? '<div style="padding:5px 14px;background:' + c.bg3 + ';border-top:1px solid ' + c.border + ';flex-shrink:0;"><div style="font-family:var(--font-mono);font-size:7px;color:' + c.text3 + ';letter-spacing:0.12em;">dankcharts.fm \u00b7 PERSONAL MUSIC CHARTS</div></div>'
     : '';
 
-  return '<div style="width:' + cardW + 'px;height:' + cardH + 'px;background:' + c.bg + ';overflow:hidden;display:flex;flex-direction:column;font-family:\'DM Sans\',sans-serif;">' + header + body + (storyBottomSafe ? '<div style="height:' + storyBottomSafe + 'px;flex-shrink:0;"></div>' : '') + footer + '</div>';
+  return '<div style="width:' + cardW + 'px;height:' + cardH + 'px;background:' + c.bg + ';overflow:hidden;display:flex;flex-direction:column;font-family:var(--font-sans);">' + header + body + (storyBottomSafe ? '<div style="height:' + storyBottomSafe + 'px;flex-shrink:0;"></div>' : '') + footer + '</div>';
 }
 
 // Movement helper — week/month use lastPeriodStats; year uses chart run history
@@ -12921,7 +12921,7 @@ function openArtistModal(artistName) {
       items.map(a => ({ name: a.album, plays: a.count, date: firstAlbumPlay(a.album) }))));
   }
 
-  if (!acc.length) acc.push(`<div style="font-family:'DM Sans',sans-serif;font-style:italic;font-size:0.85rem;color:var(--text3);padding:0.5rem 0;">${t('acc_none', { n: chartSize })}</div>`);
+  if (!acc.length) acc.push(`<div style="font-family:var(--font-sans);font-style:italic;font-size:0.85rem;color:var(--text3);padding:0.5rem 0;">${t('acc_none', { n: chartSize })}</div>`);
   document.getElementById('modalAccomplishments').innerHTML = acc.join('');
 
   // ─── SONGS ON CHART: 4 collapsible sections ──────────────────────────────
@@ -13510,7 +13510,7 @@ function openAlbumModal(albumKey) {
   if (goldTracks.length) acc.push(albAccRow('⭐', t('acc_cert', { n: goldTracks.length, cert: t('cert_gold'), unit: tUnit('tracks', goldTracks.length), plays: CERT.song.gold, plays_unit: tUnit('plays', CERT.song.gold) }),
     goldTracks.map(s => ({ name: s.title, plays: s.count }))));
 
-  if (!acc.length) acc.push(`<div style="font-family:'DM Sans',sans-serif;font-style:italic;font-size:0.85rem;color:var(--text3);padding:0.5rem 0">${t('acc_none', { n: chartSize })}</div>`);
+  if (!acc.length) acc.push(`<div style="font-family:var(--font-sans);font-style:italic;font-size:0.85rem;color:var(--text3);padding:0.5rem 0">${t('acc_none', { n: chartSize })}</div>`);
   document.getElementById('albumModalAccomplishments').innerHTML = acc.join('');
 
   // ── CHART RUN HISTORY: 3 collapsible sections ─────────────────────────────
@@ -14791,7 +14791,7 @@ function renderGraphs() {
           const total = chart.data.datasets.reduce((sum, ds) => sum + (ds.data[i] || 0), 0);
           if (!total) return;
           ctx.save();
-          ctx.font = '600 10px "DM Mono", monospace';
+          ctx.font = '600 10px "JetBrains Mono", monospace';
           ctx.fillStyle = gc.text;
           ctx.textAlign = 'center';
           ctx.textBaseline = 'bottom';
@@ -14890,7 +14890,7 @@ function renderCumulativeChips() {
   wrap.innerHTML = gCumulativeArtists.map((a, i) => {
     const col = GRAPH_PALETTE[i % GRAPH_PALETTE.length];
     return `<span style="display:inline-flex;align-items:center;gap:4px;background:${col}22;border:1px solid ${col};
-              color:${col};font-family:'DM Mono',monospace;font-size:0.65rem;padding:2px 8px;border-radius:20px;
+              color:${col};font-family:var(--font-mono);font-size:0.65rem;padding:2px 8px;border-radius:20px;
               letter-spacing:0.04em;">
               ${esc(a)}
               <button onclick="removeCumulativeArtist(${i})" style="background:none;border:none;color:${col};
@@ -14953,7 +14953,7 @@ function renderCumulativeChart(sortedKeys, labels, ptRadius, gc, axisOpts, legen
           const val = ds.data[i];
           if (val == null) return;
           ctx.save();
-          ctx.font = '600 10px "DM Mono", monospace';
+          ctx.font = '600 10px "JetBrains Mono", monospace';
           ctx.fillStyle = ds.borderColor;
           ctx.textAlign = 'center';
           ctx.textBaseline = 'bottom';
@@ -15083,7 +15083,7 @@ function renderTotalVolumeChart(sortedKeys, gc, axisOpts, legendOpts) {
           const val = ds.data[i];
           if (!val) return;
           ctx.save();
-          ctx.font = '600 10px "DM Mono", monospace';
+          ctx.font = '600 10px "JetBrains Mono", monospace';
           ctx.fillStyle = ds.borderColor;
           ctx.textAlign = 'center';
           ctx.textBaseline = 'bottom';
@@ -15133,7 +15133,7 @@ function renderVolumeChips() {
   wrap.innerHTML = gVolumeArtists.map((a, i) => {
     const col = GRAPH_PALETTE[i % GRAPH_PALETTE.length];
     return `<span style="display:inline-flex;align-items:center;gap:4px;background:${col}22;border:1px solid ${col};
-              color:${col};font-family:'DM Mono',monospace;font-size:0.65rem;padding:2px 8px;border-radius:20px;
+              color:${col};font-family:var(--font-mono);font-size:0.65rem;padding:2px 8px;border-radius:20px;
               letter-spacing:0.04em;">
               ${esc(a)}
               <button onclick="removeVolumeArtist(${i})" style="background:none;border:none;color:${col};
@@ -15192,7 +15192,7 @@ function renderVolumeChart(sortedKeys, gc, axisOpts, legendOpts) {
           const val = ds.data[i];
           if (!val) return;
           ctx.save();
-          ctx.font = '600 10px "DM Mono", monospace';
+          ctx.font = '600 10px "JetBrains Mono", monospace';
           ctx.fillStyle = ds.borderColor;
           ctx.textAlign = 'center';
           ctx.textBaseline = 'bottom';
@@ -15561,7 +15561,7 @@ function drawRace(frameIdx, progress, targetCanvas) {
     // Rank badge — colored pill on the far left
     const rankN = Math.round(rank) + 1;
     const rankStr = String(rankN);
-    ctx.font = `bold ${raceTopN > 15 ? 11 : 13}px "DM Mono", monospace`;
+    ctx.font = `bold ${raceTopN > 15 ? 11 : 13}px "JetBrains Mono", monospace`;
     const pillW = Math.max(24, ctx.measureText(rankStr).width + 12);
     const pillH = Math.min(BAR_H - 6, raceTopN > 15 ? 16 : 20);
     const pillX = 2;
@@ -15579,19 +15579,19 @@ function drawRace(frameIdx, progress, targetCanvas) {
     ctx.textAlign = 'right';
     if (sub) {
       ctx.fillStyle = gc.text || '#e8f0ff';
-      ctx.font = '500 11px "DM Sans", sans-serif';
+      ctx.font = '500 11px "IBM Plex Sans", sans-serif';
       ctx.textBaseline = 'middle';
       let dname = name;
       while (ctx.measureText(dname).width > nameMaxW && dname.length > 3) dname = dname.slice(0, -2) + '…';
       ctx.fillText(dname, LABEL_W - 2, y + BAR_H / 2 - 4);
       ctx.fillStyle = gc.text3 || '#7aa0d0';
-      ctx.font = '400 9px "DM Sans", sans-serif';
+      ctx.font = '400 9px "IBM Plex Sans", sans-serif';
       let dsub = sub;
       while (ctx.measureText(dsub).width > nameMaxW && dsub.length > 3) dsub = dsub.slice(0, -2) + '…';
       ctx.fillText(dsub, LABEL_W - 2, y + BAR_H / 2 + 7);
     } else {
       ctx.fillStyle = gc.text || '#e8f0ff';
-      ctx.font = `500 ${raceTopN > 15 ? 11 : 12}px "DM Sans", sans-serif`;
+      ctx.font = `500 ${raceTopN > 15 ? 11 : 12}px "IBM Plex Sans", sans-serif`;
       ctx.textBaseline = 'middle';
       let dname = name;
       while (ctx.measureText(dname).width > nameMaxW && dname.length > 3) dname = dname.slice(0, -2) + '…';
@@ -15611,7 +15611,7 @@ function drawRace(frameIdx, progress, targetCanvas) {
       ctx.beginPath(); ctx.arc(avX, avY, AV_R, 0, Math.PI * 2);
       ctx.fillStyle = color; ctx.fill();
       ctx.fillStyle = '#fff';
-      ctx.font = `700 ${Math.max(7, Math.round(AV_R * 0.62))}px "DM Sans", sans-serif`;
+      ctx.font = `700 ${Math.max(7, Math.round(AV_R * 0.62))}px "IBM Plex Sans", sans-serif`;
       ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
       ctx.fillText(name.split(/[\s\-&]+/).slice(0, 2).map(w => w[0] || '').join('').toUpperCase() || '?', avX, avY + 0.5);
     }
@@ -15620,7 +15620,7 @@ function drawRace(frameIdx, progress, targetCanvas) {
 
     // Play count
     ctx.fillStyle = gc.text || '#e8f0ff';
-    ctx.font = '600 11px "DM Mono", monospace';
+    ctx.font = '600 11px "JetBrains Mono", monospace';
     ctx.textAlign = 'right'; ctx.textBaseline = 'middle';
     ctx.fillText(Math.round(count).toLocaleString(), W - 4, y + BAR_H / 2 + 1);
 
@@ -15629,7 +15629,7 @@ function drawRace(frameIdx, progress, targetCanvas) {
 
   // Date — bottom right, crossfade between frame labels
   ctx.globalAlpha = 1;
-  ctx.font = 'bold 18px "DM Mono", monospace';
+  ctx.font = 'bold 18px "JetBrains Mono", monospace';
   ctx.textAlign = 'right'; ctx.textBaseline = 'bottom';
   ctx.fillStyle = gc.text3 || '#7aa0d0';
   if (progress > 0 && frameA.label !== frameB.label) {
@@ -20017,7 +20017,7 @@ function renderHeatmapChips() {
   wrap.innerHTML = heatmapFilters.map((f, i) => {
     const col = GRAPH_PALETTE[i % GRAPH_PALETTE.length];
     return `<span style="display:inline-flex;align-items:center;gap:4px;background:${col}22;border:1px solid ${col};
-              color:${col};font-family:'DM Mono',monospace;font-size:0.65rem;padding:2px 8px;border-radius:20px;
+              color:${col};font-family:var(--font-mono);font-size:0.65rem;padding:2px 8px;border-radius:20px;
               letter-spacing:0.04em;">${esc(f)}
               <button onclick="removeHeatmapFilter(${i})" style="background:none;border:none;color:${col};
                 cursor:pointer;font-size:0.75rem;line-height:1;padding:0 0 1px 2px;">×</button>
@@ -20187,7 +20187,7 @@ function renderHeatmap() {
   const allDayKeys = Object.keys(dayMap).sort();
 
   if (!allDayKeys.length) {
-    container.innerHTML = '<div style="font-family:\'DM Mono\',monospace;font-size:0.7rem;color:var(--text3);padding:1rem 0;">No scrobbles found for the selected filters.</div>';
+    container.innerHTML = '<div style="font-family:var(--font-mono);font-size:0.7rem;color:var(--text3);padding:1rem 0;">No scrobbles found for the selected filters.</div>';
     return;
   }
 
@@ -23857,7 +23857,7 @@ function stBuildCardHTML(mode) {
   const cardW = '360px';
   const topColDir = isStory ? 'column' : 'row';
 
-  return `<div class="stc-root" style="width:${cardW};height:${cardH};background:linear-gradient(135deg,#0d1117 0%,#1a1f2e 50%,#0d1117 100%);padding:20px;box-sizing:border-box;display:flex;flex-direction:column;font-family:'DM Mono',monospace;color:#e2e8f0;position:relative;overflow:hidden;">
+  return `<div class="stc-root" style="width:${cardW};height:${cardH};background:linear-gradient(135deg,#0d1117 0%,#1a1f2e 50%,#0d1117 100%);padding:20px;box-sizing:border-box;display:flex;flex-direction:column;font-family:var(--font-mono);color:#e2e8f0;position:relative;overflow:hidden;">
     <div style="position:absolute;top:-40px;right:-40px;width:200px;height:200px;background:radial-gradient(circle,rgba(99,102,241,0.15) 0%,transparent 70%);pointer-events:none;"></div>
     <div class="stc-header" style="margin-bottom:${isStory?'16px':'10px'};">
       <div style="font-size:0.6rem;letter-spacing:0.15em;color:#6366f1;text-transform:uppercase;margin-bottom:2px;">dankcharts.fm</div>

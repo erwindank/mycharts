@@ -1,40 +1,95 @@
-﻿    /* ── NAVY DARK (default) ── */
+﻿    /* ═══════════════════════════════════════════════════════════════
+       DESIGN TOKENS — primitives (theme-independent)
+       Fonts, radii, motion, z-index and spacing scales.
+       Theme color tokens live in the per-theme blocks below; derived
+       semantic tokens (glass surfaces, shadows, scrims, medals…) are
+       defined on body right after the theme blocks so color-mix()
+       resolves against the active theme's palette.
+       ═══════════════════════════════════════════════════════════════ */
     :root {
-      --bg: #08121e;
-      --bg2: #0e1e34;
-      --bg3: #122444;
-      --surface: #173060;
-      --border: #1e3d72;
-      --border2: #2a52a0;
-      --text: #eaf2ff;
-      --text2: #a8c8f0;
-      --text3: #7aa0d0;
+      /* Type stack — 2026 redesign: Bricolage Grotesque (display),
+         IBM Plex Sans (UI/body), JetBrains Mono (data/numbers) */
+      --font-sans: 'IBM Plex Sans', system-ui, sans-serif;
+      --font-display: 'Bricolage Grotesque', 'IBM Plex Sans', sans-serif;
+      --font-mono: 'JetBrains Mono', ui-monospace, 'Cascadia Mono', monospace;
+
+      /* Radius scale — small controls → panels → pills */
+      --r-xs: 4px;
+      --r-sm: 6px;
+      --r-md: 10px;
+      --r-lg: 14px;
+      --r-xl: 18px;
+      --r-full: 999px;
+
+      /* Motion scale */
+      --t-fast: 150ms;
+      --t-med: 200ms;
+      --t-slow: 300ms;
+      --ease: cubic-bezier(0.2, 0.7, 0.3, 1); /* soft ease-out */
+
+      /* Z-index scale (legacy ad-hoc values migrate onto this) */
+      --z-nav: 100;
+      --z-dropdown: 500;
+      --z-overlay: 900;
+      --z-modal: 1000;
+      --z-popover: 1100;
+      --z-toast: 1200;
+      --z-max: 2000;
+
+      /* Spacing scale (4px base) */
+      --sp-1: 4px;
+      --sp-2: 8px;
+      --sp-3: 12px;
+      --sp-4: 16px;
+      --sp-5: 24px;
+      --sp-6: 32px;
+      --sp-7: 40px;
+      --sp-8: 48px;
+    }
+
+    /* ── NAVY DARK (default) ──
+       2026 redesign: backgrounds moved from saturated pure navy to a
+       softer slate-navy (lower chroma, slightly lifted) for a calmer,
+       more premium base. Accents keep their vibrancy. */
+    :root {
+      --bg: #0d141f;
+      --bg2: #131c2c;
+      --bg3: #192437;
+      --surface: #1f2e4a;
+      --border: #2b3d5e;
+      --border2: #3d5685;
+      --text: #edf2fa;
+      --text2: #aac2e2;
+      --text3: #84a4ce;
       --surface1: var(--bg2);
       --surface2: var(--bg3);
       --surface3: var(--surface);
       --text1: var(--text);
-      /* was #6090c0 — 3.96:1 on surface, now 4.88:1 */
-      --accent: #4aacff;
-      --accent2: #80c8ff;
+      /* was #6090c0 — 3.96:1 on surface, softened family keeps ≥4.5:1 */
+      --accent: #58aaf6;
+      --accent2: #8ec7f8;
       --teal: #38bdf8;
       --green: #34d399;
       --amber: #fbbf24;
       --rose: #fb7185;
       --gold1: #f0aa30;
       --gold2: #fcd34d;
+      /* chart gridlines — read by app.js getGraphColors(); plain hex on purpose (canvas can't parse color-mix) */
+      --rule: #243349;
     }
 
-    /* ── NAVY LIGHT ── */
+    /* ── NAVY LIGHT ──
+       Frame color softened toward slate for the 2026 redesign. */
     body.navy-light {
-      --bg: #bed8f5;
+      --bg: #ccdcf0;
       --bg2: #ffffff;
-      --bg3: #e8f3ff;
-      --surface: #cfe4ff;
-      --border: #88aed5;
-      --border2: #4e82c2;
+      --bg3: #ecf3fb;
+      --surface: #dbe8f8;
+      --border: #9db4d2;
+      --border2: #5f83b4;
       --text: #040e1c;
       --text2: #0a2a50;
-      --text3: #2a5888;
+      --text3: #33567e;
       --accent: #0852a8;
       /* was #0a5cb8 — 4.26:1 on surface, now 5.25:1 */
       --accent2: #0c5ab8;
@@ -50,21 +105,24 @@
       --gold1: #78380e;
       /* was #a06010 — 3.49:1 on surface, now 6.23:1 */
       --gold2: #c07818;
+      /* light gridlines — fixes light-theme graphs that fell back to a dark hex in JS */
+      --rule: #c3d2e4;
     }
 
-    /* ── PURPLE DARK ── */
+    /* ── PURPLE DARK ──
+       Softened to a muted violet-slate base (2026 redesign). */
     body.purple {
-      --bg: #0a0812;
-      --bg2: #110f1e;
-      --bg3: #181528;
-      --surface: #201c38;
-      --border: #2c2850;
-      --border2: #3d3870;
-      --text: #f0eeff;
-      --text2: #b8b0e0;
-      --text3: #9080c8;
-      /* was #7068a8 — 3.5:1 on surface, now 4.84:1 */
-      --accent: #8878ff;
+      --bg: #100e18;
+      --bg2: #171425;
+      --bg3: #1e1a30;
+      --surface: #272242;
+      --border: #363156;
+      --border2: #4c4680;
+      --text: #f0eefc;
+      --text2: #bab2e0;
+      --text3: #988cca;
+      /* was #7068a8 — 3.5:1 on surface, softened family keeps ≥4.5:1 */
+      --accent: #8f80f8;
       --accent2: #a898ff;
       --teal: #38bdf8;
       --green: #34d399;
@@ -72,15 +130,18 @@
       --rose: #fb7185;
       --gold1: #f59e0b;
       --gold2: #fcd34d;
+      /* chart gridlines (plain hex — read by JS) */
+      --rule: #2b2647;
     }
 
-    /* ── PURPLE LIGHT ── */
+    /* ── PURPLE LIGHT ──
+       Frame color softened toward lavender-slate (2026 redesign). */
     body.purple-light {
-      --bg: #cac0f5;
+      --bg: #d6cff2;
       --bg2: #ffffff;
-      --bg3: #edeaff;
-      --surface: #d8d0ff;
-      --border: #9e90dc;
+      --bg3: #efecfa;
+      --surface: #e2dcf8;
+      --border: #a89dd8;
       --border2: #7262c8;
       --text: #0e0820;
       --text2: #2a1860;
@@ -99,41 +160,48 @@
       --gold1: #78380e;
       /* was #904800 — failed on surface, now 5.39:1 */
       --gold2: #b05c00;
+      /* light gridlines (plain hex — read by JS) */
+      --rule: #cdc6e6;
     }
 
-    /* ── YELLOW DARK ── */
+    /* ── YELLOW DARK ──
+       Harsh pure-yellow-on-black softened to warm charcoal (2026 redesign). */
     body.yellow {
-      --bg: #0d0d00;
-      --bg2: #181800;
-      --bg3: #222200;
-      --surface: #2e2e00;
-      --border: #484800;
-      --border2: #707000;
+      --bg: #14130a;
+      --bg2: #1c1a10;
+      --bg3: #252214;
+      --surface: #302c16;
+      --border: #4a4526;
+      --border2: #6e6738;
       --text: #ffffff;
       --text2: #ffffff;
       --text3: #e8e8d0;
-      --accent: #f5d000;
+      --accent: #f5d420;
       --accent2: #ffe040;
       --teal: #38bdf8;
       --green: #4ade80;
       --amber: #fbbf24;
       --rose: #fb7185;
+      /* chart gridlines (plain hex — read by JS) */
+      --rule: #3a3620;
       --gold1: #f0aa30;
       --gold2: #fcd34d;
     }
 
-    /* ── YELLOW LIGHT ── */
+    /* ── YELLOW LIGHT ──
+       Loud lemon frame softened to warm parchment-gold (2026 redesign). */
     body.yellow-light {
-      --bg: #f5e880;
+      --bg: #eee5b0;
       --bg2: #ffffff;
-      --bg3: #fffbe0;
-      --surface: #fff3b0;
-      --border: #ccc040;
-      --border2: #b0a018;
+      --bg3: #faf6e0;
+      --surface: #f7eecb;
+      --border: #c2b76a;
+      --border2: #9e9030;
       --text: #1a1800;
       --text2: #3a3400;
       --text3: #5a5000;
-      --accent: #806800;
+      /* was #806800 — 4.23:1 on softened bg, now 4.78:1 */
+      --accent: #766000;
       --accent2: #6a5400;
       --teal: #0c4a6e;
       --green: #14532d;
@@ -141,36 +209,42 @@
       --rose: #881337;
       --gold1: #78380e;
       --gold2: #a05800;
+      /* light gridlines (plain hex — read by JS) */
+      --rule: #ddd5a8;
     }
 
-    /* ── PINK DARK ── */
+    /* ── PINK DARK ──
+       Softened from pure magenta-on-black to a plum-slate base (2026 redesign). */
     body.pink {
-      --bg: #0d0008;
-      --bg2: #180010;
-      --bg3: #220018;
-      --surface: #300020;
-      --border: #500038;
-      --border2: #780050;
+      --bg: #130a10;
+      --bg2: #1a0f16;
+      --bg3: #22141d;
+      --surface: #2f1c27;
+      --border: #4c2c3e;
+      --border2: #6f4058;
       --text: #ffffff;
       --text2: #ffffff;
       --text3: #e8d0e0;
-      --accent: #ff50b0;
+      --accent: #f65cb2;
       --accent2: #ff80c8;
       --teal: #38bdf8;
       --green: #4ade80;
       --amber: #fbbf24;
-      --rose: #ff50b0;
+      --rose: #f65cb2;
       --gold1: #f0aa30;
       --gold2: #fcd34d;
+      /* chart gridlines (plain hex — read by JS) */
+      --rule: #3c2533;
     }
 
-    /* ── PINK LIGHT ── */
+    /* ── PINK LIGHT ──
+       Frame softened to a dusty rose (2026 redesign). */
     body.pink-light {
-      --bg: #f5c0e8;
+      --bg: #efcfe6;
       --bg2: #ffffff;
-      --bg3: #fff0fa;
-      --surface: #ffd8f2;
-      --border: #e090cc;
+      --bg3: #faf0f7;
+      --surface: #f8def0;
+      --border: #d5a3c6;
       --border2: #c24898;
       --text: #1a0010;
       --text2: #4a0030;
@@ -183,36 +257,42 @@
       --rose: #991060;
       --gold1: #924800;
       --gold2: #b45800;
+      /* light gridlines (plain hex — read by JS) */
+      --rule: #e5cbdc;
     }
 
-    /* ── RED DARK ── */
+    /* ── RED DARK ──
+       Softened from pure red-on-black to a warm oxblood-slate (2026 redesign). */
     body.red {
-      --bg: #0d0505;
-      --bg2: #180808;
-      --bg3: #220c0c;
-      --surface: #2e1010;
-      --border: #4a1818;
-      --border2: #6e2020;
+      --bg: #140d0d;
+      --bg2: #1b1111;
+      --bg3: #241616;
+      --surface: #301d1d;
+      --border: #4c2929;
+      --border2: #6e3a3a;
       --text: #ffffff;
       --text2: #ffffff;
       --text3: #e8e8e8;
-      --accent: #ff3c3c;
-      --accent2: #ff6868;
-      --teal: #ff6868;
+      --accent: #f65454;
+      --accent2: #f87d7d;
+      --teal: #f87d7d;
       --green: #4ade80;
       --amber: #fbbf24;
-      --rose: #ff3c3c;
+      --rose: #f65454;
       --gold1: #f0aa30;
       --gold2: #fcd34d;
+      /* chart gridlines (plain hex — read by JS) */
+      --rule: #3a2323;
     }
 
-    /* ── RED LIGHT ── */
+    /* ── RED LIGHT ──
+       Frame softened to a dusty rosewood (2026 redesign). */
     body.red-light {
-      --bg: #f5c0c0;
+      --bg: #efcece;
       --bg2: #ffffff;
-      --bg3: #ffeeee;
-      --surface: #ffd8d8;
-      --border: #d89898;
+      --bg3: #faf0f0;
+      --surface: #f8dede;
+      --border: #cfa5a5;
       --border2: #c44040;
       --text: #1c0a0a;
       --text2: #4a2828;
@@ -231,6 +311,63 @@
       /* was #cc1414 — 4.22:1 on surface, now 6.16:1 */
       --gold1: #924800;
       --gold2: #b45800;
+      /* light gridlines (plain hex — read by JS) */
+      --rule: #e2c8c8;
+    }
+
+    /* ── DERIVED SEMANTIC TOKENS ──
+       Defined on body (not :root) so color-mix() resolves against the
+       ACTIVE theme's palette — the theme class lives on body, and
+       app.js getters (getGraphColors/igColors) read body first.
+       NOTE: JS-read tokens (--rule, --bg…--gold1) stay plain hex in the
+       theme blocks above; the color-mix values below are CSS-only. */
+    body {
+      /* numbers align in every table/stat without per-cell tweaks */
+      font-variant-numeric: tabular-nums;
+
+      /* glass containers */
+      --surface-glass: color-mix(in srgb, var(--bg2) 74%, transparent);
+      --border-t: color-mix(in srgb, var(--text) 10%, transparent); /* 1px translucent border */
+      --hover: color-mix(in srgb, var(--text) 6%, transparent);     /* row/button hover wash */
+      --scrim: rgba(2, 6, 12, 0.6);                                 /* modal backdrop */
+      --focus-ring: 0 0 0 2px color-mix(in srgb, var(--accent) 65%, transparent);
+      --glow-accent: 0 0 16px color-mix(in srgb, var(--accent) 22%, transparent);
+
+      /* layered soft shadows (dark themes; light themes override below) */
+      --shadow-1: 0 1px 2px rgba(0, 0, 0, 0.3), 0 2px 8px rgba(0, 0, 0, 0.18);
+      --shadow-2: 0 2px 6px rgba(0, 0, 0, 0.26), 0 10px 28px rgba(0, 0, 0, 0.24);
+      --shadow-3: 0 4px 12px rgba(0, 0, 0, 0.32), 0 24px 56px rgba(0, 0, 0, 0.38);
+
+      /* rank medals */
+      --medal-gold: #f2c14e;
+      --medal-silver: #c8d3e0;
+      --medal-bronze: #d29a6b;
+
+      /* chart movement semantics — alias the theme set so light themes
+         override once instead of via per-component rules */
+      --chart-up: var(--green);
+      --chart-down: var(--rose);
+      --chart-new: var(--accent);
+      --chart-re: var(--amber);
+    }
+
+    /* Light-theme variants of the derived tokens */
+    body.navy-light,
+    body.purple-light,
+    body.red-light,
+    body.yellow-light,
+    body.pink-light {
+      --surface-glass: color-mix(in srgb, var(--bg2) 82%, transparent);
+      --border-t: color-mix(in srgb, var(--text) 14%, transparent);
+      --hover: color-mix(in srgb, var(--text) 7%, transparent);
+      --scrim: rgba(15, 23, 42, 0.45);
+      --shadow-1: 0 1px 2px rgba(15, 23, 42, 0.08), 0 2px 8px rgba(15, 23, 42, 0.06);
+      --shadow-2: 0 2px 6px rgba(15, 23, 42, 0.09), 0 10px 28px rgba(15, 23, 42, 0.10);
+      --shadow-3: 0 4px 12px rgba(15, 23, 42, 0.12), 0 24px 56px rgba(15, 23, 42, 0.16);
+      /* darker medals for AA on light surfaces */
+      --medal-gold: #8a5a00;
+      --medal-silver: #4e5a68;
+      --medal-bronze: #7a4a20;
     }
 
     /* THEME SWITCHER */
@@ -308,7 +445,7 @@
     }
 
     #themeLabel {
-      font-family: 'DM Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 0.58rem;
       letter-spacing: 0.1em;
       color: rgba(255, 255, 255, 0.45);
@@ -323,7 +460,7 @@
       border-radius: 4px;
       padding: 3px 6px;
       color: var(--text);
-      font-family: 'DM Sans', sans-serif;
+      font-family: var(--font-sans);
       font-size: 0.75rem;
       cursor: pointer;
       outline: none;
@@ -351,7 +488,7 @@
       border-radius: 4px;
       color: rgba(255, 255, 255, 0.5);
       cursor: pointer;
-      font-family: 'DM Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 0.58rem;
       letter-spacing: 0.06em;
       padding: 2px 5px;
@@ -382,7 +519,7 @@
       border-radius: 4px;
       color: rgba(255, 255, 255, 0.5);
       cursor: pointer;
-      font-family: 'DM Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 0.58rem;
       letter-spacing: 0.06em;
       padding: 2px 5px;
@@ -421,7 +558,7 @@
       background: transparent;
       color: rgba(255, 255, 255, 0.55);
       cursor: pointer;
-      font-family: 'DM Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 0.6rem;
       letter-spacing: 0.12em;
       white-space: nowrap;
@@ -510,7 +647,7 @@
       border-radius: 4px;
       color: rgba(255, 255, 255, 0.5);
       cursor: pointer;
-      font-family: 'DM Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 0.58rem;
       letter-spacing: 0.06em;
       padding: 2px 5px;
@@ -563,7 +700,7 @@
     body {
       background: var(--bg);
       color: var(--text);
-      font-family: 'DM Sans', sans-serif;
+      font-family: var(--font-sans);
       font-weight: 400;
       min-height: 100vh;
       -webkit-text-size-adjust: 100%;
@@ -1321,7 +1458,7 @@
     }
 
     .wordmark-dank {
-      font-family: 'DM Sans', sans-serif;
+      font-family: var(--font-sans);
       font-weight: 600;
       font-size: clamp(2.4rem, 8vw, 4.8rem);
       color: #ffffff;
@@ -1330,7 +1467,7 @@
     }
 
     .wordmark-station {
-      font-family: 'DM Sans', sans-serif;
+      font-family: var(--font-sans);
       font-weight: 300;
       font-size: clamp(2.4rem, 8vw, 4.8rem);
       color: rgba(255, 255, 255, 0.82);
@@ -1339,7 +1476,7 @@
     }
 
     .wordmark-fm {
-      font-family: 'DM Mono', monospace;
+      font-family: var(--font-mono);
       font-weight: 500;
       font-size: clamp(0.85rem, 2.5vw, 1.5rem);
       color: #72bbff;
@@ -1356,7 +1493,7 @@
 
     .masthead .est {
       display: block;
-      font-family: 'DM Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 0.6rem;
       letter-spacing: 0.35em;
       color: rgba(114, 187, 255, 0.75);
@@ -1365,7 +1502,7 @@
     }
 
     .masthead .tagline {
-      font-family: 'DM Sans', sans-serif;
+      font-family: var(--font-sans);
       font-weight: 400;
       font-size: 0.84rem;
       color: rgba(226, 238, 255, 0.65);
@@ -1382,7 +1519,7 @@
       color: rgba(255, 255, 255, 0.8);
       font-size: 10px;
       letter-spacing: 0.22em;
-      font-family: 'DM Mono', monospace;
+      font-family: var(--font-mono);
       text-transform: uppercase;
     }
 
@@ -1441,7 +1578,7 @@
     }
 
     .upload-box p {
-      font-family: 'DM Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 0.75rem;
       color: var(--text2);
     }
@@ -1462,7 +1599,7 @@
       background: var(--bg2);
       color: var(--text2);
       padding: 0.5rem 1rem;
-      font-family: 'DM Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 0.68rem;
       letter-spacing: 0.05em;
       border-bottom: 1px solid var(--border);
@@ -1522,7 +1659,7 @@
       background: none;
       border: 1px solid var(--border2);
       color: var(--accent2);
-      font-family: 'DM Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 0.65rem;
       letter-spacing: 0.1em;
       padding: 0.2rem 0.75rem;
@@ -1558,7 +1695,7 @@
       background: none;
       border: 1px solid var(--border);
       color: var(--text3);
-      font-family: 'DM Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 0.65rem;
       letter-spacing: 0.08em;
       padding: 0.2rem 0.6rem;
@@ -1588,7 +1725,7 @@
       border-radius: 6px;
       cursor: pointer;
       font-size: 0.72rem;
-      font-family: 'DM Mono', monospace;
+      font-family: var(--font-mono);
       letter-spacing: 0.05em;
       transition: background 0.15s, border-color 0.15s, color 0.15s;
     }
@@ -1712,7 +1849,7 @@
       border-radius: 6px;
       cursor: pointer;
       font-size: 0.8rem;
-      font-family: 'DM Mono', monospace;
+      font-family: var(--font-mono);
       transition: background 0.15s;
       white-space: nowrap;
     }
@@ -1787,7 +1924,7 @@
       padding: 0.5rem 0.75rem;
       color: var(--text);
       font-size: 0.88rem;
-      font-family: 'DM Mono', monospace;
+      font-family: var(--font-mono);
       transition: border-color 0.15s;
     }
 
@@ -1956,7 +2093,7 @@
       padding: 0.3rem 0.5rem;
       color: var(--text);
       font-size: 0.85rem;
-      font-family: 'DM Mono', monospace;
+      font-family: var(--font-mono);
       transition: border-color 0.15s;
     }
     .cert-input:focus {
@@ -2040,7 +2177,7 @@
       border: 1px solid var(--border);
       border-radius: 8px;
       overflow: hidden; /* clip button hover backgrounds to rounded corners */
-      font-family: 'DM Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 0.72rem;
       letter-spacing: 0.08em;
       text-transform: uppercase;
@@ -2074,7 +2211,7 @@
       border: none;
       border-top: 1px solid var(--border);
       color: var(--text3);
-      font-family: 'DM Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 0.58rem;
       letter-spacing: 0.1em;
       text-transform: uppercase;
@@ -2193,7 +2330,7 @@
       border: 1px solid var(--border2);
       padding: 0.5rem 0.8rem;
       font-size: 0.7rem;
-      font-family: 'DM Mono', monospace;
+      font-family: var(--font-mono);
       letter-spacing: 0.03em;
       color: var(--text);
       max-width: 260px;
@@ -2228,7 +2365,7 @@
     }
 
     .chart-size-bar label {
-      font-family: 'DM Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 0.65rem;
       letter-spacing: 0.1em;
       text-transform: uppercase;
@@ -2246,7 +2383,7 @@
       border: 1px solid var(--border);
       padding: 0.2rem 0.7rem;
       cursor: pointer;
-      font-family: 'DM Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 0.68rem;
       letter-spacing: 0.06em;
       color: var(--text2);
@@ -2277,7 +2414,7 @@
     }
 
     .chart-display-toggles label {
-      font-family: 'DM Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 0.65rem;
       letter-spacing: 0.1em;
       text-transform: uppercase;
@@ -2296,7 +2433,7 @@
       border: 1px solid var(--border);
       padding: 0.2rem 0.7rem;
       cursor: pointer;
-      font-family: 'DM Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 0.62rem;
       letter-spacing: 0.06em;
       color: var(--text3);
@@ -2463,7 +2600,7 @@
       border: 1px solid var(--border2);
       padding: 0.25rem 1rem;
       cursor: pointer;
-      font-family: 'DM Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 0.7rem;
       color: var(--text2);
       border-radius: 4px;
@@ -2482,7 +2619,7 @@
     }
 
     .date-nav .period-label {
-      font-family: 'DM Serif Display', serif;
+      font-family: var(--font-display);
       font-size: 1rem;
       color: var(--text);
       text-align: center;
@@ -2495,7 +2632,7 @@
     }
 
     .period-sub {
-      font-family: 'DM Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 0.65rem;
       color: var(--text2);
       background: var(--surface);
@@ -2537,7 +2674,7 @@
       border: 1px solid var(--border2);
       padding: 0.18rem 0.55rem;
       cursor: pointer;
-      font-family: 'DM Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 0.65rem;
       color: var(--text2);
       border-radius: 4px;
@@ -2642,7 +2779,7 @@
     }
 
     .new-entries-title {
-      font-family: 'DM Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 0.66rem;
       letter-spacing: 0.12em;
       font-weight: 500;
@@ -2729,7 +2866,7 @@
 
     /* Idea 17: title styled like a section pill */
     .bu-section-title {
-      font-family: 'DM Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 0.62rem;
       letter-spacing: 0.15em;
       font-weight: 700;
@@ -2738,7 +2875,7 @@
     }
 
     .bu-type-label {
-      font-family: 'DM Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 0.6rem;
       letter-spacing: 0.08em;
       color: var(--text2);
@@ -2758,7 +2895,7 @@
       padding: 1px 6px;
       border-radius: 20px;
       border: 1px solid rgba(125, 211, 252, 0.3);
-      font-family: 'DM Mono', monospace;
+      font-family: var(--font-mono);
     }
 
     .bu-toggle-icon {
@@ -2819,7 +2956,7 @@
       font-style: italic;
       color: var(--text3);
       font-size: 0.75rem;
-      font-family: 'DM Mono', monospace;
+      font-family: var(--font-mono);
       text-align: center;
       white-space: nowrap;
       width: 58px;
@@ -2868,7 +3005,7 @@
 
     .bu-legend-desc {
       font-size: 0.58rem;
-      font-family: 'DM Sans', sans-serif;
+      font-family: var(--font-sans);
       color: var(--text3);
       white-space: nowrap;
     }
@@ -2876,7 +3013,7 @@
     /* Badges — ideas 13, 14, 15, 16 */
     .bu-badge {
       font-size: 0.58rem;
-      font-family: 'DM Mono', monospace;
+      font-family: var(--font-mono);
       padding: 1px 5px;
       border-radius: 4px;
       white-space: nowrap;
@@ -2991,7 +3128,7 @@
     .bu-play-count {
       font-size: 0.76rem;
       color: var(--text2);
-      font-family: 'DM Mono', monospace;
+      font-family: var(--font-mono);
     }
 
 /* ─── BU TRACK LIST DROPDOWN ─────────────────────────────────── */
@@ -3074,7 +3211,7 @@
   color: var(--text2);
   font-size: 0.65rem;
   margin-right: 0.3rem;
-  font-family: 'DM Mono', monospace;
+  font-family: var(--font-mono);
 }
 .bu-tl-title {
   white-space: nowrap;
@@ -3144,7 +3281,7 @@
 
     /* Title text inherits the same monospace font treatment as BU */
     .ne-title-text {
-      font-family: 'DM Mono', monospace !important;
+      font-family: var(--font-mono) !important;
       font-size: 0.62rem !important;
       letter-spacing: 0.1em !important;
       font-weight: 600 !important;
@@ -3212,7 +3349,7 @@
       border: 1px dashed var(--border2);
       background: none;
       color: var(--text3);
-      font-family: 'DM Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 0.6rem;
       letter-spacing: 0.08em;
       text-transform: uppercase;
@@ -3253,7 +3390,7 @@
 
     .section-collapsed-label {
       display: none;
-      font-family: 'DM Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 0.6rem;
       color: var(--text3);
       letter-spacing: 0.05em;
@@ -3270,7 +3407,7 @@
 
     .section-header h2,
     .section-header-h2 {
-      font-family: 'DM Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 0.72rem;
       text-transform: uppercase;
       letter-spacing: 0.2em;
@@ -3291,7 +3428,7 @@
       border: 1px dashed var(--border2);
       background: none;
       color: var(--text3);
-      font-family: 'DM Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 0.58rem;
       letter-spacing: 0.08em;
       cursor: pointer;
@@ -3308,7 +3445,7 @@
     }
 
     .section-sub {
-      font-family: 'DM Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 0.65rem;
       color: #ffffff;
       letter-spacing: 0.06em;
@@ -3336,7 +3473,7 @@
     }
 
     .chart-table thead th {
-      font-family: 'DM Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 0.62rem;
       letter-spacing: 0.15em;
       text-transform: uppercase;
@@ -3390,7 +3527,7 @@
     /* RANK NUMBER */
     .rank-cell {
       text-align: center;
-      font-family: 'DM Serif Display', serif;
+      font-family: var(--font-display);
       font-size: 1.6rem !important;
       color: var(--text3);
       width: 110px;
@@ -3427,7 +3564,7 @@
     .badge-new,
     .badge-re {
       display: inline-block;
-      font-family: 'DM Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 0.52rem;
       font-weight: 500;
       letter-spacing: 0.08em;
@@ -3450,7 +3587,7 @@
     }
 
     .song-title {
-      font-family: 'DM Sans', sans-serif;
+      font-family: var(--font-sans);
       font-weight: 600;
       font-size: 0.92rem;
       color: var(--text);
@@ -3459,7 +3596,7 @@
     }
 
     .song-artist {
-      font-family: 'DM Sans', sans-serif;
+      font-family: var(--font-sans);
       font-weight: 400;
       font-size: 0.78rem;
       color: var(--text2);
@@ -3468,7 +3605,7 @@
     }
 
     .song-album {
-      font-family: 'DM Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 0.67rem;
       color: var(--text3);
       margin-top: 2px;
@@ -3476,7 +3613,7 @@
     }
 
     .play-count {
-      font-family: 'DM Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 0.8rem;
       color: var(--text2);
       text-align: right;
@@ -3524,7 +3661,7 @@
       height: 44px;
       background: var(--surface);
       color: var(--accent2);
-      font-family: 'DM Serif Display', serif;
+      font-family: var(--font-display);
       font-size: 1rem;
       display: flex;
       align-items: center;
@@ -3567,7 +3704,7 @@
       overflow: hidden;
       letter-spacing: 0.04em;
       line-height: 1.5;
-      font-family: 'DM Mono', monospace;
+      font-family: var(--font-mono);
     }
 
     .img-src-btn:hover {
@@ -3605,14 +3742,14 @@
     }
 
     .stat-box .stat-val {
-      font-family: 'DM Serif Display', serif;
+      font-family: var(--font-display);
       font-size: 1.9rem;
       color: var(--cat-color, var(--text));
       line-height: 1;
     }
 
     .stat-box .stat-label {
-      font-family: 'DM Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 0.6rem;
       letter-spacing: 0.15em;
       text-transform: uppercase;
@@ -3624,7 +3761,7 @@
     }
 
     .stat-delta {
-      font-family: 'DM Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 0.57rem;
       letter-spacing: 0.06em;
       margin-top: 0.3rem;
@@ -3635,7 +3772,7 @@
 
     .stat-peak-badge {
       display: inline-block;
-      font-family: 'DM Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 0.48rem;
       letter-spacing: 0.14em;
       text-transform: uppercase;
@@ -3695,7 +3832,7 @@
     .stat-sparkline circle { fill: currentColor; }
 
     .stat-rate {
-      font-family: 'DM Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 0.52rem;
       color: var(--teal);
       margin-top: 0.25rem;
@@ -3711,7 +3848,7 @@
     }
 
     .stat-sotm-title {
-      font-family: 'DM Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 0.62rem;
       color: var(--text2);
       margin-top: 0.2rem;
@@ -3725,7 +3862,7 @@
       .bd-month-short { display: none; }
     }
     .stat-sotm-artist {
-      font-family: 'DM Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 0.55rem;
       color: var(--text3);
       text-transform: uppercase;
@@ -3747,7 +3884,7 @@
     }
 
     .stat-plays-sub {
-      font-family: 'DM Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 0.48rem;
       color: var(--text3);
       letter-spacing: 0.12em;
@@ -3866,7 +4003,7 @@
       border: 1px solid var(--border2);
       border-radius: 5px;
       color: var(--text);
-      font-family: 'DM Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 0.72rem;
       padding: 0.28rem 0.6rem;
       outline: none;
@@ -3882,7 +4019,7 @@
     }
 
     .paginated-search .search-count {
-      font-family: 'DM Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 0.6rem;
       color: var(--text3);
       white-space: nowrap;
@@ -3911,7 +4048,7 @@
       background: var(--bg3);
       border: 1px solid var(--border);
       border-top: none;
-      font-family: 'DM Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 0.68rem;
       letter-spacing: 0.06em;
       border-radius: 0 0 8px 8px;
@@ -3966,7 +4103,7 @@
       background: var(--bg3);
       border: 1px solid var(--border2);
       color: var(--text);
-      font-family: 'DM Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 0.68rem;
       letter-spacing: 0.06em;
       padding: 0.1rem 0.2rem;
@@ -3987,7 +4124,7 @@
       align-items: center;
       gap: 0.5rem;
       padding: 0.6rem 0.85rem 0.2rem;
-      font-family: 'DM Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 0.6rem;
       color: var(--text3);
       letter-spacing: 0.08em;
@@ -4003,7 +4140,7 @@
       background: none;
       border: 1px solid var(--border2);
       color: var(--text2);
-      font-family: 'DM Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 0.62rem;
       letter-spacing: 0.06em;
       padding: 0.25rem 0.75rem;
@@ -4073,7 +4210,7 @@
     }
 
     .ig-modal-header h3 {
-      font-family: 'DM Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 0.72rem;
       letter-spacing: 0.15em;
       text-transform: uppercase;
@@ -4085,7 +4222,7 @@
       background: none;
       border: 1px solid var(--border2);
       color: var(--text3);
-      font-family: 'DM Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 0.62rem;
       letter-spacing: 0.08em;
       padding: 0.2rem 0.65rem;
@@ -4115,7 +4252,7 @@
     }
 
     .ig-preview-label {
-      font-family: 'DM Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 0.6rem;
       letter-spacing: 0.1em;
       color: var(--text3);
@@ -4149,7 +4286,7 @@
     }
 
     .ig-ctrl-group-title {
-      font-family: 'DM Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 0.6rem;
       letter-spacing: 0.15em;
       color: var(--accent2);
@@ -4176,7 +4313,7 @@
     }
 
     .ig-ctrl-row span {
-      font-family: 'DM Sans', sans-serif;
+      font-family: var(--font-sans);
       font-size: 0.78rem;
       color: var(--text2);
     }
@@ -4192,7 +4329,7 @@
       background: var(--bg3);
       border: 1px solid var(--border2);
       color: var(--text3);
-      font-family: 'DM Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 0.55rem;
       letter-spacing: 0.08em;
       border-radius: 3px;
@@ -4212,7 +4349,7 @@
       border: 1px solid var(--border2);
       background: none;
       color: var(--text2);
-      font-family: 'DM Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 0.65rem;
       letter-spacing: 0.06em;
       border-radius: 4px;
@@ -4253,7 +4390,7 @@
     .ig-mode-btn {
       flex: 1;
       padding: 0.55rem 0.5rem;
-      font-family: 'DM Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 0.68rem;
       font-weight: 700;
       letter-spacing: 0.08em;
@@ -4290,7 +4427,7 @@
       background: var(--accent);
       color: #fff;
       border: none;
-      font-family: 'DM Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 0.68rem;
       letter-spacing: 0.08em;
       padding: 0.5rem 1.2rem;
@@ -4317,7 +4454,7 @@
       background: transparent;
       color: var(--accent);
       border: 1px solid var(--accent);
-      font-family: 'DM Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 0.68rem;
       letter-spacing: 0.08em;
       padding: 0.5rem 1rem;
@@ -4366,7 +4503,7 @@
     }
 
     .graphs-ctrl-label {
-      font-family: 'DM Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 0.58rem;
       letter-spacing: 0.12em;
       text-transform: uppercase;
@@ -4383,7 +4520,7 @@
       background: none;
       border: 1px solid var(--border2);
       color: var(--text2);
-      font-family: 'DM Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 0.65rem;
       letter-spacing: 0.06em;
       padding: 0.22rem 0.7rem;
@@ -4418,7 +4555,7 @@
     }
 
     .graph-card-title {
-      font-family: 'DM Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 0.72rem;
       letter-spacing: 0.1em;
       text-transform: uppercase;
@@ -4428,7 +4565,7 @@
     }
 
     .graph-card-sub {
-      font-family: 'DM Sans', sans-serif;
+      font-family: var(--font-sans);
       font-size: 0.75rem;
       color: var(--text3);
       margin-bottom: 0.85rem;
@@ -4447,68 +4584,68 @@
 
     /* HEATMAP */
     .heatmap-year-block { margin-bottom: 1.25rem; }
-    .heatmap-year-header { font-family: 'DM Mono', monospace; font-size: 0.6rem; color: var(--text3); letter-spacing: 0.1em; margin-bottom: 5px; text-transform: uppercase; }
+    .heatmap-year-header { font-family: var(--font-mono); font-size: 0.6rem; color: var(--text3); letter-spacing: 0.1em; margin-bottom: 5px; text-transform: uppercase; }
     .heatmap-outer { display: flex; align-items: flex-start; gap: 4px; }
     .heatmap-dow-labels { display: flex; flex-direction: column; gap: 2px; padding-top: 19px; flex-shrink: 0; }
-    .heatmap-dow-label { font-family: 'DM Mono', monospace; font-size: 0.48rem; color: var(--text3); width: 20px; height: 11px; display: flex; align-items: center; line-height: 1; }
+    .heatmap-dow-label { font-family: var(--font-mono); font-size: 0.48rem; color: var(--text3); width: 20px; height: 11px; display: flex; align-items: center; line-height: 1; }
     .heatmap-inner { overflow-x: auto; }
     .heatmap-grid-wrap { display: inline-flex; flex-direction: column; gap: 0; min-width: max-content; }
     .heatmap-weeks-row { display: flex; gap: 2px; }
     .heatmap-week-col { display: flex; flex-direction: column; gap: 2px; width: 11px; flex-shrink: 0; }
     .heatmap-month-header-row { height: 16px; margin-bottom: 3px; align-items: flex-end; }
     .heatmap-month-header-row .heatmap-week-col { position: relative; height: 16px; flex-direction: row; }
-    .heatmap-month-label { font-family: 'DM Mono', monospace; font-size: 0.5rem; color: var(--text3); white-space: nowrap; position: absolute; left: 0; bottom: 0; }
+    .heatmap-month-label { font-family: var(--font-mono); font-size: 0.5rem; color: var(--text3); white-space: nowrap; position: absolute; left: 0; bottom: 0; }
     .heatmap-cell { width: 11px; height: 11px; border-radius: 2px; flex-shrink: 0; }
     .heatmap-cell.has-data { cursor: pointer; }
     .heatmap-cell.has-data:hover { outline: 1.5px solid rgba(255,255,255,0.55); outline-offset: 0px; }
     .heatmap-legend { display: flex; align-items: center; gap: 5px; margin-top: 6px; }
-    .heatmap-legend-label { font-family: 'DM Mono', monospace; font-size: 0.5rem; color: var(--text3); }
+    .heatmap-legend-label { font-family: var(--font-mono); font-size: 0.5rem; color: var(--text3); }
     #heatmapTooltip { background: var(--bg); border: 1px solid var(--border); border-radius: 10px; padding: 0.65rem 0.85rem; min-width: 185px; max-width: 280px; box-shadow: 0 6px 28px rgba(0,0,0,0.55); }
-    .hm-tt-date { font-family: 'DM Mono', monospace; font-size: 0.6rem; color: var(--text3); margin-bottom: 0.25rem; }
-    .hm-tt-count { font-family: 'DM Mono', monospace; font-size: 1rem; font-weight: 700; color: var(--text); margin-bottom: 0.1rem; }
+    .hm-tt-date { font-family: var(--font-mono); font-size: 0.6rem; color: var(--text3); margin-bottom: 0.25rem; }
+    .hm-tt-count { font-family: var(--font-mono); font-size: 1rem; font-weight: 700; color: var(--text); margin-bottom: 0.1rem; }
     .hm-tt-rule { border: none; border-top: 1px solid var(--border); margin: 0.35rem 0 0.15rem; }
     .hm-tt-ms-wrap { margin-top: 0.3rem; }
-    .hm-tt-ms-label { font-family: 'DM Mono', monospace; font-size: 0.58rem; color: #f0aa30; }
-    .hm-tt-ms-track { font-family: 'DM Sans', sans-serif; font-size: 0.72rem; color: var(--text); font-weight: 600; line-height: 1.3; }
-    .hm-tt-ms-artist { font-family: 'DM Sans', sans-serif; font-size: 0.67rem; color: var(--text3); }
-    .hm-tt-section-label { font-family: 'DM Mono', monospace; font-size: 0.5rem; color: var(--text3); text-transform: uppercase; letter-spacing: 0.09em; margin: 0.25rem 0 0.1rem; }
+    .hm-tt-ms-label { font-family: var(--font-mono); font-size: 0.58rem; color: #f0aa30; }
+    .hm-tt-ms-track { font-family: var(--font-sans); font-size: 0.72rem; color: var(--text); font-weight: 600; line-height: 1.3; }
+    .hm-tt-ms-artist { font-family: var(--font-sans); font-size: 0.67rem; color: var(--text3); }
+    .hm-tt-section-label { font-family: var(--font-mono); font-size: 0.5rem; color: var(--text3); text-transform: uppercase; letter-spacing: 0.09em; margin: 0.25rem 0 0.1rem; }
     .hm-tt-rule-minor { border: none; border-top: 1px solid var(--border); margin: 0.3rem 0 0.15rem; opacity: 0.45; }
     .hm-tt-ms-alltime { color: #ffd030; }
-    .hm-tt-best { font-family: 'DM Mono', monospace; font-size: 0.58rem; color: #ffd030; margin-top: 0.15rem; }
-    .hm-tt-pct { font-family: 'DM Mono', monospace; font-size: 0.54rem; color: var(--text3); margin-top: 0.08rem; }
-    .hm-tt-gap { font-family: 'DM Mono', monospace; font-size: 0.54rem; color: #c08848; margin-top: 0.08rem; }
+    .hm-tt-best { font-family: var(--font-mono); font-size: 0.58rem; color: #ffd030; margin-top: 0.15rem; }
+    .hm-tt-pct { font-family: var(--font-mono); font-size: 0.54rem; color: var(--text3); margin-top: 0.08rem; }
+    .hm-tt-gap { font-family: var(--font-mono); font-size: 0.54rem; color: #c08848; margin-top: 0.08rem; }
     .hm-theme-swatch { width: 28px; height: 12px; border-radius: 3px; border: 2px solid transparent; cursor: pointer; padding: 0; transition: border-color 0.15s, opacity 0.15s; flex-shrink: 0; }
     .hm-theme-swatch.active { border-color: var(--text); }
     .hm-theme-swatch:hover:not(.active) { opacity: 0.72; }
     /* Streak bar */
     .hm-streak-bar { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; margin-bottom: 0.55rem; }
-    .hm-streak-chip { font-family: 'DM Mono', monospace; font-size: 0.57rem; color: var(--text3); background: var(--bg2); border: 1px solid var(--border2); border-radius: 20px; padding: 2px 9px; letter-spacing: 0.03em; white-space: nowrap; }
+    .hm-streak-chip { font-family: var(--font-mono); font-size: 0.57rem; color: var(--text3); background: var(--bg2); border: 1px solid var(--border2); border-radius: 20px; padding: 2px 9px; letter-spacing: 0.03em; white-space: nowrap; }
     /* Best day glow */
     .heatmap-cell.hm-best-day { box-shadow: 0 0 0 1.5px #ffd030, 0 0 5px #ffd03055; }
     /* Year-in-review card */
     .hm-year-review { display: flex; align-items: center; flex-wrap: wrap; gap: 5px; margin-top: 0.45rem; padding: 0.32rem 0.55rem; background: var(--bg2); border-radius: 6px; border: 1px solid var(--border); }
-    .hm-yr-stat { font-family: 'DM Mono', monospace; font-size: 0.53rem; color: var(--text3); white-space: nowrap; }
+    .hm-yr-stat { font-family: var(--font-mono); font-size: 0.53rem; color: var(--text3); white-space: nowrap; }
     .hm-yr-num { color: var(--text); font-weight: 600; }
     .hm-yr-name { color: var(--text); }
     .hm-yr-muted { opacity: 0.6; }
     .hm-yr-dot { color: var(--text3); opacity: 0.4; }
     /* Listening patterns section */
     .hm-patterns-section { margin-top: 1.1rem; border-top: 1px solid var(--border); padding-top: 0.8rem; }
-    .hm-patterns-header { font-family: 'DM Mono', monospace; font-size: 0.52rem; color: var(--text3); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 0.7rem; }
+    .hm-patterns-header { font-family: var(--font-mono); font-size: 0.52rem; color: var(--text3); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 0.7rem; }
     .hm-patterns-body { display: flex; gap: 1.5rem; flex-wrap: wrap; align-items: flex-start; }
     .hm-pat-weekday { flex: 0 0 auto; min-width: 155px; }
     .hm-pat-hourblock { flex: 1 1 auto; min-width: 200px; overflow-x: auto; }
-    .hm-pat-sublabel { font-family: 'DM Mono', monospace; font-size: 0.48rem; color: var(--text3); letter-spacing: 0.07em; text-transform: uppercase; margin-bottom: 0.4rem; }
+    .hm-pat-sublabel { font-family: var(--font-mono); font-size: 0.48rem; color: var(--text3); letter-spacing: 0.07em; text-transform: uppercase; margin-bottom: 0.4rem; }
     .hm-pat-bar-row { display: flex; align-items: center; gap: 5px; margin-bottom: 3px; }
-    .hm-pat-dow-label { font-family: 'DM Mono', monospace; font-size: 0.48rem; color: var(--text3); width: 22px; flex-shrink: 0; }
+    .hm-pat-dow-label { font-family: var(--font-mono); font-size: 0.48rem; color: var(--text3); width: 22px; flex-shrink: 0; }
     .hm-pat-bar-track { flex: 1; height: 7px; background: var(--bg2); border-radius: 3px; overflow: hidden; }
     .hm-pat-bar-fill { height: 100%; border-radius: 3px; }
-    .hm-pat-bar-val { font-family: 'DM Mono', monospace; font-size: 0.46rem; color: var(--text3); width: 50px; text-align: right; flex-shrink: 0; }
+    .hm-pat-bar-val { font-family: var(--font-mono); font-size: 0.46rem; color: var(--text3); width: 50px; text-align: right; flex-shrink: 0; }
     .hm-pat-hour-grid { display: flex; gap: 3px; align-items: flex-start; }
     .hm-pat-dow-col { display: flex; flex-direction: column; gap: 2px; padding-top: 14px; flex-shrink: 0; }
-    .hm-pat-dow-side-label { font-family: 'DM Mono', monospace; font-size: 0.45rem; color: var(--text3); height: 9px; display: flex; align-items: center; }
+    .hm-pat-dow-side-label { font-family: var(--font-mono); font-size: 0.45rem; color: var(--text3); height: 9px; display: flex; align-items: center; }
     .hm-pat-hour-row { display: flex; gap: 2px; margin-bottom: 2px; }
-    .hm-pat-hour-label { width: 11px; font-family: 'DM Mono', monospace; font-size: 0.37rem; color: var(--text3); overflow: visible; white-space: nowrap; flex-shrink: 0; line-height: 1; }
+    .hm-pat-hour-label { width: 11px; font-family: var(--font-mono); font-size: 0.37rem; color: var(--text3); overflow: visible; white-space: nowrap; flex-shrink: 0; line-height: 1; }
     .hm-pat-grid-row { display: flex; gap: 2px; margin-bottom: 2px; }
     .hm-pat-cell { width: 9px; height: 9px; border-radius: 1px; flex-shrink: 0; }
     .hm-pat-cell.has-data { cursor: pointer; }
@@ -4516,7 +4653,7 @@
 
     /* UPCOMING RELEASES */
     .upcoming-status {
-      font-family: 'DM Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 0.65rem;
       color: var(--text3);
       padding: 0.5rem 0.85rem;
@@ -4573,7 +4710,7 @@
     }
 
     .upcoming-card-date {
-      font-family: 'DM Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 0.58rem;
       letter-spacing: 0.1em;
       color: var(--accent);
@@ -4603,7 +4740,7 @@
     }
 
     .upcoming-card-type {
-      font-family: 'DM Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 0.55rem;
       letter-spacing: 0.1em;
       color: var(--text3);
@@ -4618,7 +4755,7 @@
     }
 
     .upcoming-empty {
-      font-family: 'DM Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 0.65rem;
       color: var(--text3);
       padding: 1.5rem 0.85rem;
@@ -4629,7 +4766,7 @@
       background: none;
       border: 1px solid var(--border2);
       color: var(--text3);
-      font-family: 'DM Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 0.6rem;
       letter-spacing: 0.07em;
       padding: 0.22rem 0.7rem;
@@ -4657,7 +4794,7 @@
     }
 
     .events-controls-label {
-      font-family: 'DM Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 0.65rem;
       letter-spacing: 0.05em;
       color: var(--text2);
@@ -4672,7 +4809,7 @@
       border: 1px solid var(--border);
       background: var(--bg2);
       color: var(--text1);
-      font-family: 'DM Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 0.62rem;
       cursor: pointer;
     }
@@ -4690,7 +4827,7 @@
       border: 1px solid var(--border);
       border-radius: 4px;
       color: var(--text3);
-      font-family: 'DM Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 0.6rem;
       font-weight: bold;
       letter-spacing: 0.04em;
@@ -4727,7 +4864,7 @@
       border: 1px solid var(--border);
       border-radius: 3px;
       color: var(--text3);
-      font-family: 'DM Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 0.55rem;
       letter-spacing: 0.06em;
       text-transform: uppercase;
@@ -4751,7 +4888,7 @@
     .ev-table-wrap { overflow-x: auto; padding: 0 0.85rem 0.75rem; }
     .ev-table { width: 100%; border-collapse: collapse; }
     .ev-table th {
-      font-family: 'DM Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 0.55rem;
       text-transform: uppercase;
       letter-spacing: 0.1em;
@@ -4782,13 +4919,13 @@
     .ev-tbl-link:hover { text-decoration: underline; }
     .ev-tbl-artist { color: var(--text2); font-size: 0.75rem; }
     .ev-tbl-date {
-      font-family: 'DM Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 0.62rem;
       color: var(--accent);
       white-space: nowrap;
     }
     .ev-tbl-type {
-      font-family: 'DM Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 0.58rem;
       color: var(--text3);
       text-transform: uppercase;
@@ -4838,7 +4975,7 @@
       flex-shrink: 0;
     }
     .ev-carousel-date {
-      font-family: 'DM Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 0.5rem;
       color: var(--accent);
       text-transform: uppercase;
@@ -4863,7 +5000,7 @@
       text-overflow: ellipsis;
     }
     .ev-carousel-type {
-      font-family: 'DM Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 0.5rem;
       color: var(--text3);
       text-transform: uppercase;
@@ -4883,7 +5020,7 @@
       margin-bottom: 0.45rem;
     }
     .ev-list-sort-lbl {
-      font-family: 'DM Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 0.58rem;
       text-transform: uppercase;
       letter-spacing: 0.08em;
@@ -4894,7 +5031,7 @@
       border: 1px solid var(--border);
       border-radius: 3px;
       color: var(--text3);
-      font-family: 'DM Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 0.55rem;
       letter-spacing: 0.06em;
       text-transform: uppercase;
@@ -4918,7 +5055,7 @@
     .ev-list-row:hover { background: var(--bg3); }
     .ev-list-row.event-today { background: color-mix(in srgb, var(--accent) 10%, transparent); }
     .ev-list-date {
-      font-family: 'DM Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 0.6rem;
       color: var(--accent);
       text-transform: uppercase;
@@ -4928,7 +5065,7 @@
     .ev-list-title { font-size: 0.82rem; font-weight: 500; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; user-select: text; }
     .ev-list-artist { font-size: 0.72rem; color: var(--text2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; user-select: text; }
     .ev-list-type {
-      font-family: 'DM Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 0.55rem;
       color: var(--text3);
       text-transform: uppercase;
@@ -4955,7 +5092,7 @@
     }
 
     .cal-title {
-      font-family: 'DM Mono', monospace;
+      font-family: var(--font-mono);
       font-weight: bold;
       letter-spacing: 0.06em;
       display: flex;
@@ -5002,7 +5139,7 @@
     .cal-dow {
       background: var(--surface);
       text-align: center;
-      font-family: 'DM Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 0.58rem;
       letter-spacing: 0.05em;
       color: var(--text3);
@@ -5035,7 +5172,7 @@
     }
 
     .cal-cell-num {
-      font-family: 'DM Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 0.6rem;
       font-weight: bold;
       color: var(--text3);
@@ -5104,7 +5241,7 @@
       border: 1px solid var(--border);
       border-radius: 4px;
       color: var(--text3);
-      font-family: 'DM Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 0.6rem;
       font-weight: bold;
       letter-spacing: 0.06em;
@@ -5129,7 +5266,7 @@
       border: 1px solid var(--border2);
       border-radius: 4px;
       color: var(--text2);
-      font-family: 'DM Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 0.6rem;
       font-weight: bold;
       letter-spacing: 0.07em;
@@ -5150,7 +5287,7 @@
       border: 1px solid var(--border2);
       border-radius: 4px;
       color: var(--text2);
-      font-family: 'DM Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 0.6rem;
       font-weight: bold;
       letter-spacing: 0.07em;
@@ -5171,7 +5308,7 @@
       border: 1px solid var(--border2);
       border-radius: 4px;
       color: var(--text2);
-      font-family: 'DM Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 0.6rem;
       font-weight: bold;
       letter-spacing: 0.07em;
@@ -5205,7 +5342,7 @@
     }
 
     .cal-create-pl-title {
-      font-family: 'DM Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 0.85rem;
       font-weight: bold;
       letter-spacing: 0.08em;
@@ -5213,7 +5350,7 @@
     }
 
     .cal-create-pl-sub {
-      font-family: 'DM Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 0.65rem;
       color: var(--text3);
       letter-spacing: 0.05em;
@@ -5227,7 +5364,7 @@
       border: 1px solid var(--border2);
       border-radius: 6px;
       color: var(--text);
-      font-family: 'DM Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 0.75rem;
       padding: 0.5rem 0.75rem;
       margin-bottom: 1rem;
@@ -5250,7 +5387,7 @@
       border: none;
       border-radius: 5px;
       color: #fff;
-      font-family: 'DM Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 0.65rem;
       font-weight: bold;
       letter-spacing: 0.07em;
@@ -5266,7 +5403,7 @@
       border: 1px solid var(--border2);
       border-radius: 5px;
       color: var(--text2);
-      font-family: 'DM Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 0.65rem;
       letter-spacing: 0.07em;
       padding: 0.4rem 0.9rem;
@@ -5295,7 +5432,7 @@
     }
 
     .cal-week-dow-name {
-      font-family: 'DM Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 0.55rem;
       letter-spacing: 0.05em;
       color: var(--text3);
@@ -5303,7 +5440,7 @@
     }
 
     .cal-week-dow-num {
-      font-family: 'DM Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 0.85rem;
       font-weight: bold;
       color: var(--text2);
@@ -5332,7 +5469,7 @@
     }
 
     .cal-day-empty {
-      font-family: 'DM Sans', sans-serif;
+      font-family: var(--font-sans);
       font-style: italic;
       color: var(--text3);
       font-size: 0.8rem;
@@ -5383,7 +5520,7 @@
     .nmf-cal-pill {
       margin-top: 0.2rem;
       font-size: 0.62rem;
-      font-family: 'DM Mono', monospace;
+      font-family: var(--font-mono);
       color: var(--accent);
       letter-spacing: 0.03em;
       line-height: 1.2;
@@ -5424,7 +5561,7 @@
     }
 
     .cal-day-item-title {
-      font-family: 'DM Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 0.72rem;
       font-weight: bold;
       color: var(--text1);
@@ -5434,7 +5571,7 @@
     }
 
     .cal-day-item-artist {
-      font-family: 'DM Sans', sans-serif;
+      font-family: var(--font-sans);
       font-size: 0.64rem;
       color: var(--text2);
       overflow: hidden;
@@ -5443,7 +5580,7 @@
     }
 
     .cal-day-item-detail {
-      font-family: 'DM Sans', sans-serif;
+      font-family: var(--font-sans);
       font-size: 0.6rem;
       color: var(--text3);
       overflow: hidden;
@@ -5459,7 +5596,7 @@
     }
 
     .empty-state p {
-      font-family: 'DM Sans', sans-serif;
+      font-family: var(--font-sans);
       font-style: italic;
       color: var(--text3);
       font-size: 0.9rem;
@@ -5470,7 +5607,7 @@
       border-top: 1px solid var(--border);
       text-align: center;
       padding: 1.5rem;
-      font-family: 'DM Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 0.65rem;
       color: var(--text3);
       letter-spacing: 0.08em;
@@ -5482,7 +5619,7 @@
       display: inline-flex;
       align-items: center;
       gap: 3px;
-      font-family: 'DM Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 0.58rem;
       font-weight: 500;
       letter-spacing: 0.06em;
@@ -5530,7 +5667,7 @@
     .plays-peak-badge {
       display: block;
       width: fit-content;
-      font-family: 'DM Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 0.58rem;
       letter-spacing: 0.1em;
       padding: 4px 14px;
@@ -5553,7 +5690,7 @@
       background: none;
       border: 1px solid var(--border2);
       color: var(--text2);
-      font-family: 'DM Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 0.68rem;
       letter-spacing: 0.07em;
       padding: 0.35rem 0.85rem;
@@ -5587,13 +5724,13 @@
     }
 
     .export-modal-title {
-      font-family: 'DM Serif Display', serif;
+      font-family: var(--font-display);
       font-size: 1.2rem;
       color: var(--text);
     }
 
     .export-modal-subtitle {
-      font-family: 'DM Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 0.62rem;
       color: var(--text3);
       letter-spacing: 0.06em;
@@ -5605,7 +5742,7 @@
       border: 1px solid var(--border);
       border-radius: 6px;
       padding: 0.75rem;
-      font-family: 'DM Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 0.68rem;
       color: var(--text2);
       max-height: 260px;
@@ -5624,7 +5761,7 @@
     }
 
     .export-btn {
-      font-family: 'DM Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 0.68rem;
       letter-spacing: 0.06em;
       padding: 0.38rem 0.9rem;
@@ -5673,7 +5810,7 @@
     }
 
     .export-name-label {
-      font-family: 'DM Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 0.6rem;
       letter-spacing: 0.08em;
       color: var(--text3);
@@ -5687,7 +5824,7 @@
     }
 
     .export-name-chip {
-      font-family: 'DM Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 0.65rem;
       background: var(--bg3);
       border: 1px solid var(--border2);
@@ -5715,7 +5852,7 @@
     }
 
     .export-note {
-      font-family: 'DM Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 0.6rem;
       color: var(--text3);
       margin-top: 0.75rem;
@@ -5776,7 +5913,7 @@
       height: 72px;
       background: var(--surface);
       color: var(--accent2);
-      font-family: 'DM Serif Display', serif;
+      font-family: var(--font-display);
       font-size: 1.8rem;
       display: flex;
       align-items: center;
@@ -5787,14 +5924,14 @@
     }
 
     .modal-artist-name {
-      font-family: 'DM Serif Display', serif;
+      font-family: var(--font-display);
       font-size: clamp(1.4rem, 4vw, 2.2rem);
       color: var(--text);
       line-height: 1.1;
     }
 
     .modal-artist-sub {
-      font-family: 'DM Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 0.65rem;
       color: var(--accent2);
       letter-spacing: 0.12em;
@@ -5809,7 +5946,7 @@
       background: var(--surface);
       border: 1px solid var(--border2);
       color: var(--text2);
-      font-family: 'DM Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 0.68rem;
       padding: 0.25rem 0.65rem;
       cursor: pointer;
@@ -5872,14 +6009,14 @@
     }
 
     .modal-stat .sv {
-      font-family: 'DM Serif Display', serif;
+      font-family: var(--font-display);
       font-size: 1.45rem;
       color: var(--text);
       line-height: 1;
     }
 
     .modal-stat .sl {
-      font-family: 'DM Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 0.57rem;
       letter-spacing: 0.12em;
       text-transform: uppercase;
@@ -5901,7 +6038,7 @@
     }
 
     .modal-cb-th {
-      font-family: 'DM Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 0.55rem;
       letter-spacing: 0.12em;
       text-transform: uppercase;
@@ -5920,7 +6057,7 @@
     }
 
     .modal-cb-label {
-      font-family: 'DM Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 0.58rem;
       letter-spacing: 0.1em;
       text-transform: uppercase;
@@ -5939,14 +6076,14 @@
     }
 
     .modal-cb-cell .cv {
-      font-family: 'DM Serif Display', serif;
+      font-family: var(--font-display);
       font-size: 1.25rem;
       color: var(--text);
       line-height: 1;
     }
 
     .modal-cb-cell .cp {
-      font-family: 'DM Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 0.52rem;
       letter-spacing: 0.08em;
       color: var(--text3);
@@ -5979,7 +6116,7 @@
 
     /* GRAND SLAM BANNER */
     .modal-grand-slam {
-      font-family: 'DM Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 0.65rem;
       letter-spacing: 0.12em;
       text-transform: uppercase;
@@ -6028,7 +6165,7 @@
     }
     .mrc-icon { font-size: 1.3rem; }
     .mrc-rank {
-      font-family: 'DM Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 1.5rem;
       font-weight: 700;
       color: var(--text1);
@@ -6078,7 +6215,7 @@
     .cert-plaque--platinum { background: linear-gradient(135deg,rgba(200,210,255,0.12),rgba(160,180,255,0.04)); border-color: rgba(180,200,255,0.35); }
     .cert-plaque--diamond { background: linear-gradient(135deg,rgba(100,220,255,0.15),rgba(60,160,255,0.04)); border-color: rgba(100,220,255,0.4); }
     .cp-icon  { font-size: 1.4rem; }
-    .cp-tier  { font-family:'DM Mono',monospace; font-size:0.6rem; letter-spacing:0.1em; text-transform:uppercase; color:var(--text2); font-weight:600; }
+    .cp-tier  { font-family:var(--font-mono); font-size:0.6rem; letter-spacing:0.1em; text-transform:uppercase; color:var(--text2); font-weight:600; }
     .cert-plaque--gold .cp-tier    { color:#ffd700; }
     .cert-plaque--platinum .cp-tier{ color:#a5b4fc; }
     .cert-plaque--diamond .cp-tier { color:#67e8f9; }
@@ -6123,14 +6260,14 @@
       align-items: center;
     }
     .alb-sparkline-label {
-      font-family: 'DM Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 0.52rem;
       letter-spacing: 0.1em;
       text-transform: uppercase;
       color: var(--text3);
     }
     .alb-play-btn {
-      font-family: 'DM Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 0.44rem;
       letter-spacing: 0.06em;
       color: var(--accent);
@@ -6156,7 +6293,7 @@
       height: 180px;
       margin-top: 18px;
       min-width: 24px;
-      font-family: 'DM Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 0.43rem;
       color: var(--text3);
       line-height: 1;
@@ -6201,7 +6338,7 @@
       position: absolute;
       right: 2px;
       top: -10px;
-      font-family: 'DM Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 0.4rem;
       color: rgba(255,200,70,0.9);
       white-space: nowrap;
@@ -6256,7 +6393,7 @@
       bottom: calc(100% + 3px);
       left: 50%;
       transform: translateX(-50%);
-      font-family: 'DM Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 0.38rem;
       color: rgba(255,255,255,0.32);
       white-space: nowrap;
@@ -6271,7 +6408,7 @@
       flex: 1;
       min-width: 2px;
       text-align: center;
-      font-family: 'DM Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 0.42rem;
       color: var(--text3);
       overflow: hidden;
@@ -6281,7 +6418,7 @@
     .alb-spark-xlabel--peak { color: rgba(255,210,70,0.9); }
     .alb-year-sep-xl { width: 9px; flex-shrink: 0; }
     .alb-streak-label {
-      font-family: 'DM Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 0.45rem;
       color: rgba(255,140,40,0.9);
       letter-spacing: 0.04em;
@@ -6295,7 +6432,7 @@
       transform-origin: top;
     }
     .alb-month-detail-header {
-      font-family: 'DM Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 0.5rem;
       color: var(--accent);
       letter-spacing: 0.07em;
@@ -6307,7 +6444,7 @@
       display: flex;
       align-items: center;
       gap: 0.5rem;
-      font-family: 'DM Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 0.48rem;
     }
     .alb-month-rank { color: var(--text3); min-width: 14px; }
@@ -6321,7 +6458,7 @@
       border: 1px solid rgba(80,160,255,0.35);
       border-radius: 6px;
       padding: 6px 11px;
-      font-family: 'DM Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 0.5rem;
       line-height: 1.6;
       pointer-events: none;
@@ -6339,7 +6476,7 @@
       flex-wrap: wrap;
     }
     .alb-sort-label {
-      font-family: 'DM Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 0.55rem;
       letter-spacing: 0.1em;
       text-transform: uppercase;
@@ -6347,7 +6484,7 @@
       margin-right: 0.2rem;
     }
     .alb-sort-btn {
-      font-family: 'DM Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 0.6rem;
       letter-spacing: 0.08em;
       text-transform: uppercase;
@@ -6378,7 +6515,7 @@
       border-radius: 2px;
     }
     .alb-share-pct {
-      font-family: 'DM Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 0.55rem;
       color: var(--text3);
       min-width: 3ch;
@@ -6408,20 +6545,20 @@
       gap: 0.15rem;
     }
     .alb-stat-item strong {
-      font-family: 'DM Serif Display', serif;
+      font-family: var(--font-display);
       font-size: 1.1rem;
       color: var(--text);
       line-height: 1;
     }
     .alb-stat-item span {
-      font-family: 'DM Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 0.52rem;
       letter-spacing: 0.08em;
       text-transform: uppercase;
       color: var(--text3);
     }
     .alb-stat-item .alb-stat-date {
-      font-family: 'DM Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 0.5rem;
       color: var(--text2);
       margin-top: 0.05rem;
@@ -6437,7 +6574,7 @@
       align-items: center;
       gap: 0.5rem;
       padding: 0.4rem 0;
-      font-family: 'DM Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 0.75rem;
       color: var(--text2);
     }
@@ -6476,7 +6613,7 @@
     }
 
     .acc-detail-row {
-      font-family: 'DM Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 0.65rem;
       color: var(--text3);
       padding: 0.2rem 0;
@@ -6508,7 +6645,7 @@
     }
 
     .modal-section-title {
-      font-family: 'DM Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 0.68rem;
       text-transform: uppercase;
       letter-spacing: 0.18em;
@@ -6526,7 +6663,7 @@
       border: 1px dashed var(--border);
       border-radius: 6px;
       color: var(--text3);
-      font-family: 'DM Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 0.68rem;
       letter-spacing: 0.06em;
       padding: 0.35rem 0.75rem;
@@ -6550,7 +6687,7 @@
       align-items: center;
       gap: 0.5rem;
       padding: 0.4rem 0.75rem;
-      font-family: 'DM Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 0.75rem;
       color: var(--text);
       border-bottom: 1px solid var(--border);
@@ -6588,7 +6725,7 @@
     }
 
     .modal-table .modal-rank-col {
-      font-family: 'DM Serif Display', serif;
+      font-family: var(--font-display);
       font-size: 1.1rem;
       color: var(--text3);
       width: 36px;
@@ -6596,7 +6733,7 @@
     }
 
     .modal-table .modal-date-col {
-      font-family: 'DM Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 0.65rem;
       color: var(--text3);
       white-space: nowrap;
@@ -6605,7 +6742,7 @@
     }
 
     .modal-table-header td {
-      font-family: 'DM Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 0.58rem;
       text-transform: uppercase;
       letter-spacing: 0.07em;
@@ -6616,7 +6753,7 @@
     }
 
     .modal-table td:last-child {
-      font-family: 'DM Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 0.75rem;
       text-align: right;
       color: var(--text3);
@@ -6636,7 +6773,7 @@
       font-size: 0.7rem;
       letter-spacing: 0.06em;
       font-style: normal;
-      font-family: 'DM Mono', monospace;
+      font-family: var(--font-mono);
       color: var(--text3);
       cursor: pointer;
       text-decoration: none;
@@ -6669,7 +6806,7 @@
     }
 
     .peak-badge-1 {
-      font-family: 'DM Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 0.57rem;
       background: rgba(245, 158, 11, 0.15);
       color: var(--gold1);
@@ -6682,7 +6819,7 @@
     }
 
     .peak-badge-2 {
-      font-family: 'DM Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 0.57rem;
       background: rgba(148, 163, 184, 0.15);
       color: #94a3b8;
@@ -6695,7 +6832,7 @@
     }
 
     .peak-badge-3 {
-      font-family: 'DM Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 0.57rem;
       background: rgba(192, 120, 80, 0.15);
       color: #c07850;
@@ -6708,7 +6845,7 @@
     }
 
     .peak-badge {
-      font-family: 'DM Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 0.57rem;
       background: var(--surface);
       color: var(--text3);
@@ -6732,7 +6869,7 @@
       margin-right: 5px;
       vertical-align: middle;
       transition: all 0.15s;
-      font-family: 'DM Mono', monospace;
+      font-family: var(--font-mono);
       line-height: 1;
     }
 
@@ -6821,7 +6958,7 @@
     }
 
     .mcs-title {
-      font-family: 'DM Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 0.62rem;
       font-weight: 600;
       letter-spacing: 0.08em;
@@ -6830,7 +6967,7 @@
     }
 
     .mcs-count {
-      font-family: 'DM Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 0.6rem;
       color: var(--text3);
       margin-left: auto;
@@ -6852,7 +6989,7 @@
     }
 
     .modal-plays-col {
-      font-family: 'DM Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 0.75rem;
       color: var(--text2);
       white-space: nowrap;
@@ -6860,7 +6997,7 @@
 
     .modal-period-link {
       color: var(--accent);
-      font-family: 'DM Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 0.65rem;
       text-decoration: none;
       cursor: pointer;
@@ -6903,7 +7040,7 @@
     }
 
     .cr-panel-section-title {
-      font-family: 'DM Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 0.58rem;
       letter-spacing: 0.12em;
       color: var(--text3);
@@ -6917,7 +7054,7 @@
       background: none;
       border: 1px solid var(--border2);
       color: var(--text2);
-      font-family: 'DM Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 0.58rem;
       letter-spacing: 0.08em;
       padding: 0.22rem 0.65rem;
@@ -6945,7 +7082,7 @@
     }
 
     .cr-range-label {
-      font-family: 'DM Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 0.55rem;
       letter-spacing: 0.1em;
       color: var(--text3);
@@ -6957,7 +7094,7 @@
       background: none;
       border: 1px solid var(--border2);
       color: var(--text3);
-      font-family: 'DM Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 0.58rem;
       letter-spacing: 0.06em;
       padding: 0.18rem 0.55rem;
@@ -7013,7 +7150,7 @@
     }
 
     .cr-subsection-toggle {
-      font-family: 'DM Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 0.55rem;
       font-weight: 700;
       color: var(--text3);
@@ -7021,7 +7158,7 @@
     }
 
     .cr-subsection-label {
-      font-family: 'DM Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 0.6rem;
       font-weight: 700;
       letter-spacing: 0.12em;
@@ -7048,7 +7185,7 @@
       display: flex;
       align-items: baseline;
       gap: 0.3em;
-      font-family: 'DM Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 0.58rem;
       color: var(--text3);
       text-transform: uppercase;
@@ -7110,7 +7247,7 @@
     }
 
     .cr-box-rank {
-      font-family: 'DM Serif Display', serif;
+      font-family: var(--font-display);
       font-size: 0.9rem;
       color: var(--text);
       line-height: 1.1;
@@ -7121,7 +7258,7 @@
     }
 
     .cr-box-label {
-      font-family: 'DM Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 0.47rem;
       color: var(--text3);
       letter-spacing: 0.03em;
@@ -7144,14 +7281,14 @@
     }
 
     .cr-box-gap-label {
-      font-family: 'DM Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 0.65rem;
       color: var(--text3);
       line-height: 1.1;
     }
 
     .cr-box-gap-unit {
-      font-family: 'DM Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 0.42rem;
       color: var(--text3);
       letter-spacing: 0.04em;
@@ -7161,7 +7298,7 @@
     /* COMBINED BU + CHART VIEW */
     /* Toggle button in BU panel header */
     .bu-combined-toggle {
-      font-family: 'DM Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 0.5rem;
       font-weight: 700;
       letter-spacing: 0.1em;
@@ -7246,7 +7383,7 @@
       display: flex;
       gap: 10px;
       margin-bottom: 5px;
-      font-family: 'DM Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 0.45rem;
       letter-spacing: 0.07em;
       text-transform: uppercase;
@@ -7272,7 +7409,7 @@
 
     /* CHART RUN PANEL: "+ BU" toggle button */
     .cr-bu-toggle {
-      font-family: 'DM Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 0.5rem;
       font-weight: 700;
       letter-spacing: 0.1em;
@@ -7340,7 +7477,7 @@
     }
 
     .cr-preview-title {
-      font-family: 'DM Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 0.6rem;
       color: var(--accent2);
       letter-spacing: 0.06em;
@@ -7355,7 +7492,7 @@
       display: flex;
       gap: 0.45rem;
       padding: 2px 0;
-      font-family: 'DM Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 0.58rem;
       color: var(--text2);
     }
@@ -7373,7 +7510,7 @@
     }
 
     .cr-preview-section-label {
-      font-family: 'DM Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 0.52rem;
       font-weight: 700;
       letter-spacing: 0.08em;
@@ -7416,7 +7553,7 @@
 
     /* MONTHLY STATS COLUMNS */
     .m-col {
-      font-family: 'DM Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 0.65rem;
       text-align: center;
       white-space: nowrap;
@@ -7424,7 +7561,7 @@
     }
 
     .m-th {
-      font-family: 'DM Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 0.6rem;
       text-align: center;
       letter-spacing: 0.08em;
@@ -7479,7 +7616,7 @@
     }
 
     .dropout-col-title {
-      font-family: 'DM Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 0.58rem;
       letter-spacing: 0.14em;
       text-transform: uppercase;
@@ -7498,7 +7635,7 @@
     }
 
     .dropout-rank {
-      font-family: 'DM Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 0.6rem;
       color: var(--text3);
       min-width: 22px;
@@ -7519,7 +7656,7 @@
     }
 
     .dropout-artist {
-      font-family: 'DM Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 0.56rem;
       color: var(--text3);
       overflow: hidden;
@@ -7536,13 +7673,13 @@
     }
 
     .dropout-plays {
-      font-family: 'DM Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 0.58rem;
       color: var(--text2);
     }
 
     .dropout-wks {
-      font-family: 'DM Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 0.54rem;
       color: var(--text3);
     }
@@ -7574,7 +7711,7 @@
     }
 
     .raw-filter-group label {
-      font-family: 'DM Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 0.58rem;
       letter-spacing: 0.1em;
       text-transform: uppercase;
@@ -7585,7 +7722,7 @@
       background: var(--bg2);
       border: 1px solid var(--border2);
       color: var(--text);
-      font-family: 'DM Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 0.72rem;
       padding: 0.35rem 0.6rem;
       border-radius: 4px;
@@ -7605,7 +7742,7 @@
       background: none;
       border: 1px solid var(--border2);
       color: var(--text3);
-      font-family: 'DM Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 0.65rem;
       padding: 0.35rem 0.75rem;
       border-radius: 4px;
@@ -7622,7 +7759,7 @@
     }
 
     .raw-summary {
-      font-family: 'DM Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 0.65rem;
       color: var(--text3);
       margin-bottom: 0.75rem;
@@ -7643,7 +7780,7 @@
     }
 
     .raw-table th {
-      font-family: 'DM Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 0.58rem;
       letter-spacing: 0.1em;
       text-transform: uppercase;
@@ -7687,12 +7824,12 @@
 
     .raw-table .raw-num {
       color: var(--text3);
-      font-family: 'DM Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 0.65rem;
     }
 
     .raw-table .raw-date {
-      font-family: 'DM Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 0.65rem;
       color: var(--text3);
       white-space: nowrap;
@@ -7717,7 +7854,7 @@
       margin-left: 4px;
       font-size: 0.65rem;
       color: var(--accent2);
-      font-family: 'DM Mono', monospace;
+      font-family: var(--font-mono);
       cursor: default;
       opacity: 0.8;
     }
@@ -7726,7 +7863,7 @@
       display: flex;
       align-items: center;
       gap: 0.35rem;
-      font-family: 'DM Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 0.65rem;
       color: var(--text3);
       cursor: pointer;
@@ -7755,7 +7892,7 @@
       background: var(--bg2);
       border: 1px solid var(--border2);
       color: var(--text);
-      font-family: 'DM Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 0.62rem;
       padding: 3px 7px;
       border-radius: 3px;
@@ -7809,7 +7946,7 @@
       justify-content: center;
       gap: 1rem;
       margin-top: 1rem;
-      font-family: 'DM Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 0.65rem;
       color: var(--text3);
     }
@@ -7818,7 +7955,7 @@
       background: none;
       border: 1px solid var(--border2);
       color: var(--text2);
-      font-family: 'DM Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 0.65rem;
       padding: 0.25rem 0.75rem;
       border-radius: 4px;
@@ -8208,7 +8345,7 @@
       background: var(--bg2);
       border: 1px solid var(--border);
       color: var(--text2);
-      font-family: 'DM Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 0.58rem;
       letter-spacing: 0.08em;
       text-transform: uppercase;
@@ -8235,7 +8372,7 @@
     }
 
     .rec-intro {
-      font-family: 'DM Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 0.7rem;
       color: var(--text3);
       letter-spacing: 0.06em;
@@ -8343,7 +8480,7 @@
     }
 
     .rec-section-title {
-      font-family: 'DM Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 0.68rem;
       text-transform: uppercase;
       letter-spacing: 0.18em;
@@ -8354,7 +8491,7 @@
     }
 
     .rec-section-sub {
-      font-family: 'DM Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 0.62rem;
       color: var(--text3);
       letter-spacing: 0.05em;
@@ -8376,7 +8513,7 @@
     }
 
     .rec-table thead th {
-      font-family: 'DM Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 0.6rem;
       letter-spacing: 0.14em;
       text-transform: uppercase;
@@ -8483,7 +8620,7 @@
 
     .rec-rank {
       text-align: center;
-      font-family: 'DM Serif Display', serif;
+      font-family: var(--font-display);
       font-size: 1.2rem;
       color: var(--text3);
       width: 38px;
@@ -8546,7 +8683,7 @@
     }
 
     .rec-meta {
-      font-family: 'DM Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 0.62rem;
       color: var(--text3);
     }
@@ -8565,7 +8702,7 @@
     }
 
     .rec-count {
-      font-family: 'DM Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 0.8rem;
       color: var(--accent2);
       text-align: right;
@@ -8574,7 +8711,7 @@
 
     .rec-badge {
       display: inline-block;
-      font-family: 'DM Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 0.5rem;
       padding: 1px 5px;
       border-radius: 3px;
@@ -8675,7 +8812,7 @@
     }
 
     .pak-date {
-      font-family: 'DM Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 0.6rem;
       color: var(--text3);
       letter-spacing: 0.06em;
@@ -8713,7 +8850,7 @@
     }
 
     .pak-col-album {
-      font-family: 'DM Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 0.6rem;
       color: var(--text3);
       display: flex;
@@ -8722,7 +8859,7 @@
     }
 
     .pak-col-song {
-      font-family: 'DM Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 0.6rem;
       color: var(--text3);
     }
@@ -8742,7 +8879,7 @@
       margin-top: 0.4rem;
       padding-top: 0.3rem;
       border-top: 1px solid var(--border);
-      font-family: 'DM Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 0.58rem;
     }
 
@@ -8764,7 +8901,7 @@
 
     .pak-tbl-song,
     .pak-tbl-album {
-      font-family: 'DM Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 0.62rem;
       color: var(--text3);
       white-space: normal;
@@ -8815,7 +8952,7 @@
     }
 
     .pak-expand-album {
-      font-family: 'DM Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 0.62rem;
       color: var(--text3);
       flex: 1;
@@ -8826,7 +8963,7 @@
     }
 
     .pak-expand-song {
-      font-family: 'DM Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 0.62rem;
       color: var(--text2);
       flex: 1;
@@ -8837,7 +8974,7 @@
     }
 
     .pak-expand-link {
-      font-family: 'DM Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 0.6rem;
       color: var(--accent);
       text-decoration: none;
@@ -8861,7 +8998,7 @@
     }
 
     .milestone-table th {
-      font-family: 'DM Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 0.6rem;
       text-transform: uppercase;
       letter-spacing: 0.12em;
@@ -8885,7 +9022,7 @@
     }
 
     .milestone-number {
-      font-family: 'DM Serif Display', serif;
+      font-family: var(--font-display);
       font-size: 1.05rem;
       color: var(--accent);
       white-space: nowrap;
@@ -8905,7 +9042,7 @@
     }
 
     .rec-empty {
-      font-family: 'DM Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 0.72rem;
       color: var(--text3);
       padding: 1rem;
@@ -9151,7 +9288,7 @@
     }
 
     .cwall-empty {
-      font-family: 'DM Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 0.75rem;
       color: var(--text3);
       text-align: center;
@@ -9242,7 +9379,7 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      font-family: 'DM Serif Display', serif;
+      font-family: var(--font-display);
       font-size: 1.5rem;
       font-weight: 700;
       background: rgba(0,0,0,0.35);
@@ -9277,7 +9414,7 @@
     }
 
     .cert-type-badge {
-      font-family: 'DM Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 0.52rem;
       letter-spacing: 0.14em;
       text-transform: uppercase;
@@ -9289,7 +9426,7 @@
     }
 
     .cert-title {
-      font-family: 'DM Serif Display', serif;
+      font-family: var(--font-display);
       font-size: 0.8rem;
       line-height: 1.3;
       word-break: break-word;
@@ -9298,7 +9435,7 @@
     }
 
     .cert-artist {
-      font-family: 'DM Sans', sans-serif;
+      font-family: var(--font-sans);
       font-size: 0.67rem;
       font-style: italic;
       opacity: 0.72;
@@ -9309,7 +9446,7 @@
       display: flex;
       align-items: center;
       gap: 4px;
-      font-family: 'DM Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 0.6rem;
       font-weight: 600;
       letter-spacing: 0.1em;
@@ -9321,7 +9458,7 @@
     }
 
     .cert-date {
-      font-family: 'DM Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 0.52rem;
       letter-spacing: 0.06em;
       opacity: 0.5;
@@ -9509,7 +9646,7 @@
       border: 1px solid var(--border2);
       background: var(--bg2);
       color: var(--text);
-      font-family: 'DM Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 0.78rem;
       outline: none;
       transition: border-color 0.15s;
@@ -9540,7 +9677,7 @@
     }
 
     .cwall-sort-label {
-      font-family: 'DM Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 0.72rem;
       color: var(--text3);
       margin-right: 0.1rem;
@@ -9548,7 +9685,7 @@
     }
 
     .cwall-btn {
-      font-family: 'DM Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 0.72rem;
       letter-spacing: 0.04em;
       padding: 0.25rem 0.65rem;
@@ -9675,7 +9812,7 @@ body {
 }
 
 .landing-tagline {
-  font-family: 'Instrument Serif', serif;
+  font-family: var(--font-display);
   font-size: clamp(1rem, 2.5vw, 1.2rem);
   color: var(--text2);
   letter-spacing: 0.01em;
@@ -9684,7 +9821,7 @@ body {
 }
 
 .landing-section-title {
-  font-family: 'DM Sans', sans-serif;
+  font-family: var(--font-sans);
   font-size: 0.72rem;
   font-weight: 500;
   letter-spacing: 0.14em;
@@ -9744,7 +9881,7 @@ body {
 }
 
 .landing-card h3 {
-  font-family: 'DM Sans', sans-serif;
+  font-family: var(--font-sans);
   font-size: 1.05rem;
   font-weight: 600;
   color: var(--text);
@@ -9782,7 +9919,7 @@ body {
   border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 8px;
   color: var(--text);
-  font-family: 'DM Sans', sans-serif;
+  font-family: var(--font-sans);
   font-size: 0.8rem;
   padding: 0.5rem 0.65rem;
   outline: none;
@@ -9822,7 +9959,7 @@ body {
 
 .lfm-new-user-info summary {
   font-size: 0.73rem;
-  font-family: 'DM Sans', sans-serif;
+  font-family: var(--font-sans);
   font-weight: 500;
   color: var(--accent);
   cursor: pointer;
@@ -9879,7 +10016,7 @@ body {
 
 .lfm-services-chips span {
   font-size: 0.63rem;
-  font-family: 'DM Mono', monospace;
+  font-family: var(--font-mono);
   background: rgba(74, 172, 255, 0.1);
   color: var(--accent);
   border-radius: 4px;
@@ -9919,7 +10056,7 @@ body {
   color: #fff;
   border: none;
   border-radius: 10px;
-  font-family: 'DM Sans', sans-serif;
+  font-family: var(--font-sans);
   font-size: 0.95rem;
   font-weight: 600;
   letter-spacing: 0.02em;
@@ -9953,7 +10090,7 @@ body {
   color: #fff;
   border: none;
   border-radius: 999px;
-  font-family: 'DM Sans', sans-serif;
+  font-family: var(--font-sans);
   font-size: 1.15rem;
   font-weight: 700;
   letter-spacing: 0.02em;
@@ -10313,7 +10450,7 @@ body.purple .landing-card-config input:focus {
   border: 1px solid var(--border);
   border-radius: 6px;
   color: var(--accent);
-  font-family: 'DM Sans', sans-serif;
+  font-family: var(--font-sans);
   font-size: 0.82rem;
   font-weight: 500;
   padding: 0.22rem 0.75rem;
@@ -10335,7 +10472,7 @@ body.purple .landing-card-config input:focus {
   background: none;
   border: none;
   color: var(--accent);
-  font-family: 'DM Sans', sans-serif;
+  font-family: var(--font-sans);
   font-size: 0.82rem;
   font-weight: 500;
   cursor: pointer;
@@ -10360,7 +10497,7 @@ body.purple .landing-card-config input:focus {
   background: var(--surface);
   border: 1px solid var(--border2);
   color: var(--text);
-  font-family: 'DM Sans', sans-serif;
+  font-family: var(--font-sans);
   font-size: 0.88rem;
   font-weight: 500;
   padding: 0.6rem 1.2rem;
@@ -10410,7 +10547,7 @@ body.purple .landing-card-config input:focus {
   background: none;
   border: 1px solid var(--border);
   color: var(--text3);
-  font-family: 'DM Mono', monospace;
+  font-family: var(--font-mono);
   font-size: 0.68rem;
   letter-spacing: 0.04em;
   padding: 0.3rem 0.6rem;
@@ -10477,7 +10614,7 @@ body.purple .landing-card-config input:focus {
   color: var(--text2);
   cursor: pointer;
   font-size: 0.62rem;
-  font-family: 'DM Mono', monospace;
+  font-family: var(--font-mono);
   font-weight: 400;
   letter-spacing: 0.06em;
   padding: 0.2rem 0.7rem;
@@ -11819,7 +11956,7 @@ body.albums-hide-yt-btns  #albumsSection  .yt-play-btn { display: none; }
 }
 
 .hero-val {
-  font-family: 'DM Serif Display', serif;
+  font-family: var(--font-display);
   font-size: 1.35rem;
   font-weight: 400;
   color: var(--text);
@@ -11828,7 +11965,7 @@ body.albums-hide-yt-btns  #albumsSection  .yt-play-btn { display: none; }
 }
 
 .hero-label {
-  font-family: 'DM Mono', monospace;
+  font-family: var(--font-mono);
   font-size: 0.58rem;
   letter-spacing: 0.14em;
   text-transform: uppercase;
@@ -11836,7 +11973,7 @@ body.albums-hide-yt-btns  #albumsSection  .yt-play-btn { display: none; }
 }
 
 .hero-stat-pb {
-  font-family: 'DM Mono', monospace;
+  font-family: var(--font-mono);
   font-size: 0.52rem;
   letter-spacing: 0.1em;
   text-transform: uppercase;
@@ -11948,7 +12085,7 @@ body.albums-hide-yt-btns  #albumsSection  .yt-play-btn { display: none; }
   color: var(--text);
   padding: 0.3rem 0.65rem;
   border-radius: 6px;
-  font-family: 'DM Mono', monospace;
+  font-family: var(--font-mono);
   font-size: 0.57rem;
   white-space: nowrap;
   opacity: 0;
@@ -12114,7 +12251,7 @@ body.pink-light .hero-stats {
 
 .na-tt-name {
   flex: 1;
-  font-family: 'DM Mono', monospace;
+  font-family: var(--font-mono);
   font-size: 0.7rem;
   color: var(--text);
   overflow: hidden;
@@ -12163,7 +12300,7 @@ body.pink-light .hero-stats {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-family: 'DM Mono', monospace;
+  font-family: var(--font-mono);
   font-size: 1.1rem;
   font-weight: bold;
   color: rgba(255,255,255,0.65);
@@ -12180,7 +12317,7 @@ body.pink-light .hero-stats {
 }
 
 .ctt-date {
-  font-family: 'DM Mono', monospace;
+  font-family: var(--font-mono);
   font-size: 0.55rem;
   font-weight: bold;
   letter-spacing: 0.08em;
@@ -12191,7 +12328,7 @@ body.pink-light .hero-stats {
 .ctt-date.recent { color: var(--text3); }
 
 .ctt-title {
-  font-family: 'DM Mono', monospace;
+  font-family: var(--font-mono);
   font-size: 0.7rem;
   font-weight: bold;
   color: var(--text1);
@@ -12202,7 +12339,7 @@ body.pink-light .hero-stats {
 }
 
 .ctt-artist {
-  font-family: 'DM Sans', sans-serif;
+  font-family: var(--font-sans);
   font-size: 0.63rem;
   color: var(--text2);
   overflow: hidden;
@@ -12211,7 +12348,7 @@ body.pink-light .hero-stats {
 }
 
 .ctt-type {
-  font-family: 'DM Sans', sans-serif;
+  font-family: var(--font-sans);
   font-size: 0.58rem;
   color: var(--text3);
   overflow: hidden;
@@ -12236,7 +12373,7 @@ body.pink-light .hero-stats {
   border: 1px solid var(--border);
   border-top: none;
   border-radius: 0 0 6px 6px;
-  font-family: 'DM Mono', monospace;
+  font-family: var(--font-mono);
   font-size: 0.65rem;
   color: var(--text2);
 }
@@ -12354,7 +12491,7 @@ body.pink-light .hero-stats {
 }
 
 .tm-type-btn {
-  font-family: 'DM Mono', monospace;
+  font-family: var(--font-mono);
   font-size: 0.62rem;
   font-weight: 700;
   letter-spacing: 0.06em;
@@ -12444,7 +12581,7 @@ body[class*="-light"] .tm-card-search:hover {
 .tm-hint {
   font-size: 0.62rem;
   color: var(--text3);
-  font-family: 'DM Mono', monospace;
+  font-family: var(--font-mono);
   padding: 2px 4px 6px;
   letter-spacing: 0.02em;
 }
@@ -12500,7 +12637,7 @@ body[class*="-light"] .tm-card-search:hover {
 }
 
 .tm-card-year {
-  font-family: 'DM Mono', monospace;
+  font-family: var(--font-mono);
   font-size: 0.6rem;
   font-weight: 700;
   color: var(--gold1);
@@ -12513,7 +12650,7 @@ body[class*="-light"] .tm-card-search:hover {
   color: var(--text3);
   font-size: 0.78rem;
   text-align: center;
-  font-family: 'DM Mono', monospace;
+  font-family: var(--font-mono);
 }
 
 /* ─── AWARDS ────────────────────────────────────────────────────────────────── */
@@ -12565,7 +12702,7 @@ body[class*="-light"] .tm-card-search:hover {
   color: var(--text1);
   min-width: 54px;
   text-align: center;
-  font-family: 'DM Mono', monospace;
+  font-family: var(--font-mono);
 }
 .awards-config-btn,
 .awards-generate-btn {
@@ -12908,7 +13045,7 @@ body[class*="-light"] .tm-card-search:hover {
 }
 .awards-picker-nom-lbl { font-weight: 600; white-space: nowrap; max-width: 130px; overflow: hidden; text-overflow: ellipsis; }
 .awards-picker-nom-sub { font-size: 0.7rem; color: var(--text3); white-space: nowrap; max-width: 90px; overflow: hidden; text-overflow: ellipsis; }
-.awards-picker-nom-plays { font-size: 0.68rem; color: var(--text3); font-family: 'DM Mono', monospace; white-space: nowrap; }
+.awards-picker-nom-plays { font-size: 0.68rem; color: var(--text3); font-family: var(--font-mono); white-space: nowrap; }
 .awards-picker-nom-x {
   background: none;
   border: none;
@@ -12953,7 +13090,7 @@ body[class*="-light"] .tm-card-search:hover {
 .awards-picker-genre-tags { display: inline-flex; gap: 3px; flex-shrink: 0; }
 .awards-picker-genre-tag  { font-size: 0.6rem; padding: 1px 5px; border-radius: 10px; background: var(--surface3); color: var(--text3); border: 1px solid var(--border); white-space: nowrap; }
 .awards-picker-genre-unk  { opacity: 0.5; font-style: italic; }
-.awards-picker-plays{ font-size: 0.7rem; color: var(--text3); font-family: 'DM Mono', monospace; }
+.awards-picker-plays{ font-size: 0.7rem; color: var(--text3); font-family: var(--font-mono); }
 .awards-picker-foot {
   padding: 10px 14px;
   border-top: 1px solid var(--border);
@@ -13003,7 +13140,7 @@ body[class*="-light"] .tm-card-search:hover {
 .awards-reallife-badge.won  { background: #FFD70022; color: #FFD700; border: 1px solid #FFD70066; }
 .awards-reallife-badge.nom  { background: #6366f122; color: #818cf8; border: 1px solid #6366f166; }
 .awards-reallife-cat  { flex: 1; color: var(--text2); }
-.awards-reallife-year { color: var(--text3); font-family: 'DM Mono', monospace; font-size: 0.72rem; }
+.awards-reallife-year { color: var(--text3); font-family: var(--font-mono); font-size: 0.72rem; }
 
 /* ── CEREMONY OVERLAY ─────────────────────────────────────────────────────── */
 .awards-ceremony-overlay {
@@ -13205,7 +13342,7 @@ body[class*="-light"] .tm-card-search:hover {
   transition: background 0.12s;
 }
 .ceremony-nav-btn:hover { background: var(--surface3); color: var(--text1); }
-.ceremony-progress { font-size: 0.75rem; color: var(--text3); font-family: 'DM Mono', monospace; }
+.ceremony-progress { font-size: 0.75rem; color: var(--text3); font-family: var(--font-mono); }
 
 /* Mobile responsiveness */
 @media (max-width: 600px) {
@@ -13253,14 +13390,14 @@ body[class*="-light"] .tm-card-search:hover {
 .streak-modal-icon { font-size: 2rem; }
 
 .streak-modal-title {
-  font-family: 'DM Serif Display', serif;
+  font-family: var(--font-display);
   font-size: 1.5rem;
   color: var(--text);
   line-height: 1.1;
 }
 
 .streak-modal-sub {
-  font-family: 'DM Mono', monospace;
+  font-family: var(--font-mono);
   font-size: 0.65rem;
   color: var(--accent2);
   letter-spacing: 0.1em;
@@ -13275,7 +13412,7 @@ body[class*="-light"] .tm-card-search:hover {
 .streak-section:last-child { border-bottom: none; }
 
 .streak-section-title {
-  font-family: 'DM Mono', monospace;
+  font-family: var(--font-mono);
   font-size: 0.68rem;
   letter-spacing: 0.12em;
   text-transform: uppercase;
@@ -13296,7 +13433,7 @@ body[class*="-light"] .tm-card-search:hover {
 .streak-fire { font-size: 0.82rem; flex-shrink: 0; }
 
 .streak-days {
-  font-family: 'DM Mono', monospace;
+  font-family: var(--font-mono);
   font-size: 0.7rem;
   color: var(--accent);
   min-width: 2.5rem;
@@ -13325,7 +13462,7 @@ body[class*="-light"] .tm-card-search:hover {
 }
 
 .streak-type-tag {
-  font-family: 'DM Mono', monospace;
+  font-family: var(--font-mono);
   font-size: 0.58rem;
   color: var(--text3);
   letter-spacing: 0.08em;
@@ -13358,7 +13495,7 @@ body[class*="-light"] .tm-card-search:hover {
 .streak-item--risk .streak-days { color: #e8a020; }
 
 .streak-empty {
-  font-family: 'DM Mono', monospace;
+  font-family: var(--font-mono);
   font-size: 0.72rem;
   color: var(--text3);
   padding: 0.2rem 0 0.4rem;
@@ -13379,7 +13516,7 @@ body[class*="-light"] .tm-card-search:hover {
   margin-top: 0.1rem;
 }
 .sk-stat {
-  font-family: 'DM Mono', monospace;
+  font-family: var(--font-mono);
   font-size: 0.68rem;
   color: var(--text2);
   background: rgba(255,255,255,0.04);
@@ -13399,7 +13536,7 @@ body[class*="-light"] .tm-card-search:hover {
 .sk-tab-btn {
   flex: 1;
   padding: 0.55rem 0.5rem;
-  font-family: 'DM Mono', monospace;
+  font-family: var(--font-mono);
   font-size: 0.63rem;
   letter-spacing: 0.1em;
   text-transform: uppercase;
@@ -13434,7 +13571,7 @@ body[class*="-light"] .tm-card-search:hover {
   border: 1px solid var(--border);
   border-radius: 5px;
   padding: 0.28rem 0.6rem;
-  font-family: 'DM Mono', monospace;
+  font-family: var(--font-mono);
   font-size: 0.72rem;
   color: var(--text);
   outline: none;
@@ -13445,7 +13582,7 @@ body[class*="-light"] .tm-card-search:hover {
   border: 1px solid var(--border);
   border-radius: 5px;
   padding: 0.28rem 0.6rem;
-  font-family: 'DM Mono', monospace;
+  font-family: var(--font-mono);
   font-size: 0.67rem;
   color: var(--text2);
   cursor: pointer;
@@ -13469,7 +13606,7 @@ body[class*="-light"] .tm-card-search:hover {
   border-radius: 4px;
   color: var(--text2);
   cursor: pointer;
-  font-family: 'DM Mono', monospace;
+  font-family: var(--font-mono);
   font-size: 0.6rem;
   padding: 2px 6px;
   white-space: nowrap;
@@ -13479,7 +13616,7 @@ body[class*="-light"] .tm-card-search:hover {
 
 /* ── Item extras ── */
 .sk-since {
-  font-family: 'DM Mono', monospace;
+  font-family: var(--font-mono);
   font-size: 0.6rem;
   color: var(--text3);
   flex-shrink: 0;
@@ -13487,7 +13624,7 @@ body[class*="-light"] .tm-card-search:hover {
 }
 .sk-pb { font-size: 0.72rem; flex-shrink: 0; cursor: default; line-height: 1; }
 .sk-ms {
-  font-family: 'DM Mono', monospace;
+  font-family: var(--font-mono);
   font-size: 0.58rem;
   color: var(--accent2);
   background: rgba(99,255,180,0.07);
@@ -13521,7 +13658,7 @@ body[class*="-light"] .tm-card-search:hover {
 
 /* ── Urgency banners ── */
 .sk-urgency {
-  font-family: 'DM Mono', monospace;
+  font-family: var(--font-mono);
   font-size: 0.67rem;
   padding: 0.45rem 1.4rem;
   border-bottom: 1px solid var(--border);
@@ -13533,7 +13670,7 @@ body[class*="-light"] .tm-card-search:hover {
 
 /* ── Weekly digest ── */
 .sk-weekly {
-  font-family: 'DM Mono', monospace;
+  font-family: var(--font-mono);
   font-size: 0.67rem;
   color: var(--text2);
   padding: 0.5rem 1.4rem;
@@ -13562,7 +13699,7 @@ body[class*="-light"] .tm-card-search:hover {
   padding: 0.6rem 0.7rem;
 }
 .sk-hof-rank {
-  font-family: 'DM Mono', monospace;
+  font-family: var(--font-mono);
   font-size: 0.68rem;
   font-weight: 700;
   color: #c89b3c;
@@ -13591,7 +13728,7 @@ body[class*="-light"] .tm-card-search:hover {
   text-overflow: ellipsis;
 }
 .sk-hof-record {
-  font-family: 'DM Mono', monospace;
+  font-family: var(--font-mono);
   font-size: 0.72rem;
   color: #f0c040;
   font-weight: 700;
@@ -13599,7 +13736,7 @@ body[class*="-light"] .tm-card-search:hover {
 }
 .sk-hof-record .streak-days { font-size: 0.88rem; }
 .sk-hof-dates {
-  font-family: 'DM Mono', monospace;
+  font-family: var(--font-mono);
   font-size: 0.58rem;
   color: var(--text3);
   margin-bottom: 0.28rem;
@@ -13607,7 +13744,7 @@ body[class*="-light"] .tm-card-search:hover {
 }
 .sk-hof-foot { display: flex; align-items: center; gap: 0.35rem; }
 .sk-hof-badge {
-  font-family: 'DM Mono', monospace;
+  font-family: var(--font-mono);
   font-size: 0.54rem;
   letter-spacing: 0.04em;
   text-transform: uppercase;
@@ -13629,7 +13766,7 @@ body[class*="-light"] .tm-card-search:hover {
 
 /* ── Graveyard tab ── */
 .sk-grave-hdr {
-  font-family: 'DM Mono', monospace;
+  font-family: var(--font-mono);
   font-size: 0.66rem;
   color: var(--text3);
   letter-spacing: 0.1em;
@@ -13667,7 +13804,7 @@ body[class*="-light"] .tm-card-search:hover {
 .sk-ct-dot.sk-ct-on { background: var(--accent); border-color: var(--accent); }
 .sk-ct-foot {
   display: flex; justify-content: space-between;
-  font-family: 'DM Mono', monospace; font-size: 0.55rem; color: var(--text3);
+  font-family: var(--font-mono); font-size: 0.55rem; color: var(--text3);
 }
 
 /* ── Entity tooltip (artist/album songs) ── */
@@ -13684,7 +13821,7 @@ body[class*="-light"] .tm-card-search:hover {
   pointer-events: auto;
 }
 .sk-et-hdr {
-  font-family: 'DM Mono', monospace;
+  font-family: var(--font-mono);
   font-size: 0.6rem;
   color: var(--text3);
   padding: 0.1rem 0.1rem 0.35rem;
@@ -13698,7 +13835,7 @@ body[class*="-light"] .tm-card-search:hover {
 }
 .sk-et-row:last-child { border-bottom: none; }
 .sk-et-name {
-  flex: 1; font-family: 'DM Mono', monospace; font-size: 0.69rem;
+  flex: 1; font-family: var(--font-mono); font-size: 0.69rem;
   color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
 .sk-et-yt { flex-shrink: 0; }
@@ -13710,7 +13847,7 @@ body[class*="-light"] .tm-card-search:hover {
 .sk-hm-controls { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.4rem; margin-bottom: 0.65rem; }
 .sk-hm-ranges { display: flex; gap: 3px; flex-wrap: wrap; }
 .sk-hm-rbtn {
-  font-family: 'DM Mono', monospace; font-size: 0.58rem; padding: 2px 7px;
+  font-family: var(--font-mono); font-size: 0.58rem; padding: 2px 7px;
   border-radius: 3px; border: 1px solid var(--border2); background: transparent;
   color: var(--text3); cursor: pointer; letter-spacing: 0.04em; transition: background 0.13s, color 0.13s;
 }
@@ -13723,21 +13860,21 @@ body[class*="-light"] .tm-card-search:hover {
 
 /* Summary stats */
 .sk-hm-summary { display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 0.3rem; }
-.sk-hm-stat { font-family: 'DM Mono', monospace; font-size: 0.62rem; color: var(--text3); letter-spacing: 0.03em; }
+.sk-hm-stat { font-family: var(--font-mono); font-size: 0.62rem; color: var(--text3); letter-spacing: 0.03em; }
 .sk-hm-stat strong { color: var(--text2); }
 
 /* Callout */
-.sk-hm-callout { font-family: 'DM Mono', monospace; font-size: 0.58rem; color: var(--text3); margin-bottom: 0.55rem; letter-spacing: 0.02em; }
+.sk-hm-callout { font-family: var(--font-mono); font-size: 0.58rem; color: var(--text3); margin-bottom: 0.55rem; letter-spacing: 0.02em; }
 
 /* Grid layout */
 .sk-hm-outer { display: flex; align-items: flex-start; overflow: hidden; }
 .sk-hm-dow-col { display: flex; flex-direction: column; gap: 2px; padding-top: 18px; margin-right: 4px; flex-shrink: 0; }
-.sk-hm-dow-label { height: 9px; font-family: 'DM Mono', monospace; font-size: 0.45rem; color: var(--text3); line-height: 9px; }
+.sk-hm-dow-label { height: 9px; font-family: var(--font-mono); font-size: 0.45rem; color: var(--text3); line-height: 9px; }
 .sk-hm-scroll { overflow-x: auto; padding-bottom: 0.3rem; }
 .sk-hm-grid-wrap { display: flex; flex-direction: column; min-width: max-content; }
 .sk-hm-month-row-outer { display: flex; gap: 2px; height: 14px; margin-bottom: 2px; }
 .sk-hm-month-cell { width: 9px; flex-shrink: 0; position: relative; overflow: visible; }
-.sk-hm-month-lbl { position: absolute; left: 0; top: 0; font-family: 'DM Mono', monospace; font-size: 0.46rem; color: var(--text3); white-space: nowrap; letter-spacing: 0.03em; }
+.sk-hm-month-lbl { position: absolute; left: 0; top: 0; font-family: var(--font-mono); font-size: 0.46rem; color: var(--text3); white-space: nowrap; letter-spacing: 0.03em; }
 .sk-hm-grid { display: flex; gap: 2px; }
 .sk-hm-col { display: flex; flex-direction: column; gap: 2px; }
 .sk-hm-cell { width: 9px; height: 9px; border-radius: 1.5px; flex-shrink: 0; }
@@ -13755,7 +13892,7 @@ body[class*="-light"] .tm-card-search:hover {
 
 /* Category breakdown */
 .sk-hm-cats { margin-top: 1.2rem; display: flex; flex-direction: column; gap: 1.1rem; }
-.sk-hm-cat-label { font-family: 'DM Mono', monospace; font-size: 0.52rem; color: var(--text3); letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 3px; }
+.sk-hm-cat-label { font-family: var(--font-mono); font-size: 0.52rem; color: var(--text3); letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 3px; }
 .sk-hm-cat-grid { display: flex; gap: 2px; }
 .sk-hm-cat-col { display: flex; flex-direction: column; gap: 2px; }
 .sk-hm-cat-cell { width: 9px; height: 9px; border-radius: 1.5px; flex-shrink: 0; }
@@ -13763,12 +13900,12 @@ body[class*="-light"] .tm-card-search:hover {
 
 /* Legend row */
 .sk-hm-leg-row { display: flex; align-items: center; justify-content: space-between; margin-top: 0.7rem; }
-.sk-hm-legend-inner { display: flex; align-items: flex-end; gap: 3px; font-family: 'DM Mono', monospace; font-size: 0.55rem; color: var(--text3); }
+.sk-hm-legend-inner { display: flex; align-items: flex-end; gap: 3px; font-family: var(--font-mono); font-size: 0.55rem; color: var(--text3); }
 .sk-hm-legend-inner > span { margin: 0 0.15rem 0; }
 .sk-hm-leg-wrap { display: flex; flex-direction: column; align-items: center; gap: 1px; }
-.sk-hm-leg-num { font-family: 'DM Mono', monospace; font-size: 0.42rem; color: var(--text3); }
+.sk-hm-leg-num { font-family: var(--font-mono); font-size: 0.42rem; color: var(--text3); }
 .sk-hm-copy-btn {
-  font-family: 'DM Mono', monospace; font-size: 0.58rem; padding: 3px 9px;
+  font-family: var(--font-mono); font-size: 0.58rem; padding: 3px 9px;
   border-radius: 3px; border: 1px solid var(--border2); background: transparent;
   color: var(--text3); cursor: pointer; transition: background 0.13s, color 0.13s;
 }
@@ -13781,16 +13918,16 @@ body[class*="-light"] .tm-card-search:hover {
   border-radius: 7px; padding: 0.45rem 0.65rem; min-width: 155px; max-width: 230px;
   box-shadow: 0 5px 20px rgba(0,0,0,0.55);
 }
-.sk-hm-tip-date { font-family: 'DM Mono', monospace; font-size: 0.56rem; color: var(--text3); letter-spacing: 0.05em; margin-bottom: 2px; }
-.sk-hm-tip-count { font-family: 'DM Mono', monospace; font-size: 0.72rem; color: var(--text); font-weight: 600; margin-bottom: 5px; }
-.sk-hm-tip-list { margin: 0; padding-left: 1rem; font-family: 'DM Mono', monospace; font-size: 0.59rem; color: var(--text2); max-height: 110px; overflow-y: auto; }
+.sk-hm-tip-date { font-family: var(--font-mono); font-size: 0.56rem; color: var(--text3); letter-spacing: 0.05em; margin-bottom: 2px; }
+.sk-hm-tip-count { font-family: var(--font-mono); font-size: 0.72rem; color: var(--text); font-weight: 600; margin-bottom: 5px; }
+.sk-hm-tip-list { margin: 0; padding-left: 1rem; font-family: var(--font-mono); font-size: 0.59rem; color: var(--text2); max-height: 110px; overflow-y: auto; }
 .sk-hm-tip-list li { padding: 1px 0; }
 .sk-hm-tip-more { color: var(--text3) !important; font-style: italic; }
 
 /* Drill-down panel */
 .sk-hm-drill { margin-top: 0.8rem; background: rgba(255,255,255,0.04); border: 1px solid var(--border2, rgba(255,255,255,0.08)); border-radius: 6px; padding: 0.65rem 0.9rem; }
-.sk-hm-drill-hdr { font-family: 'DM Mono', monospace; font-size: 0.63rem; color: var(--text2); font-weight: 600; margin-bottom: 0.45rem; letter-spacing: 0.03em; }
-.sk-hm-drill-list { margin: 0; padding-left: 1.1rem; font-family: 'DM Mono', monospace; font-size: 0.61rem; color: var(--text3); column-count: 2; column-gap: 1.5rem; }
+.sk-hm-drill-hdr { font-family: var(--font-mono); font-size: 0.63rem; color: var(--text2); font-weight: 600; margin-bottom: 0.45rem; letter-spacing: 0.03em; }
+.sk-hm-drill-list { margin: 0; padding-left: 1.1rem; font-family: var(--font-mono); font-size: 0.61rem; color: var(--text3); column-count: 2; column-gap: 1.5rem; }
 .sk-hm-drill-list li { padding: 1.5px 0; break-inside: avoid; }
 
 #hero-streak-stat:hover { opacity: 0.85; }
@@ -13813,7 +13950,7 @@ body[class*="-light"] .tm-card-search:hover {
 .st-title-row { margin-bottom: 0.6rem; }
 
 .st-title {
-  font-family: 'DM Mono', monospace;
+  font-family: var(--font-mono);
   font-size: 0.7rem;
   font-weight: 600;
   color: var(--text3);
@@ -13838,7 +13975,7 @@ body[class*="-light"] .tm-card-search:hover {
 }
 
 .st-period-btn {
-  font-family: 'DM Mono', monospace;
+  font-family: var(--font-mono);
   font-size: 0.72rem;
   letter-spacing: 0.04em;
   padding: 0.35rem 0.75rem;
@@ -13860,7 +13997,7 @@ body[class*="-light"] .tm-card-search:hover {
 }
 
 .st-nav-btn {
-  font-family: 'DM Mono', monospace;
+  font-family: var(--font-mono);
   font-size: 0.75rem;
   padding: 0.3rem 0.55rem;
   background: var(--bg2);
@@ -13872,7 +14009,7 @@ body[class*="-light"] .tm-card-search:hover {
 .st-nav-btn:hover { background: var(--bg3); color: var(--text1); }
 
 .st-nav-label {
-  font-family: 'DM Mono', monospace;
+  font-family: var(--font-mono);
   font-size: 0.9rem;
   font-weight: 700;
   color: var(--text1);
@@ -13910,7 +14047,7 @@ body[class*="-light"] .tm-card-search:hover {
 }
 
 .st-stat-val {
-  font-family: 'DM Mono', monospace;
+  font-family: var(--font-mono);
   font-size: 1.85rem;
   font-weight: 700;
   color: var(--accent);
@@ -13919,7 +14056,7 @@ body[class*="-light"] .tm-card-search:hover {
 }
 
 .st-stat-label {
-  font-family: 'DM Mono', monospace;
+  font-family: var(--font-mono);
   font-size: 0.55rem;
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -13947,7 +14084,7 @@ body[class*="-light"] .tm-card-search:hover {
 }
 
 .st-section-header {
-  font-family: 'DM Mono', monospace;
+  font-family: var(--font-mono);
   font-size: 0.6rem;
   letter-spacing: 0.12em;
   text-transform: uppercase;
@@ -13980,7 +14117,7 @@ body[class*="-light"] .tm-card-search:hover {
 }
 
 .st-top-name {
-  font-family: 'DM Mono', monospace;
+  font-family: var(--font-mono);
   font-size: 0.78rem;
   color: var(--text1);
   white-space: nowrap;
@@ -13989,7 +14126,7 @@ body[class*="-light"] .tm-card-search:hover {
 }
 
 .st-top-sub {
-  font-family: 'DM Mono', monospace;
+  font-family: var(--font-mono);
   font-size: 0.62rem;
   color: var(--text3);
   white-space: nowrap;
@@ -14013,7 +14150,7 @@ body[class*="-light"] .tm-card-search:hover {
 }
 
 .st-top-count {
-  font-family: 'DM Mono', monospace;
+  font-family: var(--font-mono);
   font-size: 0.68rem;
   color: var(--text2);
   white-space: nowrap;
@@ -14030,7 +14167,7 @@ body[class*="-light"] .tm-card-search:hover {
 }
 
 .st-section-title {
-  font-family: 'DM Mono', monospace;
+  font-family: var(--font-mono);
   font-size: 0.6rem;
   letter-spacing: 0.12em;
   text-transform: uppercase;
@@ -14049,7 +14186,7 @@ body[class*="-light"] .tm-card-search:hover {
 .st-two-col .st-section { margin-bottom: 0; }
 
 .st-empty {
-  font-family: 'DM Mono', monospace;
+  font-family: var(--font-mono);
   font-size: 0.72rem;
   color: var(--text3);
   padding: 0.3rem 0;
@@ -14095,7 +14232,7 @@ body[class*="-light"] .tm-card-search:hover {
 .st-activity-col.st-low .st-activity-bar { opacity: 0.35; }
 
 .st-activity-label {
-  font-family: 'DM Mono', monospace;
+  font-family: var(--font-mono);
   font-size: 0.5rem;
   color: var(--text3);
   margin-top: 3px;
@@ -14105,7 +14242,7 @@ body[class*="-light"] .tm-card-search:hover {
 .st-activity-year { color: var(--text3); opacity: 0.7; }
 
 .st-activity-count {
-  font-family: 'DM Mono', monospace;
+  font-family: var(--font-mono);
   font-size: 0.5rem;
   color: var(--text2);
   margin-top: 1px;
@@ -14116,7 +14253,7 @@ body[class*="-light"] .tm-card-search:hover {
   gap: 1rem;
   flex-wrap: wrap;
   margin-top: 0.6rem;
-  font-family: 'DM Mono', monospace;
+  font-family: var(--font-mono);
   font-size: 0.68rem;
   color: var(--text2);
 }
@@ -14128,7 +14265,7 @@ body[class*="-light"] .tm-card-search:hover {
 .st-loyalty-score { text-align: center; padding: 0.5rem 0 0.8rem; }
 
 .st-loyalty-pct {
-  font-family: 'DM Mono', monospace;
+  font-family: var(--font-mono);
   font-size: 3.5rem;
   font-weight: 700;
   color: var(--accent);
@@ -14136,7 +14273,7 @@ body[class*="-light"] .tm-card-search:hover {
 }
 
 .st-loyalty-verdict {
-  font-family: 'DM Mono', monospace;
+  font-family: var(--font-mono);
   font-size: 0.85rem;
   font-weight: 700;
   color: var(--text1);
@@ -14145,7 +14282,7 @@ body[class*="-light"] .tm-card-search:hover {
 }
 
 .st-loyalty-sub {
-  font-family: 'DM Mono', monospace;
+  font-family: var(--font-mono);
   font-size: 0.65rem;
   color: var(--text3);
 }
@@ -14167,7 +14304,7 @@ body[class*="-light"] .tm-card-search:hover {
 
 /* ── Discoveries ─────────────────────────────────────────────── */
 .st-discoveries-count {
-  font-family: 'DM Mono', monospace;
+  font-family: var(--font-mono);
   font-size: 0.72rem;
   color: var(--text2);
   margin-bottom: 0.5rem;
@@ -14180,14 +14317,14 @@ body[class*="-light"] .tm-card-search:hover {
 }
 
 .st-discovery-item {
-  font-family: 'DM Mono', monospace;
+  font-family: var(--font-mono);
   font-size: 0.72rem;
   color: var(--text1);
   padding: 0.15rem 0;
 }
 
 .st-discovery-more {
-  font-family: 'DM Mono', monospace;
+  font-family: var(--font-mono);
   font-size: 0.65rem;
   color: var(--text3);
   font-style: italic;
@@ -14209,14 +14346,14 @@ body[class*="-light"] .tm-card-search:hover {
 .st-milestone-info { flex: 1; min-width: 0; }
 
 .st-milestone-text {
-  font-family: 'DM Mono', monospace;
+  font-family: var(--font-mono);
   font-size: 0.78rem;
   color: var(--text1);
   font-weight: 600;
 }
 
 .st-milestone-sub {
-  font-family: 'DM Mono', monospace;
+  font-family: var(--font-mono);
   font-size: 0.65rem;
   color: var(--text3);
   white-space: nowrap;
@@ -14226,7 +14363,7 @@ body[class*="-light"] .tm-card-search:hover {
 }
 
 .st-milestone-date {
-  font-family: 'DM Mono', monospace;
+  font-family: var(--font-mono);
   font-size: 0.62rem;
   color: var(--text3);
   white-space: nowrap;
@@ -14252,7 +14389,7 @@ body[class*="-light"] .tm-card-search:hover {
 }
 
 .st-streak-num {
-  font-family: 'DM Mono', monospace;
+  font-family: var(--font-mono);
   font-size: 1.6rem;
   font-weight: 700;
   color: var(--accent);
@@ -14260,7 +14397,7 @@ body[class*="-light"] .tm-card-search:hover {
 }
 
 .st-streak-lbl {
-  font-family: 'DM Mono', monospace;
+  font-family: var(--font-mono);
   font-size: 0.58rem;
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -14269,14 +14406,14 @@ body[class*="-light"] .tm-card-search:hover {
 }
 
 .st-streak-dates {
-  font-family: 'DM Mono', monospace;
+  font-family: var(--font-mono);
   font-size: 0.58rem;
   color: var(--text3);
   margin-top: 0.2rem;
 }
 
 .st-streak-link {
-  font-family: 'DM Mono', monospace;
+  font-family: var(--font-mono);
   font-size: 0.7rem;
   margin-top: 0.2rem;
 }
@@ -14294,7 +14431,7 @@ body[class*="-light"] .tm-card-search:hover {
 .st-grammy-item:last-child { border-bottom: none; }
 
 .st-grammy-artist {
-  font-family: 'DM Mono', monospace;
+  font-family: var(--font-mono);
   font-size: 0.8rem;
   font-weight: 600;
   color: var(--text1);
@@ -14308,7 +14445,7 @@ body[class*="-light"] .tm-card-search:hover {
 .st-grammy-badges { display: flex; gap: 0.4rem; align-items: center; flex-shrink: 0; }
 
 .st-grammy-win {
-  font-family: 'DM Mono', monospace;
+  font-family: var(--font-mono);
   font-size: 0.65rem;
   color: #f5b14e;
   background: rgba(245,177,78,0.12);
@@ -14319,7 +14456,7 @@ body[class*="-light"] .tm-card-search:hover {
 }
 
 .st-grammy-plays {
-  font-family: 'DM Mono', monospace;
+  font-family: var(--font-mono);
   font-size: 0.62rem;
   color: var(--text3);
   white-space: nowrap;
@@ -14327,7 +14464,7 @@ body[class*="-light"] .tm-card-search:hover {
 
 /* ── Underrated Gem ──────────────────────────────────────────── */
 .st-gem-loading {
-  font-family: 'DM Mono', monospace;
+  font-family: var(--font-mono);
   font-size: 0.72rem;
   color: var(--text3);
   font-style: italic;
@@ -14345,21 +14482,21 @@ body[class*="-light"] .tm-card-search:hover {
 .st-gem-info { flex: 1; }
 
 .st-gem-title {
-  font-family: 'DM Mono', monospace;
+  font-family: var(--font-mono);
   font-size: 0.95rem;
   font-weight: 700;
   color: var(--text1);
 }
 
 .st-gem-artist {
-  font-family: 'DM Mono', monospace;
+  font-family: var(--font-mono);
   font-size: 0.75rem;
   color: var(--text2);
   margin-bottom: 0.4rem;
 }
 
 .st-gem-stats {
-  font-family: 'DM Mono', monospace;
+  font-family: var(--font-mono);
   font-size: 0.68rem;
   color: var(--text2);
   display: flex;
@@ -14372,7 +14509,7 @@ body[class*="-light"] .tm-card-search:hover {
 .st-gem-sep { color: var(--text3); }
 
 .st-gem-sub {
-  font-family: 'DM Mono', monospace;
+  font-family: var(--font-mono);
   font-size: 0.65rem;
   color: var(--text3);
   font-style: italic;
@@ -14380,7 +14517,7 @@ body[class*="-light"] .tm-card-search:hover {
 
 /* ── Chart History Replay ────────────────────────────────────── */
 .st-replay-btn, .st-replay-stop-btn {
-  font-family: 'DM Mono', monospace;
+  font-family: var(--font-mono);
   font-size: 0.78rem;
   letter-spacing: 0.06em;
   padding: 0.55rem 1.2rem;
@@ -14413,14 +14550,14 @@ body[class*="-light"] .tm-card-search:hover {
 }
 
 .st-replay-loading {
-  font-family: 'DM Mono', monospace;
+  font-family: var(--font-mono);
   font-size: 0.72rem;
   color: var(--text3);
   font-style: italic;
 }
 
 .st-replay-week-label {
-  font-family: 'DM Mono', monospace;
+  font-family: var(--font-mono);
   font-size: 0.65rem;
   letter-spacing: 0.08em;
   color: var(--accent);
@@ -14429,7 +14566,7 @@ body[class*="-light"] .tm-card-search:hover {
 }
 
 .st-replay-progress {
-  font-family: 'DM Mono', monospace;
+  font-family: var(--font-mono);
   font-size: 0.58rem;
   color: var(--text3);
   margin-bottom: 0.7rem;
@@ -14441,7 +14578,7 @@ body[class*="-light"] .tm-card-search:hover {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  font-family: 'DM Mono', monospace;
+  font-family: var(--font-mono);
   font-size: 0.72rem;
 }
 
@@ -14495,7 +14632,7 @@ body[class*="-light"] .tm-card-search:hover {
 }
 
 .st-card-btn {
-  font-family: 'DM Mono', monospace;
+  font-family: var(--font-mono);
   font-size: 0.75rem;
   letter-spacing: 0.04em;
   padding: 0.45rem 1rem;
@@ -14523,7 +14660,7 @@ body[class*="-light"] .tm-card-search:hover {
 }
 
 .st-card-download-btn {
-  font-family: 'DM Mono', monospace;
+  font-family: var(--font-mono);
   font-size: 0.75rem;
   padding: 0.45rem 1rem;
   background: var(--accent);
@@ -14536,7 +14673,7 @@ body[class*="-light"] .tm-card-search:hover {
 .st-card-download-btn:hover { opacity: 0.88; }
 
 .st-card-close-btn {
-  font-family: 'DM Mono', monospace;
+  font-family: var(--font-mono);
   font-size: 0.72rem;
   padding: 0.4rem 0.7rem;
   background: transparent;
@@ -14568,7 +14705,7 @@ body[class*="-light"] .tm-card-search:hover {
   pointer-events: none;
 }
 .st-hero-eyebrow {
-  font-family: 'DM Mono', monospace;
+  font-family: var(--font-mono);
   font-size: 0.55rem;
   letter-spacing: 0.3em;
   text-transform: uppercase;
@@ -14577,7 +14714,7 @@ body[class*="-light"] .tm-card-search:hover {
   position: relative;
 }
 .st-hero-period {
-  font-family: 'DM Mono', monospace;
+  font-family: var(--font-mono);
   font-size: 5.5rem;
   font-weight: 700;
   color: #fff;
@@ -14609,7 +14746,7 @@ body[class*="-light"] .tm-card-search:hover {
   text-align: center;
 }
 .st-featured-label {
-  font-family: 'DM Mono', monospace;
+  font-family: var(--font-mono);
   font-size: 0.55rem;
   letter-spacing: 0.24em;
   text-transform: uppercase;
@@ -14617,7 +14754,7 @@ body[class*="-light"] .tm-card-search:hover {
   margin-bottom: 0.5rem;
 }
 .st-featured-name {
-  font-family: 'DM Mono', monospace;
+  font-family: var(--font-mono);
   font-size: 2.3rem;
   font-weight: 700;
   color: var(--text1);
@@ -14625,7 +14762,7 @@ body[class*="-light"] .tm-card-search:hover {
   margin-bottom: 0.3rem;
 }
 .st-featured-count {
-  font-family: 'DM Mono', monospace;
+  font-family: var(--font-mono);
   font-size: 0.8rem;
   color: var(--text2);
 }
@@ -14643,7 +14780,7 @@ body[class*="-light"] .tm-card-search:hover {
 
 /* ── Stat narrative note ─────────────────────────────────────── */
 .st-stat-note {
-  font-family: 'DM Mono', monospace;
+  font-family: var(--font-mono);
   font-size: 0.52rem;
   color: var(--text3);
   margin-top: 0.15rem;
@@ -14722,7 +14859,7 @@ body[class*="-light"] .tm-card-search:hover {
   border-top: 1px solid var(--border);
   border-bottom: 1px solid var(--border);
   border-left: 4px solid transparent;
-  font-family: 'DM Sans', sans-serif;
+  font-family: var(--font-sans);
   overflow: hidden;
   position: relative;
 }
@@ -14775,7 +14912,7 @@ body[class*="-light"] .tm-card-search:hover {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-family: 'DM Serif Display', serif;
+  font-family: var(--font-display);
   font-size: 1rem;
   color: var(--text3);
 }
@@ -14801,7 +14938,7 @@ body[class*="-light"] .tm-card-search:hover {
 }
 
 .streak-banner-type {
-  font-family: 'DM Mono', monospace;
+  font-family: var(--font-mono);
   font-size: 0.58rem;
   letter-spacing: 0.1em;
   color: var(--text3);
@@ -14862,7 +14999,7 @@ body[class*="-light"] .tm-card-search:hover {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-family: 'DM Serif Display', serif;
+  font-family: var(--font-display);
   font-size: 0.48rem;
   color: var(--text3);
 }
@@ -14884,7 +15021,7 @@ body[class*="-light"] .tm-card-search:hover {
 }
 
 .streak-banner-num {
-  font-family: 'DM Serif Display', serif;
+  font-family: var(--font-display);
   font-size: 1.6rem;
   line-height: 1;
   animation: streak-num-glow 2.2s ease-in-out infinite;
@@ -14895,7 +15032,7 @@ body[class*="-light"] .tm-card-search:hover {
 .streak-banner-shuffle .streak-banner-num { color: var(--accent2); }
 
 .streak-banner-unit {
-  font-family: 'DM Mono', monospace;
+  font-family: var(--font-mono);
   font-size: 0.52rem;
   letter-spacing: 0.09em;
   color: var(--text3);
@@ -14933,7 +15070,7 @@ body[class*="-light"] .tm-card-search:hover {
   padding: 5px 10px 5px 12px;
   background: var(--bg2);
   border-bottom: 1px solid var(--border);
-  font-family: 'DM Mono', monospace;
+  font-family: var(--font-mono);
   font-size: 0.7rem;
   letter-spacing: 0.04em;
   color: var(--text2);
@@ -14970,7 +15107,7 @@ body[class*="-light"] .tm-card-search:hover {
   border-top: 1px solid var(--border);
 }
 .weekly-view-label {
-  font-family: 'DM Mono', monospace;
+  font-family: var(--font-mono);
   font-size: 0.55rem;
   letter-spacing: 0.1em;
   color: var(--text3);
@@ -14989,7 +15126,7 @@ body[class*="-light"] .tm-card-search:hover {
   border: 1px solid var(--border);
   border-radius: 3px;
   color: var(--text3);
-  font-family: 'DM Mono', monospace;
+  font-family: var(--font-mono);
   font-size: 0.55rem;
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -15006,21 +15143,21 @@ body[class*="-light"] .tm-card-search:hover {
 /* ── SHARED WV PRIMITIVES ── */
 .wv-ttl { font-weight: 600; font-size: 0.82rem; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .wv-art { font-size: 0.7rem; color: var(--text2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.wv-plays { font-size: 0.65rem; color: var(--text3); font-family: 'DM Mono', monospace; }
-.wv-wks { font-size: 0.6rem; color: var(--text3); font-family: 'DM Mono', monospace; margin-left: 0.4rem; }
+.wv-plays { font-size: 0.65rem; color: var(--text3); font-family: var(--font-mono); }
+.wv-wks { font-size: 0.6rem; color: var(--text3); font-family: var(--font-mono); margin-left: 0.4rem; }
 .wv-bar { height: 3px; background: var(--border); border-radius: 2px; margin-top: 4px; }
 .wv-bar-fill { height: 100%; background: var(--accent); border-radius: 2px; transition: width 0.5s ease; }
 .wv-r1 .wv-bar-fill { background: var(--gold1); }
-.wv-up   { color: #4ade80; font-size: 0.6rem; font-family: 'DM Mono', monospace; }
-.wv-down { color: #f87171; font-size: 0.6rem; font-family: 'DM Mono', monospace; }
+.wv-up   { color: #4ade80; font-size: 0.6rem; font-family: var(--font-mono); }
+.wv-down { color: #f87171; font-size: 0.6rem; font-family: var(--font-mono); }
 .wv-same { color: var(--text3); font-size: 0.6rem; }
-.wv-new  { color: var(--gold1); font-size: 0.55rem; font-family: 'DM Mono', monospace; letter-spacing: 0.06em; background: rgba(240,170,48,0.12); border: 1px solid rgba(240,170,48,0.3); border-radius: 3px; padding: 0 3px; }
-.wv-re   { color: #a78bfa; font-size: 0.55rem; font-family: 'DM Mono', monospace; letter-spacing: 0.06em; background: rgba(167,139,250,0.1); border: 1px solid rgba(167,139,250,0.3); border-radius: 3px; padding: 0 3px; }
-.wv-rank-badge { position: absolute; top: 4px; left: 4px; background: rgba(0,0,0,0.65); color: #fff; font-family: 'DM Mono', monospace; font-size: 0.65rem; font-weight: 700; border-radius: 3px; padding: 1px 5px; line-height: 1.4; }
+.wv-new  { color: var(--gold1); font-size: 0.55rem; font-family: var(--font-mono); letter-spacing: 0.06em; background: rgba(240,170,48,0.12); border: 1px solid rgba(240,170,48,0.3); border-radius: 3px; padding: 0 3px; }
+.wv-re   { color: #a78bfa; font-size: 0.55rem; font-family: var(--font-mono); letter-spacing: 0.06em; background: rgba(167,139,250,0.1); border: 1px solid rgba(167,139,250,0.3); border-radius: 3px; padding: 0 3px; }
+.wv-rank-badge { position: absolute; top: 4px; left: 4px; background: rgba(0,0,0,0.65); color: #fff; font-family: var(--font-mono); font-size: 0.65rem; font-weight: 700; border-radius: 3px; padding: 1px 5px; line-height: 1.4; }
 .wv-r1 .wv-rank-badge { background: var(--gold1); color: #000; }
 .wv-r2 .wv-rank-badge { background: #94a3b8; color: #000; }
 .wv-r3 .wv-rank-badge { background: #b45309; color: #fff; }
-.wv-mv-ov { position: absolute; top: 4px; right: 4px; font-size: 0.55rem; font-family: 'DM Mono', monospace; background: rgba(0,0,0,0.55); border-radius: 3px; padding: 1px 4px; }
+.wv-mv-ov { position: absolute; top: 4px; right: 4px; font-size: 0.55rem; font-family: var(--font-mono); background: rgba(0,0,0,0.55); border-radius: 3px; padding: 1px 4px; }
 
 /* thumb size overrides */
 .wv-thumb { position: relative; flex-shrink: 0; }
@@ -15057,7 +15194,7 @@ body[class*="-light"] .tm-card-search:hover {
 
 /* density toggle toolbar */
 .wv-grid-toolbar { display: flex; justify-content: flex-end; padding: 0 4px 6px; }
-.wv-grid-density-btn { font-size: 0.7rem; font-family: 'DM Mono', monospace; padding: 3px 9px; border-radius: 4px; border: 1px solid var(--border2); background: var(--bg2); color: var(--text2); cursor: pointer; letter-spacing: 0.04em; transition: border-color 0.15s, color 0.15s; }
+.wv-grid-density-btn { font-size: 0.7rem; font-family: var(--font-mono); padding: 3px 9px; border-radius: 4px; border: 1px solid var(--border2); background: var(--bg2); color: var(--text2); cursor: pointer; letter-spacing: 0.04em; transition: border-color 0.15s, color 0.15s; }
 .wv-grid-density-btn:hover, .wv-grid-density-btn.active { border-color: var(--accent); color: var(--accent); }
 
 /* bigger rank badge for grid cards */
@@ -15113,7 +15250,7 @@ body[class*="-light"] .tm-card-search:hover {
   position: sticky; top: 0; z-index: 10;
   background: var(--bg);
   border-bottom: 1px solid var(--border2);
-  font-family: 'DM Mono', monospace; font-size: 0.6rem;
+  font-family: var(--font-mono); font-size: 0.6rem;
   color: var(--text3); text-transform: uppercase; letter-spacing: 0.05em;
 }
 .wv-cx-hd-spacer { width: 28px; flex-shrink: 0; }
@@ -15135,7 +15272,7 @@ body[class*="-light"] .tm-card-search:hover {
 .wv-cx-row.wv-cx-open { background: rgba(255,255,255,0.05) !important; }
 
 /* Feature 8: rank numbers (all positions), gold/silver/bronze for top 3 */
-.wv-cx-rank { font-family: 'DM Mono', monospace; font-size: 1rem; font-weight: 700; color: var(--text3); min-width: 20px; text-align: right; flex-shrink: 0; }
+.wv-cx-rank { font-family: var(--font-mono); font-size: 1rem; font-weight: 700; color: var(--text3); min-width: 20px; text-align: right; flex-shrink: 0; }
 .wv-r1 .wv-cx-rank { color: var(--gold1); }
 .wv-r2 .wv-cx-rank { color: #94a3b8; }
 .wv-r3 .wv-cx-rank { color: #b45309; }
@@ -15169,14 +15306,14 @@ body[class*="-light"] .tm-card-search:hover {
 .wv-cx-play-btn:hover { background: #cc0000; }
 
 /* Feature 2: weeks column (spelled out) */
-.wv-cx-wks { font-family: 'DM Mono', monospace; font-size: 0.62rem; color: var(--text3); flex-shrink: 0; width: 60px; text-align: right; }
+.wv-cx-wks { font-family: var(--font-mono); font-size: 0.62rem; color: var(--text3); flex-shrink: 0; width: 60px; text-align: right; }
 
 /* Previous column: movement arrow + prev rank below */
 .wv-cx-prev { flex-shrink: 0; width: 50px; display: flex; flex-direction: column; align-items: center; gap: 1px; }
-.wv-cx-prev-rank { font-family: 'DM Mono', monospace; font-size: 0.52rem; color: var(--text3); }
+.wv-cx-prev-rank { font-family: var(--font-mono); font-size: 0.52rem; color: var(--text3); }
 
 /* Feature 7: color-scaled play count */
-.wv-cx-plays { font-family: 'DM Mono', monospace; font-size: 0.7rem; font-weight: 600; color: var(--text3); flex-shrink: 0; min-width: 24px; text-align: right; transition: color 0.2s; }
+.wv-cx-plays { font-family: var(--font-mono); font-size: 0.7rem; font-weight: 600; color: var(--text3); flex-shrink: 0; min-width: 24px; text-align: right; transition: color 0.2s; }
 
 /* Feature 5: accordion shelf */
 .wv-cx-shelf {
@@ -15199,7 +15336,7 @@ body[class*="-light"] .tm-card-search:hover {
 .wv-mos-bot { position: absolute; bottom: 0; left: 0; right: 0; background: linear-gradient(to top, rgba(0,0,0,0.85) 0%, transparent 100%); padding: 28px 6px 5px; z-index: 1; }
 .wv-mos-bot .wv-ttl { font-size: 0.72rem; color: #fff; }
 .wv-mos-bot .wv-art { font-size: 0.62rem; color: rgba(255,255,255,0.72); }
-.wv-mos-bot .wv-plays { font-size: 0.58rem; color: rgba(255,255,255,0.5); font-family: 'DM Mono', monospace; }
+.wv-mos-bot .wv-plays { font-size: 0.58rem; color: rgba(255,255,255,0.5); font-family: var(--font-mono); }
 .wv-mos-item { transition: transform 0.2s ease, opacity 0.25s ease, z-index 0s; }
 .wv-mos-item:hover { transform: scale(1.04); z-index: 10; }
 .wv-mosaic:has(.wv-mos-item:hover) .wv-mos-item { opacity: 0.45; }
@@ -15212,8 +15349,8 @@ body[class*="-light"] .tm-card-search:hover {
 .wv-mos-hcard-ttl { font-size: 0.75rem; font-weight: 600; color: #fff; white-space: normal; line-height: 1.25; margin-bottom: 2px; }
 .wv-mos-hcard-art { font-size: 0.62rem; color: rgba(255,255,255,0.65); margin-bottom: 6px; }
 .wv-mos-hcard-stats { display: flex; align-items: center; gap: 6px; margin-bottom: 4px; flex-wrap: wrap; }
-.wv-mos-hcard-wks { font-size: 0.58rem; color: rgba(255,255,255,0.5); font-family: 'DM Mono', monospace; background: rgba(255,255,255,0.1); padding: 1px 5px; border-radius: 3px; }
-.wv-mos-hcard-alltime { font-size: 0.58rem; color: rgba(255,255,255,0.5); font-family: 'DM Mono', monospace; margin-bottom: 6px; display: flex; align-items: center; gap: 4px; flex-wrap: wrap; }
+.wv-mos-hcard-wks { font-size: 0.58rem; color: rgba(255,255,255,0.5); font-family: var(--font-mono); background: rgba(255,255,255,0.1); padding: 1px 5px; border-radius: 3px; }
+.wv-mos-hcard-alltime { font-size: 0.58rem; color: rgba(255,255,255,0.5); font-family: var(--font-mono); margin-bottom: 6px; display: flex; align-items: center; gap: 4px; flex-wrap: wrap; }
 .wv-mos-hcard-bar { height: 3px; background: rgba(255,255,255,0.12); border-radius: 2px; overflow: hidden; margin-top: 2px; }
 .wv-mos-hcard-fill { height: 100%; width: var(--bar-w); background: var(--accent); border-radius: 2px; }
 .wv-mos-item .wv-mv-ov { background: rgba(0,0,0,0.82); padding: 0; border-radius: 4px; z-index: 3; }
@@ -15260,10 +15397,10 @@ body[class*="-light"] .tm-card-search:hover {
 .wv-mos-back-img img, .wv-mos-back-img .wv-thumb-placeholder { width: 100%; height: 100%; object-fit: cover; }
 .wv-mos-back-meta { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px; padding-top: 2px; }
 .wv-mos-back-rank-row { display: flex; align-items: center; gap: 6px; }
-.wv-mos-back-ranknum { font-family: 'DM Mono', monospace; font-size: 0.9rem; font-weight: 700; color: rgba(255,255,255,0.45); }
+.wv-mos-back-ranknum { font-family: var(--font-mono); font-size: 0.9rem; font-weight: 700; color: rgba(255,255,255,0.45); }
 .wv-mos-back-ttl { font-size: 0.78rem; font-weight: 700; color: #fff; line-height: 1.2; white-space: normal; }
 .wv-mos-back-sub { font-size: 0.62rem; color: rgba(255,255,255,0.6); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.wv-mos-back-plays { font-size: 1.4rem; font-weight: 900; color: #fff; font-family: 'DM Mono', monospace; line-height: 1; margin: 4px 0 2px; }
+.wv-mos-back-plays { font-size: 1.4rem; font-weight: 900; color: #fff; font-family: var(--font-mono); line-height: 1; margin: 4px 0 2px; }
 .wv-mos-back-plays-unit { font-size: 0.62rem; font-weight: 400; color: rgba(255,255,255,0.5); }
 .wv-mos-back-stats { display: flex; align-items: center; gap: 5px; flex-wrap: wrap; margin: 1px 0; }
 .wv-mos-back-play-btn {
@@ -15356,10 +15493,10 @@ body[class*="-light"] .tm-card-search:hover {
 /* Controls bar */
 .wv-film-controls { display: flex; align-items: center; gap: 8px; padding: 0 2px; }
 .wv-film-jump-btns { display: flex; gap: 3px; flex: 1; flex-wrap: wrap; }
-.wv-film-jump-btn { -webkit-appearance: none; appearance: none; background: none; border: 1px solid var(--border); border-radius: 3px; color: var(--text3); font-family: 'DM Mono', monospace; font-size: 0.55rem; letter-spacing: 0.06em; text-transform: uppercase; padding: 0.12rem 0.5rem; cursor: pointer; transition: color 0.15s, background 0.15s, border-color 0.15s; white-space: nowrap; }
+.wv-film-jump-btn { -webkit-appearance: none; appearance: none; background: none; border: 1px solid var(--border); border-radius: 3px; color: var(--text3); font-family: var(--font-mono); font-size: 0.55rem; letter-spacing: 0.06em; text-transform: uppercase; padding: 0.12rem 0.5rem; cursor: pointer; transition: color 0.15s, background 0.15s, border-color 0.15s; white-space: nowrap; }
 .wv-film-jump-btn:hover { background: var(--border); color: var(--text); }
 .wv-film-action-btns { display: flex; gap: 4px; flex-shrink: 0; }
-.wv-film-auto-btn, .wv-film-share-btn { -webkit-appearance: none; appearance: none; background: none; border: 1px solid var(--border); border-radius: 3px; color: var(--text3); font-family: 'DM Mono', monospace; font-size: 0.55rem; letter-spacing: 0.06em; text-transform: uppercase; padding: 0.12rem 0.55rem; cursor: pointer; transition: color 0.15s, background 0.15s, border-color 0.15s; white-space: nowrap; }
+.wv-film-auto-btn, .wv-film-share-btn { -webkit-appearance: none; appearance: none; background: none; border: 1px solid var(--border); border-radius: 3px; color: var(--text3); font-family: var(--font-mono); font-size: 0.55rem; letter-spacing: 0.06em; text-transform: uppercase; padding: 0.12rem 0.55rem; cursor: pointer; transition: color 0.15s, background 0.15s, border-color 0.15s; white-space: nowrap; }
 .wv-film-auto-btn:hover, .wv-film-share-btn:hover { background: var(--border); color: var(--text); }
 .wv-film-auto-btn.wv-film-auto-on { background: var(--accent); border-color: var(--accent); color: #fff; }
 
@@ -15388,11 +15525,11 @@ body[class*="-light"] .tm-card-search:hover {
 
 /* Rank row */
 .wv-film-rank-row { display: flex; align-items: center; justify-content: center; gap: 5px; width: 100%; }
-.wv-film-ranknum { font-family: 'DM Mono', monospace; font-size: 0.75rem; font-weight: 700; color: var(--text2); }
+.wv-film-ranknum { font-family: var(--font-mono); font-size: 0.75rem; font-weight: 700; color: var(--text2); }
 .wv-r1 .wv-film-ranknum { color: var(--gold1); }
 .wv-r2 .wv-film-ranknum { color: #94a3b8; }
 .wv-r3 .wv-film-ranknum { color: #b45309; }
-.wv-film-mv { font-family: 'DM Mono', monospace; font-size: 0.6rem; }
+.wv-film-mv { font-family: var(--font-mono); font-size: 0.6rem; }
 
 /* Thumbnail wrapper with overlays */
 .wv-film-thumb-wrap { position: relative; width: 100%; display: flex; justify-content: center; }
@@ -15449,7 +15586,7 @@ body.albums-hide-cert  #albumsSection  .wv-film-cert-ov { display: none; }
 tr.wv-row-new .rank-cell { border-left: 3px solid #2dd4bf; }
 tr.wv-row-re  .rank-cell { border-left: 3px solid #a78bfa; }
 .wv-stk-row { display: flex; align-items: center; gap: 10px; padding: 8px 10px; }
-.wv-stk-rank { font-family: 'DM Mono', monospace; font-size: 2.2rem; font-weight: 900; color: rgba(255,255,255,0.55); min-width: 48px; text-align: center; flex-shrink: 0; line-height: 1; }
+.wv-stk-rank { font-family: var(--font-mono); font-size: 2.2rem; font-weight: 900; color: rgba(255,255,255,0.55); min-width: 48px; text-align: center; flex-shrink: 0; line-height: 1; }
 .wv-r1 .wv-stk-rank { color: rgba(240,170,48,0.9); }
 .wv-r2 .wv-stk-rank { color: rgba(148,163,184,0.9); }
 .wv-r3 .wv-stk-rank { color: rgba(205,110,40,0.9); }
@@ -15459,7 +15596,7 @@ tr.wv-row-re  .rank-cell { border-left: 3px solid #a78bfa; }
 .wv-stk-artist { cursor: pointer; }
 .wv-stk-artist:hover { color: var(--accent); text-decoration: underline; }
 .wv-stk-meta { display: flex; align-items: center; gap: 0.4rem; flex-wrap: wrap; margin-top: 2px; }
-.wv-stk-cum { font-size: 0.58rem; color: var(--text3); font-family: 'DM Mono', monospace; }
+.wv-stk-cum { font-size: 0.58rem; color: var(--text3); font-family: var(--font-mono); }
 .wv-stk-yt-btn { background: #e00; color: #fff; border: none; border-radius: 3px; padding: 2px 6px; font-size: 0.55rem; cursor: pointer; flex-shrink: 0; line-height: 1.5; display: inline-flex; align-items: center; transition: background 0.12s; }
 .wv-stk-yt-btn:hover { background: #c00; }
 body.songs-hide-yt-btns   #songsSection   .wv-stk-yt-btn,
@@ -15987,7 +16124,7 @@ body.red-light .sk-ms {
 .wv-r1.wv-stk-card .wv-bar-fill { background: var(--gold1) !important; }
 .wv-stk-shelf { display: none; padding: 0 10px 10px; border-top: 1px solid var(--border); padding-top: 8px; }
 .wv-stk-card.wv-stk-open .wv-stk-shelf { display: block; }
-.wv-stk-shelf-sum { font-size: 0.62rem; color: var(--text3); font-family: 'DM Mono', monospace; margin-bottom: 6px; }
+.wv-stk-shelf-sum { font-size: 0.62rem; color: var(--text3); font-family: var(--font-mono); margin-bottom: 6px; }
 .stk-2col-btn { display: none; margin-left: 4px; }
 
 /* ── RESPONSIVE ── */
@@ -16012,7 +16149,7 @@ body.red-light .sk-ms {
 
     /* Section label */
     .cg-section-label {
-      font-family: 'DM Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 0.68rem;
       font-weight: 700;
       letter-spacing: 0.1em;
@@ -16032,7 +16169,7 @@ body.red-light .sk-ms {
       padding: 1rem;
     }
     .cg-panel-title {
-      font-family: 'DM Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 0.7rem;
       font-weight: 700;
       letter-spacing: 0.05em;
@@ -16132,7 +16269,7 @@ body.red-light .sk-ms {
       font-size: 1.25rem;
       font-weight: 700;
       color: var(--accent);
-      font-family: 'DM Mono', monospace;
+      font-family: var(--font-mono);
       line-height: 1;
     }
     .cg-stat-lbl {
@@ -16248,7 +16385,7 @@ body.red-light .sk-ms {
     }
     .cg-otd-row:last-child { border-bottom: none; }
     .cg-otd-year {
-      font-family: 'DM Mono', monospace;
+      font-family: var(--font-mono);
       font-weight: 700;
       color: var(--accent);
       font-size: 0.85rem;
@@ -16280,7 +16417,7 @@ body.red-light .sk-ms {
       font-size: 0.72rem;
       font-weight: 700;
       color: var(--accent);
-      font-family: 'DM Mono', monospace;
+      font-family: var(--font-mono);
       text-transform: uppercase;
       letter-spacing: 0.04em;
     }
@@ -16319,7 +16456,7 @@ body.red-light .sk-ms {
       border-radius: 3px;
       border: 1px solid var(--border);
       background: var(--bg3);
-      font-family: 'DM Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 0.75rem;
     }
 
@@ -16337,7 +16474,7 @@ body.red-light .sk-ms {
     .cg-shortcut-keys {
       flex-shrink: 0;
       width: 180px;
-      font-family: 'DM Mono', monospace;
+      font-family: var(--font-mono);
       font-weight: 700;
       color: var(--accent);
       font-size: 0.78rem;
@@ -16426,7 +16563,7 @@ body.red-light .sk-ms {
     }
     .cg-tl-content { flex: 1; }
     .cg-tl-label { font-size: 0.83rem; font-weight: 700; color: var(--text); }
-    .cg-tl-date  { font-size: 0.75rem; color: var(--accent); font-family: 'DM Mono', monospace; margin-top: 0.1rem; }
+    .cg-tl-date  { font-size: 0.75rem; color: var(--accent); font-family: var(--font-mono); margin-top: 0.1rem; }
     .cg-tl-detail { font-size: 0.75rem; color: var(--text3); margin-top: 0.1rem; }
 
     /* ── 6 · Changelog ───────────────────────────────────── */
@@ -16439,7 +16576,7 @@ body.red-light .sk-ms {
     .cg-cl-entry { padding: 0.75rem 1rem; border-bottom: 1px solid var(--border); }
     .cg-cl-entry:last-child { border-bottom: none; }
     .cg-cl-version {
-      font-family: 'DM Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 0.72rem;
       font-weight: 700;
       color: var(--accent);
@@ -16522,7 +16659,7 @@ body.red-light .sk-ms {
       gap: 0.4rem;
     }
     .cg-tour-meta {
-      font-family: 'DM Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 0.66rem;
       font-weight: 700;
       color: var(--accent);
@@ -16565,3 +16702,28 @@ body.red-light .sk-ms {
       .cg-shortcut-keys   { width: 130px; }
     }
 
+
+    /* ═══════════════════════════════════════════════════════════════
+       GLOBAL REDUCED-MOTION GUARD (2026 redesign)
+       Near-zero durations instead of animation:none so fill-mode
+       end-states still apply and nothing ships invisible. The older
+       streak-banner guard above is kept — it documents intent.
+       ═══════════════════════════════════════════════════════════════ */
+    @media (prefers-reduced-motion: reduce) {
+      *,
+      *::before,
+      *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+      }
+
+      /* exemption: a frozen loading spinner reads as a hang — keep it
+         turning, just slower and without decorative easing */
+      .yt-play-btn.yt-btn-loading::after,
+      [class*="spinner"] {
+        animation-duration: 1.2s !important;
+        animation-iteration-count: infinite !important;
+      }
+    }
