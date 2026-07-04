@@ -3732,7 +3732,9 @@
     }
 
     .stat-box .stat-val {
-      font-family: var(--font-display);
+      /* match the play-count/data font used in chart tables, not the display face */
+      font-family: var(--font-mono);
+      font-weight: 600;
       font-size: 1.9rem;
       color: var(--cat-color, var(--text));
       line-height: 1;
@@ -11972,9 +11974,10 @@ body.albums-hide-yt-btns  #albumsSection  .yt-play-btn { display: none; }
 }
 
 .hero-val {
-  font-family: var(--font-display);
+  /* match the play-count/data font used in chart tables, not the display face */
+  font-family: var(--font-mono);
   font-size: 1.35rem;
-  font-weight: 400;
+  font-weight: 600;
   color: var(--text);
   line-height: 1;
   transition: color 0.2s;
