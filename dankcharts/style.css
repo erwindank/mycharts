@@ -12725,7 +12725,8 @@ body[class*="-light"] .tm-card-search:hover {
   color: var(--text1);
   min-width: 54px;
   text-align: center;
-  font-family: var(--font-mono);
+  font-family: var(--font-sans);
+  letter-spacing: -0.02em;
 }
 .awards-config-btn,
 .awards-generate-btn {
@@ -13163,7 +13164,7 @@ body[class*="-light"] .tm-card-search:hover {
 .awards-reallife-badge.won  { background: #FFD70022; color: #FFD700; border: 1px solid #FFD70066; }
 .awards-reallife-badge.nom  { background: #6366f122; color: #818cf8; border: 1px solid #6366f166; }
 .awards-reallife-cat  { flex: 1; color: var(--text2); }
-.awards-reallife-year { color: var(--text3); font-family: var(--font-mono); font-size: 0.72rem; }
+.awards-reallife-year { color: var(--text3); font-family: var(--font-sans); font-weight: 600; font-size: 0.72rem; }
 
 /* ── CEREMONY OVERLAY ─────────────────────────────────────────────────────── */
 .awards-ceremony-overlay {
@@ -13365,7 +13366,7 @@ body[class*="-light"] .tm-card-search:hover {
   transition: background 0.12s;
 }
 .ceremony-nav-btn:hover { background: var(--surface3); color: var(--text1); }
-.ceremony-progress { font-size: 0.75rem; color: var(--text3); font-family: var(--font-mono); }
+.ceremony-progress { font-size: 0.75rem; color: var(--text3); font-family: var(--font-sans); font-weight: 600; }
 
 /* Mobile responsiveness */
 @media (max-width: 600px) {
