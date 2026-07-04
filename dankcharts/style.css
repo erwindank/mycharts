@@ -14373,7 +14373,7 @@ body[class*="-light"] .tm-card-search:hover {
 .st-milestone-info { flex: 1; min-width: 0; }
 
 .st-milestone-text {
-  font-family: var(--font-mono);
+  font-family: var(--font-sans);
   font-size: 0.78rem;
   color: var(--text1);
   font-weight: 600;
@@ -14416,9 +14416,10 @@ body[class*="-light"] .tm-card-search:hover {
 }
 
 .st-streak-num {
-  font-family: var(--font-mono);
+  font-family: var(--font-sans);
   font-size: 1.6rem;
   font-weight: 700;
+  letter-spacing: -0.02em;
   color: var(--accent);
   line-height: 1;
 }
