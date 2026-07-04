@@ -733,6 +733,9 @@
       padding: 2.75rem 1rem 2rem;
       border-bottom: 1px solid color-mix(in srgb, var(--accent) 22%, transparent);
       position: relative;
+      /* kill a 2px sub-pixel horizontal overflow on phones; clip (not hidden)
+         so no scroll container is created and dropdown panels stay visible */
+      overflow-x: clip;
     }
 
     .masthead::before {
@@ -6217,10 +6220,11 @@
     .modal-cb-th--yearly  { color: #fb923c !important; border-top: 2px solid #fb923c; }
     .modal-cb-th--alltime { color: #fbbf24 !important; border-top: 2px solid #fbbf24; }
 
-    /* CHART BREAKDOWN COLORED ROW LABELS */
-    .modal-cb-label--songs  { color: #93c5fd; border-left: 3px solid #60a5fa; }
-    .modal-cb-label--albums { color: #c4b5fd; border-left: 3px solid #a78bfa; }
-    .modal-cb-label--tracks { color: #6ee7b7; border-left: 3px solid #34d399; }
+    /* CHART BREAKDOWN COLORED ROW LABELS — the label color alone carries the
+       category; the legacy 3px side stripes were dropped (2026 redesign) */
+    .modal-cb-label--songs  { color: #93c5fd; }
+    .modal-cb-label--albums { color: #c4b5fd; }
+    .modal-cb-label--tracks { color: #6ee7b7; }
 
     /* ARTIST LINK IN ALBUM MODAL SUBTITLE */
     .modal-artist-link {
@@ -8164,6 +8168,14 @@
          chart table gets nearly the full width to work with. */
       .chart-section:not(.bu-section):not(.new-entries-section) {
         padding: 1.5rem 0.7rem;
+      }
+
+      /* Size bars break out of the section padding — match the shrunken
+         0.7rem mobile padding above, or they overflow the viewport by 4px */
+      .chart-size-bar.section-size-bar {
+        margin-left: -0.7rem;
+        margin-right: -0.7rem;
+        width: calc(100% + 1.4rem);
       }
 
       /* Compact chart table for portrait phones */
@@ -13689,10 +13701,10 @@ body[class*="-light"] .tm-card-search:hover {
 .sk-hof-card {
   display: flex;
   gap: 0.55rem;
-  background: var(--bg2);
-  border: 1px solid var(--border);
-  border-left: 3px solid #c89b3c;
-  border-radius: 6px;
+  background: color-mix(in srgb, #c89b3c 5%, var(--bg2));
+  /* gold tint carries the Hall-of-Fame accent — side stripe dropped (2026 redesign) */
+  border: 1px solid color-mix(in srgb, #c89b3c 35%, var(--border));
+  border-radius: var(--r-sm);
   padding: 0.6rem 0.7rem;
 }
 .sk-hof-rank {
@@ -14156,9 +14168,9 @@ body[class*="-light"] .tm-card-search:hover {
 /* ── Generic section ─────────────────────────────────────────── */
 .st-section {
   background: var(--bg2);
-  border: 1px solid var(--border);
-  border-left: 3px solid var(--accent);
-  border-radius: 10px;
+  border: 1px solid var(--border-t);
+  border-radius: var(--r-md);
+  box-shadow: var(--shadow-1);
   padding: 0.9rem;
   margin-bottom: 0.8rem;
 }
