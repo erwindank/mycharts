@@ -1437,22 +1437,22 @@
     }
 
     .wordmark-dank {
-      /* brand moment — display face (2026 redesign) */
-      font-family: var(--font-display);
+      /* brand moment — "dankcharts" in the data/mono face, .fm badge stays separate */
+      font-family: var(--font-mono);
       font-weight: 700;
       font-size: clamp(2.4rem, 8vw, 4.8rem);
       color: #ffffff;
-      letter-spacing: -0.03em;
+      letter-spacing: -0.02em;
       line-height: 1;
     }
 
     .wordmark-station {
-      /* brand moment — display face (2026 redesign) */
-      font-family: var(--font-display);
+      /* brand moment — "dankcharts" in the data/mono face, .fm badge stays separate */
+      font-family: var(--font-mono);
       font-weight: 300;
       font-size: clamp(2.4rem, 8vw, 4.8rem);
       color: rgba(255, 255, 255, 0.82);
-      letter-spacing: -0.03em;
+      letter-spacing: -0.02em;
       line-height: 1;
     }
 
