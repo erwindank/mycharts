@@ -5104,9 +5104,11 @@
     }
 
     .cal-title-year {
+      font-family: var(--font-sans);
+      font-weight: 600;
       font-size: 0.85rem;
       color: var(--text2);
-      letter-spacing: 0.05em;
+      letter-spacing: -0.01em;
     }
 
     .cal-nav-btn {
@@ -5169,7 +5171,7 @@
     }
 
     .cal-cell-num {
-      font-family: var(--font-mono);
+      font-family: var(--font-sans);
       font-size: 0.6rem;
       font-weight: bold;
       color: var(--text3);
@@ -5437,7 +5439,7 @@
     }
 
     .cal-week-dow-num {
-      font-family: var(--font-mono);
+      font-family: var(--font-sans);
       font-size: 0.85rem;
       font-weight: bold;
       color: var(--text2);
