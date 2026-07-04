@@ -4,36 +4,36 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Setup Guide — dankcharts.fm</title>
-  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300..800&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=JetBrains+Mono:ital,wght@0,400..800;1,400&display=swap" rel="stylesheet">
   <script src="translations.js"></script>
   <style>
     /* ── Base ── */
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-      --bg:      #08121e;
-      --bg2:     #0e1e34;
-      --bg3:     #122444;
-      --surface: #173060;
-      --border:  #1e3d72;
-      --text:    #eaf2ff;
-      --text2:   #a8c8f0;
-      --text3:   #7aa0d0;
-      --accent:  #4aacff;
+      --bg:      #0d141f;
+      --bg2:     #131c2c;
+      --bg3:     #192437;
+      --surface: #1f2e4a;
+      --border:  #2b3d5e;
+      --text:    #edf2fa;
+      --text2:   #aac2e2;
+      --text3:   #84a4ce;
+      --accent:  #58aaf6;
       --green:   #34d399;
       --amber:   #fbbf24;
       --rose:    #fb7185;
     }
 
-    body.navy-light { --bg: #ddeeff; --bg2: #eef6ff; --bg3: #d4e8ff; --surface: #c0d8f5; --border: #90b8e0; --text: #040e1c; --text2: #0a2a50; --text3: #2a5888; --accent: #0852a8; }
-    body.purple      { --bg: #0a0812; --bg2: #110f1e; --bg3: #181528; --surface: #201c38; --border: #2c2850; --text: #f0eeff; --text2: #b8b0e0; --text3: #9080c8; --accent: #8878ff; }
-    body.purple-light{ --bg: #e8e2ff; --bg2: #f5f2ff; --bg3: #ddd5ff; --surface: #ccc0f8; --border: #a898e8; --text: #0e0820; --text2: #2a1860; --text3: #5040a0; --accent: #4430c0; }
-    body.red         { --bg: #0d0505; --bg2: #180808; --bg3: #220c0c; --surface: #2e1010; --border: #4a1818; --text: #ffffff; --text2: #ffffff; --text3: #e8e8e8; --accent: #ff3c3c; }
-    body.red-light   { --bg: #fff5f5; --bg2: #fef8f8; --bg3: #ffe8e8; --surface: #fdd8d8; --border: #f0b8b8; --text: #1c0a0a; --text2: #4a2828; --text3: #6e4040; --accent: #b01010; }
-    body.yellow      { --bg: #0d0d00; --bg2: #181800; --bg3: #222200; --surface: #2e2e00; --border: #484800; --text: #ffffff; --text2: #ffffff; --text3: #e8e8d0; --accent: #f5d000; }
-    body.yellow-light{ --bg: #fffdf0; --bg2: #fefef8; --bg3: #fff8d0; --surface: #fff0a0; --border: #e8d860; --text: #1a1800; --text2: #3a3400; --text3: #5a5000; --accent: #806800; }
-    body.pink        { --bg: #0d0008; --bg2: #180010; --bg3: #220018; --surface: #300020; --border: #500038; --text: #ffffff; --text2: #ffffff; --text3: #e8d0e0; --accent: #ff50b0; }
-    body.pink-light  { --bg: #fff5fb; --bg2: #fef8fd; --bg3: #ffe8f6; --surface: #ffd0ee; --border: #f0a8d8; --text: #1a0010; --text2: #4a0030; --text3: #6e3058; --accent: #b0006a; }
+    body.navy-light { --bg: #ccdcf0; --bg2: #ffffff; --bg3: #ecf3fb; --surface: #dbe8f8; --border: #9db4d2; --text: #040e1c; --text2: #0a2a50; --text3: #33567e; --accent: #0852a8; }
+    body.purple { --bg: #100e18; --bg2: #171425; --bg3: #1e1a30; --surface: #272242; --border: #363156; --text: #f0eefc; --text2: #bab2e0; --text3: #988cca; --accent: #8f80f8; }
+    body.purple-light { --bg: #d6cff2; --bg2: #ffffff; --bg3: #efecfa; --surface: #e2dcf8; --border: #a89dd8; --text: #0e0820; --text2: #2a1860; --text3: #5040a0; --accent: #4430c0; }
+    body.red { --bg: #140d0d; --bg2: #1b1111; --bg3: #241616; --surface: #301d1d; --border: #4c2929; --text: #ffffff; --text2: #ffffff; --text3: #e8e8e8; --accent: #f65454; }
+    body.red-light { --bg: #efcece; --bg2: #ffffff; --bg3: #faf0f0; --surface: #f8dede; --border: #cfa5a5; --text: #1c0a0a; --text2: #4a2828; --text3: #6e4040; --accent: #b01010; }
+    body.yellow { --bg: #14130a; --bg2: #1c1a10; --bg3: #252214; --surface: #302c16; --border: #4a4526; --text: #ffffff; --text2: #ffffff; --text3: #e8e8d0; --accent: #f5d420; }
+    body.yellow-light { --bg: #eee5b0; --bg2: #ffffff; --bg3: #faf6e0; --surface: #f7eecb; --border: #c2b76a; --text: #1a1800; --text2: #3a3400; --text3: #5a5000; --accent: #766000; }
+    body.pink { --bg: #130a10; --bg2: #1a0f16; --bg3: #22141d; --surface: #2f1c27; --border: #4c2c3e; --text: #ffffff; --text2: #ffffff; --text3: #e8d0e0; --accent: #f65cb2; }
+    body.pink-light { --bg: #efcfe6; --bg2: #ffffff; --bg3: #faf0f7; --surface: #f8def0; --border: #d5a3c6; --text: #1a0010; --text2: #4a0030; --text3: #6e3058; --accent: #b0006a; }
 
     /* ── Guide controls bar ── */
     .guide-controls {
@@ -64,7 +64,7 @@
       background: transparent;
       color: var(--text2);
       cursor: pointer;
-      font-family: 'DM Mono', monospace;
+      font-family: 'JetBrains Mono', ui-monospace, monospace;
       font-size: 0.6rem;
       letter-spacing: 0.12em;
       white-space: nowrap;
@@ -128,7 +128,7 @@
       border-radius: 5px;
       color: var(--text2);
       cursor: pointer;
-      font-family: 'DM Mono', monospace;
+      font-family: 'JetBrains Mono', ui-monospace, monospace;
       font-size: 0.7rem;
       padding: 0.2rem 0.5rem;
       white-space: nowrap;
@@ -138,7 +138,7 @@
     .guide-controls .lang-btn.active { background: var(--surface); border-color: var(--accent); color: var(--text); }
 
     body {
-      font-family: 'DM Sans', sans-serif;
+      font-family: 'IBM Plex Sans', system-ui, sans-serif;
       background: var(--bg);
       color: var(--text);
       line-height: 1.6;
@@ -148,7 +148,7 @@
     a { color: var(--accent); text-decoration: none; }
     a:hover { text-decoration: underline; }
     code {
-      font-family: 'DM Mono', monospace;
+      font-family: 'JetBrains Mono', ui-monospace, monospace;
       font-size: 0.85em;
       background: var(--bg3);
       border: 1px solid var(--border);
@@ -175,7 +175,7 @@
       gap: 0.4rem;
       background: var(--accent);
       color: #08121e;
-      font-family: 'DM Sans', sans-serif;
+      font-family: 'IBM Plex Sans', system-ui, sans-serif;
       font-size: 0.85rem;
       font-weight: 600;
       border: none;
@@ -193,14 +193,14 @@
       margin-bottom: 2.5rem;
     }
     .guide-logo {
-      font-family: 'DM Serif Display', serif;
+      font-family: 'Bricolage Grotesque', sans-serif;
       font-size: 1.6rem;
       color: var(--accent);
       letter-spacing: 0.02em;
       margin-bottom: 0.3rem;
     }
     .guide-title {
-      font-family: 'DM Serif Display', serif;
+      font-family: 'Bricolage Grotesque', sans-serif;
       font-size: 2rem;
       color: var(--text);
       margin-bottom: 0.5rem;
@@ -261,14 +261,20 @@
       background: var(--surface);
       border: 2px solid var(--border2, #2a52a0);
       display: flex; align-items: center; justify-content: center;
-      font-family: 'DM Serif Display', serif;
+      font-family: 'Bricolage Grotesque', sans-serif;
       font-size: 1.4rem;
       color: var(--accent);
       flex-shrink: 0;
       margin-top: 0.1rem;
     }
 
-    .step-body { padding-top: 0.15rem; }
+    .step-body {
+      padding-top: 0.15rem;
+      /* grid child must be allowed to shrink, and long setup URLs must wrap,
+         or the page scrolls sideways on phones */
+      min-width: 0;
+    }
+    .step-body a { overflow-wrap: anywhere; }
 
     .step-label {
       font-size: 0.7rem;
@@ -279,7 +285,7 @@
     }
 
     .step-title {
-      font-family: 'DM Serif Display', serif;
+      font-family: 'Bricolage Grotesque', sans-serif;
       font-size: 1.25rem;
       color: var(--text);
       margin-bottom: 0.5rem;
@@ -340,7 +346,7 @@
     .sheet-row .cell-a { color: var(--text2); font-weight: 500; }
     .sheet-row .cell-b {
       color: var(--accent);
-      font-family: 'DM Mono', monospace;
+      font-family: 'JetBrains Mono', ui-monospace, monospace;
       font-size: 0.8rem;
     }
     .sheet-row .cell-b.muted { color: var(--text3); font-style: italic; }
@@ -410,7 +416,7 @@
       display: inline-block;
       background: var(--accent);
       color: #08121e;
-      font-family: 'DM Sans', sans-serif;
+      font-family: 'IBM Plex Sans', system-ui, sans-serif;
       font-size: 0.88rem;
       font-weight: 600;
       border: none;
@@ -428,7 +434,7 @@
       margin-bottom: 2.5rem;
     }
     .guide-tab {
-      font-family: 'DM Mono', monospace;
+      font-family: 'JetBrains Mono', ui-monospace, monospace;
       font-size: 0.72rem;
       letter-spacing: 0.08em;
       text-transform: uppercase;
@@ -454,15 +460,15 @@
     /* ── Print styles ── */
     @media print {
       :root {
-        --bg: #ffffff;
-        --bg2: #f5f8ff;
-        --bg3: #e8f0fc;
-        --surface: #dce8f8;
-        --border: #b0c8e8;
-        --text: #06101e;
-        --text2: #1a3a60;
-        --text3: #3a6090;
-        --accent: #0852a8;
+        --bg: #0d141f;
+        --bg2: #131c2c;
+        --bg3: #192437;
+        --surface: #1f2e4a;
+        --border: #2b3d5e;
+        --text: #edf2fa;
+        --text2: #aac2e2;
+        --text3: #84a4ce;
+        --accent: #58aaf6;
         --green: #14532d;
         --amber: #78350f;
       }
@@ -722,7 +728,7 @@
 
   <!-- Troubleshooting -->
   <div>
-    <div style="font-family:'DM Serif Display',serif;font-size:1.1rem;color:var(--text);margin-bottom:1rem">Troubleshooting</div>
+    <div style="font-family:'Bricolage Grotesque',sans-serif;font-size:1.1rem;color:var(--text);margin-bottom:1rem">Troubleshooting</div>
     <div style="display:flex;flex-direction:column;gap:0.8rem">
       <div class="infobox">
         <strong>The Last.fm menu doesn't appear in my sheet.</strong><br>
@@ -747,7 +753,7 @@
   <hr class="divider">
   <div class="support-box">
     <div style="font-size:1.6rem;margin-bottom:0.6rem">🎧</div>
-    <div style="font-family:'DM Serif Display',serif;font-size:1.25rem;color:var(--text);margin-bottom:0.4rem">Need help?</div>
+    <div style="font-family:'Bricolage Grotesque',sans-serif;font-size:1.25rem;color:var(--text);margin-bottom:0.4rem">Need help?</div>
     <p style="color:var(--text2);font-size:0.88rem;max-width:380px;margin:0 auto 1.1rem;line-height:1.6">Can't get it working? Open a support ticket and we'll get back to you.</p>
     <button class="support-btn" onclick="openZohoSupport()">Open a Support Ticket</button>
     <p style="font-size:0.78rem;color:var(--text3);margin-top:0.6rem">or email <a href="mailto:support@dankcharts.fm" style="color:var(--text3)">support@dankcharts.fm</a></p>
@@ -848,7 +854,7 @@
 
   <!-- Troubleshooting -->
   <div>
-    <div style="font-family:'DM Serif Display',serif;font-size:1.1rem;color:var(--text);margin-bottom:1rem">Troubleshooting</div>
+    <div style="font-family:'Bricolage Grotesque',sans-serif;font-size:1.1rem;color:var(--text);margin-bottom:1rem">Troubleshooting</div>
     <div style="display:flex;flex-direction:column;gap:0.8rem">
       <div class="infobox">
         <strong>The "Push to Last.fm" button doesn't appear in the edit panel.</strong><br>
@@ -873,7 +879,7 @@
   <hr class="divider">
   <div class="support-box">
     <div style="font-size:1.6rem;margin-bottom:0.6rem">🎧</div>
-    <div style="font-family:'DM Serif Display',serif;font-size:1.25rem;color:var(--text);margin-bottom:0.4rem">Need help?</div>
+    <div style="font-family:'Bricolage Grotesque',sans-serif;font-size:1.25rem;color:var(--text);margin-bottom:0.4rem">Need help?</div>
     <p style="color:var(--text2);font-size:0.88rem;max-width:380px;margin:0 auto 1.1rem;line-height:1.6">Can't get it working? Open a support ticket and we'll get back to you.</p>
     <button class="support-btn" onclick="openZohoSupport()">Open a Support Ticket</button>
     <p style="font-size:0.78rem;color:var(--text3);margin-top:0.6rem">or email <a href="mailto:support@dankcharts.fm" style="color:var(--text3)">support@dankcharts.fm</a></p>
