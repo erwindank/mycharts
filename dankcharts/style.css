@@ -16,6 +16,9 @@
          (hero bar, weekly/monthly/yearly stat cards) — user-picked over both
          --font-display and --font-mono for that specific spot */
       --font-stat: 'Big Shoulders Display', var(--font-sans);
+      /* Wordmark-only face for the "dankcharts" lockup — user-picked over
+         --font-mono for extra brand character; .fm badge stays on --font-mono */
+      --font-wordmark: 'Martian Mono', var(--font-mono);
 
       /* Radius scale — small controls → panels → pills */
       --r-xs: 4px;
@@ -1437,20 +1440,20 @@
     }
 
     .wordmark-dank {
-      /* brand moment — "dankcharts" in the data/mono face, .fm badge stays separate */
-      font-family: var(--font-mono);
+      /* brand moment — "dankcharts" in Martian Mono, .fm badge stays on --font-mono */
+      font-family: var(--font-wordmark);
       font-weight: 700;
-      font-size: clamp(2.4rem, 8vw, 4.8rem);
+      font-size: clamp(2rem, 7vw, 4rem);
       color: #ffffff;
       letter-spacing: -0.02em;
       line-height: 1;
     }
 
     .wordmark-station {
-      /* brand moment — "dankcharts" in the data/mono face, .fm badge stays separate */
-      font-family: var(--font-mono);
+      /* brand moment — "dankcharts" in Martian Mono, .fm badge stays on --font-mono */
+      font-family: var(--font-wordmark);
       font-weight: 300;
-      font-size: clamp(2.4rem, 8vw, 4.8rem);
+      font-size: clamp(2rem, 7vw, 4rem);
       color: rgba(255, 255, 255, 0.82);
       letter-spacing: -0.02em;
       line-height: 1;
