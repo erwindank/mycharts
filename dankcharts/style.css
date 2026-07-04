@@ -14070,9 +14070,10 @@ body[class*="-light"] .tm-card-search:hover {
 }
 
 .st-stat-val {
-  font-family: var(--font-mono);
+  font-family: var(--font-sans);
   font-size: 1.85rem;
   font-weight: 700;
+  letter-spacing: -0.02em;
   color: var(--accent);
   line-height: 1;
   margin-bottom: 0.2rem;
@@ -14173,7 +14174,8 @@ body[class*="-light"] .tm-card-search:hover {
 }
 
 .st-top-count {
-  font-family: var(--font-mono);
+  font-family: var(--font-sans);
+  font-weight: 600;
   font-size: 0.68rem;
   color: var(--text2);
   white-space: nowrap;
@@ -14265,7 +14267,8 @@ body[class*="-light"] .tm-card-search:hover {
 .st-activity-year { color: var(--text3); opacity: 0.7; }
 
 .st-activity-count {
-  font-family: var(--font-mono);
+  font-family: var(--font-sans);
+  font-weight: 600;
   font-size: 0.5rem;
   color: var(--text2);
   margin-top: 1px;
@@ -14288,9 +14291,10 @@ body[class*="-light"] .tm-card-search:hover {
 .st-loyalty-score { text-align: center; padding: 0.5rem 0 0.8rem; }
 
 .st-loyalty-pct {
-  font-family: var(--font-mono);
+  font-family: var(--font-sans);
   font-size: 3.5rem;
   font-weight: 700;
+  letter-spacing: -0.02em;
   color: var(--accent);
   line-height: 1;
 }
@@ -14737,11 +14741,11 @@ body[class*="-light"] .tm-card-search:hover {
   position: relative;
 }
 .st-hero-period {
-  font-family: var(--font-mono);
+  font-family: var(--font-sans);
   font-size: 5.5rem;
   font-weight: 700;
+  letter-spacing: -0.02em;
   color: #fff;
-  letter-spacing: 0.02em;
   line-height: 1;
   text-shadow: 0 2px 28px rgba(0,0,0,0.4);
   position: relative;
