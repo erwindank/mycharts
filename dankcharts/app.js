@@ -15893,9 +15893,20 @@ document.getElementById('graphGranularity').addEventListener('click', e => {
 });
 
 // ── BACK TO TOP BUTTON ──
+// Only shown while actively scrolling, then auto-hides shortly after scrolling
+// stops — otherwise it can sit over section buttons (e.g. Share as Image) and
+// intercept taps meant for them.
 const backToTopBtn = document.getElementById('backToTop');
+let backToTopHideTimer = null;
 window.addEventListener('scroll', () => {
-  backToTopBtn.classList.toggle('visible', window.scrollY > window.innerHeight / 6);
+  const shouldShow = window.scrollY > window.innerHeight / 6;
+  backToTopBtn.classList.toggle('visible', shouldShow);
+  clearTimeout(backToTopHideTimer);
+  if (shouldShow) {
+    backToTopHideTimer = setTimeout(() => {
+      backToTopBtn.classList.remove('visible');
+    }, 2500);
+  }
 }, { passive: true });
 backToTopBtn.addEventListener('click', () => {
   window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -20585,7 +20596,7 @@ function renderHeroStats() {
       <span class="hero-stat-pb">PB: ${pb}</span>
     </div>`;
 
-  el.style.display = 'flex';
+  el.style.display = '';
 
   // Switch to All-Time tab and scroll to artists section when Top Artist is clicked
   el.querySelector('.hero-stat-artist').addEventListener('click', () => {

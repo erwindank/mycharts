@@ -2635,7 +2635,10 @@
   <!-- ── Data Source Configure Modal ── -->
   <div id="sourceModal" class="modal-overlay" role="dialog" aria-modal="true">
     <div class="src-modal-box">
-      <h3 class="src-modal-title">Data Source</h3>
+      <div class="src-modal-header">
+        <h3 class="src-modal-title">Data Source</h3>
+        <button type="button" class="src-modal-close" onclick="closeSourceModal()" aria-label="Close">&times;</button>
+      </div>
 
       <div class="src-field-group" style="margin-bottom:1rem;">
         <label>

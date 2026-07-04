@@ -1,0 +1,115 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-07-03T00:00:00Z",
+  "title": "Design System: dankcharts.fm",
+  "extensions": {
+    "colorMeta": {
+      "accent-blue": { "role": "primary", "displayName": "Electric Blue", "canonical": "oklch(72% 0.14 235)", "tonalRamp": ["#0a1a2e", "#12294a", "#1c3c68", "#2a5488", "#4aacff", "#6cbcff", "#80c8ff", "#b8e0ff"] },
+      "gold-badge": { "role": "secondary", "displayName": "Gold Badge", "canonical": "oklch(78% 0.15 75)", "tonalRamp": ["#3a2400", "#5c3800", "#8a5410", "#b87818", "#f0aa30", "#f8c050", "#fcd34d", "#ffe89a"] },
+      "navy-void": { "role": "neutral", "displayName": "Navy Void", "canonical": "oklch(15% 0.03 250)", "tonalRamp": ["#040a12", "#08121e", "#0e1e34", "#122444", "#173060", "#1e3d72", "#2a52a0", "#4a72c0"] },
+      "ink-bright": { "role": "neutral", "displayName": "Ink Bright", "canonical": "oklch(95% 0.02 235)", "tonalRamp": ["#7aa0d0", "#a8c8f0", "#c8def8", "#eaf2ff"] }
+    },
+    "typographyMeta": {
+      "display": { "displayName": "Display", "purpose": "Modal/section titles (artist, album, track headers). Used sparingly, DM Serif Display." },
+      "data": { "displayName": "Data", "purpose": "Every rank, play count, date, and data-tied control label. Always DM Mono." },
+      "body": { "displayName": "Body", "purpose": "Prose, settings labels, modal copy. DM Sans." },
+      "accent-tagline": { "displayName": "Accent Tagline", "purpose": "Single italic tagline moment on the landing screen only (Instrument Serif). Not reused elsewhere." }
+    },
+    "shadows": [
+      { "name": "panel-raised", "value": "0 4px 20px rgba(0,0,0,0.35)", "purpose": "Modals, dropdowns, theme switcher panel." },
+      { "name": "panel-raised-strong", "value": "0 6px 24px rgba(0,0,0,0.45)", "purpose": "Top-level modals (source/config modal)." },
+      { "name": "card-light", "value": "0 2px 10px rgba(0,0,0,0.12)", "purpose": "Cards on light theme variants." },
+      { "name": "badge-glow-pulse", "value": "animation: 0 0 0 0 transparent -> 0 0 10px 3px var(--gold1)", "purpose": "Achievement badge signal; the one animated shadow in the system." }
+    ],
+    "motion": [
+      { "name": "ease-standard", "value": "ease", "purpose": "Default color/border transitions on hover/focus (no scale/shadow pop)." },
+      { "name": "badge-pulse", "value": "2s ease-in-out infinite", "purpose": "Gold badge glow pulse animation." }
+    ],
+    "breakpoints": [
+      { "name": "sm", "value": "480px" },
+      { "name": "md", "value": "600px" },
+      { "name": "lg", "value": "768px" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Action Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Main action buttons like SYNC NOW; accent-bordered, DM Mono label with inline icon glyph.",
+      "html": "<button class=\"ds-btn-primary\"><span class=\"ds-btn-icon\">↺</span> SYNC NOW</button>",
+      "css": ".ds-btn-primary { display: inline-flex; align-items: center; gap: 6px; background: transparent; color: #4aacff; border: 1px solid #1e3d72; border-radius: 4px; padding: 8px 14px; font-family: 'DM Mono', monospace; font-weight: 500; font-size: 0.8125rem; letter-spacing: 0.02em; transition: border-color 0.15s ease, color 0.15s ease; } .ds-btn-primary:hover, .ds-btn-primary:focus-visible { border-color: #2a52a0; color: #80c8ff; } .ds-btn-icon { font-size: 0.9em; }"
+    },
+    {
+      "name": "Ghost Button",
+      "kind": "button",
+      "refersTo": "button-ghost",
+      "description": "Secondary actions like Configure; transparent until hovered, quiet chrome.",
+      "html": "<button class=\"ds-btn-ghost\"><span class=\"ds-btn-icon\">⚙</span> Configure</button>",
+      "css": ".ds-btn-ghost { display: inline-flex; align-items: center; gap: 6px; background: transparent; color: #a8c8f0; border: 1px solid transparent; border-radius: 4px; padding: 6px 12px; font-family: 'DM Mono', monospace; font-size: 0.8125rem; transition: border-color 0.15s ease, color 0.15s ease; } .ds-btn-ghost:hover, .ds-btn-ghost:focus-visible { border-color: #1e3d72; color: #eaf2ff; }"
+    },
+    {
+      "name": "Theme Swatch Toggle",
+      "kind": "custom",
+      "refersTo": "theme-btn",
+      "description": "Circular color-dot buttons for switching between the 9 color themes; active one shows a ring.",
+      "html": "<button class=\"ds-theme-dot ds-theme-dot-active\" aria-label=\"Navy theme\">●</button>",
+      "css": ".ds-theme-dot { width: 12px; height: 12px; border-radius: 50%; border: none; color: #4aacff; font-size: 12px; line-height: 1; padding: 0; cursor: pointer; opacity: 0.6; transition: opacity 0.15s ease, box-shadow 0.15s ease; } .ds-theme-dot:hover { opacity: 0.85; } .ds-theme-dot-active { opacity: 1; box-shadow: 0 0 0 2px #eaf2ff33; }"
+    },
+    {
+      "name": "Period Nav Pill",
+      "kind": "nav",
+      "refersTo": "chip",
+      "description": "Segmented pill navigation for switching chart period (week/month/year); active segment fills with accent.",
+      "html": "<div class=\"ds-period-nav\"><button class=\"ds-pill\">WEEK</button><button class=\"ds-pill ds-pill-active\">MONTH</button><button class=\"ds-pill\">YEAR</button></div>",
+      "css": ".ds-period-nav { display: inline-flex; gap: 4px; background: #173060; border-radius: 20px; padding: 3px; } .ds-pill { background: transparent; color: #a8c8f0; border: none; border-radius: 20px; padding: 6px 14px; font-family: 'DM Mono', monospace; font-size: 0.75rem; letter-spacing: 0.03em; transition: background 0.15s ease, color 0.15s ease; } .ds-pill-active { background: #4aacff; color: #08121e; font-weight: 500; }"
+    },
+    {
+      "name": "Achievement Badge",
+      "kind": "chip",
+      "refersTo": "badge-gold",
+      "description": "Gold pill badge for earned achievements (BU badges); pulses with an animated glow, the system's one animated shadow.",
+      "html": "<span class=\"ds-badge-gold\">🔥 On Fire</span>",
+      "css": ".ds-badge-gold { display: inline-flex; align-items: center; gap: 4px; background: transparent; color: #f0aa30; border: 1px solid #f0aa30; border-radius: 20px; padding: 4px 10px; font-family: 'DM Mono', monospace; font-size: 0.75rem; animation: ds-badge-pulse 2s ease-in-out infinite; } @keyframes ds-badge-pulse { 0%, 100% { box-shadow: 0 0 0 0 transparent; border-color: #f0aa30; color: #f0aa30; } 50% { box-shadow: 0 0 10px 3px #f0aa30; border-color: #fcd34d; color: #fcd34d; } }"
+    },
+    {
+      "name": "Modal Panel",
+      "kind": "card",
+      "refersTo": "modal-panel",
+      "description": "Config/source modal and artist/album/track detail modal container.",
+      "html": "<div class=\"ds-modal\"><div class=\"ds-modal-header\">Artist Name</div><div class=\"ds-modal-body\">Modal content goes here.</div></div>",
+      "css": ".ds-modal { background: #122444; border: 1px solid #1e3d72; border-radius: 12px; box-shadow: 0 6px 24px rgba(0,0,0,0.45); padding: 24px; color: #eaf2ff; } .ds-modal-header { font-family: 'DM Serif Display', serif; font-size: 1.5rem; margin-bottom: 12px; } .ds-modal-body { font-family: 'DM Sans', sans-serif; font-size: 1rem; line-height: 1.4; color: #a8c8f0; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Scoreboard",
+    "overview": "dankcharts.fm turns a listener's scrobble history into a leaderboard: ranked Songs, Artists, and Albums, backed by dense, precise numbers, and topped with collectible badges. The system is data-nerdy and playful at once — it never apologizes for showing exact play counts and rank deltas, but it also has fun with the presentation: a pulsing gold badge glow, nine swappable color themes, and a dedicated share-as-image path so a chart looks intentional the moment it's screenshotted. This explicitly rejects the generic SaaS analytics-dashboard look — flat gray cards, corporate blue, data buried under chrome.",
+    "keyCharacteristics": [
+      "Monospace numerals for anything that is a rank, count, or stat.",
+      "Soft, tactile surfaces: gentle shadows and 4-20px rounded corners.",
+      "Color theme is the personality lever — nine total themes.",
+      "Badges and share-as-image output are first-class, polished surfaces."
+    ],
+    "rules": [
+      { "name": "The One Accent Per Theme Rule", "body": "Each color theme carries exactly one primary accent hue. Never mix two themes' accents on screen at once.", "section": "colors" },
+      { "name": "The Gold Means Earned Rule", "body": "Gold is reserved for badges/achievements. If a control isn't rewarding the user, it doesn't get gold.", "section": "colors" },
+      { "name": "The Mono-Means-Data Rule", "body": "Any text that is a number, rank, date, or data-tied control label renders in DM Mono. DM Sans is reserved for prose.", "section": "typography" },
+      { "name": "The Glow-Not-Shadow Rule for Badges", "body": "Achievement badges signal importance with an animated gold glow, not a drop shadow.", "section": "elevation" }
+    ],
+    "dos": [
+      "Do use DM Mono for every number, rank, date, and data-tied control label.",
+      "Do keep corner radii in the 4-20px range depending on component scale.",
+      "Do use color-only feedback (border/background brightening) for hover/focus on buttons.",
+      "Do treat badges and share-as-image output as polished, screenshot-ready surfaces.",
+      "Do build every visual feature so it works identically across all nine color themes.",
+      "Do support Last.fm, Google Sheets, and CSV-upload data sources equally in any new UI."
+    ],
+    "donts": [
+      "Don't use flat gray cards or corporate-blue SaaS dashboard styling.",
+      "Don't put a drop shadow on a badge; badges get the animated gold glow instead.",
+      "Don't mix DM Sans and DM Mono within the same numeric readout.",
+      "Don't hide or truncate precise stats to simplify the UI.",
+      "Don't introduce a second accent hue within one theme."
+    ]
+  }
+}

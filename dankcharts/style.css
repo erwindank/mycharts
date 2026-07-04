@@ -1838,6 +1838,76 @@
 
     .src-btn-save:hover { opacity: 0.85; }
 
+    /* Title row + close button, used by the long Data Source form */
+    .src-modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.75rem;
+      margin: 0 0 1.2rem;
+    }
+
+    .src-modal-header .src-modal-title { margin: 0; }
+
+    .src-modal-close {
+      flex: none;
+      width: 28px;
+      height: 28px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: none;
+      border: 1px solid var(--border);
+      border-radius: 50%;
+      color: var(--text2);
+      font-size: 1.1rem;
+      line-height: 1;
+      cursor: pointer;
+      transition: border-color 0.15s, color 0.15s;
+    }
+
+    .src-modal-close:hover { border-color: var(--border2); color: var(--text); }
+
+    /* On mobile, the Data Source form runs much taller than the viewport.
+       Pin the title/close and the Cancel/Save row so they're always reachable
+       without scrolling through the whole form to find them. */
+    @media (max-width: 700px) {
+      /* Kill the overlay's own top padding so the sticky header locks flush
+         to the real viewport edge — otherwise, at max scroll, whatever content
+         naturally lands in that reserved gap peeks through above the header. */
+      #sourceModal {
+        padding-top: env(safe-area-inset-top);
+        padding-bottom: env(safe-area-inset-bottom);
+      }
+
+      #sourceModal .src-modal-box {
+        padding-top: 0;
+        padding-bottom: 0;
+      }
+
+      #sourceModal .src-modal-header {
+        position: sticky;
+        top: 0;
+        z-index: 5;
+        margin: 0 -1.6rem 1.2rem;
+        padding: 1.1rem 1.6rem;
+        background: var(--bg2);
+        border-bottom: 1px solid var(--border);
+        border-radius: 12px 12px 0 0;
+      }
+
+      #sourceModal .src-modal-btns {
+        position: sticky;
+        bottom: 0;
+        z-index: 5;
+        margin: 1.4rem -1.6rem 0;
+        padding: 0.9rem 1.6rem calc(0.9rem + env(safe-area-inset-bottom));
+        background: var(--bg2);
+        border-top: 1px solid var(--border);
+        border-radius: 0 0 12px 12px;
+      }
+    }
+
     /* CERT CONFIG */
     .cert-config-group {
       margin-top: 1.2rem;
@@ -5746,6 +5816,30 @@
     .modal-close:hover {
       background: var(--border);
       color: var(--text);
+    }
+
+    /* Several .modal-box modals (song/album/artist detail, streak) render far
+       taller than a phone screen with real data. Pin the close button so it's
+       always reachable instead of scrolling away with the content.
+       Note: .modal-overlay uses backdrop-filter, which traps position:fixed
+       descendants to itself instead of the real viewport — so `sticky` (which
+       isn't affected by that trap) is used here instead of `fixed`. */
+    @media (max-width: 700px) {
+      /* .modal-box's own overflow:hidden (there to clip .modal-header's
+         corners) also traps the sticky close button to the box instead of
+         letting it stick to the real scroll container — allow it to escape. */
+      .modal-box {
+        overflow: visible;
+      }
+
+      .modal-close {
+        position: sticky;
+        display: block;
+        width: fit-content;
+        top: max(0.6rem, env(safe-area-inset-top));
+        margin: 0.6rem 0.6rem 0 auto;
+        z-index: 1001;
+      }
     }
 
     .modal-body {
