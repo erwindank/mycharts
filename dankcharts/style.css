@@ -16292,7 +16292,8 @@ body.red-light .sk-ms {
       font-size: 1.25rem;
       font-weight: 700;
       color: var(--accent);
-      font-family: var(--font-mono);
+      font-family: var(--font-sans);
+      letter-spacing: -0.02em;
       line-height: 1;
     }
     .cg-stat-lbl {
