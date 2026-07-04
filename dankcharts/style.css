@@ -707,12 +707,19 @@
       text-size-adjust: 100%;
     }
 
-    /* MASTHEAD */
+    /* MASTHEAD
+       2026 redesign: gradient + glow derive from the active theme's
+       tokens, so every DARK theme auto-tints — the old per-theme
+       .masthead background overrides (purple/red/yellow/pink) were
+       deleted as redundant. Light themes keep hand-tuned bands below. */
     .masthead {
-      background: linear-gradient(160deg, #061624 0%, #0d2440 50%, #061624 100%);
+      background: linear-gradient(160deg,
+          color-mix(in srgb, var(--bg) 92%, var(--accent)) 0%,
+          color-mix(in srgb, var(--bg3) 84%, var(--accent)) 50%,
+          color-mix(in srgb, var(--bg) 92%, var(--accent)) 100%);
       text-align: center;
       padding: 2.75rem 1rem 2rem;
-      border-bottom: 1px solid rgba(59, 158, 255, 0.2);
+      border-bottom: 1px solid color-mix(in srgb, var(--accent) 22%, transparent);
       position: relative;
     }
 
@@ -720,7 +727,7 @@
       content: '';
       position: absolute;
       inset: 0;
-      background: radial-gradient(ellipse at 50% 0%, rgba(59, 158, 255, 0.18) 0%, transparent 65%);
+      background: radial-gradient(ellipse at 50% 0%, color-mix(in srgb, var(--accent) 15%, transparent) 0%, transparent 65%);
       pointer-events: none;
     }
 
@@ -731,13 +738,13 @@
       left: 0;
       right: 0;
       height: 2px;
-      background: linear-gradient(90deg, transparent, #3b9eff, #38bdf8, #3b9eff, transparent);
-      opacity: 0.5;
+      background: linear-gradient(90deg, transparent, var(--accent), var(--accent2), var(--accent), transparent);
+      opacity: 0.45;
     }
 
     /* Navy Light masthead — darker, clearly separated from page */
     body.navy-light .masthead {
-      background: linear-gradient(160deg, #5898d0 0%, #70aee0 50%, #5898d0 100%);
+      background: linear-gradient(160deg, #5e93c4 0%, #76a8d4 50%, #5e93c4 100%);
       border-bottom: 1px solid rgba(10, 72, 160, 0.4);
     }
 
@@ -898,20 +905,7 @@
       border-color: var(--text2);
     }
 
-    /* Purple Dark masthead */
-    body.purple .masthead {
-      background: linear-gradient(160deg, #12102a 0%, #1a1640 50%, #12102a 100%);
-      border-bottom: 1px solid rgba(124, 106, 247, 0.25);
-    }
-
-    body.purple .masthead::before {
-      background: radial-gradient(ellipse at 50% 0%, rgba(124, 106, 247, 0.22) 0%, transparent 65%);
-    }
-
-    body.purple .masthead::after {
-      background: linear-gradient(90deg, transparent, #7c6af7, #38bdf8, #7c6af7, transparent);
-    }
-
+    /* Purple Dark masthead — background now derives from theme tokens in the base .masthead rule */
     body.purple .wordmark-fm {
       color: #c4b8ff;
       background: rgba(124, 106, 247, 0.18);
@@ -938,7 +932,7 @@
 
     /* Purple Light masthead — deeper purple, clearly separated from page */
     body.purple-light .masthead {
-      background: linear-gradient(160deg, #8878c8 0%, #9a88d8 50%, #8878c8 100%);
+      background: linear-gradient(160deg, #8579bd 0%, #968ace 50%, #8579bd 100%);
       border-bottom: 1px solid rgba(48, 30, 160, 0.4);
     }
 
@@ -981,20 +975,7 @@
       background: linear-gradient(90deg, transparent, rgba(97, 82, 232, 0.5), transparent);
     }
 
-    /* Red Dark masthead */
-    body.red .masthead {
-      background: linear-gradient(160deg, #0a0202 0%, #1c0606 50%, #0a0202 100%);
-      border-bottom: 1px solid rgba(220, 40, 40, 0.3);
-    }
-
-    body.red .masthead::before {
-      background: radial-gradient(ellipse at 50% 0%, rgba(220, 40, 40, 0.22) 0%, transparent 65%);
-    }
-
-    body.red .masthead::after {
-      background: linear-gradient(90deg, transparent, #cc2020, #ff4444, #cc2020, transparent);
-    }
-
+    /* Red Dark masthead — background now derives from theme tokens in the base .masthead rule */
     body.red .wordmark-fm {
       color: #ff8888;
       background: rgba(220, 40, 40, 0.18);
@@ -1096,7 +1077,7 @@
 
     /* Red Light masthead */
     body.red-light .masthead {
-      background: linear-gradient(160deg, #960e0e 0%, #b01010 50%, #960e0e 100%);
+      background: linear-gradient(160deg, #8f1f1c 0%, #a82724 50%, #8f1f1c 100%);
       border-bottom: 1px solid rgba(80, 0, 0, 0.35);
     }
 
@@ -1200,21 +1181,7 @@
       color: rgba(255, 200, 230, 0.9);
     }
 
-    /* Yellow Dark masthead */
-    body.yellow .masthead {
-      background: linear-gradient(160deg, #1a1a00 0%, #2a2a00 50%, #1a1a00 100%);
-      border-bottom: 1px solid rgba(200, 180, 0, 0.3);
-    }
-
-    body.yellow .masthead::before {
-      background: radial-gradient(ellipse at 50% 0%, rgba(240, 200, 0, 0.22) 0%, transparent 65%);
-    }
-
-    body.yellow .masthead::after {
-      background: linear-gradient(90deg, transparent, #c8a800, #ffe040, #c8a800, transparent);
-      opacity: 0.6;
-    }
-
+    /* Yellow Dark masthead — background now derives from theme tokens in the base .masthead rule */
     body.yellow .wordmark-fm {
       color: #ffe040;
       background: rgba(240, 200, 0, 0.18);
@@ -1286,7 +1253,7 @@
 
     /* Yellow Light masthead */
     body.yellow-light .masthead {
-      background: linear-gradient(160deg, #806800 0%, #a08000 50%, #806800 100%);
+      background: linear-gradient(160deg, #7d660d 0%, #98800f 50%, #7d660d 100%);
       border-bottom: 1px solid rgba(80, 60, 0, 0.35);
     }
 
@@ -1347,21 +1314,7 @@
       padding: 0;
     }
 
-    /* Pink Dark masthead */
-    body.pink .masthead {
-      background: linear-gradient(160deg, #1a0010 0%, #280018 50%, #1a0010 100%);
-      border-bottom: 1px solid rgba(220, 60, 160, 0.3);
-    }
-
-    body.pink .masthead::before {
-      background: radial-gradient(ellipse at 50% 0%, rgba(255, 80, 180, 0.22) 0%, transparent 65%);
-    }
-
-    body.pink .masthead::after {
-      background: linear-gradient(90deg, transparent, #c03090, #ff80c8, #c03090, transparent);
-      opacity: 0.6;
-    }
-
+    /* Pink Dark masthead — background now derives from theme tokens in the base .masthead rule */
     body.pink .wordmark-fm {
       color: #ff80c8;
       background: rgba(255, 80, 180, 0.18);
@@ -1387,7 +1340,7 @@
 
     /* Pink Light masthead */
     body.pink-light .masthead {
-      background: linear-gradient(160deg, #8c0055 0%, #b0006a 50%, #8c0055 100%);
+      background: linear-gradient(160deg, #85104f 0%, #a51a66 50%, #85104f 100%);
       border-bottom: 1px solid rgba(80, 0, 50, 0.35);
     }
 
@@ -1458,8 +1411,9 @@
     }
 
     .wordmark-dank {
-      font-family: var(--font-sans);
-      font-weight: 600;
+      /* brand moment — display face (2026 redesign) */
+      font-family: var(--font-display);
+      font-weight: 700;
       font-size: clamp(2.4rem, 8vw, 4.8rem);
       color: #ffffff;
       letter-spacing: -0.03em;
@@ -1467,7 +1421,8 @@
     }
 
     .wordmark-station {
-      font-family: var(--font-sans);
+      /* brand moment — display face (2026 redesign) */
+      font-family: var(--font-display);
       font-weight: 300;
       font-size: clamp(2.4rem, 8vw, 4.8rem);
       color: rgba(255, 255, 255, 0.82);
@@ -2174,8 +2129,9 @@
       display: flex;
       flex-direction: column;
       background: var(--bg2);
-      border: 1px solid var(--border);
-      border-radius: 8px;
+      border: 1px solid var(--border-t);
+      box-shadow: var(--shadow-1);
+      border-radius: var(--r-md);
       overflow: hidden; /* clip button hover backgrounds to rounded corners */
       font-family: var(--font-mono);
       font-size: 0.72rem;
@@ -2218,7 +2174,7 @@
       cursor: pointer;
       padding: 0.2rem 0.65rem;
       text-align: center;
-      transition: color 0.2s ease, background 0.2s ease;
+      transition: color var(--t-med) var(--ease), background var(--t-med) var(--ease);
       display: block;
     }
     .period-nav-toggle:hover {
@@ -2240,7 +2196,7 @@
       font-size: inherit;
       letter-spacing: inherit;
       text-transform: inherit;
-      transition: background 0.2s ease, color 0.2s ease, border-bottom-color 0.2s ease;
+      transition: background var(--t-med) var(--ease), color var(--t-med) var(--ease), border-bottom-color var(--t-med) var(--ease);
       /* align icon + label side by side */
       display: inline-flex;
       align-items: center;
@@ -2292,7 +2248,7 @@
     }
 
     .period-nav button:hover {
-      background: var(--bg3);
+      background: var(--hover);
       color: var(--text);
     }
 
