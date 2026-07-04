@@ -3237,6 +3237,10 @@
 
     .section-body {
       display: block;
+      /* Chart table can grow wider than the viewport once several display
+         toggles (cert badges, plays peak, etc.) add columns — scroll it
+         within its own box instead of blowing out the whole page on mobile. */
+      overflow-x: auto;
     }
 
     .chart-section.collapsed .section-body {
@@ -8025,14 +8029,21 @@
         font-size: max(16px, 1em) !important;
       }
 
+      /* Chart section cards use desktop-sized 2rem side padding — far too much
+         on a narrow phone (eats ~64px of a 375px viewport). Shrink it so the
+         chart table gets nearly the full width to work with. */
+      .chart-section:not(.bu-section):not(.new-entries-section) {
+        padding: 1.5rem 0.7rem;
+      }
+
       /* Compact chart table for portrait phones */
       .chart-table thead th {
-        padding: 0.4rem 0.4rem;
+        padding: 0.4rem 0.3rem;
         font-size: 0.55rem;
       }
 
       .chart-table td {
-        padding: 0.4rem 0.4rem;
+        padding: 0.4rem 0.3rem;
         font-size: 0.78rem;
       }
 
@@ -8057,6 +8068,14 @@
         padding: 0.3rem 0.35rem !important;
       }
 
+      /* The thumbnail header cell carries an inline width:52px from JS —
+         override so header and body columns agree on the compact mobile width */
+      #songsHeadRow th:nth-child(2),
+      #artistsHeadRow th:nth-child(2),
+      #albumsHeadRow th:nth-child(2) {
+        width: 46px !important;
+      }
+
       .img-src-btn {
         width: 36px;
         font-size: 0.44rem;
@@ -8072,6 +8091,14 @@
 
       .play-count {
         font-size: 0.68rem;
+      }
+
+      /* Trim the pill's side padding on mobile — the full-size padding made
+         it noticeably wider than it needs to be next to the play count */
+      .plays-peak-badge {
+        padding: 3px 8px;
+        font-size: 0.54rem;
+        letter-spacing: 0.06em;
       }
 
       .new-entries-title {
@@ -8131,12 +8158,38 @@
       }
     }
 
+    /* Extra-narrow phones (iPhone SE, small Android): shave a bit more off the
+       thumbnail column so the chart table still fits without a horizontal scroll */
+    @media (max-width: 340px) {
+      .thumb,
+      .thumb-initials {
+        width: 30px;
+        height: 30px;
+      }
+
+      .thumb-cell {
+        width: 38px !important;
+      }
+
+      #songsHeadRow th:nth-child(2),
+      #artistsHeadRow th:nth-child(2),
+      #albumsHeadRow th:nth-child(2) {
+        width: 38px !important;
+      }
+    }
+
     /* Short column header label — hidden by default, shown only on portrait phones */
-    .th-plays-short { display: none; }
+    .th-plays-short,
+    .th-prev-short,
+    .th-period-short { display: none; }
 
     @media (max-width: 600px) and (orientation: portrait) {
-      .th-plays-full { display: none; }
-      .th-plays-short { display: inline; }
+      .th-plays-full,
+      .th-prev-full,
+      .th-period-full { display: none; }
+      .th-plays-short,
+      .th-prev-short,
+      .th-period-short { display: inline; }
     }
 
     /* ── RECORDS VIEW ── */
@@ -13403,13 +13456,13 @@ body[class*="-light"] .tm-card-search:hover {
 
 /* ── Collapsible sections ── */
 .sk-sec-hidden { display: none; }
-.streak-section-title { cursor: pointer; user-select: none; display: flex; align-items: center; gap: 0.3rem; }
+.streak-section-title { cursor: pointer; user-select: none; display: flex; align-items: center; gap: 0.3rem; flex-wrap: wrap; }
 .streak-section-title:hover { color: var(--text); }
 .sk-chev { font-size: 0.58rem; flex-shrink: 0; }
 .streak-count { font-size: 0.6rem; opacity: 0.55; font-weight: normal; }
 
 /* ── At Risk section action buttons (Play All / Queue All / Save Playlist) ── */
-.sk-sec-btns { display: inline-flex; align-items: center; gap: 0.3rem; margin-left: 0.4rem; }
+.sk-sec-btns { display: inline-flex; align-items: center; flex-wrap: wrap; gap: 0.3rem; margin-left: 0.4rem; }
 .sk-atrisk-btn {
   background: none;
   border: 1px solid var(--border2);
