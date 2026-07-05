@@ -16899,59 +16899,18 @@ body.red-light .sk-ms {
     .kebab-panel .weekly-view-label {
       display: none;
     }
-    /* SIZE tab — compact 2-column grid of pill buttons so all six choices
-       are visible at once instead of a scrolling six-row list */
-    .kebab-panel .size-btns {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 6px;
-      min-width: 0;
-    }
-    .kebab-panel .size-btns button {
-      min-width: 0;
-      box-sizing: border-box;
-      text-align: center;
-      background: none;
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      padding: 0.45rem 0.3rem;
-      font-family: var(--font-mono);
-      font-size: 0.68rem;
-      letter-spacing: 0.03em;
-      color: var(--text2);
-      cursor: pointer;
-      transition: background 120ms ease, color 120ms ease, border-color 120ms ease;
-    }
-    .kebab-panel .size-btns button:hover {
-      background: var(--bg3);
-      color: var(--text);
-      border-color: var(--accent);
-    }
-    .kebab-panel .size-btns button.active {
-      background: var(--accent);
-      color: #fff;
-      border-color: var(--accent);
-      font-weight: 700;
-    }
-    body.yellow .kebab-panel .size-btns button.active {
-      color: #1a1a00;
-    }
-
-    /* VIEW tab stays a vertical list — each row also carries a small
-       line-icon sketching the layout (rows, grid, filmstrip frames, etc.) */
+    .kebab-panel .size-btns,
     .kebab-panel .weekly-view-btns {
       display: flex;
       flex-direction: column;
       gap: 2px;
       min-width: 0;
     }
+    .kebab-panel .size-btns button,
     .kebab-panel .weekly-view-btn {
       width: 100%;
       min-width: 0;
       box-sizing: border-box;
-      display: flex;
-      align-items: center;
-      gap: 0.55rem;
       text-align: left;
       background: none;
       border: none;
@@ -16963,15 +16922,24 @@ body.red-light .sk-ms {
       cursor: pointer;
       transition: background 120ms ease, color 120ms ease;
     }
+    /* View-mode rows also carry a small line-icon sketching the layout
+       (rows, grid, filmstrip frames, etc.) — align it with the label */
+    .kebab-panel .weekly-view-btn {
+      display: flex;
+      align-items: center;
+      gap: 0.55rem;
+    }
     .kebab-panel .weekly-view-btn .view-mode-icon {
       width: 14px;
       height: 14px;
       flex-shrink: 0;
     }
+    .kebab-panel .size-btns button:hover,
     .kebab-panel .weekly-view-btn:hover {
       background: var(--bg3);
       color: var(--text);
     }
+    .kebab-panel .size-btns button.active,
     .kebab-panel .weekly-view-btn.active {
       background: color-mix(in srgb, var(--accent) 18%, transparent);
       color: var(--accent);
