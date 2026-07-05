@@ -367,83 +367,87 @@
         <span class="section-collapsed-label" data-i18n="collapsed_hint">collapsed — click + to expand</span>
         <div class="section-rule"></div>
         <button class="section-replay-btn" id="songsReplayBtn" onclick="replayChartAnimation('songs')" title="Animate chart — show rank changes from previous period" style="display:none">▶ Animate Chart</button>
+        <!-- Chart options — kebab menu: Show on Chart / Size / View / Export -->
+        <div class="kebab-menu-wrap">
+          <button class="kebab-menu-btn" onclick="toggleKebabMenu(this)" title="Chart options" aria-label="Chart options" aria-haspopup="true">⋮</button>
+          <div class="kebab-menu">
+            <div class="kebab-tabs">
+              <button class="kebab-tab active" data-tab="show" onclick="switchKebabTab(this, 'show')">Show</button>
+              <button class="kebab-tab" data-tab="size" onclick="switchKebabTab(this, 'size')">Size</button>
+              <button class="kebab-tab" data-tab="view" onclick="switchKebabTab(this, 'view')">View</button>
+              <button class="kebab-tab" data-tab="export" onclick="switchKebabTab(this, 'export')">Actions</button>
+            </div>
+            <div class="kebab-panel" data-panel="show">
+              <button id="toggleCertBtn" class="kebab-check-row active" onclick="toggleSectionDisplay('cert', 'songs')"><span class="kebab-check">✓</span><span class="kebab-row-label"><span data-i18n="btn_display_cert">Cert Badges</span></span></button>
+              <button id="togglePlaysPeakBtn" class="kebab-check-row active" onclick="toggleSectionDisplay('plays-peak', 'songs')"><span class="kebab-check">✓</span><span class="kebab-row-label"><span data-i18n="btn_display_plays_peak">Plays Peak</span></span></button>
+              <button id="togglePeakTagsBtn" class="kebab-check-row active" onclick="toggleSectionDisplay('peak-tags', 'songs')"><span class="kebab-check">✓</span><span class="kebab-row-label"><span data-i18n="btn_display_peak_tags">Peak Tags</span></span></button>
+              <button id="srcToggleBtn" class="kebab-check-row active" onclick="toggleSectionDisplay('src', 'songs')"><span class="kebab-check">✓</span><span class="kebab-row-label"><span data-i18n="btn_display_pic_source">Pic Source</span></span></button>
+              <button id="toggleYtBtnsBtn" class="kebab-check-row active" onclick="toggleSectionDisplay('yt-btns', 'songs')"><span class="kebab-check">✓</span><span class="kebab-row-label"><svg class="yt-btn-icon" viewBox="0 0 24 24"><path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.5 12 3.5 12 3.5s-7.5 0-9.4.5A3 3 0 0 0 .5 6.2C0 8.1 0 12 0 12s0 3.9.5 5.8a3 3 0 0 0 2.1 2.1c1.9.5 9.4.5 9.4.5s7.5 0 9.4-.5a3 3 0 0 0 2.1-2.1C24 15.9 24 12 24 12s0-3.9-.5-5.8zM9.7 15.5V8.5l6.3 3.5-6.3 3.5z"/></svg> <span data-i18n="btn_display_yt_btns">YouTube</span></span></button>
+            </div>
+            <div class="kebab-panel" data-panel="size" style="display:none">
+              <div class="chart-size-bar section-size-bar" id="sizeBarSongs">
+                <div class="size-btns" id="sizeBtnsSongsW">
+                  <button data-size="10" class="active">Top 10</button>
+                  <button data-size="20">Top 20</button>
+                  <button data-size="25">Top 25</button>
+                  <button data-size="30">Top 30</button>
+                  <button data-size="50">Top 50</button>
+                  <button data-size="100">Top 100</button>
+                </div>
+                <div class="size-btns" id="sizeBtnsSongsM" style="display:none">
+                  <button data-size="25">Top 25</button>
+                  <button data-size="30">Top 30</button>
+                  <button data-size="50" class="active">Top 50</button>
+                  <button data-size="100">Top 100</button>
+                </div>
+                <div class="size-btns" id="sizeBtnsSongsY" style="display:none">
+                  <button data-size="50">Top 50</button>
+                  <button data-size="100">Top 100</button>
+                  <button data-size="200">Top 200</button>
+                  <button data-size="0" class="active" data-i18n="all_entries">All Entries</button>
+                </div>
+                <div class="size-btns" id="sizeBtnsSongsAT" style="display:none">
+                  <button data-size="50">Top 50</button>
+                  <button data-size="100">Top 100</button>
+                  <button data-size="200">Top 200</button>
+                  <button data-size="0" class="active" data-i18n="all_entries">All Entries</button>
+                </div>
+              </div>
+            </div>
+            <div class="kebab-panel" data-panel="view" style="display:none">
+              <div class="weekly-view-bar" id="weeklyViewBtns-songs" style="display:none;">
+                <div class="weekly-view-btns">
+                  <button class="weekly-view-btn active" data-view="table"     onclick="setWeeklyChartView('table', 'songs')"><svg class="view-mode-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="1.5" y="2.5" width="13" height="11" rx="1.5"/><line x1="1.5" y1="6.5" x2="14.5" y2="6.5"/><line x1="1.5" y1="10" x2="14.5" y2="10"/></svg> Table</button>
+                  <button class="weekly-view-btn"         data-view="grid"      onclick="setWeeklyChartView('grid', 'songs')"><svg class="view-mode-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="1.5" y="1.5" width="5.5" height="5.5" rx="1"/><rect x="9" y="1.5" width="5.5" height="5.5" rx="1"/><rect x="1.5" y="9" width="5.5" height="5.5" rx="1"/><rect x="9" y="9" width="5.5" height="5.5" rx="1"/></svg> Card Grid</button>
+                  <button class="weekly-view-btn"         data-view="compact"   onclick="setWeeklyChartView('compact', 'songs')"><svg class="view-mode-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><line x1="1.5" y1="2.5" x2="14.5" y2="2.5"/><line x1="1.5" y1="6.2" x2="14.5" y2="6.2"/><line x1="1.5" y1="9.9" x2="14.5" y2="9.9"/><line x1="1.5" y1="13.5" x2="14.5" y2="13.5"/></svg> Compact</button>
+                  <button class="weekly-view-btn"         data-view="mosaic"    onclick="setWeeklyChartView('mosaic', 'songs')"><svg class="view-mode-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="1.5" y="1.5" width="7" height="7" rx="1"/><rect x="9.5" y="1.5" width="5" height="4.5" rx="1"/><rect x="9.5" y="7" width="5" height="7.5" rx="1"/><rect x="1.5" y="9.5" width="7" height="5" rx="1"/></svg> Mosaic</button>
+                  <button class="weekly-view-btn"         data-view="filmstrip" onclick="setWeeklyChartView('filmstrip', 'songs')"><svg class="view-mode-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="1" y="3.5" width="14" height="9" rx="1"/><line x1="5" y1="3.5" x2="5" y2="12.5"/><line x1="8.3" y1="3.5" x2="8.3" y2="12.5"/><line x1="11.6" y1="3.5" x2="11.6" y2="12.5"/></svg> Filmstrip</button>
+                  <button class="weekly-view-btn"         data-view="stack"     onclick="setWeeklyChartView('stack', 'songs')"><svg class="view-mode-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="3.5" y="1.5" width="9" height="5" rx="1"/><rect x="2" y="5.5" width="12" height="5" rx="1"/><rect x="1" y="9.5" width="14" height="5" rx="1"/></svg> Stack</button>
+                  <button class="weekly-view-btn stk-2col-btn" onclick="toggleStkTwoCol()" title="Toggle 2-column layout" style="display:none">⊞ 2 Col</button>
+                </div>
+              </div>
+            </div>
+            <div class="kebab-panel" data-panel="export" style="display:none">
+              <div id="ytPlayAllRow" class="kebab-playback-row" style="display:none">
+                <button class="yt-playall-btn" onclick="ytPlayAll()" title="Play all visible songs in order">▶ PLAY ALL</button>
+                <button class="yt-playall-btn" onclick="ytShuffleAll()" title="Play all visible songs in random order">🔀 SHUFFLE</button>
+              </div>
+              <button class="export-playlist-btn" id="exportPlaylistBtn" title="Export this chart as a playlist — save to Spotify, Last.fm, or a text file" data-i18n-title="tooltip_export_playlist" onclick="openExportModal()" data-i18n="btn_export_playlist">📤 EXPORT PLAYLIST</button>
+              <button id="songsShareBtn" class="ig-share-btn section-share-btn" data-i18n-title="tooltip_share_image" onclick="openIgPreviewModal('songs')" data-i18n="btn_share_image" style="display:none">📷 SHARE AS IMAGE</button>
+              <div class="chart-export-bar" id="songsExportBarTop">
+                <button class="chart-export-btn" onclick="exportChartData('songs','txt')">⬇ TXT</button>
+                <button class="chart-export-btn" onclick="exportChartData('songs','csv')">⬇ CSV</button>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
       <div class="section-sub" id="songsSubtitle" data-i18n="sub_songs">By play count for the selected period</div>
-      <!-- Display toggles + playback + export -->
-      <div class="section-controls" id="songsControls">
-        <!-- Action buttons: left side -->
-        <div class="controls-actions">
-          <div id="ytPlayAllRow" style="display:none">
-            <button class="yt-playall-btn" onclick="ytPlayAll()" title="Play all visible songs in order">▶ PLAY ALL</button>
-            <button class="yt-playall-btn" onclick="ytShuffleAll()" title="Play all visible songs in random order">🔀 SHUFFLE</button>
-          </div>
-          <button class="export-playlist-btn" id="exportPlaylistBtn" title="Export this chart as a playlist — save to Spotify, Last.fm, or a text file" data-i18n-title="tooltip_export_playlist" onclick="openExportModal()" data-i18n="btn_export_playlist">📤 EXPORT PLAYLIST</button>
-          <!-- Share as image — shown when chart data is available -->
-          <button id="songsShareBtn" class="ig-share-btn section-share-btn" data-i18n-title="tooltip_share_image" onclick="openIgPreviewModal('songs')" data-i18n="btn_share_image" style="display:none">📷 SHARE AS IMAGE</button>
-        </div>
-        <!-- Spacer pushes display toggles to the right -->
-        <span class="controls-spacer"></span>
-        <!-- Display toggles: right side -->
-        <div class="controls-toggles">
-          <button id="toggleCertBtn" class="display-toggle-btn active" onclick="toggleSectionDisplay('cert', 'songs')" data-i18n="btn_display_cert">🏅 CERT BADGES</button>
-          <button id="togglePlaysPeakBtn" class="display-toggle-btn active" onclick="toggleSectionDisplay('plays-peak', 'songs')" data-i18n="btn_display_plays_peak">📈 PLAYS PEAK</button>
-          <button id="togglePeakTagsBtn" class="display-toggle-btn active" onclick="toggleSectionDisplay('peak-tags', 'songs')" data-i18n="btn_display_peak_tags">🏷️ PEAK TAGS</button>
-          <button id="srcToggleBtn" class="display-toggle-btn active" onclick="toggleSectionDisplay('src', 'songs')" title="Show/hide photo source buttons" data-i18n="btn_display_pic_source">🖼️ PIC SOURCE</button>
-          <button id="toggleYtBtnsBtn" class="display-toggle-btn active yt-toggle-btn" onclick="toggleSectionDisplay('yt-btns', 'songs')" title="Show/hide YouTube play buttons"><span class="yt-toggle-content"><svg class="yt-btn-icon" viewBox="0 0 24 24"><path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.5 12 3.5 12 3.5s-7.5 0-9.4.5A3 3 0 0 0 .5 6.2C0 8.1 0 12 0 12s0 3.9.5 5.8a3 3 0 0 0 2.1 2.1c1.9.5 9.4.5 9.4.5s7.5 0 9.4-.5a3 3 0 0 0 2.1-2.1C24 15.9 24 12 24 12s0-3.9-.5-5.8zM9.7 15.5V8.5l6.3 3.5-6.3 3.5z"/></svg><span data-i18n="btn_display_yt_btns">YOUTUBE</span></span></button>
-        </div>
-      </div>
-      <!-- Songs chart size — independent from artists/albums, remembered per period -->
-      <div class="chart-size-bar section-size-bar" id="sizeBarSongs">
-        <label>SIZE:</label>
-        <div class="size-btns" id="sizeBtnsSongsW">
-          <button data-size="10" class="active">Top 10</button>
-          <button data-size="20">Top 20</button>
-          <button data-size="25">Top 25</button>
-          <button data-size="30">Top 30</button>
-          <button data-size="50">Top 50</button>
-          <button data-size="100">Top 100</button>
-        </div>
-        <div class="size-btns" id="sizeBtnsSongsM" style="display:none">
-          <button data-size="25">Top 25</button>
-          <button data-size="30">Top 30</button>
-          <button data-size="50" class="active">Top 50</button>
-          <button data-size="100">Top 100</button>
-        </div>
-        <div class="size-btns" id="sizeBtnsSongsY" style="display:none">
-          <button data-size="50">Top 50</button>
-          <button data-size="100">Top 100</button>
-          <button data-size="200">Top 200</button>
-          <button data-size="0" class="active" data-i18n="all_entries">All Entries</button>
-        </div>
-        <div class="size-btns" id="sizeBtnsSongsAT" style="display:none">
-          <button data-size="50">Top 50</button>
-          <button data-size="100">Top 100</button>
-          <button data-size="200">Top 200</button>
-          <button data-size="0" class="active" data-i18n="all_entries">All Entries</button>
-        </div>
-      </div>
-      <div class="weekly-view-bar" id="weeklyViewBtns-songs" style="display:none;">
-        <label class="weekly-view-label">VIEW:</label>
-        <div class="weekly-view-btns">
-          <button class="weekly-view-btn active" data-view="table"     onclick="setWeeklyChartView('table', 'songs')">Table</button>
-          <button class="weekly-view-btn"         data-view="grid"      onclick="setWeeklyChartView('grid', 'songs')">Card Grid</button>
-          <button class="weekly-view-btn"         data-view="compact"   onclick="setWeeklyChartView('compact', 'songs')">Compact</button>
-          <button class="weekly-view-btn"         data-view="mosaic"    onclick="setWeeklyChartView('mosaic', 'songs')">Mosaic</button>
-          <button class="weekly-view-btn"         data-view="filmstrip" onclick="setWeeklyChartView('filmstrip', 'songs')">Filmstrip</button>
-          <button class="weekly-view-btn"         data-view="stack"     onclick="setWeeklyChartView('stack', 'songs')">Stack</button>
-          <button class="weekly-view-btn stk-2col-btn" onclick="toggleStkTwoCol()" title="Toggle 2-column layout" style="display:none">⊞ 2 Col</button>
-        </div>
-      </div>
       <div class="paginated-search" id="songsSearch">
         <input type="text" id="songsSearchInput" placeholder="Search songs or artists…" oninput="applySearch('songs')"
           data-i18n-placeholder="search_songs_placeholder" />
         <span class="search-count" id="songsSearchCount"></span>
         <button class="search-clear" onclick="clearSearch('songs')" data-i18n-title="tooltip_clear">✕</button>
-      </div>
-      <div class="chart-export-bar" id="songsExportBarTop">
-        <span>EXPORT:</span>
-        <button class="chart-export-btn" onclick="exportChartData('songs','txt')">⬇ TXT</button>
-        <button class="chart-export-btn" onclick="exportChartData('songs','csv')">⬇ CSV</button>
       </div>
       <div class="section-body">
         <table class="chart-table" id="songsTable">
@@ -536,77 +540,81 @@
         <span class="section-collapsed-label" data-i18n="collapsed_hint">collapsed — click + to expand</span>
         <div class="section-rule"></div>
         <button class="section-replay-btn" id="artistsReplayBtn" onclick="replayChartAnimation('artists')" title="Animate chart — show rank changes from previous period" style="display:none">▶ Animate Chart</button>
+        <!-- Chart options — kebab menu: Show on Chart / Size / View / Export -->
+        <div class="kebab-menu-wrap">
+          <button class="kebab-menu-btn" onclick="toggleKebabMenu(this)" title="Chart options" aria-label="Chart options" aria-haspopup="true">⋮</button>
+          <div class="kebab-menu">
+            <div class="kebab-tabs">
+              <button class="kebab-tab active" data-tab="show" onclick="switchKebabTab(this, 'show')">Show</button>
+              <button class="kebab-tab" data-tab="size" onclick="switchKebabTab(this, 'size')">Size</button>
+              <button class="kebab-tab" data-tab="view" onclick="switchKebabTab(this, 'view')">View</button>
+              <button class="kebab-tab" data-tab="export" onclick="switchKebabTab(this, 'export')">Actions</button>
+            </div>
+            <div class="kebab-panel" data-panel="show">
+              <button id="togglePlaysPeakBtnArtists" class="kebab-check-row active" onclick="toggleSectionDisplay('plays-peak', 'artists')"><span class="kebab-check">✓</span><span class="kebab-row-label"><span data-i18n="btn_display_plays_peak">Plays Peak</span></span></button>
+              <button id="togglePeakTagsBtnArtists" class="kebab-check-row active" onclick="toggleSectionDisplay('peak-tags', 'artists')"><span class="kebab-check">✓</span><span class="kebab-row-label"><span data-i18n="btn_display_peak_tags">Peak Tags</span></span></button>
+              <button id="srcToggleBtnArtists" class="kebab-check-row active" onclick="toggleSectionDisplay('src', 'artists')"><span class="kebab-check">✓</span><span class="kebab-row-label"><span data-i18n="btn_display_pic_source">Pic Source</span></span></button>
+              <button id="toggleYtBtnsBtnArtists" class="kebab-check-row active" onclick="toggleSectionDisplay('yt-btns', 'artists')"><span class="kebab-check">✓</span><span class="kebab-row-label"><svg class="yt-btn-icon" viewBox="0 0 24 24"><path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.5 12 3.5 12 3.5s-7.5 0-9.4.5A3 3 0 0 0 .5 6.2C0 8.1 0 12 0 12s0 3.9.5 5.8a3 3 0 0 0 2.1 2.1c1.9.5 9.4.5 9.4.5s7.5 0 9.4-.5a3 3 0 0 0 2.1-2.1C24 15.9 24 12 24 12s0-3.9-.5-5.8zM9.7 15.5V8.5l6.3 3.5-6.3 3.5z"/></svg> <span data-i18n="btn_display_yt_btns">YouTube</span></span></button>
+            </div>
+            <div class="kebab-panel" data-panel="size" style="display:none">
+              <div class="chart-size-bar section-size-bar" id="sizeBarArtists">
+                <div class="size-btns" id="sizeBtnsArtistsW">
+                  <button data-size="10" class="active">Top 10</button>
+                  <button data-size="20">Top 20</button>
+                  <button data-size="25">Top 25</button>
+                  <button data-size="30">Top 30</button>
+                  <button data-size="50">Top 50</button>
+                  <button data-size="100">Top 100</button>
+                </div>
+                <div class="size-btns" id="sizeBtnsArtistsM" style="display:none">
+                  <button data-size="25">Top 25</button>
+                  <button data-size="30">Top 30</button>
+                  <button data-size="50" class="active">Top 50</button>
+                  <button data-size="100">Top 100</button>
+                </div>
+                <div class="size-btns" id="sizeBtnsArtistsY" style="display:none">
+                  <button data-size="50">Top 50</button>
+                  <button data-size="100">Top 100</button>
+                  <button data-size="200">Top 200</button>
+                  <button data-size="0" class="active" data-i18n="all_entries">All Entries</button>
+                </div>
+                <div class="size-btns" id="sizeBtnsArtistsAT" style="display:none">
+                  <button data-size="50">Top 50</button>
+                  <button data-size="100">Top 100</button>
+                  <button data-size="200">Top 200</button>
+                  <button data-size="0" class="active" data-i18n="all_entries">All Entries</button>
+                </div>
+              </div>
+            </div>
+            <div class="kebab-panel" data-panel="view" style="display:none">
+              <div class="weekly-view-bar" id="weeklyViewBtns-artists" style="display:none;">
+                <div class="weekly-view-btns">
+                  <button class="weekly-view-btn active" data-view="table"     onclick="setWeeklyChartView('table', 'artists')"><svg class="view-mode-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="1.5" y="2.5" width="13" height="11" rx="1.5"/><line x1="1.5" y1="6.5" x2="14.5" y2="6.5"/><line x1="1.5" y1="10" x2="14.5" y2="10"/></svg> Table</button>
+                  <button class="weekly-view-btn"         data-view="grid"      onclick="setWeeklyChartView('grid', 'artists')"><svg class="view-mode-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="1.5" y="1.5" width="5.5" height="5.5" rx="1"/><rect x="9" y="1.5" width="5.5" height="5.5" rx="1"/><rect x="1.5" y="9" width="5.5" height="5.5" rx="1"/><rect x="9" y="9" width="5.5" height="5.5" rx="1"/></svg> Card Grid</button>
+                  <button class="weekly-view-btn"         data-view="compact"   onclick="setWeeklyChartView('compact', 'artists')"><svg class="view-mode-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><line x1="1.5" y1="2.5" x2="14.5" y2="2.5"/><line x1="1.5" y1="6.2" x2="14.5" y2="6.2"/><line x1="1.5" y1="9.9" x2="14.5" y2="9.9"/><line x1="1.5" y1="13.5" x2="14.5" y2="13.5"/></svg> Compact</button>
+                  <button class="weekly-view-btn"         data-view="mosaic"    onclick="setWeeklyChartView('mosaic', 'artists')"><svg class="view-mode-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="1.5" y="1.5" width="7" height="7" rx="1"/><rect x="9.5" y="1.5" width="5" height="4.5" rx="1"/><rect x="9.5" y="7" width="5" height="7.5" rx="1"/><rect x="1.5" y="9.5" width="7" height="5" rx="1"/></svg> Mosaic</button>
+                  <button class="weekly-view-btn"         data-view="filmstrip" onclick="setWeeklyChartView('filmstrip', 'artists')"><svg class="view-mode-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="1" y="3.5" width="14" height="9" rx="1"/><line x1="5" y1="3.5" x2="5" y2="12.5"/><line x1="8.3" y1="3.5" x2="8.3" y2="12.5"/><line x1="11.6" y1="3.5" x2="11.6" y2="12.5"/></svg> Filmstrip</button>
+                  <button class="weekly-view-btn"         data-view="stack"     onclick="setWeeklyChartView('stack', 'artists')"><svg class="view-mode-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="3.5" y="1.5" width="9" height="5" rx="1"/><rect x="2" y="5.5" width="12" height="5" rx="1"/><rect x="1" y="9.5" width="14" height="5" rx="1"/></svg> Stack</button>
+                  <button class="weekly-view-btn stk-2col-btn" onclick="toggleStkTwoCol()" title="Toggle 2-column layout" style="display:none">⊞ 2 Col</button>
+                </div>
+              </div>
+            </div>
+            <div class="kebab-panel" data-panel="export" style="display:none">
+              <button id="artistsShareBtn" class="ig-share-btn section-share-btn" data-i18n-title="tooltip_share_image" onclick="openIgPreviewModal('artists')" data-i18n="btn_share_image" style="display:none">📷 SHARE AS IMAGE</button>
+              <div class="chart-export-bar" id="artistsExportBarTop">
+                <button class="chart-export-btn" onclick="exportChartData('artists','txt')">⬇ TXT</button>
+                <button class="chart-export-btn" onclick="exportChartData('artists','csv')">⬇ CSV</button>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
       <div class="section-sub" data-i18n="sub_artists">By total play count across all songs</div>
-      <!-- Artist display controls — independent from songs/albums -->
-      <div class="section-controls" id="artistsControls">
-        <!-- Action buttons: left side (empty for artists — share is on the right) -->
-        <div class="controls-actions"></div>
-        <!-- Spacer pushes display toggles to the right -->
-        <span class="controls-spacer"></span>
-        <!-- Display toggles: right side -->
-        <div class="controls-toggles">
-          <button id="toggleCertBtnArtists" class="display-toggle-btn active" onclick="toggleSectionDisplay('cert', 'artists')" data-i18n="btn_display_cert">🏅 CERT BADGES</button>
-          <button id="togglePlaysPeakBtnArtists" class="display-toggle-btn active" onclick="toggleSectionDisplay('plays-peak', 'artists')" data-i18n="btn_display_plays_peak">📈 PLAYS PEAK</button>
-          <button id="togglePeakTagsBtnArtists" class="display-toggle-btn active" onclick="toggleSectionDisplay('peak-tags', 'artists')" data-i18n="btn_display_peak_tags">🏷️ PEAK TAGS</button>
-          <button id="srcToggleBtnArtists" class="display-toggle-btn active" onclick="toggleSectionDisplay('src', 'artists')" title="Show/hide photo source buttons" data-i18n="btn_display_pic_source">🖼️ PIC SOURCE</button>
-          <button id="toggleYtBtnsBtnArtists" class="display-toggle-btn active yt-toggle-btn" onclick="toggleSectionDisplay('yt-btns', 'artists')" title="Show/hide YouTube play buttons"><span class="yt-toggle-content"><svg class="yt-btn-icon" viewBox="0 0 24 24"><path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.5 12 3.5 12 3.5s-7.5 0-9.4.5A3 3 0 0 0 .5 6.2C0 8.1 0 12 0 12s0 3.9.5 5.8a3 3 0 0 0 2.1 2.1c1.9.5 9.4.5 9.4.5s7.5 0 9.4-.5a3 3 0 0 0 2.1-2.1C24 15.9 24 12 24 12s0-3.9-.5-5.8zM9.7 15.5V8.5l6.3 3.5-6.3 3.5z"/></svg><span data-i18n="btn_display_yt_btns">YOUTUBE</span></span></button>
-          <!-- Share as image — on the right for artists -->
-          <button id="artistsShareBtn" class="ig-share-btn section-share-btn" data-i18n-title="tooltip_share_image" onclick="openIgPreviewModal('artists')" data-i18n="btn_share_image" style="display:none">📷 SHARE AS IMAGE</button>
-        </div>
-      </div>
-      <!-- Artists chart size — independent from songs/albums, remembered per period -->
-      <div class="chart-size-bar section-size-bar" id="sizeBarArtists">
-        <label>SIZE:</label>
-        <div class="size-btns" id="sizeBtnsArtistsW">
-          <button data-size="10" class="active">Top 10</button>
-          <button data-size="20">Top 20</button>
-          <button data-size="25">Top 25</button>
-          <button data-size="30">Top 30</button>
-          <button data-size="50">Top 50</button>
-          <button data-size="100">Top 100</button>
-        </div>
-        <div class="size-btns" id="sizeBtnsArtistsM" style="display:none">
-          <button data-size="25">Top 25</button>
-          <button data-size="30">Top 30</button>
-          <button data-size="50" class="active">Top 50</button>
-          <button data-size="100">Top 100</button>
-        </div>
-        <div class="size-btns" id="sizeBtnsArtistsY" style="display:none">
-          <button data-size="50">Top 50</button>
-          <button data-size="100">Top 100</button>
-          <button data-size="200">Top 200</button>
-          <button data-size="0" class="active" data-i18n="all_entries">All Entries</button>
-        </div>
-        <div class="size-btns" id="sizeBtnsArtistsAT" style="display:none">
-          <button data-size="50">Top 50</button>
-          <button data-size="100">Top 100</button>
-          <button data-size="200">Top 200</button>
-          <button data-size="0" class="active" data-i18n="all_entries">All Entries</button>
-        </div>
-      </div>
-      <div class="weekly-view-bar" id="weeklyViewBtns-artists" style="display:none;">
-        <label class="weekly-view-label">VIEW:</label>
-        <div class="weekly-view-btns">
-          <button class="weekly-view-btn active" data-view="table"     onclick="setWeeklyChartView('table', 'artists')">Table</button>
-          <button class="weekly-view-btn"         data-view="grid"      onclick="setWeeklyChartView('grid', 'artists')">Card Grid</button>
-          <button class="weekly-view-btn"         data-view="compact"   onclick="setWeeklyChartView('compact', 'artists')">Compact</button>
-          <button class="weekly-view-btn"         data-view="mosaic"    onclick="setWeeklyChartView('mosaic', 'artists')">Mosaic</button>
-          <button class="weekly-view-btn"         data-view="filmstrip" onclick="setWeeklyChartView('filmstrip', 'artists')">Filmstrip</button>
-          <button class="weekly-view-btn"         data-view="stack"     onclick="setWeeklyChartView('stack', 'artists')">Stack</button>
-          <button class="weekly-view-btn stk-2col-btn" onclick="toggleStkTwoCol()" title="Toggle 2-column layout" style="display:none">⊞ 2 Col</button>
-        </div>
-      </div>
       <div class="paginated-search" id="artistsSearch">
         <input type="text" id="artistsSearchInput" placeholder="Search artists…" oninput="applySearch('artists')"
           data-i18n-placeholder="search_artists_placeholder" />
         <span class="search-count" id="artistsSearchCount"></span>
         <button class="search-clear" onclick="clearSearch('artists')" data-i18n-title="tooltip_clear">✕</button>
-      </div>
-      <div class="chart-export-bar" id="artistsExportBarTop">
-        <span>EXPORT:</span>
-        <button class="chart-export-btn" onclick="exportChartData('artists','txt')">⬇ TXT</button>
-        <button class="chart-export-btn" onclick="exportChartData('artists','csv')">⬇ CSV</button>
       </div>
       <div class="section-body">
         <table class="chart-table" id="artistsTable">
@@ -699,77 +707,82 @@
         <span class="section-collapsed-label" data-i18n="collapsed_hint">collapsed — click + to expand</span>
         <div class="section-rule"></div>
         <button class="section-replay-btn" id="albumsReplayBtn" onclick="replayChartAnimation('albums')" title="Animate chart — show rank changes from previous period" style="display:none">▶ Animate Chart</button>
+        <!-- Chart options — kebab menu: Show on Chart / Size / View / Export -->
+        <div class="kebab-menu-wrap">
+          <button class="kebab-menu-btn" onclick="toggleKebabMenu(this)" title="Chart options" aria-label="Chart options" aria-haspopup="true">⋮</button>
+          <div class="kebab-menu">
+            <div class="kebab-tabs">
+              <button class="kebab-tab active" data-tab="show" onclick="switchKebabTab(this, 'show')">Show</button>
+              <button class="kebab-tab" data-tab="size" onclick="switchKebabTab(this, 'size')">Size</button>
+              <button class="kebab-tab" data-tab="view" onclick="switchKebabTab(this, 'view')">View</button>
+              <button class="kebab-tab" data-tab="export" onclick="switchKebabTab(this, 'export')">Actions</button>
+            </div>
+            <div class="kebab-panel" data-panel="show">
+              <button id="toggleCertBtnAlbums" class="kebab-check-row active" onclick="toggleSectionDisplay('cert', 'albums')"><span class="kebab-check">✓</span><span class="kebab-row-label"><span data-i18n="btn_display_cert">Cert Badges</span></span></button>
+              <button id="togglePlaysPeakBtnAlbums" class="kebab-check-row active" onclick="toggleSectionDisplay('plays-peak', 'albums')"><span class="kebab-check">✓</span><span class="kebab-row-label"><span data-i18n="btn_display_plays_peak">Plays Peak</span></span></button>
+              <button id="togglePeakTagsBtnAlbums" class="kebab-check-row active" onclick="toggleSectionDisplay('peak-tags', 'albums')"><span class="kebab-check">✓</span><span class="kebab-row-label"><span data-i18n="btn_display_peak_tags">Peak Tags</span></span></button>
+              <button id="srcToggleBtnAlbums" class="kebab-check-row active" onclick="toggleSectionDisplay('src', 'albums')"><span class="kebab-check">✓</span><span class="kebab-row-label"><span data-i18n="btn_display_pic_source">Pic Source</span></span></button>
+              <button id="toggleYtBtnsBtnAlbums" class="kebab-check-row active" onclick="toggleSectionDisplay('yt-btns', 'albums')"><span class="kebab-check">✓</span><span class="kebab-row-label"><svg class="yt-btn-icon" viewBox="0 0 24 24"><path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.5 12 3.5 12 3.5s-7.5 0-9.4.5A3 3 0 0 0 .5 6.2C0 8.1 0 12 0 12s0 3.9.5 5.8a3 3 0 0 0 2.1 2.1c1.9.5 9.4.5 9.4.5s7.5 0 9.4-.5a3 3 0 0 0 2.1-2.1C24 15.9 24 12 24 12s0-3.9-.5-5.8zM9.7 15.5V8.5l6.3 3.5-6.3 3.5z"/></svg> <span data-i18n="btn_display_yt_btns">YouTube</span></span></button>
+            </div>
+            <div class="kebab-panel" data-panel="size" style="display:none">
+              <div class="chart-size-bar section-size-bar" id="sizeBarAlbums">
+                <div class="size-btns" id="sizeBtnsAlbumsW">
+                  <button data-size="10" class="active">Top 10</button>
+                  <button data-size="20">Top 20</button>
+                  <button data-size="25">Top 25</button>
+                  <button data-size="30">Top 30</button>
+                  <button data-size="50">Top 50</button>
+                  <button data-size="100">Top 100</button>
+                </div>
+                <div class="size-btns" id="sizeBtnsAlbumsM" style="display:none">
+                  <button data-size="25">Top 25</button>
+                  <button data-size="30">Top 30</button>
+                  <button data-size="50" class="active">Top 50</button>
+                  <button data-size="100">Top 100</button>
+                </div>
+                <div class="size-btns" id="sizeBtnsAlbumsY" style="display:none">
+                  <button data-size="50">Top 50</button>
+                  <button data-size="100">Top 100</button>
+                  <button data-size="200">Top 200</button>
+                  <button data-size="0" class="active" data-i18n="all_entries">All Entries</button>
+                </div>
+                <div class="size-btns" id="sizeBtnsAlbumsAT" style="display:none">
+                  <button data-size="50">Top 50</button>
+                  <button data-size="100">Top 100</button>
+                  <button data-size="200">Top 200</button>
+                  <button data-size="0" class="active" data-i18n="all_entries">All Entries</button>
+                </div>
+              </div>
+            </div>
+            <div class="kebab-panel" data-panel="view" style="display:none">
+              <div class="weekly-view-bar" id="weeklyViewBtns-albums" style="display:none;">
+                <div class="weekly-view-btns">
+                  <button class="weekly-view-btn active" data-view="table"     onclick="setWeeklyChartView('table', 'albums')"><svg class="view-mode-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="1.5" y="2.5" width="13" height="11" rx="1.5"/><line x1="1.5" y1="6.5" x2="14.5" y2="6.5"/><line x1="1.5" y1="10" x2="14.5" y2="10"/></svg> Table</button>
+                  <button class="weekly-view-btn"         data-view="grid"      onclick="setWeeklyChartView('grid', 'albums')"><svg class="view-mode-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="1.5" y="1.5" width="5.5" height="5.5" rx="1"/><rect x="9" y="1.5" width="5.5" height="5.5" rx="1"/><rect x="1.5" y="9" width="5.5" height="5.5" rx="1"/><rect x="9" y="9" width="5.5" height="5.5" rx="1"/></svg> Card Grid</button>
+                  <button class="weekly-view-btn"         data-view="compact"   onclick="setWeeklyChartView('compact', 'albums')"><svg class="view-mode-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><line x1="1.5" y1="2.5" x2="14.5" y2="2.5"/><line x1="1.5" y1="6.2" x2="14.5" y2="6.2"/><line x1="1.5" y1="9.9" x2="14.5" y2="9.9"/><line x1="1.5" y1="13.5" x2="14.5" y2="13.5"/></svg> Compact</button>
+                  <button class="weekly-view-btn"         data-view="mosaic"    onclick="setWeeklyChartView('mosaic', 'albums')"><svg class="view-mode-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="1.5" y="1.5" width="7" height="7" rx="1"/><rect x="9.5" y="1.5" width="5" height="4.5" rx="1"/><rect x="9.5" y="7" width="5" height="7.5" rx="1"/><rect x="1.5" y="9.5" width="7" height="5" rx="1"/></svg> Mosaic</button>
+                  <button class="weekly-view-btn"         data-view="filmstrip" onclick="setWeeklyChartView('filmstrip', 'albums')"><svg class="view-mode-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="1" y="3.5" width="14" height="9" rx="1"/><line x1="5" y1="3.5" x2="5" y2="12.5"/><line x1="8.3" y1="3.5" x2="8.3" y2="12.5"/><line x1="11.6" y1="3.5" x2="11.6" y2="12.5"/></svg> Filmstrip</button>
+                  <button class="weekly-view-btn"         data-view="stack"     onclick="setWeeklyChartView('stack', 'albums')"><svg class="view-mode-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="3.5" y="1.5" width="9" height="5" rx="1"/><rect x="2" y="5.5" width="12" height="5" rx="1"/><rect x="1" y="9.5" width="14" height="5" rx="1"/></svg> Stack</button>
+                  <button class="weekly-view-btn stk-2col-btn" onclick="toggleStkTwoCol()" title="Toggle 2-column layout" style="display:none">⊞ 2 Col</button>
+                </div>
+              </div>
+            </div>
+            <div class="kebab-panel" data-panel="export" style="display:none">
+              <button id="albumsShareBtn" class="ig-share-btn section-share-btn" data-i18n-title="tooltip_share_image" onclick="openIgPreviewModal('albums')" data-i18n="btn_share_image" style="display:none">📷 SHARE AS IMAGE</button>
+              <div class="chart-export-bar" id="albumsExportBarTop">
+                <button class="chart-export-btn" onclick="exportChartData('albums','txt')">⬇ TXT</button>
+                <button class="chart-export-btn" onclick="exportChartData('albums','csv')">⬇ CSV</button>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
       <div class="section-sub" data-i18n="sub_albums">By total play count across all tracks</div>
-      <!-- Album display controls — independent from songs/artists -->
-      <div class="section-controls" id="albumsControls">
-        <!-- Action buttons: left side (empty for albums — share is on the right) -->
-        <div class="controls-actions"></div>
-        <!-- Spacer pushes display toggles to the right -->
-        <span class="controls-spacer"></span>
-        <!-- Display toggles: right side -->
-        <div class="controls-toggles">
-          <button id="toggleCertBtnAlbums" class="display-toggle-btn active" onclick="toggleSectionDisplay('cert', 'albums')" data-i18n="btn_display_cert">🏅 CERT BADGES</button>
-          <button id="togglePlaysPeakBtnAlbums" class="display-toggle-btn active" onclick="toggleSectionDisplay('plays-peak', 'albums')" data-i18n="btn_display_plays_peak">📈 PLAYS PEAK</button>
-          <button id="togglePeakTagsBtnAlbums" class="display-toggle-btn active" onclick="toggleSectionDisplay('peak-tags', 'albums')" data-i18n="btn_display_peak_tags">🏷️ PEAK TAGS</button>
-          <button id="srcToggleBtnAlbums" class="display-toggle-btn active" onclick="toggleSectionDisplay('src', 'albums')" title="Show/hide photo source buttons" data-i18n="btn_display_pic_source">🖼️ PIC SOURCE</button>
-          <button id="toggleYtBtnsBtnAlbums" class="display-toggle-btn active yt-toggle-btn" onclick="toggleSectionDisplay('yt-btns', 'albums')" title="Show/hide YouTube play buttons"><span class="yt-toggle-content"><svg class="yt-btn-icon" viewBox="0 0 24 24"><path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.5 12 3.5 12 3.5s-7.5 0-9.4.5A3 3 0 0 0 .5 6.2C0 8.1 0 12 0 12s0 3.9.5 5.8a3 3 0 0 0 2.1 2.1c1.9.5 9.4.5 9.4.5s7.5 0 9.4-.5a3 3 0 0 0 2.1-2.1C24 15.9 24 12 24 12s0-3.9-.5-5.8zM9.7 15.5V8.5l6.3 3.5-6.3 3.5z"/></svg><span data-i18n="btn_display_yt_btns">YOUTUBE</span></span></button>
-          <!-- Share as image — on the right for albums -->
-          <button id="albumsShareBtn" class="ig-share-btn section-share-btn" data-i18n-title="tooltip_share_image" onclick="openIgPreviewModal('albums')" data-i18n="btn_share_image" style="display:none">📷 SHARE AS IMAGE</button>
-        </div>
-      </div>
-      <!-- Albums chart size — independent from songs/artists, remembered per period -->
-      <div class="chart-size-bar section-size-bar" id="sizeBarAlbums">
-        <label>SIZE:</label>
-        <div class="size-btns" id="sizeBtnsAlbumsW">
-          <button data-size="10" class="active">Top 10</button>
-          <button data-size="20">Top 20</button>
-          <button data-size="25">Top 25</button>
-          <button data-size="30">Top 30</button>
-          <button data-size="50">Top 50</button>
-          <button data-size="100">Top 100</button>
-        </div>
-        <div class="size-btns" id="sizeBtnsAlbumsM" style="display:none">
-          <button data-size="25">Top 25</button>
-          <button data-size="30">Top 30</button>
-          <button data-size="50" class="active">Top 50</button>
-          <button data-size="100">Top 100</button>
-        </div>
-        <div class="size-btns" id="sizeBtnsAlbumsY" style="display:none">
-          <button data-size="50">Top 50</button>
-          <button data-size="100">Top 100</button>
-          <button data-size="200">Top 200</button>
-          <button data-size="0" class="active" data-i18n="all_entries">All Entries</button>
-        </div>
-        <div class="size-btns" id="sizeBtnsAlbumsAT" style="display:none">
-          <button data-size="50">Top 50</button>
-          <button data-size="100">Top 100</button>
-          <button data-size="200">Top 200</button>
-          <button data-size="0" class="active" data-i18n="all_entries">All Entries</button>
-        </div>
-      </div>
-      <div class="weekly-view-bar" id="weeklyViewBtns-albums" style="display:none;">
-        <label class="weekly-view-label">VIEW:</label>
-        <div class="weekly-view-btns">
-          <button class="weekly-view-btn active" data-view="table"     onclick="setWeeklyChartView('table', 'albums')">Table</button>
-          <button class="weekly-view-btn"         data-view="grid"      onclick="setWeeklyChartView('grid', 'albums')">Card Grid</button>
-          <button class="weekly-view-btn"         data-view="compact"   onclick="setWeeklyChartView('compact', 'albums')">Compact</button>
-          <button class="weekly-view-btn"         data-view="mosaic"    onclick="setWeeklyChartView('mosaic', 'albums')">Mosaic</button>
-          <button class="weekly-view-btn"         data-view="filmstrip" onclick="setWeeklyChartView('filmstrip', 'albums')">Filmstrip</button>
-          <button class="weekly-view-btn"         data-view="stack"     onclick="setWeeklyChartView('stack', 'albums')">Stack</button>
-          <button class="weekly-view-btn stk-2col-btn" onclick="toggleStkTwoCol()" title="Toggle 2-column layout" style="display:none">⊞ 2 Col</button>
-        </div>
-      </div>
       <div class="paginated-search" id="albumsSearch">
         <input type="text" id="albumsSearchInput" placeholder="Search albums or artists…"
           oninput="applySearch('albums')" data-i18n-placeholder="search_albums_placeholder" />
         <span class="search-count" id="albumsSearchCount"></span>
         <button class="search-clear" onclick="clearSearch('albums')" data-i18n-title="tooltip_clear">✕</button>
-      </div>
-      <div class="chart-export-bar" id="albumsExportBarTop">
-        <span>EXPORT:</span>
-        <button class="chart-export-btn" onclick="exportChartData('albums','txt')">⬇ TXT</button>
-        <button class="chart-export-btn" onclick="exportChartData('albums','csv')">⬇ CSV</button>
       </div>
       <div class="section-body">
         <table class="chart-table" id="albumsTable">

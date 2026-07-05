@@ -158,7 +158,6 @@ const SECTION_TOGGLE_CONFIG = {
     'src':        { btnId: 'srcToggleBtn',               bodyClass: 'songs-hide-src-btns' }
   },
   artists: {
-    'cert':       { btnId: 'toggleCertBtnArtists',      bodyClass: 'artists-hide-cert' },
     'plays-peak': { btnId: 'togglePlaysPeakBtnArtists', bodyClass: 'artists-hide-plays-peak' },
     'peak-tags':  { btnId: 'togglePeakTagsBtnArtists',  bodyClass: 'artists-hide-peak-tags' },
     'yt-btns':    { btnId: 'toggleYtBtnsBtnArtists',    bodyClass: 'artists-hide-yt-btns' },
@@ -217,6 +216,56 @@ function toggleSectionDisplay(type, section) {
   document.body.classList.toggle(cfg.bodyClass, nowVisible);
   try { localStorage.setItem('dc_sectionDisplayToggles', JSON.stringify(sectionToggleState)); } catch(e) {}
   if (typeof dcSaveUserConfig === 'function') dcSaveUserConfig();
+}
+
+// Opens/closes the kebab "chart options" menu (Show on Chart / Size / View /
+// Export tabs). The tabs' contents are the same elements/IDs the rest of the
+// app already drives (toggleSectionDisplay, _bindSectionSizeBar's delegated
+// [data-size] handler, setWeeklyChartView, exportChartData, openExportModal,
+// openIgPreviewModal) — this only manages which panel is visible.
+function toggleKebabMenu(btn) {
+  const menu = btn.nextElementSibling;
+  if (!menu || !menu.classList.contains('kebab-menu')) return;
+  const opening = !menu.classList.contains('open');
+
+  // Only one kebab menu open at a time across the page
+  document.querySelectorAll('.kebab-menu.open').forEach(m => {
+    if (m !== menu) { m.classList.remove('open'); m._launcherBtn?.classList.remove('open'); }
+  });
+
+  menu.classList.toggle('open', opening);
+  btn.classList.toggle('open', opening);
+  menu._launcherBtn = btn;
+
+  if (opening) {
+    // Land on whichever tab the user last used, remembered across sections
+    const lastTab = localStorage.getItem('dc_kebab_tab') || 'show';
+    const tabBtn = menu.querySelector(`.kebab-tab[data-tab="${lastTab}"]`) || menu.querySelector('.kebab-tab');
+    if (tabBtn) switchKebabTab(tabBtn, tabBtn.dataset.tab);
+
+    const closeMenu = () => {
+      menu.classList.remove('open');
+      btn.classList.remove('open');
+      document.removeEventListener('mousedown', onOutsideClick, true);
+      document.removeEventListener('keydown', onEscape, true);
+    };
+    const onOutsideClick = e => { if (!menu.contains(e.target) && e.target !== btn) closeMenu(); };
+    const onEscape = e => { if (e.key === 'Escape') closeMenu(); };
+    setTimeout(() => {
+      document.addEventListener('mousedown', onOutsideClick, true);
+      document.addEventListener('keydown', onEscape, true);
+    }, 0);
+  }
+}
+
+// Switches the active tab within one kebab menu and remembers the choice
+// (globally, not per-section) so the menu reopens on the same tab next time.
+function switchKebabTab(tabBtn, tabName) {
+  const menu = tabBtn.closest('.kebab-menu');
+  if (!menu) return;
+  menu.querySelectorAll('.kebab-tab').forEach(b => b.classList.toggle('active', b.dataset.tab === tabName));
+  menu.querySelectorAll('.kebab-panel').forEach(p => { p.style.display = p.dataset.panel === tabName ? 'flex' : 'none'; });
+  try { localStorage.setItem('dc_kebab_tab', tabName); } catch(e) {}
 }
 
 initSectionDisplayToggles();
@@ -5676,6 +5725,16 @@ function renderAll() {
   ['songs','artists','albums'].forEach(tp => {
     const bar = document.getElementById('weeklyViewBtns-' + tp);
     if (bar) bar.style.display = _isWeek ? 'flex' : 'none';
+    // The View tab only has content during the weekly period — hide the tab
+    // itself rather than let the kebab menu open onto an empty panel.
+    const viewTab = document.querySelector(`#${tp}Section .kebab-tab[data-tab="view"]`);
+    if (viewTab) {
+      viewTab.style.display = _isWeek ? '' : 'none';
+      if (!_isWeek && viewTab.classList.contains('active')) {
+        const showTab = viewTab.closest('.kebab-menu')?.querySelector('.kebab-tab[data-tab="show"]');
+        if (showTab) switchKebabTab(showTab, 'show');
+      }
+    }
     if (!_isWeek) {
       const alt = document.getElementById('weeklyAltView-' + tp);
       if (alt) { alt.style.display = 'none'; alt.innerHTML = ''; }
