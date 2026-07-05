@@ -20832,7 +20832,7 @@ function openStreakModal() {
   fameCandidates.sort((a, b) => b.len - a.len);
   const hallOfFame = fameCandidates.slice(0, 10);
   const activeKeys = new Set([...activeSongs, ...activeArtists, ...activeAlbums, ...atRisk].map(it => it.key));
-  const graveyard = fameCandidates.filter(it => !activeKeys.has(it.key)).slice(0, 25);
+  const graveyardAll = fameCandidates.filter(it => !activeKeys.has(it.key));
 
   // ── Weekly digest ─────────────────────────────────────────────────
   const allAR = [...activeSongs, ...activeArtists, ...activeAlbums, ...atRisk];
@@ -20963,14 +20963,36 @@ function openStreakModal() {
     section(t('streak_section_lost'), lost, 'lost', 'lost') +
     hofSection();
 
-  const graveyardHtml = graveyard.length
-    ? `<div class="sk-grave-hdr">All-time ended streaks (≥ 7 days)</div>` + graveyard.map(it => itemHtml(it, 'fame')).join('')
-    : `<div class="streak-empty" style="padding:1.2rem 1.4rem">No ended streaks ≥ 7 days yet.</div>`;
+  // ── Graveyard pagination ──────────────────────────────────────────
+  const GRAVE_PAGE_SIZE = 25;
+  let gravePage = 0;
+  function renderGraveyard() {
+    const totalPages = Math.max(1, Math.ceil(graveyardAll.length / GRAVE_PAGE_SIZE));
+    gravePage = Math.max(0, Math.min(gravePage, totalPages - 1));
+    const start = gravePage * GRAVE_PAGE_SIZE;
+    const pageItems = graveyardAll.slice(start, start + GRAVE_PAGE_SIZE);
+    const listHtml = graveyardAll.length
+      ? `<div class="sk-grave-hdr">All-time ended streaks (≥ 7 days)</div>` + pageItems.map(it => itemHtml(it, 'fame')).join('')
+      : `<div class="streak-empty" style="padding:1.2rem 1.4rem">No ended streaks ≥ 7 days yet.</div>`;
+    const pagerHtml = graveyardAll.length > GRAVE_PAGE_SIZE
+      ? `<div class="page-nav sk-grave-nav">` +
+          `<button class="page-nav-first" onclick="_skGraveGoToPage(0)"${gravePage === 0 ? ' disabled' : ''} title="First page">|◄</button>` +
+          `<button class="page-nav-prev" onclick="_skGraveGoToPage(${gravePage - 1})"${gravePage === 0 ? ' disabled' : ''}>◄ PREV</button>` +
+          `<span>#${start + 1}–${Math.min(start + GRAVE_PAGE_SIZE, graveyardAll.length)} of ${graveyardAll.length}</span>` +
+          `<button class="page-nav-next" onclick="_skGraveGoToPage(${gravePage + 1})"${gravePage >= totalPages - 1 ? ' disabled' : ''}>NEXT ►</button>` +
+          `<button class="page-nav-last" onclick="_skGraveGoToPage(${totalPages - 1})"${gravePage >= totalPages - 1 ? ' disabled' : ''} title="Last page">►|</button>` +
+        `</div>`
+      : '';
+    const el = document.getElementById('skTabGraveyard');
+    if (el) el.innerHTML = listHtml + pagerHtml;
+  }
+  window._skGraveGoToPage = function(page) { gravePage = page; renderGraveyard(); };
 
   document.getElementById('streakModalBody').innerHTML =
     `<div id="skTabStreaks" class="sk-tab-pane">${streaksHtml}</div>` +
     `<div id="skTabHeatmap" class="sk-tab-pane" style="display:none"></div>` +
-    `<div id="skTabGraveyard" class="sk-tab-pane" style="display:none">${graveyardHtml}</div>`;
+    `<div id="skTabGraveyard" class="sk-tab-pane" style="display:none"></div>`;
+  renderGraveyard();
 
   // restore last-used range, validating it's a known year or keyword
   const _skHmValidYrs = new Set(Object.keys(_skHmCount).map(d => d.slice(0, 4)));

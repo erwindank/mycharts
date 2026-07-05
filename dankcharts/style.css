@@ -13805,6 +13805,11 @@ body[class*="-light"] .tm-card-search:hover {
   text-transform: uppercase;
   padding: 0.8rem 1.4rem 0.3rem;
 }
+.sk-grave-nav {
+  border-top: 1px solid var(--border);
+  border-radius: 8px;
+  margin: 0.75rem 1.4rem 1rem;
+}
 .sk-tab-pane > .streak-item { padding: 0.26rem 1.4rem; }
 
 /* ── Calendar strip tooltip ── */
