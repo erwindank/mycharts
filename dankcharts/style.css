@@ -11494,7 +11494,13 @@ body.purple .landing-card-config input:focus {
 .yt-play-btn.yt-btn-playing .yt-btn-content::before { content: '●'; font-size: 0.55em; margin-right: 0.1em; line-height: 1; }
 body.songs-hide-yt-btns   #songsSection   .yt-play-btn,
 body.artists-hide-yt-btns #artistsSection .yt-play-btn,
-body.albums-hide-yt-btns  #albumsSection  .yt-play-btn { display: none; }
+body.albums-hide-yt-btns  #albumsSection  .yt-play-btn,
+body.songs-hide-yt-btns   #buSongsSection   .yt-play-btn,
+body.artists-hide-yt-btns #buArtistsSection .yt-play-btn,
+body.albums-hide-yt-btns  #buAlbumsSection  .yt-play-btn,
+body.songs-hide-yt-btns   #newSongsSection   .yt-play-btn,
+body.artists-hide-yt-btns #newArtistsSection .yt-play-btn,
+body.albums-hide-yt-btns  #newAlbumsSection  .yt-play-btn { display: none; }
 
 /* ── Sleep timer panel ── */
 .yt-sleep-panel {
