@@ -960,9 +960,8 @@ async function autoCorrectEntries(plays, writeUrl) {
     });
     const data = await res.json();
     if (data.status !== 'error' && data.updated > 0) {
-      const statusEl = document.getElementById('syncStatus');
-      const prevMsg = statusEl.textContent;
-      const prevCls = statusEl.className;
+      const prevMsg = _lastSyncStatusMsg;
+      const prevCls = _lastSyncStatusCls;
       setSyncStatus(`✓ Auto-corrected ${data.updated} entr${data.updated === 1 ? 'y' : 'ies'} in sheet.`, 'ok');
       const dismissBtn = document.getElementById('syncDismissBtn');
       dismissBtn.style.display = '';
@@ -1191,9 +1190,8 @@ async function saveEditLocally() {
     saveAutocorrectRule(orig.artist, orig.title, orig.album, f.artist, f.title, newAlbum);
     if (choice === 'run') {
       applyRuleToSheet(orig.artist, orig.title, orig.album, f.artist, f.title, newAlbum).then(r => {
-        const syncStatusEl = document.getElementById('syncStatus');
-        const prevMsg = syncStatusEl ? syncStatusEl.textContent : '';
-        const prevCls = syncStatusEl ? syncStatusEl.className : '';
+        const prevMsg = _lastSyncStatusMsg;
+        const prevCls = _lastSyncStatusCls;
         if (!r.error) {
           setSyncStatus(`✓ Applied rule: corrected ${r.updated} entr${r.updated === 1 ? 'y' : 'ies'} in sheet.`, 'ok');
           const dismissBtn = document.getElementById('syncDismissBtn');
@@ -1858,10 +1856,79 @@ async function deleteFromIDB(key) {
   } catch (e) { /* ignore */ }
 }
 
+// Remembers the last rendered play count (digits only) so the odometer
+// knows which direction/distance to roll when the count changes.
+let _prevSyncCountDigits = null;
+
+// Raw (msg, cls) most recently passed to setSyncStatus. The odometer markup
+// makes #syncStatus.textContent unreliable (it concatenates every stacked
+// digit in every reel), so callers that need to snapshot/restore the status
+// (e.g. the auto-correct dismiss button) must read these instead.
+let _lastSyncStatusMsg = '';
+let _lastSyncStatusCls = '';
+
 function setSyncStatus(msg, cls) {
   const el = document.getElementById('syncStatus');
-  el.textContent = msg;
   el.className = cls || '';
+  _lastSyncStatusMsg = msg;
+  _lastSyncStatusCls = cls || '';
+  // sync_ok / sync_ok_cached wrap the play count in ⟦…⟧ (see translations.js) —
+  // split on that marker so the count can render as an animated digit reel
+  // while everything else stays a plain text node (no innerHTML of msg, which
+  // may contain interpolated filenames).
+  const m = /^([\s\S]*)⟦([\d.,\s]+)⟧([\s\S]*)$/.exec(msg);
+  if (!m) { el.textContent = msg; _prevSyncCountDigits = null; return; }
+  el.textContent = '';
+  el.appendChild(document.createTextNode(m[1]));
+  el.appendChild(buildSyncCountOdometer(m[2]));
+  el.appendChild(document.createTextNode(m[3]));
+}
+
+// Renders a play-count string (e.g. "200,998") as a cassette-counter style
+// digit odometer, rolling each changed digit from its previous value.
+function buildSyncCountOdometer(numStr) {
+  const digits = numStr.replace(/\D/g, '');
+  let prev = _prevSyncCountDigits;
+  let animate = true;
+  if (prev === null) prev = '0'.repeat(digits.length); // first paint: count up from 0
+  else if (prev.length > digits.length) { animate = false; prev = digits; } // count shrank — no reel
+  else if (prev.length < digits.length) prev = prev.padStart(digits.length, '0'); // gained a digit
+
+  const wrap = document.createElement('span');
+  wrap.className = 'sync-count';
+  let di = 0;
+  for (const ch of numStr) {
+    if (ch >= '0' && ch <= '9') {
+      const digit = document.createElement('span');
+      digit.className = 'odo-digit';
+      const strip = document.createElement('span');
+      strip.className = 'odo-strip';
+      strip.style.setProperty('--val', prev[di]);
+      for (let d = 0; d <= 9; d++) {
+        const row = document.createElement('span');
+        row.className = 'odo-num';
+        row.textContent = d;
+        strip.appendChild(row);
+      }
+      digit.appendChild(strip);
+      wrap.appendChild(digit);
+      di++;
+    } else {
+      const sep = document.createElement('span');
+      sep.className = 'odo-sep';
+      sep.textContent = ch;
+      wrap.appendChild(sep);
+    }
+  }
+  _prevSyncCountDigits = digits;
+  if (animate) {
+    // Force the initial --val to paint before animating to the target,
+    // otherwise the browser may coalesce both style changes into one frame.
+    requestAnimationFrame(() => {
+      wrap.querySelectorAll('.odo-strip').forEach((strip, i) => strip.style.setProperty('--val', digits[i]));
+    });
+  }
+  return wrap;
 }
 
 function getSheetUrlFallback() {

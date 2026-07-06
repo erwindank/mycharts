@@ -1619,6 +1619,43 @@
       color: var(--amber);
     }
 
+    /* Cassette-counter digit odometer for the sync bar play count (see setSyncStatus) */
+    .sync-count {
+      display: inline-flex;
+      align-items: baseline;
+    }
+
+    .odo-digit {
+      position: relative;
+      display: inline-block;
+      overflow: hidden;
+      width: 1ch; /* font-mono is monospace, so 1ch matches every digit glyph */
+      height: 1em;
+      line-height: 1em;
+    }
+
+    .odo-strip {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      transform: translateY(calc(var(--val, 0) * -10%));
+      transition: transform 520ms cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .odo-num {
+      display: block;
+      height: 1em;
+      line-height: 1em;
+      text-align: center;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .odo-strip {
+        transition: none;
+      }
+    }
+
     #syncDismissBtn {
       background: none;
       border: none;

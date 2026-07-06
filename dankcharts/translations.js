@@ -98,8 +98,8 @@ const TRANSLATIONS = {
     // Sync bar
     sync_connecting: '⟳ Connecting to Google Sheets...',
     sync_now: '<span class="btn-icon">↺</span> SYNC NOW',
-    sync_ok: '✓ Synced · {{time}}  ({{n}} plays loaded)',
-    sync_ok_cached: '✓ Synced · {{time}}  ({{n}} plays loaded) · cached {{mins}}m ago',
+    sync_ok: '✓ Synced · {{time}}  (⟦{{n}}⟧ plays loaded)',
+    sync_ok_cached: '✓ Synced · {{time}}  (⟦{{n}}⟧ plays loaded) · cached {{mins}}m ago',
     sync_failed: '✕ Sync failed — check sheet is public · {{error}}',
     sync_empty: '✕ Sheet appears empty or has only a header row.',
     sync_missing_cols: '✕ Could not find required columns (Song Title, Artist, Date and Time) in sheet.',
@@ -1134,8 +1134,8 @@ const TRANSLATIONS = {
     // Sync bar
     sync_connecting: '⟳ Conectando con Google Sheets...',
     sync_now: '<span class="btn-icon">↺</span> SINCRONIZAR',
-    sync_ok: '✓ Sincronizado · {{time}}  ({{n}} reproducciones cargadas)',
-    sync_ok_cached: '✓ Sincronizado · {{time}}  ({{n}} reproducciones cargadas) · caché hace {{mins}}m',
+    sync_ok: '✓ Sincronizado · {{time}}  (⟦{{n}}⟧ reproducciones cargadas)',
+    sync_ok_cached: '✓ Sincronizado · {{time}}  (⟦{{n}}⟧ reproducciones cargadas) · caché hace {{mins}}m',
     sync_failed: '✕ Error de sincronización — verifica que la hoja sea pública · {{error}}',
     sync_empty: '✕ La hoja parece vacía o solo tiene una fila de encabezado.',
     sync_missing_cols: '✕ No se encontraron las columnas requeridas (Título de canción, Artista, Fecha y hora) en la hoja.',
@@ -2170,8 +2170,8 @@ const TRANSLATIONS = {
     // Sync bar
     sync_connecting: '⟳ Conectando ao Google Sheets...',
     sync_now: '<span class="btn-icon">↺</span> SINCRONIZAR',
-    sync_ok: '✓ Sincronizado · {{time}}  ({{n}} reproduções carregadas)',
-    sync_ok_cached: '✓ Sincronizado · {{time}}  ({{n}} reproduções carregadas) · cache há {{mins}}m',
+    sync_ok: '✓ Sincronizado · {{time}}  (⟦{{n}}⟧ reproduções carregadas)',
+    sync_ok_cached: '✓ Sincronizado · {{time}}  (⟦{{n}}⟧ reproduções carregadas) · cache há {{mins}}m',
     sync_failed: '✕ Falha na sincronização — verifique se a planilha é pública · {{error}}',
     sync_empty: '✕ A planilha parece vazia ou só tem uma linha de cabeçalho.',
     sync_missing_cols: '✕ Não foi possível encontrar as colunas obrigatórias (Título da música, Artista, Data e Hora) na planilha.',
@@ -3206,8 +3206,8 @@ const TRANSLATIONS = {
     // Sync bar
     sync_connecting: '⟳ A ligar ao Google Sheets...',
     sync_now: '<span class="btn-icon">↺</span> SINCRONIZAR',
-    sync_ok: '✓ Sincronizado · {{time}}  ({{n}} reproduções carregadas)',
-    sync_ok_cached: '✓ Sincronizado · {{time}}  ({{n}} reproduções carregadas) · cache há {{mins}}m',
+    sync_ok: '✓ Sincronizado · {{time}}  (⟦{{n}}⟧ reproduções carregadas)',
+    sync_ok_cached: '✓ Sincronizado · {{time}}  (⟦{{n}}⟧ reproduções carregadas) · cache há {{mins}}m',
     sync_failed: '✕ Falha na sincronização — verifique se a folha é pública · {{error}}',
     sync_empty: '✕ A folha parece vazia ou só tem uma linha de cabeçalho.',
     sync_missing_cols: '✕ Não foi possível encontrar as colunas obrigatórias (Título da música, Artista, Data e Hora) na folha.',
