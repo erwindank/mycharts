@@ -328,9 +328,15 @@
       <span class="nav-hint-swipe"><span class="swipe-arrow swipe-arrow-left">◀</span> <span data-i18n="nav_hint_swipe">swipe to navigate</span> <span class="swipe-arrow swipe-arrow-right">▶</span></span>
     </div>
 
-    <div class="stats-strip" id="statsStrip"></div>
-    <div class="stats-strip stats-strip2" id="statsStrip2" style="display:none"></div>
-    <div class="stats-strip stats-strip3" id="statsStrip3" style="display:none"></div>
+    <!-- Wrapper exists purely so mobile CSS can collapse the three strips
+         (display:contents) into one shared grid and reorder cards with
+         `order` — desktop is untouched since the wrapper has no layout
+         rules of its own outside the mobile breakpoint. -->
+    <div class="stats-strips-wrap">
+      <div class="stats-strip" id="statsStrip"></div>
+      <div class="stats-strip stats-strip2" id="statsStrip2" style="display:none"></div>
+      <div class="stats-strip stats-strip3" id="statsStrip3" style="display:none"></div>
+    </div>
 
     <!-- TIME MACHINE -->
     <div class="chart-section" id="timeMachineSection" style="display:none;">

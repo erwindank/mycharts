@@ -8329,15 +8329,41 @@
         border-radius: 0;
       }
 
-      /* Stats: 2×2 grid on mobile — minmax(0,1fr) lets cards shrink below
-         their content's intrinsic width so the grid never overflows 375px */
-      .stats-strip {
+      /* Stats: 2×2 grid on mobile. The three .stats-strip containers
+         (statsStrip/2/3) are collapsed with display:contents so their cards
+         become direct children of .stats-strips-wrap — one real grid, so
+         `order` below can freely mix cards from different strips into
+         paired rows. Desktop never sees this: it's all inside this
+         mobile-only media query, and the wrapper has no rules outside it. */
+      .stats-strips-wrap {
+        display: grid;
         grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-        gap: 8px;
+        gap: 14px;
+      }
+      .stats-strip,
+      .stats-strip2,
+      .stats-strip3 {
+        display: contents;
       }
       .stat-box {
         min-width: 0;
       }
+
+      /* Pairing: each core stat sits beside its related new/best counterpart.
+         Cards not covered here (should never happen — every stat-box has a
+         data-cat) fall back to source order via the default `order: 0`. */
+      .stat-box[data-cat="plays"]       { order: 1; }
+      .stat-box[data-cat="bestday"]     { order: 2; }
+      .stat-box[data-cat="songs"]       { order: 3; }
+      .stat-box[data-cat="new-songs"]   { order: 4; }
+      .stat-box[data-cat="artists"]     { order: 5; }
+      .stat-box[data-cat="new-artists"] { order: 6; }
+      .stat-box[data-cat="albums"]      { order: 7; }
+      .stat-box[data-cat="new-albums"]  { order: 8; }
+      .stat-box[data-cat="sotm"]        { order: 9; }
+      .stat-box[data-cat="rising"]      { order: 10; }
+      .stat-box[data-cat="aotm"]        { order: 11; }
+      .stat-box[data-cat="albumotm"]    { order: 12; }
 
       /* Tinted new-entries panel: tighter symmetric padding on phones */
       .new-entries-section {
