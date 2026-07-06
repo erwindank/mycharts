@@ -4580,6 +4580,35 @@ document.addEventListener('click', e => {
   syncCollapseAllBtn();
 });
 
+// Sliding active-tab indicator (feature 5) — glides the shared .nav-indicator
+// bar to whichever button is .active, rather than each button owning its own
+// underline. Driven by a MutationObserver instead of hooking every place that
+// toggles .active (there are several scattered through this file), so it
+// stays correct even as tab-switching logic changes elsewhere.
+let _navIndicatorRaf = null;
+function scheduleNavIndicatorUpdate() {
+  if (_navIndicatorRaf) return;
+  _navIndicatorRaf = requestAnimationFrame(() => {
+    _navIndicatorRaf = null;
+    document.querySelectorAll('.period-nav-row').forEach(row => {
+      const indicator = row.querySelector(':scope > .nav-indicator');
+      if (!indicator) return;
+      const btn = row.querySelector(':scope > button.active');
+      if (!btn) { indicator.style.setProperty('--nav-ind-w', '0px'); return; }
+      indicator.style.setProperty('--nav-ind-x', btn.offsetLeft + 'px');
+      indicator.style.setProperty('--nav-ind-w', btn.offsetWidth + 'px');
+    });
+  });
+}
+new MutationObserver(scheduleNavIndicatorUpdate).observe(document.getElementById('periodNav'), {
+  attributes: true, attributeFilter: ['class'], subtree: true
+});
+// #mainApp is display:none until data loads, so the initial call below measures
+// 0-width buttons — a ResizeObserver re-fires once periodNav actually gets real
+// layout (mainApp reveal, window resize, row2 expand/collapse, nav-shrunk, etc).
+new ResizeObserver(scheduleNavIndicatorUpdate).observe(document.getElementById('periodNav'));
+scheduleNavIndicatorUpdate(); // best-effort position on load, corrected by the observer above
+
 document.getElementById('periodNav').addEventListener('click', e => {
   const btn = e.target.closest('button[data-period]');
   if (!btn) return;
