@@ -14363,13 +14363,15 @@ async function fetchReleasesForMBID(mbid) {
   } catch (e) { return []; }
 }
 
-function _releasePlaceholderDiv(artist) {
+function _releasePlaceholderDiv(artist, extraClass) {
   const words = (artist || '').replace(/^The\s+/i, '').split(/\s+/).filter(Boolean);
   const initials = words.slice(0, 2).map(w => w[0].toUpperCase()).join('');
   const colors = ['#0d2137', '#1a1040', '#0d2e1f', '#2b1a0d', '#0d1e2b', '#1f0d0d'];
   const hash = (artist || '').split('').reduce((a, c) => a + c.charCodeAt(0), 0);
   const div = document.createElement('div');
-  div.className = 'upcoming-card-placeholder';
+  // extraClass carries the original thumb's sizing class (e.g. ev-tbl-thumb) so the
+  // fallback box matches the real image's dimensions instead of the default card size
+  div.className = extraClass ? `upcoming-card-placeholder ${extraClass}` : 'upcoming-card-placeholder';
   div.style.background = colors[hash % colors.length];
   div.textContent = initials;
   return div;
@@ -14383,9 +14385,9 @@ function releaseImgFallback(img) {
   const title = img.dataset.title || '';
   const sources = (img.dataset.sources || '').split(',').filter(Boolean);
   const card = img.closest('.upcoming-card, .ev-carousel-card');
-  const imgClass = img.className || 'upcoming-card-img';
+  const imgClass = (img.className || 'upcoming-card-img').replace('upcoming-card-img-pending', '').trim();
   img.onerror = null;
-  showReleasePlaceholder(img); // immediate visual — replaces img with initials div
+  showReleasePlaceholder(img, imgClass); // immediate visual — replaces img with initials div
   if (sources.length && card) _tryReleaseImgAsync(card, artist, title, sources, imgClass);
 }
 

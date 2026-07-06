@@ -4903,6 +4903,14 @@
       display: block;
       background: var(--surface);
     }
+    /* Initials fallback in table rows must match the thumb's fixed size, not the card's oversized square */
+    .ev-tbl-thumb.upcoming-card-placeholder {
+      width: 34px;
+      height: 34px;
+      aspect-ratio: unset;
+      margin: 0;
+      font-size: 0.55rem;
+    }
     .ev-tbl-link { color: var(--accent); text-decoration: none; font-weight: 500; font-size: 0.82rem; }
     .ev-tbl-link:hover { text-decoration: underline; }
     .ev-tbl-artist { color: var(--text2); font-size: 0.75rem; }
@@ -4961,6 +4969,12 @@
       display: block;
       background: var(--bg3);
       flex-shrink: 0;
+    }
+    /* Initials fallback in carousel cards: card has no gutter, so undo the tile card's negative margin */
+    .ev-carousel-img.upcoming-card-placeholder {
+      margin: 0;
+      border-radius: 0;
+      font-size: 1.3rem;
     }
     .ev-carousel-date {
       font-family: var(--font-mono);
