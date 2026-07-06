@@ -2529,6 +2529,10 @@
     /* Per-section cert badge visibility — artists never render cert badges */
     body.songs-hide-cert  #songsSection  .cert,
     body.albums-hide-cert #albumsSection .cert { display: none !important; }
+    /* Per-section Bubbling Under legend visibility */
+    body.songs-hide-bu-legend   #buSongsSection   .bu-legend,
+    body.artists-hide-bu-legend #buArtistsSection .bu-legend,
+    body.albums-hide-bu-legend  #buAlbumsSection  .bu-legend { display: none !important; }
     /* Per-section plays/peak badge visibility */
     body.songs-hide-plays-peak   #songsSection   .plays-peak-badge,
     body.artists-hide-plays-peak #artistsSection .plays-peak-badge,
@@ -7978,6 +7982,44 @@
         position: fixed;
         top: 0.5rem;
         right: 0.5rem;
+        /* Higher than .sticky-nav-bar's z-index:50 (below) so this stack
+           always renders on top of the pinned date-nav bar instead of being
+           visually clipped by it once both occupy the top of the viewport
+           at the same time (i.e. once the user scrolls past the masthead). */
+        z-index: 60;
+        /* Drives the idle-hidden fade below; the JS in app.js
+           (MASTHEAD CONTROLS AUTO-HIDE) toggles the .idle-hidden class. */
+        transition: opacity 0.3s ease, transform 0.3s ease;
+      }
+
+      /* Applied by app.js after ~3s with no scroll activity on mobile, and
+         removed the instant the user scrolls again (or opens one of the
+         theme/day/language panels) — mirrors the #backToTop button's
+         show-on-scroll behavior so these controls don't permanently cover
+         content while the user is just reading. pointer-events:none while
+         hidden so a finger resting near the corner can't accidentally tap
+         a fully-transparent button. */
+      .theme-toggle.idle-hidden {
+        opacity: 0;
+        transform: translateY(-0.5rem);
+        pointer-events: none;
+      }
+
+      /* Once the date nav pins to the top (#stickyNavBar gets .is-stuck via
+         the IntersectionObserver in app.js), it shares the same screen real
+         estate as the fixed theme/day/language stack above — without this,
+         "Next" and the date-range dropdown render directly underneath the
+         circular buttons. Reserve room on the right so they never overlap.
+         Padding is added symmetrically (left AND right, not just the right)
+         because .date-nav is a 3-item `justify-content: space-between` flex
+         row (Prev | label | Next): shrinking only the right side pulls the
+         middle label off-center to the left, since space-between splits the
+         freed-up space into two equal gaps either side of it. Matching
+         padding on both sides keeps those two gaps equal, so the label
+         stays visually centered while both edges get equal breathing room. */
+      .sticky-nav-bar.is-stuck .date-nav {
+        padding-left: 3.25rem;
+        padding-right: 3.25rem;
       }
 
       .ctrl-group-btn {

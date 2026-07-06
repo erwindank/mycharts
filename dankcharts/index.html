@@ -19,7 +19,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-  <link rel="stylesheet" href="style.css?v=3">
+  <link rel="stylesheet" href="style.css?v=5">
   <script src="translations.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8/hammer.min.js"></script>
@@ -383,6 +383,7 @@
               <button id="togglePeakTagsBtn" class="kebab-check-row active" onclick="toggleSectionDisplay('peak-tags', 'songs')"><span class="kebab-check">✓</span><span class="kebab-row-label"><span data-i18n="btn_display_peak_tags">Peak Tags</span></span></button>
               <button id="srcToggleBtn" class="kebab-check-row active" onclick="toggleSectionDisplay('src', 'songs')"><span class="kebab-check">✓</span><span class="kebab-row-label"><span data-i18n="btn_display_pic_source">Pic Source</span></span></button>
               <button id="toggleYtBtnsBtn" class="kebab-check-row active" onclick="toggleSectionDisplay('yt-btns', 'songs')"><span class="kebab-check">✓</span><span class="kebab-row-label"><svg class="yt-btn-icon" viewBox="0 0 24 24"><path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.5 12 3.5 12 3.5s-7.5 0-9.4.5A3 3 0 0 0 .5 6.2C0 8.1 0 12 0 12s0 3.9.5 5.8a3 3 0 0 0 2.1 2.1c1.9.5 9.4.5 9.4.5s7.5 0 9.4-.5a3 3 0 0 0 2.1-2.1C24 15.9 24 12 24 12s0-3.9-.5-5.8zM9.7 15.5V8.5l6.3 3.5-6.3 3.5z"/></svg> <span data-i18n="btn_display_yt_btns">YouTube</span></span></button>
+              <button id="toggleBuLegendBtn" class="kebab-check-row active" onclick="toggleSectionDisplay('bu-legend', 'songs')"><span class="kebab-check">✓</span><span class="kebab-row-label"><span data-i18n="btn_display_bu_legend">BU Legend</span></span></button>
             </div>
             <div class="kebab-panel" data-panel="size" style="display:none">
               <div class="chart-size-bar section-size-bar" id="sizeBarSongs">
@@ -555,6 +556,7 @@
               <button id="togglePeakTagsBtnArtists" class="kebab-check-row active" onclick="toggleSectionDisplay('peak-tags', 'artists')"><span class="kebab-check">✓</span><span class="kebab-row-label"><span data-i18n="btn_display_peak_tags">Peak Tags</span></span></button>
               <button id="srcToggleBtnArtists" class="kebab-check-row active" onclick="toggleSectionDisplay('src', 'artists')"><span class="kebab-check">✓</span><span class="kebab-row-label"><span data-i18n="btn_display_pic_source">Pic Source</span></span></button>
               <button id="toggleYtBtnsBtnArtists" class="kebab-check-row active" onclick="toggleSectionDisplay('yt-btns', 'artists')"><span class="kebab-check">✓</span><span class="kebab-row-label"><svg class="yt-btn-icon" viewBox="0 0 24 24"><path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.5 12 3.5 12 3.5s-7.5 0-9.4.5A3 3 0 0 0 .5 6.2C0 8.1 0 12 0 12s0 3.9.5 5.8a3 3 0 0 0 2.1 2.1c1.9.5 9.4.5 9.4.5s7.5 0 9.4-.5a3 3 0 0 0 2.1-2.1C24 15.9 24 12 24 12s0-3.9-.5-5.8zM9.7 15.5V8.5l6.3 3.5-6.3 3.5z"/></svg> <span data-i18n="btn_display_yt_btns">YouTube</span></span></button>
+              <button id="toggleBuLegendBtnArtists" class="kebab-check-row active" onclick="toggleSectionDisplay('bu-legend', 'artists')"><span class="kebab-check">✓</span><span class="kebab-row-label"><span data-i18n="btn_display_bu_legend">BU Legend</span></span></button>
             </div>
             <div class="kebab-panel" data-panel="size" style="display:none">
               <div class="chart-size-bar section-size-bar" id="sizeBarArtists">
@@ -723,6 +725,7 @@
               <button id="togglePeakTagsBtnAlbums" class="kebab-check-row active" onclick="toggleSectionDisplay('peak-tags', 'albums')"><span class="kebab-check">✓</span><span class="kebab-row-label"><span data-i18n="btn_display_peak_tags">Peak Tags</span></span></button>
               <button id="srcToggleBtnAlbums" class="kebab-check-row active" onclick="toggleSectionDisplay('src', 'albums')"><span class="kebab-check">✓</span><span class="kebab-row-label"><span data-i18n="btn_display_pic_source">Pic Source</span></span></button>
               <button id="toggleYtBtnsBtnAlbums" class="kebab-check-row active" onclick="toggleSectionDisplay('yt-btns', 'albums')"><span class="kebab-check">✓</span><span class="kebab-row-label"><svg class="yt-btn-icon" viewBox="0 0 24 24"><path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.5 12 3.5 12 3.5s-7.5 0-9.4.5A3 3 0 0 0 .5 6.2C0 8.1 0 12 0 12s0 3.9.5 5.8a3 3 0 0 0 2.1 2.1c1.9.5 9.4.5 9.4.5s7.5 0 9.4-.5a3 3 0 0 0 2.1-2.1C24 15.9 24 12 24 12s0-3.9-.5-5.8zM9.7 15.5V8.5l6.3 3.5-6.3 3.5z"/></svg> <span data-i18n="btn_display_yt_btns">YouTube</span></span></button>
+              <button id="toggleBuLegendBtnAlbums" class="kebab-check-row active" onclick="toggleSectionDisplay('bu-legend', 'albums')"><span class="kebab-check">✓</span><span class="kebab-row-label"><span data-i18n="btn_display_bu_legend">BU Legend</span></span></button>
             </div>
             <div class="kebab-panel" data-panel="size" style="display:none">
               <div class="chart-size-bar section-size-bar" id="sizeBarAlbums">

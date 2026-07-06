@@ -155,27 +155,30 @@ const SECTION_TOGGLE_CONFIG = {
     'plays-peak': { btnId: 'togglePlaysPeakBtn',        bodyClass: 'songs-hide-plays-peak' },
     'peak-tags':  { btnId: 'togglePeakTagsBtn',         bodyClass: 'songs-hide-peak-tags' },
     'yt-btns':    { btnId: 'toggleYtBtnsBtn',           bodyClass: 'songs-hide-yt-btns' },
-    'src':        { btnId: 'srcToggleBtn',               bodyClass: 'songs-hide-src-btns' }
+    'src':        { btnId: 'srcToggleBtn',               bodyClass: 'songs-hide-src-btns' },
+    'bu-legend':  { btnId: 'toggleBuLegendBtn',          bodyClass: 'songs-hide-bu-legend' }
   },
   artists: {
     'plays-peak': { btnId: 'togglePlaysPeakBtnArtists', bodyClass: 'artists-hide-plays-peak' },
     'peak-tags':  { btnId: 'togglePeakTagsBtnArtists',  bodyClass: 'artists-hide-peak-tags' },
     'yt-btns':    { btnId: 'toggleYtBtnsBtnArtists',    bodyClass: 'artists-hide-yt-btns' },
-    'src':        { btnId: 'srcToggleBtnArtists',        bodyClass: 'artists-hide-src-btns' }
+    'src':        { btnId: 'srcToggleBtnArtists',        bodyClass: 'artists-hide-src-btns' },
+    'bu-legend':  { btnId: 'toggleBuLegendBtnArtists',   bodyClass: 'artists-hide-bu-legend' }
   },
   albums: {
     'cert':       { btnId: 'toggleCertBtnAlbums',       bodyClass: 'albums-hide-cert' },
     'plays-peak': { btnId: 'togglePlaysPeakBtnAlbums',  bodyClass: 'albums-hide-plays-peak' },
     'peak-tags':  { btnId: 'togglePeakTagsBtnAlbums',   bodyClass: 'albums-hide-peak-tags' },
     'yt-btns':    { btnId: 'toggleYtBtnsBtnAlbums',     bodyClass: 'albums-hide-yt-btns' },
-    'src':        { btnId: 'srcToggleBtnAlbums',         bodyClass: 'albums-hide-src-btns' }
+    'src':        { btnId: 'srcToggleBtnAlbums',         bodyClass: 'albums-hide-src-btns' },
+    'bu-legend':  { btnId: 'toggleBuLegendBtnAlbums',    bodyClass: 'albums-hide-bu-legend' }
   }
 };
 
-// Per-section state — cert/plays-peak/peak-tags/yt-btns default on; src defaults off
+// Per-section state — cert/plays-peak/peak-tags/yt-btns/bu-legend default on; src defaults off
 const sectionToggleState = (() => {
   function withDefaults(s) {
-    const d = { cert: true, 'plays-peak': true, 'peak-tags': true, 'yt-btns': true, src: false };
+    const d = { cert: true, 'plays-peak': true, 'peak-tags': true, 'yt-btns': true, src: false, 'bu-legend': true };
     return Object.assign(d, s || {});
   }
   try {
@@ -354,6 +357,12 @@ document.querySelectorAll('.ctrl-group-btn').forEach(btn => {
     const wasOpen = group.classList.contains('open');
     document.querySelectorAll('.ctrl-group.open').forEach(g => g.classList.remove('open'));
     if (!wasOpen) group.classList.add('open');
+    // Defined later in this file (MASTHEAD CONTROLS AUTO-HIDE). Guarded with
+    // typeof since this handler is wired up before that block runs, and it
+    // makes sure opening a theme/day/language panel keeps the whole fixed
+    // stack visible/un-faded even if the mobile idle-hide timer had already
+    // fired since the last scroll.
+    if (typeof window._showMastheadControls === 'function') window._showMastheadControls();
   });
 });
 document.addEventListener('click', () => {
@@ -15973,6 +15982,66 @@ window.addEventListener('scroll', () => {
 backToTopBtn.addEventListener('click', () => {
   window.scrollTo({ top: 0, behavior: 'smooth' });
 });
+
+// ── MASTHEAD CONTROLS AUTO-HIDE (mobile) ──
+// The theme/day/language button stack (.theme-toggle) is position:fixed on
+// mobile (see the max-width:700px rules in style.css) so it's always on
+// screen. That's convenient, but it also means it can sit on top of content
+// — including the sticky date-nav bar — while the user is just reading and
+// not touching anything. To fix that, we mirror the #backToTop pattern:
+// the stack fades out (.idle-hidden, defined in style.css) after a few
+// seconds of no scroll activity, and snaps back to visible the moment the
+// user scrolls again. It only applies on mobile — on desktop the buttons
+// are laid out inline in the masthead, not fixed, so there's nothing to hide.
+const mastheadControls = document.querySelector('.theme-toggle');
+if (mastheadControls) {
+  // Handle for the pending "go idle" timeout, so each new scroll event can
+  // cancel and restart the countdown (clearTimeout on an already-fired
+  // timer is a harmless no-op).
+  let controlsIdleTimer = null;
+
+  // Re-checked on every call (rather than cached once) so resizing the
+  // window across the 700px breakpoint — e.g. rotating a tablet, or a
+  // desktop user shrinking the window — is picked up automatically.
+  const isMobileControls = () => window.matchMedia('(max-width: 700px)').matches;
+
+  // Arms (or re-arms) the countdown to hide the controls. Only does
+  // anything on mobile; on desktop we just make sure no stale timer is
+  // left running from a previous narrow-viewport state.
+  const scheduleControlsHide = () => {
+    clearTimeout(controlsIdleTimer);
+    if (!isMobileControls()) return;
+    controlsIdleTimer = setTimeout(function checkIdle() {
+      // If the user has one of the theme/day/language panels open (tapped
+      // a ctrl-group-btn to expand it), hiding the whole stack out from
+      // under them mid-tap would be jarring and could strand an open
+      // panel with no way to close it visibly. Instead, keep polling every
+      // second until they close it, then hide as normal.
+      if (mastheadControls.querySelector('.ctrl-group.open')) {
+        controlsIdleTimer = setTimeout(checkIdle, 1000);
+      } else {
+        mastheadControls.classList.add('idle-hidden');
+      }
+    }, 3000);
+  };
+
+  // Reveals the controls immediately and resets the idle countdown. Called
+  // on every scroll event, on page load, and (via the global hook below)
+  // whenever a ctrl-group panel is opened — so opening a panel keeps the
+  // stack visible even if the user hasn't scrolled recently.
+  const showControls = () => {
+    mastheadControls.classList.remove('idle-hidden');
+    scheduleControlsHide();
+  };
+
+  // Exposed globally so the CTRL GROUP TOGGLE click handler (defined much
+  // earlier in this file, before this IIFE-free block runs) can call back
+  // in to keep the stack visible when a panel is opened. Same pattern as
+  // window._refreshBackToTop used elsewhere in the codebase.
+  window._showMastheadControls = showControls;
+  window.addEventListener('scroll', showControls, { passive: true });
+  showControls(); // start visible + arm the first countdown on load
+}
 
 // ─── CERTIFICATIONS WALL ────────────────────────────────────────
 const CWALL_TIER_CLASS = { gold: 'gold', platinum: 'plat', diamond: 'diamond' };
