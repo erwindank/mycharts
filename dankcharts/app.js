@@ -5774,14 +5774,16 @@ function renderTableHeaders() {
   // thumb-th / meta-col are class-based (not nth-child) because the Previous column only
   // exists in the hasPeriodStats branch, shifting later columns' position between branches.
   const thumbTh = `<th class="thumb-th" style="width:52px;"></th>`;
+  // Trailing icon-only column for the chart-run toggle button, now separate from rank-cell.
+  const crTh = `<th class="cr-th" style="width:38px;"></th>`;
   if (hasPeriodStats) {
-    document.getElementById('songsHeadRow').innerHTML = `<th>${t('th_rank')}</th>${prevTh}${thumbTh}<th>${t('th_title_artist')}</th><th class="meta-col">${t('th_album')}</th>${periodTh}<th style="text-align:right;"><span class="th-plays-full">${t('th_plays')}</span><span class="th-plays-short">${t('th_plays_mobile')}</span></th>`;
-    document.getElementById('artistsHeadRow').innerHTML = `<th>${t('th_rank')}</th>${prevTh}${thumbTh}<th>${t('th_artist')}</th><th class="meta-col">${t('th_unique_songs')}</th>${periodTh}<th style="text-align:right;"><span class="th-plays-full">${t('th_total_plays')}</span><span class="th-plays-short">${t('th_total_plays_mobile')}</span></th>`;
-    document.getElementById('albumsHeadRow').innerHTML = `<th>${t('th_rank')}</th>${prevTh}${thumbTh}<th>${t('th_album_artist')}</th><th class="meta-col">${t('th_tracks')}</th>${periodTh}<th style="text-align:right;"><span class="th-plays-full">${t('th_total_plays')}</span><span class="th-plays-short">${t('th_total_plays_mobile')}</span></th>`;
+    document.getElementById('songsHeadRow').innerHTML = `<th>${t('th_rank')}</th>${prevTh}${thumbTh}<th>${t('th_title_artist')}</th><th class="meta-col">${t('th_album')}</th>${periodTh}<th style="text-align:right;"><span class="th-plays-full">${t('th_plays')}</span><span class="th-plays-short">${t('th_plays_mobile')}</span></th>${crTh}`;
+    document.getElementById('artistsHeadRow').innerHTML = `<th>${t('th_rank')}</th>${prevTh}${thumbTh}<th>${t('th_artist')}</th><th class="meta-col">${t('th_unique_songs')}</th>${periodTh}<th style="text-align:right;"><span class="th-plays-full">${t('th_total_plays')}</span><span class="th-plays-short">${t('th_total_plays_mobile')}</span></th>${crTh}`;
+    document.getElementById('albumsHeadRow').innerHTML = `<th>${t('th_rank')}</th>${prevTh}${thumbTh}<th>${t('th_album_artist')}</th><th class="meta-col">${t('th_tracks')}</th>${periodTh}<th style="text-align:right;"><span class="th-plays-full">${t('th_total_plays')}</span><span class="th-plays-short">${t('th_total_plays_mobile')}</span></th>${crTh}`;
   } else {
-    document.getElementById('songsHeadRow').innerHTML = `<th>${t('th_rank')}</th>${thumbTh}<th>${t('th_title_artist')}</th><th class="meta-col">${t('th_album')}</th><th style="text-align:right;"><span class="th-plays-full">${t('th_plays')}</span><span class="th-plays-short">${t('th_plays_mobile')}</span></th>`;
-    document.getElementById('artistsHeadRow').innerHTML = `<th>${t('th_rank')}</th>${thumbTh}<th>${t('th_artist')}</th><th class="meta-col">${t('th_unique_songs')}</th><th style="text-align:right;"><span class="th-plays-full">${t('th_total_plays')}</span><span class="th-plays-short">${t('th_total_plays_mobile')}</span></th>`;
-    document.getElementById('albumsHeadRow').innerHTML = `<th>${t('th_rank')}</th>${thumbTh}<th>${t('th_album_artist')}</th><th class="meta-col">${t('th_tracks')}</th><th style="text-align:right;"><span class="th-plays-full">${t('th_total_plays')}</span><span class="th-plays-short">${t('th_total_plays_mobile')}</span></th>`;
+    document.getElementById('songsHeadRow').innerHTML = `<th>${t('th_rank')}</th>${thumbTh}<th>${t('th_title_artist')}</th><th class="meta-col">${t('th_album')}</th><th style="text-align:right;"><span class="th-plays-full">${t('th_plays')}</span><span class="th-plays-short">${t('th_plays_mobile')}</span></th>${crTh}`;
+    document.getElementById('artistsHeadRow').innerHTML = `<th>${t('th_rank')}</th>${thumbTh}<th>${t('th_artist')}</th><th class="meta-col">${t('th_unique_songs')}</th><th style="text-align:right;"><span class="th-plays-full">${t('th_total_plays')}</span><span class="th-plays-short">${t('th_total_plays_mobile')}</span></th>${crTh}`;
+    document.getElementById('albumsHeadRow').innerHTML = `<th>${t('th_rank')}</th>${thumbTh}<th>${t('th_album_artist')}</th><th class="meta-col">${t('th_tracks')}</th><th style="text-align:right;"><span class="th-plays-full">${t('th_total_plays')}</span><span class="th-plays-short">${t('th_total_plays_mobile')}</span></th>${crTh}`;
   }
 }
 
@@ -6234,7 +6236,7 @@ function renderAll() {
   renderTimeMachine();
 
   const hasPeriodStats = currentPeriod === 'week' || currentPeriod === 'month';
-  const colCount = hasPeriodStats ? 7 : 5;
+  const colCount = hasPeriodStats ? 8 : 6; // +1 for the trailing chart-run icon column
 
   if (plays.length === 0) {
     ['songsBody', 'artistsBody', 'albumsBody'].forEach(id => {
@@ -6400,8 +6402,11 @@ function buildPrevSortedEntries(prevPlays, type) {
 // Each row gets data-chartkey (for FLIP keying), sw-count, and sw-bar for live updates.
 function buildPrevChartHtml(prevSorted, size, colCount, type) {
   // Blank placeholder for the Previous column (sits right after rank-cell); Weeks keeps its old spot before plays.
-  const prevBlank = colCount > 5 ? '<td></td>' : '';
-  const weeksBlank = colCount > 5 ? '<td></td>' : '';
+  // Threshold is 6 now (not 5): no-monthlyStats views are 6 cols (rank/thumb/title/album/plays/cr-icon),
+  // monthlyStats views are 8 (+previous +weeks).
+  const prevBlank = colCount > 6 ? '<td></td>' : '';
+  const weeksBlank = colCount > 6 ? '<td></td>' : '';
+  const crBlank = '<td></td>'; // trailing chart-run icon column placeholder, present in every view
   const maxPrev = prevSorted[0]?.count || 1;
   return Array.from({ length: size }, (_, i) => {
     const e = prevSorted[i];
@@ -6416,7 +6421,7 @@ function buildPrevChartHtml(prevSorted, size, colCount, type) {
       <td class="thumb-cell"><div class="thumb-wrap"><div id="pwsimg-${i}"><div class="thumb-initials">${esc(initials(e.title))}</div></div></div></td>
       <td><div class="song-title">${esc(e.title)}</div><div class="song-artist">${esc(e.artist)}</div></td>
       <td class="meta-col"><div class="song-album">${esc(e.album || '—')}</div></td>
-      ${weeksBlank}${countCell}</tr>`;
+      ${weeksBlank}${countCell}${crBlank}</tr>`;
     }
     if (type === 'artists') {
       return `<tr class="chart-row-prev" data-chartkey="${esc(e.name)}">
@@ -6424,7 +6429,7 @@ function buildPrevChartHtml(prevSorted, size, colCount, type) {
       ${prevBlank}
       <td class="thumb-cell"><div class="thumb-wrap"><div id="pwaimg-${i}"><div class="thumb-initials">${esc(initials(e.name))}</div></div></div></td>
       <td><div class="song-title">${esc(e.name)}</div></td>
-      <td class="meta-col"></td>${weeksBlank}${countCell}</tr>`;
+      <td class="meta-col"></td>${weeksBlank}${countCell}${crBlank}</tr>`;
     }
     if (type === 'albums') {
       const key = e.album + '|||' + e.artist;
@@ -6433,7 +6438,7 @@ function buildPrevChartHtml(prevSorted, size, colCount, type) {
       ${prevBlank}
       <td class="thumb-cell"><div class="thumb-wrap"><div id="pwlimg-${i}"><div class="thumb-initials">${esc(initials(e.album))}</div></div></div></td>
       <td><div class="song-title">${esc(e.album)}</div><div class="song-artist">${esc(e.artist)}</div></td>
-      <td></td>${extraCols}${countCell}</tr>`;
+      <td class="meta-col"></td>${weeksBlank}${countCell}${crBlank}</tr>`;
     }
     return '';
   }).join('');
@@ -6525,8 +6530,9 @@ function runSlideWindowAnim(tbody, type, prevPlays, currPlays, onComplete) {
   }
 
   function buildNewRow(key, meta, colCount) {
-    const prevBlank = colCount > 5 ? '<td></td>' : '';
-    const weeksBlank = colCount > 5 ? '<td></td>' : '';
+    const prevBlank = colCount > 6 ? '<td></td>' : '';
+    const weeksBlank = colCount > 6 ? '<td></td>' : '';
+    const crBlank = '<td></td>'; // trailing chart-run icon column placeholder
     const countCell = `<td><div class="play-count sw-count">0</div><div class="play-bar"><div class="play-bar-fill sw-bar" style="width:0%"></div></div></td>`;
     const tr = document.createElement('tr');
     tr.className = 'chart-row-prev';
@@ -6538,19 +6544,19 @@ function runSlideWindowAnim(tbody, type, prevPlays, currPlays, onComplete) {
         <td class="thumb-cell"><div class="thumb-wrap"><div><div class="thumb-initials">${esc(initials(meta.title))}</div></div></div></td>
         <td><div class="song-title">${esc(meta.title)}</div><div class="song-artist">${esc(meta.artist)}</div></td>
         <td class="meta-col"><div class="song-album">${esc(meta.album || '—')}</div></td>
-        ${weeksBlank}${countCell}`;
+        ${weeksBlank}${countCell}${crBlank}`;
     } else if (type === 'artists') {
       tr.innerHTML = `<td class="rank-cell">—</td>
         ${prevBlank}
         <td class="thumb-cell"><div class="thumb-wrap"><div><div class="thumb-initials">${esc(initials(meta.name))}</div></div></div></td>
         <td><div class="song-title">${esc(meta.name)}</div></td>
-        <td class="meta-col"></td>${weeksBlank}${countCell}`;
+        <td class="meta-col"></td>${weeksBlank}${countCell}${crBlank}`;
     } else if (type === 'albums') {
       tr.innerHTML = `<td class="rank-cell">—</td>
         ${prevBlank}
         <td class="thumb-cell"><div class="thumb-wrap"><div><div class="thumb-initials">${esc(initials(meta.album))}</div></div></div></td>
         <td><div class="song-title">${esc(meta.album)}</div><div class="song-artist">${esc(meta.artist)}</div></td>
-        <td class="meta-col"></td>${weeksBlank}${countCell}`;
+        <td class="meta-col"></td>${weeksBlank}${countCell}${crBlank}`;
     }
     return tr;
   }
@@ -6802,22 +6808,23 @@ function renderPage(type, peaks) {
       const histMaxSong = playsPeakMaps ? (playsPeakMaps.songs[k] || 0) : 0;
       const isPlaysPeak = histMaxSong > 0 && s.count >= histMaxSong;
       const mainRow = `<tr data-songkey="${encodeURIComponent(k)}" class="${rank === 1 ? 'rank-1' : rank === 2 ? 'rank-2' : rank === 3 ? 'rank-3' : ''} song-row">
-        <td class="rank-cell">${hasCR ? `<button class="cr-toggle-btn" title="${t('tooltip_cr_toggle_btn_song')}" onclick="event.stopPropagation();toggleChartRun(this,'${rowId}')">📊</button>` : ''} ${rank}</td>
+        <td class="rank-cell">${rank}</td>
         <td class="thumb-cell"><div class="thumb-wrap"><div id="${imgId}"><div class="thumb-initials">${esc(initials(s.title))}</div></div><button id="srcbtn-${imgId}" class="img-src-btn" data-imgid="${imgId}" data-type="song" data-prefkey="${esc(prefKey)}" data-name="${esc(s.title)}" data-artist="${esc(s.artist)}" data-album="${esc(s.album)}">${srcLabel(itemSourcePrefs[prefKey] || 'deezer')}</button></div></td>
         <td>
           <div class="song-title">${esc(s.title)}${certBadge(cumSongPlays, 'song')}</div>
           <div class="song-artist">${esc(s.artist)}</div>
           <button class="yt-play-btn" data-title="${esc(s.title)}" data-artist="${esc(s.artist)}" data-album="${esc(s.album)}" onclick="event.stopPropagation();ytPlayFromBtn(this)" title="Play on YouTube"><span class="yt-btn-content"><svg class="yt-btn-icon" viewBox="0 0 24 24"><path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.5 12 3.5 12 3.5s-7.5 0-9.4.5A3 3 0 0 0 .5 6.2C0 8.1 0 12 0 12s0 3.9.5 5.8a3 3 0 0 0 2.1 2.1c1.9.5 9.4.5 9.4.5s7.5 0 9.4-.5a3 3 0 0 0 2.1-2.1C24 15.9 24 12 24 12s0-3.9-.5-5.8zM9.7 15.5V8.5l6.3 3.5-6.3 3.5z"/></svg>YouTube</span></button>
         </td>
-        <td><div class="song-album">${esc(s.album)}${cumAlbumPlays ? certBadge(cumAlbumPlays, 'album') : ''}</div></td>
+        <td class="meta-col"><div class="song-album">${esc(s.album)}${cumAlbumPlays ? certBadge(cumAlbumPlays, 'album') : ''}</div></td>
         <td>
           <div class="play-count">${tCountHtml('plays', s.count)}</div>
           <div class="play-bar"><div class="play-bar-fill" style="width:${Math.round(s.count / max * 100)}%"></div></div>
           ${isPlaysPeak ? playsPeakBadge() : ''}
         </td>
+        <td class="cr-cell">${hasCR ? `<button class="cr-toggle-btn" title="${t('tooltip_cr_toggle_btn_song')}" onclick="event.stopPropagation();toggleChartRun(this,'${rowId}')">${CR_ICON}</button>` : ''}</td>
       </tr>`;
       if (!hasCR) return [mainRow];
-      return [mainRow, `<tr class="cr-row" id="${rowId}"><td colspan="5"><div class="cr-panel" data-crtype="songs" data-crkey="${encodeURIComponent(k)}">${buildCrPanelHTML('songs', k)}</div></td></tr>`];
+      return [mainRow, `<tr class="cr-row" id="${rowId}"><td colspan="6"><div class="cr-panel" data-crtype="songs" data-crkey="${encodeURIComponent(k)}">${buildCrPanelHTML('songs', k)}</div></td></tr>`];
     }).join('');
     loadImages(imgItems.map(i => ({ ...i, name: i.title })), 'song');
     const playAllRow = document.getElementById('ytPlayAllRow');
@@ -6834,25 +6841,26 @@ function renderPage(type, peaks) {
       const histMaxArtist = playsPeakMaps ? (playsPeakMaps.artists[a.name] || 0) : 0;
       const isArtistPlaysPeak = histMaxArtist > 0 && a.count >= histMaxArtist;
       const mainRow = `<tr class="${rank === 1 ? 'rank-1' : rank === 2 ? 'rank-2' : rank === 3 ? 'rank-3' : ''} artist-row" data-artist="${esc(a.name)}">
-        <td class="rank-cell">${hasCR ? `<button class="cr-toggle-btn" title="${t('tooltip_cr_toggle_btn_artist')}" onclick="event.stopPropagation();toggleChartRun(this,'${rowId}')">📊</button>` : ''} ${rank}</td>
+        <td class="rank-cell">${rank}</td>
         <td class="thumb-cell"><div class="thumb-wrap"><div id="${imgId}"><div class="thumb-initials">${esc(initials(a.name))}</div></div><button id="srcbtn-${imgId}" class="img-src-btn" data-imgid="${imgId}" data-type="artist" data-prefkey="${esc(prefKey)}" data-name="${esc(a.name)}" data-artist="${esc(a.name)}" data-album="">${srcLabel(itemSourcePrefs[prefKey] || 'deezer')}</button></div></td>
         <td><div class="song-title">${esc(a.name)}</div><div class="song-artist" style="font-size:0.7rem;letter-spacing:0.06em;font-style:normal;font-family:var(--font-mono);color:var(--text3)">${t('click_view_profile')}</div><button class="yt-play-btn" data-title="" data-artist="${esc(a.name)}" data-album="" onclick="event.stopPropagation();buShowTrackList(this,'artists')" title="Show recently played tracks"><span class="yt-btn-content"><svg class="yt-btn-icon" viewBox="0 0 24 24"><path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.5 12 3.5 12 3.5s-7.5 0-9.4.5A3 3 0 0 0 .5 6.2C0 8.1 0 12 0 12s0 3.9.5 5.8a3 3 0 0 0 2.1 2.1c1.9.5 9.4.5 9.4.5s7.5 0 9.4-.5a3 3 0 0 0 2.1-2.1C24 15.9 24 12 24 12s0-3.9-.5-5.8zM9.7 15.5V8.5l6.3 3.5-6.3 3.5z"/></svg>YouTube</span></button></td>
-        <td><div class="song-artist">${tCount('songs', a.songs.size)}</div></td>
+        <td class="meta-col"><div class="song-artist">${tCount('songs', a.songs.size)}</div></td>
         <td>
           <div class="play-count">${tCountHtml('plays', a.count)}</div>
           <div class="play-bar"><div class="play-bar-fill" style="width:${Math.round(a.count / max * 100)}%"></div></div>
           ${isArtistPlaysPeak ? playsPeakBadge() : ''}
         </td>
+        <td class="cr-cell">${hasCR ? `<button class="cr-toggle-btn" title="${t('tooltip_cr_toggle_btn_artist')}" onclick="event.stopPropagation();toggleChartRun(this,'${rowId}')">${CR_ICON}</button>` : ''}</td>
       </tr>`;
       if (!hasCR) return [mainRow];
-      return [mainRow, `<tr class="cr-row" id="${rowId}"><td colspan="5"><div class="cr-panel" data-crtype="artists" data-crkey="${encodeURIComponent(a.name)}">${buildCrPanelHTML('artists', a.name)}</div></td></tr>`];
+      return [mainRow, `<tr class="cr-row" id="${rowId}"><td colspan="6"><div class="cr-panel" data-crtype="artists" data-crkey="${encodeURIComponent(a.name)}">${buildCrPanelHTML('artists', a.name)}</div></td></tr>`];
     }).join('');
     loadImages(imgItems, 'artist');
 
   } else if (type === 'albums') {
     const imgItems = [];
     if (slice.length === 0) {
-      document.getElementById('albumsBody').innerHTML = `<tr><td colspan="5"><div class="empty-state"><p>${t('empty_no_album_data')}</p></div></td></tr>`;
+      document.getElementById('albumsBody').innerHTML = `<tr><td colspan="6"><div class="empty-state"><p>${t('empty_no_album_data')}</p></div></td></tr>`;
     } else {
       document.getElementById('albumsBody').innerHTML = slice.flatMap((a, i) => {
         const rank = rankOf(a);
@@ -6866,7 +6874,7 @@ function renderPage(type, peaks) {
         const histMaxAlbum = playsPeakMaps ? (playsPeakMaps.albums[ak] || 0) : 0;
         const isAlbumPlaysPeak = histMaxAlbum > 0 && a.count >= histMaxAlbum;
         const mainRow = `<tr class="${rank === 1 ? 'rank-1' : rank === 2 ? 'rank-2' : rank === 3 ? 'rank-3' : ''} album-row" data-albumkey="${esc(ak)}">
-        <td class="rank-cell">${hasCR ? `<button class="cr-toggle-btn" title="${t('tooltip_cr_toggle_btn_album')}" onclick="event.stopPropagation();toggleChartRun(this,'${rowId}')">📊</button>` : ''} ${rank}</td>
+        <td class="rank-cell">${rank}</td>
         <td class="thumb-cell"><div class="thumb-wrap"><div id="${imgId}"><div class="thumb-initials">${esc(initials(a.album))}</div></div><button id="srcbtn-${imgId}" class="img-src-btn" data-imgid="${imgId}" data-type="album" data-prefkey="${esc(prefKey)}" data-name="${esc(a.album)}" data-artist="${esc(a.artist)}" data-album="${esc(a.album)}">${srcLabel(itemSourcePrefs[prefKey] || 'deezer')}</button></div></td>
         <td>
           <div class="song-title">${esc(a.album)}${certBadge(cumAlbumPlays, 'album')}</div>
@@ -6874,15 +6882,16 @@ function renderPage(type, peaks) {
           <div class="song-artist" style="font-size:0.65rem;letter-spacing:0.06em;font-style:normal;font-family:var(--font-mono);color:var(--text3)">${t('click_view_album')}</div>
           <button class="yt-play-btn" data-title="" data-artist="${esc(a.artist)}" data-album="${esc(a.album)}" onclick="event.stopPropagation();buShowTrackList(this,'albums')" title="Show recently played tracks"><span class="yt-btn-content"><svg class="yt-btn-icon" viewBox="0 0 24 24"><path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.5 12 3.5 12 3.5s-7.5 0-9.4.5A3 3 0 0 0 .5 6.2C0 8.1 0 12 0 12s0 3.9.5 5.8a3 3 0 0 0 2.1 2.1c1.9.5 9.4.5 9.4.5s7.5 0 9.4-.5a3 3 0 0 0 2.1-2.1C24 15.9 24 12 24 12s0-3.9-.5-5.8zM9.7 15.5V8.5l6.3 3.5-6.3 3.5z"/></svg>YouTube</span></button>
         </td>
-        <td><div class="song-artist">${tCount('tracks', a.tracks.size)}</div></td>
+        <td class="meta-col"><div class="song-artist">${tCount('tracks', a.tracks.size)}</div></td>
         <td>
           <div class="play-count">${tCountHtml('plays', a.count)}</div>
           <div class="play-bar"><div class="play-bar-fill" style="width:${Math.round(a.count / max * 100)}%"></div></div>
           ${isAlbumPlaysPeak ? playsPeakBadge() : ''}
         </td>
+        <td class="cr-cell">${hasCR ? `<button class="cr-toggle-btn" title="${t('tooltip_cr_toggle_btn_album')}" onclick="event.stopPropagation();toggleChartRun(this,'${rowId}')">${CR_ICON}</button>` : ''}</td>
       </tr>`;
         if (!hasCR) return [mainRow];
-        return [mainRow, `<tr class="cr-row" id="${rowId}"><td colspan="5"><div class="cr-panel" data-crtype="albums" data-crkey="${encodeURIComponent(ak)}">${buildCrPanelHTML('albums', ak)}</div></td></tr>`];
+        return [mainRow, `<tr class="cr-row" id="${rowId}"><td colspan="6"><div class="cr-panel" data-crtype="albums" data-crkey="${encodeURIComponent(ak)}">${buildCrPanelHTML('albums', ak)}</div></td></tr>`];
       }).join('');
     }
     loadImages(imgItems, 'album');
@@ -8325,6 +8334,10 @@ function peakBadge(peak) {
   return `<span class="peak-badge">${peakLabel} #${peak}</span>`;
 }
 
+// Line-icon for chart-run toggle buttons — replaces the old 📊 emoji so it reads as
+// a UI control rather than a colorful pictograph; three ascending bars = "stats/history".
+const CR_ICON = '<svg class="cr-icon" viewBox="0 0 16 16" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><path d="M3 13V9"/><path d="M8 13V5"/><path d="M13 13V7"/></svg>';
+
 function renderSongs(plays, peaks, monthlyStats) {
   const counts = {};
   for (const p of plays) {
@@ -8360,7 +8373,7 @@ function renderSongs(plays, peaks, monthlyStats) {
     _weeklyViewPeaks = peaks; _weeklyViewMonthlyStats = monthlyStats;
   }
   const isAllTime = currentPeriod === 'alltime';
-  const colCount = monthlyStats ? 7 : 5;
+  const colCount = monthlyStats ? 8 : 6; // +1 for the trailing chart-run icon column
   const imgItems = [];
   const _prevMapSongs = buildPrevRankMap(_animPrevPlays, 'songs');
   const _animSongs = _animPrevPlays !== null;
@@ -8385,7 +8398,7 @@ function renderSongs(plays, peaks, monthlyStats) {
     const _songModalClass = (isAllTime || currentPeriod === 'year') ? ' song-row' : '';
     const _songModalAttr = (isAllTime || currentPeriod === 'year') ? ` data-songkey="${encodeURIComponent(k)}"` : '';
     const mainRow = `<tr${_animAttrsS}${_songModalAttr} class="${i === 0 ? 'rank-1' : i === 1 ? 'rank-2' : i === 2 ? 'rank-3' : ''}${_animClassS}${_songModalClass}${statusCls}">
-      <td class="rank-cell"><button class="cr-toggle-btn" title="${t('tooltip_cr_toggle_btn_song')}" onclick="event.stopPropagation();toggleChartRun(this,'${rowId}')">📊</button>${i + 1}</td>
+      <td class="rank-cell">${i + 1}</td>
       ${monthlyStats ? mPrevCell(i + 1, k, 'songs', monthlyStats) : ''}
       <td class="thumb-cell"><div class="thumb-wrap"><div id="${imgId}"><div class="thumb-initials">${esc(initials(s.title))}</div></div><button id="srcbtn-${imgId}" class="img-src-btn" data-imgid="${imgId}" data-type="song" data-prefkey="${esc(prefKey)}" data-name="${esc(s.title)}" data-artist="${esc(s.artist)}" data-album="${esc(s.album)}">${srcLabel(itemSourcePrefs[prefKey] || 'deezer')}</button></div></td>
       <td>
@@ -8400,6 +8413,7 @@ function renderSongs(plays, peaks, monthlyStats) {
         <div class="play-bar"><div class="play-bar-fill${barCls}" style="width:${Math.round(s.count / max * 100)}%"></div></div>
         ${isPlaysPeak ? playsPeakBadge() : ''}
       </td>
+      <td class="cr-cell"><button class="cr-toggle-btn" title="${t('tooltip_cr_toggle_btn_song')}" onclick="event.stopPropagation();toggleChartRun(this,'${rowId}')">${CR_ICON}</button></td>
     </tr>`;
     const expandRow = `<tr class="cr-row" id="${rowId}"><td colspan="${colCount}"><div class="cr-panel" data-crtype="songs" data-crkey="${encodeURIComponent(k)}">${buildCrPanelHTML('songs', k)}</div></td></tr>`;
     return [mainRow, expandRow];
@@ -8482,7 +8496,7 @@ function renderArtists(plays, peaks, monthlyStats) {
   const max = sorted[0]?.[1].count || 1;
   if (currentPeriod === 'week') { _weeklyViewArtists = fullData.artists; _weeklyViewArtistsMax = max; }
   const isAllTime = currentPeriod === 'alltime';
-  const colCount = monthlyStats ? 7 : 5;
+  const colCount = monthlyStats ? 8 : 6; // +1 for the trailing chart-run icon column
   const imgItems = [];
   const _prevMapArtists = buildPrevRankMap(_animPrevPlays, 'artists');
   const _animArtists = _animPrevPlays !== null;
@@ -8502,7 +8516,7 @@ function renderArtists(plays, peaks, monthlyStats) {
     const _animAttrsA = _animArtists ? ` style="--crsi-offset:${_crsiOffsetA}px;--crsi-delay:${i * 50}ms"` : '';
     const _animClassA = _animArtists ? ' chart-row-anim' : '';
     const mainRow = `<tr${_animAttrsA} class="${i === 0 ? 'rank-1' : i === 1 ? 'rank-2' : i === 2 ? 'rank-3' : ''}${_animClassA} artist-row${statusCls}" data-artist="${esc(artist)}">
-      <td class="rank-cell"><button class="cr-toggle-btn" title="${t('tooltip_cr_toggle_btn_artist')}" onclick="event.stopPropagation();toggleChartRun(this,'${rowId}')">📊</button>${i + 1}</td>
+      <td class="rank-cell">${i + 1}</td>
       ${monthlyStats ? mPrevCell(i + 1, artist, 'artists', monthlyStats) : ''}
       <td class="thumb-cell"><div class="thumb-wrap"><div id="${imgId}"><div class="thumb-initials">${esc(initials(artist))}</div></div><button id="srcbtn-${imgId}" class="img-src-btn" data-imgid="${imgId}" data-type="artist" data-prefkey="${esc(prefKey)}" data-name="${esc(artist)}" data-artist="${esc(artist)}" data-album="">${srcLabel(itemSourcePrefs[prefKey] || 'deezer')}</button></div></td>
       <td><div class="song-title">${esc(artist)}${pk ? peakBadge(pk) : ''}</div><div class="song-artist" style="font-size:0.7rem;letter-spacing:0.06em;font-style:normal;font-family:var(--font-mono);color:var(--text3)">${t('click_view_profile')}</div><button class="yt-play-btn" data-title="" data-artist="${esc(artist)}" data-album="" onclick="event.stopPropagation();buShowTrackList(this,'artists')" title="Show recently played tracks"><span class="yt-btn-content"><svg class="yt-btn-icon" viewBox="0 0 24 24"><path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.5 12 3.5 12 3.5s-7.5 0-9.4.5A3 3 0 0 0 .5 6.2C0 8.1 0 12 0 12s0 3.9.5 5.8a3 3 0 0 0 2.1 2.1c1.9.5 9.4.5 9.4.5s7.5 0 9.4-.5a3 3 0 0 0 2.1-2.1C24 15.9 24 12 24 12s0-3.9-.5-5.8zM9.7 15.5V8.5l6.3 3.5-6.3 3.5z"/></svg>YouTube</span></button></td>
@@ -8512,6 +8526,7 @@ function renderArtists(plays, peaks, monthlyStats) {
         <div class="play-count">${isPlaysPeak ? playsPeakBadge() : ''}${tCountHtml('plays', data.count)}${monthlyStats ? deltaInline(data.count, artist, 'artists', monthlyStats) : ''}</div>
         <div class="play-bar"><div class="play-bar-fill${barCls}" style="width:${Math.round(data.count / max * 100)}%"></div></div>
       </td>
+      <td class="cr-cell"><button class="cr-toggle-btn" title="${t('tooltip_cr_toggle_btn_artist')}" onclick="event.stopPropagation();toggleChartRun(this,'${rowId}')">${CR_ICON}</button></td>
     </tr>`;
     const expandRow = `<tr class="cr-row" id="${rowId}"><td colspan="${colCount}"><div class="cr-panel" data-crtype="artists" data-crkey="${encodeURIComponent(artist)}">${buildCrPanelHTML('artists', artist)}</div></td></tr>`;
     return [mainRow, expandRow];
@@ -8591,7 +8606,7 @@ function renderAlbums(plays, peaks, monthlyStats) {
   const max = sorted[0]?.count || 1;
   if (currentPeriod === 'week') { _weeklyViewAlbums = fullData.albums; _weeklyViewAlbumsMax = max; }
   const isAllTime = currentPeriod === 'alltime';
-  const colCount = monthlyStats ? 7 : 5;
+  const colCount = monthlyStats ? 8 : 6; // +1 for the trailing chart-run icon column
   const imgItems = [];
   const _prevMapAlbums = buildPrevRankMap(_animPrevPlays, 'albums');
   const _animAlbums = _animPrevPlays !== null;
@@ -8616,7 +8631,7 @@ function renderAlbums(plays, peaks, monthlyStats) {
       const _animAttrsL = _animAlbums ? ` style="--crsi-offset:${_crsiOffsetL}px;--crsi-delay:${i * 50}ms"` : '';
       const _animClassL = _animAlbums ? ' chart-row-anim' : '';
       const mainRow = `<tr${_animAttrsL} class="${i === 0 ? 'rank-1' : i === 1 ? 'rank-2' : i === 2 ? 'rank-3' : ''}${_animClassL} album-row${statusCls}" data-albumkey="${esc(ak)}">
-      <td class="rank-cell"><button class="cr-toggle-btn" title="${t('tooltip_cr_toggle_btn_album')}" onclick="event.stopPropagation();toggleChartRun(this,'${rowId}')">📊</button>${i + 1}</td>
+      <td class="rank-cell">${i + 1}</td>
       ${monthlyStats ? mPrevCell(i + 1, ak, 'albums', monthlyStats) : ''}
       <td class="thumb-cell"><div class="thumb-wrap"><div id="${imgId}"><div class="thumb-initials">${esc(initials(album))}</div></div><button id="srcbtn-${imgId}" class="img-src-btn" data-imgid="${imgId}" data-type="album" data-prefkey="${esc(prefKey)}" data-name="${esc(album)}" data-artist="${esc(artist)}" data-album="${esc(album)}">${srcLabel(itemSourcePrefs[prefKey] || 'deezer')}</button></div></td>
       <td>
@@ -8631,6 +8646,7 @@ function renderAlbums(plays, peaks, monthlyStats) {
         <div class="play-count">${isPlaysPeak ? playsPeakBadge() : ''}${tCountHtml('plays', count)}${monthlyStats ? deltaInline(count, ak, 'albums', monthlyStats) : ''}</div>
         <div class="play-bar"><div class="play-bar-fill${barCls}" style="width:${Math.round(count / max * 100)}%"></div></div>
       </td>
+      <td class="cr-cell"><button class="cr-toggle-btn" title="${t('tooltip_cr_toggle_btn_album')}" onclick="event.stopPropagation();toggleChartRun(this,'${rowId}')">${CR_ICON}</button></td>
     </tr>`;
       const expandRow = `<tr class="cr-row" id="${rowId}"><td colspan="${colCount}"><div class="cr-panel" data-crtype="albums" data-crkey="${encodeURIComponent(ak)}">${buildCrPanelHTML('albums', ak)}</div></td></tr>`;
       return [mainRow, expandRow];
@@ -9159,12 +9175,10 @@ function renderBubblingUnder(type, normalizedPool, ms, lowestChartCount) {
     const ytBtnTitle = type === 'songs' ? 'Play on YouTube' : 'Show recently played tracks';
     const ytBtn = `<button class="yt-play-btn bu-yt-btn" data-title="${esc(ytTitle)}" data-artist="${esc(ytArtist)}" data-album="${esc(ytAlbum)}" onclick="${ytBtnOnclick}" title="${ytBtnTitle}"><span class="yt-btn-content"><svg class="yt-btn-icon" viewBox="0 0 24 24"><path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.5 12 3.5 12 3.5s-7.5 0-9.4.5A3 3 0 0 0 .5 6.2C0 8.1 0 12 0 12s0 3.9.5 5.8a3 3 0 0 0 2.1 2.1c1.9.5 9.4.5 9.4.5s7.5 0 9.4-.5a3 3 0 0 0 2.1-2.1C24 15.9 24 12 24 12s0-3.9-.5-5.8zM9.7 15.5V8.5l6.3 3.5-6.3 3.5z"/></svg>YouTube</span></button>`;
 
-    // BU chart run expand row — toggled by the 📊 button in the rank cell
+    // BU chart run expand row — toggled by the icon button in the trailing cr-cell
     const buCrRowId = `bu-cr-${type}-${i}`;
     const mainRow = `<tr class="bu-row">
-      <td class="bu-rank-cell">
-        <button class="cr-toggle-btn bu-cr-btn" title="BU Chart Run — Bubbling Under history" onclick="event.stopPropagation();toggleBuCr(this,'${buCrRowId}')">📊</button>#${rank}
-      </td>
+      <td class="bu-rank-cell">#${rank}</td>
       <td class="bu-name-cell">
         <div class="bu-display-name">${esc(displayName)}</div>
         ${subName ? `<div class="bu-sub-name">${esc(subName)}</div>` : ''}
@@ -9174,8 +9188,9 @@ function renderBubblingUnder(type, normalizedPool, ms, lowestChartCount) {
       <td class="bu-plays-cell">
         <div class="bu-play-count">${tCountHtml('plays', count)}</div>
       </td>
+      <td class="cr-cell"><button class="cr-toggle-btn bu-cr-btn" title="BU Chart Run — Bubbling Under history" onclick="event.stopPropagation();toggleBuCr(this,'${buCrRowId}')">${CR_ICON}</button></td>
     </tr>`;
-    const expandRow = `<tr class="bu-cr-row cr-row" id="${buCrRowId}"><td colspan="3"><div class="cr-panel bu-cr-panel">${buildBuCrPanelHTML(type, key)}</div></td></tr>`;
+    const expandRow = `<tr class="bu-cr-row cr-row" id="${buCrRowId}"><td colspan="4"><div class="cr-panel bu-cr-panel">${buildBuCrPanelHTML(type, key)}</div></td></tr>`;
     return [mainRow, expandRow];
   });
 
@@ -13165,7 +13180,7 @@ function openArtistModal(artistName) {
       const ek = encodeURIComponent(s.key);
       const rowId = 'modal-yr-song-' + i;
       rows += `<tr>
-        <td><button class="cr-toggle-btn" title="${t('tooltip_cr_toggle_btn_song')}" onclick="event.stopPropagation();toggleChartRun(this,'${rowId}')">📊</button></td>
+        <td><button class="cr-toggle-btn" title="${t('tooltip_cr_toggle_btn_song')}" onclick="event.stopPropagation();toggleChartRun(this,'${rowId}')">${CR_ICON}</button></td>
         <td class="modal-rank-col">#${cr.peak}</td>
         <td><div class="song-title">${esc(s.title)}${certBadge(s.count, 'song')}</div><div class="song-album">${esc(s.album)}</div></td>
         <td><a class="modal-period-link" href="#chart/year/${bestYear}" onclick="event.preventDefault();event.stopPropagation();goToPeriodFromArtistModal('year','${bestYear}')">${bestYear}</a></td>
@@ -13194,7 +13209,7 @@ function openArtistModal(artistName) {
       const ek = encodeURIComponent(s.key);
       const rowId = 'modal-mo-song-' + i;
       rows += `<tr>
-        <td><button class="cr-toggle-btn" title="${t('tooltip_cr_toggle_btn_song')}" onclick="event.stopPropagation();toggleChartRun(this,'${rowId}')">📊</button></td>
+        <td><button class="cr-toggle-btn" title="${t('tooltip_cr_toggle_btn_song')}" onclick="event.stopPropagation();toggleChartRun(this,'${rowId}')">${CR_ICON}</button></td>
         <td class="modal-rank-col">#${cr.peak}</td>
         <td><div class="song-title">${esc(s.title)}${certBadge(s.count, 'song')}</div><div class="song-album">${esc(s.album)}</div></td>
         <td><a class="modal-period-link" href="#chart/month/${bestMonth}" onclick="event.preventDefault();event.stopPropagation();goToPeriodFromArtistModal('month','${bestMonth}')">${crPeriodLabel('month', bestMonth)}</a></td>
@@ -13222,7 +13237,7 @@ function openArtistModal(artistName) {
       const ek = encodeURIComponent(s.key);
       const rowId = 'modal-wk-song-' + i;
       rows += `<tr>
-        <td><button class="cr-toggle-btn" title="${t('tooltip_cr_toggle_btn_song')}" onclick="event.stopPropagation();toggleChartRun(this,'${rowId}')">📊</button></td>
+        <td><button class="cr-toggle-btn" title="${t('tooltip_cr_toggle_btn_song')}" onclick="event.stopPropagation();toggleChartRun(this,'${rowId}')">${CR_ICON}</button></td>
         <td class="modal-rank-col">#${cr.peak}</td>
         <td><div class="song-title">${esc(s.title)}${certBadge(s.count, 'song')}</div><div class="song-album">${esc(s.album)}</div></td>
         <td><a class="modal-period-link" href="#chart/week/${bestWeek}" onclick="event.preventDefault();event.stopPropagation();goToPeriodFromArtistModal('week','${bestWeek}')">${crPeriodLabel('week', bestWeek)}</a></td>
@@ -13291,7 +13306,7 @@ function openArtistModal(artistName) {
       const ek = encodeURIComponent(crKeyRaw);
       const rowId = 'modal-yr-album-' + i;
       rows += `<tr>
-        <td><button class="cr-toggle-btn" title="${t('tooltip_cr_toggle_btn_album')}" onclick="event.stopPropagation();toggleChartRun(this,'${rowId}')">📊</button></td>
+        <td><button class="cr-toggle-btn" title="${t('tooltip_cr_toggle_btn_album')}" onclick="event.stopPropagation();toggleChartRun(this,'${rowId}')">${CR_ICON}</button></td>
         <td class="modal-rank-col">#${cr.peak}</td>
         <td><div class="song-title">${esc(a.album)}${certBadge(a.count, 'album')}</div><div class="song-album">${a.tracks.size} ${tUnit('tracks', a.tracks.size)}</div></td>
         <td><a class="modal-period-link" href="#chart/year/${bestYear}" onclick="event.preventDefault();event.stopPropagation();goToPeriodFromArtistModal('year','${bestYear}')">${bestYear}</a></td>
@@ -13321,7 +13336,7 @@ function openArtistModal(artistName) {
       const ek = encodeURIComponent(crKeyRaw);
       const rowId = 'modal-mo-album-' + i;
       rows += `<tr>
-        <td><button class="cr-toggle-btn" title="${t('tooltip_cr_toggle_btn_album')}" onclick="event.stopPropagation();toggleChartRun(this,'${rowId}')">📊</button></td>
+        <td><button class="cr-toggle-btn" title="${t('tooltip_cr_toggle_btn_album')}" onclick="event.stopPropagation();toggleChartRun(this,'${rowId}')">${CR_ICON}</button></td>
         <td class="modal-rank-col">#${cr.peak}</td>
         <td><div class="song-title">${esc(a.album)}${certBadge(a.count, 'album')}</div><div class="song-album">${a.tracks.size} ${tUnit('tracks', a.tracks.size)}</div></td>
         <td><a class="modal-period-link" href="#chart/month/${bestMonth}" onclick="event.preventDefault();event.stopPropagation();goToPeriodFromArtistModal('month','${bestMonth}')">${crPeriodLabel('month', bestMonth)}</a></td>
@@ -13350,7 +13365,7 @@ function openArtistModal(artistName) {
       const ek = encodeURIComponent(crKeyRaw);
       const rowId = 'modal-wk-album-' + i;
       rows += `<tr>
-        <td><button class="cr-toggle-btn" title="${t('tooltip_cr_toggle_btn_album')}" onclick="event.stopPropagation();toggleChartRun(this,'${rowId}')">📊</button></td>
+        <td><button class="cr-toggle-btn" title="${t('tooltip_cr_toggle_btn_album')}" onclick="event.stopPropagation();toggleChartRun(this,'${rowId}')">${CR_ICON}</button></td>
         <td class="modal-rank-col">#${cr.peak}</td>
         <td><div class="song-title">${esc(a.album)}${certBadge(a.count, 'album')}</div><div class="song-album">${a.tracks.size} ${tUnit('tracks', a.tracks.size)}</div></td>
         <td><a class="modal-period-link" href="#chart/week/${bestWeek}" onclick="event.preventDefault();event.stopPropagation();goToPeriodFromArtistModal('week','${bestWeek}')">${crPeriodLabel('week', bestWeek)}</a></td>

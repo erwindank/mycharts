@@ -3005,14 +3005,9 @@
     .bu-cr-panel {
       border-top: 2px solid var(--accent2);
     }
-    /* The 📊 button in the BU rank cell — stacked above the rank number, overrides italic */
+    /* Chart-run toggle now lives in its own trailing .cr-cell, same as the main charts */
     .bu-cr-btn {
-      display: block;
-      font-size: 0.6rem;
-      font-style: normal;
-      padding: 1px 4px;
-      margin: 0 auto 3px;
-      width: fit-content;
+      padding: 4px;
     }
 
     .bu-row td {
@@ -3030,7 +3025,11 @@
       font-family: var(--font-mono);
       text-align: center;
       white-space: nowrap;
-      width: 58px;
+      width: 36px;
+      vertical-align: middle;
+    }
+
+    .bu-row .cr-cell {
       vertical-align: middle;
     }
 
@@ -3603,7 +3602,14 @@
       letter-spacing: -0.02em;
       font-size: 1.6rem !important;
       color: var(--text3);
-      width: 110px;
+      width: 64px;
+      padding: 0 !important;
+    }
+
+    /* Trailing chart-run icon column — the button used to live inside .rank-cell */
+    .cr-cell {
+      width: 40px;
+      text-align: center;
       padding: 0 !important;
     }
 
@@ -6962,18 +6968,26 @@
 
     /* CHART RUN TOGGLE & PANEL */
     .cr-toggle-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
       background: none;
       border: 1px solid var(--border);
       color: var(--text3);
       cursor: pointer;
       font-size: 0.75rem;
-      padding: 3px 6px;
+      padding: 5px;
       border-radius: 4px;
       margin-right: 5px;
       vertical-align: middle;
       transition: all 0.15s;
       font-family: var(--font-mono);
       line-height: 1;
+    }
+
+    /* In its own trailing column there's no rank number to sit next to */
+    .cr-cell .cr-toggle-btn {
+      margin-right: 0;
     }
 
     .cr-toggle-btn:hover {
@@ -8359,8 +8373,16 @@
       }
 
       .rank-cell {
-        width: 72px;
+        width: 40px;
         font-size: 1.2rem !important;
+      }
+
+      .cr-cell {
+        width: 30px;
+      }
+
+      .cr-cell .cr-toggle-btn {
+        padding: 4px;
       }
 
       .thumb {
