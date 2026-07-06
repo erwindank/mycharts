@@ -13666,6 +13666,14 @@ body[class*="-light"] .tm-card-search:hover {
 }
 .sk-sort-btn:hover { border-color: var(--accent); color: var(--accent); }
 
+/* On narrow screens .modal-close becomes a sticky pinned button (see
+   .modal-close mobile override) that stacks in the same top-of-viewport
+   region as this sticky toolbar — push the toolbar's stick point down
+   below it so the two don't render on top of each other. */
+@media (max-width: 700px) {
+  .streak-modal-box .sk-toolbar { top: 2.6rem; }
+}
+
 /* ── Collapsible sections ── */
 .sk-sec-hidden { display: none; }
 .streak-section-title { cursor: pointer; user-select: none; display: flex; align-items: center; gap: 0.3rem; flex-wrap: wrap; }
