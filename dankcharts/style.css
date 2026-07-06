@@ -2241,6 +2241,26 @@
       border-bottom: none; /* hide border when collapsed so no phantom line shows */
     }
 
+    /* Row 2 = secondary/insight views — sized down a step from the primary
+       period tabs above so it reads as a lower nav tier instead of competing
+       at equal visual weight (feature 6). Resting color already inherits
+       --text3 from .period-nav button; the added opacity recedes it a step
+       further at rest, then lifts back to full strength on hover/active so
+       --text/--accent still read exactly as bright as row 1 does there. */
+    .period-nav-row-2 button {
+      font-size: 0.58rem;
+      letter-spacing: 0.05em;
+      padding: 0.36rem 0.5rem;
+      opacity: 0.82;
+    }
+    .period-nav-row-2 button:hover,
+    .period-nav-row-2 button.active {
+      opacity: 1;
+    }
+    .period-nav-row-2 .nav-icon {
+      font-size: 0.78em;
+    }
+
     /* Row 2 collapse toggle button (feature 18) */
     .period-nav-toggle {
       width: 100%;
