@@ -7672,6 +7672,23 @@
       white-space: nowrap;
     }
 
+    /* Previous-rank header: stacked "PREVIOUS / Rank" so the column keeps its
+       narrow footprint next to Rank instead of growing to fit two words inline */
+    .m-th-prev {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1px;
+      line-height: 1.3;
+    }
+
+    .th-prev-sub {
+      font-size: 0.8em;
+      letter-spacing: 0.05em;
+      color: var(--text3);
+      opacity: 0.75;
+    }
+
     .m-up {
       color: var(--green);
       font-weight: 500;
@@ -8180,11 +8197,14 @@
         display: none;
       }
 
-      .chart-table:not(.new-entries-table) thead th:nth-child(4) {
+      /* Class-based, not nth-child: the Previous column only exists on week/month
+         views, so Album/Unique-Songs/Tracks sits at a different position than on
+         year/alltime views. .meta-col marks it regardless of position. */
+      .chart-table:not(.new-entries-table) thead th.meta-col {
         display: none;
       }
 
-      .chart-table:not(.new-entries-table) td:nth-child(4) {
+      .chart-table:not(.new-entries-table) td.meta-col {
         display: none;
       }
 
@@ -8360,10 +8380,10 @@
       }
 
       /* The thumbnail header cell carries an inline width:52px from JS —
-         override so header and body columns agree on the compact mobile width */
-      #songsHeadRow th:nth-child(2),
-      #artistsHeadRow th:nth-child(2),
-      #albumsHeadRow th:nth-child(2) {
+         override so header and body columns agree on the compact mobile width.
+         Class-based (not nth-child) since the Previous column, when present,
+         sits before it and would otherwise shift the index. */
+      .thumb-th {
         width: 46px !important;
       }
 
@@ -8492,9 +8512,7 @@
         width: 38px !important;
       }
 
-      #songsHeadRow th:nth-child(2),
-      #artistsHeadRow th:nth-child(2),
-      #albumsHeadRow th:nth-child(2) {
+      .thumb-th {
         width: 38px !important;
       }
     }
@@ -8511,6 +8529,9 @@
       .th-plays-short,
       .th-prev-short,
       .th-period-short { display: inline; }
+      /* "Rank" subtext is redundant once the column is already showing the short
+         "Prev" label at this width — drop it to keep the header compact */
+      .th-prev-sub { display: none; }
     }
 
     /* ── RECORDS VIEW ── */
