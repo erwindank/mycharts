@@ -92,8 +92,8 @@ const TRANSLATIONS = {
     all_entries: 'All Entries',
 
     // Date navigation
-    btn_prev: '◄ Prev',
-    btn_next: 'Next ►',
+    btn_prev: 'Prev',
+    btn_next: 'Next',
 
     // Sync bar
     sync_connecting: '⟳ Connecting to Google Sheets...',
@@ -1128,8 +1128,8 @@ const TRANSLATIONS = {
     all_entries: 'Todas las Entradas',
 
     // Date navigation
-    btn_prev: '◄ Anterior',
-    btn_next: 'Siguiente ►',
+    btn_prev: 'Anterior',
+    btn_next: 'Siguiente',
 
     // Sync bar
     sync_connecting: '⟳ Conectando con Google Sheets...',
@@ -2164,8 +2164,8 @@ const TRANSLATIONS = {
     all_entries: 'Todas as Entradas',
 
     // Date navigation
-    btn_prev: '◄ Anterior',
-    btn_next: 'Próximo ►',
+    btn_prev: 'Anterior',
+    btn_next: 'Próximo',
 
     // Sync bar
     sync_connecting: '⟳ Conectando ao Google Sheets...',
@@ -3200,8 +3200,8 @@ const TRANSLATIONS = {
     all_entries: 'Todas as Entradas',
 
     // Date navigation
-    btn_prev: '◄ Anterior',
-    btn_next: 'Seguinte ►',
+    btn_prev: 'Anterior',
+    btn_next: 'Seguinte',
 
     // Sync bar
     sync_connecting: '⟳ A ligar ao Google Sheets...',
@@ -4239,6 +4239,7 @@ function applyI18n() {
   });
   document.querySelectorAll('[data-i18n-title]').forEach(el => {
     el.title = t(el.dataset.i18nTitle);
+    if (el.hasAttribute('aria-label')) el.setAttribute('aria-label', el.title);
   });
   // Raw data table headers keep their inner sort-arrow span — only update the text node
   document.querySelectorAll('[data-i18n-raw-th]').forEach(el => {
