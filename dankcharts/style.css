@@ -17231,6 +17231,26 @@ body.red-light .sk-ms {
       .kebab-menu {
         width: 200px;
       }
+      /* Without this, the kebab button was the one flex item that didn't fit
+         on the header's line and wrapped onto its own row flush-left (instead
+         of staying under Animate Chart) — dragging the dropdown's right:0
+         anchor over to the left edge of the card with it. Force the row to
+         stay on one line and let the chart title truncate first; there's
+         always a few spare characters there before the controls run out of
+         room. Scoped to headers that actually have the kebab button, since
+         .section-header is reused by unrelated modal/settings rows. */
+      .section-header:has(.kebab-menu-wrap) {
+        flex-wrap: nowrap;
+      }
+      .section-header:has(.kebab-menu-wrap) h2,
+      .section-header:has(.kebab-menu-wrap) .section-header-h2 {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        min-width: 4ch;
+      }
+      .section-header:has(.kebab-menu-wrap) .kebab-menu-wrap {
+        flex-shrink: 0;
+      }
     }
 
 
