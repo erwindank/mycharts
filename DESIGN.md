@@ -29,6 +29,116 @@ colors:
   heatmap-forest-2: "#b0f0b0"
   heatmap-ember-1:  "#4a0a08"
   heatmap-ember-2:  "#f09000"
+  # Navy Light
+  theme-navy-light-bg:      "#ccdcf0"
+  theme-navy-light-bg2:     "#ffffff"
+  theme-navy-light-surface: "#dbe8f8"
+  theme-navy-light-border:  "#9db4d2"
+  theme-navy-light-border2: "#5f83b4"
+  theme-navy-light-text:    "#040e1c"
+  theme-navy-light-text2:   "#0a2a50"
+  theme-navy-light-text3:   "#33567e"
+  theme-navy-light-accent:  "#0852a8"
+  theme-navy-light-accent2: "#0c5ab8"
+  theme-navy-light-teal:    "#0c4a6e"
+  theme-navy-light-green:   "#15803d"
+  theme-navy-light-amber:   "#78350f"
+  theme-navy-light-rose:    "#be123c"
+  theme-navy-light-gold2:   "#c07818"
+  theme-navy-light-rule:    "#c3d2e4"
+  # Purple (dark)
+  theme-purple-bg:      "#100e18"
+  theme-purple-bg2:     "#171425"
+  theme-purple-bg3:     "#1e1a30"
+  theme-purple-surface: "#272242"
+  theme-purple-border:  "#363156"
+  theme-purple-border2: "#4c4680"
+  theme-purple-text2:   "#bab2e0"
+  theme-purple-text3:   "#988cca"
+  theme-purple-accent:  "#8f80f8"
+  theme-purple-accent2: "#a898ff"
+  theme-purple-gold1:   "#f59e0b"
+  # Purple Light
+  theme-purple-light-bg:      "#d6cff2"
+  theme-purple-light-surface: "#e2dcf8"
+  theme-purple-light-border:  "#a89dd8"
+  theme-purple-light-border2: "#7262c8"
+  theme-purple-light-text:    "#0e0820"
+  theme-purple-light-text2:   "#2a1860"
+  theme-purple-light-text3:   "#5040a0"
+  theme-purple-light-accent:  "#4430c0"
+  theme-purple-light-accent2: "#3628b0"
+  theme-purple-light-gold2:   "#b05c00"
+  theme-purple-light-rule:    "#cdc6e6"
+  # Yellow (dark)
+  theme-yellow-bg:      "#14130a"
+  theme-yellow-bg2:     "#1c1a10"
+  theme-yellow-bg3:     "#252214"
+  theme-yellow-surface: "#302c16"
+  theme-yellow-border:  "#4a4526"
+  theme-yellow-border2: "#6e6738"
+  theme-yellow-text3:   "#e8e8d0"
+  theme-yellow-accent:  "#f5d420"
+  theme-yellow-accent2: "#ffe040"
+  theme-yellow-green:   "#4ade80"
+  theme-yellow-rule:    "#3a3620"
+  # Yellow Light
+  theme-yellow-light-bg:      "#eee5b0"
+  theme-yellow-light-bg3:     "#faf6e0"
+  theme-yellow-light-surface: "#f7eecb"
+  theme-yellow-light-border:  "#c2b76a"
+  theme-yellow-light-border2: "#9e9030"
+  theme-yellow-light-text:    "#1a1800"
+  theme-yellow-light-text2:   "#3a3400"
+  theme-yellow-light-text3:   "#5a5000"
+  theme-yellow-light-accent:  "#766000"
+  theme-yellow-light-accent2: "#6a5400"
+  theme-yellow-light-gold2:   "#a05800"
+  theme-yellow-light-rule:    "#ddd5a8"
+  # Pink (dark)
+  theme-pink-bg:      "#130a10"
+  theme-pink-bg2:     "#1a0f16"
+  theme-pink-bg3:     "#22141d"
+  theme-pink-surface: "#2f1c27"
+  theme-pink-border:  "#4c2c3e"
+  theme-pink-border2: "#6f4058"
+  theme-pink-text3:   "#e8d0e0"
+  theme-pink-accent:  "#f65cb2"
+  theme-pink-accent2: "#ff80c8"
+  theme-pink-rule:    "#3c2533"
+  # Pink Light
+  theme-pink-light-bg:      "#efcfe6"
+  theme-pink-light-bg3:     "#faf0f7"
+  theme-pink-light-surface: "#f8def0"
+  theme-pink-light-border:  "#d5a3c6"
+  theme-pink-light-border2: "#c24898"
+  theme-pink-light-text:    "#1a0010"
+  theme-pink-light-text2:   "#4a0030"
+  theme-pink-light-text3:   "#6e3058"
+  theme-pink-light-accent:  "#b0006a"
+  theme-pink-light-accent2: "#8a0052"
+  theme-pink-light-rose:    "#be185d"
+  theme-pink-light-gold1:   "#924800"
+  # Red (dark)
+  theme-red-bg3:     "#241616"
+  theme-red-surface: "#301d1d"
+  theme-red-border:  "#4c2929"
+  theme-red-border2: "#6e3a3a"
+  theme-red-text3:   "#e8e8e8"
+  theme-red-accent:  "#f65454"
+  theme-red-accent2: "#f87d7d"
+  theme-red-rule:    "#3a2323"
+  # Red Light
+  theme-red-light-bg:      "#efcece"
+  theme-red-light-bg3:     "#faf0f0"
+  theme-red-light-surface: "#f8dede"
+  theme-red-light-border:  "#cfa5a5"
+  theme-red-light-border2: "#c44040"
+  theme-red-light-text:    "#1c0a0a"
+  theme-red-light-accent:  "#b01010"
+  theme-red-light-accent2: "#8a0c0c"
+  theme-red-light-rose:    "#b91c1c"
+  theme-red-light-rule:    "#e2c8c8"
 typography:
   display:
     fontFamily: "'Bricolage Grotesque', 'IBM Plex Sans', sans-serif"
@@ -50,7 +160,9 @@ typography:
 rounded:
   xs: "4px"
   sm: "6px"
+  button-lg: "8px"
   md: "10px"
+  panel: "12px"
   lg: "14px"
   xl: "18px"
   pill: "20px"
@@ -107,7 +219,7 @@ This explicitly rejects the generic SaaS analytics-dashboard look — flat gray 
 
 ## 2. Colors
 
-The default theme (Navy Dark) is a deep navy void with an electric blue accent; eight sibling themes (Navy Light, Purple, Yellow, Pink, Red — each dark + light) swap the same token set for a different hue family. All accent pairs are contrast-checked per theme (see inline comments in `style.css`, e.g. accent recalibrated from 3.96:1 to 4.88:1).
+The default theme (Navy Dark) is a deep navy void with an electric blue accent; eight sibling themes (Navy Light, Purple, Yellow, Pink, Red — each dark + light) swap the same token set for a different hue family. All accent pairs are contrast-checked per theme (see inline comments in `style.css`, e.g. accent recalibrated from 3.96:1 to 4.88:1). Every sibling theme's full token set (`bg`/`surface`/`border`/`text`/`accent`/`gold`/etc.) is enumerated in the front matter under `theme-<name>-<token>` keys, so tooling that checks colors against this doc sees the whole system, not just the Navy Dark defaults.
 
 ### Primary
 - **Electric Blue** (`#58aaf6` / `accent-blue`): the default theme's single accent — active states, links, primary buttons, current-rank highlight.
@@ -171,10 +283,13 @@ Surfaces are soft and tactile, not flat and not glassy. Depth comes from a combi
 ### Named Rules
 **The Glow-Not-Shadow Rule for Badges.** Achievement badges signal importance with an animated gold glow, not a drop shadow. Shadows communicate physical elevation; glow communicates "earned" — don't conflate the two.
 
+### Motion
+Most interactive feedback is `transform`/`opacity` only (see Buttons: color-only hover, no scale pop). The one accepted exception is **layout-property transitions on collapse/expand affordances** — the nav-indicator underline, collapsible section headers, and period-nav pill widths animate `width`/`max-height`/`transform` together (e.g. `.nav-indicator`, `.section-collapsed`, chart-size bar). These need the actual box to grow or slide, not just fade, so there's no transform-only equivalent; the elements are small and the transitions are short (~200–320ms), so the reflow cost is negligible in practice. This is a deliberate, scoped exception — don't extend layout-property animation to large surfaces (modals, full sections, images) where reflow cost is real.
+
 ## 5. Components
 
 ### Buttons
-- **Shape:** 4px radius on standard controls (size buttons, nav buttons), up to 8px on larger action buttons.
+- **Shape:** 4px (`rounded.xs`) radius on standard controls (size buttons, nav buttons), up to 8px (`rounded.button-lg`) on larger action buttons.
 - **Primary:** accent-colored background or border, JetBrains Mono label, compact padding (~8px 14px).
 - **Ghost / Icon:** transparent background, border appears on hover/focus; circular (50% radius) for icon-only buttons like the theme dots and close buttons.
 - **Hover / Focus:** border brightens from `border` to `border2`/`accent2`; no scale or shadow pop — the feedback is color-only, matching the "quiet chrome" principle.
@@ -184,7 +299,7 @@ Surfaces are soft and tactile, not flat and not glassy. Depth comes from a combi
 - **State:** active segment gets the theme's accent background; inactive segments stay on `surface`/`border`.
 
 ### Cards / Modals
-- **Corner Style:** 8–12px radius for modals and panels.
+- **Corner Style:** 8–12px radius for modals and panels (`rounded.button-lg`–`rounded.panel`).
 - **Background:** `bg2`/`bg3` (navy-deep/navy-panel) layered over the page `bg`.
 - **Shadow Strategy:** see Elevation — `panel-raised` or `panel-raised-strong` depending on modal importance.
 - **Border:** 1px `border` hairline, brightening to `border2` on focused inputs within.

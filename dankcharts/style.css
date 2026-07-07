@@ -4078,7 +4078,7 @@
     .stat-box[data-cat="songs"]       { --cat-color: var(--green); }
     .stat-box[data-cat="artists"]     { --cat-color: var(--rose); }
     .stat-box[data-cat="albums"]      { --cat-color: var(--gold1); }
-    .stat-box[data-cat="bestday"]     { --cat-color: var(--amber); }
+    .stat-box[data-cat="bestday"]     { --cat-color: var(--accent); }
     .stat-box[data-cat="new-songs"]   { --cat-color: var(--green); }
     .stat-box[data-cat="new-artists"] { --cat-color: var(--rose); }
     .stat-box[data-cat="new-albums"]  { --cat-color: var(--gold1); }
