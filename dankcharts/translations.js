@@ -1230,7 +1230,7 @@ const TRANSLATIONS = {
     th_tracks: 'Canciones',
     th_artist: 'Artista',
     th_album_artist: 'Álbum · Artista',
-    th_prev: 'Puesto Anterior',
+    th_prev: 'Anterior',
     th_prev_mobile: 'Ant.',
     th_prev_sub: 'Puesto',
     th_weeks: 'Semanas',
