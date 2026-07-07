@@ -10,6 +10,7 @@ const TRANSLATIONS = {
   // ── ENGLISH ──────────────────────────────────────────────────────────────────
   en: {
     // Navigation
+    nav_eyebrow: 'Chart Views',
     nav_weekly: 'Weekly',
     nav_monthly: 'Monthly',
     nav_yearly: 'Yearly',
@@ -24,7 +25,7 @@ const TRANSLATIONS = {
     awards_tab_mygrammys: 'My Grammys',
     awards_tab_reallife: 'Real-Life Awards',
     awards_configure: '⚙ Configure Year',
-    awards_generate: '🎵 Generate Nominees',
+    awards_generate: '<span class="awards-generate-icon">✨</span> Generate Nominees',
     awards_elig_window: 'Eligibility Window:',
     awards_elig_to: 'to',
     awards_categories_for_year: 'Categories for this year',
@@ -1047,6 +1048,7 @@ const TRANSLATIONS = {
   // ── SPANISH ───────────────────────────────────────────────────────────────────
   es: {
     // Navigation
+    nav_eyebrow: 'Vistas de Charts',
     nav_weekly: 'Semanal',
     nav_monthly: 'Mensual',
     nav_yearly: 'Anual',
@@ -1061,7 +1063,7 @@ const TRANSLATIONS = {
     awards_tab_mygrammys: 'Mis Grammys',
     awards_tab_reallife: 'Premios Reales',
     awards_configure: '⚙ Configurar Año',
-    awards_generate: '🎵 Generar Nominados',
+    awards_generate: '<span class="awards-generate-icon">✨</span> Generar Nominados',
     awards_elig_window: 'Período de Elegibilidad:',
     awards_elig_to: 'hasta',
     awards_categories_for_year: 'Categorías para este año',
@@ -2084,6 +2086,7 @@ const TRANSLATIONS = {
   // ── PORTUGUESE — BRAZIL ───────────────────────────────────────────────────────
   'pt-BR': {
     // Navigation
+    nav_eyebrow: 'Visões de Charts',
     nav_weekly: 'Semanal',
     nav_monthly: 'Mensal',
     nav_yearly: 'Anual',
@@ -2098,7 +2101,7 @@ const TRANSLATIONS = {
     awards_tab_mygrammys: 'Meus Grammys',
     awards_tab_reallife: 'Prêmios Reais',
     awards_configure: '⚙ Configurar Ano',
-    awards_generate: '🎵 Gerar Indicados',
+    awards_generate: '<span class="awards-generate-icon">✨</span> Gerar Indicados',
     awards_elig_window: 'Período de Elegibilidade:',
     awards_elig_to: 'até',
     awards_categories_for_year: 'Categorias para este ano',
@@ -3121,6 +3124,7 @@ const TRANSLATIONS = {
   // ── PORTUGUESE — EUROPEAN ─────────────────────────────────────────────────────
   'pt-PT': {
     // Navigation (same as pt-BR)
+    nav_eyebrow: 'Visões de Charts',
     nav_weekly: 'Semanal',
     nav_monthly: 'Mensal',
     nav_yearly: 'Anual',
@@ -3135,7 +3139,7 @@ const TRANSLATIONS = {
     awards_tab_mygrammys: 'Os Meus Grammys',
     awards_tab_reallife: 'Prémios Reais',
     awards_configure: '⚙ Configurar Ano',
-    awards_generate: '🎵 Gerar Nomeados',
+    awards_generate: '<span class="awards-generate-icon">✨</span> Gerar Nomeados',
     awards_elig_window: 'Período de Elegibilidade:',
     awards_elig_to: 'até',
     awards_categories_for_year: 'Categorias para este ano',

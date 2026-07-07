@@ -97,6 +97,9 @@
       --text: #040e1c;
       --text2: #0a2a50;
       --text3: #33567e;
+      --surface1: var(--bg2);
+      --surface2: var(--bg3);
+      --surface3: var(--surface);
       --text1: var(--text);
       --accent: #0852a8;
       /* was #0a5cb8 — 4.26:1 on surface, now 5.25:1 */
@@ -129,6 +132,9 @@
       --text: #f0eefc;
       --text2: #bab2e0;
       --text3: #988cca;
+      --surface1: var(--bg2);
+      --surface2: var(--bg3);
+      --surface3: var(--surface);
       --text1: var(--text);
       /* was #7068a8 — 3.5:1 on surface, softened family keeps ≥4.5:1 */
       --accent: #8f80f8;
@@ -155,6 +161,9 @@
       --text: #0e0820;
       --text2: #2a1860;
       --text3: #5040a0;
+      --surface1: var(--bg2);
+      --surface2: var(--bg3);
+      --surface3: var(--surface);
       --text1: var(--text);
       --accent: #4430c0;
       --accent2: #3628b0;
@@ -186,6 +195,9 @@
       --text: #ffffff;
       --text2: #ffffff;
       --text3: #e8e8d0;
+      --surface1: var(--bg2);
+      --surface2: var(--bg3);
+      --surface3: var(--surface);
       --text1: var(--text);
       --accent: #f5d420;
       --accent2: #ffe040;
@@ -211,6 +223,9 @@
       --text: #1a1800;
       --text2: #3a3400;
       --text3: #5a5000;
+      --surface1: var(--bg2);
+      --surface2: var(--bg3);
+      --surface3: var(--surface);
       --text1: var(--text);
       /* was #806800 — 4.23:1 on softened bg, now 4.78:1 */
       --accent: #766000;
@@ -237,6 +252,9 @@
       --text: #ffffff;
       --text2: #ffffff;
       --text3: #e8d0e0;
+      --surface1: var(--bg2);
+      --surface2: var(--bg3);
+      --surface3: var(--surface);
       --text1: var(--text);
       --accent: #f65cb2;
       --accent2: #ff80c8;
@@ -262,6 +280,9 @@
       --text: #1a0010;
       --text2: #4a0030;
       --text3: #6e3058;
+      --surface1: var(--bg2);
+      --surface2: var(--bg3);
+      --surface3: var(--surface);
       --text1: var(--text);
       --accent: #b0006a;
       --accent2: #8a0052;
@@ -287,6 +308,9 @@
       --text: #ffffff;
       --text2: #ffffff;
       --text3: #e8e8e8;
+      --surface1: var(--bg2);
+      --surface2: var(--bg3);
+      --surface3: var(--surface);
       --text1: var(--text);
       --accent: #f65454;
       --accent2: #f87d7d;
@@ -312,6 +336,9 @@
       --text: #1c0a0a;
       --text2: #4a2828;
       --text3: #6e4040;
+      --surface1: var(--bg2);
+      --surface2: var(--bg3);
+      --surface3: var(--surface);
       --text1: var(--text);
       --accent: #b01010;
       /* was #cc1414 — 4.22:1 on surface, now 5.24:1 */
@@ -2221,6 +2248,18 @@
       text-transform: uppercase;
     }
 
+    /* Eyebrow label — orients first-time users to what this whole tab
+       strip is before they read 12 individual tab names (reorg pass) */
+    .period-nav-eyebrow {
+      text-align: center;
+      font-size: 0.56rem;
+      letter-spacing: 0.32em;
+      color: var(--text3);
+      opacity: 0.55;
+      padding: 0.4rem 0.5rem 0.25rem;
+      user-select: none;
+    }
+
     /* Each row of nav buttons */
     .period-nav-row {
       display: flex;
@@ -2239,6 +2278,7 @@
       width: var(--nav-ind-w, 0px);
       background: var(--accent);
       border-radius: 2px 2px 0 0;
+      box-shadow: 0 0 8px color-mix(in srgb, var(--accent) 65%, transparent);
       transform: translateX(var(--nav-ind-x, 0px));
       transition: transform 320ms cubic-bezier(0.34, 1.56, 0.64, 1), width 320ms cubic-bezier(0.34, 1.56, 0.64, 1);
       pointer-events: none;
@@ -2284,7 +2324,9 @@
       font-size: 0.78em;
     }
 
-    /* Row 2 collapse toggle button (feature 18) */
+    /* Row 2 collapse toggle button (feature 18) — icon+label with a chevron
+       that rotates on open instead of swapping glyph characters, reads as a
+       proper disclosure control rather than a plain text link */
     .period-nav-toggle {
       width: 100%;
       background: var(--bg3);
@@ -2293,17 +2335,29 @@
       color: var(--text3);
       font-family: var(--font-mono);
       font-size: 0.58rem;
-      letter-spacing: 0.1em;
+      letter-spacing: 0.14em;
       text-transform: uppercase;
       cursor: pointer;
-      padding: 0.2rem 0.65rem;
+      padding: 0.28rem 0.65rem;
       text-align: center;
       transition: color var(--t-med) var(--ease), background var(--t-med) var(--ease);
-      display: block;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.3rem;
     }
     .period-nav-toggle:hover {
       color: var(--text);
       background: var(--bg2);
+    }
+    .period-nav-toggle-chevron {
+      width: 10px;
+      height: 10px;
+      flex-shrink: 0;
+      transition: transform var(--t-med) var(--ease);
+    }
+    .period-nav-toggle.open .period-nav-toggle-chevron {
+      transform: rotate(180deg);
     }
 
     .period-nav button {
@@ -2339,16 +2393,85 @@
       letter-spacing: 0;
     }
 
-    /* Keyboard shortcut badge (feature 6) */
+    /* Keyboard shortcut badge (feature 6) — small kbd-style chip instead of
+       bare floating digits, reads as an intentional keyboard hint */
     .nav-key {
-      font-size: 0.52rem;
-      opacity: 0.38;
+      font-size: 0.5rem;
+      opacity: 0.45;
       line-height: 1;
       position: absolute;
-      top: 3px;
-      right: 4px;
+      top: 4px;
+      right: 5px;
       letter-spacing: 0;
       font-variant-numeric: tabular-nums;
+      padding: 1px 3px;
+      border: 1px solid var(--border2);
+      border-radius: 3px;
+    }
+
+    /* On-air equalizer bars (distinctive touch) — lights up next to the active
+       tab's label like a live VU meter on a radio chart show. Built from a
+       single element (the bar itself + ::before/::after) so no extra markup
+       is needed beyond the one <span class="nav-eq">. Animates via transform:
+       scaleY (not height) to stay off the layout-thrash path. */
+    .nav-eq {
+      position: relative;
+      display: inline-block;
+      width: 2px;
+      height: 8px;
+      margin-left: 1px;
+      background: currentColor;
+      border-radius: 1px;
+      opacity: 0;
+      transform: scaleY(0.4);
+      transform-origin: bottom;
+      transition: opacity var(--t-med) var(--ease);
+      flex-shrink: 0;
+    }
+    .nav-eq::before,
+    .nav-eq::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: -4px;
+      width: 2px;
+      height: 100%;
+      background: currentColor;
+      border-radius: 1px;
+      transform: scaleY(0.6);
+      transform-origin: bottom;
+    }
+    .nav-eq::after {
+      left: auto;
+      right: -4px;
+    }
+    .period-nav button.active .nav-eq {
+      opacity: 0.85;
+      animation: nav-eq-mid 0.9s ease-in-out infinite;
+    }
+    .period-nav button.active .nav-eq::before {
+      animation: nav-eq-side 1s ease-in-out infinite;
+      animation-delay: 0.15s;
+    }
+    .period-nav button.active .nav-eq::after {
+      animation: nav-eq-side 0.75s ease-in-out infinite;
+      animation-delay: 0.3s;
+    }
+    @keyframes nav-eq-mid {
+      0%, 100% { transform: scaleY(1); }
+      50%      { transform: scaleY(0.35); }
+    }
+    @keyframes nav-eq-side {
+      0%, 100% { transform: scaleY(0.4); }
+      50%      { transform: scaleY(0.9); }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .period-nav button.active .nav-eq,
+      .period-nav button.active .nav-eq::before,
+      .period-nav button.active .nav-eq::after {
+        animation: none;
+        transform: scaleY(0.7);
+      }
     }
 
     /* New-content pulsing dot (features 9 + 17) */
@@ -2376,11 +2499,14 @@
       color: var(--text);
     }
 
-    /* Active tab — underline is now the shared sliding .nav-indicator (feature 5) */
+    /* Active tab — tinted "lifted" pill on top of the shared sliding
+       .nav-indicator underline (feature 5), so the active state reads as a
+       raised segment rather than just a color change */
     .period-nav button.active {
-      background: none;
+      background: color-mix(in srgb, var(--accent) 10%, transparent);
       color: var(--accent);
       font-weight: 600;
+      border-radius: var(--r-sm) var(--r-sm) 0 0;
     }
 
     /* Loading shimmer on active tab while switching (feature 15) */
@@ -12979,11 +13105,24 @@ body[class*="-light"] .tm-card-search:hover {
   cursor: pointer;
   transition: background 0.15s, color 0.15s;
 }
-.awards-config-btn:hover,
-.awards-generate-btn:hover { background: var(--accent); color: #fff; border-color: var(--accent); }
+.awards-config-btn:hover { background: var(--accent); color: #fff; border-color: var(--accent); }
 .awards-config-btn.active  { background: var(--accent); color: #fff; border-color: var(--accent); }
-.awards-generate-btn { background: var(--accent); color: #fff; border-color: var(--accent); font-weight: 600; }
+/* Tinted with the theme's own accent (color-mix) rather than a fixed gold/gradient — a fixed
+   hue looked calm only in the yellow theme and clashed as a foreign orange sticker against
+   blue/purple/pink/red themes. Mixing the active --accent into --surface2 always harmonizes
+   with whatever palette is active, while the solid --accent border still marks it as the CTA. */
+.awards-generate-btn {
+  background: color-mix(in srgb, var(--accent) 16%, var(--surface2) 84%);
+  color: var(--text1);
+  border-color: var(--accent);
+  font-weight: 700;
+}
+.awards-generate-btn:hover { background: color-mix(in srgb, var(--accent) 30%, var(--surface2) 70%); }
 .awards-generate-btn:disabled { opacity: 0.6; cursor: wait; }
+/* Emoji glyph is bright/light on its own colors, which washes out against a light-tinted
+   button — drop-shadow (not text-shadow, which color emoji glyphs mostly ignore) gives it
+   an edge to read against. */
+.awards-generate-icon { filter: drop-shadow(0 1px 1.5px rgba(0, 0, 0, 0.45)); }
 
 /* Config panel */
 .awards-config-panel {
@@ -13078,8 +13217,8 @@ body[class*="-light"] .tm-card-search:hover {
   font-size: 0.6rem;
   padding: 1px 5px;
   border-radius: 4px;
-  background: #f59e0b22;
-  color: #f59e0b;
+  background: color-mix(in srgb, var(--amber) 18%, transparent);
+  color: var(--amber);
   font-weight: 700;
   text-transform: uppercase;
 }
@@ -13124,8 +13263,8 @@ body[class*="-light"] .tm-card-search:hover {
   font-size: 0.6rem;
   padding: 1px 5px;
   border-radius: 4px;
-  background: #f59e0b22;
-  color: #f59e0b;
+  background: color-mix(in srgb, var(--amber) 18%, transparent);
+  color: var(--amber);
   font-weight: 700;
   text-transform: uppercase;
 }
@@ -13473,7 +13612,7 @@ body[class*="-light"] .tm-card-search:hover {
 }
 .ceremony-sidebar-row:hover { background: var(--surface3); color: var(--text2); }
 .ceremony-sidebar-row.active { background: var(--surface3); color: var(--text1); font-weight: 600; border-left-color: var(--accent); }
-.ceremony-sidebar-row.done  { color: #FFD700; }
+.ceremony-sidebar-row.done  { color: var(--gold1); }
 
 /* Stage */
 .ceremony-stage {
@@ -13560,7 +13699,7 @@ body[class*="-light"] .tm-card-search:hover {
 .ceremony-winner-label {
   font-size: 0.82rem;
   font-weight: 700;
-  color: #FFD700;
+  color: var(--gold1);
   text-transform: uppercase;
   letter-spacing: 0.08em;
   margin-bottom: 6px;

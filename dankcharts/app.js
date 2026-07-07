@@ -5084,7 +5084,9 @@ function dcNavUpdateBadges() {
 
   function setRow2Open(open) {
     row2.classList.toggle('nav-row2-collapsed', !open);
-    toggle.textContent = open ? 'LESS ▲' : 'MORE ▾';
+    toggle.classList.toggle('open', open);
+    const label = toggle.querySelector('.period-nav-toggle-label');
+    if (label) label.textContent = open ? 'Less' : 'More';
     try { localStorage.setItem(ROW2_KEY, open ? '1' : '0'); } catch (e) {}
   }
 
