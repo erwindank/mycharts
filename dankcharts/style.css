@@ -97,17 +97,18 @@
       --text: #040e1c;
       --text2: #0a2a50;
       --text3: #33567e;
+      --text1: var(--text);
       --accent: #0852a8;
       /* was #0a5cb8 — 4.26:1 on surface, now 5.25:1 */
       --accent2: #0c5ab8;
       /* was #1470d8 — 3.34:1 on surface, now 4.59:1 */
       --teal: #0c4a6e;
       /* dark teal for light bg (inherited bright #38bdf8 failed) */
-      --green: #14532d;
+      --green: #15803d;
       /* dark green for light bg (inherited #34d399 failed) */
       --amber: #78350f;
       /* dark amber for light bg (inherited #fbbf24 failed) */
-      --rose: #881337;
+      --rose: #be123c;
       /* dark rose for light bg (inherited #fb7185 failed) */
       --gold1: #78380e;
       /* was #a06010 — 3.49:1 on surface, now 6.23:1 */
@@ -128,6 +129,7 @@
       --text: #f0eefc;
       --text2: #bab2e0;
       --text3: #988cca;
+      --text1: var(--text);
       /* was #7068a8 — 3.5:1 on surface, softened family keeps ≥4.5:1 */
       --accent: #8f80f8;
       --accent2: #a898ff;
@@ -153,16 +155,17 @@
       --text: #0e0820;
       --text2: #2a1860;
       --text3: #5040a0;
+      --text1: var(--text);
       --accent: #4430c0;
       --accent2: #3628b0;
       /* was #5a44d8 — 3.92:1 on surface, now 6.25:1 */
       --teal: #0c4a6e;
       /* dark teal for light bg */
-      --green: #14532d;
+      --green: #15803d;
       /* dark green for light bg */
       --amber: #78350f;
       /* dark amber for light bg */
-      --rose: #881337;
+      --rose: #be123c;
       /* dark rose for light bg */
       --gold1: #78380e;
       /* was #904800 — failed on surface, now 5.39:1 */
@@ -183,6 +186,7 @@
       --text: #ffffff;
       --text2: #ffffff;
       --text3: #e8e8d0;
+      --text1: var(--text);
       --accent: #f5d420;
       --accent2: #ffe040;
       --teal: #38bdf8;
@@ -207,13 +211,14 @@
       --text: #1a1800;
       --text2: #3a3400;
       --text3: #5a5000;
+      --text1: var(--text);
       /* was #806800 — 4.23:1 on softened bg, now 4.78:1 */
       --accent: #766000;
       --accent2: #6a5400;
       --teal: #0c4a6e;
-      --green: #14532d;
+      --green: #15803d;
       --amber: #78350f;
-      --rose: #881337;
+      --rose: #be123c;
       --gold1: #78380e;
       --gold2: #a05800;
       /* light gridlines (plain hex — read by JS) */
@@ -232,6 +237,7 @@
       --text: #ffffff;
       --text2: #ffffff;
       --text3: #e8d0e0;
+      --text1: var(--text);
       --accent: #f65cb2;
       --accent2: #ff80c8;
       --teal: #38bdf8;
@@ -256,12 +262,13 @@
       --text: #1a0010;
       --text2: #4a0030;
       --text3: #6e3058;
+      --text1: var(--text);
       --accent: #b0006a;
       --accent2: #8a0052;
       --teal: #0c4a6e;
-      --green: #14532d;
+      --green: #15803d;
       --amber: #78350f;
-      --rose: #991060;
+      --rose: #be185d;
       --gold1: #924800;
       --gold2: #b45800;
       /* light gridlines (plain hex — read by JS) */
@@ -280,6 +287,7 @@
       --text: #ffffff;
       --text2: #ffffff;
       --text3: #e8e8e8;
+      --text1: var(--text);
       --accent: #f65454;
       --accent2: #f87d7d;
       --teal: #f87d7d;
@@ -304,17 +312,18 @@
       --text: #1c0a0a;
       --text2: #4a2828;
       --text3: #6e4040;
+      --text1: var(--text);
       --accent: #b01010;
       /* was #cc1414 — 4.22:1 on surface, now 5.24:1 */
       --accent2: #8a0c0c;
       /* was #e02020 — 3.53:1 on surface, now 7.60:1 */
       --teal: #8a0c0c;
       /* was #e02020 — failed on white bg, now 7.60:1 */
-      --green: #14532d;
+      --green: #15803d;
       /* was #16a34a — 2.46:1 on surface, now 6.29:1 */
       --amber: #78350f;
       /* was #b45309 — 3.58:1 on surface, now 6.41:1 */
-      --rose: #991010;
+      --rose: #b91c1c;
       /* was #cc1414 — 4.22:1 on surface, now 6.16:1 */
       --gold1: #924800;
       --gold2: #b45800;
@@ -350,12 +359,16 @@
       --medal-silver: #c8d3e0;
       --medal-bronze: #d29a6b;
 
+      /* re-entry violet — its own family (distinct from up/down/new/gold),
+         same flat-hex-then-light-override pattern as the medals above */
+      --violet: #a78bfa;
+
       /* chart movement semantics — alias the theme set so light themes
          override once instead of via per-component rules */
       --chart-up: var(--green);
       --chart-down: var(--rose);
       --chart-new: var(--accent);
-      --chart-re: var(--amber);
+      --chart-re: var(--violet);
     }
 
     /* Light-theme variants of the derived tokens */
@@ -375,6 +388,9 @@
       --medal-gold: #8a5a00;
       --medal-silver: #4e5a68;
       --medal-bronze: #7a4a20;
+      /* violet, dialed back from #a78bfa's neon so it reads on white/pastel surfaces
+         without going as dark/muddy as a full violet-800 */
+      --violet: #7c3aed;
     }
 
     /* Keyboard focus — one visible ring vocabulary for every control
@@ -841,26 +857,41 @@
       color: rgba(4, 14, 28, 0.95);
     }
 
-    /* Light themes — control buttons (purple/red/yellow/pink) */
-    body.purple-light .ctrl-group-btn,
-    body.red-light .ctrl-group-btn,
-    body.yellow-light .ctrl-group-btn,
-    body.pink-light .ctrl-group-btn {
+    /* Purple Light — control buttons. Its masthead banner (#8579bd, medium
+       lavender) is bright enough that dark text reads better than white,
+       same reasoning as navy-light's .masthead .est/.tagline above. */
+    body.purple-light .ctrl-group-btn {
       color: var(--text2);
       border-color: var(--border);
     }
 
     body.purple-light .ctrl-group-btn:hover,
-    body.purple-light .ctrl-group.open .ctrl-group-btn,
+    body.purple-light .ctrl-group.open .ctrl-group-btn {
+      background: var(--bg3);
+      border-color: var(--border2);
+      color: var(--text);
+    }
+
+    /* Red/Yellow/Pink Light — control buttons sit on their mastheads' dark
+       brand-gradient banner (same one .masthead .est/.tagline use white text
+       on below), not the light page background — so these need light text too,
+       not var(--text2)/var(--border) which are tuned for the pale page bg. */
+    body.red-light .ctrl-group-btn,
+    body.yellow-light .ctrl-group-btn,
+    body.pink-light .ctrl-group-btn {
+      color: rgba(255, 255, 255, 0.75);
+      border-color: rgba(255, 255, 255, 0.35);
+    }
+
     body.red-light .ctrl-group-btn:hover,
     body.red-light .ctrl-group.open .ctrl-group-btn,
     body.yellow-light .ctrl-group-btn:hover,
     body.yellow-light .ctrl-group.open .ctrl-group-btn,
     body.pink-light .ctrl-group-btn:hover,
     body.pink-light .ctrl-group.open .ctrl-group-btn {
-      background: var(--bg3);
-      border-color: var(--border2);
-      color: var(--text);
+      background: rgba(255, 255, 255, 0.14);
+      border-color: rgba(255, 255, 255, 0.55);
+      color: #ffffff;
     }
 
     body.purple-light .day-btn,
@@ -900,17 +931,9 @@
       color: var(--text);
     }
 
-    /* Yellow light — border/border2 are too yellow to read as UI outlines; use text-based colors */
-    body.yellow-light .ctrl-group-btn {
-      border-color: var(--text3);
-    }
-
-    body.yellow-light .ctrl-group-btn:hover,
-    body.yellow-light .ctrl-group.open .ctrl-group-btn {
-      background: var(--surface);
-      border-color: var(--text2);
-    }
-
+    /* Yellow light — border/border2 are too yellow to read as UI outlines in the
+       panel dropdown (pale page bg); use text-based colors. (.ctrl-group-btn itself
+       lives on the dark masthead banner and gets a light-text treatment above.) */
     body.yellow-light .day-btn,
     body.yellow-light .lang-btn {
       border-color: var(--text3);
@@ -5778,9 +5801,11 @@
       padding: 4px 14px;
       margin: 5px auto 0;
       border-radius: 4px;
-      border: 1px solid rgba(52, 211, 153, 0.5);
-      background: rgba(52, 211, 153, 0.12);
-      color: #34d399;
+      /* var(--green) rather than a flat hex — light themes already carry a
+         deep-forest variant of --green, so this reads calm instead of neon */
+      border: 1px solid color-mix(in srgb, var(--green) 50%, transparent);
+      background: color-mix(in srgb, var(--green) 12%, transparent);
+      color: var(--green);
       white-space: nowrap;
       text-align: center;
     }
@@ -7704,12 +7729,12 @@
     }
 
     .m-up {
-      color: var(--green);
+      color: var(--chart-up);
       font-weight: 500;
     }
 
     .m-down {
-      color: var(--rose);
+      color: var(--chart-down);
       font-weight: 500;
     }
 
@@ -7718,13 +7743,13 @@
     }
 
     .m-new {
-      color: var(--accent);
+      color: var(--chart-new);
       font-weight: 500;
       letter-spacing: 0.05em;
     }
 
     .m-re {
-      color: var(--gold1);
+      color: var(--chart-re);
       font-weight: 500;
       letter-spacing: 0.05em;
     }
@@ -15406,11 +15431,11 @@ body[class*="-light"] .tm-card-search:hover {
 .wv-bar { height: 3px; background: var(--border); border-radius: 2px; margin-top: 4px; }
 .wv-bar-fill { height: 100%; background: var(--accent); border-radius: 2px; transition: width 0.5s ease; }
 .wv-r1 .wv-bar-fill { background: var(--gold1); }
-.wv-up   { color: #4ade80; font-size: 0.6rem; font-family: var(--font-mono); }
-.wv-down { color: #f87171; font-size: 0.6rem; font-family: var(--font-mono); }
+.wv-up   { color: var(--chart-up); font-size: 0.6rem; font-family: var(--font-mono); }
+.wv-down { color: var(--chart-down); font-size: 0.6rem; font-family: var(--font-mono); }
 .wv-same { color: var(--text3); font-size: 0.6rem; }
-.wv-new  { color: var(--gold1); font-size: 0.55rem; font-family: var(--font-mono); letter-spacing: 0.06em; background: rgba(240,170,48,0.12); border: 1px solid rgba(240,170,48,0.3); border-radius: 3px; padding: 0 3px; }
-.wv-re   { color: #a78bfa; font-size: 0.55rem; font-family: var(--font-mono); letter-spacing: 0.06em; background: rgba(167,139,250,0.1); border: 1px solid rgba(167,139,250,0.3); border-radius: 3px; padding: 0 3px; }
+.wv-new  { color: var(--chart-new); font-size: 0.55rem; font-family: var(--font-mono); letter-spacing: 0.06em; background: color-mix(in srgb, var(--chart-new) 12%, transparent); border: 1px solid color-mix(in srgb, var(--chart-new) 30%, transparent); border-radius: 3px; padding: 0 3px; }
+.wv-re   { color: var(--chart-re); font-size: 0.55rem; font-family: var(--font-mono); letter-spacing: 0.06em; background: color-mix(in srgb, var(--chart-re) 10%, transparent); border: 1px solid color-mix(in srgb, var(--chart-re) 30%, transparent); border-radius: 3px; padding: 0 3px; }
 .wv-rank-badge { position: absolute; top: 4px; left: 4px; background: rgba(0,0,0,0.65); color: #fff; font-family: var(--font-mono); font-size: 0.65rem; font-weight: 700; border-radius: 3px; padding: 1px 5px; line-height: 1.4; }
 .wv-r1 .wv-rank-badge { background: var(--gold1); color: #000; }
 .wv-r2 .wv-rank-badge { background: #94a3b8; color: #000; }
@@ -15614,7 +15639,7 @@ body[class*="-light"] .tm-card-search:hover {
 .wv-mos-item .wv-mv-ov { background: rgba(0,0,0,0.82); padding: 0; border-radius: 4px; z-index: 3; }
 .wv-mos-item .wv-up   { color: #86efac; font-size: 0.78rem; padding: 2px 6px; border-radius: 4px; background: rgba(74,222,128,0.25); border: none; display: inline-block; }
 .wv-mos-item .wv-down { color: #fca5a5; font-size: 0.78rem; padding: 2px 6px; border-radius: 4px; background: rgba(248,113,113,0.25); border: none; display: inline-block; }
-.wv-mos-item .wv-new  { color: #fde68a; font-size: 0.78rem; padding: 2px 6px; border-radius: 4px; background: rgba(240,170,48,0.3); border: none; display: inline-block; }
+.wv-mos-item .wv-new  { color: #93c5fd; font-size: 0.78rem; padding: 2px 6px; border-radius: 4px; background: rgba(88,170,246,0.3); border: none; display: inline-block; }
 .wv-mos-item .wv-re   { color: #d8b4fe; font-size: 0.78rem; padding: 2px 6px; border-radius: 4px; background: rgba(167,139,250,0.3); border: none; display: inline-block; }
 .wv-mos-item .wv-same { color: rgba(255,255,255,0.45); font-size: 0.78rem; padding: 2px 6px; border-radius: 4px; background: rgba(255,255,255,0.12); border: none; display: inline-block; }
 .wv-mos-item .wv-rank-badge { top: 0.1em; left: 2px; background: none; padding: 0; border-radius: 0; font-size: 5rem; font-weight: 900; line-height: 0.85; letter-spacing: -0.05em; color: rgba(255,255,255,0.45); z-index: 1; pointer-events: none; }
@@ -15834,14 +15859,14 @@ body.albums-hide-cert #albumsSection .wv-film-cert-ov { display: none; }
 .wv-r1.wv-stk-card { border-color: rgba(240,170,48,0.6); background: rgba(240,170,48,0.06); animation: stk-glow-gold 2.5s ease-in-out infinite; }
 .wv-r2.wv-stk-card { border-color: rgba(148,163,184,0.55); animation: stk-glow-silver 3s ease-in-out infinite; }
 .wv-r3.wv-stk-card { border-color: rgba(180,83,9,0.55); animation: stk-glow-bronze 3.5s ease-in-out infinite; }
-.wv-stk-new { border-left: 3px solid #2dd4bf !important; }
-.wv-stk-re  { border-left: 3px solid #a78bfa !important; }
-/* For top-3 NEW/RETURN cards, clip the box-shadow glow on the left so only the teal/purple border edge shows there */
+.wv-stk-new { border-left: 3px solid var(--chart-new) !important; }
+.wv-stk-re  { border-left: 3px solid var(--chart-re) !important; }
+/* For top-3 NEW/RETURN cards, clip the box-shadow glow on the left so only the accent/violet border edge shows there */
 .wv-r1.wv-stk-card.wv-stk-new, .wv-r1.wv-stk-card.wv-stk-re,
 .wv-r2.wv-stk-card.wv-stk-new, .wv-r2.wv-stk-card.wv-stk-re,
 .wv-r3.wv-stk-card.wv-stk-new, .wv-r3.wv-stk-card.wv-stk-re { clip-path: inset(-80px -80px -80px 0); }
-tr.wv-row-new .rank-cell { border-left: 3px solid #2dd4bf; }
-tr.wv-row-re  .rank-cell { border-left: 3px solid #a78bfa; }
+tr.wv-row-new .rank-cell { border-left: 3px solid var(--chart-new); }
+tr.wv-row-re  .rank-cell { border-left: 3px solid var(--chart-re); }
 .wv-stk-row { display: flex; align-items: center; gap: 10px; padding: 8px 10px; }
 .wv-stk-rank { font-family: var(--font-mono); font-size: 2.2rem; font-weight: 900; color: rgba(255,255,255,0.55); min-width: 48px; text-align: center; flex-shrink: 0; line-height: 1; }
 .wv-r1 .wv-stk-rank { color: rgba(240,170,48,0.9); }
@@ -15859,10 +15884,10 @@ tr.wv-row-re  .rank-cell { border-left: 3px solid #a78bfa; }
 body.songs-hide-yt-btns   #songsSection   .wv-stk-yt-btn,
 body.artists-hide-yt-btns #artistsSection .wv-stk-yt-btn,
 body.albums-hide-yt-btns  #albumsSection  .wv-stk-yt-btn { display: none; }
-.wv-bar-fill.wv-bar-up,   .play-bar-fill.wv-bar-up   { background: #4ade80; }
-.wv-bar-fill.wv-bar-down, .play-bar-fill.wv-bar-down { background: #f87171; }
-.wv-bar-fill.wv-bar-new,  .play-bar-fill.wv-bar-new  { background: var(--gold1); }
-.wv-bar-fill.wv-bar-re,   .play-bar-fill.wv-bar-re   { background: #a78bfa; }
+.wv-bar-fill.wv-bar-up,   .play-bar-fill.wv-bar-up   { background: var(--chart-up); }
+.wv-bar-fill.wv-bar-down, .play-bar-fill.wv-bar-down { background: var(--chart-down); }
+.wv-bar-fill.wv-bar-new,  .play-bar-fill.wv-bar-new  { background: var(--chart-new); }
+.wv-bar-fill.wv-bar-re,   .play-bar-fill.wv-bar-re   { background: var(--chart-re); }
 
 /* ═══════════════════════════════════════════════════════════════════════
    LIGHT THEME CONTRAST FIXES
@@ -16274,28 +16299,12 @@ body.red-light .peak-badge-3 {
   border-color: rgba(124, 75, 42, 0.3);
 }
 
-/* 10. Play bars — thicker track + swap bright animated colors for dark CSS-variable versions */
+/* 10. Play bars — thicker track. Fill colors no longer need per-theme overrides
+   here: wv-bar-up/down/new/re now read var(--chart-up/down/new/re), which are
+   themselves already re-derived for light themes (see DERIVED SEMANTIC TOKENS). */
 body.navy-light .play-bar,   body.purple-light .play-bar,
 body.yellow-light .play-bar, body.pink-light .play-bar,
 body.red-light .play-bar { height: 4px; }
-
-body.navy-light .play-bar-fill.wv-bar-up,    body.navy-light .wv-bar-fill.wv-bar-up,
-body.purple-light .play-bar-fill.wv-bar-up,  body.purple-light .wv-bar-fill.wv-bar-up,
-body.yellow-light .play-bar-fill.wv-bar-up,  body.yellow-light .wv-bar-fill.wv-bar-up,
-body.pink-light .play-bar-fill.wv-bar-up,    body.pink-light .wv-bar-fill.wv-bar-up,
-body.red-light .play-bar-fill.wv-bar-up,     body.red-light .wv-bar-fill.wv-bar-up { background: var(--green); }
-
-body.navy-light .play-bar-fill.wv-bar-down,    body.navy-light .wv-bar-fill.wv-bar-down,
-body.purple-light .play-bar-fill.wv-bar-down,  body.purple-light .wv-bar-fill.wv-bar-down,
-body.yellow-light .play-bar-fill.wv-bar-down,  body.yellow-light .wv-bar-fill.wv-bar-down,
-body.pink-light .play-bar-fill.wv-bar-down,    body.pink-light .wv-bar-fill.wv-bar-down,
-body.red-light .play-bar-fill.wv-bar-down,     body.red-light .wv-bar-fill.wv-bar-down { background: var(--rose); }
-
-body.navy-light .play-bar-fill.wv-bar-re,    body.navy-light .wv-bar-fill.wv-bar-re,
-body.purple-light .play-bar-fill.wv-bar-re,  body.purple-light .wv-bar-fill.wv-bar-re,
-body.yellow-light .play-bar-fill.wv-bar-re,  body.yellow-light .wv-bar-fill.wv-bar-re,
-body.pink-light .play-bar-fill.wv-bar-re,    body.pink-light .wv-bar-fill.wv-bar-re,
-body.red-light .play-bar-fill.wv-bar-re,     body.red-light .wv-bar-fill.wv-bar-re { background: var(--accent2); }
 
 /* section-sub: yellow-light / pink-light were missing from the existing override (white on light bg) */
 body.yellow-light .section-sub,
