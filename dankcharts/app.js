@@ -4024,8 +4024,8 @@ function buildRecords() {
   } else {
     ch += recTable(['#', t('rec_th_artist'), t('rec_th_song_cert'), t('rec_th_album_cert')],
       certW.map(function (e, i) {
-        const sc2 = [e.sd ? e.sd + '× 💎' : '', e.sp ? e.sp + '× 💿' : '', e.sg ? e.sg + '× ⭐' : ''].filter(Boolean).join(' ') || '—';
-        const ac2 = [e.ad ? e.ad + '× 💎' : '', e.ap ? e.ap + '× 💿' : '', e.ag ? e.ag + '× ⭐' : ''].filter(Boolean).join(' ') || '—';
+        const sc2 = [e.sd ? e.sd + '× 💎' : '', e.sp ? e.sp + '× 💿' : '', e.sg ? e.sg + '× 🪙' : ''].filter(Boolean).join(' ') || '—';
+        const ac2 = [e.ad ? e.ad + '× 💎' : '', e.ap ? e.ap + '× 💿' : '', e.ag ? e.ag + '× 🪙' : ''].filter(Boolean).join(' ') || '—';
         return '<td class="rec-rank">' + (i + 1) + '</td><td><div class="rec-name">' + esc(e.art) + '</div></td><td class="rec-meta" style="white-space:nowrap">' + sc2 + '</td><td class="rec-meta" style="white-space:nowrap">' + ac2 + '</td>';
       }),
       lim
@@ -10354,7 +10354,7 @@ function certBadge(plays, type) {
     return `<span class="cert cert-diamond"><span class="cert-icon">${icon}</span>${label.toUpperCase()}</span>`;
   }
   if (plays >= certTiers.plat) return `<span class="cert cert-plat"><span class="cert-icon">💿</span>PLATINUM</span>`;
-  if (plays >= certTiers.gold) return `<span class="cert cert-gold"><span class="cert-icon">⭐</span>GOLD</span>`;
+  if (plays >= certTiers.gold) return `<span class="cert cert-gold"><span class="cert-icon">🪙</span>GOLD</span>`;
   return '';
 }
 
@@ -13089,7 +13089,7 @@ function openArtistModal(artistName) {
   }
   if (goldSongs) {
     const items = allSongsSorted.filter(s => s.count >= CERT.song.gold && s.count < CERT.song.plat);
-    acc.push(accRow('⭐', t('acc_cert', { n: goldSongs, cert: t('cert_gold'), unit: tUnit('songs', goldSongs), plays: CERT.song.gold, plays_unit: tUnit('plays', CERT.song.gold) }),
+    acc.push(accRow('🪙', t('acc_cert', { n: goldSongs, cert: t('cert_gold'), unit: tUnit('songs', goldSongs), plays: CERT.song.gold, plays_unit: tUnit('plays', CERT.song.gold) }),
       items.map(s => ({ name: s.title + (s.album !== '—' ? ' · ' + s.album : ''), plays: s.count, date: firstPlay(s) }))));
   }
 
@@ -13110,7 +13110,7 @@ function openArtistModal(artistName) {
   }
   if (goldAlbums) {
     const items = allAlbumsSorted.filter(a => a.count >= CERT.album.gold && a.count < CERT.album.plat);
-    acc.push(accRow('⭐', t('acc_cert', { n: goldAlbums, cert: t('cert_gold'), unit: tUnit('albums', goldAlbums), plays: CERT.album.gold, plays_unit: tUnit('plays', CERT.album.gold) }),
+    acc.push(accRow('🪙', t('acc_cert', { n: goldAlbums, cert: t('cert_gold'), unit: tUnit('albums', goldAlbums), plays: CERT.album.gold, plays_unit: tUnit('plays', CERT.album.gold) }),
       items.map(a => ({ name: a.album, plays: a.count, date: firstAlbumPlay(a.album) }))));
   }
 
@@ -13683,7 +13683,7 @@ function openAlbumModal(albumKey) {
   } else if (totalPlays >= CERT.album.plat) {
     acc.push(albAccRow('💿', t('acc_cert_single_album', { cert: t('cert_plat'), plays: CERT.album.plat, plays_unit: tUnit('plays', CERT.album.plat) }), []));
   } else if (totalPlays >= CERT.album.gold) {
-    acc.push(albAccRow('⭐', t('acc_cert_single_album', { cert: t('cert_gold'), plays: CERT.album.gold, plays_unit: tUnit('plays', CERT.album.gold) }), []));
+    acc.push(albAccRow('🪙', t('acc_cert_single_album', { cert: t('cert_gold'), plays: CERT.album.gold, plays_unit: tUnit('plays', CERT.album.gold) }), []));
   }
 
   // Track certifications (multi-level diamond)
@@ -13700,7 +13700,7 @@ function openAlbumModal(albumKey) {
   if (platTracks.length) acc.push(albAccRow('💿', t('acc_cert', { n: platTracks.length, cert: t('cert_plat'), unit: tUnit('tracks', platTracks.length), plays: CERT.song.plat, plays_unit: tUnit('plays', CERT.song.plat) }),
     platTracks.map(s => ({ name: s.title, plays: s.count }))));
   const goldTracks = allTracksSorted.filter(s => s.count >= CERT.song.gold && s.count < CERT.song.plat);
-  if (goldTracks.length) acc.push(albAccRow('⭐', t('acc_cert', { n: goldTracks.length, cert: t('cert_gold'), unit: tUnit('tracks', goldTracks.length), plays: CERT.song.gold, plays_unit: tUnit('plays', CERT.song.gold) }),
+  if (goldTracks.length) acc.push(albAccRow('🪙', t('acc_cert', { n: goldTracks.length, cert: t('cert_gold'), unit: tUnit('tracks', goldTracks.length), plays: CERT.song.gold, plays_unit: tUnit('plays', CERT.song.gold) }),
     goldTracks.map(s => ({ name: s.title, plays: s.count }))));
 
   if (!acc.length) acc.push(`<div style="font-family:var(--font-sans);font-style:italic;font-size:0.85rem;color:var(--text3);padding:0.5rem 0">${t('acc_none', { n: chartSize })}</div>`);
@@ -13762,14 +13762,14 @@ function openAlbumModal(albumKey) {
   if (totalPlays >= CERT.album.gold) {
     const mult = totalPlays >= CERT.album.diamond ? Math.floor(totalPlays / CERT.album.diamond) : 0;
     const tier = mult > 0 ? 'diamond' : totalPlays >= CERT.album.plat ? 'plat' : 'gold';
-    const { icon: dIcon, label: dLabel } = mult > 0 ? diamondMultiLabel(mult) : { icon: tier === 'plat' ? '💿' : '⭐', label: tier === 'plat' ? 'Platinum' : 'Gold' };
+    const { icon: dIcon, label: dLabel } = mult > 0 ? diamondMultiLabel(mult) : { icon: tier === 'plat' ? '💿' : '🪙', label: tier === 'plat' ? 'Platinum' : 'Gold' };
     plaqueItems.push({ icon: dIcon, label: mult > 0 ? dLabel : (tier === 'plat' ? 'Platinum' : 'Gold'), plays: mult > 0 ? mult * CERT.album.diamond : (tier === 'plat' ? CERT.album.plat : CERT.album.gold), type: 'Album' });
   }
   for (const s of allTracksSorted) {
     if (s.count >= CERT.song.gold) {
       const mult = s.count >= CERT.song.diamond ? Math.floor(s.count / CERT.song.diamond) : 0;
       const tier = mult > 0 ? 'diamond' : s.count >= CERT.song.plat ? 'plat' : 'gold';
-      const { icon: dIcon, label: dLabel } = mult > 0 ? diamondMultiLabel(mult) : { icon: tier === 'plat' ? '💿' : '⭐', label: tier === 'plat' ? 'Platinum' : 'Gold' };
+      const { icon: dIcon, label: dLabel } = mult > 0 ? diamondMultiLabel(mult) : { icon: tier === 'plat' ? '💿' : '🪙', label: tier === 'plat' ? 'Platinum' : 'Gold' };
       plaqueItems.push({ icon: dIcon, label: mult > 0 ? dLabel : (tier === 'plat' ? 'Platinum' : 'Gold'), plays: s.count, type: 'Song', name: s.title });
     }
   }
@@ -14199,7 +14199,7 @@ function openSongModal(key) {
   } else if (totalPlays >= CERT.song.plat) {
     acc.push(accRow('💿', `Platinum Certification · ${CERT.song.plat.toLocaleString()} ${tUnit('plays',CERT.song.plat)}`, []));
   } else if (totalPlays >= CERT.song.gold) {
-    acc.push(accRow('⭐', `Gold Certification · ${CERT.song.gold.toLocaleString()} ${tUnit('plays',CERT.song.gold)}`, []));
+    acc.push(accRow('🪙', `Gold Certification · ${CERT.song.gold.toLocaleString()} ${tUnit('plays',CERT.song.gold)}`, []));
   }
 
   // Grammy wins
@@ -16172,7 +16172,7 @@ if (mastheadControls) {
 
 // ─── CERTIFICATIONS WALL ────────────────────────────────────────
 const CWALL_TIER_CLASS = { gold: 'gold', platinum: 'plat', diamond: 'diamond' };
-const CWALL_TIER_LABEL = { gold: '⭐ Gold', platinum: '💿 Platinum', diamond: '💎 Diamond' };
+const CWALL_TIER_LABEL = { gold: '🪙 Gold', platinum: '💿 Platinum', diamond: '💎 Diamond' };
 const CWALL_TYPE_LABEL = { song: 'Song', album: 'Album' };
 
 function wallInitials(str) {
