@@ -19,7 +19,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-  <link rel="stylesheet" href="style.css?v=20">
+  <link rel="stylesheet" href="style.css?v=22">
   <script src="translations.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8/hammer.min.js"></script>
@@ -518,6 +518,21 @@
       </div>
     </div>
 
+    <!-- OFF THE CHART — SONGS (weekly only) -->
+    <div class="chart-section off-section" id="offSongsSection" style="display:none;">
+      <div class="off-section-header" onclick="toggleOffSection('songs')">
+        <span class="off-section-title" id="offSongsSectionTitle" data-i18n="sec_off_chart">⬇ Off the Chart</span>
+        <span class="bu-type-label" data-i18n="drop_col_songs">★ Songs</span>
+        <span class="off-count-pill" id="offSongsCount">0</span>
+        <span class="off-toggle-icon" id="offSongsToggleIcon">▼</span>
+        <div class="section-rule"></div>
+      </div>
+      <div class="off-body" id="offSongsBody" style="display:none;">
+        <div class="off-sub" id="offSongsSub" data-i18n-with-n="sub_off_chart" data-i18n-n="10"></div>
+        <div id="offSongsContent"></div>
+      </div>
+    </div>
+
     <div class="chart-section new-entries-section" id="newSongsSection" style="display:none;">
       <div class="section-header ne-section-header" onclick="toggleNeSection('songs')">
         <span class="ne-sparkle-emoji">✦</span>
@@ -683,6 +698,21 @@
         <table class="chart-table bu-table">
           <tbody id="buArtistsTableBody"></tbody>
         </table>
+      </div>
+    </div>
+
+    <!-- OFF THE CHART — ARTISTS (weekly only) -->
+    <div class="chart-section off-section" id="offArtistsSection" style="display:none;">
+      <div class="off-section-header" onclick="toggleOffSection('artists')">
+        <span class="off-section-title" id="offArtistsSectionTitle" data-i18n="sec_off_chart">⬇ Off the Chart</span>
+        <span class="bu-type-label" data-i18n="drop_col_artists">♦ Artists</span>
+        <span class="off-count-pill" id="offArtistsCount">0</span>
+        <span class="off-toggle-icon" id="offArtistsToggleIcon">▼</span>
+        <div class="section-rule"></div>
+      </div>
+      <div class="off-body" id="offArtistsBody" style="display:none;">
+        <div class="off-sub" id="offArtistsSub" data-i18n-with-n="sub_off_chart" data-i18n-n="10"></div>
+        <div id="offArtistsContent"></div>
       </div>
     </div>
 
@@ -855,6 +885,21 @@
       </div>
     </div>
 
+    <!-- OFF THE CHART — ALBUMS (weekly only) -->
+    <div class="chart-section off-section" id="offAlbumsSection" style="display:none;">
+      <div class="off-section-header" onclick="toggleOffSection('albums')">
+        <span class="off-section-title" id="offAlbumsSectionTitle" data-i18n="sec_off_chart">⬇ Off the Chart</span>
+        <span class="bu-type-label" data-i18n="drop_col_albums">◈ Albums</span>
+        <span class="off-count-pill" id="offAlbumsCount">0</span>
+        <span class="off-toggle-icon" id="offAlbumsToggleIcon">▼</span>
+        <div class="section-rule"></div>
+      </div>
+      <div class="off-body" id="offAlbumsBody" style="display:none;">
+        <div class="off-sub" id="offAlbumsSub" data-i18n-with-n="sub_off_chart" data-i18n-n="10"></div>
+        <div id="offAlbumsContent"></div>
+      </div>
+    </div>
+
     <div class="chart-section new-entries-section" id="newAlbumsSection" style="display:none;">
       <div class="section-header ne-section-header" onclick="toggleNeSection('albums')">
         <span class="ne-sparkle-emoji">✦</span>
@@ -885,19 +930,6 @@
           <button class="page-nav-next" onclick="changeNewPage('newAlbums',1)">NEXT ►</button>
           <button class="page-nav-last" onclick="goToNewPage('newAlbums',Infinity)" title="Last page">►|</button>
         </div>
-      </div>
-    </div>
-
-    <div class="chart-section" id="dropoutsSection" style="display:none;">
-      <div class="section-header">
-        <button class="section-collapse-btn" data-target="dropoutsSection" data-i18n-title="tooltip_collapse">−</button>
-        <h2 class="section-title" data-i18n="sec_off_chart">⬇ Off the Chart</h2>
-        <span class="section-collapsed-label" data-i18n="collapsed_hint">collapsed — click + to expand</span>
-        <div class="section-rule"></div>
-      </div>
-      <div class="section-sub" id="dropoutsSubtitle" data-i18n-with-n="sub_dropouts" data-i18n-n="10"></div>
-      <div class="section-body">
-        <div id="dropoutsContent"></div>
       </div>
     </div>
 

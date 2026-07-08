@@ -2260,11 +2260,20 @@
       user-select: none;
     }
 
-    /* Each row of nav buttons */
+    /* Each row of nav buttons. Horizontal scroll is unconditional (not gated to a
+       breakpoint) so it's purely content-driven: rows that fit stay static, rows
+       whose labels don't fit (long ES/PT-BR/PT-PT translations especially) become
+       swipeable pill strips instead of wrapping button text onto a second line. */
     .period-nav-row {
       display: flex;
       border-bottom: 1px solid var(--border);
       position: relative; /* anchors .nav-indicator below */
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+    }
+    .period-nav-row::-webkit-scrollbar {
+      display: none;
     }
 
     /* Sliding active-tab indicator (feature 5) — one shared element per row that
@@ -2381,6 +2390,13 @@
       justify-content: center;
       gap: 0.35em;
       position: relative;
+      /* Never wrap the label onto a 2nd line — long ES/PT-BR/PT-PT translations
+         (e.g. "BASE DE DATOS", "SUA TRILHA SONORA") would otherwise wrap inside
+         the narrow flex-basis and stretch the whole row taller. Flexbox's
+         automatic min-size keeps the button from shrinking below this nowrap
+         content width, so on narrow screens the row scrolls (see .period-nav-row)
+         instead of squeezing text into two lines. */
+      white-space: nowrap;
     }
 
     /* Icon (feature 2) */
@@ -2968,7 +2984,7 @@
     }
 
     /* Card styling for main chart sections */
-    .chart-section:not(.bu-section):not(.new-entries-section) {
+    .chart-section:not(.bu-section):not(.new-entries-section):not(.off-section) {
       margin-top: 2rem;
       margin-bottom: 1rem;
       /* faint top-light over the card body reads as soft depth (2026 redesign) */
@@ -7892,23 +7908,79 @@
       font-weight: 500;
     }
 
-    /* DROPOUTS SECTION */
-    .dropouts-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr 1fr;
-      gap: 1.5rem;
-      margin-top: 0.5rem;
+    /* OFF THE CHART SECTION (per-type: songs/artists/albums) — sits between
+       Bubbling Under and New Entries for each type. Same collapsible-accordion
+       pattern as Bubbling Under, but styled with --accent2 (via color-mix, so
+       it stays theme-safe) instead of BU's cyan, so the two zones read as
+       visually distinct. */
+    .off-section {
+      margin-top: 0.4rem;
+      margin-bottom: 1.5rem;
+      padding: 0.5rem 0.75rem;
+      background: color-mix(in srgb, var(--accent2) 6%, transparent);
+      border: 1px solid color-mix(in srgb, var(--accent2) 22%, transparent);
+      border-radius: var(--r-md);
     }
 
-    .dropout-col-title {
+    .off-section-header {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      cursor: pointer;
+      user-select: none;
+      padding: 0.45rem 0.6rem;
+      border-radius: 8px;
+      transition: background 0.15s;
+      flex-wrap: wrap;
+      border: 1px solid color-mix(in srgb, var(--accent2) 28%, transparent);
+      background: color-mix(in srgb, var(--accent2) 8%, transparent);
+    }
+    .off-section-header:hover {
+      background: color-mix(in srgb, var(--accent2) 16%, transparent);
+      border-color: color-mix(in srgb, var(--accent2) 45%, transparent);
+    }
+
+    .off-section-title {
       font-family: var(--font-mono);
-      font-size: 0.58rem;
-      letter-spacing: 0.14em;
-      text-transform: uppercase;
+      font-size: 0.62rem;
+      letter-spacing: 0.15em;
+      font-weight: 700;
       color: var(--accent2);
-      padding-bottom: 0.4rem;
-      border-bottom: 1px solid var(--border2);
-      margin-bottom: 0.25rem;
+      white-space: nowrap;
+    }
+
+    .off-count-pill {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 20px;
+      background: color-mix(in srgb, var(--accent2) 18%, transparent);
+      color: var(--accent2);
+      font-size: 0.6rem;
+      font-weight: 700;
+      padding: 1px 6px;
+      border-radius: 20px;
+      border: 1px solid color-mix(in srgb, var(--accent2) 35%, transparent);
+      font-family: var(--font-mono);
+    }
+
+    .off-toggle-icon {
+      font-size: 0.55rem;
+      color: var(--text3);
+      margin-left: auto;
+    }
+
+    .off-body {
+      overflow: hidden;
+      padding-top: 0.4rem;
+    }
+
+    .off-sub {
+      font-size: 0.65rem;
+      color: var(--text3);
+      font-style: italic;
+      margin-bottom: 0.5rem;
+      padding-left: 0.25rem;
     }
 
     .dropout-row {
@@ -8373,10 +8445,6 @@
         display: none;
       }
 
-      .dropouts-grid {
-        grid-template-columns: 1fr;
-      }
-
       .raw-filters {
         grid-template-columns: 1fr 1fr;
       }
@@ -8500,7 +8568,7 @@
       /* Chart section cards use desktop-sized 2rem side padding — far too much
          on a narrow phone (eats ~64px of a 375px viewport). Shrink it so the
          chart table gets nearly the full width to work with. */
-      .chart-section:not(.bu-section):not(.new-entries-section) {
+      .chart-section:not(.bu-section):not(.new-entries-section):not(.off-section) {
         padding: 1.5rem 0.7rem;
       }
 
@@ -9617,21 +9685,33 @@
       }
     }
 
-    /* Period nav rows: scroll horizontally if buttons get too squished */
+    /* Period nav rows on touch/mobile — the base .period-nav-row/.period-nav button
+       rules already make the strip nowrap + horizontally scrollable at any width
+       (content-driven, no wrapping). These rules are the touch-specific refinements
+       on top: roomier tap targets, no keyboard-shortcut clutter (there's no keyboard
+       on a phone), and a fade at the scrollable edges so "more tabs this way" reads
+       as an affordance instead of the strip looking abruptly cut off. */
     @media (max-width: 480px) {
       .period-nav-row {
-        overflow-x: auto;
-        -webkit-overflow-scrolling: touch;
-        scrollbar-width: none;
-      }
-
-      .period-nav-row::-webkit-scrollbar {
-        display: none;
+        /* Fade the last ~20px at each edge to transparent — a constant, direction-
+           agnostic hint (not scroll-position-aware) that the strip keeps going,
+           same trick iOS chip rows and YouTube's category bar use. */
+        mask-image: linear-gradient(to right, transparent, black 14px, black calc(100% - 14px), transparent);
+        -webkit-mask-image: linear-gradient(to right, transparent, black 14px, black calc(100% - 14px), transparent);
       }
 
       .period-nav button {
-        flex-shrink: 0;
-        min-width: 4.5rem;
+        padding: 0.7rem 0.75rem;
+      }
+
+      .period-nav-row-2 button {
+        padding: 0.55rem 0.65rem;
+      }
+
+      /* Keyboard shortcuts (1-9) are a desktop affordance — hide the badge on
+         touch so it doesn't crowd labels that are already tight for space. */
+      .nav-key {
+        display: none;
       }
     }
 

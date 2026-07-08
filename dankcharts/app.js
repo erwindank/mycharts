@@ -4442,7 +4442,7 @@ document.addEventListener('click', e => {
 });
 
 // ─── SECTION COLLAPSE ──────────────────────────────────────────
-const CHART_COLLAPSIBLE_SECTIONS = ['songsSection', 'artistsSection', 'albumsSection', 'dropoutsSection', 'newSongsSection', 'newArtistsSection', 'newAlbumsSection'];
+const CHART_COLLAPSIBLE_SECTIONS = ['songsSection', 'artistsSection', 'albumsSection', 'newSongsSection', 'newArtistsSection', 'newAlbumsSection'];
 
 function restoreChartSectionCollapseState(period) {
   // Map of new-entries section IDs to their arrow icon element IDs
@@ -4473,7 +4473,7 @@ function restoreChartSectionCollapseState(period) {
 }
 
 // Sections controlled by the Collapse All toggle
-const COLLAPSE_ALL_SECTIONS = ['songsSection', 'artistsSection', 'albumsSection', 'dropoutsSection'];
+const COLLAPSE_ALL_SECTIONS = ['songsSection', 'artistsSection', 'albumsSection'];
 // Type names used for both bubbling-under and new-entries sub-sections
 const COLLAPSE_ALL_TYPES = ['songs', 'artists', 'albums'];
 // Arrow icon IDs for new-entries sections
@@ -4498,14 +4498,22 @@ function _isEverythingCollapsed() {
     const bodyEl = document.getElementById('bu' + ucType + 'Body');
     return !bodyEl || bodyEl.style.display === 'none';
   });
-  return mainOk && neOk && buOk;
+  // Same check for the Off The Chart sections (own _offOpen state, like Bubbling Under)
+  const offOk = COLLAPSE_ALL_TYPES.every(type => {
+    const ucType = type.charAt(0).toUpperCase() + type.slice(1);
+    const sectionEl = document.getElementById('off' + ucType + 'Section');
+    if (!sectionEl || sectionEl.style.display === 'none') return true;
+    const bodyEl = document.getElementById('off' + ucType + 'Body');
+    return !bodyEl || bodyEl.style.display === 'none';
+  });
+  return mainOk && neOk && buOk && offOk;
 }
 
 // Toggle collapse/expand all main chart sections at once
 function toggleCollapseAllCharts() {
   const shouldCollapse = !_isEverythingCollapsed();
 
-  // Main sections + Off The Chart (use .collapsed class + collapse button)
+  // Main sections (use .collapsed class + collapse button)
   COLLAPSE_ALL_SECTIONS.forEach(id => {
     const section = document.getElementById(id);
     if (!section || section.style.display === 'none') return;
@@ -4540,6 +4548,18 @@ function toggleCollapseAllCharts() {
     const iconEl = document.getElementById('bu' + ucType + 'ToggleIcon');
     if (bodyEl) bodyEl.style.display = _buOpen[type] ? '' : 'none';
     if (iconEl) iconEl.textContent = _buOpen[type] ? '▲' : '▼';
+  });
+
+  // Off The Chart sections (use _offOpen state + body display, same as Bubbling Under)
+  COLLAPSE_ALL_TYPES.forEach(type => {
+    const ucType = type.charAt(0).toUpperCase() + type.slice(1);
+    const sectionEl = document.getElementById('off' + ucType + 'Section');
+    if (!sectionEl || sectionEl.style.display === 'none') return;
+    _offOpen[type] = !shouldCollapse;
+    const bodyEl = document.getElementById('off' + ucType + 'Body');
+    const iconEl = document.getElementById('off' + ucType + 'ToggleIcon');
+    if (bodyEl) bodyEl.style.display = _offOpen[type] ? '' : 'none';
+    if (iconEl) iconEl.textContent = _offOpen[type] ? '▲' : '▼';
   });
 
   // Directly set button text — we know exactly what state we just applied
@@ -4640,7 +4660,7 @@ document.getElementById('periodNav').addEventListener('click', e => {
     document.getElementById('buSongsSection').style.display = 'none';
     document.getElementById('buArtistsSection').style.display = 'none';
     document.getElementById('buAlbumsSection').style.display = 'none';
-    document.getElementById('dropoutsSection').style.display = 'none';
+    COLLAPSE_ALL_TYPES.forEach(hideOffSection);
     NEW_ENTRY_SECTIONS.forEach(id => { const el = document.getElementById(id); if (el) el.style.display = 'none'; });
     document.getElementById('upcomingSection').style.display = 'none';
     document.getElementById('recentSection').style.display = 'none';
@@ -4680,7 +4700,7 @@ document.getElementById('periodNav').addEventListener('click', e => {
     document.getElementById('buSongsSection').style.display = 'none';
     document.getElementById('buArtistsSection').style.display = 'none';
     document.getElementById('buAlbumsSection').style.display = 'none';
-    document.getElementById('dropoutsSection').style.display = 'none';
+    COLLAPSE_ALL_TYPES.forEach(hideOffSection);
     NEW_ENTRY_SECTIONS.forEach(id => { const el = document.getElementById(id); if (el) el.style.display = 'none'; });
     document.getElementById('upcomingSection').style.display = 'none';
     document.getElementById('recentSection').style.display = 'none';
@@ -4714,7 +4734,7 @@ document.getElementById('periodNav').addEventListener('click', e => {
     document.getElementById('buSongsSection').style.display = 'none';
     document.getElementById('buArtistsSection').style.display = 'none';
     document.getElementById('buAlbumsSection').style.display = 'none';
-    document.getElementById('dropoutsSection').style.display = 'none';
+    COLLAPSE_ALL_TYPES.forEach(hideOffSection);
     NEW_ENTRY_SECTIONS.forEach(id => { const el = document.getElementById(id); if (el) el.style.display = 'none'; });
     document.getElementById('upcomingSection').style.display = 'none';
     document.getElementById('recentSection').style.display = 'none';
@@ -4751,7 +4771,7 @@ document.getElementById('periodNav').addEventListener('click', e => {
     document.getElementById('buSongsSection').style.display = 'none';
     document.getElementById('buArtistsSection').style.display = 'none';
     document.getElementById('buAlbumsSection').style.display = 'none';
-    document.getElementById('dropoutsSection').style.display = 'none';
+    COLLAPSE_ALL_TYPES.forEach(hideOffSection);
     NEW_ENTRY_SECTIONS.forEach(id => { const el = document.getElementById(id); if (el) el.style.display = 'none'; });
     document.getElementById('upcomingSection').style.display = 'none';
     document.getElementById('recentSection').style.display = 'none';
@@ -4801,7 +4821,7 @@ document.getElementById('periodNav').addEventListener('click', e => {
     document.getElementById('buSongsSection').style.display = 'none';
     document.getElementById('buArtistsSection').style.display = 'none';
     document.getElementById('buAlbumsSection').style.display = 'none';
-    document.getElementById('dropoutsSection').style.display = 'none';
+    COLLAPSE_ALL_TYPES.forEach(hideOffSection);
     NEW_ENTRY_SECTIONS.forEach(id => { const el = document.getElementById(id); if (el) el.style.display = 'none'; });
     document.getElementById('upcomingSection').style.display = 'none';
     document.getElementById('recentSection').style.display = 'none';
@@ -4836,7 +4856,7 @@ document.getElementById('periodNav').addEventListener('click', e => {
     document.getElementById('buSongsSection').style.display = 'none';
     document.getElementById('buArtistsSection').style.display = 'none';
     document.getElementById('buAlbumsSection').style.display = 'none';
-    document.getElementById('dropoutsSection').style.display = 'none';
+    COLLAPSE_ALL_TYPES.forEach(hideOffSection);
     NEW_ENTRY_SECTIONS.forEach(id => { const el = document.getElementById(id); if (el) el.style.display = 'none'; });
     document.getElementById('upcomingSection').style.display = 'none';
     document.getElementById('recentSection').style.display = 'none';
@@ -4873,7 +4893,7 @@ document.getElementById('periodNav').addEventListener('click', e => {
     document.getElementById('buSongsSection').style.display = 'none';
     document.getElementById('buArtistsSection').style.display = 'none';
     document.getElementById('buAlbumsSection').style.display = 'none';
-    document.getElementById('dropoutsSection').style.display = 'none';
+    COLLAPSE_ALL_TYPES.forEach(hideOffSection);
     NEW_ENTRY_SECTIONS.forEach(id => { const el = document.getElementById(id); if (el) el.style.display = 'none'; });
     document.getElementById('upcomingSection').style.display = 'none';
     document.getElementById('rawDataView').style.display = 'none';
@@ -4923,7 +4943,7 @@ document.getElementById('periodNav').addEventListener('click', e => {
     document.getElementById('buSongsSection').style.display = 'none';
     document.getElementById('buArtistsSection').style.display = 'none';
     document.getElementById('buAlbumsSection').style.display = 'none';
-    document.getElementById('dropoutsSection').style.display = 'none';
+    COLLAPSE_ALL_TYPES.forEach(hideOffSection);
     NEW_ENTRY_SECTIONS.forEach(id => { const el = document.getElementById(id); if (el) el.style.display = 'none'; });
     document.getElementById('upcomingSection').style.display = 'none';
     document.getElementById('recentSection').style.display = 'none';
@@ -5086,7 +5106,7 @@ function dcNavUpdateBadges() {
     row2.classList.toggle('nav-row2-collapsed', !open);
     toggle.classList.toggle('open', open);
     const label = toggle.querySelector('.period-nav-toggle-label');
-    if (label) label.textContent = open ? 'Less' : 'More';
+    if (label) label.textContent = open ? t('nav_toggle_less') : t('nav_toggle_more');
     try { localStorage.setItem(ROW2_KEY, open ? '1' : '0'); } catch (e) {}
   }
 
@@ -6247,7 +6267,7 @@ function renderAll() {
     ['songsPagination', 'artistsPagination', 'albumsPagination'].forEach(id => {
       document.getElementById(id).style.display = 'none';
     });
-    document.getElementById('dropoutsSection').style.display = 'none';
+    COLLAPSE_ALL_TYPES.forEach(hideOffSection);
     NEW_ENTRY_SECTIONS.forEach(id => { const el = document.getElementById(id); if (el) el.style.display = 'none'; });
     return;
   }
@@ -6297,7 +6317,7 @@ function renderAll() {
     hideBuSection('songs');
     hideBuSection('artists');
     hideBuSection('albums');
-    document.getElementById('dropoutsSection').style.display = 'none';
+    COLLAPSE_ALL_TYPES.forEach(hideOffSection);
   } else {
     // Top-N mode — each section renders with its own independent chart size
     ['songsPagination', 'artistsPagination', 'albumsPagination'].forEach(id => {
@@ -6313,10 +6333,8 @@ function renderAll() {
     chartSize = chartSizeSongs;   renderSongs(plays, peaks, periodStats);
     chartSize = chartSizeArtists; renderArtists(plays, peaks, periodStats);
     chartSize = chartSizeAlbums;  renderAlbums(plays, peaks, periodStats);
-    chartSize = chartSizeSongs;   // reset to songs for renderDropouts (which uses per-section globals directly)
     _animPrevPlays = null;
     _animCurrentPlays = null;
-    renderDropouts(plays, periodStats);
   }
   renderNewEntries(plays, start, end);
   updateExportBtn();
@@ -8464,8 +8482,10 @@ function renderSongs(plays, peaks, monthlyStats) {
       key: songKey(s), displayName: s.title, subName: s.artist, album: s.album, count: s.count
     }));
     renderBubblingUnder('songs', _buNormSongs, monthlyStats, sorted[sorted.length - 1]?.count || 0);
+    renderOffChart('songs', plays, monthlyStats);
   } else {
     hideBuSection('songs');
+    hideOffSection('songs');
   }
 }
 
@@ -8575,8 +8595,10 @@ function renderArtists(plays, peaks, monthlyStats) {
       key: name, displayName: name, subName: '', count: data.count
     }));
     renderBubblingUnder('artists', _buNormArtists, monthlyStats, sorted[sorted.length - 1]?.[1].count || 0);
+    renderOffChart('artists', plays, monthlyStats);
   } else {
     hideBuSection('artists');
+    hideOffSection('artists');
   }
 }
 
@@ -8696,8 +8718,10 @@ function renderAlbums(plays, peaks, monthlyStats) {
       key: a.album + '|||' + albumArtist(a), displayName: a.album, subName: albumArtist(a), count: a.count
     }));
     renderBubblingUnder('albums', _buNormAlbums, monthlyStats, sorted[sorted.length - 1]?.count || 0);
+    renderOffChart('albums', plays, monthlyStats);
   } else {
     hideBuSection('albums');
+    hideOffSection('albums');
   }
 }
 
@@ -9056,6 +9080,25 @@ function toggleNeSection(type) {
 function hideBuSection(type) {
   const ucType = type.charAt(0).toUpperCase() + type.slice(1);
   const sectionEl = document.getElementById('bu' + ucType + 'Section');
+  if (sectionEl) sectionEl.style.display = 'none';
+}
+
+// Off The Chart accordion state — mirrors _buOpen/toggleBuSection/hideBuSection above
+const _offOpen = { songs: false, artists: false, albums: false };
+
+function toggleOffSection(type) {
+  _offOpen[type] = !_offOpen[type];
+  const ucType = type.charAt(0).toUpperCase() + type.slice(1);
+  const bodyEl = document.getElementById('off' + ucType + 'Body');
+  const iconEl = document.getElementById('off' + ucType + 'ToggleIcon');
+  if (bodyEl) bodyEl.style.display = _offOpen[type] ? '' : 'none';
+  if (iconEl) iconEl.textContent = _offOpen[type] ? '▲' : '▼';
+  syncCollapseAllBtn();
+}
+
+function hideOffSection(type) {
+  const ucType = type.charAt(0).toUpperCase() + type.slice(1);
+  const sectionEl = document.getElementById('off' + ucType + 'Section');
   if (sectionEl) sectionEl.style.display = 'none';
 }
 
@@ -10207,110 +10250,98 @@ function initStkInteractions(type) {
   });
 }
 
-// ─── WEEKLY DROPOUTS ───────────────────────────────────────────
-function renderDropouts(plays, periodStats) {
-  const section = document.getElementById('dropoutsSection');
-  if (!periodStats || currentPeriod !== 'week') { section.style.display = 'none'; return; }
+// ─── OFF THE CHART (per-type, weekly-only) ─────────────────────
+// Entries that dropped out of the Top N since last week, rendered as its
+// own accordion per type (songs/artists/albums) — sits between Bubbling
+// Under and New Entries for that type. Was previously one combined section
+// with all three types side by side; each type is now fully independent.
+function renderOffChart(type, plays, periodStats) {
+  const ucType    = type.charAt(0).toUpperCase() + type.slice(1);
+  const sectionEl = document.getElementById('off' + ucType + 'Section');
+  if (!sectionEl) return;
+  if (!periodStats || currentPeriod !== 'week') { sectionEl.style.display = 'none'; return; }
 
-  const dropoutsSubtitle = document.getElementById('dropoutsSubtitle');
-  dropoutsSubtitle.dataset.i18nN = chartSizeSongs;
-  dropoutsSubtitle.textContent = t('sub_dropouts', { n: chartSizeSongs });
-
-  // Current week's chart keys — must use rankSortWithStatus to match main chart tiebreakers
-  const sc = {}, ac = {}, lc = {};
-  for (const p of plays) {
-    const sk = songKey(p);
-    if (!sc[sk]) sc[sk] = { count: 0, firstAchieved: p.date };
-    sc[sk].count++;
-    for (const a of p.artists) {
-      if (!ac[a]) ac[a] = { count: 0, firstAchieved: p.date };
-      ac[a].count++;
+  // Current week's chart keys for this type — must use rankSortWithStatus to match main chart tiebreakers
+  const counts = {};
+  if (type === 'songs') {
+    for (const p of plays) {
+      const k = songKey(p);
+      if (!counts[k]) counts[k] = { count: 0, firstAchieved: p.date };
+      counts[k].count++;
     }
-    if (p.album && p.album !== '—') {
-      const ak = p.album + '|||' + albumArtist(p);
-      if (!lc[ak]) lc[ak] = { count: 0, firstAchieved: p.date };
-      lc[ak].count++;
+  } else if (type === 'artists') {
+    for (const p of plays) {
+      for (const a of p.artists) {
+        if (!counts[a]) counts[a] = { count: 0, firstAchieved: p.date };
+        counts[a].count++;
+      }
+    }
+  } else {
+    for (const p of plays) {
+      if (!p.album || p.album === '—') continue;
+      const k = p.album + '|||' + albumArtist(p);
+      if (!counts[k]) counts[k] = { count: 0, firstAchieved: p.date };
+      counts[k].count++;
     }
   }
-  for (const [k, d] of Object.entries(sc)) {
-    const prev = periodStats.prevChart.songs[k];
-    d.chartStatus = prev !== undefined ? 0 : periodStats.everChartedBefore.songs.has(k) ? 1 : 2;
+  for (const [k, d] of Object.entries(counts)) {
+    const prev = periodStats.prevChart[type][k];
+    d.chartStatus = prev !== undefined ? 0 : periodStats.everChartedBefore[type].has(k) ? 1 : 2;
     d.prevRank = prev !== undefined ? prev.rank : Infinity;
   }
-  for (const [k, d] of Object.entries(ac)) {
-    const prev = periodStats.prevChart.artists[k];
-    d.chartStatus = prev !== undefined ? 0 : periodStats.everChartedBefore.artists.has(k) ? 1 : 2;
-    d.prevRank = prev !== undefined ? prev.rank : Infinity;
-  }
-  for (const [k, d] of Object.entries(lc)) {
-    const prev = periodStats.prevChart.albums[k];
-    d.chartStatus = prev !== undefined ? 0 : periodStats.everChartedBefore.albums.has(k) ? 1 : 2;
-    d.prevRank = prev !== undefined ? prev.rank : Infinity;
-  }
-  const curSongKeys   = new Set(Object.entries(sc).sort(([, a], [, b]) => rankSortWithStatus(a, b)).slice(0, chartSizeSongs).map(([k]) => k));
-  const curArtistKeys = new Set(Object.entries(ac).sort(([, a], [, b]) => rankSortWithStatus(a, b)).slice(0, chartSizeArtists).map(([k]) => k));
-  const curAlbumKeys  = new Set(Object.entries(lc).sort(([, a], [, b]) => rankSortWithStatus(a, b)).slice(0, chartSizeAlbums).map(([k]) => k));
+  const curKeys = new Set(Object.entries(counts).sort(([, a], [, b]) => rankSortWithStatus(a, b)).slice(0, chartSize).map(([k]) => k));
 
   // Dropouts: in previous week's chart but not in this week's
-  const dropSongs = Object.entries(periodStats.prevChart.songs)
-    .filter(([k]) => !curSongKeys.has(k)).sort((a, b) => a[1].rank - b[1].rank);
-  const dropArtists = Object.entries(periodStats.prevChart.artists)
-    .filter(([k]) => !curArtistKeys.has(k)).sort((a, b) => a[1].rank - b[1].rank);
-  const dropAlbums = Object.entries(periodStats.prevChart.albums)
-    .filter(([k]) => !curAlbumKeys.has(k)).sort((a, b) => a[1].rank - b[1].rank);
+  const dropped = Object.entries(periodStats.prevChart[type])
+    .filter(([k]) => !curKeys.has(k)).sort((a, b) => a[1].rank - b[1].rank);
 
-  if (!dropSongs.length && !dropArtists.length && !dropAlbums.length) {
-    section.style.display = 'none';
-    return;
-  }
+  if (!dropped.length) { sectionEl.style.display = 'none'; return; }
 
   // Name lookup for songs and albums (keys are lowercase, need original casing)
-  const songNames = {}, albumNames = {};
-  for (const p of allPlays) {
-    const sk = songKey(p);
-    if (!songNames[sk]) songNames[sk] = { title: p.title, artist: p.artist };
-    const ak = p.album + '|||' + albumArtist(p);
-    if (!albumNames[ak]) albumNames[ak] = { album: p.album, artist: albumArtist(p) };
+  const names = {};
+  if (type === 'songs') {
+    for (const p of allPlays) {
+      const k = songKey(p);
+      if (!names[k]) names[k] = { title: p.title, artist: p.artist };
+    }
+  } else if (type === 'albums') {
+    for (const p of allPlays) {
+      const k = p.album + '|||' + albumArtist(p);
+      if (!names[k]) names[k] = { album: p.album, artist: albumArtist(p) };
+    }
   }
 
-  function dropRows(entries, type) {
-    if (!entries.length) return `<div class="dropout-empty">${t('drop_none_this_week')}</div>`;
-    return entries.map(([k, { rank, count }]) => {
-      const wks = periodStats.periodsOnChart[type][k] || 1;
-      let name, sub;
-      if (type === 'songs') { name = songNames[k]?.title || k.split('|||')[0]; sub = songNames[k]?.artist || ''; }
-      else if (type === 'artists') { name = k; sub = ''; }
-      else { name = albumNames[k]?.album || k.split('|||')[0]; sub = albumNames[k]?.artist || ''; }
-      return `<div class="dropout-row">
-        <span class="dropout-rank">#${rank}</span>
-        <div class="dropout-info">
-          <div class="dropout-name">${esc(name)}</div>
-          ${sub ? `<div class="dropout-artist">${esc(sub)}</div>` : ''}
-        </div>
-        <div class="dropout-stats">
-          <span class="dropout-plays">${tCountHtml('plays', count)}</span>
-          <span class="dropout-wks">${wks} ${tUnit('weeks_full', wks)}</span>
-        </div>
-      </div>`;
-    }).join('');
-  }
+  sectionEl.style.display = '';
+  const subEl   = document.getElementById('off' + ucType + 'Sub');
+  const countEl = document.getElementById('off' + ucType + 'Count');
+  const bodyEl  = document.getElementById('off' + ucType + 'Body');
+  const iconEl  = document.getElementById('off' + ucType + 'ToggleIcon');
+  if (subEl)   { subEl.dataset.i18nN = chartSize; subEl.textContent = t('sub_off_chart', { n: chartSize }); }
+  if (countEl) countEl.textContent = dropped.length;
+  if (bodyEl)  bodyEl.style.display = _offOpen[type] ? '' : 'none';
+  if (iconEl)  iconEl.textContent = _offOpen[type] ? '▲' : '▼';
 
-  section.style.display = 'block';
-  document.getElementById('dropoutsContent').innerHTML = `
-    <div class="dropouts-grid">
-      <div class="dropout-col">
-        <div class="dropout-col-title">${t('drop_col_songs')}</div>
-        ${dropRows(dropSongs, 'songs')}
+  const rows = dropped.map(([k, { rank, count }]) => {
+    const wks = periodStats.periodsOnChart[type][k] || 1;
+    let name, sub;
+    if (type === 'songs') { name = names[k]?.title || k.split('|||')[0]; sub = names[k]?.artist || ''; }
+    else if (type === 'artists') { name = k; sub = ''; }
+    else { name = names[k]?.album || k.split('|||')[0]; sub = names[k]?.artist || ''; }
+    return `<div class="dropout-row">
+      <span class="dropout-rank">#${rank}</span>
+      <div class="dropout-info">
+        <div class="dropout-name">${esc(name)}</div>
+        ${sub ? `<div class="dropout-artist">${esc(sub)}</div>` : ''}
       </div>
-      <div class="dropout-col">
-        <div class="dropout-col-title">${t('drop_col_artists')}</div>
-        ${dropRows(dropArtists, 'artists')}
-      </div>
-      <div class="dropout-col">
-        <div class="dropout-col-title">${t('drop_col_albums')}</div>
-        ${dropRows(dropAlbums, 'albums')}
+      <div class="dropout-stats">
+        <span class="dropout-plays">${tCountHtml('plays', count)}</span>
+        <span class="dropout-wks">${wks} ${tUnit('weeks_full', wks)}</span>
       </div>
     </div>`;
+  }).join('');
+
+  const contentEl = document.getElementById('off' + ucType + 'Content');
+  if (contentEl) contentEl.innerHTML = rows;
 }
 
 // ─── CERTIFICATIONS ────────────────────────────────────────────

@@ -22,6 +22,8 @@ const TRANSLATIONS = {
     nav_awards: 'Awards',
     nav_playlists: 'Playlists',
     nav_chartsguide: 'Charts Guide',
+    nav_toggle_more: 'More',
+    nav_toggle_less: 'Less',
     awards_tab_mygrammys: 'My Grammys',
     awards_tab_reallife: 'Real-Life Awards',
     awards_configure: '⚙ Configure Year',
@@ -235,6 +237,7 @@ const TRANSLATIONS = {
     sub_artists: 'By total play count across all songs',
     sub_albums: 'By total play count across all tracks',
     sub_dropouts: 'Songs, artists and albums that left the Top {{n}} this week',
+    sub_off_chart: 'Left the Top {{n}} this week',
     sub_upcoming: 'Next 90 days · Based on your Top 200 All-Time Artists',
     sub_recent: 'Past 180 days · Based on your Top 200 All-Time Artists',
 
@@ -1060,6 +1063,8 @@ const TRANSLATIONS = {
     nav_awards: 'Premios',
     nav_playlists: 'Listas de reproducción',
     nav_chartsguide: 'Guía de Charts',
+    nav_toggle_more: 'Más',
+    nav_toggle_less: 'Menos',
     awards_tab_mygrammys: 'Mis Grammys',
     awards_tab_reallife: 'Premios Reales',
     awards_configure: '⚙ Configurar Año',
@@ -1273,6 +1278,7 @@ const TRANSLATIONS = {
     sub_artists: 'Por total de reproducciones en todas las canciones',
     sub_albums: 'Por total de reproducciones en todas las canciones',
     sub_dropouts: 'Canciones, artistas y álbumes que salieron del Top {{n}} esta semana',
+    sub_off_chart: 'Salieron del Top {{n}} esta semana',
     sub_upcoming: 'Próximos 90 días · Basado en tus Top 200 Artistas de todos los tiempos',
     sub_recent: 'Últimos 180 días · Basado en tus Top 200 Artistas de todos los tiempos',
 
@@ -2098,6 +2104,8 @@ const TRANSLATIONS = {
     nav_awards: 'Prêmios',
     nav_playlists: 'Playlists',
     nav_chartsguide: 'Guia de Charts',
+    nav_toggle_more: 'Mais',
+    nav_toggle_less: 'Menos',
     awards_tab_mygrammys: 'Meus Grammys',
     awards_tab_reallife: 'Prêmios Reais',
     awards_configure: '⚙ Configurar Ano',
@@ -2311,6 +2319,7 @@ const TRANSLATIONS = {
     sub_artists: 'Por total de reproduções em todas as músicas',
     sub_albums: 'Por total de reproduções em todas as faixas',
     sub_dropouts: 'Músicas, artistas e álbuns que saíram do Top {{n}} esta semana',
+    sub_off_chart: 'Saíram do Top {{n}} esta semana',
     sub_upcoming: 'Próximos 90 dias · Baseado nos seus Top 200 Artistas de Todos os Tempos',
     sub_recent: 'Últimos 180 dias · Baseado nos seus Top 200 Artistas de Todos os Tempos',
 
@@ -3136,6 +3145,8 @@ const TRANSLATIONS = {
     nav_awards: 'Prémios',
     nav_playlists: 'Playlists',
     nav_chartsguide: 'Guia de Charts',
+    nav_toggle_more: 'Mais',
+    nav_toggle_less: 'Menos',
     awards_tab_mygrammys: 'Os Meus Grammys',
     awards_tab_reallife: 'Prémios Reais',
     awards_configure: '⚙ Configurar Ano',
@@ -3349,6 +3360,7 @@ const TRANSLATIONS = {
     sub_artists: 'Por total de reproduções em todas as músicas',
     sub_albums: 'Por total de reproduções em todas as faixas',
     sub_dropouts: 'Músicas, artistas e álbuns que saíram do Top {{n}} esta semana',
+    sub_off_chart: 'Saíram do Top {{n}} esta semana',
     sub_upcoming: 'Próximos 90 dias · Com base nos seus Top 200 Artistas de Sempre',
     sub_recent: 'Últimos 180 dias · Com base nos seus Top 200 Artistas de Sempre',
 
@@ -4258,6 +4270,14 @@ function applyI18n() {
   document.querySelectorAll('[data-i18n-with-n]').forEach(el => {
     el.textContent = t(el.dataset.i18nWithN, { n: el.dataset.i18nN });
   });
+  // Row-2 nav toggle swaps between two keys based on open/collapsed state,
+  // so it can't be a plain data-i18n — re-derive it from current DOM state instead.
+  const navToggleLabel = document.querySelector('#periodNavToggle .period-nav-toggle-label');
+  const navRow2 = document.getElementById('periodNavRow2');
+  if (navToggleLabel && navRow2) {
+    const isOpen = !navRow2.classList.contains('nav-row2-collapsed');
+    navToggleLabel.textContent = t(isOpen ? 'nav_toggle_less' : 'nav_toggle_more');
+  }
 }
 
 // ─── LANGUAGE SWITCHER ────────────────────────────────────────────────────────
