@@ -10302,7 +10302,7 @@ function renderOffChart(type, plays, periodStats) {
   if (type === 'songs') {
     for (const p of allPlays) {
       const k = songKey(p);
-      if (!names[k]) names[k] = { title: p.title, artist: p.artist };
+      if (!names[k]) names[k] = { title: p.title, artist: p.artist, album: p.album };
     }
   } else if (type === 'albums') {
     for (const p of allPlays) {
@@ -10327,11 +10327,24 @@ function renderOffChart(type, plays, periodStats) {
     if (type === 'songs') { name = names[k]?.title || k.split('|||')[0]; sub = names[k]?.artist || ''; }
     else if (type === 'artists') { name = k; sub = ''; }
     else { name = names[k]?.album || k.split('|||')[0]; sub = names[k]?.artist || ''; }
+
+    // YouTube button — same play/track-list pattern as Bubbling Under's ytBtn:
+    // songs play directly, artists/albums open a last-10-tracks picker.
+    const ytTitle  = type === 'songs'   ? name : '';
+    const ytArtist = type === 'artists' ? name : sub;
+    const ytAlbum  = type === 'albums'  ? name : (type === 'songs' ? (names[k]?.album || '') : '');
+    const ytBtnOnclick = type === 'songs'
+      ? `event.stopPropagation();ytPlayFromBtn(this)`
+      : `event.stopPropagation();buShowTrackList(this,${esc(JSON.stringify(type))})`;
+    const ytBtnTitle = type === 'songs' ? 'Play on YouTube' : 'Show recently played tracks';
+    const ytBtn = `<button class="yt-play-btn off-yt-btn" data-title="${esc(ytTitle)}" data-artist="${esc(ytArtist)}" data-album="${esc(ytAlbum)}" onclick="${ytBtnOnclick}" title="${ytBtnTitle}"><span class="yt-btn-content"><svg class="yt-btn-icon" viewBox="0 0 24 24"><path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.5 12 3.5 12 3.5s-7.5 0-9.4.5A3 3 0 0 0 .5 6.2C0 8.1 0 12 0 12s0 3.9.5 5.8a3 3 0 0 0 2.1 2.1c1.9.5 9.4.5 9.4.5s7.5 0 9.4-.5a3 3 0 0 0 2.1-2.1C24 15.9 24 12 24 12s0-3.9-.5-5.8zM9.7 15.5V8.5l6.3 3.5-6.3 3.5z"/></svg>YouTube</span></button>`;
+
     return `<div class="dropout-row">
       <span class="dropout-rank">#${rank}</span>
       <div class="dropout-info">
         <div class="dropout-name">${esc(name)}</div>
         ${sub ? `<div class="dropout-artist">${esc(sub)}</div>` : ''}
+        ${ytBtn}
       </div>
       <div class="dropout-stats">
         <span class="dropout-plays">${tCountHtml('plays', count)}</span>
