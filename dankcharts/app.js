@@ -5089,16 +5089,51 @@ function dcNavUpdateBadges() {
   });
 })();
 
+// --- Mobile nav reflow: phones show only Weekly/Monthly/Yearly/All-Time as
+// the permanent row (a clean 1x4 grid); everything else — Raw Data, Graphs,
+// Records, Events, plus the existing Awards/Soundtrack/Playlists/Charts Guide
+// set — moves behind "More" as a clean 2x4 grid. Desktop keeps the original
+// 6/6 split untouched. Runs before the row-2 toggle below so its open/closed
+// default sees the already-reflowed DOM.
+(function initMobileNavReflow() {
+  const periodNav = document.getElementById('periodNav');
+  const row1 = periodNav && periodNav.querySelector('.period-nav-row:not(.period-nav-row-2)');
+  const row2 = document.getElementById('periodNavRow2');
+  if (!periodNav || !row1 || !row2) return;
+
+  const ROW1_DESKTOP = ['week', 'month', 'year', 'alltime', 'rawdata', 'graphs'];
+  const ROW2_DESKTOP = ['records', 'events', 'awards', 'soundtrack', 'playlists', 'chartsguide'];
+  const ROW1_MOBILE = ['week', 'month', 'year', 'alltime'];
+  const ROW2_MOBILE = ['rawdata', 'graphs', 'records', 'events', 'awards', 'soundtrack', 'playlists', 'chartsguide'];
+  const mq = window.matchMedia('(max-width: 700px)'); // matches the CSS mobile-grid breakpoint
+
+  function reflow(isMobile) {
+    (isMobile ? ROW1_MOBILE : ROW1_DESKTOP).forEach(period => {
+      const btn = periodNav.querySelector(`button[data-period="${period}"]`);
+      if (btn) row1.appendChild(btn); // appendChild on an existing node moves it, doesn't clone
+    });
+    (isMobile ? ROW2_MOBILE : ROW2_DESKTOP).forEach(period => {
+      const btn = periodNav.querySelector(`button[data-period="${period}"]`);
+      if (btn) row2.appendChild(btn);
+    });
+  }
+
+  reflow(mq.matches);
+  mq.addEventListener('change', e => reflow(e.matches));
+})();
+
 // --- Feature 18: Collapsible row 2 ---
 (function initNavRow2Toggle() {
   const toggle = document.getElementById('periodNavToggle');
   const row2 = document.getElementById('periodNavRow2');
   if (!toggle || !row2) return;
 
-  // Default: collapsed (unless a row-2 tab is active or user previously expanded)
+  // Default: collapsed (unless a row-2 tab is active or user previously expanded).
+  // Membership is read live from the DOM (not a fixed list) so it's correct both
+  // before and after initMobileNavReflow moves buttons between rows.
   const ROW2_KEY = 'dc_nav_row2_open';
-  const row2Periods = ['records', 'events', 'awards', 'soundtrack', 'playlists', 'chartsguide'];
-  const isRow2Active = row2Periods.includes(currentPeriod);
+  const row2Periods = () => Array.from(row2.querySelectorAll('button[data-period]')).map(b => b.dataset.period);
+  const isRow2Active = row2Periods().includes(currentPeriod);
   const savedOpen = localStorage.getItem(ROW2_KEY) === '1';
   const startOpen = isRow2Active || savedOpen;
 
@@ -5120,7 +5155,7 @@ function dcNavUpdateBadges() {
   // When a row-2 tab is activated from the nav, auto-expand row 2
   document.getElementById('periodNav').addEventListener('click', e => {
     const btn = e.target.closest('button[data-period]');
-    if (btn && row2Periods.includes(btn.dataset.period)) setRow2Open(true);
+    if (btn && row2Periods().includes(btn.dataset.period)) setRow2Open(true);
   });
 })();
 

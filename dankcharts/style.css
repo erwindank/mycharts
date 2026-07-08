@@ -2260,20 +2260,11 @@
       user-select: none;
     }
 
-    /* Each row of nav buttons. Horizontal scroll is unconditional (not gated to a
-       breakpoint) so it's purely content-driven: rows that fit stay static, rows
-       whose labels don't fit (long ES/PT-BR/PT-PT translations especially) become
-       swipeable pill strips instead of wrapping button text onto a second line. */
+    /* Each row of nav buttons */
     .period-nav-row {
       display: flex;
       border-bottom: 1px solid var(--border);
       position: relative; /* anchors .nav-indicator below */
-      overflow-x: auto;
-      -webkit-overflow-scrolling: touch;
-      scrollbar-width: none;
-    }
-    .period-nav-row::-webkit-scrollbar {
-      display: none;
     }
 
     /* Sliding active-tab indicator (feature 5) — one shared element per row that
@@ -2390,13 +2381,6 @@
       justify-content: center;
       gap: 0.35em;
       position: relative;
-      /* Never wrap the label onto a 2nd line — long ES/PT-BR/PT-PT translations
-         (e.g. "BASE DE DATOS", "SUA TRILHA SONORA") would otherwise wrap inside
-         the narrow flex-basis and stretch the whole row taller. Flexbox's
-         automatic min-size keeps the button from shrinking below this nowrap
-         content width, so on narrow screens the row scrolls (see .period-nav-row)
-         instead of squeezing text into two lines. */
-      white-space: nowrap;
     }
 
     /* Icon (feature 2) */
@@ -9685,33 +9669,117 @@
       }
     }
 
-    /* Period nav rows on touch/mobile — the base .period-nav-row/.period-nav button
-       rules already make the strip nowrap + horizontally scrollable at any width
-       (content-driven, no wrapping). These rules are the touch-specific refinements
-       on top: roomier tap targets, no keyboard-shortcut clutter (there's no keyboard
-       on a phone), and a fade at the scrollable edges so "more tabs this way" reads
-       as an affordance instead of the strip looking abruptly cut off. */
-    @media (max-width: 480px) {
+    /* ─────────────────────────────────────────────────────────────────────
+       Period nav on phones — full redesign, not a squeezed version of the
+       desktop row.
+       The desktop layout is 6 buttons in one flex row, each getting an equal
+       slice of a wide bar. That slice is too narrow for translated labels
+       ("BASE DE DATOS", "SUA TRILHA SONORA", "LISTAS DE REPRODUCCIÓN") to
+       fit on one line, and a horizontal-scroll strip was tried and rejected:
+       row 2 in particular sits inside a container that's `overflow: hidden`
+       for its collapse/expand animation (see .period-nav-row-2 above), so
+       anything that overflowed past the fold was simply unreachable —
+       Playlists and Charts Guide silently lost, not just scrolled off.
+       Instead: below 700px each row becomes a real 3-column icon grid.
+       Every tab is always on screen, at a fixed, generous tile size, and a
+       label that needs two lines gets two lines *on purpose* — grid rows
+       size themselves to their tallest cell, so it reads as a deliberate
+       tile, not a cramped flex item losing a fight for space. 6 buttons per
+       row / 3 columns = a clean 2-row grid with no leftover slots.
+       Breakpoint is content-driven: measured against the longest PT-BR/ES
+       labels, the desktop flex row has zero slack left by ~700px, so this
+       is the width where a fixed-basis row stops being viable, not a
+       generic device-size guess. */
+    @media (max-width: 700px) {
       .period-nav-row {
-        /* Fade the last ~20px at each edge to transparent — a constant, direction-
-           agnostic hint (not scroll-position-aware) that the strip keeps going,
-           same trick iOS chip rows and YouTube's category bar use. */
-        mask-image: linear-gradient(to right, transparent, black 14px, black calc(100% - 14px), transparent);
-        -webkit-mask-image: linear-gradient(to right, transparent, black 14px, black calc(100% - 14px), transparent);
+        display: grid;
+        /* minmax(0, 1fr), not bare 1fr — a track's automatic minimum size
+           otherwise still expands to fit its widest cell's content, skewing
+           columns unevenly. Locking to 0 forces strictly equal columns; the
+           button's own overflow-wrap handles any content that's still too
+           wide for its share. */
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 1px; /* shows through as grid lines via the row's own bg */
+        background: var(--border);
+        border-bottom: none;
+      }
+
+      /* The sliding underline indicator assumes one horizontal row; across a
+         2-row grid its bottom-anchored position would float under the wrong
+         tile. The tile's own background tint carries the active state instead. */
+      .nav-indicator {
+        display: none;
       }
 
       .period-nav button {
-        padding: 0.7rem 0.75rem;
+        /* content-owns-its-box borders are replaced by the grid `gap` above */
+        border: none;
+        background: var(--bg2);
+        flex-direction: column;
+        gap: 0.25rem;
+        padding: 0.6rem 0.3rem;
+        min-height: 56px;
+        white-space: normal;
+        text-align: center;
+        line-height: 1.25;
+        font-size: 0.62rem;
+        /* 4 columns leaves ~90px per tile — a long unbroken word (PT-BR
+           "REPRODUCCIÓN") could otherwise force its column wider than its
+           1fr share and skew the grid; let it break mid-word as a last resort. */
+        overflow-wrap: break-word;
+      }
+
+      .period-nav button.active {
+        /* full rounding instead of the desktop top-only radius — there's no
+           underline to dock into anymore, so it reads as a selected chip */
+        border-radius: var(--r-sm);
+      }
+
+      .nav-icon {
+        font-size: 1.15em;
+      }
+
+      /* Built for a single-line pill; stacked in a tile it just adds noise
+         next to a label that may already be wrapping to 2 lines. */
+      .nav-eq {
+        display: none;
+      }
+
+      /* Keyboard shortcuts (1-9) are a desktop affordance — no keyboard on a phone */
+      .nav-key {
+        display: none;
+      }
+
+      /* "New content" dot: in the flex row it trails after the label; here it
+         would land on its own line below a possibly 2-line label. Unmoor it
+         from flow and pin it to the icon's corner instead — same row as the
+         emoji, costs no extra height. Sized down from the desktop pill's inline
+         dot (5px) — the badge logic flags every unvisited tab after a sync, so
+         several tiles can carry one at once; kept small so a full row of them
+         reads as a quiet hint, not a row of alarms. */
+      .nav-badge {
+        position: absolute;
+        top: 7px;
+        right: 9px;
+        width: 4px;
+        height: 4px;
+        opacity: 0.75;
+      }
+
+      .period-nav-row-2 {
+        /* was sized for one short row of small pills; a 2-row icon grid needs
+           real headroom or the collapse-animation max-height clips it */
+        max-height: 160px;
       }
 
       .period-nav-row-2 button {
-        padding: 0.55rem 0.65rem;
+        padding: 0.5rem 0.25rem;
+        min-height: 50px;
+        opacity: 0.85;
       }
 
-      /* Keyboard shortcuts (1-9) are a desktop affordance — hide the badge on
-         touch so it doesn't crowd labels that are already tight for space. */
-      .nav-key {
-        display: none;
+      .period-nav-row-2 .nav-icon {
+        font-size: 1em;
       }
     }
 
