@@ -16379,6 +16379,15 @@ body.red-light .bu-count-pill {
   border-color: var(--border2);
 }
 
+/* 7c. Stack view rank numbers (4th place and below) — hardcoded rgba(255,255,255,0.55)
+   is invisible on light card backgrounds. Scoped to exclude .wv-r1/.wv-r2/.wv-r3 cards
+   so the gold/silver/bronze top-3 colors are untouched. */
+body.navy-light .wv-stk-card:not(.wv-r1):not(.wv-r2):not(.wv-r3) .wv-stk-rank,
+body.purple-light .wv-stk-card:not(.wv-r1):not(.wv-r2):not(.wv-r3) .wv-stk-rank,
+body.yellow-light .wv-stk-card:not(.wv-r1):not(.wv-r2):not(.wv-r3) .wv-stk-rank,
+body.pink-light .wv-stk-card:not(.wv-r1):not(.wv-r2):not(.wv-r3) .wv-stk-rank,
+body.red-light .wv-stk-card:not(.wv-r1):not(.wv-r2):not(.wv-r3) .wv-stk-rank { color: var(--text2); }
+
 /* 7b. BU badges — neon colors are unreadable on light backgrounds; use very dark text + subtle bg/border */
 body.navy-light .bu-badge-away,   body.purple-light .bu-badge-away,
 body.yellow-light .bu-badge-away, body.pink-light .bu-badge-away,

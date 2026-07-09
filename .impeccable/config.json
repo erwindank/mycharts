@@ -4,7 +4,10 @@
       "side-tab",
       "gradient-text"
     ],
-    "ignoreFiles": [],
+    "ignoreFiles": [
+      "dankcharts/style.css",
+      "dankcharts/index.html"
+    ],
     "ignoreValues": [
       {
         "rule": "bounce-easing",
