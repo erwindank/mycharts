@@ -6930,7 +6930,7 @@ function renderPage(type, peaks) {
       const mainRow = `<tr class="${rank === 1 ? 'rank-1' : rank === 2 ? 'rank-2' : rank === 3 ? 'rank-3' : ''} artist-row" data-artist="${esc(a.name)}">
         <td class="rank-cell">${rank}</td>
         <td class="thumb-cell"><div class="thumb-wrap"><div id="${imgId}"><div class="thumb-initials">${esc(initials(a.name))}</div></div><button id="srcbtn-${imgId}" class="img-src-btn" data-imgid="${imgId}" data-type="artist" data-prefkey="${esc(prefKey)}" data-name="${esc(a.name)}" data-artist="${esc(a.name)}" data-album="">${srcLabel(itemSourcePrefs[prefKey] || 'deezer')}</button></div></td>
-        <td><div class="song-title">${esc(a.name)}</div><div class="song-artist" style="font-size:0.7rem;letter-spacing:0.06em;font-style:normal;font-family:var(--font-mono);color:var(--text3)">${t('click_view_profile')}</div><button class="yt-play-btn" data-title="" data-artist="${esc(a.name)}" data-album="" onclick="event.stopPropagation();buShowTrackList(this,'artists')" title="Show recently played tracks"><span class="yt-btn-content"><svg class="yt-btn-icon" viewBox="0 0 24 24"><path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.5 12 3.5 12 3.5s-7.5 0-9.4.5A3 3 0 0 0 .5 6.2C0 8.1 0 12 0 12s0 3.9.5 5.8a3 3 0 0 0 2.1 2.1c1.9.5 9.4.5 9.4.5s7.5 0 9.4-.5a3 3 0 0 0 2.1-2.1C24 15.9 24 12 24 12s0-3.9-.5-5.8zM9.7 15.5V8.5l6.3 3.5-6.3 3.5z"/></svg>YouTube</span></button></td>
+        <td><div class="song-title">${esc(a.name)}</div><button class="yt-play-btn" data-title="" data-artist="${esc(a.name)}" data-album="" onclick="event.stopPropagation();buShowTrackList(this,'artists')" title="Show recently played tracks"><span class="yt-btn-content"><svg class="yt-btn-icon" viewBox="0 0 24 24"><path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.5 12 3.5 12 3.5s-7.5 0-9.4.5A3 3 0 0 0 .5 6.2C0 8.1 0 12 0 12s0 3.9.5 5.8a3 3 0 0 0 2.1 2.1c1.9.5 9.4.5 9.4.5s7.5 0 9.4-.5a3 3 0 0 0 2.1-2.1C24 15.9 24 12 24 12s0-3.9-.5-5.8zM9.7 15.5V8.5l6.3 3.5-6.3 3.5z"/></svg>YouTube</span></button></td>
         <td class="meta-col"><div class="song-artist">${tCount('songs', a.songs.size)}</div></td>
         <td>
           <div class="play-count">${tCountHtml('plays', a.count)}</div>
@@ -6966,7 +6966,6 @@ function renderPage(type, peaks) {
         <td>
           <div class="song-title">${esc(a.album)}${certBadge(cumAlbumPlays, 'album')}</div>
           <div class="song-artist">${esc(a.artist)}</div>
-          <div class="song-artist" style="font-size:0.65rem;letter-spacing:0.06em;font-style:normal;font-family:var(--font-mono);color:var(--text3)">${t('click_view_album')}</div>
           <button class="yt-play-btn" data-title="" data-artist="${esc(a.artist)}" data-album="${esc(a.album)}" onclick="event.stopPropagation();buShowTrackList(this,'albums')" title="Show recently played tracks"><span class="yt-btn-content"><svg class="yt-btn-icon" viewBox="0 0 24 24"><path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.5 12 3.5 12 3.5s-7.5 0-9.4.5A3 3 0 0 0 .5 6.2C0 8.1 0 12 0 12s0 3.9.5 5.8a3 3 0 0 0 2.1 2.1c1.9.5 9.4.5 9.4.5s7.5 0 9.4-.5a3 3 0 0 0 2.1-2.1C24 15.9 24 12 24 12s0-3.9-.5-5.8zM9.7 15.5V8.5l6.3 3.5-6.3 3.5z"/></svg>YouTube</span></button>
         </td>
         <td class="meta-col"><div class="song-artist">${tCount('tracks', a.tracks.size)}</div></td>
@@ -8608,7 +8607,7 @@ function renderArtists(plays, peaks, monthlyStats) {
       <td class="rank-cell">${i + 1}</td>
       ${monthlyStats ? mPrevCell(i + 1, artist, 'artists', monthlyStats) : ''}
       <td class="thumb-cell"><div class="thumb-wrap"><div id="${imgId}"><div class="thumb-initials">${esc(initials(artist))}</div></div><button id="srcbtn-${imgId}" class="img-src-btn" data-imgid="${imgId}" data-type="artist" data-prefkey="${esc(prefKey)}" data-name="${esc(artist)}" data-artist="${esc(artist)}" data-album="">${srcLabel(itemSourcePrefs[prefKey] || 'deezer')}</button></div></td>
-      <td><div class="song-title">${esc(artist)}${pk ? peakBadge(pk) : ''}</div><div class="song-artist" style="font-size:0.7rem;letter-spacing:0.06em;font-style:normal;font-family:var(--font-mono);color:var(--text3)">${t('click_view_profile')}</div><button class="yt-play-btn" data-title="" data-artist="${esc(artist)}" data-album="" onclick="event.stopPropagation();buShowTrackList(this,'artists')" title="Show recently played tracks"><span class="yt-btn-content"><svg class="yt-btn-icon" viewBox="0 0 24 24"><path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.5 12 3.5 12 3.5s-7.5 0-9.4.5A3 3 0 0 0 .5 6.2C0 8.1 0 12 0 12s0 3.9.5 5.8a3 3 0 0 0 2.1 2.1c1.9.5 9.4.5 9.4.5s7.5 0 9.4-.5a3 3 0 0 0 2.1-2.1C24 15.9 24 12 24 12s0-3.9-.5-5.8zM9.7 15.5V8.5l6.3 3.5-6.3 3.5z"/></svg>YouTube</span></button></td>
+      <td><div class="song-title">${esc(artist)}${pk ? peakBadge(pk) : ''}</div><button class="yt-play-btn" data-title="" data-artist="${esc(artist)}" data-album="" onclick="event.stopPropagation();buShowTrackList(this,'artists')" title="Show recently played tracks"><span class="yt-btn-content"><svg class="yt-btn-icon" viewBox="0 0 24 24"><path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.5 12 3.5 12 3.5s-7.5 0-9.4.5A3 3 0 0 0 .5 6.2C0 8.1 0 12 0 12s0 3.9.5 5.8a3 3 0 0 0 2.1 2.1c1.9.5 9.4.5 9.4.5s7.5 0 9.4-.5a3 3 0 0 0 2.1-2.1C24 15.9 24 12 24 12s0-3.9-.5-5.8zM9.7 15.5V8.5l6.3 3.5-6.3 3.5z"/></svg>YouTube</span></button></td>
       <td class="meta-col"><div class="song-artist">${tCount('songs', data.songs.size)}</div></td>
       ${monthlyStats ? mMthsCell(artist, 'artists', monthlyStats) : ''}
       <td>
@@ -8728,7 +8727,6 @@ function renderAlbums(plays, peaks, monthlyStats) {
       <td>
         <div class="song-title">${esc(album)}${pk ? peakBadge(pk) : ''}${certBadge(cumAlbumPlays, 'album')}</div>
         <div class="song-artist">${esc(artist)}</div>
-        <div class="song-artist" style="font-size:0.65rem;letter-spacing:0.06em;font-style:normal;font-family:var(--font-mono);color:var(--text3)">${t('click_view_album')}</div>
         <button class="yt-play-btn" data-title="" data-artist="${esc(artist)}" data-album="${esc(album)}" onclick="event.stopPropagation();buShowTrackList(this,'albums')" title="Show recently played tracks"><span class="yt-btn-content"><svg class="yt-btn-icon" viewBox="0 0 24 24"><path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.5 12 3.5 12 3.5s-7.5 0-9.4.5A3 3 0 0 0 .5 6.2C0 8.1 0 12 0 12s0 3.9.5 5.8a3 3 0 0 0 2.1 2.1c1.9.5 9.4.5 9.4.5s7.5 0 9.4-.5a3 3 0 0 0 2.1-2.1C24 15.9 24 12 24 12s0-3.9-.5-5.8zM9.7 15.5V8.5l6.3 3.5-6.3 3.5z"/></svg>YouTube</span></button>
       </td>
       <td class="meta-col"><div class="song-artist">${tCount('tracks', tracks.size)}</div></td>
@@ -9544,6 +9542,13 @@ function _wvDisp(type, item) {
   return { ttl: item.title, sub: item.artist };
 }
 
+// Opens the matching detail modal from any alt chart view (grid/compact/mosaic/filmstrip/stack)
+function _wvOpenModal(type, key) {
+  if (type === 'artists') openArtistModal(key);
+  else if (type === 'albums') openAlbumModal(key);
+  else openSongModal(key);
+}
+
 function renderWeeklyAltView(type) {
   type = type || 'songs';
   const container = document.getElementById('weeklyAltView-' + type);
@@ -9630,7 +9635,7 @@ function _wvGrid(items, max, ms, imgItems, type) {
       (cert ? `<span class="wv-gc-cert">${cert}</span>` : '') +
       (type === 'albums' ? `<div class="wv-gc-hover"><button class="wv-gc-play-btn" data-artist="${esc(s.artist)}" data-album="${esc(s.album)}" onclick="event.stopPropagation();buShowTrackList(this,'albums')" title="Show recently played tracks">▶</button></div>` : type === 'songs' ? `<div class="wv-gc-hover"><button class="wv-gc-play-btn" onclick="event.stopPropagation();_ytPlayOrQueue(${jt},${jar},${jal})" title="Play Now">▶</button></div>` : '') +
       `</div><div class="wv-card-body">` +
-      `<div class="wv-ttl">${esc(ttl)}${pk ? peakBadge(pk) : ''}</div>` +
+      `<div class="wv-ttl"><span class="wv-title-link" onclick="event.stopPropagation();_wvOpenModal(${jtype},${esc(JSON.stringify(k))})" title="View details">${esc(ttl)}</span>${pk ? peakBadge(pk) : ''}</div>` +
       `<div class="wv-art">${esc(sub)}</div>` +
       `<div class="wv-gc-plays-row"><span class="wv-plays">${s.count} ${s.count===1?'play':'plays'}</span>${mv || ''}</div>` +
       `<div class="wv-bar"><div class="wv-bar-fill${barCls ? ' '+barCls : ''}" style="width:${barW}%"></div></div>` +
@@ -9709,6 +9714,7 @@ function _wvGridCtx(e, type, title, artist, album) {
 function _wvCompact(items, max, ms, imgItems, type) {
   type = type || 'songs';
   const canPlay = type === 'songs' || type === 'albums';
+  const jtype = esc(JSON.stringify(type));
   const header = `<div class="wv-cx-header">` +
     `<span class="wv-cx-rank">#</span>` +
     `<div class="wv-cx-hd-spacer"></div>` +
@@ -9787,7 +9793,7 @@ function _wvCompact(items, max, ms, imgItems, type) {
         `<div class="wv-thumb wv-thumb-sm">${_wvThumb(imgId, ttl)}</div>` +
         artTip +
       `</div>` +
-      `<span class="wv-cx-title">${esc(ttl)}${pk ? peakBadge(pk) : ''}${cert}</span>` +
+      `<span class="wv-cx-title"><span class="wv-title-link" onclick="event.stopPropagation();_wvOpenModal(${jtype},${esc(JSON.stringify(k))})" title="View details">${esc(ttl)}</span>${pk ? peakBadge(pk) : ''}${cert}</span>` +
       `<span class="wv-cx-sep">—</span>` +
       `<span class="wv-cx-artist">${esc(sub)}</span>` +
       playBtn +
@@ -9843,6 +9849,7 @@ function _computeTreemap(values, W, H) {
 }
 function _wvMosaic(items, max, ms, imgItems, type) {
   type = type || 'songs';
+  const jtype = esc(JSON.stringify(type));
   const W = 1000;
   const H = Math.min(2800, 480 + items.length * 22);
   const vals = items.map(s => Math.sqrt(s.count));
@@ -9880,7 +9887,7 @@ function _wvMosaic(items, max, ms, imgItems, type) {
           <div class="wv-mos-bot"><div class="wv-ttl">${esc(ttl)}</div><div class="wv-art">${esc(sub)}</div><div class="wv-plays">${s.count} ${tUnit('plays', s.count)}</div></div>
           <div class="wv-mos-hcard">
             <button class="yt-play-btn wv-mos-play-btn" data-title="${esc(playTitle)}" data-artist="${esc(playArtist)}" data-album="${esc(playAlbum)}" onclick="${mosYtOnclick}" title="${mosYtTitle}"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></button>
-            <div class="wv-mos-hcard-ttl">${esc(ttl)}</div>
+            <div class="wv-mos-hcard-ttl"><span class="wv-title-link" onclick="event.stopPropagation();_wvOpenModal(${jtype},${esc(JSON.stringify(k))})" title="View details">${esc(ttl)}</span></div>
             <div class="wv-mos-hcard-art">${esc(sub)}</div>
             <div class="wv-mos-hcard-stats">
               ${pk ? peakBadge(pk) : ''}
@@ -9896,7 +9903,7 @@ function _wvMosaic(items, max, ms, imgItems, type) {
             <div class="wv-mos-back-img">${_wvThumb(backImgId, ttl)}</div>
             <div class="wv-mos-back-meta">
               <div class="wv-mos-back-rank-row"><span class="wv-mos-back-ranknum">#${i+1}</span>${mv ? `<span class="wv-mv-ov">${mv}</span>` : ''}</div>
-              <div class="wv-mos-back-ttl">${esc(ttl)}</div>
+              <div class="wv-mos-back-ttl"><span class="wv-title-link" onclick="event.stopPropagation();_wvOpenModal(${jtype},${esc(JSON.stringify(k))})" title="View details">${esc(ttl)}</span></div>
               <div class="wv-mos-back-sub">${esc(sub)}</div>
             </div>
           </div>
@@ -9946,6 +9953,7 @@ function wvMosaicCloseAll(mosaic) {
 
 function _wvFilmstrip(items, max, ms, imgItems, type) {
   type = type || 'songs';
+  const jtype = esc(JSON.stringify(type));
   const decades = [];
   for (let d = 0; d < items.length; d += 10) decades.push(d);
 
@@ -9984,7 +9992,7 @@ function _wvFilmstrip(items, max, ms, imgItems, type) {
           <button class="yt-play-btn wv-film-yt-btn" data-title="${esc(playTitle)}" data-artist="${esc(playArtist)}" data-album="${esc(playAlbum)}" onclick="${filmYtOnclick}" title="${filmYtTitle}">${ytSvg}</button>
         </div>
       </div>
-      <div class="wv-ttl">${esc(ttl)}</div>
+      <div class="wv-ttl"><span class="wv-title-link" onclick="event.stopPropagation();_wvOpenModal(${jtype},${esc(JSON.stringify(k))})" title="View details">${esc(ttl)}</span></div>
       <div class="wv-art">${esc(sub)}</div>
       <div class="wv-plays">${s.count} plays</div>
       <div class="wv-bar"><div class="wv-bar-fill${barCls ? ' '+barCls : ''}" style="width:${barW}%"></div></div>
@@ -10243,13 +10251,10 @@ function _wvStack(items, max, ms, imgItems, type) {
     // Artist line — plain display only; no modal opens from here
     const artistLine = `<div class="wv-art">${esc(sub)}</div>`;
 
-    // Title — clickable → artist modal (artists) or album modal (albums); songs: no title click
-    const jmodalKey = type === 'artists' ? esc(JSON.stringify(ttl)) : type === 'albums' ? esc(JSON.stringify(k)) : null;
-    const ttlInner = type === 'artists'
-      ? `<span class="wv-stk-artist" onclick="event.stopPropagation();openArtistModal(${jmodalKey})">${esc(ttl)}</span>`
-      : type === 'albums'
-      ? `<span class="wv-stk-artist" onclick="event.stopPropagation();openAlbumModal(${jmodalKey})">${esc(ttl)}</span>`
-      : esc(ttl);
+    // Title — clickable → opens the matching artist/album/song detail modal
+    const jtype = esc(JSON.stringify(type));
+    const jmodalKey = esc(JSON.stringify(k));
+    const ttlInner = `<span class="wv-stk-artist" onclick="event.stopPropagation();_wvOpenModal(${jtype},${jmodalKey})">${esc(ttl)}</span>`;
 
     // Expand shelf: chart run summary + squares
     const crD = crData?.result?.[type]?.[k];

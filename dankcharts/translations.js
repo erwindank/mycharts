@@ -234,8 +234,8 @@ const TRANSLATIONS = {
 
     // Section subtitles (static HTML)
     sub_songs: 'By play count for the selected period',
-    sub_artists: 'By total play count across all songs',
-    sub_albums: 'By total play count across all tracks',
+    sub_artists: 'By total play count across all songs · Click an entry for full details',
+    sub_albums: 'By total play count across all tracks · Click an entry for full details',
     sub_dropouts: 'Songs, artists and albums that left the Top {{n}} this week',
     sub_off_chart: 'Left the Top {{n}} this week',
     sub_upcoming: 'Next 90 days · Based on your Top 200 All-Time Artists',
@@ -337,9 +337,6 @@ const TRANSLATIONS = {
     tracks_one: 'track',
     tracks_other: 'tracks',
 
-    // Click-to-view hints
-    click_view_profile: 'CLICK TO VIEW PROFILE',
-    click_view_album: 'CLICK TO VIEW ALBUM',
 
     // Badge labels
     badge_new: 'NEW',
@@ -1275,8 +1272,8 @@ const TRANSLATIONS = {
 
     // Section subtitles
     sub_songs: 'Por reproducciones en el período seleccionado',
-    sub_artists: 'Por total de reproducciones en todas las canciones',
-    sub_albums: 'Por total de reproducciones en todas las canciones',
+    sub_artists: 'Por total de reproducciones en todas las canciones · Haz clic en una entrada para ver más detalles',
+    sub_albums: 'Por total de reproducciones en todas las pistas · Haz clic en una entrada para ver más detalles',
     sub_dropouts: 'Canciones, artistas y álbumes que salieron del Top {{n}} esta semana',
     sub_off_chart: 'Salieron del Top {{n}} esta semana',
     sub_upcoming: 'Próximos 90 días · Basado en tus Top 200 Artistas de todos los tiempos',
@@ -1377,10 +1374,6 @@ const TRANSLATIONS = {
     days_other: 'días',
     tracks_one: 'canción',
     tracks_other: 'canciones',
-
-    // Click-to-view hints
-    click_view_profile: 'CLIC PARA VER PERFIL',
-    click_view_album: 'CLIC PARA VER ÁLBUM',
 
     // Badge labels
     badge_new: 'NUEVO',
@@ -2316,8 +2309,8 @@ const TRANSLATIONS = {
 
     // Section subtitles
     sub_songs: 'Por reproduções no período selecionado',
-    sub_artists: 'Por total de reproduções em todas as músicas',
-    sub_albums: 'Por total de reproduções em todas as faixas',
+    sub_artists: 'Por total de reproduções em todas as músicas · Clique em um item para ver mais detalhes',
+    sub_albums: 'Por total de reproduções em todas as faixas · Clique em um item para ver mais detalhes',
     sub_dropouts: 'Músicas, artistas e álbuns que saíram do Top {{n}} esta semana',
     sub_off_chart: 'Saíram do Top {{n}} esta semana',
     sub_upcoming: 'Próximos 90 dias · Baseado nos seus Top 200 Artistas de Todos os Tempos',
@@ -2419,9 +2412,6 @@ const TRANSLATIONS = {
     tracks_one: 'faixa',
     tracks_other: 'faixas',
 
-    // Click-to-view hints
-    click_view_profile: 'CLIQUE PARA VER PERFIL',
-    click_view_album: 'CLIQUE PARA VER ÁLBUM',
 
     // Badge labels
     badge_new: 'NOVO',
@@ -3357,8 +3347,8 @@ const TRANSLATIONS = {
 
     // Section subtitles
     sub_songs: 'Por reproduções no período selecionado',
-    sub_artists: 'Por total de reproduções em todas as músicas',
-    sub_albums: 'Por total de reproduções em todas as faixas',
+    sub_artists: 'Por total de reproduções em todas as músicas · Clique num item para ver mais detalhes',
+    sub_albums: 'Por total de reproduções em todas as faixas · Clique num item para ver mais detalhes',
     sub_dropouts: 'Músicas, artistas e álbuns que saíram do Top {{n}} esta semana',
     sub_off_chart: 'Saíram do Top {{n}} esta semana',
     sub_upcoming: 'Próximos 90 dias · Com base nos seus Top 200 Artistas de Sempre',
@@ -3460,9 +3450,6 @@ const TRANSLATIONS = {
     tracks_one: 'faixa',
     tracks_other: 'faixas',
 
-    // Click-to-view hints
-    click_view_profile: 'CLIQUE PARA VER PERFIL',
-    click_view_album: 'CLIQUE PARA VER ÁLBUM',
 
     // Badge labels
     badge_new: 'NOVO',

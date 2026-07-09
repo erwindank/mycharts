@@ -1205,6 +1205,10 @@
       color: rgba(255, 255, 255, 0.8);
     }
 
+    body.red-light .modal-header .modal-artist-link {
+      color: #ffffff;
+    }
+
     body.yellow-light .modal-header {
       background: linear-gradient(135deg, #7a6000, #9a7a00);
     }
@@ -1215,6 +1219,10 @@
 
     body.yellow-light .modal-header .modal-artist-sub {
       color: rgba(255, 248, 180, 0.9);
+    }
+
+    body.yellow-light .modal-header .modal-artist-link {
+      color: #fffde8;
     }
 
     body.purple-light .modal-header {
@@ -1229,6 +1237,10 @@
       color: rgba(220, 210, 255, 0.9);
     }
 
+    body.purple-light .modal-header .modal-artist-link {
+      color: #f0eeff;
+    }
+
     body.navy-light .modal-header {
       background: linear-gradient(135deg, #0852a8, #0a6acc);
     }
@@ -1241,6 +1253,10 @@
       color: rgba(180, 220, 255, 0.9);
     }
 
+    body.navy-light .modal-header .modal-artist-link {
+      color: #e8f4ff;
+    }
+
     body.pink-light .modal-header {
       background: linear-gradient(135deg, #900054, #b0006a);
     }
@@ -1251,6 +1267,10 @@
 
     body.pink-light .modal-header .modal-artist-sub {
       color: rgba(255, 200, 230, 0.9);
+    }
+
+    body.pink-light .modal-header .modal-artist-link {
+      color: #fff0f8;
     }
 
     /* Yellow Dark masthead — background now derives from theme tokens in the base .masthead rule */
@@ -16203,6 +16223,9 @@ tr.wv-row-re  .rank-cell { border-left: 3px solid var(--chart-re); }
 .wv-stk-alb-inline { font-size: 0.62rem; color: var(--text3); margin-left: 0.25rem; }
 .wv-stk-artist { cursor: pointer; }
 .wv-stk-artist:hover { color: var(--accent); text-decoration: underline; }
+/* Shared "click to open detail modal" affordance for titles across all alt chart views */
+.wv-title-link { cursor: pointer; }
+.wv-title-link:hover { color: var(--accent); text-decoration: underline; }
 .wv-stk-meta { display: flex; align-items: center; gap: 0.4rem; flex-wrap: wrap; margin-top: 2px; }
 .wv-stk-cum { font-size: 0.58rem; color: var(--text3); font-family: var(--font-mono); }
 .wv-stk-yt-btn { background: #e00; color: #fff; border: none; border-radius: 3px; padding: 2px 6px; font-size: 0.55rem; cursor: pointer; flex-shrink: 0; line-height: 1.5; display: inline-flex; align-items: center; transition: background 0.12s; }
@@ -16635,6 +16658,13 @@ body.red-light .play-bar { height: 4px; }
 /* section-sub: yellow-light / pink-light were missing from the existing override (white on light bg) */
 body.yellow-light .section-sub,
 body.pink-light .section-sub { color: var(--text3); }
+
+/* 11. Grand Slam banner — #ffd700 gold text is unreadable on light themes' pale gradient background */
+body.navy-light .modal-grand-slam,   body.purple-light .modal-grand-slam,
+body.yellow-light .modal-grand-slam, body.pink-light .modal-grand-slam,
+body.red-light .modal-grand-slam {
+  color: #8a6300;
+}
 
 /* ── STREAK MODAL: light theme overrides ───────────────────── */
 /* Header has a hardcoded dark gradient; on light themes --text is dark → dark-on-dark */
