@@ -242,7 +242,7 @@ const TRANSLATIONS = {
     sub_recent: 'Past 180 days · Based on your Top 200 All-Time Artists',
 
     // Section / UI labels (static HTML)
-    sec_off_chart: '⬇ Off the Chart',
+    sec_off_chart: 'Off the Chart',
     sec_upcoming_title: '🔜 Upcoming Releases',
     sec_recent_title: '🎉 Recent Releases',
     mb_searching: 'Searching MusicBrainz for {{n}} artists… this may take ~2 minutes on first load.',
@@ -1280,7 +1280,7 @@ const TRANSLATIONS = {
     sub_recent: 'Últimos 180 días · Basado en tus Top 200 Artistas de todos los tiempos',
 
     // Section labels
-    sec_off_chart: '⬇ Fuera del Ranking',
+    sec_off_chart: 'Fuera del Ranking',
     sec_upcoming_title: '🔜 Próximos Lanzamientos',
     sec_recent_title: '🎉 Lanzamientos Recientes',
     mb_searching: 'Buscando en MusicBrainz {{n}} artistas… esto puede tardar ~2 minutos en la primera carga.',
@@ -2317,7 +2317,7 @@ const TRANSLATIONS = {
     sub_recent: 'Últimos 180 dias · Baseado nos seus Top 200 Artistas de Todos os Tempos',
 
     // Section labels
-    sec_off_chart: '⬇ Fora da Parada',
+    sec_off_chart: 'Fora da Parada',
     sec_upcoming_title: '🔜 Próximos Lançamentos',
     sec_recent_title: '🎉 Lançamentos Recentes',
     mb_searching: 'Pesquisando no MusicBrainz por {{n}} artistas… isso pode levar ~2 minutos no primeiro carregamento.',
@@ -3355,7 +3355,7 @@ const TRANSLATIONS = {
     sub_recent: 'Últimos 180 dias · Com base nos seus Top 200 Artistas de Sempre',
 
     // Section labels
-    sec_off_chart: '⬇ Fora do Top',
+    sec_off_chart: 'Fora do Top',
     sec_upcoming_title: '🔜 Próximos Lançamentos',
     sec_recent_title: '🎉 Lançamentos Recentes',
     mb_searching: 'A pesquisar no MusicBrainz por {{n}} artistas… isto pode demorar ~2 minutos no primeiro carregamento.',

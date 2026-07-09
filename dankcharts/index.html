@@ -19,7 +19,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-  <link rel="stylesheet" href="style.css?v=28">
+  <link rel="stylesheet" href="style.css?v=34">
   <script src="translations.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8/hammer.min.js"></script>
@@ -379,16 +379,23 @@
 
     <!-- Chart type toggle — shows one of Songs/Artists/Albums at a time, Songs by default -->
     <div class="chart-type-toggle-bar" id="chartTypeToggleBar" style="display:none;">
-      <button class="chart-type-toggle-btn active" data-type="songs" onclick="setChartTypeView('songs')">★ Songs</button>
-      <button class="chart-type-toggle-btn" data-type="artists" onclick="setChartTypeView('artists')">♦ Artists</button>
-      <button class="chart-type-toggle-btn" data-type="albums" onclick="setChartTypeView('albums')">◈ Albums</button>
+      <button class="chart-type-toggle-btn active" data-type="songs" onclick="setChartTypeView('songs')"><svg class="type-icon" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg> Songs</button>
+      <button class="chart-type-toggle-btn" data-type="artists" onclick="setChartTypeView('artists')"><svg class="type-icon" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg> Artists</button>
+      <button class="chart-type-toggle-btn" data-type="albums" onclick="setChartTypeView('albums')"><svg class="type-icon" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3"/></svg> Albums</button>
     </div>
 
     <div class="chart-type-group" id="songsChartGroup">
+    <!-- Sub-chart toggles — Normal/Bubbling Under/Off the Chart/New Entries are independent, any combo can be active -->
+    <div class="sub-chart-toggle-bar" id="subChartToggleBar-songs">
+      <button class="sub-chart-toggle-btn active" data-sub="normal" onclick="toggleSubChart('songs','normal')"><svg class="type-icon" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg> Chart</button>
+      <button class="sub-chart-toggle-btn active" data-sub="bu" onclick="toggleSubChart('songs','bu')"><svg class="type-icon" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="7" cy="15" r="4"/><circle cx="16" cy="7" r="3"/><circle cx="18" cy="16" r="2"/></svg> Bubbling Under</button>
+      <button class="sub-chart-toggle-btn active" data-sub="off" onclick="toggleSubChart('songs','off')"><svg class="type-icon" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="23 18 13.5 8.5 8.5 13.5 1 6"/><polyline points="17 18 23 18 23 12"/></svg> <span data-i18n="sec_off_chart">Off the Chart</span></button>
+      <button class="sub-chart-toggle-btn active" data-sub="new" onclick="toggleSubChart('songs','new')"><svg class="type-icon" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l1 3.5L16.5 8 13 9l-1 3.5L11 9 7.5 8 11 6.5z"/><path d="M19 14l.6 2 2 .6-2 .6-.6 2-.6-2-2-.6 2-.6z"/></svg> New Entries</button>
+    </div>
     <div class="chart-section" id="songsSection">
       <div class="section-header">
         <button class="section-collapse-btn" data-target="songsSection" data-i18n-title="tooltip_collapse">−</button>
-        <h2 id="songsSectionTitle">★ Top 10 Songs</h2>
+        <h2 id="songsSectionTitle"><svg class="section-type-icon" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg><span class="section-title-text">Top 10 Songs</span></h2>
         <span class="section-collapsed-label" data-i18n="collapsed_hint">collapsed — click + to expand</span>
         <div class="section-rule"></div>
         <button class="section-replay-btn" id="songsReplayBtn" onclick="replayChartAnimation('songs')" title="Animate chart — show rank changes from previous period" style="display:none">▶ Animate Chart</button>
@@ -510,7 +517,7 @@
     <!-- BUBBLING UNDER — SONGS (weekly only, idea 1/5/6/8/9/13/14/15/16/17) -->
     <div class="chart-section bu-section" id="buSongsSection" style="display:none;">
       <div class="bu-section-header" onclick="toggleBuSection('songs')">
-        <span class="bu-bubble-emoji">🫧</span>
+        <span class="bu-bubble-emoji"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="7" cy="15" r="4"/><circle cx="16" cy="7" r="3"/><circle cx="18" cy="16" r="2"/></svg></span>
         <span class="bu-section-title" id="buSongsSectionTitle">BUBBLING UNDER</span>
         <span class="bu-type-label">Songs</span>
         <span class="bu-count-pill" id="buSongsCount">0</span>
@@ -529,7 +536,8 @@
     <!-- OFF THE CHART — SONGS (weekly only) -->
     <div class="chart-section off-section" id="offSongsSection" style="display:none;">
       <div class="off-section-header" onclick="toggleOffSection('songs')">
-        <span class="off-section-title" id="offSongsSectionTitle" data-i18n="sec_off_chart">⬇ Off the Chart</span>
+        <svg class="off-type-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="23 18 13.5 8.5 8.5 13.5 1 6"/><polyline points="17 18 23 18 23 12"/></svg>
+        <span class="off-section-title" id="offSongsSectionTitle" data-i18n="sec_off_chart">Off the Chart</span>
         <span class="bu-type-label" data-i18n="drop_col_songs">★ Songs</span>
         <span class="off-count-pill" id="offSongsCount">0</span>
         <span class="off-toggle-icon" id="offSongsToggleIcon">▼</span>
@@ -543,7 +551,7 @@
 
     <div class="chart-section new-entries-section" id="newSongsSection" style="display:none;">
       <div class="section-header ne-section-header" onclick="toggleNeSection('songs')">
-        <span class="ne-sparkle-emoji">✦</span>
+        <span class="ne-sparkle-emoji"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l1 3.5L16.5 8 13 9l-1 3.5L11 9 7.5 8 11 6.5z"/><path d="M19 14l.6 2 2 .6-2 .6-.6 2-.6-2-2-.6 2-.6z"/></svg></span>
         <span id="newSongsTitle" class="new-entries-title ne-title-text">New Songs This Week</span>
         <span class="ne-toggle-icon" id="neSongsToggleIcon">▲</span>
         <span class="section-collapsed-label">collapsed — click ✦ to expand</span>
@@ -576,10 +584,17 @@
     </div><!-- /songsChartGroup -->
 
     <div class="chart-type-group" id="artistsChartGroup" style="display:none;">
+    <!-- Sub-chart toggles — Normal/Bubbling Under/Off the Chart/New Entries are independent, any combo can be active -->
+    <div class="sub-chart-toggle-bar" id="subChartToggleBar-artists">
+      <button class="sub-chart-toggle-btn active" data-sub="normal" onclick="toggleSubChart('artists','normal')"><svg class="type-icon" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg> Chart</button>
+      <button class="sub-chart-toggle-btn active" data-sub="bu" onclick="toggleSubChart('artists','bu')"><svg class="type-icon" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="7" cy="15" r="4"/><circle cx="16" cy="7" r="3"/><circle cx="18" cy="16" r="2"/></svg> Bubbling Under</button>
+      <button class="sub-chart-toggle-btn active" data-sub="off" onclick="toggleSubChart('artists','off')"><svg class="type-icon" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="23 18 13.5 8.5 8.5 13.5 1 6"/><polyline points="17 18 23 18 23 12"/></svg> <span data-i18n="sec_off_chart">Off the Chart</span></button>
+      <button class="sub-chart-toggle-btn active" data-sub="new" onclick="toggleSubChart('artists','new')"><svg class="type-icon" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l1 3.5L16.5 8 13 9l-1 3.5L11 9 7.5 8 11 6.5z"/><path d="M19 14l.6 2 2 .6-2 .6-.6 2-.6-2-2-.6 2-.6z"/></svg> New Entries</button>
+    </div>
     <div class="chart-section" id="artistsSection">
       <div class="section-header">
         <button class="section-collapse-btn" data-target="artistsSection" data-i18n-title="tooltip_collapse">−</button>
-        <h2 id="artistsSectionTitle">♦ Top 10 Artists</h2>
+        <h2 id="artistsSectionTitle"><svg class="section-type-icon" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg><span class="section-title-text">Top 10 Artists</span></h2>
         <span class="section-collapsed-label" data-i18n="collapsed_hint">collapsed — click + to expand</span>
         <div class="section-rule"></div>
         <button class="section-replay-btn" id="artistsReplayBtn" onclick="replayChartAnimation('artists')" title="Animate chart — show rank changes from previous period" style="display:none">▶ Animate Chart</button>
@@ -695,7 +710,7 @@
     <!-- BUBBLING UNDER — ARTISTS (weekly only) -->
     <div class="chart-section bu-section" id="buArtistsSection" style="display:none;">
       <div class="bu-section-header" onclick="toggleBuSection('artists')">
-        <span class="bu-bubble-emoji">🫧</span>
+        <span class="bu-bubble-emoji"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="7" cy="15" r="4"/><circle cx="16" cy="7" r="3"/><circle cx="18" cy="16" r="2"/></svg></span>
         <span class="bu-section-title" id="buArtistsSectionTitle">BUBBLING UNDER</span>
         <span class="bu-type-label">Artists</span>
         <span class="bu-count-pill" id="buArtistsCount">0</span>
@@ -714,7 +729,8 @@
     <!-- OFF THE CHART — ARTISTS (weekly only) -->
     <div class="chart-section off-section" id="offArtistsSection" style="display:none;">
       <div class="off-section-header" onclick="toggleOffSection('artists')">
-        <span class="off-section-title" id="offArtistsSectionTitle" data-i18n="sec_off_chart">⬇ Off the Chart</span>
+        <svg class="off-type-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="23 18 13.5 8.5 8.5 13.5 1 6"/><polyline points="17 18 23 18 23 12"/></svg>
+        <span class="off-section-title" id="offArtistsSectionTitle" data-i18n="sec_off_chart">Off the Chart</span>
         <span class="bu-type-label" data-i18n="drop_col_artists">♦ Artists</span>
         <span class="off-count-pill" id="offArtistsCount">0</span>
         <span class="off-toggle-icon" id="offArtistsToggleIcon">▼</span>
@@ -728,7 +744,7 @@
 
     <div class="chart-section new-entries-section" id="newArtistsSection" style="display:none;">
       <div class="section-header ne-section-header" onclick="toggleNeSection('artists')">
-        <span class="ne-sparkle-emoji">✦</span>
+        <span class="ne-sparkle-emoji"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l1 3.5L16.5 8 13 9l-1 3.5L11 9 7.5 8 11 6.5z"/><path d="M19 14l.6 2 2 .6-2 .6-.6 2-.6-2-2-.6 2-.6z"/></svg></span>
         <span id="newArtistsTitle" class="new-entries-title ne-title-text">New Artists This Week</span>
         <span class="ne-toggle-icon" id="neArtistsToggleIcon">▲</span>
         <span class="section-collapsed-label">collapsed — click ✦ to expand</span>
@@ -761,10 +777,17 @@
     </div><!-- /artistsChartGroup -->
 
     <div class="chart-type-group" id="albumsChartGroup" style="display:none;">
+    <!-- Sub-chart toggles — Normal/Bubbling Under/Off the Chart/New Entries are independent, any combo can be active -->
+    <div class="sub-chart-toggle-bar" id="subChartToggleBar-albums">
+      <button class="sub-chart-toggle-btn active" data-sub="normal" onclick="toggleSubChart('albums','normal')"><svg class="type-icon" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3"/></svg> Chart</button>
+      <button class="sub-chart-toggle-btn active" data-sub="bu" onclick="toggleSubChart('albums','bu')"><svg class="type-icon" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="7" cy="15" r="4"/><circle cx="16" cy="7" r="3"/><circle cx="18" cy="16" r="2"/></svg> Bubbling Under</button>
+      <button class="sub-chart-toggle-btn active" data-sub="off" onclick="toggleSubChart('albums','off')"><svg class="type-icon" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="23 18 13.5 8.5 8.5 13.5 1 6"/><polyline points="17 18 23 18 23 12"/></svg> <span data-i18n="sec_off_chart">Off the Chart</span></button>
+      <button class="sub-chart-toggle-btn active" data-sub="new" onclick="toggleSubChart('albums','new')"><svg class="type-icon" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l1 3.5L16.5 8 13 9l-1 3.5L11 9 7.5 8 11 6.5z"/><path d="M19 14l.6 2 2 .6-2 .6-.6 2-.6-2-2-.6 2-.6z"/></svg> New Entries</button>
+    </div>
     <div class="chart-section" id="albumsSection">
       <div class="section-header">
         <button class="section-collapse-btn" data-target="albumsSection" data-i18n-title="tooltip_collapse">−</button>
-        <h2 id="albumsSectionTitle">◈ Top 10 Albums</h2>
+        <h2 id="albumsSectionTitle"><svg class="section-type-icon" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3"/></svg><span class="section-title-text">Top 10 Albums</span></h2>
         <span class="section-collapsed-label" data-i18n="collapsed_hint">collapsed — click + to expand</span>
         <div class="section-rule"></div>
         <button class="section-replay-btn" id="albumsReplayBtn" onclick="replayChartAnimation('albums')" title="Animate chart — show rank changes from previous period" style="display:none">▶ Animate Chart</button>
@@ -881,7 +904,7 @@
     <!-- BUBBLING UNDER — ALBUMS (weekly only) -->
     <div class="chart-section bu-section" id="buAlbumsSection" style="display:none;">
       <div class="bu-section-header" onclick="toggleBuSection('albums')">
-        <span class="bu-bubble-emoji">🫧</span>
+        <span class="bu-bubble-emoji"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="7" cy="15" r="4"/><circle cx="16" cy="7" r="3"/><circle cx="18" cy="16" r="2"/></svg></span>
         <span class="bu-section-title" id="buAlbumsSectionTitle">BUBBLING UNDER</span>
         <span class="bu-type-label">Albums</span>
         <span class="bu-count-pill" id="buAlbumsCount">0</span>
@@ -900,7 +923,8 @@
     <!-- OFF THE CHART — ALBUMS (weekly only) -->
     <div class="chart-section off-section" id="offAlbumsSection" style="display:none;">
       <div class="off-section-header" onclick="toggleOffSection('albums')">
-        <span class="off-section-title" id="offAlbumsSectionTitle" data-i18n="sec_off_chart">⬇ Off the Chart</span>
+        <svg class="off-type-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="23 18 13.5 8.5 8.5 13.5 1 6"/><polyline points="17 18 23 18 23 12"/></svg>
+        <span class="off-section-title" id="offAlbumsSectionTitle" data-i18n="sec_off_chart">Off the Chart</span>
         <span class="bu-type-label" data-i18n="drop_col_albums">◈ Albums</span>
         <span class="off-count-pill" id="offAlbumsCount">0</span>
         <span class="off-toggle-icon" id="offAlbumsToggleIcon">▼</span>
@@ -914,7 +938,7 @@
 
     <div class="chart-section new-entries-section" id="newAlbumsSection" style="display:none;">
       <div class="section-header ne-section-header" onclick="toggleNeSection('albums')">
-        <span class="ne-sparkle-emoji">✦</span>
+        <span class="ne-sparkle-emoji"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l1 3.5L16.5 8 13 9l-1 3.5L11 9 7.5 8 11 6.5z"/><path d="M19 14l.6 2 2 .6-2 .6-.6 2-.6-2-2-.6 2-.6z"/></svg></span>
         <span id="newAlbumsTitle" class="new-entries-title ne-title-text">New Albums This Week</span>
         <span class="ne-toggle-icon" id="neAlbumsToggleIcon">▲</span>
         <span class="section-collapsed-label">collapsed — click ✦ to expand</span>

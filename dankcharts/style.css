@@ -3093,11 +3093,11 @@
       border-color: rgba(125, 211, 252, 0.35);
     }
 
-    /* Idea 5: bubble emoji — animated float */
+    /* Idea 5: bubble icon — animated float */
     .bu-bubble-emoji {
-      font-size: 1.1rem;
+      color: #7dd3fc;
       animation: buFloat 3s ease-in-out infinite;
-      display: inline-block;
+      display: inline-flex;
     }
     @keyframes buFloat {
       0%, 100% { transform: translateY(0); }
@@ -3620,6 +3620,9 @@
 
     .chart-type-toggle-btn {
       flex-shrink: 0;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
       border-radius: 20px;
       border: 1px solid var(--border2);
       background: none;
@@ -3634,6 +3637,11 @@
       transition: background 0.15s, color 0.15s, border-color 0.15s;
     }
 
+    .chart-type-toggle-btn .type-icon {
+      flex-shrink: 0;
+      opacity: 0.85;
+    }
+
     .chart-type-toggle-btn:hover {
       background: var(--surface);
       color: var(--text);
@@ -3644,6 +3652,61 @@
       background: var(--accent);
       border-color: var(--accent);
       color: #fff;
+    }
+
+    /* Sub-chart toggles — Normal/Bubbling Under/Off the Chart/New Entries, per chart type.
+       Unlike the exclusive chart-type toggle above, any combination of these can be active at once. */
+    .sub-chart-toggle-bar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.4rem;
+      margin: 0.75rem 0 1.25rem;
+    }
+
+    .sub-chart-toggle-btn {
+      flex-shrink: 0;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      border-radius: 20px;
+      border: 1px solid var(--border2);
+      background: none;
+      color: var(--text3);
+      font-family: var(--font-mono);
+      font-size: 0.6rem;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      line-height: 1;
+      cursor: pointer;
+      padding: 0.3rem 0.75rem;
+      opacity: 0.6;
+      transition: background 0.15s, color 0.15s, border-color 0.15s, opacity 0.15s;
+    }
+
+    .sub-chart-toggle-btn .type-icon {
+      flex-shrink: 0;
+      opacity: 0.85;
+    }
+
+    .sub-chart-toggle-btn:hover {
+      background: var(--surface);
+      color: var(--text);
+      border-color: var(--accent);
+      opacity: 1;
+    }
+
+    .sub-chart-toggle-btn.active {
+      background: var(--surface);
+      border-color: var(--accent);
+      color: var(--text);
+      opacity: 1;
+    }
+
+    /* Overlay hide for a sub-chart whose toggle is off — !important so it wins over
+       whatever inline display style the data-driven render logic set on the section. */
+    .sub-chart-toggled-off {
+      display: none !important;
     }
 
 
@@ -3689,6 +3752,14 @@
       color: #2a5888;
       white-space: nowrap;
       font-weight: 500;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5em;
+    }
+
+    .section-header h2 .section-type-icon {
+      flex-shrink: 0;
+      opacity: 0.85;
     }
 
     .section-rule {
@@ -7959,6 +8030,11 @@
       font-weight: 700;
       color: var(--accent2);
       white-space: nowrap;
+    }
+
+    .off-type-icon {
+      color: var(--accent2);
+      flex-shrink: 0;
     }
 
     .off-count-pill {
@@ -16290,6 +16366,10 @@ body.red-light .bu-section-header:hover {
 body.navy-light .bu-section-title,   body.purple-light .bu-section-title,
 body.yellow-light .bu-section-title, body.pink-light .bu-section-title,
 body.red-light .bu-section-title { color: var(--teal); }
+
+body.navy-light .bu-bubble-emoji,   body.purple-light .bu-bubble-emoji,
+body.yellow-light .bu-bubble-emoji, body.pink-light .bu-bubble-emoji,
+body.red-light .bu-bubble-emoji { color: var(--teal); }
 
 body.navy-light .bu-count-pill,   body.purple-light .bu-count-pill,
 body.yellow-light .bu-count-pill, body.pink-light .bu-count-pill,

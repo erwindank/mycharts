@@ -34,6 +34,96 @@ function applyChartTypeView() {
   });
 }
 
+// ─── SUB-CHART TOGGLES (Normal / Bubbling Under / Off the Chart / New Entries) ──
+// Each chart type (songs/artists/albums) has its own independent set of toggles —
+// unlike the exclusive Songs/Artists/Albums toggle above, any combination of these
+// four sub-charts can be active at once. Synced to the user's Firestore account via
+// dc_subChartToggles (see SYNC_KEYS in firebase.js) so the choice follows them across devices.
+const SUB_CHART_SECTION_IDS = {
+  normal: { songs: 'songsSection',   artists: 'artistsSection',   albums: 'albumsSection' },
+  bu:     { songs: 'buSongsSection', artists: 'buArtistsSection', albums: 'buAlbumsSection' },
+  off:    { songs: 'offSongsSection', artists: 'offArtistsSection', albums: 'offAlbumsSection' },
+  new:    { songs: 'newSongsSection', artists: 'newArtistsSection', albums: 'newAlbumsSection' }
+};
+
+const subChartToggleState = (() => {
+  function withDefaults(s) { return Object.assign({ normal: true, bu: true, off: true, new: true }, s || {}); }
+  try {
+    const saved = JSON.parse(localStorage.getItem('dc_subChartToggles') || 'null');
+    if (saved) return { songs: withDefaults(saved.songs), artists: withDefaults(saved.artists), albums: withDefaults(saved.albums) };
+  } catch (e) {}
+  return { songs: withDefaults(), artists: withDefaults(), albums: withDefaults() };
+})();
+
+// Which sub-charts even exist for the current period — mirrors the gating already used
+// by renderSongs/renderArtists/renderAlbums (Bubbling Under + Off the Chart: weekly only)
+// and renderNewEntries (New Entries: week/month/year, never alltime). The toggle button
+// for a sub-chart that doesn't exist this period is hidden entirely rather than left
+// clickable with no effect.
+const SUB_CHART_PERIOD_AVAILABILITY = {
+  normal: () => true,
+  bu:     () => currentPeriod === 'week',
+  off:    () => currentPeriod === 'week',
+  new:    () => currentPeriod === 'week' || currentPeriod === 'month' || currentPeriod === 'year'
+};
+
+function updateSubChartToggleBarAvailability() {
+  // All-Time only ever has the Normal chart (no Bubbling Under/Off the Chart/New
+  // Entries) — a bar with just one lonely "Chart" button isn't useful, so hide the
+  // whole sub-chart toggle bar there and fall back to the plain Songs/Artists/Albums
+  // switcher only.
+  const hideWholeBar = currentPeriod === 'alltime';
+  ['songs', 'artists', 'albums'].forEach(type => {
+    const bar = document.getElementById('subChartToggleBar-' + type);
+    if (!bar) return;
+    bar.style.display = hideWholeBar ? 'none' : '';
+    if (hideWholeBar) return;
+    bar.querySelectorAll('.sub-chart-toggle-btn').forEach(btn => {
+      const check = SUB_CHART_PERIOD_AVAILABILITY[btn.dataset.sub];
+      btn.style.display = (!check || check()) ? '' : 'none';
+    });
+  });
+}
+
+function initSubChartToggles() {
+  ['songs', 'artists', 'albums'].forEach(type => {
+    const bar = document.getElementById('subChartToggleBar-' + type);
+    if (!bar) return;
+    bar.querySelectorAll('.sub-chart-toggle-btn').forEach(btn => {
+      btn.classList.toggle('active', Boolean(subChartToggleState[type][btn.dataset.sub]));
+    });
+  });
+}
+
+function toggleSubChart(type, sub) {
+  const state = subChartToggleState[type];
+  if (!state) return;
+  state[sub] = !state[sub];
+  const btn = document.querySelector(`#subChartToggleBar-${type} .sub-chart-toggle-btn[data-sub="${sub}"]`);
+  if (btn) btn.classList.toggle('active', state[sub]);
+  try { localStorage.setItem('dc_subChartToggles', JSON.stringify(subChartToggleState)); } catch (e) {}
+  if (typeof dcSaveUserConfig === 'function') dcSaveUserConfig();
+  applySubChartToggles();
+}
+
+// Final visibility pass — runs after all the data-driven render logic (renderSongs/
+// renderArtists/renderAlbums/renderNewEntries) has already decided which sub-charts
+// have data to show this period. A toggle being off adds a CSS class that force-hides
+// the section with !important; a toggle being on just removes that class, revealing
+// whatever the data-driven inline style already set — never touch .style.display
+// directly here, or turning the toggle back on would have nothing to restore it to
+// without a full re-render.
+function applySubChartToggles() {
+  for (const sub of Object.keys(SUB_CHART_SECTION_IDS)) {
+    for (const type of ['songs', 'artists', 'albums']) {
+      const el = document.getElementById(SUB_CHART_SECTION_IDS[sub][type]);
+      if (el) el.classList.toggle('sub-chart-toggled-off', !subChartToggleState[type][sub]);
+    }
+  }
+}
+
+initSubChartToggles();
+
 // ─── TIMEZONE SUPPORT ──────────────────────────────────────────
 const BROWSER_TZ = Intl.DateTimeFormat().resolvedOptions().timeZone;
 let userTimezone = (() => {
@@ -327,6 +417,17 @@ function dcApplyAllSettings() {
         const btn = document.getElementById(id);
         if (btn) btn.classList.toggle('active', tmToggles[type] !== false);
       });
+    } catch(e) {}
+  }
+  // subChartToggleState is a const object — mutate in place so the sub-chart toggle
+  // bars (Normal/Bubbling Under/Off the Chart/New Entries) reflect the loaded state
+  const savedSubCharts = localStorage.getItem('dc_subChartToggles');
+  if (savedSubCharts) {
+    try {
+      const saved = JSON.parse(savedSubCharts);
+      ['songs', 'artists', 'albums'].forEach(type => { if (saved[type]) Object.assign(subChartToggleState[type], saved[type]); });
+      initSubChartToggles();
+      applySubChartToggles();
     } catch(e) {}
   }
 }
@@ -6372,9 +6473,9 @@ function renderAll() {
     // Reset to page 0 when period/year/view changes
     pageState.songs = 0; pageState.artists = 0; pageState.albums = 0;
 
-    document.getElementById('songsSectionTitle').textContent   = isFinite(limSongs)   ? t('sec_songs_top',   { n: limSongs   }) : t('sec_songs_all',   { n: fullData.songs.length.toLocaleString()   });
-    document.getElementById('artistsSectionTitle').textContent = isFinite(limArtists) ? t('sec_artists_top', { n: limArtists }) : t('sec_artists_all', { n: fullData.artists.length.toLocaleString() });
-    document.getElementById('albumsSectionTitle').textContent  = isFinite(limAlbums)  ? t('sec_albums_top',  { n: limAlbums  }) : t('sec_albums_all',  { n: fullData.albums.length.toLocaleString()  });
+    document.querySelector('#songsSectionTitle .section-title-text').textContent   = (isFinite(limSongs)   ? t('sec_songs_top',   { n: limSongs   }) : t('sec_songs_all',   { n: fullData.songs.length.toLocaleString()   })).replace(/^[★♦◈]\s*/, '');
+    document.querySelector('#artistsSectionTitle .section-title-text').textContent = (isFinite(limArtists) ? t('sec_artists_top', { n: limArtists }) : t('sec_artists_all', { n: fullData.artists.length.toLocaleString() })).replace(/^[★♦◈]\s*/, '');
+    document.querySelector('#albumsSectionTitle .section-title-text').textContent  = (isFinite(limAlbums)  ? t('sec_albums_top',  { n: limAlbums  }) : t('sec_albums_all',  { n: fullData.albums.length.toLocaleString()  })).replace(/^[★♦◈]\s*/, '');
 
     lastPeriodStats = null;
     renderPage('songs', peaks);
@@ -6390,9 +6491,9 @@ function renderAll() {
     ['songsPagination', 'artistsPagination', 'albumsPagination'].forEach(id => {
       document.getElementById(id).style.display = 'none';
     });
-    document.getElementById('songsSectionTitle').textContent   = t('sec_songs_top',   { n: chartSizeSongs   });
-    document.getElementById('artistsSectionTitle').textContent = t('sec_artists_top', { n: chartSizeArtists });
-    document.getElementById('albumsSectionTitle').textContent  = t('sec_albums_top',  { n: chartSizeAlbums  });
+    document.querySelector('#songsSectionTitle .section-title-text').textContent   = t('sec_songs_top',   { n: chartSizeSongs   }).replace(/^[★♦◈]\s*/, '');
+    document.querySelector('#artistsSectionTitle .section-title-text').textContent = t('sec_artists_top', { n: chartSizeArtists }).replace(/^[★♦◈]\s*/, '');
+    document.querySelector('#albumsSectionTitle .section-title-text').textContent  = t('sec_albums_top',  { n: chartSizeAlbums  }).replace(/^[★♦◈]\s*/, '');
     const periodStats = hasPeriodStats ? buildPeriodStats(currentPeriod) : null;
     lastPeriodStats = periodStats;
     _animPrevPlays = (chartAnimEnabled && prevPlays && prevPlays.length > 0 && (currentPeriod === 'week' || currentPeriod === 'month')) ? prevPlays : null;
@@ -6404,6 +6505,8 @@ function renderAll() {
     _animCurrentPlays = null;
   }
   renderNewEntries(plays, start, end);
+  updateSubChartToggleBarAvailability();
+  applySubChartToggles();
   updateExportBtn();
   updateShareBtns();
   updateChartExportBtns();
