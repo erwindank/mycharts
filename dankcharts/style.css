@@ -3590,6 +3590,42 @@
       opacity: 1;
     }
 
+    /* Chart type toggle — switches between Songs/Artists/Albums, one at a time */
+    .chart-type-toggle-bar {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-top: 1.5rem;
+    }
+
+    .chart-type-toggle-btn {
+      flex-shrink: 0;
+      border-radius: 20px;
+      border: 1px solid var(--border2);
+      background: none;
+      color: var(--text3);
+      font-family: var(--font-mono);
+      font-size: 0.65rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      line-height: 1;
+      cursor: pointer;
+      padding: 0.35rem 0.9rem;
+      transition: background 0.15s, color 0.15s, border-color 0.15s;
+    }
+
+    .chart-type-toggle-btn:hover {
+      background: var(--surface);
+      color: var(--text);
+      border-color: var(--accent);
+    }
+
+    .chart-type-toggle-btn.active {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #fff;
+    }
+
 
     .section-body {
       display: block;

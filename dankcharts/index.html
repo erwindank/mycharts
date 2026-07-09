@@ -19,7 +19,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-  <link rel="stylesheet" href="style.css?v=22">
+  <link rel="stylesheet" href="style.css?v=23">
   <script src="translations.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8/hammer.min.js"></script>
@@ -377,6 +377,14 @@
       <button class="collapse-all-toggle-btn" id="collapseAllToggleBtn" onclick="toggleCollapseAllCharts()" title="Collapse all chart sections">− Collapse All</button>
     </div>
 
+    <!-- Chart type toggle — shows one of Songs/Artists/Albums at a time, Songs by default -->
+    <div class="chart-type-toggle-bar" id="chartTypeToggleBar" style="display:none;">
+      <button class="chart-type-toggle-btn active" data-type="songs" onclick="setChartTypeView('songs')">★ Songs</button>
+      <button class="chart-type-toggle-btn" data-type="artists" onclick="setChartTypeView('artists')">♦ Artists</button>
+      <button class="chart-type-toggle-btn" data-type="albums" onclick="setChartTypeView('albums')">◈ Albums</button>
+    </div>
+
+    <div class="chart-type-group" id="songsChartGroup">
     <div class="chart-section" id="songsSection">
       <div class="section-header">
         <button class="section-collapse-btn" data-target="songsSection" data-i18n-title="tooltip_collapse">−</button>
@@ -565,7 +573,9 @@
         </div>
       </div>
     </div>
+    </div><!-- /songsChartGroup -->
 
+    <div class="chart-type-group" id="artistsChartGroup" style="display:none;">
     <div class="chart-section" id="artistsSection">
       <div class="section-header">
         <button class="section-collapse-btn" data-target="artistsSection" data-i18n-title="tooltip_collapse">−</button>
@@ -748,7 +758,9 @@
         </div>
       </div>
     </div>
+    </div><!-- /artistsChartGroup -->
 
+    <div class="chart-type-group" id="albumsChartGroup" style="display:none;">
     <div class="chart-section" id="albumsSection">
       <div class="section-header">
         <button class="section-collapse-btn" data-target="albumsSection" data-i18n-title="tooltip_collapse">−</button>
@@ -932,6 +944,7 @@
         </div>
       </div>
     </div>
+    </div><!-- /albumsChartGroup -->
 
     <!-- UPCOMING RELEASES SECTION -->
     <div class="chart-section" id="upcomingSection" style="display:none; margin-top:2rem;">

@@ -13,6 +13,27 @@ let currentPeriod = 'week';
 let currentOffset = 0;
 let weekStartDay = 0; // 0=Sun, 1=Mon, 2=Tue, 3=Wed, 4=Thu, 5=Fri, 6=Sat
 
+// Chart type toggle — Songs/Artists/Albums charts are split, only one renders at a time
+let chartTypeView = (() => {
+  try { return localStorage.getItem('dc_chart_type_view') || 'songs'; } catch (e) { return 'songs'; }
+})();
+
+function setChartTypeView(type) {
+  if (chartTypeView === type) return;
+  chartTypeView = type;
+  try { localStorage.setItem('dc_chart_type_view', type); } catch (e) {}
+  applyChartTypeView();
+}
+
+function applyChartTypeView() {
+  document.getElementById('songsChartGroup').style.display   = chartTypeView === 'songs'   ? '' : 'none';
+  document.getElementById('artistsChartGroup').style.display = chartTypeView === 'artists' ? '' : 'none';
+  document.getElementById('albumsChartGroup').style.display  = chartTypeView === 'albums'  ? '' : 'none';
+  document.querySelectorAll('#chartTypeToggleBar .chart-type-toggle-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.type === chartTypeView);
+  });
+}
+
 // ─── TIMEZONE SUPPORT ──────────────────────────────────────────
 const BROWSER_TZ = Intl.DateTimeFormat().resolvedOptions().timeZone;
 let userTimezone = (() => {
@@ -4648,6 +4669,7 @@ document.getElementById('periodNav').addEventListener('click', e => {
     currentPeriod = 'rawdata';
     localStorage.setItem('dc_period', currentPeriod);
     document.getElementById('collapseAllBar').style.display = 'none';
+    document.getElementById('chartTypeToggleBar').style.display = 'none';
     document.getElementById('exportPlaylistBtn').style.display = 'none';
     document.getElementById('dateNav').style.display = 'none';
     document.getElementById('navHint').style.display = 'none';
@@ -4688,6 +4710,7 @@ document.getElementById('periodNav').addEventListener('click', e => {
     currentPeriod = 'graphs';
     localStorage.setItem('dc_period', currentPeriod);
     document.getElementById('collapseAllBar').style.display = 'none';
+    document.getElementById('chartTypeToggleBar').style.display = 'none';
     document.getElementById('exportPlaylistBtn').style.display = 'none';
     document.getElementById('dateNav').style.display = 'none';
     document.getElementById('navHint').style.display = 'none';
@@ -4722,6 +4745,7 @@ document.getElementById('periodNav').addEventListener('click', e => {
     currentPeriod = 'records';
     localStorage.setItem('dc_period', currentPeriod);
     document.getElementById('collapseAllBar').style.display = 'none';
+    document.getElementById('chartTypeToggleBar').style.display = 'none';
     document.getElementById('exportPlaylistBtn').style.display = 'none';
     document.getElementById('dateNav').style.display = 'none';
     document.getElementById('navHint').style.display = 'none';
@@ -4759,6 +4783,7 @@ document.getElementById('periodNav').addEventListener('click', e => {
     currentPeriod = 'events';
     localStorage.setItem('dc_period', currentPeriod);
     document.getElementById('collapseAllBar').style.display = 'none';
+    document.getElementById('chartTypeToggleBar').style.display = 'none';
     document.getElementById('exportPlaylistBtn').style.display = 'none';
     document.getElementById('dateNav').style.display = 'none';
     document.getElementById('navHint').style.display = 'none';
@@ -4809,6 +4834,7 @@ document.getElementById('periodNav').addEventListener('click', e => {
     currentPeriod = 'awards';
     localStorage.setItem('dc_period', currentPeriod);
     document.getElementById('collapseAllBar').style.display = 'none';
+    document.getElementById('chartTypeToggleBar').style.display = 'none';
     document.getElementById('exportPlaylistBtn').style.display = 'none';
     document.getElementById('dateNav').style.display = 'none';
     document.getElementById('navHint').style.display = 'none';
@@ -4844,6 +4870,7 @@ document.getElementById('periodNav').addEventListener('click', e => {
     currentPeriod = 'soundtrack';
     localStorage.setItem('dc_period', currentPeriod);
     document.getElementById('collapseAllBar').style.display = 'none';
+    document.getElementById('chartTypeToggleBar').style.display = 'none';
     document.getElementById('exportPlaylistBtn').style.display = 'none';
     document.getElementById('dateNav').style.display = 'none';
     document.getElementById('navHint').style.display = 'none';
@@ -4881,6 +4908,7 @@ document.getElementById('periodNav').addEventListener('click', e => {
     currentPeriod = 'playlists';
     localStorage.setItem('dc_period', currentPeriod);
     document.getElementById('collapseAllBar').style.display = 'none';
+    document.getElementById('chartTypeToggleBar').style.display = 'none';
     document.getElementById('exportPlaylistBtn').style.display = 'none';
     document.getElementById('dateNav').style.display = 'none';
     document.getElementById('navHint').style.display = 'none';
@@ -4931,6 +4959,7 @@ document.getElementById('periodNav').addEventListener('click', e => {
     currentPeriod = 'chartsguide';
     localStorage.setItem('dc_period', currentPeriod);
     document.getElementById('collapseAllBar').style.display = 'none';
+    document.getElementById('chartTypeToggleBar').style.display = 'none';
     document.getElementById('exportPlaylistBtn').style.display = 'none';
     document.getElementById('dateNav').style.display = 'none';
     document.getElementById('navHint').style.display = 'none';
@@ -5890,6 +5919,9 @@ function renderAll() {
   chartSize = chartSizeSongs; // default compat value (overridden per-section before each render)
   document.getElementById('collapseAllBar').style.display =
     ['week', 'month', 'year', 'alltime'].includes(currentPeriod) ? 'flex' : 'none';
+  document.getElementById('chartTypeToggleBar').style.display =
+    ['week', 'month', 'year', 'alltime'].includes(currentPeriod) ? 'flex' : 'none';
+  applyChartTypeView();
   const _isWeek = currentPeriod === 'week';
   ['songs','artists','albums'].forEach(tp => {
     const bar = document.getElementById('weeklyViewBtns-' + tp);
