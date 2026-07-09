@@ -6507,36 +6507,8 @@
     #songsBody .song-row { cursor: pointer; }
     #songsBody .song-row:hover { background: var(--bg2) !important; }
 
-    /* CERTIFICATION PLAQUES */
-    .cert-plaques-grid {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.6rem;
-      margin-bottom: 0.75rem;
-    }
-    .cert-plaque {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 0.15rem;
-      padding: 0.75rem 1rem;
-      border-radius: 8px;
-      background: var(--bg2);
-      border: 1px solid var(--border);
-      min-width: 110px;
-      text-align: center;
-    }
-    .cert-plaque--gold   { background: linear-gradient(135deg,rgba(255,215,0,0.12),rgba(255,180,0,0.04)); border-color: rgba(255,215,0,0.35); }
-    .cert-plaque--platinum { background: linear-gradient(135deg,rgba(200,210,255,0.12),rgba(160,180,255,0.04)); border-color: rgba(180,200,255,0.35); }
-    .cert-plaque--diamond { background: linear-gradient(135deg,rgba(100,220,255,0.15),rgba(60,160,255,0.04)); border-color: rgba(100,220,255,0.4); }
-    .cp-icon  { font-size: 1.4rem; }
-    .cp-tier  { font-family:var(--font-mono); font-size:0.6rem; letter-spacing:0.1em; text-transform:uppercase; color:var(--text2); font-weight:600; }
-    .cert-plaque--gold .cp-tier    { color:#ffd700; }
-    .cert-plaque--platinum .cp-tier{ color:#a5b4fc; }
-    .cert-plaque--diamond .cp-tier { color:#67e8f9; }
-    .cp-name  { font-size:0.75rem; color:var(--text1); font-weight:600; max-width:140px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-    .cp-type  { font-size:0.6rem; color:var(--text3); text-transform:uppercase; letter-spacing:0.06em; }
-    .cp-plays { font-size:0.68rem; color:var(--text3); }
+    /* CERTIFICATION PLAQUES — album modal reuses the .cwall-grid / .cert-card
+       vinyl-plaque styles defined further down (Certifications Wall section) */
 
     /* CHART BREAKDOWN COLORED COLUMN HEADERS */
     .modal-cb-th--weekly  { color: #60a5fa !important; border-top: 2px solid #60a5fa; }
@@ -16741,6 +16713,50 @@ body.yellow-light .sk-ms, body.pink-light .sk-ms,
 body.red-light .sk-ms {
   background: rgba(0, 0, 0, 0.04);
   border-color: rgba(0, 0, 0, 0.15);
+}
+
+/* Chart Breakdown table (artist/album modals): the weekly/monthly/yearly/
+   all-time neon header hues (#60a5fa/#34d399/#fb923c/#fbbf24) and the
+   songs/albums/tracks row-label pastels are unreadable on light backgrounds
+   — swap in darker AA-contrast versions of the same hues. */
+body.navy-light .modal-cb-th--weekly,   body.purple-light .modal-cb-th--weekly,
+body.yellow-light .modal-cb-th--weekly, body.pink-light .modal-cb-th--weekly,
+body.red-light .modal-cb-th--weekly {
+  color: #1d4ed8 !important;
+  border-top-color: #1d4ed8;
+}
+body.navy-light .modal-cb-th--monthly,   body.purple-light .modal-cb-th--monthly,
+body.yellow-light .modal-cb-th--monthly, body.pink-light .modal-cb-th--monthly,
+body.red-light .modal-cb-th--monthly {
+  color: #047857 !important;
+  border-top-color: #047857;
+}
+body.navy-light .modal-cb-th--yearly,   body.purple-light .modal-cb-th--yearly,
+body.yellow-light .modal-cb-th--yearly, body.pink-light .modal-cb-th--yearly,
+body.red-light .modal-cb-th--yearly {
+  color: #c2410c !important;
+  border-top-color: #c2410c;
+}
+body.navy-light .modal-cb-th--alltime,   body.purple-light .modal-cb-th--alltime,
+body.yellow-light .modal-cb-th--alltime, body.pink-light .modal-cb-th--alltime,
+body.red-light .modal-cb-th--alltime {
+  color: #92400e !important;
+  border-top-color: #92400e;
+}
+body.navy-light .modal-cb-label--songs,   body.purple-light .modal-cb-label--songs,
+body.yellow-light .modal-cb-label--songs, body.pink-light .modal-cb-label--songs,
+body.red-light .modal-cb-label--songs {
+  color: #1d4ed8;
+}
+body.navy-light .modal-cb-label--albums,   body.purple-light .modal-cb-label--albums,
+body.yellow-light .modal-cb-label--albums, body.pink-light .modal-cb-label--albums,
+body.red-light .modal-cb-label--albums {
+  color: #6d28d9;
+}
+body.navy-light .modal-cb-label--tracks,   body.purple-light .modal-cb-label--tracks,
+body.yellow-light .modal-cb-label--tracks, body.pink-light .modal-cb-label--tracks,
+body.red-light .modal-cb-label--tracks {
+  color: #047857;
 }
 
 .wv-r1.wv-stk-card .wv-bar-fill { background: var(--gold1) !important; }

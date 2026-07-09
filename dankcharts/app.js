@@ -13881,27 +13881,38 @@ function openAlbumModal(albumKey) {
     const mult = totalPlays >= CERT.album.diamond ? Math.floor(totalPlays / CERT.album.diamond) : 0;
     const tier = mult > 0 ? 'diamond' : totalPlays >= CERT.album.plat ? 'plat' : 'gold';
     const { icon: dIcon, label: dLabel } = mult > 0 ? diamondMultiLabel(mult) : { icon: tier === 'plat' ? '💿' : '🪙', label: tier === 'plat' ? 'Platinum' : 'Gold' };
-    plaqueItems.push({ icon: dIcon, label: mult > 0 ? dLabel : (tier === 'plat' ? 'Platinum' : 'Gold'), plays: mult > 0 ? mult * CERT.album.diamond : (tier === 'plat' ? CERT.album.plat : CERT.album.gold), type: 'Album' });
+    plaqueItems.push({ icon: dIcon, label: dLabel, tier, plays: mult > 0 ? mult * CERT.album.diamond : (tier === 'plat' ? CERT.album.plat : CERT.album.gold), type: 'Album' });
   }
   for (const s of allTracksSorted) {
     if (s.count >= CERT.song.gold) {
       const mult = s.count >= CERT.song.diamond ? Math.floor(s.count / CERT.song.diamond) : 0;
       const tier = mult > 0 ? 'diamond' : s.count >= CERT.song.plat ? 'plat' : 'gold';
       const { icon: dIcon, label: dLabel } = mult > 0 ? diamondMultiLabel(mult) : { icon: tier === 'plat' ? '💿' : '🪙', label: tier === 'plat' ? 'Platinum' : 'Gold' };
-      plaqueItems.push({ icon: dIcon, label: mult > 0 ? dLabel : (tier === 'plat' ? 'Platinum' : 'Gold'), plays: s.count, type: 'Song', name: s.title });
+      plaqueItems.push({ icon: dIcon, label: dLabel, tier, plays: s.count, type: 'Song', name: s.title });
     }
   }
   if (plaqueItems.length) {
     certTitleEl.style.display = '';
-    certPlaquesEl.innerHTML = `<div class="cert-plaques-grid">${plaqueItems.map(p =>
-      `<div class="cert-plaque cert-plaque--${p.label.toLowerCase().replace(/\s.*/,'')}">
-        <div class="cp-icon">${p.icon}</div>
-        <div class="cp-tier">${esc(p.label)}</div>
-        <div class="cp-name">${esc(p.name || albumName)}</div>
-        <div class="cp-type">${esc(p.type)}</div>
-        <div class="cp-plays">${p.plays.toLocaleString()} plays</div>
-      </div>`
-    ).join('')}</div>`;
+    certPlaquesEl.innerHTML = `<div class="cwall-grid">${plaqueItems.map((p, idx) => {
+      const name = p.name || albumName;
+      return `<div class="cert-card cert-card--${p.tier}">
+        <div class="cert-frame">
+          <div class="cert-record-wrap" id="albcp-${idx}">
+            <div class="cert-sleeve"></div>
+            <div class="cert-record-initials">${esc(wallInitials(name))}</div>
+            <div class="cert-vinyl-center"></div>
+          </div>
+          <div class="cert-info">
+            <span class="cert-type-badge">${esc(p.type)}</span>
+            <div class="cert-title">${esc(name)}</div>
+            <div class="cert-artist">${esc(artistName)}</div>
+            <div class="cert-tier-badge">${p.icon} ${esc(p.label)}</div>
+            <div class="cert-date">${p.plays.toLocaleString()} plays</div>
+          </div>
+        </div>
+      </div>`;
+    }).join('')}</div>`;
+    loadAlbumCertPlaqueImages(plaqueItems, albumName, artistName);
   } else {
     certTitleEl.style.display = 'none';
     certPlaquesEl.innerHTML = '';
@@ -16445,6 +16456,31 @@ async function loadCertWallImages(items) {
     if (!url) continue;
     item.image = url;
     const wrap = document.getElementById('cwrec-' + i);
+    if (!wrap) continue;
+    const existingIni = wrap.querySelector('.cert-record-initials');
+    if (existingIni) {
+      existingIni.style.display = 'none';
+      existingIni.insertAdjacentHTML('beforebegin',
+        `<img class="cert-record" src="${url}" alt="" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">`
+      );
+    }
+  }
+}
+
+// Fills in the vinyl artwork for the album-modal certification plaques (same card style as the Certifications Wall)
+async function loadAlbumCertPlaqueImages(items, albumName, artistName) {
+  for (let i = 0; i < items.length; i++) {
+    const item = items[i];
+    let url = null;
+    try {
+      if (item.type === 'Album') {
+        url = await getAlbumImage(albumName, artistName);
+      } else {
+        url = await getAlbumImage(albumName, artistName) || await getTrackImage(item.name, artistName);
+      }
+    } catch (e) {}
+    if (!url) continue;
+    const wrap = document.getElementById('albcp-' + i);
     if (!wrap) continue;
     const existingIni = wrap.querySelector('.cert-record-initials');
     if (existingIni) {
