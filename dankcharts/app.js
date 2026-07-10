@@ -5307,13 +5307,17 @@ function dcNavUpdateBadges() {
 // Hash wins over savedPeriod only if it looks like an explicit share/bookmark link
 // (i.e. hash present and different from what localStorage would restore anyway)
 (function initNavHashRestore() {
-  const m = window.location.hash.match(/^#t=(\w+)$/);
+  // Optional trailing /<section> targets a Charts Guide section deep link, e.g. #t=chartsguide/faq
+  const m = window.location.hash.match(/^#t=(\w+)(?:\/([\w-]+))?$/);
   if (!m) return;
   const savedPeriod = localStorage.getItem('dc_period');
   // If user has a saved period that differs from the hash, let finalizeLoad handle it
   if (savedPeriod && savedPeriod !== m[1] && savedPeriod !== 'week') return;
   const btn = document.querySelector('#periodNav button[data-period="' + m[1] + '"]');
   if (btn) btn.click();
+  if (m[1] === 'chartsguide' && m[2]) {
+    setTimeout(() => { if (typeof dcGuideJump === 'function') dcGuideJump(m[2]); }, 60);
+  }
 })();
 
 // ─── JUMP PICKER ───────────────────────────────────────────────
@@ -24738,6 +24742,59 @@ function dcGuideCheck(id, checked) {
   if (frac) frac.textContent  = done + ' / ' + total + ' completed';
 }
 
+/* Table of contents / progressive disclosure / deep links (features 21-24) */
+function dcToggleGuideSection(slug) {
+  const label = document.getElementById('cg-' + slug);
+  const body  = document.getElementById('cg-' + slug + '-body');
+  if (!label || !body) return;
+  const opening = body.style.display === 'none';
+  body.style.display = opening ? 'block' : 'none';
+  label.classList.toggle('open', opening);
+  label.setAttribute('aria-expanded', String(opening));
+  if (opening) { try { history.replaceState(null, '', '#t=chartsguide/' + slug); } catch(e) {} }
+}
+
+function dcGuideExpand(slug) {
+  const label = document.getElementById('cg-' + slug);
+  const body  = document.getElementById('cg-' + slug + '-body');
+  if (body && body.style.display === 'none') {
+    body.style.display = 'block';
+    label?.classList.add('open');
+    label?.setAttribute('aria-expanded', 'true');
+  }
+}
+
+/* Jump to a Charts Guide section from the TOC (or a restored deep link), expanding it if collapsed */
+function dcGuideJump(slug) {
+  dcGuideExpand(slug);
+  const label = document.getElementById('cg-' + slug);
+  if (label) label.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  try { history.replaceState(null, '', '#t=chartsguide/' + slug); } catch(e) {}
+}
+
+/* Unified search across the merged Tab Breakdown + Glossary + FAQ reference section */
+function dcFilterReference(q) {
+  q = q.trim().toLowerCase();
+  const rows = document.querySelectorAll('#cg-reference-body .cg-acc-row');
+  let shown = 0;
+  rows.forEach(row => {
+    const match = !q || (row.dataset.refText || '').includes(q);
+    row.style.display = match ? '' : 'none';
+    row.classList.toggle('open', !!q && match); // auto-expand matches while searching
+    if (match) shown++;
+  });
+  ['cgRefTabs', 'cgRefGlossary', 'cgRefFaq'].forEach(id => {
+    const acc = document.getElementById(id);
+    if (!acc) return;
+    const anyVisible = [...acc.querySelectorAll('.cg-acc-row')].some(r => r.style.display !== 'none');
+    acc.style.display = anyVisible ? '' : 'none';
+    const groupLabel = acc.previousElementSibling;
+    if (groupLabel && groupLabel.classList.contains('cg-ref-group-label')) groupLabel.style.display = anyVisible ? '' : 'none';
+  });
+  const countEl = document.getElementById('cgRefSearchCount');
+  if (countEl) countEl.textContent = q ? (shown + ' match' + (shown === 1 ? '' : 'es')) : '';
+}
+
 /* Feedback form */
 function dcGuideSaveFeedback() {
   const text = document.getElementById('cgFeedbackText')?.value || '';
@@ -24963,6 +25020,25 @@ function dcRenderChartsGuideView() {
     </div>
   </div>`;
 
+  /* 21 · Table of contents (jump nav) */
+  const tocItems = [
+    { slug: 'stats',       icon: '📊', label: 'Stats' },
+    { slug: 'status',      icon: '⚙',  label: 'Setup' },
+    { slug: 'checklist',   icon: '✅', label: 'Checklist' },
+    { slug: 'suggestions', icon: '💡', label: 'Suggested' },
+    { slug: 'spotlight',   icon: '✨', label: 'Spotlight' },
+    { slug: 'gems',        icon: '💎', label: 'Hidden Gems' },
+    { slug: 'shortcuts',   icon: '⌨',  label: 'Shortcuts' },
+    { slug: 'reference',   icon: '📚', label: 'Reference' },
+    { slug: 'timeline',    icon: '🕰', label: 'Timeline' },
+    { slug: 'changelog',   icon: '🆕', label: "What's New" },
+    { slug: 'export',      icon: '📤', label: 'Export' },
+    { slug: 'feedback',    icon: '💬', label: 'Feedback' },
+  ];
+  h += `<div class="cg-toc-row">
+    ${tocItems.map(t => `<button type="button" class="cg-toc-pill" onclick="dcGuideJump('${t.slug}')">${t.icon} ${esc(t.label)}</button>`).join('')}
+  </div>`;
+
   /* 14 · Search bar */
   h += `<div class="cg-search-bar" id="cgSearchBar" style="display:none">
     <input type="text" id="cgSearchInput" class="cg-search-input"
@@ -24972,7 +25048,7 @@ function dcRenderChartsGuideView() {
   </div>`;
 
   /* 16 · Stats at a glance */
-  h += `<div class="cg-section-label">Your Stats at a Glance</div>
+  h += `<div class="cg-section-label" id="cg-stats">Your Stats at a Glance</div>
   <div class="cg-stats-row">
     <div class="cg-stat-card"><span class="cg-stat-num">${n.toLocaleString()}</span><span class="cg-stat-lbl">Total Plays</span></div>
     <div class="cg-stat-card"><span class="cg-stat-num">${uniqueArtists.toLocaleString()}</span><span class="cg-stat-lbl">Artists</span></div>
@@ -24983,7 +25059,8 @@ function dcRenderChartsGuideView() {
   </div>`;
 
   /* 11+12+2 · Status row */
-  h += `<div class="cg-status-row">
+  h += `<div class="cg-section-label" id="cg-status">Setup &amp; Data Status</div>
+  <div class="cg-status-row">
     <div class="cg-panel">
       <div class="cg-panel-title">⚙ Setup Status</div>
       <div class="cg-status-items">
@@ -25013,7 +25090,8 @@ function dcRenderChartsGuideView() {
 
   /* 3+18 · Checklist + On This Day */
   const todayFmt = today.toLocaleDateString('en', { month: 'long', day: 'numeric' });
-  h += `<div class="cg-dual-row">
+  h += `<div class="cg-section-label" id="cg-checklist">Getting Started &amp; On This Day</div>
+  <div class="cg-dual-row">
     <div class="cg-panel">
       <div class="cg-panel-title">✅ Quick Start Checklist</div>
       <div class="cg-progress-track"><div class="cg-checklist-bar" style="width:${Math.round(doneCount / checkItems.length * 100)}%"></div></div>
@@ -25035,7 +25113,7 @@ function dcRenderChartsGuideView() {
   </div>`;
 
   /* 9 · Smart suggestions */
-  h += `<div class="cg-section-label">Suggested for You</div>
+  h += `<div class="cg-section-label" id="cg-suggestions">Suggested for You</div>
   <div class="cg-suggestions">
     ${suggestions.map(s => `<div class="cg-suggestion" onclick="${s.action}">
       <span class="cg-sugg-icon">${s.icon}</span>
@@ -25045,7 +25123,7 @@ function dcRenderChartsGuideView() {
   </div>`;
 
   /* 5 · Feature spotlight */
-  h += `<div class="cg-section-label">Feature Spotlight</div>
+  h += `<div class="cg-section-label" id="cg-spotlight">Feature Spotlight</div>
   <div class="cg-spotlight-row">
     ${spotlights.map(s => `<div class="cg-spotlight-card">
       <div class="cg-spotlight-icon">${s.icon}</div>
@@ -25055,62 +25133,79 @@ function dcRenderChartsGuideView() {
   </div>`;
 
   /* 7 · Hidden gems */
-  h += `<div class="cg-section-label">Hidden Gems 💎</div>
+  h += `<div class="cg-section-label" id="cg-gems">Hidden Gems 💎</div>
   <div class="cg-panel cg-gems">
     ${gems.map(g => `<div class="cg-gem">• ${g}</div>`).join('')}
   </div>`;
 
-  /* 4 · Keyboard shortcuts */
-  h += `<div class="cg-section-label">Keyboard Shortcuts</div>
-  <div class="cg-panel cg-shortcuts">
-    ${shortcuts.map(([keys, desc]) => `<div class="cg-shortcut-row">
-      <span class="cg-shortcut-keys">${esc(keys)}</span>
-      <span class="cg-shortcut-desc">${esc(desc)}</span>
-    </div>`).join('')}
+  /* 4 · Keyboard shortcuts (collapsed by default — reference material, feature 22) */
+  h += `<div class="cg-section-label cg-section-toggle" id="cg-shortcuts" role="button" tabindex="0" aria-expanded="false"
+      onclick="dcToggleGuideSection('shortcuts')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();dcToggleGuideSection('shortcuts')}">
+    <span>Keyboard Shortcuts</span><span class="cg-section-chev">›</span>
+  </div>
+  <div class="cg-collapsible" id="cg-shortcuts-body" style="display:none">
+    <div class="cg-panel cg-shortcuts">
+      ${shortcuts.map(([keys, desc]) => `<div class="cg-shortcut-row">
+        <span class="cg-shortcut-keys">${esc(keys)}</span>
+        <span class="cg-shortcut-desc">${esc(desc)}</span>
+      </div>`).join('')}
+    </div>
   </div>`;
 
-  /* 8 · Tab breakdown */
-  h += `<div class="cg-section-label">Tab-by-Tab Breakdown</div>
-  <div class="cg-accordion">
-    ${tabInfo.map(tab => `<div class="cg-acc-row" onclick="this.classList.toggle('open')">
-      <div class="cg-acc-head">
-        <span class="cg-acc-icon">${tab.icon}</span>
-        <span class="cg-acc-name">${esc(tab.name)}</span>
-        <span class="cg-acc-chev">›</span>
-      </div>
-      <div class="cg-acc-body">
-        <p>${esc(tab.desc)}</p>
-        ${tab.period !== 'chartsguide' ? `<button class="cg-mini-btn" onclick="event.stopPropagation();document.querySelector('#periodNav button[data-period=\\"${tab.period}\\"]')?.click()">Go to ${esc(tab.name)} →</button>` : ''}
-      </div>
-    </div>`).join('')}
-  </div>`;
+  /* 8+15+10 · Reference: Tab Breakdown + Glossary + FAQ merged behind one search box
+     (collapsed by default — feature 22 — with a unified filter — feature 23) */
+  h += `<div class="cg-section-label cg-section-toggle" id="cg-reference" role="button" tabindex="0" aria-expanded="false"
+      onclick="dcToggleGuideSection('reference')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();dcToggleGuideSection('reference')}">
+    <span>Reference — Tabs, Glossary &amp; FAQ</span><span class="cg-section-chev">›</span>
+  </div>
+  <div class="cg-collapsible" id="cg-reference-body" style="display:none">
+    <div class="cg-search-bar cg-ref-search-bar">
+      <input type="text" id="cgRefSearchInput" class="cg-search-input"
+        placeholder="Search tabs, glossary terms, or FAQ…"
+        oninput="dcFilterReference(this.value)" autocomplete="off">
+      <span id="cgRefSearchCount" class="cg-ref-search-count"></span>
+    </div>
 
-  /* 15 · Glossary */
-  h += `<div class="cg-section-label">Glossary</div>
-  <div class="cg-accordion">
-    ${glossary.map(g => `<div class="cg-acc-row" onclick="this.classList.toggle('open')">
-      <div class="cg-acc-head">
-        <span class="cg-acc-name">${esc(g.term)}</span>
-        <span class="cg-acc-chev">›</span>
-      </div>
-      <div class="cg-acc-body"><p>${esc(g.def)}</p></div>
-    </div>`).join('')}
-  </div>`;
+    <div class="cg-ref-group-label">Tab-by-Tab Breakdown</div>
+    <div class="cg-accordion" id="cgRefTabs">
+      ${tabInfo.map(tab => `<div class="cg-acc-row" data-ref-text="${esc((tab.name + ' ' + tab.desc).toLowerCase())}" onclick="this.classList.toggle('open')">
+        <div class="cg-acc-head">
+          <span class="cg-acc-icon">${tab.icon}</span>
+          <span class="cg-acc-name">${esc(tab.name)}</span>
+          <span class="cg-acc-chev">›</span>
+        </div>
+        <div class="cg-acc-body">
+          <p>${esc(tab.desc)}</p>
+          ${tab.period !== 'chartsguide' ? `<button class="cg-mini-btn" onclick="event.stopPropagation();document.querySelector('#periodNav button[data-period=\\"${tab.period}\\"]')?.click()">Go to ${esc(tab.name)} →</button>` : ''}
+        </div>
+      </div>`).join('')}
+    </div>
 
-  /* 10 · FAQ */
-  h += `<div class="cg-section-label">FAQ</div>
-  <div class="cg-accordion">
-    ${faqs.map(f => `<div class="cg-acc-row" onclick="this.classList.toggle('open')">
-      <div class="cg-acc-head">
-        <span class="cg-acc-name">${esc(f.q)}</span>
-        <span class="cg-acc-chev">›</span>
-      </div>
+    <div class="cg-ref-group-label">Glossary</div>
+    <div class="cg-accordion" id="cgRefGlossary">
+      ${glossary.map(g => `<div class="cg-acc-row" data-ref-text="${esc((g.term + ' ' + g.def).toLowerCase())}" onclick="this.classList.toggle('open')">
+        <div class="cg-acc-head">
+          <span class="cg-acc-name">${esc(g.term)}</span>
+          <span class="cg-acc-chev">›</span>
+        </div>
+        <div class="cg-acc-body"><p>${esc(g.def)}</p></div>
+      </div>`).join('')}
+    </div>
+
+    <div class="cg-ref-group-label">FAQ</div>
+    <div class="cg-accordion" id="cgRefFaq">
+      ${faqs.map(f => `<div class="cg-acc-row" data-ref-text="${esc((f.q + ' ' + f.a).toLowerCase())}" onclick="this.classList.toggle('open')">
+        <div class="cg-acc-head">
+          <span class="cg-acc-name">${esc(f.q)}</span>
+          <span class="cg-acc-chev">›</span>
+        </div>
       <div class="cg-acc-body"><p>${esc(f.a)}</p></div>
     </div>`).join('')}
+    </div>
   </div>`;
 
   /* 17 · Chart history timeline */
-  h += `<div class="cg-section-label">Your Chart History Timeline</div>`;
+  h += `<div class="cg-section-label" id="cg-timeline">Your Chart History Timeline</div>`;
   if (milestones.length === 0) {
     h += `<div class="cg-panel cg-empty">Load your plays to see your listening milestones.</div>`;
   } else {
@@ -25129,28 +25224,38 @@ function dcRenderChartsGuideView() {
     `</div>`;
   }
 
-  /* 6 · Changelog */
-  h += `<div class="cg-section-label">What's New</div>
-  <div class="cg-changelog">
-    ${changelog.map(entry => `<div class="cg-cl-entry">
-      <div class="cg-cl-version">${esc(entry.version)}</div>
-      <ul class="cg-cl-items">${entry.items.map(i => `<li>${esc(i)}</li>`).join('')}</ul>
-    </div>`).join('')}
+  /* 6 · Changelog (collapsed by default — reference material, feature 22) */
+  h += `<div class="cg-section-label cg-section-toggle" id="cg-changelog" role="button" tabindex="0" aria-expanded="false"
+      onclick="dcToggleGuideSection('changelog')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();dcToggleGuideSection('changelog')}">
+    <span>What's New</span><span class="cg-section-chev">›</span>
+  </div>
+  <div class="cg-collapsible" id="cg-changelog-body" style="display:none">
+    <div class="cg-changelog">
+      ${changelog.map(entry => `<div class="cg-cl-entry">
+        <div class="cg-cl-version">${esc(entry.version)}</div>
+        <ul class="cg-cl-items">${entry.items.map(i => `<li>${esc(i)}</li>`).join('')}</ul>
+      </div>`).join('')}
+    </div>
   </div>`;
 
-  /* 19 · Export & share */
-  h += `<div class="cg-section-label">Export &amp; Share</div>
-  <div class="cg-export-grid">
-    ${exportGuide.map(eg => `<div class="cg-panel">
-      <div class="cg-export-icon">${eg.icon}</div>
-      <div class="cg-panel-title">${esc(eg.title)}</div>
-      <ol class="cg-export-steps">${eg.steps.map(s => `<li>${esc(s)}</li>`).join('')}</ol>
-    </div>`).join('')}
+  /* 19 · Export & share (collapsed by default — reference material, feature 22) */
+  h += `<div class="cg-section-label cg-section-toggle" id="cg-export" role="button" tabindex="0" aria-expanded="false"
+      onclick="dcToggleGuideSection('export')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();dcToggleGuideSection('export')}">
+    <span>Export &amp; Share</span><span class="cg-section-chev">›</span>
+  </div>
+  <div class="cg-collapsible" id="cg-export-body" style="display:none">
+    <div class="cg-export-grid">
+      ${exportGuide.map(eg => `<div class="cg-panel">
+        <div class="cg-export-icon">${eg.icon}</div>
+        <div class="cg-panel-title">${esc(eg.title)}</div>
+        <ol class="cg-export-steps">${eg.steps.map(s => `<li>${esc(s)}</li>`).join('')}</ol>
+      </div>`).join('')}
+    </div>
   </div>`;
 
   /* 20 · Feedback */
   const savedFeedback = (() => { try { return localStorage.getItem('dc_guide_feedback') || ''; } catch(e) { return ''; } })();
-  h += `<div class="cg-section-label">Feedback &amp; Suggestions</div>
+  h += `<div class="cg-section-label" id="cg-feedback">Feedback &amp; Suggestions</div>
   <div class="cg-panel cg-feedback">
     <p class="cg-feedback-intro">Have an idea or found a bug? Write it here — saved locally and visible on your next visit.</p>
     <textarea id="cgFeedbackText" class="cg-feedback-textarea" rows="4" placeholder="Your idea or feedback…">${esc(savedFeedback)}</textarea>

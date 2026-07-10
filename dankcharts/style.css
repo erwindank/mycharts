@@ -17362,6 +17362,81 @@ body.red-light .modal-cb-label--tracks {
       font-style: italic;
     }
 
+    /* ── 21 · Table of contents (sticky jump nav) ─────────── */
+    .cg-toc-row {
+      position: sticky;
+      top: 0;
+      z-index: var(--z-nav);
+      display: flex;
+      gap: 0.4rem;
+      overflow-x: auto;
+      padding: 0.6rem 0.1rem;
+      background: var(--bg);
+      border-bottom: 1px solid var(--border);
+      scrollbar-width: thin;
+    }
+    .cg-toc-pill {
+      flex-shrink: 0;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.3rem;
+      padding: 0.35rem 0.75rem;
+      border-radius: 20px;
+      border: 1px solid var(--border);
+      background: var(--bg2);
+      color: var(--text3);
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      font-weight: 600;
+      white-space: nowrap;
+      cursor: pointer;
+      transition: border-color 0.15s, color 0.15s, background 0.15s;
+    }
+    .cg-toc-pill:hover { border-color: var(--accent); color: var(--accent); }
+
+    /* Anchor targets: keep section headers clear of the sticky TOC row when jumped to */
+    .cg-view [id^="cg-"] { scroll-margin-top: 3.75rem; }
+
+    /* ── 22 · Collapsible reference sections ──────────────── */
+    .cg-section-toggle {
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      user-select: none;
+    }
+    .cg-section-toggle:hover { color: var(--text); }
+    .cg-section-chev {
+      color: var(--text3);
+      font-size: 1rem;
+      transition: transform 0.2s;
+      display: inline-block;
+    }
+    .cg-section-toggle.open .cg-section-chev { transform: rotate(90deg); }
+    /* Note: JS toggles this wrapper's inline display (block/none) directly, so no
+       display rule is set here — an inline style would win over any class rule anyway. */
+
+    /* ── 23 · Merged reference search (tabs + glossary + FAQ) ─ */
+    .cg-ref-search-bar { display: flex; align-items: center; gap: 0.6rem; margin-bottom: 0.9rem; }
+    .cg-ref-search-bar .cg-search-input { flex: 1; }
+    .cg-ref-search-count {
+      flex-shrink: 0;
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      color: var(--text3);
+      white-space: nowrap;
+    }
+    .cg-ref-group-label {
+      font-family: var(--font-mono);
+      font-size: 0.68rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--text3);
+      margin: 1rem 0 0.3rem;
+    }
+    .cg-ref-group-label:first-of-type { margin-top: 0; }
+
     /* ── 13 · Interactive tour banner ────────────────────── */
     .cg-tour-banner {
       position: fixed;
