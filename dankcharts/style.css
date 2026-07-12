@@ -8865,6 +8865,7 @@
       /* stats strips excluded since the 2026 redesign: they are separated
          rounded cards now, and full-bleed would clip their borders/shadows */
       .sync-bar,
+      .streak-banner,
       .period-nav,
       .chart-size-bar:not(.section-size-bar),
       .date-nav,
@@ -15837,6 +15838,10 @@ body[class*="-light"] .tm-card-search:hover {
 .streak-banner-shuffle .streak-fire-icon{ filter: drop-shadow(0 0 5px rgba(128,200,255,0.0));   animation: streak-fire-pulse-shuffle 1.6s ease-in-out infinite; }
 
 @media (max-width: 600px) {
+  /* Mid spacer (mini thumbs) is hidden, so left/right groups need an
+     explicit spread — otherwise they bunch on the left with dead space
+     to the right, since the flex:1 mid item is no longer there to fill it */
+  .streak-banner         { justify-content: space-between; }
   .streak-banner-mid     { display: none; }
   .streak-banner-subject { max-width: 160px; }
 }
