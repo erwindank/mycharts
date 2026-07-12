@@ -13118,22 +13118,25 @@ body.pink-light .hero-stats {
 /* Zoho Desk ASAP — hide launcher widget until user triggers it */
 [id*="zohodesk"],[id*="zohoasap"],[id*="zd-asap"],[class*="zohodesk"],[class*="zohoasap"],iframe[id*="zoho"] { display: none !important; }
 
-/* ── Nav hint (keyboard shortcut reminder) ── */
+/* ── Nav hint (keyboard shortcut reminder) ──
+   Plain quiet caption, no pill/box chrome — it used to be styled as a tab
+   hanging off the date-nav bar above it, but the gap between the two made it
+   read as a random floating capsule instead of an attached label. */
 .nav-hint {
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
   width: fit-content;
-  margin: -1.25rem auto 1.25rem;
-  padding: 0.3rem 0.75rem;
-  background: var(--bg3);
-  border: 1px solid var(--border);
-  border-top: none;
-  border-radius: 0 0 6px 6px;
+  /* Negative top margin, not 0 — .sticky-nav-bar above has its own 1.75rem
+     margin-bottom, and adjacent sibling margins collapse to the larger one,
+     so a small positive/zero margin here gets swallowed. This pulls the
+     collapsed gap down to a few px instead of touching the shared
+     .sticky-nav-bar spacing (which other, hint-less views also rely on). */
+  margin: -1.3rem auto 1.25rem;
   font-family: var(--font-mono);
   font-size: 0.65rem;
-  color: var(--text2);
+  color: var(--text3);
 }
 
 .nav-hint kbd {
@@ -13153,18 +13156,8 @@ body.pink-light .hero-stats {
 .swipe-arrow.swipe-arrow-off { opacity: 0.2; animation: none !important; }
 
 @keyframes swipeHintGlow {
-  0%, 100% {
-    box-shadow: 0 2px 6px transparent;
-    border-color: var(--border);
-    color: var(--text2);
-    background: var(--bg3);
-  }
-  50% {
-    box-shadow: 0 2px 16px color-mix(in srgb, var(--accent) 50%, transparent);
-    border-color: var(--accent);
-    color: var(--accent);
-    background: color-mix(in srgb, var(--accent) 8%, var(--bg3));
-  }
+  0%, 100% { color: var(--text3); }
+  50%      { color: var(--accent); }
 }
 @keyframes swipeNudgeLeft {
   0%, 100% { transform: translateX(0); }
@@ -13193,7 +13186,7 @@ body.pink-light .hero-stats {
   }
   .nav-hint.swipe-done {
     animation: none;
-    transition: color 0.5s, border-color 0.5s, box-shadow 0.5s, background 0.5s;
+    transition: color 0.5s;
   }
 }
 
