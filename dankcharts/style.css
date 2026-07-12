@@ -4073,96 +4073,41 @@
       gap: 1px;
     }
 
-    /* STATS STRIP */
-    .stats-strip {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-      gap: 10px;
-      /* separated cards instead of a 1px-gap spreadsheet grid (2026 redesign) */
-      background: none;
-      border: none;
-      border-radius: 0;
-      overflow: visible;
-      margin-bottom: 1.25rem;
-    }
+    /* ==========================================================================
+       STATS SECTION — three-tier hierarchy (2026 redesign)
+       Tier 1 .stats-strip   — core totals (Plays/Songs/Artists/Albums): the
+                                hero row, elevated cards, biggest numbers.
+       Tier 2 .stats-strip2  — highlights (Best Day/New entries): one shared
+                                ticker strip instead of 4 separate boxed cards,
+                                so it visibly reads as secondary to Tier 1.
+       Tier 3 .stats-strip3  — spotlight ("of the moment"): horizontal,
+                                image-forward cards — the shareable/fun tier.
+       ========================================================================== */
 
-    .stat-box {
-      background: var(--bg2);
-      border: 1px solid var(--border-t);
-      border-radius: var(--r-md);
-      box-shadow: var(--shadow-1);
-      padding: 1rem 1.1rem;
-      text-align: center;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-    }
+    /* Category color variables — drive icon/number tint across all three tiers */
+    [data-cat="plays"]       { --cat-color: var(--accent); }
+    [data-cat="songs"]       { --cat-color: var(--green); }
+    [data-cat="artists"]     { --cat-color: var(--rose); }
+    [data-cat="albums"]      { --cat-color: var(--gold1); }
+    [data-cat="bestday"]     { --cat-color: var(--accent); }
+    [data-cat="new-songs"]   { --cat-color: var(--green); }
+    [data-cat="new-artists"] { --cat-color: var(--rose); }
+    [data-cat="new-albums"]  { --cat-color: var(--gold1); }
+    [data-cat="sotm"]        { --cat-color: var(--gold1); }
+    [data-cat="rising"]      { --cat-color: var(--green); }
+    [data-cat="aotm"]        { --cat-color: var(--rose); }
+    [data-cat="albumotm"]    { --cat-color: var(--amber); }
 
-    .stat-box .stat-val {
-      font-family: var(--font-sans);
-      font-weight: 700;
-      font-size: 1.9rem;
-      letter-spacing: -0.02em;
-      color: var(--cat-color, var(--text));
-      line-height: 1;
+    /* Total Plays / Best Day keep their blue accent even on the Red and Pink
+       themes, instead of following those themes' own red/pink --accent —
+       a deliberate exception to "one accent per theme" for these two cards. */
+    body.red [data-cat="plays"], body.red [data-cat="bestday"],
+    body.pink [data-cat="plays"], body.pink [data-cat="bestday"] {
+      --cat-color: #58aaf6;
     }
-
-    .stat-box .stat-label {
-      font-family: var(--font-mono);
-      font-size: 0.6rem;
-      letter-spacing: 0.15em;
-      text-transform: uppercase;
-      color: var(--text3);
-      margin-top: 0.3rem;
-      border: 1px solid var(--cat-color, var(--border2));
-      border-radius: 99px;
-      padding: 0.15rem 0.6rem;
-    }
-
-    .stat-delta {
-      font-family: var(--font-mono);
-      font-size: 0.57rem;
-      letter-spacing: 0.06em;
-      margin-top: 0.3rem;
-    }
-    .stat-delta.up   { color: var(--green); }
-    .stat-delta.down { color: var(--rose); }
-    .stat-delta.same { color: var(--text3); }
-
-    .stat-peak-badge {
-      display: inline-block;
-      font-family: var(--font-mono);
-      font-size: 0.48rem;
-      letter-spacing: 0.14em;
-      text-transform: uppercase;
-      border-radius: 3px;
-      padding: 0.1rem 0.38rem;
-      margin-top: 0.3rem;
-    }
-
-    .stat-peak-badge-alltime {
-      color: var(--gold1);
-      border: 1px solid var(--gold1);
-      animation: peakPulse 2.4s ease-in-out infinite;
-    }
-
-    .stat-peak-badge-attime {
-      color: var(--accent2);
-      border: 1px solid var(--accent2);
-    }
-
-    @keyframes peakPulse {
-      0%, 100% { opacity: 1; }
-      50%       { opacity: 0.55; }
-    }
-
-    .stat-box.stat-peak-alltime {
-      box-shadow: inset 0 3px 0 var(--gold1);
-    }
-
-    .stat-box.stat-peak-attime {
-      box-shadow: inset 0 3px 0 var(--accent2);
+    body.red-light [data-cat="plays"], body.red-light [data-cat="bestday"],
+    body.pink-light [data-cat="plays"], body.pink-light [data-cat="bestday"] {
+      --cat-color: #0852a8;
     }
 
     .stat-clickable {
@@ -4174,6 +4119,41 @@
       transform: translateY(-2px);
       box-shadow: var(--shadow-2);
     }
+
+    .stat-peak-badge {
+      display: inline-block;
+      font-family: var(--font-mono);
+      font-size: 0.48rem;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      border-radius: 3px;
+      padding: 0.1rem 0.38rem;
+      margin-top: 0.3rem;
+    }
+    .stat-peak-badge-alltime {
+      color: var(--gold1);
+      border: 1px solid var(--gold1);
+      animation: peakPulse 2.4s ease-in-out infinite;
+    }
+    .stat-peak-badge-attime {
+      color: var(--accent2);
+      border: 1px solid var(--accent2);
+    }
+    @keyframes peakPulse {
+      0%, 100% { opacity: 1; }
+      50%       { opacity: 0.55; }
+    }
+    .stat-peak-alltime { box-shadow: inset 0 3px 0 var(--gold1); }
+    .stat-peak-attime  { box-shadow: inset 0 3px 0 var(--accent2); }
+
+    .stat-delta {
+      font-family: var(--font-mono);
+      font-size: 0.6rem;
+      letter-spacing: 0.02em;
+    }
+    .stat-delta.up   { color: var(--green); }
+    .stat-delta.down { color: var(--rose); }
+    .stat-delta.same { color: var(--text3); }
 
     .stat-sparkline {
       display: block;
@@ -4192,48 +4172,217 @@
     }
     .stat-sparkline circle { fill: currentColor; }
 
-    .stat-rate {
-      font-family: var(--font-mono);
-      font-size: 0.52rem;
-      color: var(--teal);
-      margin-top: 0.25rem;
-      letter-spacing: 0.04em;
-    }
-
-    .stats-strip2 {
-      margin-top: 0; /* strips now carry their own gap via margin-bottom */
-    }
-
-    .stat-box-sub .stat-val {
-      font-size: 1.35rem;
-    }
-
-    .stat-sotm-title {
-      font-family: var(--font-mono);
-      font-size: 0.62rem;
-      color: var(--text2);
-      margin-top: 0.2rem;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      word-break: break-word;
-    }
-    .bd-month-long { display: none; }
-    @media (min-width: 769px) {
-      .bd-month-long { display: inline; }
-      .bd-month-short { display: none; }
-    }
-    .stat-sotm-artist {
-      font-family: var(--font-mono);
-      font-size: 0.55rem;
-      color: var(--text3);
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      word-break: break-word;
-    }
-    .stat-box .stat-label-sotm, .stat-box .stat-label-rising {
+    /* ---- Tier 1: core totals ---- */
+    .stats-strip {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+      gap: 10px;
+      background: none;
       border: none;
       border-radius: 0;
-      padding: 0;
+      overflow: visible;
+      margin-bottom: 0.6rem;
+    }
+
+    .stat-box {
+      background: var(--bg2);
+      border: 1px solid var(--border-t);
+      border-radius: var(--r-md);
+      box-shadow: var(--shadow-1);
+      padding: 0.85rem 1.1rem;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* Icon + category name share a bordered "neon" pill — the badge/chip
+       treatment from the brand's component vocabulary (20px radius, per-
+       category accent color), reused here for the card headers. */
+    .stat-head,
+    .stat-chip-head {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid var(--cat-color, var(--border2));
+      border-radius: var(--r-full);
+      box-shadow: 0 0 6px color-mix(in srgb, var(--cat-color, var(--accent)) 45%, transparent);
+    }
+    .stat-head {
+      gap: 0.3rem;
+      padding: 0.2rem 0.65rem;
+      margin-bottom: 0.5rem;
+    }
+    .stat-chip-head {
+      gap: 0.25rem;
+      padding: 0.14rem 0.5rem;
+      margin-bottom: 0.4rem;
+    }
+
+    .stat-cat-icon,
+    .stat-chip-icon {
+      font-size: 0.85rem;
+      line-height: 1;
+      opacity: 0.9;
+    }
+
+    .stat-box .stat-label,
+    .stat-chip-label {
+      font-family: var(--font-mono);
+      font-size: 0.6rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--cat-color, var(--text3));
+    }
+    .stat-chip-label { font-size: 0.56rem; }
+
+    .stat-box .stat-val {
+      font-family: var(--font-sans);
+      font-weight: 700;
+      font-size: 1.9rem;
+      letter-spacing: -0.02em;
+      color: var(--cat-color, var(--text));
+      line-height: 1;
+    }
+
+    .stat-foot,
+    .stat-chip-sub {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.35rem;
+      margin-top: 0.4rem;
+      font-family: var(--font-mono);
+      font-size: 0.6rem;
+    }
+    .stat-chip-sub {
+      font-size: 0.56rem;
+      color: var(--text2);
+      flex-wrap: wrap;
+    }
+    .stat-foot-sep {
+      color: var(--text3);
+      opacity: 0.6;
+    }
+    .stat-rate {
+      font-family: var(--font-mono);
+      font-size: 0.6rem;
+      color: var(--teal);
+      letter-spacing: 0.02em;
+    }
+
+    /* ---- Tier 2: highlights — separate cards, same language as Tier 1 but
+       a smaller number so they still read as secondary to the totals above. ---- */
+    .stats-strip2 {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+      gap: 10px;
+      margin-bottom: 0.6rem;
+    }
+
+    .stat-chip {
+      min-width: 0;
+      background: var(--bg2);
+      border: 1px solid var(--border-t);
+      border-radius: var(--r-md);
+      box-shadow: var(--shadow-1);
+      padding: 0.75rem 0.9rem;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .stat-chip .stat-val {
+      font-family: var(--font-sans);
+      font-weight: 700;
+      font-size: 1.5rem;
+      letter-spacing: -0.01em;
+      color: var(--cat-color, var(--text));
+      line-height: 1;
+    }
+
+    /* ---- Tier 3: spotlight — horizontal, image-forward cards ----
+       Stacked full-width by default. auto-fit would otherwise land on an
+       awkward 2-3 column state at tablet/narrow-browser widths, where these
+       cards are too narrow for their title/artist text and truncate hard —
+       so this jumps straight from 1 column to 4 at a width wide enough for
+       every card to have its full ~210px, no cramped in-between. */
+    .stats-strip3 {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 8px;
+      margin-bottom: 1.25rem;
+    }
+    @media (min-width: 900px) {
+      .stats-strip3 {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+      }
+    }
+
+    .spotlight-card {
+      /* min-width:0 lets this grid item shrink below its nowrap title/artist
+         text instead of forcing its column (and neighboring columns) wider —
+         without it, a long title can blow out the grid and bleed off-screen. */
+      min-width: 0;
+      background: var(--bg2);
+      border: 1px solid var(--border-t);
+      border-radius: var(--r-md);
+      box-shadow: var(--shadow-1);
+      padding: 0.65rem 0.85rem;
+      display: flex;
+      align-items: center;
+      gap: 0.7rem;
+      text-align: left;
+    }
+    .spotlight-empty {
+      justify-content: center;
+      text-align: center;
+    }
+
+    .spotlight-thumb {
+      flex-shrink: 0;
+      width: 52px;
+      height: 52px;
+      border-radius: 50%;
+      overflow: hidden;
+      border: 2px solid var(--border2);
+      background: var(--surface);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .spotlight-thumb .thumb,
+    .spotlight-thumb .thumb-initials {
+      width: 52px;
+      height: 52px;
+      border-radius: inherit;
+      border: none;
+      font-size: 0.85rem;
+    }
+    /* Song/artist-of-the-moment/album thumbs render square; only the
+       rising-artist portrait stays circular (matches the "artist photo" convention). */
+    #sotm-img, #sotm-img .thumb, #sotm-img .thumb-initials,
+    #aotm-img, #aotm-img .thumb, #aotm-img .thumb-initials,
+    #albumotm-img, #albumotm-img .thumb, #albumotm-img .thumb-initials {
+      border-radius: var(--r-sm);
+    }
+
+    .spotlight-body {
+      flex: 1;
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 0.02rem;
+    }
+
+    .spotlight-label {
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
     }
     .stat-label-sotm {
       background: linear-gradient(90deg, var(--gold1), var(--gold2), var(--gold1));
@@ -4241,111 +4390,76 @@
       -webkit-text-fill-color: transparent;
       background-clip: text;
       filter: drop-shadow(0 0 4px color-mix(in srgb, var(--gold1) 60%, transparent));
-      letter-spacing: 0.1em;
     }
-
-    .stat-plays-sub {
-      font-family: var(--font-mono);
-      font-size: 0.48rem;
-      color: var(--text3);
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
-      margin-top: -0.1rem;
-    }
-
-    .stat-rising-thumb {
-      width: 48px;
-      height: 48px;
-      border-radius: 50%;
-      overflow: hidden;
-      margin: 0 auto 0.35rem;
-      border: 2px solid var(--border2);
-      background: var(--surface);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-    .stat-rising-thumb .thumb {
-      width: 48px;
-      height: 48px;
-      border-radius: 50%;
-      border: none;
-    }
-    .stat-rising-thumb .thumb-initials {
-      width: 48px;
-      height: 48px;
-      border-radius: 50%;
-      border: none;
-      font-size: 0.9rem;
-    }
-    #sotm-img,
-    #sotm-img .thumb,
-    #sotm-img .thumb-initials,
-    #aotm-img,
-    #aotm-img .thumb,
-    #aotm-img .thumb-initials,
-    #albumotm-img,
-    #albumotm-img .thumb,
-    #albumotm-img .thumb-initials {
-      border-radius: 4px;
-    }
-
     .stat-label-rising {
       background: linear-gradient(90deg, var(--teal), var(--green), var(--teal));
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       background-clip: text;
       filter: drop-shadow(0 0 4px color-mix(in srgb, var(--teal) 60%, transparent));
-      letter-spacing: 0.2em;
     }
-
-    .stat-box .stat-label-aotm,
-    .stat-box .stat-label-albumotm {
-      border: none;
-      border-radius: 0;
-      padding: 0;
-    }
-
     .stat-label-aotm {
       background: linear-gradient(90deg, var(--rose), #ff9eb5, var(--rose));
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       background-clip: text;
       filter: drop-shadow(0 0 4px color-mix(in srgb, var(--rose) 60%, transparent));
-      letter-spacing: 0.08em;
-      white-space: nowrap;
     }
-
     .stat-label-albumotm {
       background: linear-gradient(90deg, var(--amber), var(--gold2), var(--amber));
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       background-clip: text;
       filter: drop-shadow(0 0 4px color-mix(in srgb, var(--amber) 60%, transparent));
-      letter-spacing: 0.08em;
-      white-space: nowrap;
     }
 
-    /* Category color variables — drives left border, number tint, and bar fill */
-    .stat-box[data-cat="plays"]       { --cat-color: var(--accent); }
-    .stat-box[data-cat="songs"]       { --cat-color: var(--green); }
-    .stat-box[data-cat="artists"]     { --cat-color: var(--rose); }
-    .stat-box[data-cat="albums"]      { --cat-color: var(--gold1); }
-    .stat-box[data-cat="bestday"]     { --cat-color: var(--accent); }
-    .stat-box[data-cat="new-songs"]   { --cat-color: var(--green); }
-    .stat-box[data-cat="new-artists"] { --cat-color: var(--rose); }
-    .stat-box[data-cat="new-albums"]  { --cat-color: var(--gold1); }
-    .stat-box[data-cat="sotm"]        { --cat-color: var(--gold1); }
-    .stat-box[data-cat="rising"]      { --cat-color: var(--green); }
-    .stat-box[data-cat="aotm"]        { --cat-color: var(--rose); }
-    .stat-box[data-cat="albumotm"]    { --cat-color: var(--amber); }
-
-    .stat-cat-icon {
+    .spotlight-title {
+      font-family: var(--font-sans);
+      font-weight: 700;
       font-size: 1.1rem;
+      color: var(--text);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .spotlight-artist {
+      font-family: var(--font-mono);
+      font-size: 0.66rem;
+      color: var(--text3);
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .spotlight-count {
+      flex-shrink: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 0.1rem;
+    }
+    .spotlight-count .stat-val {
+      font-family: var(--font-sans);
+      font-weight: 700;
+      font-size: 1.3rem;
+      letter-spacing: -0.01em;
+      color: var(--cat-color, var(--text));
       line-height: 1;
-      margin-bottom: 0.3rem;
-      display: block;
-      opacity: 0.85;
+    }
+    .spotlight-count-sub {
+      font-family: var(--font-mono);
+      font-size: 0.68rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--text3);
+    }
+
+    .bd-month-long { display: none; }
+    @media (min-width: 769px) {
+      .bd-month-long { display: inline; }
+      .bd-month-short { display: none; }
     }
 
     /* PAGINATED SEARCH */
@@ -8773,41 +8887,45 @@
         border-radius: 0;
       }
 
-      /* Stats: 2×2 grid on mobile. The three .stats-strip containers
-         (statsStrip/2/3) are collapsed with display:contents so their cards
-         become direct children of .stats-strips-wrap — one real grid, so
-         `order` below can freely mix cards from different strips into
-         paired rows. Desktop never sees this: it's all inside this
-         mobile-only media query, and the wrapper has no rules outside it. */
+      /* Stats on mobile: Tier 1 (totals) and Tier 2 (highlights) interleave
+         into one shared 2-column grid so each total sits beside its related
+         counterpart (Total Plays next to Best Day, Unique Songs next to New
+         Songs, etc.) — the pairing the user asked to restore. #statsStrip and
+         .stats-strip2 collapse with display:contents so their cards become
+         direct children of .stats-strips-wrap and can be freely reordered.
+         Tier 3 (spotlight) stays its own real grid item, spanning full width
+         below, and keeps its own single-column stack internally. */
       .stats-strips-wrap {
         display: grid;
         grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-        gap: 14px;
+        gap: 10px;
       }
-      .stats-strip,
-      .stats-strip2,
-      .stats-strip3 {
+      #statsStrip,
+      .stats-strip2 {
         display: contents;
       }
-      .stat-box {
+      .stat-box, .stat-chip {
         min-width: 0;
       }
 
-      /* Pairing: each core stat sits beside its related new/best counterpart.
-         Cards not covered here (should never happen — every stat-box has a
-         data-cat) fall back to source order via the default `order: 0`. */
-      .stat-box[data-cat="plays"]       { order: 1; }
-      .stat-box[data-cat="bestday"]     { order: 2; }
-      .stat-box[data-cat="songs"]       { order: 3; }
-      .stat-box[data-cat="new-songs"]   { order: 4; }
-      .stat-box[data-cat="artists"]     { order: 5; }
-      .stat-box[data-cat="new-artists"] { order: 6; }
-      .stat-box[data-cat="albums"]      { order: 7; }
-      .stat-box[data-cat="new-albums"]  { order: 8; }
-      .stat-box[data-cat="sotm"]        { order: 9; }
-      .stat-box[data-cat="rising"]      { order: 10; }
-      .stat-box[data-cat="aotm"]        { order: 11; }
-      .stat-box[data-cat="albumotm"]    { order: 12; }
+      [data-cat="plays"]       { order: 1; }
+      [data-cat="bestday"]     { order: 2; }
+      [data-cat="songs"]       { order: 3; }
+      [data-cat="new-songs"]   { order: 4; }
+      [data-cat="artists"]     { order: 5; }
+      [data-cat="new-artists"] { order: 6; }
+      [data-cat="albums"]      { order: 7; }
+      [data-cat="new-albums"]  { order: 8; }
+
+      /* Tier 3: spans both columns as one block, spotlight cards stay a
+         single full-width column inside it (the base rule already does this).
+         Needs an explicit order too — otherwise it defaults to order:0 and
+         jumps above the ordered Tier 1/2 pairs instead of following them. */
+      .stats-strip3 {
+        grid-column: 1 / -1;
+        order: 9;
+        margin-bottom: 0;
+      }
 
       /* Tinted new-entries panel: tighter symmetric padding on phones */
       .new-entries-section {

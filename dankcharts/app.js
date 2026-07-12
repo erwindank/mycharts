@@ -6141,11 +6141,13 @@ function renderAll() {
   function statDelta(cur, prevVal) {
     if (prevVal === null) return '';
     const diff = cur - prevVal;
-    if (diff > 0) return `<div class="stat-delta up">▲ ${diff.toLocaleString()}</div>`;
-    if (diff < 0) return `<div class="stat-delta down">▼ ${Math.abs(diff).toLocaleString()}</div>`;
-    return `<div class="stat-delta same">${t('stat_same')}</div>`;
+    if (diff > 0) return `<span class="stat-delta up">▲ ${diff.toLocaleString()}</span>`;
+    if (diff < 0) return `<span class="stat-delta down">▼ ${Math.abs(diff).toLocaleString()}</span>`;
+    return `<span class="stat-delta same">${t('stat_same')}</span>`;
   }
 
+  // Tier 1 (core totals): icon+label share one header line, delta+rate share
+  // one footer line — collapses the old stacked pill-label + separate lines into 3 rows.
   function statBox(val, i18nKey, prevVal, maxAllTime, maxAtTime, opts) {
     const { scrollTo, sparkVals, extraLabel, emoji, cat } = opts || {};
     const isAllTimePeak  = maxAllTime !== null && val > 0 && val >= maxAllTime;
@@ -6156,11 +6158,13 @@ function renderAll() {
     const boxClass       = isAllTimePeak ? ' stat-peak-alltime' : isAtTimePeak ? ' stat-peak-attime' : '';
     const clickAttr      = scrollTo ? ` onclick="dcScrollTo('${scrollTo}')" title="Jump to section"` : '';
     const catAttr        = cat ? ` data-cat="${cat}"` : '';
-    const iconHtml       = emoji ? `<div class="stat-cat-icon">${emoji}</div>` : '';
+    const iconHtml       = emoji ? `<span class="stat-cat-icon">${emoji}</span>` : '';
+    const footParts       = [deltaHtml, extraLabel ? `<span class="stat-rate">${extraLabel}</span>` : ''].filter(Boolean);
+    const footHtml         = footParts.length ? `<div class="stat-foot">${footParts.join('<span class="stat-foot-sep">·</span>')}</div>` : '';
     return `<div class="stat-box${boxClass}${scrollTo ? ' stat-clickable' : ''}"${clickAttr}${catAttr}>
-      ${iconHtml}<div class="stat-val" data-val="${val}">${val.toLocaleString()}</div>
-      <div class="stat-label" data-i18n="${i18nKey}">${t(i18nKey)}</div>
-      ${deltaHtml}${allTimeBadge}${atTimeBadge}${extraLabel ? `<div class="stat-rate">${extraLabel}</div>` : ''}${sparklineSvg(sparkVals)}
+      <div class="stat-head">${iconHtml}<span class="stat-label" data-i18n="${i18nKey}">${t(i18nKey)}</span></div>
+      <div class="stat-val" data-val="${val}">${val.toLocaleString()}</div>
+      ${footHtml}${allTimeBadge}${atTimeBadge}${sparklineSvg(sparkVals)}
     </div>`;
   }
 
@@ -6217,6 +6221,8 @@ function renderAll() {
     const sotmTitle  = sotmKey ? sotmKey.split('|||')[0] : null;
     const sotmArtist = sotmKey ? sotmKey.split('|||')[1] : null;
 
+    // Tier 2 (highlights): one flat chip in a shared ticker strip rather than
+    // a fully-bordered/shadowed card — visually demotes these vs. the Tier-1 totals.
     function statBox2(val, label, prevVal, maxAllTime, maxAtTime, scrollTo, meta) {
       const { emoji, cat } = meta || {};
       const isAllTimePeak = maxAllTime !== null && val > 0 && val >= maxAllTime;
@@ -6226,11 +6232,13 @@ function renderAll() {
       const boxClass      = isAllTimePeak ? ' stat-peak-alltime' : isAtTimePeak ? ' stat-peak-attime' : '';
       const clickAttr     = scrollTo ? ` onclick="dcScrollTo('${scrollTo}')" title="Jump to section"` : '';
       const catAttr       = cat ? ` data-cat="${cat}"` : '';
-      const iconHtml      = emoji ? `<div class="stat-cat-icon">${emoji}</div>` : '';
-      return `<div class="stat-box stat-box-sub${boxClass}${scrollTo ? ' stat-clickable' : ''}"${clickAttr}${catAttr}>
-        ${iconHtml}<div class="stat-val" data-val="${val}">${val.toLocaleString()}</div>
-        <div class="stat-label">${label}</div>
-        ${statDelta(val, prevVal)}${allTimeBadge}${atTimeBadge}
+      const iconHtml      = emoji ? `<span class="stat-chip-icon">${emoji}</span>` : '';
+      const deltaHtml     = statDelta(val, prevVal);
+      return `<div class="stat-chip${boxClass}${scrollTo ? ' stat-clickable' : ''}"${clickAttr}${catAttr}>
+        <div class="stat-chip-head">${iconHtml}<span class="stat-chip-label">${label}</span></div>
+        <div class="stat-val" data-val="${val}">${val.toLocaleString()}</div>
+        ${deltaHtml ? `<div class="stat-chip-sub">${deltaHtml}</div>` : ''}
+        ${allTimeBadge}${atTimeBadge}
       </div>`;
     }
 
@@ -6251,27 +6259,31 @@ function renderAll() {
     const _dows = ['day_sunday','day_monday','day_tuesday','day_wednesday','day_thursday','day_friday','day_saturday'].map(k => t(k).toUpperCase());
     const bestDayLabel = bestDay ? (() => { const [y, m, d] = bestDay.split('-').map(Number); const dow = new Date(y, m - 1, d).getDay(); const monSpan = `<span class="bd-month-short">${_mos[m-1]}</span><span class="bd-month-long">${_mosLong[m-1]}</span>`; const datePart = currentLang === 'en' ? monSpan + ' ' + d : d + ' ' + monSpan; return _dows[dow] + ' ' + datePart; })() : null;
     const bestDayBox = bestDay
-      ? `<div class="stat-box stat-box-sub stat-clickable" onclick="dcScrollTo('songsSection')" title="Jump to section" data-cat="bestday">
-          <div class="stat-cat-icon">📅</div>
+      ? `<div class="stat-chip stat-clickable" onclick="dcScrollTo('songsSection')" title="Jump to section" data-cat="bestday">
+          <div class="stat-chip-head"><span class="stat-chip-icon">📅</span><span class="stat-chip-label">${t('stat_best_day')}</span></div>
           <div class="stat-val" data-val="${bestDayCount}">${bestDayCount}</div>
-          <div class="stat-plays-sub">${t('stat_plays_sub')}</div>
-          <div class="stat-sotm-title">${bestDayLabel}</div>
-          <div class="stat-label">${t('stat_best_day')}</div>
+          <div class="stat-chip-sub">${bestDayLabel}</div>
         </div>`
       : '';
 
+    // Tier 3 (spotlight): horizontal, image-forward cards — art on the left,
+    // title/artist in the middle, play count on the right. These carry the
+    // "Wrapped" personality of the app, so they get more room than a plain stat tile.
     const sotmBox = sotmTitle
-      ? `<div class="stat-box stat-box-sub stat-clickable" onclick="dcScrollTo('songsSection')" title="Jump to section" data-cat="sotm">
-          <div id="sotm-img" class="stat-rising-thumb"><div class="thumb-initials">${esc(initials(sotmTitle))}</div></div>
-          <div class="stat-sotm-title">${esc(sotmTitle)}</div>
-          <div class="stat-sotm-artist">${esc(sotmArtist)}</div>
-          <div class="stat-val" data-val="${sotmCount}">${sotmCount}</div>
-          <div class="stat-plays-sub">${t('stat_plays_sub')}</div>
-          <div class="stat-label stat-label-sotm">${t('stat_sotm')}</div>
+      ? `<div class="spotlight-card stat-clickable" onclick="dcScrollTo('songsSection')" title="Jump to section" data-cat="sotm">
+          <div id="sotm-img" class="spotlight-thumb"><div class="thumb-initials">${esc(initials(sotmTitle))}</div></div>
+          <div class="spotlight-body">
+            <div class="spotlight-label stat-label-sotm">${t('stat_sotm')}</div>
+            <div class="spotlight-title">${esc(sotmTitle)}</div>
+            <div class="spotlight-artist">${esc(sotmArtist)}</div>
+          </div>
+          <div class="spotlight-count"><span class="stat-val" data-val="${sotmCount}">${sotmCount}</span><span class="spotlight-count-sub">${t('stat_plays_sub')}</span></div>
         </div>`
-      : `<div class="stat-box stat-box-sub" data-cat="sotm">
-          <div class="stat-val">—</div>
-          <div class="stat-label stat-label-sotm">${t('stat_sotm')}</div>
+      : `<div class="spotlight-card spotlight-empty" data-cat="sotm">
+          <div class="spotlight-body">
+            <div class="spotlight-label stat-label-sotm">${t('stat_sotm')}</div>
+            <div class="stat-val">—</div>
+          </div>
         </div>`;
 
     // Rising artist: most-played artist first discovered in the last 45 days from the last day of the viewed week
@@ -6299,12 +6311,13 @@ function renderAll() {
         if (c > risingCount) { risingArtistName = a; risingCount = c; }
       }
       if (risingArtistName) {
-        risingArtistBox = `<div class="stat-box stat-box-sub stat-clickable" onclick="dcScrollTo('artistsSection')" title="Jump to section" data-cat="rising">
-          <div id="rising-artist-img" class="stat-rising-thumb"><div class="thumb-initials">${esc(initials(risingArtistName))}</div></div>
-          <div class="stat-sotm-title">${esc(risingArtistName)}</div>
-          <div class="stat-val" data-val="${risingCount}">${risingCount}</div>
-          <div class="stat-plays-sub">${t('stat_plays_sub')}</div>
-          <div class="stat-label stat-label-rising">${t('stat_rising_artist')}</div>
+        risingArtistBox = `<div class="spotlight-card stat-clickable" onclick="dcScrollTo('artistsSection')" title="Jump to section" data-cat="rising">
+          <div id="rising-artist-img" class="spotlight-thumb"><div class="thumb-initials">${esc(initials(risingArtistName))}</div></div>
+          <div class="spotlight-body">
+            <div class="spotlight-label stat-label-rising">${t('stat_rising_artist')}</div>
+            <div class="spotlight-title">${esc(risingArtistName)}</div>
+          </div>
+          <div class="spotlight-count"><span class="stat-val" data-val="${risingCount}">${risingCount}</span><span class="spotlight-count-sub">${t('stat_plays_sub')}</span></div>
         </div>`;
       }
     }
@@ -6323,12 +6336,13 @@ function renderAll() {
       if (c > aotmArtistCount) { aotmArtistName = a; aotmArtistCount = c; }
     }
     const aotmBox = aotmArtistName
-      ? `<div class="stat-box stat-box-sub stat-clickable" onclick="dcScrollTo('artistsSection')" title="Jump to section" data-cat="aotm">
-          <div id="aotm-img" class="stat-rising-thumb"><div class="thumb-initials">${esc(initials(aotmArtistName))}</div></div>
-          <div class="stat-sotm-title">${esc(aotmArtistName)}</div>
-          <div class="stat-val" data-val="${aotmArtistCount}">${aotmArtistCount}</div>
-          <div class="stat-plays-sub">${t('stat_plays_sub')}</div>
-          <div class="stat-label stat-label-aotm">${t('stat_aotm')}</div>
+      ? `<div class="spotlight-card stat-clickable" onclick="dcScrollTo('artistsSection')" title="Jump to section" data-cat="aotm">
+          <div id="aotm-img" class="spotlight-thumb"><div class="thumb-initials">${esc(initials(aotmArtistName))}</div></div>
+          <div class="spotlight-body">
+            <div class="spotlight-label stat-label-aotm">${t('stat_aotm')}</div>
+            <div class="spotlight-title">${esc(aotmArtistName)}</div>
+          </div>
+          <div class="spotlight-count"><span class="stat-val" data-val="${aotmArtistCount}">${aotmArtistCount}</span><span class="spotlight-count-sub">${t('stat_plays_sub')}</span></div>
         </div>`
       : '';
 
@@ -6349,13 +6363,14 @@ function renderAll() {
     const albumotmTitle      = albumotmKey ? albumotmKey.split('|||')[0] : null;
     const albumotmArtistName = albumotmKey ? albumotmKey.split('|||')[1] : null;
     const albumotmBox = albumotmTitle
-      ? `<div class="stat-box stat-box-sub stat-clickable" onclick="dcScrollTo('albumsSection')" title="Jump to section" data-cat="albumotm">
-          <div id="albumotm-img" class="stat-rising-thumb"><div class="thumb-initials">${esc(initials(albumotmTitle))}</div></div>
-          <div class="stat-sotm-title">${esc(albumotmTitle)}</div>
-          <div class="stat-sotm-artist">${esc(albumotmArtistName)}</div>
-          <div class="stat-val" data-val="${albumotmCount}">${albumotmCount}</div>
-          <div class="stat-plays-sub">${t('stat_plays_sub')}</div>
-          <div class="stat-label stat-label-albumotm">${t('stat_albumotm')}</div>
+      ? `<div class="spotlight-card stat-clickable" onclick="dcScrollTo('albumsSection')" title="Jump to section" data-cat="albumotm">
+          <div id="albumotm-img" class="spotlight-thumb"><div class="thumb-initials">${esc(initials(albumotmTitle))}</div></div>
+          <div class="spotlight-body">
+            <div class="spotlight-label stat-label-albumotm">${t('stat_albumotm')}</div>
+            <div class="spotlight-title">${esc(albumotmTitle)}</div>
+            <div class="spotlight-artist">${esc(albumotmArtistName)}</div>
+          </div>
+          <div class="spotlight-count"><span class="stat-val" data-val="${albumotmCount}">${albumotmCount}</span><span class="spotlight-count-sub">${t('stat_plays_sub')}</span></div>
         </div>`
       : '';
 
@@ -21501,6 +21516,10 @@ function openStreakModal() {
       : '';
     const el = document.getElementById('skTabGraveyard');
     if (el) el.innerHTML = listHtml + pagerHtml;
+    // Fill in streak-day counters for this page — the count-up animation only ever
+    // ran once against the page-1 elements at modal-open time, so later pages need
+    // their numbers set directly or they'd stay stuck at "0d".
+    el?.querySelectorAll('.streak-days[data-len]').forEach(elx => { elx.textContent = elx.dataset.len + 'd'; });
   }
   window._skGraveGoToPage = function(page) { gravePage = page; renderGraveyard(); };
 
