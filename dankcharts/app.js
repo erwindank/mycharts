@@ -8239,6 +8239,13 @@ function buildPeriodStats(period) {
   // Peak rank tracking: best (lowest) rank each entry ever achieved before the current period
   const peakRank = { songs: {}, artists: {}, albums: {} };
 
+  // Chart streak: consecutive periods an entry has charted without a break —
+  // resets to 0 the moment it drops, unlike periodsOnChart which accumulates
+  // across separate stints. Snapshotted at prevKey so a dropout's row can show
+  // how long the run that just ended actually was, not its lifetime total.
+  const chartStreak = { songs: {}, artists: {}, albums: {} };
+  const chartStreakAtPrev = { songs: {}, artists: {}, albums: {} };
+
   for (const [mk, mm] of Object.entries(periodMap).sort((a, b) => a[0].localeCompare(b[0]))) {
     for (const type of ['songs', 'artists', 'albums']) {
       // Use per-section chart size so each section's BU/prev-chart tracking matches what's rendered
@@ -8255,12 +8262,19 @@ function buildPeriodStats(period) {
       _bpsAllSorted.slice(0, _typeChartSize).forEach(([k, data], i) => {
         newPrev.set(k, i + 1); bpsEver[type].add(k);
         periodsOnChart[type][k] = (periodsOnChart[type][k] || 0) + 1;
+        chartStreak[type][k] = (chartStreak[type][k] || 0) + 1;
         if (mk < curKey) {
           everChartedBefore[type].add(k);
           if ((peakRank[type][k] ?? Infinity) > i + 1) peakRank[type][k] = i + 1;
         }
         if (mk === prevKey) prevChart[type][k] = { rank: i + 1, count: data.count };
       });
+      // Reset the streak for anyone who was charting last period but dropped this
+      // period, then snapshot at prevKey — the moment right before "now".
+      for (const k of bpsPrev[type].keys()) {
+        if (!newPrev.has(k)) chartStreak[type][k] = 0;
+      }
+      if (mk === prevKey) chartStreakAtPrev[type] = Object.assign({}, chartStreak[type]);
       // Track BU zone entries (ranks _typeChartSize+1 through _typeChartSize+buSize)
       const _buKeysThisPeriod = new Set();
       _bpsAllSorted.slice(_typeChartSize, _typeChartSize + _bpsBuSize).forEach(([k, data]) => {
@@ -8283,7 +8297,7 @@ function buildPeriodStats(period) {
     }
   }
 
-  return { periodsOnChart, prevChart, everChartedBefore, bubblingUnderWeeks, bubblingUnderStreak, bubblingUnderRuns, bubblingUnderEntryFromChart, prevBubblingUnder, peakRank };
+  return { periodsOnChart, prevChart, everChartedBefore, bubblingUnderWeeks, bubblingUnderStreak, bubblingUnderRuns, bubblingUnderEntryFromChart, prevBubblingUnder, peakRank, chartStreakAtPrev };
 }
 
 function mPrevCell(curRank, key, type, ms) {
@@ -10538,7 +10552,13 @@ function renderOffChart(type, plays, periodStats, buPool, lowestChartCount) {
   const buMap = new Map((buPool || []).map((item, i) => [item.key, { rank: chartSize + 1 + i, count: item.count }]));
 
   const rows = dropped.map(([k, { rank, count }]) => {
+    // Lifetime total weeks charted, ever — may span several separate,
+    // non-consecutive stints. The run that just ended (streakWks below) is
+    // called out separately so the two aren't conflated.
     const wks = periodStats.periodsOnChart[type][k] || 1;
+    // The consecutive run immediately before THIS drop, even if the entry had
+    // an earlier streak at some other point in its history.
+    const streakWks = periodStats.chartStreakAtPrev?.[type]?.[k] || 0;
     let name, sub;
     if (type === 'songs') { name = names[k]?.title || k.split('|||')[0]; sub = names[k]?.artist || ''; }
     else if (type === 'artists') { name = k; sub = ''; }
@@ -10589,6 +10609,18 @@ function renderOffChart(type, plays, periodStats, buPool, lowestChartCount) {
     const pk = periodStats.peakRank?.[type]?.[k];
     const peakBadgeHtml = (pk && pk < rank) ? peakBadge(pk) : '';
 
+    // Only ever having charted once, period, is worth muting — but not the
+    // lifetime total in general, since that would misrepresent an entry with
+    // several separate stints as unremarkable.
+    const wksCls = wks === 1 ? ' dropout-wks--flash' : '';
+
+    // Distinct from the lifetime total: call out a real (2+ week) consecutive
+    // run immediately before THIS drop, explicitly anchored to "before dropping
+    // out" so it can't be mistaken for some earlier streak in the entry's history.
+    const streakNoteHtml = streakWks >= 2
+      ? `<div class="dropout-streak-note">${t('off_chart_streak_before_drop', { n: streakWks })}</div>`
+      : '';
+
     return `<div class="dropout-row${severeCls}">
       <span class="dropout-rank"><span class="dropout-rank-was">${t('off_chart_rank_was')}</span>#${rank}</span>
       <div class="dropout-info">
@@ -10597,12 +10629,13 @@ function renderOffChart(type, plays, periodStats, buPool, lowestChartCount) {
           ${peakBadgeHtml}
         </div>
         ${sub ? `<div class="dropout-artist">${esc(sub)}</div>` : ''}
+        ${streakNoteHtml}
         ${buLineHtml}
         ${ytBtn}
       </div>
       <div class="dropout-stats">
         <span class="dropout-plays">${tCountHtml('plays', count)}</span>
-        <span class="dropout-wks">${tCount('weeks_full', wks)} ${t('film_on_chart')}</span>
+        <span class="dropout-wks${wksCls}">${tCount('weeks_full', wks)} ${t('film_on_chart')}</span>
       </div>
     </div>`;
   }).join('');

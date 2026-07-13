@@ -8299,6 +8299,26 @@
       color: var(--text3);
     }
 
+    /* An entry that has ONLY ever charted this one week, period — shouldn't
+       carry the same visual weight as a real lifetime tally. */
+    .dropout-wks--flash {
+      font-style: italic;
+      opacity: 0.7;
+    }
+
+    /* Consecutive run immediately before this drop — distinct from the
+       lifetime total above, and explicitly worded so it can't be mistaken for
+       an earlier streak elsewhere in the entry's history. Same fuchsia/🔥
+       language as the Bubbling Under streak badge, so the two read as one
+       vocabulary across the app. */
+    .dropout-streak-note {
+      font-family: var(--font-mono);
+      font-size: 0.62rem;
+      font-weight: 600;
+      color: #e879f9;
+      margin: 3px 0;
+    }
+
     /* A dropout that fell from a top-tier rank reads as bigger news than one
        that was already clinging to the bottom of the chart. */
     .dropout-row--severe {
@@ -16669,6 +16689,12 @@ body.red-light .bu-badge-streak {
   color: #701a75;
   background: rgba(112, 26, 117, 0.07);
   border-color: rgba(112, 26, 117, 0.3);
+}
+
+body.navy-light .dropout-streak-note,   body.purple-light .dropout-streak-note,
+body.yellow-light .dropout-streak-note, body.pink-light .dropout-streak-note,
+body.red-light .dropout-streak-note {
+  color: #701a75;
 }
 
 body.navy-light .bu-badge-freefall,   body.purple-light .bu-badge-freefall,

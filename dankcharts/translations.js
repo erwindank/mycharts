@@ -240,6 +240,7 @@ const TRANSLATIONS = {
     sub_off_chart: 'Left the Top {{n}} this week',
     off_chart_empty: 'Nothing left the Top {{n}} this week 🎉',
     off_chart_rank_was: 'Was',
+    off_chart_streak_before_drop: '🔥 {{n}}-week streak before dropping out',
     sub_upcoming: 'Next 90 days · Based on your Top 200 All-Time Artists',
     sub_recent: 'Past 180 days · Based on your Top 200 All-Time Artists',
 
@@ -1280,6 +1281,7 @@ const TRANSLATIONS = {
     sub_off_chart: 'Salieron del Top {{n}} esta semana',
     off_chart_empty: 'Nada salió del Top {{n}} esta semana 🎉',
     off_chart_rank_was: 'Era',
+    off_chart_streak_before_drop: '🔥 Racha de {{n}} semanas antes de caer',
     sub_upcoming: 'Próximos 90 días · Basado en tus Top 200 Artistas de todos los tiempos',
     sub_recent: 'Últimos 180 días · Basado en tus Top 200 Artistas de todos los tiempos',
 
@@ -2319,6 +2321,7 @@ const TRANSLATIONS = {
     sub_off_chart: 'Saíram do Top {{n}} esta semana',
     off_chart_empty: 'Nada saiu do Top {{n}} esta semana 🎉',
     off_chart_rank_was: 'Era',
+    off_chart_streak_before_drop: '🔥 Sequência de {{n}} semanas antes de cair',
     sub_upcoming: 'Próximos 90 dias · Baseado nos seus Top 200 Artistas de Todos os Tempos',
     sub_recent: 'Últimos 180 dias · Baseado nos seus Top 200 Artistas de Todos os Tempos',
 
@@ -3359,6 +3362,7 @@ const TRANSLATIONS = {
     sub_off_chart: 'Saíram do Top {{n}} esta semana',
     off_chart_empty: 'Nada saiu do Top {{n}} esta semana 🎉',
     off_chart_rank_was: 'Era',
+    off_chart_streak_before_drop: '🔥 Sequência de {{n}} semanas antes de sair',
     sub_upcoming: 'Próximos 90 dias · Com base nos seus Top 200 Artistas de Sempre',
     sub_recent: 'Últimos 180 dias · Com base nos seus Top 200 Artistas de Sempre',
 
