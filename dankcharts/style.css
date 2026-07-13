@@ -8223,6 +8223,14 @@
       min-width: 0;
     }
 
+    /* Flex row so a peak badge (idea 1) always stays fully visible — only the
+       name itself truncates when the two don't both fit. */
+    .dropout-name-row {
+      display: flex;
+      align-items: center;
+      min-width: 0;
+    }
+
     .dropout-name {
       font-size: 0.88rem;
       font-weight: 600;
@@ -8230,6 +8238,7 @@
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
+      min-width: 0;
     }
 
     .dropout-artist {

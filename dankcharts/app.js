@@ -10583,10 +10583,19 @@ function renderOffChart(type, plays, periodStats, buPool, lowestChartCount) {
       buLineHtml = `<div class="dropout-bu-line dropout-bu-line--gone"><span class="dropout-bu-gone">${esc(goneNote)}</span></div>`;
     }
 
+    // Idea 1: only worth calling out if this entry once did BETTER than the
+    // rank it just fell from — restating "Peak #9" next to "Was #9" is noise,
+    // but "Peak #1" next to "Was #9" is the actual story.
+    const pk = periodStats.peakRank?.[type]?.[k];
+    const peakBadgeHtml = (pk && pk < rank) ? peakBadge(pk) : '';
+
     return `<div class="dropout-row${severeCls}">
       <span class="dropout-rank"><span class="dropout-rank-was">${t('off_chart_rank_was')}</span>#${rank}</span>
       <div class="dropout-info">
-        <div class="dropout-name">${esc(name)}</div>
+        <div class="dropout-name-row">
+          <span class="dropout-name">${esc(name)}</span>
+          ${peakBadgeHtml}
+        </div>
         ${sub ? `<div class="dropout-artist">${esc(sub)}</div>` : ''}
         ${buLineHtml}
         ${ytBtn}
