@@ -8670,7 +8670,7 @@ function renderSongs(plays, peaks, monthlyStats) {
       key: songKey(s), displayName: s.title, subName: s.artist, album: s.album, count: s.count
     }));
     renderBubblingUnder('songs', _buNormSongs, monthlyStats, sorted[sorted.length - 1]?.count || 0);
-    renderOffChart('songs', plays, monthlyStats);
+    renderOffChart('songs', plays, monthlyStats, _buNormSongs, sorted[sorted.length - 1]?.count || 0);
   } else {
     hideBuSection('songs');
     hideOffSection('songs');
@@ -8783,7 +8783,7 @@ function renderArtists(plays, peaks, monthlyStats) {
       key: name, displayName: name, subName: '', count: data.count
     }));
     renderBubblingUnder('artists', _buNormArtists, monthlyStats, sorted[sorted.length - 1]?.[1].count || 0);
-    renderOffChart('artists', plays, monthlyStats);
+    renderOffChart('artists', plays, monthlyStats, _buNormArtists, sorted[sorted.length - 1]?.[1].count || 0);
   } else {
     hideBuSection('artists');
     hideOffSection('artists');
@@ -8905,7 +8905,7 @@ function renderAlbums(plays, peaks, monthlyStats) {
       key: a.album + '|||' + albumArtist(a), displayName: a.album, subName: albumArtist(a), count: a.count
     }));
     renderBubblingUnder('albums', _buNormAlbums, monthlyStats, sorted[sorted.length - 1]?.count || 0);
-    renderOffChart('albums', plays, monthlyStats);
+    renderOffChart('albums', plays, monthlyStats, _buNormAlbums, sorted[sorted.length - 1]?.count || 0);
   } else {
     hideBuSection('albums');
     hideOffSection('albums');
@@ -10449,7 +10449,7 @@ function initStkInteractions(type) {
 // own accordion per type (songs/artists/albums) — sits between Bubbling
 // Under and New Entries for that type. Was previously one combined section
 // with all three types side by side; each type is now fully independent.
-function renderOffChart(type, plays, periodStats) {
+function renderOffChart(type, plays, periodStats, buPool, lowestChartCount) {
   const ucType    = type.charAt(0).toUpperCase() + type.slice(1);
   const sectionEl = document.getElementById('off' + ucType + 'Section');
   if (!sectionEl) return;
@@ -10532,6 +10532,11 @@ function renderOffChart(type, plays, periodStats) {
   // as equally significant.
   const severeRankCutoff = Math.max(1, Math.floor(chartSize * 0.3));
 
+  // Cross-reference with this week's Bubbling Under zone: a dropout that landed
+  // there had a soft landing (still hovering just below the chart) rather than
+  // vanishing outright. Map key → its BU rank + count so rows can link the two.
+  const buMap = new Map((buPool || []).map((item, i) => [item.key, { rank: chartSize + 1 + i, count: item.count }]));
+
   const rows = dropped.map(([k, { rank, count }]) => {
     const wks = periodStats.periodsOnChart[type][k] || 1;
     let name, sub;
@@ -10552,11 +10557,38 @@ function renderOffChart(type, plays, periodStats) {
 
     const severeCls = rank <= severeRankCutoff ? ' dropout-row--severe' : '';
 
+    // Idea 3+5: if this dropout landed in the Bubbling Under zone this week
+    // rather than vanishing outright, say so and borrow the same badge
+    // vocabulary used in the Bubbling Under section itself — a user who
+    // recognizes those badges down there recognizes them here too.
+    let buLineHtml = '';
+    const buEntry = buMap.get(k);
+    if (buEntry) {
+      const totalBuWeeks      = periodStats.bubblingUnderWeeks?.[type]?.[k] || 0;
+      const consecutiveBuWeeks = periodStats.bubblingUnderStreak?.[type]?.[k] || 0;
+      const playsAway = Math.max(0, (lowestChartCount || 0) - buEntry.count);
+      let buBadges = '';
+      if (rank <= 3) buBadges += `<span class="bu-badge bu-badge-fallen" title="Was #${rank} last week — now in the Bubbling Under zone">👑 Fallen</span>`;
+      if (playsAway > 0) buBadges += `<span class="bu-badge bu-badge-away" title="${playsAway} more play${playsAway !== 1 ? 's' : ''} needed to re-enter the chart">${playsAway} play${playsAway !== 1 ? 's' : ''} away</span>`;
+      if (totalBuWeeks >= 2) buBadges += `<span class="bu-badge bu-badge-weeks" title="${totalBuWeeks} total weeks ever in the Bubbling Under zone">🫧 ${totalBuWeeks} ${totalBuWeeks === 1 ? 'week' : 'weeks'}</span>`;
+      if (consecutiveBuWeeks >= 2) buBadges += `<span class="bu-badge bu-badge-streak" title="${consecutiveBuWeeks} consecutive weeks in the Bubbling Under zone">🔥 ${consecutiveBuWeeks}-week streak</span>`;
+      buLineHtml = `<div class="dropout-bu-line"><span class="dropout-bu-now">Now #${buEntry.rank} in Bubbling Under</span>${buBadges}</div>`;
+    } else {
+      // Not even in the Bubbling Under zone — say so explicitly instead of
+      // leaving the absence of a BU line to be read as a gap in the data.
+      const thisWeekCount = counts[k]?.count || 0;
+      const goneNote = thisWeekCount > 0
+        ? `${thisWeekCount} play${thisWeekCount !== 1 ? 's' : ''} this week — not enough for Bubbling Under`
+        : `No plays this week`;
+      buLineHtml = `<div class="dropout-bu-line dropout-bu-line--gone"><span class="dropout-bu-gone">${esc(goneNote)}</span></div>`;
+    }
+
     return `<div class="dropout-row${severeCls}">
       <span class="dropout-rank"><span class="dropout-rank-was">${t('off_chart_rank_was')}</span>#${rank}</span>
       <div class="dropout-info">
         <div class="dropout-name">${esc(name)}</div>
         ${sub ? `<div class="dropout-artist">${esc(sub)}</div>` : ''}
+        ${buLineHtml}
         ${ytBtn}
       </div>
       <div class="dropout-stats">

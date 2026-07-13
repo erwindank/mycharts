@@ -8241,6 +8241,34 @@
       white-space: nowrap;
     }
 
+    /* Links a dropout to its Bubbling Under continuation (idea 3+5) — reuses
+       the same .bu-badge chips shown in the Bubbling Under section itself. */
+    .dropout-bu-line {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 4px;
+      margin: 3px 0;
+    }
+
+    .dropout-bu-now {
+      font-family: var(--font-mono);
+      font-size: 0.62rem;
+      font-weight: 600;
+      color: var(--accent2);
+    }
+
+    /* Fully dropped out — didn't even land in Bubbling Under. Deliberately
+       muted/italic so it reads as "confirmed gone" in contrast to the
+       accent-colored .dropout-bu-now line for a soft landing. */
+    .dropout-bu-gone {
+      font-family: var(--font-mono);
+      font-size: 0.62rem;
+      font-style: italic;
+      color: var(--text3);
+      opacity: 0.75;
+    }
+
     .dropout-stats {
       display: flex;
       flex-direction: column;
