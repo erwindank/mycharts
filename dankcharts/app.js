@@ -5821,29 +5821,34 @@ function renderNewEntries(plays, start, end) {
   const artistSec = document.getElementById('newArtistsSection');
   const albumSec = document.getElementById('newAlbumsSection');
 
+  // Section header now carries a short, scannable name in the markup itself
+  // (e.g. "New Artists") — the descriptive sentence built here goes in the
+  // subtitle instead, so a reader isn't forced to parse a full sentence just
+  // to tell the three New Entries sections apart at a glance.
+  const periodLower = periodLabel.toLowerCase();
   if (songSec) {
     const songShown = fullNewData.newSongs.length;
     const songTotal = allNewSongs.length;
     songSec.style.display = songShown > 0 ? '' : 'none';
-    const songPrefix = songTotal > songShown ? `TOP ${songShown}` : `${songShown}`;
-    const songSuffix = songTotal > songShown ? t('new_chart_suffix_f', { n: songTotal }) : '';
-    document.getElementById('newSongsTitle').textContent = `${songPrefix} ${songShown !== 1 ? t('new_chart_songs') : t('new_chart_song')} ${periodLabel.toUpperCase()}${songSuffix}`;
+    const songType = (songShown !== 1 ? t('new_chart_songs') : t('new_chart_song')).toLowerCase();
+    const songSuffix = songTotal > songShown ? t('new_chart_suffix_f', { n: songTotal, period: periodLower }) : '';
+    document.getElementById('newSongsSub').textContent = `${t('new_chart_intro_f', { n: songShown, type: songType, period: periodLower })}${songSuffix}`;
   }
   if (artistSec) {
     const artistShown = fullNewData.newArtists.length;
     const artistTotal = allNewArtists.length;
     artistSec.style.display = artistShown > 0 ? '' : 'none';
-    const artistPrefix = artistTotal > artistShown ? `TOP ${artistShown}` : `${artistShown}`;
-    const artistSuffix = artistTotal > artistShown ? t('new_chart_suffix', { n: artistTotal }) : '';
-    document.getElementById('newArtistsTitle').textContent = `${artistPrefix} ${artistShown !== 1 ? t('new_chart_artists') : t('new_chart_artist')} ${periodLabel.toUpperCase()}${artistSuffix}`;
+    const artistType = (artistShown !== 1 ? t('new_chart_artists') : t('new_chart_artist')).toLowerCase();
+    const artistSuffix = artistTotal > artistShown ? t('new_chart_suffix', { n: artistTotal, period: periodLower }) : '';
+    document.getElementById('newArtistsSub').textContent = `${t('new_chart_intro', { n: artistShown, type: artistType, period: periodLower })}${artistSuffix}`;
   }
   if (albumSec) {
     const albumShown = fullNewData.newAlbums.length;
     const albumTotal = allNewAlbums.length;
     albumSec.style.display = albumShown > 0 ? '' : 'none';
-    const albumPrefix = albumTotal > albumShown ? `TOP ${albumShown}` : `${albumShown}`;
-    const albumSuffix = albumTotal > albumShown ? t('new_chart_suffix', { n: albumTotal }) : '';
-    document.getElementById('newAlbumsTitle').textContent = `${albumPrefix} ${albumShown !== 1 ? t('new_chart_albums') : t('new_chart_album')} ${periodLabel.toUpperCase()}${albumSuffix}`;
+    const albumType = (albumShown !== 1 ? t('new_chart_albums') : t('new_chart_album')).toLowerCase();
+    const albumSuffix = albumTotal > albumShown ? t('new_chart_suffix', { n: albumTotal, period: periodLower }) : '';
+    document.getElementById('newAlbumsSub').textContent = `${t('new_chart_intro', { n: albumShown, type: albumType, period: periodLower })}${albumSuffix}`;
   }
 
   renderNewPage('newSongs');
