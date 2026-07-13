@@ -19,7 +19,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-  <link rel="stylesheet" href="style.css?v=60">
+  <link rel="stylesheet" href="style.css?v=61">
   <script src="translations.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8/hammer.min.js"></script>
@@ -254,6 +254,28 @@
 
     <div id="streakBanner" class="streak-banner" style="display:none;"></div>
 
+    <!-- TIME MACHINE -->
+    <div class="chart-section" id="timeMachineSection" style="display:none;">
+      <div class="section-header">
+        <button class="section-collapse-btn" data-target="timeMachineSection" data-i18n-title="tooltip_collapse">−</button>
+        <h2 class="section-title" data-i18n="time_machine_title">⏳ TIME MACHINE</h2>
+        <span class="section-collapsed-label" data-i18n="collapsed_hint">collapsed — click + to expand</span>
+        <div class="section-rule"></div>
+        <div class="tm-toggle-btns">
+          <button id="tmToggleSongs" class="tm-type-btn active" onclick="tmToggleType('songs')" data-i18n="time_machine_songs">Songs</button>
+          <button id="tmToggleArtists" class="tm-type-btn active" onclick="tmToggleType('artists')" data-i18n="time_machine_artists">Artists</button>
+          <button id="tmToggleAlbums" class="tm-type-btn active" onclick="tmToggleType('albums')" data-i18n="time_machine_albums">Albums</button>
+        </div>
+      </div>
+      <div class="section-sub" data-i18n="time_machine_sub">On this day in past years</div>
+      <div class="tm-hint" data-i18n-html="tm_hint">▶ Click a song to add to player queue &nbsp;·&nbsp; Click an artist or album to search Google</div>
+      <div class="section-body">
+        <div class="tm-ticker-outer" id="tmTickerOuter">
+          <div class="tm-ticker-track" id="tmTickerTrack"></div>
+        </div>
+      </div>
+    </div>
+
     <div class="period-nav" id="periodNav">
       <!-- Eyebrow label — orients first-time users before they scan 12 tab names -->
       <div class="period-nav-eyebrow" data-i18n="nav_eyebrow" aria-hidden="true">Chart Views</div>
@@ -348,29 +370,6 @@
       <div class="stats-strip stats-strip2" id="statsStrip2" style="display:none"></div>
       <div class="stats-strip stats-strip3" id="statsStrip3" style="display:none"></div>
     </div>
-
-    <!-- TIME MACHINE -->
-    <div class="chart-section" id="timeMachineSection" style="display:none;">
-      <div class="section-header">
-        <button class="section-collapse-btn" data-target="timeMachineSection" data-i18n-title="tooltip_collapse">−</button>
-        <h2 class="section-title" data-i18n="time_machine_title">⏳ TIME MACHINE</h2>
-        <span class="section-collapsed-label" data-i18n="collapsed_hint">collapsed — click + to expand</span>
-        <div class="section-rule"></div>
-        <div class="tm-toggle-btns">
-          <button id="tmToggleSongs" class="tm-type-btn active" onclick="tmToggleType('songs')" data-i18n="time_machine_songs">Songs</button>
-          <button id="tmToggleArtists" class="tm-type-btn active" onclick="tmToggleType('artists')" data-i18n="time_machine_artists">Artists</button>
-          <button id="tmToggleAlbums" class="tm-type-btn active" onclick="tmToggleType('albums')" data-i18n="time_machine_albums">Albums</button>
-        </div>
-      </div>
-      <div class="section-sub" data-i18n="time_machine_sub">On this day in past years</div>
-      <div class="tm-hint" data-i18n-html="tm_hint">▶ Click a song to add to player queue &nbsp;·&nbsp; Click an artist or album to search Google</div>
-      <div class="section-body">
-        <div class="tm-ticker-outer" id="tmTickerOuter">
-          <div class="tm-ticker-track" id="tmTickerTrack"></div>
-        </div>
-      </div>
-    </div>
-
 
     <!-- Collapse All toggle bar — shown on chart period views -->
     <div class="collapse-all-bar" id="collapseAllBar" style="display:none;">

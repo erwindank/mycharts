@@ -1093,26 +1093,16 @@
       background: #8a0c0c;
     }
 
+    /* Was a white pill (background + padding) with a color hardcoded for
+       legibility against that white — every *-light theme already overrides
+       it to a flat, unpadded title, but dark themes never got the same
+       cleanup. The leftover padding was just enough extra width on mobile to
+       push the title past the truncation threshold in .section-header:has(...)
+       h2 below, clipping the last letter with no ellipsis. Matching light
+       themes (flat, theme-aware color, no background) fixes both. */
     .section-header h2,
-    .section-header-h2,
-    body.purple .section-header h2,
-    body.purple .section-header-h2,
-    body.red .section-header h2,
-    body.red .section-header-h2 {
-      color: #2a5888;
-      background: #ffffff;
-      padding: 2px 8px;
-      border-radius: 3px;
-    }
-
-    body.purple .section-header h2,
-    body.purple .section-header-h2 {
-      color: #1a0e40;
-    }
-
-    body.red .section-header h2,
-    body.red .section-header-h2 {
-      color: #1a0000;
+    .section-header-h2 {
+      color: var(--accent2);
     }
 
     body.red-light .section-header h2,
@@ -1332,11 +1322,6 @@
 
     body.yellow #syncNowBtn:hover {
       color: #1a1a00;
-    }
-
-    body.yellow .section-header h2,
-    body.yellow .section-header-h2 {
-      color: #7a5c00;
     }
 
     body.yellow .export-btn-copy {
@@ -18018,6 +18003,16 @@ body.red-light .modal-cb-label--tracks {
         overflow: hidden;
         text-overflow: ellipsis;
         min-width: 4ch;
+      }
+      /* The Songs/Artists/Albums h2 is itself an inline-flex container (icon +
+         .section-title-text), so text-overflow on the h2 above has no visible
+         effect — a flex container just clips its children raw at the boundary
+         instead of ellipsizing, chopping the last letter off with no "…".
+         Target the actual text span so it truncates properly. */
+      .section-header:has(.kebab-menu-wrap) .section-title-text {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        min-width: 0;
       }
       .section-header:has(.kebab-menu-wrap) .kebab-menu-wrap {
         flex-shrink: 0;
