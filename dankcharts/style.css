@@ -1093,16 +1093,26 @@
       background: #8a0c0c;
     }
 
-    /* Was a white pill (background + padding) with a color hardcoded for
-       legibility against that white — every *-light theme already overrides
-       it to a flat, unpadded title, but dark themes never got the same
-       cleanup. The leftover padding was just enough extra width on mobile to
-       push the title past the truncation threshold in .section-header:has(...)
-       h2 below, clipping the last letter with no ellipsis. Matching light
-       themes (flat, theme-aware color, no background) fixes both. */
     .section-header h2,
-    .section-header-h2 {
-      color: var(--accent2);
+    .section-header-h2,
+    body.purple .section-header h2,
+    body.purple .section-header-h2,
+    body.red .section-header h2,
+    body.red .section-header-h2 {
+      color: #2a5888;
+      background: #ffffff;
+      padding: 2px 8px;
+      border-radius: 3px;
+    }
+
+    body.purple .section-header h2,
+    body.purple .section-header-h2 {
+      color: #1a0e40;
+    }
+
+    body.red .section-header h2,
+    body.red .section-header-h2 {
+      color: #1a0000;
     }
 
     body.red-light .section-header h2,
@@ -1322,6 +1332,11 @@
 
     body.yellow #syncNowBtn:hover {
       color: #1a1a00;
+    }
+
+    body.yellow .section-header h2,
+    body.yellow .section-header-h2 {
+      color: #7a5c00;
     }
 
     body.yellow .export-btn-copy {
@@ -15823,6 +15838,30 @@ body[class*="-light"] .tm-card-search:hover {
 }
 .streak-banner-subject em { font-style: italic; }
 
+/* Inset "currently on this album" chip for a streak nested inside a longer
+   same-artist run — styled as a pill sitting inside the outer artist banner,
+   rather than a caption line, so the containment reads visually. */
+.streak-banner-nested-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  width: fit-content;
+  margin-top: 0.15rem;
+  padding: 0.1rem 0.45rem 0.1rem 0.35rem;
+  border-radius: 999px;
+  background: rgba(74, 172, 255, 0.12);
+  border: 1px solid rgba(74, 172, 255, 0.3);
+  font-family: var(--font-mono);
+  font-size: 0.58rem;
+  color: var(--accent2);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 340px;
+  line-height: 1.4;
+}
+.streak-banner-nested-chip em { font-style: italic; }
+
 .streak-banner-mid {
   display: flex;
   align-items: center;
@@ -15919,6 +15958,7 @@ body[class*="-light"] .tm-card-search:hover {
   .streak-banner         { justify-content: space-between; }
   .streak-banner-mid     { display: none; }
   .streak-banner-subject { max-width: 160px; }
+  .streak-banner-nested-chip { max-width: 160px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -17987,14 +18027,14 @@ body.red-light .modal-cb-label--tracks {
       .kebab-menu {
         width: 200px;
       }
-      /* Without this, the kebab button was the one flex item that didn't fit
-         on the header's line and wrapped onto its own row flush-left (instead
-         of staying under Animate Chart) — dragging the dropdown's right:0
-         anchor over to the left edge of the card with it. Force the row to
-         stay on one line and let the chart title truncate first; there's
-         always a few spare characters there before the controls run out of
-         room. Scoped to headers that actually have the kebab button, since
-         .section-header is reused by unrelated modal/settings rows. */
+      /* Everything stays on one row — title pill, rule, Animate Chart, kebab.
+         Without nowrap the kebab button was the one item that didn't fit and
+         wrapped onto its own row flush-left, dragging the dropdown's right:0
+         anchor over to the left edge of the card with it. If the title still
+         doesn't fit at the narrowest widths, it truncates with a proper "…"
+         as a last resort rather than wrapping. Scoped to headers that
+         actually have the kebab button, since .section-header is reused by
+         unrelated modal/settings rows. */
       .section-header:has(.kebab-menu-wrap) {
         flex-wrap: nowrap;
       }
@@ -18006,9 +18046,10 @@ body.red-light .modal-cb-label--tracks {
       }
       /* The Songs/Artists/Albums h2 is itself an inline-flex container (icon +
          .section-title-text), so text-overflow on the h2 above has no visible
-         effect — a flex container just clips its children raw at the boundary
-         instead of ellipsizing, chopping the last letter off with no "…".
-         Target the actual text span so it truncates properly. */
+         effect there — a flex container just clips its children raw at the
+         boundary instead of ellipsizing. Target the actual text span instead
+         so it truncates properly (the pill background/padding on the h2
+         shrinks to match automatically since the h2 itself still shrinks). */
       .section-header:has(.kebab-menu-wrap) .section-title-text {
         overflow: hidden;
         text-overflow: ellipsis;
@@ -18016,6 +18057,12 @@ body.red-light .modal-cb-label--tracks {
       }
       .section-header:has(.kebab-menu-wrap) .kebab-menu-wrap {
         flex-shrink: 0;
+      }
+      /* Animate Chart is a secondary, discoverable-via-tooltip action — drop
+         its label to an icon-only "▶" on mobile so it stops eating the width
+         the title actually needs to stay readable. */
+      .replay-btn-label {
+        display: none;
       }
     }
 

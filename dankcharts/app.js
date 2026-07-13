@@ -6520,7 +6520,11 @@ function renderAll() {
     document.querySelector('#albumsSectionTitle .section-title-text').textContent  = t('sec_albums_top',  { n: chartSizeAlbums  }).replace(/^[★♦◈]\s*/, '');
     const periodStats = hasPeriodStats ? buildPeriodStats(currentPeriod) : null;
     lastPeriodStats = periodStats;
-    _animPrevPlays = (chartAnimEnabled && prevPlays && prevPlays.length > 0 && (currentPeriod === 'week' || currentPeriod === 'month')) ? prevPlays : null;
+    // Not gated on chartAnimEnabled — that setting only controls whether the
+    // animation plays automatically on load. The underlying prev/curr data
+    // still needs to be built whenever a comparison is possible so the
+    // manual ▶ Animate Chart button (_replayFns) works even with it off.
+    _animPrevPlays = (prevPlays && prevPlays.length > 0 && (currentPeriod === 'week' || currentPeriod === 'month')) ? prevPlays : null;
     _animCurrentPlays = _animPrevPlays ? plays : null;
     chartSize = chartSizeSongs;   renderSongs(plays, peaks, periodStats);
     chartSize = chartSizeArtists; renderArtists(plays, peaks, periodStats);
@@ -8646,10 +8650,10 @@ function renderSongs(plays, peaks, monthlyStats) {
     return [mainRow, expandRow];
   });
   const sbodyS = document.getElementById('songsBody');
+  if (sbodyS._visObs) { sbodyS._visObs.disconnect(); delete sbodyS._visObs; }
   if (_animSongs) {
     const _capPrevS = _animPrevPlays, _capCurrS = _animCurrentPlays;
     const _prevEntriesS = buildPrevSortedEntries(_capPrevS, 'songs');
-    sbodyS.innerHTML = buildPrevChartHtml(_prevEntriesS, sorted.length, colCount, 'songs');
     const _startAnimS = () => {
       if (sbodyS._swToken) sbodyS._swToken.cancelled = true;
       sbodyS.innerHTML = buildPrevChartHtml(_prevEntriesS, sorted.length, colCount, 'songs');
@@ -8665,16 +8669,23 @@ function renderSongs(plays, peaks, monthlyStats) {
         }, 380);
       });
     };
+    // Always register the manual replay function so ▶ Animate Chart works
+    // even with auto-play-on-load off — only the observer below is gated.
     _replayFns['songs'] = _startAnimS;
-    if (sbodyS._visObs) sbodyS._visObs.disconnect();
-    const _obsS = new IntersectionObserver(([entry]) => {
-      if (!entry.isIntersecting) return;
-      _obsS.disconnect();
-      delete sbodyS._visObs;
-      _startAnimS();
-    }, { threshold: 0 });
-    sbodyS._visObs = _obsS;
-    _obsS.observe(sbodyS);
+    if (chartAnimEnabled) {
+      sbodyS.innerHTML = buildPrevChartHtml(_prevEntriesS, sorted.length, colCount, 'songs');
+      const _obsS = new IntersectionObserver(([entry]) => {
+        if (!entry.isIntersecting) return;
+        _obsS.disconnect();
+        delete sbodyS._visObs;
+        _startAnimS();
+      }, { threshold: 0 });
+      sbodyS._visObs = _obsS;
+      _obsS.observe(sbodyS);
+    } else {
+      sbodyS.innerHTML = currPairsS.flatMap(p => p).join('');
+      loadImages(imgItems.map(i => ({ ...i, name: i.title })), 'song');
+    }
   } else {
     delete _replayFns['songs'];
     sbodyS.innerHTML = currPairsS.flatMap(p => p).join('');
@@ -8761,10 +8772,10 @@ function renderArtists(plays, peaks, monthlyStats) {
     return [mainRow, expandRow];
   });
   const sbodyA = document.getElementById('artistsBody');
+  if (sbodyA._visObs) { sbodyA._visObs.disconnect(); delete sbodyA._visObs; }
   if (_animArtists) {
     const _capPrevA = _animPrevPlays, _capCurrA = _animCurrentPlays;
     const _prevEntriesA = buildPrevSortedEntries(_capPrevA, 'artists');
-    sbodyA.innerHTML = buildPrevChartHtml(_prevEntriesA, sorted.length, colCount, 'artists');
     const _startAnimA = () => {
       if (sbodyA._swToken) sbodyA._swToken.cancelled = true;
       sbodyA.innerHTML = buildPrevChartHtml(_prevEntriesA, sorted.length, colCount, 'artists');
@@ -8780,16 +8791,23 @@ function renderArtists(plays, peaks, monthlyStats) {
         }, 380);
       });
     };
+    // Always register the manual replay function so ▶ Animate Chart works
+    // even with auto-play-on-load off — only the observer below is gated.
     _replayFns['artists'] = _startAnimA;
-    if (sbodyA._visObs) sbodyA._visObs.disconnect();
-    const _obsA = new IntersectionObserver(([entry]) => {
-      if (!entry.isIntersecting) return;
-      _obsA.disconnect();
-      delete sbodyA._visObs;
-      _startAnimA();
-    }, { threshold: 0 });
-    sbodyA._visObs = _obsA;
-    _obsA.observe(sbodyA);
+    if (chartAnimEnabled) {
+      sbodyA.innerHTML = buildPrevChartHtml(_prevEntriesA, sorted.length, colCount, 'artists');
+      const _obsA = new IntersectionObserver(([entry]) => {
+        if (!entry.isIntersecting) return;
+        _obsA.disconnect();
+        delete sbodyA._visObs;
+        _startAnimA();
+      }, { threshold: 0 });
+      sbodyA._visObs = _obsA;
+      _obsA.observe(sbodyA);
+    } else {
+      sbodyA.innerHTML = currPairsA.flatMap(p => p).join('');
+      loadImages(imgItems, 'artist');
+    }
   } else {
     delete _replayFns['artists'];
     sbodyA.innerHTML = currPairsA.flatMap(p => p).join('');
@@ -8882,10 +8900,10 @@ function renderAlbums(plays, peaks, monthlyStats) {
       return [mainRow, expandRow];
     });
     const sbodyL = document.getElementById('albumsBody');
+    if (sbodyL._visObs) { sbodyL._visObs.disconnect(); delete sbodyL._visObs; }
     if (_animAlbums) {
       const _capPrevL = _animPrevPlays, _capCurrL = _animCurrentPlays;
       const _prevEntriesL = buildPrevSortedEntries(_capPrevL, 'albums');
-      sbodyL.innerHTML = buildPrevChartHtml(_prevEntriesL, sorted.length, colCount, 'albums');
       const _startAnimL = () => {
         if (sbodyL._swToken) sbodyL._swToken.cancelled = true;
         sbodyL.innerHTML = buildPrevChartHtml(_prevEntriesL, sorted.length, colCount, 'albums');
@@ -8901,16 +8919,23 @@ function renderAlbums(plays, peaks, monthlyStats) {
           }, 380);
         });
       };
+      // Always register the manual replay function so ▶ Animate Chart works
+      // even with auto-play-on-load off — only the observer below is gated.
       _replayFns['albums'] = _startAnimL;
-      if (sbodyL._visObs) sbodyL._visObs.disconnect();
-      const _obsL = new IntersectionObserver(([entry]) => {
-        if (!entry.isIntersecting) return;
-        _obsL.disconnect();
-        delete sbodyL._visObs;
-        _startAnimL();
-      }, { threshold: 0 });
-      sbodyL._visObs = _obsL;
-      _obsL.observe(sbodyL);
+      if (chartAnimEnabled) {
+        sbodyL.innerHTML = buildPrevChartHtml(_prevEntriesL, sorted.length, colCount, 'albums');
+        const _obsL = new IntersectionObserver(([entry]) => {
+          if (!entry.isIntersecting) return;
+          _obsL.disconnect();
+          delete sbodyL._visObs;
+          _startAnimL();
+        }, { threshold: 0 });
+        sbodyL._visObs = _obsL;
+        _obsL.observe(sbodyL);
+      } else {
+        sbodyL.innerHTML = currPairsL.flatMap(p => p).join('');
+        loadImages(imgItems, 'album');
+      }
     } else {
       delete _replayFns['albums'];
       sbodyL.innerHTML = currPairsL.flatMap(p => p).join('');
@@ -24586,7 +24611,8 @@ function computeCurrentStreak(plays) {
 
   // 2. Album Streak — same album+artist 3+ consecutive
   if (p0.album && p0.album !== '—') {
-    const aa0 = p0.album.toLowerCase().trim() + '\x00' + albumArtist(p0).toLowerCase().trim();
+    const primaryArtist0 = albumArtist(p0);
+    const aa0 = p0.album.toLowerCase().trim() + '\x00' + primaryArtist0.toLowerCase().trim();
     let albumCount = 0;
     for (const p of plays) {
       if (p.album && p.album !== '—' &&
@@ -24594,7 +24620,20 @@ function computeCurrentStreak(plays) {
         albumCount++;
       else break;
     }
-    if (albumCount >= 3) return { type: 'album', count: albumCount, album: p0.album, artist: albumArtist(p0) };
+    if (albumCount >= 3) {
+      const result = { type: 'album', count: albumCount, album: p0.album, artist: primaryArtist0 };
+      // If the same artist's run extends past this album's boundary (e.g. a
+      // full-discography binge), attach it so the banner can show both streaks.
+      const a0lc = primaryArtist0.toLowerCase().trim();
+      let artistCount = 0;
+      for (const p of plays) {
+        const pArtists = (p.artists || splitArtists(p.artist)).map(a => a.toLowerCase().trim());
+        if (pArtists.includes(a0lc)) artistCount++;
+        else break;
+      }
+      if (artistCount > albumCount) result.artistStreak = { count: artistCount, artist: primaryArtist0 };
+      return result;
+    }
   }
 
   // 3. Artist Streak — same artist (respecting comma-split rule) 3+ consecutive plays
@@ -24643,12 +24682,25 @@ function renderStreakBanner() {
   const icons  = { song: '🔂', album: '💿', artist: '🎤', shuffle: '🔀' };
   const labels = { song: 'SONG STREAK', album: 'ALBUM STREAK', artist: 'ARTIST STREAK', shuffle: 'SHUFFLE STREAK' };
 
+  // When an album streak is nested inside a longer same-artist run (e.g. a
+  // discography binge), the artist run is the real streak — it leads with
+  // the icon/color/fire count, and the album becomes an inset "currently on"
+  // chip rather than a competing stat.
+  const nested = streak.type === 'album' && streak.artistStreak;
+  const displayType  = nested ? 'artist' : streak.type;
+  const displayCount = nested ? streak.artistStreak.count : streak.count;
+
   let subject = '';
   if (streak.type === 'song')   subject = `<em>"${esc(streak.title)}"</em> · ${esc(streak.artist)}`;
+  else if (nested)                   subject = esc(streak.artistStreak.artist);
   else if (streak.type === 'album')  subject = `<em>${esc(streak.album)}</em> · ${esc(streak.artist)}`;
   else if (streak.type === 'artist') subject = esc(streak.artist);
 
-  const thumbCount = streak.count;
+  const nestedChip = nested
+    ? `<span class="streak-banner-nested-chip">↳ 💿 <em>${esc(streak.album)}</em> · ${streak.count} straight</span>`
+    : '';
+
+  const thumbCount = displayCount;
 
   let artFallback = '';
   if (streak.type === 'artist') artFallback = initials(streak.artist);
@@ -24661,7 +24713,7 @@ function renderStreakBanner() {
     return `<div class="streak-mini-thumb" style="--i:${i}" title="${esc(p.title)} · ${esc(p.artist)}"><div class="streak-mini-init">${esc(artFallback)}</div></div>`;
   }).join('');
 
-  el.className = `streak-banner streak-banner-${streak.type}`;
+  el.className = `streak-banner streak-banner-${displayType}`;
   el.innerHTML = `
     <div class="streak-art-wrap">
       <img id="streakArtImg" class="streak-art" src="" alt="" style="display:none;"
@@ -24669,17 +24721,18 @@ function renderStreakBanner() {
       <div id="streakArtInit" class="streak-art-init">${esc(artFallback)}</div>
     </div>
     <div class="streak-banner-left">
-      <span class="streak-banner-icon">${icons[streak.type]}</span>
+      <span class="streak-banner-icon">${icons[displayType]}</span>
       <div class="streak-banner-meta">
-        <span class="streak-banner-type">${labels[streak.type]}</span>
+        <span class="streak-banner-type">${labels[displayType]}</span>
         ${subject ? `<span class="streak-banner-subject">${subject}</span>` : ''}
+        ${nestedChip}
       </div>
     </div>
     <div class="streak-banner-mid">${thumbs}</div>
     <div class="streak-banner-right">
       <span class="streak-fire-icon">🔥</span>
       <div class="streak-banner-count-col">
-        <span class="streak-banner-num">${streak.count}</span>
+        <span class="streak-banner-num">${displayCount}</span>
         <span class="streak-banner-unit">in a row</span>
       </div>
     </div>
