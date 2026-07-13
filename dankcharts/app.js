@@ -10489,7 +10489,11 @@ function renderOffChart(type, plays, periodStats) {
   const dropped = Object.entries(periodStats.prevChart[type])
     .filter(([k]) => !curKeys.has(k)).sort((a, b) => a[1].rank - b[1].rank);
 
-  if (!dropped.length) { sectionEl.style.display = 'none'; return; }
+  // With no previous week's chart to compare against there's nothing to report,
+  // so stay hidden. But if a previous chart exists and nothing dropped out, that's
+  // a stability streak worth showing off rather than silently disappearing.
+  const hadPrevChart = Object.keys(periodStats.prevChart[type]).length > 0;
+  if (!dropped.length && !hadPrevChart) { sectionEl.style.display = 'none'; return; }
 
   // Name lookup for songs and albums (keys are lowercase, need original casing)
   const names = {};
@@ -10515,6 +10519,19 @@ function renderOffChart(type, plays, periodStats) {
   if (bodyEl)  bodyEl.style.display = _offOpen[type] ? '' : 'none';
   if (iconEl)  iconEl.textContent = _offOpen[type] ? '▲' : '▼';
 
+  // Nothing dropped out this week — celebrate the stability instead of hiding.
+  if (!dropped.length) {
+    const contentEl = document.getElementById('off' + ucType + 'Content');
+    if (contentEl) contentEl.innerHTML = `<div class="dropout-empty">${t('off_chart_empty', { n: chartSize })}</div>`;
+    return;
+  }
+
+  // A dropout that fell from a top-tier rank (top ~30% of the chart) reads as
+  // much bigger news than one that was already clinging to the bottom — flag
+  // it so the eye catches the real story first instead of treating every row
+  // as equally significant.
+  const severeRankCutoff = Math.max(1, Math.floor(chartSize * 0.3));
+
   const rows = dropped.map(([k, { rank, count }]) => {
     const wks = periodStats.periodsOnChart[type][k] || 1;
     let name, sub;
@@ -10533,8 +10550,10 @@ function renderOffChart(type, plays, periodStats) {
     const ytBtnTitle = type === 'songs' ? 'Play on YouTube' : 'Show recently played tracks';
     const ytBtn = `<button class="yt-play-btn off-yt-btn" data-title="${esc(ytTitle)}" data-artist="${esc(ytArtist)}" data-album="${esc(ytAlbum)}" onclick="${ytBtnOnclick}" title="${ytBtnTitle}"><span class="yt-btn-content"><svg class="yt-btn-icon" viewBox="0 0 24 24"><path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.5 12 3.5 12 3.5s-7.5 0-9.4.5A3 3 0 0 0 .5 6.2C0 8.1 0 12 0 12s0 3.9.5 5.8a3 3 0 0 0 2.1 2.1c1.9.5 9.4.5 9.4.5s7.5 0 9.4-.5a3 3 0 0 0 2.1-2.1C24 15.9 24 12 24 12s0-3.9-.5-5.8zM9.7 15.5V8.5l6.3 3.5-6.3 3.5z"/></svg>YouTube</span></button>`;
 
-    return `<div class="dropout-row">
-      <span class="dropout-rank">#${rank}</span>
+    const severeCls = rank <= severeRankCutoff ? ' dropout-row--severe' : '';
+
+    return `<div class="dropout-row${severeCls}">
+      <span class="dropout-rank"><span class="dropout-rank-was">${t('off_chart_rank_was')}</span>#${rank}</span>
       <div class="dropout-info">
         <div class="dropout-name">${esc(name)}</div>
         ${sub ? `<div class="dropout-artist">${esc(sub)}</div>` : ''}
@@ -10542,7 +10561,7 @@ function renderOffChart(type, plays, periodStats) {
       </div>
       <div class="dropout-stats">
         <span class="dropout-plays">${tCountHtml('plays', count)}</span>
-        <span class="dropout-wks">${wks} ${tUnit('weeks_full', wks)}</span>
+        <span class="dropout-wks">${tCount('weeks_full', wks)} ${t('film_on_chart')}</span>
       </div>
     </div>`;
   }).join('');

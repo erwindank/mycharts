@@ -8189,16 +8189,33 @@
       display: flex;
       align-items: center;
       gap: 0.5rem;
-      padding: 0.3rem 0;
+      padding: 0.45rem 0;
       border-bottom: 1px solid var(--border);
     }
 
     .dropout-rank {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 1px;
       font-family: var(--font-mono);
-      font-size: 0.6rem;
+      font-size: 0.95rem;
+      font-weight: 700;
       color: var(--text3);
-      min-width: 22px;
+      min-width: 40px;
       flex-shrink: 0;
+      line-height: 1;
+    }
+
+    /* "Was" label — makes clear this is where the entry USED to rank, not
+       where it ranks now (it isn't on the chart anymore). */
+    .dropout-rank-was {
+      font-size: 0.5rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--text3);
+      opacity: 0.65;
     }
 
     .dropout-info {
@@ -8207,7 +8224,8 @@
     }
 
     .dropout-name {
-      font-size: 0.72rem;
+      font-size: 0.88rem;
+      font-weight: 600;
       color: var(--text);
       overflow: hidden;
       text-overflow: ellipsis;
@@ -8216,7 +8234,7 @@
 
     .dropout-artist {
       font-family: var(--font-mono);
-      font-size: 0.56rem;
+      font-size: 0.68rem;
       color: var(--text3);
       overflow: hidden;
       text-overflow: ellipsis;
@@ -8233,14 +8251,29 @@
 
     .dropout-plays {
       font-family: var(--font-mono);
-      font-size: 0.58rem;
+      font-size: 0.72rem;
+      font-weight: 700;
       color: var(--text2);
     }
 
     .dropout-wks {
       font-family: var(--font-mono);
-      font-size: 0.54rem;
+      font-size: 0.64rem;
       color: var(--text3);
+    }
+
+    /* A dropout that fell from a top-tier rank reads as bigger news than one
+       that was already clinging to the bottom of the chart. */
+    .dropout-row--severe {
+      background: rgba(220, 38, 38, 0.05);
+      border-left: 2px solid #ff7070;
+      margin-left: -0.5rem;
+      padding-left: calc(0.5rem - 2px);
+    }
+
+    .dropout-row--severe .dropout-rank {
+      color: #ff7070;
+      font-weight: 700;
     }
 
     .dropout-empty {
@@ -16864,6 +16897,20 @@ body.yellow-light .sk-urg--warning, body.pink-light .sk-urg--warning,
 body.red-light .sk-urg--warning {
   color: #92400e;
   background: rgba(146, 64, 14, 0.07);
+}
+
+/* Off the Chart severe-dropout marker: #ff7070 too light on light backgrounds */
+body.navy-light .dropout-row--severe,   body.purple-light .dropout-row--severe,
+body.yellow-light .dropout-row--severe, body.pink-light .dropout-row--severe,
+body.red-light .dropout-row--severe {
+  background: rgba(220, 38, 38, 0.06);
+  border-left-color: #b91c1c;
+}
+
+body.navy-light .dropout-row--severe .dropout-rank,   body.purple-light .dropout-row--severe .dropout-rank,
+body.yellow-light .dropout-row--severe .dropout-rank, body.pink-light .dropout-row--severe .dropout-rank,
+body.red-light .dropout-row--severe .dropout-rank {
+  color: #b91c1c;
 }
 
 /* At-risk streak items: #e8a020 orange too light on light backgrounds */
