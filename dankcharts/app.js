@@ -15131,22 +15131,15 @@ function renderRecentCard(release, artistName) {
   const label = fmtDate(d);
   const typeKey = 'mb_type_' + (release.type || 'Release').toLowerCase();
   const typeLabel = t(typeKey) || release.type || 'Release';
-  const searchUrl = `https://www.google.com/search?q=${encodeURIComponent(release.title + ' ' + artistName)}`;
   const imgSrc = release.mbid ? `https://coverartarchive.org/release-group/${release.mbid}/front-250` : null;
   const imgHtml = `<img class="upcoming-card-img${imgSrc ? '' : ' upcoming-card-img-pending'}" ${imgSrc ? `src="${imgSrc}" onerror="releaseImgFallback(this)"` : ''} alt="" loading="lazy" data-artist="${esc(artistName)}" data-title="${esc(release.title)}" data-sources="itunes,lastfm">`;
-  // Show play button for Singles (single-song releases) — stopPropagation prevents the card link from firing
-  const isSingle = (release.type || '').toLowerCase() === 'single';
-  const playBtn = isSingle
-    ? `<button class="yt-play-btn upcoming-card-play-btn" data-title="${esc(release.title)}" data-artist="${esc(artistName)}" data-album="" onclick="event.stopPropagation();ytPlayFromBtn(this)" title="Play on YouTube"><span class="yt-btn-content"><svg class="yt-btn-icon" viewBox="0 0 24 24"><path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.5 12 3.5 12 3.5s-7.5 0-9.4.5A3 3 0 0 0 .5 6.2C0 8.1 0 12 0 12s0 3.9.5 5.8a3 3 0 0 0 2.1 2.1c1.9.5 9.4.5 9.4.5s7.5 0 9.4-.5a3 3 0 0 0 2.1-2.1C24 15.9 24 12 24 12s0-3.9-.5-5.8zM9.7 15.5V8.5l6.3 3.5-6.3 3.5z"/></svg>YouTube</span></button>`
-    : '';
-  return `<a class="upcoming-card" href="${searchUrl}" target="_blank" rel="noopener noreferrer">
+  return `<div class="upcoming-card" onclick="_tmShowAlbumMenu(event,${esc(JSON.stringify(release.title))},${esc(JSON.stringify(artistName))})">
     ${imgHtml}
     <div class="upcoming-card-date recent" data-date="${esc(release.date)}">${esc(label)}</div>
     <div class="upcoming-card-title">${esc(release.title)}</div>
     <div class="upcoming-card-artist">${esc(artistName)}</div>
     <div class="upcoming-card-type" data-mbtype="${esc(release.type || 'Release')}">${esc(typeLabel)}</div>
-    ${playBtn}
-  </a>`;
+  </div>`;
 }
 
 function sortRecentReleases(releases) {
@@ -17421,7 +17414,7 @@ function _evNormalize(sectionKey, items) {
       const tl = t('mb_type_' + (release.type || 'Release').toLowerCase()) || release.type || 'Release';
       out.push({ title: release.title, artist: artistName, dateLabel: label, dateSort: release.date,
         artistSort: artistName, typeLabel: tl,
-        releaseAction: true, // unreleased — popup (Spotify/Google) instead of a direct link
+        menuAction: '_relShowMenu', // unreleased — Spotify/Google popup only, never a player option
         imgSrc: release.mbid ? `https://coverartarchive.org/release-group/${release.mbid}/front-250` : null,
         imgAttr: { artist: artistName, title: release.title, sources: 'itunes,lastfm' }, isToday: false });
     }
@@ -17431,7 +17424,7 @@ function _evNormalize(sectionKey, items) {
       out.push({ title: release.title, artist: artistName,
         dateLabel: fmtDate(new Date(release.date + 'T00:00:00')), dateSort: release.date,
         artistSort: artistName, typeLabel: tl,
-        href: `https://www.google.com/search?q=${encodeURIComponent(release.title + ' ' + artistName)}`,
+        menuAction: '_tmShowAlbumMenu', // already released — popup adds a player option if it's been played
         imgSrc: release.mbid ? `https://coverartarchive.org/release-group/${release.mbid}/front-250` : null,
         imgAttr: { artist: artistName, title: release.title, sources: 'itunes,lastfm' }, isToday: false });
     }
@@ -17552,15 +17545,16 @@ function _evRenderSectionByKey(sectionKey, items) {
   else if (mode === 'list') _evList(gridEl, sectionKey, normalized);
 }
 
-// onclick attr for a release-action item (unreleased — Spotify/Google popup, no direct link)
+// onclick attr for a card whose section uses a popup menu instead of a direct link
+// (item.menuAction names the global function to call: _relShowMenu or _tmShowAlbumMenu).
 function _evReleaseClickAttr(item) {
-  return `onclick="_relShowMenu(event,${esc(JSON.stringify(item.title))},${esc(JSON.stringify(item.artist))})"`;
+  return `onclick="${item.menuAction}(event,${esc(JSON.stringify(item.title))},${esc(JSON.stringify(item.artist))})"`;
 }
 
 function _evTable(gridEl, items) {
   gridEl.className = 'ev-table-wrap';
   const rows = items.map(item => {
-    const evCell = item.releaseAction
+    const evCell = item.menuAction
       ? `<span class="ev-tbl-link ev-tbl-link-btn" ${_evReleaseClickAttr(item)}>${esc(item.title)}</span>`
       : `<a class="ev-tbl-link" href="${esc(item.href)}" target="_blank" rel="noopener noreferrer">${esc(item.title)}</a>`;
     return `<tr><td class="ev-tbl-img">${_evImgTag(item, 'ev-tbl-thumb')}</td>` +
@@ -17577,8 +17571,8 @@ function _evCarousel(gridEl, items) {
   gridEl.className = 'ev-carousel-outer';
   const dur = Math.max(20, items.length * 3);
   const card = item => {
-    const tag = item.releaseAction ? 'div' : 'a';
-    const openAttrs = item.releaseAction
+    const tag = item.menuAction ? 'div' : 'a';
+    const openAttrs = item.menuAction
       ? _evReleaseClickAttr(item)
       : `href="${esc(item.href)}" target="_blank" rel="noopener noreferrer"`;
     return `<${tag} class="ev-carousel-card${item.isToday ? ' event-today' : ''}" ${openAttrs}>` +
@@ -17601,8 +17595,8 @@ function _evList(gridEl, sectionKey, items) {
     : typeof a.dateSort === 'string' ? a.dateSort.localeCompare(b.dateSort) : a.dateSort - b.dateSort
   );
   const rows = sorted.map(item => {
-    const tag = item.releaseAction ? 'div' : 'a';
-    const openAttrs = item.releaseAction
+    const tag = item.menuAction ? 'div' : 'a';
+    const openAttrs = item.menuAction
       ? _evReleaseClickAttr(item)
       : `href="${esc(item.href)}" target="_blank" rel="noopener noreferrer"`;
     return `<${tag} class="ev-list-row${item.isToday ? ' event-today' : ''}" ${openAttrs}>` +
@@ -22875,21 +22869,26 @@ function _tmShowEntityMenu(ev, searchQuery, fetchSongs) {
   menu.className = 'tm-action-menu';
 
   function renderMain() {
+    // Only offer the player queue if there's actually play history to queue from —
+    // e.g. a Recent Release the user hasn't listened to yet shouldn't show it.
+    const hasPlays = fetchSongs(1).length > 0;
     menu.innerHTML =
       '<div class="tm-action-menu-arrow"></div>' +
       '<button class="tm-action-menu-item" data-act="spotify">🎧 ' + esc(t('tm_action_spotify')) + '</button>' +
-      '<button class="tm-action-menu-item" data-act="last10">🎵 ' + esc(t('tm_action_last10')) + '</button>' +
+      (hasPlays ? '<button class="tm-action-menu-item" data-act="last10">🎵 ' + esc(t('tm_action_last10')) + '</button>' : '') +
       '<button class="tm-action-menu-item" data-act="google">🔎 ' + esc(t('tm_action_google')) + '</button>';
     menu.querySelector('[data-act="spotify"]').addEventListener('click', (e) => {
       e.stopPropagation();
       window.open('https://open.spotify.com/search/' + q, '_blank', 'noopener');
       _tmCloseMenu();
     });
-    menu.querySelector('[data-act="last10"]').addEventListener('click', (e) => {
-      e.stopPropagation();
-      renderSongs();
-      _tmPositionMenu(menu, card);
-    });
+    if (hasPlays) {
+      menu.querySelector('[data-act="last10"]').addEventListener('click', (e) => {
+        e.stopPropagation();
+        renderSongs();
+        _tmPositionMenu(menu, card);
+      });
+    }
     menu.querySelector('[data-act="google"]').addEventListener('click', (e) => {
       e.stopPropagation();
       window.open('https://www.google.com/search?q=' + q, '_blank', 'noopener');
