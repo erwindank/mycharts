@@ -22625,7 +22625,7 @@ function renderTimeMachine(forceRebuild) {
       const sub = entry.artist + (entry.album && entry.album !== '—' ? ' · ' + entry.album : '');
       const prefKey = 'song:' + entry.artist.toLowerCase() + '|||' + entry.title.toLowerCase();
       songArr.push({ imgId, title: entry.title, artist: entry.artist, album: entry.album, name: entry.title, prefKey });
-      return '<div class="tm-card tm-card-song" data-type="song" onclick="_ytPlayOrQueue(' + esc(JSON.stringify(entry.title)) + ',' + esc(JSON.stringify(entry.artist)) + ',' + esc(JSON.stringify(entry.album)) + ')">' +
+      return '<div class="tm-card tm-card-song" data-type="song" onclick="_tmShowSongMenu(event,' + esc(JSON.stringify(entry.title)) + ',' + esc(JSON.stringify(entry.artist)) + ',' + esc(JSON.stringify(entry.album)) + ')">' +
         '<div class="tm-card-img" id="' + esc(imgId) + '"><div class="thumb-initials">' + esc(initials(entry.title)) + '</div></div>' +
         '<div class="tm-card-info">' +
         '<div class="tm-card-title">' + esc(entry.title) + '</div>' +
@@ -22635,7 +22635,7 @@ function renderTimeMachine(forceRebuild) {
     } else if (entry.type === 'artist') {
       const prefKey = 'artist:' + entry.artist.toLowerCase();
       artistArr.push({ imgId, name: entry.artist, artist: entry.artist, album: '', title: '', prefKey });
-      return '<div class="tm-card tm-card-search" data-type="artist" onclick="window.open(\'https://www.google.com/search?q=\'+encodeURIComponent(' + esc(JSON.stringify(entry.artist)) + '),\'_blank\')">' +
+      return '<div class="tm-card tm-card-search" data-type="artist" onclick="_tmShowArtistMenu(event,' + esc(JSON.stringify(entry.artist)) + ')">' +
         '<div class="tm-card-img" id="' + esc(imgId) + '"><div class="thumb-initials">' + esc(initials(entry.artist)) + '</div></div>' +
         '<div class="tm-card-info">' +
         '<div class="tm-card-title">' + esc(entry.artist) + '</div>' +
@@ -22644,7 +22644,7 @@ function renderTimeMachine(forceRebuild) {
     } else {
       const prefKey = 'album:' + entry.artist.toLowerCase() + '|||' + entry.album.toLowerCase();
       albumArr.push({ imgId, album: entry.album, artist: entry.artist, name: entry.album, title: '', prefKey });
-      return '<div class="tm-card tm-card-search" data-type="album" onclick="window.open(\'https://www.google.com/search?q=\'+encodeURIComponent(' + esc(JSON.stringify(entry.album + ' ' + entry.artist)) + '),\'_blank\')">' +
+      return '<div class="tm-card tm-card-search" data-type="album" onclick="_tmShowAlbumMenu(event,' + esc(JSON.stringify(entry.album)) + ',' + esc(JSON.stringify(entry.artist)) + ')">' +
         '<div class="tm-card-img" id="' + esc(imgId) + '"><div class="thumb-initials">' + esc(initials(entry.album)) + '</div></div>' +
         '<div class="tm-card-info">' +
         '<div class="tm-card-title">' + esc(entry.album) + '</div>' +
@@ -22695,6 +22695,236 @@ function tmToggleType(type) {
   localStorage.setItem('dc_tm_toggles', JSON.stringify(tmToggles));
   if (typeof dcSaveUserConfig === 'function') dcSaveUserConfig();
   renderTimeMachine(true);
+}
+
+// ── Time Machine action menus — tooltip-style popups for song and artist cards ──
+let _tmMenuEl = null;
+
+function _tmCloseMenu() {
+  if (_tmMenuEl) { _tmMenuEl.remove(); _tmMenuEl = null; }
+  const track = document.getElementById('tmTickerTrack');
+  if (track) track.classList.remove('tm-track-paused');
+  document.removeEventListener('click', _tmOutsideMenuClick, true);
+  document.removeEventListener('keydown', _tmMenuKeydown, true);
+  window.removeEventListener('scroll', _tmCloseMenu, true);
+  window.removeEventListener('resize', _tmCloseMenu, true);
+}
+
+function _tmOutsideMenuClick(e) {
+  if (_tmMenuEl && !_tmMenuEl.contains(e.target)) _tmCloseMenu();
+}
+
+function _tmMenuKeydown(e) {
+  if (e.key === 'Escape') _tmCloseMenu();
+}
+
+// Anchors an already-built (and already-appended) menu to its trigger card, as a tooltip:
+// centered above by default, flipping below if there's no room. Re-run after content changes.
+function _tmPositionMenu(menu, card) {
+  menu.classList.remove('tm-action-menu--top', 'tm-action-menu--bottom');
+  const r = card.getBoundingClientRect();
+  const mr = menu.getBoundingClientRect();
+  let placement = 'top';
+  let top = r.top - mr.height - 8;
+  if (top < 8) { top = r.bottom + 8; placement = 'bottom'; }
+  menu.classList.add('tm-action-menu--' + placement);
+
+  let left = r.left + r.width / 2 - mr.width / 2;
+  left = Math.max(8, Math.min(left, window.innerWidth - mr.width - 8));
+  menu.style.top = (top + window.scrollY) + 'px';
+  menu.style.left = (left + window.scrollX) + 'px';
+
+  const arrow = menu.querySelector('.tm-action-menu-arrow');
+  if (arrow) {
+    let arrowLeft = (r.left + r.width / 2) - left;
+    arrowLeft = Math.max(12, Math.min(arrowLeft, mr.width - 12));
+    arrow.style.left = arrowLeft + 'px';
+  }
+}
+
+// Opens `menu` (already filled with its first view) as a tooltip on `card`, wiring up
+// the shared dismiss handlers (outside click, Escape, scroll, resize) and pausing the ticker.
+function _tmOpenMenu(menu, card) {
+  document.body.appendChild(menu);
+  _tmPositionMenu(menu, card);
+
+  const track = document.getElementById('tmTickerTrack');
+  if (track) track.classList.add('tm-track-paused');
+
+  _tmMenuEl = menu;
+  setTimeout(() => {
+    document.addEventListener('click', _tmOutsideMenuClick, true);
+    document.addEventListener('keydown', _tmMenuKeydown, true);
+    window.addEventListener('scroll', _tmCloseMenu, true);
+    window.addEventListener('resize', _tmCloseMenu, true);
+  }, 0);
+}
+
+function _tmShowSongMenu(ev, title, artist, album) {
+  ev.stopPropagation();
+  const card = ev.currentTarget;
+  _tmCloseMenu();
+
+  const q = encodeURIComponent(title + ' ' + artist);
+  const menu = document.createElement('div');
+  menu.className = 'tm-action-menu';
+  menu.innerHTML =
+    '<div class="tm-action-menu-arrow"></div>' +
+    '<button class="tm-action-menu-item" data-act="spotify">🎧 ' + esc(t('tm_action_spotify')) + '</button>' +
+    '<button class="tm-action-menu-item" data-act="player">▶ ' + esc(t('tm_action_player')) + '</button>' +
+    '<button class="tm-action-menu-item" data-act="google">🔎 ' + esc(t('tm_action_google')) + '</button>';
+
+  menu.querySelector('[data-act="spotify"]').addEventListener('click', (e) => {
+    e.stopPropagation();
+    window.open('https://open.spotify.com/search/' + q, '_blank', 'noopener');
+    _tmCloseMenu();
+  });
+  menu.querySelector('[data-act="player"]').addEventListener('click', (e) => {
+    e.stopPropagation();
+    _ytPlayOrQueue(title, artist, album);
+    _tmCloseMenu();
+  });
+  menu.querySelector('[data-act="google"]').addEventListener('click', (e) => {
+    e.stopPropagation();
+    window.open('https://www.google.com/search?q=' + q, '_blank', 'noopener');
+    _tmCloseMenu();
+  });
+
+  _tmOpenMenu(menu, card);
+}
+
+// Most-recently-played songs by an artist, newest first (allPlays is sorted newest-first).
+function _tmArtistLastSongs(artist, limit) {
+  const seen = new Set();
+  const out = [];
+  for (const p of allPlays) {
+    const list = (p.artists && p.artists.length) ? p.artists : [p.artist];
+    if (!list.includes(artist)) continue;
+    const key = p.title.toLowerCase();
+    if (seen.has(key)) continue;
+    seen.add(key);
+    out.push({ title: p.title, artist, album: p.album || '' });
+    if (out.length >= limit) break;
+  }
+  return out;
+}
+
+function _tmQueueToast(n) {
+  const statusEl = document.getElementById('ytMiniStatus');
+  if (!statusEl) return;
+  const msg = t(n === 1 ? 'tm_action_queued_toast_one' : 'tm_action_queued_toast_other', { n });
+  statusEl.textContent = msg;
+  statusEl.className = 'yt-mini-status ok';
+  setTimeout(() => { if (statusEl.textContent === msg) { statusEl.textContent = ''; statusEl.className = 'yt-mini-status'; } }, 2500);
+}
+
+// Shared popup for artist/album cards: Spotify search, a "last 10 songs" sub-view
+// (add one-by-one or all at once), and a Google search. `searchQuery` drives both the
+// Spotify and Google links; `fetchSongs(limit)` supplies the songs for the sub-view.
+function _tmShowEntityMenu(ev, searchQuery, fetchSongs) {
+  ev.stopPropagation();
+  const card = ev.currentTarget;
+  _tmCloseMenu();
+
+  const q = encodeURIComponent(searchQuery);
+  const menu = document.createElement('div');
+  menu.className = 'tm-action-menu';
+
+  function renderMain() {
+    menu.innerHTML =
+      '<div class="tm-action-menu-arrow"></div>' +
+      '<button class="tm-action-menu-item" data-act="spotify">🎧 ' + esc(t('tm_action_spotify')) + '</button>' +
+      '<button class="tm-action-menu-item" data-act="last10">🎵 ' + esc(t('tm_action_last10')) + '</button>' +
+      '<button class="tm-action-menu-item" data-act="google">🔎 ' + esc(t('tm_action_google')) + '</button>';
+    menu.querySelector('[data-act="spotify"]').addEventListener('click', (e) => {
+      e.stopPropagation();
+      window.open('https://open.spotify.com/search/' + q, '_blank', 'noopener');
+      _tmCloseMenu();
+    });
+    menu.querySelector('[data-act="last10"]').addEventListener('click', (e) => {
+      e.stopPropagation();
+      renderSongs();
+      _tmPositionMenu(menu, card);
+    });
+    menu.querySelector('[data-act="google"]').addEventListener('click', (e) => {
+      e.stopPropagation();
+      window.open('https://www.google.com/search?q=' + q, '_blank', 'noopener');
+      _tmCloseMenu();
+    });
+  }
+
+  function renderSongs() {
+    const songs = fetchSongs(10);
+    const backBtn = '<button class="tm-action-menu-back" data-act="back">‹ ' + esc(t('tm_action_last10')) + '</button>';
+    if (!songs.length) {
+      menu.innerHTML = '<div class="tm-action-menu-arrow"></div>' + backBtn +
+        '<div class="tm-action-menu-empty">' + esc(t('tm_action_no_songs')) + '</div>';
+      menu.querySelector('[data-act="back"]').addEventListener('click', (e) => { e.stopPropagation(); renderMain(); _tmPositionMenu(menu, card); });
+      return;
+    }
+    menu.innerHTML =
+      '<div class="tm-action-menu-arrow"></div>' + backBtn +
+      '<button class="tm-action-menu-item tm-action-menu-addall" data-act="addall">➕ ' + esc(t('tm_action_add_all')) + '</button>' +
+      '<div class="tm-action-menu-songs">' +
+      songs.map((s, i) => '<div class="tm-action-menu-song">' +
+        '<span class="tm-action-menu-song-title">' + esc(s.title) + '</span>' +
+        '<button class="tm-action-menu-song-add" data-i="' + i + '" title="' + esc(t('tm_action_add_one')) + '">+</button>' +
+        '</div>').join('') +
+      '</div>';
+
+    menu.querySelector('[data-act="back"]').addEventListener('click', (e) => { e.stopPropagation(); renderMain(); _tmPositionMenu(menu, card); });
+    menu.querySelector('[data-act="addall"]').addEventListener('click', (e) => {
+      e.stopPropagation();
+      const playerEl = document.getElementById('ytMiniPlayer');
+      const playerActive = _ytCurrentTrack && playerEl && playerEl.style.display !== 'none';
+      let toQueue = songs;
+      if (!playerActive) {
+        // Nothing playing yet — open the player on the first song instead of silently queuing it.
+        const [first, ...rest] = songs;
+        openYtPlayer(first.title, first.artist, first.album, null);
+        toQueue = rest;
+      }
+      toQueue.forEach(s => _ytQueue.push({ title: s.title, artist: s.artist, album: s.album, btn: null }));
+      _ytUpdateQueueDisplay();
+      _ytSaveQueue();
+      _tmQueueToast(songs.length);
+      _tmCloseMenu();
+    });
+    menu.querySelectorAll('.tm-action-menu-song-add').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const s = songs[+btn.dataset.i];
+        _ytStreakPlay(s.title, s.artist);
+      });
+    });
+  }
+
+  renderMain();
+  _tmOpenMenu(menu, card);
+}
+
+function _tmShowArtistMenu(ev, artist) {
+  _tmShowEntityMenu(ev, artist, (limit) => _tmArtistLastSongs(artist, limit));
+}
+
+// Most-recently-played songs from an album (by this artist), newest first.
+function _tmAlbumLastSongs(album, artist, limit) {
+  const seen = new Set();
+  const out = [];
+  for (const p of allPlays) {
+    if (!p.album || p.album.toLowerCase() !== album.toLowerCase()) continue;
+    if (albumArtist(p).toLowerCase() !== artist.toLowerCase()) continue;
+    const key = p.title.toLowerCase();
+    if (seen.has(key)) continue;
+    seen.add(key);
+    out.push({ title: p.title, artist, album });
+    if (out.length >= limit) break;
+  }
+  return out;
+}
+
+function _tmShowAlbumMenu(ev, album, artist) {
+  _tmShowEntityMenu(ev, album + ' ' + artist, (limit) => _tmAlbumLastSongs(album, artist, limit));
 }
 
 // ─── AWARDS ──────────────────────────────────────────────────────────────────

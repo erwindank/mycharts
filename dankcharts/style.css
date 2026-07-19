@@ -13499,6 +13499,155 @@ body[class*="-light"] .tm-card-search:hover {
   font-family: var(--font-mono);
 }
 
+.tm-track-paused {
+  animation-play-state: paused !important;
+}
+
+/* Tooltip-style popup for Time Machine card actions (Spotify / player / Google / last-10-songs) */
+.tm-action-menu {
+  position: absolute;
+  z-index: 4000;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 176px;
+  max-width: 240px;
+  background: var(--surface2, var(--bg3));
+  border: 1px solid var(--border-t);
+  border-radius: var(--r-md);
+  box-shadow: var(--shadow-3);
+  padding: 5px;
+  animation: tm-menu-pop 0.14s var(--ease);
+}
+
+@keyframes tm-menu-pop {
+  from { opacity: 0; transform: translateY(2px) scale(0.96); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.tm-action-menu-arrow {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  background: var(--surface2, var(--bg3));
+  transform: rotate(45deg);
+}
+
+.tm-action-menu--top .tm-action-menu-arrow {
+  bottom: -6px;
+  border-right: 1px solid var(--border-t);
+  border-bottom: 1px solid var(--border-t);
+}
+
+.tm-action-menu--bottom .tm-action-menu-arrow {
+  top: -6px;
+  border-left: 1px solid var(--border-t);
+  border-top: 1px solid var(--border-t);
+}
+
+.tm-action-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 10px;
+  border: none;
+  border-radius: var(--r-sm);
+  background: transparent;
+  color: var(--text);
+  font-family: inherit;
+  font-size: 0.74rem;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+  transition: background var(--t-fast) var(--ease), color var(--t-fast) var(--ease);
+}
+
+.tm-action-menu-item:hover {
+  background: var(--border-t);
+  color: var(--accent);
+}
+
+.tm-action-menu-back {
+  display: block;
+  width: 100%;
+  border: none;
+  border-radius: var(--r-sm);
+  background: transparent;
+  color: var(--text3);
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  text-align: left;
+  padding: 5px 8px 6px;
+  margin-bottom: 2px;
+  border-bottom: 1px solid var(--border-t);
+  cursor: pointer;
+  transition: color var(--t-fast) var(--ease);
+}
+
+.tm-action-menu-back:hover {
+  color: var(--accent);
+}
+
+.tm-action-menu-addall {
+  border-bottom: 1px solid var(--border-t);
+  border-radius: var(--r-sm) var(--r-sm) 0 0;
+  margin-bottom: 2px;
+}
+
+.tm-action-menu-songs {
+  display: flex;
+  flex-direction: column;
+  max-height: 240px;
+  overflow-y: auto;
+}
+
+.tm-action-menu-song {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 8px;
+}
+
+.tm-action-menu-song-title {
+  flex: 1;
+  min-width: 0;
+  font-size: 0.7rem;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.tm-action-menu-song-add {
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--border-t);
+  border-radius: 50%;
+  background: transparent;
+  color: var(--text3);
+  font-size: 0.85rem;
+  line-height: 1;
+  cursor: pointer;
+  transition: background var(--t-fast) var(--ease), color var(--t-fast) var(--ease), border-color var(--t-fast) var(--ease);
+}
+
+.tm-action-menu-song-add:hover {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--bg);
+}
+
+.tm-action-menu-empty {
+  padding: 8px 10px 10px;
+  font-size: 0.7rem;
+  color: var(--text3);
+  font-family: var(--font-mono);
+}
+
 /* ─── AWARDS ────────────────────────────────────────────────────────────────── */
 
 .awards-subnav {
