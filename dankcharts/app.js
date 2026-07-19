@@ -4771,6 +4771,9 @@ document.getElementById('periodNav').addEventListener('click', e => {
     localStorage.setItem('dc_period', currentPeriod);
     document.getElementById('collapseAllBar').style.display = 'none';
     document.getElementById('chartTypeToggleBar').style.display = 'none';
+    document.getElementById('subChartToggleBar-songs').style.display = 'none';
+    document.getElementById('subChartToggleBar-artists').style.display = 'none';
+    document.getElementById('subChartToggleBar-albums').style.display = 'none';
     document.getElementById('exportPlaylistBtn').style.display = 'none';
     document.getElementById('dateNav').style.display = 'none';
     document.getElementById('navHint').style.display = 'none';
@@ -4812,6 +4815,9 @@ document.getElementById('periodNav').addEventListener('click', e => {
     localStorage.setItem('dc_period', currentPeriod);
     document.getElementById('collapseAllBar').style.display = 'none';
     document.getElementById('chartTypeToggleBar').style.display = 'none';
+    document.getElementById('subChartToggleBar-songs').style.display = 'none';
+    document.getElementById('subChartToggleBar-artists').style.display = 'none';
+    document.getElementById('subChartToggleBar-albums').style.display = 'none';
     document.getElementById('exportPlaylistBtn').style.display = 'none';
     document.getElementById('dateNav').style.display = 'none';
     document.getElementById('navHint').style.display = 'none';
@@ -4847,6 +4853,9 @@ document.getElementById('periodNav').addEventListener('click', e => {
     localStorage.setItem('dc_period', currentPeriod);
     document.getElementById('collapseAllBar').style.display = 'none';
     document.getElementById('chartTypeToggleBar').style.display = 'none';
+    document.getElementById('subChartToggleBar-songs').style.display = 'none';
+    document.getElementById('subChartToggleBar-artists').style.display = 'none';
+    document.getElementById('subChartToggleBar-albums').style.display = 'none';
     document.getElementById('exportPlaylistBtn').style.display = 'none';
     document.getElementById('dateNav').style.display = 'none';
     document.getElementById('navHint').style.display = 'none';
@@ -4885,6 +4894,9 @@ document.getElementById('periodNav').addEventListener('click', e => {
     localStorage.setItem('dc_period', currentPeriod);
     document.getElementById('collapseAllBar').style.display = 'none';
     document.getElementById('chartTypeToggleBar').style.display = 'none';
+    document.getElementById('subChartToggleBar-songs').style.display = 'none';
+    document.getElementById('subChartToggleBar-artists').style.display = 'none';
+    document.getElementById('subChartToggleBar-albums').style.display = 'none';
     document.getElementById('exportPlaylistBtn').style.display = 'none';
     document.getElementById('dateNav').style.display = 'none';
     document.getElementById('navHint').style.display = 'none';
@@ -4936,6 +4948,9 @@ document.getElementById('periodNav').addEventListener('click', e => {
     localStorage.setItem('dc_period', currentPeriod);
     document.getElementById('collapseAllBar').style.display = 'none';
     document.getElementById('chartTypeToggleBar').style.display = 'none';
+    document.getElementById('subChartToggleBar-songs').style.display = 'none';
+    document.getElementById('subChartToggleBar-artists').style.display = 'none';
+    document.getElementById('subChartToggleBar-albums').style.display = 'none';
     document.getElementById('exportPlaylistBtn').style.display = 'none';
     document.getElementById('dateNav').style.display = 'none';
     document.getElementById('navHint').style.display = 'none';
@@ -4972,6 +4987,9 @@ document.getElementById('periodNav').addEventListener('click', e => {
     localStorage.setItem('dc_period', currentPeriod);
     document.getElementById('collapseAllBar').style.display = 'none';
     document.getElementById('chartTypeToggleBar').style.display = 'none';
+    document.getElementById('subChartToggleBar-songs').style.display = 'none';
+    document.getElementById('subChartToggleBar-artists').style.display = 'none';
+    document.getElementById('subChartToggleBar-albums').style.display = 'none';
     document.getElementById('exportPlaylistBtn').style.display = 'none';
     document.getElementById('dateNav').style.display = 'none';
     document.getElementById('navHint').style.display = 'none';
@@ -5010,6 +5028,9 @@ document.getElementById('periodNav').addEventListener('click', e => {
     localStorage.setItem('dc_period', currentPeriod);
     document.getElementById('collapseAllBar').style.display = 'none';
     document.getElementById('chartTypeToggleBar').style.display = 'none';
+    document.getElementById('subChartToggleBar-songs').style.display = 'none';
+    document.getElementById('subChartToggleBar-artists').style.display = 'none';
+    document.getElementById('subChartToggleBar-albums').style.display = 'none';
     document.getElementById('exportPlaylistBtn').style.display = 'none';
     document.getElementById('dateNav').style.display = 'none';
     document.getElementById('navHint').style.display = 'none';
@@ -5061,6 +5082,9 @@ document.getElementById('periodNav').addEventListener('click', e => {
     localStorage.setItem('dc_period', currentPeriod);
     document.getElementById('collapseAllBar').style.display = 'none';
     document.getElementById('chartTypeToggleBar').style.display = 'none';
+    document.getElementById('subChartToggleBar-songs').style.display = 'none';
+    document.getElementById('subChartToggleBar-artists').style.display = 'none';
+    document.getElementById('subChartToggleBar-albums').style.display = 'none';
     document.getElementById('exportPlaylistBtn').style.display = 'none';
     document.getElementById('dateNav').style.display = 'none';
     document.getElementById('navHint').style.display = 'none';
@@ -6031,6 +6055,10 @@ function renderAll() {
     ['week', 'month', 'year', 'alltime'].includes(currentPeriod) ? 'flex' : 'none';
   document.getElementById('chartTypeToggleBar').style.display =
     ['week', 'month', 'year', 'alltime'].includes(currentPeriod) ? 'flex' : 'none';
+  const _subChartBarDisplay = ['week', 'month', 'year', 'alltime'].includes(currentPeriod) ? '' : 'none';
+  document.getElementById('subChartToggleBar-songs').style.display = _subChartBarDisplay;
+  document.getElementById('subChartToggleBar-artists').style.display = _subChartBarDisplay;
+  document.getElementById('subChartToggleBar-albums').style.display = _subChartBarDisplay;
   applyChartTypeView();
   const _isWeek = currentPeriod === 'week';
   ['songs','artists','albums'].forEach(tp => {
