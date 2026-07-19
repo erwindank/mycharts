@@ -15004,8 +15004,8 @@ function sortUpcomingReleases(releases) {
 async function loadUpcomingReleases(forceRefresh = false) {
   if (!allPlays.length) return;
 
-  // Show the section only on chart tabs (not events/graphs/rawdata/records/awards/alltime/year)
-  if (!['events', 'graphs', 'rawdata', 'records', 'awards', 'alltime', 'year'].includes(currentPeriod)) {
+  // Show the section only on chart tabs (not events/graphs/rawdata/records/awards/alltime/year/soundtrack)
+  if (!['events', 'graphs', 'rawdata', 'records', 'awards', 'alltime', 'year', 'soundtrack'].includes(currentPeriod)) {
     const el = document.getElementById('upcomingSection');
     el.style.display = '';
     const savedCollapsed = localStorage.getItem('dc_section_collapsed_upcomingSection') === '1';
@@ -15150,8 +15150,8 @@ function sortRecentReleases(releases) {
 async function loadRecentReleases(forceRefresh = false) {
   if (!allPlays.length) return;
 
-  // Show the section only on chart tabs (not events/graphs/rawdata/records/awards/alltime/year)
-  if (!['events', 'graphs', 'rawdata', 'records', 'awards', 'alltime', 'year'].includes(currentPeriod)) {
+  // Show the section only on chart tabs (not events/graphs/rawdata/records/awards/alltime/year/soundtrack)
+  if (!['events', 'graphs', 'rawdata', 'records', 'awards', 'alltime', 'year', 'soundtrack'].includes(currentPeriod)) {
     const el = document.getElementById('recentSection');
     el.style.display = '';
     const savedCollapsed = localStorage.getItem('dc_section_collapsed_recentSection') === '1';
@@ -24119,6 +24119,11 @@ let stMonth = tzNow().getMonth() + 1;
 let _stCurrentPlays = [];
 let _stReplayTimer = null;
 let _stCardMode = null;
+let _stMilestonesCount = 0;
+let _stBubbleTimer = null;
+let _stBubbleSeeds = [];
+let _stBubbleQueue = [];
+let _stBubbleUid = 0;
 
 function stGetPeriodPlays() {
   if (stPeriodType === 'alltime') return allPlays.slice();
@@ -24178,7 +24183,13 @@ function renderSoundtrack() {
   if (heroPeriod) {
     const label = stGetPeriodLabel();
     heroPeriod.textContent = label;
+    heroPeriod.setAttribute('data-text', label); // mirrored by the ::before stencil-echo effect
     heroPeriod.classList.toggle('st-hero-period--long', label.length > 7);
+  }
+  const heroSubtitle = document.getElementById('stHeroSubtitle');
+  if (heroSubtitle) {
+    heroSubtitle.textContent = stPeriodType === 'alltime' ? t('st_subtitle_alltime') :
+      stPeriodType === 'month' ? t('st_subtitle_month') : t('st_subtitle_year');
   }
 
   stRenderStats(plays);
@@ -24249,17 +24260,31 @@ function stCountUp(id, target) {
 
 // ── Stats strip ───────────────────────────────────────────────
 function stRenderStats(plays) {
-  const ids = ['stStatPlaysVal','stStatDaysVal','stStatArtistsVal','stStatNewVal','stStatStreakVal'];
-  if (!plays.length) { ids.forEach(id => { const el = document.getElementById(id); if (el) el.textContent = '0'; }); return; }
+  const ids = ['stStatPlaysVal','stStatDaysVal','stStatArtistsVal','stStatNewVal'];
+  if (!plays.length) {
+    ids.forEach(id => { const el = document.getElementById(id); if (el) el.textContent = '0'; });
+    const peakEl = document.getElementById('stStatPeakVal'); if (peakEl) peakEl.textContent = '—';
+    const peakNoteEl = document.getElementById('stStatPeakNote'); if (peakNoteEl) peakNoteEl.textContent = '';
+    return;
+  }
 
-  const daySet = new Set(plays.map(p => { const d = tzDate(p.date); return `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`; }));
+  const dayCounts = {};
+  for (const p of plays) {
+    const d = tzDate(p.date);
+    const dk = `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
+    (dayCounts[dk] || (dayCounts[dk] = { count: 0, date: d })).count++;
+  }
+  const daySet = new Set(Object.keys(dayCounts));
   const artistSet = new Set(plays.map(p => p.artist.toLowerCase()));
 
-  // New discoveries: artists whose first-ever play falls in this period
+  // New discoveries: each comma-split artist whose first-ever play falls in
+  // this period, counted individually — same splitting rules (incl. hardwired
+  // exceptions like "Tyler, The Creator") as the main charts use.
   const fsMap = stGetFirstSeenArtists();
+  const splitArtistSet = new Set(plays.flatMap(p => p.artists || splitArtists(p.artist)));
   let newCount = 0;
-  for (const ak of artistSet) {
-    const fd = fsMap[ak];
+  for (const a of splitArtistSet) {
+    const fd = fsMap[a];
     if (!fd) continue;
     const ftz = tzDate(fd);
     const inPeriod = stPeriodType === 'alltime' ? true :
@@ -24268,37 +24293,37 @@ function stRenderStats(plays) {
     if (inPeriod) newCount++;
   }
 
-  // Best streak within period
-  const sortedDays = [...daySet].sort();
-  let best = sortedDays.length ? 1 : 0, cur = 1;
-  for (let i = 1; i < sortedDays.length; i++) {
-    const [ay, am, ad] = sortedDays[i-1].split('-').map(Number);
-    const [by, bm, bd] = sortedDays[i].split('-').map(Number);
-    const diff = Math.round((new Date(by, bm, bd) - new Date(ay, am, ad)) / 86400000);
-    cur = diff === 1 ? cur + 1 : 1;
-    if (cur > best) best = cur;
+  // Peak day: the single busiest day within the period
+  let peakDay = null;
+  for (const dk of daySet) {
+    if (!peakDay || dayCounts[dk].count > dayCounts[peakDay].count) peakDay = dk;
   }
 
   stCountUp('stStatPlaysVal', plays.length);
   stCountUp('stStatDaysVal', daySet.size);
   stCountUp('stStatArtistsVal', artistSet.size);
   stCountUp('stStatNewVal', newCount);
-  stCountUp('stStatStreakVal', best);
+
+  const peakEl = document.getElementById('stStatPeakVal');
+  const peakNoteEl = document.getElementById('stStatPeakNote');
+  if (peakEl && peakDay) {
+    const pd = dayCounts[peakDay].date;
+    peakEl.textContent = `${t(ST_MONTH_KEYS[pd.getMonth()]).substring(0, 3)} ${pd.getDate()}`;
+    if (peakNoteEl) peakNoteEl.textContent = `${dayCounts[peakDay].count.toLocaleString()} ${tUnit('plays', dayCounts[peakDay].count)}`;
+  }
 
   const noteEl = document.getElementById('stStatPlaysNote');
   if (noteEl) noteEl.textContent = daySet.size > 0 ? `~${Math.round(plays.length / daySet.size).toLocaleString()}/day` : '';
 }
 
+// Reuses the app's canonical first-seen map (built from each play's already
+// comma-split .artists list, same as the New Entries/"NEW" badges on the
+// main charts) so a discovery counts per individual artist, not per raw
+// "Artist A, Artist B" credit string — with the same hardwired exceptions
+// (e.g. "Tyler, The Creator") that splitArtists() respects everywhere else.
 function stGetFirstSeenArtists() {
-  if (firstSeenMaps && firstSeenMaps.artist) return firstSeenMaps.artist;
-  const map = {};
-  const sorted = [...allPlays].sort((a, b) => a.date - b.date);
-  for (const p of sorted) {
-    const ak = p.artist.toLowerCase();
-    if (!map[ak]) map[ak] = p.date;
-  }
-  if (!firstSeenMaps) firstSeenMaps = { artist: map, song: {} };
-  return map;
+  if (!firstSeenMaps || !firstSeenMaps.artistFirst) firstSeenMaps = buildFirstSeenMaps();
+  return firstSeenMaps.artistFirst;
 }
 
 // ── Top 5 Artists + Songs ─────────────────────────────────────
@@ -24320,7 +24345,7 @@ function stRenderTopCharts(plays) {
   const rankIcon = i => ['🥇','🥈','🥉','4','5'][i];
 
   const artistHTML = topArtists.length ? topArtists.map(([name, count], i) => `
-    <div class="st-top-item${i === 0 ? ' st-rank-1' : ''}">
+    <div class="st-top-item${i === 0 ? ' st-rank-1' : ''}" style="--i:${i}">
       <span class="st-top-rank">${rankIcon(i)}</span>
       <div class="st-top-info">
         <div class="st-top-name">${esc(name)}</div>
@@ -24330,7 +24355,7 @@ function stRenderTopCharts(plays) {
     </div>`).join('') : `<div class="st-empty">${t('st_no_data')}</div>`;
 
   const songHTML = topSongs.length ? topSongs.map((s, i) => `
-    <div class="st-top-item${i === 0 ? ' st-rank-1' : ''}">
+    <div class="st-top-item${i === 0 ? ' st-rank-1' : ''}" style="--i:${i}">
       <span class="st-top-rank">${rankIcon(i)}</span>
       <div class="st-top-info">
         <div class="st-top-name">${esc(s.title)}</div>
@@ -24420,28 +24445,76 @@ function stRenderLoyalty(plays) {
     return;
   }
 
-  const topN = ps => {
+  const topCounts = ps => {
     const counts = {};
     for (const p of ps) counts[p.artist.toLowerCase()] = (counts[p.artist.toLowerCase()] || 0) + 1;
-    return new Set(Object.entries(counts).sort((a, b) => b[1] - a[1]).slice(0, 10).map(([a]) => a));
+    return counts;
   };
+  const topSet = counts => new Set(Object.entries(counts).sort((a, b) => b[1] - a[1]).slice(0, 10).map(([a]) => a));
 
-  const prevTop = topN(prevPlays);
-  const curTop = topN(plays);
-  let returning = 0;
-  for (const a of curTop) if (prevTop.has(a)) returning++;
+  const prevCounts = topCounts(prevPlays);
+  const curCounts = topCounts(plays);
+  const prevTop = topSet(prevCounts);
+  const curTop = topSet(curCounts);
+  const returningKeys = [...curTop].filter(a => prevTop.has(a));
+  const returning = returningKeys.length;
 
   const total = Math.min(curTop.size, 10);
   const score = total ? Math.round(returning / total * 100) : 0;
   const label = score >= 80 ? t('st_loyalty_die_hard') : score >= 60 ? t('st_loyalty_loyal') : score >= 40 ? t('st_loyalty_mixed') : t('st_loyalty_explorer');
 
+  // Original-cased display name for each lowercased artist key
+  const nameByKey = {};
+  for (const p of plays) { const ak = p.artist.toLowerCase(); if (!nameByKey[ak]) nameByKey[ak] = p.artist; }
+
+  // For each returning artist: this period's top 5 songs with play counts
+  const returningArtists = returningKeys
+    .sort((a, b) => curCounts[b] - curCounts[a])
+    .map(ak => {
+      const name = nameByKey[ak] || ak;
+      const songCounts = {};
+      for (const p of plays) {
+        if (p.artist.toLowerCase() !== ak) continue;
+        const sk = songKey(p);
+        if (!songCounts[sk]) songCounts[sk] = { title: p.title, count: 0 };
+        songCounts[sk].count++;
+      }
+      const topSongs = Object.values(songCounts).sort((a, b) => b.count - a.count).slice(0, 5);
+      return { name, plays: curCounts[ak], topSongs };
+    });
+
   el.innerHTML = `
     <div class="st-loyalty-score">
-      <div class="st-loyalty-pct">${score}%</div>
+      <div class="st-loyalty-ring" style="--pct:${score}">
+        <div class="st-loyalty-pct">${score}%</div>
+      </div>
       <div class="st-loyalty-verdict">${label}</div>
       <div class="st-loyalty-sub">${t('st_loyalty_sub', { n: returning, year: prevYear })}</div>
     </div>
-    <div class="st-loyalty-bar-wrap"><div class="st-loyalty-bar" style="width:${score}%"></div></div>`;
+    ${returningArtists.length ? `
+    <div class="st-loyalty-artists-title">${t('st_loyalty_artists_title')}</div>
+    <div class="st-loyalty-artists">
+      ${returningArtists.map((a, i) => `
+        <div class="st-loyalty-artist" style="--i:${i}">
+          <div class="st-loyalty-artist-head">
+            <div class="st-loyalty-artist-avatar" id="stLoyaltyImg${i}"></div>
+            <div class="st-loyalty-artist-meta">
+              <div class="st-loyalty-artist-name">${esc(a.name)}</div>
+              <div class="st-loyalty-artist-plays">${a.plays.toLocaleString()} ${tUnit('plays', a.plays)}</div>
+            </div>
+          </div>
+          <div class="st-loyalty-artist-songs">
+            ${a.topSongs.map(s => `<div class="st-loyalty-song"><span class="st-loyalty-song-title">${esc(s.title)}</span><span class="st-loyalty-song-count">${s.count.toLocaleString()}</span></div>`).join('')}
+          </div>
+        </div>`).join('')}
+    </div>` : ''}`;
+
+  returningArtists.forEach((a, i) => {
+    getArtistImage(a.name, 'deezer').then(url => {
+      const imgEl = document.getElementById('stLoyaltyImg' + i);
+      if (imgEl) imgEl.innerHTML = thumbHtml(url, a.name, false);
+    });
+  });
 }
 
 // ── New Discoveries ───────────────────────────────────────────
@@ -24452,17 +24525,20 @@ function stRenderDiscoveries(plays) {
   const discovered = [];
   const seen = new Set();
 
+  // Each comma-split artist is its own discovery (honoring the hardwired
+  // exceptions in splitArtists), not the raw "Artist A, Artist B" credit.
   for (const p of plays) {
-    const ak = p.artist.toLowerCase();
-    if (seen.has(ak)) continue;
-    seen.add(ak);
-    const fd = fsMap[ak];
-    if (!fd) continue;
-    const ftz = tzDate(fd);
-    const inPeriod = stPeriodType === 'alltime' ? true :
-      stPeriodType === 'year' ? ftz.getFullYear() === stYear :
-      ftz.getFullYear() === stYear && (ftz.getMonth() + 1) === stMonth;
-    if (inPeriod) discovered.push({ artist: p.artist, date: fd });
+    for (const artist of (p.artists || splitArtists(p.artist))) {
+      if (seen.has(artist)) continue;
+      seen.add(artist);
+      const fd = fsMap[artist];
+      if (!fd) continue;
+      const ftz = tzDate(fd);
+      const inPeriod = stPeriodType === 'alltime' ? true :
+        stPeriodType === 'year' ? ftz.getFullYear() === stYear :
+        ftz.getFullYear() === stYear && (ftz.getMonth() + 1) === stMonth;
+      if (inPeriod) discovered.push({ artist, date: fd });
+    }
   }
 
   discovered.sort((a, b) => a.date - b.date);
@@ -24472,13 +24548,223 @@ function stRenderDiscoveries(plays) {
     return;
   }
 
-  const top = discovered.slice(0, 12);
+  // Weight the top 20% of discoveries by this period's play count so their
+  // bubbles reappear more often in the animated loop than the rest.
+  const playCountByArtist = {};
+  for (const p of plays) {
+    for (const artist of (p.artists || splitArtists(p.artist))) {
+      playCountByArtist[artist] = (playCountByArtist[artist] || 0) + 1;
+    }
+  }
+  discovered.forEach(d => { d.count = playCountByArtist[d.artist] || 0; });
+  const topCutoff = Math.max(1, Math.round(discovered.length * 0.2));
+  const featuredSet = new Set([...discovered].sort((a, b) => b.count - a.count).slice(0, topCutoff).map(d => d.artist));
+  discovered.forEach(d => { d.weight = featuredSet.has(d.artist) ? 3 : 1; });
+
   el.innerHTML = `
     <div class="st-discoveries-count">${t('st_discoveries_count', { n: discovered.length })}</div>
-    <div class="st-discoveries-list">
-      ${top.map(d => `<div class="st-discovery-item">✨ ${esc(d.artist)}</div>`).join('')}
-      ${discovered.length > 12 ? `<div class="st-discovery-more">+${discovered.length - 12} ${t('st_discoveries_more')}</div>` : ''}
-    </div>`;
+    <div class="st-bubbles" id="stDiscoveriesBubbles"></div>`;
+
+  stStartBubbles(discovered);
+}
+
+// ── Discoveries "bubble tank" — floating artist portraits that rise,
+// fade out at the top, and get recycled so the whole discovered list
+// (not just the first dozen) keeps cycling through for as long as the
+// section stays on screen. ──────────────────────────────────────────
+function stShuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+// Repeats each item `weight` times (default 1) before shuffling, so a
+// weighted item comes up proportionally more often over one full cycle
+// of the deck — used to make top-played discoveries reappear more.
+function stBuildWeightedDeck(items) {
+  const deck = [];
+  for (const item of items) {
+    const w = item.weight || 1;
+    for (let i = 0; i < w; i++) deck.push(item);
+  }
+  return stShuffle(deck);
+}
+
+function stSpawnBubble(container, artist, isStatic) {
+  const uid = 'stBubble' + (_stBubbleUid++);
+  const size = 64 + Math.floor(Math.random() * 40);   // 64–104px, for a bit of depth variety
+  const dur = (13 + Math.random() * 6).toFixed(1);     // 13–19s rise
+  const drift = Math.round(Math.random() * 50 - 25);   // -25..25px sideways sway
+  const x = (5 + Math.random() * 90).toFixed(1);       // keep clear of the edges
+
+  const bubble = document.createElement('div');
+  bubble.className = 'st-bubble';
+  bubble.style.setProperty('--size', size + 'px');
+  bubble.style.setProperty('--x', x + '%');
+  bubble.style.setProperty('--drift', drift + 'px');
+  bubble.style.setProperty('--dur', dur + 's');
+  bubble.setAttribute('role', 'button');
+  bubble.setAttribute('tabindex', '0');
+  bubble.setAttribute('aria-label', artist);
+  bubble.innerHTML = `<div class="st-bubble-avatar" id="${uid}"></div><div class="st-bubble-name">${esc(artist)}</div>`;
+  container.appendChild(bubble);
+
+  if (!isStatic) bubble.addEventListener('animationend', () => bubble.remove());
+
+  bubble.addEventListener('click', () => stPopBubble(bubble, artist));
+  bubble.addEventListener('keydown', e => {
+    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); stPopBubble(bubble, artist); }
+  });
+
+  getArtistImage(artist, 'deezer').then(url => {
+    const avatarEl = document.getElementById(uid);
+    if (avatarEl) avatarEl.innerHTML = thumbHtml(url, artist, false);
+  });
+}
+
+// Tapping/clicking a bubble "pops" it (a quick scale-and-ring burst, skipped
+// under prefers-reduced-motion) and opens the artist detail modal, scoped to
+// whatever period is currently rendered (_stCurrentPlays) — a discovery and
+// its stats should describe the same window.
+function stPopBubble(bubble, artist) {
+  if (bubble.dataset.popped) return;
+  bubble.dataset.popped = '1';
+  const reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (reduceMotion) {
+    bubble.remove();
+    stOpenArtistModal(artist);
+    return;
+  }
+  bubble.classList.add('st-bubble-pop');
+  setTimeout(() => bubble.remove(), 450);
+  setTimeout(() => stOpenArtistModal(artist), 200);
+}
+
+function stOpenArtistModal(artist) {
+  const modal = document.getElementById('stArtistModal');
+  if (!modal) return;
+
+  const artistPlays = _stCurrentPlays.filter(p => (p.artists || splitArtists(p.artist)).includes(artist));
+  const totalPlays = artistPlays.length;
+
+  const songCounts = {};
+  for (const p of artistPlays) {
+    const sk = songKey(p);
+    if (!songCounts[sk]) songCounts[sk] = { title: p.title, count: 0 };
+    songCounts[sk].count++;
+  }
+  const topSongs = Object.values(songCounts).sort((a, b) => b.count - a.count).slice(0, 10);
+
+  const albumCounts = {};
+  for (const p of artistPlays) {
+    if (!p.album || p.album === '—') continue;
+    if (!albumCounts[p.album]) albumCounts[p.album] = { album: p.album, count: 0 };
+    albumCounts[p.album].count++;
+  }
+  const topAlbums = Object.values(albumCounts).sort((a, b) => b.count - a.count);
+
+  const dayCounts = {};
+  for (const p of artistPlays) {
+    const dk = localDateStr(tzDate(p.date));
+    dayCounts[dk] = (dayCounts[dk] || 0) + 1;
+  }
+  const days = Object.keys(dayCounts).sort();
+  const activeDays = days.length;
+  let longestStreak = days.length ? 1 : 0, curStreak = 1;
+  for (let i = 1; i < days.length; i++) {
+    const diff = Math.round((new Date(days[i]) - new Date(days[i - 1])) / 86400000);
+    curStreak = diff === 1 ? curStreak + 1 : 1;
+    if (curStreak > longestStreak) longestStreak = curStreak;
+  }
+  let peakDay = null;
+  for (const dk of days) { if (!peakDay || dayCounts[dk] > dayCounts[peakDay]) peakDay = dk; }
+
+  const discoveredDs = artistPlays.length ? localDateStr(tzDate(new Date(Math.min(...artistPlays.map(p => +p.date))))) : null;
+
+  // Rank among all artists this period (individual, comma-split — same rule New Discoveries uses)
+  const periodArtistCounts = {};
+  for (const p of _stCurrentPlays) {
+    for (const a of (p.artists || splitArtists(p.artist))) periodArtistCounts[a] = (periodArtistCounts[a] || 0) + 1;
+  }
+  const rank = Object.entries(periodArtistCounts).sort((a, b) => b[1] - a[1]).findIndex(([a]) => a === artist) + 1;
+
+  document.getElementById('stArtistModalName').textContent = artist;
+  document.getElementById('stArtistModalSub').textContent = `${t('st_discoveries_title')} · ${stGetPeriodLabel()}`;
+
+  const avatarEl = document.getElementById('stArtistModalAvatar');
+  const cachedImg = imgCache['artist:' + artist.toLowerCase() + ':deezer'];
+  avatarEl.innerHTML = cachedImg ? thumbHtml(cachedImg, artist, false) : `<div class="thumb-initials">${esc(initials(artist))}</div>`;
+  if (!cachedImg) {
+    getArtistImage(artist, 'deezer').then(url => {
+      if (document.getElementById('stArtistModalName')?.textContent === artist) avatarEl.innerHTML = thumbHtml(url, artist, false);
+    });
+  }
+
+  const fmtDay = ds => new Date(ds + 'T12:00:00').toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+
+  const body = document.getElementById('stArtistModalBody');
+  body.innerHTML = `
+    <div class="modal-stats-strip">
+      <div class="modal-stat"><div class="se">▶</div><div class="sv" data-countup="${totalPlays}">${totalPlays.toLocaleString()}</div><div class="sl">${t('stat_total_plays')}</div></div>
+      <div class="modal-stat"><div class="se">🔥</div><div class="sv" data-countup="${longestStreak}">${longestStreak}</div><div class="sl">${t('modal_listening_days_streak')}</div></div>
+      <div class="modal-stat"><div class="se">📅</div><div class="sv" data-countup="${activeDays}">${activeDays}</div><div class="sl">${t('modal_calendar_days_played')}</div></div>
+      <div class="modal-stat"><div class="se">💿</div><div class="sv" data-countup="${topAlbums.length}">${topAlbums.length}</div><div class="sl">${t('st_bubble_albums_title')}</div></div>
+      <div class="modal-stat"><div class="se">🏔️</div><div class="sv" style="font-size:1.05rem">${peakDay ? fmtDay(peakDay) : '—'}</div><div class="sl">${t('st_stat_peak_day')}</div></div>
+      <div class="modal-stat"><div class="se">✨</div><div class="sv" style="font-size:1.05rem">${discoveredDs ? fmtDay(discoveredDs) : '—'}</div><div class="sl">${t('st_bubble_discovered')}</div></div>
+      ${rank > 0 ? `<div class="modal-stat${rank <= 3 ? ' modal-stat--gold' : ''}"><div class="se">🏆</div><div class="sv${rank <= 3 ? ' sv--gold' : ''}">#${rank}</div><div class="sl">${t('st_bubble_rank')}</div></div>` : ''}
+    </div>
+
+    <div class="modal-section-title">${t('st_top_songs')}</div>
+    <div class="st-bmodal-list">
+      ${topSongs.map((s, i) => `<div class="st-bmodal-row"><span class="st-bmodal-rank">${i + 1}</span><span class="st-bmodal-title">${esc(s.title)}</span><span class="st-bmodal-count">${s.count.toLocaleString()}</span></div>`).join('')}
+    </div>
+
+    ${topAlbums.length ? `
+    <div class="modal-section-title">${t('st_bubble_albums_title')}</div>
+    <div class="st-bmodal-list">
+      ${topAlbums.map(a => `<div class="st-bmodal-row"><span class="st-bmodal-title">${esc(a.album)}</span><span class="st-bmodal-count">${a.count.toLocaleString()} ${tUnit('plays', a.count)}</span></div>`).join('')}
+    </div>` : ''}`;
+
+  animateModalCountup(body);
+  modal.classList.add('open');
+}
+
+function stCloseArtistModal() {
+  document.getElementById('stArtistModal')?.classList.remove('open');
+}
+
+function stStartBubbles(discovered) {
+  if (_stBubbleTimer) { clearInterval(_stBubbleTimer); _stBubbleTimer = null; }
+  _stBubbleSeeds.forEach(clearTimeout);
+  _stBubbleSeeds = [];
+  _stBubbleQueue = [];
+  if (!discovered.length) return;
+
+  const container = document.getElementById('stDiscoveriesBubbles');
+  if (!container) return;
+
+  const reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (reduceMotion) {
+    container.classList.add('st-bubbles-static');
+    stShuffle(discovered).slice(0, 10).forEach(item => stSpawnBubble(container, item.artist, true));
+    return;
+  }
+  container.classList.remove('st-bubbles-static');
+
+  const spawn = () => {
+    if (currentPeriod !== 'soundtrack') { clearInterval(_stBubbleTimer); _stBubbleTimer = null; return; }
+    const live = document.getElementById('stDiscoveriesBubbles');
+    if (!live) { clearInterval(_stBubbleTimer); _stBubbleTimer = null; return; }
+    if (!_stBubbleQueue.length) _stBubbleQueue = stBuildWeightedDeck(discovered);
+    const item = _stBubbleQueue.pop();
+    stSpawnBubble(live, item.artist);
+  };
+
+  for (let i = 0; i < 5; i++) _stBubbleSeeds.push(setTimeout(spawn, i * 400));
+  _stBubbleTimer = setInterval(spawn, 1400);
 }
 
 // ── Milestones ────────────────────────────────────────────────
@@ -24518,12 +24804,20 @@ function stRenderMilestones(plays) {
 
   milestones.sort((a, b) => a.date - b.date);
 
-  if (!milestones.length) { el.innerHTML = `<div class="st-empty">${t('st_milestones_none')}</div>`; return; }
+  const wrap = document.getElementById('stMilestonesWrap');
+  const toggle = document.getElementById('stMilestonesToggle');
 
-  el.innerHTML = milestones.map(m => {
+  if (!milestones.length) {
+    el.innerHTML = `<div class="st-empty">${t('st_milestones_none')}</div>`;
+    if (toggle) toggle.style.display = 'none';
+    return;
+  }
+
+  el.innerHTML = milestones.map((m, i) => {
     const d = tzDate(m.date);
     const ds = `${d.getDate()}/${d.getMonth()+1}/${d.getFullYear()}`;
-    return `<div class="st-milestone">
+    const typeClass = m.icon === '🎵' ? ' st-milestone-overall' : ' st-milestone-artist';
+    return `<div class="st-milestone${typeClass}" style="--i:${i}">
       <span class="st-milestone-icon">${m.icon}</span>
       <div class="st-milestone-info">
         <div class="st-milestone-text">${m.text}</div>
@@ -24532,6 +24826,24 @@ function stRenderMilestones(plays) {
       <div class="st-milestone-date">${ds}</div>
     </div>`;
   }).join('');
+
+  // Long lists collapse behind a fade + toggle so the page doesn't
+  // open with a wall of rows; reset to collapsed on every re-render.
+  _stMilestonesCount = milestones.length;
+  if (wrap) wrap.classList.add('st-collapsed');
+  if (toggle) {
+    toggle.style.display = milestones.length > 8 ? '' : 'none';
+    toggle.textContent = t('st_milestones_show_all', { n: milestones.length });
+  }
+}
+
+function stToggleMilestones() {
+  const wrap = document.getElementById('stMilestonesWrap');
+  const toggle = document.getElementById('stMilestonesToggle');
+  if (!wrap || !toggle) return;
+  const collapsed = wrap.classList.toggle('st-collapsed');
+  toggle.textContent = collapsed ? t('st_milestones_show_all', { n: _stMilestonesCount }) : t('st_milestones_show_less');
+  if (collapsed) wrap.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 }
 
 // ── Streaks ───────────────────────────────────────────────────
@@ -24644,9 +24956,9 @@ function stRenderGrammys(plays) {
     return;
   }
 
-  el.innerHTML = withAwards.slice(0, 8).map(item => {
+  el.innerHTML = withAwards.slice(0, 8).map((item, i) => {
     const wins = item.entries.filter(e => e.isWin).length;
-    return `<div class="st-grammy-item">
+    return `<div class="st-grammy-item" style="--i:${i}">
       <div class="st-grammy-artist">${esc(item.artist)}</div>
       <div class="st-grammy-badges">
         <span class="st-grammy-win">🏆 ${wins} ${wins === 1 ? t('st_grammy_win') : t('st_grammy_wins')}</span>

@@ -19,7 +19,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-  <link rel="stylesheet" href="style.css?v=72">
+  <link rel="stylesheet" href="style.css?v=77">
   <script src="translations.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8/hammer.min.js"></script>
@@ -1794,7 +1794,9 @@
     <!-- Hero Period Card -->
     <div class="st-hero st-reveal" id="stHeroCard">
       <div class="st-hero-eyebrow">Your Soundtrack</div>
-      <div class="st-hero-period" id="stHeroPeriod">2026</div>
+      <div class="st-hero-eq" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div>
+      <div class="st-hero-period" id="stHeroPeriod" data-text="2026">2026</div>
+      <div class="st-hero-subtitle" id="stHeroSubtitle"></div>
     </div>
 
     <!-- Animated Stats Strip -->
@@ -1821,9 +1823,10 @@
         <div class="st-stat-label" data-i18n="st_stat_new_discoveries">New Discoveries</div>
       </div>
       <div class="st-stat">
-        <div class="st-stat-icon">🔥</div>
-        <div class="st-stat-val" id="stStatStreakVal">—</div>
-        <div class="st-stat-label" data-i18n="st_stat_best_streak">Best Streak</div>
+        <div class="st-stat-icon">🏔️</div>
+        <div class="st-stat-val" id="stStatPeakVal">—</div>
+        <div class="st-stat-label" data-i18n="st_stat_peak_day">Peak Day</div>
+        <div class="st-stat-note" id="stStatPeakNote"></div>
       </div>
     </div>
 
@@ -1852,22 +1855,25 @@
       <div id="stActivityBars"></div>
     </div>
 
-    <!-- Loyalty Score + New Discoveries -->
-    <div class="st-two-col st-reveal">
-      <div class="st-section" id="stLoyaltySection">
-        <div class="st-section-title" data-i18n="st_loyalty_title">Loyalty Score</div>
-        <div id="stLoyaltyBody"></div>
-      </div>
-      <div class="st-section" id="stDiscoveriesSection">
-        <div class="st-section-title" data-i18n="st_discoveries_title">New Discoveries</div>
-        <div id="stDiscoveriesBody"></div>
-      </div>
+    <!-- Loyalty Score -->
+    <div class="st-section st-reveal" id="stLoyaltySection">
+      <div class="st-section-title" data-i18n="st_loyalty_title">Loyalty Score</div>
+      <div id="stLoyaltyBody"></div>
+    </div>
+
+    <!-- New Discoveries -->
+    <div class="st-section st-reveal" id="stDiscoveriesSection">
+      <div class="st-section-title" data-i18n="st_discoveries_title">New Discoveries</div>
+      <div id="stDiscoveriesBody"></div>
     </div>
 
     <!-- Milestones -->
     <div class="st-section st-reveal" id="stMilestonesSection">
       <div class="st-section-title" data-i18n="st_milestones_title">Milestones</div>
-      <div id="stMilestonesBody"></div>
+      <div class="st-milestones-wrap st-collapsed" id="stMilestonesWrap">
+        <div id="stMilestonesBody"></div>
+      </div>
+      <button class="st-milestones-toggle" id="stMilestonesToggle" onclick="stToggleMilestones()" style="display:none;"></button>
     </div>
 
     <!-- Streaks -->
@@ -3576,6 +3582,21 @@ window.addEventListener('load',function(){var d=document,s=d.createElement('scri
         <button class="sk-tab-btn" data-tab="graveyard" onclick="_streakSwitchTab('graveyard')">Graveyard</button>
       </div>
       <div class="modal-body" id="streakModalBody"></div>
+    </div>
+  </div>
+
+  <!-- DISCOVERY BUBBLE ARTIST MODAL -->
+  <div id="stArtistModal" class="modal-overlay" onclick="if(event.target===this)stCloseArtistModal()">
+    <div class="modal-box st-artist-modal-box">
+      <button class="modal-close" onclick="stCloseArtistModal()" data-i18n="btn_close">✕ CLOSE</button>
+      <div class="st-artist-modal-header">
+        <div class="st-artist-modal-avatar" id="stArtistModalAvatar"></div>
+        <div class="st-artist-modal-headtext">
+          <div class="st-artist-modal-name" id="stArtistModalName"></div>
+          <div class="st-artist-modal-sub" id="stArtistModalSub"></div>
+        </div>
+      </div>
+      <div class="modal-body" id="stArtistModalBody"></div>
     </div>
   </div>
 
