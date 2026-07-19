@@ -14957,16 +14957,15 @@ function renderUpcomingCard(release, artistName) {
   const { label, soon } = upcomingDateLabel(release.date);
   const typeKey = 'mb_type_' + (release.type || 'Release').toLowerCase();
   const typeLabel = t(typeKey) || release.type || 'Release';
-  const searchUrl = `https://www.google.com/search?q=${encodeURIComponent(release.title + ' ' + artistName)}`;
   const imgSrc = release.mbid ? `https://coverartarchive.org/release-group/${release.mbid}/front-250` : null;
   const imgHtml = `<img class="upcoming-card-img${imgSrc ? '' : ' upcoming-card-img-pending'}" ${imgSrc ? `src="${imgSrc}" onerror="releaseImgFallback(this)"` : ''} alt="" loading="lazy" data-artist="${esc(artistName)}" data-title="${esc(release.title)}" data-sources="itunes,lastfm">`;
-  return `<a class="upcoming-card" href="${searchUrl}" target="_blank" rel="noopener noreferrer">
+  return `<div class="upcoming-card" onclick="_relShowMenu(event,${esc(JSON.stringify(release.title))},${esc(JSON.stringify(artistName))})">
     ${imgHtml}
     <div class="upcoming-card-date${soon ? ' soon' : ''}" data-date="${esc(release.date)}">${esc(label)}</div>
     <div class="upcoming-card-title">${esc(release.title)}</div>
     <div class="upcoming-card-artist">${esc(artistName)}</div>
     <div class="upcoming-card-type" data-mbtype="${esc(release.type || 'Release')}">${esc(typeLabel)}</div>
-  </a>`;
+  </div>`;
 }
 
 function sortUpcomingReleases(releases) {
@@ -17394,7 +17393,7 @@ function _evNormalize(sectionKey, items) {
       const tl = t('mb_type_' + (release.type || 'Release').toLowerCase()) || release.type || 'Release';
       out.push({ title: release.title, artist: artistName, dateLabel: label, dateSort: release.date,
         artistSort: artistName, typeLabel: tl,
-        href: `https://www.google.com/search?q=${encodeURIComponent(release.title + ' ' + artistName)}`,
+        releaseAction: true, // unreleased — popup (Spotify/Google) instead of a direct link
         imgSrc: release.mbid ? `https://coverartarchive.org/release-group/${release.mbid}/front-250` : null,
         imgAttr: { artist: artistName, title: release.title, sources: 'itunes,lastfm' }, isToday: false });
     }
@@ -17525,15 +17524,23 @@ function _evRenderSectionByKey(sectionKey, items) {
   else if (mode === 'list') _evList(gridEl, sectionKey, normalized);
 }
 
+// onclick attr for a release-action item (unreleased — Spotify/Google popup, no direct link)
+function _evReleaseClickAttr(item) {
+  return `onclick="_relShowMenu(event,${esc(JSON.stringify(item.title))},${esc(JSON.stringify(item.artist))})"`;
+}
+
 function _evTable(gridEl, items) {
   gridEl.className = 'ev-table-wrap';
-  const rows = items.map(item =>
-    `<tr><td class="ev-tbl-img">${_evImgTag(item, 'ev-tbl-thumb')}</td>` +
-    `<td class="ev-tbl-ev"><a class="ev-tbl-link" href="${esc(item.href)}" target="_blank" rel="noopener noreferrer">${esc(item.title)}</a></td>` +
-    `<td class="ev-tbl-artist">${esc(item.artist)}</td>` +
-    `<td class="ev-tbl-date">${esc(item.dateLabel)}</td>` +
-    `<td class="ev-tbl-type">${esc(item.typeLabel)}</td></tr>`
-  ).join('');
+  const rows = items.map(item => {
+    const evCell = item.releaseAction
+      ? `<span class="ev-tbl-link ev-tbl-link-btn" ${_evReleaseClickAttr(item)}>${esc(item.title)}</span>`
+      : `<a class="ev-tbl-link" href="${esc(item.href)}" target="_blank" rel="noopener noreferrer">${esc(item.title)}</a>`;
+    return `<tr><td class="ev-tbl-img">${_evImgTag(item, 'ev-tbl-thumb')}</td>` +
+      `<td class="ev-tbl-ev">${evCell}</td>` +
+      `<td class="ev-tbl-artist">${esc(item.artist)}</td>` +
+      `<td class="ev-tbl-date">${esc(item.dateLabel)}</td>` +
+      `<td class="ev-tbl-type">${esc(item.typeLabel)}</td></tr>`;
+  }).join('');
   gridEl.innerHTML = `<table class="ev-table"><thead><tr><th></th><th>Event</th><th>Artist</th><th>Date</th><th>Type</th></tr></thead><tbody>${rows}</tbody></table>`;
   triggerPendingImgs(gridEl);
 }
@@ -17541,13 +17548,18 @@ function _evTable(gridEl, items) {
 function _evCarousel(gridEl, items) {
   gridEl.className = 'ev-carousel-outer';
   const dur = Math.max(20, items.length * 3);
-  const card = item =>
-    `<a class="ev-carousel-card${item.isToday ? ' event-today' : ''}" href="${esc(item.href)}" target="_blank" rel="noopener noreferrer">` +
-    `${_evImgTag(item, 'ev-carousel-img')}` +
-    `<div class="ev-carousel-date">${esc(item.dateLabel)}</div>` +
-    `<div class="ev-carousel-title">${esc(item.title)}</div>` +
-    `<div class="ev-carousel-artist">${esc(item.artist)}</div>` +
-    `<div class="ev-carousel-type">${esc(item.typeLabel)}</div></a>`;
+  const card = item => {
+    const tag = item.releaseAction ? 'div' : 'a';
+    const openAttrs = item.releaseAction
+      ? _evReleaseClickAttr(item)
+      : `href="${esc(item.href)}" target="_blank" rel="noopener noreferrer"`;
+    return `<${tag} class="ev-carousel-card${item.isToday ? ' event-today' : ''}" ${openAttrs}>` +
+      `${_evImgTag(item, 'ev-carousel-img')}` +
+      `<div class="ev-carousel-date">${esc(item.dateLabel)}</div>` +
+      `<div class="ev-carousel-title">${esc(item.title)}</div>` +
+      `<div class="ev-carousel-artist">${esc(item.artist)}</div>` +
+      `<div class="ev-carousel-type">${esc(item.typeLabel)}</div></${tag}>`;
+  };
   const cards = items.map(card).join('');
   gridEl.innerHTML = `<div class="ev-carousel-track" style="animation-duration:${dur}s">${cards}${cards}</div>`;
   triggerPendingImgs(gridEl);
@@ -17560,13 +17572,17 @@ function _evList(gridEl, sectionKey, items) {
     sort === 'artist' ? a.artistSort.localeCompare(b.artistSort)
     : typeof a.dateSort === 'string' ? a.dateSort.localeCompare(b.dateSort) : a.dateSort - b.dateSort
   );
-  const rows = sorted.map(item =>
-    `<a class="ev-list-row${item.isToday ? ' event-today' : ''}" href="${esc(item.href)}" target="_blank" rel="noopener noreferrer">` +
-    `<span class="ev-list-date">${esc(item.dateLabel)}</span>` +
-    `<span class="ev-list-title">${esc(item.title)}</span>` +
-    `<span class="ev-list-artist">${esc(item.artist)}</span>` +
-    `<span class="ev-list-type">${esc(item.typeLabel)}</span></a>`
-  ).join('');
+  const rows = sorted.map(item => {
+    const tag = item.releaseAction ? 'div' : 'a';
+    const openAttrs = item.releaseAction
+      ? _evReleaseClickAttr(item)
+      : `href="${esc(item.href)}" target="_blank" rel="noopener noreferrer"`;
+    return `<${tag} class="ev-list-row${item.isToday ? ' event-today' : ''}" ${openAttrs}>` +
+      `<span class="ev-list-date">${esc(item.dateLabel)}</span>` +
+      `<span class="ev-list-title">${esc(item.title)}</span>` +
+      `<span class="ev-list-artist">${esc(item.artist)}</span>` +
+      `<span class="ev-list-type">${esc(item.typeLabel)}</span></${tag}>`;
+  }).join('');
   gridEl.innerHTML =
     `<div class="ev-list-sort"><span class="ev-list-sort-lbl">Sort:</span>` +
     `<button class="ev-list-sort-btn${sort === 'date' ? ' active' : ''}" onclick="sortEvListView('${esc(sectionKey)}','date')">Date</button>` +
@@ -22925,6 +22941,35 @@ function _tmAlbumLastSongs(album, artist, limit) {
 
 function _tmShowAlbumMenu(ev, album, artist) {
   _tmShowEntityMenu(ev, album + ' ' + artist, (limit) => _tmAlbumLastSongs(album, artist, limit));
+}
+
+// Tooltip popup for unreleased upcoming-release cards (the main Upcoming Releases section
+// and the Events tab's Upcoming Releases). No "add to player" option — nothing to play yet.
+function _relShowMenu(ev, title, artist) {
+  ev.stopPropagation();
+  const card = ev.currentTarget;
+  _tmCloseMenu();
+
+  const q = encodeURIComponent(title + ' ' + artist);
+  const menu = document.createElement('div');
+  menu.className = 'tm-action-menu';
+  menu.innerHTML =
+    '<div class="tm-action-menu-arrow"></div>' +
+    '<button class="tm-action-menu-item" data-act="spotify">🎧 ' + esc(t('tm_action_spotify')) + '</button>' +
+    '<button class="tm-action-menu-item" data-act="google">🔎 ' + esc(t('tm_action_google')) + '</button>';
+
+  menu.querySelector('[data-act="spotify"]').addEventListener('click', (e) => {
+    e.stopPropagation();
+    window.open('https://open.spotify.com/search/' + q, '_blank', 'noopener');
+    _tmCloseMenu();
+  });
+  menu.querySelector('[data-act="google"]').addEventListener('click', (e) => {
+    e.stopPropagation();
+    window.open('https://www.google.com/search?q=' + q, '_blank', 'noopener');
+    _tmCloseMenu();
+  });
+
+  _tmOpenMenu(menu, card);
 }
 
 // ─── AWARDS ──────────────────────────────────────────────────────────────────

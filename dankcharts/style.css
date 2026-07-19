@@ -5404,6 +5404,7 @@
     }
     .ev-tbl-link { color: var(--accent); text-decoration: none; font-weight: 500; font-size: 0.82rem; }
     .ev-tbl-link:hover { text-decoration: underline; }
+    .ev-tbl-link-btn { cursor: pointer; }
     .ev-tbl-artist { color: var(--text2); font-size: 0.75rem; }
     .ev-tbl-date {
       font-family: var(--font-mono);
@@ -5449,6 +5450,7 @@
       border: 1px solid var(--border);
       overflow: hidden;
       text-decoration: none;
+      cursor: pointer;
       transition: border-color 0.15s;
     }
     .ev-carousel-card:hover { border-color: var(--border2); }
@@ -5543,6 +5545,7 @@
       padding: 0.32rem 0.4rem;
       border-radius: 4px;
       text-decoration: none;
+      cursor: pointer;
       transition: background 0.1s;
     }
     .ev-list-row:hover { background: var(--bg3); }
