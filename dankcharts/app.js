@@ -24668,7 +24668,7 @@ function stInitCoverflow(viewportEl, items, label) {
 
   function computeStep() {
     const w = viewport.clientWidth || 320;
-    state.stepPx = Math.max(58, Math.min(120, w / 4.2));
+    state.stepPx = Math.max(84, Math.min(174, w / 3.6));
   }
   computeStep();
 
@@ -24785,15 +24785,21 @@ function stInitCoverflow(viewportEl, items, label) {
   viewport.addEventListener('pointercancel', endDrag);
 
   // ── Wheel (mouse wheel + trackpad) — live scrub, settles on pause ──
+  // Each event's contribution is capped to one card so a single physical
+  // wheel notch (~100-120px in Chrome) can never overshoot past the next
+  // entry — only sustained/continuous scrolling (trackpad) covers more ground.
   let wheelSettleTimer = null;
   viewport.addEventListener('wheel', e => {
     e.preventDefault();
-    const delta = Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY;
+    let delta = Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY;
+    if (e.deltaMode === 1) delta *= 16;              // "line" mode (Firefox) → approx px
+    else if (e.deltaMode === 2) delta *= viewport.clientHeight; // "page" mode
     track.classList.remove('st-cf-animate');
-    state.pos = clampPos(state.pos + delta / 70, true);
+    const step = Math.sign(delta) * Math.min(Math.abs(delta) / 220, 1);
+    state.pos = clampPos(state.pos + step, true);
     render();
     clearTimeout(wheelSettleTimer);
-    wheelSettleTimer = setTimeout(() => goTo(Math.round(state.pos), true), 110);
+    wheelSettleTimer = setTimeout(() => goTo(Math.round(state.pos), true), 130);
   }, { passive: false });
 
   // ── Keyboard ───────────────────────────────────────────────

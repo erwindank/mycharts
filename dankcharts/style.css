@@ -15628,8 +15628,8 @@ body[class*="-light"] .tm-card-search:hover {
 
 .st-cf-viewport {
   position: relative;
-  height: 200px;
-  perspective: 900px;
+  height: 280px;
+  perspective: 1100px;
   perspective-origin: 50% 45%;
   touch-action: pan-y;
   cursor: grab;
@@ -15652,8 +15652,8 @@ body[class*="-light"] .tm-card-search:hover {
   position: absolute;
   left: 50%;
   top: 42%;
-  width: 108px;
-  height: 108px;
+  width: 156px;
+  height: 156px;
   will-change: transform, opacity;
   transition: none;
 }
@@ -15685,7 +15685,7 @@ body[class*="-light"] .tm-card-search:hover {
   width: 100%; height: 100%;
   border-radius: 0;
   border: none;
-  font-size: 1.4rem;
+  font-size: 2rem;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -15693,23 +15693,23 @@ body[class*="-light"] .tm-card-search:hover {
 
 .st-cf-rank {
   position: absolute;
-  bottom: -8px; right: -8px;
-  min-width: 1.35rem;
-  height: 1.35rem;
-  padding: 0 0.3rem;
+  bottom: -10px; right: -10px;
+  min-width: 1.7rem;
+  height: 1.7rem;
+  padding: 0 0.35rem;
   border-radius: 50%;
   background: var(--bg1);
   color: var(--text2);
   border: 1px solid var(--border-t);
   font-family: var(--font-mono);
-  font-size: 0.62rem;
+  font-size: 0.76rem;
   font-weight: 700;
   display: flex;
   align-items: center;
   justify-content: center;
   pointer-events: none;
 }
-.st-cf-rank.st-cf-medal { font-size: 0.78rem; background: var(--bg1); border-color: var(--border-t); }
+.st-cf-rank.st-cf-medal { font-size: 0.95rem; background: var(--bg1); border-color: var(--border-t); }
 .st-cf-card.is-center .st-cf-rank {
   background: var(--sc);
   color: var(--bg1);
@@ -15748,7 +15748,7 @@ body[class*="-light"] .tm-card-search:hover {
 .st-cf-name {
   font-family: var(--font-sans);
   font-weight: 700;
-  font-size: 0.92rem;
+  font-size: 1.25rem;
   color: var(--text1);
   white-space: nowrap;
   overflow: hidden;
@@ -15756,19 +15756,19 @@ body[class*="-light"] .tm-card-search:hover {
 }
 .st-cf-sub {
   font-family: var(--font-mono);
-  font-size: 0.66rem;
+  font-size: 0.85rem;
   color: var(--text3);
-  margin-top: 0.1rem;
+  margin-top: 0.15rem;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 .st-cf-count {
   font-family: var(--font-mono);
-  font-size: 0.66rem;
+  font-size: 0.85rem;
   font-weight: 700;
   color: var(--sc);
-  margin-top: 0.25rem;
+  margin-top: 0.3rem;
   font-feature-settings: "tnum";
 }
 
@@ -15787,9 +15787,11 @@ body[class*="-light"] .tm-card-search:hover {
 }
 
 @media (max-width: 480px) {
-  .st-cf-viewport { height: 168px; }
-  .st-cf-card { width: 86px; height: 86px; }
-  .st-cf-name { font-size: 0.82rem; }
+  .st-cf-viewport { height: 230px; }
+  .st-cf-card { width: 128px; height: 128px; }
+  .st-cf-art .thumb-initials { font-size: 1.6rem; }
+  .st-cf-name { font-size: 1.05rem; }
+  .st-cf-sub, .st-cf-count { font-size: 0.76rem; }
 }
 
 /* ── Monthly Activity ────────────────────────────────────────── */
