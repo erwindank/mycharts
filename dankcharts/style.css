@@ -15280,14 +15280,43 @@ body[class*="-light"] .tm-card-search:hover {
   --sc: var(--gold1);
   position: relative;
   overflow: hidden;
-  background:
-    radial-gradient(ellipse 90% 100% at 50% 0%, color-mix(in srgb, var(--sc) 22%, transparent) 0%, transparent 70%),
-    var(--bg2);
+  background: var(--bg2);
   border: 1px solid color-mix(in srgb, var(--sc) 40%, var(--border));
-  border-radius: 18px;
-  padding: 1.6rem 1.2rem 1.4rem;
+  border-radius: 20px;
   margin-bottom: 1rem;
+}
+/* Artist photo fills the top of the card; a bottom-anchored fade lets the
+   name/stats stay legible over any photo the artist-image lookup returns. */
+.st-featured-banner {
+  position: relative;
+  min-height: 320px;
+  background-color: color-mix(in srgb, var(--sc) 14%, var(--bg2));
+  background-image: radial-gradient(ellipse 90% 100% at 50% 0%, color-mix(in srgb, var(--sc) 22%, transparent) 0%, transparent 70%);
+  background-size: cover;
+  background-position: center 26%; /* biased toward the top third, where a face usually sits, without clipping the crown of the head */
+}
+/* Fade stays fully clear over most of the photo — only the bottom quarter
+   blends into the card so the face itself is never darkened or covered. */
+.st-featured-banner::after {
+  content: '';
+  position: absolute; inset: 0;
+  background: linear-gradient(180deg,
+    transparent 0%,
+    transparent 72%,
+    var(--bg2) 100%);
+}
+@media (min-width: 640px) {
+  .st-featured-banner { min-height: 440px; }
+}
+.st-featured-main {
+  position: relative;
+  z-index: 1;
+  margin-top: -52px; /* overlaps only the faded strip at the bottom of the photo, not the face above it */
+  padding: 0 1.2rem 1.3rem;
   text-align: center;
+}
+@media (min-width: 640px) {
+  .st-featured-main { margin-top: -68px; }
 }
 .st-featured-label {
   font-family: var(--font-mono);
@@ -15297,15 +15326,17 @@ body[class*="-light"] .tm-card-search:hover {
   color: var(--sc);
   margin-bottom: 0.6rem;
   font-weight: 700;
+  text-shadow: 0 1px 8px color-mix(in srgb, var(--bg2) 80%, transparent);
 }
 .st-featured-name {
   font-family: var(--font-display);
-  font-size: 2.4rem;
+  font-size: clamp(2.2rem, 8vw, 3.6rem);
   font-weight: 800;
   letter-spacing: -0.02em;
   color: var(--text1);
-  line-height: 1.08;
+  line-height: 1.05;
   margin-bottom: 0.5rem;
+  text-shadow: 0 2px 16px color-mix(in srgb, var(--bg2) 90%, transparent);
 }
 .st-featured-count {
   font-family: var(--font-mono);
@@ -15323,6 +15354,135 @@ body[class*="-light"] .tm-card-search:hover {
   background-size: 10px 6px;
   background-repeat: repeat-x;
   opacity: 0.7;
+}
+
+/* Collage of the #1 artist's accomplishments within the active period — a
+   bento mix of one big "hero" stat, two text-heavy content tiles (favorite
+   album / most played song), and a cluster of number tiles sized by how
+   much they carry (a bare number stays narrow; anything with a note gets
+   more room). Every breakpoint's areas sum to a full rectangle, so there's
+   no leftover dead space despite the mixed sizes. */
+.st-featured-stats {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  grid-template-areas:
+    "hero  hero  hero  hero"
+    "hero  hero  hero  hero"
+    "album album album album"
+    "song  song  song  song"
+    "dmp dmp dst dst"
+    "shr shr day sng"
+    "avg avg alb pkh";
+  gap: 0.4rem;
+  padding: 0.8rem 0.8rem 1rem;
+}
+@media (min-width: 640px) {
+  .st-featured-stats {
+    grid-template-columns: repeat(6, 1fr);
+    grid-template-areas:
+      "hero hero hero album album album"
+      "hero hero hero song  song  song"
+      "dmp dmp dst dst day sng"
+      "shr shr avg avg alb pkh";
+    gap: 0.5rem;
+    padding: 0.9rem 1rem 1.1rem;
+  }
+}
+
+.st-fstat {
+  --tc: var(--sc);
+  position: relative;
+  overflow: hidden;
+  border-radius: 14px;
+  border: 1px solid color-mix(in srgb, var(--tc) 28%, var(--border));
+}
+.st-fstat-icon { font-size: 0.85rem; line-height: 1; margin-bottom: 0.2rem; }
+.st-fstat-value {
+  font-family: var(--font-display);
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  color: var(--tc);
+  line-height: 1.15;
+  font-feature-settings: "tnum";
+  overflow-wrap: break-word;
+}
+.st-fstat-label {
+  font-family: var(--font-mono);
+  font-size: 0.5rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text2);
+  font-weight: 600;
+  margin-top: 0.2rem;
+}
+.st-fstat-note {
+  font-family: var(--font-mono);
+  font-size: 0.48rem;
+  color: var(--text3);
+  margin-top: 0.15rem;
+  line-height: 1.3;
+}
+
+/* Number tiles — sized by how much they carry rather than uniformly. A
+   couple of accent hues cycle through so the cluster reads as a collage
+   rather than a spreadsheet. */
+.st-fstat-small, .st-fstat-med {
+  background: color-mix(in srgb, var(--tc) 12%, var(--bg2));
+  text-align: center;
+}
+.st-fstat-small:nth-of-type(4n+2), .st-fstat-med:nth-of-type(4n+2) { --tc: var(--teal); }
+.st-fstat-small:nth-of-type(4n+3), .st-fstat-med:nth-of-type(4n+3) { --tc: var(--accent); }
+.st-fstat-small:nth-of-type(4n+4), .st-fstat-med:nth-of-type(4n+4) { --tc: var(--green); }
+
+/* bare-number tiles: narrow, compact */
+.st-fstat-small { padding: 0.35rem 0.25rem 0.3rem; }
+.st-fstat-small .st-fstat-value { font-size: 0.85rem; }
+.st-fstat-small .st-fstat-label { font-size: 0.44rem; }
+
+/* tiles with a secondary note: wider, a little more breathing room */
+.st-fstat-med { padding: 0.45rem 0.5rem 0.4rem; }
+.st-fstat-med .st-fstat-value { font-size: 1.05rem; }
+
+/* Hero tile — the single standout number, given real visual weight but
+   without ballooning past the two content tiles it sits beside */
+.st-fstat-hero {
+  --tc: var(--gold1);
+  background:
+    radial-gradient(ellipse 120% 100% at 30% 0%, color-mix(in srgb, var(--tc) 30%, transparent) 0%, transparent 70%),
+    color-mix(in srgb, var(--tc) 16%, var(--bg2));
+  border-color: color-mix(in srgb, var(--tc) 45%, var(--border));
+  padding: 0.6rem 0.7rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+.st-fstat-hero .st-fstat-icon { font-size: 1.4rem; margin-bottom: 0.25rem; }
+.st-fstat-hero .st-fstat-value { font-size: 1.9rem; }
+.st-fstat-hero .st-fstat-label { font-size: 0.58rem; margin-top: 0.25rem; }
+.st-fstat-hero .st-fstat-note { font-size: 0.52rem; margin-top: 0.2rem; max-width: 22ch; line-height: 1.2; }
+
+/* Content tiles (favorite album / most played song) — left-aligned text
+   blocks rather than centered numbers, so long titles read like a mini list */
+.st-fstat-content {
+  padding: 0.5rem 0.65rem;
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.st-fstat-album { --tc: var(--accent); background: color-mix(in srgb, var(--tc) 11%, var(--bg2)); }
+.st-fstat-song  { --tc: var(--teal);   background: color-mix(in srgb, var(--tc) 11%, var(--bg2)); }
+.st-fstat-content .st-fstat-icon { font-size: 0.95rem; margin-bottom: 0.2rem; }
+.st-fstat-content .st-fstat-value {
+  font-size: 0.95rem;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
 /* ── Generic section shell — each chapter carries its own hue ──── */
