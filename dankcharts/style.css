@@ -16452,6 +16452,17 @@ body[class*="-light"] .tm-card-search:hover {
   animation-delay: calc(var(--i, 0) * 25ms);
 }
 
+.st-milestone-tappable {
+  cursor: pointer;
+  border-radius: var(--r-sm, 6px);
+  transition: background 0.15s;
+  margin: 0 -0.4rem;
+  padding-left: 0.4rem;
+  padding-right: 0.4rem;
+}
+.st-milestone-tappable:hover,
+.st-milestone-tappable:focus-visible { background: color-mix(in srgb, var(--sc) 8%, transparent); }
+
 .st-milestone-icon {
   position: relative;
   z-index: 1;
@@ -16473,6 +16484,27 @@ body[class*="-light"] .tm-card-search:hover {
   box-shadow: 0 0 10px -2px color-mix(in srgb, var(--gold1) 70%, transparent);
 }
 
+/* Cover art sits right after the icon badge, separate and square —
+   hidden until an image actually loads so a missing lookup doesn't
+   leave a blank tile in the row. */
+.st-milestone-art-wrap {
+  display: none;
+  width: 2rem;
+  height: 2rem;
+  border-radius: var(--r-sm, 6px);
+  overflow: hidden;
+  flex-shrink: 0;
+  background: var(--bg3);
+  border: 1px solid var(--border-t);
+}
+.st-milestone-art-wrap.st-has-art { display: block; }
+.st-milestone-art {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
 .st-milestone-info { flex: 1; min-width: 0; padding-top: 0.15rem; }
 
 .st-milestone-text {
@@ -16480,6 +16512,18 @@ body[class*="-light"] .tm-card-search:hover {
   font-size: 0.8rem;
   color: var(--text1);
   font-weight: 600;
+}
+
+.st-milestone-num {
+  display: inline-block;
+  font-variant-numeric: tabular-nums;
+  color: var(--sc);
+}
+.st-milestone-num.st-pop { animation: stMilestonePop 0.5s cubic-bezier(0.34,1.56,0.64,1) both; }
+@keyframes stMilestonePop {
+  0% { transform: scale(0.5); opacity: 0; }
+  60% { transform: scale(1.2); opacity: 1; }
+  100% { transform: scale(1); }
 }
 
 .st-milestone-sub {
@@ -16916,7 +16960,7 @@ body[class*="-light"] .tm-card-search:hover {
   .st-streak-card:nth-child(1) { animation: none; }
   .st-gem-icon { animation: none; }
   .st-replay-week-label::before { animation: none; }
-  .st-reveal, .st-milestone, .st-discovery-item, .st-grammy-item {
+  .st-reveal, .st-milestone, .st-discovery-item, .st-grammy-item, .st-milestone-num.st-pop {
     animation: none;
     transition: none;
     opacity: 1;

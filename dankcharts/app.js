@@ -25445,8 +25445,10 @@ function stRenderMilestones(plays) {
   const elArtist = document.getElementById('stArtistMilestonesBody');
   if (!elOverall && !elArtist) return;
 
-  const OVERALL_MS = [100,500,1000,2500,5000,10000,25000,50000,100000,250000,500000,1000000];
-  const ARTIST_MS  = [100,500,1000,2500,5000,10000];
+  const OVERALL_MS = [100,500,1000,2500,5000,10000, ...Array.from({ length: 40 }, (_, i) => 25000 * (i + 1))];
+  const ARTIST_MS  = [100, ...Array.from({ length: 1000 }, (_, i) => 500 * (i + 1))];
+  const ARTIST_MS_SET = new Set(ARTIST_MS);
+  const MS_NUM_TOKEN = '##N##'; // stands in for {{n}} — swapped for a live-counting <span> at render time
 
   const chron = [...allPlays].sort((a, b) => a.date - b.date);
   const overallMs = [];
@@ -25463,15 +25465,20 @@ function stRenderMilestones(plays) {
 
     // Overall milestones — the listener's own cumulative play count
     while (nextIdx < OVERALL_MS.length && total >= OVERALL_MS[nextIdx]) {
-      if (inPeriod) overallMs.push({ icon:'🎵', text: t('st_milestone_overall', { n: OVERALL_MS[nextIdx].toLocaleString() }), sub: `"${esc(p.title)}" — ${esc(p.artist)}`, date: p.date });
+      if (inPeriod) overallMs.push({ icon:'🎵', text: t('st_milestone_overall', { n: MS_NUM_TOKEN }), sub: t('st_milestone_overall_sub', { title: esc(p.title), artist: esc(p.artist) }), date: p.date, rawTitle: p.title, rawArtist: p.artist, nTarget: OVERALL_MS[nextIdx] });
       nextIdx++;
     }
 
-    // Per-artist milestones — independent of the totals above
-    const ak = p.artist.toLowerCase();
-    artistCounts[ak] = (artistCounts[ak] || 0) + 1;
-    if (inPeriod && ARTIST_MS.includes(artistCounts[ak])) {
-      artistMs.push({ icon:'🎤', sub: esc(p.artist), text: t('st_milestone_artist', { n: artistCounts[ak].toLocaleString(), title: esc(p.title) }), date: p.date });
+    // Per-artist milestones — independent of the totals above. Each
+    // comma-split credited artist counts on its own (honoring the
+    // hardwired exceptions in splitArtists, e.g. "Tyler, The Creator"),
+    // same rule as New Discoveries and the Top Artists coverflow.
+    for (const a of (p.artists || splitArtists(p.artist))) {
+      const ak = a.toLowerCase();
+      artistCounts[ak] = (artistCounts[ak] || 0) + 1;
+      if (inPeriod && ARTIST_MS_SET.has(artistCounts[ak])) {
+        artistMs.push({ icon:'🎤', sub: t('st_milestone_artist_sub', { title: esc(p.title) }), text: t('st_milestone_artist', { n: MS_NUM_TOKEN, artist: esc(a) }), date: p.date, rawTitle: p.title, rawArtist: a, nTarget: artistCounts[ak] });
+      }
     }
   }
 
@@ -25493,6 +25500,7 @@ function stRenderMilestoneList(items, bodyId, wrapId, toggleId, kind) {
   if (!items.length) {
     el.innerHTML = `<div class="st-empty">${t('st_milestones_none')}</div>`;
     if (toggle) toggle.style.display = 'none';
+    if (wrap) wrap.classList.remove('st-collapsed');
     return;
   }
 
@@ -25500,22 +25508,74 @@ function stRenderMilestoneList(items, bodyId, wrapId, toggleId, kind) {
     const d = tzDate(m.date);
     const ds = `${d.getDate()}/${d.getMonth()+1}/${d.getFullYear()}`;
     const typeClass = kind === 'overall' ? ' st-milestone-overall' : ' st-milestone-artist';
-    return `<div class="st-milestone${typeClass}" style="--i:${i}">
+    const numId = `ms-num-${kind}-${i}`;
+    const numSpan = `<span class="st-milestone-num" id="${numId}" data-target="${m.nTarget}">0</span>`;
+    const text = m.text.replace('##N##', numSpan);
+    return `<div class="st-milestone${typeClass}" data-idx="${i}" style="--i:${i}">
       <span class="st-milestone-icon">${m.icon}</span>
+      <span class="st-milestone-art-wrap" data-idx="${i}"></span>
       <div class="st-milestone-info">
-        <div class="st-milestone-text">${m.text}</div>
+        <div class="st-milestone-text">${text}</div>
         <div class="st-milestone-sub">${m.sub}</div>
       </div>
       <div class="st-milestone-date">${ds}</div>
     </div>`;
   }).join('');
 
+  items.forEach((m, i) => {
+    const rowEl = el.querySelector(`.st-milestone[data-idx="${i}"]`);
+    if (!rowEl) return;
+
+    // Fill in the row's art thumbnail with the triggering track's cover
+    // art, once fetched — stays hidden (icon badge only) if art fails.
+    if (m.rawTitle) {
+      getTrackImage(m.rawTitle, m.rawArtist, 'deezer').then(url => {
+        if (!url) return;
+        const artWrapEl = rowEl.querySelector('.st-milestone-art-wrap');
+        if (artWrapEl && !artWrapEl.querySelector('.st-milestone-art')) {
+          artWrapEl.classList.add('st-has-art');
+          artWrapEl.insertAdjacentHTML('beforeend', `<img class="st-milestone-art" src="${esc(url)}" alt="" loading="lazy" onerror="this.parentElement.classList.remove('st-has-art');this.remove()">`);
+        }
+      });
+    }
+
+    // Tap a row to open the same mini-card the Top Artists/Songs
+    // coverflow opens on center-tap — the artist card for artist
+    // milestones, the song card for overall (track-triggered) ones.
+    rowEl.classList.add('st-milestone-tappable');
+    rowEl.addEventListener('click', () => {
+      if (kind === 'artist') stOpenArtistModal(m.rawArtist);
+      else if (m.rawTitle) openSongModal(songKey({ title: m.rawTitle, artist: m.rawArtist }));
+    });
+  });
+
+  // Count up each row's play-count number with a little pop the first
+  // time it scrolls into view, instead of just appearing pre-filled.
+  const numEls = Array.from(el.querySelectorAll('.st-milestone-num'));
+  if (!('IntersectionObserver' in window)) {
+    numEls.forEach(n => { n.textContent = (+n.dataset.target).toLocaleString(); });
+  } else {
+    const numObs = new IntersectionObserver((entries) => {
+      entries.forEach(e => {
+        if (!e.isIntersecting) return;
+        numObs.unobserve(e.target);
+        e.target.classList.add('st-pop');
+        stCountUp(e.target.id, +e.target.dataset.target);
+      });
+    }, { threshold: 0.4 });
+    numEls.forEach(n => numObs.observe(n));
+  }
+
   // Long lists collapse behind a fade + toggle so the page doesn't
   // open with a wall of rows; reset to collapsed on every re-render.
+  // Only apply the collapse (and its fade overlay) when there's enough
+  // content to actually overflow — otherwise the fade renders above an
+  // undersized wrap and bleeds into the section header above it.
   _stMilestonesCounts[kind] = items.length;
-  if (wrap) wrap.classList.add('st-collapsed');
+  const needsCollapse = items.length > 8;
+  if (wrap) wrap.classList.toggle('st-collapsed', needsCollapse);
   if (toggle) {
-    toggle.style.display = items.length > 8 ? '' : 'none';
+    toggle.style.display = needsCollapse ? '' : 'none';
     toggle.textContent = t('st_milestones_show_all', { n: items.length });
   }
 }
