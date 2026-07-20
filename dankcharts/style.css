@@ -15198,7 +15198,8 @@ body[class*="-light"] .tm-card-search:hover {
   border-radius: 16px;
   padding: 1.1rem 0.6rem 1rem;
   text-align: center;
-  transition: transform 0.2s cubic-bezier(0.16,1,0.3,1), background 0.25s, box-shadow 0.25s;
+  cursor: pointer;
+  transition: transform 0.2s cubic-bezier(0.16,1,0.3,1), background 0.25s, box-shadow 0.25s, border-color 0.25s;
 }
 .st-stat:nth-child(1) { --tc: var(--accent); }
 .st-stat:nth-child(2) { --tc: var(--teal); }
@@ -15218,6 +15219,19 @@ body[class*="-light"] .tm-card-search:hover {
   transform: translateY(-4px) scale(1.02);
   background: color-mix(in srgb, var(--tc) 22%, var(--bg2));
   box-shadow: 0 10px 26px -12px color-mix(in srgb, var(--tc) 55%, transparent);
+}
+.st-stat:focus-visible {
+  outline: 2px solid var(--tc);
+  outline-offset: 2px;
+}
+.st-stat.active {
+  background: color-mix(in srgb, var(--tc) 26%, var(--bg2));
+  border-color: var(--tc);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--tc) 45%, transparent), 0 10px 26px -12px color-mix(in srgb, var(--tc) 55%, transparent);
+}
+.st-stat.active::before {
+  height: 5px;
+  box-shadow: 0 0 10px color-mix(in srgb, var(--tc) 70%, transparent);
 }
 
 .st-stat-icon {
@@ -15333,6 +15347,17 @@ body[class*="-light"] .tm-card-search:hover {
   pointer-events: none;
 }
 
+#stReelSection      { --sc: var(--accent); margin-bottom: 1.2rem; }
+.st-reel-footer {
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  color: var(--text3);
+  letter-spacing: 0.02em;
+  margin-top: 0.6rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
 #stActivitySection  { --sc: var(--teal); }
 #stLoyaltySection   { --sc: var(--accent); }
 #stDiscoveriesSection { --sc: var(--green); }

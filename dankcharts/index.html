@@ -19,7 +19,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-  <link rel="stylesheet" href="style.css?v=77">
+  <link rel="stylesheet" href="style.css?v=79">
   <script src="translations.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8/hammer.min.js"></script>
@@ -1799,35 +1799,43 @@
       <div class="st-hero-subtitle" id="stHeroSubtitle"></div>
     </div>
 
-    <!-- Animated Stats Strip -->
+    <!-- Animated Stats Strip — each card also drives the reel below it -->
     <div class="st-stats-strip st-reveal" id="stStatsStrip">
-      <div class="st-stat">
+      <div class="st-stat active" data-reel-mode="plays" role="button" tabindex="0" onclick="stSetReelMode('plays')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();stSetReelMode('plays');}">
         <div class="st-stat-icon">▶</div>
         <div class="st-stat-val" id="stStatPlaysVal">—</div>
         <div class="st-stat-label" data-i18n="st_stat_plays">Plays</div>
         <div class="st-stat-note" id="stStatPlaysNote"></div>
       </div>
-      <div class="st-stat">
+      <div class="st-stat" data-reel-mode="days" role="button" tabindex="0" onclick="stSetReelMode('days')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();stSetReelMode('days');}">
         <div class="st-stat-icon">📅</div>
         <div class="st-stat-val" id="stStatDaysVal">—</div>
         <div class="st-stat-label" data-i18n="st_stat_days">Active Days</div>
       </div>
-      <div class="st-stat">
+      <div class="st-stat" data-reel-mode="artists" role="button" tabindex="0" onclick="stSetReelMode('artists')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();stSetReelMode('artists');}">
         <div class="st-stat-icon">🎤</div>
         <div class="st-stat-val" id="stStatArtistsVal">—</div>
         <div class="st-stat-label" data-i18n="st_stat_artists">Artists</div>
       </div>
-      <div class="st-stat">
+      <div class="st-stat" data-reel-mode="new" role="button" tabindex="0" onclick="stSetReelMode('new')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();stSetReelMode('new');}">
         <div class="st-stat-icon">✨</div>
         <div class="st-stat-val" id="stStatNewVal">—</div>
         <div class="st-stat-label" data-i18n="st_stat_new_discoveries">New Discoveries</div>
       </div>
-      <div class="st-stat">
+      <div class="st-stat" data-reel-mode="peak" role="button" tabindex="0" onclick="stSetReelMode('peak')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();stSetReelMode('peak');}">
         <div class="st-stat-icon">🏔️</div>
         <div class="st-stat-val" id="stStatPeakVal">—</div>
         <div class="st-stat-label" data-i18n="st_stat_peak_day">Peak Day</div>
         <div class="st-stat-note" id="stStatPeakNote"></div>
       </div>
+    </div>
+
+    <!-- The Reel — horizontal ticker driven by the active stat card above -->
+    <div class="st-section st-reveal" id="stReelSection">
+      <div class="tm-ticker-outer" id="stReelTickerOuter">
+        <div class="tm-ticker-track" id="stReelTickerTrack"></div>
+      </div>
+      <div class="st-reel-footer" id="stReelSub"></div>
     </div>
 
     <!-- Featured #1 Artist -->

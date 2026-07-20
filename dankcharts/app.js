@@ -24124,6 +24124,9 @@ let _stBubbleTimer = null;
 let _stBubbleSeeds = [];
 let _stBubbleQueue = [];
 let _stBubbleUid = 0;
+let stReelMode = 'plays';    // which stat card is driving the reel below the stats strip
+let _stPeakDayDate = null;   // Date of the busiest day in the current period (set by stRenderStats)
+let _stReelLoaderId = 0;     // guards async reel image batches against stale renders
 
 function stGetPeriodPlays() {
   if (stPeriodType === 'alltime') return allPlays.slice();
@@ -24132,6 +24135,100 @@ function stGetPeriodPlays() {
     if (stPeriodType === 'year') return d.getFullYear() === stYear;
     return d.getFullYear() === stYear && (d.getMonth() + 1) === stMonth;
   });
+}
+
+// ── Reel data builders — one per stat-card mode, all chronological ───
+// Caps every reel at ST_REEL_MAX evenly-spaced entries so an All-Time period
+// with tens of thousands of plays can't blow up the ticker's DOM/image cost.
+const ST_REEL_MAX = 400;
+
+function stDecimate(arr, max) {
+  if (arr.length <= max) return arr;
+  const out = [];
+  const step = arr.length / max;
+  for (let i = 0; i < max; i++) out.push(arr[Math.floor(i * step)]);
+  return out;
+}
+
+function stBuildReelPlays(plays) {
+  const sorted = [...plays].sort((a, b) => a.date - b.date);
+  return stDecimate(sorted, ST_REEL_MAX).map(p => ({
+    type: 'song', title: p.title, artist: p.artist, album: p.album || '—', date: p.date
+  }));
+}
+
+// Every artist in first-play-of-period order — each artist appears once, so
+// the ticker loop cycles the full set before any artist can repeat.
+function stBuildReelArtists(plays) {
+  const sorted = [...plays].sort((a, b) => a.date - b.date);
+  const seen = new Set();
+  const out = [];
+  for (const p of sorted) {
+    const list = (p.artists && p.artists.length) ? p.artists : [p.artist];
+    for (const ar of list) {
+      if (seen.has(ar)) continue;
+      seen.add(ar);
+      out.push({ type: 'artist', artist: ar, date: p.date });
+    }
+  }
+  return stDecimate(out, ST_REEL_MAX);
+}
+
+// Same first-seen logic as stRenderDiscoveries(), shaped for cards instead of bubbles.
+function stBuildReelDiscoveries(plays) {
+  const fsMap = stGetFirstSeenArtists();
+  const seen = new Set();
+  const out = [];
+  for (const p of plays) {
+    for (const artist of (p.artists || splitArtists(p.artist))) {
+      if (seen.has(artist)) continue;
+      seen.add(artist);
+      const fd = fsMap[artist];
+      if (!fd) continue;
+      const ftz = tzDate(fd);
+      const inPeriod = stPeriodType === 'alltime' ? true :
+        stPeriodType === 'year' ? ftz.getFullYear() === stYear :
+        ftz.getFullYear() === stYear && (ftz.getMonth() + 1) === stMonth;
+      if (inPeriod) out.push({ type: 'artist', artist, date: fd });
+    }
+  }
+  out.sort((a, b) => a.date - b.date);
+  return stDecimate(out, ST_REEL_MAX);
+}
+
+// One card per active day, carrying that day's play count and top track.
+function stBuildReelDays(plays) {
+  const days = {};
+  for (const p of plays) {
+    const d = tzDate(p.date);
+    const dk = `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
+    let day = days[dk];
+    if (!day) day = days[dk] = { date: d, count: 0, songCounts: {} };
+    day.count++;
+    const sk = songKey(p);
+    let s = day.songCounts[sk];
+    if (!s) s = day.songCounts[sk] = { title: p.title, artist: p.artist, album: p.album || '—', count: 0 };
+    s.count++;
+  }
+  const out = Object.values(days).map(day => {
+    const top = Object.values(day.songCounts).sort((a, b) => b.count - a.count)[0];
+    return { type: 'day', date: day.date, count: day.count, topTitle: top.title, topArtist: top.artist, topAlbum: top.album };
+  });
+  out.sort((a, b) => a.date - b.date);
+  return stDecimate(out, ST_REEL_MAX);
+}
+
+// Every song played on the single busiest day (see _stPeakDayDate, set by stRenderStats).
+function stBuildReelPeakDay(plays) {
+  if (!_stPeakDayDate) return [];
+  const pd = _stPeakDayDate;
+  const dayPlays = plays.filter(p => {
+    const d = tzDate(p.date);
+    return d.getFullYear() === pd.getFullYear() && d.getMonth() === pd.getMonth() && d.getDate() === pd.getDate();
+  }).sort((a, b) => a.date - b.date);
+  return stDecimate(dayPlays.map(p => ({
+    type: 'song', title: p.title, artist: p.artist, album: p.album || '—', date: p.date
+  })), ST_REEL_MAX);
 }
 
 const ST_MONTH_KEYS = ['month_jan','month_feb','month_mar','month_apr','month_may_short','month_jun','month_jul','month_aug','month_sep','month_oct','month_nov','month_dec'];
@@ -24168,6 +24265,115 @@ function stNavigate(dir) {
   renderSoundtrack();
 }
 
+// ── The Reel — ticker below the stats strip, driven by the active stat card ──
+const ST_REEL_ACCENTS = { plays: 'var(--accent)', days: 'var(--teal)', artists: 'var(--green)', new: 'var(--gold1)', peak: 'var(--amber)' };
+const ST_REEL_SUB_KEYS = { plays: 'st_reel_sub_plays', days: 'st_reel_sub_days', artists: 'st_reel_sub_artists', new: 'st_reel_sub_new', peak: 'st_reel_sub_peak' };
+
+function stSetReelMode(mode) {
+  stReelMode = mode;
+  document.querySelectorAll('#stStatsStrip .st-stat').forEach(el => {
+    el.classList.toggle('active', el.dataset.reelMode === mode);
+  });
+  stRenderReel(_stCurrentPlays);
+}
+
+// Mirrors buildCard() in renderTimeMachine() — same card anatomy/classes, one
+// entry type at a time instead of a combined songs+artists+albums toggle.
+function stBuildReelCard(entry, i, suffix, songItems, artistItems) {
+  const imgId = 'stReelImg-' + suffix + '-' + i;
+  const dateStr = d => `${t(ST_MONTH_KEYS[d.getMonth()]).substring(0, 3)} ${d.getDate()}`;
+
+  if (entry.type === 'artist') {
+    const prefKey = 'artist:' + entry.artist.toLowerCase();
+    artistItems.push({ imgId, name: entry.artist, artist: entry.artist, album: '', title: '', prefKey });
+    return '<div class="tm-card tm-card-search" data-type="artist" onclick="_tmShowArtistMenu(event,' + esc(JSON.stringify(entry.artist)) + ')">' +
+      '<div class="tm-card-img" id="' + esc(imgId) + '"><div class="thumb-initials">' + esc(initials(entry.artist)) + '</div></div>' +
+      '<div class="tm-card-info">' +
+      '<div class="tm-card-title">' + esc(entry.artist) + '</div>' +
+      '<div class="tm-card-year">' + esc(dateStr(tzDate(entry.date))) + '</div>' +
+      '</div></div>';
+  }
+
+  if (entry.type === 'day') {
+    const prefKey = 'song:' + entry.topArtist.toLowerCase() + '|||' + entry.topTitle.toLowerCase();
+    songItems.push({ imgId, title: entry.topTitle, artist: entry.topArtist, album: entry.topAlbum, name: entry.topTitle, prefKey });
+    return '<div class="tm-card tm-card-song" data-type="day" onclick="_tmShowSongMenu(event,' + esc(JSON.stringify(entry.topTitle)) + ',' + esc(JSON.stringify(entry.topArtist)) + ',' + esc(JSON.stringify(entry.topAlbum)) + ')">' +
+      '<div class="tm-card-img" id="' + esc(imgId) + '"><div class="thumb-initials">' + esc(initials(entry.topTitle)) + '</div></div>' +
+      '<div class="tm-card-info">' +
+      '<div class="tm-card-title">' + esc(dateStr(tzDate(entry.date))) + '</div>' +
+      '<div class="tm-card-sub">' + esc(entry.topTitle + ' · ' + entry.topArtist) + '</div>' +
+      '<div class="tm-card-year">' + entry.count.toLocaleString() + ' ' + esc(tUnit('plays', entry.count)) + '</div>' +
+      '</div></div>';
+  }
+
+  // 'song' — Plays and Peak Day reels
+  const sub = entry.artist + (entry.album && entry.album !== '—' ? ' · ' + entry.album : '');
+  const prefKey = 'song:' + entry.artist.toLowerCase() + '|||' + entry.title.toLowerCase();
+  songItems.push({ imgId, title: entry.title, artist: entry.artist, album: entry.album, name: entry.title, prefKey });
+  return '<div class="tm-card tm-card-song" data-type="song" onclick="_tmShowSongMenu(event,' + esc(JSON.stringify(entry.title)) + ',' + esc(JSON.stringify(entry.artist)) + ',' + esc(JSON.stringify(entry.album)) + ')">' +
+    '<div class="tm-card-img" id="' + esc(imgId) + '"><div class="thumb-initials">' + esc(initials(entry.title)) + '</div></div>' +
+    '<div class="tm-card-info">' +
+    '<div class="tm-card-title">' + esc(entry.title) + '</div>' +
+    '<div class="tm-card-sub">' + esc(sub) + '</div>' +
+    '<div class="tm-card-year">' + esc(dateStr(tzDate(entry.date))) + '</div>' +
+    '</div></div>';
+}
+
+// Mirrors loadTmBatch() in renderTimeMachine() — batches image fetches against
+// the shared imgCache, mirroring the 'a' copy into the 'b' copy to halve calls.
+async function stReelLoadBatch(pairs, type, loaderId) {
+  const BATCH = 4;
+  for (let i = 0; i < pairs.length; i += BATCH) {
+    if (_stReelLoaderId !== loaderId) return;
+    await Promise.all(pairs.slice(i, i + BATCH).map(async ([aItem, bItem]) => {
+      if (_stReelLoaderId !== loaderId) return;
+      const aEl = document.getElementById(aItem.imgId);
+      if (!aEl) return;
+      await fetchAndInjectImage(aEl, aItem, type);
+      const bEl = bItem && document.getElementById(bItem.imgId);
+      if (bEl) bEl.innerHTML = aEl.innerHTML;
+    }));
+  }
+}
+
+function stRenderReel(plays) {
+  const section = document.getElementById('stReelSection');
+  const track = document.getElementById('stReelTickerTrack');
+  const outer = document.getElementById('stReelTickerOuter');
+  if (!section || !track) return;
+
+  const sub = document.getElementById('stReelSub');
+  if (sub) sub.textContent = t(ST_REEL_SUB_KEYS[stReelMode]) + ' · ' + t('tm_hint');
+  section.style.setProperty('--sc', ST_REEL_ACCENTS[stReelMode]);
+
+  let entries;
+  switch (stReelMode) {
+    case 'days':    entries = stBuildReelDays(plays); break;
+    case 'artists': entries = stBuildReelArtists(plays); break;
+    case 'new':     entries = stBuildReelDiscoveries(plays); break;
+    case 'peak':    entries = stBuildReelPeakDay(plays); break;
+    default:        entries = stBuildReelPlays(plays); break;
+  }
+
+  if (!entries.length) {
+    if (outer) outer.style.display = 'none';
+    track.innerHTML = `<div class="tm-empty">${t('st_no_data')}</div>`;
+    return;
+  }
+  if (outer) outer.style.display = '';
+
+  const aSongItems = [], aArtistItems = [], bSongItems = [], bArtistItems = [];
+  const firstCopy = entries.map((e, i) => stBuildReelCard(e, i, 'a', aSongItems, aArtistItems)).join('');
+  const secondCopy = entries.map((e, i) => stBuildReelCard(e, i, 'b', bSongItems, bArtistItems)).join('');
+  track.innerHTML = firstCopy + secondCopy;
+  track.style.animationDuration = Math.max(20, entries.length * 4) + 's';
+
+  const ldr = ++_stReelLoaderId;
+  const songPairs = aSongItems.map((a, i) => [a, bSongItems[i]]);
+  const artistPairs = aArtistItems.map((a, i) => [a, bArtistItems[i]]);
+  stReelLoadBatch(songPairs, 'song', ldr).then(() => stReelLoadBatch(artistPairs, 'artist', ldr));
+}
+
 function renderSoundtrack() {
   if (!allPlays.length) {
     document.getElementById('stStatsStrip').innerHTML = `<div class="st-empty">${t('st_no_data')}</div>`;
@@ -24193,6 +24399,7 @@ function renderSoundtrack() {
   }
 
   stRenderStats(plays);
+  stRenderReel(plays);
   stRenderTopCharts(plays);
   stRenderActivity(plays);
   stRenderLoyalty(plays);
@@ -24265,6 +24472,7 @@ function stRenderStats(plays) {
     ids.forEach(id => { const el = document.getElementById(id); if (el) el.textContent = '0'; });
     const peakEl = document.getElementById('stStatPeakVal'); if (peakEl) peakEl.textContent = '—';
     const peakNoteEl = document.getElementById('stStatPeakNote'); if (peakNoteEl) peakNoteEl.textContent = '';
+    _stPeakDayDate = null;
     return;
   }
 
@@ -24298,6 +24506,7 @@ function stRenderStats(plays) {
   for (const dk of daySet) {
     if (!peakDay || dayCounts[dk].count > dayCounts[peakDay].count) peakDay = dk;
   }
+  _stPeakDayDate = peakDay ? dayCounts[peakDay].date : null; // consumed by stBuildReelPeakDay
 
   stCountUp('stStatPlaysVal', plays.length);
   stCountUp('stStatDaysVal', daySet.size);
