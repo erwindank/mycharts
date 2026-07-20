@@ -24163,6 +24163,11 @@ let stYear = tzNow().getFullYear();
 let stMonth = tzNow().getMonth() + 1;
 let _stCurrentPlays = [];
 let _stReplayTimer = null;
+let _stReplaySnapshots = [];
+let _stReplayIdx = 0;
+let _stReplayMax = 0;
+let _stReplayPaused = false;
+let _stReplaySpeedMs = 1200;
 let _stCardMode = null;
 let _stMilestonesCount = 0;
 let _stBubbleTimer = null;
@@ -25915,7 +25920,193 @@ function stRenderGem(plays) {
   });
 }
 
-// ── Chart History Replay ──────────────────────────────────────
+// ── Chart History Replay — "on-air countdown" broadcast ─────────
+// Spells out the month like "July 19th" instead of "19/7" — English gets an
+// ordinal suffix (native convention); other locales use Intl's own month/day
+// ordering ("19 de julio") since ordinal date suffixes aren't idiomatic there.
+function stReplayFormatWeekDate(dateObj) {
+  const locale = currentLang === 'en' ? 'en-US' : currentLang;
+  if (locale.startsWith('en')) {
+    const month = dateObj.toLocaleDateString(locale, { month: 'long' });
+    const day = dateObj.getDate();
+    const suffix = (day % 10 === 1 && day !== 11) ? 'st'
+      : (day % 10 === 2 && day !== 12) ? 'nd'
+      : (day % 10 === 3 && day !== 13) ? 'rd' : 'th';
+    return `${month} ${day}${suffix}`;
+  }
+  return dateObj.toLocaleDateString(locale, { month: 'long', day: 'numeric' });
+}
+
+// Movement badges compare each week's cumulative top5 against the previous
+// week's so the replay reads like a real countdown-show rundown (▲/▼/NEW/—).
+function stReplayMovementInfo(name, i, prevTop5) {
+  if (!prevTop5) return { cls: '', text: '' };
+  const prevIdx = prevTop5.findIndex(([n]) => n === name);
+  if (prevIdx === -1) return { cls: 'st-replay-move-new', text: t('st_replay_new') };
+  if (prevIdx === i) return { cls: 'st-replay-move-same', text: '—' };
+  const diff = Math.abs(prevIdx - i);
+  return prevIdx > i ? { cls: 'st-replay-move-up', text: '▲' + diff } : { cls: 'st-replay-move-down', text: '▼' + diff };
+}
+
+// FLIP-reorders the row elements from the previous week's positions to this
+// week's, same technique as the main chart's sliding-window bar-race animation
+// (runSlideWindowAnim above) — rows are kept and moved/resized rather than
+// wiped and redrawn, so entries visibly slide/grow instead of flashing.
+function stReplayRenderRows(rowsEl, snap, prevTop5) {
+  const newTop5 = snap.top5;
+  const newKeys = new Set(newTop5.map(([name]) => name));
+  const existingMap = new Map();
+  for (const child of Array.from(rowsEl.children)) existingMap.set(child.dataset.artist, child);
+
+  // FLIP read-1: freeze transitions, measure current positions of rows that survive
+  const firstTops = new Map();
+  for (const [key, el] of existingMap) {
+    if (newKeys.has(key)) {
+      el.style.transition = 'none';
+      el.style.transform = '';
+      firstTops.set(el, el.getBoundingClientRect().top);
+    }
+  }
+
+  // Rows that fell out of the top5 fade out and get removed
+  for (const [key, el] of existingMap) {
+    if (!newKeys.has(key)) {
+      el.style.transition = 'opacity 250ms ease, transform 250ms ease';
+      el.style.transform = 'translateY(6px)';
+      el.style.opacity = '0';
+      el._removeTimer = setTimeout(() => el.remove(), 260);
+    }
+  }
+
+  const newlyCreated = [];
+  newTop5.forEach(([name, count], i) => {
+    let el = existingMap.get(name);
+    const isNew = !el;
+    if (!isNew && el._removeTimer) { clearTimeout(el._removeTimer); el._removeTimer = null; el.style.opacity = '1'; } // rejoined before fade-out finished
+    if (isNew) {
+      el = document.createElement('div');
+      el.dataset.artist = name;
+      el.style.opacity = '0';
+      el.innerHTML = `
+        <span class="st-replay-rank"></span>
+        <div class="st-replay-avatar">${thumbHtml(imgCache['artist:' + name.toLowerCase() + ':deezer'], name, false)}</div>
+        <div class="st-replay-bar-wrap">
+          <div class="st-replay-bar" style="width:0%"></div>
+          <span class="st-replay-name">${esc(name)}</span>
+        </div>
+        <span class="st-replay-move"></span>
+        <span class="st-replay-count"></span>`;
+      getArtistImage(name, 'deezer').then(url => {
+        if (!el.isConnected || !url) return;
+        el.querySelector('.st-replay-avatar').innerHTML = thumbHtml(url, name, false);
+      });
+      newlyCreated.push(el);
+    }
+    el.className = 'st-replay-row' + (i === 0 ? ' st-replay-row-top' : '');
+    el.querySelector('.st-replay-rank').textContent = i + 1;
+    el.querySelector('.st-replay-bar').style.width = Math.round(count / _stReplayMax * 100) + '%';
+    el.querySelector('.st-replay-count').textContent = count.toLocaleString();
+    const info = stReplayMovementInfo(name, i, prevTop5);
+    const moveEl = el.querySelector('.st-replay-move');
+    moveEl.className = 'st-replay-move ' + info.cls;
+    moveEl.textContent = info.text;
+    rowsEl.appendChild(el); // moves existing nodes into rank order, appends new ones at the end
+  });
+
+  // FLIP read-2 + play: measure the post-reorder position, apply the inverse
+  // transform so rows appear unmoved, then release it into the CSS transition.
+  requestAnimationFrame(() => {
+    for (const [el, top] of firstTops) {
+      if (!el.isConnected) continue;
+      const dy = top - el.getBoundingClientRect().top;
+      if (Math.abs(dy) > 0.5) el.style.transform = `translateY(${dy}px)`;
+    }
+    requestAnimationFrame(() => {
+      for (const [el] of firstTops) {
+        if (!el.isConnected) continue;
+        el.style.transition = '';
+        el.style.transform = '';
+      }
+      for (const el of newlyCreated) { el.style.transition = ''; el.style.opacity = '1'; }
+    });
+  });
+}
+
+// Builds the static shell (controls + scrubber) once so the interval never
+// destroys the buttons the user is trying to click — only stReplayRender's
+// text/rows patch after this. Rebuilding the whole canvas every tick was the
+// original bug: a click's mouseup could land on an already-detached button.
+function stReplayBuildShell(canvas) {
+  canvas.innerHTML = `
+    <div class="st-replay-header">
+      <div class="st-replay-week-label" id="stReplayWeekLabel"></div>
+      <div class="st-replay-controls">
+        <button class="st-replay-speed-btn" id="stReplaySpeedBtn" onclick="stReplayCycleSpeed()" title="${t('st_replay_speed_title')}"></button>
+        <button class="st-replay-pause-btn" id="stReplayPauseBtn" onclick="stReplayTogglePause()" title="${t('st_replay_pause_title')}"></button>
+      </div>
+    </div>
+    <div class="st-replay-progress" id="stReplayProgress"></div>
+    <input type="range" class="st-replay-scrubber" id="stReplayScrubber" min="0" max="${_stReplaySnapshots.length - 1}" value="0"
+      oninput="stReplayScrub(this.value)" aria-label="${t('st_replay_scrub_label')}">
+    <div class="st-replay-rows" id="stReplayRows"></div>`;
+}
+
+function stReplayRender() {
+  const canvas = document.getElementById('stReplayCanvas');
+  if (!canvas || !_stReplaySnapshots.length) return;
+  if (!document.getElementById('stReplayRows')) stReplayBuildShell(canvas);
+  if (_stReplayIdx >= _stReplaySnapshots.length) { _stReplayIdx = _stReplaySnapshots.length - 1; }
+  const snap = _stReplaySnapshots[_stReplayIdx];
+  const prevTop5 = _stReplaySnapshots[_stReplayIdx - 1]?.top5 || null;
+  const atEnd = _stReplayIdx === _stReplaySnapshots.length - 1;
+
+  document.getElementById('stReplayWeekLabel').textContent = t('st_replay_week_of', { date: stReplayFormatWeekDate(snap.date), year: stYear });
+  document.getElementById('stReplayProgress').textContent = t('st_replay_progress', { n: _stReplayIdx + 1, total: _stReplaySnapshots.length });
+  document.getElementById('stReplaySpeedBtn').textContent = ({300:'2',600:'1',1200:'0.5'})[_stReplaySpeedMs] + '×';
+  document.getElementById('stReplayPauseBtn').textContent = _stReplayPaused ? (atEnd ? '↻' : '▶') : '⏸';
+  stReplayRenderRows(document.getElementById('stReplayRows'), snap, prevTop5);
+  const scrubberEl = document.getElementById('stReplayScrubber');
+  if (scrubberEl && document.activeElement !== scrubberEl) scrubberEl.value = _stReplayIdx;
+}
+
+function stReplayAdvance() {
+  _stReplayIdx++;
+  if (_stReplayIdx >= _stReplaySnapshots.length) { stReplayTogglePause(true); _stReplayIdx = _stReplaySnapshots.length - 1; return; }
+  stReplayRender();
+}
+
+function stReplayStartTimer() {
+  if (_stReplayTimer) clearInterval(_stReplayTimer);
+  _stReplayTimer = setInterval(stReplayAdvance, _stReplaySpeedMs);
+}
+
+function stReplayTogglePause(forcePause) {
+  _stReplayPaused = forcePause === true ? true : !_stReplayPaused;
+  if (_stReplayPaused) {
+    if (_stReplayTimer) { clearInterval(_stReplayTimer); _stReplayTimer = null; }
+  } else {
+    // Resuming after the countdown finished starts it over from week 1.
+    if (_stReplayIdx >= _stReplaySnapshots.length - 1) _stReplayIdx = 0;
+    stReplayStartTimer();
+  }
+  stReplayRender();
+}
+
+function stReplayCycleSpeed() {
+  // Cycle 1x → 2x → 0.5x, restarting the timer at the new cadence if playing.
+  _stReplaySpeedMs = _stReplaySpeedMs === 600 ? 300 : _stReplaySpeedMs === 300 ? 1200 : 600;
+  if (!_stReplayPaused) stReplayStartTimer();
+  stReplayRender();
+}
+
+function stReplayScrub(val) {
+  // Manual scrubbing pauses auto-advance so the user can inspect any week.
+  _stReplayPaused = true;
+  if (_stReplayTimer) { clearInterval(_stReplayTimer); _stReplayTimer = null; }
+  _stReplayIdx = Math.max(0, Math.min(_stReplaySnapshots.length - 1, parseInt(val, 10) || 0));
+  stReplayRender();
+}
+
 function stStartReplay() {
   if (stPeriodType !== 'year' || !allPlays.length) return;
   const replayBtn = document.getElementById('stReplayBtn');
@@ -25949,40 +26140,25 @@ function stStartReplay() {
     }
     const top5 = Object.entries(runningCounts).sort((a, b) => b[1] - a[1]).slice(0, 5);
     const [wy, wm, wd] = wk.split('-').map(Number);
-    snapshots.push({ week: wk, label: `${wd}/${wm}`, top5 });
+    snapshots.push({ week: wk, date: new Date(wy, wm - 1, wd), top5 });
   }
 
   if (_stReplayTimer) { clearInterval(_stReplayTimer); _stReplayTimer = null; }
 
-  let idx = 0;
-  const maxCount = Math.max(...snapshots.map(s => s.top5[0]?.[1] || 0));
+  _stReplaySnapshots = snapshots;
+  _stReplayIdx = 0;
+  _stReplayPaused = false;
+  _stReplaySpeedMs = 1200;
+  _stReplayMax = Math.max(...snapshots.map(s => s.top5[0]?.[1] || 0));
 
-  const render = () => {
-    if (idx >= snapshots.length) { stStopReplay(); return; }
-    const snap = snapshots[idx];
-    const max = snap.top5[0]?.[1] || 1;
-    const rows = snap.top5.map(([name, count], i) => `
-      <div class="st-replay-row">
-        <span class="st-replay-rank">${i + 1}</span>
-        <div class="st-replay-bar-wrap">
-          <div class="st-replay-bar" style="width:${Math.round(count/maxCount*100)}%"></div>
-          <span class="st-replay-name">${esc(name)}</span>
-        </div>
-        <span class="st-replay-count">${count.toLocaleString()}</span>
-      </div>`).join('');
-    canvas.innerHTML = `
-      <div class="st-replay-week-label">${t('st_replay_week_of', { date: snap.label, year: stYear })}</div>
-      <div class="st-replay-progress">${t('st_replay_progress', { n: idx + 1, total: snapshots.length })}</div>
-      <div class="st-replay-rows">${rows}</div>`;
-    idx++;
-  };
-
-  render();
-  _stReplayTimer = setInterval(render, 600);
+  stReplayRender();
+  stReplayStartTimer();
 }
 
 function stStopReplay() {
   if (_stReplayTimer) { clearInterval(_stReplayTimer); _stReplayTimer = null; }
+  _stReplaySnapshots = [];
+  _stReplayPaused = false;
   const replayBtn = document.getElementById('stReplayBtn');
   const replayStop = document.getElementById('stReplayStopBtn');
   if (replayBtn) replayBtn.style.display = '';

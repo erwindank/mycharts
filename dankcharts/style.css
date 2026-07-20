@@ -16986,13 +16986,13 @@ body[class*="-light"] .tm-card-search:hover {
   font-style: italic;
 }
 
-/* ── Chart History Replay — "on air" broadcast feel ─────────────── */
+/* ── Chart History Replay — "on air" countdown-show broadcast ────── */
 .st-replay-btn, .st-replay-stop-btn {
   font-family: var(--font-mono);
-  font-size: 0.78rem;
+  font-size: 0.82rem;
   font-weight: 600;
   letter-spacing: 0.05em;
-  padding: 0.6rem 1.3rem;
+  padding: 0.65rem 1.4rem;
   border-radius: 999px;
   border: 1px solid var(--sc);
   cursor: pointer;
@@ -17013,12 +17013,20 @@ body[class*="-light"] .tm-card-search:hover {
 }
 .st-replay-stop-btn:hover { background: var(--bg3); }
 
+/* Broadcast "monitor" frame: scan-line texture + vignette give the replay a
+   countdown-show feel rather than a flat settings panel. */
 .st-replay-canvas {
+  position: relative;
   margin-top: 0.9rem;
-  padding: 0.75rem;
-  background: var(--bg3);
-  border-radius: 14px;
+  padding: 1rem 1.1rem 1.1rem;
+  background:
+    repeating-linear-gradient(to bottom, color-mix(in srgb, var(--sc) 3%, transparent) 0px, transparent 1px, transparent 3px),
+    var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 16px;
   min-height: 140px;
+  box-shadow: inset 0 0 40px color-mix(in srgb, #000 18%, transparent), 0 10px 30px -14px color-mix(in srgb, #000 45%, transparent);
+  overflow: hidden;
 }
 
 .st-replay-loading {
@@ -17028,55 +17036,145 @@ body[class*="-light"] .tm-card-search:hover {
   font-style: italic;
 }
 
+.st-replay-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem;
+  margin-bottom: 0.3rem;
+}
+
 .st-replay-week-label {
   font-family: var(--font-mono);
-  font-size: 0.65rem;
+  font-size: 0.8rem;
+  font-weight: 700;
   letter-spacing: 0.08em;
   color: var(--sc);
   text-transform: uppercase;
-  margin-bottom: 0.2rem;
   display: flex;
   align-items: center;
-  gap: 0.4rem;
+  gap: 0.45rem;
 }
 .st-replay-week-label::before {
   content: '';
-  width: 7px; height: 7px;
+  width: 8px; height: 8px;
   border-radius: 50%;
   background: var(--rose);
   box-shadow: 0 0 6px color-mix(in srgb, var(--rose) 70%, transparent);
   animation: stLiveBlink 1.2s ease-in-out infinite;
+  flex-shrink: 0;
 }
 @keyframes stLiveBlink { 0%, 100% { opacity: 1; } 50% { opacity: 0.25; } }
 
+.st-replay-controls { display: flex; align-items: center; gap: 0.4rem; flex-shrink: 0; }
+
+.st-replay-speed-btn, .st-replay-pause-btn {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: var(--text2);
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 0.25rem 0.55rem;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+.st-replay-pause-btn { min-width: 2rem; text-align: center; }
+.st-replay-speed-btn:hover, .st-replay-pause-btn:hover { background: var(--sc); color: #fff; border-color: var(--sc); }
+
 .st-replay-progress {
   font-family: var(--font-mono);
-  font-size: 0.58rem;
+  font-size: 0.6rem;
   color: var(--text3);
-  margin-bottom: 0.75rem;
+  margin-bottom: 0.55rem;
+  font-feature-settings: "tnum";
 }
 
-.st-replay-rows { display: flex; flex-direction: column; gap: 0.35rem; }
+/* Scrubber: click/drag any point in the year to jump straight there. */
+.st-replay-scrubber {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 4px;
+  margin-bottom: 1rem;
+  border-radius: 999px;
+  background: var(--bg2);
+  cursor: pointer;
+}
+.st-replay-scrubber::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 13px; height: 13px;
+  border-radius: 50%;
+  background: var(--sc);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--sc) 25%, transparent);
+  cursor: pointer;
+  transition: transform 0.15s;
+}
+.st-replay-scrubber::-webkit-slider-thumb:hover { transform: scale(1.15); }
+.st-replay-scrubber::-moz-range-thumb {
+  width: 13px; height: 13px;
+  border: none;
+  border-radius: 50%;
+  background: var(--sc);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--sc) 25%, transparent);
+  cursor: pointer;
+}
 
+.st-replay-rows { display: flex; flex-direction: column; gap: 0.4rem; }
+
+/* Rows are kept across weeks and FLIP-repositioned in JS (see
+   stReplayRenderRows) rather than rebuilt, so this transition is what
+   actually produces the sliding reorder — entries glide to their new rank
+   instead of the whole list flashing to new markup. */
 .st-replay-row {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.6rem;
   font-family: var(--font-mono);
-  font-size: 0.72rem;
+  font-size: 0.82rem;
+  transition: transform 420ms cubic-bezier(0.4,0,0.2,1), opacity 300ms ease;
 }
 
-.st-replay-rank { color: var(--sc); font-weight: 700; min-width: 14px; }
+/* #1 gets the chart-topper gold treatment, matching peak/gold1 elsewhere. */
+.st-replay-row-top .st-replay-rank { color: var(--gold1); }
+.st-replay-row-top .st-replay-bar {
+  background: linear-gradient(90deg, color-mix(in srgb, var(--gold1) 65%, transparent), color-mix(in srgb, var(--gold1) 35%, transparent));
+}
+.st-replay-row-top .st-replay-avatar .thumb,
+.st-replay-row-top .st-replay-avatar .thumb-initials {
+  border-color: color-mix(in srgb, var(--gold1) 60%, transparent);
+  box-shadow: 0 0 10px color-mix(in srgb, var(--gold1) 40%, transparent);
+}
+
+.st-replay-rank {
+  color: var(--sc);
+  font-weight: 700;
+  font-size: 1rem;
+  min-width: 16px;
+  text-align: center;
+}
+
+.st-replay-avatar { flex-shrink: 0; }
+.st-replay-avatar .thumb,
+.st-replay-avatar .thumb-initials {
+  width: 34px; height: 34px;
+  border-radius: 50%;
+  font-size: 0.75rem;
+  transition: border-color 0.3s, box-shadow 0.3s;
+}
 
 .st-replay-bar-wrap {
   flex: 1;
   position: relative;
-  height: 24px;
+  height: 28px;
   background: var(--bg2);
   border-radius: 6px;
   overflow: hidden;
   display: flex;
   align-items: center;
+  min-width: 0;
 }
 
 .st-replay-bar {
@@ -17094,18 +17192,43 @@ body[class*="-light"] .tm-card-search:hover {
   z-index: 1;
   padding: 0 8px;
   color: var(--text1);
-  font-weight: 600;
+  font-weight: 700;
+  font-size: 0.88rem;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
   max-width: 100%;
 }
 
+.st-replay-move {
+  font-size: 0.66rem;
+  font-weight: 700;
+  font-feature-settings: "tnum";
+  min-width: 2.1rem;
+  text-align: center;
+  flex-shrink: 0;
+}
+.st-replay-move-up   { color: var(--chart-up); }
+.st-replay-move-down { color: var(--chart-down); }
+.st-replay-move-same { color: var(--text3); }
+.st-replay-move-new  { color: var(--sc); }
+
 .st-replay-count {
-  font-size: 0.62rem;
+  font-size: 0.68rem;
   color: var(--text3);
   white-space: nowrap;
   font-feature-settings: "tnum";
+  min-width: 3rem;
+  text-align: right;
+}
+
+/* Narrow screens: drop the count column and shrink the avatar/badge so the
+   row still fits without truncating the artist name. */
+@media (max-width: 480px) {
+  .st-replay-avatar .thumb, .st-replay-avatar .thumb-initials { width: 28px; height: 28px; font-size: 0.65rem; }
+  .st-replay-move { min-width: 1.6rem; font-size: 0.6rem; }
+  .st-replay-count { display: none; }
+  .st-replay-name { font-size: 0.8rem; }
 }
 
 /* ── Share Card ──────────────────────────────────────────────── */
@@ -17196,6 +17319,7 @@ body[class*="-light"] .tm-card-search:hover {
   .st-streak-card:nth-child(1) { animation: none; }
   .st-gem-icon { animation: none; }
   .st-replay-week-label::before { animation: none; }
+  .st-replay-row { transition: none; opacity: 1; transform: none; }
   .st-reveal, .st-milestone, .st-discovery-item, .st-grammy-card, .st-milestone-num.st-pop {
     animation: none;
     transition: none;
