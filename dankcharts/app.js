@@ -24823,16 +24823,22 @@ function stRenderLoyalty(plays) {
   el.innerHTML = `
     <div class="st-loyalty-score">
       <div class="st-loyalty-ring" style="--pct:${score}">
-        <div class="st-loyalty-pct">${score}%</div>
+        <div class="st-loyalty-pct">${score}<span class="st-loyalty-pct-sign">%</span></div>
       </div>
-      <div class="st-loyalty-verdict">${label}</div>
-      <div class="st-loyalty-sub">${t('st_loyalty_sub', { n: returning, year: prevYear })}</div>
+      <div class="st-loyalty-text">
+        <div class="st-loyalty-verdict">${label}</div>
+        <div class="st-loyalty-sub">${t('st_loyalty_sub', { n: returning, year: prevYear })}</div>
+        <div class="st-loyalty-tally" aria-hidden="true">
+          ${Array.from({ length: total }, (_, i) => `<span class="st-loyalty-dot${i < returning ? ' is-on' : ''}"></span>`).join('')}
+        </div>
+      </div>
     </div>
     ${returningArtists.length ? `
     <div class="st-loyalty-artists-title">${t('st_loyalty_artists_title')}</div>
     <div class="st-loyalty-artists">
       ${returningArtists.map((a, i) => `
         <div class="st-loyalty-artist" style="--i:${i}">
+          <div class="st-loyalty-artist-badge" aria-hidden="true">↻</div>
           <div class="st-loyalty-artist-head">
             <div class="st-loyalty-artist-avatar" id="stLoyaltyImg${i}"></div>
             <div class="st-loyalty-artist-meta">
@@ -24841,7 +24847,7 @@ function stRenderLoyalty(plays) {
             </div>
           </div>
           <div class="st-loyalty-artist-songs">
-            ${a.topSongs.map(s => `<div class="st-loyalty-song"><span class="st-loyalty-song-title">${esc(s.title)}</span><span class="st-loyalty-song-count">${s.count.toLocaleString()}</span></div>`).join('')}
+            ${a.topSongs.map((s, j) => `<div class="st-loyalty-song"><span class="st-loyalty-song-idx">${j + 1}</span><span class="st-loyalty-song-title">${esc(s.title)}</span><span class="st-loyalty-song-count">${s.count.toLocaleString()}</span></div>`).join('')}
           </div>
         </div>`).join('')}
     </div>` : ''}`;
