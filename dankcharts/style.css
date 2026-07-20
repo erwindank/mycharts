@@ -15798,12 +15798,17 @@ body[class*="-light"] .tm-card-search:hover {
   .st-cf-sub, .st-cf-count { font-size: 0.76rem; }
 }
 
-/* ── Monthly Activity ────────────────────────────────────────── */
+/* ── Monthly Activity ──────────────────────────────────────────
+   padding-top on the chart reserves room for the peak-month star
+   badge (below) so it never gets clipped: overflow-x:auto forces
+   overflow-y to 'auto' too per the CSS overflow spec, and anything
+   positioned outside the box's own padding would be cut off. */
 .st-activity-chart {
   display: flex;
   align-items: flex-end;
-  gap: 5px;
-  height: 140px;
+  gap: 6px;
+  height: 172px;
+  padding-top: 18px;
   overflow-x: auto;
   padding-bottom: 0.3rem;
   scrollbar-width: thin;
@@ -15811,17 +15816,36 @@ body[class*="-light"] .tm-card-search:hover {
   background-image: repeating-linear-gradient(to top, transparent 0, transparent calc(25% - 1px), color-mix(in srgb, var(--sc) 12%, transparent) 25%);
 }
 
+/* each month is a real tap target now (drives the detail panel below),
+   so it's a <button> — reset the native chrome and lay it out like the
+   old div did, plus a staggered rise-in on first render */
 .st-activity-col {
   display: flex;
   flex-direction: column;
   align-items: center;
-  min-width: 28px;
+  min-width: 36px;
   flex: 1;
+  background: none;
+  border: none;
+  padding: 0;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  border-radius: 6px;
+  transition: transform 0.2s cubic-bezier(0.4,0,0.2,1);
+  animation: stChipIn 0.4s cubic-bezier(0.4,0,0.2,1) both;
+  /* capped so All-Time views (100+ months) don't leave later bars invisible
+     for seconds waiting on an ever-growing per-index delay */
+  animation-delay: calc(min(var(--i, 0), 24) * 25ms);
 }
+.st-activity-col:hover { transform: translateY(-2px); }
+.st-activity-col:focus-visible { outline: 2px solid var(--sc); outline-offset: 2px; }
 
 .st-activity-bar-wrap {
+  position: relative;
   width: 100%;
-  height: 96px;
+  height: 108px;
   display: flex;
   align-items: flex-end;
 }
@@ -15829,36 +15853,69 @@ body[class*="-light"] .tm-card-search:hover {
 .st-activity-bar {
   width: 100%;
   background: linear-gradient(to top, var(--sc), color-mix(in srgb, var(--sc) 45%, #fff 35%));
-  border-radius: 4px 4px 1px 1px;
+  border-radius: 5px 5px 1px 1px;
   min-height: 2px;
   opacity: 0.55;
-  transition: height 0.6s cubic-bezier(0.4,0,0.2,1), opacity 0.3s;
+  transition: height 0.6s cubic-bezier(0.4,0,0.2,1), opacity 0.2s, filter 0.2s;
 }
 .st-activity-col:hover .st-activity-bar { opacity: 0.85; }
 
 .st-activity-col.st-peak .st-activity-bar {
   opacity: 1;
-  box-shadow: 0 0 10px color-mix(in srgb, var(--sc) 60%, transparent);
+  background: linear-gradient(to top, var(--gold1), color-mix(in srgb, var(--gold1) 45%, #fff 35%));
+  box-shadow: 0 0 10px color-mix(in srgb, var(--gold1) 55%, transparent);
 }
-.st-activity-col.st-low .st-activity-bar { opacity: 0.28; }
+/* crown marker over the tallest bar, sitting in the chart's reserved padding-top */
+.st-activity-col.st-peak .st-activity-bar-wrap::after {
+  content: '★';
+  position: absolute;
+  top: -16px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 0.62rem;
+  color: var(--gold1);
+  text-shadow: 0 0 6px color-mix(in srgb, var(--gold1) 70%, transparent);
+}
+.st-activity-col.st-low .st-activity-bar {
+  opacity: 0.55;
+  background: repeating-linear-gradient(45deg, var(--sc), var(--sc) 3px, transparent 3px, transparent 6px);
+}
+
+.st-activity-col.is-selected .st-activity-bar { filter: brightness(1.25); opacity: 1; }
+.st-activity-col.is-selected .st-activity-label,
+.st-activity-col.is-selected .st-activity-count { color: var(--sc); }
+
+.st-activity-delta {
+  font-family: var(--font-mono);
+  font-size: 0.58rem;
+  font-weight: 700;
+  margin-top: 3px;
+  line-height: 1;
+}
+.st-activity-delta.st-up { color: var(--green); }
+.st-activity-delta.st-down { color: var(--rose); }
+.st-activity-delta.st-flat { color: var(--text3); }
 
 .st-activity-label {
   font-family: var(--font-mono);
-  font-size: 0.5rem;
-  color: var(--text3);
-  margin-top: 4px;
+  font-size: 0.64rem;
+  font-weight: 600;
+  color: var(--text2);
+  margin-top: 5px;
   text-align: center;
   line-height: 1.2;
+  transition: color 0.2s;
 }
 .st-activity-year { color: var(--text3); opacity: 0.7; }
 
 .st-activity-count {
   font-family: var(--font-mono);
   font-weight: 700;
-  font-size: 0.5rem;
-  color: var(--text2);
+  font-size: 0.7rem;
+  color: var(--text1);
   margin-top: 1px;
   font-feature-settings: "tnum";
+  transition: color 0.2s;
 }
 
 .st-activity-caption {
@@ -15868,7 +15925,7 @@ body[class*="-light"] .tm-card-search:hover {
   margin-top: 0.75rem;
 }
 
-.st-peak-label, .st-low-label {
+.st-peak-label, .st-low-label, .st-momentum-label {
   font-family: var(--font-mono);
   font-size: 0.65rem;
   color: var(--text1);
@@ -15877,7 +15934,68 @@ body[class*="-light"] .tm-card-search:hover {
   border-radius: 999px;
   padding: 0.3rem 0.7rem;
 }
-.st-peak-label strong { color: var(--sc); }
+.st-peak-label strong { color: var(--gold1); }
+.st-low-label strong { color: var(--text2); }
+.st-momentum-label.st-up strong { color: var(--green); }
+.st-momentum-label.st-down strong { color: var(--rose); }
+.st-momentum-label.st-flat strong { color: var(--text2); }
+
+/* ── Monthly Activity — tap-to-inspect detail panel ──────────────
+   Populated by stActivitySelectMonth() in app.js on bar click; starts
+   pre-filled with the peak month so the interaction is discoverable. */
+.st-activity-detail {
+  margin-top: 0.7rem;
+  padding: 0.7rem 0.85rem;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+}
+.st-activity-detail-head {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 0.4rem 0.8rem;
+  animation: stChipIn 0.3s cubic-bezier(0.34,1.56,0.64,1) both;
+}
+.st-activity-detail-month {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 1.1rem;
+  letter-spacing: -0.01em;
+  color: var(--text1);
+}
+.st-activity-detail-nums {
+  display: flex;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+}
+.st-activity-detail-count { color: var(--text2); font-weight: 700; }
+.st-activity-detail-share { color: var(--text3); }
+.st-activity-detail-delta.st-up { color: var(--green); }
+.st-activity-detail-delta.st-down { color: var(--rose); }
+.st-activity-detail-delta.st-flat { color: var(--text3); }
+.st-activity-detail-artist {
+  margin-top: 0.5rem;
+  padding-top: 0.5rem;
+  border-top: 1px dashed var(--border);
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  color: var(--text2);
+}
+.st-activity-detail-artist strong { color: var(--sc); }
+
+@media (prefers-reduced-motion: reduce) {
+  .st-activity-col { animation: none; }
+  .st-activity-detail-head { animation: none; }
+}
+
+@media (max-width: 480px) {
+  .st-activity-chart { height: 158px; }
+  .st-activity-bar-wrap { height: 94px; }
+  .st-activity-col { min-width: 30px; }
+}
 
 /* ── Loyalty Score — chart re-entry stamp ──────────────────────
    JS sets --pct (0–100, unitless) on .st-loyalty-ring; it's the

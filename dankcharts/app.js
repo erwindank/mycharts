@@ -24968,47 +24968,130 @@ function stRenderActivity(plays) {
   if (!el) return;
   if (!plays.length) { el.innerHTML = ''; return; }
 
-  const byMonth = {};
+  const byMonth = {};        // 'YYYY-MM' -> play count
+  const artistsByMonth = {}; // 'YYYY-MM' -> { artist: count }, powers the tap-to-inspect panel below
   for (const p of plays) {
     const d = tzDate(p.date);
     const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
     byMonth[key] = (byMonth[key] || 0) + 1;
+    const am = artistsByMonth[key] || (artistsByMonth[key] = {});
+    am[p.artist] = (am[p.artist] || 0) + 1;
   }
   const months = Object.keys(byMonth).sort();
   if (!months.length) { el.innerHTML = ''; return; }
 
+  const total = plays.length;
   const max = Math.max(...Object.values(byMonth));
   const peakKey = months.reduce((a, b) => byMonth[a] >= byMonth[b] ? a : b);
   const lowKey = months.length > 1 ? months.reduce((a, b) => byMonth[a] <= byMonth[b] ? a : b) : null;
 
-  const barsHTML = months.map(mk => {
+  const monthLabel = (mk, withYear) => {
+    const [y, m] = mk.split('-');
+    const name = t(ST_MONTH_KEYS[parseInt(m) - 1]);
+    return withYear && y !== String(stYear) ? `${name} ${y}` : name;
+  };
+  // most-played artist for a given month, surfaced in the detail panel on tap
+  const topArtistOf = key => {
+    const counts = artistsByMonth[key] || {};
+    let best = null, bestN = 0;
+    for (const a in counts) { if (counts[a] > bestN) { best = a; bestN = counts[a]; } }
+    return best ? { name: best, count: bestN } : null;
+  };
+
+  const barsHTML = months.map((mk, i) => {
     const [y, m] = mk.split('-');
     const label = t(ST_MONTH_KEYS[parseInt(m) - 1]).substring(0, 3);
     const count = byMonth[mk];
     const pct = Math.round(count / max * 100);
-    const cls = mk === peakKey ? ' st-peak' : mk === lowKey ? ' st-low' : '';
-    return `<div class="st-activity-col${cls}">
+    const isPeak = mk === peakKey;
+    const cls = (isPeak ? ' st-peak' : mk === lowKey ? ' st-low' : '') + (isPeak ? ' is-selected' : '');
+
+    // month-over-month change vs the previous bar, shown as a mini arrow + in the detail panel
+    const prevMk = i > 0 ? months[i - 1] : null;
+    const deltaPct = prevMk ? Math.round((count - byMonth[prevMk]) / byMonth[prevMk] * 100) : null;
+    const deltaDir = deltaPct === null ? '' : deltaPct > 0 ? 'up' : deltaPct < 0 ? 'down' : 'flat';
+    const deltaChip = deltaPct !== null
+      ? `<span class="st-activity-delta st-${deltaDir}">${deltaDir === 'up' ? '▲' : deltaDir === 'down' ? '▼' : '•'}${Math.abs(deltaPct)}%</span>`
+      : '';
+
+    const sharePct = Math.round(count / total * 100);
+    const top = topArtistOf(mk);
+
+    return `<button type="button" class="st-activity-col${cls}" style="--i:${i}"
+      data-label="${esc(monthLabel(mk, true))}"
+      data-count="${count}"
+      data-share="${sharePct}"
+      data-delta="${deltaPct === null ? '' : Math.abs(deltaPct)}"
+      data-delta-dir="${deltaDir}"
+      data-prev-label="${prevMk ? esc(monthLabel(prevMk)) : ''}"
+      data-artist="${top ? esc(top.name) : ''}"
+      data-artist-count="${top ? top.count : ''}"
+      onclick="stActivitySelectMonth(this)">
       <div class="st-activity-bar-wrap"><div class="st-activity-bar" style="height:${Math.max(pct,2)}%"></div></div>
+      ${deltaChip}
       <div class="st-activity-label">${label}${months.length > 12 ? '<br><span class="st-activity-year">' + y + '</span>' : ''}</div>
       <div class="st-activity-count">${count.toLocaleString()}</div>
-    </div>`;
+    </button>`;
   }).join('');
+
+  // momentum: back half of the period vs the front half, ±10% before it's worth calling out
+  let momentum = null;
+  if (months.length > 2) {
+    const mid = Math.ceil(months.length / 2);
+    const avg = keys => keys.reduce((s, k) => s + byMonth[k], 0) / keys.length;
+    const change = (avg(months.slice(mid)) - avg(months.slice(0, mid))) / avg(months.slice(0, mid));
+    momentum = change > 0.1 ? 'up' : change < -0.1 ? 'down' : 'flat';
+  }
 
   let caption = '';
   if (months.length > 1) {
-    const [py, pm] = peakKey.split('-');
-    const peakName = t(ST_MONTH_KEYS[parseInt(pm) - 1]);
-    const [ly, lm] = lowKey.split('-');
-    const lowName = t(ST_MONTH_KEYS[parseInt(lm) - 1]);
-    const peakSuffix = py !== String(stYear) ? ' ' + py : '';
-    const lowSuffix = ly !== String(stYear) ? ' ' + ly : '';
+    const peakName = monthLabel(peakKey, true);
+    const lowName = monthLabel(lowKey, true);
+    const momentumHTML = momentum ? `<span class="st-momentum-label st-${momentum}">${momentum === 'up' ? '📈' : momentum === 'down' ? '📉' : '➡️'} ${t('st_activity_momentum')}: <strong>${t('st_activity_momentum_' + momentum)}</strong></span>` : '';
     caption = `<div class="st-activity-caption">
-      <span class="st-peak-label">📈 ${t('st_activity_peak')}: <strong>${peakName}${peakSuffix}</strong> (${byMonth[peakKey].toLocaleString()} ${tUnit('plays', byMonth[peakKey])})</span>
-      <span class="st-low-label">📉 ${t('st_activity_low')}: <strong>${lowName}${lowSuffix}</strong> (${byMonth[lowKey].toLocaleString()} ${tUnit('plays', byMonth[lowKey])})</span>
+      <span class="st-peak-label">🏆 ${t('st_activity_peak')}: <strong>${peakName}</strong> (${byMonth[peakKey].toLocaleString()} ${tUnit('plays', byMonth[peakKey])})</span>
+      <span class="st-low-label">💤 ${t('st_activity_low')}: <strong>${lowName}</strong> (${byMonth[lowKey].toLocaleString()} ${tUnit('plays', byMonth[lowKey])})</span>
+      ${momentumHTML}
     </div>`;
   }
 
-  el.innerHTML = `<div class="st-activity-chart">${barsHTML}</div>${caption}`;
+  el.innerHTML = `<div class="st-activity-chart">${barsHTML}</div>${caption}<div class="st-activity-detail"></div>`;
+
+  // pre-fill the detail panel with the peak month so the tap interaction is discoverable, not empty
+  const defaultBtn = el.querySelector('.st-activity-col.is-selected') || el.querySelector('.st-activity-col');
+  if (defaultBtn) stActivitySelectMonth(defaultBtn);
+}
+
+// Populates the Monthly Activity detail panel when a bar is tapped/clicked;
+// reads the data-* attributes stamped onto each button in stRenderActivity
+// rather than recomputing, so this stays a cheap DOM-only update.
+function stActivitySelectMonth(btn) {
+  const root = btn.closest('#stActivityBars');
+  if (!root) return;
+  root.querySelectorAll('.st-activity-col.is-selected').forEach(c => c.classList.remove('is-selected'));
+  btn.classList.add('is-selected');
+  const panel = root.querySelector('.st-activity-detail');
+  if (!panel) return;
+  const d = btn.dataset;
+
+  const deltaHTML = d.delta
+    ? `<span class="st-activity-detail-delta st-${d.deltaDir}">${d.deltaDir === 'up' ? '▲' : d.deltaDir === 'down' ? '▼' : '•'} ${d.delta}% ${t('st_activity_vs_prev', { month: d.prevLabel })}</span>`
+    : '';
+  const artistHTML = d.artist
+    ? `<div class="st-activity-detail-artist">🎤 ${t('st_activity_top_artist')}: <strong>${esc(d.artist)}</strong> · ${tCount('plays', parseInt(d.artistCount))}</div>`
+    : '';
+
+  panel.innerHTML = `
+    <div class="st-activity-detail-head">
+      <div class="st-activity-detail-month">${esc(d.label)}</div>
+      <div class="st-activity-detail-nums">
+        <span class="st-activity-detail-count">${tCount('plays', parseInt(d.count))}</span>
+        <span class="st-activity-detail-share">${d.share}% ${t('st_activity_share_of_total')}</span>
+        ${deltaHTML}
+      </div>
+    </div>
+    ${artistHTML}
+  `;
 }
 
 // ── Loyalty Score ─────────────────────────────────────────────
