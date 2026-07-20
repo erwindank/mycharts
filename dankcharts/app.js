@@ -23103,6 +23103,7 @@ let _awardsPickerCatFilter = '';
 let _awardsPickerEligWin  = { start: '', end: '' };
 let _awardsPickerAutoCands = [];
 let _realLifeYear   = tzNow().getFullYear();
+let _realLifeAwardsData = {}; // year → results, cached so the Soundtrack tab's Grammy widget can read it
 
 function _awardsDefaultData(year) {
   const cats = {};
@@ -23977,6 +23978,8 @@ async function loadRealLifeAwards(year) {
   }
 
   statusEl.textContent = '';
+  _realLifeAwardsData[year] = results;
+  if (typeof renderSoundtrack === 'function' && currentPeriod === 'soundtrack') renderSoundtrack();
   if (!results.length) {
     contentEl.innerHTML = `<div class="awards-empty">No Grammy data found for your top ${topArtists.length} artists in ${year}. MusicBrainz coverage may be incomplete for this period.</div>`;
     return;
@@ -25485,11 +25488,16 @@ function stRenderMilestones(plays) {
   overallMs.sort((a, b) => a.date - b.date);
   artistMs.sort((a, b) => a.date - b.date);
 
+  _stMilestonesVisible.overall = ST_MS_PAGE;
+  _stMilestonesVisible.artist = ST_MS_PAGE;
   stRenderMilestoneList(overallMs, 'stMilestonesBody', 'stMilestonesWrap', 'stMilestonesToggle', 'overall');
   stRenderMilestoneList(artistMs, 'stArtistMilestonesBody', 'stArtistMilestonesWrap', 'stArtistMilestonesToggle', 'artist');
 }
 
 const _stMilestonesCounts = { overall: 0, artist: 0 };
+const _stMilestonesItems = { overall: [], artist: [] };
+const ST_MS_PAGE = 25;
+const _stMilestonesVisible = { overall: ST_MS_PAGE, artist: ST_MS_PAGE };
 
 function stRenderMilestoneList(items, bodyId, wrapId, toggleId, kind) {
   const el = document.getElementById(bodyId);
@@ -25497,14 +25505,20 @@ function stRenderMilestoneList(items, bodyId, wrapId, toggleId, kind) {
   const toggle = document.getElementById(toggleId);
   if (!el) return;
 
+  _stMilestonesItems[kind] = items;
+  _stMilestonesCounts[kind] = items.length;
+
   if (!items.length) {
     el.innerHTML = `<div class="st-empty">${t('st_milestones_none')}</div>`;
     if (toggle) toggle.style.display = 'none';
-    if (wrap) wrap.classList.remove('st-collapsed');
+    if (wrap) wrap.classList.remove('st-scrollable', 'st-has-more');
     return;
   }
 
-  el.innerHTML = items.map((m, i) => {
+  const visibleCount = Math.min(_stMilestonesVisible[kind], items.length);
+  const visibleItems = items.slice(0, visibleCount);
+
+  el.innerHTML = visibleItems.map((m, i) => {
     const d = tzDate(m.date);
     const ds = `${d.getDate()}/${d.getMonth()+1}/${d.getFullYear()}`;
     const typeClass = kind === 'overall' ? ' st-milestone-overall' : ' st-milestone-artist';
@@ -25522,7 +25536,7 @@ function stRenderMilestoneList(items, bodyId, wrapId, toggleId, kind) {
     </div>`;
   }).join('');
 
-  items.forEach((m, i) => {
+  visibleItems.forEach((m, i) => {
     const rowEl = el.querySelector(`.st-milestone[data-idx="${i}"]`);
     if (!rowEl) return;
 
@@ -25566,30 +25580,43 @@ function stRenderMilestoneList(items, bodyId, wrapId, toggleId, kind) {
     numEls.forEach(n => numObs.observe(n));
   }
 
-  // Long lists collapse behind a fade + toggle so the page doesn't
-  // open with a wall of rows; reset to collapsed on every re-render.
-  // Only apply the collapse (and its fade overlay) when there's enough
-  // content to actually overflow — otherwise the fade renders above an
-  // undersized wrap and bleeds into the section header above it.
-  _stMilestonesCounts[kind] = items.length;
-  const needsCollapse = items.length > 8;
-  if (wrap) wrap.classList.toggle('st-collapsed', needsCollapse);
+  // Long lists live in a fixed-height scroll box so the page doesn't
+  // open with a wall of rows, and only a page of ST_MS_PAGE items is
+  // ever in the DOM at once; a button below loads the next page in.
+  const needsScroll = items.length > 8;
+  const remaining = items.length - visibleCount;
+  if (wrap) {
+    wrap.classList.toggle('st-scrollable', needsScroll);
+    wrap.classList.toggle('st-has-more', needsScroll && remaining > 0);
+  }
   if (toggle) {
-    toggle.style.display = needsCollapse ? '' : 'none';
-    toggle.textContent = t('st_milestones_show_all', { n: items.length });
+    if (remaining > 0) {
+      toggle.style.display = '';
+      toggle.textContent = t('st_milestones_show_more', { n: Math.min(ST_MS_PAGE, remaining), total: items.length });
+    } else if (items.length > ST_MS_PAGE) {
+      toggle.style.display = '';
+      toggle.textContent = t('st_milestones_show_less');
+    } else {
+      toggle.style.display = 'none';
+    }
   }
 }
 
 function stToggleMilestones(kind) {
   kind = kind || 'overall';
+  const bodyId = kind === 'artist' ? 'stArtistMilestonesBody' : 'stMilestonesBody';
   const wrapId = kind === 'artist' ? 'stArtistMilestonesWrap' : 'stMilestonesWrap';
   const toggleId = kind === 'artist' ? 'stArtistMilestonesToggle' : 'stMilestonesToggle';
+  const items = _stMilestonesItems[kind] || [];
+  const total = items.length;
+  if (!total) return;
+
+  const collapsing = _stMilestonesVisible[kind] >= total;
+  _stMilestonesVisible[kind] = collapsing ? ST_MS_PAGE : Math.min(_stMilestonesVisible[kind] + ST_MS_PAGE, total);
+  stRenderMilestoneList(items, bodyId, wrapId, toggleId, kind);
+
   const wrap = document.getElementById(wrapId);
-  const toggle = document.getElementById(toggleId);
-  if (!wrap || !toggle) return;
-  const collapsed = wrap.classList.toggle('st-collapsed');
-  toggle.textContent = collapsed ? t('st_milestones_show_all', { n: _stMilestonesCounts[kind] }) : t('st_milestones_show_less');
-  if (collapsed) wrap.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  if (wrap && collapsing) { wrap.scrollTop = 0; wrap.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); }
 }
 
 // ── Streaks ───────────────────────────────────────────────────
@@ -25775,18 +25802,18 @@ function stRenderGrammys(plays) {
   for (const p of plays) artistCounts[p.artist.toLowerCase()] = (artistCounts[p.artist.toLowerCase()] || 0) + 1;
   const topArtistKeys = Object.entries(artistCounts).sort((a, b) => b[1] - a[1]).slice(0, 20).map(([a]) => a);
 
-  // Build Grammy map from _awardsYearData (user's own awards across all loaded years)
+  // Build Grammy map from cached Real-Life Awards lookups (Awards tab → Real-Life Awards)
   const grammyMap = {};
-  if (typeof _awardsYearData !== 'undefined') {
-    for (const [yr, data] of Object.entries(_awardsYearData)) {
-      if (!data) continue;
-      // My Grammys: data is {categories: [{id, winner: {artist, title}}]}
-      const cats = data.categories || data.cats || [];
-      for (const cat of cats) {
-        if (!cat.winner || !cat.winner.artist) continue;
-        const ak = cat.winner.artist.toLowerCase();
-        if (!grammyMap[ak]) grammyMap[ak] = [];
-        grammyMap[ak].push({ year: yr, category: cat.label || cat.id || '', isWin: true });
+  if (typeof _realLifeAwardsData !== 'undefined') {
+    for (const [yr, results] of Object.entries(_realLifeAwardsData)) {
+      if (!results) continue;
+      for (const r of results) {
+        const ak = r.artist.toLowerCase();
+        for (const a of r.awards) {
+          if (!a.won) continue;
+          if (!grammyMap[ak]) grammyMap[ak] = [];
+          grammyMap[ak].push({ year: a.year || yr, category: a.category, isWin: true });
+        }
       }
     }
   }

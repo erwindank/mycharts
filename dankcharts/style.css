@@ -16421,17 +16421,25 @@ body[class*="-light"] .tm-card-search:hover {
    The connecting line lives on the container's ::before; icon
    badges sit on top of it so no z-index juggling is needed. */
 .st-milestones-wrap { position: relative; }
-.st-milestones-wrap.st-collapsed #stMilestonesBody { max-height: 460px; overflow: hidden; }
-.st-milestones-wrap.st-collapsed::after {
+.st-milestones-wrap.st-scrollable .st-milestones-body {
+  max-height: 300px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: var(--sc) transparent;
+}
+.st-milestones-wrap.st-scrollable .st-milestones-body::-webkit-scrollbar { width: 6px; }
+.st-milestones-wrap.st-scrollable .st-milestones-body::-webkit-scrollbar-thumb { background: var(--sc); border-radius: 999px; }
+.st-milestones-wrap.st-scrollable.st-has-more::after {
   content: '';
   position: absolute;
-  left: 0; right: 0; bottom: 2.6rem; height: 70px;
+  left: 0; right: 6px; bottom: 0; height: 36px;
   background: linear-gradient(to bottom, transparent, var(--bg2));
   pointer-events: none;
 }
 
-#stMilestonesBody { position: relative; }
-#stMilestonesBody::before {
+.st-milestones-body { position: relative; }
+.st-milestones-body::before {
   content: '';
   position: absolute;
   left: 0.85rem;
