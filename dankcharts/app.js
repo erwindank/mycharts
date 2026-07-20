@@ -24574,12 +24574,11 @@ function stGetFirstSeenArtists() {
   return firstSeenMaps.artistFirst;
 }
 
-// ── Top 5 Artists + Songs ─────────────────────────────────────
+// ── Top 50 Artists + Songs — iPod-style coverflow carousels ───
 function stRenderTopCharts(plays) {
   const artistCounts = {};
   for (const p of plays) artistCounts[p.artist] = (artistCounts[p.artist] || 0) + 1;
-  const topArtists = Object.entries(artistCounts).sort((a, b) => b[1] - a[1]).slice(0, 5);
-  const maxA = topArtists[0]?.[1] || 1;
+  const topArtists = Object.entries(artistCounts).sort((a, b) => b[1] - a[1]).slice(0, 50);
 
   const songCounts = {};
   for (const p of plays) {
@@ -24587,36 +24586,31 @@ function stRenderTopCharts(plays) {
     if (!songCounts[sk]) songCounts[sk] = { title: p.title, artist: p.artist, count: 0 };
     songCounts[sk].count++;
   }
-  const topSongs = Object.values(songCounts).sort((a, b) => b.count - a.count).slice(0, 5);
-  const maxS = topSongs[0]?.count || 1;
-
-  const rankIcon = i => ['🥇','🥈','🥉','4','5'][i];
-
-  const artistHTML = topArtists.length ? topArtists.map(([name, count], i) => `
-    <div class="st-top-item${i === 0 ? ' st-rank-1' : ''}" style="--i:${i}">
-      <span class="st-top-rank">${rankIcon(i)}</span>
-      <div class="st-top-info">
-        <div class="st-top-name">${esc(name)}</div>
-        <div class="st-top-bar-wrap"><div class="st-top-bar" style="width:${Math.round(count/maxA*100)}%"></div></div>
-      </div>
-      <span class="st-top-count">${count.toLocaleString()}</span>
-    </div>`).join('') : `<div class="st-empty">${t('st_no_data')}</div>`;
-
-  const songHTML = topSongs.length ? topSongs.map((s, i) => `
-    <div class="st-top-item${i === 0 ? ' st-rank-1' : ''}" style="--i:${i}">
-      <span class="st-top-rank">${rankIcon(i)}</span>
-      <div class="st-top-info">
-        <div class="st-top-name">${esc(s.title)}</div>
-        <div class="st-top-sub">${esc(s.artist)}</div>
-        <div class="st-top-bar-wrap"><div class="st-top-bar" style="width:${Math.round(s.count/maxS*100)}%"></div></div>
-      </div>
-      <span class="st-top-count">${s.count.toLocaleString()}</span>
-    </div>`).join('') : `<div class="st-empty">${t('st_no_data')}</div>`;
+  const topSongs = Object.values(songCounts).sort((a, b) => b.count - a.count).slice(0, 50);
 
   const taEl = document.getElementById('stTopArtists');
   const tsEl = document.getElementById('stTopSongs');
-  if (taEl) taEl.innerHTML = artistHTML;
-  if (tsEl) tsEl.innerHTML = songHTML;
+
+  if (taEl) {
+    if (topArtists.length) {
+      stInitCoverflow(taEl, topArtists.map(([name, count]) => ({
+        title: name, sub: '', count, imgType: 'artist', imgArgs: [name],
+        onCenterTap: () => stOpenArtistModal(name)
+      })), t('st_top_artists'));
+    } else {
+      taEl.innerHTML = `<div class="st-empty">${t('st_no_data')}</div>`;
+    }
+  }
+
+  if (tsEl) {
+    if (topSongs.length) {
+      stInitCoverflow(tsEl, topSongs.map(s => ({
+        title: s.title, sub: s.artist, count: s.count, imgType: 'track', imgArgs: [s.title, s.artist]
+      })), t('st_top_songs'));
+    } else {
+      tsEl.innerHTML = `<div class="st-empty">${t('st_no_data')}</div>`;
+    }
+  }
 
   const featuredEl = document.getElementById('stFeaturedArtist');
   if (featuredEl) {
@@ -24627,6 +24621,197 @@ function stRenderTopCharts(plays) {
       featuredEl.style.display = 'none';
     }
   }
+}
+
+// ── Coverflow carousel engine ──────────────────────────────────
+// Renders `items` (up to 50) as absolutely-positioned 3D cards inside
+// `viewportEl` and wires up drag (mouse+touch via Pointer Events), wheel,
+// and keyboard navigation. Images load lazily around whichever card is
+// centered so a 50-entry list never fires 50 simultaneous image fetches.
+function stInitCoverflow(viewportEl, items, label) {
+  const n = items.length;
+  const uid = viewportEl.id || 'cf' + Math.random().toString(36).slice(2);
+  const rankIcon = i => i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : String(i + 1);
+
+  viewportEl.innerHTML = `
+    <div class="st-cf-viewport" tabindex="0" role="listbox" aria-label="${esc(label || '')}">
+      <button type="button" class="st-cf-nav st-cf-nav-prev" aria-label="Previous">&lsaquo;</button>
+      <div class="st-cf-track">
+        ${items.map((it, i) => `
+          <div class="st-cf-card" id="idx-${uid}-${i}" data-idx="${i}" role="option">
+            <div class="st-cf-art"><div class="thumb-initials">${esc(initials(it.title))}</div></div>
+            <span class="st-cf-rank${i < 3 ? ' st-cf-medal' : ''}">${rankIcon(i)}</span>
+          </div>`).join('')}
+      </div>
+      <button type="button" class="st-cf-nav st-cf-nav-next" aria-label="Next">&rsaquo;</button>
+    </div>
+    <div class="st-cf-meta">
+      <div class="st-cf-name"></div>
+      <div class="st-cf-sub"></div>
+      <div class="st-cf-count"></div>
+    </div>
+    <div class="st-cf-progress"><div class="st-cf-progress-fill"></div></div>`;
+
+  const viewport = viewportEl.querySelector('.st-cf-viewport');
+  const track = viewportEl.querySelector('.st-cf-track');
+  const cards = Array.from(viewportEl.querySelectorAll('.st-cf-card'));
+  const nameEl = viewportEl.querySelector('.st-cf-name');
+  const subEl = viewportEl.querySelector('.st-cf-sub');
+  const countEl = viewportEl.querySelector('.st-cf-count');
+  const progressFill = viewportEl.querySelector('.st-cf-progress-fill');
+  const prevBtn = viewportEl.querySelector('.st-cf-nav-prev');
+  const nextBtn = viewportEl.querySelector('.st-cf-nav-next');
+
+  const state = { pos: 0, stepPx: 96, dragging: false, startX: 0, startPos: 0, lastX: 0, lastT: 0, velocity: 0 };
+  const loaded = new Set();
+  const RADIUS = 5;
+
+  function computeStep() {
+    const w = viewport.clientWidth || 320;
+    state.stepPx = Math.max(58, Math.min(120, w / 4.2));
+  }
+  computeStep();
+
+  function ensureImages(centerIdx) {
+    for (let off = -RADIUS; off <= RADIUS; off++) {
+      const idx = centerIdx + off;
+      if (idx < 0 || idx >= n || loaded.has(idx)) continue;
+      loaded.add(idx);
+      const it = items[idx];
+      const loader = it.imgType === 'artist' ? getArtistImage(...it.imgArgs, 'deezer') : getTrackImage(...it.imgArgs, 'deezer');
+      loader.then(url => {
+        const artEl = cards[idx]?.querySelector('.st-cf-art');
+        if (artEl && url) artEl.innerHTML = thumbHtml(url, it.title, false);
+      });
+    }
+  }
+
+  function updateMeta() {
+    const idx = Math.max(0, Math.min(n - 1, Math.round(state.pos)));
+    const it = items[idx];
+    if (!it) return;
+    nameEl.textContent = it.title;
+    subEl.textContent = it.sub || '';
+    subEl.style.display = it.sub ? '' : 'none';
+    countEl.textContent = `#${idx + 1} · ${it.count.toLocaleString()} ${tUnit('plays', it.count)}`;
+    progressFill.style.width = n > 1 ? `${(idx / (n - 1)) * 100}%` : '100%';
+    viewport.setAttribute('aria-activedescendant', `idx-${uid}-${idx}`);
+  }
+
+  function render() {
+    const centerRounded = Math.round(state.pos);
+    cards.forEach((card, i) => {
+      const offset = i - state.pos;
+      const abs = Math.abs(offset);
+      if (abs > 9) {
+        if (card.style.visibility !== 'hidden') card.style.visibility = 'hidden';
+        return;
+      }
+      if (card.style.visibility === 'hidden') card.style.visibility = '';
+      const angle = Math.max(-68, Math.min(68, -offset * 68));
+      const scale = Math.max(0.5, 1 - Math.min(abs, 5) * 0.11);
+      const tx = offset * state.stepPx;
+      const tz = -Math.min(abs, 6) * 44;
+      const op = Math.max(0, 1 - Math.min(abs, 6) * 0.17);
+      card.style.transform = `translate(-50%,-50%) translateX(${tx}px) translateZ(${tz}px) rotateY(${angle}deg) scale(${scale})`;
+      card.style.opacity = op;
+      card.style.zIndex = String(1000 - Math.round(abs * 10));
+      card.classList.toggle('is-center', i === centerRounded);
+    });
+    updateMeta();
+  }
+
+  function clampPos(p, elastic) {
+    if (p < 0) return elastic ? p * 0.3 : 0;
+    if (p > n - 1) return elastic ? (n - 1) + (p - (n - 1)) * 0.3 : n - 1;
+    return p;
+  }
+
+  function goTo(idx, animate) {
+    idx = Math.max(0, Math.min(n - 1, idx));
+    track.classList.toggle('st-cf-animate', animate !== false);
+    state.pos = idx;
+    render();
+    ensureImages(idx);
+  }
+
+  // ── Pointer drag (mouse + touch + pen, unified) ──────────────
+  viewport.addEventListener('pointerdown', e => {
+    if (e.target.closest('.st-cf-nav')) return;
+    state.dragging = true;
+    state.startX = e.clientX;
+    state.startPos = state.pos;
+    state.lastX = e.clientX;
+    state.lastT = performance.now();
+    state.velocity = 0;
+    track.classList.remove('st-cf-animate');
+    viewport.classList.add('is-dragging');
+    viewport.setPointerCapture(e.pointerId);
+  });
+
+  viewport.addEventListener('pointermove', e => {
+    if (!state.dragging) return;
+    const deltaX = e.clientX - state.startX;
+    const rawPos = state.startPos - deltaX / state.stepPx;
+    state.pos = clampPos(rawPos, true);
+    const now = performance.now();
+    const dt = now - state.lastT;
+    if (dt > 0) state.velocity = (e.clientX - state.lastX) / dt;
+    state.lastX = e.clientX;
+    state.lastT = now;
+    render();
+  });
+
+  function endDrag(e) {
+    if (!state.dragging) return;
+    state.dragging = false;
+    viewport.classList.remove('is-dragging');
+    try { viewport.releasePointerCapture(e.pointerId); } catch (err) {}
+    const moved = Math.abs(e.clientX - state.startX);
+    if (moved < 4) {
+      // treat as a click/tap rather than a drag
+      const card = e.target.closest('.st-cf-card');
+      if (card) {
+        const idx = Number(card.dataset.idx);
+        if (idx === Math.round(state.pos) && items[idx].onCenterTap) items[idx].onCenterTap();
+        else goTo(idx, true);
+        return;
+      }
+    }
+    const flingSteps = -state.velocity * 140 / state.stepPx;
+    goTo(Math.round(state.pos + flingSteps), true);
+  }
+  viewport.addEventListener('pointerup', endDrag);
+  viewport.addEventListener('pointercancel', endDrag);
+
+  // ── Wheel (mouse wheel + trackpad) — live scrub, settles on pause ──
+  let wheelSettleTimer = null;
+  viewport.addEventListener('wheel', e => {
+    e.preventDefault();
+    const delta = Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY;
+    track.classList.remove('st-cf-animate');
+    state.pos = clampPos(state.pos + delta / 70, true);
+    render();
+    clearTimeout(wheelSettleTimer);
+    wheelSettleTimer = setTimeout(() => goTo(Math.round(state.pos), true), 110);
+  }, { passive: false });
+
+  // ── Keyboard ───────────────────────────────────────────────
+  viewport.addEventListener('keydown', e => {
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown') { e.preventDefault(); goTo(Math.round(state.pos) + 1, true); }
+    else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') { e.preventDefault(); goTo(Math.round(state.pos) - 1, true); }
+    else if (e.key === 'PageDown') { e.preventDefault(); goTo(Math.round(state.pos) + 5, true); }
+    else if (e.key === 'PageUp') { e.preventDefault(); goTo(Math.round(state.pos) - 5, true); }
+    else if (e.key === 'Home') { e.preventDefault(); goTo(0, true); }
+    else if (e.key === 'End') { e.preventDefault(); goTo(n - 1, true); }
+  });
+
+  prevBtn.addEventListener('click', () => goTo(Math.round(state.pos) - 1, true));
+  nextBtn.addEventListener('click', () => goTo(Math.round(state.pos) + 1, true));
+
+  window.addEventListener('resize', () => { computeStep(); render(); }, { passive: true });
+
+  goTo(0, false);
 }
 
 // ── Featured #1 Artist — banner + accomplishment collage ──────

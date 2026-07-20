@@ -1023,6 +1023,7 @@ const TRANSLATIONS = {
     st_subtitle_alltime: 'Your whole story',
     st_top_artists: 'Top Artists',
     st_top_songs: 'Top Songs',
+    st_cf_hint: 'drag · scroll · arrow keys',
     st_activity_title: 'Monthly Activity',
     st_activity_peak: 'Peak month',
     st_activity_low: 'Quietest month',

@@ -19,7 +19,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-  <link rel="stylesheet" href="style.css?v=87">
+  <link rel="stylesheet" href="style.css?v=88">
   <script src="translations.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8/hammer.min.js"></script>
@@ -1851,16 +1851,14 @@
       <div class="st-featured-stats" id="stFeaturedStats"></div>
     </div>
 
-    <!-- Top Artists + Top Songs -->
-    <div class="st-top-grid st-reveal">
-      <div class="st-top-col">
-        <div class="st-section-header" data-i18n="st_top_artists">Top Artists</div>
-        <div id="stTopArtists" class="st-top-list"></div>
-      </div>
-      <div class="st-top-col">
-        <div class="st-section-header" data-i18n="st_top_songs">Top Songs</div>
-        <div id="stTopSongs" class="st-top-list"></div>
-      </div>
+    <!-- Top Artists + Top Songs — full-width coverflow carousels, up to 50 entries each -->
+    <div class="st-cf-section st-reveal" id="stTopArtistsSection">
+      <div class="st-section-header"><span data-i18n="st_top_artists">Top Artists</span><span class="st-cf-hint" data-i18n="st_cf_hint">drag &middot; scroll &middot; arrow keys</span></div>
+      <div id="stTopArtists"></div>
+    </div>
+    <div class="st-cf-section st-reveal" id="stTopSongsSection">
+      <div class="st-section-header"><span data-i18n="st_top_songs">Top Songs</span><span class="st-cf-hint" data-i18n="st_cf_hint">drag &middot; scroll &middot; arrow keys</span></div>
+      <div id="stTopSongs"></div>
     </div>
 
     <!-- Monthly Activity -->
