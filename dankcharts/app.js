@@ -25435,16 +25435,22 @@ function stStartBubbles(discovered) {
 }
 
 // ── Milestones ────────────────────────────────────────────────
+// Two independent kinds live here and are kept in separate sections
+// so they never read as one connected timeline: "overall" tracks the
+// listener's own cumulative play count, while "artist" tracks each
+// artist's play count independently — an artist milestone can land
+// on any date and has nothing to do with the listener's own totals.
 function stRenderMilestones(plays) {
-  const el = document.getElementById('stMilestonesBody');
-  if (!el) return;
-  if (!plays.length) { el.innerHTML = `<div class="st-empty">${t('st_milestones_none')}</div>`; return; }
+  const elOverall = document.getElementById('stMilestonesBody');
+  const elArtist = document.getElementById('stArtistMilestonesBody');
+  if (!elOverall && !elArtist) return;
 
   const OVERALL_MS = [100,500,1000,2500,5000,10000,25000,50000,100000,250000,500000,1000000];
   const ARTIST_MS  = [100,500,1000,2500,5000,10000];
 
   const chron = [...allPlays].sort((a, b) => a.date - b.date);
-  const milestones = [];
+  const overallMs = [];
+  const artistMs = [];
   let total = 0, nextIdx = 0;
   const artistCounts = {};
 
@@ -25455,35 +25461,45 @@ function stRenderMilestones(plays) {
       stPeriodType === 'year' ? d.getFullYear() === stYear :
       d.getFullYear() === stYear && (d.getMonth() + 1) === stMonth;
 
-    // Overall milestones
+    // Overall milestones — the listener's own cumulative play count
     while (nextIdx < OVERALL_MS.length && total >= OVERALL_MS[nextIdx]) {
-      if (inPeriod) milestones.push({ icon:'🎵', text: t('st_milestone_overall', { n: OVERALL_MS[nextIdx].toLocaleString() }), sub: `"${esc(p.title)}" — ${esc(p.artist)}`, date: p.date });
+      if (inPeriod) overallMs.push({ icon:'🎵', text: t('st_milestone_overall', { n: OVERALL_MS[nextIdx].toLocaleString() }), sub: `"${esc(p.title)}" — ${esc(p.artist)}`, date: p.date });
       nextIdx++;
     }
 
-    // Per-artist milestones
+    // Per-artist milestones — independent of the totals above
     const ak = p.artist.toLowerCase();
     artistCounts[ak] = (artistCounts[ak] || 0) + 1;
     if (inPeriod && ARTIST_MS.includes(artistCounts[ak])) {
-      milestones.push({ icon:'🎤', text: t('st_milestone_artist', { artist: esc(p.artist), n: artistCounts[ak].toLocaleString() }), sub: `"${esc(p.title)}"`, date: p.date });
+      artistMs.push({ icon:'🎤', sub: esc(p.artist), text: t('st_milestone_artist', { n: artistCounts[ak].toLocaleString(), title: esc(p.title) }), date: p.date });
     }
   }
 
-  milestones.sort((a, b) => a.date - b.date);
+  overallMs.sort((a, b) => a.date - b.date);
+  artistMs.sort((a, b) => a.date - b.date);
 
-  const wrap = document.getElementById('stMilestonesWrap');
-  const toggle = document.getElementById('stMilestonesToggle');
+  stRenderMilestoneList(overallMs, 'stMilestonesBody', 'stMilestonesWrap', 'stMilestonesToggle', 'overall');
+  stRenderMilestoneList(artistMs, 'stArtistMilestonesBody', 'stArtistMilestonesWrap', 'stArtistMilestonesToggle', 'artist');
+}
 
-  if (!milestones.length) {
+const _stMilestonesCounts = { overall: 0, artist: 0 };
+
+function stRenderMilestoneList(items, bodyId, wrapId, toggleId, kind) {
+  const el = document.getElementById(bodyId);
+  const wrap = document.getElementById(wrapId);
+  const toggle = document.getElementById(toggleId);
+  if (!el) return;
+
+  if (!items.length) {
     el.innerHTML = `<div class="st-empty">${t('st_milestones_none')}</div>`;
     if (toggle) toggle.style.display = 'none';
     return;
   }
 
-  el.innerHTML = milestones.map((m, i) => {
+  el.innerHTML = items.map((m, i) => {
     const d = tzDate(m.date);
     const ds = `${d.getDate()}/${d.getMonth()+1}/${d.getFullYear()}`;
-    const typeClass = m.icon === '🎵' ? ' st-milestone-overall' : ' st-milestone-artist';
+    const typeClass = kind === 'overall' ? ' st-milestone-overall' : ' st-milestone-artist';
     return `<div class="st-milestone${typeClass}" style="--i:${i}">
       <span class="st-milestone-icon">${m.icon}</span>
       <div class="st-milestone-info">
@@ -25496,20 +25512,23 @@ function stRenderMilestones(plays) {
 
   // Long lists collapse behind a fade + toggle so the page doesn't
   // open with a wall of rows; reset to collapsed on every re-render.
-  _stMilestonesCount = milestones.length;
+  _stMilestonesCounts[kind] = items.length;
   if (wrap) wrap.classList.add('st-collapsed');
   if (toggle) {
-    toggle.style.display = milestones.length > 8 ? '' : 'none';
-    toggle.textContent = t('st_milestones_show_all', { n: milestones.length });
+    toggle.style.display = items.length > 8 ? '' : 'none';
+    toggle.textContent = t('st_milestones_show_all', { n: items.length });
   }
 }
 
-function stToggleMilestones() {
-  const wrap = document.getElementById('stMilestonesWrap');
-  const toggle = document.getElementById('stMilestonesToggle');
+function stToggleMilestones(kind) {
+  kind = kind || 'overall';
+  const wrapId = kind === 'artist' ? 'stArtistMilestonesWrap' : 'stMilestonesWrap';
+  const toggleId = kind === 'artist' ? 'stArtistMilestonesToggle' : 'stMilestonesToggle';
+  const wrap = document.getElementById(wrapId);
+  const toggle = document.getElementById(toggleId);
   if (!wrap || !toggle) return;
   const collapsed = wrap.classList.toggle('st-collapsed');
-  toggle.textContent = collapsed ? t('st_milestones_show_all', { n: _stMilestonesCount }) : t('st_milestones_show_less');
+  toggle.textContent = collapsed ? t('st_milestones_show_all', { n: _stMilestonesCounts[kind] }) : t('st_milestones_show_less');
   if (collapsed) wrap.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 }
 

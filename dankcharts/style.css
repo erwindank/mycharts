@@ -15526,6 +15526,7 @@ body[class*="-light"] .tm-card-search:hover {
 #stLoyaltySection   { --sc: var(--accent); }
 #stDiscoveriesSection { --sc: var(--green); }
 #stMilestonesSection { --sc: var(--gold1); }
+#stArtistMilestonesSection { --sc: var(--accent); }
 #stStreaksSection   { --sc: var(--amber); }
 #stGrammysSection   { --sc: var(--gold2); }
 #stGemSection       { --sc: var(--teal); }
@@ -15552,6 +15553,14 @@ body[class*="-light"] .tm-card-search:hover {
   background: var(--sc);
   box-shadow: 0 0 8px color-mix(in srgb, var(--sc) 70%, transparent);
   flex-shrink: 0;
+}
+
+.st-section-hint {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  color: var(--text3);
+  margin: -0.55rem 0 0.75rem;
+  font-style: italic;
 }
 
 .st-two-col {

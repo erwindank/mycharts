@@ -19,7 +19,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-  <link rel="stylesheet" href="style.css?v=92">
+  <link rel="stylesheet" href="style.css?v=93">
   <script src="translations.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8/hammer.min.js"></script>
@@ -1879,13 +1879,23 @@
       <div id="stDiscoveriesBody"></div>
     </div>
 
-    <!-- Milestones -->
+    <!-- Listening Milestones (overall, personal totals) -->
     <div class="st-section st-reveal" id="stMilestonesSection">
-      <div class="st-section-title" data-i18n="st_milestones_title">Milestones</div>
+      <div class="st-section-title" data-i18n="st_milestones_title">Your Listening Milestones</div>
       <div class="st-milestones-wrap st-collapsed" id="stMilestonesWrap">
         <div id="stMilestonesBody"></div>
       </div>
-      <button class="st-milestones-toggle" id="stMilestonesToggle" onclick="stToggleMilestones()" style="display:none;"></button>
+      <button class="st-milestones-toggle" id="stMilestonesToggle" onclick="stToggleMilestones('overall')" style="display:none;"></button>
+    </div>
+
+    <!-- Artist Milestones (per-artist, unrelated to the totals above) -->
+    <div class="st-section st-reveal" id="stArtistMilestonesSection">
+      <div class="st-section-title" data-i18n="st_artist_milestones_title">Artist Milestones</div>
+      <div class="st-section-hint" data-i18n="st_artist_milestones_hint">Individual play-count milestones per artist — not part of your overall totals above.</div>
+      <div class="st-milestones-wrap st-collapsed" id="stArtistMilestonesWrap">
+        <div id="stArtistMilestonesBody"></div>
+      </div>
+      <button class="st-milestones-toggle" id="stArtistMilestonesToggle" onclick="stToggleMilestones('artist')" style="display:none;"></button>
     </div>
 
     <!-- Streaks -->
