@@ -21432,7 +21432,7 @@ function openStreakModal() {
   for (const p of allPlays) {
     const ds = localDateStr(tzDate(p.date));
     const sk = songKey(p);
-    if (!songDays[sk]) { songDays[sk] = new Set(); songInfo[sk] = { title: p.title, artist: p.artist }; }
+    if (!songDays[sk]) { songDays[sk] = new Set(); songInfo[sk] = { title: p.title, artist: p.artist, album: p.album && p.album !== '—' ? p.album : '' }; }
     songDays[sk].add(ds);
     for (const a of p.artists) {
       if (!artistDays[a]) artistDays[a] = new Set();
@@ -21509,6 +21509,35 @@ function openStreakModal() {
   for (const [a, d] of Object.entries(artistDays)) { if (d.has(yest) && !d.has(todayStr)) { const l = streakEndingAt(d, yest); if (l >= 2) atRisk.push(mkItem(a, '', 'artist', l, a, yest)); } }
   for (const [ak, d] of Object.entries(albumDays)) { if (d.has(yest) && !d.has(todayStr)) { const l = streakEndingAt(d, yest); if (l >= 2) atRisk.push(mkItem(albumInfo[ak].album, albumInfo[ak].artist, 'album', l, ak, yest)); } }
   atRisk.sort((a, b) => b.len - a.len);
+
+  // ── At Risk — enriched song list for Save Playlist / Copy Tracklist ─────
+  // Those two actions need to protect every at-risk streak, not just song streaks.
+  // Album/artist streaks have no "song" of their own, so: first pass over at-risk
+  // albums — if a song already in the list is from that album, the streak is covered
+  // for free; otherwise pull that album's most-recently-played song. Second pass over
+  // at-risk artists does the same (checked against the list *including* the album
+  // additions), so an artist already covered by an album pick isn't duplicated.
+  function primaryArtistOf(artistStr) { const s = splitArtists(artistStr); return (s && s[0]) || artistStr; }
+  const atRiskFull = atRisk.filter(it => it.type === 'song').map(it => ({
+    title: it.name, artist: it.sub, album: (songInfo[it.key] && songInfo[it.key].album) || ''
+  }));
+  function addAtRiskFull(song) {
+    if (!song) return;
+    const dupe = atRiskFull.some(s => s.title.toLowerCase() === song.title.toLowerCase() && s.artist.toLowerCase() === song.artist.toLowerCase());
+    if (!dupe) atRiskFull.push({ title: song.title, artist: song.artist, album: song.album || '' });
+  }
+  for (const it of atRisk) {
+    if (it.type !== 'album') continue;
+    const info = albumInfo[it.key];
+    const covered = atRiskFull.some(s => s.album === info.album && primaryArtistOf(s.artist) === info.artist);
+    if (!covered) addAtRiskFull((albLastSongs[it.key] || [])[0]);
+  }
+  for (const it of atRisk) {
+    if (it.type !== 'artist') continue;
+    const covered = atRiskFull.some(s => splitArtists(s.artist).includes(it.key));
+    if (!covered) addAtRiskFull((artLastSongs[it.key] || [])[0]);
+  }
+  window._skAtRiskFullSongs = atRiskFull;
 
   const lost = [];
   for (const [sk, d] of Object.entries(songDays)) { if (!d.has(yest) && d.has(dayBefore)) { const l = streakEndingAt(d, dayBefore); if (l >= 2) lost.push(mkItem(songInfo[sk].title, songInfo[sk].artist, 'song', l, sk, dayBefore)); } }
@@ -21634,14 +21663,20 @@ function openStreakModal() {
     : '';
 
   // ── At Risk — store songs for global play/queue/save functions ──
+  // Play All / Queue All only make sense for actual at-risk SONG streaks. Save Playlist /
+  // Copy Tracklist use the enriched atRiskFull list (built above) so they also cover
+  // at-risk ARTIST/ALBUM streaks via a representative song.
   window._skAtRiskSongs = atRisk.filter(it => it.type === 'song');
-  const _atRiskSongBtns = window._skAtRiskSongs.length > 0
-    ? `<span class="sk-sec-btns" onclick="event.stopPropagation()">` +
-      `<button class="sk-atrisk-btn" onclick="skAtRiskPlayAll()" title="Play all at-risk songs in the music player">▶ Play All</button>` +
-      `<button class="sk-atrisk-btn" onclick="skAtRiskQueueAll()" title="Add all at-risk songs to the queue">+ Queue All</button>` +
-      `<button class="sk-atrisk-btn" onclick="skAtRiskSavePl()" title="Save at-risk songs as a playlist">♫ Save Playlist</button>` +
-      `<button class="sk-atrisk-btn" onclick="skAtRiskExport()" title="Copy at-risk song tracklist for Soundiiz">📋 Copy Tracklist</button>` +
-      `</span>` : '';
+  const _atRiskPlayBtns = window._skAtRiskSongs.length > 0
+    ? `<button class="sk-atrisk-btn" onclick="skAtRiskPlayAll()" title="Play all at-risk songs in the music player">▶ Play All</button>` +
+      `<button class="sk-atrisk-btn" onclick="skAtRiskQueueAll()" title="Add all at-risk songs to the queue">+ Queue All</button>`
+    : '';
+  const _atRiskFullBtns = window._skAtRiskFullSongs.length > 0
+    ? `<button class="sk-atrisk-btn" onclick="skAtRiskSavePl()" title="Save a playlist covering all at-risk streaks (songs, plus a representative track for at-risk artists/albums)">♫ Save Playlist</button>` +
+      `<button class="sk-atrisk-btn" onclick="skAtRiskExport()" title="Copy a tracklist covering all at-risk streaks for Soundiiz">📋 Copy Tracklist</button>`
+    : '';
+  const _atRiskSongBtns = (_atRiskPlayBtns || _atRiskFullBtns)
+    ? `<span class="sk-sec-btns" onclick="event.stopPropagation()">${_atRiskPlayBtns}${_atRiskFullBtns}</span>` : '';
 
   // ── Render ───────────────────────────────────────────────────────
   const streaksHtml =
@@ -21777,10 +21812,12 @@ function skAtRiskQueueAll() {
 }
 
 function skAtRiskSavePl() {
-  const songs = window._skAtRiskSongs || [];
+  // Uses the enriched list (window._skAtRiskFullSongs) so at-risk artist/album streaks
+  // are covered too, not just at-risk songs — see openStreakModal's atRiskFull build.
+  const songs = window._skAtRiskFullSongs || [];
   if (!songs.length) return;
   // Reuse the calendar create-playlist modal — populate it with at-risk songs
-  _calCreatePlTracks = songs.map(s => ({ title: s.name, artist: s.sub, album: '' }));
+  _calCreatePlTracks = songs.map(s => ({ title: s.title, artist: s.artist, album: s.album || '' }));
   const today = new Date();
   const dateLabel = today.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
   const subEl = document.getElementById('calCreatePlSub');
@@ -21792,10 +21829,12 @@ function skAtRiskSavePl() {
 }
 
 function skAtRiskExport() {
-  const songs = window._skAtRiskSongs || [];
+  // Uses the enriched list (window._skAtRiskFullSongs) so at-risk artist/album streaks
+  // are covered too, not just at-risk songs — see openStreakModal's atRiskFull build.
+  const songs = window._skAtRiskFullSongs || [];
   if (!songs.length) return;
   // Build tracklist text (Artist - Title per line, Soundiiz-compatible)
-  const mapped = songs.map(s => ({ title: s.name, artist: s.sub, album: '' }));
+  const mapped = songs.map(s => ({ title: s.title, artist: s.artist, album: s.album || '' }));
   const text = mapped.map(s => `${s.artist} - ${s.title}`).join('\n');
 
   // Auto-copy to clipboard immediately
