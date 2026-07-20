@@ -25600,6 +25600,11 @@ function stRenderStreaks(plays) {
 
   const pad2 = n => String(n).padStart(2, '0');
   const dayKey = d => { const tz = tzDate(d); return `${tz.getFullYear()}-${pad2(tz.getMonth()+1)}-${pad2(tz.getDate())}`; };
+  const fmtDay = ds => { const d = new Date(ds); return `${d.getDate()}/${d.getMonth()+1}/${d.getFullYear()}`; };
+  // Pure UTC decrement on the calendar string — avoids mixing a UTC-parsed
+  // Date with local setDate()/getDate(), which silently skips a day in
+  // negative-UTC-offset timezones and undercounts the walk below.
+  const prevDayKey = ds => { const d = new Date(ds + 'T00:00:00Z'); d.setUTCDate(d.getUTCDate() - 1); return d.toISOString().slice(0, 10); };
 
   const allDaySet = new Set(allPlays.map(p => dayKey(p.date)));
   const allDays = [...allDaySet].sort();
@@ -25622,45 +25627,142 @@ function stRenderStreaks(plays) {
   const todayKey = `${now.getFullYear()}-${pad2(now.getMonth()+1)}-${pad2(now.getDate())}`;
   const yd = new Date(now); yd.setDate(yd.getDate() - 1);
   const yestKey = `${yd.getFullYear()}-${pad2(yd.getMonth()+1)}-${pad2(yd.getDate())}`;
-  let currentStreak = 0;
+  let currentStreak = 0, currentStreakStart = '';
   const anchorDay = allDaySet.has(todayKey) ? todayKey : (allDaySet.has(yestKey) ? yestKey : null);
   if (anchorDay) {
     let day = anchorDay;
     while (allDaySet.has(day)) {
       currentStreak++;
-      const d = new Date(day); d.setDate(d.getDate() - 1);
-      day = `${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}`;
+      currentStreakStart = day;
+      day = prevDayKey(day);
     }
   }
 
+  // A live streak that has reached or passed the historical best IS the new
+  // record — fold it in rather than showing two contradictory numbers.
+  const isNewRecord = currentStreak > 0 && currentStreak >= longestAll;
+  if (isNewRecord) { longestAll = currentStreak; longestStart = currentStreakStart; longestEnd = anchorDay; }
+
   // Longest streak in period
   const periodDays = [...new Set(plays.map(p => dayKey(p.date)))].sort();
-  let longestPeriod = periodDays.length ? 1 : 0, curPeriod = 1;
+  let longestPeriod = periodDays.length ? 1 : 0, curPeriod = 1, periodStart = periodDays[0] || '', periodEnd = periodDays[0] || '', curPeriodStart = periodDays[0] || '';
   for (let i = 1; i < periodDays.length; i++) {
     const diff = Math.round((new Date(periodDays[i]) - new Date(periodDays[i-1])) / 86400000);
-    curPeriod = diff === 1 ? curPeriod + 1 : 1;
-    if (curPeriod > longestPeriod) longestPeriod = curPeriod;
+    if (diff === 1) {
+      curPeriod++;
+    } else {
+      if (curPeriod > longestPeriod) { longestPeriod = curPeriod; periodStart = curPeriodStart; periodEnd = periodDays[i-1]; }
+      curPeriod = 1; curPeriodStart = periodDays[i];
+    }
+  }
+  if (curPeriod > longestPeriod) { longestPeriod = curPeriod; periodStart = curPeriodStart; periodEnd = periodDays[periodDays.length-1]; }
+
+  // Longest streak reached by a single artist / album / song within the
+  // current view (year, month, or all-time — whatever `plays` is scoped to).
+  function bestEntityStreak(entryFn) {
+    const map = {};
+    for (const p of plays) {
+      const dk = dayKey(p.date);
+      for (const e of entryFn(p)) {
+        let rec = map[e.key];
+        if (!rec) rec = map[e.key] = { label: e.label, sub: e.sub, album: e.album, days: new Set() };
+        rec.days.add(dk);
+      }
+    }
+    let best = null;
+    for (const rec of Object.values(map)) {
+      const sorted = [...rec.days].sort();
+      let mx = 1, cur = 1, mxStart = sorted[0], mxEnd = sorted[0], curStart2 = sorted[0];
+      for (let i = 1; i < sorted.length; i++) {
+        const diff = Math.round((new Date(sorted[i]) - new Date(sorted[i-1])) / 86400000);
+        if (diff === 1) { cur++; } else { if (cur > mx) { mx = cur; mxStart = curStart2; mxEnd = sorted[i-1]; } cur = 1; curStart2 = sorted[i]; }
+      }
+      if (cur > mx) { mx = cur; mxStart = curStart2; mxEnd = sorted[sorted.length - 1]; }
+      if (mx >= 2 && (!best || mx > best.count)) best = { label: rec.label, sub: rec.sub, album: rec.album, count: mx, start: mxStart, end: mxEnd };
+    }
+    return best;
   }
 
-  const fmtDay = ds => { const d = new Date(ds); return `${d.getDate()}/${d.getMonth()+1}/${d.getFullYear()}`; };
+  const bestArtist = bestEntityStreak(p => {
+    const arts = (p.artists && p.artists.length) ? p.artists : [p.artist];
+    return arts.map(a => ({ key: 'a:' + a, label: a }));
+  });
+  const bestAlbum = bestEntityStreak(p => {
+    if (!p.album || p.album === '—') return [];
+    const ar = albumArtist(p);
+    return [{ key: 'al:' + ar + '|||' + p.album, label: p.album, sub: ar }];
+  });
+  const bestSong = bestEntityStreak(p => ([{
+    key: songKey(p), label: p.title, sub: p.artist,
+    album: (p.album && p.album !== '—') ? p.album : null,
+  }]));
+
+  // Art-backed entity cards — an <img> layer fades in over an icon/initials
+  // fallback once the async lookup below resolves, matching the lazy-art
+  // pattern used by the main streak banner (_fetchStreakArt/_fetchPlayArt).
+  const entityCard = (kind, icon, labelKey, best) => {
+    if (!best) return '';
+    const subject = best.sub ? `${esc(best.label)} · ${esc(best.sub)}` : esc(best.label);
+    const fallback = initials(best.label);
+    return `<div class="st-streak-card st-streak-card--entity">
+        <img id="stStreakArt_${kind}" class="st-streak-entity-bg" src="" alt=""
+             onload="this.classList.add('loaded')">
+        <div class="st-streak-entity-fallback">${esc(fallback)}</div>
+        <div class="st-streak-entity-overlay">
+          <div class="st-streak-num-row">
+            <span class="st-streak-num">${best.count}</span>
+            <span class="st-streak-entity-unit">${t('st_streak_days_unit')} 🔥</span>
+          </div>
+          <div class="st-streak-subject" title="${subject}">${icon} ${subject}</div>
+          <div class="st-streak-lbl">${t(labelKey)}</div>
+          <div class="st-streak-dates">${fmtDay(best.start)} – ${fmtDay(best.end)}</div>
+        </div>
+      </div>`;
+  };
+  const entityCardsHtml = entityCard('artist', '🎤', 'st_streak_artist', bestArtist)
+    + entityCard('album', '💿', 'st_streak_album', bestAlbum)
+    + entityCard('song', '🔂', 'st_streak_song', bestSong);
 
   el.innerHTML = `
     <div class="st-streaks-grid">
-      <div class="st-streak-card">
+      <div class="st-streak-card${isNewRecord ? ' st-streak-card--record' : ''}">
         <div class="st-streak-num">${currentStreak}🔥</div>
         <div class="st-streak-lbl">${t('st_streak_current')}</div>
+        ${currentStreakStart ? `<div class="st-streak-dates">${t('st_streak_since', { date: fmtDay(currentStreakStart) })}</div>` : ''}
       </div>
-      <div class="st-streak-card">
+      <div class="st-streak-card${isNewRecord ? ' st-streak-card--record' : ''}">
         <div class="st-streak-num">${longestAll}</div>
         <div class="st-streak-lbl">${t('st_streak_longest')}</div>
         ${longestStart ? `<div class="st-streak-dates">${fmtDay(longestStart)} – ${fmtDay(longestEnd)}</div>` : ''}
+        ${isNewRecord ? `<div class="st-streak-badge">${t('st_streak_new_record')}</div>` : ''}
       </div>
       ${stPeriodType !== 'alltime' ? `<div class="st-streak-card">
         <div class="st-streak-num">${longestPeriod}</div>
         <div class="st-streak-lbl">${t('st_streak_in_period', { period: stGetPeriodLabel() })}</div>
+        ${periodStart ? `<div class="st-streak-dates">${fmtDay(periodStart)} – ${fmtDay(periodEnd)}</div>` : ''}
       </div>` : ''}
     </div>
+    ${entityCardsHtml ? `
+    <div class="st-streak-subhead">${t('st_streak_category_title', { period: stGetPeriodLabel() })}</div>
+    <div class="st-streaks-grid st-streaks-grid--entity">${entityCardsHtml}</div>` : ''}
     <div class="st-streak-link"><a href="#" onclick="openStreakModal();return false;">${t('st_streak_details')}</a></div>`;
+
+  [['artist', bestArtist], ['album', bestAlbum], ['song', bestSong]].forEach(([kind, best]) => {
+    if (!best) return;
+    _fetchEntityStreakArt(kind, best).then(url => {
+      if (!url) return;
+      const img = document.getElementById('stStreakArt_' + kind);
+      if (img) img.src = url;
+    });
+  });
+}
+
+async function _fetchEntityStreakArt(kind, best) {
+  try {
+    if (kind === 'artist') return await getArtistImage(best.label);
+    if (kind === 'album')  return await getAlbumImage(best.label, best.sub);
+    if (kind === 'song')   return best.album ? await getAlbumImage(best.album, best.sub) : await getTrackImage(best.label, best.sub);
+  } catch (e) { return null; }
 }
 
 // ── Grammy Overlay ────────────────────────────────────────────

@@ -16591,6 +16591,127 @@ body[class*="-light"] .tm-card-search:hover {
 .st-streak-card:nth-child(2) { --fc: var(--gold1); }
 .st-streak-card:nth-child(3) { --fc: var(--teal); }
 
+/* Current streak has caught up to (or beaten) the all-time record — both
+   cards glow gold together instead of showing two contradictory numbers. */
+.st-streak-card--record {
+  --fc: var(--gold1) !important;
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--gold1) 45%, transparent), 0 0 16px color-mix(in srgb, var(--gold1) 30%, transparent);
+}
+
+.st-streak-badge {
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-size: 0.56rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  color: var(--gold1);
+  background: color-mix(in srgb, var(--gold1) 16%, transparent);
+  border: 1px solid color-mix(in srgb, var(--gold1) 40%, var(--border));
+  border-radius: 999px;
+  padding: 0.15rem 0.5rem;
+  margin-top: 0.35rem;
+}
+
+.st-streak-subhead {
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text3);
+  margin: 0.1rem 0 0.5rem;
+}
+
+.st-streaks-grid--entity .st-streak-card { min-width: 200px; }
+.st-streaks-grid--entity .st-streak-card:nth-child(1) { --fc: var(--green); animation: none; }
+.st-streaks-grid--entity .st-streak-card:nth-child(2) { --fc: var(--accent2); }
+.st-streaks-grid--entity .st-streak-card:nth-child(3) { --fc: var(--amber); }
+
+/* Entity cards (artist/album/song) carry their art as a full-bleed
+   background photo, with the stats legible over a bottom scrim — same
+   gradient recipe as the mosaic tiles (.wv-mos-bot) for visual consistency.
+   Square aspect ratio so the (mostly square) source art shows in full
+   rather than getting cropped down to fit a short, wide card. */
+.st-streak-card--entity {
+  padding: 0;
+  aspect-ratio: 1 / 1;
+  text-align: left;
+  display: flex;
+  align-items: flex-end;
+}
+
+.st-streak-entity-bg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0;
+  transition: opacity 0.35s ease;
+}
+.st-streak-entity-bg.loaded { opacity: 1; }
+
+.st-streak-entity-fallback {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-display);
+  font-size: 2rem;
+  font-weight: 800;
+  color: color-mix(in srgb, var(--fc) 60%, var(--text3));
+  background: color-mix(in srgb, var(--fc) 16%, var(--bg3));
+  transition: opacity 0.35s ease;
+}
+/* Real art painted on top wins — fade the placeholder out once it's loaded. */
+.st-streak-entity-bg.loaded ~ .st-streak-entity-fallback { opacity: 0; }
+
+.st-streak-entity-overlay {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  background: linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.45) 65%, transparent 100%);
+  padding: 2.2rem 0.75rem 0.7rem;
+}
+
+.st-streak-num-row {
+  display: flex;
+  align-items: baseline;
+  gap: 0.35rem;
+}
+
+.st-streak-card--entity .st-streak-num {
+  font-size: 1.6rem;
+  text-shadow: 0 1px 6px rgba(0,0,0,0.7);
+}
+
+.st-streak-entity-unit {
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.8);
+  font-weight: 600;
+  text-shadow: 0 1px 4px rgba(0,0,0,0.7);
+}
+
+.st-streak-subject {
+  font-family: var(--font-sans);
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--text);
+  margin-top: 0.3rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.st-streak-card--entity .st-streak-subject {
+  color: #fff;
+  text-shadow: 0 1px 4px rgba(0,0,0,0.7);
+}
+.st-streak-card--entity .st-streak-lbl { color: rgba(255,255,255,0.75); }
+.st-streak-card--entity .st-streak-dates { color: rgba(255,255,255,0.55); }
+
 .st-streak-num {
   font-family: var(--font-display);
   font-size: 1.7rem;
