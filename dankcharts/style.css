@@ -16760,54 +16760,161 @@ body[class*="-light"] .tm-card-search:hover {
   50%       { box-shadow: 0 0 18px 1px color-mix(in srgb, var(--fc) 45%, transparent); }
 }
 
-/* ── Grammy Overlay — trophy shimmer ─────────────────────────── */
-.st-grammy-item {
+/* ── Grammy Overlay — trophy-shelf art cards ───────────────────
+   Same lazy-art pattern as the entity streak cards (.st-streak-card--entity):
+   an <img> layer fades in over initials once getArtistImage() resolves.
+   Fixed-width grid tracks (not flex:1) keep every closed card the same
+   size regardless of how many end up in the last row. Tapping a card
+   expands a drawer below its photo listing each win's year/category —
+   only that card grows taller; siblings in the row stay put. */
+.st-grammy-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, 200px);
+  gap: 0.9rem;
+  align-items: start;
+}
+
+.st-grammy-card {
   position: relative;
   overflow: hidden;
+  border-radius: 14px;
+  border: 1px solid color-mix(in srgb, var(--gold1) 30%, var(--border));
+  background: var(--bg3);
+  cursor: pointer;
+  animation: stRowIn 0.4s cubic-bezier(0.4,0,0.2,1) both;
+  animation-delay: calc(var(--i, 0) * 60ms);
+  transition: box-shadow 0.25s ease;
+}
+.st-grammy-card:hover {
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--gold1) 45%, transparent), 0 0 14px color-mix(in srgb, var(--gold1) 22%, transparent);
+}
+
+.st-grammy-card-photo {
+  position: relative;
+  aspect-ratio: 1 / 1;
+  overflow: hidden;
+}
+
+.st-grammy-card-bg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0;
+  transition: opacity 0.35s ease;
+}
+.st-grammy-card-bg.loaded { opacity: 1; }
+
+.st-grammy-card-fallback {
+  position: absolute;
+  inset: 0;
   display: flex;
   align-items: center;
-  gap: 0.7rem;
-  padding: 0.6rem 0.7rem;
-  margin-bottom: 0.4rem;
-  background: linear-gradient(120deg, color-mix(in srgb, var(--sc) 10%, var(--bg3)) 0%, var(--bg3) 60%);
-  border: 1px solid color-mix(in srgb, var(--sc) 28%, var(--border));
-  border-radius: 12px;
-  animation: stRowIn 0.4s cubic-bezier(0.4,0,0.2,1) both;
-  animation-delay: calc(var(--i, 0) * 40ms);
+  justify-content: center;
+  font-family: var(--font-display);
+  font-size: 1.8rem;
+  font-weight: 800;
+  color: color-mix(in srgb, var(--gold1) 55%, var(--text3));
+  background: color-mix(in srgb, var(--gold1) 14%, var(--bg3));
+  transition: opacity 0.35s ease;
 }
-.st-grammy-item:last-child { margin-bottom: 0; }
+.st-grammy-card-bg.loaded ~ .st-grammy-card-fallback { opacity: 0; }
 
-.st-grammy-artist {
+/* Fixed-width ribbon centered on the diagonal so the emoji/text never sits
+   at the rotated tips that get clipped by the photo's overflow:hidden. */
+.st-grammy-ribbon {
+  position: absolute;
+  top: 16px;
+  right: -46px;
+  width: 170px;
+  transform: rotate(40deg);
+  text-align: center;
+  background: linear-gradient(120deg, var(--gold1), color-mix(in srgb, var(--gold1) 55%, #fff));
+  color: #1a1200;
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  padding: 4px 0;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.35);
+  white-space: nowrap;
+  z-index: 2;
+}
+
+.st-grammy-card-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  background: linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.35) 55%, transparent 100%);
+  padding: 0.7rem 1.8rem 0.6rem 0.7rem;
+}
+
+.st-grammy-card-artist {
   font-family: var(--font-sans);
-  font-size: 0.82rem;
+  font-size: 0.85rem;
   font-weight: 700;
-  color: var(--text1);
-  flex: 1;
-  min-width: 0;
+  color: #fff;
+  text-shadow: 0 1px 4px rgba(0,0,0,0.7);
+  white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
-.st-grammy-badges { display: flex; gap: 0.4rem; align-items: center; flex-shrink: 0; }
-
-.st-grammy-win {
+.st-grammy-card-plays {
   font-family: var(--font-mono);
   font-size: 0.65rem;
-  font-weight: 700;
-  color: var(--gold1);
-  background: color-mix(in srgb, var(--gold1) 16%, transparent);
-  border: 1px solid color-mix(in srgb, var(--gold1) 40%, transparent);
-  border-radius: 999px;
-  padding: 2px 8px;
-  white-space: nowrap;
+  color: rgba(255,255,255,0.75);
+  margin-top: 0.2rem;
 }
 
-.st-grammy-plays {
+.st-grammy-card-chevron {
+  position: absolute;
+  bottom: 8px;
+  right: 10px;
+  z-index: 2;
+  font-size: 0.7rem;
+  color: rgba(255,255,255,0.85);
+  text-shadow: 0 1px 3px rgba(0,0,0,0.7);
+  transition: transform 0.25s ease;
+}
+.st-grammy-card--open .st-grammy-card-chevron { transform: rotate(180deg); }
+
+/* Drawer beneath the photo — collapsed to nothing until opened, then
+   expands the card's own height. Siblings don't stretch to match since
+   the grid uses align-items: start. */
+.st-grammy-detail {
+  max-height: 0;
+  overflow: hidden;
+  background: color-mix(in srgb, var(--gold1) 6%, var(--bg2));
+  transition: max-height 0.3s ease;
+}
+.st-grammy-card--open .st-grammy-detail { max-height: 260px; overflow-y: auto; }
+
+.st-grammy-detail-row {
+  padding: 0.4rem 0.7rem;
+  border-top: 1px solid color-mix(in srgb, var(--gold1) 14%, var(--border));
+}
+.st-grammy-detail-row:first-child { border-top: none; }
+
+.st-grammy-detail-year {
+  display: block;
   font-family: var(--font-mono);
-  font-size: 0.62rem;
-  color: var(--text3);
-  white-space: nowrap;
+  font-size: 0.58rem;
+  font-weight: 700;
+  color: var(--gold1);
+}
+.st-grammy-detail-cat {
+  display: block;
+  font-family: var(--font-sans);
+  font-size: 0.72rem;
+  color: var(--text2);
+  margin-top: 0.1rem;
+  white-space: normal;
+  line-height: 1.25;
 }
 
 /* ── Underrated Gem ──────────────────────────────────────────── */
@@ -17089,7 +17196,7 @@ body[class*="-light"] .tm-card-search:hover {
   .st-streak-card:nth-child(1) { animation: none; }
   .st-gem-icon { animation: none; }
   .st-replay-week-label::before { animation: none; }
-  .st-reveal, .st-milestone, .st-discovery-item, .st-grammy-item, .st-milestone-num.st-pop {
+  .st-reveal, .st-milestone, .st-discovery-item, .st-grammy-card, .st-milestone-num.st-pop {
     animation: none;
     transition: none;
     opacity: 1;

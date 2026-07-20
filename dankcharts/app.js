@@ -23103,7 +23103,6 @@ let _awardsPickerCatFilter = '';
 let _awardsPickerEligWin  = { start: '', end: '' };
 let _awardsPickerAutoCands = [];
 let _realLifeYear   = tzNow().getFullYear();
-let _realLifeAwardsData = {}; // year → results, cached so the Soundtrack tab's Grammy widget can read it
 
 function _awardsDefaultData(year) {
   const cats = {};
@@ -23978,8 +23977,6 @@ async function loadRealLifeAwards(year) {
   }
 
   statusEl.textContent = '';
-  _realLifeAwardsData[year] = results;
-  if (typeof renderSoundtrack === 'function' && currentPeriod === 'soundtrack') renderSoundtrack();
   if (!results.length) {
     contentEl.innerHTML = `<div class="awards-empty">No Grammy data found for your top ${topArtists.length} artists in ${year}. MusicBrainz coverage may be incomplete for this period.</div>`;
     return;
@@ -25802,18 +25799,16 @@ function stRenderGrammys(plays) {
   for (const p of plays) artistCounts[p.artist.toLowerCase()] = (artistCounts[p.artist.toLowerCase()] || 0) + 1;
   const topArtistKeys = Object.entries(artistCounts).sort((a, b) => b[1] - a[1]).slice(0, 20).map(([a]) => a);
 
-  // Build Grammy map from cached Real-Life Awards lookups (Awards tab → Real-Life Awards)
+  // Build Grammy map from _awardsYearData (user's own My Grammys picks across all loaded years)
   const grammyMap = {};
-  if (typeof _realLifeAwardsData !== 'undefined') {
-    for (const [yr, results] of Object.entries(_realLifeAwardsData)) {
-      if (!results) continue;
-      for (const r of results) {
-        const ak = r.artist.toLowerCase();
-        for (const a of r.awards) {
-          if (!a.won) continue;
-          if (!grammyMap[ak]) grammyMap[ak] = [];
-          grammyMap[ak].push({ year: a.year || yr, category: a.category, isWin: true });
-        }
+  if (typeof _awardsYearData !== 'undefined') {
+    for (const [yr, data] of Object.entries(_awardsYearData)) {
+      if (!data || !data.categories) continue;
+      for (const [catId, cat] of Object.entries(data.categories)) {
+        if (!cat.winner || !cat.winner.artist) continue;
+        const ak = cat.winner.artist.toLowerCase();
+        if (!grammyMap[ak]) grammyMap[ak] = [];
+        grammyMap[ak].push({ year: yr, category: AWARD_CATEGORIES.find(c => c.id === catId)?.label || catId, isWin: true });
       }
     }
   }
@@ -25831,16 +25826,41 @@ function stRenderGrammys(plays) {
     return;
   }
 
-  el.innerHTML = withAwards.slice(0, 8).map((item, i) => {
+  const shown = withAwards.slice(0, 8);
+  el.innerHTML = `<div class="st-grammy-grid">${shown.map((item, i) => {
     const wins = item.entries.filter(e => e.isWin).length;
-    return `<div class="st-grammy-item" style="--i:${i}">
-      <div class="st-grammy-artist">${esc(item.artist)}</div>
-      <div class="st-grammy-badges">
-        <span class="st-grammy-win">🏆 ${wins} ${wins === 1 ? t('st_grammy_win') : t('st_grammy_wins')}</span>
+    const sorted = [...item.entries].sort((a, b) => b.year - a.year);
+    return `<div class="st-grammy-card" style="--i:${i}" onclick="stToggleGrammyCard(this)">
+      <div class="st-grammy-card-photo">
+        <img id="stGrammyArt_${i}" class="st-grammy-card-bg" src="" alt="" onload="this.classList.add('loaded')">
+        <div class="st-grammy-card-fallback">${esc(initials(item.artist))}</div>
+        <div class="st-grammy-ribbon">🏆 ${wins} ${wins === 1 ? t('st_grammy_win') : t('st_grammy_wins')}</div>
+        <div class="st-grammy-card-overlay">
+          <div class="st-grammy-card-artist" title="${esc(item.artist)}">${esc(item.artist)}</div>
+          <div class="st-grammy-card-plays">${item.plays.toLocaleString()} ${tUnit('plays', item.plays)}</div>
+        </div>
+        <div class="st-grammy-card-chevron">▾</div>
       </div>
-      <div class="st-grammy-plays">${item.plays.toLocaleString()} ${tUnit('plays', item.plays)}</div>
+      <div class="st-grammy-detail">${sorted.map(e => `<div class="st-grammy-detail-row">
+        <span class="st-grammy-detail-year">${esc(String(e.year))}</span>
+        <span class="st-grammy-detail-cat">${esc(e.category)}</span>
+      </div>`).join('')}</div>
     </div>`;
-  }).join('');
+  }).join('')}</div>`;
+
+  shown.forEach((item, i) => {
+    getArtistImage(item.artist).then(url => {
+      if (!url) return;
+      const img = document.getElementById('stGrammyArt_' + i);
+      if (img) img.src = url;
+    });
+  });
+}
+
+function stToggleGrammyCard(card) {
+  const wasOpen = card.classList.contains('st-grammy-card--open');
+  card.parentElement.querySelectorAll('.st-grammy-card--open').forEach(c => { if (c !== card) c.classList.remove('st-grammy-card--open'); });
+  card.classList.toggle('st-grammy-card--open', !wasOpen);
 }
 
 // ── Underrated Gem (Last.fm only) ─────────────────────────────
