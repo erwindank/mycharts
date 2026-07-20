@@ -24713,9 +24713,8 @@ function stRenderFeaturedArtist(periodPlays, artistName, totalCount) {
       const areaClass = s.role === 'content' ? ` st-fstat-${s.area}` : '';
       return `
       <div class="st-fstat st-fstat-${s.role}${areaClass}" style="--i:${i};grid-area:${s.area}">
-        <div class="st-fstat-icon">${s.icon}</div>
         <div class="st-fstat-value">${esc(String(s.value))}</div>
-        <div class="st-fstat-label">${esc(s.label)}</div>
+        <div class="st-fstat-label"><span class="st-fstat-icon">${s.icon}</span> ${esc(s.label)}</div>
         ${s.note ? `<div class="st-fstat-note">${esc(s.note)}</div>` : ''}
       </div>`;
     }).join('');

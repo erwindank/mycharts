@@ -15398,7 +15398,13 @@ body[class*="-light"] .tm-card-search:hover {
   border-radius: 14px;
   border: 1px solid color-mix(in srgb, var(--tc) 28%, var(--border));
 }
-.st-fstat-icon { font-size: 0.85rem; line-height: 1; margin-bottom: 0.2rem; }
+.st-fstat-icon {
+  display: inline-block;
+  font-size: 0.9em;
+  line-height: 1;
+  margin-right: 0.3em;
+  vertical-align: -0.05em;
+}
 .st-fstat-value {
   font-family: var(--font-display);
   font-weight: 800;
@@ -15410,16 +15416,16 @@ body[class*="-light"] .tm-card-search:hover {
 }
 .st-fstat-label {
   font-family: var(--font-mono);
-  font-size: 0.5rem;
-  letter-spacing: 0.06em;
+  font-size: 0.68rem;
+  letter-spacing: 0.03em;
   text-transform: uppercase;
   color: var(--text2);
   font-weight: 600;
-  margin-top: 0.2rem;
+  margin-top: 0.25rem;
 }
 .st-fstat-note {
   font-family: var(--font-mono);
-  font-size: 0.48rem;
+  font-size: 0.65rem;
   color: var(--text3);
   margin-top: 0.15rem;
   line-height: 1.3;
@@ -15438,12 +15444,12 @@ body[class*="-light"] .tm-card-search:hover {
 
 /* bare-number tiles: narrow, compact */
 .st-fstat-small { padding: 0.35rem 0.25rem 0.3rem; }
-.st-fstat-small .st-fstat-value { font-size: 0.85rem; }
-.st-fstat-small .st-fstat-label { font-size: 0.44rem; }
+.st-fstat-small .st-fstat-value { font-size: 1.3rem; }
+.st-fstat-small .st-fstat-label { font-size: 0.66rem; letter-spacing: 0.01em; }
 
 /* tiles with a secondary note: wider, a little more breathing room */
 .st-fstat-med { padding: 0.45rem 0.5rem 0.4rem; }
-.st-fstat-med .st-fstat-value { font-size: 1.05rem; }
+.st-fstat-med .st-fstat-value { font-size: 1.5rem; }
 
 /* Hero tile — the single standout number, given real visual weight but
    without ballooning past the two content tiles it sits beside */
@@ -15460,10 +15466,9 @@ body[class*="-light"] .tm-card-search:hover {
   justify-content: center;
   text-align: center;
 }
-.st-fstat-hero .st-fstat-icon { font-size: 1.4rem; margin-bottom: 0.25rem; }
-.st-fstat-hero .st-fstat-value { font-size: 1.9rem; }
-.st-fstat-hero .st-fstat-label { font-size: 0.58rem; margin-top: 0.25rem; }
-.st-fstat-hero .st-fstat-note { font-size: 0.52rem; margin-top: 0.2rem; max-width: 22ch; line-height: 1.2; }
+.st-fstat-hero .st-fstat-value { font-size: 2.4rem; }
+.st-fstat-hero .st-fstat-label { font-size: 0.72rem; margin-top: 0.35rem; }
+.st-fstat-hero .st-fstat-note { font-size: 0.74rem; margin-top: 0.2rem; max-width: 24ch; line-height: 1.25; }
 
 /* Content tiles (favorite album / most played song) — left-aligned text
    blocks rather than centered numbers, so long titles read like a mini list */
@@ -15476,7 +15481,6 @@ body[class*="-light"] .tm-card-search:hover {
 }
 .st-fstat-album { --tc: var(--accent); background: color-mix(in srgb, var(--tc) 11%, var(--bg2)); }
 .st-fstat-song  { --tc: var(--teal);   background: color-mix(in srgb, var(--tc) 11%, var(--bg2)); }
-.st-fstat-content .st-fstat-icon { font-size: 0.95rem; margin-bottom: 0.2rem; }
 .st-fstat-content .st-fstat-value {
   font-size: 0.95rem;
   display: -webkit-box;
