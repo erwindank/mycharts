@@ -1555,9 +1555,15 @@ function bestImage(images) {
 }
 
 // Deezer placeholder URLs contain '//' after the image type (no real hash), e.g. /images/artist//500x500-...
+// Deezer also serves a fixed generic silhouette graphic (same hash for every
+// artist/track it has no real art for) instead of an empty segment — filter
+// that known id too, or it renders as a "valid" but meaningless stock photo.
+const DEEZER_DEFAULT_AVATAR_HASH = 'add318a54acd1985a9f0d38b23b4cee1';
 function deezerValidUrl(url) {
   if (!url) return null;
-  return /\/images\/[^/]+\/\//.test(url) ? null : url;
+  if (/\/images\/[^/]+\/\//.test(url)) return null;
+  if (url.includes(DEEZER_DEFAULT_AVATAR_HASH)) return null;
+  return url;
 }
 
 function deezerFetch(endpoint) {
@@ -24669,7 +24675,7 @@ function stInitCoverflow(viewportEl, items, label) {
 
   const state = { pos: 0, stepPx: 96, dragging: false, startX: 0, startPos: 0, lastX: 0, lastT: 0, velocity: 0 };
   const loaded = new Set();
-  const RADIUS = 5;
+  const RADIUS = 3;
 
   function computeStep() {
     const w = viewport.clientWidth || 320;

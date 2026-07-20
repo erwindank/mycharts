@@ -15081,8 +15081,8 @@ body[class*="-light"] .tm-card-search:hover {
 }
 .st-hero-eyebrow {
   font-family: var(--font-mono);
-  font-size: 0.62rem;
-  letter-spacing: 0.34em;
+  font-size: 0.85rem;
+  letter-spacing: 0.28em;
   text-transform: uppercase;
   color: rgba(255,255,255,0.72);
   margin-bottom: 0.2rem;
@@ -15260,8 +15260,8 @@ body[class*="-light"] .tm-card-search:hover {
 
 .st-stat-label {
   font-family: var(--font-mono);
-  font-size: 0.55rem;
-  letter-spacing: 0.07em;
+  font-size: 0.7rem;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
   color: var(--text2);
   font-weight: 600;
@@ -15269,7 +15269,7 @@ body[class*="-light"] .tm-card-search:hover {
 
 .st-stat-note {
   font-family: var(--font-mono);
-  font-size: 0.52rem;
+  font-size: 0.64rem;
   color: var(--text3);
   margin-top: 0.2rem;
   line-height: 1.3;
