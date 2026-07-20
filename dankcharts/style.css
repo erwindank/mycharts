@@ -15596,7 +15596,7 @@ body[class*="-light"] .tm-card-search:hover {
 
 .st-cf-section .st-section-header {
   font-family: var(--font-mono);
-  font-size: 0.62rem;
+  font-size: 0.92rem;
   letter-spacing: 0.13em;
   text-transform: uppercase;
   color: var(--sc);
@@ -15609,7 +15609,7 @@ body[class*="-light"] .tm-card-search:hover {
 }
 .st-cf-section .st-section-header::before {
   content: '';
-  width: 7px; height: 7px;
+  width: 9px; height: 9px;
   border-radius: 50%;
   background: var(--sc);
   box-shadow: 0 0 8px color-mix(in srgb, var(--sc) 70%, transparent);
@@ -15628,7 +15628,7 @@ body[class*="-light"] .tm-card-search:hover {
 
 .st-cf-viewport {
   position: relative;
-  height: 280px;
+  height: 210px;
   perspective: 1100px;
   perspective-origin: 50% 45%;
   touch-action: pan-y;
@@ -15651,7 +15651,7 @@ body[class*="-light"] .tm-card-search:hover {
 .st-cf-card {
   position: absolute;
   left: 50%;
-  top: 42%;
+  top: 56%;
   width: 156px;
   height: 156px;
   will-change: transform, opacity;
@@ -15709,8 +15709,12 @@ body[class*="-light"] .tm-card-search:hover {
   justify-content: center;
   pointer-events: none;
 }
-.st-cf-rank.st-cf-medal { font-size: 0.95rem; background: var(--bg1); border-color: var(--border-t); }
-.st-cf-card.is-center .st-cf-rank {
+.st-cf-rank.st-cf-medal { font-size: 0.85rem; }
+/* podium numerals — plain digits on a gold/silver/bronze gradient instead of emoji medals, which render inconsistently across platforms */
+.st-cf-rank.st-cf-medal-1 { background: linear-gradient(150deg, #ffe08a, #d99a1f); color: #4a2e00; border-color: transparent; box-shadow: 0 0 10px -2px rgba(217,154,31,0.6); }
+.st-cf-rank.st-cf-medal-2 { background: linear-gradient(150deg, #eef2f7, #a9b4c2); color: #333c47; border-color: transparent; }
+.st-cf-rank.st-cf-medal-3 { background: linear-gradient(150deg, #e3a674, #a65f2e); color: #3a1f0b; border-color: transparent; }
+.st-cf-card.is-center .st-cf-rank:not(.st-cf-medal) {
   background: var(--sc);
   color: var(--bg1);
   border-color: var(--sc);
@@ -15718,7 +15722,7 @@ body[class*="-light"] .tm-card-search:hover {
 
 .st-cf-nav {
   position: absolute;
-  top: 42%;
+  top: 56%;
   transform: translateY(-50%);
   z-index: 1100;
   width: 2.1rem;
@@ -15743,7 +15747,7 @@ body[class*="-light"] .tm-card-search:hover {
 
 .st-cf-meta {
   text-align: center;
-  padding: 0.4rem 1.1rem 0;
+  padding: 0.1rem 1.1rem 0;
 }
 .st-cf-name {
   font-family: var(--font-sans);
@@ -15776,7 +15780,7 @@ body[class*="-light"] .tm-card-search:hover {
   height: 3px;
   background: var(--bg3);
   border-radius: 2px;
-  margin: 0.6rem 1.1rem 0;
+  margin: 0.35rem 1.1rem 0;
   overflow: hidden;
 }
 .st-cf-progress-fill {
@@ -15787,7 +15791,7 @@ body[class*="-light"] .tm-card-search:hover {
 }
 
 @media (max-width: 480px) {
-  .st-cf-viewport { height: 230px; }
+  .st-cf-viewport { height: 190px; }
   .st-cf-card { width: 128px; height: 128px; }
   .st-cf-art .thumb-initials { font-size: 1.6rem; }
   .st-cf-name { font-size: 1.05rem; }

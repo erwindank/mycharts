@@ -24576,8 +24576,14 @@ function stGetFirstSeenArtists() {
 
 // ── Top 50 Artists + Songs — iPod-style coverflow carousels ───
 function stRenderTopCharts(plays) {
+  // Each comma-split artist counts on its own (honoring the hardwired
+  // exceptions in splitArtists, e.g. "Tyler, The Creator") — same rule
+  // New Discoveries and the artist-modal rank use, so a "Artist A, Artist B"
+  // credit doesn't get counted as one combined act.
   const artistCounts = {};
-  for (const p of plays) artistCounts[p.artist] = (artistCounts[p.artist] || 0) + 1;
+  for (const p of plays) {
+    for (const a of (p.artists || splitArtists(p.artist))) artistCounts[a] = (artistCounts[a] || 0) + 1;
+  }
   const topArtists = Object.entries(artistCounts).sort((a, b) => b[1] - a[1]).slice(0, 50);
 
   const songCounts = {};
@@ -24631,7 +24637,6 @@ function stRenderTopCharts(plays) {
 function stInitCoverflow(viewportEl, items, label) {
   const n = items.length;
   const uid = viewportEl.id || 'cf' + Math.random().toString(36).slice(2);
-  const rankIcon = i => i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : String(i + 1);
 
   viewportEl.innerHTML = `
     <div class="st-cf-viewport" tabindex="0" role="listbox" aria-label="${esc(label || '')}">
@@ -24640,7 +24645,7 @@ function stInitCoverflow(viewportEl, items, label) {
         ${items.map((it, i) => `
           <div class="st-cf-card" id="idx-${uid}-${i}" data-idx="${i}" role="option">
             <div class="st-cf-art"><div class="thumb-initials">${esc(initials(it.title))}</div></div>
-            <span class="st-cf-rank${i < 3 ? ' st-cf-medal' : ''}">${rankIcon(i)}</span>
+            <span class="st-cf-rank${i < 3 ? ' st-cf-medal st-cf-medal-' + (i + 1) : ''}">${i + 1}</span>
           </div>`).join('')}
       </div>
       <button type="button" class="st-cf-nav st-cf-nav-next" aria-label="Next">&rsaquo;</button>
