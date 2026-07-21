@@ -15555,6 +15555,14 @@ body[class*="-light"] .tm-card-search:hover {
   flex-shrink: 0;
 }
 
+/* Monthly Activity's title is bumped to match the Top Artists/Songs header size (0.92rem) — called out by the user as the size to match */
+#stActivitySection .st-section-title {
+  font-size: 0.92rem;
+}
+#stActivitySection .st-section-title::before {
+  width: 9px; height: 9px;
+}
+
 .st-section-hint {
   font-family: var(--font-mono);
   font-size: 0.68rem;

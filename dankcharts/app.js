@@ -25011,9 +25011,25 @@ function stRenderActivity(plays) {
     const isPeak = mk === peakKey;
     const cls = (isPeak ? ' st-peak' : mk === lowKey ? ' st-low' : '') + (isPeak ? ' is-selected' : '');
 
-    // month-over-month change vs the previous bar, shown as a mini arrow + in the detail panel
-    const prevMk = i > 0 ? months[i - 1] : null;
-    const deltaPct = prevMk ? Math.round((count - byMonth[prevMk]) / byMonth[prevMk] * 100) : null;
+    // month-over-month change vs the previous bar, shown as a mini arrow + in the detail panel.
+    // For the first bar in the period (e.g. January of a year view), the previous month lives
+    // outside the filtered `plays` array — reach into allPlays for that one calendar month instead.
+    let prevMk = i > 0 ? months[i - 1] : null;
+    let prevCount = prevMk ? byMonth[prevMk] : null;
+    if (!prevMk) {
+      const [y0, m0] = mk.split('-').map(Number);
+      const prevDate = new Date(y0, m0 - 2, 1);
+      const lookbackKey = `${prevDate.getFullYear()}-${String(prevDate.getMonth() + 1).padStart(2, '0')}`;
+      const lookbackCount = allPlays.reduce((n, p) => {
+        const d = tzDate(p.date);
+        return n + (`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}` === lookbackKey ? 1 : 0);
+      }, 0);
+      // No plays at all in that prior month (e.g. it predates the listening history) — treat as
+      // flat 0% rather than leaving the chip blank, so every bar keeps the same layout.
+      prevMk = lookbackKey;
+      prevCount = lookbackCount || null;
+    }
+    const deltaPct = prevMk ? (prevCount ? Math.round((count - prevCount) / prevCount * 100) : 0) : null;
     const deltaDir = deltaPct === null ? '' : deltaPct > 0 ? 'up' : deltaPct < 0 ? 'down' : 'flat';
     const deltaChip = deltaPct !== null
       ? `<span class="st-activity-delta st-${deltaDir}">${deltaDir === 'up' ? '▲' : deltaDir === 'down' ? '▼' : '•'}${Math.abs(deltaPct)}%</span>`
@@ -25028,7 +25044,7 @@ function stRenderActivity(plays) {
       data-share="${sharePct}"
       data-delta="${deltaPct === null ? '' : Math.abs(deltaPct)}"
       data-delta-dir="${deltaDir}"
-      data-prev-label="${prevMk ? esc(monthLabel(prevMk)) : ''}"
+      data-prev-label="${prevMk ? esc(monthLabel(prevMk, true)) : ''}"
       data-artist="${top ? esc(top.name) : ''}"
       data-artist-count="${top ? top.count : ''}"
       onclick="stActivitySelectMonth(this)">
