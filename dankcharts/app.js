@@ -24649,13 +24649,26 @@ function stInitCoverflow(viewportEl, items, label) {
   const n = items.length;
   const uid = viewportEl.id || 'cf' + Math.random().toString(36).slice(2);
 
+  // Same prefKey convention as the chart tables, so a source cycled here (or there)
+  // is remembered everywhere and shares the same image cache.
+  items.forEach((it, i) => {
+    it.imgId = `art-${uid}-${i}`;
+    if (it.imgType === 'artist') {
+      it.name = it.imgArgs[0];
+      it.prefKey = 'artist:' + it.imgArgs[0].toLowerCase();
+    } else {
+      it.artist = it.imgArgs[1];
+      it.prefKey = 'song:' + it.imgArgs[1].toLowerCase() + '|||' + it.imgArgs[0].toLowerCase();
+    }
+  });
+
   viewportEl.innerHTML = `
     <div class="st-cf-viewport" tabindex="0" role="listbox" aria-label="${esc(label || '')}">
       <button type="button" class="st-cf-nav st-cf-nav-prev" aria-label="Previous">&lsaquo;</button>
       <div class="st-cf-track">
         ${items.map((it, i) => `
           <div class="st-cf-card" id="idx-${uid}-${i}" data-idx="${i}" role="option">
-            <div class="st-cf-art"><div class="thumb-initials">${esc(initials(it.title))}</div></div>
+            <div class="st-cf-art" id="${it.imgId}" title="Click to try the next image source"><div class="thumb-initials">${esc(initials(it.title))}</div></div>
             <span class="st-cf-rank${i < 3 ? ' st-cf-medal st-cf-medal-' + (i + 1) : ''}">${i + 1}</span>
           </div>`).join('')}
       </div>
@@ -24694,11 +24707,10 @@ function stInitCoverflow(viewportEl, items, label) {
       if (idx < 0 || idx >= n || loaded.has(idx)) continue;
       loaded.add(idx);
       const it = items[idx];
-      const loader = it.imgType === 'artist' ? getArtistImage(...it.imgArgs, 'deezer') : getTrackImage(...it.imgArgs, 'deezer');
-      loader.then(url => {
-        const artEl = cards[idx]?.querySelector('.st-cf-art');
-        if (artEl && url) artEl.innerHTML = thumbHtml(url, it.title, false);
-      });
+      const artEl = cards[idx]?.querySelector('.st-cf-art');
+      // Shares the same deezer→itunes→lastfm→youtube fallback chain (and per-item
+      // source preference) as the chart tables, instead of stopping at Deezer alone.
+      if (artEl) fetchAndInjectImage(artEl, it, it.imgType);
     }
   }
 
@@ -24786,10 +24798,21 @@ function stInitCoverflow(viewportEl, items, label) {
     const moved = Math.abs(e.clientX - state.startX);
     if (moved < 4) {
       // treat as a click/tap rather than a drag
-      const card = e.target.closest('.st-cf-card');
+      // Pointer capture (set on pointerdown, above) retargets e.target to `viewport`
+      // for pointerup, so a real hit-test at the pointer's coordinates is needed here.
+      const hit = document.elementFromPoint(e.clientX, e.clientY);
+      const card = hit && hit.closest('.st-cf-card');
       if (card) {
         const idx = Number(card.dataset.idx);
-        if (idx === Math.round(state.pos) && items[idx].onCenterTap) items[idx].onCenterTap();
+        const isCentered = idx === Math.round(state.pos);
+        // Tapping the artwork of the already-centered card cycles its image source
+        // instead of selecting it — the art is only hit-testable when centered (see CSS).
+        if (isCentered && hit.closest('.st-cf-art')) {
+          const it = items[idx];
+          cycleImgSrc(it.imgId, it.imgType, it.prefKey, it.imgType === 'artist' ? it.name : it.title, it.artist || '', '');
+          return;
+        }
+        if (isCentered && items[idx].onCenterTap) items[idx].onCenterTap();
         else goTo(idx, true);
         return;
       }
