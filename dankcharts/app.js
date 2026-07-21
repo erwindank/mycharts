@@ -25828,6 +25828,26 @@ function stRenderStreaks(plays) {
   }
   if (curPeriod > longestPeriod) { longestPeriod = curPeriod; periodStart = curPeriodStart; periodEnd = periodDays[periodDays.length-1]; }
 
+  // Active days coverage — recap-oriented replacement for the live "current
+  // streak" counter, which doesn't belong in a retrospective summary. Denominator
+  // is days elapsed so far for the current year/month, or the full length once past.
+  const isCurrentYear = stPeriodType === 'year' && stYear === now.getFullYear();
+  const isCurrentMonth = stPeriodType === 'month' && stYear === now.getFullYear() && stMonth === now.getMonth() + 1;
+  let totalDaysInPeriod;
+  if (stPeriodType === 'alltime') {
+    totalDaysInPeriod = periodDays.length
+      ? Math.round((new Date(periodDays[periodDays.length - 1]) - new Date(periodDays[0])) / 86400000) + 1
+      : 0;
+  } else if (stPeriodType === 'year') {
+    totalDaysInPeriod = isCurrentYear
+      ? Math.round((now - new Date(stYear, 0, 1)) / 86400000) + 1
+      : (new Date(stYear, 1, 29).getMonth() === 1 ? 366 : 365);
+  } else {
+    totalDaysInPeriod = isCurrentMonth ? now.getDate() : new Date(stYear, stMonth, 0).getDate();
+  }
+  const activeDays = periodDays.length;
+  const activeDaysPct = totalDaysInPeriod ? Math.round((activeDays / totalDaysInPeriod) * 100) : 0;
+
   // Longest streak reached by a single artist / album / song within the
   // current view (year, month, or all-time — whatever `plays` is scoped to).
   function bestEntityStreak(entryFn) {
@@ -25896,27 +25916,35 @@ function stRenderStreaks(plays) {
 
   el.innerHTML = `
     <div class="st-streaks-grid">
-      <div class="st-streak-card${isNewRecord ? ' st-streak-card--record' : ''}">
-        <div class="st-streak-num">${currentStreak}🔥</div>
-        <div class="st-streak-lbl">${t('st_streak_current')}</div>
-        ${currentStreakStart ? `<div class="st-streak-dates">${t('st_streak_since', { date: fmtDay(currentStreakStart) })}</div>` : ''}
+      <div class="st-streak-card">
+        <div class="st-streak-num-stack">
+          <span class="st-streak-num">${activeDays}</span>
+          <span class="st-streak-unit">${t('st_streak_days_streamed_unit')}</span>
+        </div>
+        <div class="st-streak-lbl">${t('st_streak_active_days')}</div>
+        <div class="st-streak-dates">${t('st_streak_active_days_sub', { pct: activeDaysPct, total: totalDaysInPeriod })}</div>
       </div>
       <div class="st-streak-card${isNewRecord ? ' st-streak-card--record' : ''}">
-        <div class="st-streak-num">${longestAll}</div>
+        <div class="st-streak-num-stack">
+          <span class="st-streak-num">${longestAll}</span>
+          <span class="st-streak-unit">${t('st_streak_days_unit')} 🔥</span>
+        </div>
         <div class="st-streak-lbl">${t('st_streak_longest')}</div>
         ${longestStart ? `<div class="st-streak-dates">${fmtDay(longestStart)} – ${fmtDay(longestEnd)}</div>` : ''}
         ${isNewRecord ? `<div class="st-streak-badge">${t('st_streak_new_record')}</div>` : ''}
       </div>
       ${stPeriodType !== 'alltime' ? `<div class="st-streak-card">
-        <div class="st-streak-num">${longestPeriod}</div>
+        <div class="st-streak-num-stack">
+          <span class="st-streak-num">${longestPeriod}</span>
+          <span class="st-streak-unit">${t('st_streak_days_unit')} 🔥</span>
+        </div>
         <div class="st-streak-lbl">${t('st_streak_in_period', { period: stGetPeriodLabel() })}</div>
         ${periodStart ? `<div class="st-streak-dates">${fmtDay(periodStart)} – ${fmtDay(periodEnd)}</div>` : ''}
       </div>` : ''}
     </div>
     ${entityCardsHtml ? `
     <div class="st-streak-subhead">${t('st_streak_category_title', { period: stGetPeriodLabel() })}</div>
-    <div class="st-streaks-grid st-streaks-grid--entity">${entityCardsHtml}</div>` : ''}
-    <div class="st-streak-link"><a href="#" onclick="openStreakModal();return false;">${t('st_streak_details')}</a></div>`;
+    <div class="st-streaks-grid st-streaks-grid--entity">${entityCardsHtml}</div>` : ''}`;
 
   [['artist', bestArtist], ['album', bestAlbum], ['song', bestSong]].forEach(([kind, best]) => {
     if (!best) return;

@@ -15632,17 +15632,6 @@ body[class*="-light"] .tm-card-search:hover {
   box-shadow: 0 0 8px color-mix(in srgb, var(--sc) 70%, transparent);
   flex-shrink: 0;
 }
-.st-cf-hint {
-  margin-left: auto;
-  color: var(--text3);
-  font-weight: 400;
-  letter-spacing: 0.06em;
-  text-transform: none;
-  font-size: 0.58rem;
-  opacity: 0.75;
-}
-@media (max-width: 620px) { .st-cf-hint { display: none; } }
-
 .st-cf-viewport {
   position: relative;
   height: 210px;
@@ -16721,6 +16710,15 @@ body[class*="-light"] .tm-card-search:hover {
   gap: 0.35rem;
 }
 
+/* Number and its unit stacked on separate lines, centered — used by the
+   top-row streak cards (unlike the entity cards' inline num-row). */
+.st-streak-num-stack {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.15rem;
+}
+
 .st-streak-card--entity .st-streak-num {
   font-size: 1.6rem;
   text-shadow: 0 1px 6px rgba(0,0,0,0.7);
@@ -16761,6 +16759,18 @@ body[class*="-light"] .tm-card-search:hover {
   color: var(--fc);
   line-height: 1;
   font-feature-settings: "tnum";
+}
+
+/* Unit text glued to the number (e.g. "169 days of streak") — same idea as
+   .st-streak-entity-unit but on a plain card background, not a photo scrim. */
+.st-streak-unit {
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: var(--fc);
+  font-weight: 600;
+  opacity: 0.85;
 }
 
 .st-streak-lbl {
