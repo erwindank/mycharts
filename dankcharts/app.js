@@ -25685,16 +25685,24 @@ function stRenderMilestoneList(items, bodyId, wrapId, toggleId, kind) {
     // Fill in the row's art thumbnail with the triggering track's cover
     // art, once fetched — stays hidden (icon badge only) if art fails.
     // Queued (see stLoyaltyImg above) so a page of milestones doesn't fire
-    // all its Deezer lookups in the same instant.
+    // all its lookups in the same instant. Deezer alone misses plenty of
+    // tracks, so walk the same itunes/lastfm/youtube fallback chain the
+    // coverflow uses instead of giving up after one source.
     if (m.rawTitle) {
-      imgQueue = imgQueue.then(() => getTrackImage(m.rawTitle, m.rawArtist, 'deezer').then(url => {
+      const MS_ART_SOURCES = ['deezer', 'itunes', 'lastfm', 'youtube'];
+      imgQueue = imgQueue.then(async () => {
+        let url = null;
+        for (const source of MS_ART_SOURCES) {
+          try { url = await getTrackImage(m.rawTitle, m.rawArtist, source); } catch (e) { url = null; }
+          if (url) break;
+        }
         if (!url) return;
         const artWrapEl = rowEl.querySelector('.st-milestone-art-wrap');
         if (artWrapEl && !artWrapEl.querySelector('.st-milestone-art')) {
           artWrapEl.classList.add('st-has-art');
           artWrapEl.insertAdjacentHTML('beforeend', `<img class="st-milestone-art" src="${esc(url)}" alt="" loading="lazy" onerror="this.parentElement.classList.remove('st-has-art');this.remove()">`);
         }
-      }));
+      });
     }
 
     // Tap a row to open the same mini-card the Top Artists/Songs
