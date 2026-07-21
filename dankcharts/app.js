@@ -589,6 +589,11 @@ const imgCache = {}; // key → url string or null
 
 const IMG_SOURCES = ['deezer', 'itunes', 'lastfm', 'youtube', 'off'];
 const itemSourcePrefs = JSON.parse(localStorage.getItem('itemSourcePrefs') || '{}');
+// Which same-named Deezer artist candidate (see deezerArtistImageCandidates)
+// the user has manually stepped to for a given artist prefKey — separate from
+// itemSourcePrefs because it's a sub-selection *within* the 'deezer' source,
+// not a different source.
+const deezerCandidateIdxPrefs = JSON.parse(localStorage.getItem('deezerCandidateIdxPrefs') || '{}');
 function srcLabel(s) {
   if (s === 'itunes') return 'iTunes';
   if (s === 'lastfm') return 'Last.fm';
@@ -1555,15 +1560,25 @@ function bestImage(images) {
 }
 
 // Deezer placeholder URLs contain '//' after the image type (no real hash), e.g. /images/artist//500x500-...
-// Deezer also serves a fixed generic silhouette graphic (same hash for every
-// artist/track it has no real art for) instead of an empty segment — filter
-// that known id too, or it renders as a "valid" but meaningless stock photo.
-const DEEZER_DEFAULT_AVATAR_HASH = 'add318a54acd1985a9f0d38b23b4cee1';
+// Deezer also serves fixed generic placeholder graphics instead of an empty
+// segment — filter those known ids too, or they render as "valid" but
+// meaningless stock photos. Two known sentinels seen in the wild:
+//   - add318a54acd1985a9f0d38b23b4cee1 — generic silhouette graphic
+//   - d41d8cd98f00b204e9800998ecf8427e — literally md5("") — Deezer's search
+//     results frequently include a duplicate stub entry (same name, no art)
+//     ahead of the real artist/album/track entry, and this hash marks it.
+const DEEZER_BLANK_IMAGE_HASHES = ['add318a54acd1985a9f0d38b23b4cee1', 'd41d8cd98f00b204e9800998ecf8427e'];
 function deezerValidUrl(url) {
   if (!url) return null;
   if (/\/images\/[^/]+\/\//.test(url)) return null;
-  if (url.includes(DEEZER_DEFAULT_AVATAR_HASH)) return null;
+  if (DEEZER_BLANK_IMAGE_HASHES.some(h => url.includes(h))) return null;
   return url;
+}
+
+// Deezer's picture_xl/big/medium fields on a single search result, first
+// non-blank one wins.
+function deezerPickImage(entity, prefix) {
+  return deezerValidUrl(entity?.[prefix + '_xl']) || deezerValidUrl(entity?.[prefix + '_big']) || deezerValidUrl(entity?.[prefix + '_medium']) || null;
 }
 
 function deezerFetch(endpoint) {
@@ -1572,13 +1587,46 @@ function deezerFetch(endpoint) {
   return fetch(base + '?url=' + encodeURIComponent(endpoint));
 }
 
+// Common artist names (Panda, Kesha, Jade, Raye…) collide with several
+// unrelated Deezer artist profiles of the same name, and Deezer's search
+// order doesn't reliably put the famous one first — e.g. "Kesha" can come
+// back with the real pop star (4M+ fans) several slots behind an obscure
+// same-named artist with a dozen. Ranking exact-name matches by fan count
+// picks the one the user actually means; a photo-less stub (nb_fan≈0 and
+// filtered by deezerValidUrl anyway) naturally sorts last.
+// Returns the *full* ranked, de-duped list (not just the top pick) so the
+// click-to-cycle UI can step to the next same-named candidate if the top
+// guess is still wrong, instead of jumping straight to a different source.
+// Memoized on the artist name so stepping through candidates and the normal
+// image-load path share one search request.
+const deezerArtistCandidateCache = {};
+function deezerArtistImageCandidates(artist) {
+  const k = artist.toLowerCase();
+  if (k in deezerArtistCandidateCache) return deezerArtistCandidateCache[k];
+  const p = (async () => {
+    try {
+      const r = await deezerFetch(`search/artist?q=${encodeURIComponent(artist)}&limit=10`);
+      if (!r.ok) return [];
+      const d = await r.json();
+      const items = d?.data || [];
+      const exact = items
+        .filter(x => x.name?.toLowerCase() === artist.toLowerCase())
+        .sort((a, b) => (b.nb_fan || 0) - (a.nb_fan || 0));
+      const urls = [];
+      for (const c of (exact.length ? exact : items)) {
+        const url = deezerPickImage(c, 'picture');
+        if (url && !urls.includes(url)) urls.push(url);
+      }
+      return urls;
+    } catch (e) { return []; }
+  })();
+  deezerArtistCandidateCache[k] = p;
+  return p;
+}
+
 async function deezerArtistImage(artist) {
-  const r = await deezerFetch(`search/artist?q=${encodeURIComponent(artist)}&limit=10`);
-  if (!r.ok) return null;
-  const d = await r.json();
-  const items = d?.data || [];
-  const match = items.find(x => x.name?.toLowerCase() === artist.toLowerCase()) || items[0];
-  return deezerValidUrl(match?.picture_xl) || deezerValidUrl(match?.picture_big) || deezerValidUrl(match?.picture_medium) || null;
+  const candidates = await deezerArtistImageCandidates(artist);
+  return candidates[0] || null;
 }
 
 async function deezerAlbumImage(album, artist) {
@@ -1586,11 +1634,15 @@ async function deezerAlbumImage(album, artist) {
   if (!r.ok) return null;
   const d = await r.json();
   const items = d?.data || [];
-  const match = items.find(x =>
+  const matches = items.filter(x =>
     x.title?.toLowerCase().includes(album.toLowerCase()) &&
     x.artist?.name?.toLowerCase().includes(artist.toLowerCase().split(/[\s,&]/)[0])
-  ) || items[0];
-  return deezerValidUrl(match?.cover_xl) || deezerValidUrl(match?.cover_big) || deezerValidUrl(match?.cover_medium) || null;
+  );
+  for (const c of (matches.length ? matches : items)) {
+    const url = deezerPickImage(c, 'cover');
+    if (url) return url;
+  }
+  return null;
 }
 
 async function deezerTrackImage(track, artist) {
@@ -1598,18 +1650,27 @@ async function deezerTrackImage(track, artist) {
   if (!r.ok) return null;
   const d = await r.json();
   const items = d?.data || [];
-  const match = items.find(x =>
+  const matches = items.filter(x =>
     x.title?.toLowerCase().includes(track.toLowerCase()) &&
     x.artist?.name?.toLowerCase().includes(artist.toLowerCase().split(/[\s,&]/)[0])
-  ) || items[0];
-  const alb = match?.album;
-  return deezerValidUrl(alb?.cover_xl) || deezerValidUrl(alb?.cover_big) || deezerValidUrl(alb?.cover_medium) || null;
+  );
+  for (const c of (matches.length ? matches : items)) {
+    const url = deezerPickImage(c.album, 'cover');
+    if (url) return url;
+  }
+  return null;
 }
 
+// The YouTube key is a shared public quota — once it's exhausted (429/403)
+// every remaining image on the page would otherwise keep hitting a dead API
+// one at a time, each failing and spamming the console. Trip this breaker on
+// the first quota error so the rest of the session skips youtube entirely.
+let _ytQuotaExceeded = false;
 async function ytSearch(query) {
-  if (!YOUTUBE_KEY) return null;
+  if (!YOUTUBE_KEY || _ytQuotaExceeded) return null;
   const q = encodeURIComponent(query);
   const r = await fetch(`https://www.googleapis.com/youtube/v3/search?part=snippet&q=${q}&type=video&maxResults=1&key=${YOUTUBE_KEY}`);
+  if (r.status === 429 || r.status === 403) { _ytQuotaExceeded = true; return null; }
   if (!r.ok) return null;
   const d = await r.json();
   const item = d?.items?.[0];
@@ -1782,7 +1843,14 @@ async function fetchAndInjectImage(el, item, type) {
       const source = FALLBACK_SOURCES[(startIdx + i) % FALLBACK_SOURCES.length];
       if (i > 0 && source === 'deezer') break;
       try {
-        if (type === 'artist') url = await getArtistImage(item.name, source);
+        if (type === 'artist' && source === 'deezer' && item.prefKey && deezerCandidateIdxPrefs[item.prefKey]) {
+          // User previously stepped past the top fan-count pick for this
+          // artist (see cycleImgSrc) — honor that choice on reload instead
+          // of resetting to the auto-picked candidate every time.
+          const candidates = await deezerArtistImageCandidates(item.name);
+          const idx = Math.min(deezerCandidateIdxPrefs[item.prefKey], Math.max(0, candidates.length - 1));
+          url = candidates[idx] || null;
+        } else if (type === 'artist') url = await getArtistImage(item.name, source);
         else if (type === 'album') url = await getAlbumImage(item.album, item.artist, source);
         else url = await getTrackImage(item.title, item.artist, source);
       } catch (e) { url = null; }
@@ -1842,16 +1910,38 @@ function loadImages(items, type) {
   }
 }
 
-function cycleImgSrc(imgId, type, prefKey, name, artist, album) {
+async function cycleImgSrc(imgId, type, prefKey, name, artist, album) {
   const current = itemSourcePrefs[prefKey] || 'deezer';
-  const next = IMG_SOURCES[(IMG_SOURCES.indexOf(current) + 1) % IMG_SOURCES.length];
-  itemSourcePrefs[prefKey] = next;
-  localStorage.setItem('itemSourcePrefs', JSON.stringify(itemSourcePrefs));
   const btn = document.getElementById('srcbtn-' + imgId);
-  if (btn) btn.textContent = srcLabel(next);
   const el = document.getElementById(imgId);
   if (!el) return;
   const fallback = name || album || artist || '';
+
+  // Artists commonly collide with several unrelated same-named Deezer
+  // profiles (see deezerArtistImageCandidates) — step to the next one before
+  // jumping to a different external source, so a wrong auto-pick can be
+  // corrected without leaving Deezer's usually-better catalog.
+  if (type === 'artist' && current === 'deezer') {
+    const candidates = await deezerArtistImageCandidates(name);
+    const nextIdx = (deezerCandidateIdxPrefs[prefKey] || 0) + 1;
+    if (nextIdx < candidates.length) {
+      deezerCandidateIdxPrefs[prefKey] = nextIdx;
+      localStorage.setItem('deezerCandidateIdxPrefs', JSON.stringify(deezerCandidateIdxPrefs));
+      if (document.getElementById(imgId)) {
+        el.innerHTML = `<img class="thumb" src="${esc(candidates[nextIdx])}" alt="" loading="lazy" onerror="this.outerHTML='<div class=thumb-initials>${esc(initials(fallback))}</div>'">`;
+      }
+      return;
+    }
+    // Deezer candidates exhausted — reset so the next time the cycle comes
+    // back around to Deezer it starts from the top pick again.
+    delete deezerCandidateIdxPrefs[prefKey];
+    localStorage.setItem('deezerCandidateIdxPrefs', JSON.stringify(deezerCandidateIdxPrefs));
+  }
+
+  const next = IMG_SOURCES[(IMG_SOURCES.indexOf(current) + 1) % IMG_SOURCES.length];
+  itemSourcePrefs[prefKey] = next;
+  localStorage.setItem('itemSourcePrefs', JSON.stringify(itemSourcePrefs));
+  if (btn) btn.textContent = srcLabel(next);
   if (next === 'off') {
     el.innerHTML = `<div class="thumb-initials">${esc(initials(fallback))}</div>`;
     return;
@@ -24709,8 +24799,11 @@ function stInitCoverflow(viewportEl, items, label) {
       const it = items[idx];
       const artEl = cards[idx]?.querySelector('.st-cf-art');
       // Shares the same deezer→itunes→lastfm→youtube fallback chain (and per-item
-      // source preference) as the chart tables, instead of stopping at Deezer alone.
-      if (artEl) fetchAndInjectImage(artEl, it, it.imgType);
+      // source preference) as the chart tables. Routed through the same global
+      // imgQueue so requests are throttled one-at-a-time like the tables — firing
+      // all ~7 lookups at once floods the Deezer proxy, triggers rate-limiting,
+      // and silently downgrades to lower-res itunes/lastfm art.
+      if (artEl) imgQueue = imgQueue.then(() => fetchAndInjectImage(artEl, it, it.imgType));
     }
   }
 
@@ -25220,11 +25313,15 @@ function stRenderLoyalty(plays) {
         </div>`).join('')}
     </div>` : ''}`;
 
+  // Queued through the shared imgQueue (same one the chart tables and coverflow
+  // use) instead of firing all requests at once — a synchronous burst against
+  // the Deezer proxy gets rate-limited, silently downgrading art to lower-res
+  // itunes/lastfm fallbacks.
   returningArtists.forEach((a, i) => {
-    getArtistImage(a.name, 'deezer').then(url => {
+    imgQueue = imgQueue.then(() => getArtistImage(a.name, 'deezer').then(url => {
       const imgEl = document.getElementById('stLoyaltyImg' + i);
       if (imgEl) imgEl.innerHTML = thumbHtml(url, a.name, false);
-    });
+    }));
   });
 }
 
@@ -25330,10 +25427,14 @@ function stSpawnBubble(container, artist, isStatic) {
     if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); stPopBubble(bubble, artist); }
   });
 
-  getArtistImage(artist, 'deezer').then(url => {
+  // Queued through the shared imgQueue (see stLoyaltyImg above) — under
+  // prefers-reduced-motion the initial static batch spawns up to 10 bubbles
+  // in one synchronous forEach, which would otherwise fire 10 concurrent
+  // Deezer lookups at once.
+  imgQueue = imgQueue.then(() => getArtistImage(artist, 'deezer').then(url => {
     const avatarEl = document.getElementById(uid);
     if (avatarEl) avatarEl.innerHTML = thumbHtml(url, artist, false);
-  });
+  }));
 }
 
 // Tapping/clicking a bubble "pops" it (a quick scale-and-ring burst, skipped
@@ -25583,15 +25684,17 @@ function stRenderMilestoneList(items, bodyId, wrapId, toggleId, kind) {
 
     // Fill in the row's art thumbnail with the triggering track's cover
     // art, once fetched — stays hidden (icon badge only) if art fails.
+    // Queued (see stLoyaltyImg above) so a page of milestones doesn't fire
+    // all its Deezer lookups in the same instant.
     if (m.rawTitle) {
-      getTrackImage(m.rawTitle, m.rawArtist, 'deezer').then(url => {
+      imgQueue = imgQueue.then(() => getTrackImage(m.rawTitle, m.rawArtist, 'deezer').then(url => {
         if (!url) return;
         const artWrapEl = rowEl.querySelector('.st-milestone-art-wrap');
         if (artWrapEl && !artWrapEl.querySelector('.st-milestone-art')) {
           artWrapEl.classList.add('st-has-art');
           artWrapEl.insertAdjacentHTML('beforeend', `<img class="st-milestone-art" src="${esc(url)}" alt="" loading="lazy" onerror="this.parentElement.classList.remove('st-has-art');this.remove()">`);
         }
-      });
+      }));
     }
 
     // Tap a row to open the same mini-card the Top Artists/Songs
@@ -25892,12 +25995,14 @@ function stRenderGrammys(plays) {
     </div>`;
   }).join('')}</div>`;
 
+  // Queued through the shared imgQueue (see stLoyaltyImg above) instead of
+  // firing every card's lookup at once.
   shown.forEach((item, i) => {
-    getArtistImage(item.artist).then(url => {
+    imgQueue = imgQueue.then(() => getArtistImage(item.artist).then(url => {
       if (!url) return;
       const img = document.getElementById('stGrammyArt_' + i);
       if (img) img.src = url;
-    });
+    }));
   });
 }
 
@@ -26035,10 +26140,13 @@ function stReplayRenderRows(rowsEl, snap, prevTop5) {
         </div>
         <span class="st-replay-move"></span>
         <span class="st-replay-count"></span>`;
-      getArtistImage(name, 'deezer').then(url => {
+      // Queued through the shared imgQueue (see stLoyaltyImg above) — playback
+      // can introduce several new artists per step, and fast stepping through
+      // history shouldn't burst the Deezer proxy.
+      imgQueue = imgQueue.then(() => getArtistImage(name, 'deezer').then(url => {
         if (!el.isConnected || !url) return;
         el.querySelector('.st-replay-avatar').innerHTML = thumbHtml(url, name, false);
-      });
+      }));
       newlyCreated.push(el);
     }
     el.className = 'st-replay-row' + (i === 0 ? ' st-replay-row-top' : '');
@@ -26471,11 +26579,13 @@ function renderStreakBanner() {
       img.style.display = '';
       init.style.display = 'none';
     }
-    // Fetch per-play art for each mini thumb individually
+    // Fetch per-play art for each mini thumb individually, queued through the
+    // shared imgQueue (see stLoyaltyImg above) instead of firing every thumb's
+    // lookup at once.
     el.querySelectorAll('.streak-mini-thumb').forEach((thumb, i) => {
       const p = allPlays[i];
       if (!p) return;
-      _fetchPlayArt(p).then(thumbUrl => {
+      imgQueue = imgQueue.then(() => _fetchPlayArt(p).then(thumbUrl => {
         const src = thumbUrl || url;
         if (!src) return;
         const tImg = document.createElement('img');
@@ -26485,7 +26595,7 @@ function renderStreakBanner() {
         tImg.onerror = () => tImg.remove();
         thumb.innerHTML = '';
         thumb.appendChild(tImg);
-      });
+      }));
     });
   });
 }
