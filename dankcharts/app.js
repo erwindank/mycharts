@@ -25002,23 +25002,32 @@ function stRenderFeaturedArtist(periodPlays, artistName, totalCount) {
   // Longest back-to-back run of plays by this artist within the full listening
   // timeline for the period (i.e. how many songs in a row before switching artist).
   // A collab track counts as a continuation as long as this artist is one of its
-  // comma-separated credits — same rule the album streak below uses, so the two
-  // cards stay directly comparable (album streak can never exceed play streak).
+  // comma-separated credits.
   const allSorted = periodPlays.slice().sort((a, b) => a.date - b.date);
   let longestPlayStreak = 0, curPlayStreak = 0;
-  let bestAlbum = null, bestAlbumStreak = 0, curAlbum = null, curAlbumStreak = 0;
   for (const p of allSorted) {
-    if (isThisArtist(p)) {
-      curPlayStreak++; if (curPlayStreak > longestPlayStreak) longestPlayStreak = curPlayStreak;
-      const alb = (p.album && p.album !== '—') ? p.album : null;
-      curAlbumStreak = (alb && alb === curAlbum) ? curAlbumStreak + 1 : (alb ? 1 : 0);
-      curAlbum = alb;
-      if (alb && curAlbumStreak > bestAlbumStreak) { bestAlbumStreak = curAlbumStreak; bestAlbum = alb; }
-    } else {
-      curPlayStreak = 0;
-      curAlbumStreak = 0; curAlbum = null;
-    }
+    if (isThisArtist(p)) { curPlayStreak++; if (curPlayStreak > longestPlayStreak) longestPlayStreak = curPlayStreak; }
+    else curPlayStreak = 0;
   }
+  // Longest back-to-back run of plays matching a narrower predicate (e.g. "this
+  // exact album" or "this exact song") — breaks on anything that doesn't match,
+  // whether that's a different artist or this artist playing something else.
+  const computeStreak = matchFn => {
+    let longest = 0, cur = 0;
+    for (const p of allSorted) { if (matchFn(p)) { cur++; if (cur > longest) longest = cur; } else cur = 0; }
+    return longest;
+  };
+  // Longest run of consecutive calendar days present in a set of day keys
+  const dayStreakFor = daySet => {
+    const keys = Array.from(daySet).sort();
+    let longest = keys.length ? 1 : 0, cur = 1;
+    for (let i = 1; i < keys.length; i++) {
+      const diff = Math.round((new Date(keys[i]) - new Date(keys[i - 1])) / 86400000);
+      cur = diff === 1 ? cur + 1 : 1;
+      if (cur > longest) longest = cur;
+    }
+    return longest;
+  };
 
   // Distinct songs + albums (album may be blank for some data sources — skip those)
   const songSet = new Set(artistPlays.map(p => songKey(p)));
@@ -25032,14 +25041,32 @@ function stRenderFeaturedArtist(periodPlays, artistName, totalCount) {
   const fmtHour = h => { const per = h < 12 ? 'AM' : 'PM'; const h12 = h % 12 === 0 ? 12 : h % 12; return `${h12} ${per}`; };
   const fmtDate = d => `${t(ST_MONTH_KEYS[d.getMonth()]).substring(0, 3)} ${d.getDate()}`;
 
-  // Most played song by this artist within the period
+  // Favorite album: the one this artist was played from the most within the
+  // period (by total plays, not by streak length), plus that specific album's
+  // own play streak and day streak.
+  const albumCounts = {};
+  for (const p of artistPlays) {
+    if (!p.album || p.album === '—') continue;
+    const rec = albumCounts[p.album] || (albumCounts[p.album] = { count: 0, days: new Set() });
+    rec.count++; rec.days.add(dayKey(p.date));
+  }
+  let topAlbum = null, topAlbumRec = null;
+  for (const alb in albumCounts) { if (!topAlbum || albumCounts[alb].count > topAlbumRec.count) { topAlbum = alb; topAlbumRec = albumCounts[alb]; } }
+  const albumPlayStreak = topAlbum ? computeStreak(p => isThisArtist(p) && p.album === topAlbum) : 0;
+  const albumDayStreak = topAlbum ? dayStreakFor(topAlbumRec.days) : 0;
+
+  // Favorite song: the one played the most within the period, plus its own
+  // play streak and day streak.
   const songCounts = {};
   for (const p of artistPlays) {
     const sk = songKey(p);
-    if (!songCounts[sk]) songCounts[sk] = { title: p.title, count: 0 };
-    songCounts[sk].count++;
+    const rec = songCounts[sk] || (songCounts[sk] = { title: p.title, count: 0, days: new Set(), key: sk });
+    rec.count++; rec.days.add(dayKey(p.date));
   }
   const topSong = Object.values(songCounts).sort((a, b) => b.count - a.count)[0] || null;
+  const songPlayStreak = topSong ? computeStreak(p => isThisArtist(p) && songKey(p) === topSong.key) : 0;
+  const songDayStreak = topSong ? dayStreakFor(topSong.days) : 0;
+
   const sharePct = periodPlays.length ? Math.round(totalCount / periodPlays.length * 100) : 0;
   const avgPerDay = dayKeys.length ? Math.round(totalCount / dayKeys.length * 10) / 10 : 0;
 
@@ -25049,22 +25076,30 @@ function stRenderFeaturedArtist(periodPlays, artistName, totalCount) {
   // everything else — mirrors a Wrapped-style collage rather than a plain grid.
   const heroTile = { icon: '⚡', label: 'Play Streak', value: longestPlayStreak.toLocaleString(), note: 'songs played back-to-back before switching artist', area: 'hero', role: 'hero' };
   const contentTiles = [
-    { icon: '🏆', label: 'Favorite Album', value: bestAlbum || '—',
-      note: bestAlbum ? `${bestAlbumStreak}-play streak in a row` : '', area: 'album', role: 'content' },
-    { icon: '🎧', label: 'Most Played Song', value: topSong ? topSong.title : '—',
-      note: topSong ? `${topSong.count.toLocaleString()} ${tUnit('plays', topSong.count)}` : '', area: 'song', role: 'content' },
+    { icon: '🏆', label: 'Favorite Album', value: topAlbum || '—',
+      note: topAlbum ? [
+        `${topAlbumRec.count.toLocaleString()} ${tUnit('plays', topAlbumRec.count)} total`,
+        `${albumPlayStreak}-play streak in a row`,
+        `${albumDayStreak}-day streak`,
+      ] : '', area: 'album', role: 'content' },
+    { icon: '🎧', label: 'Favorite Song', value: topSong ? topSong.title : '—',
+      note: topSong ? [
+        `${topSong.count.toLocaleString()} ${tUnit('plays', topSong.count)} total`,
+        `${songPlayStreak}-play streak in a row`,
+        `${songDayStreak}-day streak`,
+      ] : '', area: 'song', role: 'content' },
   ];
   // Small tiles: ones with a secondary note get more room ("med", 2 cols)
   // than bare-number ones ("small", 1 col) — a mosaic rather than a uniform
   // grid of same-size squares.
   const smallTiles = [
-    { icon: '🔥', label: 'Day Most Played', value: peakDayKey ? fmtDate(dayCounts[peakDayKey].date) : '—',
+    { icon: '🔥', label: 'Most Played Day', value: peakDayKey ? fmtDate(dayCounts[peakDayKey].date) : '—',
       note: peakDayKey ? `${dayCounts[peakDayKey].count.toLocaleString()} ${tUnit('plays', dayCounts[peakDayKey].count)}` : '', area: 'dmp', role: 'med' },
     { icon: '📆', label: 'Day Streak', value: longestDayStreak.toLocaleString(), note: 'consecutive days', area: 'dst', role: 'med' },
     { icon: '📅', label: 'Days Played', value: dayKeys.length.toLocaleString(), area: 'day', role: 'small' },
     { icon: '🎵', label: 'Songs Played', value: songSet.size.toLocaleString(), area: 'sng', role: 'small' },
-    { icon: '📊', label: 'Share of Your Plays', value: `${sharePct}%`, note: 'of all plays this period', area: 'shr', role: 'med' },
-    { icon: '📈', label: 'Avg Plays / Day', value: avgPerDay.toLocaleString(), note: 'on days you played them', area: 'avg', role: 'med' },
+    { icon: '📊', label: 'Of Your Total Plays', value: `${sharePct}%`, area: 'shr', role: 'med' },
+    { icon: '📈', label: 'Plays Per Active Day', value: avgPerDay.toLocaleString(), area: 'avg', role: 'med' },
     { icon: '💿', label: 'Albums Played', value: albumSet.size.toLocaleString(), area: 'alb', role: 'small' },
     { icon: '🕐', label: 'Peak Listening Hour', value: dayKeys.length ? fmtHour(peakHour) : '—', area: 'pkh', role: 'small' },
   ];
@@ -25081,7 +25116,9 @@ function stRenderFeaturedArtist(periodPlays, artistName, totalCount) {
       <div class="st-fstat st-fstat-${s.role}${areaClass}" style="--i:${i};grid-area:${s.area}">
         <div class="st-fstat-value">${esc(String(s.value))}</div>
         <div class="st-fstat-label"><span class="st-fstat-icon">${s.icon}</span> ${esc(s.label)}</div>
-        ${s.note ? `<div class="st-fstat-note">${esc(s.note)}</div>` : ''}
+        ${Array.isArray(s.note)
+          ? s.note.filter(Boolean).map(n => `<div class="st-fstat-note">${esc(n)}</div>`).join('')
+          : (s.note ? `<div class="st-fstat-note">${esc(s.note)}</div>` : '')}
       </div>`;
     }).join('');
   }

@@ -15437,12 +15437,19 @@ body[class*="-light"] .tm-card-search:hover {
 .st-fstat-small, .st-fstat-med {
   background: color-mix(in srgb, var(--tc) 12%, var(--bg2));
   text-align: center;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
 }
 .st-fstat-small:nth-of-type(4n+2), .st-fstat-med:nth-of-type(4n+2) { --tc: var(--teal); }
 .st-fstat-small:nth-of-type(4n+3), .st-fstat-med:nth-of-type(4n+3) { --tc: var(--accent); }
 .st-fstat-small:nth-of-type(4n+4), .st-fstat-med:nth-of-type(4n+4) { --tc: var(--green); }
 
-/* bare-number tiles: narrow, compact */
+/* bare-number tiles: narrow, compact. They often share a grid row with
+   taller .st-fstat-med tiles (which carry a note line), so the grid
+   stretches them to match — content is centered (see shared rule above)
+   so it doesn't sink to the top of that extra height. */
 .st-fstat-small { padding: 0.35rem 0.25rem 0.3rem; }
 .st-fstat-small .st-fstat-value { font-size: 1.3rem; }
 .st-fstat-small .st-fstat-label { font-size: 0.66rem; letter-spacing: 0.01em; }
