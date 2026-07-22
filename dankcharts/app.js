@@ -24975,7 +24975,8 @@ function stRenderFeaturedArtist(periodPlays, artistName, totalCount) {
   }
 
   const aLower = artistName.toLowerCase();
-  const artistPlays = periodPlays.filter(p => p.artist.toLowerCase() === aLower).slice().sort((a, b) => a.date - b.date);
+  const isThisArtist = p => (p.artists || splitArtists(p.artist)).some(a => a.toLowerCase() === aLower);
+  const artistPlays = periodPlays.filter(isThisArtist).slice().sort((a, b) => a.date - b.date);
 
   const pad2 = n => String(n).padStart(2, '0');
   const dayKey = d => { const tz = tzDate(d); return `${tz.getFullYear()}-${pad2(tz.getMonth() + 1)}-${pad2(tz.getDate())}`; };
@@ -24999,26 +25000,29 @@ function stRenderFeaturedArtist(periodPlays, artistName, totalCount) {
   }
 
   // Longest back-to-back run of plays by this artist within the full listening
-  // timeline for the period (i.e. how many songs in a row before switching artist)
+  // timeline for the period (i.e. how many songs in a row before switching artist).
+  // A collab track counts as a continuation as long as this artist is one of its
+  // comma-separated credits — same rule the album streak below uses, so the two
+  // cards stay directly comparable (album streak can never exceed play streak).
   const allSorted = periodPlays.slice().sort((a, b) => a.date - b.date);
   let longestPlayStreak = 0, curPlayStreak = 0;
+  let bestAlbum = null, bestAlbumStreak = 0, curAlbum = null, curAlbumStreak = 0;
   for (const p of allSorted) {
-    if (p.artist.toLowerCase() === aLower) { curPlayStreak++; if (curPlayStreak > longestPlayStreak) longestPlayStreak = curPlayStreak; }
-    else curPlayStreak = 0;
+    if (isThisArtist(p)) {
+      curPlayStreak++; if (curPlayStreak > longestPlayStreak) longestPlayStreak = curPlayStreak;
+      const alb = (p.album && p.album !== '—') ? p.album : null;
+      curAlbumStreak = (alb && alb === curAlbum) ? curAlbumStreak + 1 : (alb ? 1 : 0);
+      curAlbum = alb;
+      if (alb && curAlbumStreak > bestAlbumStreak) { bestAlbumStreak = curAlbumStreak; bestAlbum = alb; }
+    } else {
+      curPlayStreak = 0;
+      curAlbumStreak = 0; curAlbum = null;
+    }
   }
 
   // Distinct songs + albums (album may be blank for some data sources — skip those)
   const songSet = new Set(artistPlays.map(p => songKey(p)));
   const albumSet = new Set(artistPlays.filter(p => p.album && p.album !== '—').map(p => p.album));
-
-  // Favorite album: the one with the longest run of consecutive plays (album streak)
-  let bestAlbum = null, bestAlbumStreak = 0, curAlbum = null, curAlbumStreak = 0;
-  for (const p of artistPlays) {
-    const alb = (p.album && p.album !== '—') ? p.album : null;
-    curAlbumStreak = (alb && alb === curAlbum) ? curAlbumStreak + 1 : (alb ? 1 : 0);
-    curAlbum = alb;
-    if (alb && curAlbumStreak > bestAlbumStreak) { bestAlbumStreak = curAlbumStreak; bestAlbum = alb; }
-  }
 
   // Hour of day this artist gets played the most
   const hourCounts = new Array(24).fill(0);
