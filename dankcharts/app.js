@@ -25074,34 +25074,34 @@ function stRenderFeaturedArtist(periodPlays, artistName, totalCount) {
   // One big "hero" tile for the standout number, two content tiles for the
   // text-heavy favorite album/song, and a cluster of small tiles for
   // everything else — mirrors a Wrapped-style collage rather than a plain grid.
-  const heroTile = { icon: '⚡', label: 'Play Streak', value: longestPlayStreak.toLocaleString(), note: 'songs played back-to-back before switching artist', area: 'hero', role: 'hero' };
+  const heroTile = { icon: '⚡', label: t('st_feat_label_play_streak'), value: longestPlayStreak.toLocaleString(), note: t('st_feat_note_play_streak'), area: 'hero', role: 'hero' };
   const contentTiles = [
-    { icon: '🏆', label: 'Favorite Album', value: topAlbum || '—',
+    { icon: '🏆', label: t('st_feat_label_favorite_album'), value: topAlbum || '—',
       note: topAlbum ? [
-        `${topAlbumRec.count.toLocaleString()} ${tUnit('plays', topAlbumRec.count)} total`,
-        `${albumPlayStreak}-play streak in a row`,
-        `${albumDayStreak}-day streak`,
+        t('st_feat_total_plays', { plays: tCount('plays', topAlbumRec.count) }),
+        t('st_feat_note_play_streak_row', { n: albumPlayStreak }),
+        t('st_feat_note_day_streak', { n: albumDayStreak }),
       ] : '', area: 'album', role: 'content' },
-    { icon: '🎧', label: 'Favorite Song', value: topSong ? topSong.title : '—',
+    { icon: '🎧', label: t('st_feat_label_favorite_song'), value: topSong ? topSong.title : '—',
       note: topSong ? [
-        `${topSong.count.toLocaleString()} ${tUnit('plays', topSong.count)} total`,
-        `${songPlayStreak}-play streak in a row`,
-        `${songDayStreak}-day streak`,
+        t('st_feat_total_plays', { plays: tCount('plays', topSong.count) }),
+        t('st_feat_note_play_streak_row', { n: songPlayStreak }),
+        t('st_feat_note_day_streak', { n: songDayStreak }),
       ] : '', area: 'song', role: 'content' },
   ];
   // Small tiles: ones with a secondary note get more room ("med", 2 cols)
   // than bare-number ones ("small", 1 col) — a mosaic rather than a uniform
   // grid of same-size squares.
   const smallTiles = [
-    { icon: '🔥', label: 'Most Played Day', value: peakDayKey ? fmtDate(dayCounts[peakDayKey].date) : '—',
-      note: peakDayKey ? `${dayCounts[peakDayKey].count.toLocaleString()} ${tUnit('plays', dayCounts[peakDayKey].count)}` : '', area: 'dmp', role: 'med' },
-    { icon: '📆', label: 'Day Streak', value: longestDayStreak.toLocaleString(), note: 'consecutive days', area: 'dst', role: 'med' },
-    { icon: '📅', label: 'Days Played', value: dayKeys.length.toLocaleString(), area: 'day', role: 'small' },
-    { icon: '🎵', label: 'Songs Played', value: songSet.size.toLocaleString(), area: 'sng', role: 'small' },
-    { icon: '📊', label: 'Of Your Total Plays', value: `${sharePct}%`, area: 'shr', role: 'med' },
-    { icon: '📈', label: 'Plays Per Active Day', value: avgPerDay.toLocaleString(), area: 'avg', role: 'med' },
-    { icon: '💿', label: 'Albums Played', value: albumSet.size.toLocaleString(), area: 'alb', role: 'small' },
-    { icon: '🕐', label: 'Peak Listening Hour', value: dayKeys.length ? fmtHour(peakHour) : '—', area: 'pkh', role: 'small' },
+    { icon: '🔥', label: t('st_feat_label_most_played_day'), value: peakDayKey ? fmtDate(dayCounts[peakDayKey].date) : '—',
+      note: peakDayKey ? tCount('plays', dayCounts[peakDayKey].count) : '', area: 'dmp', role: 'med' },
+    { icon: '📆', label: t('st_feat_label_day_streak'), value: longestDayStreak.toLocaleString(), note: t('st_feat_note_consecutive_days'), area: 'dst', role: 'med' },
+    { icon: '📅', label: t('st_feat_label_days_played'), value: dayKeys.length.toLocaleString(), area: 'day', role: 'small' },
+    { icon: '🎵', label: t('st_feat_label_songs_played'), value: songSet.size.toLocaleString(), area: 'sng', role: 'small' },
+    { icon: '📊', label: t('st_feat_label_share_of_total'), value: `${sharePct}%`, area: 'shr', role: 'med' },
+    { icon: '📈', label: t('st_feat_label_avg_per_day'), value: avgPerDay.toLocaleString(), area: 'avg', role: 'med' },
+    { icon: '💿', label: t('st_feat_label_albums_played'), value: albumSet.size.toLocaleString(), area: 'alb', role: 'small' },
+    { icon: '🕐', label: t('st_feat_label_peak_hour'), value: dayKeys.length ? fmtHour(peakHour) : '—', area: 'pkh', role: 'small' },
   ];
 
   const tiles = [heroTile, ...contentTiles, ...smallTiles];
