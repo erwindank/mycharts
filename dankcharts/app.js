@@ -14009,9 +14009,9 @@ function openAlbumModal(albumKey) {
   let nextCert;
   if (totalPlays >= CERT.album.diamond) {
     const nextMult = Math.floor(totalPlays / CERT.album.diamond) + 1;
-    nextCert = [nextMult * CERT.album.diamond, diamondMultiLabel(nextMult).label];
+    nextCert = [nextMult * CERT.album.diamond, tDiamondLabel(nextMult)];
   } else {
-    nextCert = [[CERT.album.gold, 'Gold'], [CERT.album.plat, 'Platinum'], [CERT.album.diamond, 'Diamond']].find(([thr]) => totalPlays < thr);
+    nextCert = [[CERT.album.gold, t('cert_gold')], [CERT.album.plat, t('cert_plat')], [CERT.album.diamond, t('cert_diamond')]].find(([thr]) => totalPlays < thr);
   }
 
   const peakCls = r => !r ? '' : r === 1 ? 'sv--gold' : r <= 3 ? 'sv--silver' : r <= 10 ? 'sv--bronze' : '';
@@ -14044,11 +14044,11 @@ function openAlbumModal(albumKey) {
     <div class="modal-stat"><div class="se">🎵</div><div class="sv">${allTracksSorted.length}</div><div class="sl">${t('modal_tracks')}</div></div>
     <div class="modal-stat"><div class="se">📅</div><div class="sv">${calendarDays}</div><div class="sl">${t('modal_calendar_days_played')}</div></div>
     <div class="modal-stat"><div class="se">📊</div><div class="sv">${avgPlaysPerTrack.toLocaleString()}</div><div class="sl">${t('modal_avg_plays_per_track')}</div></div>
-    <div class="modal-stat modal-stat--gold"><div class="se">🏆</div><div class="sv">${allTimeAlbumRank ? '#' + allTimeAlbumRank : '—'}</div><div class="sl">${t('modal_most_heard_album')}</div></div>
+    <div class="modal-stat modal-stat--gold"><div class="se">🏆</div><div class="sv">${allTimeAlbumRank ? (currentLang === 'en' ? ordinalSuffix(allTimeAlbumRank) : allTimeAlbumRank + '.º') : '—'}</div><div class="sl">${t('modal_most_heard_album')}</div></div>
     <div class="modal-stat"><div class="se">📊</div><div class="sv ${peakCls(weeklyAlbumPeak)}">${weeklyAlbumPeak ? '#' + weeklyAlbumPeak : '—'}</div><div class="sl">${t('modal_weekly_peak_tile')}</div></div>
     <div class="modal-stat"><div class="se">🌙</div><div class="sv ${peakCls(monthlyAlbumPeak)}">${monthlyAlbumPeak ? '#' + monthlyAlbumPeak : '—'}</div><div class="sl">${t('modal_monthly_peak_tile')}</div></div>
     <div class="modal-stat"><div class="se">⭐</div><div class="sv ${peakCls(yearlyAlbumPeak)}">${yearlyAlbumPeak ? '#' + yearlyAlbumPeak : '—'}</div><div class="sl">${t('modal_yearly_peak_tile')}</div></div>
-    <div class="modal-stat"><div class="se">🎤</div><div class="sv" style="font-size:0.72rem;line-height:1.3;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%">${allTracksSorted.length ? esc(allTracksSorted[0].title) : '—'}</div><div class="sl">${t('modal_top_track')}</div></div>
+    <div class="modal-stat"><div class="se">🎤</div><div class="sv" style="font-size:0.72rem;line-height:1.3;white-space:normal;overflow-wrap:break-word;max-width:100%">${allTracksSorted.length ? esc(allTracksSorted[0].title) : '—'}</div><div class="sl">${t('modal_top_track')}</div></div>
     <div class="modal-stat"><div class="se">🔥</div><div class="sv">${longestStreak}</div><div class="sl">${t('modal_day_streak')}</div></div>
     <div class="modal-stat"><div class="se">📋</div><div class="sv">${chartTracksWeekly.length || '—'}</div><div class="sl">${t('modal_tracks_in_weekly')}</div></div>
     ${nextCert ? `<div class="modal-stat"><div class="se">🎯</div><div class="sv">${(nextCert[0] - totalPlays).toLocaleString()}</div><div class="sl">${t('modal_plays_to_cert', { cert: nextCert[1] })}</div></div>` : ''}
