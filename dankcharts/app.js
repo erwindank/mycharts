@@ -7462,7 +7462,7 @@ function buildCrPanelHTML(type, key) {
   const heatmapHtml = `<div class="cr-subsection">
     <div class="cr-subsection-header" onclick="toggleCrSubsection(this)">
       <span class="cr-subsection-toggle">▶</span>
-      <span class="cr-subsection-label">LISTENING HEATMAP</span>
+      <span class="cr-subsection-label">${t('cr_sub_heatmap')}</span>
     </div>
     <div class="cr-subsection-body" style="display:none;" data-crtype="${encodedType}" data-crkey="${encodedKey}" data-crkind="heatmap"></div>
   </div>`;
@@ -7470,7 +7470,7 @@ function buildCrPanelHTML(type, key) {
   const rawDataHtml = `<div class="cr-subsection">
     <div class="cr-subsection-header" onclick="toggleCrSubsection(this)">
       <span class="cr-subsection-toggle">▶</span>
-      <span class="cr-subsection-label">FULL STREAMING HISTORY</span>
+      <span class="cr-subsection-label">${t('cr_sub_full_history')}</span>
     </div>
     <div class="cr-subsection-body" style="display:none;" data-crtype="${encodedType}" data-crkey="${encodedKey}" data-crkind="rawdata"></div>
   </div>`;
@@ -13238,11 +13238,11 @@ function _buildAlbTrackPanelHTML(s, totalPlays, crY, crM, crW, allTimeSPM) {
 
   return `<div class="alb-track-panel">
     ${statsHTML}
-    ${preSection('YEARLY CHART RUN', 'year', crY)}
-    ${preSection('MONTHLY CHART RUN', 'month', crM)}
-    ${preSection('WEEKLY CHART RUN', 'week', crW)}
-    <div class="cr-subsection"><div class="cr-subsection-header" onclick="toggleCrSubsection(this)"><span class="cr-subsection-toggle">▶</span><span class="cr-subsection-label">LISTENING HEATMAP</span></div><div class="cr-subsection-body" style="display:none;" data-crtype="songs" data-crkey="${esc(sk)}" data-crkind="heatmap"></div></div>
-    <div class="cr-subsection"><div class="cr-subsection-header" onclick="toggleCrSubsection(this)"><span class="cr-subsection-toggle">▶</span><span class="cr-subsection-label">STREAMING HISTORY</span></div><div class="cr-subsection-body" style="display:none;" data-crtype="songs" data-crkey="${esc(sk)}" data-crkind="rawdata"></div></div>
+    ${preSection(t('cr_sub_yearly_run'), 'year', crY)}
+    ${preSection(t('cr_sub_monthly_run'), 'month', crM)}
+    ${preSection(t('cr_sub_weekly_run'), 'week', crW)}
+    <div class="cr-subsection"><div class="cr-subsection-header" onclick="toggleCrSubsection(this)"><span class="cr-subsection-toggle">▶</span><span class="cr-subsection-label">${t('cr_sub_heatmap')}</span></div><div class="cr-subsection-body" style="display:none;" data-crtype="songs" data-crkey="${esc(sk)}" data-crkind="heatmap"></div></div>
+    <div class="cr-subsection"><div class="cr-subsection-header" onclick="toggleCrSubsection(this)"><span class="cr-subsection-toggle">▶</span><span class="cr-subsection-label">${t('cr_sub_full_history')}</span></div><div class="cr-subsection-body" style="display:none;" data-crtype="songs" data-crkey="${esc(sk)}" data-crkind="rawdata"></div></div>
   </div>`;
 }
 
@@ -13659,8 +13659,8 @@ function openArtistModal(artistName) {
   // crKey = URL-encoded key (for row id), rawKey = plain song key for data-crkey lookup
   const streamHistoryPanel = (crKey, rawKey, colspan) =>
     `<tr class="cr-row" id="${crKey}-sh"><td colspan="${colspan}"><div style="padding:0.5rem 0.5rem 0">
-      <div class="cr-subsection"><div class="cr-subsection-header" onclick="toggleCrSubsection(this)"><span class="cr-subsection-toggle">▶</span><span class="cr-subsection-label">LISTENING HEATMAP</span></div><div class="cr-subsection-body" style="display:none;" data-crtype="songs" data-crkey="${esc(rawKey)}" data-crkind="heatmap"></div></div>
-      <div class="cr-subsection"><div class="cr-subsection-header" onclick="toggleCrSubsection(this)"><span class="cr-subsection-toggle">▶</span><span class="cr-subsection-label">FULL STREAMING HISTORY</span></div><div class="cr-subsection-body" style="display:none;" data-crtype="songs" data-crkey="${esc(rawKey)}" data-crkind="rawdata"></div></div>
+      <div class="cr-subsection"><div class="cr-subsection-header" onclick="toggleCrSubsection(this)"><span class="cr-subsection-toggle">▶</span><span class="cr-subsection-label">${t('cr_sub_heatmap')}</span></div><div class="cr-subsection-body" style="display:none;" data-crtype="songs" data-crkey="${esc(rawKey)}" data-crkind="heatmap"></div></div>
+      <div class="cr-subsection"><div class="cr-subsection-header" onclick="toggleCrSubsection(this)"><span class="cr-subsection-toggle">▶</span><span class="cr-subsection-label">${t('cr_sub_full_history')}</span></div><div class="cr-subsection-body" style="display:none;" data-crtype="songs" data-crkey="${esc(rawKey)}" data-crkind="rawdata"></div></div>
     </div></td></tr>`;
 
   // ── 1. All-time chart songs ───────────────────────────────────────────────
@@ -13782,8 +13782,8 @@ function openArtistModal(artistName) {
   // Helper: streaming history for albums
   const albumStreamPanel = (ek, colspan) =>
     `<tr class="cr-row" id="${ek}-ash"><td colspan="${colspan}"><div style="padding:0.5rem 0.5rem 0">
-      <div class="cr-subsection"><div class="cr-subsection-header" onclick="toggleCrSubsection(this)"><span class="cr-subsection-toggle">▶</span><span class="cr-subsection-label">LISTENING HEATMAP</span></div><div class="cr-subsection-body" style="display:none;" data-crtype="albums" data-crkey="${ek}" data-crkind="heatmap"></div></div>
-      <div class="cr-subsection"><div class="cr-subsection-header" onclick="toggleCrSubsection(this)"><span class="cr-subsection-toggle">▶</span><span class="cr-subsection-label">FULL STREAMING HISTORY</span></div><div class="cr-subsection-body" style="display:none;" data-crtype="albums" data-crkey="${ek}" data-crkind="rawdata"></div></div>
+      <div class="cr-subsection"><div class="cr-subsection-header" onclick="toggleCrSubsection(this)"><span class="cr-subsection-toggle">▶</span><span class="cr-subsection-label">${t('cr_sub_heatmap')}</span></div><div class="cr-subsection-body" style="display:none;" data-crtype="albums" data-crkey="${ek}" data-crkind="heatmap"></div></div>
+      <div class="cr-subsection"><div class="cr-subsection-header" onclick="toggleCrSubsection(this)"><span class="cr-subsection-toggle">▶</span><span class="cr-subsection-label">${t('cr_sub_full_history')}</span></div><div class="cr-subsection-body" style="display:none;" data-crtype="albums" data-crkey="${ek}" data-crkind="rawdata"></div></div>
     </div></td></tr>`;
 
   // Helper: find album chart run key
@@ -14267,9 +14267,9 @@ function openAlbumModal(albumKey) {
       </div>`;
     };
     crEl.innerHTML =
-      crSection('⭐ Yearly Chart Run', 'year', crY) +
-      crSection('🌙 Monthly Chart Run', 'month', crM) +
-      crSection('📊 Weekly Chart Run', 'week', crW);
+      crSection(t('modal_cr_yearly'), 'year', crY) +
+      crSection(t('modal_cr_monthly'), 'month', crM) +
+      crSection(t('modal_cr_weekly'), 'week', crW);
   } else {
     crTitleEl.style.display = 'none';
     crEl.innerHTML = '';
@@ -14277,20 +14277,20 @@ function openAlbumModal(albumKey) {
 
   // ── HEATMAP SECTION ───────────────────────────────────────────────────────
   document.getElementById('albumModalHeatmapSection').innerHTML = `
-    <div class="modal-section-title">🗓 Listening Heatmap</div>
+    <div class="modal-section-title">${t('modal_heatmap_title')}</div>
     <div class="cr-subsection">
       <div class="cr-subsection-header" onclick="toggleCrSubsection(this)">
-        <span class="cr-subsection-toggle">▶</span><span class="cr-subsection-label">SHOW HEATMAP</span>
+        <span class="cr-subsection-toggle">▶</span><span class="cr-subsection-label">${t('modal_show_heatmap')}</span>
       </div>
       <div class="cr-subsection-body" style="display:none;" data-crtype="albums" data-crkey="${esc(albumKey)}" data-crkind="heatmap"></div>
     </div>`;
 
   // ── STREAMING HISTORY SECTION ─────────────────────────────────────────────
   document.getElementById('albumModalStreamSection').innerHTML = `
-    <div class="modal-section-title">📋 Streaming History</div>
+    <div class="modal-section-title">${t('modal_stream_title')}</div>
     <div class="cr-subsection">
       <div class="cr-subsection-header" onclick="toggleCrSubsection(this)">
-        <span class="cr-subsection-toggle">▶</span><span class="cr-subsection-label">SHOW FULL HISTORY</span>
+        <span class="cr-subsection-toggle">▶</span><span class="cr-subsection-label">${t('modal_show_full_history')}</span>
       </div>
       <div class="cr-subsection-body" style="display:none;" data-crtype="albums" data-crkey="${esc(albumKey)}" data-crkind="rawdata"></div>
     </div>`;
@@ -14851,20 +14851,20 @@ function openSongModal(key) {
 
   // ── HEATMAP ───────────────────────────────────────────────────
   document.getElementById('songModalHeatmapSection').innerHTML = `
-    <div class="modal-section-title">🗓 Listening Heatmap</div>
+    <div class="modal-section-title">${t('modal_heatmap_title')}</div>
     <div class="cr-subsection">
       <div class="cr-subsection-header" onclick="toggleCrSubsection(this)">
-        <span class="cr-subsection-toggle">▶</span><span class="cr-subsection-label">SHOW HEATMAP</span>
+        <span class="cr-subsection-toggle">▶</span><span class="cr-subsection-label">${t('modal_show_heatmap')}</span>
       </div>
       <div class="cr-subsection-body" style="display:none;" data-crtype="songs" data-crkey="${esc(key)}" data-crkind="heatmap"></div>
     </div>`;
 
   // ── STREAMING HISTORY ─────────────────────────────────────────
   document.getElementById('songModalStreamSection').innerHTML = `
-    <div class="modal-section-title">📋 Streaming History</div>
+    <div class="modal-section-title">${t('modal_stream_title')}</div>
     <div class="cr-subsection">
       <div class="cr-subsection-header" onclick="toggleCrSubsection(this)">
-        <span class="cr-subsection-toggle">▶</span><span class="cr-subsection-label">SHOW FULL HISTORY</span>
+        <span class="cr-subsection-toggle">▶</span><span class="cr-subsection-label">${t('modal_show_full_history')}</span>
       </div>
       <div class="cr-subsection-body" style="display:none;" data-crtype="songs" data-crkey="${esc(key)}" data-crkind="rawdata"></div>
     </div>`;
