@@ -183,6 +183,10 @@ const TRANSLATIONS = {
     modal_cb_alltime: '🏆 All-Time',
     modal_tracks_charted_row: '🎵 Tracks Charted',
     modal_best_peak: 'Best #{{n}}',
+    modal_cb_hint: 'Tap a cell to see which tracks charted',
+    modal_cb_detail_title: 'Tracks charted · {{period}}',
+    modal_cb_detail_none: 'No tracks charted in this period',
+    alb_chart_hint: 'Tap a bar for that month’s plays',
 
     // Table headers
     th_rank: 'RANK',
@@ -1292,6 +1296,10 @@ const TRANSLATIONS = {
     modal_cb_alltime: '🏆 Histórico',
     modal_tracks_charted_row: '🎵 Canciones en el Ranking',
     modal_best_peak: 'Mejor puesto: #{{n}}',
+    modal_cb_hint: 'Toca una celda para ver qué canciones entraron',
+    modal_cb_detail_title: 'Canciones en el ranking · {{period}}',
+    modal_cb_detail_none: 'Ninguna canción entró en este periodo',
+    alb_chart_hint: 'Toca una barra para ver ese mes',
 
     // Table headers
     th_rank: 'Puesto',
@@ -2400,6 +2408,10 @@ const TRANSLATIONS = {
     modal_cb_alltime: '🏆 Histórico',
     modal_tracks_charted_row: '🎵 Faixas na Parada',
     modal_best_peak: 'Melhor #{{n}}',
+    modal_cb_hint: 'Toque numa célula para ver quais faixas entraram',
+    modal_cb_detail_title: 'Faixas na parada · {{period}}',
+    modal_cb_detail_none: 'Nenhuma faixa entrou neste período',
+    alb_chart_hint: 'Toque numa barra para ver aquele mês',
 
     // Table headers
     th_rank: 'Posição',
@@ -3509,6 +3521,10 @@ const TRANSLATIONS = {
     modal_cb_alltime: '🏆 Histórico',
     modal_tracks_charted_row: '🎵 Faixas no Top',
     modal_best_peak: 'Melhor #{{n}}',
+    modal_cb_hint: 'Toca numa célula para ver que faixas entraram',
+    modal_cb_detail_title: 'Faixas no top · {{period}}',
+    modal_cb_detail_none: 'Nenhuma faixa entrou neste período',
+    alb_chart_hint: 'Toca numa barra para ver esse mês',
 
     // Table headers
     th_rank: 'Posição',

@@ -12864,6 +12864,38 @@ function albMonthClick(month) {
     </div>`;
 }
 
+// ─── ALBUM MODAL — CHART BREAKDOWN DRILL-DOWN ──────────────────────────────
+// Populated by openAlbumModal: one entry per column, each holding the tracks
+// that charted in that period so a cell click can list them.
+let _albCbData = null;
+
+function albCbClick(period) {
+  const panel = document.getElementById('alb-cb-detail');
+  if (!panel || !_albCbData || !_albCbData[period]) return;
+  const wasOpen = panel.dataset.period === period;
+  document.querySelectorAll('#albumModalBreakdown .modal-cb-cell--open')
+    .forEach(c => c.classList.remove('modal-cb-cell--open'));
+  if (wasOpen) {
+    panel.dataset.period = '';
+    panel.innerHTML = '';
+    panel.style.display = 'none';
+    return;
+  }
+  panel.dataset.period = period;
+  const cell = document.querySelector(`#albumModalBreakdown .modal-cb-cell[data-period="${period}"]`);
+  if (cell) cell.classList.add('modal-cb-cell--open');
+  const { label, rows } = _albCbData[period];
+  const pk = r => r === 1 ? ' modal-cb-detail-peak--gold' : r <= 3 ? ' modal-cb-detail-peak--silver' : r <= 10 ? ' modal-cb-detail-peak--bronze' : '';
+  panel.innerHTML = `<div class="modal-cb-detail-title">${t('modal_cb_detail_title', { period: label })}</div>` + (rows.length
+    ? rows.map(r => `<div class="modal-cb-detail-row">
+        <span class="modal-cb-detail-peak${pk(r.peak)}">#${r.peak}</span>
+        <span class="modal-cb-detail-name">${esc(r.title)}</span>
+        <span class="modal-cb-detail-plays">${r.plays.toLocaleString()} ${tUnit('plays', r.plays)}</span>
+      </div>`).join('')
+    : `<div class="modal-cb-detail-row"><span class="modal-cb-detail-name" style="font-style:italic">${t('modal_cb_detail_none')}</span></div>`);
+  panel.style.display = '';
+}
+
 function albChartPlay() {
   const wrap = document.getElementById('albSparklineWrap');
   if (!wrap) return;
@@ -12921,7 +12953,7 @@ function buildAlbumSparklineHTML(albumPlays) {
       barsHTML += `<div class="alb-year-sep"><span class="alb-year-sep-label">${yr}</span></div>`;
       xlabelsHTML += `<span class="alb-year-sep-xl"></span>`;
     }
-    barsHTML += `<div class="${cls}" style="height:${pct}%;background:${color};animation-delay:${i * 22}ms" data-month="${m}" data-tip="${tip}" onclick="albMonthClick('${m}')"></div>`;
+    barsHTML += `<div class="${cls}" style="height:${pct}%;background:${color};animation-delay:${i * 22}ms" data-month="${m}" data-count="${count}" data-tip="${tip}" onclick="albMonthClick('${m}')"></div>`;
     xlabelsHTML += `<span class="alb-spark-xlabel${isPeak ? ' alb-spark-xlabel--peak' : ''}">${show ? `${MO[parseInt(mo) - 1]} '${yr.slice(2)}` : ''}</span>`;
   });
 
@@ -12932,6 +12964,7 @@ function buildAlbumSparklineHTML(albumPlays) {
       <div class="alb-sparkline-label">${t('alb_plays_by_month')}</div>
       <button class="alb-play-btn" onclick="albChartPlay()" title="${t('alb_replay_title')}">${t('alb_replay_btn')}</button>
     </div>
+    <div class="alb-sparkline-hint">${t('alb_chart_hint')}</div>
     <div class="alb-chart-area">
       <div class="alb-y-axis">
         <span>${maxVal}</span>
@@ -13057,7 +13090,7 @@ function buildArtistSparklineHTML(artistPlays) {
       barsHTML += `<div class="alb-year-sep"><span class="alb-year-sep-label">${yr}</span></div>`;
       xlabelsHTML += `<span class="alb-year-sep-xl"></span>`;
     }
-    barsHTML += `<div class="${cls}" style="height:${pct}%;background:${color};animation-delay:${i * 22}ms" data-month="${m}" data-tip="${tip}" onclick="artMonthClick('${m}')"></div>`;
+    barsHTML += `<div class="${cls}" style="height:${pct}%;background:${color};animation-delay:${i * 22}ms" data-month="${m}" data-count="${count}" data-tip="${tip}" onclick="artMonthClick('${m}')"></div>`;
     xlabelsHTML += `<span class="alb-spark-xlabel${isPeak ? ' alb-spark-xlabel--peak' : ''}">${show ? `${MO[parseInt(mo) - 1]} '${yr.slice(2)}` : ''}</span>`;
   });
 
@@ -13068,6 +13101,7 @@ function buildArtistSparklineHTML(artistPlays) {
       <div class="alb-sparkline-label">${t('alb_plays_by_month')}</div>
       <button class="alb-play-btn" onclick="artChartPlay()" title="${t('alb_replay_title')}">${t('alb_replay_btn')}</button>
     </div>
+    <div class="alb-sparkline-hint">${t('alb_chart_hint')}</div>
     <div class="alb-chart-area">
       <div class="alb-y-axis">
         <span>${maxVal}</span>
@@ -14067,7 +14101,24 @@ function openAlbumModal(albumKey) {
   `;
 
   // ── SPARKLINE + CHART BREAKDOWN GRID ─────────────────────────────────────
-  const cbCell = (count, peak) => `<td class="modal-cb-cell"><div class="cv">${count > 0 ? count : '—'}</div>${count > 0 ? `<div class="cp">${peak ? t('modal_best_peak', { n: peak }) : '—'}</div>` : '<div class="cp"></div>'}</td>`;
+  // Drill-down data — one entry per column, tracks ordered by peak then plays
+  const cbRows = (tracks, peakOf) => tracks
+    .map(s => ({ title: s.title, peak: peakOf(s), plays: s.count }))
+    .sort((a, b) => a.peak - b.peak || b.plays - a.plays);
+  _albCbData = {
+    weekly:  { label: t('modal_cb_weekly'),  rows: cbRows(chartTracksWeekly,  s => crW.result.songs[songKey(s)].peak) },
+    monthly: { label: t('modal_cb_monthly'), rows: cbRows(chartTracksMonthly, s => crM.result.songs[songKey(s)].peak) },
+    yearly:  { label: t('modal_cb_yearly'),  rows: cbRows(chartTracksYearly,  s => crY.result.songs[songKey(s)].peak) },
+    alltime: { label: t('modal_cb_alltime'), rows: cbRows(chartTracksAllTime, s => allTimeSPM[songKey(s)]) }
+  };
+
+  const cbCell = (period, count, peak) => count > 0
+    ? `<td class="modal-cb-cell modal-cb-cell--live" data-period="${period}" onclick="albCbClick('${period}')">
+         <div class="cv">${count}</div>
+         <div class="cp">${peak ? t('modal_best_peak', { n: peak }) : '—'}</div>
+         <span class="cx">▾</span>
+       </td>`
+    : `<td class="modal-cb-cell" data-period="${period}"><div class="cv">—</div><div class="cp"></div></td>`;
   document.getElementById('albumModalBreakdown').innerHTML =
     buildAlbumSparklineHTML(albumPlays) +
     `<div class="modal-chart-breakdown"><table class="modal-cb-table">
@@ -14080,12 +14131,14 @@ function openAlbumModal(albumKey) {
       </tr></thead>
       <tbody><tr>
         <td class="modal-cb-label modal-cb-label--tracks">${t('modal_tracks_charted_row')}</td>
-        ${cbCell(chartTracksWeekly.length, bestTrackPeakWeekly)}
-        ${cbCell(chartTracksMonthly.length, bestTrackPeakMonthly)}
-        ${cbCell(chartTracksYearly.length, bestTrackPeakYearly)}
-        ${cbCell(chartTracksAllTime.length, bestTrackPeakAllTime)}
+        ${cbCell('weekly', chartTracksWeekly.length, bestTrackPeakWeekly)}
+        ${cbCell('monthly', chartTracksMonthly.length, bestTrackPeakMonthly)}
+        ${cbCell('yearly', chartTracksYearly.length, bestTrackPeakYearly)}
+        ${cbCell('alltime', chartTracksAllTime.length, bestTrackPeakAllTime)}
       </tr></tbody>
-    </table></div>`;
+    </table>
+    <div class="modal-cb-hint">${t('modal_cb_hint')}</div>
+    <div id="alb-cb-detail" class="modal-cb-detail" style="display:none"></div></div>`;
 
   // ── ACCOMPLISHMENTS ───────────────────────────────────────────────────────
   let albAccId = 0;
@@ -14890,7 +14943,7 @@ function buildSongSparklineHTML(plays, title, key) {
     const cls = ['alb-spark-bar',isPeak?'alb-spark-bar--peak':''].filter(Boolean).join(' ');
     const show = i===0||i===total-1||i%labelEvery===0;
     if (i>0&&yr!==months[i-1].split('-')[0]) { barsHTML+=`<div class="alb-year-sep"><span class="alb-year-sep-label">${yr}</span></div>`; xlabelsHTML+=`<span class="alb-year-sep-xl"></span>`; }
-    barsHTML+=`<div class="${cls}" style="height:${pct}%;background:${color}" data-month="${m}" data-tip="${tip}" onclick="songMonthClick('${m}')"></div>`;
+    barsHTML+=`<div class="${cls}" style="height:${pct}%;background:${color}" data-month="${m}" data-count="${count}" data-tip="${tip}" onclick="songMonthClick('${m}')"></div>`;
     xlabelsHTML+=`<span class="alb-spark-xlabel${isPeak?' alb-spark-xlabel--peak':''}">${show?`${MO[parseInt(mo)-1]} '${yr.slice(2)}`:''}</span>`;
   });
   return `<div class="modal-section-title">📊 Listening Pattern</div>
