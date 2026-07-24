@@ -12,24 +12,35 @@
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://dankcharts.fm">
   <meta name="theme-color" content="#0d141f">
+  <!-- Pay the DNS+TLS handshakes for fonts, CDN scripts and the data sources early,
+       in parallel with HTML parsing, instead of when each is first requested -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net">
+  <link rel="preconnect" href="https://www.gstatic.com">
+  <link rel="preconnect" href="https://ws.audioscrobbler.com">
+  <link rel="preconnect" href="https://docs.google.com">
   <link
     href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300..800&family=IBM+Plex+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=JetBrains+Mono:ital,wght@0,400..800;1,400&display=swap"
     rel="stylesheet">
   <script data-goatcounter="https://erwindank.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-  <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+  <!-- html2canvas, SheetJS (xlsx) and JSZip are intentionally NOT loaded here — they
+       total ~1.2 MB and are only needed for image exports and Excel/ZIP imports.
+       app.js pulls them from the CDN on first use (see ensureLazyLib). -->
   <link rel="stylesheet" href="style.css?v=98">
-  <script src="translations.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8/hammer.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@1.2.1/dist/chartjs-plugin-zoom.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/blueimp-md5@2.19.0/js/md5.min.js"></script>
+  <!-- All scripts are deferred so the page paints without waiting on them.
+       defer preserves execution order, which matters: translations → Chart.js →
+       hammer → zoom plugin → firebase SDKs → firebase.js → app.js (in body). -->
+  <script defer src="translations.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8/hammer.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@1.2.1/dist/chartjs-plugin-zoom.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/blueimp-md5@2.19.0/js/md5.min.js"></script>
   <!-- Firebase -->
-  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
-  <script src="firebase.js"></script>
+  <script defer src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+  <script defer src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+  <script defer src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+  <script defer src="firebase.js"></script>
 </head>
 
 <body>
@@ -2762,7 +2773,9 @@
     </div>
   </div>
 
-  <script src="app.js"></script>
+  <!-- defer keeps app.js last in the script execution order (after translations,
+       Chart.js and firebase.js) while letting the whole page parse and paint first -->
+  <script defer src="app.js"></script>
 
   <!-- ── Data Source Configure Modal ── -->
   <div id="sourceModal" class="modal-overlay" role="dialog" aria-modal="true">

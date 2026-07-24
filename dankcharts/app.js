@@ -18412,8 +18412,37 @@ function parseDtStrImport(s) {
   return isNaN(d) ? null : d;
 }
 
+// ─── LAZY-LOADED CDN LIBRARIES ─────────────────────────────────
+// html2canvas (~180 KB), SheetJS (~900 KB) and JSZip (~100 KB) used to be
+// render-blocking <script> tags in index.html's <head>, yet they are only needed
+// for image exports and Excel/ZIP file imports. Loading them on first use means
+// first-time visitors never download ~1.2 MB of JS just to see their charts.
+const LAZY_LIB_SRC = {
+  html2canvas: 'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js',
+  XLSX:        'https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js',
+  JSZip:       'https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js',
+};
+const _lazyLibLoads = {};
+function ensureLazyLib(name) {
+  if (!_lazyLibLoads[name]) {
+    _lazyLibLoads[name] = new Promise((resolve, reject) => {
+      const s = document.createElement('script');
+      s.src = LAZY_LIB_SRC[name];
+      s.onload = () => resolve(window[name]);
+      // Drop the cached promise on failure so the next attempt retries the CDN
+      s.onerror = () => { delete _lazyLibLoads[name]; reject(new Error(name + ' failed to load')); };
+      document.head.appendChild(s);
+    });
+  }
+  return _lazyLibLoads[name];
+}
+// Shim so the existing bare html2canvas(...) call sites keep working unchanged:
+// the first call pulls the real library — whose UMD global replaces this shim on
+// load — and forwards the call; later calls hit the real library directly.
+window.html2canvas = (...args) => ensureLazyLib('html2canvas').then(lib => lib(...args));
+
 async function parseSpotifyZip(file) {
-  if (!window.JSZip) throw new Error('JSZip library not loaded');
+  await ensureLazyLib('JSZip'); // fetched on demand — not shipped with first paint
   const buf = await readFileAsBuffer(file);
   const zip = await window.JSZip.loadAsync(buf);
   const scrobbles = [];
@@ -18439,7 +18468,7 @@ async function parseSpotifyZip(file) {
 }
 
 async function parseDeezerXlsx(file) {
-  if (!window.XLSX) throw new Error('SheetJS library not loaded');
+  await ensureLazyLib('XLSX'); // fetched on demand — not shipped with first paint
   const buf = await readFileAsBuffer(file);
   const wb = window.XLSX.read(buf, { type: 'array', cellDates: true });
   const ws = wb.Sheets[wb.SheetNames[0]];
