@@ -10761,6 +10761,111 @@ body {
   66%       { transform: translate(-20px, 15px) scale(0.96); }
 }
 
+/* ── Spectrum skyline ──────────────────────────────────────────
+   The landing "floor" is a live frequency analyzer: 24 accent bars breathing
+   along the bottom edge. z-index:-1 keeps them behind every piece of content
+   (but above the screen background, since .landing-screen stacks its own
+   context), and the upward mask fade keeps footer text fully legible. */
+.landing-eq-skyline {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: -1;
+  height: 16vh;
+  min-height: 90px;
+  display: flex;
+  align-items: flex-end;
+  gap: 6px;
+  padding: 0 2vw;
+  pointer-events: none;
+  opacity: 0.55;
+  -webkit-mask-image: linear-gradient(to top, #000 25%, transparent 100%);
+  mask-image: linear-gradient(to top, #000 25%, transparent 100%);
+}
+
+.landing-eq-skyline i {
+  flex: 1;
+  height: 100%;
+  border-radius: 3px 3px 0 0;
+  background: linear-gradient(to top,
+    color-mix(in srgb, var(--accent) 38%, transparent),
+    color-mix(in srgb, var(--accent) 5%, transparent));
+  transform-origin: bottom;
+  /* Per-bar peak height (--eq-h), phase (--eq-d) and tempo (--eq-t) come from
+     the nth-child cycles below; 7×5×3 cycle lengths give a 105-bar period, so
+     no two of the 24 bars ever move identically — reads as a real analyzer. */
+  animation: skylinePulse var(--eq-t, 2.6s) ease-in-out var(--eq-d, 0s) infinite;
+}
+
+@keyframes skylinePulse {
+  0%, 100% { transform: scaleY(calc(var(--eq-h, 0.5) * 0.4)); }
+  50%      { transform: scaleY(var(--eq-h, 0.5)); }
+}
+
+/* Peak heights — 7-cycle */
+.landing-eq-skyline i:nth-child(7n+1) { --eq-h: 0.55; }
+.landing-eq-skyline i:nth-child(7n+2) { --eq-h: 0.95; }
+.landing-eq-skyline i:nth-child(7n+3) { --eq-h: 0.38; }
+.landing-eq-skyline i:nth-child(7n+4) { --eq-h: 0.75; }
+.landing-eq-skyline i:nth-child(7n+5) { --eq-h: 0.30; }
+.landing-eq-skyline i:nth-child(7n+6) { --eq-h: 0.85; }
+.landing-eq-skyline i:nth-child(7n)   { --eq-h: 0.62; }
+/* Phase offsets — 5-cycle (negative so bars start mid-dance, never in unison) */
+.landing-eq-skyline i:nth-child(5n+1) { --eq-d: -0.6s; }
+.landing-eq-skyline i:nth-child(5n+2) { --eq-d: -1.7s; }
+.landing-eq-skyline i:nth-child(5n+3) { --eq-d: -0.2s; }
+.landing-eq-skyline i:nth-child(5n+4) { --eq-d: -2.3s; }
+.landing-eq-skyline i:nth-child(5n)   { --eq-d: -1.1s; }
+/* Tempos — 3-cycle */
+.landing-eq-skyline i:nth-child(3n+1) { --eq-t: 2.2s; }
+.landing-eq-skyline i:nth-child(3n+2) { --eq-t: 3.1s; }
+.landing-eq-skyline i:nth-child(3n)   { --eq-t: 2.7s; }
+
+/* Light themes: darker accents over light backgrounds need a fainter floor */
+body.navy-light .landing-eq-skyline,
+body.purple-light .landing-eq-skyline,
+body.red-light .landing-eq-skyline,
+body.yellow-light .landing-eq-skyline,
+body.pink-light .landing-eq-skyline {
+  opacity: 0.22;
+}
+
+/* ── Opening sequence ──────────────────────────────────────────
+   One-time staggered reveal, top to bottom, cards last as a waterfall.
+   fill-mode "backwards" (not "both") so the finished animation releases the
+   transform and card hover lifts still work afterwards. */
+@keyframes landingRise {
+  from { opacity: 0; transform: translateY(18px); }
+  to   { opacity: 1; transform: none; }
+}
+
+.landing-hero          { animation: landingRise 0.6s cubic-bezier(0.4, 0, 0.2, 1) backwards; }
+.landing-signin        { animation: landingRise 0.6s cubic-bezier(0.4, 0, 0.2, 1) 0.12s backwards; }
+.landing-section-title { animation: landingRise 0.6s cubic-bezier(0.4, 0, 0.2, 1) 0.22s backwards; }
+.landing-demo-cta      { animation: landingRise 0.6s cubic-bezier(0.4, 0, 0.2, 1) 0.30s backwards; }
+.landing-cards .landing-card:nth-child(1) { animation: landingRise 0.6s cubic-bezier(0.4, 0, 0.2, 1) 0.44s backwards; }
+.landing-cards .landing-card:nth-child(2) { animation: landingRise 0.6s cubic-bezier(0.4, 0, 0.2, 1) 0.52s backwards; }
+.landing-cards .landing-card:nth-child(3) { animation: landingRise 0.6s cubic-bezier(0.4, 0, 0.2, 1) 0.60s backwards; }
+.landing-skip,
+.landing-support-note  { animation: landingRise 0.6s cubic-bezier(0.4, 0, 0.2, 1) 0.72s backwards; }
+
+@media (prefers-reduced-motion: reduce) {
+  .landing-eq-skyline i {
+    animation: none;
+    transform: scaleY(var(--eq-h, 0.5)); /* frozen skyline still reads as an EQ */
+  }
+  .landing-hero,
+  .landing-signin,
+  .landing-section-title,
+  .landing-demo-cta,
+  .landing-cards .landing-card,
+  .landing-skip,
+  .landing-support-note {
+    animation: none;
+  }
+}
+
 /* Hero */
 .landing-hero {
   display: flex;
@@ -10792,6 +10897,27 @@ body {
   text-transform: uppercase;
   color: var(--text3);
   text-align: center;
+  /* On-air slate: hairline rules flank the label like a broadcast lower third */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.9rem;
+}
+
+.landing-section-title::before,
+.landing-section-title::after {
+  content: '';
+  height: 1px;
+  width: clamp(28px, 8vw, 70px);
+  flex-shrink: 0;
+}
+
+.landing-section-title::before {
+  background: linear-gradient(to right, transparent, var(--border2));
+}
+
+.landing-section-title::after {
+  background: linear-gradient(to left, transparent, var(--border2));
 }
 
 /* Cards row */
@@ -10842,6 +10968,33 @@ body {
   line-height: 1;
   margin-bottom: 1rem;
   filter: drop-shadow(0 2px 8px rgba(74, 172, 255, 0.3));
+  transition: transform 0.22s cubic-bezier(0.34, 1.56, 0.64, 1); /* springy pop */
+}
+
+.landing-card:hover .landing-card-icon {
+  transform: translateY(-3px) scale(1.12) rotate(-4deg);
+}
+
+/* Chart-entry position numbers (01/02/03) — the import options ARE a chart.
+   Ghosted mono digits that light up accent when their entry is in play. */
+.landing-card-pos {
+  position: absolute;
+  top: 0.85rem;
+  right: 1.05rem;
+  font-family: var(--font-mono);
+  font-size: 1.5rem;
+  font-weight: 800;
+  letter-spacing: -0.04em;
+  line-height: 1;
+  color: color-mix(in srgb, var(--text3) 38%, transparent);
+  transition: color 0.22s ease, text-shadow 0.22s ease;
+  pointer-events: none;
+}
+
+.landing-card:hover .landing-card-pos,
+.landing-card.active .landing-card-pos {
+  color: var(--accent);
+  text-shadow: 0 0 18px color-mix(in srgb, var(--accent) 55%, transparent);
 }
 
 .landing-card h3 {

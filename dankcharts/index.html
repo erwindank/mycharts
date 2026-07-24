@@ -27,7 +27,7 @@
   <!-- html2canvas, SheetJS (xlsx) and JSZip are intentionally NOT loaded here — they
        total ~1.2 MB and are only needed for image exports and Excel/ZIP imports.
        app.js pulls them from the CDN on first use (see ensureLazyLib). -->
-  <link rel="stylesheet" href="style.css?v=99">
+  <link rel="stylesheet" href="style.css?v=100">
   <!-- All scripts are deferred so the page paints without waiting on them.
        defer preserves execution order, which matters: translations → Chart.js →
        hammer → zoom plugin → firebase SDKs → firebase.js → app.js (in body). -->
@@ -84,6 +84,13 @@
     <div class="landing-orb landing-orb-1"></div>
     <div class="landing-orb landing-orb-2"></div>
 
+    <!-- Spectrum skyline: the landing "floor" is a live frequency analyzer.
+         Purely decorative (aria-hidden) — bars get pseudo-random heights/tempos
+         from nth-child cycles in CSS, and sit behind all content (z-index:-1). -->
+    <div class="landing-eq-skyline" aria-hidden="true">
+      <i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>
+    </div>
+
     <div class="landing-hero">
       <div class="wordmark landing-wordmark">
         <span class="wordmark-dank">dank</span><span class="wordmark-station">charts</span><span class="wordmark-fm">.fm</span>
@@ -121,6 +128,7 @@
     <div class="landing-cards">
 
       <div class="landing-card" id="landingCardSheets" onclick="selectLandingSource('sheets')">
+        <span class="landing-card-pos" aria-hidden="true">01</span>
         <div class="landing-card-icon">📊</div>
         <h3>Google Sheets</h3>
         <p data-i18n="landing_sheets_desc">Your full history, your way — no limits, no API restrictions</p>
@@ -140,6 +148,7 @@
       </div>
 
       <div class="landing-card" id="landingCardLastfm" onclick="selectLandingSource('lastfm')">
+        <span class="landing-card-pos" aria-hidden="true">02</span>
         <div class="landing-card-icon">🎵</div>
         <h3>Last.fm</h3>
         <p data-i18n="landing_lastfm_desc">Load your full scrobble history directly from Last.fm</p>
@@ -161,6 +170,7 @@
       </div>
 
       <div class="landing-card" id="landingCardFile" onclick="selectLandingSource('file')">
+        <span class="landing-card-pos" aria-hidden="true">03</span>
         <div class="landing-card-icon">📂</div>
         <h3 data-i18n="landing_file_title">Upload File</h3>
         <p data-i18n="landing_file_desc">Import from CSV, Last.fm export, Spotify ZIP, or Deezer XLSX</p>
