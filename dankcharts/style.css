@@ -10801,10 +10801,13 @@ body {
   animation: skylinePulse calc(var(--eq-t, 2.6s) * var(--eq-speed, 1)) ease-in-out var(--eq-d, 0s) infinite;
 }
 
-/* The floor reacts to the play button: hovering the demo CTA swells the whole
-   skyline and cranks its tempo — the venue responding just before the drop.
+/* The floor reacts to engagement: hovering the demo CTA, the Google sign-in
+   button, or any source card swells the whole skyline and cranks its tempo —
+   the venue responding to interest before the drop, not just the play button.
    Browsers without :has() simply keep the idle groove (graceful no-op). */
-.landing-screen:has(.landing-demo-btn:hover) .landing-eq-skyline {
+.landing-screen:has(.landing-demo-btn:hover) .landing-eq-skyline,
+.landing-screen:has(.landing-google-btn:hover) .landing-eq-skyline,
+.landing-screen:has(.landing-card:hover) .landing-eq-skyline {
   opacity: 0.85;
   --eq-speed: 0.45;
 }
@@ -10842,12 +10845,22 @@ body.pink-light .landing-eq-skyline {
   opacity: 0.22;
 }
 
-/* …and a proportionally gentler swell on demo-button hover */
+/* …and a proportionally gentler swell on the same engagement hovers */
 body.navy-light .landing-screen:has(.landing-demo-btn:hover) .landing-eq-skyline,
+body.navy-light .landing-screen:has(.landing-google-btn:hover) .landing-eq-skyline,
+body.navy-light .landing-screen:has(.landing-card:hover) .landing-eq-skyline,
 body.purple-light .landing-screen:has(.landing-demo-btn:hover) .landing-eq-skyline,
+body.purple-light .landing-screen:has(.landing-google-btn:hover) .landing-eq-skyline,
+body.purple-light .landing-screen:has(.landing-card:hover) .landing-eq-skyline,
 body.red-light .landing-screen:has(.landing-demo-btn:hover) .landing-eq-skyline,
+body.red-light .landing-screen:has(.landing-google-btn:hover) .landing-eq-skyline,
+body.red-light .landing-screen:has(.landing-card:hover) .landing-eq-skyline,
 body.yellow-light .landing-screen:has(.landing-demo-btn:hover) .landing-eq-skyline,
-body.pink-light .landing-screen:has(.landing-demo-btn:hover) .landing-eq-skyline {
+body.yellow-light .landing-screen:has(.landing-google-btn:hover) .landing-eq-skyline,
+body.yellow-light .landing-screen:has(.landing-card:hover) .landing-eq-skyline,
+body.pink-light .landing-screen:has(.landing-demo-btn:hover) .landing-eq-skyline,
+body.pink-light .landing-screen:has(.landing-google-btn:hover) .landing-eq-skyline,
+body.pink-light .landing-screen:has(.landing-card:hover) .landing-eq-skyline {
   opacity: 0.4;
 }
 
