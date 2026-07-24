@@ -2025,6 +2025,10 @@ function getDataSource()  { return localStorage.getItem('dc_source')      || 'sh
 function getLastFmUser()  { return localStorage.getItem('dc_lastfm_user') || ''; }
 const SYNC_INTERVAL_MS = 6 * 60 * 60 * 1000; // auto-refresh every 6 hours
 const POLL_INTERVAL_MS = 30 * 60 * 1000;     // background poll every 30 minutes
+// Last.fm syncs are incremental (only scrobbles newer than the cache), so a periodic
+// full re-download is kept as a safety net: it picks up edits/deletions made on
+// Last.fm itself, which an incremental fetch can never see.
+const LASTFM_FULL_RESYNC_MS = 7 * 24 * 60 * 60 * 1000; // full history re-download every 7 days
 let syncTimer = null;
 let pollTimer = null;
 let lastSyncTime = null;
@@ -2218,10 +2222,13 @@ async function syncFromSheets() {
   pollTimer = setTimeout(pollSheets, POLL_INTERVAL_MS);
 }
 
-async function fetchLastFmPage(username, page) {
+// fromUts > 0 turns the request incremental: Last.fm only returns scrobbles after
+// that unix timestamp, so totalPages shrinks to just the new listens.
+async function fetchLastFmPage(username, page, fromUts = 0) {
   const url = `https://ws.audioscrobbler.com/2.0/?method=user.getrecenttracks`
     + `&user=${encodeURIComponent(username)}&api_key=${LASTFM_KEY}`
-    + `&format=json&limit=200&page=${page}`;
+    + `&format=json&limit=200&page=${page}`
+    + (fromUts > 0 ? `&from=${fromUts}` : '');
   for (let attempt = 0; attempt < 3; attempt++) {
     if (attempt > 0) await new Promise(r => setTimeout(r, 1000 * Math.pow(2, attempt - 1)));
     const res = await fetch(url);
@@ -2257,29 +2264,33 @@ async function syncFromLastFm() {
       setSyncStatus(t('sync_ok_cached', { time: lastSyncTime.toLocaleTimeString(), n: allPlays.length.toLocaleString(), mins: minsAgo }), 'ok');
       finalizeLoad();
       renderedFromCache = true;
-      if (age < SYNC_INTERVAL_MS) {
-        // Cache still fresh — schedule the next full sync and background poll, done.
-        btn.disabled = false;
-        clearTimeout(syncTimer);
-        syncTimer = setTimeout(syncFromLastFm, SYNC_INTERVAL_MS - age);
-        clearTimeout(pollTimer);
-        pollTimer = setTimeout(pollLastFm, POLL_INTERVAL_MS);
-        return;
-      }
-      // Cache is stale — fall through to the full refresh below, but with the cached
-      // charts already on screen instead of a blocking skeleton.
+      // Fall through to the fetch below — with usable cached history it is incremental
+      // (only scrobbles newer than the cache, usually a single page), so the cached
+      // charts stay on screen and get quietly topped up.
     } catch (e) { renderedFromCache = false; /* cache corrupt — fall through to fresh fetch */ }
   }
+
+  // Incremental vs full: with a usable cache, fetch only scrobbles newer than the newest
+  // cached one via the `from` param. The full history download only happens on first
+  // connect, after a cache clear, or every LASTFM_FULL_RESYNC_MS as an edit/deletion
+  // safety net.
+  const cacheUsable = renderedFromCache && Array.isArray(cached?.data) && cached.data.length > 0;
+  const incremental = cacheUsable && age < LASTFM_FULL_RESYNC_MS;
+  let sinceUts = 0;
+  // Newest cached uts — scan instead of trusting row 0, since concurrently fetched
+  // pages can land slightly out of order in older caches.
+  if (incremental) for (const row of cached.data) { if (row[3] > sinceUts) sinceUts = row[3]; }
 
   let rawTracks = [];
   try {
     // Fetch page 1 to discover totalPages
-    setSyncStatus('Loading Last.fm history… page 1', 'loading');
-    const firstData = await fetchLastFmPage(username, 1);
+    setSyncStatus(incremental ? 'Checking Last.fm for new scrobbles…' : 'Loading Last.fm history… page 1', 'loading');
+    const firstData = await fetchLastFmPage(username, 1, sinceUts);
     const totalPages = parseInt(firstData.recenttracks['@attr'].totalPages) || 1;
     let tracks = firstData.recenttracks.track;
     if (!Array.isArray(tracks)) tracks = tracks ? [tracks] : [];
-    for (const tr of tracks) { if (tr.date && tr.date.uts) rawTracks.push(tr); }
+    // The > sinceUts filter also dedupes the boundary scrobble if Last.fm treats `from` inclusively
+    for (const tr of tracks) { if (tr.date && tr.date.uts && parseInt(tr.date.uts) > sinceUts) rawTracks.push(tr); }
 
     if (totalPages > 1) {
       // Rolling concurrency pool: always keep up to CONCURRENCY requests in-flight.
@@ -2294,10 +2305,10 @@ async function syncFromLastFm() {
           while (inFlight < CONCURRENCY && nextPage <= totalPages) {
             const p = nextPage++;
             inFlight++;
-            fetchLastFmPage(username, p).then(data => {
+            fetchLastFmPage(username, p, sinceUts).then(data => {
               let t = data.recenttracks.track;
               if (!Array.isArray(t)) t = t ? [t] : [];
-              for (const tr of t) { if (tr.date && tr.date.uts) rawTracks.push(tr); }
+              for (const tr of t) { if (tr.date && tr.date.uts && parseInt(tr.date.uts) > sinceUts) rawTracks.push(tr); }
             }).catch(e => {
               console.warn(`Last.fm: page ${p} failed (${e.message}), skipping`);
             }).finally(() => {
@@ -2328,23 +2339,36 @@ async function syncFromLastFm() {
     return;
   }
 
-  allPlays = applyAutocorrectRules(rawTracks.map(t => {
-    const ar = (t.artist && t.artist['#text']) || '';
-    return {
-      title:   t.name || '',
-      artist:  ar,
-      artists: splitArtists(ar),
-      album:   (t.album && t.album['#text']) || '—',
-      date:    new Date(parseInt(t.date.uts) * 1000)
-    };
+  // Compact rows [title, artist, album, uts]. Sort newest-first explicitly —
+  // concurrently fetched pages complete (and push) in arbitrary order.
+  let compact = rawTracks.map(tr => [
+    tr.name || '',
+    (tr.artist && tr.artist['#text']) || '',
+    (tr.album  && tr.album['#text'])  || '',
+    parseInt(tr.date.uts)
+  ]);
+  compact.sort((a, b) => b[3] - a[3]);
+
+  if (incremental && compact.length === 0) {
+    // No new scrobbles — the cached charts on screen are already correct; just freshen
+    // the cache timestamp so the 7-day full-resync clock keeps counting from now.
+    lastSyncTime = new Date();
+    await saveToIDB(IDB_LASTFM_KEY, { data: cached.data, ts: lastSyncTime.getTime() });
+    setSyncStatus(t('sync_ok', { time: lastSyncTime.toLocaleTimeString(), n: allPlays.length.toLocaleString() }), 'ok');
+    btn.disabled = false;
+    clearTimeout(syncTimer);
+    syncTimer = setTimeout(syncFromLastFm, SYNC_INTERVAL_MS);
+    clearTimeout(pollTimer);
+    pollTimer = setTimeout(pollLastFm, POLL_INTERVAL_MS);
+    return;
+  }
+  if (incremental) compact = [...compact, ...cached.data]; // new scrobbles on top of cached history
+
+  allPlays = applyAutocorrectRules(compact.map(([title, artist, album, uts]) => {
+    const ar = artist || '';
+    return { title, artist: ar, artists: splitArtists(ar), album: album || '—', date: new Date(uts * 1000) };
   }));
 
-  const compact = rawTracks.map(t => [
-    t.name || '',
-    (t.artist && t.artist['#text']) || '',
-    (t.album  && t.album['#text'])  || '',
-    parseInt(t.date.uts)
-  ]);
   await saveToIDB(IDB_LASTFM_KEY, { data: compact, ts: Date.now() });
   lastSyncTime = new Date();
 
