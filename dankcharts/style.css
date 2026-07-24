@@ -902,23 +902,50 @@
     /* Red/Yellow/Pink Light — control buttons sit on their mastheads' dark
        brand-gradient banner (same one .masthead .est/.tagline use white text
        on below), not the light page background — so these need light text too,
-       not var(--text2)/var(--border) which are tuned for the pale page bg. */
-    body.red-light .ctrl-group-btn,
-    body.yellow-light .ctrl-group-btn,
-    body.pink-light .ctrl-group-btn {
+       not var(--text2)/var(--border) which are tuned for the pale page bg.
+       Scoped to .masthead specifically: the landing screen reuses this same
+       .ctrl-group-btn class but sits directly on the pale page bg (no dark
+       banner behind it), where white-on-white text was unreadable — see the
+       .landing-controls override right below for that case. */
+    body.red-light .masthead .ctrl-group-btn,
+    body.yellow-light .masthead .ctrl-group-btn,
+    body.pink-light .masthead .ctrl-group-btn {
       color: rgba(255, 255, 255, 0.75);
       border-color: rgba(255, 255, 255, 0.35);
     }
 
-    body.red-light .ctrl-group-btn:hover,
-    body.red-light .ctrl-group.open .ctrl-group-btn,
-    body.yellow-light .ctrl-group-btn:hover,
-    body.yellow-light .ctrl-group.open .ctrl-group-btn,
-    body.pink-light .ctrl-group-btn:hover,
-    body.pink-light .ctrl-group.open .ctrl-group-btn {
+    body.red-light .masthead .ctrl-group-btn:hover,
+    body.red-light .masthead .ctrl-group.open .ctrl-group-btn,
+    body.yellow-light .masthead .ctrl-group-btn:hover,
+    body.yellow-light .masthead .ctrl-group.open .ctrl-group-btn,
+    body.pink-light .masthead .ctrl-group-btn:hover,
+    body.pink-light .masthead .ctrl-group.open .ctrl-group-btn {
       background: rgba(255, 255, 255, 0.14);
       border-color: rgba(255, 255, 255, 0.55);
       color: #ffffff;
+    }
+
+    /* Landing screen THEME/LANGUAGE buttons for Red/Yellow/Pink Light — these sit
+       on the plain pale page background (.landing-screen's --bg), not the dark
+       masthead banner, so they need the same dark-on-light treatment navy-light
+       and purple-light already use everywhere. Was previously falling through to
+       the white-text masthead rule above and reading as near-invisible. */
+    body.red-light .landing-controls .ctrl-group-btn,
+    body.yellow-light .landing-controls .ctrl-group-btn,
+    body.pink-light .landing-controls .ctrl-group-btn {
+      color: var(--text2);
+      border-color: var(--border);
+    }
+
+    body.red-light .landing-controls .ctrl-group-btn:hover,
+    body.red-light .landing-controls .ctrl-group.open .ctrl-group-btn,
+    body.yellow-light .landing-controls .ctrl-group-btn:hover,
+    body.yellow-light .landing-controls .ctrl-group.open .ctrl-group-btn,
+    body.pink-light .landing-controls .ctrl-group-btn:hover,
+    body.pink-light .landing-controls .ctrl-group.open .ctrl-group-btn {
+      background: var(--bg3);
+      border-color: var(--border2);
+      color: var(--text);
     }
 
     body.purple-light .day-btn,
