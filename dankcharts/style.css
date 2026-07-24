@@ -10784,7 +10784,10 @@ body {
   width: 420px;
   height: 420px;
   background: radial-gradient(circle, color-mix(in srgb, var(--teal) 50%, transparent) 0%, transparent 70%);
-  bottom: -80px;
+  /* Lifted well clear of the spectrum skyline (16vh / 90px min, fixed to the
+     bottom edge) — at -80px this circle's lower half sat directly on top of
+     the equalizer bars and muddied them. */
+  bottom: 150px;
   right: -60px;
   animation-delay: -9s;
   opacity: 0.8;
