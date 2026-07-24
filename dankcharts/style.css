@@ -10780,6 +10780,7 @@ body {
   padding: 0 2vw;
   pointer-events: none;
   opacity: 0.55;
+  transition: opacity 0.4s ease; /* smooth swell when the demo button excites the floor */
   -webkit-mask-image: linear-gradient(to top, #000 25%, transparent 100%);
   mask-image: linear-gradient(to top, #000 25%, transparent 100%);
 }
@@ -10794,8 +10795,18 @@ body {
   transform-origin: bottom;
   /* Per-bar peak height (--eq-h), phase (--eq-d) and tempo (--eq-t) come from
      the nth-child cycles below; 7×5×3 cycle lengths give a 105-bar period, so
-     no two of the 24 bars ever move identically — reads as a real analyzer. */
-  animation: skylinePulse var(--eq-t, 2.6s) ease-in-out var(--eq-d, 0s) infinite;
+     no two of the 24 bars ever move identically — reads as a real analyzer.
+     --eq-speed is a global tempo multiplier set on the container (see the
+     demo-button reaction below). */
+  animation: skylinePulse calc(var(--eq-t, 2.6s) * var(--eq-speed, 1)) ease-in-out var(--eq-d, 0s) infinite;
+}
+
+/* The floor reacts to the play button: hovering the demo CTA swells the whole
+   skyline and cranks its tempo — the venue responding just before the drop.
+   Browsers without :has() simply keep the idle groove (graceful no-op). */
+.landing-screen:has(.landing-demo-btn:hover) .landing-eq-skyline {
+  opacity: 0.85;
+  --eq-speed: 0.45;
 }
 
 @keyframes skylinePulse {
@@ -10829,6 +10840,15 @@ body.red-light .landing-eq-skyline,
 body.yellow-light .landing-eq-skyline,
 body.pink-light .landing-eq-skyline {
   opacity: 0.22;
+}
+
+/* …and a proportionally gentler swell on demo-button hover */
+body.navy-light .landing-screen:has(.landing-demo-btn:hover) .landing-eq-skyline,
+body.purple-light .landing-screen:has(.landing-demo-btn:hover) .landing-eq-skyline,
+body.red-light .landing-screen:has(.landing-demo-btn:hover) .landing-eq-skyline,
+body.yellow-light .landing-screen:has(.landing-demo-btn:hover) .landing-eq-skyline,
+body.pink-light .landing-screen:has(.landing-demo-btn:hover) .landing-eq-skyline {
+  opacity: 0.4;
 }
 
 /* ── Opening sequence ──────────────────────────────────────────
