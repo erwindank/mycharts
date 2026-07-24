@@ -1114,17 +1114,20 @@ async function syncRulesToSheet() {
   } catch { /* silently skip if sheet unreachable */ }
 }
 
+// Returns true when the merged rule set differs from what was cached locally —
+// callers use this to know whether already-loaded plays need the rules re-applied.
 async function loadRulesFromSheet() {
   const writeUrl = getSheetWriteUrl();
-  if (!writeUrl) return;
+  if (!writeUrl) return false;
   try {
     const res = await fetch(writeUrl, { method: 'POST', body: JSON.stringify({ action: 'loadRules' }) });
-    if (!res.ok) return;
+    if (!res.ok) return false;
     const data = await res.json();
-    if (data.status !== 'ok' || !data.rules) return;
+    if (data.status !== 'ok' || !data.rules) return false;
     const sheetRules = JSON.parse(data.rules);
-    if (!Array.isArray(sheetRules)) return;
+    if (!Array.isArray(sheetRules)) return false;
     const local = getAutocorrectRules();
+    const localJsonBefore = JSON.stringify(local);
     const merged = [...sheetRules];
     let addedFromLocal = 0;
     for (const r of local) {
@@ -1140,7 +1143,9 @@ async function loadRulesFromSheet() {
     saveToIDB(IDB_RULES_KEY, { rules: merged }).catch(() => {});
     if (addedFromLocal > 0) syncRulesToSheet();
     if (typeof dcSaveRulesToFirestore === 'function') dcSaveRulesToFirestore(mergedJson);
+    return mergedJson !== localJsonBefore;
   } catch { /* silently skip if sheet unreachable */ }
+  return false;
 }
 
 function exportRules() {
@@ -2157,6 +2162,35 @@ function getSheetUrlFallback() {
   return `https://docs.google.com/spreadsheets/d/${id}/gviz/tq?tqx=out:csv;charset:UTF-8&sheet=${encodeURIComponent(tab)}`;
 }
 
+// Fetches the sheet as CSV text with the full 3-tier fallback chain:
+// 1) export?format=csv (no row/size limit)
+// 2) backend proxy (handles CORS, serves full file regardless of size)
+// 3) gviz/tq (may truncate very large sheets)
+// Returns the decoded text, or throws the last fallback's error.
+async function fetchSheetCsv() {
+  // Explicitly decode as UTF-8 to preserve special characters
+  // (Spanish, Korean, accented names etc.) — never let the browser guess
+  const decode = async res => {
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    return new TextDecoder('utf-8').decode(await res.arrayBuffer());
+  };
+  try {
+    return await decode(await fetch(getSheetUrl() + '&t=' + Date.now()));
+  } catch (e) {
+    try {
+      const rawId = localStorage.getItem('dc_sheet_id') || DEFAULT_SHEET_ID;
+      const urlMatch = rawId.match(/spreadsheets\/d\/([^\/\?#]+)/);
+      const sheetId = urlMatch ? urlMatch[1] : rawId;
+      const gid = localStorage.getItem('dc_sheet_gid');
+      let proxyUrl = `${BACKEND_API}/api/sync/sheets-proxy?sheetId=${encodeURIComponent(sheetId)}`;
+      if (gid) proxyUrl += `&gid=${encodeURIComponent(gid)}`;
+      return await decode(await fetch(proxyUrl));
+    } catch (e2) {
+      return await decode(await fetch(getSheetUrlFallback() + '&t=' + Date.now()));
+    }
+  }
+}
+
 async function syncFromSheets() {
   if (!localStorage.getItem('dc_sheet_id')) {
     setSyncStatus('No Google Sheet configured — click ⚙ Configure to set one up.', 'err');
@@ -2167,52 +2201,14 @@ async function syncFromSheets() {
   btn.disabled = true;
   setSyncStatus(t('sync_connecting'), 'loading');
   try {
-    const bust = '&t=' + Date.now();
-    let res = await fetch(getSheetUrl() + bust); // export?format=csv — no row/size limit
-    if (!res.ok) throw new Error('HTTP ' + res.status);
-    // Explicitly decode as UTF-8 to preserve special characters
-    // (Spanish, Korean, accented names etc.) — never let the browser guess
-    const buffer = await res.arrayBuffer();
-    const text = new TextDecoder('utf-8').decode(buffer);
+    const text = await fetchSheetCsv();
     parseCsv(text, true); // true = from sheets (skip hide upload zone)
     lastSyncTime = new Date();
     localStorage.setItem('dc_sync_ts', lastSyncTime.getTime().toString());
     await saveToIDB(IDB_SHEETS_KEY, { ts: lastSyncTime.getTime(), csv: text });
     setSyncStatus(t('sync_ok', { time: lastSyncTime.toLocaleTimeString(), n: allPlays.length.toLocaleString() }), 'ok');
   } catch (e) {
-    // Fallback 1: backend proxy (handles CORS, serves full file regardless of size)
-    try {
-      const rawId = localStorage.getItem('dc_sheet_id') || DEFAULT_SHEET_ID;
-      const urlMatch = rawId.match(/spreadsheets\/d\/([^\/\?#]+)/);
-      const sheetId = urlMatch ? urlMatch[1] : rawId;
-      const gid = localStorage.getItem('dc_sheet_gid');
-      let proxyUrl = `${BACKEND_API}/api/sync/sheets-proxy?sheetId=${encodeURIComponent(sheetId)}`;
-      if (gid) proxyUrl += `&gid=${encodeURIComponent(gid)}`;
-      const res2 = await fetch(proxyUrl);
-      if (!res2.ok) throw new Error('HTTP ' + res2.status);
-      const buffer2 = await res2.arrayBuffer();
-      const text2 = new TextDecoder('utf-8').decode(buffer2);
-      parseCsv(text2, true);
-      lastSyncTime = new Date();
-      localStorage.setItem('dc_sync_ts', lastSyncTime.getTime().toString());
-      await saveToIDB(IDB_SHEETS_KEY, { ts: lastSyncTime.getTime(), csv: text2 });
-      setSyncStatus(t('sync_ok', { time: lastSyncTime.toLocaleTimeString(), n: allPlays.length.toLocaleString() }), 'ok');
-    } catch (e2) {
-      // Fallback 2: gviz/tq (may truncate very large sheets)
-      try {
-        const res3 = await fetch(getSheetUrlFallback() + '&t=' + Date.now());
-        if (!res3.ok) throw new Error('HTTP ' + res3.status);
-        const buffer3 = await res3.arrayBuffer();
-        const text3 = new TextDecoder('utf-8').decode(buffer3);
-        parseCsv(text3, true);
-        lastSyncTime = new Date();
-        localStorage.setItem('dc_sync_ts', lastSyncTime.getTime().toString());
-        await saveToIDB(IDB_SHEETS_KEY, { ts: lastSyncTime.getTime(), csv: text3 });
-        setSyncStatus(t('sync_ok', { time: lastSyncTime.toLocaleTimeString(), n: allPlays.length.toLocaleString() }), 'ok');
-      } catch (e3) {
-        setSyncStatus(t('sync_failed', { error: e3.message }), 'err');
-      }
-    }
+    setSyncStatus(t('sync_failed', { error: e.message }), 'err');
   }
   btn.disabled = false;
   // Schedule next auto-sync and background poll
@@ -2245,10 +2241,12 @@ async function syncFromLastFm() {
   const btn = document.getElementById('syncNowBtn');
   btn.disabled = true;
 
-  // Serve from IndexedDB cache if still fresh (survives page refresh)
+  // Serve from IndexedDB cache first (survives page refresh) — stale-while-revalidate:
+  // render whatever we have immediately, and only hit the network in the background.
   const cached = await loadFromIDB(IDB_LASTFM_KEY);
   const age = cached ? Date.now() - cached.ts : Infinity;
-  if (cached && age < SYNC_INTERVAL_MS) {
+  let renderedFromCache = false;
+  if (cached) {
     try {
       allPlays = applyAutocorrectRules(cached.data.map(([title, artist, album, uts]) => {
         const ar = artist || '';
@@ -2258,13 +2256,19 @@ async function syncFromLastFm() {
       const minsAgo = Math.round(age / 60000);
       setSyncStatus(t('sync_ok_cached', { time: lastSyncTime.toLocaleTimeString(), n: allPlays.length.toLocaleString(), mins: minsAgo }), 'ok');
       finalizeLoad();
-      btn.disabled = false;
-      clearTimeout(syncTimer);
-      syncTimer = setTimeout(syncFromLastFm, SYNC_INTERVAL_MS - age);
-      clearTimeout(pollTimer);
-      pollTimer = setTimeout(pollLastFm, POLL_INTERVAL_MS);
-      return;
-    } catch (e) { /* cache corrupt — fall through to fresh fetch */ }
+      renderedFromCache = true;
+      if (age < SYNC_INTERVAL_MS) {
+        // Cache still fresh — schedule the next full sync and background poll, done.
+        btn.disabled = false;
+        clearTimeout(syncTimer);
+        syncTimer = setTimeout(syncFromLastFm, SYNC_INTERVAL_MS - age);
+        clearTimeout(pollTimer);
+        pollTimer = setTimeout(pollLastFm, POLL_INTERVAL_MS);
+        return;
+      }
+      // Cache is stale — fall through to the full refresh below, but with the cached
+      // charts already on screen instead of a blocking skeleton.
+    } catch (e) { renderedFromCache = false; /* cache corrupt — fall through to fresh fetch */ }
   }
 
   let rawTracks = [];
@@ -2314,6 +2318,13 @@ async function syncFromLastFm() {
   } catch (e) {
     setSyncStatus('Last.fm error: ' + e.message, 'err');
     btn.disabled = false;
+    if (renderedFromCache) {
+      // Cached charts are still on screen — keep them and retry on the normal schedule
+      clearTimeout(syncTimer);
+      syncTimer = setTimeout(syncFromLastFm, SYNC_INTERVAL_MS);
+      clearTimeout(pollTimer);
+      pollTimer = setTimeout(pollLastFm, POLL_INTERVAL_MS);
+    }
     return;
   }
 
@@ -2338,7 +2349,9 @@ async function syncFromLastFm() {
   lastSyncTime = new Date();
 
   setSyncStatus(t('sync_ok', { time: lastSyncTime.toLocaleTimeString(), n: allPlays.length.toLocaleString() }), 'ok');
-  finalizeLoad();
+  // If cached charts were already rendered, refresh quietly (keeps the user's current
+  // view instead of re-running the full settings-restoring first paint).
+  if (renderedFromCache) refreshAfterPoll(); else finalizeLoad();
   btn.disabled = false;
   clearTimeout(syncTimer);
   syncTimer = setTimeout(syncFromLastFm, SYNC_INTERVAL_MS);
@@ -2465,6 +2478,30 @@ async function pollSheets() {
       }
     }
   } catch (e) { /* silent — full sync will catch up */ }
+  clearTimeout(pollTimer);
+  pollTimer = setTimeout(pollSheets, POLL_INTERVAL_MS);
+}
+
+// Stale-while-revalidate: the cached CSV is already parsed and on screen — fetch a fresh
+// copy in the background and quietly swap it in via refreshAfterPoll (no skeleton, no
+// settings restore). Unlike pollSheets this refreshes the cache timestamp, since it is a
+// complete fetch equivalent to a full sync.
+async function revalidateSheetsCache() {
+  setSyncStatus(t('sync_connecting'), 'loading');
+  try {
+    const text = await fetchSheetCsv();
+    const newPlays = parsePlaysCsv(text);
+    if (newPlays) {
+      allPlays = newPlays;
+      lastSyncTime = new Date();
+      localStorage.setItem('dc_sync_ts', lastSyncTime.getTime().toString());
+      await saveToIDB(IDB_SHEETS_KEY, { ts: lastSyncTime.getTime(), csv: text });
+      setSyncStatus(t('sync_ok', { time: lastSyncTime.toLocaleTimeString(), n: allPlays.length.toLocaleString() }), 'ok');
+      refreshAfterPoll();
+    }
+  } catch (e) { /* cached charts stay on screen — the scheduled sync/poll will retry */ }
+  clearTimeout(syncTimer);
+  syncTimer = setTimeout(syncFromSheets, SYNC_INTERVAL_MS);
   clearTimeout(pollTimer);
   pollTimer = setTimeout(pollSheets, POLL_INTERVAL_MS);
 }
@@ -2750,7 +2787,15 @@ window.addEventListener('load', async () => {
   document.getElementById('mainApp').style.display = 'block';
   showSkeleton();
   await initRulesCache();
-  await loadRulesFromSheet();
+  // Don't block first paint on the Apps Script round-trip — a cold Apps Script can take
+  // several seconds. Parse with the locally cached rules now; if the sheet copy turns out
+  // to differ, re-apply the merged rules to the loaded plays and quietly re-render.
+  loadRulesFromSheet().then(changed => {
+    if (changed && allPlays.length) {
+      allPlays = applyAutocorrectRules(allPlays);
+      refreshAfterPoll();
+    }
+  });
 
   if (!localStorage.getItem('dc_display_name')) {
     const btn = document.getElementById('configureSourceBtn');
@@ -2781,16 +2826,25 @@ window.addEventListener('load', async () => {
 
   const cached = await loadFromIDB(IDB_SHEETS_KEY);
   const age = cached ? Date.now() - cached.ts : Infinity;
-  if (cached && age < SYNC_INTERVAL_MS) {
-    // Load from IndexedDB cache (survives tab close / browser restart)
+  if (cached) {
+    // Stale-while-revalidate: render the IndexedDB copy immediately no matter how old it
+    // is (survives tab close / browser restart) — never make the user wait on the network
+    // when a local copy exists.
     lastSyncTime = new Date(cached.ts);
     parseCsv(cached.csv, true);
     const minsAgo = Math.round(age / 60000);
     setSyncStatus(t('sync_ok_cached', { time: lastSyncTime.toLocaleTimeString(), n: allPlays.length.toLocaleString(), mins: minsAgo }), 'ok');
-    clearTimeout(syncTimer);
-    syncTimer = setTimeout(syncFromSheets, SYNC_INTERVAL_MS - age);
-    clearTimeout(pollTimer);
-    pollTimer = setTimeout(pollSheets, POLL_INTERVAL_MS);
+    if (age < SYNC_INTERVAL_MS) {
+      // Cache still fresh — just schedule the next full sync and background poll
+      clearTimeout(syncTimer);
+      syncTimer = setTimeout(syncFromSheets, SYNC_INTERVAL_MS - age);
+      clearTimeout(pollTimer);
+      pollTimer = setTimeout(pollSheets, POLL_INTERVAL_MS);
+    } else {
+      // Cache older than the sync interval — refresh in the background while the
+      // cached charts stay on screen (no skeleton, no blank wait)
+      revalidateSheetsCache();
+    }
   } else {
     syncFromSheets();
   }
