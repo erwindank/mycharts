@@ -10741,7 +10741,11 @@ body {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
+  /* "safe" keeps it vertically centered while content fits, but falls back to
+     start-alignment once an expanded card pushes total height past the
+     viewport — without it, centering clips the top (logo) unreachably: the
+     browser only lets you scroll into the overflow on one side. */
+  justify-content: safe center;
   padding: 2rem 1.5rem 3rem;
   overflow-y: auto;
   background: var(--bg);
