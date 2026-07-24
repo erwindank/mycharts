@@ -2479,6 +2479,10 @@ function refreshAfterPoll() {
   else if (currentPeriod === 'graphs') renderGraphs();
   else if (currentPeriod === 'records') buildRecords();
   else renderAll();
+  // Hero box (total plays, days listened, top artist, streak) is otherwise only
+  // painted by finalizeLoad() — without this it stays frozen at the early-render
+  // or cached counts even after the full history (or a poll top-up) lands.
+  renderHeroStats();
   renderStreakBanner();
 }
 
