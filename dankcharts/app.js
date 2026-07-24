@@ -2282,6 +2282,19 @@ async function syncFromLastFm() {
   if (incremental) for (const row of cached.data) { if (row[3] > sinceUts) sinceUts = row[3]; }
 
   let rawTracks = [];
+  // Progressive first paint: set once the partial early render (below) has happened,
+  // so the final render downgrades to a quiet refresh instead of a second full paint.
+  let earlyRendered = false;
+  // Builds allPlays from the pages downloaded so far and paints the charts. Used for
+  // the one early render during a long first-time download — recent periods are
+  // already accurate because pages arrive newest-first.
+  const renderPartial = () => {
+    allPlays = applyAutocorrectRules(rawTracks.map(tr => {
+      const ar = (tr.artist && tr.artist['#text']) || '';
+      return { title: tr.name || '', artist: ar, artists: splitArtists(ar), album: (tr.album && tr.album['#text']) || '—', date: new Date(parseInt(tr.date.uts) * 1000) };
+    })).sort((a, b) => b.date - a.date);
+    finalizeLoad();
+  };
   try {
     // Fetch page 1 to discover totalPages
     setSyncStatus(incremental ? 'Checking Last.fm for new scrobbles…' : 'Loading Last.fm history… page 1', 'loading');
@@ -2297,6 +2310,16 @@ async function syncFromLastFm() {
       // Unlike fixed batches, this never idles waiting for the slowest request in a group.
       // CONCURRENCY=10 keeps us within Last.fm's ~5 req/s limit for large accounts.
       const CONCURRENCY = 10;
+      // Progressive first paint: on a first-time full download (nothing on screen yet),
+      // render the charts once the newest EARLY_RENDER_PAGES pages are all in, instead of
+      // making the user watch the page counter until the entire history arrives. Only
+      // worth doing when the history is big enough that the full download takes a while.
+      // Contiguity is tracked because concurrent requests complete out of order — a hole
+      // in the newest pages would briefly render misleading recent-period charts.
+      const EARLY_RENDER_PAGES = 20; // ≈ 4,000 scrobbles
+      const doEarlyRender = !renderedFromCache && totalPages >= EARLY_RENDER_PAGES * 2;
+      const donePages = new Set([1]);
+      let contigDone = 1; // pages 1..contigDone are all downloaded
       let nextPage = 2;
       let completedPages = 1;
       await new Promise((resolve) => {
@@ -2309,12 +2332,20 @@ async function syncFromLastFm() {
               let t = data.recenttracks.track;
               if (!Array.isArray(t)) t = t ? [t] : [];
               for (const tr of t) { if (tr.date && tr.date.uts && parseInt(tr.date.uts) > sinceUts) rawTracks.push(tr); }
+              donePages.add(p); // success only — a failed page would leave a data hole
             }).catch(e => {
               console.warn(`Last.fm: page ${p} failed (${e.message}), skipping`);
             }).finally(() => {
               completedPages++;
               if (completedPages % 20 === 0 || completedPages === totalPages) {
                 setSyncStatus(`Loading Last.fm history… ${completedPages} / ${totalPages} pages`, 'loading');
+              }
+              if (doEarlyRender && !earlyRendered) {
+                while (donePages.has(contigDone + 1)) contigDone++;
+                if (contigDone >= EARLY_RENDER_PAGES) {
+                  earlyRendered = true;
+                  renderPartial(); // one-time partial paint; the download continues behind it
+                }
               }
               inFlight--;
               if (nextPage > totalPages && inFlight === 0) resolve();
@@ -2373,9 +2404,10 @@ async function syncFromLastFm() {
   lastSyncTime = new Date();
 
   setSyncStatus(t('sync_ok', { time: lastSyncTime.toLocaleTimeString(), n: allPlays.length.toLocaleString() }), 'ok');
-  // If cached charts were already rendered, refresh quietly (keeps the user's current
-  // view instead of re-running the full settings-restoring first paint).
-  if (renderedFromCache) refreshAfterPoll(); else finalizeLoad();
+  // If charts were already painted (from cache, or by the progressive early render
+  // during a first-time download), refresh quietly — keeps the user's current view
+  // instead of re-running the full settings-restoring first paint.
+  if (renderedFromCache || earlyRendered) refreshAfterPoll(); else finalizeLoad();
   btn.disabled = false;
   clearTimeout(syncTimer);
   syncTimer = setTimeout(syncFromLastFm, SYNC_INTERVAL_MS);
