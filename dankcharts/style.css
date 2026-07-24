@@ -10752,34 +10752,42 @@ body {
   gap: 1.5rem;
 }
 
-/* Animated soft glow orbs */
+/* Animated soft glow orbs.
+   Previously these were nearly invisible in every theme: an 80px blur spread
+   an already-faint rgba(...,0.18) peak color across a 500px circle (net
+   visible intensity ~2-10% after multiplying by the element's own opacity),
+   layered on top of .landing-screen's own near-identical static background
+   gradient above — redundant on top of imperceptible. Fixed by concentrating
+   more color into the gradient itself (color-mix at 55%/50%, not a thin
+   0.14-0.18 alpha), trimming the blur so less of that intensity gets smeared
+   away, and switching from hardcoded blue to var(--accent)/var(--teal) via
+   color-mix so the glow actually follows the active theme. */
 .landing-orb {
   position: fixed;
   border-radius: 50%;
   pointer-events: none;
-  filter: blur(80px);
-  opacity: 0;
+  filter: blur(64px);
   animation: orb-drift 18s ease-in-out infinite;
 }
 
 .landing-orb-1 {
   width: 500px;
   height: 500px;
-  background: radial-gradient(circle, rgba(74, 172, 255, 0.18), transparent 70%);
+  background: radial-gradient(circle, color-mix(in srgb, var(--accent) 55%, transparent) 0%, transparent 70%);
   top: -120px;
   left: -80px;
   animation-delay: 0s;
-  opacity: 0.6;
+  opacity: 0.9;
 }
 
 .landing-orb-2 {
   width: 420px;
   height: 420px;
-  background: radial-gradient(circle, rgba(56, 189, 248, 0.14), transparent 70%);
+  background: radial-gradient(circle, color-mix(in srgb, var(--teal) 50%, transparent) 0%, transparent 70%);
   bottom: -80px;
   right: -60px;
   animation-delay: -9s;
-  opacity: 0.5;
+  opacity: 0.8;
 }
 
 @keyframes orb-drift {
@@ -11126,6 +11134,312 @@ body.pink-light .landing-screen:has(.landing-card:hover) .landing-eq-skyline {
   margin: 0;
 }
 
+/* Template CTA — the primary path for the ~no sheet yet~ majority.
+   Eyebrow label + a real button, not a link buried in a hint paragraph. */
+.landing-template-cta {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  width: 100%;
+}
+
+.landing-template-eyebrow {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text3);
+}
+
+.landing-template-btn {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  background: var(--accent);
+  color: #fff;
+  border-radius: 10px;
+  font-family: var(--font-sans);
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  text-decoration: none;
+  padding: 0.7rem 1rem;
+  transition: background 0.18s, box-shadow 0.18s, transform 0.15s;
+  box-shadow: 0 4px 18px color-mix(in srgb, var(--accent) 40%, transparent);
+}
+
+.landing-template-btn:hover {
+  background: var(--accent2);
+  box-shadow: 0 6px 26px color-mix(in srgb, var(--accent) 55%, transparent);
+  transform: translateY(-2px);
+}
+
+.landing-template-btn:active {
+  transform: translateY(0);
+}
+
+.landing-template-btn-icon {
+  font-size: 0.95rem;
+  line-height: 1;
+}
+
+.landing-template-btn-arrow {
+  transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.landing-template-btn:hover .landing-template-btn-arrow {
+  transform: translateX(4px);
+}
+
+/* Promo-sticker badge, like a price tag slapped on a record sleeve —
+   pinned to the button's own bottom-right corner (not floating above
+   it), so it can never collide with the eyebrow label above regardless
+   of how long a translation runs. Border+text (not a solid fill) since
+   --gold1/--gold2 flip to dark ink in light themes — a solid gold fill
+   would go muddy there. */
+.landing-template-sticker {
+  position: absolute;
+  bottom: -0.6rem;
+  right: -0.5rem;
+  background: var(--surface, #1a1a2e);
+  border: 1px solid var(--gold1);
+  color: var(--gold1);
+  font-family: var(--font-mono);
+  font-size: 0.56rem;
+  font-weight: 800;
+  letter-spacing: 0.03em;
+  padding: 0.18rem 0.4rem;
+  border-radius: 5px;
+  transform: rotate(6deg);
+  box-shadow: 0 2px 8px color-mix(in srgb, #000 35%, transparent);
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+.landing-template-divider {
+  text-align: center;
+  padding: 0.15rem 0 0.1rem;
+}
+
+/* Last.fm "02" card icon — a spinning vinyl record with a tonearm that
+   lifts off at rest and drops onto the groove on hover/select. Grooves
+   are near-black regardless of theme (real vinyl doesn't recolor itself
+   on a light shelf); only the label and tonearm use theme tokens. */
+.landing-card-icon.lastfm-vinyl {
+  position: relative;
+  width: 2.3rem;
+  height: 2.3rem;
+  filter: drop-shadow(0 2px 8px color-mix(in srgb, var(--rose) 40%, transparent));
+}
+
+.lastfm-vinyl-disc {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at center, var(--rose) 0 15%, transparent 15.5%),
+    repeating-radial-gradient(circle at center, #0c0c0c 0 2px, #2a2a2a 2px 4px);
+  animation: lastfmVinylSpin 3s linear infinite;
+  animation-play-state: paused;
+}
+
+.landing-card:hover .lastfm-vinyl-disc,
+.landing-card.active .lastfm-vinyl-disc {
+  animation-play-state: running;
+}
+
+@keyframes lastfmVinylSpin {
+  to { transform: rotate(360deg); }
+}
+
+.lastfm-vinyl-tonearm {
+  position: absolute;
+  top: -0.32rem;
+  right: -0.38rem;
+  width: 1.3rem;
+  height: 0.15rem;
+  background: var(--text3);
+  border-radius: 999px;
+  transform-origin: top right;
+  transform: rotate(-6deg);    /* lifted off the record at rest */
+  transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.lastfm-vinyl-tonearm::before {
+  content: '';
+  position: absolute;
+  top: -0.15rem;
+  right: -0.15rem;
+  width: 0.42rem;
+  height: 0.42rem;
+  border-radius: 50%;
+  background: var(--text3);
+}
+
+.landing-card:hover .lastfm-vinyl-tonearm,
+.landing-card.active .lastfm-vinyl-tonearm {
+  transform: rotate(-38deg);   /* dropped onto the groove */
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lastfm-vinyl-disc { animation: none; }
+  .lastfm-vinyl-tonearm { transition: none; }
+}
+
+/* Last.fm card gets its own red identity (brand color, via the theme-
+   adaptive --rose token) so it reads distinct from the Sheets card's
+   blue CTA — each import source has its own accent, not one blue default. */
+#landingCardLastfm:hover {
+  border-color: color-mix(in srgb, var(--rose) 32%, transparent);
+  box-shadow: 0 18px 48px rgba(0, 0, 0, 0.35), 0 0 0 1px color-mix(in srgb, var(--rose) 12%, transparent);
+}
+
+#landingCardLastfm.active {
+  border-color: var(--rose);
+  background: color-mix(in srgb, var(--rose) 7%, transparent);
+  box-shadow: 0 0 0 1px var(--rose), 0 20px 48px color-mix(in srgb, var(--rose) 15%, transparent);
+}
+
+#landingCardLastfm:hover .landing-card-pos,
+#landingCardLastfm.active .landing-card-pos {
+  color: var(--rose);
+  text-shadow: 0 0 18px color-mix(in srgb, var(--rose) 55%, transparent);
+}
+
+#landingConfigLastfm input:focus {
+  border-color: var(--rose);
+  background: color-mix(in srgb, var(--rose) 7%, transparent);
+}
+
+#landingConfigLastfm .lfm-new-user-info {
+  border-color: color-mix(in srgb, var(--rose) 18%, transparent);
+  background: color-mix(in srgb, var(--rose) 4%, transparent);
+}
+
+#landingConfigLastfm .lfm-new-user-info summary {
+  /* Small body text needs more contrast than the light-theme --rose value
+     alone gives against a light panel (~3.6:1, fails AA); mixing toward
+     black darkens it for legibility without dulling the dark-theme look. */
+  color: color-mix(in srgb, var(--rose) 78%, black);
+}
+
+#landingConfigLastfm .lfm-new-user-info summary:hover {
+  background: color-mix(in srgb, var(--rose) 8%, transparent);
+}
+
+#landingConfigLastfm .lfm-new-user-body {
+  border-top-color: color-mix(in srgb, var(--rose) 12%, transparent);
+}
+
+#landingConfigLastfm .lfm-services-chips span {
+  background: color-mix(in srgb, var(--rose) 10%, transparent);
+  color: color-mix(in srgb, var(--rose) 78%, black);
+}
+
+#landingConfigLastfm .lfm-signup-link {
+  color: color-mix(in srgb, var(--rose) 78%, black);
+  border-color: color-mix(in srgb, var(--rose) 30%, transparent);
+}
+
+#landingConfigLastfm .lfm-signup-link:hover {
+  background: color-mix(in srgb, var(--rose) 10%, transparent);
+  border-color: var(--rose);
+}
+
+/* Compatible-services ticker — scrolls like a row of radio-dial presets
+   instead of sitting static; pauses on hover so it stays readable. The
+   track's content is duplicated in markup so translateX(-50%) loops seamlessly. */
+.lfm-services-chips.lfm-ticker {
+  flex-wrap: nowrap;
+  overflow: hidden;
+  mask-image: linear-gradient(to right, transparent, #000 6%, #000 94%, transparent);
+  -webkit-mask-image: linear-gradient(to right, transparent, #000 6%, #000 94%, transparent);
+}
+
+.lfm-ticker-track {
+  display: flex;
+  gap: 0.28rem;
+  width: max-content;
+  animation: lfmTickerScroll 16s linear infinite;
+}
+
+.lfm-services-chips.lfm-ticker:hover .lfm-ticker-track {
+  animation-play-state: paused;
+}
+
+@keyframes lfmTickerScroll {
+  to { transform: translateX(-50%); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lfm-ticker-track { animation: none; }
+}
+
+/* Google Sheets card gets its own green identity (Sheets' brand color, via
+   the theme-adaptive --green token) instead of following the site's blue
+   accent — so it reads as "Sheets" in every theme, not whatever hue that
+   theme's accent happens to be (e.g. purple in the purple theme). Mirrors
+   the red treatment on the Last.fm card. */
+#landingCardSheets .landing-card-icon {
+  filter: drop-shadow(0 2px 8px color-mix(in srgb, var(--green) 35%, transparent));
+}
+
+#landingCardSheets:hover {
+  border-color: color-mix(in srgb, var(--green) 32%, transparent);
+  box-shadow: 0 18px 48px rgba(0, 0, 0, 0.35), 0 0 0 1px color-mix(in srgb, var(--green) 12%, transparent);
+}
+
+#landingCardSheets.active {
+  border-color: var(--green);
+  background: color-mix(in srgb, var(--green) 7%, transparent);
+  box-shadow: 0 0 0 1px var(--green), 0 20px 48px color-mix(in srgb, var(--green) 15%, transparent);
+}
+
+#landingCardSheets:hover .landing-card-pos,
+#landingCardSheets.active .landing-card-pos {
+  color: var(--green);
+  text-shadow: 0 0 18px color-mix(in srgb, var(--green) 55%, transparent);
+}
+
+#landingConfigSheets input:focus {
+  border-color: var(--green);
+  background: color-mix(in srgb, var(--green) 7%, transparent);
+}
+
+#landingConfigSheets .lfm-new-user-info {
+  border-color: color-mix(in srgb, var(--green) 18%, transparent);
+  background: color-mix(in srgb, var(--green) 4%, transparent);
+}
+
+#landingConfigSheets .lfm-new-user-info summary {
+  /* Darkened the same way as the Last.fm summary text — raw --green is a
+     light mint in dark themes and too pale for AA contrast as body text. */
+  color: color-mix(in srgb, var(--green) 78%, black);
+}
+
+#landingConfigSheets .lfm-new-user-info summary:hover {
+  background: color-mix(in srgb, var(--green) 8%, transparent);
+}
+
+#landingConfigSheets .lfm-new-user-body {
+  border-top-color: color-mix(in srgb, var(--green) 12%, transparent);
+}
+
+/* Template CTA fill — darkened well past raw --green (which is a light
+   mint/teal in dark themes) so white button text clears AA contrast. */
+#landingConfigSheets .landing-template-btn {
+  background: color-mix(in srgb, var(--green) 60%, black 40%);
+  box-shadow: 0 4px 18px color-mix(in srgb, var(--green) 40%, transparent);
+}
+
+#landingConfigSheets .landing-template-btn:hover {
+  background: color-mix(in srgb, var(--green) 72%, black 28%);
+  box-shadow: 0 6px 26px color-mix(in srgb, var(--green) 55%, transparent);
+}
+
 /* Last.fm new-user info panel */
 .lfm-new-user-info {
   border: 1px solid rgba(74, 172, 255, 0.18);
@@ -11408,6 +11722,9 @@ body.pink-light .landing-screen {
     radial-gradient(ellipse at 55% 10%, rgba(0, 0, 0, 0.02) 0%, transparent 45%);
 }
 
+/* Light themes still need a gentler wash than dark (their --accent/--teal
+   tokens are already darker/more saturated against a pale page, so full
+   strength would look heavy) — but 0.12 made them invisible outright. */
 body.navy-light .landing-orb-1,
 body.navy-light .landing-orb-2,
 body.purple-light .landing-orb-1,
@@ -11418,7 +11735,7 @@ body.yellow-light .landing-orb-1,
 body.yellow-light .landing-orb-2,
 body.pink-light .landing-orb-1,
 body.pink-light .landing-orb-2 {
-  opacity: 0.12;
+  opacity: 0.35;
 }
 
 body.navy-light .landing-card,

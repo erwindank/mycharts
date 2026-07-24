@@ -27,7 +27,7 @@
   <!-- html2canvas, SheetJS (xlsx) and JSZip are intentionally NOT loaded here — they
        total ~1.2 MB and are only needed for image exports and Excel/ZIP imports.
        app.js pulls them from the CDN on first use (see ensureLazyLib). -->
-  <link rel="stylesheet" href="style.css?v=103">
+  <link rel="stylesheet" href="style.css?v=111">
   <!-- All scripts are deferred so the page paints without waiting on them.
        defer preserves execution order, which matters: translations → Chart.js →
        hammer → zoom plugin → firebase SDKs → firebase.js → app.js (in body). -->
@@ -133,15 +133,28 @@
         <h3>Google Sheets</h3>
         <p data-i18n="landing_sheets_desc">Your full history, your way — no limits, no API restrictions</p>
         <div class="landing-card-config" id="landingConfigSheets" style="display:none;">
+          <!-- Primary path: most visitors don't have a sheet yet, so the template
+               copy is a real button (with a "quick setup" promo sticker), not a
+               buried inline link. Paste-your-own is demoted to the "or" section below. -->
+          <div class="landing-template-cta">
+            <span class="landing-template-eyebrow" data-i18n="landing_sheets_nosheet">No sheet yet?</span>
+            <a class="landing-template-btn" href="https://docs.google.com/spreadsheets/d/19brQQYXn1WQNhCkSMCYnGVYmxhmLzKOE2A3E3QFCeqk/copy" target="_blank" rel="noopener" onclick="event.stopPropagation()">
+              <span class="landing-template-btn-icon" aria-hidden="true">📋</span>
+              <span data-i18n="landing_sheets_template_btn">Copy the ready-to-use template</span>
+              <span class="landing-template-btn-arrow" aria-hidden="true">→</span>
+              <span class="landing-template-sticker" aria-hidden="true" data-i18n="landing_sheets_template_sticker">30 SEC SETUP</span>
+            </a>
+          </div>
+          <p class="landing-hint landing-template-divider" data-i18n="landing_sheets_have_sheet">Already have a sheet? Paste the link below ↓</p>
           <input type="text" id="landingSheetId" placeholder="Paste your Google Sheets URL or Sheet ID" data-i18n-placeholder="landing_sheets_url_placeholder" onclick="event.stopPropagation()" autocomplete="off">
           <input type="text" id="landingSheetTab" placeholder="Tab name (default: Full Raw Listening History)" data-i18n-placeholder="landing_sheets_tab_placeholder" onclick="event.stopPropagation()" autocomplete="off">
           <p class="landing-hint" data-i18n="landing_sheets_hint_share">The sheet must be shared as "Anyone with the link can view"</p>
-          <p class="landing-hint" style="margin-top:0.3rem"><span data-i18n="landing_sheets_nosheet">No sheet yet?</span> <a href="https://docs.google.com/spreadsheets/d/19brQQYXn1WQNhCkSMCYnGVYmxhmLzKOE2A3E3QFCeqk/copy" target="_blank" rel="noopener" onclick="event.stopPropagation()" style="color:var(--accent)" data-i18n="landing_sheets_template_link">Copy our ready-to-use template →</a> &nbsp;·&nbsp; <a href="setup-guide.html?tab=sheets" target="_blank" rel="noopener" onclick="event.stopPropagation()" style="color:var(--accent)" data-i18n="landing_sheets_setup_guide">📄 Setup guide</a></p>
-          <p class="landing-hint" style="margin-top:0.3rem"><span data-i18n="landing_sheets_nosample">Just exploring?</span> <a href="#" onclick="event.stopPropagation(); loadSampleData(); return false;" style="color:var(--accent)" data-i18n="landing_sheets_sample_link">Try with sample data →</a></p>
+          <p class="landing-hint" style="margin-top:0.3rem"><a href="setup-guide.html?tab=sheets" target="_blank" rel="noopener" onclick="event.stopPropagation()" style="color:color-mix(in srgb, var(--green) 78%, black)" data-i18n="landing_sheets_setup_guide">📄 Setup guide</a></p>
+          <p class="landing-hint" style="margin-top:0.2rem"><span data-i18n="landing_sheets_nosample">Just exploring?</span> <a href="#" onclick="event.stopPropagation(); loadSampleData(); return false;" style="color:color-mix(in srgb, var(--green) 78%, black)" data-i18n="landing_sheets_sample_link">Try with sample data →</a></p>
           <details class="lfm-new-user-info" onclick="event.stopPropagation()" style="margin-top:0.5rem">
-            <summary style="font-size:0.8rem;color:var(--accent);cursor:pointer" data-i18n="landing_sheets_howwork">How does this work?</summary>
+            <summary style="font-size:0.8rem;cursor:pointer" data-i18n="landing_sheets_howwork">How does this work?</summary>
             <div class="lfm-new-user-body" style="font-size:0.78rem;line-height:1.7;margin-top:0.4rem">
-              <p style="margin:0" data-i18n-html="landing_sheets_howwork_body">Your music history lives in <em>your</em> spreadsheet — every song you've ever listened to, all in one place, with no limits. Last.fm tracks your plays automatically, and you keep full control: edit, add, or explore your data however you like. Full setup in the <a href="setup-guide.html?tab=sheets" target="_blank" rel="noopener" onclick="event.stopPropagation()" style="color:var(--accent)">setup guide</a>.</p>
+              <p style="margin:0" data-i18n-html="landing_sheets_howwork_body">Your music history lives in <em>your</em> spreadsheet — every song you've ever listened to, all in one place, with no limits. Last.fm tracks your plays automatically, and you keep full control: edit, add, or explore your data however you like. Full setup in the <a href="setup-guide.html?tab=sheets" target="_blank" rel="noopener" onclick="event.stopPropagation()" style="color:color-mix(in srgb, var(--green) 78%, black)">setup guide</a>.</p>
             </div>
           </details>
         </div>
@@ -149,7 +162,13 @@
 
       <div class="landing-card" id="landingCardLastfm" onclick="selectLandingSource('lastfm')">
         <span class="landing-card-pos" aria-hidden="true">02</span>
-        <div class="landing-card-icon">🎵</div>
+        <!-- Literal scrobble: a vinyl record + tonearm instead of a generic
+             note glyph. Tonearm lifts at rest, drops onto the groove and the
+             disc spins on hover/select — scrobbling IS "what's spinning". -->
+        <div class="landing-card-icon lastfm-vinyl" aria-hidden="true">
+          <span class="lastfm-vinyl-disc"></span>
+          <span class="lastfm-vinyl-tonearm"></span>
+        </div>
         <h3>Last.fm</h3>
         <p data-i18n="landing_lastfm_desc">Load your full scrobble history directly from Last.fm</p>
         <div class="landing-card-config" id="landingConfigLastfm" style="display:none;">
@@ -158,8 +177,14 @@
             <div class="lfm-new-user-body">
               <p data-i18n-html="landing_lastfm_body"><strong>Last.fm</strong> automatically tracks every song you listen to — this is called <em>scrobbling</em>. Over time it builds a complete history of your music taste that you can chart here.</p>
               <p class="lfm-services-label" data-i18n="landing_lastfm_services_label">Compatible with:</p>
-              <div class="lfm-services-chips">
-                <span>Spotify</span><span>Apple Music</span><span>YouTube Music</span><span>Tidal</span><span>Deezer</span><span>Amazon Music</span><span>SoundCloud</span><span>Plex</span><span>Subsonic</span><span>+ many more</span>
+              <!-- Radio-dial preset ticker: the chip list scrolls slowly instead of
+                   sitting static, and pauses on hover so it stays readable. The
+                   track is duplicated once so the loop is seamless (aria-hidden). -->
+              <div class="lfm-services-chips lfm-ticker">
+                <div class="lfm-ticker-track">
+                  <span>Spotify</span><span>Apple Music</span><span>YouTube Music</span><span>Tidal</span><span>Deezer</span><span>Amazon Music</span><span>SoundCloud</span><span>Plex</span><span>Subsonic</span><span>+ many more</span>
+                  <span aria-hidden="true">Spotify</span><span aria-hidden="true">Apple Music</span><span aria-hidden="true">YouTube Music</span><span aria-hidden="true">Tidal</span><span aria-hidden="true">Deezer</span><span aria-hidden="true">Amazon Music</span><span aria-hidden="true">SoundCloud</span><span aria-hidden="true">Plex</span><span aria-hidden="true">Subsonic</span><span aria-hidden="true">+ many more</span>
+                </div>
               </div>
               <a href="https://www.last.fm/join" target="_blank" rel="noopener" class="lfm-signup-link" data-i18n="landing_lastfm_signup_link">Create a free Last.fm account →</a>
             </div>
