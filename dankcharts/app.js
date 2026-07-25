@@ -4932,8 +4932,8 @@ function toggleCollapseAllCharts() {
   // Directly set button text — we know exactly what state we just applied
   const toggleBtn = document.getElementById('collapseAllToggleBtn');
   if (toggleBtn) {
-    toggleBtn.textContent = shouldCollapse ? '+ Expand All' : '− Collapse All';
-    toggleBtn.title = shouldCollapse ? 'Expand all sections' : 'Collapse all sections';
+    toggleBtn.textContent = t(shouldCollapse ? 'btn_expand_all' : 'btn_collapse_all');
+    toggleBtn.title = t(shouldCollapse ? 'tooltip_expand_all' : 'tooltip_collapse_all');
   }
 }
 
@@ -4942,8 +4942,8 @@ function syncCollapseAllBtn() {
   const toggleBtn = document.getElementById('collapseAllToggleBtn');
   if (!toggleBtn) return;
   const allCollapsed = _isEverythingCollapsed();
-  toggleBtn.textContent = allCollapsed ? '+ Expand All' : '− Collapse All';
-  toggleBtn.title = allCollapsed ? 'Expand all sections' : 'Collapse all sections';
+  toggleBtn.textContent = t(allCollapsed ? 'btn_expand_all' : 'btn_collapse_all');
+  toggleBtn.title = t(allCollapsed ? 'tooltip_expand_all' : 'tooltip_collapse_all');
 }
 
 document.addEventListener('click', e => {
@@ -9628,7 +9628,7 @@ function renderBubblingUnder(type, normalizedPool, ms, lowestChartCount) {
 
   sectionEl.style.display = '';
   // Update title to show which chart size this BU section sits below (e.g. "BUBBLING UNDER TOP 10")
-  if (titleEl) titleEl.textContent = 'BUBBLING UNDER TOP ' + chartSize;
+  if (titleEl) titleEl.textContent = t('sec_bubbling_under', { n: chartSize });
   if (countEl) countEl.textContent = normalizedPool.length;
   if (bodyEl)  bodyEl.style.display = _buOpen[type] ? '' : 'none';
   if (iconEl)  iconEl.textContent = _buOpen[type] ? '▲' : '▼';
@@ -9698,20 +9698,20 @@ function renderBubblingUnder(type, normalizedPool, ms, lowestChartCount) {
 
     // Build badges (ideas 13, 14, 15, 16, 17 + Freefall + Revolving)
     let badges = '';
-    if (playsAway > 0)  badges += `<span class="bu-badge bu-badge-away" title="${playsAway} more play${playsAway !== 1 ? 's' : ''} needed to enter the chart">${playsAway} play${playsAway !== 1 ? 's' : ''} away</span>`;
-    if (isFading)       badges += `<span class="bu-badge bu-badge-fading" title="Dropped off the chart since last week">📉 Fading</span>`;
-    if (isDebut)        badges += `<span class="bu-badge bu-badge-debut" title="First time ever in the Bubbling Under zone">🌱 Fresh</span>`;
-    if (isTrending)     badges += `<span class="bu-badge bu-badge-trending" title="Has never charted — steadily building momentum">📈 Trending</span>`;
-    if (isPersistent)   badges += `<span class="bu-badge bu-badge-persistent" title="Has never charted — ${totalBuWeeks} weeks of showing up in the Bubbling Under zone">🏅 Persistent</span>`;
-    if (isResurgence)   badges += `<span class="bu-badge bu-badge-resurgence" title="Previously on the chart — making a comeback">🌊 Resurgence</span>`;
-    if (isResurgent)    badges += `<span class="bu-badge bu-badge-resurgent" title="Previously on the chart — persisting in the Bubbling Under zone">🔁 Resurgent</span>`;
-    if (isClinging)     badges += `<span class="bu-badge bu-badge-clinging" title="Dropped from the chart into the Bubbling Under zone — still holding on">🪝 Clinging</span>`;
-    if (isFallen)       badges += `<span class="bu-badge bu-badge-fallen" title="Was #${lastWeekRank} last week — now in the Bubbling Under zone">👑 Fallen</span>`;
-    if (isSurging)      badges += `<span class="bu-badge bu-badge-surging" title="Biggest play increase in the Bubbling Under zone this week (+${bestSurgeDelta})">⚡ Surging</span>`;
-    if (isFreefall)     badges += `<span class="bu-badge bu-badge-freefall" title="Biggest play drop in the Bubbling Under zone this week (-${bestFreefallDelta})">☄️ Freefall</span>`;
-    if (isYoYo)         badges += `<span class="bu-badge bu-badge-yoyo" title="${buRuns} separate stints in the Bubbling Under zone — keeps revolving in and out">💫 Revolving</span>`;
-    if (totalBuWeeks >= 2) badges += `<span class="bu-badge bu-badge-weeks" title="${totalBuWeeks} total weeks ever in the Bubbling Under zone">🫧 ${totalBuWeeks} ${totalBuWeeks === 1 ? 'week' : 'weeks'}</span>`;
-    if (consecutiveBuWeeks >= 2) badges += `<span class="bu-badge bu-badge-streak" title="${consecutiveBuWeeks} consecutive weeks in the Bubbling Under zone">🔥 ${consecutiveBuWeeks}-week streak</span>`;
+    if (playsAway > 0)  badges += `<span class="bu-badge bu-badge-away" title="${t(playsAway === 1 ? 'bu_badge_away_title_one' : 'bu_badge_away_title_other', { n: playsAway })}">${t(playsAway === 1 ? 'bu_badge_away_one' : 'bu_badge_away_other', { n: playsAway })}</span>`;
+    if (isFading)       badges += `<span class="bu-badge bu-badge-fading" title="${t('bu_badge_fading_title')}">${t('bu_badge_fading')}</span>`;
+    if (isDebut)        badges += `<span class="bu-badge bu-badge-debut" title="${t('bu_badge_debut_title')}">${t('bu_badge_debut')}</span>`;
+    if (isTrending)     badges += `<span class="bu-badge bu-badge-trending" title="${t('bu_badge_trending_title')}">${t('bu_badge_trending')}</span>`;
+    if (isPersistent)   badges += `<span class="bu-badge bu-badge-persistent" title="${t('bu_badge_persistent_title', { n: totalBuWeeks })}">${t('bu_badge_persistent')}</span>`;
+    if (isResurgence)   badges += `<span class="bu-badge bu-badge-resurgence" title="${t('bu_badge_resurgence_title')}">${t('bu_badge_resurgence')}</span>`;
+    if (isResurgent)    badges += `<span class="bu-badge bu-badge-resurgent" title="${t('bu_badge_resurgent_title')}">${t('bu_badge_resurgent')}</span>`;
+    if (isClinging)     badges += `<span class="bu-badge bu-badge-clinging" title="${t('bu_badge_clinging_title')}">${t('bu_badge_clinging')}</span>`;
+    if (isFallen)       badges += `<span class="bu-badge bu-badge-fallen" title="${t('bu_badge_fallen_title', { n: lastWeekRank })}">${t('bu_badge_fallen')}</span>`;
+    if (isSurging)      badges += `<span class="bu-badge bu-badge-surging" title="${t('bu_badge_surging_title', { n: bestSurgeDelta })}">${t('bu_badge_surging')}</span>`;
+    if (isFreefall)     badges += `<span class="bu-badge bu-badge-freefall" title="${t('bu_badge_freefall_title', { n: bestFreefallDelta })}">${t('bu_badge_freefall')}</span>`;
+    if (isYoYo)         badges += `<span class="bu-badge bu-badge-yoyo" title="${t('bu_badge_yoyo_title', { n: buRuns })}">${t('bu_badge_yoyo')}</span>`;
+    if (totalBuWeeks >= 2) badges += `<span class="bu-badge bu-badge-weeks" title="${t('bu_badge_weeks_title', { n: totalBuWeeks })}">${t('bu_badge_weeks_label', { n: totalBuWeeks })}</span>`;
+    if (consecutiveBuWeeks >= 2) badges += `<span class="bu-badge bu-badge-streak" title="${t('bu_badge_streak_title', { n: consecutiveBuWeeks })}">${t('bu_badge_streak_label', { n: consecutiveBuWeeks })}</span>`;
 
     // Build YouTube button data attrs based on entry type
     const ytTitle  = type === 'songs'   ? displayName : '';
@@ -9721,7 +9721,7 @@ function renderBubblingUnder(type, normalizedPool, ms, lowestChartCount) {
     const ytBtnOnclick = type === 'songs'
       ? `event.stopPropagation();ytPlayFromBtn(this)`
       : `event.stopPropagation();buShowTrackList(this,${esc(JSON.stringify(type))})`;
-    const ytBtnTitle = type === 'songs' ? 'Play on YouTube' : 'Show recently played tracks';
+    const ytBtnTitle = t(type === 'songs' ? 'bu_yt_play_title' : 'bu_yt_tracks_title');
     const ytBtn = `<button class="yt-play-btn bu-yt-btn" data-title="${esc(ytTitle)}" data-artist="${esc(ytArtist)}" data-album="${esc(ytAlbum)}" onclick="${ytBtnOnclick}" title="${ytBtnTitle}"><span class="yt-btn-content"><svg class="yt-btn-icon" viewBox="0 0 24 24"><path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.5 12 3.5 12 3.5s-7.5 0-9.4.5A3 3 0 0 0 .5 6.2C0 8.1 0 12 0 12s0 3.9.5 5.8a3 3 0 0 0 2.1 2.1c1.9.5 9.4.5 9.4.5s7.5 0 9.4-.5a3 3 0 0 0 2.1-2.1C24 15.9 24 12 24 12s0-3.9-.5-5.8zM9.7 15.5V8.5l6.3 3.5-6.3 3.5z"/></svg>YouTube</span></button>`;
 
     // BU chart run expand row — toggled by the icon button in the trailing cr-cell
@@ -9747,19 +9747,19 @@ function renderBubblingUnder(type, normalizedPool, ms, lowestChartCount) {
 
   const legendEl = document.getElementById('bu' + ucType + 'Legend');
   if (legendEl) legendEl.innerHTML = `
-    <div class="bu-legend-item"><span class="bu-badge bu-badge-debut">🌱 Fresh</span><span class="bu-legend-desc">First time ever in Bubbling Under</span></div>
-    <div class="bu-legend-item"><span class="bu-badge bu-badge-trending">📈 Trending</span><span class="bu-legend-desc">Never charted, building momentum</span></div>
-    <div class="bu-legend-item"><span class="bu-badge bu-badge-persistent">🏅 Persistent</span><span class="bu-legend-desc">Never charted, 5+ weeks in BU</span></div>
-    <div class="bu-legend-item"><span class="bu-badge bu-badge-fading">📉 Fading</span><span class="bu-legend-desc">Dropped off the chart last week</span></div>
-    <div class="bu-legend-item"><span class="bu-badge bu-badge-resurgence">🌊 Resurgence</span><span class="bu-legend-desc">Ex-chart entry, first week back in BU after full absence</span></div>
-    <div class="bu-legend-item"><span class="bu-badge bu-badge-resurgent">🔁 Resurgent</span><span class="bu-legend-desc">Ex-chart entry, persisting in BU after returning from absence</span></div>
-    <div class="bu-legend-item"><span class="bu-badge bu-badge-clinging">🪝 Clinging</span><span class="bu-legend-desc">Dropped from chart directly into BU — still holding on</span></div>
-    <div class="bu-legend-item"><span class="bu-badge bu-badge-fallen">👑 Fallen</span><span class="bu-legend-desc">Former top-3 hit, now in BU</span></div>
-    <div class="bu-legend-item"><span class="bu-badge bu-badge-surging">⚡ Surging</span><span class="bu-legend-desc">Biggest play gain this week</span></div>
-    <div class="bu-legend-item"><span class="bu-badge bu-badge-freefall">☄️ Freefall</span><span class="bu-legend-desc">Biggest play drop this week</span></div>
-    <div class="bu-legend-item"><span class="bu-badge bu-badge-yoyo">💫 Revolving</span><span class="bu-legend-desc">Keeps revolving in and out of BU (3+ stints)</span></div>
-    <div class="bu-legend-item"><span class="bu-badge bu-badge-weeks">🫧 N weeks</span><span class="bu-legend-desc">Total weeks ever in Bubbling Under</span></div>
-    <div class="bu-legend-item"><span class="bu-badge bu-badge-streak">🔥 N-week streak</span><span class="bu-legend-desc">Consecutive weeks in current BU streak</span></div>
+    <div class="bu-legend-item"><span class="bu-badge bu-badge-debut">${t('bu_badge_debut')}</span><span class="bu-legend-desc">${t('bu_badge_debut_title')}</span></div>
+    <div class="bu-legend-item"><span class="bu-badge bu-badge-trending">${t('bu_badge_trending')}</span><span class="bu-legend-desc">${t('bu_badge_trending_title')}</span></div>
+    <div class="bu-legend-item"><span class="bu-badge bu-badge-persistent">${t('bu_badge_persistent')}</span><span class="bu-legend-desc">${t('bu_badge_persistent_desc')}</span></div>
+    <div class="bu-legend-item"><span class="bu-badge bu-badge-fading">${t('bu_badge_fading')}</span><span class="bu-legend-desc">${t('bu_badge_fading_title')}</span></div>
+    <div class="bu-legend-item"><span class="bu-badge bu-badge-resurgence">${t('bu_badge_resurgence')}</span><span class="bu-legend-desc">${t('bu_badge_resurgence_desc')}</span></div>
+    <div class="bu-legend-item"><span class="bu-badge bu-badge-resurgent">${t('bu_badge_resurgent')}</span><span class="bu-legend-desc">${t('bu_badge_resurgent_desc')}</span></div>
+    <div class="bu-legend-item"><span class="bu-badge bu-badge-clinging">${t('bu_badge_clinging')}</span><span class="bu-legend-desc">${t('bu_badge_clinging_title')}</span></div>
+    <div class="bu-legend-item"><span class="bu-badge bu-badge-fallen">${t('bu_badge_fallen')}</span><span class="bu-legend-desc">${t('bu_badge_fallen_desc')}</span></div>
+    <div class="bu-legend-item"><span class="bu-badge bu-badge-surging">${t('bu_badge_surging')}</span><span class="bu-legend-desc">${t('bu_badge_surging_desc')}</span></div>
+    <div class="bu-legend-item"><span class="bu-badge bu-badge-freefall">${t('bu_badge_freefall')}</span><span class="bu-legend-desc">${t('bu_badge_freefall_desc')}</span></div>
+    <div class="bu-legend-item"><span class="bu-badge bu-badge-yoyo">${t('bu_badge_yoyo')}</span><span class="bu-legend-desc">${t('bu_badge_yoyo_desc')}</span></div>
+    <div class="bu-legend-item"><span class="bu-badge bu-badge-weeks">${t('bu_badge_weeks_label', { n: 'N' })}</span><span class="bu-legend-desc">${t('bu_badge_weeks_desc')}</span></div>
+    <div class="bu-legend-item"><span class="bu-badge bu-badge-streak">${t('bu_badge_streak_label', { n: 'N' })}</span><span class="bu-legend-desc">${t('bu_badge_streak_desc')}</span></div>
   `;
 }
 
@@ -9801,9 +9801,10 @@ function buShowTrackList(btn, type) {
 
   if (!tracks.length) return;
 
+  const tlKey = tracks.length === 1 ? 'bu_tl_header_one' : 'bu_tl_header_other';
   const headerLabel = type === 'artists'
-    ? `Last ${tracks.length} tracks · ${artistName}`
-    : `Last ${tracks.length} tracks · ${albumName}`;
+    ? t(tlKey, { n: tracks.length, name: artistName })
+    : t(tlKey, { n: tracks.length, name: albumName });
 
   const rows = tracks.map((p, i) => {
     const safeTitle  = esc(p.title);
@@ -9815,8 +9816,8 @@ function buShowTrackList(btn, type) {
     return `<div class="bu-tl-row">` +
       `<div class="bu-tl-info"><div><span class="bu-tl-num">${i + 1}</span><span class="bu-tl-title">${safeTitle}</span></div>${albumDisp}</div>` +
       `<div class="bu-tl-btns">` +
-      `<button class="bu-tl-play-btn" data-title="${safeTitle}" data-artist="${safeArtist}" data-album="${safeAlbum}" onclick="buTlPlay(this)" title="Play on YouTube">▶ Play</button>` +
-      `<button class="bu-tl-queue-btn" data-title="${safeTitle}" data-artist="${safeArtist}" data-album="${safeAlbum}" onclick="buTlQueue(this)" title="Add to queue">+ Queue</button>` +
+      `<button class="bu-tl-play-btn" data-title="${safeTitle}" data-artist="${safeArtist}" data-album="${safeAlbum}" onclick="buTlPlay(this)" title="${t('bu_tl_play_title')}">${t('bu_tl_play')}</button>` +
+      `<button class="bu-tl-queue-btn" data-title="${safeTitle}" data-artist="${safeArtist}" data-album="${safeAlbum}" onclick="buTlQueue(this)" title="${t('bu_tl_queue_title')}">${t('bu_tl_queue')}</button>` +
       `</div></div>`;
   }).join('');
 
@@ -9827,9 +9828,9 @@ function buShowTrackList(btn, type) {
   drop.innerHTML =
     `<div class="bu-tl-header">` +
     `<span class="bu-tl-header-label">🎵 ${esc(headerLabel)}</span>` +
-    `<button class="bu-tl-playall-btn" onclick="buTlPlayAll()" title="Play all tracks">▶▶ Play All</button>` +
-    `<button class="bu-tl-queueall-btn" onclick="buTlQueueAll()" title="Add all to queue">+ Queue All</button>` +
-    `<button class="bu-tl-close-btn" onclick="document.getElementById('buTrackListDrop')?.remove()" title="Close">✕</button>` +
+    `<button class="bu-tl-playall-btn" onclick="buTlPlayAll()" title="${t('bu_tl_play_all_title')}">${t('bu_tl_play_all')}</button>` +
+    `<button class="bu-tl-queueall-btn" onclick="buTlQueueAll()" title="${t('bu_tl_queue_all_title')}">${t('bu_tl_queue_all')}</button>` +
+    `<button class="bu-tl-close-btn" onclick="document.getElementById('buTrackListDrop')?.remove()" title="${t('bu_tl_close_title')}">✕</button>` +
     `</div>` +
     `<div class="bu-tl-scroll">${rows}</div>`;
 
@@ -10875,7 +10876,7 @@ function renderOffChart(type, plays, periodStats, buPool, lowestChartCount) {
     const ytBtnOnclick = type === 'songs'
       ? `event.stopPropagation();ytPlayFromBtn(this)`
       : `event.stopPropagation();buShowTrackList(this,${esc(JSON.stringify(type))})`;
-    const ytBtnTitle = type === 'songs' ? 'Play on YouTube' : 'Show recently played tracks';
+    const ytBtnTitle = t(type === 'songs' ? 'bu_yt_play_title' : 'bu_yt_tracks_title');
     const ytBtn = `<button class="yt-play-btn off-yt-btn" data-title="${esc(ytTitle)}" data-artist="${esc(ytArtist)}" data-album="${esc(ytAlbum)}" onclick="${ytBtnOnclick}" title="${ytBtnTitle}"><span class="yt-btn-content"><svg class="yt-btn-icon" viewBox="0 0 24 24"><path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.5 12 3.5 12 3.5s-7.5 0-9.4.5A3 3 0 0 0 .5 6.2C0 8.1 0 12 0 12s0 3.9.5 5.8a3 3 0 0 0 2.1 2.1c1.9.5 9.4.5 9.4.5s7.5 0 9.4-.5a3 3 0 0 0 2.1-2.1C24 15.9 24 12 24 12s0-3.9-.5-5.8zM9.7 15.5V8.5l6.3 3.5-6.3 3.5z"/></svg>YouTube</span></button>`;
 
     const severeCls = rank <= severeRankCutoff ? ' dropout-row--severe' : '';
@@ -10891,18 +10892,18 @@ function renderOffChart(type, plays, periodStats, buPool, lowestChartCount) {
       const consecutiveBuWeeks = periodStats.bubblingUnderStreak?.[type]?.[k] || 0;
       const playsAway = Math.max(0, (lowestChartCount || 0) - buEntry.count);
       let buBadges = '';
-      if (rank <= 3) buBadges += `<span class="bu-badge bu-badge-fallen" title="Was #${rank} last week — now in the Bubbling Under zone">👑 Fallen</span>`;
-      if (playsAway > 0) buBadges += `<span class="bu-badge bu-badge-away" title="${playsAway} more play${playsAway !== 1 ? 's' : ''} needed to re-enter the chart">${playsAway} play${playsAway !== 1 ? 's' : ''} away</span>`;
-      if (totalBuWeeks >= 2) buBadges += `<span class="bu-badge bu-badge-weeks" title="${totalBuWeeks} total weeks ever in the Bubbling Under zone">🫧 ${totalBuWeeks} ${totalBuWeeks === 1 ? 'week' : 'weeks'}</span>`;
-      if (consecutiveBuWeeks >= 2) buBadges += `<span class="bu-badge bu-badge-streak" title="${consecutiveBuWeeks} consecutive weeks in the Bubbling Under zone">🔥 ${consecutiveBuWeeks}-week streak</span>`;
-      buLineHtml = `<div class="dropout-bu-line"><span class="dropout-bu-now">Now #${buEntry.rank} in Bubbling Under</span>${buBadges}</div>`;
+      if (rank <= 3) buBadges += `<span class="bu-badge bu-badge-fallen" title="${t('bu_badge_fallen_title', { n: rank })}">${t('bu_badge_fallen')}</span>`;
+      if (playsAway > 0) buBadges += `<span class="bu-badge bu-badge-away" title="${t(playsAway === 1 ? 'off_bu_reenter_title_one' : 'off_bu_reenter_title_other', { n: playsAway })}">${t(playsAway === 1 ? 'bu_badge_away_one' : 'bu_badge_away_other', { n: playsAway })}</span>`;
+      if (totalBuWeeks >= 2) buBadges += `<span class="bu-badge bu-badge-weeks" title="${t('bu_badge_weeks_title', { n: totalBuWeeks })}">${t('bu_badge_weeks_label', { n: totalBuWeeks })}</span>`;
+      if (consecutiveBuWeeks >= 2) buBadges += `<span class="bu-badge bu-badge-streak" title="${t('bu_badge_streak_title', { n: consecutiveBuWeeks })}">${t('bu_badge_streak_label', { n: consecutiveBuWeeks })}</span>`;
+      buLineHtml = `<div class="dropout-bu-line"><span class="dropout-bu-now">${t('off_bu_now_at', { n: buEntry.rank })}</span>${buBadges}</div>`;
     } else {
       // Not even in the Bubbling Under zone — say so explicitly instead of
       // leaving the absence of a BU line to be read as a gap in the data.
       const thisWeekCount = counts[k]?.count || 0;
       const goneNote = thisWeekCount > 0
-        ? `${thisWeekCount} play${thisWeekCount !== 1 ? 's' : ''} this week — not enough for Bubbling Under`
-        : `No plays this week`;
+        ? t(thisWeekCount === 1 ? 'off_bu_gone_one' : 'off_bu_gone_other', { n: thisWeekCount })
+        : t('off_bu_no_plays');
       buLineHtml = `<div class="dropout-bu-line dropout-bu-line--gone"><span class="dropout-bu-gone">${esc(goneNote)}</span></div>`;
     }
 

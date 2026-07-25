@@ -428,23 +428,24 @@
 
     <!-- Collapse All toggle bar — shown on chart period views -->
     <div class="collapse-all-bar" id="collapseAllBar" style="display:none;">
+      <!-- Label swaps between two i18n keys based on collapsed state — re-derived by syncCollapseAllBtn(), not a plain data-i18n -->
       <button class="collapse-all-toggle-btn" id="collapseAllToggleBtn" onclick="toggleCollapseAllCharts()" title="Collapse all chart sections">− Collapse All</button>
     </div>
 
     <!-- Chart type toggle — shows one of Songs/Artists/Albums at a time, Songs by default -->
     <div class="chart-type-toggle-bar" id="chartTypeToggleBar" style="display:none;">
-      <button class="chart-type-toggle-btn active" data-type="songs" onclick="setChartTypeView('songs')"><svg class="type-icon" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg> Songs</button>
-      <button class="chart-type-toggle-btn" data-type="artists" onclick="setChartTypeView('artists')"><svg class="type-icon" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg> Artists</button>
-      <button class="chart-type-toggle-btn" data-type="albums" onclick="setChartTypeView('albums')"><svg class="type-icon" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3"/></svg> Albums</button>
+      <button class="chart-type-toggle-btn active" data-type="songs" onclick="setChartTypeView('songs')"><svg class="type-icon" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg> <span data-i18n="chart_type_songs">Songs</span></button>
+      <button class="chart-type-toggle-btn" data-type="artists" onclick="setChartTypeView('artists')"><svg class="type-icon" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg> <span data-i18n="chart_type_artists">Artists</span></button>
+      <button class="chart-type-toggle-btn" data-type="albums" onclick="setChartTypeView('albums')"><svg class="type-icon" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3"/></svg> <span data-i18n="chart_type_albums">Albums</span></button>
     </div>
 
     <div class="chart-type-group" id="songsChartGroup">
     <!-- Sub-chart toggles — Normal/Bubbling Under/Off the Chart/New Entries are independent, any combo can be active -->
     <div class="sub-chart-toggle-bar" id="subChartToggleBar-songs">
-      <button class="sub-chart-toggle-btn active" data-sub="normal" onclick="toggleSubChart('songs','normal')"><svg class="type-icon" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg> Chart</button>
-      <button class="sub-chart-toggle-btn active" data-sub="bu" onclick="toggleSubChart('songs','bu')"><svg class="type-icon" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="7" cy="15" r="4"/><circle cx="16" cy="7" r="3"/><circle cx="18" cy="16" r="2"/></svg> Bubbling Under</button>
+      <button class="sub-chart-toggle-btn active" data-sub="normal" onclick="toggleSubChart('songs','normal')"><svg class="type-icon" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg> <span data-i18n="sub_toggle_chart">Chart</span></button>
+      <button class="sub-chart-toggle-btn active" data-sub="bu" onclick="toggleSubChart('songs','bu')"><svg class="type-icon" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="7" cy="15" r="4"/><circle cx="16" cy="7" r="3"/><circle cx="18" cy="16" r="2"/></svg> <span data-i18n="sub_toggle_bu">Bubbling Under</span></button>
       <button class="sub-chart-toggle-btn active" data-sub="off" onclick="toggleSubChart('songs','off')"><svg class="type-icon" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="23 18 13.5 8.5 8.5 13.5 1 6"/><polyline points="17 18 23 18 23 12"/></svg> <span data-i18n="sec_off_chart">Off the Chart</span></button>
-      <button class="sub-chart-toggle-btn active" data-sub="new" onclick="toggleSubChart('songs','new')"><svg class="type-icon" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l1 3.5L16.5 8 13 9l-1 3.5L11 9 7.5 8 11 6.5z"/><path d="M19 14l.6 2 2 .6-2 .6-.6 2-.6-2-2-.6 2-.6z"/></svg> New Entries</button>
+      <button class="sub-chart-toggle-btn active" data-sub="new" onclick="toggleSubChart('songs','new')"><svg class="type-icon" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l1 3.5L16.5 8 13 9l-1 3.5L11 9 7.5 8 11 6.5z"/><path d="M19 14l.6 2 2 .6-2 .6-.6 2-.6-2-2-.6 2-.6z"/></svg> <span data-i18n="sub_toggle_new">New Entries</span></button>
     </div>
     <div class="chart-section" id="songsSection">
       <div class="section-header">
@@ -573,13 +574,13 @@
       <div class="bu-section-header" onclick="toggleBuSection('songs')">
         <span class="bu-bubble-emoji"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="7" cy="15" r="4"/><circle cx="16" cy="7" r="3"/><circle cx="18" cy="16" r="2"/></svg></span>
         <span class="bu-section-title" id="buSongsSectionTitle">BUBBLING UNDER</span>
-        <span class="bu-type-label">Songs</span>
+        <span class="bu-type-label" data-i18n="chart_type_songs">Songs</span>
         <span class="bu-count-pill" id="buSongsCount">0</span>
         <span class="bu-toggle-icon" id="buSongsToggleIcon">▼</span>
         <div class="section-rule"></div>
       </div>
       <div class="bu-body" id="buSongsBody" style="display:none;">
-        <div class="bu-sub">Songs just outside the chart — ranked by plays this week</div>
+        <div class="bu-sub" data-i18n="bu_sub_songs">Songs just outside the chart — ranked by plays this week</div>
         <div class="bu-legend" id="buSongsLegend"></div>
         <table class="chart-table bu-table">
           <tbody id="buSongsTableBody"></tbody>
@@ -641,10 +642,10 @@
     <div class="chart-type-group" id="artistsChartGroup" style="display:none;">
     <!-- Sub-chart toggles — Normal/Bubbling Under/Off the Chart/New Entries are independent, any combo can be active -->
     <div class="sub-chart-toggle-bar" id="subChartToggleBar-artists">
-      <button class="sub-chart-toggle-btn active" data-sub="normal" onclick="toggleSubChart('artists','normal')"><svg class="type-icon" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg> Chart</button>
-      <button class="sub-chart-toggle-btn active" data-sub="bu" onclick="toggleSubChart('artists','bu')"><svg class="type-icon" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="7" cy="15" r="4"/><circle cx="16" cy="7" r="3"/><circle cx="18" cy="16" r="2"/></svg> Bubbling Under</button>
+      <button class="sub-chart-toggle-btn active" data-sub="normal" onclick="toggleSubChart('artists','normal')"><svg class="type-icon" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg> <span data-i18n="sub_toggle_chart">Chart</span></button>
+      <button class="sub-chart-toggle-btn active" data-sub="bu" onclick="toggleSubChart('artists','bu')"><svg class="type-icon" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="7" cy="15" r="4"/><circle cx="16" cy="7" r="3"/><circle cx="18" cy="16" r="2"/></svg> <span data-i18n="sub_toggle_bu">Bubbling Under</span></button>
       <button class="sub-chart-toggle-btn active" data-sub="off" onclick="toggleSubChart('artists','off')"><svg class="type-icon" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="23 18 13.5 8.5 8.5 13.5 1 6"/><polyline points="17 18 23 18 23 12"/></svg> <span data-i18n="sec_off_chart">Off the Chart</span></button>
-      <button class="sub-chart-toggle-btn active" data-sub="new" onclick="toggleSubChart('artists','new')"><svg class="type-icon" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l1 3.5L16.5 8 13 9l-1 3.5L11 9 7.5 8 11 6.5z"/><path d="M19 14l.6 2 2 .6-2 .6-.6 2-.6-2-2-.6 2-.6z"/></svg> New Entries</button>
+      <button class="sub-chart-toggle-btn active" data-sub="new" onclick="toggleSubChart('artists','new')"><svg class="type-icon" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l1 3.5L16.5 8 13 9l-1 3.5L11 9 7.5 8 11 6.5z"/><path d="M19 14l.6 2 2 .6-2 .6-.6 2-.6-2-2-.6 2-.6z"/></svg> <span data-i18n="sub_toggle_new">New Entries</span></button>
     </div>
     <div class="chart-section" id="artistsSection">
       <div class="section-header">
@@ -767,13 +768,13 @@
       <div class="bu-section-header" onclick="toggleBuSection('artists')">
         <span class="bu-bubble-emoji"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="7" cy="15" r="4"/><circle cx="16" cy="7" r="3"/><circle cx="18" cy="16" r="2"/></svg></span>
         <span class="bu-section-title" id="buArtistsSectionTitle">BUBBLING UNDER</span>
-        <span class="bu-type-label">Artists</span>
+        <span class="bu-type-label" data-i18n="chart_type_artists">Artists</span>
         <span class="bu-count-pill" id="buArtistsCount">0</span>
         <span class="bu-toggle-icon" id="buArtistsToggleIcon">▼</span>
         <div class="section-rule"></div>
       </div>
       <div class="bu-body" id="buArtistsBody" style="display:none;">
-        <div class="bu-sub">Artists just outside the chart — ranked by plays this week</div>
+        <div class="bu-sub" data-i18n="bu_sub_artists">Artists just outside the chart — ranked by plays this week</div>
         <div class="bu-legend" id="buArtistsLegend"></div>
         <table class="chart-table bu-table">
           <tbody id="buArtistsTableBody"></tbody>
@@ -835,10 +836,10 @@
     <div class="chart-type-group" id="albumsChartGroup" style="display:none;">
     <!-- Sub-chart toggles — Normal/Bubbling Under/Off the Chart/New Entries are independent, any combo can be active -->
     <div class="sub-chart-toggle-bar" id="subChartToggleBar-albums">
-      <button class="sub-chart-toggle-btn active" data-sub="normal" onclick="toggleSubChart('albums','normal')"><svg class="type-icon" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3"/></svg> Chart</button>
-      <button class="sub-chart-toggle-btn active" data-sub="bu" onclick="toggleSubChart('albums','bu')"><svg class="type-icon" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="7" cy="15" r="4"/><circle cx="16" cy="7" r="3"/><circle cx="18" cy="16" r="2"/></svg> Bubbling Under</button>
+      <button class="sub-chart-toggle-btn active" data-sub="normal" onclick="toggleSubChart('albums','normal')"><svg class="type-icon" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3"/></svg> <span data-i18n="sub_toggle_chart">Chart</span></button>
+      <button class="sub-chart-toggle-btn active" data-sub="bu" onclick="toggleSubChart('albums','bu')"><svg class="type-icon" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="7" cy="15" r="4"/><circle cx="16" cy="7" r="3"/><circle cx="18" cy="16" r="2"/></svg> <span data-i18n="sub_toggle_bu">Bubbling Under</span></button>
       <button class="sub-chart-toggle-btn active" data-sub="off" onclick="toggleSubChart('albums','off')"><svg class="type-icon" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="23 18 13.5 8.5 8.5 13.5 1 6"/><polyline points="17 18 23 18 23 12"/></svg> <span data-i18n="sec_off_chart">Off the Chart</span></button>
-      <button class="sub-chart-toggle-btn active" data-sub="new" onclick="toggleSubChart('albums','new')"><svg class="type-icon" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l1 3.5L16.5 8 13 9l-1 3.5L11 9 7.5 8 11 6.5z"/><path d="M19 14l.6 2 2 .6-2 .6-.6 2-.6-2-2-.6 2-.6z"/></svg> New Entries</button>
+      <button class="sub-chart-toggle-btn active" data-sub="new" onclick="toggleSubChart('albums','new')"><svg class="type-icon" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l1 3.5L16.5 8 13 9l-1 3.5L11 9 7.5 8 11 6.5z"/><path d="M19 14l.6 2 2 .6-2 .6-.6 2-.6-2-2-.6 2-.6z"/></svg> <span data-i18n="sub_toggle_new">New Entries</span></button>
     </div>
     <div class="chart-section" id="albumsSection">
       <div class="section-header">
@@ -962,13 +963,13 @@
       <div class="bu-section-header" onclick="toggleBuSection('albums')">
         <span class="bu-bubble-emoji"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="7" cy="15" r="4"/><circle cx="16" cy="7" r="3"/><circle cx="18" cy="16" r="2"/></svg></span>
         <span class="bu-section-title" id="buAlbumsSectionTitle">BUBBLING UNDER</span>
-        <span class="bu-type-label">Albums</span>
+        <span class="bu-type-label" data-i18n="chart_type_albums">Albums</span>
         <span class="bu-count-pill" id="buAlbumsCount">0</span>
         <span class="bu-toggle-icon" id="buAlbumsToggleIcon">▼</span>
         <div class="section-rule"></div>
       </div>
       <div class="bu-body" id="buAlbumsBody" style="display:none;">
-        <div class="bu-sub">Albums just outside the chart — ranked by plays this week</div>
+        <div class="bu-sub" data-i18n="bu_sub_albums">Albums just outside the chart — ranked by plays this week</div>
         <div class="bu-legend" id="buAlbumsLegend"></div>
         <table class="chart-table bu-table">
           <tbody id="buAlbumsTableBody"></tbody>
