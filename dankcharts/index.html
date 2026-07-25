@@ -175,7 +175,7 @@
 
       <div class="landing-card" id="landingCardLastfm" onclick="selectLandingSource('lastfm')">
         <span class="landing-card-pos" aria-hidden="true">02</span>
-        <span class="landing-card-badge" data-i18n="landing_lastfm_badge">ZERO UPKEEP</span>
+        <span class="landing-card-badge" data-i18n="landing_lastfm_badge">FASTEST START</span>
         <!-- Literal scrobble: a vinyl record + tonearm instead of a generic
              note glyph. Tonearm lifts at rest, drops onto the groove and the
              disc spins on hover/select — scrobbling IS "what's spinning". -->
@@ -210,7 +210,7 @@
 
       <div class="landing-card" id="landingCardFile" onclick="selectLandingSource('file')">
         <span class="landing-card-pos" aria-hidden="true">03</span>
-        <span class="landing-card-badge" data-i18n="landing_file_badge">FASTEST START</span>
+        <span class="landing-card-badge" data-i18n="landing_file_badge">NO ACCOUNT NEEDED</span>
         <!-- Stack of files: fans out on hover (the several supported formats)
              while the front page's data lines stream in — a file being parsed.
              Drawn in CSS (not an emoji) so the sheets can move independently. -->
@@ -223,6 +223,10 @@
         <p data-i18n="landing_file_desc">Import from CSV, Last.fm export, Spotify ZIP, or Deezer XLSX</p>
         <div class="landing-card-config" id="landingConfigFile" style="display:none;">
           <p class="landing-hint" data-i18n="landing_file_hint">You'll choose your file on the next screen</p>
+          <!-- Same affordance the Sheets card carries: the file path has the most
+               prep work of the three (requesting an export, reshaping a CSV), so
+               the guide needs to be reachable before the file picker, not after. -->
+          <p class="landing-hint" style="margin-top:0.3rem"><a href="setup-guide.html?tab=file" target="_blank" rel="noopener" onclick="event.stopPropagation()" data-i18n="landing_file_setup_guide">📄 Setup guide</a></p>
         </div>
       </div>
 

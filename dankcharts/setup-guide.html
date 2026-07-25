@@ -74,6 +74,14 @@
       --btn-ink: #ffffff;
     }
 
+    /* Ink for the ✓ on a done step, which sits on a --green fill. The dark
+       themes' green is bright (#34d399/#4ade80), so the page ink reads against
+       it; the light themes override this below.
+       Declared on body, not :root, because a custom property is substituted
+       where it is declared — at :root, var(--bg) would freeze to the default
+       navy before any theme class on body could change it. */
+    body { --tick-ink: var(--bg); }
+
     body.navy-light {
       --bg: #ccdcf0; --bg2: #ffffff; --bg3: #ecf3fb; --surface: #dbe8f8;
       --border: #9db4d2; --border2: #5f83b4;
@@ -150,6 +158,10 @@
       --glass-line:   var(--border);
       --glass-shadow: 0 8px 28px rgba(0, 0, 0, 0.13);
       --glass-blur:   none;
+      /* These themes' --bg is a pale tint, and on their darker --green
+         (#15803d) it measured ~3.6:1 — too low for a glyph. White gets
+         5.02:1 on that same green. */
+      --tick-ink: #ffffff;
     }
 
     /* ── Page shell ─────────────────────────────────────────────────────
@@ -190,6 +202,10 @@
     }
 
     strong { color: var(--text); font-weight: 600; }
+    /* …but not when it's the label of a link: --text would beat the inherited
+       accent and the link would lose its only affordance besides the underline
+       on hover. */
+    a strong { color: inherit; }
     em { color: var(--text); font-style: italic; }
 
     /* ── Backdrop: drifting orbs ────────────────────────────────────────
@@ -577,7 +593,7 @@
       gap: 0.9rem;
       text-align: left;
       padding: 1rem 1.15rem;
-      border-radius: 16px;
+      border-radius: 14px;
       border: 1px solid var(--glass-line);
       background: var(--glass);
       backdrop-filter: var(--glass-blur);
@@ -590,6 +606,7 @@
     }
     #guideTabSheets { --tab-accent: var(--green); }
     #guideTabLastfm { --tab-accent: var(--rose); }
+    #guideTabFile   { --tab-accent: var(--accent); }
 
     .guide-tab:hover {
       transform: translateY(-3px);
@@ -729,6 +746,60 @@
     .guide-tab:hover .vinyl-tonearm,
     .guide-tab.active .vinyl-tonearm { transform: rotate(-38deg); }
 
+    /* Icon 03 — a stack of files being read. The three sheets sit already
+       splayed (a tight pile just reads as one rounded card at this size) and
+       fan wider when the guide is hovered/open, while the front page's data
+       lines stream in left to right: a file being parsed. The fill is opaque
+       — mixed into --bg2 rather than into transparent — so the sheets occlude
+       each other instead of piling into one blue blob. */
+    .tab-icon-upload {
+      position: relative;
+      flex-shrink: 0;
+      width: 2.2rem; height: 2.2rem;
+    }
+    .tab-icon-upload .up-sheet {
+      position: absolute;
+      left: 50%;
+      bottom: 0.2rem;
+      width: 1.25rem; height: 1.58rem;
+      margin-left: -0.62rem;
+      border-radius: 3px;
+      border: 1.5px solid color-mix(in srgb, var(--accent) 65%, transparent);
+      background: color-mix(in srgb, var(--accent) 20%, var(--bg2));
+      transform-origin: bottom center;
+      transition: transform 0.42s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    /* The two behind sit darker, so the front page reads as the top of the pile */
+    .tab-icon-upload .up-sheet-2,
+    .tab-icon-upload .up-sheet-3 {
+      background: color-mix(in srgb, var(--accent) 13%, var(--bg));
+      border-color: color-mix(in srgb, var(--accent) 45%, transparent);
+    }
+    .tab-icon-upload .up-sheet-3 { transform: rotate(-14deg) translateX(-0.12rem); }
+    .tab-icon-upload .up-sheet-2 { transform: rotate(9deg) translateX(0.1rem); }
+    .guide-tab:hover .up-sheet-3,
+    .guide-tab.active .up-sheet-3 { transform: rotate(-25deg) translate(-0.25rem, 0.03rem); }
+    .guide-tab:hover .up-sheet-2,
+    .guide-tab.active .up-sheet-2 { transform: rotate(17deg) translate(0.23rem, 0.02rem); }
+    .guide-tab:hover .up-sheet-1,
+    .guide-tab.active .up-sheet-1 { transform: translateY(-0.17rem); }
+
+    .tab-icon-upload .up-sheet-1 span {
+      position: absolute;
+      left: 0.17rem;
+      height: 1.5px;
+      border-radius: 1px;
+      background: color-mix(in srgb, var(--accent) 78%, transparent);
+      transform: scaleX(0);
+      transform-origin: left center;
+      transition: transform 0.32s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .tab-icon-upload .up-sheet-1 span:nth-child(1) { top: 0.34rem; width: 0.78rem; transition-delay: 0.14s; }
+    .tab-icon-upload .up-sheet-1 span:nth-child(2) { top: 0.63rem; width: 0.57rem; transition-delay: 0.22s; }
+    .tab-icon-upload .up-sheet-1 span:nth-child(3) { top: 0.92rem; width: 0.7rem;  transition-delay: 0.3s; }
+    .guide-tab:hover .up-sheet-1 span,
+    .guide-tab.active .up-sheet-1 span { transform: scaleX(1); }
+
     /* ── Section label ──────────────────────────────────────────────────
        The landing's broadcast lower-third: a tracked label flanked by
        hairline rules that fade outward. Used only for the three real section
@@ -760,7 +831,7 @@
     .needs {
       background: var(--glass);
       border: 1px solid var(--glass-line);
-      border-radius: 16px;
+      border-radius: 14px;
       backdrop-filter: var(--glass-blur);
       -webkit-backdrop-filter: var(--glass-blur);
       padding: 1.3rem 1.5rem;
@@ -802,6 +873,142 @@
        Sheets template URL genuinely cannot fit any line. */
     .needs a { overflow-wrap: break-word; }
 
+    /* ── Progress bar ───────────────────────────────────────────────────
+       A guide you tick your way through. Sits above each path's steps and
+       fills as you go, so a long page always answers "how much is left?".
+       Hidden until JS wires it up — without a working check-off it would be a
+       bar that never moves. */
+    /* Progress bar and the view switch share one row above the steps. */
+    .viewbar {
+      display: flex;
+      align-items: center;
+      /* flex-end so the switch keeps its place when Full text hides the
+         progress bar — otherwise it slides across the row on every toggle. */
+      justify-content: flex-end;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+    .progress {
+      display: none;
+      flex: 1;
+      align-items: center;
+      gap: 0.8rem;
+      min-width: 0;
+    }
+    .progress.ready { display: flex; }
+
+    /* ── View switch ────────────────────────────────────────────────────
+       Guided is the default: tick steps off, pick your service, detail folded
+       away. Full text drops all of that and lays the whole guide out at once —
+       better for reading end to end, or for anyone who'd rather not click. */
+    .viewtoggle {
+      display: flex;
+      flex-shrink: 0;
+      gap: 2px;
+      padding: 2px;
+      border: 1px solid var(--glass-line);
+      background: var(--glass);
+      border-radius: 999px;
+    }
+    .viewtoggle-btn {
+      font-family: var(--font-mono);
+      font-size: 0.62rem;
+      font-weight: 500;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--text2);
+      background: none;
+      border: none;
+      border-radius: 999px;
+      padding: 0.35rem 0.8rem;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: background 0.18s, color 0.18s;
+    }
+    .viewtoggle-btn:hover { color: var(--text); }
+    .viewtoggle-btn[aria-pressed="true"] {
+      background: color-mix(in srgb, var(--accent) 20%, var(--glass-hi));
+      color: var(--text);
+      font-weight: 700;
+    }
+
+    /* ── Full-text mode ─────────────────────────────────────────────────
+       Everything open, nothing interactive: no ticking, no folding, no
+       service filter. The done-state is left on the elements so switching
+       back to Guided restores exactly where you were. */
+    body.view-text .progress,
+    body.view-text .picker,
+    /* the prompt only makes sense with the chips it introduces */
+    body.view-text .picker-prompt { display: none; }
+    body.view-text .step.done .step-body { display: block; }
+    body.view-text .step.done .step-card { opacity: 1; cursor: default; }
+    body.view-text .step-node { cursor: default; }
+    body.view-text .step-node:hover { transform: none; border-color: var(--glass-line); }
+    /* Ticks are meaningless here, so the nodes go back to being numbers */
+    body.view-text .step.done .step-node {
+      background: var(--glass-hi);
+      border-color: var(--glass-line);
+      color: var(--accent);
+    }
+    body.view-text .step.done .step-num { opacity: 1; }
+    body.view-text .step.done .step-tick { opacity: 0; }
+    /* The "why" folds become plain prose — their summaries were only ever
+       handles for hiding text that now belongs inline. */
+    body.view-text .why > summary { display: none; }
+    body.view-text .why-body { margin-top: 0; }
+    .progress-track {
+      flex: 1;
+      height: 5px;
+      border-radius: 999px;
+      background: var(--glass-line);
+      overflow: hidden;
+    }
+    /* scaleX rather than width: the bar is laid out full-width once and only
+       ever transformed, so ticking a step never triggers layout. --p is the
+       0–1 fraction, set by the script. */
+    .progress-fill {
+      height: 100%;
+      width: 100%;
+      border-radius: 999px;
+      background: linear-gradient(90deg, var(--accent), var(--accent2));
+      transform: scaleX(var(--p, 0));
+      transform-origin: left center;
+      transition: transform 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+    .progress-label {
+      font-family: var(--font-mono);
+      font-size: 0.66rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--text2);
+      white-space: nowrap;
+    }
+    .progress-reset {
+      font-family: var(--font-mono);
+      font-size: 0.62rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      background: none;
+      border: none;
+      color: var(--text3);
+      cursor: pointer;
+      padding: 0.2rem;
+      text-decoration: underline;
+    }
+    .progress-reset:hover { color: var(--text); }
+    .progress-reset[hidden] { display: none; }
+
+    /* The finish line — swapped in for the label once everything is ticked */
+    .progress-done {
+      font-family: var(--font-mono);
+      font-size: 0.66rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--green);
+      white-space: nowrap;
+    }
+
     /* ── Steps: a numbered rail ─────────────────────────────────────────
        A guide is a sequence, so the numbers get their own column with a
        hairline connector running between them — you can see at a glance how
@@ -832,13 +1039,18 @@
         color-mix(in srgb, var(--glass-line) 30%, transparent) 100%);
     }
 
+    /* The node is the check-off control, so it's a real button — click it to
+       mark the step done. Styled to look like the number it replaces until
+       it's ticked. */
     .step-node {
+      position: relative;
       width: 46px; height: 46px;
       border-radius: 50%;
       display: flex;
       align-items: center;
       justify-content: center;
       flex-shrink: 0;
+      padding: 0;
       background: var(--glass-hi);
       border: 1px solid var(--glass-line);
       backdrop-filter: var(--glass-blur);
@@ -848,15 +1060,119 @@
       font-weight: 700;
       letter-spacing: -0.02em;
       color: var(--accent);
+      cursor: pointer;
+      transition: background 0.2s, border-color 0.2s, color 0.2s, transform 0.2s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+    .step-node:hover {
+      border-color: var(--accent);
+      transform: scale(1.06);
     }
     /* Optional steps read as optional before you get to the badge */
     .step-optional .step-node { color: var(--text3); }
+
+    .step-tick {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.15rem;
+      opacity: 0;
+      transform: scale(0.4);
+      transition: opacity 0.2s, transform 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+    .step.done .step-node {
+      background: var(--green);
+      border-color: var(--green);
+      color: var(--tick-ink);
+    }
+    .step.done .step-num { opacity: 0; }
+    .step.done .step-tick { opacity: 1; transform: scale(1); }
+    .step-num { transition: opacity 0.15s; }
+
+    /* Done steps fold to their title — the page gets shorter as you work
+       through it, which is the whole point of ticking them off. Clicking the
+       collapsed card (or its node again) brings it back. */
+    .step.done .step-body { display: none; }
+    .step.done .step-card {
+      padding-bottom: 1.3rem;
+      cursor: pointer;
+      opacity: 0.62;
+      transition: opacity 0.2s;
+    }
+    .step.done .step-card:hover { opacity: 0.85; }
+    .step.done .step-title { margin: 0; }
+
+    /* ── Service picker ─────────────────────────────────────────────────
+       Six sources, one relevant. Pick yours and the guide shows only your
+       instructions instead of five other people's. Everything is visible by
+       default in the markup — the filtering is added by script, so no-JS and
+       print both get the full list rather than a blank step. */
+    .picker {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.45rem;
+      margin: 0.9rem 0 1.1rem;
+    }
+    .picker-btn {
+      font-family: var(--font-sans);
+      font-size: 0.84rem;
+      font-weight: 500;
+      color: var(--text2);
+      background: var(--glass-hi);
+      border: 1px solid var(--glass-line);
+      border-radius: 999px;
+      padding: 0.42rem 0.9rem;
+      cursor: pointer;
+      transition: border-color 0.18s, color 0.18s, background 0.18s, transform 0.18s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+    .picker-btn:hover {
+      color: var(--text);
+      border-color: var(--accent);
+      transform: translateY(-1px);
+    }
+    .picker-btn[aria-pressed="true"] {
+      background: color-mix(in srgb, var(--accent) 16%, var(--glass-hi));
+      border-color: var(--accent);
+      color: var(--text);
+      font-weight: 600;
+    }
+
+    /* ── Inline disclosure ──────────────────────────────────────────────
+       The "why" behind a rule, folded away. Same grammar as .disclose but
+       sized to sit inside a paragraph flow rather than own a panel. */
+    .why { display: inline-block; }
+    .why > summary {
+      list-style: none;
+      cursor: pointer;
+      font-family: var(--font-mono);
+      font-size: 0.68rem;
+      letter-spacing: 0.05em;
+      color: var(--text3);
+      user-select: none;
+      padding: 0.1rem 0;
+      transition: color 0.15s;
+    }
+    .why > summary::-webkit-details-marker { display: none; }
+    .why > summary::before { content: '› '; color: var(--accent); }
+    .why[open] > summary::before { content: '⌄ '; }
+    .why > summary:hover { color: var(--text2); }
+    .why-body {
+      display: block;
+      margin-top: 0.4rem;
+      padding-left: 0.85rem;
+      border-left: 1px solid var(--glass-line);
+      font-size: 0.85rem;
+      color: var(--text2);
+      line-height: 1.6;
+    }
+    .why-body > * + * { margin-top: 0.4rem; }
 
     .step-card {
       min-width: 0; /* long setup URLs must wrap, or phones scroll sideways */
       background: var(--glass);
       border: 1px solid var(--glass-line);
-      border-radius: 16px;
+      border-radius: 14px;
       backdrop-filter: var(--glass-blur);
       -webkit-backdrop-filter: var(--glass-blur);
       padding: 1.3rem 1.5rem 1.4rem;
@@ -974,6 +1290,9 @@
     }
     .spec-row + .spec-row { border-top: 1px solid color-mix(in srgb, var(--glass-line) 60%, transparent); }
     .spec-key { color: var(--text2); font-weight: 500; font-size: 0.88rem; }
+    /* "(required)" / "(optional)" riding along with a field name — quieter than
+       the label it qualifies, without dropping to --text3 (too low at this size). */
+    .spec-key em { font-style: normal; font-weight: 400; opacity: 0.75; }
     .spec-val {
       font-family: var(--font-mono);
       font-size: 0.8rem;
@@ -981,6 +1300,60 @@
       overflow-wrap: anywhere;
     }
     .spec-val.muted { color: var(--text3); font-style: italic; }
+
+    /* ── Service list ───────────────────────────────────────────────────
+       "Where do I get my file, and will it just work?" — one row per music
+       service. Deliberately not a .spec table: the answer is a sentence of
+       prose, not a value you type, and a 3-column table of prose collapses
+       into mush on a phone. The verdict chip carries the whole scan-value —
+       green means drop it straight in, amber means a spreadsheet detour. */
+    .svc { list-style: none; display: flex; flex-direction: column; gap: 0.9rem; }
+    /* --glass-hi, not a glass-line wash: the rows sit inside a --glass step
+       card, and the wash landed on a muddier mid-tone where accent links fell
+       to 4.31–4.47:1 in the light themes. --glass-hi is the system's existing
+       "lifted surface" token and reads as raised against the card in both
+       modes while keeping links above 4.5. */
+    .svc > li {
+      border: 1px solid var(--glass-line);
+      border-radius: 12px;
+      background: var(--glass-hi);
+      padding: 0.85rem 1rem;
+    }
+    .svc-head {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: baseline;
+      gap: 0.5rem 0.7rem;
+      margin-bottom: 0.35rem;
+    }
+    .svc-name {
+      font-size: 0.98rem;
+      font-weight: 600;
+      letter-spacing: -0.01em;
+      color: var(--text);
+    }
+    .svc-fmt {
+      --tone: var(--green);
+      font-family: var(--font-mono);
+      font-size: 0.6rem;
+      font-weight: 700;
+      letter-spacing: 0.07em;
+      text-transform: uppercase;
+      /* Pulled toward the theme's ink rather than used raw. --green is light
+         enough that raw it measured 2.97–3.45:1 on the light themes' pale
+         chip fill, and at 0.6rem this is small text needing 4.5. Mixing
+         toward --text darkens it on light themes and brightens it on dark
+         ones, so one rule fixes both directions without a second token. */
+      color: color-mix(in srgb, var(--tone) 60%, var(--text));
+      border: 1px solid color-mix(in srgb, var(--tone) 55%, transparent);
+      background: color-mix(in srgb, var(--tone) 10%, transparent);
+      border-radius: 999px;
+      padding: 0.14rem 0.5rem;
+      white-space: nowrap;
+    }
+    .svc-fmt-work { --tone: var(--amber); }
+    .svc > li p { font-size: 0.88rem; color: var(--text2); text-wrap: pretty; }
+    .svc > li p + p { margin-top: 0.4rem; }
 
     /* ── Menu path ──────────────────────────────────────────────────────
        Keycap-ish chips for "click here, then here". */
@@ -997,7 +1370,7 @@
       color: var(--text);
       background: var(--glass-hi);
       border: 1px solid var(--glass-line);
-      border-radius: 7px;
+      border-radius: 6px;
       padding: 0.28rem 0.6rem;
       white-space: nowrap;
     }
@@ -1072,7 +1445,7 @@
        row, but everyone can find their own symptom in a list of four. */
     .faq {
       border: 1px solid var(--glass-line);
-      border-radius: 16px;
+      border-radius: 14px;
       background: var(--glass);
       backdrop-filter: var(--glass-blur);
       -webkit-backdrop-filter: var(--glass-blur);
@@ -1170,6 +1543,10 @@
       }
       .tab-icon-vinyl .vinyl-disc { animation: none; }
       .guide-hero, .guide-tabs, .guide-panel { animation: none; }
+      /* The blanket transition kill below would freeze the upload icon's data
+         lines at scaleX(0) — an empty page. Draw them in place instead, so the
+         icon still reads as "a file with data in it". */
+      .tab-icon-upload .up-sheet-1 span { transform: scaleX(1); }
       * , *::before, *::after {
         transition-duration: 0.01ms !important;
         animation-duration: 0.01ms !important;
@@ -1235,7 +1612,19 @@
       .guide-orb,
       .guide-eq-skyline,
       .guide-hero-actions,
+      .viewbar,
+      .picker,
+      .picker-prompt,
       .support .btn-primary { display: none !important; }
+
+      /* On paper nothing is folded: the tick-off state and the picker filter
+         are both on-screen conveniences (the script also un-does them for the
+         print job — this is the belt to that pair of braces). */
+      .step.done .step-body { display: block !important; }
+      .step.done .step-card { opacity: 1 !important; }
+      .why > summary { color: #06101e; font-weight: 600; }
+      .why > summary::before { content: '' !important; }
+      .why-body { border-left: none; padding-left: 0; }
 
       /* The picker itself is meaningless on paper, but which path you printed
          is not — so the chosen tab survives, stripped of its card, as a plain
@@ -1338,7 +1727,7 @@
       <span class="wordmark-dank">dank</span><span class="wordmark-station">charts</span><span class="wordmark-fm">.fm</span>
     </a>
     <h1 class="guide-title">Setup Guide</h1>
-    <p class="guide-tagline">Two ways to get your listening history in. Pick the one you started with and follow it end to end.</p>
+    <p class="guide-tagline">Three ways to get your listening history in. Pick the one you started with and follow it end to end.</p>
     <div class="guide-hero-actions">
       <button class="btn-ghost" onclick="window.print()">⤓ Save as PDF</button>
       <a class="btn-ghost" href="https://dankcharts.fm">Back to charts <span class="btn-arrow" aria-hidden="true">→</span></a>
@@ -1367,6 +1756,18 @@
         <span class="guide-tab-meta">4 steps · ~5 min</span>
       </span>
     </button>
+    <button class="guide-tab" id="guideTabFile" data-tab="file"
+            role="tab" aria-selected="false" aria-controls="tab-file">
+      <span class="tab-icon-upload" aria-hidden="true">
+        <span class="up-sheet up-sheet-3"></span>
+        <span class="up-sheet up-sheet-2"></span>
+        <span class="up-sheet up-sheet-1"><span></span><span></span><span></span></span>
+      </span>
+      <span class="guide-tab-text">
+        <span class="guide-tab-name">Upload a File</span>
+        <span class="guide-tab-meta">4 steps · ~10 min</span>
+      </span>
+    </button>
   </div>
 
   <!-- ═══════════════════════════ SHEETS PATH ═══════════════════════════ -->
@@ -1379,161 +1780,180 @@
       <li>A free Last.fm API key — <a href="https://www.last.fm/api/account/create" target="_blank" rel="noopener">last.fm/api/account/create</a></li>
     </ul>
 
+    <div class="viewbar">
+      <div class="progress" data-progress="sheets">
+        <div class="progress-track"><div class="progress-fill"></div></div>
+        <span class="progress-label"></span>
+        <button type="button" class="progress-reset" hidden>Start over</button>
+      </div>
+      <div class="viewtoggle" role="group" aria-label="How to show the steps">
+        <button type="button" class="viewtoggle-btn" data-view="guided" aria-pressed="true">Guided</button>
+        <button type="button" class="viewtoggle-btn" data-view="text" aria-pressed="false">Full text</button>
+      </div>
+    </div>
+
     <ol class="steps">
 
       <li class="step">
-        <div class="step-node" aria-hidden="true">01</div>
+        <button type="button" class="step-node" aria-pressed="false" aria-label="Mark step 1 done">
+          <span class="step-num">01</span><span class="step-tick" aria-hidden="true">✓</span>
+        </button>
         <div class="step-card">
           <h3 class="step-title">Copy the template sheet</h3>
-          <p>Open the link below and click <strong>Make a copy</strong>. This saves a personal copy to your own Google Drive — your data stays private and only you can edit it.</p>
-          <aside class="note">
-            <span class="note-icon" aria-hidden="true">↗</span>
-            <div class="note-body">
-              <strong>Template link:</strong><br>
-              <a href="https://docs.google.com/spreadsheets/d/19brQQYXn1WQNhCkSMCYnGVYmxhmLzKOE2A3E3QFCeqk/copy" target="_blank" rel="noopener">docs.google.com/spreadsheets/d/19brQQYXn1WQNhCkSMCYnGVYmxhmLzKOE2A3E3QFCeqk/copy</a>
-            </div>
-          </aside>
+          <div class="step-body">
+            <p>Open the template and click <strong>Make a copy</strong>. It lands in your own Drive — private to you.</p>
+            <p><a href="https://docs.google.com/spreadsheets/d/19brQQYXn1WQNhCkSMCYnGVYmxhmLzKOE2A3E3QFCeqk/copy" target="_blank" rel="noopener"><strong>Open the template →</strong></a></p>
+          </div>
         </div>
       </li>
 
       <li class="step">
-        <div class="step-node" aria-hidden="true">02</div>
+        <button type="button" class="step-node" aria-pressed="false" aria-label="Mark step 2 done">
+          <span class="step-num">02</span><span class="step-tick" aria-hidden="true">✓</span>
+        </button>
         <div class="step-card">
           <h3 class="step-title">Fill in your details</h3>
-          <p>In your copied sheet, click the <strong>Settings</strong> tab at the bottom. Fill in your Last.fm username and API key in column B.</p>
-          <div class="spec">
-            <div class="spec-head"><span>Column A</span><span>Column B — fill these in</span></div>
-            <div class="spec-row">
-              <span class="spec-key">Last.fm Username:</span>
-              <span class="spec-val">your_lastfm_username</span>
-            </div>
-            <div class="spec-row">
-              <span class="spec-key">Last.fm API Key:</span>
-              <span class="spec-val">your_32_character_api_key</span>
-            </div>
-            <div class="spec-row">
-              <span class="spec-key">Data Tab Name:</span>
-              <span class="spec-val muted">Full Raw Listening History (leave as-is)</span>
-            </div>
-          </div>
-          <aside class="note note-tip">
-            <span class="note-icon" aria-hidden="true">✦</span>
-            <div class="note-body">
-              <strong>Don't have an API key yet?</strong> Get one free in about 2 minutes at <a href="https://www.last.fm/api/account/create" target="_blank" rel="noopener">last.fm/api/account/create</a> — the application name can be anything you like.
-            </div>
-          </aside>
-        </div>
-      </li>
-
-      <li class="step">
-        <div class="step-node" aria-hidden="true">03</div>
-        <div class="step-card">
-          <h3 class="step-title">The script is already included</h3>
-          <p>When you made a copy in Step 1, Google showed a notice saying <em>"The attached Apps Script file and functionality will also be copied"</em> — that's the sync script. It came with the template, so there's nothing to add.</p>
-          <p>You can confirm it's there by going to:</p>
-          <div class="path">
-            <span class="path-step">Extensions</span>
-            <span class="path-arrow" aria-hidden="true">→</span>
-            <span class="path-step">Apps Script</span>
-          </div>
-          <p>You'll see the Last.fm sync code already loaded and ready. No changes needed — just close that tab and move on to Step 4.</p>
-          <details class="disclose">
-            <summary>Need to update or replace the script manually?</summary>
-            <div class="disclose-body">
-              <p>Copy the script below and paste it into your Apps Script editor (Extensions → Apps Script), replacing all existing code. Save (Ctrl+S), then redeploy if you previously set up a Web App deployment.</p>
-              <div class="code-wrap">
-                <pre id="guideAppsScriptCode"></pre>
-                <button type="button" class="code-copy" id="copyGuideAppsScriptBtn" onclick="copyGuideAppsScript()">Copy</button>
+          <div class="step-body">
+            <p>In your copy, open the <strong>Settings</strong> tab at the bottom and fill in column B.</p>
+            <div class="spec">
+              <div class="spec-head"><span>Column A</span><span>Column B — fill these in</span></div>
+              <div class="spec-row">
+                <span class="spec-key">Last.fm Username:</span>
+                <span class="spec-val">your_lastfm_username</span>
+              </div>
+              <div class="spec-row">
+                <span class="spec-key">Last.fm API Key:</span>
+                <span class="spec-val">your_32_character_api_key</span>
+              </div>
+              <div class="spec-row">
+                <span class="spec-key">Data Tab Name:</span>
+                <span class="spec-val muted">leave as-is</span>
               </div>
             </div>
-          </details>
+            <details class="why">
+              <summary>No API key yet?</summary>
+              <div class="why-body">
+                <p>Get one free in about two minutes at <a href="https://www.last.fm/api/account/create" target="_blank" rel="noopener">last.fm/api/account/create</a>. The application name can be anything.</p>
+              </div>
+            </details>
+          </div>
         </div>
       </li>
 
       <li class="step">
-        <div class="step-node" aria-hidden="true">04</div>
+        <button type="button" class="step-node" aria-pressed="false" aria-label="Mark step 3 done">
+          <span class="step-num">03</span><span class="step-tick" aria-hidden="true">✓</span>
+        </button>
+        <div class="step-card">
+          <h3 class="step-title">The script is already there</h3>
+          <div class="step-body">
+            <p>It came with the template — nothing to add. To see it:</p>
+            <div class="path">
+              <span class="path-step">Extensions</span>
+              <span class="path-arrow" aria-hidden="true">→</span>
+              <span class="path-step">Apps Script</span>
+            </div>
+            <p>Close that tab and carry on.</p>
+            <details class="disclose">
+              <summary>Replace the script manually</summary>
+              <div class="disclose-body">
+                <p>Paste this into Extensions → Apps Script, replacing everything there. Save with Ctrl+S, then redeploy if you set up a Web App in Step 6.</p>
+                <div class="code-wrap">
+                  <pre id="guideAppsScriptCode"></pre>
+                  <button type="button" class="code-copy" id="copyGuideAppsScriptBtn" onclick="copyGuideAppsScript()">Copy</button>
+                </div>
+              </div>
+            </details>
+          </div>
+        </div>
+      </li>
+
+      <li class="step">
+        <button type="button" class="step-node" aria-pressed="false" aria-label="Mark step 4 done">
+          <span class="step-num">04</span><span class="step-tick" aria-hidden="true">✓</span>
+        </button>
         <div class="step-card">
           <h3 class="step-title">Start auto-sync</h3>
-          <p>Go back to your sheet. You'll now see a <strong>Last.fm</strong> menu in the top menu bar, next to Help. Click it and select <strong>Start Auto-Update (90 min)</strong>.</p>
-          <div class="path">
-            <span class="path-step">Last.fm</span>
-            <span class="path-arrow" aria-hidden="true">→</span>
-            <span class="path-step">Start Auto-Update (90 min)</span>
+          <div class="step-body">
+            <p>Back in your sheet, a <strong>Last.fm</strong> menu now sits next to Help.</p>
+            <div class="path">
+              <span class="path-step">Last.fm</span>
+              <span class="path-arrow" aria-hidden="true">→</span>
+              <span class="path-step">Start Auto-Update (90 min)</span>
+            </div>
+            <p>New plays arrive every 90 minutes from now on. Want them immediately? <strong>Last.fm → Fetch Latest Tracks</strong>.</p>
+            <aside class="note note-warn">
+              <span class="note-icon" aria-hidden="true">!</span>
+              <div class="note-body">
+                <strong>"This app isn't verified"?</strong> Normal for personal scripts. Click <strong>Advanced → Go to [app name] (unsafe) → Allow</strong>. The script only touches your own sheet.
+              </div>
+            </aside>
+            <details class="why">
+              <summary>Why 90 minutes?</summary>
+              <div class="why-body">
+                <p>Some services — Deezer especially — lag before their scrobbles reach Last.fm. A wider window means nothing gets missed.</p>
+              </div>
+            </details>
           </div>
-          <p>That's it — your sheet will now automatically pull in new plays from Last.fm every 90 minutes. The 90-minute interval is intentional: some sources like Deezer can have a delay before scrobbles appear on Last.fm, so a longer window helps make sure nothing gets missed.</p>
-          <aside class="note note-warn">
-            <span class="note-icon" aria-hidden="true">!</span>
-            <div class="note-body">
-              <strong>Seeing a "This app isn't verified" warning?</strong> This is completely normal for personal scripts. Google shows this for any script that isn't published to the Play Store. Click <strong>Advanced</strong> → <strong>Go to [app name] (unsafe)</strong> → <strong>Allow</strong>. It is safe — the script only accesses your own sheet.
-            </div>
-          </aside>
-          <aside class="note note-tip">
-            <span class="note-icon" aria-hidden="true">✦</span>
-            <div class="note-body">
-              <strong>Don't want to wait?</strong> You can always pull your latest tracks manually at any time by clicking <strong>Last.fm → Fetch Latest Tracks</strong> — handy if you just finished a listening session and want your charts to update right away.
-            </div>
-          </aside>
         </div>
       </li>
 
       <li class="step">
-        <div class="step-node" aria-hidden="true">05</div>
+        <button type="button" class="step-node" aria-pressed="false" aria-label="Mark step 5 done">
+          <span class="step-num">05</span><span class="step-tick" aria-hidden="true">✓</span>
+        </button>
         <div class="step-card">
-          <h3 class="step-title">Connect to dankcharts.fm</h3>
-          <p>Now link your sheet to the site so your charts load from it. In dankcharts.fm, open Settings (the ⚙ icon), choose <strong>Google Sheets</strong>, and paste your sheet's URL.</p>
-          <aside class="note note-warn">
-            <span class="note-icon" aria-hidden="true">!</span>
-            <div class="note-body">
-              <strong>Important:</strong> your sheet must be set to "Anyone with the link can view" so the site can read it.<br>
-              In your sheet: <strong>Share → Anyone with the link → Viewer</strong>
+          <h3 class="step-title">Connect it to dankcharts.fm</h3>
+          <div class="step-body">
+            <div class="path">
+              <span class="path-step">Settings ⚙</span>
+              <span class="path-arrow" aria-hidden="true">→</span>
+              <span class="path-step">Google Sheets</span>
+              <span class="path-arrow" aria-hidden="true">→</span>
+              <span class="path-step">paste your sheet URL</span>
             </div>
-          </aside>
+            <aside class="note note-warn">
+              <span class="note-icon" aria-hidden="true">!</span>
+              <div class="note-body">
+                <strong>Share the sheet first</strong>, or the site can't read it: <strong>Share → Anyone with the link → Viewer</strong>.
+              </div>
+            </aside>
+          </div>
         </div>
       </li>
 
       <li class="step step-optional">
-        <div class="step-node" aria-hidden="true">06</div>
+        <button type="button" class="step-node" aria-pressed="false" aria-label="Mark step 6 done">
+          <span class="step-num">06</span><span class="step-tick" aria-hidden="true">✓</span>
+        </button>
         <div class="step-card">
-          <h3 class="step-title">Enable manual play entry <span class="optional-badge">Optional</span></h3>
-          <p>Want to add plays directly from dankcharts.fm using the <strong>+ Add Play</strong> button? You'll need to deploy the script as a Web App first. Here's how:</p>
-
-          <p class="step-sub">1 · Open the Apps Script editor</p>
-          <p>In your Google Sheet, go to:</p>
-          <div class="path">
-            <span class="path-step">Extensions</span>
-            <span class="path-arrow" aria-hidden="true">→</span>
-            <span class="path-step">Apps Script</span>
+          <h3 class="step-title">Add plays by hand <span class="optional-badge">Optional</span></h3>
+          <div class="step-body">
+            <p>Only needed for the <strong>+ Add Play</strong> button. Deploy the script as a Web App:</p>
+            <div class="path">
+              <span class="path-step">Extensions</span>
+              <span class="path-arrow" aria-hidden="true">→</span>
+              <span class="path-step">Apps Script</span>
+              <span class="path-arrow" aria-hidden="true">→</span>
+              <span class="path-step">Deploy</span>
+              <span class="path-arrow" aria-hidden="true">→</span>
+              <span class="path-step">New deployment</span>
+            </div>
+            <div class="spec">
+              <div class="spec-head"><span>Setting</span><span>Value</span></div>
+              <div class="spec-row"><span class="spec-key">Type</span><span class="spec-val">Web app</span></div>
+              <div class="spec-row"><span class="spec-key">Execute as</span><span class="spec-val">Me</span></div>
+              <div class="spec-row"><span class="spec-key">Who has access</span><span class="spec-val">Anyone</span></div>
+            </div>
+            <p>Hit <strong>Deploy</strong>, authorise it the same way as in Step 4, and copy the Web App URL. Then paste it into:</p>
+            <div class="path">
+              <span class="path-step">Settings ⚙</span>
+              <span class="path-arrow" aria-hidden="true">→</span>
+              <span class="path-step">Enable auto-sync &amp; manual play entry</span>
+            </div>
           </div>
-
-          <p class="step-sub">2 · Create a new deployment</p>
-          <p>In the Apps Script editor, click:</p>
-          <div class="path">
-            <span class="path-step">Deploy</span>
-            <span class="path-arrow" aria-hidden="true">→</span>
-            <span class="path-step">New deployment</span>
-          </div>
-
-          <p class="step-sub">3 · Configure the deployment settings</p>
-          <p>A dialog will open. Set the following:</p>
-          <div class="spec">
-            <div class="spec-head"><span>Setting</span><span>Value</span></div>
-            <div class="spec-row"><span class="spec-key">Type</span><span class="spec-val">Web app</span></div>
-            <div class="spec-row"><span class="spec-key">Execute as</span><span class="spec-val">Me</span></div>
-            <div class="spec-row"><span class="spec-key">Who has access</span><span class="spec-val">Anyone</span></div>
-          </div>
-          <p>Click <strong>Deploy</strong>. You may be asked to authorize — follow the same steps as in Step 4 (Advanced → Go to [app name] (unsafe) → Allow). Once done, <strong>copy the Web App URL</strong> it gives you.</p>
-
-          <p class="step-sub">4 · Paste the URL into dankcharts.fm</p>
-          <p>In dankcharts.fm, go to:</p>
-          <div class="path">
-            <span class="path-step">Settings ⚙</span>
-            <span class="path-arrow" aria-hidden="true">→</span>
-            <span class="path-step">Enable auto-sync &amp; manual play entry</span>
-          </div>
-          <p>Paste the URL into the <em>Apps Script Web App URL</em> field and save. The <strong>+ Add Play</strong> button will now work.</p>
         </div>
       </li>
-
     </ol>
 
     <section class="guide-section">
@@ -1583,92 +2003,117 @@
     <ul class="needs">
       <li>A Last.fm account</li>
       <li>A free Last.fm API key &amp; shared secret — <a href="https://www.last.fm/api/account/create" target="_blank" rel="noopener">last.fm/api/account/create</a></li>
-      <li>dankcharts.fm loaded with your listening history</li>
+      <li>dankcharts.fm loaded with your listening history — either from this guide's API connection, or by uploading a CSV from <a href="https://mainstream.ghan.nl/export.html" target="_blank" rel="noopener">ghan.nl's Last.fm exporter</a> (see the <strong>Upload a File</strong> guide)</li>
     </ul>
+
+    <div class="viewbar">
+      <div class="progress" data-progress="lastfm">
+        <div class="progress-track"><div class="progress-fill"></div></div>
+        <span class="progress-label"></span>
+        <button type="button" class="progress-reset" hidden>Start over</button>
+      </div>
+      <div class="viewtoggle" role="group" aria-label="How to show the steps">
+        <button type="button" class="viewtoggle-btn" data-view="guided" aria-pressed="true">Guided</button>
+        <button type="button" class="viewtoggle-btn" data-view="text" aria-pressed="false">Full text</button>
+      </div>
+    </div>
 
     <ol class="steps">
 
       <li class="step">
-        <div class="step-node" aria-hidden="true">01</div>
+        <button type="button" class="step-node" aria-pressed="false" aria-label="Mark step 1 done">
+          <span class="step-num">01</span><span class="step-tick" aria-hidden="true">✓</span>
+        </button>
         <div class="step-card">
-          <h3 class="step-title">Create a Last.fm API application</h3>
-          <p>Go to <a href="https://www.last.fm/api/account/create" target="_blank" rel="noopener">last.fm/api/account/create</a> and fill in the form. The values can be anything — here's a quick example:</p>
-          <div class="spec">
-            <div class="spec-head"><span>Field</span><span>What to enter</span></div>
-            <div class="spec-row"><span class="spec-key">Application name</span><span class="spec-val">My Music Charts</span></div>
-            <div class="spec-row"><span class="spec-key">Description</span><span class="spec-val">Personal use</span></div>
-            <div class="spec-row"><span class="spec-key">Application homepage</span><span class="spec-val">https://dankcharts.fm</span></div>
-            <div class="spec-row"><span class="spec-key">Callback URL</span><span class="spec-val">https://dankcharts.fm</span></div>
+          <h3 class="step-title">Create a Last.fm API app</h3>
+          <div class="step-body">
+            <p>Fill in the form at <a href="https://www.last.fm/api/account/create" target="_blank" rel="noopener">last.fm/api/account/create</a> — the values can be anything.</p>
+            <div class="spec">
+              <div class="spec-head"><span>Field</span><span>What to enter</span></div>
+              <div class="spec-row"><span class="spec-key">Application name</span><span class="spec-val">My Music Charts</span></div>
+              <div class="spec-row"><span class="spec-key">Description</span><span class="spec-val">Personal use</span></div>
+              <div class="spec-row"><span class="spec-key">Homepage</span><span class="spec-val">https://dankcharts.fm</span></div>
+              <div class="spec-row"><span class="spec-key">Callback URL</span><span class="spec-val">https://dankcharts.fm</span></div>
+            </div>
+            <p>Copy the <strong>API Key</strong> and <strong>Shared Secret</strong> it gives you. Free, instant, no approval.</p>
           </div>
-          <p>After submitting, Last.fm will show you an <strong>API Key</strong> (32 characters) and a <strong>Shared Secret</strong>. Copy both — you'll need them in the next step.</p>
-          <aside class="note note-tip">
-            <span class="note-icon" aria-hidden="true">✦</span>
-            <div class="note-body">
-              <strong>Free and instant.</strong> No payment or approval needed. The application is only used by you personally.
-            </div>
-          </aside>
         </div>
       </li>
 
       <li class="step">
-        <div class="step-node" aria-hidden="true">02</div>
+        <button type="button" class="step-node" aria-pressed="false" aria-label="Mark step 2 done">
+          <span class="step-num">02</span><span class="step-tick" aria-hidden="true">✓</span>
+        </button>
         <div class="step-card">
-          <h3 class="step-title">Enter your credentials in dankcharts.fm</h3>
-          <p>Open Settings (the ⚙ icon), select <strong>Last.fm</strong> as your data source, then scroll down to the <strong>Scrobble Setup</strong> section. Expand <strong>Use custom API credentials</strong> and paste in both values.</p>
-          <div class="path">
-            <span class="path-step">Settings ⚙</span>
-            <span class="path-arrow" aria-hidden="true">→</span>
-            <span class="path-step">Last.fm</span>
-            <span class="path-arrow" aria-hidden="true">→</span>
-            <span class="path-step">Scrobble Setup</span>
-            <span class="path-arrow" aria-hidden="true">→</span>
-            <span class="path-step">Use custom API credentials</span>
+          <h3 class="step-title">Paste them into dankcharts.fm</h3>
+          <div class="step-body">
+            <div class="path">
+              <span class="path-step">Settings ⚙</span>
+              <span class="path-arrow" aria-hidden="true">→</span>
+              <span class="path-step">Last.fm</span>
+              <span class="path-arrow" aria-hidden="true">→</span>
+              <span class="path-step">Scrobble Setup</span>
+              <span class="path-arrow" aria-hidden="true">→</span>
+              <span class="path-step">Use custom API credentials</span>
+            </div>
+            <aside class="note note-warn">
+              <span class="note-icon" aria-hidden="true">!</span>
+              <div class="note-body">
+                <strong>Both fields are required.</strong> The Shared Secret signs every request — without it, Connect won't work.
+              </div>
+            </aside>
           </div>
-          <aside class="note note-warn">
-            <span class="note-icon" aria-hidden="true">!</span>
-            <div class="note-body">
-              <strong>Both fields are required.</strong> The Shared Secret is used to sign requests — without it the "Connect" button won't work.
-            </div>
-          </aside>
         </div>
       </li>
 
       <li class="step">
-        <div class="step-node" aria-hidden="true">03</div>
+        <button type="button" class="step-node" aria-pressed="false" aria-label="Mark step 3 done">
+          <span class="step-num">03</span><span class="step-tick" aria-hidden="true">✓</span>
+        </button>
         <div class="step-card">
-          <h3 class="step-title">Connect your Last.fm account</h3>
-          <p>Click <strong>Connect to Last.fm</strong>. Last.fm will open in a new tab asking you to grant access to your account. Click <strong>Allow access</strong>, then come back to dankcharts.fm and click <strong>I've authorized ✓</strong>.</p>
-          <p>The status indicator will change to <span style="color:var(--green);font-weight:600">● Connected as [your username]</span> — you're all set.</p>
-          <aside class="note">
-            <span class="note-icon" aria-hidden="true">i</span>
-            <div class="note-body">
-              <strong>This connection is stored in your browser only.</strong> If you switch browsers or clear site data, you'll need to reconnect. Each person connects their own Last.fm account — your credentials are never shared.
+          <h3 class="step-title">Connect your account</h3>
+          <div class="step-body">
+            <div class="path">
+              <span class="path-step">Connect to Last.fm</span>
+              <span class="path-arrow" aria-hidden="true">→</span>
+              <span class="path-step">Allow access</span>
+              <span class="path-arrow" aria-hidden="true">→</span>
+              <span class="path-step">I've authorized ✓</span>
             </div>
-          </aside>
+            <p>The status flips to <span style="color:var(--green);font-weight:600">● Connected as [your username]</span> and you're done.</p>
+            <details class="why">
+              <summary>Where is this stored?</summary>
+              <div class="why-body">
+                <p>In this browser only. Switch browsers or clear site data and you'll reconnect. Everyone connects their own account — credentials are never shared.</p>
+              </div>
+            </details>
+          </div>
         </div>
       </li>
 
       <li class="step">
-        <div class="step-node" aria-hidden="true">04</div>
+        <button type="button" class="step-node" aria-pressed="false" aria-label="Mark step 4 done">
+          <span class="step-num">04</span><span class="step-tick" aria-hidden="true">✓</span>
+        </button>
         <div class="step-card">
-          <h3 class="step-title">Edit and push scrobbles from Raw Data</h3>
-          <p>Navigate to the <strong>Raw Data</strong> tab. Every row has a <strong>✎</strong> edit button on the right. Click it to open the edit panel for that entry — you can fix the artist, track title, album, or timestamp.</p>
-          <p>Once your corrections are ready, click <strong>Push to Last.fm</strong>. A corrected scrobble will be submitted to your Last.fm history with the details you entered.</p>
-          <aside class="note note-warn">
-            <span class="note-icon" aria-hidden="true">!</span>
-            <div class="note-body">
-              <strong>Important limitation:</strong> Last.fm's public API can add scrobbles but cannot delete or modify existing ones. Pushing a correction adds a new scrobble — it does not replace the original. To fully correct an entry, you'll need to manually delete the original on the <a href="https://www.last.fm" target="_blank" rel="noopener">Last.fm website</a>: go to your Profile → Scrobbles, find the entry, and delete it there.
-            </div>
-          </aside>
-          <aside class="note note-tip">
-            <span class="note-icon" aria-hidden="true">✦</span>
-            <div class="note-body">
-              <strong>Tip:</strong> Use <strong>Apply to all matching entries</strong> in the edit panel to fix the same artist/track combination across your entire local history in one go, then push once.
-            </div>
-          </aside>
+          <h3 class="step-title">Fix and push scrobbles</h3>
+          <div class="step-body">
+            <p>Open the <strong>Raw Data</strong> tab. Every row has a <strong>✎</strong> button — click it, fix the artist, title, album or time, then hit <strong>Push to Last.fm</strong>.</p>
+            <aside class="note note-warn">
+              <span class="note-icon" aria-hidden="true">!</span>
+              <div class="note-body">
+                <strong>Last.fm's API can add scrobbles, never delete them.</strong> A correction adds a <em>new</em> scrobble beside the old one — delete the original yourself on <a href="https://www.last.fm" target="_blank" rel="noopener">last.fm</a> under Profile → Scrobbles.
+              </div>
+            </aside>
+            <details class="why">
+              <summary>Fixing the same track everywhere?</summary>
+              <div class="why-body">
+                <p>Tick <strong>Apply to all matching entries</strong> in the edit panel to correct that artist/track across your whole local history, then push once.</p>
+              </div>
+            </details>
+          </div>
         </div>
       </li>
-
     </ol>
 
     <section class="guide-section">
@@ -1710,6 +2155,279 @@
     </div>
 
   </div><!-- /tab-lastfm -->
+
+  <!-- ═══════════════════════════ FILE UPLOAD PATH ══════════════════════ -->
+  <div class="guide-tab-panel guide-panel" id="tab-file" role="tabpanel" aria-labelledby="guideTabFile" style="display:none">
+
+    <h2 class="section-label">What you'll need</h2>
+    <ul class="needs">
+      <li>A data export from your music service — or any spreadsheet of plays</li>
+      <li>A spreadsheet editor, if your export needs reshaping (Google Sheets, Excel and Numbers all work)</li>
+      <li>Patience: most services take a few days to send your data</li>
+    </ul>
+
+    <aside class="note note-tip" style="margin-bottom:2rem">
+      <span class="note-icon" aria-hidden="true">✦</span>
+      <div class="note-body">
+        <strong>Your file never leaves your device.</strong> It's read and parsed in your browser, then stored locally — nothing is uploaded to a server.
+      </div>
+    </aside>
+
+    <div class="viewbar">
+      <div class="progress" data-progress="file">
+        <div class="progress-track"><div class="progress-fill"></div></div>
+        <span class="progress-label"></span>
+        <button type="button" class="progress-reset" hidden>Start over</button>
+      </div>
+      <div class="viewtoggle" role="group" aria-label="How to show the steps">
+        <button type="button" class="viewtoggle-btn" data-view="guided" aria-pressed="true">Guided</button>
+        <button type="button" class="viewtoggle-btn" data-view="text" aria-pressed="false">Full text</button>
+      </div>
+    </div>
+
+    <ol class="steps">
+
+      <li class="step">
+        <button type="button" class="step-node" aria-pressed="false" aria-label="Mark step 1 done">
+          <span class="step-num">01</span><span class="step-tick" aria-hidden="true">✓</span>
+        </button>
+        <div class="step-card">
+          <h3 class="step-title">Get your export</h3>
+          <div class="step-body">
+            <p class="picker-prompt">Where's your history coming from?</p>
+            <!-- Picking a service filters this list and Step 2 down to just that
+                 one. All six stay in the markup and the script hides the rest,
+                 so no-JS and print still get everything. -->
+            <div class="picker" role="group" aria-label="Your music service">
+              <button type="button" class="picker-btn" data-svc="spotify" aria-pressed="false">Spotify</button>
+              <button type="button" class="picker-btn" data-svc="deezer" aria-pressed="false">Deezer</button>
+              <button type="button" class="picker-btn" data-svc="lastfm" aria-pressed="false">Last.fm</button>
+              <button type="button" class="picker-btn" data-svc="youtube" aria-pressed="false">YouTube Music</button>
+              <button type="button" class="picker-btn" data-svc="apple" aria-pressed="false">Apple Music</button>
+              <button type="button" class="picker-btn" data-svc="other" aria-pressed="false">Something else</button>
+            </div>
+
+            <ul class="svc">
+              <li data-svc="spotify" data-fmt="zip">
+                <div class="svc-head"><span class="svc-name">Spotify</span><span class="svc-fmt">.zip · drop it in</span></div>
+                <p>Account → <strong>Privacy settings</strong> → Download your data. Tick <strong>Extended streaming history</strong> — "Account data" is only the last year.</p>
+                <p>Arrives by email as a ZIP. <strong>Upload it without unpacking.</strong></p>
+                <details class="why">
+                  <summary>How long does it take?</summary>
+                  <div class="why-body">
+                    <p>A few days for account data, up to 30 for extended history.</p>
+                  </div>
+                </details>
+              </li>
+              <li data-svc="deezer" data-fmt="xlsx">
+                <div class="svc-head"><span class="svc-name">Deezer</span><span class="svc-fmt svc-fmt-work">.xlsx · one edit first</span></div>
+                <p>Settings → <strong>My personal data</strong> → request your data.</p>
+                <p>You get a workbook of several sheets, and only the <strong>first</strong> one is read. Drag your listening history to the front, save, upload.</p>
+              </li>
+              <li data-svc="lastfm" data-fmt="csv">
+                <div class="svc-head"><span class="svc-name">Last.fm</span><span class="svc-fmt">.csv · drop it in</span></div>
+                <p>No built-in export — use <a href="https://mainstream.ghan.nl/export.html" target="_blank" rel="noopener"><strong>ghan.nl's exporter</strong></a>: username → <strong>scrobbles</strong> → <strong>CSV</strong>. No API key, no sign-in, no editing afterwards.</p>
+                <details class="why">
+                  <summary>Two things worth knowing</summary>
+                  <div class="why-body">
+                    <p>Over 100,000 scrobbles takes a minute or two to build.</p>
+                    <p>It can fetch only what's newer than a previous export — but uploads here <em>replace</em> rather than merge, so keep the full file.</p>
+                  </div>
+                </details>
+              </li>
+              <li data-svc="youtube" data-fmt="convert">
+                <div class="svc-head"><span class="svc-name">YouTube Music</span><span class="svc-fmt svc-fmt-work">convert first</span></div>
+                <p><a href="https://takeout.google.com" target="_blank" rel="noopener">Google Takeout</a> → deselect everything → <strong>YouTube and YouTube Music</strong> → limit to <strong>history</strong>.</p>
+                <p>Takeout's ZIP isn't a shape we read. Turn its watch-history file into a CSV — Step 3.</p>
+              </li>
+              <li data-svc="apple" data-fmt="convert">
+                <div class="svc-head"><span class="svc-name">Apple Music</span><span class="svc-fmt svc-fmt-work">rename headers</span></div>
+                <p><a href="https://privacy.apple.com" target="_blank" rel="noopener">privacy.apple.com</a> → Request a copy of your data → <strong>Apple Media Services information</strong>.</p>
+                <p>The play-history CSV uses Apple's own column names — rename the header row in Step 3.</p>
+              </li>
+              <li data-svc="other" data-fmt="convert">
+                <div class="svc-head"><span class="svc-name">Something else</span><span class="svc-fmt svc-fmt-work">rename headers</span></div>
+                <p>Tidal, Amazon Music, SoundCloud, Plex, a DJ set log, a spreadsheet you keep by hand — anything with a track, an artist and a date works. Step 3 has the column names.</p>
+              </li>
+            </ul>
+
+            <details class="why">
+              <summary>Menu doesn't match what you see?</summary>
+              <div class="why-body">
+                <p>These paths move around. Search your service's help centre for "download my data" — the export itself is what matters, not the route to it.</p>
+              </div>
+            </details>
+          </div>
+        </div>
+      </li>
+
+      <li class="step">
+        <button type="button" class="step-node" aria-pressed="false" aria-label="Mark step 2 done">
+          <span class="step-num">02</span><span class="step-tick" aria-hidden="true">✓</span>
+        </button>
+        <div class="step-card">
+          <h3 class="step-title">Can it go straight in?</h3>
+          <div class="step-body">
+            <p>Three shapes need no editing. If yours is one, skip to Step 4.</p>
+            <div class="spec">
+              <div class="spec-head"><span>File</span><span>What's read</span></div>
+              <div class="spec-row"><span class="spec-key">.zip</span><span class="spec-val">Spotify streaming history</span></div>
+              <div class="spec-row"><span class="spec-key">.xlsx / .xls</span><span class="spec-val">first sheet only</span></div>
+              <div class="spec-row"><span class="spec-key">.csv</span><span class="spec-val">column names from Step 3</span></div>
+            </div>
+
+            <div data-fmt-block="zip">
+              <p class="step-sub">Spotify ZIP</p>
+              <p>Upload it whole. Plays under 30 seconds are dropped, and so is anything without both a track and an artist — which is how podcasts fall out. A lower total than you expected is usually that, not a failure.</p>
+            </div>
+
+            <div data-fmt-block="xlsx">
+              <p class="step-sub">Deezer XLSX</p>
+              <p>Only the first sheet is read, so move your listening history to the front. English or French headings both work — <em>titre</em>, <em>artiste</em>, <em>album</em>, <em>écoute</em>.</p>
+            </div>
+
+            <div data-fmt-block="csv">
+              <p class="step-sub">A CSV you already have</p>
+              <p>If its header row already uses a name from Step 3, it's ready. <a href="https://mainstream.ghan.nl/export.html" target="_blank" rel="noopener">ghan.nl</a> exports are — their extra MusicBrainz ID columns are simply ignored.</p>
+            </div>
+          </div>
+        </div>
+      </li>
+
+      <li class="step">
+        <button type="button" class="step-node" aria-pressed="false" aria-label="Mark step 3 done">
+          <span class="step-num">03</span><span class="step-tick" aria-hidden="true">✓</span>
+        </button>
+        <div class="step-card">
+          <h3 class="step-title">Make it a CSV</h3>
+          <div class="step-body">
+            <aside class="note note-tip" data-skip-hint hidden>
+              <span class="note-icon" aria-hidden="true">✦</span>
+              <div class="note-body">
+                <strong>You can skip this step.</strong> Your export already imports as it comes — head to Step 4.
+              </div>
+            </aside>
+            <p>The universal path: any export becomes importable once row 1 uses these names.</p>
+            <div class="spec">
+              <div class="spec-head"><span>Column</span><span>Header — any one of these</span></div>
+              <div class="spec-row">
+                <span class="spec-key">Song title <em>(required)</em></span>
+                <span class="spec-val">song title · title · track · track name · song name</span>
+              </div>
+              <div class="spec-row">
+                <span class="spec-key">Artist <em>(required)</em></span>
+                <span class="spec-val">artist · artist name · performer</span>
+              </div>
+              <div class="spec-row">
+                <span class="spec-key">Date and time <em>(required)</em></span>
+                <span class="spec-val">date and time · date · datetime · timestamp · time · played at · scrobble time · uts · utc_time</span>
+              </div>
+              <div class="spec-row">
+                <span class="spec-key">Album <em>(optional)</em></span>
+                <span class="spec-val">album · album name · release</span>
+              </div>
+            </div>
+            <p><strong>One row per play</strong> — a track you've heard forty times is forty rows.</p>
+            <aside class="note note-warn">
+              <span class="note-icon" aria-hidden="true">!</span>
+              <div class="note-body">
+                <strong>Format dates as <code>YYYY-MM-DD</code>.</strong> <code>03/04/2024</code> is read as <strong>March 4th</strong>, not April 3rd — a day-first export lands a whole year on the wrong days.
+              </div>
+            </aside>
+            <details class="why">
+              <summary>What else is accepted?</summary>
+              <div class="why-body">
+                <p>Extra columns are ignored, capitalisation doesn't matter, and column order is irrelevant. Renaming row 1 is the whole job.</p>
+                <p>Dates work as <code>2024-03-09 21:14:05</code>, <code>2024-03-09</code>, ISO 8601, <code>03/09/2024</code> or unix seconds — as long as the year is 2000 or later.</p>
+                <p>In Google Sheets, reformat a date column with Format → Number → Custom date and time → <code>yyyy-mm-dd hh:mm:ss</code>.</p>
+              </div>
+            </details>
+            <p>Save it out with <strong>File → Download → Comma-separated values</strong> (Excel: <strong>Save As → CSV UTF-8</strong>). Let the spreadsheet write the file and commas inside song titles look after themselves.</p>
+          </div>
+        </div>
+      </li>
+
+      <li class="step">
+        <button type="button" class="step-node" aria-pressed="false" aria-label="Mark step 4 done">
+          <span class="step-num">04</span><span class="step-tick" aria-hidden="true">✓</span>
+        </button>
+        <div class="step-card">
+          <h3 class="step-title">Upload it</h3>
+          <div class="step-body">
+            <div class="path">
+              <span class="path-step">Settings ⚙</span>
+              <span class="path-arrow" aria-hidden="true">→</span>
+              <span class="path-step">Upload File</span>
+            </div>
+            <p>Drop the file on the box or click to browse — <code>.csv</code>, <code>.zip</code>, <code>.xlsx</code>, <code>.xls</code>. You'll see <strong>✓ N plays loaded</strong> and your charts appear.</p>
+            <aside class="note">
+              <span class="note-icon" aria-hidden="true">i</span>
+              <div class="note-body">
+                <strong>Uploading replaces, it doesn't merge.</strong> Combining two services? Join them into one CSV first.
+              </div>
+            </aside>
+          </div>
+        </div>
+      </li>
+    </ol>
+
+    <section class="guide-section">
+      <h2 class="section-label">Troubleshooting</h2>
+      <div class="faq">
+        <details class="faq-item">
+          <summary>It says the required columns are missing.</summary>
+          <div class="faq-body">
+            <p>The header row needs a title column, an artist column and a date column, spelled as one of the accepted names in Step 3. Check row 1 specifically — if your export has a title banner or a blank line above the headers, delete those rows so the header row is the very first line of the file.</p>
+          </div>
+        </details>
+        <details class="faq-item">
+          <summary>It says no valid records were found.</summary>
+          <div class="faq-body">
+            <p>Almost always the date column. Every row needs a date that parses to the year 2000 or later — rows without one are skipped, and if that's every row you get this message. Reformat the column to <code>yyyy-mm-dd hh:mm:ss</code> and try again.</p>
+          </div>
+        </details>
+        <details class="faq-item">
+          <summary>My Spotify ZIP imported far fewer plays than I expected.</summary>
+          <div class="faq-body">
+            <p>That's usually correct rather than broken. Plays shorter than 30 seconds are skipped, and podcasts and videos are dropped because they have no artist and track pair. If you got the basic "Account data" export rather than <strong>Extended streaming history</strong>, it also only covers about the past year.</p>
+          </div>
+        </details>
+        <details class="faq-item">
+          <summary>My Deezer XLSX imported nothing.</summary>
+          <div class="faq-body">
+            <p>Only the first sheet of a workbook is read, and Deezer's export usually opens on a different one. Move the listening-history sheet to the front of the workbook, save, and upload again.</p>
+          </div>
+        </details>
+        <details class="faq-item">
+          <summary>My Google Takeout ZIP does nothing.</summary>
+          <div class="faq-body">
+            <p>Only Spotify's ZIP layout is recognised — Takeout's is different, so nothing inside it is found. Open the watch-history file from the Takeout archive, reshape it into a CSV as described in Step 3, and upload that instead.</p>
+          </div>
+        </details>
+        <details class="faq-item">
+          <summary>My ghan.nl export won't upload.</summary>
+          <div class="faq-body">
+            <p>That tool offers XML, CSV and JSON — only the <strong>CSV</strong> option can be uploaded here. It also exports loved tracks and events, which aren't play histories; make sure <strong>scrobbles</strong> is the selected export type.</p>
+          </div>
+        </details>
+        <details class="faq-item">
+          <summary>Everything imported, but the dates are all wrong.</summary>
+          <div class="faq-body">
+            <p>Your export is almost certainly day-first (<code>DD/MM/YYYY</code>), which is read as month-first. Reformat that column to <code>yyyy-mm-dd hh:mm:ss</code> in your spreadsheet, export again, and re-upload.</p>
+          </div>
+        </details>
+      </div>
+    </section>
+
+    <div class="support">
+      <div class="support-glyph" aria-hidden="true">🎧</div>
+      <div class="support-title">Need help?</div>
+      <p>Stuck on a format we haven't covered? Open a ticket with a couple of sample rows and we'll work out the mapping with you.</p>
+      <button class="btn-primary" onclick="openZohoSupport()">Open a Support Ticket</button>
+      <p class="support-alt">or email <a href="mailto:support@dankcharts.fm">support@dankcharts.fm</a></p>
+    </div>
+
+  </div><!-- /tab-file -->
 
   <footer class="guide-footer">
     <p><a href="https://dankcharts.fm" class="print-no-url">dankcharts.fm</a> — your personal music charts</p>
@@ -2297,11 +3015,193 @@
 
     // Open tab from URL param (?tab=lastfm or ?tab=sheets)
     var tabParam = new URLSearchParams(location.search).get('tab');
-    if (tabParam === 'lastfm' || tabParam === 'sheets') switchTab(tabParam);
+    if (['sheets', 'lastfm', 'file'].indexOf(tabParam) !== -1) switchTab(tabParam);
 
     initOrbParallax();
     initPrintExpand();
+    initStepProgress();
+    initServicePicker();
+    initViewToggle();
   });
+
+  // Set by initServicePicker so the view switch can re-apply the service
+  // filter when it returns to Guided. No-op until then.
+  var reapplyServiceFilter = function () {};
+
+  // ── View switch ──────────────────────────────────────────────────────
+  // Guided (default) vs Full text. The switch is repeated once per path but
+  // the setting is global, so all three stay in step. Full text opens every
+  // "why" fold and drops the picker filter; the tick-off state is left alone
+  // on the elements so switching back lands you exactly where you were.
+  function initViewToggle() {
+    var KEY = 'dc_guide_view';
+    var btns = [].slice.call(document.querySelectorAll('.viewtoggle-btn'));
+    if (!btns.length) return;
+
+    function apply(view) {
+      var isText = view === 'text';
+      document.body.classList.toggle('view-text', isText);
+      btns.forEach(function (b) {
+        b.setAttribute('aria-pressed', (b.dataset.view === view) ? 'true' : 'false');
+      });
+      // A closed <details> hides its content no matter what CSS says, so the
+      // folds have to be opened for real, not just styled open.
+      document.querySelectorAll('.why').forEach(function (d) { d.open = isText; });
+      if (isText) {
+        document.querySelectorAll('.svc > li[hidden], [data-fmt-block][hidden]')
+          .forEach(function (el) { el.hidden = false; });
+      } else {
+        reapplyServiceFilter();
+      }
+    }
+
+    btns.forEach(function (b) {
+      b.addEventListener('click', function () {
+        var view = b.dataset.view;
+        try { localStorage.setItem(KEY, view); } catch (e) {}
+        apply(view);
+      });
+    });
+
+    var saved = 'guided';
+    try { saved = localStorage.getItem(KEY) || 'guided'; } catch (e) {}
+    apply(saved === 'text' ? 'text' : 'guided');
+  }
+
+  // ── Tick-off progress ────────────────────────────────────────────────
+  // Each path's steps can be checked off; done steps fold to their title so
+  // the page gets shorter as you work through it, and the bar at the top
+  // answers "how much is left?". State is per-path in localStorage, so
+  // closing the tab mid-setup doesn't lose your place.
+  function initStepProgress() {
+    document.querySelectorAll('.guide-tab-panel').forEach(function (panel) {
+      var bar = panel.querySelector('.progress');
+      var steps = [].slice.call(panel.querySelectorAll('.step'));
+      if (!bar || !steps.length) return;
+
+      var key = 'dc_guide_done_' + bar.dataset.progress;
+      var fill = bar.querySelector('.progress-fill');
+      var label = bar.querySelector('.progress-label');
+      var reset = bar.querySelector('.progress-reset');
+
+      function load() {
+        try { return JSON.parse(localStorage.getItem(key)) || []; } catch (e) { return []; }
+      }
+      function save(list) {
+        try { localStorage.setItem(key, JSON.stringify(list)); } catch (e) {}
+      }
+
+      function render() {
+        var done = steps.filter(function (s) { return s.classList.contains('done'); }).length;
+        // --p is a 0–1 fraction; the fill is transformed, never resized
+        fill.style.setProperty('--p', steps.length ? done / steps.length : 0);
+        if (done === steps.length) {
+          label.textContent = 'All done — go make some charts';
+          label.classList.add('progress-done');
+        } else {
+          label.textContent = done + ' of ' + steps.length + ' done';
+          label.classList.remove('progress-done');
+        }
+        reset.hidden = done === 0;
+      }
+
+      function setDone(step, on) {
+        step.classList.toggle('done', on);
+        var node = step.querySelector('.step-node');
+        if (node) node.setAttribute('aria-pressed', on ? 'true' : 'false');
+      }
+
+      steps.forEach(function (step, i) {
+        var node = step.querySelector('.step-node');
+        if (node) {
+          node.addEventListener('click', function () {
+            setDone(step, !step.classList.contains('done'));
+            save(steps.map(function (s, j) { return s.classList.contains('done') ? j : -1; })
+                      .filter(function (j) { return j >= 0; }));
+            render();
+          });
+        }
+        // A folded card is its own re-open affordance — clicking it anywhere
+        // brings the step back, so a mis-tick is one click to undo.
+        var card = step.querySelector('.step-card');
+        if (card) {
+          card.addEventListener('click', function () {
+            if (!step.classList.contains('done')) return;
+            setDone(step, false);
+            save(steps.map(function (s, j) { return s.classList.contains('done') ? j : -1; })
+                      .filter(function (j) { return j >= 0; }));
+            render();
+          });
+        }
+      });
+
+      reset.addEventListener('click', function () {
+        steps.forEach(function (s) { setDone(s, false); });
+        save([]);
+        render();
+      });
+
+      load().forEach(function (i) { if (steps[i]) setDone(steps[i], true); });
+      bar.classList.add('ready'); // only now is the bar meaningful
+      render();
+    });
+  }
+
+  // ── Service picker (file tab) ────────────────────────────────────────
+  // Six sources, one of them yours. Picking one hides the other five and
+  // narrows Step 2 to the format you'll actually be holding; drop-in formats
+  // also light up the "you can skip this" hint on Step 3. Everything starts
+  // visible in the markup, so this only ever removes noise — with no JS, or
+  // on paper, the full list is still there.
+  function initServicePicker() {
+    var panel = document.getElementById('tab-file');
+    if (!panel) return;
+    var btns = [].slice.call(panel.querySelectorAll('.picker-btn'));
+    var cards = [].slice.call(panel.querySelectorAll('.svc > li'));
+    var blocks = [].slice.call(panel.querySelectorAll('[data-fmt-block]'));
+    var skipHint = panel.querySelector('[data-skip-hint]');
+    if (!btns.length) return;
+
+    var KEY = 'dc_guide_svc';
+
+    function apply(svc) {
+      btns.forEach(function (b) {
+        b.setAttribute('aria-pressed', b.dataset.svc === svc ? 'true' : 'false');
+      });
+      cards.forEach(function (c) { c.hidden = !!svc && c.dataset.svc !== svc; });
+
+      var picked = svc ? cards.filter(function (c) { return c.dataset.svc === svc; })[0] : null;
+      var fmt = picked ? picked.dataset.fmt : '';
+      // 'convert' sources end up as a hand-made CSV, so the CSV block is the
+      // one that stays relevant to them.
+      var wanted = fmt === 'convert' ? 'csv' : fmt;
+      blocks.forEach(function (b) { b.hidden = !!wanted && b.dataset.fmtBlock !== wanted; });
+      if (skipHint) skipHint.hidden = !(fmt && fmt !== 'convert');
+    }
+
+    btns.forEach(function (b) {
+      b.addEventListener('click', function () {
+        // Clicking the selected chip again clears the filter
+        var next = b.getAttribute('aria-pressed') === 'true' ? '' : b.dataset.svc;
+        try { next ? localStorage.setItem(KEY, next) : localStorage.removeItem(KEY); } catch (e) {}
+        apply(next);
+      });
+    });
+
+    var saved = '';
+    try { saved = localStorage.getItem(KEY) || ''; } catch (e) {}
+    if (saved && !btns.some(function (b) { return b.dataset.svc === saved; })) saved = '';
+
+    // Hand the view switch a way back to whatever is currently picked
+    reapplyServiceFilter = function () {
+      var cur = '';
+      try { cur = localStorage.getItem(KEY) || ''; } catch (e) {}
+      if (cur && !btns.some(function (b) { return b.dataset.svc === cur; })) cur = '';
+      apply(cur);
+    };
+
+    apply(saved);
+  }
 
   // Troubleshooting answers live in collapsed <details>, and a browser prints
   // them exactly as collapsed — four questions and no answers. CSS can't force
@@ -2309,17 +3209,31 @@
   // can't override), so open them for the print job and restore whatever the
   // reader had open once it's done.
   function initPrintExpand() {
-    var reopened = [];
+    var reopened = [], unfolded = [], unhidden = [];
     window.addEventListener('beforeprint', function () {
-      reopened = [];
-      document.querySelectorAll('.faq-item:not([open])').forEach(function (d) {
+      reopened = []; unfolded = []; unhidden = [];
+      document.querySelectorAll('.faq-item:not([open]), .why:not([open])').forEach(function (d) {
         d.open = true;
         reopened.push(d);
+      });
+      // A ticked-off step is folded shut on screen; on paper it should print
+      // in full, because the sheet is for someone working through it.
+      document.querySelectorAll('.step.done').forEach(function (s) {
+        s.classList.remove('done');
+        unfolded.push(s);
+      });
+      // Same for anything the service picker filtered away — a printout of one
+      // person's chosen path shouldn't silently omit the other five.
+      document.querySelectorAll('.svc > li[hidden], [data-fmt-block][hidden]').forEach(function (el) {
+        el.hidden = false;
+        unhidden.push(el);
       });
     });
     window.addEventListener('afterprint', function () {
       reopened.forEach(function (d) { d.open = false; });
-      reopened = [];
+      unfolded.forEach(function (s) { s.classList.add('done'); });
+      unhidden.forEach(function (el) { el.hidden = true; });
+      reopened = []; unfolded = []; unhidden = [];
     });
   }
 

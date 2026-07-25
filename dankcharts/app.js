@@ -2467,7 +2467,16 @@ function parsePlaysCsv(text) {
     title:    ['song title', 'title', 'track', 'track name', 'song name'],
     artist:   ['artist', 'artist name', 'performer'],
     album:    ['album', 'album name', 'release'],
-    datetime: ['date and time', 'date', 'datetime', 'timestamp', 'time', 'played at', 'scrobble time']
+    // 'uts'/'utc_time' come from the ghan.nl Last.fm exporter
+    // (mainstream.ghan.nl/export.html), whose header row is
+    //   uts,utc_time,artist,artist_mbid,album,album_mbid,track,track_mbid
+    // — artist/album/track already matched above, so the date column was the
+    // only thing standing between a 95% compatible export and a hard "missing
+    // required columns" failure. Appended last on purpose: any header a file
+    // could already match still wins, so this is purely an added fallback.
+    // 'uts' before 'utc_time' because it is an unambiguous unix instant, while
+    // utc_time is a formatted local-time string.
+    datetime: ['date and time', 'date', 'datetime', 'timestamp', 'time', 'played at', 'scrobble time', 'uts', 'utc_time']
   };
   for (const [key, names] of Object.entries(aliases)) {
     for (const n of names) {
@@ -3091,7 +3100,16 @@ function parseCsv(text, fromSheets = false) {
     title: ['song title', 'title', 'track', 'track name', 'song name'],
     artist: ['artist', 'artist name', 'performer'],
     album: ['album', 'album name', 'release'],
-    datetime: ['date and time', 'date', 'datetime', 'timestamp', 'time', 'played at', 'scrobble time']
+    // 'uts'/'utc_time' come from the ghan.nl Last.fm exporter
+    // (mainstream.ghan.nl/export.html), whose header row is
+    //   uts,utc_time,artist,artist_mbid,album,album_mbid,track,track_mbid
+    // — artist/album/track already matched above, so the date column was the
+    // only thing standing between a 95% compatible export and a hard "missing
+    // required columns" failure. Appended last on purpose: any header a file
+    // could already match still wins, so this is purely an added fallback.
+    // 'uts' before 'utc_time' because it is an unambiguous unix instant, while
+    // utc_time is a formatted local-time string.
+    datetime: ['date and time', 'date', 'datetime', 'timestamp', 'time', 'played at', 'scrobble time', 'uts', 'utc_time']
   };
   for (const [key, names] of Object.entries(aliases)) {
     for (const n of names) {
@@ -18659,7 +18677,13 @@ async function parseSpotifyZip(file) {
     if (!Array.isArray(data)) continue;
     for (const item of data) {
       if (!item || typeof item !== 'object') continue;
-      if (parseInt(item.ms_played || 0) < 30000) continue;
+      // Spotify ships two shapes and this guard has to read both. The extended
+      // streaming history uses snake_case (ms_played); the plain "Account data"
+      // export uses camelCase (msPlayed) alongside endTime/trackName/artistName.
+      // Reading only ms_played meant every account-data row scored 0 ms and was
+      // dropped as a skip — the endTime/trackName fallbacks below could never
+      // fire, so that whole export type silently imported nothing.
+      if (parseInt(item.ms_played ?? item.msPlayed ?? 0) < 30000) continue;
       const dt = parseDtStrImport(item.ts || item.endTime || '');
       if (!dt) continue;
       const track  = item.master_metadata_track_name || item.trackName || '';
