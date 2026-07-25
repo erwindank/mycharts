@@ -27,7 +27,7 @@
   <!-- html2canvas, SheetJS (xlsx) and JSZip are intentionally NOT loaded here — they
        total ~1.2 MB and are only needed for image exports and Excel/ZIP imports.
        app.js pulls them from the CDN on first use (see ensureLazyLib). -->
-  <link rel="stylesheet" href="style.css?v=120">
+  <link rel="stylesheet" href="style.css?v=123">
   <!-- All scripts are deferred so the page paints without waiting on them.
        defer preserves execution order, which matters: translations → Chart.js →
        hammer → zoom plugin → firebase SDKs → firebase.js → app.js (in body). -->
@@ -129,6 +129,14 @@
 
       <div class="landing-card" id="landingCardSheets" onclick="selectLandingSource('sheets')">
         <span class="landing-card-pos" aria-hidden="true">01</span>
+        <!-- Benefit badge: a chart-award sticker straddling the card's top edge.
+             One per card, tinted with that card's own identity colour, naming the
+             single reason you'd pick this source over the other two. -->
+        <span class="landing-card-badge" data-i18n="landing_sheets_badge">FULL CONTROL</span>
+        <!-- Recommended ribbon — only this card carries it. Sits on the opposite
+             (bottom-right) corner from the green benefit badge so the two balance
+             diagonally instead of fighting for the same edge and the same eye. -->
+        <span class="landing-card-ribbon" data-i18n="landing_sheets_ribbon">RECOMMENDED</span>
         <!-- Spreadsheet that becomes a chart: bars lie flat as a row of data at
              rest and stagger-grow into chart heights on hover/select. Drawn in
              CSS (not an emoji) so the individual bars can animate. -->
@@ -167,6 +175,7 @@
 
       <div class="landing-card" id="landingCardLastfm" onclick="selectLandingSource('lastfm')">
         <span class="landing-card-pos" aria-hidden="true">02</span>
+        <span class="landing-card-badge" data-i18n="landing_lastfm_badge">ZERO UPKEEP</span>
         <!-- Literal scrobble: a vinyl record + tonearm instead of a generic
              note glyph. Tonearm lifts at rest, drops onto the groove and the
              disc spins on hover/select — scrobbling IS "what's spinning". -->
@@ -201,6 +210,7 @@
 
       <div class="landing-card" id="landingCardFile" onclick="selectLandingSource('file')">
         <span class="landing-card-pos" aria-hidden="true">03</span>
+        <span class="landing-card-badge" data-i18n="landing_file_badge">FASTEST START</span>
         <!-- Stack of files: fans out on hover (the several supported formats)
              while the front page's data lines stream in — a file being parsed.
              Drawn in CSS (not an emoji) so the sheets can move independently. -->

@@ -11068,11 +11068,14 @@ body.pink-light .landing-screen:has(.landing-card:hover) .landing-eq-skyline {
   pointer-events: none;
 }
 
-/* Per-card note colour — matches each card's own icon identity (sheet green,
-   vinyl rose, upload accent) so the burst reads as that card's music. */
-#landingCardSheets { --note-color: var(--green); }
-#landingCardLastfm { --note-color: var(--rose); }
-#landingCardFile   { --note-color: var(--accent); }
+/* Per-card identity colour — matches each card's own icon (sheet green, vinyl
+   rose, upload accent). Declared once here and consumed by everything that has
+   to speak for that card: the click note-burst (so it reads as that card's
+   music) and the benefit badge. Change a card's colour in one place only. */
+#landingCardSheets { --card-accent: var(--green); }
+#landingCardLastfm { --card-accent: var(--rose); }
+#landingCardFile   { --card-accent: var(--accent); }
+.landing-card { --note-color: var(--card-accent, var(--accent)); }
 
 .landing-note {
   position: absolute;
@@ -11135,6 +11138,139 @@ body.pink-light .landing-screen:has(.landing-card:hover) .landing-eq-skyline {
 .landing-card.active .landing-card-pos {
   color: var(--accent);
   text-shadow: 0 0 18px color-mix(in srgb, var(--accent) 55%, transparent);
+}
+
+/* Benefit badge — a chart-award sticker slapped onto the card's top edge, one
+   per source, naming the single reason you'd pick it. Uses the same
+   surface-fill + coloured border/text recipe as .landing-template-sticker
+   (a solid fill would go muddy in the light themes), but tinted with the
+   card's own --card-accent rather than gold, so the three read as one system
+   of quality tags instead of three competing awards. Pinned at 1.35rem from
+   the left so it clears the 18px corner radius, and well clear of the
+   01/02/03 position number in the opposite corner even at long translations. */
+.landing-card-badge {
+  position: absolute;
+  top: -0.6rem;
+  left: 1.35rem;
+  z-index: 1; /* above the card's own surface; the note-burst layer still passes over */
+  background: var(--surface, #1a1a2e);
+  border: 1px solid color-mix(in srgb, var(--card-accent, var(--accent)) 60%, transparent);
+  color: var(--card-accent, var(--accent));
+  font-family: var(--font-mono);
+  font-size: 0.56rem;
+  font-weight: 800;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  line-height: 1.35;
+  padding: 0.2rem 0.45rem;
+  border-radius: 5px;
+  transform: rotate(-3deg);
+  box-shadow: 0 2px 8px color-mix(in srgb, #000 32%, transparent);
+  white-space: nowrap;
+  pointer-events: none; /* the whole card is the click target */
+  transition: transform 0.22s cubic-bezier(0.34, 1.56, 0.64, 1),
+              border-color 0.22s ease, background 0.22s ease, box-shadow 0.22s ease;
+}
+
+/* The sticker peels flat and warms up with its own colour when its card is in
+   play — it settles rather than moving independently of the card it's stuck to. */
+.landing-card:hover .landing-card-badge,
+.landing-card.active .landing-card-badge {
+  transform: rotate(0deg) scale(1.05);
+  border-color: var(--card-accent, var(--accent));
+  background: color-mix(in srgb, var(--card-accent, var(--accent)) 14%, var(--surface, #1a1a2e));
+  box-shadow: 0 3px 14px color-mix(in srgb, var(--card-accent, var(--accent)) 35%, transparent);
+}
+
+/* ---- The promoted card: Google Sheets ------------------------------------
+   Sheets is the recommended path because it's the only source that can hold a
+   genuinely complete history: Last.fm rejects any scrobble older than two
+   weeks, so nothing you backfill there will stick, while a sheet takes the
+   whole archive and stays editable afterwards, and still auto-updates from
+   Last.fm. So card 01 is dressed as the chart's gold entry: gold frame, gold
+   position number and an award ribbon, layered on top of the green identity
+   it already had. Two colours, two jobs: green says what the card gives you,
+   gold says we recommend it.
+
+   Every gold surface here is border+text over the theme surface rather than a
+   solid fill, because --gold1 flips to dark brown ink in the light themes and
+   a solid gold fill goes muddy there. Same recipe as .landing-template-sticker.
+
+   Specificity note: an ID (1,0,0) outranks .landing-card:hover (0,2,0), so the
+   resting rule below would otherwise also win during hover and active. Each
+   state therefore has to be restated at ID strength, or the card gets stuck on
+   its resting frame. */
+.landing-card-ribbon {
+  position: absolute;
+  /* Deliberately outsized against the .landing-card-badge stickers: this one
+     is the award, not a spec label, so it reads a tier louder. The bottom
+     offset is kept at roughly half the sticker's own height so it still
+     straddles the card edge at this larger size instead of drifting off it. */
+  bottom: -0.78rem;
+  right: 1.35rem;
+  z-index: 1;
+  background: color-mix(in srgb, var(--gold1) 10%, var(--surface, #1a1a2e));
+  border: 1.5px solid var(--gold1);
+  color: var(--gold1);
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  line-height: 1.35;
+  padding: 0.3rem 0.62rem;
+  border-radius: 6px;
+  transform: rotate(4deg); /* tilted against the top-left badge, not with it */
+  box-shadow: 0 3px 14px color-mix(in srgb, var(--gold1) 34%, transparent);
+  white-space: nowrap;
+  pointer-events: none;
+  transition: transform 0.22s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.22s ease;
+}
+
+/* The star lives in CSS, not in the translated string: data-i18n writes
+   textContent, so nested markup would be wiped on every language switch, and
+   this way a translator can't accidentally drop it. */
+.landing-card-ribbon::before {
+  content: '\2605\00a0';
+}
+
+.landing-card:hover .landing-card-ribbon,
+.landing-card.active .landing-card-ribbon {
+  transform: rotate(0deg) scale(1.05);
+  box-shadow: 0 4px 20px color-mix(in srgb, var(--gold1) 52%, transparent);
+}
+
+/* Gold frame + ambient glow, so the promoted card wins the row at a glance,
+   before a single label has been read. */
+#landingCardSheets {
+  border-color: color-mix(in srgb, var(--gold1) 34%, transparent);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--gold1) 12%, transparent),
+              0 10px 34px color-mix(in srgb, var(--gold1) 12%, transparent);
+}
+
+#landingCardSheets:hover {
+  border-color: color-mix(in srgb, var(--gold1) 62%, transparent);
+  box-shadow: 0 18px 48px rgba(0, 0, 0, 0.35),
+              0 0 0 1px color-mix(in srgb, var(--gold1) 30%, transparent),
+              0 0 34px color-mix(in srgb, var(--gold1) 18%, transparent);
+}
+
+#landingCardSheets.active {
+  border-color: var(--gold1);
+  background: color-mix(in srgb, var(--gold1) 9%, rgba(255, 255, 255, 0.04));
+  box-shadow: 0 0 0 1px var(--gold1),
+              0 20px 48px color-mix(in srgb, var(--gold1) 20%, transparent);
+}
+
+/* The position number goes gold too: this is the chart's number one entry. */
+#landingCardSheets .landing-card-pos {
+  color: color-mix(in srgb, var(--gold1) 58%, transparent);
+}
+
+#landingCardSheets:hover .landing-card-pos,
+#landingCardSheets.active .landing-card-pos {
+  color: var(--gold1);
+  text-shadow: 0 0 18px color-mix(in srgb, var(--gold1) 55%, transparent);
 }
 
 .landing-card h3 {
