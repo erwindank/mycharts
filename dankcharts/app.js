@@ -2810,8 +2810,84 @@ function startWithSampleData() {
   startFromLanding();
 }
 
+/* Musical notes flying out from behind a landing card on click.
+   The notes live in a layer that paints *under* the cards (see .landing-note-burst
+   in style.css), so each one is born hidden behind the card body and only shows
+   once it clears the edge. Spawn points sit on an ellipse just inside the card's
+   upper half and every note travels outward/upward from there, so nothing has to
+   cross the whole card before becoming visible.
+   Colour comes from the card's own --note-color (sheet green / vinyl rose /
+   upload accent) — resolved here because the layer is outside the card and so
+   can't inherit it. */
+const LANDING_NOTE_GLYPHS = ['♪', '♫', '♬', '♩', '♪', '♫'];
+function burstLandingNotes(card) {
+  if (!card) return;
+  // Respect reduced motion — a burst of flying glyphs is pure decoration
+  if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  const wrap = card.parentElement; // .landing-cards
+  if (!wrap) return;
+
+  let layer = wrap.querySelector('.landing-note-burst');
+  if (!layer) {
+    layer = document.createElement('div');
+    layer.className = 'landing-note-burst';
+    layer.setAttribute('aria-hidden', 'true');
+    wrap.appendChild(layer);
+  }
+  // Impatient clicking shouldn't pile up hundreds of nodes
+  if (layer.childElementCount > 40) layer.innerHTML = '';
+
+  const wr = wrap.getBoundingClientRect();
+  const cr = card.getBoundingClientRect();
+  const cx = cr.left - wr.left + cr.width / 2;
+  const cy = cr.top - wr.top + cr.height / 2;
+  const rx = cr.width / 2, ry = cr.height / 2;
+
+  // The landing screen scrolls, so a note drifting past the viewport sides would
+  // pop a horizontal scrollbar — clamp horizontal travel to the visible width.
+  const screen = document.getElementById('landingScreen');
+  const sw = screen ? screen.clientWidth : window.innerWidth;
+  const minX = -wr.left + 10, maxX = -wr.left + sw - 26;
+
+  // Colour: computed value resolves the var() chain to a real colour; if a
+  // browser hands back the literal token, the CSS fallback takes over.
+  let color = getComputedStyle(card).getPropertyValue('--note-color').trim();
+  if (!color || color.indexOf('var(') === 0) color = '';
+
+  const N = 9; // "sparse" — a handful of notes, not a confetti cannon
+  for (let i = 0; i < N; i++) {
+    // Fan across the upper half (-175deg .. -5deg), stratified so the notes
+    // spread out instead of clumping, with a little jitter per slot
+    const ang = (-175 + (i + Math.random() * 0.85) * (170 / N)) * Math.PI / 180;
+    const f = 0.5 + Math.random() * 0.25;            // spawn just inside the card edge
+    const sx = cx + Math.cos(ang) * rx * f;
+    const sy = cy + Math.sin(ang) * ry * f;
+    const dist = 110 + Math.random() * 100;
+    let dx = Math.cos(ang) * dist;
+    const dy = Math.sin(ang) * dist;                 // negative = upward
+    if (sx + dx < minX) dx = minX - sx;
+    if (sx + dx > maxX) dx = maxX - sx;
+
+    const n = document.createElement('span');
+    n.className = 'landing-note';
+    n.textContent = LANDING_NOTE_GLYPHS[(Math.random() * LANDING_NOTE_GLYPHS.length) | 0];
+    n.style.left = sx.toFixed(1) + 'px';
+    n.style.top = sy.toFixed(1) + 'px';
+    if (color) n.style.setProperty('--note-color', color);
+    n.style.setProperty('--note-dx', dx.toFixed(1) + 'px');
+    n.style.setProperty('--note-dy', dy.toFixed(1) + 'px');
+    n.style.setProperty('--note-rot', (Math.random() * 70 - 35).toFixed(1) + 'deg');
+    n.style.setProperty('--note-size', (0.85 + Math.random() * 0.5).toFixed(2) + 'rem');
+    n.style.setProperty('--note-dur', (1 + Math.random() * 0.5).toFixed(2) + 's');
+    n.style.setProperty('--note-delay', (i * 0.035 + Math.random() * 0.06).toFixed(3) + 's');
+    n.addEventListener('animationend', () => n.remove());
+    layer.appendChild(n);
+  }
+}
+
 function selectLandingSource(src) {
   _landingSrc = src;
+  burstLandingNotes(document.getElementById('landingCard' + src.charAt(0).toUpperCase() + src.slice(1)));
   document.querySelectorAll('.landing-card').forEach(c => c.classList.remove('active'));
   document.querySelectorAll('.landing-card-config').forEach(c => { c.style.display = 'none'; });
   const card = document.getElementById('landingCard' + src.charAt(0).toUpperCase() + src.slice(1));

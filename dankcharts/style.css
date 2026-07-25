@@ -11007,6 +11007,7 @@ body.pink-light .landing-screen:has(.landing-card:hover) .landing-eq-skyline {
   justify-content: center;
   width: 100%;
   max-width: 860px;
+  position: relative; /* anchors the click note-burst layer below the cards */
 }
 
 .landing-card {
@@ -11040,6 +11041,59 @@ body.pink-light .landing-screen:has(.landing-card:hover) .landing-eq-skyline {
   background: rgba(74, 172, 255, 0.07);
   box-shadow: 0 0 0 1px var(--accent), 0 20px 48px rgba(74, 172, 255, 0.15);
   transform: translateY(-3px);
+}
+
+/* ---- Click burst: musical notes escaping from behind the card ------------
+   Fires on every card click (burstLandingNotes, app.js). The burst layer is a
+   sibling of the cards and paints under them (z-index 0 vs the cards' 1), so
+   each note is born hidden *behind* the card body and only becomes visible
+   once it clears the edge — the card's backdrop-filter blurs whatever of it
+   still overlaps, which is what sells the "from behind" read. Each note gets
+   its travel vector, timing and colour set inline by JS. */
+.landing-card {
+  z-index: 1; /* keep cards above the note-burst layer */
+}
+
+.landing-note-burst {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+}
+
+/* Per-card note colour — matches each card's own icon identity (sheet green,
+   vinyl rose, upload accent) so the burst reads as that card's music. */
+#landingCardSheets { --note-color: var(--green); }
+#landingCardLastfm { --note-color: var(--rose); }
+#landingCardFile   { --note-color: var(--accent); }
+
+.landing-note {
+  position: absolute;
+  left: 0;
+  top: 0;
+  font-size: var(--note-size, 1.1rem);
+  line-height: 1;
+  color: var(--note-color, var(--accent));
+  text-shadow: 0 0 14px color-mix(in srgb, var(--note-color, var(--accent)) 55%, transparent);
+  opacity: 0;
+  will-change: transform, opacity;
+  animation: landingNoteFly var(--note-dur, 1.2s) cubic-bezier(0.19, 0.62, 0.3, 1) var(--note-delay, 0s) forwards;
+}
+
+/* Starts small and invisible under the card, pops in as it leaves the edge,
+   then thins out to nothing — notes never "land", they just dissolve. */
+@keyframes landingNoteFly {
+  0%   { transform: translate3d(0, 0, 0) rotate(0deg) scale(0.5); opacity: 0; }
+  22%  { opacity: 0.95; }
+  70%  { opacity: 0.7; }
+  100% {
+    transform: translate3d(var(--note-dx, 0), var(--note-dy, -120px), 0) rotate(var(--note-rot, 0deg)) scale(1);
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .landing-note { display: none; }
 }
 
 .landing-card-icon {
