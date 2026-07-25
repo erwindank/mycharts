@@ -2881,8 +2881,9 @@ function skipLanding() {
   const screen = document.getElementById('landingScreen');
   if (!orb1 || !orb2 || !screen) return;
 
-  const MAX_OFFSET = 22; // px — clamps the nudge so it stays a subtle drift, never a chase
-  const EASE = 0.06;     // lower = lazier follow (damping factor applied per animation frame)
+  const MAX_OFFSET = 70; // px — clamps the nudge (raised from 22: at 22px against
+                          // 500px/420px orbs the movement barely registered)
+  const EASE = 0.09;     // lower = lazier follow (damping factor applied per animation frame)
   let targetX = 0, targetY = 0;
   let curX = 0, curY = 0;
   let rafId = null;
@@ -2892,8 +2893,8 @@ function skipLanding() {
     curY += (targetY - curY) * EASE;
     orb1.style.setProperty('--mx', curX.toFixed(1) + 'px');
     orb1.style.setProperty('--my', curY.toFixed(1) + 'px');
-    orb2.style.setProperty('--mx', (-curX * 0.6).toFixed(1) + 'px');
-    orb2.style.setProperty('--my', (-curY * 0.6).toFixed(1) + 'px');
+    orb2.style.setProperty('--mx', (-curX * 0.75).toFixed(1) + 'px');
+    orb2.style.setProperty('--my', (-curY * 0.75).toFixed(1) + 'px');
     if (Math.abs(targetX - curX) > 0.1 || Math.abs(targetY - curY) > 0.1) {
       rafId = requestAnimationFrame(tick);
     } else {
