@@ -27,7 +27,7 @@
   <!-- html2canvas, SheetJS (xlsx) and JSZip are intentionally NOT loaded here — they
        total ~1.2 MB and are only needed for image exports and Excel/ZIP imports.
        app.js pulls them from the CDN on first use (see ensureLazyLib). -->
-  <link rel="stylesheet" href="style.css?v=114">
+  <link rel="stylesheet" href="style.css?v=117">
   <!-- All scripts are deferred so the page paints without waiting on them.
        defer preserves execution order, which matters: translations → Chart.js →
        hammer → zoom plugin → firebase SDKs → firebase.js → app.js (in body). -->
@@ -129,7 +129,12 @@
 
       <div class="landing-card" id="landingCardSheets" onclick="selectLandingSource('sheets')">
         <span class="landing-card-pos" aria-hidden="true">01</span>
-        <div class="landing-card-icon">📊</div>
+        <!-- Spreadsheet that becomes a chart: bars lie flat as a row of data at
+             rest and stagger-grow into chart heights on hover/select. Drawn in
+             CSS (not an emoji) so the individual bars can animate. -->
+        <div class="landing-card-icon sheets-grid" aria-hidden="true">
+          <i></i><i></i><i></i><i></i>
+        </div>
         <h3>Google Sheets</h3>
         <p data-i18n="landing_sheets_desc">Your full history, your way — no limits, no API restrictions</p>
         <div class="landing-card-config" id="landingConfigSheets" style="display:none;">
@@ -196,7 +201,14 @@
 
       <div class="landing-card" id="landingCardFile" onclick="selectLandingSource('file')">
         <span class="landing-card-pos" aria-hidden="true">03</span>
-        <div class="landing-card-icon">📂</div>
+        <!-- Stack of files: fans out on hover (the several supported formats)
+             while the front page's data lines stream in — a file being parsed.
+             Drawn in CSS (not an emoji) so the sheets can move independently. -->
+        <div class="landing-card-icon upload-stack" aria-hidden="true">
+          <i class="upload-sheet upload-sheet-3"></i>
+          <i class="upload-sheet upload-sheet-2"></i>
+          <i class="upload-sheet upload-sheet-1"><span></span><span></span><span></span></i>
+        </div>
         <h3 data-i18n="landing_file_title">Upload File</h3>
         <p data-i18n="landing_file_desc">Import from CSV, Last.fm export, Spotify ZIP, or Deezer XLSX</p>
         <div class="landing-card-config" id="landingConfigFile" style="display:none;">
@@ -210,7 +222,10 @@
       <button class="landing-start-btn" onclick="startFromLanding()" data-i18n="landing_start_btn">Start Charting →</button>
     </div>
 
-    <p class="landing-skip"><span data-i18n="landing_already_setup">Already set up?</span> <a href="#" onclick="skipLanding(); return false;" data-i18n="landing_continue_link">Continue to charts</a></p>
+    <!-- Skip link = the "resume" action, so it gets a glyph: a CSS-drawn mini turntable
+         (platter spins up + tonearm drops on hover). The label stays in its own span
+         because data-i18n overwrites textContent, which would wipe the deck markup. -->
+    <p class="landing-skip"><span data-i18n="landing_already_setup">Already set up?</span> <a href="#" onclick="skipLanding(); return false;"><span class="landing-skip-deck" aria-hidden="true"><i class="landing-skip-arm"></i></span><span class="landing-skip-label" data-i18n="landing_continue_link">Continue to charts</span></a></p>
 
     <div class="landing-support-note">
       <span data-i18n="landing_support_text">Questions or need help?</span> <button class="landing-support-link" onclick="openZohoSupport()" data-i18n="landing_support_btn">Contact Support</button>
