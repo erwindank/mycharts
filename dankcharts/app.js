@@ -2811,15 +2811,17 @@ function startWithSampleData() {
 }
 
 /* Musical notes flying out from behind a landing card on click.
-   The notes live in a layer that paints *under* the cards (see .landing-note-burst
-   in style.css), so each one is born hidden behind the card body and only shows
-   once it clears the edge. Spawn points sit on an ellipse just inside the card's
-   upper half and every note travels outward/upward from there, so nothing has to
-   cross the whole card before becoming visible.
+   The notes live in a layer that paints under the clicked card but *over* the
+   other two (see .landing-note-burst in style.css): each note is born hidden
+   behind its own card and only shows once it clears that card's edge, then
+   sails freely across its neighbours. Spawn points sit on an ellipse just
+   inside the card's upper half and every note travels outward/upward from
+   there, so nothing has to cross the whole card before becoming visible.
    Colour comes from the card's own --note-color (sheet green / vinyl rose /
    upload accent) — resolved here because the layer is outside the card and so
    can't inherit it. */
 const LANDING_NOTE_GLYPHS = ['♪', '♫', '♬', '♩', '♪', '♫'];
+let _landingBurstTimer = null;
 function burstLandingNotes(card) {
   if (!card) return;
   // Respect reduced motion — a burst of flying glyphs is pure decoration
@@ -2836,6 +2838,16 @@ function burstLandingNotes(card) {
   }
   // Impatient clicking shouldn't pile up hundreds of nodes
   if (layer.childElementCount > 40) layer.innerHTML = '';
+
+  // Lift the clicked card above the note layer for as long as its notes fly, so
+  // they stay hidden behind *this* card while passing over the other two. The
+  // class comes off again afterwards, otherwise the last-clicked card would keep
+  // swallowing every later burst that drifts across it.
+  wrap.querySelectorAll('.landing-card-bursting').forEach(c => c.classList.remove('landing-card-bursting'));
+  card.classList.add('landing-card-bursting');
+  clearTimeout(_landingBurstTimer);
+  // Longest note lifetime: max delay (0.34s) + max duration (1.5s), rounded up
+  _landingBurstTimer = setTimeout(() => card.classList.remove('landing-card-bursting'), 2000);
 
   const wr = wrap.getBoundingClientRect();
   const cr = card.getBoundingClientRect();

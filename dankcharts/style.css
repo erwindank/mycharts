@@ -11044,20 +11044,27 @@ body.pink-light .landing-screen:has(.landing-card:hover) .landing-eq-skyline {
 }
 
 /* ---- Click burst: musical notes escaping from behind the card ------------
-   Fires on every card click (burstLandingNotes, app.js). The burst layer is a
-   sibling of the cards and paints under them (z-index 0 vs the cards' 1), so
-   each note is born hidden *behind* the card body and only becomes visible
-   once it clears the edge — the card's backdrop-filter blurs whatever of it
-   still overlaps, which is what sells the "from behind" read. Each note gets
-   its travel vector, timing and colour set inline by JS. */
+   Fires on every card click (burstLandingNotes, app.js). Three painting levels
+   keep the notes sandwiched exactly where they belong: the burst layer (2)
+   sits above the resting cards (1), so notes sail *over* the neighbouring
+   cards, while the card that was clicked is lifted above the layer (3) so its
+   own notes are still born hidden behind it and only appear once they clear
+   its edge — the card's backdrop-filter blurs whatever still overlaps, which
+   is what sells the "from behind" read. Each note gets its travel vector,
+   timing and colour set inline by JS. */
 .landing-card {
-  z-index: 1; /* keep cards above the note-burst layer */
+  z-index: 1; /* resting cards: the note layer passes over them */
+}
+
+/* Only while its own notes are in flight — JS drops the class once they're gone */
+.landing-card.landing-card-bursting {
+  z-index: 3;
 }
 
 .landing-note-burst {
   position: absolute;
   inset: 0;
-  z-index: 0;
+  z-index: 2;
   pointer-events: none;
 }
 
