@@ -514,11 +514,21 @@ const _ARTIST_EXCEPTION_RES = ARTIST_COMMA_EXCEPTIONS.map((name, i) => ({
   name,
 }));
 
+// Memo cache for splitArtists — the same artist string repeats across thousands of
+// plays, so large libraries (700k+ plays) collapse to one split per unique string.
+// Only comma-containing strings are cached (the no-comma fast path is cheaper than a
+// Map lookup), so the cache stays valid when noArtistSplit is toggled: that flag is
+// checked before the cache is ever consulted. Cached arrays are shared between plays —
+// callers must treat p.artists as read-only (they already do).
+const _splitArtistsCache = new Map();
+
 // Splits multiple artists using comma as the separator.
 // Names listed in ARTIST_COMMA_EXCEPTIONS are protected from splitting.
 function splitArtists(artistStr) {
   if (!artistStr) return [];
   if (noArtistSplit || artistStr.indexOf(',') === -1) return [artistStr];
+  const cached = _splitArtistsCache.get(artistStr);
+  if (cached) return cached;
   let str = artistStr;
   const activeTokens = {};
   for (const { re, token, name } of _ARTIST_EXCEPTION_RES) {
@@ -527,7 +537,7 @@ function splitArtists(artistStr) {
       activeTokens[token] = name;
     }
   }
-  return str
+  const result = str
     .split(',')
     .map(a => {
       let part = a.trim();
@@ -535,6 +545,8 @@ function splitArtists(artistStr) {
       return part;
     })
     .filter(a => a.length > 0);
+  _splitArtistsCache.set(artistStr, result);
+  return result;
 }
 
 // Primary artist for album grouping — always the first artist so that feat. tracks
@@ -893,7 +905,12 @@ async function initRulesCache() {
 
 function getAutocorrectRules() {
   if (_rulesCache !== null) return _rulesCache;
-  try { return JSON.parse(localStorage.getItem(RULES_KEY) || '[]'); } catch { return []; }
+  // Cache the parse — this runs on every sync/poll/parse pass, and re-parsing a large
+  // rules JSON from localStorage each time is wasted work. Safe to pre-populate here:
+  // initRulesCache() unconditionally overwrites _rulesCache once the IDB merge lands,
+  // and dcResetRulesCache() still forces a fresh read by nulling it.
+  try { _rulesCache = JSON.parse(localStorage.getItem(RULES_KEY) || '[]'); } catch { _rulesCache = []; }
+  return _rulesCache;
 }
 
 function saveAutocorrectRule(origArtist, origTitle, origAlbum, newArtist, newTitle, newAlbum, { skipSheetSync = false } = {}) {
@@ -1050,10 +1067,20 @@ function checkSimilarRules(origArtist, origTitle, origAlbum, newArtist, newTitle
 function applyAutocorrectRules(plays) {
   const rules = getAutocorrectRules();
   if (!rules.length) return plays;
+  // Index rules by their exact match key for O(1) lookup per play. The old
+  // rules.find() scan was O(plays × rules) — with large libraries (700k+ plays)
+  // that meant hundreds of millions of string comparisons blocking the main
+  // thread on every load. JSON.stringify (not a plain join) avoids field-collision
+  // false matches — e.g. artist:"Taylor"+title:"Swift Song" must not collide with
+  // artist:"Taylor Swift"+title:"Song", which a space- or comma-joined key would.
+  const ruleKey = (artist, title, album) => JSON.stringify([artist, title, album]);
+  const ruleMap = new Map();
+  for (const r of rules) {
+    const key = ruleKey(r.match.artist, r.match.title, r.match.album);
+    if (!ruleMap.has(key)) ruleMap.set(key, r); // first rule wins, same as rules.find()
+  }
   return plays.map(p => {
-    const rule = rules.find(r =>
-      r.match.artist === p.artist && r.match.title === p.title && r.match.album === p.album
-    );
+    const rule = ruleMap.get(ruleKey(p.artist, p.title, p.album));
     if (!rule) return p;
     const artist = rule.replace.artist;
     const title  = rule.replace.title;
@@ -2393,12 +2420,20 @@ async function syncFromLastFm() {
     pollTimer = setTimeout(pollLastFm, POLL_INTERVAL_MS);
     return;
   }
-  if (incremental) compact = [...compact, ...cached.data]; // new scrobbles on top of cached history
-
-  allPlays = applyAutocorrectRules(compact.map(([title, artist, album, uts]) => {
+  const rowToPlay = ([title, artist, album, uts]) => {
     const ar = artist || '';
     return { title, artist: ar, artists: splitArtists(ar), album: album || '—', date: new Date(uts * 1000) };
-  }));
+  };
+  if (incremental) {
+    // allPlays already holds the corrected play objects built from cached.data above —
+    // only build objects for the new scrobbles and prepend them (same as pollLastFm).
+    // Rebuilding the entire history here used to block the main thread for seconds on
+    // large libraries every time a few new scrobbles arrived.
+    allPlays = [...applyAutocorrectRules(compact.map(rowToPlay)), ...allPlays];
+    compact = [...compact, ...cached.data]; // new scrobbles on top of cached history (for the IDB save below)
+  } else {
+    allPlays = applyAutocorrectRules(compact.map(rowToPlay));
+  }
 
   await saveToIDB(IDB_LASTFM_KEY, { data: compact, ts: Date.now() });
   lastSyncTime = new Date();

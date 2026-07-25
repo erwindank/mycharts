@@ -100,6 +100,9 @@ const TRANSLATIONS = {
 
     // Sync bar
     sync_connecting: '⟳ Connecting to Google Sheets...',
+    // Source-neutral boot placeholder — shown before the data source is known,
+    // so it must never name Google Sheets (the source may be Last.fm or a CSV file)
+    sync_loading: '⟳ Loading…',
     sync_now: '<span class="btn-icon">↺</span> SYNC NOW',
     sync_ok: '✓ Synced · {{time}}  (⟦{{n}}⟧ plays loaded)',
     sync_ok_cached: '✓ Synced · {{time}}  (⟦{{n}}⟧ plays loaded) · cached {{mins}}m ago',
@@ -1229,6 +1232,7 @@ const TRANSLATIONS = {
 
     // Sync bar
     sync_connecting: '⟳ Conectando con Google Sheets...',
+    sync_loading: '⟳ Cargando…',
     sync_now: '<span class="btn-icon">↺</span> SINCRONIZAR',
     sync_ok: '✓ Sincronizado · {{time}}  (⟦{{n}}⟧ reproducciones cargadas)',
     sync_ok_cached: '✓ Sincronizado · {{time}}  (⟦{{n}}⟧ reproducciones cargadas) · caché hace {{mins}}m',
@@ -2357,6 +2361,7 @@ const TRANSLATIONS = {
 
     // Sync bar
     sync_connecting: '⟳ Conectando ao Google Sheets...',
+    sync_loading: '⟳ Carregando…',
     sync_now: '<span class="btn-icon">↺</span> SINCRONIZAR',
     sync_ok: '✓ Sincronizado · {{time}}  (⟦{{n}}⟧ reproduções carregadas)',
     sync_ok_cached: '✓ Sincronizado · {{time}}  (⟦{{n}}⟧ reproduções carregadas) · cache há {{mins}}m',
@@ -3486,6 +3491,7 @@ const TRANSLATIONS = {
 
     // Sync bar
     sync_connecting: '⟳ A ligar ao Google Sheets...',
+    sync_loading: '⟳ A carregar…',
     sync_now: '<span class="btn-icon">↺</span> SINCRONIZAR',
     sync_ok: '✓ Sincronizado · {{time}}  (⟦{{n}}⟧ reproduções carregadas)',
     sync_ok_cached: '✓ Sincronizado · {{time}}  (⟦{{n}}⟧ reproduções carregadas) · cache há {{mins}}m',
@@ -4599,6 +4605,11 @@ function updateMastheadDynamic() {
 function applyI18n() {
   document.querySelectorAll('[data-i18n]').forEach(el => {
     if (el.dataset.i18n === 'masthead_est' || el.dataset.i18n === 'masthead_streaming') return;
+    // #syncStatus carries a live status set by app.js (sync results, page counters,
+    // errors…). Once one has been set, re-stamping the static placeholder here would
+    // clobber it — e.g. a language switch used to permanently replace "✓ Synced" with
+    // "Connecting to Google Sheets…" even for Last.fm/CSV users.
+    if (el.id === 'syncStatus' && typeof _lastSyncStatusMsg !== 'undefined' && _lastSyncStatusMsg) return;
     el.textContent = t(el.dataset.i18n);
   });
   document.querySelectorAll('[data-i18n-html]').forEach(el => {

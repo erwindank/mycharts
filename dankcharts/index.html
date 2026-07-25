@@ -286,7 +286,10 @@
   <div class="container" id="mainApp" style="display:none;">
 
     <div class="sync-bar" id="syncBar">
-      <span id="syncStatus" data-i18n="sync_connecting">⟳ Connecting...</span><button id="syncDismissBtn" title="Dismiss" style="display:none">×</button>
+      <!-- sync_loading is deliberately source-neutral: at this point we don't know yet
+           whether the source is Google Sheets, Last.fm or a CSV file, so it must not
+           say "Connecting to Google Sheets" (the source-specific text is set by app.js) -->
+      <span id="syncStatus" data-i18n="sync_loading">⟳ Loading…</span><button id="syncDismissBtn" title="Dismiss" style="display:none">×</button>
       <div class="sync-bar-right">
         <div class="sync-bar-actions">
           <button id="syncNowBtn" data-i18n-html="sync_now"><span class="btn-icon">↺</span> SYNC NOW</button>
