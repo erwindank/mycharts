@@ -10797,10 +10797,14 @@ body {
   opacity: 0.8;
 }
 
+/* --mx/--my are set by the cursor-parallax script in app.js (falls back to 0px
+   when unset/reduced-motion) — layering them in via calc() lets the pointer-driven
+   nudge compose additively with the automatic drift instead of the two fighting
+   over the transform property. */
 @keyframes orb-drift {
-  0%, 100% { transform: translate(0, 0) scale(1); }
-  33%       { transform: translate(30px, -20px) scale(1.06); }
-  66%       { transform: translate(-20px, 15px) scale(0.96); }
+  0%, 100% { transform: translate(var(--mx, 0px), var(--my, 0px)) scale(1); }
+  33%       { transform: translate(calc(30px + var(--mx, 0px)), calc(-20px + var(--my, 0px))) scale(1.06); }
+  66%       { transform: translate(calc(-20px + var(--mx, 0px)), calc(15px + var(--my, 0px))) scale(0.96); }
 }
 
 /* ── Spectrum skyline ──────────────────────────────────────────

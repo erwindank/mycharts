@@ -2868,6 +2868,49 @@ function skipLanding() {
   syncNow();
 }
 
+// Cursor-reactive landing orbs — a damped, clamped nudge toward the pointer layered
+// on top of the existing CSS orb-drift loop (via --mx/--my custom props, see
+// style.css) so the background feels alive rather than just looping on a timer.
+// Orb-1 (top-left) leans toward the cursor; orb-2 (bottom-right) leans the opposite
+// way at reduced strength, for a subtle parallax-depth read instead of both blobs
+// sliding in lockstep.
+(function initLandingOrbParallax() {
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  const orb1 = document.querySelector('.landing-orb-1');
+  const orb2 = document.querySelector('.landing-orb-2');
+  const screen = document.getElementById('landingScreen');
+  if (!orb1 || !orb2 || !screen) return;
+
+  const MAX_OFFSET = 22; // px — clamps the nudge so it stays a subtle drift, never a chase
+  const EASE = 0.06;     // lower = lazier follow (damping factor applied per animation frame)
+  let targetX = 0, targetY = 0;
+  let curX = 0, curY = 0;
+  let rafId = null;
+
+  function tick() {
+    curX += (targetX - curX) * EASE;
+    curY += (targetY - curY) * EASE;
+    orb1.style.setProperty('--mx', curX.toFixed(1) + 'px');
+    orb1.style.setProperty('--my', curY.toFixed(1) + 'px');
+    orb2.style.setProperty('--mx', (-curX * 0.6).toFixed(1) + 'px');
+    orb2.style.setProperty('--my', (-curY * 0.6).toFixed(1) + 'px');
+    if (Math.abs(targetX - curX) > 0.1 || Math.abs(targetY - curY) > 0.1) {
+      rafId = requestAnimationFrame(tick);
+    } else {
+      rafId = null;
+    }
+  }
+
+  window.addEventListener('mousemove', (e) => {
+    if (getComputedStyle(screen).display === 'none') return; // only while onboarding is shown
+    const nx = (e.clientX / window.innerWidth) * 2 - 1;  // -1..1 across the viewport
+    const ny = (e.clientY / window.innerHeight) * 2 - 1;
+    targetX = nx * MAX_OFFSET;
+    targetY = ny * MAX_OFFSET;
+    if (!rafId) rafId = requestAnimationFrame(tick);
+  }, { passive: true });
+})();
+
 // Auto-sync on page load — use cached data if synced within the last hour
 window.addEventListener('load', async () => {
   updateMastheadDynamic();
