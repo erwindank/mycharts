@@ -3047,10 +3047,10 @@ function getSettings_() {
 // incomplete scrobbles and corrupt future syncs.
 function cleanupGhostRows_(sheet) {
   var lastRow = sheet.getLastRow();
-  if (lastRow < 2) return;
+  if (lastRow &lt; 2) return;
   var vals = sheet.getRange(2, 1, lastRow - 1, 4).getValues();
   var toDelete = [];
-  for (var i = 0; i < vals.length; i++) {
+  for (var i = 0; i &lt; vals.length; i++) {
     var title = vals[i][0], artist = vals[i][1], album = vals[i][2], dt = vals[i][3];
     if (!title &amp;&amp; !artist &amp;&amp; !album &amp;&amp; dt instanceof Date &amp;&amp; dt.getFullYear() &lt; 2000) {
       toDelete.push(i + 2); // convert to 1-indexed sheet row
@@ -3174,7 +3174,7 @@ function fetchAndLogLastFmHistory() {
 
 
 // Run this once from Last.fm → Start Auto-Update to kick off the 90-minute cycle.
-function setupTrigger() {
+function setupLastFmTrigger() {
   // Check the credentials here, in front of whoever just clicked the menu item,
   // rather than letting the first timed run fail 60 seconds later where nobody
   // is looking. Also creates the Settings tab if this sheet hasn't got one.
@@ -3195,7 +3195,10 @@ function setupTrigger() {
 function onOpen() {
   SpreadsheetApp.getUi().createMenu('Last.fm')
     .addItem('Fetch Latest Tracks', 'fetchAndLogLastFmHistory')
-    .addItem('Start Auto-Update (90 min)', 'setupTrigger')
+    .addItem('Start Auto-Update (90 min)', 'setupLastFmTrigger')
+    .addSeparator()
+    .addItem('Start Genre Fetcher', 'setupGenreFetcherTrigger')
+    .addItem('Stop Genre Fetcher', 'deleteGenreTriggers')
     .addToUi();
 }
 
@@ -3255,7 +3258,7 @@ function doPost(e) {
           .setMimeType(ContentService.MimeType.JSON);
       var corrMap = {};
       updates.forEach(function(u) {
-        if (!u.originalTimestamp || u.originalTimestamp <= 0) return;
+        if (!u.originalTimestamp || u.originalTimestamp &lt;= 0) return;
         corrMap[Utilities.formatDate(new Date(u.originalTimestamp * 1000), tz, 'yyyy-MM-dd HH:mm:ss')] = u;
       });
       var lastRow = sheet.getLastRow();
@@ -3292,7 +3295,7 @@ function doPost(e) {
           .setMimeType(ContentService.MimeType.JSON);
       var count = 0;
       var lastRow2 = sheet.getLastRow();
-      if (lastRow2 &gt;= 2) {
+      if (lastRow2 >= 2) {
         var vals = sheet.getRange(2, 1, lastRow2 - 1, lastCol).getValues();
         var changedRows = [];
         for (var r = 0; r &lt; vals.length; r++) {
@@ -3308,7 +3311,7 @@ function doPost(e) {
             count++;
           }
         }
-        if (changedRows.length &gt; 0) {
+        if (changedRows.length > 0) {
           var gs = changedRows[0], ge = changedRows[0];
           for (var ci = 1; ci &lt; changedRows.length; ci++) {
             if (changedRows[ci] === ge + 1) {
@@ -3338,7 +3341,7 @@ function doPost(e) {
       var targetRow = -1;
       var targetValues = null;
       // Fast path: client sends rowNumber — read just that one row instead of the whole sheet
-      if (data.rowNumber &amp;&amp; data.rowNumber &gt;= 2 &amp;&amp; data.rowNumber &lt;= lastRow) {
+      if (data.rowNumber &amp;&amp; data.rowNumber >= 2 &amp;&amp; data.rowNumber &lt;= lastRow) {
         var hint = sheet.getRange(data.rowNumber, 1, 1, lastCol).getValues()[0];
         var hintCell = hint[colIdx.datetime];
         var hintStr = hintCell instanceof Date
@@ -3371,7 +3374,7 @@ function doPost(e) {
     if (data.action === 'batchUpdate') {
       var count = 0;
       var lastRow2 = sheet.getLastRow();
-      if (lastRow2 &gt;= 2) {
+      if (lastRow2 >= 2) {
         var vals = sheet.getRange(2, 1, lastRow2 - 1, lastCol).getValues();
         var matchedRows = [];
         for (var r = 0; r &lt; vals.length; r++) {
@@ -3383,8 +3386,8 @@ function doPost(e) {
             count++;
           }
         }
-        if (count &gt; 0) {
-          var colLetter = function(n) { var s = ''; while (n &gt; 0) { var m = (n-1) % 26; s = String.fromCharCode(65+m) + s; n = Math.floor((n-1) / 26); } return s; };
+        if (count > 0) {
+          var colLetter = function(n) { var s = ''; while (n > 0) { var m = (n-1) % 26; s = String.fromCharCode(65+m) + s; n = Math.floor((n-1) / 26); } return s; };
           if (colIdx.artist !== undefined) sheet.getRangeList(matchedRows.map(function(r) { return colLetter(colIdx.artist + 1) + r; })).setValue(data.artist || '');
           if (colIdx.title  !== undefined) sheet.getRangeList(matchedRows.map(function(r) { return colLetter(colIdx.title  + 1) + r; })).setValue(data.track  || '');
           if (colIdx.album  !== undefined) sheet.getRangeList(matchedRows.map(function(r) { return colLetter(colIdx.album  + 1) + r; })).setValue(data.album  || '');
@@ -3411,6 +3414,92 @@ function doPost(e) {
   } catch(err) {
     return ContentService.createTextOutput(JSON.stringify({ status: 'error', message: err.message }))
       .setMimeType(ContentService.MimeType.JSON);
+  }
+}
+
+
+// =============================================================
+//  BULK GENRE FETCHER
+//  Fills columns E–I (Genre 1–5) by calling Last.fm's
+//  track.gettoptags API for every row that has no genre yet.
+//  Runs in batches of 50 rows every 5 minutes so it never
+//  hits the 6-minute Apps Script execution limit.
+//  Start it from Last.fm → Start Genre Fetcher in the sheet menu.
+// =============================================================
+function fetchGenresBatch() {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var settingsSheet = ss.getSheetByName('Settings');
+  if (!settingsSheet) return;
+  var apiKey = settingsSheet.getRange('B2').getValue();
+  var dataTabName = settingsSheet.getRange('B3').getValue();
+  var dataSheet = ss.getSheetByName(dataTabName);
+  if (!apiKey || !dataSheet) return;
+  var props = PropertiesService.getScriptProperties();
+  var startRow = parseInt(props.getProperty('lastProcessedRow')) || 2;
+  var lastRow = dataSheet.getLastRow();
+  if (startRow > lastRow) {
+    deleteGenreTriggers();
+    Logger.log('Genre fetcher complete — all rows processed.');
+    return;
+  }
+  var BATCH_SIZE = 50;
+  var endRow = Math.min(startRow + BATCH_SIZE - 1, lastRow);
+  var data = dataSheet.getRange(startRow, 1, endRow - startRow + 1, 9).getValues();
+  var updates = [];
+  for (var i = 0; i &lt; data.length; i++) {
+    var row = data[i];
+    var track = row[0];
+    var artist = row[1];
+    var genre1 = row[4];
+    if (track &amp;&amp; artist &amp;&amp; genre1 === '') {
+      var genres = getGenresFromLastFm(artist, track, apiKey);
+      var genresToUpdate = ['', '', '', '', ''];
+      for (var g = 0; g &lt; Math.min(genres.length, 5); g++) {
+        genresToUpdate[g] = genres[g];
+      }
+      updates.push(genresToUpdate);
+    } else {
+      updates.push([row[4], row[5], row[6], row[7], row[8]]);
+    }
+  }
+  dataSheet.getRange(startRow, 5, updates.length, 5).setValues(updates);
+  props.setProperty('lastProcessedRow', endRow + 1);
+  Logger.log('Genre fetcher: processed rows ' + startRow + ' to ' + endRow + '.');
+}
+
+
+function getGenresFromLastFm(artist, track, apiKey) {
+  var url = 'https://ws.audioscrobbler.com/2.0/?method=track.gettoptags'
+    + '&amp;artist=' + encodeURIComponent(artist)
+    + '&amp;track=' + encodeURIComponent(track)
+    + '&amp;api_key=' + apiKey + '&amp;format=json';
+  try {
+    var response = UrlFetchApp.fetch(url, { muteHttpExceptions: true });
+    if (response.getResponseCode() === 200) {
+      var json = JSON.parse(response.getContentText());
+      if (json.toptags &amp;&amp; json.toptags.tag) {
+        return json.toptags.tag.map(function(t) { return t.name; });
+      }
+    }
+  } catch(e) {}
+  return [];
+}
+
+
+function setupGenreFetcherTrigger() {
+  deleteGenreTriggers();
+  ScriptApp.newTrigger('fetchGenresBatch').timeBased().everyMinutes(5).create();
+  PropertiesService.getScriptProperties().setProperty('lastProcessedRow', '2');
+  SpreadsheetApp.getUi().alert('Genre fetcher started! It will fill columns E–I every 5 minutes.');
+}
+
+
+function deleteGenreTriggers() {
+  var triggers = ScriptApp.getProjectTriggers();
+  for (var i = 0; i &lt; triggers.length; i++) {
+    if (triggers[i].getHandlerFunction() === 'fetchGenresBatch') {
+      ScriptApp.deleteTrigger(triggers[i]);
+    }
   }
 }</pre>
 
