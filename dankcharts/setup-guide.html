@@ -1425,6 +1425,11 @@
       padding: 1.3rem 1.5rem 1.4rem;
     }
     .step-card > * + * { margin-top: 0.75rem; }
+    /* The same rhythm one level deeper. .step-card's rule only ever reached
+       the title and the .step-body wrapper — everything a reader actually
+       looks at (paragraphs, spec tables, callouts) lives inside that wrapper
+       and was sitting flush, held apart by line-height alone. */
+    .step-body > * + * { margin-top: 0.75rem; }
     .step-card a { overflow-wrap: anywhere; }
 
     .step-title {
@@ -2006,7 +2011,7 @@
       <span class="tab-icon-sheets" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
       <span class="guide-tab-text">
         <span class="guide-tab-name">Google Sheets</span>
-        <span class="guide-tab-meta">6 steps · ~10 min</span>
+        <span class="guide-tab-meta">7 steps · ~10 min</span>
       </span>
     </button>
     <button class="guide-tab" id="guideTabLastfm" data-tab="lastfm"
@@ -2041,7 +2046,7 @@
     <ul class="needs">
       <li>A Google account</li>
       <li>A Last.fm account with some listening history</li>
-      <li>A free Last.fm API key — <a href="https://www.last.fm/api/account/create" target="_blank" rel="noopener">last.fm/api/account/create</a></li>
+      <li>A free Last.fm API key — don't have one? Step 2 creates it, takes two minutes</li>
     </ul>
 
     <div class="viewbar">
@@ -2076,6 +2081,26 @@
           <span class="step-num">02</span><span class="step-tick" aria-hidden="true">✓</span>
         </button>
         <div class="step-card">
+          <h3 class="step-title">Get your free Last.fm API key</h3>
+          <div class="step-body">
+            <p>The sheet pulls your plays through Last.fm's API, and that needs a key of your own. Free, instant, no approval — sign in to Last.fm and fill in the form at <a href="https://www.last.fm/api/account/create" target="_blank" rel="noopener"><strong>last.fm/api/account/create</strong></a>. The values can be anything:</p>
+            <div class="spec">
+              <div class="spec-head"><span>Field</span><span>What to enter</span></div>
+              <div class="spec-row"><span class="spec-key">Application name</span><span class="spec-val">My Music Charts</span></div>
+              <div class="spec-row"><span class="spec-key">Description</span><span class="spec-val">Personal use</span></div>
+              <div class="spec-row"><span class="spec-key">Homepage <em>(optional)</em></span><span class="spec-val">https://dankcharts.fm</span></div>
+              <div class="spec-row"><span class="spec-key">Callback URL <em>(optional)</em></span><span class="spec-val">https://dankcharts.fm</span></div>
+            </div>
+            <p>Copy the <strong>API Key</strong> it shows you — that's all this path needs. It also shows a Shared Secret; ignore that here, it's only for scrobble pushing.</p>
+          </div>
+        </div>
+      </li>
+
+      <li class="step">
+        <button type="button" class="step-node" aria-pressed="false" aria-label="Mark step 3 done">
+          <span class="step-num">03</span><span class="step-tick" aria-hidden="true">✓</span>
+        </button>
+        <div class="step-card">
           <h3 class="step-title">Fill in your details</h3>
           <div class="step-body">
             <p>In your copy, open the <strong>Settings</strong> tab at the bottom and fill in column B.</p>
@@ -2094,19 +2119,14 @@
                 <span class="spec-val muted">leave as-is</span>
               </div>
             </div>
-            <details class="why">
-              <summary>No API key yet?</summary>
-              <div class="why-body">
-                <p>Get one free in about two minutes at <a href="https://www.last.fm/api/account/create" target="_blank" rel="noopener">last.fm/api/account/create</a>. The application name can be anything.</p>
-              </div>
-            </details>
+            <p>The API key is the one you copied in Step 2 — paste it exactly, no extra spaces.</p>
           </div>
         </div>
       </li>
 
       <li class="step">
-        <button type="button" class="step-node" aria-pressed="false" aria-label="Mark step 3 done">
-          <span class="step-num">03</span><span class="step-tick" aria-hidden="true">✓</span>
+        <button type="button" class="step-node" aria-pressed="false" aria-label="Mark step 4 done">
+          <span class="step-num">04</span><span class="step-tick" aria-hidden="true">✓</span>
         </button>
         <div class="step-card">
           <h3 class="step-title">The script is already there</h3>
@@ -2121,7 +2141,7 @@
             <details class="disclose">
               <summary>Replace the script manually</summary>
               <div class="disclose-body">
-                <p>Paste this into Extensions → Apps Script, replacing everything there. Save with Ctrl+S, then redeploy if you set up a Web App in Step 6.</p>
+                <p>Paste this into Extensions → Apps Script, replacing everything there. Save with Ctrl+S, then redeploy if you set up a Web App in Step 7.</p>
                 <div class="code-wrap">
                   <pre id="guideAppsScriptCode"></pre>
                   <button type="button" class="code-copy" id="copyGuideAppsScriptBtn" onclick="copyGuideAppsScript()">Copy</button>
@@ -2133,25 +2153,58 @@
       </li>
 
       <li class="step">
-        <button type="button" class="step-node" aria-pressed="false" aria-label="Mark step 4 done">
-          <span class="step-num">04</span><span class="step-tick" aria-hidden="true">✓</span>
+        <button type="button" class="step-node" aria-pressed="false" aria-label="Mark step 5 done">
+          <span class="step-num">05</span><span class="step-tick" aria-hidden="true">✓</span>
         </button>
         <div class="step-card">
           <h3 class="step-title">Start auto-sync</h3>
           <div class="step-body">
-            <p>Back in your sheet, a <strong>Last.fm</strong> menu now sits next to Help.</p>
+            <p>Everything is in place — this switches it on. Go back to the browser tab with your sheet: there's now a <strong>Last.fm</strong> menu in the menu bar at the top, just right of <strong>Help</strong>.</p>
+            <aside class="note">
+              <span class="note-icon" aria-hidden="true">i</span>
+              <div class="note-body">
+                <strong>Don't see a Last.fm menu?</strong> Reload the page. That menu is added each time the sheet opens, so a tab you already had open won't have it yet.
+              </div>
+            </aside>
+
+            <p class="step-sub">Switch it on</p>
             <div class="path">
               <span class="path-step">Last.fm</span>
               <span class="path-arrow" aria-hidden="true">→</span>
               <span class="path-step">Start Auto-Update (90 min)</span>
             </div>
-            <p>New plays arrive every 90 minutes from now on. Want them immediately? <strong>Last.fm → Fetch Latest Tracks</strong>.</p>
+
+            <p class="step-sub">Approve it — one time only</p>
+            <p>The first time you run anything from that menu, Google asks you to approve the script. It walks you through four screens, and one of them looks scarier than it is:</p>
+            <div class="spec">
+              <div class="spec-head"><span>Screen you'll see</span><span>What to click</span></div>
+              <div class="spec-row">
+                <span class="spec-key">Authorization required</span>
+                <span class="spec-val">Continue / Review permissions</span>
+              </div>
+              <div class="spec-row">
+                <span class="spec-key">Choose an account</span>
+                <span class="spec-val">your own Google account</span>
+              </div>
+              <div class="spec-row">
+                <span class="spec-key">Google hasn't verified this app</span>
+                <span class="spec-val">Advanced, then "Go to … (unsafe)"</span>
+              </div>
+              <div class="spec-row">
+                <span class="spec-key">… wants access to your Google Account</span>
+                <span class="spec-val">Allow</span>
+              </div>
+            </div>
             <aside class="note note-warn">
               <span class="note-icon" aria-hidden="true">!</span>
               <div class="note-body">
-                <strong>"This app isn't verified"?</strong> Normal for personal scripts. Click <strong>Advanced → Go to [app name] (unsafe) → Allow</strong>. The script only touches your own sheet.
+                <strong>"Unsafe" reads worse than it is.</strong> Google shows that screen for every personal script that hasn't gone through its commercial review — including this one, which is <em>your</em> copy sitting in <em>your</em> Drive. It fetches your plays from Last.fm and writes them to this one sheet. Nothing else, and nobody else can run it. Every line is readable under <strong>Extensions → Apps Script</strong>.
               </div>
             </aside>
+
+            <p class="step-sub">What happens after that</p>
+            <p>Nothing lands instantly — the first batch of plays arrives about a minute later, then a fresh one every 90 minutes. Each sync resumes from the last play it saved, so nothing is fetched twice.</p>
+            <p>It runs on Google's servers, so you can close the sheet and the browser entirely. Want the newest plays right now instead of waiting? <strong>Last.fm → Fetch Latest Tracks</strong> runs the same sync on the spot.</p>
             <details class="why">
               <summary>Why 90 minutes?</summary>
               <div class="why-body">
@@ -2163,8 +2216,8 @@
       </li>
 
       <li class="step">
-        <button type="button" class="step-node" aria-pressed="false" aria-label="Mark step 5 done">
-          <span class="step-num">05</span><span class="step-tick" aria-hidden="true">✓</span>
+        <button type="button" class="step-node" aria-pressed="false" aria-label="Mark step 6 done">
+          <span class="step-num">06</span><span class="step-tick" aria-hidden="true">✓</span>
         </button>
         <div class="step-card">
           <h3 class="step-title">Connect it to dankcharts.fm</h3>
@@ -2187,8 +2240,8 @@
       </li>
 
       <li class="step step-optional">
-        <button type="button" class="step-node" aria-pressed="false" aria-label="Mark step 6 done">
-          <span class="step-num">06</span><span class="step-tick" aria-hidden="true">✓</span>
+        <button type="button" class="step-node" aria-pressed="false" aria-label="Mark step 7 done">
+          <span class="step-num">07</span><span class="step-tick" aria-hidden="true">✓</span>
         </button>
         <div class="step-card">
           <h3 class="step-title">Add plays by hand <span class="optional-badge">Optional</span></h3>
@@ -2209,7 +2262,7 @@
               <div class="spec-row"><span class="spec-key">Execute as</span><span class="spec-val">Me</span></div>
               <div class="spec-row"><span class="spec-key">Who has access</span><span class="spec-val">Anyone</span></div>
             </div>
-            <p>Hit <strong>Deploy</strong>, authorise it the same way as in Step 4, and copy the Web App URL. Then paste it into:</p>
+            <p>Hit <strong>Deploy</strong>, authorise it the same way as in Step 5, and copy the Web App URL. Then paste it into:</p>
             <div class="path">
               <span class="path-step">Settings ⚙</span>
               <span class="path-arrow" aria-hidden="true">→</span>
@@ -3355,7 +3408,7 @@
     // here (not in the markup) because they're wizard chrome; if a step is
     // ever added or reordered in the HTML, keep these lists in step.
     var WIZ_LABELS = {
-      sheets: ['Copy template', 'Your details', 'The script', 'Auto-sync', 'Connect', 'Manual adds'],
+      sheets: ['Copy template', 'API key', 'Your details', 'The script', 'Auto-sync', 'Connect', 'Manual adds'],
       lastfm: ['API app', 'Paste keys', 'Connect', 'Fix & push'],
       file:   ['Get export', 'Check format', 'Make a CSV', 'Upload']
     };
