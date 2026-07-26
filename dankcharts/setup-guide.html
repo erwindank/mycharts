@@ -1009,12 +1009,259 @@
       white-space: nowrap;
     }
 
+    /* ── Guided wizard ──────────────────────────────────────────────────
+       Guided view is a one-step-at-a-time flow: a dot rail up top showing
+       the whole journey, the active step's card centre stage, Back/Skip/Next
+       underneath, and a finish panel once the last step is ticked. Full text
+       lays the same markup out all at once instead — the split is a body
+       class, never duplicated content. All the wizard chrome (.wiz-*) is
+       built by the script, so with no JS none of these rules ever match and
+       the page is simply the readable list. */
+    body.view-guided .steps .step { display: none; }
+    body.view-guided .steps .step.wiz-active {
+      display: grid;
+      /* The rail above carries the numbering now, so the node column goes
+         and the card takes the full width. */
+      grid-template-columns: 1fr;
+    }
+    body.view-guided .step-node,
+    body.view-guided .step:not(:last-child)::before { display: none; }
+    /* A done step revisited through the rail stays fully open — folding to
+       a title is list behaviour, meaningless when it's the only card. */
+    body.view-guided .step.done .step-body { display: block; }
+    body.view-guided .step.done .step-card { opacity: 1; cursor: default; padding-bottom: 1.4rem; }
+
+    /* Direction-aware entrance: cards slide in from the side you're heading
+       toward, so Next and Back feel like moving through a sequence. */
+    @keyframes wizInFwd  { from { opacity: 0; transform: translateX(36px); } to { opacity: 1; transform: none; } }
+    @keyframes wizInBack { from { opacity: 0; transform: translateX(-36px); } to { opacity: 1; transform: none; } }
+    .step.wiz-in-fwd  { animation: wizInFwd  0.34s cubic-bezier(0.22, 1, 0.36, 1); }
+    .step.wiz-in-back { animation: wizInBack 0.34s cubic-bezier(0.22, 1, 0.36, 1); }
+
+    /* The rail: one dot per step, hairline segments between them. Dots are
+       real buttons — click any of them to jump straight to that step. */
+    .wiz-rail {
+      display: none;
+      align-items: flex-start;
+      margin-bottom: 1.9rem;
+      scroll-margin-top: 70px; /* stays clear of the sticky controls bar */
+    }
+    body.view-guided .wiz-rail { display: flex; }
+    .wiz-seg {
+      flex: 1 1 0;
+      height: 2px;
+      margin: 17px 0.35rem 0; /* 17px centres the line on the 36px dot */
+      border-radius: 2px;
+      background: var(--glass-line);
+      transition: background 0.35s;
+    }
+    /* A segment lights up once the step on its left is ticked — the rail
+       slowly turning green is the "how far in am I?" read. */
+    .wiz-seg.crossed { background: color-mix(in srgb, var(--green) 60%, transparent); }
+    .wiz-dot {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.45rem;
+      flex-shrink: 0;
+      max-width: 86px;
+      background: none;
+      border: none;
+      padding: 0;
+      cursor: pointer;
+    }
+    .wiz-dot-circle {
+      position: relative;
+      width: 36px; height: 36px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--glass-hi);
+      border: 1px solid var(--glass-line);
+      font-family: var(--font-mono);
+      font-size: 0.74rem;
+      font-weight: 700;
+      /* --text2, not --text3: at this size the number is "small text" needing
+         4.5:1, and --text3 measures ~4.2:1 on the light themes' lifted chip —
+         the same call .spec-head and .guide-tab-meta already made. */
+      color: var(--text2);
+      transition: background 0.25s, border-color 0.25s, color 0.25s,
+                  transform 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+    .wiz-dot:hover .wiz-dot-circle { border-color: var(--accent); color: var(--text); transform: scale(1.08); }
+    .wiz-dot-tick {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.95rem;
+      opacity: 0;
+      transform: scale(0.4);
+      transition: opacity 0.2s, transform 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+    .wiz-dot.done .wiz-dot-circle { background: var(--green); border-color: var(--green); color: var(--tick-ink); }
+    .wiz-dot.done .wiz-dot-num  { opacity: 0; }
+    .wiz-dot.done .wiz-dot-tick { opacity: 1; transform: scale(1); }
+    .wiz-dot.active .wiz-dot-circle {
+      border-color: var(--accent);
+      color: var(--accent);
+      background: color-mix(in srgb, var(--accent) 14%, transparent);
+      animation: wizPulse 2.4s ease-in-out infinite;
+    }
+    /* Revisiting an already-ticked step: green wins, the pulse still says
+       "you are here". */
+    .wiz-dot.active.done .wiz-dot-circle {
+      background: var(--green);
+      border-color: var(--green);
+      color: var(--tick-ink);
+    }
+    @keyframes wizPulse {
+      0%, 100% { box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 22%, transparent); }
+      50%      { box-shadow: 0 0 0 8px color-mix(in srgb, var(--accent) 9%, transparent); }
+    }
+    .wiz-dot-num { transition: opacity 0.15s; }
+    .wiz-dot-label {
+      font-family: var(--font-mono);
+      font-size: 0.58rem;
+      font-weight: 500;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      line-height: 1.35;
+      text-align: center;
+      /* Same contrast call as the circle's number — --text3 is too weak for
+         0.58rem type on the light themes. */
+      color: var(--text2);
+      transition: color 0.2s;
+    }
+    .wiz-dot:hover .wiz-dot-label,
+    .wiz-dot.active .wiz-dot-label { color: var(--text); }
+
+    /* "Step 2 of 6" above the active card. A numbered counter is earned
+       here — the steps genuinely are a sequence. */
+    .wiz-count {
+      display: none;
+      font-family: var(--font-mono);
+      font-size: 0.66rem;
+      font-weight: 500;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--text2); /* --text3 is below 4.5:1 at this size on light themes */
+      margin-bottom: 0.7rem;
+    }
+    body.view-guided .wiz-count { display: block; }
+
+    /* Back / Skip / Next under the card */
+    .wiz-nav {
+      display: none;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.75rem;
+      margin-top: 1.4rem;
+    }
+    body.view-guided .wiz-nav { display: flex; }
+    .wiz-nav-right { display: flex; align-items: center; gap: 0.55rem; }
+    /* .btn-ghost's own display would beat the UA's [hidden] rule, so the
+       Skip button needs this belt to actually disappear on required steps. */
+    .wiz-nav [hidden] { display: none !important; }
+    .wiz-back[disabled] { visibility: hidden; } /* keeps Next pinned right on step 1 */
+    .wiz-next { padding: 0.62rem 1.45rem; font-size: 0.78rem; }
+
+    /* Finish line: swapped in for the stage once the last step is ticked.
+       The card, counter and nav stand down; the rail stays, fully green —
+       a small trophy shelf. */
+    body.view-guided .wiz-finished .steps,
+    body.view-guided .wiz-finished .wiz-count,
+    body.view-guided .wiz-finished .wiz-nav { display: none; }
+    .wiz-done {
+      position: relative;
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      gap: 0.55rem;
+      padding: 2.6rem 1.5rem 2.4rem;
+      border-radius: 18px;
+      border: 1px solid color-mix(in srgb, var(--green) 38%, transparent);
+      background: color-mix(in srgb, var(--green) 7%, var(--glass));
+      backdrop-filter: var(--glass-blur);
+      -webkit-backdrop-filter: var(--glass-blur);
+    }
+    body.view-guided .wiz-finished .wiz-done {
+      display: flex;
+      animation: wizDoneIn 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+    @keyframes wizDoneIn {
+      from { opacity: 0; transform: translateY(16px); }
+      to   { opacity: 1; transform: none; }
+    }
+    .wiz-done-glyph {
+      width: 62px; height: 62px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--green);
+      color: var(--tick-ink);
+      font-size: 1.7rem;
+      font-weight: 700;
+      margin-bottom: 0.4rem;
+      box-shadow: 0 0 0 9px color-mix(in srgb, var(--green) 16%, transparent);
+      animation: wizGlyphIn 0.5s cubic-bezier(0.22, 1, 0.36, 1) 0.1s backwards;
+    }
+    @keyframes wizGlyphIn {
+      from { opacity: 0; transform: scale(0.5); }
+      to   { opacity: 1; transform: scale(1); }
+    }
+    .wiz-done-title {
+      font-family: var(--font-display);
+      font-size: 1.45rem;
+      font-weight: 700;
+      letter-spacing: -0.015em;
+      color: var(--text);
+      text-wrap: balance;
+    }
+    .wiz-done-copy {
+      color: var(--text2);
+      font-size: 0.92rem;
+      max-width: 44ch;
+      text-wrap: pretty;
+    }
+    .wiz-done-actions {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: center;
+      gap: 0.7rem;
+      margin-top: 0.9rem;
+    }
+    /* Musical notes bursting out of the finish panel — the landing cards'
+       note burst, replayed at the one moment on this page that earns it. */
+    .wiz-note {
+      position: absolute;
+      left: 50%;
+      top: 34%;
+      font-size: 1.25rem;
+      pointer-events: none;
+      user-select: none;
+      opacity: 0;
+      animation: wizNoteFly 1s cubic-bezier(0.16, 0.8, 0.4, 1) forwards;
+    }
+    @keyframes wizNoteFly {
+      0%   { opacity: 0; transform: translate(-50%, -50%) scale(0.6) rotate(0deg); }
+      12%  { opacity: 1; }
+      100% { opacity: 0; transform: translate(calc(-50% + var(--nx, 0px)), calc(-50% + var(--ny, -80px))) scale(1.15) rotate(var(--nr, 0deg)); }
+    }
+
     /* ── Steps: a numbered rail ─────────────────────────────────────────
-       A guide is a sequence, so the numbers get their own column with a
-       hairline connector running between them — you can see at a glance how
-       far in you are and how much is left. The card itself is the landing's
-       glass panel, without the hover-lift: these aren't clickable and
-       shouldn't pretend to be. */
+       The Full-text (and no-JS, and print) presentation: a sequence with
+       the numbers in their own column and a hairline connector running
+       between them — you can see at a glance how far in you are and how
+       much is left. Guided view hides all but the active step and hands
+       the numbering to the wizard rail above. The card itself is the
+       landing's glass panel, without the hover-lift: these aren't
+       clickable and shouldn't pretend to be. */
     .steps { list-style: none; }
 
     .step {
@@ -1585,6 +1832,15 @@
       .guide-orb-1 { width: 320px; height: 320px; }
       .guide-orb-2 { width: 280px; height: 280px; bottom: 110px; }
       .section-label::before, .section-label::after { max-width: 48px; }
+
+      /* Wizard: labels go, dots shrink — six of them have to fit a 320px
+         viewport with the segments still reading as one line. */
+      .wiz-dot-label { display: none; }
+      .wiz-dot { max-width: none; }
+      .wiz-dot-circle { width: 30px; height: 30px; font-size: 0.66rem; }
+      .wiz-seg { margin-top: 14px; }
+      .wiz-nav { flex-wrap: wrap; }
+      .wiz-nav-right { flex: 1 1 auto; justify-content: flex-end; }
     }
 
     /* ── Print ──────────────────────────────────────────────────────────
@@ -1622,6 +1878,14 @@
          print job — this is the belt to that pair of braces). */
       .step.done .step-body { display: block !important; }
       .step.done .step-card { opacity: 1 !important; }
+
+      /* The wizard is a screen thing. Print drops its chrome entirely and
+         restores the full numbered list, whatever step was on stage. */
+      .wiz-rail, .wiz-count, .wiz-nav, .wiz-done { display: none !important; }
+      body.view-guided .wiz-finished .steps { display: block !important; }
+      body.view-guided .steps .step { display: grid !important; grid-template-columns: 46px 1fr !important; }
+      body.view-guided .step-node { display: flex !important; }
+      body.view-guided .step:not(:last-child)::before { display: block !important; }
       .why > summary { color: #06101e; font-weight: 600; }
       .why > summary::before { content: '' !important; }
       .why-body { border-left: none; padding-left: 0; }
@@ -3019,10 +3283,14 @@
 
     initOrbParallax();
     initPrintExpand();
-    initStepProgress();
+    initGuidedFlow();
     initServicePicker();
     initViewToggle();
   });
+
+  function prefersReduced() {
+    return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  }
 
   // Set by initServicePicker so the view switch can re-apply the service
   // filter when it returns to Guided. No-op until then.
@@ -3030,9 +3298,10 @@
 
   // ── View switch ──────────────────────────────────────────────────────
   // Guided (default) vs Full text. The switch is repeated once per path but
-  // the setting is global, so all three stay in step. Full text opens every
-  // "why" fold and drops the picker filter; the tick-off state is left alone
-  // on the elements so switching back lands you exactly where you were.
+  // the setting is global, so all three stay in step. Guided is the wizard:
+  // one step on stage at a time. Full text opens every "why" fold and drops
+  // the picker filter; the tick-off state is left alone on the elements so
+  // switching back lands you exactly where you were.
   function initViewToggle() {
     var KEY = 'dc_guide_view';
     var btns = [].slice.call(document.querySelectorAll('.viewtoggle-btn'));
@@ -3041,6 +3310,10 @@
     function apply(view) {
       var isText = view === 'text';
       document.body.classList.toggle('view-text', isText);
+      // The wizard CSS only bites via this class, and only the script ever
+      // adds it — so no-JS visitors (who could never press Next) always get
+      // the full readable list instead of a stage with no controls.
+      document.body.classList.toggle('view-guided', !isText);
       btns.forEach(function (b) {
         b.setAttribute('aria-pressed', (b.dataset.view === view) ? 'true' : 'false');
       });
@@ -3068,41 +3341,125 @@
     apply(saved === 'text' ? 'text' : 'guided');
   }
 
-  // ── Tick-off progress ────────────────────────────────────────────────
-  // Each path's steps can be checked off; done steps fold to their title so
-  // the page gets shorter as you work through it, and the bar at the top
-  // answers "how much is left?". State is per-path in localStorage, so
-  // closing the tab mid-setup doesn't lose your place.
-  function initStepProgress() {
+  // ── Guided flow + tick-off progress ──────────────────────────────────
+  // One controller per path. It owns three things that must stay in sync:
+  // the done-ticks (persisted per path in localStorage, so closing the tab
+  // mid-setup doesn't lose your place), the progress bar in the viewbar,
+  // and the wizard chrome — the dot rail, the "Step N of M" counter, the
+  // Back/Skip/Next controls and the finish panel — that Guided view uses to
+  // put one step on stage at a time. All of that chrome is built here, not
+  // in the markup: the HTML stays a plain readable list for no-JS visitors,
+  // and the wizard is layered on top.
+  function initGuidedFlow() {
+    // Short rail labels, one per step, in step order per path. They live
+    // here (not in the markup) because they're wizard chrome; if a step is
+    // ever added or reordered in the HTML, keep these lists in step.
+    var WIZ_LABELS = {
+      sheets: ['Copy template', 'Your details', 'The script', 'Auto-sync', 'Connect', 'Manual adds'],
+      lastfm: ['API app', 'Paste keys', 'Connect', 'Fix & push'],
+      file:   ['Get export', 'Check format', 'Make a CSV', 'Upload']
+    };
+    // The finish panel's line under "All done", per path.
+    var DONE_COPY = {
+      sheets: 'Your sheet now syncs itself every 90 minutes — head back and watch the plays roll in.',
+      lastfm: 'You’re connected. Every fix you push from Raw Data now lands on your Last.fm profile.',
+      file:   'Your plays are loaded. Head back and see what your listening actually looks like.'
+    };
+
     document.querySelectorAll('.guide-tab-panel').forEach(function (panel) {
       var bar = panel.querySelector('.progress');
+      var stepsOl = panel.querySelector('.steps');
       var steps = [].slice.call(panel.querySelectorAll('.step'));
-      if (!bar || !steps.length) return;
+      if (!bar || !stepsOl || !steps.length) return;
 
-      var key = 'dc_guide_done_' + bar.dataset.progress;
-      var fill = bar.querySelector('.progress-fill');
+      var path = bar.dataset.progress; // 'sheets' | 'lastfm' | 'file'
+      var doneKey = 'dc_guide_done_' + path;
+      var posKey  = 'dc_guide_pos_'  + path; // which step is on stage ('fin' = finish panel)
+
+      var fill  = bar.querySelector('.progress-fill');
       var label = bar.querySelector('.progress-label');
       var reset = bar.querySelector('.progress-reset');
 
-      function load() {
-        try { return JSON.parse(localStorage.getItem(key)) || []; } catch (e) { return []; }
-      }
-      function save(list) {
-        try { localStorage.setItem(key, JSON.stringify(list)); } catch (e) {}
-      }
-
-      function render() {
-        var done = steps.filter(function (s) { return s.classList.contains('done'); }).length;
-        // --p is a 0–1 fraction; the fill is transformed, never resized
-        fill.style.setProperty('--p', steps.length ? done / steps.length : 0);
-        if (done === steps.length) {
-          label.textContent = 'All done — go make some charts';
-          label.classList.add('progress-done');
-        } else {
-          label.textContent = done + ' of ' + steps.length + ' done';
-          label.classList.remove('progress-done');
+      // ── Build the wizard chrome ──
+      // Rail: dot, segment, dot, segment, … Dots are buttons that jump.
+      var rail = document.createElement('div');
+      rail.className = 'wiz-rail';
+      var dots = [], segs = [];
+      steps.forEach(function (step, i) {
+        if (i > 0) {
+          var seg = document.createElement('i');
+          seg.className = 'wiz-seg';
+          seg.setAttribute('aria-hidden', 'true');
+          rail.appendChild(seg);
+          segs.push(seg);
         }
-        reset.hidden = done === 0;
+        var short = (WIZ_LABELS[path] || [])[i] || ('Step ' + (i + 1));
+        var dot = document.createElement('button');
+        dot.type = 'button';
+        dot.className = 'wiz-dot';
+        dot.setAttribute('aria-label', 'Go to step ' + (i + 1) + ': ' + short);
+        dot.innerHTML =
+          '<span class="wiz-dot-circle">' +
+            '<span class="wiz-dot-num">' + (i < 9 ? '0' : '') + (i + 1) + '</span>' +
+            '<span class="wiz-dot-tick" aria-hidden="true">✓</span>' +
+          '</span>' +
+          '<span class="wiz-dot-label">' + short + '</span>';
+        dot.addEventListener('click', function () { go(i, i < cur ? -1 : 1); });
+        rail.appendChild(dot);
+        dots.push(dot);
+      });
+
+      // "Step 2 of 6" over the active card
+      var count = document.createElement('p');
+      count.className = 'wiz-count';
+
+      // Back / Skip / Next under it
+      var nav = document.createElement('div');
+      nav.className = 'wiz-nav';
+      nav.innerHTML =
+        '<button type="button" class="btn-ghost wiz-back">← Back</button>' +
+        '<div class="wiz-nav-right">' +
+          '<button type="button" class="btn-ghost wiz-skip" hidden>Skip for now</button>' +
+          '<button type="button" class="btn-primary wiz-next">✓&nbsp; Done — next step</button>' +
+        '</div>';
+      var backBtn = nav.querySelector('.wiz-back');
+      var skipBtn = nav.querySelector('.wiz-skip');
+      var nextBtn = nav.querySelector('.wiz-next');
+
+      // The finish line
+      var doneEl = document.createElement('div');
+      doneEl.className = 'wiz-done';
+      doneEl.setAttribute('role', 'status');
+      doneEl.innerHTML =
+        '<span class="wiz-done-glyph" aria-hidden="true">✓</span>' +
+        '<h3 class="wiz-done-title">All done — go make some charts</h3>' +
+        '<p class="wiz-done-copy">' + (DONE_COPY[path] || '') + '</p>' +
+        '<div class="wiz-done-actions">' +
+          '<a class="btn-primary" href="https://dankcharts.fm">Back to your charts <span class="btn-arrow" aria-hidden="true">→</span></a>' +
+          '<button type="button" class="btn-ghost wiz-restart">Start over</button>' +
+        '</div>';
+
+      stepsOl.parentNode.insertBefore(rail, stepsOl);
+      stepsOl.parentNode.insertBefore(count, stepsOl);
+      stepsOl.parentNode.insertBefore(nav, stepsOl.nextSibling);
+      nav.parentNode.insertBefore(doneEl, nav.nextSibling);
+
+      // ── State ──
+      var cur = 0;          // index of the step on stage
+      var finished = false; // finish panel showing instead of a step
+
+      function loadDone() {
+        try { return JSON.parse(localStorage.getItem(doneKey)) || []; } catch (e) { return []; }
+      }
+      function saveDone() {
+        try {
+          localStorage.setItem(doneKey, JSON.stringify(
+            steps.map(function (s, j) { return s.classList.contains('done') ? j : -1; })
+                 .filter(function (j) { return j >= 0; })));
+        } catch (e) {}
+      }
+      function savePos() {
+        try { localStorage.setItem(posKey, finished ? 'fin' : String(cur)); } catch (e) {}
       }
 
       function setDone(step, on) {
@@ -3111,40 +3468,142 @@
         if (node) node.setAttribute('aria-pressed', on ? 'true' : 'false');
       }
 
-      steps.forEach(function (step, i) {
-        var node = step.querySelector('.step-node');
-        if (node) {
-          node.addEventListener('click', function () {
-            setDone(step, !step.classList.contains('done'));
-            save(steps.map(function (s, j) { return s.classList.contains('done') ? j : -1; })
-                      .filter(function (j) { return j >= 0; }));
-            render();
-          });
-        }
-        // A folded card is its own re-open affordance — clicking it anywhere
-        // brings the step back, so a mis-tick is one click to undo.
-        var card = step.querySelector('.step-card');
-        if (card) {
-          card.addEventListener('click', function () {
-            if (!step.classList.contains('done')) return;
-            setDone(step, false);
-            save(steps.map(function (s, j) { return s.classList.contains('done') ? j : -1; })
-                      .filter(function (j) { return j >= 0; }));
-            render();
-          });
-        }
-      });
+      function render() {
+        var doneCount = steps.filter(function (s) { return s.classList.contains('done'); }).length;
 
-      reset.addEventListener('click', function () {
-        steps.forEach(function (s) { setDone(s, false); });
-        save([]);
+        // Progress bar — both views read it, Full text merely hides it.
+        // --p is a 0–1 fraction; the fill is transformed, never resized.
+        fill.style.setProperty('--p', steps.length ? doneCount / steps.length : 0);
+        if (doneCount === steps.length) {
+          label.textContent = 'All done — go make some charts';
+          label.classList.add('progress-done');
+        } else {
+          label.textContent = doneCount + ' of ' + steps.length + ' done';
+          label.classList.remove('progress-done');
+        }
+        reset.hidden = doneCount === 0;
+
+        // Stage: exactly one card visible in Guided view (none once finished)
+        steps.forEach(function (s, i) {
+          s.classList.toggle('wiz-active', !finished && i === cur);
+        });
+
+        // Rail: ticks, the you-are-here pulse, and the segments going green
+        dots.forEach(function (d, i) {
+          d.classList.toggle('active', !finished && i === cur);
+          d.classList.toggle('done', steps[i].classList.contains('done'));
+          if (!finished && i === cur) d.setAttribute('aria-current', 'step');
+          else d.removeAttribute('aria-current');
+        });
+        segs.forEach(function (seg, i) {
+          // segs[i] sits to the right of step i — it lights when that step is done
+          seg.classList.toggle('crossed', steps[i].classList.contains('done'));
+        });
+
+        // Counter + nav
+        count.textContent = 'Step ' + (cur + 1) + ' of ' + steps.length;
+        backBtn.disabled = cur === 0;
+        // Skip only appears on steps that are genuinely optional
+        skipBtn.hidden = !steps[cur].classList.contains('step-optional');
+        nextBtn.innerHTML = (cur === steps.length - 1)
+          ? '✓&nbsp; Finish setup'
+          : '✓&nbsp; Done — next step';
+
+        panel.classList.toggle('wiz-finished', finished);
+      }
+
+      // Move the stage to step i; dir −1 slides in from the left, +1 from the right
+      function go(i, dir) {
+        finished = false;
+        cur = Math.max(0, Math.min(steps.length - 1, i));
+        savePos();
         render();
-      });
+        var el = steps[cur];
+        el.classList.remove('wiz-in-fwd', 'wiz-in-back');
+        void el.offsetWidth; // restart the entrance animation
+        el.classList.add(dir < 0 ? 'wiz-in-back' : 'wiz-in-fwd');
+        // A long card leaves the reader scrolled deep; bring the rail back
+        // into reach so the new step starts at its top.
+        if (document.body.classList.contains('view-guided')) {
+          rail.scrollIntoView({ behavior: prefersReduced() ? 'auto' : 'smooth', block: 'nearest' });
+        }
+      }
 
-      load().forEach(function (i) { if (steps[i]) setDone(steps[i], true); });
+      function finish() {
+        finished = true;
+        savePos();
+        render();
+        burstNotes(doneEl);
+        doneEl.scrollIntoView({ behavior: prefersReduced() ? 'auto' : 'smooth', block: 'nearest' });
+      }
+
+      function restart() {
+        steps.forEach(function (s) { setDone(s, false); });
+        saveDone();
+        finished = false;
+        cur = 0;
+        savePos();
+        render();
+      }
+
+      nextBtn.addEventListener('click', function () {
+        setDone(steps[cur], true);
+        saveDone();
+        if (cur === steps.length - 1) finish();
+        else go(cur + 1, 1);
+      });
+      // Skipping an optional step moves on without ticking it
+      skipBtn.addEventListener('click', function () {
+        if (cur === steps.length - 1) finish();
+        else go(cur + 1, 1);
+      });
+      backBtn.addEventListener('click', function () { go(cur - 1, -1); });
+      reset.addEventListener('click', restart);
+      doneEl.querySelector('.wiz-restart').addEventListener('click', restart);
+
+      // ── Restore ──
+      loadDone().forEach(function (i) { if (steps[i]) setDone(steps[i], true); });
+      var savedPos = null;
+      try { savedPos = localStorage.getItem(posKey); } catch (e) {}
+      if (savedPos === 'fin') {
+        finished = true;
+      } else if (savedPos !== null && savedPos !== '' && !isNaN(+savedPos)) {
+        cur = Math.max(0, Math.min(steps.length - 1, +savedPos));
+      } else {
+        // Ticks from before the wizard existed but no saved position:
+        // resume at the first step not yet done rather than replaying greens.
+        for (var f = 0; f < steps.length; f++) {
+          if (!steps[f].classList.contains('done')) { cur = f; break; }
+        }
+      }
       bar.classList.add('ready'); // only now is the bar meaningful
       render();
     });
+  }
+
+  // A dozen ♪♫ flung outward from the finish panel — the landing cards' note
+  // burst, replayed at the one moment on this page that earns a celebration.
+  function burstNotes(host) {
+    if (prefersReduced()) return;
+    var glyphs = ['♪', '♫', '♩', '♬'];
+    var tones  = ['var(--accent)', 'var(--green)', 'var(--amber)', 'var(--rose)'];
+    for (var i = 0; i < 12; i++) {
+      var n = document.createElement('span');
+      n.className = 'wiz-note';
+      n.setAttribute('aria-hidden', 'true');
+      n.textContent = glyphs[i % glyphs.length];
+      // Evenly fanned angles with a little jitter, squashed vertically and
+      // lifted so the notes scatter up and out rather than raining down
+      var ang  = (Math.PI * 2) * (i / 12) + Math.random() * 0.4;
+      var dist = 90 + Math.random() * 80;
+      n.style.setProperty('--nx', (Math.cos(ang) * dist).toFixed(0) + 'px');
+      n.style.setProperty('--ny', (Math.sin(ang) * dist * 0.65 - 30).toFixed(0) + 'px');
+      n.style.setProperty('--nr', (Math.random() * 160 - 80).toFixed(0) + 'deg');
+      n.style.color = tones[i % tones.length];
+      n.style.animationDelay = (Math.random() * 0.15).toFixed(2) + 's';
+      host.appendChild(n);
+      (function (el) { setTimeout(function () { el.remove(); }, 1500); })(n);
+    }
   }
 
   // ── Service picker (file tab) ────────────────────────────────────────
