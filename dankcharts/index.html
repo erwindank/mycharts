@@ -27,7 +27,7 @@
   <!-- html2canvas, SheetJS (xlsx) and JSZip are intentionally NOT loaded here — they
        total ~1.2 MB and are only needed for image exports and Excel/ZIP imports.
        app.js pulls them from the CDN on first use (see ensureLazyLib). -->
-  <link rel="stylesheet" href="style.css?v=124">
+  <link rel="stylesheet" href="style.css?v=125">
   <!-- All scripts are deferred so the page paints without waiting on them.
        defer preserves execution order, which matters: translations → Chart.js →
        hammer → zoom plugin → firebase SDKs → firebase.js → app.js (in body). -->
@@ -2875,25 +2875,45 @@
       <!-- ══ 01 · DATA SOURCE ══ -->
       <section class="set-panel is-active" id="setPanelSource" role="tabpanel" aria-labelledby="setTabSource">
 
-        <!-- Cassette-spine cards replace the old three bare radios: the radio
-             itself is still there (visually hidden) so every existing
-             .checked read in app.js keeps working untouched. -->
+        <!-- The same three cards as the landing screen, shrunk to fit: chart
+             position numerals, the tilted benefit sticker, and the CSS-drawn
+             icons (spreadsheet-into-chart, spinning vinyl, fanning file stack)
+             reused wholesale so picking a source feels like the same act in
+             both places. The radio itself is still here, visually hidden, so
+             every existing .checked read in app.js keeps working untouched.
+             Badge text shares the landing's i18n keys — one translation, two
+             screens. -->
         <div class="src-cards" role="radiogroup" aria-label="Where your plays come from">
-          <label class="src-card">
+          <label class="src-card" id="srcCardSheets">
             <input type="radio" name="srcRadio" id="srcRadioSheets" onchange="updateSourceModalFields()">
-            <span class="src-card-glyph" aria-hidden="true">▦</span>
+            <span class="src-card-pos" aria-hidden="true">01</span>
+            <span class="src-card-badge" data-i18n="landing_sheets_badge">FULL CONTROL</span>
+            <span class="landing-card-icon sheets-grid" aria-hidden="true">
+              <i></i><i></i><i></i><i></i>
+            </span>
             <span class="src-card-name">Google Sheets</span>
             <span class="src-card-note">Keeps itself up to date</span>
           </label>
-          <label class="src-card">
+          <label class="src-card" id="srcCardLastfm">
             <input type="radio" name="srcRadio" id="srcRadioLastfm" onchange="updateSourceModalFields()">
-            <span class="src-card-glyph" aria-hidden="true">◉</span>
+            <span class="src-card-pos" aria-hidden="true">02</span>
+            <span class="src-card-badge" data-i18n="landing_lastfm_badge">FASTEST START</span>
+            <span class="landing-card-icon lastfm-vinyl" aria-hidden="true">
+              <span class="lastfm-vinyl-disc"></span>
+              <span class="lastfm-vinyl-tonearm"></span>
+            </span>
             <span class="src-card-name">Last.fm</span>
             <span class="src-card-note">Reads your scrobbles</span>
           </label>
-          <label class="src-card">
+          <label class="src-card" id="srcCardFile">
             <input type="radio" name="srcRadio" id="srcRadioFile" onchange="updateSourceModalFields()">
-            <span class="src-card-glyph" aria-hidden="true">⇪</span>
+            <span class="src-card-pos" aria-hidden="true">03</span>
+            <span class="src-card-badge" data-i18n="landing_file_badge">NO ACCOUNT NEEDED</span>
+            <span class="landing-card-icon upload-stack" aria-hidden="true">
+              <i class="upload-sheet upload-sheet-3"></i>
+              <i class="upload-sheet upload-sheet-2"></i>
+              <i class="upload-sheet upload-sheet-1"><span></span><span></span><span></span></i>
+            </span>
             <span class="src-card-name">Upload File</span>
             <span class="src-card-note">One-off import</span>
           </label>
