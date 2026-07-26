@@ -2222,19 +2222,56 @@
         <div class="step-card">
           <h3 class="step-title">Connect it to dankcharts.fm</h3>
           <div class="step-body">
+            <p>Your sheet is filling up with plays — now point the site at it. This is the last step you actually need.</p>
+
+            <p class="step-sub">First, let the site read the sheet</p>
+            <p>dankcharts.fm reads your sheet straight from your browser and never signs in to your Google account, so a private sheet gives it nothing back. Open the <strong>Share</strong> button at the top right of your sheet and change one setting:</p>
+            <div class="spec">
+              <div class="spec-head"><span>In the Share dialog</span><span>Set it to</span></div>
+              <div class="spec-row">
+                <span class="spec-key">General access</span>
+                <span class="spec-val">Anyone with the link</span>
+              </div>
+              <div class="spec-row">
+                <span class="spec-key">The role beside it</span>
+                <span class="spec-val">Viewer</span>
+              </div>
+            </div>
+            <aside class="note note-tip">
+              <span class="note-icon" aria-hidden="true">✦</span>
+              <div class="note-body">
+                <strong>This doesn't publish your listening history.</strong> "Anyone with the link" means the link <em>is</em> the key — the sheet isn't listed in anyone else's Drive, and nobody stumbles across it. <strong>Viewer</strong> means even someone holding the link can only read it, never change it.
+              </div>
+            </aside>
+
+            <p class="step-sub">Copy the link from that same dialog</p>
+            <p>While you're still in the Share dialog, use its <strong>Copy link</strong> button — not the URL in your browser's address bar.</p>
+            <aside class="note note-warn">
+              <span class="note-icon" aria-hidden="true">!</span>
+              <div class="note-body">
+                <strong>The address bar carries a hidden tab pointer.</strong> It ends in <code>#gid=…</code>, naming whichever tab you happen to be looking at — and that quietly overrules the tab name you set below. Copy it while the <strong>Settings</strong> tab is open and the site reads your Settings tab, finds no plays, and shows you empty charts with no error. <strong>Copy link</strong> gives you a clean URL with no pointer.
+              </div>
+            </aside>
+
+            <p class="step-sub">Paste it into the site</p>
             <div class="path">
               <span class="path-step">Settings ⚙</span>
               <span class="path-arrow" aria-hidden="true">→</span>
               <span class="path-step">Google Sheets</span>
-              <span class="path-arrow" aria-hidden="true">→</span>
-              <span class="path-step">paste your sheet URL</span>
             </div>
-            <aside class="note note-warn">
-              <span class="note-icon" aria-hidden="true">!</span>
-              <div class="note-body">
-                <strong>Share the sheet first</strong>, or the site can't read it: <strong>Share → Anyone with the link → Viewer</strong>.
+            <div class="spec">
+              <div class="spec-head"><span>Field</span><span>What to put in it</span></div>
+              <div class="spec-row">
+                <span class="spec-key">Sheet URL or ID</span>
+                <span class="spec-val">the link you just copied</span>
               </div>
-            </aside>
+              <div class="spec-row">
+                <span class="spec-key">Tab name</span>
+                <span class="spec-val muted">leave empty</span>
+              </div>
+            </div>
+            <p>Leave <strong>Tab name</strong> empty unless you renamed the data tab in your copy — empty means <em>Full Raw Listening History</em>, which is what the template calls it.</p>
+            <p>Hit <strong>Save &amp; Load</strong>. Your plays are read on the spot and your charts appear. That's the setup done — Step 7 is only if you also want the <strong>+ Add Play</strong> button.</p>
           </div>
         </div>
       </li>
@@ -2292,6 +2329,13 @@
           <summary>The site shows "No Google Sheet configured".</summary>
           <div class="faq-body">
             <p>Make sure you've pasted the sheet URL in dankcharts.fm Settings and that the sheet is shared as "Anyone with the link can view".</p>
+          </div>
+        </details>
+        <details class="faq-item">
+          <summary>My charts are empty, but the sheet is full of plays.</summary>
+          <div class="faq-body">
+            <p>Look at the URL you pasted into Settings. If it ends in <code>#gid=</code> followed by a number, it's pointing at one specific tab — whichever one was open when you copied it from the address bar. When that's the <strong>Settings</strong> tab, the site reads three rows of configuration instead of your listening history and shows empty charts without complaining.</p>
+            <p>Fix it by deleting everything from <code>#gid=</code> onwards, or by re-copying the link with the <strong>Copy link</strong> button inside the sheet's Share dialog, which never includes one.</p>
           </div>
         </details>
         <details class="faq-item">
