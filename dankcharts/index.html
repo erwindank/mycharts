@@ -27,7 +27,7 @@
   <!-- html2canvas, SheetJS (xlsx) and JSZip are intentionally NOT loaded here — they
        total ~1.2 MB and are only needed for image exports and Excel/ZIP imports.
        app.js pulls them from the CDN on first use (see ensureLazyLib). -->
-  <link rel="stylesheet" href="style.css?v=127">
+  <link rel="stylesheet" href="style.css?v=128">
   <!-- All scripts are deferred so the page paints without waiting on them.
        defer preserves execution order, which matters: translations → Chart.js →
        hammer → zoom plugin → firebase SDKs → firebase.js → app.js (in body). -->
@@ -3405,8 +3405,13 @@ function doPost(e) {
               <li class="set-step">
                 <span class="set-step-tag tag-add">Add Play</span>
                 <p class="set-step-title">In the Apps Script editor: <strong>Deploy → New deployment</strong></p>
-                <p class="set-step-detail">Open the editor from your sheet with <strong>Extensions → Apps Script</strong>; Deploy sits at its top right. Set Execute as: <strong>Me</strong> · Access: <strong>Anyone</strong>, then paste the URL it gives you below. It ends in <code>/exec</code>.</p>
+                <p class="set-step-detail">Open the editor from your sheet with <strong>Extensions → Apps Script</strong>; Deploy sits at its top right. Set Execute as: <strong>Me</strong> · Access: <strong>Anyone</strong>, then press <strong>Deploy</strong>. Google asks you to approve it again, the same four screens as above.</p>
                 <p class="set-step-detail set-step-watch">Type isn't a dropdown. Click the small gear beside "Select type" and pick <strong>Web app</strong> — it's the part everyone hunts for.</p>
+              </li>
+              <li class="set-step">
+                <span class="set-step-tag tag-add">Add Play</span>
+                <p class="set-step-title">Copy the <strong>Web app URL</strong> it finishes on</p>
+                <p class="set-step-detail">The dialog ends on a long URL ending in <code>/exec</code>, with a <strong>Copy</strong> button beside it. Paste it into the field just below.</p>
               </li>
             </ol>
 
