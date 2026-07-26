@@ -2833,6 +2833,271 @@
       background: color-mix(in srgb, var(--panel-accent, var(--accent)) 8%, transparent);
     }
 
+    /* ── Auto-sync / Add Play setup block ──────────────────────
+       This one disclosure used to hold a URL field, a six-item paragraph list
+       and 200 lines of raw Apps Script, in that order: you were asked for the
+       URL before being told what produced it, and the script drowned the
+       instructions for reading it. Now it runs outcome → steps → the field the
+       last step produces, and the code hides until asked for. */
+    .set-adv-body {
+      display: flex;
+      flex-direction: column;
+      gap: 0.85rem;
+      margin-top: 0.8rem;
+    }
+
+    /* What you actually get, as two tiles you can read in one glance */
+    .set-gain-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.5rem;
+    }
+
+    .set-gain {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      grid-template-rows: auto auto;
+      gap: 0.1rem 0.45rem;
+      padding: 0.6rem 0.7rem;
+      border-radius: 10px;
+      border: 1px solid color-mix(in srgb, var(--panel-accent, var(--accent)) 26%, transparent);
+      background: color-mix(in srgb, var(--panel-accent, var(--accent)) 7%, transparent);
+    }
+
+    .set-gain-icon {
+      grid-row: 1;
+      font-size: 0.85rem;
+      line-height: 1.3;
+      color: var(--panel-accent, var(--accent));
+    }
+
+    .set-gain-name {
+      grid-row: 1;
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    .set-gain-note {
+      grid-column: 2;
+      grid-row: 2;
+      font-size: 0.68rem;
+      line-height: 1.4;
+      color: var(--text3);
+    }
+
+    .set-steps-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.6rem;
+      margin-top: 0.15rem;
+    }
+
+    .set-steps-label {
+      font-size: 0.66rem;
+      font-weight: 500;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--text3);
+    }
+
+    /* Numerals sit in their own lit gutter, mono and outlined like the source
+       cards' chart positions, with a rule running down the list to tie them
+       together into one sequence. */
+    .set-steps {
+      list-style: none;
+      margin: 0;
+      padding: 0 0 0 1.85rem;
+      position: relative;
+      counter-reset: setstep;
+      display: flex;
+      flex-direction: column;
+      gap: 0.7rem;
+    }
+
+    .set-steps::before {
+      content: '';
+      position: absolute;
+      left: 0.63rem;
+      top: 0.35rem;
+      bottom: 0.35rem;
+      width: 1px;
+      background: linear-gradient(to bottom,
+        color-mix(in srgb, var(--panel-accent, var(--accent)) 45%, transparent),
+        color-mix(in srgb, var(--panel-accent, var(--accent)) 8%, transparent));
+    }
+
+    .set-step {
+      position: relative;
+      counter-increment: setstep;
+    }
+
+    .set-step::before {
+      content: counter(setstep, decimal-leading-zero);
+      position: absolute;
+      left: -1.85rem;
+      top: -0.02rem;
+      width: 1.3rem;
+      text-align: center;
+      font-family: var(--font-mono);
+      font-size: 0.62rem;
+      font-weight: 800;
+      line-height: 1.1rem;
+      color: var(--panel-accent, var(--accent));
+      background: var(--bg2);
+      border: 1px solid color-mix(in srgb, var(--panel-accent, var(--accent)) 40%, transparent);
+      border-radius: 5px;
+    }
+
+    .set-step-title {
+      margin: 0;
+      font-size: 0.78rem;
+      line-height: 1.45;
+      color: var(--text2);
+    }
+
+    .set-step-title strong { color: var(--text); font-weight: 600; }
+
+    .set-step-detail {
+      margin: 0.15rem 0 0;
+      font-size: 0.68rem;
+      line-height: 1.45;
+      color: var(--text3);
+    }
+
+    .set-step-detail strong { color: var(--text2); font-weight: 600; }
+
+    .set-step-detail code {
+      font-family: var(--font-mono);
+      font-size: 0.92em;
+      padding: 0 0.2em;
+      border-radius: 3px;
+      background: color-mix(in srgb, var(--text) 8%, transparent);
+    }
+
+    /* Which of the two features a step unlocks — the old list buried this in
+       "For auto-sync:" / "For manual entry:" run-in bold. */
+    .set-step-tag {
+      display: inline-block;
+      margin-bottom: 0.22rem;
+      padding: 0.05rem 0.34rem;
+      border-radius: 4px;
+      font-family: var(--font-mono);
+      font-size: 0.54rem;
+      font-weight: 800;
+      letter-spacing: 0.07em;
+      text-transform: uppercase;
+      border: 1px solid currentColor;
+    }
+
+    .set-step-tag.tag-sync { color: var(--teal); }
+    .set-step-tag.tag-add  { color: var(--amber); }
+
+    .set-step-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.4rem;
+      margin-top: 0.45rem;
+    }
+
+    /* Copying the script is the actual job of step 3, so it's a real button;
+       reading 200 lines of it is the rare case, so that's the quiet one. */
+    .set-code-copy {
+      padding: 0.34rem 0.75rem;
+      border-radius: 8px;
+      border: 1px solid var(--panel-accent, var(--accent));
+      background: color-mix(in srgb, var(--panel-accent, var(--accent)) 16%, transparent);
+      color: var(--panel-accent, var(--accent));
+      font-family: inherit;
+      font-size: 0.73rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.18s ease, box-shadow 0.18s ease, transform 0.15s ease;
+    }
+
+    .set-code-copy:hover {
+      background: color-mix(in srgb, var(--panel-accent, var(--accent)) 26%, transparent);
+      box-shadow: 0 4px 14px color-mix(in srgb, var(--panel-accent, var(--accent)) 28%, transparent);
+      transform: translateY(-1px);
+    }
+
+    .set-code-toggle {
+      padding: 0.34rem 0.6rem;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: none;
+      color: var(--text3);
+      font-family: inherit;
+      font-size: 0.73rem;
+      cursor: pointer;
+      transition: color 0.18s ease, border-color 0.18s ease;
+    }
+
+    .set-code-toggle:hover { color: var(--text); border-color: var(--border2); }
+
+    .set-code {
+      margin: 0.5rem 0 0;
+      max-height: 15rem;
+      overflow: auto;
+      padding: 0.7rem 0.8rem;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: var(--bg3);
+      color: var(--text2);
+      font-size: 0.66rem;
+      line-height: 1.55;
+      white-space: pre;
+    }
+
+    .set-code[hidden] { display: none; }
+
+    /* The "isn't verified" screen, promoted out of the step list into the
+       warning it actually is. */
+    .set-note {
+      display: flex;
+      gap: 0.55rem;
+      padding: 0.6rem 0.7rem;
+      border-radius: 10px;
+      border: 1px solid color-mix(in srgb, var(--amber) 34%, transparent);
+      background: color-mix(in srgb, var(--amber) 8%, transparent);
+    }
+
+    .set-note-icon {
+      flex: none;
+      width: 1.05rem;
+      height: 1.05rem;
+      border-radius: 50%;
+      border: 1px solid color-mix(in srgb, var(--amber) 60%, transparent);
+      color: var(--amber);
+      font-family: var(--font-mono);
+      font-size: 0.66rem;
+      font-weight: 800;
+      line-height: 1rem;
+      text-align: center;
+    }
+
+    .set-note p {
+      margin: 0;
+      font-size: 0.7rem;
+      line-height: 1.5;
+      color: var(--text3);
+    }
+
+    .set-note p strong { color: var(--text2); }
+
+    /* The field the last step produces, sitting where it's earned */
+    .set-adv-field {
+      display: flex;
+      flex-direction: column;
+      gap: 0.3rem;
+      margin-top: 0.1rem;
+    }
+
+    @media (max-width: 480px) {
+      .set-gain-grid { grid-template-columns: 1fr; }
+    }
+
     /* Certification tiers wear their own metal: the three rows are a podium,
        not three identical number boxes. */
     .set-panel .cert-config-col .cert-row:nth-of-type(1) { --tier: var(--gold1); }

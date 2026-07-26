@@ -952,9 +952,20 @@ function copyAppsScript() {
   const code = document.getElementById('appsScriptCode').textContent;
   navigator.clipboard.writeText(code).then(() => {
     const btn = document.getElementById('copyAppsScriptBtn');
-    btn.textContent = 'Copied!';
-    setTimeout(() => { btn.textContent = 'Copy'; }, 2000);
+    btn.textContent = '✓ Copied';
+    setTimeout(() => { btn.textContent = 'Copy the script'; }, 2000);
   });
+}
+
+// The script slab is ~200 lines and only a handful of people ever read it, so
+// it stays collapsed and copying is the primary action. Reading it is opt-in.
+function toggleAppsScript(btn) {
+  const pre = document.getElementById('appsScriptCode');
+  if (!pre) return;
+  const show = pre.hidden;
+  pre.hidden = !show;
+  btn.textContent = show ? 'Hide it' : 'View it';
+  btn.setAttribute('aria-expanded', show ? 'true' : 'false');
 }
 
 // ─── AUTO-CORRECT RULES ───────────────────────────────────────
