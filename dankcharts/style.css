@@ -3052,39 +3052,99 @@
 
     .set-code[hidden] { display: none; }
 
-    /* The "isn't verified" screen, promoted out of the step list into the
-       warning it actually is. */
-    .set-note {
-      display: flex;
-      gap: 0.55rem;
-      padding: 0.6rem 0.7rem;
-      border-radius: 10px;
-      border: 1px solid color-mix(in srgb, var(--amber) 34%, transparent);
-      background: color-mix(in srgb, var(--amber) 8%, transparent);
+    /* Positive confirmation, for the one line that saves people work: the
+       template already carries the script. Green, because it means "nothing
+       for you to do here". */
+    .set-step-good {
+      color: color-mix(in srgb, var(--green) 72%, var(--text3));
     }
 
-    .set-note-icon {
-      flex: none;
-      width: 1.05rem;
-      height: 1.05rem;
-      border-radius: 50%;
-      border: 1px solid color-mix(in srgb, var(--amber) 60%, transparent);
-      color: var(--amber);
-      font-family: var(--font-mono);
-      font-size: 0.66rem;
-      font-weight: 800;
-      line-height: 1rem;
-      text-align: center;
+    /* The one gotcha inside a step, called out without a whole callout box.
+       Lifted from setup-guide.html step 07: the deployment Type is a gear icon,
+       not a dropdown, and it's what people get stuck on. */
+    .set-step-watch {
+      margin-top: 0.3rem;
+      padding-left: 0.55rem;
+      border-left: 2px solid color-mix(in srgb, var(--amber) 55%, transparent);
+      color: color-mix(in srgb, var(--amber) 40%, var(--text3));
     }
 
-    .set-note p {
-      margin: 0;
+    .set-step-watch strong { color: var(--amber); font-weight: 600; }
+
+    /* "Brought your own sheet?" — the manual script path, which only a minority
+       need, folded out of the main sequence. */
+    .set-substep {
+      margin-top: 0.45rem;
+      padding: 0.45rem 0.6rem;
+      border-radius: 8px;
+      border: 1px dashed var(--border2);
+      background: color-mix(in srgb, var(--text) 3%, transparent);
+    }
+
+    .set-substep > summary {
       font-size: 0.7rem;
-      line-height: 1.5;
+      color: var(--text3);
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .set-substep > summary:hover { color: var(--text); }
+    .set-substep[open] > summary { color: var(--text2); margin-bottom: 0.35rem; }
+
+    /* The Google approval screens. Attached to the step that triggers them —
+       they only happen on the first run from the Last.fm menu — and amber,
+       because the third screen is the one that scares people off. */
+    .set-approve {
+      margin-top: 0.5rem;
+      padding: 0.55rem 0.65rem 0.6rem;
+      border-radius: 9px;
+      border: 1px solid color-mix(in srgb, var(--amber) 32%, transparent);
+      background: color-mix(in srgb, var(--amber) 7%, transparent);
+    }
+
+    .set-approve-head {
+      margin: 0 0 0.4rem;
+      font-size: 0.7rem;
+      font-weight: 600;
+      color: color-mix(in srgb, var(--amber) 70%, var(--text));
+    }
+
+    .set-approve-note {
+      margin: 0.4rem 0 0;
+      font-size: 0.66rem;
+      line-height: 1.45;
       color: var(--text3);
     }
 
-    .set-note p strong { color: var(--text2); }
+    /* Screen → what to click. A two-column read beats a sentence per screen:
+       you are matching what's in front of you, not following prose. */
+    .set-spec {
+      display: grid;
+      border: 1px solid color-mix(in srgb, var(--amber) 20%, transparent);
+      border-radius: 7px;
+      overflow: hidden;
+    }
+
+    .set-spec-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.5rem;
+      padding: 0.3rem 0.5rem;
+      font-size: 0.66rem;
+      line-height: 1.35;
+    }
+
+    .set-spec-row + .set-spec-row {
+      border-top: 1px solid color-mix(in srgb, var(--amber) 14%, transparent);
+    }
+
+    .set-spec-row span:first-child { color: var(--text2); }
+
+    .set-spec-row span:last-child {
+      color: var(--amber);
+      font-family: var(--font-mono);
+      font-size: 0.62rem;
+    }
 
     /* The field the last step produces, sitting where it's earned */
     .set-adv-field {

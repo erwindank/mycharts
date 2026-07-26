@@ -27,7 +27,7 @@
   <!-- html2canvas, SheetJS (xlsx) and JSZip are intentionally NOT loaded here — they
        total ~1.2 MB and are only needed for image exports and Excel/ZIP imports.
        app.js pulls them from the CDN on first use (see ensureLazyLib). -->
-  <link rel="stylesheet" href="style.css?v=126">
+  <link rel="stylesheet" href="style.css?v=127">
   <!-- All scripts are deferred so the page paints without waiting on them.
        defer preserves execution order, which matters: translations → Chart.js →
        hammer → zoom plugin → firebase SDKs → firebase.js → app.js (in body). -->
@@ -2959,23 +2959,26 @@
             </div>
 
             <!-- One bold action per step so the list can be skimmed on the
-                 titles alone; the specifics live in the muted line under each. -->
+                 titles alone; the specifics live in the muted line under each.
+                 Three steps, not five: the template already ships with the
+                 script, so opening the editor and pasting it in is only work if
+                 you brought your own sheet — that path is a disclosure inside
+                 step 1 rather than two steps everyone is told to do. Kept in
+                 step with setup-guide.html step 04, "The script is already
+                 there". -->
             <ol class="set-steps">
               <li class="set-step">
                 <p class="set-step-title">Fill in the <strong>Settings</strong> tab of your sheet</p>
-                <p class="set-step-detail">B1 = your Last.fm username, B2 = your API key. Template users only.</p>
-              </li>
-              <li class="set-step">
-                <p class="set-step-title">Open <strong>Extensions → Apps Script</strong></p>
-                <p class="set-step-detail">From the menu bar of your sheet.</p>
-              </li>
-              <li class="set-step">
-                <p class="set-step-title">Paste the script in, replacing anything already there, and save</p>
-                <div class="set-step-actions">
-                  <button type="button" class="set-code-copy" id="copyAppsScriptBtn" onclick="copyAppsScript()">Copy the script</button>
-                  <button type="button" class="set-code-toggle" onclick="toggleAppsScript(this)" aria-expanded="false" aria-controls="appsScriptCode">View it</button>
-                </div>
-                <pre id="appsScriptCode" class="set-code" hidden>// =============================================================
+                <p class="set-step-detail">B1 = your Last.fm username, B2 = your API key.</p>
+                <p class="set-step-detail set-step-good">The script itself came with the template. Nothing to paste.</p>
+                <details class="set-substep">
+                  <summary>Brought your own sheet, or replacing the script?</summary>
+                  <p class="set-step-detail">In your sheet open <strong>Extensions → Apps Script</strong>, replace everything in the editor with this, and save with Ctrl+S. If you had already deployed for Add Play, redeploy afterwards.</p>
+                  <div class="set-step-actions">
+                    <button type="button" class="set-code-copy" id="copyAppsScriptBtn" onclick="copyAppsScript()">Copy the script</button>
+                    <button type="button" class="set-code-toggle" onclick="toggleAppsScript(this)" aria-expanded="false" aria-controls="appsScriptCode">View it</button>
+                  </div>
+                  <pre id="appsScriptCode" class="set-code" hidden>// =============================================================
 //  DANKCHARTS.FM — Google Sheet Sync Script
 // =============================================================
 //  SETUP (do this once):
@@ -3376,25 +3379,36 @@ function doPost(e) {
       .setMimeType(ContentService.MimeType.JSON);
   }
 }</pre>
+                </details>
               </li>
               <li class="set-step">
                 <span class="set-step-tag tag-sync">Auto-sync</span>
-                <p class="set-step-title">Click <strong>Last.fm → Start Auto-Update (90 min)</strong></p>
-                <p class="set-step-detail">A new <strong>Last.fm</strong> menu appears beside Help once the script is saved.</p>
+                <p class="set-step-title">In your sheet: <strong>Last.fm → Start Auto-Update (90 min)</strong></p>
+                <p class="set-step-detail"><strong>Last.fm</strong> is a menu in your sheet's own menu bar, just right of <strong>Help</strong>. Don't see it? Reload the sheet, since that menu is added each time the sheet opens.</p>
+
+                <!-- The approval screens belong here and nowhere else: they only
+                     appear the first time you run something from that menu, and
+                     the "unverified" one is where people abandon the setup. -->
+                <div class="set-approve">
+                  <p class="set-approve-head">The first run asks you to approve the script</p>
+                  <div class="set-spec">
+                    <div class="set-spec-row"><span>Authorization required</span><span>Continue</span></div>
+                    <div class="set-spec-row"><span>Choose an account</span><span>your own Google account</span></div>
+                    <div class="set-spec-row"><span>Google hasn't verified this app</span><span>Advanced → Go to … (unsafe)</span></div>
+                    <div class="set-spec-row"><span>… wants access to your Google Account</span><span>Allow</span></div>
+                  </div>
+                  <p class="set-approve-note">"Unsafe" is what Google says about every personal script. This one is your copy in your Drive, and it only ever touches this one sheet.</p>
+                </div>
+
+                <p class="set-step-detail">First plays land about a minute later, then a fresh batch every 90 minutes.</p>
               </li>
               <li class="set-step">
                 <span class="set-step-tag tag-add">Add Play</span>
-                <p class="set-step-title">Click <strong>Deploy → New deployment</strong>, then paste the URL below</p>
-                <p class="set-step-detail">Type: <strong>Web app</strong> · Execute as: <strong>Me</strong> · Access: <strong>Anyone</strong>. The URL it gives you ends in <code>/exec</code>.</p>
+                <p class="set-step-title">In the Apps Script editor: <strong>Deploy → New deployment</strong></p>
+                <p class="set-step-detail">Open the editor from your sheet with <strong>Extensions → Apps Script</strong>; Deploy sits at its top right. Set Execute as: <strong>Me</strong> · Access: <strong>Anyone</strong>, then paste the URL it gives you below. It ends in <code>/exec</code>.</p>
+                <p class="set-step-detail set-step-watch">Type isn't a dropdown. Click the small gear beside "Select type" and pick <strong>Web app</strong> — it's the part everyone hunts for.</p>
               </li>
             </ol>
-
-            <!-- Was step 6, but it is not a step: it is a screen Google throws
-                 at you during 4 and 5, and it stops people cold. -->
-            <aside class="set-note">
-              <span class="set-note-icon" aria-hidden="true">!</span>
-              <p>Google will say <strong>this app isn't verified</strong>. That is normal for a personal script: click <strong>Advanced → Go to … (unsafe) → Allow</strong>. It only ever touches your own sheet.</p>
-            </aside>
 
             <label class="set-adv-field">
               Apps Script Web App URL
