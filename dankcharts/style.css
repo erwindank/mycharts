@@ -3091,6 +3091,33 @@
     .set-substep > summary:hover { color: var(--text); }
     .set-substep[open] > summary { color: var(--text2); margin-bottom: 0.35rem; }
 
+    /* Two things to add, each with its own heading, so the disclosure doesn't
+       become the wall of text the whole block was rescued from. */
+    .set-substep-head {
+      margin: 0.55rem 0 0.25rem;
+      font-family: var(--font-mono);
+      font-size: 0.66rem;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      color: var(--text2);
+    }
+
+    .set-substep-head:first-of-type { margin-top: 0.1rem; }
+
+    .set-substep-head code {
+      font-size: 0.95em;
+      padding: 0 0.22em;
+      border-radius: 3px;
+      background: color-mix(in srgb, var(--text) 9%, transparent);
+      color: var(--text);
+    }
+
+    .set-step-detail a {
+      color: var(--panel-accent, var(--accent));
+      text-decoration: underline;
+      text-underline-offset: 2px;
+    }
+
     /* The Google approval screens. Attached to the step that triggers them —
        they only happen on the first run from the Last.fm menu — and amber,
        because the third screen is the one that scares people off. */
@@ -3116,14 +3143,19 @@
       color: var(--text3);
     }
 
-    /* Screen → what to click. A two-column read beats a sentence per screen:
-       you are matching what's in front of you, not following prose. */
+    /* This → that. A two-column read beats a sentence per row: you are matching
+       something in front of you, not following prose. Used for the Google
+       approval screens and for the Settings-tab cells, so the accent colour and
+       which column is mono are both parameters. */
     .set-spec {
+      --spec-accent: var(--panel-accent, var(--accent));
       display: grid;
-      border: 1px solid color-mix(in srgb, var(--amber) 20%, transparent);
+      border: 1px solid color-mix(in srgb, var(--spec-accent) 20%, transparent);
       border-radius: 7px;
       overflow: hidden;
     }
+
+    .set-approve .set-spec { --spec-accent: var(--amber); }
 
     .set-spec-row {
       display: grid;
@@ -3135,15 +3167,32 @@
     }
 
     .set-spec-row + .set-spec-row {
-      border-top: 1px solid color-mix(in srgb, var(--amber) 14%, transparent);
+      border-top: 1px solid color-mix(in srgb, var(--spec-accent) 14%, transparent);
     }
 
     .set-spec-row span:first-child { color: var(--text2); }
 
     .set-spec-row span:last-child {
-      color: var(--amber);
+      color: var(--spec-accent);
       font-family: var(--font-mono);
       font-size: 0.62rem;
+    }
+
+    /* Cell-reference variant: the key is the coded thing (B1, B2, B3) and the
+       value is the prose, the reverse of the approval table. */
+    .set-substep .set-spec-row { grid-template-columns: 2.4rem 1fr; }
+
+    .set-substep .set-spec-row span:first-child {
+      color: var(--spec-accent);
+      font-family: var(--font-mono);
+      font-size: 0.62rem;
+      font-weight: 700;
+    }
+
+    .set-substep .set-spec-row span:last-child {
+      color: var(--text2);
+      font-family: inherit;
+      font-size: 0.66rem;
     }
 
     /* The field the last step produces, sitting where it's earned */

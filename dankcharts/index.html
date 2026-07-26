@@ -27,7 +27,7 @@
   <!-- html2canvas, SheetJS (xlsx) and JSZip are intentionally NOT loaded here — they
        total ~1.2 MB and are only needed for image exports and Excel/ZIP imports.
        app.js pulls them from the CDN on first use (see ensureLazyLib). -->
-  <link rel="stylesheet" href="style.css?v=128">
+  <link rel="stylesheet" href="style.css?v=129">
   <!-- All scripts are deferred so the page paints without waiting on them.
        defer preserves execution order, which matters: translations → Chart.js →
        hammer → zoom plugin → firebase SDKs → firebase.js → app.js (in body). -->
@@ -2969,11 +2969,27 @@
             <ol class="set-steps">
               <li class="set-step">
                 <p class="set-step-title">Fill in the <strong>Settings</strong> tab of your sheet</p>
-                <p class="set-step-detail">B1 = your Last.fm username, B2 = your API key.</p>
-                <p class="set-step-detail set-step-good">The script itself came with the template. Nothing to paste.</p>
+                <p class="set-step-detail">B1 = your Last.fm username, B2 = your <a href="https://www.last.fm/api/account/create" target="_blank" rel="noopener">API key</a> (free).</p>
+                <p class="set-step-detail set-step-good">The tab and the script both came with the template. Nothing to paste.</p>
+                <!-- Own-sheet users are missing two things the template hands
+                     you, and the Settings tab is the one that bites hardest:
+                     getSettings_() throws '"Settings" tab not found' and the
+                     sync just stops. Both gaps hit exactly the same people, so
+                     they live in one disclosure. -->
                 <details class="set-substep">
-                  <summary>Brought your own sheet, or replacing the script?</summary>
-                  <p class="set-step-detail">In your sheet open <strong>Extensions → Apps Script</strong>, replace everything in the editor with this, and save with Ctrl+S. If you had already deployed for Add Play, redeploy afterwards.</p>
+                  <summary>Brought your own sheet? Two things to add</summary>
+
+                  <p class="set-substep-head">1 · A tab named exactly <code>Settings</code></p>
+                  <p class="set-step-detail">The script reads its credentials from these cells and stops with <em>"Settings" tab not found</em> if the tab isn't there.</p>
+                  <div class="set-spec">
+                    <div class="set-spec-row"><span>B1</span><span>your Last.fm username</span></div>
+                    <div class="set-spec-row"><span>B2</span><span>your Last.fm API key</span></div>
+                    <div class="set-spec-row"><span>B3</span><span>data tab name (optional)</span></div>
+                  </div>
+                  <p class="set-step-detail">Leave B3 empty and it writes to a tab called <strong>Full Raw Listening History</strong>. That tab needs its columns in this order: <strong>Song Title · Artist · Album · Date and Time</strong>.</p>
+
+                  <p class="set-substep-head">2 · The script</p>
+                  <p class="set-step-detail">Open <strong>Extensions → Apps Script</strong>, replace everything in the editor with this, and save with Ctrl+S. Same steps if you're replacing an older copy of the script — redeploy afterwards if you had already set up Add Play.</p>
                   <div class="set-step-actions">
                     <button type="button" class="set-code-copy" id="copyAppsScriptBtn" onclick="copyAppsScript()">Copy the script</button>
                     <button type="button" class="set-code-toggle" onclick="toggleAppsScript(this)" aria-expanded="false" aria-controls="appsScriptCode">View it</button>
