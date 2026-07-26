@@ -1893,6 +1893,22 @@
 
     .lfm-auth-dot.connected { background: #4caf50; }
 
+    /* Amber, softly breathing: the authorization is out with Last.fm and we're
+       still waiting on an answer. Deliberately not green. */
+    .lfm-auth-dot.pending {
+      background: var(--amber);
+      animation: lfmDotPulse 1.6s ease-in-out infinite;
+    }
+
+    @keyframes lfmDotPulse {
+      0%, 100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--amber) 55%, transparent); }
+      50%      { box-shadow: 0 0 0 4px color-mix(in srgb, var(--amber) 0%, transparent); }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .lfm-auth-dot.pending { animation: none; }
+    }
+
     .lfm-connect-btn {
       background: var(--accent);
       border: none;
@@ -1996,20 +2012,8 @@
       text-transform: uppercase;
     }
 
-    .src-radio-group {
-      display: flex;
-      gap: 1.5rem;
-      margin-bottom: 1.4rem;
-    }
-
-    .src-radio-group label {
-      display: flex;
-      align-items: center;
-      gap: 0.45rem;
-      color: var(--text);
-      cursor: pointer;
-      font-size: 0.9rem;
-    }
+    /* (.src-radio-group removed — the three bare source radios it styled are
+       now the .src-card picker further down.) */
 
     .src-field-group {
       display: flex;
@@ -2279,6 +2283,357 @@
     }
     .src-switch input:checked + .src-switch-slider { background: var(--accent); }
     .src-switch input:checked + .src-switch-slider::before { transform: translateX(16px); }
+
+    /* ═══════════════════════════════════════════════════════════
+       SETTINGS MODAL  (#sourceModal)
+       Tabbed shell + source picker cards. The old form showed every
+       field at once; these styles support the three-panel split so a
+       user only ever reads the section they came for.
+       ═══════════════════════════════════════════════════════════ */
+
+    .set-box { max-width: 520px; }
+
+    /* ── Tab strip ──
+       Styled like a tuner dial: quiet mono labels, one bright ink bar that
+       slides between them. Position comes from --tab-i (0/1/2) so switching
+       tabs animates purely in CSS. */
+    .set-tabs {
+      position: relative;
+      display: flex;
+      margin: 0 0 1.3rem;
+      border-bottom: 1px solid var(--border);
+      --tab-i: 0;
+      --tab-count: 3;
+    }
+
+    .set-tab {
+      flex: 1 1 0;
+      min-width: 0;
+      background: none;
+      border: none;
+      padding: 0.55rem 0.3rem 0.7rem;
+      color: var(--text3);
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      letter-spacing: 0.09em;
+      text-transform: uppercase;
+      cursor: pointer;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      transition: color 200ms cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .set-tab:hover { color: var(--text2); }
+    .set-tab.is-active { color: var(--text); }
+
+    .set-tab:focus-visible {
+      outline: none;
+      color: var(--text);
+      box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent) 55%, transparent);
+      border-radius: 6px 6px 0 0;
+    }
+
+    /* The sliding needle. Gradient + glow so it reads as lit, not painted. */
+    .set-tab-ink {
+      position: absolute;
+      left: 0;
+      bottom: -1px;
+      height: 2px;
+      width: calc(100% / var(--tab-count));
+      border-radius: 2px;
+      background: linear-gradient(90deg, var(--accent), var(--teal));
+      box-shadow: 0 0 10px color-mix(in srgb, var(--accent) 45%, transparent);
+      transform: translateX(calc(var(--tab-i) * 100%));
+      transition: transform 280ms cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .set-panel[hidden] { display: none; }
+
+    /* One soft reveal per panel switch — cheaper and calmer than animating
+       each field in the panel. */
+    .set-panel {
+      animation: setPanelIn 220ms cubic-bezier(0.4, 0, 0.2, 1) both;
+    }
+
+    @keyframes setPanelIn {
+      from { opacity: 0; transform: translateY(4px); }
+      to   { opacity: 1; transform: none; }
+    }
+
+    /* ── Source picker cards ──
+       Cassette-spine treatment: each card carries a vertical spine on its left
+       edge that stays grey until selected, then lights up like a cued deck. */
+    .src-cards {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0.5rem;
+      margin-bottom: 1.3rem;
+    }
+
+    .src-card {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      gap: 0.15rem;
+      padding: 0.8rem 0.5rem 0.7rem;
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      cursor: pointer;
+      overflow: hidden;
+      text-align: center;
+      transition: border-color 200ms ease, background 200ms ease, transform 200ms ease;
+    }
+
+    /* The radio still drives everything (app.js reads .checked); it's only
+       hidden visually, never removed from the tab order. */
+    .src-card input[type="radio"] {
+      position: absolute;
+      opacity: 0;
+      width: 1px;
+      height: 1px;
+      margin: 0;
+      pointer-events: none;
+    }
+
+    .src-card::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: 3px;
+      background: var(--border);
+      transition: background 200ms ease, box-shadow 200ms ease;
+    }
+
+    .src-card:hover {
+      border-color: var(--border2);
+      transform: translateY(-1px);
+    }
+
+    .src-card:has(input:checked) {
+      border-color: color-mix(in srgb, var(--accent) 60%, transparent);
+      background:
+        repeating-linear-gradient(
+          to bottom,
+          transparent,
+          transparent 2px,
+          color-mix(in srgb, var(--accent) 4%, transparent) 2px,
+          color-mix(in srgb, var(--accent) 4%, transparent) 3px
+        ),
+        color-mix(in srgb, var(--accent) 11%, var(--bg3));
+    }
+
+    .src-card:has(input:checked)::before {
+      background: linear-gradient(to bottom, var(--accent), var(--teal));
+      box-shadow: 0 0 8px color-mix(in srgb, var(--accent) 55%, transparent);
+    }
+
+    .src-card:has(input:focus-visible) {
+      box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 55%, transparent);
+    }
+
+    .src-card-glyph {
+      font-size: 1.05rem;
+      line-height: 1;
+      color: var(--text3);
+      transition: color 200ms ease;
+    }
+
+    .src-card:has(input:checked) .src-card-glyph { color: var(--accent); }
+
+    .src-card-name {
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--text);
+      line-height: 1.25;
+    }
+
+    .src-card-note {
+      font-size: 0.66rem;
+      color: var(--text3);
+      line-height: 1.3;
+    }
+
+    /* Panel that appears under the cards for the chosen source */
+    .set-src-panel { margin-bottom: 0.2rem; }
+
+    /* ── Link chips (template / setup guide) ──
+       Replaces the run-on "No tracking sheet yet? …" sentence. */
+    .set-linkrow {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.4rem;
+      margin-bottom: 0.2rem;
+    }
+
+    .set-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.3rem;
+      padding: 0.28rem 0.6rem;
+      border-radius: 999px;
+      border: 1px solid color-mix(in srgb, var(--accent) 45%, transparent);
+      background: color-mix(in srgb, var(--accent) 12%, transparent);
+      color: var(--accent);
+      font-size: 0.72rem;
+      font-weight: 600;
+      text-decoration: none;
+      transition: background 180ms ease, border-color 180ms ease;
+    }
+
+    .set-chip:hover {
+      background: color-mix(in srgb, var(--accent) 22%, transparent);
+      border-color: var(--accent);
+    }
+
+    .set-chip-ghost {
+      border-color: var(--border);
+      background: none;
+      color: var(--text3);
+      font-weight: 500;
+    }
+
+    .set-chip-ghost:hover {
+      background: var(--surface);
+      border-color: var(--border2);
+      color: var(--text);
+    }
+
+    /* ── Disclosure rows (advanced / optional blocks) ── */
+    .set-disclosure {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 0.55rem 0.7rem;
+      background: color-mix(in srgb, var(--bg3) 60%, transparent);
+      margin-top: 0.9rem;
+    }
+
+    .set-disclosure > summary {
+      font-size: 0.75rem;
+      color: var(--text2);
+    }
+
+    .set-disclosure[open] > summary {
+      color: var(--text);
+      margin-bottom: 0.2rem;
+    }
+
+    /* ── File dropzone ── */
+    .set-dropzone {
+      border: 1px dashed var(--border2);
+      border-radius: 10px;
+      padding: 1.6rem 1rem;
+      text-align: center;
+      cursor: pointer;
+      background: color-mix(in srgb, var(--bg3) 55%, transparent);
+      transition: border-color 200ms ease, background 200ms ease;
+    }
+
+    .set-dropzone:hover,
+    .set-dropzone.dragover {
+      border-color: var(--accent);
+      background: color-mix(in srgb, var(--accent) 8%, transparent);
+    }
+
+    .set-dropzone-glyph { font-size: 1.5rem; margin-bottom: 0.4rem; }
+    .set-dropzone-lead  { font-size: 0.85rem; color: var(--text2); }
+    .set-dropzone-types {
+      font-size: 0.7rem;
+      color: var(--text3);
+      font-family: var(--font-mono);
+      margin-top: 0.3rem;
+    }
+
+    /* ── Settings rows (toggles / inline selects) ── */
+    .set-row {
+      padding: 0.55rem 0;
+      border-top: 1px dashed color-mix(in srgb, var(--border) 70%, transparent);
+    }
+
+    .set-row:first-child { border-top: none; padding-top: 0.1rem; }
+
+    /* The group divider is a separator between groups, so the one that opens a
+       panel would otherwise draw a stray line right under the tab strip. */
+    .set-panel > .cert-config-group:first-of-type {
+      margin-top: 0;
+      padding-top: 0;
+      border-top: none;
+    }
+
+    /* Sentence-shaped row ("… your top [50] artists"): the control belongs
+       inline with the words, not shoved to the far edge by .cert-row. */
+    .set-row-inline {
+      justify-content: flex-start;
+      flex-wrap: wrap;
+      gap: 0.4rem;
+    }
+
+    /* Secondary explanation tucked under a toggle label instead of sitting in
+       its own paragraph — halves the visual noise of the old layout. */
+    .set-switch-note {
+      display: block;
+      margin-top: 0.2rem;
+      font-size: 0.72rem;
+      color: var(--text3);
+      line-height: 1.45;
+      font-weight: 400;
+    }
+
+    .set-select-inline {
+      padding: 0.22rem 0.45rem;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      background: var(--bg3);
+      color: var(--text);
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      cursor: pointer;
+    }
+
+    .set-select-inline:focus { outline: none; border-color: var(--accent); }
+
+    /* Timezone select — inherits the field look now that its inline styles are
+       gone, so it matches the text inputs beside it. */
+    .src-field-group select {
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      padding: 0.5rem 0.6rem;
+      color: var(--text);
+      font-size: 0.85rem;
+      font-family: inherit;
+      width: 100%;
+      cursor: pointer;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .set-panel { animation: none; }
+      .set-tab-ink { transition: none; }
+      .src-card { transition: none; }
+      .src-card:hover { transform: none; }
+    }
+
+    /* Narrow screens: the three cards become a stacked list so the labels stop
+       wrapping mid-word. */
+    @media (max-width: 480px) {
+      .src-cards { grid-template-columns: 1fr; gap: 0.4rem; }
+
+      .src-card {
+        flex-direction: row;
+        align-items: center;
+        gap: 0.6rem;
+        text-align: left;
+        padding: 0.6rem 0.7rem 0.6rem 0.85rem;
+      }
+
+      .src-card-name { flex: none; }
+      .src-card-note { margin-left: auto; }
+      .set-tab { font-size: 0.66rem; letter-spacing: 0.05em; }
+    }
 
     /* PERIOD NAV */
     .period-nav {

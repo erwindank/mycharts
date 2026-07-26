@@ -27,7 +27,7 @@
   <!-- html2canvas, SheetJS (xlsx) and JSZip are intentionally NOT loaded here — they
        total ~1.2 MB and are only needed for image exports and Excel/ZIP imports.
        app.js pulls them from the CDN on first use (see ensureLazyLib). -->
-  <link rel="stylesheet" href="style.css?v=123">
+  <link rel="stylesheet" href="style.css?v=124">
   <!-- All scripts are deferred so the page paints without waiting on them.
        defer preserves execution order, which matters: translations → Chart.js →
        hammer → zoom plugin → firebase SDKs → firebase.js → app.js (in body). -->
@@ -322,7 +322,7 @@
       <div class="sync-bar-right">
         <div class="sync-bar-actions">
           <button id="syncNowBtn" data-i18n-html="sync_now"><span class="btn-icon">↺</span> SYNC NOW</button>
-          <button id="configureSourceBtn" onclick="openSourceModal()" title="Configure data source" data-i18n-html="btn_configure"><span class="btn-icon">⚙</span> Configure</button>
+          <button id="configureSourceBtn" onclick="openSourceModal()" title="Settings" data-i18n-html="btn_configure"><span class="btn-icon">⚙</span> Settings</button>
           <button id="scrobbleBtn" onclick="openScrobbleModal()" title="Add a play manually" style="display:none" data-i18n-html="btn_add_play"><span class="btn-icon">✚</span> Add Play</button>
         </div>
         <div class="sync-bar-account">
@@ -2851,58 +2851,70 @@
        Chart.js and firebase.js) while letting the whole page parse and paint first -->
   <script defer src="app.js"></script>
 
-  <!-- ── Data Source Configure Modal ── -->
-  <div id="sourceModal" class="modal-overlay" role="dialog" aria-modal="true">
-    <div class="src-modal-box">
+  <!-- ── Settings Modal ──
+       Split into three tabs so the whole form is never dumped on screen at
+       once. "Data source" is the default tab because setup-guide.html routes
+       people to "Settings ⚙ → Google Sheets / Last.fm / Upload File" — that
+       path has to keep working with zero extra clicks. -->
+  <div id="sourceModal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="srcModalTitle">
+    <div class="src-modal-box set-box">
       <div class="src-modal-header">
-        <h3 class="src-modal-title">Data Source</h3>
+        <h3 class="src-modal-title" id="srcModalTitle">Settings</h3>
         <button type="button" class="src-modal-close" onclick="closeSourceModal()" aria-label="Close">&times;</button>
       </div>
 
-      <div class="src-field-group" style="margin-bottom:1rem;">
-        <label>
-          Display name
-          <input type="text" id="srcDisplayName" placeholder="Your name" autocomplete="off">
-        </label>
-        <p class="src-modal-hint">Shown in the masthead — e.g. "Your Name's Personal Music Charts"</p>
+      <!-- Tuner-dial tab strip: one sliding ink bar whose position comes from
+           --tab-i (set by switchSettingsTab), so switching costs no repaint work -->
+      <div class="set-tabs" role="tablist" aria-label="Settings sections">
+        <button type="button" class="set-tab is-active" id="setTabSource" role="tab" aria-selected="true" aria-controls="setPanelSource" onclick="switchSettingsTab('source')">Data source</button>
+        <button type="button" class="set-tab" id="setTabCharts" role="tab" aria-selected="false" aria-controls="setPanelCharts" onclick="switchSettingsTab('charts')">Charts</button>
+        <button type="button" class="set-tab" id="setTabProfile" role="tab" aria-selected="false" aria-controls="setPanelProfile" onclick="switchSettingsTab('profile')">Profile</button>
+        <span class="set-tab-ink" aria-hidden="true"></span>
       </div>
 
-      <div class="src-field-group" style="margin-bottom:1rem;">
-        <label>
-          Time Zone
-          <select id="srcTimezone" style="width:100%;margin-top:0.3rem;padding:0.35rem 0.5rem;border-radius:4px;border:1px solid var(--border);background:var(--bg2);color:var(--text1);font-size:0.85rem;cursor:pointer;"></select>
-        </label>
-        <p class="src-modal-hint">Chart periods (weeks, months, years) begin and end at midnight in this timezone</p>
-      </div>
+      <!-- ══ 01 · DATA SOURCE ══ -->
+      <section class="set-panel is-active" id="setPanelSource" role="tabpanel" aria-labelledby="setTabSource">
 
-      <div class="src-radio-group">
-        <label>
-          <input type="radio" name="srcRadio" id="srcRadioSheets" onchange="updateSourceModalFields()">
-          Google Sheets
-        </label>
-        <label>
-          <input type="radio" name="srcRadio" id="srcRadioLastfm" onchange="updateSourceModalFields()">
-          Last.fm
-        </label>
-        <label>
-          <input type="radio" name="srcRadio" id="srcRadioFile" onchange="updateSourceModalFields()">
-          Upload File
-        </label>
-      </div>
+        <!-- Cassette-spine cards replace the old three bare radios: the radio
+             itself is still there (visually hidden) so every existing
+             .checked read in app.js keeps working untouched. -->
+        <div class="src-cards" role="radiogroup" aria-label="Where your plays come from">
+          <label class="src-card">
+            <input type="radio" name="srcRadio" id="srcRadioSheets" onchange="updateSourceModalFields()">
+            <span class="src-card-glyph" aria-hidden="true">▦</span>
+            <span class="src-card-name">Google Sheets</span>
+            <span class="src-card-note">Keeps itself up to date</span>
+          </label>
+          <label class="src-card">
+            <input type="radio" name="srcRadio" id="srcRadioLastfm" onchange="updateSourceModalFields()">
+            <span class="src-card-glyph" aria-hidden="true">◉</span>
+            <span class="src-card-name">Last.fm</span>
+            <span class="src-card-note">Reads your scrobbles</span>
+          </label>
+          <label class="src-card">
+            <input type="radio" name="srcRadio" id="srcRadioFile" onchange="updateSourceModalFields()">
+            <span class="src-card-glyph" aria-hidden="true">⇪</span>
+            <span class="src-card-name">Upload File</span>
+            <span class="src-card-note">One-off import</span>
+          </label>
+        </div>
 
-      <div id="srcSheetsFields" class="src-field-group">
-        <p class="src-modal-hint" style="margin-bottom:0.7rem">No tracking sheet yet? <a href="https://docs.google.com/spreadsheets/d/19brQQYXn1WQNhCkSMCYnGVYmxhmLzKOE2A3E3QFCeqk/copy" target="_blank" rel="noopener" style="color:var(--accent);font-weight:500">Copy our ready-to-use template →</a> &nbsp;·&nbsp; <a href="setup-guide.html?tab=sheets" target="_blank" rel="noopener" style="color:var(--accent)">📄 Setup guide</a></p>
-        <label>
-          Sheet URL or ID
-          <input type="text" id="srcSheetId" placeholder="Paste your Google Sheets URL or Sheet ID">
-        </label>
-        <label>
-          Tab name
-          <input type="text" id="srcSheetTab" placeholder="Full Raw Listening History">
-        </label>
-        <p class="src-modal-hint">The sheet must be shared as "Anyone with the link can view"</p>
-        <details class="lfm-custom-creds" style="margin-top:0.9rem">
-          <summary>Enable auto-sync &amp; manual play entry (optional)</summary>
+        <div id="srcSheetsFields" class="src-field-group set-src-panel">
+          <div class="set-linkrow">
+            <a class="set-chip" href="https://docs.google.com/spreadsheets/d/19brQQYXn1WQNhCkSMCYnGVYmxhmLzKOE2A3E3QFCeqk/copy" target="_blank" rel="noopener">Copy the template sheet →</a>
+            <a class="set-chip set-chip-ghost" href="setup-guide.html?tab=sheets" target="_blank" rel="noopener">📄 Setup guide</a>
+          </div>
+          <label>
+            Sheet URL or ID
+            <input type="text" id="srcSheetId" placeholder="Paste your Google Sheets URL or Sheet ID">
+          </label>
+          <label>
+            Tab name
+            <input type="text" id="srcSheetTab" placeholder="Full Raw Listening History">
+          </label>
+          <p class="src-modal-hint">Share the sheet as <strong>Anyone with the link can view</strong>.</p>
+          <details class="lfm-custom-creds set-disclosure">
+            <summary>Enable auto-sync &amp; manual play entry (optional)</summary>
           <div style="margin-top:0.7rem">
             <label>
               Apps Script Web App URL
@@ -3328,22 +3340,25 @@ function doPost(e) {
         </details>
       </div>
 
-      <div id="srcLastfmFields" class="src-field-group" style="display:none;">
+      <div id="srcLastfmFields" class="src-field-group set-src-panel" style="display:none;">
+        <div class="set-linkrow">
+          <a class="set-chip set-chip-ghost" href="setup-guide.html?tab=lastfm" target="_blank" rel="noopener">📄 Setup guide</a>
+        </div>
         <label>
           Last.fm username
           <input type="text" id="srcLastfmUser" placeholder="your_lastfm_username" autocomplete="off">
         </label>
-        <p class="src-modal-hint">Your full listening history will be loaded directly from Last.fm</p>
+        <p class="src-modal-hint">Your full listening history loads straight from Last.fm.</p>
 
         <div class="lfm-auth-section">
-          <div class="lfm-auth-divider">Scrobble Setup</div>
+          <div class="lfm-auth-divider">Scrobble Setup <span class="lfm-optional">(optional)</span></div>
           <div class="lfm-auth-row">
             <span id="lfmAuthStatus" class="lfm-auth-status"><span class="lfm-auth-dot"></span> Not connected</span>
             <button type="button" id="lfmConnectBtn" class="lfm-connect-btn" onclick="lfmAuthBtnClick()">Connect to Last.fm</button>
             <button type="button" id="lfmDisconnectBtn" class="lfm-disconnect-btn" onclick="lfmAuthDisconnect()" style="display:none">Disconnect</button>
           </div>
-          <p id="lfmConnectHint" class="src-modal-hint">Connect to enable manual scrobbling from this app. &nbsp;<a href="setup-guide.html?tab=lastfm" target="_blank" rel="noopener" style="color:var(--accent)">📄 Setup guide</a></p>
-          <details class="lfm-custom-creds">
+          <p id="lfmConnectHint" class="src-modal-hint">Lets you add and edit plays from this site.</p>
+          <details class="lfm-custom-creds set-disclosure">
             <summary>Use custom API credentials</summary>
             <div class="src-field-group" style="margin-top:0.7rem">
               <label>
@@ -3359,16 +3374,23 @@ function doPost(e) {
         </div>
       </div>
 
-      <div id="srcFileFields" class="src-field-group" style="display:none;">
-        <p class="src-modal-hint" data-i18n-html="file_upload_hint">Upload your listening history. Supported formats: <strong>Last.fm CSV</strong>, <strong>mycharts CSV</strong>, <strong>Spotify ZIP</strong> (extended streaming history), <strong>Deezer XLSX</strong>.</p>
-        <div id="srcFileDrop" style="border:2px dashed var(--border);border-radius:6px;padding:1.5rem;text-align:center;cursor:pointer;transition:border-color .15s;">
-          <div style="font-size:1.5rem;margin-bottom:0.4rem;">📂</div>
-          <div style="font-size:0.85rem;color:var(--text2);">Drop file here or click to browse</div>
-          <div style="font-size:0.72rem;color:var(--text3);margin-top:0.25rem;">.csv &nbsp;·&nbsp; .zip &nbsp;·&nbsp; .xlsx &nbsp;·&nbsp; .xls</div>
+      <div id="srcFileFields" class="src-field-group set-src-panel" style="display:none;">
+        <div class="set-linkrow">
+          <a class="set-chip set-chip-ghost" href="setup-guide.html?tab=file" target="_blank" rel="noopener">📄 Setup guide</a>
+        </div>
+        <div id="srcFileDrop" class="set-dropzone">
+          <div class="set-dropzone-glyph" aria-hidden="true">📂</div>
+          <div class="set-dropzone-lead">Drop your file here, or click to browse</div>
+          <div class="set-dropzone-types">.csv &nbsp;·&nbsp; .zip &nbsp;·&nbsp; .xlsx &nbsp;·&nbsp; .xls</div>
         </div>
         <input type="file" id="srcFileInput" accept=".csv,.zip,.xlsx,.xls" style="display:none">
         <div id="srcFileStatus" class="src-modal-hint" style="margin-top:0.5rem;"></div>
+        <p class="src-modal-hint" data-i18n-html="file_upload_hint">Upload your listening history. Supported formats: <strong>Last.fm CSV</strong>, <strong>mycharts CSV</strong>, <strong>Spotify ZIP</strong> (extended streaming history), <strong>Deezer XLSX</strong>.</p>
       </div>
+      </section>
+
+      <!-- ══ 02 · CHARTS ══ -->
+      <section class="set-panel" id="setPanelCharts" role="tabpanel" aria-labelledby="setTabCharts" hidden>
 
       <div class="cert-config-group">
         <div class="cert-config-title">Certification Thresholds (Plays)</div>
@@ -3387,56 +3409,73 @@ function doPost(e) {
           </div>
         </div>
         <div class="cert-config-footer">
-          <p class="src-modal-hint">Minimum plays to earn each badge. Changes apply on Save &amp; Load.</p>
+          <p class="src-modal-hint">Plays needed to earn each badge.</p>
           <button type="button" class="cert-reset-btn" onclick="resetCertDefaults()">Reset to defaults</button>
         </div>
       </div>
 
       <div class="cert-config-group">
         <div class="cert-config-title">Events Calendar</div>
-        <div style="padding:0.4rem 0;">
-          <label class="cert-row" style="flex-wrap:wrap;gap:0.4rem;">
-            Show for top
-            <select id="eventsArtistLimitSelect" style="padding:0.22rem 0.45rem;border-radius:4px;border:1px solid var(--border);background:var(--bg2);color:var(--text1);font-family:var(--font-mono);font-size:0.72rem;cursor:pointer;">
+        <div class="set-row">
+          <label class="cert-row set-row-inline">
+            Show birthdays &amp; anniversaries for your top
+            <select id="eventsArtistLimitSelect" class="set-select-inline">
               <option value="10">10</option>
               <option value="25">25</option>
               <option value="50">50</option>
               <option value="100">100</option>
               <option value="200">200</option>
             </select>
-            all-time artists
+            artists
           </label>
-          <p class="src-modal-hint">Number of top all-time artists to fetch birthdays &amp; anniversaries for</p>
         </div>
       </div>
 
       <div class="cert-config-group">
-        <div class="cert-config-title">Chart Display</div>
-        <div style="padding:0.4rem 0;">
+        <div class="cert-config-title">Behavior</div>
+        <div class="set-row">
           <label class="src-switch-row">
-            <span class="src-switch-label">Animate chart on page load</span>
+            <span class="src-switch-label">Animate charts on page load
+              <span class="set-switch-note">Replays how rankings shifted. The <strong>▶ Animate Chart</strong> button above each chart always works either way.</span>
+            </span>
             <span class="src-switch">
               <input type="checkbox" id="srcChartAnim">
               <span class="src-switch-slider"></span>
             </span>
           </label>
-          <p class="src-modal-hint" style="margin-top:0.4rem">When enabled, weekly and monthly charts animate on load to show how rankings shifted from the previous period. Turn this off to load charts instantly — you can still trigger the animation at any time using the <strong>▶ Animate Chart</strong> button above each chart.</p>
         </div>
-      </div>
-
-      <div class="cert-config-group">
-        <div class="cert-config-title">Artist Names</div>
-        <div style="padding:0.4rem 0;">
+        <div class="set-row">
           <label class="src-switch-row">
-            <span class="src-switch-label">Keep comma-separated names as one artist</span>
+            <span class="src-switch-label">Keep comma-separated names as one artist
+              <span class="set-switch-note">"Artist A, Artist B" counts as one artist, not two. Match this to how your data is written.</span>
+            </span>
             <span class="src-switch">
               <input type="checkbox" id="srcNoArtistSplit">
               <span class="src-switch-slider"></span>
             </span>
           </label>
-          <p class="src-modal-hint" style="margin-top:0.4rem">"Artist A, Artist B" is counted as one artist instead of splitting into two. Useful if your data uses commas within a single artist name, or if you prefer Last.fm-style behavior where the full artist string is always kept intact.</p>
         </div>
       </div>
+      </section>
+
+      <!-- ══ 03 · PROFILE ══ -->
+      <section class="set-panel" id="setPanelProfile" role="tabpanel" aria-labelledby="setTabProfile" hidden>
+        <div class="src-field-group">
+          <label>
+            Display name
+            <input type="text" id="srcDisplayName" placeholder="Your name" autocomplete="off">
+          </label>
+          <p class="src-modal-hint">Appears in the masthead, as in "Your Name's Personal Music Charts".</p>
+        </div>
+
+        <div class="src-field-group" style="margin-top:1.2rem">
+          <label>
+            Time zone
+            <select id="srcTimezone"></select>
+          </label>
+          <p class="src-modal-hint">Chart weeks, months and years start at midnight here.</p>
+        </div>
+      </section>
 
       <div class="src-modal-btns">
         <button class="src-btn-cancel" onclick="closeSourceModal()">Cancel</button>

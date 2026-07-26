@@ -85,7 +85,7 @@ const TRANSLATIONS = {
     awards_cat_stat_top_song: 'Most Played Song',
     awards_cat_stat_top_album: 'Most Played Album',
     awards_cat_stat_top_artist: 'Most Played Artist',
-    btn_configure: '<span class="btn-icon">⚙</span> Configure',
+    btn_configure: '<span class="btn-icon">⚙</span> Settings',
     btn_add_play: '<span class="btn-icon">✚</span> Add Play',
 
     // Chart size bar

@@ -643,7 +643,11 @@ async function lfmPost(params) {
   const res  = await fetch('https://ws.audioscrobbler.com/2.0/', { method: 'POST', body: new URLSearchParams(p) });
   if (!res.ok) throw new Error('HTTP ' + res.status);
   const data = await res.json();
-  if (data.error) throw new Error(data.message || 'Last.fm error ' + data.error);
+  if (data.error) {
+    const err = new Error(data.message || 'Last.fm error ' + data.error);
+    err.code = data.error; // 14 = token not authorized, 15 = token expired, 4 = invalid token
+    throw err;
+  }
   return data;
 }
 
@@ -655,16 +659,62 @@ function updateScrobbleBtn() {
   scrobBtn.style.display = (currentPeriod === 'rawdata' && (hasLfm || hasSheet)) ? '' : 'none';
 }
 
+/* ── Connection state ──────────────────────────────────────────
+   There are three real states, and the UI used to collapse them into two.
+   Opening the Last.fm authorize page proves nothing: the button flipped to
+   "I've authorized ✓" the moment the popup opened, whether or not the user
+   ever clicked Allow. Only auth.getSession returning a session key proves the
+   connection, so nothing here claims "connected" until that call succeeds.
+
+     not connected  → no pending token, no session
+     awaiting       → token issued, Last.fm hasn't approved it yet
+     connected      → session key in hand (verified)                          */
+
+const LFM_TOKEN_TTL_MS  = 55 * 60 * 1000; // Last.fm tokens die after ~60 min
+const LFM_POLL_EVERY_MS = 3000;
+const LFM_POLL_MAX      = 60;             // give up watching after ~3 minutes
+const LFM_HINT_IDLE     = 'Lets you add and edit plays from this site.';
+
+let _lfmPollTimer = null;
+let _lfmPollTries = 0;
+
+// A pending token only counts while it's still young enough to be redeemable.
+function getLfmPendingToken() {
+  const token = localStorage.getItem('dc_lfm_pending_token');
+  if (!token) return '';
+  const ts = parseInt(localStorage.getItem('dc_lfm_pending_ts') || '0', 10);
+  if (ts && Date.now() - ts > LFM_TOKEN_TTL_MS) { clearLfmPendingToken(); return ''; }
+  return token;
+}
+
+function clearLfmPendingToken() {
+  localStorage.removeItem('dc_lfm_pending_token');
+  localStorage.removeItem('dc_lfm_pending_ts');
+}
+
+function setLfmHint(text, tone) {
+  const hint = document.getElementById('lfmConnectHint');
+  if (!hint) return;
+  hint.textContent = text;
+  hint.style.color = tone === 'err' ? 'var(--rose)' : (tone === 'ok' ? 'var(--green)' : '');
+}
+
 function updateLfmAuthStatus() {
   const user      = getScrobbleUser();
   const sess      = getScrobbleSession();
+  const pending   = getLfmPendingToken();
   const statusEl  = document.getElementById('lfmAuthStatus');
   const connectBtn= document.getElementById('lfmConnectBtn');
   const disconnBtn= document.getElementById('lfmDisconnectBtn');
   if (sess && user) {
-    if (statusEl)   statusEl.innerHTML = `<span class="lfm-auth-dot connected"></span> Connected as <strong>${user}</strong>`;
+    if (statusEl)   statusEl.innerHTML = `<span class="lfm-auth-dot connected"></span> Connected as <strong>${esc(user)}</strong>`;
     if (connectBtn) connectBtn.style.display = 'none';
-    if (disconnBtn) disconnBtn.style.display = '';
+    if (disconnBtn) { disconnBtn.style.display = ''; disconnBtn.textContent = 'Disconnect'; }
+  } else if (pending) {
+    // Honest middle state: we asked, Last.fm hasn't said yes yet.
+    if (statusEl)   statusEl.innerHTML = '<span class="lfm-auth-dot pending"></span> Waiting for your approval on Last.fm';
+    if (connectBtn) { connectBtn.style.display = ''; connectBtn.textContent = 'Check now'; connectBtn.disabled = false; }
+    if (disconnBtn) { disconnBtn.style.display = ''; disconnBtn.textContent = 'Cancel'; }
   } else {
     if (statusEl)   statusEl.innerHTML = '<span class="lfm-auth-dot"></span> Not connected';
     if (connectBtn) { connectBtn.style.display = ''; connectBtn.textContent = 'Connect to Last.fm'; connectBtn.disabled = false; }
@@ -674,7 +724,7 @@ function updateLfmAuthStatus() {
 }
 
 function lfmAuthBtnClick() {
-  if (localStorage.getItem('dc_lfm_pending_token')) lfmAuthFinalize();
+  if (getLfmPendingToken()) lfmAuthVerify(false);
   else lfmAuthConnect();
 }
 
@@ -686,9 +736,8 @@ async function lfmAuthConnect() {
 
   const key    = getScrobbleKey();
   const secret = getScrobbleSecret();
-  const hint   = document.getElementById('lfmConnectHint');
   if (!key || !secret) {
-    if (hint) { hint.textContent = 'Enter your API key and secret above first.'; hint.style.color = 'var(--rose)'; }
+    setLfmHint('Enter your API key and secret above first.', 'err');
     return;
   }
   const btn = document.getElementById('lfmConnectBtn');
@@ -697,44 +746,77 @@ async function lfmAuthConnect() {
   try {
     const data = await lfmPost({ method: 'auth.getToken' });
     localStorage.setItem('dc_lfm_pending_token', data.token);
+    localStorage.setItem('dc_lfm_pending_ts', String(Date.now()));
     window.open(`https://www.last.fm/api/auth/?api_key=${encodeURIComponent(key)}&token=${encodeURIComponent(data.token)}`, '_blank');
-    btn.textContent = "I've authorized ✓";
-    btn.disabled = false;
-    if (hint) { hint.textContent = 'Authorize dankstation.fm on Last.fm, then click the button again.'; hint.style.color = ''; }
+    updateLfmAuthStatus();
+    setLfmHint('Click Allow on the Last.fm tab that just opened. This page checks on its own and switches to Connected once it goes through.');
+    lfmAuthStartPolling();
   } catch (e) {
-    btn.textContent = 'Connect to Last.fm';
-    btn.disabled = false;
-    if (hint) { hint.textContent = 'Error: ' + e.message; hint.style.color = 'var(--rose)'; }
+    clearLfmPendingToken();
+    updateLfmAuthStatus();
+    setLfmHint('Could not reach Last.fm: ' + e.message, 'err');
   }
 }
 
-async function lfmAuthFinalize() {
-  const token = localStorage.getItem('dc_lfm_pending_token');
-  if (!token) return;
-  const btn  = document.getElementById('lfmConnectBtn');
-  const hint = document.getElementById('lfmConnectHint');
-  btn.disabled = true;
-  btn.textContent = 'Connecting…';
+/* The only place a connection is ever confirmed. `silent` is true for the
+   background poll, which shouldn't shout on every unauthorized answer. */
+async function lfmAuthVerify(silent) {
+  const token = getLfmPendingToken();
+  if (!token) { updateLfmAuthStatus(); return false; }
+  const btn = document.getElementById('lfmConnectBtn');
+  if (!silent && btn) { btn.disabled = true; btn.textContent = 'Checking…'; }
   try {
     const data = await lfmPost({ method: 'auth.getSession', token });
+    if (!data?.session?.key) throw new Error('No session returned');
     localStorage.setItem('dc_lfm_session_key',  data.session.key);
     localStorage.setItem('dc_lfm_session_user', data.session.name);
-    localStorage.removeItem('dc_lfm_pending_token');
-    if (hint) { hint.textContent = 'Connect to enable manual scrobbling from this app.'; hint.style.color = ''; }
+    clearLfmPendingToken();
+    lfmAuthStopPolling();
     updateLfmAuthStatus();
+    setLfmHint(`Verified. Scrobbling as ${data.session.name}.`, 'ok');
+    return true;
   } catch (e) {
-    btn.textContent = "I've authorized ✓";
-    btn.disabled = false;
-    if (hint) { hint.textContent = 'Error: ' + e.message + ' — make sure you authorized the app on Last.fm first.'; hint.style.color = 'var(--rose)'; }
+    // 14 = token issued but not authorized yet — the normal "still waiting" answer.
+    const notYet = e.code === 14;
+    if (!notYet) clearLfmPendingToken(); // expired/invalid token: start over
+    if (!notYet) lfmAuthStopPolling();
+    updateLfmAuthStatus();
+    if (!silent) {
+      setLfmHint(notYet
+        ? 'Not authorized yet. Finish the Allow step on the Last.fm tab, then check again.'
+        : 'That authorization expired. Hit Connect to Last.fm to start again.', 'err');
+    }
+    return false;
   }
+}
+
+// Poll while the user is off approving in the other tab, so they come back to
+// a status that already says Connected instead of another button to press.
+function lfmAuthStartPolling() {
+  lfmAuthStopPolling();
+  _lfmPollTries = 0;
+  _lfmPollTimer = setInterval(async () => {
+    const modal = document.getElementById('sourceModal');
+    if (!modal || !modal.classList.contains('open')) { lfmAuthStopPolling(); return; }
+    if (++_lfmPollTries > LFM_POLL_MAX) {
+      lfmAuthStopPolling();
+      setLfmHint('Still waiting on Last.fm. Once you have clicked Allow, press Check now.');
+      return;
+    }
+    await lfmAuthVerify(true);
+  }, LFM_POLL_EVERY_MS);
+}
+
+function lfmAuthStopPolling() {
+  if (_lfmPollTimer) { clearInterval(_lfmPollTimer); _lfmPollTimer = null; }
 }
 
 function lfmAuthDisconnect() {
   localStorage.removeItem('dc_lfm_session_key');
   localStorage.removeItem('dc_lfm_session_user');
-  localStorage.removeItem('dc_lfm_pending_token');
-  const hint = document.getElementById('lfmConnectHint');
-  if (hint) { hint.textContent = 'Connect to enable manual scrobbling from this app.'; hint.style.color = ''; }
+  clearLfmPendingToken();
+  lfmAuthStopPolling();
+  setLfmHint(LFM_HINT_IDLE);
   updateLfmAuthStatus();
 }
 
@@ -2033,6 +2115,12 @@ document.addEventListener('click', e => {
 
 
 // ─── GOOGLE SHEETS SYNC ────────────────────────────────────────
+// Empty on purpose: there is no shared fallback sheet, every user brings their
+// own. It exists so `localStorage.getItem('dc_sheet_id') || DEFAULT_SHEET_ID`
+// resolves instead of throwing — that ReferenceError used to abort
+// openSourceModal() halfway on any browser with no sheet saved yet, which left
+// the Last.fm username blank and the Sheets fields showing over the wrong source.
+const DEFAULT_SHEET_ID  = '';
 const DEFAULT_SHEET_TAB = 'Full Raw Listening History';
 function getSheetUrl() {
   const rawId = localStorage.getItem('dc_sheet_id') || '';
@@ -2224,7 +2312,7 @@ async function fetchSheetCsv() {
 
 async function syncFromSheets() {
   if (!localStorage.getItem('dc_sheet_id')) {
-    setSyncStatus('No Google Sheet configured — click ⚙ Configure to set one up.', 'err');
+    setSyncStatus('No Google Sheet configured — click ⚙ Settings to set one up.', 'err');
     document.getElementById('syncNowBtn').disabled = false;
     return;
   }
@@ -2269,7 +2357,7 @@ async function fetchLastFmPage(username, page, fromUts = 0) {
 async function syncFromLastFm() {
   const username = getLastFmUser();
   if (!username) {
-    setSyncStatus('No Last.fm username set — click ⚙ Configure to get started.', 'err');
+    setSyncStatus('No Last.fm username set — click ⚙ Settings to get started.', 'err');
     return;
   }
   const btn = document.getElementById('syncNowBtn');
@@ -2651,10 +2739,35 @@ function populateTzSelect() {
   }
 }
 
+// Settings modal tabs. Panels are plain sections toggled with [hidden]; the
+// underline slides via --tab-i so no layout measuring is involved.
+const SETTINGS_TABS = ['source', 'charts', 'profile'];
+
+function switchSettingsTab(name) {
+  const i = SETTINGS_TABS.indexOf(name);
+  if (i === -1) return;
+  const strip = document.querySelector('#sourceModal .set-tabs');
+  if (strip) strip.style.setProperty('--tab-i', i);
+  SETTINGS_TABS.forEach((t, idx) => {
+    const cap  = t.charAt(0).toUpperCase() + t.slice(1);
+    const btn  = document.getElementById('setTab' + cap);
+    const pane = document.getElementById('setPanel' + cap);
+    if (btn) {
+      btn.classList.toggle('is-active', idx === i);
+      btn.setAttribute('aria-selected', idx === i ? 'true' : 'false');
+    }
+    if (pane) pane.hidden = idx !== i;
+  });
+  // Scroll back to the top of the box — panels differ wildly in height and
+  // landing mid-form after a tab switch is disorienting.
+  document.querySelector('#sourceModal .set-box')?.scrollIntoView({ block: 'start' });
+}
+
 function openSourceModal() {
   document.getElementById('configureSourceBtn').classList.remove('configure-attention');
   const modal = document.getElementById('sourceModal');
   modal.classList.add('open');
+  switchSettingsTab('source'); // always land on the data source tab
   const src = getDataSource();
   document.getElementById('srcRadioSheets').checked = src === 'sheets';
   document.getElementById('srcRadioLastfm').checked = src === 'lastfm';
@@ -2667,8 +2780,11 @@ function openSourceModal() {
   document.getElementById('srcSheetTab').value      = localStorage.getItem('dc_sheet_tab')       || DEFAULT_SHEET_TAB;
   document.getElementById('srcSheetWriteUrl').value = localStorage.getItem('dc_sheet_write_url') || '';
   document.getElementById('srcLastfmUser').value   = getLastFmUser();
-  document.getElementById('srcLfmApiKey').value    = getScrobbleKey();
-  document.getElementById('srcLfmApiSecret').value = getScrobbleSecret();
+  // Only show credentials the user actually supplied. Echoing the app's own
+  // default key/secret into these boxes made every save persist them as
+  // "custom", and made it look like custom creds were already configured.
+  document.getElementById('srcLfmApiKey').value    = localStorage.getItem('dc_lfm_api_key')    || '';
+  document.getElementById('srcLfmApiSecret').value = localStorage.getItem('dc_lfm_api_secret') || '';
   document.getElementById('certAlbumGold').value    = CERT.album.gold;
   document.getElementById('certAlbumPlat').value    = CERT.album.plat;
   document.getElementById('certAlbumDiamond').value = CERT.album.diamond;
@@ -2684,6 +2800,7 @@ function openSourceModal() {
 
 function closeSourceModal() {
   document.getElementById('sourceModal').classList.remove('open');
+  lfmAuthStopPolling(); // nothing to watch for once the panel is gone
 }
 
 function resetCertDefaults() {
@@ -2702,7 +2819,14 @@ function updateSourceModalFields() {
   document.getElementById('srcLastfmFields').style.display  = (!isSheets && !isFile) ? '' : 'none';
   const fileEl = document.getElementById('srcFileFields');
   if (fileEl) fileEl.style.display = isFile ? '' : 'none';
-  if (!isSheets && !isFile) updateLfmAuthStatus();
+  if (!isSheets && !isFile) {
+    updateLfmAuthStatus();
+    // Reopened mid-authorization: pick the watch back up instead of leaving
+    // the user staring at a stale "waiting" line.
+    if (getLfmPendingToken()) lfmAuthStartPolling();
+  } else {
+    lfmAuthStopPolling(); // the auth row isn't on screen any more
+  }
 }
 
 function saveSourceConfig() {
@@ -2761,11 +2885,15 @@ function saveSourceConfig() {
     localStorage.removeItem('dc_sheet_gid');
     localStorage.removeItem('dc_sheet_write_url');
   }
-  // Always persist LFM API credentials when filled in (used for scrobbling regardless of data source)
+  // Custom LFM API credentials are kept whatever the data source is, since
+  // they're for scrobbling rather than reading. Clearing a field now clears the
+  // stored value too, so there's a way back to the app's built-in credentials.
   const apiKey    = document.getElementById('srcLfmApiKey').value.trim();
   const apiSecret = document.getElementById('srcLfmApiSecret').value.trim();
-  if (apiKey)    localStorage.setItem('dc_lfm_api_key',    apiKey);
+  if (apiKey) localStorage.setItem('dc_lfm_api_key', apiKey);
+  else localStorage.removeItem('dc_lfm_api_key');
   if (apiSecret) localStorage.setItem('dc_lfm_api_secret', apiSecret);
+  else localStorage.removeItem('dc_lfm_api_secret');
   const ag = parseInt(document.getElementById('certAlbumGold').value)    || CERT_DEFAULTS.album.gold;
   const ap = parseInt(document.getElementById('certAlbumPlat').value)    || CERT_DEFAULTS.album.plat;
   const ad = parseInt(document.getElementById('certAlbumDiamond').value) || CERT_DEFAULTS.album.diamond;
@@ -3055,7 +3183,7 @@ window.addEventListener('load', async () => {
       setSyncStatus(`✓ ${allPlays.length.toLocaleString()} plays loaded from file`, 'ok');
       finalizeLoad();
     } else {
-      setSyncStatus('No file loaded — click ⚙ Configure to upload a file.', 'err');
+      setSyncStatus('No file loaded — click ⚙ Settings to upload a file.', 'err');
     }
     return;
   }
@@ -18773,10 +18901,16 @@ async function importFileData(file) {
   }
 }
 
+let _srcFileUploadReady = false;
+
 function initSrcFileUpload() {
   const zone = document.getElementById('srcFileDrop');
   const input = document.getElementById('srcFileInput');
   if (!zone || !input) return;
+  // Called on every modal open — without this guard the listeners stack up and
+  // the file picker opens once per time the modal has ever been opened.
+  if (_srcFileUploadReady) return;
+  _srcFileUploadReady = true;
   input.addEventListener('change', () => { if (input.files[0]) importFileData(input.files[0]); input.value = ''; });
   zone.addEventListener('click', () => input.click());
   zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('dragover'); });
@@ -27325,7 +27459,7 @@ function dcRenderChartsGuideView() {
   /* ── 9 · Smart suggestions ────────────────────────────────────── */
   const suggestions = [];
   if (n === 0) {
-    suggestions.push({ icon: '⚙️', text: 'Set up your data source to start exploring your charts', btn: 'Configure', action: 'openSourceModal()' });
+    suggestions.push({ icon: '⚙️', text: 'Set up your data source to start exploring your charts', btn: 'Settings', action: 'openSourceModal()' });
   } else {
     suggestions.push({ icon: '🏆', text: 'See all-time chart records — longest runs, best weeks, streaks', btn: 'Go to Records', action: 'document.querySelector(\'#periodNav button[data-period="records"]\').click()' });
     if (uniqueArtists > 20) suggestions.push({ icon: '📅', text: 'See upcoming birthdays and album anniversaries for your artists', btn: 'Go to Events', action: 'document.querySelector(\'#periodNav button[data-period="events"]\').click()' });
@@ -27337,7 +27471,7 @@ function dcRenderChartsGuideView() {
   /* ── 11 · Data quality ────────────────────────────────────────── */
   const warnings = [];
   if (n === 0) {
-    warnings.push({ type: 'error', msg: 'No plays loaded — check your data source in Configure.' });
+    warnings.push({ type: 'error', msg: 'No plays loaded — check your data source in Settings.' });
   } else {
     const srcName = src === 'lastfm' ? 'Last.fm' : src === 'sheets' ? 'Google Sheets' : 'CSV file';
     warnings.push({ type: 'ok', msg: n.toLocaleString() + ' plays loaded from ' + srcName + '.' });
@@ -27376,7 +27510,7 @@ function dcRenderChartsGuideView() {
     { icon: '🔥', title: 'Streak Tracking',   body: 'The Graphs tab tracks how many consecutive weeks each artist has stayed in your chart — with heatmap and graveyard.' },
     { icon: '⏰', title: 'Time Machine',       body: 'In the Playlists tab, the Time Machine shows exactly what you were playing on any past date.' },
     { icon: '🖼', title: 'Image Card Export', body: 'Export any Weekly, Monthly, or Yearly chart as a styled PNG image card, ready for social media.' },
-    { icon: '✏️', title: 'Autocorrect Rules', body: 'Fix misspelled artist or track names globally via Configure → Autocorrect. Changes apply instantly to all charts.' },
+    { icon: '✏️', title: 'Autocorrect Rules', body: 'Fix misspelled artist or track names globally via Settings → Autocorrect. Changes apply instantly to all charts.' },
     { icon: '🎂', title: 'Artist Birthdays',  body: 'The Events tab shows upcoming birthdays and album anniversaries for every artist in your charts.' },
     { icon: '🏅', title: 'Your Grammys',      body: 'The Awards tab runs a Grammy-style ceremony — nominees are pulled from your actual chart data for any year.' },
     { icon: '🎬', title: 'Your Soundtrack',   body: 'Soundtrack tab finds the era-defining song for each chapter of your life, based on listening intensity over time.' },
@@ -27443,7 +27577,7 @@ function dcRenderChartsGuideView() {
   const faqs = [
     { q: 'Why are my play counts different from Last.fm\'s site?', a: 'Last.fm sometimes delays scrobbles or deduplicates differently. Use "Sync Now" to fetch the latest data from the API.' },
     { q: 'What does "Top 10" mean for All-Time?', a: 'It shows the 10 artists, songs, or albums with the most cumulative plays across your entire listening history.' },
-    { q: 'How do I fix a misspelled artist name?', a: 'Go to Configure → Autocorrect and add a rule: wrong name → correct name. It applies instantly across all charts.' },
+    { q: 'How do I fix a misspelled artist name?', a: 'Go to Settings → Autocorrect and add a rule: wrong name → correct name. It applies instantly across all charts.' },
     { q: 'Why does a period show no data?', a: 'You may not have scrobbled anything that week/month/year, or your data source may not cover that date range. Check your sync status.' },
     { q: 'How do I share my chart as an image?', a: 'Navigate to any Weekly, Monthly, or Yearly chart, then click the camera/share icon near the chart header to export a PNG.' },
     { q: 'What\'s the difference between Weekly and Monthly?', a: 'Weekly uses 7-day rolling windows from your configured week-start day. Monthly covers full calendar months.' },
@@ -27538,7 +27672,7 @@ function dcRenderChartsGuideView() {
         <div class="cg-si ${hasDisplay ? 'ok' : 'neutral'}"><span>${hasDisplay ? '✓' : '○'}</span>Display name ${hasDisplay ? 'set' : 'not set (optional)'}</div>
         <div class="cg-si ${hasTz ? 'ok' : 'neutral'}"><span>${hasTz ? '✓' : '○'}</span>Timezone ${hasTz ? 'configured' : 'using browser default'}</div>
       </div>
-      <button class="cg-mini-btn" onclick="openSourceModal()">Open Configure →</button>
+      <button class="cg-mini-btn" onclick="openSourceModal()">Open Settings →</button>
     </div>
     <div class="cg-panel">
       <div class="cg-panel-title">📋 Data Quality</div>
