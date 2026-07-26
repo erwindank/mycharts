@@ -1431,6 +1431,18 @@
        and was sitting flush, held apart by line-height alone. */
     .step-body > * + * { margin-top: 0.75rem; }
     .step-card a { overflow-wrap: anywhere; }
+    /* A literal URL or filename quoted mid-sentence has no break opportunities
+       a browser will take on its own, and one long enough will push a phone
+       sideways. */
+    .step-body code { overflow-wrap: anywhere; }
+    /* .needs re-used inside a step card, to list what a step unlocks. One
+       column — these items are full sentences, not three-word ingredients —
+       and no trailing gap, because the card sets its own rhythm. */
+    .step-body .needs {
+      grid-template-columns: 1fr;
+      margin-bottom: 0;
+      padding: 1rem 1.15rem;
+    }
 
     .step-title {
       font-family: var(--font-sans);
@@ -2271,7 +2283,7 @@
               </div>
             </div>
             <p>Leave <strong>Tab name</strong> empty unless you renamed the data tab in your copy — empty means <em>Full Raw Listening History</em>, which is what the template calls it.</p>
-            <p>Hit <strong>Save &amp; Load</strong>. Your plays are read on the spot and your charts appear. That's the setup done — Step 7 is only if you also want the <strong>+ Add Play</strong> button.</p>
+            <p>Hit <strong>Save &amp; Load</strong>. Your plays are read on the spot and your charts appear. That's the setup done — Step 7 is optional, and only worth it if you want to change your listening history <em>from</em> the site rather than in the sheet.</p>
           </div>
         </div>
       </li>
@@ -2281,9 +2293,17 @@
           <span class="step-num">07</span><span class="step-tick" aria-hidden="true">✓</span>
         </button>
         <div class="step-card">
-          <h3 class="step-title">Add plays by hand <span class="optional-badge">Optional</span></h3>
+          <h3 class="step-title">Let the site write back to your sheet <span class="optional-badge">Optional</span></h3>
           <div class="step-body">
-            <p>Only needed for the <strong>+ Add Play</strong> button. Deploy the script as a Web App:</p>
+            <p>Everything so far is one-way: the site <em>reads</em> your sheet. Skip this step and your charts work perfectly — you just can't change anything from the site. Spend five more minutes here and three things switch on:</p>
+            <ul class="needs">
+              <li><strong>+ Add Play</strong> — log a play that never scrobbled (a record, a live set, a friend's aux cord)</li>
+              <li><strong>Fixing a play sticks</strong> — the <strong>✎</strong> button in Raw Data writes the correction into the sheet itself, instead of only tidying what you see in this browser</li>
+              <li><strong>Autocorrect rules save</strong> — "this misspelling always means that artist" gets remembered and applied to the sheet on every load</li>
+            </ul>
+
+            <p class="step-sub">Deploy the script as a Web App</p>
+            <p>The script that's been syncing your plays can also listen for messages from the site — but only once it's published with a URL of its own.</p>
             <div class="path">
               <span class="path-step">Extensions</span>
               <span class="path-arrow" aria-hidden="true">→</span>
@@ -2293,18 +2313,45 @@
               <span class="path-arrow" aria-hidden="true">→</span>
               <span class="path-step">New deployment</span>
             </div>
+            <aside class="note">
+              <span class="note-icon" aria-hidden="true">i</span>
+              <div class="note-body">
+                <strong>The type isn't a dropdown.</strong> In that dialog, click the small <strong>gear icon</strong> beside "Select type" and choose <strong>Web app</strong> from it. It's the step most people hunt around for.
+              </div>
+            </aside>
             <div class="spec">
               <div class="spec-head"><span>Setting</span><span>Value</span></div>
-              <div class="spec-row"><span class="spec-key">Type</span><span class="spec-val">Web app</span></div>
+              <div class="spec-row"><span class="spec-key">Type <em>(the gear icon)</em></span><span class="spec-val">Web app</span></div>
+              <div class="spec-row"><span class="spec-key">Description</span><span class="spec-val muted">anything, or nothing</span></div>
               <div class="spec-row"><span class="spec-key">Execute as</span><span class="spec-val">Me</span></div>
               <div class="spec-row"><span class="spec-key">Who has access</span><span class="spec-val">Anyone</span></div>
             </div>
-            <p>Hit <strong>Deploy</strong>, authorise it the same way as in Step 5, and copy the Web App URL. Then paste it into:</p>
+            <aside class="note note-warn">
+              <span class="note-icon" aria-hidden="true">!</span>
+              <div class="note-body">
+                <strong>"Anyone" is wider than it sounds, and it's the only setting that works.</strong> Your browser calls this script without being signed in to Google, so it has to accept an anonymous request. <strong>Execute as: Me</strong> keeps it running with your permissions on your sheet and nothing else. The URL is what stands in for a password — it's long and random, but treat it that way: anyone you hand it to could add rows to your sheet.
+              </div>
+            </aside>
+            <p>Press <strong>Deploy</strong>. Google asks you to authorise it, exactly as in Step 5 — same <strong>Advanced → Go to … (unsafe) → Allow</strong> path.</p>
+
+            <p class="step-sub">Copy the URL it gives you</p>
+            <p>The deployment finishes on a <strong>Web app URL</strong> — a long one ending in <code>/exec</code>, like <code>https://script.google.com/macros/s/AKfy…/exec</code>. Copy it, then paste it into the site. It lives one fold down from where you put your sheet link:</p>
             <div class="path">
               <span class="path-step">Settings ⚙</span>
               <span class="path-arrow" aria-hidden="true">→</span>
+              <span class="path-step">Google Sheets</span>
+              <span class="path-arrow" aria-hidden="true">→</span>
               <span class="path-step">Enable auto-sync &amp; manual play entry</span>
+              <span class="path-arrow" aria-hidden="true">→</span>
+              <span class="path-step">Apps Script Web App URL</span>
             </div>
+            <p>Hit <strong>Save &amp; Load</strong>. Open the <strong>Raw Data</strong> tab and you'll find <strong>+ Add Play</strong> waiting at the top.</p>
+            <aside class="note note-tip">
+              <span class="note-icon" aria-hidden="true">✦</span>
+              <div class="note-body">
+                <strong>If you ever edit the script</strong>, this URL stops matching it until you republish: <strong>Deploy → Manage deployments → the pencil icon → Version: New version → Deploy</strong>. The URL itself stays the same, so there's nothing to re-paste here.
+              </div>
+            </aside>
           </div>
         </div>
       </li>
@@ -3452,7 +3499,7 @@
     // here (not in the markup) because they're wizard chrome; if a step is
     // ever added or reordered in the HTML, keep these lists in step.
     var WIZ_LABELS = {
-      sheets: ['Copy template', 'API key', 'Your details', 'The script', 'Auto-sync', 'Connect', 'Manual adds'],
+      sheets: ['Copy template', 'API key', 'Your details', 'The script', 'Auto-sync', 'Connect', 'Write access'],
       lastfm: ['API app', 'Paste keys', 'Connect', 'Fix & push'],
       file:   ['Get export', 'Check format', 'Make a CSV', 'Upload']
     };
