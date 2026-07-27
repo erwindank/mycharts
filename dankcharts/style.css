@@ -1791,10 +1791,99 @@
       cursor: default;
     }
 
+    /* Text-glyph icons (Add Play's ✚). The two drawn icons below opt out of
+       this sizing with their own fixed box. */
     .sync-bar-actions .btn-icon {
       font-size: 1.25em;
       line-height: 1;
       vertical-align: middle;
+    }
+
+    /* ── DRAWN BUTTON ICONS ──
+       Same approach as the masthead stat icons and the landing-page source
+       cards: a small object built in CSS rather than a text glyph, so it can
+       move. Both use currentColor, which means they inherit each button's
+       existing hover and per-theme colour for free — no theme token needed,
+       and none of the light-masthead collisions that the hero strip has. */
+    .sync-bar-actions .btn-ico-sync,
+    .sync-bar-actions .btn-ico-gear {
+      position: relative;
+      display: inline-block;
+      width: 0.85rem;
+      height: 0.85rem;
+      font-size: inherit;      /* opt out of the 1.25em glyph sizing above */
+      vertical-align: -0.17em; /* optical centre against the mono label */
+    }
+
+    .sync-bar-actions .btn-ico-sync i,
+    .sync-bar-actions .btn-ico-gear i {
+      display: block;
+      position: absolute;
+    }
+
+    /* Reload arrow: a ring with the top quarter cut out (border-top made
+       transparent) and an arrowhead parked on the clockwise end of that gap.
+       The head is placed parametrically — pushed out to the ring radius at
+       45deg, then spun 90deg more so it points along the tangent rather than
+       straight out from the centre. */
+    .sync-bar-actions .btn-ico-sync .bi-ring {
+      inset: 0;
+      border: 1.6px solid currentColor;
+      border-radius: 50%;
+      border-top-color: transparent;
+    }
+
+    .sync-bar-actions .btn-ico-sync .bi-head {
+      top: 50%;
+      left: 50%;
+      width: 0;
+      height: 0;
+      margin: -1.8px 0 0 -2.6px;
+      border-left: 2.6px solid transparent;
+      border-right: 2.6px solid transparent;
+      border-bottom: 3.6px solid currentColor;
+      transform: rotate(45deg) translateY(-6px) rotate(90deg);
+    }
+
+    /* Turns counter-clockwise, the way the arrow points. Runs on hover, and
+       again while the button is disabled — which is exactly the window the
+       sync is actually in flight, so the icon reports real work. */
+    #syncNowBtn:hover .btn-ico-sync,
+    #syncNowBtn:disabled .btn-ico-sync {
+      animation: btnIcoSpin 1s linear infinite;
+    }
+
+    @keyframes btnIcoSpin {
+      to { transform: rotate(-360deg); }
+    }
+
+    /* Gear: one polygon of 8 teeth with the hub punched out by a mask. Drawn
+       as a solid body rather than a ring so it stays legible at 13px. */
+    .sync-bar-actions .btn-ico-gear i {
+      inset: 0;
+      background: currentColor;
+      clip-path: polygon(39.1% 15.7%, 41.0% 0.8%, 59.0% 0.8%, 60.9% 15.7%, 66.6% 18.1%, 78.4% 8.9%, 91.1% 21.6%, 81.9% 33.4%, 84.3% 39.1%, 99.2% 41.0%, 99.2% 59.0%, 84.3% 60.9%, 81.9% 66.6%, 91.1% 78.4%, 78.4% 91.1%, 66.6% 81.9%, 60.9% 84.3%, 59.0% 99.2%, 41.0% 99.2%, 39.1% 84.3%, 33.4% 81.9%, 21.6% 91.1%, 8.9% 78.4%, 18.1% 66.6%, 15.7% 60.9%, 0.8% 59.0%, 0.8% 41.0%, 15.7% 39.1%, 18.1% 33.4%, 8.9% 21.6%, 21.6% 8.9%, 33.4% 18.1%);
+      -webkit-mask: radial-gradient(circle at center, transparent 0 26%, #000 28%);
+      mask: radial-gradient(circle at center, transparent 0 26%, #000 28%);
+    }
+
+    /* Slow — a gear being adjusted, not a spinner competing with the sync one */
+    #configureSourceBtn:hover .btn-ico-gear {
+      animation: btnIcoGearSpin 3.4s linear infinite;
+    }
+
+    @keyframes btnIcoGearSpin {
+      to { transform: rotate(360deg); }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      /* The sync bar already reports state in words ("Connecting…", "Synced"),
+         so dropping the spin costs no information */
+      #syncNowBtn:hover .btn-ico-sync,
+      #syncNowBtn:disabled .btn-ico-sync,
+      #configureSourceBtn:hover .btn-ico-gear {
+        animation: none;
+      }
     }
 
     @keyframes configure-attention-pulse {

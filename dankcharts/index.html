@@ -27,7 +27,7 @@
   <!-- html2canvas, SheetJS (xlsx) and JSZip are intentionally NOT loaded here — they
        total ~1.2 MB and are only needed for image exports and Excel/ZIP imports.
        app.js pulls them from the CDN on first use (see ensureLazyLib). -->
-  <link rel="stylesheet" href="style.css?v=136">
+  <link rel="stylesheet" href="style.css?v=137">
   <!-- All scripts are deferred so the page paints without waiting on them.
        defer preserves execution order, which matters: translations → Chart.js →
        hammer → zoom plugin → firebase SDKs → firebase.js → app.js (in body). -->
@@ -321,8 +321,8 @@
       <span id="syncStatus" data-i18n="sync_loading">⟳ Loading…</span><button id="syncDismissBtn" title="Dismiss" style="display:none">×</button>
       <div class="sync-bar-right">
         <div class="sync-bar-actions">
-          <button id="syncNowBtn" data-i18n-html="sync_now"><span class="btn-icon">↺</span> SYNC NOW</button>
-          <button id="configureSourceBtn" onclick="openSourceModal()" title="Settings" data-i18n-html="btn_configure"><span class="btn-icon">⚙</span> Settings</button>
+          <button id="syncNowBtn" data-i18n-html="sync_now"><span class="btn-icon btn-ico-sync" aria-hidden="true"><i class="bi-ring"></i><i class="bi-head"></i></span> SYNC NOW</button>
+          <button id="configureSourceBtn" onclick="openSourceModal()" title="Settings" data-i18n-html="btn_configure"><span class="btn-icon btn-ico-gear" aria-hidden="true"><i></i></span> Settings</button>
           <button id="scrobbleBtn" onclick="openScrobbleModal()" title="Add a play manually" style="display:none" data-i18n-html="btn_add_play"><span class="btn-icon">✚</span> Add Play</button>
         </div>
         <div class="sync-bar-account">

@@ -85,7 +85,7 @@ const TRANSLATIONS = {
     awards_cat_stat_top_song: 'Most Played Song',
     awards_cat_stat_top_album: 'Most Played Album',
     awards_cat_stat_top_artist: 'Most Played Artist',
-    btn_configure: '<span class="btn-icon">⚙</span> Settings',
+    btn_configure: '<span class="btn-icon btn-ico-gear" aria-hidden="true"><i></i></span> Settings',
     btn_add_play: '<span class="btn-icon">✚</span> Add Play',
 
     // Chart size bar
@@ -103,7 +103,7 @@ const TRANSLATIONS = {
     // Source-neutral boot placeholder — shown before the data source is known,
     // so it must never name Google Sheets (the source may be Last.fm or a CSV file)
     sync_loading: '⟳ Loading…',
-    sync_now: '<span class="btn-icon">↺</span> SYNC NOW',
+    sync_now: '<span class="btn-icon btn-ico-sync" aria-hidden="true"><i class="bi-ring"></i><i class="bi-head"></i></span> SYNC NOW',
     sync_ok: '✓ Synced · {{time}}  (⟦{{n}}⟧ plays loaded)',
     sync_ok_cached: '✓ Synced · {{time}}  (⟦{{n}}⟧ plays loaded) · cached {{mins}}m ago',
     sync_failed: '✕ Sync failed — check sheet is public · {{error}}',
@@ -1304,7 +1304,7 @@ const TRANSLATIONS = {
     awards_cat_stat_top_song: 'Canción más Escuchada',
     awards_cat_stat_top_album: 'Álbum más Escuchado',
     awards_cat_stat_top_artist: 'Artista más Escuchado',
-    btn_configure: '<span class="btn-icon">⚙</span> Configurar',
+    btn_configure: '<span class="btn-icon btn-ico-gear" aria-hidden="true"><i></i></span> Configurar',
     btn_add_play: '<span class="btn-icon">✚</span> Agregar',
 
     // Chart size bar
@@ -1320,7 +1320,7 @@ const TRANSLATIONS = {
     // Sync bar
     sync_connecting: '⟳ Conectando con Google Sheets...',
     sync_loading: '⟳ Cargando…',
-    sync_now: '<span class="btn-icon">↺</span> SINCRONIZAR',
+    sync_now: '<span class="btn-icon btn-ico-sync" aria-hidden="true"><i class="bi-ring"></i><i class="bi-head"></i></span> SINCRONIZAR',
     sync_ok: '✓ Sincronizado · {{time}}  (⟦{{n}}⟧ reproducciones cargadas)',
     sync_ok_cached: '✓ Sincronizado · {{time}}  (⟦{{n}}⟧ reproducciones cargadas) · caché hace {{mins}}m',
     sync_failed: '✕ Error de sincronización — verifica que la hoja sea pública · {{error}}',
@@ -2516,7 +2516,7 @@ const TRANSLATIONS = {
     awards_cat_stat_top_song: 'Música mais Ouvida',
     awards_cat_stat_top_album: 'Álbum mais Ouvido',
     awards_cat_stat_top_artist: 'Artista mais Ouvido',
-    btn_configure: '<span class="btn-icon">⚙</span> Configurar',
+    btn_configure: '<span class="btn-icon btn-ico-gear" aria-hidden="true"><i></i></span> Configurar',
     btn_add_play: '<span class="btn-icon">✚</span> Adicionar',
 
     // Chart size bar
@@ -2532,7 +2532,7 @@ const TRANSLATIONS = {
     // Sync bar
     sync_connecting: '⟳ Conectando ao Google Sheets...',
     sync_loading: '⟳ Carregando…',
-    sync_now: '<span class="btn-icon">↺</span> SINCRONIZAR',
+    sync_now: '<span class="btn-icon btn-ico-sync" aria-hidden="true"><i class="bi-ring"></i><i class="bi-head"></i></span> SINCRONIZAR',
     sync_ok: '✓ Sincronizado · {{time}}  (⟦{{n}}⟧ reproduções carregadas)',
     sync_ok_cached: '✓ Sincronizado · {{time}}  (⟦{{n}}⟧ reproduções carregadas) · cache há {{mins}}m',
     sync_failed: '✕ Falha na sincronização — verifique se a planilha é pública · {{error}}',
@@ -3729,7 +3729,7 @@ const TRANSLATIONS = {
     awards_cat_stat_top_song: 'Música mais Ouvida',
     awards_cat_stat_top_album: 'Álbum mais Ouvido',
     awards_cat_stat_top_artist: 'Artista mais Ouvido',
-    btn_configure: '<span class="btn-icon">⚙</span> Configurar',
+    btn_configure: '<span class="btn-icon btn-ico-gear" aria-hidden="true"><i></i></span> Configurar',
     btn_add_play: '<span class="btn-icon">✚</span> Adicionar',
 
     // Chart size bar
@@ -3745,7 +3745,7 @@ const TRANSLATIONS = {
     // Sync bar
     sync_connecting: '⟳ A ligar ao Google Sheets...',
     sync_loading: '⟳ A carregar…',
-    sync_now: '<span class="btn-icon">↺</span> SINCRONIZAR',
+    sync_now: '<span class="btn-icon btn-ico-sync" aria-hidden="true"><i class="bi-ring"></i><i class="bi-head"></i></span> SINCRONIZAR',
     sync_ok: '✓ Sincronizado · {{time}}  (⟦{{n}}⟧ reproduções carregadas)',
     sync_ok_cached: '✓ Sincronizado · {{time}}  (⟦{{n}}⟧ reproduções carregadas) · cache há {{mins}}m',
     sync_failed: '✕ Falha na sincronização — verifique se a folha é pública · {{error}}',
