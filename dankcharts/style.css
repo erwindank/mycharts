@@ -14995,6 +14995,21 @@ body.albums-hide-yt-btns  #newAlbumsSection  .yt-play-btn { display: none; }
 
 /* ── HERO STATS (masthead data strip) ── */
 .hero-stats {
+  /* Identity colours for the drawn stat icons below. Indirected through these
+     variables rather than used as raw tokens because the strip sits on the
+     masthead's own themed background, not on a neutral card like the landing
+     icons do — so on the strongly coloured mastheads a green calendar on olive
+     disappears. The per-theme blocks further down retarget these the same way
+     they already retarget --text/--bg2. The crown is deliberately absent: it
+     is literal gold in every theme, like the near-black vinyl disc. */
+  --icon-vinyl: var(--accent);
+  --icon-cal: var(--green);
+  --icon-bars: var(--teal);
+  /* Hover colour for the two clickable stats (Days Listened, Top Artist).
+     Same indirection and same reason as the icon colours above: --accent is
+     tuned for the page body, and on the dark saturated mastheads it is
+     near-black, which turns the label unreadable exactly when you point at it. */
+  --hero-link: var(--accent, #5b8dee);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -15018,10 +15033,456 @@ body.albums-hide-yt-btns  #newAlbumsSection  .yt-play-btn { display: none; }
   position: relative;
 }
 
+/* ── HERO STAT ICONS ──
+   Drawn in CSS rather than set as emoji, in the same language as the
+   landing-page source-card icons (.sheets-grid / .lastfm-vinyl /
+   .upload-stack): each stat gets a small constructed object with its own
+   identity colour that acts out what the stat measures on hover. A glyph can
+   only scale as one lump; these can spin, fill in a cell at a time, or grow
+   one bar at a time. Identity colours come from theme tokens so every theme
+   (including the light ones with pale mastheads) recolours automatically.
+   1.25rem square: legible in the strip without competing with the numbers. */
 .hero-icon {
-  font-size: 0.85rem;
+  position: relative;
+  box-sizing: border-box;
+  width: 1.25rem;
+  height: 1.25rem;
   line-height: 1;
-  margin-bottom: 0.1rem;
+  margin-bottom: 0.3rem;
+  transition: transform 0.22s cubic-bezier(0.34, 1.56, 0.64, 1); /* same springy pop as the cards */
+}
+
+.hero-icon * {
+  box-sizing: border-box;
+}
+
+.hero-stat:hover .hero-icon {
+  transform: translateY(-2px) scale(1.1);
+}
+
+/* ---- Total plays: a record ------------------------------------------------
+   Plays are spins. A bare groove pattern at 1.25rem just reads as a dark
+   circle with a dot in it — closer to a lens than to vinyl — so the idle state
+   carries a fixed gloss, a proper label and a spindle hole. Those three are
+   what actually say "record" when nothing is moving.
+   The disc stays near-black in every theme because real vinyl doesn't recolour
+   itself on a light shelf; only the label follows the accent. */
+.hero-icon-vinyl {
+  filter: drop-shadow(0 1px 5px color-mix(in srgb, var(--icon-vinyl) 42%, transparent));
+}
+
+/* Groove pitch is wider and the light/dark steps further apart than on the
+   2.3rem card icon: at 1.25rem a faithful 2px groove just averages out to flat
+   grey, so the grooves have to be coarser to survive the size. The inset ring
+   defines the disc edge, which a near-black disc otherwise loses against a
+   dark masthead. Layers paint first-on-top: spindle hole, then label, then the
+   grooves filling the rest of the face. */
+.hero-vinyl-disc {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at center, #0a0a0a 0 6.5%, transparent 7%),
+    radial-gradient(circle at center,
+      var(--icon-vinyl) 0 21%,
+      color-mix(in srgb, var(--icon-vinyl) 55%, #000) 21% 23%,
+      transparent 23.5%),
+    repeating-radial-gradient(circle at center, #0d0d0d 0 1.2px, #4d4d4d 1.2px 2.4px);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--icon-vinyl) 45%, transparent);
+  animation: heroVinylSpin 3s linear infinite;
+  animation-play-state: paused;
+}
+
+/* Rotating specular lobes — these live *inside* the spinning disc, so they are
+   the only thing that makes the rotation visible (concentric grooves look
+   identical at every angle). Hidden until hover, when they take over from the
+   static gloss below. */
+.hero-vinyl-disc::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: conic-gradient(from 0deg,
+    color-mix(in srgb, #fff 28%, transparent) 0deg,
+    transparent 44deg,
+    transparent 136deg,
+    color-mix(in srgb, #fff 28%, transparent) 180deg,
+    transparent 224deg,
+    transparent 316deg,
+    color-mix(in srgb, #fff 28%, transparent) 360deg);
+  /* punch out the centre so the accent label underneath stays clean */
+  -webkit-mask: radial-gradient(circle at center, transparent 0 23%, #000 23.5%);
+  mask: radial-gradient(circle at center, transparent 0 23%, #000 23.5%);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+/* Static gloss: the room light catching the record while it sits still. Lives
+   on the wrapper rather than on the disc so it does NOT rotate — a fixed light
+   source with the grooves turning under it is both what really happens and
+   what keeps the spin legible.
+   Two narrow, hard-edged streaks rather than one broad soft wash: a wide soft
+   highlight shades the disc like a sphere and the whole icon starts reading as
+   an eye. Crisp bands read as flat glossy plastic, which is what vinyl is. */
+.hero-icon-vinyl::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: linear-gradient(115deg,
+    transparent 22%,
+    color-mix(in srgb, #fff 42%, transparent) 27%,
+    color-mix(in srgb, #fff 42%, transparent) 33%,
+    transparent 38%,
+    transparent 70%,
+    color-mix(in srgb, #fff 18%, transparent) 75%,
+    color-mix(in srgb, #fff 18%, transparent) 79%,
+    transparent 84%);
+  /* keep the gloss off the label so it doesn't wash out the accent centre */
+  -webkit-mask: radial-gradient(circle at center, transparent 0 23%, #000 23.5%);
+  mask: radial-gradient(circle at center, transparent 0 23%, #000 23.5%);
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+
+/* On hover the fixed gloss drops back and the rotating lobes carry the motion */
+.hero-stat:hover .hero-icon-vinyl::after { opacity: 0.35; }
+.hero-stat:hover .hero-vinyl-disc { animation-play-state: running; }
+.hero-stat:hover .hero-vinyl-disc::before { opacity: 1; }
+
+@keyframes heroVinylSpin {
+  to { transform: rotate(360deg); }
+}
+
+/* ---- Days listened: a calendar -------------------------------------------
+   Binding tabs, a header band and a cell grid — the same header-row-over-grid
+   build as the Sheets card icon. The day cells sit dim and fill in left to
+   right on hover, which is the stat itself: days accumulating. */
+.hero-icon-cal {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.1rem;
+  align-content: end;
+  padding: 0.42rem 0.14rem 0.14rem;
+  border-radius: 3px;
+  border: 1.5px solid color-mix(in srgb, var(--icon-cal) 70%, transparent);
+  background: linear-gradient(to bottom,
+    color-mix(in srgb, var(--icon-cal) 46%, transparent) 0 0.3rem,
+    transparent 0.3rem);
+  filter: drop-shadow(0 1px 5px color-mix(in srgb, var(--icon-cal) 32%, transparent));
+}
+
+/* The two binding tabs, poking above the header band */
+.hero-icon-cal::before,
+.hero-icon-cal::after {
+  content: '';
+  position: absolute;
+  top: -0.09rem;
+  width: 0.13rem;
+  height: 0.17rem;
+  border-radius: 1px;
+  background: color-mix(in srgb, var(--icon-cal) 82%, transparent);
+}
+.hero-icon-cal::before { left: 0.22rem; }
+.hero-icon-cal::after  { right: 0.22rem; }
+
+.hero-icon-cal i {
+  min-height: 2px;
+  border-radius: 1px;
+  background: color-mix(in srgb, var(--icon-cal) 40%, transparent);
+  transition: background 0.3s ease;
+}
+
+/* Stagger so the cells read as counting up, not as one block switching on */
+.hero-icon-cal i:nth-child(1) { transition-delay: 0s; }
+.hero-icon-cal i:nth-child(2) { transition-delay: 0.04s; }
+.hero-icon-cal i:nth-child(3) { transition-delay: 0.08s; }
+.hero-icon-cal i:nth-child(4) { transition-delay: 0.12s; }
+.hero-icon-cal i:nth-child(5) { transition-delay: 0.16s; }
+.hero-icon-cal i:nth-child(6) { transition-delay: 0.2s; }
+
+.hero-stat:hover .hero-icon-cal i {
+  background: var(--icon-cal);
+}
+
+/* ---- Plays per day: bars that become a chart ------------------------------
+   Lifted straight from .sheets-grid i — a flat row of data at rest that
+   stagger-grows into chart heights, so the waterfall reads as "computing"
+   rather than four bars snapping at once. A baseline rule keeps the flat
+   state legible as a chart instead of a stray row of dashes. */
+.hero-icon-bars {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.09rem;
+  padding-bottom: 0.18rem;
+  filter: drop-shadow(0 1px 5px color-mix(in srgb, var(--icon-bars) 32%, transparent));
+}
+
+.hero-icon-bars::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0.09rem;
+  height: 1.5px;
+  border-radius: 1px;
+  background: color-mix(in srgb, var(--icon-bars) 45%, transparent);
+}
+
+.hero-icon-bars i {
+  flex: 1 1 0;
+  height: 100%;
+  border-radius: 1.5px 1.5px 0 0;
+  background: var(--icon-bars);
+  transform-origin: bottom;
+  transform: scaleY(var(--flat));
+  transition: transform 0.44s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* Unlike the landing card, these bars start at real (if low) chart heights
+   rather than a dead-flat row. At 1.25rem a uniform 14% row is a smudge you
+   can't identify, and the masthead icon has to read before anyone hovers —
+   so rest is a small chart and hover is the same chart growing. */
+.hero-icon-bars i:nth-child(1) { --flat: 0.3;  --peak: 0.52; transition-delay: 0s; }
+.hero-icon-bars i:nth-child(2) { --flat: 0.56; --peak: 1;    transition-delay: 0.06s; }
+.hero-icon-bars i:nth-child(3) { --flat: 0.38; --peak: 0.7;  transition-delay: 0.12s; }
+.hero-icon-bars i:nth-child(4) { --flat: 0.47; --peak: 0.88; transition-delay: 0.18s; }
+
+.hero-stat:hover .hero-icon-bars i {
+  transform: scaleY(var(--peak));
+}
+
+/* ---- Top artist: a crown --------------------------------------------------
+   Was a mic on a cradle, which at 1.25rem collapsed into a circle over a bar
+   and read as a mute button. A crown says "chart-topper" outright and survives
+   the size, because its silhouette is unlike anything else in the strip.
+   Three points cut from one block with clip-path plus a separate base band, so
+   the crown can lift off its base on hover — which is also the "this is
+   clickable" cue this stat needs (it jumps to Top Artists). */
+/* Gold is literal here, not themed — the same call as the near-black vinyl
+   disc. The theme --gold* tokens are tuned for text on light surfaces and go
+   muddy brown (#78380e) in the light themes, which makes a crown out of mud.
+   The thin dark contour in the filter is what keeps this gold crown off the
+   olive masthead in yellow-light; it costs nothing on the dark themes. */
+.hero-icon-crown {
+  filter:
+    drop-shadow(0 0 0.5px color-mix(in srgb, #000 55%, transparent))
+    drop-shadow(0 1px 5px color-mix(in srgb, #f0b429 48%, transparent));
+}
+
+.hero-crown-body {
+  position: absolute;
+  left: 50%;
+  bottom: 0.3rem;
+  width: 1.02rem;
+  height: 0.66rem;
+  margin-left: -0.51rem;
+  /* left point, dip, tall centre point, dip, right point — bottom edge flat.
+     clip-path also clips the glint sweep below to the crown silhouette. */
+  clip-path: polygon(0% 100%, 0% 16%, 25% 58%, 50% 0%, 75% 58%, 100% 16%, 100% 100%);
+  /* Banded rather than a smooth two-stop fade: metal reads as metal because it
+     jumps between light and dark, where a soft gradient reads as plastic. */
+  background: linear-gradient(155deg,
+    #fff2c4 0%,
+    #f7d774 22%,
+    #e0a526 48%,
+    #f9dd8a 68%,
+    #c98a12 100%);
+  transition: transform 0.34s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* Travelling glint. Idle most of the cycle and sweeping only in the last
+   third, so it reads as polished metal catching the light rather than as a
+   blinking element — it sits next to the streak flame, which is already
+   moving, and two competing animations would make the strip restless. */
+.hero-crown-body::before {
+  content: '';
+  position: absolute;
+  top: -40%;
+  bottom: -40%;
+  left: 0;
+  width: 42%;
+  background: linear-gradient(90deg,
+    transparent,
+    color-mix(in srgb, #fff 82%, transparent),
+    transparent);
+  transform: translateX(-170%) skewX(-18deg);
+  animation: heroCrownGlint 5.5s ease-in-out infinite;
+}
+
+@keyframes heroCrownGlint {
+  0%, 62%   { transform: translateX(-170%) skewX(-18deg); }
+  84%, 100% { transform: translateX(330%) skewX(-18deg); }
+}
+
+/* The band the crown sits on — darker brass, so the two read as separate
+   pieces once the crown lifts off it */
+.hero-crown-base {
+  position: absolute;
+  left: 50%;
+  bottom: 0.12rem;
+  width: 1.02rem;
+  height: 0.17rem;
+  margin-left: -0.51rem;
+  border-radius: 2px;
+  background: linear-gradient(to bottom, #d9a12a, #a8720c);
+}
+
+.hero-stat:hover .hero-crown-body {
+  transform: translateY(-0.13rem);
+}
+
+/* Hover polishes it: the glint runs fast and continuously */
+.hero-stat:hover .hero-crown-body::before {
+  animation-duration: 1.4s;
+}
+
+/* Yellow-light is the one masthead the crown shares a hue with — gold on olive
+   is the same colour at slightly different brightness, so the shape mushes out.
+   Fixed on both axes: a paler champagne gold that separates by luminance, and a
+   harder dark contour that draws the silhouette back in. Every other theme's
+   masthead differs from gold in hue, so none of them need this. */
+body.yellow-light .hero-crown-body {
+  background: linear-gradient(155deg,
+    #fffdf2 0%,
+    #fff0b8 22%,
+    #f4cf62 48%,
+    #fff6d0 68%,
+    #dcae2e 100%);
+}
+
+body.yellow-light .hero-crown-base {
+  background: linear-gradient(to bottom, #f0d98a, #c79a2a);
+}
+
+body.yellow-light .hero-icon-crown {
+  filter:
+    drop-shadow(0 0 1px color-mix(in srgb, #000 85%, transparent))
+    drop-shadow(0 0 2px color-mix(in srgb, #000 45%, transparent))
+    drop-shadow(0 1px 5px color-mix(in srgb, #f0b429 40%, transparent));
+}
+
+/* ---- Day streak: a flame that grows with the tier -------------------------
+   Replaces the old 📆/🔥/🌟 emoji swap. One object throughout: the tier class
+   set by the count-up drives its size, colour and flicker via custom
+   properties, so the flame grows continuously as the number climbs instead of
+   cutting between three unrelated glyphs. Teardrop = a square with one sharp
+   corner, rotated so that corner points up; a paler core sits inside it. */
+.hero-icon-flame {
+  /* tier 0 / no streak — cold, small, and using the masthead's own muted text
+     colour so it recedes rather than pretending there's a streak */
+  --flame-1: color-mix(in srgb, var(--text3) 75%, transparent);
+  --flame-2: color-mix(in srgb, var(--text3) 40%, transparent);
+  --flame-scale: 0.8;
+  --flame-glow: 3px;
+  filter: drop-shadow(0 0 var(--flame-glow) color-mix(in srgb, var(--flame-1) 60%, transparent));
+  transition: filter 0.4s ease;
+}
+
+/* The outer scaleY is what stops this reading as a water droplet: a rotated
+   square is symmetric top-to-bottom, and fire is taller than it is wide.
+   Applied outside the rotation (transforms compose right to left) so it
+   stretches the finished teardrop along the page's vertical, not along the
+   rotated diagonal, and anchored to the base so growing tiers rise upward. */
+.hero-flame-body {
+  position: absolute;
+  left: 50%;
+  bottom: 0.04rem;
+  width: 0.72rem;
+  height: 0.72rem;
+  margin-left: -0.36rem;
+  border-radius: 50% 2px 50% 50%;   /* sharp-ish corner top-right… */
+  transform-origin: bottom center;
+  transform: scaleY(1.24) rotate(-45deg) scale(var(--flame-scale)); /* …rotated to point up, then stretched */
+  background: linear-gradient(to top right, var(--flame-1), var(--flame-2));
+  transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1), background 0.4s ease;
+}
+
+.hero-flame-core {
+  position: absolute;
+  left: 50%;
+  bottom: 0.06rem;
+  width: 0.36rem;
+  height: 0.36rem;
+  margin-left: -0.18rem;
+  border-radius: 50% 1px 50% 50%;
+  transform-origin: bottom center;
+  transform: scaleY(1.24) rotate(-45deg) scale(var(--flame-scale));
+  background: color-mix(in srgb, #fff 55%, var(--flame-2));
+  opacity: 0.75;
+  transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1), background 0.4s ease;
+}
+
+/* Tier ramp — the same colour progression the streak number already walks
+   through (see .hero-stat--streak-N .hero-val above), so icon and number
+   change together on the same frame. */
+.hero-stat--streak-1 .hero-icon-flame {
+  --flame-1: #e0952e; --flame-2: #f5cf72; --flame-scale: 0.86; --flame-glow: 4px;
+}
+.hero-stat--streak-2 .hero-icon-flame {
+  --flame-1: #ff6a00; --flame-2: #ffb347; --flame-scale: 0.93; --flame-glow: 6px;
+}
+.hero-stat--streak-3 .hero-icon-flame {
+  --flame-1: #ff5400; --flame-2: #ffa02a; --flame-scale: 0.99; --flame-glow: 8px;
+}
+.hero-stat--streak-4 .hero-icon-flame {
+  --flame-1: #ff3d00; --flame-2: #ff9500; --flame-scale: 1.05; --flame-glow: 10px;
+}
+.hero-stat--streak-5 .hero-icon-flame {
+  --flame-1: #ff2200; --flame-2: #ff7a1a; --flame-scale: 1.11; --flame-glow: 12px;
+}
+.hero-stat--streak-6 .hero-icon-flame {
+  --flame-1: #ff8c00; --flame-2: #ffd700; --flame-scale: 1.18; --flame-glow: 14px;
+}
+
+/* The core gutters once the fire is real; faster the hotter it gets */
+@keyframes hero-flame-flicker {
+  0%, 100% { opacity: 0.75; }
+  30%      { opacity: 1; }
+  55%      { opacity: 0.5; }
+  80%      { opacity: 0.95; }
+}
+.hero-stat--streak-3 .hero-flame-core,
+.hero-stat--streak-4 .hero-flame-core {
+  animation: hero-flame-flicker 1.6s ease-in-out infinite;
+}
+.hero-stat--streak-5 .hero-flame-core,
+.hero-stat--streak-6 .hero-flame-core {
+  animation: hero-flame-flicker 0.7s ease-in-out infinite;
+}
+
+/* Legend tier gets the same travelling gold sweep as the number */
+.hero-stat--streak-6 .hero-flame-body {
+  background: linear-gradient(to top right, #ff8c00, #ffd700, #ff8c00);
+  background-size: 220% 220%;
+  animation: hero-flame-legend 2s linear infinite;
+}
+@keyframes hero-flame-legend {
+  0%   { background-position: 0% 50%; }
+  100% { background-position: 220% 50%; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-icon,
+  .hero-icon-cal i,
+  .hero-icon-bars i,
+  .hero-crown-body,
+  .hero-flame-body,
+  .hero-flame-core,
+  .hero-vinyl-disc::before {
+    transition: none;
+  }
+  .hero-vinyl-disc,
+  .hero-flame-body,
+  .hero-flame-core,
+  .hero-crown-body::before {
+    animation: none;
+  }
+  /* With the sweep stopped, park the glint mid-crown so it still reads as a
+     static specular highlight on metal rather than vanishing */
+  .hero-crown-body::before {
+    transform: translateX(70%) skewX(-18deg);
+  }
 }
 
 .hero-val {
@@ -15129,7 +15590,7 @@ body.albums-hide-yt-btns  #newAlbumsSection  .yt-play-btn { display: none; }
   cursor: pointer;
 }
 .hero-stat-artist:hover .hero-val {
-  color: var(--accent, #5b8dee);
+  color: var(--hero-link);
   text-decoration: underline;
   text-underline-offset: 3px;
 }
@@ -15139,7 +15600,7 @@ body.albums-hide-yt-btns  #newAlbumsSection  .yt-play-btn { display: none; }
   cursor: pointer;
 }
 .hero-stat-days:hover .hero-val {
-  color: var(--accent, #5b8dee);
+  color: var(--hero-link);
   text-decoration: underline;
   text-underline-offset: 3px;
 }
@@ -15200,7 +15661,30 @@ body.pink-light .hero-stats {
   --bg2: rgba(0, 0, 0, 0.75);
   background: rgba(0, 0, 0, 0.15);
   border-color: rgba(255, 255, 255, 0.18);
+  /* These three themes pair a light page with a dark, heavily saturated
+     masthead, so their accent tokens (tuned for the light page surface) come
+     out near-black here — and the rose mic lands on magenta in pink-light,
+     the green calendar on olive in yellow-light. High-luminance stand-ins
+     separate by brightness instead of hue, which holds on all three grounds. */
+  --icon-vinyl: #9ecdff;
+  --icon-cal: #7ceab8;
+  --icon-bars: #8ae2f7;
 }
+
+/* Hover colour for the two clickable stats. Must lighten against these dark
+   mastheads, never darken — but tinted to each theme's own hue rather than one
+   shared blue, which reads as a foreign link colour on a red or pink ground.
+   Values chosen against the measured strip background: .hero-val is 22px bold,
+   i.e. WCAG "large text", so the 3:1 AA threshold applies and all three clear
+   it. Each also stays far enough from the resting near-white to register as a
+   state change on its own, before the underline is taken into account. */
+body.red-light .hero-stats    { --hero-link: #ff9d9d; }  /* 4.51:1 on strip */
+body.pink-light .hero-stats   { --hero-link: #ff9ecb; }  /* 4.75:1 on strip */
+/* Yellow is the tight one: the olive masthead is far lighter than the other two
+   and shares the hue, so a light yellow can't be both high-contrast against the
+   ground and far from white. This sits above the large-text threshold and
+   leans on the hue shift plus the underline for the rest. */
+body.yellow-light .hero-stats { --hero-link: #ffe066; }  /* 3.94:1 on strip */
 
 /* Mobile: 2×2 grid */
 @media (max-width: 560px) {

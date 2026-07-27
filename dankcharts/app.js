@@ -21885,36 +21885,48 @@ function renderHeroStats() {
   }
 
   const avgPerDay = Math.round(total / days.size);
-  const streakTier = streak >= 100 ? 6 : streak >= 60 ? 5 : streak >= 30 ? 4 : streak >= 14 ? 3 : streak >= 7 ? 2 : streak >= 1 ? 1 : 0;
-  const streakIcon = streakTier >= 6 ? '🌟' : streakTier >= 2 ? '🔥' : '📆';
 
+  // Icons are drawn in CSS rather than set as emoji, matching the language the
+  // landing-page source cards already use (.sheets-grid / .lastfm-vinyl /
+  // .upload-stack): each one is a small built object with its own identity
+  // colour that animates on hover instead of a flat glyph that can only scale.
   el.innerHTML = `
     <div class="hero-stat" data-tip="${total.toLocaleString()} plays across ${days.size.toLocaleString()} unique days">
-      <span class="hero-icon">🎵</span>
+      <!-- A record: total plays are total spins. Grooves + label, disc turns on hover. -->
+      <span class="hero-icon hero-icon-vinyl" aria-hidden="true"><i class="hero-vinyl-disc"></i></span>
       <span class="hero-val" data-countup="${total}">${total.toLocaleString()}</span>
       <span class="hero-label">${t('hero_total_plays')}</span>
     </div>
     <div class="hero-stat-sep">·</div>
     <div class="hero-stat hero-stat-days" data-tip="Click to view your listening heatmap">
-      <span class="hero-icon">📅</span>
+      <!-- Calendar: binding tabs, header band, and a cell grid whose days fill in
+           on hover — the same header-row-plus-grid build as .sheets-grid. -->
+      <span class="hero-icon hero-icon-cal" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></span>
       <span class="hero-val" data-countup="${days.size}">${days.size.toLocaleString()}</span>
       <span class="hero-label">${t('hero_days_listened')}</span>
     </div>
     <div class="hero-stat-sep">·</div>
     <div class="hero-stat" data-tip="~${avgPerDay.toLocaleString()} plays on average per day listened">
-      <span class="hero-icon">📊</span>
+      <!-- Bars sitting flat on a baseline that stagger-grow into a chart, the
+           same rest→peak waterfall the Sheets card icon runs. -->
+      <span class="hero-icon hero-icon-bars" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
       <span class="hero-val" data-countup="${avgPerDay}">${avgPerDay.toLocaleString()}</span>
       <span class="hero-label">${t('hero_plays_per_day')}</span>
     </div>
     <div class="hero-stat-sep">·</div>
     <div class="hero-stat hero-stat-artist" data-tip="Click to jump to Top Artists">
-      <span class="hero-icon">🎤</span>
+      <!-- Crown: the chart-topper. Lifts off its base on hover, which is also
+           the "this is clickable" cue. -->
+      <span class="hero-icon hero-icon-crown" aria-hidden="true"><i class="hero-crown-base"></i><i class="hero-crown-body"></i></span>
       <span class="hero-val hero-val-artist">${topArtist ? topArtist[0] : '—'}</span>
       <span class="hero-label">${t('hero_top_artist')}</span>
     </div>
     <div class="hero-stat-sep">·</div>
     <div class="hero-stat" id="hero-streak-stat" data-tip="Click for streak details · Personal best: ${pb} day${pb === 1 ? '' : 's'}">
-      <span class="hero-icon">📆</span>
+      <!-- Flame instead of the old 📆/🔥/🌟 emoji swap: the same element grows,
+           recolours and starts flickering as the count-up crosses each tier, so
+           the icon is driven by the .hero-stat--streak-N class, not by JS text. -->
+      <span class="hero-icon hero-icon-flame" aria-hidden="true"><i class="hero-flame-body"></i><i class="hero-flame-core"></i></span>
       <span class="hero-val">0</span>
       <span class="hero-label">${t('hero_day_streak')}</span>
       <span class="hero-stat-pb">PB: ${pb}</span>
@@ -21979,8 +21991,9 @@ function renderHeroStats() {
       const cur = Math.round(progress * streak);
       valSpan.textContent = cur;
       const t = cur >= 100 ? 6 : cur >= 60 ? 5 : cur >= 30 ? 4 : cur >= 14 ? 3 : cur >= 7 ? 2 : cur >= 1 ? 1 : 0;
+      // The flame is CSS-drawn, so the tier class alone resizes and recolours it
+      // — no icon glyph to swap.
       streakEl.className = `hero-stat${t > 0 ? ` hero-stat--streak-${t}` : ''}`;
-      iconSpan.textContent = t >= 6 ? '🌟' : t >= 2 ? '🔥' : '📆';
       if (progress < 1) {
         requestAnimationFrame(streakFrame);
       } else {
