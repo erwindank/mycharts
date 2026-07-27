@@ -5505,6 +5505,7 @@ document.getElementById('periodNav').addEventListener('click', e => {
     document.getElementById('graphsView').style.display = 'none';
     document.getElementById('recordsView').style.display = 'none';
     document.getElementById('eventsView').style.display = 'none';
+    document.getElementById('soundtrackView').style.display = 'none';
     document.getElementById('playlistsView').style.display = 'none';
     document.getElementById('chartsguideView').style.display = 'none';
     const _tmAw = document.getElementById('timeMachineSection'); if (_tmAw) _tmAw.style.display = 'none';
