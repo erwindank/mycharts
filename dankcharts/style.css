@@ -3595,16 +3595,24 @@
        *Awards is nominal only — the trophy paints itself in literal gold and
        never reads --nav-c. It is listed so the row stays legible as a set, and
        so the flag moved off gold rather than sitting next to a real one. */
+    /* Spacing is checked two ways, because the nav is a grid: along each row,
+       and between the tab above and the tab below it. Row 1 used to run
+       sky/indigo/violet/purple — four cool hues inside about 70 degrees, with
+       Monthly and Yearly only 20 apart and both landing in lavender. Monthly
+       is now a saturated blue-violet and Yearly a magenta, so they read as
+       blue and pink rather than as two purples; All-Time took the rose that
+       vacated, and Soundtrack took the purple, which also keeps All-Time clear
+       of the tab directly beneath it. */
     .period-nav button[data-period="week"]        { --nav-c: #4dabf7; } /* sky      */
-    .period-nav button[data-period="month"]       { --nav-c: #818cf8; } /* indigo   */
-    .period-nav button[data-period="year"]        { --nav-c: #a78bfa; } /* violet   */
-    .period-nav button[data-period="alltime"]     { --nav-c: #c084fc; } /* purple   */
+    .period-nav button[data-period="month"]       { --nav-c: #6366f1; } /* indigo   */
+    .period-nav button[data-period="year"]        { --nav-c: #d946ef; } /* fuchsia  */
+    .period-nav button[data-period="alltime"]     { --nav-c: #fb7185; } /* rose     */
     .period-nav button[data-period="rawdata"]     { --nav-c: #22d3ee; } /* cyan     */
     .period-nav button[data-period="graphs"]      { --nav-c: #34d399; } /* green    */
     .period-nav button[data-period="records"]     { --nav-c: #fb923c; } /* amber    */
     .period-nav button[data-period="events"]      { --nav-c: #f87171; } /* red      */
     .period-nav button[data-period="awards"]      { --nav-c: #fbbf24; } /* gold*    */
-    .period-nav button[data-period="soundtrack"]  { --nav-c: #f472b6; } /* pink     */
+    .period-nav button[data-period="soundtrack"]  { --nav-c: #c084fc; } /* purple   */
     .period-nav button[data-period="playlists"]   { --nav-c: #2dd4bf; } /* teal     */
     .period-nav button[data-period="chartsguide"] { --nav-c: #a3e635; } /* lime     */
 
@@ -3765,9 +3773,23 @@
       animation-duration: 1.4s;
     }
 
-    /* 10 Your Soundtrack — the note bobs along in time */
-    .period-nav button[data-period="soundtrack"]:is(:hover, .active) .nav-icon svg {
-      animation: navBob 1.15s ease-in-out infinite;
+    /* 10 Your Soundtrack — a conveyor of notes rising through the tab. The
+       beamed note you see at rest is the lead: on arrival it starts climbing
+       from exactly where it sits, fades out at the top, and single quavers
+       come up from the bottom behind it, endlessly.
+         The lead is the only one visible at rest, so the mark standing still
+       is precisely the beamed note and nothing else. Every note in the stream
+       is a whole note — head, stem and flag — because a filled dot on a stick
+       is not a musical note, it is a pin.
+         The negative delay is what lets the lead start mid-cycle: at -1.2s of
+       a 2.4s loop it begins at the 50% mark, which the keyframes place at
+       translateY(0) — its drawn position. So it moves off from where it
+       already is instead of jumping to the bottom of the track first. */
+    .period-nav button[data-period="soundtrack"] .ni-note { opacity: 0; }
+    .period-nav button[data-period="soundtrack"] .ni-lead { opacity: 1; }
+    .period-nav button[data-period="soundtrack"]:is(:hover, .active) .ni-note {
+      animation: navNoteStream 2.4s linear infinite;
+      animation-delay: calc(var(--i) * 0.8s - 1.2s);
     }
 
     /* 11 Playlists — the queue fills in and the play head keeps nudging on */
@@ -3894,9 +3916,17 @@
       0%, 62%   { transform: translateX(0) skewX(-18deg); }
       84%, 100% { transform: translateX(23px) skewX(-18deg); }
     }
-    @keyframes navBob {
-      0%, 100% { transform: translateY(0) rotate(0deg); }
-      50%      { transform: translateY(-2.4px) rotate(-5deg); }
+    /* Enters below the icon and leaves above it, invisible at both ends, so
+       the loop point never shows. The plateau between 30% and 70% is what
+       keeps only one note fully lit at a time: three notes spaced a third of
+       the cycle apart mean that whenever one is at full opacity the others
+       are out in the fade zones. 50% is translateY(0) — the lead's own drawn
+       position, which is where it starts from. */
+    @keyframes navNoteStream {
+      0%   { transform: translateY(11px);  opacity: 0; }
+      30%  { transform: translateY(4px);   opacity: 1; }
+      70%  { transform: translateY(-4px);  opacity: 1; }
+      100% { transform: translateY(-11px); opacity: 0; }
     }
     @keyframes navNudge {
       0%, 100% { transform: translateX(0); }
