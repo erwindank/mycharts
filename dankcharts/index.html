@@ -205,6 +205,11 @@
           </details>
           <input type="text" id="landingLastfmUser" placeholder="Your Last.fm username" data-i18n-placeholder="landing_lastfm_username_placeholder" onclick="event.stopPropagation()" autocomplete="off">
           <p class="landing-hint" data-i18n="landing_lastfm_hint">Your complete listening history will be imported from Last.fm</p>
+          <!-- A username alone is the read-only shortcut: it imports history and
+               stops there. Editing and pushing scrobbles back needs your own API
+               key + shared secret, which is the guide's 4-step setup — say so
+               here, or the card reads as everything Last.fm can do. -->
+          <p class="landing-hint" style="margin-top:0.3rem"><span data-i18n="landing_lastfm_full_setup">Want the full setup? Connect your own API key to fix and push scrobbles.</span> <a class="landing-guide-link" href="setup-guide.html?tab=lastfm" target="_blank" rel="noopener" onclick="event.stopPropagation()" data-i18n="landing_lastfm_setup_guide">📄 Last.fm setup guide →</a></p>
         </div>
       </div>
 
@@ -226,7 +231,7 @@
           <!-- Same affordance the Sheets card carries: the file path has the most
                prep work of the three (requesting an export, reshaping a CSV), so
                the guide needs to be reachable before the file picker, not after. -->
-          <p class="landing-hint" style="margin-top:0.3rem"><a href="setup-guide.html?tab=file" target="_blank" rel="noopener" onclick="event.stopPropagation()" data-i18n="landing_file_setup_guide">📄 Setup guide</a></p>
+          <p class="landing-hint" style="margin-top:0.3rem"><a class="landing-guide-link" href="setup-guide.html?tab=file" target="_blank" rel="noopener" onclick="event.stopPropagation()" data-i18n="landing_file_setup_guide">📄 Setup guide</a></p>
         </div>
       </div>
 

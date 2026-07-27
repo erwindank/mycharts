@@ -12869,6 +12869,25 @@ body.pink-light .landing-screen:has(.landing-card:hover) .landing-eq-skyline {
   margin: 0;
 }
 
+/* Guide links inside a card's config block. Without a rule of their own these
+   fell back to the UA's #0000EE, which is unreadable on every dark theme and
+   still off-palette on the light ones. Each theme already ships a contrast-
+   checked accent (light themes darken it), so the card's own --card-accent is
+   both the readable and the on-brand choice. */
+.landing-guide-link {
+  color: var(--card-accent, var(--accent));
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  text-decoration-color: color-mix(in srgb, var(--card-accent, var(--accent)) 40%, transparent);
+  transition: text-decoration-color 0.18s ease;
+}
+
+.landing-guide-link:hover,
+.landing-guide-link:focus-visible {
+  text-decoration-color: currentColor;
+}
+
 /* Template CTA — the primary path for the ~no sheet yet~ majority.
    Eyebrow label + a real button, not a link buried in a hint paragraph. */
 .landing-template-cta {
