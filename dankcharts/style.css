@@ -418,6 +418,17 @@
       /* violet, dialed back from #a78bfa's neon so it reads on white/pastel surfaces
          without going as dark/muddy as a full violet-800 */
       --violet: #7c3aed;
+      /* Nav-tab icons: the twelve --nav-c hues are tuned for dark surfaces, so
+         on a selected tab here — a 10% --accent tint over a near-white bg — an
+         85% wash of #a3e635 or #fbbf24 all but vanishes. Same treatment as
+         --medal-gold and --violet above: keep the hue, drop the luminance, by
+         anchoring the mix into --text instead of --accent and letting far less
+         of the raw hue through. A coloured glow is a dark-surface idea too, so
+         on light it becomes an ordinary soft shadow. */
+      --nav-hue-rest: 34%;
+      --nav-hue-lit: 46%;
+      --nav-ink: var(--text);
+      --nav-icon-glow: drop-shadow(0 1px 1.5px rgba(15, 23, 42, 0.22));
     }
 
     /* Keyboard focus — one visible ring vocabulary for every control
@@ -3522,14 +3533,408 @@
       position: relative;
     }
 
-    /* Icon (feature 2) */
+    /* Icon (feature 2) — line-art SVGs drawn in the same idiom as the landing
+       page's source-card icons (.sheets-grid / .lastfm-vinyl / .upload-stack):
+       rounded geometric outlines with one solid element carrying the accent.
+       Emoji rendered in each OS's own palette and fought the tab's colour
+       states; these inherit currentColor so they go --text3 at rest and
+       --accent when the tab is active, exactly like the label beside them. */
     .nav-icon {
       font-size: 0.85em;
       line-height: 1;
       flex-shrink: 0;
-      /* don't inherit text-transform so emoji renders correctly */
+      display: inline-flex;
+      align-items: center;
       text-transform: none;
       letter-spacing: 0;
+    }
+
+    /* Sized in em off .nav-icon so the row-2 (0.78em) and mobile (1.15em)
+       font-size steps keep scaling the icons as they did the emoji. Well over
+       1em on purpose: an outline mark needs noticeably more area than a solid
+       glyph before its interior detail (calendar dots, book spine, trophy
+       handles) resolves at this text size. */
+    .nav-icon svg {
+      width: 2.45em;
+      height: 2.45em;
+      display: block;
+      overflow: visible;
+      transition: filter var(--t-med) var(--ease);
+    }
+
+    /* ── Per-tab identity colour ───────────────────────────────────────────
+       Each tab owns a hue in --nav-c, but the raw hue is never what paints:
+       it is always mixed, at rest into --text3 and on hover/active into
+       --accent. Both are theme variables, so this one pair of formulas covers
+       all ten themes — on the light themes --text3 and --accent are dark, so
+       the icons darken with them and stay legible on a pale background, and
+       on the yellow/pink/red themes every icon is pulled toward that theme's
+       accent so the row reads as one family instead of an imported rainbow.
+       Enough of the hue survives the mix to keep the twelve distinguishable. */
+    .period-nav button .nav-icon {
+      color: color-mix(in srgb, var(--nav-c, var(--text3)) var(--nav-hue-rest, 58%), var(--text3));
+      transition: color var(--t-med) var(--ease);
+    }
+
+    .period-nav button:hover .nav-icon,
+    .period-nav button.active .nav-icon {
+      color: color-mix(in srgb, var(--nav-c, var(--accent)) var(--nav-hue-lit, 85%), var(--nav-ink, var(--accent)));
+    }
+
+    /* Same "light means live" language as the landing-card icons' drop-shadow */
+    .period-nav button:hover .nav-icon svg,
+    .period-nav button.active .nav-icon svg {
+      filter: var(--nav-icon-glow, drop-shadow(0 0 5px color-mix(in srgb, var(--nav-c, var(--accent)) 45%, transparent)));
+    }
+
+    /* Hues are spread around the wheel, with the literal ones honoured: the
+       summit flag is amber, the map pin is red, the trophy is gold (those three
+       sit together as a warm achievement cluster in row 2), and Graphs takes
+       the same green as the landing page's Sheets card, whose bars its bars
+       quote.
+       *Awards is nominal only — the trophy paints itself in literal gold and
+       never reads --nav-c. It is listed so the row stays legible as a set, and
+       so the flag moved off gold rather than sitting next to a real one. */
+    .period-nav button[data-period="week"]        { --nav-c: #4dabf7; } /* sky      */
+    .period-nav button[data-period="month"]       { --nav-c: #818cf8; } /* indigo   */
+    .period-nav button[data-period="year"]        { --nav-c: #a78bfa; } /* violet   */
+    .period-nav button[data-period="alltime"]     { --nav-c: #c084fc; } /* purple   */
+    .period-nav button[data-period="rawdata"]     { --nav-c: #22d3ee; } /* cyan     */
+    .period-nav button[data-period="graphs"]      { --nav-c: #34d399; } /* green    */
+    .period-nav button[data-period="records"]     { --nav-c: #fb923c; } /* amber    */
+    .period-nav button[data-period="events"]      { --nav-c: #f87171; } /* red      */
+    .period-nav button[data-period="awards"]      { --nav-c: #fbbf24; } /* gold*    */
+    .period-nav button[data-period="soundtrack"]  { --nav-c: #f472b6; } /* pink     */
+    .period-nav button[data-period="playlists"]   { --nav-c: #2dd4bf; } /* teal     */
+    .period-nav button[data-period="chartsguide"] { --nav-c: #a3e635; } /* lime     */
+
+    /* ── Per-tab animation ─────────────────────────────────────────────────
+       Same idea as the landing-card icons (.sheets-grid bars growing,
+       .lastfm-vinyl spinning up): the mark performs what the tab does, and
+       only while the tab is hovered or active — twelve marks moving at once
+       would be a mess. Cyclic ideas loop; gesture ideas play once, which also
+       gives every tab switch a beat, since going .active starts them. */
+    .nav-icon svg [class^="ni-"] { transform-box: fill-box; }
+
+    /* Page corner peel — Yearly's fold. Kept as its own block because the
+       resting state (folded flat and invisible, anchored to the corner it
+       grows out of) is the reusable part if another tab ever needs a page. */
+    .nav-icon .ni-curl {
+      fill: color-mix(in srgb, currentColor 34%, transparent);
+      transform-origin: right bottom;
+      transform: scale(0);
+      opacity: 0;
+    }
+
+    /* 01 Weekly — seven day cells, and the lit day walks the row. Together
+       with Monthly's grid and Yearly's bound grids, the three time tabs now
+       read as one system scaling up: a row, a grid, a book of grids.
+         steps(7, jump-none) is the whole trick — it lands on exactly seven
+       positions including both ends, so the day hops cell to cell instead of
+       sliding through the dividers. The jump back to Sunday at the end of the
+       loop is not a seam to hide; that IS the next week starting. */
+    .period-nav button[data-period="week"]:is(:hover, .active) .ni-day {
+      animation: navWeekDay 2.8s steps(7, jump-none) infinite;
+    }
+
+    /* 02 Monthly — a ragged month of days, with a swell running through them
+       in reading order. Same idea as Weekly's day walking its row, one tier up:
+       there the lit cell moves, here the whole grid passes the pulse along.
+         Sixteen dots need sixteen different delays, which CSS cannot compute
+       from position — so each dot carries its index as --i inline and the
+       delay is derived from it. One rule instead of sixteen nth-child ones,
+       and reordering the grid never desyncs the wave. */
+    .period-nav button[data-period="month"]:is(:hover, .active) .ni-dot {
+      animation: navDotZoom 2s ease-in-out infinite;
+      animation-delay: calc(var(--i) * 0.08s);
+    }
+
+    /* 03 Yearly — a spiral-bound calendar whose page corner peels to turn.
+       At rest the mark is the year itself: a ragged month of day squares under
+       the binding, no motion at all.
+         Squashing a whole page with scaleY was the wrong cue — a page does not
+       foreshorten uniformly, so it read as the sheet deflating. What actually
+       says "page" is the corner: it lifts off the bottom-right, showing the
+       blank reverse of the sheet as a filled triangle with the fold along its
+       diagonal, holds there, then releases as the sheet goes over and the next
+       one settles flat. Scaling a fixed triangle about the corner it is
+       anchored to grows the dog-ear out of that corner, which is the one way
+       to animate a fold's size without animating path coordinates. */
+    .period-nav button[data-period="year"]:is(:hover, .active) .ni-curl {
+      animation: navCurl 2s ease-in-out infinite;
+    }
+
+    /* 04 All-Time — the dash chases the loop as it always did, but every two
+       laps it fills out into the whole symbol, holds a beat, then contracts
+       back into a dash and carries on. pathLength="100" normalises the path so
+       the dash pattern divides it exactly and the chase has no seam. */
+    .period-nav button[data-period="alltime"]:is(:hover, .active) .ni-loop {
+      stroke-dasharray: 22 78;
+      animation: navInfinityChase 5s linear infinite;
+    }
+
+    /* 05 Raw Data — rows streaming down through the store */
+    .period-nav button[data-period="rawdata"]:is(:hover, .active) :is(.ni-a, .ni-b) {
+      animation: navScan 1.5s ease-in-out infinite;
+    }
+
+    /* 06 Graphs — the one icon that keeps performing while its tab is open.
+       The mark is built to read as growth standing still: three bars each
+       taller than the last, with a trend line rising over their tops. The
+       motion only reinforces the direction that's already there — the bars
+       come up in a left-to-right waterfall (lifted from .sheets-grid i on the
+       landing page, same curve), then the line draws itself on left to right
+       across them. It's an equaliser that only ever climbs.
+         Hover builds it once. Active runs the whole cycle on a loop, since
+       that's the tab you're actually looking at. */
+    .period-nav button[data-period="graphs"]:is(:hover, .active) :is(.ni-a, .ni-b, .ni-c) {
+      transform-origin: center bottom;
+    }
+    .period-nav button[data-period="graphs"]:hover :is(.ni-a, .ni-b, .ni-c) {
+      animation: navBar 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+    }
+    .period-nav button[data-period="graphs"]:hover .ni-trend {
+      stroke-dasharray: 100;
+      animation: navDraw 0.55s cubic-bezier(0.4, 0, 0.2, 1) 0.22s both;
+    }
+    .period-nav button[data-period="graphs"].active :is(.ni-a, .ni-b, .ni-c) {
+      animation: navBarLoop 2.6s cubic-bezier(0.34, 1.56, 0.64, 1) infinite;
+    }
+    .period-nav button[data-period="graphs"].active .ni-trend {
+      stroke-dasharray: 100;
+      animation: navTrend 2.6s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+    }
+    /* A wider stagger than the shared 0.09s waterfall below — at loop speed
+       the gap is what makes the climb read as travelling left to right rather
+       than three bars breathing in unison. Extra [data-period] + .active
+       specificity so it survives that later rule. */
+    .period-nav button[data-period="graphs"].active .nav-icon .ni-b { animation-delay: 0.15s; }
+    .period-nav button[data-period="graphs"].active .nav-icon .ni-c { animation-delay: 0.3s; }
+
+    /* 07 Records — the flag gets planted on the summit, then flies. Only the
+       flag group moves; the peak stays put, since the mountain is the fixed
+       thing you reached and the flag is the part you just earned. The wave is
+       a scaleX from the pole side, which furls and unfurls the pennant the way
+       cloth catches wind, rather than sliding the whole flag about. */
+    .period-nav button[data-period="records"]:is(:hover, .active) .ni-flag {
+      animation: navPlant 0.55s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+    }
+    .period-nav button[data-period="records"]:is(:hover, .active) .ni-fill {
+      transform-origin: left center;
+      animation: navWave 1.5s ease-in-out 0.55s infinite;
+    }
+
+    /* 08 Events — the pin drops onto the map and the point pulses */
+    .period-nav button[data-period="events"]:is(:hover, .active) .nav-icon svg {
+      animation: navDrop 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+    }
+    .period-nav button[data-period="events"]:is(:hover, .active) .ni-fill {
+      animation: navPulse 1.5s ease-in-out 0.6s infinite;
+    }
+
+    /* 09 Awards — the trophy is hoisted, and the cup keeps catching the light.
+       This is the one icon that opts out of the --nav-c hue system: its gold is
+       literal, not themed, for exactly the reason .hero-crown-body gives — the
+       --gold tokens are tuned for text on light surfaces and go muddy brown
+       there, which would make a trophy out of mud. The paired drop-shadows are
+       the crown's too: a hairline dark contour so the gold keeps its edge on a
+       pale surface, plus a warm glow. Its --nav-c is therefore nominal; no
+       part of the mark actually paints with currentColor. */
+    .period-nav button[data-period="awards"] .nav-icon svg,
+    .period-nav button[data-period="awards"]:is(:hover, .active) .nav-icon svg {
+      filter:
+        drop-shadow(0 0 0.5px color-mix(in srgb, #000 55%, transparent))
+        drop-shadow(0 1px 5px color-mix(in srgb, #f0b429 48%, transparent));
+    }
+    /* The hue mixes dim the other eleven at rest; literal gold dims by opacity */
+    .period-nav button[data-period="awards"] .nav-icon svg {
+      opacity: 0.72;
+      transition: opacity var(--t-med) var(--ease);
+    }
+    .period-nav button[data-period="awards"]:is(:hover, .active) .nav-icon svg {
+      opacity: 1;
+      animation: navHoist 0.72s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+    }
+    /* Idle for two-thirds of the cycle, sweeping only in the last third, so it
+       reads as polished metal catching the light rather than as a blinking
+       element. Hovering polishes it — the same 5.5s → 1.4s step the crown makes. */
+    .period-nav button[data-period="awards"]:is(:hover, .active) .ni-glint {
+      animation: navTrophyGlint 5.5s ease-in-out infinite;
+    }
+    .period-nav button[data-period="awards"]:hover .ni-glint {
+      animation-duration: 1.4s;
+    }
+
+    /* 10 Your Soundtrack — the note bobs along in time */
+    .period-nav button[data-period="soundtrack"]:is(:hover, .active) .nav-icon svg {
+      animation: navBob 1.15s ease-in-out infinite;
+    }
+
+    /* 11 Playlists — the queue fills in and the play head keeps nudging on */
+    .period-nav button[data-period="playlists"]:is(:hover, .active) :is(.ni-a, .ni-b, .ni-c) {
+      stroke-dasharray: 100;
+      animation: navDraw 0.4s cubic-bezier(0.4, 0, 0.2, 1) both;
+    }
+    .period-nav button[data-period="playlists"]:is(:hover, .active) .ni-fill {
+      animation: navNudge 1.25s ease-in-out infinite;
+    }
+
+    /* 12 Charts Guide — the right page turns on the spine. Hover turns one
+       page; selected, it keeps reading. The loop dips the page's opacity at
+       the point it collapses onto the spine, so what comes back up reads as
+       the next page rather than the same one flapping, and it rests a beat at
+       full width between turns instead of turning continuously. */
+    .period-nav button[data-period="chartsguide"]:is(:hover, .active) .ni-a {
+      transform-origin: left center;
+    }
+    .period-nav button[data-period="chartsguide"]:hover .ni-a {
+      animation: navFlip 1.05s ease-in-out both;
+    }
+    .period-nav button[data-period="chartsguide"].active .ni-a {
+      animation: navFlipLoop 2.6s ease-in-out infinite;
+    }
+
+    /* Shared waterfall for every icon built from .ni-a/.ni-b/.ni-c. Sits after
+       the per-tab rules on purpose: those use the `animation` shorthand, which
+       resets animation-delay, so the stagger has to be re-applied last. */
+    .period-nav button:is(:hover, .active) .nav-icon .ni-b { animation-delay: 0.09s; }
+    .period-nav button:is(:hover, .active) .nav-icon .ni-c { animation-delay: 0.18s; }
+
+    @keyframes navDraw {
+      from { stroke-dashoffset: 100; }
+      to   { stroke-dashoffset: 0; }
+    }
+    /* Sits below its resting size at the trough so the swell has somewhere to
+       come from — a dot that only ever grows reads as a flicker, not a wave. */
+    @keyframes navDotZoom {
+      0%, 100% { transform: scale(0.82); opacity: 0.55; }
+      45%      { transform: scale(1.7);  opacity: 1; }
+    }
+    /* Peels, holds so the reverse of the sheet is actually readable, lifts a
+       touch further as it goes over, then drops away flat. The hold is the
+       part that makes it register at this size. */
+    /* Three cells left of centre to three cells right — the lit day sits in
+       the middle cell at rest, so the mark stays balanced when nothing moves. */
+    @keyframes navWeekDay {
+      from { transform: translateX(-5.91px); }
+      to   { transform: translateX(5.91px); }
+    }
+    @keyframes navCurl {
+      0%   { transform: scale(0);    opacity: 0; }
+      22%  { transform: scale(1);    opacity: 1; }  /* corner folded back */
+      58%  { transform: scale(1);    opacity: 1; }  /* reverse side held */
+      72%  { transform: scale(1.14); opacity: 1; }  /* lifts as it turns */
+      86%  { transform: scale(0.1);  opacity: 0; }  /* gone over */
+      100% { transform: scale(0);    opacity: 0; }
+    }
+    /* The loop is seamless because -200 and 0 are the same position once the
+       dash pattern repeats every 100 units — so the contraction at 100% lands
+       exactly where 0% starts and the chase just carries on. Growing the dash
+       to 100 with a 0 gap is what "completes" the symbol; both endpoints are
+       two-value lists, which is what lets stroke-dasharray interpolate. */
+    @keyframes navInfinityChase {
+      0%        { stroke-dasharray: 22 78; stroke-dashoffset: 0; }
+      72%       { stroke-dasharray: 22 78; stroke-dashoffset: -200; }  /* two laps */
+      80%, 96%  { stroke-dasharray: 100 0; stroke-dashoffset: -200; }  /* whole symbol, held */
+      100%      { stroke-dasharray: 22 78; stroke-dashoffset: -200; }  /* back to a dash */
+    }
+    @keyframes navScan {
+      0%        { transform: translateY(-2.8px); opacity: 0; }
+      25%, 70%  { opacity: 1; }
+      100%      { transform: translateY(2.8px); opacity: 0; }
+    }
+    @keyframes navBar {
+      from { transform: scaleY(0.2); }
+      to   { transform: scaleY(1); }
+    }
+    /* Grow, hold at full height, then reset fast — the climb occupies most of
+       the cycle and the drop is over quickly, so the loop reads as repeated
+       growth rather than as a bar bouncing up and down. */
+    @keyframes navBarLoop {
+      0%        { transform: scaleY(0.2); }
+      38%, 86%  { transform: scaleY(1); }
+      100%      { transform: scaleY(0.2); }
+    }
+    /* Drawn on left to right over the bars, held while they hold, then out —
+       timed against navBarLoop so the line lands just after the bars top out */
+    @keyframes navTrend {
+      0%,  10% { stroke-dashoffset: 100; opacity: 0; }
+      18%      { opacity: 1; }
+      55%      { stroke-dashoffset: 0; opacity: 1; }
+      86%      { stroke-dashoffset: 0; opacity: 1; }
+      100%     { stroke-dashoffset: 0; opacity: 0; }
+    }
+    @keyframes navPlant {
+      0%   { transform: translateY(-4px); opacity: 0; }
+      60%  { transform: translateY(0.8px); opacity: 1; }
+      100% { transform: none; }
+    }
+    @keyframes navWave {
+      0%, 100% { transform: scaleX(1); }
+      50%      { transform: scaleX(0.76); }
+    }
+    @keyframes navDrop {
+      0%   { transform: translateY(-4.5px); opacity: 0; }
+      55%  { transform: translateY(1.2px); opacity: 1; }
+      78%  { transform: translateY(-0.9px); }
+      100% { transform: none; }
+    }
+    @keyframes navPulse {
+      0%, 100% { transform: scale(1); }
+      50%      { transform: scale(1.35); }
+    }
+    @keyframes navHoist {
+      0%   { transform: none; }
+      30%  { transform: translateY(-2px) rotate(-10deg); }
+      62%  { transform: translateY(-2px) rotate(8deg); }
+      100% { transform: none; }
+    }
+    /* Ported from heroCrownGlint — same idle-then-sweep split, same skew */
+    @keyframes navTrophyGlint {
+      0%, 62%   { transform: translateX(0) skewX(-18deg); }
+      84%, 100% { transform: translateX(23px) skewX(-18deg); }
+    }
+    @keyframes navBob {
+      0%, 100% { transform: translateY(0) rotate(0deg); }
+      50%      { transform: translateY(-2.4px) rotate(-5deg); }
+    }
+    @keyframes navNudge {
+      0%, 100% { transform: translateX(0); }
+      50%      { transform: translateX(1.7px); }
+    }
+    @keyframes navFlip {
+      0%   { transform: scaleX(1); }
+      50%  { transform: scaleX(0.1); }
+      100% { transform: scaleX(1); }
+    }
+    @keyframes navFlipLoop {
+      0%, 18%   { transform: scaleX(1);    opacity: 1; }
+      50%       { transform: scaleX(0.07); opacity: 0.5; }
+      82%, 100% { transform: scaleX(1);    opacity: 1; }
+    }
+
+    /* The colour split and the size still carry the tabs without any of this */
+    @media (prefers-reduced-motion: reduce) {
+      .nav-icon svg,
+      .nav-icon svg * {
+        animation: none !important;
+        transform: none !important;
+      }
+      .period-nav button[data-period="alltime"]:is(:hover, .active) .ni-loop {
+        stroke-dasharray: none;
+      }
+      /* With the sweep stopped, park the glint across the cup so the metal
+         still reads as polished rather than flat — same call the masthead
+         crown makes for .hero-crown-body::before. */
+      .period-nav button[data-period="awards"] .ni-glint {
+        transform: translateX(12px) skewX(-18deg) !important;
+      }
+      /* The page corners are folded away by a resting transform, not by the
+         animation, so the blanket transform:none above would unfold them
+         across the page. Opacity already hides them; keep them folded too. */
+      .nav-icon .ni-curl {
+        transform: scale(0) !important;
+      }
     }
 
     /* Keyboard shortcut badge (feature 6) — small kbd-style chip instead of
