@@ -3588,7 +3588,7 @@
     }
 
     /* Hues are spread around the wheel, with the literal ones honoured: the
-       summit flag is amber, the map pin is red, the trophy is gold (those three
+       summit flag is amber, the crossed-off date is red, the trophy is gold (those three
        sit together as a warm achievement cluster in row 2), and Graphs takes
        the same green as the landing page's Sheets card, whose bars its bars
        quote.
@@ -3732,12 +3732,47 @@
       animation: navWave 1.5s ease-in-out 0.55s infinite;
     }
 
-    /* 08 Events — the pin drops onto the map and the point pulses */
+    /* 08 Events — the calendar drops in and the date gets marked.
+       This is the third calendar in the nav, so what separates it from Monthly
+       and Yearly is carried entirely by the red X and the ticket at its corner,
+       not by the page shape. That is also why the day dots deliberately do not
+       move: Monthly's grid is the one that shimmers, and holding this grid still
+       is what keeps the two from reading as the same icon once they are in
+       motion. The X is the only thing here that animates. */
     .period-nav button[data-period="events"]:is(:hover, .active) .nav-icon svg {
       animation: navDrop 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) both;
     }
-    .period-nav button[data-period="events"]:is(:hover, .active) .ni-fill {
-      animation: navPulse 1.5s ease-in-out 0.6s infinite;
+
+    /* The mark keeps its own red instead of mixing into --nav-c with the rest
+       of the row — the second and last opt-out after the trophy's gold, for the
+       same kind of reason: a date crossed off a calendar is red or it is not a
+       mark. It is held back at rest so the resting row has no one tab shouting
+       in it, and comes up to full strength with the tab. */
+    .period-nav button[data-period="events"] .ni-x {
+      opacity: 0.7;
+      transition: opacity var(--t-med) var(--ease);
+    }
+    .period-nav button[data-period="events"]:is(:hover, .active) .ni-x {
+      opacity: 1;
+    }
+
+    /* Scrawled on one stroke after the other, the way a date actually gets
+       crossed off. pathLength normalises both arms so they draw at one speed
+       despite being mirrored. Hover marks it once; active loops the mark, wipes
+       it and marks it again, the same hover-once/active-loop split Graphs makes. */
+    .period-nav button[data-period="events"]:is(:hover, .active) :is(.ni-x1, .ni-x2) {
+      stroke-dasharray: 100;
+    }
+    .period-nav button[data-period="events"]:hover :is(.ni-x1, .ni-x2) {
+      animation: navDraw 0.28s cubic-bezier(0.4, 0, 0.2, 1) both;
+    }
+    .period-nav button[data-period="events"].active :is(.ni-x1, .ni-x2) {
+      animation: navMark 3.4s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+    }
+    /* Extra .nav-icon specificity so the second stroke's lag survives both the
+       :hover and .active rules above, exactly as Graphs' bar delays do. */
+    .period-nav button[data-period="events"]:is(:hover, .active) .nav-icon .ni-x2 {
+      animation-delay: 0.18s;
     }
 
     /* 09 Awards — the trophy is hoisted, and the cup keeps catching the light.
@@ -3826,6 +3861,17 @@
       from { stroke-dashoffset: 100; }
       to   { stroke-dashoffset: 0; }
     }
+    /* navDraw's looping form: draw, hold the mark for most of the cycle, fade it
+       out, then snap the dash back while invisible so the next pass starts from
+       an unmarked date instead of un-drawing itself backwards. */
+    @keyframes navMark {
+      0%   { stroke-dashoffset: 100; opacity: 1; }
+      16%  { stroke-dashoffset: 0; }
+      76%  { stroke-dashoffset: 0; opacity: 1; }
+      88%  { stroke-dashoffset: 0; opacity: 0; }
+      89%  { stroke-dashoffset: 100; opacity: 0; }
+      100% { stroke-dashoffset: 100; opacity: 1; }
+    }
     /* Sits below its resting size at the trough so the swell has somewhere to
        come from — a dot that only ever grows reads as a flicker, not a wave. */
     @keyframes navDotZoom {
@@ -3900,10 +3946,6 @@
       55%  { transform: translateY(1.2px); opacity: 1; }
       78%  { transform: translateY(-0.9px); }
       100% { transform: none; }
-    }
-    @keyframes navPulse {
-      0%, 100% { transform: scale(1); }
-      50%      { transform: scale(1.35); }
     }
     @keyframes navHoist {
       0%   { transform: none; }
