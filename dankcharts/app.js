@@ -6945,16 +6945,23 @@ function renderAll() {
     const sotmEnd   = end;
     const sotmStart = new Date(sotmEnd.getTime() - 15 * 24 * 60 * 60 * 1000);
     const songCounts15 = {};
+    // songKey() lowercases for grouping, so the key can't be used for display —
+    // keep the original casing of the first play seen for each key.
+    const songNames15 = {};
     for (const p of allPlays) {
       const d = tzDate(p.date);
-      if (d >= sotmStart && d <= sotmEnd) songCounts15[songKey(p)] = (songCounts15[songKey(p)] || 0) + 1;
+      if (d >= sotmStart && d <= sotmEnd) {
+        const k = songKey(p);
+        songCounts15[k] = (songCounts15[k] || 0) + 1;
+        if (!songNames15[k]) songNames15[k] = { title: p.title.trim(), artist: p.artist.trim() };
+      }
     }
     let sotmKey = null, sotmCount = 0;
     for (const [k, c] of Object.entries(songCounts15)) {
       if (c > sotmCount) { sotmKey = k; sotmCount = c; }
     }
-    const sotmTitle  = sotmKey ? sotmKey.split('|||')[0] : null;
-    const sotmArtist = sotmKey ? sotmKey.split('|||')[1] : null;
+    const sotmTitle  = sotmKey ? songNames15[sotmKey].title  : null;
+    const sotmArtist = sotmKey ? songNames15[sotmKey].artist : null;
 
     // Tier 2 (highlights): one flat chip in a shared ticker strip rather than
     // a fully-bordered/shadowed card — visually demotes these vs. the Tier-1 totals.
