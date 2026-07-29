@@ -11003,6 +11003,61 @@
       padding-top: 0.9rem;
     }
 
+    /* ── Records type ladder ──────────────────────────────────────────────
+       `.section-header-h2` does double duty in Records: it styles both the
+       tab title and each of the ten section names, so those two levels came
+       out identical and neither outranked the other. Split them by position
+       rather than by adding classes — the tab title's header is a direct
+       child of #recordsView, section headers sit inside .chart-section — so
+       the markup is untouched and the other 12 tabs that share this class
+       keep exactly what they have.
+
+       The #recordsView in each selector also lifts these past the per-theme
+       `body.<theme> .section-header-h2` rules, which means the white label
+       chip (background/padding/radius) has to be cleared explicitly; it
+       reads as a chip at 11px but as a white slab at heading sizes. */
+
+    #recordsView>.section-header .section-header-h2 {
+      font-family: var(--font-display);
+      font-size: 1.35rem;
+      font-weight: 500;
+      text-transform: none;
+      letter-spacing: normal;
+      line-height: 1.15;
+      color: var(--text);
+      background: none;
+      padding: 0;
+      border-radius: 0;
+      /* the inherited nowrap would push this past the viewport once it's
+         21px instead of 11px */
+      white-space: normal;
+      text-wrap: balance;
+    }
+
+    #recordsView .chart-section .section-header-h2 {
+      font-family: var(--font-display);
+      font-size: 0.95rem;
+      font-weight: 600;
+      text-transform: none;
+      letter-spacing: 0.01em;
+      line-height: 1.25;
+      color: var(--text);
+      background: none;
+      padding: 0;
+      border-radius: 0;
+      white-space: normal;
+    }
+
+    /* Section descriptions are prose, so they leave mono per the
+       Mono-Means-Data rule. Scoped so only Records is affected. */
+    #recordsView .section-sub {
+      font-family: var(--font-sans);
+      font-size: 0.75rem;
+      color: var(--text2);
+      letter-spacing: normal;
+      line-height: 1.45;
+    }
+
     .records-nav {
       display: flex;
       flex-wrap: wrap;
@@ -11148,22 +11203,32 @@
       display: none;
     }
 
+    /* Level 3 of the ladder. Drops uppercase + 0.18em tracking (both are what
+       makes a column header read as a column header — spending them here too
+       meant four tiers shouted at once), and drops --accent: accent on every
+       sub-section title marks nothing. Stays mono, since these titles are
+       mostly entity/period labels. */
     .rec-section-title {
       font-family: var(--font-mono);
-      font-size: 0.68rem;
-      text-transform: uppercase;
-      letter-spacing: 0.18em;
-      color: var(--accent);
+      font-size: 0.8rem;
+      font-weight: 600;
+      text-transform: none;
+      letter-spacing: 0.02em;
+      color: var(--text);
       margin-bottom: 0.5rem;
       padding-bottom: 0.35rem;
       border-bottom: 1px solid var(--border);
     }
 
+    /* Level 4: prose, so it leaves mono and gets a readable size/colour.
+       Sits close to level 3 in size on purpose — font, weight and colour
+       carry that distinction instead. */
     .rec-section-sub {
-      font-family: var(--font-mono);
-      font-size: 0.62rem;
-      color: var(--text3);
-      letter-spacing: 0.05em;
+      font-family: var(--font-sans);
+      font-size: 0.75rem;
+      color: var(--text2);
+      letter-spacing: normal;
+      line-height: 1.45;
       margin-bottom: 0.6rem;
     }
 
