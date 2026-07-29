@@ -83,6 +83,10 @@
       --gold2: #fcd34d;
       /* chart gridlines — read by app.js getGraphColors(); plain hex on purpose (canvas can't parse color-mix) */
       --rule: #243349;
+      /* Ink for text/icons sitting ON an --accent/--accent2 fill. White works on every
+         theme whose accent is a mid-to-dark colour; themes with a LIGHT accent (yellow
+         dark) must override this or filled "selected" pills become unreadable. */
+      --on-accent: #fff;
     }
 
     /* ── NAVY LIGHT ──
@@ -209,6 +213,9 @@
       --rule: #3a3620;
       --gold1: #f0aa30;
       --gold2: #fcd34d;
+      /* The one theme with a light accent — white on #f5d420 is 1.5:1, so filled
+         "selected" states get the deep warm charcoal instead (≈14:1). */
+      --on-accent: #14130a;
     }
 
     /* ── YELLOW LIGHT ──
@@ -1792,7 +1799,7 @@
 
     #syncNowBtn:hover {
       background: var(--accent);
-      color: #fff;
+      color: var(--on-accent);
       border-color: var(--accent);
       font-weight: 700;
     }
@@ -1944,7 +1951,7 @@
     #scrobbleBtn:hover {
       background: var(--accent);
       border-color: var(--accent);
-      color: #fff;
+      color: var(--on-accent);
     }
 
     /* ── Last.fm Scrobble Auth Section ── */
@@ -2012,7 +2019,7 @@
     .lfm-connect-btn {
       background: var(--accent);
       border: none;
-      color: #fff;
+      color: var(--on-accent);
       padding: 0.35rem 0.9rem;
       border-radius: 6px;
       cursor: pointer;
@@ -2178,7 +2185,7 @@
     .src-btn-save {
       background: var(--accent);
       border: 1px solid var(--accent);
-      color: #fff;
+      color: var(--on-accent);
       padding: 0.45rem 1.2rem;
       border-radius: 6px;
       cursor: pointer;
@@ -4220,7 +4227,7 @@
 
     .chart-size-bar .size-btns button.active {
       background: var(--accent);
-      color: #fff;
+      color: var(--on-accent);
       border-color: var(--accent);
     }
 
@@ -4272,7 +4279,7 @@
 
     .display-toggle-btn.active {
       background: var(--accent);
-      color: #fff;
+      color: var(--on-accent);
       border-color: var(--accent);
       opacity: 1;
     }
@@ -4482,7 +4489,7 @@
 
     .period-label:hover .period-sub {
       background: var(--accent);
-      color: #fff;
+      color: var(--on-accent);
       border-color: var(--accent);
     }
 
@@ -5247,7 +5254,7 @@
     .chart-type-toggle-btn.active {
       background: var(--accent);
       border-color: var(--accent);
-      color: #fff;
+      color: var(--on-accent);
     }
 
     /* Sub-chart toggles — Normal/Bubbling Under/Off the Chart/New Entries, per chart type.
@@ -5659,7 +5666,7 @@
 
     .img-src-btn:hover {
       background: var(--accent);
-      color: #fff;
+      color: var(--on-accent);
       border-color: var(--accent);
     }
 
@@ -6223,7 +6230,7 @@
     .ig-share-btn:hover,
     .chart-export-btn:hover {
       background: var(--accent);
-      color: #fff;
+      color: var(--on-accent);
       font-weight: 700;
       border-color: var(--accent);
     }
@@ -6431,7 +6438,7 @@
 
     .ig-format-btn.active {
       background: var(--accent);
-      color: #fff;
+      color: var(--on-accent);
       border-color: var(--accent);
       font-weight: 700;
     }
@@ -6496,7 +6503,7 @@
 
     .ig-download-btn {
       background: var(--accent);
-      color: #fff;
+      color: var(--on-accent);
       border: none;
       font-family: var(--font-mono);
       font-size: 0.68rem;
@@ -6602,7 +6609,7 @@
 
     .graphs-btn.active {
       background: var(--accent);
-      color: #fff;
+      color: var(--on-accent);
       border-color: var(--accent);
       font-weight: 700;
     }
@@ -6913,7 +6920,7 @@
     .events-type-btn.active {
       background: var(--accent);
       border-color: var(--accent);
-      color: #fff;
+      color: var(--on-accent);
     }
 
     .upcoming-card.event-today {
@@ -6942,7 +6949,7 @@
       transition: color 0.15s, background 0.15s, border-color 0.15s;
     }
     .ev-view-btn:hover { background: var(--border); color: var(--text); }
-    .ev-view-btn.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+    .ev-view-btn.active { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
 
     @media (max-width: 768px) {
       .ev-view-btns {
@@ -7125,7 +7132,7 @@
       transition: color 0.15s, background 0.15s, border-color 0.15s;
     }
     .ev-list-sort-btn:hover { background: var(--border); color: var(--text); }
-    .ev-list-sort-btn.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+    .ev-list-sort-btn.active { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
     .ev-list-items { display: flex; flex-direction: column; }
     .ev-list-row {
       display: grid;
@@ -7346,7 +7353,7 @@
     .cal-view-btn.active {
       background: var(--accent);
       border-color: var(--accent);
-      color: #fff;
+      color: var(--on-accent);
     }
 
     .cal-export-playlist-btn {
@@ -7474,7 +7481,7 @@
       background: var(--accent);
       border: none;
       border-radius: 5px;
-      color: #fff;
+      color: var(--on-accent);
       font-family: var(--font-mono);
       font-size: 0.65rem;
       font-weight: bold;
@@ -7864,7 +7871,7 @@
     .export-btn-copy {
       background: var(--accent);
       border-color: var(--accent);
-      color: #fff;
+      color: var(--on-accent);
     }
 
     .export-btn-copy:hover {
@@ -8691,7 +8698,7 @@
       transition: all 0.15s;
     }
     .alb-sort-btn:hover { color: var(--text); border-color: var(--accent); }
-    .alb-sort-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+    .alb-sort-btn.active { background: var(--accent); color: var(--on-accent); border-color: var(--accent); }
 
     /* TRACK SHARE BAR */
     .alb-share-wrap { display: flex; align-items: center; gap: 0.4rem; }
@@ -9083,7 +9090,7 @@
     .cr-toggle-btn.active {
       background: var(--accent);
       border-color: var(--accent);
-      color: #fff;
+      color: var(--on-accent);
     }
 
     .alb-track-toggle {
@@ -9112,7 +9119,7 @@
     .alb-track-toggle.active {
       background: var(--accent);
       border-color: var(--accent);
-      color: #fff;
+      color: var(--on-accent);
       transform: rotate(90deg);
       box-shadow: 0 0 10px var(--accent);
     }
@@ -9267,7 +9274,7 @@
 
     .cr-ig-share-btn:hover {
       background: var(--accent);
-      color: #fff;
+      color: var(--on-accent);
       border-color: var(--accent);
     }
 
@@ -9314,7 +9321,7 @@
     .cr-range-btn.active {
       background: var(--accent);
       border-color: var(--accent);
-      color: #fff;
+      color: var(--on-accent);
     }
 
     body.yellow .cr-range-btn.active {
@@ -10828,7 +10835,7 @@
     .records-nav-btn.active {
       background: var(--accent);
       border-color: var(--accent);
-      color: #fff;
+      color: var(--on-accent);
     }
 
     body.yellow .records-nav-btn.active {
@@ -12266,7 +12273,7 @@
 
     .cwall-btn.active {
       background: var(--accent);
-      color: #fff;
+      color: var(--on-accent);
       border-color: var(--accent);
     }
 
@@ -12955,7 +12962,7 @@ body.pink-light .landing-screen:has(.landing-card:hover) .landing-eq-skyline {
   justify-content: center;
   gap: 0.5rem;
   background: var(--accent);
-  color: #fff;
+  color: var(--on-accent);
   border-radius: 10px;
   font-family: var(--font-sans);
   font-size: 0.85rem;
@@ -13531,7 +13538,7 @@ body.pink-light .landing-screen:has(.landing-card:hover) .landing-eq-skyline {
 
 .landing-start-btn {
   background: var(--accent);
-  color: #fff;
+  color: var(--on-accent);
   border: none;
   border-radius: 10px;
   font-family: var(--font-sans);
@@ -15321,7 +15328,7 @@ body.albums-hide-yt-btns  #newAlbumsSection  .yt-play-btn { display: none; }
   padding: 0.35rem 0.75rem;
   font-size: 0.8rem;
   font-weight: 600;
-  color: #fff;
+  color: var(--on-accent);
   cursor: pointer;
   flex-shrink: 0;
   transition: opacity 0.1s;
@@ -15348,7 +15355,7 @@ body.albums-hide-yt-btns  #newAlbumsSection  .yt-play-btn { display: none; }
   padding: 0.35rem 0.75rem;
   font-size: 0.8rem;
   font-weight: 600;
-  color: #fff;
+  color: var(--on-accent);
   cursor: pointer;
   flex-shrink: 0;
   max-width: 360px;
@@ -16344,7 +16351,7 @@ body.yellow-light .hero-stats { --hero-link: #ffe066; }  /* 3.94:1 on strip */
 
 /* ── KEYBOARD NAV FLASH ── */
 @keyframes dc-nav-flash {
-  0%   { background: var(--accent); color: #fff; }
+  0%   { background: var(--accent); color: var(--on-accent); }
   100% { background: inherit; color: inherit; }
 }
 
@@ -16959,7 +16966,7 @@ body[class*="-light"] .tm-card-search:hover {
 .awards-subnav-btn.active,
 .awards-subnav-btn:hover {
   background: var(--accent);
-  color: #fff;
+  color: var(--on-accent);
   border-color: var(--accent);
 }
 
@@ -17001,8 +17008,8 @@ body[class*="-light"] .tm-card-search:hover {
   cursor: pointer;
   transition: background 0.15s, color 0.15s;
 }
-.awards-config-btn:hover { background: var(--accent); color: #fff; border-color: var(--accent); }
-.awards-config-btn.active  { background: var(--accent); color: #fff; border-color: var(--accent); }
+.awards-config-btn:hover { background: var(--accent); color: var(--on-accent); border-color: var(--accent); }
+.awards-config-btn.active  { background: var(--accent); color: var(--on-accent); border-color: var(--accent); }
 /* Tinted with the theme's own accent (color-mix) rather than a fixed gold/gradient — a fixed
    hue looked calm only in the yellow theme and clashed as a foreign orange sticker against
    blue/purple/pink/red themes. Mixing the active --accent into --surface2 always harmonizes
@@ -17079,7 +17086,7 @@ body[class*="-light"] .tm-card-search:hover {
   font-size: 0.75rem;
   cursor: pointer;
 }
-.awards-cat-toggle-all:hover { background: var(--accent); color: #fff; border-color: var(--accent); }
+.awards-cat-toggle-all:hover { background: var(--accent); color: var(--on-accent); border-color: var(--accent); }
 .awards-cat-toggles {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
@@ -17237,7 +17244,7 @@ body[class*="-light"] .tm-card-search:hover {
   font-size: 0.75rem;
   cursor: pointer;
 }
-.awards-cat-action-btn:hover { background: var(--accent); color: #fff; border-color: var(--accent); }
+.awards-cat-action-btn:hover { background: var(--accent); color: var(--on-accent); border-color: var(--accent); }
 
 /* Ceremony launch bar */
 .awards-ceremony-bar {
@@ -17401,7 +17408,7 @@ body[class*="-light"] .tm-card-search:hover {
 .awards-picker-save {
   padding: 6px 18px;
   background: var(--accent);
-  color: #fff;
+  color: var(--on-accent);
   border: none;
   border-radius: 8px;
   font-weight: 600;
@@ -18308,7 +18315,7 @@ body[class*="-light"] .tm-card-search:hover {
   cursor: pointer;
   transition: background 0.15s, color 0.15s;
 }
-.st-period-btn.active { background: var(--accent); color: #fff; font-weight: 700; }
+.st-period-btn.active { background: var(--accent); color: var(--on-accent); font-weight: 700; }
 .st-period-btn:hover:not(.active) { background: var(--bg3); color: var(--text1); }
 
 .st-nav-bar {
@@ -18328,7 +18335,7 @@ body[class*="-light"] .tm-card-search:hover {
   cursor: pointer;
   transition: background 0.15s, color 0.15s, transform 0.15s;
 }
-.st-nav-btn:hover { background: var(--accent); color: #fff; border-color: var(--accent); transform: translateY(-1px); }
+.st-nav-btn:hover { background: var(--accent); color: var(--on-accent); border-color: var(--accent); transform: translateY(-1px); }
 
 .st-nav-label {
   font-family: var(--font-mono);
@@ -21138,7 +21145,7 @@ body[class*="-light"] .tm-card-search:hover {
   transition: color 0.15s, background 0.15s, border-color 0.15s;
 }
 .weekly-view-btn:hover { background: var(--border); color: var(--text); }
-.weekly-view-btn.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+.weekly-view-btn.active { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
 
 /* ── WEEKLY ALT VIEW CONTAINER ── */
 .weekly-alt-view { padding: 0.5rem 0; }
@@ -21501,7 +21508,7 @@ body[class*="-light"] .tm-card-search:hover {
 .wv-film-action-btns { display: flex; gap: 4px; flex-shrink: 0; }
 .wv-film-auto-btn, .wv-film-share-btn { -webkit-appearance: none; appearance: none; background: none; border: 1px solid var(--border); border-radius: 3px; color: var(--text3); font-family: var(--font-mono); font-size: 0.55rem; letter-spacing: 0.06em; text-transform: uppercase; padding: 0.12rem 0.55rem; cursor: pointer; transition: color 0.15s, background 0.15s, border-color 0.15s; white-space: nowrap; }
 .wv-film-auto-btn:hover, .wv-film-share-btn:hover { background: var(--border); color: var(--text); }
-.wv-film-auto-btn.wv-film-auto-on { background: var(--accent); border-color: var(--accent); color: #fff; }
+.wv-film-auto-btn.wv-film-auto-on { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
 
 /* Auto-scroll infinite loop (mirrors Time Machine ticker) */
 .wv-filmstrip.wv-film-auto-mode { display: block; overflow: hidden; padding: 0; cursor: default; scroll-snap-type: none; mask-image: linear-gradient(to right, transparent 0%, black 2%, black 98%, transparent 100%); -webkit-mask-image: linear-gradient(to right, transparent 0%, black 2%, black 98%, transparent 100%); }
@@ -22258,7 +22265,7 @@ body.red-light .modal-cb-label--tracks {
       justify-content: space-between;
       gap: 1rem;
       background: var(--accent);
-      color: #fff;
+      color: var(--on-accent);
       border-radius: 6px;
       padding: 1.1rem 1.2rem;
     }
@@ -22390,7 +22397,7 @@ body.red-light .modal-cb-label--tracks {
     }
     .cg-dot.active {
       background: var(--accent);
-      color: #fff;
+      color: var(--on-accent);
       border-color: var(--accent);
     }
 
@@ -22407,7 +22414,7 @@ body.red-light .modal-cb-label--tracks {
       color: var(--accent);
       transition: background 0.15s, color 0.15s;
     }
-    .cg-mini-btn:hover { background: var(--accent); color: #fff; }
+    .cg-mini-btn:hover { background: var(--accent); color: var(--on-accent); }
 
     /* ── 3+18 · Dual row (checklist + on this day) ────────── */
     .cg-dual-row {
@@ -22835,7 +22842,7 @@ body.red-light .modal-cb-label--tracks {
     }
     .cg-tour-ctrl:hover { background: var(--bg); }
     .cg-tour-ctrl:disabled { opacity: 0.4; cursor: default; }
-    .cg-tour-next-btn { background: var(--accent); color: #fff; border-color: var(--accent); }
+    .cg-tour-next-btn { background: var(--accent); color: var(--on-accent); border-color: var(--accent); }
     .cg-tour-next-btn:hover { opacity: 0.88; background: var(--accent); }
     .cg-tour-end-btn { margin-left: auto; }
 
@@ -23063,6 +23070,15 @@ body.red-light .modal-cb-label--tracks {
       background: color-mix(in srgb, var(--accent) 18%, transparent);
       color: var(--accent);
       font-weight: 600;
+    }
+    /* Yellow dark is the one theme whose accent is LIGHTER than the menu's own body
+       text, so the tinted row above reads as a muddy olive that looks *dimmer* than
+       its unselected white siblings — selection has to fall back to the solid accent
+       fill the rest of the app's selected states use. */
+    body.yellow .kebab-panel .size-btns button.active,
+    body.yellow .kebab-panel .weekly-view-btn.active {
+      background: var(--accent);
+      color: var(--on-accent);
     }
     .kebab-panel .stk-2col-btn {
       margin-top: 2px;
