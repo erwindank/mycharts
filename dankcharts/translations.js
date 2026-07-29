@@ -507,6 +507,7 @@ const TRANSLATIONS = {
 
     // Records navigation
     rec_nav_all: 'All',
+    rec_nav_overview: 'Overview',
     rec_nav_all_ones: 'All #1s',
     rec_nav_pak: 'Perfect All Kill',
     rec_nav_appearances: 'Appearances',
@@ -516,6 +517,28 @@ const TRANSLATIONS = {
     rec_nav_fastest: 'Fastest',
     rec_nav_certs: 'Certifications',
     rec_nav_streaks: 'Streaks',
+
+    // Records overview cards — one headline record per section.
+    // Only defined in `en`; t() falls back to English for the other languages.
+    rec_ov_intro: 'Your single best record in each category. Pick one to see the full tables.',
+    rec_ov_type_label: 'Which chart to show records for',
+    rec_ov_no_type_record: 'Not tracked for this chart',
+    rec_ov_all_ones: 'Most weeks at #1',
+    rec_ov_pak: 'Most Perfect All Kills',
+    rec_ov_appearances: 'Most weeks on the chart',
+    rec_ov_debuts: 'Biggest weekly debut',
+    rec_ov_peak_plays: 'Most plays in one week',
+    rec_ov_milestones: 'Highest play milestone reached',
+    rec_ov_fastest: 'Fastest to {{n}} plays',
+    rec_ov_certs: 'Most certifications held',
+    rec_ov_certs_value: '{{n}} certified',
+    rec_ov_certs_first: 'First to reach this certification',
+    rec_ov_cert_tier_diamond: '💎 Diamond',
+    rec_ov_cert_tier_platinum: '💿 Platinum',
+    rec_ov_cert_tier_gold: '🪙 Gold',
+    rec_ov_streaks: 'Longest daily listening streak',
+    rec_ov_new_charts: 'Biggest new-chart debut',
+    rec_ov_debut_value: '#{{rank}} · {{plays}}',
 
     // Records section titles (static HTML)
     rec_all_ones_title: '★ All #1s',

@@ -11048,6 +11048,155 @@
       white-space: normal;
     }
 
+    /* ── Records overview cards ───────────────────────────────────────────
+       Ten entry points, each carrying its section's best record. The stat is
+       the largest thing in the card because the stat is the reason to click;
+       the section name leads because the card's job is navigation.
+       Sizes follow the same ladder as the rest of Records, and no tier here
+       re-introduces uppercase — that belongs to column headers now. */
+
+    .rec-ov-intro {
+      grid-column: 1 / -1;
+      margin: 0 0 0.35rem;
+      font-family: var(--font-sans);
+      font-size: 0.8rem;
+      line-height: 1.5;
+      color: var(--text2);
+      max-width: 62ch;
+    }
+
+    /* Songs / Artists / Albums toggle. Shares the shape of the section nav
+       pills above it so the two rows read as the same kind of control. */
+    .rec-ov-types {
+      grid-column: 1 / -1;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.35rem;
+      margin-bottom: 0.2rem;
+    }
+
+    .rec-ov-type {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      color: var(--text2);
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      padding: 0.34rem 0.75rem;
+      border-radius: var(--r-xs);
+      cursor: pointer;
+      transition: background 0.15s, color 0.15s, border-color 0.15s;
+    }
+
+    .rec-ov-type:hover {
+      background: var(--bg3);
+      color: var(--text);
+      border-color: var(--border2);
+    }
+
+    .rec-ov-type:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
+    }
+
+    .rec-ov-type.active {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: var(--on-accent);
+    }
+
+    /* Same carve-out the records nav needs: on the yellow themes the accent is
+       light enough that --on-accent would sit white-on-yellow. */
+    body.yellow .rec-ov-type.active {
+      color: #1a1a00;
+    }
+
+    .rec-ov-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+      gap: 0.6rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .rec-ov-card {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 0.1rem;
+      width: 100%;
+      text-align: left;
+      padding: 0.85rem 0.95rem 0.8rem;
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: var(--r-md);
+      cursor: pointer;
+      /* a <button> inherits neither font nor colour from the page, and
+         .rec-ov-name deliberately sets no family of its own */
+      font-family: var(--font-sans);
+      color: var(--text);
+      /* colour-only hover per the design system — no scale or shadow pop */
+      transition: background 0.15s, border-color 0.15s;
+    }
+
+    .rec-ov-card:hover {
+      background: var(--bg3);
+      border-color: var(--border2);
+    }
+
+    .rec-ov-card:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
+    }
+
+    .rec-ov-title {
+      font-family: var(--font-display);
+      font-size: 0.9rem;
+      font-weight: 600;
+      line-height: 1.25;
+      color: var(--text);
+    }
+
+    .rec-ov-value {
+      font-family: var(--font-mono);
+      font-size: 1.35rem;
+      font-weight: 500;
+      line-height: 1.2;
+      font-variant-numeric: tabular-nums;
+      color: var(--accent);
+      margin-top: 0.3rem;
+    }
+
+    .rec-ov-name {
+      font-size: 0.85rem;
+      font-weight: 600;
+      line-height: 1.3;
+      color: var(--text);
+      /* long artist/song names must not stretch their grid column */
+      overflow-wrap: anywhere;
+    }
+
+    .rec-ov-sub {
+      font-weight: 400;
+      color: var(--text3);
+    }
+
+    .rec-ov-label {
+      font-family: var(--font-sans);
+      font-size: 0.72rem;
+      line-height: 1.35;
+      color: var(--text2);
+      margin-top: 0.2rem;
+    }
+
+    .rec-ov-card-empty .rec-ov-value {
+      color: var(--text3);
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .rec-ov-card {
+        transition: none;
+      }
+    }
+
     /* Section descriptions are prose, so they leave mono per the
        Mono-Means-Data rule. Scoped so only Records is affected. */
     #recordsView .section-sub {

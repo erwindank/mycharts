@@ -1392,7 +1392,9 @@
       </div>
       <div class="rec-intro" id="recIntro">Load your data to see records.</div>
       <div class="records-nav" id="recordsNav">
-        <button class="records-nav-btn active" data-rec-view="recAllOnesSection" data-i18n="rec_nav_all_ones">All
+        <button class="records-nav-btn active" data-rec-view="recOverviewSection"
+          data-i18n="rec_nav_overview">Overview</button>
+        <button class="records-nav-btn" data-rec-view="recAllOnesSection" data-i18n="rec_nav_all_ones">All
           #1s</button>
         <button class="records-nav-btn" data-rec-view="recPAKSection" data-i18n="rec_nav_pak">Perfect All Kill</button>
         <button class="records-nav-btn" data-rec-view="recAppearancesSection"
@@ -1417,6 +1419,10 @@
           <button data-rec-size="100">100</button>
           <button data-rec-size="0">All</button>
         </div>
+      </div>
+
+      <div id="recOverviewSection">
+        <div class="rec-ov-grid" id="recOverviewBody"></div>
       </div>
 
       <div class="chart-section" id="recAllOnesSection">

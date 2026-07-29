@@ -5057,10 +5057,277 @@ function buildRecords() {
   }
   sh += '</div>';
   document.getElementById('recStreaksBody').innerHTML = sh;
+
+  /* ── Overview highlights ────────────────────────────────────────────
+     One headline record per section, per chart type, for the landing
+     screen's Songs / Artists / Albums toggle. Every source map below is
+     already built and in scope by this point, so this is a single O(n)
+     pass per map with no re-derivation.
+
+     Not every record exists for every type: albums have no play-count
+     milestones, no fastest-to-milestone and no listening streaks, because
+     those are only tracked per artist and per song. Those combinations are
+     simply left unset and the overview renders them as empty cards. */
+  const recHi = {};
+  function hi(sectionId, type, label, value, name, sub) {
+    if (!value) return;
+    if (!recHi[sectionId]) recHi[sectionId] = {};
+    recHi[sectionId][type] = { label: label, value: value, name: name || '', sub: sub || '' };
+  }
+  // Single-pass "best entry" helpers — cheaper and clearer than sorting to take [0].
+  function topNum(map) {
+    let bk = null, bv = -Infinity;
+    for (const k in map) if (map[k] > bv) { bv = map[k]; bk = k; }
+    return bk === null ? null : [bk, bv];
+  }
+  function topBy(map, worseThan) {
+    let best = null;
+    for (const k in map) { const e = [k, map[k]]; if (!best || worseThan(best, e)) best = e; }
+    return best;
+  }
+  const byCount = (best, e) => e[1].count > best[1].count;
+  // Debuts rank by plays, then by chart position, then by earliest period.
+  // Must return a real boolean, not a comparator number — topBy tests it for
+  // truthiness, and a negative difference would read as "better".
+  const byDebut = function (best, e) {
+    const a = e[1], b = best[1];
+    if ((a.plays || 0) !== (b.plays || 0)) return (a.plays || 0) > (b.plays || 0);
+    if (a.rank !== b.rank) return a.rank < b.rank;
+    return a.period.localeCompare(b.period) < 0;
+  };
+  const songNm = k => (songNames[k] || {}).title || String(k).split('|||')[0];
+  const songArt = k => (songNames[k] || {}).artist || '';
+  const albumNm = k => (albumNames[k] || {}).album || String(k).split('|||')[0];
+  const albumArt = k => (albumNames[k] || {}).artist || '';
+
+  // All #1s — most periods spent at the top spot
+  {
+    const L = t('rec_ov_all_ones');
+    const s = topBy(song1s.week, byCount), a = topBy(artist1s.week, byCount), l = topBy(album1s.week, byCount);
+    if (s) hi('recAllOnesSection', 'songs', L, tCount('weeks_full', s[1].count), s[1].title, s[1].artist);
+    if (a) hi('recAllOnesSection', 'artists', L, tCount('weeks_full', a[1].count), a[0]);
+    if (l) hi('recAllOnesSection', 'albums', L, tCount('weeks_full', l[1].count), l[1].album, l[1].artist);
+  }
+
+  // Perfect All Kill — a PAK is an artist event, but each one also crowns a
+  // song and an album, so all three types have a most-frequent entry.
+  if (pakWeeks.length) {
+    const L = t('rec_ov_pak');
+    const tally = function (field) {
+      const m = {};
+      for (const pw of pakWeeks) { const v = pw[field]; if (v) m[v] = (m[v] || 0) + 1; }
+      return topNum(m);
+    };
+    const s = tally('song'), a = tally('artist'), l = tally('album');
+    if (s) hi('recPAKSection', 'songs', L, tCount('weeks_full', s[1]), s[0]);
+    if (a) hi('recPAKSection', 'artists', L, tCount('weeks_full', a[1]), a[0]);
+    if (l) hi('recPAKSection', 'albums', L, tCount('weeks_full', l[1]), l[0]);
+  }
+
+  // Most chart appearances — weeks spent anywhere on the chart
+  {
+    const L = t('rec_ov_appearances');
+    const s = topNum(songApps.week), a = topNum(artistApps.week), l = topNum(albumApps.week);
+    if (s) hi('recAppearancesSection', 'songs', L, tCount('weeks_full', s[1]), songNm(s[0]), songArt(s[0]));
+    if (a) hi('recAppearancesSection', 'artists', L, tCount('weeks_full', a[1]), a[0]);
+    if (l) hi('recAppearancesSection', 'albums', L, tCount('weeks_full', l[1]), albumNm(l[0]), albumArt(l[0]));
+  }
+
+  // Biggest weekly debut
+  {
+    const L = t('rec_ov_debuts');
+    const val = d => t('rec_ov_debut_value', { rank: d.rank, plays: tCount('plays', d.plays || 0) });
+    const s = topBy(songDebuts.week, byDebut), a = topBy(artistDebuts.week, byDebut), l = topBy(albumDebuts.week, byDebut);
+    if (s) hi('recDebutsSection', 'songs', L, val(s[1]), s[1].title, s[1].artist);
+    if (a) hi('recDebutsSection', 'artists', L, val(a[1]), a[0]);
+    if (l) hi('recDebutsSection', 'albums', L, val(l[1]), l[1].album, l[1].artist);
+  }
+
+  // Most plays inside a single week
+  {
+    const L = t('rec_ov_peak_plays');
+    const s = topBy(songPP.week, byCount), a = topBy(artistPP.week, byCount), l = topBy(albumPP.week, byCount);
+    if (s) hi('recPeakPlaysSection', 'songs', L, tCount('plays', s[1].count), s[1].title || songNm(s[0]), s[1].artist || songArt(s[0]));
+    if (a) hi('recPeakPlaysSection', 'artists', L, tCount('plays', a[1].count), a[0]);
+    if (l) hi('recPeakPlaysSection', 'albums', L, tCount('plays', l[1].count), l[1].album || albumNm(l[0]), l[1].artist || albumArt(l[0]));
+  }
+
+  // Highest play-count milestone reached (artists and songs only).
+  // Walk down from the largest milestone; the first one anybody reached wins,
+  // so this normally exits on its first or second iteration.
+  {
+    const L = t('rec_ov_milestones');
+    const firstTo = function (msMap) {
+      for (let i = MILESTONES.length - 1; i >= 0; i--) {
+        const m = MILESTONES[i];
+        let best = null;
+        for (const k in msMap) {
+          const ms = msMap[k][m];
+          if (ms && (!best || ms.date < best[1].date)) best = [k, ms];
+        }
+        if (best) return { m: m, key: best[0], ms: best[1] };
+      }
+      return null;
+    };
+    const a = firstTo(artistMS), s = firstTo(songMS);
+    if (s) hi('recMilestonesSection', 'songs', L, tCount('plays', s.m), songNm(s.key), fmtDate(s.ms.date));
+    if (a) hi('recMilestonesSection', 'artists', L, tCount('plays', a.m), a.key, fmtDate(a.ms.date));
+  }
+
+  // Fastest to a milestone (artists and songs only). The section itself uses
+  // 1,000 plays for artists and 500 for songs, so the labels differ too.
+  {
+    const fastest = function (msMap, target) {
+      let best = null;
+      for (const k in msMap) {
+        const ms = msMap[k][target];
+        if (ms && (!best || ms.days < best[1].days)) best = [k, ms];
+      }
+      return best;
+    };
+    const a = fastest(artistMS, 1000), s = fastest(songMS, 500);
+    if (s) hi('recFastestSection', 'songs', t('rec_ov_fastest', { n: (500).toLocaleString() }),
+      tCount('days', s[1].days), songNm(s[0]), songArt(s[0]));
+    if (a) hi('recFastestSection', 'artists', t('rec_ov_fastest', { n: (1000).toLocaleString() }),
+      tCount('days', a[1].days), a[0]);
+  }
+
+  /* Certifications. Artists rank by how many they hold, which is a genuine
+     ordering. Songs and albums can't be ranked that way — plenty of them
+     reach Diamond eventually, so "a Diamond song" is not a record and
+     picking the one with the most plays is arbitrary. The record is who got
+     there FIRST: take the highest tier anyone reached, then the earliest
+     certification date at that tier. */
+  {
+    if (certW[0]) {
+      const c0 = certW[0], nCert = c0.sg + c0.sp + c0.sd + c0.ag + c0.ap + c0.ad;
+      hi('recCertsSection', 'artists', t('rec_ov_certs'), t('rec_ov_certs_value', { n: nCert }), c0.art);
+    }
+    const firstToTopTier = function (type) {
+      let best = null, bestOrd = Infinity;
+      for (const w of wallItems) {
+        if (w.type !== type) continue;
+        const ord = _wTierOrd[w.tier];
+        if (ord > bestOrd) continue;
+        if (ord < bestOrd) { bestOrd = ord; best = w; continue; }
+        // Same tier: earliest certification wins. Undated items never displace
+        // a dated one, and only stand in if nothing dated exists.
+        if (w.date && (!best.date || w.date < best.date)) best = w;
+      }
+      return best;
+    };
+    [['songs', 'song'], ['albums', 'album']].forEach(function (pair) {
+      const w = firstToTopTier(pair[1]);
+      if (!w) return;
+      hi('recCertsSection', pair[0], t('rec_ov_certs_first'), t('rec_ov_cert_tier_' + w.tier),
+        w.title, w.date ? fmtDate(new Date(w.date + 'T00:00:00')) : w.artist);
+    });
+  }
+
+  // Longest run of consecutive listening days (artists and songs only)
+  {
+    const L = t('rec_ov_streaks');
+    const s = topNum(songStreaks), a = topNum(artistStreaks);
+    if (s) hi('recStreaksSection', 'songs', L, tCount('days', s[1]), songNm(s[0]), songArt(s[0]));
+    if (a) hi('recStreaksSection', 'artists', L, tCount('days', a[1]), a[0]);
+  }
+
+  // Biggest debut on the New Songs / New Artists / New Albums charts
+  {
+    const L = t('rec_ov_new_charts');
+    const val = d => t('rec_ov_debut_value', { rank: d.rank, plays: tCount('plays', d.plays || 0) });
+    const s = topBy(ncSongDebuts.week, byDebut), a = topBy(ncArtistDebuts.week, byDebut), l = topBy(ncAlbumDebuts.week, byDebut);
+    if (s) hi('recNewChartsSection', 'songs', L, val(s[1]), s[1].title, s[1].artist);
+    if (a) hi('recNewChartsSection', 'artists', L, val(a[1]), a[0]);
+    if (l) hi('recNewChartsSection', 'albums', L, val(l[1]), l[1].album, l[1].artist);
+  }
+
+  renderRecordsOverview(recHi);
   setupRecordSubsectionCollapse();
   restoreRecordSubsectionCollapseStates();
   initAllRecTableResizableCols();
   initAllRecTableSorting();
+}
+
+/* ── Records overview ──────────────────────────────────────────────────
+   The landing screen: one card per section showing that section's single
+   best record, so Records opens with something to read instead of dropping
+   you into whichever table happened to be first.
+
+   Card titles are read out of each section's own <h2> rather than kept in a
+   second list here, so they cannot drift apart and stay translated. */
+const REC_OV_TYPES = [
+  { key: 'songs', label: 'rec_th_songs' },
+  { key: 'artists', label: 'rec_th_artists' },
+  { key: 'albums', label: 'rec_th_albums' },
+];
+
+// Held so the Songs/Artists/Albums toggle can re-render from memory instead of
+// re-running buildRecords(), which would rebuild all ~55 tables to change a pill.
+let _recOvHighlights = {};
+
+function recOverviewType() {
+  const stored = localStorage.getItem('dc_rec_ov_type');
+  return REC_OV_TYPES.some(function (ty) { return ty.key === stored; }) ? stored : 'songs';
+}
+
+function renderRecordsOverview(highlights) {
+  const body = document.getElementById('recOverviewBody');
+  if (!body) return;
+  if (highlights) _recOvHighlights = highlights;
+  const type = recOverviewType();
+  const sections = REC_SECTION_IDS.filter(function (id) { return id !== 'recOverviewSection'; });
+
+  let html = '<p class="rec-ov-intro">' + esc(t('rec_ov_intro')) + '</p>';
+  html += '<div class="rec-ov-types" role="group" aria-label="' + esc(t('rec_ov_type_label')) + '">';
+  html += REC_OV_TYPES.map(function (ty) {
+    return '<button type="button" class="rec-ov-type' + (ty.key === type ? ' active' : '') +
+      '" data-rec-ov-type="' + ty.key + '" aria-pressed="' + (ty.key === type) + '">' +
+      esc(t(ty.label)) + '</button>';
+  }).join('');
+  html += '</div>';
+
+  html += sections.map(function (id) {
+    const sec = document.getElementById(id);
+    if (!sec) return '';
+    const heading = sec.querySelector('.section-header-h2');
+    const title = heading ? heading.textContent.trim() : id;
+    const d = (_recOvHighlights[id] || {})[type];
+    const hasRecord = !!(d && d.value);
+
+    let card = '<button type="button" class="rec-ov-card' + (hasRecord ? '' : ' rec-ov-card-empty') +
+      '" data-rec-goto="' + esc(id) + '">';
+    card += '<span class="rec-ov-title">' + esc(title) + '</span>';
+    card += '<span class="rec-ov-value">' + (hasRecord ? esc(d.value) : '—') + '</span>';
+    if (hasRecord && d.name) {
+      card += '<span class="rec-ov-name">' + esc(d.name) +
+        (d.sub ? '<span class="rec-ov-sub"> · ' + esc(d.sub) + '</span>' : '') + '</span>';
+    }
+    card += '<span class="rec-ov-label">' + esc(hasRecord ? d.label : t('rec_ov_no_type_record')) + '</span>';
+    card += '</button>';
+    return card;
+  }).join('');
+
+  body.innerHTML = html;
+
+  if (body.dataset.ready !== '1') {
+    body.dataset.ready = '1';
+    body.addEventListener('click', function (e) {
+      const typeBtn = e.target.closest('[data-rec-ov-type]');
+      if (typeBtn) {
+        localStorage.setItem('dc_rec_ov_type', typeBtn.dataset.recOvType);
+        renderRecordsOverview(); // re-reads the cached highlights, no rebuild
+        return;
+      }
+      const card = e.target.closest('[data-rec-goto]');
+      if (!card) return;
+      const view = card.dataset.recGoto;
+      localStorage.setItem('dc_records_active_view', view);
+      applyRecordsViewFilter(view);
+      const rv = document.getElementById('recordsView');
+      if (rv && rv.scrollIntoView) rv.scrollIntoView({ block: 'start', behavior: 'auto' });
+    });
+  }
 }
 
 function initAllRecTableResizableCols() {
@@ -5326,6 +5593,7 @@ function initRecordsViewUI() {
 }
 
 const REC_SECTION_IDS = [
+  'recOverviewSection',
   'recAllOnesSection',
   'recPAKSection',
   'recAppearancesSection',
@@ -5337,12 +5605,12 @@ const REC_SECTION_IDS = [
   'recStreaksSection',
   'recNewChartsSection'
 ];
-const REC_DEFAULT_VIEW = 'recAllOnesSection';
+const REC_DEFAULT_VIEW = 'recOverviewSection';
 
 function applyRecordsViewFilter(view) {
   // The old "All" pill rendered all ten sections at once — ~55 tables and
   // several hundred image lookups in one scroll. It's gone, so migrate any
-  // stored 'all' (and any stale id) back to the default section.
+  // stored 'all' (and any stale id) back to the default view.
   if (REC_SECTION_IDS.indexOf(view) === -1) {
     view = REC_DEFAULT_VIEW;
     localStorage.setItem('dc_records_active_view', view);
@@ -5355,6 +5623,9 @@ function applyRecordsViewFilter(view) {
   document.querySelectorAll('#recordsNav .records-nav-btn').forEach(b => {
     b.classList.toggle('active', b.dataset.recView === view);
   });
+  // The entries-per-table control has nothing to act on from the overview.
+  const sizeBar = document.getElementById('recordsSizeBar');
+  if (sizeBar) sizeBar.style.display = view === 'recOverviewSection' ? 'none' : '';
   if (typeof window._refreshBackToTop === 'function') window._refreshBackToTop();
 }
 
@@ -5764,7 +6035,7 @@ document.getElementById('periodNav').addEventListener('click', e => {
     initRecordsViewUI();
     restoreRecordSectionCollapseState();
     buildRecords();
-    applyRecordsViewFilter(localStorage.getItem('dc_records_active_view') || 'recAllOnesSection');
+    applyRecordsViewFilter(localStorage.getItem('dc_records_active_view') || REC_DEFAULT_VIEW);
     if (typeof window._refreshBackToTop === 'function') window._refreshBackToTop();
     updateScrobbleBtn();
     return;
