@@ -11211,6 +11211,65 @@
       border-radius: 2px;
     }
 
+    /* Sortable column headers. Selectors carry both the table class and the
+       th class so they outrank `.rec-table thead th` / `.milestone-table th`,
+       which set color, background and padding on the same elements.
+       The resize grip owns the last ~5px of the th, so the arrow gets its own
+       padding rather than sitting underneath it. */
+    .rec-table thead th.rec-sortable,
+    .milestone-table thead th.rec-sortable {
+      cursor: pointer;
+      user-select: none;
+      padding-right: 1.15rem;
+      transition: color 0.15s, background 0.15s;
+    }
+
+    .rec-table thead th.rec-sortable:hover,
+    .milestone-table thead th.rec-sortable:hover {
+      background: var(--surface);
+      color: var(--text);
+    }
+
+    .rec-table thead th.rec-sortable:focus-visible,
+    .milestone-table thead th.rec-sortable:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: -2px;
+    }
+
+    .rec-table thead th.rec-sorted,
+    .milestone-table thead th.rec-sorted {
+      color: var(--accent);
+    }
+
+    .rec-sort-ind {
+      margin-left: 0.35em;
+      font-size: 0.85em;
+      line-height: 1;
+      opacity: 0;
+      transition: opacity 0.15s;
+    }
+
+    .rec-table thead th.rec-sortable:hover .rec-sort-ind,
+    .rec-table thead th.rec-sortable:focus-visible .rec-sort-ind,
+    .milestone-table thead th.rec-sortable:hover .rec-sort-ind,
+    .milestone-table thead th.rec-sortable:focus-visible .rec-sort-ind {
+      opacity: 0.4;
+    }
+
+    .rec-table thead th.rec-sorted .rec-sort-ind,
+    .milestone-table thead th.rec-sorted .rec-sort-ind {
+      opacity: 1;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+
+      .rec-table thead th.rec-sortable,
+      .milestone-table thead th.rec-sortable,
+      .rec-sort-ind {
+        transition: none;
+      }
+    }
+
     .rec-table thead th:last-child {
       border-right: none;
     }

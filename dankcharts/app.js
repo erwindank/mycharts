@@ -5060,6 +5060,7 @@ function buildRecords() {
   setupRecordSubsectionCollapse();
   restoreRecordSubsectionCollapseStates();
   initAllRecTableResizableCols();
+  initAllRecTableSorting();
 }
 
 function initAllRecTableResizableCols() {
@@ -5103,6 +5104,177 @@ function initResizableColsForTable(table) {
   });
 }
 
+/* ── Sortable record tables ────────────────────────────────────────────
+   Every record table ships hard-sorted by one metric. These helpers let a
+   column header re-sort the rendered rows in place, so "most appearances"
+   also answers "who charted earliest" without a second table.
+
+   Rank cells are deliberately NOT renumbered: the # column carries the
+   table's canonical ranking, so sorting by another column and seeing #14
+   land at the top is the information, not a bug. Sorting by # restores the
+   original order. */
+
+// Rows that belong to the row above them and must travel with it.
+const REC_DETAIL_ROW_SEL = '.rec-run-detail, .app-cr-row, .pak-expand-row';
+
+// Month names come from the active language, so the map is rebuilt per sort.
+function recMonthNameMap() {
+  const keys = ['month_jan', 'month_feb', 'month_mar', 'month_apr', 'month_may_short', 'month_jun',
+    'month_jul', 'month_aug', 'month_sep', 'month_oct', 'month_nov', 'month_dec'];
+  const map = [];
+  keys.forEach(function (k, i) {
+    const name = String(t(k) || '').toLowerCase();
+    if (name) map.push([name, i + 1]);
+  });
+  // Longest first, so a short month name can't match inside a longer one.
+  map.sort(function (a, b) { return b[0].length - a[0].length; });
+  return map;
+}
+
+/* Record dates render through fmt()/fmtPeriodKey() in four shapes:
+   "11 Mar 2024", "Mar 2024", "Week of 11 Mar 2024", "2024" — all localized.
+   Collapse whichever one matches into a comparable YYYYMMDD integer. */
+function recParseDateValue(text, monthMap) {
+  const lower = text.toLowerCase();
+  for (let i = 0; i < monthMap.length; i++) {
+    const name = monthMap[i][0];
+    const at = lower.indexOf(name);
+    if (at === -1) continue;
+    const year = (lower.slice(at + name.length).match(/(\d{4})/) || [])[1];
+    if (!year) continue;
+    const day = (lower.slice(0, at).match(/(\d{1,2})\s*$/) || [])[1] || '1';
+    return (+year) * 10000 + monthMap[i][1] * 100 + (+day);
+  }
+  const iso = text.match(/^(\d{4})-(\d{2})(?:-(\d{2}))?$/);
+  if (iso) return (+iso[1]) * 10000 + (+iso[2]) * 100 + (+(iso[3] || 1));
+  if (/^\d{4}$/.test(text)) return (+text) * 10000;
+  return null;
+}
+
+// "312", "1,234", "312 weeks", "#4", "47%" are numbers. "Song 2" is not.
+const REC_NUMERIC_RE = /^[#+-]?[\d.,]+\s*[a-z%×]{0,12}$/i;
+
+function recCellSortValue(td, monthMap) {
+  if (!td) return { empty: true, num: null, str: '' };
+  if (td.dataset && td.dataset.sort !== undefined) {
+    const raw = td.dataset.sort.trim();
+    const n = parseFloat(raw);
+    return { empty: raw === '', num: isFinite(n) ? n : null, str: raw.toLowerCase() };
+  }
+  const text = (td.textContent || '').replace(/\s+/g, ' ').trim();
+  if (!text || text === '—' || text === '-') return { empty: true, num: null, str: '' };
+  const date = recParseDateValue(text, monthMap);
+  if (date !== null) return { empty: false, num: date, str: text.toLowerCase() };
+  if (REC_NUMERIC_RE.test(text)) {
+    const n = parseFloat(text.replace(/,/g, '').replace(/[^\d.-]/g, ''));
+    if (isFinite(n)) return { empty: false, num: n, str: text.toLowerCase() };
+  }
+  return { empty: false, num: null, str: text.toLowerCase() };
+}
+
+function sortRecTable(table, colIndex, dir) {
+  const tbody = table.tBodies[0];
+  if (!tbody) return;
+  const monthMap = recMonthNameMap();
+
+  // Group each visible row with the detail rows that trail it.
+  const units = [];
+  Array.from(tbody.rows).forEach(function (row) {
+    if (row.matches(REC_DETAIL_ROW_SEL)) {
+      if (units.length) units[units.length - 1].rows.push(row);
+      return;
+    }
+    units.push({ rows: [row], cell: row.cells[colIndex] });
+  });
+  if (units.length < 2) return;
+
+  units.forEach(function (u, i) {
+    u.order = i;
+    u.val = recCellSortValue(u.cell, monthMap);
+  });
+
+  // One comparator for the whole column, chosen by majority, so a stray
+  // unparsable cell can't split the column into two orderings.
+  const filled = units.filter(function (u) { return !u.val.empty; });
+  const numeric = filled.length > 0 &&
+    filled.filter(function (u) { return u.val.num !== null; }).length / filled.length >= 0.6;
+
+  units.sort(function (a, b) {
+    // Blanks ("—") always sink, whichever direction is active.
+    if (a.val.empty !== b.val.empty) return a.val.empty ? 1 : -1;
+    if (a.val.empty) return a.order - b.order;
+    let cmp;
+    if (numeric) {
+      const an = a.val.num, bn = b.val.num;
+      if (an === null && bn === null) cmp = a.val.str.localeCompare(b.val.str);
+      else if (an === null) return 1;
+      else if (bn === null) return -1;
+      else cmp = an - bn;
+    } else {
+      cmp = a.val.str.localeCompare(b.val.str, undefined, { numeric: true, sensitivity: 'base' });
+    }
+    if (cmp) return dir === 'asc' ? cmp : -cmp;
+    return a.order - b.order; // stable: equal values keep canonical rank order
+  });
+
+  const frag = document.createDocumentFragment();
+  units.forEach(function (u) { u.rows.forEach(function (r) { frag.appendChild(r); }); });
+  tbody.appendChild(frag);
+}
+
+function initAllRecTableSorting() {
+  document.querySelectorAll('#recordsView .rec-table, #recordsView .milestone-table')
+    .forEach(initSortableColsForTable);
+}
+
+function initSortableColsForTable(table) {
+  if (table.dataset.sortReady === '1') return;
+  table.dataset.sortReady = '1';
+  const ths = Array.from(table.querySelectorAll('thead th'));
+
+  ths.forEach(function (th, i) {
+    // Skip artwork columns (no header text) and the expand-all control column.
+    if (th.querySelector('button')) return;
+    if (!th.textContent.replace(/\s+/g, '').length) return;
+
+    th.classList.add('rec-sortable');
+    th.tabIndex = 0;
+    th.setAttribute('role', 'columnheader');
+    th.setAttribute('aria-sort', 'none');
+    const ind = document.createElement('span');
+    ind.className = 'rec-sort-ind';
+    ind.setAttribute('aria-hidden', 'true');
+    ind.textContent = '▲';
+    th.appendChild(ind);
+
+    function activate(e) {
+      // The resize grip lives inside the th; dragging it must not re-sort.
+      if (e && e.target && e.target.closest && e.target.closest('.col-resize-handle')) return;
+      const dir = th.dataset.sortDir === 'asc' ? 'desc' : 'asc';
+      ths.forEach(function (other) {
+        if (other === th) return;
+        delete other.dataset.sortDir;
+        other.classList.remove('rec-sorted');
+        if (other.hasAttribute('aria-sort')) other.setAttribute('aria-sort', 'none');
+        const oi = other.querySelector('.rec-sort-ind');
+        if (oi) oi.textContent = '▲';
+      });
+      th.dataset.sortDir = dir;
+      th.classList.add('rec-sorted');
+      th.setAttribute('aria-sort', dir === 'asc' ? 'ascending' : 'descending');
+      ind.textContent = dir === 'asc' ? '▲' : '▼';
+      sortRecTable(table, i, dir);
+    }
+
+    th.addEventListener('click', activate);
+    th.addEventListener('keydown', function (e) {
+      if (e.key !== 'Enter' && e.key !== ' ') return;
+      e.preventDefault();
+      activate(e);
+    });
+  });
+}
+
 function restoreRecordSubsectionCollapseStates() {
   const wrappers = document.querySelectorAll('.rec-section-sub-wrapper');
   wrappers.forEach(wrapper => {
@@ -5132,7 +5304,7 @@ function initRecordsViewUI() {
   nav.addEventListener('click', e => {
     const btn = e.target.closest('.records-nav-btn');
     if (!btn) return;
-    const view = btn.dataset.recView || 'all';
+    const view = btn.dataset.recView || REC_DEFAULT_VIEW;
     localStorage.setItem('dc_records_active_view', view);
     applyRecordsViewFilter(view);
   });
@@ -5153,26 +5325,35 @@ function initRecordsViewUI() {
   }
 }
 
+const REC_SECTION_IDS = [
+  'recAllOnesSection',
+  'recPAKSection',
+  'recAppearancesSection',
+  'recDebutsSection',
+  'recPeakPlaysSection',
+  'recMilestonesSection',
+  'recFastestSection',
+  'recCertsSection',
+  'recStreaksSection',
+  'recNewChartsSection'
+];
+const REC_DEFAULT_VIEW = 'recAllOnesSection';
+
 function applyRecordsViewFilter(view) {
-  const sectionIds = [
-    'recAllOnesSection',
-    'recPAKSection',
-    'recAppearancesSection',
-    'recDebutsSection',
-    'recPeakPlaysSection',
-    'recMilestonesSection',
-    'recFastestSection',
-    'recCertsSection',
-    'recStreaksSection',
-    'recNewChartsSection'
-  ];
-  sectionIds.forEach(id => {
+  // The old "All" pill rendered all ten sections at once — ~55 tables and
+  // several hundred image lookups in one scroll. It's gone, so migrate any
+  // stored 'all' (and any stale id) back to the default section.
+  if (REC_SECTION_IDS.indexOf(view) === -1) {
+    view = REC_DEFAULT_VIEW;
+    localStorage.setItem('dc_records_active_view', view);
+  }
+  REC_SECTION_IDS.forEach(id => {
     const el = document.getElementById(id);
     if (!el) return;
-    el.style.display = (view === 'all' || view === id) ? '' : 'none';
+    el.style.display = view === id ? '' : 'none';
   });
   document.querySelectorAll('#recordsNav .records-nav-btn').forEach(b => {
-    b.classList.toggle('active', (b.dataset.recView || 'all') === view);
+    b.classList.toggle('active', b.dataset.recView === view);
   });
   if (typeof window._refreshBackToTop === 'function') window._refreshBackToTop();
 }
