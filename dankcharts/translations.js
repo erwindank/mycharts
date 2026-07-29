@@ -132,6 +132,15 @@ const TRANSLATIONS = {
     stat_per_day: '/day',
     stat_pct_new: '% NEW',
 
+    // Image picker popover
+    imgpk_title: 'Choose image',
+    imgpk_loading: 'Searching…',
+    imgpk_empty: 'No results',
+    imgpk_auto: '↺ Automatic',
+    imgpk_none: 'No image',
+    imgpk_url_ph: 'Paste image URL…',
+    imgpk_apply: 'Set',
+
     // Hero stats
     hero_total_plays: 'Total Plays',
     hero_days_listened: 'Days Listened',
@@ -293,7 +302,6 @@ const TRANSLATIONS = {
     btn_display_plays_peak: '📈 PLAYS PEAK',
     btn_display_peak_tags: '🏷️ PEAK TAGS',
     badge_plays_peak: 'PLAYS PEAK',
-    btn_display_pic_source: '🖼️ PIC SOURCE',
     btn_display_yt_btns: 'YOUTUBE',
     btn_display_bu_legend: '🏷️ BU LEGEND',
 
@@ -1512,7 +1520,6 @@ const TRANSLATIONS = {
     btn_display_plays_peak: '📈 PICO REPROS',
     btn_display_peak_tags: '🏷️ ETIQ. LOGRO',
     badge_plays_peak: 'LOGRO MÁS ALTO',
-    btn_display_pic_source: '🖼️ FUENTE FOTO',
     btn_display_yt_btns: 'YOUTUBE',
     btn_display_bu_legend: '🏷️ LEYENDA BU',
 
@@ -2725,7 +2732,6 @@ const TRANSLATIONS = {
     btn_display_cert: '🏅 SELOS CERT',
     btn_display_plays_peak: '📈 PICO REPROD.',
     btn_display_peak_tags: '🏷️ TAGS PICO',
-    btn_display_pic_source: '🖼️ FONTE FOTO',
     btn_display_yt_btns: 'YOUTUBE',
     btn_display_bu_legend: '🏷️ LEGENDA BU',
     badge_plays_peak: 'PICO DE REPROD.',
@@ -3940,7 +3946,6 @@ const TRANSLATIONS = {
     btn_display_cert: '🏅 SELOS CERT',
     btn_display_plays_peak: '📈 PICO REPROD.',
     btn_display_peak_tags: '🏷️ TAGS PICO',
-    btn_display_pic_source: '🖼️ FONTE FOTO',
     btn_display_yt_btns: 'YOUTUBE',
     btn_display_bu_legend: '🏷️ LEGENDA BU',
     badge_plays_peak: 'PICO DE REPROD.',

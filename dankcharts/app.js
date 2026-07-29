@@ -266,14 +266,12 @@ const SECTION_TOGGLE_CONFIG = {
     'plays-peak': { btnId: 'togglePlaysPeakBtn',        bodyClass: 'songs-hide-plays-peak' },
     'peak-tags':  { btnId: 'togglePeakTagsBtn',         bodyClass: 'songs-hide-peak-tags' },
     'yt-btns':    { btnId: 'toggleYtBtnsBtn',           bodyClass: 'songs-hide-yt-btns' },
-    'src':        { btnId: 'srcToggleBtn',               bodyClass: 'songs-hide-src-btns' },
     'bu-legend':  { btnId: 'toggleBuLegendBtn',          bodyClass: 'songs-hide-bu-legend' }
   },
   artists: {
     'plays-peak': { btnId: 'togglePlaysPeakBtnArtists', bodyClass: 'artists-hide-plays-peak' },
     'peak-tags':  { btnId: 'togglePeakTagsBtnArtists',  bodyClass: 'artists-hide-peak-tags' },
     'yt-btns':    { btnId: 'toggleYtBtnsBtnArtists',    bodyClass: 'artists-hide-yt-btns' },
-    'src':        { btnId: 'srcToggleBtnArtists',        bodyClass: 'artists-hide-src-btns' },
     'bu-legend':  { btnId: 'toggleBuLegendBtnArtists',   bodyClass: 'artists-hide-bu-legend' }
   },
   albums: {
@@ -281,26 +279,24 @@ const SECTION_TOGGLE_CONFIG = {
     'plays-peak': { btnId: 'togglePlaysPeakBtnAlbums',  bodyClass: 'albums-hide-plays-peak' },
     'peak-tags':  { btnId: 'togglePeakTagsBtnAlbums',   bodyClass: 'albums-hide-peak-tags' },
     'yt-btns':    { btnId: 'toggleYtBtnsBtnAlbums',     bodyClass: 'albums-hide-yt-btns' },
-    'src':        { btnId: 'srcToggleBtnAlbums',         bodyClass: 'albums-hide-src-btns' },
     'bu-legend':  { btnId: 'toggleBuLegendBtnAlbums',    bodyClass: 'albums-hide-bu-legend' }
   }
 };
 
-// Per-section state — cert/plays-peak/peak-tags/yt-btns/bu-legend default on; src defaults off
+// Per-section state — all toggles default on
 const sectionToggleState = (() => {
   function withDefaults(s) {
-    const d = { cert: true, 'plays-peak': true, 'peak-tags': true, 'yt-btns': true, src: false, 'bu-legend': true };
+    const d = { cert: true, 'plays-peak': true, 'peak-tags': true, 'yt-btns': true, 'bu-legend': true };
     return Object.assign(d, s || {});
   }
   try {
     const saved = JSON.parse(localStorage.getItem('dc_sectionDisplayToggles') || 'null');
     if (saved && saved.songs) return { songs: withDefaults(saved.songs), artists: withDefaults(saved.artists), albums: withDefaults(saved.albums) };
   } catch(e) {}
-  // Migrate from old flat dc_displayToggles + dankcharts-hideSrcBtns (applies to all sections)
+  // Migrate from old flat dc_displayToggles (applies to all sections)
   try {
     const old = JSON.parse(localStorage.getItem('dc_displayToggles') || '{}');
-    const srcOn = localStorage.getItem('dankcharts-hideSrcBtns') === '0';
-    const m = { cert: old.cert !== false, 'plays-peak': old['plays-peak'] !== false, 'peak-tags': old['peak-tags'] !== false, 'yt-btns': old['yt-btns'] !== false, src: srcOn };
+    const m = { cert: old.cert !== false, 'plays-peak': old['plays-peak'] !== false, 'peak-tags': old['peak-tags'] !== false, 'yt-btns': old['yt-btns'] !== false };
     return { songs: { ...m }, artists: { ...m }, albums: { ...m } };
   } catch(e) {}
   return { songs: withDefaults(), artists: withDefaults(), albums: withDefaults() };
@@ -606,11 +602,17 @@ const itemSourcePrefs = JSON.parse(localStorage.getItem('itemSourcePrefs') || '{
 // itemSourcePrefs because it's a sub-selection *within* the 'deezer' source,
 // not a different source.
 const deezerCandidateIdxPrefs = JSON.parse(localStorage.getItem('deezerCandidateIdxPrefs') || '{}');
+// Exact image the user picked in the picker popover, pinned per prefKey:
+// { url, source }. Checked before the automatic source cascade. source 'off'
+// means "show initials"; 'custom' is a user-pasted URL.
+const imgChoicePrefs = JSON.parse(localStorage.getItem('imgChoicePrefs') || '{}');
+function saveImgChoicePrefs() { localStorage.setItem('imgChoicePrefs', JSON.stringify(imgChoicePrefs)); }
 function srcLabel(s) {
   if (s === 'itunes') return 'iTunes';
   if (s === 'lastfm') return 'Last.fm';
   if (s === 'deezer') return 'Deezer';
   if (s === 'youtube') return YOUTUBE_KEY ? 'YouTube' : 'YT (no key)';
+  if (s === 'custom') return 'Custom';
   return '—';
 }
 
@@ -1754,36 +1756,94 @@ async function deezerArtistImage(artist) {
   return candidates[0] || null;
 }
 
+// Album/track candidate lists mirror deezerArtistImageCandidates: name-matched
+// results first, then the rest, de-duped — so the picker popover can offer
+// every plausible cover, not just the auto-picked top one. Memoized so the
+// picker and the normal load path share one search request.
+const deezerAlbumCandidateCache = {};
+function deezerAlbumImageCandidates(album, artist) {
+  const k = artist.toLowerCase() + '|||' + album.toLowerCase();
+  if (k in deezerAlbumCandidateCache) return deezerAlbumCandidateCache[k];
+  const p = (async () => {
+    try {
+      const r = await deezerFetch(`search/album?q=${encodeURIComponent(artist + ' ' + album)}&limit=10`);
+      if (!r.ok) return [];
+      const d = await r.json();
+      const items = d?.data || [];
+      const matches = items.filter(x =>
+        x.title?.toLowerCase().includes(album.toLowerCase()) &&
+        x.artist?.name?.toLowerCase().includes(artist.toLowerCase().split(/[\s,&]/)[0])
+      );
+      const urls = [];
+      for (const c of (matches.length ? matches : items)) {
+        const url = deezerPickImage(c, 'cover');
+        if (url && !urls.includes(url)) urls.push(url);
+      }
+      return urls;
+    } catch (e) { return []; }
+  })();
+  deezerAlbumCandidateCache[k] = p;
+  return p;
+}
+
 async function deezerAlbumImage(album, artist) {
-  const r = await deezerFetch(`search/album?q=${encodeURIComponent(artist + ' ' + album)}&limit=10`);
-  if (!r.ok) return null;
-  const d = await r.json();
-  const items = d?.data || [];
-  const matches = items.filter(x =>
-    x.title?.toLowerCase().includes(album.toLowerCase()) &&
-    x.artist?.name?.toLowerCase().includes(artist.toLowerCase().split(/[\s,&]/)[0])
-  );
-  for (const c of (matches.length ? matches : items)) {
-    const url = deezerPickImage(c, 'cover');
-    if (url) return url;
-  }
-  return null;
+  const candidates = await deezerAlbumImageCandidates(album, artist);
+  return candidates[0] || null;
+}
+
+const deezerTrackCandidateCache = {};
+function deezerTrackImageCandidates(track, artist) {
+  const k = artist.toLowerCase() + '|||' + track.toLowerCase();
+  if (k in deezerTrackCandidateCache) return deezerTrackCandidateCache[k];
+  const p = (async () => {
+    try {
+      const r = await deezerFetch(`search/track?q=${encodeURIComponent(artist + ' ' + track)}&limit=10`);
+      if (!r.ok) return [];
+      const d = await r.json();
+      const items = d?.data || [];
+      const matches = items.filter(x =>
+        x.title?.toLowerCase().includes(track.toLowerCase()) &&
+        x.artist?.name?.toLowerCase().includes(artist.toLowerCase().split(/[\s,&]/)[0])
+      );
+      const urls = [];
+      for (const c of (matches.length ? matches : items)) {
+        const url = deezerPickImage(c.album, 'cover');
+        if (url && !urls.includes(url)) urls.push(url);
+      }
+      return urls;
+    } catch (e) { return []; }
+  })();
+  deezerTrackCandidateCache[k] = p;
+  return p;
 }
 
 async function deezerTrackImage(track, artist) {
-  const r = await deezerFetch(`search/track?q=${encodeURIComponent(artist + ' ' + track)}&limit=10`);
-  if (!r.ok) return null;
-  const d = await r.json();
-  const items = d?.data || [];
-  const matches = items.filter(x =>
-    x.title?.toLowerCase().includes(track.toLowerCase()) &&
-    x.artist?.name?.toLowerCase().includes(artist.toLowerCase().split(/[\s,&]/)[0])
-  );
-  for (const c of (matches.length ? matches : items)) {
-    const url = deezerPickImage(c.album, 'cover');
-    if (url) return url;
-  }
-  return null;
+  const candidates = await deezerTrackImageCandidates(track, artist);
+  return candidates[0] || null;
+}
+
+// iTunes returns several results per search; surface each distinct artwork
+// as a picker candidate (the single-image getters only take the best match).
+async function itunesImageCandidates(type, name, artist, album) {
+  try {
+    let endpoint;
+    if (type === 'artist') {
+      endpoint = `https://itunes.apple.com/search?term=${encodeURIComponent(name)}&entity=musicTrack&limit=8&attribute=artistTerm`;
+    } else if (type === 'album') {
+      endpoint = `https://itunes.apple.com/search?term=${encodeURIComponent(artist + ' ' + album)}&entity=album&limit=8`;
+    } else {
+      endpoint = `https://itunes.apple.com/search?term=${encodeURIComponent(artist + ' ' + name)}&entity=musicTrack&limit=8`;
+    }
+    const r = await fetch(endpoint);
+    const d = await r.json();
+    const size = type === 'album' ? '600x600bb' : '300x300bb';
+    const urls = [];
+    for (const x of (d?.results || [])) {
+      const u = x.artworkUrl100 && x.artworkUrl100.replace('100x100bb', size);
+      if (u && !urls.includes(u)) urls.push(u);
+    }
+    return urls;
+  } catch (e) { return []; }
 }
 
 // The YouTube key is a shared public quota — once it's exhausted (429/403)
@@ -1957,6 +2017,34 @@ async function _imgFallback(img) {
 
 // Fetch and inject a single image into its container element
 async function fetchAndInjectImage(el, item, type) {
+  // A picker-pinned choice wins over the automatic source cascade.
+  const choice = item.prefKey && imgChoicePrefs[item.prefKey];
+  if (choice) {
+    if (!document.getElementById(item.imgId)) return;
+    const pinFallback = item.name || item.title || item.album || '';
+    if (choice.source === 'off' || !choice.url) {
+      el.innerHTML = `<div class="thumb-initials">${esc(initials(pinFallback))}</div>`;
+    } else {
+      el.innerHTML = `<img class="thumb" alt="" loading="lazy" data-imgid="${esc(item.imgId || '')}" data-type="${esc(type)}" data-prefkey="${esc(item.prefKey || '')}" data-name="${esc(item.name || item.title || '')}" data-artist="${esc(item.artist || '')}" data-album="${esc(item.album || '')}">`;
+      const pinImg = el.querySelector('img');
+      pinImg.onerror = function() {
+        // The pinned URL died (CDN rotation, deleted upload) — unpin it and
+        // fall back to the automatic cascade instead of a broken image.
+        delete imgChoicePrefs[item.prefKey];
+        saveImgChoicePrefs();
+        fetchAndInjectImage(el, item, type);
+      };
+      pinImg.src = choice.url;
+      const _pinMosTile = el.closest && el.closest('.wv-mos-item');
+      if (_pinMosTile && !_pinMosTile.classList.contains('wv-r1') && !_pinMosTile.classList.contains('wv-r2') && !_pinMosTile.classList.contains('wv-r3')) {
+        _mosDominantGlow(choice.url, _pinMosTile);
+      }
+    }
+    const pinBtn = document.getElementById('srcbtn-' + item.imgId);
+    if (pinBtn) pinBtn.textContent = srcLabel(choice.source);
+    return;
+  }
+
   const FALLBACK_SOURCES = ['deezer', 'itunes', 'lastfm', 'youtube'];
   const preferredSource = (item.prefKey && itemSourcePrefs[item.prefKey]) || 'deezer';
   let url = null;
@@ -2035,54 +2123,132 @@ function loadImages(items, type) {
   }
 }
 
-async function cycleImgSrc(imgId, type, prefKey, name, artist, album) {
-  const current = itemSourcePrefs[prefKey] || 'deezer';
-  const btn = document.getElementById('srcbtn-' + imgId);
-  const el = document.getElementById(imgId);
-  if (!el) return;
-  const fallback = name || album || artist || '';
+// ─── IMAGE PICKER POPOVER ─────────────────────────────────────
+// Replaces the old click-to-cycle source button: clicking the ✎ overlay on
+// any artwork opens a popover with candidate images from every source at
+// once. The chosen image is pinned in imgChoicePrefs and wins on every
+// future render of that item, in every view.
 
-  // Artists commonly collide with several unrelated same-named Deezer
-  // profiles (see deezerArtistImageCandidates) — step to the next one before
-  // jumping to a different external source, so a wrong auto-pick can be
-  // corrected without leaving Deezer's usually-better catalog.
-  if (type === 'artist' && current === 'deezer') {
-    const candidates = await deezerArtistImageCandidates(name);
-    const nextIdx = (deezerCandidateIdxPrefs[prefKey] || 0) + 1;
-    if (nextIdx < candidates.length) {
-      deezerCandidateIdxPrefs[prefKey] = nextIdx;
-      localStorage.setItem('deezerCandidateIdxPrefs', JSON.stringify(deezerCandidateIdxPrefs));
-      if (document.getElementById(imgId)) {
-        el.innerHTML = `<img class="thumb" src="${esc(candidates[nextIdx])}" alt="" loading="lazy" onerror="this.outerHTML='<div class=thumb-initials>${esc(initials(fallback))}</div>'">`;
-      }
-      return;
-    }
-    // Deezer candidates exhausted — reset so the next time the cycle comes
-    // back around to Deezer it starts from the top pick again.
-    delete deezerCandidateIdxPrefs[prefKey];
+let _imgPickerEl = null;
+function closeImgPicker() {
+  if (!_imgPickerEl) return;
+  _imgPickerEl.remove();
+  _imgPickerEl = null;
+  document.removeEventListener('keydown', _imgPickerEscHandler);
+}
+function _imgPickerEscHandler(e) { if (e.key === 'Escape') closeImgPicker(); }
+
+// All candidate URLs one source can offer for an item (picker tiles).
+async function imgPickerCandidates(source, type, name, artist, album) {
+  if (source === 'deezer') {
+    if (type === 'artist') return deezerArtistImageCandidates(name);
+    if (type === 'album') return deezerAlbumImageCandidates(album, artist);
+    return deezerTrackImageCandidates(name, artist);
+  }
+  if (source === 'itunes') return itunesImageCandidates(type, name, artist, album);
+  // Last.fm / YouTube only ever produce one image per item.
+  let url = null;
+  if (type === 'artist') url = await getArtistImage(name, source);
+  else if (type === 'album') url = await getAlbumImage(album, artist, source);
+  else url = await getTrackImage(name, artist, source);
+  return url ? [url] : [];
+}
+
+function applyImgChoice(o, url, source) {
+  if (source === 'auto') {
+    delete imgChoicePrefs[o.prefkey];
+    delete itemSourcePrefs[o.prefkey];
+    delete deezerCandidateIdxPrefs[o.prefkey];
+    localStorage.setItem('itemSourcePrefs', JSON.stringify(itemSourcePrefs));
     localStorage.setItem('deezerCandidateIdxPrefs', JSON.stringify(deezerCandidateIdxPrefs));
+  } else {
+    imgChoicePrefs[o.prefkey] = { url: url || '', source };
   }
-
-  const next = IMG_SOURCES[(IMG_SOURCES.indexOf(current) + 1) % IMG_SOURCES.length];
-  itemSourcePrefs[prefKey] = next;
-  localStorage.setItem('itemSourcePrefs', JSON.stringify(itemSourcePrefs));
-  if (btn) btn.textContent = srcLabel(next);
-  if (next === 'off') {
-    el.innerHTML = `<div class="thumb-initials">${esc(initials(fallback))}</div>`;
-    return;
-  }
-  let fetchPromise;
-  if (type === 'artist') fetchPromise = getArtistImage(name, next);
-  else if (type === 'album') fetchPromise = getAlbumImage(album, artist, next);
-  else fetchPromise = getTrackImage(name, artist, next);
-  fetchPromise.then(url => {
-    if (!document.getElementById(imgId)) return;
-    if (url) {
-      el.innerHTML = `<img class="thumb" src="${esc(url)}" alt="" loading="lazy" onerror="this.outerHTML='<div class=thumb-initials>${esc(initials(fallback))}</div>'">`;
-    } else {
-      el.innerHTML = `<div class="thumb-initials">${esc(initials(fallback))}</div>`;
-    }
+  saveImgChoicePrefs();
+  closeImgPicker();
+  // Refresh every rendered instance of this item (same prefKey can appear in
+  // several tables/views at once — each has its own srcbtn to find it by).
+  document.querySelectorAll('.img-src-btn[data-prefkey]').forEach(btn => {
+    if (btn.dataset.prefkey !== o.prefkey) return;
+    const el = document.getElementById(btn.dataset.imgid);
+    if (!el) return;
+    const item = {
+      imgId: btn.dataset.imgid,
+      name: btn.dataset.name, title: btn.dataset.name,
+      artist: btn.dataset.artist || '', album: btn.dataset.album || '',
+      prefKey: o.prefkey
+    };
+    imgQueue = imgQueue.then(() => fetchAndInjectImage(el, item, btn.dataset.type || 'song'));
   });
+}
+
+function openImgPicker(o) {
+  closeImgPicker();
+  const title = o.type === 'album' ? (o.album || o.name) : o.name;
+  const sub = o.type === 'artist' ? '' : (o.artist || '');
+  const currentUrl = (imgChoicePrefs[o.prefkey] && imgChoicePrefs[o.prefkey].url) ||
+    (document.getElementById(o.imgid)?.querySelector('img')?.src || '');
+
+  const overlay = document.createElement('div');
+  overlay.className = 'imgpk-overlay';
+  overlay.addEventListener('click', e => { if (e.target === overlay) closeImgPicker(); });
+
+  const sources = ['deezer', 'itunes', 'lastfm', 'youtube'].filter(s => s !== 'youtube' || YOUTUBE_KEY);
+  overlay.innerHTML = `<div class="imgpk-panel" role="dialog" aria-modal="true">
+    <div class="imgpk-head">
+      <div class="imgpk-titles">
+        <div class="imgpk-title">${t('imgpk_title')}</div>
+        <div class="imgpk-item">${esc(title)}${sub ? `<span class="imgpk-item-sub"> — ${esc(sub)}</span>` : ''}</div>
+      </div>
+      <button class="imgpk-close" onclick="closeImgPicker()" aria-label="Close">✕</button>
+    </div>
+    <div class="imgpk-body">
+      ${sources.map(s => `<div class="imgpk-section" data-src="${s}">
+        <div class="imgpk-src-label">${srcLabel(s)}</div>
+        <div class="imgpk-tiles"><div class="imgpk-loading">${t('imgpk_loading')}</div></div>
+      </div>`).join('')}
+    </div>
+    <div class="imgpk-foot">
+      <button class="imgpk-foot-btn" data-act="auto">${t('imgpk_auto')}</button>
+      <button class="imgpk-foot-btn" data-act="off">${t('imgpk_none')}</button>
+      <input class="imgpk-url-input" type="url" placeholder="${t('imgpk_url_ph')}" spellcheck="false">
+      <button class="imgpk-foot-btn imgpk-url-apply" data-act="custom">${t('imgpk_apply')}</button>
+    </div>
+  </div>`;
+
+  overlay.querySelector('[data-act="auto"]').onclick = () => applyImgChoice(o, null, 'auto');
+  overlay.querySelector('[data-act="off"]').onclick = () => applyImgChoice(o, null, 'off');
+  const urlInput = overlay.querySelector('.imgpk-url-input');
+  const applyCustom = () => {
+    const u = urlInput.value.trim();
+    if (u) applyImgChoice(o, u, 'custom');
+  };
+  overlay.querySelector('[data-act="custom"]').onclick = applyCustom;
+  urlInput.addEventListener('keydown', e => { if (e.key === 'Enter') applyCustom(); });
+
+  document.body.appendChild(overlay);
+  _imgPickerEl = overlay;
+  document.addEventListener('keydown', _imgPickerEscHandler);
+
+  // Load each source's candidates in parallel; sections fill in as they land.
+  for (const s of sources) {
+    imgPickerCandidates(s, o.type === 'song' ? 'track' : o.type, o.name, o.artist || '', o.album || '')
+      .then(urls => {
+        if (_imgPickerEl !== overlay) return; // picker was closed/reopened
+        const tiles = overlay.querySelector(`.imgpk-section[data-src="${s}"] .imgpk-tiles`);
+        if (!tiles) return;
+        if (!urls.length) {
+          tiles.innerHTML = `<div class="imgpk-empty">${t('imgpk_empty')}</div>`;
+          return;
+        }
+        tiles.innerHTML = urls.map(u =>
+          `<button class="imgpk-tile${u === currentUrl ? ' imgpk-tile--current' : ''}" data-url="${esc(u)}" title="${srcLabel(s)}"><img alt="" loading="lazy" src="${esc(u)}" onerror="this.closest('.imgpk-tile').remove()"></button>`
+        ).join('');
+        tiles.querySelectorAll('.imgpk-tile').forEach(tile => {
+          tile.onclick = () => applyImgChoice(o, tile.dataset.url, s);
+        });
+      });
+  }
 }
 
 function _mosDominantGlow(url, tile) {
@@ -2114,13 +2280,14 @@ function _mosDominantGlow(url, tile) {
   probe.src = url;
 }
 
-// Handle source-cycle button clicks (capture phase so it beats artist-row handler)
+// Handle artwork ✎ overlay clicks (capture phase so it beats artist-row handler)
 document.addEventListener('click', e => {
   const btn = e.target.closest('.img-src-btn');
   if (!btn) return;
   e.stopPropagation();
+  e.preventDefault();
   const { imgid, type, prefkey, name, artist, album } = btn.dataset;
-  cycleImgSrc(imgid, type, prefkey, name, artist, album);
+  openImgPicker({ imgid, type, prefkey, name, artist, album });
 }, true);
 
 
@@ -6839,7 +7006,7 @@ function renderAll() {
     // "Wrapped" personality of the app, so they get more room than a plain stat tile.
     const sotmBox = sotmTitle
       ? `<div class="spotlight-card stat-clickable" onclick="dcScrollTo('songsSection')" title="Jump to section" data-cat="sotm">
-          <div id="sotm-img" class="spotlight-thumb"><div class="thumb-initials">${esc(initials(sotmTitle))}</div></div>
+          <div class="thumb-wrap spotlight-thumb-wrap"><div id="sotm-img" class="spotlight-thumb"><div class="thumb-initials">${esc(initials(sotmTitle))}</div></div><button id="srcbtn-sotm-img" class="img-src-btn" data-imgid="sotm-img" data-type="song" data-prefkey="${esc('song:' + (sotmArtist || '').toLowerCase() + '|||' + sotmTitle.toLowerCase())}" data-name="${esc(sotmTitle)}" data-artist="${esc(sotmArtist || '')}" data-album=""></button></div>
           <div class="spotlight-body">
             <div class="spotlight-label stat-label-sotm">${t('stat_sotm')}</div>
             <div class="spotlight-title">${esc(sotmTitle)}</div>
@@ -6880,7 +7047,7 @@ function renderAll() {
       }
       if (risingArtistName) {
         risingArtistBox = `<div class="spotlight-card stat-clickable" onclick="dcScrollTo('artistsSection')" title="Jump to section" data-cat="rising">
-          <div id="rising-artist-img" class="spotlight-thumb"><div class="thumb-initials">${esc(initials(risingArtistName))}</div></div>
+          <div class="thumb-wrap spotlight-thumb-wrap"><div id="rising-artist-img" class="spotlight-thumb"><div class="thumb-initials">${esc(initials(risingArtistName))}</div></div><button id="srcbtn-rising-artist-img" class="img-src-btn" data-imgid="rising-artist-img" data-type="artist" data-prefkey="${esc('artist:' + risingArtistName.toLowerCase())}" data-name="${esc(risingArtistName)}" data-artist="${esc(risingArtistName)}" data-album=""></button></div>
           <div class="spotlight-body">
             <div class="spotlight-label stat-label-rising">${t('stat_rising_artist')}</div>
             <div class="spotlight-title">${esc(risingArtistName)}</div>
@@ -6905,7 +7072,7 @@ function renderAll() {
     }
     const aotmBox = aotmArtistName
       ? `<div class="spotlight-card stat-clickable" onclick="dcScrollTo('artistsSection')" title="Jump to section" data-cat="aotm">
-          <div id="aotm-img" class="spotlight-thumb"><div class="thumb-initials">${esc(initials(aotmArtistName))}</div></div>
+          <div class="thumb-wrap spotlight-thumb-wrap"><div id="aotm-img" class="spotlight-thumb"><div class="thumb-initials">${esc(initials(aotmArtistName))}</div></div><button id="srcbtn-aotm-img" class="img-src-btn" data-imgid="aotm-img" data-type="artist" data-prefkey="${esc('artist:' + aotmArtistName.toLowerCase())}" data-name="${esc(aotmArtistName)}" data-artist="${esc(aotmArtistName)}" data-album=""></button></div>
           <div class="spotlight-body">
             <div class="spotlight-label stat-label-aotm">${t('stat_aotm')}</div>
             <div class="spotlight-title">${esc(aotmArtistName)}</div>
@@ -6932,7 +7099,7 @@ function renderAll() {
     const albumotmArtistName = albumotmKey ? albumotmKey.split('|||')[1] : null;
     const albumotmBox = albumotmTitle
       ? `<div class="spotlight-card stat-clickable" onclick="dcScrollTo('albumsSection')" title="Jump to section" data-cat="albumotm">
-          <div id="albumotm-img" class="spotlight-thumb"><div class="thumb-initials">${esc(initials(albumotmTitle))}</div></div>
+          <div class="thumb-wrap spotlight-thumb-wrap"><div id="albumotm-img" class="spotlight-thumb"><div class="thumb-initials">${esc(initials(albumotmTitle))}</div></div><button id="srcbtn-albumotm-img" class="img-src-btn" data-imgid="albumotm-img" data-type="album" data-prefkey="${esc('album:' + (albumotmArtistName || '').toLowerCase() + '|||' + albumotmTitle.toLowerCase())}" data-name="${esc(albumotmTitle)}" data-artist="${esc(albumotmArtistName || '')}" data-album="${esc(albumotmTitle)}"></button></div>
           <div class="spotlight-body">
             <div class="spotlight-label stat-label-albumotm">${t('stat_albumotm')}</div>
             <div class="spotlight-title">${esc(albumotmTitle)}</div>
@@ -6967,8 +7134,8 @@ function renderAll() {
         name: sotmTitle,
         artist: sotmArtist || '',
         imgId: 'sotm-img',
-        prefKey: 'track:' + sotmTitle.toLowerCase() + ':deezer'
-      }, 'track');
+        prefKey: 'song:' + (sotmArtist || '').toLowerCase() + '|||' + sotmTitle.toLowerCase()
+      }, 'song');
     }
 
     const risingImgEl = document.getElementById('rising-artist-img');
@@ -6976,7 +7143,7 @@ function renderAll() {
       fetchAndInjectImage(risingImgEl, {
         name: risingArtistName,
         imgId: 'rising-artist-img',
-        prefKey: 'artist:' + risingArtistName.toLowerCase() + ':deezer'
+        prefKey: 'artist:' + risingArtistName.toLowerCase()
       }, 'artist');
     }
 
@@ -6985,7 +7152,7 @@ function renderAll() {
       fetchAndInjectImage(aotmImgEl, {
         name: aotmArtistName,
         imgId: 'aotm-img',
-        prefKey: 'artist:' + aotmArtistName.toLowerCase() + ':deezer'
+        prefKey: 'artist:' + aotmArtistName.toLowerCase()
       }, 'artist');
     }
 
@@ -6996,7 +7163,7 @@ function renderAll() {
         name: albumotmTitle,
         artist: albumotmArtistName || '',
         imgId: 'albumotm-img',
-        prefKey: 'album:' + albumotmTitle.toLowerCase() + ':deezer'
+        prefKey: 'album:' + (albumotmArtistName || '').toLowerCase() + '|||' + albumotmTitle.toLowerCase()
       }, 'album');
     }
 
@@ -25445,11 +25612,15 @@ function stInitCoverflow(viewportEl, items, label) {
       if (card) {
         const idx = Number(card.dataset.idx);
         const isCentered = idx === Math.round(state.pos);
-        // Tapping the artwork of the already-centered card cycles its image source
+        // Tapping the artwork of the already-centered card opens the image picker
         // instead of selecting it — the art is only hit-testable when centered (see CSS).
         if (isCentered && hit.closest('.st-cf-art')) {
           const it = items[idx];
-          cycleImgSrc(it.imgId, it.imgType, it.prefKey, it.imgType === 'artist' ? it.name : it.title, it.artist || '', '');
+          openImgPicker({
+            imgid: it.imgId, type: it.imgType, prefkey: it.prefKey,
+            name: it.imgType === 'artist' ? it.name : (it.title || it.name),
+            artist: it.artist || '', album: it.album || ''
+          });
           return;
         }
         if (isCentered && items[idx].onCenterTap) items[idx].onCenterTap();
