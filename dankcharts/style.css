@@ -11256,6 +11256,114 @@
       border-radius: 6px;
     }
 
+    /* Global records search. It is the only control that reaches all ~55
+       tables, so unlike the 9px mono section pills it gets sans, a readable
+       size and a 44px target. */
+    .rec-search {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      min-height: 44px;
+      padding: 0 0.75rem;
+      margin-bottom: 0.5rem;
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      transition: border-color 0.15s;
+    }
+
+    /* The wrapper is the field as far as the eye is concerned, so it takes the
+       global focus ring; leaving it on the borderless input drew a second,
+       inset ring inside the first. */
+    .rec-search:focus-within {
+      border-color: var(--accent);
+      box-shadow: var(--focus-ring);
+    }
+
+    .rec-search-input:focus-visible {
+      box-shadow: none;
+    }
+
+    .rec-search-icon {
+      font-size: 0.9rem;
+      line-height: 1;
+      opacity: 0.75;
+    }
+
+    .rec-search-input {
+      flex: 1;
+      min-width: 0;
+      align-self: stretch;
+      background: none;
+      border: none;
+      outline: none;
+      color: var(--text);
+      font-family: var(--font-sans);
+      font-size: 0.82rem;
+    }
+
+    .rec-search-input::placeholder {
+      color: var(--text3);
+    }
+
+    /* type=search draws a second ✕ of its own; ours is the styled one. */
+    .rec-search-input::-webkit-search-cancel-button {
+      display: none;
+    }
+
+    .rec-search-clear {
+      background: none;
+      border: none;
+      color: var(--text3);
+      cursor: pointer;
+      font-size: 0.75rem;
+      line-height: 1;
+      padding: 0.45rem;
+      border-radius: 4px;
+      transition: color 0.15s, background 0.15s;
+    }
+
+    .rec-search-clear:hover {
+      color: var(--text);
+      background: var(--bg3);
+    }
+
+    /* Prose, not data — and no uppercase, which in Records belongs to column
+       headers only. */
+    .rec-search-status {
+      font-family: var(--font-sans);
+      font-size: 0.78rem;
+      color: var(--text2);
+      margin-bottom: 0.7rem;
+    }
+
+    .rec-search-status.rec-search-status-empty {
+      color: var(--text3);
+      font-style: italic;
+    }
+
+    /* Rows, sub-sections and section groups filtered out by a search. Has to
+       beat .rec-run-detail.open and the inline display of the appearances and
+       PAK detail rows, none of which the search controls. */
+    .rec-search-hidden {
+      display: none !important;
+    }
+
+    /* A match inside a collapsed section is still a match: search overrides
+       the stored collapse state rather than swallowing results. */
+    #recordsView.rec-searching .chart-section.collapsed .section-body,
+    #recordsView.rec-searching .rec-section-sub-wrapper.rec-subsection-collapsed .rec-subsection-content,
+    #recordsView.rec-searching .rec-section.rec-collapsed>.rec-empty,
+    #recordsView.rec-searching .rec-section.rec-collapsed>div:not(.rec-section-header):not(.rec-section-title):not(.rec-section-sub) {
+      display: block;
+    }
+
+    /* Rows past the entries-per-table limit. Suspended while searching, so
+       anything that was built stays findable. */
+    #recordsView:not(.rec-searching) .rec-row-over-limit {
+      display: none !important;
+    }
+
     .rec-section {
       margin-bottom: 1.5rem;
     }
@@ -11538,7 +11646,8 @@
       width: 22px;
       height: 22px;
       cursor: pointer;
-      font-size: 0.72rem;
+      /* ▶/▼ are heavier glyphs than the ▸/▾ this used to draw. */
+      font-size: 0.6rem;
       padding: 0;
       transition: border-color 0.15s, color 0.15s;
       line-height: 1;

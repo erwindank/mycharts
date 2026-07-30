@@ -4322,7 +4322,9 @@ function buildRecords() {
       const runBaseId = 'rec-1s-run-' + ent.key + '-' + cfg.pt;
       const headers = ['#', '', ent.label, periodAtOneHeader(cfg.pt), t('rec_th_first_at_1')];
       if (cfg.pt !== 'year') headers.push(t('rec_th_date_at_peak'));
-      headers.push('<button class="rec-expand-all-btn" onclick="event.stopPropagation();toggleAllRecRuns(\'' + tableId + '\',this)" title="' + t('rec_expand_all') + '">▸▸</button>');
+      // Same glyph family as the Appearances tables — one "expand all" action,
+      // one pair of glyphs (▶▶ closed / ▼▼ open) everywhere in Records.
+      headers.push('<button class="rec-expand-all-btn" onclick="event.stopPropagation();toggleAllRecRuns(\'' + tableId + '\',this)" title="' + t('rec_expand_all') + '">▶▶</button>');
       h += recTable(headers,
         entries.map(function (e, i) {
           const imgId = 'rec-img-' + ent.key + '-' + cfg.pt + '-' + i;
@@ -4331,7 +4333,7 @@ function buildRecords() {
           if (cfg.pt !== 'year') {
             row += '<td class="rec-meta"><a href="#chart/' + cfg.pt + '/' + e[1].lastPeriod + '" class="rec-date-link" onclick="event.preventDefault();navigateToRecPeriod(\'' + cfg.pt + '\',\'' + e[1].lastPeriod + '\')">' + fmtPeriodKey(e[1].lastPeriod, cfg.pt) + '</a></td>';
           }
-          row += '<td class="rec-run-toggle-cell"><button class="rec-run-toggle-btn" onclick="event.stopPropagation();toggleRecRun(this,\'' + runId + '\')">▸</button></td>';
+          row += '<td class="rec-run-toggle-cell"><button class="rec-run-toggle-btn" onclick="event.stopPropagation();toggleRecRun(this,\'' + runId + '\')">▶</button></td>';
           return row;
         }),
         lim,
@@ -5247,6 +5249,13 @@ function buildRecords() {
   restoreRecordSubsectionCollapseStates();
   initAllRecTableResizableCols();
   initAllRecTableSorting();
+
+  // Canonical rank index per row, so the entries-per-table limit can be applied
+  // (and re-applied at a smaller value) without rebuilding any of this.
+  recBuiltLimit = lim;
+  tagRecRowIndices();
+  applyRecRowLimit(lim);
+  if (recSearchQuery()) runRecordsSearch(recSearchQuery());
 }
 
 /* ── Records overview ──────────────────────────────────────────────────
@@ -5489,9 +5498,226 @@ function sortRecTable(table, colIndex, dir) {
   tbody.appendChild(frag);
 }
 
+// Every sortable/searchable/limitable table in Records, in build order.
+function recTables() {
+  return document.querySelectorAll('#recordsView .rec-table, #recordsView .milestone-table');
+}
+
 function initAllRecTableSorting() {
-  document.querySelectorAll('#recordsView .rec-table, #recordsView .milestone-table')
-    .forEach(initSortableColsForTable);
+  recTables().forEach(initSortableColsForTable);
+}
+
+/* Put a column into a given sort direction. Shared by the header click/keyboard
+   handler and by the rebuild path, which has to put the sort back afterwards. */
+function applyRecSort(table, colIndex, dir) {
+  const ths = Array.from(table.querySelectorAll('thead th'));
+  const th = ths[colIndex];
+  if (!th || !th.classList.contains('rec-sortable')) return;
+  ths.forEach(function (other) {
+    if (other === th) return;
+    delete other.dataset.sortDir;
+    other.classList.remove('rec-sorted');
+    if (other.hasAttribute('aria-sort')) other.setAttribute('aria-sort', 'none');
+    const oi = other.querySelector('.rec-sort-ind');
+    if (oi) oi.textContent = '▲';
+  });
+  th.dataset.sortDir = dir;
+  th.classList.add('rec-sorted');
+  th.setAttribute('aria-sort', dir === 'asc' ? 'ascending' : 'descending');
+  const ind = th.querySelector('.rec-sort-ind');
+  if (ind) ind.textContent = dir === 'asc' ? '▲' : '▼';
+  sortRecTable(table, colIndex, dir);
+}
+
+/* Tables are keyed by position, not id: most of them have no id, but the same
+   code builds them in the same order, so the index survives a rebuild. */
+function captureRecSortState() {
+  const state = [];
+  recTables().forEach(function (table, ti) {
+    const ths = Array.from(table.querySelectorAll('thead th'));
+    for (let i = 0; i < ths.length; i++) {
+      if (!ths[i].dataset.sortDir) continue;
+      state.push({ table: ti, col: i, dir: ths[i].dataset.sortDir });
+      break; // only one column is ever active per table
+    }
+  });
+  return state;
+}
+
+function restoreRecSortState(state) {
+  if (!state || !state.length) return;
+  const tables = recTables();
+  state.forEach(function (s) {
+    if (tables[s.table]) applyRecSort(tables[s.table], s.col, s.dir);
+  });
+}
+
+/* ── Entries per table ────────────────────────────────────────────────
+   Every table is sliced to `recLimit` while it is built, so changing the
+   limit used to mean a full buildRecords(): ~55 tables thrown away and
+   rebuilt, every image looked up again, and any active column sort
+   silently lost.
+
+   Shrinking the limit can never need a row that isn't already there, so
+   it is now done in the DOM — each row carries its canonical rank index
+   and anything past the limit gets .rec-row-over-limit. Only asking for
+   more rows than were actually built still rebuilds, and that path puts
+   the sorts back afterwards. */
+let recBuiltLimit = null; // rows per table currently in the DOM (Infinity = all)
+
+// The rank index is assigned once per build, in canonical (pre-sort) order, so
+// the limit keeps meaning "top N" no matter which column the table is sorted by.
+// Detail rows inherit their parent's index and travel with it.
+function tagRecRowIndices() {
+  recTables().forEach(function (table) {
+    const tbody = table.tBodies[0];
+    if (!tbody) return;
+    let idx = 0;
+    Array.from(tbody.rows).forEach(function (row) {
+      if (!row.matches(REC_DETAIL_ROW_SEL)) { row.dataset.recIdx = idx++; return; }
+      row.dataset.recIdx = Math.max(0, idx - 1);
+    });
+  });
+}
+
+function applyRecRowLimit(limit) {
+  const lim = (limit === 0 || limit === undefined || limit === null) ? Infinity : limit;
+  recTables().forEach(function (table) {
+    const tbody = table.tBodies[0];
+    if (!tbody) return;
+    Array.from(tbody.rows).forEach(function (row) {
+      row.classList.toggle('rec-row-over-limit', (+row.dataset.recIdx || 0) >= lim);
+    });
+  });
+}
+
+function applyRecordsLimitChange() {
+  const want = recLimit === 0 ? Infinity : recLimit;
+  if (recBuiltLimit !== null && want <= recBuiltLimit) {
+    // The rows are already here — no rebuild, so the sort and the images stay put.
+    applyRecRowLimit(want);
+    if (recSearchQuery()) runRecordsSearch(recSearchQuery());
+    return;
+  }
+  const sorts = captureRecSortState();
+  buildRecords();
+  restoreRecSortState(sorts);
+}
+
+/* ── Global records search ────────────────────────────────────────────
+   Records is ten sections and ~55 tables, and the only way to ask "how did
+   this artist do?" used to be to open every one of them. All the tables are
+   already in the DOM (the view filter only toggles `display`), so one query
+   can filter rows across every section at once and then reveal whichever
+   sections still have something in them.
+
+   Search deliberately ignores the entries-per-table limit: if a row was
+   built, it is findable, even when the current limit is hiding it. */
+let _recSearchQuery = '';
+let _recSearchTimer = null;
+
+function recSearchQuery() { return _recSearchQuery; }
+
+// Row text is cached on the element: rows outlive a query, and a rebuild
+// creates new elements, so the cache can never go stale.
+function recRowSearchText(row) {
+  if (row._recSearchText !== undefined) return row._recSearchText;
+  let txt = '';
+  Array.from(row.cells).forEach(function (td) {
+    // Thumbnail and toggle cells hold controls ("Deezer", "▶"), not record data.
+    if (td.classList.contains('thumb-cell') ||
+      td.classList.contains('rec-run-toggle-cell') ||
+      td.classList.contains('rec-cr-btn-cell')) return;
+    txt += ' ' + td.textContent;
+  });
+  row._recSearchText = txt.replace(/\s+/g, ' ').trim().toLowerCase();
+  return row._recSearchText;
+}
+
+function runRecordsSearch(q) {
+  const view = document.getElementById('recordsView');
+  if (!view) return;
+  const needle = (q || '').trim().toLowerCase();
+  _recSearchQuery = needle;
+  const clearBtn = document.getElementById('recordsSearchClear');
+  if (clearBtn) clearBtn.style.display = needle ? '' : 'none';
+  if (!needle) { clearRecordsSearch(); return; }
+  view.classList.add('rec-searching');
+
+  let hits = 0;
+  recTables().forEach(function (table) {
+    const tbody = table.tBodies[0];
+    if (!tbody) return;
+    let lastHit = false;
+    Array.from(tbody.rows).forEach(function (row) {
+      // Detail rows carry no name of their own — they follow their parent.
+      if (row.matches(REC_DETAIL_ROW_SEL)) {
+        row.classList.toggle('rec-search-hidden', !lastHit);
+        return;
+      }
+      lastHit = recRowSearchText(row).indexOf(needle) !== -1;
+      row.classList.toggle('rec-search-hit', lastHit);
+      row.classList.toggle('rec-search-hidden', !lastHit);
+      if (lastHit) hits++;
+    });
+  });
+
+  // Roll the hits up: sub-section, then section group, then the section itself.
+  view.querySelectorAll('.rec-section-sub-wrapper, .rec-section').forEach(function (el) {
+    el.classList.toggle('rec-search-hidden', !el.querySelector('.rec-search-hit'));
+  });
+  let sections = 0;
+  REC_SECTION_IDS.forEach(function (id) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    // The overview is one card per section, not rows — nothing to filter.
+    if (id === 'recOverviewSection') { el.style.display = 'none'; return; }
+    const has = !!el.querySelector('.rec-search-hit');
+    el.style.display = has ? '' : 'none';
+    if (has) sections++;
+  });
+  // No pill is "the" section while results span several of them, and the
+  // entries-per-table control has no meaning while search is ignoring it.
+  document.querySelectorAll('#recordsNav .records-nav-btn').forEach(function (b) {
+    b.classList.remove('active');
+  });
+  const sizeBar = document.getElementById('recordsSizeBar');
+  if (sizeBar) sizeBar.style.display = 'none';
+
+  const status = document.getElementById('recordsSearchStatus');
+  if (status) {
+    status.style.display = '';
+    status.classList.toggle('rec-search-status-empty', hits === 0);
+    status.textContent = hits
+      ? t('rec_search_results', {
+        rows: tCount('rec_search_rows', hits),
+        sections: tCount('rec_search_sections', sections)
+      })
+      : t('rec_search_none', { q: needle });
+  }
+  if (typeof window._refreshBackToTop === 'function') window._refreshBackToTop();
+}
+
+// Drops the query and every mark it left behind, without touching the view.
+function recSearchReset() {
+  const view = document.getElementById('recordsView');
+  _recSearchQuery = '';
+  const input = document.getElementById('recordsSearch');
+  if (input) input.value = '';
+  const clearBtn = document.getElementById('recordsSearchClear');
+  if (clearBtn) clearBtn.style.display = 'none';
+  const status = document.getElementById('recordsSearchStatus');
+  if (status) status.style.display = 'none';
+  if (!view) return;
+  view.classList.remove('rec-searching');
+  view.querySelectorAll('.rec-search-hidden, .rec-search-hit').forEach(function (el) {
+    el.classList.remove('rec-search-hidden', 'rec-search-hit');
+  });
+}
+
+function clearRecordsSearch() {
+  recSearchReset();
+  applyRecordsViewFilter(localStorage.getItem('dc_records_active_view') || REC_DEFAULT_VIEW);
 }
 
 function initSortableColsForTable(table) {
@@ -5517,20 +5743,7 @@ function initSortableColsForTable(table) {
     function activate(e) {
       // The resize grip lives inside the th; dragging it must not re-sort.
       if (e && e.target && e.target.closest && e.target.closest('.col-resize-handle')) return;
-      const dir = th.dataset.sortDir === 'asc' ? 'desc' : 'asc';
-      ths.forEach(function (other) {
-        if (other === th) return;
-        delete other.dataset.sortDir;
-        other.classList.remove('rec-sorted');
-        if (other.hasAttribute('aria-sort')) other.setAttribute('aria-sort', 'none');
-        const oi = other.querySelector('.rec-sort-ind');
-        if (oi) oi.textContent = '▲';
-      });
-      th.dataset.sortDir = dir;
-      th.classList.add('rec-sorted');
-      th.setAttribute('aria-sort', dir === 'asc' ? 'ascending' : 'descending');
-      ind.textContent = dir === 'asc' ? '▲' : '▼';
-      sortRecTable(table, i, dir);
+      applyRecSort(table, i, th.dataset.sortDir === 'asc' ? 'desc' : 'asc');
     }
 
     th.addEventListener('click', activate);
@@ -5572,6 +5785,9 @@ function initRecordsViewUI() {
     const btn = e.target.closest('.records-nav-btn');
     if (!btn) return;
     const view = btn.dataset.recView || REC_DEFAULT_VIEW;
+    // Picking a section is a way out of a search — drop the query first, or
+    // the filter would defer right back to it.
+    recSearchReset();
     localStorage.setItem('dc_records_active_view', view);
     applyRecordsViewFilter(view);
   });
@@ -5587,7 +5803,28 @@ function initRecordsViewUI() {
       document.querySelectorAll('#recordsSizeBtns button').forEach(b => {
         b.classList.toggle('active', b === btn);
       });
-      buildRecords();
+      applyRecordsLimitChange();
+    });
+  }
+
+  const search = document.getElementById('recordsSearch');
+  if (search) {
+    search.addEventListener('input', () => {
+      clearTimeout(_recSearchTimer);
+      // Typing filters a few thousand rows, so wait for a pause in the typing.
+      _recSearchTimer = setTimeout(() => runRecordsSearch(search.value), 160);
+    });
+    search.addEventListener('keydown', e => {
+      if (e.key === 'Escape') { clearTimeout(_recSearchTimer); clearRecordsSearch(); }
+      if (e.key === 'Enter') { clearTimeout(_recSearchTimer); runRecordsSearch(search.value); }
+    });
+  }
+  const searchClear = document.getElementById('recordsSearchClear');
+  if (searchClear) {
+    searchClear.addEventListener('click', () => {
+      clearTimeout(_recSearchTimer);
+      clearRecordsSearch();
+      if (search) search.focus();
     });
   }
 }
@@ -5615,6 +5852,9 @@ function applyRecordsViewFilter(view) {
     view = REC_DEFAULT_VIEW;
     localStorage.setItem('dc_records_active_view', view);
   }
+  // A search spans every section, so it owns what is displayed until it is
+  // cleared. Callers that mean to leave a search call recSearchReset() first.
+  if (recSearchQuery()) { runRecordsSearch(recSearchQuery()); return; }
   REC_SECTION_IDS.forEach(id => {
     const el = document.getElementById(id);
     if (!el) return;
@@ -9056,7 +9296,7 @@ function toggleRecRun(btn, runId) {
   if (!row) return;
   const open = row.classList.toggle('open');
   btn.classList.toggle('active', open);
-  btn.textContent = open ? '▾' : '▸';
+  btn.textContent = open ? '▼' : '▶';
 }
 
 function crBoxesHTML(type, key, crData, preD, periodOverride) {
@@ -9108,9 +9348,9 @@ function toggleAllRecRuns(tableId, btn) {
   const toggleBtns = table.querySelectorAll('button.rec-run-toggle-btn');
   const anyOpen = Array.from(detailRows).some(r => r.classList.contains('open'));
   detailRows.forEach(r => r.classList.toggle('open', !anyOpen));
-  toggleBtns.forEach(b => { b.classList.toggle('active', !anyOpen); b.textContent = anyOpen ? '▸' : '▾'; });
+  toggleBtns.forEach(b => { b.classList.toggle('active', !anyOpen); b.textContent = anyOpen ? '▶' : '▼'; });
   btn.classList.toggle('active', !anyOpen);
-  btn.textContent = anyOpen ? '▸▸' : '▾▾';
+  btn.textContent = anyOpen ? '▶▶' : '▼▼';
 }
 
 function toggleAllAppCr(tableId, btn) {

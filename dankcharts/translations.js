@@ -540,6 +540,18 @@ const TRANSLATIONS = {
     rec_ov_new_charts: 'Biggest new-chart debut',
     rec_ov_debut_value: '#{{rank}} · {{plays}}',
 
+    // Global records search — filters every built table at once.
+    // Only defined in `en`; t() falls back to English for the other languages.
+    rec_search_placeholder: 'Search every record — artist, song or album…',
+    rec_search_label: 'Search all records',
+    rec_search_clear: 'Clear search',
+    rec_search_results: '{{rows}} in {{sections}}',
+    rec_search_none: 'Nothing on record matches “{{q}}”.',
+    rec_search_rows_one: 'match',
+    rec_search_rows_other: 'matches',
+    rec_search_sections_one: 'section',
+    rec_search_sections_other: 'sections',
+
     // Records section titles (static HTML)
     rec_all_ones_title: '★ All #1s',
     rec_pak_title: '🎯 Perfect All Kill',
