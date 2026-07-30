@@ -36,6 +36,9 @@ and a section nav of 11 identical text pills at half the minimum touch-target he
 | 12 | Fixed the type hierarchy — four distinct tiers | `2410133` |
 | 13 | Explanatory prose moved off `--text3` | `2410133` |
 | 5 | Overview landing screen + Songs/Artists/Albums toggle | `c528086` |
+| 31 | Global search across every section | `fd3d3ef` |
+| 39 | Limit changes stopped rebuilding (and stopped wiping the sort) | `fd3d3ef` |
+| 28 | One glyph family (`▶`/`▼`) for every expand control | `fd3d3ef` |
 
 ### Implementation notes worth not re-deriving
 
@@ -70,6 +73,31 @@ and a section nav of 11 identical text pills at half the minimum touch-target he
 - **New copy lives only in the `en` block of `translations.js`.** `t()` falls back to
   English for the other three languages. All numbers go through the existing
   `tCount`/`tUnit` plural keys, so units are localized even when labels aren't.
+- **Search filters the DOM, it doesn't re-query the data.** Every table is already
+  built and only hidden by `display`, so one query can reach all ~55 of them:
+  `runRecordsSearch()` marks matching rows `.rec-search-hit`, hides the rest, then rolls
+  the hits up — sub-section, section group, section — and displays only the sections that
+  still hold one. Row text is cached on the element (`row._recSearchText`), which can't go
+  stale because a rebuild creates new elements. Thumbnail and toggle cells are excluded
+  from that text, or every row would match "Deezer".
+- **Search owns the view while it is active.** `applyRecordsViewFilter()` defers to it and
+  returns early; anything that means to *leave* a search calls `recSearchReset()` first
+  (the nav pills do). Without that, clicking a section pill during a search would filter
+  straight back to the search.
+- **Search deliberately ignores the entries-per-table limit and the collapse states.** A
+  row that was built is findable, and a match inside a collapsed section is still a match
+  — both are CSS overrides scoped to `#recordsView.rec-searching`, so the stored collapse
+  state survives untouched and comes back when the query is cleared.
+- **Shrinking the entries limit no longer rebuilds anything.** Each row carries its
+  canonical (pre-sort) rank index from `tagRecRowIndices()`, so `.rec-row-over-limit`
+  still means "past the top N" no matter which column the table is sorted by. Only asking
+  for *more* rows than `recBuiltLimit` rebuilds, and that path captures the active sorts
+  first and re-applies them after (`captureRecSortState()` / `restoreRecSortState()`).
+  Sort state is keyed by table *position*, not id — most tables have no id, but the same
+  code builds them in the same order.
+- **`applyRecSort()` is the one place a column becomes sorted.** The header click handler
+  and the rebuild-restore path both go through it, so the indicator, `aria-sort` and the
+  row order can't drift apart.
 - **Per-type record definitions that aren't simple lookups:**
   - A Perfect All Kill is an artist event, but each PAK week also crowns a song and an
     album, so those types show whichever appeared in the most PAK weeks.
@@ -90,7 +118,7 @@ not new lookups.
 
 ---
 
-## Pending — 45 items
+## Pending — 42 items
 
 ### A. Information architecture & navigation
 
@@ -102,7 +130,8 @@ not new lookups.
 - [ ] **4.** Put each section's emoji on its nav pill. The overview cards do this; the nav
       doesn't, so nav→section matching is still text-only.
 - [ ] **6.** Deep-link sections (`#records/streaks`). State is localStorage-only, so a
-      record can't be linked or shared.
+      record can't be linked or shared. Should carry the search query too, now that there
+      is one.
 - [ ] **7.** Count badge per nav pill (`Streaks · 12`).
 - [ ] **8.** Disable or grey pills for sections with no records.
 - [ ] **9.** Split "New Charts" out of Records — it's 9 sub-sections and ~18 tables, a
@@ -133,22 +162,24 @@ not new lookups.
 - [ ] **24.** Zebra striping or a row-group rule every 5 rows.
 - [ ] **25.** Give ranks 1–3 more than a text colour — a medal chip or tinted row.
 - [ ] **26.** Inline proportional bar behind the count column.
-- [ ] **27.** Unify the four expand glyphs: `−` (section), `−` (sub-section), `▸` (chart
-      run), `▶` (appearances), `▼` (PAK). Pick one chevron and rotate it.
-- [ ] **28.** Fix `▸▸` vs `▶▶` — two different glyphs for the identical "expand all"
-      action. `app.js` ~4325 (All #1s) vs ~4496/4540/4577 (Appearances). Cheapest real fix
-      on this list.
+- [ ] **27.** *(partial)* Every row-level and expand-all control in Records is now the
+      same `▶`/`▼` pair, so the glyph *set* is unified. What's left is the mechanism: PAK
+      rotates one static chevron in CSS, everything else swaps `textContent`. Pick the
+      rotation and drop the swaps. Section/sub-section `−`/`+` are a different affordance
+      and shared with the rest of the app — changing those is not a Records-only edit.
 - [ ] **29.** Make the whole row clickable to expand. PAK already does; the others don't.
 - [ ] **30.** *(partial)* Sortable headers got `aria-sort`/`role`/`tabindex`, but collapse
       toggles still lack `aria-expanded` and tables lack `<caption>`/`scope="col"`.
 
 ### D. Finding things
 
-- [ ] **31. Global search box across all sections.** Highest-leverage remaining item —
-      "how did *this artist* do?" is the question the tab still can't answer.
 - [ ] **33.** Per-section entry limit instead of one global control for all ~55 tables.
-- [ ] **34.** "Show 25 more" at the foot of each table instead of limit buttons.
-- [ ] **35.** Artist filter chip — click any artist to scope the whole tab to them.
+      Cheaper than it was: `applyRecRowLimit()` already applies a limit per table without
+      rebuilding, so this is now mostly UI plus per-section state.
+- [ ] **34.** "Show 25 more" at the foot of each table instead of limit buttons. Same
+      note as #33 — the row-level plumbing exists.
+- [ ] **35.** Artist filter chip — click any artist to scope the whole tab to them. Search
+      does this by typing; the chip is the one-click version of the same filter.
 - [ ] **36.** Date-range scope. Every record is all-time only, so they go static after
       the first visit.
 
@@ -156,11 +187,12 @@ not new lookups.
 
 - [ ] **37.** Skeleton state — `buildRecords()` blocks synchronously with no feedback.
 - [ ] **38.** Lazy section build. All ten sections are fully built on every visit;
-      `applyRecordsViewFilter()` only toggles `display`.
-- [ ] **39. Stop rebuilding everything on limit change.** Now worse than at audit time:
-      it also wipes the active column sort. Highest-value bug-adjacent fix.
+      `applyRecordsViewFilter()` only toggles `display`. **Careful**: global search now
+      depends on every section being in the DOM. Lazy building has to either build on
+      first query or search the data instead of the DOM.
 - [ ] **40.** IntersectionObserver for images instead of sequential 60ms awaits.
-- [ ] **41.** Warn before rendering "All" entries.
+- [ ] **41.** Warn before rendering "All" entries. Still the one limit change that has to
+      rebuild, and now the only slow one.
 - [ ] **42.** *(partial)* Overview cards teach; section tables still say a bare "No data".
       Copy the PAK empty state's pattern, which explains what the record requires.
 - [ ] **43.** "Last computed" timestamp in the intro strip.
@@ -194,15 +226,25 @@ not new lookups.
 
 ## Working notes
 
-**Nothing here has been verified in a real browser.** All of it was tested headless. Worth
+**There *is* a real browser available — the earlier "headless only" note was wrong.**
+`C:\tmp` has a Playwright install (`node_modules/playwright`, Chromium already
+downloaded) and the app runs against the sample dataset with no credentials: serve
+`dankcharts/` statically and click `.landing-demo-btn`. `C:\tmp\serve_dc.mjs` is a
+20-line static server on port 8899; `rec_verify.mjs`, `rec_edge.mjs` and `rec_glyph.mjs`
+next to it are the checks written for search / limit / glyphs and are worth copying for
+the next item. Two gotchas: the Records nav pill sits in the collapsed second nav row so
+`page.click` gets intercepted — use `page.evaluate(() => el.click())`; and the demo needs
+~2.5s after the tab opens before all ~55 tables exist.
+
+Search, the entries limit and the expand glyphs were verified this way. Still worth
 eyeballing on the deployed site: the Albums pill (three empty cards), Yellow Dark and
 Yellow Light (tightest accent contrast), and the Certifications card on Songs (the only
 card whose sub-line is a date).
 
-**Testing approach.** There is no test runner, no Playwright and no Python in this
-environment. What worked: `npm i jsdom` in a scratch directory, then slice the real
+**The jsdom approach** (`npm i jsdom` in a scratch directory, then slice the real
 functions out of `app.js` with `indexOf` and `eval` them, with real markup sliced from
-`index.html` and real translations from `translations.js` — no invented fixtures. Gotchas:
+`index.html` and real translations from `translations.js` — no invented fixtures) still
+works and is faster for pure logic. Gotchas:
 
 - `const` bindings do not escape `eval`; append
   `;Object.assign(globalThis, { ... })` inside the evaluated string to export them.
@@ -221,4 +263,7 @@ placeholders inside hidden containers (`.dc-user-avatar` filled by `firebase.js`
 `#ytMiniThumb` by `_ytUpdateThumb`). Don't "fix" them and don't add ignore rules for them
 without a decision from the project owner.
 
-**Suggested next three:** #31 (search), #39 (the rebuild/sort bug), #28 (free).
+**Suggested next three:** #19 (sticky table headers — move the radius to a wrapper first,
+then it's unblocked), #11 (rewrite `.rec-intro` as a real stat strip, the last mono
+run-on at the top of the tab), #1 + #4 + #49 together (the nav pills: group them, put the
+section emoji on them, give them a 44px target — one pass over the same markup).
