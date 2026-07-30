@@ -2332,6 +2332,73 @@ document.addEventListener('click', e => {
   openImgPicker({ imgid, type, prefkey, name, artist, album });
 }, true);
 
+// ─── TOUCH: PRESS-AND-HOLD OPENS THE PICKER ───────────────────
+// On touch devices the ✎ badge is hidden entirely (style.css hides it under
+// @media (hover: none) — on small thumbs it covered the very artwork it
+// belongs to). Instead, pressing and holding any artwork that carries a
+// picker for half a second opens it. A plain tap keeps doing whatever it
+// did before (some artwork opens detail modals, most does nothing), because
+// the hold only fires after the tap window has passed and the ghost click
+// that follows a fired hold is swallowed below.
+const IMG_LONGPRESS_MS = 500;
+let _imgLpTimer = null;              // pending hold timer, null when idle
+let _imgLpStartX = 0, _imgLpStartY = 0; // press origin, to tell a hold from a scroll
+let _imgLpFired = false;             // true between picker-open and the ghost click
+
+function _imgLpCancel() {
+  if (_imgLpTimer) { clearTimeout(_imgLpTimer); _imgLpTimer = null; }
+}
+
+document.addEventListener('pointerdown', e => {
+  // Mouse users keep the hover badge; only touch/pen presses arm the hold.
+  if (e.pointerType === 'mouse') return;
+  const wrap = e.target.closest('.thumb-wrap');
+  if (!wrap || !wrap.querySelector('.img-src-btn')) return;
+  _imgLpCancel();
+  _imgLpFired = false;
+  _imgLpStartX = e.clientX;
+  _imgLpStartY = e.clientY;
+  _imgLpTimer = setTimeout(() => {
+    _imgLpTimer = null;
+    const btn = wrap.querySelector('.img-src-btn');
+    if (!btn) return;
+    _imgLpFired = true;
+    // Small haptic nudge where supported (Android; iOS ignores vibrate()).
+    if (navigator.vibrate) navigator.vibrate(15);
+    const { imgid, type, prefkey, name, artist, album } = btn.dataset;
+    openImgPicker({ imgid, type, prefkey, name, artist, album });
+    // Safety: if no ghost click ever arrives (browser quirk), disarm anyway
+    // so the *next* real tap isn't eaten.
+    setTimeout(() => { _imgLpFired = false; }, 700);
+  }, IMG_LONGPRESS_MS);
+}, true);
+
+// Any movement beyond a finger-wobble means the user is scrolling, not holding.
+document.addEventListener('pointermove', e => {
+  if (!_imgLpTimer) return;
+  if (Math.abs(e.clientX - _imgLpStartX) > 10 || Math.abs(e.clientY - _imgLpStartY) > 10) _imgLpCancel();
+}, true);
+document.addEventListener('pointerup', _imgLpCancel, true);
+document.addEventListener('pointercancel', _imgLpCancel, true);
+
+// Swallow the ghost click that follows a fired hold (the finger was still down
+// when the picker opened, so its lift lands a click wherever it happens to be —
+// possibly on the artwork's own tap action, possibly on the fresh overlay,
+// which would close it on the spot). Capture phase so it wins over both.
+document.addEventListener('click', e => {
+  if (!_imgLpFired) return;
+  _imgLpFired = false;
+  e.stopPropagation();
+  e.preventDefault();
+}, true);
+
+// Android turns a long-press on an image into a native context menu; ours
+// replaces it on artwork that has a picker. (iOS needs -webkit-touch-callout
+// instead, which the stylesheet sets on .thumb-wrap for touch devices.)
+document.addEventListener('contextmenu', e => {
+  if ((_imgLpTimer || _imgLpFired) && e.target.closest('.thumb-wrap')) e.preventDefault();
+}, true);
+
 
 
 // ─── GOOGLE SHEETS SYNC ────────────────────────────────────────

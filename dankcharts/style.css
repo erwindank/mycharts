@@ -5680,8 +5680,19 @@
       color: var(--on-accent);
     }
 
+    /* Touch devices: no ✎ badge at all — on small thumbs it sat over the very
+       artwork it belongs to and could never be "revealed on hover" anyway.
+       Press-and-hold the artwork opens the picker instead (see the long-press
+       handlers next to openImgPicker() in app.js). */
     @media (hover: none) {
-      .img-src-btn { opacity: 0.55; }
+      .img-src-btn { display: none; }
+      /* Suppress iOS's save/share callout and text selection on held artwork
+         so the hold reads as "open the picker", not as a system gesture. */
+      .thumb-wrap {
+        -webkit-touch-callout: none;
+        -webkit-user-select: none;
+        user-select: none;
+      }
     }
 
     /* ── IMAGE PICKER POPOVER ─────────────────────────────────── */
