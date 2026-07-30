@@ -11250,7 +11250,11 @@
        control rather than loose pills, and the period row under it is quieter
        again — text-weight only, no chrome, so three tiers of navigation don't
        compete. */
-    .nc-rec-tabs {
+    /* The Milestones type pills share this styling rather than copying it:
+       they sit two sections apart in the same tab and do the same job, so
+       they must not be able to drift apart. */
+    .nc-rec-tabs,
+    .mil-tabs {
       display: inline-flex;
       flex-wrap: wrap;
       gap: 0.2rem;
@@ -11261,7 +11265,8 @@
       border-radius: 7px;
     }
 
-    .nc-rec-tab {
+    .nc-rec-tab,
+    .mil-tab {
       display: inline-flex;
       align-items: center;
       gap: 0.35rem;
@@ -11278,17 +11283,20 @@
       transition: background 0.15s, color 0.15s, border-color 0.15s;
     }
 
-    .nc-rec-tab-icon {
+    .nc-rec-tab-icon,
+    .mil-tab-icon {
       font-size: 0.72rem;
       line-height: 1;
     }
 
-    .nc-rec-tab:hover {
+    .nc-rec-tab:hover,
+    .mil-tab:hover {
       background: var(--bg3);
       color: var(--text);
     }
 
-    .nc-rec-tab.active {
+    .nc-rec-tab.active,
+    .mil-tab.active {
       background: var(--accent);
       border-color: var(--accent);
       color: var(--on-accent);
@@ -11327,7 +11335,8 @@
       border-bottom-color: var(--accent);
     }
 
-    body.yellow .nc-rec-tab.active {
+    body.yellow .nc-rec-tab.active,
+    body.yellow .mil-tab.active {
       color: #1a1a00;
     }
 
@@ -11441,6 +11450,10 @@
     #recordsView.rec-searching .chart-section.collapsed .section-body,
     #recordsView.rec-searching .rec-section-sub-wrapper.rec-subsection-collapsed .rec-subsection-content,
     #recordsView.rec-searching .rec-section.rec-collapsed>.rec-empty,
+    /* Milestone timelines sit directly under .rec-section as a <table>, so the
+       div: rule below never reached them and a hit inside a collapsed
+       milestone sub-section stayed invisible. */
+    #recordsView.rec-searching .rec-section.rec-collapsed>.milestone-table,
     #recordsView.rec-searching .rec-section.rec-collapsed>div:not(.rec-section-header):not(.rec-section-title):not(.rec-section-sub) {
       display: block;
     }
@@ -11784,6 +11797,53 @@
 
     .rec-table .thumb-wrap {
       gap: 1px;
+    }
+
+    /* Wrapper inserted at runtime by attachRecImgPicker() so the ✎ badge has a
+       positioning context. It goes into grid cells, flex rows and podium cards
+       that already size their own artwork, so it must add nothing of its own —
+       no gap, and it takes the artwork's footprint rather than imposing one. */
+    /* Deliberately block, not flex. As a flex container it shrank any child
+       that did not set flex-shrink: 0 — .pak-mini-thumb does, .mil-art-box did
+       not, so milestone covers were squeezed from 41.6px wide to 25.6px while
+       keeping their full height. Block layout lets the artwork keep the size it
+       asked for, and the badge only needs the positioning context. */
+    .rec-thumb-wrap {
+      gap: 0;
+      display: inline-block;
+      line-height: 0;
+      vertical-align: top;
+    }
+
+    /* The badge is 18px by default and several Records thumbs are only ~28px,
+       so on the small ones it pulls in tight to the corner instead of
+       overhanging. */
+    .rec-thumb-wrap .img-src-btn {
+      top: 1px;
+      right: 1px;
+      width: 16px;
+      height: 16px;
+    }
+
+    /* The 28px thumbs (PAK, New Charts tables) cannot carry even that — 16px is
+       over half their width and the badge reads as a blot on the artwork rather
+       than a control in its corner. attachRecImgPicker() appends the button
+       directly after the artwork, so the adjacent sibling selector is enough
+       and needs no :has(). */
+    .pak-mini-thumb + .img-src-btn {
+      width: 12px;
+      height: 12px;
+      top: 0;
+      right: 0;
+    }
+
+    .pak-mini-thumb + .img-src-btn::before {
+      font-size: 7px;
+    }
+
+    /* Keyboard users get the same affordance hover gives the mouse. */
+    .rec-thumb-wrap:focus-within .img-src-btn {
+      opacity: 1;
     }
 
     .rec-table .thumb-initials {
@@ -12158,6 +12218,267 @@
       font-size: 1.05rem;
       color: var(--accent);
       white-space: nowrap;
+    }
+
+    /* ── Milestone timeline ───────────────────────────────────────────
+       Milestones are a ladder of firsts — one row per tier, each with a date —
+       so the section reads as a timeline instead of a four-column table. The
+       markup stays a real <table>: the records search walks tbody rows, the
+       entries-per-table limit tags them by index, and both would lose this
+       section if it became divs. Everything below is presentation only.
+
+       Both row-hiding rules (.rec-search-hidden and .rec-row-over-limit) use
+       !important, so `display: grid` on a row cannot defeat them. */
+    .mil-timeline {
+      display: block;
+      width: 100%;
+      /* Undo the boxed-table shell — a timeline is not a card. */
+      background: none;
+      border: none;
+      border-radius: 0;
+      overflow: visible;
+      margin-bottom: 0.75rem;
+    }
+
+    /* A timeline has no columns to sort. display:none also takes the sortable
+       headers out of the tab order, rather than leaving them focusable but
+       invisible; the th text stays in the DOM for assistive tech that reads
+       the table's structure. */
+    .mil-timeline thead {
+      display: none;
+    }
+
+    .mil-timeline tbody {
+      display: block;
+    }
+
+    /* Drop the boxed table's cell chrome. Every rule below is scoped to
+       .mil-timeline so it outranks this reset — without that, `padding: 0`
+       here would beat a bare `.mil-tier { padding: … }`. */
+    .mil-timeline td {
+      border-bottom: none;
+      padding: 0;
+      font-size: inherit;
+      vertical-align: middle;
+    }
+
+    .mil-row {
+      display: grid;
+      grid-template-columns: 5.5rem 2.6rem minmax(0, 1fr) auto;
+      grid-template-areas:
+        "tier art who when"
+        "tier art who after";
+      align-items: center;
+      column-gap: 0.85rem;
+      position: relative;
+      padding: 0.45rem 0;
+    }
+
+    /* The spine. Drawn per row and full-height, so it ends exactly at the last
+       row still on screen — the entries limit and the search both hide rows,
+       and a single line drawn across the tbody would dangle past them. */
+    .mil-row::before {
+      content: '';
+      position: absolute;
+      left: 2.75rem;
+      top: 0;
+      bottom: 0;
+      width: 2px;
+      transform: translateX(-1px);
+      background: var(--border);
+    }
+
+    /* The node. Carries its own surface so it masks the spine behind it on
+       every theme, rather than depending on what the section sits on. */
+    .mil-timeline .mil-tier {
+      grid-area: tier;
+      position: relative;
+      z-index: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 0.05rem;
+      padding: 0.4rem 0.3rem;
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      text-align: center;
+    }
+
+    .mil-tier .milestone-number {
+      font-size: 0.95rem;
+      line-height: 1.1;
+    }
+
+    .mil-tier-unit {
+      font-family: var(--font-mono);
+      font-size: 0.5rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--text3);
+      line-height: 1;
+    }
+
+    /* The ladder has 28 steps and they are not all equally worth stopping at,
+       so the round ones carry weight. --on-accent, never a literal white: on
+       the light-accent themes an accent fill needs dark ink. */
+    .mil-row-major .mil-tier {
+      background: var(--accent);
+      border-color: var(--accent);
+    }
+
+    .mil-row-major .milestone-number,
+    .mil-row-major .mil-tier-unit {
+      color: var(--on-accent);
+    }
+
+    .mil-row-major .mil-tier-unit {
+      opacity: 0.75;
+    }
+
+    /* Artwork. The box is sized and styled here rather than by the image
+       loader, so the initials placeholder and the cover that replaces it
+       occupy exactly the same space and the timeline never reflows as art
+       arrives. */
+    .mil-timeline .mil-art {
+      grid-area: art;
+      width: 2.6rem;
+      height: 2.6rem;
+    }
+
+    .mil-art-box {
+      width: 2.6rem;
+      height: 2.6rem;
+      border-radius: 5px;
+      overflow: hidden;
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* Artists are people, not records — the circle is how the rest of the app
+       distinguishes an avatar from a cover. */
+    .mil-art-circle {
+      border-radius: 50%;
+    }
+
+    .mil-art-box img,
+    .mil-art-box .thumb {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .mil-art-box .thumb-initials {
+      font-family: var(--font-mono);
+      font-size: 0.62rem;
+      letter-spacing: 0.04em;
+      color: var(--text3);
+    }
+
+    .mil-timeline .mil-who {
+      grid-area: who;
+      min-width: 0;
+      padding: 0.1rem 0;
+    }
+
+    .mil-timeline .mil-when {
+      grid-area: when;
+      align-self: end;
+      text-align: right;
+      font-size: 0.78rem;
+      color: var(--text2);
+      font-variant-numeric: tabular-nums;
+      white-space: nowrap;
+    }
+
+    .mil-timeline .mil-after {
+      grid-area: after;
+      align-self: start;
+      text-align: right;
+      font-family: var(--font-mono);
+      font-size: 0.6rem;
+      letter-spacing: 0.04em;
+      color: var(--text3);
+      font-variant-numeric: tabular-nums;
+      white-space: nowrap;
+    }
+
+    .mil-row:hover .mil-tier {
+      border-color: var(--accent);
+    }
+
+    /* The origin row — the very first play. The spine stops at its node
+       instead of running past it, because there is nothing before this. */
+    .mil-row-origin::before {
+      bottom: 50%;
+    }
+
+    /* Ringed rather than filled, so it reads as special without competing with
+       the accent-filled round tiers above it. */
+    .mil-timeline .mil-row-origin .mil-tier {
+      border-width: 2px;
+      border-color: var(--accent);
+    }
+
+    .mil-row-origin .milestone-number {
+      font-size: 0.85rem;
+    }
+
+    .mil-row-origin .mil-tier-unit {
+      color: var(--accent);
+    }
+
+    .mil-timeline .mil-row-origin .mil-after {
+      color: var(--accent);
+    }
+
+    .mil-empty {
+      margin-bottom: 0.75rem;
+    }
+
+    /* Phones: the date column is what gives, not the node — the tier number is
+       the one thing a milestone row cannot be read without. */
+    @media (max-width: 620px) {
+      .mil-row {
+        grid-template-columns: 4.25rem 2.2rem minmax(0, 1fr);
+        grid-template-areas:
+          "tier art who"
+          "tier art when"
+          "tier art after";
+        align-items: start;
+        column-gap: 0.6rem;
+      }
+
+      .mil-row::before {
+        left: 2.125rem;
+      }
+
+      .mil-timeline .mil-art,
+      .mil-art-box {
+        width: 2.2rem;
+        height: 2.2rem;
+      }
+
+      .mil-timeline .mil-art {
+        align-self: center;
+      }
+
+      /* Same .mil-timeline prefix as the desktop rules — these have to outrank
+         them, not tie with them. */
+      .mil-timeline .mil-when,
+      .mil-timeline .mil-after {
+        text-align: left;
+        align-self: auto;
+      }
+
+      .mil-timeline .mil-tier {
+        align-self: center;
+      }
     }
 
     .rec-grid-2 {
@@ -13239,7 +13560,23 @@
       z-index: 0;
     }
 
-    .cert-record {
+    /* Holds only the artwork, so the image loader can replace its contents
+       without taking the sleeve and the vinyl centre with it. It occupies
+       exactly the box .cert-record used to, and the cover inside it inherits
+       that box — see .cert-record below, which now also matches the .thumb the
+       loader injects. */
+    .cert-record-slot {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 108px;
+      height: 108px;
+      z-index: 1;
+    }
+
+    .cert-record,
+    .cert-record-slot .thumb {
       position: absolute;
       top: 50%;
       left: 50%;
@@ -13507,7 +13844,9 @@
         gap: 1rem;
       }
       .cert-record-wrap { width: 88px; height: 88px; }
+      .cert-record-slot,
       .cert-record,
+      .cert-record-slot .thumb,
       .cert-record-initials { width: 88px; height: 88px; }
       .cert-sleeve { width: 68px; height: 72px; }
       .cert-vinyl-center { width: 16px; height: 16px; }

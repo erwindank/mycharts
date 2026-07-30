@@ -27,7 +27,7 @@
   <!-- html2canvas, SheetJS (xlsx) and JSZip are intentionally NOT loaded here — they
        total ~1.2 MB and are only needed for image exports and Excel/ZIP imports.
        app.js pulls them from the CDN on first use (see ensureLazyLib). -->
-  <link rel="stylesheet" href="style.css?v=145">
+  <link rel="stylesheet" href="style.css?v=152">
   <!-- All scripts are deferred so the page paints without waiting on them.
        defer preserves execution order, which matters: translations → Chart.js →
        hammer → zoom plugin → firebase SDKs → firebase.js → app.js (in body). -->
@@ -1502,7 +1502,7 @@
           <h2 class="section-header-h2" data-i18n="rec_milestones_title">🎖 Play Count Milestones</h2>
           <div class="section-rule"></div>
         </div>
-        <div class="section-sub" data-i18n="rec_milestones_sub">First artists &amp; songs to reach 10, 25, 50, 100, 250, 500, 1,000, 2,500, 5,000+ plays</div>
+        <div class="section-sub" data-i18n="rec_milestones_sub">The first song, artist and album to reach each play total, and how long each one took to get there — songs count 10 and then every 25 plays, artists and albums use landmark totals</div>
         <div class="section-body" id="recMilestonesBody"></div>
       </div>
 

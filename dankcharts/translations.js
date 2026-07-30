@@ -140,6 +140,9 @@ const TRANSLATIONS = {
     imgpk_none: 'No image',
     imgpk_url_ph: 'Paste image URL…',
     imgpk_apply: 'Set',
+    // Tooltip / screen-reader label on the ✎ badge itself.
+    img_picker_change: 'Change image',
+    img_picker_change_for: 'Change image for {{name}}',
 
     // Hero stats
     hero_total_plays: 'Total Plays',
@@ -569,7 +572,7 @@ const TRANSLATIONS = {
     rec_appearances_sub: 'Artists, albums & tracks with the most periods spent inside your weekly chart',
     rec_debuts_sub: 'Entries that debuted at the highest chart positions on the weekly chart',
     rec_peak_plays_sub: 'Peak single-period play counts — most plays by a song, artist or album in one week, month or year',
-    rec_milestones_sub: 'First artists & songs to reach 10, 25, 50, 100, 250, 500, 1,000, 2,500, 5,000+ plays',
+    rec_milestones_sub: 'The first song, artist and album to reach each play total, and how long each one took to get there — songs count 10 and then every 25 plays, artists and albums use landmark totals',
     rec_fastest_sub: 'Which artists & songs hit milestones fastest — fewest days from first listen to reaching 1K, 2K, 5K plays',
     rec_certs_sub: 'Artists with the most Gold, Platinum & Diamond certified songs and albums',
     rec_streaks_sub: 'Longest consecutive listening streaks, repeat plays, and daily play records',
@@ -643,6 +646,7 @@ const TRANSLATIONS = {
     rec_most_plays_single: 'Most Plays in a Single {{unit}}',
     rec_artists_milestones: '♦ Artists — First to Reach Play Milestones',
     rec_songs_milestones: '★ Songs — First to Reach Play Milestones',
+    rec_albums_milestones: '◈ Albums — First to Reach Play Milestones',
     rec_artists_longest_streak: '♦ Artists — Longest Daily Listening Streak',
     rec_songs_longest_streak: '★ Songs — Longest Daily Listening Streak',
     rec_repeat_runs: '🔁 Repeat Scrobble Runs',
@@ -668,6 +672,19 @@ const TRANSLATIONS = {
     mil_th_date_reached: 'Date Reached',
     mil_th_time_since: 'Time Since First Play',
     mil_no_data: 'No milestones reached yet.',
+    // Milestone timeline: one entity type at a time
+    mil_tabs_label: 'Milestone record type',
+    // The timeline has no visible column headers, so this only ever reaches a
+    // screen reader — it has to work for songs, artists and albums alike.
+    mil_th_first_to_reach: 'First to Reach It',
+    mil_no_data_albums: 'No album milestones yet. Albums only count plays that carry an album tag, so scrobbles with none — common in CSV uploads — are left out of this ladder.',
+    // The origin row at the foot of each timeline: the very first one you played.
+    // Each panel names its own tier ladder — songs and artists don't share one.
+    mil_ladder_songs: 'First to 10 plays, then every {{n}} plays all the way up',
+    mil_ladder_landmark: 'Landmark totals — 10, 25, 50, 100, 250, 500, 1,000, 2,500, 5,000 and up',
+    mil_origin_label: '1st',
+    mil_origin_unit: 'Play',
+    mil_origin_note: 'Where it all started',
 
     // Dropouts section
     drop_col_songs: '★ Songs',

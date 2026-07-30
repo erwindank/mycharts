@@ -2120,7 +2120,49 @@ function loadImages(items, type) {
     if (!el) continue;
     el._imgItem = item;
     observer.observe(el);
+    if (el.closest('#recordsView')) attachRecImgPicker(el, item, type);
   }
+  // Returned so callers that re-render (the certifications wall re-renders on
+  // every filter, sort and search change) can retire the previous observer
+  // instead of stacking a new one on top of it each time.
+  return observer;
+}
+
+/* Records artwork gets the ✎ picker attached here rather than in each section's
+   markup. The tab draws artwork from eight separate builders — All #1s and
+   Appearances wrote the button by hand, while PAK, Debuts, New Charts,
+   Milestones and the certifications wall had no control at all — and this is
+   the one place every one of them already passes through. Doing it here also
+   means a new Records section cannot gain artwork without gaining the control.
+
+   The button is a *sibling* of the artwork element, never a child:
+   fetchAndInjectImage() replaces the target's innerHTML when the image lands,
+   which would wipe a button placed inside it. */
+function attachRecImgPicker(el, item, type) {
+  let wrap = el.parentElement;
+  if (!wrap || !wrap.classList.contains('thumb-wrap')) {
+    // .rec-thumb-wrap keeps the inserted wrapper layout-neutral — the sections
+    // it lands in are grid and flex children with their own sizing.
+    wrap = document.createElement('div');
+    wrap.className = 'thumb-wrap rec-thumb-wrap';
+    el.parentNode.insertBefore(wrap, el);
+    wrap.appendChild(el);
+  }
+  if (wrap.querySelector('.img-src-btn')) return;
+  const label = item.name || item.title || item.album || '';
+  const btn = document.createElement('button');
+  btn.type = 'button';
+  btn.className = 'img-src-btn';
+  btn.id = 'srcbtn-' + item.imgId;
+  btn.dataset.imgid = item.imgId;
+  btn.dataset.type = type;
+  btn.dataset.prefkey = item.prefKey || '';
+  btn.dataset.name = label;
+  btn.dataset.artist = item.artist || '';
+  btn.dataset.album = item.album || '';
+  btn.title = t('img_picker_change');
+  btn.setAttribute('aria-label', t('img_picker_change_for', { name: label }));
+  wrap.appendChild(btn);
 }
 
 // ─── IMAGE PICKER POPOVER ─────────────────────────────────────
@@ -4216,19 +4258,52 @@ function buildRecords() {
 
   // Play count milestones
   const MILESTONES = [10, 25, 50, 100, 150, 200, 250, 300, 400, 500, 600, 750, 1000, 1250, 1500, 1750, 2000, 2500, 3000, 3500, 4000, 5000, 7500, 10000, 15000, 20000, 25000, 50000];
+  const MILESTONE_SET = new Set(MILESTONES);
+  /* Songs run a finer ladder: every 25 plays, with no ceiling. A song is the
+     smallest unit here, so the landmark steps that suit artists (10 → 25 → 50 →
+     100 → …) skip most of what actually happens to one.
+
+     Expressed as a modulo rather than an array because there is no sensible cap
+     — whatever the most-played song reaches, the ladder reaches. */
+  const SONG_MILESTONE_STEP = 25;
+  /* Steps below the first multiple that are worth keeping anyway. 10 plays is
+     the point a song stops being something you tried once, and jumping straight
+     from the origin row to 25 skipped it. */
+  const SONG_MILESTONE_EXTRA = new Set([10]);
+
   const artistMS = {}, songMS = {}, artistFirst = {}, songFirst = {}, artistCP = {}, songCP = {};
+  /* Albums climb the same tier ladder as artists. They were the one entity with
+     no milestone data at all, which left three overview cards permanently empty
+     on the Albums pill. Keyed exactly like every other album map in this file
+     (album|||albumArtist) so albumNames lookups resolve. */
+  const albumMS = {}, albumFirst = {}, albumCP = {};
+  /* Every count below rises by exactly one per play, so a tier is crossed on
+     the single play where the running count equals it. That makes the test O(1)
+     — the old `for (const m of MILESTONES) … >= m` rescanned the whole ladder on
+     every play, which the every-25 song ladder (hundreds of tiers, unbounded)
+     would have turned into a visible hang. */
   for (const p of chron) {
     for (const a of p.artists) {
       if (!artistFirst[a]) artistFirst[a] = p.date;
-      artistCP[a] = (artistCP[a] || 0) + 1;
+      const n = artistCP[a] = (artistCP[a] || 0) + 1;
       if (!artistMS[a]) artistMS[a] = {};
-      for (const m of MILESTONES) if (!artistMS[a][m] && artistCP[a] >= m) artistMS[a][m] = { date: p.date, days: Math.round((p.date - artistFirst[a]) / 86400000) };
+      if (MILESTONE_SET.has(n)) artistMS[a][n] = { date: p.date, days: Math.round((p.date - artistFirst[a]) / 86400000) };
     }
     const sk = songKey(p);
     if (!songFirst[sk]) songFirst[sk] = p.date;
-    songCP[sk] = (songCP[sk] || 0) + 1;
+    const sn = songCP[sk] = (songCP[sk] || 0) + 1;
     if (!songMS[sk]) songMS[sk] = {};
-    for (const m of MILESTONES) if (!songMS[sk][m] && songCP[sk] >= m) songMS[sk][m] = { date: p.date, days: Math.round((p.date - songFirst[sk]) / 86400000) };
+    if (sn % SONG_MILESTONE_STEP === 0 || SONG_MILESTONE_EXTRA.has(sn)) songMS[sk][sn] = { date: p.date, days: Math.round((p.date - songFirst[sk]) / 86400000) };
+    // A play with no album tag can't be credited to one — CSV uploads and a fair
+    // number of Last.fm scrobbles have none — so it sits this ladder out. Same
+    // guard the raw discovery counts above use.
+    if (p.album && p.album !== '—') {
+      const ak = p.album + '|||' + albumArtist(p);
+      if (!albumFirst[ak]) albumFirst[ak] = p.date;
+      const an = albumCP[ak] = (albumCP[ak] || 0) + 1;
+      if (!albumMS[ak]) albumMS[ak] = {};
+      if (MILESTONE_SET.has(an)) albumMS[ak][an] = { date: p.date, days: Math.round((p.date - albumFirst[ak]) / 86400000) };
+    }
   }
 
   // Consecutive same-song scrobbles — collect all runs
@@ -4398,6 +4473,18 @@ function buildRecords() {
     const sortedPAK = Object.entries(byArtist).sort(function (a, b) { return b[1].length - a[1].length; });
     let ph = '<div class="rec-section-sub">' + t('rec_pak_summary', { weeks: pakWeeks.length, weekword: tUnit('weeks', pakWeeks.length), weekwordfull: tUnit('weeks_full', pakWeeks.length), n: sortedPAK.length, artistword: tUnit('artists', sortedPAK.length) }) + '</div>';
     const limEntries = isFinite(lim) ? sortedPAK.slice(0, lim) : sortedPAK;
+    /* Queued while the markup is built, handed to loadImages() once it is in
+       the DOM — the same pattern the appearances and debuts sections use. */
+    const pakImgQueue = [];
+    const pakArtistItem = function (imgId, artist) {
+      return { imgId, imgType: 'artist', name: artist, prefKey: 'artist:' + artist.toLowerCase() };
+    };
+    const pakAlbumItem = function (imgId, album, artist) {
+      return {
+        imgId, imgType: 'album', name: album, album: album, artist: artist,
+        prefKey: 'album:' + artist.toLowerCase() + '|||' + album.toLowerCase()
+      };
+    };
     ph += '<table class="rec-table pak-artist-table"><thead><tr>'
       + '<th></th><th>' + t('rec_th_artist') + '</th>'
       + '<th class="pak-weeks-th">' + t('rec_th_pak_weeks') + '</th>'
@@ -4411,6 +4498,7 @@ function buildRecords() {
       const lastWeek = weeks[weeks.length - 1];
       const safeKey = artist.replace(/[^a-z0-9]/gi, '-').toLowerCase() + '-' + i;
       const artistImgId = 'pak-tbl-aimg-' + safeKey;
+      pakImgQueue.push(pakArtistItem(artistImgId, artist));
       const expandId = 'pak-expand-' + safeKey;
       const rankCls = i === 0 ? ' rec-rank-1' : i === 1 ? ' rec-rank-2' : i === 2 ? ' rec-rank-3' : '';
       ph += '<tr class="pak-artist-row' + rankCls + '" onclick="togglePakArtistExpand(\'' + expandId + '\',this)">'
@@ -4425,6 +4513,7 @@ function buildRecords() {
       for (let j = 0; j < weeks.length; j++) {
         const pw = weeks[j];
         const albumImgId = 'pak-exp-img-' + safeKey + '-' + j;
+        pakImgQueue.push(pakAlbumItem(albumImgId, pw.album, artist));
         ph += '<div class="pak-expand-item" data-pak-album-img="' + albumImgId + '" data-album="' + esc(pw.album) + '" data-artist="' + esc(artist) + '">'
           + '<div class="pak-mini-thumb" id="' + albumImgId + '"><div class="pak-mini-initials">' + esc(initials(pw.album)) + '</div></div>'
           + '<span class="pak-expand-album">💿 ' + esc(pw.album) + '</span>'
@@ -4451,6 +4540,8 @@ function buildRecords() {
       const pw = pakSlice[idx];
       const pakImgId = 'pak-img-' + pw.weekKey.replace(/[^a-z0-9]/gi, '-') + '-' + idx;
       const pakArtistImgId = 'pak-aimg-' + pw.weekKey.replace(/[^a-z0-9]/gi, '-') + '-' + idx;
+      pakImgQueue.push(pakAlbumItem(pakImgId, pw.album, pw.artist));
+      pakImgQueue.push(pakArtistItem(pakArtistImgId, pw.artist));
       ph += '<div class="pak-item">'
         + '<a class="pak-date pak-date-link" href="javascript:void(0)" onclick="showPakWeekPreview(\'' + pw.weekKey + '\',this)">' + fmtPeriodKey(pw.weekKey, 'week') + '</a>'
         + '<div class="pak-col pak-col-artist"><div class="pak-mini-thumb pak-mini-thumb-round" id="' + pakArtistImgId + '"><div class="pak-mini-initials">' + esc(initials(pw.artist)) + '</div></div><span class="pak-col-text">' + esc(pw.artist) + '</span></div>'
@@ -4464,46 +4555,18 @@ function buildRecords() {
     }
     ph += '</div>';
     document.getElementById('recPAKBody').innerHTML = ph;
-    // Load artist images for table rows and flat list asynchronously
-    (async () => {
-      for (let i = 0; i < limEntries.length; i++) {
-        const [artist] = limEntries[i];
-        const safeKey = artist.replace(/[^a-z0-9]/gi, '-').toLowerCase() + '-' + i;
-        try {
-          const artistEl = document.getElementById('pak-tbl-aimg-' + safeKey);
-          if (artistEl) {
-            const url = await getArtistImage(artist);
-            if (url) {
-              artistEl.innerHTML = `<img class="pak-mini-img" src="${esc(url)}" alt="" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"><div class="pak-mini-initials" style="display:none">${esc(initials(artist))}</div>`;
-              await new Promise(r => setTimeout(r, 60));
-            }
-          }
-        } catch (e) { }
-      }
-      for (let i = 0; i < pakSlice.length; i++) {
-        const pw = pakSlice[i];
-        const albumImgId = 'pak-img-' + pw.weekKey.replace(/[^a-z0-9]/gi, '-') + '-' + i;
-        const artistImgId = 'pak-aimg-' + pw.weekKey.replace(/[^a-z0-9]/gi, '-') + '-' + i;
-        try {
-          const albumEl = document.getElementById(albumImgId);
-          if (albumEl) {
-            const url = await getAlbumImage(pw.album, pw.artist);
-            if (url) {
-              albumEl.innerHTML = `<img class="pak-mini-img" src="${esc(url)}" alt="" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"><div class="pak-mini-initials" style="display:none">${esc(initials(pw.album))}</div>`;
-              await new Promise(r => setTimeout(r, 60));
-            }
-          }
-          const artistEl = document.getElementById(artistImgId);
-          if (artistEl) {
-            const url = await getArtistImage(pw.artist);
-            if (url) {
-              artistEl.innerHTML = `<img class="pak-mini-img" src="${esc(url)}" alt="" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"><div class="pak-mini-initials" style="display:none">${esc(initials(pw.artist))}</div>`;
-              await new Promise(r => setTimeout(r, 60));
-            }
-          }
-        } catch (e) { }
-      }
-    })();
+    /* PAK artwork used to fetch itself: a bare getArtistImage/getAlbumImage
+       loop that walked every row eagerly with a 60ms sleep between each. That
+       bypassed everything the rest of the app's artwork gets — pinned picker
+       choices, the source cascade, per-item source prefs — so a cover corrected
+       anywhere else in the app was still wrong here, and there was no ✎ badge to
+       correct it with.
+
+       Routing it through loadImages() fixes all of that at once, and makes it
+       lazy: the expand rows are display:none until opened, so their covers are
+       no longer fetched for artists nobody expanded. */
+    loadImages(pakImgQueue.filter(function (x) { return x.imgType === 'artist'; }), 'artist');
+    loadImages(pakImgQueue.filter(function (x) { return x.imgType === 'album'; }), 'album');
   }
 
   // ── Most Chart Appearances ────────────────────────────────────
@@ -4808,23 +4871,198 @@ function buildRecords() {
   document.getElementById('recPeakPlaysBody').innerHTML = ppH;
 
   // ── Play Count Milestones ─────────────────────────────────────
-  let mh = '<div class="rec-section"><div class="rec-section-title">' + t('rec_artists_milestones') + '</div>';
-  const aMilRows = MILESTONES.map(function (m) {
-    const first = Object.entries(artistMS).filter(function (e) { return e[1][m]; }).sort(function (a, b) { return a[1][m].date - b[1][m].date; })[0];
-    if (!first) return '';
-    const ms = first[1][m];
-    return '<tr><td><span class="milestone-number">' + m.toLocaleString() + '</span></td><td><div class="rec-name">' + esc(first[0]) + '</div></td><td class="rec-meta">' + fmtDate(ms.date) + '</td><td class="rec-meta">' + (ms.days === 0 ? t('rec_milestone_day1') : t('rec_milestone_days_after', { n: ms.days.toLocaleString() })) + '</td></tr>';
-  }).filter(Boolean);
-  mh += '<table class="milestone-table"><thead><tr><th>' + t('mil_th_plays') + '</th><th>' + t('mil_th_first_artist') + '</th><th>' + t('mil_th_date_reached') + '</th><th>' + t('mil_th_time_since') + '</th></tr></thead><tbody>' + (aMilRows.join('') || '<tr><td colspan="4" class="rec-empty">' + t('mil_no_data') + '</td></tr>') + '</tbody></table></div>';
-  mh += '<div class="rec-section"><div class="rec-section-title">' + t('rec_songs_milestones') + '</div>';
-  const sMilRows = MILESTONES.map(function (m) {
-    const first = Object.entries(songMS).filter(function (e) { return e[1][m]; }).sort(function (a, b) { return a[1][m].date - b[1][m].date; })[0];
-    if (!first) return '';
-    const n = songNames[first[0]] || {}, ms = first[1][m];
-    return '<tr><td><span class="milestone-number">' + m.toLocaleString() + '</span></td><td><div class="rec-name">' + esc(n.title || first[0].split('|||')[0]) + '</div><div class="rec-sub">' + esc(n.artist || '') + '</div></td><td class="rec-meta">' + fmtDate(ms.date) + '</td><td class="rec-meta">' + (ms.days === 0 ? t('rec_milestone_day1') : t('rec_milestone_days_after', { n: ms.days.toLocaleString() })) + '</td></tr>';
-  }).filter(Boolean);
-  mh += '<table class="milestone-table"><thead><tr><th>' + t('mil_th_plays') + '</th><th>' + t('mil_th_first_song') + '</th><th>' + t('mil_th_date_reached') + '</th><th>' + t('mil_th_time_since') + '</th></tr></thead><tbody>' + (sMilRows.join('') || '<tr><td colspan="4" class="rec-empty">' + t('mil_no_data') + '</td></tr>') + '</tbody></table></div>';
+  /* Milestones are a ladder of firsts, not a leaderboard: every row is a
+     different tier, and what matters is when each was reached and how long it
+     took. That is a story with dates, so it renders as a vertical timeline
+     rather than a four-column table.
+
+     It stays a real <table> underneath. The records search walks tbody rows,
+     the entries-per-table limit tags them by index, and both would lose this
+     section entirely if the markup became divs — so the timeline is built in
+     CSS (.mil-timeline) over ordinary rows. The <thead> is display:none there:
+     a timeline has no columns to sort, and display:none also takes the
+     sortable headers out of the tab order instead of leaving them focusable
+     but invisible. */
+  // Round tiers get a heavier node — the ladder has 28 steps and they are not
+  // all equally worth stopping at.
+  const MIL_MAJOR = new Set([100, 500, 1000, 5000, 10000, 25000, 50000]);
+  /* Rows render descending, biggest tier first. The ladders ascend, so ordering
+     them that way would put the trivial tiers on top and — worse — hand the
+     entries-per-table limit the highest milestones to hide. Reversed, the limit
+     cuts from the bottom, which is what "top 25" should mean here. */
+
+  /* Artwork. Queued, not fetched: loadImages() attaches an IntersectionObserver,
+     so the covers in the two hidden panels cost nothing until their pill is
+     picked and the panel gets a box. Each entity type needs a different lookup
+     key, which is the only thing that varies. */
+  const milImgQueue = [];
+  function milQueueArt(imgId, imgType, key, name, sub) {
+    if (imgType === 'artist') {
+      milImgQueue.push({ imgId, imgType, name: name, prefKey: 'artist:' + name.toLowerCase() });
+    } else if (imgType === 'album') {
+      milImgQueue.push({
+        imgId, imgType, name: name, album: name, artist: sub,
+        prefKey: 'album:' + (sub || '').toLowerCase() + '|||' + name.toLowerCase()
+      });
+    } else {
+      milImgQueue.push({
+        imgId, imgType, name: name, title: name, artist: sub, album: (songNames[key] || {}).album || '',
+        prefKey: 'song:' + (sub || '').toLowerCase() + '|||' + name.toLowerCase()
+      });
+    }
+  }
+
+  /* One timeline. `ms` is the tier map, `first` the first-play-date map — the
+     second is what the origin row at the foot of the spine is built from. */
+  function milTimeline(cfg) {
+    const nameFn = cfg.nameFn, subFn = cfg.subFn;
+    // Shared by the tier rows and the origin row so the two can't drift apart.
+    function artCell(imgId, imgType, key, name, sub) {
+      milQueueArt(imgId, imgType, key, name, sub);
+      // .thumb-cell keeps the placeholder initials out of the records search —
+      // otherwise every row would match on its own initials.
+      return '<td class="thumb-cell mil-art">'
+        + '<div class="mil-art-box' + (imgType === 'artist' ? ' mil-art-circle' : '') + '" id="' + imgId + '">'
+        + '<div class="thumb-initials">' + esc(initials(name)) + '</div></div></td>';
+    }
+
+    /* Earliest entry per tier, in one pass over the map. The tiers come from the
+       data rather than from a fixed ladder, because the song ladder is every 25
+       plays with no ceiling — there is no array to iterate. Inverting the scan
+       also drops the cost from O(tiers × entries) to O(milestones actually
+       reached), which matters once a heavily played song contributes hundreds of
+       tiers on its own. */
+    const best = {};
+    for (const k in cfg.ms) {
+      const tiers = cfg.ms[k];
+      for (const m in tiers) {
+        const e = tiers[m];
+        if (!best[m] || e.date < best[m].ms.date) best[m] = { key: k, ms: e };
+      }
+    }
+    const rows = Object.keys(best).map(Number).sort(function (a, b) { return b - a; }).map(function (m) {
+      const key = best[m].key, ms = best[m].ms;
+      const nm = nameFn(key), sub = subFn ? subFn(key) : '';
+      return '<tr class="mil-row' + (MIL_MAJOR.has(m) ? ' mil-row-major' : '') + '">'
+        + '<td class="mil-tier"><span class="milestone-number">' + m.toLocaleString() + '</span>'
+        + '<span class="mil-tier-unit">' + t('mil_th_plays') + '</span></td>'
+        + artCell('mil-img-' + cfg.idPrefix + '-' + m, cfg.imgType, key, nm, sub)
+        + '<td class="mil-who"><div class="rec-name">' + esc(nm) + '</div>'
+        + (sub ? '<div class="rec-sub">' + esc(sub) + '</div>' : '') + '</td>'
+        + '<td class="mil-when">' + fmtDate(ms.date) + '</td>'
+        + '<td class="mil-after">' + (ms.days === 0 ? t('rec_milestone_day1') : t('rec_milestone_days_after', { n: ms.days.toLocaleString() })) + '</td>'
+        + '</tr>';
+    });
+
+    /* The origin: the very first one you ever played. Without it the timeline
+       has no beginning — the lowest tier is 10 plays, so whatever started the
+       whole thing was invisible. It is not a milestone tier, so it is computed
+       from the first-play map rather than added to MILESTONES, which would
+       otherwise pollute the fastest-to-milestone and overview record too. */
+    let originRow = '';
+    {
+      let bk = null, bv = null;
+      for (const k in cfg.first) if (bv === null || cfg.first[k] < bv) { bv = cfg.first[k]; bk = k; }
+      if (bk !== null) {
+        const nm = nameFn(bk), sub = subFn ? subFn(bk) : '';
+        originRow = '<tr class="mil-row mil-row-origin">'
+          + '<td class="mil-tier"><span class="milestone-number">' + t('mil_origin_label') + '</span>'
+          + '<span class="mil-tier-unit">' + t('mil_origin_unit') + '</span></td>'
+          + artCell('mil-img-' + cfg.idPrefix + '-origin', cfg.imgType, bk, nm, sub)
+          + '<td class="mil-who"><div class="rec-name">' + esc(nm) + '</div>'
+          + (sub ? '<div class="rec-sub">' + esc(sub) + '</div>' : '') + '</td>'
+          + '<td class="mil-when">' + fmtDate(bv) + '</td>'
+          + '<td class="mil-after">' + t('mil_origin_note') + '</td>'
+          + '</tr>';
+      }
+    }
+
+    // An empty section says what the record needs, not just "no data" — the
+    // album ladder in particular is empty for a reason worth naming. The origin
+    // row counts as content: a library too small for the 10-play tier still has
+    // a first play, and that is the whole story it has to tell.
+    if (!rows.length && !originRow) return '<div class="rec-empty mil-empty">' + t(cfg.emptyKey) + '</div>';
+    return '<table class="milestone-table mil-timeline"><thead><tr>'
+      + '<th scope="col">' + t('mil_th_plays') + '</th>'
+      + '<th scope="col"></th>'
+      + '<th scope="col">' + t('mil_th_first_to_reach') + '</th>'
+      + '<th scope="col">' + t('mil_th_date_reached') + '</th>'
+      + '<th scope="col">' + t('mil_th_time_since') + '</th>'
+      + '</tr></thead><tbody>' + rows.join('') + originRow + '</tbody></table>';
+  }
+
+  /* One panel per entity, one visible at a time — the same DOM-only pattern the
+     New Charts pills use. All three are always built, so the global search can
+     still reach every one of them. */
+  /* Each panel states its own ladder, because the two are not the same and a
+     reader comparing "first to 500" across pills would otherwise have no way to
+     know songs are counting in 25s and artists in landmark steps. */
+  const MIL_REC_TYPES = [
+    {
+      key: 'songs', icon: '★', label: t('rec_th_songs'), title: t('rec_songs_milestones'),
+      sub: t('mil_ladder_songs', { n: SONG_MILESTONE_STEP }), empty: 'mil_no_data'
+    },
+    {
+      key: 'artists', icon: '♦', label: t('rec_th_artists'), title: t('rec_artists_milestones'),
+      sub: t('mil_ladder_landmark'), empty: 'mil_no_data'
+    },
+    {
+      key: 'albums', icon: '◈', label: t('rec_th_albums'), title: t('rec_albums_milestones'),
+      sub: t('mil_ladder_landmark'), empty: 'mil_no_data_albums'
+    }
+  ];
+  /* Name lookups. The overview block further down declares its own songNm /
+     albumNm consts, but those are `const` in this same function scope and are
+     not initialised yet at this point — reading them here would be a temporal
+     dead zone error. These read the same songNames / albumNames maps. */
+  const milSongNm = function (k) { return (songNames[k] || {}).title || String(k).split('|||')[0]; };
+  const milSongArt = function (k) { return (songNames[k] || {}).artist || ''; };
+  const milAlbumNm = function (k) { return (albumNames[k] || {}).album || String(k).split('|||')[0]; };
+  const milAlbumArt = function (k) { return (albumNames[k] || {}).artist || ''; };
+  const MIL_BY_TYPE = {
+    songs: function () {
+      return milTimeline({
+        ms: songMS, first: songFirst, nameFn: milSongNm, subFn: milSongArt,
+        imgType: 'song', idPrefix: 'songs', emptyKey: 'mil_no_data'
+      });
+    },
+    artists: function () {
+      return milTimeline({
+        ms: artistMS, first: artistFirst, nameFn: function (k) { return k; }, subFn: null,
+        imgType: 'artist', idPrefix: 'artists', emptyKey: 'mil_no_data'
+      });
+    },
+    albums: function () {
+      return milTimeline({
+        ms: albumMS, first: albumFirst, nameFn: milAlbumNm, subFn: milAlbumArt,
+        imgType: 'album', idPrefix: 'albums', emptyKey: 'mil_no_data_albums'
+      });
+    }
+  };
+
+  let mh = '<div class="mil-tabs" id="milRecTypeTabs" role="tablist" aria-label="' + esc(t('mil_tabs_label')) + '">';
+  for (const ty of MIL_REC_TYPES) {
+    mh += '<button type="button" class="mil-tab" role="tab" data-mil-type="' + ty.key + '">'
+      + '<span class="mil-tab-icon" aria-hidden="true">' + ty.icon + '</span>' + esc(ty.label) + '</button>';
+  }
+  mh += '</div>';
+  for (const ty of MIL_REC_TYPES) {
+    // data-rec-scope keeps each panel's collapse state to itself, the same way
+    // the New Charts panels do.
+    mh += '<div class="mil-panel" role="tabpanel" data-mil-type="' + ty.key + '"'
+      + ' data-rec-scope="mil-' + ty.key + '" style="display:none">'
+      + '<div class="rec-section"><div class="rec-section-title">' + ty.title + '</div>'
+      + '<div class="rec-section-sub">' + esc(ty.sub) + '</div>'
+      + MIL_BY_TYPE[ty.key]() + '</div></div>';
+  }
   document.getElementById('recMilestonesBody').innerHTML = mh;
+  // One observer pass per entity type, matching how the appearances and debuts
+  // sections hand their mixed queues to loadImages().
+  (async () => {
+    await loadImages(milImgQueue.filter(function (x) { return x.imgType === 'song'; }), 'song');
+    await loadImages(milImgQueue.filter(function (x) { return x.imgType === 'artist'; }), 'artist');
+    await loadImages(milImgQueue.filter(function (x) { return x.imgType === 'album'; }), 'album');
+  })();
 
   // ── Fastest to Milestone ──────────────────────────────────────
   const TARGET = 1000;
@@ -4933,8 +5171,9 @@ function buildRecords() {
   }
   const _wTierOrd = { diamond: 0, platinum: 1, gold: 2 };
   wallItems.sort((a, b) => (_wTierOrd[a.tier] - _wTierOrd[b.tier]) || (b._plays - a._plays));
+  // renderCertifications() ends in renderCertWallCards(), which now loads its
+  // own artwork — a call here would queue the same ids a second time.
   renderCertifications(wallItems);
-  loadCertWallImages(wallItems);
 
   // ── New Charts Records ────────────────────────────────────────
   // Ten records × three entities × two period types is twenty tables, and they
@@ -5297,25 +5536,29 @@ function buildRecords() {
   }
 
   // Highest play-count milestone reached (artists and songs only).
-  // Walk down from the largest milestone; the first one anybody reached wins,
-  // so this normally exits on its first or second iteration.
+  // The highest tier anybody reached, then the earliest to reach it. Read off
+  // the map's own tiers rather than a fixed ladder: songs run every 25 plays
+  // with no ceiling, so walking MILESTONES would report 500 for a song that
+  // actually got to 525.
   {
     const L = t('rec_ov_milestones');
     const firstTo = function (msMap) {
-      for (let i = MILESTONES.length - 1; i >= 0; i--) {
-        const m = MILESTONES[i];
-        let best = null;
-        for (const k in msMap) {
-          const ms = msMap[k][m];
-          if (ms && (!best || ms.date < best[1].date)) best = [k, ms];
-        }
-        if (best) return { m: m, key: best[0], ms: best[1] };
+      let topM = -1;
+      for (const k in msMap) for (const m in msMap[k]) { const mm = +m; if (mm > topM) topM = mm; }
+      if (topM < 0) return null;
+      let best = null;
+      for (const k in msMap) {
+        const ms = msMap[k][topM];
+        if (ms && (!best || ms.date < best[1].date)) best = [k, ms];
       }
-      return null;
+      return best ? { m: topM, key: best[0], ms: best[1] } : null;
     };
-    const a = firstTo(artistMS), s = firstTo(songMS);
+    const a = firstTo(artistMS), s = firstTo(songMS), l = firstTo(albumMS);
     if (s) hi('recMilestonesSection', 'songs', L, tCount('plays', s.m), songNm(s.key), fmtDate(s.ms.date));
     if (a) hi('recMilestonesSection', 'artists', L, tCount('plays', a.m), a.key, fmtDate(a.ms.date));
+    // Albums now climb the same ladder, so this card is no longer permanently
+    // empty on the Albums pill.
+    if (l) hi('recMilestonesSection', 'albums', L, tCount('plays', l.m), albumNm(l.key), fmtDate(l.ms.date));
   }
 
   // Fastest to a milestone (artists and songs only). The section itself uses
@@ -5390,6 +5633,7 @@ function buildRecords() {
   setupRecordSubsectionCollapse();
   restoreRecordSubsectionCollapseStates();
   applyNewChartsRecTabs();
+  applyMilestoneRecTabs();
   initAllRecTableResizableCols();
   initAllRecTableSorting();
 
@@ -5733,6 +5977,12 @@ function tagRecRowIndices() {
     if (!tbody) return;
     let idx = 0;
     Array.from(tbody.rows).forEach(function (row) {
+      /* The milestone timeline's origin row is the foot of the spine, not the
+         26th ranked entry — index 0 keeps it inside every limit. It stays out
+         of REC_DETAIL_ROW_SEL on purpose: detail rows follow their parent's
+         search result, and "the first thing I ever played" has to be findable
+         on its own. */
+      if (row.classList.contains('mil-row-origin')) { row.dataset.recIdx = 0; return; }
       if (!row.matches(REC_DETAIL_ROW_SEL)) { row.dataset.recIdx = idx++; return; }
       row.dataset.recIdx = Math.max(0, idx - 1);
     });
@@ -5841,6 +6091,15 @@ function runRecordsSearch(q) {
   if (ncBody) {
     ncBody.querySelectorAll('.nc-rec-tabs, .nc-rec-subtabs').forEach(function (el) { el.style.display = 'none'; });
     ncBody.querySelectorAll('.nc-rec-panel').forEach(function (p) {
+      p.style.display = p.querySelector('.rec-search-hit') ? '' : 'none';
+    });
+  }
+  // Milestones has the same shape — one pill row over three timeline panels —
+  // so it steps aside for a search the same way.
+  const milBody = document.getElementById('recMilestonesBody');
+  if (milBody) {
+    milBody.querySelectorAll('.mil-tabs').forEach(function (el) { el.style.display = 'none'; });
+    milBody.querySelectorAll('.mil-panel').forEach(function (p) {
       p.style.display = p.querySelector('.rec-search-hit') ? '' : 'none';
     });
   }
@@ -6035,6 +6294,7 @@ function applyRecordsViewFilter(view) {
   const sizeBar = document.getElementById('recordsSizeBar');
   if (sizeBar) sizeBar.style.display = view === 'recOverviewSection' ? 'none' : '';
   applyNewChartsRecTabs();
+  applyMilestoneRecTabs();
   if (typeof window._refreshBackToTop === 'function') window._refreshBackToTop();
 }
 
@@ -6088,6 +6348,50 @@ document.addEventListener('click', function (e) {
     return;
   }
   applyNewChartsRecTabs();
+  if (typeof window._refreshBackToTop === 'function') window._refreshBackToTop();
+});
+
+/* ── Milestone record type tabs ───────────────────────────────────────
+   Three timelines — songs, artists, albums — one on screen at a time. Same
+   DOM-only approach as the New Charts pills: every panel is built and only
+   `display` moves, so the global search can still reach all three. The choice
+   sticks, so coming back to the section lands where you left it. */
+const MIL_REC_TYPES_ORDER = ['songs', 'artists', 'albums'];
+
+function milRecTabState() {
+  let type = localStorage.getItem('dc_mil_rec_type');
+  if (MIL_REC_TYPES_ORDER.indexOf(type) === -1) type = 'songs';
+  return type;
+}
+
+function applyMilestoneRecTabs() {
+  const body = document.getElementById('recMilestonesBody');
+  if (!body) return;
+  const type = milRecTabState();
+  body.querySelectorAll('.mil-tabs').forEach(function (el) { el.style.display = ''; });
+  body.querySelectorAll('.mil-tab').forEach(function (b) {
+    const on = b.dataset.milType === type;
+    b.classList.toggle('active', on);
+    b.setAttribute('aria-selected', on ? 'true' : 'false');
+  });
+  body.querySelectorAll('.mil-panel').forEach(function (p) {
+    p.style.display = p.dataset.milType === type ? '' : 'none';
+  });
+}
+
+document.addEventListener('click', function (e) {
+  const btn = e.target.closest('#recMilestonesBody .mil-tab');
+  if (!btn) return;
+  localStorage.setItem('dc_mil_rec_type', btn.dataset.milType);
+  // A search owns what is on screen; switching pills is a way out of one, and
+  // it should land on Milestones rather than on whichever section was stored
+  // before the search started.
+  if (recSearchQuery()) {
+    localStorage.setItem('dc_records_active_view', 'recMilestonesSection');
+    clearRecordsSearch();
+    return;
+  }
+  applyMilestoneRecTabs();
   if (typeof window._refreshBackToTop === 'function') window._refreshBackToTop();
 });
 
@@ -9646,23 +9950,12 @@ function togglePakArtistExpand(expandId, rowEl) {
   const isOpen = expandRow.style.display !== 'none';
   expandRow.style.display = isOpen ? 'none' : '';
   if (rowEl) rowEl.classList.toggle('pak-artist-row-open', !isOpen);
-  if (!isOpen && !expandRow.dataset.imgsLoaded) {
-    expandRow.dataset.imgsLoaded = '1';
-    (async () => {
-      const items = expandRow.querySelectorAll('[data-pak-album-img]');
-      for (const item of items) {
-        const imgEl = document.getElementById(item.dataset.pakAlbumImg);
-        if (!imgEl) continue;
-        try {
-          const url = await getAlbumImage(item.dataset.album, item.dataset.artist);
-          if (url) {
-            imgEl.innerHTML = `<img class="pak-mini-img" src="${esc(url)}" alt="" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"><div class="pak-mini-initials" style="display:none">${esc(initials(item.dataset.album))}</div>`;
-            await new Promise(r => setTimeout(r, 60));
-          }
-        } catch (e) { }
-      }
-    })();
-  }
+  /* The expand row's covers used to be fetched here, on first open. They are
+     now part of the section's loadImages() queue, and an IntersectionObserver
+     cannot fire on a display:none row — so opening the row is still what
+     triggers the fetch, just through the path that honours pinned choices and
+     carries the ✎ picker. Loading them here as well would race that, and would
+     overwrite the picker-aware markup with a plain <img>. */
 }
 
 function showPakWeekPreview(weekKey, triggerEl) {
@@ -18353,6 +18646,8 @@ function renderCertWallCards() {
       (a.title || '').localeCompare(b.title || ''));
   }
 
+  harvestCertWallImages();
+
   if (!items.length) {
     grid.innerHTML = '<div class="cwall-empty">No certifications match your search.</div>';
     return;
@@ -18360,20 +18655,22 @@ function renderCertWallCards() {
 
   grid.innerHTML = items.map(item => {
     const origIdx = certWallData.indexOf(item);
+    const known = _certWallResolved[certWallPrefKey(item)];
     const tierClass = CWALL_TIER_CLASS[item.tier] || 'gold';
     const ini = esc(wallInitials(item.title));
     const dateStr = fmtCertDate(item.date);
 
-    const recordHtml = item.image
-      ? `<img class="cert-record" src="${esc(item.image)}" alt="${esc(item.title)}" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">`
-        + `<div class="cert-record-initials" style="display:none">${ini}</div>`
-      : `<div class="cert-record-initials">${ini}</div>`;
-
+    /* The artwork gets its own slot inside the record wrap. loadImages()
+       replaces its target's innerHTML when the cover lands, and the wrap also
+       holds the sleeve and the vinyl centre — pointing the loader at the wrap
+       would erase both. The slot is also what carries the ✎ picker badge. */
     return `<div class="cert-card cert-card--${tierClass}">
   <div class="cert-frame">
     <div class="cert-record-wrap" id="cwrec-${origIdx}">
       <div class="cert-sleeve"></div>
-      ${recordHtml}
+      <div class="cert-record-slot" id="cwrec-img-${origIdx}">${known
+      ? `<img class="thumb" src="${esc(known)}" alt="" loading="lazy">`
+      : `<div class="cert-record-initials">${ini}</div>`}</div>
       <div class="cert-vinyl-center"></div>
     </div>
     <div class="cert-info">
@@ -18386,32 +18683,93 @@ function renderCertWallCards() {
   </div>
 </div>`;
   }).join('');
+
+  loadCertWallImages(items);
 }
 
-async function loadCertWallImages(items) {
-  for (let i = 0; i < items.length; i++) {
-    const item = items[i];
-    let url = null;
-    try {
-      if (item.type === 'album') {
-        url = await getAlbumImage(item.title, item.artist);
-      } else {
-        if (item._album) url = await getAlbumImage(item._album, item.artist);
-        if (!url) url = await getTrackImage(item.title, item.artist);
-      }
-    } catch (e) {}
-    if (!url) continue;
-    item.image = url;
-    const wrap = document.getElementById('cwrec-' + i);
-    if (!wrap) continue;
-    const existingIni = wrap.querySelector('.cert-record-initials');
-    if (existingIni) {
-      existingIni.style.display = 'none';
-      existingIni.insertAdjacentHTML('beforebegin',
-        `<img class="cert-record" src="${url}" alt="" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">`
-      );
+/* Artwork for the wall. Called from renderCertWallCards() on *every* render,
+   not once at build time: the wall re-renders on each filter, sort and search
+   change, which throws away the elements a one-shot loader had filled in.
+
+   Routed through loadImages() like the rest of Records, which buys three
+   things the old direct-fetch loop did not have: pinned picker choices are
+   honoured, the source cascade applies, and — because the wall sits inside
+   #recordsView — attachRecImgPicker() puts a ✎ badge on every record. */
+// The picker key for a wall item, in the same shape the rest of the app uses.
+function certWallPrefKey(item) {
+  const artist = (item.artist || '').toLowerCase();
+  const title = (item.title || '').toLowerCase();
+  return (item.type === 'album' ? 'album:' : 'song:') + artist + '|||' + title;
+}
+
+/* Covers already resolved, keyed by picker key so they survive a re-sort that
+   renumbers every card. The wall re-renders on each filter, sort and search
+   change; without this it would blank every cover and re-run the lookups —
+   and imgCache stores a null placeholder for the duration of an in-flight
+   fetch, so re-resolving an item mid-flight caches a permanent miss and the
+   cover never comes back at all. */
+const _certWallResolved = {};
+function harvestCertWallImages() {
+  const grid = document.getElementById('cwall-grid');
+  if (!grid) return;
+  grid.querySelectorAll('.cert-record-slot').forEach(function (slot) {
+    const wrap = slot.closest('.thumb-wrap');
+    const btn = wrap && wrap.querySelector('.img-src-btn');
+    if (!btn || !btn.dataset.prefkey) return;
+    const img = slot.querySelector('img.thumb');
+    if (img && img.getAttribute('src')) {
+      _certWallResolved[btn.dataset.prefkey] = img.getAttribute('src');
+      return;
     }
-  }
+    /* .thumb-initials is what the loader writes when it finds nothing, or when
+       the picker is pinned to "No image" — that is a resolved answer, and
+       recording it is what stops a cleared cover coming back on the next sort.
+       .cert-record-initials is our own pre-load placeholder and means the
+       loader has not run yet, so it must not be recorded as a miss. */
+    if (slot.querySelector('.thumb-initials')) _certWallResolved[btn.dataset.prefkey] = '';
+  });
+}
+
+let _certWallObservers = [];
+function loadCertWallImages(items) {
+  /* Retire the previous render's observers first. Without this every filter,
+     sort or search click would leave another pair watching elements that are
+     no longer in the document — and this wall runs to well over a thousand
+     cards on a large library. */
+  _certWallObservers.forEach(function (o) {
+    o.disconnect();
+    // Drop it from the global list too, or the array itself grows by two on
+    // every click even though the observers behind it are already dead.
+    const i = imgObservers.indexOf(o);
+    if (i !== -1) imgObservers.splice(i, 1);
+  });
+  _certWallObservers = [];
+  const queue = items.map(function (item) {
+    const imgId = 'cwrec-img-' + certWallData.indexOf(item);
+    const prefKey = certWallPrefKey(item);
+    if (item.type === 'album') {
+      return { imgId, imgType: 'album', name: item.title, album: item.title, artist: item.artist, prefKey };
+    }
+    return {
+      imgId, imgType: 'song', name: item.title, title: item.title,
+      artist: item.artist, album: item._album || '', prefKey
+    };
+  });
+
+  /* Every card gets the ✎ badge, including the ones rendered straight from a
+     known cover — those are not handed to loadImages(), so they would
+     otherwise be the only artwork in Records without the control. */
+  queue.forEach(function (it) {
+    const el = document.getElementById(it.imgId);
+    if (el) attachRecImgPicker(el, it, it.imgType);
+  });
+
+  // Only what has no answer yet is worth observing.
+  const pending = queue.filter(function (x) {
+    return !Object.prototype.hasOwnProperty.call(_certWallResolved, x.prefKey);
+  });
+  _certWallObservers.push(loadImages(pending.filter(function (x) { return x.imgType === 'album'; }), 'album'));
+  _certWallObservers.push(loadImages(pending.filter(function (x) { return x.imgType === 'song'; }), 'song'));
 }
 
 // Fills in the vinyl artwork for the album-modal certification plaques (same card style as the Certifications Wall)

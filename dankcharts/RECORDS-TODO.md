@@ -39,6 +39,12 @@ and a section nav of 11 identical text pills at half the minimum touch-target he
 | 31 | Global search across every section | `fd3d3ef` |
 | 39 | Limit changes stopped rebuilding (and stopped wiping the sort) | `fd3d3ef` |
 | 28 | One glyph family (`▶`/`▼`) for every expand control | `fd3d3ef` |
+| 46 | Milestones rebuilt as a vertical timeline, with Songs/Artists/Albums pills | *pending* |
+| — | Album play-count milestones — closes part of the "known data gaps" below | *pending* |
+| — | Origin row ("1st play") at the foot of each timeline | *pending* |
+| — | Cover art / artist avatars on every milestone entry | *pending* |
+| — | Song milestones at 10, then every 25 plays (artists/albums keep the landmark ladder) | *pending* |
+| — | Every artwork in Records is re-pickable (✎ badge), incl. PAK and the certifications wall | *pending* |
 
 ### Implementation notes worth not re-deriving
 
@@ -127,14 +133,143 @@ and a section nav of 11 identical text pills at half the minimum touch-target he
   id — otherwise the weekly and monthly copies of a record share a title, and so would
   share one collapse key.
 
+- **The Milestones timeline is still a `<table>`.** Every records mechanism walks
+  `tbody` rows — search (`runRecordsSearch`), the entries limit (`tagRecRowIndices` /
+  `applyRecRowLimit`), collapse — so turning the section into divs would have dropped it
+  out of all three. The timeline is built entirely in CSS (`.mil-timeline`) over ordinary
+  rows. Two things this depends on:
+  - Both row-hiding rules (`.rec-search-hidden`, `.rec-row-over-limit`) use `!important`,
+    so `display: grid` on a row cannot defeat them. Keep it that way.
+  - The boxed-table reset is `.mil-timeline td { padding: 0; border-bottom: none }`, so
+    **every per-cell rule has to carry the `.mil-timeline` prefix** or the reset outranks
+    it. A bare `.mil-tier { padding: … }` silently loses, including inside the mobile
+    media query.
+- **The tier ladder renders descending**, biggest first (`MIL_DESC`). Ascending would hand
+  the entries-per-table limit the *highest* milestones to hide, which is backwards.
+- **`<thead>` is `display: none` in the timeline.** A timeline has no columns to sort, and
+  `display: none` also takes the sortable headers out of the tab order rather than leaving
+  them focusable but invisible. The `<th>` text stays in the DOM, so `mil_th_first_to_reach`
+  is screen-reader-only copy and has to read correctly for all three entity types.
+- **The type pills reuse the New Charts pill CSS** by selector-sharing
+  (`.nc-rec-tabs, .mil-tabs { … }`), not by copying it — same job, two sections apart, and
+  they must not drift. `applyMilestoneRecTabs()` mirrors `applyNewChartsRecTabs()` exactly,
+  including the search-escape path in the click handler. Inherited from that pattern: the
+  pills are ~22px tall, so item **#49 now covers three pill rows, not two.**
+- **There are now two ladders, and neither side may assume the other's.** Songs run
+  **every 25 plays with no ceiling** (`SONG_MILESTONE_STEP`, expressed as a modulo — there
+  is no array, because there is no sensible cap). Artists and albums keep the landmark
+  `MILESTONES` array. Each panel states its own ladder in a `.rec-section-sub`, because
+  "first to 500" means different things across the pills. **10 plays is kept as an
+  explicit extra step for songs** (`SONG_MILESTONE_EXTRA`) — the modulo alone jumped
+  straight from the origin row to 25, and 10 is where a song stops being something you
+  tried once. Three consequences:
+  - **Nothing may iterate `MILESTONES` to read a song's tiers.** The overview's `firstTo()`
+    used to walk that array downwards and would have reported 500 for a song that reached
+    525. It now reads the map's own tiers — highest reached, then earliest to reach it.
+  - **The per-play test had to become O(1)** before this was viable. Every count rises by
+    exactly one per play, so a tier is crossed on the single play where the running count
+    equals it: `MILESTONE_SET.has(n)` for artists/albums, `n % 25 === 0` for songs. The old
+    `for (const m of MILESTONES) … >= m` rescanned the whole ladder on every play, which an
+    unbounded song ladder would have turned into a visible hang.
+  - **`milTimeline()` derives its tiers from the data**, via one inverted pass that records
+    the earliest entry per tier. The old shape (for each tier, scan every entry) was
+    O(tiers × entries) and would have gone quadratic here.
+
+  Net effect measured against HEAD on the demo dataset, `buildRecords()` median of three
+  warm runs: **6453ms → 5616ms**. The finer ladder is *cheaper* than the old one, because
+  both hot paths got better. `C:\tmp\mil_perf.mjs <port> <label>` is the harness; serve a
+  `git archive HEAD` copy on a second port to get a baseline without touching the tree.
+  Re-measure it if either loop is touched again.
+- **The Fastest section still keys off `songMS[500]`** — 500 is a multiple of 25, so it
+  survived the ladder change. Any future step size that does not divide 500 breaks it.
+- **The origin row is not a milestone tier.** "The first one you ever played" is computed
+  from the `songFirst` / `artistFirst` / `albumFirst` maps, *not* by adding `1` to
+  `MILESTONES` — that array is shared with fastest-to-milestone and the overview record,
+  and a `1` tier would have leaked into both. Two consequences to preserve:
+  - `tagRecRowIndices()` pins `.mil-row-origin` to `data-rec-idx="0"`, so the entries
+    limit can never cut the foot off the timeline. It is deliberately **not** in
+    `REC_DETAIL_ROW_SEL`: detail rows inherit their parent's search result, and the first
+    thing you ever played has to be findable on its own.
+  - It counts as content for the empty state. A library too small to reach the 10-play
+    tier still has a first play, and that is the whole story it has to tell.
+- **Milestone artwork rides the app's normal image path.** `milQueueArt()` builds the
+  per-type `prefKey` (`song:artist|||title`, `artist:name`, `album:artist|||album`) and
+  `loadImages()` is handed one filtered queue per type, exactly like the appearances and
+  debuts sections. Notes:
+  - **Item #40's premise is wrong and should be rewritten**: `loadImages()` already uses
+    an `IntersectionObserver` (`rootMargin: 300px`). What is actually slow is the single
+    global `imgQueue` promise chain plus a 120ms sleep per Deezer call in
+    `fetchAndInjectImage()`. Milestone art therefore queues behind every other section's,
+    and takes tens of seconds to fully settle on a cold load — correct, just late. Any
+    screenshot check has to poll until the boxes stop filling, not wait a fixed 2s.
+  - `.mil-art` carries `.thumb-cell` so the records search skips it — without that every
+    row would match on its own placeholder initials.
+  - The art box is sized in CSS, not by the loader, so the initials placeholder and the
+    cover that replaces it occupy the same space and the timeline never reflows.
+  - Artists get `.mil-art-circle`; songs and albums get the rounded square. That is how
+    the rest of the app separates an avatar from a cover.
+- **Search under collapse used to miss milestone tables.** The `rec-searching` override
+  listed `.rec-empty` and `div:not(…)`, but a milestone table sits directly under
+  `.rec-section` as a `<table>` — so a hit inside a collapsed milestone sub-section stayed
+  invisible. `.milestone-table` is now in that selector list.
+
+### Artwork in Records is now re-pickable everywhere
+
+An audit of the tab found **771 artwork elements across five sections with no ✎ picker at
+all** — PAK (214), Debuts (125), Milestones (69), New Charts (56) and the certifications
+wall. Only All #1s and Appearances had written the button into their markup by hand.
+
+- **The badge is attached in `loadImages()`, not in each section's markup**
+  (`attachRecImgPicker`, gated on `el.closest('#recordsView')`). Records draws artwork from
+  eight builders; this is the one place all of them already pass through, so a new section
+  cannot gain artwork without gaining the control. The button is inserted as a **sibling**
+  of the artwork inside a `.thumb-wrap` — never a child, because
+  `fetchAndInjectImage()` replaces the target's `innerHTML` when the cover lands.
+- **PAK and the certifications wall were fetching their own images** with bare
+  `getArtistImage`/`getAlbumImage` loops. That bypassed pinned picker choices, the source
+  cascade and per-item source prefs — a cover corrected anywhere else in the app was still
+  wrong in those two sections. Both now go through `loadImages()`, which also made them
+  lazy: PAK's expand rows no longer fetch covers for artists nobody expanded.
+  `togglePakArtistExpand()`'s own image loop was removed; it would have raced the
+  observer and overwritten the picker-aware markup.
+- **The certifications wall re-renders on every filter, sort and search.** Three things
+  follow, all of which took a fix:
+  - Its observers are retired and spliced out of `imgObservers` before each render, or
+    both arrays grow by two per click — and the wall runs to **1,406 cards** on a large
+    library.
+  - `loadCertWallImages()` is called from `renderCertWallCards()`, not once at build time.
+  - Resolved covers are carried across renders in `_certWallResolved`, keyed by picker key
+    (a re-sort renumbers every card). **This is not just an optimisation:** `imgCache`
+    stores a `null` placeholder for the duration of an in-flight fetch, so re-resolving an
+    item mid-sort caches a permanent miss and that cover never comes back.
+    `harvestCertWallImages()` distinguishes `.thumb-initials` (the loader answered "no
+    image", including a "No image" pin — record it) from `.cert-record-initials` (our own
+    pre-load placeholder — do not record it).
+  - The artwork got its own `.cert-record-slot`: the loader replaces its target's
+    innerHTML, and the record wrap also holds the sleeve and the vinyl centre.
+- **`.rec-thumb-wrap` is `display: block`, deliberately.** As a flex container it shrank
+  any child that did not set `flex-shrink: 0` — `.pak-mini-thumb` does, `.mil-art-box` did
+  not. It also must not carry `width: fit-content`, which resolved to 25.6px against a
+  41.6px cover and parked the `right:`-anchored badge in the middle of the artwork.
+- The 28px thumbs (PAK, New Charts) take a 12px badge via `.pak-mini-thumb +
+  .img-src-btn` — 16px is over half their width and reads as a blot rather than a control.
+
+**Known issue, pre-existing and app-wide:** `getArtistImage`/`getAlbumImage` set
+`imgCache[k] = null` *before* awaiting, so a second lookup of the same key while the first
+is in flight gets a cached miss rather than the eventual URL. Records works around it in
+the certifications wall only. Fixing it properly means caching the in-flight promise.
+
 ### Known data gaps
 
-Albums have **no play-count milestones, no fastest-to-milestone, and no listening
-streaks** — `artistMS`/`songMS` and `artistStreaks`/`songStreaks` exist, but there is no
-album equivalent anywhere in `buildRecords()`. Three overview cards are therefore
-permanently empty on the Albums pill (they render "Not tracked for this chart" rather than
-disappearing, so the grid keeps a stable shape). Closing this requires new computation,
-not new lookups.
+Albums have **play-count milestones** as of the timeline work above (`albumMS` /
+`albumFirst` / `albumCP`, built in the same `chron` pass as the artist and song ladders,
+keyed `album|||albumArtist` like every other album map). Plays with no album tag are
+excluded — common in CSV uploads — which `mil_no_data_albums` says out loud.
+
+Albums still have **no fastest-to-milestone and no listening streaks**. Fastest is now
+nearly free: `recFastestBody` only needs an `albumMS`/`albumFirst` pass in the same shape
+as the artist one. Streaks still need new computation (there is no `albumDaySet`). One
+overview card therefore remains empty on the Albums pill instead of three.
 
 ---
 
@@ -212,7 +347,9 @@ not new lookups.
       `applyRecordsViewFilter()` only toggles `display`. **Careful**: global search now
       depends on every section being in the DOM. Lazy building has to either build on
       first query or search the data instead of the DOM.
-- [ ] **40.** IntersectionObserver for images instead of sequential 60ms awaits.
+- [ ] **40.** *(premise wrong)* `loadImages()` already observes intersection. The real
+      cost is the single global `imgQueue` chain + a 120ms sleep per Deezer call in
+      `fetchAndInjectImage()`. Rewrite this item as "parallelise the image queue".
 - [ ] **41.** Warn before rendering "All" entries. Still the one limit change that has to
       rebuild, and now the only slow one.
 - [ ] **42.** *(partial)* Overview cards teach; section tables still say a bare "No data".
@@ -226,7 +363,11 @@ not new lookups.
       shareable moments a core principle.
 - [ ] **45.** *(~70% done via the overview)* Missing a single oversized "your #1 record
       overall" hero above the grid.
-- [ ] **46.** Milestones as a timeline, not a 4-column table — it's a story with dates.
+- [x] **46.** ~~Milestones as a timeline, not a 4-column table.~~ Shipped: vertical spine,
+      one node per tier (round tiers carry an accent fill), descending, cover art or
+      artist avatar per entry, an "1st play" origin node where the spine terminates, and a
+      Songs/Artists/Albums pill row. Songs run a finer every-25-plays ladder than artists
+      and albums. Albums are new data — see **Known data gaps**.
 - [ ] **47.** Certifications as actual gold-glow badges, reusing the badge component.
       This is the one section where DESIGN.md's "gold means earned" rule literally applies.
 
@@ -241,8 +382,8 @@ not new lookups.
 
 ### Not one of the 50
 
-- [ ] Album milestones, fastest-to-milestone, and streaks don't exist in the data — see
-      **Known data gaps** above.
+- [ ] Album fastest-to-milestone and streaks don't exist in the data — see **Known data
+      gaps** above. Album milestones now do.
 
 ---
 
@@ -252,11 +393,20 @@ not new lookups.
 `C:\tmp` has a Playwright install (`node_modules/playwright`, Chromium already
 downloaded) and the app runs against the sample dataset with no credentials: serve
 `dankcharts/` statically and click `.landing-demo-btn`. `C:\tmp\serve_dc.mjs` is a
-20-line static server on port 8899; `rec_verify.mjs`, `rec_edge.mjs` and `rec_glyph.mjs`
-next to it are the checks written for search / limit / glyphs and are worth copying for
-the next item. Two gotchas: the Records nav pill sits in the collapsed second nav row so
-`page.click` gets intercepted — use `page.evaluate(() => el.click())`; and the demo needs
-~2.5s after the tab opens before all ~55 tables exist.
+20-line static server on port 8899; `rec_verify.mjs`, `rec_edge.mjs`, `rec_glyph.mjs` and
+`mil_verify.mjs` / `mil_shots.mjs` next to it are the checks written for search / limit /
+glyphs / the milestone timeline, and are worth copying for the next item. Gotchas:
+
+- The Records nav pill sits in the collapsed second nav row so `page.click` gets
+  intercepted — use `page.evaluate(() => el.click())`.
+- The demo needs ~2.5s after the tab opens before all ~55 tables exist. Better than a
+  fixed wait: `waitForSelector(sel, { state: 'attached' })` — **`attached`, not the
+  default `visible`**, because every section except the active one is `display: none`.
+- Ports 8899 and 8901 were both held by stale, unresponsive `python` processes left over
+  from an earlier session. Check with `Get-NetTCPConnection -LocalPort N -State Listen`
+  and copy `serve_dc.mjs` to a free port rather than assuming 8899 is yours.
+- Theme classes are on `<body>` and are named `yellow`, `yellow-light`, `purple-light`,
+  … — there is no plain `light` class, and setting one silently leaves the page dark.
 
 Search, the entries limit and the expand glyphs were verified this way. Still worth
 eyeballing on the deployed site: the Albums pill (three empty cards), Yellow Dark and
