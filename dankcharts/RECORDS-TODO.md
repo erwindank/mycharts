@@ -107,6 +107,26 @@ and a section nav of 11 identical text pills at half the minimum touch-target he
     beats an earlier date, so the headline can't drift down to an early Gold. Artists
     still rank by how many certifications they hold, which has no tie problem.
 
+- **New Charts records are capped to the New chart size, not to all-time discovery.**
+  `ncLimits` in `buildRecords()` mirrors `renderNewEntries()`'s per-section limits exactly
+  (weekly is `Math.max(20, size)`, monthly/yearly are the raw size) and the per-period
+  ranked lists are sliced before any record is recorded. Without that slice the records
+  ranked entries that never appeared on a chart — a "#247 debut" on a top-20 chart, and an
+  album credited with 36 debuting tracks when only 20 could fit. The sliced song list
+  (`sTop`) is deliberately kept in scope, because `ncAlbumNewTrackCount` has to count
+  charting tracks only too. **Busiest Discovery Period is the one deliberate exception**:
+  it answers "how much did I find", not "who charted", and capping it would flatten nearly
+  every period to the chart size, so it stays on `rawNewCountPerPeriod` and says so in its
+  own subtitle.
+- **The New Charts type/period pills are DOM-only.** All six panels are built every time
+  and switched by `display`, so search still reaches them. `applyNewChartsRecTabs()` is the
+  single place the stored `dc_nc_rec_type` / `dc_nc_rec_period` become visible state;
+  `runRecordsSearch()` overrides it (hiding both pill rows and showing whichever panels
+  hold a hit), and clearing the search hands control back. Each panel carries
+  `data-rec-scope`, which `setupRecordSubsectionCollapse()` prefers over the section-body
+  id — otherwise the weekly and monthly copies of a record share a title, and so would
+  share one collapse key.
+
 ### Known data gaps
 
 Albums have **no play-count milestones, no fastest-to-milestone, and no listening
@@ -134,8 +154,10 @@ not new lookups.
       is one.
 - [ ] **7.** Count badge per nav pill (`Streaks · 12`).
 - [ ] **8.** Disable or grey pills for sections with no records.
-- [ ] **9.** Split "New Charts" out of Records — it's 9 sub-sections and ~18 tables, a
-      third of the tab, for a niche concept.
+- [ ] **9.** *(partial)* Split "New Charts" out of Records. Not split, but no longer a
+      wall: two exclusive pill rows inside the section (Songs/Artists/Albums, then
+      Weekly/Monthly) show 2–5 tables at a time instead of all 20. Moving it to its own
+      top-level tab is still open.
 - [ ] **10.** Make the nav a real `role="tablist"` with `aria-selected` and arrow keys.
 
 ### B. Page-level orientation & hierarchy

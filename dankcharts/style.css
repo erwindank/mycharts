@@ -11244,6 +11244,93 @@
       color: #1a1a00;
     }
 
+    /* New Charts record sub-tabs. Two exclusive rows nested *inside* a section
+       that was reached by the pills above, so they have to read as a level
+       below those: same mono family, but the type row is a filled segmented
+       control rather than loose pills, and the period row under it is quieter
+       again — text-weight only, no chrome, so three tiers of navigation don't
+       compete. */
+    .nc-rec-tabs {
+      display: inline-flex;
+      flex-wrap: wrap;
+      gap: 0.2rem;
+      padding: 0.2rem;
+      margin-bottom: 0.5rem;
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 7px;
+    }
+
+    .nc-rec-tab {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      background: none;
+      border: 1px solid transparent;
+      color: var(--text2);
+      font-family: var(--font-mono);
+      font-size: 0.62rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      padding: 0.34rem 0.7rem;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: background 0.15s, color 0.15s, border-color 0.15s;
+    }
+
+    .nc-rec-tab-icon {
+      font-size: 0.72rem;
+      line-height: 1;
+    }
+
+    .nc-rec-tab:hover {
+      background: var(--bg3);
+      color: var(--text);
+    }
+
+    .nc-rec-tab.active {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: var(--on-accent);
+    }
+
+    .nc-rec-subtabs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      margin-bottom: 1.1rem;
+      padding-bottom: 0.4rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .nc-rec-subtab {
+      background: none;
+      border: none;
+      border-bottom: 2px solid transparent;
+      color: var(--text3);
+      font-family: var(--font-mono);
+      font-size: 0.56rem;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      padding: 0.2rem 0 0.3rem;
+      margin-bottom: -0.5rem;
+      cursor: pointer;
+      transition: color 0.15s, border-color 0.15s;
+    }
+
+    .nc-rec-subtab:hover {
+      color: var(--text);
+    }
+
+    .nc-rec-subtab.active {
+      color: var(--accent);
+      border-bottom-color: var(--accent);
+    }
+
+    body.yellow .nc-rec-tab.active {
+      color: #1a1a00;
+    }
+
     .rec-intro {
       font-family: var(--font-mono);
       font-size: 0.7rem;
