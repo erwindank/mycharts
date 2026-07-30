@@ -4288,15 +4288,20 @@ function buildRecords() {
     t('rec_intro_prefix') + ' <strong>' + t('rec_weekly_top', { n: wSizeSongs }) + '</strong> &middot; <strong>' + t('rec_monthly_top', { n: mSizeSongs }) + '</strong> &middot; <strong>' + yTopLabel + '</strong> &nbsp;|&nbsp; ' +
     t('rec_data_summary', { weeks: weekKeys.length, months: monthKeys.length, years: yearKeys.length });
 
-  function recTable(headers, rows, limit, detailRows, tableId) {
+  // `opts` is optional and only used by the tables that need extra hooks:
+  //   tableCls — extra class(es) on the <table>
+  //   rowCls   — fn(i) returning extra class(es) for row i
+  function recTable(headers, rows, limit, detailRows, tableId, opts) {
+    opts = opts || {};
     limit = (limit === undefined || limit === null) ? 25 : limit;
     if (!rows.length) return '<div class="rec-empty">' + t('rec_no_data') + '</div>';
     const sliced = isFinite(limit) ? rows.slice(0, limit) : rows;
     const slicedDetails = detailRows ? (isFinite(limit) ? detailRows.slice(0, limit) : detailRows) : null;
     const colCount = headers.length;
-    return '<table class="rec-table"' + (tableId ? ' id="' + tableId + '"' : '') + '><thead><tr>' + headers.map(function (h) { return '<th>' + h + '</th>'; }).join('') + '</tr></thead><tbody>' +
+    return '<table class="rec-table' + (opts.tableCls ? ' ' + opts.tableCls : '') + '"' + (tableId ? ' id="' + tableId + '"' : '') + '><thead><tr>' + headers.map(function (h) { return '<th>' + h + '</th>'; }).join('') + '</tr></thead><tbody>' +
       sliced.map(function (r, i) {
-        const rankCls = i === 0 ? 'rec-rank-1' : i === 1 ? 'rec-rank-2' : i === 2 ? 'rec-rank-3' : '';
+        const rankCls = (i === 0 ? 'rec-rank-1' : i === 1 ? 'rec-rank-2' : i === 2 ? 'rec-rank-3' : '')
+          + (opts.rowCls ? ' ' + opts.rowCls(i) : '');
         if (!slicedDetails || !slicedDetails[i]) return '<tr class="' + rankCls + '">' + r + '</tr>';
         return '<tr class="' + rankCls + '">' + r + '</tr>'
           + '<tr class="rec-run-detail" id="' + slicedDetails[i].id + '"><td colspan="' + colCount + '">' + slicedDetails[i].html + '</td></tr>';
@@ -4946,6 +4951,10 @@ function buildRecords() {
     { key: 'week', label: t('rec_weekly_label') },
     { key: 'month', label: t('rec_monthly_label') },
   ];
+  // Artwork requested by the record builders below, flushed once the panels are
+  // in the DOM. loadImages() observes intersection, so the art inside a panel
+  // that is currently hidden behind a pill only loads when that pill is picked.
+  const ncImgQueue = [];
 
   // One record = one collapsible .rec-section. `sub` is the optional prose line
   // under the title; the period no longer belongs there now that a panel only
@@ -4958,14 +4967,92 @@ function buildRecords() {
   // Period column header + the clickable period cell, both needed by nearly
   // every table below.
   const ncPeriodTh = pt => pt === 'week' ? t('rec_th_week') : t('rec_th_month');
-  const ncPeriodTd = (pt, pk) => '<td class="rec-meta"><a href="javascript:void(0)" class="rec-date-link" onclick="showNewChartRecPreview(\'' + pt + '\',\'' + esc(pk) + '\',this,event)">' + fmtPeriodKey(pk, pt) + '</a></td>';
+  // `cls` is optional, for tables whose phone layout has to address this cell.
+  const ncPeriodTd = (pt, pk, cls) => '<td class="rec-meta' + (cls ? ' ' + cls : '') + '"><a href="javascript:void(0)" class="rec-date-link" onclick="showNewChartRecPreview(\'' + pt + '\',\'' + esc(pk) + '\',this,event)">' + fmtPeriodKey(pk, pt) + '</a></td>';
 
   // ── 1. Biggest New Song Debut ─────────────────────────────────
+  // The richest table in the section: cover art per row, a podium for the top
+  // three, and (via CSS) a card layout on phones, because eight columns cannot
+  // survive a 390px viewport.
   function ncRecSongDebut(pt) {
     const sorted = Object.entries(ncSongDebuts[pt]).sort((a, b) => b[1].plays - a[1].plays || a[1].rank - b[1].rank || a[1].period.localeCompare(b[1].period));
-    return ncSec('🎵 ' + t('rec_th_songs') + ' &mdash; Biggest New Chart Debut',
-      recTable(['#', t('rec_th_songs'), t('rec_th_artist'), t('rec_th_plays'), 'Debut Rank', ncPeriodTh(pt)],
-        sorted.map((e, i) => { const d = e[1]; return '<td class="rec-rank">' + (i + 1) + '</td><td><div class="rec-name">' + esc(d.title) + '</div></td><td><div class="rec-sub">' + esc(d.artist) + '</div></td><td class="rec-count">' + (d.plays || 0) + '</td><td class="rec-count">#' + d.rank + '</td>' + ncPeriodTd(pt, d.period); }), lim));
+    const tableId = 'nc-sd-tbl-' + pt;
+    // A podium is only worth it when there is still a table left under it —
+    // both in the data and after the entries-per-table limit has had its say.
+    const hasPodium = sorted.length >= 4 && lim >= 4;
+
+    // Artwork is queued, not fetched: loadImages() runs after this HTML is in
+    // the DOM. imgCache is keyed by track+source, so the top three appearing in
+    // both the podium and the (hidden) table row cost one lookup, not two.
+    function queueArt(sk, d, imgId) {
+      const nm = songNames[sk] || {};
+      ncImgQueue.push({
+        imgId, name: d.title, title: d.title, artist: d.artist, album: nm.album || '',
+        prefKey: 'song:' + (d.artist || '').toLowerCase() + '|||' + (d.title || '').toLowerCase()
+      });
+    }
+
+    /* The podium carries the canonical top three, so those three rows are
+       hidden from the table below and it starts at #4. That trade only holds
+       while the table is in its canonical order — searching or re-sorting a
+       column makes "the top three" a different set, so both paths stand the
+       podium down and put the rows back (see applyRecSort() and the
+       .nc-podium rules in style.css). */
+    let podHtml = '';
+    if (hasPodium) {
+      podHtml = '<div class="nc-podium" data-nc-podium-for="' + tableId + '">';
+      sorted.slice(0, 3).forEach(([sk, d], i) => {
+        const imgId = 'nc-pod-img-' + pt + '-' + i;
+        queueArt(sk, d, imgId);
+        podHtml += '<div class="nc-podium-card nc-podium-' + (i + 1) + '">'
+          + '<div class="nc-podium-medal">' + (i + 1) + '</div>'
+          + '<div class="nc-podium-art" id="' + imgId + '"><div class="pak-mini-initials">' + esc(initials(d.title)) + '</div></div>'
+          + '<div class="nc-podium-title">' + esc(d.title) + '</div>'
+          + '<div class="nc-podium-artist">' + esc(d.artist) + '</div>'
+          + '<div class="nc-podium-figure"><span class="nc-podium-num">' + (d.plays || 0).toLocaleString() + '</span>'
+          + '<span class="nc-podium-unit">' + t('rec_th_plays') + ' @ #' + d.rank + '</span></div>'
+          + '<div class="nc-podium-meta">'
+          + '<span class="nc-podium-total">' + (songCP[sk] || 0).toLocaleString() + ' ' + t('th_total_plays') + '</span>'
+          + '<a href="javascript:void(0)" class="rec-date-link" onclick="showNewChartRecPreview(\'' + pt + '\',\'' + esc(d.period) + '\',this,event)">' + fmtPeriodKey(d.period, pt) + '</a>'
+          + '</div></div>';
+      });
+      podHtml += '</div>';
+    }
+
+    // "Debut Plays" is what the song did in its debut period; "Total Plays" is
+    // its all-time count from songCP, so a huge debut that went nowhere is
+    // visibly different from one that kept growing.
+    const table = recTable(
+      ['#', '', t('rec_th_songs'), t('rec_th_artist'), 'Debut ' + t('rec_th_plays'), t('th_total_plays'), 'Debut Rank', ncPeriodTh(pt)],
+      sorted.map((e, i) => {
+        const d = e[1];
+        const imgId = 'nc-sd-img-' + pt + '-' + i;
+        // Rows past the limit are never rendered, so nothing past it is queued.
+        if (i < lim) queueArt(e[0], d, imgId);
+        /* Every cell carries a class, because the phone layout has to place
+           each one individually (see .nc-sd-table in style.css). data-unit
+           holds the caption that cell's figure wears once it becomes a card,
+           and both strings are built exactly as the podium builds them above —
+           same source, so the two card shapes cannot drift apart.
+           The art cell is tagged .thumb-cell so the records search skips it:
+           otherwise the placeholder initials would match as if they were data. */
+        return '<td class="rec-rank">' + (i + 1) + '</td>'
+          + '<td class="thumb-cell"><div class="pak-mini-thumb" id="' + imgId + '"><div class="pak-mini-initials">' + esc(initials(d.title)) + '</div></div></td>'
+          + '<td class="nc-sd-title"><div class="rec-name">' + esc(d.title) + '</div></td>'
+          + '<td class="nc-sd-artist"><div class="rec-sub">' + esc(d.artist) + '</div></td>'
+          + '<td class="rec-count nc-sd-debut" data-unit="' + esc(t('rec_th_plays') + ' @ #' + d.rank) + '">' + (d.plays || 0) + '</td>'
+          + '<td class="rec-count nc-sd-total" data-unit="' + esc(t('th_total_plays')) + '">' + (songCP[e[0]] || 0) + '</td>'
+          + '<td class="rec-count nc-sd-drank">#' + d.rank + '</td>'
+          + ncPeriodTd(pt, d.period, 'nc-sd-week');
+      }),
+      lim, null, tableId,
+      {
+        tableCls: 'nc-sd-table' + (hasPodium ? ' nc-podium-on' : ''),
+        rowCls: i => (hasPodium && i < 3 ? 'nc-podium-row' : '')
+      }
+    );
+
+    return ncSec('🎵 ' + t('rec_th_songs') + ' &mdash; Biggest New Chart Debut', podHtml + table);
   }
 
   // ── 2. Biggest New Artist Debut ────────────────────────────────
@@ -5082,6 +5169,7 @@ function buildRecords() {
   }
 
   document.getElementById('recNewChartsBody').innerHTML = nch;
+  loadImages(ncImgQueue, 'song');
 
   // ── Streak Records ────────────────────────────────────────────
   let sh = '';
@@ -5582,6 +5670,22 @@ function applyRecSort(table, colIndex, dir) {
   const ind = th.querySelector('.rec-sort-ind');
   if (ind) ind.textContent = dir === 'asc' ? '▲' : '▼';
   sortRecTable(table, colIndex, dir);
+  standDownPodium(table);
+}
+
+/* A podium shows a table's canonical top three and hides those three rows so
+   the table can start at #4. Re-sorting any column makes "the top three" a
+   different set, at which point the podium is stating something false and the
+   hidden rows are simply missing — so the first re-sort retires the podium for
+   good and hands its rows back. There is no un-sorted state to return to
+   (applyRecSort always sets a direction), so this is deliberately one-way; a
+   rebuild is what brings the podium back. */
+function standDownPodium(table) {
+  if (!table.classList.contains('nc-podium-on')) return;
+  table.classList.remove('nc-podium-on');
+  if (!table.id) return;
+  const pod = document.querySelector('.nc-podium[data-nc-podium-for="' + table.id + '"]');
+  if (pod) pod.classList.add('nc-podium-retired');
 }
 
 /* Tables are keyed by position, not id: most of them have no id, but the same

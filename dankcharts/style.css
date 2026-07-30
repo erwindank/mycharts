@@ -12354,6 +12354,666 @@
       max-width: 130px;
     }
 
+    /* ── New Songs "Biggest New Chart Debut": podium + rich table ─────────
+       Three pieces, all scoped to .nc-sd-table / .nc-podium so no other
+       records table is affected: per-row cover art, the top-3 podium above
+       the table, and the phone card layout at the bottom of this block. */
+
+    /* Built to the mosaic tile's anatomy (.wv-mos-item): full-bleed artwork, an
+       oversized numeral in the top corner, and every fact set over a scrim at
+       the foot of the card. Nothing is dropped in the move — title, artist,
+       debut plays, debut rank, all-time total and the clickable week are all
+       still here, they just sit on the sleeve instead of beside it.
+
+       A fixed aspect ratio gives the three cards equal heights, and the text
+       stack is bottom-anchored, so the figures and meta lines land on the same
+       baseline however long a title runs — a long title only grows upward into
+       the artwork. */
+    .nc-podium {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 0.75rem;
+      margin: 0.1rem 0 0.85rem;
+    }
+
+    /* Metals as literal rgba, matching .wv-mos-item's rank colours. Text and
+       chrome over artwork can't use theme tokens: the backdrop is a photograph
+       in every theme, so these stay fixed the way the mosaic's do. */
+    /* Two metals per rank, because they are used against two different
+       backdrops: --medal over artwork (fixed, like the mosaic's), --medal-ink
+       for the phone layout where the numeral sits on the card surface and has
+       to answer to the theme. The ink values are what .rec-rank-1/2/3 already
+       use, so a podium card and its table row never disagree about a rank. */
+    .nc-podium-1 { --medal: rgba(240, 170, 48, 0.95); --medal-ink: var(--gold1); }
+    .nc-podium-2 { --medal: rgba(148, 163, 184, 0.95); --medal-ink: #94a3b8; }
+    .nc-podium-3 { --medal: rgba(205, 110, 40, 0.95); --medal-ink: #c07850; }
+
+    /* Retired by the first column re-sort — see standDownPodium() in app.js. */
+    .nc-podium-retired {
+      display: none;
+    }
+
+    /* A search filters table rows, and the podium holds none of its own: left
+       up it would headline three songs that the query never matched. Stood
+       down for the duration, same reasoning as .rec-row-over-limit above. */
+    #recordsView.rec-searching .nc-podium {
+      display: none;
+    }
+
+    /* The three rows the podium is speaking for. Suspended while searching so
+       everything that was built stays findable, and dropped for good once the
+       table is re-sorted (the .nc-podium-on class goes with the podium). */
+    #recordsView:not(.rec-searching) .nc-sd-table.nc-podium-on .nc-podium-row {
+      display: none !important;
+    }
+
+    .nc-podium-card {
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      /* The whole text stack hangs off the bottom edge, which is what keeps the
+         three cards' figures and meta lines level. */
+      justify-content: flex-end;
+      align-items: flex-start;
+      text-align: left;
+      min-width: 0;
+      aspect-ratio: 4 / 5;
+      padding: 0 0.65rem 0.6rem;
+      background: var(--bg3);
+      border: none;
+      border-radius: 12px;
+      /* The metal ring, sized as .wv-r1/.wv-r2/.wv-r3 size theirs. */
+      box-shadow: 0 0 0 3px var(--medal),
+                  0 0 22px color-mix(in srgb, var(--medal) 45%, transparent);
+      transition: box-shadow 200ms cubic-bezier(0.4, 0, 0.2, 1),
+                  transform 200ms cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    /* Gold outranks the other two by carrying the wider halo, the way the
+       mosaic's #1 tile does. */
+    .nc-podium-1 {
+      box-shadow: 0 0 0 3px var(--medal),
+                  0 0 28px color-mix(in srgb, var(--medal) 62%, transparent),
+                  0 0 50px color-mix(in srgb, var(--medal) 25%, transparent);
+    }
+
+    .nc-podium-card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 0 0 3px var(--medal),
+                  0 0 30px color-mix(in srgb, var(--medal) 70%, transparent),
+                  0 10px 28px rgba(0, 0, 0, 0.35);
+    }
+
+    /* Artwork fills the card; everything else is set over it. */
+    .nc-podium-art {
+      position: absolute;
+      inset: 0;
+      z-index: 0;
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      border-radius: 0;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--bg3);
+      box-shadow: none;
+    }
+
+    .nc-podium-art .thumb,
+    .nc-podium-art .pak-mini-initials,
+    .nc-podium-art .thumb-initials {
+      width: 100%;
+      height: 100%;
+      border: none;
+      border-radius: 0;
+      font-size: 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* Two scrims, same recipe as .wv-mos-top / .wv-mos-bot: one under the
+       numeral, one under the text. Without them, a pale sleeve would swallow
+       both. Neither takes pointer events — the week link underneath stays
+       clickable. */
+    .nc-podium-card::before,
+    .nc-podium-card::after {
+      content: '';
+      position: absolute;
+      left: 0;
+      right: 0;
+      z-index: 1;
+      pointer-events: none;
+    }
+
+    .nc-podium-card::before {
+      top: 0;
+      height: 38%;
+      background: linear-gradient(to bottom, rgba(0, 0, 0, 0.72) 0%, transparent 100%);
+    }
+
+    .nc-podium-card::after {
+      bottom: 0;
+      height: 68%;
+      background: linear-gradient(to top,
+        rgba(0, 0, 0, 0.92) 0%,
+        rgba(0, 0, 0, 0.72) 38%,
+        transparent 100%);
+    }
+
+    /* Everything except the artwork rides above both scrims. */
+    .nc-podium-card > *:not(.nc-podium-art) {
+      position: relative;
+      z-index: 2;
+      max-width: 100%;
+    }
+
+    /* The placard numeral, stamped over the sleeve exactly as .wv-mos-item
+       stamps its rank badge. */
+    .nc-podium-medal {
+      position: absolute;
+      top: 0.02em;
+      left: 0.06em;
+      font-family: var(--font-display);
+      font-size: 5rem;
+      font-weight: 900;
+      line-height: 0.85;
+      letter-spacing: -0.05em;
+      color: var(--medal);
+      /* Lit in its own metal. Over artwork it doubles as legibility insurance:
+         the halo separates the numeral from whatever the sleeve puts behind it. */
+      text-shadow: 0 0 8px color-mix(in srgb, var(--medal) 45%, transparent),
+                   0 0 26px color-mix(in srgb, var(--medal) 60%, transparent);
+      pointer-events: none;
+      user-select: none;
+    }
+
+    .nc-podium-art .thumb {
+      object-fit: cover;
+    }
+
+    /* ── The text stack, set over the sleeve ──
+       Colours are fixed white/alpha rather than tokens, matching .wv-mos-bot:
+       the backdrop is a photograph in every theme, so theme text colours would
+       be unreadable half the time. */
+
+    .nc-podium-title {
+      font-weight: 800;
+      font-size: 0.95rem;
+      line-height: 1.2;
+      letter-spacing: -0.01em;
+      color: #fff;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .nc-podium-artist {
+      font-size: 0.72rem;
+      color: rgba(255, 255, 255, 0.72);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 100%;
+    }
+
+    /* Number and caption share a baseline instead of stacking — the card is
+       wide enough for one line and it buys the artwork more room. */
+    .nc-podium-figure {
+      display: flex;
+      flex-direction: row;
+      align-items: baseline;
+      gap: 0.4rem;
+      margin-top: 0.25rem;
+    }
+
+    /* One colour for all three: rank is already carried by the numeral and the
+       metal ring, and tinting #1's figure gold made the largest number on the
+       page the muddiest in every light theme. */
+    .nc-podium-num {
+      font-family: var(--font-display);
+      font-size: 2.1rem;
+      font-weight: 900;
+      line-height: 1;
+      letter-spacing: -0.035em;
+      font-feature-settings: "tnum";
+      color: #fff;
+    }
+
+    .nc-podium-unit,
+    .nc-podium-meta {
+      font-family: var(--font-mono);
+      font-size: 0.53rem;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: rgba(255, 255, 255, 0.62);
+    }
+
+    /* One orchestrated entrance for the three cards rather than three separate
+       flourishes. `backwards`, not `both`: `both` would pin transform to the
+       keyframe's final value and silently kill the hover lift afterwards. */
+    .nc-podium-card {
+      animation: ncPodIn 460ms cubic-bezier(0.34, 1.56, 0.64, 1) backwards;
+    }
+
+    .nc-podium-2 { animation-delay: 70ms; }
+    .nc-podium-3 { animation-delay: 140ms; }
+
+    @keyframes ncPodIn {
+      from { opacity: 0; transform: translateY(10px) scale(0.985); }
+      to   { opacity: 1; transform: none; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .nc-podium-card {
+        animation: none;
+        transition: none;
+      }
+
+      .nc-podium-card:hover {
+        transform: none;
+      }
+    }
+
+    /* Total plays and the week, side by side on the card's last line. */
+    .nc-podium-meta {
+      display: flex;
+      flex-direction: row;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 0.5rem;
+      margin-top: 0.4rem;
+      padding-top: 0.4rem;
+      border-top: 1px solid rgba(255, 255, 255, 0.18);
+      width: 100%;
+    }
+
+    .nc-podium-total {
+      color: rgba(255, 255, 255, 0.82);
+      white-space: nowrap;
+    }
+
+    /* The link is the one interactive thing on the card, so it keeps its
+       underline — but in white, since --accent over a photograph is a coin
+       toss. Hover goes fully opaque rather than changing hue. */
+    .nc-podium-meta .rec-date-link {
+      color: rgba(255, 255, 255, 0.82);
+      border-bottom-color: rgba(255, 255, 255, 0.4);
+      white-space: nowrap;
+    }
+
+    .nc-podium-meta .rec-date-link:hover {
+      color: #fff;
+      border-bottom-color: #fff;
+    }
+
+    /* ── Row artwork ── */
+
+    .nc-sd-table .thumb-cell {
+      width: 40px;
+      padding: 0.3rem 0.35rem !important;
+    }
+
+    .nc-sd-table .pak-mini-thumb {
+      width: 32px;
+      height: 32px;
+      border-radius: 4px;
+    }
+
+    /* The debut figure is the column the table is ranked by; the all-time
+       total next to it is context, so only one of them is emphasised. */
+    .nc-sd-table .nc-sd-debut {
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    /* ── Phones: the table becomes cards ──────────────────────────────────
+       Eight columns (rank, art, song, artist, debut plays, total plays, debut
+       rank, week) have nowhere to go below ~700px, and horizontal scroll
+       inside an already-scrolling records page is the worst of both.
+
+       Every row becomes a card built to the same anatomy as a podium card, so
+       the list reads as one run of cards that happens to start with three
+       medalled ones — rather than two unrelated designs stacked on each other.
+       Each cell is placed into the podium's own slot and restyled to match its
+       counterpart there; the pairings are noted rule by rule below.
+
+       Sorting goes away with the header on this breakpoint — that is the
+       trade, and the same reason the podium is worth keeping here: it is the
+       only ranking affordance left. */
+    @media (max-width: 700px) {
+      .nc-podium {
+        grid-template-columns: 1fr;
+        gap: 0.5rem;
+      }
+
+      /* The full-bleed treatment is a desktop move: at this width the artwork
+         comes back out of the background, the scrims go away and the text
+         returns to theme colours.
+
+         The top three then diverge from the table cards on purpose — larger
+         artwork on the left and the rank numeral moved across to the right,
+         where the card had nothing but empty space. It reads as a medal
+         stamped on the card rather than a list index, and the two card kinds
+         still share their surface, border, typography and meta strip. */
+      .nc-podium-card {
+        display: grid;
+        grid-template-columns: auto 1fr auto;
+        grid-template-areas:
+          "art  title  medal"
+          "art  artist medal"
+          "art  figure medal"
+          "meta meta   meta";
+        justify-items: start;
+        align-items: center;
+        text-align: left;
+        aspect-ratio: auto;
+        column-gap: 0.7rem;
+        row-gap: 0.1rem;
+        padding: 0.7rem;
+        background: var(--bg2);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        box-shadow: inset 0 3px 0 var(--medal-ink);
+      }
+
+      .nc-podium-card:hover {
+        transform: none;
+        box-shadow: inset 0 3px 0 var(--medal-ink);
+      }
+
+      .nc-podium-card::before,
+      .nc-podium-card::after {
+        display: none;
+      }
+
+      /* Held against the card's right edge, spanning the three text rows so it
+         centres against them. The glow is the metal's own colour, which is why
+         it stays legible in the light themes where --gold1 is a dark brown: it
+         reads as a soft halo there rather than the neon it becomes on dark. */
+      .nc-podium-medal {
+        position: static;
+        grid-area: medal;
+        justify-self: end;
+        font-size: 3.2rem;
+        font-weight: 900;
+        line-height: 1;
+        letter-spacing: -0.04em;
+        color: var(--medal-ink);
+        padding-right: 0.15rem;
+        text-shadow: 0 0 6px color-mix(in srgb, var(--medal-ink) 40%, transparent),
+                     0 0 20px color-mix(in srgb, var(--medal-ink) 55%, transparent);
+      }
+
+      .nc-podium-title { grid-area: title; }
+      .nc-podium-artist { grid-area: artist; }
+
+      /* Out of the background and back to a thumbnail — larger than the table
+         cards', which is the other half of the top three's promotion. */
+      .nc-podium-art {
+        position: static;
+        grid-area: art;
+        inset: auto;
+        margin: 0;
+        width: 88px;
+        height: 88px;
+        border-radius: 6px;
+      }
+
+      .nc-podium-art .thumb,
+      .nc-podium-art .pak-mini-initials,
+      .nc-podium-art .thumb-initials {
+        border-radius: 6px;
+        font-size: 1.5rem;
+      }
+
+      .nc-podium-figure {
+        grid-area: figure;
+        flex-direction: row;
+        align-items: baseline;
+        gap: 0.4rem;
+        margin-top: 0.2rem;
+        align-self: auto;
+      }
+
+      /* Both figures ride the right edge, total plays immediately before the
+         week, instead of being pushed to opposite ends of the card. They are
+         one thought — "431 plays all-time, first charted this week" — and
+         reading them together beats reading them apart. */
+      .nc-podium-meta {
+        grid-area: meta;
+        flex-direction: row;
+        justify-content: flex-end;
+        align-items: baseline;
+        gap: 0.7rem;
+        margin-top: 0.6rem;
+        align-self: auto;
+      }
+
+      /* ── Typography shared by both card kinds ──
+         Grouped on purpose: a podium card and a table card have to be the same
+         object at this width, and one rule per pair is what guarantees it —
+         they cannot drift if there is only one place to change them. */
+
+      .nc-podium-title,
+      .nc-sd-table tbody td.nc-sd-title .rec-name {
+        font-size: 0.88rem;
+        font-weight: 700;
+        line-height: 1.25;
+        letter-spacing: -0.01em;
+        color: var(--text);
+      }
+
+      .nc-podium-artist,
+      .nc-sd-table tbody td.nc-sd-artist .rec-sub {
+        font-size: 0.72rem;
+        color: var(--text2);
+      }
+
+      /* Off the artwork, so the white-on-photo colours go back to tokens. */
+      .nc-podium-num,
+      .nc-sd-table tbody td.nc-sd-debut {
+        color: var(--accent);
+      }
+
+      .nc-podium-unit,
+      .nc-podium-meta,
+      .nc-sd-table tbody td.nc-sd-debut::after {
+        color: var(--text3);
+      }
+
+      .nc-podium-meta {
+        border-top-color: var(--border);
+      }
+
+      .nc-podium-total,
+      .nc-sd-table tbody td.nc-sd-total {
+        color: var(--text2);
+      }
+
+      .nc-podium-meta .rec-date-link {
+        color: var(--accent);
+        border-bottom-color: var(--accent);
+      }
+
+      .nc-podium-meta .rec-date-link:hover {
+        color: var(--accent2);
+        border-bottom-color: var(--accent2);
+      }
+
+      .nc-podium-num,
+      .nc-sd-table tbody td.nc-sd-debut {
+        font-size: 1.65rem;
+        font-weight: 800;
+        letter-spacing: -0.03em;
+      }
+
+      .nc-podium-unit,
+      .nc-sd-table tbody td.nc-sd-debut::after {
+        font-size: 0.53rem;
+        letter-spacing: 0.16em;
+      }
+
+      /* The table itself. `display: block` on the table parts is what makes a
+         card layout possible; the row stays a grid so the cells can be placed. */
+      .nc-sd-table,
+      .nc-sd-table tbody,
+      .nc-sd-table tr,
+      .nc-sd-table td {
+        display: block;
+      }
+
+      .nc-sd-table {
+        border: none;
+        background: none;
+      }
+
+      /* The desktop cell padding is the table's column rhythm; inside a grid
+         card the gaps come from the grid instead. */
+      .nc-sd-table tbody td {
+        padding: 0;
+      }
+
+      .nc-sd-table thead {
+        /* Not display:none — that would drop the header out of the a11y tree
+           along with the column names the cards still refer to. */
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+        clip: rect(0 0 0 0);
+        white-space: nowrap;
+      }
+
+      /* Same anatomy as a podium card, in the same order: numeral, artwork,
+         the title/artist/hero-figure stack, then a meta strip. A card at #4 is
+         the same object as the card at #3 — it just has no medal. Column 4 is
+         sized by the week label; everything above it spans across into it. */
+      .nc-sd-table tbody tr {
+        display: grid;
+        grid-template-columns: auto auto 1fr auto;
+        align-items: center;
+        column-gap: 0.65rem;
+        row-gap: 0.1rem;
+        padding: 0.7rem;
+        margin-bottom: 0.5rem;
+        background: var(--bg2);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+      }
+
+      /* Stands in for .nc-podium-medal, matched to it rather than to the
+         38px centred rank column it is on desktop. */
+      .nc-sd-table tbody td.rec-rank {
+        grid-column: 1;
+        grid-row: 1 / 4;
+        width: auto;
+        padding: 0;
+        font-size: 1.05rem;
+        line-height: 1;
+        text-align: center;
+      }
+
+      .nc-sd-table tbody td.thumb-cell {
+        grid-column: 2;
+        grid-row: 1 / 4;
+        width: auto;
+        padding: 0 !important;
+      }
+
+      /* 60px, the size .nc-podium-art takes at this breakpoint. */
+      .nc-sd-table .pak-mini-thumb {
+        width: 60px;
+        height: 60px;
+        border-radius: 6px;
+      }
+
+      .nc-sd-table tbody td.nc-sd-title { grid-column: 3 / -1; grid-row: 1; }
+      .nc-sd-table tbody td.nc-sd-artist { grid-column: 3 / -1; grid-row: 2; }
+
+      /* Size, weight and colour come from the shared pairs above; only the
+         truncation is table-specific (the podium clamps to two lines instead). */
+      .nc-sd-table tbody td.nc-sd-artist .rec-sub {
+        margin-top: 0;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      /* The hero figure, mirroring .nc-podium-figure: the big accent number
+         with its caption alongside. The caption is the whole reason the debut
+         rank has its own cell no more — "169 plays @ #1" is one statement. */
+      .nc-sd-table tbody td.nc-sd-debut {
+        grid-column: 3 / -1;
+        grid-row: 3;
+        display: flex;
+        align-items: baseline;
+        gap: 0.4rem;
+        margin-top: 0.2rem;
+        /* Size, weight and tracking come from the shared pair above. */
+        font-family: var(--font-display);
+        font-feature-settings: "tnum";
+        line-height: 1;
+        color: var(--accent);
+        text-align: left;
+      }
+
+      .nc-sd-table tbody td.nc-sd-debut::after {
+        content: attr(data-unit);
+        font-family: var(--font-mono);
+        font-weight: 400;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+        color: var(--text3);
+      }
+
+      /* Folded into the caption above, exactly as the podium prints it. */
+      .nc-sd-table tbody td.nc-sd-drank {
+        display: none;
+      }
+
+      /* The meta strip, mirroring .nc-podium-meta: total plays left, week
+         right, one rule spanning both. */
+      .nc-sd-table tbody td.nc-sd-total,
+      .nc-sd-table tbody td.nc-sd-week {
+        grid-row: 4;
+        margin-top: 0.6rem;
+        padding-top: 0.5rem;
+        border-top: 1px solid var(--border);
+        font-family: var(--font-mono);
+        /* Matched to .nc-podium-meta so both strips are the same rule of type. */
+        font-size: 0.53rem;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+        white-space: nowrap;
+      }
+
+      /* Pulled over to sit immediately before the week, matching the podium's
+         meta strip rather than being stranded at the far left. The cell still
+         spans from column 1 so its top border and the week's meet as one rule
+         across the card; only the text inside it moves right. */
+      .nc-sd-table tbody td.nc-sd-total {
+        grid-column: 1 / 4;
+        justify-self: stretch;
+        text-align: right;
+        color: var(--text2);
+      }
+
+      .nc-sd-table tbody td.nc-sd-total::after {
+        content: ' ' attr(data-unit);
+      }
+
+      .nc-sd-table tbody td.nc-sd-week {
+        grid-column: 4;
+        text-align: right;
+      }
+    }
+
     /* ── MOBILE POLISH ── */
 
     /* Safe-area insets for notched phones (iPhone X+, Android cutouts) */
