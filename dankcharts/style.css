@@ -13669,6 +13669,26 @@
       z-index: 1;
     }
 
+    /* attachRecImgPicker() wraps the slot in a .rec-thumb-wrap at runtime so the
+       ✎ badge has something to anchor to. That wrapper is inline-block and its
+       only child is absolutely positioned, so it collapses to a 0×0 box in the
+       top-left corner of .cert-record-wrap — and the slot's 50%/50% centring
+       then resolved against that instead of the record box, throwing the
+       artwork outside the frame. Let the wrapper stand in for the slot's box. */
+    .cert-record-wrap > .thumb-wrap {
+      position: absolute;
+      inset: 0;
+      display: block;
+      z-index: 1;
+    }
+
+    /* The artwork is a circle inscribed in that square, so the wrapper's corner
+       sits well clear of it — pull the badge in to meet the circle's edge. */
+    .cert-record-wrap .img-src-btn {
+      top: 8px;
+      right: 8px;
+    }
+
     .cert-record,
     .cert-record-slot .thumb {
       position: absolute;
@@ -13944,6 +13964,7 @@
       .cert-record-initials { width: 88px; height: 88px; }
       .cert-sleeve { width: 68px; height: 72px; }
       .cert-vinyl-center { width: 16px; height: 16px; }
+      .cert-record-wrap .img-src-btn { top: 5px; right: 5px; }
       .cert-title { font-size: 0.74rem; }
     }
 
