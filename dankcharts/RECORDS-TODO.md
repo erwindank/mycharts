@@ -45,6 +45,7 @@ and a section nav of 11 identical text pills at half the minimum touch-target he
 | — | Cover art / artist avatars on every milestone entry | *pending* |
 | — | Song milestones at 10, then every 25 plays (artists/albums keep the landmark ladder) | *pending* |
 | — | Every artwork in Records is re-pickable (✎ badge), incl. PAK and the certifications wall | *pending* |
+| 19 | Sticky column headers on every records table (≥768px) | *pending* |
 
 ### Implementation notes worth not re-deriving
 
@@ -213,6 +214,48 @@ and a section nav of 11 identical text pills at half the minimum touch-target he
   `.rec-section` as a `<table>` — so a hit inside a collapsed milestone sub-section stayed
   invisible. `.milestone-table` is now in that selector list.
 
+### Sticky headers — two overflow ancestors, not a wrapper problem
+
+`position: sticky` resolves against the **nearest scrolling ancestor**, and *any*
+ancestor with a non-`visible` overflow on *either* axis becomes one — on both axes.
+Two such ancestors sat above every records `<th>`, and both had to go. Neither was
+fixable by wrapping the table, which is what the old #19 note assumed.
+
+- **`.rec-table` itself had `overflow: hidden`.** The rounded corners were never
+  drawn by `border-radius`: `border-collapse: collapse` makes browsers ignore the
+  radius entirely, so the corners were drawn *by the clip*. Removing the clip
+  therefore meant re-rounding the table another way — `border-collapse: separate`
+  + `border-spacing: 0`, with the four corner cells rounding themselves at **7px**
+  (8px minus the table's own 1px border). Two knock-ons:
+  - **Borders set on `<tr>` are not painted in the separated model.** The row
+    separator moved from `.rec-table tbody tr` onto `.rec-table tbody td` — which
+    is what `.milestone-table` already did, so the two now match.
+  - `.rec-run-detail td` lost its `border-top`. Collapsed, it merged with the
+    parent row's `border-bottom`; separated, the two stack into a visible 2px rule.
+- **`.section-body` had `overflow-x: auto`** — the real reason sticky still did
+  nothing after the table was fixed. It exists for the *chart* tables, which grow
+  columns as display toggles are switched on. The box is exactly as tall as its
+  content, so it never actually scrolls; it just silently anchored the header.
+  Records opts out above 768px only. **Measured, don't guess:** at 390px, New
+  Charts overflows its container by 212px, PAK by 206px, Certifications by 148px
+  and All #1s by 126px, and with the scroller gone those push the whole page
+  sideways. They fit by 768px.
+- **The background must sit on the `th`, not the `thead`.** A sticky `th` moves and
+  its `thead` does not, so a thead-only background gets left behind and the rows
+  show through the labels. `z-index: 3` clears the ✎ picker badges, which are
+  absolute at `z-index: 2` and otherwise paint over the stuck header.
+- `position: relative` on the `th` became `sticky`, which is still a containing
+  block, so `.col-resize-handle` is unaffected. The handle is skipped for the last
+  column anyway, so its `right: -2px` never needed the old clip.
+- **`.nc-sd-table` needed an opt-out.** Its rows become `display: grid` cards under
+  the mobile media query, so a per-*cell* separator draws a line under every field
+  in the card instead of one line between rows. Its card border still paints
+  despite `border-collapse: separate`, because `display: grid` takes the row out of
+  the table model altogether.
+- **Not fixed, pre-existing:** every Records section overflows the page by 212px at
+  a 768px viewport. Confirmed identical on a pristine `HEAD` build, so it is not
+  from this work — but it is real and unlogged, and it is not one of the 50.
+
 ### Artwork in Records is now re-pickable everywhere
 
 An audit of the tab found **771 artwork elements across five sections with no ✎ picker at
@@ -273,7 +316,7 @@ overview card therefore remains empty on the Albums pill instead of three.
 
 ---
 
-## Pending — 42 items
+## Pending — 41 items
 
 ### A. Information architecture & navigation
 
@@ -308,9 +351,11 @@ overview card therefore remains empty on the Albums pill instead of three.
 
 ### C. Table readability
 
-- [ ] **19.** Sticky table headers. **Blocked**: `.rec-table` (`style.css`) sets
-      `border-radius` + `overflow: hidden`, which kills `position: sticky`. Move the
-      radius to a wrapper first.
+- [x] **19.** ~~Sticky table headers.~~ Shipped at ≥768px — see **Sticky headers** in
+      the implementation notes. The old note here ("move the radius to a wrapper
+      first") was wrong: a wrapper would still have been an overflow-hidden
+      ancestor. Below 768px the tables still need their horizontal scroller, so
+      headers only stick on desktop — **#20 and #48 are what would lift that.**
 - [ ] **20.** Cut the Appearances tables from 9 columns to 5; move first/last-streamed
       into the expand row.
 - [ ] **21.** Collapse the double thumbnail (song cover *and* artist avatar per row).
@@ -390,12 +435,26 @@ overview card therefore remains empty on the Albums pill instead of three.
 ## Working notes
 
 **There *is* a real browser available — the earlier "headless only" note was wrong.**
-`C:\tmp` has a Playwright install (`node_modules/playwright`, Chromium already
-downloaded) and the app runs against the sample dataset with no credentials: serve
-`dankcharts/` statically and click `.landing-demo-btn`. `C:\tmp\serve_dc.mjs` is a
-20-line static server on port 8899; `rec_verify.mjs`, `rec_edge.mjs`, `rec_glyph.mjs` and
-`mil_verify.mjs` / `mil_shots.mjs` next to it are the checks written for search / limit /
-glyphs / the milestone timeline, and are worth copying for the next item. Gotchas:
+The app runs against the sample dataset with no credentials: serve `dankcharts/`
+statically and click `.landing-demo-btn`.
+
+**The `C:\tmp` Playwright install from the earlier session is gone** (no
+`node_modules`, no scripts). Don't count on it. Rebuilding it takes about ten
+seconds and no browser download, because Chrome and Edge are both installed:
+
+```
+npm install playwright        # with PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1
+chromium.launch({ channel: 'chrome' })   # drives the system Chrome
+```
+
+`serve_dc.mjs` (a 20-line static server taking root + port), `sticky_verify.mjs`
+(sticky/border/collapse/search assertions) and `mobile_check.mjs` (per-section
+horizontal overflow at 320/390/768px) were written for item #19 and are worth
+copying for the next one. **Always diff against a baseline**: `git archive HEAD
+--format=zip`, expand it, and serve that on a second port — that is the only way
+the 212px pre-existing overflow was told apart from a regression. (`git archive |
+tar -x` fails on Windows: tar reads `\\.\tape0` without `-f -`. Use the zip form.)
+Gotchas:
 
 - The Records nav pill sits in the collapsed second nav row so `page.click` gets
   intercepted — use `page.evaluate(() => el.click())`.
@@ -435,7 +494,8 @@ placeholders inside hidden containers (`.dc-user-avatar` filled by `firebase.js`
 `#ytMiniThumb` by `_ytUpdateThumb`). Don't "fix" them and don't add ignore rules for them
 without a decision from the project owner.
 
-**Suggested next three:** #19 (sticky table headers — move the radius to a wrapper first,
-then it's unblocked), #11 (rewrite `.rec-intro` as a real stat strip, the last mono
+**Suggested next three:** #11 (rewrite `.rec-intro` as a real stat strip, the last mono
 run-on at the top of the tab), #1 + #4 + #49 together (the nav pills: group them, put the
-section emoji on them, give them a 44px target — one pass over the same markup).
+section emoji on them, give them a 44px target — one pass over the same markup), then
+#20 (cut Appearances from 9 columns to 5) — which now also buys the mobile half of #19,
+since the wide tables are the only reason headers stop sticking below 768px.

@@ -11475,6 +11475,27 @@
       display: none !important;
     }
 
+    /* The second half of unblocking sticky headers (see .rec-table below).
+       `.section-body` sets `overflow-x: auto` so a table wider than the viewport
+       scrolls in its own box instead of blowing out the page. That silently
+       defeated the sticky header: a non-visible overflow on *either* axis makes
+       the element a scroll container on *both*, and this box is exactly as tall
+       as its content, so it never scrolls and a header pinned to it can never
+       move.
+       Records opts out — but only where it can afford to. Measured against the
+       demo dataset, several records tables (New Charts +212px, PAK +206px,
+       Certifications +148px, All #1s +126px) are still wider than a 390px
+       viewport, and without the scroller they push the whole page sideways.
+       They fit by 768px, so that is the switch-over: horizontal scroll below it,
+       sticky headers above it. Mobile keeps the behaviour it had.
+       Item #48 (mobile card layout for the wide tables) is what would let this
+       drop to all widths; until then, do not remove the media query. */
+    @media (min-width: 768px) {
+      #recordsView .section-body {
+        overflow-x: visible;
+      }
+    }
+
     .rec-section {
       margin-bottom: 1.5rem;
     }
@@ -11600,13 +11621,29 @@
       margin-bottom: 0.6rem;
     }
 
+    /* Separated border model, deliberately — this is what unblocks sticky
+       headers. `border-collapse: collapse` makes the browser ignore
+       border-radius, so the rounded corners here were never drawn by the radius
+       at all: they were drawn by `overflow: hidden` clipping the table box. That
+       clip is also what silently killed `position: sticky` on the header, because
+       an ancestor with any non-visible overflow becomes the sticky element's
+       scroll container — and this one never scrolls (the page does), so the
+       header had nothing to stick against and just scrolled away.
+       Moving the radius to a wrapper div would NOT have fixed that; the wrapper
+       would still be an overflow-hidden ancestor. The clip has to go entirely,
+       which means rounding via the separated model instead. Two consequences,
+       both handled below:
+         - borders set on <tr> are not painted in this model, so the row rule
+           moved onto the cells (what .milestone-table already does);
+         - inner cells must round their own corners, or their backgrounds square
+           off the table's. */
     .rec-table {
       width: 100%;
-      border-collapse: collapse;
+      border-collapse: separate;
+      border-spacing: 0;
       background: var(--bg2);
       border: 1px solid var(--border);
       border-radius: 8px;
-      overflow: hidden;
       margin-bottom: 0.75rem;
     }
 
@@ -11622,9 +11659,22 @@
       padding: 0.45rem 0.7rem;
       text-align: left;
       border-right: 1px solid var(--border);
+      /* Gives the header a defined edge once it is floating over the rows.
+         Matches .milestone-table th, which always had one. */
+      border-bottom: 1px solid var(--border);
       color: var(--text2);
       font-weight: 500;
-      position: relative;
+      /* sticky, not relative — still a containing block for
+         .col-resize-handle, but now also pins the header to the page scroll.
+         The background has to sit on the th rather than the thead: a sticky th
+         moves and its thead does not, so a thead-only background would be left
+         behind and the rows would show straight through the labels.
+         z-index clears the ✎ picker badges in the cells, which are absolute at
+         z-index 2 and would otherwise paint over the stuck header. */
+      position: sticky;
+      top: 0;
+      z-index: 3;
+      background: var(--bg3);
     }
 
     .col-resize-handle {
@@ -11703,22 +11753,43 @@
       }
     }
 
+    /* The four corner cells round themselves. Nothing clips the table any more,
+       so an opaque cell background (--bg3 here, the hover fill below) would
+       otherwise square off the corner the table's own radius just drew.
+       7px, not 8px: the table's 1px border sits outside the cell. */
     .rec-table thead th:last-child {
       border-right: none;
+      border-top-right-radius: 7px;
     }
 
     .rec-table thead th:first-child {
       text-align: center;
       width: 38px;
+      border-top-left-radius: 7px;
     }
 
     .rec-table tbody tr {
-      border-bottom: 1px solid var(--border);
       transition: background 0.1s;
     }
 
-    .rec-table tbody tr:last-child {
+    /* Row separators live on the cells: a border set on <tr> is not painted in
+       the separated model. */
+    .rec-table tbody td {
+      border-bottom: 1px solid var(--border);
+    }
+
+    /* Last row in the DOM, not the last row still visible under the
+       entries-per-table limit — the same caveat this rule has always carried. */
+    .rec-table tbody tr:last-child td {
       border-bottom: none;
+    }
+
+    .rec-table tbody tr:last-child td:first-child {
+      border-bottom-left-radius: 7px;
+    }
+
+    .rec-table tbody tr:last-child td:last-child {
+      border-bottom-right-radius: 7px;
     }
 
     .rec-table tbody tr:hover {
@@ -11734,9 +11805,11 @@
       display: table-row;
     }
 
+    /* No border-top: the parent row's cells already draw that line. Under
+       `border-collapse: collapse` the two merged into a single rule; in the
+       separated model they would stack into a visible 2px one. */
     .rec-run-detail td {
       padding: 0.45rem 0.9rem 0.6rem !important;
-      border-top: 1px solid var(--border) !important;
     }
 
     .rec-table tbody tr.rec-run-detail:hover {
@@ -13237,6 +13310,16 @@
         background: var(--bg2);
         border: 1px solid var(--border);
         border-radius: 8px;
+      }
+
+      /* These rows are grid cards, not table rows, so the per-cell separator
+         that draws one line between rows on desktop would instead draw a line
+         under every field inside the card. The card's own border is the
+         separator here. (The border above still paints despite the table's
+         `border-collapse: separate`, because `display: grid` takes this element
+         out of the table model entirely.) */
+      .nc-sd-table tbody td {
+        border-bottom: none;
       }
 
       /* Stands in for .nc-podium-medal, matched to it rather than to the
