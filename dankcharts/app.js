@@ -9569,7 +9569,7 @@ function buildItemHeatmapHTML(type, key) {
         lastMonth = month;
       } else monthHtml += '<div class="heatmap-week-col heatmap-month-header-row"></div>';
     }
-    let cellsHtml = '';
+    let cellsHtml = '', wi = 0;
     for (const week of weeks) {
       cellsHtml += '<div class="heatmap-week-col">';
       for (const cell of week) {
@@ -9577,9 +9577,17 @@ function buildItemHeatmapHTML(type, key) {
         const bg = cell.count === 0 ? 'transparent' : hmCellColor(cell.count, maxCount);
         const cls = cell.count > 0 ? 'heatmap-cell has-data' : 'heatmap-cell';
         const dkAttr = cell.count > 0 ? ` data-dk="${cell.dk}"` : '';
-        cellsHtml += `<div class="${cls}" style="background:${bg};"${dkAttr}></div>`;
+        // Rain-in reveal (see .cr-item-heatmap in style.css). --fd scatters the
+        // fall so blocks land individually instead of advancing as a front: a
+        // gentle left→right drift across the year plus a large random jitter,
+        // which is wider than the column step so neighbours cross over each
+        // other. --fs varies fall speed a little, the way drops do.
+        const fd = Math.round(wi * 7 + Math.random() * 260);
+        const fs = 260 + Math.round(Math.random() * 140);
+        cellsHtml += `<div class="${cls}" style="background:${bg};--fd:${fd}ms;--fs:${fs}ms;"${dkAttr}></div>`;
       }
       cellsHtml += '</div>';
+      wi++;
     }
     html += `<div class="heatmap-year-block">
       <div class="heatmap-year-header">${yr}</div>

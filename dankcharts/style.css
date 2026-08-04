@@ -9593,6 +9593,61 @@
       margin-top: 6px;
     }
 
+    /* ── Listening heatmap: rain-in reveal ──────────────────────────────────
+       Opening the subsection rains the day squares into the calendar. Every
+       block falls on its own clock — buildItemHeatmapHTML() stamps --fd (when
+       it starts) and --fs (how fast it falls) per cell, with the random jitter
+       deliberately much wider than the left→right column step so neighbouring
+       drops overtake each other. No shared wavefront, no sweeping edge: the
+       point is scatter, not a front advancing across the grid.
+
+       Empty days render transparent, so only the days you actually listened
+       are visible — the reveal reads as your plays falling into place.
+
+       Scoped to .cr-item-heatmap so only the per-entry heatmaps animate; the
+       always-visible Graphs-tab heatmap stays still. The reveal replays on
+       every open because display:none → '' restarts CSS animations. */
+
+    /* Second .heatmap-weeks-row holds the cells; the first holds month labels. */
+    .cr-item-heatmap .heatmap-weeks-row:last-child .heatmap-cell {
+      animation: hmRainDrop var(--fs, 300ms) cubic-bezier(0.3, 1.5, 0.5, 1) both;
+      animation-delay: var(--fd, 0ms);
+    }
+
+    /* Drops in from above and lands hard — the spring easing gives it a short
+       squash on impact so each block reads as having weight. Fall distance is
+       capped at 14px: .heatmap-inner is overflow-x:auto (so overflow-y clips
+       too), and the Monday row sits 19px down, so anything taller gets sheared
+       off at the top edge. */
+    @keyframes hmRainDrop {
+      0%   { opacity: 0; transform: translateY(-14px) scale(0.45); }
+      60%  { opacity: 1; }
+      100% { opacity: 1; transform: none; }
+    }
+
+    /* Chrome (year label, weekday rail, month labels, legend) fades up under
+       the rain rather than wiping in, so nothing reads as a moving edge. */
+    .cr-item-heatmap .heatmap-year-header,
+    .cr-item-heatmap .heatmap-dow-labels,
+    .cr-item-heatmap .heatmap-weeks-row:first-child,
+    .cr-item-heatmap .heatmap-legend {
+      animation: hmRainChrome 420ms cubic-bezier(0.4, 0, 0.2, 1) both;
+      animation-delay: 220ms;
+    }
+
+    @keyframes hmRainChrome {
+      from { opacity: 0; }
+      to   { opacity: 1; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .cr-item-heatmap .heatmap-weeks-row:last-child .heatmap-cell,
+      .cr-item-heatmap .heatmap-year-header,
+      .cr-item-heatmap .heatmap-dow-labels,
+      .cr-item-heatmap .heatmap-weeks-row:first-child,
+      .cr-item-heatmap .heatmap-legend { animation: none; }
+    }
+
     .cr-stats {
       display: flex;
       align-items: center;
