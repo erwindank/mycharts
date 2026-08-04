@@ -9362,6 +9362,14 @@ function buildCrPanelHTML(type, key) {
 
   const encodedType = esc(type);
   const encodedKey = esc(key);
+  const streaksHtml = `<div class="cr-subsection">
+    <div class="cr-subsection-header" onclick="toggleCrSubsection(this)">
+      <span class="cr-subsection-toggle">▶</span>
+      <span class="cr-subsection-label">${t('cr_sub_streaks')}</span>
+    </div>
+    <div class="cr-subsection-body" style="display:none;" data-crtype="${encodedType}" data-crkey="${encodedKey}" data-crkind="streaks"></div>
+  </div>`;
+
   const heatmapHtml = `<div class="cr-subsection">
     <div class="cr-subsection-header" onclick="toggleCrSubsection(this)">
       <span class="cr-subsection-toggle">▶</span>
@@ -9378,7 +9386,7 @@ function buildCrPanelHTML(type, key) {
     <div class="cr-subsection-body" style="display:none;" data-crtype="${encodedType}" data-crkey="${encodedKey}" data-crkind="rawdata"></div>
   </div>`;
 
-  return headerHtml + toggleHtml + sectionsHtml + heatmapHtml + rawDataHtml;
+  return headerHtml + toggleHtml + sectionsHtml + streaksHtml + heatmapHtml + rawDataHtml;
 }
 
 function toggleCrPanelSection(headerEl) {
@@ -9398,6 +9406,7 @@ function toggleCrSubsection(headerEl) {
     const key = body.dataset.crkey;
     const kind = body.dataset.crkind;
     if (kind === 'heatmap') body.innerHTML = buildItemHeatmapHTML(type, key);
+    else if (kind === 'streaks') body.innerHTML = buildItemStreaksHTML(type, key);
     else if (kind === 'rawdata') body.innerHTML = buildItemRawDataHTML(type, key);
     body.dataset.loaded = '1';
   }
@@ -9590,6 +9599,393 @@ function buildItemHeatmapHTML(type, key) {
   html += `<div class="heatmap-legend" style="margin-top:0.5rem;"><span class="heatmap-legend-label">Less</span>${legendCells}<span class="heatmap-legend-label">More</span></div>`;
   return `<div class="cr-item-heatmap" id="${containerId}">${html}</div>`;
 }
+
+// ─── CHART RUN: STREAK RECORDS ─────────────────────────────────
+// Four nested notions of "consecutive" for a single song/artist/album:
+//   plays  — back-to-back listens in the global play log (nothing else between)
+//   days   — consecutive calendar days with at least one play
+//   months — consecutive calendar months
+//   years  — consecutive calendar years
+// All four are computed from the full listening history: the chart-run RANGE
+// buttons scope chart appearances, not plays, so they deliberately don't apply here.
+const CR_STK_DIMS = ['plays', 'days', 'months', 'years'];
+// A lone play/day/month/year isn't a streak — only runs of 2+ consecutive units count,
+// so isolated units are filtered out before any stat is derived.
+const CR_STK_MIN = 2;
+const _crStreakData = new Map();
+
+// Heat tiers 1–6, feeding the same flame ramp the masthead streak walks through
+// (.hero-stat--streak-N). Each dimension gets its own ladder because the scales
+// aren't comparable — 30 consecutive days is a hot streak, 30 consecutive years
+// is not a thing anyone will ever have. Tier is absolute achievement; the bar
+// width already carries the relative comparison, so the two don't double-encode.
+const CR_STK_TIER_LADDER = {
+  plays: [3, 4, 6, 10, 20],
+  days: [3, 7, 14, 30, 60],
+  months: [2, 3, 6, 12, 24],
+  years: [2, 3, 4, 5, 6],
+};
+
+function _crStkTier(dim, len) {
+  const ladder = CR_STK_TIER_LADDER[dim] || CR_STK_TIER_LADDER.days;
+  let tier = 1;
+  for (const step of ladder) if (len >= step) tier++;
+  return tier;
+}
+
+// The flame is drawn in CSS (two rotated teardrops), not an emoji, so it can take
+// the tier's colour, scale and glow — and so it looks identical on every platform.
+const CR_STK_FLAME = '<i class="cr-stk-flame-body"></i><i class="cr-stk-flame-core"></i>';
+let _crStkCtr = 0;
+
+// allPlays is kept newest-first; streak detection needs the opposite order and
+// re-sorting a six-figure log on every panel open is wasteful, so cache it and
+// invalidate when the log is replaced or prepended to.
+let _crChronoCache = null;
+function _crChronoPlays() {
+  if (_crChronoCache && _crChronoCache.n === allPlays.length && _crChronoCache.head === allPlays[0]) return _crChronoCache.arr;
+  const arr = allPlays.slice().sort((a, b) => a.date - b.date);
+  _crChronoCache = { n: allPlays.length, head: allPlays[0], arr };
+  return arr;
+}
+
+function _crItemMatcher(type, key) {
+  if (type === 'songs') return p => songKey(p) === key;
+  if (type === 'artists') return p => p.artists.includes(key);
+  const parts = key.split('|||');
+  return p => p.album === parts[0] && albumArtist(p) === parts[1];
+}
+
+// Bucket keys are ordinal-comparable so "consecutive" is a simple +1 test.
+function _crStkOrd(dim, k) {
+  if (dim === 'days') { const [y, m, d] = k.split('-').map(Number); return Math.round(Date.UTC(y, m - 1, d) / 86400000); }
+  if (dim === 'months') { const [y, m] = k.split('-').map(Number); return y * 12 + m; }
+  return +k;
+}
+
+function _crStkKeyLabel(dim, k) {
+  if (dim === 'days') { const [y, m, d] = k.split('-').map(Number); return `${t(_CR_MON_SHORT[m - 1])} ${d}, ${String(y).slice(-2)}`; }
+  if (dim === 'months') { const [y, m] = k.split('-').map(Number); return `${t(_CR_MON_SHORT[m - 1])} ${y}`; }
+  return k;
+}
+
+function _crStkPlayLabel(p) {
+  const d = tzDate(p.date);
+  return `${t(_CR_MON_SHORT[d.getMonth()])} ${d.getDate()}, ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+}
+
+function _crStkSpanLabel(ms) {
+  const mins = Math.round(ms / 60000);
+  if (mins < 60) return `${mins}m`;
+  const h = Math.floor(mins / 60), m = mins % 60;
+  if (h < 24) return m ? `${h}h ${m}m` : `${h}h`;
+  const d = Math.floor(h / 24);
+  return `${d}d ${h % 24}h`;
+}
+
+function _crStkGroup(counts, dim, currentKey) {
+  const keys = Object.keys(counts).sort();
+  const groups = [];
+  let cur = null;
+  for (const k of keys) {
+    const o = _crStkOrd(dim, k);
+    const unit = { key: k, count: counts[k], label: _crStkKeyLabel(dim, k) };
+    if (cur && o === cur.lastOrd + 1) { cur.units.push(unit); cur.lastOrd = o; }
+    else { cur = { units: [unit], lastOrd: o }; groups.push(cur); }
+  }
+  return groups.map((g, i) => {
+    const units = g.units;
+    return {
+      order: i,
+      len: units.length,
+      plays: units.reduce((a, u) => a + u.count, 0),
+      units,
+      // A run only counts as "current" while it reaches into the unit we're living
+      // in — for days that includes yesterday, since today may just not have a play yet.
+      isCurrent: units[units.length - 1].key === currentKey || (dim === 'days' && units[units.length - 1].key === _crStkYesterdayKey()),
+      live: units[units.length - 1].key === currentKey,
+    };
+  });
+}
+
+function _crStkYesterdayKey() {
+  const n = tzNow();
+  return localDateStr(new Date(n.getFullYear(), n.getMonth(), n.getDate() - 1));
+}
+
+function computeCrStreaks(type, key) {
+  const match = _crItemMatcher(type, key);
+  const chrono = _crChronoPlays();
+  const itemPlays = [];
+  const runs = [];
+  let run = null;
+  const dayCounts = {}, monthCounts = {}, yearCounts = {};
+  for (let i = 0; i < chrono.length; i++) {
+    const p = chrono[i];
+    if (!match(p)) { run = null; continue; }
+    itemPlays.push(p);
+    if (!run) { run = []; runs.push(run); }
+    run.push(p);
+    const d = tzDate(p.date);
+    const dk = localDateStr(d);
+    const mk = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+    const yk = String(d.getFullYear());
+    dayCounts[dk] = (dayCounts[dk] || 0) + 1;
+    monthCounts[mk] = (monthCounts[mk] || 0) + 1;
+    yearCounts[yk] = (yearCounts[yk] || 0) + 1;
+  }
+  if (!itemPlays.length) return null;
+
+  const lastIsItem = match(chrono[chrono.length - 1]);
+  const playStreaks = runs.map((r, i) => ({
+    order: i,
+    len: r.length,
+    plays: r.length,
+    spanMs: r[r.length - 1].date - r[0].date,
+    tracks: new Set(r.map(p => p.title)).size,
+    units: r.map(p => ({ key: '', count: 1, label: _crStkPlayLabel(p), sub: p.title, artist: p.artist })),
+    isCurrent: false, live: false,
+  }));
+  if (playStreaks.length && lastIsItem) {
+    playStreaks[playStreaks.length - 1].isCurrent = true;
+    playStreaks[playStreaks.length - 1].live = true;
+  }
+
+  const now = tzNow();
+  const raw = {
+    plays: playStreaks,
+    days: _crStkGroup(dayCounts, 'days', localDateStr(now)),
+    months: _crStkGroup(monthCounts, 'months', `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`),
+    years: _crStkGroup(yearCounts, 'years', String(now.getFullYear())),
+  };
+
+  const dims = {};
+  for (const dim of CR_STK_DIMS) {
+    // Filtering here (not just at render time) keeps the run count, average and
+    // totals describing exactly the runs the list shows.
+    const arr = raw[dim].filter(s => s.len >= CR_STK_MIN);
+    // Longest first; ties break toward the most recent run so the freshest record wins.
+    const streaks = arr.slice().sort((a, b) => b.len - a.len || b.order - a.order);
+    const cur = arr.find(s => s.isCurrent);
+    dims[dim] = {
+      dim, streaks,
+      longest: streaks.length ? streaks[0].len : 0,
+      current: cur ? cur.len : 0,
+      currentLive: !!(cur && cur.live),
+      count: arr.length,
+      avg: arr.length ? arr.reduce((a, s) => a + s.len, 0) / arr.length : 0,
+      totalUnits: arr.reduce((a, s) => a + s.len, 0),
+    };
+  }
+
+  return {
+    type, key, tab: 'plays',
+    totalPlays: itemPlays.length,
+    dims,
+    sel: { plays: 0, days: 0, months: 0, years: 0 },
+    expanded: {},
+  };
+}
+
+function buildItemStreaksHTML(type, key) {
+  const data = computeCrStreaks(type, key);
+  if (!data) return `<div class="cr-stk-empty">${t('cr_stk_none')}</div>`;
+  const cid = 'crstk-' + (++_crStkCtr);
+  // Panels are rebuilt on every re-render; drop the oldest entries so reopened
+  // rows don't pile up detached state forever.
+  if (_crStreakData.size > 40) {
+    for (const k of Array.from(_crStreakData.keys()).slice(0, 20)) _crStreakData.delete(k);
+  }
+  _crStreakData.set(cid, data);
+  const tabs = CR_STK_DIMS.map(d =>
+    `<button type="button" class="cr-range-btn cr-stk-tab${d === data.tab ? ' active' : ''}" data-dim="${d}" onclick="crStkTab('${cid}','${d}');event.stopPropagation()">${t('cr_stk_tab_' + d)}<span class="cr-stk-tab-n">${data.dims[d].longest}</span></button>`
+  ).join('');
+  return `<div class="cr-streaks" id="${cid}">
+    <div class="cr-stk-tabs">${tabs}</div>
+    <div class="cr-stk-view">${_crStkViewHTML(cid)}</div>
+  </div>`;
+}
+
+const CR_STK_LIST_LIMIT = 6;
+
+function _crStkViewHTML(cid) {
+  const st = _crStreakData.get(cid);
+  if (!st) return '';
+  const dim = st.tab, D = st.dims[dim];
+  const unitWord = n => tUnit(dim, n);
+  // Plays exist (buildItemStreaksHTML already guarded that) but nothing reached 2 units.
+  if (!D.count) return `<div class="cr-stk-empty">${t('cr_stk_none_dim', { n: CR_STK_MIN, unit: unitWord(CR_STK_MIN) })}</div>`;
+
+  const currentVal = D.current
+    ? `${D.current} ${unitWord(D.current)}${D.currentLive ? '<span class="cr-stk-live-dot" title="' + esc(t('cr_stk_live')) + '"></span>' : ''}`
+    : '—';
+  const statsHtml = `<div class="cr-stats cr-stk-stats">
+    <div class="cr-stat"><strong>${D.longest} ${unitWord(D.longest)}</strong>${t('cr_stk_longest')}</div>
+    <div class="cr-stat"><strong>${currentVal}</strong>${t('cr_stk_current')}</div>
+    <div class="cr-stat"><strong>${D.count}</strong>${t('cr_stk_runs')}</div>
+    <div class="cr-stat"><strong>${D.avg.toFixed(1)}</strong>${t('cr_stk_avg')}</div>
+    <div class="cr-stat"><strong>${D.totalUnits}</strong>${t('cr_stk_total_' + dim)}</div>
+  </div>`;
+
+  const sel = Math.min(st.sel[dim] || 0, D.streaks.length - 1);
+  st.sel[dim] = sel;
+  const showAll = !!st.expanded[dim];
+  const list = showAll ? D.streaks : D.streaks.slice(0, CR_STK_LIST_LIMIT);
+  const max = D.longest || 1;
+  const rows = list.map((s, i) => {
+    const a = s.units[0].label, b = s.units[s.units.length - 1].label;
+    const range = `${a} <span class="cr-stk-arrow">→</span> ${b}`;
+    // For play runs the plays count duplicates the length, so show elapsed time instead.
+    const meta = dim === 'plays' ? _crStkSpanLabel(s.spanMs) : tCount('plays', s.plays);
+    const tier = _crStkTier(dim, s.len);
+    // --i drives the staggered entrance; the tier class cascades the flame colours
+    // down to both the flame glyph and the bar fill inside this row.
+    return `<button type="button" class="cr-stk-row cr-stk-t${tier}${i === sel ? ' selected' : ''}${s.isCurrent ? ' current' : ''}" style="--i:${i}" onclick="crStkSelect('${cid}',${i});event.stopPropagation()">
+      <span class="cr-stk-pos">${i + 1}</span>
+      <span class="cr-stk-flame" aria-hidden="true">${CR_STK_FLAME}</span>
+      <span class="cr-stk-bar"><i style="width:${Math.max(5, Math.round(s.len / max * 100))}%"></i></span>
+      <span class="cr-stk-len"><strong>${s.len}</strong> ${unitWord(s.len)}</span>
+      <span class="cr-stk-range">${range}</span>
+      <span class="cr-stk-meta">${meta}</span>
+      ${s.isCurrent ? `<span class="cr-stk-live">${t('cr_stk_live')}</span>` : ''}
+    </button>`;
+  }).join('');
+
+  const moreBtn = D.count > CR_STK_LIST_LIMIT
+    ? `<button type="button" class="cr-stk-more" onclick="crStkToggleAll('${cid}');event.stopPropagation()">${showAll ? t('cr_stk_show_less') : t('cr_stk_show_all', { n: D.count })}</button>`
+    : '';
+
+  return `${statsHtml}
+    <div class="cr-stk-desc">${t('cr_stk_desc_' + dim)} <span class="cr-stk-note">${t('cr_stk_note')}</span></div>
+    <div class="cr-stk-list">${rows}</div>
+    ${moreBtn}
+    <div class="cr-stk-detail">${_crStkDetailHTML(cid)}</div>`;
+}
+
+function _crStkDetailHTML(cid) {
+  const st = _crStreakData.get(cid);
+  const dim = st.tab, D = st.dims[dim];
+  const s = D.streaks[st.sel[dim]];
+  if (!s) return '';
+  const unitWord = n => tUnit(dim, n);
+  const maxCount = Math.max(1, ...s.units.map(u => u.count));
+  const CAP = 200;
+  const shown = s.units.slice(0, CAP);
+  // JS hands CSS two numbers per block — heat (0–1, log-scaled like the heatmap so
+  // one huge day doesn't flatten the rest) and position — and CSS mixes the ember
+  // colour and staggers the ignition from them.
+  const logMax = Math.log1p(maxCount);
+  const blocks = shown.map((u, i) => {
+    const heat = logMax ? (Math.log1p(u.count) / logMax).toFixed(3) : 1;
+    return `<span class="cr-stk-block" data-i="${i}" style="--h:${heat};--i:${i}"></span>`;
+  }).join('');
+  const overflow = s.units.length > CAP ? `<span class="cr-stk-block-more">+${s.units.length - CAP}</span>` : '';
+  const rate = (s.plays / s.len).toFixed(1);
+  const a = s.units[0].label, b = s.units[s.units.length - 1].label;
+  const tier = _crStkTier(dim, s.len);
+
+  // The tier class wraps BOTH the chip row and the ember strip so --heat-*
+  // reaches the blocks too; they are siblings, not nested.
+  return `<div class="cr-stk-detail-inner cr-stk-t${tier}">
+    <div class="cr-stk-detail-head">
+      <span class="cr-stk-nav-group">
+        <button type="button" class="cr-stk-nav" onclick="crStkStep('${cid}',-1);event.stopPropagation()" title="${esc(t('cr_stk_prev'))}"${st.sel[dim] === 0 ? ' disabled' : ''}>◀</button>
+        <button type="button" class="cr-stk-nav" onclick="crStkStep('${cid}',1);event.stopPropagation()" title="${esc(t('cr_stk_next'))}"${st.sel[dim] >= D.streaks.length - 1 ? ' disabled' : ''}>▶</button>
+      </span>
+      <span class="cr-stk-chip cr-stk-chip-lead"><span class="cr-stk-flame cr-stk-flame-lg" aria-hidden="true">${CR_STK_FLAME}</span>${t('cr_stk_run_n', { n: st.sel[dim] + 1 })}</span>
+      <span class="cr-stk-chip"><strong>${s.len}</strong> ${unitWord(s.len)}</span>
+      <span class="cr-stk-chip">${a} <span class="cr-stk-arrow">→</span> ${b}</span>
+      <span class="cr-stk-chip">${tCount('plays', s.plays)}</span>
+      ${dim === 'plays'
+      ? `<span class="cr-stk-chip">${_crStkSpanLabel(s.spanMs)}</span><span class="cr-stk-chip">${tCount('tracks', s.tracks)}</span>`
+      : `<span class="cr-stk-chip">${t('cr_stk_rate', { n: rate, unit: tUnit(dim, 1) })}</span>`}
+      ${s.isCurrent ? `<span class="cr-stk-chip cr-stk-chip-live">${t('cr_stk_live')}</span>` : ''}
+    </div>
+    <div class="cr-stk-blocks">${blocks}${overflow}</div>
+  </div>`;
+}
+
+function crStkTab(cid, dim) {
+  const st = _crStreakData.get(cid);
+  if (!st || st.tab === dim) return;
+  st.tab = dim;
+  const root = document.getElementById(cid);
+  if (!root) return;
+  root.querySelectorAll('.cr-stk-tab').forEach(b => b.classList.toggle('active', b.dataset.dim === dim));
+  root.querySelector('.cr-stk-view').innerHTML = _crStkViewHTML(cid);
+}
+
+function crStkSelect(cid, idx) {
+  const st = _crStreakData.get(cid);
+  if (!st) return;
+  st.sel[st.tab] = idx;
+  const root = document.getElementById(cid);
+  if (!root) return;
+  root.querySelectorAll('.cr-stk-row').forEach((r, i) => r.classList.toggle('selected', i === idx));
+  root.querySelector('.cr-stk-detail').innerHTML = _crStkDetailHTML(cid);
+}
+
+function crStkStep(cid, delta) {
+  const st = _crStreakData.get(cid);
+  if (!st) return;
+  const D = st.dims[st.tab];
+  const next = Math.max(0, Math.min(D.streaks.length - 1, (st.sel[st.tab] || 0) + delta));
+  if (next === st.sel[st.tab]) return;
+  // Stepping past the visible slice is only useful if that row exists to highlight.
+  if (next >= CR_STK_LIST_LIMIT && !st.expanded[st.tab]) {
+    st.expanded[st.tab] = true;
+    st.sel[st.tab] = next;
+    const root = document.getElementById(cid);
+    if (root) root.querySelector('.cr-stk-view').innerHTML = _crStkViewHTML(cid);
+    return;
+  }
+  crStkSelect(cid, next);
+}
+
+function crStkToggleAll(cid) {
+  const st = _crStreakData.get(cid);
+  if (!st) return;
+  st.expanded[st.tab] = !st.expanded[st.tab];
+  const root = document.getElementById(cid);
+  if (root) root.querySelector('.cr-stk-view').innerHTML = _crStkViewHTML(cid);
+}
+
+// Delegated tooltip for streak blocks — reuses the heatmap tooltip element so
+// the styling and viewport clamping stay in one place.
+(function () {
+  document.addEventListener('mouseover', e => {
+    const block = e.target.closest('.cr-stk-block');
+    if (!block) return;
+    const root = block.closest('.cr-streaks');
+    const tip = document.getElementById('heatmapTooltip');
+    if (!root || !tip) return;
+    const st = _crStreakData.get(root.id);
+    if (!st) return;
+    const D = st.dims[st.tab];
+    const s = D.streaks[st.sel[st.tab]];
+    const u = s && s.units[+block.dataset.i];
+    if (!u) return;
+    tip.innerHTML = `<div class="hm-tt-date">${esc(u.label)}</div>
+      <div class="hm-tt-count">${tCount('plays', u.count)}</div>
+      ${u.sub ? `<div class="hm-tt-ms-track">${esc(u.sub)}</div><div class="hm-tt-ms-artist">${esc(u.artist || '')}</div>` : ''}`;
+    tip.style.display = 'block';
+    const rect = block.getBoundingClientRect();
+    const tw = tip.offsetWidth || 200, th = tip.offsetHeight || 80;
+    let x = rect.right + 12, y = rect.top - 4;
+    if (x + tw > window.innerWidth - 8) x = Math.max(8, rect.left - tw - 12);
+    if (y + th > window.innerHeight - 8) y = Math.max(8, window.innerHeight - th - 8);
+    tip.style.left = x + 'px';
+    tip.style.top = y + 'px';
+  });
+
+  document.addEventListener('mouseout', e => {
+    const block = e.target.closest('.cr-stk-block');
+    if (!block) return;
+    if (e.relatedTarget && e.relatedTarget.closest('.cr-stk-blocks')) return;
+    const tip = document.getElementById('heatmapTooltip');
+    if (tip) tip.style.display = 'none';
+  });
+}());
 
 let _rawDataCtr = 0;
 const _rawDataPlaysCache = new Map();

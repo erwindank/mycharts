@@ -24977,3 +24977,615 @@ body.red-light .modal-cb-label--tracks {
         animation-iteration-count: infinite !important;
       }
     }
+
+    /* ═══════════════════════════════════════════════════════════════
+       CHART RUN → STREAK RECORDS
+       Tabbed plays/days/months/years runs inside the chart-run panel.
+
+       Concept: a streak is a lit fuse. Every run carries a heat tier 1–6
+       (set in app.js by _crStkTier) and that tier drives one shared set of
+       custom properties — the flame glyph, the bar fill and the ember blocks
+       all burn the same colour, so the list reads top-to-bottom as a cooling
+       ladder. Selecting a run ignites its blocks left to right.
+
+       The fire hexes are deliberately literal rather than themed: this is the
+       exact ramp .hero-stat--streak-N already uses in the masthead, and fire
+       reads as fire in all 8 themes. Everything that isn't fire stays on tokens.
+       ═══════════════════════════════════════════════════════════════ */
+    .cr-streaks {
+      font-family: var(--font-mono);
+      /* tier-0 fallback so a flame outside any .cr-stk-tN can't render invisible */
+      --flame-1: var(--text3);
+      --flame-2: var(--text3);
+      --flame-scale: 0.8;
+      --flame-glow: 3px;
+      --heat-1: var(--accent);
+      --heat-2: var(--accent2);
+    }
+
+    /* ── Heat tiers ──
+       One class, applied to a row or a chip, cascading to every burning thing
+       inside it. --heat-* are the bar/ember colours; --flame-* match the
+       masthead flame's own property names so the glyph rules stay identical. */
+    .cr-stk-t1 { --flame-1: #e0952e; --flame-2: #f5cf72; --flame-scale: 0.80; --flame-glow: 3px;  --heat-1: #b8762a; --heat-2: #e0b060; }
+    .cr-stk-t2 { --flame-1: #ff6a00; --flame-2: #ffb347; --flame-scale: 0.88; --flame-glow: 5px;  --heat-1: #d95f0e; --heat-2: #ffb347; }
+    .cr-stk-t3 { --flame-1: #ff5400; --flame-2: #ffa02a; --flame-scale: 0.96; --flame-glow: 7px;  --heat-1: #ff5400; --heat-2: #ffa02a; }
+    .cr-stk-t4 { --flame-1: #ff3d00; --flame-2: #ff9500; --flame-scale: 1.04; --flame-glow: 9px;  --heat-1: #ff3d00; --heat-2: #ff9500; }
+    .cr-stk-t5 { --flame-1: #ff2200; --flame-2: #ff7a1a; --flame-scale: 1.12; --flame-glow: 11px; --heat-1: #ff2200; --heat-2: #ff7a1a; }
+    .cr-stk-t6 { --flame-1: #ff8c00; --flame-2: #ffd700; --flame-scale: 1.20; --flame-glow: 14px; --heat-1: #ff8c00; --heat-2: #ffd700; }
+
+    /* ── The flame glyph ──
+       Same construction as .hero-icon-flame: a square with one sharp corner,
+       rotated 45deg so that corner points up, stretched vertically so it reads
+       as fire rather than a water droplet, with a paler core inside. */
+    .cr-stk-flame {
+      position: relative;
+      display: inline-block;
+      width: 0.6rem;
+      height: 0.72rem;
+      flex: none;
+      filter: drop-shadow(0 0 var(--flame-glow) color-mix(in srgb, var(--flame-1) 55%, transparent));
+      transition: filter 0.4s ease;
+    }
+
+    .cr-stk-flame-body,
+    .cr-stk-flame-core {
+      position: absolute;
+      left: 50%;
+      transform-origin: bottom center;
+      transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1), background 0.4s ease;
+    }
+
+    .cr-stk-flame-body {
+      bottom: 0.02rem;
+      width: 0.5rem;
+      height: 0.5rem;
+      margin-left: -0.25rem;
+      border-radius: 50% 2px 50% 50%;
+      transform: scaleY(1.26) rotate(-45deg) scale(var(--flame-scale));
+      background: linear-gradient(to top right, var(--flame-1), var(--flame-2));
+    }
+
+    .cr-stk-flame-core {
+      bottom: 0.04rem;
+      width: 0.24rem;
+      height: 0.24rem;
+      margin-left: -0.12rem;
+      border-radius: 50% 1px 50% 50%;
+      transform: scaleY(1.26) rotate(-45deg) scale(var(--flame-scale));
+      background: color-mix(in srgb, #fff 55%, var(--flame-2));
+      opacity: 0.75;
+    }
+
+    /* Bigger flame for the selected-run chip */
+    .cr-stk-flame-lg {
+      width: 0.72rem;
+      height: 0.86rem;
+      margin-right: 0.2em;
+      vertical-align: -0.14em;
+    }
+
+    .cr-stk-flame-lg .cr-stk-flame-body { width: 0.6rem; height: 0.6rem; margin-left: -0.3rem; }
+    .cr-stk-flame-lg .cr-stk-flame-core { width: 0.3rem; height: 0.3rem; margin-left: -0.15rem; }
+
+    /* Only real fire gutters - tiers 1-2 hold steady so the list doesn't shimmer */
+    @keyframes cr-stk-flicker {
+      0%, 100% { opacity: 0.75; }
+      30%      { opacity: 1; }
+      55%      { opacity: 0.5; }
+      80%      { opacity: 0.95; }
+    }
+
+    .cr-stk-t3 .cr-stk-flame-core,
+    .cr-stk-t4 .cr-stk-flame-core { animation: cr-stk-flicker 1.6s ease-in-out infinite; }
+    .cr-stk-t5 .cr-stk-flame-core,
+    .cr-stk-t6 .cr-stk-flame-core { animation: cr-stk-flicker 0.7s ease-in-out infinite; }
+
+    /* Legendary tier gets the travelling gold sweep, same as the masthead's */
+    @keyframes cr-stk-legend {
+      0%   { background-position: 0% 50%; }
+      100% { background-position: 220% 50%; }
+    }
+
+    .cr-stk-t6 .cr-stk-flame-body {
+      background: linear-gradient(to top right, #ff8c00, #ffd700, #ff8c00);
+      background-size: 220% 220%;
+      animation: cr-stk-legend 2s linear infinite;
+    }
+
+    /* ── Tabs ── */
+    .cr-stk-tabs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+      margin-bottom: 0.55rem;
+    }
+
+    .cr-stk-tab {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4em;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+    }
+
+    .cr-stk-tab-n {
+      font-size: 0.52rem;
+      font-weight: 700;
+      line-height: 1;
+      padding: 2px 4px;
+      border-radius: 3px;
+      background: var(--bg3);
+      color: var(--text3);
+      letter-spacing: 0;
+      font-feature-settings: "tnum";
+      transition: background 0.2s, color 0.2s;
+    }
+
+    .cr-stk-tab.active .cr-stk-tab-n {
+      background: rgba(0, 0, 0, 0.22);
+      color: var(--on-accent);
+    }
+
+    /* ── Stat strip ── */
+    .cr-stk-stats {
+      margin-bottom: 0.45rem;
+      padding-bottom: 0.45rem;
+    }
+
+    .cr-stk-stats .cr-stat strong {
+      font-feature-settings: "tnum";
+      letter-spacing: -0.02em;
+    }
+
+    /* The live marker: an ember, not a dot - it breathes rather than blinks */
+    .cr-stk-live-dot {
+      display: inline-block;
+      width: 6px;
+      height: 6px;
+      margin-left: 0.4em;
+      border-radius: 50%;
+      background: #ff6a00;
+      box-shadow: 0 0 6px #ff6a00, 0 0 12px color-mix(in srgb, #ff6a00 50%, transparent);
+      vertical-align: middle;
+      animation: cr-stk-ember 1.9s ease-in-out infinite;
+    }
+
+    @keyframes cr-stk-ember {
+      0%, 100% { opacity: 1;    transform: scale(1);    box-shadow: 0 0 6px #ff6a00, 0 0 12px color-mix(in srgb, #ff6a00 50%, transparent); }
+      50%      { opacity: 0.55; transform: scale(0.78); box-shadow: 0 0 3px #ff6a00, 0 0 6px color-mix(in srgb, #ff6a00 25%, transparent); }
+    }
+
+    .cr-stk-desc {
+      font-size: 0.55rem;
+      line-height: 1.5;
+      color: var(--text3);
+      margin-bottom: 0.55rem;
+    }
+
+    .cr-stk-note {
+      opacity: 0.68;
+      font-style: italic;
+    }
+
+    /* ── Run list ── */
+    .cr-stk-list {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+
+    .cr-stk-row {
+      /* 7 tracks: pos, flame, bar, length, date range, meta, ONGOING badge.
+         Rows without the badge collapse the trailing track to zero. */
+      display: grid;
+      grid-template-columns: 1.2rem 0.6rem minmax(48px, 1fr) auto auto auto auto;
+      align-items: center;
+      gap: 0.5rem;
+      width: 100%;
+      text-align: left;
+      background: none;
+      border: 1px solid transparent;
+      border-radius: 5px;
+      padding: 0.3rem 0.45rem;
+      cursor: pointer;
+      font-family: inherit;
+      color: var(--text3);
+      transition: background 0.2s ease, border-color 0.2s ease, transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      /* waterfall entrance - --i is set per row in app.js */
+      animation: cr-stk-row-in 380ms cubic-bezier(0.4, 0, 0.2, 1) both;
+      animation-delay: calc(var(--i, 0) * 45ms);
+    }
+
+    @keyframes cr-stk-row-in {
+      from { opacity: 0; transform: translateX(-6px); }
+      to   { opacity: 1; transform: none; }
+    }
+
+    .cr-stk-row:hover {
+      background: var(--bg3);
+      border-color: var(--border);
+      transform: translateX(2px);
+    }
+
+    /* Selected row is lit by its own heat, not by the panel's blue - the border
+       and glow inherit the tier so picking a hot run visibly warms the panel. */
+    .cr-stk-row.selected {
+      background: linear-gradient(90deg,
+        color-mix(in srgb, var(--heat-1) 14%, transparent),
+        transparent 60%);
+      border-color: color-mix(in srgb, var(--heat-1) 55%, transparent);
+      color: var(--text2);
+      box-shadow: 0 0 14px -6px var(--heat-1);
+    }
+
+    .cr-stk-pos {
+      font-size: 0.58rem;
+      font-weight: 700;
+      color: var(--text3);
+      text-align: right;
+      font-feature-settings: "tnum";
+      transition: color 0.2s;
+    }
+
+    .cr-stk-row.selected .cr-stk-pos {
+      color: var(--heat-2);
+    }
+
+    /* ── The fuse ── */
+    .cr-stk-bar {
+      display: block;
+      height: 7px;
+      border-radius: 4px;
+      /* unburnt fuse: a hairline track with a faint scan texture */
+      background:
+        repeating-linear-gradient(90deg,
+          transparent, transparent 3px,
+          color-mix(in srgb, var(--text3) 8%, transparent) 3px,
+          color-mix(in srgb, var(--text3) 8%, transparent) 4px),
+        var(--bg);
+      overflow: hidden;
+      box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--border) 60%, transparent);
+    }
+
+    .cr-stk-bar > i {
+      display: block;
+      height: 100%;
+      border-radius: 4px;
+      background: linear-gradient(90deg, var(--heat-1), var(--heat-2));
+      box-shadow: 0 0 8px -2px var(--heat-1);
+      /* width is inline (data-driven); the burn is a transform so it can animate */
+      transform-origin: left center;
+      animation: cr-stk-burn 620ms cubic-bezier(0.4, 0, 0.2, 1) both;
+      animation-delay: calc(var(--i, 0) * 45ms + 60ms);
+    }
+
+    @keyframes cr-stk-burn {
+      from { transform: scaleX(0); }
+      to   { transform: scaleX(1); }
+    }
+
+    /* Only the legendary run gets the travelling sweep - scarcity keeps it special */
+    .cr-stk-t6 .cr-stk-bar > i {
+      background: linear-gradient(90deg, #ff8c00, #ffd700, #ff8c00);
+      background-size: 220% 100%;
+      animation:
+        cr-stk-burn 620ms cubic-bezier(0.4, 0, 0.2, 1) both,
+        cr-stk-legend 2.4s linear infinite 700ms;
+    }
+
+    .cr-stk-len {
+      font-size: 0.56rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      white-space: nowrap;
+    }
+
+    .cr-stk-len strong {
+      font-size: 0.78rem;
+      font-weight: 700;
+      color: var(--text);
+      letter-spacing: -0.02em;
+      font-feature-settings: "tnum";
+    }
+
+    /* The top run in each dimension states itself in its own heat */
+    .cr-stk-row:first-child .cr-stk-len strong {
+      color: var(--heat-2);
+      text-shadow: 0 0 12px color-mix(in srgb, var(--heat-1) 45%, transparent);
+    }
+
+    .cr-stk-range,
+    .cr-stk-meta {
+      font-size: 0.55rem;
+      white-space: nowrap;
+      font-feature-settings: "tnum";
+    }
+
+    .cr-stk-meta {
+      text-align: right;
+      opacity: 0.8;
+    }
+
+    .cr-stk-arrow {
+      opacity: 0.5;
+      padding: 0 0.1em;
+    }
+
+    .cr-stk-live {
+      font-size: 0.48rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      color: #ff8c00;
+      border: 1px solid color-mix(in srgb, #ff8c00 70%, transparent);
+      border-radius: 3px;
+      padding: 1px 4px;
+      white-space: nowrap;
+      animation: cr-stk-live-breathe 2.4s ease-in-out infinite;
+    }
+
+    @keyframes cr-stk-live-breathe {
+      0%, 100% { box-shadow: 0 0 0 0 color-mix(in srgb, #ff8c00 32%, transparent); }
+      50%      { box-shadow: 0 0 10px 0 color-mix(in srgb, #ff8c00 32%, transparent); }
+    }
+
+    .cr-stk-more {
+      margin-top: 0.45rem;
+      background: none;
+      border: 1px dashed var(--border2);
+      border-radius: 4px;
+      color: var(--text3);
+      font-family: inherit;
+      font-size: 0.52rem;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      padding: 0.22rem 0.6rem;
+      cursor: pointer;
+      transition: color 0.2s, border-color 0.2s;
+    }
+
+    .cr-stk-more:hover {
+      color: #ff8c00;
+      border-color: color-mix(in srgb, #ff8c00 70%, transparent);
+    }
+
+    /* ── Selected-run detail ── */
+    .cr-stk-detail {
+      margin-top: 0.6rem;
+      padding-top: 0.55rem;
+      border-top: 1px solid var(--border);
+    }
+
+    .cr-stk-detail-head {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 5px;
+      margin-bottom: 0.5rem;
+    }
+
+    .cr-stk-nav-group {
+      display: inline-flex;
+      gap: 3px;
+      margin-right: 0.15rem;
+    }
+
+    .cr-stk-nav {
+      background: none;
+      border: 1px solid var(--border2);
+      border-radius: 4px;
+      color: var(--text3);
+      font-family: inherit;
+      font-size: 0.5rem;
+      line-height: 1;
+      padding: 0.26rem 0.38rem;
+      cursor: pointer;
+      transition: color 0.2s, border-color 0.2s, opacity 0.2s, transform 0.12s;
+    }
+
+    .cr-stk-nav:hover:not(:disabled) {
+      color: var(--heat-2);
+      border-color: color-mix(in srgb, var(--heat-1) 70%, transparent);
+    }
+
+    .cr-stk-nav:active:not(:disabled) {
+      transform: scale(0.92);
+    }
+
+    .cr-stk-nav:disabled {
+      opacity: 0.32;
+      cursor: default;
+    }
+
+    .cr-stk-chip {
+      font-size: 0.53rem;
+      letter-spacing: 0.05em;
+      color: var(--text3);
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 0.16rem 0.42rem;
+      white-space: nowrap;
+      font-feature-settings: "tnum";
+    }
+
+    .cr-stk-chip strong {
+      color: var(--text);
+      font-size: 0.66rem;
+      letter-spacing: -0.02em;
+    }
+
+    .cr-stk-chip-lead {
+      display: inline-flex;
+      align-items: center;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      color: var(--heat-2);
+      border-color: color-mix(in srgb, var(--heat-1) 60%, transparent);
+      background: color-mix(in srgb, var(--heat-1) 10%, transparent);
+    }
+
+    .cr-stk-chip-live {
+      color: #ff8c00;
+      border-color: color-mix(in srgb, #ff8c00 70%, transparent);
+      font-weight: 700;
+      letter-spacing: 0.1em;
+    }
+
+    /* ── Ember strip ──
+       One block per unit in the run. Sits on a warm vignette so the row of
+       embers looks like it's glowing into the surface behind it. */
+    .cr-stk-blocks {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 3px;
+      padding: 0.4rem 0.5rem;
+      border-radius: 6px;
+      background:
+        radial-gradient(ellipse at 12% 50%,
+          color-mix(in srgb, var(--heat-1) 12%, transparent),
+          transparent 70%),
+        var(--bg);
+      box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--border) 55%, transparent);
+    }
+
+    .cr-stk-block {
+      width: 11px;
+      height: 11px;
+      border-radius: 2px;
+      cursor: pointer;
+      /* --h (0-1) is the log-scaled play density for this unit, set in app.js.
+         Cool ember at 0, tier colour at 1 - so a run's busiest days read hottest. */
+      background: color-mix(in srgb,
+        var(--heat-2) calc(var(--h, 1) * 100%),
+        color-mix(in srgb, var(--heat-1) 35%, var(--bg3)));
+      transition: transform 0.12s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.12s;
+      /* the fuse catches: each block lights in sequence, left to right */
+      animation: cr-stk-ignite 320ms cubic-bezier(0.34, 1.56, 0.64, 1) both;
+      animation-delay: calc(var(--i, 0) * 16ms);
+    }
+
+    @keyframes cr-stk-ignite {
+      0%   { opacity: 0; transform: scale(0.2); }
+      60%  { opacity: 1; transform: scale(1.18); }
+      100% { opacity: 1; transform: scale(1); }
+    }
+
+    .cr-stk-block:hover {
+      transform: scale(1.45);
+      box-shadow: 0 0 8px var(--heat-2), 0 0 0 1px var(--text);
+    }
+
+    .cr-stk-block-more {
+      font-size: 0.5rem;
+      color: var(--text3);
+      padding-left: 4px;
+    }
+
+    .cr-stk-empty {
+      font-size: 0.6rem;
+      color: var(--text3);
+      padding: 6px 0;
+      font-style: italic;
+      opacity: 0.85;
+    }
+
+    /* ── Light themes ──
+       The bright end of the ramp (gold, amber) has almost no contrast on a pale
+       surface, so the two lightest tiers get deepened and the glows pulled in.
+       Tiers 3-5 are already saturated reds/oranges and read fine as-is. */
+    body.navy-light .cr-stk-t1,
+    body.purple-light .cr-stk-t1,
+    body.yellow-light .cr-stk-t1,
+    body.red-light .cr-stk-t1,
+    body.pink-light .cr-stk-t1 {
+      --flame-1: #a35d00; --flame-2: #d18b1f; --heat-1: #8a5310; --heat-2: #c07d14;
+    }
+
+    body.navy-light .cr-stk-t2,
+    body.purple-light .cr-stk-t2,
+    body.yellow-light .cr-stk-t2,
+    body.red-light .cr-stk-t2,
+    body.pink-light .cr-stk-t2 {
+      --flame-1: #c94f00; --flame-2: #e08a2a; --heat-1: #b34700; --heat-2: #e08a2a;
+    }
+
+    body.navy-light .cr-stk-t6,
+    body.purple-light .cr-stk-t6,
+    body.yellow-light .cr-stk-t6,
+    body.red-light .cr-stk-t6,
+    body.pink-light .cr-stk-t6 {
+      --flame-1: #d97400; --flame-2: #e8a800; --heat-1: #cc6a00; --heat-2: #e0a300;
+    }
+
+    /* The travelling sweep is hardcoded gold in both the flame and the bar, so
+       the light variant needs its own darker sweep to stay legible. */
+    body.navy-light .cr-stk-t6 .cr-stk-flame-body,
+    body.purple-light .cr-stk-t6 .cr-stk-flame-body,
+    body.yellow-light .cr-stk-t6 .cr-stk-flame-body,
+    body.red-light .cr-stk-t6 .cr-stk-flame-body,
+    body.pink-light .cr-stk-t6 .cr-stk-flame-body,
+    body.navy-light .cr-stk-t6 .cr-stk-bar > i,
+    body.purple-light .cr-stk-t6 .cr-stk-bar > i,
+    body.yellow-light .cr-stk-t6 .cr-stk-bar > i,
+    body.red-light .cr-stk-t6 .cr-stk-bar > i,
+    body.pink-light .cr-stk-t6 .cr-stk-bar > i {
+      background: linear-gradient(90deg, #cc6a00, #e0a300, #cc6a00);
+      background-size: 220% 100%;
+    }
+
+    /* Light surfaces need the ONGOING amber pulled down out of the highlights */
+    body.navy-light .cr-stk-live,
+    body.purple-light .cr-stk-live,
+    body.yellow-light .cr-stk-live,
+    body.red-light .cr-stk-live,
+    body.pink-light .cr-stk-live,
+    body.navy-light .cr-stk-chip-live,
+    body.purple-light .cr-stk-chip-live,
+    body.yellow-light .cr-stk-chip-live,
+    body.red-light .cr-stk-chip-live,
+    body.pink-light .cr-stk-chip-live {
+      color: #b35a00;
+      border-color: color-mix(in srgb, #b35a00 70%, transparent);
+    }
+
+    @media (max-width: 620px) {
+      .cr-stk-row {
+        grid-template-columns: 1.1rem 0.6rem minmax(34px, 1fr) auto auto auto;
+        gap: 0.38rem;
+        padding: 0.3rem 0.35rem;
+      }
+
+      .cr-stk-row .cr-stk-meta {
+        display: none;
+      }
+
+      .cr-stk-range {
+        font-size: 0.5rem;
+      }
+
+      .cr-stk-block {
+        width: 9px;
+        height: 9px;
+      }
+    }
+
+    /* Reduced motion: keep every end-state, drop the theatre. The flame still
+       burns its tier colour and the bar still shows its width - nothing that
+       carries meaning depends on movement. */
+    @media (prefers-reduced-motion: reduce) {
+      .cr-stk-row,
+      .cr-stk-bar > i,
+      .cr-stk-block,
+      .cr-stk-flame-body,
+      .cr-stk-flame-core,
+      .cr-stk-live,
+      .cr-stk-live-dot {
+        animation: none !important;
+      }
+
+      .cr-stk-bar > i { transform: none; }
+      .cr-stk-block { opacity: 1; transform: none; }
+      .cr-stk-row:hover { transform: none; }
+    }
