@@ -3035,12 +3035,23 @@ async function fetchNowPlaying(username) {
 function _npHistory(track) {
   if (!allPlays.length) return null;
   let song = 0, artist = 0;
-  const tKey = (track.title || '').toLowerCase();
-  const aKey = (track.artist || '').toLowerCase();
+  const norm = s => (s || '').toLowerCase().trim();
+  const tKey = norm(track.title);
+  const aRaw = norm(track.artist);
+  // Artist counting follows p.artists — the comma-split list — because that is how
+  // every artist chart in the app credits a play: "Calvin Harris, Dua Lipa" counts
+  // toward both. Matching the raw p.artist string instead silently under-reported
+  // every collaboration, so this chip disagreed with the Artists chart.
+  const aKeys = new Set((track.artists?.length ? track.artists : [track.artist || '']).map(norm));
   for (const p of allPlays) {
-    if ((p.artist || '').toLowerCase() !== aKey) continue;
-    artist++;
-    if ((p.title || '').toLowerCase() === tKey) song++;
+    // Song identity mirrors songKey() (title + the raw artist string) so this chip
+    // agrees with the Songs chart entry for the same play. Counted independently of
+    // the artist match below — the two charts key on deliberately different things.
+    if (norm(p.title) === tKey && norm(p.artist) === aRaw) song++;
+    const pArtists = (p.artists && p.artists.length) ? p.artists : [p.artist || ''];
+    for (const a of pArtists) {
+      if (aKeys.has(norm(a))) { artist++; break; } // break: one play, counted once
+    }
   }
   return { song, artist };
 }
