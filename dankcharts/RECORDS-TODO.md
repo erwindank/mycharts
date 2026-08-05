@@ -46,6 +46,7 @@ and a section nav of 11 identical text pills at half the minimum touch-target he
 | — | Song milestones at 10, then every 25 plays (artists/albums keep the landmark ladder) | *pending* |
 | — | Every artwork in Records is re-pickable (✎ badge), incl. PAK and the certifications wall | *pending* |
 | 19 | Sticky column headers on every records table (≥768px) | *pending* |
+| 11 | `.rec-intro` rebuilt as a three-column plate | *pending* |
 
 ### Implementation notes worth not re-deriving
 
@@ -214,6 +215,49 @@ and a section nav of 11 identical text pills at half the minimum touch-target he
   `.rec-section` as a `<table>` — so a hit inside a collapsed milestone sub-section stayed
   invisible. `.milestone-table` is now in that selector list.
 
+### The intro plate — the run-on was two facts wearing one line
+
+`.rec-intro` carried both the chart sizes and the data coverage, joined by a `|`.
+Those are **the same three columns** — weekly, monthly, yearly — so pairing them per
+column turns each into a sentence: *"weekly records come off a Top 10, and there are
+517 of those weeks."* That pairing is the whole justification for stating the sizes
+here at all, and one flat line hid it. No content was cut.
+
+- **The cutoff rule is the one non-obvious piece.** A chart size *is* the line the
+  chart stops at, so it's drawn under the number as a hairline that spans the number
+  and nothing else. It's an `::after`, not a `border-bottom`, only so it can wipe in
+  from the left; the column stagger and the wipe both key off `--i`, set inline by
+  `buildRecords()` and inherited by the pseudo-element.
+- **`.rec-intro-all`'s `line-height` is pinned to the numeral's `clamp()`, not to
+  its own font-size.** The uncapped-yearly phrase sets at 0.85rem against a ~1.75rem
+  numeral, and the cutoff rule is anchored to the bottom of that box — so without
+  the pin, the yearly rule rode **12px above** the other two (measured; 7px at
+  320px) and the plate read as three cards. Matching the line box also centres the
+  phrase in it for free. Below 480px the phrase drops to 0.72rem with `nowrap`,
+  because wrapping to two lines defeats the pin the same way.
+- **Period words are `nav_weekly`/`nav_monthly`/`nav_yearly`**, not the
+  `rec_*_label` set used lower down — those read "Weekly Chart", and "Chart" three
+  times under a heading that already says Records is noise at 9.6px. Both sets are
+  translated in all four languages, so this cost no coverage. Only `rec_intro_top`
+  and `rec_intro_all` are new, and both were given es/pt/pt-br values rather than
+  left to the English fallback.
+- **`rec_intro_all` is deliberately not `rec_yearly_all`**, which begins with
+  "Yearly" — the column heading has already said that.
+- **The uppercase tier is unchanged.** `.rec-intro-label` is uppercase because these
+  *are* column headers; they head the plate's three columns. This is the existing
+  tier, not a fourth one.
+- **The base `.rec-intro` rules are still load-bearing** — they style the pre-load
+  fallback string in `index.html` ("Load your data to see records."), which is prose
+  and stays as it was. `buildRecords()` replaces it with `.rec-intro-grid`.
+- The six old keys (`rec_intro_prefix`, `rec_weekly_top`, `rec_monthly_top`,
+  `rec_yearly_top`, `rec_yearly_all`, `rec_data_summary`) are now unused but left in
+  place across all four language blocks. They are translated assets and a future
+  revision of this strip may want them; nothing else reads them.
+- Verified in-browser on the demo dataset at 1280/390/320px and in navy dark, yellow
+  light, purple and pink: no intro or page overflow at any width, all three cutoff
+  rules share a y, and both branches (numeral, uncapped phrase) render — the demo's
+  yearly chart is uncapped, so it exercises the phrase path by default.
+
 ### Sticky headers — two overflow ancestors, not a wrapper problem
 
 `position: sticky` resolves against the **nearest scrolling ancestor**, and *any*
@@ -316,7 +360,7 @@ overview card therefore remains empty on the Albums pill instead of three.
 
 ---
 
-## Pending — 41 items
+## Pending — 40 items
 
 ### A. Information architecture & navigation
 
@@ -340,8 +384,10 @@ overview card therefore remains empty on the Albums pill instead of three.
 
 ### B. Page-level orientation & hierarchy
 
-- [ ] **11.** Rewrite `.rec-intro` as a real stat strip. It's the only page-level
-      orientation and it's a mono run-on at 11.2px in `--text3`.
+- [x] **11.** ~~Rewrite `.rec-intro` as a real stat strip.~~ Shipped as a three-column
+      plate — see **The intro plate** in the implementation notes. All the original
+      content was kept; the audit's "mono run-on" problem was structural, not
+      editorial.
 - [ ] **14.** Section header cards: name, one-line definition, headline stat.
 - [ ] **15.** Sticky sub-section headers while scrolling within a section.
 - [ ] **16.** *(partial)* Title tracking was cut, but nav pills are still 0.08em at 9.3px.
@@ -421,9 +467,10 @@ overview card therefore remains empty on the Albums pill instead of three.
 - [ ] **48.** Mobile card layout for the 9-column tables. `overflow-x: auto` with no
       scroll affordance means mobile users never discover columns 5–9.
 - [ ] **49.** Nav touch targets are ~22px tall, half the 44px minimum, in a wrapping row.
-- [ ] **50.** *(partial)* Several tiers moved off `--text3`, but nav pills and
-      `.rec-intro` are still 9–11px in dim colours; needs a contrast pass across all
-      nine themes.
+- [ ] **50.** *(partial)* Several tiers moved off `--text3`, and `.rec-intro` is now
+      `--text`/`--text2` for everything except its column labels and the word "Top".
+      The nav pills are still 9px in `--text3`; needs a contrast pass across all nine
+      themes.
 
 ### Not one of the 50
 
@@ -494,8 +541,14 @@ placeholders inside hidden containers (`.dc-user-avatar` filled by `firebase.js`
 `#ytMiniThumb` by `_ytUpdateThumb`). Don't "fix" them and don't add ignore rules for them
 without a decision from the project owner.
 
-**Suggested next three:** #11 (rewrite `.rec-intro` as a real stat strip, the last mono
-run-on at the top of the tab), #1 + #4 + #49 together (the nav pills: group them, put the
-section emoji on them, give them a 44px target — one pass over the same markup), then
-#20 (cut Appearances from 9 columns to 5) — which now also buys the mobile half of #19,
-since the wide tables are the only reason headers stop sticking below 768px.
+**Suggested next three:** #1 + #4 + #49 together (the nav pills: group them, put the
+section emoji on them, give them a 44px target — one pass over the same markup, and now
+the only 9px `--text3` tier left in the tab), then #20 (cut Appearances from 9 columns
+to 5) — which now also buys the mobile half of #19, since the wide tables are the only
+reason headers stop sticking below 768px — then #43, which has an obvious home in the
+intro plate now that there is one.
+
+**Open, deliberately deferred:** the plate and #45 (an oversized "your #1 record
+overall" hero above the overview grid) are both candidates for "the headline of the
+tab". The plate was built as orientation, not as a hero, so #45 is still free to take
+that role — but decide before building it, or the top of the tab ends up with two.

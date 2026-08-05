@@ -11413,6 +11413,10 @@
       color: #1a1a00;
     }
 
+    /* Records intro plate. The base rules here still style the pre-load
+       fallback string in the markup ("Load your data to see records."), which
+       is prose and stays where it was; buildRecords() replaces it with the
+       three-column grid below. */
     .rec-intro {
       font-family: var(--font-mono);
       font-size: 0.7rem;
@@ -11423,6 +11427,167 @@
       background: var(--bg2);
       border: 1px solid var(--border);
       border-radius: 6px;
+    }
+
+    /* One column per chart period, each reading downward as a sentence:
+       what the chart is → where it cuts off → how much history feeds it.
+       The hairline under the size is that cutoff drawn literally — a chart
+       size *is* the line the chart stops at — which is why it spans the
+       number and nothing else rather than running the column's full width. */
+    .rec-intro-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      align-items: start;
+      padding: 0.2rem 0 0.1rem;
+    }
+
+    .rec-intro-col {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.32rem;
+      padding: 0 0.5rem;
+      min-width: 0;
+      text-align: center;
+      /* One orchestrated reveal, matching the waterfall the chart rows and
+         streak lists already use. --i is set inline by buildRecords(). */
+      animation: recIntroIn 400ms cubic-bezier(0.4, 0, 0.2, 1) both;
+      animation-delay: calc(var(--i, 0) * 70ms);
+    }
+
+    /* Rules between the columns, not borders around them — this is one slate
+       with three readings, not three cards. */
+    .rec-intro-col + .rec-intro-col {
+      border-left: 1px solid var(--border);
+    }
+
+    /* Uppercase in Records belongs to column headers. These are column
+       headers — they head the three columns of the plate — so this is the
+       existing tier, not a new one. */
+    .rec-intro-label {
+      font-size: 0.6rem;
+      line-height: 1;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--text3);
+    }
+
+    .rec-intro-cut {
+      position: relative;
+      display: flex;
+      align-items: baseline;
+      justify-content: center;
+      gap: 0.3em;
+      max-width: 100%;
+      padding-bottom: 0.34rem;
+    }
+
+    /* The cutoff rule, drawn as a pseudo-element rather than a border so it
+       can wipe in from the left behind its own column. */
+    .rec-intro-cut::after {
+      content: '';
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      height: 1px;
+      background: color-mix(in srgb, var(--accent) 55%, transparent);
+      transform-origin: left center;
+      animation: recIntroCut 420ms cubic-bezier(0.4, 0, 0.2, 1) both;
+      animation-delay: calc(var(--i, 0) * 70ms + 150ms);
+    }
+
+    /* The number is the fact; "Top" only qualifies it, so it stays at label
+       size and label colour and the eye lands on the figure. */
+    .rec-intro-pre {
+      font-size: 0.6rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--text3);
+    }
+
+    .rec-intro-num {
+      font-size: clamp(1.3rem, 5.5vw, 1.75rem);
+      font-weight: 600;
+      line-height: 1;
+      letter-spacing: -0.02em;
+      color: var(--text);
+      font-feature-settings: "tnum";
+    }
+
+    /* An uncapped chart has no cutoff number, so the phrase takes the slot. It
+       is two words rather than two digits and so sets much smaller — but its
+       line-height is pinned to the *numeral's* size, not its own. The cutoff
+       rule is anchored to the bottom of this box, so without that the yearly
+       column's rule rode 12px above the other two and the plate read as three
+       cards. Matching the line box also centres the phrase in it for free. */
+    .rec-intro-all {
+      font-size: 0.85rem;
+      font-weight: 600;
+      line-height: clamp(1.3rem, 5.5vw, 1.75rem);
+      color: var(--text);
+    }
+
+    .rec-intro-span {
+      font-size: 0.68rem;
+      letter-spacing: 0.04em;
+      color: var(--text2);
+      font-feature-settings: "tnum";
+    }
+
+    @keyframes recIntroIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to   { opacity: 1; transform: none; }
+    }
+
+    @keyframes recIntroCut {
+      from { transform: scaleX(0); }
+      to   { transform: scaleX(1); }
+    }
+
+    /* Both animations end on the elements' own base state, so dropping them
+       leaves the plate fully drawn. */
+    @media (prefers-reduced-motion: reduce) {
+      .rec-intro-col,
+      .rec-intro-cut::after {
+        animation: none;
+      }
+    }
+
+    /* Three columns still fit at 320px, but only with the gaps and the
+       tracking pulled in — "Top 100" plus a coverage line is the widest
+       column the plate has to hold. */
+    @media (max-width: 480px) {
+      .rec-intro {
+        padding: 0.6rem 0.35rem;
+      }
+
+      .rec-intro-col {
+        gap: 0.26rem;
+        padding: 0 0.25rem;
+      }
+
+      .rec-intro-label {
+        font-size: 0.55rem;
+        letter-spacing: 0.07em;
+      }
+
+      .rec-intro-pre {
+        letter-spacing: 0.05em;
+      }
+
+      /* Left to wrap, "All entries" takes two lines, which breaks the pinned
+         line box above and drops its cutoff rule out of line with the other
+         two. It fits on one line at 320px from this size down. */
+      .rec-intro-all {
+        font-size: 0.72rem;
+        white-space: nowrap;
+      }
+
+      .rec-intro-span {
+        font-size: 0.62rem;
+        letter-spacing: 0;
+      }
     }
 
     /* Global records search. It is the only control that reaches all ~55

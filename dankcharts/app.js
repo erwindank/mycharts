@@ -4425,10 +4425,38 @@ function buildRecords() {
   }
 
   // ── RENDERING ────────────────────────────────────────────────
-  const yTopLabel = isFinite(chartSizeYearly) ? t('rec_yearly_top', { n: chartSizeYearly }) : t('rec_yearly_all');
+  // The intro carries two facts, and they are the same three columns: the
+  // chart size per period, and how much history exists per period. Written as
+  // one run-on line joined by a pipe, that pairing was invisible. Per column
+  // it reads as a sentence — "weekly records come off a Top 20, and there are
+  // 312 of those weeks" — which is the whole reason the sizes are stated here.
+  //
+  // The period words are `nav_*`, not the `rec_*_label` pair used lower down:
+  // those are "Weekly Chart"/"Monthly Chart", and "Chart" repeated three times
+  // under a heading that already says Records is noise at this size. Both sets
+  // are translated in all four languages, so this costs no coverage.
+  const recIntroCols = [
+    { label: t('nav_weekly'), size: wSizeSongs, span: tCount('weeks_full', weekKeys.length) },
+    { label: t('nav_monthly'), size: mSizeSongs, span: tCount('months', monthKeys.length) },
+    { label: t('nav_yearly'), size: chartSizeYearly, span: tCount('years', yearKeys.length) },
+  ];
   document.getElementById('recIntro').innerHTML =
-    t('rec_intro_prefix') + ' <strong>' + t('rec_weekly_top', { n: wSizeSongs }) + '</strong> &middot; <strong>' + t('rec_monthly_top', { n: mSizeSongs }) + '</strong> &middot; <strong>' + yTopLabel + '</strong> &nbsp;|&nbsp; ' +
-    t('rec_data_summary', { weeks: weekKeys.length, months: monthKeys.length, years: yearKeys.length });
+    '<div class="rec-intro-grid">' + recIntroCols.map(function (c, i) {
+      // An unlimited yearly chart has no cutoff to name, so the phrase takes
+      // the slot instead of a bare ∞ that the column would then have to
+      // explain. It is deliberately not `rec_yearly_all` — that string starts
+      // with "Yearly", which the column heading has already said.
+      const cut = isFinite(c.size)
+        ? '<span class="rec-intro-pre">' + esc(t('rec_intro_top')) + '</span>' +
+          '<span class="rec-intro-num">' + c.size + '</span>'
+        : '<span class="rec-intro-all">' + esc(t('rec_intro_all')) + '</span>';
+      // --i drives the stagger and the cutoff-rule wipe; both inherit it.
+      return '<div class="rec-intro-col" style="--i:' + i + '">' +
+        '<span class="rec-intro-label">' + esc(c.label) + '</span>' +
+        '<span class="rec-intro-cut">' + cut + '</span>' +
+        '<span class="rec-intro-span">' + esc(c.span) + '</span>' +
+        '</div>';
+    }).join('') + '</div>';
 
   // `opts` is optional and only used by the tables that need extra hooks:
   //   tableCls — extra class(es) on the <table>

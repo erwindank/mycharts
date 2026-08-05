@@ -587,6 +587,10 @@ const TRANSLATIONS = {
     rec_yearly_all: 'Yearly All Entries',
     rec_yearly_top: 'Yearly Top {{n}}',
     rec_data_summary: '{{weeks}} weeks · {{months}} months · {{years}} years of data',
+    // Intro plate: the size qualifier and, when a chart is uncapped, the phrase
+    // that stands in for the cutoff number.
+    rec_intro_top: 'Top',
+    rec_intro_all: 'All entries',
 
     // Records table headers (dynamic)
     rec_th_songs: 'Songs',
@@ -1846,6 +1850,8 @@ const TRANSLATIONS = {
     rec_yearly_all: 'Anual Todas las Entradas',
     rec_yearly_top: 'Anual Top {{n}}',
     rec_data_summary: '{{weeks}} semanas · {{months}} meses · {{years}} años de datos',
+    rec_intro_top: 'Top',
+    rec_intro_all: 'Todas las entradas',
 
     // Records table headers
     rec_th_songs: 'Canciones',
@@ -3088,6 +3094,8 @@ const TRANSLATIONS = {
     rec_yearly_all: 'Anual Todas as Entradas',
     rec_yearly_top: 'Anual Top {{n}}',
     rec_data_summary: '{{weeks}} semanas · {{months}} meses · {{years}} anos de dados',
+    rec_intro_top: 'Top',
+    rec_intro_all: 'Todas as entradas',
 
     // Records table headers
     rec_th_songs: 'Músicas',
@@ -4330,6 +4338,8 @@ const TRANSLATIONS = {
     rec_yearly_all: 'Anual Todas as Entradas',
     rec_yearly_top: 'Anual Top {{n}}',
     rec_data_summary: '{{weeks}} semanas · {{months}} meses · {{years}} anos de dados',
+    rec_intro_top: 'Top',
+    rec_intro_all: 'Todas as entradas',
 
     // Records table headers
     rec_th_songs: 'Músicas',
