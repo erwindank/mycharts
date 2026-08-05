@@ -9685,6 +9685,13 @@
       letter-spacing: 0;
     }
 
+    /* Total plays is the one figure in the strip that answers "how much did I
+       actually listen", not "how did it rank" — tinted so it reads apart from
+       the run of week/rank counts around it. */
+    .cr-stat-total strong {
+      color: var(--accent);
+    }
+
     .cr-boxes-wrap {
       padding-bottom: 3px;
     }

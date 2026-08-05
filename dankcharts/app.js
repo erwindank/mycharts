@@ -9242,32 +9242,40 @@ function getViewedCutoffKeys() {
   return { year: yearKey, month: monthKey, week: weekKey };
 }
 
+// Does a single period key fall inside the selected RANGE mode?
+// Shared by the chart-run box filter and the total-plays sum so the number
+// under the boxes always covers exactly the span the boxes show.
+function crKeyInRange(pk, period, mode, viewedYear, cutoffKeys) {
+  if (mode === 'now') return true; // All-Time
+  if (mode === 'year') {
+    if (period === 'year') return parseInt(pk) === viewedYear;
+    if (period === 'month') return pk >= `${viewedYear}-01` && pk <= (cutoffKeys?.month || `${viewedYear}-12`);
+    // week — YTD: Jan 1 of viewedYear through the viewed week
+    return pk >= `${viewedYear}-` && pk <= (cutoffKeys?.week || `${viewedYear}-12-31`);
+  }
+  // uptoYear — everything up to the viewed period
+  if (period === 'year') return parseInt(pk) <= viewedYear;
+  if (period === 'month') return pk <= (cutoffKeys?.month || `${viewedYear}-12`);
+  return pk <= (cutoffKeys?.week || `${viewedYear}-12-31`);
+}
+
+// Total plays for one entry across every period inside the selected range.
+// Reads periodMap, not the chart-run entries, on purpose: periodMap holds a
+// count for every period the item was played in, so weeks/months where it
+// missed the chart still count toward the total.
+function crTotalPlays(type, key, periodMap, period, mode, viewedYear, cutoffKeys) {
+  if (!periodMap) return 0;
+  let total = 0;
+  for (const pk of Object.keys(periodMap)) {
+    if (!crKeyInRange(pk, period, mode, viewedYear, cutoffKeys)) continue;
+    total += periodMap[pk]?.[type]?.[key]?.count || 0;
+  }
+  return total;
+}
+
 function filterCrD(d, period, mode, viewedYear, cutoffKeys) {
   if (!d || mode === 'now') return d;
-  let entries;
-  if (mode === 'year') {
-    if (period === 'year') {
-      entries = d.entries.filter(e => parseInt(e.periodKey) === viewedYear);
-    } else if (period === 'month') {
-      const startKey = `${viewedYear}-01`;
-      const endKey = cutoffKeys?.month || `${viewedYear}-12`;
-      entries = d.entries.filter(e => e.periodKey >= startKey && e.periodKey <= endKey);
-    } else { // week — YTD: Jan 1 of viewedYear through the viewed week
-      const startKey = `${viewedYear}-`;
-      const endKey = cutoffKeys?.week || `${viewedYear}-12-31`;
-      entries = d.entries.filter(e => e.periodKey >= startKey && e.periodKey <= endKey);
-    }
-  } else { // uptoYear
-    if (period === 'year') {
-      entries = d.entries.filter(e => parseInt(e.periodKey) <= viewedYear);
-    } else if (period === 'month') {
-      const endKey = cutoffKeys?.month || `${viewedYear}-12`;
-      entries = d.entries.filter(e => e.periodKey <= endKey);
-    } else { // week — all time up to the viewed week
-      const endKey = cutoffKeys?.week || `${viewedYear}-12-31`;
-      entries = d.entries.filter(e => e.periodKey <= endKey);
-    }
-  }
+  const entries = d.entries.filter(e => crKeyInRange(e.periodKey, period, mode, viewedYear, cutoffKeys));
   if (!entries || !entries.length) return null;
   const peak = Math.min(...entries.map(e => e.rank));
   const peakPlays = Math.max(0, ...entries.map(e => e.plays || 0));
@@ -9335,7 +9343,10 @@ function buildCrPanelHTML(type, key) {
       const crData = allChartRun[id];
       const rawD = crData?.result?.[type]?.[key];
       const d = filterCrD(rawD, id, getCrRangeMode(type, key), vy, cutoffKeys);
-      const bodyHtml = d ? `<div class="cr-stats">${crStats(type, key, id, null, d)}</div>${crBoxesHTML(type, key, null, d, id)}` : `<div style="font-size:0.6rem;color:var(--text3);padding:2px 0">${t('cr_no_history')}</div>`;
+      // Each section counts plays over its own periodMap, so the total tracks
+      // that section's granularity and cutoff rather than the panel's.
+      const rangeOpts = { mode: getCrRangeMode(type, key), viewedYear: vy, cutoffKeys, periodMap: crData?.periodMap };
+      const bodyHtml = d ? `<div class="cr-stats">${crStats(type, key, id, null, d, rangeOpts)}</div>${crBoxesHTML(type, key, null, d, id)}` : `<div style="font-size:0.6rem;color:var(--text3);padding:2px 0">${t('cr_no_history')}</div>`;
       return `<div class="cr-panel-section">
         <div class="cr-panel-section-header" onclick="toggleCrPanelSection(this)">
           <span class="cr-subsection-toggle">▼</span>
@@ -9348,14 +9359,15 @@ function buildCrPanelHTML(type, key) {
     const crData = allChartRun[currentPeriod] || chartRunData;
     const rawD = crData?.result?.[type]?.[key];
     const d = filterCrD(rawD, currentPeriod, getCrRangeMode(type, key), vy, cutoffKeys);
+    const rangeOpts = { mode: getCrRangeMode(type, key), viewedYear: vy, cutoffKeys, periodMap: crData?.periodMap };
     if (d && hasBuData) {
       // Two-view wrapper: chart-only (default) and combined chart+BU timeline
-      sectionsHtml = `<div class="cr-stats">${crStats(type, key, currentPeriod, null, d)}</div>
+      sectionsHtml = `<div class="cr-stats">${crStats(type, key, currentPeriod, null, d, rangeOpts)}</div>
         <div class="cr-view-chart">${crBoxesHTML(type, key, null, d, currentPeriod)}</div>
         <div class="cr-view-combined" style="display:none;">${buildCrWithBuBoxesHTML(type, key, d)}</div>`;
     } else {
       sectionsHtml = d
-        ? `<div class="cr-stats">${crStats(type, key, currentPeriod, null, d)}</div>${crBoxesHTML(type, key, null, d, currentPeriod)}`
+        ? `<div class="cr-stats">${crStats(type, key, currentPeriod, null, d, rangeOpts)}</div>${crBoxesHTML(type, key, null, d, currentPeriod)}`
         : `<div style="font-size:0.6rem;color:var(--text3);padding:4px 0">${t('cr_no_history')}</div>`;
     }
   }
@@ -10233,10 +10245,15 @@ function crPeriodTitle(period, key) {
   } else return key;
 }
 
-function crStats(type, key, period, crData, preD) {
+// rangeOpts — { mode, viewedYear, cutoffKeys, periodMap } from the panel's RANGE
+// bar. Omitted by callers that render an unfiltered run (Records rows, modals),
+// which then get the all-time total.
+function crStats(type, key, period, crData, preD, rangeOpts) {
   const data = crData || chartRunData;
   const d = preD !== undefined ? preD : (data?.result?.[type]?.[key]);
   if (!d) return '';
+  const rng = rangeOpts || { mode: 'now', periodMap: data?.periodMap };
+  const totalPlays = crTotalPlays(type, key, rng.periodMap, period, rng.mode, rng.viewedYear, rng.cutoffKeys);
   const n = d.entries.length;
   const peak = d.peak;
   const top1 = d.entries.filter(e => e.rank === 1).length;
@@ -10246,6 +10263,7 @@ function crStats(type, key, period, crData, preD) {
   const peakLabel = t('peak_label');
   let html = `
     <div class="cr-stat"><strong>${n} ${crPeriodUnit(period, n)}</strong>${t('cr_on_chart')}</div>
+    ${totalPlays ? `<div class="cr-stat cr-stat-total"><strong>${totalPlays.toLocaleString()}</strong>${t('cr_total_plays')}</div>` : ''}
     <div class="cr-stat"><strong>${peakLabel} #${peak}</strong></div>
     ${top1 ? `<div class="cr-stat"><strong>${top1} ${crPeriodUnit(period, top1)}</strong>${t('cr_at_1')}</div>` : ''}
     ${top5 ? `<div class="cr-stat"><strong>${top5} ${crPeriodUnit(period, top5)}</strong>${t('cr_in_top5')}</div>` : ''}
