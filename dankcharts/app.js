@@ -776,6 +776,9 @@ async function lfmAuthVerify(silent) {
     lfmAuthStopPolling();
     updateLfmAuthStatus();
     setLfmHint(`Verified. Scrobbling as ${data.session.name}.`, 'ok');
+    // On Sheets/CSV this connection is the only thing standing between the user and
+    // the live bar — light it up now rather than waiting for the next sync.
+    startNowPlaying();
     return true;
   } catch (e) {
     // 14 = token issued but not authorized yet — the normal "still waiting" answer.
@@ -820,6 +823,9 @@ function lfmAuthDisconnect() {
   lfmAuthStopPolling();
   setLfmHint(LFM_HINT_IDLE);
   updateLfmAuthStatus();
+  // Drops the live bar for Sheets/CSV users; a Last.fm-source user keeps theirs,
+  // since getNowPlayingUser() still resolves via their charting username.
+  startNowPlaying();
 }
 
 // ─── SCROBBLE MODAL ────────────────────────────────────────────
@@ -2605,6 +2611,8 @@ async function syncFromSheets() {
   }
   const btn = document.getElementById('syncNowBtn');
   btn.disabled = true;
+  // Covers the landing-connect path, which calls this directly rather than via syncNow()
+  startNowPlaying();
   setSyncStatus(t('sync_connecting'), 'loading');
   try {
     const text = await fetchSheetCsv();
@@ -2649,6 +2657,10 @@ async function syncFromLastFm() {
   }
   const btn = document.getElementById('syncNowBtn');
   btn.disabled = true;
+
+  // Kick the ON AIR bar off up front, not after the download: a first-time full
+  // history fetch can take a minute, and the live track is a one-request lookup.
+  startNowPlaying();
 
   // Serve from IndexedDB cache first (survives page refresh) — stale-while-revalidate:
   // render whatever we have immediately, and only hit the network in the background.
@@ -2827,7 +2839,9 @@ async function syncFromLastFm() {
 
 function syncNow() {
   if (getDataSource() === 'lastfm') syncFromLastFm();
-  else syncFromSheets();
+  // Sheets/CSV keep the ON AIR bar as long as a Last.fm account is connected —
+  // startNowPlaying() tears it down by itself when there's no username to poll.
+  else { startNowPlaying(); syncFromSheets(); }
 }
 
 // ─── BACKGROUND POLL (every 30 min) ───────────────────────────
@@ -2903,6 +2917,9 @@ function refreshAfterPoll() {
   // or cached counts even after the full history (or a poll top-up) lands.
   renderHeroStats();
   renderStreakBanner();
+  // A poll top-up can include the scrobble for the song still on air — restat so its
+  // "43rd play" chip doesn't sit one behind.
+  refreshNowPlayingStats();
 }
 
 async function pollLastFm() {
@@ -2935,6 +2952,260 @@ async function pollLastFm() {
   clearTimeout(pollTimer);
   pollTimer = setTimeout(pollLastFm, POLL_INTERVAL_MS);
 }
+
+// ─── NOW PLAYING · "ON AIR" BAR ───────────────────────────────
+//
+// Last.fm marks the in-progress track in user.getRecentTracks with
+// @attr.nowplaying="true" and *no* date — it isn't a scrobble yet, which is
+// exactly why the history sync above skips it (`if (tr.date && tr.date.uts)`).
+// So the live track already arrives with every sync; it just gets discarded.
+// This polls for it on its own short interval, because the song changes every
+// few minutes while the history poll only needs to run every 30.
+//
+// Spotify listeners are covered by this too: Spotify scrobbles to Last.fm, so a
+// Spotify play shows up here within seconds. There is no direct Spotify path —
+// see the note on startNowPlaying() for what that would take.
+//
+// The bar's source is deliberately decoupled from the charts' source. A Sheets or
+// CSV user with a connected Last.fm account gets the live bar over their own
+// charts — see getNowPlayingUser().
+const NOW_PLAYING_POLL_MS = 45 * 1000;
+// Last.fm's "no artwork" star placeholder — served as a real image, so it has to
+// be filtered by hash or every art-less track gets a grey star instead of initials.
+const LASTFM_ART_PLACEHOLDER = '2a96cbd8b46e442fc41c2b86b821562f';
+
+let npTimer      = null;
+let npKeyShowing = null;  // identity of the track currently painted, so we only repaint on change
+let npTrack      = null;  // last track we painted, kept so stats can be recomputed in place
+let npSince      = 0;     // when we first saw it — drives the elapsed clock
+let npTickTimer  = null;
+let npArtToken   = 0;     // guards against a slow art fetch landing after the track changed
+let npGen        = 0;     // poll generation — see pollNowPlaying()
+let npUser       = null;  // account the running chain is polling, for idempotent starts
+
+function _npKey(title, artist) { return `${title}|||${artist}`.toLowerCase(); }
+
+// Whose live track to show. On Last.fm that's the charting username; on Sheets or
+// CSV it falls back to the account connected for scrobbling, which the app already
+// keeps regardless of data source (see saveSourceConfig — those credentials are
+// "for scrobbling rather than reading"). A spreadsheet can never carry a
+// now-playing signal of its own: a row only appears once the song has finished.
+function getNowPlayingUser() {
+  return getDataSource() === 'lastfm'
+    ? (getLastFmUser() || getScrobbleUser())
+    : getScrobbleUser();
+}
+
+async function fetchNowPlaying(username) {
+  const url = `https://ws.audioscrobbler.com/2.0/?method=user.getrecenttracks`
+    + `&user=${encodeURIComponent(username)}&api_key=${LASTFM_KEY}`
+    + `&format=json&limit=1`;
+  const res = await fetch(url);
+  if (!res.ok) throw new Error('HTTP ' + res.status);
+  const data = await res.json();
+  if (data.error) throw new Error(data.message);
+  let tracks = data.recenttracks?.track;
+  if (!Array.isArray(tracks)) tracks = tracks ? [tracks] : [];
+  const tr = tracks[0];
+  if (!tr || tr['@attr']?.nowplaying !== 'true') return null;
+
+  const lfmArt = (tr.image || [])
+    .map(i => i['#text'])
+    .filter(u => u && !u.includes(LASTFM_ART_PLACEHOLDER))
+    .pop() || '';
+
+  // Run it through the user's autocorrect rules so a renamed artist/title matches
+  // the same entry in allPlays that the charts show — otherwise the play count
+  // below reads 0 for anything the user has corrected.
+  const [play] = applyAutocorrectRules([{
+    title:  tr.name || '',
+    artist: tr.artist?.['#text'] || '',
+    album:  tr.album?.['#text'] || '—',
+    artists: splitArtists(tr.artist?.['#text'] || ''),
+    date: new Date(),
+  }]);
+  return { ...play, lfmArt };
+}
+
+// How many times this exact song already appears in the loaded history, plus the
+// artist's total. Cheap enough to run per track change; not per poll.
+// Returns null before any history has loaded — the bar shows within a second of
+// page load, long before a large Last.fm download finishes, and 0 plays there
+// would read as a false "First time" flag rather than "not counted yet".
+function _npHistory(track) {
+  if (!allPlays.length) return null;
+  let song = 0, artist = 0;
+  const tKey = (track.title || '').toLowerCase();
+  const aKey = (track.artist || '').toLowerCase();
+  for (const p of allPlays) {
+    if ((p.artist || '').toLowerCase() !== aKey) continue;
+    artist++;
+    if ((p.title || '').toLowerCase() === tKey) song++;
+  }
+  return { song, artist };
+}
+
+function _npOrdinal(n) {
+  const rem100 = n % 100;
+  // 11th/12th/13th are the exceptions to the last-digit rule
+  const suffix = (rem100 >= 11 && rem100 <= 13) ? 'th'
+    : (['th', 'st', 'nd', 'rd'][n % 10] || 'th');
+  return n.toLocaleString() + suffix;
+}
+
+function _npElapsed() {
+  const secs = Math.max(0, Math.floor((Date.now() - npSince) / 1000));
+  const m = Math.floor(secs / 60);
+  return `${m}:${String(secs % 60).padStart(2, '0')}`;
+}
+
+function _npTick() {
+  const el = document.getElementById('npElapsed');
+  if (el) el.textContent = _npElapsed();
+}
+
+function hideNowPlaying() {
+  const el = document.getElementById('nowPlayingBar');
+  if (el) { el.style.display = 'none'; el.innerHTML = ''; }
+  npKeyShowing = null;
+  npTrack      = null;
+  clearInterval(npTickTimer);
+  npTickTimer = null;
+}
+
+// Repaint the play-count chips for the track already on air, without restarting its
+// elapsed clock. Called once history lands (or gets topped up), since the bar can
+// appear well before a large Last.fm download finishes.
+function refreshNowPlayingStats() {
+  if (npTrack && allPlays.length) renderNowPlaying(npTrack, { restat: true });
+}
+
+function renderNowPlaying(track, opts) {
+  const el = document.getElementById('nowPlayingBar');
+  if (!el) return;
+  if (!track) { hideNowPlaying(); return; }
+
+  const key = _npKey(track.title, track.artist);
+  // Same song still spinning — leave the bar (and its running clock) alone, unless
+  // this is an explicit restat after history finished loading.
+  if (key === npKeyShowing && !opts?.restat) return;
+  npKeyShowing = key;
+  npTrack      = track;
+  if (!opts?.restat) npSince = Date.now();
+  const token  = ++npArtToken;
+
+  const stats    = _npHistory(track);
+  const hasAlbum = track.album && track.album !== '—';
+  const fallback = initials(hasAlbum ? track.album : track.title);
+
+  // "your 43rd play" is only meaningful once there's history behind it; a track the
+  // user has never played before gets the more interesting FIRST TIME flag instead.
+  // Both are withheld until the history is actually loaded (stats === null).
+  const countChip = !stats ? ''
+    : stats.song > 0
+      ? `<span class="np-chip np-chip-count">${esc(t('np_nth_play', { n: _npOrdinal(stats.song + 1) }))}</span>`
+      : `<span class="np-chip np-chip-first">${esc(t('np_first_time'))}</span>`;
+  const artistChip = (stats && stats.artist > 0)
+    ? `<span class="np-chip">${esc(t('np_by_artist', { n: stats.artist.toLocaleString() }))}</span>`
+    : '';
+
+  el.className = 'np-bar';
+  el.innerHTML = `
+    <div class="np-art-wrap">
+      <div class="np-art-init" id="npArtInit">${esc(fallback)}</div>
+    </div>
+    <div class="np-main" aria-live="polite">
+      <div class="np-label">
+        <span class="np-eq" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
+        <span class="np-onair">${esc(t('np_onair'))}</span>
+        <span class="np-source">${esc(t('np_via_lastfm'))}</span>
+      </div>
+      <div class="np-title">${esc(track.title)}</div>
+      <div class="np-artist">${esc(track.artist)}${hasAlbum ? ` · <em>${esc(track.album)}</em>` : ''}</div>
+      <div class="np-chips">${countChip}${artistChip}</div>
+    </div>
+    <div class="np-right" aria-hidden="true">
+      <span class="np-elapsed-label">${esc(t('np_listening'))}</span>
+      <span class="np-elapsed" id="npElapsed">0:00</span>
+    </div>
+  `;
+  el.style.display = '';
+
+  clearInterval(npTickTimer);
+  npTickTimer = setInterval(_npTick, 1000);
+  _npTick();
+
+  // Art resolves after paint so the bar appears instantly. The <img> is only created
+  // once a URL exists, so an unresolved lookup just leaves the initials tile.
+  (async () => {
+    let url = '';
+    try {
+      url = (hasAlbum ? await getAlbumImage(track.album, track.artist)
+                      : await getTrackImage(track.title, track.artist)) || '';
+    } catch (e) { /* fall through to the Last.fm image */ }
+    if (!url) url = track.lfmArt;
+    if (!url || token !== npArtToken) return; // track changed while we were fetching
+    const wrap = el.querySelector('.np-art-wrap');
+    const init = document.getElementById('npArtInit');
+    if (!wrap || !init) return;
+    const img = document.createElement('img');
+    img.className = 'np-art';
+    img.alt = '';
+    img.onload  = () => { init.style.display = 'none'; };
+    img.onerror = () => { img.remove(); };
+    img.src = url;
+    wrap.appendChild(img);
+  })();
+}
+
+async function pollNowPlaying(gen) {
+  const username = getNowPlayingUser();
+  if (!username) { hideNowPlaying(); return; }
+  // Skip the request entirely while the tab is backgrounded — nobody is looking at
+  // the bar, and this poll is 40x more frequent than the history one.
+  if (!document.hidden) {
+    try {
+      renderNowPlaying(await fetchNowPlaying(username));
+    } catch (e) { /* silent — transient Last.fm hiccup, next tick retries */ }
+  }
+  // A restart during the await above (tab refocus while the fetch was still open)
+  // bumps npGen. clearTimeout can't cancel an already-running async call, so the
+  // superseded one has to bow out here or we'd end up with two polling chains.
+  if (gen !== npGen) return;
+  clearTimeout(npTimer);
+  npTimer = setTimeout(() => pollNowPlaying(gen), NOW_PLAYING_POLL_MS);
+}
+
+// Direct Spotify would need more than a new fetch here: backend/spotify.py still
+// has the OAuth callback TODO (tokens are never stored or refreshed), its SCOPES
+// lack user-read-currently-playing, and the app sits under Spotify's 5-user
+// development-mode cap until an extended-quota application is approved.
+// force:true restarts an already-running chain to fetch immediately — used on tab
+// refocus, where the point is to skip the rest of the current 45s wait.
+function startNowPlaying({ force = false } = {}) {
+  const user = getNowPlayingUser();
+  if (!user) { stopNowPlaying(); return; }
+  // Several boot paths legitimately reach this (init, sync, auth connect). Without
+  // this guard each would stack another immediate fetch onto a live chain.
+  if (!force && npUser === user) return;
+  npUser = user;
+  clearTimeout(npTimer);
+  pollNowPlaying(++npGen);
+}
+
+function stopNowPlaying() {
+  clearTimeout(npTimer);
+  npTimer = null;
+  npUser  = null;
+  npGen++;               // orphans any poll currently awaiting a response
+  hideNowPlaying();
+}
+
+// Coming back to the tab: refresh immediately rather than waiting out the
+// remainder of a 45s tick that ran against a stale, possibly long-finished song.
+document.addEventListener('visibilitychange', () => {
+  if (!document.hidden && getNowPlayingUser()) startNowPlaying({ force: true });
+});
 
 async function pollSheets() {
   try {
@@ -3106,14 +3377,13 @@ function updateSourceModalFields() {
   document.getElementById('srcLastfmFields').style.display  = (!isSheets && !isFile) ? '' : 'none';
   const fileEl = document.getElementById('srcFileFields');
   if (fileEl) fileEl.style.display = isFile ? '' : 'none';
-  if (!isSheets && !isFile) {
-    updateLfmAuthStatus();
-    // Reopened mid-authorization: pick the watch back up instead of leaving
-    // the user staring at a stale "waiting" line.
-    if (getLfmPendingToken()) lfmAuthStartPolling();
-  } else {
-    lfmAuthStopPolling(); // the auth row isn't on screen any more
-  }
+  // The Last.fm account row now sits outside the three source panels and stays on
+  // screen for all of them — a Sheets or CSV user needs it for scrobbling and for
+  // the live ON AIR bar — so its status is refreshed unconditionally.
+  updateLfmAuthStatus();
+  // Reopened mid-authorization: pick the watch back up instead of leaving
+  // the user staring at a stale "waiting" line.
+  if (getLfmPendingToken()) lfmAuthStartPolling();
 }
 
 function saveSourceConfig() {
@@ -3454,6 +3724,12 @@ window.addEventListener('load', async () => {
     btn.title = 'Start here — configure your data source';
   }
 
+  // Before the source branches below, because the ON AIR bar is source-independent:
+  // Sheets and CSV users get it too whenever a Last.fm account is connected. Placed
+  // here so every boot path is covered, including the fresh-cache branch that never
+  // reaches syncFromSheets().
+  startNowPlaying();
+
   const src = getDataSource();
   if (src === 'lastfm') {
     syncFromLastFm();
@@ -3608,6 +3884,9 @@ function finalizeLoad() {
   populateYearPicker();
   // Track data loads so unvisited tabs show "new" badge after a refresh (features 9/17)
   dcNavMarkDataLoaded();
+  // The ON AIR bar renders before the history download finishes, so its play-count
+  // chips only become computable here.
+  refreshNowPlayingStats();
 
   // Restore saved granularity before rendering
   const savedGran = localStorage.getItem('dc_gran');

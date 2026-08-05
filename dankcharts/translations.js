@@ -1318,6 +1318,13 @@ const TRANSLATIONS = {
     st_card_square: '⬜ Square (1:1)',
     st_card_download: '⬇ Download Image',
     st_no_data: 'No plays found for this period',
+    // Now playing / ON AIR bar
+    np_onair: 'ON AIR',
+    np_via_lastfm: 'via Last.fm',
+    np_listening: 'listening',
+    np_first_time: '✦ First time',
+    np_nth_play: '{{n}} play',        // {{n}} is a pre-formatted ordinal, e.g. "43rd"
+    np_by_artist: '{{n}} by this artist',
   },
 
   // ── SPANISH ───────────────────────────────────────────────────────────────────

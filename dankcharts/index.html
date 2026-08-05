@@ -341,6 +341,13 @@
       </div>
     </div>
 
+    <!-- Live "ON AIR" bar — painted by renderNowPlaying() while Last.fm reports an
+         in-progress track. Sits above the streak banner so the live moment reads
+         before the historical one. The aria-live region is scoped to the track
+         text inside (see renderNowPlaying), not this container: the elapsed clock
+         ticks every second and would otherwise be announced every second. -->
+    <div id="nowPlayingBar" class="np-bar" style="display:none;"></div>
+
     <div id="streakBanner" class="streak-banner" style="display:none;"></div>
 
     <!-- TIME MACHINE -->
@@ -3584,29 +3591,6 @@ function deleteGenreTriggers() {
           <input type="text" id="srcLastfmUser" placeholder="your_lastfm_username" autocomplete="off">
         </label>
         <p class="src-modal-hint">Your full listening history loads straight from Last.fm.</p>
-
-        <div class="lfm-auth-section">
-          <div class="lfm-auth-divider">Scrobble Setup <span class="lfm-optional">(optional)</span></div>
-          <div class="lfm-auth-row">
-            <span id="lfmAuthStatus" class="lfm-auth-status"><span class="lfm-auth-dot"></span> Not connected</span>
-            <button type="button" id="lfmConnectBtn" class="lfm-connect-btn" onclick="lfmAuthBtnClick()">Connect to Last.fm</button>
-            <button type="button" id="lfmDisconnectBtn" class="lfm-disconnect-btn" onclick="lfmAuthDisconnect()" style="display:none">Disconnect</button>
-          </div>
-          <p id="lfmConnectHint" class="src-modal-hint">Lets you add and edit plays from this site.</p>
-          <details class="lfm-custom-creds set-disclosure">
-            <summary>Use custom API credentials</summary>
-            <div class="src-field-group" style="margin-top:0.7rem">
-              <label>
-                API Key
-                <input type="text" id="srcLfmApiKey" placeholder="API key from last.fm/api/account" autocomplete="off">
-              </label>
-              <label>
-                API Secret
-                <input type="password" id="srcLfmApiSecret" placeholder="Shared secret" autocomplete="off">
-              </label>
-            </div>
-          </details>
-        </div>
       </div>
 
       <div id="srcFileFields" class="src-field-group set-src-panel" style="display:none;">
@@ -3621,6 +3605,33 @@ function deleteGenreTriggers() {
         <input type="file" id="srcFileInput" accept=".csv,.zip,.xlsx,.xls" style="display:none">
         <div id="srcFileStatus" class="src-modal-hint" style="margin-top:0.5rem;"></div>
         <p class="src-modal-hint" data-i18n-html="file_upload_hint">Upload your listening history. Supported formats: <strong>Last.fm CSV</strong>, <strong>mycharts CSV</strong>, <strong>Spotify ZIP</strong> (extended streaming history), <strong>Deezer XLSX</strong>.</p>
+      </div>
+
+      <!-- Last.fm account — deliberately OUTSIDE the three source panels. It isn't a
+           data source here: it powers scrobbling and the live ON AIR bar, both of
+           which work whatever your charts are built from. Sheets and CSV users need
+           to be able to reach this, so it must not be gated behind the Last.fm card. -->
+      <div class="lfm-auth-section" id="lfmAccountSection">
+        <div class="lfm-auth-divider">Last.fm Account <span class="lfm-optional">(optional)</span></div>
+        <div class="lfm-auth-row">
+          <span id="lfmAuthStatus" class="lfm-auth-status"><span class="lfm-auth-dot"></span> Not connected</span>
+          <button type="button" id="lfmConnectBtn" class="lfm-connect-btn" onclick="lfmAuthBtnClick()">Connect to Last.fm</button>
+          <button type="button" id="lfmDisconnectBtn" class="lfm-disconnect-btn" onclick="lfmAuthDisconnect()" style="display:none">Disconnect</button>
+        </div>
+        <p id="lfmConnectHint" class="src-modal-hint">Lets you add and edit plays from this site, and shows what you're playing right now in the ON AIR bar.</p>
+        <details class="lfm-custom-creds set-disclosure">
+          <summary>Use custom API credentials</summary>
+          <div class="src-field-group" style="margin-top:0.7rem">
+            <label>
+              API Key
+              <input type="text" id="srcLfmApiKey" placeholder="API key from last.fm/api/account" autocomplete="off">
+            </label>
+            <label>
+              API Secret
+              <input type="password" id="srcLfmApiSecret" placeholder="Shared secret" autocomplete="off">
+            </label>
+          </div>
+        </details>
       </div>
       </section>
 
