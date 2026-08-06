@@ -39,14 +39,15 @@ and a section nav of 11 identical text pills at half the minimum touch-target he
 | 31 | Global search across every section | `fd3d3ef` |
 | 39 | Limit changes stopped rebuilding (and stopped wiping the sort) | `fd3d3ef` |
 | 28 | One glyph family (`▶`/`▼`) for every expand control | `fd3d3ef` |
-| 46 | Milestones rebuilt as a vertical timeline, with Songs/Artists/Albums pills | *pending* |
-| — | Album play-count milestones — closes part of the "known data gaps" below | *pending* |
-| — | Origin row ("1st play") at the foot of each timeline | *pending* |
-| — | Cover art / artist avatars on every milestone entry | *pending* |
-| — | Song milestones at 10, then every 25 plays (artists/albums keep the landmark ladder) | *pending* |
-| — | Every artwork in Records is re-pickable (✎ badge), incl. PAK and the certifications wall | *pending* |
-| 19 | Sticky column headers on every records table (≥768px) | *pending* |
-| 11 | `.rec-intro` rebuilt as a three-column plate | *pending* |
+| 46 | Milestones rebuilt as a vertical timeline, with Songs/Artists/Albums pills | `cc13e6a` |
+| — | Album play-count milestones — closes part of the "known data gaps" below | `cc13e6a` |
+| — | Origin row ("1st play") at the foot of each timeline | `cc13e6a` |
+| — | Cover art / artist avatars on every milestone entry | `cc13e6a` |
+| — | Song milestones at 10, then every 25 plays (artists/albums keep the landmark ladder) | `cc13e6a` |
+| — | Every artwork in Records is re-pickable (✎ badge), incl. PAK and the certifications wall | `cc13e6a` |
+| 19 | Sticky column headers on every records table (≥768px) | `68abdbb` |
+| 11 | `.rec-intro` rebuilt as a three-column plate | `ba32e43` |
+| 45 | Most-decorated-artist hero: banner photo + infinite reel of every record they hold | *pending* |
 
 ### Implementation notes worth not re-deriving
 
@@ -346,6 +347,105 @@ wall. Only All #1s and Appearances had written the button into their markup by h
 is in flight gets a cached miss rather than the eventual URL. Records works around it in
 the certifications wall only. Fixing it properly means caching the in-flight promise.
 
+### The hero — "most records" is a count, which is why it could be built at all
+
+#45 was stuck because records are not comparable: 40 weeks at #1, a 12-day streak
+and a Diamond certification share no unit, so "your #1 record overall" needed an
+arbitrary rule to pick a winner. Reframing the question as **which artist holds the
+most records** dissolves that — counting *is* the common unit. The hero is the
+artist with the most rows across the whole tab, and each of those rows becomes a
+card in a marquee beneath the photo.
+
+- **A record is one row, at any rank.** Three Taylor Swift songs inside one Top 25
+  are three records, not one. This is deliberately not "who holds the #1 spot" —
+  the number answers "how decorated is this artist", so an artist with 200 rows
+  wins over one with a single more impressive record.
+- **The tally is a DOM walk, not a data pass** (`recTallyArtistRecords`), for the
+  same reason the global search is one: the built tables are the only place all
+  ~55 record lists exist in one shape. A future section is counted for free as
+  long as its rows expose an artist. Two ways they can — an
+  `.img-src-btn[data-artist]` from the shared `nameRow` helpers, or explicit
+  `data-rec-*` on the row.
+- **`data-rec-*` had to be added because `attachRecImgPicker` is async.** It writes
+  `data-artist` onto artwork during `loadImages()`, so any row depending on it is
+  invisible at build time and countable seconds later — the count came out
+  different on every load. This was found by diffing the reel's deck against a
+  fresh tally in the same page (133 vs 136, the three being Debuts→Albums). Every
+  section that draws its own thumbnail now carries build-time attributes:
+  `recRowAttrs()` for anything going through `recTable` (via the new `opts.rowAttrs`),
+  and inline attributes for PAK, Milestones, Debuts and the certifications wall.
+  **Don't let a new section rely on the picker badge for attribution.**
+- **The entries limit is respected in both directions.** `recTable()` slices to it
+  at build time, and `recTallyArtistRecords()` also skips `.rec-row-over-limit`,
+  so shrinking the limit re-tallies to a smaller number without a rebuild
+  (`applyRecordsLimitChange` calls the hero again on that path). Measured on the
+  demo set: 25 → 188 records, 50 → 236, 100 → 321, and back to 25 → 188.
+- **Collaborations count for each artist named**, via `splitArtists()` — the same
+  function the charts use, so a feature is credited exactly the way the charts
+  credit it, and the "don't split artists" setting is honoured for free. 155 rows
+  on the demo set name more than one artist.
+- **Card details are read from the row's own cells paired against its table's own
+  `<th>`** (`recRowDetails`). That is what lets a certification card say tier/type/date
+  while a debut card says plays/position/week, without a line of per-section code —
+  and a table that gains a column gains it on the card. Four gotchas, all found in
+  the browser: the `<th>` also holds `.rec-sort-ind` (▲) and `.col-resize-handle`;
+  cells stack parts that `textContent` runs together ("550Plays", "Perfect All
+  KillWeeks"), so child nodes are joined with `·` between `<div>`s and a space
+  otherwise; parts with no letter or digit are decoration (the 🎵/💿 column icons,
+  PAK's ▼ caret) and are dropped; and the cell holding `.rec-name` is skipped
+  because it is already the card's title.
+- **The certifications wall is the one exception** to all of that — it is divs, not
+  a table, so it has no `<th>` to pair against and its three fields are picked by
+  class instead. `.cert-date` reads "Certified Oct 12, 2025", so the label prefix
+  is stripped from the value.
+- **The card leads with one figure, it does not lay out a grid.** The first pass put
+  the details in a two-column key/value grid, which orphaned the odd one out and
+  left half a card empty whenever a record had a single supporting fact. Every
+  record has one figure that *is* the record — 5 weeks at #1, 396 plays, Diamond —
+  so `pickHeadlineDetail()` promotes it to a DM Serif Display numeral and the rest
+  collapse to one meta line. Serif numerals against DM Mono micro-labels is the
+  contrast the font stack exists for, and it reads as a chart annual rather than a
+  dashboard tile. Three de-stuttering rules were needed once value and label sat
+  next to each other, all found on screen and not in the data:
+  - the headline drops its trailing unit when the label already carries it
+    ("22 weeks" under "Weeks on Chart" becomes "22"), which is also what lets the
+    numeral hold the display size;
+  - any value opening with its own column name drops the prefix ("Week" +
+    "Week of 14 Apr 2024");
+  - `pickHeadlineDetail()` scores against bare dates and long tally strings,
+    because Appearances leads with a date and the certifications leaderboard leads
+    with "14× 💎 21× 💿 45× 🪙" — neither is a headline.
+  Known cosmetic artifact: the label is a *column header*, not a unit, so a value
+  of 1 can read "1 YEARS AT #1". Fixing it properly needs per-language plural
+  rules; it sets as a caps micro-label, which reads as a category tag.
+- **The rank is a vinyl label centre, not inline text.** A disc in the top-right
+  corner, so records with no ranking (the wall, the timeline) simply have no disc
+  instead of an empty slot in the sub line. `.rec-hero-card-head` carries
+  `padding-right: 26px` to clear it. Cards are `min-height: 132px` so a record with
+  one supporting fact and one with three are the same height in the reel.
+- **The reel is the Time Machine ticker's mechanism** (`.tm-ticker-*`), not a copy
+  of its CSS: deck rendered twice, track animated to `-50%` so the wrap lands on
+  the start of copy B, edge fade as a `mask-image` rather than overlay elements,
+  pause on hover. Only copy A's artwork is fetched and mirrored into copy B, which
+  halves the API calls. Images are fetched directly in batches rather than through
+  `loadImages()`, because the reel is in constant motion and an
+  `IntersectionObserver` fires unpredictably against a moving target.
+- **Uncapped by decision.** 188 records is a ~12-minute loop at the ticker's 4s per
+  card. The deck is shuffled instead (`tmShuffle`), so a long deck opens somewhere
+  different each visit rather than always on the same table's rows.
+- **The two "Busiest Discovery Period" tables are correctly uncounted** — they rank
+  *periods*, not artists, so no row in them has an artist to credit. Every other
+  table in the tab now contributes.
+- **`prefers-reduced-motion` stops the marquee** and turns the reel into an ordinary
+  horizontal scroller. Note the existing `.tm-ticker-track` has **no** such opt-out
+  — a pre-existing gap on the Time Machine that this deliberately did not inherit.
+- **Placement settles the "two headlines" question** left open below: the hero lives
+  at the top of `recOverviewSection`, above the 9-card grid, not above the search
+  bar. A 340–420px banner in the tab chrome would push search and all 11 nav pills
+  below the fold on mobile, and would sit directly under the intro plate. The plate
+  stays orientation; the hero is the headline, inside a section you can navigate away
+  from.
+
 ### Known data gaps
 
 Albums have **play-count milestones** as of the timeline work above (`albumMS` /
@@ -451,9 +551,13 @@ overview card therefore remains empty on the Albums pill instead of three.
 
 - [ ] **44. Share-as-image per record.** Records is the most brag-worthy surface in the
       app and still the only one with no share path, despite `PRODUCT.md` making
-      shareable moments a core principle.
-- [ ] **45.** *(~70% done via the overview)* Missing a single oversized "your #1 record
-      overall" hero above the grid.
+      shareable moments a core principle. **The hero (#45) is now the obvious place
+      to start** — it is the one element on the tab designed to be looked at.
+- [x] **45.** ~~A single oversized hero above the grid.~~ Shipped, but as *most
+      decorated artist* rather than "your #1 record overall" — see **The hero** in
+      the implementation notes for why that reframing is what made it buildable.
+      Banner photo, name, total, and an infinite shuffled reel of every record the
+      artist holds, each card carrying that record's own figures.
 - [x] **46.** ~~Milestones as a timeline, not a 4-column table.~~ Shipped: vertical spine,
       one node per tier (round tiers carry an accent fill), descending, cover art or
       artist avatar per entry, an "1st play" origin node where the spine terminates, and a
@@ -548,7 +652,10 @@ to 5) — which now also buys the mobile half of #19, since the wide tables are 
 reason headers stop sticking below 768px — then #43, which has an obvious home in the
 intro plate now that there is one.
 
-**Open, deliberately deferred:** the plate and #45 (an oversized "your #1 record
-overall" hero above the overview grid) are both candidates for "the headline of the
-tab". The plate was built as orientation, not as a hero, so #45 is still free to take
-that role — but decide before building it, or the top of the tab ends up with two.
+**Cheap now that the hero exists:** #44 (share-as-image) has a natural subject, and
+#7 (count badge per nav pill) can reuse `recRowRecord()` — the per-section row counts
+already fall out of the same walk.
+
+**Resolved:** the plate-vs-#45 "two headlines" question is settled. The plate stays
+orientation in the tab chrome; the hero is the headline and lives inside the Overview
+section. See the last bullet of **The hero** for why it is not above the search bar.

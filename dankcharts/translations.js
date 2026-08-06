@@ -521,6 +521,17 @@ const TRANSLATIONS = {
     rec_nav_certs: 'Certifications',
     rec_nav_streaks: 'Streaks',
 
+    // Records hero — the artist holding the most records, above the overview grid.
+    // Only defined in `en`; t() falls back to English for the other languages.
+    rec_hero_label: 'Most decorated artist',
+    records_one: 'record',
+    records_other: 'records',
+    // Detail labels for the certifications wall, which is divs rather than a
+    // table and so has no <th> for the reel cards to pair against.
+    rec_hero_d_tier: 'Tier',
+    rec_hero_d_type: 'Type',
+    rec_hero_d_certified: 'Certified',
+
     // Records overview cards — one headline record per section.
     // Only defined in `en`; t() falls back to English for the other languages.
     rec_ov_intro: 'Your single best record in each category. Pick one to see the full tables.',

@@ -11183,6 +11183,329 @@
       color: #1a1a00;
     }
 
+    /* ── Records hero: most-decorated artist ──────────────────────────
+       Photo fills the plate, the name sits in the fade beneath it, and the
+       reel of that artist's individual records scrolls across the faded
+       lower third. Shares its anatomy with .st-featured in Soundtrack —
+       same job, two tabs apart — but keeps its own class names because the
+       content below the fade is a marquee here, not a bento grid. */
+    .rec-hero {
+      --hc: var(--gold1);
+      position: relative;
+      overflow: hidden;
+      background: var(--bg2);
+      border: 1px solid color-mix(in srgb, var(--hc) 40%, var(--border));
+      border-radius: 20px;
+      margin-bottom: 1rem;
+    }
+
+    /* The tint + radial gradient is not decoration: it is what the plate looks
+       like before the photo lands, and on artists the lookup has no photo for. */
+    .rec-hero-banner {
+      position: relative;
+      min-height: 340px;
+      background-color: color-mix(in srgb, var(--hc) 14%, var(--bg2));
+      background-image: radial-gradient(ellipse 90% 100% at 50% 0%, color-mix(in srgb, var(--hc) 22%, transparent) 0%, transparent 70%);
+      background-size: cover;
+      background-position: center 26%; /* biased to the top third, where a face usually sits */
+    }
+
+    /* Clear over the face, then heavy enough by the bottom that the name and the
+       reel stay legible over any photo the lookup returns. Deliberately stops
+       short of fully opaque — the reel is meant to ride *over* the photo, so the
+       last band keeps it faintly visible behind the cards rather than covering
+       it with a flat strip of --bg2. */
+    .rec-hero-banner::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(180deg,
+        transparent 0%,
+        transparent 42%,
+        color-mix(in srgb, var(--bg2) 72%, transparent) 66%,
+        color-mix(in srgb, var(--bg2) 88%, transparent) 100%);
+    }
+
+    @media (min-width: 640px) {
+      .rec-hero-banner { min-height: 420px; }
+    }
+
+    /* Pulled up into the faded strip — never over the face above it. */
+    .rec-hero-main {
+      position: relative;
+      z-index: 1;
+      margin-top: -150px;
+      padding: 0 1.2rem 0.9rem;
+      text-align: center;
+    }
+
+    @media (min-width: 640px) {
+      .rec-hero-main { margin-top: -180px; }
+    }
+
+    .rec-hero-label {
+      font-family: var(--font-mono);
+      font-size: 0.58rem;
+      letter-spacing: 0.28em;
+      text-transform: uppercase;
+      color: var(--hc);
+      font-weight: 700;
+      margin-bottom: 0.55rem;
+      text-shadow: 0 1px 8px color-mix(in srgb, var(--bg2) 80%, transparent);
+    }
+
+    .rec-hero-name {
+      font-family: var(--font-display);
+      font-size: clamp(2rem, 7vw, 3.4rem);
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      line-height: 1.05;
+      color: var(--text);
+      margin-bottom: 0.4rem;
+      text-shadow: 0 2px 16px color-mix(in srgb, var(--bg2) 90%, transparent);
+    }
+
+    .rec-hero-count {
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      color: var(--text2);
+      text-shadow: 0 1px 8px color-mix(in srgb, var(--bg2) 80%, transparent);
+    }
+
+    /* ── The reel ─────────────────────────────────────────────────────
+       One card per record the artist holds, uncapped and shuffled. The deck
+       is rendered twice and the track animates to -50%, so the wrap lands on
+       the start of copy B and the loop is seamless — the same mechanism as
+       the Time Machine ticker (.tm-ticker-*), which is why the edge fade is
+       a mask rather than two overlay elements. */
+    .rec-hero-reel {
+      position: relative;
+      z-index: 1;
+      overflow: hidden;
+      width: 100%;
+      padding-bottom: 1.1rem;
+      mask-image: linear-gradient(to right, transparent 0%, black 4%, black 96%, transparent 100%);
+      -webkit-mask-image: linear-gradient(to right, transparent 0%, black 4%, black 96%, transparent 100%);
+    }
+
+    .rec-hero-track {
+      display: flex;
+      gap: 10px;
+      padding: 4px 0;
+      width: max-content;
+      animation: rec-hero-scroll linear infinite;
+    }
+
+    /* Duration is set inline per deck size, so the pace stays constant
+       (~4s per card) whether the artist holds 9 records or 900. */
+    @keyframes rec-hero-scroll {
+      from { transform: translateX(0); }
+      to   { transform: translateX(-50%); }
+    }
+
+    .rec-hero-reel:hover .rec-hero-track {
+      animation-play-state: paused;
+    }
+
+    /* Wide enough for the record's own figures — a certification says its tier
+       and date, a debut says plays, position and week. Fixed width so the
+       marquee's per-card pace stays even. */
+    .rec-hero-card {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      width: 288px;
+      min-height: 132px;
+      flex-shrink: 0;
+      padding: 0.7rem 0.75rem 0.75rem;
+      background: color-mix(in srgb, var(--bg2) 82%, transparent);
+      border: 1px solid var(--border-t);
+      border-radius: var(--r-md);
+      backdrop-filter: blur(6px);
+      -webkit-backdrop-filter: blur(6px);
+      transition: border-color 200ms cubic-bezier(0.4, 0, 0.2, 1),
+                  box-shadow 200ms cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    /* A soft spotlight from the corner the disc sits in, so the card has some
+       atmosphere behind the figure instead of a flat translucent fill. */
+    .rec-hero-card::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      background: radial-gradient(circle at 88% 12%, color-mix(in srgb, var(--hc) 13%, transparent) 0%, transparent 58%);
+      pointer-events: none;
+    }
+
+    .rec-hero-card > * { position: relative; }
+
+    /* The reel pauses on hover, so a card can be looked at — worth acknowledging. */
+    .rec-hero-card:hover {
+      border-color: color-mix(in srgb, var(--hc) 40%, var(--border-t));
+      box-shadow: 0 0 0 1px color-mix(in srgb, var(--hc) 18%, transparent),
+                  0 6px 22px color-mix(in srgb, var(--hc) 12%, transparent);
+    }
+
+    .rec-hero-card-head {
+      display: flex;
+      align-items: center;
+      gap: 0.55rem;
+      min-width: 0;
+      padding-right: 26px; /* clears the rank disc, so a long title never runs under it */
+    }
+
+    .rec-hero-card-headtext { min-width: 0; }
+
+    /* The record's own figure, at pull-quote scale. Serif numerals against mono
+       micro-labels is the editorial contrast this font stack exists for, and it
+       reads like a chart annual rather than a dashboard tile. The size jump from
+       the 0.5rem label to the ~1.9rem value is the hierarchy that the old
+       equal-weight grid had none of. */
+    .rec-hero-card-figure {
+      display: flex;
+      align-items: baseline;
+      gap: 0.45rem;
+      margin-top: auto;
+      min-width: 0;
+    }
+
+    .rec-hero-card-fig-v {
+      font-family: var(--font-display);
+      font-size: 1.85rem;
+      font-weight: 700;
+      line-height: 1;
+      letter-spacing: -0.03em;
+      color: var(--text);
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    .rec-hero-card-fig-k {
+      font-family: var(--font-mono);
+      font-size: 0.5rem;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--hc);
+      line-height: 1.3;
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    /* Everything the figure isn't, on one line — no grid, so a record with one
+       supporting fact and a record with three both look deliberate. */
+    .rec-hero-card-meta {
+      font-size: 0.6rem;
+      color: var(--text2);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .rec-hero-card-meta-k {
+      font-family: var(--font-mono);
+      font-size: 0.92em;
+      color: var(--text3);
+    }
+
+    .rec-hero-card-meta-sep { margin: 0 0.4em; opacity: 0.45; }
+
+    .rec-hero-card-art {
+      width: 42px;
+      height: 42px;
+      flex-shrink: 0;
+      border-radius: 6px;
+      overflow: hidden;
+      background: var(--bg3);
+    }
+
+    .rec-hero-card-art-round { border-radius: 50%; }
+
+    /* The loader replaces this box's innerHTML when the cover lands, so the
+       size lives here and not on the injected element — the placeholder and
+       the cover occupy the same space and the reel never reflows. */
+    .rec-hero-card-art .thumb,
+    .rec-hero-card-art .thumb-initials {
+      width: 100%;
+      height: 100%;
+      border: none;
+      border-radius: inherit;
+      font-size: 0.8rem;
+    }
+
+    .rec-hero-card-info {
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 0.05rem;
+    }
+
+    /* The placing, as a vinyl label centre — a ringed disc in the corner rather
+       than a number in the text. Records with no ranking (the certifications
+       wall, the milestone timeline) simply have no disc, which is why the rank
+       had to come out of the sub line: an empty slot there read as a mistake. */
+    .rec-hero-card-rank {
+      position: absolute;
+      top: 0.55rem;
+      right: 0.6rem;
+      width: 24px;
+      height: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      border: 1px solid color-mix(in srgb, var(--hc) 55%, transparent);
+      background: color-mix(in srgb, var(--hc) 10%, transparent);
+      font-family: var(--font-mono);
+      font-size: 0.62rem;
+      font-weight: 700;
+      color: var(--hc);
+      letter-spacing: -0.02em;
+    }
+
+    /* The number reads as a placing, so it wears the # rather than the markup
+       carrying one — that keeps the disc empty-able for unranked records. */
+    .rec-hero-card-rank::before {
+      content: '#';
+      opacity: 0.5;
+      font-size: 0.82em;
+      margin-right: 0.5px;
+    }
+
+    .rec-hero-card-name {
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: var(--text);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .rec-hero-card-sub {
+      font-size: 0.66rem;
+      color: var(--text2);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    /* An endlessly moving element is exactly what this preference is for. The
+       marquee stops and becomes an ordinary horizontal scroller, so every card
+       is still reachable. */
+    @media (prefers-reduced-motion: reduce) {
+      .rec-hero-track {
+        animation: none;
+        width: auto;
+      }
+
+      .rec-hero-reel {
+        overflow-x: auto;
+      }
+    }
+
     .rec-ov-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));

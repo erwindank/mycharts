@@ -4748,9 +4748,25 @@ function buildRecords() {
         '</div>';
     }).join('') + '</div>';
 
+  /* Attributes the hero-artist tally reads off a record row — see
+     recRowRecord(). Only needed where the row has no .img-src-btn written into
+     its markup, which is every section that draws its own thumbnail (or has no
+     thumbnail at all). Those rows do eventually gain a picker badge from
+     loadImages(), but that is async, so relying on it would make the tally
+     depend on how many covers happened to have resolved. */
+  function recRowAttrs(artist, type, name) {
+    if (!artist || !name) return '';
+    const prefKey = type === 'artist'
+      ? 'artist:' + artist.toLowerCase()
+      : type + ':' + artist.toLowerCase() + '|||' + name.toLowerCase();
+    return ' data-rec-artist="' + esc(artist) + '" data-rec-type="' + esc(type) + '"'
+      + ' data-rec-name="' + esc(name) + '" data-rec-prefkey="' + esc(prefKey) + '"';
+  }
+
   // `opts` is optional and only used by the tables that need extra hooks:
   //   tableCls — extra class(es) on the <table>
   //   rowCls   — fn(i) returning extra class(es) for row i
+  //   rowAttrs — fn(i) returning extra attribute string for row i
   function recTable(headers, rows, limit, detailRows, tableId, opts) {
     opts = opts || {};
     limit = (limit === undefined || limit === null) ? 25 : limit;
@@ -4762,8 +4778,9 @@ function buildRecords() {
       sliced.map(function (r, i) {
         const rankCls = (i === 0 ? 'rec-rank-1' : i === 1 ? 'rec-rank-2' : i === 2 ? 'rec-rank-3' : '')
           + (opts.rowCls ? ' ' + opts.rowCls(i) : '');
-        if (!slicedDetails || !slicedDetails[i]) return '<tr class="' + rankCls + '">' + r + '</tr>';
-        return '<tr class="' + rankCls + '">' + r + '</tr>'
+        const rowAttrs = opts.rowAttrs ? opts.rowAttrs(i) : '';
+        if (!slicedDetails || !slicedDetails[i]) return '<tr class="' + rankCls + '"' + rowAttrs + '>' + r + '</tr>';
+        return '<tr class="' + rankCls + '"' + rowAttrs + '>' + r + '</tr>'
           + '<tr class="rec-run-detail" id="' + slicedDetails[i].id + '"><td colspan="' + colCount + '">' + slicedDetails[i].html + '</td></tr>';
       }).join('') +
       '</tbody></table>';
@@ -4886,7 +4903,13 @@ function buildRecords() {
       pakImgQueue.push(pakArtistItem(artistImgId, artist));
       const expandId = 'pak-expand-' + safeKey;
       const rankCls = i === 0 ? ' rec-rank-1' : i === 1 ? ' rec-rank-2' : i === 2 ? ' rec-rank-3' : '';
-      ph += '<tr class="pak-artist-row' + rankCls + '" onclick="togglePakArtistExpand(\'' + expandId + '\',this)">'
+      /* data-rec-* is what the hero-artist tally reads off this row. PAK draws its
+         thumbnail itself rather than through the shared nameRow helper, so there is
+         no .img-src-btn here at build time to read the artist from — see
+         recRowRecord(). */
+      ph += '<tr class="pak-artist-row' + rankCls + '" onclick="togglePakArtistExpand(\'' + expandId + '\',this)"'
+        + ' data-rec-artist="' + esc(artist) + '" data-rec-type="artist" data-rec-name="' + esc(artist) + '"'
+        + ' data-rec-prefkey="' + esc('artist:' + artist.toLowerCase()) + '">'
         + '<td class="rec-rank">' + (i + 1) + '</td>'
         + '<td><div class="pak-artist-cell"><div class="pak-mini-thumb pak-mini-thumb-round" id="' + artistImgId + '"><div class="pak-mini-initials">' + esc(initials(artist)) + '</div></div><div class="rec-name">' + esc(artist) + '</div></div></td>'
         + '<td class="rec-count">' + weeks.length + '</td>'
@@ -5112,7 +5135,11 @@ function buildRecords() {
         const rankCls = i === 0 ? 'rec-rank-1' : i === 1 ? 'rec-rank-2' : i === 2 ? 'rec-rank-3' : '';
         const artImgId = 'deb-song-art-' + i;
         const artPrefKey = 'artist:' + d.artist.toLowerCase();
-        dh += '<tr class="' + rankCls + '">';
+        // data-rec-* for the hero tally: the Debuts tables draw their own mini
+        // thumbnails, so there is no .img-src-btn in the markup to read from —
+        // the picker badge only arrives later, from loadImages().
+        dh += '<tr class="' + rankCls + '" data-rec-artist="' + esc(d.artist) + '" data-rec-type="song"'
+          + ' data-rec-name="' + esc(d.title) + '" data-rec-prefkey="' + esc('song:' + d.artist.toLowerCase() + '|||' + d.title.toLowerCase()) + '">';
         dh += '<td class="rec-rank">' + (i + 1) + '</td>';
         dh += '<td><span class="pak-col-icon">🎵</span><span class="rec-name">' + esc(d.title) + '</span></td>';
         dh += '<td><div class="pak-mini-thumb pak-mini-thumb-round" id="' + artImgId + '"><div class="pak-mini-initials">' + esc(initials(d.artist)) + '</div></div></td>';
@@ -5155,7 +5182,8 @@ function buildRecords() {
         const fAlbImgId = 'deb-art-falb-' + i;
         const fSongPrefKey = fSong ? 'song:' + a.toLowerCase() + '|||' + fSong.toLowerCase() : '';
         const fAlbPrefKey = fAlbObj ? 'album:' + fAlbObj.artist.toLowerCase() + '|||' + fAlbObj.album.toLowerCase() : '';
-        dh += '<tr class="' + rankCls + '">';
+        dh += '<tr class="' + rankCls + '" data-rec-artist="' + esc(a) + '" data-rec-type="artist"'
+          + ' data-rec-name="' + esc(a) + '" data-rec-prefkey="' + esc('artist:' + a.toLowerCase()) + '">';
         dh += '<td class="rec-rank">' + (i + 1) + '</td>';
         dh += '<td><div class="pak-mini-thumb pak-mini-thumb-round" id="' + artImgId + '"><div class="pak-mini-initials">' + esc(initials(a)) + '</div></div></td>';
         dh += '<td><div class="rec-name">' + esc(a) + '</div></td>';
@@ -5203,7 +5231,8 @@ function buildRecords() {
         const artImgId = 'deb-alb-art-' + i;
         const albPrefKey = 'album:' + d.artist.toLowerCase() + '|||' + d.album.toLowerCase();
         const artPrefKey = 'artist:' + d.artist.toLowerCase();
-        dh += '<tr class="' + rankCls + '">';
+        dh += '<tr class="' + rankCls + '" data-rec-artist="' + esc(d.artist) + '" data-rec-type="album"'
+          + ' data-rec-name="' + esc(d.album) + '" data-rec-prefkey="' + esc(albPrefKey) + '">';
         dh += '<td class="rec-rank">' + (i + 1) + '</td>';
         dh += '<td><div class="pak-mini-thumb" id="' + albImgId + '"><div class="pak-mini-initials">' + esc(initials(d.album)) + '</div></div></td>';
         dh += '<td><div class="rec-name">' + esc(d.album) + '</div></td>';
@@ -5240,17 +5269,22 @@ function buildRecords() {
     const topS = Object.entries(cfg.sPP).sort(function (a, b) { return b[1].count - a[1].count; });
     ppH += '<div><div class="rec-section-sub">' + t('rec_top_songs') + '</div>' + recTable(['#', t('rec_th_songs') + ' &middot; ' + t('rec_th_artist'), t('rec_th_plays'), cfg.unitLabel],
       topS.map(function (e, i) { const d = e[1]; const n = songNames[e[0]] || {}; return '<td class="rec-rank">' + (i + 1) + '</td><td><div class="rec-name">' + esc(d.title || n.title || e[0].split('|||')[0]) + '</div><div class="rec-sub">' + esc(d.artist || n.artist || '') + '</div></td><td class="rec-count">' + d.count + '</td><td class="rec-meta">' + fmtPeriodKey(d.period, cfg.pt) + '</td>'; }),
-      lim
+      lim, null, null,
+      { rowAttrs: function (i) { const d = topS[i][1], n = songNames[topS[i][0]] || {};
+        return recRowAttrs(d.artist || n.artist || '', 'song', d.title || n.title || topS[i][0].split('|||')[0]); } }
     ) + '</div>';
     const topA = Object.entries(cfg.aPP).sort(function (a, b) { return b[1].count - a[1].count; });
     ppH += '<div><div class="rec-section-sub">' + t('rec_top_artists') + '</div>' + recTable(['#', t('rec_th_artist'), t('rec_th_plays'), cfg.unitLabel],
       topA.map(function (e, i) { return '<td class="rec-rank">' + (i + 1) + '</td><td><div class="rec-name">' + esc(e[0]) + '</div></td><td class="rec-count">' + e[1].count + '</td><td class="rec-meta">' + fmtPeriodKey(e[1].period, cfg.pt) + '</td>'; }),
-      lim
+      lim, null, null,
+      { rowAttrs: function (i) { return recRowAttrs(topA[i][0], 'artist', topA[i][0]); } }
     ) + '</div></div>';
     const topL = Object.entries(cfg.lPP).sort(function (a, b) { return b[1].count - a[1].count; });
     ppH += '<div class="rec-section-sub">' + t('rec_top_albums') + '</div>' + recTable(['#', t('rec_th_albums') + ' &middot; ' + t('rec_th_artist'), t('rec_th_plays'), cfg.unitLabel],
       topL.map(function (e, i) { const d = e[1]; const n = albumNames[e[0]] || {}; return '<td class="rec-rank">' + (i + 1) + '</td><td><div class="rec-name">' + esc(d.album || n.album || e[0].split('|||')[0]) + '</div><div class="rec-sub">' + esc(d.artist || n.artist || '') + '</div></td><td class="rec-count">' + d.count + '</td><td class="rec-meta">' + fmtPeriodKey(d.period, cfg.pt) + '</td>'; }),
-      lim
+      lim, null, null,
+      { rowAttrs: function (i) { const d = topL[i][1], n = albumNames[topL[i][0]] || {};
+        return recRowAttrs(d.artist || n.artist || '', 'album', d.album || n.album || topL[i][0].split('|||')[0]); } }
     ) + '</div>';
   }
   document.getElementById('recPeakPlaysBody').innerHTML = ppH;
@@ -5301,6 +5335,22 @@ function buildRecords() {
      second is what the origin row at the foot of the spine is built from. */
   function milTimeline(cfg) {
     const nameFn = cfg.nameFn, subFn = cfg.subFn;
+
+    /* Attributes the hero-artist tally reads off a timeline row. Milestone art is
+       queued in JS (milQueueArt) rather than written into the markup, so there is
+       no .img-src-btn here at build time to read from — see recRowRecord().
+       Which field holds the artist flips with the type: on the artists timeline
+       the name *is* the artist, on songs and albums it is the sub-line. */
+    function milRowAttrs(key, nm, sub) {
+      const artist = cfg.imgType === 'artist' ? nm : sub;
+      if (!artist) return '';
+      const prefKey = cfg.imgType === 'artist'
+        ? 'artist:' + nm.toLowerCase()
+        : cfg.imgType + ':' + (sub || '').toLowerCase() + '|||' + nm.toLowerCase();
+      return ' data-rec-artist="' + esc(artist) + '" data-rec-type="' + esc(cfg.imgType) + '"'
+        + ' data-rec-name="' + esc(nm) + '" data-rec-prefkey="' + esc(prefKey) + '"';
+    }
+
     // Shared by the tier rows and the origin row so the two can't drift apart.
     function artCell(imgId, imgType, key, name, sub) {
       milQueueArt(imgId, imgType, key, name, sub);
@@ -5328,7 +5378,7 @@ function buildRecords() {
     const rows = Object.keys(best).map(Number).sort(function (a, b) { return b - a; }).map(function (m) {
       const key = best[m].key, ms = best[m].ms;
       const nm = nameFn(key), sub = subFn ? subFn(key) : '';
-      return '<tr class="mil-row' + (MIL_MAJOR.has(m) ? ' mil-row-major' : '') + '">'
+      return '<tr class="mil-row' + (MIL_MAJOR.has(m) ? ' mil-row-major' : '') + '"' + milRowAttrs(key, nm, sub) + '>'
         + '<td class="mil-tier"><span class="milestone-number">' + m.toLocaleString() + '</span>'
         + '<span class="mil-tier-unit">' + t('mil_th_plays') + '</span></td>'
         + artCell('mil-img-' + cfg.idPrefix + '-' + m, cfg.imgType, key, nm, sub)
@@ -5350,7 +5400,7 @@ function buildRecords() {
       for (const k in cfg.first) if (bv === null || cfg.first[k] < bv) { bv = cfg.first[k]; bk = k; }
       if (bk !== null) {
         const nm = nameFn(bk), sub = subFn ? subFn(bk) : '';
-        originRow = '<tr class="mil-row mil-row-origin">'
+        originRow = '<tr class="mil-row mil-row-origin"' + milRowAttrs(bk, nm, sub) + '>'
           + '<td class="mil-tier"><span class="milestone-number">' + t('mil_origin_label') + '</span>'
           + '<span class="mil-tier-unit">' + t('mil_origin_unit') + '</span></td>'
           + artCell('mil-img-' + cfg.idPrefix + '-origin', cfg.imgType, bk, nm, sub)
@@ -5460,7 +5510,8 @@ function buildRecords() {
       const ms = e[1][TARGET], fp = artistFirst[e[0]];
       return '<td class="rec-rank">' + (i + 1) + '</td><td><div class="rec-name">' + esc(e[0]) + '</div></td><td class="rec-count">' + (ms.days === 0 ? t('rec_days_less_than_1') : ms.days.toLocaleString() + ' ' + tUnit('days', ms.days)) + '</td><td class="rec-meta">' + (fp ? fmtDate(fp) : '—') + '</td><td class="rec-meta">' + fmtDate(ms.date) + '</td>';
     }),
-    lim
+    lim, null, null,
+    { rowAttrs: function (i) { return recRowAttrs(withM[i][0], 'artist', withM[i][0]); } }
   );
   fh += '</div>';
   for (const m of [500, 2000, 5000]) {
@@ -5469,7 +5520,8 @@ function buildRecords() {
     fh += '<div class="rec-section"><div class="rec-section-title">' + t('rec_fastest_to', { type: '♦ ' + t('rec_th_artists'), n: m.toLocaleString() }) + '</div>';
     fh += recTable(['#', t('rec_th_artist'), t('rec_th_days'), t('rec_th_date_reached')],
       entries.map(function (e, i) { const ms = e[1][m]; return '<td class="rec-rank">' + (i + 1) + '</td><td><div class="rec-name">' + esc(e[0]) + '</div></td><td class="rec-count">' + (ms.days === 0 ? '&lt; 1' : ms.days.toLocaleString()) + ' ' + tUnit('days', ms.days) + '</td><td class="rec-meta">' + fmtDate(ms.date) + '</td>'; }),
-      lim
+      lim, null, null,
+      { rowAttrs: function (i) { return recRowAttrs(entries[i][0], 'artist', entries[i][0]); } }
     );
     fh += '</div>';
   }
@@ -5478,7 +5530,9 @@ function buildRecords() {
     fh += '<div class="rec-section"><div class="rec-section-title">' + t('rec_songs_fastest_to', { n: '500' }) + '</div>';
     fh += recTable(['#', t('rec_th_songs') + ' &middot; ' + t('rec_th_artist'), t('rec_th_days'), t('rec_th_date_reached')],
       songWith500.map(function (e, i) { const n = songNames[e[0]] || {}, ms = e[1][500]; return '<td class="rec-rank">' + (i + 1) + '</td><td><div class="rec-name">' + esc(n.title || e[0].split('|||')[0]) + '</div><div class="rec-sub">' + esc(n.artist || '') + '</div></td><td class="rec-count">' + (ms.days === 0 ? '&lt; 1' : ms.days.toLocaleString()) + ' ' + tUnit('days', ms.days) + '</td><td class="rec-meta">' + fmtDate(ms.date) + '</td>'; }),
-      lim
+      lim, null, null,
+      { rowAttrs: function (i) { const n = songNames[songWith500[i][0]] || {};
+        return recRowAttrs(n.artist || '', 'song', n.title || songWith500[i][0].split('|||')[0]); } }
     );
     fh += '</div>';
   }
@@ -5500,7 +5554,8 @@ function buildRecords() {
         const ac2 = [e.ad ? e.ad + '× 💎' : '', e.ap ? e.ap + '× 💿' : '', e.ag ? e.ag + '× 🪙' : ''].filter(Boolean).join(' ') || '—';
         return '<td class="rec-rank">' + (i + 1) + '</td><td><div class="rec-name">' + esc(e.art) + '</div></td><td class="rec-meta" style="white-space:nowrap">' + sc2 + '</td><td class="rec-meta" style="white-space:nowrap">' + ac2 + '</td>';
       }),
-      lim
+      lim, null, null,
+      { rowAttrs: function (i) { return recRowAttrs(certW[i].art, 'artist', certW[i].art); } }
     );
   }
   ch += '</div>';
@@ -5672,7 +5727,8 @@ function buildRecords() {
       lim, null, tableId,
       {
         tableCls: 'nc-sd-table' + (hasPodium ? ' nc-podium-on' : ''),
-        rowCls: i => (hasPodium && i < 3 ? 'nc-podium-row' : '')
+        rowCls: i => (hasPodium && i < 3 ? 'nc-podium-row' : ''),
+        rowAttrs: i => recRowAttrs(sorted[i][1].artist, 'song', sorted[i][1].title)
       }
     );
 
@@ -5684,7 +5740,8 @@ function buildRecords() {
     const sorted = Object.entries(ncArtistDebuts[pt]).sort((a, b) => b[1].plays - a[1].plays || a[1].rank - b[1].rank || a[1].period.localeCompare(b[1].period));
     return ncSec('♦ ' + t('rec_th_artists') + ' &mdash; Biggest New Chart Debut',
       recTable(['#', t('rec_th_artist'), t('rec_th_plays'), 'Debut Rank', ncPeriodTh(pt)],
-        sorted.map((e, i) => { const d = e[1]; return '<td class="rec-rank">' + (i + 1) + '</td><td><div class="rec-name">' + esc(e[0]) + '</div></td><td class="rec-count">' + (d.plays || 0) + '</td><td class="rec-count">#' + d.rank + '</td>' + ncPeriodTd(pt, d.period); }), lim));
+        sorted.map((e, i) => { const d = e[1]; return '<td class="rec-rank">' + (i + 1) + '</td><td><div class="rec-name">' + esc(e[0]) + '</div></td><td class="rec-count">' + (d.plays || 0) + '</td><td class="rec-count">#' + d.rank + '</td>' + ncPeriodTd(pt, d.period); }), lim, null, null,
+        { rowAttrs: i => recRowAttrs(sorted[i][0], 'artist', sorted[i][0]) }));
   }
 
   // ── 3. Biggest New Album Debut ─────────────────────────────────
@@ -5692,7 +5749,8 @@ function buildRecords() {
     const sorted = Object.entries(ncAlbumDebuts[pt]).sort((a, b) => b[1].plays - a[1].plays || a[1].rank - b[1].rank || a[1].period.localeCompare(b[1].period));
     return ncSec('💿 ' + t('rec_th_albums') + ' &mdash; Biggest New Chart Debut',
       recTable(['#', t('rec_th_albums'), t('rec_th_artist'), t('rec_th_plays'), 'Debut Rank', ncPeriodTh(pt)],
-        sorted.map((e, i) => { const d = e[1]; return '<td class="rec-rank">' + (i + 1) + '</td><td><div class="rec-name">' + esc(d.album) + '</div></td><td><div class="rec-sub">' + esc(d.artist) + '</div></td><td class="rec-count">' + (d.plays || 0) + '</td><td class="rec-count">#' + d.rank + '</td>' + ncPeriodTd(pt, d.period); }), lim));
+        sorted.map((e, i) => { const d = e[1]; return '<td class="rec-rank">' + (i + 1) + '</td><td><div class="rec-name">' + esc(d.album) + '</div></td><td><div class="rec-sub">' + esc(d.artist) + '</div></td><td class="rec-count">' + (d.plays || 0) + '</td><td class="rec-count">#' + d.rank + '</td>' + ncPeriodTd(pt, d.period); }), lim, null, null,
+        { rowAttrs: i => recRowAttrs(sorted[i][1].artist, 'album', sorted[i][1].album) }));
   }
 
   // ── 4 & 5. Busiest Discovery Period ────────────────────────────
@@ -5719,7 +5777,8 @@ function buildRecords() {
     const sorted = Object.entries(best).sort((a, b) => b[1].count - a[1].count || a[1].period.localeCompare(b[1].period));
     return ncSec('🎵 Most Songs on a Single New Chart (by Artist)',
       recTable(['#', t('rec_th_artist'), 'New Songs', ncPeriodTh(pt)],
-        sorted.map((e, i) => '<td class="rec-rank">' + (i + 1) + '</td><td><div class="rec-name">' + esc(e[0]) + '</div></td><td class="rec-count">' + e[1].count + '</td>' + ncPeriodTd(pt, e[1].period)), lim));
+        sorted.map((e, i) => '<td class="rec-rank">' + (i + 1) + '</td><td><div class="rec-name">' + esc(e[0]) + '</div></td><td class="rec-count">' + e[1].count + '</td>' + ncPeriodTd(pt, e[1].period)), lim, null, null,
+        { rowAttrs: i => recRowAttrs(sorted[i][0], 'artist', sorted[i][0]) }));
   }
 
   // ── 7. Most New Song Debuts All-Time by Artist ─────────────────
@@ -5727,7 +5786,8 @@ function buildRecords() {
     const sorted = Object.entries(ncNewSongDebutsByArtist[pt]).sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
     return ncSec('📈 Most New Song Debuts (All-Time, by Artist)',
       recTable(['#', t('rec_th_artist'), 'Total Debut Appearances'],
-        sorted.map((e, i) => '<td class="rec-rank">' + (i + 1) + '</td><td><div class="rec-name">' + esc(e[0]) + '</div></td><td class="rec-count">' + e[1] + '</td>'), lim));
+        sorted.map((e, i) => '<td class="rec-rank">' + (i + 1) + '</td><td><div class="rec-name">' + esc(e[0]) + '</div></td><td class="rec-count">' + e[1] + '</td>'), lim, null, null,
+        { rowAttrs: i => recRowAttrs(sorted[i][0], 'artist', sorted[i][0]) }));
   }
 
   // ── 8. Longest Consecutive Debut Streak by Artist ─────────────
@@ -5735,7 +5795,8 @@ function buildRecords() {
     const sorted = Object.entries(artistConsecNewDebuts[pt]).sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
     return ncSec('🔁 Longest Consecutive Debut Streak (by Artist)',
       recTable(['#', t('rec_th_artist'), 'Consecutive ' + (pt === 'week' ? 'Weeks' : 'Months')],
-        sorted.map((e, i) => '<td class="rec-rank">' + (i + 1) + '</td><td><div class="rec-name">' + esc(e[0]) + '</div></td><td class="rec-count">' + e[1] + ' ' + tUnit(pt === 'week' ? 'weeks_full' : 'months', e[1]) + '</td>'), lim));
+        sorted.map((e, i) => '<td class="rec-rank">' + (i + 1) + '</td><td><div class="rec-name">' + esc(e[0]) + '</div></td><td class="rec-count">' + e[1] + ' ' + tUnit(pt === 'week' ? 'weeks_full' : 'months', e[1]) + '</td>'), lim, null, null,
+        { rowAttrs: i => recRowAttrs(sorted[i][0], 'artist', sorted[i][0]) }));
   }
 
   // ── 9. New Song → #1 Fastest ──────────────────────────────────
@@ -5744,7 +5805,8 @@ function buildRecords() {
     const colP = pt === 'week' ? 'Weeks to #1' : 'Months to #1';
     return ncSec('⚡ New Song &rarr; #1 Fastest',
       recTable(['#', t('rec_th_songs'), t('rec_th_artist'), colP, 'Debut', '#1 Achieved'],
-        sorted.map((e, i) => { const d = e[1]; const pStr = d.periods === 0 ? 'Debuted at #1' : d.periods + ' ' + tUnit(pt === 'week' ? 'weeks_full' : 'months', d.periods); return '<td class="rec-rank">' + (i + 1) + '</td><td><div class="rec-name">' + esc(d.title) + '</div></td><td><div class="rec-sub">' + esc(d.artist) + '</div></td><td class="rec-count">' + pStr + '</td>' + ncPeriodTd(pt, d.debutPeriod) + ncPeriodTd(pt, d.no1Period); }), lim));
+        sorted.map((e, i) => { const d = e[1]; const pStr = d.periods === 0 ? 'Debuted at #1' : d.periods + ' ' + tUnit(pt === 'week' ? 'weeks_full' : 'months', d.periods); return '<td class="rec-rank">' + (i + 1) + '</td><td><div class="rec-name">' + esc(d.title) + '</div></td><td><div class="rec-sub">' + esc(d.artist) + '</div></td><td class="rec-count">' + pStr + '</td>' + ncPeriodTd(pt, d.debutPeriod) + ncPeriodTd(pt, d.no1Period); }), lim, null, null,
+        { rowAttrs: i => recRowAttrs(sorted[i][1].artist, 'song', sorted[i][1].title) }));
   }
 
   // ── 10. New Album with Most Tracks Also Debuting ───────────────
@@ -5758,7 +5820,8 @@ function buildRecords() {
     return ncSec('💿 New Album with Most Tracks Also Debuting',
       combined.length
         ? recTable(['#', t('rec_th_albums'), t('rec_th_artist'), 'Tracks Debuting', t('rec_th_plays'), ncPeriodTh(pt)],
-          combined.map((e, i) => '<td class="rec-rank">' + (i + 1) + '</td><td><div class="rec-name">' + esc(e.album) + '</div></td><td><div class="rec-sub">' + esc(e.artist) + '</div></td><td class="rec-count">' + e.cnt + '</td><td class="rec-count">' + e.plays + '</td>' + ncPeriodTd(pt, e.period)), lim)
+          combined.map((e, i) => '<td class="rec-rank">' + (i + 1) + '</td><td><div class="rec-name">' + esc(e.album) + '</div></td><td><div class="rec-sub">' + esc(e.artist) + '</div></td><td class="rec-count">' + e.cnt + '</td><td class="rec-count">' + e.plays + '</td>' + ncPeriodTd(pt, e.period)), lim, null, null,
+          { rowAttrs: i => recRowAttrs(combined[i].artist, 'album', combined[i].album) })
         : '<div class="rec-empty">' + t('rec_no_data') + '</div>');
   }
 
@@ -5801,14 +5864,17 @@ function buildRecords() {
   sh += '<div class="rec-section"><div class="rec-section-title">' + t('rec_artists_longest_streak') + '</div>';
   sh += recTable(['#', t('rec_th_artist'), t('rec_th_consec_days')],
     topAS.map(function (e, i) { return '<td class="rec-rank">' + (i + 1) + '</td><td><div class="rec-name">' + esc(e[0]) + '</div></td><td class="rec-count">' + e[1] + ' ' + tUnit('days', e[1]) + '</td>'; }),
-    lim
+    lim, null, null,
+    { rowAttrs: function (i) { return recRowAttrs(topAS[i][0], 'artist', topAS[i][0]); } }
   );
   sh += '</div>';
   const topSS = Object.entries(songStreaks).sort(function (a, b) { return b[1] - a[1]; });
   sh += '<div class="rec-section"><div class="rec-section-title">' + t('rec_songs_longest_streak') + '</div>';
   sh += recTable(['#', t('rec_th_songs') + ' &middot; ' + t('rec_th_artist'), t('rec_th_consec_days')],
     topSS.map(function (e, i) { const n = songNames[e[0]] || {}; return '<td class="rec-rank">' + (i + 1) + '</td><td><div class="rec-name">' + esc(n.title || e[0].split('|||')[0]) + '</div><div class="rec-sub">' + esc(n.artist || '') + '</div></td><td class="rec-count">' + e[1] + ' ' + tUnit('days', e[1]) + '</td>'; }),
-    lim
+    lim, null, null,
+    { rowAttrs: function (i) { const n = songNames[topSS[i][0]] || {};
+      return recRowAttrs(n.artist || '', 'song', n.title || topSS[i][0].split('|||')[0]); } }
   );
   sh += '</div>';
   sh += '<div class="rec-section"><div class="rec-section-title">' + t('rec_repeat_runs') + '</div><div class="rec-section-sub">' + t('rec_repeat_runs_sub') + '</div>';
@@ -5818,7 +5884,9 @@ function buildRecords() {
         const n = songNames[e.key] || {};
         return '<td class="rec-rank">' + (i + 1) + '</td><td><div class="rec-name">' + esc(n.title || e.key.split('|||')[0]) + '</div><div class="rec-sub">' + esc(n.artist || '') + '</div></td><td class="rec-count">' + e.count + '&times;</td><td class="rec-meta">' + (e.date ? fmt(e.date) : '') + '</td>';
       }),
-      lim
+      lim, null, null,
+      { rowAttrs: function (i) { const n = songNames[allCSRuns[i].key] || {};
+        return recRowAttrs(n.artist || '', 'song', n.title || allCSRuns[i].key.split('|||')[0]); } }
     );
   } else {
     sh += '<div class="rec-empty">' + t('rec_no_repeat_runs') + '</div>';
@@ -6027,6 +6095,11 @@ function buildRecords() {
   recBuiltLimit = lim;
   tagRecRowIndices();
   applyRecRowLimit(lim);
+
+  /* Last, because it reads the built tables rather than the source maps — every
+     section has to exist in the DOM before the tally can walk it. */
+  renderRecordsHeroArtist(recTallyArtistRecords());
+
   if (recSearchQuery()) runRecordsSearch(recSearchQuery());
 }
 
@@ -6109,6 +6182,369 @@ function renderRecordsOverview(highlights) {
       if (rv && rv.scrollIntoView) rv.scrollIntoView({ block: 'start', behavior: 'auto' });
     });
   }
+}
+
+/* ── Hero artist: whoever holds the most records ───────────────────────
+   A "record" here is any single row in any records table, at any rank — three
+   Taylor Swift songs inside one Top 25 are three records, not one, and each
+   gets its own card in the reel. Ranking is by raw row count, so the winner is
+   the most decorated artist in the library rather than the holder of any one
+   headline record.
+
+   This is a DOM walk, not a data pass, for the same reason the global search is
+   one: the built tables are the only place all ~55 record lists exist in a
+   single shape. A future section is therefore counted for free, as long as its
+   rows expose an artist. Two ways they can:
+     - an .img-src-btn[data-artist] written by the shared nameRow helpers
+       (All #1s, Appearances, New Charts, Debuts)
+     - explicit data-rec-* on the row itself, for the sections that draw their
+       own artwork and so have no picker button at build time (PAK, Milestones)
+       or are not tables at all (the certifications wall)
+
+   The entries-per-table limit is respected in both directions: recTable()
+   slices to it at build time, so rows past it are never rendered, and rows
+   hidden afterwards by applyRecRowLimit() are skipped here. If a table is
+   capped at 25, only those 25 are anyone's records. */
+
+// Rows that are a detail of the row above them, plus the wall's own card grid.
+const REC_TALLY_SEL = '#recordsView tbody tr, #recordsView .cert-card';
+
+/* One record row → the card descriptor the reel needs, or null if the row
+   carries no artist (spacer rows, empty states, headers). */
+function recRowRecord(row) {
+  let artist = row.dataset.recArtist || '';
+  let type = row.dataset.recType || '';
+  let name = row.dataset.recName || '';
+  let prefKey = row.dataset.recPrefkey || '';
+
+  if (!artist) {
+    // The shared nameRow helpers write everything the picker needs onto the
+    // button; reuse it rather than duplicating the attributes on every row.
+    const btn = row.querySelector('.img-src-btn[data-artist]');
+    if (!btn) return null;
+    artist = btn.getAttribute('data-artist') || '';
+    type = type || btn.getAttribute('data-type') || '';
+    name = name || btn.getAttribute('data-name') || '';
+    prefKey = prefKey || btn.getAttribute('data-prefkey') || '';
+  }
+  if (!artist || !name) return null;
+
+  // The rank the row holds in its own table — the "#" column. Absent on the
+  // milestone timeline and the certifications wall, which have no rank column.
+  const rankCell = row.querySelector ? row.querySelector('.rec-rank') : null;
+  const rank = rankCell ? rankCell.textContent.trim() : '';
+
+  return { artist, type: type || 'song', name, prefKey, rank, details: recRowDetails(row, name, artist) };
+}
+
+/* The figures that make a record specific — "12 times at #1, first Mar 2019" —
+   paired out of the row's own cells against its table's own <th>. Reading the
+   rendered table rather than re-deriving per section means a card carries
+   whatever that record actually measures, in the section's own translated
+   wording, for all ~55 tables at once. A table that gains a column gains it on
+   the card too. */
+const REC_DETAIL_MAX = 4;
+
+/* Which of a record's figures is *the* figure. Usually the first, because the
+   tables put the column they rank by early — "Weeks at #1", "Plays",
+   "Consecutive Days", "Tier". But Appearances leads with a date and the
+   certifications leaderboard leads with a long tally string, and neither reads
+   as a headline, so a value is scored on being short and starting with a
+   number. Returns an index into `details`. */
+function pickHeadlineDetail(details) {
+  let bestI = 0, bestScore = -Infinity;
+  for (let i = 0; i < details.length; i++) {
+    const v = details[i].value;
+    let score = 0;
+    if (/^[\d]/.test(v)) score += 3;          // a count, a duration, a position
+    if (v.length <= 14) score += 2;           // fits at display size without wrapping
+    if (v.length > 24) score -= 3;            // a tally or a sentence, not a headline
+    if (/^\d{1,2} \w{3} \d{4}$/.test(v)) score -= 2; // a bare date is context, not the record
+    if (/week of|^\w{3} \d{4}$/i.test(v)) score -= 2;
+    score -= i * 0.1;                          // ties go to the earlier (more ranked) column
+    if (score > bestScore) { bestScore = score; bestI = i; }
+  }
+  return bestI;
+}
+
+function recRowDetails(row, name, artist) {
+  const out = [];
+
+  /* The certifications wall is divs, not a table, so it has no <th> to pair
+     against — its fields are named by their own classes instead. */
+  if (row.classList && row.classList.contains('cert-card')) {
+    const pick = function (sel, label) {
+      const el = row.querySelector(sel);
+      let v = el ? el.textContent.trim() : '';
+      // .cert-date reads "Certified Oct 12, 2025" — the label already says that.
+      if (v.toLowerCase().indexOf(label.toLowerCase() + ' ') === 0) v = v.slice(label.length + 1);
+      if (v) out.push({ label: label, value: v });
+    };
+    pick('.cert-tier-badge', t('rec_hero_d_tier'));
+    pick('.cert-type-badge', t('rec_hero_d_type'));
+    pick('.cert-date', t('rec_hero_d_certified'));
+    return out;
+  }
+
+  const table = row.closest ? row.closest('table') : null;
+  if (!table) return out;
+  const ths = table.querySelectorAll('thead th');
+  const cells = row.children;
+
+  /* Raw textContent runs a cell's parts together ("550Plays", "Perfect All
+     KillWeeks"), so walk the child nodes instead. Stacked <div>s are separate
+     facts and get " · "; inline spans and bare text are one phrase and get a
+     space. Parts that carry no letter or digit are decoration — the 🎵/💿
+     column icons and PAK's ▼ expand caret — and are dropped, because a value
+     reading "▼" is noise on a card. */
+  const partsOf = function (el) {
+    const parts = [];
+    el.childNodes.forEach(function (n) {
+      if (n.nodeType === 1 && n.classList.contains('col-resize-handle')) return;
+      const s = n.textContent.replace(/\s+/g, ' ').trim();
+      if (!s || !/[\p{L}\p{N}]/u.test(s)) return;
+      parts.push({ s: s, block: n.nodeType === 1 && n.tagName === 'DIV' });
+    });
+    return parts;
+  };
+
+  const joinParts = function (parts) {
+    let outStr = '';
+    for (let i = 0; i < parts.length; i++) {
+      if (i > 0) outStr += (parts[i].block || parts[i - 1].block) ? ' · ' : ' ';
+      outStr += parts[i].s;
+    }
+    return outStr;
+  };
+
+  const cellText = function (el) { return joinParts(partsOf(el)); };
+
+  for (let i = 0; i < cells.length && out.length < REC_DETAIL_MAX; i++) {
+    const td = cells[i];
+    // The rank and the artwork are already on the card; the toggle column is a
+    // control, and its header holds the "expand all" glyph rather than a label.
+    if (td.classList.contains('rec-rank') || td.classList.contains('thumb-cell')) continue;
+    if (td.classList.contains('rec-run-toggle-cell') || td.querySelector('button')) continue;
+
+    // The cell that names the record's subject is already the card's title.
+    const nameEl = td.querySelector('.rec-name');
+    if (nameEl && nameEl.textContent.trim() === name) continue;
+
+    const th = ths[i];
+    if (!th || th.querySelector('button')) continue;
+    /* .rec-sort-ind is the ▲/▼ the sortable headers carry, and
+       .col-resize-handle is an empty span on every th but the last — neither is
+       part of the column's name. */
+    const labelParts = [];
+    th.childNodes.forEach(function (n) {
+      if (n.nodeType === 1 && (n.classList.contains('rec-sort-ind') || n.classList.contains('col-resize-handle'))) return;
+      const s = n.textContent.replace(/\s+/g, ' ').trim();
+      if (s) labelParts.push({ s: s, block: false });
+    });
+    const label = joinParts(labelParts);
+    if (!label) continue;
+
+    let value = cellText(td);
+    if (!value || value === '—') continue;
+    // Skip the columns the card already shows as its title and its subject.
+    if (value === name || value === artist) continue;
+    /* "Week" + "Week of 14 Apr 2024" reads as a stutter once the two sit side by
+       side on a card, so a value that opens with its own column name drops it. */
+    if (value.toLowerCase().indexOf(label.toLowerCase() + ' ') === 0) {
+      value = value.slice(label.length + 1).trim();
+      if (!value) continue;
+    }
+
+    out.push({ label: label, value: value });
+  }
+  return out;
+}
+
+/* What record is this row a record *of*? Read from the headings the row sits
+   under, so the label cannot drift from what the section actually says and
+   stays translated for free — the same trick the overview cards use. */
+function recRowLabel(row) {
+  const sub = row.closest('.rec-section-sub-wrapper');
+  const subTitle = sub ? sub.querySelector('.rec-section-sub') : null;
+  const sect = row.closest('.rec-section');
+  const sectTitle = sect ? sect.querySelector('.rec-section-title') : null;
+  const top = row.closest('.chart-section');
+  const topTitle = top ? top.querySelector('.section-header-h2') : null;
+
+  // Sub-section headings read "Weekly Chart — 42 songs have hit #1"; only the
+  // part before the dash is the qualifier, the rest is a count we already show.
+  let qualifier = '';
+  if (subTitle) qualifier = subTitle.textContent.split('—')[0].trim();
+
+  const main = (sectTitle && sectTitle.textContent.trim())
+    || (topTitle && topTitle.textContent.trim())
+    || '';
+  return { main, qualifier };
+}
+
+/* Tally every rendered record row by credited artist. Collaborations count for
+   each artist named, via the app's own splitArtists() — so this credits a
+   feature exactly the way the charts do, and honours the "don't split artists"
+   setting for users who have it off. */
+function recTallyArtistRecords() {
+  const tally = Object.create(null);
+  document.querySelectorAll(REC_TALLY_SEL).forEach(function (row) {
+    // Detail rows belong to the row above them; counting both double-counts.
+    if (row.matches && row.matches(REC_DETAIL_ROW_SEL)) return;
+    // A record past the entries-per-table limit is not one of your records —
+    // the tab does not show it, so the hero does not count it.
+    if (row.classList.contains('rec-row-over-limit')) return;
+    const rec = recRowRecord(row);
+    if (!rec) return;
+    const label = recRowLabel(row);
+    splitArtists(rec.artist).forEach(function (a) {
+      const nm = a.trim();
+      if (!nm) return;
+      const k = nm.toLowerCase();
+      const bucket = tally[k] || (tally[k] = { name: nm, records: [] });
+      bucket.records.push({
+        type: rec.type, name: rec.name, prefKey: rec.prefKey, rank: rec.rank,
+        artist: rec.artist, label: label.main, qualifier: label.qualifier,
+        details: rec.details
+      });
+    });
+  });
+
+  let best = null;
+  for (const k in tally) {
+    if (!best || tally[k].records.length > best.records.length) best = tally[k];
+  }
+  return best;
+}
+
+/* Cancels an in-flight reel image load when the hero is rebuilt, so a stale
+   pass cannot inject covers into the new deck. Same guard shape as the Time
+   Machine ticker's tmLoaderId. */
+let recHeroLoaderId = 0;
+
+/* The banner + reel. The photo, the name and the total are the brag; the reel
+   underneath is a sampler of the individual records, shuffled so that a long
+   deck shows something different each visit rather than always opening on the
+   same table's rows. Deliberately uncapped — every record the artist holds is
+   in the deck. */
+function renderRecordsHeroArtist(best) {
+  const host = document.getElementById('recHeroArtist');
+  if (!host) return;
+
+  if (!best || !best.records.length) { host.style.display = 'none'; host.innerHTML = ''; return; }
+  host.style.display = '';
+
+  const total = best.records.length;
+  const cards = tmShuffle(best.records);
+
+  /* The deck is rendered twice and the track animates to -50%, so the wrap
+     lands exactly on the start of copy B and the loop is seamless. Both copies
+     carry their own image ids; only copy A is fetched and the result is
+     mirrored into copy B, which halves the API calls. */
+  const aItems = { song: [], artist: [], album: [] };
+  const bItems = { song: [], artist: [], album: [] };
+
+  function buildCard(rec, i, suffix) {
+    const imgId = 'rechero-' + suffix + '-' + i;
+    const type = rec.type === 'artist' ? 'artist' : (rec.type === 'album' ? 'album' : 'song');
+    const bucket = suffix === 'a' ? aItems : bItems;
+    bucket[type].push({
+      imgId, prefKey: rec.prefKey, name: rec.name,
+      title: type === 'song' ? rec.name : '',
+      album: type === 'album' ? rec.name : '',
+      artist: rec.artist
+    });
+    /* Every record has one figure that *is* the record — 5 weeks at #1, 396
+       plays, 24 days, Diamond — and the rest are supporting detail. Splitting
+       them that way is what lets the card lead with something instead of laying
+       four equal key/value pairs in a grid that orphans the odd one out. */
+    const all = rec.details || [];
+    const hi = all.length ? all[pickHeadlineDetail(all)] : null;
+    const rest = all.filter(function (d) { return d !== hi; });
+
+    /* "22 weeks" under a label reading "Weeks on Chart" says weeks twice. When
+       the figure's trailing unit is already in its label, the numeral stands
+       alone — which is also what lets it carry the display size cleanly. */
+    let figV = hi ? hi.value : '';
+    if (hi) {
+      const m = figV.match(/^([\d.,]+)\s+(\S+)$/);
+      if (m && hi.label.toLowerCase().indexOf(m[2].toLowerCase()) !== -1) figV = m[1];
+    }
+
+    const sub = [rec.label, rec.qualifier].filter(Boolean).join(' · ');
+    // Supporting figures collapse to one line: "first Sep 2025 · peak Mar 2026".
+    const metaLine = rest.map(function (d) {
+      return '<span class="rec-hero-card-meta-i"><span class="rec-hero-card-meta-k">'
+        + esc(d.label) + '</span> ' + esc(d.value) + '</span>';
+    }).join('<span class="rec-hero-card-meta-sep">·</span>');
+
+    return '<div class="rec-hero-card rec-hero-card-' + type + '">'
+      + (rec.rank ? '<div class="rec-hero-card-rank">' + esc(rec.rank) + '</div>' : '')
+      + '<div class="rec-hero-card-head">'
+      + '<div class="rec-hero-card-art' + (type === 'artist' ? ' rec-hero-card-art-round' : '') + '" id="' + imgId + '">'
+      + '<div class="thumb-initials">' + esc(initials(rec.name)) + '</div></div>'
+      + '<div class="rec-hero-card-headtext">'
+      + '<div class="rec-hero-card-name">' + esc(rec.name) + '</div>'
+      + (sub ? '<div class="rec-hero-card-sub">' + esc(sub) + '</div>' : '')
+      + '</div></div>'
+      + (hi ? '<div class="rec-hero-card-figure">'
+          + '<span class="rec-hero-card-fig-v">' + esc(figV) + '</span>'
+          + '<span class="rec-hero-card-fig-k">' + esc(hi.label) + '</span></div>' : '')
+      + (metaLine ? '<div class="rec-hero-card-meta">' + metaLine + '</div>' : '')
+      + '</div>';
+  }
+
+  const deckA = cards.map(function (r, i) { return buildCard(r, i, 'a'); }).join('');
+  const deckB = cards.map(function (r, i) { return buildCard(r, i, 'b'); }).join('');
+
+  host.innerHTML =
+    '<div class="rec-hero-banner" id="recHeroBanner"></div>'
+    + '<div class="rec-hero-main">'
+    + '<div class="rec-hero-label">' + esc(t('rec_hero_label')) + '</div>'
+    + '<div class="rec-hero-name">' + esc(best.name) + '</div>'
+    + '<div class="rec-hero-count">' + esc(tCount('records', total)) + '</div>'
+    + '</div>'
+    + '<div class="rec-hero-reel" id="recHeroReel">'
+    + '<div class="rec-hero-track" id="recHeroTrack">' + deckA + deckB + '</div>'
+    + '</div>';
+
+  /* One card every 4s, matching the Time Machine ticker's pace, so a long deck
+     scrolls at the same speed as a short one instead of racing. */
+  const track = document.getElementById('recHeroTrack');
+  if (track) track.style.animationDuration = Math.max(20, cards.length * 4) + 's';
+
+  // Banner photo — same artist-image lookup the rest of the app uses, so it
+  // honours pinned picker choices and works on every data source.
+  const bannerEl = document.getElementById('recHeroBanner');
+  const heroName = best.name;
+  if (bannerEl) {
+    getArtistImage(heroName, 'deezer').then(function (url) {
+      if (bannerEl.isConnected && url) bannerEl.style.backgroundImage = 'url("' + url + '")';
+    });
+  }
+
+  /* Card artwork. Fetched directly in small batches rather than through
+     loadImages(), because the reel is in constant motion and its
+     IntersectionObserver would fire unpredictably against a moving target —
+     the same reason the Time Machine ticker loads its cards this way. */
+  const myLoaderId = ++recHeroLoaderId;
+  (async function () {
+    for (const type of ['song', 'artist', 'album']) {
+      const pairs = aItems[type].map(function (a, i) { return [a, bItems[type][i]]; });
+      const BATCH = 4;
+      for (let i = 0; i < pairs.length; i += BATCH) {
+        if (recHeroLoaderId !== myLoaderId) return;
+        await Promise.all(pairs.slice(i, i + BATCH).map(async function (pair) {
+          if (recHeroLoaderId !== myLoaderId) return;
+          const aEl = document.getElementById(pair[0].imgId);
+          if (!aEl) return;
+          await fetchAndInjectImage(aEl, pair[0], type);
+          const bEl = pair[1] && document.getElementById(pair[1].imgId);
+          if (bEl) bEl.innerHTML = aEl.innerHTML;
+        }));
+      }
+    }
+  })();
 }
 
 function initAllRecTableResizableCols() {
@@ -6390,6 +6826,11 @@ function applyRecordsLimitChange() {
   if (recBuiltLimit !== null && want <= recBuiltLimit) {
     // The rows are already here — no rebuild, so the sort and the images stay put.
     applyRecRowLimit(want);
+    /* The hero counts what the tab shows, so a smaller limit is a smaller set
+       of records. Re-tallying here is what keeps the headline number honest
+       without a rebuild; the reel reshuffles as a side effect, which is
+       acceptable for an action the reader just took deliberately. */
+    renderRecordsHeroArtist(recTallyArtistRecords());
     if (recSearchQuery()) runRecordsSearch(recSearchQuery());
     return;
   }
@@ -19471,7 +19912,12 @@ function renderCertWallCards() {
        replaces its target's innerHTML when the cover lands, and the wrap also
        holds the sleeve and the vinyl centre — pointing the loader at the wrap
        would erase both. The slot is also what carries the ✎ picker badge. */
-    return `<div class="cert-card cert-card--${tierClass}">
+    /* data-rec-* lets the hero-artist tally count a certification the same way it
+       counts a table row. The wall is divs rather than a <table>, so it is the one
+       place the tally cannot walk tbody rows — it matches .cert-card instead. */
+    const cwType = item.type === 'album' ? 'album' : 'song'; // the wall holds songs and albums only
+    const cwPrefKey = cwType + ':' + (item.artist || '').toLowerCase() + '|||' + (item.title || '').toLowerCase();
+    return `<div class="cert-card cert-card--${tierClass}" data-rec-artist="${esc(item.artist || '')}" data-rec-type="${esc(cwType)}" data-rec-name="${esc(item.title || '')}" data-rec-prefkey="${esc(cwPrefKey)}">
   <div class="cert-frame">
     <div class="cert-record-wrap" id="cwrec-${origIdx}">
       <div class="cert-sleeve"></div>
