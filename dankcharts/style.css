@@ -18349,7 +18349,8 @@ body.yellow-light .hero-icon-crown {
   --flame-1: #ff2200; --flame-2: #ff7a1a; --flame-scale: 1.11; --flame-glow: 12px;
 }
 .hero-stat--streak-6 .hero-icon-flame {
-  --flame-1: #ff8c00; --flame-2: #ffd700; --flame-scale: 1.18; --flame-glow: 14px;
+  /* Hotter than red: the legend tier burns blue, like the base of a real flame */
+  --flame-1: #1e6fff; --flame-2: #8fe0ff; --flame-scale: 1.18; --flame-glow: 14px;
 }
 
 /* The core gutters once the fire is real; faster the hotter it gets */
@@ -18368,9 +18369,9 @@ body.yellow-light .hero-icon-crown {
   animation: hero-flame-flicker 0.7s ease-in-out infinite;
 }
 
-/* Legend tier gets the same travelling gold sweep as the number */
+/* Legend tier gets the same travelling blue-flame sweep as the number */
 .hero-stat--streak-6 .hero-flame-body {
-  background: linear-gradient(to top right, #ff8c00, #ffd700, #ff8c00);
+  background: linear-gradient(to top right, #1e6fff, #9fe8ff, #1e6fff);
   background-size: 220% 220%;
   animation: hero-flame-legend 2s linear infinite;
 }
@@ -18462,7 +18463,7 @@ body.yellow-light .hero-icon-crown {
   animation: streak-flicker 0.6s ease-in-out infinite;
 }
 .hero-stat--streak-6 .hero-val {
-  background: linear-gradient(90deg, #ffd700, #ff8c00, #ffd700);
+  background: linear-gradient(90deg, #8fe0ff, #1e6fff, #8fe0ff);
   background-size: 200% auto;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -25794,7 +25795,9 @@ body.red-light .modal-cb-label--tracks {
     .cr-stk-t3 { --flame-1: #ff5400; --flame-2: #ffa02a; --flame-scale: 0.96; --flame-glow: 7px;  --heat-1: #ff5400; --heat-2: #ffa02a; }
     .cr-stk-t4 { --flame-1: #ff3d00; --flame-2: #ff9500; --flame-scale: 1.04; --flame-glow: 9px;  --heat-1: #ff3d00; --heat-2: #ff9500; }
     .cr-stk-t5 { --flame-1: #ff2200; --flame-2: #ff7a1a; --flame-scale: 1.12; --flame-glow: 11px; --heat-1: #ff2200; --heat-2: #ff7a1a; }
-    .cr-stk-t6 { --flame-1: #ff8c00; --flame-2: #ffd700; --flame-scale: 1.20; --flame-glow: 14px; --heat-1: #ff8c00; --heat-2: #ffd700; }
+    /* Hotter than red: the legendary tier burns blue, like the base of a real
+       flame — nothing else in the list can be mistaken for it. */
+    .cr-stk-t6 { --flame-1: #1e6fff; --flame-2: #8fe0ff; --flame-scale: 1.20; --flame-glow: 14px; --heat-1: #2a7fff; --heat-2: #7fd8ff; }
 
     /* ── The flame glyph ──
        Same construction as .hero-icon-flame: a square with one sharp corner,
@@ -25863,14 +25866,14 @@ body.red-light .modal-cb-label--tracks {
     .cr-stk-t5 .cr-stk-flame-core,
     .cr-stk-t6 .cr-stk-flame-core { animation: cr-stk-flicker 0.7s ease-in-out infinite; }
 
-    /* Legendary tier gets the travelling gold sweep, same as the masthead's */
+    /* Legendary tier gets the travelling blue-flame sweep, same as the masthead's */
     @keyframes cr-stk-legend {
       0%   { background-position: 0% 50%; }
       100% { background-position: 220% 50%; }
     }
 
     .cr-stk-t6 .cr-stk-flame-body {
-      background: linear-gradient(to top right, #ff8c00, #ffd700, #ff8c00);
+      background: linear-gradient(to top right, #1e6fff, #9fe8ff, #1e6fff);
       background-size: 220% 220%;
       animation: cr-stk-legend 2s linear infinite;
     }
@@ -26049,7 +26052,7 @@ body.red-light .modal-cb-label--tracks {
 
     /* Only the legendary run gets the travelling sweep - scarcity keeps it special */
     .cr-stk-t6 .cr-stk-bar > i {
-      background: linear-gradient(90deg, #ff8c00, #ffd700, #ff8c00);
+      background: linear-gradient(90deg, #2a7fff, #7fd8ff, #2a7fff);
       background-size: 220% 100%;
       animation:
         cr-stk-burn 620ms cubic-bezier(0.4, 0, 0.2, 1) both,
@@ -26298,10 +26301,10 @@ body.red-light .modal-cb-label--tracks {
     body.yellow-light .cr-stk-t6,
     body.red-light .cr-stk-t6,
     body.pink-light .cr-stk-t6 {
-      --flame-1: #d97400; --flame-2: #e8a800; --heat-1: #cc6a00; --heat-2: #e0a300;
+      --flame-1: #0b57d0; --flame-2: #2f8fdc; --heat-1: #0b57d0; --heat-2: #1a78cc;
     }
 
-    /* The travelling sweep is hardcoded gold in both the flame and the bar, so
+    /* The travelling sweep is hardcoded blue in both the flame and the bar, so
        the light variant needs its own darker sweep to stay legible. */
     body.navy-light .cr-stk-t6 .cr-stk-flame-body,
     body.purple-light .cr-stk-t6 .cr-stk-flame-body,
@@ -26313,7 +26316,7 @@ body.red-light .modal-cb-label--tracks {
     body.yellow-light .cr-stk-t6 .cr-stk-bar > i,
     body.red-light .cr-stk-t6 .cr-stk-bar > i,
     body.pink-light .cr-stk-t6 .cr-stk-bar > i {
-      background: linear-gradient(90deg, #cc6a00, #e0a300, #cc6a00);
+      background: linear-gradient(90deg, #0b57d0, #2f8fdc, #0b57d0);
       background-size: 220% 100%;
     }
 
