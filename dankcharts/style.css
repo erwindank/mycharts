@@ -23044,9 +23044,11 @@ body[class*="-light"] .tm-card-search:hover {
   .np-artist { font-size: 0.72rem; }
   .np-elapsed { font-size: 0.9rem; }
   .np-elapsed-label { display: none; }
-  /* The artist-total chip is the least important thing here; drop it before the
-     title starts truncating. */
-  .np-chip:not(.np-chip-count):not(.np-chip-first) { display: none; }
+  /* Both chips stay on mobile — the artist total is half the point of the bar.
+     They're tightened up so the pair usually still fits on one line, and .np-chips
+     wraps if it doesn't. */
+  .np-chips { gap: 0.25rem; }
+  .np-chip { font-size: 0.53rem; padding: 0.1rem 0.34rem; letter-spacing: 0.02em; }
 }
 
 @media (prefers-reduced-motion: reduce) {
