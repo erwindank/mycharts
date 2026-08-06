@@ -18349,8 +18349,7 @@ body.yellow-light .hero-icon-crown {
   --flame-1: #ff2200; --flame-2: #ff7a1a; --flame-scale: 1.11; --flame-glow: 12px;
 }
 .hero-stat--streak-6 .hero-icon-flame {
-  /* Hotter than red: the legend tier burns blue, like the base of a real flame */
-  --flame-1: #1e6fff; --flame-2: #8fe0ff; --flame-scale: 1.18; --flame-glow: 14px;
+  --flame-1: #ff8c00; --flame-2: #ffd700; --flame-scale: 1.18; --flame-glow: 14px;
 }
 
 /* The core gutters once the fire is real; faster the hotter it gets */
@@ -18369,9 +18368,9 @@ body.yellow-light .hero-icon-crown {
   animation: hero-flame-flicker 0.7s ease-in-out infinite;
 }
 
-/* Legend tier gets the same travelling blue-flame sweep as the number */
+/* Legend tier gets the same travelling gold sweep as the number */
 .hero-stat--streak-6 .hero-flame-body {
-  background: linear-gradient(to top right, #1e6fff, #9fe8ff, #1e6fff);
+  background: linear-gradient(to top right, #ff8c00, #ffd700, #ff8c00);
   background-size: 220% 220%;
   animation: hero-flame-legend 2s linear infinite;
 }
@@ -18463,7 +18462,7 @@ body.yellow-light .hero-icon-crown {
   animation: streak-flicker 0.6s ease-in-out infinite;
 }
 .hero-stat--streak-6 .hero-val {
-  background: linear-gradient(90deg, #8fe0ff, #1e6fff, #8fe0ff);
+  background: linear-gradient(90deg, #ffd700, #ff8c00, #ffd700);
   background-size: 200% auto;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -25771,9 +25770,11 @@ body.red-light .modal-cb-label--tracks {
        all burn the same colour, so the list reads top-to-bottom as a cooling
        ladder. Selecting a run ignites its blocks left to right.
 
-       The fire hexes are deliberately literal rather than themed: this is the
-       exact ramp .hero-stat--streak-N already uses in the masthead, and fire
-       reads as fire in all 8 themes. Everything that isn't fire stays on tokens.
+       The fire hexes are deliberately literal rather than themed: tiers 1–5
+       are the exact ramp .hero-stat--streak-N uses in the masthead, and fire
+       reads as fire in all 8 themes. Tier 6 diverges on purpose — here the
+       legend burns blue, while the masthead keeps its gold sweep. Everything
+       that isn't fire stays on tokens.
        ═══════════════════════════════════════════════════════════════ */
     .cr-streaks {
       font-family: var(--font-mono);
