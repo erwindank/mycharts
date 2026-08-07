@@ -4639,18 +4639,32 @@ function buildRecords() {
      — the old `for (const m of MILESTONES) … >= m` rescanned the whole ladder on
      every play, which the every-25 song ladder (hundreds of tiers, unbounded)
      would have turned into a visible hang. */
+  /* `elapsed` is the exact gap in milliseconds; `days` is that rounded, kept
+     because plenty of callers only ever want the round number.
+
+     Rounded days cannot order the Fastest ladder on its own. At the 50-play
+     tier 23 of the 25 visible rows share a day count, so the ranking they were
+     given was really insertion order. Every play carries a real time of day —
+     a Last.fm unix timestamp, or whatever time a Sheets/CSV date column
+     supplies — and the exact gap separates all of them. A date-only import
+     lands every play at midnight, which makes `elapsed` a whole number of days
+     and the tie-break a harmless no-op rather than a wrong answer. */
+  const msAt = function (date, first) {
+    const elapsed = date - first;
+    return { date: date, elapsed: elapsed, days: Math.round(elapsed / 86400000) };
+  };
   for (const p of chron) {
     for (const a of p.artists) {
       if (!artistFirst[a]) artistFirst[a] = p.date;
       const n = artistCP[a] = (artistCP[a] || 0) + 1;
       if (!artistMS[a]) artistMS[a] = {};
-      if (MILESTONE_SET.has(n)) artistMS[a][n] = { date: p.date, days: Math.round((p.date - artistFirst[a]) / 86400000) };
+      if (MILESTONE_SET.has(n)) artistMS[a][n] = msAt(p.date, artistFirst[a]);
     }
     const sk = songKey(p);
     if (!songFirst[sk]) songFirst[sk] = p.date;
     const sn = songCP[sk] = (songCP[sk] || 0) + 1;
     if (!songMS[sk]) songMS[sk] = {};
-    if (sn % SONG_MILESTONE_STEP === 0 || SONG_MILESTONE_EXTRA.has(sn)) songMS[sk][sn] = { date: p.date, days: Math.round((p.date - songFirst[sk]) / 86400000) };
+    if (sn % SONG_MILESTONE_STEP === 0 || SONG_MILESTONE_EXTRA.has(sn)) songMS[sk][sn] = msAt(p.date, songFirst[sk]);
     // A play with no album tag can't be credited to one — CSV uploads and a fair
     // number of Last.fm scrobbles have none — so it sits this ladder out. Same
     // guard the raw discovery counts above use.
@@ -4659,7 +4673,7 @@ function buildRecords() {
       if (!albumFirst[ak]) albumFirst[ak] = p.date;
       const an = albumCP[ak] = (albumCP[ak] || 0) + 1;
       if (!albumMS[ak]) albumMS[ak] = {};
-      if (MILESTONE_SET.has(an)) albumMS[ak][an] = { date: p.date, days: Math.round((p.date - albumFirst[ak]) / 86400000) };
+      if (MILESTONE_SET.has(an)) albumMS[ak][an] = msAt(p.date, albumFirst[ak]);
     }
   }
 
@@ -5385,7 +5399,10 @@ function buildRecords() {
         + '<td class="mil-who"><div class="rec-name">' + esc(nm) + '</div>'
         + (sub ? '<div class="rec-sub">' + esc(sub) + '</div>' : '') + '</td>'
         + '<td class="mil-when">' + fmtDate(ms.date) + '</td>'
-        + '<td class="mil-after">' + (ms.days === 0 ? t('rec_milestone_day1') : t('rec_milestone_days_after', { n: ms.days.toLocaleString() })) + '</td>'
+        // Same elapsed treatment the Fastest ladder uses, so a gap never reads
+        // two different ways in two sections. This replaces a bare "Day 1" for
+        // anything under 24 hours, which said less than the hours do.
+        + '<td class="mil-after" data-sort="' + ms.elapsed + '">' + t('rec_milestone_after', { time: fmtElapsed(ms.elapsed) }) + '</td>'
         + '</tr>';
     });
 
@@ -5553,9 +5570,12 @@ function buildRecords() {
      to be climbed a rung at a time. It is only a default — once a rung is
      opened or closed by hand that choice is stored and wins. */
   function fastTierSection(cfg, m, collapsed) {
+    /* Ranked on the exact gap, not the rounded day count — that is the whole
+       ordering at the low tiers, where almost every visible row shares a day
+       count and the sort had nothing left to compare. */
     const entries = Object.entries(cfg.ms)
       .filter(function (e) { return e[1][m]; })
-      .sort(function (a, b) { return a[1][m].days - b[1][m].days; });
+      .sort(function (a, b) { return a[1][m].elapsed - b[1][m].elapsed; });
     if (!entries.length) return '';
     const plays = m.toLocaleString();
     const sub = entries.length === 1
@@ -5564,13 +5584,16 @@ function buildRecords() {
     let h = '<div class="rec-section"' + (collapsed ? ' data-rec-default-collapsed="1"' : '')
       + '><div class="rec-section-title">' + cfg.title(m) + '</div>';
     h += '<div class="rec-section-sub">' + sub + '</div>';
-    h += recTable(['#', cfg.head, t('rec_th_days'), t('rec_th_first_play'), t('rec_th_date_reached')],
+    h += recTable(['#', cfg.head, t('rec_th_time_taken'), t('rec_th_first_play'), t('rec_th_date_reached')],
       entries.map(function (e, i) {
         const ms = e[1][m], fp = cfg.first[e[0]], sb = cfg.type === 'artist' ? '' : cfg.art(e[0]);
         return '<td class="rec-rank">' + (i + 1) + '</td>'
           + '<td><div class="rec-name">' + esc(cfg.nm(e[0])) + '</div>'
           + (sb ? '<div class="rec-sub">' + esc(sb) + '</div>' : '') + '</td>'
-          + '<td class="rec-count">' + (ms.days === 0 ? t('rec_days_less_than_1') : ms.days.toLocaleString() + ' ' + tUnit('days', ms.days)) + '</td>'
+          /* recCellSortValue() would read "1d 4h" as the number 14 and "7h" as
+             7, so re-sorting this column by hand would scramble it. data-sort
+             hands it the raw gap instead — the same value the section ranks on. */
+          + '<td class="rec-count" data-sort="' + ms.elapsed + '">' + fmtElapsed(ms.elapsed) + '</td>'
           + '<td class="rec-meta">' + (fp ? fmtDate(fp) : '—') + '</td>'
           + '<td class="rec-meta">' + fmtDate(ms.date) + '</td>';
       }),
@@ -6082,11 +6105,14 @@ function buildRecords() {
      has reached that tier yet the card would be empty for no good reason, so
      it drops to the highest tier anyone did reach. */
   {
+    // Exact elapsed time, matching the section's own ranking — picking the
+    // winner on rounded days would sometimes name a different record than the
+    // one sitting at #1 in the table this card links to.
     const fastest = function (msMap, target) {
       let best = null;
       for (const k in msMap) {
         const ms = msMap[k][target];
-        if (ms && (!best || ms.days < best[1].days)) best = [k, ms];
+        if (ms && (!best || ms.elapsed < best[1].elapsed)) best = [k, ms];
       }
       return best;
     };
@@ -6102,13 +6128,13 @@ function buildRecords() {
     const a = fastestAtOrBelow(artistMS, [1000, 500]);
     const l = fastestAtOrBelow(albumMS, [500, 250, 100]);
     if (s) hi('recFastestSection', 'songs', t('rec_ov_fastest', { n: s.m.toLocaleString() }),
-      tCount('days', s.best[1].days), songNm(s.best[0]), songArt(s.best[0]));
+      fmtElapsed(s.best[1].elapsed), songNm(s.best[0]), songArt(s.best[0]));
     if (a) hi('recFastestSection', 'artists', t('rec_ov_fastest', { n: a.m.toLocaleString() }),
-      tCount('days', a.best[1].days), a.best[0]);
+      fmtElapsed(a.best[1].elapsed), a.best[0]);
     // Albums climb their own ladder now, so this card is no longer empty on the
     // Albums pill.
     if (l) hi('recFastestSection', 'albums', t('rec_ov_fastest', { n: l.m.toLocaleString() }),
-      tCount('days', l.best[1].days), albumNm(l.best[0]), albumArt(l.best[0]));
+      fmtElapsed(l.best[1].elapsed), albumNm(l.best[0]), albumArt(l.best[0]));
   }
 
   /* Certifications. Artists rank by how many they hold, which is a genuine
@@ -8785,6 +8811,25 @@ function fmtDate(d) {
   const monthKey = ['month_jan', 'month_feb', 'month_mar', 'month_apr', 'month_may_short', 'month_jun', 'month_jul', 'month_aug', 'month_sep', 'month_oct', 'month_nov', 'month_dec'][d.getMonth()];
   const monthName = t(monthKey);
   return `${d.getDate()} ${monthName} ${d.getFullYear()}`;
+}
+
+/* Elapsed time from a first play to a milestone, for the record tables that
+   rank on it. Hours are shown while they still carry meaning and dropped once
+   the day count is large enough that they are noise — a song that took seven
+   hours and one that took nineteen are a real ordering, "1,123d 4h" is false
+   precision. Below a day the day count is dropped instead, so "< 1 day" stops
+   covering everything from twenty minutes to twenty-three hours.
+
+   Hours are truncated, not rounded, so the number never claims time that has
+   not passed: 47 hours reads "1d 23h", never "2d 0h". */
+const ELAPSED_HOURS_UNTIL_DAYS = 30;
+function fmtElapsed(elapsed) {
+  const hours = Math.floor(Math.max(0, elapsed) / 3600000);
+  const d = Math.floor(hours / 24), h = hours % 24;
+  if (hours === 0) return t('elapsed_lt_hour');
+  if (d === 0) return t('elapsed_h', { h: h });
+  if (d < ELAPSED_HOURS_UNTIL_DAYS) return t('elapsed_dh', { d: d, h: h });
+  return d.toLocaleString() + ' ' + tUnit('days', d);
 }
 
 // ─── NEW ENTRIES (first-ever plays for the period) ─────────────
