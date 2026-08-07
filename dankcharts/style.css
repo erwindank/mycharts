@@ -11443,9 +11443,16 @@
     }
 
     /* The tier glyph sits beside the pair, not inside it — it is the one thing
-       "certified" must not be centred against. */
+       "certified" must not be centred against.
+
+       Sized to the tier word rather than under it: an emoji carries padding
+       inside its em box, so matching font-sizes still leaves the glyph's ink
+       a little smaller than the cap height next to it — which is the balance
+       wanted, medal reading as tall as the word without overpowering it. At
+       the old 1.6rem it measured 26px against the word's 37px and read as an
+       afterthought. */
     .rec-hero-card-fig-icon {
-      font-size: 1.6rem;
+      font-size: 2.3rem;
       line-height: 1;
       flex-shrink: 0;
     }
