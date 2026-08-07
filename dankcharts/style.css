@@ -11318,7 +11318,7 @@
       width: 288px;
       /* Fits the worst case — a three-line title over a two-line description —
          so no card in the reel is ever a different height from its neighbours. */
-      min-height: 158px;
+      min-height: 182px;
       flex-shrink: 0;
       padding: 0.7rem 0.75rem 0.75rem;
       background: color-mix(in srgb, var(--bg2) 82%, transparent);
@@ -11381,45 +11381,61 @@
       letter-spacing: -0.03em;
       color: var(--text);
       white-space: nowrap;
-      flex-shrink: 0;
-    }
-
-    .rec-hero-card-fig-k {
-      font-family: var(--font-mono);
-      font-size: 0.5rem;
-      letter-spacing: 0.16em;
-      text-transform: uppercase;
-      color: var(--hc);
-      line-height: 1.3;
       min-width: 0;
       overflow: hidden;
       text-overflow: ellipsis;
-      white-space: nowrap;
+    }
+
+    /* Two steps down for the handful of figures that are a tally rather than a
+       number, so they stay inside the card. Set by length in buildCard(). */
+    .rec-hero-card-fig-v-sm { font-size: 1.4rem; }
+    .rec-hero-card-fig-v-xs { font-size: 1.05rem; letter-spacing: -0.01em; }
+
+    /* The unit beside the figure. Wraps rather than truncating, because some of
+       these are whole column names — "Time Since First Play" — and a clipped
+       unit leaves the numeral meaning nothing. */
+    .rec-hero-card-fig-k {
+      font-family: var(--font-mono);
+      font-size: 0.6rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--hc);
+      line-height: 1.25;
+      min-width: 0;
     }
 
     /* Everything the figure isn't, on one line — no grid, so a record with one
        supporting fact and a record with three both look deliberate. */
+    /* Everything the figure isn't. The card has room below the figure, so this
+       wraps to a second line at a readable size rather than ellipsising a
+       supporting fact away at 0.6rem — "Date at Peak Wee…" was the tell. */
     .rec-hero-card-meta {
-      font-size: 0.6rem;
+      font-size: 0.72rem;
+      line-height: 1.45;
       color: var(--text2);
-      white-space: nowrap;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      line-clamp: 2;
+      -webkit-box-orient: vertical;
       overflow: hidden;
-      text-overflow: ellipsis;
     }
 
     .rec-hero-card-meta-k {
       font-family: var(--font-mono);
-      font-size: 0.92em;
+      font-size: 0.88em;
       color: var(--text3);
     }
 
     .rec-hero-card-meta-sep { margin: 0 0.4em; opacity: 0.45; }
 
+    /* Sized to the space the tallest card in the deck forces on every other one.
+       A reel of records is mostly artwork anyway, so the leftover height goes to
+       the cover rather than sitting as a void between the title and the figure. */
     .rec-hero-card-art {
-      width: 42px;
-      height: 42px;
+      width: 58px;
+      height: 58px;
       flex-shrink: 0;
-      border-radius: 6px;
+      border-radius: 7px;
       overflow: hidden;
       background: var(--bg3);
     }

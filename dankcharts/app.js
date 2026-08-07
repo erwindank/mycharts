@@ -6273,16 +6273,19 @@ function recRowDetails(row, name, artist) {
   /* The certifications wall is divs, not a table, so it has no <th> to pair
      against — its fields are named by their own classes instead. */
   if (row.classList && row.classList.contains('cert-card')) {
-    const pick = function (sel, label) {
+    const pick = function (sel, label, strip) {
       const el = row.querySelector(sel);
       let v = el ? el.textContent.trim() : '';
-      // .cert-date reads "Certified Oct 12, 2025" — the label already says that.
-      if (v.toLowerCase().indexOf(label.toLowerCase() + ' ') === 0) v = v.slice(label.length + 1);
+      /* .cert-date renders as "Certified Oct 12, 2025". The word belongs to the
+         tier headline now, not to the date, so it comes off here — keyed to the
+         markup's own wording rather than to this field's label, which no longer
+         matches it. */
+      if (strip && v.toLowerCase().indexOf(strip.toLowerCase() + ' ') === 0) v = v.slice(strip.length + 1);
       if (v) out.push({ label: label, value: v });
     };
     pick('.cert-tier-badge', t('rec_hero_d_tier'));
     pick('.cert-type-badge', t('rec_hero_d_type'));
-    pick('.cert-date', t('rec_hero_d_certified'));
+    pick('.cert-date', t('rec_hero_d_certified'), 'Certified');
     return out;
   }
 
@@ -6487,8 +6490,14 @@ function renderRecordsHeroArtist(best) {
       + '<div class="rec-hero-card-name">' + esc(rec.name) + '</div>'
       + (sub ? '<div class="rec-hero-card-sub">' + esc(sub) + '</div>' : '')
       + '</div></div>'
+      /* Most figures are a short number, but a few are not — the certifications
+         leaderboard's headline is a tally like "14× 💎 21× 💿 45× 🪙". Stepping
+         the display size down by length keeps those inside the card instead of
+         running off its edge, without shrinking the ordinary case. */
       + (hi ? '<div class="rec-hero-card-figure">'
-          + '<span class="rec-hero-card-fig-v">' + esc(figV) + '</span>'
+          + '<span class="rec-hero-card-fig-v'
+          + (figV.length > 15 ? ' rec-hero-card-fig-v-xs' : (figV.length > 9 ? ' rec-hero-card-fig-v-sm' : ''))
+          + '">' + esc(figV) + '</span>'
           + '<span class="rec-hero-card-fig-k">' + esc(hi.label) + '</span></div>' : '')
       + (metaLine ? '<div class="rec-hero-card-meta">' + metaLine + '</div>' : '')
       + '</div>';

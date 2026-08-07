@@ -528,9 +528,12 @@ const TRANSLATIONS = {
     records_other: 'records',
     // Detail labels for the certifications wall, which is divs rather than a
     // table and so has no <th> for the reel cards to pair against.
-    rec_hero_d_tier: 'Tier',
+    // The tier is the headline on a certification card, so it wears "Certified"
+    // — "Platinum · certified". That frees the date below to be plain "Date",
+    // which also stops the word appearing twice on the same card.
+    rec_hero_d_tier: 'Certified',
     rec_hero_d_type: 'Type',
-    rec_hero_d_certified: 'Certified',
+    rec_hero_d_certified: 'Date',
 
     // Records overview cards — one headline record per section.
     // Only defined in `en`; t() falls back to English for the other languages.
