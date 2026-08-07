@@ -536,7 +536,11 @@ const TRANSLATIONS = {
     /* The wall is one section holding both songs and albums, so its own heading
        cannot say which a given card is. These name it per card, which is also
        why the card no longer carries a separate "Type" figure. */
-    rec_hero_cert_song: '🎵 Song Certification',
+    /* A rosette rather than a musical note: the note names the genre, not the
+       achievement, and a certification is the one record here that is awarded.
+       Albums keep the disc — the two must stay tellable apart at a glance,
+       since song and album cards sit next to each other in the reel. */
+    rec_hero_cert_song: '🏵️ Song Certification',
     rec_hero_cert_album: '💿 Album Certification',
 
     // Records overview cards — one headline record per section.
