@@ -27,7 +27,7 @@
   <!-- html2canvas, SheetJS (xlsx) and JSZip are intentionally NOT loaded here — they
        total ~1.2 MB and are only needed for image exports and Excel/ZIP imports.
        app.js pulls them from the CDN on first use (see ensureLazyLib). -->
-  <link rel="stylesheet" href="style.css?v=177">
+  <link rel="stylesheet" href="style.css?v=179">
   <!-- All scripts are deferred so the page paints without waiting on them.
        defer preserves execution order, which matters: translations → Chart.js →
        hammer → zoom plugin → firebase SDKs → firebase.js → app.js (in body). -->
@@ -1523,8 +1523,9 @@
           <h2 class="section-header-h2" data-i18n="rec_fastest_title">⚡ Fastest to Milestone</h2>
           <div class="section-rule"></div>
         </div>
-        <div class="section-sub" data-i18n="rec_fastest_sub">Which artists &amp; songs hit milestones fastest — fewest
-          days from first listen to reaching 1K, 2K, 5K plays</div>
+        <div class="section-sub" data-i18n="rec_fastest_sub">Which songs, artists &amp; albums hit each play total
+          fastest — fewest days from first listen to getting there. Songs count every 50 plays, albums and artists use
+          landmark totals</div>
         <div class="section-body" id="recFastestBody"></div>
       </div>
 

@@ -599,7 +599,7 @@ const TRANSLATIONS = {
     rec_debuts_sub: 'Entries that debuted at the highest chart positions on the weekly chart',
     rec_peak_plays_sub: 'Peak single-period play counts — most plays by a song, artist or album in one week, month or year',
     rec_milestones_sub: 'The first song, artist and album to reach each play total, and how long each one took to get there — songs count 10 and then every 25 plays, artists and albums use landmark totals',
-    rec_fastest_sub: 'Which artists & songs hit milestones fastest — fewest days from first listen to reaching 1K, 2K, 5K plays',
+    rec_fastest_sub: 'Which songs, artists & albums hit each play total fastest — fewest days from first listen to getting there. Songs count every 50 plays, albums and artists use landmark totals',
     rec_certs_sub: 'Artists with the most Gold, Platinum & Diamond certified songs and albums',
     rec_streaks_sub: 'Longest consecutive listening streaks, repeat plays, and daily play records',
 
@@ -704,6 +704,8 @@ const TRANSLATIONS = {
     mil_no_data: 'No milestones reached yet.',
     // Milestone timeline: one entity type at a time
     mil_tabs_label: 'Milestone record type',
+    // Fastest-to-milestone: same three-way pill row, its own state
+    fast_tabs_label: 'Fastest record type',
     // The timeline has no visible column headers, so this only ever reaches a
     // screen reader — it has to work for songs, artists and albums alike.
     mil_th_first_to_reach: 'First to Reach It',
@@ -1869,7 +1871,7 @@ const TRANSLATIONS = {
     rec_debuts_sub: 'Entradas que debutaron en las posiciones más altas del ranking semanal',
     rec_peak_plays_sub: 'Picos de reproducciones en un único período — más repros de una canción, artista o álbum en una semana, mes o año',
     rec_milestones_sub: 'Primeros artistas y canciones en alcanzar 10, 25, 50, 100, 250, 500, 1.000, 2.500, 5.000+ reproducciones',
-    rec_fastest_sub: 'Qué artistas y canciones alcanzaron los hitos más rápido — menos días desde la primera escucha hasta 1K, 2K, 5K repros',
+    rec_fastest_sub: 'Qué canciones, artistas y álbumes alcanzaron cada total de repros. más rápido — menos días desde la primera escucha. Las canciones cuentan cada 50 repros., los álbumes y artistas usan totales emblemáticos',
     rec_certs_sub: 'Artistas con más canciones y álbumes certificados en Oro, Platino y Diamante',
     rec_streaks_sub: 'Rachas de escucha consecutiva más largas, repeticiones seguidas y récords diarios',
 
@@ -3113,7 +3115,7 @@ const TRANSLATIONS = {
     rec_debuts_sub: 'Entradas que estrearam nas posições mais altas da parada semanal',
     rec_peak_plays_sub: 'Picos de reproduções em um único período — mais repros. de uma música, artista ou álbum em uma semana, mês ou ano',
     rec_milestones_sub: 'Primeiros artistas e músicas a atingir 10, 25, 50, 100, 250, 500, 1.000, 2.500, 5.000+ reproduções',
-    rec_fastest_sub: 'Quais artistas e músicas atingiram os marcos mais rápido — menos dias desde a primeira escuta até 1K, 2K, 5K repros.',
+    rec_fastest_sub: 'Quais músicas, artistas e álbuns atingiram cada total de reproduções mais rápido — menos dias desde a primeira escuta. Músicas contam a cada 50 repros., álbuns e artistas usam totais marcantes',
     rec_certs_sub: 'Artistas com mais músicas e álbuns certificados em Ouro, Platina e Diamante',
     rec_streaks_sub: 'Sequências consecutivas de escuta mais longas, repetições e recordes diários',
 
@@ -4357,7 +4359,7 @@ const TRANSLATIONS = {
     rec_debuts_sub: 'Entradas que estrearam nas posições mais altas do top semanal',
     rec_peak_plays_sub: 'Picos de reproduções num único período — mais repros. de uma música, artista ou álbum numa semana, mês ou ano',
     rec_milestones_sub: 'Primeiros artistas e músicas a atingir 10, 25, 50, 100, 250, 500, 1.000, 2.500, 5.000+ reproduções',
-    rec_fastest_sub: 'Quais artistas e músicas atingiram os marcos mais rápido — menos dias desde a primeira escuta até 1K, 2K, 5K repros.',
+    rec_fastest_sub: 'Quais músicas, artistas e álbuns atingiram cada total de reproduções mais depressa — menos dias desde a primeira escuta. As músicas contam a cada 50 repros., os álbuns e artistas usam totais marcantes',
     rec_certs_sub: 'Artistas com mais músicas e álbuns certificados em Ouro, Platina e Diamante',
     rec_streaks_sub: 'Sequências consecutivas de escuta mais longas, repetições e recordes diários',
 

@@ -11782,11 +11782,12 @@
        control rather than loose pills, and the period row under it is quieter
        again — text-weight only, no chrome, so three tiers of navigation don't
        compete. */
-    /* The Milestones type pills share this styling rather than copying it:
-       they sit two sections apart in the same tab and do the same job, so
-       they must not be able to drift apart. */
+    /* The Milestones and Fastest type pills share this styling rather than
+       copying it: all three sit in the same tab and do the same job, so they
+       must not be able to drift apart. */
     .nc-rec-tabs,
-    .mil-tabs {
+    .mil-tabs,
+    .fast-tabs {
       display: inline-flex;
       flex-wrap: wrap;
       gap: 0.2rem;
@@ -11798,7 +11799,8 @@
     }
 
     .nc-rec-tab,
-    .mil-tab {
+    .mil-tab,
+    .fast-tab {
       display: inline-flex;
       align-items: center;
       gap: 0.35rem;
@@ -11816,19 +11818,22 @@
     }
 
     .nc-rec-tab-icon,
-    .mil-tab-icon {
+    .mil-tab-icon,
+    .fast-tab-icon {
       font-size: 0.72rem;
       line-height: 1;
     }
 
     .nc-rec-tab:hover,
-    .mil-tab:hover {
+    .mil-tab:hover,
+    .fast-tab:hover {
       background: var(--bg3);
       color: var(--text);
     }
 
     .nc-rec-tab.active,
-    .mil-tab.active {
+    .mil-tab.active,
+    .fast-tab.active {
       background: var(--accent);
       border-color: var(--accent);
       color: var(--on-accent);
@@ -11868,7 +11873,8 @@
     }
 
     body.yellow .nc-rec-tab.active,
-    body.yellow .mil-tab.active {
+    body.yellow .mil-tab.active,
+    body.yellow .fast-tab.active {
       color: #1a1a00;
     }
 
@@ -12153,6 +12159,16 @@
     #recordsView.rec-searching .rec-section.rec-collapsed>.milestone-table,
     #recordsView.rec-searching .rec-section.rec-collapsed>div:not(.rec-section-header):not(.rec-section-title):not(.rec-section-sub) {
       display: block;
+    }
+
+    /* Record tables are a bare <table> under .rec-section too, so the div: rule
+       above missed them exactly the way it missed the milestone timelines. It
+       only ever showed with a hand-collapsed section before; the Fastest ladders
+       ship collapsed below their first rung, so a search would otherwise count
+       matches it had no way to put on screen. `table`, not `block`, or the
+       columns collapse into one another. */
+    #recordsView.rec-searching .rec-section.rec-collapsed>.rec-table {
+      display: table;
     }
 
     /* Rows past the entries-per-table limit. Suspended while searching, so

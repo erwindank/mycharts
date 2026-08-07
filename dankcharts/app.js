@@ -5500,41 +5500,103 @@ function buildRecords() {
   })();
 
   // ── Fastest to Milestone ──────────────────────────────────────
-  const TARGET = 1000;
-  let fh = '';
-  const withM = Object.entries(artistMS).filter(function (e) { return e[1][TARGET]; }).sort(function (a, b) { return a[1][TARGET].days - b[1][TARGET].days; });
-  fh += '<div class="rec-section"><div class="rec-section-title">' + t('rec_fastest_to', { type: '♦ ' + t('rec_th_artists'), n: TARGET.toLocaleString() }) + '</div>';
-  fh += '<div class="rec-section-sub">' + (withM.length !== 1 ? t('rec_have_reached', { n: withM.length, type: tUnit('artists', withM.length), plays: TARGET.toLocaleString() }) : t('rec_has_reached', { n: 1, type: tUnit('artists', 1), plays: TARGET.toLocaleString() })) + '</div>';
-  fh += recTable(['#', t('rec_th_artist'), t('rec_th_days_to_1k'), t('rec_th_first_play'), t('rec_th_reached_1k')],
-    withM.map(function (e, i) {
-      const ms = e[1][TARGET], fp = artistFirst[e[0]];
-      return '<td class="rec-rank">' + (i + 1) + '</td><td><div class="rec-name">' + esc(e[0]) + '</div></td><td class="rec-count">' + (ms.days === 0 ? t('rec_days_less_than_1') : ms.days.toLocaleString() + ' ' + tUnit('days', ms.days)) + '</td><td class="rec-meta">' + (fp ? fmtDate(fp) : '—') + '</td><td class="rec-meta">' + fmtDate(ms.date) + '</td>';
-    }),
-    lim, null, null,
-    { rowAttrs: function (i) { return recRowAttrs(withM[i][0], 'artist', withM[i][0]); } }
-  );
-  fh += '</div>';
-  for (const m of [500, 2000, 5000]) {
-    const entries = Object.entries(artistMS).filter(function (e) { return e[1][m]; }).sort(function (a, b) { return a[1][m].days - b[1][m].days; });
-    if (!entries.length) continue;
-    fh += '<div class="rec-section"><div class="rec-section-title">' + t('rec_fastest_to', { type: '♦ ' + t('rec_th_artists'), n: m.toLocaleString() }) + '</div>';
-    fh += recTable(['#', t('rec_th_artist'), t('rec_th_days'), t('rec_th_date_reached')],
-      entries.map(function (e, i) { const ms = e[1][m]; return '<td class="rec-rank">' + (i + 1) + '</td><td><div class="rec-name">' + esc(e[0]) + '</div></td><td class="rec-count">' + (ms.days === 0 ? '&lt; 1' : ms.days.toLocaleString()) + ' ' + tUnit('days', ms.days) + '</td><td class="rec-meta">' + fmtDate(ms.date) + '</td>'; }),
+  /* One ladder per entity, and each rung its own record table. The three
+     ladders are deliberately different: a song is the smallest unit here, so
+     it earns the finest steps, an album sits above it, and an artist — who
+     collects the plays of every song they made — only gets the landmark
+     totals. Every tier below must exist in the map it reads, or the section
+     would be silently empty: songs are stored every 25 plays (all of these are
+     multiples of 50), artists and albums are stored on MILESTONE_SET. */
+  const FAST_TIERS = {
+    songs: [50, 100, 150, 200, 250, 300, 350, 400, 450, 500, 750, 1000, 1500, 2000, 2500, 5000],
+    artists: [500, 1000, 2000, 5000],
+    albums: [100, 250, 500, 1000, 2000, 5000]
+  };
+  /* Three entities, one pill row — the same shape (and the same styling) the
+     Milestones section two above uses, because a flat list of every tier for
+     every entity would run to twenty-odd collapsed headers. Each panel is
+     built whether or not it is on screen, so the global search still reaches
+     all three; only `display` moves. */
+  const FAST_REC_TYPES = [
+    {
+      key: 'songs', icon: '★', label: t('rec_th_songs'), ms: songMS, first: songFirst,
+      unit: 'songs', type: 'song',
+      title: function (m) { return t('rec_songs_fastest_to', { n: m.toLocaleString() }); },
+      head: t('rec_th_songs') + ' &middot; ' + t('rec_th_artist'),
+      nm: function (k) { return (songNames[k] || {}).title || String(k).split('|||')[0]; },
+      art: function (k) { return (songNames[k] || {}).artist || ''; }
+    },
+    {
+      key: 'artists', icon: '♦', label: t('rec_th_artists'), ms: artistMS, first: artistFirst,
+      unit: 'artists', type: 'artist',
+      title: function (m) { return t('rec_fastest_to', { type: '♦ ' + t('rec_th_artists'), n: m.toLocaleString(), s: 's' }); },
+      head: t('rec_th_artist'),
+      nm: function (k) { return k; },
+      art: function (k) { return k; }
+    },
+    {
+      key: 'albums', icon: '◈', label: t('rec_th_albums'), ms: albumMS, first: albumFirst,
+      unit: 'albums', type: 'album',
+      title: function (m) { return t('rec_fastest_to', { type: '◈ ' + t('rec_th_albums'), n: m.toLocaleString(), s: 's' }); },
+      head: t('rec_th_albums') + ' &middot; ' + t('rec_th_artist'),
+      nm: function (k) { return (albumNames[k] || {}).album || String(k).split('|||')[0]; },
+      art: function (k) { return (albumNames[k] || {}).artist || ''; }
+    }
+  ];
+
+  /* One tier of one entity: everyone who ever reached `m` plays, ranked by how
+     few days it took them. First Play is carried alongside Date Reached so the
+     day count can be checked rather than taken on trust.
+
+     `collapsed` starts every rung but the first one shut. Sixteen open tables
+     of twenty-five rows is not a record anyone reads, and the ladder is meant
+     to be climbed a rung at a time. It is only a default — once a rung is
+     opened or closed by hand that choice is stored and wins. */
+  function fastTierSection(cfg, m, collapsed) {
+    const entries = Object.entries(cfg.ms)
+      .filter(function (e) { return e[1][m]; })
+      .sort(function (a, b) { return a[1][m].days - b[1][m].days; });
+    if (!entries.length) return '';
+    const plays = m.toLocaleString();
+    const sub = entries.length === 1
+      ? t('rec_has_reached', { n: 1, type: tUnit(cfg.unit, 1), plays: plays })
+      : t('rec_have_reached', { n: entries.length, type: tUnit(cfg.unit, entries.length), plays: plays });
+    let h = '<div class="rec-section"' + (collapsed ? ' data-rec-default-collapsed="1"' : '')
+      + '><div class="rec-section-title">' + cfg.title(m) + '</div>';
+    h += '<div class="rec-section-sub">' + sub + '</div>';
+    h += recTable(['#', cfg.head, t('rec_th_days'), t('rec_th_first_play'), t('rec_th_date_reached')],
+      entries.map(function (e, i) {
+        const ms = e[1][m], fp = cfg.first[e[0]], sb = cfg.type === 'artist' ? '' : cfg.art(e[0]);
+        return '<td class="rec-rank">' + (i + 1) + '</td>'
+          + '<td><div class="rec-name">' + esc(cfg.nm(e[0])) + '</div>'
+          + (sb ? '<div class="rec-sub">' + esc(sb) + '</div>' : '') + '</td>'
+          + '<td class="rec-count">' + (ms.days === 0 ? t('rec_days_less_than_1') : ms.days.toLocaleString() + ' ' + tUnit('days', ms.days)) + '</td>'
+          + '<td class="rec-meta">' + (fp ? fmtDate(fp) : '—') + '</td>'
+          + '<td class="rec-meta">' + fmtDate(ms.date) + '</td>';
+      }),
       lim, null, null,
-      { rowAttrs: function (i) { return recRowAttrs(entries[i][0], 'artist', entries[i][0]); } }
+      { rowAttrs: function (i) { return recRowAttrs(cfg.art(entries[i][0]), cfg.type, cfg.nm(entries[i][0])); } }
     );
-    fh += '</div>';
+    return h + '</div>';
   }
-  const songWith500 = Object.entries(songMS).filter(function (e) { return e[1][500]; }).sort(function (a, b) { return a[1][500].days - b[1][500].days; });
-  if (songWith500.length) {
-    fh += '<div class="rec-section"><div class="rec-section-title">' + t('rec_songs_fastest_to', { n: '500' }) + '</div>';
-    fh += recTable(['#', t('rec_th_songs') + ' &middot; ' + t('rec_th_artist'), t('rec_th_days'), t('rec_th_date_reached')],
-      songWith500.map(function (e, i) { const n = songNames[e[0]] || {}, ms = e[1][500]; return '<td class="rec-rank">' + (i + 1) + '</td><td><div class="rec-name">' + esc(n.title || e[0].split('|||')[0]) + '</div><div class="rec-sub">' + esc(n.artist || '') + '</div></td><td class="rec-count">' + (ms.days === 0 ? '&lt; 1' : ms.days.toLocaleString()) + ' ' + tUnit('days', ms.days) + '</td><td class="rec-meta">' + fmtDate(ms.date) + '</td>'; }),
-      lim, null, null,
-      { rowAttrs: function (i) { const n = songNames[songWith500[i][0]] || {};
-        return recRowAttrs(n.artist || '', 'song', n.title || songWith500[i][0].split('|||')[0]); } }
-    );
-    fh += '</div>';
+
+  let fh = '<div class="fast-tabs" id="fastRecTypeTabs" role="tablist" aria-label="' + esc(t('fast_tabs_label')) + '">';
+  for (const ty of FAST_REC_TYPES) {
+    fh += '<button type="button" class="fast-tab" role="tab" data-fast-type="' + ty.key + '">'
+      + '<span class="fast-tab-icon" aria-hidden="true">' + ty.icon + '</span>' + esc(ty.label) + '</button>';
+  }
+  fh += '</div>';
+  for (const ty of FAST_REC_TYPES) {
+    // data-rec-scope keeps each panel's per-tier collapse state to itself, the
+    // same way the Milestones and New Charts panels do.
+    // The first rung that actually has anybody on it stays open; the rest wait
+    // to be asked for. Empty tiers return '' and so never claim that slot.
+    let body = '';
+    for (const m of FAST_TIERS[ty.key]) body += fastTierSection(ty, m, body !== '');
+    fh += '<div class="fast-panel" role="tabpanel" data-fast-type="' + ty.key + '"'
+      + ' data-rec-scope="fast-' + ty.key + '" style="display:none">'
+      + (body || '<div class="rec-empty">' + t('rec_no_data') + '</div>')
+      + '</div>';
   }
   document.getElementById('recFastestBody').innerHTML = fh;
 
@@ -6014,8 +6076,11 @@ function buildRecords() {
     if (l) hi('recMilestonesSection', 'albums', L, tCount('plays', l.m), albumNm(l.key), fmtDate(l.ms.date));
   }
 
-  // Fastest to a milestone (artists and songs only). The section itself uses
-  // 1,000 plays for artists and 500 for songs, so the labels differ too.
+  /* Fastest to a milestone. Each entity is shown at the headline tier of its
+     own ladder — 500 plays for songs, 1,000 for artists, 500 for albums — so
+     the label carries the number rather than assuming a shared one. If nobody
+     has reached that tier yet the card would be empty for no good reason, so
+     it drops to the highest tier anyone did reach. */
   {
     const fastest = function (msMap, target) {
       let best = null;
@@ -6025,11 +6090,25 @@ function buildRecords() {
       }
       return best;
     };
-    const a = fastest(artistMS, 1000), s = fastest(songMS, 500);
-    if (s) hi('recFastestSection', 'songs', t('rec_ov_fastest', { n: (500).toLocaleString() }),
-      tCount('days', s[1].days), songNm(s[0]), songArt(s[0]));
-    if (a) hi('recFastestSection', 'artists', t('rec_ov_fastest', { n: (1000).toLocaleString() }),
-      tCount('days', a[1].days), a[0]);
+    // Walks the ladder down from the headline tier until one has entries.
+    const fastestAtOrBelow = function (msMap, tiers) {
+      for (const tier of tiers) {
+        const b = fastest(msMap, tier);
+        if (b) return { m: tier, best: b };
+      }
+      return null;
+    };
+    const s = fastestAtOrBelow(songMS, [500, 250, 100, 50]);
+    const a = fastestAtOrBelow(artistMS, [1000, 500]);
+    const l = fastestAtOrBelow(albumMS, [500, 250, 100]);
+    if (s) hi('recFastestSection', 'songs', t('rec_ov_fastest', { n: s.m.toLocaleString() }),
+      tCount('days', s.best[1].days), songNm(s.best[0]), songArt(s.best[0]));
+    if (a) hi('recFastestSection', 'artists', t('rec_ov_fastest', { n: a.m.toLocaleString() }),
+      tCount('days', a.best[1].days), a.best[0]);
+    // Albums climb their own ladder now, so this card is no longer empty on the
+    // Albums pill.
+    if (l) hi('recFastestSection', 'albums', t('rec_ov_fastest', { n: l.m.toLocaleString() }),
+      tCount('days', l.best[1].days), albumNm(l.best[0]), albumArt(l.best[0]));
   }
 
   /* Certifications. Artists rank by how many they hold, which is a genuine
@@ -6087,6 +6166,7 @@ function buildRecords() {
   restoreRecordSubsectionCollapseStates();
   applyNewChartsRecTabs();
   applyMilestoneRecTabs();
+  applyFastestRecTabs();
   initAllRecTableResizableCols();
   initAllRecTableSorting();
 
@@ -7084,6 +7164,14 @@ function runRecordsSearch(q) {
       p.style.display = p.querySelector('.rec-search-hit') ? '' : 'none';
     });
   }
+  // And Fastest, which grew the same pill row over the same three entities.
+  const fastBody = document.getElementById('recFastestBody');
+  if (fastBody) {
+    fastBody.querySelectorAll('.fast-tabs').forEach(function (el) { el.style.display = 'none'; });
+    fastBody.querySelectorAll('.fast-panel').forEach(function (p) {
+      p.style.display = p.querySelector('.rec-search-hit') ? '' : 'none';
+    });
+  }
   // No pill is "the" section while results span several of them, and the
   // entries-per-table control has no meaning while search is ignoring it.
   document.querySelectorAll('#recordsNav .records-nav-btn').forEach(function (b) {
@@ -7276,6 +7364,7 @@ function applyRecordsViewFilter(view) {
   if (sizeBar) sizeBar.style.display = view === 'recOverviewSection' ? 'none' : '';
   applyNewChartsRecTabs();
   applyMilestoneRecTabs();
+  applyFastestRecTabs();
   if (typeof window._refreshBackToTop === 'function') window._refreshBackToTop();
 }
 
@@ -7376,6 +7465,49 @@ document.addEventListener('click', function (e) {
   if (typeof window._refreshBackToTop === 'function') window._refreshBackToTop();
 });
 
+/* ── Fastest-to-milestone record type tabs ────────────────────────────
+   Same three entities, same DOM-only switch as Milestones above, kept as its
+   own state so the two sections do not drag each other around: you can be
+   reading the album ladder in one and the song ladder in the other. */
+const FAST_REC_TYPES_ORDER = ['songs', 'artists', 'albums'];
+
+function fastRecTabState() {
+  let type = localStorage.getItem('dc_fast_rec_type');
+  if (FAST_REC_TYPES_ORDER.indexOf(type) === -1) type = 'songs';
+  return type;
+}
+
+function applyFastestRecTabs() {
+  const body = document.getElementById('recFastestBody');
+  if (!body) return;
+  const type = fastRecTabState();
+  body.querySelectorAll('.fast-tabs').forEach(function (el) { el.style.display = ''; });
+  body.querySelectorAll('.fast-tab').forEach(function (b) {
+    const on = b.dataset.fastType === type;
+    b.classList.toggle('active', on);
+    b.setAttribute('aria-selected', on ? 'true' : 'false');
+  });
+  body.querySelectorAll('.fast-panel').forEach(function (p) {
+    p.style.display = p.dataset.fastType === type ? '' : 'none';
+  });
+}
+
+document.addEventListener('click', function (e) {
+  const btn = e.target.closest('#recFastestBody .fast-tab');
+  if (!btn) return;
+  localStorage.setItem('dc_fast_rec_type', btn.dataset.fastType);
+  // A search owns what is on screen; switching pills is a way out of one, and
+  // it should land on Fastest rather than on whichever section was stored
+  // before the search started.
+  if (recSearchQuery()) {
+    localStorage.setItem('dc_records_active_view', 'recFastestSection');
+    clearRecordsSearch();
+    return;
+  }
+  applyFastestRecTabs();
+  if (typeof window._refreshBackToTop === 'function') window._refreshBackToTop();
+});
+
 function restoreRecordSectionCollapseState() {
   const ids = [
     'recAllOnesSection',
@@ -7430,7 +7562,15 @@ function setupRecordSubsectionCollapse() {
     header.appendChild(title);
     section.dataset.collapseReady = '1';
 
-    const collapsed = localStorage.getItem('dc_rec_inner_collapsed_' + key) === '1';
+    /* Expanded is the right default for a section with two or three records in
+       it, but not for a ladder sixteen rungs deep — Fastest would open as a
+       wall of tables nobody asked for. A section can opt its own default the
+       other way; a stored choice always wins over it, so this only ever
+       decides what you see before you have decided anything. */
+    const stored = localStorage.getItem('dc_rec_inner_collapsed_' + key);
+    const collapsed = stored === null
+      ? section.dataset.recDefaultCollapsed === '1'
+      : stored === '1';
     if (collapsed) {
       section.classList.add('rec-collapsed');
       btn.textContent = '+';

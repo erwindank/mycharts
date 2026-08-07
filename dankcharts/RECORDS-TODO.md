@@ -183,8 +183,12 @@ and a section nav of 11 identical text pills at half the minimum touch-target he
   both hot paths got better. `C:\tmp\mil_perf.mjs <port> <label>` is the harness; serve a
   `git archive HEAD` copy on a second port to get a baseline without touching the tree.
   Re-measure it if either loop is touched again.
-- **The Fastest section still keys off `songMS[500]`** — 500 is a multiple of 25, so it
-  survived the ladder change. Any future step size that does not divide 500 breaks it.
+- **Fastest reads the same ladders.** `FAST_TIERS` in `buildRecords()` lists the tiers each
+  entity gets a table for: songs every 50 from 50 to 500 and then 750/1K/1.5K/2K/2.5K/5K,
+  artists 500/1K/2K/5K, albums 100/250/500/1K/2K/5K. Every one of those must exist in the
+  map it reads or the tier is silently absent — song tiers must be multiples of
+  `SONG_MILESTONE_STEP`, artist and album tiers must be in `MILESTONE_SET`. Empty tiers are
+  skipped, so a small library sees a short ladder rather than a wall of "no data".
 - **The origin row is not a milestone tier.** "The first one you ever played" is computed
   from the `songFirst` / `artistFirst` / `albumFirst` maps, *not* by adding `1` to
   `MILESTONES` — that array is shared with fastest-to-milestone and the overview record,
@@ -474,10 +478,11 @@ Albums have **play-count milestones** as of the timeline work above (`albumMS` /
 keyed `album|||albumArtist` like every other album map). Plays with no album tag are
 excluded — common in CSV uploads — which `mil_no_data_albums` says out loud.
 
-Albums still have **no fastest-to-milestone and no listening streaks**. Fastest is now
-nearly free: `recFastestBody` only needs an `albumMS`/`albumFirst` pass in the same shape
-as the artist one. Streaks still need new computation (there is no `albumDaySet`). One
-overview card therefore remains empty on the Albums pill instead of three.
+Albums have **fastest-to-milestone** as of the Fastest rebuild below — it was the free half
+of this gap, reading the `albumMS` / `albumFirst` maps the timeline already built.
+
+Albums still have **no listening streaks**: that one needs new computation (there is no
+`albumDaySet`). One overview card therefore remains empty on the Albums pill.
 
 ---
 
@@ -599,8 +604,8 @@ overview card therefore remains empty on the Albums pill instead of three.
 
 ### Not one of the 50
 
-- [ ] Album fastest-to-milestone and streaks don't exist in the data — see **Known data
-      gaps** above. Album milestones now do.
+- [ ] Album streaks don't exist in the data — see **Known data gaps** above. Album
+      milestones and album fastest-to-milestone now do.
 
 ---
 
