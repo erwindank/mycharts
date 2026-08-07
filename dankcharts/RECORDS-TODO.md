@@ -439,6 +439,27 @@ card in a marquee beneath the photo.
 - **`prefers-reduced-motion` stops the marquee** and turns the reel into an ordinary
   horizontal scroller. Note the existing `.tm-ticker-track` has **no** such opt-out
   — a pre-existing gap on the Time Machine that this deliberately did not inherit.
+- **The artist modal shows the same reel**, for whichever artist it is open on.
+  `recFillReelTrack()` is the shared builder — hero and modal cannot drift apart,
+  because a card is only built in one place. Notes:
+  - **The tally is cached in `_recArtistTally` on every run**, keyed by lowercased
+    artist, so the modal is a map lookup rather than a second walk.
+  - **The modal can open before Records has ever been built**, since
+    `buildRecords()` only runs on the first visit to the tab. That first modal
+    pays one deferred build: it paints, shows a wait note, and builds on an 80ms
+    timeout so the open is never blocked. Every later open in the session is
+    instant. The timeout re-reads which artist is open when it fires, because the
+    user can switch artists mid-build.
+  - **The loader token is keyed per reel** (`_recReelLoaderIds`). A single shared
+    counter would have let the hero re-rendering cancel the modal's in-flight
+    covers, and both reels use the same `fetchAndInjectImage` path.
+  - **`--hc` is set on `.rec-hero`, which the modal copy is not inside**, so
+    `.modal-records-reel` restates it — otherwise the rank disc, the card
+    spotlight and the figure labels all lose their gold.
+  - **Pre-existing, not from this work:** the artist modal overflows its own box
+    horizontally by ~500px at 390px for artists with long histories. It is the
+    sparkline (`alb-spark-xlabel`), whose width scales with history length —
+    measured with the reel toggled off, which contributes 0.
 - **Placement settles the "two headlines" question** left open below: the hero lives
   at the top of `recOverviewSection`, above the 9-card grid, not above the search
   bar. A 340–420px banner in the tab chrome would push search and all 11 nav pills

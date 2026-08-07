@@ -543,6 +543,9 @@ const TRANSLATIONS = {
        album cards sit next to each other in the reel. */
     rec_hero_cert_song: 'Song Certification',
     rec_hero_cert_album: '💿 Album Certification',
+    // The artist modal's own reel of the records that artist holds.
+    modal_held_records: 'Hall of Fame Records',
+    modal_held_records_wait: 'Computing records…',
 
     // Records overview cards — one headline record per section.
     // Only defined in `en`; t() falls back to English for the other languages.

@@ -27,7 +27,7 @@
   <!-- html2canvas, SheetJS (xlsx) and JSZip are intentionally NOT loaded here — they
        total ~1.2 MB and are only needed for image exports and Excel/ZIP imports.
        app.js pulls them from the CDN on first use (see ensureLazyLib). -->
-  <link rel="stylesheet" href="style.css?v=176">
+  <link rel="stylesheet" href="style.css?v=177">
   <!-- All scripts are deferred so the page paints without waiting on them.
        defer preserves execution order, which matters: translations → Chart.js →
        hammer → zoom plugin → firebase SDKs → firebase.js → app.js (in body). -->
@@ -2742,6 +2742,14 @@
         <div class="modal-stats-strip" id="modalArtistPeaks"></div>
         <div class="modal-section-title">📈 Chart Records</div>
         <div class="modal-stats-strip" id="modalRecordsStrip"></div>
+        <!-- Every record this artist holds across the Records tab, in the same
+             reel the hero banner uses. Filled by renderModalArtistRecords();
+             the whole section hides when the artist holds none. -->
+        <div class="modal-section-title" id="modalHeldRecordsTitle" style="display:none"></div>
+        <div class="modal-records-wait" id="modalHeldRecordsWait" style="display:none"></div>
+        <div class="rec-hero-reel modal-records-reel" id="modalHeldRecordsReel" style="display:none">
+          <div class="rec-hero-track" id="modalHeldRecordsTrack"></div>
+        </div>
         <div class="modal-section-title">🏅 My Grammies</div>
         <div class="modal-stats-strip" id="modalGrammyStrip"></div>
         <div id="modalGrammyDetail"></div>

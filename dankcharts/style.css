@@ -11628,6 +11628,20 @@
       }
     }
 
+    /* The same reel inside the artist modal. --hc is set on .rec-hero and does
+       not reach here, so the cards' rank disc, spotlight and figure labels
+       would lose their colour without restating it. */
+    .modal-records-reel {
+      --hc: var(--gold1);
+      margin-bottom: 1.2rem;
+    }
+
+    .modal-records-wait {
+      font-size: 0.72rem;
+      color: var(--text3);
+      margin-bottom: 1.2rem;
+    }
+
     .rec-ov-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));

@@ -6427,6 +6427,10 @@ function recTallyArtistRecords() {
     });
   });
 
+  /* Kept for the artist modal, which shows any artist's records on demand.
+     Refreshed on every tally, so it can never be staler than the hero. */
+  _recArtistTally = tally;
+
   let best = null;
   for (const k in tally) {
     if (!best || tally[k].records.length > best.records.length) best = tally[k];
@@ -6434,10 +6438,21 @@ function recTallyArtistRecords() {
   return best;
 }
 
-/* Cancels an in-flight reel image load when the hero is rebuilt, so a stale
-   pass cannot inject covers into the new deck. Same guard shape as the Time
-   Machine ticker's tmLoaderId. */
-let recHeroLoaderId = 0;
+/* The records held by one artist, from the last tally. Null when Records has
+   not been built this session — the tables the tally walks don't exist yet. */
+let _recArtistTally = null;
+
+function recArtistRecordsFor(artistName) {
+  if (!_recArtistTally) return null;
+  const bucket = _recArtistTally[(artistName || '').trim().toLowerCase()];
+  return bucket ? bucket.records : null;
+}
+
+/* Cancels an in-flight reel image load when its host re-renders, so a stale
+   pass cannot inject covers into a new deck. Same guard shape as the Time
+   Machine ticker's tmLoaderId, but keyed per reel — the hero rebuilding must
+   not cancel the modal's loads, or vice versa. */
+const _recReelLoaderIds = {};
 
 /* The banner + reel. The photo, the name and the total are the brag; the reel
    underneath is a sampler of the individual records, shuffled so that a long
@@ -6498,25 +6513,22 @@ function figureHtml(rec, hi, figV) {
     + '<span class="rec-hero-card-fig-k">' + esc(hi.label) + '</span></div>';
 }
 
-function renderRecordsHeroArtist(best) {
-  const host = document.getElementById('recHeroArtist');
-  if (!host) return;
+/* Fills a marquee track with a shuffled deck of record cards. Shared by the
+   hero banner and the artist modal, so a card can never look different in the
+   two places. `idPrefix` keys the image element ids and the loader token —
+   each host cancels only its own in-flight loads when it re-renders.
 
-  if (!best || !best.records.length) { host.style.display = 'none'; host.innerHTML = ''; return; }
-  host.style.display = '';
-
-  const total = best.records.length;
-  const cards = tmShuffle(best.records);
-
-  /* The deck is rendered twice and the track animates to -50%, so the wrap
-     lands exactly on the start of copy B and the loop is seamless. Both copies
-     carry their own image ids; only copy A is fetched and the result is
-     mirrored into copy B, which halves the API calls. */
+   The deck is rendered twice and the track animates to -50%, so the wrap
+   lands exactly on the start of copy B and the loop is seamless. Both copies
+   carry their own image ids; only copy A is fetched and the result is
+   mirrored into copy B, which halves the API calls. */
+function recFillReelTrack(track, records, idPrefix) {
+  const cards = tmShuffle(records);
   const aItems = { song: [], artist: [], album: [] };
   const bItems = { song: [], artist: [], album: [] };
 
   function buildCard(rec, i, suffix) {
-    const imgId = 'rechero-' + suffix + '-' + i;
+    const imgId = idPrefix + '-' + suffix + '-' + i;
     const type = rec.type === 'artist' ? 'artist' : (rec.type === 'album' ? 'album' : 'song');
     const bucket = suffix === 'a' ? aItems : bItems;
     bucket[type].push({
@@ -6567,22 +6579,55 @@ function renderRecordsHeroArtist(best) {
 
   const deckA = cards.map(function (r, i) { return buildCard(r, i, 'a'); }).join('');
   const deckB = cards.map(function (r, i) { return buildCard(r, i, 'b'); }).join('');
+  track.innerHTML = deckA + deckB;
+
+  /* One card every 4s, matching the Time Machine ticker's pace, so a long deck
+     scrolls at the same speed as a short one instead of racing. */
+  track.style.animationDuration = Math.max(20, cards.length * 4) + 's';
+
+  /* Card artwork. Fetched directly in small batches rather than through
+     loadImages(), because the reel is in constant motion and its
+     IntersectionObserver would fire unpredictably against a moving target —
+     the same reason the Time Machine ticker loads its cards this way. */
+  const myLoaderId = (_recReelLoaderIds[idPrefix] = (_recReelLoaderIds[idPrefix] || 0) + 1);
+  (async function () {
+    for (const type of ['song', 'artist', 'album']) {
+      const pairs = aItems[type].map(function (a, i) { return [a, bItems[type][i]]; });
+      const BATCH = 4;
+      for (let i = 0; i < pairs.length; i += BATCH) {
+        if (_recReelLoaderIds[idPrefix] !== myLoaderId) return;
+        await Promise.all(pairs.slice(i, i + BATCH).map(async function (pair) {
+          if (_recReelLoaderIds[idPrefix] !== myLoaderId) return;
+          const aEl = document.getElementById(pair[0].imgId);
+          if (!aEl) return;
+          await fetchAndInjectImage(aEl, pair[0], type);
+          const bEl = pair[1] && document.getElementById(pair[1].imgId);
+          if (bEl) bEl.innerHTML = aEl.innerHTML;
+        }));
+      }
+    }
+  })();
+}
+
+function renderRecordsHeroArtist(best) {
+  const host = document.getElementById('recHeroArtist');
+  if (!host) return;
+
+  if (!best || !best.records.length) { host.style.display = 'none'; host.innerHTML = ''; return; }
+  host.style.display = '';
 
   host.innerHTML =
     '<div class="rec-hero-banner" id="recHeroBanner"></div>'
     + '<div class="rec-hero-main">'
     + '<div class="rec-hero-label">' + esc(t('rec_hero_label')) + '</div>'
     + '<div class="rec-hero-name">' + esc(best.name) + '</div>'
-    + '<div class="rec-hero-count">' + esc(tCount('records', total)) + '</div>'
+    + '<div class="rec-hero-count">' + esc(tCount('records', best.records.length)) + '</div>'
     + '</div>'
     + '<div class="rec-hero-reel" id="recHeroReel">'
-    + '<div class="rec-hero-track" id="recHeroTrack">' + deckA + deckB + '</div>'
+    + '<div class="rec-hero-track" id="recHeroTrack"></div>'
     + '</div>';
 
-  /* One card every 4s, matching the Time Machine ticker's pace, so a long deck
-     scrolls at the same speed as a short one instead of racing. */
-  const track = document.getElementById('recHeroTrack');
-  if (track) track.style.animationDuration = Math.max(20, cards.length * 4) + 's';
+  recFillReelTrack(document.getElementById('recHeroTrack'), best.records, 'rechero');
 
   // Banner photo — same artist-image lookup the rest of the app uses, so it
   // honours pinned picker choices and works on every data source.
@@ -6593,29 +6638,68 @@ function renderRecordsHeroArtist(best) {
       if (bannerEl.isConnected && url) bannerEl.style.backgroundImage = 'url("' + url + '")';
     });
   }
+}
 
-  /* Card artwork. Fetched directly in small batches rather than through
-     loadImages(), because the reel is in constant motion and its
-     IntersectionObserver would fire unpredictably against a moving target —
-     the same reason the Time Machine ticker loads its cards this way. */
-  const myLoaderId = ++recHeroLoaderId;
-  (async function () {
-    for (const type of ['song', 'artist', 'album']) {
-      const pairs = aItems[type].map(function (a, i) { return [a, bItems[type][i]]; });
-      const BATCH = 4;
-      for (let i = 0; i < pairs.length; i += BATCH) {
-        if (recHeroLoaderId !== myLoaderId) return;
-        await Promise.all(pairs.slice(i, i + BATCH).map(async function (pair) {
-          if (recHeroLoaderId !== myLoaderId) return;
-          const aEl = document.getElementById(pair[0].imgId);
-          if (!aEl) return;
-          await fetchAndInjectImage(aEl, pair[0], type);
-          const bEl = pair[1] && document.getElementById(pair[1].imgId);
-          if (bEl) bEl.innerHTML = aEl.innerHTML;
-        }));
-      }
+/* The artist modal's own reel: every record this artist holds, in the same
+   cards the hero banner shows. The tally is a walk over the built Records
+   tables, and those only exist once buildRecords() has run — which happens on
+   the first visit to the Records tab, not at load. So the first modal opened
+   before that pays one deferred build: the modal paints first, a wait note
+   shows, and the build runs on a timeout so the open animation is not blocked.
+   Every later open in the session hits the cached tally. */
+let _recModalBuildPending = false;
+
+function renderModalArtistRecords(artistName) {
+  const title = document.getElementById('modalHeldRecordsTitle');
+  const wait = document.getElementById('modalHeldRecordsWait');
+  const reel = document.getElementById('modalHeldRecordsReel');
+  const track = document.getElementById('modalHeldRecordsTrack');
+  if (!title || !wait || !reel || !track) return;
+
+  // Reset — the modal is reused between artists, and a stale reel from the
+  // previous artist must never show behind the new one's wait note.
+  title.style.display = 'none';
+  wait.style.display = 'none';
+  reel.style.display = 'none';
+  track.innerHTML = '';
+  // Bump the loader token so an in-flight image pass for the previous artist
+  // stops writing into ids the new deck is about to reuse.
+  _recReelLoaderIds['recmodal'] = (_recReelLoaderIds['recmodal'] || 0) + 1;
+
+  const paint = function () {
+    const records = recArtistRecordsFor(artistName);
+    wait.style.display = 'none';
+    if (!records || !records.length) return; // holds none — section stays hidden
+    title.style.display = '';
+    title.textContent = '🏆 ' + t('modal_held_records') + ' · ' + tCount('records', records.length);
+    reel.style.display = '';
+    recFillReelTrack(track, records, 'recmodal');
+  };
+
+  if (_recArtistTally) { paint(); return; }
+
+  // Records never built this session. Do it once, after the modal has painted.
+  title.style.display = '';
+  title.textContent = '🏆 ' + t('modal_held_records');
+  wait.style.display = '';
+  wait.textContent = t('modal_held_records_wait');
+  if (_recModalBuildPending) return; // a previous open already queued it
+  _recModalBuildPending = true;
+  setTimeout(function () {
+    _recModalBuildPending = false;
+    if (!_recArtistTally) buildRecords();
+    /* Paint for whichever artist's modal is open *now* — the user may have
+       switched artists during the build, and painting the queuing artist's
+       records into the new artist's modal would be worse than nothing. If the
+       build produced no tally (no data), give up rather than re-queue. */
+    const nameEl = document.getElementById('modalArtistName');
+    const overlay = document.getElementById('artistModal');
+    if (!_recArtistTally || !overlay || !overlay.classList.contains('open') || !nameEl) {
+      wait.style.display = 'none';
+      return;
     }
-  })();
+    renderModalArtistRecords(nameEl.textContent);
+  }, 80);
 }
 
 function initAllRecTableResizableCols() {
@@ -16621,6 +16705,9 @@ function openArtistModal(artistName) {
     ${weeklyDebutRank ? `<div class="modal-stat"><div class="se">🚀</div><div class="sv ${peakCls(weeklyDebutRank)}">#${weeklyDebutRank}</div><div class="sl">Weekly<br>Debut Rank</div></div>` : ''}
   `;
   animateModalCountup(recordsEl);
+
+  // Hall of Fame reel — every record this artist holds, as on the hero banner
+  renderModalArtistRecords(artistName);
 
   // Grammy strip — render current cache; async-loads any missing years after modal opens
   _renderModalGrammyStrip(artistName);
