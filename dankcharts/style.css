@@ -11316,7 +11316,9 @@
       flex-direction: column;
       gap: 0.5rem;
       width: 288px;
-      min-height: 146px; /* fits a two-line description without the cards going ragged */
+      /* Fits the worst case — a three-line title over a two-line description —
+         so no card in the reel is ever a different height from its neighbours. */
+      min-height: 158px;
       flex-shrink: 0;
       padding: 0.7rem 0.75rem 0.75rem;
       background: color-mix(in srgb, var(--bg2) 82%, transparent);
@@ -11475,13 +11477,21 @@
       margin-right: 0.5px;
     }
 
+    /* Song and album titles run long too — "I Knew You Were Trouble (Taylor's
+       Version)" — so the title wraps to a second line rather than truncating.
+       No reserved height here: the figure below is margin-top:auto, so a
+       one-line title simply leaves more space above the figure and every card
+       still ends at the same height. */
     .rec-hero-card-name {
       font-size: 0.78rem;
+      line-height: 1.25;
       font-weight: 600;
       color: var(--text);
-      white-space: nowrap;
+      display: -webkit-box;
+      -webkit-line-clamp: 3;
+      line-clamp: 3;
+      -webkit-box-orient: vertical;
       overflow: hidden;
-      text-overflow: ellipsis;
     }
 
     /* Section names run long — "◈ Albums — Most Weekly Chart Appearances" — so
@@ -11497,7 +11507,6 @@
       line-clamp: 2;
       -webkit-box-orient: vertical;
       overflow: hidden;
-      min-height: calc(2 * 1.3 * 0.66rem);
     }
 
     /* An endlessly moving element is exactly what this preference is for. The
