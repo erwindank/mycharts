@@ -6290,8 +6290,8 @@ function recRowDetails(row, name, artist) {
       if (strip && v.toLowerCase().indexOf(strip.toLowerCase() + ' ') === 0) v = v.slice(strip.length + 1);
       if (v) out.push({ label: label, value: v });
     };
+    // No type here — the card's description names it ("🎵 Song Certification").
     pick('.cert-tier-badge', t('rec_hero_d_tier'));
-    pick('.cert-type-badge', t('rec_hero_d_type'));
     pick('.cert-date', t('rec_hero_d_certified'), 'Certified');
     return out;
   }
@@ -6407,6 +6407,13 @@ function recTallyArtistRecords() {
     const rec = recRowRecord(row);
     if (!rec) return;
     const label = recRowLabel(row);
+    /* The certifications wall is one section holding both songs and albums, so
+       its heading — "Certifications Leaderboard" — cannot say which a card is.
+       Name it from the row's own type instead. */
+    if (rec.isCert) {
+      label.main = t(rec.type === 'album' ? 'rec_hero_cert_album' : 'rec_hero_cert_song');
+      label.qualifier = '';
+    }
     splitArtists(rec.artist).forEach(function (a) {
       const nm = a.trim();
       if (!nm) return;

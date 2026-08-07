@@ -532,8 +532,12 @@ const TRANSLATIONS = {
     // — "Platinum · certified". That frees the date below to be plain "Date",
     // which also stops the word appearing twice on the same card.
     rec_hero_d_tier: 'Certified',
-    rec_hero_d_type: 'Type',
     rec_hero_d_certified: 'Date',
+    /* The wall is one section holding both songs and albums, so its own heading
+       cannot say which a given card is. These name it per card, which is also
+       why the card no longer carries a separate "Type" figure. */
+    rec_hero_cert_song: '🎵 Song Certification',
+    rec_hero_cert_album: '💿 Album Certification',
 
     // Records overview cards — one headline record per section.
     // Only defined in `en`; t() falls back to English for the other languages.
