@@ -6444,6 +6444,18 @@ let recHeroLoaderId = 0;
    deck shows something different each visit rather than always opening on the
    same table's rows. Deliberately uncapped — every record the artist holds is
    in the deck. */
+/* A beamed pair of eighth notes, drawn rather than typed, so it can carry the
+   theme's gold and a glow — the two things an emoji cannot do. Stem-beam-stem is
+   one stroked path and the note heads are two ellipses, all on currentColor, so
+   the colour and the shine live in CSS (.rec-cert-mark) and follow the theme. */
+const REC_CERT_NOTE_SVG =
+  '<svg class="rec-cert-mark" viewBox="0 0 24 24" aria-hidden="true" focusable="false">'
+  + '<path d="M9.6 18.2V6.4L19 4.5v11.8" fill="none" stroke="currentColor" stroke-width="1.9"'
+  + ' stroke-linecap="round" stroke-linejoin="round"/>'
+  + '<ellipse cx="7.1" cy="18.4" rx="2.6" ry="2.2" fill="currentColor"/>'
+  + '<ellipse cx="16.5" cy="16.3" rx="2.6" ry="2.2" fill="currentColor"/>'
+  + '</svg>';
+
 /* The figure block. Ordinary records set the value and its unit on one line —
    "1129 plays". A certification is different: the tier is a word and the unit
    is the word "certified", so it stacks, and the tier badge carries a leading
@@ -6534,7 +6546,9 @@ function renderRecordsHeroArtist(best) {
       + '<div class="thumb-initials">' + esc(initials(rec.name)) + '</div></div>'
       + '<div class="rec-hero-card-headtext">'
       + '<div class="rec-hero-card-name">' + esc(rec.name) + '</div>'
-      + (sub ? '<div class="rec-hero-card-sub">' + esc(sub) + '</div>' : '')
+      + (sub ? '<div class="rec-hero-card-sub">'
+          + (rec.isCert && type === 'song' ? REC_CERT_NOTE_SVG : '')
+          + esc(sub) + '</div>' : '')
       + '</div></div>'
       + figureHtml(rec, hi, figV)
       + (metaLine ? '<div class="rec-hero-card-meta">' + metaLine + '</div>' : '')

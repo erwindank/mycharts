@@ -11401,6 +11401,32 @@
       gap: 0.5rem;
     }
 
+    /* The gold note on a song certification. Sized in em so it tracks the line
+       it sits in, and lit with a drop-shadow rather than a fill gradient — a
+       gradient would need an id, and this mark is stamped a few hundred times
+       across the deck. The glow is layered (tight core, wide halo) so it reads
+       as metal catching light instead of a flat blur. */
+    .rec-cert-mark {
+      width: 1.05em;
+      height: 1.05em;
+      vertical-align: -0.16em;
+      margin-right: 0.3em;
+      flex-shrink: 0;
+      color: var(--gold1);
+      filter: drop-shadow(0 0 1.5px color-mix(in srgb, var(--gold1) 75%, transparent))
+              drop-shadow(0 0 5px color-mix(in srgb, var(--gold1) 40%, transparent));
+    }
+
+    /* Light themes sit the mark on a pale plate, where a wide halo turns to
+       haze — so the shine tightens and leans on --gold2 for definition. */
+    body.navy-light .rec-cert-mark,
+    body.purple-light .rec-cert-mark,
+    body.yellow-light .rec-cert-mark,
+    body.red-light .rec-cert-mark {
+      filter: drop-shadow(0 0 1px color-mix(in srgb, var(--gold2) 70%, transparent))
+              drop-shadow(0 0 3px color-mix(in srgb, var(--gold1) 30%, transparent));
+    }
+
     /* The tier glyph sits beside the pair, not inside it — it is the one thing
        "certified" must not be centred against. */
     .rec-hero-card-fig-icon {
