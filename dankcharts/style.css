@@ -11391,6 +11391,28 @@
     .rec-hero-card-fig-v-sm { font-size: 1.4rem; }
     .rec-hero-card-fig-v-xs { font-size: 1.05rem; letter-spacing: -0.01em; }
 
+    /* A certification's figure is the tier — a word, not a count — so it stacks
+       instead of sitting inline: the tier at plaque scale with "certified" set
+       under it. The length-stepped sizes above are overridden because "Platinum"
+       trips the >9 rule while being exactly the thing meant to run large. */
+    .rec-hero-card-cert .rec-hero-card-figure {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 0.05rem;
+    }
+
+    .rec-hero-card-cert .rec-hero-card-fig-v,
+    .rec-hero-card-cert .rec-hero-card-fig-v-sm,
+    .rec-hero-card-cert .rec-hero-card-fig-v-xs {
+      font-size: 2.3rem;
+      max-width: 100%;
+    }
+
+    .rec-hero-card-cert .rec-hero-card-fig-k {
+      font-size: 0.62rem;
+      letter-spacing: 0.3em;
+    }
+
     /* The unit beside the figure. Wraps rather than truncating, because some of
        these are whole column names — "Time Since First Play" — and a clipped
        unit leaves the numeral meaning nothing. */

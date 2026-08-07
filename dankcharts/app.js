@@ -6234,7 +6234,14 @@ function recRowRecord(row) {
   const rankCell = row.querySelector ? row.querySelector('.rec-rank') : null;
   const rank = rankCell ? rankCell.textContent.trim() : '';
 
-  return { artist, type: type || 'song', name, prefKey, rank, details: recRowDetails(row, name, artist) };
+  /* isCert is carried through rather than inferred later from the section title,
+     which is translated text and would break the moment anyone edited it. The
+     card stacks its figure on the strength of this flag. */
+  const isCert = !!(row.classList && row.classList.contains('cert-card'));
+  return {
+    artist, type: type || 'song', name, prefKey, rank, isCert,
+    details: recRowDetails(row, name, artist)
+  };
 }
 
 /* The figures that make a record specific — "12 times at #1, first Mar 2019" —
@@ -6408,7 +6415,7 @@ function recTallyArtistRecords() {
       bucket.records.push({
         type: rec.type, name: rec.name, prefKey: rec.prefKey, rank: rec.rank,
         artist: rec.artist, label: label.main, qualifier: label.qualifier,
-        details: rec.details
+        isCert: rec.isCert, details: rec.details
       });
     });
   });
@@ -6481,7 +6488,7 @@ function renderRecordsHeroArtist(best) {
         + esc(d.label) + '</span> ' + esc(d.value) + '</span>';
     }).join('<span class="rec-hero-card-meta-sep">·</span>');
 
-    return '<div class="rec-hero-card rec-hero-card-' + type + '">'
+    return '<div class="rec-hero-card rec-hero-card-' + type + (rec.isCert ? ' rec-hero-card-cert' : '') + '">'
       + (rec.rank ? '<div class="rec-hero-card-rank">' + esc(rec.rank) + '</div>' : '')
       + '<div class="rec-hero-card-head">'
       + '<div class="rec-hero-card-art' + (type === 'artist' ? ' rec-hero-card-art-round' : '') + '" id="' + imgId + '">'
