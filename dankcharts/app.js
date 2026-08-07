@@ -6437,6 +6437,38 @@ let recHeroLoaderId = 0;
    deck shows something different each visit rather than always opening on the
    same table's rows. Deliberately uncapped — every record the artist holds is
    in the deck. */
+/* The figure block. Ordinary records set the value and its unit on one line —
+   "1129 plays". A certification is different: the tier is a word and the unit
+   is the word "certified", so it stacks, and the tier badge carries a leading
+   glyph ("💎 Diamond") that must sit *beside* the pair rather than inside the
+   line "certified" centres under. Peeling the glyph out is what lets that
+   centring be on the word alone. */
+function figureHtml(rec, hi, figV) {
+  if (!hi) return '';
+
+  if (rec.isCert) {
+    const m = figV.match(/^([^\p{L}\p{N}]+)\s*(.+)$/u);
+    const icon = m ? m[1].trim() : '';
+    const word = m ? m[2] : figV;
+    return '<div class="rec-hero-card-figure">'
+      + (icon ? '<span class="rec-hero-card-fig-icon" aria-hidden="true">' + esc(icon) + '</span>' : '')
+      + '<span class="rec-hero-card-fig-stack">'
+      + '<span class="rec-hero-card-fig-v">' + esc(word) + '</span>'
+      + '<span class="rec-hero-card-fig-k">' + esc(hi.label) + '</span>'
+      + '</span></div>';
+  }
+
+  /* Most figures are a short number, but a few are not — the certifications
+     leaderboard's headline is a tally like "14× 💎 21× 💿 45× 🪙". Stepping the
+     display size down by length keeps those inside the card instead of running
+     off its edge, without shrinking the ordinary case. */
+  const sizeCls = figV.length > 15 ? ' rec-hero-card-fig-v-xs'
+    : (figV.length > 9 ? ' rec-hero-card-fig-v-sm' : '');
+  return '<div class="rec-hero-card-figure">'
+    + '<span class="rec-hero-card-fig-v' + sizeCls + '">' + esc(figV) + '</span>'
+    + '<span class="rec-hero-card-fig-k">' + esc(hi.label) + '</span></div>';
+}
+
 function renderRecordsHeroArtist(best) {
   const host = document.getElementById('recHeroArtist');
   if (!host) return;
@@ -6497,15 +6529,7 @@ function renderRecordsHeroArtist(best) {
       + '<div class="rec-hero-card-name">' + esc(rec.name) + '</div>'
       + (sub ? '<div class="rec-hero-card-sub">' + esc(sub) + '</div>' : '')
       + '</div></div>'
-      /* Most figures are a short number, but a few are not — the certifications
-         leaderboard's headline is a tally like "14× 💎 21× 💿 45× 🪙". Stepping
-         the display size down by length keeps those inside the card instead of
-         running off its edge, without shrinking the ordinary case. */
-      + (hi ? '<div class="rec-hero-card-figure">'
-          + '<span class="rec-hero-card-fig-v'
-          + (figV.length > 15 ? ' rec-hero-card-fig-v-xs' : (figV.length > 9 ? ' rec-hero-card-fig-v-sm' : ''))
-          + '">' + esc(figV) + '</span>'
-          + '<span class="rec-hero-card-fig-k">' + esc(hi.label) + '</span></div>' : '')
+      + figureHtml(rec, hi, figV)
       + (metaLine ? '<div class="rec-hero-card-meta">' + metaLine + '</div>' : '')
       + '</div>';
   }

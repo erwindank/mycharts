@@ -11396,9 +11396,24 @@
        under it. The length-stepped sizes above are overridden because "Platinum"
        trips the >9 rule while being exactly the thing meant to run large. */
     .rec-hero-card-cert .rec-hero-card-figure {
+      flex-direction: row;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    /* The tier glyph sits beside the pair, not inside it — it is the one thing
+       "certified" must not be centred against. */
+    .rec-hero-card-fig-icon {
+      font-size: 1.6rem;
+      line-height: 1;
+      flex-shrink: 0;
+    }
+
+    .rec-hero-card-fig-stack {
+      display: flex;
       flex-direction: column;
-      align-items: flex-start;
-      gap: 0.05rem;
+      align-items: center;
+      min-width: 0;
     }
 
     .rec-hero-card-cert .rec-hero-card-fig-v,
@@ -11408,9 +11423,13 @@
       max-width: 100%;
     }
 
+    /* text-indent cancels the trailing letter-space the tracking adds after the
+       final D, which would otherwise push the centred word left of true. */
     .rec-hero-card-cert .rec-hero-card-fig-k {
       font-size: 0.62rem;
       letter-spacing: 0.3em;
+      text-align: center;
+      text-indent: 0.3em;
     }
 
     /* The unit beside the figure. Wraps rather than truncating, because some of
