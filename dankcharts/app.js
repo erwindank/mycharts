@@ -6444,17 +6444,27 @@ let recHeroLoaderId = 0;
    deck shows something different each visit rather than always opening on the
    same table's rows. Deliberately uncapped — every record the artist holds is
    in the deck. */
-/* A beamed pair of eighth notes, drawn rather than typed, so it can carry the
-   theme's gold and a glow — the two things an emoji cannot do. Stem-beam-stem is
-   one stroked path and the note heads are two ellipses, all on currentColor, so
-   the colour and the shine live in CSS (.rec-cert-mark) and follow the theme. */
+/* A struck gold medal with a note on its face, drawn rather than typed so it can
+   carry the theme's gold and a glow — the two things an emoji cannot do.
+
+   The medal is tonal rather than dark-centred: the disc takes --gold1 and the
+   rim and note take --gold2, which is the lighter of the pair in every one of
+   the nine themes. That keeps it all-gold like a real plaque and, more
+   practically, means the face never has to match the card behind it — the card
+   is translucent over a photograph, so a knocked-out centre would show the
+   artist through the medal.
+
+   A single eighth note, not the beamed pair it replaces: at this size two heads
+   and a beam collapse into a blob, where one head and a flag still read. */
 const REC_CERT_NOTE_SVG =
   '<svg class="rec-cert-mark" viewBox="0 0 24 24" aria-hidden="true" focusable="false">'
-  + '<path d="M9.6 18.2V6.4L19 4.5v11.8" fill="none" stroke="currentColor" stroke-width="1.9"'
-  + ' stroke-linecap="round" stroke-linejoin="round"/>'
-  + '<ellipse cx="7.1" cy="18.4" rx="2.6" ry="2.2" fill="currentColor"/>'
-  + '<ellipse cx="16.5" cy="16.3" rx="2.6" ry="2.2" fill="currentColor"/>'
-  + '</svg>';
+  + '<circle class="rec-cert-disc" cx="12" cy="12" r="11"/>'
+  + '<circle class="rec-cert-rim" cx="12" cy="12" r="9.1"/>'
+  + '<g class="rec-cert-note">'
+  + '<ellipse cx="10.3" cy="15.2" rx="2.7" ry="2.1"/>'
+  + '<path d="M12.8 15V7.6" fill="none" stroke-width="1.5" stroke-linecap="round"/>'
+  + '<path d="M12.8 7.9c2.9.8 3.7 2.6 2.6 4.4" fill="none" stroke-width="1.5" stroke-linecap="round"/>'
+  + '</g></svg>';
 
 /* The figure block. Ordinary records set the value and its unit on one line —
    "1129 plays". A certification is different: the tier is a word and the unit

@@ -11407,14 +11407,29 @@
        across the deck. The glow is layered (tight core, wide halo) so it reads
        as metal catching light instead of a flat blur. */
     .rec-cert-mark {
-      width: 1.05em;
-      height: 1.05em;
-      vertical-align: -0.16em;
-      margin-right: 0.3em;
+      width: 1.5em;
+      height: 1.5em;
+      vertical-align: -0.42em;
+      margin-right: 0.32em;
       flex-shrink: 0;
-      color: var(--gold1);
       filter: drop-shadow(0 0 1.5px color-mix(in srgb, var(--gold1) 75%, transparent))
               drop-shadow(0 0 5px color-mix(in srgb, var(--gold1) 40%, transparent));
+    }
+
+    /* Struck-metal tones: the body in --gold1, the rim and the note raised out
+       of it in --gold2, which is the lighter of the two in all nine themes. */
+    .rec-cert-disc { fill: var(--gold1); }
+
+    .rec-cert-rim {
+      fill: none;
+      stroke: var(--gold2);
+      stroke-width: 0.9;
+      opacity: 0.5;
+    }
+
+    .rec-cert-note {
+      fill: var(--gold2);
+      stroke: var(--gold2);
     }
 
     /* Light themes sit the mark on a pale plate, where a wide halo turns to
