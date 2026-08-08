@@ -14287,6 +14287,643 @@
     }
 
     /* ═══════════════════════════════════════════════════════════
+       CERTIFICATION LEDGER
+       The panel behind every Certifications Leaderboard row: one line per
+       certification an artist holds, with the arithmetic behind it.
+
+       The surface is an engraved awards register — a 115° guilloché
+       hairline hatch (the texture of a certificate or a banknote) under a
+       gold rule that fades out to the right. Each line is a plaque strip
+       whose left spine is a metal-tinted rail carrying the medal and the
+       play count that earned it, so a ledger read at a glance is a column
+       of medals down the margin.
+       ═══════════════════════════════════════════════════════════ */
+    .certd {
+      position: relative;
+      border: 1px solid var(--border);
+      border-radius: var(--r-md);
+      padding: 0.85rem 0.9rem 0.9rem;
+      overflow: hidden;
+      background:
+        /* register header wash — warm at the top, gone by the controls */
+        linear-gradient(180deg, color-mix(in srgb, var(--gold1) 6%, transparent) 0, transparent 96px),
+        /* engraved hatch: the certificate texture, at a whisper */
+        repeating-linear-gradient(115deg,
+          color-mix(in srgb, var(--text) 4%, transparent) 0 1px,
+          transparent 1px 7px),
+        var(--bg);
+      box-shadow: inset 0 1px 0 color-mix(in srgb, var(--text) 6%, transparent);
+    }
+
+    /* The gold rule across the top of the register. */
+    .certd::before {
+      content: '';
+      position: absolute;
+      inset: 0 0 auto 0;
+      height: 2px;
+      background: linear-gradient(90deg,
+        var(--gold1),
+        color-mix(in srgb, var(--gold1) 35%, transparent) 38%,
+        transparent 72%);
+    }
+
+    /* ── Register head ── */
+    .certd-top {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .certd-eyebrow {
+      font-family: var(--font-mono);
+      font-size: 0.55rem;
+      font-weight: 500;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--text3);
+    }
+
+    .certd-artist {
+      display: inline-flex;
+      align-items: baseline;
+      gap: 0.3rem;
+      margin-top: 0.1rem;
+      font-family: var(--font-display);
+      /* Weight extreme against the 0.55rem mono eyebrow above it. */
+      font-size: 1.32rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      line-height: 1.1;
+      color: var(--text);
+      text-decoration: none;
+      cursor: pointer;
+      transition: color var(--t-med) var(--ease);
+    }
+
+    .certd-artist:hover {
+      color: var(--gold1);
+    }
+
+    .certd-artist-go {
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      color: var(--text3);
+      transform: translateY(-2px);
+      transition: transform var(--t-med) var(--ease), color var(--t-med) var(--ease);
+    }
+
+    .certd-artist:hover .certd-artist-go {
+      color: var(--gold1);
+      transform: translate(2px, -4px);
+    }
+
+    /* The count, set big and thin — the one number the header is about. */
+    .certd-tally {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      line-height: 1;
+    }
+
+    .certd-tally-n {
+      font-family: var(--font-mono);
+      font-size: 1.7rem;
+      font-weight: 300;
+      letter-spacing: -0.04em;
+      font-feature-settings: "tnum";
+      color: var(--gold1);
+      text-shadow: 0 0 18px color-mix(in srgb, var(--gold1) 30%, transparent);
+    }
+
+    .certd-tally-l {
+      margin-top: 0.22rem;
+      font-family: var(--font-mono);
+      font-size: 0.5rem;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--text3);
+    }
+
+    /* ── Headline facts ── */
+    .certd-facts {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.35rem;
+      margin-top: 0.7rem;
+      padding-top: 0.65rem;
+      /* Dashed, like a tear-off line on a certificate. */
+      border-top: 1px dashed var(--border);
+    }
+
+    .certd-fact {
+      display: flex;
+      flex-direction: column;
+      gap: 0.1rem;
+      min-width: 0;
+      padding: 0.32rem 0.6rem;
+      border: 1px solid var(--border);
+      border-radius: var(--r-sm);
+      background: color-mix(in srgb, var(--surface) 55%, transparent);
+    }
+
+    .certd-fact-v {
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      font-weight: 500;
+      font-feature-settings: "tnum";
+      color: var(--text);
+      white-space: nowrap;
+    }
+
+    .certd-fact-sep {
+      color: var(--text3);
+      padding: 0 0.1rem;
+    }
+
+    .certd-fact-l {
+      font-family: var(--font-mono);
+      font-size: 0.48rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--text3);
+      white-space: nowrap;
+    }
+
+    /* Which record the fact belongs to — long titles truncate rather than
+       stretching the chip out of the row. */
+    .certd-fact-n {
+      max-width: 130px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      font-size: 0.58rem;
+      color: var(--text2);
+      font-style: italic;
+    }
+
+    /* ── Filter + sort strip ── */
+    .certd-controls {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.4rem 0.7rem;
+      margin: 0.75rem 0 0.6rem;
+    }
+
+    .certd-seg {
+      display: inline-flex;
+      gap: 2px;
+      padding: 2px;
+      border: 1px solid var(--border);
+      border-radius: var(--r-full);
+      background: color-mix(in srgb, var(--bg2) 70%, transparent);
+    }
+
+    .certd-chip {
+      border: 0;
+      border-radius: var(--r-full);
+      padding: 0.24rem 0.62rem;
+      font-family: var(--font-mono);
+      font-size: 0.6rem;
+      font-weight: 500;
+      letter-spacing: 0.06em;
+      color: var(--text3);
+      background: transparent;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: color var(--t-fast) var(--ease), background var(--t-fast) var(--ease);
+    }
+
+    .certd-chip:hover {
+      color: var(--text);
+      background: var(--hover);
+    }
+
+    .certd-chip.active {
+      color: var(--on-accent);
+      background: var(--accent);
+      box-shadow: 0 0 12px color-mix(in srgb, var(--accent) 30%, transparent);
+    }
+
+    .certd-sortwrap {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      margin-left: auto;
+    }
+
+    .certd-sortlabel {
+      font-family: var(--font-mono);
+      font-size: 0.5rem;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--text3);
+    }
+
+    .certd-select {
+      font-family: var(--font-mono);
+      font-size: 0.6rem;
+      color: var(--text);
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: var(--r-sm);
+      padding: 0.26rem 0.4rem;
+      cursor: pointer;
+      transition: border-color var(--t-fast) var(--ease);
+    }
+
+    .certd-select:hover,
+    .certd-select:focus {
+      border-color: var(--accent);
+      outline: none;
+    }
+
+    /* ── The lines ── */
+    .certd-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.3rem;
+    }
+
+    /* Per-tier ink. Metal is metal in every theme, so these ride the tokens
+       that already carry a theme-correct gold, silver and ice. */
+    .certd-row--gold    { --ct: var(--gold1); }
+    .certd-row--plat    { --ct: var(--medal-silver); }
+    .certd-row--diamond { --ct: var(--teal); }
+
+    .certd-row {
+      display: grid;
+      grid-template-columns: 46px minmax(0, 1fr) auto;
+      align-items: center;
+      gap: 0 0.75rem;
+      border: 1px solid var(--border);
+      border-left: 0;
+      border-radius: var(--r-sm);
+      background: color-mix(in srgb, var(--surface) 82%, transparent);
+      overflow: hidden;
+      transition: border-color var(--t-med) var(--ease),
+                  box-shadow var(--t-med) var(--ease),
+                  transform var(--t-med) var(--ease);
+      /* One orchestrated waterfall when a ledger opens — the stagger is set
+         per row by certLedgerApply(). */
+      animation: certdLineIn 380ms cubic-bezier(0.4, 0, 0.2, 1) both;
+      animation-delay: calc(var(--i, 0) * 28ms);
+    }
+
+    /* An author `display` always beats the UA's `[hidden] { display: none }`,
+       so the filter has to hide the line explicitly. */
+    .certd-row[hidden] {
+      display: none;
+    }
+
+    .certd-row:hover {
+      border-color: color-mix(in srgb, var(--ct) 45%, var(--border));
+      box-shadow: 0 2px 14px color-mix(in srgb, var(--ct) 18%, transparent);
+      transform: translateX(2px);
+    }
+
+    @keyframes certdLineIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to   { opacity: 1; transform: none; }
+    }
+
+    /* The plaque spine: a metal-tinted strip with a diagonal sheen. */
+    .certd-rail {
+      grid-row: 1 / -1;
+      align-self: stretch;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 1px;
+      padding: 0.45rem 0.2rem;
+      background:
+        linear-gradient(135deg,
+          color-mix(in srgb, var(--ct) 26%, transparent) 0%,
+          color-mix(in srgb, var(--ct) 9%, transparent) 45%,
+          color-mix(in srgb, var(--ct) 20%, transparent) 100%);
+      border-right: 1px solid color-mix(in srgb, var(--ct) 32%, transparent);
+      box-shadow: inset 3px 0 0 color-mix(in srgb, var(--ct) 70%, transparent);
+    }
+
+    .certd-rail-icon {
+      font-size: 0.85rem;
+      line-height: 1;
+      filter: drop-shadow(0 0 6px color-mix(in srgb, var(--ct) 55%, transparent));
+    }
+
+    .certd-rail-n {
+      font-family: var(--font-mono);
+      font-size: 0.5rem;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      font-feature-settings: "tnum";
+      color: var(--ct);
+    }
+
+    .certd-main {
+      min-width: 0;
+      padding: 0.42rem 0;
+    }
+
+    .certd-titlerow {
+      display: flex;
+      align-items: center;
+      gap: 0.55rem;
+      min-width: 0;
+    }
+
+    /* Dotted leader from the title across to the figures. A ledger is a
+       two-column document and this is the rule that binds the halves. */
+    .certd-leader {
+      flex: 1 1 auto;
+      min-width: 0;
+      height: 3px;
+      background-image: radial-gradient(circle at 1px 1.5px,
+        var(--border2) 1px, transparent 1.3px);
+      background-size: 6px 3px;
+      opacity: 0.45;
+      transition: opacity var(--t-med) var(--ease);
+    }
+
+    .certd-row:hover .certd-leader {
+      opacity: 0.75;
+    }
+
+    .certd-title {
+      flex: 0 1 auto;
+      font-family: var(--font-sans);
+      font-size: 0.82rem;
+      font-weight: 600;
+      line-height: 1.25;
+      color: var(--text);
+      text-decoration: none;
+      cursor: pointer;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      transition: color var(--t-fast) var(--ease);
+    }
+
+    .certd-title:hover {
+      color: var(--ct);
+    }
+
+    .certd-sub {
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+      margin-top: 0.14rem;
+      font-family: var(--font-mono);
+      font-size: 0.55rem;
+      letter-spacing: 0.05em;
+      color: var(--text3);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .certd-tier {
+      flex: none;
+      padding: 1px 5px;
+      border: 1px solid color-mix(in srgb, var(--ct) 40%, transparent);
+      border-radius: 3px;
+      background: color-mix(in srgb, var(--ct) 12%, transparent);
+      color: var(--ct);
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    /* ── The arithmetic ── */
+    /* Fixed columns, not max-content: a ledger is only readable if the same
+       figure sits at the same x on every line, and content-sized tracks put
+       "57 days" and "2,306 days" in different places. */
+    .certd-metrics {
+      display: grid;
+      grid-template-columns: repeat(5, 104px);
+      gap: 0 0.5rem;
+      padding: 0.42rem 0.75rem 0.42rem 0;
+    }
+
+    .certd-m {
+      display: flex;
+      flex-direction: column;
+      gap: 0.06rem;
+      min-width: 0;
+    }
+
+    .certd-mv {
+      font-family: var(--font-mono);
+      font-size: 0.68rem;
+      font-weight: 500;
+      font-feature-settings: "tnum";
+      color: var(--text);
+      white-space: nowrap;
+    }
+
+    .certd-ml {
+      font-family: var(--font-mono);
+      font-size: 0.46rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--text3);
+      white-space: nowrap;
+    }
+
+    .certd-mn {
+      font-family: var(--font-mono);
+      font-size: 0.5rem;
+      color: var(--text2);
+      white-space: nowrap;
+    }
+
+    /* The award date, stamped: tracked-out mono over a dashed rule. */
+    .certd-m-stamp .certd-mv {
+      color: var(--ct);
+      letter-spacing: 0.04em;
+      padding-bottom: 1px;
+      border-bottom: 1px dashed color-mix(in srgb, var(--ct) 45%, transparent);
+    }
+
+    /* ── Progress towards the next rung ── */
+    /* Sits under the arithmetic and stays the width of a gauge — stretched
+       across the whole line it reads as a divider rather than a measurement. */
+    .certd-next {
+      grid-column: 2 / -1;
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 0.5rem;
+      padding: 0 0.75rem 0.42rem 0;
+      margin-top: -0.15rem;
+    }
+
+    .certd-next-bar {
+      flex: none;
+      width: 92px;
+      height: 3px;
+      border-radius: var(--r-full);
+      background: color-mix(in srgb, var(--text) 9%, transparent);
+      overflow: hidden;
+    }
+
+    .certd-next-bar i {
+      display: block;
+      height: 100%;
+      border-radius: var(--r-full);
+      background: linear-gradient(90deg,
+        color-mix(in srgb, var(--ct) 35%, transparent), var(--ct));
+      box-shadow: 0 0 8px color-mix(in srgb, var(--ct) 45%, transparent);
+    }
+
+    .certd-next-label {
+      flex: none;
+      font-family: var(--font-mono);
+      font-size: 0.52rem;
+      letter-spacing: 0.06em;
+      color: var(--text3);
+      white-space: nowrap;
+    }
+
+    .certd-next-label b {
+      color: var(--text2);
+      font-weight: 600;
+    }
+
+    /* ── Empty state + paging ── */
+    .certd-empty {
+      padding: 1.1rem;
+      text-align: center;
+      font-family: var(--font-mono);
+      font-size: 0.62rem;
+      letter-spacing: 0.06em;
+      color: var(--text3);
+    }
+
+    .certd-more {
+      display: block;
+      width: 100%;
+      margin-top: 0.5rem;
+      padding: 0.42rem;
+      border: 1px dashed var(--border);
+      border-radius: var(--r-sm);
+      background: transparent;
+      font-family: var(--font-mono);
+      font-size: 0.58rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--text3);
+      cursor: pointer;
+      transition: color var(--t-fast) var(--ease),
+                  border-color var(--t-fast) var(--ease),
+                  background var(--t-fast) var(--ease);
+    }
+
+    .certd-more:hover {
+      color: var(--gold1);
+      border-color: color-mix(in srgb, var(--gold1) 50%, transparent);
+      background: color-mix(in srgb, var(--gold1) 7%, transparent);
+    }
+
+    /* The leaderboard's own artist cell is a way into the artist modal. It
+       reads as a plain name until you reach for it. */
+    .rec-artist-link {
+      color: inherit;
+      text-decoration: none;
+      cursor: pointer;
+      border-bottom: 1px solid transparent;
+      transition: color var(--t-fast) var(--ease), border-color var(--t-fast) var(--ease);
+    }
+
+    .rec-artist-link:hover {
+      color: var(--gold1);
+      border-bottom-color: color-mix(in srgb, var(--gold1) 55%, transparent);
+    }
+
+    /* Tablet: the arithmetic drops under the title rather than squeezing it. */
+    @media (max-width: 900px) {
+      .certd-row {
+        grid-template-columns: 42px minmax(0, 1fr);
+      }
+
+      .certd-metrics {
+        grid-column: 2 / -1;
+        grid-auto-flow: row;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 0.35rem 0.6rem;
+        padding: 0 0.7rem 0.45rem 0;
+      }
+
+      .certd-main {
+        padding-bottom: 0.3rem;
+      }
+    }
+
+    /* Phone: the spine lies down as a header bar across the top of the line. */
+    @media (max-width: 560px) {
+      .certd {
+        padding: 0.7rem 0.6rem 0.75rem;
+      }
+
+      .certd-artist {
+        font-size: 1.1rem;
+      }
+
+      .certd-tally-n {
+        font-size: 1.35rem;
+      }
+
+      .certd-sortwrap {
+        margin-left: 0;
+      }
+
+      .certd-row {
+        grid-template-columns: minmax(0, 1fr);
+      }
+
+      .certd-rail {
+        grid-row: auto;
+        grid-column: 1 / -1;
+        flex-direction: row;
+        justify-content: flex-start;
+        gap: 0.4rem;
+        padding: 0.22rem 0.55rem;
+        border-right: 0;
+        border-bottom: 1px solid color-mix(in srgb, var(--ct) 32%, transparent);
+        box-shadow: inset 0 3px 0 color-mix(in srgb, var(--ct) 70%, transparent);
+      }
+
+      .certd-main,
+      .certd-metrics,
+      .certd-next {
+        grid-column: 1 / -1;
+        padding-left: 0.55rem;
+        padding-right: 0.55rem;
+      }
+
+      .certd-metrics {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .certd-fact-n {
+        max-width: 96px;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .certd-row {
+        animation: none;
+      }
+
+      .certd-row:hover {
+        transform: none;
+      }
+    }
+
+    /* ═══════════════════════════════════════════════════════════
        CERTIFICATIONS WALL
        ═══════════════════════════════════════════════════════════ */
     #certifications-wall {

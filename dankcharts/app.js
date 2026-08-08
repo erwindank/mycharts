@@ -4708,24 +4708,68 @@ function buildRecords() {
   for (const [a, days] of Object.entries(artistDaySet)) if (days.length >= 15) artistStreaks[a] = longestStreak(days);
   for (const [sk, days] of Object.entries(songDaySet)) if (days.length >= 7) songStreaks[sk] = longestStreak(days);
 
-  // Certifications per artist
-  const artistCertCounts = {};
-  for (const p of allPlays) {
-    for (const a of p.artists) {
-      if (!artistCertCounts[a]) artistCertCounts[a] = { sg: 0, sp: 0, sd: 0, ag: 0, ap: 0, ad: 0, _s: {}, _l: {} };
-      const sk = songKey(p);
-      artistCertCounts[a]._s[sk] = (artistCertCounts[a]._s[sk] || 0) + 1;
-    }
+  /* ── Certification history ────────────────────────────────────
+     A certification is not a play count, it is a moment: the one play that
+     carried a record over a threshold. This single chronological pass keeps
+     that moment whole for every song and album — first play, the play number
+     that crossed, the date it landed — so the leaderboard's expandable
+     ledger, the wall of plaques and the overview cards all read the same
+     history instead of each counting the same plays their own way.
+
+     Diamond repeats. Every further multiple of the Diamond threshold is
+     another Diamond on the same record, the way the album modal already
+     labels 2× and 3× Diamond. Gold and Platinum are earned once. */
+  const certSongItems = {}, certAlbumItems = {};
+  const certCross = function (n, cfg) {
+    // Diamond is tested first so a configuration where plat === diamond still
+    // awards the higher tier instead of stopping at Platinum.
+    if (n >= cfg.diamond && n % cfg.diamond === 0) return { tier: 'diamond', mult: n / cfg.diamond };
+    if (n === cfg.plat) return { tier: 'plat', mult: 1 };
+    if (n === cfg.gold) return { tier: 'gold', mult: 1 };
+    return null;
+  };
+  const certTouch = function (map, key, p, kind, cfg, meta) {
+    let it = map[key];
+    // `meta` is read on creation only — the first play names the record, the
+    // same way songNames/albumNames above do.
+    if (!it) it = map[key] = Object.assign({ kind: kind, key: key, first: p.date, last: p.date, plays: 0, events: [] }, meta);
+    it.last = p.date;
+    const n = ++it.plays;
+    const cross = certCross(n, cfg);
+    if (cross) it.events.push({ tier: cross.tier, mult: cross.mult, n: n, date: p.date, elapsed: p.date - it.first });
+  };
+  for (const p of chron) {
+    certTouch(certSongItems, songKey(p), p, 'song', CERT.song, {
+      title: p.title, artist: p.artist, artists: [...new Set(p.artists)],
+      album: (p.album && p.album !== '—') ? p.album : ''
+    });
+    // Untagged plays can't be credited to an album — same guard the milestone
+    // ladders above use.
     if (p.album && p.album !== '—') {
-      const ak = p.album + '|||' + albumArtist(p), aa = albumArtist(p);
-      if (!artistCertCounts[aa]) artistCertCounts[aa] = { sg: 0, sp: 0, sd: 0, ag: 0, ap: 0, ad: 0, _s: {}, _l: {} };
-      artistCertCounts[aa]._l[ak] = (artistCertCounts[aa]._l[ak] || 0) + 1;
+      const aa = albumArtist(p);
+      certTouch(certAlbumItems, p.album + '|||' + aa, p, 'album', CERT.album, {
+        title: p.album, artist: aa, artists: [aa], album: ''
+      });
     }
   }
-  for (const c of Object.values(artistCertCounts)) {
-    for (const pl of Object.values(c._s)) { if (pl >= CERT.song.diamond) c.sd++; else if (pl >= CERT.song.plat) c.sp++; else if (pl >= CERT.song.gold) c.sg++; }
-    for (const pl of Object.values(c._l)) { if (pl >= CERT.album.diamond) c.ad++; else if (pl >= CERT.album.plat) c.ap++; else if (pl >= CERT.album.gold) c.ag++; }
-    delete c._s; delete c._l;
+
+  /* Certifications per artist. Everyone credited on a song holds its
+     certification, so a collaboration counts for both — the same attribution
+     the rest of Records uses. Albums go to their album artist alone.
+     The item lists ride along: they are what the expandable ledger reads. */
+  const artistCertCounts = {};
+  const certBucket = function (a) {
+    return artistCertCounts[a] || (artistCertCounts[a] = { sg: 0, sp: 0, sd: 0, ag: 0, ap: 0, ad: 0, songs: [], albums: [] });
+  };
+  for (const it of Object.values(certSongItems)) {
+    const tier = it.plays >= CERT.song.diamond ? 'sd' : it.plays >= CERT.song.plat ? 'sp' : it.plays >= CERT.song.gold ? 'sg' : null;
+    if (!tier) continue;
+    for (const a of it.artists) { const b = certBucket(a); b[tier]++; b.songs.push(it); }
+  }
+  for (const it of Object.values(certAlbumItems)) {
+    const tier = it.plays >= CERT.album.diamond ? 'ad' : it.plays >= CERT.album.plat ? 'ap' : it.plays >= CERT.album.gold ? 'ag' : null;
+    if (!tier) continue;
+    const b = certBucket(it.artist); b[tier]++; b.albums.push(it);
   }
 
   // ── RENDERING ────────────────────────────────────────────────
@@ -5684,20 +5728,43 @@ function buildRecords() {
   // ── Certifications Leaderboard ────────────────────────────────
   const certW = Object.entries(artistCertCounts).map(function (e) {
     const c = e[1];
-    return { art: e[0], sg: c.sg, sp: c.sp, sd: c.sd, ag: c.ag, ap: c.ap, ad: c.ad, score: c.sd * 4 + c.sp * 2 + c.sg + c.ad * 4 + c.ap * 2 + c.ag };
+    return {
+      art: e[0], sg: c.sg, sp: c.sp, sd: c.sd, ag: c.ag, ap: c.ap, ad: c.ad,
+      songs: c.songs, albums: c.albums,
+      score: c.sd * 4 + c.sp * 2 + c.sg + c.ad * 4 + c.ap * 2 + c.ag
+    };
   }).filter(function (e) { return e.score > 0; }).sort(function (a, b) { return b.score - a.score; });
+  /* Each row opens onto that artist's whole certification ledger. The rows are
+     handed over as source items, not markup: a heavy catalogue holds well over
+     a hundred certifications, and only the ledgers actually opened are ever
+     built (see buildCertLedger). */
+  _certLedgers = certW.map(function (e) { return { artist: e.art, songs: e.songs, albums: e.albums }; });
   let ch = '<div class="rec-section"><div class="rec-section-title">' + t('rec_artists_with_certs') + '</div>';
   ch += '<div class="rec-section-sub">' + t('rec_certs_thresholds', { sg: CERT.song.gold, sp: CERT.song.plat, sd: CERT.song.diamond, ag: CERT.album.gold, ap: CERT.album.plat, ad: CERT.album.diamond }) + '</div>';
   if (!certW.length) {
     ch += '<div class="rec-empty">' + t('rec_no_certifications') + '</div>';
   } else {
-    ch += recTable(['#', t('rec_th_artist'), t('rec_th_song_cert'), t('rec_th_album_cert')],
+    const certTblId = 'rec-certs-tbl';
+    // Same glyph family as every other expandable table in Records: ▶▶ closed,
+    // ▼▼ open.
+    ch += recTable(['#', t('rec_th_artist'), t('rec_th_song_cert'), t('rec_th_album_cert'),
+        '<button class="rec-expand-all-btn" onclick="event.stopPropagation();toggleAllCertLedgers(\'' + certTblId + '\',this)" title="' + esc(t('rec_expand_all')) + '">▶▶</button>'],
       certW.map(function (e, i) {
         const sc2 = [e.sd ? e.sd + '× 💎' : '', e.sp ? e.sp + '× 💿' : '', e.sg ? e.sg + '× 🪙' : ''].filter(Boolean).join(' ') || '—';
         const ac2 = [e.ad ? e.ad + '× 💎' : '', e.ap ? e.ap + '× 💿' : '', e.ag ? e.ag + '× 🪙' : ''].filter(Boolean).join(' ') || '—';
-        return '<td class="rec-rank">' + (i + 1) + '</td><td><div class="rec-name">' + esc(e.art) + '</div></td><td class="rec-meta" style="white-space:nowrap">' + sc2 + '</td><td class="rec-meta" style="white-space:nowrap">' + ac2 + '</td>';
+        const ledgerId = 'rec-cert-ledger-' + i;
+        return '<td class="rec-rank">' + (i + 1) + '</td>'
+          // The name opens the artist modal. It stays a plain-looking name — the
+          // underline only appears on hover — so the column still reads as a list.
+          + '<td><div class="rec-name"><a href="javascript:void(0)" class="rec-artist-link" onclick="event.stopPropagation();openArtistModal(' + esc(JSON.stringify(e.art)) + ')">' + esc(e.art) + '</a></div></td>'
+          + '<td class="rec-meta" style="white-space:nowrap">' + sc2 + '</td><td class="rec-meta" style="white-space:nowrap">' + ac2 + '</td>'
+          + '<td class="rec-run-toggle-cell"><button class="rec-run-toggle-btn" title="' + esc(t('certd_open_ledger')) + '" onclick="event.stopPropagation();toggleCertLedger(this,\'' + ledgerId + '\',' + i + ')">▶</button></td>';
       }),
-      lim, null, null,
+      lim,
+      certW.map(function (e, i) {
+        return { id: 'rec-cert-ledger-' + i, html: '<div class="certd" id="certd-' + i + '"></div>' };
+      }),
+      certTblId,
       { rowAttrs: function (i) { return recRowAttrs(certW[i].art, 'artist', certW[i].art); } }
     );
   }
@@ -5705,53 +5772,24 @@ function buildRecords() {
   document.getElementById('recCertsBody').innerHTML = ch;
 
   // ── Certifications Wall ───────────────────────────────────────
-  const _wSongP = {}, _wAlbP = {}, _wSongCert = {}, _wAlbCert = {};
-  for (const p of chron) {
-    const sk = songKey(p);
-    _wSongP[sk] = (_wSongP[sk] || 0) + 1;
-    if (!_wSongCert[sk]) _wSongCert[sk] = {};
-    for (const thresh of [CERT.song.gold, CERT.song.plat, CERT.song.diamond]) {
-      if (!_wSongCert[sk][thresh] && _wSongP[sk] >= thresh) _wSongCert[sk][thresh] = p.date;
-    }
-    if (p.album && p.album !== '—') {
-      const ak = p.album + '|||' + albumArtist(p);
-      _wAlbP[ak] = (_wAlbP[ak] || 0) + 1;
-      if (!_wAlbCert[ak]) _wAlbCert[ak] = {};
-      for (const thresh of [CERT.album.gold, CERT.album.plat, CERT.album.diamond]) {
-        if (!_wAlbCert[ak][thresh] && _wAlbP[ak] >= thresh) _wAlbCert[ak][thresh] = p.date;
-      }
-    }
-  }
+  /* Built from the same certification history the ledger reads, so a plaque
+     and the ledger line behind it can never disagree about a date. */
   const wallItems = [];
-  for (const [sk, plays] of Object.entries(_wSongP)) {
-    if (plays < CERT.song.gold) continue;
-    const nm = songNames[sk] || {};
-    let tier, certDate;
-    if (plays >= CERT.song.diamond)     { tier = 'diamond';  certDate = _wSongCert[sk][CERT.song.diamond]; }
-    else if (plays >= CERT.song.plat)   { tier = 'platinum'; certDate = _wSongCert[sk][CERT.song.plat]; }
-    else                                { tier = 'gold';     certDate = _wSongCert[sk][CERT.song.gold]; }
+  const wallPush = function (it, cfg, type) {
+    if (it.plays < cfg.gold) return;
+    const tier = it.plays >= cfg.diamond ? 'diamond' : it.plays >= cfg.plat ? 'platinum' : 'gold';
+    // The plaque is dated by the crossing that earned its tier — for Diamond
+    // that is the first one, not the latest multiple.
+    const want = tier === 'platinum' ? 'plat' : tier;
+    const ev = it.events.find(function (e) { return e.tier === want; });
     wallItems.push({
-      title: nm.title || sk.split('|||')[0], artist: nm.artist || '',
-      image: null, type: 'song', tier,
-      date: certDate ? certDate.toISOString().split('T')[0] : '',
-      _plays: plays, _album: nm.album || ''
+      title: it.title, artist: it.artist, image: null, type: type, tier: tier,
+      date: ev ? ev.date.toISOString().split('T')[0] : '',
+      _plays: it.plays, _album: type === 'song' ? it.album : it.title
     });
-  }
-  for (const [ak, plays] of Object.entries(_wAlbP)) {
-    if (plays < CERT.album.gold) continue;
-    const nm = albumNames[ak] || {};
-    const album = nm.album || ak.split('|||')[0];
-    const artist = nm.artist || ak.split('|||')[1] || '';
-    let tier, certDate;
-    if (plays >= CERT.album.diamond)    { tier = 'diamond';  certDate = _wAlbCert[ak][CERT.album.diamond]; }
-    else if (plays >= CERT.album.plat)  { tier = 'platinum'; certDate = _wAlbCert[ak][CERT.album.plat]; }
-    else                                { tier = 'gold';     certDate = _wAlbCert[ak][CERT.album.gold]; }
-    wallItems.push({
-      title: album, artist, image: null, type: 'album', tier,
-      date: certDate ? certDate.toISOString().split('T')[0] : '',
-      _plays: plays, _album: album
-    });
-  }
+  };
+  for (const it of Object.values(certSongItems)) wallPush(it, CERT.song, 'song');
+  for (const it of Object.values(certAlbumItems)) wallPush(it, CERT.album, 'album');
   const _wTierOrd = { diamond: 0, platinum: 1, gold: 2 };
   wallItems.sort((a, b) => (_wTierOrd[a.tier] - _wTierOrd[b.tier]) || (b._plays - a._plays));
   // renderCertifications() ends in renderCertWallCards(), which now loads its
@@ -11645,6 +11683,362 @@ function toggleAllAppCr(tableId, btn) {
   const anyOpen = Array.from(crRows).some(r => r.style.display !== 'none');
   crRows.forEach(r => { r.style.display = anyOpen ? 'none' : ''; });
   crBtns.forEach(b => { b.classList.toggle('active', !anyOpen); b.textContent = anyOpen ? '▶' : '▼'; });
+  btn.classList.toggle('active', !anyOpen);
+  btn.textContent = anyOpen ? '▶▶' : '▼▼';
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   CERTIFICATION LEDGER
+   Every row of the Certifications Leaderboard opens onto the artist's
+   ledger: one line per certification ever awarded to one of their songs or
+   albums, with the arithmetic behind it — when the record was first played,
+   how long the climb took, the pace it was played at to get there, and the
+   day the certification landed.
+
+   Built lazily. buildRecords() hands over the source items only; the markup
+   for a ledger is made the first time its row is opened, because a single
+   heavy catalogue can hold 150 certifications and there are 25+ rows.
+   ══════════════════════════════════════════════════════════════════════ */
+
+// Source items per leaderboard row, index-aligned with the built table.
+let _certLedgers = [];
+// How many lines a ledger shows before "show all" — enough to read, few
+// enough that opening a row doesn't bury the table under it.
+const CERTD_PAGE = 12;
+
+// The medal, the word and the CSS suffix for one certification.
+function certTierMeta(tier, mult) {
+  if (tier === 'diamond') return { icon: '💎', label: tDiamondLabel(mult || 1), cls: 'diamond' };
+  if (tier === 'plat') return { icon: '💿', label: t('cert_plat'), cls: 'plat' };
+  return { icon: '🪙', label: t('cert_gold'), cls: 'gold' };
+}
+
+/* Sort weight, so one numeric attribute can order the whole ledger by tier:
+   Gold 1, Platinum 2, Diamond 2 + its multiple. */
+function certTierWeight(tier, mult) {
+  if (tier === 'diamond') return 2 + (mult || 1);
+  return tier === 'plat' ? 2 : 1;
+}
+
+// Always days-and-hours, however long the climb was. fmtElapsed() drops the
+// hours past a month, which is right for a ranked column and wrong here —
+// this is the exact figure, and it rides along as a tooltip.
+function certdExact(ms) {
+  const hours = Math.floor(Math.max(0, ms) / 3600000);
+  return t('certd_exact', { d: Math.floor(hours / 24).toLocaleString(), h: hours % 24 });
+}
+
+// Plays per day reads as "0.42" down at discovery pace and "31" for a record
+// played on repeat for a week; two decimals on the first would be noise.
+function certdPace(v) {
+  return v >= 10 ? v.toFixed(1) : v.toFixed(2);
+}
+
+/* The tier this record is climbing towards, and how far along it is. Progress
+   is measured from the previous threshold, not from zero, so a song sitting
+   just past Platinum reads as barely started on Diamond rather than 50% done. */
+function certdNextTarget(plays, cfg) {
+  let target, prev, tier, mult = 1;
+  if (plays < cfg.plat) { target = cfg.plat; prev = cfg.gold; tier = 'plat'; }
+  else if (plays < cfg.diamond) { target = cfg.diamond; prev = cfg.plat; tier = 'diamond'; }
+  else {
+    mult = Math.floor(plays / cfg.diamond) + 1;
+    target = mult * cfg.diamond; prev = (mult - 1) * cfg.diamond; tier = 'diamond';
+  }
+  const span = Math.max(1, target - prev);
+  return {
+    tier: tier, mult: mult, target: target, remaining: target - plays,
+    pct: Math.max(0, Math.min(100, Math.round((plays - prev) / span * 100)))
+  };
+}
+
+/* One flat line per certification. A record that reached Diamond earned Gold
+   and Platinum on the way, and each of those is its own award with its own
+   date and its own pace — so each gets its own line rather than being folded
+   into the highest tier. */
+function certLedgerRows(items, cfg) {
+  const rows = [];
+  for (const it of items) {
+    const top = it.events.length ? it.events[it.events.length - 1] : null;
+    it.events.forEach(function (ev, i) {
+      const prev = i ? it.events[i - 1] : null;
+      /* Pace over the climb to this certification. A record that certified
+         inside its first hour would divide by nothing, so the span floors at
+         one hour — the finest grain any of this is shown at. */
+      const days = Math.max(ev.elapsed / 86400000, 1 / 24);
+      rows.push({
+        kind: it.kind, key: it.key, title: it.title, artist: it.artist, album: it.album,
+        tier: ev.tier, mult: ev.mult, n: ev.n,
+        first: it.first, date: ev.date, elapsed: ev.elapsed,
+        gap: prev ? ev.date - prev.date : null,
+        gapTier: prev ? certTierMeta(prev.tier, prev.mult) : null,
+        pace: ev.n / days, plays: it.plays, since: it.plays - ev.n,
+        // The next rung is only worth naming on the record's current top
+        // certification; on the earlier ones it is already history.
+        next: (ev === top) ? certdNextTarget(it.plays, cfg) : null
+      });
+    });
+  }
+  return rows;
+}
+
+// One ledger line.
+function certLedgerRowHTML(r) {
+  const meta = certTierMeta(r.tier, r.mult);
+  const isSong = r.kind === 'song';
+  // Both modals take the same key this ledger was built from — songKey() for a
+  // song, "album|||artist" for an album.
+  const openArgs = esc(JSON.stringify(r.key));
+  const open = isSong ? 'openSongModal(' + openArgs + ')' : 'openAlbumModal(' + openArgs + ')';
+  const sub = isSong
+    ? (t('certd_song') + (r.album ? ' · ' + esc(r.album) : ''))
+    : t('certd_album');
+
+  // Value + caption + optional third micro-line. The caption sits under the
+  // figure so the numbers themselves stay on one scannable baseline.
+  const m = function (cls, value, label, note, title) {
+    return '<div class="certd-m ' + cls + '"' + (title ? ' title="' + esc(title) + '"' : '') + '>'
+      + '<span class="certd-mv">' + value + '</span>'
+      + '<span class="certd-ml">' + label + '</span>'
+      + (note ? '<span class="certd-mn">' + note + '</span>' : '')
+      + '</div>';
+  };
+
+  let foot = '';
+  if (r.next) {
+    const nm = certTierMeta(r.next.tier, r.next.mult);
+    foot = '<div class="certd-next">'
+      + '<div class="certd-next-bar"><i style="width:' + r.next.pct + '%"></i></div>'
+      + '<div class="certd-next-label">' + t('certd_next', {
+          tier: nm.icon + ' ' + esc(nm.label),
+          n: '<b>' + r.next.remaining.toLocaleString() + '</b>',
+          unit: tUnit('plays', r.next.remaining)
+        }) + '</div>'
+      + '</div>';
+  }
+
+  return '<div class="certd-row certd-row--' + meta.cls + '" data-kind="' + r.kind + '"'
+    + ' data-tier="' + meta.cls + '" data-tw="' + certTierWeight(r.tier, r.mult) + '"'
+    + ' data-d="' + (+r.date) + '" data-e="' + r.elapsed + '" data-p="' + r.pace + '" data-pl="' + r.plays + '">'
+    // The rail is the spine of the plaque: medal above, the play count that
+    // earned it set vertically below, like the edge of a framed award.
+    + '<div class="certd-rail" title="' + esc(meta.label + ' · ' + tCount('plays', r.n)) + '">'
+      + '<span class="certd-rail-icon">' + meta.icon + '</span>'
+      + '<span class="certd-rail-n">' + r.n.toLocaleString() + '</span>'
+    + '</div>'
+    + '<div class="certd-main">'
+      // The leader is the dotted rule that carries the eye from the title
+      // across to the figures, the way a printed register does.
+      + '<div class="certd-titlerow">'
+        + '<a href="javascript:void(0)" class="certd-title" onclick="event.stopPropagation();' + open + '">' + esc(r.title) + '</a>'
+        + '<span class="certd-leader" aria-hidden="true"></span>'
+      + '</div>'
+      + '<div class="certd-sub"><span class="certd-tier">' + esc(meta.label) + '</span>' + sub + '</div>'
+    + '</div>'
+    + '<div class="certd-metrics">'
+      + m('', fmtDate(r.first), t('certd_first_play'), '', fmtDate(r.first))
+      + m('certd-m-stamp', fmtDate(r.date), t('certd_certified'),
+          t('certd_held', { time: fmtElapsed(Date.now() - r.date) }))
+      + m('', fmtElapsed(r.elapsed), t('certd_time_taken'),
+          r.gap !== null ? t('certd_from_prev', { time: fmtElapsed(r.gap), tier: r.gapTier.icon }) : '',
+          certdExact(r.elapsed))
+      + m('', certdPace(r.pace), t('certd_pace'),
+          '', t('certd_pace_help', { n: r.n.toLocaleString(), time: certdExact(r.elapsed) }))
+      + m('', r.plays.toLocaleString(), t('certd_plays_now'),
+          r.since > 0 ? t('certd_since_cert', { n: r.since.toLocaleString() }) : '')
+    + '</div>'
+    + foot
+    + '</div>';
+}
+
+// A control strip button. `field` is the panel dataset key it drives.
+function certdBtn(idx, field, value, label, active) {
+  return '<button type="button" class="certd-chip' + (active ? ' active' : '') + '"'
+    + ' data-certd-field="' + field + '" data-certd-value="' + value + '"'
+    + ' onclick="event.stopPropagation();certLedgerSet(' + idx + ',\'' + field + '\',\'' + value + '\',this)">'
+    + label + '</button>';
+}
+
+function certLedgerHTML(idx, artist, rows) {
+  const songs = rows.filter(function (r) { return r.kind === 'song'; }).length;
+  const albums = rows.length - songs;
+  const byTier = { diamond: 0, plat: 0, gold: 0 };
+  rows.forEach(function (r) { byTier[r.tier === 'diamond' ? 'diamond' : r.tier === 'plat' ? 'plat' : 'gold']++; });
+
+  // Headline facts, read off the same rows the list below shows.
+  const dates = rows.map(function (r) { return +r.date; });
+  const fastest = rows.reduce(function (b, r) { return (!b || r.elapsed < b.elapsed) ? r : b; }, null);
+  const pacey = rows.reduce(function (b, r) { return (!b || r.pace > b.pace) ? r : b; }, null);
+  const fact = function (v, l, note) {
+    return '<div class="certd-fact"><span class="certd-fact-v">' + v + '</span>'
+      + '<span class="certd-fact-l">' + l + '</span>'
+      + (note ? '<span class="certd-fact-n">' + esc(note) + '</span>' : '') + '</div>';
+  };
+
+  let h = '<div class="certd-top">'
+    + '<div class="certd-id">'
+      + '<div class="certd-eyebrow">' + t('certd_title') + '</div>'
+      // The artist name is the way into the artist modal from inside the ledger
+      // too, not only from the row above it.
+      + '<a href="javascript:void(0)" class="certd-artist" onclick="event.stopPropagation();openArtistModal(' + esc(JSON.stringify(artist)) + ')">'
+        + esc(artist) + '<span class="certd-artist-go" aria-hidden="true">↗</span></a>'
+    + '</div>'
+    + '<div class="certd-tally"><span class="certd-tally-n">' + rows.length.toLocaleString() + '</span>'
+      + '<span class="certd-tally-l">' + t('certd_awards') + '</span></div>'
+    + '</div>';
+
+  h += '<div class="certd-facts">'
+    + fact('🎵 ' + songs.toLocaleString() + ' <span class="certd-fact-sep">/</span> ◈ ' + albums.toLocaleString(), t('certd_split'))
+    + (dates.length ? fact(fmtDate(new Date(Math.min.apply(null, dates))), t('certd_first_cert')) : '')
+    + (dates.length ? fact(fmtDate(new Date(Math.max.apply(null, dates))), t('certd_latest_cert')) : '')
+    + (fastest ? fact(fmtElapsed(fastest.elapsed), t('certd_fastest'), fastest.title) : '')
+    + (pacey ? fact(certdPace(pacey.pace), t('certd_best_pace'), pacey.title) : '')
+    + '</div>';
+
+  h += '<div class="certd-controls">'
+    + '<div class="certd-seg" role="group" aria-label="' + esc(t('certd_filter_type')) + '">'
+      + certdBtn(idx, 'kind', 'all', t('certd_all'), true)
+      + (songs ? certdBtn(idx, 'kind', 'song', '🎵 ' + songs, false) : '')
+      + (albums ? certdBtn(idx, 'kind', 'album', '◈ ' + albums, false) : '')
+    + '</div>'
+    + '<div class="certd-seg certd-seg-tier" role="group" aria-label="' + esc(t('certd_filter_tier')) + '">'
+      + certdBtn(idx, 'tier', 'all', t('certd_all'), true)
+      + (byTier.diamond ? certdBtn(idx, 'tier', 'diamond', '💎 ' + byTier.diamond, false) : '')
+      + (byTier.plat ? certdBtn(idx, 'tier', 'plat', '💿 ' + byTier.plat, false) : '')
+      + (byTier.gold ? certdBtn(idx, 'tier', 'gold', '🪙 ' + byTier.gold, false) : '')
+    + '</div>'
+    + '<label class="certd-sortwrap"><span class="certd-sortlabel">' + t('certd_sort') + '</span>'
+      + '<select class="certd-select" onclick="event.stopPropagation()" onchange="certLedgerSet(' + idx + ',\'ord\',this.value)">'
+      + [['tier', 'certd_sort_tier'], ['recent', 'certd_sort_recent'], ['oldest', 'certd_sort_oldest'],
+         ['fastest', 'certd_sort_fastest'], ['slowest', 'certd_sort_slowest'],
+         ['pace', 'certd_sort_pace'], ['plays', 'certd_sort_plays']]
+        .map(function (o) { return '<option value="' + o[0] + '">' + esc(t(o[1])) + '</option>'; }).join('')
+      + '</select></label>'
+    + '</div>';
+
+  h += '<div class="certd-list">' + rows.map(certLedgerRowHTML).join('') + '</div>';
+  h += '<div class="certd-empty" hidden>' + t('certd_none') + '</div>';
+  h += '<button type="button" class="certd-more" hidden onclick="event.stopPropagation();certLedgerToggleMore(' + idx + ')"></button>';
+  return h;
+}
+
+// Renders a ledger the first time its row is opened; a no-op after that.
+function buildCertLedger(idx) {
+  const host = document.getElementById('certd-' + idx);
+  if (!host || host.dataset.built) return;
+  const src = _certLedgers[idx];
+  if (!src) return;
+  /* All view state lives on the panel as data-certd-*. The `certd` prefix is
+     not decoration: a bare data-sort is what recCellSortValue() reads off
+     record cells, and these are nested inside one. */
+  host.dataset.built = '1';
+  host.dataset.certdKind = 'all';
+  host.dataset.certdTier = 'all';
+  host.dataset.certdOrd = 'tier';
+  host.dataset.certdExpanded = '0';
+  const rows = certLedgerRows(src.songs, CERT.song).concat(certLedgerRows(src.albums, CERT.album));
+  host.innerHTML = certLedgerHTML(idx, src.artist, rows);
+  certLedgerApply(idx);
+}
+
+const CERTD_SORTS = {
+  // Highest tier first, and inside a tier the one earned earliest — getting
+  // there first is the record, the same rule the overview cards use.
+  tier: function (a, b) { return (b.tw - a.tw) || (a.d - b.d); },
+  recent: function (a, b) { return b.d - a.d; },
+  oldest: function (a, b) { return a.d - b.d; },
+  fastest: function (a, b) { return a.e - b.e; },
+  slowest: function (a, b) { return b.e - a.e; },
+  pace: function (a, b) { return b.p - a.p; },
+  plays: function (a, b) { return b.pl - a.pl; },
+};
+
+/* Filter, order and page the list in place. Ordering is done with CSS `order`
+   rather than by moving nodes: the list is a flex column, so a re-sort is a
+   style write per row and the rows keep their identity (and their reveal
+   animation) across every control the reader touches. */
+function certLedgerApply(idx) {
+  const host = document.getElementById('certd-' + idx);
+  if (!host) return;
+  const kind = host.dataset.certdKind || 'all';
+  const tier = host.dataset.certdTier || 'all';
+  const expanded = host.dataset.certdExpanded === '1';
+  const cmp = CERTD_SORTS[host.dataset.certdOrd] || CERTD_SORTS.tier;
+
+  const rows = Array.from(host.querySelectorAll('.certd-row'));
+  const shown = rows.filter(function (el) {
+    return (kind === 'all' || el.dataset.kind === kind) && (tier === 'all' || el.dataset.tier === tier);
+  });
+  shown.sort(function (x, y) {
+    const a = { tw: +x.dataset.tw, d: +x.dataset.d, e: +x.dataset.e, p: +x.dataset.p, pl: +x.dataset.pl };
+    const b = { tw: +y.dataset.tw, d: +y.dataset.d, e: +y.dataset.e, p: +y.dataset.p, pl: +y.dataset.pl };
+    return cmp(a, b);
+  });
+
+  const cap = expanded ? shown.length : Math.min(CERTD_PAGE, shown.length);
+  rows.forEach(function (el) { el.hidden = true; el.style.order = ''; el.style.removeProperty('--i'); });
+  shown.forEach(function (el, i) {
+    if (i >= cap) return;
+    el.hidden = false;
+    el.style.order = i;
+    // Stagger caps out quickly — a waterfall is a flourish, not a wait.
+    el.style.setProperty('--i', Math.min(i, 14));
+  });
+
+  const empty = host.querySelector('.certd-empty');
+  if (empty) empty.hidden = shown.length > 0;
+  const more = host.querySelector('.certd-more');
+  if (more) {
+    more.hidden = shown.length <= CERTD_PAGE;
+    more.textContent = expanded ? t('certd_show_less') : t('certd_show_all', { n: shown.length.toLocaleString() });
+  }
+}
+
+// A control strip button was pressed: store the choice, light it up, re-apply.
+// `field` is one of kind | tier | ord, stored as data-certd-<field>.
+function certLedgerSet(idx, field, value, btn) {
+  const host = document.getElementById('certd-' + idx);
+  if (!host) return;
+  host.dataset['certd' + field.charAt(0).toUpperCase() + field.slice(1)] = value;
+  // Paging is per view — changing filter or order starts the list back at the
+  // first page, otherwise "show all" silently leaks across a filter change.
+  host.dataset.certdExpanded = '0';
+  if (btn) {
+    host.querySelectorAll('.certd-chip[data-certd-field="' + field + '"]').forEach(function (b) {
+      b.classList.toggle('active', b === btn);
+    });
+  }
+  certLedgerApply(idx);
+}
+
+function certLedgerToggleMore(idx) {
+  const host = document.getElementById('certd-' + idx);
+  if (!host) return;
+  host.dataset.certdExpanded = host.dataset.certdExpanded === '1' ? '0' : '1';
+  certLedgerApply(idx);
+}
+
+function toggleCertLedger(btn, rowId, idx) {
+  const row = document.getElementById(rowId);
+  if (!row) return;
+  const open = !row.classList.contains('open');
+  if (open) buildCertLedger(idx);
+  row.classList.toggle('open', open);
+  btn.classList.toggle('active', open);
+  btn.textContent = open ? '▼' : '▶';
+}
+
+function toggleAllCertLedgers(tableId, btn) {
+  const table = document.getElementById(tableId);
+  if (!table) return;
+  const rows = table.querySelectorAll('tr.rec-run-detail');
+  const btns = table.querySelectorAll('button.rec-run-toggle-btn');
+  const anyOpen = Array.from(rows).some(function (r) { return r.classList.contains('open'); });
+  rows.forEach(function (r, i) {
+    if (!anyOpen) buildCertLedger(i);
+    r.classList.toggle('open', !anyOpen);
+  });
+  btns.forEach(function (b) { b.classList.toggle('active', !anyOpen); b.textContent = anyOpen ? '▶' : '▼'; });
   btn.classList.toggle('active', !anyOpen);
   btn.textContent = anyOpen ? '▶▶' : '▼▼';
 }
