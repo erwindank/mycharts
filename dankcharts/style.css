@@ -11642,90 +11642,224 @@
       margin-bottom: 1.2rem;
     }
 
+    /* ── Overview cards: the mosaic tile, holding a record ──────────────
+       Built to .wv-mos-item's anatomy — artwork filling the tile edge to
+       edge, a scrim at the top for the section name and one at the foot
+       carrying every fact. The one deliberate departure: the mosaic sizes
+       its tiles by play count, and these are all identical, because a card
+       here is an entry point to a section, not a quantity to compare.
+
+       Every colour over the artwork is a literal rgba, not a theme token,
+       for the same reason the mosaic's are: the backdrop is a photograph in
+       all ten themes, so the text has to answer to the photo rather than to
+       the palette. Empty cards, which show no artwork, go back to tokens. */
     .rec-ov-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
-      gap: 0.6rem;
+      grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+      gap: 0.7rem;
       margin-bottom: 1.5rem;
     }
 
     .rec-ov-card {
-      display: flex;
-      flex-direction: column;
-      align-items: flex-start;
-      gap: 0.1rem;
-      width: 100%;
-      text-align: left;
-      padding: 0.85rem 0.95rem 0.8rem;
-      background: var(--bg2);
+      position: relative;
+      /* Square, because the source art is square — at any other ratio
+         object-fit: cover would have to crop a sleeve to fill the card. */
+      aspect-ratio: 1 / 1;
+      overflow: hidden;
       border: 1px solid var(--border);
       border-radius: var(--r-md);
+      background: var(--bg2);
       cursor: pointer;
-      /* a <button> inherits neither font nor colour from the page, and
-         .rec-ov-name deliberately sets no family of its own */
+      /* a role=button div inherits the page font, but .rec-ov-name sets no
+         family of its own and the card must not drift with its container */
       font-family: var(--font-sans);
-      color: var(--text);
-      /* colour-only hover per the design system — no scale or shadow pop */
-      transition: background 0.15s, border-color 0.15s;
+      color: #fff;
+      transition: transform 0.2s ease, opacity 0.25s ease, border-color 0.15s;
     }
 
+    /* The mosaic's hover: the tile grows a little and everything around it
+       recedes, so the one being considered is the only one being read. */
     .rec-ov-card:hover {
-      background: var(--bg3);
+      transform: scale(1.03);
       border-color: var(--border2);
+      z-index: 5;
     }
+
+    .rec-ov-grid:has(.rec-ov-card:hover) .rec-ov-card { opacity: 0.5; }
+    .rec-ov-grid:has(.rec-ov-card:hover) .rec-ov-card:hover { opacity: 1; }
 
     .rec-ov-card:focus-visible {
       outline: 2px solid var(--accent);
       outline-offset: 2px;
     }
 
+    /* Full-bleed artwork. The thumbnail plumbing is shared with every other
+       view in the app, which sizes it at 44px — these overrides are what
+       turn that same markup into a background photo. */
+    .rec-ov-art {
+      position: absolute;
+      inset: 0;
+      z-index: 0;
+    }
+
+    .rec-ov-art .thumb-wrap {
+      width: 100%;
+      height: 100%;
+      flex-direction: row;
+      gap: 0;
+    }
+
+    .rec-ov-art .thumb-wrap > div {
+      width: 100%;
+      height: 100%;
+    }
+
+    .rec-ov-art .thumb,
+    .rec-ov-art .thumb-initials {
+      width: 100%;
+      height: 100%;
+      border: none;
+      border-radius: 0;
+      object-fit: cover;
+    }
+
+    .rec-ov-art .thumb-initials {
+      font-size: 2.6rem;
+      background: var(--bg3);
+    }
+
+    /* The ✎ picker moves to the foot: the section name owns the top corner. */
+    .rec-ov-art .img-src-btn {
+      top: auto;
+      bottom: 6px;
+      right: 6px;
+      width: 22px;
+      height: 22px;
+      z-index: 3;
+    }
+
+    .rec-ov-scrim-top {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 42%;
+      background: linear-gradient(to bottom, rgba(0, 0, 0, 0.82) 0%, transparent 100%);
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    .rec-ov-bot {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      z-index: 2;
+      display: flex;
+      flex-direction: column;
+      gap: 0.08rem;
+      /* The long top pad is the fade itself: the gradient needs room to reach
+         transparent before the artwork does, or the block reads as a bar. */
+      padding: 3.2rem 0.75rem 0.7rem;
+      background: linear-gradient(to top, rgba(0, 0, 0, 0.92) 0%, rgba(0, 0, 0, 0.72) 42%, transparent 100%);
+      pointer-events: none;
+    }
+
     .rec-ov-title {
+      position: absolute;
+      top: 0.6rem;
+      left: 0.75rem;
+      right: 0.75rem;
+      z-index: 2;
       font-family: var(--font-display);
-      font-size: 0.9rem;
+      font-size: 0.85rem;
       font-weight: 600;
       line-height: 1.25;
-      color: var(--text);
+      color: #fff;
+      text-shadow: 0 1px 3px rgba(0, 0, 0, 0.55);
+      pointer-events: none;
     }
 
     .rec-ov-value {
       font-family: var(--font-mono);
-      font-size: 1.35rem;
-      font-weight: 500;
-      line-height: 1.2;
+      font-size: 1.3rem;
+      font-weight: 700;
+      line-height: 1.15;
       font-variant-numeric: tabular-nums;
-      color: var(--accent);
-      margin-top: 0.3rem;
+      color: #fff;
+      overflow-wrap: anywhere;
     }
 
     .rec-ov-name {
-      font-size: 0.85rem;
+      font-size: 0.82rem;
       font-weight: 600;
       line-height: 1.3;
-      color: var(--text);
+      color: rgba(255, 255, 255, 0.94);
       /* long artist/song names must not stretch their grid column */
       overflow-wrap: anywhere;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
     }
 
     .rec-ov-sub {
       font-weight: 400;
-      color: var(--text3);
+      color: rgba(255, 255, 255, 0.62);
     }
 
     .rec-ov-label {
       font-family: var(--font-sans);
-      font-size: 0.72rem;
+      font-size: 0.68rem;
       line-height: 1.35;
-      color: var(--text2);
-      margin-top: 0.2rem;
+      color: rgba(255, 255, 255, 0.6);
+      margin-top: 0.12rem;
     }
 
-    .rec-ov-card-empty .rec-ov-value {
+    /* No record for this type, so no artwork either — the scrims have nothing
+       to sit over and the card returns to the theme's own surface. */
+    .rec-ov-card-empty {
+      border-style: dashed;
+    }
+
+    .rec-ov-card-empty .rec-ov-scrim-top,
+    .rec-ov-card-empty .rec-ov-bot {
+      background: none;
+    }
+
+    .rec-ov-card-empty .rec-ov-title {
+      color: var(--text2);
+      text-shadow: none;
+    }
+
+    .rec-ov-card-empty .rec-ov-value,
+    .rec-ov-card-empty .rec-ov-label {
       color: var(--text3);
+    }
+
+    @media (max-width: 560px) {
+      /* Two up rather than one: a single-column square on a phone is a card
+         the height of the viewport, and ten of them is a very long scroll. */
+      .rec-ov-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 0.5rem;
+      }
+
+      .rec-ov-title { font-size: 0.72rem; top: 0.45rem; left: 0.55rem; right: 0.55rem; }
+      .rec-ov-bot { padding: 2.4rem 0.55rem 0.55rem; }
+      .rec-ov-value { font-size: 1.05rem; }
+      .rec-ov-name { font-size: 0.72rem; -webkit-line-clamp: 1; line-clamp: 1; }
+      .rec-ov-label { font-size: 0.62rem; }
     }
 
     @media (prefers-reduced-motion: reduce) {
       .rec-ov-card {
         transition: none;
+      }
+
+      .rec-ov-card:hover {
+        transform: none;
       }
     }
 

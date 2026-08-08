@@ -6107,10 +6107,15 @@ function buildRecords() {
      those are only tracked per artist and per song. Those combinations are
      simply left unset and the overview renders them as empty cards. */
   const recHi = {};
-  function hi(sectionId, type, label, value, name, sub) {
+  /* `artist` is separate from `sub` on purpose. `sub` is whatever reads best
+     under the name — usually the artist, but sometimes a date ("8 Jul 2026")
+     — while `artist` is only ever the credited artist, because the overview
+     cards look artwork up by title+artist and a date would poison the query.
+     Artists' own cards need no artist: their name is the query. */
+  function hi(sectionId, type, label, value, name, sub, artist) {
     if (!value) return;
     if (!recHi[sectionId]) recHi[sectionId] = {};
-    recHi[sectionId][type] = { label: label, value: value, name: name || '', sub: sub || '' };
+    recHi[sectionId][type] = { label: label, value: value, name: name || '', sub: sub || '', artist: artist || '' };
   }
   // Single-pass "best entry" helpers — cheaper and clearer than sorting to take [0].
   function topNum(map) {
@@ -6142,33 +6147,38 @@ function buildRecords() {
   {
     const L = t('rec_ov_all_ones');
     const s = topBy(song1s.week, byCount), a = topBy(artist1s.week, byCount), l = topBy(album1s.week, byCount);
-    if (s) hi('recAllOnesSection', 'songs', L, tCount('weeks_full', s[1].count), s[1].title, s[1].artist);
+    if (s) hi('recAllOnesSection', 'songs', L, tCount('weeks_full', s[1].count), s[1].title, s[1].artist, s[1].artist);
     if (a) hi('recAllOnesSection', 'artists', L, tCount('weeks_full', a[1].count), a[0]);
-    if (l) hi('recAllOnesSection', 'albums', L, tCount('weeks_full', l[1].count), l[1].album, l[1].artist);
+    if (l) hi('recAllOnesSection', 'albums', L, tCount('weeks_full', l[1].count), l[1].album, l[1].artist, l[1].artist);
   }
 
   // Perfect All Kill — a PAK is an artist event, but each one also crowns a
   // song and an album, so all three types have a most-frequent entry.
   if (pakWeeks.length) {
     const L = t('rec_ov_pak');
+    /* Also remembers which artist each tallied song/album belongs to — the PAK
+       rows only name the work, and the overview card needs the artist to look
+       its artwork up. A PAK crowns one artist per week, so the artist recorded
+       alongside a title is by definition that title's own. */
     const tally = function (field) {
-      const m = {};
-      for (const pw of pakWeeks) { const v = pw[field]; if (v) m[v] = (m[v] || 0) + 1; }
-      return topNum(m);
+      const m = {}, art = {};
+      for (const pw of pakWeeks) { const v = pw[field]; if (v) { m[v] = (m[v] || 0) + 1; art[v] = art[v] || pw.artist; } }
+      const top = topNum(m);
+      return top ? [top[0], top[1], art[top[0]] || ''] : null;
     };
     const s = tally('song'), a = tally('artist'), l = tally('album');
-    if (s) hi('recPAKSection', 'songs', L, tCount('weeks_full', s[1]), s[0]);
+    if (s) hi('recPAKSection', 'songs', L, tCount('weeks_full', s[1]), s[0], '', s[2]);
     if (a) hi('recPAKSection', 'artists', L, tCount('weeks_full', a[1]), a[0]);
-    if (l) hi('recPAKSection', 'albums', L, tCount('weeks_full', l[1]), l[0]);
+    if (l) hi('recPAKSection', 'albums', L, tCount('weeks_full', l[1]), l[0], '', l[2]);
   }
 
   // Most chart appearances — weeks spent anywhere on the chart
   {
     const L = t('rec_ov_appearances');
     const s = topNum(songApps.week), a = topNum(artistApps.week), l = topNum(albumApps.week);
-    if (s) hi('recAppearancesSection', 'songs', L, tCount('weeks_full', s[1]), songNm(s[0]), songArt(s[0]));
+    if (s) hi('recAppearancesSection', 'songs', L, tCount('weeks_full', s[1]), songNm(s[0]), songArt(s[0]), songArt(s[0]));
     if (a) hi('recAppearancesSection', 'artists', L, tCount('weeks_full', a[1]), a[0]);
-    if (l) hi('recAppearancesSection', 'albums', L, tCount('weeks_full', l[1]), albumNm(l[0]), albumArt(l[0]));
+    if (l) hi('recAppearancesSection', 'albums', L, tCount('weeks_full', l[1]), albumNm(l[0]), albumArt(l[0]), albumArt(l[0]));
   }
 
   // Biggest weekly debut
@@ -6176,18 +6186,18 @@ function buildRecords() {
     const L = t('rec_ov_debuts');
     const val = d => t('rec_ov_debut_value', { rank: d.rank, plays: tCount('plays', d.plays || 0) });
     const s = topBy(songDebuts.week, byDebut), a = topBy(artistDebuts.week, byDebut), l = topBy(albumDebuts.week, byDebut);
-    if (s) hi('recDebutsSection', 'songs', L, val(s[1]), s[1].title, s[1].artist);
+    if (s) hi('recDebutsSection', 'songs', L, val(s[1]), s[1].title, s[1].artist, s[1].artist);
     if (a) hi('recDebutsSection', 'artists', L, val(a[1]), a[0]);
-    if (l) hi('recDebutsSection', 'albums', L, val(l[1]), l[1].album, l[1].artist);
+    if (l) hi('recDebutsSection', 'albums', L, val(l[1]), l[1].album, l[1].artist, l[1].artist);
   }
 
   // Most plays inside a single week
   {
     const L = t('rec_ov_peak_plays');
     const s = topBy(songPP.week, byCount), a = topBy(artistPP.week, byCount), l = topBy(albumPP.week, byCount);
-    if (s) hi('recPeakPlaysSection', 'songs', L, tCount('plays', s[1].count), s[1].title || songNm(s[0]), s[1].artist || songArt(s[0]));
+    if (s) hi('recPeakPlaysSection', 'songs', L, tCount('plays', s[1].count), s[1].title || songNm(s[0]), s[1].artist || songArt(s[0]), s[1].artist || songArt(s[0]));
     if (a) hi('recPeakPlaysSection', 'artists', L, tCount('plays', a[1].count), a[0]);
-    if (l) hi('recPeakPlaysSection', 'albums', L, tCount('plays', l[1].count), l[1].album || albumNm(l[0]), l[1].artist || albumArt(l[0]));
+    if (l) hi('recPeakPlaysSection', 'albums', L, tCount('plays', l[1].count), l[1].album || albumNm(l[0]), l[1].artist || albumArt(l[0]), l[1].artist || albumArt(l[0]));
   }
 
   // Highest play-count milestone reached (artists and songs only).
@@ -6209,11 +6219,11 @@ function buildRecords() {
       return best ? { m: topM, key: best[0], ms: best[1] } : null;
     };
     const a = firstTo(artistMS), s = firstTo(songMS), l = firstTo(albumMS);
-    if (s) hi('recMilestonesSection', 'songs', L, tCount('plays', s.m), songNm(s.key), fmtDate(s.ms.date));
+    if (s) hi('recMilestonesSection', 'songs', L, tCount('plays', s.m), songNm(s.key), fmtDate(s.ms.date), songArt(s.key));
     if (a) hi('recMilestonesSection', 'artists', L, tCount('plays', a.m), a.key, fmtDate(a.ms.date));
     // Albums now climb the same ladder, so this card is no longer permanently
     // empty on the Albums pill.
-    if (l) hi('recMilestonesSection', 'albums', L, tCount('plays', l.m), albumNm(l.key), fmtDate(l.ms.date));
+    if (l) hi('recMilestonesSection', 'albums', L, tCount('plays', l.m), albumNm(l.key), fmtDate(l.ms.date), albumArt(l.key));
   }
 
   /* Fastest to a milestone. Each entity is shown at the headline tier of its
@@ -6245,13 +6255,13 @@ function buildRecords() {
     const a = fastestAtOrBelow(artistMS, [1000, 500]);
     const l = fastestAtOrBelow(albumMS, [500, 250, 100]);
     if (s) hi('recFastestSection', 'songs', t('rec_ov_fastest', { n: s.m.toLocaleString() }),
-      fmtElapsed(s.best[1].elapsed), songNm(s.best[0]), songArt(s.best[0]));
+      fmtElapsed(s.best[1].elapsed), songNm(s.best[0]), songArt(s.best[0]), songArt(s.best[0]));
     if (a) hi('recFastestSection', 'artists', t('rec_ov_fastest', { n: a.m.toLocaleString() }),
       fmtElapsed(a.best[1].elapsed), a.best[0]);
     // Albums climb their own ladder now, so this card is no longer empty on the
     // Albums pill.
     if (l) hi('recFastestSection', 'albums', t('rec_ov_fastest', { n: l.m.toLocaleString() }),
-      fmtElapsed(l.best[1].elapsed), albumNm(l.best[0]), albumArt(l.best[0]));
+      fmtElapsed(l.best[1].elapsed), albumNm(l.best[0]), albumArt(l.best[0]), albumArt(l.best[0]));
   }
 
   /* Certifications. Artists rank by how many they hold, which is a genuine
@@ -6282,7 +6292,7 @@ function buildRecords() {
       const w = firstToTopTier(pair[1]);
       if (!w) return;
       hi('recCertsSection', pair[0], t('rec_ov_certs_first'), t('rec_ov_cert_tier_' + w.tier),
-        w.title, w.date ? fmtDate(new Date(w.date + 'T00:00:00')) : w.artist);
+        w.title, w.date ? fmtDate(new Date(w.date + 'T00:00:00')) : w.artist, w.artist);
     });
   }
 
@@ -6290,7 +6300,7 @@ function buildRecords() {
   {
     const L = t('rec_ov_streaks');
     const s = topNum(songStreaks), a = topNum(artistStreaks);
-    if (s) hi('recStreaksSection', 'songs', L, tCount('days', s[1]), songNm(s[0]), songArt(s[0]));
+    if (s) hi('recStreaksSection', 'songs', L, tCount('days', s[1]), songNm(s[0]), songArt(s[0]), songArt(s[0]));
     if (a) hi('recStreaksSection', 'artists', L, tCount('days', a[1]), a[0]);
   }
 
@@ -6299,9 +6309,9 @@ function buildRecords() {
     const L = t('rec_ov_new_charts');
     const val = d => t('rec_ov_debut_value', { rank: d.rank, plays: tCount('plays', d.plays || 0) });
     const s = topBy(ncSongDebuts.week, byDebut), a = topBy(ncArtistDebuts.week, byDebut), l = topBy(ncAlbumDebuts.week, byDebut);
-    if (s) hi('recNewChartsSection', 'songs', L, val(s[1]), s[1].title, s[1].artist);
+    if (s) hi('recNewChartsSection', 'songs', L, val(s[1]), s[1].title, s[1].artist, s[1].artist);
     if (a) hi('recNewChartsSection', 'artists', L, val(a[1]), a[0]);
-    if (l) hi('recNewChartsSection', 'albums', L, val(l[1]), l[1].album, l[1].artist);
+    if (l) hi('recNewChartsSection', 'albums', L, val(l[1]), l[1].album, l[1].artist, l[1].artist);
   }
 
   renderRecordsOverview(recHi);
@@ -6345,6 +6355,29 @@ const REC_OV_TYPES = [
 // re-running buildRecords(), which would rebuild all ~55 tables to change a pill.
 let _recOvHighlights = {};
 
+// The chart type the pills speak in ("songs") vs. the one the image loader
+// speaks in ("song"). Every artwork lookup in the app uses the singular.
+const REC_OV_IMG_TYPE = { songs: 'song', artists: 'artist', albums: 'album' };
+
+/* One live IntersectionObserver at a time. The pills re-render this grid on
+   every click, and without retiring the previous observer each toggle would
+   leave another one watching elements that no longer exist. */
+let _recOvImgObserver = null;
+
+/* The loadImages() descriptor for one card's artwork. Same shape and same
+   prefKey formula the weekly views use (_wvItem), so a picture pinned in the
+   picker anywhere in the app shows up here too, and vice versa. */
+function recOvImgItem(type, d, imgId) {
+  const nm = d.name || '', art = d.artist || '';
+  if (type === 'artists') {
+    return { imgId, name: nm, artist: nm, prefKey: 'artist:' + nm.toLowerCase() };
+  }
+  if (type === 'albums') {
+    return { imgId, name: nm, album: nm, artist: art, prefKey: 'album:' + art.toLowerCase() + '|||' + nm.toLowerCase() };
+  }
+  return { imgId, name: nm, title: nm, artist: art, album: '', prefKey: 'song:' + art.toLowerCase() + '|||' + nm.toLowerCase() };
+}
+
 function recOverviewType() {
   const stored = localStorage.getItem('dc_rec_ov_type');
   return REC_OV_TYPES.some(function (ty) { return ty.key === stored; }) ? stored : 'songs';
@@ -6366,7 +6399,13 @@ function renderRecordsOverview(highlights) {
   }).join('');
   html += '</div>';
 
-  html += sections.map(function (id) {
+  /* Cards are built to the mosaic tile's anatomy (.wv-mos-item): the record
+     holder's artwork fills the whole card, a scrim at the top carries the
+     section name and one at the foot carries every fact — the figure, who
+     holds it and what it is. Unlike the mosaic, all tiles are the same size;
+     nothing here is being weighted against anything else. */
+  const imgItems = [];
+  html += sections.map(function (id, idx) {
     const sec = document.getElementById(id);
     if (!sec) return '';
     const heading = sec.querySelector('.section-header-h2');
@@ -6374,20 +6413,39 @@ function renderRecordsOverview(highlights) {
     const d = (_recOvHighlights[id] || {})[type];
     const hasRecord = !!(d && d.value);
 
-    let card = '<button type="button" class="rec-ov-card' + (hasRecord ? '' : ' rec-ov-card-empty') +
-      '" data-rec-goto="' + esc(id) + '">';
+    /* A <div role="button"> rather than a real <button>: the artwork carries
+       the image picker's ✎ control, and a button inside a button is invalid
+       HTML that browsers unnest. Keyboard activation is restored below. */
+    let card = '<div class="rec-ov-card' + (hasRecord ? '' : ' rec-ov-card-empty') +
+      '" role="button" tabindex="0" data-rec-goto="' + esc(id) + '">';
+
+    // Artwork only where there is a record to illustrate — an empty card has
+    // no holder, so it stays a plain surface instead of borrowing someone's art.
+    if (hasRecord && d.name) {
+      const imgId = 'recov-' + type + '-' + idx;
+      imgItems.push(recOvImgItem(type, d, imgId));
+      card += '<div class="rec-ov-art"><div class="thumb-wrap"><div id="' + imgId + '">'
+        + '<div class="thumb-initials">' + esc(initials(d.name)) + '</div></div></div></div>';
+    }
+
+    card += '<div class="rec-ov-scrim-top"></div>';
     card += '<span class="rec-ov-title">' + esc(title) + '</span>';
+    card += '<div class="rec-ov-bot">';
     card += '<span class="rec-ov-value">' + (hasRecord ? esc(d.value) : '—') + '</span>';
     if (hasRecord && d.name) {
       card += '<span class="rec-ov-name">' + esc(d.name) +
         (d.sub ? '<span class="rec-ov-sub"> · ' + esc(d.sub) + '</span>' : '') + '</span>';
     }
     card += '<span class="rec-ov-label">' + esc(hasRecord ? d.label : t('rec_ov_no_type_record')) + '</span>';
-    card += '</button>';
+    card += '</div></div>';
     return card;
   }).join('');
 
   body.innerHTML = html;
+
+  // Retire the previous pill's observer before the new one starts watching.
+  if (_recOvImgObserver) { _recOvImgObserver.disconnect(); _recOvImgObserver = null; }
+  if (imgItems.length) _recOvImgObserver = loadImages(imgItems, REC_OV_IMG_TYPE[type]);
 
   if (body.dataset.ready !== '1') {
     body.dataset.ready = '1';
@@ -6405,6 +6463,14 @@ function renderRecordsOverview(highlights) {
       applyRecordsViewFilter(view);
       const rv = document.getElementById('recordsView');
       if (rv && rv.scrollIntoView) rv.scrollIntoView({ block: 'start', behavior: 'auto' });
+    });
+    // What a real <button> gave us for free, back by hand.
+    body.addEventListener('keydown', function (e) {
+      if (e.key !== 'Enter' && e.key !== ' ' && e.key !== 'Spacebar') return;
+      const card = e.target.closest('[data-rec-goto]');
+      if (!card) return;
+      e.preventDefault();
+      card.click();
     });
   }
 }
