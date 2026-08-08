@@ -4921,7 +4921,10 @@ function buildRecords() {
       (async function () {
         await loadImages(imgItems, ent.type);
       })();
-      h += '</div>';
+      /* Closes .rec-section-sub-wrapper — and only that. An extra </div> here
+         used to close .rec-section, then the .rec-ent-panel itself, which spat
+         the monthly and yearly tables out of the panel so no pill could hide
+         them. Keep the opens and closes in this loop balanced. */
       h += '</div>';
     }
     h += '</div>';
