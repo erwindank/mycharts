@@ -710,6 +710,11 @@ const TRANSLATIONS = {
     mil_tabs_label: 'Milestone record type',
     // Fastest-to-milestone: same three-way pill row, its own state
     fast_tabs_label: 'Fastest record type',
+    // The shared pill row every other entity-organised record section wears —
+    // All #1s, Appearances, Debuts, Most Plays, Streaks. One label serves them
+    // all: it is read next to the section heading, which already says which
+    // record is being narrowed.
+    rec_ent_tabs_label: 'Record type',
     // The timeline has no visible column headers, so this only ever reaches a
     // screen reader — it has to work for songs, artists and albums alike.
     mil_th_first_to_reach: 'First to Reach It',

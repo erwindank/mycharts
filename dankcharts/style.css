@@ -11784,10 +11784,13 @@
        compete. */
     /* The Milestones and Fastest type pills share this styling rather than
        copying it: all three sit in the same tab and do the same job, so they
-       must not be able to drift apart. */
+       must not be able to drift apart. .rec-ent-* is the generic version of
+       the same row, worn by All #1s, Appearances, Debuts, Most Plays and
+       Streaks — same reason it is on this selector list and not its own. */
     .nc-rec-tabs,
     .mil-tabs,
-    .fast-tabs {
+    .fast-tabs,
+    .rec-ent-tabs {
       display: inline-flex;
       flex-wrap: wrap;
       gap: 0.2rem;
@@ -11800,7 +11803,8 @@
 
     .nc-rec-tab,
     .mil-tab,
-    .fast-tab {
+    .fast-tab,
+    .rec-ent-tab {
       display: inline-flex;
       align-items: center;
       gap: 0.35rem;
@@ -11819,21 +11823,24 @@
 
     .nc-rec-tab-icon,
     .mil-tab-icon,
-    .fast-tab-icon {
+    .fast-tab-icon,
+    .rec-ent-tab-icon {
       font-size: 0.72rem;
       line-height: 1;
     }
 
     .nc-rec-tab:hover,
     .mil-tab:hover,
-    .fast-tab:hover {
+    .fast-tab:hover,
+    .rec-ent-tab:hover {
       background: var(--bg3);
       color: var(--text);
     }
 
     .nc-rec-tab.active,
     .mil-tab.active,
-    .fast-tab.active {
+    .fast-tab.active,
+    .rec-ent-tab.active {
       background: var(--accent);
       border-color: var(--accent);
       color: var(--on-accent);
@@ -11874,7 +11881,8 @@
 
     body.yellow .nc-rec-tab.active,
     body.yellow .mil-tab.active,
-    body.yellow .fast-tab.active {
+    body.yellow .fast-tab.active,
+    body.yellow .rec-ent-tab.active {
       color: #1a1a00;
     }
 

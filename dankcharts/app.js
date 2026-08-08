@@ -4821,8 +4821,12 @@ function buildRecords() {
       nameRow: function (k, d, i, imgId) { return '<td class="rec-rank">' + (i + 1) + '</td><td class="thumb-cell"><div class="thumb-wrap"><div id="' + imgId + '"><div class="thumb-initials">' + esc(initials(d.album)) + '</div></div><button id="srcbtn-' + imgId + '" class="img-src-btn" data-imgid="' + imgId + '" data-type="album" data-prefkey="' + esc('album:' + d.artist.toLowerCase() + '|||' + d.album.toLowerCase()) + '" data-name="' + esc(d.album) + '" data-artist="' + esc(d.artist) + '" data-album="' + esc(d.album) + '">Deezer</button></div></td><td><div class="rec-name">' + esc(d.album) + '</div><div class="rec-sub">' + esc(d.artist) + '</div></td>'; }
     },
   ];
-  let h = '';
+  /* One panel per entity, one on screen at a time — the same pills Milestones,
+     Fastest and New Charts wear, built by recEntTabsHtml(). Nine tables (three
+     entities × weekly/monthly/yearly) was never one scroll anybody read. */
+  const onesPanels = [];
   for (const ent of entityConfig) {
+    let h = '';
     h += '<div class="rec-section"><div class="rec-section-title">' + ent.icon + ' ' + ent.label + ' &mdash; ' + t('rec_most_times_1') + '</div>';
     for (const cfg of typeConfig) {
       const entries = Object.entries(ent.data[cfg.pt]).sort(function (a, b) { return b[1].count - a[1].count; });
@@ -4877,8 +4881,9 @@ function buildRecords() {
       h += '</div>';
     }
     h += '</div>';
+    onesPanels.push({ key: ent.key, icon: ent.icon, label: ent.label, html: h });
   }
-  document.getElementById('recAllOnesBody').innerHTML = h;
+  document.getElementById('recAllOnesBody').innerHTML = recEntTabsHtml('ones', onesPanels);
 
   // ── Perfect All Kill ─────────────────────────────────────────
   if (!pakWeeks.length) {
@@ -4995,6 +5000,16 @@ function buildRecords() {
   ensureAllChartRun();
   let ah = '';
   const appImgQueue = [];
+  /* Each of the three builders below appends exactly one .rec-section to `ah`.
+     appPanel() snips off whatever the last of them added and hands it back as
+     an entity panel, so the builders themselves stay as they were while the
+     section grows its Songs/Artists/Albums pills. */
+  const appPanels = [];
+  let appMark = 0;
+  function appPanel(key, icon, label) {
+    appPanels.push({ key: key, icon: icon, label: label, html: ah.slice(appMark) });
+    appMark = ah.length;
+  }
 
   // ── Songs appearances ──
   {
@@ -5038,6 +5053,7 @@ function buildRecords() {
     }
     ah += '</tbody></table></div></div>';
   }
+  appPanel('songs', '★', t('rec_th_songs'));
 
   // ── Artists appearances ──
   {
@@ -5075,6 +5091,7 @@ function buildRecords() {
     }
     ah += '</tbody></table></div></div>';
   }
+  appPanel('artists', '♦', t('rec_th_artists'));
 
   // ── Albums appearances ──
   {
@@ -5118,8 +5135,9 @@ function buildRecords() {
     }
     ah += '</tbody></table></div></div>';
   }
+  appPanel('albums', '◈', t('rec_th_albums'));
 
-  document.getElementById('recAppearancesBody').innerHTML = ah;
+  document.getElementById('recAppearancesBody').innerHTML = recEntTabsHtml('app', appPanels);
   (async () => {
     await loadImages(appImgQueue.filter(x => x.imgType === 'song'), 'song');
     await loadImages(appImgQueue.filter(x => x.imgType === 'artist'), 'artist');
@@ -5129,6 +5147,14 @@ function buildRecords() {
   // ── Biggest Debuts ───────────────────────────────────────────
   const debImgQueue = [];
   let dh = '';
+  // Same snip-per-builder trick the Appearances section above uses, for the
+  // same reason: three independent table builders, three entity panels.
+  const debPanels = [];
+  let debMark = 0;
+  function debPanel(key, icon, label) {
+    debPanels.push({ key: key, icon: icon, label: label, html: dh.slice(debMark) });
+    debMark = dh.length;
+  }
 
   // ── Songs Debuts ──
   {
@@ -5168,6 +5194,7 @@ function buildRecords() {
     }
     dh += '</div>';
   }
+  debPanel('songs', '★', t('rec_th_songs'));
 
   // ── Artists Debuts ──
   {
@@ -5223,6 +5250,7 @@ function buildRecords() {
     }
     dh += '</div>';
   }
+  debPanel('artists', '♦', t('rec_th_artists'));
 
   // ── Albums Debuts ──
   {
@@ -5263,8 +5291,9 @@ function buildRecords() {
     }
     dh += '</div>';
   }
+  debPanel('albums', '◈', t('rec_th_albums'));
 
-  document.getElementById('recDebutsBody').innerHTML = dh;
+  document.getElementById('recDebutsBody').innerHTML = recEntTabsHtml('deb', debPanels);
   (async () => {
     await loadImages(debImgQueue.filter(function (x) { return x.imgType === 'song'; }), 'song');
     await loadImages(debImgQueue.filter(function (x) { return x.imgType === 'artist'; }), 'artist');
@@ -5277,31 +5306,60 @@ function buildRecords() {
     { pt: 'month', unitLabel: t('rec_th_month'), sPP: songPP.month, aPP: artistPP.month, lPP: albumPP.month },
     { pt: 'year', unitLabel: t('rec_th_year'), sPP: songPP.year, aPP: artistPP.year, lPP: albumPP.year },
   ];
-  let ppH = '';
-  for (const cfg of ptCfg) {
-    ppH += '<div class="rec-section"><div class="rec-section-title">' + t('rec_most_plays_single', { unit: cfg.unitLabel }) + '</div><div class="rec-grid-2">';
-    const topS = Object.entries(cfg.sPP).sort(function (a, b) { return b[1].count - a[1].count; });
-    ppH += '<div><div class="rec-section-sub">' + t('rec_top_songs') + '</div>' + recTable(['#', t('rec_th_songs') + ' &middot; ' + t('rec_th_artist'), t('rec_th_plays'), cfg.unitLabel],
-      topS.map(function (e, i) { const d = e[1]; const n = songNames[e[0]] || {}; return '<td class="rec-rank">' + (i + 1) + '</td><td><div class="rec-name">' + esc(d.title || n.title || e[0].split('|||')[0]) + '</div><div class="rec-sub">' + esc(d.artist || n.artist || '') + '</div></td><td class="rec-count">' + d.count + '</td><td class="rec-meta">' + fmtPeriodKey(d.period, cfg.pt) + '</td>'; }),
-      lim, null, null,
-      { rowAttrs: function (i) { const d = topS[i][1], n = songNames[topS[i][0]] || {};
-        return recRowAttrs(d.artist || n.artist || '', 'song', d.title || n.title || topS[i][0].split('|||')[0]); } }
-    ) + '</div>';
-    const topA = Object.entries(cfg.aPP).sort(function (a, b) { return b[1].count - a[1].count; });
-    ppH += '<div><div class="rec-section-sub">' + t('rec_top_artists') + '</div>' + recTable(['#', t('rec_th_artist'), t('rec_th_plays'), cfg.unitLabel],
-      topA.map(function (e, i) { return '<td class="rec-rank">' + (i + 1) + '</td><td><div class="rec-name">' + esc(e[0]) + '</div></td><td class="rec-count">' + e[1].count + '</td><td class="rec-meta">' + fmtPeriodKey(e[1].period, cfg.pt) + '</td>'; }),
-      lim, null, null,
-      { rowAttrs: function (i) { return recRowAttrs(topA[i][0], 'artist', topA[i][0]); } }
-    ) + '</div></div>';
-    const topL = Object.entries(cfg.lPP).sort(function (a, b) { return b[1].count - a[1].count; });
-    ppH += '<div class="rec-section-sub">' + t('rec_top_albums') + '</div>' + recTable(['#', t('rec_th_albums') + ' &middot; ' + t('rec_th_artist'), t('rec_th_plays'), cfg.unitLabel],
-      topL.map(function (e, i) { const d = e[1]; const n = albumNames[e[0]] || {}; return '<td class="rec-rank">' + (i + 1) + '</td><td><div class="rec-name">' + esc(d.album || n.album || e[0].split('|||')[0]) + '</div><div class="rec-sub">' + esc(d.artist || n.artist || '') + '</div></td><td class="rec-count">' + d.count + '</td><td class="rec-meta">' + fmtPeriodKey(d.period, cfg.pt) + '</td>'; }),
-      lim, null, null,
-      { rowAttrs: function (i) { const d = topL[i][1], n = albumNames[topL[i][0]] || {};
-        return recRowAttrs(d.artist || n.artist || '', 'album', d.album || n.album || topL[i][0].split('|||')[0]); } }
-    ) + '</div>';
-  }
-  document.getElementById('recPeakPlaysBody').innerHTML = ppH;
+  /* Nine tables: three entities across weekly, monthly and yearly. This used to
+     read period-first — one section per period, all three entities crammed
+     inside it, songs and artists side by side in a two-column grid and albums
+     stranded full-width underneath. The pills make entity the outer axis
+     instead, so a panel is one entity and the three periods stack under it in
+     the same shape. One table per period means the grid is gone with it.
+
+     Each entity builds its own row markup, so the table builder is per entity
+     rather than one shared loop pretending three different shapes are one. */
+  const ppBuild = {
+    songs: function (cfg) {
+      const top = Object.entries(cfg.sPP).sort(function (a, b) { return b[1].count - a[1].count; });
+      return recTable(['#', t('rec_th_songs') + ' &middot; ' + t('rec_th_artist'), t('rec_th_plays'), cfg.unitLabel],
+        top.map(function (e, i) { const d = e[1]; const n = songNames[e[0]] || {}; return '<td class="rec-rank">' + (i + 1) + '</td><td><div class="rec-name">' + esc(d.title || n.title || e[0].split('|||')[0]) + '</div><div class="rec-sub">' + esc(d.artist || n.artist || '') + '</div></td><td class="rec-count">' + d.count + '</td><td class="rec-meta">' + fmtPeriodKey(d.period, cfg.pt) + '</td>'; }),
+        lim, null, null,
+        { rowAttrs: function (i) { const d = top[i][1], n = songNames[top[i][0]] || {};
+          return recRowAttrs(d.artist || n.artist || '', 'song', d.title || n.title || top[i][0].split('|||')[0]); } }
+      );
+    },
+    artists: function (cfg) {
+      const top = Object.entries(cfg.aPP).sort(function (a, b) { return b[1].count - a[1].count; });
+      return recTable(['#', t('rec_th_artist'), t('rec_th_plays'), cfg.unitLabel],
+        top.map(function (e, i) { return '<td class="rec-rank">' + (i + 1) + '</td><td><div class="rec-name">' + esc(e[0]) + '</div></td><td class="rec-count">' + e[1].count + '</td><td class="rec-meta">' + fmtPeriodKey(e[1].period, cfg.pt) + '</td>'; }),
+        lim, null, null,
+        { rowAttrs: function (i) { return recRowAttrs(top[i][0], 'artist', top[i][0]); } }
+      );
+    },
+    albums: function (cfg) {
+      const top = Object.entries(cfg.lPP).sort(function (a, b) { return b[1].count - a[1].count; });
+      return recTable(['#', t('rec_th_albums') + ' &middot; ' + t('rec_th_artist'), t('rec_th_plays'), cfg.unitLabel],
+        top.map(function (e, i) { const d = e[1]; const n = albumNames[e[0]] || {}; return '<td class="rec-rank">' + (i + 1) + '</td><td><div class="rec-name">' + esc(d.album || n.album || e[0].split('|||')[0]) + '</div><div class="rec-sub">' + esc(d.artist || n.artist || '') + '</div></td><td class="rec-count">' + d.count + '</td><td class="rec-meta">' + fmtPeriodKey(d.period, cfg.pt) + '</td>'; }),
+        lim, null, null,
+        { rowAttrs: function (i) { const d = top[i][1], n = albumNames[top[i][0]] || {};
+          return recRowAttrs(d.artist || n.artist || '', 'album', d.album || n.album || top[i][0].split('|||')[0]); } }
+      );
+    }
+  };
+  const PP_REC_TYPES = [
+    { key: 'songs', icon: '★', label: t('rec_th_songs') },
+    { key: 'artists', icon: '♦', label: t('rec_th_artists') },
+    { key: 'albums', icon: '◈', label: t('rec_th_albums') }
+  ];
+  const ppPanels = PP_REC_TYPES.map(function (ent) {
+    let html = '';
+    for (const cfg of ptCfg) {
+      // The three panels repeat these same three titles, which is exactly why
+      // recEntTabsHtml() scopes their collapse keys per panel.
+      html += '<div class="rec-section"><div class="rec-section-title">'
+        + t('rec_most_plays_single', { unit: cfg.unitLabel }) + '</div>'
+        + ppBuild[ent.key](cfg) + '</div>';
+    }
+    return { key: ent.key, icon: ent.icon, label: ent.label, html: html };
+  });
+  document.getElementById('recPeakPlaysBody').innerHTML = recEntTabsHtml('pp', ppPanels);
 
   // ── Play Count Milestones ─────────────────────────────────────
   /* Milestones are a ladder of firsts, not a leaderboard: every row is a
@@ -5944,7 +6002,17 @@ function buildRecords() {
   loadImages(ncImgQueue, 'song');
 
   // ── Streak Records ────────────────────────────────────────────
+  /* Two pills here, not three: a listening streak is only ever tracked per
+     artist and per song, so there is no album ladder to put behind a third
+     one. The artist streak goes in its own panel, and both song records — the
+     longest streak and the repeat runs — go in the other. */
   let sh = '';
+  const strPanels = [];
+  let strMark = 0;
+  function strPanel(key, icon, label) {
+    strPanels.push({ key: key, icon: icon, label: label, html: sh.slice(strMark) });
+    strMark = sh.length;
+  }
   const topAS = Object.entries(artistStreaks).sort(function (a, b) { return b[1] - a[1]; });
   sh += '<div class="rec-section"><div class="rec-section-title">' + t('rec_artists_longest_streak') + '</div>';
   sh += recTable(['#', t('rec_th_artist'), t('rec_th_consec_days')],
@@ -5953,6 +6021,7 @@ function buildRecords() {
     { rowAttrs: function (i) { return recRowAttrs(topAS[i][0], 'artist', topAS[i][0]); } }
   );
   sh += '</div>';
+  strPanel('artists', '♦', t('rec_th_artists'));
   const topSS = Object.entries(songStreaks).sort(function (a, b) { return b[1] - a[1]; });
   sh += '<div class="rec-section"><div class="rec-section-title">' + t('rec_songs_longest_streak') + '</div>';
   sh += recTable(['#', t('rec_th_songs') + ' &middot; ' + t('rec_th_artist'), t('rec_th_consec_days')],
@@ -5977,7 +6046,14 @@ function buildRecords() {
     sh += '<div class="rec-empty">' + t('rec_no_repeat_runs') + '</div>';
   }
   sh += '</div>';
-  document.getElementById('recStreaksBody').innerHTML = sh;
+  strPanel('songs', '★', t('rec_th_songs'));
+  // Songs lead the pills here the way they do in every other section, even
+  // though the artist table is the one built first above.
+  const STR_ORDER = ['songs', 'artists'];
+  document.getElementById('recStreaksBody').innerHTML = recEntTabsHtml('streaks',
+    STR_ORDER.map(function (k) {
+      return strPanels.find(function (p) { return p.key === k; });
+    }));
 
   /* ── Overview highlights ────────────────────────────────────────────
      One headline record per section, per chart type, for the landing
@@ -6193,6 +6269,7 @@ function buildRecords() {
   applyNewChartsRecTabs();
   applyMilestoneRecTabs();
   applyFastestRecTabs();
+  applyRecEntTabs();
   initAllRecTableResizableCols();
   initAllRecTableSorting();
 
@@ -7198,6 +7275,13 @@ function runRecordsSearch(q) {
       p.style.display = p.querySelector('.rec-search-hit') ? '' : 'none';
     });
   }
+  // Every section on the shared pill row — All #1s, Appearances, Debuts, Most
+  // Plays, Streaks — steps aside in one pass, since they all wear the same
+  // classes. A hit in any panel keeps that panel open regardless of its pill.
+  view.querySelectorAll('.rec-ent-tabs').forEach(function (el) { el.style.display = 'none'; });
+  view.querySelectorAll('.rec-ent-panel').forEach(function (p) {
+    p.style.display = p.querySelector('.rec-search-hit') ? '' : 'none';
+  });
   // No pill is "the" section while results span several of them, and the
   // entries-per-table control has no meaning while search is ignoring it.
   document.querySelectorAll('#recordsNav .records-nav-btn').forEach(function (b) {
@@ -7391,6 +7475,7 @@ function applyRecordsViewFilter(view) {
   applyNewChartsRecTabs();
   applyMilestoneRecTabs();
   applyFastestRecTabs();
+  applyRecEntTabs();
   if (typeof window._refreshBackToTop === 'function') window._refreshBackToTop();
 }
 
@@ -7531,6 +7616,85 @@ document.addEventListener('click', function (e) {
     return;
   }
   applyFastestRecTabs();
+  if (typeof window._refreshBackToTop === 'function') window._refreshBackToTop();
+});
+
+/* ── Entity pills for every other record section ──────────────────────
+   Milestones, Fastest and New Charts above each grew their own hand-rolled
+   Songs/Artists/Albums row. The rest of Records is organised by entity too —
+   All #1s, Appearances, Debuts, Most Plays, Streaks — and rather than a
+   fourth, fifth and sixth copy of the same twenty lines, they all share this
+   one: one builder, one stored choice per section, one hand-off to search.
+
+   `scope` is the section's short key ('ones', 'app', 'deb', 'pp', 'streaks').
+   It names the localStorage entry and, via data-rec-scope, keeps each panel's
+   inner collapse state to itself — Most Plays repeats the same three section
+   titles in all three panels, so without it they would share one key.
+
+   Every panel is built whether or not it is on screen, exactly like the three
+   sections above, so the global records search can still reach all of them;
+   only `display` ever moves. */
+function recEntTabsHtml(scope, panels) {
+  let h = '<div class="rec-ent-tabs" data-rec-ent-scope="' + esc(scope) + '"'
+    + ' role="tablist" aria-label="' + esc(t('rec_ent_tabs_label')) + '">';
+  for (const p of panels) {
+    h += '<button type="button" class="rec-ent-tab" role="tab"'
+      + ' data-rec-ent-scope="' + esc(scope) + '" data-rec-ent="' + esc(p.key) + '">'
+      + '<span class="rec-ent-tab-icon" aria-hidden="true">' + p.icon + '</span>'
+      + esc(p.label) + '</button>';
+  }
+  h += '</div>';
+  for (const p of panels) {
+    h += '<div class="rec-ent-panel" role="tabpanel"'
+      + ' data-rec-ent-scope="' + esc(scope) + '" data-rec-ent="' + esc(p.key) + '"'
+      + ' data-rec-scope="' + esc(scope + '-' + p.key) + '" style="display:none">'
+      + p.html + '</div>';
+  }
+  return h;
+}
+
+// The stored pill for one section, falling back to the first one it offers —
+// Streaks only has two (there are no album listening streaks to rank), so the
+// valid set comes from the row in the DOM rather than a fixed list here.
+function recEntTabState(scope, keys) {
+  const stored = localStorage.getItem('dc_rec_ent_' + scope);
+  return keys.indexOf(stored) === -1 ? keys[0] : stored;
+}
+
+function applyRecEntTabs() {
+  const view = document.getElementById('recordsView');
+  if (!view) return;
+  view.querySelectorAll('.rec-ent-tabs').forEach(function (row) {
+    const scope = row.dataset.recEntScope;
+    const tabs = Array.prototype.slice.call(row.querySelectorAll('.rec-ent-tab'));
+    if (!tabs.length) return;
+    const active = recEntTabState(scope, tabs.map(function (b) { return b.dataset.recEnt; }));
+    row.style.display = '';
+    tabs.forEach(function (b) {
+      const on = b.dataset.recEnt === active;
+      b.classList.toggle('active', on);
+      b.setAttribute('aria-selected', on ? 'true' : 'false');
+    });
+    view.querySelectorAll('.rec-ent-panel[data-rec-ent-scope="' + scope + '"]').forEach(function (p) {
+      p.style.display = p.dataset.recEnt === active ? '' : 'none';
+    });
+  });
+}
+
+document.addEventListener('click', function (e) {
+  const btn = e.target.closest('#recordsView .rec-ent-tab');
+  if (!btn) return;
+  localStorage.setItem('dc_rec_ent_' + btn.dataset.recEntScope, btn.dataset.recEnt);
+  // A search owns what is on screen; switching pills is a way out of one, and
+  // it should land on the section the pill belongs to rather than on whichever
+  // section was stored before the search started.
+  if (recSearchQuery()) {
+    const sec = btn.closest('.chart-section');
+    if (sec && sec.id) localStorage.setItem('dc_records_active_view', sec.id);
+    clearRecordsSearch();
+    return;
+  }
+  applyRecEntTabs();
   if (typeof window._refreshBackToTop === 'function') window._refreshBackToTop();
 });
 
