@@ -11980,7 +11980,12 @@
       color: var(--on-accent);
     }
 
-    .nc-rec-subtabs {
+    /* .rec-per-* is the generic version of this row — All #1s wears it under
+       its Songs/Artists/Albums pills to pick weekly, monthly or yearly. Same
+       job, one level down from a filled pill row, so it shares the styling
+       rather than copying it and letting the two drift apart. */
+    .nc-rec-subtabs,
+    .rec-per-tabs {
       display: flex;
       flex-wrap: wrap;
       gap: 1rem;
@@ -11989,7 +11994,8 @@
       border-bottom: 1px solid var(--border);
     }
 
-    .nc-rec-subtab {
+    .nc-rec-subtab,
+    .rec-per-tab {
       background: none;
       border: none;
       border-bottom: 2px solid transparent;
@@ -12004,11 +12010,13 @@
       transition: color 0.15s, border-color 0.15s;
     }
 
-    .nc-rec-subtab:hover {
+    .nc-rec-subtab:hover,
+    .rec-per-tab:hover {
       color: var(--text);
     }
 
-    .nc-rec-subtab.active {
+    .nc-rec-subtab.active,
+    .rec-per-tab.active {
       color: var(--accent);
       border-bottom-color: var(--accent);
     }

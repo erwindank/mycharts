@@ -4846,10 +4846,13 @@ function buildRecords() {
   const lim = recLimit === 0 ? Infinity : recLimit;
 
   // ── All #1s ──────────────────────────────────────────────────
+  /* `label` is the full chart name ("Weekly Chart") the record titles are built
+     from; `short` is the bare period the pill row wears, because the title
+     right under it already spells the chart name out in full. */
   const typeConfig = [
-    { pt: 'week', label: t('rec_weekly_label'), size: wSizeSongs },
-    { pt: 'month', label: t('rec_monthly_label'), size: mSizeSongs },
-    { pt: 'year', label: t('rec_yearly_label'), size: isFinite(chartSizeSongsY) ? chartSizeSongsY : '∞' },
+    { pt: 'week', label: t('rec_weekly_label'), short: t('nav_weekly'), size: wSizeSongs },
+    { pt: 'month', label: t('rec_monthly_label'), short: t('nav_monthly'), size: mSizeSongs },
+    { pt: 'year', label: t('rec_yearly_label'), short: t('nav_yearly'), size: isFinite(chartSizeSongsY) ? chartSizeSongsY : '∞' },
   ];
   const entityConfig = [
     {
@@ -4867,20 +4870,45 @@ function buildRecords() {
   ];
   /* One panel per entity, one on screen at a time — the same pills Milestones,
      Fastest and New Charts wear, built by recEntTabsHtml(). Nine tables (three
-     entities × weekly/monthly/yearly) was never one scroll anybody read. */
+     entities × weekly/monthly/yearly) was never one scroll anybody read.
+
+     Inside each entity panel a second pill row narrows it again, to one period.
+     There is no umbrella "Songs — Most Times at #1 on Chart" heading any more:
+     each period is a record in its own right and says so in its own title
+     ("Songs — Most Times at #1 on the Weekly Chart"), which is also what the
+     hero tally and the records search read off the row. */
   const onesPanels = [];
+  /* Queued while the markup is built, handed to loadImages() once it is in the
+     DOM — the same pattern every other Records section uses. This section used
+     to call loadImages() from inside the build loop, while the panels were
+     still an unattached string: loadImages() resolves each item with
+     getElementById and silently skips the ones it cannot find, so on a first
+     build nothing was ever observed, and on a re-build it observed the *old*
+     rows that the innerHTML assignment below was about to destroy. That is why
+     All #1s covers so rarely appeared. */
+  const onesImgQueue = [];
   for (const ent of entityConfig) {
-    let h = '';
-    h += '<div class="rec-section"><div class="rec-section-title">' + ent.icon + ' ' + ent.label + ' &mdash; ' + t('rec_most_times_1') + '</div>';
+    const perScope = 'ones-' + ent.key;
+    let h = '<div class="rec-per-tabs" data-rec-per-scope="' + esc(perScope) + '"'
+      + ' role="tablist" aria-label="' + esc(t('rec_per_tabs_label')) + '">';
+    for (const cfg of typeConfig) {
+      h += '<button type="button" class="rec-per-tab" role="tab"'
+        + ' data-rec-per-scope="' + esc(perScope) + '" data-rec-per="' + cfg.pt + '">'
+        + esc(cfg.short) + '</button>';
+    }
+    h += '</div>';
     for (const cfg of typeConfig) {
       const entries = Object.entries(ent.data[cfg.pt]).sort(function (a, b) { return b[1].count - a[1].count; });
-      const subsectionId = 'rec-subsection-' + ent.key + '-' + cfg.pt;
-      h += '<div class="rec-section-sub-wrapper" id="' + subsectionId + '-wrapper">';
-      h += '<div class="rec-section-sub-header">';
-      h += '<button class="rec-subsection-collapse-btn" data-subsection-id="' + subsectionId + '" title="Collapse">−</button>';
-      h += '<div class="rec-section-sub">' + cfg.label + ' &mdash; ' + t('rec_have_hit_1', { n: '<strong>' + entries.length + '</strong>', type: ent.label.toLowerCase() }) + '</div>';
-      h += '</div>';
-      h += '<div class="rec-subsection-content" id="' + subsectionId + '">';
+      /* data-rec-scope keeps each period's collapse state to itself, the same
+         way the Milestones and New Charts panels do — see
+         setupRecordSubsectionCollapse(), which grows the −/+ button on the
+         .rec-section-title below rather than us hand-rolling one here. */
+      h += '<div class="rec-per-panel" role="tabpanel"'
+        + ' data-rec-per-scope="' + esc(perScope) + '" data-rec-per="' + cfg.pt + '"'
+        + ' data-rec-scope="' + esc(perScope + '-' + cfg.pt) + '" style="display:none">';
+      h += '<div class="rec-section"><div class="rec-section-title">'
+        + ent.icon + ' ' + ent.label + ' &mdash; ' + t('rec_most_times_1_on', { period: cfg.label }) + '</div>';
+      h += '<div class="rec-section-sub">' + t('rec_have_hit_1', { n: '<strong>' + entries.length + '</strong>', type: ent.label.toLowerCase() }) + '</div>';
       const tableId = 'rec-1s-tbl-' + ent.key + '-' + cfg.pt;
       const runBaseId = 'rec-1s-run-' + ent.key + '-' + cfg.pt;
       const headers = ['#', '', ent.label, periodAtOneHeader(cfg.pt), t('rec_th_first_at_1')];
@@ -4905,32 +4933,35 @@ function buildRecords() {
         }),
         tableId
       );
+      // Closes .rec-section.
       h += '</div>';
-      // Collect image items for loading
-      const imgItems = entries.map(function (e, i) {
+      // Collect image items for loading — flushed after the innerHTML below.
+      entries.forEach(function (e, i) {
         const imgId = 'rec-img-' + ent.key + '-' + cfg.pt + '-' + i;
         if (ent.type === 'song') {
-          return { imgId, title: e[1].title, artist: e[1].artist, album: e[1].album, prefKey: 'song:' + e[1].artist.toLowerCase() + '|||' + e[1].title.toLowerCase(), name: e[1].title };
+          onesImgQueue.push({ imgId, imgType: 'song', title: e[1].title, artist: e[1].artist, album: e[1].album, prefKey: 'song:' + e[1].artist.toLowerCase() + '|||' + e[1].title.toLowerCase(), name: e[1].title });
         } else if (ent.type === 'artist') {
-          return { imgId, name: e[0], prefKey: 'artist:' + e[0].toLowerCase() };
+          onesImgQueue.push({ imgId, imgType: 'artist', name: e[0], prefKey: 'artist:' + e[0].toLowerCase() });
         } else {
-          return { imgId, album: e[1].album, artist: e[1].artist, name: e[1].album, prefKey: 'album:' + e[1].artist.toLowerCase() + '|||' + e[1].album.toLowerCase() };
+          onesImgQueue.push({ imgId, imgType: 'album', album: e[1].album, artist: e[1].artist, name: e[1].album, prefKey: 'album:' + e[1].artist.toLowerCase() + '|||' + e[1].album.toLowerCase() });
         }
       });
-      // Load images asynchronously after rendering
-      (async function () {
-        await loadImages(imgItems, ent.type);
-      })();
-      /* Closes .rec-section-sub-wrapper — and only that. An extra </div> here
-         used to close .rec-section, then the .rec-ent-panel itself, which spat
-         the monthly and yearly tables out of the panel so no pill could hide
-         them. Keep the opens and closes in this loop balanced. */
+      /* Closes .rec-per-panel — and only that. This loop opens exactly two
+         elements per period (the panel and the .rec-section inside it) and must
+         close exactly two; a stray </div> here used to close the .rec-ent-panel
+         as well, which spat the monthly and yearly tables out of the panel so
+         no pill could hide them. */
       h += '</div>';
     }
-    h += '</div>';
     onesPanels.push({ key: ent.key, icon: ent.icon, label: ent.label, html: h });
   }
   document.getElementById('recAllOnesBody').innerHTML = recEntTabsHtml('ones', onesPanels);
+  /* Split by type because loadImages() takes one type for the whole batch —
+     it decides between getArtistImage / getAlbumImage / getTrackImage from it.
+     Lazy, so the panels behind an unpicked pill cost nothing until picked. */
+  loadImages(onesImgQueue.filter(function (x) { return x.imgType === 'song'; }), 'song');
+  loadImages(onesImgQueue.filter(function (x) { return x.imgType === 'artist'; }), 'artist');
+  loadImages(onesImgQueue.filter(function (x) { return x.imgType === 'album'; }), 'album');
 
   // ── Perfect All Kill ─────────────────────────────────────────
   if (!pakWeeks.length) {
@@ -6321,6 +6352,7 @@ function buildRecords() {
   applyMilestoneRecTabs();
   applyFastestRecTabs();
   applyRecEntTabs();
+  applyRecPerTabs();
   initAllRecTableResizableCols();
   initAllRecTableSorting();
 
@@ -7470,6 +7502,12 @@ function runRecordsSearch(q) {
   view.querySelectorAll('.rec-ent-panel').forEach(function (p) {
     p.style.display = p.querySelector('.rec-search-hit') ? '' : 'none';
   });
+  // And the period row nested inside those panels (All #1s), which is the same
+  // shape one level down — the pill steps aside, the panels answer to the hit.
+  view.querySelectorAll('.rec-per-tabs').forEach(function (el) { el.style.display = 'none'; });
+  view.querySelectorAll('.rec-per-panel').forEach(function (p) {
+    p.style.display = p.querySelector('.rec-search-hit') ? '' : 'none';
+  });
   // No pill is "the" section while results span several of them, and the
   // entries-per-table control has no meaning while search is ignoring it.
   document.querySelectorAll('#recordsNav .records-nav-btn').forEach(function (b) {
@@ -7664,6 +7702,7 @@ function applyRecordsViewFilter(view) {
   applyMilestoneRecTabs();
   applyFastestRecTabs();
   applyRecEntTabs();
+  applyRecPerTabs();
   if (typeof window._refreshBackToTop === 'function') window._refreshBackToTop();
 }
 
@@ -7883,6 +7922,55 @@ document.addEventListener('click', function (e) {
     return;
   }
   applyRecEntTabs();
+  applyRecPerTabs();
+  if (typeof window._refreshBackToTop === 'function') window._refreshBackToTop();
+});
+
+/* ── Period pills, one level under the entity pills ───────────────────
+   All #1s ranks the same entity on three different charts, and each of those
+   is its own named record rather than a slice of one. So the entity panel
+   holds a second, quieter pill row — weekly / monthly / yearly — and one
+   .rec-per-panel at a time. `scope` is the entity panel it belongs to
+   ('ones-songs'), which is what keeps the three rows independent of each
+   other and each choice remembered on its own. */
+function recPerTabState(scope, keys) {
+  const stored = localStorage.getItem('dc_rec_per_' + scope);
+  return keys.indexOf(stored) === -1 ? keys[0] : stored;
+}
+
+function applyRecPerTabs() {
+  const view = document.getElementById('recordsView');
+  if (!view) return;
+  view.querySelectorAll('.rec-per-tabs').forEach(function (row) {
+    const scope = row.dataset.recPerScope;
+    const tabs = Array.prototype.slice.call(row.querySelectorAll('.rec-per-tab'));
+    if (!tabs.length) return;
+    const active = recPerTabState(scope, tabs.map(function (b) { return b.dataset.recPer; }));
+    row.style.display = '';
+    tabs.forEach(function (b) {
+      const on = b.dataset.recPer === active;
+      b.classList.toggle('active', on);
+      b.setAttribute('aria-selected', on ? 'true' : 'false');
+    });
+    view.querySelectorAll('.rec-per-panel[data-rec-per-scope="' + scope + '"]').forEach(function (p) {
+      p.style.display = p.dataset.recPer === active ? '' : 'none';
+    });
+  });
+}
+
+document.addEventListener('click', function (e) {
+  const btn = e.target.closest('#recordsView .rec-per-tab');
+  if (!btn) return;
+  localStorage.setItem('dc_rec_per_' + btn.dataset.recPerScope, btn.dataset.recPer);
+  // Same escape hatch the entity pills have: a search owns the screen, and
+  // picking a period is a way out of one, landing on this pill's own section.
+  if (recSearchQuery()) {
+    const sec = btn.closest('.chart-section');
+    if (sec && sec.id) localStorage.setItem('dc_records_active_view', sec.id);
+    clearRecordsSearch();
+    return;
+  }
+  applyRecPerTabs();
   if (typeof window._refreshBackToTop === 'function') window._refreshBackToTop();
 });
 

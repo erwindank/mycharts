@@ -661,7 +661,10 @@ const TRANSLATIONS = {
     rec_monthly_label: 'Monthly Chart',
     rec_yearly_label: 'Yearly Chart',
     rec_chart_label: 'Chart',
-    rec_most_times_1: 'Most Times at #1 on Chart',
+    // {{period}} is the full chart name ("Weekly Chart") — each period in All
+    // #1s is its own record and titles itself in full, so there is no umbrella
+    // heading above the three of them.
+    rec_most_times_1_on: 'Most Times at #1 on the {{period}}',
     rec_most_appearances: 'Most Weekly Chart Appearances',
     rec_biggest_debuts_weekly: 'Biggest Debut Positions (Weekly)',
     rec_no_data: 'No data yet.',
@@ -754,6 +757,8 @@ const TRANSLATIONS = {
     // all: it is read next to the section heading, which already says which
     // record is being narrowed.
     rec_ent_tabs_label: 'Record type',
+    // The row one level under it, which picks which chart the record is for.
+    rec_per_tabs_label: 'Chart period',
     // The timeline has no visible column headers, so this only ever reaches a
     // screen reader — it has to work for songs, artists and albums alike.
     mil_th_first_to_reach: 'First to Reach It',
@@ -1979,7 +1984,7 @@ const TRANSLATIONS = {
     rec_monthly_label: 'Ranking Mensual',
     rec_yearly_label: 'Ranking Anual',
     rec_chart_label: 'Ranking',
-    rec_most_times_1: 'Más Veces en #1 del Ranking',
+    rec_most_times_1_on: 'Más Veces en #1 del {{period}}',
     rec_most_appearances: 'Más Apariciones en el Ranking Semanal',
     rec_biggest_debuts_weekly: 'Mejores Debuts (Semanal)',
     rec_no_data: 'Sin datos aún.',
@@ -3260,7 +3265,7 @@ const TRANSLATIONS = {
     rec_monthly_label: 'Parada Mensal',
     rec_yearly_label: 'Parada Anual',
     rec_chart_label: 'Parada',
-    rec_most_times_1: 'Mais Vezes no #1 da Parada',
+    rec_most_times_1_on: 'Mais Vezes no #1 da {{period}}',
     rec_most_appearances: 'Mais Aparições na Parada Semanal',
     rec_biggest_debuts_weekly: 'Melhores Estreias (Semanal)',
     rec_no_data: 'Sem dados ainda.',
@@ -4541,7 +4546,7 @@ const TRANSLATIONS = {
     rec_monthly_label: 'Top Mensal',
     rec_yearly_label: 'Top Anual',
     rec_chart_label: 'Top',
-    rec_most_times_1: 'Mais Vezes no #1 do Top',
+    rec_most_times_1_on: 'Mais Vezes no #1 do {{period}}',
     rec_most_appearances: 'Mais Aparições no Top Semanal',
     rec_biggest_debuts_weekly: 'Melhores Estreias (Semanal)',
     rec_no_data: 'Sem dados ainda.',
