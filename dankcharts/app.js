@@ -6314,6 +6314,7 @@ function buildRecords() {
   // Canonical rank index per row, so the entries-per-table limit can be applied
   // (and re-applied at a smaller value) without rebuilding any of this.
   recBuiltLimit = lim;
+  tagRecCellLabels();
   tagRecRowIndices();
   applyRecRowLimit(lim);
 
@@ -7168,6 +7169,86 @@ let recBuiltLimit = null; // rows per table currently in the DOM (Infinity = all
 // The rank index is assigned once per build, in canonical (pre-sort) order, so
 // the limit keeps meaning "top N" no matter which column the table is sorted by.
 // Detail rows inherit their parent's index and travel with it.
+/* ── Card layout tagging ──────────────────────────────────────────────
+   Below 768px a records table stops being a table: every row becomes a card
+   (see the card-layout block in style.css). Two things have to travel with
+   the cells for that to work, and both are decided here rather than in ~55
+   separate table builders.
+
+   First, a role. A card has an anatomy — the rank and the artwork lead it,
+   the name is its title, the expander is its footer, and everything else is
+   a labelled figure — and CSS cannot infer that from a <td> alone.
+
+   Second, a label. The column header a figure used to sit under is off the
+   screen in card mode, so "1,129" would be a number with no noun. Each
+   column's header is copied onto its own cells and printed back by
+   .rec-card-fact::before. Headers carrying no word — the artwork column, the
+   ▶▶ expand-all button — name nothing, so their cells stay furniture. */
+function recThText(node) {
+  let s = '';
+  Array.from(node.childNodes).forEach(function (n) {
+    if (n.nodeType === 3) { s += n.nodeValue; return; }
+    if (n.nodeType !== 1) return;
+    if (n.classList.contains('rec-sort-ind') || n.classList.contains('col-resize-handle')) return;
+    if (n.tagName === 'BR') { s += ' '; return; }
+    s += recThText(n);
+  });
+  return s;
+}
+
+function tagRecCellLabels() {
+  document.querySelectorAll('#recordsView .rec-table').forEach(function (table) {
+    /* .rec-cards is what the card-layout media query keys off, and opting a
+       table out is a matter of not adding it. The New Songs debut table has
+       its own phone layout, built to the podium's anatomy, so it opts out. */
+    if (!table.classList.contains('nc-sd-table')) table.classList.add('rec-cards');
+    const labels = Array.from(table.querySelectorAll('thead th')).map(function (th) {
+      /* The header carries furniture the label must not: the sort caret this
+         column may have picked up, and the column-resize grip. A <br> is a
+         word break in a stacked header ("Perfect<br>All Kill<br>Weeks") and
+         contributes no text of its own, so it has to become a space or the
+         label runs together as "PerfectAll KillWeeks". */
+      const s = recThText(th).replace(/\s+/g, ' ').trim();
+      // Same test recRowDetails() uses: a caret or a medal is decoration.
+      return /[\p{L}\p{N}]/u.test(s) ? s : '';
+    });
+    const tbody = table.tBodies[0];
+    if (!tbody) return;
+    Array.from(tbody.rows).forEach(function (row) {
+      // Detail rows are a panel belonging to the card above them, not fields
+      // of it — they stay full-width blocks and are left alone.
+      if (row.matches(REC_DETAIL_ROW_SEL)) return;
+      /* A card has one title and one piece of artwork. Some tables carry two
+         of each — Appearances pairs a song thumb and name with an artist
+         thumb and name — so only the first of each takes the headline slot.
+         The second name becomes a labelled figure ("Artist"), which is what
+         it actually is, and the second thumbnail is dropped: at 42px it is
+         decoration the card has no room for. */
+      let hasTitle = false, hasThumb = false;
+      Array.from(row.cells).forEach(function (td, i) {
+        if (labels[i]) td.dataset.recLabel = labels[i];
+        if (td.classList.contains('rec-rank')) return;
+        if (td.classList.contains('thumb-cell')) {
+          if (hasThumb) td.classList.add('rec-card-extra-thumb');
+          hasThumb = true;
+          return;
+        }
+        if (td.querySelector('.rec-name') && !hasTitle) {
+          hasTitle = true;
+          td.classList.add('rec-card-title');
+          return;
+        }
+        if (td.classList.contains('rec-run-toggle-cell')
+            || td.querySelector('.rec-run-toggle-btn, .rec-cr-toggle, .pak-expand-icon')) {
+          td.classList.add('rec-card-foot');
+          return;
+        }
+        td.classList.add('rec-card-fact');
+      });
+    });
+  });
+}
+
 function tagRecRowIndices() {
   recTables().forEach(function (table) {
     const tbody = table.tBodies[0];

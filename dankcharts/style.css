@@ -12179,6 +12179,20 @@
       display: table;
     }
 
+    /* Collapsing a section hides `.section-body` — but a section is not
+       obliged to keep everything in one. The certifications wall is a sibling
+       of the body rather than a child of it, so it was never reached: folding
+       the section away took the description and the leaderboard with it and
+       left the entire wall of plaques sitting there, which on a phone is tens
+       of thousands of pixels of "collapsed" section.
+       Hide every content child instead of the one that happens to be
+       .section-body, so a section that grows a second panel stays collapsible.
+       Suspended while searching, which reaches into collapsed sections on
+       purpose. */
+    #recordsView:not(.rec-searching) .chart-section.collapsed > div:not(.section-header):not(.section-sub) {
+      display: none;
+    }
+
     /* Rows past the entries-per-table limit. Suspended while searching, so
        anything that was built stays findable. */
     #recordsView:not(.rec-searching) .rec-row-over-limit {
@@ -12192,17 +12206,277 @@
        the element a scroll container on *both*, and this box is exactly as tall
        as its content, so it never scrolls and a header pinned to it can never
        move.
-       Records opts out — but only where it can afford to. Measured against the
-       demo dataset, several records tables (New Charts +212px, PAK +206px,
-       Certifications +148px, All #1s +126px) are still wider than a 390px
-       viewport, and without the scroller they push the whole page sideways.
-       They fit by 768px, so that is the switch-over: horizontal scroll below it,
-       sticky headers above it. Mobile keeps the behaviour it had.
-       Item #48 (mobile card layout for the wide tables) is what would let this
-       drop to all widths; until then, do not remove the media query. */
-    @media (min-width: 768px) {
-      #recordsView .section-body {
-        overflow-x: visible;
+       Records opts out at every width. This used to be a `min-width: 768px`
+       rule, because below that several tables (New Charts +212px, PAK +206px,
+       Certifications +148px, All #1s +126px against the demo dataset) were
+       wider than the viewport and without the scroller they pushed the whole
+       page sideways. The card layout below is what removed that constraint:
+       under 768px there is no wide table left to scroll, so the scroller —
+       and the sticky header it was breaking — can go back to being unnecessary.
+       The chart view keeps its own scroller; this override is Records-only. */
+    #recordsView .section-body {
+      overflow-x: visible;
+    }
+
+    /* The one exception. The milestone timeline is a spine, not a table, so it
+       has no card layout to fall back on and can still outrun a 320px phone by
+       a couple of dozen pixels. With the section-level scroller gone it would
+       be clipped rather than reachable, so it keeps a scroller of its own.
+       Its section has no sticky header to break — the timeline has no <th>.
+       Carries the #recordsView prefix so it outweighs the rule above it, which
+       is an id plus a class. */
+    #recordsView #recMilestonesBody {
+      overflow-x: auto;
+    }
+
+    /* ═══════════════════════════════════════════════════════════
+       RECORDS — CARD LAYOUT ON PHONES
+
+       A records table can carry nine columns. On a 334px container that
+       used to mean a horizontal scroller with no affordance, so columns
+       five onward were never found. Below 768px the table stops being a
+       table: each row becomes a card, and each figure carries the column
+       header it used to sit under.
+
+       The anatomy is the one the New Songs debut cards already use, and
+       is assigned in tagRecCellLabels(): the rank and the artwork lead
+       the card, the name is its title, the expander is its footer, and
+       everything else is a labelled figure, two to a line. That function
+       also puts .rec-cards on every table that opts in — a table with its
+       own phone layout simply doesn't get the class.
+       ═══════════════════════════════════════════════════════════ */
+    @media (max-width: 767px) {
+      #recordsView .rec-cards,
+      #recordsView .rec-cards > tbody,
+      #recordsView .rec-cards > tbody > tr > td {
+        display: block;
+      }
+
+      /* The frame moves from the table to the individual cards. */
+      #recordsView .rec-cards {
+        width: 100%;
+        border: none;
+        background: none;
+        margin-bottom: 0.5rem;
+      }
+
+      /* Collapsing a section has to keep beating the rule above. The section
+         collapse further down this file hides `.rec-section.rec-collapsed >
+         .rec-table` — three classes — while `#recordsView .rec-cards` carries
+         an id, and an id outranks any number of classes however late the other
+         rule appears. Without this the header and the description would fold
+         away and the table would sit there unmoved. */
+      #recordsView .rec-section.rec-collapsed > .rec-cards {
+        display: none;
+      }
+
+      /* ...and a search still reaches into a collapsed section. The rule that
+         does that sets `display: table`, which would rebuild the columns this
+         whole block just dismantled, so in card mode it is a block instead. */
+      #recordsView.rec-searching .rec-section.rec-collapsed > .rec-cards {
+        display: block;
+      }
+
+      /* Not display:none — the column names are exactly what the cards'
+         labels say, so dropping the header would take them out of the
+         accessibility tree while they are still being read aloud below. */
+      #recordsView .rec-cards > thead {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+        clip: rect(0 0 0 0);
+        white-space: nowrap;
+      }
+
+      #recordsView .rec-cards > tbody > tr {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 0.45rem 0.55rem;
+        padding: 0.6rem 0.7rem;
+        margin-bottom: 0.45rem;
+        background: var(--bg2);
+        border: 1px solid var(--border);
+        border-radius: var(--r-sm);
+      }
+
+      /* The per-cell rule that draws one line between rows on desktop would
+         draw a line under every field inside a card. The card's own border
+         is the separator now. */
+      #recordsView .rec-cards > tbody > tr > td {
+        padding: 0;
+        border-bottom: none;
+        font-size: 0.8rem;
+      }
+
+      #recordsView .rec-cards > tbody > tr:hover,
+      #recordsView .rec-cards > tbody > tr:last-child > td {
+        background: var(--bg2);
+      }
+
+      /* A detail panel belongs to the card above it, so it stays a
+         full-width block rather than becoming a card of its own. It keeps
+         whichever open/closed mechanism its section uses — a class for the
+         run detail, an inline display for the other two. */
+      #recordsView .rec-cards > tbody > tr.app-cr-row,
+      #recordsView .rec-cards > tbody > tr.pak-expand-row {
+        display: block;
+      }
+
+      #recordsView .rec-cards > tbody > tr.rec-run-detail {
+        display: none;
+      }
+
+      #recordsView .rec-cards > tbody > tr.rec-run-detail.open {
+        display: block;
+      }
+
+      /* Tuck the panel under its card and let it share the card's edge. */
+      #recordsView .rec-cards > tbody > tr.app-cr-row,
+      #recordsView .rec-cards > tbody > tr.pak-expand-row,
+      #recordsView .rec-cards > tbody > tr.rec-run-detail.open {
+        margin: -0.5rem 0 0.45rem;
+        border: 1px solid var(--border);
+        border-top: 0;
+        border-radius: 0 0 var(--r-sm) var(--r-sm);
+        background: var(--bg2);
+      }
+
+      #recordsView .rec-cards > tbody > tr.app-cr-row > td,
+      #recordsView .rec-cards > tbody > tr.pak-expand-row > td,
+      #recordsView .rec-cards > tbody > tr.rec-run-detail > td {
+        padding: 0.5rem 0.6rem !important;
+      }
+
+      /* The detail row supplies the frame here, so a panel that carries its
+         own — the certification ledger does — would draw a second one a few
+         pixels inside the first. Its gold rule still marks the top edge. */
+      #recordsView .rec-cards > tbody > tr.rec-run-detail > td > .certd {
+        border: 0;
+        border-radius: 0;
+      }
+
+      /* A card with an open panel gives up its bottom corners to it. */
+      #recordsView .rec-cards > tbody > tr:has(+ tr.rec-run-detail.open),
+      #recordsView .rec-cards > tbody > tr:has(+ tr.pak-expand-row:not([style*="none"])) {
+        margin-bottom: 0.5rem;
+        border-radius: var(--r-sm) var(--r-sm) 0 0;
+      }
+
+      /* ── Card anatomy ── */
+      /* The rank leads, as a numeral rather than a 38px centred column. */
+      #recordsView .rec-cards > tbody > tr > td.rec-rank {
+        flex: 0 0 auto;
+        width: auto;
+        min-width: 1.1em;
+        font-size: 1.15rem;
+        line-height: 1;
+        text-align: left;
+      }
+
+      #recordsView .rec-cards > tbody > tr > td.thumb-cell {
+        flex: 0 0 auto;
+        width: auto;
+        padding: 0 !important;
+      }
+
+      /* A second thumbnail on the same card — the artist avatar beside the
+         song cover in Appearances — is decoration a 42px card slot cannot
+         earn back. The name it belonged to is still here as a figure. */
+      #recordsView .rec-cards > tbody > tr > td.rec-card-extra-thumb {
+        display: none;
+      }
+
+      /* The title takes the rest of the first line. */
+      #recordsView .rec-cards > tbody > tr > td.rec-card-title {
+        flex: 1 1 40%;
+        min-width: 0;
+      }
+
+      /* Every other figure, two to a line. An odd one out grows into the
+         gap rather than leaving a hole. */
+      /* Left-aligned regardless of what the column did: .rec-count is
+         right-aligned so a numeric column lines up on its decimal, and inside
+         a card that just makes every second figure hang off the wrong edge. */
+      #recordsView .rec-cards > tbody > tr > td.rec-card-fact {
+        flex: 1 1 calc(50% - 0.55rem);
+        min-width: 0;
+        text-align: left;
+      }
+
+      /* The label the figure used to sit under. Same micro-caps mono the
+         rest of the app names its figures with. */
+      #recordsView .rec-cards > tbody > tr > td.rec-card-fact[data-rec-label]::before {
+        content: attr(data-rec-label);
+        display: block;
+        margin-bottom: 0.1rem;
+        font-family: var(--font-mono);
+        font-size: 0.46rem;
+        font-weight: 500;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--text3);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      /* The expander is the card's footer, full width and centred, so it
+         reads as an action on the card rather than one more figure. */
+      #recordsView .rec-cards > tbody > tr > td.rec-card-foot {
+        flex: 1 1 100%;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.5rem;
+        margin-top: 0.1rem;
+        padding-top: 0.45rem !important;
+        border-top: 1px dashed var(--border);
+        width: auto;
+        text-align: left;
+      }
+
+      #recordsView .rec-cards > tbody > tr > td.rec-card-foot[data-rec-label]::before {
+        content: attr(data-rec-label);
+        font-family: var(--font-mono);
+        font-size: 0.46rem;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--text3);
+      }
+
+      /* A footer with nothing but the caret centres it instead. */
+      #recordsView .rec-cards > tbody > tr > td.rec-card-foot:not([data-rec-label]) {
+        justify-content: center;
+      }
+
+      /* Cover art shrinks to a card thumbnail. */
+      #recordsView .rec-cards .thumb-wrap,
+      #recordsView .rec-cards .thumb,
+      #recordsView .rec-cards .thumb-initials,
+      #recordsView .rec-cards .pak-mini-thumb {
+        width: 42px;
+        height: 42px;
+      }
+
+      #recordsView .rec-cards .pak-mini-thumb-round,
+      #recordsView .rec-cards .pak-mini-thumb-round .thumb {
+        border-radius: 50%;
+      }
+
+      /* Names wrap onto a second line in a card — there is room for it here,
+         and truncating a song title to fit a column is a desktop compromise. */
+      #recordsView .rec-cards .rec-name {
+        white-space: normal;
+        overflow: visible;
+        text-overflow: clip;
+      }
+
+      /* Nowrap set inline by a builder for the sake of a column is wrong once
+         the column is gone. */
+      #recordsView .rec-cards > tbody > tr > td[style*="nowrap"] {
+        white-space: normal !important;
       }
     }
 
