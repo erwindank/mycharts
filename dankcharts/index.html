@@ -27,7 +27,7 @@
   <!-- html2canvas, SheetJS (xlsx) and JSZip are intentionally NOT loaded here — they
        total ~1.2 MB and are only needed for image exports and Excel/ZIP imports.
        app.js pulls them from the CDN on first use (see ensureLazyLib). -->
-  <link rel="stylesheet" href="style.css?v=185">
+  <link rel="stylesheet" href="style.css?v=186">
   <!-- All scripts are deferred so the page paints without waiting on them.
        defer preserves execution order, which matters: translations → Chart.js →
        hammer → zoom plugin → firebase SDKs → firebase.js → app.js (in body). -->
@@ -1464,8 +1464,8 @@
           <h2 class="section-header-h2" data-i18n="rec_pak_title">🎯 Perfect All Kill</h2>
           <div class="section-rule"></div>
         </div>
-        <div class="section-sub" data-i18n="rec_pak_sub">Weeks an artist simultaneously held #1 on the artist, song
-          &amp; album weekly charts</div>
+        <div class="section-sub" data-i18n="rec_pak_sub">Periods where one artist simultaneously held #1 on the
+          artist, song &amp; album charts</div>
         <div class="section-body" id="recPAKBody"></div>
       </div>
 
@@ -1476,8 +1476,10 @@
           <h2 class="section-header-h2" data-i18n="rec_appearances_title">📈 Most Chart Appearances</h2>
           <div class="section-rule"></div>
         </div>
+        <!-- No longer names the weekly chart: the section splits into weekly,
+             monthly and yearly records, and each one titles its own chart. -->
         <div class="section-sub" data-i18n="rec_appearances_sub">Artists, albums &amp; tracks with the most periods
-          spent inside your weekly chart</div>
+          spent inside your charts</div>
         <div class="section-body" id="recAppearancesBody"></div>
       </div>
 
@@ -1488,8 +1490,9 @@
           <h2 class="section-header-h2" data-i18n="rec_debuts_title">🚀 Biggest Debuts</h2>
           <div class="section-rule"></div>
         </div>
-        <div class="section-sub" data-i18n="rec_debuts_sub">Entries that debuted at the highest chart positions on the
-          weekly chart</div>
+        <!-- Same reason as Appearances above: weekly, monthly and yearly all
+             live in here now, behind the period pills. -->
+        <div class="section-sub" data-i18n="rec_debuts_sub">Entries that debuted at the highest chart positions</div>
         <div class="section-body" id="recDebutsBody"></div>
       </div>
 
@@ -1549,8 +1552,8 @@
           <h2 class="section-header-h2" data-i18n="rec_streaks_title">🔁 Streak Records</h2>
           <div class="section-rule"></div>
         </div>
-        <div class="section-sub" data-i18n="rec_streaks_sub">Longest consecutive listening streaks, repeat plays, and
-          daily play records</div>
+        <div class="section-sub" data-i18n="rec_streaks_sub">Longest listening streaks by day, month and year, plus the
+          longest back-to-back play runs</div>
         <div class="section-body" id="recStreaksBody"></div>
       </div>
 
@@ -2887,7 +2890,7 @@
 
   <!-- defer keeps app.js last in the script execution order (after translations,
        Chart.js and firebase.js) while letting the whole page parse and paint first -->
-  <script defer src="app.js?v=158"></script>
+  <script defer src="app.js?v=159"></script>
 
   <!-- ── Settings Modal ──
        Split into three tabs so the whole form is never dumped on screen at

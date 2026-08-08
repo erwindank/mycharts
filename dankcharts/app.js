@@ -4324,7 +4324,12 @@ function buildRecords() {
   const songPP = { week: {}, month: {}, year: {} };
   const artistPP = { week: {}, month: {}, year: {} };
   const albumPP = { week: {}, month: {}, year: {} };
-  const pakWeeks = [];
+  /* Perfect All Kill, one list per chart. A PAK is one artist holding #1 on the
+     artist, song and album charts at the same time, and that is as true of a
+     month or a year as it is of a week — a yearly PAK is simply a much rarer
+     thing than a weekly one, which makes it its own record rather than a filter
+     over this one. Keyed by period so the three never mix. */
+  const pakPeriods = { week: [], month: [], year: [] };
   const newCountPerPeriod = {
     week: { songs: {}, artists: {}, albums: {} },
     month: { songs: {}, artists: {}, albums: {} },
@@ -4412,11 +4417,13 @@ function buildRecords() {
         if (!albumPP[pt][ak] || d.count > albumPP[pt][ak].count) albumPP[pt][ak] = { count: d.count, period: pk, album: d.album, artist: d.artist };
       });
       prevSong = nPS; prevArtist = nPA; prevAlbum = nPL;
-      // Perfect All Kill (weekly only)
-      if (pt === 'week' && topSongs[0] && topArtists[0] && topAlbums[0]) {
+      /* Perfect All Kill — the same three-way #1 test, run against whichever
+         chart this pass is building. It used to be gated to `pt === 'week'`,
+         which is why the monthly and yearly PAKs did not exist. */
+      if (topSongs[0] && topArtists[0] && topAlbums[0]) {
         const s1k = topSongs[0][0], a1 = topArtists[0][0], l1k = topAlbums[0][0];
         if ((sc[s1k]?.artists_ || []).includes(a1) && lc[l1k]?.artist === a1) {
-          pakWeeks.push({ weekKey: pk, artist: a1, song: sc[s1k].title, album: lc[l1k].album });
+          pakPeriods[pt].push({ periodKey: pk, artist: a1, song: sc[s1k].title, album: lc[l1k].album });
         }
       }
     }
@@ -4613,8 +4620,16 @@ function buildRecords() {
     }
   }
 
-  // Play count milestones
-  const MILESTONES = [10, 25, 50, 100, 150, 200, 250, 300, 400, 500, 600, 750, 1000, 1250, 1500, 1750, 2000, 2500, 3000, 3500, 4000, 5000, 7500, 10000, 15000, 20000, 25000, 50000];
+  /* Play count milestones — the ladder artists and albums are recorded on.
+     Nothing is stored for a total that is missing here, so this array is what
+     limits every artist/album milestone record downstream (the Milestones
+     timeline reads whichever tiers the data actually filled, and FAST_TIERS
+     can only name tiers that exist in this set).
+     Dense in whole thousands from 4,000 to 15,000: an artist banks the plays of
+     their entire catalogue, so that range is where a long-running library
+     spends most of its time and 5,000 → 7,500 → 10,000 was too coarse to
+     show any of it. */
+  const MILESTONES = [10, 25, 50, 100, 150, 200, 250, 300, 400, 500, 600, 750, 1000, 1250, 1500, 1750, 2000, 2500, 3000, 3500, 4000, 4500, 5000, 6000, 7000, 7500, 8000, 9000, 10000, 11000, 12000, 13000, 14000, 15000, 20000, 25000, 50000];
   const MILESTONE_SET = new Set(MILESTONES);
   /* Songs run a finer ladder: every 25 plays, with no ceiling. A song is the
      smallest unit here, so the landmark steps that suit artists (10 → 25 → 50 →
@@ -4677,36 +4692,90 @@ function buildRecords() {
     }
   }
 
-  // Consecutive same-song scrobbles — collect all runs
-  const allCSRuns = [];
-  if (chron.length > 0) {
-    let curCSKey = songKey(chron[0]), curCS = 1;
-    for (let i = 1; i < chron.length; i++) {
-      const csk = songKey(chron[i]);
-      if (csk === curCSKey) { curCS++; }
-      else { if (curCS > 1) allCSRuns.push({ key: curCSKey, count: curCS, date: chron[i - 1].date }); curCSKey = csk; curCS = 1; }
-    }
-    if (curCS > 1) allCSRuns.push({ key: curCSKey, count: curCS, date: chron[chron.length - 1].date });
-  }
-  allCSRuns.sort(function (a, b) { return b.count - a.count; });
+  /* ── Listening streaks and back-to-back play runs ──────────────
+     Four records out of one chronological pass, for all three entities.
+     A streak is consecutive calendar units — days, months or years — with at
+     least one play; a run is consecutive plays in the log with nothing else
+     in between. Songs, artists and albums all get every one of them: an album
+     streak counts any play tagged with that album under its album artist, the
+     same key the rest of Records uses, and untagged plays ('—') belong to no
+     album so they are skipped rather than pooled into a phantom one. */
+  const STREAK_KINDS = ['song', 'artist', 'album'];
+  const STREAK_DIMS = ['days', 'months', 'years'];
+  // Per entity: the set of calendar buckets it was played in, plus its play total.
+  const streakUnits = { song: {}, artist: {}, album: {} };
+  // Per entity: its longest back-to-back run and the date that run peaked on.
+  const bestRuns = { song: {}, artist: {}, album: {} };
+  /* Per entity: the index of the play that last touched it, and how long the
+     run ending there is. A run only continues while that index is the play
+     immediately before the current one. Keeping the cursor per key rather than
+     as one global "current key" is what lets a collaboration keep both of its
+     artists' runs alive across the same play. */
+  const runCursor = { song: {}, artist: {}, album: {} };
 
-  // Consecutive days played (streaks) per artist/song
-  const artistDaySet = {}, songDaySet = {};
-  for (const p of chron) {
-    const ds = localDateStr(tzDate(p.date));
-    for (const a of p.artists) { if (!artistDaySet[a]) artistDaySet[a] = []; artistDaySet[a].push(ds); }
-    const sk = songKey(p);
-    if (!songDaySet[sk]) songDaySet[sk] = [];
-    songDaySet[sk].push(ds);
+  function streakTouch(kind, key, i, p, dk, mk, yk) {
+    const c = runCursor[kind][key];
+    // One play can credit the same artist twice on a sloppily tagged scrobble;
+    // count it once, or the play would reset the very run it should extend.
+    if (c && c.idx === i) return;
+    let u = streakUnits[kind][key];
+    if (!u) u = streakUnits[kind][key] = { days: new Set(), months: new Set(), years: new Set(), plays: 0 };
+    u.plays++;
+    u.days.add(dk); u.months.add(mk); u.years.add(yk);
+    const len = (c && c.idx === i - 1) ? c.len + 1 : 1;
+    runCursor[kind][key] = { idx: i, len: len };
+    // A single play is not a run — only a repeat is worth recording.
+    const b = bestRuns[kind][key];
+    if (len > 1 && (!b || len > b.count)) bestRuns[kind][key] = { count: len, date: p.date };
   }
-  function longestStreak(days) {
-    const u = [...new Set(days)].sort(); let mx = 1, cur = 1;
-    for (let i = 1; i < u.length; i++) { const diff = Math.round((new Date(u[i]) - new Date(u[i - 1])) / 86400000); if (diff === 1) { cur++; if (cur > mx) mx = cur; } else cur = 1; }
+
+  for (let i = 0; i < chron.length; i++) {
+    const p = chron[i];
+    const d = tzDate(p.date);
+    const dk = localDateStr(d);
+    const mk = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0');
+    const yk = String(d.getFullYear());
+    streakTouch('song', songKey(p), i, p, dk, mk, yk);
+    for (const a of p.artists) streakTouch('artist', a, i, p, dk, mk, yk);
+    if (p.album && p.album !== '—') streakTouch('album', p.album + '|||' + albumArtist(p), i, p, dk, mk, yk);
+  }
+
+  /* Minimum plays before an entity's ladder is worth ranking. Without a floor
+     the tables fill with one-off plays that happen to land on two adjacent
+     days — or, worse in the monthly and yearly ladders, on two adjacent
+     Decembers. Songs need the least because a song is the smallest unit. */
+  const STREAK_MIN_PLAYS = { song: 7, artist: 15, album: 10 };
+  /* A lone month or year is not a streak, so those two ladders start at 2.
+     Days start at 1 the way they always have — the play floor above is already
+     doing the filtering there, and dropping single days would empty the table
+     for anyone who listens in bursts. */
+  const STREAK_MIN_LEN = { days: 1, months: 2, years: 2 };
+  /* Bucket keys sort lexicographically into chronological order in all three
+     dimensions, so "consecutive" is a +1 test on the ordinal — the same one
+     _crStkOrd() runs for the per-item streak panels. */
+  function longestUnitStreak(set, dim) {
+    const u = Array.from(set).sort();
+    let mx = u.length ? 1 : 0, cur = 1;
+    for (let i = 1; i < u.length; i++) {
+      if (_crStkOrd(dim, u[i]) - _crStkOrd(dim, u[i - 1]) === 1) { if (++cur > mx) mx = cur; }
+      else cur = 1;
+    }
     return mx;
   }
-  const artistStreaks = {}, songStreaks = {};
-  for (const [a, days] of Object.entries(artistDaySet)) if (days.length >= 15) artistStreaks[a] = longestStreak(days);
-  for (const [sk, days] of Object.entries(songDaySet)) if (days.length >= 7) songStreaks[sk] = longestStreak(days);
+  // streaks[kind][dim] = { key: { len, plays } }. Plays ride along because they
+  // are the tiebreak: hundreds of entries share a 2-year streak, and the one
+  // played most is the one that belongs at the top of it.
+  const streaks = { song: {}, artist: {}, album: {} };
+  for (const kind of STREAK_KINDS) {
+    for (const dim of STREAK_DIMS) streaks[kind][dim] = {};
+    for (const [key, u] of Object.entries(streakUnits[kind])) {
+      if (u.plays < STREAK_MIN_PLAYS[kind]) continue;
+      for (const dim of STREAK_DIMS) {
+        const len = longestUnitStreak(u[dim], dim);
+        if (len >= STREAK_MIN_LEN[dim]) streaks[kind][dim][key] = { len: len, plays: u.plays };
+      }
+    }
+  }
 
   /* ── Certification history ────────────────────────────────────
      A certification is not a play count, it is a moment: the one play that
@@ -4964,16 +5033,26 @@ function buildRecords() {
   loadImages(onesImgQueue.filter(function (x) { return x.imgType === 'album'; }), 'album');
 
   // ── Perfect All Kill ─────────────────────────────────────────
-  if (!pakWeeks.length) {
-    document.getElementById('recPAKBody').innerHTML = '<div class="rec-empty">' + t('rec_no_pak', { n: wSizeSongs }) + '</div>';
-  } else {
-    const byArtist = {};
-    for (const pw of pakWeeks) { (byArtist[pw.artist] || (byArtist[pw.artist] = [])).push(pw); }
-    const sortedPAK = Object.entries(byArtist).sort(function (a, b) { return b[1].length - a[1].length; });
-    let ph = '<div class="rec-section-sub">' + t('rec_pak_summary', { weeks: pakWeeks.length, weekword: tUnit('weeks', pakWeeks.length), weekwordfull: tUnit('weeks_full', pakWeeks.length), n: sortedPAK.length, artistword: tUnit('artists', sortedPAK.length) }) + '</div>';
-    const limEntries = isFinite(lim) ? sortedPAK.slice(0, lim) : sortedPAK;
+  /* One panel per chart, behind the same period pills All #1s wears. The three
+     are not one list with a filter over it: holding all three #1s for a whole
+     year is a different achievement from holding them for a week, and the
+     leaderboards rank different artists because of it. */
+  {
+    /* Everything that differs between the three charts, in one place. `unitKey`
+       feeds tUnit() for the lowercase prose word ("week"/"weeks"), `big` is the
+       capitalised plural the column header needs, `nav` labels the pill, `all`
+       names the full-list heading (its own key per period, because Spanish and
+       Portuguese inflect the article with the noun's gender), and `size` is the
+       chart depth the empty state quotes. */
+    const pakCfg = [
+      { pt: 'week',  unitKey: 'weeks_full', big: t('rec_period_weeks'),  nav: t('nav_weekly'),  label: t('rec_weekly_label'),  all: 'rec_pak_all_week',  size: wSizeSongs },
+      { pt: 'month', unitKey: 'months',     big: t('rec_period_months'), nav: t('nav_monthly'), label: t('rec_monthly_label'), all: 'rec_pak_all_month', size: mSizeSongs },
+      { pt: 'year',  unitKey: 'years',      big: t('rec_period_years'),  nav: t('nav_yearly'),  label: t('rec_yearly_label'),  all: 'rec_pak_all_year',  size: isFinite(chartSizeSongsY) ? chartSizeSongsY : '∞' },
+    ];
     /* Queued while the markup is built, handed to loadImages() once it is in
-       the DOM — the same pattern the appearances and debuts sections use. */
+       the DOM — the same pattern the appearances and debuts sections use. One
+       queue for all three panels, because the two hidden ones cost nothing:
+       loadImages() observes intersection and a display:none panel never fires. */
     const pakImgQueue = [];
     const pakArtistItem = function (imgId, artist) {
       return { imgId, imgType: 'artist', name: artist, prefKey: 'artist:' + artist.toLowerCase() };
@@ -4984,412 +5063,551 @@ function buildRecords() {
         prefKey: 'album:' + artist.toLowerCase() + '|||' + album.toLowerCase()
       };
     };
-    ph += '<table class="rec-table pak-artist-table"><thead><tr>'
-      + '<th></th><th>' + t('rec_th_artist') + '</th>'
-      + '<th class="pak-weeks-th">' + t('rec_th_pak_weeks') + '</th>'
-      + '<th>' + t('rec_th_first_song') + '</th>'
-      + '<th>' + t('rec_th_first_album') + '</th>'
-      + '<th>' + t('rec_th_most_recent') + '</th>'
-      + '</tr></thead><tbody>';
-    for (let i = 0; i < limEntries.length; i++) {
-      const [artist, weeks] = limEntries[i];
-      const firstWeek = weeks[0];
-      const lastWeek = weeks[weeks.length - 1];
-      const safeKey = artist.replace(/[^a-z0-9]/gi, '-').toLowerCase() + '-' + i;
-      const artistImgId = 'pak-tbl-aimg-' + safeKey;
-      pakImgQueue.push(pakArtistItem(artistImgId, artist));
-      const expandId = 'pak-expand-' + safeKey;
-      const rankCls = i === 0 ? ' rec-rank-1' : i === 1 ? ' rec-rank-2' : i === 2 ? ' rec-rank-3' : '';
-      /* data-rec-* is what the hero-artist tally reads off this row. PAK draws its
-         thumbnail itself rather than through the shared nameRow helper, so there is
-         no .img-src-btn here at build time to read the artist from — see
-         recRowRecord(). */
-      ph += '<tr class="pak-artist-row' + rankCls + '" onclick="togglePakArtistExpand(\'' + expandId + '\',this)"'
-        + ' data-rec-artist="' + esc(artist) + '" data-rec-type="artist" data-rec-name="' + esc(artist) + '"'
-        + ' data-rec-prefkey="' + esc('artist:' + artist.toLowerCase()) + '">'
-        + '<td class="rec-rank">' + (i + 1) + '</td>'
-        + '<td><div class="pak-artist-cell"><div class="pak-mini-thumb pak-mini-thumb-round" id="' + artistImgId + '"><div class="pak-mini-initials">' + esc(initials(artist)) + '</div></div><div class="rec-name">' + esc(artist) + '</div></div></td>'
-        + '<td class="rec-count">' + weeks.length + '</td>'
-        + '<td class="rec-meta pak-tbl-song"><span class="pak-col-icon">🎵</span>' + esc(firstWeek.song) + '</td>'
-        + '<td class="rec-meta pak-tbl-album"><span class="pak-col-icon">💿</span>' + esc(firstWeek.album) + '</td>'
-        + '<td class="rec-meta pak-tbl-last-cell"><a class="pak-date pak-date-link" href="javascript:void(0)" onclick="event.stopPropagation();showPakWeekPreview(\'' + lastWeek.weekKey + '\',this)">' + fmtPeriodKey(lastWeek.weekKey, 'week') + '</a><span class="pak-expand-icon">▼</span></td>'
-        + '</tr>';
-      ph += '<tr class="pak-expand-row" id="' + expandId + '" style="display:none"><td colspan="6"><div class="pak-expand-list">';
-      for (let j = 0; j < weeks.length; j++) {
-        const pw = weeks[j];
-        const albumImgId = 'pak-exp-img-' + safeKey + '-' + j;
-        pakImgQueue.push(pakAlbumItem(albumImgId, pw.album, artist));
-        ph += '<div class="pak-expand-item" data-pak-album-img="' + albumImgId + '" data-album="' + esc(pw.album) + '" data-artist="' + esc(artist) + '">'
-          + '<div class="pak-mini-thumb" id="' + albumImgId + '"><div class="pak-mini-initials">' + esc(initials(pw.album)) + '</div></div>'
-          + '<span class="pak-expand-album">💿 ' + esc(pw.album) + '</span>'
-          + '<span class="pak-expand-song"><span class="pak-col-icon">🎵</span>' + esc(pw.song) + '</span>'
-          + '<a class="pak-date pak-date-link" href="javascript:void(0)" onclick="showPakWeekPreview(\'' + pw.weekKey + '\',this)">' + fmtPeriodKey(pw.weekKey, 'week') + '</a>'
-          + '<a class="pak-expand-link" href="#chart/week/' + pw.weekKey + '" onclick="event.preventDefault();navigateToRecPeriod(\'week\',\'' + pw.weekKey + '\')">' + t('rec_pak_week_preview_link') + '</a>'
+    const pakEmpty = function (cfg) {
+      return '<div class="rec-empty">' + t('rec_no_pak', {
+        n: cfg.size, period: cfg.nav, unitword: tUnit(cfg.unitKey, 2), unit: tUnit(cfg.unitKey, 1)
+      }) + '</div>';
+    };
+
+    /* One chart's worth of PAKs: the artist leaderboard, then the full list
+       newest first. Identical in shape to what the weekly-only version built —
+       every id is prefixed with the period so the three panels cannot collide
+       over an artist who tops more than one chart. */
+    const pakPanelHtml = function (cfg) {
+      const list = pakPeriods[cfg.pt];
+      if (!list.length) return pakEmpty(cfg);
+      const pt = cfg.pt;
+      const byArtist = {};
+      for (const pw of list) { (byArtist[pw.artist] || (byArtist[pw.artist] = [])).push(pw); }
+      const sortedPAK = Object.entries(byArtist).sort(function (a, b) { return b[1].length - a[1].length; });
+      /* The .rec-section-sub-wrapper is not decoration: recRowLabel() reads the
+         chart name out of the .rec-section-sub inside it, taking the part before
+         the dash as a row's qualifier. Without it, an artist holding PAKs on all
+         three charts would send three cards to the hero reel all labelled
+         "Perfect All Kill" with nothing to tell them apart. */
+      let ph = '<div class="rec-section-sub-wrapper"><div class="rec-section-sub">'
+        + cfg.label + ' &mdash; ' + t('rec_pak_summary', {
+          count: list.length, unitword: tUnit(cfg.unitKey, list.length),
+          n: sortedPAK.length, artistword: tUnit('artists', sortedPAK.length)
+        }) + '</div>';
+      const limEntries = isFinite(lim) ? sortedPAK.slice(0, lim) : sortedPAK;
+      ph += '<table class="rec-table pak-artist-table"><thead><tr>'
+        + '<th></th><th>' + t('rec_th_artist') + '</th>'
+        + '<th class="pak-weeks-th">' + t('rec_th_pak_periods', { unit: cfg.big }) + '</th>'
+        + '<th>' + t('rec_th_first_song') + '</th>'
+        + '<th>' + t('rec_th_first_album') + '</th>'
+        + '<th>' + t('rec_th_most_recent') + '</th>'
+        + '</tr></thead><tbody>';
+      for (let i = 0; i < limEntries.length; i++) {
+        const [artist, periods] = limEntries[i];
+        const firstPer = periods[0];
+        const lastPer = periods[periods.length - 1];
+        const safeKey = pt + '-' + artist.replace(/[^a-z0-9]/gi, '-').toLowerCase() + '-' + i;
+        const artistImgId = 'pak-tbl-aimg-' + safeKey;
+        pakImgQueue.push(pakArtistItem(artistImgId, artist));
+        const expandId = 'pak-expand-' + safeKey;
+        const rankCls = i === 0 ? ' rec-rank-1' : i === 1 ? ' rec-rank-2' : i === 2 ? ' rec-rank-3' : '';
+        /* data-rec-* is what the hero-artist tally reads off this row. PAK draws its
+           thumbnail itself rather than through the shared nameRow helper, so there is
+           no .img-src-btn here at build time to read the artist from — see
+           recRowRecord(). */
+        ph += '<tr class="pak-artist-row' + rankCls + '" onclick="togglePakArtistExpand(\'' + expandId + '\',this)"'
+          + ' data-rec-artist="' + esc(artist) + '" data-rec-type="artist" data-rec-name="' + esc(artist) + '"'
+          + ' data-rec-prefkey="' + esc('artist:' + artist.toLowerCase()) + '">'
+          + '<td class="rec-rank">' + (i + 1) + '</td>'
+          + '<td><div class="pak-artist-cell"><div class="pak-mini-thumb pak-mini-thumb-round" id="' + artistImgId + '"><div class="pak-mini-initials">' + esc(initials(artist)) + '</div></div><div class="rec-name">' + esc(artist) + '</div></div></td>'
+          + '<td class="rec-count">' + periods.length + '</td>'
+          + '<td class="rec-meta pak-tbl-song"><span class="pak-col-icon">🎵</span>' + esc(firstPer.song) + '</td>'
+          + '<td class="rec-meta pak-tbl-album"><span class="pak-col-icon">💿</span>' + esc(firstPer.album) + '</td>'
+          + '<td class="rec-meta pak-tbl-last-cell"><a class="pak-date pak-date-link" href="javascript:void(0)" onclick="event.stopPropagation();showPakPeriodPreview(\'' + pt + '\',\'' + esc(lastPer.periodKey) + '\',this)">' + fmtPeriodKey(lastPer.periodKey, pt) + '</a><span class="pak-expand-icon">▼</span></td>'
+          + '</tr>';
+        ph += '<tr class="pak-expand-row" id="' + expandId + '" style="display:none"><td colspan="6"><div class="pak-expand-list">';
+        for (let j = 0; j < periods.length; j++) {
+          const pw = periods[j];
+          const albumImgId = 'pak-exp-img-' + safeKey + '-' + j;
+          pakImgQueue.push(pakAlbumItem(albumImgId, pw.album, artist));
+          ph += '<div class="pak-expand-item" data-pak-album-img="' + albumImgId + '" data-album="' + esc(pw.album) + '" data-artist="' + esc(artist) + '">'
+            + '<div class="pak-mini-thumb" id="' + albumImgId + '"><div class="pak-mini-initials">' + esc(initials(pw.album)) + '</div></div>'
+            + '<span class="pak-expand-album">💿 ' + esc(pw.album) + '</span>'
+            + '<span class="pak-expand-song"><span class="pak-col-icon">🎵</span>' + esc(pw.song) + '</span>'
+            + '<a class="pak-date pak-date-link" href="javascript:void(0)" onclick="showPakPeriodPreview(\'' + pt + '\',\'' + esc(pw.periodKey) + '\',this)">' + fmtPeriodKey(pw.periodKey, pt) + '</a>'
+            + '<a class="pak-expand-link" href="#chart/' + pt + '/' + esc(pw.periodKey) + '" onclick="event.preventDefault();navigateToRecPeriod(\'' + pt + '\',\'' + esc(pw.periodKey) + '\')">' + t('rec_pak_period_preview_link', { unit: tUnit(cfg.unitKey, 1) }) + '</a>'
+            + '</div>';
+        }
+        ph += '</div></td></tr>';
+      }
+      // Closes .rec-section-sub-wrapper: the full list below is not part of the
+      // leaderboard and its .pak-items are not rows the tally walks.
+      ph += '</tbody></table></div>';
+      ph += '<br><div class="rec-section-title" style="margin-top:0.75rem;">' + t(cfg.all) + '</div><div class="pak-list">';
+      const pakGlobalIdx = {};
+      const pakArtistOcc = {};
+      const _artOccTmp = {};
+      for (let k = 0; k < list.length; k++) {
+        const wk = list[k];
+        pakGlobalIdx[wk.periodKey] = k + 1;
+        _artOccTmp[wk.artist] = (_artOccTmp[wk.artist] || 0) + 1;
+        pakArtistOcc[wk.periodKey] = _artOccTmp[wk.artist];
+      }
+      const pakSlice = isFinite(lim) ? [...list].reverse().slice(0, lim) : [...list].reverse();
+      for (let idx = 0; idx < pakSlice.length; idx++) {
+        const pw = pakSlice[idx];
+        const keySlug = pt + '-' + pw.periodKey.replace(/[^a-z0-9]/gi, '-') + '-' + idx;
+        const pakImgId = 'pak-img-' + keySlug;
+        const pakArtistImgId = 'pak-aimg-' + keySlug;
+        pakImgQueue.push(pakAlbumItem(pakImgId, pw.album, pw.artist));
+        pakImgQueue.push(pakArtistItem(pakArtistImgId, pw.artist));
+        ph += '<div class="pak-item">'
+          + '<a class="pak-date pak-date-link" href="javascript:void(0)" onclick="showPakPeriodPreview(\'' + pt + '\',\'' + esc(pw.periodKey) + '\',this)">' + fmtPeriodKey(pw.periodKey, pt) + '</a>'
+          + '<div class="pak-col pak-col-artist"><div class="pak-mini-thumb pak-mini-thumb-round" id="' + pakArtistImgId + '"><div class="pak-mini-initials">' + esc(initials(pw.artist)) + '</div></div><span class="pak-col-text">' + esc(pw.artist) + '</span></div>'
+          + '<div class="pak-col pak-col-song"><span class="pak-col-icon">🎵</span>' + esc(pw.song) + '</div>'
+          + '<div class="pak-col pak-col-album"><div class="pak-mini-thumb" id="' + pakImgId + '"><div class="pak-mini-initials">' + esc(initials(pw.album)) + '</div></div><span class="pak-col-text">' + esc(pw.album) + '</span></div>'
+          + '<div class="pak-badge-stack">'
+          + '<span class="rec-badge rec-badge-gold">#' + pakGlobalIdx[pw.periodKey] + ' / ' + list.length + '</span>'
+          + '<span class="rec-badge rec-badge-artist-pak">' + t('rec_pak_badge_artist') + ' #' + pakArtistOcc[pw.periodKey] + '</span>'
+          + '</div>'
           + '</div>';
       }
-      ph += '</div></td></tr>';
-    }
-    ph += '</tbody></table>';
-    ph += '<br><div class="rec-section-title" style="margin-top:0.75rem;">' + t('rec_pak_all_title') + '</div><div class="pak-list">';
-    const pakGlobalIdx = {};
-    const pakArtistOcc = {};
-    const _artOccTmp = {};
-    for (let k = 0; k < pakWeeks.length; k++) {
-      const wk = pakWeeks[k];
-      pakGlobalIdx[wk.weekKey] = k + 1;
-      _artOccTmp[wk.artist] = (_artOccTmp[wk.artist] || 0) + 1;
-      pakArtistOcc[wk.weekKey] = _artOccTmp[wk.artist];
-    }
-    const pakSlice = isFinite(lim) ? [...pakWeeks].reverse().slice(0, lim) : [...pakWeeks].reverse();
-    for (let idx = 0; idx < pakSlice.length; idx++) {
-      const pw = pakSlice[idx];
-      const pakImgId = 'pak-img-' + pw.weekKey.replace(/[^a-z0-9]/gi, '-') + '-' + idx;
-      const pakArtistImgId = 'pak-aimg-' + pw.weekKey.replace(/[^a-z0-9]/gi, '-') + '-' + idx;
-      pakImgQueue.push(pakAlbumItem(pakImgId, pw.album, pw.artist));
-      pakImgQueue.push(pakArtistItem(pakArtistImgId, pw.artist));
-      ph += '<div class="pak-item">'
-        + '<a class="pak-date pak-date-link" href="javascript:void(0)" onclick="showPakWeekPreview(\'' + pw.weekKey + '\',this)">' + fmtPeriodKey(pw.weekKey, 'week') + '</a>'
-        + '<div class="pak-col pak-col-artist"><div class="pak-mini-thumb pak-mini-thumb-round" id="' + pakArtistImgId + '"><div class="pak-mini-initials">' + esc(initials(pw.artist)) + '</div></div><span class="pak-col-text">' + esc(pw.artist) + '</span></div>'
-        + '<div class="pak-col pak-col-song"><span class="pak-col-icon">🎵</span>' + esc(pw.song) + '</div>'
-        + '<div class="pak-col pak-col-album"><div class="pak-mini-thumb" id="' + pakImgId + '"><div class="pak-mini-initials">' + esc(initials(pw.album)) + '</div></div><span class="pak-col-text">' + esc(pw.album) + '</span></div>'
-        + '<div class="pak-badge-stack">'
-        + '<span class="rec-badge rec-badge-gold">#' + pakGlobalIdx[pw.weekKey] + ' / ' + pakWeeks.length + '</span>'
-        + '<span class="rec-badge rec-badge-artist-pak">' + t('rec_pak_badge_artist') + ' #' + pakArtistOcc[pw.weekKey] + '</span>'
-        + '</div>'
-        + '</div>';
-    }
-    ph += '</div>';
-    document.getElementById('recPAKBody').innerHTML = ph;
-    /* PAK artwork used to fetch itself: a bare getArtistImage/getAlbumImage
-       loop that walked every row eagerly with a 60ms sleep between each. That
-       bypassed everything the rest of the app's artwork gets — pinned picker
-       choices, the source cascade, per-item source prefs — so a cover corrected
-       anywhere else in the app was still wrong here, and there was no ✎ badge to
-       correct it with.
+      ph += '</div>';
+      return ph;
+    };
 
-       Routing it through loadImages() fixes all of that at once, and makes it
-       lazy: the expand rows are display:none until opened, so their covers are
-       no longer fetched for artists nobody expanded. */
-    loadImages(pakImgQueue.filter(function (x) { return x.imgType === 'artist'; }), 'artist');
-    loadImages(pakImgQueue.filter(function (x) { return x.imgType === 'album'; }), 'album');
+    /* No PAK on any chart at all: one message and no pills, rather than three
+       pills leading to three copies of the same "none yet". */
+    if (!pakCfg.some(function (cfg) { return pakPeriods[cfg.pt].length; })) {
+      document.getElementById('recPAKBody').innerHTML = pakEmpty(pakCfg[0]);
+    } else {
+      let ph = '<div class="rec-per-tabs" data-rec-per-scope="pak" role="tablist"'
+        + ' aria-label="' + esc(t('rec_per_tabs_label')) + '">';
+      for (const cfg of pakCfg) {
+        ph += '<button type="button" class="rec-per-tab" role="tab"'
+          + ' data-rec-per-scope="pak" data-rec-per="' + cfg.pt + '">' + esc(cfg.nav) + '</button>';
+      }
+      ph += '</div>';
+      for (const cfg of pakCfg) {
+        // data-rec-scope keeps each period's collapse state to itself, the same
+        // way the All #1s and New Charts panels do.
+        ph += '<div class="rec-per-panel" role="tabpanel" data-rec-per-scope="pak"'
+          + ' data-rec-per="' + cfg.pt + '" data-rec-scope="pak-' + cfg.pt + '" style="display:none">'
+          + pakPanelHtml(cfg) + '</div>';
+      }
+      document.getElementById('recPAKBody').innerHTML = ph;
+      /* PAK artwork used to fetch itself: a bare getArtistImage/getAlbumImage
+         loop that walked every row eagerly with a 60ms sleep between each. That
+         bypassed everything the rest of the app's artwork gets — pinned picker
+         choices, the source cascade, per-item source prefs — so a cover corrected
+         anywhere else in the app was still wrong here, and there was no ✎ badge to
+         correct it with.
+
+         Routing it through loadImages() fixes all of that at once, and makes it
+         lazy: the expand rows are display:none until opened, so their covers are
+         no longer fetched for artists nobody expanded. */
+      loadImages(pakImgQueue.filter(function (x) { return x.imgType === 'artist'; }), 'artist');
+      loadImages(pakImgQueue.filter(function (x) { return x.imgType === 'album'; }), 'album');
+    }
   }
 
   // ── Most Chart Appearances ────────────────────────────────────
   ensureAllChartRun();
-  let ah = '';
+  /* The section used to count weeks only, even though songApps/artistApps/
+     albumApps have carried month and year tallies all along. Each period is now
+     its own named record ("Songs — Most Weekly Chart Appearances", "… Monthly
+     Chart Appearances", "… Yearly Chart Appearances") behind a period pill row,
+     the same shape All #1s and Most Plays wear.
+
+     `label` is the full chart name the record title is built from, `nav` the
+     bare word the pill row wears (the title right under it already spells the
+     chart out), `big` the capitalised plural the "Weeks on Chart" column header
+     needs, and `unitKey` the lowercase prose plural of the count cell. */
+  const appCfg = [
+    { pt: 'week',  label: t('rec_weekly_label'),  nav: t('nav_weekly'),  big: t('rec_period_weeks'),  unitKey: 'weeks_full' },
+    { pt: 'month', label: t('rec_monthly_label'), nav: t('nav_monthly'), big: t('rec_period_months'), unitKey: 'months' },
+    { pt: 'year',  label: t('rec_yearly_label'),  nav: t('nav_yearly'),  big: t('rec_period_years'),  unitKey: 'years' },
+  ];
+  /* Queued while the markup is built, flushed once it is in the DOM —
+     loadImages() resolves each item by id, so it has nothing to attach to while
+     the panels are still an unattached string. */
   const appImgQueue = [];
-  /* Each of the three builders below appends exactly one .rec-section to `ah`.
-     appPanel() snips off whatever the last of them added and hands it back as
-     an entity panel, so the builders themselves stay as they were while the
-     section grows its Songs/Artists/Albums pills. */
-  const appPanels = [];
-  let appMark = 0;
-  function appPanel(key, icon, label) {
-    appPanels.push({ key: key, icon: icon, label: label, html: ah.slice(appMark) });
-    appMark = ah.length;
-  }
+  /* One builder per entity, each handed a period cfg and returning exactly one
+     .rec-section. Ids carry the period so the three copies of a table don't
+     collide — toggleAppCr()/toggleAllAppCr() reach their rows by id. */
+  const appBuild = {
+    songs: function (cfg) {
+      const tops = Object.entries(songApps[cfg.pt]).sort((a, b) => b[1] - a[1]);
+      const sliced = isFinite(lim) ? tops.slice(0, lim) : tops;
+      const tableId = 'app-tbl-songs-' + cfg.pt;
+      let ah = '<div class="rec-section"><div class="rec-section-title">★ ' + t('rec_th_songs') + ' &mdash; ' + t('rec_most_appearances_on', { period: cfg.label }) + '</div>';
+      ah += '<div class="app-table-wrap"><table class="rec-table app-appearances-table" id="' + tableId + '"><thead><tr>';
+      ah += '<th>#</th><th></th><th>' + t('rec_th_songs') + '</th><th class="app-art-th"></th><th>' + t('rec_th_artist') + '</th>';
+      ah += '<th>' + t('rec_th_first_streamed') + '</th><th>' + t('rec_th_last_streamed') + '</th>';
+      ah += '<th>' + t('rec_th_on_chart', { unit: cfg.big }) + '</th><th class="rec-cr-th"><button class="rec-expand-all-btn" onclick="event.stopPropagation();toggleAllAppCr(\'' + tableId + '\',this)" title="' + t('rec_expand_all') + '">▶▶</button></th>';
+      ah += '</tr></thead><tbody>';
+      for (let i = 0; i < sliced.length; i++) {
+        const [k, count] = sliced[i];
+        const n = songNames[k] || {};
+        const title = n.title || k.split('|||')[0];
+        const artist = n.artist || '';
+        const album = n.album || '';
+        const imgId = 'app-song-img-' + cfg.pt + '-' + i;
+        const artImgId = 'app-art-song-' + cfg.pt + '-' + i;
+        const crRowId = 'app-cr-row-song-' + cfg.pt + '-' + i;
+        const firstDate = songFirstPlay[k] ? fmt(songFirstPlay[k]) : '—';
+        const lastDate = songLastPlay[k] ? fmt(songLastPlay[k]) : '—';
+        const rankCls = i === 0 ? 'rec-rank-1' : i === 1 ? 'rec-rank-2' : i === 2 ? 'rec-rank-3' : '';
+        ah += '<tr class="' + rankCls + '">';
+        ah += '<td class="rec-rank">' + (i + 1) + '</td>';
+        ah += '<td class="thumb-cell"><div class="thumb-wrap"><div id="' + imgId + '"><div class="thumb-initials">' + esc(initials(title)) + '</div></div>';
+        ah += '<button id="srcbtn-' + imgId + '" class="img-src-btn" data-imgid="' + imgId + '" data-type="song" data-prefkey="' + esc('song:' + artist.toLowerCase() + '|||' + title.toLowerCase()) + '" data-name="' + esc(title) + '" data-artist="' + esc(artist) + '" data-album="' + esc(album) + '">Deezer</button></div></td>';
+        ah += '<td><div class="rec-name">' + esc(title) + '</div></td>';
+        ah += '<td class="thumb-cell"><div class="thumb-wrap"><div id="' + artImgId + '" class="app-art-circle"><div class="thumb-initials">' + esc(initials(artist)) + '</div></div>';
+        ah += '<button id="srcbtn-' + artImgId + '" class="img-src-btn" data-imgid="' + artImgId + '" data-type="artist" data-prefkey="' + esc('artist:' + artist.toLowerCase()) + '" data-name="' + esc(artist) + '" data-artist="' + esc(artist) + '" data-album="">Deezer</button></div></td>';
+        ah += '<td><div class="rec-name">' + esc(artist) + '</div></td>';
+        ah += '<td class="rec-meta">' + esc(firstDate) + '</td>';
+        ah += '<td class="rec-meta">' + esc(lastDate) + '</td>';
+        ah += '<td class="rec-count">' + tCount(cfg.unitKey, count) + '</td>';
+        ah += '<td class="rec-cr-btn-cell"><button class="rec-cr-toggle" onclick="toggleAppCr(\'' + crRowId + '\',this)" title="' + t('cr_chart_run') + '">▶</button></td>';
+        ah += '</tr>';
+        ah += '<tr class="app-cr-row" id="' + crRowId + '" style="display:none"><td colspan="9"><div class="app-cr-content">' + crBoxesHTML('songs', k, allChartRun[cfg.pt]) + '</div></td></tr>';
+        appImgQueue.push({ imgId, imgType: 'song', name: title, prefKey: 'song:' + artist.toLowerCase() + '|||' + title.toLowerCase(), title, artist, album });
+        appImgQueue.push({ imgId: artImgId, imgType: 'artist', name: artist, prefKey: 'artist:' + artist.toLowerCase() });
+      }
+      ah += '</tbody></table></div></div>';
+      return ah;
+    },
 
-  // ── Songs appearances ──
-  {
-    const tops = Object.entries(songApps.week).sort((a, b) => b[1] - a[1]);
-    const sliced = isFinite(lim) ? tops.slice(0, lim) : tops;
-    ah += '<div class="rec-section"><div class="rec-section-title">★ ' + t('rec_th_songs') + ' &mdash; ' + t('rec_most_appearances') + '</div>';
-    ah += '<div class="app-table-wrap"><table class="rec-table app-appearances-table" id="app-tbl-songs"><thead><tr>';
-    ah += '<th>#</th><th></th><th>' + t('rec_th_songs') + '</th><th class="app-art-th"></th><th>' + t('rec_th_artist') + '</th>';
-    ah += '<th>' + t('rec_th_first_streamed') + '</th><th>' + t('rec_th_last_streamed') + '</th>';
-    ah += '<th>' + t('rec_th_weeks_on_chart') + '</th><th class="rec-cr-th"><button class="rec-expand-all-btn" onclick="event.stopPropagation();toggleAllAppCr(\'app-tbl-songs\',this)" title="' + t('rec_expand_all') + '">▶▶</button></th>';
-    ah += '</tr></thead><tbody>';
-    for (let i = 0; i < sliced.length; i++) {
-      const [k, count] = sliced[i];
-      const n = songNames[k] || {};
-      const title = n.title || k.split('|||')[0];
-      const artist = n.artist || '';
-      const album = n.album || '';
-      const imgId = 'app-song-img-' + i;
-      const artImgId = 'app-art-song-' + i;
-      const crRowId = 'app-cr-row-song-' + i;
-      const firstDate = songFirstPlay[k] ? fmt(songFirstPlay[k]) : '—';
-      const lastDate = songLastPlay[k] ? fmt(songLastPlay[k]) : '—';
-      const rankCls = i === 0 ? 'rec-rank-1' : i === 1 ? 'rec-rank-2' : i === 2 ? 'rec-rank-3' : '';
-      const weekWord = count === 1 ? t('rec_app_week_one') : t('rec_app_week_other');
-      ah += '<tr class="' + rankCls + '">';
-      ah += '<td class="rec-rank">' + (i + 1) + '</td>';
-      ah += '<td class="thumb-cell"><div class="thumb-wrap"><div id="' + imgId + '"><div class="thumb-initials">' + esc(initials(title)) + '</div></div>';
-      ah += '<button id="srcbtn-' + imgId + '" class="img-src-btn" data-imgid="' + imgId + '" data-type="song" data-prefkey="' + esc('song:' + artist.toLowerCase() + '|||' + title.toLowerCase()) + '" data-name="' + esc(title) + '" data-artist="' + esc(artist) + '" data-album="' + esc(album) + '">Deezer</button></div></td>';
-      ah += '<td><div class="rec-name">' + esc(title) + '</div></td>';
-      ah += '<td class="thumb-cell"><div class="thumb-wrap"><div id="' + artImgId + '" class="app-art-circle"><div class="thumb-initials">' + esc(initials(artist)) + '</div></div>';
-      ah += '<button id="srcbtn-' + artImgId + '" class="img-src-btn" data-imgid="' + artImgId + '" data-type="artist" data-prefkey="' + esc('artist:' + artist.toLowerCase()) + '" data-name="' + esc(artist) + '" data-artist="' + esc(artist) + '" data-album="">Deezer</button></div></td>';
-      ah += '<td><div class="rec-name">' + esc(artist) + '</div></td>';
-      ah += '<td class="rec-meta">' + esc(firstDate) + '</td>';
-      ah += '<td class="rec-meta">' + esc(lastDate) + '</td>';
-      ah += '<td class="rec-count">' + count + ' ' + weekWord + '</td>';
-      ah += '<td class="rec-cr-btn-cell"><button class="rec-cr-toggle" onclick="toggleAppCr(\'' + crRowId + '\',this)" title="' + t('cr_chart_run') + '">▶</button></td>';
-      ah += '</tr>';
-      ah += '<tr class="app-cr-row" id="' + crRowId + '" style="display:none"><td colspan="9"><div class="app-cr-content">' + crBoxesHTML('songs', k, allChartRun.week) + '</div></td></tr>';
-      appImgQueue.push({ imgId, imgType: 'song', name: title, prefKey: 'song:' + artist.toLowerCase() + '|||' + title.toLowerCase(), title, artist, album });
-      appImgQueue.push({ imgId: artImgId, imgType: 'artist', name: artist, prefKey: 'artist:' + artist.toLowerCase() });
-    }
-    ah += '</tbody></table></div></div>';
-  }
-  appPanel('songs', '★', t('rec_th_songs'));
+    artists: function (cfg) {
+      const tops = Object.entries(artistApps[cfg.pt]).sort((a, b) => b[1] - a[1]);
+      const sliced = isFinite(lim) ? tops.slice(0, lim) : tops;
+      const tableId = 'app-tbl-artists-' + cfg.pt;
+      let ah = '<div class="rec-section"><div class="rec-section-title">♦ ' + t('rec_th_artists') + ' &mdash; ' + t('rec_most_appearances_on', { period: cfg.label }) + '</div>';
+      ah += '<div class="app-table-wrap"><table class="rec-table app-appearances-table" id="' + tableId + '"><thead><tr>';
+      ah += '<th>#</th><th></th><th>' + t('rec_th_artist') + '</th>';
+      ah += '<th>' + t('rec_th_first_song') + '</th><th>' + t('rec_th_last_song') + '</th>';
+      ah += '<th>' + t('rec_th_first_charted') + '</th>';
+      ah += '<th>' + t('rec_th_on_chart', { unit: cfg.big }) + '</th><th class="rec-cr-th"><button class="rec-expand-all-btn" onclick="event.stopPropagation();toggleAllAppCr(\'' + tableId + '\',this)" title="' + t('rec_expand_all') + '">▶▶</button></th>';
+      ah += '</tr></thead><tbody>';
+      for (let i = 0; i < sliced.length; i++) {
+        const [a, count] = sliced[i];
+        const imgId = 'app-artist-img-' + cfg.pt + '-' + i;
+        const crRowId = 'app-cr-row-artist-' + cfg.pt + '-' + i;
+        const firstSong = artistFirstSongName[a] || '—';
+        const lastSong = artistLastSongName[a] || '—';
+        // "First Charted" means first charted on *this* chart, so it reads the
+        // debut map for the panel's own period rather than always the weekly.
+        const firstCharted = artistDebuts[cfg.pt][a] ? fmtPeriodKey(artistDebuts[cfg.pt][a].period, cfg.pt) : '—';
+        const rankCls = i === 0 ? 'rec-rank-1' : i === 1 ? 'rec-rank-2' : i === 2 ? 'rec-rank-3' : '';
+        ah += '<tr class="' + rankCls + '">';
+        ah += '<td class="rec-rank">' + (i + 1) + '</td>';
+        ah += '<td class="thumb-cell"><div class="thumb-wrap"><div id="' + imgId + '" class="app-art-circle"><div class="thumb-initials">' + esc(initials(a)) + '</div></div>';
+        ah += '<button id="srcbtn-' + imgId + '" class="img-src-btn" data-imgid="' + imgId + '" data-type="artist" data-prefkey="' + esc('artist:' + a.toLowerCase()) + '" data-name="' + esc(a) + '" data-artist="' + esc(a) + '" data-album="">Deezer</button></div></td>';
+        ah += '<td><div class="rec-name">' + esc(a) + '</div></td>';
+        ah += '<td class="rec-meta app-song-cell"><span class="app-song-icon">🎵</span>' + esc(firstSong) + '</td>';
+        ah += '<td class="rec-meta app-song-cell"><span class="app-song-icon">🎵</span>' + esc(lastSong) + '</td>';
+        ah += '<td class="rec-meta">' + esc(firstCharted) + '</td>';
+        ah += '<td class="rec-count">' + tCount(cfg.unitKey, count) + '</td>';
+        ah += '<td class="rec-cr-btn-cell"><button class="rec-cr-toggle" onclick="toggleAppCr(\'' + crRowId + '\',this)" title="' + t('cr_chart_run') + '">▶</button></td>';
+        ah += '</tr>';
+        ah += '<tr class="app-cr-row" id="' + crRowId + '" style="display:none"><td colspan="8"><div class="app-cr-content">' + crBoxesHTML('artists', a, allChartRun[cfg.pt]) + '</div></td></tr>';
+        appImgQueue.push({ imgId, imgType: 'artist', name: a, prefKey: 'artist:' + a.toLowerCase() });
+      }
+      ah += '</tbody></table></div></div>';
+      return ah;
+    },
 
-  // ── Artists appearances ──
-  {
-    const tops = Object.entries(artistApps.week).sort((a, b) => b[1] - a[1]);
-    const sliced = isFinite(lim) ? tops.slice(0, lim) : tops;
-    ah += '<div class="rec-section"><div class="rec-section-title">♦ ' + t('rec_th_artists') + ' &mdash; ' + t('rec_most_appearances') + '</div>';
-    ah += '<div class="app-table-wrap"><table class="rec-table app-appearances-table" id="app-tbl-artists"><thead><tr>';
-    ah += '<th>#</th><th></th><th>' + t('rec_th_artist') + '</th>';
-    ah += '<th>' + t('rec_th_first_song') + '</th><th>' + t('rec_th_last_song') + '</th>';
-    ah += '<th>' + t('rec_th_first_charted') + '</th>';
-    ah += '<th>' + t('rec_th_weeks_on_chart') + '</th><th class="rec-cr-th"><button class="rec-expand-all-btn" onclick="event.stopPropagation();toggleAllAppCr(\'app-tbl-artists\',this)" title="' + t('rec_expand_all') + '">▶▶</button></th>';
-    ah += '</tr></thead><tbody>';
-    for (let i = 0; i < sliced.length; i++) {
-      const [a, count] = sliced[i];
-      const imgId = 'app-artist-img-' + i;
-      const crRowId = 'app-cr-row-artist-' + i;
-      const firstSong = artistFirstSongName[a] || '—';
-      const lastSong = artistLastSongName[a] || '—';
-      const firstCharted = artistDebuts.week[a] ? fmtPeriodKey(artistDebuts.week[a].period, 'week') : '—';
-      const rankCls = i === 0 ? 'rec-rank-1' : i === 1 ? 'rec-rank-2' : i === 2 ? 'rec-rank-3' : '';
-      const weekWord = count === 1 ? t('rec_app_week_one') : t('rec_app_week_other');
-      ah += '<tr class="' + rankCls + '">';
-      ah += '<td class="rec-rank">' + (i + 1) + '</td>';
-      ah += '<td class="thumb-cell"><div class="thumb-wrap"><div id="' + imgId + '" class="app-art-circle"><div class="thumb-initials">' + esc(initials(a)) + '</div></div>';
-      ah += '<button id="srcbtn-' + imgId + '" class="img-src-btn" data-imgid="' + imgId + '" data-type="artist" data-prefkey="' + esc('artist:' + a.toLowerCase()) + '" data-name="' + esc(a) + '" data-artist="' + esc(a) + '" data-album="">Deezer</button></div></td>';
-      ah += '<td><div class="rec-name">' + esc(a) + '</div></td>';
-      ah += '<td class="rec-meta app-song-cell"><span class="app-song-icon">🎵</span>' + esc(firstSong) + '</td>';
-      ah += '<td class="rec-meta app-song-cell"><span class="app-song-icon">🎵</span>' + esc(lastSong) + '</td>';
-      ah += '<td class="rec-meta">' + esc(firstCharted) + '</td>';
-      ah += '<td class="rec-count">' + count + ' ' + weekWord + '</td>';
-      ah += '<td class="rec-cr-btn-cell"><button class="rec-cr-toggle" onclick="toggleAppCr(\'' + crRowId + '\',this)" title="' + t('cr_chart_run') + '">▶</button></td>';
-      ah += '</tr>';
-      ah += '<tr class="app-cr-row" id="' + crRowId + '" style="display:none"><td colspan="8"><div class="app-cr-content">' + crBoxesHTML('artists', a, allChartRun.week) + '</div></td></tr>';
-      appImgQueue.push({ imgId, imgType: 'artist', name: a, prefKey: 'artist:' + a.toLowerCase() });
+    albums: function (cfg) {
+      const tops = Object.entries(albumApps[cfg.pt]).sort((a, b) => b[1] - a[1]);
+      const sliced = isFinite(lim) ? tops.slice(0, lim) : tops;
+      const tableId = 'app-tbl-albums-' + cfg.pt;
+      let ah = '<div class="rec-section"><div class="rec-section-title">◈ ' + t('rec_th_albums') + ' &mdash; ' + t('rec_most_appearances_on', { period: cfg.label }) + '</div>';
+      ah += '<div class="app-table-wrap"><table class="rec-table app-appearances-table" id="' + tableId + '"><thead><tr>';
+      ah += '<th>#</th><th></th><th>' + t('rec_th_albums') + '</th><th class="app-art-th"></th><th>' + t('rec_th_artist') + '</th>';
+      ah += '<th>' + t('rec_th_first_song') + '</th>';
+      ah += '<th>' + t('rec_th_first_streamed') + '</th>';
+      ah += '<th>' + t('rec_th_on_chart', { unit: cfg.big }) + '</th><th class="rec-cr-th"><button class="rec-expand-all-btn" onclick="event.stopPropagation();toggleAllAppCr(\'' + tableId + '\',this)" title="' + t('rec_expand_all') + '">▶▶</button></th>';
+      ah += '</tr></thead><tbody>';
+      for (let i = 0; i < sliced.length; i++) {
+        const [k, count] = sliced[i];
+        const n = albumNames[k] || {};
+        const album = n.album || k.split('|||')[0];
+        const artist = n.artist || '';
+        const imgId = 'app-album-img-' + cfg.pt + '-' + i;
+        const artImgId = 'app-art-album-' + cfg.pt + '-' + i;
+        const crRowId = 'app-cr-row-album-' + cfg.pt + '-' + i;
+        const firstSong = albumFirstSongName[k] || '—';
+        const firstDate = albumFirstPlayDate[k] ? fmt(albumFirstPlayDate[k]) : '—';
+        const rankCls = i === 0 ? 'rec-rank-1' : i === 1 ? 'rec-rank-2' : i === 2 ? 'rec-rank-3' : '';
+        ah += '<tr class="' + rankCls + '">';
+        ah += '<td class="rec-rank">' + (i + 1) + '</td>';
+        ah += '<td class="thumb-cell"><div class="thumb-wrap"><div id="' + imgId + '"><div class="thumb-initials">' + esc(initials(album)) + '</div></div>';
+        ah += '<button id="srcbtn-' + imgId + '" class="img-src-btn" data-imgid="' + imgId + '" data-type="album" data-prefkey="' + esc('album:' + artist.toLowerCase() + '|||' + album.toLowerCase()) + '" data-name="' + esc(album) + '" data-artist="' + esc(artist) + '" data-album="' + esc(album) + '">Deezer</button></div></td>';
+        ah += '<td><div class="rec-name">' + esc(album) + '</div></td>';
+        ah += '<td class="thumb-cell"><div class="thumb-wrap"><div id="' + artImgId + '" class="app-art-circle"><div class="thumb-initials">' + esc(initials(artist)) + '</div></div>';
+        ah += '<button id="srcbtn-' + artImgId + '" class="img-src-btn" data-imgid="' + artImgId + '" data-type="artist" data-prefkey="' + esc('artist:' + artist.toLowerCase()) + '" data-name="' + esc(artist) + '" data-artist="' + esc(artist) + '" data-album="">Deezer</button></div></td>';
+        ah += '<td><div class="rec-name">' + esc(artist) + '</div></td>';
+        ah += '<td class="rec-meta app-song-cell"><span class="app-song-icon">🎵</span>' + esc(firstSong) + '</td>';
+        ah += '<td class="rec-meta">' + esc(firstDate) + '</td>';
+        ah += '<td class="rec-count">' + tCount(cfg.unitKey, count) + '</td>';
+        ah += '<td class="rec-cr-btn-cell"><button class="rec-cr-toggle" onclick="toggleAppCr(\'' + crRowId + '\',this)" title="' + t('cr_chart_run') + '">▶</button></td>';
+        ah += '</tr>';
+        ah += '<tr class="app-cr-row" id="' + crRowId + '" style="display:none"><td colspan="9"><div class="app-cr-content">' + crBoxesHTML('albums', k, allChartRun[cfg.pt]) + '</div></td></tr>';
+        appImgQueue.push({ imgId, imgType: 'album', name: album, prefKey: 'album:' + artist.toLowerCase() + '|||' + album.toLowerCase(), album, artist });
+        appImgQueue.push({ imgId: artImgId, imgType: 'artist', name: artist, prefKey: 'artist:' + artist.toLowerCase() });
+      }
+      ah += '</tbody></table></div></div>';
+      return ah;
     }
-    ah += '</tbody></table></div></div>';
-  }
-  appPanel('artists', '♦', t('rec_th_artists'));
-
-  // ── Albums appearances ──
-  {
-    const tops = Object.entries(albumApps.week).sort((a, b) => b[1] - a[1]);
-    const sliced = isFinite(lim) ? tops.slice(0, lim) : tops;
-    ah += '<div class="rec-section"><div class="rec-section-title">◈ ' + t('rec_th_albums') + ' &mdash; ' + t('rec_most_appearances') + '</div>';
-    ah += '<div class="app-table-wrap"><table class="rec-table app-appearances-table" id="app-tbl-albums"><thead><tr>';
-    ah += '<th>#</th><th></th><th>' + t('rec_th_albums') + '</th><th class="app-art-th"></th><th>' + t('rec_th_artist') + '</th>';
-    ah += '<th>' + t('rec_th_first_song') + '</th>';
-    ah += '<th>' + t('rec_th_first_streamed') + '</th>';
-    ah += '<th>' + t('rec_th_weeks_on_chart') + '</th><th class="rec-cr-th"><button class="rec-expand-all-btn" onclick="event.stopPropagation();toggleAllAppCr(\'app-tbl-albums\',this)" title="' + t('rec_expand_all') + '">▶▶</button></th>';
-    ah += '</tr></thead><tbody>';
-    for (let i = 0; i < sliced.length; i++) {
-      const [k, count] = sliced[i];
-      const n = albumNames[k] || {};
-      const album = n.album || k.split('|||')[0];
-      const artist = n.artist || '';
-      const imgId = 'app-album-img-' + i;
-      const artImgId = 'app-art-album-' + i;
-      const crRowId = 'app-cr-row-album-' + i;
-      const firstSong = albumFirstSongName[k] || '—';
-      const firstDate = albumFirstPlayDate[k] ? fmt(albumFirstPlayDate[k]) : '—';
-      const rankCls = i === 0 ? 'rec-rank-1' : i === 1 ? 'rec-rank-2' : i === 2 ? 'rec-rank-3' : '';
-      const weekWord = count === 1 ? t('rec_app_week_one') : t('rec_app_week_other');
-      ah += '<tr class="' + rankCls + '">';
-      ah += '<td class="rec-rank">' + (i + 1) + '</td>';
-      ah += '<td class="thumb-cell"><div class="thumb-wrap"><div id="' + imgId + '"><div class="thumb-initials">' + esc(initials(album)) + '</div></div>';
-      ah += '<button id="srcbtn-' + imgId + '" class="img-src-btn" data-imgid="' + imgId + '" data-type="album" data-prefkey="' + esc('album:' + artist.toLowerCase() + '|||' + album.toLowerCase()) + '" data-name="' + esc(album) + '" data-artist="' + esc(artist) + '" data-album="' + esc(album) + '">Deezer</button></div></td>';
-      ah += '<td><div class="rec-name">' + esc(album) + '</div></td>';
-      ah += '<td class="thumb-cell"><div class="thumb-wrap"><div id="' + artImgId + '" class="app-art-circle"><div class="thumb-initials">' + esc(initials(artist)) + '</div></div>';
-      ah += '<button id="srcbtn-' + artImgId + '" class="img-src-btn" data-imgid="' + artImgId + '" data-type="artist" data-prefkey="' + esc('artist:' + artist.toLowerCase()) + '" data-name="' + esc(artist) + '" data-artist="' + esc(artist) + '" data-album="">Deezer</button></div></td>';
-      ah += '<td><div class="rec-name">' + esc(artist) + '</div></td>';
-      ah += '<td class="rec-meta app-song-cell"><span class="app-song-icon">🎵</span>' + esc(firstSong) + '</td>';
-      ah += '<td class="rec-meta">' + esc(firstDate) + '</td>';
-      ah += '<td class="rec-count">' + count + ' ' + weekWord + '</td>';
-      ah += '<td class="rec-cr-btn-cell"><button class="rec-cr-toggle" onclick="toggleAppCr(\'' + crRowId + '\',this)" title="' + t('cr_chart_run') + '">▶</button></td>';
-      ah += '</tr>';
-      ah += '<tr class="app-cr-row" id="' + crRowId + '" style="display:none"><td colspan="9"><div class="app-cr-content">' + crBoxesHTML('albums', k, allChartRun.week) + '</div></td></tr>';
-      appImgQueue.push({ imgId, imgType: 'album', name: album, prefKey: 'album:' + artist.toLowerCase() + '|||' + album.toLowerCase(), album, artist });
-      appImgQueue.push({ imgId: artImgId, imgType: 'artist', name: artist, prefKey: 'artist:' + artist.toLowerCase() });
+  };
+  const APP_REC_TYPES = [
+    { key: 'songs', icon: '★', label: t('rec_th_songs') },
+    { key: 'artists', icon: '♦', label: t('rec_th_artists') },
+    { key: 'albums', icon: '◈', label: t('rec_th_albums') }
+  ];
+  const appPanels = APP_REC_TYPES.map(function (ent) {
+    // One period pill row per entity panel, so Songs can sit on Weekly while
+    // Albums sits on Yearly — 'app-songs' is a different stored choice.
+    const perScope = 'app-' + ent.key;
+    let html = '<div class="rec-per-tabs" data-rec-per-scope="' + esc(perScope) + '"'
+      + ' role="tablist" aria-label="' + esc(t('rec_per_tabs_label')) + '">';
+    for (const cfg of appCfg) {
+      html += '<button type="button" class="rec-per-tab" role="tab"'
+        + ' data-rec-per-scope="' + esc(perScope) + '" data-rec-per="' + cfg.pt + '">'
+        + esc(cfg.nav) + '</button>';
     }
-    ah += '</tbody></table></div></div>';
-  }
-  appPanel('albums', '◈', t('rec_th_albums'));
+    html += '</div>';
+    for (const cfg of appCfg) {
+      // data-rec-scope is the entity *and* the period, because the same three
+      // record titles repeat across entities and setupRecordSubsectionCollapse()
+      // reads the nearest scope — this panel, not the .rec-ent-panel around it.
+      html += '<div class="rec-per-panel" role="tabpanel"'
+        + ' data-rec-per-scope="' + esc(perScope) + '" data-rec-per="' + cfg.pt + '"'
+        + ' data-rec-scope="' + esc(perScope + '-' + cfg.pt) + '" style="display:none">'
+        + appBuild[ent.key](cfg)
+        + '</div>';
+    }
+    return { key: ent.key, icon: ent.icon, label: ent.label, html: html };
+  });
 
   document.getElementById('recAppearancesBody').innerHTML = recEntTabsHtml('app', appPanels);
-  (async () => {
-    await loadImages(appImgQueue.filter(x => x.imgType === 'song'), 'song');
-    await loadImages(appImgQueue.filter(x => x.imgType === 'artist'), 'artist');
-    await loadImages(appImgQueue.filter(x => x.imgType === 'album'), 'album');
-  })();
+  /* Split by type because loadImages() takes one type for the whole batch. The
+     awaits that used to wrap these bought nothing — loadImages() is synchronous
+     up to the observer setup — and the panels behind an unpicked pill cost
+     nothing until that pill is picked. */
+  loadImages(appImgQueue.filter(x => x.imgType === 'song'), 'song');
+  loadImages(appImgQueue.filter(x => x.imgType === 'artist'), 'artist');
+  loadImages(appImgQueue.filter(x => x.imgType === 'album'), 'album');
 
   // ── Biggest Debuts ───────────────────────────────────────────
   const debImgQueue = [];
-  let dh = '';
-  // Same snip-per-builder trick the Appearances section above uses, for the
-  // same reason: three independent table builders, three entity panels.
-  const debPanels = [];
-  let debMark = 0;
-  function debPanel(key, icon, label) {
-    debPanels.push({ key: key, icon: icon, label: label, html: dh.slice(debMark) });
-    debMark = dh.length;
+  /* Debuts ranked the weekly chart only, though songDebuts/artistDebuts/
+     albumDebuts have always held month and year maps too. Same treatment as
+     Appearances above: each period is its own record behind a period pill row,
+     one builder per entity handed a period cfg.
+
+     `nav` is the bare word on the pill and inside the record title's bracket
+     ("Biggest Debut Positions (Monthly)"), `unitLabel` the singular the last
+     column is headed with, and `unitKey` the prose plural the period preview
+     link needs. */
+  const debCfg = [
+    { pt: 'week',  nav: t('nav_weekly'),  unitLabel: t('rec_th_week'),  unitKey: 'weeks_full' },
+    { pt: 'month', nav: t('nav_monthly'), unitLabel: t('rec_th_month'), unitKey: 'months' },
+    { pt: 'year',  nav: t('nav_yearly'),  unitLabel: t('rec_th_year'),  unitKey: 'years' },
+  ];
+  // Biggest debut = most plays, then best chart position, then earliest period.
+  const debSort = function (a, b) {
+    return b[1].plays - a[1].plays || a[1].rank - b[1].rank || a[1].period.localeCompare(b[1].period);
+  };
+  /* The period cell: a link that previews that week/month/year's chart. Ids
+     carry the period so the three copies of a row can't collide. */
+  function debPeriodCell(pt, periodKey) {
+    return '<td class="rec-meta"><a class="debut-week-link" href="javascript:void(0)"'
+      + ' onclick="showDebutPeriodPreview(\'' + pt + '\',\'' + esc(periodKey) + '\',this,event)">'
+      + fmtPeriodKey(periodKey, pt) + '</a></td>';
   }
 
-  // ── Songs Debuts ──
-  {
-    const debs = Object.entries(songDebuts.week).sort(function (a, b) {
-      return b[1].plays - a[1].plays || a[1].rank - b[1].rank || a[1].period.localeCompare(b[1].period);
-    });
-    const sliced = isFinite(lim) ? debs.slice(0, lim) : debs;
-    dh += '<div class="rec-section"><div class="rec-section-title">★ ' + t('rec_th_songs') + ' &mdash; ' + t('rec_biggest_debuts_weekly') + '</div>';
-    if (!sliced.length) {
-      dh += '<div class="rec-empty">' + t('rec_no_data') + '</div>';
-    } else {
-      dh += '<div class="app-table-wrap"><table class="rec-table debut-rich-table"><thead><tr>';
-      dh += '<th>#</th><th>' + t('rec_th_songs') + '</th><th class="debut-mini-art-th"></th><th>' + t('rec_th_artist') + '</th>';
-      dh += '<th>' + t('rec_th_plays') + '</th><th>' + t('rec_th_debut_rank') + '</th><th>' + t('rec_th_week') + '</th>';
-      dh += '</tr></thead><tbody>';
-      sliced.forEach(function (e, i) {
-        const k = e[0], d = e[1];
-        const rankCls = i === 0 ? 'rec-rank-1' : i === 1 ? 'rec-rank-2' : i === 2 ? 'rec-rank-3' : '';
-        const artImgId = 'deb-song-art-' + i;
-        const artPrefKey = 'artist:' + d.artist.toLowerCase();
-        // data-rec-* for the hero tally: the Debuts tables draw their own mini
-        // thumbnails, so there is no .img-src-btn in the markup to read from —
-        // the picker badge only arrives later, from loadImages().
-        dh += '<tr class="' + rankCls + '" data-rec-artist="' + esc(d.artist) + '" data-rec-type="song"'
-          + ' data-rec-name="' + esc(d.title) + '" data-rec-prefkey="' + esc('song:' + d.artist.toLowerCase() + '|||' + d.title.toLowerCase()) + '">';
-        dh += '<td class="rec-rank">' + (i + 1) + '</td>';
-        dh += '<td><span class="pak-col-icon">🎵</span><span class="rec-name">' + esc(d.title) + '</span></td>';
-        dh += '<td><div class="pak-mini-thumb pak-mini-thumb-round" id="' + artImgId + '"><div class="pak-mini-initials">' + esc(initials(d.artist)) + '</div></div></td>';
-        dh += '<td><div class="rec-name">' + esc(d.artist) + '</div></td>';
-        dh += '<td class="rec-count">' + (d.plays || 0) + '</td>';
-        dh += '<td class="rec-count">#' + d.rank + '</td>';
-        dh += '<td class="rec-meta"><a class="debut-week-link" href="javascript:void(0)" onclick="showDebutWeekPreview(\'' + esc(d.period) + '\',this,event)">' + fmtPeriodKey(d.period, 'week') + '</a></td>';
-        dh += '</tr>';
-        debImgQueue.push({ imgId: artImgId, imgType: 'artist', name: d.artist, prefKey: artPrefKey });
-      });
-      dh += '</tbody></table></div>';
-    }
-    dh += '</div>';
-  }
-  debPanel('songs', '★', t('rec_th_songs'));
+  const debBuild = {
+    songs: function (cfg) {
+      const debs = Object.entries(songDebuts[cfg.pt]).sort(debSort);
+      const sliced = isFinite(lim) ? debs.slice(0, lim) : debs;
+      let dh = '<div class="rec-section"><div class="rec-section-title">★ ' + t('rec_th_songs') + ' &mdash; ' + t('rec_biggest_debuts_on', { period: cfg.nav }) + '</div>';
+      if (!sliced.length) {
+        dh += '<div class="rec-empty">' + t('rec_no_data') + '</div>';
+      } else {
+        dh += '<div class="app-table-wrap"><table class="rec-table debut-rich-table"><thead><tr>';
+        dh += '<th>#</th><th>' + t('rec_th_songs') + '</th><th class="debut-mini-art-th"></th><th>' + t('rec_th_artist') + '</th>';
+        dh += '<th>' + t('rec_th_plays') + '</th><th>' + t('rec_th_debut_rank') + '</th><th>' + cfg.unitLabel + '</th>';
+        dh += '</tr></thead><tbody>';
+        sliced.forEach(function (e, i) {
+          const d = e[1];
+          const rankCls = i === 0 ? 'rec-rank-1' : i === 1 ? 'rec-rank-2' : i === 2 ? 'rec-rank-3' : '';
+          const artImgId = 'deb-song-art-' + cfg.pt + '-' + i;
+          const artPrefKey = 'artist:' + d.artist.toLowerCase();
+          // data-rec-* for the hero tally: the Debuts tables draw their own mini
+          // thumbnails, so there is no .img-src-btn in the markup to read from —
+          // the picker badge only arrives later, from loadImages().
+          dh += '<tr class="' + rankCls + '" data-rec-artist="' + esc(d.artist) + '" data-rec-type="song"'
+            + ' data-rec-name="' + esc(d.title) + '" data-rec-prefkey="' + esc('song:' + d.artist.toLowerCase() + '|||' + d.title.toLowerCase()) + '">';
+          dh += '<td class="rec-rank">' + (i + 1) + '</td>';
+          dh += '<td><span class="pak-col-icon">🎵</span><span class="rec-name">' + esc(d.title) + '</span></td>';
+          dh += '<td><div class="pak-mini-thumb pak-mini-thumb-round" id="' + artImgId + '"><div class="pak-mini-initials">' + esc(initials(d.artist)) + '</div></div></td>';
+          dh += '<td><div class="rec-name">' + esc(d.artist) + '</div></td>';
+          dh += '<td class="rec-count">' + (d.plays || 0) + '</td>';
+          dh += '<td class="rec-count">#' + d.rank + '</td>';
+          dh += debPeriodCell(cfg.pt, d.period);
+          dh += '</tr>';
+          debImgQueue.push({ imgId: artImgId, imgType: 'artist', name: d.artist, prefKey: artPrefKey });
+        });
+        dh += '</tbody></table></div>';
+      }
+      dh += '</div>';
+      return dh;
+    },
 
-  // ── Artists Debuts ──
-  {
-    const debs = Object.entries(artistDebuts.week).sort(function (a, b) {
-      return b[1].plays - a[1].plays || a[1].rank - b[1].rank || a[1].period.localeCompare(b[1].period);
-    });
-    const sliced = isFinite(lim) ? debs.slice(0, lim) : debs;
-    dh += '<div class="rec-section"><div class="rec-section-title">♦ ' + t('rec_th_artists') + ' &mdash; ' + t('rec_biggest_debuts_weekly') + '</div>';
-    if (!sliced.length) {
-      dh += '<div class="rec-empty">' + t('rec_no_data') + '</div>';
-    } else {
-      dh += '<div class="app-table-wrap"><table class="rec-table debut-rich-table"><thead><tr>';
-      dh += '<th>#</th><th class="debut-mini-art-th"></th><th>' + t('rec_th_artist') + '</th>';
-      dh += '<th>' + t('rec_th_first_song') + '</th>';
-      dh += '<th class="debut-mini-art-th"></th><th>' + t('rec_th_first_album') + '</th>';
-      dh += '<th>' + t('rec_th_plays') + '</th><th>' + t('rec_th_debut_rank') + '</th><th>' + t('rec_th_week') + '</th>';
-      dh += '</tr></thead><tbody>';
-      sliced.forEach(function (e, i) {
-        const a = e[0], d = e[1];
-        const rankCls = i === 0 ? 'rec-rank-1' : i === 1 ? 'rec-rank-2' : i === 2 ? 'rec-rank-3' : '';
-        const artImgId = 'deb-art-img-' + i;
-        const artPrefKey = 'artist:' + a.toLowerCase();
-        const fSong = artistFirstSongName[a] || '';
-        const fAlbObj = artistFirstAlbum[a] || null;
-        const fSongImgId = 'deb-art-fsong-' + i;
-        const fAlbImgId = 'deb-art-falb-' + i;
-        const fSongPrefKey = fSong ? 'song:' + a.toLowerCase() + '|||' + fSong.toLowerCase() : '';
-        const fAlbPrefKey = fAlbObj ? 'album:' + fAlbObj.artist.toLowerCase() + '|||' + fAlbObj.album.toLowerCase() : '';
-        dh += '<tr class="' + rankCls + '" data-rec-artist="' + esc(a) + '" data-rec-type="artist"'
-          + ' data-rec-name="' + esc(a) + '" data-rec-prefkey="' + esc('artist:' + a.toLowerCase()) + '">';
-        dh += '<td class="rec-rank">' + (i + 1) + '</td>';
-        dh += '<td><div class="pak-mini-thumb pak-mini-thumb-round" id="' + artImgId + '"><div class="pak-mini-initials">' + esc(initials(a)) + '</div></div></td>';
-        dh += '<td><div class="rec-name">' + esc(a) + '</div></td>';
-        if (fSong) {
-          dh += '<td><span class="pak-col-icon">🎵</span><span class="rec-name debut-first-label">' + esc(fSong) + '</span></td>';
-        } else {
-          dh += '<td class="rec-meta">—</td>';
-        }
-        if (fAlbObj) {
-          dh += '<td><div class="pak-mini-thumb" id="' + fAlbImgId + '"><div class="pak-mini-initials">' + esc(initials(fAlbObj.album)) + '</div></div></td>';
-          dh += '<td><div class="rec-name debut-first-label">' + esc(fAlbObj.album) + '</div></td>';
-          debImgQueue.push({ imgId: fAlbImgId, imgType: 'album', name: fAlbObj.album, album: fAlbObj.album, artist: fAlbObj.artist, prefKey: fAlbPrefKey });
-        } else {
-          dh += '<td></td><td class="rec-meta">—</td>';
-        }
-        dh += '<td class="rec-count">' + (d.plays || 0) + '</td>';
-        dh += '<td class="rec-count">#' + d.rank + '</td>';
-        dh += '<td class="rec-meta"><a class="debut-week-link" href="javascript:void(0)" onclick="showDebutWeekPreview(\'' + esc(d.period) + '\',this,event)">' + fmtPeriodKey(d.period, 'week') + '</a></td>';
-        dh += '</tr>';
-        debImgQueue.push({ imgId: artImgId, imgType: 'artist', name: a, prefKey: artPrefKey });
-      });
-      dh += '</tbody></table></div>';
-    }
-    dh += '</div>';
-  }
-  debPanel('artists', '♦', t('rec_th_artists'));
+    artists: function (cfg) {
+      const debs = Object.entries(artistDebuts[cfg.pt]).sort(debSort);
+      const sliced = isFinite(lim) ? debs.slice(0, lim) : debs;
+      let dh = '<div class="rec-section"><div class="rec-section-title">♦ ' + t('rec_th_artists') + ' &mdash; ' + t('rec_biggest_debuts_on', { period: cfg.nav }) + '</div>';
+      if (!sliced.length) {
+        dh += '<div class="rec-empty">' + t('rec_no_data') + '</div>';
+      } else {
+        dh += '<div class="app-table-wrap"><table class="rec-table debut-rich-table"><thead><tr>';
+        dh += '<th>#</th><th class="debut-mini-art-th"></th><th>' + t('rec_th_artist') + '</th>';
+        dh += '<th>' + t('rec_th_first_song') + '</th>';
+        dh += '<th class="debut-mini-art-th"></th><th>' + t('rec_th_first_album') + '</th>';
+        dh += '<th>' + t('rec_th_plays') + '</th><th>' + t('rec_th_debut_rank') + '</th><th>' + cfg.unitLabel + '</th>';
+        dh += '</tr></thead><tbody>';
+        sliced.forEach(function (e, i) {
+          const a = e[0], d = e[1];
+          const rankCls = i === 0 ? 'rec-rank-1' : i === 1 ? 'rec-rank-2' : i === 2 ? 'rec-rank-3' : '';
+          const artImgId = 'deb-art-img-' + cfg.pt + '-' + i;
+          const artPrefKey = 'artist:' + a.toLowerCase();
+          const fSong = artistFirstSongName[a] || '';
+          const fAlbObj = artistFirstAlbum[a] || null;
+          const fAlbImgId = 'deb-art-falb-' + cfg.pt + '-' + i;
+          const fAlbPrefKey = fAlbObj ? 'album:' + fAlbObj.artist.toLowerCase() + '|||' + fAlbObj.album.toLowerCase() : '';
+          dh += '<tr class="' + rankCls + '" data-rec-artist="' + esc(a) + '" data-rec-type="artist"'
+            + ' data-rec-name="' + esc(a) + '" data-rec-prefkey="' + esc('artist:' + a.toLowerCase()) + '">';
+          dh += '<td class="rec-rank">' + (i + 1) + '</td>';
+          dh += '<td><div class="pak-mini-thumb pak-mini-thumb-round" id="' + artImgId + '"><div class="pak-mini-initials">' + esc(initials(a)) + '</div></div></td>';
+          dh += '<td><div class="rec-name">' + esc(a) + '</div></td>';
+          if (fSong) {
+            dh += '<td><span class="pak-col-icon">🎵</span><span class="rec-name debut-first-label">' + esc(fSong) + '</span></td>';
+          } else {
+            dh += '<td class="rec-meta">—</td>';
+          }
+          if (fAlbObj) {
+            dh += '<td><div class="pak-mini-thumb" id="' + fAlbImgId + '"><div class="pak-mini-initials">' + esc(initials(fAlbObj.album)) + '</div></div></td>';
+            dh += '<td><div class="rec-name debut-first-label">' + esc(fAlbObj.album) + '</div></td>';
+            debImgQueue.push({ imgId: fAlbImgId, imgType: 'album', name: fAlbObj.album, album: fAlbObj.album, artist: fAlbObj.artist, prefKey: fAlbPrefKey });
+          } else {
+            dh += '<td></td><td class="rec-meta">—</td>';
+          }
+          dh += '<td class="rec-count">' + (d.plays || 0) + '</td>';
+          dh += '<td class="rec-count">#' + d.rank + '</td>';
+          dh += debPeriodCell(cfg.pt, d.period);
+          dh += '</tr>';
+          debImgQueue.push({ imgId: artImgId, imgType: 'artist', name: a, prefKey: artPrefKey });
+        });
+        dh += '</tbody></table></div>';
+      }
+      dh += '</div>';
+      return dh;
+    },
 
-  // ── Albums Debuts ──
-  {
-    const debs = Object.entries(albumDebuts.week).sort(function (a, b) {
-      return b[1].plays - a[1].plays || a[1].rank - b[1].rank || a[1].period.localeCompare(b[1].period);
-    });
-    const sliced = isFinite(lim) ? debs.slice(0, lim) : debs;
-    dh += '<div class="rec-section"><div class="rec-section-title">◈ ' + t('rec_th_albums') + ' &mdash; ' + t('rec_biggest_debuts_weekly') + '</div>';
-    if (!sliced.length) {
-      dh += '<div class="rec-empty">' + t('rec_no_data') + '</div>';
-    } else {
-      dh += '<div class="app-table-wrap"><table class="rec-table debut-rich-table"><thead><tr>';
-      dh += '<th>#</th><th class="debut-mini-art-th"></th><th>' + t('rec_th_albums') + '</th><th class="debut-mini-art-th"></th><th>' + t('rec_th_artist') + '</th>';
-      dh += '<th>' + t('rec_th_plays') + '</th><th>' + t('rec_th_debut_rank') + '</th><th>' + t('rec_th_week') + '</th>';
-      dh += '</tr></thead><tbody>';
-      sliced.forEach(function (e, i) {
-        const k = e[0], d = e[1];
-        const rankCls = i === 0 ? 'rec-rank-1' : i === 1 ? 'rec-rank-2' : i === 2 ? 'rec-rank-3' : '';
-        const albImgId = 'deb-alb-img-' + i;
-        const artImgId = 'deb-alb-art-' + i;
-        const albPrefKey = 'album:' + d.artist.toLowerCase() + '|||' + d.album.toLowerCase();
-        const artPrefKey = 'artist:' + d.artist.toLowerCase();
-        dh += '<tr class="' + rankCls + '" data-rec-artist="' + esc(d.artist) + '" data-rec-type="album"'
-          + ' data-rec-name="' + esc(d.album) + '" data-rec-prefkey="' + esc(albPrefKey) + '">';
-        dh += '<td class="rec-rank">' + (i + 1) + '</td>';
-        dh += '<td><div class="pak-mini-thumb" id="' + albImgId + '"><div class="pak-mini-initials">' + esc(initials(d.album)) + '</div></div></td>';
-        dh += '<td><div class="rec-name">' + esc(d.album) + '</div></td>';
-        dh += '<td><div class="pak-mini-thumb pak-mini-thumb-round" id="' + artImgId + '"><div class="pak-mini-initials">' + esc(initials(d.artist)) + '</div></div></td>';
-        dh += '<td><div class="rec-name">' + esc(d.artist) + '</div></td>';
-        dh += '<td class="rec-count">' + (d.plays || 0) + '</td>';
-        dh += '<td class="rec-count">#' + d.rank + '</td>';
-        dh += '<td class="rec-meta"><a class="debut-week-link" href="javascript:void(0)" onclick="showDebutWeekPreview(\'' + esc(d.period) + '\',this,event)">' + fmtPeriodKey(d.period, 'week') + '</a></td>';
-        dh += '</tr>';
-        debImgQueue.push({ imgId: albImgId, imgType: 'album', name: d.album, album: d.album, artist: d.artist, prefKey: albPrefKey });
-        debImgQueue.push({ imgId: artImgId, imgType: 'artist', name: d.artist, prefKey: artPrefKey });
-      });
-      dh += '</tbody></table></div>';
+    albums: function (cfg) {
+      const debs = Object.entries(albumDebuts[cfg.pt]).sort(debSort);
+      const sliced = isFinite(lim) ? debs.slice(0, lim) : debs;
+      let dh = '<div class="rec-section"><div class="rec-section-title">◈ ' + t('rec_th_albums') + ' &mdash; ' + t('rec_biggest_debuts_on', { period: cfg.nav }) + '</div>';
+      if (!sliced.length) {
+        dh += '<div class="rec-empty">' + t('rec_no_data') + '</div>';
+      } else {
+        dh += '<div class="app-table-wrap"><table class="rec-table debut-rich-table"><thead><tr>';
+        dh += '<th>#</th><th class="debut-mini-art-th"></th><th>' + t('rec_th_albums') + '</th><th class="debut-mini-art-th"></th><th>' + t('rec_th_artist') + '</th>';
+        dh += '<th>' + t('rec_th_plays') + '</th><th>' + t('rec_th_debut_rank') + '</th><th>' + cfg.unitLabel + '</th>';
+        dh += '</tr></thead><tbody>';
+        sliced.forEach(function (e, i) {
+          const d = e[1];
+          const rankCls = i === 0 ? 'rec-rank-1' : i === 1 ? 'rec-rank-2' : i === 2 ? 'rec-rank-3' : '';
+          const albImgId = 'deb-alb-img-' + cfg.pt + '-' + i;
+          const artImgId = 'deb-alb-art-' + cfg.pt + '-' + i;
+          const albPrefKey = 'album:' + d.artist.toLowerCase() + '|||' + d.album.toLowerCase();
+          const artPrefKey = 'artist:' + d.artist.toLowerCase();
+          dh += '<tr class="' + rankCls + '" data-rec-artist="' + esc(d.artist) + '" data-rec-type="album"'
+            + ' data-rec-name="' + esc(d.album) + '" data-rec-prefkey="' + esc(albPrefKey) + '">';
+          dh += '<td class="rec-rank">' + (i + 1) + '</td>';
+          dh += '<td><div class="pak-mini-thumb" id="' + albImgId + '"><div class="pak-mini-initials">' + esc(initials(d.album)) + '</div></div></td>';
+          dh += '<td><div class="rec-name">' + esc(d.album) + '</div></td>';
+          dh += '<td><div class="pak-mini-thumb pak-mini-thumb-round" id="' + artImgId + '"><div class="pak-mini-initials">' + esc(initials(d.artist)) + '</div></div></td>';
+          dh += '<td><div class="rec-name">' + esc(d.artist) + '</div></td>';
+          dh += '<td class="rec-count">' + (d.plays || 0) + '</td>';
+          dh += '<td class="rec-count">#' + d.rank + '</td>';
+          dh += debPeriodCell(cfg.pt, d.period);
+          dh += '</tr>';
+          debImgQueue.push({ imgId: albImgId, imgType: 'album', name: d.album, album: d.album, artist: d.artist, prefKey: albPrefKey });
+          debImgQueue.push({ imgId: artImgId, imgType: 'artist', name: d.artist, prefKey: artPrefKey });
+        });
+        dh += '</tbody></table></div>';
+      }
+      dh += '</div>';
+      return dh;
     }
-    dh += '</div>';
-  }
-  debPanel('albums', '◈', t('rec_th_albums'));
+  };
+  const DEB_REC_TYPES = [
+    { key: 'songs', icon: '★', label: t('rec_th_songs') },
+    { key: 'artists', icon: '♦', label: t('rec_th_artists') },
+    { key: 'albums', icon: '◈', label: t('rec_th_albums') }
+  ];
+  const debPanels = DEB_REC_TYPES.map(function (ent) {
+    // 'deb-songs' is a different stored period choice from 'deb-albums', so
+    // each entity remembers the chart you last looked at it on.
+    const perScope = 'deb-' + ent.key;
+    let html = '<div class="rec-per-tabs" data-rec-per-scope="' + esc(perScope) + '"'
+      + ' role="tablist" aria-label="' + esc(t('rec_per_tabs_label')) + '">';
+    for (const cfg of debCfg) {
+      html += '<button type="button" class="rec-per-tab" role="tab"'
+        + ' data-rec-per-scope="' + esc(perScope) + '" data-rec-per="' + cfg.pt + '">'
+        + esc(cfg.nav) + '</button>';
+    }
+    html += '</div>';
+    for (const cfg of debCfg) {
+      // Scoped by entity *and* period: the same three titles repeat across the
+      // three entity panels, and setupRecordSubsectionCollapse() keys its
+      // collapse state off the nearest [data-rec-scope].
+      html += '<div class="rec-per-panel" role="tabpanel"'
+        + ' data-rec-per-scope="' + esc(perScope) + '" data-rec-per="' + cfg.pt + '"'
+        + ' data-rec-scope="' + esc(perScope + '-' + cfg.pt) + '" style="display:none">'
+        + debBuild[ent.key](cfg)
+        + '</div>';
+    }
+    return { key: ent.key, icon: ent.icon, label: ent.label, html: html };
+  });
 
   document.getElementById('recDebutsBody').innerHTML = recEntTabsHtml('deb', debPanels);
-  (async () => {
-    await loadImages(debImgQueue.filter(function (x) { return x.imgType === 'song'; }), 'song');
-    await loadImages(debImgQueue.filter(function (x) { return x.imgType === 'artist'; }), 'artist');
-    await loadImages(debImgQueue.filter(function (x) { return x.imgType === 'album'; }), 'album');
-  })();
+  // One batch per type — loadImages() picks its fetcher from the type it is
+  // given, and the awaits these used to carry deferred nothing.
+  loadImages(debImgQueue.filter(function (x) { return x.imgType === 'song'; }), 'song');
+  loadImages(debImgQueue.filter(function (x) { return x.imgType === 'artist'; }), 'artist');
+  loadImages(debImgQueue.filter(function (x) { return x.imgType === 'album'; }), 'album');
 
   // ── Most Plays in a Period ────────────────────────────────────
+  /* `unitLabel` is the period word the record title and its last column wear
+     ("Week"); `short` is the bare period the pill row wears, the same pair All
+     #1s keeps above. */
   const ptCfg = [
-    { pt: 'week', unitLabel: t('rec_th_week'), sPP: songPP.week, aPP: artistPP.week, lPP: albumPP.week },
-    { pt: 'month', unitLabel: t('rec_th_month'), sPP: songPP.month, aPP: artistPP.month, lPP: albumPP.month },
-    { pt: 'year', unitLabel: t('rec_th_year'), sPP: songPP.year, aPP: artistPP.year, lPP: albumPP.year },
+    { pt: 'week', unitLabel: t('rec_th_week'), short: t('nav_weekly'), sPP: songPP.week, aPP: artistPP.week, lPP: albumPP.week },
+    { pt: 'month', unitLabel: t('rec_th_month'), short: t('nav_monthly'), sPP: songPP.month, aPP: artistPP.month, lPP: albumPP.month },
+    { pt: 'year', unitLabel: t('rec_th_year'), short: t('nav_yearly'), sPP: songPP.year, aPP: artistPP.year, lPP: albumPP.year },
   ];
   /* Nine tables: three entities across weekly, monthly and yearly. This used to
      read period-first — one section per period, all three entities crammed
      inside it, songs and artists side by side in a two-column grid and albums
      stranded full-width underneath. The pills make entity the outer axis
-     instead, so a panel is one entity and the three periods stack under it in
-     the same shape. One table per period means the grid is gone with it.
+     instead, so a panel is one entity. One table per period means the grid is
+     gone with it.
+
+     Inside each entity panel a second pill row narrows it again, to one period,
+     exactly like All #1s: three stacked collapsed headers you had to open one
+     by one is a worse way through than three pills, and each period is its own
+     named record anyway ("Most Plays in a Single Week").
 
      Each entity builds its own row markup, so the table builder is per entity
      rather than one shared loop pretending three different shapes are one. */
@@ -5427,13 +5645,29 @@ function buildRecords() {
     { key: 'albums', icon: '◈', label: t('rec_th_albums') }
   ];
   const ppPanels = PP_REC_TYPES.map(function (ent) {
-    let html = '';
+    // One period pill row per entity panel, so each entity remembers its own
+    // period — 'pp-songs' is a different stored choice from 'pp-albums'.
+    const perScope = 'pp-' + ent.key;
+    let html = '<div class="rec-per-tabs" data-rec-per-scope="' + esc(perScope) + '"'
+      + ' role="tablist" aria-label="' + esc(t('rec_per_tabs_label')) + '">';
     for (const cfg of ptCfg) {
-      // The three panels repeat these same three titles, which is exactly why
-      // recEntTabsHtml() scopes their collapse keys per panel.
-      html += '<div class="rec-section"><div class="rec-section-title">'
+      html += '<button type="button" class="rec-per-tab" role="tab"'
+        + ' data-rec-per-scope="' + esc(perScope) + '" data-rec-per="' + cfg.pt + '">'
+        + esc(cfg.short) + '</button>';
+    }
+    html += '</div>';
+    for (const cfg of ptCfg) {
+      /* The three panels repeat these same three titles across entities, so the
+         collapse key has to be scoped twice over: data-rec-scope here is the
+         entity *and* the period, and setupRecordSubsectionCollapse() reads the
+         nearest one — this panel, not the .rec-ent-panel around it. */
+      html += '<div class="rec-per-panel" role="tabpanel"'
+        + ' data-rec-per-scope="' + esc(perScope) + '" data-rec-per="' + cfg.pt + '"'
+        + ' data-rec-scope="' + esc(perScope + '-' + cfg.pt) + '" style="display:none">'
+        + '<div class="rec-section"><div class="rec-section-title">'
         + t('rec_most_plays_single', { unit: cfg.unitLabel }) + '</div>'
-        + ppBuild[ent.key](cfg) + '</div>';
+        + ppBuild[ent.key](cfg) + '</div>'
+        + '</div>';
     }
     return { key: ent.key, icon: ent.icon, label: ent.label, html: html };
   });
@@ -5655,14 +5889,18 @@ function buildRecords() {
   // ── Fastest to Milestone ──────────────────────────────────────
   /* One ladder per entity, and each rung its own record table. The three
      ladders are deliberately different: a song is the smallest unit here, so
-     it earns the finest steps, an album sits above it, and an artist — who
-     collects the plays of every song they made — only gets the landmark
-     totals. Every tier below must exist in the map it reads, or the section
-     would be silently empty: songs are stored every 25 plays (all of these are
-     multiples of 50), artists and albums are stored on MILESTONE_SET. */
+     it earns the finest steps at the bottom, while an artist — who collects
+     the plays of every song they made — starts higher but climbs much further,
+     because a favourite artist outgrows any single song of theirs. Every tier
+     below must exist in the map it reads, or the section would be silently
+     empty: songs are stored every 25 plays (all of these are multiples of 50),
+     artists and albums are stored on MILESTONE_SET.
+     Tiers nobody has reached cost nothing — fastTierSection() returns '' for an
+     empty rung — so the top of the artist ladder is left long on purpose and
+     fills itself in as the library grows. */
   const FAST_TIERS = {
     songs: [50, 100, 150, 200, 250, 300, 350, 400, 450, 500, 750, 1000, 1500, 2000, 2500, 5000],
-    artists: [500, 1000, 2000, 5000],
+    artists: [100, 250, 500, 750, 1000, 1500, 2000, 2500, 3000, 3500, 4000, 4500, 5000, 6000, 7000, 7500, 8000, 9000, 10000, 11000, 12000, 13000, 14000, 15000, 20000, 25000, 50000],
     albums: [100, 250, 500, 1000, 2000, 5000]
   };
   /* Three entities, one pill row — the same shape (and the same styling) the
@@ -6074,58 +6312,97 @@ function buildRecords() {
   loadImages(ncImgQueue, 'song');
 
   // ── Streak Records ────────────────────────────────────────────
-  /* Two pills here, not three: a listening streak is only ever tracked per
-     artist and per song, so there is no album ladder to put behind a third
-     one. The artist streak goes in its own panel, and both song records — the
-     longest streak and the repeat runs — go in the other. */
-  let sh = '';
-  const strPanels = [];
-  let strMark = 0;
-  function strPanel(key, icon, label) {
-    strPanels.push({ key: key, icon: icon, label: label, html: sh.slice(strMark) });
-    strMark = sh.length;
-  }
-  const topAS = Object.entries(artistStreaks).sort(function (a, b) { return b[1] - a[1]; });
-  sh += '<div class="rec-section"><div class="rec-section-title">' + t('rec_artists_longest_streak') + '</div>';
-  sh += recTable(['#', t('rec_th_artist'), t('rec_th_consec_days')],
-    topAS.map(function (e, i) { return '<td class="rec-rank">' + (i + 1) + '</td><td><div class="rec-name">' + esc(e[0]) + '</div></td><td class="rec-count">' + e[1] + ' ' + tUnit('days', e[1]) + '</td>'; }),
-    lim, null, null,
-    { rowAttrs: function (i) { return recRowAttrs(topAS[i][0], 'artist', topAS[i][0]); } }
-  );
-  sh += '</div>';
-  strPanel('artists', '♦', t('rec_th_artists'));
-  const topSS = Object.entries(songStreaks).sort(function (a, b) { return b[1] - a[1]; });
-  sh += '<div class="rec-section"><div class="rec-section-title">' + t('rec_songs_longest_streak') + '</div>';
-  sh += recTable(['#', t('rec_th_songs') + ' &middot; ' + t('rec_th_artist'), t('rec_th_consec_days')],
-    topSS.map(function (e, i) { const n = songNames[e[0]] || {}; return '<td class="rec-rank">' + (i + 1) + '</td><td><div class="rec-name">' + esc(n.title || e[0].split('|||')[0]) + '</div><div class="rec-sub">' + esc(n.artist || '') + '</div></td><td class="rec-count">' + e[1] + ' ' + tUnit('days', e[1]) + '</td>'; }),
-    lim, null, null,
-    { rowAttrs: function (i) { const n = songNames[topSS[i][0]] || {};
-      return recRowAttrs(n.artist || '', 'song', n.title || topSS[i][0].split('|||')[0]); } }
-  );
-  sh += '</div>';
-  sh += '<div class="rec-section"><div class="rec-section-title">' + t('rec_repeat_runs') + '</div><div class="rec-section-sub">' + t('rec_repeat_runs_sub') + '</div>';
-  if (allCSRuns.length > 0) {
-    sh += recTable(['#', t('rec_th_songs') + ' &middot; ' + t('rec_th_artist'), t('rec_th_consec_plays'), t('rec_th_date')],
-      allCSRuns.map(function (e, i) {
-        const n = songNames[e.key] || {};
-        return '<td class="rec-rank">' + (i + 1) + '</td><td><div class="rec-name">' + esc(n.title || e.key.split('|||')[0]) + '</div><div class="rec-sub">' + esc(n.artist || '') + '</div></td><td class="rec-count">' + e.count + '&times;</td><td class="rec-meta">' + (e.date ? fmt(e.date) : '') + '</td>';
-      }),
-      lim, null, null,
-      { rowAttrs: function (i) { const n = songNames[allCSRuns[i].key] || {};
-        return recRowAttrs(n.artist || '', 'song', n.title || allCSRuns[i].key.split('|||')[0]); } }
-    );
-  } else {
-    sh += '<div class="rec-empty">' + t('rec_no_repeat_runs') + '</div>';
-  }
-  sh += '</div>';
-  strPanel('songs', '★', t('rec_th_songs'));
-  // Songs lead the pills here the way they do in every other section, even
-  // though the artist table is the one built first above.
-  const STR_ORDER = ['songs', 'artists'];
-  document.getElementById('recStreaksBody').innerHTML = recEntTabsHtml('streaks',
-    STR_ORDER.map(function (k) {
-      return strPanels.find(function (p) { return p.key === k; });
-    }));
+  /* Three entity pills now, each with its own period row underneath — the
+     same two-level shape Most Plays and All #1s wear. A listening streak is
+     the same record whichever calendar unit it is counted in, so days, months
+     and years are three periods of one record rather than three records; the
+     fourth pill holds the other kind of run entirely, plays back-to-back in
+     the log with nothing in between.
+
+     Albums rank here for the first time. Their numbers read quieter than the
+     same artist's on purpose: only album-tagged plays can feed them. */
+  const STREAK_ENTS = [
+    { key: 'songs', kind: 'song', icon: '★', label: t('rec_th_songs') },
+    { key: 'artists', kind: 'artist', icon: '♦', label: t('rec_th_artists') },
+    { key: 'albums', kind: 'album', icon: '◈', label: t('rec_th_albums') },
+  ];
+  /* `runs` is the odd one out — it ranks plays, not calendar units — so it
+     carries a date column and its own per-entity blurb, and its rows are
+     counted with a × rather than a unit word. */
+  const STREAK_PERIODS = [
+    { pd: 'days', short: t('nav_daily'), title: t('rec_longest_streak_daily'), th: t('rec_th_consec_days'), unit: 'days' },
+    { pd: 'months', short: t('nav_monthly'), title: t('rec_longest_streak_monthly'), th: t('rec_th_consec_months'), unit: 'months' },
+    { pd: 'years', short: t('nav_yearly'), title: t('rec_longest_streak_yearly'), th: t('rec_th_consec_years'), unit: 'years' },
+    { pd: 'runs', short: t('rec_per_runs'), title: t('rec_repeat_runs'), th: t('rec_th_consec_plays') },
+  ];
+  /* Names for a bare key. The songNm/albumNm helpers the overview uses are
+     declared further down this function, so these can't lean on them. */
+  const strName = {
+    song: function (k) { const n = songNames[k] || {}; return { name: n.title || String(k).split('|||')[0], sub: n.artist || '', artist: n.artist || '', type: 'song' }; },
+    artist: function (k) { return { name: k, sub: '', artist: k, type: 'artist' }; },
+    album: function (k) { const n = albumNames[k] || {}; return { name: n.album || String(k).split('|||')[0], sub: n.artist || '', artist: n.artist || '', type: 'album' }; },
+  };
+  const strPanels = STREAK_ENTS.map(function (ent) {
+    // One period row per entity panel, so each remembers its own choice —
+    // 'streaks-songs' is a different stored pill from 'streaks-albums'.
+    const perScope = 'streaks-' + ent.key;
+    // Artists are their own credit; everything else carries one underneath.
+    const nameTh = ent.kind === 'artist' ? ent.label : ent.label + ' &middot; ' + t('rec_th_artist');
+    let html = '<div class="rec-per-tabs" data-rec-per-scope="' + esc(perScope) + '"'
+      + ' role="tablist" aria-label="' + esc(t('rec_per_tabs_label')) + '">';
+    for (const cfg of STREAK_PERIODS) {
+      html += '<button type="button" class="rec-per-tab" role="tab"'
+        + ' data-rec-per-scope="' + esc(perScope) + '" data-rec-per="' + cfg.pd + '">'
+        + esc(cfg.short) + '</button>';
+    }
+    html += '</div>';
+    for (const cfg of STREAK_PERIODS) {
+      const isRuns = cfg.pd === 'runs';
+      const src = isRuns ? bestRuns[ent.kind] : streaks[ent.kind][cfg.pd];
+      // Longest first. Streaks break ties on plays (a 2-year streak is common,
+      // so the busiest of them leads); runs break ties on the most recent.
+      const entries = Object.entries(src).sort(isRuns
+        ? function (a, b) { return b[1].count - a[1].count || b[1].date - a[1].date; }
+        : function (a, b) { return b[1].len - a[1].len || b[1].plays - a[1].plays; });
+      /* Double-scoped collapse key, the same way the Most Plays panels do it:
+         these four titles repeat across all three entities, so the key has to
+         carry the entity *and* the period or they would share one state. */
+      html += '<div class="rec-per-panel" role="tabpanel"'
+        + ' data-rec-per-scope="' + esc(perScope) + '" data-rec-per="' + cfg.pd + '"'
+        + ' data-rec-scope="' + esc(perScope + '-' + cfg.pd) + '" style="display:none">'
+        + '<div class="rec-section"><div class="rec-section-title">'
+        + ent.icon + ' ' + ent.label + ' &mdash; ' + cfg.title + '</div>'
+        + '<div class="rec-section-sub">'
+        + (isRuns ? t('rec_repeat_runs_sub_' + ent.kind) : t('rec_streak_sub_' + cfg.pd)) + '</div>';
+      if (!entries.length) {
+        html += '<div class="rec-empty">' + t(isRuns ? 'rec_no_repeat_runs' : 'rec_no_data') + '</div>';
+      } else {
+        const headers = ['#', nameTh, cfg.th];
+        if (isRuns) headers.push(t('rec_th_date'));
+        html += recTable(headers,
+          entries.map(function (e, i) {
+            const n = strName[ent.kind](e[0]);
+            const val = isRuns ? e[1].count + '&times;' : e[1].len + ' ' + tUnit(cfg.unit, e[1].len);
+            let row = '<td class="rec-rank">' + (i + 1) + '</td>'
+              + '<td><div class="rec-name">' + esc(n.name) + '</div>'
+              + (n.sub ? '<div class="rec-sub">' + esc(n.sub) + '</div>' : '') + '</td>'
+              + '<td class="rec-count">' + val + '</td>';
+            if (isRuns) row += '<td class="rec-meta">' + (e[1].date ? fmt(e[1].date) : '') + '</td>';
+            return row;
+          }),
+          lim, null, null,
+          { rowAttrs: function (i) {
+            const n = strName[ent.kind](entries[i][0]);
+            return recRowAttrs(n.artist, n.type, n.name);
+          } }
+        );
+      }
+      // Closes .rec-section, then .rec-per-panel — two opened, two closed.
+      html += '</div></div>';
+    }
+    return { key: ent.key, icon: ent.icon, label: ent.label, html: html };
+  });
+  document.getElementById('recStreaksBody').innerHTML = recEntTabsHtml('streaks', strPanels);
 
   /* ── Overview highlights ────────────────────────────────────────────
      One headline record per section, per chart type, for the landing
@@ -6134,9 +6411,9 @@ function buildRecords() {
      pass per map with no re-derivation.
 
      Not every record exists for every type: albums have no play-count
-     milestones, no fastest-to-milestone and no listening streaks, because
-     those are only tracked per artist and per song. Those combinations are
-     simply left unset and the overview renders them as empty cards. */
+     milestones and no fastest-to-milestone, because those are only tracked
+     per artist and per song. Those combinations are simply left unset and the
+     overview renders them as empty cards. */
   const recHi = {};
   /* `artist` is separate from `sub` on purpose. `sub` is whatever reads best
      under the name — usually the artist, but sometimes a date ("8 Jul 2026")
@@ -6183,9 +6460,11 @@ function buildRecords() {
     if (l) hi('recAllOnesSection', 'albums', L, tCount('weeks_full', l[1].count), l[1].album, l[1].artist, l[1].artist);
   }
 
-  // Perfect All Kill — a PAK is an artist event, but each one also crowns a
-  // song and an album, so all three types have a most-frequent entry.
-  if (pakWeeks.length) {
+  /* Perfect All Kill — a PAK is an artist event, but each one also crowns a
+     song and an album, so all three types have a most-frequent entry. The
+     overview reads the weekly chart, like every other card here; the monthly
+     and yearly PAKs live behind the section's own period pills. */
+  if (pakPeriods.week.length) {
     const L = t('rec_ov_pak');
     /* Also remembers which artist each tallied song/album belongs to — the PAK
        rows only name the work, and the overview card needs the artist to look
@@ -6193,7 +6472,7 @@ function buildRecords() {
        alongside a title is by definition that title's own. */
     const tally = function (field) {
       const m = {}, art = {};
-      for (const pw of pakWeeks) { const v = pw[field]; if (v) { m[v] = (m[v] || 0) + 1; art[v] = art[v] || pw.artist; } }
+      for (const pw of pakPeriods.week) { const v = pw[field]; if (v) { m[v] = (m[v] || 0) + 1; art[v] = art[v] || pw.artist; } }
       const top = topNum(m);
       return top ? [top[0], top[1], art[top[0]] || ''] : null;
     };
@@ -6327,12 +6606,25 @@ function buildRecords() {
     });
   }
 
-  // Longest run of consecutive listening days (artists and songs only)
+  /* Longest run of consecutive listening days. The daily ladder is the one
+     the card quotes for every entity, months and years being a period pill
+     away rather than a record of their own. */
   {
     const L = t('rec_ov_streaks');
-    const s = topNum(songStreaks), a = topNum(artistStreaks);
-    if (s) hi('recStreaksSection', 'songs', L, tCount('days', s[1]), songNm(s[0]), songArt(s[0]), songArt(s[0]));
-    if (a) hi('recStreaksSection', 'artists', L, tCount('days', a[1]), a[0]);
+    // Same order the tables rank in: longest first, most-played breaks the tie.
+    const bestDays = function (kind) {
+      const map = streaks[kind].days;
+      let bk = null, bv = null;
+      for (const k in map) {
+        const v = map[k];
+        if (!bv || v.len > bv.len || (v.len === bv.len && v.plays > bv.plays)) { bk = k; bv = v; }
+      }
+      return bk === null ? null : [bk, bv];
+    };
+    const s = bestDays('song'), a = bestDays('artist'), l = bestDays('album');
+    if (s) hi('recStreaksSection', 'songs', L, tCount('days', s[1].len), songNm(s[0]), songArt(s[0]), songArt(s[0]));
+    if (a) hi('recStreaksSection', 'artists', L, tCount('days', a[1].len), a[0]);
+    if (l) hi('recStreaksSection', 'albums', L, tCount('days', l[1].len), albumNm(l[0]), albumArt(l[0]), albumArt(l[0]));
   }
 
   // Biggest debut on the New Songs / New Artists / New Albums charts
@@ -7880,9 +8172,10 @@ function recEntTabsHtml(scope, panels) {
   return h;
 }
 
-// The stored pill for one section, falling back to the first one it offers —
-// Streaks only has two (there are no album listening streaks to rank), so the
-// valid set comes from the row in the DOM rather than a fixed list here.
+// The stored pill for one section, falling back to the first one it offers.
+// The valid set comes from the row in the DOM rather than a fixed list here, so
+// a section that offers fewer than the usual three still resolves correctly —
+// and a stored pill from an older build that no longer exists falls back too.
 function recEntTabState(scope, keys) {
   const stored = localStorage.getItem('dc_rec_ent_' + scope);
   return keys.indexOf(stored) === -1 ? keys[0] : stored;
@@ -12342,16 +12635,22 @@ function togglePakArtistExpand(expandId, rowEl) {
      overwrite the picker-aware markup with a plain <img>. */
 }
 
-function showPakWeekPreview(weekKey, triggerEl) {
+/* `pt` is the chart the clicked PAK belongs to. It used to be hard-coded to
+   'week' in all three places below, which is why this could not be reused once
+   the section grew monthly and yearly panels. ensureAllChartRun() builds the
+   run for all three periods, and crPeriodTitle() already reads all three. */
+function showPakPeriodPreview(pt, periodKey, triggerEl) {
   hidePakWeekPreview();
   ensureAllChartRun();
-  const crData = allChartRun['week'];
+  const crData = allChartRun[pt];
   const popup = document.createElement('div');
   popup.className = 'cr-preview';
   popup.id = 'pakWeekPreviewPopup';
   popup.style.position = 'fixed';
-  const title = crPeriodTitle('week', weekKey);
-  const navigateLink = `<a class="cr-preview-link" href="#chart/week/${weekKey}" onclick="event.preventDefault();hidePakWeekPreview();navigateToRecPeriod('week','${weekKey}')">${t('rec_pak_week_preview_link')}</a>`;
+  const weekKey = periodKey;
+  const title = crPeriodTitle(pt, periodKey);
+  const unit = tUnit(pt === 'week' ? 'weeks_full' : pt === 'month' ? 'months' : 'years', 1);
+  const navigateLink = `<a class="cr-preview-link" href="#chart/${pt}/${periodKey}" onclick="event.preventDefault();hidePakWeekPreview();navigateToRecPeriod('${pt}','${periodKey}')">${t('rec_pak_period_preview_link', { unit: unit })}</a>`;
   if (!crData || !crData.periodMap[weekKey]) {
     popup.innerHTML = `<button class="cr-preview-close" onclick="hidePakWeekPreview()">✕</button><div class="cr-preview-title">${esc(title)}</div><div style="padding:4px 0;font-size:0.62rem;color:var(--text3);">${navigateLink}</div>`;
   } else {
@@ -12390,17 +12689,23 @@ function hidePakWeekPreview() {
 }
 
 let _debutPreviewCleanup = null;
-function showDebutWeekPreview(weekKey, triggerEl, event) {
+/* `pt` is the chart the clicked debut belongs to. It was hard-coded to 'week'
+   throughout, the same way the PAK preview above was before that section grew
+   its period pills — Debuts now has monthly and yearly panels of its own. */
+function showDebutPeriodPreview(pt, weekKey, triggerEl, event) {
   if (event) event.stopPropagation();
   hideDebutWeekPreview();
   ensureAllChartRun();
-  const crData = allChartRun['week'];
+  const crData = allChartRun[pt];
   const popup = document.createElement('div');
   popup.className = 'cr-preview';
   popup.id = 'debutWeekPreviewPopup';
   popup.style.position = 'fixed';
-  const title = crPeriodTitle('week', weekKey);
-  const navigateLink = `<a class="cr-preview-link" href="#chart/week/${weekKey}" onclick="event.preventDefault();hideDebutWeekPreview();navigateToRecPeriod('week','${weekKey}')">${t('rec_pak_week_preview_link')}</a>`;
+  const title = crPeriodTitle(pt, weekKey);
+  // "→ View full week / month / year" — the weekly-only string it used to
+  // quote can't name the other two charts.
+  const unit = tUnit(pt === 'week' ? 'weeks_full' : pt === 'month' ? 'months' : 'years', 1);
+  const navigateLink = `<a class="cr-preview-link" href="#chart/${pt}/${weekKey}" onclick="event.preventDefault();hideDebutWeekPreview();navigateToRecPeriod('${pt}','${weekKey}')">${t('rec_pak_period_preview_link', { unit: unit })}</a>`;
   if (!crData || !crData.periodMap || !crData.periodMap[weekKey]) {
     popup.innerHTML = `<button class="cr-preview-close" onclick="hideDebutWeekPreview()">✕</button><div class="cr-preview-title">${esc(title)}</div><div style="padding:4px 0;font-size:0.62rem;color:var(--text3);">${navigateLink}</div>`;
   } else {

@@ -11980,10 +11980,12 @@
       color: var(--on-accent);
     }
 
-    /* .rec-per-* is the generic version of this row — All #1s wears it under
-       its Songs/Artists/Albums pills to pick weekly, monthly or yearly. Same
-       job, one level down from a filled pill row, so it shares the styling
-       rather than copying it and letting the two drift apart. */
+    /* .rec-per-* is the generic version of this row. Six sections wear it now —
+       All #1s, Perfect All Kill, Appearances, Debuts, Most Plays and Streaks —
+       under their Songs/Artists/Albums pills, to pick which chart the record on
+       screen is for. Same job, one level down from a filled pill row, so it
+       shares the styling rather than copying it and letting the two drift
+       apart. */
     .nc-rec-subtabs,
     .rec-per-tabs {
       display: flex;
