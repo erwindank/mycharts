@@ -12181,8 +12181,76 @@
        document CSS cannot select into, so per-path animation is off the
        table here regardless.
 
-       Only two of these loop, and both loop because the object itself does:
-       records spin and flames flicker. The rest fire once on arrival. */
+       Every one of these now runs for as long as its pill is selected.
+       They used to be one-shot entrances that played on arrival and then
+       stopped dead, which meant the selected pill was motionless for all
+       but the first half-second you spent in the section — the motion was
+       an arrival flourish, not a state.
+
+       Each rule chains two animations: the entrance, then the loop on a
+       delay equal to the entrance's length. The loop is left on the default
+       `none` fill deliberately, so during its delay it contributes nothing
+       and the entrance owns the transform outright; `backwards` there would
+       have the loop's first frame stomp the entrance from time zero.
+
+       Loop durations are all mutually prime-ish and slow (1.6s–4.5s). These
+       sit in a nav bar the eye passes over constantly, so anything faster
+       or tighter stops reading as character and starts reading as a fault. */
+
+    /* Idling, not performing: Overview is the index rather than a record
+       type, so it breathes where the others act. */
+    .records-nav-btn.active[data-rec-view="recOverviewSection"] .rec-nav-ico {
+      animation: recIcoPop 340ms var(--ease) backwards,
+        recIcoBreathe 3.4s ease-in-out 340ms infinite;
+    }
+
+    .records-nav-btn.active[data-rec-view="recAllOnesSection"] .rec-nav-ico {
+      animation: recIcoCrown 620ms var(--ease) backwards,
+        recIcoCrownBob 2.9s ease-in-out 620ms infinite;
+    }
+
+    /* The crosshair closes onto its target rather than popping open, then
+       keeps hunting: a reticle that has stopped moving has stopped aiming. */
+    .records-nav-btn.active[data-rec-view="recPAKSection"] .rec-nav-ico {
+      animation: recIcoLock 560ms var(--ease) backwards,
+        recIcoLockPulse 2.3s ease-in-out 560ms infinite;
+    }
+
+    .records-nav-btn.active[data-rec-view="recAppearancesSection"] .rec-nav-ico {
+      animation: recIcoPop 340ms var(--ease) backwards,
+        recIcoStack 2.7s ease-in-out 340ms infinite;
+    }
+
+    /* Streaks in from the lower left, the direction its own trail points,
+       then re-shoots on a long cycle. The loop rests through its first half
+       so the repeat does not tread on the entrance that just played. */
+    .records-nav-btn.active[data-rec-view="recDebutsSection"] .rec-nav-ico {
+      animation: recIcoStreak 620ms var(--ease) backwards,
+        recIcoStreakLoop 2.8s var(--ease) 620ms infinite;
+    }
+
+    .records-nav-btn.active[data-rec-view="recPeakPlaysSection"] .rec-nav-ico {
+      animation: recIcoMeter 700ms var(--ease) backwards,
+        recIcoMeterLoop 1.6s ease-in-out 700ms infinite;
+    }
+
+    /* Furls from the pole, not from the middle — a flag pinned at its centre
+       reads as a glitch. transform-origin has to be overridden off the
+       shared `center` for that, and it applies to the entrance too, which
+       is why the entrance here is the scale-free bob rather than recIcoPop. */
+    .records-nav-btn.active[data-rec-view="recMilestonesSection"] .rec-nav-ico {
+      transform-origin: 22% center;
+      animation: recIcoCrown 620ms var(--ease) backwards,
+        recIcoFlag 2.6s ease-in-out 620ms infinite;
+    }
+
+    .records-nav-btn.active[data-rec-view="recFastestSection"] .rec-nav-ico {
+      animation: recIcoFlash 700ms var(--ease) backwards,
+        recIcoFlashLoop 2.8s var(--ease) 700ms infinite;
+    }
+
+    /* No entrance to chain: the disc simply starts turning and never stops,
+       which is the one behaviour a record has. */
     .records-nav-btn.active[data-rec-view="recCertsSection"] .rec-nav-ico {
       animation: recIcoSpin 4.5s linear infinite;
     }
@@ -12191,30 +12259,9 @@
       animation: recIcoFlicker 2.4s ease-in-out infinite;
     }
 
-    /* Streaks in from the lower left, the direction its own trail points. */
-    .records-nav-btn.active[data-rec-view="recDebutsSection"] .rec-nav-ico {
-      animation: recIcoStreak 620ms var(--ease) backwards;
-    }
-
     .records-nav-btn.active[data-rec-view="recNewChartsSection"] .rec-nav-ico {
-      animation: recIcoBurst 520ms var(--ease) backwards;
-    }
-
-    .records-nav-btn.active[data-rec-view="recFastestSection"] .rec-nav-ico {
-      animation: recIcoFlash 700ms var(--ease) backwards;
-    }
-
-    /* The crosshair closes onto its target rather than popping open. */
-    .records-nav-btn.active[data-rec-view="recPAKSection"] .rec-nav-ico {
-      animation: recIcoLock 560ms var(--ease) backwards;
-    }
-
-    .records-nav-btn.active[data-rec-view="recAllOnesSection"] .rec-nav-ico {
-      animation: recIcoCrown 620ms var(--ease) backwards;
-    }
-
-    .records-nav-btn.active[data-rec-view="recPeakPlaysSection"] .rec-nav-ico {
-      animation: recIcoMeter 700ms var(--ease) backwards;
+      animation: recIcoBurst 520ms var(--ease) backwards,
+        recIcoTwinkle 2.5s ease-in-out 520ms infinite;
     }
 
     @keyframes recIcoPop {
@@ -12270,6 +12317,90 @@
       40% { transform: scaleY(1.18); }
       70% { transform: scaleY(0.85); }
       to  { transform: none; }
+    }
+
+    /* ── The loops ────────────────────────────────────────────────────
+       Every one of these starts and ends on the glyph's resting state, so
+       the cycle joins itself seamlessly and the pill is never caught mid-
+       pose when it goes inactive.
+
+       The amplitudes look conservative written down and they are meant to:
+       these run indefinitely a few pixels from the label you are trying to
+       read, so the ceiling is set by what stays comfortable at the tenth
+       repetition rather than what looks best at the first. The two that
+       carry real amplitude — the shooting star and the bolt — buy it by
+       resting for most of their cycle instead. */
+
+    /* Overview: the whole dial, idling. */
+    @keyframes recIcoBreathe {
+      0%, 100% { transform: scale(1); }
+      50%      { transform: scale(1.07); }
+    }
+
+    /* Worn, not just displayed — a slow lift and settle. */
+    @keyframes recIcoCrownBob {
+      0%, 100% { transform: translateY(0) scale(1); }
+      45%      { transform: translateY(-1.5px) scale(1.04); }
+    }
+
+    /* Reticle breathing on its target, with the dip in opacity doing as
+       much of the work as the scale. */
+    @keyframes recIcoLockPulse {
+      0%, 100% { transform: scale(1);    opacity: 1; }
+      40%      { transform: scale(0.9);  opacity: 0.72; }
+      70%      { transform: scale(1.05); opacity: 1; }
+    }
+
+    /* Layers settling onto the stack. */
+    @keyframes recIcoStack {
+      0%, 100% { transform: translateY(0) scaleY(1); }
+      35%      { transform: translateY(-1.2px) scaleY(1.06); }
+      70%      { transform: translateY(0.6px) scaleY(0.95); }
+    }
+
+    /* Rests, then streaks in from the lower left again. The rest was 55% of
+       a 3.6s cycle when this was written, which left the star sitting dead
+       still for a full two seconds — long enough that the pill read as
+       having no animation at all, which was the whole complaint. 38% of
+       2.8s is a ~1s pause: still clearly periodic rather than twitchy, but
+       never still long enough to look broken. */
+    @keyframes recIcoStreakLoop {
+      0%, 38% { transform: none; opacity: 1; }
+      48%     { transform: translate(-5px, 5px) scale(0.8); opacity: 0; }
+      72%     { transform: none; opacity: 1; }
+      100%    { transform: none; opacity: 1; }
+    }
+
+    /* Level meter, pumping. */
+    @keyframes recIcoMeterLoop {
+      0%, 100% { transform: scaleY(1); }
+      30%      { transform: scaleY(1.22); }
+      65%      { transform: scaleY(0.82); }
+    }
+
+    /* Furling from the pole. Paired with transform-origin: 22% center. */
+    @keyframes recIcoFlag {
+      0%, 100% { transform: scaleX(1); }
+      40%      { transform: scaleX(0.88) skewY(-1.5deg); }
+      70%      { transform: scaleX(1.03) skewY(1deg); }
+    }
+
+    /* A bolt does not glow steadily, it strikes — so this is mostly dark
+       with two quick hits, rather than an even throb. */
+    @keyframes recIcoFlashLoop {
+      0%, 45%, 100% { opacity: 1;    transform: scale(1); }
+      52%           { opacity: 0.35; transform: scale(0.94); }
+      60%           { opacity: 1;    transform: scale(1.16); }
+      70%           { opacity: 0.55; transform: scale(1); }
+      78%           { opacity: 1;    transform: scale(1.08); }
+    }
+
+    /* Burst re-igniting: a small counter-rotation keeps it from reading as
+       the same pulse the Overview grid is doing. */
+    @keyframes recIcoTwinkle {
+      0%, 100% { transform: scale(1) rotate(0deg); }
+      35%      { transform: scale(0.88) rotate(-8deg); }
+      68%      { transform: scale(1.12) rotate(6deg); }
     }
 
     /* Keyboard users get the same ring the rest of the app uses, drawn
