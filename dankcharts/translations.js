@@ -583,15 +583,15 @@ const TRANSLATIONS = {
     rec_search_sections_other: 'sections',
 
     // Records section titles (static HTML)
-    rec_all_ones_title: '★ All #1s',
-    rec_pak_title: '🎯 Perfect All Kill',
-    rec_appearances_title: '📈 Most Chart Appearances',
-    rec_debuts_title: '🚀 Biggest Debuts',
-    rec_peak_plays_title: '🔥 Most Plays in a Period',
-    rec_milestones_title: '🎖 Play Count Milestones',
-    rec_fastest_title: '⚡ Fastest to Milestone',
-    rec_certs_title: '💿 Certifications Leaderboard',
-    rec_streaks_title: '🔁 Streak Records',
+    rec_all_ones_title: 'All #1s',
+    rec_pak_title: 'Perfect All Kill',
+    rec_appearances_title: 'Most Chart Appearances',
+    rec_debuts_title: 'Biggest Debuts',
+    rec_peak_plays_title: 'Most Plays in a Period',
+    rec_milestones_title: 'Play Count Milestones',
+    rec_fastest_title: 'Fastest to Milestone',
+    rec_certs_title: 'Certifications Leaderboard',
+    rec_streaks_title: 'Streak Records',
 
     // Records section subtitles (static HTML)
     rec_all_ones_sub: 'Artists, albums & tracks that reached the top spot on your charts — including how many times each held #1',
@@ -1957,15 +1957,15 @@ const TRANSLATIONS = {
     rec_nav_streaks: 'Rachas',
 
     // Records section titles (HTML)
-    rec_all_ones_title: '★ Todos los #1',
-    rec_pak_title: '🎯 Dominio Total',
-    rec_appearances_title: '📈 Más Apariciones en el Ranking',
-    rec_debuts_title: '🚀 Mejores Debuts',
-    rec_peak_plays_title: '🔥 Más Reproducciones en un Período',
-    rec_milestones_title: '🎖 Hitos de Reproducciones',
-    rec_fastest_title: '⚡ Más Rápido al Hito',
-    rec_certs_title: '💿 Tabla de Certificaciones',
-    rec_streaks_title: '🔁 Récords de Rachas',
+    rec_all_ones_title: 'Todos los #1',
+    rec_pak_title: 'Dominio Total',
+    rec_appearances_title: 'Más Apariciones en el Ranking',
+    rec_debuts_title: 'Mejores Debuts',
+    rec_peak_plays_title: 'Más Reproducciones en un Período',
+    rec_milestones_title: 'Hitos de Reproducciones',
+    rec_fastest_title: 'Más Rápido al Hito',
+    rec_certs_title: 'Tabla de Certificaciones',
+    rec_streaks_title: 'Récords de Rachas',
 
     // Records subtitles
     rec_all_ones_sub: 'Artistas, álbumes y canciones que alcanzaron el #1 en tus rankings — incluyendo cuántas veces lo tuvieron',
@@ -3267,15 +3267,15 @@ const TRANSLATIONS = {
     rec_nav_streaks: 'Sequências',
 
     // Records section titles (HTML)
-    rec_all_ones_title: '★ Todos os #1',
-    rec_pak_title: '🎯 Domínio Total',
-    rec_appearances_title: '📈 Mais Aparições na Parada',
-    rec_debuts_title: '🚀 Melhores Estreias',
-    rec_peak_plays_title: '🔥 Mais Reproduções em um Período',
-    rec_milestones_title: '🎖 Marcos de Reproduções',
-    rec_fastest_title: '⚡ Mais Rápido ao Marco',
-    rec_certs_title: '💿 Tabela de Certificações',
-    rec_streaks_title: '🔁 Recordes de Sequências',
+    rec_all_ones_title: 'Todos os #1',
+    rec_pak_title: 'Domínio Total',
+    rec_appearances_title: 'Mais Aparições na Parada',
+    rec_debuts_title: 'Melhores Estreias',
+    rec_peak_plays_title: 'Mais Reproduções em um Período',
+    rec_milestones_title: 'Marcos de Reproduções',
+    rec_fastest_title: 'Mais Rápido ao Marco',
+    rec_certs_title: 'Tabela de Certificações',
+    rec_streaks_title: 'Recordes de Sequências',
 
     // Records subtitles
     rec_all_ones_sub: 'Artistas, álbuns e músicas que chegaram ao #1 nas suas paradas — incluindo quantas vezes ficaram no topo',
@@ -4577,15 +4577,15 @@ const TRANSLATIONS = {
     rec_nav_streaks: 'Sequências',
 
     // Records section titles (HTML)
-    rec_all_ones_title: '★ Todos os #1',
-    rec_pak_title: '🎯 Domínio Total',
-    rec_appearances_title: '📈 Mais Aparições no Top',
-    rec_debuts_title: '🚀 Melhores Estreias',
-    rec_peak_plays_title: '🔥 Mais Reproduções num Período',
-    rec_milestones_title: '🎖 Marcos de Reproduções',
-    rec_fastest_title: '⚡ Mais Rápido ao Marco',
-    rec_certs_title: '💿 Tabela de Certificações',
-    rec_streaks_title: '🔁 Recordes de Sequências',
+    rec_all_ones_title: 'Todos os #1',
+    rec_pak_title: 'Domínio Total',
+    rec_appearances_title: 'Mais Aparições no Top',
+    rec_debuts_title: 'Melhores Estreias',
+    rec_peak_plays_title: 'Mais Reproduções num Período',
+    rec_milestones_title: 'Marcos de Reproduções',
+    rec_fastest_title: 'Mais Rápido ao Marco',
+    rec_certs_title: 'Tabela de Certificações',
+    rec_streaks_title: 'Recordes de Sequências',
 
     // Records subtitles
     rec_all_ones_sub: 'Artistas, álbuns e músicas que chegaram ao #1 nos seus tops — incluindo quantas vezes ficaram no topo',

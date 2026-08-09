@@ -5356,6 +5356,27 @@
       opacity: 0.85;
     }
 
+    /* Records section headings. The same sprite glyph the nav pill carries, so
+       arriving at a section confirms the pill you pressed — which the old
+       emoji could not do, being a different picture in a different palette.
+       Sized to the cap height of the 0.72rem mono heading rather than to a
+       round pixel value, so the two share a baseline. */
+    .rec-h2-ico {
+      width: 0.95em;
+      height: 0.95em;
+      flex-shrink: 0;
+      fill: none;
+      /* Same --ico the pill uses, set once per section further up, so the
+         heading is visibly the thing the coloured pill pointed at. Static:
+         the motion is the nav's way of confirming a choice, and repeating
+         it on the heading would just be the same beat played twice. */
+      stroke: var(--ico, currentColor);
+      stroke-width: 1.5;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      opacity: 0.95;
+    }
+
     .section-rule {
       flex: 1;
       height: 1px;
@@ -11780,6 +11801,28 @@
       pointer-events: none;
     }
 
+    /* Kept inline rather than making the title a flex row: these titles wrap
+       to two lines over the artwork, and a flex container would strand the
+       glyph in its own column beside a hanging indent. Inherits the title's
+       colour, so it flips with the empty-card rule below for free, and takes
+       the same drop shadow the text does so it survives over bright art. */
+    .rec-ov-ico {
+      width: 0.95em;
+      height: 0.95em;
+      margin-right: 0.35em;
+      vertical-align: -0.12em;
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 1.5;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.55));
+    }
+
+    .rec-ov-card-empty .rec-ov-ico {
+      filter: none;
+    }
+
     .rec-ov-value {
       font-family: var(--font-mono);
       font-size: 1.3rem;
@@ -11873,42 +11916,385 @@
       line-height: 1.45;
     }
 
+    /* ── Records section nav: the tuner dial ──────────────────────────
+       Eleven pills sitting on an inset ground with a tick pattern behind
+       them, so the chosen section reads as the lit segment on a dial rather
+       than as one more button among eleven. The ticks are the distinctive
+       bit and they are nearly free: one repeating-linear-gradient, no markup.
+
+       It wraps. An earlier pass ran this as a single non-wrapping scroller,
+       which was wrong: the pills need 1144px, the content column is capped
+       at 946px, so Streaks and New Charts fell off the right edge at *every*
+       desktop width — 1920px included — with no scrollbar to say so. Two
+       tidy rows beat two tabs nobody can reach. The narrow breakpoint below
+       is the one place scrolling earns its keep. */
     .records-nav {
       display: flex;
       flex-wrap: wrap;
-      gap: 0.35rem;
+      justify-content: center;
+      gap: 0.3rem;
       margin-bottom: 0.8rem;
+      padding: 0.32rem;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background-color: var(--bg2);
+      /* Dial ticks, along the bottom of the block however many rows it runs
+         to. Held low against the border colour so they read as texture at
+         arm's length and never compete with the pill labels; the fade to
+         transparent at the top keeps them behind the pills rather than
+         striping them. */
+      background-image: repeating-linear-gradient(90deg,
+          transparent 0 7px,
+          color-mix(in srgb, var(--border2) 55%, transparent) 7px 8px),
+        linear-gradient(to bottom,
+          transparent 0 55%,
+          color-mix(in srgb, var(--bg) 92%, transparent) 100%);
+      background-size: 8px 7px, 100% 100%;
+      background-position: bottom left, top left;
+      background-repeat: repeat-x, no-repeat;
+    }
+
+    /* Splits the dial 6 / 5 rather than letting it fall 8 / 3. Zero height so
+       it costs no row of its own — it only consumes the rest of the line. */
+    .rec-nav-break {
+      flex: 0 0 100%;
+      height: 0;
+    }
+
+    /* Under ~640px eleven pills wrap to four or five rows, which is a bigger
+       block than the content it indexes. Here the strip becomes a one-line
+       scroller instead — a swipe is the native gesture at this size, the
+       active pill is scrolled into view by applyRecordsViewFilter(), and the
+       mask fades both edges so it is visibly a strip that continues. Safe as
+       a static mask because at this width the row always overflows. */
+    @media (max-width: 640px) {
+      .records-nav {
+        flex-wrap: nowrap;
+        /* Must be flex-start, not the centred value the wrapped dial uses.
+           Centring an overflowing nowrap row pushes content off *both* ends,
+           and the left overflow is unreachable — scrollLeft bottoms out at 0
+           with the first pills already past the edge, which silently stranded
+           Overview and All #1s here. */
+        justify-content: flex-start;
+        overflow-x: auto;
+        overscroll-behavior-x: contain;
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+        scroll-snap-type: x proximity;
+        -webkit-mask-image: linear-gradient(90deg,
+            transparent 0, #000 18px, #000 calc(100% - 18px), transparent 100%);
+        mask-image: linear-gradient(90deg,
+            transparent 0, #000 18px, #000 calc(100% - 18px), transparent 100%);
+      }
+
+      /* The mask already says "this continues"; a scrollbar under the dial
+         would just be chrome on chrome. */
+      .records-nav::-webkit-scrollbar {
+        display: none;
+      }
+
+      /* Nothing to break in a single scrolling line, and left in it would
+         claim a full container width mid-row. */
+      .rec-nav-break {
+        display: none;
+      }
     }
 
     .records-nav-btn {
-      background: var(--bg2);
-      border: 1px solid var(--border);
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4em;
+      flex: none;
+      background: transparent;
+      border: 1px solid transparent;
       color: var(--text2);
       font-family: var(--font-mono);
       font-size: 0.58rem;
       letter-spacing: 0.08em;
       text-transform: uppercase;
-      padding: 0.28rem 0.52rem;
-      border-radius: 4px;
+      padding: 0.34rem 0.6rem;
+      border-radius: 5px;
       cursor: pointer;
-      transition: background 0.15s, color 0.15s, border-color 0.15s;
+      white-space: nowrap;
+      scroll-snap-align: center;
+      transition: background var(--t-fast) var(--ease), color var(--t-fast) var(--ease),
+        border-color var(--t-fast) var(--ease), box-shadow var(--t-fast) var(--ease);
+    }
+
+    /* ── Icon colour: five families, not eleven hues ──────────────────
+       Colouring all eleven separately would be a paintbox, and nothing in
+       it would mean anything. Grouping them sorts the dial into the five
+       kinds of record it actually holds, so the colour is doing work the
+       labels cannot do at 9px:
+
+         gold    trophies      All #1s · Perfect All Kill · Certifications
+         teal    chart time    Appearances · Most Plays
+         green   arriving      Debuts · New Charts
+         amber   heat & speed  Fastest · Streaks
+         violet  markers       Milestones
+         muted   the index     Overview — not a record type, so no colour
+
+       Each pair below sets --ico for both the pill and its section, so a
+       glyph can never be one colour in the nav and another on the heading
+       it jumps to. Every value is a theme token, so all ten themes get
+       their own tuned version — the light themes carry much darker golds
+       and ambers, which is exactly why this must not be a literal hex. */
+    .records-nav-btn[data-rec-view="recOverviewSection"],
+    #recOverviewSection {
+      --ico: var(--text3);
+    }
+
+    .records-nav-btn[data-rec-view="recAllOnesSection"],
+    #recAllOnesSection {
+      --ico: var(--gold1);
+    }
+
+    .records-nav-btn[data-rec-view="recPAKSection"],
+    #recPAKSection {
+      --ico: var(--gold2);
+    }
+
+    .records-nav-btn[data-rec-view="recCertsSection"],
+    #recCertsSection {
+      --ico: var(--gold1);
+    }
+
+    .records-nav-btn[data-rec-view="recAppearancesSection"],
+    #recAppearancesSection {
+      --ico: var(--teal);
+    }
+
+    .records-nav-btn[data-rec-view="recPeakPlaysSection"],
+    #recPeakPlaysSection {
+      --ico: var(--teal);
+    }
+
+    .records-nav-btn[data-rec-view="recDebutsSection"],
+    #recDebutsSection {
+      --ico: var(--green);
+    }
+
+    .records-nav-btn[data-rec-view="recNewChartsSection"],
+    #recNewChartsSection {
+      --ico: var(--green);
+    }
+
+    .records-nav-btn[data-rec-view="recFastestSection"],
+    #recFastestSection {
+      --ico: var(--amber);
+    }
+
+    .records-nav-btn[data-rec-view="recStreaksSection"],
+    #recStreaksSection {
+      --ico: var(--amber);
+    }
+
+    .records-nav-btn[data-rec-view="recMilestonesSection"],
+    #recMilestonesSection {
+      --ico: var(--accent2);
+    }
+
+    /* 16-unit grid, stroke-only, so one sprite serves every theme. */
+    .rec-nav-ico {
+      width: 13px;
+      height: 13px;
+      flex: none;
+      fill: none;
+      stroke: var(--ico, currentColor);
+      stroke-width: 1.5;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      /* Higher than the 0.62 this sat at when it was monochrome: dimming a
+         coloured glyph greys the hue out and the family reading goes with
+         it. Still under 1 so the label stays the loudest thing in the pill. */
+      opacity: 0.82;
+      transform-origin: center;
+      transition: opacity var(--t-fast) var(--ease), transform var(--t-fast) var(--ease);
+      /* One orchestrated entrance for the whole dial, staggered below.
+         `backwards`, not `both`: with `both` the entrance keeps holding its
+         end frame after it finishes, and a held frame outranks declared
+         values — so a pill going active mid-stagger would be pinned at the
+         idle 0.82 instead of the active rule's 1. `backwards` still covers
+         the stagger delay but hands control back the moment it ends. */
+      animation: recIcoIn 360ms var(--ease) backwards;
     }
 
     .records-nav-btn:hover {
       background: var(--bg3);
       color: var(--text);
-      border-color: var(--border2);
+      border-color: var(--border);
+    }
+
+    .records-nav-btn:hover .rec-nav-ico {
+      opacity: 1;
+      transform: scale(1.12);
+    }
+
+    /* The dial draws itself in left to right when Records opens. nth-of-type
+       counts buttons only, so the row-break <span> sitting seventh in the
+       DOM does not eat a step of the stagger. 34ms is fast enough that the
+       whole sweep is done in under half a second. */
+    .records-nav-btn:nth-of-type(1) .rec-nav-ico { animation-delay: 0ms; }
+    .records-nav-btn:nth-of-type(2) .rec-nav-ico { animation-delay: 34ms; }
+    .records-nav-btn:nth-of-type(3) .rec-nav-ico { animation-delay: 68ms; }
+    .records-nav-btn:nth-of-type(4) .rec-nav-ico { animation-delay: 102ms; }
+    .records-nav-btn:nth-of-type(5) .rec-nav-ico { animation-delay: 136ms; }
+    .records-nav-btn:nth-of-type(6) .rec-nav-ico { animation-delay: 170ms; }
+    .records-nav-btn:nth-of-type(7) .rec-nav-ico { animation-delay: 204ms; }
+    .records-nav-btn:nth-of-type(8) .rec-nav-ico { animation-delay: 238ms; }
+    .records-nav-btn:nth-of-type(9) .rec-nav-ico { animation-delay: 272ms; }
+    .records-nav-btn:nth-of-type(10) .rec-nav-ico { animation-delay: 306ms; }
+    .records-nav-btn:nth-of-type(11) .rec-nav-ico { animation-delay: 340ms; }
+
+    @keyframes recIcoIn {
+      from { opacity: 0; transform: translateY(3px) scale(0.7); }
+      to   { opacity: 0.82; transform: none; }
     }
 
     .records-nav-btn.active {
       background: var(--accent);
       border-color: var(--accent);
       color: var(--on-accent);
+      /* The "lit segment" — a short accent bloom that lifts the active pill
+         off the dial. color-mix keeps it proportional to whatever the theme's
+         accent is, so the light themes get a soft tint rather than the neon
+         halo the dark ones carry. */
+      box-shadow: 0 1px 10px color-mix(in srgb, var(--accent) 34%, transparent);
     }
 
-    body.yellow .records-nav-btn.active {
-      color: #1a1a00;
+    /* On the accent fill the family colour has to go. --accent is a different
+       hue in every theme, so an amber flame on a yellow pill or a teal on a
+       blue one would range from muddy to invisible; --on-accent is the one
+       ink guaranteed to read on that fill in all ten. The colour has already
+       done its job by the time you have picked the pill. */
+    .records-nav-btn.active .rec-nav-ico {
+      opacity: 1;
+      stroke: var(--on-accent);
+      animation: recIcoPop 340ms var(--ease) backwards;
     }
+
+    /* ── Signature motion ─────────────────────────────────────────────
+       One glyph moves at a time, because only one pill is ever active —
+       so this reads as a reward for the section you are in rather than as
+       eleven things twitching at once. Everything is a transform on the
+       whole <svg>: content cloned through <use> lives in a shadow tree that
+       document CSS cannot select into, so per-path animation is off the
+       table here regardless.
+
+       Only two of these loop, and both loop because the object itself does:
+       records spin and flames flicker. The rest fire once on arrival. */
+    .records-nav-btn.active[data-rec-view="recCertsSection"] .rec-nav-ico {
+      animation: recIcoSpin 4.5s linear infinite;
+    }
+
+    .records-nav-btn.active[data-rec-view="recStreaksSection"] .rec-nav-ico {
+      animation: recIcoFlicker 2.4s ease-in-out infinite;
+    }
+
+    /* Streaks in from the lower left, the direction its own trail points. */
+    .records-nav-btn.active[data-rec-view="recDebutsSection"] .rec-nav-ico {
+      animation: recIcoStreak 620ms var(--ease) backwards;
+    }
+
+    .records-nav-btn.active[data-rec-view="recNewChartsSection"] .rec-nav-ico {
+      animation: recIcoBurst 520ms var(--ease) backwards;
+    }
+
+    .records-nav-btn.active[data-rec-view="recFastestSection"] .rec-nav-ico {
+      animation: recIcoFlash 700ms var(--ease) backwards;
+    }
+
+    /* The crosshair closes onto its target rather than popping open. */
+    .records-nav-btn.active[data-rec-view="recPAKSection"] .rec-nav-ico {
+      animation: recIcoLock 560ms var(--ease) backwards;
+    }
+
+    .records-nav-btn.active[data-rec-view="recAllOnesSection"] .rec-nav-ico {
+      animation: recIcoCrown 620ms var(--ease) backwards;
+    }
+
+    .records-nav-btn.active[data-rec-view="recPeakPlaysSection"] .rec-nav-ico {
+      animation: recIcoMeter 700ms var(--ease) backwards;
+    }
+
+    @keyframes recIcoPop {
+      from { transform: scale(0.65); }
+      60%  { transform: scale(1.1); }
+      to   { transform: none; }
+    }
+
+    @keyframes recIcoSpin {
+      to { transform: rotate(360deg); }
+    }
+
+    @keyframes recIcoFlicker {
+      0%, 100% { opacity: 1;    transform: scaleY(1); }
+      35%      { opacity: 0.72; transform: scaleY(0.9); }
+      60%      { opacity: 1;    transform: scaleY(1.06); }
+      80%      { opacity: 0.85; transform: scaleY(0.96); }
+    }
+
+    @keyframes recIcoStreak {
+      from { opacity: 0; transform: translate(-5px, 5px) scale(0.8); }
+      to   { opacity: 1; transform: none; }
+    }
+
+    @keyframes recIcoBurst {
+      from { opacity: 0; transform: scale(0.25) rotate(-45deg); }
+      70%  { opacity: 1; transform: scale(1.15) rotate(0deg); }
+      to   { opacity: 1; transform: none; }
+    }
+
+    @keyframes recIcoFlash {
+      0%   { opacity: 0.2; transform: scale(0.8); }
+      25%  { opacity: 1;   transform: scale(1.2); }
+      45%  { opacity: 0.5; transform: scale(1); }
+      65%  { opacity: 1;   transform: scale(1.08); }
+      to   { opacity: 1;   transform: none; }
+    }
+
+    @keyframes recIcoLock {
+      from { opacity: 0; transform: scale(1.9); }
+      70%  { opacity: 1; transform: scale(0.92); }
+      to   { opacity: 1; transform: none; }
+    }
+
+    @keyframes recIcoCrown {
+      from { opacity: 0; transform: translateY(4px) scale(0.7); }
+      65%  { opacity: 1; transform: translateY(-2px) scale(1.12); }
+      to   { opacity: 1; transform: none; }
+    }
+
+    @keyframes recIcoMeter {
+      0%  { transform: scaleY(0.35); }
+      40% { transform: scaleY(1.18); }
+      70% { transform: scaleY(0.85); }
+      to  { transform: none; }
+    }
+
+    /* Keyboard users get the same ring the rest of the app uses, drawn
+       outside the pill so the accent fill underneath stays readable. */
+    .records-nav-btn:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
+    }
+
+    /* Every one of the above ends on the glyph's own resting state, so
+       switching them off leaves the dial fully drawn and correctly
+       coloured — the colour families are not carried by the motion. */
+    @media (prefers-reduced-motion: reduce) {
+      .rec-nav-ico,
+      .records-nav-btn.active .rec-nav-ico,
+      .records-nav-btn.active[data-rec-view] .rec-nav-ico {
+        animation: none;
+        transition: opacity var(--t-fast) var(--ease);
+      }
+
+      .records-nav-btn:hover .rec-nav-ico {
+        transform: none;
+      }
+    }
+
 
     /* New Charts record sub-tabs. Two exclusive rows nested *inside* a section
        that was reached by the pills above, so they have to read as a level
@@ -12034,16 +12420,46 @@
        fallback string in the markup ("Load your data to see records."), which
        is prose and stays where it was; buildRecords() replaces it with the
        three-column grid below. */
+    /* The plate states what the whole tab is measured against, so it should
+       read as an instrument panel rather than an info box. The scanlines do
+       that on their own: a 3px repeat at 3% accent, which at arm's length is
+       texture rather than pattern and costs no markup. Deliberately *not* a
+       coloured edge-spine — a thick accent border on one side is the oldest
+       tell in the book, and the panel already has a better accent moment in
+       the cutoff rules under each number. */
     .rec-intro {
+      position: relative;
       font-family: var(--font-mono);
       font-size: 0.7rem;
       color: var(--text3);
       letter-spacing: 0.06em;
       margin-bottom: 1.5rem;
       padding: 0.65rem 1rem;
-      background: var(--bg2);
+      background-color: var(--bg2);
+      background-image: repeating-linear-gradient(to bottom,
+          transparent 0 2px,
+          color-mix(in srgb, var(--accent) 3%, transparent) 2px 3px);
       border: 1px solid var(--border);
       border-radius: 6px;
+      overflow: hidden;
+    }
+
+    /* A soft accent wash rising from the base of the panel, so the three
+       columns sit on something rather than floating on a flat fill. Kept
+       under the content and non-interactive. */
+    .rec-intro::before {
+      content: '';
+      position: absolute;
+      inset: auto 0 0 0;
+      height: 60%;
+      pointer-events: none;
+      background: linear-gradient(to top,
+          color-mix(in srgb, var(--accent) 6%, transparent),
+          transparent);
+    }
+
+    .rec-intro-grid {
+      position: relative;
     }
 
     /* One column per chart period, each reading downward as a sentence:
@@ -12207,6 +12623,20 @@
       }
     }
 
+    /* ── Control deck ─────────────────────────────────────────────────
+       The two controls that reach every section, on one line. The entries
+       control used to sit in a full-width bordered strip *below* the section
+       pills, which gave the smallest decision on the page the largest frame
+       and pushed the actual content another 44px down the fold. Side by side,
+       the search takes the space it deserves and the size control reads as
+       the modifier it is. */
+    .rec-deck {
+      display: flex;
+      align-items: stretch;
+      gap: 0.5rem;
+      margin-bottom: 0.5rem;
+    }
+
     /* Global records search. It is the only control that reaches all ~55
        tables, so unlike the 9px mono section pills it gets sans, a readable
        size and a 44px target. */
@@ -12215,12 +12645,84 @@
       align-items: center;
       gap: 0.5rem;
       min-height: 44px;
+      /* Claims whatever the size control leaves — including the whole row on
+         Overview, where app.js hides that control outright. */
+      flex: 1;
+      min-width: 0;
       padding: 0 0.75rem;
-      margin-bottom: 0.5rem;
       background: var(--bg2);
       border: 1px solid var(--border);
       border-radius: 6px;
       transition: border-color 0.15s;
+    }
+
+    /* The entries control, inline in the deck. Same visual chassis as the
+       search beside it so the row reads as one unit rather than two
+       borrowed components. */
+    .rec-size-inline {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      flex: none;
+      min-height: 44px;
+      padding: 0 0.75rem;
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+    }
+
+    .rec-size-inline label {
+      font-family: var(--font-mono);
+      font-size: 0.6rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--text3);
+      white-space: nowrap;
+    }
+
+    .rec-size-inline .size-btns {
+      display: flex;
+      gap: 3px;
+    }
+
+    .rec-size-inline .size-btns button {
+      background: none;
+      border: 1px solid var(--border);
+      padding: 0.22rem 0.55rem;
+      cursor: pointer;
+      font-family: var(--font-mono);
+      font-size: 0.65rem;
+      letter-spacing: 0.06em;
+      color: var(--text2);
+      border-radius: var(--r-sm);
+      transition: background var(--t-fast) var(--ease), color var(--t-fast) var(--ease),
+        border-color var(--t-fast) var(--ease);
+    }
+
+    .rec-size-inline .size-btns button:hover {
+      background: var(--bg3);
+      color: var(--text);
+      border-color: var(--border2);
+    }
+
+    .rec-size-inline .size-btns button.active {
+      background: var(--accent);
+      color: var(--on-accent);
+      border-color: var(--accent);
+    }
+
+    /* Below this the deck cannot hold both controls on one line without the
+       search collapsing to a stub, so it stacks — search first, since it is
+       the one you came for. */
+    @media (max-width: 640px) {
+      .rec-deck {
+        flex-wrap: wrap;
+      }
+
+      .rec-size-inline {
+        flex: 1 0 100%;
+        justify-content: space-between;
+      }
     }
 
     /* The wrapper is the field as far as the eye is concerned, so it takes the
@@ -12235,10 +12737,23 @@
       box-shadow: none;
     }
 
+    /* Was a 🔎 emoji: full-colour, sized differently on every platform and
+       unable to take the field's focus colour. As a stroked glyph it matches
+       the pill icons and brightens when the field is focused. */
     .rec-search-icon {
-      font-size: 0.9rem;
-      line-height: 1;
-      opacity: 0.75;
+      width: 15px;
+      height: 15px;
+      flex: none;
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 1.5;
+      stroke-linecap: round;
+      color: var(--text3);
+      transition: color 0.15s;
+    }
+
+    .rec-search:focus-within .rec-search-icon {
+      color: var(--accent);
     }
 
     .rec-search-input {

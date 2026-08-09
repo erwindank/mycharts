@@ -6873,6 +6873,25 @@ function recOverviewType() {
   return REC_OV_TYPES.some(function (ty) { return ty.key === stored; }) ? stored : 'songs';
 }
 
+/* Section id → sprite symbol id. The symbols themselves are defined once in
+   index.html and shared by the nav pills, the section headings and these
+   overview cards; this map is only needed here because the cards are the one
+   place built in JS. Adding a records section means adding a <symbol> there
+   and a line here — a missing entry degrades to a title with no glyph rather
+   than a broken <use>. */
+const REC_SECTION_ICON = {
+  recAllOnesSection: 'ri-ones',
+  recPAKSection: 'ri-pak',
+  recAppearancesSection: 'ri-appearances',
+  recDebutsSection: 'ri-debuts',
+  recPeakPlaysSection: 'ri-plays',
+  recMilestonesSection: 'ri-milestones',
+  recFastestSection: 'ri-fastest',
+  recCertsSection: 'ri-certs',
+  recStreaksSection: 'ri-streaks',
+  recNewChartsSection: 'ri-newcharts',
+};
+
 function renderRecordsOverview(highlights) {
   const body = document.getElementById('recOverviewBody');
   if (!body) return;
@@ -6919,7 +6938,17 @@ function renderRecordsOverview(highlights) {
     }
 
     card += '<div class="rec-ov-scrim-top"></div>';
-    card += '<span class="rec-ov-title">' + esc(title) + '</span>';
+    // The card's own copy of the section's glyph — third and last place the
+    // sprite appears, after the nav pill and the section heading, so a tile,
+    // the pill it jumps to and the heading it lands on all carry one mark.
+    // Titles no longer supply an emoji of their own: it was stripped out of
+    // the rec_*_title strings when the sprite went in.
+    card += '<span class="rec-ov-title">' +
+      (REC_SECTION_ICON[id]
+        ? '<svg class="rec-ov-ico" aria-hidden="true" focusable="false"><use href="#' +
+          REC_SECTION_ICON[id] + '" /></svg>'
+        : '') +
+      esc(title) + '</span>';
     card += '<div class="rec-ov-bot">';
     card += '<span class="rec-ov-value">' + (hasRecord ? esc(d.value) : '—') + '</span>';
     if (hasRecord && d.name) {
@@ -8153,6 +8182,16 @@ function applyRecordsViewFilter(view) {
   document.querySelectorAll('#recordsNav .records-nav-btn').forEach(b => {
     b.classList.toggle('active', b.dataset.recView === view);
   });
+  /* The nav is one non-wrapping scrolling strip, so on a narrow screen the
+     active pill can sit outside the visible span — most obviously on load,
+     where a stored view like Streaks restores with its pill off to the right
+     and the dial appears to be showing Overview. Pull it into view. Only the
+     strip scrolls, never the page: `block: 'nearest'` leaves the vertical
+     axis alone, which matters because callers here also scroll the page. */
+  const activePill = document.querySelector('#recordsNav .records-nav-btn.active');
+  if (activePill && activePill.scrollIntoView) {
+    activePill.scrollIntoView({ inline: 'center', block: 'nearest', behavior: 'auto' });
+  }
   // The entries-per-table control has nothing to act on from the overview.
   const sizeBar = document.getElementById('recordsSizeBar');
   if (sizeBar) sizeBar.style.display = view === 'recOverviewSection' ? 'none' : '';

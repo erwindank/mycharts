@@ -27,7 +27,7 @@
   <!-- html2canvas, SheetJS (xlsx) and JSZip are intentionally NOT loaded here — they
        total ~1.2 MB and are only needed for image exports and Excel/ZIP imports.
        app.js pulls them from the CDN on first use (see ensureLazyLib). -->
-  <link rel="stylesheet" href="style.css?v=186">
+  <link rel="stylesheet" href="style.css?v=193">
   <!-- All scripts are deferred so the page paints without waiting on them.
        defer preserves execution order, which matters: translations → Chart.js →
        hammer → zoom plugin → firebase SDKs → firebase.js → app.js (in body). -->
@@ -1397,46 +1397,185 @@
         <h2 class="section-header-h2" data-i18n="sec_records_title">🏆 Records &amp; Hall of Fame</h2>
         <div class="section-rule"></div>
       </div>
+      <!-- Records icon sprite. One vocabulary, used in three places: the nav
+           pill, the section heading it jumps to, and the overview card (drawn
+           by app.js). Defining them once as <symbol>s means a pill and its
+           heading can never drift apart, and they replace the emoji those
+           headings used to carry — emoji are full-colour, render differently
+           per platform and cannot take the active pill's text colour, all of
+           which fought the mono/serif type stack.
+
+           Drawn from record-shop objects rather than generic UI glyphs: a
+           vinyl disc for certifications, a waveform for play counts, a
+           crosshair for the three-way #1 lock, a flame for streaks. Every path
+           is stroke-only on a 16-unit grid so `currentColor` carries them
+           through all ten themes with no per-theme fill to maintain. -->
+      <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+        <defs>
+          <symbol id="ri-overview" viewBox="0 0 16 16">
+            <rect x="2" y="2" width="5" height="5" rx="1" />
+            <rect x="9" y="2" width="5" height="5" rx="1" />
+            <rect x="2" y="9" width="5" height="5" rx="1" />
+            <rect x="9" y="9" width="5" height="5" rx="1" />
+          </symbol>
+          <!-- Crown, not a star: a star is the generic "favourite" mark and
+               was already doing duty elsewhere in the tab. A crown says #1
+               specifically, which is the whole section. Five points, no
+               jewels — dots on the peaks turn to mush at 13px. -->
+          <symbol id="ri-ones" viewBox="0 0 16 16">
+            <path d="M3.1 12.6 2.1 5l3.5 2.9L8 3.6l2.4 4.3L13.9 5l-1 7.6Z" />
+          </symbol>
+          <!-- Crosshair: a PAK is three #1s locked at once, i.e. a direct hit. -->
+          <symbol id="ri-pak" viewBox="0 0 16 16">
+            <circle cx="8" cy="8" r="5.2" />
+            <circle cx="8" cy="8" r="1.4" />
+            <path d="M8 .9v2.1M8 13v2.1M.9 8h2.1M13 8h2.1" />
+          </symbol>
+          <!-- Stacked layers: appearances are the same entry showing up period
+               after period, so the glyph is one shape repeated downward. -->
+          <symbol id="ri-appearances" viewBox="0 0 16 16">
+            <path d="M8 1.8 14.4 5.2 8 8.6 1.6 5.2Z" />
+            <path d="M1.6 8.5 8 11.9l6.4-3.4" />
+            <path d="M1.6 11.5 8 14.9l6.4-3.4" />
+          </symbol>
+          <!-- Shooting star: a debut is an arrival, and this is the only one
+               of the candidates that is not another upward arrow. The old
+               glyph was an arrow off a baseline, which read as "upload" —
+               nothing in it said chart. -->
+          <symbol id="ri-debuts" viewBox="0 0 16 16">
+            <path d="M10.8 2.2 12 5l2.8 1.2L12 7.4l-1.2 2.8-1.2-2.8L6.8 6.2 9.6 5Z" />
+            <path d="M2 13.8 6.2 9.6M2.4 9.8l1.8-1.8M6.4 13.6l1.8-1.8" />
+          </symbol>
+          <!-- Waveform, not a bar chart: this is a play count, and bars centred
+               on the baseline read as audio rather than as a generic metric. -->
+          <symbol id="ri-plays" viewBox="0 0 16 16">
+            <path d="M2 6.4v3.2M5.2 3.6v8.8M8 5.2v5.6M10.8 2.4v11.2M14 6v4" />
+          </symbol>
+          <symbol id="ri-milestones" viewBox="0 0 16 16">
+            <path d="M3.6 14.8V2" />
+            <path d="M3.6 2.8h8.6l-1.8 2.9 1.8 2.9H3.6" />
+          </symbol>
+          <symbol id="ri-fastest" viewBox="0 0 16 16">
+            <path d="M9.3 1.4 3.4 9.3h4.1L6.7 14.6 12.6 6.7H8.5z" />
+          </symbol>
+          <!-- Vinyl disc: a certification *is* a gold record. -->
+          <symbol id="ri-certs" viewBox="0 0 16 16">
+            <circle cx="8" cy="8" r="6.2" />
+            <circle cx="8" cy="8" r="2.3" />
+            <circle cx="8" cy="8" r="0.55" fill="currentColor" stroke="none" />
+          </symbol>
+          <!-- Flame as teardrop-inside-teardrop: legible at 13px, where a
+               many-lobed flame outline turns to mush. -->
+          <symbol id="ri-streaks" viewBox="0 0 16 16">
+            <path d="M8 1.4c3 2.6 4.6 4.9 4.6 7.4A4.6 4.6 0 0 1 8 14.6 4.6 4.6 0 0 1 3.4 8.8c0-2.5 1.6-4.8 4.6-7.4Z" />
+            <path d="M8 14.6a2.2 2.2 0 0 0 2.2-2.2c0-1.2-.8-2-2.2-3.6-1.4 1.6-2.2 2.4-2.2 3.6A2.2 2.2 0 0 0 8 14.6Z" />
+          </symbol>
+          <!-- Firework burst. A plus-in-a-circle only ever said "add"; a burst
+               says something new went off. Safe to use here now that Debuts
+               took the shooting star — the two were nearly the same glyph, so
+               only one of them could ever ship. -->
+          <symbol id="ri-newcharts" viewBox="0 0 16 16">
+            <path d="M8 8V2.6M8 8v5.4M8 8H2.6M8 8h5.4" />
+            <path d="m8 8-3.4-3.4M8 8l3.4 3.4M8 8l3.4-3.4M8 8l-3.4 3.4" />
+          </symbol>
+        </defs>
+      </svg>
+
       <div class="rec-intro" id="recIntro">Load your data to see records.</div>
-      <!-- Global search: filters every records table at once, across sections -->
-      <div class="rec-search" id="recordsSearchBar">
-        <span class="rec-search-icon" aria-hidden="true">🔎</span>
-        <input type="search" id="recordsSearch" class="rec-search-input" autocomplete="off" spellcheck="false"
-          placeholder="Search every record — artist, song or album…" data-i18n-placeholder="rec_search_placeholder"
-          aria-label="Search all records" data-i18n-title="rec_search_label">
-        <button type="button" class="rec-search-clear" id="recordsSearchClear" style="display:none" title="Clear search"
-          data-i18n-title="rec_search_clear" aria-label="Clear search">✕</button>
-      </div>
-      <div class="rec-search-status" id="recordsSearchStatus" role="status" aria-live="polite" style="display:none">
-      </div>
-      <div class="records-nav" id="recordsNav">
-        <button class="records-nav-btn active" data-rec-view="recOverviewSection"
-          data-i18n="rec_nav_overview">Overview</button>
-        <button class="records-nav-btn" data-rec-view="recAllOnesSection" data-i18n="rec_nav_all_ones">All
-          #1s</button>
-        <button class="records-nav-btn" data-rec-view="recPAKSection" data-i18n="rec_nav_pak">Perfect All Kill</button>
-        <button class="records-nav-btn" data-rec-view="recAppearancesSection"
-          data-i18n="rec_nav_appearances">Appearances</button>
-        <button class="records-nav-btn" data-rec-view="recDebutsSection" data-i18n="rec_nav_debuts">Debuts</button>
-        <button class="records-nav-btn" data-rec-view="recPeakPlaysSection" data-i18n="rec_nav_peak_plays">Most
-          Plays</button>
-        <button class="records-nav-btn" data-rec-view="recMilestonesSection"
-          data-i18n="rec_nav_milestones">Milestones</button>
-        <button class="records-nav-btn" data-rec-view="recFastestSection" data-i18n="rec_nav_fastest">Fastest</button>
-        <button class="records-nav-btn" data-rec-view="recCertsSection"
-          data-i18n="rec_nav_certs">Certifications</button>
-        <button class="records-nav-btn" data-rec-view="recStreaksSection" data-i18n="rec_nav_streaks">Streaks</button>
-        <button class="records-nav-btn" data-rec-view="recNewChartsSection">New Charts</button>
+
+      <!-- Control deck. The global search and the entries-per-table control are
+           the only two controls here that reach every section, so they share
+           one row. The size control previously owned a full-width bordered
+           strip below the pills, which made it read as outranking the section
+           nav it sat under — exactly backwards. As a flex child it also lets
+           the search reclaim the full width on Overview, where app.js hides it. -->
+      <div class="rec-deck">
+        <!-- Global search: filters every records table at once, across sections -->
+        <div class="rec-search" id="recordsSearchBar">
+          <svg class="rec-search-icon" viewBox="0 0 16 16" aria-hidden="true" focusable="false">
+            <circle cx="7" cy="7" r="4.8" />
+            <path d="m10.6 10.6 4 4" />
+          </svg>
+          <input type="search" id="recordsSearch" class="rec-search-input" autocomplete="off" spellcheck="false"
+            placeholder="Search every record — artist, song or album…" data-i18n-placeholder="rec_search_placeholder"
+            aria-label="Search all records" data-i18n-title="rec_search_label">
+          <button type="button" class="rec-search-clear" id="recordsSearchClear" style="display:none"
+            title="Clear search" data-i18n-title="rec_search_clear" aria-label="Clear search">✕</button>
+        </div>
+
+        <div class="rec-size-inline" id="recordsSizeBar">
+          <label data-i18n="rec_size_label">Entries Display:</label>
+          <div class="size-btns" id="recordsSizeBtns">
+            <button data-rec-size="25" class="active">25</button>
+            <button data-rec-size="50">50</button>
+            <button data-rec-size="100">100</button>
+            <button data-rec-size="0">All</button>
+          </div>
+        </div>
       </div>
 
-      <div class="chart-size-bar" id="recordsSizeBar">
-        <label data-i18n="rec_size_label">Entries Display:</label>
-        <div class="size-btns" id="recordsSizeBtns">
-          <button data-rec-size="25" class="active">25</button>
-          <button data-rec-size="50">50</button>
-          <button data-rec-size="100">100</button>
-          <button data-rec-size="0">All</button>
-        </div>
+      <div class="rec-search-status" id="recordsSearchStatus" role="status" aria-live="polite" style="display:none">
+      </div>
+
+      <!-- The pill row as a tuner dial. Eleven equal pills wrapping onto a
+           ragged second row gave the eye nothing to hold on to, so the strip
+           now scrolls on one line instead of wrapping and carries a tick
+           pattern behind the pills — the active section reads as the lit
+           segment on a dial rather than as one more button among eleven.
+           data-i18n replaces textContent, which would eat a sibling <svg>,
+           so every label is wrapped in its own <span>. -->
+      <div class="records-nav" id="recordsNav">
+        <button class="records-nav-btn active" data-rec-view="recOverviewSection">
+          <svg class="rec-nav-ico" aria-hidden="true" focusable="false"><use href="#ri-overview" /></svg>
+          <span data-i18n="rec_nav_overview">Overview</span>
+        </button>
+        <button class="records-nav-btn" data-rec-view="recAllOnesSection">
+          <svg class="rec-nav-ico" aria-hidden="true" focusable="false"><use href="#ri-ones" /></svg>
+          <span data-i18n="rec_nav_all_ones">All #1s</span>
+        </button>
+        <button class="records-nav-btn" data-rec-view="recPAKSection">
+          <svg class="rec-nav-ico" aria-hidden="true" focusable="false"><use href="#ri-pak" /></svg>
+          <span data-i18n="rec_nav_pak">Perfect All Kill</span>
+        </button>
+        <button class="records-nav-btn" data-rec-view="recAppearancesSection">
+          <svg class="rec-nav-ico" aria-hidden="true" focusable="false"><use href="#ri-appearances" /></svg>
+          <span data-i18n="rec_nav_appearances">Appearances</span>
+        </button>
+        <button class="records-nav-btn" data-rec-view="recDebutsSection">
+          <svg class="rec-nav-ico" aria-hidden="true" focusable="false"><use href="#ri-debuts" /></svg>
+          <span data-i18n="rec_nav_debuts">Debuts</span>
+        </button>
+        <button class="records-nav-btn" data-rec-view="recPeakPlaysSection">
+          <svg class="rec-nav-ico" aria-hidden="true" focusable="false"><use href="#ri-plays" /></svg>
+          <span data-i18n="rec_nav_peak_plays">Most Plays</span>
+        </button>
+        <!-- Forced row break. Left to wrap on its own the dial split 8/3,
+             which read as an accident; six and five, both rows centred, reads
+             as a made choice. A zero-height flex item is the only way to put
+             the break where we want it — CSS cannot force a wrap at the nth
+             child. Display:none in the narrow scroller, where flex-basis:100%
+             would open a full-width hole in the middle of the row. -->
+        <span class="rec-nav-break" aria-hidden="true"></span>
+        <button class="records-nav-btn" data-rec-view="recMilestonesSection">
+          <svg class="rec-nav-ico" aria-hidden="true" focusable="false"><use href="#ri-milestones" /></svg>
+          <span data-i18n="rec_nav_milestones">Milestones</span>
+        </button>
+        <button class="records-nav-btn" data-rec-view="recFastestSection">
+          <svg class="rec-nav-ico" aria-hidden="true" focusable="false"><use href="#ri-fastest" /></svg>
+          <span data-i18n="rec_nav_fastest">Fastest</span>
+        </button>
+        <button class="records-nav-btn" data-rec-view="recCertsSection">
+          <svg class="rec-nav-ico" aria-hidden="true" focusable="false"><use href="#ri-certs" /></svg>
+          <span data-i18n="rec_nav_certs">Certifications</span>
+        </button>
+        <button class="records-nav-btn" data-rec-view="recStreaksSection">
+          <svg class="rec-nav-ico" aria-hidden="true" focusable="false"><use href="#ri-streaks" /></svg>
+          <span data-i18n="rec_nav_streaks">Streaks</span>
+        </button>
+        <button class="records-nav-btn" data-rec-view="recNewChartsSection">
+          <svg class="rec-nav-ico" aria-hidden="true" focusable="false"><use href="#ri-newcharts" /></svg>
+          <span>New Charts</span>
+        </button>
       </div>
 
       <div id="recOverviewSection">
@@ -1450,7 +1589,8 @@
         <div class="section-header">
           <button class="section-collapse-btn" data-target="recAllOnesSection"
             data-i18n-title="tooltip_collapse">−</button>
-          <h2 class="section-header-h2" data-i18n="rec_all_ones_title">★ All #1s</h2>
+          <h2 class="section-header-h2"><svg class="rec-h2-ico" aria-hidden="true" focusable="false"><use
+                href="#ri-ones" /></svg><span data-i18n="rec_all_ones_title">All #1s</span></h2>
           <div class="section-rule"></div>
         </div>
         <div class="section-sub" data-i18n="rec_all_ones_sub">Artists, albums &amp; tracks that reached the top spot on
@@ -1461,7 +1601,8 @@
       <div class="chart-section" id="recPAKSection">
         <div class="section-header">
           <button class="section-collapse-btn" data-target="recPAKSection" data-i18n-title="tooltip_collapse">−</button>
-          <h2 class="section-header-h2" data-i18n="rec_pak_title">🎯 Perfect All Kill</h2>
+          <h2 class="section-header-h2"><svg class="rec-h2-ico" aria-hidden="true" focusable="false"><use
+                href="#ri-pak" /></svg><span data-i18n="rec_pak_title">Perfect All Kill</span></h2>
           <div class="section-rule"></div>
         </div>
         <div class="section-sub" data-i18n="rec_pak_sub">Periods where one artist simultaneously held #1 on the
@@ -1473,7 +1614,9 @@
         <div class="section-header">
           <button class="section-collapse-btn" data-target="recAppearancesSection"
             data-i18n-title="tooltip_collapse">−</button>
-          <h2 class="section-header-h2" data-i18n="rec_appearances_title">📈 Most Chart Appearances</h2>
+          <h2 class="section-header-h2"><svg class="rec-h2-ico" aria-hidden="true" focusable="false"><use
+                href="#ri-appearances" /></svg><span data-i18n="rec_appearances_title">Most Chart
+              Appearances</span></h2>
           <div class="section-rule"></div>
         </div>
         <!-- No longer names the weekly chart: the section splits into weekly,
@@ -1487,7 +1630,8 @@
         <div class="section-header">
           <button class="section-collapse-btn" data-target="recDebutsSection"
             data-i18n-title="tooltip_collapse">−</button>
-          <h2 class="section-header-h2" data-i18n="rec_debuts_title">🚀 Biggest Debuts</h2>
+          <h2 class="section-header-h2"><svg class="rec-h2-ico" aria-hidden="true" focusable="false"><use
+                href="#ri-debuts" /></svg><span data-i18n="rec_debuts_title">Biggest Debuts</span></h2>
           <div class="section-rule"></div>
         </div>
         <!-- Same reason as Appearances above: weekly, monthly and yearly all
@@ -1500,7 +1644,8 @@
         <div class="section-header">
           <button class="section-collapse-btn" data-target="recPeakPlaysSection"
             data-i18n-title="tooltip_collapse">−</button>
-          <h2 class="section-header-h2" data-i18n="rec_peak_plays_title">🔥 Most Plays in a Period</h2>
+          <h2 class="section-header-h2"><svg class="rec-h2-ico" aria-hidden="true" focusable="false"><use
+                href="#ri-plays" /></svg><span data-i18n="rec_peak_plays_title">Most Plays in a Period</span></h2>
           <div class="section-rule"></div>
         </div>
         <div class="section-sub" data-i18n="rec_peak_plays_sub">Peak single-period play counts — most plays by a song,
@@ -1512,7 +1657,9 @@
         <div class="section-header">
           <button class="section-collapse-btn" data-target="recMilestonesSection"
             data-i18n-title="tooltip_collapse">−</button>
-          <h2 class="section-header-h2" data-i18n="rec_milestones_title">🎖 Play Count Milestones</h2>
+          <h2 class="section-header-h2"><svg class="rec-h2-ico" aria-hidden="true" focusable="false"><use
+                href="#ri-milestones" /></svg><span data-i18n="rec_milestones_title">Play Count
+              Milestones</span></h2>
           <div class="section-rule"></div>
         </div>
         <div class="section-sub" data-i18n="rec_milestones_sub">The first song, artist and album to reach each play total, and how long each one took to get there — songs count 10 and then every 25 plays, artists and albums use landmark totals</div>
@@ -1523,7 +1670,8 @@
         <div class="section-header">
           <button class="section-collapse-btn" data-target="recFastestSection"
             data-i18n-title="tooltip_collapse">−</button>
-          <h2 class="section-header-h2" data-i18n="rec_fastest_title">⚡ Fastest to Milestone</h2>
+          <h2 class="section-header-h2"><svg class="rec-h2-ico" aria-hidden="true" focusable="false"><use
+                href="#ri-fastest" /></svg><span data-i18n="rec_fastest_title">Fastest to Milestone</span></h2>
           <div class="section-rule"></div>
         </div>
         <div class="section-sub" data-i18n="rec_fastest_sub">Which songs, artists &amp; albums hit each play total
@@ -1536,7 +1684,8 @@
         <div class="section-header">
           <button class="section-collapse-btn" data-target="recCertsSection"
             data-i18n-title="tooltip_collapse">−</button>
-          <h2 class="section-header-h2" data-i18n="rec_certs_title">💿 Certifications Leaderboard</h2>
+          <h2 class="section-header-h2"><svg class="rec-h2-ico" aria-hidden="true" focusable="false"><use
+                href="#ri-certs" /></svg><span data-i18n="rec_certs_title">Certifications Leaderboard</span></h2>
           <div class="section-rule"></div>
         </div>
         <div class="section-sub" data-i18n="rec_certs_sub">Artists with the most Gold, Platinum &amp; Diamond certified
@@ -1549,7 +1698,8 @@
         <div class="section-header">
           <button class="section-collapse-btn" data-target="recStreaksSection"
             data-i18n-title="tooltip_collapse">−</button>
-          <h2 class="section-header-h2" data-i18n="rec_streaks_title">🔁 Streak Records</h2>
+          <h2 class="section-header-h2"><svg class="rec-h2-ico" aria-hidden="true" focusable="false"><use
+                href="#ri-streaks" /></svg><span data-i18n="rec_streaks_title">Streak Records</span></h2>
           <div class="section-rule"></div>
         </div>
         <div class="section-sub" data-i18n="rec_streaks_sub">Longest listening streaks by day, month and year, plus the
@@ -1561,7 +1711,8 @@
         <div class="section-header">
           <button class="section-collapse-btn" data-target="recNewChartsSection"
             data-i18n-title="tooltip_collapse">−</button>
-          <h2 class="section-header-h2">🆕 New Charts Records</h2>
+          <h2 class="section-header-h2"><svg class="rec-h2-ico" aria-hidden="true" focusable="false"><use
+                href="#ri-newcharts" /></svg><span>New Charts Records</span></h2>
           <div class="section-rule"></div>
         </div>
         <div class="section-sub">Records accomplished on the New Songs, New Artists &amp; New Albums charts — counted
