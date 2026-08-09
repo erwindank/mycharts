@@ -4929,15 +4929,15 @@ function buildRecords() {
   ];
   const entityConfig = [
     {
-      key: 'songs', icon: '★', label: t('rec_th_songs'), data: song1s, type: 'song',
+      key: 'songs', icon: recEntIco('songs'), label: t('rec_th_songs'), data: song1s, type: 'song',
       nameRow: function (k, d, i, imgId) { return '<td class="rec-rank">' + (i + 1) + '</td><td class="thumb-cell"><div class="thumb-wrap"><div id="' + imgId + '"><div class="thumb-initials">' + esc(initials(d.title)) + '</div></div><button id="srcbtn-' + imgId + '" class="img-src-btn" data-imgid="' + imgId + '" data-type="song" data-prefkey="' + esc('song:' + d.artist.toLowerCase() + '|||' + d.title.toLowerCase()) + '" data-name="' + esc(d.title) + '" data-artist="' + esc(d.artist) + '" data-album="' + esc(d.album) + '">Deezer</button></div></td><td><div class="rec-name">' + esc(d.title) + '</div><div class="rec-sub">' + esc(d.artist) + '</div></td>'; }
     },
     {
-      key: 'artists', icon: '♦', label: t('rec_th_artists'), data: artist1s, type: 'artist',
+      key: 'artists', icon: recEntIco('artists'), label: t('rec_th_artists'), data: artist1s, type: 'artist',
       nameRow: function (k, d, i, imgId) { return '<td class="rec-rank">' + (i + 1) + '</td><td class="thumb-cell"><div class="thumb-wrap"><div id="' + imgId + '"><div class="thumb-initials">' + esc(initials(k)) + '</div></div><button id="srcbtn-' + imgId + '" class="img-src-btn" data-imgid="' + imgId + '" data-type="artist" data-prefkey="' + esc('artist:' + k.toLowerCase()) + '" data-name="' + esc(k) + '" data-artist="' + esc(k) + '" data-album="">Deezer</button></div></td><td><div class="rec-name">' + esc(k) + '</div></td>'; }
     },
     {
-      key: 'albums', icon: '◈', label: t('rec_th_albums'), data: album1s, type: 'album',
+      key: 'albums', icon: recEntIco('albums'), label: t('rec_th_albums'), data: album1s, type: 'album',
       nameRow: function (k, d, i, imgId) { return '<td class="rec-rank">' + (i + 1) + '</td><td class="thumb-cell"><div class="thumb-wrap"><div id="' + imgId + '"><div class="thumb-initials">' + esc(initials(d.album)) + '</div></div><button id="srcbtn-' + imgId + '" class="img-src-btn" data-imgid="' + imgId + '" data-type="album" data-prefkey="' + esc('album:' + d.artist.toLowerCase() + '|||' + d.album.toLowerCase()) + '" data-name="' + esc(d.album) + '" data-artist="' + esc(d.artist) + '" data-album="' + esc(d.album) + '">Deezer</button></div></td><td><div class="rec-name">' + esc(d.album) + '</div><div class="rec-sub">' + esc(d.artist) + '</div></td>'; }
     },
   ];
@@ -5305,7 +5305,7 @@ function buildRecords() {
       const tops = Object.entries(songApps[cfg.pt]).sort((a, b) => b[1] - a[1]);
       const sliced = isFinite(lim) ? tops.slice(0, lim) : tops;
       const tableId = 'app-tbl-songs-' + cfg.pt;
-      let ah = '<div class="rec-section"><div class="rec-section-title">★ ' + t('rec_th_songs') + ' &mdash; ' + t('rec_most_appearances_on', { period: cfg.label }) + ' ' + t('rec_suffix_non_consec') + '</div>';
+      let ah = '<div class="rec-section"><div class="rec-section-title">' + recEntIco('songs') + ' ' + t('rec_th_songs') + ' &mdash; ' + t('rec_most_appearances_on', { period: cfg.label }) + ' ' + t('rec_suffix_non_consec') + '</div>';
       ah += '<div class="app-table-wrap"><table class="rec-table app-appearances-table" id="' + tableId + '"><thead><tr>';
       ah += '<th>#</th><th></th><th>' + t('rec_th_songs') + '</th><th class="app-art-th"></th><th>' + t('rec_th_artist') + '</th>';
       ah += '<th>' + t('rec_th_first_streamed') + '</th><th>' + t('rec_th_last_streamed') + '</th>';
@@ -5348,7 +5348,7 @@ function buildRecords() {
       const tops = Object.entries(artistApps[cfg.pt]).sort((a, b) => b[1] - a[1]);
       const sliced = isFinite(lim) ? tops.slice(0, lim) : tops;
       const tableId = 'app-tbl-artists-' + cfg.pt;
-      let ah = '<div class="rec-section"><div class="rec-section-title">♦ ' + t('rec_th_artists') + ' &mdash; ' + t('rec_most_appearances_on', { period: cfg.label }) + ' ' + t('rec_suffix_non_consec') + '</div>';
+      let ah = '<div class="rec-section"><div class="rec-section-title">' + recEntIco('artists') + ' ' + t('rec_th_artists') + ' &mdash; ' + t('rec_most_appearances_on', { period: cfg.label }) + ' ' + t('rec_suffix_non_consec') + '</div>';
       ah += '<div class="app-table-wrap"><table class="rec-table app-appearances-table" id="' + tableId + '"><thead><tr>';
       ah += '<th>#</th><th></th><th>' + t('rec_th_artist') + '</th>';
       ah += '<th>' + t('rec_th_first_song') + '</th><th>' + t('rec_th_last_song') + '</th>';
@@ -5387,7 +5387,7 @@ function buildRecords() {
       const tops = Object.entries(albumApps[cfg.pt]).sort((a, b) => b[1] - a[1]);
       const sliced = isFinite(lim) ? tops.slice(0, lim) : tops;
       const tableId = 'app-tbl-albums-' + cfg.pt;
-      let ah = '<div class="rec-section"><div class="rec-section-title">◈ ' + t('rec_th_albums') + ' &mdash; ' + t('rec_most_appearances_on', { period: cfg.label }) + ' ' + t('rec_suffix_non_consec') + '</div>';
+      let ah = '<div class="rec-section"><div class="rec-section-title">' + recEntIco('albums') + ' ' + t('rec_th_albums') + ' &mdash; ' + t('rec_most_appearances_on', { period: cfg.label }) + ' ' + t('rec_suffix_non_consec') + '</div>';
       ah += '<div class="app-table-wrap"><table class="rec-table app-appearances-table" id="' + tableId + '"><thead><tr>';
       ah += '<th>#</th><th></th><th>' + t('rec_th_albums') + '</th><th class="app-art-th"></th><th>' + t('rec_th_artist') + '</th>';
       ah += '<th>' + t('rec_th_first_song') + '</th>';
@@ -5427,9 +5427,9 @@ function buildRecords() {
     }
   };
   const APP_REC_TYPES = [
-    { key: 'songs', icon: '★', label: t('rec_th_songs') },
-    { key: 'artists', icon: '♦', label: t('rec_th_artists') },
-    { key: 'albums', icon: '◈', label: t('rec_th_albums') }
+    { key: 'songs', icon: recEntIco('songs'), label: t('rec_th_songs') },
+    { key: 'artists', icon: recEntIco('artists'), label: t('rec_th_artists') },
+    { key: 'albums', icon: recEntIco('albums'), label: t('rec_th_albums') }
   ];
 
   /* ── The same appearances, counted consecutively ────────────────
@@ -5594,7 +5594,7 @@ function buildRecords() {
     songs: function (cfg) {
       const debs = Object.entries(songDebuts[cfg.pt]).sort(debSort);
       const sliced = isFinite(lim) ? debs.slice(0, lim) : debs;
-      let dh = '<div class="rec-section"><div class="rec-section-title">★ ' + t('rec_th_songs') + ' &mdash; ' + t('rec_biggest_debuts_on', { period: cfg.nav }) + '</div>';
+      let dh = '<div class="rec-section"><div class="rec-section-title">' + recEntIco('songs') + ' ' + t('rec_th_songs') + ' &mdash; ' + t('rec_biggest_debuts_on', { period: cfg.nav }) + '</div>';
       if (!sliced.length) {
         dh += '<div class="rec-empty">' + t('rec_no_data') + '</div>';
       } else {
@@ -5631,7 +5631,7 @@ function buildRecords() {
     artists: function (cfg) {
       const debs = Object.entries(artistDebuts[cfg.pt]).sort(debSort);
       const sliced = isFinite(lim) ? debs.slice(0, lim) : debs;
-      let dh = '<div class="rec-section"><div class="rec-section-title">♦ ' + t('rec_th_artists') + ' &mdash; ' + t('rec_biggest_debuts_on', { period: cfg.nav }) + '</div>';
+      let dh = '<div class="rec-section"><div class="rec-section-title">' + recEntIco('artists') + ' ' + t('rec_th_artists') + ' &mdash; ' + t('rec_biggest_debuts_on', { period: cfg.nav }) + '</div>';
       if (!sliced.length) {
         dh += '<div class="rec-empty">' + t('rec_no_data') + '</div>';
       } else {
@@ -5682,7 +5682,7 @@ function buildRecords() {
     albums: function (cfg) {
       const debs = Object.entries(albumDebuts[cfg.pt]).sort(debSort);
       const sliced = isFinite(lim) ? debs.slice(0, lim) : debs;
-      let dh = '<div class="rec-section"><div class="rec-section-title">◈ ' + t('rec_th_albums') + ' &mdash; ' + t('rec_biggest_debuts_on', { period: cfg.nav }) + '</div>';
+      let dh = '<div class="rec-section"><div class="rec-section-title">' + recEntIco('albums') + ' ' + t('rec_th_albums') + ' &mdash; ' + t('rec_biggest_debuts_on', { period: cfg.nav }) + '</div>';
       if (!sliced.length) {
         dh += '<div class="rec-empty">' + t('rec_no_data') + '</div>';
       } else {
@@ -5718,9 +5718,9 @@ function buildRecords() {
     }
   };
   const DEB_REC_TYPES = [
-    { key: 'songs', icon: '★', label: t('rec_th_songs') },
-    { key: 'artists', icon: '♦', label: t('rec_th_artists') },
-    { key: 'albums', icon: '◈', label: t('rec_th_albums') }
+    { key: 'songs', icon: recEntIco('songs'), label: t('rec_th_songs') },
+    { key: 'artists', icon: recEntIco('artists'), label: t('rec_th_artists') },
+    { key: 'albums', icon: recEntIco('albums'), label: t('rec_th_albums') }
   ];
   const debPanels = DEB_REC_TYPES.map(function (ent) {
     // 'deb-songs' is a different stored period choice from 'deb-albums', so
@@ -5806,9 +5806,9 @@ function buildRecords() {
     }
   };
   const PP_REC_TYPES = [
-    { key: 'songs', icon: '★', label: t('rec_th_songs') },
-    { key: 'artists', icon: '♦', label: t('rec_th_artists') },
-    { key: 'albums', icon: '◈', label: t('rec_th_albums') }
+    { key: 'songs', icon: recEntIco('songs'), label: t('rec_th_songs') },
+    { key: 'artists', icon: recEntIco('artists'), label: t('rec_th_artists') },
+    { key: 'albums', icon: recEntIco('albums'), label: t('rec_th_albums') }
   ];
   const ppPanels = PP_REC_TYPES.map(function (ent) {
     // One period pill row per entity panel, so each entity remembers its own
@@ -5987,15 +5987,15 @@ function buildRecords() {
      know songs are counting in 25s and artists in landmark steps. */
   const MIL_REC_TYPES = [
     {
-      key: 'songs', icon: '★', label: t('rec_th_songs'), title: t('rec_songs_milestones'),
+      key: 'songs', icon: recEntIco('songs'), label: t('rec_th_songs'), title: recEntIco('songs') + ' ' + t('rec_songs_milestones'),
       sub: t('mil_ladder_songs', { n: SONG_MILESTONE_STEP }), empty: 'mil_no_data'
     },
     {
-      key: 'artists', icon: '♦', label: t('rec_th_artists'), title: t('rec_artists_milestones'),
+      key: 'artists', icon: recEntIco('artists'), label: t('rec_th_artists'), title: recEntIco('artists') + ' ' + t('rec_artists_milestones'),
       sub: t('mil_ladder_landmark'), empty: 'mil_no_data'
     },
     {
-      key: 'albums', icon: '◈', label: t('rec_th_albums'), title: t('rec_albums_milestones'),
+      key: 'albums', icon: recEntIco('albums'), label: t('rec_th_albums'), title: recEntIco('albums') + ' ' + t('rec_albums_milestones'),
       sub: t('mil_ladder_landmark'), empty: 'mil_no_data_albums'
     }
   ];
@@ -6076,25 +6076,25 @@ function buildRecords() {
      all three; only `display` moves. */
   const FAST_REC_TYPES = [
     {
-      key: 'songs', icon: '★', label: t('rec_th_songs'), ms: songMS, first: songFirst,
+      key: 'songs', icon: recEntIco('songs'), label: t('rec_th_songs'), ms: songMS, first: songFirst,
       unit: 'songs', type: 'song',
-      title: function (m) { return t('rec_songs_fastest_to', { n: m.toLocaleString() }); },
+      title: function (m) { return recEntIco('songs') + ' ' + t('rec_songs_fastest_to', { n: m.toLocaleString() }); },
       head: t('rec_th_songs') + ' &middot; ' + t('rec_th_artist'),
       nm: function (k) { return (songNames[k] || {}).title || String(k).split('|||')[0]; },
       art: function (k) { return (songNames[k] || {}).artist || ''; }
     },
     {
-      key: 'artists', icon: '♦', label: t('rec_th_artists'), ms: artistMS, first: artistFirst,
+      key: 'artists', icon: recEntIco('artists'), label: t('rec_th_artists'), ms: artistMS, first: artistFirst,
       unit: 'artists', type: 'artist',
-      title: function (m) { return t('rec_fastest_to', { type: '♦ ' + t('rec_th_artists'), n: m.toLocaleString(), s: 's' }); },
+      title: function (m) { return t('rec_fastest_to', { type: recEntIco('artists') + ' ' + t('rec_th_artists'), n: m.toLocaleString(), s: 's' }); },
       head: t('rec_th_artist'),
       nm: function (k) { return k; },
       art: function (k) { return k; }
     },
     {
-      key: 'albums', icon: '◈', label: t('rec_th_albums'), ms: albumMS, first: albumFirst,
+      key: 'albums', icon: recEntIco('albums'), label: t('rec_th_albums'), ms: albumMS, first: albumFirst,
       unit: 'albums', type: 'album',
-      title: function (m) { return t('rec_fastest_to', { type: '◈ ' + t('rec_th_albums'), n: m.toLocaleString(), s: 's' }); },
+      title: function (m) { return t('rec_fastest_to', { type: recEntIco('albums') + ' ' + t('rec_th_albums'), n: m.toLocaleString(), s: 's' }); },
       head: t('rec_th_albums') + ' &middot; ' + t('rec_th_artist'),
       nm: function (k) { return (albumNames[k] || {}).album || String(k).split('|||')[0]; },
       art: function (k) { return (albumNames[k] || {}).artist || ''; }
@@ -6241,9 +6241,9 @@ function buildRecords() {
   // Weekly/Monthly row. Both are exclusive — picking Songs hides Artists and
   // Albums entirely, picking Weekly hides every monthly table.
   const NC_REC_TYPES = [
-    { key: 'songs', icon: '🎵', label: t('rec_th_songs') },
-    { key: 'artists', icon: '♦', label: t('rec_th_artists') },
-    { key: 'albums', icon: '💿', label: t('rec_th_albums') },
+    { key: 'songs', icon: recEntIco('songs'), label: t('rec_th_songs') },
+    { key: 'artists', icon: recEntIco('artists'), label: t('rec_th_artists') },
+    { key: 'albums', icon: recEntIco('albums'), label: t('rec_th_albums') },
   ];
   const NC_REC_PERIODS = [
     { key: 'week', label: t('rec_weekly_label') },
@@ -6351,13 +6351,13 @@ function buildRecords() {
       }
     );
 
-    return ncSec('🎵 ' + t('rec_th_songs') + ' &mdash; Biggest New Chart Debut', podHtml + table);
+    return ncSec(recEntIco('songs') + ' ' + t('rec_th_songs') + ' &mdash; Biggest New Chart Debut', podHtml + table);
   }
 
   // ── 2. Biggest New Artist Debut ────────────────────────────────
   function ncRecArtistDebut(pt) {
     const sorted = Object.entries(ncArtistDebuts[pt]).sort((a, b) => b[1].plays - a[1].plays || a[1].rank - b[1].rank || a[1].period.localeCompare(b[1].period));
-    return ncSec('♦ ' + t('rec_th_artists') + ' &mdash; Biggest New Chart Debut',
+    return ncSec(recEntIco('artists') + ' ' + t('rec_th_artists') + ' &mdash; Biggest New Chart Debut',
       recTable(['#', t('rec_th_artist'), t('rec_th_plays'), 'Debut Rank', ncPeriodTh(pt)],
         sorted.map((e, i) => { const d = e[1]; return '<td class="rec-rank">' + (i + 1) + '</td><td><div class="rec-name">' + esc(e[0]) + '</div></td><td class="rec-count">' + (d.plays || 0) + '</td><td class="rec-count">#' + d.rank + '</td>' + ncPeriodTd(pt, d.period); }), lim, null, null,
         { rowAttrs: i => recRowAttrs(sorted[i][0], 'artist', sorted[i][0]) }));
@@ -6366,7 +6366,7 @@ function buildRecords() {
   // ── 3. Biggest New Album Debut ─────────────────────────────────
   function ncRecAlbumDebut(pt) {
     const sorted = Object.entries(ncAlbumDebuts[pt]).sort((a, b) => b[1].plays - a[1].plays || a[1].rank - b[1].rank || a[1].period.localeCompare(b[1].period));
-    return ncSec('💿 ' + t('rec_th_albums') + ' &mdash; Biggest New Chart Debut',
+    return ncSec(recEntIco('albums') + ' ' + t('rec_th_albums') + ' &mdash; Biggest New Chart Debut',
       recTable(['#', t('rec_th_albums'), t('rec_th_artist'), t('rec_th_plays'), 'Debut Rank', ncPeriodTh(pt)],
         sorted.map((e, i) => { const d = e[1]; return '<td class="rec-rank">' + (i + 1) + '</td><td><div class="rec-name">' + esc(d.album) + '</div></td><td><div class="rec-sub">' + esc(d.artist) + '</div></td><td class="rec-count">' + (d.plays || 0) + '</td><td class="rec-count">#' + d.rank + '</td>' + ncPeriodTd(pt, d.period); }), lim, null, null,
         { rowAttrs: i => recRowAttrs(sorted[i][1].artist, 'album', sorted[i][1].album) }));
@@ -6379,7 +6379,10 @@ function buildRecords() {
   function ncRecBusiest(pt, kind) {
     const map = kind === 'songs' ? rawNewCountPerPeriod[pt].songs : rawNewCountPerPeriod[pt].artists;
     const sorted = Object.entries(map).sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
-    return ncSec('🔢 ' + (kind === 'songs' ? t('rec_th_songs') : t('rec_th_artists')) + ' &mdash; Busiest Discovery Period',
+    // Named for an entity like the debut tables above it, so it takes the same
+    // glyph rather than a topic emoji — inside the Songs panel, one section
+    // headed with a note and the next with 🔢 read as two different systems.
+    return ncSec(recEntIco(kind === 'songs' ? 'songs' : 'artists') + ' ' + (kind === 'songs' ? t('rec_th_songs') : t('rec_th_artists')) + ' &mdash; Busiest Discovery Period',
       recTable(['#', ncPeriodTh(pt), kind === 'songs' ? 'New Songs' : 'New Artists'],
         sorted.map((e, i) => '<td class="rec-rank">' + (i + 1) + '</td>' + ncPeriodTd(pt, e[0]) + '<td class="rec-count">' + e[1] + '</td>'), lim),
       'Counts every ' + (kind === 'songs' ? 'song' : 'artist') + ' heard for the first time, including the ones that finished below the chart cut-off.');
@@ -6394,7 +6397,7 @@ function buildRecords() {
       }
     }
     const sorted = Object.entries(best).sort((a, b) => b[1].count - a[1].count || a[1].period.localeCompare(b[1].period));
-    return ncSec('🎵 Most Songs on a Single New Chart (by Artist)',
+    return ncSec(recEntIco('songs') + ' Most Songs on a Single New Chart (by Artist)',
       recTable(['#', t('rec_th_artist'), 'New Songs', ncPeriodTh(pt)],
         sorted.map((e, i) => '<td class="rec-rank">' + (i + 1) + '</td><td><div class="rec-name">' + esc(e[0]) + '</div></td><td class="rec-count">' + e[1].count + '</td>' + ncPeriodTd(pt, e[1].period)), lim, null, null,
         { rowAttrs: i => recRowAttrs(sorted[i][0], 'artist', sorted[i][0]) }));
@@ -6436,7 +6439,7 @@ function buildRecords() {
       return { ak, cnt, album: deb.album || ak.split('|||')[0], artist: deb.artist || '', plays: deb.plays || 0, period: deb.period || '', rank: deb.rank || 0 };
     });
     combined.sort((a, b) => b.cnt - a.cnt || b.plays - a.plays || a.period.localeCompare(b.period));
-    return ncSec('💿 New Album with Most Tracks Also Debuting',
+    return ncSec(recEntIco('albums') + ' New Album with Most Tracks Also Debuting',
       combined.length
         ? recTable(['#', t('rec_th_albums'), t('rec_th_artist'), 'Tracks Debuting', t('rec_th_plays'), ncPeriodTh(pt)],
           combined.map((e, i) => '<td class="rec-rank">' + (i + 1) + '</td><td><div class="rec-name">' + esc(e.album) + '</div></td><td><div class="rec-sub">' + esc(e.artist) + '</div></td><td class="rec-count">' + e.cnt + '</td><td class="rec-count">' + e.plays + '</td>' + ncPeriodTd(pt, e.period)), lim, null, null,
@@ -6488,9 +6491,9 @@ function buildRecords() {
      Albums rank here for the first time. Their numbers read quieter than the
      same artist's on purpose: only album-tagged plays can feed them. */
   const STREAK_ENTS = [
-    { key: 'songs', kind: 'song', icon: '★', label: t('rec_th_songs') },
-    { key: 'artists', kind: 'artist', icon: '♦', label: t('rec_th_artists') },
-    { key: 'albums', kind: 'album', icon: '◈', label: t('rec_th_albums') },
+    { key: 'songs', kind: 'song', icon: recEntIco('songs'), label: t('rec_th_songs') },
+    { key: 'artists', kind: 'artist', icon: recEntIco('artists'), label: t('rec_th_artists') },
+    { key: 'albums', kind: 'album', icon: recEntIco('albums'), label: t('rec_th_albums') },
   ];
   /* `runs` is the odd one out — it ranks plays, not calendar units — so it
      carries a date column and its own per-entity blurb, and its rows are
@@ -8342,6 +8345,65 @@ document.addEventListener('click', function (e) {
   applyFastestRecTabs();
   if (typeof window._refreshBackToTop === 'function') window._refreshBackToTop();
 });
+
+/* ── Songs / Artists / Albums glyphs ──────────────────────────────────
+   The three entity pills used to carry ★ ♦ ◈ — a star, a diamond and a
+   four-pointed diamond. None of them said anything about songs, artists or
+   albums; they were three abstract marks whose only job was to be different
+   from each other, and two of the three sections (New Charts, and the chart-run
+   popup) had already drifted to emoji because of it. These replace all of them
+   with objects: a beamed pair of notes, a stage microphone, a record in its
+   sleeve.
+
+   Written inline rather than as <symbol>s in the sprite, unlike the eleven
+   section icons in index.html. Content cloned through <use> lives in a shadow
+   tree that document CSS cannot select into, so a <symbol> can only ever be
+   animated as one lump — the whole icon transformed together. Inline markup
+   puts every path in the document, which is what buys the motion these have:
+   the note heads pulse on their own beat while the beam holds still, the mic's
+   sound arcs radiate while the mic body stays put, and the record's groove
+   turns inside a sleeve that does not.
+
+   Same drawing rules as the sprite otherwise: stroke-only on a 16-unit grid,
+   `currentColor` throughout, so one copy serves all ten themes and the glyph
+   flips to --on-accent on a selected pill for free, off the button's own
+   `color`. */
+const REC_ENT_ICON_PARTS = {
+  // Two eighth notes under one beam: the stems and beam are a single polyline,
+  // the heads are circles hung off the bottom of each stem.
+  songs: '<path d="M5.6 11.4V4.2l7-1.6v7.2"/>'
+    + '<circle class="rei-note rei-note-a" cx="3.85" cy="11.4" r="1.75"/>'
+    + '<circle class="rei-note rei-note-b" cx="10.85" cy="9.8" r="1.75"/>',
+  // Mic capsule in its cradle, on a stand. The two arcs either side are the
+  // sound coming off it — the only part of the glyph that moves.
+  artists: '<rect x="6.4" y="1.7" width="3.2" height="6.2" rx="1.6"/>'
+    + '<path d="M5 6.9a3 3 0 0 0 6 0"/>'
+    + '<path d="M8 9.9v2.6M5.9 12.5h4.2"/>'
+    + '<path class="rei-wave rei-wave-l" d="M3.9 3.2a3 3 0 0 0 0 2.4"/>'
+    + '<path class="rei-wave rei-wave-r" d="M12.1 3.2a3 3 0 0 1 0 2.4"/>',
+  /* A record standing in front of its sleeve. Two earlier drawings of this
+     were thrown out on the silhouette alone: the whole disc *inside* the
+     square is a camera aperture, and a square with a half-disc bulging off one
+     edge is the exit-door glyph. What is left is the sleeve reduced to the
+     corner showing behind the record — two strokes, no overlap to resolve —
+     with the disc itself carrying the meaning.
+
+     That leaves it close to the certifications disc in the nav above, which is
+     unavoidable: a certification *is* a gold record. The sleeve corner is what
+     separates them, and it is the reason the disc sits low and right rather
+     than centred — a centred disc would have nowhere to put it. */
+  albums: '<path d="M2.1 12.2V3.1a1 1 0 0 1 1-1h9.1"/>'
+    + '<circle cx="9.2" cy="9.2" r="4.4"/>'
+    + '<path class="rei-groove" d="M9.2 6.5a2.7 2.7 0 0 1 2.34 1.35"/>'
+    + '<circle cx="9.2" cy="9.2" r="0.6" fill="currentColor" stroke="none"/>'
+};
+
+// One glyph, wherever an entity is named: the pill row, and the section title
+// the pill row reveals. Both call this, so the two can never drift apart.
+function recEntIco(key) {
+  return '<svg class="rec-ent-ico rec-ent-ico--' + key + '" viewBox="0 0 16 16"'
+    + ' aria-hidden="true" focusable="false">' + REC_ENT_ICON_PARTS[key] + '</svg>';
+}
 
 /* ── Entity pills for every other record section ──────────────────────
    Milestones, Fastest and New Charts above each grew their own hand-rolled
@@ -12907,9 +12969,9 @@ function showPakPeriodPreview(pt, periodKey, triggerEl) {
   } else {
     const pm = crData.periodMap[weekKey];
     const types = [
-      { key: 'songs', icon: '🎵', label: t('rec_th_songs'), nameOf: ([k, d]) => d._title || k.split('|||')[0] },
-      { key: 'artists', icon: '♦', label: t('rec_th_artists'), nameOf: ([k]) => k },
-      { key: 'albums', icon: '💿', label: t('rec_th_albums'), nameOf: ([k, d]) => d._album || k.split('|||')[0] },
+      { key: 'songs', icon: recEntIco('songs'), label: t('rec_th_songs'), nameOf: ([k, d]) => d._title || k.split('|||')[0] },
+      { key: 'artists', icon: recEntIco('artists'), label: t('rec_th_artists'), nameOf: ([k]) => k },
+      { key: 'albums', icon: recEntIco('albums'), label: t('rec_th_albums'), nameOf: ([k, d]) => d._album || k.split('|||')[0] },
     ];
     let items = '';
     for (const { key, icon, label, nameOf } of types) {
@@ -12962,9 +13024,9 @@ function showDebutPeriodPreview(pt, weekKey, triggerEl, event) {
   } else {
     const pm = crData.periodMap[weekKey];
     const types = [
-      { key: 'songs', icon: '🎵', label: t('rec_th_songs'), nameOf: function ([k, d]) { return d._title || k.split('|||')[0]; } },
-      { key: 'artists', icon: '♦', label: t('rec_th_artists'), nameOf: function ([k]) { return k; } },
-      { key: 'albums', icon: '💿', label: t('rec_th_albums'), nameOf: function ([k, d]) { return d._album || k.split('|||')[0]; } },
+      { key: 'songs', icon: recEntIco('songs'), label: t('rec_th_songs'), nameOf: function ([k, d]) { return d._title || k.split('|||')[0]; } },
+      { key: 'artists', icon: recEntIco('artists'), label: t('rec_th_artists'), nameOf: function ([k]) { return k; } },
+      { key: 'albums', icon: recEntIco('albums'), label: t('rec_th_albums'), nameOf: function ([k, d]) { return d._album || k.split('|||')[0]; } },
     ];
     let items = '';
     for (const { key, icon, label, nameOf } of types) {
@@ -13009,9 +13071,9 @@ function showNewChartRecPreview(pt, periodKey, triggerEl, event) {
     popup.innerHTML = `<button class="cr-preview-close" onclick="hideNewChartRecPreview()">✕</button><div class="cr-preview-title">${esc(title)}</div><div style="padding:4px 0;font-size:0.62rem;color:var(--text3);">${navigateLink}</div>`;
   } else {
     const types = [
-      { key: 'songs', icon: '🎵', label: t('rec_th_songs'), nameOf: (d) => d.title },
-      { key: 'artists', icon: '♦', label: t('rec_th_artists'), nameOf: (d) => d.name },
-      { key: 'albums', icon: '💿', label: t('rec_th_albums'), nameOf: (d) => d.album },
+      { key: 'songs', icon: recEntIco('songs'), label: t('rec_th_songs'), nameOf: (d) => d.title },
+      { key: 'artists', icon: recEntIco('artists'), label: t('rec_th_artists'), nameOf: (d) => d.name },
+      { key: 'albums', icon: recEntIco('albums'), label: t('rec_th_albums'), nameOf: (d) => d.album },
     ];
     let items = '';
     for (const { key, icon, label, nameOf } of types) {

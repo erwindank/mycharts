@@ -12472,11 +12472,13 @@
       transition: background 0.15s, color 0.15s, border-color 0.15s;
     }
 
+    /* Now a box round an <svg> rather than a slot for a text glyph, so it is
+       sized by its child and no longer needs a font-size of its own. */
     .nc-rec-tab-icon,
     .mil-tab-icon,
     .fast-tab-icon,
     .rec-ent-tab-icon {
-      font-size: 0.72rem;
+      display: inline-flex;
       line-height: 1;
     }
 
@@ -12545,6 +12547,187 @@
     body.yellow .fast-tab.active,
     body.yellow .rec-ent-tab.active {
       color: #1a1a00;
+    }
+
+    /* ── Songs / Artists / Albums glyphs ──────────────────────────────
+       Drawn inline by recEntIco() in app.js — a beamed pair of notes, a stage
+       mic, a record in its sleeve — in place of the ★ ♦ ◈ these pills used to
+       carry, which named nothing and had already been abandoned for emoji in
+       two of the sections.
+
+       No --ico family here, unlike the eleven section glyphs in the nav above.
+       Those colour eleven *different* sections, so the hue sorts them; these
+       three repeat inside every one of those sections, so three more hues
+       would be noise stamped eight times over rather than a signal. They take
+       `currentColor` instead, which means the glyph tracks its pill through
+       every state for free — --text2 at rest, --text on hover, --on-accent on
+       the accent fill, and #1a1a00 on yellow's — across all ten themes with no
+       per-theme rule. */
+    .rec-ent-ico {
+      width: 13px;
+      height: 13px;
+      flex: none;
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 1.5;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      /* Under 1 so the label stays the loudest thing in the pill, but not far
+         under: these are line drawings, and a faint stroke at 13px drops
+         below the threshold where the shape is readable at all. */
+      opacity: 0.78;
+      transform-origin: center;
+      transition: opacity var(--t-fast) var(--ease), transform var(--t-fast) var(--ease);
+    }
+
+    /* The same glyph on the section title the pill reveals, so the two can
+       never read as different things. Sized to the title's own type rather
+       than to the pill's, and quieter — the heading already has weight. */
+    .rec-section-title .rec-ent-ico {
+      width: 14px;
+      height: 14px;
+      vertical-align: -0.19em;
+      margin-right: 0.12rem;
+      opacity: 0.7;
+    }
+
+    .nc-rec-tab:hover .rec-ent-ico,
+    .mil-tab:hover .rec-ent-ico,
+    .fast-tab:hover .rec-ent-ico,
+    .rec-ent-tab:hover .rec-ent-ico {
+      opacity: 1;
+      transform: scale(1.12);
+    }
+
+    .nc-rec-tab.active .rec-ent-ico,
+    .mil-tab.active .rec-ent-ico,
+    .fast-tab.active .rec-ent-ico,
+    .rec-ent-tab.active .rec-ent-ico {
+      opacity: 1;
+    }
+
+    /* ── Signature motion ─────────────────────────────────────────────
+       Only the selected pill moves, and it moves for as long as it stays
+       selected — the same rule the nav dial above settled on. An entrance that
+       plays once and stops leaves the pill motionless for all but the first
+       half-second you spend in the section, which is an arrival flourish where
+       what is wanted is a state.
+
+       The nav's glyphs come out of a <symbol> and can only ever be moved as
+       one lump, because <use> clones into a shadow tree that document CSS
+       cannot select into. These are written inline for exactly this reason:
+       the part that should move moves and the part that should hold still
+       holds still. The note's heads pulse while its beam stays rigid, the
+       mic's sound radiates while the mic stays on its stand, the record turns
+       inside a sleeve that does not.
+
+       Every loop is delayed by the length of the entrance it follows and left
+       on the default `none` fill, so it contributes nothing until then;
+       `backwards` there would have the loop's first frame stomp the entrance
+       from time zero. */
+
+    /* A note rocking on the beat. The heads pulse a third of a cycle apart so
+       the pair reads as syncopated rather than as one object breathing, and
+       they only ever scale up from 1 — going below it would pull each head off
+       the bottom of its stem and break the note in half. */
+    :is(.nc-rec-tab, .mil-tab, .fast-tab, .rec-ent-tab).active .rec-ent-ico--songs {
+      animation: reiPop 320ms var(--ease) backwards,
+        reiNoteRock 2.6s ease-in-out 320ms infinite;
+    }
+
+    :is(.nc-rec-tab, .mil-tab, .fast-tab, .rec-ent-tab).active .rec-ent-ico--songs .rei-note {
+      transform-box: fill-box;
+      transform-origin: center;
+      animation: reiNotePulse 1.3s ease-in-out 320ms infinite;
+    }
+
+    :is(.nc-rec-tab, .mil-tab, .fast-tab, .rec-ent-tab).active .rec-ent-ico--songs .rei-note-b {
+      animation-delay: 750ms;
+    }
+
+    /* Sound coming off the mic: each arc grows from the edge nearest the
+       capsule outward, which is the direction sound actually leaves it —
+       scaling from the arc's own centre would read as a throb instead. Both
+       fire on the same beat rather than alternating; a mic does not radiate
+       left, then right. */
+    :is(.nc-rec-tab, .mil-tab, .fast-tab, .rec-ent-tab).active .rec-ent-ico--artists {
+      animation: reiPop 320ms var(--ease) backwards,
+        reiMicBob 3.1s ease-in-out 320ms infinite;
+    }
+
+    :is(.nc-rec-tab, .mil-tab, .fast-tab, .rec-ent-tab).active .rec-ent-ico--artists .rei-wave {
+      transform-box: fill-box;
+      animation: reiWave 1.9s ease-in-out 320ms infinite;
+    }
+
+    :is(.nc-rec-tab, .mil-tab, .fast-tab, .rec-ent-tab).active .rec-ent-ico--artists .rei-wave-l {
+      transform-origin: right center;
+    }
+
+    :is(.nc-rec-tab, .mil-tab, .fast-tab, .rec-ent-tab).active .rec-ent-ico--artists .rei-wave-r {
+      transform-origin: left center;
+    }
+
+    /* The record turns; the sleeve behind it holds still. Only the groove is
+       rotated — the disc and its spindle hole are concentric and look
+       identical at every angle, so spinning them would cost a transform and
+       show nothing, which is exactly how the certifications glyph in the nav
+       above ended up animating invisibly for a while. transform-box: view-box
+       puts the origin on the 16-unit grid, where the spindle is, rather than
+       on the arc's own small bounding box. */
+    :is(.nc-rec-tab, .mil-tab, .fast-tab, .rec-ent-tab).active .rec-ent-ico--albums {
+      animation: reiPop 320ms var(--ease) backwards;
+    }
+
+    :is(.nc-rec-tab, .mil-tab, .fast-tab, .rec-ent-tab).active .rec-ent-ico--albums .rei-groove {
+      transform-box: view-box;
+      transform-origin: 9.2px 9.2px;
+      animation: reiSpin 3.4s linear 320ms infinite;
+    }
+
+    @keyframes reiPop {
+      from { transform: scale(0.6); }
+      60%  { transform: scale(1.14); }
+      to   { transform: none; }
+    }
+
+    @keyframes reiNoteRock {
+      0%, 100% { transform: rotate(-5deg); }
+      50%      { transform: rotate(5deg); }
+    }
+
+    @keyframes reiNotePulse {
+      0%, 100% { transform: scale(1); }
+      45%      { transform: scale(1.28); }
+    }
+
+    @keyframes reiMicBob {
+      0%, 100% { transform: translateY(0); }
+      50%      { transform: translateY(-0.7px); }
+    }
+
+    @keyframes reiWave {
+      0%, 100% { opacity: 0.18; transform: scale(0.55); }
+      45%      { opacity: 1;    transform: scale(1.08); }
+    }
+
+    @keyframes reiSpin {
+      to { transform: rotate(360deg); }
+    }
+
+    /* Switching the motion off has to leave every glyph fully drawn: each
+       animation above rests on its own resting state, so `none` here is the
+       whole fix — the shapes carry the meaning, the motion only flavours it. */
+    @media (prefers-reduced-motion: reduce) {
+
+      .rec-ent-ico,
+      .rec-ent-ico *,
+      :is(.nc-rec-tab, .mil-tab, .fast-tab, .rec-ent-tab):hover .rec-ent-ico,
+      :is(.nc-rec-tab, .mil-tab, .fast-tab, .rec-ent-tab).active .rec-ent-ico,
+      :is(.nc-rec-tab, .mil-tab, .fast-tab, .rec-ent-tab).active .rec-ent-ico * {
+        animation: none;
+        transform: none;
+      }
     }
 
     /* Records intro plate. The base rules here still style the pre-load
