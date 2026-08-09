@@ -668,6 +668,21 @@ const TRANSLATIONS = {
     rec_th_last_streamed: 'Last Streamed',
     rec_th_last_song: 'Last Song',
     rec_th_first_charted: 'First Charted',
+    /* All #1s and Appearances each split into two records per chart: the total
+       tally (any periods, in any order) and the longest unbroken run. The
+       bracket that tells them apart is one shared suffix, appended to whichever
+       record title the section already builds. */
+    rec_suffix_non_consec: '(Non-Consecutive)',
+    rec_suffix_consec: '(Consecutive)',
+    rec_th_consec_weeks_at_1: 'Consecutive Weeks at #1',
+    rec_th_consec_months_at_1: 'Consecutive Months at #1',
+    rec_th_consec_years_at_1: 'Consecutive Years at #1',
+    // {{unit}} is the same capitalised period plural rec_th_on_chart takes.
+    rec_th_consec_on_chart: 'Consecutive {{unit}} on Chart',
+    rec_th_streak_start: 'Streak Start',
+    rec_th_streak_end: 'Streak End',
+    rec_consec_sub_1: 'Ranked by longest unbroken run at #1 — ties go to whoever set it first',
+    rec_consec_sub_app: 'Ranked by longest unbroken run on the chart — ties go to whoever set it first',
 
     // Records dynamic text
     rec_weekly_label: 'Weekly Chart',
@@ -2018,6 +2033,19 @@ const TRANSLATIONS = {
     // Sin "Semana": la columna ahora también encabeza los rankings mensual y
     // anual, así que el nombre del período lo pone la propia tabla.
     rec_th_first_charted: 'Primera Vez en Ranking',
+    /* Sufijo compartido por los dos registros de #1s y Apariciones: el total
+       (en cualquier orden) y la racha más larga. "Veces" y "Apariciones" son
+       femeninos plurales, así que un solo sufijo sirve para ambos títulos. */
+    rec_suffix_non_consec: '(No Consecutivas)',
+    rec_suffix_consec: '(Consecutivas)',
+    rec_th_consec_weeks_at_1: 'Semanas Consecutivas en #1',
+    rec_th_consec_months_at_1: 'Meses Consecutivos en #1',
+    rec_th_consec_years_at_1: 'Años Consecutivos en #1',
+    rec_th_consec_on_chart: 'Racha en el Ranking ({{unit}})',
+    rec_th_streak_start: 'Inicio de Racha',
+    rec_th_streak_end: 'Fin de Racha',
+    rec_consec_sub_1: 'Ordenado por la racha más larga en #1 — los empates son para quien la logró primero',
+    rec_consec_sub_app: 'Ordenado por la racha más larga en el ranking — los empates son para quien la logró primero',
 
     // Records dynamic text
     rec_weekly_label: 'Ranking Semanal',
@@ -3315,6 +3343,19 @@ const TRANSLATIONS = {
     // Sem "Semana": a coluna agora encabeça também as paradas mensal e anual,
     // e o nome do período vem da própria tabela.
     rec_th_first_charted: 'Primeira Vez na Parada',
+    /* Sufixo compartilhado pelos dois recordes de #1s e Aparições: o total
+       (em qualquer ordem) e a maior sequência. "Vezes" e "Aparições" são
+       femininos plurais, então um sufixo só serve para os dois títulos. */
+    rec_suffix_non_consec: '(Não Consecutivas)',
+    rec_suffix_consec: '(Consecutivas)',
+    rec_th_consec_weeks_at_1: 'Semanas Consecutivas no #1',
+    rec_th_consec_months_at_1: 'Meses Consecutivos no #1',
+    rec_th_consec_years_at_1: 'Anos Consecutivos no #1',
+    rec_th_consec_on_chart: 'Sequência na Parada ({{unit}})',
+    rec_th_streak_start: 'Início da Sequência',
+    rec_th_streak_end: 'Fim da Sequência',
+    rec_consec_sub_1: 'Ordenado pela maior sequência no #1 — empates ficam com quem chegou primeiro',
+    rec_consec_sub_app: 'Ordenado pela maior sequência na parada — empates ficam com quem chegou primeiro',
 
     // Records dynamic text
     rec_weekly_label: 'Parada Semanal',
@@ -4611,6 +4652,19 @@ const TRANSLATIONS = {
     rec_th_last_song: 'Última Música',
     // Sem "Semana": a coluna encabeça agora também os tops mensal e anual.
     rec_th_first_charted: 'Primeira Vez no Top',
+    /* Sufixo partilhado pelos dois recordes de #1s e Aparições: o total
+       (por qualquer ordem) e a maior sequência. "Vezes" e "Aparições" são
+       femininos plurais, por isso um único sufixo serve os dois títulos. */
+    rec_suffix_non_consec: '(Não Consecutivas)',
+    rec_suffix_consec: '(Consecutivas)',
+    rec_th_consec_weeks_at_1: 'Semanas Consecutivas no #1',
+    rec_th_consec_months_at_1: 'Meses Consecutivos no #1',
+    rec_th_consec_years_at_1: 'Anos Consecutivos no #1',
+    rec_th_consec_on_chart: 'Sequência no Top ({{unit}})',
+    rec_th_streak_start: 'Início da Sequência',
+    rec_th_streak_end: 'Fim da Sequência',
+    rec_consec_sub_1: 'Ordenado pela maior sequência no #1 — empates ficam para quem chegou primeiro',
+    rec_consec_sub_app: 'Ordenado pela maior sequência no top — empates ficam para quem chegou primeiro',
 
     // Records dynamic text
     rec_weekly_label: 'Top Semanal',

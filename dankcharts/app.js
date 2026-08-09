@@ -4272,6 +4272,10 @@ function buildRecords() {
     return pk;
   }
   function periodAtOneHeader(pt) { return pt === 'week' ? t('rec_th_weeks_at_1') : pt === 'month' ? t('rec_th_months_at_1') : t('rec_th_years_at_1'); }
+  // Same three headers for the consecutive twin of each All #1s table. Kept as
+  // three keys rather than one "Consecutive {{unit}}" template because the
+  // adjective is gendered in es/pt and has to agree with Semanas/Meses/Años.
+  function consecAtOneHeader(pt) { return pt === 'week' ? t('rec_th_consec_weeks_at_1') : pt === 'month' ? t('rec_th_consec_months_at_1') : t('rec_th_consec_years_at_1'); }
 
   // Group plays by period
   const chron = [...allPlays].sort((a, b) => a.date - b.date);
@@ -4976,7 +4980,8 @@ function buildRecords() {
         + ' data-rec-per-scope="' + esc(perScope) + '" data-rec-per="' + cfg.pt + '"'
         + ' data-rec-scope="' + esc(perScope + '-' + cfg.pt) + '" style="display:none">';
       h += '<div class="rec-section"><div class="rec-section-title">'
-        + ent.icon + ' ' + ent.label + ' &mdash; ' + t('rec_most_times_1_on', { period: cfg.label }) + '</div>';
+        + ent.icon + ' ' + ent.label + ' &mdash; ' + t('rec_most_times_1_on', { period: cfg.label })
+        + ' ' + t('rec_suffix_non_consec') + '</div>';
       h += '<div class="rec-section-sub">' + t('rec_have_hit_1', { n: '<strong>' + entries.length + '</strong>', type: ent.label.toLowerCase() }) + '</div>';
       const tableId = 'rec-1s-tbl-' + ent.key + '-' + cfg.pt;
       const runBaseId = 'rec-1s-run-' + ent.key + '-' + cfg.pt;
@@ -5004,9 +5009,11 @@ function buildRecords() {
       );
       // Closes .rec-section.
       h += '</div>';
-      // Collect image items for loading — flushed after the innerHTML below.
-      entries.forEach(function (e, i) {
-        const imgId = 'rec-img-' + ent.key + '-' + cfg.pt + '-' + i;
+      /* One row of the entries array → one image-queue item, in whichever order
+         the table that owns `imgId` put its rows. Shared by the total table
+         above and the consecutive one below, which rank the same entities
+         differently and so cannot share ids. */
+      const queueOnesImg = function (imgId, e) {
         if (ent.type === 'song') {
           onesImgQueue.push({ imgId, imgType: 'song', title: e[1].title, artist: e[1].artist, album: e[1].album, prefKey: 'song:' + e[1].artist.toLowerCase() + '|||' + e[1].title.toLowerCase(), name: e[1].title });
         } else if (ent.type === 'artist') {
@@ -5014,6 +5021,68 @@ function buildRecords() {
         } else {
           onesImgQueue.push({ imgId, imgType: 'album', album: e[1].album, artist: e[1].artist, name: e[1].album, prefKey: 'album:' + e[1].artist.toLowerCase() + '|||' + e[1].album.toLowerCase() });
         }
+      };
+      // Collect image items for loading — flushed after the innerHTML below.
+      entries.forEach(function (e, i) {
+        queueOnesImg('rec-img-' + ent.key + '-' + cfg.pt + '-' + i, e);
+      });
+
+      /* ── The same #1s, counted consecutively ──────────────────
+         A second record in the same period panel, because twelve weeks at #1 in
+         a row is not the record twelve weeks at #1 spread over four years is:
+         one is a reign, the other is longevity. Same entities, re-scored on
+         their longest unbroken run (bestPeriodStreak() reads the `periods`
+         array the total above is built from) and re-sorted on it.
+
+         Ranking is streak first, then the total tally, then whoever set the
+         streak earliest — so a tie between two four-week reigns is broken by
+         the fuller career, and a tie in that by the older record. */
+      const streakRows = entries
+        .map(function (e) { return { e: e, streak: bestPeriodStreak(e[1].periods, cfg.pt) }; })
+        .filter(function (s) { return s.streak; })
+        .sort(function (a, b) {
+          if (b.streak.len !== a.streak.len) return b.streak.len - a.streak.len;
+          if (b.e[1].count !== a.e[1].count) return b.e[1].count - a.e[1].count;
+          return a.streak.start < b.streak.start ? -1 : a.streak.start > b.streak.start ? 1 : 0;
+        });
+      const cTableId = 'rec-1sc-tbl-' + ent.key + '-' + cfg.pt;
+      const cRunBaseId = 'rec-1sc-run-' + ent.key + '-' + cfg.pt;
+      h += '<div class="rec-section"><div class="rec-section-title">'
+        + ent.icon + ' ' + ent.label + ' &mdash; ' + t('rec_most_times_1_on', { period: cfg.label })
+        + ' ' + t('rec_suffix_consec') + '</div>';
+      h += '<div class="rec-section-sub">' + t('rec_consec_sub_1') + '</div>';
+      // A streak has a start and an end rather than a "first at #1" and a peak
+      // date, so the two middle columns are its own — on the yearly chart too,
+      // where the total table drops its last column.
+      const cHeaders = ['#', '', ent.label, consecAtOneHeader(cfg.pt), t('rec_th_streak_start'), t('rec_th_streak_end'),
+        '<button class="rec-expand-all-btn" onclick="event.stopPropagation();toggleAllRecRuns(\'' + cTableId + '\',this)" title="' + t('rec_expand_all') + '">▶▶</button>'];
+      h += recTable(cHeaders,
+        streakRows.map(function (s, i) {
+          const imgId = 'rec-1sc-img-' + ent.key + '-' + cfg.pt + '-' + i;
+          const runId = cRunBaseId + '-' + i;
+          const dateCell = function (pk) {
+            return '<td class="rec-meta"><a href="#chart/' + cfg.pt + '/' + pk + '" class="rec-date-link" onclick="event.preventDefault();navigateToRecPeriod(\'' + cfg.pt + '\',\'' + pk + '\')">' + fmtPeriodKey(pk, cfg.pt) + '</a></td>';
+          };
+          return ent.nameRow(s.e[0], s.e[1], i, imgId)
+            + '<td class="rec-count">' + s.streak.len + '</td>'
+            + dateCell(s.streak.start) + dateCell(s.streak.end)
+            + '<td class="rec-run-toggle-cell"><button class="rec-run-toggle-btn" onclick="event.stopPropagation();toggleRecRun(this,\'' + runId + '\')">▶</button></td>';
+        }),
+        lim,
+        streakRows.map(function (s, i) {
+          // Only the streak's own periods, all of them #1s — the boxes are
+          // gap-free by definition, which is the point of the record.
+          return {
+            id: cRunBaseId + '-' + i,
+            html: recStreakBoxesHTML(s.streak.periods.map(function (pk) { return { periodKey: pk, rank: 1 }; }), cfg.pt)
+          };
+        }),
+        cTableId
+      );
+      // Closes the consecutive .rec-section.
+      h += '</div>';
+      streakRows.forEach(function (s, i) {
+        queueOnesImg('rec-1sc-img-' + ent.key + '-' + cfg.pt + '-' + i, s.e);
       });
       /* Closes .rec-per-panel — and only that. This loop opens exactly two
          elements per period (the panel and the .rec-section inside it) and must
@@ -5236,7 +5305,7 @@ function buildRecords() {
       const tops = Object.entries(songApps[cfg.pt]).sort((a, b) => b[1] - a[1]);
       const sliced = isFinite(lim) ? tops.slice(0, lim) : tops;
       const tableId = 'app-tbl-songs-' + cfg.pt;
-      let ah = '<div class="rec-section"><div class="rec-section-title">★ ' + t('rec_th_songs') + ' &mdash; ' + t('rec_most_appearances_on', { period: cfg.label }) + '</div>';
+      let ah = '<div class="rec-section"><div class="rec-section-title">★ ' + t('rec_th_songs') + ' &mdash; ' + t('rec_most_appearances_on', { period: cfg.label }) + ' ' + t('rec_suffix_non_consec') + '</div>';
       ah += '<div class="app-table-wrap"><table class="rec-table app-appearances-table" id="' + tableId + '"><thead><tr>';
       ah += '<th>#</th><th></th><th>' + t('rec_th_songs') + '</th><th class="app-art-th"></th><th>' + t('rec_th_artist') + '</th>';
       ah += '<th>' + t('rec_th_first_streamed') + '</th><th>' + t('rec_th_last_streamed') + '</th>';
@@ -5279,7 +5348,7 @@ function buildRecords() {
       const tops = Object.entries(artistApps[cfg.pt]).sort((a, b) => b[1] - a[1]);
       const sliced = isFinite(lim) ? tops.slice(0, lim) : tops;
       const tableId = 'app-tbl-artists-' + cfg.pt;
-      let ah = '<div class="rec-section"><div class="rec-section-title">♦ ' + t('rec_th_artists') + ' &mdash; ' + t('rec_most_appearances_on', { period: cfg.label }) + '</div>';
+      let ah = '<div class="rec-section"><div class="rec-section-title">♦ ' + t('rec_th_artists') + ' &mdash; ' + t('rec_most_appearances_on', { period: cfg.label }) + ' ' + t('rec_suffix_non_consec') + '</div>';
       ah += '<div class="app-table-wrap"><table class="rec-table app-appearances-table" id="' + tableId + '"><thead><tr>';
       ah += '<th>#</th><th></th><th>' + t('rec_th_artist') + '</th>';
       ah += '<th>' + t('rec_th_first_song') + '</th><th>' + t('rec_th_last_song') + '</th>';
@@ -5318,7 +5387,7 @@ function buildRecords() {
       const tops = Object.entries(albumApps[cfg.pt]).sort((a, b) => b[1] - a[1]);
       const sliced = isFinite(lim) ? tops.slice(0, lim) : tops;
       const tableId = 'app-tbl-albums-' + cfg.pt;
-      let ah = '<div class="rec-section"><div class="rec-section-title">◈ ' + t('rec_th_albums') + ' &mdash; ' + t('rec_most_appearances_on', { period: cfg.label }) + '</div>';
+      let ah = '<div class="rec-section"><div class="rec-section-title">◈ ' + t('rec_th_albums') + ' &mdash; ' + t('rec_most_appearances_on', { period: cfg.label }) + ' ' + t('rec_suffix_non_consec') + '</div>';
       ah += '<div class="app-table-wrap"><table class="rec-table app-appearances-table" id="' + tableId + '"><thead><tr>';
       ah += '<th>#</th><th></th><th>' + t('rec_th_albums') + '</th><th class="app-art-th"></th><th>' + t('rec_th_artist') + '</th>';
       ah += '<th>' + t('rec_th_first_song') + '</th>';
@@ -5362,6 +5431,101 @@ function buildRecords() {
     { key: 'artists', icon: '♦', label: t('rec_th_artists') },
     { key: 'albums', icon: '◈', label: t('rec_th_albums') }
   ];
+
+  /* ── The same appearances, counted consecutively ────────────────
+     Every appearances table above gets a twin ranked on the longest unbroken
+     run on the chart instead of the total tally: forty scattered weeks is a
+     catalogue staple, forty weeks in a row is a stranglehold.
+
+     The run itself comes from allChartRun (ensureAllChartRun() ran at the top of
+     this section) rather than from a fourth set of per-key period arrays —
+     it already holds every period an entity charted in, with its rank, under
+     exactly the keys songApps/artistApps/albumApps use, so the streak boxes can
+     show the real positions the run was made of.
+
+     Rows are drawn with the All #1s nameRow helpers, which is why this is one
+     builder for all three entities rather than three: they already write the
+     thumb, the name, the artist sub-line and the Deezer picker button for each
+     type, and reusing them keeps this table's artwork identical to that one's. */
+  const onesEntByKey = {};
+  entityConfig.forEach(function (e) { onesEntByKey[e.key] = e; });
+  const appsByKey = { songs: songApps, artists: artistApps, albums: albumApps };
+  function appConsecSection(ent, cfg) {
+    const nameEnt = onesEntByKey[ent.key];
+    const runs = (allChartRun[cfg.pt] && allChartRun[cfg.pt].result && allChartRun[cfg.pt].result[ent.key]) || {};
+    const rows = [];
+    for (const k of Object.keys(appsByKey[ent.key][cfg.pt])) {
+      const crEntries = (runs[k] && runs[k].entries) || [];
+      const streak = bestPeriodStreak(crEntries.map(function (e) { return e.periodKey; }), cfg.pt);
+      if (!streak) continue;
+      // The `d` each nameRow expects: song1s/album1s carry these fields, and the
+      // names maps hold the same shape. Keys fall back to their own first half
+      // so a missing name map still renders a title rather than "undefined".
+      let d;
+      if (ent.key === 'songs') {
+        const n = songNames[k] || {};
+        d = { title: n.title || k.split('|||')[0], artist: n.artist || '', album: n.album || '' };
+      } else if (ent.key === 'albums') {
+        const n = albumNames[k] || {};
+        d = { album: n.album || k.split('|||')[0], artist: n.artist || '' };
+      } else {
+        d = {};
+      }
+      rows.push({
+        key: k, d: d, streak: streak,
+        total: appsByKey[ent.key][cfg.pt][k],
+        entries: crEntries.slice(streak.startIdx, streak.startIdx + streak.len)
+      });
+    }
+    // Streak first, then the fuller chart history, then whoever got there first.
+    rows.sort(function (a, b) {
+      if (b.streak.len !== a.streak.len) return b.streak.len - a.streak.len;
+      if (b.total !== a.total) return b.total - a.total;
+      return a.streak.start < b.streak.start ? -1 : a.streak.start > b.streak.start ? 1 : 0;
+    });
+    const tableId = 'app-c-tbl-' + ent.key + '-' + cfg.pt;
+    const runBaseId = 'app-c-run-' + ent.key + '-' + cfg.pt;
+    let ah = '<div class="rec-section"><div class="rec-section-title">'
+      + ent.icon + ' ' + ent.label + ' &mdash; ' + t('rec_most_appearances_on', { period: cfg.label })
+      + ' ' + t('rec_suffix_consec') + '</div>';
+    ah += '<div class="rec-section-sub">' + t('rec_consec_sub_app') + '</div>';
+    const headers = ['#', '', ent.label, t('rec_th_consec_on_chart', { unit: cfg.big }),
+      t('rec_th_streak_start'), t('rec_th_streak_end'),
+      '<button class="rec-expand-all-btn" onclick="event.stopPropagation();toggleAllRecRuns(\'' + tableId + '\',this)" title="' + t('rec_expand_all') + '">▶▶</button>'];
+    ah += recTable(headers,
+      rows.map(function (r, i) {
+        const imgId = 'app-c-img-' + ent.key + '-' + cfg.pt + '-' + i;
+        const runId = runBaseId + '-' + i;
+        const dateCell = function (pk) {
+          return '<td class="rec-meta"><a href="#chart/' + cfg.pt + '/' + pk + '" class="rec-date-link" onclick="event.preventDefault();navigateToRecPeriod(\'' + cfg.pt + '\',\'' + pk + '\')">' + fmtPeriodKey(pk, cfg.pt) + '</a></td>';
+        };
+        return nameEnt.nameRow(r.key, r.d, i, imgId)
+          + '<td class="rec-count">' + tCount(cfg.unitKey, r.streak.len) + '</td>'
+          + dateCell(r.streak.start) + dateCell(r.streak.end)
+          + '<td class="rec-run-toggle-cell"><button class="rec-run-toggle-btn" onclick="event.stopPropagation();toggleRecRun(this,\'' + runId + '\')">▶</button></td>';
+      }),
+      lim,
+      rows.map(function (r, i) {
+        // Only the streak, with the real ranks it was made of — a #1 in the
+        // middle of a forty-week run is worth seeing.
+        return { id: runBaseId + '-' + i, html: recStreakBoxesHTML(r.entries, cfg.pt) };
+      }),
+      tableId
+    );
+    ah += '</div>';
+    const sliced = isFinite(lim) ? rows.slice(0, lim) : rows;
+    sliced.forEach(function (r, i) {
+      const imgId = 'app-c-img-' + ent.key + '-' + cfg.pt + '-' + i;
+      if (ent.key === 'songs') {
+        appImgQueue.push({ imgId, imgType: 'song', name: r.d.title, prefKey: 'song:' + r.d.artist.toLowerCase() + '|||' + r.d.title.toLowerCase(), title: r.d.title, artist: r.d.artist, album: r.d.album });
+      } else if (ent.key === 'artists') {
+        appImgQueue.push({ imgId, imgType: 'artist', name: r.key, prefKey: 'artist:' + r.key.toLowerCase() });
+      } else {
+        appImgQueue.push({ imgId, imgType: 'album', name: r.d.album, prefKey: 'album:' + r.d.artist.toLowerCase() + '|||' + r.d.album.toLowerCase(), album: r.d.album, artist: r.d.artist });
+      }
+    });
+    return ah;
+  }
   const appPanels = APP_REC_TYPES.map(function (ent) {
     // One period pill row per entity panel, so Songs can sit on Weekly while
     // Albums sits on Yearly — 'app-songs' is a different stored choice.
@@ -5382,6 +5546,8 @@ function buildRecords() {
         + ' data-rec-per-scope="' + esc(perScope) + '" data-rec-per="' + cfg.pt + '"'
         + ' data-rec-scope="' + esc(perScope + '-' + cfg.pt) + '" style="display:none">'
         + appBuild[ent.key](cfg)
+        // Two records per period panel now — the total, then the longest run.
+        + appConsecSection(ent, cfg)
         + '</div>';
     }
     return { key: ent.key, icon: ent.icon, label: ent.label, html: html };
@@ -12139,6 +12305,52 @@ function rec1sBoxesHTML(periods, pt) {
     if (gap <= 0) return [box];
     const gapEl = '<div class="cr-box-gap"><div class="cr-box-gap-label">✕' + gap + '</div><div class="cr-box-gap-unit">' + unit(gap) + '</div></div>';
     return [gapEl, box];
+  }).join('');
+  return '<div class="cr-boxes-wrap"><div class="cr-boxes">' + boxes + '</div></div>';
+}
+
+/* ── Consecutive-run records ──────────────────────────────────────────
+   The longest unbroken run inside a chronological list of period keys. "Unbroken"
+   is crPeriodGap()'s own test — the same one the chart-run boxes draw their ✕n
+   gap marker from — so a streak here is exactly a stretch of boxes with nothing
+   between them. Ties go to the *earliest* run (the comparison is strict >),
+   because a record belongs to whoever set it first. Returns null for an empty
+   list so callers can skip an entity that never charted. */
+function bestPeriodStreak(periods, pt) {
+  if (!periods || !periods.length) return null;
+  let bestStart = 0, bestLen = 1, curStart = 0, curLen = 1;
+  for (let i = 1; i < periods.length; i++) {
+    if (crPeriodGap(pt, periods[i - 1], periods[i]) === 0) {
+      curLen++;
+    } else {
+      curStart = i; curLen = 1;
+    }
+    if (curLen > bestLen) { bestLen = curLen; bestStart = curStart; }
+  }
+  return {
+    len: bestLen,
+    // Where the run sits in the list it was found in, so a caller that passed
+    // period keys pulled out of a richer list (the chart-run entries, which
+    // carry a rank too) can slice the same stretch back out of that list.
+    startIdx: bestStart,
+    start: periods[bestStart],
+    end: periods[bestStart + bestLen - 1],
+    periods: periods.slice(bestStart, bestStart + bestLen)
+  };
+}
+
+/* Streak boxes — the same furniture rec1sBoxesHTML draws, except each box wears
+   its real chart position, so an Appearances streak can show #1 next to #37.
+   `entries` is [{periodKey, rank}] and is gap-free by construction, so unlike
+   the #1s boxes there is never a ✕n marker to draw between two of them. */
+function recStreakBoxesHTML(entries, pt) {
+  if (!entries || !entries.length) return '';
+  const boxes = entries.map(function (e) {
+    const cls = e.rank === 1 ? 'cr-box cr-box-peak rec-1s-box' : 'cr-box rec-1s-box';
+    return '<div class="' + cls + '" onclick="navigateToRecPeriod(\'' + pt + '\',\'' + e.periodKey + '\')">'
+      + '<div class="cr-box-rank">#' + e.rank + '</div>'
+      + '<div class="cr-box-label">' + esc(crPeriodLabel(pt, e.periodKey)) + '</div>'
+      + '</div>';
   }).join('');
   return '<div class="cr-boxes-wrap"><div class="cr-boxes">' + boxes + '</div></div>';
 }
