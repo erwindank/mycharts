@@ -4271,6 +4271,18 @@ function buildRecords() {
     }
     return pk;
   }
+  /* One end of a streak, written the way that dimension is counted. The
+     streak dims are their own vocabulary ('days'/'weeks'/'months'/'years'),
+     not the chart periods fmtPeriodKey() speaks, so this maps between them.
+     Weeks name their start date rather than "Week of 8 Jun 2026": the column
+     sits beside a second one of the same shape and the panel heading already
+     says these are weeks, so the prefix would be noise twice over. */
+  function fmtStreakBound(dim, key) {
+    if (!key) return '';
+    if (dim === 'days' || dim === 'weeks') return fmt(new Date(key + 'T00:00:00'));
+    if (dim === 'months') return fmtPeriodKey(key, 'month');
+    return key;
+  }
   function periodAtOneHeader(pt) { return pt === 'week' ? t('rec_th_weeks_at_1') : pt === 'month' ? t('rec_th_months_at_1') : t('rec_th_years_at_1'); }
   // Same three headers for the consecutive twin of each All #1s table. Kept as
   // three keys rather than one "Consecutive {{unit}}" template because the
@@ -4705,7 +4717,13 @@ function buildRecords() {
      same key the rest of Records uses, and untagged plays ('—') belong to no
      album so they are skipped rather than pooled into a phantom one. */
   const STREAK_KINDS = ['song', 'artist', 'album'];
-  const STREAK_DIMS = ['days', 'months', 'years'];
+  /* Every dimension counts units the entity was PLAYED in — charting has
+     nothing to do with any of them. Weeks are calendar weeks rather than
+     rolling seven-day windows, bucketed with playWeekKey() so "a week" means
+     the same thing here as everywhere else in the app and moves with the
+     week-start-day setting; that is the only thing the charts lend this
+     ladder, exactly as the daily one borrows your calendar day. */
+  const STREAK_DIMS = ['days', 'weeks', 'months', 'years'];
   // Per entity: the set of calendar buckets it was played in, plus its play total.
   const streakUnits = { song: {}, artist: {}, album: {} };
   // Per entity: its longest back-to-back run and the date that run peaked on.
@@ -4717,15 +4735,15 @@ function buildRecords() {
      artists' runs alive across the same play. */
   const runCursor = { song: {}, artist: {}, album: {} };
 
-  function streakTouch(kind, key, i, p, dk, mk, yk) {
+  function streakTouch(kind, key, i, p, dk, wk, mk, yk) {
     const c = runCursor[kind][key];
     // One play can credit the same artist twice on a sloppily tagged scrobble;
     // count it once, or the play would reset the very run it should extend.
     if (c && c.idx === i) return;
     let u = streakUnits[kind][key];
-    if (!u) u = streakUnits[kind][key] = { days: new Set(), months: new Set(), years: new Set(), plays: 0 };
+    if (!u) u = streakUnits[kind][key] = { days: new Set(), weeks: new Set(), months: new Set(), years: new Set(), plays: 0 };
     u.plays++;
-    u.days.add(dk); u.months.add(mk); u.years.add(yk);
+    u.days.add(dk); u.weeks.add(wk); u.months.add(mk); u.years.add(yk);
     const len = (c && c.idx === i - 1) ? c.len + 1 : 1;
     runCursor[kind][key] = { idx: i, len: len };
     // A single play is not a run — only a repeat is worth recording.
@@ -4737,11 +4755,12 @@ function buildRecords() {
     const p = chron[i];
     const d = tzDate(p.date);
     const dk = localDateStr(d);
+    const wk = playWeekKey(p.date);
     const mk = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0');
     const yk = String(d.getFullYear());
-    streakTouch('song', songKey(p), i, p, dk, mk, yk);
-    for (const a of p.artists) streakTouch('artist', a, i, p, dk, mk, yk);
-    if (p.album && p.album !== '—') streakTouch('album', p.album + '|||' + albumArtist(p), i, p, dk, mk, yk);
+    streakTouch('song', songKey(p), i, p, dk, wk, mk, yk);
+    for (const a of p.artists) streakTouch('artist', a, i, p, dk, wk, mk, yk);
+    if (p.album && p.album !== '—') streakTouch('album', p.album + '|||' + albumArtist(p), i, p, dk, wk, mk, yk);
   }
 
   /* Minimum plays before an entity's ladder is worth ranking. Without a floor
@@ -4749,34 +4768,47 @@ function buildRecords() {
      days — or, worse in the monthly and yearly ladders, on two adjacent
      Decembers. Songs need the least because a song is the smallest unit. */
   const STREAK_MIN_PLAYS = { song: 7, artist: 15, album: 10 };
-  /* A lone month or year is not a streak, so those two ladders start at 2.
+  /* A lone week, month or year is not a streak, so those ladders start at 2.
      Days start at 1 the way they always have — the play floor above is already
      doing the filtering there, and dropping single days would empty the table
      for anyone who listens in bursts. */
-  const STREAK_MIN_LEN = { days: 1, months: 2, years: 2 };
-  /* Bucket keys sort lexicographically into chronological order in all three
-     dimensions, so "consecutive" is a +1 test on the ordinal — the same one
-     _crStkOrd() runs for the per-item streak panels. */
+  const STREAK_MIN_LEN = { days: 1, weeks: 2, months: 2, years: 2 };
+  /* Bucket keys sort lexicographically into chronological order in every
+     dimension — week keys are the week-start date, so they sort with the days
+     — so "consecutive" is a +1 test on the ordinal, the same one _crStkOrd()
+     runs for the per-item streak panels. */
+  /* Returns the winning run itself, not just how long it was, so the tables can
+     say when it happened. `start` and `end` are the first and last bucket keys
+     of that run — for days a date, for weeks the week's start date, for months
+     'YYYY-MM', for years 'YYYY'.
+
+     Ties go to the most recent run (`>=`, not `>`), matching how the per-item
+     streak panel orders its list: when someone has managed the same 12 months
+     twice, the fresher one is the one worth naming. */
   function longestUnitStreak(set, dim) {
     const u = Array.from(set).sort();
-    let mx = u.length ? 1 : 0, cur = 1;
+    if (!u.length) return { len: 0, start: null, end: null };
+    let mx = 1, cur = 1, runStart = 0, bestStart = 0, bestEnd = 0;
     for (let i = 1; i < u.length; i++) {
-      if (_crStkOrd(dim, u[i]) - _crStkOrd(dim, u[i - 1]) === 1) { if (++cur > mx) mx = cur; }
-      else cur = 1;
+      if (_crStkOrd(dim, u[i]) - _crStkOrd(dim, u[i - 1]) === 1) cur++;
+      else { cur = 1; runStart = i; }
+      if (cur >= mx) { mx = cur; bestStart = runStart; bestEnd = i; }
     }
-    return mx;
+    return { len: mx, start: u[bestStart], end: u[bestEnd] };
   }
-  // streaks[kind][dim] = { key: { len, plays } }. Plays ride along because they
-  // are the tiebreak: hundreds of entries share a 2-year streak, and the one
-  // played most is the one that belongs at the top of it.
+  // streaks[kind][dim] = { key: { len, plays, start, end } }. Plays ride along
+  // because they are the tiebreak: hundreds of entries share a 2-year streak,
+  // and the one played most is the one that belongs at the top of it.
   const streaks = { song: {}, artist: {}, album: {} };
   for (const kind of STREAK_KINDS) {
     for (const dim of STREAK_DIMS) streaks[kind][dim] = {};
     for (const [key, u] of Object.entries(streakUnits[kind])) {
       if (u.plays < STREAK_MIN_PLAYS[kind]) continue;
       for (const dim of STREAK_DIMS) {
-        const len = longestUnitStreak(u[dim], dim);
-        if (len >= STREAK_MIN_LEN[dim]) streaks[kind][dim][key] = { len: len, plays: u.plays };
+        const st = longestUnitStreak(u[dim], dim);
+        if (st.len >= STREAK_MIN_LEN[dim]) {
+          streaks[kind][dim][key] = { len: st.len, plays: u.plays, start: st.start, end: st.end };
+        }
       }
     }
   }
@@ -6500,6 +6532,9 @@ function buildRecords() {
      counted with a × rather than a unit word. */
   const STREAK_PERIODS = [
     { pd: 'days', short: t('nav_daily'), title: t('rec_longest_streak_daily'), th: t('rec_th_consec_days'), unit: 'days' },
+    // 'weeks_full' rather than 'weeks': the short form ("wks") is for chart
+    // cells, and this column reads as prose.
+    { pd: 'weeks', short: t('nav_weekly'), title: t('rec_longest_streak_weekly'), th: t('rec_th_consec_weeks'), unit: 'weeks_full' },
     { pd: 'months', short: t('nav_monthly'), title: t('rec_longest_streak_monthly'), th: t('rec_th_consec_months'), unit: 'months' },
     { pd: 'years', short: t('nav_yearly'), title: t('rec_longest_streak_yearly'), th: t('rec_th_consec_years'), unit: 'years' },
     { pd: 'runs', short: t('rec_per_runs'), title: t('rec_repeat_runs'), th: t('rec_th_consec_plays') },
@@ -6546,8 +6581,13 @@ function buildRecords() {
       if (!entries.length) {
         html += '<div class="rec-empty">' + t(isRuns ? 'rec_no_repeat_runs' : 'rec_no_data') + '</div>';
       } else {
+        /* Streaks say when they happened; runs already carry the date their
+           run peaked on, in a column of their own. "From"/"To" rather than
+           "Started"/"Ended" because the top of these tables is often a run
+           that is still going — nothing has ended. */
         const headers = ['#', nameTh, cfg.th];
         if (isRuns) headers.push(t('rec_th_date'));
+        else headers.push(t('rec_th_streak_from'), t('rec_th_streak_to'));
         html += recTable(headers,
           entries.map(function (e, i) {
             const n = strName[ent.kind](e[0]);
@@ -6557,6 +6597,10 @@ function buildRecords() {
               + (n.sub ? '<div class="rec-sub">' + esc(n.sub) + '</div>' : '') + '</td>'
               + '<td class="rec-count">' + val + '</td>';
             if (isRuns) row += '<td class="rec-meta">' + (e[1].date ? fmt(e[1].date) : '') + '</td>';
+            else {
+              row += '<td class="rec-meta">' + esc(fmtStreakBound(cfg.pd, e[1].start)) + '</td>'
+                + '<td class="rec-meta">' + esc(fmtStreakBound(cfg.pd, e[1].end)) + '</td>';
+            }
             return row;
           }),
           lim, null, null,
@@ -6588,12 +6632,28 @@ function buildRecords() {
      under the name — usually the artist, but sometimes a date ("8 Jul 2026")
      — while `artist` is only ever the credited artist, because the overview
      cards look artwork up by title+artist and a date would poison the query.
-     Artists' own cards need no artist: their name is the query. */
-  function hi(sectionId, type, label, value, name, sub, artist) {
+     Artists' own cards need no artist: their name is the query.
+
+     `slot` names which of a section's records this is — one card on the
+     overview board. Chart-period sections use 'week' | 'month' | 'year';
+     sections whose record is a lifetime total (milestones, fastest-to,
+     certifications) use 'all'; Streaks names its ladder outright
+     ('runs' | 'days' | 'weeks' | 'months' | 'years'), because a back-to-back
+     run and a daily streak are two different records rather than two periods
+     of one. REC_OV_SLOTS decides which pill each slot appears under. */
+  function hi(sectionId, slot, type, label, value, name, sub, artist) {
     if (!value) return;
     if (!recHi[sectionId]) recHi[sectionId] = {};
-    recHi[sectionId][type] = { label: label, value: value, name: name || '', sub: sub || '', artist: artist || '' };
+    if (!recHi[sectionId][slot]) recHi[sectionId][slot] = {};
+    recHi[sectionId][slot][type] = { label: label, value: value, name: name || '', sub: sub || '', artist: artist || '' };
   }
+  // The three chart periods every splittable card is built for, the unit word
+  // each one counts in, and the label lookup. Weekly keeps the untranslated
+  // base key so existing translations stay valid; monthly and yearly get their
+  // own strings, and anything period-neutral (a PAK is a PAK) reuses the base.
+  const OV_PERIODS = ['week', 'month', 'year'];
+  const OV_UNIT = { week: 'weeks_full', month: 'months', year: 'years' };
+  const ovL = function (base, pd) { return t(pd === 'week' ? base : base + '_' + pd); };
   // Single-pass "best entry" helpers — cheaper and clearer than sorting to take [0].
   function topNum(map) {
     let bk = null, bv = -Infinity;
@@ -6621,62 +6681,65 @@ function buildRecords() {
   const albumArt = k => (albumNames[k] || {}).artist || '';
 
   // All #1s — most periods spent at the top spot
-  {
-    const L = t('rec_ov_all_ones');
-    const s = topBy(song1s.week, byCount), a = topBy(artist1s.week, byCount), l = topBy(album1s.week, byCount);
-    if (s) hi('recAllOnesSection', 'songs', L, tCount('weeks_full', s[1].count), s[1].title, s[1].artist, s[1].artist);
-    if (a) hi('recAllOnesSection', 'artists', L, tCount('weeks_full', a[1].count), a[0]);
-    if (l) hi('recAllOnesSection', 'albums', L, tCount('weeks_full', l[1].count), l[1].album, l[1].artist, l[1].artist);
+  for (const pd of OV_PERIODS) {
+    const L = ovL('rec_ov_all_ones', pd), U = OV_UNIT[pd];
+    const s = topBy(song1s[pd], byCount), a = topBy(artist1s[pd], byCount), l = topBy(album1s[pd], byCount);
+    if (s) hi('recAllOnesSection', pd, 'songs', L, tCount(U, s[1].count), s[1].title, s[1].artist, s[1].artist);
+    if (a) hi('recAllOnesSection', pd, 'artists', L, tCount(U, a[1].count), a[0]);
+    if (l) hi('recAllOnesSection', pd, 'albums', L, tCount(U, l[1].count), l[1].album, l[1].artist, l[1].artist);
   }
 
   /* Perfect All Kill — a PAK is an artist event, but each one also crowns a
-     song and an album, so all three types have a most-frequent entry. The
-     overview reads the weekly chart, like every other card here; the monthly
-     and yearly PAKs live behind the section's own period pills. */
-  if (pakPeriods.week.length) {
-    const L = t('rec_ov_pak');
+     song and an album, so all three types have a most-frequent entry. One card
+     per period: a yearly PAK is a far rarer thing than a weekly one, which is
+     exactly why the pills are worth having. The label stays period-neutral —
+     "Most Perfect All Kills" is true of all three — and the value carries the
+     unit. */
+  for (const pd of OV_PERIODS) {
+    if (!pakPeriods[pd].length) continue;
+    const L = t('rec_ov_pak'), U = OV_UNIT[pd];
     /* Also remembers which artist each tallied song/album belongs to — the PAK
        rows only name the work, and the overview card needs the artist to look
-       its artwork up. A PAK crowns one artist per week, so the artist recorded
-       alongside a title is by definition that title's own. */
+       its artwork up. A PAK crowns one artist per period, so the artist
+       recorded alongside a title is by definition that title's own. */
     const tally = function (field) {
       const m = {}, art = {};
-      for (const pw of pakPeriods.week) { const v = pw[field]; if (v) { m[v] = (m[v] || 0) + 1; art[v] = art[v] || pw.artist; } }
+      for (const pw of pakPeriods[pd]) { const v = pw[field]; if (v) { m[v] = (m[v] || 0) + 1; art[v] = art[v] || pw.artist; } }
       const top = topNum(m);
       return top ? [top[0], top[1], art[top[0]] || ''] : null;
     };
     const s = tally('song'), a = tally('artist'), l = tally('album');
-    if (s) hi('recPAKSection', 'songs', L, tCount('weeks_full', s[1]), s[0], '', s[2]);
-    if (a) hi('recPAKSection', 'artists', L, tCount('weeks_full', a[1]), a[0]);
-    if (l) hi('recPAKSection', 'albums', L, tCount('weeks_full', l[1]), l[0], '', l[2]);
+    if (s) hi('recPAKSection', pd, 'songs', L, tCount(U, s[1]), s[0], '', s[2]);
+    if (a) hi('recPAKSection', pd, 'artists', L, tCount(U, a[1]), a[0]);
+    if (l) hi('recPAKSection', pd, 'albums', L, tCount(U, l[1]), l[0], '', l[2]);
   }
 
-  // Most chart appearances — weeks spent anywhere on the chart
-  {
-    const L = t('rec_ov_appearances');
-    const s = topNum(songApps.week), a = topNum(artistApps.week), l = topNum(albumApps.week);
-    if (s) hi('recAppearancesSection', 'songs', L, tCount('weeks_full', s[1]), songNm(s[0]), songArt(s[0]), songArt(s[0]));
-    if (a) hi('recAppearancesSection', 'artists', L, tCount('weeks_full', a[1]), a[0]);
-    if (l) hi('recAppearancesSection', 'albums', L, tCount('weeks_full', l[1]), albumNm(l[0]), albumArt(l[0]), albumArt(l[0]));
+  // Most chart appearances — periods spent anywhere on the chart
+  for (const pd of OV_PERIODS) {
+    const L = ovL('rec_ov_appearances', pd), U = OV_UNIT[pd];
+    const s = topNum(songApps[pd]), a = topNum(artistApps[pd]), l = topNum(albumApps[pd]);
+    if (s) hi('recAppearancesSection', pd, 'songs', L, tCount(U, s[1]), songNm(s[0]), songArt(s[0]), songArt(s[0]));
+    if (a) hi('recAppearancesSection', pd, 'artists', L, tCount(U, a[1]), a[0]);
+    if (l) hi('recAppearancesSection', pd, 'albums', L, tCount(U, l[1]), albumNm(l[0]), albumArt(l[0]), albumArt(l[0]));
   }
 
-  // Biggest weekly debut
-  {
-    const L = t('rec_ov_debuts');
+  // Biggest debut, one per chart period
+  for (const pd of OV_PERIODS) {
+    const L = ovL('rec_ov_debuts', pd);
     const val = d => t('rec_ov_debut_value', { rank: d.rank, plays: tCount('plays', d.plays || 0) });
-    const s = topBy(songDebuts.week, byDebut), a = topBy(artistDebuts.week, byDebut), l = topBy(albumDebuts.week, byDebut);
-    if (s) hi('recDebutsSection', 'songs', L, val(s[1]), s[1].title, s[1].artist, s[1].artist);
-    if (a) hi('recDebutsSection', 'artists', L, val(a[1]), a[0]);
-    if (l) hi('recDebutsSection', 'albums', L, val(l[1]), l[1].album, l[1].artist, l[1].artist);
+    const s = topBy(songDebuts[pd], byDebut), a = topBy(artistDebuts[pd], byDebut), l = topBy(albumDebuts[pd], byDebut);
+    if (s) hi('recDebutsSection', pd, 'songs', L, val(s[1]), s[1].title, s[1].artist, s[1].artist);
+    if (a) hi('recDebutsSection', pd, 'artists', L, val(a[1]), a[0]);
+    if (l) hi('recDebutsSection', pd, 'albums', L, val(l[1]), l[1].album, l[1].artist, l[1].artist);
   }
 
-  // Most plays inside a single week
-  {
-    const L = t('rec_ov_peak_plays');
-    const s = topBy(songPP.week, byCount), a = topBy(artistPP.week, byCount), l = topBy(albumPP.week, byCount);
-    if (s) hi('recPeakPlaysSection', 'songs', L, tCount('plays', s[1].count), s[1].title || songNm(s[0]), s[1].artist || songArt(s[0]), s[1].artist || songArt(s[0]));
-    if (a) hi('recPeakPlaysSection', 'artists', L, tCount('plays', a[1].count), a[0]);
-    if (l) hi('recPeakPlaysSection', 'albums', L, tCount('plays', l[1].count), l[1].album || albumNm(l[0]), l[1].artist || albumArt(l[0]), l[1].artist || albumArt(l[0]));
+  // Most plays inside a single week, month or year
+  for (const pd of OV_PERIODS) {
+    const L = ovL('rec_ov_peak_plays', pd);
+    const s = topBy(songPP[pd], byCount), a = topBy(artistPP[pd], byCount), l = topBy(albumPP[pd], byCount);
+    if (s) hi('recPeakPlaysSection', pd, 'songs', L, tCount('plays', s[1].count), s[1].title || songNm(s[0]), s[1].artist || songArt(s[0]), s[1].artist || songArt(s[0]));
+    if (a) hi('recPeakPlaysSection', pd, 'artists', L, tCount('plays', a[1].count), a[0]);
+    if (l) hi('recPeakPlaysSection', pd, 'albums', L, tCount('plays', l[1].count), l[1].album || albumNm(l[0]), l[1].artist || albumArt(l[0]), l[1].artist || albumArt(l[0]));
   }
 
   // Highest play-count milestone reached (artists and songs only).
@@ -6698,11 +6761,13 @@ function buildRecords() {
       return best ? { m: topM, key: best[0], ms: best[1] } : null;
     };
     const a = firstTo(artistMS), s = firstTo(songMS), l = firstTo(albumMS);
-    if (s) hi('recMilestonesSection', 'songs', L, tCount('plays', s.m), songNm(s.key), fmtDate(s.ms.date), songArt(s.key));
-    if (a) hi('recMilestonesSection', 'artists', L, tCount('plays', a.m), a.key, fmtDate(a.ms.date));
+    // 'all' only: a play-count milestone is a lifetime total, not something a
+    // week or a year holds, so this card sits out the period pills.
+    if (s) hi('recMilestonesSection', 'all', 'songs', L, tCount('plays', s.m), songNm(s.key), fmtDate(s.ms.date), songArt(s.key));
+    if (a) hi('recMilestonesSection', 'all', 'artists', L, tCount('plays', a.m), a.key, fmtDate(a.ms.date));
     // Albums now climb the same ladder, so this card is no longer permanently
     // empty on the Albums pill.
-    if (l) hi('recMilestonesSection', 'albums', L, tCount('plays', l.m), albumNm(l.key), fmtDate(l.ms.date), albumArt(l.key));
+    if (l) hi('recMilestonesSection', 'all', 'albums', L, tCount('plays', l.m), albumNm(l.key), fmtDate(l.ms.date), albumArt(l.key));
   }
 
   /* Fastest to a milestone. Each entity is shown at the headline tier of its
@@ -6733,13 +6798,15 @@ function buildRecords() {
     const s = fastestAtOrBelow(songMS, [500, 250, 100, 50]);
     const a = fastestAtOrBelow(artistMS, [1000, 500]);
     const l = fastestAtOrBelow(albumMS, [500, 250, 100]);
-    if (s) hi('recFastestSection', 'songs', t('rec_ov_fastest', { n: s.m.toLocaleString() }),
+    // 'all' only, for the same reason as Milestones above: the race to a
+    // lifetime total does not belong to any one chart period.
+    if (s) hi('recFastestSection', 'all', 'songs', t('rec_ov_fastest', { n: s.m.toLocaleString() }),
       fmtElapsed(s.best[1].elapsed), songNm(s.best[0]), songArt(s.best[0]), songArt(s.best[0]));
-    if (a) hi('recFastestSection', 'artists', t('rec_ov_fastest', { n: a.m.toLocaleString() }),
+    if (a) hi('recFastestSection', 'all', 'artists', t('rec_ov_fastest', { n: a.m.toLocaleString() }),
       fmtElapsed(a.best[1].elapsed), a.best[0]);
     // Albums climb their own ladder now, so this card is no longer empty on the
     // Albums pill.
-    if (l) hi('recFastestSection', 'albums', t('rec_ov_fastest', { n: l.m.toLocaleString() }),
+    if (l) hi('recFastestSection', 'all', 'albums', t('rec_ov_fastest', { n: l.m.toLocaleString() }),
       fmtElapsed(l.best[1].elapsed), albumNm(l.best[0]), albumArt(l.best[0]), albumArt(l.best[0]));
   }
 
@@ -6752,7 +6819,8 @@ function buildRecords() {
   {
     if (certW[0]) {
       const c0 = certW[0], nCert = c0.sg + c0.sp + c0.sd + c0.ag + c0.ap + c0.ad;
-      hi('recCertsSection', 'artists', t('rec_ov_certs'), t('rec_ov_certs_value', { n: nCert }), c0.art);
+      // 'all' only: certifications are awarded on lifetime plays.
+      hi('recCertsSection', 'all', 'artists', t('rec_ov_certs'), t('rec_ov_certs_value', { n: nCert }), c0.art);
     }
     const firstToTopTier = function (type) {
       let best = null, bestOrd = Infinity;
@@ -6770,19 +6838,21 @@ function buildRecords() {
     [['songs', 'song'], ['albums', 'album']].forEach(function (pair) {
       const w = firstToTopTier(pair[1]);
       if (!w) return;
-      hi('recCertsSection', pair[0], t('rec_ov_certs_first'), t('rec_ov_cert_tier_' + w.tier),
+      hi('recCertsSection', 'all', pair[0], t('rec_ov_certs_first'), t('rec_ov_cert_tier_' + w.tier),
         w.title, w.date ? fmtDate(new Date(w.date + 'T00:00:00')) : w.artist, w.artist);
     });
   }
 
-  /* Longest run of consecutive listening days. The daily ladder is the one
-     the card quotes for every entity, months and years being a period pill
-     away rather than a record of their own. */
+  /* Longest run of consecutive listening. All five of the section's ladders
+     get a card, because they are five different records rather than one
+     record sliced five ways: days, weeks, months and years each count a
+     different unit, and a back-to-back run counts plays in the log with
+     nothing in between. Weeks, months and years double as the Weekly, Monthly
+     and Yearly pills; the other two are All-only. */
   {
-    const L = t('rec_ov_streaks');
     // Same order the tables rank in: longest first, most-played breaks the tie.
-    const bestDays = function (kind) {
-      const map = streaks[kind].days;
+    const bestStreak = function (kind, dim) {
+      const map = streaks[kind][dim];
       let bk = null, bv = null;
       for (const k in map) {
         const v = map[k];
@@ -6790,20 +6860,51 @@ function buildRecords() {
       }
       return bk === null ? null : [bk, bv];
     };
-    const s = bestDays('song'), a = bestDays('artist'), l = bestDays('album');
-    if (s) hi('recStreaksSection', 'songs', L, tCount('days', s[1].len), songNm(s[0]), songArt(s[0]), songArt(s[0]));
-    if (a) hi('recStreaksSection', 'artists', L, tCount('days', a[1].len), a[0]);
-    if (l) hi('recStreaksSection', 'albums', L, tCount('days', l[1].len), albumNm(l[0]), albumArt(l[0]), albumArt(l[0]));
+    /* Back-to-back runs live in their own map and rank on a different figure,
+       so they get their own reader. Ties break toward the most recent run,
+       matching the section's own table. */
+    const bestRun = function (kind) {
+      const map = bestRuns[kind];
+      let bk = null, bv = null;
+      for (const k in map) {
+        const v = map[k];
+        if (!bv || v.count > bv.count || (v.count === bv.count && v.date > bv.date)) { bk = k; bv = v; }
+      }
+      return bk === null ? null : [bk, bv];
+    };
+    // 'weeks_full' is the prose plural; the streak dims are their own unit keys.
+    const STREAK_OV = [
+      { slot: 'days', dim: 'days', unit: 'days', label: t('rec_ov_streaks') },
+      { slot: 'weeks', dim: 'weeks', unit: 'weeks_full', label: t('rec_ov_streaks_week') },
+      { slot: 'months', dim: 'months', unit: 'months', label: t('rec_ov_streaks_month') },
+      { slot: 'years', dim: 'years', unit: 'years', label: t('rec_ov_streaks_year') },
+    ];
+    for (const cfg of STREAK_OV) {
+      const s = bestStreak('song', cfg.dim), a = bestStreak('artist', cfg.dim), l = bestStreak('album', cfg.dim);
+      if (s) hi('recStreaksSection', cfg.slot, 'songs', cfg.label, tCount(cfg.unit, s[1].len), songNm(s[0]), songArt(s[0]), songArt(s[0]));
+      if (a) hi('recStreaksSection', cfg.slot, 'artists', cfg.label, tCount(cfg.unit, a[1].len), a[0]);
+      if (l) hi('recStreaksSection', cfg.slot, 'albums', cfg.label, tCount(cfg.unit, l[1].len), albumNm(l[0]), albumArt(l[0]), albumArt(l[0]));
+    }
+    {
+      // Same "12×" the runs table prints, so the card and the row it links to
+      // quote the record in one shape.
+      const R = t('rec_ov_streak_runs');
+      const runVal = e => e[1].count.toLocaleString() + '×';
+      const s = bestRun('song'), a = bestRun('artist'), l = bestRun('album');
+      if (s) hi('recStreaksSection', 'runs', 'songs', R, runVal(s), songNm(s[0]), songArt(s[0]), songArt(s[0]));
+      if (a) hi('recStreaksSection', 'runs', 'artists', R, runVal(a), a[0]);
+      if (l) hi('recStreaksSection', 'runs', 'albums', R, runVal(l), albumNm(l[0]), albumArt(l[0]), albumArt(l[0]));
+    }
   }
 
   // Biggest debut on the New Songs / New Artists / New Albums charts
-  {
-    const L = t('rec_ov_new_charts');
+  for (const pd of OV_PERIODS) {
+    const L = ovL('rec_ov_new_charts', pd);
     const val = d => t('rec_ov_debut_value', { rank: d.rank, plays: tCount('plays', d.plays || 0) });
-    const s = topBy(ncSongDebuts.week, byDebut), a = topBy(ncArtistDebuts.week, byDebut), l = topBy(ncAlbumDebuts.week, byDebut);
-    if (s) hi('recNewChartsSection', 'songs', L, val(s[1]), s[1].title, s[1].artist, s[1].artist);
-    if (a) hi('recNewChartsSection', 'artists', L, val(a[1]), a[0]);
-    if (l) hi('recNewChartsSection', 'albums', L, val(l[1]), l[1].album, l[1].artist, l[1].artist);
+    const s = topBy(ncSongDebuts[pd], byDebut), a = topBy(ncArtistDebuts[pd], byDebut), l = topBy(ncAlbumDebuts[pd], byDebut);
+    if (s) hi('recNewChartsSection', pd, 'songs', L, val(s[1]), s[1].title, s[1].artist, s[1].artist);
+    if (a) hi('recNewChartsSection', pd, 'artists', L, val(a[1]), a[0]);
+    if (l) hi('recNewChartsSection', pd, 'albums', L, val(l[1]), l[1].album, l[1].artist, l[1].artist);
   }
 
   renderRecordsOverview(recHi);
@@ -6844,8 +6945,59 @@ const REC_OV_TYPES = [
   { key: 'albums', label: 'rec_th_albums' },
 ];
 
-// Held so the Songs/Artists/Albums toggle can re-render from memory instead of
-// re-running buildRecords(), which would rebuild all ~55 tables to change a pill.
+/* Second toggle, under the type pills: which chart period the board is cut to.
+   'all' is every record the overview knows about; the other three narrow it to
+   one chart period. */
+const REC_OV_PERIODS = [
+  { key: 'all', label: 'rec_ov_period_all' },
+  { key: 'week', label: 'nav_weekly' },
+  { key: 'month', label: 'nav_monthly' },
+  { key: 'year', label: 'nav_yearly' },
+];
+
+/* Every card the board can show, per section: which stored record it reads
+   (`slot`, the key hi() filed it under), which pills it appears under
+   (`pills`) and the chip it wears when several of a section's cards sit side
+   by side on All (`tag`).
+
+   All shows the lot, so every slot lists 'all'. A section whose record is a
+   lifetime total has one slot and no tag — nothing to tell apart. Streaks is
+   the section with the most: five ladders, five cards, of which three answer
+   a period pill and two (the daily streak and the back-to-back run) are
+   All-only because no chart period corresponds to them.
+
+   A section missing from this map draws no card, which is the safe failure:
+   adding a records section means adding its slots here, and forgetting leaves
+   a gap rather than an empty tile or a wrong figure. */
+const OV_CHART_SLOTS = [
+  { slot: 'week', pills: ['all', 'week'], tag: 'nav_weekly' },
+  { slot: 'month', pills: ['all', 'month'], tag: 'nav_monthly' },
+  { slot: 'year', pills: ['all', 'year'], tag: 'nav_yearly' },
+];
+const OV_ALLTIME_SLOTS = [{ slot: 'all', pills: ['all'], tag: null }];
+
+const REC_OV_SLOTS = {
+  recAllOnesSection: OV_CHART_SLOTS,
+  recPAKSection: OV_CHART_SLOTS,
+  recAppearancesSection: OV_CHART_SLOTS,
+  recDebutsSection: OV_CHART_SLOTS,
+  recPeakPlaysSection: OV_CHART_SLOTS,
+  recMilestonesSection: OV_ALLTIME_SLOTS,
+  recFastestSection: OV_ALLTIME_SLOTS,
+  recCertsSection: OV_ALLTIME_SLOTS,
+  recStreaksSection: [
+    { slot: 'runs', pills: ['all'], tag: 'rec_per_runs' },
+    { slot: 'days', pills: ['all'], tag: 'nav_daily' },
+    { slot: 'weeks', pills: ['all', 'week'], tag: 'nav_weekly' },
+    { slot: 'months', pills: ['all', 'month'], tag: 'nav_monthly' },
+    { slot: 'years', pills: ['all', 'year'], tag: 'nav_yearly' },
+  ],
+  recNewChartsSection: OV_CHART_SLOTS,
+};
+
+// Held so the Songs/Artists/Albums and period toggles can re-render from memory
+// instead of re-running buildRecords(), which would rebuild all ~55 tables to
+// change a pill. Shape: { sectionId: { slot: { type: {…} } } }.
 let _recOvHighlights = {};
 
 // The chart type the pills speak in ("songs") vs. the one the image loader
@@ -6876,6 +7028,24 @@ function recOverviewType() {
   return REC_OV_TYPES.some(function (ty) { return ty.key === stored; }) ? stored : 'songs';
 }
 
+function recOverviewPeriod() {
+  const stored = localStorage.getItem('dc_rec_ov_period');
+  return REC_OV_PERIODS.some(function (p) { return p.key === stored; }) ? stored : 'all';
+}
+
+/* Every card on the board for one period, in nav order: each section's slots
+   that answer this pill, flattened. */
+function recOvCards(period) {
+  const cards = [];
+  for (const id of REC_SECTION_IDS) {
+    if (id === 'recOverviewSection') continue;
+    for (const sl of (REC_OV_SLOTS[id] || [])) {
+      if (sl.pills.indexOf(period) !== -1) cards.push({ id: id, slot: sl.slot, tag: sl.tag });
+    }
+  }
+  return cards;
+}
+
 /* Section id → sprite symbol id. The symbols themselves are defined once in
    index.html and shared by the nav pills, the section headings and these
    overview cards; this map is only needed here because the cards are the one
@@ -6900,7 +7070,8 @@ function renderRecordsOverview(highlights) {
   if (!body) return;
   if (highlights) _recOvHighlights = highlights;
   const type = recOverviewType();
-  const sections = REC_SECTION_IDS.filter(function (id) { return id !== 'recOverviewSection'; });
+  const period = recOverviewPeriod();
+  const cards = recOvCards(period);
 
   let html = '<p class="rec-ov-intro">' + esc(t('rec_ov_intro')) + '</p>';
   html += '<div class="rec-ov-types" role="group" aria-label="' + esc(t('rec_ov_type_label')) + '">';
@@ -6911,18 +7082,29 @@ function renderRecordsOverview(highlights) {
   }).join('');
   html += '</div>';
 
+  // Second row, one step quieter than the first: the type pills pick what the
+  // board is about, these pick how it is sliced.
+  html += '<div class="rec-ov-periods" role="group" aria-label="' + esc(t('rec_ov_period_label')) + '">';
+  html += REC_OV_PERIODS.map(function (p) {
+    return '<button type="button" class="rec-ov-period' + (p.key === period ? ' active' : '') +
+      '" data-rec-ov-period="' + p.key + '" aria-pressed="' + (p.key === period) + '">' +
+      esc(t(p.label)) + '</button>';
+  }).join('');
+  html += '</div>';
+
   /* Cards are built to the mosaic tile's anatomy (.wv-mos-item): the record
      holder's artwork fills the whole card, a scrim at the top carries the
      section name and one at the foot carries every fact — the figure, who
      holds it and what it is. Unlike the mosaic, all tiles are the same size;
      nothing here is being weighted against anything else. */
   const imgItems = [];
-  html += sections.map(function (id, idx) {
+  html += cards.map(function (c, idx) {
+    const id = c.id;
     const sec = document.getElementById(id);
     if (!sec) return '';
     const heading = sec.querySelector('.section-header-h2');
     const title = heading ? heading.textContent.trim() : id;
-    const d = (_recOvHighlights[id] || {})[type];
+    const d = (_recOvHighlights[id] || {})[c.slot] ? _recOvHighlights[id][c.slot][type] : null;
     const hasRecord = !!(d && d.value);
 
     /* A <div role="button"> rather than a real <button>: the artwork carries
@@ -6934,7 +7116,9 @@ function renderRecordsOverview(highlights) {
     // Artwork only where there is a record to illustrate — an empty card has
     // no holder, so it stays a plain surface instead of borrowing someone's art.
     if (hasRecord && d.name) {
-      const imgId = 'recov-' + type + '-' + idx;
+      // Card index, not section index: All puts several cards from one section
+      // on the board, and a reused id would let a stale observer resolve.
+      const imgId = 'recov-' + period + '-' + type + '-' + idx;
       imgItems.push(recOvImgItem(type, d, imgId));
       card += '<div class="rec-ov-art"><div class="thumb-wrap"><div id="' + imgId + '">'
         + '<div class="thumb-initials">' + esc(initials(d.name)) + '</div></div></div></div>';
@@ -6946,12 +7130,17 @@ function renderRecordsOverview(highlights) {
     // the pill it jumps to and the heading it lands on all carry one mark.
     // Titles no longer supply an emoji of their own: it was stripped out of
     // the rec_*_title strings when the sprite went in.
+    // On All, where one section can put five cards up at once, the slot's chip
+    // rides alongside the title so they are not five tiles with one name. Under
+    // a period pill the pill itself already says which, so the chip is dropped.
     card += '<span class="rec-ov-title">' +
       (REC_SECTION_ICON[id]
         ? '<svg class="rec-ov-ico" aria-hidden="true" focusable="false"><use href="#' +
           REC_SECTION_ICON[id] + '" /></svg>'
         : '') +
-      esc(title) + '</span>';
+      esc(title) +
+      (period === 'all' && c.tag ? '<span class="rec-ov-tag">' + esc(t(c.tag)) + '</span>' : '') +
+      '</span>';
     card += '<div class="rec-ov-bot">';
     card += '<span class="rec-ov-value">' + (hasRecord ? esc(d.value) : '—') + '</span>';
     if (hasRecord && d.name) {
@@ -6976,6 +7165,12 @@ function renderRecordsOverview(highlights) {
       if (typeBtn) {
         localStorage.setItem('dc_rec_ov_type', typeBtn.dataset.recOvType);
         renderRecordsOverview(); // re-reads the cached highlights, no rebuild
+        return;
+      }
+      const perBtn = e.target.closest('[data-rec-ov-period]');
+      if (perBtn) {
+        localStorage.setItem('dc_rec_ov_period', perBtn.dataset.recOvPeriod);
+        renderRecordsOverview();
         return;
       }
       const card = e.target.closest('[data-rec-goto]');
@@ -11720,15 +11915,18 @@ function buildItemHeatmapHTML(type, key) {
 }
 
 // ─── CHART RUN: STREAK RECORDS ─────────────────────────────────
-// Four nested notions of "consecutive" for a single song/artist/album:
+// Five nested notions of "consecutive" for a single song/artist/album:
 //   plays  — back-to-back listens in the global play log (nothing else between)
 //   days   — consecutive calendar days with at least one play
+//   weeks  — consecutive calendar weeks with at least one play (playWeekKey,
+//            so a week starts on your week-start day), matching the Records
+//            tab's weekly streak ladder
 //   months — consecutive calendar months
 //   years  — consecutive calendar years
-// All four are computed from the full listening history: the chart-run RANGE
+// All five are computed from the full listening history: the chart-run RANGE
 // buttons scope chart appearances, not plays, so they deliberately don't apply here.
-const CR_STK_DIMS = ['plays', 'days', 'months', 'years'];
-// A lone play/day/month/year isn't a streak — only runs of 2+ consecutive units count,
+const CR_STK_DIMS = ['plays', 'days', 'weeks', 'months', 'years'];
+// A lone play/day/week/month/year isn't a streak — only runs of 2+ consecutive units count,
 // so isolated units are filtered out before any stat is derived.
 const CR_STK_MIN = 2;
 const _crStreakData = new Map();
@@ -11741,6 +11939,9 @@ const _crStreakData = new Map();
 const CR_STK_TIER_LADDER = {
   plays: [3, 4, 6, 10, 20],
   days: [3, 7, 14, 30, 60],
+  // Sits between the daily and monthly ladders: 32 weeks is a little over
+  // seven months, which is where the monthly ladder tops out too.
+  weeks: [2, 4, 8, 16, 32],
   months: [2, 3, 6, 12, 24],
   years: [2, 3, 4, 5, 6],
 };
@@ -11778,15 +11979,27 @@ function _crItemMatcher(type, key) {
 // Bucket keys are ordinal-comparable so "consecutive" is a simple +1 test.
 function _crStkOrd(dim, k) {
   if (dim === 'days') { const [y, m, d] = k.split('-').map(Number); return Math.round(Date.UTC(y, m - 1, d) / 86400000); }
+  /* A week key is its start day's date, and every week key in the set shares
+     the same weekday, so the day ordinals are all 7 apart and flooring by 7
+     turns them into consecutive integers. Floor, not round: the shared
+     remainder then falls out identically for every key. */
+  if (dim === 'weeks') { const [y, m, d] = k.split('-').map(Number); return Math.floor(Math.round(Date.UTC(y, m - 1, d) / 86400000) / 7); }
   if (dim === 'months') { const [y, m] = k.split('-').map(Number); return y * 12 + m; }
   return +k;
 }
 
 function _crStkKeyLabel(dim, k) {
-  if (dim === 'days') { const [y, m, d] = k.split('-').map(Number); return `${t(_CR_MON_SHORT[m - 1])} ${d}, ${String(y).slice(-2)}`; }
+  // Weeks are keyed by their start day, so they wear the same compact date the
+  // days do — the tab above already says which unit is being counted.
+  if (dim === 'days' || dim === 'weeks') { const [y, m, d] = k.split('-').map(Number); return `${t(_CR_MON_SHORT[m - 1])} ${d}, ${String(y).slice(-2)}`; }
   if (dim === 'months') { const [y, m] = k.split('-').map(Number); return `${t(_CR_MON_SHORT[m - 1])} ${y}`; }
   return k;
 }
+
+/* The plural key a dimension counts in. Only weeks differ from their own name:
+   'weeks' is the chart-cell abbreviation ("wks") and these panels read as
+   prose, so they take the full word. */
+function _crStkUnitKey(dim) { return dim === 'weeks' ? 'weeks_full' : dim; }
 
 function _crStkPlayLabel(p) {
   const d = tzDate(p.date);
@@ -11802,7 +12015,13 @@ function _crStkSpanLabel(ms) {
   return `${d}d ${h % 24}h`;
 }
 
-function _crStkGroup(counts, dim, currentKey) {
+/* `graceKey` is the unit just before the current one. A streak is not dead
+   because the unit we are living in has no play in it yet — the day is not
+   over, and neither is the week — so the caller passes yesterday / last week
+   here and months and years, which are long enough to speak for themselves,
+   pass nothing. It used to be a `dim === 'days'` test inside the loop; weeks
+   need the same forgiveness, and a parameter says so where it is decided. */
+function _crStkGroup(counts, dim, currentKey, graceKey) {
   const keys = Object.keys(counts).sort();
   const groups = [];
   let cur = null;
@@ -11819,9 +12038,9 @@ function _crStkGroup(counts, dim, currentKey) {
       len: units.length,
       plays: units.reduce((a, u) => a + u.count, 0),
       units,
-      // A run only counts as "current" while it reaches into the unit we're living
-      // in — for days that includes yesterday, since today may just not have a play yet.
-      isCurrent: units[units.length - 1].key === currentKey || (dim === 'days' && units[units.length - 1].key === _crStkYesterdayKey()),
+      // A run only counts as "current" while it reaches into the unit we're
+      // living in, or into the grace unit just before it (see above).
+      isCurrent: units[units.length - 1].key === currentKey || (!!graceKey && units[units.length - 1].key === graceKey),
       live: units[units.length - 1].key === currentKey,
     };
   });
@@ -11832,13 +12051,20 @@ function _crStkYesterdayKey() {
   return localDateStr(new Date(n.getFullYear(), n.getMonth(), n.getDate() - 1));
 }
 
+// The week before the one we're in — seven days back lands inside it whatever
+// the week-start day is, and playWeekKey() snaps to that week's start.
+function _crStkLastWeekKey() {
+  const n = tzNow();
+  return playWeekKey(new Date(n.getFullYear(), n.getMonth(), n.getDate() - 7));
+}
+
 function computeCrStreaks(type, key) {
   const match = _crItemMatcher(type, key);
   const chrono = _crChronoPlays();
   const itemPlays = [];
   const runs = [];
   let run = null;
-  const dayCounts = {}, monthCounts = {}, yearCounts = {};
+  const dayCounts = {}, weekCounts = {}, monthCounts = {}, yearCounts = {};
   for (let i = 0; i < chrono.length; i++) {
     const p = chrono[i];
     if (!match(p)) { run = null; continue; }
@@ -11847,9 +12073,11 @@ function computeCrStreaks(type, key) {
     run.push(p);
     const d = tzDate(p.date);
     const dk = localDateStr(d);
+    const wk = playWeekKey(p.date);
     const mk = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
     const yk = String(d.getFullYear());
     dayCounts[dk] = (dayCounts[dk] || 0) + 1;
+    weekCounts[wk] = (weekCounts[wk] || 0) + 1;
     monthCounts[mk] = (monthCounts[mk] || 0) + 1;
     yearCounts[yk] = (yearCounts[yk] || 0) + 1;
   }
@@ -11873,7 +12101,8 @@ function computeCrStreaks(type, key) {
   const now = tzNow();
   const raw = {
     plays: playStreaks,
-    days: _crStkGroup(dayCounts, 'days', localDateStr(now)),
+    days: _crStkGroup(dayCounts, 'days', localDateStr(now), _crStkYesterdayKey()),
+    weeks: _crStkGroup(weekCounts, 'weeks', playWeekKey(now), _crStkLastWeekKey()),
     months: _crStkGroup(monthCounts, 'months', `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`),
     years: _crStkGroup(yearCounts, 'years', String(now.getFullYear())),
   };
@@ -11901,7 +12130,7 @@ function computeCrStreaks(type, key) {
     type, key, tab: 'plays',
     totalPlays: itemPlays.length,
     dims,
-    sel: { plays: 0, days: 0, months: 0, years: 0 },
+    sel: { plays: 0, days: 0, weeks: 0, months: 0, years: 0 },
     expanded: {},
   };
 }
@@ -11931,7 +12160,7 @@ function _crStkViewHTML(cid) {
   const st = _crStreakData.get(cid);
   if (!st) return '';
   const dim = st.tab, D = st.dims[dim];
-  const unitWord = n => tUnit(dim, n);
+  const unitWord = n => tUnit(_crStkUnitKey(dim), n);
   // Plays exist (buildItemStreaksHTML already guarded that) but nothing reached 2 units.
   if (!D.count) return `<div class="cr-stk-empty">${t('cr_stk_none_dim', { n: CR_STK_MIN, unit: unitWord(CR_STK_MIN) })}</div>`;
 
@@ -11986,7 +12215,7 @@ function _crStkDetailHTML(cid) {
   const dim = st.tab, D = st.dims[dim];
   const s = D.streaks[st.sel[dim]];
   if (!s) return '';
-  const unitWord = n => tUnit(dim, n);
+  const unitWord = n => tUnit(_crStkUnitKey(dim), n);
   const maxCount = Math.max(1, ...s.units.map(u => u.count));
   const CAP = 200;
   const shown = s.units.slice(0, CAP);

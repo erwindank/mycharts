@@ -11204,6 +11204,50 @@
       color: #1a1a00;
     }
 
+    /* All / Weekly / Monthly / Yearly, the row under the type pills. Same
+       shape, one step quieter: a pill-shaped outline instead of a filled
+       chip, so the two rows read as a hierarchy rather than a tie. */
+    .rec-ov-periods {
+      grid-column: 1 / -1;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.3rem;
+      margin-bottom: 0.35rem;
+    }
+
+    .rec-ov-period {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--text2);
+      font-family: var(--font-mono);
+      font-size: 0.64rem;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      padding: 0.26rem 0.66rem;
+      border-radius: 999px;
+      cursor: pointer;
+      transition: background 0.15s, color 0.15s, border-color 0.15s;
+    }
+
+    .rec-ov-period:hover {
+      background: var(--bg2);
+      color: var(--text);
+      border-color: var(--border2);
+    }
+
+    .rec-ov-period:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
+    }
+
+    /* Selected state is a tinted outline, not a fill — the filled chip belongs
+       to the row above, and two solid accents stacked would fight. */
+    .rec-ov-period.active {
+      background: color-mix(in srgb, var(--accent) 16%, transparent);
+      border-color: color-mix(in srgb, var(--accent) 60%, var(--border));
+      color: var(--text);
+    }
+
     /* ── Records hero: most-decorated artist ──────────────────────────
        Photo fills the plate, the name sits in the fade beneath it, and the
        reel of that artist's individual records scrolls across the faded
@@ -11821,6 +11865,36 @@
 
     .rec-ov-card-empty .rec-ov-ico {
       filter: none;
+    }
+
+    /* Which of the section's records this tile is — "Weekly", "Back-to-Back".
+       Only on the All board, where a section can put up five tiles under one
+       name. Inline like the glyph above, for the same wrapping reason, and a
+       translucent plate rather than a colour so it never competes with the
+       figure downstairs for the eye. */
+    .rec-ov-tag {
+      display: inline-block;
+      margin-left: 0.4em;
+      padding: 0.08em 0.42em;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.16);
+      border: 1px solid rgba(255, 255, 255, 0.22);
+      font-family: var(--font-mono);
+      font-size: 0.6rem;
+      font-weight: 500;
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+      vertical-align: 0.1em;
+      white-space: nowrap;
+      text-shadow: none;
+    }
+
+    /* No artwork behind an empty card, so the white plate would be invisible
+       on the card's own surface — give it the theme's border instead. */
+    .rec-ov-card-empty .rec-ov-tag {
+      background: var(--bg3);
+      border-color: var(--border);
+      color: var(--text2);
     }
 
     .rec-ov-value {
