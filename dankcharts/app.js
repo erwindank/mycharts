@@ -199,7 +199,24 @@ let certWallData   = [];
 let certWallFilter = 'all';
 let certWallSearch = '';
 let certWallSort   = 'tier';
-const CWALL_TIER_ORD = { diamond: 0, platinum: 1, gold: 2 };
+/* Every sort runs both ways, and each one starts in the direction it is
+   naturally read in: rarest plaque first for Tier, A→Z for Artist and Title,
+   oldest award first for Date. Clicking the sort already in force turns it
+   around, so `certWallSortAsc` is what that click flips.
+
+   `asc` below is that starting direction, written as the answer to "is the
+   default ascending?" — Tier's is not, because a wall that opened on a screen
+   of Gold plaques would bury every Diamond in the library. */
+const CWALL_SORTS = [
+  // `up`/`down` name what each direction actually does, for the button's tooltip
+  // — "ascending" says nothing useful about a wall of plaques.
+  { key: 'tier',   label: 'Tier',   asc: false, up: 'Gold → Diamond', down: 'Diamond → Gold' },
+  { key: 'artist', label: 'Artist', asc: true,  up: 'A → Z',          down: 'Z → A' },
+  { key: 'title',  label: 'Title',  asc: true,  up: 'A → Z',          down: 'Z → A' },
+  { key: 'date',   label: 'Date',   asc: true,  up: 'oldest first',   down: 'newest first' },
+];
+const cwallSortDefaultAsc = k => (CWALL_SORTS.find(s => s.key === k) || { asc: true }).asc;
+let certWallSortAsc = cwallSortDefaultAsc(certWallSort);
 
 // ─── THEME SWITCHER ────────────────────────────────────────────
 const themeLabel = document.getElementById('themeLabel');
@@ -6305,22 +6322,34 @@ function buildRecords() {
      and the ledger line behind it can never disagree about a date. */
   const wallItems = [];
   const wallPush = function (it, cfg, type) {
-    if (it.plays < cfg.gold) return;
-    const tier = it.plays >= cfg.diamond ? 'diamond' : it.plays >= cfg.plat ? 'platinum' : 'gold';
-    // The plaque is dated by the crossing that earned its tier — for Diamond
-    // that is the first one, not the latest multiple.
-    const want = tier === 'platinum' ? 'plat' : tier;
-    const ev = it.events.find(function (e) { return e.tier === want; });
-    wallItems.push({
-      title: it.title, artist: it.artist, image: null, type: type, tier: tier,
-      date: ev ? ev.date.toISOString().split('T')[0] : '',
-      _plays: it.plays, _album: type === 'song' ? it.album : it.title
+    /* One plaque per certification, not one per record. An award is not
+       replaced by the next one up: a record that reached Diamond earned its
+       Gold and its Platinum on the way, each on its own day, and it still
+       holds both — which is exactly how the ledger has always listed them.
+       Diamond then repeats, so every further multiple of the threshold is
+       another plaque again (Double, Triple, 4×…). */
+    it.events.forEach(function (ev, i) {
+      wallItems.push({
+        title: it.title, artist: it.artist, image: null, type: type,
+        // The event history says 'plat'; the wall's classes and labels say
+        // 'platinum'. Everything downstream reads the wall's spelling.
+        tier: ev.tier === 'plat' ? 'platinum' : ev.tier,
+        mult: ev.mult || 1,
+        date: ev.date.toISOString().split('T')[0],
+        /* The highest plaque a record holds, which is the last one it earned.
+           The hero-artist tally counts this one alone — five plaques for one
+           album are five awards but still one certified record, and the reel
+           would otherwise show the same album five times over. */
+        top: i === it.events.length - 1,
+        _plays: it.plays, _album: type === 'song' ? it.album : it.title
+      });
     });
   };
   for (const it of Object.values(certSongItems)) wallPush(it, CERT.song, 'song');
   for (const it of Object.values(certAlbumItems)) wallPush(it, CERT.album, 'album');
   const _wTierOrd = { diamond: 0, platinum: 1, gold: 2 };
-  wallItems.sort((a, b) => (_wTierOrd[a.tier] - _wTierOrd[b.tier]) || (b._plays - a._plays));
+  // Rarest first, and within Diamond the highest multiple leads.
+  wallItems.sort((a, b) => (_wTierOrd[a.tier] - _wTierOrd[b.tier]) || (b.mult - a.mult) || (b._plays - a._plays));
   // renderCertifications() ends in renderCertWallCards(), which now loads its
   // own artwork — a call here would queue the same ids a second time.
   renderCertifications(wallItems);
@@ -6898,8 +6927,12 @@ function buildRecords() {
         const ord = _wTierOrd[w.tier];
         if (ord > bestOrd) continue;
         if (ord < bestOrd) { bestOrd = ord; best = w; continue; }
-        // Same tier: earliest certification wins. Undated items never displace
-        // a dated one, and only stand in if nothing dated exists.
+        /* Same tier: earliest certification wins. Every plaque is dated by the
+           award it *is* — a record's first Diamond is its own item, separate
+           from the Double Diamond it earned later — so this compares the day
+           each one reached the tier without needing to look past it. Undated
+           items never displace a dated one, and only stand in if nothing dated
+           exists. */
         if (w.date && (!best.date || w.date < best.date)) best = w;
       }
       return best;
@@ -7287,8 +7320,11 @@ function renderRecordsOverview(highlights) {
    hidden afterwards by applyRecRowLimit() are skipped here. If a table is
    capped at 25, only those 25 are anyone's records. */
 
-// Rows that are a detail of the row above them, plus the wall's own card grid.
-const REC_TALLY_SEL = '#recordsView tbody tr, #recordsView .cert-card';
+/* Rows that are a detail of the row above them, plus the wall's own card grid.
+   The wall hangs a plaque for every certification a record ever earned, so one
+   album can be five cards; only its highest counts here, which is the one
+   without data-cert-lesser. */
+const REC_TALLY_SEL = '#recordsView tbody tr, #recordsView .cert-card:not([data-cert-lesser])';
 
 /* One record row → the card descriptor the reel needs, or null if the row
    carries no artist (spacer rows, empty states, headers). */
@@ -19436,21 +19472,24 @@ function openAlbumModal(albumKey) {
     const mult = totalPlays >= CERT.album.diamond ? Math.floor(totalPlays / CERT.album.diamond) : 0;
     const tier = mult > 0 ? 'diamond' : totalPlays >= CERT.album.plat ? 'plat' : 'gold';
     const { icon: dIcon, label: dLabel } = mult > 0 ? diamondMultiLabel(mult) : { icon: tier === 'plat' ? '💿' : '🪙', label: tier === 'plat' ? 'Platinum' : 'Gold' };
-    plaqueItems.push({ icon: dIcon, label: dLabel, tier, plays: mult > 0 ? mult * CERT.album.diamond : (tier === 'plat' ? CERT.album.plat : CERT.album.gold), type: 'Album' });
+    plaqueItems.push({ icon: dIcon, label: dLabel, tier, mult, plays: mult > 0 ? mult * CERT.album.diamond : (tier === 'plat' ? CERT.album.plat : CERT.album.gold), type: 'Album' });
   }
   for (const s of allTracksSorted) {
     if (s.count >= CERT.song.gold) {
       const mult = s.count >= CERT.song.diamond ? Math.floor(s.count / CERT.song.diamond) : 0;
       const tier = mult > 0 ? 'diamond' : s.count >= CERT.song.plat ? 'plat' : 'gold';
       const { icon: dIcon, label: dLabel } = mult > 0 ? diamondMultiLabel(mult) : { icon: tier === 'plat' ? '💿' : '🪙', label: tier === 'plat' ? 'Platinum' : 'Gold' };
-      plaqueItems.push({ icon: dIcon, label: dLabel, tier, plays: s.count, type: 'Song', name: s.title });
+      plaqueItems.push({ icon: dIcon, label: dLabel, tier, mult, plays: s.count, type: 'Song', name: s.title });
     }
   }
   if (plaqueItems.length) {
     certTitleEl.style.display = '';
     certPlaquesEl.innerHTML = `<div class="cwall-grid">${plaqueItems.map((p, idx) => {
       const name = p.name || albumName;
-      return `<div class="cert-card cert-card--${p.tier}">
+      // Same multi-Diamond treatment the wall plaques wear: a louder frame the
+      // higher the multiple, and a badge that shrinks to hold the longer label.
+      const pMult = p.tier === 'diamond' ? Math.max(1, p.mult || 1) : 1;
+      return `<div class="cert-card cert-card--${p.tier}"${pMult > 1 ? ` data-cert-mult="${Math.min(pMult, 4)}"` : ''}>
         <div class="cert-frame">
           <div class="cert-record-wrap" id="albcp-${idx}">
             <div class="cert-sleeve"></div>
@@ -19461,7 +19500,7 @@ function openAlbumModal(albumKey) {
             <span class="cert-type-badge">${esc(p.type)}</span>
             <div class="cert-title">${esc(name)}</div>
             <div class="cert-artist">${esc(artistName)}</div>
-            <div class="cert-tier-badge">${p.icon} ${esc(p.label)}</div>
+            <div class="cert-tier-badge${pMult > 1 ? ' is-multi' : ''}">${p.icon} ${esc(p.label)}</div>
             <div class="cert-date">${p.plays.toLocaleString()} plays</div>
           </div>
         </div>
@@ -21851,6 +21890,65 @@ const CWALL_TIER_CLASS = { gold: 'gold', platinum: 'plat', diamond: 'diamond' };
 const CWALL_TIER_LABEL = { gold: '🪙 Gold', platinum: '💿 Platinum', diamond: '💎 Diamond' };
 const CWALL_TYPE_LABEL = { song: 'Song', album: 'Album' };
 
+/* What a plaque's tier badge says. Only Diamond repeats, and it repeats the
+   way the album modal already writes it — diamondMultiLabel() gives Double and
+   Triple their words, one 💎 per multiple, and falls back to a compact "5×
+   Diamond" past the point where the wording (and the row of gems) would stop
+   fitting on a 170px plaque. */
+function cwallTierLabel(item) {
+  if (item.tier !== 'diamond') return CWALL_TIER_LABEL[item.tier] || esc(item.tier || '');
+  const d = diamondMultiLabel(Math.max(1, item.mult || 1));
+  return d.icon + ' ' + esc(d.label);
+}
+
+/* Every sort is written once, ascending, and simply run backwards for the
+   other direction — so the two halves of a toggle can never disagree about how
+   ties break, and adding a sort means adding one line rather than two.
+
+   Ascending by tier is the lowest plaque first, which needs one number per
+   plaque rather than a tier order plus a multiple: Gold 1, Platinum 2, Diamond
+   2 + its multiple, the same weight the ledger ranks its rows by. A record
+   holds several plaques now, so every comparator ends on the award date, which
+   keeps one record's Gold, Platinum and Diamond sitting together in the order
+   it earned them. */
+const cwallTierRank = it => it.tier === 'diamond'
+  ? 2 + Math.max(1, it.mult || 1)
+  : (it.tier === 'platinum' ? 2 : 1);
+const cwallByDate = (a, b) => (a.date || '').localeCompare(b.date || '');
+const cwallByTitle = (a, b) => (a.title || '').localeCompare(b.title || '');
+const cwallByArtist = (a, b) => (a.artist || '').localeCompare(b.artist || '');
+const CWALL_CMP = {
+  tier:   (a, b) => (cwallTierRank(a) - cwallTierRank(b)) || (a._plays - b._plays) || cwallByDate(a, b),
+  artist: (a, b) => cwallByArtist(a, b) || cwallByTitle(a, b) || cwallByDate(a, b),
+  title:  (a, b) => cwallByTitle(a, b) || cwallByArtist(a, b) || cwallByDate(a, b),
+  date:   (a, b) => cwallByDate(a, b) || cwallByTitle(a, b),
+};
+function cwallComparator() {
+  const cmp = CWALL_CMP[certWallSort] || CWALL_CMP.tier;
+  const dir = certWallSortAsc ? 1 : -1;
+  return (a, b) => dir * cmp(a, b);
+}
+
+/* Which sort is in force and which way it runs. The arrow is only drawn on the
+   active button — an arrow on all four would read as four separate controls —
+   but its box is held open on every one of them (see .cwall-dir) so the row
+   does not jump sideways when the active button moves. */
+function paintCwallSortBtns(wall) {
+  wall.querySelectorAll('[data-cwall-sort]').forEach(function (b) {
+    const s = CWALL_SORTS.find(x => x.key === b.dataset.cwallSort);
+    if (!s) return;
+    const on = s.key === certWallSort;
+    const asc = on ? certWallSortAsc : s.asc;
+    b.classList.toggle('active', on);
+    const dir = b.querySelector('.cwall-dir');
+    if (dir) dir.textContent = on ? (asc ? '▲' : '▼') : '';
+    b.title = on
+      ? s.label + ': ' + (asc ? s.up : s.down) + ' — click to reverse'
+      : 'Sort by ' + s.label.toLowerCase() + ' (' + (asc ? s.up : s.down) + ')';
+    b.setAttribute('aria-pressed', on ? 'true' : 'false');
+  });
+}
+
 function wallInitials(str) {
   return (str || '').split(/\s+/).slice(0, 2).map(w => w[0] || '').join('').toUpperCase() || '?';
 }
@@ -21864,6 +21962,12 @@ function fmtCertDate(dateStr) {
 
 function renderCertifications(data) {
   certWallData = data || [];
+  /* Each plaque's permanent id, stamped once. Every sort and filter reorders
+     the array, so the element ids have to come from something that does not
+     move — and a record now holds several plaques, which made the old
+     indexOf() lookup both a linear scan per card and, on a big library, a scan
+     over four times as many cards as it used to be. */
+  certWallData.forEach(function (item, i) { item._i = i; });
   const wall = document.getElementById('certifications-wall');
   if (!wall) return;
 
@@ -21886,10 +21990,7 @@ function renderCertifications(data) {
         </div>
         <div class="cwall-sort-btns">
           <span class="cwall-sort-label">Sort:</span>
-          <button class="cwall-btn${certWallSort==='tier'?' active':''}" data-cwall-sort="tier">Tier</button>
-          <button class="cwall-btn${certWallSort==='artist'?' active':''}" data-cwall-sort="artist">Artist</button>
-          <button class="cwall-btn${certWallSort==='title'?' active':''}" data-cwall-sort="title">Title</button>
-          <button class="cwall-btn${certWallSort==='date'?' active':''}" data-cwall-sort="date">Date</button>
+          ${CWALL_SORTS.map(s => `<button class="cwall-btn cwall-sort-btn${certWallSort===s.key?' active':''}" data-cwall-sort="${s.key}">${s.label}<span class="cwall-dir"></span></button>`).join('')}
         </div>
       </div>
     </div>
@@ -21912,12 +22013,21 @@ function renderCertifications(data) {
   wall.querySelector('.cwall-sort-btns').addEventListener('click', e => {
     const btn = e.target.closest('[data-cwall-sort]');
     if (!btn) return;
-    certWallSort = btn.dataset.cwallSort;
-    wall.querySelectorAll('[data-cwall-sort]').forEach(b =>
-      b.classList.toggle('active', b.dataset.cwallSort === certWallSort));
+    const key = btn.dataset.cwallSort;
+    /* Clicking the sort already in force turns it around — Diamond-first
+       becomes Gold-first, A→Z becomes Z→A, oldest-first becomes newest-first.
+       Picking a different sort starts it in its own natural direction rather
+       than inheriting the direction the last one happened to be left in. */
+    if (key === certWallSort) certWallSortAsc = !certWallSortAsc;
+    else { certWallSort = key; certWallSortAsc = cwallSortDefaultAsc(key); }
+    paintCwallSortBtns(wall);
     renderCertWallCards();
   });
 
+  paintCwallSortBtns(wall);
+
+  // The grid element outlives every re-render, so one observer covers them all.
+  watchCertWallCovers();
   renderCertWallCards();
 }
 
@@ -21938,20 +22048,8 @@ function renderCertWallCards() {
       item.artist.toLowerCase().includes(q));
   }
 
-  if (certWallSort === 'tier') {
-    items.sort((a, b) =>
-      (CWALL_TIER_ORD[a.tier] - CWALL_TIER_ORD[b.tier]) || (b._plays - a._plays));
-  } else if (certWallSort === 'artist') {
-    items.sort((a, b) =>
-      (a.artist || '').localeCompare(b.artist || '') ||
-      (a.title || '').localeCompare(b.title || ''));
-  } else if (certWallSort === 'title') {
-    items.sort((a, b) => (a.title || '').localeCompare(b.title || ''));
-  } else if (certWallSort === 'date') {
-    items.sort((a, b) =>
-      (a.date || '').localeCompare(b.date || '') ||
-      (a.title || '').localeCompare(b.title || ''));
-  }
+  // Ascending, then run backwards for the other direction (see CWALL_CMP).
+  items.sort(cwallComparator());
 
   harvestCertWallImages();
 
@@ -21961,8 +22059,9 @@ function renderCertWallCards() {
   }
 
   grid.innerHTML = items.map(item => {
-    const origIdx = certWallData.indexOf(item);
-    const known = _certWallResolved[certWallPrefKey(item)];
+    const origIdx = item._i;
+    const cwKey = certWallPrefKey(item);
+    const known = _certWallResolved[cwKey];
     const tierClass = CWALL_TIER_CLASS[item.tier] || 'gold';
     const ini = esc(wallInitials(item.title));
     const dateStr = fmtCertDate(item.date);
@@ -21974,13 +22073,22 @@ function renderCertWallCards() {
     /* data-rec-* lets the hero-artist tally count a certification the same way it
        counts a table row. The wall is divs rather than a <table>, so it is the one
        place the tally cannot walk tbody rows — it matches .cert-card instead. */
+    /* …and `data-cert-lesser` takes it back off the plaques below a record's
+       highest one. All five plaques of a 3× Diamond album are real awards, but
+       they are one certified record — the tally skips the lesser ones so the
+       reel does not show the same album five times (see REC_TALLY_SEL). */
     const cwType = item.type === 'album' ? 'album' : 'song'; // the wall holds songs and albums only
     const cwPrefKey = cwType + ':' + (item.artist || '').toLowerCase() + '|||' + (item.title || '').toLowerCase();
-    return `<div class="cert-card cert-card--${tierClass}" data-rec-artist="${esc(item.artist || '')}" data-rec-type="${esc(cwType)}" data-rec-name="${esc(item.title || '')}" data-rec-prefkey="${esc(cwPrefKey)}">
+    /* A repeated Diamond gets a louder frame than a single one — data-cert-mult
+       is what the CSS ramps the glow off, and the badge wears .is-multi so a
+       long label ("💎💎💎 Triple Diamond") is set small enough to stay on one
+       line inside the plaque. */
+    const cwMult = item.tier === 'diamond' ? Math.max(1, item.mult || 1) : 1;
+    return `<div class="cert-card cert-card--${tierClass}"${cwMult > 1 ? ` data-cert-mult="${Math.min(cwMult, 4)}"` : ''}${item.top ? '' : ' data-cert-lesser="1"'} data-rec-artist="${esc(item.artist || '')}" data-rec-type="${esc(cwType)}" data-rec-name="${esc(item.title || '')}" data-rec-prefkey="${esc(cwPrefKey)}">
   <div class="cert-frame">
     <div class="cert-record-wrap" id="cwrec-${origIdx}">
       <div class="cert-sleeve"></div>
-      <div class="cert-record-slot" id="cwrec-img-${origIdx}">${known
+      <div class="cert-record-slot" id="cwrec-img-${origIdx}" data-cwkey="${esc(cwKey)}">${known
       ? `<img class="thumb" src="${esc(known)}" alt="" loading="lazy">`
       : `<div class="cert-record-initials">${ini}</div>`}</div>
       <div class="cert-vinyl-center"></div>
@@ -21989,7 +22097,7 @@ function renderCertWallCards() {
       <span class="cert-type-badge">${esc(CWALL_TYPE_LABEL[item.type] || item.type || '')}</span>
       <div class="cert-title">${esc(item.title)}</div>
       <div class="cert-artist">${esc(item.artist)}</div>
-      <div class="cert-tier-badge">${CWALL_TIER_LABEL[item.tier] || esc(item.tier)}</div>
+      <div class="cert-tier-badge${cwMult > 1 ? ' is-multi' : ''}">${cwallTierLabel(item)}</div>
       ${dateStr ? `<div class="cert-date">Certified ${dateStr}</div>` : ''}
     </div>
   </div>
@@ -22076,12 +22184,72 @@ function loadCertWallImages(items) {
     if (el) attachRecImgPicker(el, it, it.imgType);
   });
 
-  // Only what has no answer yet is worth observing.
+  /* Only what has no answer yet is worth observing — and only one plaque per
+     record. A record's plaques all show the same cover, and fetchAndInjectImage
+     runs off a single serialised queue that rests 120ms between lookups, so
+     pointing the loader at all five plaques of a 3× Diamond would cost five
+     turns of that queue to answer one question. The first plaque of each record
+     is fetched; mirrorCertWallCovers() copies what lands onto the rest. */
+  const queued = new Set();
   const pending = queue.filter(function (x) {
-    return !Object.prototype.hasOwnProperty.call(_certWallResolved, x.prefKey);
+    if (Object.prototype.hasOwnProperty.call(_certWallResolved, x.prefKey)) return false;
+    if (queued.has(x.prefKey)) return false;
+    queued.add(x.prefKey);
+    return true;
   });
   _certWallObservers.push(loadImages(pending.filter(function (x) { return x.imgType === 'album'; }), 'album'));
   _certWallObservers.push(loadImages(pending.filter(function (x) { return x.imgType === 'song'; }), 'song'));
+}
+
+/* One cover, several plaques. The loader writes into one element, so when a
+   cover lands this copies it onto the record's other plaques — otherwise a 3×
+   Diamond album's Gold would sit on its initials for as long as the wall was
+   open. It works off a MutationObserver rather than a callback because the
+   cover can also arrive from the ✎ picker, and that path should update the
+   record's other plaques too rather than leave them disagreeing.
+
+   Only loader-written images are read as the answer — they carry data-imgid —
+   and only slots that hold no such image are written to. A mirrored copy can
+   therefore never become the source of another mirror, so the pass this makes
+   the observer fire finds nothing left to do and it settles. */
+let _cwallMirrorObs = null;
+function watchCertWallCovers() {
+  const grid = document.getElementById('cwall-grid');
+  if (!grid) return;
+  if (_cwallMirrorObs) _cwallMirrorObs.disconnect();
+  _cwallMirrorObs = new MutationObserver(function (muts) {
+    const keys = new Set();
+    for (const m of muts) {
+      // A full re-render mutates the grid itself, which owns no key — the cards
+      // it writes come from _certWallResolved and need no mirroring.
+      const slot = m.target.closest && m.target.closest('.cert-record-slot');
+      if (slot && slot.dataset.cwkey) keys.add(slot.dataset.cwkey);
+    }
+    if (keys.size) mirrorCertWallCovers(keys);
+  });
+  _cwallMirrorObs.observe(grid, { childList: true, subtree: true });
+}
+
+// One sweep of the grid per batch of mutations, rather than an attribute
+// selector per key: the keys are titles and artists, so they carry quotes.
+function mirrorCertWallCovers(keys) {
+  const grid = document.getElementById('cwall-grid');
+  if (!grid) return;
+  const src = {}, targets = {};
+  grid.querySelectorAll('.cert-record-slot[data-cwkey]').forEach(function (slot) {
+    const k = slot.dataset.cwkey;
+    if (!keys.has(k)) return;
+    const img = slot.querySelector('img.thumb');
+    if (img && img.dataset.imgid && img.getAttribute('src')) { src[k] = img.getAttribute('src'); return; }
+    (targets[k] || (targets[k] = [])).push(slot);
+  });
+  Object.keys(src).forEach(function (k) {
+    (targets[k] || []).forEach(function (slot) {
+      const img = slot.querySelector('img.thumb');
+      if (img && img.getAttribute('src') === src[k]) return; // already showing it
+      slot.innerHTML = '<img class="thumb" src="' + esc(src[k]) + '" alt="" loading="lazy">';
+    });
+  });
 }
 
 // Fills in the vinyl artwork for the album-modal certification plaques (same card style as the Certifications Wall)

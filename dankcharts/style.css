@@ -16439,8 +16439,8 @@
 
     .cert-type-badge {
       font-family: var(--font-mono);
-      font-size: 0.52rem;
-      letter-spacing: 0.14em;
+      font-size: 0.56rem;
+      letter-spacing: 0.12em;
       text-transform: uppercase;
       padding: 2px 7px;
       border-radius: 3px;
@@ -16458,11 +16458,17 @@
       max-width: 100%;
     }
 
+    /* No opacity on either of the two lines below the title. Both already carry
+       a per-tier colour that is dimmer than the title's, and multiplying that
+       by an opacity on top pushed them under the contrast a plaque needs:
+       measured against the lightest stop of each frame gradient, the artist ran
+       3.6–4.3:1 and the date 2.4–2.8:1, on 8px type. Dropping the multiplier
+       alone puts every one of them between 5.1:1 and 7.8:1. The hierarchy is
+       carried by size and hue instead, which is where it was legible. */
     .cert-artist {
       font-family: var(--font-sans);
       font-size: 0.67rem;
       font-style: italic;
-      opacity: 0.72;
       text-shadow: 0 1px 2px rgba(0,0,0,0.6);
     }
 
@@ -16481,11 +16487,13 @@
       border: 1px solid;
     }
 
+    /* The date is the one line that has to be *read* rather than recognised —
+       "Certified Sep 30, 2024" is nine glyphs of digits and a month — so it
+       also comes up off 0.52rem, which was 8px of letter-spaced mono. */
     .cert-date {
       font-family: var(--font-mono);
-      font-size: 0.52rem;
-      letter-spacing: 0.06em;
-      opacity: 0.5;
+      font-size: 0.58rem;
+      letter-spacing: 0.04em;
       margin-top: 1px;
       text-shadow: 0 1px 2px rgba(0,0,0,0.8);
     }
@@ -16516,7 +16524,10 @@
     .cert-card--gold .cert-info,
     .cert-card--gold .cert-title    { color: #f0cc50; }
     .cert-card--gold .cert-artist   { color: #c8a040; }
-    .cert-card--gold .cert-date     { color: #c89830; }
+    /* Gold's date was the tightest of the three even at full opacity (5.1:1
+       against the frame, where Platinum reads 7.0 and Diamond 7.8) — a warm
+       hue this dark has nowhere else to go. Lifted to match them. */
+    .cert-card--gold .cert-date     { color: #e0b040; }
     .cert-card--gold .cert-type-badge {
       color: #c89028;
       border-color: rgba(180,120,10,0.25);
@@ -16583,25 +16594,41 @@
     }
 
     /* ── DIAMOND ── */
+    /* Diamond is the only tier that repeats: every further multiple of the
+       threshold is another Diamond on the same record, and the plaque wears the
+       multiple (data-cert-mult, 2..4+). Rather than four copies of the frame
+       rules, the multiple sets four dials — glow, halo, edge colour and the
+       speed of the badge's shimmer — and the rules below read those, so a
+       Triple Diamond reads as the rarer thing from across the grid. */
+    .cert-card--diamond {
+      --cd-glow: 0.38;    /* frame's outer glow */
+      --cd-halo: 0.40;    /* drop-shadow spilling past the frame */
+      --cd-edge: #1858a0; /* border */
+      --cd-shimmer: 3s;   /* one pass of the iridescent badge sweep */
+    }
+    .cert-card--diamond[data-cert-mult="2"] { --cd-glow: 0.50; --cd-halo: 0.54; --cd-edge: #2a7ad0; --cd-shimmer: 2.4s; }
+    .cert-card--diamond[data-cert-mult="3"] { --cd-glow: 0.62; --cd-halo: 0.68; --cd-edge: #4a9ae8; --cd-shimmer: 1.9s; }
+    .cert-card--diamond[data-cert-mult="4"] { --cd-glow: 0.74; --cd-halo: 0.82; --cd-edge: #7cc4ff; --cd-shimmer: 1.5s; }
+
     .cert-card--diamond .cert-frame {
       background: linear-gradient(160deg, #040810 0%, #080d1c 35%, #0a1028 65%, #040810 100%);
-      border-color: #1858a0;
+      border-color: var(--cd-edge);
       box-shadow:
         0 12px 32px rgba(0,0,0,0.8),
         0 4px 10px rgba(0,0,0,0.5),
-        0 0 32px rgba(70,175,255,0.38),
+        0 0 32px rgba(70,175,255,var(--cd-glow)),
         inset 0 1px 0 rgba(100,195,255,0.18),
         inset 0 -2px 5px rgba(0,0,0,0.5);
-      filter: drop-shadow(0 0 14px rgba(70,175,255,0.40));
+      filter: drop-shadow(0 0 14px rgba(70,175,255,var(--cd-halo)));
     }
     .cert-card--diamond:hover .cert-frame {
       box-shadow:
         0 20px 44px rgba(0,0,0,0.85),
         0 6px 14px rgba(0,0,0,0.55),
-        0 0 48px rgba(70,175,255,0.52),
+        0 0 48px rgba(70,175,255,calc(var(--cd-glow) + 0.14)),
         inset 0 1px 0 rgba(100,195,255,0.22),
         inset 0 -2px 5px rgba(0,0,0,0.5);
-      filter: drop-shadow(0 0 22px rgba(70,175,255,0.55));
+      filter: drop-shadow(0 0 22px rgba(70,175,255,calc(var(--cd-halo) + 0.15)));
     }
     .cert-card--diamond .cert-frame::before,
     .cert-card--diamond .cert-frame::after {
@@ -16618,11 +16645,26 @@
     .cert-card--diamond .cert-tier-badge {
       background: linear-gradient(90deg, #0c3880, #2880e0, #a0d8ff, #7090f8, #2880e0, #0c3880);
       background-size: 200% 100%;
-      animation: cert-iridescent 3s linear infinite;
+      animation: cert-iridescent var(--cd-shimmer, 3s) linear infinite;
       border-color: #70c0ff;
       color: #f0f8ff;
       text-shadow: 0 1px 2px rgba(0,0,0,0.6);
-      box-shadow: 0 0 14px rgba(70,175,255,0.45);
+      box-shadow: 0 0 14px rgba(70,175,255,calc(var(--cd-glow, 0.38) + 0.07));
+    }
+
+    /* "💎💎💎 Triple Diamond" is nearly twice the label a single Diamond wears,
+       on a plaque that can be 170px wide. Set smaller and allowed to wrap, so
+       the badge shrinks to the words instead of pushing past the frame — the
+       ×4-and-up labels are already compact ("4× Diamond"), which is exactly
+       where the wording stops fitting. */
+    .cert-tier-badge.is-multi {
+      font-size: 0.55rem;
+      letter-spacing: 0.05em;
+      padding: 3px 8px;
+      max-width: 100%;
+      flex-wrap: wrap;
+      justify-content: center;
+      text-align: center;
     }
     .cert-card--diamond .cert-record,
     .cert-card--diamond .cert-record-initials { border-color: rgba(70,175,255,0.35); }
@@ -16651,6 +16693,9 @@
       .cert-vinyl-center { width: 16px; height: 16px; }
       .cert-record-wrap .img-src-btn { top: 5px; right: 5px; }
       .cert-title { font-size: 0.74rem; }
+      /* 145px of plaque is not enough for "💎💎💎 Triple Diamond" on one line;
+         it wraps to two here rather than being set any smaller than this. */
+      .cert-tier-badge.is-multi { font-size: 0.5rem; letter-spacing: 0.04em; }
     }
 
     /* ── Cert wall controls ─────────────────────────────────────── */
@@ -16735,6 +16780,25 @@
       background: var(--accent);
       color: var(--on-accent);
       border-color: var(--accent);
+    }
+
+    /* The direction arrow, drawn only on the sort in force. Its box is held
+       open on all four buttons so the row keeps its widths when the active one
+       moves — an empty inline span would collapse and shuffle the whole row by
+       an arrow's width on every click. */
+    .cwall-dir {
+      display: inline-block;
+      width: 0.75em;
+      margin-left: 0.35em;
+      text-align: center;
+      font-size: 0.85em;
+      line-height: 1;
+    }
+
+    /* A second click reverses the sort, so the active button stays a live
+       control rather than a finished state — say so on hover. */
+    .cwall-sort-btn.active:hover {
+      filter: brightness(1.12);
     }
 
     @media (max-width: 500px) {
