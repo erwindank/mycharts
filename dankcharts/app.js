@@ -4724,8 +4724,13 @@ function buildRecords() {
      week-start-day setting; that is the only thing the charts lend this
      ladder, exactly as the daily one borrows your calendar day. */
   const STREAK_DIMS = ['days', 'weeks', 'months', 'years'];
-  // Per entity: the set of calendar buckets it was played in, plus its play total.
+  /* Per entity: how many plays landed in each calendar bucket it was heard in,
+     plus its play total. Counts rather than a bare set of buckets, because the
+     yearly ladder ranks its ties on the leanest year of the run and needs to
+     know how deep each year was — see longestUnitStreak(). */
   const streakUnits = { song: {}, artist: {}, album: {} };
+  // One more play in a bucket. Maps start empty, so a missing key reads as 0.
+  const bumpBucket = function (m, k) { m.set(k, (m.get(k) || 0) + 1); };
   // Per entity: its longest back-to-back run and the date that run peaked on.
   const bestRuns = { song: {}, artist: {}, album: {} };
   /* Per entity: the index of the play that last touched it, and how long the
@@ -4741,9 +4746,9 @@ function buildRecords() {
     // count it once, or the play would reset the very run it should extend.
     if (c && c.idx === i) return;
     let u = streakUnits[kind][key];
-    if (!u) u = streakUnits[kind][key] = { days: new Set(), weeks: new Set(), months: new Set(), years: new Set(), plays: 0 };
+    if (!u) u = streakUnits[kind][key] = { days: new Map(), weeks: new Map(), months: new Map(), years: new Map(), plays: 0 };
     u.plays++;
-    u.days.add(dk); u.weeks.add(wk); u.months.add(mk); u.years.add(yk);
+    bumpBucket(u.days, dk); bumpBucket(u.weeks, wk); bumpBucket(u.months, mk); bumpBucket(u.years, yk);
     const len = (c && c.idx === i - 1) ? c.len + 1 : 1;
     runCursor[kind][key] = { idx: i, len: len };
     // A single play is not a run — only a repeat is worth recording.
@@ -4780,38 +4785,92 @@ function buildRecords() {
   /* Returns the winning run itself, not just how long it was, so the tables can
      say when it happened. `start` and `end` are the first and last bucket keys
      of that run — for days a date, for weeks the week's start date, for months
-     'YYYY-MM', for years 'YYYY'.
+     'YYYY-MM', for years 'YYYY'. `depth` is the run's leanest bucket: the
+     fewest plays any single day/week/month/year of it got, which is the run's
+     weakest link and the figure the yearly ladder ranks its ties on.
 
-     Ties go to the most recent run (`>=`, not `>`), matching how the per-item
-     streak panel orders its list: when someone has managed the same 12 months
-     twice, the fresher one is the one worth naming. */
-  function longestUnitStreak(set, dim) {
-    const u = Array.from(set).sort();
-    if (!u.length) return { len: 0, start: null, end: null };
-    let mx = 1, cur = 1, runStart = 0, bestStart = 0, bestEnd = 0;
-    for (let i = 1; i < u.length; i++) {
-      if (_crStkOrd(dim, u[i]) - _crStkOrd(dim, u[i - 1]) === 1) cur++;
-      else { cur = 1; runStart = i; }
-      if (cur >= mx) { mx = cur; bestStart = runStart; bestEnd = i; }
+     `prefer` decides which run wins when an entity managed the same maximum
+     length more than once, and it follows how that dimension's table ranks:
+
+       'first'   — keep the earliest run, because those ladders order ties by
+                   who got there first, and showing a later repeat would rank
+                   the entity behind someone it actually beat to the mark.
+       'deepest' — keep the run with the fullest leanest bucket, which is what
+                   the yearly ladder ranks on; the shallower twin would
+                   contradict the column beside it. Equal depth keeps the
+                   earlier run, so this stays a superset of 'first'. */
+  function longestUnitStreak(counts, dim, prefer) {
+    const u = Array.from(counts.keys()).sort();
+    if (!u.length) return { len: 0, start: null, end: null, depth: 0 };
+    let best = null, runStart = 0;
+    /* Closes the run [a..b] and keeps it if it beats the one already held.
+       Only called once per run, never per bucket, so measuring the depth here
+       costs one walk of the list in total rather than one per position. */
+    const close = function (a, b) {
+      const len = b - a + 1;
+      if (best && len < best.len) return;
+      // Same length and 'first' wins by default: the held run is the earlier.
+      if (best && len === best.len && prefer === 'first') return;
+      let depth = Infinity;
+      for (let i = a; i <= b; i++) depth = Math.min(depth, counts.get(u[i]));
+      if (best && len === best.len && depth <= best.depth) return;
+      best = { len: len, s: a, e: b, depth: depth };
+    };
+    // The run breaks at every gap, and the last one closes at the end of the list.
+    for (let i = 1; i <= u.length; i++) {
+      if (i < u.length && _crStkOrd(dim, u[i]) - _crStkOrd(dim, u[i - 1]) === 1) continue;
+      close(runStart, i - 1);
+      runStart = i;
     }
-    return { len: mx, start: u[bestStart], end: u[bestEnd] };
+    return { len: best.len, start: u[best.s], end: u[best.e], depth: best.depth };
   }
-  // streaks[kind][dim] = { key: { len, plays, start, end } }. Plays ride along
-  // because they are the tiebreak: hundreds of entries share a 2-year streak,
-  // and the one played most is the one that belongs at the top of it.
+  /* Which run an entity keeps when it managed its own maximum twice, matched to
+     how each ladder ranks — see longestUnitStreak() and STREAK_CMP below. */
+  const STREAK_TIE = { days: 'first', weeks: 'first', months: 'first', years: 'deepest' };
+  /* streaks[kind][dim] = { key: { len, plays, start, end, depth } }. Plays and
+     depth both ride along because both are tiebreaks: the length column alone
+     settles almost nothing at the top of these ladders. */
   const streaks = { song: {}, artist: {}, album: {} };
   for (const kind of STREAK_KINDS) {
     for (const dim of STREAK_DIMS) streaks[kind][dim] = {};
     for (const [key, u] of Object.entries(streakUnits[kind])) {
       if (u.plays < STREAK_MIN_PLAYS[kind]) continue;
       for (const dim of STREAK_DIMS) {
-        const st = longestUnitStreak(u[dim], dim);
+        const st = longestUnitStreak(u[dim], dim, STREAK_TIE[dim]);
         if (st.len >= STREAK_MIN_LEN[dim]) {
-          streaks[kind][dim][key] = { len: st.len, plays: u.plays, start: st.start, end: st.end };
+          streaks[kind][dim][key] = { len: st.len, plays: u.plays, start: st.start, end: st.end, depth: st.depth };
         }
       }
     }
   }
+  /* How each streak ladder ranks, longest first and then the tiebreak that
+     actually separates the pile-up underneath.
+
+     Years need their own rule. A yearly streak tops out at the length of the
+     library itself, so anyone who keeps an artist in rotation lands on the same
+     maximum and the ladder fills to the last row with one number — the record
+     stops naming a winner. `depth` is what tells those apart: the leanest year
+     of the run, so eleven years that never dipped below 38 plays outranks
+     eleven years carried by a single play one December. The table prints it as
+     a column of its own, because a ranking on a figure the reader cannot see is
+     just an arbitrary order.
+
+     Days, weeks and months are separated by arrival instead: same length, and
+     whoever reached it first is ranked first, which is why the earliest run is
+     the one those dimensions keep. Bucket keys are zero-padded in every
+     dimension, so comparing them as strings is comparing them chronologically.
+     Lifetime plays remain the last resort in both rules. */
+  const cmpBucket = function (a, b) { return a < b ? -1 : a > b ? 1 : 0; };
+  const STREAK_CMP = {
+    years: function (a, b) {
+      return b[1].len - a[1].len || b[1].depth - a[1].depth
+        || cmpBucket(a[1].end, b[1].end) || b[1].plays - a[1].plays;
+    },
+    first: function (a, b) {
+      return b[1].len - a[1].len || cmpBucket(a[1].end, b[1].end) || b[1].plays - a[1].plays;
+    },
+  };
+  const streakCmp = function (dim) { return STREAK_CMP[dim === 'years' ? 'years' : 'first']; };
 
   /* ── Certification history ────────────────────────────────────
      A certification is not a play count, it is a moment: the one play that
@@ -6562,12 +6621,15 @@ function buildRecords() {
     html += '</div>';
     for (const cfg of STREAK_PERIODS) {
       const isRuns = cfg.pd === 'runs';
+      // Years carry an extra column: the leanest year of the run, which is also
+      // what breaks their ties. See STREAK_CMP for why they need one.
+      const hasDepth = cfg.pd === 'years';
       const src = isRuns ? bestRuns[ent.kind] : streaks[ent.kind][cfg.pd];
-      // Longest first. Streaks break ties on plays (a 2-year streak is common,
-      // so the busiest of them leads); runs break ties on the most recent.
+      // Longest first, then each ladder's own tiebreak (STREAK_CMP); runs rank
+      // on their own figure entirely and break ties on the most recent.
       const entries = Object.entries(src).sort(isRuns
         ? function (a, b) { return b[1].count - a[1].count || b[1].date - a[1].date; }
-        : function (a, b) { return b[1].len - a[1].len || b[1].plays - a[1].plays; });
+        : streakCmp(cfg.pd));
       /* Double-scoped collapse key, the same way the Most Plays panels do it:
          these four titles repeat across all three entities, so the key has to
          carry the entity *and* the period or they would share one state. */
@@ -6587,7 +6649,10 @@ function buildRecords() {
            that is still going — nothing has ended. */
         const headers = ['#', nameTh, cfg.th];
         if (isRuns) headers.push(t('rec_th_date'));
-        else headers.push(t('rec_th_streak_from'), t('rec_th_streak_to'));
+        else {
+          if (hasDepth) headers.push(t('rec_th_streak_depth'));
+          headers.push(t('rec_th_streak_from'), t('rec_th_streak_to'));
+        }
         html += recTable(headers,
           entries.map(function (e, i) {
             const n = strName[ent.kind](e[0]);
@@ -6598,6 +6663,10 @@ function buildRecords() {
               + '<td class="rec-count">' + val + '</td>';
             if (isRuns) row += '<td class="rec-meta">' + (e[1].date ? fmt(e[1].date) : '') + '</td>';
             else {
+              /* Quieter than the length beside it and louder than the dates:
+                 it is the figure the rows are ordered by, so it has to be
+                 read, but the years are still the headline of the record. */
+              if (hasDepth) row += '<td class="rec-depth">' + tCount('plays', e[1].depth) + '</td>';
               row += '<td class="rec-meta">' + esc(fmtStreakBound(cfg.pd, e[1].start)) + '</td>'
                 + '<td class="rec-meta">' + esc(fmtStreakBound(cfg.pd, e[1].end)) + '</td>';
             }
@@ -6850,15 +6919,19 @@ function buildRecords() {
      nothing in between. Weeks, months and years double as the Weekly, Monthly
      and Yearly pills; the other two are All-only. */
   {
-    // Same order the tables rank in: longest first, most-played breaks the tie.
+    /* Whoever the table puts on row 1. It reads through the very comparator the
+       table sorts with, so the card can never name a different holder than the
+       row it sends you to — the yearly tiebreak in particular would be easy to
+       let drift out of sync if this kept its own copy of the rule. */
     const bestStreak = function (kind, dim) {
       const map = streaks[kind][dim];
-      let bk = null, bv = null;
+      const cmp = streakCmp(dim);
+      let best = null;
       for (const k in map) {
-        const v = map[k];
-        if (!bv || v.len > bv.len || (v.len === bv.len && v.plays > bv.plays)) { bk = k; bv = v; }
+        const e = [k, map[k]];
+        if (!best || cmp(e, best) < 0) best = e;
       }
-      return bk === null ? null : [bk, bv];
+      return best;
     };
     /* Back-to-back runs live in their own map and rank on a different figure,
        so they get their own reader. Ties break toward the most recent run,

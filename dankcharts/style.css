@@ -14022,6 +14022,17 @@
       white-space: nowrap;
     }
 
+    /* The yearly streak ladder's leanest-year column. It is the figure the rows
+       are actually ordered by, so it sits a step above .rec-meta in weight and
+       colour — but under .rec-count, which still carries the record itself. */
+    .rec-depth {
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      color: var(--text2);
+      text-align: right;
+      white-space: nowrap;
+    }
+
     .rec-badge {
       display: inline-block;
       font-family: var(--font-mono);

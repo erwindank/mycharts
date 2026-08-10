@@ -684,6 +684,10 @@ const TRANSLATIONS = {
     // streak is often one that is still running, so nothing has ended.
     rec_th_streak_from: 'From',
     rec_th_streak_to: 'To',
+    /* The yearly ladder's own column: the fewest plays any single year of the
+       run got. Every long yearly streak looks alike until you see its weakest
+       year, so that is what the table ranks on and what this names. */
+    rec_th_streak_depth: 'Leanest Year',
     rec_th_consec_months: 'Consecutive Months',
     rec_th_consec_years: 'Consecutive Years',
     rec_th_consec_plays: 'Consecutive Plays',
@@ -747,14 +751,20 @@ const TRANSLATIONS = {
     rec_longest_streak_weekly: 'Longest Weekly Listening Streak',
     rec_longest_streak_monthly: 'Longest Monthly Listening Streak',
     rec_longest_streak_yearly: 'Longest Yearly Listening Streak',
-    rec_streak_sub_days: 'Consecutive calendar days with at least one play',
+    /* Each sub-line names its tiebreak, because on these ladders the tiebreak
+       does most of the ranking: equal lengths are the rule, not the exception,
+       and an order the reader cannot account for looks arbitrary. */
+    rec_streak_sub_days: 'Consecutive calendar days with at least one play — equal streaks rank by who got there first',
     /* Weeks played in a row, exactly like the daily ladder above and nothing to
        do with charting — an entry that never troubles the Top 10 still builds a
        weekly streak. Only the week boundary comes from the charts (your
        week-start day), the same way the daily ladder uses your calendar day. */
-    rec_streak_sub_weeks: 'Consecutive weeks with at least one play',
-    rec_streak_sub_months: 'Consecutive calendar months with at least one play',
-    rec_streak_sub_years: 'Consecutive calendar years with at least one play',
+    rec_streak_sub_weeks: 'Consecutive weeks with at least one play — equal streaks rank by who got there first',
+    rec_streak_sub_months: 'Consecutive calendar months with at least one play — equal streaks rank by who got there first',
+    /* Years break their ties on depth instead. A yearly streak can only run as
+       long as the library itself, so the top of this ladder is a wall of the
+       same number and the leanest year is what separates them. */
+    rec_streak_sub_years: 'Consecutive calendar years with at least one play — equal streaks rank by their leanest year',
     rec_per_runs: 'Back-to-Back',
     rec_repeat_runs: 'Longest Back-to-Back Play Run',
     rec_repeat_runs_sub_song: 'Most consecutive listens to the same song without playing anything else',
@@ -2059,6 +2069,7 @@ const TRANSLATIONS = {
     rec_th_consec_weeks: 'Semanas Consecutivas',
     rec_th_streak_from: 'Desde',
     rec_th_streak_to: 'Hasta',
+    rec_th_streak_depth: 'Año Más Flojo',
     rec_th_consec_months: 'Meses Consecutivos',
     rec_th_consec_years: 'Años Consecutivos',
     rec_th_consec_plays: 'Repros. Consecutivas',
@@ -2111,10 +2122,10 @@ const TRANSLATIONS = {
     rec_longest_streak_weekly: 'Racha Semanal de Escucha Más Larga',
     rec_longest_streak_monthly: 'Racha Mensual de Escucha Más Larga',
     rec_longest_streak_yearly: 'Racha Anual de Escucha Más Larga',
-    rec_streak_sub_days: 'Días naturales consecutivos con al menos una reproducción',
-    rec_streak_sub_weeks: 'Semanas consecutivas con al menos una reproducción',
-    rec_streak_sub_months: 'Meses naturales consecutivos con al menos una reproducción',
-    rec_streak_sub_years: 'Años naturales consecutivos con al menos una reproducción',
+    rec_streak_sub_days: 'Días naturales consecutivos con al menos una reproducción — las rachas iguales se ordenan por quién llegó antes',
+    rec_streak_sub_weeks: 'Semanas consecutivas con al menos una reproducción — las rachas iguales se ordenan por quién llegó antes',
+    rec_streak_sub_months: 'Meses naturales consecutivos con al menos una reproducción — las rachas iguales se ordenan por quién llegó antes',
+    rec_streak_sub_years: 'Años naturales consecutivos con al menos una reproducción — las rachas iguales se ordenan por su año más flojo',
     rec_per_runs: 'Seguidas',
     rec_repeat_runs: 'Racha de Reproducciones Seguidas Más Larga',
     rec_repeat_runs_sub_song: 'Más escuchas consecutivas de la misma canción sin reproducir ninguna otra',
@@ -3377,6 +3388,7 @@ const TRANSLATIONS = {
     rec_th_consec_weeks: 'Semanas Consecutivas',
     rec_th_streak_from: 'De',
     rec_th_streak_to: 'Até',
+    rec_th_streak_depth: 'Ano Mais Fraco',
     rec_th_consec_months: 'Meses Consecutivos',
     rec_th_consec_years: 'Anos Consecutivos',
     rec_th_consec_plays: 'Repros. Consecutivas',
@@ -3429,10 +3441,10 @@ const TRANSLATIONS = {
     rec_longest_streak_weekly: 'Maior Sequência Semanal de Escuta',
     rec_longest_streak_monthly: 'Maior Sequência Mensal de Escuta',
     rec_longest_streak_yearly: 'Maior Sequência Anual de Escuta',
-    rec_streak_sub_days: 'Dias corridos consecutivos com pelo menos uma reprodução',
-    rec_streak_sub_weeks: 'Semanas consecutivas com pelo menos uma reprodução',
-    rec_streak_sub_months: 'Meses corridos consecutivos com pelo menos uma reprodução',
-    rec_streak_sub_years: 'Anos corridos consecutivos com pelo menos uma reprodução',
+    rec_streak_sub_days: 'Dias corridos consecutivos com pelo menos uma reprodução — sequências iguais são ordenadas por quem chegou primeiro',
+    rec_streak_sub_weeks: 'Semanas consecutivas com pelo menos uma reprodução — sequências iguais são ordenadas por quem chegou primeiro',
+    rec_streak_sub_months: 'Meses corridos consecutivos com pelo menos uma reprodução — sequências iguais são ordenadas por quem chegou primeiro',
+    rec_streak_sub_years: 'Anos corridos consecutivos com pelo menos uma reprodução — sequências iguais são ordenadas pelo ano mais fraco',
     rec_per_runs: 'Seguidas',
     rec_repeat_runs: 'Maior Sequência de Reproduções Seguidas',
     rec_repeat_runs_sub_song: 'Mais escutas consecutivas da mesma música sem reproduzir nenhuma outra',
@@ -4695,6 +4707,7 @@ const TRANSLATIONS = {
     rec_th_consec_weeks: 'Semanas Consecutivas',
     rec_th_streak_from: 'De',
     rec_th_streak_to: 'Até',
+    rec_th_streak_depth: 'Ano Mais Fraco',
     rec_th_consec_months: 'Meses Consecutivos',
     rec_th_consec_years: 'Anos Consecutivos',
     rec_th_consec_plays: 'Repros. Consecutivas',
@@ -4746,10 +4759,10 @@ const TRANSLATIONS = {
     rec_longest_streak_weekly: 'Maior Sequência Semanal de Escuta',
     rec_longest_streak_monthly: 'Maior Sequência Mensal de Escuta',
     rec_longest_streak_yearly: 'Maior Sequência Anual de Escuta',
-    rec_streak_sub_days: 'Dias corridos consecutivos com pelo menos uma reprodução',
-    rec_streak_sub_weeks: 'Semanas consecutivas com pelo menos uma reprodução',
-    rec_streak_sub_months: 'Meses corridos consecutivos com pelo menos uma reprodução',
-    rec_streak_sub_years: 'Anos corridos consecutivos com pelo menos uma reprodução',
+    rec_streak_sub_days: 'Dias corridos consecutivos com pelo menos uma reprodução — sequências iguais são ordenadas por quem chegou primeiro',
+    rec_streak_sub_weeks: 'Semanas consecutivas com pelo menos uma reprodução — sequências iguais são ordenadas por quem chegou primeiro',
+    rec_streak_sub_months: 'Meses corridos consecutivos com pelo menos uma reprodução — sequências iguais são ordenadas por quem chegou primeiro',
+    rec_streak_sub_years: 'Anos corridos consecutivos com pelo menos uma reprodução — sequências iguais são ordenadas pelo ano mais fraco',
     rec_per_runs: 'Seguidas',
     rec_repeat_runs: 'Maior Sequência de Reproduções Seguidas',
     rec_repeat_runs_sub_song: 'Mais escutas consecutivas da mesma música sem reproduzir nenhuma outra',
