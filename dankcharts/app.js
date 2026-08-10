@@ -562,9 +562,82 @@ function splitArtists(artistStr) {
   return result;
 }
 
+// ─── COMPILATION ALBUMS ────────────────────────────────────────
+/* A compilation is one album whose tracks are each credited to a different
+   singer — an EFY record, a film soundtrack, a label sampler. Grouping albums
+   by their first artist shatters such a record into one album per singer, so
+   every album chart, record and certification counts the same album a dozen
+   times over, each at a twelfth of its plays.
+
+   Listing an album here merges it back into one, and it does so without
+   touching a single play: p.artist and p.artists stay the singer's, so the
+   artist charts, the song charts and the song certifications are exactly as
+   they were. Only the *album's* credit changes, to Various Artists — and
+   because every album key in the app is built from albumArtist(), that one
+   substitution merges the album everywhere at once.
+
+   The credit is deliberately the literal English "Various Artists" in every
+   language: it is a data value that album keys, image-source preferences and
+   Firestore-synced settings are all built from, so it has to stay stable when
+   the interface language changes. */
+const COMPILATIONS_KEY = 'dc_compilation_albums';
+const VARIOUS_ARTISTS  = 'Various Artists';
+
+// Lowercased titles, parsed once. null = not read from localStorage yet.
+let _compilationSet = null;
+window.dcResetCompilationsCache = () => { _compilationSet = null; };
+
+// The saved list in the casing the user typed it — what the manager modal lists.
+function getCompilationAlbums() {
+  try { return JSON.parse(localStorage.getItem(COMPILATIONS_KEY) || '[]'); } catch { return []; }
+}
+
+function _compSet() {
+  if (_compilationSet === null) {
+    _compilationSet = new Set(getCompilationAlbums().map(a => String(a).toLowerCase().trim()));
+  }
+  return _compilationSet;
+}
+
+/* Called once per play inside the chart-building loops, so the empty-set
+   fast path matters: users with no compilations pay one .size read. */
+function isCompilationAlbum(album) {
+  if (!album || album === '—') return false;
+  const s = _compSet();
+  return s.size > 0 && s.has(album.toLowerCase().trim());
+}
+
+// Writes the list and pushes it straight to Firestore with the in-memory value.
+// Not dcSaveUserConfig() — that re-reads localStorage and can race the auth
+// callback into saving a stale value, which is how the autocorrect rules were
+// once lost.
+function _saveCompilationAlbums(list) {
+  const json = JSON.stringify(list);
+  localStorage.setItem(COMPILATIONS_KEY, json);
+  _compilationSet = null;
+  if (typeof dcSaveCompilationsToFirestore === 'function') dcSaveCompilationsToFirestore(json);
+}
+
+function addCompilationAlbum(title) {
+  const name = String(title || '').trim();
+  if (!name) return false;
+  const list = getCompilationAlbums();
+  if (list.some(a => a.toLowerCase() === name.toLowerCase())) return false;
+  list.push(name);
+  _saveCompilationAlbums(list);
+  return true;
+}
+
+function removeCompilationAlbum(title) {
+  const lc = String(title || '').toLowerCase();
+  _saveCompilationAlbums(getCompilationAlbums().filter(a => a.toLowerCase() !== lc));
+}
+
 // Primary artist for album grouping — always the first artist so that feat. tracks
-// don't split into a separate album entry.
+// don't split into a separate album entry. Compilations are the exception: they
+// are credited to Various Artists so all their singers fold into one album.
 function albumArtist(p) {
+  if (p.album && isCompilationAlbum(p.album)) return VARIOUS_ARTISTS;
   return (p.artists && p.artists[0]) || p.artist;
 }
 
@@ -1375,6 +1448,109 @@ function renderRulesList() {
   `).join('');
 }
 
+// ─── COMPILATION ALBUMS MANAGER ───────────────────────────────
+/* The list lives in Settings, but the switch that matters is on the album
+   itself — see the toggle openAlbumModal() writes. Both land here, and both
+   end in a full rebuild: albumArtist() feeds every chart key in the app, so a
+   change to it cannot be repainted, only recomputed. */
+
+function openCompilationsModal() {
+  /* Typing an album title by hand invites a near-miss that silently matches
+     nothing, so the field suggests from the titles actually in the data. Albums
+     that are already listed are left out of the suggestions. */
+  const dl = document.getElementById('compilationsDatalist');
+  if (dl) {
+    const listed = new Set(getCompilationAlbums().map(a => a.toLowerCase()));
+    const titles = new Set();
+    for (const p of allPlays) {
+      if (p.album && p.album !== '—' && !listed.has(p.album.toLowerCase())) titles.add(p.album);
+    }
+    dl.innerHTML = '';
+    for (const title of [...titles].sort((a, b) => a.localeCompare(b))) {
+      const opt = document.createElement('option');
+      opt.value = title;
+      dl.appendChild(opt);
+    }
+  }
+  renderCompilationsList();
+  document.getElementById('compilationsModal').classList.add('open');
+}
+
+function closeCompilationsModal() {
+  document.getElementById('compilationsModal').classList.remove('open');
+}
+
+function renderCompilationsList() {
+  const el = document.getElementById('compilationsList');
+  if (!el) return;
+  const list = getCompilationAlbums().slice().sort((a, b) => a.localeCompare(b));
+  if (!list.length) {
+    el.innerHTML = `<p style="font-size:0.8rem;color:var(--text3);text-align:center;padding:1rem 0">${t('comp_none')}</p>`;
+    return;
+  }
+  el.innerHTML = list.map(function (name) {
+    // How many singers this album actually merges — the number is the whole
+    // reason the entry exists, so it is worth showing next to it.
+    const singers = new Set();
+    for (const p of allPlays) {
+      if (p.album && p.album.toLowerCase().trim() === name.toLowerCase().trim()) {
+        for (const a of (p.artists && p.artists.length ? p.artists : [p.artist])) singers.add(a);
+      }
+    }
+    const note = singers.size ? t('comp_merges', { n: singers.size }) : t('comp_no_plays');
+    return `<div style="display:flex;justify-content:space-between;align-items:center;padding:0.5rem 0;border-bottom:1px solid var(--border);gap:0.7rem">
+      <div style="font-size:0.78rem;flex:1;min-width:0;line-height:1.4">
+        <div style="color:var(--text2)">${esc(name)}</div>
+        <div style="color:var(--text3);font-size:0.7rem">${esc(note)}</div>
+      </div>
+      <button onclick="removeCompilation(${esc(JSON.stringify(name))})" style="flex-shrink:0;font-size:0.72rem;padding:0.2rem 0.5rem;border:1px solid var(--border);border-radius:3px;background:var(--bg2);color:var(--text2);cursor:pointer">${t('comp_remove')}</button>
+    </div>`;
+  }).join('');
+}
+
+// Rebuilds every chart from scratch. albumArtist() decides album identity, so
+// nothing short of a full pass can reflect a change to the list.
+function _compilationsChanged() {
+  if (typeof renderAll === 'function' && allPlays.length) renderAll();
+}
+
+function addCompilationFromInput() {
+  const input = document.getElementById('compilationsInput');
+  if (!input) return;
+  if (addCompilationAlbum(input.value)) {
+    input.value = '';
+    renderCompilationsList();
+    _compilationsChanged();
+  }
+}
+
+function removeCompilation(name) {
+  removeCompilationAlbum(name);
+  renderCompilationsList();
+  _compilationsChanged();
+}
+
+/* The album modal's switch. The album keeps its modal either way — it just
+   moves to a different key, because the key carries the credit. Merging sends
+   "Efy 2013|||Jenessa Buttars" to "Efy 2013|||Various Artists"; unmerging sends
+   it back to whoever sang the first play. So rather than close the window on a
+   record that still exists, this reopens it on the key the album now has, which
+   is also the clearest possible confirmation that the merge worked: the same
+   album, one modal, every play accounted for. */
+function toggleAlbumCompilation(albumName, on) {
+  if (on) addCompilationAlbum(albumName);
+  else removeCompilationAlbum(albumName);
+  renderCompilationsList();
+  _compilationsChanged();
+
+  // The new key has to be read back from the data, not assumed: unmerging
+  // restores the first-played artist, which only the plays know.
+  const play = allPlays.find(p => p.album && p.album.toLowerCase() === albumName.toLowerCase());
+  const modal = document.getElementById('albumModal');
+  if (!play) { if (modal) modal.classList.remove('open'); return; }
+  openAlbumModal(albumName + '|||' + albumArtist(play));
+}
+
 // ─── EDIT SCROBBLE ────────────────────────────────────────────
 
 let _editPlay    = null;
@@ -1787,15 +1963,20 @@ const deezerAlbumCandidateCache = {};
 function deezerAlbumImageCandidates(album, artist) {
   const k = artist.toLowerCase() + '|||' + album.toLowerCase();
   if (k in deezerAlbumCandidateCache) return deezerAlbumCandidateCache[k];
+  /* No cover art is filed under "Various Artists" — a compilation is listed by
+     its title, and matching the credit against the search result would reject
+     every real hit. So the title carries the search alone. */
+  const comp = artist === VARIOUS_ARTISTS;
   const p = (async () => {
     try {
-      const r = await deezerFetch(`search/album?q=${encodeURIComponent(artist + ' ' + album)}&limit=10`);
+      const q = comp ? album : artist + ' ' + album;
+      const r = await deezerFetch(`search/album?q=${encodeURIComponent(q)}&limit=10`);
       if (!r.ok) return [];
       const d = await r.json();
       const items = d?.data || [];
       const matches = items.filter(x =>
         x.title?.toLowerCase().includes(album.toLowerCase()) &&
-        x.artist?.name?.toLowerCase().includes(artist.toLowerCase().split(/[\s,&]/)[0])
+        (comp || x.artist?.name?.toLowerCase().includes(artist.toLowerCase().split(/[\s,&]/)[0]))
       );
       const urls = [];
       for (const c of (matches.length ? matches : items)) {
@@ -1930,14 +2111,17 @@ async function getAlbumImage(album, artist, source) {
   imgCache[k] = null;
   if (source === 'off') return null;
   try {
+    // Same reasoning as deezerAlbumImageCandidates: a compilation searches on
+    // its title alone, since nothing is credited to "Various Artists".
+    const comp = artist === VARIOUS_ARTISTS;
     if (source === 'itunes') {
-      const q = encodeURIComponent(artist + ' ' + album);
+      const q = encodeURIComponent(comp ? album : artist + ' ' + album);
       const r = await fetch(`https://itunes.apple.com/search?term=${q}&entity=album&limit=5`);
       const d = await r.json();
       const results = d?.results || [];
       const match = results.find(x =>
         x.collectionName?.toLowerCase().includes(album.toLowerCase()) &&
-        x.artistName?.toLowerCase().includes(artist.toLowerCase().split(/[\s,&]/)[0])
+        (comp || x.artistName?.toLowerCase().includes(artist.toLowerCase().split(/[\s,&]/)[0]))
       ) || results[0];
       if (match?.artworkUrl100) {
         imgCache[k] = match.artworkUrl100.replace('100x100bb', '600x600bb');
@@ -1949,7 +2133,7 @@ async function getAlbumImage(album, artist, source) {
     } else if (source === 'deezer') {
       imgCache[k] = await deezerAlbumImage(album, artist);
     } else if (source === 'youtube') {
-      imgCache[k] = await ytSearch(artist + ' ' + album + ' album');
+      imgCache[k] = await ytSearch((comp ? album : artist + ' ' + album) + ' album');
     }
   } catch (e) { imgCache[k] = null; }
   return imgCache[k];
@@ -4928,9 +5112,19 @@ function buildRecords() {
     // ladders above use.
     if (p.album && p.album !== '—') {
       const aa = albumArtist(p);
-      certTouch(certAlbumItems, p.album + '|||' + aa, p, 'album', CERT.album, {
-        title: p.album, artist: aa, artists: [aa], album: ''
+      const isComp = aa === VARIOUS_ARTISTS;
+      const ak = p.album + '|||' + aa;
+      certTouch(certAlbumItems, ak, p, 'album', CERT.album, {
+        title: p.album, artist: aa, artists: [aa], album: '',
+        // A compilation collects the singers who actually appear on it. The
+        // plaque still hangs under Various Artists, but the ledger uses this
+        // to list the album under each of them.
+        comp: isComp, contributors: isComp ? new Set() : null
       });
+      if (isComp) {
+        const contribs = certAlbumItems[ak].contributors;
+        for (const a of (p.artists && p.artists.length ? p.artists : [p.artist])) contribs.add(a);
+      }
     }
   }
 
@@ -4950,6 +5144,15 @@ function buildRecords() {
   for (const it of Object.values(certAlbumItems)) {
     const tier = it.plays >= CERT.album.diamond ? 'ad' : it.plays >= CERT.album.plat ? 'ap' : it.plays >= CERT.album.gold ? 'ag' : null;
     if (!tier) continue;
+    if (it.comp) {
+      /* A compilation's certification belongs to the record, not to the singers
+         on it: tallying it for each would award one album a dozen times over,
+         which is the very thing merging the album was meant to stop. The ledger
+         still lists it under every contributor — the album is genuinely part of
+         their history — but only as a line, never as a count. */
+      for (const a of it.contributors) certBucket(a).albums.push(it);
+      continue;
+    }
     const b = certBucket(it.artist); b[tier]++; b.albums.push(it);
   }
 
@@ -12956,6 +13159,9 @@ function certLedgerRows(items, cfg) {
       const days = Math.max(ev.elapsed / 86400000, 1 / 24);
       rows.push({
         kind: it.kind, key: it.key, title: it.title, artist: it.artist, album: it.album,
+        // Marks the line as a shared credit — the album is listed here but its
+        // certification is counted once, against the record itself.
+        comp: !!it.comp,
         tier: ev.tier, mult: ev.mult, n: ev.n,
         first: it.first, date: ev.date, elapsed: ev.elapsed,
         gap: prev ? ev.date - prev.date : null,
@@ -12980,7 +13186,10 @@ function certLedgerRowHTML(r) {
   const open = isSong ? 'openSongModal(' + openArgs + ')' : 'openAlbumModal(' + openArgs + ')';
   const sub = isSong
     ? (t('certd_song') + (r.album ? ' · ' + esc(r.album) : ''))
-    : t('certd_album');
+    // A compilation says so on its own line: it is listed in this artist's
+    // ledger but counted in nobody's tally, and the word is what explains the
+    // gap between the two.
+    : (t('certd_album') + (r.comp ? ' · ' + t('certd_compilation') : ''));
 
   // Value + caption + optional third micro-line. The caption sits under the
   // figure so the numbers themselves stay on one scannable baseline.
@@ -18520,9 +18729,13 @@ function openArtistModal(artistName) {
   const goldSongs = allSongsSorted.filter(s => s.count >= CERT.song.gold).length;
   const platSongs = allSongsSorted.filter(s => s.count >= CERT.song.plat).length;
   const diamondSongs = allSongsSorted.filter(s => s.count >= CERT.song.diamond).length;
-  const goldAlbums = allAlbumsSorted.filter(a => a.count >= CERT.album.gold).length;
-  const platAlbums = allAlbumsSorted.filter(a => a.count >= CERT.album.plat).length;
-  const diamondAlbums = allAlbumsSorted.filter(a => a.count >= CERT.album.diamond).length;
+  /* Compilations are left out of the count on purpose. Their certification is
+     awarded to the record as a whole, not to each singer on it — the album is
+     still listed above, it just isn't tallied here. */
+  const certAlbums = allAlbumsSorted.filter(a => !isCompilationAlbum(a.album));
+  const goldAlbums = certAlbums.filter(a => a.count >= CERT.album.gold).length;
+  const platAlbums = certAlbums.filter(a => a.count >= CERT.album.plat).length;
+  const diamondAlbums = certAlbums.filter(a => a.count >= CERT.album.diamond).length;
 
   // All-time / per-period chart peaks
   const artistPeak = peaks.artistPeakMap[artistName];
@@ -19227,8 +19440,23 @@ function openAlbumModal(albumKey) {
 
   // ── HEADER ────────────────────────────────────────────────────────────────
   document.getElementById('albumModalName').textContent = albumName;
-  document.getElementById('albumModalSub').innerHTML =
-    `Album by <a class="modal-artist-link" href="javascript:void(0)" onclick="albumModal.classList.remove('open');setTimeout(()=>openArtistModal(${esc(JSON.stringify(artistName))}),50)">${esc(artistName)}</a> · ${t('modal_chart_profile')}`;
+  /* Various Artists is a credit, not an artist: it has no plays of its own, so
+     linking it would open an empty artist modal. A compilation therefore names
+     its credit as plain text and says what it is instead. */
+  const albIsComp = artistName === VARIOUS_ARTISTS;
+  document.getElementById('albumModalSub').innerHTML = albIsComp
+    ? `${t('modal_compilation_by')} <span class="modal-artist-va">${esc(VARIOUS_ARTISTS)}</span> · ${t('modal_chart_profile')}`
+    : `Album by <a class="modal-artist-link" href="javascript:void(0)" onclick="albumModal.classList.remove('open');setTimeout(()=>openArtistModal(${esc(JSON.stringify(artistName))}),50)">${esc(artistName)}</a> · ${t('modal_chart_profile')}`;
+
+  // The compilation switch itself — the album is the only place you can see
+  // whether it is merged, so it is the natural place to flip it.
+  const compRowEl = document.getElementById('albumModalCompRow');
+  if (compRowEl) {
+    compRowEl.innerHTML = `<label class="alb-comp-toggle" title="${esc(t('comp_toggle_hint'))}">
+      <input type="checkbox" ${albIsComp ? 'checked' : ''} onchange="toggleAlbumCompilation(${esc(JSON.stringify(albumName))},this.checked)">
+      <span>${t('comp_toggle_label')}</span>
+    </label>`;
+  }
 
   // ── IMAGE ─────────────────────────────────────────────────────────────────
   const imgEl = document.getElementById('albumModalImg');
@@ -19485,7 +19713,10 @@ function openAlbumModal(albumKey) {
       const mult = s.count >= CERT.song.diamond ? Math.floor(s.count / CERT.song.diamond) : 0;
       const tier = mult > 0 ? 'diamond' : s.count >= CERT.song.plat ? 'plat' : 'gold';
       const { icon: dIcon, label: dLabel } = mult > 0 ? diamondMultiLabel(mult) : { icon: tier === 'plat' ? '💿' : '🪙', label: tier === 'plat' ? 'Platinum' : 'Gold' };
-      plaqueItems.push({ icon: dIcon, label: dLabel, tier, mult, plays: s.count, type: 'Song', name: s.title });
+      // A song plaque is always credited to whoever sang it, never to the
+      // album's credit — on a compilation those are different people, and the
+      // singer is the one who earned it.
+      plaqueItems.push({ icon: dIcon, label: dLabel, tier, mult, plays: s.count, type: 'Song', name: s.title, artist: s.artist });
     }
   }
   if (plaqueItems.length) {
@@ -19507,7 +19738,7 @@ function openAlbumModal(albumKey) {
           </div>
           <div class="cert-info">
             <div class="cert-title">${esc(name)}</div>
-            <div class="cert-artist">${esc(artistName)}</div>
+            <div class="cert-artist">${esc(p.artist || artistName)}</div>
             <div class="cert-tier-name">${esc(p.label)} <span class="cert-tier-of">certified ${esc(p.type.toLowerCase())}</span></div>
             <div class="cert-date">${p.plays.toLocaleString()} plays</div>
           </div>

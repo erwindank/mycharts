@@ -18,7 +18,7 @@ const SYNC_KEYS = [
   'dc_lfm_api_secret', 'dc_lfm_session_key', 'dc_lfm_session_user',
   'dc_display_name', 'dc_timezone', 'dc_cert_config',
   'dc_events_artist_limit', 'dc_theme', 'dc_lang',
-  'dc_autocorrect_rules', 'dc_no_artist_split', 'dc_tm_api_key',
+  'dc_autocorrect_rules', 'dc_compilation_albums', 'dc_no_artist_split', 'dc_tm_api_key',
   'dc_tm_toggles',
   'dc_events_type_filter', 'dc_cal_view', 'dc_events_view_modes',
   'dc_sectionDisplayToggles', 'dc_subChartToggles',
@@ -45,9 +45,10 @@ async function _loadAndApplyConfig(uid) {
     let applied = false;
     for (const key of SYNC_KEYS) {
       if (data[key] != null) {
-        // Don't let an empty Firestore rules value overwrite locally-stored rules.
-        // The auth callback's dcSaveUserConfig will push the local rules to Firestore.
-        if (key === 'dc_autocorrect_rules' && data[key] === '[]') {
+        // Don't let an empty Firestore list overwrite a locally-stored one.
+        // The auth callback's dcSaveUserConfig will push the local value up.
+        // Both of these are user-authored lists that are expensive to lose.
+        if ((key === 'dc_autocorrect_rules' || key === 'dc_compilation_albums') && data[key] === '[]') {
           const local = localStorage.getItem(key);
           if (local && local !== '[]') { applied = true; continue; }
         }
@@ -85,6 +86,18 @@ async function dcSaveRulesToFirestore(rulesJson) {
     await _configRef(_currentUser.uid).set({ dc_autocorrect_rules: rulesJson }, { merge: true });
   } catch (err) {
     console.warn('[dankcharts] Firebase rules save error:', err);
+  }
+}
+
+// Targeted save, for the same reason dcSaveRulesToFirestore is one: writing the
+// in-memory list directly can't be raced by the auth callback into pushing a
+// stale localStorage value back up.
+async function dcSaveCompilationsToFirestore(listJson) {
+  if (!_currentUser) return;
+  try {
+    await _configRef(_currentUser.uid).set({ dc_compilation_albums: listJson }, { merge: true });
+  } catch (err) {
+    console.warn('[dankcharts] Firebase compilations save error:', err);
   }
 }
 
@@ -215,6 +228,7 @@ window.dcSignIn                    = dcSignIn;
 window.dcSignOut                   = dcSignOut;
 window.dcSaveUserConfig            = dcSaveUserConfig;
 window.dcSaveRulesToFirestore      = dcSaveRulesToFirestore;
+window.dcSaveCompilationsToFirestore = dcSaveCompilationsToFirestore;
 window.dcSaveEventsCache           = dcSaveEventsCache;
 window.dcLoadEventsCache           = dcLoadEventsCache;
 window.dcSaveAwards                = dcSaveAwards;
@@ -236,6 +250,7 @@ _auth.onAuthStateChanged(async (user) => {
 
   const applied = await _loadAndApplyConfig(user.uid);
   if (applied && typeof dcResetRulesCache === 'function') dcResetRulesCache();
+  if (applied && typeof dcResetCompilationsCache === 'function') dcResetCompilationsCache();
   if (applied && typeof dcApplyDisplayToggles === 'function') dcApplyDisplayToggles();
   if (applied && typeof dcApplyAllSettings    === 'function') dcApplyAllSettings();
 

@@ -27,7 +27,7 @@
   <!-- html2canvas, SheetJS (xlsx) and JSZip are intentionally NOT loaded here — they
        total ~1.2 MB and are only needed for image exports and Excel/ZIP imports.
        app.js pulls them from the CDN on first use (see ensureLazyLib). -->
-  <link rel="stylesheet" href="style.css?v=203">
+  <link rel="stylesheet" href="style.css?v=204">
   <!-- All scripts are deferred so the page paints without waiting on them.
        defer preserves execution order, which matters: translations → Chart.js →
        hammer → zoom plugin → firebase SDKs → firebase.js → app.js (in body). -->
@@ -2865,6 +2865,9 @@
         <div>
           <div class="modal-artist-name" id="albumModalName"></div>
           <div class="modal-artist-sub" id="albumModalSub"></div>
+          <!-- "Treat as compilation" — merges this album's tracks into one
+               record credited to Various Artists. Filled by openAlbumModal(). -->
+          <div id="albumModalCompRow"></div>
         </div>
       </div>
       <div class="modal-body">
@@ -2991,6 +2994,27 @@
           <button onclick="importRules()" style="font-size:0.75rem;padding:0.3rem 0.7rem;border:1px solid var(--border);border-radius:4px;background:var(--bg2);color:var(--text2);cursor:pointer" data-i18n="modal_rules_import">Import JSON</button>
         </div>
         <button class="src-btn-cancel" onclick="closeRulesModal()" data-i18n="btn_cancel">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Compilation Albums Modal ── -->
+  <div id="compilationsModal" class="modal-overlay" role="dialog" aria-modal="true">
+    <div class="src-modal-box">
+      <h3 class="src-modal-title" data-i18n="comp_modal_title">Compilation Albums</h3>
+      <p style="font-size:0.78rem;color:var(--text3);margin:0 0 0.7rem" data-i18n="comp_modal_desc">Each album listed here is counted as one record credited to Various Artists, however many singers appear on it. Nothing about the tracks changes: every song stays with the artist who sang it, in the artist charts and in its own certifications.</p>
+      <div style="display:flex;gap:0.4rem;margin-bottom:0.6rem">
+        <input type="text" id="compilationsInput" list="compilationsDatalist" placeholder="Album title…" data-i18n-placeholder="comp_modal_placeholder"
+          onkeydown="if(event.key==='Enter'){event.preventDefault();addCompilationFromInput();}"
+          style="flex:1;min-width:0;padding:0.35rem 0.6rem;font-size:0.8rem;border:1px solid var(--border);border-radius:4px;background:var(--bg2);color:var(--text2);outline:none">
+        <datalist id="compilationsDatalist"></datalist>
+        <button onclick="addCompilationFromInput()" style="flex-shrink:0;font-size:0.75rem;padding:0.3rem 0.8rem;border:1px solid var(--border);border-radius:4px;background:var(--bg2);color:var(--text2);cursor:pointer" data-i18n="comp_modal_add">Add</button>
+      </div>
+      <div id="compilationsList" style="max-height:300px;overflow-y:auto;"></div>
+      <div style="display:flex;justify-content:flex-end;margin-top:0.8rem">
+        <!-- Every change here is already saved, so this dismisses rather than
+             cancels — btn_cancel would be a lie about what the button does. -->
+        <button class="src-btn-cancel" onclick="closeCompilationsModal()" data-i18n="comp_modal_close">Close</button>
       </div>
     </div>
   </div>
@@ -3846,6 +3870,17 @@ function deleteGenreTriggers() {
             </select>
             artists
           </label>
+        </div>
+      </div>
+
+      <!-- Compilation albums: one album, many singers. Listing one here merges
+           it into a single record credited to Various Artists, without touching
+           the artist on any play. -->
+      <div class="cert-config-group">
+        <div class="cert-config-title" data-i18n="comp_settings_title">Compilation Albums</div>
+        <div class="cert-config-footer">
+          <p class="src-modal-hint" data-i18n="comp_settings_hint">Albums whose tracks are each credited to a different singer (a soundtrack, a sampler) counted as one record by Various Artists. Artist and song charts are unaffected.</p>
+          <button type="button" class="cert-reset-btn" onclick="openCompilationsModal()" data-i18n="comp_settings_btn">Manage list</button>
         </div>
       </div>
 

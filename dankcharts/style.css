@@ -28450,3 +28450,54 @@ body.red-light .modal-cb-label--tracks {
       .cr-stk-block { opacity: 1; transform: none; }
       .cr-stk-row:hover { transform: none; }
     }
+
+/* ── COMPILATION ALBUMS ──────────────────────────────────────────
+   Both of these live inside .modal-header, whose background is themed per
+   palette and is dark in several light themes. So neither picks a colour:
+   they inherit currentColor from .modal-artist-sub and separate themselves by
+   weight and a translucent well, which reads correctly on every masthead. */
+
+.modal-artist-va {
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: currentColor;
+}
+
+.alb-comp-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-top: 0.45rem;
+  padding: 0.2rem 0.55rem 0.2rem 0.4rem;
+  border: 1px solid currentColor;
+  border-radius: 999px;
+  /* A hairline outline at full strength would compete with the album title,
+     so the chip sits at partial opacity until it is hovered or checked. */
+  opacity: 0.6;
+  font-family: var(--font-mono);
+  font-size: 0.66rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: currentColor;
+  cursor: pointer;
+  transition: opacity 0.18s ease, background 0.18s ease;
+}
+
+.alb-comp-toggle:hover,
+.alb-comp-toggle:focus-within {
+  opacity: 1;
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.alb-comp-toggle:has(input:checked) {
+  opacity: 1;
+  background: rgba(255, 255, 255, 0.16);
+}
+
+.alb-comp-toggle input {
+  width: 0.8rem;
+  height: 0.8rem;
+  margin: 0;
+  accent-color: currentColor;
+  cursor: pointer;
+}
