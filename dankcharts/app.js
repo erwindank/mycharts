@@ -28830,7 +28830,19 @@ function renderTimeMachine(forceRebuild) {
   const newData = buildTimeMachineData();
   const newHash = newData.songs.length + '|' + newData.artists.length + '|' + newData.albums.length;
 
-  if (!forceRebuild && tmData && tmData._hash === newHash && track.firstChild) return;
+  // The Awards and Soundtrack tabs hide this section outright, and the block that
+  // restores the chart UI on the way back out never puts it back — so visibility
+  // has to be re-asserted here rather than only on the rebuild path below, or one
+  // visit to either tab hides the ticker for the rest of the session (the hash is
+  // unchanged, so this early return is exactly what runs). Guarded on the current
+  // view: a background re-render while Awards or Soundtrack is on screen must not
+  // pop the ticker back up over them.
+  const tmHiddenView = currentPeriod === 'awards' || currentPeriod === 'soundtrack';
+
+  if (!forceRebuild && tmData && tmData._hash === newHash && track.firstChild) {
+    if (!tmHiddenView) section.style.display = ''; // cached cards are still in the track
+    return;
+  }
 
   newData._hash = newHash;
   tmData = newData;
@@ -28847,7 +28859,7 @@ function renderTimeMachine(forceRebuild) {
     track.innerHTML = '';
     return;
   }
-  section.style.display = '';
+  if (!tmHiddenView) section.style.display = ''; // same view guard as the early return above
   if (tickerOuter) tickerOuter.style.display = '';
 
   tmImgQueue = Promise.resolve();
