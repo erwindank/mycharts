@@ -27,7 +27,7 @@
   <!-- html2canvas, SheetJS (xlsx) and JSZip are intentionally NOT loaded here — they
        total ~1.2 MB and are only needed for image exports and Excel/ZIP imports.
        app.js pulls them from the CDN on first use (see ensureLazyLib). -->
-  <link rel="stylesheet" href="style.css?v=206">
+  <link rel="stylesheet" href="style.css?v=207">
   <!-- All scripts are deferred so the page paints without waiting on them.
        defer preserves execution order, which matters: translations → Chart.js →
        hammer → zoom plugin → firebase SDKs → firebase.js → app.js (in body). -->
@@ -364,11 +364,14 @@
         </div>
       </div>
       <div class="section-sub" data-i18n="time_machine_sub">On this day in past years</div>
-      <div class="tm-hint" data-i18n-html="tm_hint">▶ Click any card for options — Spotify, player queue, or Google</div>
+      <div class="tm-hint" id="tmHint" data-i18n-html="tm_hint">▶ Click any card for options — Spotify, player queue, or Google</div>
       <div class="section-body">
         <div class="tm-ticker-outer" id="tmTickerOuter">
           <div class="tm-ticker-track" id="tmTickerTrack"></div>
         </div>
+        <!-- Shown by renderTimeMachine() when Songs, Artists and Albums are all
+             switched off — the section stays put so those buttons remain reachable -->
+        <div class="tm-empty" id="tmEmpty" style="display:none;" data-i18n="time_machine_empty">All three types are switched off — turn one back on to see this day in past years.</div>
       </div>
     </div>
 

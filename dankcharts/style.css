@@ -21129,6 +21129,20 @@ body[class*="-light"] .tm-card-search:hover {
   letter-spacing: 0.02em;
 }
 
+/* Stands in for the ticker when all three type toggles are off — quiet, since it
+   is an instruction rather than content, and tall enough that the section still
+   reads as a section instead of a stray header */
+.tm-empty {
+  font-size: 0.72rem;
+  color: var(--text3);
+  font-family: var(--font-mono);
+  text-align: center;
+  padding: 22px 12px;
+  border: 1px dashed var(--border);
+  border-radius: var(--r-sm);
+  background: var(--bg2);
+}
+
 .tm-card-img {
   width: 100%;
   aspect-ratio: 1 / 1;

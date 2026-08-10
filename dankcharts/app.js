@@ -28854,13 +28854,33 @@ function renderTimeMachine(forceRebuild) {
   entries = tmShuffle(entries);
 
   const tickerOuter = document.getElementById('tmTickerOuter');
+  const emptyEl = document.getElementById('tmEmpty');
+  const hintEl = document.getElementById('tmHint');
+  // Did this day happen at all in past years? That is a different question from
+  // whether anything is on screen — the type toggles can empty a day that has
+  // plenty of history behind it.
+  const hasDayData = tmData.songs.length || tmData.artists.length || tmData.albums.length;
+
   if (entries.length === 0) {
     if (tickerOuter) tickerOuter.style.display = 'none';
     track.innerHTML = '';
+    // Nothing was played on this date in any past year — there is genuinely
+    // nothing to show, so the section stays out of the way.
+    if (!hasDayData) { section.style.display = 'none'; return; }
+    // Otherwise all three types are switched off. Keep the section on screen with
+    // an empty state instead of vanishing: the Songs/Artists/Albums buttons live
+    // in its own header, so hiding it strands the user with no way to switch one
+    // back on — and the state rides along in Firestore, so neither a reload nor a
+    // cache clear undoes it. The card hint would be nonsense with no cards.
+    if (!tmHiddenView) section.style.display = '';
+    if (emptyEl) emptyEl.style.display = '';
+    if (hintEl) hintEl.style.display = 'none';
     return;
   }
   if (!tmHiddenView) section.style.display = ''; // same view guard as the early return above
   if (tickerOuter) tickerOuter.style.display = '';
+  if (emptyEl) emptyEl.style.display = 'none';
+  if (hintEl) hintEl.style.display = '';
 
   tmImgQueue = Promise.resolve();
   const myLoaderId = ++tmLoaderId;
