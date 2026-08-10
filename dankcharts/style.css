@@ -16268,9 +16268,12 @@
       margin-top: 1.5rem;
     }
 
+    /* 250px, not the 170px the old card fitted in: the plaque now stands a
+       cover square beside a fan of up to five records, and the fan is the first
+       thing that stops being countable when the column narrows. */
     .cwall-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
       gap: 1.5rem;
       padding: 0.25rem;
     }
@@ -16284,419 +16287,292 @@
       letter-spacing: 0.05em;
     }
 
-    /* ── Plaque card ── */
+    /* ══════════════════════════════════════════════════════════
+       PLAQUE CARD
+       An award, not a UI card: a clear acrylic panel on four steel
+       standoffs, the cover mounted beside the record, and — because
+       Diamond repeats — one record per multiple, fanned so a Triple
+       is counted rather than read.
+
+       Everything below is sized off two custom properties, --cart
+       (the cover square) and --cdisc (a record), so the phone block
+       at the end is four numbers rather than a second design.
+       ══════════════════════════════════════════════════════════ */
     .cert-card {
-      border-radius: 10px;
+      --cart: 88px;
+      --cdisc: 84px;
+      border-radius: 5px;
       transition: transform 0.2s ease;
     }
 
     .cert-card:hover {
-      transform: translateY(-5px) scale(1.02);
+      transform: translateY(-4px);
     }
 
-    /* ── The 3D frame ── */
+    /* Metal and tint per tier. One set of properties, three tiers, so every
+       rule below styles the object and never the tier:
+         --chi / --clo   the metal the record and the standoffs are turned from
+         --cpanel        the colour washed through the acrylic, as an rgb triplet
+         --cpanel-a      how much of it, because the three do not need the same:
+                         gold carries at a fraction of what ice needs to register
+         --ctint/--cdim  the two text weights
+       Platinum sits at true silver rather than the blue-grey it used to be —
+       against a dark panel that read as a weaker Diamond. */
+    .cert-card--gold {
+      --chi: #f3d27a; --clo: #9a6a16;
+      --cpanel: 205, 150, 22; --cpanel-a: 0.20;
+      --ctint: #f0cc50; --cdim: #c8a040;
+    }
+    .cert-card--plat {
+      --chi: #eef3f7; --clo: #7f8c99;
+      --cpanel: 208, 224, 240; --cpanel-a: 0.26;
+      --ctint: #d8e6f2; --cdim: #9db2c6;
+    }
+    .cert-card--diamond {
+      --chi: #eaf7ff; --clo: #3f86c8;
+      --cpanel: 58, 168, 255; --cpanel-a: 0.34;
+      --ctint: #cfeaff; --cdim: #7cb8e4;
+    }
+
+    /* ── The acrylic panel ── */
     .cert-frame {
-      border-radius: 10px;
-      padding: 18px 14px 16px;
+      position: relative;
+      border-radius: 5px;
+      padding: 20px 14px 14px;
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 10px;
-      border: 2px solid;
-      position: relative;
+      gap: 14px;
+      /* A light catch across the top-left corner over cool graphite, so no part
+         of the plaque is flat black. */
+      background:
+        linear-gradient(200deg, rgba(255,255,255,0.17), rgba(255,255,255,0) 44%),
+        linear-gradient(158deg, #232730 0%, #171a20 45%, #0e1014 100%);
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,0.30),
+        0 0 0 1px rgba(255,255,255,0.13),
+        12px 15px 30px rgba(0,0,0,0.55);
     }
 
-    /* Corner screws */
-    .cert-frame::before,
+    /* The tier's colour through the panel, from the top and again at the base. */
     .cert-frame::after {
       content: '';
       position: absolute;
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      top: 8px;
-    }
-    .cert-frame::before { left: 8px; }
-    .cert-frame::after  { right: 8px; }
-
-    /* ── Record section ── */
-    .cert-record-wrap {
-      position: relative;
-      width: 108px;
-      height: 108px;
-      margin: 2px auto;
-    }
-
-    /* Sleeve: square-ish cardboard behind the circle */
-    .cert-sleeve {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      width: 84px;
-      height: 88px;
-      border-radius: 5px;
-      z-index: 0;
-    }
-
-    /* Holds only the artwork, so the image loader can replace its contents
-       without taking the sleeve and the vinyl centre with it. It occupies
-       exactly the box .cert-record used to, and the cover inside it inherits
-       that box — see .cert-record below, which now also matches the .thumb the
-       loader injects. */
-    .cert-record-slot {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      width: 108px;
-      height: 108px;
-      z-index: 1;
-    }
-
-    /* attachRecImgPicker() wraps the slot in a .rec-thumb-wrap at runtime so the
-       ✎ badge has something to anchor to. That wrapper is inline-block and its
-       only child is absolutely positioned, so it collapses to a 0×0 box in the
-       top-left corner of .cert-record-wrap — and the slot's 50%/50% centring
-       then resolved against that instead of the record box, throwing the
-       artwork outside the frame. Let the wrapper stand in for the slot's box. */
-    .cert-record-wrap > .thumb-wrap {
-      position: absolute;
       inset: 0;
-      display: block;
-      z-index: 1;
+      border-radius: 5px;
+      background:
+        radial-gradient(115% 78% at 50% 0%, rgba(var(--cpanel), var(--cpanel-a)), transparent 64%),
+        linear-gradient(180deg, transparent 52%, rgba(var(--cpanel), calc(var(--cpanel-a) * 0.5)));
+      pointer-events: none;
     }
 
-    /* The artwork is a circle inscribed in that square, so the wrapper's corner
-       sits well clear of it — pull the badge in to meet the circle's edge. */
-    .cert-record-wrap .img-src-btn {
-      top: 8px;
-      right: 8px;
-    }
-
-    .cert-record,
-    .cert-record-slot .thumb {
+    /* Standoffs, machined from the same metal as the award. */
+    .cert-bolt {
       position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      width: 108px;
-      height: 108px;
+      width: 7px;
+      height: 7px;
       border-radius: 50%;
+      background: radial-gradient(circle at 34% 28%, var(--chi), var(--clo) 72%);
+      box-shadow:
+        0 1px 2px rgba(0,0,0,0.7),
+        0 0 6px rgba(var(--cpanel), 0.6);
+      z-index: 3;
+    }
+    .cert-bolt--tl { top: 8px; left: 8px; }
+    .cert-bolt--tr { top: 8px; right: 8px; }
+    .cert-bolt--bl { bottom: 8px; left: 8px; }
+    .cert-bolt--br { bottom: 8px; right: 8px; }
+
+    /* ── Cover and records ── */
+    .cert-stage {
+      position: relative;
+      z-index: 2;
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* The artwork's own box. loadImages() replaces this element's innerHTML when
+       a cover lands, so it holds nothing else — and attachRecImgPicker() wraps it
+       at runtime in a .thumb-wrap, which has to keep the same box or the layout
+       collapses around a 0×0 inline-block. */
+    .cert-art-slot,
+    .cert-stage > .thumb-wrap {
+      width: var(--cart);
+      height: var(--cart);
+      flex: none;
+      display: block;
+      position: relative;
+      z-index: 2;
+      border-radius: 2px;
+    }
+    .cert-stage > .thumb-wrap > .cert-art-slot { width: 100%; height: 100%; }
+
+    .cert-art-slot .thumb,
+    .cert-art-initials {
+      width: 100%;
+      height: 100%;
+      border-radius: 2px;
       object-fit: cover;
       display: block;
-      z-index: 1;
-      border: 3px solid rgba(255,255,255,0.12);
       box-shadow:
-        0 6px 20px rgba(0,0,0,0.6),
-        inset 0 0 0 2px rgba(0,0,0,0.2);
+        0 2px 10px rgba(0,0,0,0.5),
+        inset 0 0 0 1px rgba(255,255,255,0.14);
     }
-
-    .cert-record-initials {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      width: 108px;
-      height: 108px;
-      border-radius: 50%;
+    .cert-art-initials {
       display: flex;
       align-items: center;
       justify-content: center;
       font-family: var(--font-display);
-      font-size: 1.5rem;
+      font-size: 0.8rem;
       font-weight: 700;
+      color: var(--ctint);
       background: rgba(0,0,0,0.35);
-      border: 3px solid rgba(255,255,255,0.12);
-      box-shadow: 0 6px 20px rgba(0,0,0,0.6);
+    }
+
+    /* The ✎ badge belongs to the cover's corner now, not a circle's edge. */
+    .cert-stage .img-src-btn { top: 4px; right: 4px; }
+
+    /* One record per multiple. The front one sits nearest the sleeve and each
+       further award steps out to the right and behind it, so the count reads
+       left to right. Counting from the front keeps the rule independent of how
+       many there are; --cdisc drives both the size and the step. */
+    .cert-fan {
+      position: relative;
+      height: var(--cdisc);
+      margin-left: -16px;
+      flex: none;
       z-index: 1;
     }
+    .cert-fan--1 { width: var(--cdisc); }
+    .cert-fan--2 { width: calc(var(--cdisc) * 1.18); }
+    .cert-fan--3 { width: calc(var(--cdisc) * 1.36); }
+    .cert-fan--4 { width: calc(var(--cdisc) * 1.54); }
+    .cert-fan--5 { width: calc(var(--cdisc) * 1.72); }
 
-    /* Vinyl centre-label dot */
-    .cert-vinyl-center {
+    .cert-disc {
       position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      width: 20px;
-      height: 20px;
+      top: 0;
+      left: 0;
+      width: var(--cdisc);
+      height: var(--cdisc);
       border-radius: 50%;
-      background: rgba(0,0,0,0.6);
-      border: 2px solid rgba(255,255,255,0.15);
-      pointer-events: none;
-      z-index: 2;
+      /* Grooves over a metal sheen: a repeating radial for the cut, a conic for
+         the way light travels round a pressed record. */
+      background:
+        repeating-radial-gradient(circle at 50% 50%,
+          rgba(0,0,0,0.30) 0 1px, rgba(255,255,255,0.05) 1px 2.6px),
+        conic-gradient(from 200deg,
+          var(--clo) 0deg, var(--chi) 42deg, var(--clo) 96deg, var(--chi) 148deg,
+          var(--clo) 200deg, var(--chi) 252deg, var(--clo) 304deg, var(--chi) 344deg, var(--clo) 360deg);
+      box-shadow:
+        inset 0 0 0 1px rgba(255,255,255,0.28),
+        0 3px 10px rgba(0,0,0,0.55);
     }
+    /* Paper label and spindle hole. */
+    .cert-disc::before {
+      content: '';
+      position: absolute;
+      inset: 32%;
+      border-radius: 50%;
+      background: radial-gradient(circle at 40% 35%, #f6f3ec, #ddd6c8);
+      box-shadow: 0 0 0 1px rgba(0,0,0,0.35), inset 0 1px 3px rgba(0,0,0,0.2);
+    }
+    .cert-disc::after {
+      content: '';
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      width: 5%;
+      height: 5%;
+      transform: translate(-50%, -50%);
+      border-radius: 50%;
+      background: #0c0d10;
+      box-shadow: 0 0 0 1px rgba(255,255,255,0.25);
+    }
+    .cert-disc:nth-last-child(1) { transform: translateX(0); z-index: 9; }
+    .cert-disc:nth-last-child(2) { transform: translateX(calc(var(--cdisc) * 0.18)); z-index: 8; }
+    .cert-disc:nth-last-child(3) { transform: translateX(calc(var(--cdisc) * 0.36)); z-index: 7; }
+    .cert-disc:nth-last-child(4) { transform: translateX(calc(var(--cdisc) * 0.54)); z-index: 6; }
+    .cert-disc:nth-last-child(5) { transform: translateX(calc(var(--cdisc) * 0.72)); z-index: 5; }
 
-    /* ── Info panel ── */
+    /* ── The four lines ── */
+    /* No opacity on any of them. Each already carries a colour dimmer than the
+       title's, and multiplying that by an opacity is what put these lines under
+       3:1 before — measured on the rendered pixels they now run 6:1 (the date)
+       to 14:1 (the title) against the panel. */
     .cert-info {
+      position: relative;
+      z-index: 2;
       width: 100%;
       text-align: center;
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 3px;
-    }
-
-    .cert-type-badge {
-      font-family: var(--font-mono);
-      font-size: 0.56rem;
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
-      padding: 2px 7px;
-      border-radius: 3px;
-      margin-bottom: 2px;
-      background: rgba(0,0,0,0.22);
-      border: 1px solid rgba(255,255,255,0.08);
+      gap: 1px;
     }
 
     .cert-title {
       font-family: var(--font-display);
-      font-size: 0.8rem;
-      line-height: 1.3;
+      font-size: 0.92rem;
+      font-weight: 650;
+      line-height: 1.2;
+      color: var(--ctint);
       word-break: break-word;
-      text-shadow: 0 1px 3px rgba(0,0,0,0.8), 0 -1px 0 rgba(255,255,255,0.06);
       max-width: 100%;
+      text-shadow: 0 1px 3px rgba(0,0,0,0.8);
     }
 
-    /* No opacity on either of the two lines below the title. Both already carry
-       a per-tier colour that is dimmer than the title's, and multiplying that
-       by an opacity on top pushed them under the contrast a plaque needs:
-       measured against the lightest stop of each frame gradient, the artist ran
-       3.6–4.3:1 and the date 2.4–2.8:1, on 8px type. Dropping the multiplier
-       alone puts every one of them between 5.1:1 and 7.8:1. The hierarchy is
-       carried by size and hue instead, which is where it was legible. */
     .cert-artist {
       font-family: var(--font-sans);
-      font-size: 0.67rem;
+      font-size: 0.72rem;
       font-style: italic;
+      line-height: 1.3;
+      color: var(--cdim);
       text-shadow: 0 1px 2px rgba(0,0,0,0.6);
     }
 
-    .cert-tier-badge {
-      display: flex;
-      align-items: center;
-      gap: 4px;
+    /* "Triple Diamond certified album" — the award and what it is for in one
+       line, the rare part leading in the tier's colour and the rest a shade
+       back, so there is no separate type tag to place. */
+    .cert-tier-name {
+      margin-top: 5px;
       font-family: var(--font-mono);
       font-size: 0.6rem;
-      font-weight: 600;
-      letter-spacing: 0.1em;
+      font-weight: 700;
+      letter-spacing: 0.08em;
       text-transform: uppercase;
-      padding: 3px 10px;
-      border-radius: 4px;
-      margin-top: 5px;
-      border: 1px solid;
+      line-height: 1.3;
+      color: var(--ctint);
+      text-wrap: balance;
+    }
+    .cert-tier-of {
+      font-weight: 500;
+      color: var(--cdim);
     }
 
-    /* The date is the one line that has to be *read* rather than recognised —
-       "Certified Sep 30, 2024" is nine glyphs of digits and a month — so it
-       also comes up off 0.52rem, which was 8px of letter-spaced mono. */
+    /* The line above ends in "certified", so this is only the date. */
     .cert-date {
       font-family: var(--font-mono);
-      font-size: 0.58rem;
+      font-size: 0.6rem;
       letter-spacing: 0.04em;
-      margin-top: 1px;
+      color: var(--cdim);
       text-shadow: 0 1px 2px rgba(0,0,0,0.8);
     }
 
-    /* ── GOLD ── */
-    .cert-card--gold .cert-frame {
-      background: linear-gradient(160deg, #2c1e06 0%, #3e2b0c 35%, #2a1c06 65%, #1c1204 100%);
-      border-color: #7a5508;
-      box-shadow:
-        0 12px 32px rgba(0,0,0,0.7),
-        0 4px 10px rgba(0,0,0,0.4),
-        0 0 28px rgba(200,148,10,0.38),
-        inset 0 1px 0 rgba(255,210,80,0.12),
-        inset 0 -2px 5px rgba(0,0,0,0.4);
-    }
-    .cert-card--gold:hover .cert-frame {
-      box-shadow:
-        0 20px 44px rgba(0,0,0,0.75),
-        0 6px 14px rgba(0,0,0,0.45),
-        0 0 40px rgba(200,150,15,0.52),
-        inset 0 1px 0 rgba(255,210,80,0.15),
-        inset 0 -2px 5px rgba(0,0,0,0.4);
-    }
-    .cert-card--gold .cert-frame::before,
-    .cert-card--gold .cert-frame::after {
-      background: radial-gradient(circle at 35% 30%, #d4a010, #6a4500);
-    }
-    .cert-card--gold .cert-info,
-    .cert-card--gold .cert-title    { color: #f0cc50; }
-    .cert-card--gold .cert-artist   { color: #c8a040; }
-    /* Gold's date was the tightest of the three even at full opacity (5.1:1
-       against the frame, where Platinum reads 7.0 and Diamond 7.8) — a warm
-       hue this dark has nowhere else to go. Lifted to match them. */
-    .cert-card--gold .cert-date     { color: #e0b040; }
-    .cert-card--gold .cert-type-badge {
-      color: #c89028;
-      border-color: rgba(180,120,10,0.25);
-    }
-    .cert-card--gold .cert-tier-badge {
-      background: linear-gradient(90deg, #7a5508, #c49010, #7a5508);
-      border-color: #e8b830;
-      color: #fff8e0;
-      text-shadow: 0 1px 2px rgba(0,0,0,0.5);
-      box-shadow: 0 0 10px rgba(200,150,10,0.35);
-    }
-    .cert-card--gold .cert-record,
-    .cert-card--gold .cert-record-initials { border-color: rgba(200,155,20,0.35); }
-    .cert-card--gold .cert-record-initials  { color: #f0cc50; }
-    .cert-card--gold .cert-sleeve {
-      background: linear-gradient(180deg, rgba(60,35,5,0.6), rgba(20,12,2,0.6));
-      border: 1px solid rgba(180,120,10,0.18);
-    }
-
-    /* ── PLATINUM ── */
-    .cert-card--plat .cert-frame {
-      background: linear-gradient(160deg, #121a24 0%, #1a2438 35%, #121a24 65%, #0c1218 100%);
-      border-color: #48606e;
-      box-shadow:
-        0 12px 32px rgba(0,0,0,0.7),
-        0 4px 10px rgba(0,0,0,0.4),
-        0 0 28px rgba(140,185,220,0.30),
-        inset 0 1px 0 rgba(190,215,245,0.1),
-        inset 0 -2px 5px rgba(0,0,0,0.4);
-    }
-    .cert-card--plat:hover .cert-frame {
-      box-shadow:
-        0 20px 44px rgba(0,0,0,0.75),
-        0 6px 14px rgba(0,0,0,0.45),
-        0 0 42px rgba(160,200,235,0.45),
-        inset 0 1px 0 rgba(190,215,245,0.12),
-        inset 0 -2px 5px rgba(0,0,0,0.4);
-    }
-    .cert-card--plat .cert-frame::before,
-    .cert-card--plat .cert-frame::after {
-      background: radial-gradient(circle at 35% 30%, #c0ccd8, #507080);
-    }
-    .cert-card--plat .cert-info,
-    .cert-card--plat .cert-title    { color: #d0e0f0; }
-    .cert-card--plat .cert-artist   { color: #90a8c0; }
-    .cert-card--plat .cert-date     { color: #8ab4cc; }
-    .cert-card--plat .cert-type-badge {
-      color: #8098b0;
-      border-color: rgba(120,165,200,0.22);
-    }
-    .cert-card--plat .cert-tier-badge {
-      background: linear-gradient(90deg, #3c5060, #788898, #c0ccd8, #788898, #3c5060);
-      border-color: #b0c0d0;
-      color: #eef4f8;
-      text-shadow: 0 1px 2px rgba(0,0,0,0.5);
-      box-shadow: 0 0 10px rgba(150,185,215,0.25);
-    }
-    .cert-card--plat .cert-record,
-    .cert-card--plat .cert-record-initials { border-color: rgba(150,185,215,0.3); }
-    .cert-card--plat .cert-record-initials  { color: #d0e0f0; }
-    .cert-card--plat .cert-sleeve {
-      background: linear-gradient(180deg, rgba(25,38,55,0.65), rgba(10,16,24,0.65));
-      border: 1px solid rgba(100,145,180,0.15);
-    }
-
-    /* ── DIAMOND ── */
-    /* Diamond is the only tier that repeats: every further multiple of the
-       threshold is another Diamond on the same record, and the plaque wears the
-       multiple (data-cert-mult, 2..4+). Rather than four copies of the frame
-       rules, the multiple sets four dials — glow, halo, edge colour and the
-       speed of the badge's shimmer — and the rules below read those, so a
-       Triple Diamond reads as the rarer thing from across the grid. */
-    .cert-card--diamond {
-      --cd-glow: 0.38;    /* frame's outer glow */
-      --cd-halo: 0.40;    /* drop-shadow spilling past the frame */
-      --cd-edge: #1858a0; /* border */
-      --cd-shimmer: 3s;   /* one pass of the iridescent badge sweep */
-    }
-    .cert-card--diamond[data-cert-mult="2"] { --cd-glow: 0.50; --cd-halo: 0.54; --cd-edge: #2a7ad0; --cd-shimmer: 2.4s; }
-    .cert-card--diamond[data-cert-mult="3"] { --cd-glow: 0.62; --cd-halo: 0.68; --cd-edge: #4a9ae8; --cd-shimmer: 1.9s; }
-    .cert-card--diamond[data-cert-mult="4"] { --cd-glow: 0.74; --cd-halo: 0.82; --cd-edge: #7cc4ff; --cd-shimmer: 1.5s; }
-
-    .cert-card--diamond .cert-frame {
-      background: linear-gradient(160deg, #040810 0%, #080d1c 35%, #0a1028 65%, #040810 100%);
-      border-color: var(--cd-edge);
-      box-shadow:
-        0 12px 32px rgba(0,0,0,0.8),
-        0 4px 10px rgba(0,0,0,0.5),
-        0 0 32px rgba(70,175,255,var(--cd-glow)),
-        inset 0 1px 0 rgba(100,195,255,0.18),
-        inset 0 -2px 5px rgba(0,0,0,0.5);
-      filter: drop-shadow(0 0 14px rgba(70,175,255,var(--cd-halo)));
-    }
-    .cert-card--diamond:hover .cert-frame {
-      box-shadow:
-        0 20px 44px rgba(0,0,0,0.85),
-        0 6px 14px rgba(0,0,0,0.55),
-        0 0 48px rgba(70,175,255,calc(var(--cd-glow) + 0.14)),
-        inset 0 1px 0 rgba(100,195,255,0.22),
-        inset 0 -2px 5px rgba(0,0,0,0.5);
-      filter: drop-shadow(0 0 22px rgba(70,175,255,calc(var(--cd-halo) + 0.15)));
-    }
-    .cert-card--diamond .cert-frame::before,
-    .cert-card--diamond .cert-frame::after {
-      background: radial-gradient(circle at 35% 30%, #70c0ff, #1858a0);
-    }
-    .cert-card--diamond .cert-info,
-    .cert-card--diamond .cert-title  { color: #b8e4ff; }
-    .cert-card--diamond .cert-artist { color: #6aa8d8; }
-    .cert-card--diamond .cert-date   { color: #58b0e0; }
-    .cert-card--diamond .cert-type-badge {
-      color: #5090c0;
-      border-color: rgba(70,160,220,0.3);
-    }
-    .cert-card--diamond .cert-tier-badge {
-      background: linear-gradient(90deg, #0c3880, #2880e0, #a0d8ff, #7090f8, #2880e0, #0c3880);
-      background-size: 200% 100%;
-      animation: cert-iridescent var(--cd-shimmer, 3s) linear infinite;
-      border-color: #70c0ff;
-      color: #f0f8ff;
-      text-shadow: 0 1px 2px rgba(0,0,0,0.6);
-      box-shadow: 0 0 14px rgba(70,175,255,calc(var(--cd-glow, 0.38) + 0.07));
-    }
-
-    /* "💎💎💎 Triple Diamond" is nearly twice the label a single Diamond wears,
-       on a plaque that can be 170px wide. Set smaller and allowed to wrap, so
-       the badge shrinks to the words instead of pushing past the frame — the
-       ×4-and-up labels are already compact ("4× Diamond"), which is exactly
-       where the wording stops fitting. */
-    .cert-tier-badge.is-multi {
-      font-size: 0.55rem;
-      letter-spacing: 0.05em;
-      padding: 3px 8px;
-      max-width: 100%;
-      flex-wrap: wrap;
-      justify-content: center;
-      text-align: center;
-    }
-    .cert-card--diamond .cert-record,
-    .cert-card--diamond .cert-record-initials { border-color: rgba(70,175,255,0.35); }
-    .cert-card--diamond .cert-record-initials  { color: #b8e4ff; }
-    .cert-card--diamond .cert-sleeve {
-      background: linear-gradient(180deg, rgba(8,18,40,0.7), rgba(3,8,18,0.7));
-      border: 1px solid rgba(50,140,200,0.2);
-    }
-
-    @keyframes cert-iridescent {
-      0%   { background-position: 0% 50%; }
-      100% { background-position: 200% 50%; }
-    }
-
     @media (max-width: 600px) {
+      /* One plaque per row below this width. Two columns of an award this wide
+         would put the cover, five records and a four-line caption inside 165px,
+         and the fan is the first thing that stops being countable. */
       .cwall-grid {
-        grid-template-columns: repeat(auto-fill, minmax(145px, 1fr));
+        grid-template-columns: 1fr;
         gap: 1rem;
       }
-      .cert-record-wrap { width: 88px; height: 88px; }
-      .cert-record-slot,
-      .cert-record,
-      .cert-record-slot .thumb,
-      .cert-record-initials { width: 88px; height: 88px; }
-      .cert-sleeve { width: 68px; height: 72px; }
-      .cert-vinyl-center { width: 16px; height: 16px; }
-      .cert-record-wrap .img-src-btn { top: 5px; right: 5px; }
-      .cert-title { font-size: 0.74rem; }
-      /* 145px of plaque is not enough for "💎💎💎 Triple Diamond" on one line;
-         it wraps to two here rather than being set any smaller than this. */
-      .cert-tier-badge.is-multi { font-size: 0.5rem; letter-spacing: 0.04em; }
+      .cert-card { --cart: 76px; --cdisc: 72px; }
+      .cert-title { font-size: 0.86rem; }
     }
+
 
     /* ── Cert wall controls ─────────────────────────────────────── */
     .cwall-controls {

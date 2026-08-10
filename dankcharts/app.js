@@ -7400,16 +7400,22 @@ function recRowDetails(row, name, artist) {
     const pick = function (sel, label, strip) {
       const el = row.querySelector(sel);
       let v = el ? el.textContent.trim() : '';
-      /* .cert-date renders as "Certified Oct 12, 2025". The word belongs to the
-         tier headline now, not to the date, so it comes off here — keyed to the
-         markup's own wording rather than to this field's label, which no longer
-         matches it. */
       if (strip && v.toLowerCase().indexOf(strip.toLowerCase() + ' ') === 0) v = v.slice(strip.length + 1);
       if (v) out.push({ label: label, value: v });
     };
-    // No type here — the card's description names it ("🎵 Song Certification").
-    pick('.cert-tier-badge', t('rec_hero_d_tier'));
-    pick('.cert-date', t('rec_hero_d_certified'), 'Certified');
+    /* The plaque names its award as "Triple Diamond certified album". The reel's
+       own description already says whether it is a song or an album, so only the
+       award itself is taken — the trailing half is peeled off by its element
+       rather than by matching on words, which would break the moment the
+       wording is translated. .cert-date is the bare date now, so it needs no
+       prefix stripping. */
+    const tierEl = row.querySelector('.cert-tier-name');
+    if (tierEl) {
+      const ofEl = tierEl.querySelector('.cert-tier-of');
+      const award = tierEl.textContent.replace(ofEl ? ofEl.textContent : '', '').trim();
+      if (award) out.push({ label: t('rec_hero_d_tier'), value: award });
+    }
+    pick('.cert-date', t('rec_hero_d_certified'));
     return out;
   }
 
@@ -19486,21 +19492,23 @@ function openAlbumModal(albumKey) {
     certTitleEl.style.display = '';
     certPlaquesEl.innerHTML = `<div class="cwall-grid">${plaqueItems.map((p, idx) => {
       const name = p.name || albumName;
-      // Same multi-Diamond treatment the wall plaques wear: a louder frame the
-      // higher the multiple, and a badge that shrinks to hold the longer label.
-      const pMult = p.tier === 'diamond' ? Math.max(1, p.mult || 1) : 1;
-      return `<div class="cert-card cert-card--${p.tier}"${pMult > 1 ? ` data-cert-mult="${Math.min(pMult, 4)}"` : ''}>
+      /* The same plaque the wall hangs, built from the same parts: acrylic
+         panel, cover beside the records, one record per Diamond multiple. The
+         only difference is the last line — in here a plaque is shown against
+         the play count that earned it rather than the day it landed. */
+      const pDiscs = cwallDiscCount({ tier: p.tier === 'plat' ? 'platinum' : p.tier, mult: p.mult });
+      return `<div class="cert-card cert-card--${p.tier}">
         <div class="cert-frame">
-          <div class="cert-record-wrap" id="albcp-${idx}">
-            <div class="cert-sleeve"></div>
-            <div class="cert-record-initials">${esc(wallInitials(name))}</div>
-            <div class="cert-vinyl-center"></div>
+          <span class="cert-bolt cert-bolt--tl"></span><span class="cert-bolt cert-bolt--tr"></span>
+          <span class="cert-bolt cert-bolt--bl"></span><span class="cert-bolt cert-bolt--br"></span>
+          <div class="cert-stage">
+            <div class="cert-art-slot" id="albcp-${idx}"><div class="cert-art-initials">${esc(wallInitials(name))}</div></div>
+            <div class="cert-fan cert-fan--${pDiscs}">${'<div class="cert-disc"></div>'.repeat(pDiscs)}</div>
           </div>
           <div class="cert-info">
-            <span class="cert-type-badge">${esc(p.type)}</span>
             <div class="cert-title">${esc(name)}</div>
             <div class="cert-artist">${esc(artistName)}</div>
-            <div class="cert-tier-badge${pMult > 1 ? ' is-multi' : ''}">${p.icon} ${esc(p.label)}</div>
+            <div class="cert-tier-name">${esc(p.label)} <span class="cert-tier-of">certified ${esc(p.type.toLowerCase())}</span></div>
             <div class="cert-date">${p.plays.toLocaleString()} plays</div>
           </div>
         </div>
@@ -21887,18 +21895,27 @@ if (mastheadControls) {
 
 // ─── CERTIFICATIONS WALL ────────────────────────────────────────
 const CWALL_TIER_CLASS = { gold: 'gold', platinum: 'plat', diamond: 'diamond' };
-const CWALL_TIER_LABEL = { gold: '🪙 Gold', platinum: '💿 Platinum', diamond: '💎 Diamond' };
-const CWALL_TYPE_LABEL = { song: 'Song', album: 'Album' };
+const CWALL_TIER_LABEL = { gold: 'Gold', platinum: 'Platinum', diamond: 'Diamond' };
+const CWALL_TYPE_LABEL = { song: 'song', album: 'album' };
 
-/* What a plaque's tier badge says. Only Diamond repeats, and it repeats the
-   way the album modal already writes it — diamondMultiLabel() gives Double and
-   Triple their words, one 💎 per multiple, and falls back to a compact "5×
-   Diamond" past the point where the wording (and the row of gems) would stop
-   fitting on a 170px plaque. */
-function cwallTierLabel(item) {
+/* The award a plaque names. Only Diamond repeats, and it repeats the way the
+   album modal already writes it — Double and Triple get their words, and past
+   that it goes compact ("5× Diamond") rather than inventing vocabulary.
+   No emoji: they render differently on every OS, and the plaque now says the
+   tier in the tier's own colour, which the emoji was only standing in for. */
+function cwallTierName(item) {
   if (item.tier !== 'diamond') return CWALL_TIER_LABEL[item.tier] || esc(item.tier || '');
-  const d = diamondMultiLabel(Math.max(1, item.mult || 1));
-  return d.icon + ' ' + esc(d.label);
+  return esc(diamondMultiLabel(Math.max(1, item.mult || 1)).label);
+}
+
+/* How many records to press for one award. Diamond repeats, so a 3× hangs
+   three; everything else hangs one. Five is the ceiling — a sixth would push
+   the fan past the cover it sits beside, and the line underneath still says
+   the true multiple. */
+const CWALL_FAN_MAX = 5;
+function cwallDiscCount(item) {
+  if (item.tier !== 'diamond') return 1;
+  return Math.max(1, Math.min(CWALL_FAN_MAX, item.mult || 1));
 }
 
 /* Every sort is written once, ascending, and simply run backwards for the
@@ -22066,10 +22083,9 @@ function renderCertWallCards() {
     const ini = esc(wallInitials(item.title));
     const dateStr = fmtCertDate(item.date);
 
-    /* The artwork gets its own slot inside the record wrap. loadImages()
-       replaces its target's innerHTML when the cover lands, and the wrap also
-       holds the sleeve and the vinyl centre — pointing the loader at the wrap
-       would erase both. The slot is also what carries the ✎ picker badge. */
+    /* The cover mounts beside the records, in its own slot: loadImages()
+       replaces its target's innerHTML when the artwork lands, so the slot holds
+       nothing else, and it is what carries the ✎ picker badge. */
     /* data-rec-* lets the hero-artist tally count a certification the same way it
        counts a table row. The wall is divs rather than a <table>, so it is the one
        place the tally cannot walk tbody rows — it matches .cert-card instead. */
@@ -22079,26 +22095,23 @@ function renderCertWallCards() {
        reel does not show the same album five times (see REC_TALLY_SEL). */
     const cwType = item.type === 'album' ? 'album' : 'song'; // the wall holds songs and albums only
     const cwPrefKey = cwType + ':' + (item.artist || '').toLowerCase() + '|||' + (item.title || '').toLowerCase();
-    /* A repeated Diamond gets a louder frame than a single one — data-cert-mult
-       is what the CSS ramps the glow off, and the badge wears .is-multi so a
-       long label ("💎💎💎 Triple Diamond") is set small enough to stay on one
-       line inside the plaque. */
-    const cwMult = item.tier === 'diamond' ? Math.max(1, item.mult || 1) : 1;
-    return `<div class="cert-card cert-card--${tierClass}"${cwMult > 1 ? ` data-cert-mult="${Math.min(cwMult, 4)}"` : ''}${item.top ? '' : ' data-cert-lesser="1"'} data-rec-artist="${esc(item.artist || '')}" data-rec-type="${esc(cwType)}" data-rec-name="${esc(item.title || '')}" data-rec-prefkey="${esc(cwPrefKey)}">
+    // One record per multiple, so a Triple Diamond is counted, not read.
+    const cwDiscs = cwallDiscCount(item);
+    return `<div class="cert-card cert-card--${tierClass}"${item.top ? '' : ' data-cert-lesser="1"'} data-rec-artist="${esc(item.artist || '')}" data-rec-type="${esc(cwType)}" data-rec-name="${esc(item.title || '')}" data-rec-prefkey="${esc(cwPrefKey)}">
   <div class="cert-frame">
-    <div class="cert-record-wrap" id="cwrec-${origIdx}">
-      <div class="cert-sleeve"></div>
-      <div class="cert-record-slot" id="cwrec-img-${origIdx}" data-cwkey="${esc(cwKey)}">${known
+    <span class="cert-bolt cert-bolt--tl"></span><span class="cert-bolt cert-bolt--tr"></span>
+    <span class="cert-bolt cert-bolt--bl"></span><span class="cert-bolt cert-bolt--br"></span>
+    <div class="cert-stage" id="cwrec-${origIdx}">
+      <div class="cert-art-slot" id="cwrec-img-${origIdx}" data-cwkey="${esc(cwKey)}">${known
       ? `<img class="thumb" src="${esc(known)}" alt="" loading="lazy">`
-      : `<div class="cert-record-initials">${ini}</div>`}</div>
-      <div class="cert-vinyl-center"></div>
+      : `<div class="cert-art-initials">${ini}</div>`}</div>
+      <div class="cert-fan cert-fan--${cwDiscs}">${'<div class="cert-disc"></div>'.repeat(cwDiscs)}</div>
     </div>
     <div class="cert-info">
-      <span class="cert-type-badge">${esc(CWALL_TYPE_LABEL[item.type] || item.type || '')}</span>
       <div class="cert-title">${esc(item.title)}</div>
       <div class="cert-artist">${esc(item.artist)}</div>
-      <div class="cert-tier-badge${cwMult > 1 ? ' is-multi' : ''}">${cwallTierLabel(item)}</div>
-      ${dateStr ? `<div class="cert-date">Certified ${dateStr}</div>` : ''}
+      <div class="cert-tier-name">${cwallTierName(item)} <span class="cert-tier-of">certified ${esc(CWALL_TYPE_LABEL[item.type] || item.type || '')}</span></div>
+      ${dateStr ? `<div class="cert-date">${dateStr}</div>` : ''}
     </div>
   </div>
 </div>`;
@@ -22132,7 +22145,7 @@ const _certWallResolved = {};
 function harvestCertWallImages() {
   const grid = document.getElementById('cwall-grid');
   if (!grid) return;
-  grid.querySelectorAll('.cert-record-slot').forEach(function (slot) {
+  grid.querySelectorAll('.cert-art-slot').forEach(function (slot) {
     const wrap = slot.closest('.thumb-wrap');
     const btn = wrap && wrap.querySelector('.img-src-btn');
     if (!btn || !btn.dataset.prefkey) return;
@@ -22144,8 +22157,8 @@ function harvestCertWallImages() {
     /* .thumb-initials is what the loader writes when it finds nothing, or when
        the picker is pinned to "No image" — that is a resolved answer, and
        recording it is what stops a cleared cover coming back on the next sort.
-       .cert-record-initials is our own pre-load placeholder and means the
-       loader has not run yet, so it must not be recorded as a miss. */
+       .cert-art-initials is our own pre-load placeholder and means the loader
+       has not run yet, so it must not be recorded as a miss. */
     if (slot.querySelector('.thumb-initials')) _certWallResolved[btn.dataset.prefkey] = '';
   });
 }
@@ -22222,7 +22235,7 @@ function watchCertWallCovers() {
     for (const m of muts) {
       // A full re-render mutates the grid itself, which owns no key — the cards
       // it writes come from _certWallResolved and need no mirroring.
-      const slot = m.target.closest && m.target.closest('.cert-record-slot');
+      const slot = m.target.closest && m.target.closest('.cert-art-slot');
       if (slot && slot.dataset.cwkey) keys.add(slot.dataset.cwkey);
     }
     if (keys.size) mirrorCertWallCovers(keys);
@@ -22236,7 +22249,7 @@ function mirrorCertWallCovers(keys) {
   const grid = document.getElementById('cwall-grid');
   if (!grid) return;
   const src = {}, targets = {};
-  grid.querySelectorAll('.cert-record-slot[data-cwkey]').forEach(function (slot) {
+  grid.querySelectorAll('.cert-art-slot[data-cwkey]').forEach(function (slot) {
     const k = slot.dataset.cwkey;
     if (!keys.has(k)) return;
     const img = slot.querySelector('img.thumb');
@@ -22265,15 +22278,15 @@ async function loadAlbumCertPlaqueImages(items, albumName, artistName) {
       }
     } catch (e) {}
     if (!url) continue;
-    const wrap = document.getElementById('albcp-' + i);
-    if (!wrap) continue;
-    const existingIni = wrap.querySelector('.cert-record-initials');
-    if (existingIni) {
-      existingIni.style.display = 'none';
-      existingIni.insertAdjacentHTML('beforebegin',
-        `<img class="cert-record" src="${url}" alt="" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">`
-      );
-    }
+    const slot = document.getElementById('albcp-' + i);
+    if (!slot) continue;
+    /* The slot holds the artwork and nothing else, so the cover simply replaces
+       what is in it — and if the URL turns out to be dead, the initials it
+       replaced come back rather than leaving an empty square. */
+    const ini = slot.innerHTML;
+    slot.innerHTML = `<img class="thumb" src="${esc(url)}" alt="" loading="lazy">`;
+    const img = slot.querySelector('img');
+    if (img) img.onerror = function () { slot.innerHTML = ini; };
   }
 }
 
