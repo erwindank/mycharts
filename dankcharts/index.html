@@ -27,7 +27,7 @@
   <!-- html2canvas, SheetJS (xlsx) and JSZip are intentionally NOT loaded here — they
        total ~1.2 MB and are only needed for image exports and Excel/ZIP imports.
        app.js pulls them from the CDN on first use (see ensureLazyLib). -->
-  <link rel="stylesheet" href="style.css?v=204">
+  <link rel="stylesheet" href="style.css?v=206">
   <!-- All scripts are deferred so the page paints without waiting on them.
        defer preserves execution order, which matters: translations → Chart.js →
        hammer → zoom plugin → firebase SDKs → firebase.js → app.js (in body). -->
@@ -465,6 +465,29 @@
       <div class="stats-strip" id="statsStrip"></div>
       <div class="stats-strip stats-strip2" id="statsStrip2" style="display:none"></div>
       <div class="stats-strip stats-strip3" id="statsStrip3" style="display:none"></div>
+    </div>
+
+    <!-- CERTIFICATIONS EARNED THIS PERIOD — a moving shelf of the same plaques
+         the Certifications Wall hangs, showing only the awards whose crossing
+         play landed inside the week or month on screen. Weekly and monthly
+         only: a year or an all-time span earns too many to read as a reel.
+         The track scrolls itself, stops under the pointer, and can be dragged
+         either way — see initCertReel(). -->
+    <div class="chart-section creel-section" id="certReelSection" style="display:none;">
+      <div class="section-header">
+        <button class="section-collapse-btn" data-target="certReelSection" data-i18n-title="tooltip_collapse">−</button>
+        <h2 class="section-title" data-i18n="creel_title">🏆 CERTIFIED THIS PERIOD</h2>
+        <span class="section-collapsed-label" data-i18n="collapsed_hint">collapsed — click + to expand</span>
+        <div class="section-rule"></div>
+        <span class="creel-count" id="certReelCount"></span>
+      </div>
+      <div class="section-sub" id="certReelSub"></div>
+      <div class="section-body">
+        <div class="creel-viewport" id="certReelViewport" tabindex="0" role="region" aria-label="Certifications earned this period">
+          <div class="creel-track" id="certReelTrack"></div>
+        </div>
+        <div class="creel-hint" data-i18n="creel_hint">Hover to pause · drag to browse</div>
+      </div>
     </div>
 
     <!-- Collapse All toggle bar — shown on chart period views -->

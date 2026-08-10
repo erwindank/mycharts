@@ -193,6 +193,11 @@ const TRANSLATIONS = {
     comp_no_plays: 'No plays match this title yet.',
     comp_remove: 'Remove',
     comp_modal_close: 'Close',
+
+    // "Certified this period" — the moving shelf of plaques on the weekly and
+    // monthly charts.
+    creel_title: '🏆 CERTIFIED THIS PERIOD',
+    creel_hint: 'Hover to pause · drag to browse',
     modal_calendar_days_played: 'Calendar Days<br>Played',
     modal_avg_plays_per_track: 'Avg Plays<br>Per Track',
     modal_most_heard_album: 'Most Heard Album<br>of All Time',
@@ -1695,6 +1700,9 @@ const TRANSLATIONS = {
     comp_no_plays: 'Ninguna reproducción coincide con este título.',
     comp_remove: 'Quitar',
     comp_modal_close: 'Cerrar',
+
+    creel_title: '🏆 CERTIFICADOS EN ESTE PERIODO',
+    creel_hint: 'Pasa el cursor para pausar · arrastra para explorar',
     modal_calendar_days_played: 'Días Calendario<br>Escuchado',
     modal_avg_plays_per_track: 'Promedio de Reproducciones<br>por Canción',
     modal_most_heard_album: 'Álbum Más Escuchado<br>de Todos los Tiempos',
@@ -3032,6 +3040,9 @@ const TRANSLATIONS = {
     comp_no_plays: 'Nenhuma reprodução corresponde a este título.',
     comp_remove: 'Remover',
     comp_modal_close: 'Fechar',
+
+    creel_title: '🏆 CERTIFICADOS NESTE PERÍODO',
+    creel_hint: 'Passe o cursor para pausar · arraste para explorar',
     modal_calendar_days_played: 'Dias do Calendário<br>Reproduzidos',
     modal_avg_plays_per_track: 'Méd. de Reprod.<br>por Faixa',
     modal_most_heard_album: 'Álbum Mais Ouvido<br>de Todos os Tempos',
@@ -4370,6 +4381,9 @@ const TRANSLATIONS = {
     comp_no_plays: 'Nenhuma reprodução corresponde a este título.',
     comp_remove: 'Remover',
     comp_modal_close: 'Fechar',
+
+    creel_title: '🏆 CERTIFICADOS NESTE PERÍODO',
+    creel_hint: 'Passe o cursor para pausar · arraste para explorar',
     modal_calendar_days_played: 'Dias do Calendário<br>Reproduzidos',
     modal_avg_plays_per_track: 'Méd. de Reprod.<br>por Faixa',
     modal_most_heard_album: 'Álbum Mais Ouvido<br>de Todos os Tempos',

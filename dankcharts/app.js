@@ -1511,6 +1511,9 @@ function renderCompilationsList() {
 // Rebuilds every chart from scratch. albumArtist() decides album identity, so
 // nothing short of a full pass can reflect a change to the list.
 function _compilationsChanged() {
+  // Merging an album rewrites its key, which rewrites when it crossed each
+  // threshold — the certification timeline is built from those keys.
+  _certTimeline = null;
   if (typeof renderAll === 'function' && allPlays.length) renderAll();
 }
 
@@ -1676,6 +1679,7 @@ async function saveEditLocally() {
     _editPlay.date    = f.date;
   }
   firstSeenMaps = null;
+  _certTimeline = null;   // plays changed — the certification dates move with them
   if (allPlays.length) {
     window.firstScrobbleDate = allPlays.reduce((min, p) => p.date < min ? p.date : min, allPlays[0].date);
   }
@@ -1792,6 +1796,7 @@ async function pushEditToSheet() {
         }
       });
       firstSeenMaps = null;
+      _certTimeline = null;   // plays changed — the certification dates move with them
       if (allPlays.length) {
         window.firstScrobbleDate = allPlays.reduce((min, p) => p.date < min ? p.date : min, allPlays[0].date);
       }
@@ -1825,6 +1830,7 @@ async function pushEditToSheet() {
       _editPlay.album   = newAlbum;
       _editPlay.date    = f.date;
       firstSeenMaps = null;
+      _certTimeline = null;   // plays changed — the certification dates move with them
       if (allPlays.length) {
         window.firstScrobbleDate = allPlays.reduce((min, p) => p.date < min ? p.date : min, allPlays[0].date);
       }
@@ -1856,6 +1862,7 @@ async function pushEditToSheet() {
         }
       });
       firstSeenMaps = null;
+      _certTimeline = null;   // plays changed — the certification dates move with them
       if (allPlays.length) {
         window.firstScrobbleDate = allPlays.reduce((min, p) => p.date < min ? p.date : min, allPlays[0].date);
       }
@@ -3104,6 +3111,7 @@ function parsePlaysCsv(text) {
 function refreshAfterPoll() {
   if (!allPlays.length) return;
   firstSeenMaps = null;
+  _certTimeline = null;   // plays changed — the certification dates move with them
   window.firstScrobbleDate = allPlays.reduce((min, p) => p.date < min ? p.date : min, allPlays[0].date);
   updateMastheadDynamic();
   populateYearPicker();
@@ -3672,6 +3680,8 @@ function saveSourceConfig() {
   CERT.album.gold = ag; CERT.album.plat = ap; CERT.album.diamond = ad;
   CERT.song.gold  = sg; CERT.song.plat  = sp; CERT.song.diamond  = sd;
   localStorage.setItem('dc_cert_config', JSON.stringify({ ag, ap, ad, sg, sp, sd }));
+  // New thresholds mean new crossing plays, so every award moves to a new date.
+  _certTimeline = null;
   const newEventsLimit = parseInt(document.getElementById('eventsArtistLimitSelect').value) || 50;
   if (newEventsLimit !== eventsArtistLimit) {
     eventsArtistLimit = newEventsLimit;
@@ -4089,6 +4099,7 @@ function parseCsv(text, fromSheets = false) {
 
 function finalizeLoad() {
   firstSeenMaps = null;
+  _certTimeline = null;   // plays changed — the certification dates move with them
   if (allPlays.length) {
     window.firstScrobbleDate = allPlays.reduce((min, p) => p.date < min ? p.date : min, allPlays[0].date);
     updateMastheadDynamic();
@@ -10655,6 +10666,9 @@ function renderAll() {
     chartSizeAllTime = chartSizeSongsAT;
   }
   chartSize = chartSizeSongs; // default compat value (overridden per-section before each render)
+  // The reel reads the period's own range, so it follows prev/next: step back
+  // a week and it shows the awards that week earned.
+  renderCertReel(start, end);
   document.getElementById('collapseAllBar').style.display =
     ['week', 'month', 'year', 'alltime'].includes(currentPeriod) ? 'flex' : 'none';
   document.getElementById('chartTypeToggleBar').style.display =
@@ -22519,6 +22533,334 @@ async function loadAlbumCertPlaqueImages(items, albumName, artistName) {
     const img = slot.querySelector('img');
     if (img) img.onerror = function () { slot.innerHTML = ini; };
   }
+}
+
+// ─── CERTIFIED THIS PERIOD (the moving shelf) ──────────────────
+/* The Certifications Wall answers "what have I ever earned". This answers a
+   different question — "what did this week earn" — off the same history and
+   the same plaques, so the two can never disagree about a date.
+
+   A certification is a moment: the single play that carried a record over a
+   threshold. That moment has a date, so it falls inside exactly one week and
+   one month, which is what makes a per-period reel possible at all.
+
+   Built once and cached. Records builds its own copy of this history inside
+   buildRecords(), but that pass is lazy — the weekly chart has to work whether
+   or not the user has ever opened Records, so this stands alone. */
+let _certTimeline = null;
+window.dcResetCertTimeline = () => { _certTimeline = null; };
+
+function buildCertTimeline() {
+  const items = {};
+  // allPlays runs newest → oldest; a certification is about the order plays
+  // arrived, so this walks it backwards into chronological order.
+  const touch = function (key, p, kind, cfg, meta) {
+    let it = items[key];
+    if (!it) it = items[key] = Object.assign({ kind, key, first: p.date, plays: 0, events: [] }, meta);
+    const n = ++it.plays;
+    let tier = null, mult = 1;
+    // Diamond first, so a config where plat === diamond still awards the
+    // higher tier — the same order certCross() uses inside Records.
+    if (n >= cfg.diamond && n % cfg.diamond === 0) { tier = 'diamond'; mult = n / cfg.diamond; }
+    else if (n === cfg.plat) tier = 'plat';
+    else if (n === cfg.gold) tier = 'gold';
+    if (tier) it.events.push({ tier, mult, n, date: p.date });
+  };
+
+  for (let i = allPlays.length - 1; i >= 0; i--) {
+    const p = allPlays[i];
+    touch(songKey(p), p, 'song', CERT.song, {
+      title: p.title, artist: p.artist,
+      album: (p.album && p.album !== '—') ? p.album : ''
+    });
+    if (p.album && p.album !== '—') {
+      // albumArtist() again, so a compilation contributes one album here too.
+      const aa = albumArtist(p);
+      touch(p.album + '|||' + aa, p, 'album', CERT.album, { title: p.album, artist: aa, album: '' });
+    }
+  }
+
+  /* Flattened to one entry per plaque, in the wall's own vocabulary: the event
+     history says 'plat', every plaque downstream says 'platinum'. */
+  const out = [];
+  for (const it of Object.values(items)) {
+    it.events.forEach(function (ev, i) {
+      out.push({
+        type: it.kind, title: it.title, artist: it.artist, album: it.album,
+        tier: ev.tier === 'plat' ? 'platinum' : ev.tier,
+        mult: ev.mult || 1, n: ev.n, date: ev.date,
+        // The comparison date has to be the one the charts filter by, or a
+        // plaque earned late on a Sunday night would land in the wrong week.
+        tz: tzDate(ev.date),
+        top: i === it.events.length - 1,
+        key: it.key
+      });
+    });
+  }
+  // Newest first: the reel reads as "here is what just happened".
+  out.sort((a, b) => b.date - a.date);
+  return out;
+}
+
+// Awards whose crossing play landed inside the period on screen.
+function certsInRange(start, end) {
+  if (!_certTimeline) _certTimeline = buildCertTimeline();
+  return _certTimeline.filter(c => c.tz >= start && c.tz <= end);
+}
+
+/* One plaque. Deliberately the same markup as the wall's card — same frame,
+   bolts, stage, fan and info block — so the two read as the same object and
+   every plaque style is written once. Only the ids differ, because the wall
+   and the reel can be on screen at the same time. */
+function certReelCard(item, i) {
+  const tierClass = CWALL_TIER_CLASS[item.tier] || 'gold';
+  const discs = cwallDiscCount(item);
+  const imgId = 'creel-img-' + i;
+  return `<div class="cert-card creel-card cert-card--${tierClass}">
+    <div class="cert-frame">
+      <span class="cert-bolt cert-bolt--tl"></span><span class="cert-bolt cert-bolt--tr"></span>
+      <span class="cert-bolt cert-bolt--bl"></span><span class="cert-bolt cert-bolt--br"></span>
+      <div class="cert-stage">
+        <div class="cert-art-slot" id="${esc(imgId)}"><div class="cert-art-initials">${esc(wallInitials(item.title))}</div></div>
+        <div class="cert-fan cert-fan--${discs}">${'<div class="cert-disc"></div>'.repeat(discs)}</div>
+      </div>
+      <div class="cert-info">
+        <div class="cert-title">${esc(item.title)}</div>
+        <div class="cert-artist">${esc(item.artist)}</div>
+        <div class="cert-tier-name">${cwallTierName(item)} <span class="cert-tier-of">certified ${esc(CWALL_TYPE_LABEL[item.type] || item.type || '')}</span></div>
+        <div class="cert-date">${fmtCertDate(item.date)}</div>
+      </div>
+    </div>
+  </div>`;
+}
+
+let _creelLoaderId = 0;
+
+/* Called from renderAll() with the period's own range, so the reel follows the
+   prev/next navigation: step back a week and it shows that week's awards. */
+function renderCertReel(start, end) {
+  const section = document.getElementById('certReelSection');
+  const track = document.getElementById('certReelTrack');
+  if (!section || !track) return;
+
+  // Weekly and monthly only. A year hands over hundreds of plaques, which is a
+  // wall, not a reel — and that wall already exists in Records.
+  if ((currentPeriod !== 'week' && currentPeriod !== 'month') || !allPlays.length) {
+    section.style.display = 'none';
+    track.innerHTML = '';
+    _creelLoaderId++;   // orphan any in-flight artwork for a reel now gone
+    return;
+  }
+
+  const items = certsInRange(start, end);
+  const countEl = document.getElementById('certReelCount');
+  const subEl = document.getElementById('certReelSub');
+
+  if (!items.length) {
+    section.style.display = 'none';
+    track.innerHTML = '';
+    _creelLoaderId++;
+    return;
+  }
+  section.style.display = '';
+  if (countEl) countEl.textContent = items.length;
+  if (subEl) {
+    /* Built from the plural helpers rather than one sentence with two numbers
+       dropped in: "1 song awards" is wrong in English and worse in Spanish,
+       where the noun and its article both have to agree. A kind with nothing
+       to report is left out entirely instead of reading "and 0 albums". */
+    const songs = items.filter(c => c.type === 'song').length;
+    const albums = items.length - songs;
+    subEl.textContent = [
+      songs ? tCount('songs', songs) : '',
+      albums ? tCount('albums', albums) : ''
+    ].filter(Boolean).join(' · ');
+  }
+
+  /* One copy first, then measure. A week that earned two awards does not fill
+     the shelf, and duplicating it there would hang the same plaque twice side
+     by side — the loop is only honest once the content is wider than what can
+     be seen. Card widths are fixed in CSS, so this measures true before any
+     artwork has landed. */
+  const vp = document.getElementById('certReelViewport');
+  track.innerHTML = items.map(certReelCard).join('');
+  const overflows = !!vp && track.scrollWidth > vp.clientWidth;
+
+  /* Two copies back to back. The scroller wraps by subtracting one copy's
+     width the moment it passes it, and with identical halves that subtraction
+     lands on a pixel-identical frame — the seam is unobservable. */
+  if (overflows) {
+    track.innerHTML += items.map((it, i) => certReelCard(it, i + items.length)).join('');
+  }
+  // A shelf that fits sits still and centred; there is nothing to travel to.
+  if (vp) {
+    vp.classList.toggle('creel-static', !overflows);
+    vp.dataset.loop = overflows ? '1' : '0';
+    vp.scrollLeft = 0;
+  }
+  const hintEl = document.querySelector('#certReelSection .creel-hint');
+  if (hintEl) hintEl.style.display = overflows ? '' : 'none';
+
+  const ldr = ++_creelLoaderId;
+  loadCertReelImages(items, ldr, overflows);
+  initCertReel();
+}
+
+/* Artwork, fetched once per award and mirrored onto its twin in the second
+   copy — the loop shows every plaque twice, and paying twice for the same
+   cover would double the API traffic for nothing. */
+async function loadCertReelImages(items, loaderId, hasTwin) {
+  const BATCH = 4;
+  for (let i = 0; i < items.length; i += BATCH) {
+    if (_creelLoaderId !== loaderId) return;
+    await Promise.all(items.slice(i, i + BATCH).map(async (item, j) => {
+      const idx = i + j;
+      const el = document.getElementById('creel-img-' + idx);
+      if (!el || _creelLoaderId !== loaderId) return;
+      const isSong = item.type === 'song';
+      const name = item.title;
+      const prefKey = (isSong ? 'song:' : 'album:') + (item.artist || '').toLowerCase() + '|||' + name.toLowerCase();
+      await fetchAndInjectImage(el, {
+        imgId: 'creel-img-' + idx, prefKey, name,
+        title: isSong ? item.title : '',
+        album: isSong ? (item.album || '') : item.title,
+        artist: item.artist
+      }, isSong ? 'song' : 'album');
+      if (!hasTwin) return;
+      const twin = document.getElementById('creel-img-' + (idx + items.length));
+      if (twin) twin.innerHTML = el.innerHTML;
+    }));
+  }
+}
+
+/* ── The reel's motion ─────────────────────────────────────────
+   Driven by scrollLeft rather than a CSS keyframe, because a keyframed
+   transform cannot be dragged: the pointer and the animation would fight over
+   the same property. Scrolling a real overflow container means the drag is
+   just an assignment, the wrap is arithmetic, and the keyboard and trackpad
+   get to move it for free.
+
+   Three things stop the drift: the pointer resting on it, a drag in progress,
+   and the section being off screen — an invisible reel should not be waking
+   the compositor sixty times a second. */
+function initCertReel() {
+  const vp = document.getElementById('certReelViewport');
+  if (!vp || vp.dataset.ready === '1') return;
+  vp.dataset.ready = '1';
+
+  const SPEED = 0.4;          // px per frame ≈ 24px/s at 60Hz — a slow shelf
+  let hovering = false, dragging = false, visible = true, raf = null;
+  let dragX = 0, dragScroll = 0, moved = 0;
+  /* Its own flag rather than a permanent "hover": mouseleave would clear that
+     on the first pass of the pointer and the shelf would start drifting for a
+     reader who asked it not to. */
+  let reduceMotion = false;
+
+  /* The authoritative position, kept here rather than read back off the
+     element. scrollLeft snaps to whole device pixels, so `scrollLeft += 0.4`
+     is written as 0.4 and read back as 0 — the drift would round itself away
+     every frame and the shelf would sit still at sixty frames a second. The
+     fraction accumulates in `pos` instead, and only whole values reach the DOM. */
+  let pos = 0;
+
+  // One copy's width. Read live rather than cached: the plaques resize with
+  // the viewport, and a stale half-width would make the loop jump.
+  const half = () => vp.scrollWidth / 2;
+
+  // A shelf whose plaques all fit has no second copy to wrap onto, so it must
+  // not drift — it would scroll the content clean out of view.
+  const looping = () => vp.dataset.loop === '1';
+
+  // Both directions, so dragging backwards past the start wraps too.
+  function wrapped(v) {
+    if (!looping()) return v;
+    const h = half();
+    if (h <= 0) return v;
+    if (v >= h) return v - h;
+    if (v < 0) return v + h;
+    return v;
+  }
+
+  function tick() {
+    raf = null;
+    /* Anything else that moved the shelf — a re-render resetting to 0, a
+       trackpad swipe, the scrollbar — wins, and `pos` picks up from there.
+       The threshold is wider than one pixel so the browser's own rounding of
+       our writes doesn't read as an external change. */
+    if (Math.abs(vp.scrollLeft - pos) > 2) pos = vp.scrollLeft;
+    if (looping() && !hovering && !dragging && !reduceMotion) {
+      pos = wrapped(pos + SPEED);
+      vp.scrollLeft = pos;
+    }
+    schedule();
+  }
+  function schedule() {
+    if (raf === null && visible && !document.hidden) raf = requestAnimationFrame(tick);
+  }
+  function stop() { if (raf !== null) { cancelAnimationFrame(raf); raf = null; } }
+
+  vp.addEventListener('mouseenter', () => { hovering = true; });
+  vp.addEventListener('mouseleave', () => { hovering = false; });
+
+  vp.addEventListener('pointerdown', e => {
+    // Let the middle and right buttons keep their native behaviour.
+    if (e.button !== 0) return;
+    dragging = true; moved = 0;
+    dragX = e.clientX; dragScroll = vp.scrollLeft;
+    vp.setPointerCapture(e.pointerId);
+    vp.classList.add('is-dragging');
+  });
+  vp.addEventListener('pointermove', e => {
+    if (!dragging) return;
+    const dx = e.clientX - dragX;
+    moved = Math.max(moved, Math.abs(dx));
+    // Drag right, shelf goes right: the plaques follow the finger.
+    pos = wrapped(dragScroll - dx);
+    vp.scrollLeft = pos;
+    // The anchor moves with the wrap, so the next frame of the same drag
+    // measures from where the shelf actually is rather than jumping back.
+    if (pos !== dragScroll - dx) { dragScroll = pos; dragX = e.clientX; }
+  });
+  const endDrag = e => {
+    if (!dragging) return;
+    dragging = false;
+    vp.classList.remove('is-dragging');
+    if (e.pointerId != null && vp.hasPointerCapture?.(e.pointerId)) vp.releasePointerCapture(e.pointerId);
+  };
+  vp.addEventListener('pointerup', endDrag);
+  vp.addEventListener('pointercancel', endDrag);
+
+  // A drag that crossed the shelf shouldn't also count as a click on whatever
+  // plaque happened to be under the finger when it stopped.
+  vp.addEventListener('click', e => { if (moved > 4) { e.stopPropagation(); e.preventDefault(); } }, true);
+
+  // Keyboard: the viewport is focusable, so arrows should move it.
+  vp.addEventListener('keydown', e => {
+    if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
+    e.preventDefault();
+    pos = wrapped(vp.scrollLeft + (e.key === 'ArrowRight' ? 1 : -1) * 60);
+    vp.scrollLeft = pos;
+  });
+
+  // Off screen or on a hidden tab, the loop shuts down entirely.
+  if ('IntersectionObserver' in window) {
+    new IntersectionObserver(entries => {
+      visible = entries[0].isIntersecting;
+      if (visible) schedule(); else stop();
+    }, { threshold: 0 }).observe(vp);
+  }
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) stop(); else schedule();
+  });
+
+  /* Reduced motion means no unbidden drift — but the shelf stays draggable,
+     so the content is still reachable rather than simply frozen. */
+  const rm = window.matchMedia('(prefers-reduced-motion: reduce)');
+  const applyRM = () => { reduceMotion = rm.matches; };
+  applyRM();
+  rm.addEventListener?.('change', applyRM);
+
+  schedule();
 }
 
 // ─── EVENTS CALENDAR (Birthdays & Anniversaries) ─────────────

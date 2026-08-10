@@ -28501,3 +28501,127 @@ body.red-light .modal-cb-label--tracks {
   accent-color: currentColor;
   cursor: pointer;
 }
+
+/* ══════════════════════════════════════════════════════════
+   CERTIFIED THIS PERIOD — the moving shelf
+   The plaques are the wall's, unchanged. Everything here is the
+   shelf they travel on: a masked viewport, a flex track twice as
+   wide as its contents, and the two cursors that say the thing
+   can be grabbed. Motion is driven from JS by scrollLeft, so
+   there is deliberately no animation or scroll-behavior below —
+   either would fight the pointer for the same property.
+   ══════════════════════════════════════════════════════════ */
+
+.creel-section .section-body {
+  padding-top: 0.35rem;
+}
+
+.creel-viewport {
+  overflow-x: auto;
+  overflow-y: hidden;
+  /* Not `smooth` — the rAF loop writes scrollLeft every frame, and smooth
+     scrolling would animate toward each write and never arrive. */
+  scroll-behavior: auto;
+  /* Stops a horizontal drag from triggering the browser's back gesture. */
+  overscroll-behavior-x: contain;
+  cursor: grab;
+  /* A drag across plaques should move the shelf, not select their titles. */
+  user-select: none;
+  -webkit-user-select: none;
+  padding: 0.5rem 0 0.9rem;
+  /* The shelf continues past both edges rather than being cut off square. */
+  -webkit-mask-image: linear-gradient(to right, transparent, #000 3.5rem, #000 calc(100% - 3.5rem), transparent);
+  mask-image: linear-gradient(to right, transparent, #000 3.5rem, #000 calc(100% - 3.5rem), transparent);
+  scrollbar-width: none;
+}
+
+.creel-viewport::-webkit-scrollbar { display: none; }
+
+.creel-viewport:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+
+.creel-viewport.is-dragging {
+  cursor: grabbing;
+}
+
+/* While dragging, the plaque under the pointer must not also lift — the card
+   would slide out from under the finger that is holding it. */
+.creel-viewport.is-dragging .cert-card:hover {
+  transform: none;
+}
+
+.creel-track {
+  display: flex;
+  gap: 1.25rem;
+  width: max-content;
+  padding: 0 0.25rem;
+}
+
+.creel-card {
+  /* A fixed basis is what makes the loop arithmetic exact: both halves of the
+     track measure the same, so subtracting one lands on an identical frame. */
+  flex: 0 0 236px;
+  width: 236px;
+  --cart: 78px;
+  --cdisc: 74px;
+}
+
+/* The award count, set as a plaque-ish chip against the section rule. */
+.creel-count {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.08em;
+  color: var(--text3);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 0.12rem 0.5rem;
+  flex-shrink: 0;
+}
+
+.creel-hint {
+  font-family: var(--font-mono);
+  font-size: 0.63rem;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--text3);
+  opacity: 0.65;
+  text-align: center;
+  margin-top: -0.2rem;
+}
+
+@media (max-width: 640px) {
+  .creel-card {
+    flex-basis: 200px;
+    width: 200px;
+    --cart: 66px;
+    --cdisc: 62px;
+  }
+
+  .creel-viewport {
+    -webkit-mask-image: linear-gradient(to right, transparent, #000 1.5rem, #000 calc(100% - 1.5rem), transparent);
+    mask-image: linear-gradient(to right, transparent, #000 1.5rem, #000 calc(100% - 1.5rem), transparent);
+  }
+}
+
+/* No drift without consent. The shelf still drags, so the plaques past the
+   right edge stay reachable rather than simply unreachable. */
+@media (prefers-reduced-motion: reduce) {
+  .cert-card {
+    transition: none;
+  }
+}
+
+/* A period whose awards all fit on screen: the shelf holds one copy, centred,
+   and stays put. Grabbing it would only shove the plaques out of view. */
+.creel-viewport.creel-static {
+  cursor: default;
+  overflow-x: hidden;
+  -webkit-mask-image: none;
+  mask-image: none;
+}
+
+.creel-viewport.creel-static .creel-track {
+  margin-inline: auto;
+}
