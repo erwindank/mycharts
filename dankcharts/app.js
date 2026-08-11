@@ -22879,6 +22879,223 @@ function initCertReel() {
   schedule();
 }
 
+/* ── DRAG TO BROWSE — the shared reel engine ───────────────────
+   The certified shelf above proved the mechanism; this is that same mechanism
+   with the ids taken out, so every other marquee in the app can have it. A CSS
+   keyframe cannot be dragged — the pointer and the animation would both be
+   writing `transform` — so a reel that opts in stops being an animation and
+   becomes a real overflow container scrolled from rAF. Drag is then an
+   assignment, the wrap is arithmetic, and the trackpad and keyboard move it
+   for free.
+
+   What a caller has to provide is what these marquees already had: a masked
+   viewport, a `width: max-content` track, and the deck rendered twice. The
+   second copy is what makes the loop seamless — subtracting one copy's width
+   the moment the scroll passes it lands on a pixel-identical frame.
+
+   Users: the Time Machine ticker, the Soundtrack reel, and every Events
+   section's "Reel" view. */
+
+// Per-viewport state, keyed off the element so a re-render can update the
+// measurements without the listeners being attached a second time.
+const _dcReels = new WeakMap();
+
+/* Call after every render, with the track that was just filled and the number
+   of seconds the old marquee took to cross one copy. Safe to call repeatedly:
+   only the first call wires up the listeners. */
+function dcMountReel(vp, track, durationSec) {
+  if (!vp || !track) return;
+  _dcReels.set(vp, { track, dur: Math.max(1, durationSec || 60), speed: 0.4 });
+  vp.classList.add('dcreel');
+  vp.dataset.reelPaused = '0';
+  if (!vp.hasAttribute('tabindex')) vp.tabIndex = 0;
+  vp.scrollLeft = 0;
+  dcMeasureReel(vp);
+  dcInitReel(vp);
+}
+
+/* Decides whether this deck is long enough to travel, and translates the
+   marquee's duration into a per-frame drift so each reel keeps its own pace.
+   Re-run by a ResizeObserver, because a reel is routinely built while its
+   section is collapsed or its tab is hidden — where every measurement is 0. */
+function dcMeasureReel(vp) {
+  const st = _dcReels.get(vp);
+  if (!st || !vp.classList.contains('dcreel')) return;
+  const track = st.track;
+  if (!track || !track.isConnected || !vp.clientWidth) return;
+
+  /* One copy's width. While static the duplicate is hidden, so the track *is*
+     one copy — reading it the same way in both states is what lets a reel that
+     was measured at zero width recover the moment it gets a box. */
+  const isStatic = vp.classList.contains('dcreel-static');
+  const copyW = isStatic ? track.scrollWidth : track.scrollWidth / 2;
+  const loops = copyW > vp.clientWidth + 8;
+
+  vp.classList.toggle('dcreel-static', !loops);
+  vp.dataset.reelLoop = loops ? '1' : '0';
+  /* px per *second* that covers one copy in the time the marquee used to take.
+     Per second, not per frame: the keyframe this replaced was time-based, so
+     pacing the drift by frame instead would run it at 2× on a 120Hz panel and
+     2.4× on a 144Hz one — the same reel at a different speed on every display. */
+  st.pps = Math.min(120, Math.max(6, copyW / st.dur));
+  if (!loops) vp.scrollLeft = 0;
+}
+
+function dcInitReel(vp) {
+  if (vp.dataset.reelReady === '1') return;
+  vp.dataset.reelReady = '1';
+
+  // How far the pointer has to travel before this counts as a drag rather than
+  // a click on the card underneath.
+  const DRAG_SLOP = 4;
+
+  let hovering = false, dragging = false, captured = false, visible = true, raf = null;
+  let dragX = 0, dragScroll = 0, moved = 0;
+  /* Its own flag rather than a permanent "hover": mouseleave would clear that
+     on the first pass of the pointer. */
+  let reduceMotion = false;
+
+  /* The authoritative position, kept here rather than read back off the
+     element. scrollLeft snaps to whole device pixels, so `scrollLeft += 0.4`
+     is written as 0.4 and read back as 0 — the drift would round itself away
+     every frame. The fraction accumulates here; only whole values reach the DOM. */
+  let pos = 0;
+  // Timestamp of the last drifting frame; null whenever the reel is held, so
+  // the time it spent parked never counts as distance owed.
+  let last = null;
+
+  const state = () => _dcReels.get(vp);
+  // The class goes away when the element is reused for another view (the Events
+  // sections swap the same node between Reel, Tiles, Table and List), which is
+  // what stops a stale listener from scrolling a table.
+  const live = () => vp.classList.contains('dcreel');
+  const looping = () => live() && vp.dataset.reelLoop === '1';
+  const half = () => { const s = state(); return s && s.track ? s.track.scrollWidth / 2 : 0; };
+
+  // Both directions, so dragging backwards past the start wraps too.
+  function wrapped(v) {
+    if (!looping()) return v;
+    const h = half();
+    if (h <= 0) return v;
+    if (v >= h) return v - h;
+    if (v < 0) return v + h;
+    return v;
+  }
+
+  function tick(now) {
+    raf = null;
+    /* Anything else that moved the reel — a re-render resetting to 0, a
+       trackpad swipe, the scrollbar — wins, and `pos` picks up from there. The
+       threshold is wider than one pixel so the browser's own rounding of our
+       writes doesn't read as an external change. */
+    if (Math.abs(vp.scrollLeft - pos) > 2) pos = vp.scrollLeft;
+    // An open card menu parks the reel: the tooltip is anchored to a card, and
+    // a card that keeps moving walks out from under its own menu.
+    const held = hovering || dragging || reduceMotion || vp.dataset.reelPaused === '1';
+    /* Elapsed time, not frames — see dcMeasureReel(). Capped at ~3 frames so a
+       long stall (a heavy render, a tab coming back) resumes the drift instead
+       of teleporting the reel forward by however long it was away. */
+    const dt = last === null ? 0 : Math.min(50, now - last);
+    last = held ? null : now;
+    if (looping() && !held) {
+      pos = wrapped(pos + (state()?.pps || 24) * dt / 1000);
+      vp.scrollLeft = pos;
+    }
+    schedule();
+  }
+  function schedule() {
+    if (raf === null && visible && !document.hidden) raf = requestAnimationFrame(tick);
+  }
+  // Clearing the timestamp is what stops a reel that was off screen or on a
+  // background tab from owing itself the whole absence when it comes back.
+  function stop() { last = null; if (raf !== null) { cancelAnimationFrame(raf); raf = null; } }
+
+  vp.addEventListener('mouseenter', () => { hovering = true; });
+  vp.addEventListener('mouseleave', () => { hovering = false; });
+
+  vp.addEventListener('pointerdown', e => {
+    // Let the middle and right buttons keep their native behaviour.
+    if (!live() || e.button !== 0) return;
+    dragging = true; moved = 0; captured = false;
+    dragX = e.clientX; dragScroll = vp.scrollLeft;
+    vp.classList.add('is-dragging');
+  });
+  vp.addEventListener('pointermove', e => {
+    if (!dragging) return;
+    const dx = e.clientX - dragX;
+    moved = Math.max(moved, Math.abs(dx));
+    /* The capture is what keeps a drag alive once the pointer leaves the reel —
+       but it also retargets the click that follows to the viewport, and the
+       cards here are clickable (unlike the certified shelf's plaques). So it is
+       taken only once the pointer has travelled far enough to be a drag rather
+       than a press, which leaves an ordinary click on a card untouched. */
+    if (!captured) {
+      if (moved <= DRAG_SLOP) return;
+      captured = true;
+      vp.setPointerCapture(e.pointerId);
+    }
+    // Drag right, reel goes right: the cards follow the finger.
+    pos = wrapped(dragScroll - dx);
+    vp.scrollLeft = pos;
+    // The anchor moves with the wrap, so the next frame of the same drag
+    // measures from where the reel actually is rather than jumping back.
+    if (pos !== dragScroll - dx) { dragScroll = pos; dragX = e.clientX; }
+  });
+  const endDrag = e => {
+    if (!dragging) return;
+    dragging = false;
+    vp.classList.remove('is-dragging');
+    if (captured && e.pointerId != null && vp.hasPointerCapture?.(e.pointerId)) vp.releasePointerCapture(e.pointerId);
+    captured = false;
+  };
+  vp.addEventListener('pointerup', endDrag);
+  vp.addEventListener('pointercancel', endDrag);
+
+  /* The Events reels are built from <a> cards over <img> covers, both of which
+     the browser will happily start a native drag on — which cancels the pointer
+     stream mid-grab and leaves a ghost image trailing the cursor. */
+  vp.addEventListener('dragstart', e => { if (live()) e.preventDefault(); });
+
+  // A drag that crossed the reel shouldn't also count as a click on whatever
+  // card happened to be under the finger when it stopped.
+  vp.addEventListener('click', e => { if (moved > 4) { e.stopPropagation(); e.preventDefault(); } }, true);
+
+  // Keyboard: the viewport is focusable, so arrows should move it.
+  vp.addEventListener('keydown', e => {
+    if (!live() || (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight')) return;
+    e.preventDefault();
+    pos = wrapped(vp.scrollLeft + (e.key === 'ArrowRight' ? 1 : -1) * 60);
+    vp.scrollLeft = pos;
+  });
+
+  // Off screen or on a hidden tab, the loop shuts down entirely.
+  if ('IntersectionObserver' in window) {
+    new IntersectionObserver(entries => {
+      visible = entries[0].isIntersecting;
+      if (visible) schedule(); else stop();
+    }, { threshold: 0 }).observe(vp);
+  }
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) stop(); else schedule();
+  });
+
+  /* A section expanding, a tab being shown, the window resizing: all of them
+     change whether this deck still overflows, and the first two are how a reel
+     measured at zero width gets its real numbers. */
+  if ('ResizeObserver' in window) {
+    new ResizeObserver(() => dcMeasureReel(vp)).observe(vp);
+  }
+
+  /* Reduced motion means no unbidden drift — but the reel stays draggable, so
+     the cards past the right edge are still reachable rather than lost. */
+  const rm = window.matchMedia('(prefers-reduced-motion: reduce)');
+  const applyRM = () => { reduceMotion = rm.matches; };
+  applyRM();
+  rm.addEventListener?.('change', applyRM);
+
+  schedule();
+}
+
 // ─── EVENTS CALENDAR (Birthdays & Anniversaries) ─────────────
 function releaseIcon(type) {
   const t = (type || '').toLowerCase();
@@ -23692,20 +23909,25 @@ function _evTable(gridEl, items) {
 function _evCarousel(gridEl, items) {
   gridEl.className = 'ev-carousel-outer';
   const dur = Math.max(20, items.length * 3);
-  const card = item => {
+  /* `dupe` marks copy B of the deck. The reel is rendered twice so it can wrap
+     onto an identical frame, and copy B is hidden when the deck is short enough
+     to fit — see dcMountReel(), which drives the motion and the drag. */
+  const card = (item, dupe) => {
     const tag = item.menuAction ? 'div' : 'a';
     const openAttrs = item.menuAction
       ? _evReleaseClickAttr(item)
-      : `href="${esc(item.href)}" target="_blank" rel="noopener noreferrer"`;
-    return `<${tag} class="ev-carousel-card${item.isToday ? ' event-today' : ''}" ${openAttrs}>` +
+      // draggable=false: a grab that starts on a link would otherwise become a
+      // native link drag and take the pointer away from the reel mid-scroll.
+      : `href="${esc(item.href)}" target="_blank" rel="noopener noreferrer" draggable="false"`;
+    return `<${tag} class="ev-carousel-card${item.isToday ? ' event-today' : ''}${dupe ? ' dcreel-dupe' : ''}" ${openAttrs}>` +
       `${_evImgTag(item, 'ev-carousel-img')}` +
       `<div class="ev-carousel-date">${esc(item.dateLabel)}</div>` +
       `<div class="ev-carousel-title">${esc(item.title)}</div>` +
       `<div class="ev-carousel-artist">${esc(item.artist)}</div>` +
       `<div class="ev-carousel-type">${esc(item.typeLabel)}</div></${tag}>`;
   };
-  const cards = items.map(card).join('');
-  gridEl.innerHTML = `<div class="ev-carousel-track" style="animation-duration:${dur}s">${cards}${cards}</div>`;
+  gridEl.innerHTML = `<div class="ev-carousel-track">${items.map(it => card(it, false)).join('')}${items.map(it => card(it, true)).join('')}</div>`;
+  dcMountReel(gridEl, gridEl.firstElementChild, dur);
   triggerPendingImgs(gridEl);
 }
 
@@ -28904,13 +29126,17 @@ function renderTimeMachine(forceRebuild) {
   const aSongItems = [], aArtistItems = [], aAlbumItems = [];
   const bSongItems = [], bArtistItems = [], bAlbumItems = [];
 
+  /* The deck is rendered twice so the reel can wrap seamlessly (see
+     dcMountReel). Copy B is tagged, because a deck short enough to fit on
+     screen has nothing to wrap onto and would just show everything twice. */
   function buildCard(entry, i, suffix, songArr, artistArr, albumArr) {
     const imgId = 'tmimg-' + suffix + '-' + i;
+    const dupe = suffix === 'b' ? ' dcreel-dupe' : '';
     if (entry.type === 'song') {
       const sub = entry.artist + (entry.album && entry.album !== '—' ? ' · ' + entry.album : '');
       const prefKey = 'song:' + entry.artist.toLowerCase() + '|||' + entry.title.toLowerCase();
       songArr.push({ imgId, title: entry.title, artist: entry.artist, album: entry.album, name: entry.title, prefKey });
-      return '<div class="tm-card tm-card-song" data-type="song" onclick="_tmShowSongMenu(event,' + esc(JSON.stringify(entry.title)) + ',' + esc(JSON.stringify(entry.artist)) + ',' + esc(JSON.stringify(entry.album)) + ')">' +
+      return '<div class="tm-card tm-card-song' + dupe + '" data-type="song" onclick="_tmShowSongMenu(event,' + esc(JSON.stringify(entry.title)) + ',' + esc(JSON.stringify(entry.artist)) + ',' + esc(JSON.stringify(entry.album)) + ')">' +
         '<div class="tm-card-img" id="' + esc(imgId) + '"><div class="thumb-initials">' + esc(initials(entry.title)) + '</div></div>' +
         '<div class="tm-card-info">' +
         '<div class="tm-card-title">' + esc(entry.title) + '</div>' +
@@ -28920,7 +29146,7 @@ function renderTimeMachine(forceRebuild) {
     } else if (entry.type === 'artist') {
       const prefKey = 'artist:' + entry.artist.toLowerCase();
       artistArr.push({ imgId, name: entry.artist, artist: entry.artist, album: '', title: '', prefKey });
-      return '<div class="tm-card tm-card-search" data-type="artist" onclick="_tmShowArtistMenu(event,' + esc(JSON.stringify(entry.artist)) + ')">' +
+      return '<div class="tm-card tm-card-search' + dupe + '" data-type="artist" onclick="_tmShowArtistMenu(event,' + esc(JSON.stringify(entry.artist)) + ')">' +
         '<div class="tm-card-img" id="' + esc(imgId) + '"><div class="thumb-initials">' + esc(initials(entry.artist)) + '</div></div>' +
         '<div class="tm-card-info">' +
         '<div class="tm-card-title">' + esc(entry.artist) + '</div>' +
@@ -28929,7 +29155,7 @@ function renderTimeMachine(forceRebuild) {
     } else {
       const prefKey = 'album:' + entry.artist.toLowerCase() + '|||' + entry.album.toLowerCase();
       albumArr.push({ imgId, album: entry.album, artist: entry.artist, name: entry.album, title: '', prefKey });
-      return '<div class="tm-card tm-card-search" data-type="album" onclick="_tmShowAlbumMenu(event,' + esc(JSON.stringify(entry.album)) + ',' + esc(JSON.stringify(entry.artist)) + ')">' +
+      return '<div class="tm-card tm-card-search' + dupe + '" data-type="album" onclick="_tmShowAlbumMenu(event,' + esc(JSON.stringify(entry.album)) + ',' + esc(JSON.stringify(entry.artist)) + ')">' +
         '<div class="tm-card-img" id="' + esc(imgId) + '"><div class="thumb-initials">' + esc(initials(entry.album)) + '</div></div>' +
         '<div class="tm-card-info">' +
         '<div class="tm-card-title">' + esc(entry.album) + '</div>' +
@@ -28943,7 +29169,11 @@ function renderTimeMachine(forceRebuild) {
   const secondCopy = entries.map((e, i) => buildCard(e, i, 'b', bSongItems, bArtistItems, bAlbumItems)).join('');
 
   track.innerHTML = firstCopy + secondCopy;
-  track.style.animationDuration = Math.max(20, entries.length * 4) + 's';
+  /* Was a CSS marquee; the pace is now the reel's drift and it can be grabbed
+     and dragged. See dcMountReel(). 5s a card rather than the marquee's 4 —
+     this is the reel that sits on the charts page all day, and it reads as
+     something to browse rather than something going past. */
+  dcMountReel(tickerOuter, track, Math.max(20, entries.length * 5));
 
   // Load images for a-copy in parallel batches; mirror results to b-copy (halves API calls)
   async function loadTmBatch(aPairs, type, loaderId) {
@@ -28984,11 +29214,14 @@ function tmToggleType(type) {
 
 // ── Time Machine action menus — tooltip-style popups for song and artist cards ──
 let _tmMenuEl = null;
+// The reel this menu is parked on, if any. These menus are opened from the Time
+// Machine, the Soundtrack reel and the Events reels alike, so which one to hold
+// still is a question about the card that was clicked, not a fixed element.
+let _tmPausedReel = null;
 
 function _tmCloseMenu() {
   if (_tmMenuEl) { _tmMenuEl.remove(); _tmMenuEl = null; }
-  const track = document.getElementById('tmTickerTrack');
-  if (track) track.classList.remove('tm-track-paused');
+  if (_tmPausedReel) { _tmPausedReel.dataset.reelPaused = '0'; _tmPausedReel = null; }
   document.removeEventListener('click', _tmOutsideMenuClick, true);
   document.removeEventListener('keydown', _tmMenuKeydown, true);
   window.removeEventListener('scroll', _tmCloseMenu, true);
@@ -29033,8 +29266,10 @@ function _tmOpenMenu(menu, card) {
   document.body.appendChild(menu);
   _tmPositionMenu(menu, card);
 
-  const track = document.getElementById('tmTickerTrack');
-  if (track) track.classList.add('tm-track-paused');
+  // A card that keeps drifting walks out from under its own menu, so whichever
+  // reel this card belongs to parks until the menu closes.
+  _tmPausedReel = card.closest('.dcreel');
+  if (_tmPausedReel) _tmPausedReel.dataset.reelPaused = '1';
 
   _tmMenuEl = menu;
   setTimeout(() => {
@@ -30533,12 +30768,14 @@ function stSetReelMode(mode) {
 // entry type at a time instead of a combined songs+artists+albums toggle.
 function stBuildReelCard(entry, i, suffix, songItems, artistItems) {
   const imgId = 'stReelImg-' + suffix + '-' + i;
+  // Copy B of the deck — hidden when the reel is short enough not to loop.
+  const dupe = suffix === 'b' ? ' dcreel-dupe' : '';
   const dateStr = d => `${t(ST_MONTH_KEYS[d.getMonth()]).substring(0, 3)} ${d.getDate()}`;
 
   if (entry.type === 'artist') {
     const prefKey = 'artist:' + entry.artist.toLowerCase();
     artistItems.push({ imgId, name: entry.artist, artist: entry.artist, album: '', title: '', prefKey });
-    return '<div class="tm-card tm-card-search" data-type="artist" onclick="_tmShowArtistMenu(event,' + esc(JSON.stringify(entry.artist)) + ')">' +
+    return '<div class="tm-card tm-card-search' + dupe + '" data-type="artist" onclick="_tmShowArtistMenu(event,' + esc(JSON.stringify(entry.artist)) + ')">' +
       '<div class="tm-card-img" id="' + esc(imgId) + '"><div class="thumb-initials">' + esc(initials(entry.artist)) + '</div></div>' +
       '<div class="tm-card-info">' +
       '<div class="tm-card-title">' + esc(entry.artist) + '</div>' +
@@ -30549,7 +30786,7 @@ function stBuildReelCard(entry, i, suffix, songItems, artistItems) {
   if (entry.type === 'day') {
     const prefKey = 'song:' + entry.topArtist.toLowerCase() + '|||' + entry.topTitle.toLowerCase();
     songItems.push({ imgId, title: entry.topTitle, artist: entry.topArtist, album: entry.topAlbum, name: entry.topTitle, prefKey });
-    return '<div class="tm-card tm-card-song" data-type="day" onclick="_tmShowSongMenu(event,' + esc(JSON.stringify(entry.topTitle)) + ',' + esc(JSON.stringify(entry.topArtist)) + ',' + esc(JSON.stringify(entry.topAlbum)) + ')">' +
+    return '<div class="tm-card tm-card-song' + dupe + '" data-type="day" onclick="_tmShowSongMenu(event,' + esc(JSON.stringify(entry.topTitle)) + ',' + esc(JSON.stringify(entry.topArtist)) + ',' + esc(JSON.stringify(entry.topAlbum)) + ')">' +
       '<div class="tm-card-img" id="' + esc(imgId) + '"><div class="thumb-initials">' + esc(initials(entry.topTitle)) + '</div></div>' +
       '<div class="tm-card-info">' +
       '<div class="tm-card-title">' + esc(dateStr(tzDate(entry.date))) + '</div>' +
@@ -30562,7 +30799,7 @@ function stBuildReelCard(entry, i, suffix, songItems, artistItems) {
   const sub = entry.artist + (entry.album && entry.album !== '—' ? ' · ' + entry.album : '');
   const prefKey = 'song:' + entry.artist.toLowerCase() + '|||' + entry.title.toLowerCase();
   songItems.push({ imgId, title: entry.title, artist: entry.artist, album: entry.album, name: entry.title, prefKey });
-  return '<div class="tm-card tm-card-song" data-type="song" onclick="_tmShowSongMenu(event,' + esc(JSON.stringify(entry.title)) + ',' + esc(JSON.stringify(entry.artist)) + ',' + esc(JSON.stringify(entry.album)) + ')">' +
+  return '<div class="tm-card tm-card-song' + dupe + '" data-type="song" onclick="_tmShowSongMenu(event,' + esc(JSON.stringify(entry.title)) + ',' + esc(JSON.stringify(entry.artist)) + ',' + esc(JSON.stringify(entry.album)) + ')">' +
     '<div class="tm-card-img" id="' + esc(imgId) + '"><div class="thumb-initials">' + esc(initials(entry.title)) + '</div></div>' +
     '<div class="tm-card-info">' +
     '<div class="tm-card-title">' + esc(entry.title) + '</div>' +
@@ -30618,7 +30855,8 @@ function stRenderReel(plays) {
   const firstCopy = entries.map((e, i) => stBuildReelCard(e, i, 'a', aSongItems, aArtistItems)).join('');
   const secondCopy = entries.map((e, i) => stBuildReelCard(e, i, 'b', bSongItems, bArtistItems)).join('');
   track.innerHTML = firstCopy + secondCopy;
-  track.style.animationDuration = Math.max(20, entries.length * 4) + 's';
+  // Same reel engine as the Time Machine, so this one drags too. See dcMountReel().
+  dcMountReel(outer, track, Math.max(20, entries.length * 4));
 
   const ldr = ++_stReelLoaderId;
   const songPairs = aSongItems.map((a, i) => [a, bSongItems[i]]);

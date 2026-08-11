@@ -7252,24 +7252,21 @@
       white-space: nowrap;
     }
 
-    /* CAROUSEL (REEL) VIEW */
+    /* CAROUSEL (REEL) VIEW
+       Every section's Reel runs on the shared reel engine (.dcreel below, and
+       dcMountReel() in app.js): scrolled from JS rather than keyframed, so it
+       can be grabbed and dragged. The hover-pause and the drift both live
+       there, which is why there is no animation on the track. */
     .ev-carousel-outer {
-      overflow: hidden;
       width: 100%;
       padding: 0.4rem 0 0.75rem;
       mask-image: linear-gradient(to right, transparent 0%, black 3%, black 97%, transparent 100%);
       -webkit-mask-image: linear-gradient(to right, transparent 0%, black 3%, black 97%, transparent 100%);
     }
-    .ev-carousel-outer:hover .ev-carousel-track { animation-play-state: paused; }
     .ev-carousel-track {
       display: flex;
       gap: 8px;
       width: max-content;
-      animation: ev-reel-scroll 60s linear infinite;
-    }
-    @keyframes ev-reel-scroll {
-      from { transform: translateX(0); }
-      to   { transform: translateX(-50%); }
     }
     .ev-carousel-card {
       width: 130px;
@@ -21056,16 +21053,15 @@ body.yellow-light .hero-stats { --hero-link: #ffe066; }  /* 3.94:1 on strip */
   opacity: 1;
 }
 
+/* The Time Machine and the Soundtrack reel share this chrome. Neither is a CSS
+   marquee any more: both are scrolled from JS by the shared reel engine (see
+   .dcreel, and dcMountReel() in app.js) so they can be grabbed and dragged.
+   Hence no animation and no hover-pause rule here — the engine owns both. */
 .tm-ticker-outer {
-  overflow: hidden;
   width: 100%;
   position: relative;
   mask-image: linear-gradient(to right, transparent 0%, black 3%, black 97%, transparent 100%);
   -webkit-mask-image: linear-gradient(to right, transparent 0%, black 3%, black 97%, transparent 100%);
-}
-
-.tm-ticker-outer:hover .tm-ticker-track {
-  animation-play-state: paused;
 }
 
 .tm-ticker-track {
@@ -21073,12 +21069,6 @@ body.yellow-light .hero-stats { --hero-link: #ffe066; }  /* 3.94:1 on strip */
   gap: 10px;
   padding: 4px 0 10px;
   width: max-content;
-  animation: tm-scroll 90s linear infinite;
-}
-
-@keyframes tm-scroll {
-  from { transform: translateX(0); }
-  to   { transform: translateX(-50%); }
 }
 
 .tm-card {
@@ -21208,10 +21198,6 @@ body[class*="-light"] .tm-card-search:hover {
   font-size: 0.78rem;
   text-align: center;
   font-family: var(--font-mono);
-}
-
-.tm-track-paused {
-  animation-play-state: paused !important;
 }
 
 /* Tooltip-style popup for Time Machine card actions (Spotify / player / Google / last-10-songs) */
@@ -28637,5 +28623,70 @@ body.red-light .modal-cb-label--tracks {
 }
 
 .creel-viewport.creel-static .creel-track {
+  margin-inline: auto;
+}
+
+/* ══════════════════════════════════════════════════════════
+   DRAG TO BROWSE — the shared reel chrome
+   The certified shelf above is the original; this is the same
+   thing with the ids taken out, so every other reel in the app
+   can be grabbed too: the Time Machine, the Soundtrack reel,
+   and every Events section's Reel view.
+
+   Applied by dcMountReel(), never written into the markup —
+   which is what lets the Events sections hand the same element
+   back to Tiles, Table and List without inheriting a scroller.
+
+   Deliberately no `animation` and no `scroll-behavior: smooth`:
+   either would fight the rAF loop for the same property.
+   ══════════════════════════════════════════════════════════ */
+
+.dcreel {
+  overflow-x: auto;
+  overflow-y: hidden;
+  scroll-behavior: auto;
+  /* Stops a horizontal drag from triggering the browser's back gesture. */
+  overscroll-behavior-x: contain;
+  cursor: grab;
+  /* A drag across cards should move the reel, not select their titles. */
+  user-select: none;
+  -webkit-user-select: none;
+  scrollbar-width: none;
+}
+
+.dcreel::-webkit-scrollbar { display: none; }
+
+.dcreel:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+
+.dcreel.is-dragging { cursor: grabbing; }
+
+/* While dragging, the card under the pointer must not also lift — it would
+   slide out from under the finger that is holding it. */
+.dcreel.is-dragging .tm-card:hover { transform: none; }
+
+/* Covers and cards are links and images; neither should start a drag of its
+   own when the gesture belongs to the reel. */
+.dcreel img,
+.dcreel a {
+  -webkit-user-drag: none;
+}
+
+/* A deck that already fits on screen: one copy, centred, and still. Grabbing
+   it would only shove the cards out of view, and the second copy — there for
+   the wrap — would just read as everything being listed twice. */
+.dcreel.dcreel-static {
+  cursor: default;
+  overflow-x: hidden;
+  -webkit-mask-image: none;
+  mask-image: none;
+}
+
+.dcreel.dcreel-static .dcreel-dupe { display: none; }
+
+.dcreel.dcreel-static .tm-ticker-track,
+.dcreel.dcreel-static .ev-carousel-track {
   margin-inline: auto;
 }
