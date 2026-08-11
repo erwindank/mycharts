@@ -25913,6 +25913,11 @@ body[class*="-light"] .tm-card-search:hover {
 .wv-grid-card:hover .wv-gc-hover { opacity: 1; pointer-events: auto; }
 .wv-gc-play-btn { width: 38px; height: 38px; border-radius: 50%; background: rgba(255,255,255,0.92); color: #111; border: none; cursor: pointer; font-size: 1rem; display: flex; align-items: center; justify-content: center; padding-left: 3px; box-shadow: 0 2px 8px rgba(0,0,0,0.4); transition: transform 0.12s; }
 .wv-gc-play-btn:hover { transform: scale(1.1); }
+/* honour the per-type "hide YouTube buttons" setting, same as the stack and
+   filmstrip views do — the whole overlay goes, not just the button */
+body.songs-hide-yt-btns   #songsSection   .wv-gc-hover,
+body.artists-hide-yt-btns #artistsSection .wv-gc-hover,
+body.albums-hide-yt-btns  #albumsSection  .wv-gc-hover { display: none; }
 
 /* cert badge overlaid on card art */
 .wv-gc-cert { position: absolute; bottom: 0; left: 0; right: 0; display: flex; justify-content: center; padding-bottom: 3px; pointer-events: none; }
@@ -26001,6 +26006,10 @@ body[class*="-light"] .tm-card-search:hover {
 }
 .wv-cx-row:hover .wv-cx-play-btn { opacity: 1; }
 .wv-cx-play-btn:hover { background: #cc0000; }
+/* honour the per-type "hide YouTube buttons" setting */
+body.songs-hide-yt-btns   #songsSection   .wv-cx-play-btn,
+body.artists-hide-yt-btns #artistsSection .wv-cx-play-btn,
+body.albums-hide-yt-btns  #albumsSection  .wv-cx-play-btn { display: none; }
 
 /* Feature 2: weeks column (spelled out) */
 .wv-cx-wks { font-family: var(--font-mono); font-size: 0.62rem; color: var(--text3); flex-shrink: 0; width: 60px; text-align: right; }
