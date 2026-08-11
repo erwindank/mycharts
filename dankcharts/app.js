@@ -7918,9 +7918,12 @@ function recFillReelTrack(track, records, idPrefix) {
   const deckB = cards.map(function (r, i) { return buildCard(r, i, 'b'); }).join('');
   track.innerHTML = deckA + deckB;
 
-  /* One card every 4s, matching the Time Machine ticker's pace, so a long deck
-     scrolls at the same speed as a short one instead of racing. */
-  track.style.animationDuration = Math.max(20, cards.length * 4) + 's';
+  /* Seconds per card, so a long deck scrolls at the same speed as a short one
+     instead of racing. 6 rather than the Time Machine's 5, because these cards
+     are 288px against the ticker's 148: at a matched seconds-per-card the reel
+     would travel twice the distance in the same time, which is what made it
+     read as fast. 6s lands it near the Events reels, around 50px/s. */
+  track.style.animationDuration = Math.max(20, cards.length * 6) + 's';
 
   /* Card artwork. Fetched directly in small batches rather than through
      loadImages(), because the reel is in constant motion and its
