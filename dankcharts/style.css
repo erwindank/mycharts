@@ -8048,7 +8048,21 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
+      gap: 0.75rem;
       margin-bottom: 1rem;
+    }
+
+    /* The close button already sits in the header's flex row, but the shared
+       .modal-close is position:absolute and .export-modal-box isn't positioned —
+       so it anchored to the overlay, i.e. the corner of the screen. Keep it in
+       flow so it lands next to the title, inside the box. Wins over both the
+       base rule and the ≤700px sticky override on specificity. */
+    .export-modal-header .modal-close {
+      position: static;
+      display: inline-block;
+      width: auto;
+      margin: 0;
+      flex-shrink: 0;
     }
 
     .export-modal-title {
@@ -8202,6 +8216,13 @@
 
     .modal-overlay.open {
       display: block;
+    }
+
+    /* Every overlay shares one z-index, so between two open modals the one
+       declared later in the DOM wins. A modal opened *from* another modal adds
+       this class so it lands on top of its caller regardless of source order. */
+    .modal-overlay.modal-on-top {
+      z-index: calc(var(--z-modal) + 20);
     }
 
     #sourceModal.open {
@@ -22211,6 +22232,43 @@ body[class*="-light"] .tm-card-search:hover {
 
 /* ── Streak modal: expanded layout ── */
 .streak-modal-box { max-width: 640px; }
+
+/* Pinned header + tabs: with hundreds of streaks the list runs far past the
+   viewport, and CLOSE / the tab bar used to scroll away with it. The box caps
+   at viewport height and becomes a flex column so only .modal-body scrolls —
+   header, tabs and the close button stay put at any scroll depth.
+   position:sticky can't do this job here: .modal-box's overflow:hidden (which
+   clips the header gradient to the rounded corners) traps sticky children to
+   the box itself, so they'd never stick to the real scroll container. */
+.streak-modal-box {
+  display: flex;
+  flex-direction: column;
+  max-height: calc(100vh - 4rem);  /* .modal-overlay's 2rem top/bottom padding */
+  max-height: calc(100dvh - 4rem); /* dvh where supported: survives mobile URL-bar resize */
+  overflow: hidden; /* re-assert over the ≤700px .modal-box{overflow:visible} — the
+                       body is the scroller now, so the box must clip its corners */
+}
+.streak-modal-box > .streak-modal-header,
+.streak-modal-box > .sk-tab-bar { flex-shrink: 0; }
+
+/* The shared ≤700px rule turns .modal-close into a sticky in-flow block so it
+   can't scroll away. This header never scrolls, so keep it in the corner at
+   every width instead of spending a whole row on it. */
+.streak-modal-box > .modal-close {
+  position: absolute;
+  display: inline-block;
+  width: auto;
+  top: 0.85rem;
+  right: 0.85rem;
+  margin: 0;
+}
+.streak-modal-box > .modal-body {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  min-height: 0; /* without this the flex item refuses to shrink below content height */
+  overscroll-behavior: contain;
+}
+
 .streak-modal-header { align-items: flex-start; flex-wrap: wrap; gap: 0.6rem; padding-right: 6.5rem; }
 .streak-hdr-text { flex: 1; min-width: 0; }
 
@@ -22297,13 +22355,10 @@ body[class*="-light"] .tm-card-search:hover {
 }
 .sk-sort-btn:hover { border-color: var(--accent); color: var(--accent); }
 
-/* On narrow screens .modal-close becomes a sticky pinned button (see
-   .modal-close mobile override) that stacks in the same top-of-viewport
-   region as this sticky toolbar — push the toolbar's stick point down
-   below it so the two don't render on top of each other. */
-@media (max-width: 700px) {
-  .streak-modal-box .sk-toolbar { top: 2.6rem; }
-}
+/* The toolbar sticks to the top of .modal-body, which is now the modal's scroll
+   container — so it lands just under the pinned tab bar at every width. The old
+   2.6rem narrow-screen offset (which cleared the viewport-pinned close button)
+   no longer applies: the close button never enters the scrolling area. */
 
 /* ── Collapsible sections ── */
 .sk-sec-hidden { display: none; }

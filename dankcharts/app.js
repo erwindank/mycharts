@@ -16388,7 +16388,20 @@ function openExportModal() {
     `4. ${t('export_how_to_step4')}<br><br>` +
     t('export_format_used');
 
+  _liftExportModalIfStacked();
   document.getElementById('exportModal').classList.add('open');
+}
+
+// #exportModal sits early in index.html, so at the shared --z-modal level any
+// modal declared after it (Streaks, Calendar, …) paints over it. When the export
+// modal is opened from inside another open modal, lift it above the caller —
+// otherwise it opens invisibly behind and looks like nothing happened.
+function _liftExportModalIfStacked() {
+  const modal = document.getElementById('exportModal');
+  if (!modal) return;
+  const overAnother = Array.from(document.querySelectorAll('.modal-overlay.open'))
+    .some(m => m !== modal);
+  modal.classList.toggle('modal-on-top', overAnother);
 }
 
 function copyChipName(btn, name) {
@@ -16402,7 +16415,9 @@ function copyChipName(btn, name) {
 
 function closeExportModal() {
   _exportSongsOverride = null;
-  document.getElementById('exportModal').classList.remove('open');
+  const modal = document.getElementById('exportModal');
+  modal.classList.remove('open');
+  modal.classList.remove('modal-on-top'); // back to the shared modal level
 }
 
 // Play all singles for the currently viewed day in the in-site music player
@@ -16507,6 +16522,7 @@ function openCalendarExportModal() {
     `4. ${t('export_how_to_step4')}<br><br>` +
     t('export_format_used');
 
+  _liftExportModalIfStacked();
   document.getElementById('exportModal').classList.add('open');
 }
 
