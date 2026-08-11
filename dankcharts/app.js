@@ -9359,6 +9359,13 @@ document.getElementById('periodNav').addEventListener('click', e => {
   // Mark this tab visited so badge disappears (features 9 + 17)
   dcNavMarkTabVisited(btn.dataset.period);
 
+  /* The "Certified this period" reel belongs to the week or month on screen and
+     to nothing else. Every branch below leaves the chart column standing rather
+     than unmounting it, so the shelf comes down here once for all of them — the
+     chart-period path at the bottom ends in renderAll(), which puts it straight
+     back up for weekly and monthly. */
+  hideCertReel();
+
   if (btn.dataset.period === 'rawdata') {
     // Switch to raw data view
     savedOffsets[currentPeriod] = currentOffset;
@@ -22636,6 +22643,19 @@ function certReelCard(item, i) {
 
 let _creelLoaderId = 0;
 
+/* Takes the shelf down and empties it. The reel lives in the chart column,
+   which the non-chart tabs (Records, Events, Awards, Soundtrack…) leave in
+   place rather than unmount, so every one of them has to hide it explicitly —
+   the nav handler calls this before switching views. Bumping the loader id
+   orphans any artwork still in flight for a reel that is now gone. */
+function hideCertReel() {
+  const section = document.getElementById('certReelSection');
+  const track = document.getElementById('certReelTrack');
+  if (section) section.style.display = 'none';
+  if (track) track.innerHTML = '';
+  _creelLoaderId++;
+}
+
 /* Called from renderAll() with the period's own range, so the reel follows the
    prev/next navigation: step back a week and it shows that week's awards. */
 function renderCertReel(start, end) {
@@ -22646,9 +22666,7 @@ function renderCertReel(start, end) {
   // Weekly and monthly only. A year hands over hundreds of plaques, which is a
   // wall, not a reel — and that wall already exists in Records.
   if ((currentPeriod !== 'week' && currentPeriod !== 'month') || !allPlays.length) {
-    section.style.display = 'none';
-    track.innerHTML = '';
-    _creelLoaderId++;   // orphan any in-flight artwork for a reel now gone
+    hideCertReel();
     return;
   }
 
@@ -22657,9 +22675,7 @@ function renderCertReel(start, end) {
   const subEl = document.getElementById('certReelSub');
 
   if (!items.length) {
-    section.style.display = 'none';
-    track.innerHTML = '';
-    _creelLoaderId++;
+    hideCertReel();
     return;
   }
   section.style.display = '';
