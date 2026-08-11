@@ -7742,6 +7742,360 @@
       color: var(--text);
     }
 
+    /* ADD TO PLAYLIST PICKER — shared modal (see dcOpenPlaylistPicker) */
+    .dc-plpick-box {
+      /* .modal-close is position:absolute — without this it anchors to the
+         overlay and lands in the corner of the viewport instead of the box. */
+      position: relative;
+      background: var(--bg2);
+      border: 1px solid var(--border2);
+      border-radius: 12px;
+      max-width: 400px;
+      margin: 0 auto;
+      padding: 1.35rem 1.35rem 1.15rem;
+    }
+
+    .dc-plpick-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.75rem;
+      margin-bottom: 0.55rem;
+    }
+
+    .dc-plpick-title {
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+      font-weight: bold;
+      letter-spacing: 0.08em;
+      color: var(--text);
+    }
+
+    .dc-plpick-sub {
+      font-family: var(--font-mono);
+      font-size: 0.65rem;
+      color: var(--text3);
+      letter-spacing: 0.05em;
+      margin-bottom: 0.9rem;
+    }
+
+    /* "＋ New playlist…" — the create path, kept above the existing ones so it
+       stays reachable when the list below is long enough to scroll. */
+    .dc-plpick-new {
+      display: block;
+      width: 100%;
+      background: var(--accent);
+      border: none;
+      border-radius: 6px;
+      color: var(--on-accent);
+      font-family: var(--font-mono);
+      font-size: 0.68rem;
+      font-weight: bold;
+      letter-spacing: 0.06em;
+      text-align: left;
+      padding: 0.55rem 0.75rem;
+      margin-bottom: 0.6rem;
+      cursor: pointer;
+      transition: opacity 0.12s;
+    }
+
+    .dc-plpick-new:hover { opacity: 0.85; }
+
+    .dc-plpick-list {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+      max-height: 280px;
+      overflow-y: auto;
+    }
+
+    .dc-plpick-item {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      width: 100%;
+      background: var(--surface);
+      border: 1px solid var(--border2);
+      border-radius: 6px;
+      color: var(--text);
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      text-align: left;
+      padding: 0.45rem 0.6rem;
+      cursor: pointer;
+      transition: border-color 0.12s, color 0.12s;
+    }
+
+    .dc-plpick-item:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    .dc-plpick-item-name {
+      flex: 1;
+      min-width: 0;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    /* Current length of the playlist */
+    .dc-plpick-item-count {
+      flex-shrink: 0;
+      font-size: 0.6rem;
+      color: var(--text3);
+    }
+
+    /* How many staged tracks this playlist would actually gain */
+    .dc-plpick-item-add {
+      flex-shrink: 0;
+      min-width: 2.1em;
+      text-align: right;
+      font-size: 0.62rem;
+      font-weight: bold;
+      color: var(--accent);
+    }
+
+    /* Already holds every staged track — still clickable, just clearly a no-op */
+    .dc-plpick-item-full { opacity: 0.5; }
+    .dc-plpick-item-full .dc-plpick-item-add { color: var(--text3); }
+
+    .dc-plpick-empty {
+      font-family: var(--font-mono);
+      font-size: 0.65rem;
+      color: var(--text3);
+      text-align: center;
+      padding: 0.9rem 0 0.4rem;
+    }
+
+    .dc-plpick-back {
+      display: block;
+      width: 100%;
+      background: none;
+      border: none;
+      border-bottom: 1px solid var(--border2);
+      border-radius: 0;
+      color: var(--text3);
+      font-family: var(--font-mono);
+      font-size: 0.62rem;
+      text-align: left;
+      padding: 0 0 0.45rem;
+      margin-bottom: 0.7rem;
+      cursor: pointer;
+      transition: color 0.12s;
+    }
+
+    .dc-plpick-back:hover { color: var(--accent); }
+
+    .dc-plpick-input {
+      width: 100%;
+      box-sizing: border-box;
+      background: var(--surface);
+      border: 1px solid var(--border2);
+      border-radius: 6px;
+      color: var(--text);
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      padding: 0.5rem 0.75rem;
+      outline: none;
+      transition: border-color 0.12s;
+    }
+
+    .dc-plpick-input:focus { border-color: var(--accent); }
+
+    /* First few staged tracks, so the user can confirm they grabbed the right set */
+    .dc-plpick-preview {
+      margin: 0.7rem 0 0.9rem;
+      font-family: var(--font-mono);
+      font-size: 0.62rem;
+      color: var(--text2);
+    }
+
+    .dc-plpick-preview-row {
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      padding: 0.1rem 0;
+    }
+
+    .dc-plpick-preview-row span { color: var(--text3); }
+
+    .dc-plpick-preview-more {
+      color: var(--text3);
+      padding-top: 0.15rem;
+    }
+
+    .dc-plpick-create {
+      display: block;
+      width: 100%;
+      background: var(--accent);
+      border: none;
+      border-radius: 6px;
+      color: var(--on-accent);
+      font-family: var(--font-mono);
+      font-size: 0.68rem;
+      font-weight: bold;
+      letter-spacing: 0.06em;
+      padding: 0.5rem 0.9rem;
+      cursor: pointer;
+      transition: opacity 0.12s;
+    }
+
+    .dc-plpick-create:hover { opacity: 0.85; }
+
+    /* Confirmation toast — these actions deliberately never open the player, so
+       the player's own status line can't be the feedback channel. */
+    .dc-pl-toast {
+      position: fixed;
+      left: 50%;
+      bottom: 1.5rem;
+      transform: translateX(-50%) translateY(0.6rem);
+      z-index: 6000;
+      max-width: min(90vw, 460px);
+      background: var(--bg3, var(--bg2));
+      border: 1px solid var(--accent);
+      border-radius: 8px;
+      box-shadow: var(--shadow-3, 0 6px 24px rgba(0, 0, 0, 0.35));
+      color: var(--text);
+      font-family: var(--font-mono);
+      font-size: 0.66rem;
+      letter-spacing: 0.04em;
+      padding: 0.55rem 0.9rem;
+      text-align: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.18s, transform 0.18s;
+    }
+
+    .dc-pl-toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    /* ── The ＋ add-to-playlist button (see dcPlBtnHtml) ── */
+    .dc-pl-add-btn {
+      flex-shrink: 0;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 22px;
+      height: 22px;
+      padding: 0;
+      background: transparent;
+      border: 1px solid var(--border2);
+      border-radius: 5px;
+      color: var(--text3);
+      cursor: pointer;
+      vertical-align: middle;
+      transition: background 0.12s, color 0.12s, border-color 0.12s;
+    }
+
+    .dc-pl-add-btn:hover {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: var(--on-accent);
+    }
+
+    .dc-pl-add-icon {
+      width: 13px;
+      height: 13px;
+      fill: currentColor;
+    }
+
+    /* The event/release cards were static-positioned; the corner button needs
+       them to be a containing block. */
+    .upcoming-card,
+    .ev-carousel-card { position: relative; }
+
+    /* On the event/release cards the button floats in the top-left corner, out of
+       the way of the date chip that already sits top-right. */
+    .dc-pl-add-card {
+      position: absolute;
+      top: 6px;
+      left: 6px;
+      z-index: 3;
+      background: var(--bg2);
+      opacity: 0;
+      transition: opacity 0.12s, background 0.12s, color 0.12s, border-color 0.12s;
+    }
+
+    .upcoming-card:hover .dc-pl-add-card,
+    .ev-carousel-card:hover .dc-pl-add-card,
+    .dc-pl-add-card:focus-visible { opacity: 1; }
+
+    /* Touch devices get no hover, so the button has to be permanently visible */
+    @media (hover: none) {
+      .dc-pl-add-card { opacity: 1; }
+    }
+
+    /* Card Grid's hover overlay pairs the ＋ with a 38px round play button, so it
+       needs breathing room and a little more presence than the table-row size. */
+    .wv-gc-hover { gap: 8px; }
+
+    .wv-gc-hover .dc-pl-add-btn {
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      background: rgba(0, 0, 0, 0.45);
+      border-color: rgba(255, 255, 255, 0.35);
+      color: #fff;
+    }
+
+    .wv-gc-hover .dc-pl-add-btn .dc-pl-add-icon {
+      width: 14px;
+      height: 14px;
+    }
+
+    /* Compact variant for table rows and list rows, which are much tighter */
+    .dc-pl-add-sm {
+      width: 18px;
+      height: 18px;
+      border-radius: 4px;
+    }
+
+    .dc-pl-add-sm .dc-pl-add-icon {
+      width: 11px;
+      height: 11px;
+    }
+
+    /* A list row is a fixed 4-column grid, so a row carrying the ＋ needs a fifth
+       track for it — without this the button lands on an implicit second row and
+       pushes the type label under everything else. */
+    .ev-list-row--pl { grid-template-columns: 22px 72px 1fr 1fr auto; }
+
+    /* Trailing ＋ column in the table view; sized to the button, not the header. */
+    .ev-tbl-pl { width: 26px; padding-left: 0; }
+
+    /* Section-header "save everything here" buttons — matches .cal-create-pl-btn */
+    .dc-pl-section-btn {
+      background: none;
+      border: 1px solid var(--border2);
+      border-radius: 4px;
+      color: var(--text2);
+      font-family: var(--font-mono);
+      font-size: 0.6rem;
+      font-weight: bold;
+      letter-spacing: 0.07em;
+      padding: 0.1rem 0.5rem 0.15rem;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: background 0.12s, color 0.12s, border-color 0.12s;
+      margin-left: 0.4rem;
+    }
+
+    .dc-pl-section-btn:hover {
+      background: var(--surface);
+      color: var(--accent);
+      border-color: var(--accent);
+    }
+
+    /* The Soundtrack reel has a footer caption instead of a section header, so
+       its button sits under the reel and centres on that caption. */
+    .dc-pl-reel-btn {
+      display: block;
+      margin: 0.5rem auto 0;
+    }
+
     /* WEEK VIEW */
     .cal-week-grid {
       grid-template-rows: auto 1fr;
@@ -19554,6 +19908,22 @@ body.albums-hide-yt-btns  #offAlbumsSection  .yt-play-btn,
 body.songs-hide-yt-btns   #newSongsSection   .yt-play-btn,
 body.artists-hide-yt-btns #newArtistsSection .yt-play-btn,
 body.albums-hide-yt-btns  #newAlbumsSection  .yt-play-btn { display: none; }
+
+/* The ＋ add-to-playlist button rides alongside the YouTube button on every chart
+   row, so the per-section "hide YouTube buttons" toggle has to take it with it —
+   otherwise switching the buttons off leaves an orphaned ＋ behind. */
+body.songs-hide-yt-btns   #songsSection     .dc-pl-add-btn,
+body.artists-hide-yt-btns #artistsSection   .dc-pl-add-btn,
+body.albums-hide-yt-btns  #albumsSection    .dc-pl-add-btn,
+body.songs-hide-yt-btns   #buSongsSection   .dc-pl-add-btn,
+body.artists-hide-yt-btns #buArtistsSection .dc-pl-add-btn,
+body.albums-hide-yt-btns  #buAlbumsSection  .dc-pl-add-btn,
+body.songs-hide-yt-btns   #offSongsSection   .dc-pl-add-btn,
+body.artists-hide-yt-btns #offArtistsSection .dc-pl-add-btn,
+body.albums-hide-yt-btns  #offAlbumsSection  .dc-pl-add-btn,
+body.songs-hide-yt-btns   #newSongsSection   .dc-pl-add-btn,
+body.artists-hide-yt-btns #newArtistsSection .dc-pl-add-btn,
+body.albums-hide-yt-btns  #newAlbumsSection  .dc-pl-add-btn { display: none; }
 
 /* ── Sleep timer panel ── */
 .yt-sleep-panel {
