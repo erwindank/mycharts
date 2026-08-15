@@ -149,6 +149,109 @@ function tzDate(d) {
 }
 
 function tzNow() { return tzDate(new Date()); }
+
+/* ─── PER-PLAY DERIVED KEY CACHE ───────────────────────────────────────────
+   Every chart builder used to recompute the same handful of pure functions of
+   a single play — songKey(), albumArtist(), playWeekKey(), tzDate() — inside
+   its own full pass over allPlays. Profiling a 100k-play library showed one
+   renderAll() making 2.5M tzDate() calls, 1.2M songKey() calls and 1.1M
+   playWeekKey() calls, because ~17 builders each walk the whole history.
+
+   So we compute them once per play and stash them on the play object:
+
+     _sk  song key            title|||artist, lowercased
+     _aa  album artist        the credit albums are grouped by
+     _ak  album key           album|||albumArtist
+     _td  timezone-adjusted   tzDate(p.date) — identical object when no custom tz
+     _ds  day string          YYYY-MM-DD in the user's timezone
+     _wk  week key            the week-start day string
+     _mk  month key           YYYY-MM
+     _yk  year key            YYYY
+
+   STALENESS IS THE DANGER, not absence. These values depend on settings the
+   user can change at runtime: _wk/_ds/_mk/_yk move with the week start day and
+   the timezone, _aa/_ak move with the compilations list, and _sk moves when an
+   autocorrect rule rewrites a title. A stamp left over from before such a
+   change would silently produce wrong charts, which is far worse than slow ones.
+
+   So each stamp carries the epoch it was written under (_se). Every reader
+   compares it against the current epoch and falls back to computing the value
+   the old way when they differ. Bump the epoch via dcInvalidatePlayStamps()
+   and the worst possible outcome is the pre-optimisation speed — never a wrong
+   number. Re-stamping the whole library costs ~50ms at 100k plays, so the two
+   load choke points (finalizeLoad / refreshAfterPoll) simply always re-stamp. */
+let _stampEpoch = 1;
+
+// Call after anything that changes how a play's derived keys are computed:
+// week start day, timezone, compilation list, autocorrect rules.
+function dcInvalidatePlayStamps() {
+  _stampEpoch++;
+}
+window.dcInvalidatePlayStamps = dcInvalidatePlayStamps;
+
+/* Interning keeps memory flat. A 400k-play library has only ~3k distinct song
+   keys and ~200 week keys, so handing every play a pointer to one shared string
+   costs a rounding error where 400k separately-built strings would not. */
+function _intern(map, s) {
+  const hit = map.get(s);
+  if (hit !== undefined) return hit;
+  map.set(s, s);
+  return s;
+}
+
+// Stamps every play with its derived keys under the current epoch.
+function stampPlays(plays) {
+  if (!plays || !plays.length) return;
+  const iSk = new Map(), iAa = new Map(), iAk = new Map();
+  const iDs = new Map(), iWk = new Map(), iMk = new Map(), iYk = new Map();
+  // Week/day/month/year keys are a pure function of the timestamp, and a big
+  // library has far more plays than distinct instants-that-matter — memoise on
+  // the raw timestamp so repeat dates skip the Date maths entirely.
+  const byTs = new Map();
+  for (const p of plays) {
+    p._sk = _intern(iSk, p.title.toLowerCase().trim() + '|||' + p.artist.toLowerCase().trim());
+    const aa = _intern(iAa, _albumArtistRaw(p));
+    p._aa = aa;
+    p._ak = _intern(iAk, p.album + '|||' + aa);
+
+    const ts = +p.date;
+    let d = byTs.get(ts);
+    if (d === undefined) {
+      // tzDate, never tzDateOf: re-stamping an already-stamped play (after an
+      // in-place edit moved its date) must recompute, not read the old stamp.
+      const td = tzDate(p.date);
+      const dow = td.getDay();
+      const wkStart = new Date(td.getFullYear(), td.getMonth(), td.getDate() - ((dow - weekStartDay + 7) % 7));
+      d = {
+        td,
+        ds: _intern(iDs, localDateStr(td)),
+        wk: _intern(iWk, localDateStr(wkStart)),
+        mk: _intern(iMk, td.getFullYear() + '-' + String(td.getMonth() + 1).padStart(2, '0')),
+        yk: _intern(iYk, String(td.getFullYear())),
+      };
+      byTs.set(ts, d);
+    }
+    p._td = d.td; p._ds = d.ds; p._wk = d.wk; p._mk = d.mk; p._yk = d.yk;
+    p._se = _stampEpoch;
+  }
+}
+
+/* ─── STAMP READERS ────────────────────────────────────────────────────────
+   Each returns the cached value when the stamp is current, and otherwise
+   computes it exactly as the pre-cache code did. */
+function tzDateOf(p)      { return p._se === _stampEpoch ? p._td : tzDate(p.date); }
+function dayStrOf(p)      { return p._se === _stampEpoch ? p._ds : localDateStr(tzDate(p.date)); }
+function playWeekKeyOf(p) { return p._se === _stampEpoch ? p._wk : playWeekKey(p.date); }
+function albumKeyOf(p)    { return p._se === _stampEpoch ? p._ak : p.album + '|||' + _albumArtistRaw(p); }
+function monthKeyOf(p) {
+  if (p._se === _stampEpoch) return p._mk;
+  const td = tzDate(p.date);
+  return td.getFullYear() + '-' + String(td.getMonth() + 1).padStart(2, '0');
+}
+function yearKeyOf(p) {
+  return p._se === _stampEpoch ? p._yk : String(tzDate(p.date).getFullYear());
+}
+
 const savedOffsets = { week: 0, month: 0, year: 0, alltime: 0, records: 0 };
 let chartSize = 10;
 let chartSizeWeekly = 10;   // compat — mirrors chartSizeSongsW
@@ -455,6 +558,9 @@ const DAY_ABBREVS = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
 
 function updateWeekStartDay(day) {
   weekStartDay = day;
+  // Week/day keys are derived from this — retire the old stamps before rendering.
+  dcInvalidatePlayStamps();
+  stampPlays(allPlays);
   const dayGroupAbbrev = document.getElementById('dayGroupAbbrev');
   if (dayGroupAbbrev) dayGroupAbbrev.textContent = DAY_ABBREVS[day];
   document.querySelectorAll('.day-btn').forEach(btn => {
@@ -585,7 +691,9 @@ const VARIOUS_ARTISTS  = 'Various Artists';
 
 // Lowercased titles, parsed once. null = not read from localStorage yet.
 let _compilationSet = null;
-window.dcResetCompilationsCache = () => { _compilationSet = null; };
+// Called by the Firestore sync when the compilations list arrives from another
+// device — album credits change, so the per-play album stamps must retire too.
+window.dcResetCompilationsCache = () => { _compilationSet = null; dcInvalidatePlayStamps(); };
 
 // The saved list in the casing the user typed it — what the manager modal lists.
 function getCompilationAlbums() {
@@ -615,6 +723,7 @@ function _saveCompilationAlbums(list) {
   const json = JSON.stringify(list);
   localStorage.setItem(COMPILATIONS_KEY, json);
   _compilationSet = null;
+  dcInvalidatePlayStamps();  // albumArtist() moved — _aa/_ak on every play are stale
   if (typeof dcSaveCompilationsToFirestore === 'function') dcSaveCompilationsToFirestore(json);
 }
 
@@ -636,9 +745,15 @@ function removeCompilationAlbum(title) {
 // Primary artist for album grouping — always the first artist so that feat. tracks
 // don't split into a separate album entry. Compilations are the exception: they
 // are credited to Various Artists so all their singers fold into one album.
-function albumArtist(p) {
+// The uncached computation — stampPlays() calls this to fill _aa, so it must
+// not read the stamp back or it would recurse.
+function _albumArtistRaw(p) {
   if (p.album && isCompilationAlbum(p.album)) return VARIOUS_ARTISTS;
   return (p.artists && p.artists[0]) || p.artist;
+}
+
+function albumArtist(p) {
+  return p._se === _stampEpoch ? p._aa : _albumArtistRaw(p);
 }
 
 // Strips featured/collaboration artists from an artist string and returns just the
@@ -664,6 +779,7 @@ function _lookupAlbumFromData(title, artist) {
 // Key songs by title + artist only (album excluded) so the same song played as a
 // single or from an album is counted as one entry in the songs chart.
 function songKey(p) {
+  if (p._se === _stampEpoch) return p._sk;
   return p.title.toLowerCase().trim() + '|||' + p.artist.toLowerCase().trim();
 }
 
@@ -1276,8 +1392,11 @@ function applyAutocorrectRules(plays) {
     const artist = rule.replace.artist;
     const title  = rule.replace.title;
     const album  = rule.replace.album;
+    // _se: 0 drops any derived-key stamp the spread copied over. The rule just
+    // rewrote the title/artist/album those keys were built from, so an inherited
+    // stamp would look current while describing the pre-correction song.
     return { ...p, artist, title, album, artists: splitArtists(artist),
-      _corrected: true, _orig: { artist: p.artist, title: p.title, album: p.album } };
+      _se: 0, _corrected: true, _orig: { artist: p.artist, title: p.title, album: p.album } };
   });
 }
 
@@ -1514,6 +1633,9 @@ function _compilationsChanged() {
   // Merging an album rewrites its key, which rewrites when it crossed each
   // threshold — the certification timeline is built from those keys.
   _certTimeline = null;
+  // _saveCompilationAlbums() has already retired the old stamps; write the new
+  // credits back in before anything reads them.
+  stampPlays(allPlays);
   if (typeof renderAll === 'function' && allPlays.length) renderAll();
 }
 
@@ -1680,6 +1802,9 @@ async function saveEditLocally() {
   }
   firstSeenMaps = null;
   _certTimeline = null;   // plays changed — the certification dates move with them
+  // Titles, artists, albums and dates were just rewritten in place on live play
+  // objects, so their derived keys no longer describe them.
+  stampPlays(allPlays);
   if (allPlays.length) {
     window.firstScrobbleDate = allPlays.reduce((min, p) => p.date < min ? p.date : min, allPlays[0].date);
   }
@@ -1797,6 +1922,7 @@ async function pushEditToSheet() {
       });
       firstSeenMaps = null;
       _certTimeline = null;   // plays changed — the certification dates move with them
+      stampPlays(allPlays);   // rewritten in place — refresh their derived keys
       if (allPlays.length) {
         window.firstScrobbleDate = allPlays.reduce((min, p) => p.date < min ? p.date : min, allPlays[0].date);
       }
@@ -1831,6 +1957,7 @@ async function pushEditToSheet() {
       _editPlay.date    = f.date;
       firstSeenMaps = null;
       _certTimeline = null;   // plays changed — the certification dates move with them
+      stampPlays(allPlays);   // rewritten in place — refresh their derived keys
       if (allPlays.length) {
         window.firstScrobbleDate = allPlays.reduce((min, p) => p.date < min ? p.date : min, allPlays[0].date);
       }
@@ -1863,6 +1990,7 @@ async function pushEditToSheet() {
       });
       firstSeenMaps = null;
       _certTimeline = null;   // plays changed — the certification dates move with them
+      stampPlays(allPlays);   // rewritten in place — refresh their derived keys
       if (allPlays.length) {
         window.firstScrobbleDate = allPlays.reduce((min, p) => p.date < min ? p.date : min, allPlays[0].date);
       }
@@ -3112,6 +3240,7 @@ function refreshAfterPoll() {
   if (!allPlays.length) return;
   firstSeenMaps = null;
   _certTimeline = null;   // plays changed — the certification dates move with them
+  stampPlays(allPlays);   // polled-in plays arrive unstamped; re-stamp the array
   window.firstScrobbleDate = allPlays.reduce((min, p) => p.date < min ? p.date : min, allPlays[0].date);
   updateMastheadDynamic();
   populateYearPicker();
@@ -3614,6 +3743,9 @@ function saveSourceConfig() {
   if (selTz) {
     userTimezone = selTz;
     _tzFmt = null;
+    // Every period key on every play was computed in the old zone — retire them.
+    dcInvalidatePlayStamps();
+    stampPlays(allPlays);
     try { localStorage.setItem('dc_timezone', selTz); } catch(e) {}
   }
   updateMastheadDynamic();
@@ -4100,6 +4232,7 @@ function parseCsv(text, fromSheets = false) {
 function finalizeLoad() {
   firstSeenMaps = null;
   _certTimeline = null;   // plays changed — the certification dates move with them
+  stampPlays(allPlays);   // fresh play objects — give them their derived keys
   if (allPlays.length) {
     window.firstScrobbleDate = allPlays.reduce((min, p) => p.date < min ? p.date : min, allPlays[0].date);
     updateMastheadDynamic();
@@ -4469,7 +4602,7 @@ function buildRecords() {
   for (const p of allPlays) {
     const sk = songKey(p);
     if (!songNames[sk]) songNames[sk] = { title: p.title, artist: p.artist, album: p.album };
-    const ak = p.album + '|||' + albumArtist(p);
+    const ak = albumKeyOf(p);
     if (!albumNames[ak]) albumNames[ak] = { album: p.album, artist: albumArtist(p) };
   }
 
@@ -4505,8 +4638,8 @@ function buildRecords() {
   const chron = [...allPlays].sort((a, b) => a.date - b.date);
   const weekPlaysMap = {}, monthPlaysMap = {}, yearPlaysMap = {};
   for (const p of chron) {
-    const wk = playWeekKey(p.date);
-    const _td = tzDate(p.date);
+    const wk = playWeekKeyOf(p);
+    const _td = tzDateOf(p);
     const mk = _td.getFullYear() + '-' + String(_td.getMonth() + 1).padStart(2, '0');
     const yk = String(_td.getFullYear());
     (weekPlaysMap[wk] || (weekPlaysMap[wk] = [])).push(p);
@@ -4530,11 +4663,11 @@ function buildRecords() {
       if (!artistFirstSongName[a]) artistFirstSongName[a] = p.title;
       artistLastSongName[a] = p.title;
       if (!artistFirstAlbum[a] && p.album && p.album !== '—') {
-        artistFirstAlbum[a] = { album: p.album, albumKey: p.album + '|||' + albumArtist(p), artist: albumArtist(p) };
+        artistFirstAlbum[a] = { album: p.album, albumKey: albumKeyOf(p), artist: albumArtist(p) };
       }
     }
     if (p.album && p.album !== '—') {
-      const ak = p.album + '|||' + albumArtist(p);
+      const ak = albumKeyOf(p);
       if (!albumFirstPlayDate[ak]) { albumFirstPlayDate[ak] = p.date; albumFirstSongName[ak] = p.title; }
     }
   }
@@ -4589,7 +4722,7 @@ function buildRecords() {
           ac[a].count++;
         }
         if (p.album && p.album !== '—') {
-          const ak = p.album + '|||' + albumArtist(p);
+          const ak = albumKeyOf(p);
           if (!lc[ak]) lc[ak] = { count: 0, album: p.album, artist: albumArtist(p), firstAchieved: p.date };
           lc[ak].count++;
         }
@@ -4685,8 +4818,8 @@ function buildRecords() {
     const afp = { week: {}, month: {}, year: {} };
     const lfp = { week: {}, month: {}, year: {} };
     for (const p of chron) {
-      const wk = playWeekKey(p.date);
-      const _td = tzDate(p.date);
+      const wk = playWeekKeyOf(p);
+      const _td = tzDateOf(p);
       const mk = _td.getFullYear() + '-' + String(_td.getMonth() + 1).padStart(2, '0');
       const yk = String(_td.getFullYear());
       const sk = songKey(p);
@@ -4699,7 +4832,7 @@ function buildRecords() {
         if (!afp.year[artist]) afp.year[artist] = yk;
       }
       if (p.album && p.album !== '—') {
-        const ak = p.album + '|||' + albumArtist(p);
+        const ak = albumKeyOf(p);
         if (!lfp.week[ak]) lfp.week[ak] = { period: wk, album: p.album, artist: albumArtist(p) };
         if (!lfp.month[ak]) lfp.month[ak] = { period: mk, album: p.album, artist: albumArtist(p) };
         if (!lfp.year[ak]) lfp.year[ak] = { period: yk, album: p.album, artist: albumArtist(p) };
@@ -4758,7 +4891,7 @@ function buildRecords() {
         const nl = lbyp[pk]; if (!nl) continue;
         for (const p of playsMap[pk]) {
           if (!p.album || p.album === '—') continue;
-          const ak = p.album + '|||' + albumArtist(p);
+          const ak = albumKeyOf(p);
           if (nl[ak]) nl[ak].plays++;
         }
       }
@@ -4841,7 +4974,7 @@ function buildRecords() {
           if (!everA.has(a)) { everA.add(a); rawNewCountPerPeriod[pt].artists[pk] = (rawNewCountPerPeriod[pt].artists[pk] || 0) + 1; }
         }
         if (p.album && p.album !== '—') {
-          const ak = p.album + '|||' + albumArtist(p);
+          const ak = albumKeyOf(p);
           if (!everL.has(ak)) { everL.add(ak); rawNewCountPerPeriod[pt].albums[pk] = (rawNewCountPerPeriod[pt].albums[pk] || 0) + 1; }
         }
       }
@@ -4912,7 +5045,7 @@ function buildRecords() {
     // number of Last.fm scrobbles have none — so it sits this ladder out. Same
     // guard the raw discovery counts above use.
     if (p.album && p.album !== '—') {
-      const ak = p.album + '|||' + albumArtist(p);
+      const ak = albumKeyOf(p);
       if (!albumFirst[ak]) albumFirst[ak] = p.date;
       const an = albumCP[ak] = (albumCP[ak] || 0) + 1;
       if (!albumMS[ak]) albumMS[ak] = {};
@@ -4970,14 +5103,14 @@ function buildRecords() {
 
   for (let i = 0; i < chron.length; i++) {
     const p = chron[i];
-    const d = tzDate(p.date);
+    const d = tzDateOf(p);
     const dk = localDateStr(d);
-    const wk = playWeekKey(p.date);
+    const wk = playWeekKeyOf(p);
     const mk = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0');
     const yk = String(d.getFullYear());
     streakTouch('song', songKey(p), i, p, dk, wk, mk, yk);
     for (const a of p.artists) streakTouch('artist', a, i, p, dk, wk, mk, yk);
-    if (p.album && p.album !== '—') streakTouch('album', p.album + '|||' + albumArtist(p), i, p, dk, wk, mk, yk);
+    if (p.album && p.album !== '—') streakTouch('album', albumKeyOf(p), i, p, dk, wk, mk, yk);
   }
 
   /* Minimum plays before an entity's ladder is worth ranking. Without a floor
@@ -9979,7 +10112,7 @@ function syncPicker() {
 
 function populateYearPicker() {
   const yp = document.getElementById('yearPicker');
-  const years = [...new Set(allPlays.map(p => tzDate(p.date).getFullYear()))].sort((a, b) => b - a);
+  const years = [...new Set(allPlays.map(p => tzDateOf(p).getFullYear()))].sort((a, b) => b - a);
   yp.innerHTML = years.map(y => `<option value="${y}">${y}</option>`).join('');
 }
 
@@ -10162,12 +10295,12 @@ function _buildPeriodPlaysMap(periodType, cutoffKey) {
   for (const p of allPlays) {
     let key;
     if (periodType === 'week') {
-      key = playWeekKey(p.date);
+      key = playWeekKeyOf(p);
     } else if (periodType === 'month') {
-      const _td = tzDate(p.date);
+      const _td = tzDateOf(p);
       key = _td.getFullYear() + '-' + String(_td.getMonth() + 1).padStart(2, '0');
     } else {
-      key = String(tzDate(p.date).getFullYear());
+      key = String(tzDateOf(p).getFullYear());
     }
     if (cutoffKey && key > cutoffKey) continue;
     (playsMap[key] || (playsMap[key] = [])).push(p);
@@ -10212,7 +10345,7 @@ function buildNewEntryPeakStats(periodType, cutoffKey) {
       const sk = songKey(p);
       if (songFirst[sk] && songFirst[sk] >= ps) ns.add(sk);
       for (const a of p.artists) { if (artistFirst[a] && artistFirst[a] >= ps) na.add(a); }
-      if (p.album && p.album !== '—') { const ak = p.album + '|||' + albumArtist(p); if (albumFirst[ak] && albumFirst[ak] >= ps) nb.add(ak); }
+      if (p.album && p.album !== '—') { const ak = albumKeyOf(p); if (albumFirst[ak] && albumFirst[ak] >= ps) nb.add(ak); }
     }
     maxNewSongs   = Math.max(maxNewSongs,   ns.size);
     maxNewArtists = Math.max(maxNewArtists, na.size);
@@ -10371,14 +10504,14 @@ function fmtElapsed(elapsed) {
 function buildFirstSeenMaps() {
   const songFirst = {}, artistFirst = {}, albumFirst = {};
   for (const p of allPlays) {
-    const tz = tzDate(p.date);
+    const tz = tzDateOf(p);
     const sk = songKey(p);
     if (!songFirst[sk] || tz < songFirst[sk]) songFirst[sk] = tz;
     for (const artist of p.artists) {
       if (!artistFirst[artist] || tz < artistFirst[artist]) artistFirst[artist] = tz;
     }
     if (p.album && p.album !== '—') {
-      const ak = p.album + '|||' + albumArtist(p);
+      const ak = albumKeyOf(p);
       if (!albumFirst[ak] || tz < albumFirst[ak]) albumFirst[ak] = tz;
     }
   }
@@ -10451,7 +10584,7 @@ function renderNewEntries(plays, start, end) {
   const albumCounts = {};
   for (const p of plays) {
     if (!p.album || p.album === '—') continue;
-    const ak = p.album + '|||' + albumArtist(p);
+    const ak = albumKeyOf(p);
     const first = albumFirst[ak];
     if (first && first >= start && first <= end) {
       if (!albumCounts[ak]) albumCounts[ak] = { album: p.album, artist: albumArtist(p), count: 0, tracks: new Set(), firstAchieved: p.date };
@@ -10648,7 +10781,7 @@ function renderAll() {
   const { start, end, label, sub } = getDateRange();
   const plays = currentPeriod === 'alltime'
     ? allPlays
-    : allPlays.filter(p => { const _tp = tzDate(p.date); return _tp >= start && _tp <= end; });
+    : allPlays.filter(p => { const _tp = tzDateOf(p); return _tp >= start && _tp <= end; });
 
   // Per-section size bars: show the correct button group for the current period
   const paginated = isPaginated();
@@ -10765,7 +10898,7 @@ function renderAll() {
       prevStart = new Date(yr, 0, 1);
       prevEnd   = new Date(yr, 11, 31, 23, 59, 59, 999);
     }
-    prevPlays = allPlays.filter(p => { const _tp = tzDate(p.date); return _tp >= prevStart && _tp <= prevEnd; });
+    prevPlays = allPlays.filter(p => { const _tp = tzDateOf(p); return _tp >= prevStart && _tp <= prevEnd; });
   }
 
   // Compute all-time peak stats and peak-at-the-time stats per period type
@@ -10849,7 +10982,7 @@ function renderAll() {
     const newArtistsCount = [...artistSet].filter(a => artistFirst[a] && artistFirst[a] >= start).length;
     const newAlbumsCount  = new Set(plays
       .filter(p => p.album && p.album !== '—')
-      .map(p => p.album + '|||' + albumArtist(p))
+      .map(p => albumKeyOf(p))
       .filter(ak => albumFirst[ak] && albumFirst[ak] >= start)).size;
 
     // Previous period new counts
@@ -10857,7 +10990,7 @@ function renderAll() {
     if (prevPlays && prevStart) {
       const pSongSet     = new Set(prevPlays.map(p => songKey(p)));
       const pArtistSet   = new Set(prevPlays.flatMap(p => p.artists));
-      const pAlbumKeySet = new Set(prevPlays.filter(p => p.album && p.album !== '—').map(p => p.album + '|||' + albumArtist(p)));
+      const pAlbumKeySet = new Set(prevPlays.filter(p => p.album && p.album !== '—').map(p => albumKeyOf(p)));
       prevNewSongs   = [...pSongSet].filter(s => songFirst[s] && songFirst[s] >= prevStart).length;
       prevNewArtists = [...pArtistSet].filter(a => artistFirst[a] && artistFirst[a] >= prevStart).length;
       prevNewAlbums  = [...pAlbumKeySet].filter(ak => albumFirst[ak] && albumFirst[ak] >= prevStart).length;
@@ -10875,7 +11008,7 @@ function renderAll() {
     // keep the original casing of the first play seen for each key.
     const songNames15 = {};
     for (const p of allPlays) {
-      const d = tzDate(p.date);
+      const d = tzDateOf(p);
       if (d >= sotmStart && d <= sotmEnd) {
         const k = songKey(p);
         songCounts15[k] = (songCounts15[k] || 0) + 1;
@@ -10913,7 +11046,7 @@ function renderAll() {
     // Best day in the period being viewed
     const _dayCounts = {};
     for (const p of allPlays) {
-      const pd = tzDate(p.date);
+      const pd = tzDateOf(p);
       if (pd < start || pd > end) continue;
       const dk = localDateStr(pd);
       _dayCounts[dk] = (_dayCounts[dk] || 0) + 1;
@@ -10968,7 +11101,7 @@ function renderAll() {
       // Count plays in the 45-day window for each new artist, pick the most played
       const risingCounts = {};
       for (const p of allPlays) {
-        const d = tzDate(p.date);
+        const d = tzDateOf(p);
         if (d < fortyFiveDaysAgo || d > end) continue;
         for (const a of p.artists) {
           if (newArtists45.has(a)) risingCounts[a] = (risingCounts[a] || 0) + 1;
@@ -10994,7 +11127,7 @@ function renderAll() {
     const aotmStart = new Date(end.getTime() - 21 * 24 * 60 * 60 * 1000);
     const artistCounts21 = {};
     for (const p of allPlays) {
-      const d = tzDate(p.date);
+      const d = tzDateOf(p);
       if (d >= aotmStart && d <= end) {
         for (const a of p.artists) artistCounts21[a] = (artistCounts21[a] || 0) + 1;
       }
@@ -11018,9 +11151,9 @@ function renderAll() {
     const albumotmStart = new Date(end.getTime() - 21 * 24 * 60 * 60 * 1000);
     const albumCounts21 = {};
     for (const p of allPlays) {
-      const d = tzDate(p.date);
+      const d = tzDateOf(p);
       if (d >= albumotmStart && d <= end && p.album && p.album !== '—') {
-        const ak = p.album + '|||' + albumArtist(p);
+        const ak = albumKeyOf(p);
         albumCounts21[ak] = (albumCounts21[ak] || 0) + 1;
       }
     }
@@ -11241,7 +11374,7 @@ function buildPrevRankMap(prevPlays, type) {
     }
   } else if (type === 'albums') {
     for (const p of prevPlays) {
-      const k = p.album + '|||' + albumArtist(p);
+      const k = albumKeyOf(p);
       if (!counts[k]) counts[k] = { count: 0, firstAchieved: p.date };
       counts[k].count++;
     }
@@ -11270,7 +11403,7 @@ function buildPrevSortedEntries(prevPlays, type) {
     }
   } else if (type === 'albums') {
     for (const p of prevPlays) {
-      const k = p.album + '|||' + albumArtist(p);
+      const k = albumKeyOf(p);
       if (!counts[k]) counts[k] = { album: p.album, artist: albumArtist(p), count: 0, firstAchieved: p.date };
       counts[k].count++;
     }
@@ -11350,7 +11483,7 @@ function computeWindowCountsForType(pSorted, cSorted, step, totalSteps, type, fo
   } else if (type === 'albums') {
     for (const p of pool) {
       if (!p.album || p.album === '—') continue;
-      const k = p.album + '|||' + albumArtist(p);
+      const k = albumKeyOf(p);
       if (!counts[k]) counts[k] = { key: k, count: 0 };
       counts[k].count++;
     }
@@ -11393,7 +11526,7 @@ function runSlideWindowAnim(tbody, type, prevPlays, currPlays, onComplete) {
       }
     } else if (type === 'albums') {
       if (p.album && p.album !== '—') {
-        const k = p.album + '|||' + albumArtist(p);
+        const k = albumKeyOf(p);
         if (!keyToMeta[k]) keyToMeta[k] = { album: p.album, artist: albumArtist(p) };
       }
     }
@@ -11460,7 +11593,7 @@ function runSlideWindowAnim(tbody, type, prevPlays, currPlays, onComplete) {
       }
     } else if (type === 'albums') {
       if (!p.album || p.album === '—') return;
-      const k = p.album + '|||' + albumArtist(p);
+      const k = albumKeyOf(p);
       if (!rc[k]) rc[k] = { key: k, count: 0 };
       rc[k].count += delta;
       if (rc[k].count <= 0) delete rc[k];
@@ -11625,7 +11758,7 @@ function buildAlbumsFull(plays) {
   const counts = {};
   for (const p of plays) {
     if (!p.album || p.album === '—') continue;
-    const k = p.album + '|||' + albumArtist(p);
+    const k = albumKeyOf(p);
     if (!counts[k]) counts[k] = { album: p.album, artist: albumArtist(p), count: 0, tracks: new Set(), firstAchieved: p.date };
     counts[k].count++;
     counts[k].tracks.add(p.title);
@@ -12148,7 +12281,7 @@ function buildItemHeatmapHTML(type, key) {
   // Build dayMap with play lists
   const dayMap = {};
   for (const p of chrono) {
-    const dk = localDateStr(tzDate(p.date));
+    const dk = dayStrOf(p);
     if (!dayMap[dk]) dayMap[dk] = { count: 0, plays: [] };
     dayMap[dk].count++;
     dayMap[dk].plays.push(p);
@@ -12160,8 +12293,8 @@ function buildItemHeatmapHTML(type, key) {
   const firstPlayOfYear = {};
   for (const p of chrono) {
     cumCount++;
-    const dk = localDateStr(tzDate(p.date));
-    const yr = tzDate(p.date).getFullYear();
+    const dk = dayStrOf(p);
+    const yr = tzDateOf(p).getFullYear();
     if (!firstPlayOfYear[yr]) {
       firstPlayOfYear[yr] = p;
       if (!msMap[dk]) msMap[dk] = { allTime: [] };
@@ -12344,7 +12477,7 @@ function _crStkKeyLabel(dim, k) {
 function _crStkUnitKey(dim) { return dim === 'weeks' ? 'weeks_full' : dim; }
 
 function _crStkPlayLabel(p) {
-  const d = tzDate(p.date);
+  const d = tzDateOf(p);
   return `${t(_CR_MON_SHORT[d.getMonth()])} ${d.getDate()}, ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
 }
 
@@ -12413,9 +12546,9 @@ function computeCrStreaks(type, key) {
     itemPlays.push(p);
     if (!run) { run = []; runs.push(run); }
     run.push(p);
-    const d = tzDate(p.date);
+    const d = tzDateOf(p);
     const dk = localDateStr(d);
-    const wk = playWeekKey(p.date);
+    const wk = playWeekKeyOf(p);
     const mk = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
     const yk = String(d.getFullYear());
     dayCounts[dk] = (dayCounts[dk] || 0) + 1;
@@ -12789,8 +12922,8 @@ function buildChartRun(period) {
   const periodMap = {};
   for (const p of allPlays) {
     let key;
-    const _ptd = tzDate(p.date);
-    if (period === 'week') key = playWeekKey(p.date);
+    const _ptd = tzDateOf(p);
+    if (period === 'week') key = playWeekKeyOf(p);
     else if (period === 'month') key = `${_ptd.getFullYear()}-${String(_ptd.getMonth() + 1).padStart(2, '0')}`;
     else key = String(_ptd.getFullYear());
     if (key > curKey) continue;
@@ -12804,7 +12937,7 @@ function buildChartRun(period) {
       if (!pm.artists[a]) { pm.artists[a] = { count: 0, firstAchieved: p.date }; pm.dayArtists[a] = new Set(); }
       pm.artists[a].count++; pm.dayArtists[a].add(dayStr);
     }
-    const ak = p.album + '|||' + albumArtist(p);
+    const ak = albumKeyOf(p);
     if (!pm.albums[ak]) { pm.albums[ak] = { count: 0, firstAchieved: p.date, _album: p.album, _artist: albumArtist(p) }; pm.dayAlbums[ak] = new Set(); }
     pm.albums[ak].count++; pm.dayAlbums[ak].add(dayStr);
     // For yearly: track unique months per item per year
@@ -13730,9 +13863,9 @@ function buildPeriodStats(period) {
   const periodMap = {};
   for (const p of allPlays) {
     let mk;
-    const _bpstd = tzDate(p.date);
+    const _bpstd = tzDateOf(p);
     if (period === 'week') {
-      mk = playWeekKey(p.date);
+      mk = playWeekKeyOf(p);
     } else {
       mk = `${_bpstd.getFullYear()}-${String(_bpstd.getMonth() + 1).padStart(2, '0')}`;
     }
@@ -13746,7 +13879,7 @@ function buildPeriodStats(period) {
       if (!mm.artists[a]) mm.artists[a] = { count: 0, firstAchieved: p.date };
       mm.artists[a].count++;
     }
-    const ak = p.album + '|||' + albumArtist(p);
+    const ak = albumKeyOf(p);
     if (!mm.albums[ak]) mm.albums[ak] = { count: 0, firstAchieved: p.date };
     mm.albums[ak].count++;
   }
@@ -13904,7 +14037,7 @@ function buildAllTimePeaks() {
   // Albums — rank within top chartSizeAllTime
   const lp = {};
   for (const p of allPlays) {
-    const k = p.album + '|||' + albumArtist(p);
+    const k = albumKeyOf(p);
     if (!lp[k]) lp[k] = { count: 0, firstAchieved: p.date };
     lp[k].count++;
   }
@@ -13937,9 +14070,9 @@ function buildPeriodPeaks(period) {
 
   for (const p of allPlays) {
     let key;
-    const _bpptd = tzDate(p.date);
+    const _bpptd = tzDateOf(p);
     if (period === 'week') {
-      key = playWeekKey(p.date);
+      key = playWeekKeyOf(p);
     } else if (period === 'month') {
       key = `${_bpptd.getFullYear()}-${String(_bpptd.getMonth() + 1).padStart(2, '0')}`;
     } else {
@@ -13960,7 +14093,7 @@ function buildPeriodPeaks(period) {
       pm.artists[a].count++;
     }
 
-    const ak = p.album + '|||' + albumArtist(p);
+    const ak = albumKeyOf(p);
     if (!pm.albums[ak]) pm.albums[ak] = { count: 0, firstAchieved: p.date };
     pm.albums[ak].count++;
   }
@@ -14011,7 +14144,7 @@ function buildCumulativeMapsForPeriod(endDate) {
     if (p.date > endDate) continue;
     const sk = songKey(p);
     songs[sk] = (songs[sk] || 0) + 1;
-    const ak = p.album + '|||' + albumArtist(p);
+    const ak = albumKeyOf(p);
     albums[ak] = (albums[ak] || 0) + 1;
     if (!songAlbumCounts[sk]) songAlbumCounts[sk] = {};
     songAlbumCounts[sk][ak] = (songAlbumCounts[sk][ak] || 0) + 1;
@@ -14052,8 +14185,8 @@ function buildPlaysPeakMaps(period) {
   const periodMap = {};
   for (const p of allPlays) {
     let key;
-    const _bppmtd = tzDate(p.date);
-    if (period === 'week') key = playWeekKey(p.date);
+    const _bppmtd = tzDateOf(p);
+    if (period === 'week') key = playWeekKeyOf(p);
     else if (period === 'month') key = `${_bppmtd.getFullYear()}-${String(_bppmtd.getMonth() + 1).padStart(2, '0')}`;
     else key = String(_bppmtd.getFullYear());
     if (key > curKey) continue;
@@ -14062,7 +14195,7 @@ function buildPlaysPeakMaps(period) {
     const sk = songKey(p);
     pm.songs[sk] = (pm.songs[sk] || 0) + 1;
     for (const a of p.artists) pm.artists[a] = (pm.artists[a] || 0) + 1;
-    const ak = p.album + '|||' + albumArtist(p);
+    const ak = albumKeyOf(p);
     pm.albums[ak] = (pm.albums[ak] || 0) + 1;
   }
 
@@ -14358,7 +14491,7 @@ function renderArtists(plays, peaks, monthlyStats) {
 function renderAlbums(plays, peaks, monthlyStats) {
   const counts = {};
   for (const p of plays) {
-    const k = p.album + '|||' + albumArtist(p);
+    const k = albumKeyOf(p);
     if (!counts[k]) counts[k] = { album: p.album, artist: albumArtist(p), count: 0, tracks: new Set(), firstAchieved: p.date };
     counts[k].count++;
     counts[k].tracks.add(p.title);
@@ -14497,7 +14630,7 @@ function buildBuChartRun() {
   // Collect weekly play counts for all entries
   const periodMap = {};
   for (const p of allPlays) {
-    const pk = playWeekKey(p.date);
+    const pk = playWeekKeyOf(p);
     if (pk > curKey) continue;
     if (!periodMap[pk]) periodMap[pk] = { songs: {}, artists: {}, albums: {} };
     const pm = periodMap[pk];
@@ -14508,7 +14641,7 @@ function buildBuChartRun() {
       if (!pm.artists[a]) pm.artists[a] = { count: 0, firstAchieved: p.date };
       pm.artists[a].count++;
     }
-    const ak = p.album + '|||' + albumArtist(p);
+    const ak = albumKeyOf(p);
     if (!pm.albums[ak]) pm.albums[ak] = { count: 0, firstAchieved: p.date };
     pm.albums[ak].count++;
   }
@@ -16063,7 +16196,7 @@ function renderOffChart(type, plays, periodStats, buPool, lowestChartCount) {
   } else {
     for (const p of plays) {
       if (!p.album || p.album === '—') continue;
-      const k = p.album + '|||' + albumArtist(p);
+      const k = albumKeyOf(p);
       if (!counts[k]) counts[k] = { count: 0, firstAchieved: p.date };
       counts[k].count++;
     }
@@ -16094,7 +16227,7 @@ function renderOffChart(type, plays, periodStats, buPool, lowestChartCount) {
     }
   } else if (type === 'albums') {
     for (const p of allPlays) {
-      const k = p.album + '|||' + albumArtist(p);
+      const k = albumKeyOf(p);
       if (!names[k]) names[k] = { album: p.album, artist: albumArtist(p) };
     }
   }
@@ -18106,7 +18239,7 @@ if (artistsBody) {
 function findWeeklyNo1s(artistName) {
   const weekMap = {};
   for (const p of allPlays) {
-    const key = playWeekKey(p.date);
+    const key = playWeekKeyOf(p);
     if (!weekMap[key]) {
       // Reconstruct the Sunday Date from the key string (local time)
       const sun = new Date(key + 'T00:00:00');
@@ -18161,7 +18294,7 @@ function longestConsecutiveDays(daySet) {
 }
 
 function maxConsecutivePlaysWeek(sk, weekKey) {
-  const weekPlays = allPlays.filter(p => playWeekKey(p.date) === weekKey).sort((a, b) => a.date - b.date);
+  const weekPlays = allPlays.filter(p => playWeekKeyOf(p) === weekKey).sort((a, b) => a.date - b.date);
   let max = 0, streak = 0;
   for (const p of weekPlays) {
     if (songKey(p) === sk) { if (++streak > max) max = streak; } else streak = 0;
@@ -18173,7 +18306,7 @@ function maxConsecutivePlaysWeekAlbum(albumCrKey, weekKey) {
   const sepIdx = albumCrKey.indexOf('|||');
   const albumName = albumCrKey.slice(0, sepIdx);
   const albumArt = albumCrKey.slice(sepIdx + 3);
-  const weekPlays = allPlays.filter(p => playWeekKey(p.date) === weekKey).sort((a, b) => a.date - b.date);
+  const weekPlays = allPlays.filter(p => playWeekKeyOf(p) === weekKey).sort((a, b) => a.date - b.date);
   let max = 0, streak = 0;
   for (const p of weekPlays) {
     if (p.album === albumName && albumArtist(p) === albumArt) { if (++streak > max) max = streak; } else streak = 0;
@@ -18280,7 +18413,7 @@ function albMonthClick(month) {
   const [yr, mo] = month.split('-');
   const label = `${MO[parseInt(mo) - 1]} ${yr}`;
   const monthPlays = _albSparklinePlays.filter(p => {
-    const d = tzDate(p.date);
+    const d = tzDateOf(p);
     return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}` === month;
   });
   const trackCounts = {};
@@ -18355,7 +18488,7 @@ function buildAlbumSparklineHTML(albumPlays) {
   if (albumPlays.length < 2) return '';
   const monthCounts = {};
   for (const p of albumPlays) {
-    const d = tzDate(p.date);
+    const d = tzDateOf(p);
     const mk = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
     monthCounts[mk] = (monthCounts[mk] || 0) + 1;
   }
@@ -18450,7 +18583,7 @@ function artMonthClick(month) {
   const [yr, mo] = month.split('-');
   const label = `${MO[parseInt(mo) - 1]} ${yr}`;
   const monthPlays = _artSparklinePlays.filter(p => {
-    const d = tzDate(p.date);
+    const d = tzDateOf(p);
     return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}` === month;
   });
   const songCounts = {};
@@ -18493,7 +18626,7 @@ function buildArtistSparklineHTML(artistPlays) {
   if (artistPlays.length < 2) return '';
   const monthCounts = {};
   for (const p of artistPlays) {
-    const d = tzDate(p.date);
+    const d = tzDateOf(p);
     const mk = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
     monthCounts[mk] = (monthCounts[mk] || 0) + 1;
   }
@@ -18569,9 +18702,9 @@ function computeTrackPeaks(sk) {
   const songPlays = allPlays.filter(p => songKey(p) === sk);
   const dayBuckets = {}, weekBuckets = {}, monthBuckets = {}, yearBuckets = {};
   for (const p of songPlays) {
-    const d = tzDate(p.date);
+    const d = tzDateOf(p);
     const dk = localDateStr(d);
-    const wk = playWeekKey(p.date);
+    const wk = playWeekKeyOf(p);
     const mk = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
     const yk = String(d.getFullYear());
     dayBuckets[dk] = (dayBuckets[dk] || 0) + 1;
@@ -18622,7 +18755,7 @@ function _buildAlbTrackPanelHTML(s, totalPlays, crY, crM, crW, allTimeSPM) {
   const songPlays = allPlays.filter(p => songKey(p) === sk);
   const daySet = new Set(), monthSet = new Set();
   for (const p of songPlays) {
-    const d = tzDate(p.date);
+    const d = tzDateOf(p);
     daySet.add(localDateStr(d));
     monthSet.add(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`);
   }
@@ -18847,7 +18980,7 @@ function openArtistModal(artistName) {
   const lastPlayed = artistPlays.length ? artistPlays[0].date : null;
   const artistDaySet = new Set();
   const dayPlayCounts = {};
-  for (const p of artistPlays) { const d = localDateStr(tzDate(p.date)); artistDaySet.add(d); dayPlayCounts[d] = (dayPlayCounts[d] || 0) + 1; }
+  for (const p of artistPlays) { const d = dayStrOf(p); artistDaySet.add(d); dayPlayCounts[d] = (dayPlayCounts[d] || 0) + 1; }
   const calendarDays = artistDaySet.size;
   const peakPlaysInDay = calendarDays ? Math.max(...Object.values(dayPlayCounts)) : 0;
   const _sortedArtistDays = [...artistDaySet].sort();
@@ -19409,8 +19542,8 @@ function findAlbumNo1Weeks(albumKey) {
   const weekMap = {};
   for (const p of allPlays) {
     if (!p.album || p.album === '—') continue;
-    const key = playWeekKey(p.date);
-    const ak = p.album + '|||' + albumArtist(p);
+    const key = playWeekKeyOf(p);
+    const ak = albumKeyOf(p);
     if (!weekMap[key]) weekMap[key] = { sunday: new Date(key + 'T00:00:00'), albums: {} };
     weekMap[key].albums[ak] = (weekMap[key].albums[ak] || 0) + 1;
   }
@@ -19429,7 +19562,7 @@ function openAlbumModal(albumKey) {
   ensureAllChartRun();
 
   const [albumName, artistName] = albumKey.split('|||');
-  const albumPlays = allPlays.filter(p => (p.album + '|||' + albumArtist(p)) === albumKey);
+  const albumPlays = allPlays.filter(p => (albumKeyOf(p)) === albumKey);
   const totalPlays = albumPlays.length;
   const ek = encodeURIComponent(albumKey);
 
@@ -19462,7 +19595,7 @@ function openAlbumModal(albumKey) {
 
   // Calendar days played + longest consecutive day streak
   const daySet = new Set();
-  for (const p of albumPlays) { const d = tzDate(p.date); daySet.add(localDateStr(d)); }
+  for (const p of albumPlays) { const d = tzDateOf(p); daySet.add(localDateStr(d)); }
   const calendarDays = daySet.size;
   const _sortedDays = [...daySet].sort();
   let longestStreak = _sortedDays.length ? 1 : 0, _curStreak = 1;
@@ -19886,7 +20019,7 @@ function openSongModal(key) {
   // ── Per-day / per-month / per-year play counts ────────────────
   const dayMap = {}, monthMap = {}, yearMap = {}, hourMap = {};
   for (const p of songPlays) {
-    const d  = tzDate(p.date);
+    const d  = tzDateOf(p);
     const dk = localDateStr(d);
     const mk = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2,'0')}`;
     const yk = String(d.getFullYear());
@@ -20260,7 +20393,7 @@ function openSongModal(key) {
   // Seasonal breakdown
   const seasonMap = { Spring:0, Summer:0, Autumn:0, Winter:0 };
   for (const p of songPlays) {
-    const mo = tzDate(p.date).getMonth();
+    const mo = tzDateOf(p).getMonth();
     if (mo>=2&&mo<=4) seasonMap.Spring++;
     else if (mo>=5&&mo<=7) seasonMap.Summer++;
     else if (mo>=8&&mo<=10) seasonMap.Autumn++;
@@ -20367,7 +20500,7 @@ function songMonthClick(month) {
   }
   panel.dataset.month = month;
   const plays = _songSparklinePlays.filter(p => {
-    const d = tzDate(p.date);
+    const d = tzDateOf(p);
     return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}` === month;
   }).sort((a,b)=>new Date(b.date)-new Date(a.date));
   document.querySelectorAll('#songSparklineWrap .alb-spark-bar--active').forEach(b=>b.classList.remove('alb-spark-bar--active'));
@@ -20383,7 +20516,7 @@ function buildSongSparklineHTML(plays, title, key) {
   if (plays.length < 2) return '';
   const monthCounts = {};
   for (const p of plays) {
-    const d = tzDate(p.date);
+    const d = tzDateOf(p);
     const mk = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
     monthCounts[mk] = (monthCounts[mk]||0) + 1;
   }
@@ -20984,7 +21117,7 @@ function renderGraphs() {
       if (!seenSong[sk]) { seenSong[sk] = 1; if (nSong[k] !== undefined) nSong[k]++; }
       for (const a of p.artists) if (!seenArtist[a]) { seenArtist[a] = 1; if (nArtist[k] !== undefined) nArtist[k]++; }
       if (p.album && p.album !== '—') {
-        const ak = p.album + '|||' + albumArtist(p);
+        const ak = albumKeyOf(p);
         if (!seenAlbum[ak]) { seenAlbum[ak] = 1; if (nAlbum[k] !== undefined) nAlbum[k]++; }
       }
     }
@@ -27342,7 +27475,7 @@ function buildHeatmapData() {
 
   if (!isFiltered) {
     for (const p of chrono) {
-      const dk = localDateStr(tzDate(p.date));
+      const dk = dayStrOf(p);
       if (!dayMap[dk]) dayMap[dk] = { count: 0, plays: [] };
       dayMap[dk].count++;
       dayMap[dk].plays.push(p);
@@ -27350,11 +27483,11 @@ function buildHeatmapData() {
     // First scrobble of each year milestone
     const firstPlayOfYear = {};
     for (const p of chrono) {
-      const yr = tzDate(p.date).getFullYear();
+      const yr = tzDateOf(p).getFullYear();
       if (!firstPlayOfYear[yr]) firstPlayOfYear[yr] = p;
     }
     for (const [yr, p] of Object.entries(firstPlayOfYear)) {
-      const dk = localDateStr(tzDate(p.date));
+      const dk = dayStrOf(p);
       if (!msMap[dk]) msMap[dk] = { daily: [], allTime: [] };
       msMap[dk].allTime.push({ label: `First scrobble of ${yr}`, play: p, isYearFirst: true });
     }
@@ -27375,7 +27508,7 @@ function buildHeatmapData() {
     for (const p of chrono) {
       cumCount++;
       if (allTimeMilestones.has(cumCount)) {
-        const dk = localDateStr(tzDate(p.date));
+        const dk = dayStrOf(p);
         if (!msMap[dk]) msMap[dk] = { daily: [], allTime: [] };
         msMap[dk].allTime.push({ label: hmOrdinal(cumCount) + ' scrobble ever', play: p });
       }
@@ -27386,7 +27519,7 @@ function buildHeatmapData() {
     for (const p of chrono) {
       if (!hmMatchesFilter(p)) continue;
       cumCount++;
-      const dk = localDateStr(tzDate(p.date));
+      const dk = dayStrOf(p);
       if (!dayMap[dk]) dayMap[dk] = { count: 0, plays: [], chipIndices: new Set() };
       dayMap[dk].count++;
       dayMap[dk].plays.push(p);
@@ -27541,7 +27674,7 @@ function hmRenderPatterns(dayMap) {
     ? allPlays.filter(p => hmMatchesFilter(p))
     : allPlays;
   for (const p of plays) {
-    const d = tzDate(p.date);
+    const d = tzDateOf(p);
     grid[(d.getDay() + 6) % 7][d.getHours()]++;
   }
   const maxHour = Math.max(...grid.flat(), 1);
@@ -27950,7 +28083,7 @@ function renderHeroStats() {
   const total = allPlays.length;
 
   const days = new Set(allPlays.map(p => {
-    const d = tzDate(p.date);
+    const d = tzDateOf(p);
     return d.getFullYear() * 10000 + (d.getMonth() + 1) * 100 + d.getDate();
   }));
 
@@ -28175,7 +28308,7 @@ function openStreakModal() {
   const artLastSongs = {}, albLastSongs = {};
 
   for (const p of allPlays) {
-    const ds = localDateStr(tzDate(p.date));
+    const ds = dayStrOf(p);
     const sk = songKey(p);
     if (!songDays[sk]) { songDays[sk] = new Set(); songInfo[sk] = { title: p.title, artist: p.artist, album: p.album && p.album !== '—' ? p.album : '' }; }
     songDays[sk].add(ds);
@@ -28186,7 +28319,7 @@ function openStreakModal() {
       if (artLastSongs[a].length < 5 && !artLastSongs[a].some(s => s.title === p.title)) artLastSongs[a].push({ title: p.title, artist: p.artist, album: p.album || '' });
     }
     if (p.album && p.album !== '—') {
-      const ak = p.album + '|||' + albumArtist(p);
+      const ak = albumKeyOf(p);
       if (!albumDays[ak]) { albumDays[ak] = new Set(); albumInfo[ak] = { album: p.album, artist: albumArtist(p) }; }
       albumDays[ak].add(ds);
       if (!albLastSongs[ak]) albLastSongs[ak] = [];
@@ -30242,7 +30375,7 @@ async function _awardsGetCandidates(catDef, eligStart, eligEnd, log) {
     return _awardsTopN(m, 20, 3);
   }
   if (f === 'summer') {
-    const sp = inWin.filter(p => { const m = tzDate(p.date).getMonth(); return m >= 5 && m <= 7; });
+    const sp = inWin.filter(p => { const m = tzDateOf(p).getMonth(); return m >= 5 && m <= 7; });
     const { songs: ss } = _awardsCountMaps(sp);
     return _awardsTopN(ss, 20, 3);
   }
@@ -30291,7 +30424,7 @@ async function _awardsGetCandidates(catDef, eligStart, eligEnd, log) {
   if (f === 'spike') {
     const weekPeak = {};
     for (const p of inWin) {
-      const d = tzDate(p.date);
+      const d = tzDateOf(p);
       const wk = `${d.getFullYear()}-${Math.floor((d.getDate() - 1) / 7)}`;
       const k = _sk(p) + '|||' + wk;
       weekPeak[k] = weekPeak[k] || { title: p.title, artist: p.artist, album: p.album, plays: 0, sk: _sk(p) };
@@ -30304,7 +30437,7 @@ async function _awardsGetCandidates(catDef, eligStart, eligEnd, log) {
   if (f === 'streak') {
     const dayMap = {};
     for (const p of inWin) {
-      const d = tzDate(p.date);
+      const d = tzDateOf(p);
       const day = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
       const k = _sk(p);
       if (!dayMap[k]) dayMap[k] = { title: p.title, artist: p.artist, album: p.album, days: new Set() };
@@ -31020,7 +31153,7 @@ let _stReelEntries = [];     // what the reel is currently showing, for the ＋ 
 function stGetPeriodPlays() {
   if (stPeriodType === 'alltime') return allPlays.slice();
   return allPlays.filter(p => {
-    const d = tzDate(p.date);
+    const d = tzDateOf(p);
     if (stPeriodType === 'year') return d.getFullYear() === stYear;
     return d.getFullYear() === stYear && (d.getMonth() + 1) === stMonth;
   });
@@ -31089,7 +31222,7 @@ function stBuildReelDiscoveries(plays) {
 function stBuildReelDays(plays) {
   const days = {};
   for (const p of plays) {
-    const d = tzDate(p.date);
+    const d = tzDateOf(p);
     const dk = `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
     let day = days[dk];
     if (!day) day = days[dk] = { date: d, count: 0, songCounts: {} };
@@ -31112,7 +31245,7 @@ function stBuildReelPeakDay(plays) {
   if (!_stPeakDayDate) return [];
   const pd = _stPeakDayDate;
   const dayPlays = plays.filter(p => {
-    const d = tzDate(p.date);
+    const d = tzDateOf(p);
     return d.getFullYear() === pd.getFullYear() && d.getMonth() === pd.getMonth() && d.getDate() === pd.getDate();
   }).sort((a, b) => a.date - b.date);
   return stDecimate(dayPlays.map(p => ({
@@ -31389,7 +31522,7 @@ function stRenderStats(plays) {
 
   const dayCounts = {};
   for (const p of plays) {
-    const d = tzDate(p.date);
+    const d = tzDateOf(p);
     const dk = `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
     (dayCounts[dk] || (dayCounts[dk] = { count: 0, date: d })).count++;
   }
@@ -31760,7 +31893,7 @@ function stRenderFeaturedArtist(periodPlays, artistName, totalCount) {
   const dayCounts = {};
   for (const p of artistPlays) {
     const dk = dayKey(p.date);
-    (dayCounts[dk] || (dayCounts[dk] = { count: 0, date: tzDate(p.date) })).count++;
+    (dayCounts[dk] || (dayCounts[dk] = { count: 0, date: tzDateOf(p) })).count++;
   }
   const dayKeys = Object.keys(dayCounts).sort();
   let peakDayKey = null;
@@ -31810,7 +31943,7 @@ function stRenderFeaturedArtist(periodPlays, artistName, totalCount) {
 
   // Hour of day this artist gets played the most
   const hourCounts = new Array(24).fill(0);
-  for (const p of artistPlays) hourCounts[tzDate(p.date).getHours()]++;
+  for (const p of artistPlays) hourCounts[tzDateOf(p).getHours()]++;
   let peakHour = 0;
   for (let h = 1; h < 24; h++) { if (hourCounts[h] > hourCounts[peakHour]) peakHour = h; }
   const fmtHour = h => { const per = h < 12 ? 'AM' : 'PM'; const h12 = h % 12 === 0 ? 12 : h % 12; return `${h12} ${per}`; };
@@ -31908,7 +32041,7 @@ function stRenderActivity(plays) {
   const byMonth = {};        // 'YYYY-MM' -> play count
   const artistsByMonth = {}; // 'YYYY-MM' -> { artist: count }, powers the tap-to-inspect panel below
   for (const p of plays) {
-    const d = tzDate(p.date);
+    const d = tzDateOf(p);
     const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
     byMonth[key] = (byMonth[key] || 0) + 1;
     const am = artistsByMonth[key] || (artistsByMonth[key] = {});
@@ -31953,7 +32086,7 @@ function stRenderActivity(plays) {
       const prevDate = new Date(y0, m0 - 2, 1);
       const lookbackKey = `${prevDate.getFullYear()}-${String(prevDate.getMonth() + 1).padStart(2, '0')}`;
       const lookbackCount = allPlays.reduce((n, p) => {
-        const d = tzDate(p.date);
+        const d = tzDateOf(p);
         return n + (`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}` === lookbackKey ? 1 : 0);
       }, 0);
       // No plays at all in that prior month (e.g. it predates the listening history) — treat as
@@ -32052,7 +32185,7 @@ function stRenderLoyalty(plays) {
   const el = document.getElementById('stLoyaltyBody');
   if (!el) return;
   const prevYear = stYear - 1;
-  const prevPlays = allPlays.filter(p => tzDate(p.date).getFullYear() === prevYear);
+  const prevPlays = allPlays.filter(p => tzDateOf(p).getFullYear() === prevYear);
 
   if (!prevPlays.length || !plays.length) {
     el.innerHTML = `<div class="st-empty">${t('st_loyalty_no_prev', { year: prevYear })}</div>`;
@@ -32296,7 +32429,7 @@ function stOpenArtistModal(artist) {
 
   const dayCounts = {};
   for (const p of artistPlays) {
-    const dk = localDateStr(tzDate(p.date));
+    const dk = dayStrOf(p);
     dayCounts[dk] = (dayCounts[dk] || 0) + 1;
   }
   const days = Object.keys(dayCounts).sort();
@@ -32419,7 +32552,7 @@ function stRenderMilestones(plays) {
 
   for (const p of chron) {
     total++;
-    const d = tzDate(p.date);
+    const d = tzDateOf(p);
     const inPeriod = stPeriodType === 'alltime' ? true :
       stPeriodType === 'year' ? d.getFullYear() === stYear :
       d.getFullYear() === stYear && (d.getMonth() + 1) === stMonth;
@@ -33119,13 +33252,13 @@ function stStartReplay() {
   canvas.innerHTML = `<div class="st-replay-loading">${t('st_replay_loading')}</div>`;
 
   // Build weekly snapshots for the selected year
-  const yearPlays = allPlays.filter(p => tzDate(p.date).getFullYear() === stYear);
+  const yearPlays = allPlays.filter(p => tzDateOf(p).getFullYear() === stYear);
   if (!yearPlays.length) { canvas.innerHTML = `<div class="st-empty">${t('st_no_data')}</div>`; return; }
 
   // Group by week
   const weekMap = {};
   for (const p of yearPlays) {
-    const wk = playWeekKey(p.date);
+    const wk = playWeekKeyOf(p);
     (weekMap[wk] || (weekMap[wk] = [])).push(p);
   }
   const weeks = Object.keys(weekMap).sort();
@@ -33213,7 +33346,7 @@ function stBuildCardHTML(mode) {
   ).join('');
 
   const totalPlays = plays.length;
-  const daySet = new Set(plays.map(p => { const d = tzDate(p.date); return `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`; }));
+  const daySet = new Set(plays.map(p => { const d = tzDateOf(p); return `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`; }));
   const artistSet = new Set(plays.map(p => p.artist.toLowerCase()));
 
   const layout = isStory ? 'flex-direction:column;' : 'flex-direction:column;';
@@ -33677,7 +33810,7 @@ function dcRenderChartsGuideView() {
   const firstDate     = n ? (window.firstScrobbleDate || allPlays.reduce((min, p) => p.date < min ? p.date : min, allPlays[0].date)) : null;
   const yearsMs       = firstDate ? new Date() - firstDate : 0;
   const yearsFmt      = yearsMs >= 365 * 24 * 3600 * 1000 ? (yearsMs / (365.25 * 24 * 3600 * 1000)).toFixed(1) + ' yrs' : Math.round(yearsMs / (24 * 3600 * 1000)) + ' days';
-  const uniqueDays    = n ? new Set(allPlays.map(p => { const d = tzDate(p.date); return d.getFullYear() + '-' + d.getMonth() + '-' + d.getDate(); })).size : 0;
+  const uniqueDays    = n ? new Set(allPlays.map(p => { const d = tzDateOf(p); return d.getFullYear() + '-' + d.getMonth() + '-' + d.getDate(); })).size : 0;
 
   /* ── 18 · On this day ─────────────────────────────────────────── */
   const today  = tzNow();
@@ -33685,7 +33818,7 @@ function dcRenderChartsGuideView() {
   const onThisDay = [];
   if (n && firstDate) {
     for (let y = todayY - 1; y >= Math.max(todayY - 5, firstDate.getFullYear()); y--) {
-      const dp = allPlays.filter(p => { const d = tzDate(p.date); return d.getMonth() === todayM && d.getDate() === todayD && d.getFullYear() === y; });
+      const dp = allPlays.filter(p => { const d = tzDateOf(p); return d.getMonth() === todayM && d.getDate() === todayD && d.getFullYear() === y; });
       if (dp.length > 0) {
         const ac = {};
         dp.forEach(p => { ac[p.artist] = (ac[p.artist] || 0) + 1; });
