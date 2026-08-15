@@ -230,6 +230,10 @@ function stampPlays(plays) {
       const wkStart = new Date(td.getFullYear(), td.getMonth(), td.getDate() - ((dow - weekStartDay + 7) % 7));
       d = {
         td,
+        // The tz-adjusted instant as a number. Period filters compare against
+        // fake-local Date bounds; doing that numerically avoids both a call and
+        // a valueOf coercion per play, and there is one such filter per render.
+        tdms: +td,
         ds: _intern(iDs, localDateStr(td)),
         wk: _intern(iWk, localDateStr(wkStart)),
         mk: _intern(iMk, td.getFullYear() + '-' + String(td.getMonth() + 1).padStart(2, '0')),
@@ -237,7 +241,8 @@ function stampPlays(plays) {
       };
       byTs.set(ts, d);
     }
-    p._td = d.td; p._ds = d.ds; p._wk = d.wk; p._mk = d.mk; p._yk = d.yk;
+    p._ts = ts;   // raw epoch ms, so date comparisons never coerce a Date
+    p._td = d.td; p._tdms = d.tdms; p._ds = d.ds; p._wk = d.wk; p._mk = d.mk; p._yk = d.yk;
     p._se = _stampEpoch;
   }
 }
@@ -246,6 +251,26 @@ function stampPlays(plays) {
    Each returns the cached value when the stamp is current, and otherwise
    computes it exactly as the pre-cache code did. */
 function tzDateOf(p)      { return p._se === _stampEpoch ? p._td : tzDate(p.date); }
+// The same instant as a number, for range comparisons in per-play loops.
+function tzMsOf(p)        { return p._se === _stampEpoch ? p._tdms : +tzDate(p.date); }
+
+/* Earliest play date across the library. Replaces a reduce that compared Date
+   objects — two valueOf coercions per play, over the whole history, and it ran
+   on every load and every poll. Deliberately still a full scan rather than
+   trusting allPlays[length-1]: the array is normally sorted newest-first, but
+   editing a scrobble's timestamp can break that, so this stays order-agnostic. */
+function _earliestPlayDate() {
+  if (!allPlays.length) return undefined;
+  const cur = _stampEpoch;
+  const p0 = allPlays[0];
+  let best = p0.date, bestMs = p0._se === cur ? p0._ts : +p0.date;
+  for (let i = 1; i < allPlays.length; i++) {
+    const p = allPlays[i];
+    const ms = p._se === cur ? p._ts : +p.date;
+    if (ms < bestMs) { bestMs = ms; best = p.date; }
+  }
+  return best;
+}
 function dayStrOf(p)      { return p._se === _stampEpoch ? p._ds : localDateStr(tzDate(p.date)); }
 function playWeekKeyOf(p) { return p._se === _stampEpoch ? p._wk : playWeekKey(p.date); }
 function albumKeyOf(p)    { return p._se === _stampEpoch ? p._ak : p.album + '|||' + _albumArtistRaw(p); }
@@ -1812,7 +1837,7 @@ async function saveEditLocally() {
   // objects, so their derived keys no longer describe them.
   stampPlays(allPlays);
   if (allPlays.length) {
-    window.firstScrobbleDate = allPlays.reduce((min, p) => p.date < min ? p.date : min, allPlays[0].date);
+    window.firstScrobbleDate = _earliestPlayDate();
   }
   renderAll();
   closeEditScrobbleModal();
@@ -1930,7 +1955,7 @@ async function pushEditToSheet() {
       _certTimeline = null;   // plays changed — the certification dates move with them
       stampPlays(allPlays);   // rewritten in place — refresh their derived keys
       if (allPlays.length) {
-        window.firstScrobbleDate = allPlays.reduce((min, p) => p.date < min ? p.date : min, allPlays[0].date);
+        window.firstScrobbleDate = _earliestPlayDate();
       }
       renderAll();
       saveToIDB(IDB_SHEETS_KEY, { ts: Date.now(), csv: _serializePlaysCsv() }).catch(() => {});
@@ -1965,7 +1990,7 @@ async function pushEditToSheet() {
       _certTimeline = null;   // plays changed — the certification dates move with them
       stampPlays(allPlays);   // rewritten in place — refresh their derived keys
       if (allPlays.length) {
-        window.firstScrobbleDate = allPlays.reduce((min, p) => p.date < min ? p.date : min, allPlays[0].date);
+        window.firstScrobbleDate = _earliestPlayDate();
       }
       renderAll();
       saveToIDB(IDB_SHEETS_KEY, { ts: Date.now(), csv: _serializePlaysCsv() }).catch(() => {});
@@ -1998,7 +2023,7 @@ async function pushEditToSheet() {
       _certTimeline = null;   // plays changed — the certification dates move with them
       stampPlays(allPlays);   // rewritten in place — refresh their derived keys
       if (allPlays.length) {
-        window.firstScrobbleDate = allPlays.reduce((min, p) => p.date < min ? p.date : min, allPlays[0].date);
+        window.firstScrobbleDate = _earliestPlayDate();
       }
       renderAll();
       saveToIDB(IDB_SHEETS_KEY, { ts: Date.now(), csv: _serializePlaysCsv() }).catch(() => {});
@@ -3247,7 +3272,7 @@ function refreshAfterPoll() {
   firstSeenMaps = null;
   _certTimeline = null;   // plays changed — the certification dates move with them
   stampPlays(allPlays);   // polled-in plays arrive unstamped; re-stamp the array
-  window.firstScrobbleDate = allPlays.reduce((min, p) => p.date < min ? p.date : min, allPlays[0].date);
+  window.firstScrobbleDate = _earliestPlayDate();
   updateMastheadDynamic();
   populateYearPicker();
   // New data arrived via poll — flag unvisited tabs with badge (features 9/17)
@@ -4208,6 +4233,10 @@ function parseCsv(text, fromSheets = false) {
       artists: splitArtists(artistRaw),
       album: get(colMap.album) || '—',
       date: dt,
+      // Raw epoch ms, kept only so the sort below can compare plain numbers.
+      // Sorting 150k plays by `b.date - a.date` costs two Date coercions per
+      // comparison, and there are ~2.6M of them.
+      _ts: +dt,
       _sheetRow: i + 1,
     });
   }
@@ -4223,7 +4252,8 @@ function parseCsv(text, fromSheets = false) {
     setSyncStatus(t('sync_no_valid'), 'err'); return false;
   }
 
-  allPlays.sort((a, b) => b.date - a.date);
+  // Every object here was built in the loop above, so _ts is always present.
+  allPlays.sort((a, b) => b._ts - a._ts);
 
   if (fromSheets) {
     const writeUrl = getSheetWriteUrl();
@@ -4240,7 +4270,7 @@ function finalizeLoad() {
   _certTimeline = null;   // plays changed — the certification dates move with them
   stampPlays(allPlays);   // fresh play objects — give them their derived keys
   if (allPlays.length) {
-    window.firstScrobbleDate = allPlays.reduce((min, p) => p.date < min ? p.date : min, allPlays[0].date);
+    window.firstScrobbleDate = _earliestPlayDate();
     updateMastheadDynamic();
   }
   populateYearPicker();
@@ -10823,7 +10853,10 @@ function renderAll() {
   const { start, end, label, sub } = getDateRange();
   const plays = currentPeriod === 'alltime'
     ? allPlays
-    : allPlays.filter(p => { const _tp = tzDateOf(p); return _tp >= start && _tp <= end; });
+    // Numeric bounds: this filter touches every play on every render, and
+    // comparing numbers skips a Date valueOf coercion per comparison.
+    : (() => { const s = +start, e = +end;
+               return allPlays.filter(p => { const m = tzMsOf(p); return m >= s && m <= e; }); })();
 
   // Per-section size bars: show the correct button group for the current period
   const paginated = isPaginated();
@@ -10940,7 +10973,8 @@ function renderAll() {
       prevStart = new Date(yr, 0, 1);
       prevEnd   = new Date(yr, 11, 31, 23, 59, 59, 999);
     }
-    prevPlays = allPlays.filter(p => { const _tp = tzDateOf(p); return _tp >= prevStart && _tp <= prevEnd; });
+    const _pS = +prevStart, _pE = +prevEnd;
+    prevPlays = allPlays.filter(p => { const m = tzMsOf(p); return m >= _pS && m <= _pE; });
   }
 
   // Compute all-time peak stats and peak-at-the-time stats per period type
@@ -12981,9 +13015,9 @@ function _crCurKey(period) {
    That makes the cutoff a slice (see _crSlice) rather than a rebuild. */
 function _buildChartRunFull(period) {
   const periodMap = {};
+  const _isYear = period === 'year';
   for (const p of allPlays) {
     let key;
-    const _ptd = tzDateOf(p);
     if (period === 'week') key = playWeekKeyOf(p);
     else if (period === 'month') key = monthKeyOf(p);
     else key = yearKeyOf(p);
@@ -13000,10 +13034,12 @@ function _buildChartRunFull(period) {
     const ak = albumKeyOf(p);
     if (!pm.albums[ak]) { pm.albums[ak] = { count: 0, firstAchieved: p.date, _album: p.album, _artist: albumArtist(p) }; pm.dayAlbums[ak] = new Set(); }
     pm.albums[ak].count++; pm.dayAlbums[ak].add(dayStr);
-    // For yearly: track unique months per item per year
-    if (period === 'year') {
+    // For yearly: track unique months per item per year. The tz-adjusted Date
+    // is only needed here, so it is read inside the branch rather than for
+    // every play on the week and month runs too.
+    if (_isYear) {
       if (!pm.yrMonths) pm.yrMonths = { songs: {}, artists: {}, albums: {} };
-      const mo = _ptd.getMonth();
+      const mo = tzDateOf(p).getMonth();
       if (!pm.yrMonths.songs[sk]) pm.yrMonths.songs[sk] = new Set();
       pm.yrMonths.songs[sk].add(mo);
       for (const a of p.artists) {
@@ -13992,13 +14028,8 @@ function buildPeriodStats(period) {
   // Group all plays by period key
   const periodMap = {};
   for (const p of allPlays) {
-    let mk;
-    const _bpstd = tzDateOf(p);
-    if (period === 'week') {
-      mk = playWeekKeyOf(p);
-    } else {
-      mk = `${_bpstd.getFullYear()}-${String(_bpstd.getMonth() + 1).padStart(2, '0')}`;
-    }
+    // Both branches read a cached stamp; neither needs a Date object built.
+    const mk = period === 'week' ? playWeekKeyOf(p) : monthKeyOf(p);
     if (mk > curKey) continue; // ignore future periods
     if (!periodMap[mk]) periodMap[mk] = { songs: {}, artists: {}, albums: {} };
     const mm = periodMap[mk];
@@ -14199,15 +14230,10 @@ function buildPeriodPeaks(period) {
   const periodMap = {};
 
   for (const p of allPlays) {
-    let key;
-    const _bpptd = tzDateOf(p);
-    if (period === 'week') {
-      key = playWeekKeyOf(p);
-    } else if (period === 'month') {
-      key = `${_bpptd.getFullYear()}-${String(_bpptd.getMonth() + 1).padStart(2, '0')}`;
-    } else {
-      key = String(_bpptd.getFullYear());
-    }
+    // All three branches read a cached stamp; none needs a Date object built.
+    const key = period === 'week' ? playWeekKeyOf(p)
+              : period === 'month' ? monthKeyOf(p)
+              : yearKeyOf(p);
 
     if (key > curKey) continue; // ignore periods after the currently viewed one
 
