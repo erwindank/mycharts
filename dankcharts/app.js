@@ -253,6 +253,9 @@ function stampPlays(plays) {
 function tzDateOf(p)      { return p._se === _stampEpoch ? p._td : tzDate(p.date); }
 // The same instant as a number, for range comparisons in per-play loops.
 function tzMsOf(p)        { return p._se === _stampEpoch ? p._tdms : +tzDate(p.date); }
+// The play's real instant as a number — for ordering, where a timezone shift
+// must not be applied (it is not guaranteed monotonic across a DST boundary).
+function msOf(p)          { return p._se === _stampEpoch ? p._ts : +p.date; }
 
 /* Earliest play date across the library. Replaces a reduce that compared Date
    objects — two valueOf coercions per play, over the whole history, and it ran
@@ -4671,13 +4674,15 @@ function buildRecords() {
   function consecAtOneHeader(pt) { return pt === 'week' ? t('rec_th_consec_weeks_at_1') : pt === 'month' ? t('rec_th_consec_months_at_1') : t('rec_th_consec_years_at_1'); }
 
   // Group plays by period
-  const chron = [...allPlays].sort((a, b) => a.date - b.date);
+  // Sort on the raw numeric stamp rather than subtracting Date objects — this
+  // is a full sort of the library and the comparator runs millions of times.
+  // msOf(), not tzMsOf(): the original ordered by real time, and a timezone
+  // shift is not guaranteed monotonic across a DST boundary.
+  const chron = allPlays.slice().sort((a, b) => msOf(a) - msOf(b));
   const weekPlaysMap = {}, monthPlaysMap = {}, yearPlaysMap = {};
   for (const p of chron) {
-    const wk = playWeekKeyOf(p);
-    const _td = tzDateOf(p);
-    const mk = _td.getFullYear() + '-' + String(_td.getMonth() + 1).padStart(2, '0');
-    const yk = String(_td.getFullYear());
+    // All three are cached per-play stamps; none needs a Date built.
+    const wk = playWeekKeyOf(p), mk = monthKeyOf(p), yk = yearKeyOf(p);
     (weekPlaysMap[wk] || (weekPlaysMap[wk] = [])).push(p);
     (monthPlaysMap[mk] || (monthPlaysMap[mk] = [])).push(p);
     (yearPlaysMap[yk] || (yearPlaysMap[yk] = [])).push(p);
@@ -12530,8 +12535,23 @@ function _crItemMatcher(type, key) {
   return p => p.album === parts[0] && albumArtist(p) === parts[1];
 }
 
+/* Memo per dimension. _crStkOrd is a pure function of (dim, key) — plain
+   arithmetic on a date string, with no dependency on settings or data — so the
+   cache never needs invalidating. It is called once per play per dimension
+   while building streaks, against only a few thousand distinct keys, and the
+   string splitting and Date.UTC underneath were 436ms of a Records build. */
+const _crStkOrdMemo = { days: new Map(), weeks: new Map(), months: new Map(), years: new Map() };
+
 // Bucket keys are ordinal-comparable so "consecutive" is a simple +1 test.
 function _crStkOrd(dim, k) {
+  const memo = _crStkOrdMemo[dim];
+  if (memo) { const hit = memo.get(k); if (hit !== undefined) return hit; }
+  const v = _crStkOrdRaw(dim, k);
+  if (memo) memo.set(k, v);
+  return v;
+}
+
+function _crStkOrdRaw(dim, k) {
   if (dim === 'days') { const [y, m, d] = k.split('-').map(Number); return Math.round(Date.UTC(y, m - 1, d) / 86400000); }
   /* A week key is its start day's date, and every week key in the set shares
      the same weekday, so the day ordinals are all 7 apart and flooring by 7
