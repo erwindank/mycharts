@@ -2495,6 +2495,7 @@ function loadImages(items, type) {
     const el = document.getElementById(item.imgId);
     if (!el) continue;
     el._imgItem = item;
+    el._imgType = type;   // kept so _recReattachImageObservers can regroup by type
     observer.observe(el);
     if (el.closest('#recordsView')) attachRecImgPicker(el, item, type);
   }
@@ -4627,8 +4628,62 @@ function handleChartHash() {
 window.addEventListener('hashchange', handleChartHash);
 
 // ─── RECORDS & HALL OF FAME ────────────────────────────────────
+/* What the Records DOM currently in the page was built from. Records is rebuilt
+   from scratch on every visit to the tab — ~1.6s of counting at 150k plays,
+   with no caching of any kind, so switching away and back paid it again.
+
+   Everything it produces is a pure function of the play data, the settings that
+   change how plays are keyed, the chart sizes, the rows-per-table limit, and the
+   interface language (the tables contain translated strings). _crGeneration()
+   already covers the first three; the other two are added here.
+
+   The built DOM survives a tab switch — the view is only display:none — so when
+   none of those have moved, the tables on the page are still correct and the
+   whole build can be skipped. */
+let _recBuiltKey = null;
+
+function _recBuildKey() {
+  return _crGeneration() + '|' + recLimit + '|' + (typeof currentLang !== 'undefined' ? currentLang : '');
+}
+
+// Forces the next buildRecords() to do the work, whatever the key says.
+function dcInvalidateRecords() { _recBuiltKey = null; }
+window.dcInvalidateRecords = dcInvalidateRecords;
+
+/* Artwork in Records loads through IntersectionObservers, and renderAll() calls
+   clearImageObservers() — so visiting a chart tab and coming back leaves the
+   kept tables with nothing watching for scroll. Rebuilding used to re-register
+   them as a side effect; skipping the rebuild means doing it deliberately.
+
+   The elements still carry the _imgItem / _imgType that loadImages() put on
+   them, so the queue can be recovered from the DOM rather than stored — which
+   also means a new Records section gets this for free. Anything that already
+   resolved to an <img> is left alone; attachRecImgPicker is idempotent, so
+   re-registering cannot double up the ✎ buttons. */
+function _recReattachImageObservers() {
+  const view = document.getElementById('recordsView');
+  if (!view) return;
+  const byType = {};
+  view.querySelectorAll('[id]').forEach(el => {
+    if (!el._imgItem || !el._imgType) return;
+    if (el.querySelector('img')) return;   // already has its artwork
+    (byType[el._imgType] || (byType[el._imgType] = [])).push(el._imgItem);
+  });
+  for (const type in byType) loadImages(byType[type], type);
+}
+
 function buildRecords() {
   if (!allPlays.length) return;
+
+  /* Nothing that feeds Records has changed and the tables are still in the DOM,
+     so there is nothing to rebuild. _recArtistTally is the tell that a previous
+     build actually completed — it is set at the very end. */
+  const _bk = _recBuildKey();
+  if (_bk === _recBuiltKey && _recArtistTally) {
+    _recReattachImageObservers();
+    return;
+  }
+  _recBuiltKey = _bk;
 
   const wSizeSongs = chartSizeSongsW, wSizeArtists = chartSizeArtistsW, wSizeAlbums = chartSizeAlbumsW;
   const mSizeSongs = chartSizeSongsM, mSizeArtists = chartSizeArtistsM, mSizeAlbums = chartSizeAlbumsM;
@@ -8581,6 +8636,10 @@ function applyRecordsLimitChange() {
        acceptable for an action the reader just took deliberately. */
     renderRecordsHeroArtist(recTallyArtistRecords());
     if (recSearchQuery()) runRecordsSearch(recSearchQuery());
+    /* The DOM now matches the new limit without having been rebuilt, so record
+       that — otherwise the build guard would see a changed limit next time the
+       tab is opened and rebuild everything for a change already applied. */
+    _recBuiltKey = _recBuildKey();
     return;
   }
   const sorts = captureRecSortState();
