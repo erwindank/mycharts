@@ -182,6 +182,11 @@ function tzNow() { return tzDate(new Date()); }
    load choke points (finalizeLoad / refreshAfterPoll) simply always re-stamp. */
 let _stampEpoch = 1;
 
+/* Bumped by stampPlays(), i.e. exactly when the play data changes. Caches that
+   are derived from the whole history (see _crGeneration) key off this so they
+   rebuild on new data but survive mere navigation. */
+let _playsVersion = 0;
+
 // Call after anything that changes how a play's derived keys are computed:
 // week start day, timezone, compilation list, autocorrect rules.
 function dcInvalidatePlayStamps() {
@@ -201,6 +206,7 @@ function _intern(map, s) {
 
 // Stamps every play with its derived keys under the current epoch.
 function stampPlays(plays) {
+  _playsVersion++;   // the play data just changed — retire history-wide caches
   if (!plays || !plays.length) return;
   const iSk = new Map(), iAa = new Map(), iAk = new Map();
   const iDs = new Map(), iWk = new Map(), iMk = new Map(), iYk = new Map();
@@ -11269,6 +11275,9 @@ function renderAll() {
     cumulativeMaps = buildCumulativeMapsForPeriod(end);
     playsPeakMaps = buildPlaysPeakMaps(currentPeriod);
   }
+  // These only drop references now — buildChartRun() caches the actual run
+  // across renders and hands the same object straight back, so re-populating
+  // them costs a lookup rather than a full re-derivation of chart history.
   chartRunData = null;
   allChartRun = {};
   allChartRunIsFullHistory = false;
@@ -12910,26 +12919,41 @@ function setCrRangeMode(mode, type, encodedKey) {
   if (panel) panel.innerHTML = buildCrPanelHTML(type, key);
 }
 
-function buildChartRun(period) {
+/* Returns the key of the period currently being viewed, which is where a chart
+   run has to stop. Split out of buildChartRun so the cache can compute it
+   without rebuilding anything. */
+function _crCurKey(period) {
   const now = tzNow();
-  let curKey;
-  if (period === 'week') curKey = currentViewWeekKey();
-  else if (period === 'month') {
+  if (period === 'week') return currentViewWeekKey();
+  if (period === 'month') {
     const d = new Date(now.getFullYear(), now.getMonth() - currentOffset, 1);
-    curKey = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
-  } else curKey = String(now.getFullYear() - currentOffset);
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+  }
+  return String(now.getFullYear() - currentOffset);
+}
 
+/* Builds the chart run across the WHOLE history, with no cutoff.
+
+   The old code rebuilt this from scratch on every render, cut off at the
+   period being viewed — so stepping back one week re-derived every chart
+   position since the user's first scrobble. It was the single most expensive
+   thing in a render (909ms of a 4.0s profile at 100k plays).
+
+   Ranking runs chronologically and each period only ever reads state carried
+   forward from earlier ones (prevChartKeys / everChartedKeys), so the run for
+   any given cutoff is exactly the prefix of this full run up to that period.
+   That makes the cutoff a slice (see _crSlice) rather than a rebuild. */
+function _buildChartRunFull(period) {
   const periodMap = {};
   for (const p of allPlays) {
     let key;
     const _ptd = tzDateOf(p);
     if (period === 'week') key = playWeekKeyOf(p);
-    else if (period === 'month') key = `${_ptd.getFullYear()}-${String(_ptd.getMonth() + 1).padStart(2, '0')}`;
-    else key = String(_ptd.getFullYear());
-    if (key > curKey) continue;
+    else if (period === 'month') key = monthKeyOf(p);
+    else key = yearKeyOf(p);
     if (!periodMap[key]) periodMap[key] = { songs: {}, artists: {}, albums: {}, daySongs: {}, dayArtists: {}, dayAlbums: {}, yrMonths: null };
     const pm = periodMap[key];
-    const dayStr = localDateStr(_ptd);
+    const dayStr = dayStrOf(p);
     const sk = songKey(p);
     if (!pm.songs[sk]) { pm.songs[sk] = { count: 0, firstAchieved: p.date, _title: p.title, _artist: p.artist }; pm.daySongs[sk] = new Set(); }
     pm.songs[sk].count++; pm.daySongs[sk].add(dayStr);
@@ -12991,18 +13015,85 @@ function buildChartRun(period) {
           entries: [], peak: rank, peakPlays: 0, peakDays: 0, peakMonths: 0,
           _title: data._title, _artist: data._artist, _album: data._album
         };
-        result[type][k].entries.push({ periodKey: pk, label: lbl, rank, plays: data.count, days });
+        const entry = { periodKey: pk, label: lbl, rank, plays: data.count, days };
+        // Yearly runs count the distinct months an item charted in. Recorded per
+        // entry as well as in the running peak, because a sliced view has to be
+        // able to recompute the peak from just the entries it keeps.
+        if (period === 'year' && pm.yrMonths) entry.months = pm.yrMonths[type][k]?.size || 0;
+        result[type][k].entries.push(entry);
         if (rank < result[type][k].peak) result[type][k].peak = rank;
         if (data.count > result[type][k].peakPlays) result[type][k].peakPlays = data.count;
         if (days > result[type][k].peakDays) result[type][k].peakDays = days;
-        if (period === 'year' && pm.yrMonths) {
-          const mos = pm.yrMonths[type][k]?.size || 0;
-          if (mos > result[type][k].peakMonths) result[type][k].peakMonths = mos;
+        if (entry.months !== undefined && entry.months > result[type][k].peakMonths) {
+          result[type][k].peakMonths = entry.months;
         }
       });
     }
   }
-  chartRunData = { period, curKey, periodMap, result };
+  return { period, curKey: null, periodMap, result };
+}
+
+/* Narrows a full-history run to everything up to and including curKey.
+   Equivalent to having built the run with that cutoff in the first place. */
+function _crSlice(full, curKey) {
+  const result = { songs: {}, artists: {}, albums: {} };
+  for (const type of ['songs', 'artists', 'albums']) {
+    const src = full.result[type], dst = result[type];
+    for (const k in src) {
+      const d = src[k];
+      const all = d.entries;
+      // Entries are pushed in chronological order, so the kept ones are a
+      // prefix — find where the cutoff falls instead of filtering the whole list.
+      let n = all.length;
+      while (n > 0 && all[n - 1].periodKey > curKey) n--;
+      if (n === 0) continue;                       // never charted by this point
+      const entries = n === all.length ? all : all.slice(0, n);
+      let peak = Infinity, peakPlays = 0, peakDays = 0, peakMonths = 0;
+      for (let i = 0; i < n; i++) {
+        const e = entries[i];
+        if (e.rank < peak) peak = e.rank;
+        if (e.plays > peakPlays) peakPlays = e.plays;
+        if (e.days > peakDays) peakDays = e.days;
+        if (e.months !== undefined && e.months > peakMonths) peakMonths = e.months;
+      }
+      dst[k] = { entries, peak, peakPlays, peakDays, peakMonths,
+                 _title: d._title, _artist: d._artist, _album: d._album };
+    }
+  }
+  const periodMap = {};
+  for (const pk in full.periodMap) if (pk <= curKey) periodMap[pk] = full.periodMap[pk];
+  return { period: full.period, curKey, periodMap, result };
+}
+
+/* Cache generation: any change that would alter a chart run has to change this
+   string. _stampEpoch covers week start day, timezone, compilations and
+   autocorrect rules; _playsVersion covers the play data itself (bumped by
+   stampPlays, which every data path already calls); the six size settings are
+   what the run is truncated by. */
+function _crGeneration() {
+  return _stampEpoch + '|' + _playsVersion + '|' +
+    chartSizeSongsW + ',' + chartSizeArtistsW + ',' + chartSizeAlbumsW + ',' +
+    chartSizeSongsM + ',' + chartSizeArtistsM + ',' + chartSizeAlbumsM + ',' +
+    chartSizeSongsY + ',' + chartSizeArtistsY + ',' + chartSizeAlbumsY;
+}
+
+let _crFullCache = {};    // period -> full-history run
+let _crSliceCache = {};   // period + '|' + curKey -> sliced view
+let _crCacheGen = null;   // generation the two caches above were built under
+
+function buildChartRun(period) {
+  const gen = _crGeneration();
+  if (gen !== _crCacheGen) { _crFullCache = {}; _crSliceCache = {}; _crCacheGen = gen; }
+
+  const curKey = _crCurKey(period);
+  const sliceKey = period + '|' + curKey;
+  let run = _crSliceCache[sliceKey];
+  if (!run) {
+    let full = _crFullCache[period];
+    if (!full) full = _crFullCache[period] = _buildChartRunFull(period);
+    run = _crSliceCache[sliceKey] = _crSlice(full, curKey);
+  }
+  chartRunData = run;
   return chartRunData;
 }
 
