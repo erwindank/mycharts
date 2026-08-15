@@ -10295,81 +10295,117 @@ function playWeekKey(playDate) {
   return localDateStr(startDate);
 }
 
-// Groups allPlays by period key (week/month/year), optionally capped at cutoffKey (inclusive)
-function _buildPeriodPlaysMap(periodType, cutoffKey) {
-  const playsMap = {};
+/* ─── SHARED PER-PERIOD AGGREGATE INDEX ───────────────────────────────────
+   Five things wanted the same numbers — total plays and distinct songs,
+   artists, albums per week/month/year, plus how many of each were new — and
+   each one used to get them by grouping the entire play history into arrays
+   and rebuilding Sets over them. That was four or five full walks of the
+   library per render, all producing the same counts.
+
+   This walks once per period type, caches on the same generation key the
+   chart run uses, and keeps only the counts. The "up to cutoffKey" variants
+   are then a max over a subset of keys rather than a second grouping pass.
+
+   The exact set definitions are preserved from the original callers, and they
+   are not all the same: distinct albums is counted by album NAME (excluding
+   '—'), while NEW albums is counted by album KEY (name|||credit). */
+function _buildPeriodAggIndex(periodType) {
+  if (!firstSeenMaps) firstSeenMaps = buildFirstSeenMaps();
+  const { songFirst, artistFirst, albumFirst } = firstSeenMaps;
+
+  // Period start dates, needed to decide what counts as "new" in that period.
+  const startOf = (key) => {
+    if (periodType === 'week')  { const [y, m, d] = key.split('-').map(Number); return new Date(y, m - 1, d); }
+    if (periodType === 'month') { const [y, m] = key.split('-').map(Number); return new Date(y, m - 1, 1); }
+    return new Date(Number(key), 0, 1);
+  };
+
+  const acc = {};
   for (const p of allPlays) {
-    let key;
-    if (periodType === 'week') {
-      key = playWeekKeyOf(p);
-    } else if (periodType === 'month') {
-      const _td = tzDateOf(p);
-      key = _td.getFullYear() + '-' + String(_td.getMonth() + 1).padStart(2, '0');
-    } else {
-      key = String(tzDateOf(p).getFullYear());
+    const key = periodType === 'week' ? playWeekKeyOf(p)
+              : periodType === 'month' ? monthKeyOf(p)
+              : yearKeyOf(p);
+    let a = acc[key];
+    if (a === undefined) {
+      a = acc[key] = { plays: 0, ps: startOf(key),
+                       s: new Set(), ar: new Set(), al: new Set(),
+                       ns: new Set(), na: new Set(), nb: new Set() };
     }
-    if (cutoffKey && key > cutoffKey) continue;
-    (playsMap[key] || (playsMap[key] = [])).push(p);
+    a.plays++;
+    const sk = songKey(p);
+    a.s.add(sk);
+    if (songFirst[sk] && songFirst[sk] >= a.ps) a.ns.add(sk);
+    for (const ar of p.artists) {
+      a.ar.add(ar);
+      if (artistFirst[ar] && artistFirst[ar] >= a.ps) a.na.add(ar);
+    }
+    if (p.album && p.album !== '—') {
+      a.al.add(p.album);                 // by name, matching the original stat
+      const ak = albumKeyOf(p);          // by key, matching the original "new" stat
+      if (albumFirst[ak] && albumFirst[ak] >= a.ps) a.nb.add(ak);
+    }
   }
-  return playsMap;
+
+  // Collapse the Sets to counts — the Sets themselves are not worth keeping.
+  const index = {};
+  for (const key in acc) {
+    const a = acc[key];
+    index[key] = { plays: a.plays, songs: a.s.size, artists: a.ar.size, albums: a.al.size,
+                   newSongs: a.ns.size, newArtists: a.na.size, newAlbums: a.nb.size };
+  }
+  return { index, keys: Object.keys(index).sort() };
 }
 
-function _maxStatsFromMap(playsMap) {
-  let maxPlays = 0, maxSongs = 0, maxArtists = 0, maxAlbums = 0;
-  for (const pp of Object.values(playsMap)) {
-    maxPlays   = Math.max(maxPlays,   pp.length);
-    maxSongs   = Math.max(maxSongs,   new Set(pp.map(p => songKey(p))).size);
-    maxArtists = Math.max(maxArtists, new Set(pp.flatMap(p => p.artists)).size);
-    maxAlbums  = Math.max(maxAlbums,  new Set(pp.map(p => p.album).filter(a => a && a !== '—')).size);
+let _aggCache = {};       // periodType -> { index, keys }
+let _aggCacheGen = null;
+
+function _periodAgg(periodType) {
+  const gen = _crGeneration();
+  if (gen !== _aggCacheGen) { _aggCache = {}; _aggCacheGen = gen; }
+  return _aggCache[periodType] || (_aggCache[periodType] = _buildPeriodAggIndex(periodType));
+}
+
+// Max of the given fields across every period up to cutoffKey (null = all time).
+function _aggMax(periodType, cutoffKey, fields) {
+  const { index, keys } = _periodAgg(periodType);
+  const out = {};
+  for (const f of fields) out[f] = 0;
+  for (const k of keys) {
+    if (cutoffKey && k > cutoffKey) break;   // keys are sorted, so nothing later qualifies
+    const row = index[k];
+    for (const f of fields) if (row[f] > out[f]) out[f] = row[f];
   }
-  return { maxPlays, maxSongs, maxArtists, maxAlbums };
+  return out;
 }
 
 // Returns the max stats across all periods of this type (all time)
 function buildPeriodTypePeakStats(periodType) {
-  return _maxStatsFromMap(_buildPeriodPlaysMap(periodType, null));
+  const m = _aggMax(periodType, null, ['plays', 'songs', 'artists', 'albums']);
+  return { maxPlays: m.plays, maxSongs: m.songs, maxArtists: m.artists, maxAlbums: m.albums };
 }
 
 // Returns the max stats across all periods up to and including cutoffKey
 function buildPeriodTypePeakStatsUpTo(periodType, cutoffKey) {
-  return _maxStatsFromMap(_buildPeriodPlaysMap(periodType, cutoffKey));
+  const m = _aggMax(periodType, cutoffKey, ['plays', 'songs', 'artists', 'albums']);
+  return { maxPlays: m.plays, maxSongs: m.songs, maxArtists: m.artists, maxAlbums: m.albums };
 }
 
 // Returns the peak new-song/artist/album counts across all periods of this type, optionally capped at cutoffKey
 function buildNewEntryPeakStats(periodType, cutoffKey) {
-  if (!firstSeenMaps) firstSeenMaps = buildFirstSeenMaps();
-  const { songFirst, artistFirst, albumFirst } = firstSeenMaps;
-  const playsMap = _buildPeriodPlaysMap(periodType, cutoffKey);
-  let maxNewSongs = 0, maxNewArtists = 0, maxNewAlbums = 0;
-  for (const [key, pp] of Object.entries(playsMap)) {
-    let ps;
-    if (periodType === 'week') { const [y, m, d] = key.split('-').map(Number); ps = new Date(y, m - 1, d); }
-    else if (periodType === 'month') { const [y, m] = key.split('-').map(Number); ps = new Date(y, m - 1, 1); }
-    else { ps = new Date(Number(key), 0, 1); }
-    const ns = new Set(), na = new Set(), nb = new Set();
-    for (const p of pp) {
-      const sk = songKey(p);
-      if (songFirst[sk] && songFirst[sk] >= ps) ns.add(sk);
-      for (const a of p.artists) { if (artistFirst[a] && artistFirst[a] >= ps) na.add(a); }
-      if (p.album && p.album !== '—') { const ak = albumKeyOf(p); if (albumFirst[ak] && albumFirst[ak] >= ps) nb.add(ak); }
-    }
-    maxNewSongs   = Math.max(maxNewSongs,   ns.size);
-    maxNewArtists = Math.max(maxNewArtists, na.size);
-    maxNewAlbums  = Math.max(maxNewAlbums,  nb.size);
-  }
-  return { maxNewSongs, maxNewArtists, maxNewAlbums };
+  const m = _aggMax(periodType, cutoffKey, ['newSongs', 'newArtists', 'newAlbums']);
+  return { maxNewSongs: m.newSongs, maxNewArtists: m.newArtists, maxNewAlbums: m.newAlbums };
 }
 
 // ─── STAT STRIP HELPERS ────────────────────────────────────────
 
 function buildSparklineValues(periodType, cutoffKey, n) {
-  const playsMap = _buildPeriodPlaysMap(periodType, cutoffKey);
-  const keys = Object.keys(playsMap).sort().slice(-n);
+  const { index, keys: allKeys } = _periodAgg(periodType);
+  const keys = (cutoffKey ? allKeys.filter(k => k <= cutoffKey) : allKeys).slice(-n);
   return {
-    plays:   keys.map(k => playsMap[k].length),
-    songs:   keys.map(k => new Set(playsMap[k].map(p => songKey(p))).size),
-    artists: keys.map(k => new Set(playsMap[k].flatMap(p => p.artists)).size),
-    albums:  keys.map(k => new Set(playsMap[k].map(p => p.album).filter(a => a && a !== '—')).size),
+    plays:   keys.map(k => index[k].plays),
+    songs:   keys.map(k => index[k].songs),
+    artists: keys.map(k => index[k].artists),
+    albums:  keys.map(k => index[k].albums),
   };
 }
 
@@ -13081,18 +13117,21 @@ let _crFullCache = {};    // period -> full-history run
 let _crSliceCache = {};   // period + '|' + curKey -> sliced view
 let _crCacheGen = null;   // generation the two caches above were built under
 
-function buildChartRun(period) {
+/* The cached full-history run for a period type. Also the canonical
+   per-period, per-item count index — buildPlaysPeakMaps and buildPeriodPeaks
+   read .periodMap from here rather than regrouping the library themselves.
+   Callers must treat it as read-only; it is shared. */
+function _crFull(period) {
   const gen = _crGeneration();
   if (gen !== _crCacheGen) { _crFullCache = {}; _crSliceCache = {}; _crCacheGen = gen; }
+  return _crFullCache[period] || (_crFullCache[period] = _buildChartRunFull(period));
+}
 
+function buildChartRun(period) {
+  const full = _crFull(period);   // also refreshes the caches if the generation moved
   const curKey = _crCurKey(period);
   const sliceKey = period + '|' + curKey;
-  let run = _crSliceCache[sliceKey];
-  if (!run) {
-    let full = _crFullCache[period];
-    if (!full) full = _crFullCache[period] = _buildChartRunFull(period);
-    run = _crSliceCache[sliceKey] = _crSlice(full, curKey);
-  }
+  const run = _crSliceCache[sliceKey] || (_crSliceCache[sliceKey] = _crSlice(full, curKey));
   chartRunData = run;
   return chartRunData;
 }
@@ -14262,40 +14301,20 @@ function buildCumulativeMapsForPeriod(endDate) {
 // Historical max per-period play counts, excluding the currently viewed period.
 // Used to decide whether the current period is a plays-peak for a song/artist/album.
 function buildPlaysPeakMaps(period) {
-  const now = tzNow();
-  let curKey;
-  if (period === 'week') {
-    curKey = currentViewWeekKey();
-  } else if (period === 'month') {
-    const d = new Date(now.getFullYear(), now.getMonth() - currentOffset, 1);
-    curKey = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
-  } else {
-    curKey = String(now.getFullYear() - currentOffset);
-  }
-
-  const periodMap = {};
-  for (const p of allPlays) {
-    let key;
-    const _bppmtd = tzDateOf(p);
-    if (period === 'week') key = playWeekKeyOf(p);
-    else if (period === 'month') key = `${_bppmtd.getFullYear()}-${String(_bppmtd.getMonth() + 1).padStart(2, '0')}`;
-    else key = String(_bppmtd.getFullYear());
-    if (key > curKey) continue;
-    if (!periodMap[key]) periodMap[key] = { songs: {}, artists: {}, albums: {} };
-    const pm = periodMap[key];
-    const sk = songKey(p);
-    pm.songs[sk] = (pm.songs[sk] || 0) + 1;
-    for (const a of p.artists) pm.artists[a] = (pm.artists[a] || 0) + 1;
-    const ak = albumKeyOf(p);
-    pm.albums[ak] = (pm.albums[ak] || 0) + 1;
-  }
+  // The chart run already grouped the whole history into exactly these
+  // per-period, per-item counts and cached it, so read that instead of
+  // walking allPlays a second time. Read-only: nothing here writes to it.
+  const curKey = _crCurKey(period);
+  const periodMap = _crFull(period).periodMap;
 
   const songs = {}, artists = {}, albums = {};
-  for (const [pKey, pm] of Object.entries(periodMap)) {
+  for (const pKey in periodMap) {
+    if (pKey > curKey) continue;   // periods after the one being viewed don't count
     if (pKey === curKey) continue; // current period handled at render time
-    for (const [k, c] of Object.entries(pm.songs)) { if (c > (songs[k] || 0)) songs[k] = c; }
-    for (const [k, c] of Object.entries(pm.artists)) { if (c > (artists[k] || 0)) artists[k] = c; }
-    for (const [k, c] of Object.entries(pm.albums)) { if (c > (albums[k] || 0)) albums[k] = c; }
+    const pm = periodMap[pKey];
+    for (const k in pm.songs)   { const c = pm.songs[k].count;   if (c > (songs[k]   || 0)) songs[k]   = c; }
+    for (const k in pm.artists) { const c = pm.artists[k].count; if (c > (artists[k] || 0)) artists[k] = c; }
+    for (const k in pm.albums)  { const c = pm.albums[k].count;  if (c > (albums[k]  || 0)) albums[k]  = c; }
   }
   return { songs, artists, albums };
 }
@@ -14714,15 +14733,21 @@ let buChartRunData = null;
 
 // Builds a weekly chart-run history for the BU zone (ranks chartSize+1 through chartSize+buSize).
 // Uses the same chartStatus/rankSortWithStatus logic as buildChartRun so rankings match.
-function buildBuChartRun() {
-  const curKey = currentViewWeekKey();
-  const buSize = chartSize >= 100 ? 50 : 10;
+/* Builds the BU run across the whole history, with no cutoff — the same
+   prefix property as the main chart run (see _buildChartRunFull) makes the
+   viewed period a slice rather than a rebuild.
+
+   The BU zone is defined relative to chartSize, so the run genuinely depends
+   on it and the cache is keyed on it. That mirrors the existing behaviour:
+   buildBuChartRun() is called once per render behind an `if (!buChartRunData)`
+   guard, so it has always used whichever chartSize was current at that moment. */
+function _buildBuChartRunFull(size) {
+  const buSize = size >= 100 ? 50 : 10;
 
   // Collect weekly play counts for all entries
   const periodMap = {};
   for (const p of allPlays) {
     const pk = playWeekKeyOf(p);
-    if (pk > curKey) continue;
     if (!periodMap[pk]) periodMap[pk] = { songs: {}, artists: {}, albums: {} };
     const pm = periodMap[pk];
     const sk = songKey(p);
@@ -14757,11 +14782,11 @@ function buildBuChartRun() {
       const allSorted = Object.entries(pm[type]).sort(([, a], [, b]) => rankSortWithStatus(a, b));
       // Update chart-zone prev/ever sets for the next period
       const newPrev = new Map();
-      allSorted.slice(0, chartSize).forEach(([k], i) => { newPrev.set(k, i + 1); everChartedKeys[type].add(k); });
+      allSorted.slice(0, size).forEach(([k], i) => { newPrev.set(k, i + 1); everChartedKeys[type].add(k); });
       prevChartKeys[type] = newPrev;
       // Record BU zone entries (buRank 1 = just below the chart, highest possible position in BU)
       if (!buPeriodMap[pk]) buPeriodMap[pk] = { songs: [], artists: [], albums: [] };
-      allSorted.slice(chartSize, chartSize + buSize).forEach(([k, data], i) => {
+      allSorted.slice(size, size + buSize).forEach(([k, data], i) => {
         const buRank = i + 1;
         const displayName = type === 'songs' ? (data._title || k.split('|||')[0]) : k.split('|||')[0];
         buPeriodMap[pk][type].push({ key: k, buRank, plays: data.count, displayName });
@@ -14773,7 +14798,50 @@ function buildBuChartRun() {
     }
   }
 
-  buChartRunData = { period: 'week', curKey, result, buPeriodMap };
+  return { period: 'week', curKey: null, result, buPeriodMap };
+}
+
+// Narrows a full-history BU run to everything up to and including curKey.
+function _buSlice(full, curKey) {
+  const result = { songs: {}, artists: {}, albums: {} };
+  for (const type of ['songs', 'artists', 'albums']) {
+    const src = full.result[type], dst = result[type];
+    for (const k in src) {
+      const all = src[k].entries;
+      let n = all.length;   // entries are chronological, so the kept ones are a prefix
+      while (n > 0 && all[n - 1].periodKey > curKey) n--;
+      if (n === 0) continue;
+      const entries = n === all.length ? all : all.slice(0, n);
+      let peakBuRank = Infinity, peakPlays = 0;
+      for (let i = 0; i < n; i++) {
+        const e = entries[i];
+        if (e.buRank < peakBuRank) peakBuRank = e.buRank;
+        if (e.plays > peakPlays) peakPlays = e.plays;
+      }
+      dst[k] = { entries, peakBuRank, peakPlays };
+    }
+  }
+  const buPeriodMap = {};
+  for (const pk in full.buPeriodMap) if (pk <= curKey) buPeriodMap[pk] = full.buPeriodMap[pk];
+  return { period: 'week', curKey, result, buPeriodMap };
+}
+
+let _buFullCache = {};   // chartSize -> full-history BU run
+let _buSliceCache = {};  // chartSize + '|' + curKey -> sliced view
+let _buCacheGen = null;
+
+function buildBuChartRun() {
+  const gen = _crGeneration();
+  if (gen !== _buCacheGen) { _buFullCache = {}; _buSliceCache = {}; _buCacheGen = gen; }
+  const size = chartSize;
+  const curKey = currentViewWeekKey();
+  const sk = size + '|' + curKey;
+  let run = _buSliceCache[sk];
+  if (!run) {
+    const full = _buFullCache[size] || (_buFullCache[size] = _buildBuChartRunFull(size));
+    run = _buSliceCache[sk] = _buSlice(full, curKey);
+  }
+  buChartRunData = run;
   return buChartRunData;
 }
 
