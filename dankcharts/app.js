@@ -34672,7 +34672,7 @@ function dcReplayWelcomeGate() {
 let _cgTourStep = 0;
 const _cgTourSteps = [
   { title: 'Welcome',
-    content: 'dankcharts turns your listening history into real charts — the same machinery a national music chart runs on, except the only listener being counted is you. Every number in the app comes from your own plays; nothing is estimated, recommended or averaged with anyone else. This tour visits all twelve tabs in order, about four minutes.',
+    content: 'Somewhere in your listening history is your number one song from a year you barely remember, the album you played to death one winter, and the artist who has quietly sat in your top ten ever since. dankcharts digs all of it out. Every song you have played becomes a chart you can flip through — week by week, year by year, right back to your very first scrobble. This tour visits all twelve tabs in about four minutes, and you can stop it any time.',
     nav: null },
 
   { title: 'The nav bar',
