@@ -28312,6 +28312,23 @@ body.red-light .modal-cb-label--tracks {
       .cg-tour-spotlight { animation: none; }
     }
 
+    /* Column spotlight — for table cells, where the box-shadow ring does not
+       survive border-collapse (a neighbouring cell's background paints over it).
+       An inset outline is drawn inside the cell's own box, so nothing can cover
+       it, and the tint carries the highlight down the whole column. The
+       background needs !important to beat the medal-row rules (.rank-1 td and
+       friends) that paint the top three rows. */
+    .cg-tour-spotlight-col {
+      background: color-mix(in srgb, var(--accent) 26%, transparent) !important;
+      outline: 2px solid var(--accent);
+      outline-offset: -2px;
+      position: relative;
+      z-index: 1;
+    }
+    @media (prefers-reduced-motion: no-preference) {
+      .cg-tour-spotlight-col { transition: background 0.25s ease; }
+    }
+
     /* The back-to-top button is a --z-float element pinned bottom-right, which
        is exactly where the tour banner's End Tour control sits on a narrow
        screen. The tour owns the bottom of the viewport while it runs. */

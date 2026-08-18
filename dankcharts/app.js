@@ -34762,16 +34762,16 @@ const _cgTourSteps = [
         spotlight: _cgRow(), reveal: '#songsSection, #artistsSection, #albumsSection', hold: 5000 },
 
       { content: 'The rank — where it finished this period, on play count alone.',
-        spotlight: _cgRow('td.rank-cell'), hold: 5000 },
+        spotlight: _cgRow('td.rank-cell'), column: true, hold: 5000 },
 
       { content: 'Where it sat last period, and how far it moved since. NEW means it has never charted before; RE means it dropped off and has come back.',
-        spotlight: _cgRow('td.m-col:not(:has(.m-mths))'), hold: 7000 },
+        spotlight: _cgRow('td.m-col:not(:has(.m-mths))'), column: true, hold: 7000 },
 
       { content: 'Peak is the best position it has ever reached. Next to it sits any Gold, Platinum or Diamond badge it has earned from its total plays.',
         spotlight: _cgRow('.peak-badge, .peak-badge-1, .peak-badge-2, .peak-badge-3, .cert'), hold: 7000 },
 
       { content: 'Weeks on chart — how many periods in a row it has held on. Drop off and it starts again at 1.',
-        spotlight: _cgRow('td.m-col:has(.m-mths)'), hold: 6000 },
+        spotlight: _cgRow('td.m-col:has(.m-mths)'), column: true, hold: 6000 },
 
       { content: 'Plays in this period, the change since last period, and a bar measuring it against your number one.',
         spotlight: _cgRow('.play-count, .play-bar'), hold: 6000 },
@@ -34852,6 +34852,7 @@ function dcStartChartsGuideTour() {
    hunting. Clears whatever the last step marked, then rings the new target. */
 function _dcClearSpotlight() {
   document.querySelectorAll('.cg-tour-spotlight').forEach(el => el.classList.remove('cg-tour-spotlight'));
+  document.querySelectorAll('.cg-tour-spotlight-col').forEach(el => el.classList.remove('cg-tour-spotlight-col'));
 }
 
 /* A phase that describes a section should be able to show it even if the user
@@ -34969,6 +34970,29 @@ function _dcTourScrollTo(el) {
   window.scrollTo({ top: Math.max(0, window.scrollY + r.top - offset), behavior: 'smooth' });
 }
 
+/* Table cells are a bad fit for the box-shadow ring: .chart-table sets
+   border-collapse:collapse, so a neighbouring cell's own background paints
+   straight over its sibling's shadow. Rank, Previous and Weeks all sit between
+   other filled cells and lost their ring entirely; the chart-run cell survived
+   only because it is last in the row.
+
+   For those, light the whole column instead — header included — with a tint and
+   an inset outline, which paints inside the cell and cannot be covered. Reads
+   better for tabular data anyway: it shows what the column *is*, not just one
+   value in it. */
+function _dcSpotlightColumn(selector) {
+  const cell = Array.from(document.querySelectorAll(selector)).filter(_dcTourVisible)[0];
+  if (!cell || !cell.parentElement) return 0;
+  const table = cell.closest('table');
+  if (!table) return 0;
+  const idx = Array.prototype.indexOf.call(cell.parentElement.children, cell) + 1;
+  // :not(.cr-row) keeps the full-width chart-run panel row out of column 1
+  const cells = table.querySelectorAll('tr:not(.cr-row) > *:nth-child(' + idx + ')');
+  cells.forEach(c => c.classList.add('cg-tour-spotlight-col'));
+  _dcTourScrollTo(cell);
+  return cells.length;
+}
+
 function _dcSpotlight(selector, scroll) {
   const els = Array.from(document.querySelectorAll(selector)).filter(_dcTourVisible);
   els.forEach(el => el.classList.add('cg-tour-spotlight'));
@@ -35063,7 +35087,8 @@ function _dcApplyTourStep() {
     _dcTourLater(() => {
       if (target.reveal) _dcTourReveal(target.reveal === true ? target.spotlight : target.reveal);
       if (target.click) _dcTourClick(target.click);
-      _dcSpotlight(target.spotlight);
+      if (target.column) _dcSpotlightColumn(target.spotlight);
+      else _dcSpotlight(target.spotlight);
     }, delay);
   }
 
