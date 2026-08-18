@@ -34770,6 +34770,16 @@ const _cgTourSteps = [
       { content: 'Peak is the best position it has ever reached. Next to it sits any Gold, Platinum or Diamond badge it has earned from its total plays.',
         spotlight: _cgRow('.peak-badge, .peak-badge-1, .peak-badge-2, .peak-badge-3, .cert'), hold: 7000 },
 
+      { content: 'The YouTube button plays the track there and then — it looks up this exact title and artist, with nothing to set up first.',
+        spotlight: _cgRow('.yt-play-btn'),
+        revealBody: 'songs-hide-yt-btns artists-hide-yt-btns albums-hide-yt-btns',
+        hold: 6000 },
+
+      { content: 'The + button opens the playlist picker, so you can drop this row into any playlist you keep. Build one from across any chart or period, then manage them in the Playlists tab.',
+        spotlight: _cgRow('.dc-pl-add-btn'),
+        revealBody: 'songs-hide-yt-btns artists-hide-yt-btns albums-hide-yt-btns',
+        hold: 7000 },
+
       { content: 'Weeks on chart — how many periods in a row it has held on. Drop off and it starts again at 1.',
         spotlight: _cgRow('td.m-col:has(.m-mths)'), column: true, hold: 6000 },
 
@@ -34878,6 +34888,20 @@ const _CG_HIDE_CLASSES = ['sub-chart-toggled-off', 'collapsed'];
 const _CG_BODY_SEL     = '.bu-body, .off-body';
 const _CG_ARROW_SEL    = '.bu-toggle-icon, .off-toggle-icon, .ne-toggle-icon';
 let _cgTourRevealed = [];
+/* The per-section "hide YouTube buttons" toggle hides both the YouTube and the
+   add-to-playlist button through a body class (songs-hide-yt-btns and friends).
+   Its state is dc_sectionDisplayToggles, which firebase.js syncs, so the tour
+   lifts the class for a phase and puts it straight back. */
+let _cgTourBodyClasses = [];
+
+function _dcTourRevealBody(classes) {
+  classes.split(/\s+/).forEach(c => {
+    if (c && document.body.classList.contains(c)) {
+      document.body.classList.remove(c);
+      _cgTourBodyClasses.push(c);
+    }
+  });
+}
 
 function _dcTourReveal(selector) {
   document.querySelectorAll(selector).forEach(el => {
@@ -34912,6 +34936,8 @@ function _dcTourReveal(selector) {
 }
 
 function _dcTourRestoreRevealed() {
+  _cgTourBodyClasses.forEach(c => document.body.classList.add(c));
+  _cgTourBodyClasses = [];
   _cgTourRevealed.forEach(rec => {
     rec.stripped.forEach(c => rec.el.classList.add(c));
     rec.bodies.forEach(({ body, prev }) => { body.style.display = prev; });
@@ -35085,6 +35111,7 @@ function _dcApplyTourStep() {
     _dcTourLater(() => _dcRunSpotlightSeq(target.seq, hold), delay);
   } else if (target.spotlight) {
     _dcTourLater(() => {
+      if (target.revealBody) _dcTourRevealBody(target.revealBody);
       if (target.reveal) _dcTourReveal(target.reveal === true ? target.spotlight : target.reveal);
       if (target.click) _dcTourClick(target.click);
       if (target.column) _dcSpotlightColumn(target.spotlight);
