@@ -278,6 +278,11 @@ _auth.onAuthStateChanged(async (user) => {
     if (typeof needsOnboarding === 'function' && !needsOnboarding()) {
       landing.style.display = 'none';
       if (mainApp) mainApp.style.display = 'block';
+      // Signing in can complete setup directly from the landing screen, which
+      // skips both startFromLanding() and skipLanding(). Without this call a
+      // Google user restoring their config on a new device would go straight
+      // to a Weekly chart and never be shown the Charts Guide.
+      if (typeof dcMaybeShowWelcomeGate === 'function') dcMaybeShowWelcomeGate();
       if (typeof syncNow === 'function') syncNow();
     }
   } else {
