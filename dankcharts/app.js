@@ -34703,16 +34703,16 @@ const _cgTourSteps = [
     phases: [
       { content: 'Weekly is your main chart — the last 7 days, cut from whichever week-start day you pick. Every period shows the same three charts: songs, artists and albums.',
         spotlight: '#periodNav button[data-period="week"]',
-        hold: 7000 },
+        hold: 9000 },
 
       { content: 'Your week in numbers: plays, unique songs, artists, albums, best day. Then the "of the moment" cards — the song, artist and album running hottest right now, not just the ones with the highest totals.',
         spotlight: '#statsStrip, #statsStrip2, #statsStrip3',
-        hold: 9000 },
+        hold: 12000 },
 
       { content: 'Songs and albums go Gold, Platinum or Diamond once they pass a set number of plays. This section shows the ones that got there this week. Want different numbers? Change them in Settings → Certification Thresholds.',
         spotlight: '#certReelSection',
         reveal: true,
-        hold: 8000 },
+        hold: 10000 },
 
       { content: 'Pick which chart you are reading — songs, artists or albums — then which parts of it you want: the chart itself, Bubbling Under, Off the Chart, New Entries. Any combination is allowed, and each chart type remembers its own.',
         seq: [
@@ -34724,31 +34724,31 @@ const _cgTourSteps = [
           '#subChartToggleBar-songs .sub-chart-toggle-btn[data-sub="off"]',
           '#subChartToggleBar-songs .sub-chart-toggle-btn[data-sub="new"]',
         ],
-        seqHold: 1500 },
+        seqHold: 2000 },
 
       { content: 'The ⋮ menu on any section header: chart size from Top 10 to Top 100, six layouts to switch between, what to show on the chart, and export to a shareable image or to data.',
         spotlight: '#songsSection .kebab-menu-btn',
-        hold: 8000 },
+        hold: 10000 },
 
       { content: 'The chart itself. Every row carries its position, how far it moved since last week, its all-time peak, and how many weeks in a row it has held on.',
         spotlight: '#songsSection',
         reveal: true,
-        hold: 6000 },
+        hold: 9000 },
 
       { content: 'Bubbling Under — the songs that just missed the cut. Next week\'s chart usually starts here.',
         spotlight: '#buSongsSection',
         reveal: true,
-        hold: 7000 },
+        hold: 10000 },
 
       { content: 'Off the Chart — what was here last week and has gone this week. Worth a look before it disappears from memory too.',
         spotlight: '#offSongsSection',
         reveal: true,
-        hold: 7000 },
+        hold: 10000 },
 
       { content: 'New Entries — songs landing on the chart for the very first time this week.',
         spotlight: '#newSongsSection',
         reveal: true,
-        hold: 7000 },
+        hold: 10000 },
 
       { content: 'And at the bottom, the release reels: Upcoming and Recent Releases from the artists in your charts. Hover to pause a reel, drag to browse it.',
         spotlight: '#upcomingSection, #recentSection',
