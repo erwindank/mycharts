@@ -34676,8 +34676,8 @@ const _cgTourSteps = [
     nav: null },
 
   { title: 'The nav bar',
-    content: 'Twelve tabs in two rows. The top row is the charts themselves — the same songs, artists and albums counted over four different time windows, plus the raw plays underneath and the graphs drawn from them. The second row is everything derived from those charts: records, events, awards, your recap, and playlists. Nothing in the second row needs extra setup.',
-    nav: null },
+    content: 'This is the bar you will live in — twelve tabs in two rows. The top row is the charts themselves: the same songs, artists and albums counted over four different time windows, plus the raw plays underneath and the graphs drawn from them. The second row is everything built out of those charts — records, events, awards, your recap and playlists, none of which need any extra setup. If that second row is ever hidden, the More button on the right brings it back.',
+    nav: null, spotlight: '#periodNav', expandNav: true },
 
   { title: 'Weekly — your main chart',
     content: 'Every chart period gives you three charts at once: top songs, top artists and top albums. Weekly counts a 7-day window starting on the week-start day you pick in the masthead, so it is the tab that actually changes week to week. If you only ever check one tab, this is it.',
@@ -34689,7 +34689,7 @@ const _cgTourSteps = [
 
   { title: 'Moving through time',
     content: 'Prev / Next walks one period at a time, and the ← → arrow keys do the same without touching the mouse. The date bar above the chart always names the period you are looking at, and the jump picker beside it drops you on any specific week, month or year directly.',
-    nav: null },
+    nav: null, spotlight: '#dateNav' },
 
   { title: 'Chart size, layout and the ⋮ menu',
     content: 'Every section header has a ⋮ menu. It sets how many entries the chart holds (Top 10 through 100, remembered separately per chart type), switches the layout between table, card grid, compact, mosaic, filmstrip and stack, toggles Bubbling Under and Off Chart on or off, and exports the chart as an image or as data.',
@@ -34752,6 +34752,12 @@ function dcStartChartsGuideTour() {
   dcGuideCheck('tour', true); // mark checklist item complete
 }
 
+/* A step that names a control should point at it rather than leave the user
+   hunting. Clears whatever the last step marked, then rings the new target. */
+function _dcClearSpotlight() {
+  document.querySelectorAll('.cg-tour-spotlight').forEach(el => el.classList.remove('cg-tour-spotlight'));
+}
+
 function _dcApplyTourStep() {
   const step = _cgTourSteps[_cgTourStep];
   if (!step) return;
@@ -34762,9 +34768,31 @@ function _dcApplyTourStep() {
   document.getElementById('cgTourNext').textContent      = _cgTourStep === total - 1 ? '✓ Finish' : 'Next →';
   const bar = document.getElementById('cgTourProgress');
   if (bar) bar.style.setProperty('--cg-tour-p', ((_cgTourStep + 1) / total).toFixed(3));
+
+  _dcClearSpotlight();
+
   if (step.nav) {
     const btn = document.querySelector('#periodNav button[data-period="' + step.nav + '"]');
     if (btn) btn.click();
+  }
+
+  if (step.spotlight) {
+    // Row 2 starts collapsed for most users, so a step describing both rows
+    // has to open it first. Going through the toggle keeps its label and its
+    // saved dc_nav_row2_open state in sync.
+    if (step.expandNav) {
+      const row2 = document.getElementById('periodNavRow2');
+      if (row2 && row2.classList.contains('nav-row2-collapsed')) {
+        document.getElementById('periodNavToggle')?.click();
+      }
+    }
+    // Let a tab switch or a row expanding settle before scrolling to the target
+    setTimeout(() => {
+      const el = document.querySelector(step.spotlight);
+      if (!el) return;
+      el.classList.add('cg-tour-spotlight');
+      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, step.nav ? 280 : 60);
   }
 }
 
@@ -34777,6 +34805,7 @@ function dcTourStep(dir) {
 function dcEndTour() {
   document.getElementById('cgTourBanner').style.display = 'none';
   document.body.classList.remove('cg-tour-open');
+  _dcClearSpotlight();
   _cgTourStep = 0;
 }
 

@@ -28284,6 +28284,34 @@ body.red-light .modal-cb-label--tracks {
       text-transform: uppercase;
       letter-spacing: 0.08em;
     }
+    /* Tour spotlight — rings the control the current step is talking about.
+       Drawn with box-shadow rather than a ::after ring because #periodNav sets
+       overflow:hidden (to clip its button hovers to the rounded corners), which
+       would cut a pseudo-element off; an element's own box-shadow is not
+       clipped by its own overflow. Pulses three times to catch the eye, then
+       settles into a steady ring that holds while the step is read. */
+    .cg-tour-spotlight {
+      box-shadow:
+        0 0 0 2px var(--accent),
+        0 0 26px 4px color-mix(in srgb, var(--accent) 40%, transparent);
+      animation: cgSpotlightPulse 1.4s ease-in-out 3;
+    }
+    @keyframes cgSpotlightPulse {
+      0%, 100% {
+        box-shadow:
+          0 0 0 2px var(--accent),
+          0 0 26px 4px color-mix(in srgb, var(--accent) 40%, transparent);
+      }
+      50% {
+        box-shadow:
+          0 0 0 3px var(--accent),
+          0 0 42px 10px color-mix(in srgb, var(--accent) 65%, transparent);
+      }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .cg-tour-spotlight { animation: none; }
+    }
+
     /* The back-to-top button is a --z-float element pinned bottom-right, which
        is exactly where the tour banner's End Tour control sits on a narrow
        screen. The tour owns the bottom of the viewport while it runs. */
