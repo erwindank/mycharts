@@ -34702,6 +34702,7 @@ const _cgTourSteps = [
 
       { content: 'Songs and albums go Gold, Platinum or Diamond once they pass a set number of plays. This section shows the ones that got there this week. Want different numbers? Change them in Settings → Certification Thresholds.',
         spotlight: '#certReelSection',
+        reveal: true,
         hold: 8000 },
 
       { content: 'Pick which chart you are reading — songs, artists or albums — then which parts of it you want: the chart itself, Bubbling Under, Off the Chart, New Entries. Any combination is allowed, and each chart type remembers its own.',
@@ -34722,22 +34723,27 @@ const _cgTourSteps = [
 
       { content: 'The chart itself. Every row carries its position, how far it moved since last week, its all-time peak, and how many weeks in a row it has held on.',
         spotlight: '#songsSection',
+        reveal: true,
         hold: 6000 },
 
       { content: 'Bubbling Under — the songs that just missed the cut. Next week\'s chart usually starts here.',
         spotlight: '#buSongsSection',
+        reveal: true,
         hold: 7000 },
 
       { content: 'Off the Chart — what was here last week and has gone this week. Worth a look before it disappears from memory too.',
         spotlight: '#offSongsSection',
+        reveal: true,
         hold: 7000 },
 
       { content: 'New Entries — songs landing on the chart for the very first time this week.',
         spotlight: '#newSongsSection',
+        reveal: true,
         hold: 7000 },
 
       { content: 'And at the bottom, the release reels: Upcoming and Recent Releases from the artists in your charts. Hover to pause a reel, drag to browse it.',
-        spotlight: '#upcomingSection, #recentSection' },
+        spotlight: '#upcomingSection, #recentSection',
+        reveal: true },
     ] },
 
   { title: 'Reading a chart row',
@@ -34818,6 +34824,39 @@ function _dcClearSpotlight() {
   document.querySelectorAll('.cg-tour-spotlight').forEach(el => el.classList.remove('cg-tour-spotlight'));
 }
 
+/* A phase that describes a section should be able to show it even if the user
+   keeps it switched off or collapsed — but only for as long as the phase lasts.
+   The sub-chart toggles live in dc_subChartToggles, which is in firebase.js's
+   SYNC_KEYS, so calling toggleSubChart() here would rewrite the user's layout
+   on every device they own. Both hiding mechanisms are plain CSS classes, so
+   the tour strips them, remembers exactly what it stripped, and puts them back.
+
+   Deliberately does NOT touch inline style.display: a sub-chart hidden that way
+   has no data for this period, and there is nothing to reveal. */
+const _CG_HIDE_CLASSES = ['sub-chart-toggled-off', 'collapsed'];
+let _cgTourRevealed = [];
+
+function _dcTourReveal(selector) {
+  document.querySelectorAll(selector).forEach(el => {
+    const stripped = _CG_HIDE_CLASSES.filter(c => el.classList.contains(c));
+    if (!stripped.length) return;
+    stripped.forEach(c => el.classList.remove(c));
+    // Keep the collapse button's glyph honest while the section is forced open
+    const btn = el.querySelector('.section-collapse-btn');
+    const glyph = btn ? btn.textContent : null;
+    if (btn && stripped.includes('collapsed')) { btn.textContent = '−'; btn.title = 'Collapse'; }
+    _cgTourRevealed.push({ el, stripped, btn, glyph });
+  });
+}
+
+function _dcTourRestoreRevealed() {
+  _cgTourRevealed.forEach(({ el, stripped, btn, glyph }) => {
+    stripped.forEach(c => el.classList.add(c));
+    if (btn && glyph !== null) { btn.textContent = glyph; btn.title = glyph === '+' ? 'Expand' : 'Collapse'; }
+  });
+  _cgTourRevealed = [];
+}
+
 /* Only ring things that are actually on screen. Sub-charts (Bubbling Under,
    New Entries, Off the Chart) can be switched off per chart type, and the
    stats strips stay hidden until they have data — a step should explain the
@@ -34861,6 +34900,7 @@ function _dcApplyTourStep() {
   const step = _cgTourSteps[_cgTourStep];
   if (!step) return;
   _dcClearTourTimers();
+  _dcTourRestoreRevealed(); // hand the previous phase's sections back to the user
 
   const phases = step.phases;
   if (phases) _cgTourPhase = Math.max(0, Math.min(_cgTourPhase, phases.length - 1));
@@ -34915,7 +34955,10 @@ function _dcApplyTourStep() {
     const hold = target.seqHold || 1500;
     _dcTourLater(() => _dcRunSpotlightSeq(target.seq, hold), delay);
   } else if (target.spotlight) {
-    _dcTourLater(() => _dcSpotlight(target.spotlight), delay);
+    _dcTourLater(() => {
+      if (target.reveal) _dcTourReveal(target.spotlight);
+      _dcSpotlight(target.spotlight);
+    }, delay);
   }
 
   // Phased steps play themselves; ordinary steps wait for the user. The last
@@ -34955,6 +34998,7 @@ function dcEndTour() {
   document.body.classList.remove('cg-tour-open');
   _dcClearTourTimers();
   _dcClearSpotlight();
+  _dcTourRestoreRevealed();
   _cgTourStep = 0;
   _cgTourPhase = 0;
   _cgTourAppliedStep = -1;
