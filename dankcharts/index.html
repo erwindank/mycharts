@@ -27,7 +27,7 @@
   <!-- html2canvas, SheetJS (xlsx) and JSZip are intentionally NOT loaded here — they
        total ~1.2 MB and are only needed for image exports and Excel/ZIP imports.
        app.js pulls them from the CDN on first use (see ensureLazyLib). -->
-  <link rel="stylesheet" href="style.css?v=223">
+  <link rel="stylesheet" href="style.css?v=224">
   <!-- All scripts are deferred so the page paints without waiting on them.
        defer preserves execution order, which matters: translations → Chart.js →
        hammer → zoom plugin → firebase SDKs → firebase.js → app.js (in body). -->
@@ -2274,10 +2274,60 @@
   </div>
   <!-- END CHARTS GUIDE VIEW -->
 
+  <!-- FIRST-RUN WELCOME GATE ─────────────────────────────────────────────
+       A blocking overlay shown once to every new visitor (and once more
+       after CG_GUIDE_VERSION is bumped). Nothing else on the page announces
+       that a Charts Guide exists, so first-time users used to land straight
+       on a Weekly chart with no idea what the other eleven tabs did. This
+       gate makes reading the guide the default path instead of a discovery.
+       It is deliberately not dismissible by backdrop click or Esc — the only
+       ways out are the three buttons, all of which record the visit. -->
+  <div id="cgWelcomeGate" class="cg-gate" style="display:none" role="dialog" aria-modal="true" aria-labelledby="cgGateTitle">
+    <div class="cg-gate-box">
+      <div class="cg-gate-kicker">Welcome to</div>
+      <h2 class="cg-gate-title" id="cgGateTitle">dank<span class="cg-gate-title-2">charts</span><span class="cg-gate-fm">.fm</span></h2>
+      <p class="cg-gate-sub">Every song you've ever played, turned into real charts — weekly, monthly, yearly and all-time, with movement, peaks and chart runs. Here's the short version before you dive in.</p>
+
+      <ol class="cg-gate-steps">
+        <li class="cg-gate-step" id="cgGateStep1">
+          <span class="cg-gate-num">1</span>
+          <span class="cg-gate-step-text">
+            <strong>Connect your listening history</strong>
+            <em id="cgGateSrcNote">Last.fm, a Google Sheet, or a CSV upload — your data, your choice.</em>
+          </span>
+          <span class="cg-gate-state" id="cgGateSrcState"></span>
+        </li>
+        <li class="cg-gate-step">
+          <span class="cg-gate-num">2</span>
+          <span class="cg-gate-step-text">
+            <strong>Learn what the twelve tabs do</strong>
+            <em>Six chart views on the top row, six insight views below them.</em>
+          </span>
+        </li>
+        <li class="cg-gate-step">
+          <span class="cg-gate-num">3</span>
+          <span class="cg-gate-step-text">
+            <strong>Explore your own charts</strong>
+            <em>Records, awards, playlists, graphs — all built from your plays.</em>
+          </span>
+        </li>
+      </ol>
+
+      <div class="cg-gate-actions">
+        <button class="cg-gate-btn cg-gate-btn-primary" onclick="dcGateChoose('tour')">▶&nbsp; Take the guided tour</button>
+        <button class="cg-gate-btn" onclick="dcGateChoose('guide')">📖&nbsp; Open the Charts Guide</button>
+      </div>
+      <button class="cg-gate-skip" onclick="dcGateChoose('skip')">Skip for now — the guide stays in the nav bar</button>
+    </div>
+  </div>
+  <!-- END FIRST-RUN WELCOME GATE -->
+
   <!-- INTERACTIVE TOUR BANNER (fixed overlay, persists across tab switches) -->
   <div id="cgTourBanner" class="cg-tour-banner" style="display:none">
     <div class="cg-tour-inner">
       <div class="cg-tour-meta" id="cgTourStepLabel"></div>
+      <!-- Fills as the tour advances, so "how much is left" is visible at a glance -->
+      <div class="cg-tour-progress-track"><div class="cg-tour-progress" id="cgTourProgress"></div></div>
       <div class="cg-tour-content" id="cgTourContent"></div>
       <div class="cg-tour-controls">
         <button class="cg-tour-ctrl" id="cgTourPrev" onclick="dcTourStep(-1)">← Prev</button>
@@ -3128,7 +3178,7 @@
 
   <!-- defer keeps app.js last in the script execution order (after translations,
        Chart.js and firebase.js) while letting the whole page parse and paint first -->
-  <script defer src="app.js?v=174"></script>
+  <script defer src="app.js?v=175"></script>
 
   <!-- ── Settings Modal ──
        Split into three tabs so the whole form is never dumped on screen at

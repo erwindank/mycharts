@@ -27824,9 +27824,11 @@ body.red-light .modal-cb-label--tracks {
     .cg-search-empty { padding: 0.5rem 0.6rem; color: var(--text3); font-size: 0.82rem; }
 
     /* ── 16 · Stats row ──────────────────────────────────── */
+    /* Five cards: Total Plays and Days Listened were dropped because the
+       masthead stat strip already shows both a few hundred pixels up. */
     .cg-stats-row {
       display: grid;
-      grid-template-columns: repeat(6, 1fr);
+      grid-template-columns: repeat(5, 1fr);
       gap: 0.5rem;
     }
     .cg-stat-card {
@@ -27998,31 +28000,6 @@ body.red-light .modal-cb-label--tracks {
       text-transform: uppercase;
       letter-spacing: 0.04em;
     }
-
-    /* ── 5 · Feature spotlight ───────────────────────────── */
-    .cg-spotlight-row {
-      display: flex;
-      gap: 0.5rem;
-      overflow-x: auto;
-      padding-bottom: 0.3rem;
-      scrollbar-width: thin;
-    }
-    .cg-spotlight-card {
-      flex-shrink: 0;
-      width: 200px;
-      background: var(--bg2);
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      padding: 1rem;
-    }
-    .cg-spotlight-icon { font-size: 1.6rem; margin-bottom: 0.4rem; display: block; }
-    .cg-spotlight-title {
-      font-size: 0.82rem;
-      font-weight: 700;
-      color: var(--text);
-      margin-bottom: 0.35rem;
-    }
-    .cg-spotlight-body { font-size: 0.78rem; color: var(--text3); line-height: 1.45; }
 
     /* ── 7 · Hidden gems ─────────────────────────────────── */
     .cg-gems { display: flex; flex-direction: column; gap: 0.45rem; }
@@ -28274,17 +28251,6 @@ body.red-light .modal-cb-label--tracks {
       color: var(--text3);
       white-space: nowrap;
     }
-    .cg-ref-group-label {
-      font-family: var(--font-mono);
-      font-size: 0.68rem;
-      font-weight: 700;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      color: var(--text3);
-      margin: 1rem 0 0.3rem;
-    }
-    .cg-ref-group-label:first-of-type { margin-top: 0; }
-
     /* ── 13 · Interactive tour banner ────────────────────── */
     .cg-tour-banner {
       position: fixed;
@@ -28352,6 +28318,451 @@ body.red-light .modal-cb-label--tracks {
       .cg-stats-row       { grid-template-columns: repeat(2, 1fr); }
       .cg-welcome         { flex-direction: column; align-items: flex-start; }
       .cg-shortcut-keys   { width: 130px; }
+    }
+
+    /* ═══════════════════════════════════════════════════════════════
+       FIRST-RUN WELCOME GATE
+       Sits above everything (--z-max) because it is deliberately
+       blocking: the only exits are its own three buttons.
+       ═══════════════════════════════════════════════════════════════ */
+    .cg-gate {
+      position: fixed;
+      inset: 0;
+      z-index: var(--z-max);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1.25rem;
+      background: color-mix(in srgb, var(--bg) 72%, black);
+      backdrop-filter: blur(6px);
+      -webkit-backdrop-filter: blur(6px);
+      overflow-y: auto;
+      animation: cgGateFade 0.25s ease;
+    }
+    @keyframes cgGateFade { from { opacity: 0; } to { opacity: 1; } }
+    /* Freeze the page behind the gate so the app can't be scrolled past it */
+    body.cg-gate-open { overflow: hidden; }
+
+    .cg-gate-box {
+      width: 100%;
+      max-width: 560px;
+      margin: auto;
+      background: var(--bg2);
+      border: 1px solid var(--border2, var(--border));
+      border-radius: 10px;
+      box-shadow: 0 18px 60px rgba(0,0,0,0.45);
+      padding: 1.9rem 1.9rem 1.5rem;
+      animation: cgGateRise 0.32s cubic-bezier(0.2, 0.8, 0.3, 1);
+    }
+    @keyframes cgGateRise { from { transform: translateY(14px); opacity: 0; } to { transform: none; opacity: 1; } }
+
+    .cg-gate-kicker {
+      font-family: var(--font-mono);
+      font-size: 0.64rem;
+      font-weight: 700;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--text3);
+      margin-bottom: 0.35rem;
+    }
+    .cg-gate-title {
+      margin: 0 0 0.55rem;
+      font-size: 1.85rem;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      line-height: 1;
+      color: var(--text);
+    }
+    .cg-gate-title-2 { font-weight: 300; }
+    .cg-gate-fm {
+      font-size: 0.9rem;
+      font-weight: 700;
+      vertical-align: super;
+      margin-left: 0.15rem;
+      padding: 0.1rem 0.3rem;
+      border-radius: 4px;
+      background: var(--accent);
+      color: var(--on-accent);
+    }
+    .cg-gate-sub {
+      margin: 0 0 1.35rem;
+      font-size: 0.88rem;
+      line-height: 1.55;
+      color: var(--text2, var(--text3));
+    }
+
+    .cg-gate-steps {
+      list-style: none;
+      margin: 0 0 1.5rem;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 0.55rem;
+    }
+    .cg-gate-step {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.75rem;
+      padding: 0.7rem 0.85rem;
+      border: 1px solid var(--border);
+      border-radius: 7px;
+      background: var(--bg);
+    }
+    .cg-gate-num {
+      flex-shrink: 0;
+      width: 1.4rem;
+      height: 1.4rem;
+      border-radius: 50%;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      font-weight: 700;
+      background: var(--bg3);
+      color: var(--text3);
+      border: 1px solid var(--border);
+    }
+    .cg-gate-step.done { border-color: color-mix(in srgb, var(--accent) 45%, var(--border)); }
+    .cg-gate-step.done .cg-gate-num { background: var(--accent); color: var(--on-accent); border-color: var(--accent); }
+    .cg-gate-step-text { display: flex; flex-direction: column; gap: 0.15rem; flex: 1; min-width: 0; }
+    .cg-gate-step-text strong { font-size: 0.86rem; font-weight: 650; color: var(--text); }
+    .cg-gate-step-text em { font-style: normal; font-size: 0.78rem; line-height: 1.4; color: var(--text3); }
+    .cg-gate-state { flex-shrink: 0; color: var(--accent); font-weight: 700; font-size: 0.95rem; }
+
+    .cg-gate-actions { display: flex; gap: 0.55rem; flex-wrap: wrap; }
+    .cg-gate-btn {
+      flex: 1 1 200px;
+      padding: 0.7rem 1rem;
+      border-radius: 6px;
+      border: 1px solid var(--border2, var(--border));
+      background: var(--bg3);
+      color: var(--text);
+      font-size: 0.85rem;
+      font-weight: 650;
+      cursor: pointer;
+      transition: border-color 0.15s, background 0.15s, transform 0.12s;
+    }
+    .cg-gate-btn:hover { border-color: var(--accent); transform: translateY(-1px); }
+    .cg-gate-btn-primary { background: var(--accent); color: var(--on-accent); border-color: var(--accent); }
+    .cg-gate-btn-primary:hover { background: var(--accent); opacity: 0.9; }
+    .cg-gate-skip {
+      display: block;
+      width: 100%;
+      margin-top: 0.85rem;
+      padding: 0.4rem;
+      background: none;
+      border: none;
+      color: var(--text3);
+      font-size: 0.76rem;
+      cursor: pointer;
+      text-decoration: underline;
+      text-underline-offset: 3px;
+    }
+    .cg-gate-skip:hover { color: var(--text); }
+
+    @media (max-width: 480px) {
+      .cg-gate-box   { padding: 1.4rem 1.15rem 1.15rem; }
+      .cg-gate-title { font-size: 1.5rem; }
+      .cg-gate-btn   { flex: 1 1 100%; }
+    }
+
+    /* ═══════════════════════════════════════════════════════════════
+       GUIDE CHAPTERS
+       The guide reads as a numbered document: six chapters, each opening
+       with a number, a title and one line saying what it covers, so a
+       chapter can be skipped without being read.
+       ═══════════════════════════════════════════════════════════════ */
+    .cg-chapter {
+      display: flex;
+      flex-direction: column;
+      gap: 0.6rem;
+      padding-bottom: 0.6rem;
+    }
+    .cg-chapter-head {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.85rem;
+      margin-top: 2rem;
+      padding-bottom: 0.7rem;
+      border-bottom: 2px solid var(--border);
+    }
+    .cg-chapter:first-of-type .cg-chapter-head { margin-top: 1.1rem; }
+    .cg-chapter-num {
+      flex-shrink: 0;
+      font-family: var(--font-mono);
+      font-size: 1.5rem;
+      font-weight: 800;
+      line-height: 1;
+      color: color-mix(in srgb, var(--accent) 55%, transparent);
+      letter-spacing: -0.03em;
+    }
+    .cg-chapter-heading { min-width: 0; }
+    .cg-chapter-title {
+      margin: 0 0 0.2rem;
+      font-size: 1.12rem;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+      color: var(--text);
+    }
+    .cg-chapter-blurb {
+      margin: 0;
+      font-size: 0.82rem;
+      line-height: 1.45;
+      color: var(--text3);
+      max-width: 68ch;
+    }
+    /* Minor heading inside a chapter — lighter than the old section labels */
+    .cg-sub-label {
+      font-family: var(--font-mono);
+      font-size: 0.66rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--text3);
+      margin-top: 0.7rem;
+    }
+
+    /* ── Hero additions ───────────────────────────────────── */
+    .cg-welcome-text { min-width: 0; }
+    .cg-welcome-kicker {
+      font-family: var(--font-mono);
+      font-size: 0.6rem;
+      font-weight: 700;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      opacity: 0.75;
+      margin-bottom: 0.25rem;
+    }
+    .cg-welcome-sub { max-width: 62ch; }
+    .cg-hero-progress { display: flex; align-items: center; gap: 0.6rem; margin-top: 0.8rem; }
+    .cg-hero-track { flex: 1; max-width: 220px; background: rgba(255,255,255,0.25); }
+    .cg-hero-track .cg-checklist-bar { background: var(--on-accent); }
+    .cg-hero-progress-text { font-family: var(--font-mono); font-size: 0.66rem; opacity: 0.85; white-space: nowrap; }
+    .cg-welcome-actions { flex-wrap: wrap; }
+    /* The hero sits on var(--accent); its buttons must use the paired
+       foreground token, never a hard-coded white (yellow-dark's accent is light) */
+    .cg-tour-start-btn, .cg-search-toggle-btn { color: var(--on-accent); }
+    .cg-replay-gate-btn { border-width: 1px; opacity: 0.85; }
+
+    /* ── Chapter rail (sticky) ────────────────────────────── */
+    .cg-toc-num { font-family: var(--font-mono); font-size: 0.62rem; opacity: 0.6; }
+    .cg-toc-pill.active { border-color: var(--accent); color: var(--accent); background: color-mix(in srgb, var(--accent) 10%, var(--bg2)); }
+    .cg-chapter-head { scroll-margin-top: 3.75rem; }
+
+    /* ── 01 · Numbered setup path ─────────────────────────── */
+    .cg-steps { display: flex; flex-direction: column; gap: 0.45rem; }
+    .cg-step {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.85rem;
+      padding: 0.9rem 1rem;
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+    }
+    /* State reads from the numbered badge, not a coloured edge — a completed
+       step also drops back visually so the next open one leads the eye. */
+    .cg-step.done { background: color-mix(in srgb, var(--bg2) 82%, var(--bg)); }
+    .cg-step.done .cg-step-title { color: var(--text3); }
+    .cg-step-num {
+      flex-shrink: 0;
+      width: 1.55rem;
+      height: 1.55rem;
+      border-radius: 50%;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      font-weight: 700;
+      background: var(--bg3);
+      color: var(--text3);
+      border: 1px solid var(--border);
+    }
+    .cg-step.todo .cg-step-num { background: var(--accent); color: var(--on-accent); border-color: var(--accent); }
+    .cg-step.done .cg-step-num { background: #2d9e5c; color: #fff; border-color: #2d9e5c; }
+    .cg-step-body { min-width: 0; flex: 1; }
+    .cg-step-title { font-size: 0.9rem; font-weight: 650; color: var(--text); margin-bottom: 0.2rem; }
+    .cg-step-text { margin: 0 0 0.6rem; font-size: 0.8rem; line-height: 1.5; color: var(--text3); max-width: 72ch; }
+
+    .cg-checklist-panel { margin-top: 0.3rem; }
+    .cg-checklist-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 0 1rem;
+      margin-top: 0.5rem;
+    }
+
+    /* ── 02 · Tab breakdown ───────────────────────────────── */
+    .cg-tabgroup { margin-top: 0.5rem; }
+    .cg-tabgroup-title {
+      font-family: var(--font-mono);
+      font-size: 0.68rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 0.25rem;
+    }
+    .cg-tabgroup-note {
+      margin: 0 0 0.75rem;
+      font-size: 0.8rem;
+      line-height: 1.5;
+      color: var(--text3);
+      max-width: 74ch;
+    }
+    .cg-tab-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 0.5rem;
+    }
+    .cg-tab-card {
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+      padding: 0.9rem;
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      transition: border-color 0.15s, transform 0.12s;
+    }
+    .cg-tab-card:hover { border-color: color-mix(in srgb, var(--accent) 55%, var(--border)); transform: translateY(-1px); }
+    .cg-tab-card.current { border-style: dashed; opacity: 0.85; }
+    .cg-tab-card.current:hover { transform: none; }
+    .cg-tab-head { display: flex; align-items: center; gap: 0.45rem; }
+    .cg-tab-icon { font-size: 1rem; line-height: 1; }
+    .cg-tab-name { font-size: 0.92rem; font-weight: 700; color: var(--text); }
+    .cg-tab-desc { margin: 0; font-size: 0.79rem; line-height: 1.5; color: var(--text3); flex: 1; }
+    .cg-tab-use {
+      margin: 0;
+      font-size: 0.75rem;
+      line-height: 1.45;
+      color: var(--text);
+      padding-top: 0.4rem;
+      border-top: 1px dashed var(--border);
+    }
+    .cg-tab-use span {
+      font-family: var(--font-mono);
+      font-size: 0.6rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--text3);
+      margin-right: 0.35rem;
+    }
+    .cg-tab-card .cg-mini-btn { align-self: flex-start; margin-top: 0.15rem; }
+    .cg-tab-here {
+      align-self: flex-start;
+      font-family: var(--font-mono);
+      font-size: 0.62rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-top: 0.15rem;
+    }
+
+    /* ── 03 · Concept cards + glossary ────────────────────── */
+    .cg-concept-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 0.5rem;
+    }
+    .cg-concept {
+      position: relative;
+      padding: 1rem 1rem 1rem 2.9rem;
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+    }
+    .cg-concept-icon {
+      position: absolute;
+      left: 0.9rem;
+      top: 0.95rem;
+      width: 1.5rem;
+      height: 1.5rem;
+      border-radius: 5px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.82rem;
+      line-height: 1;
+      background: color-mix(in srgb, var(--accent) 14%, var(--bg3));
+      color: var(--accent);
+      font-weight: 700;
+    }
+    .cg-concept-title { font-size: 0.88rem; font-weight: 700; color: var(--text); margin-bottom: 0.25rem; }
+    .cg-concept-body { margin: 0; font-size: 0.8rem; line-height: 1.55; color: var(--text3); }
+
+    .cg-gloss-grid { display: flex; flex-direction: column; }
+    .cg-gloss-row {
+      display: grid;
+      grid-template-columns: 150px 1fr;
+      gap: 0.9rem;
+      padding: 0.6rem 0.2rem;
+      border-bottom: 1px solid var(--border);
+    }
+    .cg-gloss-row:last-child { border-bottom: none; }
+    .cg-gloss-term {
+      font-family: var(--font-mono);
+      font-size: 0.76rem;
+      font-weight: 700;
+      color: var(--accent);
+    }
+    .cg-gloss-def { font-size: 0.8rem; line-height: 1.5; color: var(--text3); }
+
+    /* ── 05 · Your data ───────────────────────────────────── */
+    .cg-stat-num-sm { font-size: 0.95rem; }
+    /* Paired panels size to their own content: On this day holds five rows
+       while Milestones can hold ten, and stretching the short one to match
+       left a panel that was mostly empty. */
+    .cg-dual-row { align-items: start; }
+    /* A long milestone list scrolls inside its panel instead of setting the
+       height of the whole row. */
+    .cg-panel .cg-timeline { max-height: 380px; overflow-y: auto; padding-right: 0.5rem; }
+
+    /* ── 13 · Tour progress ───────────────────────────────── */
+    .cg-tour-progress-track {
+      height: 3px;
+      border-radius: 3px;
+      background: var(--bg3);
+      overflow: hidden;
+    }
+    /* Filled by scaling a full-width bar rather than animating its width, so
+       stepping through the tour never triggers a layout pass. JS sets the
+       --cg-tour-p fraction; see _dcApplyTourStep. */
+    .cg-tour-progress {
+      height: 100%;
+      width: 100%;
+      background: var(--accent);
+      transform: scaleX(var(--cg-tour-p, 0));
+      transform-origin: left center;
+      transition: transform 0.25s ease;
+    }
+
+    /* ── Responsive (chapters) ────────────────────────────── */
+    @media (max-width: 860px) {
+      .cg-tab-grid     { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .cg-concept-grid { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 720px) {
+      .cg-checklist-grid { grid-template-columns: 1fr; }
+      .cg-gloss-row      { grid-template-columns: 1fr; gap: 0.15rem; }
+      .cg-hero-progress  { width: 100%; }
+      .cg-hero-track     { max-width: none; }
+    }
+    @media (max-width: 560px) {
+      .cg-tab-grid      { grid-template-columns: 1fr; }
+      .cg-stats-row     { grid-template-columns: repeat(2, 1fr); }
+      .cg-welcome       { flex-direction: column; align-items: flex-start; }
+      /* Narrow enough that the track and its label can't share a line */
+      .cg-hero-progress      { flex-wrap: wrap; }
+      .cg-hero-progress-text { white-space: normal; }
+      .cg-chapter-head  { gap: 0.6rem; }
+      .cg-chapter-num   { font-size: 1.2rem; }
+      .cg-welcome-actions { width: 100%; }
+      .cg-welcome-actions button { flex: 1 1 auto; }
     }
 
 
