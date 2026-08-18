@@ -27,7 +27,7 @@
   <!-- html2canvas, SheetJS (xlsx) and JSZip are intentionally NOT loaded here — they
        total ~1.2 MB and are only needed for image exports and Excel/ZIP imports.
        app.js pulls them from the CDN on first use (see ensureLazyLib). -->
-  <link rel="stylesheet" href="style.css?v=217">
+  <link rel="stylesheet" href="style.css?v=223">
   <!-- All scripts are deferred so the page paints without waiting on them.
        defer preserves execution order, which matters: translations → Chart.js →
        hammer → zoom plugin → firebase SDKs → firebase.js → app.js (in body). -->
@@ -2065,28 +2065,21 @@
   <div class="awards-ceremony-overlay" id="awardsCeremonyOverlay" style="display:none;" onclick="ceremonyOverlayClick(event)">
     <div class="awards-ceremony-modal" id="awardsCeremonyModal">
       <button class="ceremony-close-btn" onclick="closeCeremony()" title="Close">✕</button>
+      <button class="ceremony-sound-btn" id="ceremonySoundBtn" onclick="ceremonyToggleSound()" title="Song previews">🔊</button>
 
       <!-- Category sidebar -->
       <div class="ceremony-sidebar" id="ceremonySidebar"></div>
 
-      <!-- Stage -->
-      <div class="ceremony-stage">
+      <!-- Stage: nominees → sealed envelope → winner -->
+      <div class="ceremony-stage" id="ceremonyStage">
+        <div class="ceremony-confetti" id="ceremonyConfetti"></div>
         <div class="ceremony-year-badge" id="ceremonyYearBadge"></div>
         <div class="ceremony-cat-name" id="ceremonyCatName"></div>
-        <div class="ceremony-nominees" id="ceremonyNominees"></div>
-        <button class="ceremony-reveal-btn" id="ceremonyRevealBtn" onclick="ceremonyReveal()">
-          ✉ <span data-i18n="awards_open_envelope">Open Envelope</span>
-        </button>
-        <div class="ceremony-winner-wrap" id="ceremonyWinnerWrap" style="display:none;">
-          <div class="ceremony-winner-label" data-i18n="awards_winner">🏆 Winner</div>
-          <div class="ceremony-winner-name" id="ceremonyWinnerName"></div>
-          <div class="ceremony-winner-sub" id="ceremonyWinnerSub"></div>
-          <div class="ceremony-confetti" id="ceremonyConfetti"></div>
-        </div>
+        <div class="ceremony-slide" id="ceremonySlide"></div>
         <div class="ceremony-nav-row">
-          <button class="ceremony-nav-btn" onclick="ceremonyNav(-1)" data-i18n="awards_ceremony_prev">◄ Previous</button>
+          <button class="ceremony-nav-btn" id="ceremonyPrevBtn" onclick="ceremonyNav(-1)" data-i18n="awards_ceremony_prev">◄ Previous</button>
           <span class="ceremony-progress" id="ceremonyProgress"></span>
-          <button class="ceremony-nav-btn" onclick="ceremonyNav(1)" data-i18n="awards_ceremony_next">Next ►</button>
+          <button class="ceremony-nav-btn" id="ceremonyNextBtn" onclick="ceremonyNav(1)">Next ►</button>
         </div>
       </div>
     </div>

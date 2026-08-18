@@ -31533,11 +31533,29 @@ async function _mbFetchAwards(artist, year) {
 }
 
 // ── Ceremony ──────────────────────────────────────────────────────────────────
+// One category per slide: the nominees with their artwork, a sealed envelope, and
+// — only once the envelope is opened — the winner, with a 30-second preview of the
+// track playing underneath. The last slide is a roll call of every winner.
 
 let _ceremonyYear = null;
 let _ceremonyCats = [];
 let _ceremonyIdx  = 0;
-let _ceremonyRevealed = false;
+let _ceremonyRevealed = new Set();   // category ids already opened this session
+let _ceremonyRenderSeq = 0;          // bumped per render so stale image loads can't land
+let _ceremonyAudio = null;           // one <audio>, reused by every slide
+let _ceremonyAudioToken = 0;         // guards async preview lookups against fast nav
+let _ceremonyFadeTimer = null;
+let _ceremonySound = localStorage.getItem('dc_ceremony_sound') !== 'off';
+let _ceremonyKeyHandler = null;
+const _ceremonyPreviewCache = {};    // "type:artist|||name" → preview url or null
+
+// Nominee showcase: walks the nominees one at a time with a clip of each, before
+// anyone touches the envelope.
+let _cerShowIdx   = -1;              // nominee being showcased, -1 = not running
+let _cerShowTimer = null;
+let _cerShowToken = 0;               // cancels a step whose async work outlived it
+const CER_SHOW_MS        = 15000;    // seconds per nominee, with sound
+const CER_SHOW_SILENT_MS = 6000;     // …and without
 
 function startAwardsCeremony() {
   const data = _awardsYearData[_awardsYear];
@@ -31549,125 +31567,537 @@ function startAwardsCeremony() {
   });
   if (!_ceremonyCats.length) return;
   _ceremonyIdx = 0;
+  _ceremonyRevealed = new Set();
   document.getElementById('awardsCeremonyOverlay').style.display = 'flex';
   document.body.style.overflow = 'hidden';
+  _ceremonyPaintSoundBtn();
   _ceremonyDrawSidebar(data);
-  _ceremonyDrawStage(data, 0);
+  _ceremonyRender();
+
+  // ← → walk the ceremony, space/enter opens the envelope, esc leaves
+  _ceremonyKeyHandler = e => {
+    if (document.getElementById('awardsCeremonyOverlay')?.style.display === 'none') return;
+    const showing = _cerShowIdx >= 0;
+    if (e.key === 'Escape')     { e.preventDefault(); showing ? cerShowStop() : closeCeremony(); }
+    else if (e.key === 'ArrowRight') { e.preventDefault(); showing ? cerShowNext() : ceremonyNav(1); }
+    else if (e.key === 'ArrowLeft')  { e.preventDefault(); showing ? cerShowPrev() : ceremonyNav(-1); }
+    else if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); ceremonyReveal(); }
+  };
+  document.addEventListener('keydown', _ceremonyKeyHandler);
 }
 
 function closeCeremony() {
   document.getElementById('awardsCeremonyOverlay').style.display = 'none';
   document.body.style.overflow = '';
+  cerShowStop(true);
+  _ceremonyStopAudio();
+  if (_ceremonyKeyHandler) { document.removeEventListener('keydown', _ceremonyKeyHandler); _ceremonyKeyHandler = null; }
 }
 
 function ceremonyOverlayClick(e) {
   if (e.target.id === 'awardsCeremonyOverlay') closeCeremony();
 }
 
+function _ceremonyIsFinale() { return _ceremonyIdx >= _ceremonyCats.length; }
+
 function _ceremonyDrawSidebar(data) {
   document.getElementById('ceremonySidebar').innerHTML =
     `<div class="ceremony-sidebar-title">${_ceremonyYear} My Grammys</div>` +
     _ceremonyCats.map((cat, i) => {
-      const done = !!data.categories[cat.id]?.winner;
-      return `<div class="ceremony-sidebar-row${i === _ceremonyIdx ? ' active' : ''}${done ? ' done' : ''}" onclick="ceremonyGoTo(${i})">
-        <span>${done ? '🏆' : '○'}</span> ${esc(t('awards_cat_' + cat.id))}
+      const hasWinner = !!data.categories[cat.id]?.winner;
+      // The trophy only appears once the envelope has actually been opened —
+      // the sidebar shouldn't spoil a category the user hasn't reached yet.
+      const opened = hasWinner && _ceremonyRevealed.has(cat.id);
+      return `<div class="ceremony-sidebar-row${i === _ceremonyIdx ? ' active' : ''}${opened ? ' done' : ''}" onclick="ceremonyGoTo(${i})">
+        <span class="ceremony-sidebar-dot">${opened ? '🏆' : (hasWinner ? '✉' : '○')}</span> ${esc(t('awards_cat_' + cat.id))}
       </div>`;
-    }).join('');
+    }).join('') +
+    `<div class="ceremony-sidebar-row ceremony-sidebar-finale${_ceremonyIsFinale() ? ' active' : ''}" onclick="ceremonyGoTo(${_ceremonyCats.length})">
+      <span class="ceremony-sidebar-dot">🎬</span> All winners
+    </div>`;
 }
 
-function _ceremonyDrawStage(data, idx) {
-  _ceremonyIdx = idx;
-  const cat     = _ceremonyCats[idx];
-  const catData = data.categories[cat.id] || { nominees: [], winner: null };
+/* ── Artwork ──────────────────────────────────────────────────────────────── */
+
+// Describe an award item the way fetchAndInjectImage() wants it, reusing the same
+// prefKey convention as the charts so a picture pinned there shows up here too.
+function _cerImgItem(item, type, imgId) {
+  const artist = item.artist || '';
+  if (type === 'artist') {
+    return { imgId, name: artist, artist, prefKey: 'artist:' + artist.toLowerCase() };
+  }
+  if (type === 'album') {
+    const album = item.album || '';
+    return { imgId, name: album, album, artist, prefKey: 'album:' + artist.toLowerCase() + '|||' + album.toLowerCase() };
+  }
+  const title = item.title || '';
+  return { imgId, name: title, title, artist, album: item.album || '', prefKey: 'song:' + artist.toLowerCase() + '|||' + title.toLowerCase() };
+}
+
+function _cerArtHtml(item, type, imgId, cls) {
+  const label = item.title || item.album || item.artist || '';
+  return `<div class="cer-art ${cls}"><div id="${imgId}"><div class="thumb-initials">${esc(initials(label))}</div></div></div>`;
+}
+
+// Load the queued artwork one at a time — fetchAndInjectImage already paces the
+// Deezer proxy, and it drops anything whose container left the DOM, so switching
+// slides mid-load resolves itself.
+async function _ceremonyLoadArt(queue, seq) {
+  for (const job of queue) {
+    if (seq !== _ceremonyRenderSeq) return;
+    const el = document.getElementById(job.imgId);
+    if (!el) continue;
+    try { await fetchAndInjectImage(el, _cerImgItem(job.item, job.type, job.imgId), job.type); } catch (e) {}
+  }
+}
+
+/* ── Slides ───────────────────────────────────────────────────────────────── */
+
+function _ceremonyRender() {
+  const data = _awardsYearData[_ceremonyYear];
+  if (!data) return;
+  cerShowStop(true);
+  _ceremonyStopAudio();
+  const seq = ++_ceremonyRenderSeq;
+  const slide = document.getElementById('ceremonySlide');
+  const badge = document.getElementById('ceremonyYearBadge');
+  const name  = document.getElementById('ceremonyCatName');
+  const prog  = document.getElementById('ceremonyProgress');
+  const nextBtn = document.getElementById('ceremonyNextBtn');
+  const prevBtn = document.getElementById('ceremonyPrevBtn');
+  badge.textContent = `${_ceremonyYear} My Grammys`;
+
+  const queue = [];
+  if (_ceremonyIsFinale()) {
+    name.textContent = 'The Winners';
+    prog.textContent = '🎬 Roll call';
+    slide.className = 'ceremony-slide is-finale';
+    slide.innerHTML = _ceremonyFinaleHtml(data, queue);
+  } else {
+    const cat     = _ceremonyCats[_ceremonyIdx];
+    const catData = data.categories[cat.id] || { nominees: [], winner: null };
+    name.textContent = t('awards_cat_' + cat.id);
+    prog.textContent = `${_ceremonyIdx + 1} / ${_ceremonyCats.length}`;
+    const opened = _ceremonyRevealed.has(cat.id) && catData.winner;
+    slide.className = 'ceremony-slide' + (opened ? ' is-revealed' : '');
+    slide.innerHTML = _ceremonyCatSlideHtml(cat, catData, queue);
+    if (opened) _ceremonyMarkWinnerCard(catData.winner);
+  }
+
+  prevBtn.disabled = _ceremonyIdx === 0;
+  nextBtn.textContent = _ceremonyIdx === _ceremonyCats.length - 1 ? '🏆 All winners' : t('awards_ceremony_next');
+  nextBtn.style.visibility = _ceremonyIsFinale() ? 'hidden' : '';
+  document.querySelectorAll('.ceremony-sidebar-row').forEach((el, i) => el.classList.toggle('active', i === _ceremonyIdx));
+  document.getElementById('ceremonyStage').scrollTop = 0;
+  _ceremonyLoadArt(queue, seq);
+}
+
+function _ceremonyCatSlideHtml(cat, catData, queue) {
   const nominees = catData.nominees || [];
   const winner   = catData.winner   || null;
+  const type     = cat.type;
+  const seq      = _ceremonyRenderSeq;
 
-  document.getElementById('ceremonyYearBadge').textContent = `${_ceremonyYear} My Grammys`;
-  document.getElementById('ceremonyCatName').textContent   = t('awards_cat_' + cat.id);
-  document.getElementById('ceremonyProgress').textContent  = `${idx + 1} / ${_ceremonyCats.length}`;
+  if (!nominees.length && !winner) return `<div class="ceremony-no-nom">${t('awards_ceremony_no_nom')}</div>`;
 
-  const wk = winner ? _awardItemKey(winner) : null;
-  document.getElementById('ceremonyNominees').innerHTML = nominees.map(n => {
-    const nik = _awardItemKey(n);
+  const cards = nominees.map((n, i) => {
+    const imgId = `cerArt_${seq}_${i}`;
+    queue.push({ imgId, item: n, type });
     const lbl = n.title || n.album || n.artist || '';
-    const sub = n.title ? n.artist : (n.album ? n.artist : (n.song || ''));
-    return `<div class="ceremony-nominee-row${nik === wk ? ' is-winner' : ''}">
-      <span class="ceremony-nom-dot">${nik === wk ? '🏆' : '○'}</span>
-      <span class="ceremony-nom-lbl">${esc(lbl)}</span>
-      ${sub ? `<span class="ceremony-nom-sub">${esc(sub)}</span>` : ''}
+    const sub = (n.title || n.album) ? (n.artist || '') : '';
+    return `<div class="cer-nom-card" data-nk="${esc(_awardItemKey(n))}">
+      ${_cerArtHtml(n, type, imgId, 'cer-art-sm')}
+      <div class="cer-nom-name">${esc(lbl)}</div>
+      ${sub ? `<div class="cer-nom-sub">${esc(sub)}</div>` : ''}
+      <span class="cer-nom-trophy">🏆</span>
     </div>`;
-  }).join('') || `<div class="ceremony-no-nom">${t('awards_ceremony_no_nom')}</div>`;
+  }).join('');
 
-  const revBtn  = document.getElementById('ceremonyRevealBtn');
-  const winWrap = document.getElementById('ceremonyWinnerWrap');
-
+  // Winner artwork is queued first so the reveal never lands on an empty square
+  let winnerHtml = '';
   if (winner) {
-    _ceremonyRevealed = true;
-    revBtn.style.display  = 'none';
-    winWrap.style.display = '';
+    const wImgId = `cerWin_${seq}`;
+    queue.unshift({ imgId: wImgId, item: winner, type });
     const lbl = winner.title || winner.album || winner.artist || '';
-    const sub = winner.title ? winner.artist : (winner.album ? winner.artist : '');
-    document.getElementById('ceremonyWinnerName').textContent = lbl;
-    document.getElementById('ceremonyWinnerSub').textContent  = sub || '';
-    _triggerConfetti();
-  } else {
-    _ceremonyRevealed = false;
-    revBtn.style.display  = '';
-    winWrap.style.display = 'none';
+    const sub = (winner.title || winner.album) ? (winner.artist || '') : '';
+    winnerHtml = `<div class="cer-winner">
+      <div class="cer-winner-art-wrap">
+        ${_cerArtHtml(winner, type, wImgId, 'cer-art-lg')}
+        <span class="cer-winner-badge">🏆</span>
+      </div>
+      <div class="cer-winner-label">${t('awards_winner')}</div>
+      <div class="cer-winner-name">${esc(lbl)}</div>
+      ${sub ? `<div class="cer-winner-sub">${esc(sub)}</div>` : ''}
+      <div class="cer-player" id="ceremonyPlayer">
+        <button class="cer-play-btn" id="ceremonyPlayBtn" onclick="ceremonyTogglePlay()" title="30-second preview">▶</button>
+        <div class="cer-player-bar"><div class="cer-player-fill" id="ceremonyPlayFill"></div></div>
+        <span class="cer-player-note" id="ceremonyPlayNote">preview</span>
+      </div>
+    </div>`;
   }
-  document.querySelectorAll('.ceremony-sidebar-row').forEach((el, i) => el.classList.toggle('active', i === idx));
+
+  // Auto categories hold a single nominee that *is* the winner, so showcasing it
+  // would give the game away — only offer the walk-through for a real field.
+  const showcaseBtn = (!cat.auto && nominees.length > 1)
+    ? `<button class="ceremony-nominees-btn" onclick="cerShowStart()">▶ Meet the nominees</button>`
+    : '';
+
+  const envelope = winner
+    ? `<div class="cer-envelope-wrap">
+         <div class="cer-envelope" onclick="ceremonyReveal()" role="button" tabindex="0" title="Open the envelope">
+           <div class="cer-env-back"></div>
+           <div class="cer-env-card"><span class="cer-env-card-star">🏆</span></div>
+           <div class="cer-env-front"></div>
+           <div class="cer-env-flap"></div>
+           <div class="cer-env-seal">★</div>
+         </div>
+         <div class="cer-cta-row">
+           ${showcaseBtn}
+           <button class="ceremony-reveal-btn" onclick="ceremonyReveal()">✉ ${t('awards_open_envelope')}</button>
+         </div>
+       </div>`
+    : `<div class="cer-no-winner">No winner crowned in this category yet — close the ceremony and click a nominee to crown one.</div>`;
+
+  return `<div class="cer-nominees">${cards}</div>${envelope}${winnerHtml}`;
 }
 
+function _ceremonyFinaleHtml(data, queue) {
+  const seq = _ceremonyRenderSeq;
+  const rows = _ceremonyCats.map((cat, i) => {
+    const w = data.categories[cat.id]?.winner;
+    if (!w) return '';
+    const imgId = `cerFin_${seq}_${i}`;
+    queue.push({ imgId, item: w, type: cat.type });
+    const lbl = w.title || w.album || w.artist || '';
+    const sub = (w.title || w.album) ? (w.artist || '') : '';
+    return `<div class="cer-fin-card" onclick="ceremonyGoTo(${i})" title="${esc(t('awards_cat_' + cat.id))}">
+      ${_cerArtHtml(w, cat.type, imgId, 'cer-art-md')}
+      <div class="cer-fin-cat">${esc(t('awards_cat_' + cat.id))}</div>
+      <div class="cer-fin-name">${esc(lbl)}</div>
+      ${sub ? `<div class="cer-fin-sub">${esc(sub)}</div>` : ''}
+    </div>`;
+  }).join('');
+  if (!rows) return `<div class="ceremony-no-nom">No winners crowned yet.</div>`;
+  return `<div class="cer-finale-grid">${rows}</div>`;
+}
+
+/* ── The reveal ───────────────────────────────────────────────────────────── */
+
 function ceremonyReveal() {
-  if (_ceremonyRevealed) return;
-  const data   = _awardsYearData[_ceremonyYear];
-  if (!data) return;
-  const winner = data.categories[_ceremonyCats[_ceremonyIdx].id]?.winner;
-  document.getElementById('ceremonyRevealBtn').style.display = 'none';
-  const winWrap = document.getElementById('ceremonyWinnerWrap');
-  winWrap.style.display = '';
-  const lbl = winner ? (winner.title || winner.album || winner.artist || 'Unknown') : '—';
-  const sub = winner?.title ? winner.artist : (winner?.album ? winner.artist : '');
-  document.getElementById('ceremonyWinnerName').textContent = lbl;
-  document.getElementById('ceremonyWinnerSub').textContent  = sub || '';
-  if (winner) {
-    document.querySelectorAll('.ceremony-nominee-row').forEach(row => {
-      if (row.querySelector('.ceremony-nom-lbl')?.textContent === lbl) row.classList.add('is-winner', 'winner-flash');
-    });
+  if (_ceremonyIsFinale()) return;
+  const cat  = _ceremonyCats[_ceremonyIdx];
+  const data = _awardsYearData[_ceremonyYear];
+  const winner = data?.categories?.[cat?.id]?.winner;
+  if (!cat || !winner || _ceremonyRevealed.has(cat.id)) return;
+  const slide = document.getElementById('ceremonySlide');
+  if (!slide || slide.classList.contains('is-opening')) return;
+
+  cerShowStop(true);                           // opening the envelope ends the walk-through
+  _ceremonyRevealed.add(cat.id);
+  slide.classList.add('is-opening');           // flap lifts, the card rides up out of it
+  setTimeout(() => {
+    slide.classList.remove('is-opening');
+    slide.classList.add('is-revealed');
+    _ceremonyMarkWinnerCard(winner);
+    // Ride down to the very bottom: the winner is the last thing on the slide, and at
+    // full scroll the sticky nav sits in its natural place instead of over the player.
+    const stage = document.getElementById('ceremonyStage');
+    if (stage) stage.scrollTo({ top: stage.scrollHeight, behavior: 'smooth' });
     _triggerConfetti();
-  }
-  _ceremonyRevealed = true;
+    _ceremonyDrawSidebar(data);
+    _ceremonyStartPreview(winner, cat.type);   // still inside the click's activation, so autoplay is allowed
+  }, 1150);
+}
+
+// Ring the winning nominee in gold and fade the rest of the field
+function _ceremonyMarkWinnerCard(winner) {
+  const wk = _awardItemKey(winner);
+  document.querySelectorAll('.cer-nom-card').forEach(card => {
+    card.classList.toggle('is-winner', card.dataset.nk === wk);
+    card.classList.toggle('is-dimmed', card.dataset.nk !== wk);
+  });
 }
 
 function ceremonyNav(delta) {
   const data = _awardsYearData[_ceremonyYear];
   if (!data) return;
-  const newIdx = Math.max(0, Math.min(_ceremonyCats.length - 1, _ceremonyIdx + delta));
-  _ceremonyRevealed = false;
-  _ceremonyDrawStage(data, newIdx);
+  const idx = Math.max(0, Math.min(_ceremonyCats.length, _ceremonyIdx + delta));
+  if (idx === _ceremonyIdx) return;
+  _ceremonyIdx = idx;
   _ceremonyDrawSidebar(data);
+  _ceremonyRender();
 }
 
 function ceremonyGoTo(idx) {
   const data = _awardsYearData[_ceremonyYear];
   if (!data) return;
-  _ceremonyRevealed = false;
-  _ceremonyDrawStage(data, idx);
+  _ceremonyIdx = Math.max(0, Math.min(_ceremonyCats.length, idx));
   _ceremonyDrawSidebar(data);
+  _ceremonyRender();
+}
+
+/* ── Song previews ────────────────────────────────────────────────────────── */
+
+// 30-second clip for the winner: iTunes first (no proxy, wide catalogue), Deezer second.
+async function _ceremonyPreviewUrl(item, type) {
+  const artist = item.artist || '';
+  const name   = type === 'album' ? (item.album || '') : type === 'artist' ? '' : (item.title || '');
+  const key    = `${type}:${artist.toLowerCase()}|||${name.toLowerCase()}`;
+  if (key in _ceremonyPreviewCache) return _ceremonyPreviewCache[key];
+
+  const term = `${artist} ${name}`.trim();
+  let url = null;
+  try {
+    const r = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(term)}&entity=song&limit=5`);
+    const d = await r.json();
+    url = (d?.results || []).find(x => x.previewUrl)?.previewUrl || null;
+  } catch (e) {}
+  if (!url) {
+    try {
+      const d = await deezerFetch(`search/track?q=${encodeURIComponent(term)}&limit=5`);
+      url = (d?.data || []).find(x => x.preview)?.preview || null;
+    } catch (e) {}
+  }
+  _ceremonyPreviewCache[key] = url;
+  return url;
+}
+
+function _ceremonyPaintPlayer(state, note) {
+  const btn  = document.getElementById('ceremonyPlayBtn');
+  const noteEl = document.getElementById('ceremonyPlayNote');
+  if (btn)  btn.textContent = state;
+  if (noteEl && note !== undefined) noteEl.textContent = note;
+}
+
+// Shared clip player. `paint(state, note)` lets the winner panel and the nominee
+// showcase report progress in their own UI. Resolves with the playing audio, or
+// null when there was nothing to play.
+async function _ceremonyPlayClip(item, type, opts) {
+  opts = opts || {};
+  const paint = opts.paint || (() => {});
+  _ceremonyStopAudio();
+  if (!_ceremonySound) { paint('▶', 'previews muted'); return null; }
+  const token = ++_ceremonyAudioToken;
+  paint('◌', 'finding preview…');
+
+  const url = await _ceremonyPreviewUrl(item, type);
+  if (token !== _ceremonyAudioToken) return null;
+  if (!url) { paint('▶', 'no preview found'); return null; }
+
+  const audio = _ceremonyAudio = new Audio(url);
+  audio.volume = 0;
+  if (opts.fillId) {
+    audio.addEventListener('timeupdate', () => {
+      const fill = document.getElementById(opts.fillId);
+      if (fill && audio.duration) fill.style.width = (audio.currentTime / audio.duration * 100) + '%';
+    });
+  }
+  audio.addEventListener('ended', () => paint('▶', opts.endNote || 'replay preview'));
+  try {
+    await audio.play();
+    if (token !== _ceremonyAudioToken) { audio.pause(); return null; }
+    paint('❚❚', opts.playingNote || '30-second preview');
+    _ceremonyFadeIn(audio);
+    return audio;
+  } catch (e) {
+    // Autoplay refused (no user gesture credited) — leave it under the play button
+    paint('▶', 'tap to hear it');
+    audio.volume = 0.7;
+    return null;
+  }
+}
+
+function _ceremonyStartPreview(item, type) {
+  return _ceremonyPlayClip(item, type, {
+    paint: _ceremonyPaintPlayer,
+    fillId: 'ceremonyPlayFill',
+    playingNote: '30-second preview',
+  });
+}
+
+/* ── Nominee showcase ─────────────────────────────────────────────────────── */
+
+function _ceremonyNominees() {
+  const cat = _ceremonyCats[_ceremonyIdx];
+  if (!cat) return [];
+  return _awardsYearData[_ceremonyYear]?.categories?.[cat.id]?.nominees || [];
+}
+
+function cerShowStart() {
+  if (_ceremonyIsFinale() || _cerShowIdx >= 0) return;
+  const noms = _ceremonyNominees();
+  const slide = document.getElementById('ceremonySlide');
+  if (!noms.length || !slide || slide.classList.contains('is-revealed')) return;
+
+  slide.classList.add('is-showcasing');
+  const panel = document.createElement('div');
+  panel.className = 'cer-showcase';
+  panel.id = 'cerShowcase';
+  panel.innerHTML = `
+    <div class="cer-show-step" id="cerShowStep"></div>
+    <div class="cer-art cer-art-lg" id="cerShowArt"></div>
+    <div class="cer-show-name" id="cerShowName"></div>
+    <div class="cer-show-sub" id="cerShowSub"></div>
+    <div class="cer-show-bar"><div class="cer-show-fill" id="cerShowFill"></div></div>
+    <div class="cer-show-note" id="cerShowNote"></div>
+    <div class="cer-show-controls">
+      <button onclick="cerShowPrev()" title="Previous nominee">◄</button>
+      <button onclick="cerShowNext()" title="Next nominee">Skip ►</button>
+      <button onclick="cerShowStop()" title="Back to the envelope">■ Stop</button>
+    </div>`;
+  slide.insertBefore(panel, slide.querySelector('.cer-envelope-wrap') || null);
+  // Ride to the bottom so the showcase controls clear the sticky nav row
+  const stage = document.getElementById('ceremonyStage');
+  if (stage) requestAnimationFrame(() => stage.scrollTo({ top: stage.scrollHeight, behavior: 'smooth' }));
+  _cerShowStep(0);
+}
+
+async function _cerShowStep(i) {
+  clearTimeout(_cerShowTimer);
+  const token = ++_cerShowToken;
+  const noms  = _ceremonyNominees();
+  const cat   = _ceremonyCats[_ceremonyIdx];
+  if (!cat || !document.getElementById('cerShowcase')) return;
+  if (i >= noms.length) { cerShowStop(); return; }     // the field is done — back to the envelope
+
+  _cerShowIdx = i;
+  const nom = noms[i];
+  _cerShowPaint(i, nom, noms.length);
+
+  const audio = await _ceremonyPlayClip(nom, cat.type, {
+    paint: (state, note) => { const el = document.getElementById('cerShowNote'); if (el && note) el.textContent = note; },
+    playingNote: 'now playing',
+  });
+  if (token !== _cerShowToken) return;
+
+  const ms = audio ? CER_SHOW_MS : CER_SHOW_SILENT_MS;
+  _cerShowRunBar(ms);
+  _cerShowTimer = setTimeout(() => _cerShowStep(i + 1), ms);
+}
+
+function _cerShowPaint(i, nom, total) {
+  const lbl = nom.title || nom.album || nom.artist || '';
+  const sub = (nom.title || nom.album) ? (nom.artist || '') : '';
+  const step = document.getElementById('cerShowStep');
+  if (step) step.textContent = `Nominee ${i + 1} of ${total}`;
+  const nameEl = document.getElementById('cerShowName');
+  if (nameEl) nameEl.textContent = lbl;
+  const subEl = document.getElementById('cerShowSub');
+  if (subEl) subEl.textContent = sub;
+
+  // Borrow the artwork the nominee strip already loaded rather than fetching it twice
+  const art = document.getElementById('cerShowArt');
+  if (art) {
+    const src = document.querySelectorAll('.cer-nom-card')[i]?.querySelector('img.thumb')?.src;
+    art.innerHTML = src
+      ? `<img class="thumb" alt="" src="${esc(src)}">`
+      : `<div class="thumb-initials">${esc(initials(lbl))}</div>`;
+  }
+  _cerShowSpotlight(i);
+}
+
+// Light up the nominee being played, fade the rest of the field
+function _cerShowSpotlight(i) {
+  document.querySelectorAll('.cer-nom-card').forEach((card, n) => {
+    card.classList.toggle('is-spotlight', n === i);
+    card.classList.toggle('is-dimmed', n !== i);
+  });
+}
+
+// The bar is driven by the clock, not the audio, so it still counts down in silence
+function _cerShowRunBar(ms) {
+  const fill = document.getElementById('cerShowFill');
+  if (!fill) return;
+  fill.style.transition = 'none';
+  fill.style.width = '0%';
+  void fill.offsetWidth;
+  fill.style.transition = `width ${ms}ms linear`;
+  fill.style.width = '100%';
+}
+
+function cerShowNext() { if (_cerShowIdx >= 0) _cerShowStep(_cerShowIdx + 1); }
+function cerShowPrev() { if (_cerShowIdx > 0)  _cerShowStep(_cerShowIdx - 1); }
+
+function cerShowStop(quiet) {
+  clearTimeout(_cerShowTimer);
+  _cerShowTimer = null;
+  _cerShowToken++;
+  const wasRunning = _cerShowIdx >= 0;
+  _cerShowIdx = -1;
+  if (wasRunning) _ceremonyStopAudio();
+  document.getElementById('cerShowcase')?.remove();
+  const slide = document.getElementById('ceremonySlide');
+  if (slide) slide.classList.remove('is-showcasing');
+  document.querySelectorAll('.cer-nom-card').forEach(c => c.classList.remove('is-spotlight', 'is-dimmed'));
+  if (wasRunning && !quiet) {
+    // Hand the moment back to the envelope
+    const env = document.querySelector('.cer-envelope');
+    if (env) {
+      env.classList.add('is-ready');
+      env.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  }
+}
+
+function _ceremonyFadeIn(audio) {
+  clearInterval(_ceremonyFadeTimer);
+  let v = 0;
+  _ceremonyFadeTimer = setInterval(() => {
+    v = Math.min(0.7, v + 0.07);
+    if (audio === _ceremonyAudio) audio.volume = v;
+    if (v >= 0.7) clearInterval(_ceremonyFadeTimer);
+  }, 60);
+}
+
+function _ceremonyStopAudio() {
+  _ceremonyAudioToken++;
+  clearInterval(_ceremonyFadeTimer);
+  if (_ceremonyAudio) { try { _ceremonyAudio.pause(); } catch (e) {} _ceremonyAudio = null; }
+  const fill = document.getElementById('ceremonyPlayFill');
+  if (fill) fill.style.width = '0%';
+}
+
+function ceremonyTogglePlay() {
+  if (_ceremonyAudio) {
+    if (_ceremonyAudio.paused) { _ceremonyAudio.play().then(() => _ceremonyPaintPlayer('❚❚', '30-second preview')).catch(() => {}); }
+    else { _ceremonyAudio.pause(); _ceremonyPaintPlayer('▶', 'paused'); }
+    return;
+  }
+  // No clip loaded yet (muted, autoplay refused, or a fresh visit) — fetch it now
+  if (_ceremonyIsFinale()) return;
+  const cat = _ceremonyCats[_ceremonyIdx];
+  const winner = _awardsYearData[_ceremonyYear]?.categories?.[cat.id]?.winner;
+  if (!winner) return;
+  if (!_ceremonySound) { _ceremonySound = true; localStorage.setItem('dc_ceremony_sound', 'on'); _ceremonyPaintSoundBtn(); }
+  _ceremonyStartPreview(winner, cat.type);
+}
+
+function ceremonyToggleSound() {
+  _ceremonySound = !_ceremonySound;
+  localStorage.setItem('dc_ceremony_sound', _ceremonySound ? 'on' : 'off');
+  _ceremonyPaintSoundBtn();
+  if (!_ceremonySound) { _ceremonyStopAudio(); _ceremonyPaintPlayer('▶', 'preview muted'); }
+}
+
+function _ceremonyPaintSoundBtn() {
+  const btn = document.getElementById('ceremonySoundBtn');
+  if (!btn) return;
+  btn.textContent = _ceremonySound ? '🔊' : '🔇';
+  btn.title = _ceremonySound ? 'Song previews on' : 'Song previews off';
 }
 
 function _triggerConfetti() {
   const el = document.getElementById('ceremonyConfetti');
   if (!el) return;
   el.innerHTML = '';
-  const colors = ['#FFD700','#FF69B4','#00CED1','#FF6347','#7B68EE','#32CD32','#FF8C00'];
-  for (let i = 0; i < 60; i++) {
+  const colors = ['#FFD700','#FFC04D','#FF69B4','#00CED1','#FF6347','#7B68EE','#32CD32','#FF8C00'];
+  for (let i = 0; i < 90; i++) {
     const p = document.createElement('div');
     p.className = 'confetti-piece';
-    p.style.cssText = `left:${Math.random()*100}%;background:${colors[i%colors.length]};animation-delay:${(Math.random()*0.8).toFixed(2)}s;animation-duration:${(1+Math.random()).toFixed(2)}s;width:${6+Math.random()*6|0}px;height:${6+Math.random()*6|0}px;border-radius:${Math.random()>.5?'50%':'3px'};`;
+    p.style.cssText = `left:${Math.random()*100}%;background:${colors[i%colors.length]};animation-delay:${(Math.random()*0.9).toFixed(2)}s;animation-duration:${(1.6+Math.random()*1.4).toFixed(2)}s;width:${6+Math.random()*6|0}px;height:${6+Math.random()*6|0}px;border-radius:${Math.random()>.5?'50%':'3px'};`;
     el.appendChild(p);
   }
-  setTimeout(() => { if (el) el.innerHTML = ''; }, 2500);
+  setTimeout(() => { if (el) el.innerHTML = ''; }, 3600);
 }
 
 // ═══════════════════════════════════════════════════════════════

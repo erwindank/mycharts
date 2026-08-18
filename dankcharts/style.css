@@ -22413,87 +22413,417 @@ body[class*="-light"] .tm-card-search:hover {
   text-align: center;
   margin-bottom: 24px;
 }
-.ceremony-nominees {
+/* Slide: nominee cards → sealed envelope → winner */
+.ceremony-slide {
   width: 100%;
-  max-width: 400px;
-  margin-bottom: 24px;
   display: flex;
   flex-direction: column;
-  gap: 6px;
-}
-.ceremony-nominee-row {
-  display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 8px 12px;
-  border-radius: 8px;
+  gap: 18px;
+  margin-bottom: 18px;
+}
+
+/* Artwork wells — fetchAndInjectImage drops a .thumb or .thumb-initials inside,
+   both of which are hard-sized for chart rows, so override them here. */
+.cer-art {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1;
+  border-radius: 9px;
+  overflow: hidden;
+  background: var(--surface3);
+}
+.cer-art > div { width: 100%; height: 100%; }
+.cer-art .thumb,
+.cer-art .thumb-initials {
+  width: 100% !important;
+  height: 100% !important;
+  border-radius: 0 !important;
+  border: none !important;
+  object-fit: cover;
+}
+.cer-art-lg { width: 172px; border-radius: 16px; }
+.cer-art-lg .thumb-initials { font-size: 2.4rem !important; }
+
+/* Nominee strip */
+.cer-nominees {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+}
+.cer-nom-card {
+  position: relative;
+  width: 118px;
+  padding: 8px;
+  border-radius: 12px;
   background: var(--surface2);
   border: 1.5px solid var(--border);
-  font-size: 0.82rem;
-  color: var(--text2);
-  transition: border-color 0.3s, background 0.3s;
+  text-align: center;
+  transition: opacity 0.45s, transform 0.45s, border-color 0.45s, box-shadow 0.45s;
 }
-.ceremony-nominee-row.is-winner {
+.cer-nom-card.is-dimmed { opacity: 0.34; transform: scale(0.94); }
+.cer-nom-card.is-winner {
   border-color: #FFD700;
-  background: #FFD70015;
+  box-shadow: 0 0 0 1px #FFD70055, 0 10px 28px #FFD70033;
+  transform: translateY(-4px);
+}
+.cer-nom-trophy {
+  position: absolute;
+  top: -10px; right: -7px;
+  font-size: 1.05rem;
+  opacity: 0;
+  transform: scale(0.3) rotate(-30deg);
+  transition: opacity 0.35s, transform 0.45s cubic-bezier(0.3, 1.7, 0.5, 1);
+}
+.cer-nom-card.is-winner .cer-nom-trophy { opacity: 1; transform: scale(1) rotate(0); }
+.cer-nom-name {
+  font-size: 0.74rem;
+  font-weight: 600;
   color: var(--text1);
-  font-weight: 700;
+  margin-top: 7px;
+  line-height: 1.25;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
 }
-@keyframes winnerFlash {
-  0%   { background: #FFD70030; }
-  50%  { background: #FFD70060; }
-  100% { background: #FFD70015; }
+.cer-nom-sub {
+  font-size: 0.66rem;
+  color: var(--text3);
+  margin-top: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
-.ceremony-nominee-row.winner-flash { animation: winnerFlash 0.5s ease 2; }
-.ceremony-nom-dot { font-size: 1rem; min-width: 20px; }
-.ceremony-nom-lbl { flex: 1; }
-.ceremony-nom-sub { font-size: 0.72rem; color: var(--text3); }
-.ceremony-no-nom  { font-size: 0.78rem; color: var(--text3); text-align: center; }
+
+/* The envelope */
+.cer-envelope-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  transition: opacity 0.45s, transform 0.45s;
+}
+.cer-envelope {
+  position: relative;
+  width: 236px;
+  height: 152px;
+  cursor: pointer;
+  perspective: 900px;
+  filter: drop-shadow(0 14px 28px rgba(0,0,0,0.45));
+  animation: cerEnvFloat 3.4s ease-in-out infinite;
+}
+@keyframes cerEnvFloat {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-6px); }
+}
+.cer-env-back {
+  position: absolute; inset: 0;
+  border-radius: 10px;
+  background: linear-gradient(155deg, #3a4266, #232a45);
+  border: 1px solid #ffffff1f;
+  z-index: 1;
+}
+/* The card sits *behind* the front pocket, so opening the flap and sliding it up
+   is what makes it appear — it must never peek out of a sealed envelope. */
+.cer-env-card {
+  position: absolute;
+  left: 16px; right: 16px; top: 18px;
+  height: 104px;
+  border-radius: 6px;
+  background: linear-gradient(180deg, #fffdf4, #ece2c8);
+  box-shadow: 0 6px 16px rgba(0,0,0,0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.7rem;
+  z-index: 2;
+  transition: transform 0.8s cubic-bezier(0.2, 0.9, 0.25, 1);
+}
+.cer-env-front {
+  position: absolute; inset: 0;
+  border-radius: 10px;
+  overflow: hidden;
+  background: linear-gradient(170deg, #2b3252, #1e2440);
+  border: 1px solid #ffffff14;
+  z-index: 3;
+}
+/* The two folded side panels of the pocket, meeting in a V */
+.cer-env-front::before,
+.cer-env-front::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+}
+.cer-env-front::before { clip-path: polygon(0 0, 52% 46%, 0 100%); background: #3a4266; }
+.cer-env-front::after  { clip-path: polygon(100% 0, 48% 46%, 100% 100%); background: #333b5c; }
+.cer-env-flap {
+  position: absolute;
+  left: 0; right: 0; top: 0;
+  height: 72%;
+  background: linear-gradient(180deg, #444d75, #2d3455);
+  clip-path: polygon(0 0, 100% 0, 50% 100%);
+  border-radius: 10px 10px 0 0;
+  transform-origin: top center;
+  z-index: 4;
+}
+.cer-env-seal {
+  position: absolute;
+  left: 50%; top: 50%;
+  width: 34px; height: 34px;
+  margin: -17px 0 0 -17px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 34% 28%, #ffe680, #c9a227);
+  color: #5a4200;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.9rem;
+  box-shadow: 0 2px 9px rgba(0,0,0,0.45);
+  z-index: 5;
+  transition: opacity 0.3s, transform 0.45s;
+}
+/* Opening: the seal pops, the flap swings back (dropping behind the pocket halfway
+   through, so it can't cover the card), then the card rides up and out. */
+@keyframes cerFlapOpen {
+  0%   { transform: rotateX(0deg);    z-index: 4; }
+  /* Drop behind the pocket only once the flap is past edge-on (~90°), so it
+     doesn't blink out of sight while it is still facing the viewer. */
+  29%  { z-index: 4; }
+  30%  { z-index: 1; }
+  100% { transform: rotateX(-168deg); z-index: 1; }
+}
+.ceremony-slide.is-opening .cer-envelope  { animation: none; pointer-events: none; }
+.ceremony-slide.is-opening .cer-env-flap  { animation: cerFlapOpen 0.62s ease-out forwards; }
+.ceremony-slide.is-opening .cer-env-seal  { opacity: 0; transform: scale(0.35) rotate(20deg); }
+.ceremony-slide.is-opening .cer-env-card  { transform: translateY(-96px) scale(1.05); transition-delay: 0.42s; }
+.ceremony-slide.is-opening .ceremony-reveal-btn { opacity: 0; pointer-events: none; }
 
 .ceremony-reveal-btn {
-  padding: 10px 32px;
-  background: linear-gradient(135deg, #6366f1, #8b5cf6);
-  color: #fff;
-  font-weight: 700;
-  font-size: 0.9rem;
+  padding: 10px 30px;
+  background: linear-gradient(135deg, #FFD700, #E0A500);
+  color: #3a2c00;
+  font-weight: 800;
+  font-size: 0.88rem;
+  letter-spacing: 0.02em;
   border: none;
   border-radius: 24px;
   cursor: pointer;
-  box-shadow: 0 4px 16px #6366f144;
-  margin-bottom: 20px;
-  transition: transform 0.15s, box-shadow 0.15s;
+  box-shadow: 0 6px 20px #FFD70033;
+  transition: transform 0.15s, box-shadow 0.15s, opacity 0.3s;
 }
-.ceremony-reveal-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 22px #8b5cf666; }
+.ceremony-reveal-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 26px #FFD70055; }
 
-.ceremony-winner-wrap {
-  text-align: center;
-  margin-bottom: 20px;
-  position: relative;
-}
-.ceremony-winner-label {
-  font-size: 0.82rem;
+/* Nominee showcase — the suspense lap before anyone opens the envelope */
+.cer-cta-row { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; }
+.ceremony-nominees-btn {
+  padding: 10px 22px;
+  background: var(--surface2);
+  border: 1.5px solid var(--border);
+  border-radius: 24px;
+  color: var(--text2);
   font-weight: 700;
-  color: var(--gold1);
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  margin-bottom: 6px;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s, transform 0.15s;
 }
-.ceremony-winner-name {
-  font-size: 1.5rem;
+.ceremony-nominees-btn:hover { color: var(--text1); border-color: var(--accent); transform: translateY(-2px); }
+
+.ceremony-slide.is-showcasing .cer-envelope-wrap { display: none; }
+.cer-showcase {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  animation: cerShowIn 0.4s ease both;
+}
+@keyframes cerShowIn {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: none; }
+}
+.cer-show-step {
+  font-size: 0.66rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 12px;
+}
+.cer-showcase .cer-art-lg { box-shadow: 0 16px 40px rgba(0,0,0,0.55), 0 0 0 1px var(--border); }
+.cer-show-name {
+  font-size: 1.35rem;
   font-weight: 800;
   color: var(--text1);
-  margin-bottom: 4px;
+  text-align: center;
+  line-height: 1.2;
+  margin-top: 16px;
 }
-.ceremony-winner-sub { font-size: 0.85rem; color: var(--text3); }
+.cer-show-sub { font-size: 0.85rem; color: var(--text3); margin-top: 2px; }
+.cer-show-bar {
+  width: 200px;
+  height: 4px;
+  border-radius: 3px;
+  background: var(--surface3);
+  overflow: hidden;
+  margin-top: 14px;
+}
+.cer-show-fill { height: 100%; width: 0; background: linear-gradient(90deg, var(--accent), #FFD700); }
+.cer-show-note { font-size: 0.68rem; color: var(--text3); margin-top: 6px; min-height: 14px; }
+.cer-show-controls { display: flex; gap: 8px; margin-top: 12px; }
+.cer-show-controls button {
+  padding: 5px 14px;
+  border-radius: 20px;
+  border: 1.5px solid var(--border);
+  background: var(--surface2);
+  color: var(--text3);
+  font-size: 0.74rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+.cer-show-controls button:hover { color: var(--text1); border-color: var(--accent); }
+
+/* The nominee currently on the clip */
+.cer-nom-card.is-spotlight {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px var(--accent), 0 10px 26px rgba(0,0,0,0.4);
+  transform: translateY(-4px) scale(1.04);
+  opacity: 1;
+}
+/* Envelope after the walk-through: it is the only thing left to do */
+.cer-envelope.is-ready { filter: drop-shadow(0 14px 30px rgba(0,0,0,0.45)) drop-shadow(0 0 18px #FFD70055); }
+
+/* Winner panel — hidden until the envelope is open */
+.cer-winner { display: none; flex-direction: column; align-items: center; }
+.ceremony-slide.is-revealed .cer-envelope-wrap { display: none; }
+.ceremony-slide.is-revealed .cer-winner {
+  display: flex;
+  animation: cerWinnerIn 0.75s cubic-bezier(0.2, 1.35, 0.4, 1) both;
+}
+@keyframes cerWinnerIn {
+  0%   { opacity: 0; transform: scale(0.7) translateY(24px); }
+  100% { opacity: 1; transform: scale(1) translateY(0); }
+}
+.cer-winner-art-wrap { position: relative; }
+.cer-winner-art-wrap .cer-art {
+  box-shadow: 0 0 0 2px #FFD70088, 0 18px 44px rgba(0,0,0,0.55), 0 0 60px #FFD70022;
+}
+.cer-winner-badge {
+  position: absolute;
+  bottom: -12px; right: -12px;
+  width: 42px; height: 42px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 34% 28%, #ffe680, #d4a017);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.2rem;
+  box-shadow: 0 6px 16px rgba(0,0,0,0.5);
+}
+.cer-winner-label {
+  margin-top: 20px;
+  font-size: 0.75rem;
+  font-weight: 800;
+  color: var(--gold1);
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+}
+.cer-winner-name {
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: var(--text1);
+  text-align: center;
+  line-height: 1.2;
+  margin-top: 4px;
+}
+.cer-winner-sub { font-size: 0.9rem; color: var(--text3); margin-top: 2px; }
+
+/* 30-second preview player */
+.cer-player {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 16px;
+  padding: 5px 14px 5px 5px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 24px;
+}
+.cer-play-btn {
+  width: 32px; height: 32px;
+  flex-shrink: 0;
+  border: none;
+  border-radius: 50%;
+  background: var(--accent);
+  color: var(--on-accent);
+  font-size: 0.78rem;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+}
+.cer-play-btn:hover { opacity: 0.88; }
+.cer-player-bar { width: 110px; height: 4px; border-radius: 3px; background: var(--surface3); overflow: hidden; }
+.cer-player-fill { height: 100%; width: 0; background: linear-gradient(90deg, #FFD700, var(--accent)); transition: width 0.25s linear; }
+.cer-player-note { font-size: 0.68rem; color: var(--text3); min-width: 96px; }
+
+.cer-no-winner {
+  font-size: 0.8rem;
+  color: var(--text3);
+  text-align: center;
+  max-width: 320px;
+  line-height: 1.5;
+}
+.ceremony-no-nom { font-size: 0.78rem; color: var(--text3); text-align: center; }
+
+/* Roll call of every winner */
+.cer-finale-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(134px, 1fr));
+  gap: 12px;
+  width: 100%;
+}
+.cer-fin-card {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 8px;
+  text-align: center;
+  cursor: pointer;
+  transition: transform 0.15s, border-color 0.15s, box-shadow 0.15s;
+}
+.cer-fin-card:hover { transform: translateY(-3px); border-color: #FFD700; box-shadow: 0 8px 22px #FFD70022; }
+.cer-fin-cat {
+  font-size: 0.58rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-weight: 700;
+  color: var(--text3);
+  margin-top: 7px;
+}
+.cer-fin-name { font-size: 0.78rem; font-weight: 700; color: var(--text1); line-height: 1.25; }
+.cer-fin-sub  { font-size: 0.68rem; color: var(--text3); }
+
+/* Sound toggle, next to the close button */
+.ceremony-sound-btn {
+  position: absolute;
+  top: 12px; right: 52px;
+  background: var(--surface3);
+  border: 1px solid var(--border);
+  color: var(--text2);
+  border-radius: 50%;
+  width: 30px; height: 30px;
+  font-size: 0.85rem;
+  cursor: pointer;
+  z-index: 10;
+  display: flex; align-items: center; justify-content: center;
+}
+.ceremony-sound-btn:hover { color: var(--text1); border-color: var(--accent); }
+
 .ceremony-confetti {
   position: absolute;
   inset: 0;
   pointer-events: none;
   overflow: hidden;
+  z-index: 6;
 }
 @keyframes confettiFall {
-  0%   { transform: translateY(-20px) rotate(0deg); opacity: 1; }
-  100% { transform: translateY(120px) rotate(360deg); opacity: 0; }
+  0%   { transform: translateY(-30px) rotate(0deg); opacity: 1; }
+  100% { transform: translateY(78vh) rotate(720deg); opacity: 0; }
 }
 .confetti-piece {
   position: absolute;
@@ -22504,9 +22834,16 @@ body[class*="-light"] .tm-card-search:hover {
 .ceremony-nav-row {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 16px;
   margin-top: auto;
-  padding-top: 12px;
+  /* The stage scrolls once a winner is on screen — keep the controls reachable */
+  position: sticky;
+  bottom: -1px;
+  width: 100%;
+  padding: 10px 0 2px;
+  background: linear-gradient(to bottom, transparent, var(--surface1) 28%);
+  z-index: 7;
 }
 .ceremony-nav-btn {
   padding: 6px 16px;
@@ -22519,6 +22856,9 @@ body[class*="-light"] .tm-card-search:hover {
   transition: background 0.12s;
 }
 .ceremony-nav-btn:hover { background: var(--surface3); color: var(--text1); }
+.ceremony-nav-btn:disabled { opacity: 0.35; cursor: default; }
+.ceremony-sidebar-dot { width: 14px; text-align: center; }
+.ceremony-sidebar-finale { border-top: 1px solid var(--border); margin-top: 6px; padding-top: 10px; }
 .ceremony-progress { font-size: 0.75rem; color: var(--text3); font-family: var(--font-sans); font-weight: 600; }
 
 /* Mobile responsiveness */
@@ -22534,6 +22874,7 @@ body[class*="-light"] .tm-card-search:hover {
     flex-wrap: nowrap;
     overflow-x: auto;
     padding: 6px 4px;
+    padding-right: 88px;
     gap: 4px;
   }
   .ceremony-sidebar-title { display: none; }
@@ -22548,6 +22889,14 @@ body[class*="-light"] .tm-card-search:hover {
   .ceremony-sidebar-row.active { border-left: none; border-bottom-color: var(--accent); }
   .ceremony-stage { padding: 16px 14px 12px; }
   .ceremony-cat-name { font-size: 1.1rem; }
+  .cer-nom-card { width: 96px; padding: 6px; }
+  .cer-nom-name { font-size: 0.68rem; }
+  .cer-envelope { width: 190px; height: 124px; }
+  .cer-art-lg { width: 140px; }
+  .cer-winner-name { font-size: 1.25rem; }
+  .cer-finale-grid { grid-template-columns: repeat(auto-fill, minmax(108px, 1fr)); }
+  .cer-show-name { font-size: 1.1rem; }
+  .cer-show-bar { width: 160px; }
   #awardsCatList { grid-template-columns: 1fr; }
   .awards-cat-toggles { grid-template-columns: 1fr; }
 }
