@@ -34700,7 +34700,7 @@ const _cgTourSteps = [
         spotlight: '#statsStrip, #statsStrip2, #statsStrip3',
         hold: 9000 },
 
-      { content: 'Certified This Period hangs the Gold, Platinum and Diamond plaques your songs and albums crossed this week. The play count behind each level is yours to change — Settings, under Certification Thresholds.',
+      { content: 'Songs and albums go Gold, Platinum or Diamond once they pass a set number of plays. This section shows the ones that got there this week. Want different numbers? Change them in Settings → Certification Thresholds.',
         spotlight: '#certReelSection',
         hold: 8000 },
 
