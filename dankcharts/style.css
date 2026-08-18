@@ -28284,7 +28284,20 @@ body.red-light .modal-cb-label--tracks {
       text-transform: uppercase;
       letter-spacing: 0.08em;
     }
-    .cg-tour-content { font-size: 0.88rem; color: var(--text); line-height: 1.5; }
+    /* The back-to-top button is a --z-float element pinned bottom-right, which
+       is exactly where the tour banner's End Tour control sits on a narrow
+       screen. The tour owns the bottom of the viewport while it runs. */
+    body.cg-tour-open #backToTop { display: none; }
+
+    /* Tour copy is a full paragraph per step now, so the banner caps its own
+       height and scrolls rather than growing over the app it is describing. */
+    .cg-tour-content {
+      font-size: 0.88rem;
+      color: var(--text);
+      line-height: 1.5;
+      max-height: 30vh;
+      overflow-y: auto;
+    }
     .cg-tour-controls {
       display: flex;
       gap: 0.5rem;

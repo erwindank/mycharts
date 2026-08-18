@@ -34671,22 +34671,83 @@ function dcReplayWelcomeGate() {
    ═══════════════════════════════════════════════════════════════════ */
 let _cgTourStep = 0;
 const _cgTourSteps = [
-  { title: 'Welcome',                      content: 'dankcharts turns your plays into real charts — the same way a music chart works, except the only listener being counted is you. This tour walks the app top to bottom in about two minutes.', nav: null },
-  { title: 'One chart, four time windows', content: 'Weekly, Monthly, Yearly and All-Time all show the same three charts — songs, artists, albums — counted over a different stretch of time. Start with Weekly.', nav: 'week' },
-  { title: 'Moving through time',          content: 'Prev / Next (or the ← → arrow keys) step through weeks, months or years. The date bar above the chart always tells you which period you are looking at.', nav: null },
-  { title: 'Reading a chart row',          content: 'Each row carries its position, how far it moved since last period, its all-time peak, and how many periods it has been on the chart. New entries and dropouts are flagged for you.', nav: null },
-  { title: 'Chart size and layout',        content: 'The ⋮ menu in any section header changes how many entries you see (Top 10 through 100) and switches the layout between table, cards, mosaic, filmstrip and stack.', nav: null },
-  { title: 'Raw Data',                     content: 'Every chart in the app is built from this one list of plays. Search, filter, fix or delete individual scrobbles here — and export the whole history as CSV.', nav: 'rawdata' },
-  { title: 'Graphs',                       content: 'Heatmaps, cumulative play trends, artist streak charts, and a graveyard of artists who have gone quiet.', nav: 'graphs' },
-  { title: 'Records',                      content: 'The all-time superlatives: longest chart runs, biggest single weeks, most weeks at number one — computed across your entire history.', nav: 'records' },
-  { title: 'Events & Awards',              content: 'Events tracks artist birthdays, album anniversaries and new releases. Awards runs a full ceremony for any year, with nominees pulled from your own chart data.', nav: 'awards' },
-  { title: 'Soundtrack & Playlists',       content: 'Your Soundtrack finds the song that defined each chapter of your life. Playlists saves any chart as a named list, and the Time Machine replays any past date.', nav: 'playlists' },
-  { title: 'You are set',                  content: 'The Charts Guide stays in the nav bar. It has the tab-by-tab breakdown, the glossary, keyboard shortcuts, an FAQ, and your own listening milestones.', nav: 'chartsguide' },
+  { title: 'Welcome',
+    content: 'dankcharts turns your listening history into real charts — the same machinery a national music chart runs on, except the only listener being counted is you. Every number in the app comes from your own plays; nothing is estimated, recommended or averaged with anyone else. This tour visits all twelve tabs in order, about four minutes.',
+    nav: null },
+
+  { title: 'The nav bar',
+    content: 'Twelve tabs in two rows. The top row is the charts themselves — the same songs, artists and albums counted over four different time windows, plus the raw plays underneath and the graphs drawn from them. The second row is everything derived from those charts: records, events, awards, your recap, and playlists. Nothing in the second row needs extra setup.',
+    nav: null },
+
+  { title: 'Weekly — your main chart',
+    content: 'Every chart period gives you three charts at once: top songs, top artists and top albums. Weekly counts a 7-day window starting on the week-start day you pick in the masthead, so it is the tab that actually changes week to week. If you only ever check one tab, this is it.',
+    nav: 'week' },
+
+  { title: 'Reading a chart row',
+    content: 'A row is not just a rank. It carries how far the entry moved since last week, its all-time peak in that chart type, and its chart run — how many periods in a row it has held on. New entries, re-entries and dropouts are flagged automatically. Peak and chart run survive a fall-off, so a re-entry keeps its old peak and starts a fresh run.',
+    nav: null },
+
+  { title: 'Moving through time',
+    content: 'Prev / Next walks one period at a time, and the ← → arrow keys do the same without touching the mouse. The date bar above the chart always names the period you are looking at, and the jump picker beside it drops you on any specific week, month or year directly.',
+    nav: null },
+
+  { title: 'Chart size, layout and the ⋮ menu',
+    content: 'Every section header has a ⋮ menu. It sets how many entries the chart holds (Top 10 through 100, remembered separately per chart type), switches the layout between table, card grid, compact, mosaic, filmstrip and stack, toggles Bubbling Under and Off Chart on or off, and exports the chart as an image or as data.',
+    nav: null },
+
+  { title: 'Monthly',
+    content: 'The same three charts counted over a calendar month. Because each period is counted independently, a song can top the weekly chart on one heavy afternoon and still finish nowhere monthly — the monthly chart rewards things you came back to. Worth checking when you want to know what actually stuck.',
+    nav: 'month' },
+
+  { title: 'Yearly',
+    content: 'Year-end charts for any calendar year you have data for, not just the current one. This is your personal year-in-review, and it works just as well on your very first year of scrobbling as on the one that just ended.',
+    nav: 'year' },
+
+  { title: 'All-Time',
+    content: 'Every play you have ever logged, counted once, with no period boundaries and therefore no movement or chart runs — just the totals. This is the tab that settles "what is my most played song ever?"',
+    nav: 'alltime' },
+
+  { title: 'Raw Data',
+    content: 'The single list of plays that every other tab is built from. Search and filter it, edit a wrong timestamp, delete a bad scrobble, add one by hand, or export the whole history as CSV. If a chart ever looks wrong, this is where you find out why.',
+    nav: 'rawdata' },
+
+  { title: 'Graphs',
+    content: 'Five charts over your whole history, switchable between daily, monthly and yearly granularity: cumulative plays over time with artist-by-artist comparison, total play volume per period, volume compared across artists, new discoveries per period, and an animated play count race. Also where the listening heatmap and the graveyard of artists who have gone quiet live.',
+    nav: 'graphs' },
+
+  { title: 'Records',
+    content: 'Your record book, and much bigger than it looks — eleven separate sections behind the row of buttons at the top. All #1s, Perfect All Kill, Most Chart Appearances, Biggest Debuts, Most Plays in a Period, Play Count Milestones, Fastest to Milestone, a Certifications leaderboard, Streak Records, New Charts and an Overview. Pick a section from that row rather than scrolling.',
+    nav: 'records' },
+
+  { title: 'Events',
+    content: 'A calendar built from the artists in your charts: artist birthdays, album anniversaries, upcoming releases and recent ones, plus recent birthdays and anniversaries you may have just missed. Switch between calendar and reel layouts per section. It is the tab that tells you when something in your library is worth replaying today.',
+    nav: 'events' },
+
+  { title: 'Awards',
+    content: 'A full awards ceremony generated from your own chart data, with 33 categories available — Song, Album, Artist and New Artist of the Year, Best Collaboration, Song of the Summer, Best Comeback, Best Discovery, Most Obsessive Play, and opt-in genre categories across pop, rock, alternative, hip-hop, R&B, Latin, electronic and K-pop. Set the eligibility window, choose your categories, then run the ceremony and watch the envelopes open. There is a separate Real-Life Awards tab alongside My Grammys.',
+    nav: 'awards' },
+
+  { title: 'Your Soundtrack',
+    content: 'A full recap for any month, any year, or all time. It opens with a reel and headline stats, then walks through your top charts, a featured artist, when in the day and week you actually listen, your most loyal artists, what you discovered, milestones, streaks, a mini awards run, and a hidden gem you had half forgotten. It also replays your charts as an animation and exports the whole thing as a shareable card.',
+    nav: 'soundtrack' },
+
+  { title: 'Playlists',
+    content: 'Save any chart as a named playlist, queue tracks from anywhere in the app with + Play, and keep the queue across sessions. The Time Machine rebuilds what you were actually listening to on any specific past date — not the chart for that week, the plays themselves. Recent releases and anniversaries sit alongside it so there is always something to add.',
+    nav: 'playlists' },
+
+  { title: 'Charts Guide',
+    content: 'Back where you started. Six chapters: setup checks, a card for every tab, how charts are actually calculated, keyboard shortcuts and lesser-known tricks, your own listening data, and an FAQ. Everything in this tour is written down here, so nothing depends on you remembering it.',
+    nav: 'chartsguide' },
+
+  { title: 'That is the whole app',
+    content: 'You have now seen all twelve tabs. The Charts Guide stays in the nav bar, and you can restart this tour any time from the button at the top of it. Go and look at your Weekly chart.',
+    nav: null },
 ];
 
 function dcStartChartsGuideTour() {
   _cgTourStep = 0;
   document.getElementById('cgTourBanner').style.display = 'flex';
+  document.body.classList.add('cg-tour-open'); // yields the bottom-right corner
   _dcApplyTourStep();
   dcGuideCheck('tour', true); // mark checklist item complete
 }
@@ -34715,6 +34776,7 @@ function dcTourStep(dir) {
 
 function dcEndTour() {
   document.getElementById('cgTourBanner').style.display = 'none';
+  document.body.classList.remove('cg-tour-open');
   _cgTourStep = 0;
 }
 
@@ -34971,17 +35033,17 @@ function dcRenderChartsGuideView() {
         { name: 'Yearly',   period: 'year',    icon: '📆', desc: 'Year-end charts for any calendar year in your history.', use: 'Your personal year-in-review, any year.' },
         { name: 'All-Time', period: 'alltime', icon: '♾️', desc: 'Every play you have ever logged, counted once. No period boundaries, no movement — just the totals.', use: 'Settling "what is my most played song?"' },
         { name: 'Raw Data', period: 'rawdata', icon: '🗃', desc: 'The play list every other tab is built from. Search, filter, edit a wrong timestamp, delete a bad scrobble, export the lot as CSV.', use: 'Fixing bad data, or taking it elsewhere.' },
-        { name: 'Graphs',   period: 'graphs',  icon: '📈', desc: 'Listening heatmap, cumulative play trends, artist streak charts, and a graveyard of artists who have gone quiet.', use: 'Seeing shape and habit rather than rank.' },
+        { name: 'Graphs',   period: 'graphs',  icon: '📈', desc: 'Five charts at daily, monthly or yearly granularity: cumulative plays with artist comparison, play volume per period, volume compared across artists, new discoveries per period, and an animated play count race — plus the listening heatmap and the graveyard.', use: 'Seeing shape and habit rather than rank.' },
       ],
     },
     {
       group: 'Insight views',
       note:  'The second row. Everything here is derived from the charts above — nothing needs extra setup, it all appears once your plays are loaded.',
       tabs: [
-        { name: 'Records',         period: 'records',    icon: '🏆', desc: 'All-time superlatives: longest chart runs, most weeks at number one, biggest single weeks, fastest climbs.', use: 'Your record book.' },
+        { name: 'Records',         period: 'records',    icon: '🏆', desc: 'Eleven sections behind the button row at the top: All #1s, Perfect All Kill, Most Chart Appearances, Biggest Debuts, Most Plays in a Period, Play Count Milestones, Fastest to Milestone, Certifications, Streak Records, New Charts and an Overview.', use: 'Your record book.' },
         { name: 'Events',          period: 'events',     icon: '🎂', desc: 'A calendar of artist birthdays, album anniversaries and new releases for the artists in your charts.', use: 'Knowing when something is worth replaying.' },
-        { name: 'Awards',          period: 'awards',     icon: '🏅', desc: 'A full awards ceremony for any year — categories, nominees and winners, all generated from your own chart data.', use: 'The fun one. Run it every December.' },
-        { name: 'Your Soundtrack', period: 'soundtrack', icon: '🎬', desc: 'Finds the song that defined each chapter of your life, using how intensely you played it relative to everything else at the time.', use: 'The nostalgic pass through your history.' },
+        { name: 'Awards',          period: 'awards',     icon: '🏅', desc: '33 categories generated from your own chart data — the four majors plus Best Collaboration, Song of the Summer, Best Comeback, Best Discovery, Most Obsessive Play and opt-in genre awards. Set an eligibility window, pick categories, then run the ceremony. Real-Life Awards sits alongside My Grammys.', use: 'The fun one. Run it every December.' },
+        { name: 'Your Soundtrack', period: 'soundtrack', icon: '🎬', desc: 'A full recap of any month, year or all time: a reel, headline stats, top charts, a featured artist, your listening patterns, discoveries, milestones, streaks, a mini awards run and a hidden gem — plus an animated chart replay and a shareable card.', use: 'The nostalgic pass through your history.' },
         { name: 'Playlists',       period: 'playlists',  icon: '🎵', desc: 'Save any chart as a named playlist, queue tracks from anywhere, and use the Time Machine to replay exactly what you had on for any past date.', use: 'Turning a chart back into listening.' },
         { name: 'Charts Guide',    period: 'chartsguide',icon: '📖', desc: 'You are here. Setup checks, the tab breakdown, how charts are calculated, shortcuts, glossary, FAQ and your milestones.', use: 'Whenever something does not make sense.' },
       ],
@@ -35020,7 +35082,7 @@ function dcRenderChartsGuideView() {
     { term: 'Off Chart',    def: 'Entries that were on the chart previously and have now fallen out of it entirely.' },
     { term: 'Streak',       def: 'Consecutive weeks an artist has appeared in your charts — tracked in the Graphs tab.' },
     { term: 'Graveyard',    def: 'Artists or songs that appeared in your charts but have had zero plays for a significant time.' },
-    { term: 'Era Song',     def: 'The track you played most intensely during a specific window of your life — shown in Your Soundtrack.' },
+    { term: 'Hidden Gem',   def: 'A track from your history that Your Soundtrack resurfaces because you once played it a lot and have not returned to it lately.' },
     { term: 'NMF',          def: 'New Music Friday — new releases from artists in your charts, surfaced in the Events tab.' },
     { term: 'Image Card',   def: 'A shareable PNG export of any chart, styled and sized for social media.' },
     { term: 'Time Machine', def: 'In Playlists, shows what you were actively listening to on any specific past date.' },
@@ -35063,7 +35125,7 @@ function dcRenderChartsGuideView() {
     { q: 'How do I share my chart as an image?', a: 'Open any Weekly, Monthly or Yearly chart, then use the ⋮ menu in the section header and choose the image card export. You can adjust the layout and font sizes before downloading the PNG.' },
     { q: 'Can I use this with Spotify or Apple Music directly?', a: 'Not directly — but Last.fm scrobbles from Spotify and 100+ other apps. Connect your service to Last.fm first, then use Last.fm as your source here. Google Sheets and CSV upload work the same way for data you already have.' },
     { q: 'Where is my data stored?', a: 'In your browser. Charts are computed locally from whichever source you connected; nothing about your listening is uploaded to us or stored on our servers.' },
-    { q: 'How does "Your Soundtrack" pick the era song?', a: 'It finds the track with the highest relative listening intensity — played more often than your background rate — during each time window.' },
+    { q: 'What period does "Your Soundtrack" cover?', a: 'Whichever you pick — a single month, a full year, or your entire history. The buttons at the top of the tab switch between the three, and the arrows step through months or years from there.' },
   ];
 
   /* ── Changelog ────────────────────────────────────────────────── */
