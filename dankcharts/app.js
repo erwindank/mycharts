@@ -34949,10 +34949,30 @@ function _dcTourVisible(el) {
   return !!(el.offsetWidth || el.offsetHeight || el.getClientRects().length);
 }
 
+/* scrollIntoView({block:'center'}) is wrong for these targets in two ways: it
+   centres against the whole viewport, ignoring the tour banner pinned over the
+   bottom of it, and centring a section taller than the screen pushes its header
+   — the part that names it, and the top edge of its ring — clean off the top.
+   An expanded Bubbling Under is ~1060px and New Entries ~1660px against a 900px
+   viewport, so both landed mid-table and read as "nothing happened".
+
+   Centre inside the space actually visible above the banner; for anything too
+   tall to fit there, align its top instead so the header is always what you see. */
+function _dcTourScrollTo(el) {
+  const banner  = document.getElementById('cgTourBanner');
+  const bannerH = banner && banner.style.display !== 'none'
+    ? banner.getBoundingClientRect().height : 0;
+  const topPad = 24;
+  const avail  = Math.max(120, window.innerHeight - bannerH - topPad);
+  const r      = el.getBoundingClientRect();
+  const offset = r.height >= avail ? topPad : topPad + (avail - r.height) / 2;
+  window.scrollTo({ top: Math.max(0, window.scrollY + r.top - offset), behavior: 'smooth' });
+}
+
 function _dcSpotlight(selector, scroll) {
   const els = Array.from(document.querySelectorAll(selector)).filter(_dcTourVisible);
   els.forEach(el => el.classList.add('cg-tour-spotlight'));
-  if (scroll !== false && els[0]) els[0].scrollIntoView({ behavior: 'smooth', block: 'center' });
+  if (scroll !== false && els[0]) _dcTourScrollTo(els[0]);
   return els.length;
 }
 
