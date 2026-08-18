@@ -34728,12 +34728,12 @@ const _cgTourSteps = [
         spotlight: '#buSongsSection',
         hold: 7000 },
 
-      { content: 'New Entries — songs landing on the chart for the very first time this week.',
-        spotlight: '#newSongsSection',
-        hold: 7000 },
-
       { content: 'Off the Chart — what was here last week and has gone this week. Worth a look before it disappears from memory too.',
         spotlight: '#offSongsSection',
+        hold: 7000 },
+
+      { content: 'New Entries — songs landing on the chart for the very first time this week.',
+        spotlight: '#newSongsSection',
         hold: 7000 },
 
       { content: 'And at the bottom, the release reels: Upcoming and Recent Releases from the artists in your charts. Hover to pause a reel, drag to browse it.',
