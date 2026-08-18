@@ -552,7 +552,7 @@ window.dcApplyDisplayToggles = dcApplySectionDisplayToggles;
 // Called by firebase.js after _loadAndApplyConfig so the settings modal and runtime behaviour
 // reflect the just-loaded cloud values rather than the stale startup defaults.
 function dcApplyAllSettings() {
-  chartAnimEnabled  = localStorage.getItem('dc_chart_anim') !== '0';
+  chartAnimEnabled  = localStorage.getItem('dc_chart_anim') === '1'; // opt-in; see declaration
   eventsArtistLimit = parseInt(localStorage.getItem('dc_events_artist_limit') || '50') || 50;
   noArtistSplit     = localStorage.getItem('dc_no_artist_split') === '1';
   const evSel = document.getElementById('eventsLimitSelect');
@@ -649,7 +649,10 @@ document.addEventListener('click', () => {
 // No global initSrcToggle needed — initSectionDisplayToggles handles all sections including src
 
 // ─── CHART ANIMATION ───────────────────────────────────────────
-let chartAnimEnabled = localStorage.getItem('dc_chart_anim') !== '0';
+// Opt-in, not opt-out: '1' enables it, anything else (including an unset key)
+// leaves charts static on load. Only the automatic replay is gated here — the
+// ▶ Animate Chart button above each section works either way.
+let chartAnimEnabled = localStorage.getItem('dc_chart_anim') === '1';
 
 // ─── ARTIST SPLITTING ──────────────────────────────────────────
 let noArtistSplit = localStorage.getItem('dc_no_artist_split') === '1';
