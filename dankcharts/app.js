@@ -31022,6 +31022,51 @@ async function awardsGenerateCatCandidates(year, catId) {
    opens, then every search / sort / page runs off that cached array instead of
    re-walking allPlays on each keystroke.                                     */
 
+// Does a play fit the category's own rule? Answered on the raw play, which still has the
+// structured `artists` array the indexed item drops. `null` = the category is about listening
+// history (new artist, comeback, growth…) rather than the item itself, so it can't rank a
+// browse list; genre is answered later, from the tag cache, since those load asynchronously.
+function _awardsPickerPlayFits(p) {
+  const f = _awardsPickerCatFilter;
+  if (f === 'collab')     return _isCollab(p);
+  if (f === 'duo')        return _isDuo(p);
+  if (f === 'remix')      return _isRemix(p);
+  if (f === 'nonenglish') return _hasNonLatinScript(p.title) || _hasNonLatinScript(p.artist);
+  return null;
+}
+
+// Same question for an indexed item: the flag stored at build time, or a live genre lookup.
+// Deliberately a soft signal, never a hard filter — a "collab" the artist field can't reveal
+// (one credited artist, two people actually singing) is still one the user can pick by hand.
+function _awardsPickerItemFits(item) {
+  const f = _awardsPickerCatFilter;
+  if (f === 'summer') return (item.summerPlays || 0) > 0;
+  if (f.startsWith('genre:')) {
+    const tags = _awardsGenreCache[(item.artist || '').toLowerCase()];
+    return tags === undefined ? false : _genreMatch(tags, f);
+  }
+  return item.fit;
+}
+
+// Whether this category can rank the browse list at all
+function _awardsPickerHasFit() {
+  const f = _awardsPickerCatFilter;
+  return f === 'summer' || f.startsWith('genre:') || _awardsPickerPlayFits({}) !== null;
+}
+
+// Plural noun for the category's matches, used in the group headers
+function _awardsPickerFitLabel() {
+  const f = _awardsPickerCatFilter;
+  const kind = _awardsPickerCatType === 'album' ? 'albums' : _awardsPickerCatType === 'artist' ? 'artists' : 'songs';
+  if (f === 'collab')     return 'Collaborations';
+  if (f === 'duo')        return 'Duos';
+  if (f === 'remix')      return 'Remixes, edits & versions';
+  if (f === 'nonenglish') return 'Non-English ' + kind;
+  if (f === 'summer')     return 'Summer songs';
+  if (f.startsWith('genre:')) return f.replace('genre:', '').replace('rnb', 'R&B').replace(/^./, c => c.toUpperCase()) + ' ' + kind;
+  return '';
+}
+
 // One pass over allPlays → every song/album/artist in the window, with play count + last play
 function _awardsPickerBuildIndex() {
   const start = new Date(_awardsPickerEligWin.start + 'T00:00:00');
@@ -31042,9 +31087,18 @@ function _awardsPickerBuildIndex() {
       if (!map[k]) map[k] = { artist: _pa(p), plays: 0, last: 0 };
     }
     const item = map[k];
+    if (item.fit === undefined) item.fit = _awardsPickerPlayFits(p);   // computed once, off the raw play
     item.plays++;
     const ts = +p.date;
     if (ts > item.last) item.last = ts;
+    if (_awardsPickerCatFilter === 'summer') {
+      const mo = tzDateOf(p).getMonth();
+      if (mo >= 5 && mo <= 7) item.summerPlays = (item.summerPlays || 0) + 1;
+    }
+  }
+  // Song of the Summer ranks on summer plays, so label the rows with that number
+  if (_awardsPickerCatFilter === 'summer') {
+    for (const item of Object.values(map)) item.playLabel = (item.summerPlays || 0) + ' summer plays';
   }
 
   // Carry the suggestion metadata (custom play labels, release years) onto the indexed
@@ -31072,25 +31126,24 @@ function _awardsPickerBuildIndex() {
 // The list the body should show right now: search filter + genre filter + sort
 function _awardsPickerVisible() {
   const q = (document.getElementById('awardsPickerSearch')?.value || '').toLowerCase().trim();
-  const isGenreCat = _awardsPickerCatFilter.startsWith('genre:');
+  const hasFit = _awardsPickerHasFit();
+  const isSummer = _awardsPickerCatFilter === 'summer';
 
-  let list = _awardsPickerAllItems.filter(item => {
-    if (q && !([item.title, item.album, item.artist].filter(Boolean).join(' ').toLowerCase().includes(q))) return false;
-    if (isGenreCat) {
-      const tags = _awardsGenreCache[(item.artist || '').toLowerCase()];
-      if (tags === undefined) return false;   // genre not fetched yet → can't vouch for it
-      return _genreMatch(tags, _awardsPickerCatFilter);
-    }
-    return true;
-  });
+  const list = _awardsPickerAllItems.filter(item =>
+    !q || [item.title, item.album, item.artist].filter(Boolean).join(' ').toLowerCase().includes(q));
+
+  // group: 0 = suggested, 1 = matches the category's rule, 2 = everything else.
+  // Nothing is ever dropped — the rule only decides the order.
+  for (const item of list) item.grp = item.sugg ? 0 : (hasFit && _awardsPickerItemFits(item) ? 1 : 2);
 
   if (_awardsPickerSort === 'az') {
     list.sort((a, b) => (a.title || a.album || a.artist || '').localeCompare(b.title || b.album || b.artist || ''));
   } else if (_awardsPickerSort === 'recent') {
     list.sort((a, b) => b.last - a.last);
-  } else if (!q) {
-    // Default view: the generated suggestions sit on top, everything else follows by plays
-    list.sort((a, b) => (b.sugg ? 1 : 0) - (a.sugg ? 1 : 0) || b.plays - a.plays);
+  } else {
+    list.sort((a, b) => a.grp - b.grp
+      || (isSummer ? (b.summerPlays || 0) - (a.summerPlays || 0) : 0)
+      || b.plays - a.plays);
   }
   return list;
 }
@@ -31101,7 +31154,7 @@ function _awardsPickerResultRow(item, idx) {
   const sub = item.title ? item.artist : (item.album ? item.artist : '');
   const rel = item.releaseYear ? ' · ' + item.releaseYear : (item.releaseYear === null ? ' · year unknown' : '');
   let genreHtml = '';
-  if (_awardsPickerCatFilter.startsWith('genre:')) {
+  if (_awardsPickerCatFilter.startsWith('genre:') && item.grp !== 2) {
     const tags = _awardsGenreCache[(item.artist || '').toLowerCase()];
     if (tags && tags.length) {
       genreHtml = `<span class="awards-picker-genre-tags">${tags.slice(0, 3).map(t => `<span class="awards-picker-genre-tag">${esc(t)}</span>`).join('')}</span>`;
@@ -31149,15 +31202,22 @@ function _awardsPickerBodyHtml() {
   }
   _awardsPickerRows = list.slice(0, _awardsPickerShown);
 
-  const showHeaders = !q && _awardsPickerSort === 'plays' && _awardsPickerSuggKeys.size > 0;
-  let html = '', seenRest = false;
+  const showHeaders = _awardsPickerSort === 'plays';
+  const fitLabel = _awardsPickerFitLabel();
+  const year = _awardsPickerCtx.year;
+  const headers = [
+    'Suggested for this category',
+    fitLabel ? `${fitLabel} from ${year}` : `Everything else you played in ${year}`,
+    // For a filtered category the tail is still fair game: the artist field can't spot every
+    // collab, so say so rather than hiding those rows.
+    fitLabel ? `Everything else from ${year} — pick any if you know it fits`
+             : `Everything else you played in ${year}`,
+  ];
+  let html = '', lastGrp = -1;
   _awardsPickerRows.forEach((item, i) => {
-    if (showHeaders) {
-      if (i === 0 && item.sugg) html += '<div class="awards-picker-group">Suggested for this category</div>';
-      if (!item.sugg && !seenRest) {
-        seenRest = true;
-        html += `<div class="awards-picker-group">Everything else you played in ${_awardsPickerCtx.year}</div>`;
-      }
+    if (showHeaders && item.grp !== lastGrp) {
+      lastGrp = item.grp;
+      html += `<div class="awards-picker-group">${headers[item.grp]}</div>`;
     }
     html += _awardsPickerResultRow(item, i);
   });
@@ -31363,8 +31423,18 @@ function awardsPickerClose() {
   _awardsPickerSuggKeys = new Set();
 }
 
+// Indexed items carry picker-only fields (fit, grp, last, summerPlays…) — keep them out of
+// the saved/synced document, which only ever held the identity plus the play count.
+function _awardsCleanNominee(item) {
+  const out = {};
+  for (const f of ['title', 'album', 'artist', 'plays', 'playLabel', 'releaseYear']) {
+    if (item[f] !== undefined) out[f] = item[f];
+  }
+  return out;
+}
+
 async function awardsPickerSave(year, catId) {
-  const nominees = _awardsPickerSel.slice();
+  const nominees = _awardsPickerSel.map(_awardsCleanNominee);
   awardsPickerClose();
   const data = _awardsYearData[year];
   if (!data) return;
