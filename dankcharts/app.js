@@ -34672,6 +34672,15 @@ function dcReplayWelcomeGate() {
    Each step optionally drives the real nav bar (`nav`), so the tour is a
    walkthrough of the actual app rather than a slideshow about it.
    ═══════════════════════════════════════════════════════════════════ */
+/* Row-anatomy selectors for the tour. Written across all three chart types so
+   the phase works whichever one the user is looking at — only the visible
+   table survives _dcTourVisible, so exactly one row lights up. */
+const _CG_ROWS = ['#songsBody', '#artistsBody', '#albumsBody'].map(b => b + ' tr:first-child');
+const _cgRow = part =>
+  part
+    ? part.split(',').flatMap(p => _CG_ROWS.map(r => r + ' ' + p.trim())).join(', ')
+    : _CG_ROWS.join(', ');
+
 let _cgTourStep = 0;
 let _cgTourPhase = 0;   // index within a step's `phases`, 0 when it has none
 let _cgTourTimers = [];// every pending auto-advance / sequence timer
@@ -34747,8 +34756,29 @@ const _cgTourSteps = [
     ] },
 
   { title: 'Reading a chart row',
-    content: 'A row is not just a rank. It carries how far the entry moved since last week, its all-time peak in that chart type, and its chart run — how many periods in a row it has held on. New entries, re-entries and dropouts are flagged automatically. Peak and chart run survive a fall-off, so a re-entry keeps its old peak and starts a fresh run.',
-    nav: null },
+    nav: 'week',
+    phases: [
+      { content: 'Every row carries six pieces of information. Here they are one at a time, on your current number one.',
+        spotlight: _cgRow(), reveal: '#songsSection, #artistsSection, #albumsSection', hold: 5000 },
+
+      { content: 'The rank — where it finished this period, on play count alone.',
+        spotlight: _cgRow('td.rank-cell'), hold: 5000 },
+
+      { content: 'Where it sat last period, and how far it moved since. NEW means it has never charted before; RE means it dropped off and has come back.',
+        spotlight: _cgRow('td.m-col:not(:has(.m-mths))'), hold: 7000 },
+
+      { content: 'Peak is the best position it has ever reached. Next to it sits any Gold, Platinum or Diamond badge it has earned from its total plays.',
+        spotlight: _cgRow('.peak-badge, .peak-badge-1, .peak-badge-2, .peak-badge-3, .cert'), hold: 7000 },
+
+      { content: 'Weeks on chart — how many periods in a row it has held on. Drop off and it starts again at 1.',
+        spotlight: _cgRow('td.m-col:has(.m-mths)'), hold: 6000 },
+
+      { content: 'Plays in this period, the change since last period, and a bar measuring it against your number one.',
+        spotlight: _cgRow('.play-count, .play-bar'), hold: 6000 },
+
+      { content: 'And the button at the end opens the chart run: every period this entry has charted, drawn as a rise and fall.',
+        spotlight: _cgRow('td.cr-cell'), click: _cgRow('.cr-toggle-btn') },
+    ] },
 
   { title: 'Moving through time',
     content: 'Prev / Next walks one period at a time, and the ← → arrow keys do the same without touching the mouse. The date bar above the chart always names the period you are looking at, and the jump picker beside it drops you on any specific week, month or year directly.',
@@ -34857,6 +34887,24 @@ function _dcTourRestoreRevealed() {
   _cgTourRevealed = [];
 }
 
+/* Some phases are better shown than described — opening a chart run says more
+   than a sentence about it. Only ever point this at a pure DOM toggle
+   (toggleChartRun flips two classes and persists nothing); clicking it again
+   on the way out puts the page back. */
+let _cgTourClicked = [];
+
+function _dcTourClick(selector) {
+  const el = document.querySelector(selector);
+  if (!el || !_dcTourVisible(el)) return;
+  el.click();
+  _cgTourClicked.push(el);
+}
+
+function _dcTourUnclick() {
+  _cgTourClicked.forEach(el => { try { el.click(); } catch (e) {} });
+  _cgTourClicked = [];
+}
+
 /* Only ring things that are actually on screen. Sub-charts (Bubbling Under,
    New Entries, Off the Chart) can be switched off per chart type, and the
    stats strips stay hidden until they have data — a step should explain the
@@ -34900,6 +34948,7 @@ function _dcApplyTourStep() {
   const step = _cgTourSteps[_cgTourStep];
   if (!step) return;
   _dcClearTourTimers();
+  _dcTourUnclick();          // close anything the previous phase opened
   _dcTourRestoreRevealed(); // hand the previous phase's sections back to the user
 
   const phases = step.phases;
@@ -34956,7 +35005,8 @@ function _dcApplyTourStep() {
     _dcTourLater(() => _dcRunSpotlightSeq(target.seq, hold), delay);
   } else if (target.spotlight) {
     _dcTourLater(() => {
-      if (target.reveal) _dcTourReveal(target.spotlight);
+      if (target.reveal) _dcTourReveal(target.reveal === true ? target.spotlight : target.reveal);
+      if (target.click) _dcTourClick(target.click);
       _dcSpotlight(target.spotlight);
     }, delay);
   }
@@ -34998,6 +35048,7 @@ function dcEndTour() {
   document.body.classList.remove('cg-tour-open');
   _dcClearTourTimers();
   _dcClearSpotlight();
+  _dcTourUnclick();
   _dcTourRestoreRevealed();
   _cgTourStep = 0;
   _cgTourPhase = 0;
