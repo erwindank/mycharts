@@ -34673,6 +34673,9 @@ function dcReplayWelcomeGate() {
    walkthrough of the actual app rather than a slideshow about it.
    ═══════════════════════════════════════════════════════════════════ */
 let _cgTourStep = 0;
+let _cgTourPhase = 0;   // index within a step's `phases`, 0 when it has none
+let _cgTourTimers = [];// every pending auto-advance / sequence timer
+let _cgTourAppliedStep = -1; // last step index actually applied, so tab switches fire once per step
 const _cgTourSteps = [
   { title: 'Welcome',
     content: 'Somewhere in your listening history is your number one song from a year you barely remember, the album you played to death one winter, and the artist who has quietly sat in your top ten ever since. dankcharts digs all of it out. Every song you have played becomes a chart you can flip through — week by week, year by year, right back to your very first scrobble. This tour visits all twelve tabs in about four minutes, and you can stop it any time.',
@@ -34682,9 +34685,60 @@ const _cgTourSteps = [
     content: 'This is the bar you will live in — twelve tabs in two rows. The top row is the charts themselves: the same songs, artists and albums counted over four different time windows, plus the raw plays underneath and the graphs drawn from them. The second row is everything built out of those charts — records, events, awards, your recap and playlists, none of which need any extra setup. If that second row is ever hidden, the More button on the right brings it back.',
     nav: null, spotlight: '#periodNav', expandNav: true },
 
-  { title: 'Weekly — your main chart',
-    content: 'Every chart period gives you three charts at once: top songs, top artists and top albums. Weekly counts a 7-day window starting on the week-start day you pick in the masthead, so it is the tab that actually changes week to week. If you only ever check one tab, this is it.',
-    nav: 'week' },
+  /* Step 3 is a walkthrough of one page rather than a single card: ten phases
+     that advance themselves, each ringing the thing it is describing. Prev and
+     Next move a phase at a time, so nobody is stuck waiting out a timer. The
+     last phase does not auto-advance. */
+  { title: 'Weekly — a tour of the page',
+    nav: 'week',
+    phases: [
+      { content: 'Weekly is your main chart — the last 7 days, cut from whichever week-start day you pick. Every period shows the same three charts: songs, artists and albums.',
+        spotlight: '#periodNav button[data-period="week"]',
+        hold: 7000 },
+
+      { content: 'Your week in numbers: plays, unique songs, artists, albums, best day. Then the "of the moment" cards — the song, artist and album running hottest right now, not just the ones with the highest totals.',
+        spotlight: '#statsStrip, #statsStrip2, #statsStrip3',
+        hold: 9000 },
+
+      { content: 'Certified This Period hangs the Gold, Platinum and Diamond plaques your songs and albums crossed this week. The play count behind each level is yours to change — Settings, under Certification Thresholds.',
+        spotlight: '#certReelSection',
+        hold: 8000 },
+
+      { content: 'Pick which chart you are reading — songs, artists or albums — then which parts of it you want: the chart itself, Bubbling Under, Off the Chart, New Entries. Any combination is allowed, and each chart type remembers its own.',
+        seq: [
+          '#chartTypeToggleBar .chart-type-toggle-btn[data-type="songs"]',
+          '#chartTypeToggleBar .chart-type-toggle-btn[data-type="artists"]',
+          '#chartTypeToggleBar .chart-type-toggle-btn[data-type="albums"]',
+          '#subChartToggleBar-songs .sub-chart-toggle-btn[data-sub="normal"]',
+          '#subChartToggleBar-songs .sub-chart-toggle-btn[data-sub="bu"]',
+          '#subChartToggleBar-songs .sub-chart-toggle-btn[data-sub="off"]',
+          '#subChartToggleBar-songs .sub-chart-toggle-btn[data-sub="new"]',
+        ],
+        seqHold: 1500 },
+
+      { content: 'The ⋮ menu on any section header: chart size from Top 10 to Top 100, six layouts to switch between, what to show on the chart, and export to a shareable image or to data.',
+        spotlight: '#songsSection .kebab-menu-btn',
+        hold: 8000 },
+
+      { content: 'The chart itself. Every row carries its position, how far it moved since last week, its all-time peak, and how many weeks in a row it has held on.',
+        spotlight: '#songsSection',
+        hold: 6000 },
+
+      { content: 'Bubbling Under — the songs that just missed the cut. Next week\'s chart usually starts here.',
+        spotlight: '#buSongsSection',
+        hold: 7000 },
+
+      { content: 'New Entries — songs landing on the chart for the very first time this week.',
+        spotlight: '#newSongsSection',
+        hold: 7000 },
+
+      { content: 'Off the Chart — what was here last week and has gone this week. Worth a look before it disappears from memory too.',
+        spotlight: '#offSongsSection',
+        hold: 7000 },
+
+      { content: 'And at the bottom, the release reels: Upcoming and Recent Releases from the artists in your charts. Hover to pause a reel, drag to browse it.',
+        spotlight: '#upcomingSection, #recentSection' },
+    ] },
 
   { title: 'Reading a chart row',
     content: 'A row is not just a rank. It carries how far the entry moved since last week, its all-time peak in that chart type, and its chart run — how many periods in a row it has held on. New entries, re-entries and dropouts are flagged automatically. Peak and chart run survive a fall-off, so a re-entry keeps its old peak and starts a fresh run.',
@@ -34748,7 +34802,10 @@ const _cgTourSteps = [
 ];
 
 function dcStartChartsGuideTour() {
+  _dcClearTourTimers();
   _cgTourStep = 0;
+  _cgTourPhase = 0;
+  _cgTourAppliedStep = -1;
   document.getElementById('cgTourBanner').style.display = 'flex';
   document.body.classList.add('cg-tour-open'); // yields the bottom-right corner
   _dcApplyTourStep();
@@ -34761,25 +34818,84 @@ function _dcClearSpotlight() {
   document.querySelectorAll('.cg-tour-spotlight').forEach(el => el.classList.remove('cg-tour-spotlight'));
 }
 
+/* Only ring things that are actually on screen. Sub-charts (Bubbling Under,
+   New Entries, Off the Chart) can be switched off per chart type, and the
+   stats strips stay hidden until they have data — a step should explain the
+   idea either way, but never scroll to a collapsed, zero-height element. */
+function _dcTourVisible(el) {
+  return !!(el.offsetWidth || el.offsetHeight || el.getClientRects().length);
+}
+
+function _dcSpotlight(selector, scroll) {
+  const els = Array.from(document.querySelectorAll(selector)).filter(_dcTourVisible);
+  els.forEach(el => el.classList.add('cg-tour-spotlight'));
+  if (scroll !== false && els[0]) els[0].scrollIntoView({ behavior: 'smooth', block: 'center' });
+  return els.length;
+}
+
+/* Leads the eye along a row of controls, one at a time. */
+function _dcRunSpotlightSeq(list, hold) {
+  let i = 0;
+  const advance = () => {
+    _dcClearSpotlight();
+    if (i >= list.length) return;
+    _dcSpotlight(list[i], i === 0); // scroll once; the rest of the row is already in frame
+    i++;
+    _dcTourLater(advance, hold);
+  };
+  advance();
+}
+
+/* Every timer the tour owns, so a manual Prev/Next or End Tour can cancel the
+   lot instead of racing an auto-advance that is already in flight. */
+function _dcClearTourTimers() {
+  _cgTourTimers.forEach(clearTimeout);
+  _cgTourTimers = [];
+}
+
+function _dcTourLater(fn, ms) {
+  _cgTourTimers.push(setTimeout(fn, ms));
+}
+
 function _dcApplyTourStep() {
   const step = _cgTourSteps[_cgTourStep];
   if (!step) return;
+  _dcClearTourTimers();
+
+  const phases = step.phases;
+  if (phases) _cgTourPhase = Math.max(0, Math.min(_cgTourPhase, phases.length - 1));
+  const phase = phases ? phases[_cgTourPhase] : null;
   const total = _cgTourSteps.length;
-  document.getElementById('cgTourStepLabel').textContent = 'Step ' + (_cgTourStep + 1) + ' of ' + total + ' · ' + step.title;
-  document.getElementById('cgTourContent').textContent   = step.content;
-  document.getElementById('cgTourPrev').disabled         = _cgTourStep === 0;
-  document.getElementById('cgTourNext').textContent      = _cgTourStep === total - 1 ? '✓ Finish' : 'Next →';
+
+  let label = 'Step ' + (_cgTourStep + 1) + ' of ' + total + ' · ' + step.title;
+  if (phases) label += ' · ' + (_cgTourPhase + 1) + '/' + phases.length;
+  document.getElementById('cgTourStepLabel').textContent = label;
+  document.getElementById('cgTourContent').textContent   = phase ? phase.content : step.content;
+  document.getElementById('cgTourPrev').disabled         = _cgTourStep === 0 && _cgTourPhase === 0;
+  const atEnd = _cgTourStep === total - 1 && (!phases || _cgTourPhase === phases.length - 1);
+  document.getElementById('cgTourNext').textContent      = atEnd ? '✓ Finish' : 'Next →';
+
   const bar = document.getElementById('cgTourProgress');
-  if (bar) bar.style.setProperty('--cg-tour-p', ((_cgTourStep + 1) / total).toFixed(3));
+  if (bar) {
+    // Phases advance the bar within their own step's slice rather than jumping it
+    const within = phases ? (_cgTourPhase + 1) / phases.length : 1;
+    bar.style.setProperty('--cg-tour-p', ((_cgTourStep + within) / total).toFixed(3));
+  }
 
   _dcClearSpotlight();
 
-  if (step.nav) {
+  // Switch tabs once per step, not once per phase — re-clicking on every phase
+  // would reset the chart the phases are walking through. Keyed on the step
+  // index rather than on phase 0, so arriving at a step's last phase (which is
+  // what Prev does) still lands on the right tab.
+  const entering = _cgTourAppliedStep !== _cgTourStep;
+  _cgTourAppliedStep = _cgTourStep;
+  if (step.nav && entering) {
     const btn = document.querySelector('#periodNav button[data-period="' + step.nav + '"]');
     if (btn) btn.click();
   }
 
-  if (step.spotlight) {
+  if (step.spotlight || phase) {
     // Row 2 starts collapsed for most users, so a step describing both rows
     // has to open it first. Going through the toggle keeps its label and its
     // saved dc_nav_row2_open state in sync.
@@ -34789,27 +34905,59 @@ function _dcApplyTourStep() {
         document.getElementById('periodNavToggle')?.click();
       }
     }
-    // Let a tab switch or a row expanding settle before scrolling to the target
-    setTimeout(() => {
-      const el = document.querySelector(step.spotlight);
-      if (!el) return;
-      el.classList.add('cg-tour-spotlight');
-      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    }, step.nav ? 280 : 60);
+  }
+
+  const target = phase || step;
+  // Let a tab switch settle before measuring anything for a scroll
+  const delay = (step.nav && entering) ? 300 : 60;
+
+  if (target.seq) {
+    const hold = target.seqHold || 1500;
+    _dcTourLater(() => _dcRunSpotlightSeq(target.seq, hold), delay);
+  } else if (target.spotlight) {
+    _dcTourLater(() => _dcSpotlight(target.spotlight), delay);
+  }
+
+  // Phased steps play themselves; ordinary steps wait for the user. The last
+  // phase always waits, so the tour never drags anyone off a step unasked.
+  if (phase && phases && _cgTourPhase < phases.length - 1) {
+    const hold = phase.hold || (phase.seq ? phase.seq.length * (phase.seqHold || 1500) + 600 : 7000);
+    _dcTourLater(() => dcTourStep(1), delay + hold);
   }
 }
 
 function dcTourStep(dir) {
-  if (dir > 0 && _cgTourStep === _cgTourSteps.length - 1) { dcEndTour(); return; }
-  _cgTourStep = Math.max(0, Math.min(_cgTourSteps.length - 1, _cgTourStep + dir));
+  _dcClearTourTimers();
+  const step   = _cgTourSteps[_cgTourStep];
+  const phases = step && step.phases;
+
+  if (dir > 0) {
+    if (phases && _cgTourPhase < phases.length - 1) { _cgTourPhase++; _dcApplyTourStep(); return; }
+    if (_cgTourStep === _cgTourSteps.length - 1) { dcEndTour(); return; }
+    _cgTourStep++;
+  } else {
+    if (phases && _cgTourPhase > 0) { _cgTourPhase--; _dcApplyTourStep(); return; }
+    if (_cgTourStep === 0) return;
+    _cgTourStep--;
+    // Stepping back into a phased step lands on its *last* phase — going back
+    // one card should not mean replaying a ten-phase sequence from the top.
+    const prev = _cgTourSteps[_cgTourStep];
+    _cgTourPhase = prev && prev.phases ? prev.phases.length - 1 : 0;
+    _dcApplyTourStep();
+    return;
+  }
+  _cgTourPhase = 0;
   _dcApplyTourStep();
 }
 
 function dcEndTour() {
   document.getElementById('cgTourBanner').style.display = 'none';
   document.body.classList.remove('cg-tour-open');
+  _dcClearTourTimers();
   _dcClearSpotlight();
   _cgTourStep = 0;
+  _cgTourPhase = 0;
+  _cgTourAppliedStep = -1;
 }
 
 /* ── Library search (guide hero) ────────────────────────────────── */
