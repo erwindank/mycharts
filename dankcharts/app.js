@@ -30332,11 +30332,23 @@ let _awardsSubTab   = 'mygrammys';
 let _awardsGenreCache = {};
 let _awardsGenreQueue = {};
 const _awardsAlbumYearCache = {};
-let _awardsPickerSelMap   = {};   // key → item, while picker modal is open
+// --- Nominee picker state (all reset every time the modal opens) ---
+let _awardsPickerSel      = [];        // ordered list of chosen nominees (order = display order)
+let _awardsPickerSelKeys  = new Set(); // _awardItemKey() of everything in _awardsPickerSel, for O(1) lookups
 let _awardsPickerCatType  = '';
 let _awardsPickerCatFilter = '';
 let _awardsPickerEligWin  = { start: '', end: '' };
 let _awardsPickerAutoCands = [];
+let _awardsPickerAllItems = [];        // every song/album/artist played in the eligibility window, built once per open
+let _awardsPickerSuggKeys = new Set(); // keys of the auto-generated suggestions, so they can be pinned to the top
+let _awardsPickerSort     = 'plays';   // plays | az | recent
+let _awardsPickerShown    = 60;        // how many rows of the current list are rendered ("Show more" bumps this)
+let _awardsPickerRows     = [];        // items currently rendered in the body, index-addressable for clicks/keyboard
+let _awardsPickerActive   = -1;        // keyboard-highlighted row, -1 = none
+let _awardsPickerCtx      = { year: 0, catId: '', typeLabel: '' };
+let _awardsPickerKeyHandler = null;    // document keydown listener, removed on close
+let _awardsPickerDragFrom = -1;        // index of the nominee chip being dragged
+const AWARDS_PICKER_PAGE  = 60;        // rows added per "Show more"
 let _realLifeYear   = tzNow().getFullYear();
 
 function _awardsDefaultData(year) {
@@ -30955,27 +30967,36 @@ async function awardsGenerateCandidates() {
   const statusEl = document.getElementById('awardsStatus');
   const log = msg => { if (statusEl) statusEl.textContent = msg; };
 
+  // The button label is HTML (it carries the ✨ icon span), so stash/restore innerHTML —
+  // writing t('awards_generate') into textContent would print the raw markup.
+  const btnLabel = btn ? btn.innerHTML : '';
   if (btn) { btn.disabled = true; btn.textContent = t('awards_generating'); }
-  log('Loading year data…');
-  const data = await _awardsLoad(_awardsYear);
-  const active = AWARD_CATEGORIES.filter(c => data.categories[c.id]?.enabled ?? c.defaultOn);
 
-  for (const cat of active) {
-    log(`Calculating ${cat.label}…`);
-    const cands = await _awardsGetCandidates(cat, data.eligStart, data.eligEnd, log);
-    const cd = data.categories[cat.id];
-    if (cat.auto) {
-      cd.nominees = cands.slice(0, 1);
-      cd.winner   = cands[0] || null;
-    } else if (!cd.nominees.length && cands.length) {
-      cd.nominees = cands.slice(0, 8);
+  let data;
+  try {
+    log('Loading year data…');
+    data = await _awardsLoad(_awardsYear);
+    const active = AWARD_CATEGORIES.filter(c => data.categories[c.id]?.enabled ?? c.defaultOn);
+
+    for (const cat of active) {
+      log(`Calculating ${cat.label}…`);
+      const cands = await _awardsGetCandidates(cat, data.eligStart, data.eligEnd, log);
+      const cd = data.categories[cat.id];
+      if (cat.auto) {
+        cd.nominees = cands.slice(0, 1);
+        cd.winner   = cands[0] || null;
+      } else if (!cd.nominees.length && cands.length) {
+        cd.nominees = cands.slice(0, 8);
+      }
     }
+    log('Saving…');
+    await _awardsSave(_awardsYear);
+  } finally {
+    // Always give the button back, even if a category blew up mid-run
+    if (btn) { btn.disabled = false; btn.innerHTML = btnLabel; }
+    if (statusEl) statusEl.textContent = '';
   }
-  log('Saving…');
-  await _awardsSave(_awardsYear);
-  if (btn) { btn.disabled = false; btn.textContent = t('awards_generate'); }
-  if (statusEl) statusEl.textContent = '';
-  _awardsRenderCatList(data);
+  if (data) _awardsRenderCatList(data);
 }
 
 async function awardsGenerateCatCandidates(year, catId) {
@@ -30984,27 +31005,115 @@ async function awardsGenerateCatCandidates(year, catId) {
   const catDef = AWARD_CATEGORIES.find(c => c.id === catId);
   if (!catDef) return;
   const btn = document.querySelector(`[data-catid="${catId}"]`);
-  if (btn) btn.textContent = t('awards_loading');
-  const cands = await _awardsGetCandidates(catDef, data.eligStart, data.eligEnd);
-  if (btn) btn.textContent = t('awards_change_btn');
+  // Restore whatever label the card had (Change / Pick nominees) instead of hard-coding one
+  const btnLabel = btn ? btn.innerHTML : '';
+  if (btn) { btn.disabled = true; btn.textContent = t('awards_loading'); }
+  let cands = [];
+  try {
+    cands = await _awardsGetCandidates(catDef, data.eligStart, data.eligEnd);
+  } finally {
+    if (btn) { btn.disabled = false; btn.innerHTML = btnLabel; }
+  }
   _awardsShowPicker(year, catId, cands);
 }
 
-function _awardsPickerResultRow(item) {
+/* ─── Nominee picker ─────────────────────────────────────────────────────────
+   The picker builds ONE play-count index for the eligibility window when it
+   opens, then every search / sort / page runs off that cached array instead of
+   re-walking allPlays on each keystroke.                                     */
+
+// One pass over allPlays → every song/album/artist in the window, with play count + last play
+function _awardsPickerBuildIndex() {
+  const start = new Date(_awardsPickerEligWin.start + 'T00:00:00');
+  const end   = new Date(_awardsPickerEligWin.end   + 'T23:59:59');
+  const map   = {};
+  for (const p of allPlays) {
+    if (p.date < start || p.date > end) continue;
+    let k;
+    if (_awardsPickerCatType === 'song') {
+      k = _sk(p);
+      if (!map[k]) map[k] = { title: p.title, artist: p.artist, album: p.album, plays: 0, last: 0 };
+    } else if (_awardsPickerCatType === 'album') {
+      if (!p.album) continue;
+      k = _ak(p);
+      if (!map[k]) map[k] = { album: p.album, artist: _pa(p), plays: 0, last: 0 };
+    } else {
+      k = _pk(p);
+      if (!map[k]) map[k] = { artist: _pa(p), plays: 0, last: 0 };
+    }
+    const item = map[k];
+    item.plays++;
+    const ts = +p.date;
+    if (ts > item.last) item.last = ts;
+  }
+
+  // Carry the suggestion metadata (custom play labels, release years) onto the indexed
+  // items so the generated candidates and the browse list stay one and the same object.
+  _awardsPickerSuggKeys = new Set();
+  for (const cand of _awardsPickerAutoCands) {
+    const ck = _awardItemKey(cand);
+    _awardsPickerSuggKeys.add(ck);
+    const hit = map[_awardsPickerCatType === 'song' ? _sk(cand)
+              : _awardsPickerCatType === 'album' ? _ak(cand)
+              : _pk(cand)];
+    if (hit) {
+      hit.sugg = true;
+      if (cand.playLabel) hit.playLabel = cand.playLabel;
+      if (cand.releaseYear !== undefined) hit.releaseYear = cand.releaseYear;
+    } else {
+      // Candidate the raw index can't reproduce (growth deltas, streaks…) — keep it as-is
+      map[ck] = Object.assign({ plays: 0, last: 0 }, cand, { sugg: true });
+    }
+  }
+
+  _awardsPickerAllItems = Object.values(map).sort((a, b) => b.plays - a.plays);
+}
+
+// The list the body should show right now: search filter + genre filter + sort
+function _awardsPickerVisible() {
+  const q = (document.getElementById('awardsPickerSearch')?.value || '').toLowerCase().trim();
+  const isGenreCat = _awardsPickerCatFilter.startsWith('genre:');
+
+  let list = _awardsPickerAllItems.filter(item => {
+    if (q && !([item.title, item.album, item.artist].filter(Boolean).join(' ').toLowerCase().includes(q))) return false;
+    if (isGenreCat) {
+      const tags = _awardsGenreCache[(item.artist || '').toLowerCase()];
+      if (tags === undefined) return false;   // genre not fetched yet → can't vouch for it
+      return _genreMatch(tags, _awardsPickerCatFilter);
+    }
+    return true;
+  });
+
+  if (_awardsPickerSort === 'az') {
+    list.sort((a, b) => (a.title || a.album || a.artist || '').localeCompare(b.title || b.album || b.artist || ''));
+  } else if (_awardsPickerSort === 'recent') {
+    list.sort((a, b) => b.last - a.last);
+  } else if (!q) {
+    // Default view: the generated suggestions sit on top, everything else follows by plays
+    list.sort((a, b) => (b.sugg ? 1 : 0) - (a.sugg ? 1 : 0) || b.plays - a.plays);
+  }
+  return list;
+}
+
+function _awardsPickerResultRow(item, idx) {
+  const picked = _awardsPickerSelKeys.has(_awardItemKey(item));
   const lbl = item.title || item.album || item.artist || '';
   const sub = item.title ? item.artist : (item.album ? item.artist : '');
   const rel = item.releaseYear ? ' · ' + item.releaseYear : (item.releaseYear === null ? ' · year unknown' : '');
   let genreHtml = '';
   if (_awardsPickerCatFilter.startsWith('genre:')) {
-    const tags = _awardsGenreCache[_pa(item).toLowerCase()];
+    const tags = _awardsGenreCache[(item.artist || '').toLowerCase()];
     if (tags && tags.length) {
       genreHtml = `<span class="awards-picker-genre-tags">${tags.slice(0, 3).map(t => `<span class="awards-picker-genre-tag">${esc(t)}</span>`).join('')}</span>`;
     } else {
       genreHtml = `<span class="awards-picker-genre-tags"><span class="awards-picker-genre-tag awards-picker-genre-unk">${tags === undefined ? '?' : 'no genre'}</span></span>`;
     }
   }
-  return `<div class="awards-picker-result-row" data-item="${esc(JSON.stringify(item))}" onclick="awardsPickerAddItem(this)">
-    <span class="awards-picker-add-icon">+</span>
+  const cls = 'awards-picker-result-row'
+    + (picked ? ' is-picked' : '')
+    + (idx === _awardsPickerActive ? ' is-active' : '');
+  return `<div class="${cls}" data-idx="${idx}" onclick="awardsPickerToggleRow(${idx})" title="${picked ? 'Click to remove' : 'Click to nominate'}">
+    <span class="awards-picker-add-icon">${picked ? '✓' : '+'}</span>
     <span class="awards-picker-lbl">${esc(lbl)}</span>
     ${sub ? `<span class="awards-picker-sub">${esc(sub)}${rel}</span>` : ''}
     ${genreHtml}
@@ -31013,37 +31122,59 @@ function _awardsPickerResultRow(item) {
 }
 
 function _awardsPickerSelHtml() {
-  const items = Object.values(_awardsPickerSelMap);
-  if (!items.length) return '<div class="awards-picker-nom-empty">No nominees selected — add from suggestions below</div>';
-  return items.map(item => {
-    const ik  = _awardItemKey(item);
+  if (!_awardsPickerSel.length) return '<div class="awards-picker-nom-empty">No nominees yet — click any row below to add one</div>';
+  return _awardsPickerSel.map((item, i) => {
     const lbl = item.title || item.album || item.artist || '';
     const sub = item.title ? item.artist : (item.album ? item.artist : '');
-    return `<div class="awards-picker-nom-row">
+    // Draggable chips: the order here is the order the nominees appear on the award card
+    return `<div class="awards-picker-nom-row" draggable="true" data-i="${i}"
+        ondragstart="awardsPickerDragStart(event,${i})"
+        ondragover="awardsPickerDragOver(event)"
+        ondragleave="awardsPickerDragLeave(event)"
+        ondrop="awardsPickerDrop(event,${i})"
+        ondragend="awardsPickerDragEnd(event)">
+      <span class="awards-picker-nom-num">${i + 1}</span>
       <span class="awards-picker-nom-lbl">${esc(lbl)}</span>
       ${sub ? `<span class="awards-picker-nom-sub">${esc(sub)}</span>` : ''}
-      <span class="awards-picker-nom-plays">${item.playLabel || item.plays + ' plays'}</span>
-      <button class="awards-picker-nom-x" data-key="${esc(ik)}" onclick="awardsPickerRemoveNom(this)" title="Remove">✕</button>
+      <button class="awards-picker-nom-x" data-i="${i}" onclick="awardsPickerRemoveNom(this)" title="Remove">✕</button>
     </div>`;
   }).join('');
 }
 
 function _awardsPickerBodyHtml() {
-  const avail = _awardsPickerAutoCands.filter(c => !_awardsPickerSelMap[_awardItemKey(c)]);
-  return avail.length
-    ? avail.map(_awardsPickerResultRow).join('')
-    : `<div class="awards-empty">${t('awards_no_candidates')}</div>`;
+  const list = _awardsPickerVisible();
+  const q = (document.getElementById('awardsPickerSearch')?.value || '').trim();
+  if (!list.length) {
+    return `<div class="awards-empty">${q ? `No results for "${esc(q)}"` : t('awards_no_candidates')}</div>`;
+  }
+  _awardsPickerRows = list.slice(0, _awardsPickerShown);
+
+  const showHeaders = !q && _awardsPickerSort === 'plays' && _awardsPickerSuggKeys.size > 0;
+  let html = '', seenRest = false;
+  _awardsPickerRows.forEach((item, i) => {
+    if (showHeaders) {
+      if (i === 0 && item.sugg) html += '<div class="awards-picker-group">Suggested for this category</div>';
+      if (!item.sugg && !seenRest) {
+        seenRest = true;
+        html += `<div class="awards-picker-group">Everything else you played in ${_awardsPickerCtx.year}</div>`;
+      }
+    }
+    html += _awardsPickerResultRow(item, i);
+  });
+
+  const left = list.length - _awardsPickerRows.length;
+  if (left > 0) html += `<button class="awards-picker-more" onclick="awardsPickerShowMore()">Show ${Math.min(left, AWARDS_PICKER_PAGE)} more · ${left} left</button>`;
+  return html;
 }
 
-function _awardsPickerRefresh() {
-  const selEl  = document.getElementById('awardsPickerSelected');
+function _awardsPickerRefresh(resetPaging) {
+  if (resetPaging) { _awardsPickerShown = AWARDS_PICKER_PAGE; _awardsPickerActive = -1; }
+  const selEl   = document.getElementById('awardsPickerSelected');
   const countEl = document.getElementById('awardsPickerCount');
   if (selEl)   selEl.innerHTML = _awardsPickerSelHtml();
-  if (countEl) countEl.textContent = t('awards_picker_selected', {count: Object.keys(_awardsPickerSelMap).length});
-  const q = (document.getElementById('awardsPickerSearch')?.value || '').trim();
+  if (countEl) countEl.textContent = t('awards_picker_selected', { count: _awardsPickerSel.length });
   const bodyEl = document.getElementById('awardsPickerBody');
-  if (!bodyEl) return;
-  if (q) awardsPickerDoSearch(); else bodyEl.innerHTML = _awardsPickerBodyHtml();
+  if (bodyEl) bodyEl.innerHTML = _awardsPickerBodyHtml();
 }
 
 function _awardsShowPicker(year, catId, candidates) {
@@ -31053,27 +31184,45 @@ function _awardsShowPicker(year, catId, candidates) {
   if (!catDef) return;
 
   const existingNominees = data.categories[catId]?.nominees || [];
-  _awardsPickerSelMap    = {};
-  existingNominees.forEach(n => { _awardsPickerSelMap[_awardItemKey(n)] = n; });
+  _awardsPickerSel       = existingNominees.slice();
+  _awardsPickerSelKeys   = new Set(_awardsPickerSel.map(_awardItemKey));
   _awardsPickerCatType   = catDef.type;
   _awardsPickerCatFilter = catDef.filter || '';
   _awardsPickerEligWin   = { start: data.eligStart, end: data.eligEnd };
-  _awardsPickerAutoCands = candidates;
+  _awardsPickerAutoCands = candidates || [];
+  _awardsPickerSort      = 'plays';
+  _awardsPickerShown     = AWARDS_PICKER_PAGE;
+  _awardsPickerActive    = -1;
+  _awardsPickerRows      = [];
 
   const typeLabel = catDef.type === 'song' ? 'songs' : catDef.type === 'album' ? 'albums' : 'artists';
+  _awardsPickerCtx = { year, catId, typeLabel };
+  _awardsPickerBuildIndex();
+
   const html = `<div class="awards-picker-overlay" id="awardsPickerOverlay" onclick="awardsPickerBgClick(event)">
     <div class="awards-picker-modal">
       <div class="awards-picker-head">
         <span class="awards-picker-title">${esc(t('awards_cat_' + catDef.id))}</span>
+        <span class="awards-picker-hint">Click a row to add or remove · drag the chips to reorder · ↑↓ then Enter</span>
         <button class="awards-picker-close" onclick="awardsPickerClose()">✕</button>
       </div>
       <div class="awards-picker-selected" id="awardsPickerSelected">${_awardsPickerSelHtml()}</div>
-      <div class="awards-picker-search">
-        <input type="text" id="awardsPickerSearch" placeholder="Search ${typeLabel} from ${year}…" oninput="awardsPickerDoSearch()" autocomplete="off" spellcheck="false">
+      <div class="awards-picker-tools">
+        <input type="text" id="awardsPickerSearch" placeholder="Search all ${typeLabel} from ${year}…" oninput="awardsPickerDoSearch()" autocomplete="off" spellcheck="false">
+        <select class="awards-picker-sort" id="awardsPickerSort" onchange="awardsPickerSetSort(this.value)" title="Sort the list">
+          <option value="plays">Most played</option>
+          <option value="az">A–Z</option>
+          <option value="recent">Most recent</option>
+        </select>
+      </div>
+      <div class="awards-picker-quick">
+        <button onclick="awardsPickerFillTop(8)">Fill top 8</button>
+        <button onclick="awardsPickerFillTop(5)">Top 5</button>
+        <button onclick="awardsPickerClearSel()">Clear all</button>
       </div>
       <div class="awards-picker-body" id="awardsPickerBody">${_awardsPickerBodyHtml()}</div>
       <div class="awards-picker-foot">
-        <span class="awards-picker-count" id="awardsPickerCount">${t('awards_picker_selected', {count: existingNominees.length})}</span>
+        <span class="awards-picker-count" id="awardsPickerCount">${t('awards_picker_selected', { count: _awardsPickerSel.length })}</span>
         <button class="awards-picker-save" onclick="awardsPickerSave(${year},'${catId}')">${t('awards_save_nominees')}</button>
       </div>
     </div>
@@ -31083,77 +31232,139 @@ function _awardsShowPicker(year, catId, candidates) {
   wrap.innerHTML = html;
   document.body.appendChild(wrap.firstElementChild);
   requestAnimationFrame(() => document.getElementById('awardsPickerSearch')?.focus());
+
+  // Keyboard: ↑↓ walk the list, Enter adds/removes, Ctrl/⌘+Enter saves, Esc closes
+  _awardsPickerKeyHandler = e => {
+    if (!document.getElementById('awardsPickerOverlay')) return;
+    if (e.key === 'Escape') { e.preventDefault(); awardsPickerClose(); return; }
+    if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) { e.preventDefault(); awardsPickerSave(year, catId); return; }
+    if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+      if (!_awardsPickerRows.length) return;
+      e.preventDefault();
+      const next = _awardsPickerActive + (e.key === 'ArrowDown' ? 1 : -1);
+      _awardsPickerActive = Math.max(0, Math.min(_awardsPickerRows.length - 1, next));
+      _awardsPickerPaintActive();
+      return;
+    }
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      awardsPickerToggleRow(_awardsPickerActive >= 0 ? _awardsPickerActive : 0);
+    }
+  };
+  document.addEventListener('keydown', _awardsPickerKeyHandler);
 }
 
-function awardsPickerAddItem(el) {
-  const item = JSON.parse(el.dataset.item);
-  _awardsPickerSelMap[_awardItemKey(item)] = item;
+// Move the keyboard highlight without re-rendering the whole list
+function _awardsPickerPaintActive() {
+  const bodyEl = document.getElementById('awardsPickerBody');
+  if (!bodyEl) return;
+  bodyEl.querySelectorAll('.awards-picker-result-row.is-active').forEach(el => el.classList.remove('is-active'));
+  const row = bodyEl.querySelector(`.awards-picker-result-row[data-idx="${_awardsPickerActive}"]`);
+  if (row) { row.classList.add('is-active'); row.scrollIntoView({ block: 'nearest' }); }
+}
+
+// Clicking a row toggles it: add if new, remove if it is already nominated
+function awardsPickerToggleRow(idx) {
+  const item = _awardsPickerRows[idx];
+  if (!item) return;
+  const k = _awardItemKey(item);
+  if (_awardsPickerSelKeys.has(k)) {
+    _awardsPickerSel = _awardsPickerSel.filter(n => _awardItemKey(n) !== k);
+    _awardsPickerSelKeys.delete(k);
+  } else {
+    _awardsPickerSel.push(item);
+    _awardsPickerSelKeys.add(k);
+  }
+  _awardsPickerActive = idx;
   _awardsPickerRefresh();
+  _awardsPickerPaintActive();
 }
 
 function awardsPickerRemoveNom(btn) {
-  delete _awardsPickerSelMap[btn.dataset.key];
+  const i = +btn.dataset.i;
+  const item = _awardsPickerSel[i];
+  if (!item) return;
+  _awardsPickerSelKeys.delete(_awardItemKey(item));
+  _awardsPickerSel.splice(i, 1);
   _awardsPickerRefresh();
 }
 
-function awardsPickerDoSearch() {
-  const q      = (document.getElementById('awardsPickerSearch')?.value || '').toLowerCase().trim();
-  const bodyEl = document.getElementById('awardsPickerBody');
-  if (!bodyEl) return;
-  if (!q) { bodyEl.innerHTML = _awardsPickerBodyHtml(); return; }
+function awardsPickerClearSel() {
+  _awardsPickerSel = [];
+  _awardsPickerSelKeys = new Set();
+  _awardsPickerRefresh();
+}
 
-  const start = new Date(_awardsPickerEligWin.start + 'T00:00:00');
-  const end   = new Date(_awardsPickerEligWin.end   + 'T23:59:59');
-  const inWin = allPlays.filter(p => p.date >= start && p.date <= end);
-  const map   = {};
-
-  for (const p of inWin) {
-    if (_awardsPickerCatType === 'song') {
-      const k = _sk(p);
-      if (!map[k]) map[k] = { title: p.title, artist: p.artist, album: p.album, plays: 0 };
-      map[k].plays++;
-    } else if (_awardsPickerCatType === 'album') {
-      if (!p.album) continue;
-      const k = `${p.album.toLowerCase()}|||${_pk(p)}`;
-      if (!map[k]) map[k] = { album: p.album, artist: _pa(p), plays: 0 };
-      map[k].plays++;
-    } else {
-      const k = _rk(p);
-      if (!map[k]) map[k] = { artist: p.artist, plays: 0 };
-      map[k].plays++;
-    }
+// One-click ballot: take the top N of whatever list is currently on screen
+function awardsPickerFillTop(n) {
+  for (const item of _awardsPickerVisible()) {
+    if (_awardsPickerSel.length >= n) break;
+    const k = _awardItemKey(item);
+    if (_awardsPickerSelKeys.has(k)) continue;
+    _awardsPickerSel.push(item);
+    _awardsPickerSelKeys.add(k);
   }
+  _awardsPickerRefresh();
+}
 
-  const isGenreCat = _awardsPickerCatFilter.startsWith('genre:');
-  const hits = Object.values(map)
-    .filter(item => {
-      if (_awardsPickerSelMap[_awardItemKey(item)]) return false;
-      if (!([item.title, item.album, item.artist].filter(Boolean).join(' ').toLowerCase().includes(q))) return false;
-      if (isGenreCat) {
-        const artistKey = _pa(item).toLowerCase();
-        const tags = _awardsGenreCache[artistKey];
-        if (tags === undefined) return false;
-        return _genreMatch(tags, _awardsPickerCatFilter);
-      }
-      return true;
-    })
-    .sort((a, b) => b.plays - a.plays)
-    .slice(0, 50);
+function awardsPickerShowMore() {
+  _awardsPickerShown += AWARDS_PICKER_PAGE;
+  const bodyEl = document.getElementById('awardsPickerBody');
+  if (bodyEl) bodyEl.innerHTML = _awardsPickerBodyHtml();
+}
 
-  bodyEl.innerHTML = hits.length
-    ? hits.map(_awardsPickerResultRow).join('')
-    : `<div class="awards-empty">No results for "${esc(q)}"</div>`;
+function awardsPickerSetSort(v) {
+  _awardsPickerSort = v;
+  _awardsPickerRefresh(true);
+}
+
+function awardsPickerDoSearch() {
+  _awardsPickerShown  = AWARDS_PICKER_PAGE;
+  _awardsPickerActive = -1;
+  const bodyEl = document.getElementById('awardsPickerBody');
+  if (bodyEl) bodyEl.innerHTML = _awardsPickerBodyHtml();
+}
+
+/* --- Drag to reorder the selected nominees --- */
+function awardsPickerDragStart(e, i) {
+  _awardsPickerDragFrom = i;
+  e.dataTransfer.effectAllowed = 'move';
+  try { e.dataTransfer.setData('text/plain', String(i)); } catch (_) {}
+  e.currentTarget.classList.add('is-dragging');
+}
+function awardsPickerDragOver(e) {
+  if (_awardsPickerDragFrom < 0) return;
+  e.preventDefault();
+  e.dataTransfer.dropEffect = 'move';
+  e.currentTarget.classList.add('is-dropzone');
+}
+function awardsPickerDragLeave(e) { e.currentTarget.classList.remove('is-dropzone'); }
+function awardsPickerDragEnd(e)   { _awardsPickerDragFrom = -1; e.currentTarget.classList.remove('is-dragging'); }
+function awardsPickerDrop(e, to) {
+  e.preventDefault();
+  const from = _awardsPickerDragFrom;
+  _awardsPickerDragFrom = -1;
+  if (from < 0 || from === to) { _awardsPickerRefresh(); return; }
+  const [moved] = _awardsPickerSel.splice(from, 1);
+  _awardsPickerSel.splice(to, 0, moved);
+  _awardsPickerRefresh();
 }
 
 function awardsPickerBgClick(e) { if (e.target.id === 'awardsPickerOverlay') awardsPickerClose(); }
+
 function awardsPickerClose() {
   const el = document.getElementById('awardsPickerOverlay');
   if (el) el.remove();
-  _awardsPickerSelMap = {};
+  if (_awardsPickerKeyHandler) { document.removeEventListener('keydown', _awardsPickerKeyHandler); _awardsPickerKeyHandler = null; }
+  _awardsPickerSel      = [];
+  _awardsPickerSelKeys  = new Set();
+  _awardsPickerAllItems = [];   // drop the index so a big library isn't held in memory
+  _awardsPickerRows     = [];
+  _awardsPickerSuggKeys = new Set();
 }
 
 async function awardsPickerSave(year, catId) {
-  const nominees = Object.values(_awardsPickerSelMap);
+  const nominees = _awardsPickerSel.slice();
   awardsPickerClose();
   const data = _awardsYearData[year];
   if (!data) return;
