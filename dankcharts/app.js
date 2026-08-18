@@ -34856,33 +34856,69 @@ function _dcClearSpotlight() {
 
 /* A phase that describes a section should be able to show it even if the user
    keeps it switched off or collapsed — but only for as long as the phase lasts.
-   The sub-chart toggles live in dc_subChartToggles, which is in firebase.js's
-   SYNC_KEYS, so calling toggleSubChart() here would rewrite the user's layout
-   on every device they own. Both hiding mechanisms are plain CSS classes, so
-   the tour strips them, remembers exactly what it stripped, and puts them back.
 
-   Deliberately does NOT touch inline style.display: a sub-chart hidden that way
-   has no data for this period, and there is nothing to reveal. */
+   Three different mechanisms hide these sections, and reveal has to undo all
+   three and put each back exactly:
+
+     1. .sub-chart-toggled-off on the section — the sub-chart toggles. Their
+        state (dc_subChartToggles) is in firebase.js's SYNC_KEYS, so calling
+        toggleSubChart() here would rewrite the user's layout on every device
+        they own. Stripping the class touches no state at all.
+     2. .collapsed on the section — the generic collapse button and New Entries
+        (toggleNeSection), persisted per period in localStorage.
+     3. An inline display on a .bu-body / .off-body child — Bubbling Under and
+        Off the Chart keep their open state in _buOpen/_offOpen and hide the
+        body directly, never touching the section. Both ship collapsed, so a
+        phase pointing at one used to ring an empty header bar.
+
+   Deliberately does NOT touch the *section's* own inline display: a sub-chart
+   hidden that way has no data for this period and there is nothing to reveal. */
 const _CG_HIDE_CLASSES = ['sub-chart-toggled-off', 'collapsed'];
+const _CG_BODY_SEL     = '.bu-body, .off-body';
+const _CG_ARROW_SEL    = '.bu-toggle-icon, .off-toggle-icon, .ne-toggle-icon';
 let _cgTourRevealed = [];
 
 function _dcTourReveal(selector) {
   document.querySelectorAll(selector).forEach(el => {
-    const stripped = _CG_HIDE_CLASSES.filter(c => el.classList.contains(c));
-    if (!stripped.length) return;
-    stripped.forEach(c => el.classList.remove(c));
-    // Keep the collapse button's glyph honest while the section is forced open
+    const rec = { el, stripped: [], bodies: [], arrows: [], btn: null, glyph: null };
+
+    _CG_HIDE_CLASSES.forEach(c => {
+      if (el.classList.contains(c)) { el.classList.remove(c); rec.stripped.push(c); }
+    });
+
+    el.querySelectorAll(_CG_BODY_SEL).forEach(body => {
+      if (body.style.display === 'none') {
+        rec.bodies.push({ body, prev: body.style.display });
+        body.style.display = '';
+      }
+    });
+
+    // Keep the disclosure affordances honest while the section is forced open
+    el.querySelectorAll(_CG_ARROW_SEL).forEach(icon => {
+      if (icon.textContent !== '▲') {
+        rec.arrows.push({ icon, prev: icon.textContent });
+        icon.textContent = '▲';
+      }
+    });
     const btn = el.querySelector('.section-collapse-btn');
-    const glyph = btn ? btn.textContent : null;
-    if (btn && stripped.includes('collapsed')) { btn.textContent = '−'; btn.title = 'Collapse'; }
-    _cgTourRevealed.push({ el, stripped, btn, glyph });
+    if (btn && rec.stripped.includes('collapsed')) {
+      rec.btn = btn; rec.glyph = btn.textContent;
+      btn.textContent = '−'; btn.title = 'Collapse';
+    }
+
+    if (rec.stripped.length || rec.bodies.length || rec.arrows.length) _cgTourRevealed.push(rec);
   });
 }
 
 function _dcTourRestoreRevealed() {
-  _cgTourRevealed.forEach(({ el, stripped, btn, glyph }) => {
-    stripped.forEach(c => el.classList.add(c));
-    if (btn && glyph !== null) { btn.textContent = glyph; btn.title = glyph === '+' ? 'Expand' : 'Collapse'; }
+  _cgTourRevealed.forEach(rec => {
+    rec.stripped.forEach(c => rec.el.classList.add(c));
+    rec.bodies.forEach(({ body, prev }) => { body.style.display = prev; });
+    rec.arrows.forEach(({ icon, prev }) => { icon.textContent = prev; });
+    if (rec.btn && rec.glyph !== null) {
+      rec.btn.textContent = rec.glyph;
+      rec.btn.title = rec.glyph === '+' ? 'Expand' : 'Collapse';
+    }
   });
   _cgTourRevealed = [];
 }
