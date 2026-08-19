@@ -34730,7 +34730,7 @@ const _cgTourSteps = [
         spotlight: '#songsSection .kebab-menu-btn',
         hold: 10000 },
 
-      { content: 'The chart itself. Every row carries its position, how far it moved since last week, its all-time peak, and how many weeks in a row it has held on.',
+      { content: 'The chart itself. Every row carries its position, how far it moved since last week, its all-time peak, and how many weeks it has spent on the chart altogether.',
         spotlight: '#songsSection',
         reveal: true,
         hold: 9000 },
@@ -34780,13 +34780,13 @@ const _cgTourSteps = [
         revealBody: 'songs-hide-yt-btns artists-hide-yt-btns albums-hide-yt-btns',
         hold: 7000 },
 
-      { content: 'Weeks on chart — how many periods in a row it has held on. Drop off and it starts again at 1.',
+      { content: 'Weeks on chart — the total number of weeks this has ever spent on the chart. Every spell counts: drop off, come back later, and the number carries on climbing rather than starting over.',
         spotlight: _cgRow('td.m-col:has(.m-mths)'), column: true, hold: 6000 },
 
       { content: 'Plays in this period, the change since last period, and a bar measuring it against your number one.',
         spotlight: _cgRow('.play-count, .play-bar'), hold: 6000 },
 
-      { content: 'And the button at the end opens the chart run: every period this entry has charted, drawn as a rise and fall.',
+      { content: 'The button at the end shows the whole story: every week this one has been on the chart, and how high it got each time.',
         spotlight: _cgRow('td.cr-cell'), click: _cgRow('.cr-toggle-btn') },
     ] },
 
@@ -35461,8 +35461,8 @@ function dcRenderChartsGuideView() {
       body: 'Positions come from plays within that period alone — nothing carries over. That is why a song can sit at #1 for a week and never appear in the monthly chart: one intense week rarely beats four steady ones.' },
     { icon: '↕︎', title: 'Movement compares like with like',
       body: 'Up and down arrows, new entries, re-entries and dropouts are always measured against the previous period of the same type. A weekly chart compares to last week, a monthly chart to last month — never across types.' },
-    { icon: '★', title: 'Peak and chart run are permanent',
-      body: 'Peak is the best position an entry has ever reached in that chart type. Chart run counts how many consecutive periods it has stayed on. Both survive a dropout — a re-entry keeps its old peak and starts a fresh run.' },
+    { icon: '★', title: 'Peak and weeks on chart never reset',
+      body: 'Peak is the best position an entry has ever reached in that chart type. Weeks on chart is the total number of periods it has spent on the chart, added up across every separate spell. Dropping off costs it neither: come back later and both carry on from where they were.' },
     { icon: '≡', title: 'Bubbling Under and Off Chart',
       body: 'The chart itself only holds as many entries as your chart size allows. Bubbling Under shows what sat just below the cut; Off Chart shows what fell out entirely. Toggle either per chart type from the section header.' },
     { icon: '✎︎', title: 'Autocorrect rewrites history',
@@ -35476,8 +35476,9 @@ function dcRenderChartsGuideView() {
     { term: 'Scrobble',     def: 'A single recorded play of a track. When a song finishes, it is "scrobbled" — logged to your listening history with a timestamp.' },
     { term: 'Bullet',       def: 'A chart entry rising to a position it has not previously held this period. Shown with an upward arrow.' },
     { term: 'Dropout',      def: 'An entry present on last period\'s chart that is completely absent from this one.' },
-    { term: 'Re-entry',     def: 'An entry that previously dropped off the chart and has now returned. It keeps its old peak but starts a new chart run.' },
-    { term: 'Chart Run',    def: 'The number of consecutive periods an entry has appeared on the chart without a break.' },
+    { term: 'Re-entry',     def: 'An entry that previously dropped off the chart and has now returned. It keeps both its old peak and its running weeks-on-chart total.' },
+    { term: 'Chart Run',    def: 'The full record of where an entry has ranked over time. Open it from the button at the end of its row.' },
+    { term: 'Weeks on Chart', def: 'How many periods an entry has been on the chart in total, counting every separate spell. It never resets — a re-entry carries on from the number it already had.' },
     { term: 'Peak',         def: 'The highest chart position an entry has ever achieved in that chart type.' },
     { term: 'Bubbling Under', def: 'Entries that fell just short of the chart cut-off for the period — the next few places below your chart size.' },
     { term: 'Off Chart',    def: 'Entries that were on the chart previously and have now fallen out of it entirely.' },
