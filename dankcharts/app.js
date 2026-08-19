@@ -34733,7 +34733,7 @@ const _cgTourSteps = [
          and walks its four tabs while this paragraph is being read. The holds
          below add up to a little under this phase's own hold, so the menu
          closes on the last tab instead of snapping shut mid-sequence. */
-      { content: 'Every section header has a ⋮ menu — here it is, opening on the songs chart. Show picks what each row carries: cert badges, plays and peak, peak tags, the YouTube button, the Bubbling Under legend. Size sets how many entries the chart holds, from Top 10 to Top 100, remembered separately per chart type. View switches the layout between table, card grid, compact, mosaic, filmstrip and stack. Actions plays the whole chart on YouTube, exports it as a playlist or a shareable image, and on the year and all-time charts downloads it as TXT or CSV.',
+      { content: 'Every section header has a ⋮ menu — here it is, opening on the songs chart.\n\n"Show" picks what each row carries: cert badges, plays and peak, peak tags, the YouTube button, the Bubbling Under legend.\n\n"Size" sets how many entries the chart holds, from Top 10 to Top 100, remembered separately per chart type.\n\n"View" switches the layout between table, card grid, compact, mosaic, filmstrip and stack.\n\n"Actions" plays the whole chart on YouTube, exports it as a playlist or a shareable image, and on the year and all-time charts downloads it as TXT or CSV.',
         kebabSection: '#songsSection',
         reveal: true,
         kebabSeq: [
