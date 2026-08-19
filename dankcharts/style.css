@@ -28329,6 +28329,34 @@ body.red-light .modal-cb-label--tracks {
       .cg-tour-spotlight-col { transition: background 0.25s ease; }
     }
 
+    /* Spotlight inside the ⋮ chart-options menu — the tour opens the real menu
+       and rings its tabs and rows one at a time. .kebab-menu sets
+       overflow:hidden (to clip the panel to its rounded corners), so the normal
+       box-shadow ring is cut off at the menu's edge, and the tab strip and the
+       full-width rows sit right on that edge. Draw it inside the element
+       instead, the same way the table columns do, and pulse the tint. */
+    .kebab-menu .cg-tour-spotlight {
+      box-shadow: none;
+      outline: 2px solid var(--accent);
+      outline-offset: -2px;
+      border-radius: 6px;
+      background: color-mix(in srgb, var(--accent) 16%, transparent) !important;
+      animation: cgSpotlightPulseInset 1.4s ease-in-out 3;
+    }
+    @keyframes cgSpotlightPulseInset {
+      0%, 100% {
+        outline-width: 2px;
+        background: color-mix(in srgb, var(--accent) 16%, transparent);
+      }
+      50% {
+        outline-width: 3px;
+        background: color-mix(in srgb, var(--accent) 34%, transparent);
+      }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .kebab-menu .cg-tour-spotlight { animation: none; }
+    }
+
     /* The back-to-top button is a --z-float element pinned bottom-right, which
        is exactly where the tour banner's End Tour control sits on a narrow
        screen. The tour owns the bottom of the viewport while it runs. */

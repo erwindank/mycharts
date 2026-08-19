@@ -34728,9 +34728,34 @@ const _cgTourSteps = [
         ],
         seqHold: 2000 },
 
-      { content: 'The ⋮ menu on any section header: chart size from Top 10 to Top 100, six layouts to switch between, what to show on the chart, and export to a shareable image or to data.',
-        spotlight: '#songsSection .kebab-menu-btn',
-        hold: 10000 },
+      /* Absorbed the old standalone "Chart size, layout and the ⋮ menu" step:
+         rather than describe the same menu twice, the tour opens the real one
+         and walks its four tabs while this paragraph is being read. The holds
+         below add up to a little under this phase's own hold, so the menu
+         closes on the last tab instead of snapping shut mid-sequence. */
+      { content: 'Every section header has a ⋮ menu — here it is, opening on the songs chart. Show picks what each row carries: cert badges, plays and peak, peak tags, the YouTube button, the Bubbling Under legend. Size sets how many entries the chart holds, from Top 10 to Top 100, remembered separately per chart type. View switches the layout between table, card grid, compact, mosaic, filmstrip and stack. Actions plays the whole chart on YouTube, exports it as a playlist or a shareable image, and on the year and all-time charts downloads it as TXT or CSV.',
+        kebabSection: '#songsSection',
+        reveal: true,
+        kebabSeq: [
+          { sel: '.kebab-tabs', hold: 2200 },
+          { tab: 'show',   sel: '.kebab-tab[data-tab="show"]', hold: 1300 },
+          { tab: 'show',   sel: '.kebab-panel[data-panel="show"] > button:nth-child(1)', hold: 1100 },
+          { tab: 'show',   sel: '.kebab-panel[data-panel="show"] > button:nth-child(2)', hold: 1100 },
+          { tab: 'show',   sel: '.kebab-panel[data-panel="show"] > button:nth-child(3)', hold: 1100 },
+          { tab: 'show',   sel: '.kebab-panel[data-panel="show"] > button:nth-child(4)', hold: 1100 },
+          { tab: 'show',   sel: '.kebab-panel[data-panel="show"] > button:nth-child(5)', hold: 1100 },
+          { tab: 'size',   sel: '.kebab-tab[data-tab="size"]', hold: 1300 },
+          { tab: 'size',   sel: '.kebab-panel[data-panel="size"] .size-btns', hold: 2400 },
+          { tab: 'view',   sel: '.kebab-tab[data-tab="view"]', hold: 1300 },
+          { tab: 'view',   sel: '.kebab-panel[data-panel="view"] .weekly-view-btns', hold: 2400 },
+          { tab: 'export', sel: '.kebab-tab[data-tab="export"]', hold: 1300 },
+          { tab: 'export', sel: '.kebab-panel[data-panel="export"] .kebab-playback-row', hold: 1400 },
+          /* Deliberately no TXT/CSV entry: that bar only becomes .visible in
+             All Entries mode on the year and all-time charts, and this phase
+             runs on the weekly one — it would have rung nothing. */
+          { tab: 'export', sel: '.export-playlist-btn, .ig-share-btn', hold: 2600 },
+        ],
+        hold: 23000 },
 
       { content: 'The chart itself. Every row carries its position, how far it moved since last week, its all-time peak, and how many weeks it has spent on the chart altogether.',
         spotlight: '#songsSection',
@@ -34796,10 +34821,6 @@ const _cgTourSteps = [
   { title: 'Moving through time',
     content: 'Prev / Next walks one period at a time, and the ← → arrow keys do the same without touching the mouse. The date bar above the chart always names the period you are looking at, and the jump picker beside it drops you on any specific week, month or year directly.',
     nav: null, spotlight: '#dateNav' },
-
-  { title: 'Chart size, layout and the ⋮ menu',
-    content: 'Every section header has a ⋮ menu. It sets how many entries the chart holds (Top 10 through 100, remembered separately per chart type), switches the layout between table, card grid, compact, mosaic, filmstrip and stack, toggles Bubbling Under and Off Chart on or off, and exports the chart as an image or as data.',
-    nav: null },
 
   { title: 'Monthly',
     content: 'The same three charts counted over a calendar month. Because each period is counted independently, a song can top the weekly chart on one heavy afternoon and still finish nowhere monthly — the monthly chart rewards things you came back to. Worth checking when you want to know what actually stuck.',
@@ -34969,6 +34990,72 @@ function _dcTourClick(selector) {
 function _dcTourUnclick() {
   _cgTourClicked.forEach(el => { try { el.click(); } catch (e) {} });
   _cgTourClicked = [];
+}
+
+/* The ⋮ chart-options menu gets a walkthrough of its own rather than a card
+   describing it: the tour opens the real menu, steps through its four tabs and
+   rings the controls inside each one, then closes it again.
+
+   Nothing here is persisted — switchKebabTab() remembers the last tab in
+   dc_kebab_tab (globally, not per section), so the user's own value is saved
+   when the menu opens and put back when it closes. Opening and closing go
+   through the launcher button rather than the .open class, so the menu keeps
+   the app's own outside-click and Escape wiring. */
+let _cgTourKebab = null; // { btn, menu, prevTab } while the tour holds the menu open
+
+// Prefix every comma-separated part, not just the first — '#songsSection a, b'
+// would leave the second selector unscoped and ring all three sections.
+const _cgScope = (section, sel) =>
+  sel.split(',').map(s => section + ' ' + s.trim()).join(', ');
+
+function _dcTourOpenKebab(section) {
+  const btn = document.querySelector(section + ' .kebab-menu-btn');
+  if (!btn || !_dcTourVisible(btn)) return null;
+  const menu = btn.nextElementSibling;
+  if (!menu || !menu.classList.contains('kebab-menu')) return null;
+  if (!_cgTourKebab) {
+    let prevTab = null;
+    try { prevTab = localStorage.getItem('dc_kebab_tab'); } catch (e) {}
+    _cgTourKebab = { btn, menu, prevTab };
+  }
+  if (!menu.classList.contains('open')) btn.click();
+  return _cgTourKebab;
+}
+
+function _dcTourCloseKebab() {
+  if (!_cgTourKebab) return;
+  const { btn, menu, prevTab } = _cgTourKebab;
+  _cgTourKebab = null;
+  if (menu.classList.contains('open')) btn.click();
+  try {
+    if (prevTab === null) localStorage.removeItem('dc_kebab_tab');
+    else localStorage.setItem('dc_kebab_tab', prevTab);
+  } catch (e) {}
+}
+
+/* Walks the open menu: each entry may switch tab, ring something inside it, or
+   both. Scrolls once, to the launcher — the panel drops out of that header, so
+   everything the sequence rings is already in frame. Re-opens the menu on every
+   entry because clicking Next/Prev in the banner counts as an outside click and
+   the app's own handler shuts it. */
+function _dcRunKebabSeq(section, list) {
+  const k = _dcTourOpenKebab(section);
+  if (!k) return;
+  _dcTourScrollTo(k.btn);
+  let i = 0;
+  const advance = () => {
+    _dcClearSpotlight();
+    if (i >= list.length) return;
+    const entry = list[i++];
+    if (!k.menu.classList.contains('open')) k.btn.click();
+    if (entry.tab) {
+      const tabBtn = k.menu.querySelector('.kebab-tab[data-tab="' + entry.tab + '"]');
+      if (tabBtn && _dcTourVisible(tabBtn)) switchKebabTab(tabBtn, entry.tab);
+    }
+    if (entry.sel) _dcSpotlight(_cgScope(section, entry.sel), false); // already in frame
+    _dcTourLater(advance, entry.hold || 1500);
+  };
+  advance();
 }
 
 /* Only ring things that are actually on screen. Sub-charts (Bubbling Under,
@@ -35141,7 +35228,17 @@ function _dcApplyTourStep() {
   // Let a tab switch settle before measuring anything for a scroll
   const delay = (step.nav && entering) ? 300 : 60;
 
-  if (target.seq) {
+  // Close the ⋮ menu the moment we leave the phase that opened it
+  if (!target.kebabSeq) _dcTourCloseKebab();
+
+  if (target.kebabSeq) {
+    const kebabSection = target.kebabSection || '#songsSection';
+    _dcTourLater(() => {
+      // A collapsed or toggled-off section has no menu to open — reveal it first
+      if (target.reveal) _dcTourReveal(kebabSection);
+      _dcRunKebabSeq(kebabSection, target.kebabSeq);
+    }, delay);
+  } else if (target.seq) {
     const hold = target.seqHold || 1500;
     _dcTourLater(() => _dcRunSpotlightSeq(target.seq, hold), delay);
   } else if (target.spotlight) {
@@ -35192,6 +35289,7 @@ function dcEndTour() {
   _dcClearTourTimers();
   _dcClearSpotlight();
   _dcTourUnclick();
+  _dcTourCloseKebab();
   _dcTourRestoreRevealed();
   _cgTourStep = 0;
   _cgTourPhase = 0;
@@ -35549,7 +35647,7 @@ function dcRenderChartsGuideView() {
 
   /* ── Changelog ────────────────────────────────────────────────── */
   const changelog = [
-    { version: 'Aug 2026', items: ['Charts Guide rebuilt as six numbered chapters, ordered the way a new user actually asks questions', 'New first-visit welcome gate that routes you to the tour or the guide', 'Guided tour extended to eleven steps and now explains how a chart row is read', 'New "How Charts Work" chapter covering periods, ranking, movement, peaks and autocorrect'] },
+    { version: 'Aug 2026', items: ['Charts Guide rebuilt as six numbered chapters, ordered the way a new user actually asks questions', 'New first-visit welcome gate that routes you to the tour or the guide', 'Guided tour extended to eleven steps and now explains how a chart row is read', 'New "How Charts Work" chapter covering periods, ranking, movement, peaks and autocorrect', 'Guided tour now opens the real ⋮ chart-options menu and walks its four tabs, instead of describing it twice'] },
     { version: 'Jun 2026', items: ['Added the Charts Guide tab', 'Split the navigation bar into two rows: chart views on top, insight views below'] },
     { version: 'May 2026', items: ['Music player overhaul: 12 queue management improvements', 'Collapse All toggle bar above chart sections', 'Redesigned light themes: white cards on tinted page backgrounds'] },
     { version: 'Apr 2026', items: ['Real-life awards panel in the Awards tab', 'New Music Friday integration in Events', 'Time Machine section in the Playlists tab'] },
