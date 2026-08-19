@@ -34753,7 +34753,7 @@ const _cgTourSteps = [
         reveal: true,
         hold: 10000 },
 
-      { content: 'And at the bottom, the release reels: Upcoming and Recent Releases from the artists in your charts. Hover to pause a reel, drag to browse it.',
+      { content: 'At the bottom of the page, you\'ll find upcoming and recent releases from your top artists. Hover to pause the reel, drag to browse, or click an entry for more options. You can also switch your view using the toggle.',
         spotlight: '#upcomingSection, #recentSection',
         reveal: true },
     ] },
