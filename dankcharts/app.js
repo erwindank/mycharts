@@ -34770,7 +34770,7 @@ const _cgTourSteps = [
       { content: 'Peak is the best position it has ever reached. Next to it sits any Gold, Platinum or Diamond badge it has earned from its total plays.',
         spotlight: _cgRow('.peak-badge, .peak-badge-1, .peak-badge-2, .peak-badge-3, .cert'), hold: 7000 },
 
-      { content: 'The YouTube button plays the track there and then — it looks up this exact title and artist, with nothing to set up first.',
+      { content: 'Click the red YouTube button and the song starts playing, in a small player down in the corner. If a song is already playing, this one joins the queue instead.',
         spotlight: _cgRow('.yt-play-btn'),
         revealBody: 'songs-hide-yt-btns artists-hide-yt-btns albums-hide-yt-btns',
         hold: 6000 },
