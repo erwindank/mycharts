@@ -34985,15 +34985,33 @@ function _dcTourVisible(el) {
 
    Centre inside the space actually visible above the banner; for anything too
    tall to fit there, align its top instead so the header is always what you see. */
-function _dcTourScrollTo(el) {
+function _dcTourScrollTo(el, attempt) {
+  if (!el || !el.isConnected) return;
+  attempt = attempt || 0;
   const banner  = document.getElementById('cgTourBanner');
   const bannerH = banner && banner.style.display !== 'none'
     ? banner.getBoundingClientRect().height : 0;
   const topPad = 24;
   const avail  = Math.max(120, window.innerHeight - bannerH - topPad);
   const r      = el.getBoundingClientRect();
-  const offset = r.height >= avail ? topPad : topPad + (avail - r.height) / 2;
-  window.scrollTo({ top: Math.max(0, window.scrollY + r.top - offset), behavior: 'smooth' });
+  const wantTop = r.height >= avail ? topPad : topPad + (avail - r.height) / 2;
+  window.scrollTo({
+    top: Math.max(0, window.scrollY + r.top - wantTop),
+    behavior: attempt === 0 ? 'smooth' : 'auto'
+  });
+
+  /* The target is right when it is computed, but the page keeps moving under
+     the smooth-scroll animation: entering a phase collapses the previous
+     section (up to several thousand pixels) and expands this one, and Chrome's
+     scroll anchoring nudges the offset while that settles. On a long chart the
+     drift is enough to push the section title above the top of the screen.
+     Re-measure once the animation has finished and snap it into place. */
+  if (attempt < 2) {
+    _dcTourLater(() => {
+      const now = el.getBoundingClientRect();
+      if (Math.abs(now.top - wantTop) > 8) _dcTourScrollTo(el, attempt + 1);
+    }, attempt === 0 ? 550 : 220);
+  }
 }
 
 /* Table cells are a bad fit for the box-shadow ring: .chart-table sets
