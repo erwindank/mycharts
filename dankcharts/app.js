@@ -35588,12 +35588,14 @@ function dcRenderChartsGuideView() {
   let h = `<div class="cg-view">`;
 
   /* ── Hero ───────────────────────────────────────────────────── */
+  /* Full greeting sentence: "Charts Guide, Erwin" read like the name was
+     tacked onto a title, so the welcome is spelled out instead. */
   const greeting = displayName ? ', ' + esc(displayName) : '';
   h += `<div class="cg-welcome">
     <div class="cg-welcome-text">
       <div class="cg-welcome-kicker">The manual</div>
-      <h2 class="cg-welcome-title">Charts Guide${greeting}</h2>
-      <p class="cg-welcome-sub">Six chapters, in the order the questions come up: get set up, learn the tabs, understand how a chart is built, go faster, then everything the app knows about your listening.</p>
+      <h2 class="cg-welcome-title">Welcome to the Charts Guide${greeting}</h2>
+      <p class="cg-welcome-sub">We’ve broken this down into six chapters, following the exact questions you’ll have as you go: get set up, explore the tabs, see how a chart comes together, speed up your workflow, dive deep into your full listening history, and find help whenever you need it.</p>
       <div class="cg-hero-progress">
         <div class="cg-progress-track cg-hero-track"><div class="cg-checklist-bar" style="width:${Math.round(doneCount / checkItems.length * 100)}%"></div></div>
         <span class="cg-hero-progress-text" id="cgHeroProgressText">${doneCount} of ${checkItems.length} first steps done</span>
