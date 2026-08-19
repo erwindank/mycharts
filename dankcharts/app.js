@@ -34690,8 +34690,10 @@ const _cgTourSteps = [
     content: 'Somewhere in your listening history is your number one song from a year you barely remember, the album you played to death one winter, and the artist who has quietly sat in your top ten ever since. dankcharts digs all of it out. Every song you have played becomes a chart you can flip through — week by week, year by year, right back to your very first scrobble. This tour visits all twelve tabs in about four minutes, and you can stop it any time.',
     nav: null },
 
+  /* Written as short labelled lines rather than one dense paragraph — the
+     banner renders newlines as line breaks (white-space: pre-line). */
   { title: 'The nav bar',
-    content: 'This is the bar you will live in — twelve tabs in two rows. The top row is the charts themselves: the same songs, artists and albums counted over four different time windows, plus the raw plays underneath and the graphs drawn from them. The second row is everything built out of those charts — records, events, awards, your recap and playlists, none of which need any extra setup. If that second row is ever hidden, the More button on the right brings it back.',
+    content: 'Everything you need is split into two clean rows.\n\nTop row — your core stats: songs, artists, albums, raw plays and graphs, across four time windows.\n\nBottom row — your deep dives: records, events, awards, recaps and playlists, all built for you automatically.\n\nMissing the second row? Click More on the right to expand it.',
     nav: null, spotlight: '#periodNav', expandNav: true },
 
   /* Step 3 is a walkthrough of one page rather than a single card: ten phases
