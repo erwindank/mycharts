@@ -34987,13 +34987,27 @@ function _dcTourVisible(el) {
 
    Centre inside the space actually visible above the banner; for anything too
    tall to fit there, align its top instead so the header is always what you see. */
+/* The date-nav bar (#stickyNavBar) is position:sticky at top:0, so as soon as
+   the page is scrolled past the masthead it floats over the top of the
+   viewport — which is exactly where the code below was parking each target.
+   The Chart, Bubbling Under and New Entries sections are all taller than the
+   screen, so they align to the top, and their <h2> ended up tucked behind the
+   pinned bar: the step talked about a title nobody could see. Reserve the
+   bar's height as extra top padding so the header always clears it. */
+function _dcTourStickyTopH() {
+  const bar = document.getElementById('stickyNavBar');
+  if (!bar || !_dcTourVisible(bar)) return 0;
+  return bar.getBoundingClientRect().height;
+}
+
 function _dcTourScrollTo(el, attempt) {
   if (!el || !el.isConnected) return;
   attempt = attempt || 0;
   const banner  = document.getElementById('cgTourBanner');
   const bannerH = banner && banner.style.display !== 'none'
     ? banner.getBoundingClientRect().height : 0;
-  const topPad = 24;
+  const stickyH = _dcTourStickyTopH();
+  const topPad = 24 + stickyH;
   const avail  = Math.max(120, window.innerHeight - bannerH - topPad);
   const r      = el.getBoundingClientRect();
   const wantTop = r.height >= avail ? topPad : topPad + (avail - r.height) / 2;
