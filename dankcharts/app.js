@@ -34693,7 +34693,7 @@ const _cgTourSteps = [
   /* Written as short labelled lines rather than one dense paragraph — the
      banner renders newlines as line breaks (white-space: pre-line). */
   { title: 'The nav bar',
-    content: 'Everything you need is split into two clean rows.\n\nTop row — your core stats: songs, artists, albums, raw plays and graphs, across four time windows.\n\nBottom row — your deep dives: records, events, awards, recaps and playlists, all built for you automatically.\n\nMissing the second row? Click More on the right to expand it.',
+    content: 'Everything you need is split into two clean rows.\n\nTop row — your core stats: songs, artists, albums, raw plays and graphs, across four time windows.\n\nBottom row — your deep dives: records, events, awards, recaps and playlists, all built for you automatically.\n\nMissing the second row? Click More on the strip just below the tabs to expand it.',
     nav: null, spotlight: '#periodNav', expandNav: true },
 
   /* Step 3 is a walkthrough of one page rather than a single card: ten phases
@@ -34747,7 +34747,8 @@ const _cgTourSteps = [
         reveal: true,
         hold: 10000 },
 
-      { content: 'New Entries — songs landing on the chart for the very first time this week.',
+      /* New Entries is first-ever discoveries, not chart debuts — say so plainly. */
+      { content: 'New Entries — not chart debuts, but songs you heard for the very first time ever, ranked by how much you played them this week.',
         spotlight: '#newSongsSection',
         reveal: true,
         hold: 10000 },
