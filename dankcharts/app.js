@@ -34783,7 +34783,7 @@ const _cgTourSteps = [
         revealBody: 'songs-hide-yt-btns artists-hide-yt-btns albums-hide-yt-btns',
         hold: 7000 },
 
-      { content: 'Weeks on chart — the total number of weeks this has ever spent on the chart. Every spell counts: drop off, come back later, and the number carries on climbing rather than starting over.',
+      { content: 'Weeks on chart — how many weeks this has spent on the chart in total, added up across every spell it has had there.',
         spotlight: _cgRow('td.m-col:has(.m-mths)'), column: true, hold: 6000 },
 
       { content: 'Plays in this period, the change since last period, and a bar measuring it against your number one.',
