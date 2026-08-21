@@ -29943,6 +29943,74 @@ body.red-light .modal-cb-label--tracks {
   flex-shrink: 0;
 }
 
+/* The sub line and the type filter share one row. They are never both filled
+   at once (see renderCertReel), so the row is really just a holder that keeps
+   whichever one is speaking on the same baseline as the shelf below it. */
+.creel-subrow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  /* The sub used to carry this margin itself; now that the buttons can replace
+     it, the spacing has to belong to the row so it survives either state. */
+  margin-bottom: 1.1rem;
+}
+
+.creel-subrow .section-sub {
+  margin-bottom: 0;
+}
+
+/* Collapsing the section already hides a bare .section-sub; the row that now
+   wraps it needs saying too, or the filter buttons would sit under a collapsed
+   heading with no shelf to filter. */
+.chart-section.collapsed .creel-subrow {
+  display: none;
+}
+
+.creel-filter-btns {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+  align-items: center;
+}
+
+/* Same chip as the Certifications Wall's filter buttons — the two controls do
+   the same job on the same plaques, so they should not look like two ideas. */
+.creel-btn {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.04em;
+  padding: 0.25rem 0.65rem;
+  border-radius: 4px;
+  border: 1px solid var(--border2);
+  background: var(--bg2);
+  color: var(--text3);
+  cursor: pointer;
+  transition: background 0.12s, color 0.12s, border-color 0.12s;
+  white-space: nowrap;
+}
+
+.creel-btn:hover {
+  background: var(--surface);
+  color: var(--text);
+  border-color: var(--accent);
+}
+
+.creel-btn.active {
+  background: var(--accent);
+  color: var(--on-accent);
+  border-color: var(--accent);
+}
+
+/* The count rides a step quieter than its label — it is the supporting fact,
+   not the name of the button. On the active chip it inherits the accent's own
+   foreground, so it stays legible on every theme's fill. */
+.creel-btn-n {
+  opacity: 0.7;
+  font-size: 0.92em;
+}
+
 .creel-hint {
   font-family: var(--font-mono);
   font-size: 0.63rem;

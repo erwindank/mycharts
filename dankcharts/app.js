@@ -23096,6 +23096,22 @@ function hideCertReel() {
   _creelLoaderId++;
 }
 
+/* Which kinds of plaque the shelf is showing: 'all', 'song' or 'album'.
+   Sticky across periods — a reader who narrowed to albums keeps seeing albums
+   as they step through the weeks — but dropped the moment it would empty the
+   shelf (see renderCertReel), because a blank reel reads as "nothing was
+   certified" when the truth is "nothing of that kind was". */
+let certReelFilter = 'all';
+/* The range last rendered, so a click on the filter can rebuild the shelf
+   without renderAll() having to hand the dates over again. */
+let _creelRange = null;
+
+function setCertReelFilter(kind) {
+  if (kind === certReelFilter || !_creelRange) return;
+  certReelFilter = kind;
+  renderCertReel(_creelRange.start, _creelRange.end);
+}
+
 /* Called from renderAll() with the period's own range, so the reel follows the
    prev/next navigation: step back a week and it shows that week's awards. */
 function renderCertReel(start, end) {
@@ -23110,26 +23126,54 @@ function renderCertReel(start, end) {
     return;
   }
 
-  const items = certsInRange(start, end);
+  _creelRange = { start, end };
+  const all = certsInRange(start, end);
   const countEl = document.getElementById('certReelCount');
   const subEl = document.getElementById('certReelSub');
 
-  if (!items.length) {
+  if (!all.length) {
     hideCertReel();
     return;
   }
+
+  const nSongs = all.filter(c => c.type === 'song').length;
+  const nAlbums = all.length - nSongs;
+  /* A filter with nothing behind it in this period falls back to All rather
+     than showing an empty shelf — stepping to a week that happened to earn
+     only songs should not look like a week that earned nothing. */
+  if ((certReelFilter === 'song' && !nSongs) || (certReelFilter === 'album' && !nAlbums)) {
+    certReelFilter = 'all';
+  }
+  const items = certReelFilter === 'all' ? all : all.filter(c => c.type === certReelFilter);
+
   section.style.display = '';
+  // The header chip counts what is on the shelf, so narrowing is visible there too.
   if (countEl) countEl.textContent = items.length;
+
+  /* Both kinds present → the buttons carry the counts and the sub steps aside;
+     one kind only → nothing to filter, so the plain sub does the talking. */
+  const canFilter = nSongs > 0 && nAlbums > 0;
+  const filterEl = document.getElementById('certReelFilter');
+  if (filterEl) {
+    filterEl.style.display = canFilter ? '' : 'none';
+    if (canFilter) {
+      const setN = (id, n) => { const el = document.getElementById(id); if (el) el.textContent = n; };
+      setN('certReelNAll', all.length);
+      setN('certReelNSongs', nSongs);
+      setN('certReelNAlbums', nAlbums);
+      filterEl.querySelectorAll('[data-creel-filter]').forEach(b =>
+        b.classList.toggle('active', b.dataset.creelFilter === certReelFilter));
+    }
+  }
   if (subEl) {
+    subEl.style.display = canFilter ? 'none' : '';
     /* Built from the plural helpers rather than one sentence with two numbers
        dropped in: "1 song awards" is wrong in English and worse in Spanish,
        where the noun and its article both have to agree. A kind with nothing
        to report is left out entirely instead of reading "and 0 albums". */
-    const songs = items.filter(c => c.type === 'song').length;
-    const albums = items.length - songs;
     subEl.textContent = [
-      songs ? tCount('songs', songs) : '',
-      albums ? tCount('albums', albums) : ''
+      nSongs ? tCount('songs', nSongs) : '',
+      nAlbums ? tCount('albums', nAlbums) : ''
     ].filter(Boolean).join(' · ');
   }
 
