@@ -30121,3 +30121,781 @@ body.red-light .modal-cb-label--tracks {
 .dcreel.dcreel-static .ev-carousel-track {
   margin-inline: auto;
 }
+
+    /* ═══════════════════════════════════════════════════════════════════
+       RATINGS — CRITICAL EVALUATION SYSTEM
+       ═══════════════════════════════════════════════════════════════════
+       The score bands are the colour language of the whole feature: chips,
+       rings, criterion bars, the distribution chart and the record cards all
+       read from the same seven tokens.
+
+       They are derived from each theme's OWN semantic tokens (--gold2, --green,
+       --teal, --amber, --rose) rather than hard-coded hexes, so every one of the
+       ten themes tunes the ramp against its own background for free. A fixed
+       green would be unreadable on the light themes and wrong on the tinted
+       ones. Ramp runs gold → green → teal → amber → rose, which is monotonic in
+       quality, and the score number is ALWAYS rendered next to the colour, so
+       colour never carries the value on its own. */
+    :root {
+      --rt-masterpiece: var(--gold2);
+      --rt-essential:   var(--green);
+      --rt-great:       color-mix(in srgb, var(--green) 65%, var(--teal));
+      --rt-good:        var(--teal);
+      --rt-mixed:       var(--amber);
+      --rt-weak:        color-mix(in srgb, var(--amber) 45%, var(--rose));
+      --rt-poor:        var(--rose);
+      --rt-none:        var(--text3);
+    }
+
+    /* One class per band. `color` drives text and `--rt-c` is the handle every
+       fill, ring stroke and border reads, so a band class can be dropped on any
+       element and it just works. */
+    .rt--masterpiece { --rt-c: var(--rt-masterpiece); color: var(--rt-masterpiece); }
+    .rt--essential   { --rt-c: var(--rt-essential);   color: var(--rt-essential);   }
+    .rt--great       { --rt-c: var(--rt-great);       color: var(--rt-great);       }
+    .rt--good        { --rt-c: var(--rt-good);        color: var(--rt-good);        }
+    .rt--mixed       { --rt-c: var(--rt-mixed);       color: var(--rt-mixed);       }
+    .rt--weak        { --rt-c: var(--rt-weak);        color: var(--rt-weak);        }
+    .rt--poor        { --rt-c: var(--rt-poor);        color: var(--rt-poor);        }
+    .rt--none        { --rt-c: var(--rt-none);        color: var(--rt-none);        }
+
+    /* ── Score chip ─────────────────────────────────────────────── */
+    .rt-chip {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 2.6em;
+      padding: 0.1em 0.45em;
+      margin-left: 0.4em;
+      border: 1px solid color-mix(in srgb, var(--rt-c) 55%, transparent);
+      background: color-mix(in srgb, var(--rt-c) 14%, transparent);
+      border-radius: var(--r-sm, 5px);
+      font-size: 0.78em;
+      font-weight: 800;
+      font-variant-numeric: tabular-nums;
+      letter-spacing: 0.02em;
+      line-height: 1.5;
+      vertical-align: middle;
+      white-space: nowrap;
+    }
+
+    /* Chart-row variant — quieter, so a wall of them does not shout over the
+       titles the way a full-strength chip would. */
+    .rt-chip--row { font-size: 0.7em; min-width: 2.4em; }
+
+    /* Toggled from each chart's kebab menu ("My Scores"), the same way cert
+       badges are hidden — a class flip, not a chart rebuild. */
+    body.songs-hide-score  #songsSection  .rt-chip--row,
+    body.albums-hide-score #albumsSection .rt-chip--row { display: none !important; }
+
+    /* ── Score ring ─────────────────────────────────────────────── */
+    .rt-ring {
+      position: relative;
+      width: var(--rt-size, 92px);
+      flex: 0 0 auto;
+      text-align: center;
+    }
+    .rt-ring svg { display: block; }
+    .rt-ring-track { stroke: color-mix(in srgb, var(--border) 70%, transparent); }
+    .rt-ring-arc {
+      stroke: var(--rt-c, var(--rt-none));
+      transition: stroke-dashoffset 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+    .rt-ring-inner {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      pointer-events: none;
+    }
+    .rt-ring-score {
+      font-size: calc(var(--rt-size, 92px) * 0.30);
+      font-weight: 900;
+      line-height: 1;
+      font-variant-numeric: tabular-nums;
+      color: var(--rt-c, var(--rt-none));
+    }
+    .rt-ring-max {
+      font-size: calc(var(--rt-size, 92px) * 0.13);
+      color: var(--text3);
+      font-weight: 700;
+      margin-top: 0.15em;
+    }
+    .rt-ring-band {
+      margin-top: 0.35rem;
+      font-size: 0.68rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--rt-c, var(--rt-none));
+    }
+
+    /* ── Criterion bars (read-only rubric) ──────────────────────── */
+    .rt-critbars {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+      gap: 0.55rem 1.1rem;
+      margin-top: 0.9rem;
+    }
+    .rt-critbar--na { opacity: 0.5; }
+    .rt-critbar-head {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 0.5rem;
+      margin-bottom: 0.25rem;
+    }
+    .rt-critbar-label {
+      font-size: 0.78rem;
+      color: var(--text2);
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+      min-width: 0;
+    }
+    .rt-critbar-emoji { font-size: 0.85rem; flex: 0 0 auto; }
+    .rt-critbar-val {
+      font-size: 0.82rem;
+      font-weight: 800;
+      font-variant-numeric: tabular-nums;
+      flex: 0 0 auto;
+    }
+    .rt-critbar-track {
+      height: 5px;
+      border-radius: 3px;
+      background: color-mix(in srgb, var(--border) 60%, transparent);
+      overflow: hidden;
+    }
+    .rt-critbar-fill {
+      height: 100%;
+      border-radius: 3px;
+      background: var(--rt-c, var(--rt-none));
+    }
+
+    /* ── Rating block inside the profile modals ─────────────────── */
+    .rt-block {
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: var(--r-md, 8px);
+      padding: 1rem 1.1rem 1.1rem;
+    }
+    .rt-block-head {
+      display: flex;
+      align-items: flex-start;
+      gap: 1.1rem;
+      flex-wrap: wrap;
+    }
+    .rt-block-meta { flex: 1 1 200px; min-width: 0; }
+    .rt-block-verdict {
+      font-size: 1rem;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 0.3rem;
+    }
+    .rt-block-sub { font-size: 0.8rem; color: var(--text3); margin-bottom: 0.55rem; }
+    .rt-block-note {
+      margin: 0 0 0.6rem;
+      padding-left: 0.7rem;
+      border-left: 2px solid var(--border2);
+      color: var(--text2);
+      font-size: 0.85rem;
+      font-style: italic;
+      line-height: 1.5;
+    }
+    .rt-block--empty { display: flex; align-items: center; gap: 1.2rem; flex-wrap: wrap; }
+    .rt-empty-copy { flex: 1 1 240px; min-width: 0; }
+    .rt-empty-title { font-weight: 800; color: var(--text); margin-bottom: 0.2rem; }
+    .rt-empty-sub { font-size: 0.83rem; color: var(--text3); line-height: 1.5; margin-bottom: 0.7rem; }
+
+    .rt-sub-label {
+      margin: 1.1rem 0 0.5rem;
+      font-size: 0.7rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.09em;
+      color: var(--text3);
+    }
+    .rt-insights { margin-top: 0.9rem; }
+
+    /* ── Buttons ────────────────────────────────────────────────── */
+    .rt-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.4rem 0.85rem;
+      border: 1px solid var(--border2);
+      background: var(--surface);
+      color: var(--text);
+      border-radius: var(--r-sm, 5px);
+      font-size: 0.8rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background 0.15s ease, border-color 0.15s ease, transform 0.1s ease;
+    }
+    .rt-btn:hover { background: var(--bg3); border-color: var(--accent); }
+    .rt-btn:active { transform: translateY(1px); }
+    /* --on-accent, never a hard-coded #fff: the yellow-dark theme has a light
+       accent and white ink on it is unreadable. */
+    .rt-btn--primary { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+    .rt-btn--primary:hover { background: var(--accent2); border-color: var(--accent2); color: var(--on-accent); }
+    .rt-btn--danger { color: var(--rose); border-color: color-mix(in srgb, var(--rose) 45%, var(--border)); }
+    .rt-btn--danger:hover { background: color-mix(in srgb, var(--rose) 12%, transparent); border-color: var(--rose); }
+
+    /* ── Link from a song through to its album's evaluation ─────── */
+    .rt-albumlink {
+      display: flex;
+      align-items: center;
+      gap: 0.7rem;
+      width: 100%;
+      margin-top: 0.6rem;
+      padding: 0.65rem 0.9rem;
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: var(--r-md, 8px);
+      color: var(--text);
+      cursor: pointer;
+      text-align: left;
+      transition: border-color 0.15s ease, background 0.15s ease;
+    }
+    .rt-albumlink:hover { border-color: var(--accent); background: var(--surface); }
+    .rt-albumlink-ico { font-size: 1rem; color: var(--accent); flex: 0 0 auto; }
+    .rt-albumlink-txt { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; }
+    .rt-albumlink-lead {
+      font-size: 0.66rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text3);
+      font-weight: 800;
+    }
+    .rt-albumlink-name {
+      font-size: 0.9rem;
+      font-weight: 700;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .rt-albumlink-unrated { font-size: 0.72rem; color: var(--text3); font-weight: 700; }
+    .rt-albumlink-arrow { color: var(--text3); flex: 0 0 auto; }
+
+    /* ── Pills (highlights / skips / top songs) ─────────────────── */
+    .rt-pill-row { display: flex; flex-wrap: wrap; gap: 0.35rem; }
+    .rt-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.25rem 0.6rem;
+      border: 1px solid color-mix(in srgb, var(--rt-c) 45%, transparent);
+      background: color-mix(in srgb, var(--rt-c) 12%, transparent);
+      border-radius: 99px;
+      font-size: 0.76rem;
+      font-weight: 700;
+    }
+    .rt-pill--btn { cursor: pointer; }
+    .rt-pill--btn:hover { background: color-mix(in srgb, var(--rt-c) 24%, transparent); }
+
+    /* ── Track / album score tables ─────────────────────────────── */
+    .rt-tracktable { display: flex; flex-direction: column; gap: 1px; }
+    .rt-tracktable-row {
+      display: flex;
+      align-items: center;
+      gap: 0.7rem;
+      width: 100%;
+      padding: 0.45rem 0.6rem;
+      background: var(--bg2);
+      border: none;
+      border-left: 2px solid transparent;
+      color: var(--text);
+      cursor: pointer;
+      text-align: left;
+      font-size: 0.83rem;
+      transition: background 0.12s ease, border-color 0.12s ease;
+    }
+    .rt-tracktable-row:hover { background: var(--surface); border-left-color: var(--accent); }
+    .rt-tracktable-row--unrated { opacity: 0.62; }
+    .rt-tt-title { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600; }
+    .rt-tt-plays { flex: 0 0 auto; font-size: 0.72rem; color: var(--text3); font-variant-numeric: tabular-nums; }
+    .rt-tt-unrated { flex: 0 0 auto; font-size: 0.7rem; color: var(--text3); font-style: italic; }
+
+    /* ═══ RATING EDITOR MODAL ═══════════════════════════════════ */
+    .rt-modal-box { max-width: 720px; }
+
+    /* .modal-close is absolutely positioned at top:0.85rem and this modal has no
+       .modal-header band to sit in front of, so the body needs to start below it
+       or the score ring in the top-right of the head lands underneath it. */
+    .rt-modal-box .modal-body { padding-top: 2.7rem; }
+
+    .rt-back {
+      background: none;
+      border: none;
+      color: var(--accent);
+      font-size: 0.8rem;
+      font-weight: 700;
+      cursor: pointer;
+      padding: 0 0 0.6rem;
+    }
+    .rt-back:hover { text-decoration: underline; }
+
+    .rt-edit-head {
+      display: flex;
+      align-items: flex-start;
+      gap: 1.2rem;
+      padding-bottom: 1rem;
+      border-bottom: 1px solid var(--border);
+      flex-wrap: wrap;
+    }
+    .rt-edit-titles { flex: 1 1 220px; min-width: 0; }
+    .rt-edit-kind {
+      font-size: 0.66rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--text3);
+      font-weight: 800;
+    }
+    .rt-edit-title { font-size: 1.25rem; font-weight: 900; line-height: 1.25; margin: 0.15rem 0; }
+    .rt-edit-sub { font-size: 0.85rem; color: var(--text2); }
+
+    /* Live formula readout — shows exactly how the album total is being built,
+       so the weighting is never a black box. */
+    .rt-formula {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 0.4rem;
+      margin: 0.85rem 0;
+      padding: 0.55rem 0.75rem;
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: var(--r-sm, 5px);
+      font-size: 0.8rem;
+      color: var(--text2);
+    }
+    .rt-formula--static { margin: 0 0 0.6rem; }
+    .rt-formula-part b { color: var(--text); font-variant-numeric: tabular-nums; }
+    .rt-formula-part em { font-style: normal; color: var(--text3); font-size: 0.9em; }
+    .rt-formula-op { color: var(--text3); font-weight: 800; }
+    .rt-formula-total {
+      font-weight: 900;
+      font-size: 1rem;
+      color: var(--accent);
+      font-variant-numeric: tabular-nums;
+    }
+    .rt-formula-note { margin-left: auto; font-size: 0.72rem; color: var(--text3); }
+    .rt-formula-empty { color: var(--text3); font-style: italic; }
+
+    /* ── Mode switch (detailed / quick) ─────────────────────────── */
+    .rt-mode-switch {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      flex-wrap: wrap;
+      margin: 1rem 0 0.4rem;
+    }
+    .rt-mode-btn {
+      padding: 0.3rem 0.8rem;
+      border: 1px solid var(--border2);
+      background: var(--bg3);
+      color: var(--text2);
+      border-radius: var(--r-sm, 5px);
+      font-size: 0.78rem;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .rt-mode-btn.active { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+    .rt-mode-hint { font-size: 0.74rem; color: var(--text3); flex: 1 1 100%; }
+
+    /* ── Tabs (album aspects / tracks) ──────────────────────────── */
+    .rt-tabs {
+      display: flex;
+      gap: 0.3rem;
+      margin: 0.9rem 0 0.6rem;
+      border-bottom: 1px solid var(--border);
+    }
+    .rt-tab {
+      padding: 0.45rem 0.9rem;
+      background: none;
+      border: none;
+      border-bottom: 2px solid transparent;
+      color: var(--text3);
+      font-size: 0.82rem;
+      font-weight: 700;
+      cursor: pointer;
+      margin-bottom: -1px;
+    }
+    .rt-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+    .rt-tab-count {
+      display: inline-block;
+      margin-left: 0.3rem;
+      padding: 0 0.35rem;
+      background: color-mix(in srgb, var(--text3) 22%, transparent);
+      border-radius: 99px;
+      font-size: 0.72em;
+    }
+
+    /* ── Criterion editor rows ──────────────────────────────────── */
+    .rt-edit-list { display: flex; flex-direction: column; }
+    .rt-edit-row {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      padding: 0.6rem 0;
+      border-bottom: 1px solid color-mix(in srgb, var(--border) 55%, transparent);
+      flex-wrap: wrap;
+    }
+    .rt-edit-row:last-child { border-bottom: none; }
+    .rt-edit-row--na { opacity: 0.5; }
+    .rt-edit-label { flex: 1 1 210px; min-width: 0; display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.35rem; }
+    .rt-edit-emoji { font-size: 0.95rem; }
+    .rt-edit-name { font-size: 0.86rem; font-weight: 700; color: var(--text); }
+    .rt-edit-desc { flex: 1 1 100%; font-size: 0.73rem; color: var(--text3); line-height: 1.4; }
+    .rt-edit-controls { display: flex; align-items: center; gap: 0.5rem; flex: 0 0 auto; }
+
+    /* ── Sliders ────────────────────────────────────────────────── */
+    .rt-slider {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 150px;
+      height: 4px;
+      border-radius: 3px;
+      background: color-mix(in srgb, var(--border) 75%, transparent);
+      outline: none;
+      cursor: pointer;
+    }
+    .rt-slider:disabled { cursor: not-allowed; opacity: 0.45; }
+    .rt-slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: var(--accent);
+      border: 2px solid var(--bg2);
+      cursor: pointer;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.35);
+    }
+    .rt-slider::-moz-range-thumb {
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: var(--accent);
+      border: 2px solid var(--bg2);
+      cursor: pointer;
+    }
+    .rt-slider--big { width: 100%; height: 6px; }
+    .rt-slider--track { width: 110px; flex: 0 0 auto; }
+
+    .rt-num {
+      width: 3.6rem;
+      padding: 0.28rem 0.4rem;
+      background: var(--bg);
+      border: 1px solid var(--border2);
+      border-radius: var(--r-sm, 5px);
+      color: var(--text);
+      font-size: 0.85rem;
+      font-weight: 800;
+      font-variant-numeric: tabular-nums;
+      text-align: center;
+    }
+    .rt-num:focus { border-color: var(--accent); outline: none; }
+    .rt-num:disabled { opacity: 0.45; cursor: not-allowed; }
+    .rt-num--big { width: 5rem; font-size: 1.3rem; padding: 0.4rem; }
+    .rt-num--track { width: 3.2rem; flex: 0 0 auto; }
+
+    .rt-na-btn {
+      padding: 0.2rem 0.45rem;
+      border: 1px solid var(--border2);
+      background: var(--bg3);
+      color: var(--text3);
+      border-radius: var(--r-sm, 5px);
+      font-size: 0.68rem;
+      font-weight: 800;
+      cursor: pointer;
+    }
+    .rt-na-btn.active { background: var(--text3); color: var(--bg); border-color: var(--text3); }
+
+    .rt-quick-wrap {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      padding: 1.2rem 0;
+    }
+
+    /* ── Track rows in the album editor ─────────────────────────── */
+    .rt-track-list { display: flex; flex-direction: column; max-height: 46vh; overflow-y: auto; }
+    .rt-track-row {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      padding: 0.45rem 0;
+      border-bottom: 1px solid color-mix(in srgb, var(--border) 45%, transparent);
+    }
+    .rt-track-main { flex: 1 1 auto; min-width: 0; }
+    .rt-track-title { font-size: 0.83rem; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .rt-track-meta { font-size: 0.7rem; color: var(--text3); }
+    .rt-track-detail {
+      flex: 0 0 auto;
+      width: 1.75rem;
+      height: 1.75rem;
+      border: 1px solid var(--border2);
+      background: var(--bg3);
+      color: var(--text2);
+      border-radius: var(--r-sm, 5px);
+      cursor: pointer;
+      font-weight: 900;
+      line-height: 1;
+    }
+    .rt-track-detail:hover { border-color: var(--accent); color: var(--accent); }
+
+    /* ── Weight slider + note ───────────────────────────────────── */
+    .rt-weight-row {
+      margin-top: 1rem;
+      padding: 0.8rem 0.9rem;
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: var(--r-sm, 5px);
+    }
+    .rt-weight-row label { display: block; font-size: 0.82rem; color: var(--text2); margin-bottom: 0.5rem; }
+    .rt-weight-row .rt-slider { width: 100%; }
+    .rt-weight-hint { font-size: 0.72rem; color: var(--text3); margin-top: 0.4rem; }
+
+    .rt-note-wrap { margin-top: 1rem; }
+    .rt-note-label { display: block; font-size: 0.78rem; font-weight: 700; color: var(--text2); margin-bottom: 0.35rem; }
+    .rt-note-opt { font-weight: 500; color: var(--text3); font-size: 0.92em; }
+    .rt-note {
+      width: 100%;
+      padding: 0.55rem 0.7rem;
+      background: var(--bg);
+      border: 1px solid var(--border2);
+      border-radius: var(--r-sm, 5px);
+      color: var(--text);
+      font: inherit;
+      font-size: 0.85rem;
+      resize: vertical;
+    }
+    .rt-note:focus { border-color: var(--accent); outline: none; }
+
+    .rt-edit-actions {
+      display: flex;
+      justify-content: space-between;
+      gap: 0.6rem;
+      margin-top: 1.2rem;
+      padding-top: 1rem;
+      border-top: 1px solid var(--border);
+    }
+
+    /* ═══ GRAPHS TAB — the ratings home ═════════════════════════ */
+    /* Score distribution. One series, so no legend; the count sits above each
+       column and the bucket below it, which is what keeps the encoding readable
+       without relying on the band colour. */
+    .rt-dist { margin-bottom: 0.4rem; }
+    .rt-dist-plot {
+      display: flex;
+      align-items: flex-end;
+      gap: 2px;                 /* 2px surface gap between adjacent bars */
+      height: 132px;
+      padding-top: 0.4rem;
+    }
+    .rt-dist-col { flex: 1 1 0; display: flex; flex-direction: column; height: 100%; min-width: 0; }
+    .rt-dist-count {
+      font-size: 0.68rem;
+      font-weight: 800;
+      color: var(--text3);
+      text-align: center;
+      height: 1rem;
+      font-variant-numeric: tabular-nums;
+    }
+    .rt-dist-bar-wrap { flex: 1 1 auto; display: flex; align-items: flex-end; }
+    .rt-dist-bar {
+      width: 100%;
+      /* Keeps a bucket with very few entries visible next to a tall one. Empty
+         buckets emit no bar at all, so this never paints a bare colour sliver. */
+      min-height: 3px;
+      background: var(--rt-c, var(--rt-none));
+      /* Rounded data-end only, anchored flat to the baseline. */
+      border-radius: 4px 4px 0 0;
+    }
+    .rt-dist-tick {
+      font-size: 0.66rem;
+      color: var(--text3);
+      text-align: center;
+      padding-top: 0.25rem;
+      border-top: 1px solid var(--border);   /* recessive baseline */
+      margin-top: 0.2rem;
+      font-variant-numeric: tabular-nums;
+    }
+    .rt-dist-axis { font-size: 0.66rem; color: var(--text3); text-align: center; margin-top: 0.15rem; }
+
+    .rt-bestworst {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 0.7rem;
+      margin-top: 1rem;
+    }
+    .rt-bw-card {
+      padding: 0.85rem 1rem;
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: var(--r-md, 8px);
+      color: var(--text);
+      cursor: pointer;
+      text-align: left;
+      transition: border-color 0.15s ease, transform 0.12s ease;
+    }
+    .rt-bw-card:hover { border-color: var(--accent); transform: translateY(-2px); }
+    .rt-bw-lead {
+      font-size: 0.68rem;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      color: var(--text3);
+      font-weight: 800;
+      margin-bottom: 0.35rem;
+    }
+    .rt-bw-name { font-size: 1rem; font-weight: 800; line-height: 1.3; }
+    .rt-bw-artist { font-size: 0.8rem; color: var(--text2); margin-bottom: 0.4rem; }
+
+    .rt-lib-controls {
+      display: flex;
+      justify-content: space-between;
+      gap: 0.7rem;
+      flex-wrap: wrap;
+      margin: 1.1rem 0 0.6rem;
+    }
+    .rt-lib-filter, .rt-lib-sort { display: flex; gap: 0.3rem; flex-wrap: wrap; }
+
+    .rt-lib-table { display: flex; flex-direction: column; gap: 1px; max-height: 520px; overflow-y: auto; }
+    .rt-lib-row {
+      display: flex;
+      align-items: center;
+      gap: 0.7rem;
+      padding: 0.5rem 0.7rem;
+      background: var(--bg2);
+      border: none;
+      border-left: 2px solid transparent;
+      color: var(--text);
+      cursor: pointer;
+      text-align: left;
+      transition: background 0.12s ease, border-color 0.12s ease;
+    }
+    .rt-lib-row:hover { background: var(--surface); border-left-color: var(--accent); }
+    .rt-lib-rank {
+      flex: 0 0 2rem;
+      font-size: 0.78rem;
+      font-weight: 800;
+      color: var(--text3);
+      font-variant-numeric: tabular-nums;
+    }
+    .rt-lib-name { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; font-size: 0.86rem; font-weight: 600; }
+    .rt-lib-artist { font-size: 0.74rem; color: var(--text3); font-weight: 400; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .rt-lib-plays { flex: 0 0 auto; font-size: 0.74rem; color: var(--text3); font-variant-numeric: tabular-nums; }
+
+    .rt-unrated-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 0.5rem 1.2rem;
+    }
+    .rt-unrated-row {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      width: 100%;
+      padding: 0.45rem 0.6rem;
+      background: var(--bg2);
+      border: 1px solid transparent;
+      border-radius: var(--r-sm, 5px);
+      color: var(--text);
+      cursor: pointer;
+      text-align: left;
+      margin-bottom: 1px;
+    }
+    .rt-unrated-row:hover { border-color: var(--accent); background: var(--surface); }
+    .rt-unrated-name { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; font-size: 0.83rem; font-weight: 600; }
+    .rt-unrated-artist { font-size: 0.72rem; color: var(--text3); font-weight: 400; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .rt-unrated-plays { flex: 0 0 auto; font-size: 0.73rem; color: var(--text3); font-variant-numeric: tabular-nums; }
+    .rt-unrated-cta { flex: 0 0 auto; font-size: 0.72rem; font-weight: 800; color: var(--accent); }
+
+    /* ═══ RECORDS TAB ═══════════════════════════════════════════ */
+    .rt-rec-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+      gap: 0.7rem;
+    }
+    .rt-rec-card {
+      padding: 0.9rem;
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: var(--r-md, 8px);
+      color: var(--text);
+      cursor: pointer;
+      text-align: center;
+      transition: border-color 0.15s ease, transform 0.12s ease;
+    }
+    .rt-rec-card:hover { border-color: var(--accent); transform: translateY(-2px); }
+    .rt-rec-emoji { font-size: 1.4rem; }
+    .rt-rec-value {
+      font-size: 1.7rem;
+      font-weight: 900;
+      line-height: 1.1;
+      font-variant-numeric: tabular-nums;
+      margin: 0.15rem 0;
+    }
+    .rt-rec-label {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--text3);
+      font-weight: 800;
+    }
+    .rt-rec-detail {
+      font-size: 0.78rem;
+      color: var(--text2);
+      margin-top: 0.3rem;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    /* ── Empty states ───────────────────────────────────────────── */
+    .rt-empty {
+      padding: 1rem;
+      color: var(--text3);
+      font-size: 0.85rem;
+      text-align: center;
+      line-height: 1.5;
+    }
+    .rt-empty--big { padding: 1.5rem 1rem; }
+    .rt-quick-note { font-size: 0.8rem; color: var(--text3); font-style: italic; margin-top: 0.8rem; }
+
+    /* ── Narrow screens ─────────────────────────────────────────── */
+    @media (max-width: 640px) {
+      .rt-edit-row { align-items: flex-start; }
+      .rt-edit-controls { width: 100%; justify-content: space-between; }
+      .rt-slider { width: 100%; flex: 1 1 auto; }
+      .rt-slider--track { width: auto; }
+      .rt-formula-note { margin-left: 0; flex: 1 1 100%; }
+      .rt-lib-controls { flex-direction: column; }
+      .rt-dist-plot { height: 104px; }
+      .rt-dist-count { font-size: 0.6rem; }
+    }
+
+    /* ── Awards: year-end Best Of, ranked from the user's own ratings ── */
+    .awards-bestof {
+      margin: 1.2rem 0;
+      padding: 1rem 1.1rem;
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: var(--r-md, 8px);
+    }
+    .awards-bestof-title {
+      margin: 0 0 0.2rem;
+      font-size: 0.95rem;
+      font-weight: 800;
+      color: var(--text);
+    }
+    .rt-bestof-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 0.4rem 1.4rem;
+    }

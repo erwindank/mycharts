@@ -27,7 +27,7 @@
   <!-- html2canvas, SheetJS (xlsx) and JSZip are intentionally NOT loaded here — they
        total ~1.2 MB and are only needed for image exports and Excel/ZIP imports.
        app.js pulls them from the CDN on first use (see ensureLazyLib). -->
-  <link rel="stylesheet" href="style.css?v=230">
+  <link rel="stylesheet" href="style.css?v=234">
   <!-- All scripts are deferred so the page paints without waiting on them.
        defer preserves execution order, which matters: translations → Chart.js →
        hammer → zoom plugin → firebase SDKs → firebase.js → app.js (in body). -->
@@ -548,6 +548,7 @@
             </div>
             <div class="kebab-panel" data-panel="show">
               <button id="toggleCertBtn" class="kebab-check-row active" onclick="toggleSectionDisplay('cert', 'songs')"><span class="kebab-check">✓</span><span class="kebab-row-label"><span data-i18n="btn_display_cert">Cert Badges</span></span></button>
+              <button id="toggleScoreBtn" class="kebab-check-row active" onclick="toggleSectionDisplay('score', 'songs')"><span class="kebab-check">✓</span><span class="kebab-row-label"><span data-i18n="btn_display_score">My Scores</span></span></button>
               <button id="togglePlaysPeakBtn" class="kebab-check-row active" onclick="toggleSectionDisplay('plays-peak', 'songs')"><span class="kebab-check">✓</span><span class="kebab-row-label"><span data-i18n="btn_display_plays_peak">Plays Peak</span></span></button>
               <button id="togglePeakTagsBtn" class="kebab-check-row active" onclick="toggleSectionDisplay('peak-tags', 'songs')"><span class="kebab-check">✓</span><span class="kebab-row-label"><span data-i18n="btn_display_peak_tags">Peak Tags</span></span></button>
               <button id="toggleYtBtnsBtn" class="kebab-check-row active" onclick="toggleSectionDisplay('yt-btns', 'songs')"><span class="kebab-check">✓</span><span class="kebab-row-label"><svg class="yt-btn-icon" viewBox="0 0 24 24"><path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.5 12 3.5 12 3.5s-7.5 0-9.4.5A3 3 0 0 0 .5 6.2C0 8.1 0 12 0 12s0 3.9.5 5.8a3 3 0 0 0 2.1 2.1c1.9.5 9.4.5 9.4.5s7.5 0 9.4-.5a3 3 0 0 0 2.1-2.1C24 15.9 24 12 24 12s0-3.9-.5-5.8zM9.7 15.5V8.5l6.3 3.5-6.3 3.5z"/></svg> <span data-i18n="btn_display_yt_btns">YouTube</span></span></button>
@@ -940,6 +941,7 @@
             </div>
             <div class="kebab-panel" data-panel="show">
               <button id="toggleCertBtnAlbums" class="kebab-check-row active" onclick="toggleSectionDisplay('cert', 'albums')"><span class="kebab-check">✓</span><span class="kebab-row-label"><span data-i18n="btn_display_cert">Cert Badges</span></span></button>
+              <button id="toggleScoreBtnAlbums" class="kebab-check-row active" onclick="toggleSectionDisplay('score', 'albums')"><span class="kebab-check">✓</span><span class="kebab-row-label"><span data-i18n="btn_display_score">My Scores</span></span></button>
               <button id="togglePlaysPeakBtnAlbums" class="kebab-check-row active" onclick="toggleSectionDisplay('plays-peak', 'albums')"><span class="kebab-check">✓</span><span class="kebab-row-label"><span data-i18n="btn_display_plays_peak">Plays Peak</span></span></button>
               <button id="togglePeakTagsBtnAlbums" class="kebab-check-row active" onclick="toggleSectionDisplay('peak-tags', 'albums')"><span class="kebab-check">✓</span><span class="kebab-row-label"><span data-i18n="btn_display_peak_tags">Peak Tags</span></span></button>
               <button id="toggleYtBtnsBtnAlbums" class="kebab-check-row active" onclick="toggleSectionDisplay('yt-btns', 'albums')"><span class="kebab-check">✓</span><span class="kebab-row-label"><svg class="yt-btn-icon" viewBox="0 0 24 24"><path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.5 12 3.5 12 3.5s-7.5 0-9.4.5A3 3 0 0 0 .5 6.2C0 8.1 0 12 0 12s0 3.9.5 5.8a3 3 0 0 0 2.1 2.1c1.9.5 9.4.5 9.4.5s7.5 0 9.4-.5a3 3 0 0 0 2.1-2.1C24 15.9 24 12 24 12s0-3.9-.5-5.8zM9.7 15.5V8.5l6.3 3.5-6.3 3.5z"/></svg> <span data-i18n="btn_display_yt_btns">YouTube</span></span></button>
@@ -1175,6 +1177,18 @@
             <button class="graphs-btn" data-gran="year" data-i18n="gran_yearly">Yearly</button>
           </div>
         </div>
+      </div>
+
+      <!-- My Ratings — the home for the whole critical-evaluation feature. Holds
+           the rated library, its score distribution, best/worst records, rating
+           activity and the "played a lot, never rated" prompts. The granularity
+           control above does not apply to it, so it sits in its own card and
+           renders independently via renderRatingsGraphSection(). -->
+      <div class="graph-card" id="ratingsGraphCard">
+        <div class="graph-card-title" data-i18n="graph_ratings_title">★ My Ratings</div>
+        <div class="graph-card-sub" data-i18n="graph_ratings_sub">Every album and song you have scored — how your
+          verdicts are distributed, your best and worst records, and what you play constantly but have never rated.</div>
+        <div id="ratingsGraphBody"></div>
       </div>
 
       <!-- Chart 1: Cumulative plays over time -->
@@ -1744,6 +1758,21 @@
         <div id="certifications-wall"></div>
       </div>
 
+      <!-- Rating Records — critical records derived from the user's own scores
+           (highest rated, most over/underplayed, most consistent album).
+           Filled by renderRatingRecordsSection(). -->
+      <div class="chart-section" id="recRatingsSection">
+        <div class="section-header">
+          <button class="section-collapse-btn" data-target="recRatingsSection"
+            data-i18n-title="tooltip_collapse">−</button>
+          <h2 class="section-header-h2"><span class="rec-h2-emoji">★</span><span data-i18n="rec_ratings_title">Rating Records</span></h2>
+          <div class="section-rule"></div>
+        </div>
+        <div class="section-sub" data-i18n="rec_ratings_sub">Your highest rated records, the ones you play more than you
+          rate them, and the albums that hold their level from front to back</div>
+        <div class="section-body" id="recRatingsBody"></div>
+      </div>
+
       <div class="chart-section" id="recStreaksSection">
         <div class="section-header">
           <button class="section-collapse-btn" data-target="recStreaksSection"
@@ -2048,6 +2077,13 @@
 
         <!-- Status message -->
         <div class="awards-status" id="awardsStatus"></div>
+
+        <!-- Best Of the year, ranked from the user's own ratings rather than
+             play counts. Filled by renderAwardsBestOf(). -->
+        <div class="awards-bestof" id="awardsBestOf">
+          <h3 class="awards-bestof-title" data-i18n="awards_bestof_title">★ Best Of, By My Ratings</h3>
+          <div id="awardsBestOfBody"></div>
+        </div>
 
         <!-- Categories rendering area -->
         <div id="awardsCatList"></div>
@@ -2957,6 +2993,10 @@
       <div class="modal-body">
         <div id="songModalRankCards"></div>
         <div class="modal-stats-strip" id="songModalStats"></div>
+        <!-- My Rating — this song's own evaluation plus a link to the full
+             album evaluation. Filled by renderSongRatingSection(). -->
+        <div class="modal-section-title" data-i18n="modal_rating_song">★ My Rating</div>
+        <div id="songModalRating"></div>
         <div id="songModalGrandSlam"></div>
         <div class="modal-section-title">🏅 My Grammies</div>
         <div class="modal-stats-strip" id="songModalGrammyStrip"></div>
@@ -2972,6 +3012,18 @@
         <div id="songModalHeatmapSection"></div>
         <div id="songModalStreamSection"></div>
       </div>
+    </div>
+  </div>
+
+  <!-- RATING EDITOR MODAL -->
+  <!-- One modal serves both songs and albums; rating an album can drill into a
+       single track's rubric and come back via the breadcrumb, so this is a
+       single overlay rather than two stacked ones. Body is rendered by
+       renderRatingModal(). -->
+  <div class="modal-overlay" id="ratingModal" role="dialog" aria-modal="true" aria-label="Rate">
+    <div class="modal-box rt-modal-box">
+      <button class="modal-close" onclick="closeRatingModal()" data-i18n="btn_close">✕ CLOSE</button>
+      <div class="modal-body" id="ratingModalBody"></div>
     </div>
   </div>
 
@@ -2991,6 +3043,10 @@
       </div>
       <div class="modal-body">
         <div class="modal-stats-strip" id="albumModalStats"></div>
+        <!-- Full album evaluation — weighted score, album aspects, auto-derived
+             insights and every track score. Filled by renderAlbumRatingSection(). -->
+        <div class="modal-section-title" data-i18n="modal_rating_album">★ My Evaluation</div>
+        <div id="albumModalRating"></div>
         <div id="albumModalGrandSlam"></div>
         <div class="modal-stats-strip" id="albumModalPeaks"></div>
         <div id="albumModalBreakdown"></div>
@@ -3021,6 +3077,10 @@
       </div>
       <div class="modal-body">
         <div class="modal-stats-strip" id="modalStats"></div>
+        <!-- Critical standing — averages across this artist's rated albums and
+             songs. Filled by renderArtistRatingSection(). -->
+        <div class="modal-section-title" data-i18n="modal_rating_artist">★ My Ratings</div>
+        <div id="modalArtistRating"></div>
         <div id="modalGrandSlam"></div>
         <div class="modal-stats-strip" id="modalArtistPeaks"></div>
         <div class="modal-section-title">📈 Chart Records</div>

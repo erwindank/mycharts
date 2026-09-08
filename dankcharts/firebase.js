@@ -109,6 +109,36 @@ function _awardsRef(uid, year) {
   return _db.collection('users').doc(uid).collection('data').doc(`awards_${year}`);
 }
 
+function _ratingsRef(uid) {
+  return _db.collection('users').doc(uid).collection('data').doc('ratings');
+}
+
+// Ratings are user-authored critical evaluations (per-song criterion scores,
+// per-album criterion scores, and the rubric config). They live in their own
+// document rather than in the config blob for the same reason awards and
+// playlists do: the config doc is written wholesale by dcSaveUserConfig(), so a
+// stale localStorage value could race the in-memory list back over the top of a
+// fresh edit. Writing the payload directly can't be raced that way.
+async function dcSaveRatings(payload) {
+  if (!_currentUser || !_db) return;
+  try {
+    await _ratingsRef(_currentUser.uid).set(payload);
+  } catch (err) {
+    console.warn('[dankcharts] Ratings save error:', err);
+  }
+}
+
+async function dcLoadRatings() {
+  if (!_currentUser || !_db) return null;
+  try {
+    const snap = await _ratingsRef(_currentUser.uid).get();
+    return snap.exists ? snap.data() : null;
+  } catch (err) {
+    console.warn('[dankcharts] Ratings load error:', err);
+    return null;
+  }
+}
+
 function _playlistsRef(uid) {
   return _db.collection('users').doc(uid).collection('data').doc('playlists');
 }
@@ -233,6 +263,8 @@ window.dcSaveEventsCache           = dcSaveEventsCache;
 window.dcLoadEventsCache           = dcLoadEventsCache;
 window.dcSaveAwards                = dcSaveAwards;
 window.dcLoadAwards                = dcLoadAwards;
+window.dcSaveRatings               = dcSaveRatings;
+window.dcLoadRatings               = dcLoadRatings;
 window.dcSavePlaylistsToFirestore  = dcSavePlaylistsToFirestore;
 window.dcLoadPlaylistsFromFirestore = dcLoadPlaylistsFromFirestore;
 
@@ -257,6 +289,11 @@ _auth.onAuthStateChanged(async (user) => {
   // Sync playlists from Firestore and merge with any locally-saved playlists
   const remotePlaylistData = await dcLoadPlaylistsFromFirestore();
   if (remotePlaylistData && typeof _ytMergePlaylists === 'function') _ytMergePlaylists(remotePlaylistData);
+
+  // Merge cloud ratings with anything rated locally while signed out. dcMergeRatings
+  // resolves per-entry by last-edited timestamp, so neither side clobbers the other.
+  const remoteRatings = await dcLoadRatings();
+  if (typeof dcMergeRatings === 'function') dcMergeRatings(remoteRatings);
 
   const hasLocalConfig = SYNC_KEYS.some(k => localStorage.getItem(k) !== null);
   if (!hasLocalConfig && !applied) return; // truly fresh user with no data anywhere
