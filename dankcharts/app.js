@@ -293,12 +293,16 @@ let chartSizeMonthly = 50;  // compat — mirrors chartSizeSongsM
 let firstSeenMaps = null; // cached first-ever play dates per song/artist/album
 let cumulativeMaps = null;   // cumulative plays up to end of current period
 let playsPeakMaps = null;    // historical max per-period plays for peak badge
-let chartSizeYearly = Infinity; // compat — mirrors chartSizeSongsY
+let chartSizeYearly = 100; // compat — mirrors chartSizeSongsY
 let chartSizeAllTime = Infinity; // compat — mirrors chartSizeSongsAT
 // Per-section chart sizes — each section is independent and remembers per period
 let chartSizeSongsW = 10,    chartSizeArtistsW = 10,    chartSizeAlbumsW = 10;
 let chartSizeSongsM = 50,    chartSizeArtistsM = 50,    chartSizeAlbumsM = 50;
-let chartSizeSongsY = Infinity, chartSizeArtistsY = Infinity, chartSizeAlbumsY = Infinity;
+// Yearly defaults to Top 100, not All Entries: the yearly chart now shows movement against
+// last year, and if "the chart" is every play ever logged, a song played twice last year
+// sits around #2300, so climbing to #3 reads as ▲2297 — true, but useless. All-Time has no
+// movement column, so it still defaults to All Entries.
+let chartSizeSongsY = 100, chartSizeArtistsY = 100, chartSizeAlbumsY = 100;
 let chartSizeSongsAT = Infinity, chartSizeArtistsAT = Infinity, chartSizeAlbumsAT = Infinity;
 // Active per-section sizes (set at the start of renderAll for the current period)
 let chartSizeSongs = 10, chartSizeArtists = 10, chartSizeAlbums = 10;
@@ -4317,15 +4321,15 @@ function finalizeLoad() {
   }
   chartSizeSongsW    = _loadSectionSize('dc_chartSizeSongsW',    'dc_chartSizeWeekly',  10);
   chartSizeSongsM    = _loadSectionSize('dc_chartSizeSongsM',    'dc_chartSizeMonthly', 50);
-  chartSizeSongsY    = _loadSectionSize('dc_chartSizeSongsY',    'dc_chartSizeYearly',  Infinity);
+  chartSizeSongsY    = _loadSectionSize('dc_chartSizeSongsY',    'dc_chartSizeYearly',  100);
   chartSizeSongsAT   = _loadSectionSize('dc_chartSizeSongsAT',   'dc_chartSizeAllTime', Infinity);
   chartSizeArtistsW  = _loadSectionSize('dc_chartSizeArtistsW',  'dc_chartSizeWeekly',  10);
   chartSizeArtistsM  = _loadSectionSize('dc_chartSizeArtistsM',  'dc_chartSizeMonthly', 50);
-  chartSizeArtistsY  = _loadSectionSize('dc_chartSizeArtistsY',  'dc_chartSizeYearly',  Infinity);
+  chartSizeArtistsY  = _loadSectionSize('dc_chartSizeArtistsY',  'dc_chartSizeYearly',  100);
   chartSizeArtistsAT = _loadSectionSize('dc_chartSizeArtistsAT', 'dc_chartSizeAllTime', Infinity);
   chartSizeAlbumsW   = _loadSectionSize('dc_chartSizeAlbumsW',   'dc_chartSizeWeekly',  10);
   chartSizeAlbumsM   = _loadSectionSize('dc_chartSizeAlbumsM',   'dc_chartSizeMonthly', 50);
-  chartSizeAlbumsY   = _loadSectionSize('dc_chartSizeAlbumsY',   'dc_chartSizeYearly',  Infinity);
+  chartSizeAlbumsY   = _loadSectionSize('dc_chartSizeAlbumsY',   'dc_chartSizeYearly',  100);
   chartSizeAlbumsAT  = _loadSectionSize('dc_chartSizeAlbumsAT',  'dc_chartSizeAllTime', Infinity);
   // Keep compat vars in sync with songs (songs = primary chart)
   chartSizeWeekly  = chartSizeSongsW;
@@ -10899,9 +10903,12 @@ const isPaginated = () => currentPeriod === 'year' || currentPeriod === 'alltime
 function renderTableHeaders() {
   const isWeeklyView = currentPeriod === 'week';
   const isMonthlyView = currentPeriod === 'month';
-  const hasPeriodStats = isWeeklyView || isMonthlyView;
-  const periodLabel = isWeeklyView ? t('th_weeks') : t('th_months');
-  const periodLabelMobile = isWeeklyView ? t('th_weeks_mobile') : t('th_months_mobile');
+  const isYearlyView = currentPeriod === 'year';
+  // Yearly gets the same Previous/movement + periods-on-chart columns as weekly and
+  // monthly; only All-Time is left out, since it has no period to compare against.
+  const hasPeriodStats = isWeeklyView || isMonthlyView || isYearlyView;
+  const periodLabel = isWeeklyView ? t('th_weeks') : isMonthlyView ? t('th_months') : t('th_years');
+  const periodLabelMobile = isWeeklyView ? t('th_weeks_mobile') : isMonthlyView ? t('th_months_mobile') : t('th_years_mobile');
   // Stacked label: main word on top, small muted "Rank" underneath — same footprint as before,
   // reads as "PREVIOUS / RANK" once .chart-table thead th uppercases it.
   const prevTh = `<th class="m-th m-th-prev"><span class="th-prev-full">${t('th_prev')}</span><span class="th-prev-short">${t('th_prev_mobile')}</span><span class="th-prev-sub">${t('th_prev_sub')}</span></th>`;
@@ -11406,7 +11413,7 @@ function renderAll() {
   renderTableHeaders();
   renderTimeMachine();
 
-  const hasPeriodStats = currentPeriod === 'week' || currentPeriod === 'month';
+  const hasPeriodStats = currentPeriod === 'week' || currentPeriod === 'month' || currentPeriod === 'year';
   const colCount = hasPeriodStats ? 8 : 6; // +1 for the trailing chart-run icon column
 
   if (plays.length === 0) {
@@ -11451,9 +11458,13 @@ function renderAll() {
     const limSongs   = currentPeriod === 'year' ? chartSizeSongsY   : chartSizeSongsAT;
     const limArtists = currentPeriod === 'year' ? chartSizeArtistsY : chartSizeArtistsAT;
     const limAlbums  = currentPeriod === 'year' ? chartSizeAlbumsY  : chartSizeAlbumsAT;
-    fullData.songs   = buildSongsFull(plays).slice(0, limSongs);
-    fullData.artists = buildArtistsFull(plays).slice(0, limArtists);
-    fullData.albums  = buildAlbumsFull(plays).slice(0, limAlbums);
+    // Yearly compares against the previous calendar year; All-Time has nothing
+    // to compare against, so its stats stay null and the columns stay hidden.
+    const periodStats = hasPeriodStats ? buildPeriodStats(currentPeriod) : null;
+    lastPeriodStats = periodStats;
+    fullData.songs   = buildSongsFull(plays, periodStats).slice(0, limSongs);
+    fullData.artists = buildArtistsFull(plays, periodStats).slice(0, limArtists);
+    fullData.albums  = buildAlbumsFull(plays, periodStats).slice(0, limAlbums);
     // Reset to page 0 when period/year/view changes
     pageState.songs = 0; pageState.artists = 0; pageState.albums = 0;
 
@@ -11461,7 +11472,6 @@ function renderAll() {
     document.querySelector('#artistsSectionTitle .section-title-text').textContent = (isFinite(limArtists) ? t('sec_artists_top', { n: limArtists }) : t('sec_artists_all', { n: fullData.artists.length.toLocaleString() })).replace(/^[★♦◈]\s*/, '');
     document.querySelector('#albumsSectionTitle .section-title-text').textContent  = (isFinite(limAlbums)  ? t('sec_albums_top',  { n: limAlbums  }) : t('sec_albums_all',  { n: fullData.albums.length.toLocaleString()  })).replace(/^[★♦◈]\s*/, '');
 
-    lastPeriodStats = null;
     renderPage('songs', peaks);
     renderPage('artists', peaks);
     renderPage('albums', peaks);
@@ -11501,7 +11511,7 @@ function renderAll() {
 }
 
 // ─── TIE-BREAKING SORT ─────────────────────────────────────────
-// rankSort: count → timestamp (used for all-time / yearly where no period context exists)
+// rankSort: count → timestamp (used for all-time, which has no period to compare against)
 function rankSort(a, b) {
   if (b.count !== a.count) return b.count - a.count;
   return a.firstAchieved - b.firstAchieved;
@@ -11891,7 +11901,7 @@ function runSlideWindowAnim(tbody, type, prevPlays, currPlays, onComplete) {
 }
 
 // ─── FULL DATASET BUILDERS (for paginated yearly/alltime) ──────
-function buildSongsFull(plays) {
+function buildSongsFull(plays, ms) {
   const counts = {};
   for (const p of plays) {
     const k = songKey(p);
@@ -11903,10 +11913,19 @@ function buildSongsFull(plays) {
     entry.album = bestAlbum(entry.title, entry._albums);
     delete entry._albums;
   }
-  return Object.values(counts).sort(rankSort);
+  // With period stats (yearly) the sort is status-aware, exactly like the weekly and
+  // monthly renders: ties break by incumbent → re-entry → debut, then prev rank.
+  if (ms) {
+    for (const [k, entry] of Object.entries(counts)) {
+      const prev = ms.prevChart.songs[k];
+      entry.chartStatus = prev ? 0 : ms.everChartedBefore.songs.has(k) ? 1 : 2;
+      entry.prevRank = prev ? prev.rank : Infinity;
+    }
+  }
+  return Object.values(counts).sort(ms ? rankSortWithStatus : rankSort);
 }
 
-function buildArtistsFull(plays) {
+function buildArtistsFull(plays, ms) {
   const counts = {};
   for (const p of plays) {
     for (const artist of p.artists) {
@@ -11915,10 +11934,17 @@ function buildArtistsFull(plays) {
       counts[artist].songs.add(p.title);
     }
   }
-  return Object.values(counts).sort(rankSort);
+  if (ms) {
+    for (const [k, entry] of Object.entries(counts)) {
+      const prev = ms.prevChart.artists[k];
+      entry.chartStatus = prev ? 0 : ms.everChartedBefore.artists.has(k) ? 1 : 2;
+      entry.prevRank = prev ? prev.rank : Infinity;
+    }
+  }
+  return Object.values(counts).sort(ms ? rankSortWithStatus : rankSort);
 }
 
-function buildAlbumsFull(plays) {
+function buildAlbumsFull(plays, ms) {
   const counts = {};
   for (const p of plays) {
     if (!p.album || p.album === '—') continue;
@@ -11927,7 +11953,14 @@ function buildAlbumsFull(plays) {
     counts[k].count++;
     counts[k].tracks.add(p.title);
   }
-  return Object.values(counts).sort(rankSort);
+  if (ms) {
+    for (const [k, entry] of Object.entries(counts)) {
+      const prev = ms.prevChart.albums[k];
+      entry.chartStatus = prev ? 0 : ms.everChartedBefore.albums.has(k) ? 1 : 2;
+      entry.prevRank = prev ? prev.rank : Infinity;
+    }
+  }
+  return Object.values(counts).sort(ms ? rankSortWithStatus : rankSort);
 }
 
 // ─── PAGE RENDERING ────────────────────────────────────────────
@@ -11972,6 +12005,12 @@ function renderPage(type, peaks) {
   const rankOf = (item) => rankMap.get(item) || 0;
 
   const hasCR = (currentPeriod === 'year' || currentPeriod === 'alltime');
+  // Yearly has a previous year to compare against, so it renders the Previous/movement
+  // and Years-on-chart columns. All-Time never does, and is pinned to null here rather
+  // than trusting lastPeriodStats — a period with no plays returns before reassigning it,
+  // and renderPage is also called straight from search and pagination.
+  const ms = currentPeriod === 'year' ? lastPeriodStats : null;
+  const colSpan = ms ? 8 : 6;
   if (type === 'songs') {
     const imgItems = [];
     document.getElementById('songsBody').innerHTML = slice.flatMap((s, i) => {
@@ -11985,8 +12024,10 @@ function renderPage(type, peaks) {
       const cumAlbumPlays = cumulativeMaps && s.album ? (cumulativeMaps.albumsByName[s.album] || 0) : 0;
       const histMaxSong = playsPeakMaps ? (playsPeakMaps.songs[k] || 0) : 0;
       const isPlaysPeak = histMaxSong > 0 && s.count >= histMaxSong;
-      const mainRow = `<tr data-songkey="${encodeURIComponent(k)}" class="${rank === 1 ? 'rank-1' : rank === 2 ? 'rank-2' : rank === 3 ? 'rank-3' : ''} song-row">
+      const barCls = mvBarCls(ms, 'songs', k, rank);
+      const mainRow = `<tr data-songkey="${encodeURIComponent(k)}" class="${rank === 1 ? 'rank-1' : rank === 2 ? 'rank-2' : rank === 3 ? 'rank-3' : ''} song-row${mvRowCls(barCls)}">
         <td class="rank-cell">${rank}</td>
+        ${ms ? mPrevCell(rank, k, 'songs', ms) : ''}
         <td class="thumb-cell"><div class="thumb-wrap"><div id="${imgId}"><div class="thumb-initials">${esc(initials(s.title))}</div></div><button id="srcbtn-${imgId}" class="img-src-btn" data-imgid="${imgId}" data-type="song" data-prefkey="${esc(prefKey)}" data-name="${esc(s.title)}" data-artist="${esc(s.artist)}" data-album="${esc(s.album)}">${srcLabel(itemSourcePrefs[prefKey] || 'deezer')}</button></div></td>
         <td>
           <div class="song-title">${esc(s.title)}${certBadge(cumSongPlays, 'song')}${ratingSongBadge(k)}</div>
@@ -11994,15 +12035,16 @@ function renderPage(type, peaks) {
           <button class="yt-play-btn" data-title="${esc(s.title)}" data-artist="${esc(s.artist)}" data-album="${esc(s.album)}" onclick="event.stopPropagation();ytPlayFromBtn(this)" title="Play on YouTube"><span class="yt-btn-content"><svg class="yt-btn-icon" viewBox="0 0 24 24"><path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.5 12 3.5 12 3.5s-7.5 0-9.4.5A3 3 0 0 0 .5 6.2C0 8.1 0 12 0 12s0 3.9.5 5.8a3 3 0 0 0 2.1 2.1c1.9.5 9.4.5 9.4.5s7.5 0 9.4-.5a3 3 0 0 0 2.1-2.1C24 15.9 24 12 24 12s0-3.9-.5-5.8zM9.7 15.5V8.5l6.3 3.5-6.3 3.5z"/></svg>YouTube</span></button>${dcPlBtnHtml('song', s.title, s.artist, s.album)}
         </td>
         <td class="meta-col"><div class="song-album">${esc(s.album)}${cumAlbumPlays ? certBadge(cumAlbumPlays, 'album') : ''}</div></td>
+        ${ms ? mMthsCell(k, 'songs', ms) : ''}
         <td>
-          <div class="play-count">${tCountHtml('plays', s.count)}</div>
-          <div class="play-bar"><div class="play-bar-fill" style="width:${Math.round(s.count / max * 100)}%"></div></div>
+          <div class="play-count">${tCountHtml('plays', s.count)}${ms ? deltaInline(s.count, k, 'songs', ms) : ''}</div>
+          <div class="play-bar"><div class="play-bar-fill${barCls}" style="width:${Math.round(s.count / max * 100)}%"></div></div>
           ${isPlaysPeak ? playsPeakBadge() : ''}
         </td>
         <td class="cr-cell">${hasCR ? `<button class="cr-toggle-btn" title="${t('tooltip_cr_toggle_btn_song')}" onclick="event.stopPropagation();toggleChartRun(this,'${rowId}')">${CR_ICON}</button>` : ''}</td>
       </tr>`;
       if (!hasCR) return [mainRow];
-      return [mainRow, `<tr class="cr-row" id="${rowId}"><td colspan="6"><div class="cr-panel" data-crtype="songs" data-crkey="${encodeURIComponent(k)}">${buildCrPanelHTML('songs', k)}</div></td></tr>`];
+      return [mainRow, `<tr class="cr-row" id="${rowId}"><td colspan="${colSpan}"><div class="cr-panel" data-crtype="songs" data-crkey="${encodeURIComponent(k)}">${buildCrPanelHTML('songs', k)}</div></td></tr>`];
     }).join('');
     loadImages(imgItems.map(i => ({ ...i, name: i.title })), 'song');
     const playAllRow = document.getElementById('ytPlayAllRow');
@@ -12018,27 +12060,30 @@ function renderPage(type, peaks) {
       imgItems.push({ imgId, name: a.name, prefKey });
       const histMaxArtist = playsPeakMaps ? (playsPeakMaps.artists[a.name] || 0) : 0;
       const isArtistPlaysPeak = histMaxArtist > 0 && a.count >= histMaxArtist;
-      const mainRow = `<tr class="${rank === 1 ? 'rank-1' : rank === 2 ? 'rank-2' : rank === 3 ? 'rank-3' : ''} artist-row" data-artist="${esc(a.name)}">
+      const barCls = mvBarCls(ms, 'artists', a.name, rank);
+      const mainRow = `<tr class="${rank === 1 ? 'rank-1' : rank === 2 ? 'rank-2' : rank === 3 ? 'rank-3' : ''} artist-row${mvRowCls(barCls)}" data-artist="${esc(a.name)}">
         <td class="rank-cell">${rank}</td>
+        ${ms ? mPrevCell(rank, a.name, 'artists', ms) : ''}
         <td class="thumb-cell"><div class="thumb-wrap"><div id="${imgId}"><div class="thumb-initials">${esc(initials(a.name))}</div></div><button id="srcbtn-${imgId}" class="img-src-btn" data-imgid="${imgId}" data-type="artist" data-prefkey="${esc(prefKey)}" data-name="${esc(a.name)}" data-artist="${esc(a.name)}" data-album="">${srcLabel(itemSourcePrefs[prefKey] || 'deezer')}</button></div></td>
         <td><div class="song-title">${esc(a.name)}</div><button class="yt-play-btn" data-title="" data-artist="${esc(a.name)}" data-album="" onclick="event.stopPropagation();buShowTrackList(this,'artists')" title="Show recently played tracks"><span class="yt-btn-content"><svg class="yt-btn-icon" viewBox="0 0 24 24"><path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.5 12 3.5 12 3.5s-7.5 0-9.4.5A3 3 0 0 0 .5 6.2C0 8.1 0 12 0 12s0 3.9.5 5.8a3 3 0 0 0 2.1 2.1c1.9.5 9.4.5 9.4.5s7.5 0 9.4-.5a3 3 0 0 0 2.1-2.1C24 15.9 24 12 24 12s0-3.9-.5-5.8zM9.7 15.5V8.5l6.3 3.5-6.3 3.5z"/></svg>YouTube</span></button>${dcPlBtnHtml('artist', '', a.name, '')}</td>
         <td class="meta-col"><div class="song-artist">${tCount('songs', a.songs.size)}</div></td>
+        ${ms ? mMthsCell(a.name, 'artists', ms) : ''}
         <td>
-          <div class="play-count">${tCountHtml('plays', a.count)}</div>
-          <div class="play-bar"><div class="play-bar-fill" style="width:${Math.round(a.count / max * 100)}%"></div></div>
+          <div class="play-count">${tCountHtml('plays', a.count)}${ms ? deltaInline(a.count, a.name, 'artists', ms) : ''}</div>
+          <div class="play-bar"><div class="play-bar-fill${barCls}" style="width:${Math.round(a.count / max * 100)}%"></div></div>
           ${isArtistPlaysPeak ? playsPeakBadge() : ''}
         </td>
         <td class="cr-cell">${hasCR ? `<button class="cr-toggle-btn" title="${t('tooltip_cr_toggle_btn_artist')}" onclick="event.stopPropagation();toggleChartRun(this,'${rowId}')">${CR_ICON}</button>` : ''}</td>
       </tr>`;
       if (!hasCR) return [mainRow];
-      return [mainRow, `<tr class="cr-row" id="${rowId}"><td colspan="6"><div class="cr-panel" data-crtype="artists" data-crkey="${encodeURIComponent(a.name)}">${buildCrPanelHTML('artists', a.name)}</div></td></tr>`];
+      return [mainRow, `<tr class="cr-row" id="${rowId}"><td colspan="${colSpan}"><div class="cr-panel" data-crtype="artists" data-crkey="${encodeURIComponent(a.name)}">${buildCrPanelHTML('artists', a.name)}</div></td></tr>`];
     }).join('');
     loadImages(imgItems, 'artist');
 
   } else if (type === 'albums') {
     const imgItems = [];
     if (slice.length === 0) {
-      document.getElementById('albumsBody').innerHTML = `<tr><td colspan="6"><div class="empty-state"><p>${t('empty_no_album_data')}</p></div></td></tr>`;
+      document.getElementById('albumsBody').innerHTML = `<tr><td colspan="${colSpan}"><div class="empty-state"><p>${t('empty_no_album_data')}</p></div></td></tr>`;
     } else {
       document.getElementById('albumsBody').innerHTML = slice.flatMap((a, i) => {
         const rank = rankOf(a);
@@ -12051,8 +12096,10 @@ function renderPage(type, peaks) {
         const cumAlbumPlays = cumulativeMaps ? (cumulativeMaps.albums[ak] || a.count) : a.count;
         const histMaxAlbum = playsPeakMaps ? (playsPeakMaps.albums[ak] || 0) : 0;
         const isAlbumPlaysPeak = histMaxAlbum > 0 && a.count >= histMaxAlbum;
-        const mainRow = `<tr class="${rank === 1 ? 'rank-1' : rank === 2 ? 'rank-2' : rank === 3 ? 'rank-3' : ''} album-row" data-albumkey="${esc(ak)}">
+        const barCls = mvBarCls(ms, 'albums', ak, rank);
+        const mainRow = `<tr class="${rank === 1 ? 'rank-1' : rank === 2 ? 'rank-2' : rank === 3 ? 'rank-3' : ''} album-row${mvRowCls(barCls)}" data-albumkey="${esc(ak)}">
         <td class="rank-cell">${rank}</td>
+        ${ms ? mPrevCell(rank, ak, 'albums', ms) : ''}
         <td class="thumb-cell"><div class="thumb-wrap"><div id="${imgId}"><div class="thumb-initials">${esc(initials(a.album))}</div></div><button id="srcbtn-${imgId}" class="img-src-btn" data-imgid="${imgId}" data-type="album" data-prefkey="${esc(prefKey)}" data-name="${esc(a.album)}" data-artist="${esc(a.artist)}" data-album="${esc(a.album)}">${srcLabel(itemSourcePrefs[prefKey] || 'deezer')}</button></div></td>
         <td>
           <div class="song-title">${esc(a.album)}${certBadge(cumAlbumPlays, 'album')}${ratingAlbumBadge(ak)}</div>
@@ -12060,15 +12107,16 @@ function renderPage(type, peaks) {
           <button class="yt-play-btn" data-title="" data-artist="${esc(a.artist)}" data-album="${esc(a.album)}" onclick="event.stopPropagation();buShowTrackList(this,'albums')" title="Show recently played tracks"><span class="yt-btn-content"><svg class="yt-btn-icon" viewBox="0 0 24 24"><path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.5 12 3.5 12 3.5s-7.5 0-9.4.5A3 3 0 0 0 .5 6.2C0 8.1 0 12 0 12s0 3.9.5 5.8a3 3 0 0 0 2.1 2.1c1.9.5 9.4.5 9.4.5s7.5 0 9.4-.5a3 3 0 0 0 2.1-2.1C24 15.9 24 12 24 12s0-3.9-.5-5.8zM9.7 15.5V8.5l6.3 3.5-6.3 3.5z"/></svg>YouTube</span></button>${dcPlBtnHtml('album', '', a.artist, a.album)}
         </td>
         <td class="meta-col"><div class="song-artist">${tCount('tracks', a.tracks.size)}</div></td>
+        ${ms ? mMthsCell(ak, 'albums', ms) : ''}
         <td>
-          <div class="play-count">${tCountHtml('plays', a.count)}</div>
-          <div class="play-bar"><div class="play-bar-fill" style="width:${Math.round(a.count / max * 100)}%"></div></div>
+          <div class="play-count">${tCountHtml('plays', a.count)}${ms ? deltaInline(a.count, ak, 'albums', ms) : ''}</div>
+          <div class="play-bar"><div class="play-bar-fill${barCls}" style="width:${Math.round(a.count / max * 100)}%"></div></div>
           ${isAlbumPlaysPeak ? playsPeakBadge() : ''}
         </td>
         <td class="cr-cell">${hasCR ? `<button class="cr-toggle-btn" title="${t('tooltip_cr_toggle_btn_album')}" onclick="event.stopPropagation();toggleChartRun(this,'${rowId}')">${CR_ICON}</button>` : ''}</td>
       </tr>`;
         if (!hasCR) return [mainRow];
-        return [mainRow, `<tr class="cr-row" id="${rowId}"><td colspan="6"><div class="cr-panel" data-crtype="albums" data-crkey="${encodeURIComponent(ak)}">${buildCrPanelHTML('albums', ak)}</div></td></tr>`];
+        return [mainRow, `<tr class="cr-row" id="${rowId}"><td colspan="${colSpan}"><div class="cr-panel" data-crtype="albums" data-crkey="${encodeURIComponent(ak)}">${buildCrPanelHTML('albums', ak)}</div></td></tr>`];
       }).join('');
     }
     loadImages(imgItems, 'album');
@@ -14105,9 +14153,10 @@ function navigateToCrChart(period, periodKey) {
   renderAll();
 }
 
-// ─── MONTHLY CHART STATS ───────────────────────────────────────
-// Returns months-on-chart counts, previous month's chart, and
-// a set of items that ever charted before the current month.
+// ─── PERIOD CHART STATS ────────────────────────────────────────
+// Returns periods-on-chart counts, the previous period's chart, and
+// a set of items that ever charted before the current period.
+// Handles 'week', 'month' and 'year' — All-Time has no previous period.
 function buildPeriodStats(period) {
   const now = tzNow();
   let curKey, prevKey;
@@ -14118,6 +14167,12 @@ function buildPeriodStats(period) {
     const prevStart = new Date(curStartDate);
     prevStart.setDate(curStartDate.getDate() - 7);
     prevKey = localDateStr(prevStart);
+  } else if (period === 'year') {
+    // Yearly keys are the plain calendar year, matching yearKeyOf(), so the
+    // previous period is simply the year before the one being viewed.
+    const y = now.getFullYear() - currentOffset;
+    curKey = String(y);
+    prevKey = String(y - 1);
   } else {
     const d = new Date(now.getFullYear(), now.getMonth() - currentOffset, 1);
     curKey = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
@@ -14128,8 +14183,8 @@ function buildPeriodStats(period) {
   // Group all plays by period key
   const periodMap = {};
   for (const p of allPlays) {
-    // Both branches read a cached stamp; neither needs a Date object built.
-    const mk = period === 'week' ? playWeekKeyOf(p) : monthKeyOf(p);
+    // All three branches read a cached stamp; none needs a Date object built.
+    const mk = period === 'week' ? playWeekKeyOf(p) : period === 'year' ? yearKeyOf(p) : monthKeyOf(p);
     if (mk > curKey) continue; // ignore future periods
     if (!periodMap[mk]) periodMap[mk] = { songs: {}, artists: {}, albums: {} };
     const mm = periodMap[mk];
@@ -14229,6 +14284,22 @@ function buildPeriodStats(period) {
   }
 
   return { periodsOnChart, prevChart, everChartedBefore, bubblingUnderWeeks, bubblingUnderStreak, bubblingUnderRuns, bubblingUnderEntryFromChart, prevBubblingUnder, peakRank, chartStreakAtPrev };
+}
+
+// Play-bar tint for a movement-aware row: debut / re-entry / climbed / fell.
+// Used by the paginated (yearly) renderer; the weekly and monthly renderers
+// compute the same thing inline off their own prev-chart lookup.
+function mvBarCls(ms, type, key, curRank) {
+  if (!ms) return '';
+  const prev = ms.prevChart[type][key];
+  if (!prev) return ms.everChartedBefore[type].has(key) ? ' wv-bar-re' : ' wv-bar-new';
+  const diff = prev.rank - curRank;
+  return diff > 0 ? ' wv-bar-up' : diff < 0 ? ' wv-bar-down' : '';
+}
+
+// Row tint that goes with the bar tint — only debuts and re-entries get one.
+function mvRowCls(barCls) {
+  return barCls === ' wv-bar-new' ? ' wv-row-new' : barCls === ' wv-bar-re' ? ' wv-row-re' : '';
 }
 
 function mPrevCell(curRank, key, type, ms) {
@@ -35648,7 +35719,7 @@ function dcRenderChartsGuideView() {
       tabs: [
         { name: 'Weekly',   period: 'week',    icon: '📅', desc: 'Your top songs, artists and albums for a single 7-day period, with movement, peaks and chart runs against last week.', use: 'Your main chart. Check it once a week.' },
         { name: 'Monthly',  period: 'month',   icon: '🗓', desc: 'The same three charts counted over a calendar month, so a song needs sustained play rather than one heavy afternoon.', use: 'Spotting what actually stuck.' },
-        { name: 'Yearly',   period: 'year',    icon: '📆', desc: 'Year-end charts for any calendar year in your history.', use: 'Your personal year-in-review, any year.' },
+        { name: 'Yearly',   period: 'year',    icon: '📆', desc: 'Year-end charts for any calendar year in your history, with movement, peaks and chart runs against the year before.', use: 'Your personal year-in-review, any year.' },
         { name: 'All-Time', period: 'alltime', icon: '♾️', desc: 'Every play you have ever logged, counted once. No period boundaries, no movement — just the totals.', use: 'Settling "what is my most played song?"' },
         { name: 'Raw Data', period: 'rawdata', icon: '🗃', desc: 'The play list every other tab is built from. Search, filter, edit a wrong timestamp, delete a bad scrobble, export the lot as CSV.', use: 'Fixing bad data, or taking it elsewhere.' },
         { name: 'Graphs',   period: 'graphs',  icon: '📈', desc: 'Five charts at daily, monthly or yearly granularity: cumulative plays with artist comparison, play volume per period, volume compared across artists, new discoveries per period, and an animated play count race — plus the listening heatmap and the graveyard.', use: 'Seeing shape and habit rather than rank.' },

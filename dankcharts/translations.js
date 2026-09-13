@@ -248,6 +248,8 @@ const TRANSLATIONS = {
     th_weeks_mobile: 'Wks',
     th_months: 'Months',
     th_months_mobile: 'Mos',
+    th_years: 'Years',
+    th_years_mobile: 'Yrs',
     th_song: 'Song',
     th_track: 'Track',
 
@@ -1783,6 +1785,8 @@ const TRANSLATIONS = {
     th_weeks_mobile: 'Sem.',
     th_months: 'Meses',
     th_months_mobile: 'Mes.',
+    th_years: 'Años',
+    th_years_mobile: 'Años',
     th_song: 'Canción',
     th_track: 'Canción',
 
@@ -3153,6 +3157,8 @@ const TRANSLATIONS = {
     th_weeks_mobile: 'Sem.',
     th_months: 'Meses',
     th_months_mobile: 'Mes.',
+    th_years: 'Anos',
+    th_years_mobile: 'Anos',
     th_song: 'Música',
     th_track: 'Faixa',
 
@@ -4524,6 +4530,8 @@ const TRANSLATIONS = {
     th_weeks_mobile: 'Sem.',
     th_months: 'Meses',
     th_months_mobile: 'Mes.',
+    th_years: 'Anos',
+    th_years_mobile: 'Anos',
     th_song: 'Música',
     th_track: 'Faixa',
 
