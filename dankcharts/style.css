@@ -30035,6 +30035,92 @@ body.red-light .modal-cb-label--tracks {
   color: var(--accent);
 }
 
+/* ── Album bucket filter bar ──
+   Sits above the albums chart and switches which bucket it shows. Only exists
+   once a release type is separated, so it never appears for a user who has not
+   asked for it. Shaped like the sub-chart toggle row it sits beside rather
+   than like a new kind of control. */
+.afilter-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+  margin: 0 0 0.5rem;
+  padding: 0 0.1rem;
+}
+
+.afilter-btn {
+  padding: 0.24rem 0.7rem;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--bg2);
+  color: var(--text3);
+  font-family: var(--font-mono);
+  font-size: 0.66rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: color 0.18s ease, border-color 0.18s ease, background 0.18s ease;
+}
+
+.afilter-btn:hover {
+  color: var(--text2);
+  border-color: var(--text3);
+}
+
+.afilter-btn.active {
+  background: var(--accent);
+  /* Never #fff — the yellow theme's accent is light and would swallow it. */
+  color: var(--on-accent);
+  border-color: var(--accent);
+}
+
+/* ── Separation switches in Settings ── */
+.rt-sep-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+  margin-top: 0.5rem;
+}
+
+.rt-sep-label {
+  font-size: 0.82rem;
+  color: var(--text2);
+}
+
+.rt-sep-seg {
+  display: inline-flex;
+  flex-shrink: 0;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.rt-sep-btn {
+  padding: 0.22rem 0.7rem;
+  border: none;
+  background: transparent;
+  color: var(--text3);
+  font-family: var(--font-mono);
+  font-size: 0.64rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: color 0.18s ease, background 0.18s ease;
+}
+
+.rt-sep-btn:hover { color: var(--text2); }
+
+.rt-sep-btn.active {
+  background: var(--accent);
+  color: var(--on-accent);
+}
+
+.rt-sep-hint {
+  margin-top: 0.55rem;
+}
+
 /* ══════════════════════════════════════════════════════════
    CERTIFIED THIS PERIOD — the moving shelf
    The plaques are the wall's, unchanged. Everything here is the

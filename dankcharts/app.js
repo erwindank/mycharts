@@ -567,6 +567,16 @@ function dcApplyAllSettings() {
   chartAnimEnabled  = localStorage.getItem('dc_chart_anim') === '1'; // opt-in; see declaration
   eventsArtistLimit = parseInt(localStorage.getItem('dc_events_artist_limit') || '50') || 50;
   noArtistSplit     = localStorage.getItem('dc_no_artist_split') === '1';
+  /* Separation arrived from another device: re-read it and retire the chart
+     caches, since which bucket a release ranks in has just changed. Mutated
+     in place so every closure already holding releaseSeparation sees it. */
+  try {
+    const savedSep = JSON.parse(localStorage.getItem(RELEASE_SEP_KEY) || 'null');
+    for (const k of SEPARABLE_TYPES) {
+      const next = (savedSep && savedSep[k] === 'apart') ? 'apart' : 'with';
+      if (releaseSeparation[k] !== next) { releaseSeparation[k] = next; _releaseEpoch++; }
+    }
+  } catch (e) {}
   const evSel = document.getElementById('eventsLimitSelect');
   if (evSel) evSel.value = eventsArtistLimit;
   // tmToggles is a const object — mutate in place so the TM section reflects the loaded state
@@ -942,6 +952,185 @@ function releaseTypeCounts() {
   return out;
 }
 
+// ─── RELEASE TYPE SEPARATION ──────────────────────────────────
+/* Whether a marked type is pulled out of the albums chart or left in it.
+   This is the switch that makes a mark mean something: until a type is set
+   to 'apart', marking a release records a fact and changes nothing at all.
+
+   Only singles and EPs can be separated. Live albums and soundtracks are
+   albums that happen to be marked — the mark is there so it can be seen and
+   so a later feature can use it, not to split the chart four ways. */
+const RELEASE_SEP_KEY = 'dc_release_separation';
+const SEPARABLE_TYPES = ['single', 'ep'];
+
+// { single: 'with' | 'apart', ep: 'with' | 'apart' } — 'with' is the default,
+// so a user who never opens the setting keeps the chart they have.
+let releaseSeparation = (() => {
+  const base = { single: 'with', ep: 'with' };
+  try {
+    const saved = JSON.parse(localStorage.getItem(RELEASE_SEP_KEY) || 'null');
+    if (saved && typeof saved === 'object') {
+      for (const k of SEPARABLE_TYPES) if (saved[k] === 'apart') base[k] = 'apart';
+    }
+  } catch (e) {}
+  return base;
+})();
+
+// The types currently pulled out, in display order. Empty for almost everyone,
+// and every caller below short-circuits on that — a user who has separated
+// nothing pays one .length read per chart build.
+function separatedTypes() {
+  return SEPARABLE_TYPES.filter(k => releaseSeparation[k] === 'apart');
+}
+
+function isTypeSeparated(type) {
+  return releaseSeparation[type] === 'apart';
+}
+
+/* Which chart bucket an album entry belongs in. 'album' is both a type id and
+   the name of the bucket everything unseparated falls into, so a live album, a
+   soundtrack, and a single that has not been separated all return 'album'. */
+function albumBucketOf(album, artist) {
+  const t = releaseTypeOf(album, artist);
+  return (t !== 'album' && isTypeSeparated(t)) ? t : 'album';
+}
+
+function setReleaseSeparation(type, mode) {
+  if (!SEPARABLE_TYPES.includes(type)) return;
+  const next = mode === 'apart' ? 'apart' : 'with';
+  if (releaseSeparation[type] === next) return;
+  releaseSeparation[type] = next;
+  try { localStorage.setItem(RELEASE_SEP_KEY, JSON.stringify(releaseSeparation)); } catch (e) {}
+  /* Separating a type re-ranks the albums chart and every period behind it, so
+     both the chart-run caches and Records have to go. Play stamps are still
+     untouched: this moves nothing about how a play is keyed. */
+  _releaseEpoch++;
+  if (typeof dcInvalidateRecords === 'function') dcInvalidateRecords();
+  // A filter segment that no longer exists cannot stay selected.
+  if (albumsChartFilter !== 'all' && albumsChartFilter !== 'album' && !isTypeSeparated(albumsChartFilter)) {
+    setAlbumsChartFilter('album', true);
+  }
+}
+
+/* Which bucket the albums chart is currently showing.
+     'album'  the albums chart proper — separated types excluded
+     'all'    everything together, the pre-separation chart
+     <type>   that separated type alone
+   Defaults to 'album', so the moment a type is separated it leaves the chart
+   the user was already looking at. Per-device rather than synced: it is a
+   view, like which tab you are on, not a setting about your data. */
+let albumsChartFilter = (() => {
+  try { return localStorage.getItem('dc_albums_chart_filter') || 'album'; } catch (e) { return 'album'; }
+})();
+
+/* The bucket an entry must be in to show under the current filter, or null
+   when the filter admits everything. Callers use the null to skip the test
+   entirely, which is the path every user who has separated nothing takes. */
+function albumsFilterBucket() {
+  if (!separatedTypes().length) return null;   // nothing separated: no filtering
+  if (albumsChartFilter === 'all') return null;
+  return albumsChartFilter;
+}
+
+/* Switches the visible bucket. `silent` is for the corrective call inside
+   setReleaseSeparation(), which is already about to re-render everything. */
+function setAlbumsChartFilter(bucket, silent) {
+  if (albumsChartFilter === bucket) return;
+  albumsChartFilter = bucket;
+  try { localStorage.setItem('dc_albums_chart_filter', bucket); } catch (e) {}
+  pageState.albums = 0;   // #11 of the singles chart is not #11 of the albums one
+  if (silent) return;
+  syncAlbumsFilterBar();
+  if (typeof renderAll === 'function') renderAll();
+}
+
+/* Paints the segmented bar: one segment per bucket that currently exists, and
+   the bar itself hidden entirely while nothing is separated. Rebuilt rather
+   than toggled because the set of segments changes with the settings. */
+/* "Top 10 Albums" is wrong once the section is showing singles. Rewrites just
+   the noun in the title the two branches above already built, so the size and
+   the all-count they computed survive. A no-op while nothing is separated. */
+/* The noun the albums chart currently goes by, singular or plural. Kept as
+   real translated words rather than an "s" appended to one, because the
+   plurals differ per language and "EP"/"EPs" is not the pattern "Album"/
+   "Albums" follows either. */
+function albumBucketNoun(plural) {
+  const want = albumsFilterBucket();
+  if (want === null) return plural ? t('afilter_all_noun') : t('afilter_all_noun_one');
+  return plural ? t('rtype_' + want + '_plural') : t('rtype_' + want);
+}
+
+function retitleAlbumsSectionForFilter() {
+  if (!separatedTypes().length) return;
+  const want = albumsFilterBucket();
+  const noun = albumBucketNoun(true);
+
+  const el = document.querySelector('#albumsSectionTitle .section-title-text');
+  if (el) el.textContent = el.textContent.replace(t('rtype_album_plural'), noun);
+
+  /* The sub-sections under the chart name the same thing it does, so a list of
+     singles must not be headed "New Albums". The i18n pass rewrites these from
+     their data-i18n keys on every language change, so they are corrected here
+     — after it — rather than by changing the keys. */
+  const newT = document.getElementById('newAlbumsTitle');
+  if (newT) newT.textContent = t('sec_new_of_type', { type: noun });
+  const offT = document.getElementById('offAlbumsTypeLabel');
+  if (offT) offT.textContent = '◈ ' + noun;
+  const buT = document.getElementById('buAlbumsTypeLabel');
+  if (buT) buT.textContent = noun;
+  const newTh = document.getElementById('newAlbumsThName');
+  if (newTh) newTh.textContent = t('th_type_artist', { type: albumBucketNoun(false) });
+}
+
+function syncAlbumsFilterBar() {
+  const bar = document.getElementById('albumsFilterBar');
+  if (!bar) return;
+  const seps = separatedTypes();
+  if (!seps.length) { bar.style.display = 'none'; bar.innerHTML = ''; return; }
+  bar.style.display = '';
+  const buckets = ['album', ...seps, 'all'];
+  if (!buckets.includes(albumsChartFilter)) albumsChartFilter = 'album';
+  bar.innerHTML = buckets.map(b => {
+    const label = b === 'all' ? t('afilter_all')
+                : b === 'album' ? t('afilter_albums')
+                : t('rtype_' + b + '_plural');
+    return `<button type="button" class="afilter-btn${b === albumsChartFilter ? ' active' : ''}" data-afilter="${b}" onclick="setAlbumsChartFilter('${b}')">${esc(label)}</button>`;
+  }).join('');
+}
+
+// Drops the entries the current filter excludes. Takes and returns the plain
+// key→entry object both album tallies build, so it can sit between the tally
+// and the sort in each of them.
+function applyAlbumsFilter(counts) {
+  const want = albumsFilterBucket();
+  if (!want) return counts;
+  const out = {};
+  for (const k in counts) {
+    const e = counts[k];
+    if (albumBucketOf(e.album, e.artist) === want) out[k] = e;
+  }
+  return out;
+}
+
+/* The same question asked of an album key alone. The sub-chart tallies (New
+   Entries, Off the Chart, and the period stats behind Bubbling Under and the
+   movement arrows) store only a count per key, with no album or artist field
+   to read — so the credit is taken back out of the key albumKeyOf() built.
+   lastIndexOf, because a title may contain the separator but a credit is the
+   tail of the key either way. */
+function albumBucketOfKey(ak) {
+  const i = ak.lastIndexOf('|||');
+  return i < 0 ? 'album' : albumBucketOf(ak.slice(0, i), ak.slice(i + 3));
+}
+
+function applyAlbumsFilterByKey(counts) {
+  const want = albumsFilterBucket();
+  if (!want) return counts;
+  const out = {};
+  for (const k in counts) if (albumBucketOfKey(k) === want) out[k] = counts[k];
+  return out;
+}
+
 // Primary artist for album grouping — always the first artist so that feat. tracks
 // don't split into a separate album entry. Compilations are the exception: they
 // are credited to Various Artists so all their singers fold into one album.
@@ -954,6 +1143,16 @@ function _albumArtistRaw(p) {
 
 function albumArtist(p) {
   return p._se === _stampEpoch ? p._aa : _albumArtistRaw(p);
+}
+
+/* The album credit for a song row. Song rows carry the performing artist, not
+   the credit the album is filed under, and the two differ on a compilation and
+   on any track whose artist string names more than one person — the same split
+   albumArtist() makes for a play. Used where a song row shows a badge for the
+   album it came from, which has to be looked up by that album's own key. */
+function albumArtistOfSong(s) {
+  if (s.album && isCompilationAlbum(s.album)) return VARIOUS_ARTISTS;
+  return (noArtistSplit ? null : splitArtists(s.artist)[0]) || s.artist;
 }
 
 // Strips featured/collaboration artists from an artist string and returns just the
@@ -4020,6 +4219,13 @@ function openSourceModal() {
   document.getElementById('certSongGold').value    = CERT.song.gold;
   document.getElementById('certSongPlat').value    = CERT.song.plat;
   document.getElementById('certSongDiamond').value = CERT.song.diamond;
+  document.getElementById('certSingleGold').value    = CERT.single.gold;
+  document.getElementById('certSinglePlat').value    = CERT.single.plat;
+  document.getElementById('certSingleDiamond').value = CERT.single.diamond;
+  document.getElementById('certEpGold').value    = CERT.ep.gold;
+  document.getElementById('certEpPlat').value    = CERT.ep.plat;
+  document.getElementById('certEpDiamond').value = CERT.ep.diamond;
+  syncReleaseSeparationUI();
   document.getElementById('eventsArtistLimitSelect').value = eventsArtistLimit;
   document.getElementById('srcNoArtistSplit').checked = noArtistSplit;
   document.getElementById('srcChartAnim').checked = chartAnimEnabled;
@@ -4039,6 +4245,34 @@ function resetCertDefaults() {
   document.getElementById('certSongGold').value    = CERT_DEFAULTS.song.gold;
   document.getElementById('certSongPlat').value    = CERT_DEFAULTS.song.plat;
   document.getElementById('certSongDiamond').value = CERT_DEFAULTS.song.diamond;
+  document.getElementById('certSingleGold').value    = CERT_DEFAULTS.single.gold;
+  document.getElementById('certSinglePlat').value    = CERT_DEFAULTS.single.plat;
+  document.getElementById('certSingleDiamond').value = CERT_DEFAULTS.single.diamond;
+  document.getElementById('certEpGold').value    = CERT_DEFAULTS.ep.gold;
+  document.getElementById('certEpPlat').value    = CERT_DEFAULTS.ep.plat;
+  document.getElementById('certEpDiamond').value = CERT_DEFAULTS.ep.diamond;
+}
+
+/* Lights the chosen segment and shows a type's threshold column only while
+   that type is separated — the fields do nothing otherwise. */
+function syncReleaseSeparationUI() {
+  document.querySelectorAll('.rt-sep-btn').forEach(b => {
+    b.classList.toggle('active', releaseSeparation[b.dataset.sep] === b.dataset.mode);
+  });
+  const colS = document.getElementById('certColSingle');
+  const colE = document.getElementById('certColEp');
+  if (colS) colS.style.display = isTypeSeparated('single') ? '' : 'none';
+  if (colE) colE.style.display = isTypeSeparated('ep') ? '' : 'none';
+}
+
+/* Applied immediately rather than on Save & Load: it re-ranks the charts
+   behind the panel, and the two threshold columns it reveals have to be
+   fillable before the same Save writes them. */
+function setReleaseSeparationFromUI(type, mode) {
+  setReleaseSeparation(type, mode);
+  syncReleaseSeparationUI();
+  syncAlbumsFilterBar();
+  if (typeof renderAll === 'function') renderAll();
 }
 
 function updateSourceModalFields() {
@@ -4131,9 +4365,19 @@ function saveSourceConfig() {
   const sg = parseInt(document.getElementById('certSongGold').value)    || CERT_DEFAULTS.song.gold;
   const sp = parseInt(document.getElementById('certSongPlat').value)    || CERT_DEFAULTS.song.plat;
   const sd = parseInt(document.getElementById('certSongDiamond').value) || CERT_DEFAULTS.song.diamond;
+  // ep_ rather than ep: `ep` is already this config object's EP-platinum slot
+  // sibling naming, and a bare `ep` would read as the whole type.
+  const ng = parseInt(document.getElementById('certSingleGold').value)    || CERT_DEFAULTS.single.gold;
+  const np = parseInt(document.getElementById('certSinglePlat').value)    || CERT_DEFAULTS.single.plat;
+  const nd = parseInt(document.getElementById('certSingleDiamond').value) || CERT_DEFAULTS.single.diamond;
+  const eg  = parseInt(document.getElementById('certEpGold').value)    || CERT_DEFAULTS.ep.gold;
+  const ep_ = parseInt(document.getElementById('certEpPlat').value)    || CERT_DEFAULTS.ep.plat;
+  const ed  = parseInt(document.getElementById('certEpDiamond').value) || CERT_DEFAULTS.ep.diamond;
   CERT.album.gold = ag; CERT.album.plat = ap; CERT.album.diamond = ad;
   CERT.song.gold  = sg; CERT.song.plat  = sp; CERT.song.diamond  = sd;
-  localStorage.setItem('dc_cert_config', JSON.stringify({ ag, ap, ad, sg, sp, sd }));
+  CERT.single.gold = ng; CERT.single.plat = np; CERT.single.diamond = nd;
+  CERT.ep.gold = eg; CERT.ep.plat = ep_; CERT.ep.diamond = ed;
+  localStorage.setItem('dc_cert_config', JSON.stringify({ ag, ap, ad, sg, sp, sd, ng, np, nd, eg, ep_, ed }));
   // New thresholds mean new crossing plays, so every award moves to a new date.
   _certTimeline = null;
   const newEventsLimit = parseInt(document.getElementById('eventsArtistLimitSelect').value) || 50;
@@ -5648,8 +5892,12 @@ function buildRecords() {
       const aa = albumArtist(p);
       const isComp = aa === VARIOUS_ARTISTS;
       const ak = p.album + '|||' + aa;
-      certTouch(certAlbumItems, ak, p, 'album', CERT.album, {
-        title: p.album, artist: aa, artists: [aa], album: '',
+      /* A separated single is judged on the single ladder, not the album one.
+         certKindFor() returns 'album' for anything not separated, so this is
+         the album threshold for every user who has separated nothing. */
+      const akKind = certKindFor(p.album, aa);
+      certTouch(certAlbumItems, ak, p, 'album', CERT[akKind], {
+        title: p.album, artist: aa, artists: [aa], album: '', certKind: akKind,
         // A compilation collects the singers who actually appear on it. The
         // plaque still hangs under Various Artists, but the ledger uses this
         // to list the album under each of them.
@@ -5676,7 +5924,9 @@ function buildRecords() {
     for (const a of it.artists) { const b = certBucket(a); b[tier]++; b.songs.push(it); }
   }
   for (const it of Object.values(certAlbumItems)) {
-    const tier = it.plays >= CERT.album.diamond ? 'ad' : it.plays >= CERT.album.plat ? 'ap' : it.plays >= CERT.album.gold ? 'ag' : null;
+    // The item's own ladder — a separated single is not judged as an album.
+    const _cfg = CERT[it.certKind] || CERT.album;
+    const tier = it.plays >= _cfg.diamond ? 'ad' : it.plays >= _cfg.plat ? 'ap' : it.plays >= _cfg.gold ? 'ag' : null;
     if (!tier) continue;
     if (it.comp) {
       /* A compilation's certification belongs to the record, not to the singers
@@ -7083,7 +7333,9 @@ function buildRecords() {
     });
   };
   for (const it of Object.values(certSongItems)) wallPush(it, CERT.song, 'song');
-  for (const it of Object.values(certAlbumItems)) wallPush(it, CERT.album, 'album');
+  // CERT[it.certKind] — the same ladder the events above were crossed against,
+  // or the wall would label a plaque the timeline never awarded.
+  for (const it of Object.values(certAlbumItems)) wallPush(it, CERT[it.certKind] || CERT.album, 'album');
   const _wTierOrd = { diamond: 0, platinum: 1, gold: 2 };
   // Rarest first, and within Diamond the highest multiple leads.
   wallItems.sort((a, b) => (_wTierOrd[a.tier] - _wTierOrd[b.tier]) || (b.mult - a.mult) || (b._plays - a._plays));
@@ -11025,7 +11277,9 @@ function renderNewEntries(plays, start, end) {
       albumCounts[ak].tracks.add(p.title);
     }
   }
-  const allNewAlbums = Object.values(albumCounts).sort(rankSort);
+  // New Entries follows the chart it sits under: while the singles bucket is
+  // on show, a new album is not a new entry on it.
+  const allNewAlbums = Object.values(applyAlbumsFilterByKey(albumCounts)).sort(rankSort);
   fullNewData.newAlbums = isFinite(limitAlbums) ? allNewAlbums.slice(0, limitAlbums) : allNewAlbums;
 
   // Reset pages on each full data rebuild
@@ -11061,7 +11315,11 @@ function renderNewEntries(plays, start, end) {
     const albumShown = fullNewData.newAlbums.length;
     const albumTotal = allNewAlbums.length;
     albumSec.style.display = albumShown > 0 ? '' : 'none';
-    const albumType = (albumShown !== 1 ? t('new_chart_albums') : t('new_chart_album')).toLowerCase();
+    // Follows the bucket on show, so a list of singles is not "the 1 most
+    // played new album". Falls back to the album wording when nothing is apart.
+    const albumType = (separatedTypes().length
+      ? albumBucketNoun(albumShown !== 1)
+      : (albumShown !== 1 ? t('new_chart_albums') : t('new_chart_album'))).toLowerCase();
     const albumSuffix = albumTotal > albumShown ? t('new_chart_suffix', { n: albumTotal, period: periodLower }) : '';
     document.getElementById('newAlbumsSub').textContent = `${t('new_chart_intro', { n: albumShown, type: albumType, period: periodLower })}${albumSuffix}`;
   }
@@ -11193,11 +11451,11 @@ function renderTableHeaders() {
   if (hasPeriodStats) {
     document.getElementById('songsHeadRow').innerHTML = `<th>${t('th_rank')}</th>${prevTh}${thumbTh}<th>${t('th_title_artist')}</th><th class="meta-col">${t('th_album')}</th>${periodTh}<th style="text-align:right;"><span class="th-plays-full">${t('th_plays')}</span><span class="th-plays-short">${t('th_plays_mobile')}</span></th>${crTh}`;
     document.getElementById('artistsHeadRow').innerHTML = `<th>${t('th_rank')}</th>${prevTh}${thumbTh}<th>${t('th_artist')}</th><th class="meta-col">${t('th_unique_songs')}</th>${periodTh}<th style="text-align:right;"><span class="th-plays-full">${t('th_total_plays')}</span><span class="th-plays-short">${t('th_total_plays_mobile')}</span></th>${crTh}`;
-    document.getElementById('albumsHeadRow').innerHTML = `<th>${t('th_rank')}</th>${prevTh}${thumbTh}<th>${t('th_album_artist')}</th><th class="meta-col">${t('th_tracks')}</th>${periodTh}<th style="text-align:right;"><span class="th-plays-full">${t('th_total_plays')}</span><span class="th-plays-short">${t('th_total_plays_mobile')}</span></th>${crTh}`;
+    document.getElementById('albumsHeadRow').innerHTML = `<th>${t('th_rank')}</th>${prevTh}${thumbTh}<th>${separatedTypes().length ? t('th_type_artist', { type: albumBucketNoun(false) }) : t('th_album_artist')}</th><th class="meta-col">${t('th_tracks')}</th>${periodTh}<th style="text-align:right;"><span class="th-plays-full">${t('th_total_plays')}</span><span class="th-plays-short">${t('th_total_plays_mobile')}</span></th>${crTh}`;
   } else {
     document.getElementById('songsHeadRow').innerHTML = `<th>${t('th_rank')}</th>${thumbTh}<th>${t('th_title_artist')}</th><th class="meta-col">${t('th_album')}</th><th style="text-align:right;"><span class="th-plays-full">${t('th_plays')}</span><span class="th-plays-short">${t('th_plays_mobile')}</span></th>${crTh}`;
     document.getElementById('artistsHeadRow').innerHTML = `<th>${t('th_rank')}</th>${thumbTh}<th>${t('th_artist')}</th><th class="meta-col">${t('th_unique_songs')}</th><th style="text-align:right;"><span class="th-plays-full">${t('th_total_plays')}</span><span class="th-plays-short">${t('th_total_plays_mobile')}</span></th>${crTh}`;
-    document.getElementById('albumsHeadRow').innerHTML = `<th>${t('th_rank')}</th>${thumbTh}<th>${t('th_album_artist')}</th><th class="meta-col">${t('th_tracks')}</th><th style="text-align:right;"><span class="th-plays-full">${t('th_total_plays')}</span><span class="th-plays-short">${t('th_total_plays_mobile')}</span></th>${crTh}`;
+    document.getElementById('albumsHeadRow').innerHTML = `<th>${t('th_rank')}</th>${thumbTh}<th>${separatedTypes().length ? t('th_type_artist', { type: albumBucketNoun(false) }) : t('th_album_artist')}</th><th class="meta-col">${t('th_tracks')}</th><th style="text-align:right;"><span class="th-plays-full">${t('th_total_plays')}</span><span class="th-plays-short">${t('th_total_plays_mobile')}</span></th>${crTh}`;
   }
 }
 
@@ -11212,6 +11470,10 @@ function renderAll() {
     if (el && el._visObs) { el._visObs.disconnect(); delete el._visObs; }
   });
   document.body.dataset.period = currentPeriod;
+  // The bar's segments depend on the separation settings, which can arrive
+  // from the Firestore sync after the first paint — so it is repainted here
+  // rather than built once at startup.
+  syncAlbumsFilterBar();
   // Exit early if no data has been loaded yet
   if (!allPlays || allPlays.length === 0) { return; }
   const { start, end, label, sub } = getDateRange();
@@ -11743,6 +12005,7 @@ function renderAll() {
     document.querySelector('#songsSectionTitle .section-title-text').textContent   = (isFinite(limSongs)   ? t('sec_songs_top',   { n: limSongs   }) : t('sec_songs_all',   { n: fullData.songs.length.toLocaleString()   })).replace(/^[★♦◈]\s*/, '');
     document.querySelector('#artistsSectionTitle .section-title-text').textContent = (isFinite(limArtists) ? t('sec_artists_top', { n: limArtists }) : t('sec_artists_all', { n: fullData.artists.length.toLocaleString() })).replace(/^[★♦◈]\s*/, '');
     document.querySelector('#albumsSectionTitle .section-title-text').textContent  = (isFinite(limAlbums)  ? t('sec_albums_top',  { n: limAlbums  }) : t('sec_albums_all',  { n: fullData.albums.length.toLocaleString()  })).replace(/^[★♦◈]\s*/, '');
+    retitleAlbumsSectionForFilter();
 
     renderPage('songs', peaks);
     renderPage('artists', peaks);
@@ -11760,6 +12023,7 @@ function renderAll() {
     document.querySelector('#songsSectionTitle .section-title-text').textContent   = t('sec_songs_top',   { n: chartSizeSongs   }).replace(/^[★♦◈]\s*/, '');
     document.querySelector('#artistsSectionTitle .section-title-text').textContent = t('sec_artists_top', { n: chartSizeArtists }).replace(/^[★♦◈]\s*/, '');
     document.querySelector('#albumsSectionTitle .section-title-text').textContent  = t('sec_albums_top',  { n: chartSizeAlbums  }).replace(/^[★♦◈]\s*/, '');
+    retitleAlbumsSectionForFilter();
     const periodStats = hasPeriodStats ? buildPeriodStats(currentPeriod) : null;
     lastPeriodStats = periodStats;
     // Not gated on chartAnimEnabled — that setting only controls whether the
@@ -12217,7 +12481,7 @@ function buildArtistsFull(plays, ms) {
 }
 
 function buildAlbumsFull(plays, ms) {
-  const counts = {};
+  let counts = {};
   for (const p of plays) {
     if (!p.album || p.album === '—') continue;
     const k = albumKeyOf(p);
@@ -12225,6 +12489,10 @@ function buildAlbumsFull(plays, ms) {
     counts[k].count++;
     counts[k].tracks.add(p.title);
   }
+  /* Filtered between the tally and the sort, so ranks renumber: the albums
+     chart with its singles removed reads #1, #2, #3, not #1, #4, #7. A no-op
+     for anyone who has separated nothing. */
+  counts = applyAlbumsFilter(counts);
   if (ms) {
     for (const [k, entry] of Object.entries(counts)) {
       const prev = ms.prevChart.albums[k];
@@ -12328,7 +12596,7 @@ function renderPage(type, peaks) {
           <div class="song-artist">${esc(s.artist)}</div>
           <button class="yt-play-btn" data-title="${esc(s.title)}" data-artist="${esc(s.artist)}" data-album="${esc(s.album)}" onclick="event.stopPropagation();ytPlayFromBtn(this)" title="Play on YouTube"><span class="yt-btn-content"><svg class="yt-btn-icon" viewBox="0 0 24 24"><path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.5 12 3.5 12 3.5s-7.5 0-9.4.5A3 3 0 0 0 .5 6.2C0 8.1 0 12 0 12s0 3.9.5 5.8a3 3 0 0 0 2.1 2.1c1.9.5 9.4.5 9.4.5s7.5 0 9.4-.5a3 3 0 0 0 2.1-2.1C24 15.9 24 12 24 12s0-3.9-.5-5.8zM9.7 15.5V8.5l6.3 3.5-6.3 3.5z"/></svg>YouTube</span></button>${dcPlBtnHtml('song', s.title, s.artist, s.album)}
         </td>
-        <td class="meta-col"><div class="song-album">${esc(s.album)}${cumAlbumPlays ? certBadge(cumAlbumPlays, 'album') : ''}</div></td>
+        <td class="meta-col"><div class="song-album">${esc(s.album)}${cumAlbumPlays ? certBadge(cumAlbumPlays, certKindFor(s.album, albumArtistOfSong(s))) : ''}</div></td>
         ${ms ? mMthsCell(k, 'songs', ms) : ''}
         <td>
           <div class="play-count">${tCountHtml('plays', s.count)}${ms ? deltaInline(s.count, k, 'songs', ms) : ''}</div>
@@ -12398,7 +12666,7 @@ function renderPage(type, peaks) {
         ${ms ? mPrevCell(rank, ak, 'albums', ms) : ''}
         <td class="thumb-cell"><div class="thumb-wrap"><div id="${imgId}"><div class="thumb-initials">${esc(initials(a.album))}</div></div><button id="srcbtn-${imgId}" class="img-src-btn" data-imgid="${imgId}" data-type="album" data-prefkey="${esc(prefKey)}" data-name="${esc(a.album)}" data-artist="${esc(a.artist)}" data-album="${esc(a.album)}">${srcLabel(itemSourcePrefs[prefKey] || 'deezer')}</button></div></td>
         <td>
-          <div class="song-title">${esc(a.album)}${pk ? peakBadge(pk) : ''}${certBadge(cumAlbumPlays, 'album')}${ratingAlbumBadge(ak)}</div>
+          <div class="song-title">${esc(a.album)}${pk ? peakBadge(pk) : ''}${certBadge(cumAlbumPlays, certKindFor(a.album, a.artist))}${ratingAlbumBadge(ak)}</div>
           <div class="song-artist">${esc(a.artist)}</div>
           <button class="yt-play-btn" data-title="" data-artist="${esc(a.artist)}" data-album="${esc(a.album)}" onclick="event.stopPropagation();buShowTrackList(this,'albums')" title="Show recently played tracks"><span class="yt-btn-content"><svg class="yt-btn-icon" viewBox="0 0 24 24"><path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.5 12 3.5 12 3.5s-7.5 0-9.4.5A3 3 0 0 0 .5 6.2C0 8.1 0 12 0 12s0 3.9.5 5.8a3 3 0 0 0 2.1 2.1c1.9.5 9.4.5 9.4.5s7.5 0 9.4-.5a3 3 0 0 0 2.1-2.1C24 15.9 24 12 24 12s0-3.9-.5-5.8zM9.7 15.5V8.5l6.3 3.5-6.3 3.5z"/></svg>YouTube</span></button>${dcPlBtnHtml('album', '', a.artist, a.album)}
         </td>
@@ -13457,6 +13725,20 @@ function _crCurKey(period) {
    forward from earlier ones (prevChartKeys / everChartedKeys), so the run for
    any given cutoff is exactly the prefix of this full run up to that period.
    That makes the cutoff a slice (see _crSlice) rather than a rebuild. */
+/* Splits one period's album tally into the buckets the chart is shown in —
+   the albums proper first, then each separated type. Returns arrays of
+   [key, data] pairs, the shape the ranking loop already sorts. */
+function _crBucketAlbums(albums) {
+  const order = ['album', ...separatedTypes()];
+  const byBucket = {};
+  for (const b of order) byBucket[b] = [];
+  for (const k in albums) {
+    const d = albums[k];
+    (byBucket[albumBucketOf(d._album, d._artist)] || byBucket.album).push([k, d]);
+  }
+  return order.map(b => byBucket[b]).filter(g => g.length);
+}
+
 function _buildChartRunFull(period) {
   const periodMap = {};
   const _isYear = period === 'year';
@@ -13519,31 +13801,45 @@ function _buildChartRunFull(period) {
         data.prevRank = prevRk !== undefined ? prevRk : Infinity;
       }
       const sizeForPeriod = sizeByType[type];
-      const ranked = Object.entries(pm[type]).sort(([, a], [, b]) => rankSortWithStatus(a, b)).slice(0, sizeForPeriod);
-      // Update prev/ever sets for next period
+      /* Albums rank inside their bucket once a type is separated: the singles
+         chart is its own Top N, so a single's peak is its rank among singles
+         rather than its rank on a mixed chart it is no longer shown on.
+
+         A release belongs to exactly one bucket, so the keys never collide and
+         all of them still share one result.albums — every consumer of the run
+         (the chart-run panel, Records, the modals) keeps working untouched.
+         Everything else, and albums while nothing is separated, is one group. */
+      const groups = (type === 'albums' && separatedTypes().length)
+        ? _crBucketAlbums(pm.albums)
+        : [Object.entries(pm[type])];
+      // Accumulated across the groups and assigned once, or the second bucket
+      // would wipe the first one's prev-rank map.
       const newPrevKeys = new Map();
-      ranked.forEach(([k], i) => { newPrevKeys.set(k, i + 1); everChartedKeys[type].add(k); });
+      for (const groupEntries of groups) {
+        const ranked = groupEntries.sort(([, a], [, b]) => rankSortWithStatus(a, b)).slice(0, sizeForPeriod);
+        ranked.forEach(([k], i) => { newPrevKeys.set(k, i + 1); everChartedKeys[type].add(k); });
+        ranked.forEach(([k, data], i) => {
+          const rank = i + 1;
+          const days = pm[dayFields[type]][k]?.size || 0;
+          if (!result[type][k]) result[type][k] = {
+            entries: [], peak: rank, peakPlays: 0, peakDays: 0, peakMonths: 0,
+            _title: data._title, _artist: data._artist, _album: data._album
+          };
+          const entry = { periodKey: pk, label: lbl, rank, plays: data.count, days };
+          // Yearly runs count the distinct months an item charted in. Recorded per
+          // entry as well as in the running peak, because a sliced view has to be
+          // able to recompute the peak from just the entries it keeps.
+          if (period === 'year' && pm.yrMonths) entry.months = pm.yrMonths[type][k]?.size || 0;
+          result[type][k].entries.push(entry);
+          if (rank < result[type][k].peak) result[type][k].peak = rank;
+          if (data.count > result[type][k].peakPlays) result[type][k].peakPlays = data.count;
+          if (days > result[type][k].peakDays) result[type][k].peakDays = days;
+          if (entry.months !== undefined && entry.months > result[type][k].peakMonths) {
+            result[type][k].peakMonths = entry.months;
+          }
+        });
+      }
       prevChartKeys[type] = newPrevKeys;
-      ranked.forEach(([k, data], i) => {
-        const rank = i + 1;
-        const days = pm[dayFields[type]][k]?.size || 0;
-        if (!result[type][k]) result[type][k] = {
-          entries: [], peak: rank, peakPlays: 0, peakDays: 0, peakMonths: 0,
-          _title: data._title, _artist: data._artist, _album: data._album
-        };
-        const entry = { periodKey: pk, label: lbl, rank, plays: data.count, days };
-        // Yearly runs count the distinct months an item charted in. Recorded per
-        // entry as well as in the running peak, because a sliced view has to be
-        // able to recompute the peak from just the entries it keeps.
-        if (period === 'year' && pm.yrMonths) entry.months = pm.yrMonths[type][k]?.size || 0;
-        result[type][k].entries.push(entry);
-        if (rank < result[type][k].peak) result[type][k].peak = rank;
-        if (data.count > result[type][k].peakPlays) result[type][k].peakPlays = data.count;
-        if (days > result[type][k].peakDays) result[type][k].peakDays = days;
-        if (entry.months !== undefined && entry.months > result[type][k].peakMonths) {
-          result[type][k].peakMonths = entry.months;
-        }
-      });
     }
   }
   return { period, curKey: null, periodMap, result };
@@ -14499,6 +14795,15 @@ function buildPeriodStats(period) {
     mm.albums[ak].count++;
   }
 
+  /* Everything below — previous chart, ever-charted, Bubbling Under, peak
+     ranks, chart streaks and the movement arrows they feed — is computed from
+     these maps. Filtering here rather than at each consumer means the whole
+     weekly view describes one chart: while the singles bucket is on show,
+     "last week" means last week's singles chart. */
+  if (albumsFilterBucket()) {
+    for (const mk in periodMap) periodMap[mk].albums = applyAlbumsFilterByKey(periodMap[mk].albums);
+  }
+
   const periodsOnChart = { songs: {}, artists: {}, albums: {} };
   const everChartedBefore = { songs: new Set(), artists: new Set(), albums: new Set() };
   const prevChart = { songs: {}, artists: {}, albums: {} };
@@ -14904,7 +15209,7 @@ function renderSongs(plays, peaks, monthlyStats) {
         <div class="song-artist">${esc(s.artist)}</div>
         <button class="yt-play-btn" data-title="${esc(s.title)}" data-artist="${esc(s.artist)}" data-album="${esc(s.album)}" onclick="event.stopPropagation();ytPlayFromBtn(this)" title="Play on YouTube"><span class="yt-btn-content"><svg class="yt-btn-icon" viewBox="0 0 24 24"><path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.5 12 3.5 12 3.5s-7.5 0-9.4.5A3 3 0 0 0 .5 6.2C0 8.1 0 12 0 12s0 3.9.5 5.8a3 3 0 0 0 2.1 2.1c1.9.5 9.4.5 9.4.5s7.5 0 9.4-.5a3 3 0 0 0 2.1-2.1C24 15.9 24 12 24 12s0-3.9-.5-5.8zM9.7 15.5V8.5l6.3 3.5-6.3 3.5z"/></svg>YouTube</span></button>${dcPlBtnHtml('song', s.title, s.artist, s.album)}
       </td>
-      <td class="meta-col"><div class="song-album">${esc(s.album)}${cumAlbumPlays ? certBadge(cumAlbumPlays, 'album') : ''}</div></td>
+      <td class="meta-col"><div class="song-album">${esc(s.album)}${cumAlbumPlays ? certBadge(cumAlbumPlays, certKindFor(s.album, albumArtistOfSong(s))) : ''}</div></td>
       ${monthlyStats ? mMthsCell(k, 'songs', monthlyStats) : ''}
       <td>
         <div class="play-count">${tCountHtml('plays', s.count)}${monthlyStats ? deltaInline(s.count, k, 'songs', monthlyStats) : ''}</div>
@@ -15095,13 +15400,16 @@ function renderArtists(plays, peaks, monthlyStats) {
 }
 
 function renderAlbums(plays, peaks, monthlyStats) {
-  const counts = {};
+  let counts = {};
   for (const p of plays) {
     const k = albumKeyOf(p);
     if (!counts[k]) counts[k] = { album: p.album, artist: albumArtist(p), count: 0, tracks: new Set(), firstAchieved: p.date };
     counts[k].count++;
     counts[k].tracks.add(p.title);
   }
+  // Same filter, same reason as buildAlbumsFull() — and applied before the
+  // Bubbling Under pool is sliced, so BU is the tail of the chart on screen.
+  counts = applyAlbumsFilter(counts);
   if (monthlyStats) {
     for (const [k, entry] of Object.entries(counts)) {
       const prev = monthlyStats.prevChart.albums[k];
@@ -15151,7 +15459,7 @@ function renderAlbums(plays, peaks, monthlyStats) {
       ${monthlyStats ? mPrevCell(i + 1, ak, 'albums', monthlyStats) : ''}
       <td class="thumb-cell"><div class="thumb-wrap"><div id="${imgId}"><div class="thumb-initials">${esc(initials(album))}</div></div><button id="srcbtn-${imgId}" class="img-src-btn" data-imgid="${imgId}" data-type="album" data-prefkey="${esc(prefKey)}" data-name="${esc(album)}" data-artist="${esc(artist)}" data-album="${esc(album)}">${srcLabel(itemSourcePrefs[prefKey] || 'deezer')}</button></div></td>
       <td>
-        <div class="song-title">${esc(album)}${pk ? peakBadge(pk) : ''}${certBadge(cumAlbumPlays, 'album')}${ratingAlbumBadge(ak)}</div>
+        <div class="song-title">${esc(album)}${pk ? peakBadge(pk) : ''}${certBadge(cumAlbumPlays, certKindFor(album, artist))}${ratingAlbumBadge(ak)}</div>
         <div class="song-artist">${esc(artist)}</div>
         <button class="yt-play-btn" data-title="" data-artist="${esc(artist)}" data-album="${esc(album)}" onclick="event.stopPropagation();buShowTrackList(this,'albums')" title="Show recently played tracks"><span class="yt-btn-content"><svg class="yt-btn-icon" viewBox="0 0 24 24"><path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.5 12 3.5 12 3.5s-7.5 0-9.4.5A3 3 0 0 0 .5 6.2C0 8.1 0 12 0 12s0 3.9.5 5.8a3 3 0 0 0 2.1 2.1c1.9.5 9.4.5 9.4.5s7.5 0 9.4-.5a3 3 0 0 0 2.1-2.1C24 15.9 24 12 24 12s0-3.9-.5-5.8zM9.7 15.5V8.5l6.3 3.5-6.3 3.5z"/></svg>YouTube</span></button>${dcPlBtnHtml('album', '', artist, album)}
       </td>
@@ -16834,7 +17142,7 @@ function renderOffChart(type, plays, periodStats, buPool, lowestChartCount) {
   if (!periodStats || currentPeriod !== 'week') { sectionEl.style.display = 'none'; return; }
 
   // Current week's chart keys for this type — must use rankSortWithStatus to match main chart tiebreakers
-  const counts = {};
+  let counts = {};
   if (type === 'songs') {
     for (const p of plays) {
       const k = songKey(p);
@@ -16856,6 +17164,11 @@ function renderOffChart(type, plays, periodStats, buPool, lowestChartCount) {
       counts[k].count++;
     }
   }
+  /* Off the Chart reports who fell out of the chart above it, so it has to be
+     looking at the same chart — the current bucket's, not the mixed one.
+     periodStats.prevChart is already filtered the same way in
+     buildPeriodStats(), so the dropout comparison stays like for like. */
+  if (type === 'albums') counts = applyAlbumsFilterByKey(counts);
   for (const [k, d] of Object.entries(counts)) {
     const prev = periodStats.prevChart[type][k];
     d.chartStatus = prev !== undefined ? 0 : periodStats.everChartedBefore[type].has(k) ? 1 : 2;
@@ -17010,13 +17323,23 @@ function renderOffChart(type, plays, periodStats, buPool, lowestChartCount) {
 }
 
 // ─── CERTIFICATIONS ────────────────────────────────────────────
+/* Album thresholds assume plays spread across ten or more tracks. A two-track
+   single reaching 120 plays is one song played sixty times — and that song has
+   already earned a song certification at 50, so the same plays would mint two
+   awards and the certifications list would fill with one-hit releases.
+   Singles and EPs therefore get their own ladders, which only apply once that
+   type is separated out; while it sits with the albums it is judged as one. */
 const CERT_DEFAULTS = {
-  song:  { gold: 50,  plat: 100, diamond: 200 },
-  album: { gold: 120, plat: 300, diamond: 600 }
+  song:   { gold: 50,  plat: 100, diamond: 200 },
+  album:  { gold: 120, plat: 300, diamond: 600 },
+  single: { gold: 60,  plat: 125, diamond: 250 },
+  ep:     { gold: 90,  plat: 175, diamond: 350 }
 };
 const CERT = {
-  song:  { gold: 50,  plat: 100, diamond: 200 },
-  album: { gold: 120, plat: 300, diamond: 600 }
+  song:   { gold: 50,  plat: 100, diamond: 200 },
+  album:  { gold: 120, plat: 300, diamond: 600 },
+  single: { gold: 60,  plat: 125, diamond: 250 },
+  ep:     { gold: 90,  plat: 175, diamond: 350 }
 };
 (function () {
   try {
@@ -17028,8 +17351,30 @@ const CERT = {
     if (saved.sg > 0) CERT.song.gold    = saved.sg;
     if (saved.sp > 0) CERT.song.plat    = saved.sp;
     if (saved.sd > 0) CERT.song.diamond = saved.sd;
+    // Written by a later version than the one that first saved the key, so an
+    // older config simply leaves these at their defaults.
+    if (saved.ng > 0) CERT.single.gold    = saved.ng;
+    if (saved.np > 0) CERT.single.plat    = saved.np;
+    if (saved.nd > 0) CERT.single.diamond = saved.nd;
+    if (saved.eg > 0) CERT.ep.gold    = saved.eg;
+    if (saved.ep_ > 0) CERT.ep.plat   = saved.ep_;
+    if (saved.ed > 0) CERT.ep.diamond = saved.ed;
   } catch (e) {}
 })();
+
+/* Which ladder an album entry is judged on. A type that is not separated is
+   judged as an album, so turning the setting off restores every badge the
+   album thresholds would have given it. */
+function certKindFor(album, artist) {
+  const b = albumBucketOf(album, artist);
+  return b === 'album' ? 'album' : b;
+}
+
+// The threshold ladder itself, for the places that compare against gold/plat/
+// diamond directly rather than asking certBadge() for markup.
+function certCfgFor(album, artist) {
+  return CERT[certKindFor(album, artist)] || CERT.album;
+}
 
 function diamondMultiLabel(n) {
   if (n === 1) return { icon: '💎', label: 'Diamond' };
@@ -19578,7 +19923,13 @@ function openArtistModal(artistName) {
   /* Compilations are left out of the count on purpose. Their certification is
      awarded to the record as a whole, not to each singer on it — the album is
      still listed above, it just isn't tallied here. */
-  const certAlbums = allAlbumsSorted.filter(a => !isCompilationAlbum(a.album));
+  /* Separated types are left out too. The accomplishment rows below label a
+     whole group with one threshold ("3 albums at 120 plays"), which stops
+     being true the moment the group mixes ladders — so while singles are
+     apart they are simply not counted among the albums here. They get rows of
+     their own when the Records side learns about them. */
+  const certAlbums = allAlbumsSorted.filter(a =>
+    !isCompilationAlbum(a.album) && albumBucketOf(a.album, a.primaryArtist || artistName) === 'album');
   const goldAlbums = certAlbums.filter(a => a.count >= CERT.album.gold).length;
   const platAlbums = certAlbums.filter(a => a.count >= CERT.album.plat).length;
   const diamondAlbums = certAlbums.filter(a => a.count >= CERT.album.diamond).length;
@@ -19849,9 +20200,9 @@ function openArtistModal(artistName) {
   }
 
   // Multi-level diamond albums
-  const maxAlbumMult = allAlbumsSorted.reduce((m, a) => Math.max(m, Math.floor(a.count / CERT.album.diamond)), 0);
+  const maxAlbumMult = certAlbums.reduce((m, a) => Math.max(m, Math.floor(a.count / CERT.album.diamond)), 0);
   for (let mult = maxAlbumMult; mult >= 1; mult--) {
-    const items = allAlbumsSorted.filter(a => Math.floor(a.count / CERT.album.diamond) === mult);
+    const items = certAlbums.filter(a => Math.floor(a.count / CERT.album.diamond) === mult);
     if (!items.length) continue;
     const { icon } = diamondMultiLabel(mult);
     const plays = mult * CERT.album.diamond;
@@ -19859,12 +20210,12 @@ function openArtistModal(artistName) {
       items.map(a => ({ name: a.album, plays: a.count, date: firstAlbumPlay(a.album) }))));
   }
   if (platAlbums) {
-    const items = allAlbumsSorted.filter(a => a.count >= CERT.album.plat && a.count < CERT.album.diamond);
+    const items = certAlbums.filter(a => a.count >= CERT.album.plat && a.count < CERT.album.diamond);
     acc.push(accRow('💿', t('acc_cert', { n: platAlbums, cert: t('cert_plat'), unit: tUnit('albums', platAlbums), plays: CERT.album.plat, plays_unit: tUnit('plays', CERT.album.plat) }),
       items.map(a => ({ name: a.album, plays: a.count, date: firstAlbumPlay(a.album) }))));
   }
   if (goldAlbums) {
-    const items = allAlbumsSorted.filter(a => a.count >= CERT.album.gold && a.count < CERT.album.plat);
+    const items = certAlbums.filter(a => a.count >= CERT.album.gold && a.count < CERT.album.plat);
     acc.push(accRow('🪙', t('acc_cert', { n: goldAlbums, cert: t('cert_gold'), unit: tUnit('albums', goldAlbums), plays: CERT.album.gold, plays_unit: tUnit('plays', CERT.album.gold) }),
       items.map(a => ({ name: a.album, plays: a.count, date: firstAlbumPlay(a.album) }))));
   }
@@ -20278,11 +20629,12 @@ function openAlbumModal(albumKey) {
   // Avg plays per track + next cert milestone
   const avgPlaysPerTrack = allTracksSorted.length ? Math.round(totalPlays / allTracksSorted.length) : 0;
   let nextCert;
-  if (totalPlays >= CERT.album.diamond) {
-    const nextMult = Math.floor(totalPlays / CERT.album.diamond) + 1;
-    nextCert = [nextMult * CERT.album.diamond, tDiamondLabel(nextMult)];
+  const _mCfg = certCfgFor(albumName, artistName);
+  if (totalPlays >= _mCfg.diamond) {
+    const nextMult = Math.floor(totalPlays / _mCfg.diamond) + 1;
+    nextCert = [nextMult * _mCfg.diamond, tDiamondLabel(nextMult)];
   } else {
-    nextCert = [[CERT.album.gold, t('cert_gold')], [CERT.album.plat, t('cert_plat')], [CERT.album.diamond, t('cert_diamond')]].find(([thr]) => totalPlays < thr);
+    nextCert = [[_mCfg.gold, t('cert_gold')], [_mCfg.plat, t('cert_plat')], [_mCfg.diamond, t('cert_diamond')]].find(([thr]) => totalPlays < thr);
   }
 
   const peakCls = r => !r ? '' : r === 1 ? 'sv--gold' : r <= 3 ? 'sv--silver' : r <= 10 ? 'sv--bronze' : '';

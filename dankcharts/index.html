@@ -27,7 +27,7 @@
   <!-- html2canvas, SheetJS (xlsx) and JSZip are intentionally NOT loaded here — they
        total ~1.2 MB and are only needed for image exports and Excel/ZIP imports.
        app.js pulls them from the CDN on first use (see ensureLazyLib). -->
-  <link rel="stylesheet" href="style.css?v=235">
+  <link rel="stylesheet" href="style.css?v=236">
   <!-- All scripts are deferred so the page paints without waiting on them.
        defer preserves execution order, which matters: translations → Chart.js →
        hammer → zoom plugin → firebase SDKs → firebase.js → app.js (in body). -->
@@ -922,6 +922,10 @@
       <button class="sub-chart-toggle-btn active" data-sub="off" onclick="toggleSubChart('albums','off')"><svg class="type-icon" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="23 18 13.5 8.5 8.5 13.5 1 6"/><polyline points="17 18 23 18 23 12"/></svg> <span data-i18n="sec_off_chart">Off the Chart</span></button>
       <button class="sub-chart-toggle-btn active" data-sub="new" onclick="toggleSubChart('albums','new')"><svg class="type-icon" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l1 3.5L16.5 8 13 9l-1 3.5L11 9 7.5 8 11 6.5z"/><path d="M19 14l.6 2 2 .6-2 .6-.6 2-.6-2-2-.6 2-.6z"/></svg> <span data-i18n="sub_toggle_new">New Entries</span></button>
     </div>
+    <!-- Album bucket filter. Empty and hidden until a release type is set to
+         "apart" in Settings, which is what creates a second bucket to switch
+         between. Painted by syncAlbumsFilterBar(). -->
+    <div class="afilter-bar" id="albumsFilterBar" role="group" aria-label="Album chart filter" style="display:none"></div>
     <div class="chart-section" id="albumsSection">
       <div class="section-header">
         <button class="section-collapse-btn" data-target="albumsSection" data-i18n-title="tooltip_collapse">−</button>
@@ -1044,7 +1048,7 @@
       <div class="bu-section-header" onclick="toggleBuSection('albums')">
         <span class="bu-bubble-emoji"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="7" cy="15" r="4"/><circle cx="16" cy="7" r="3"/><circle cx="18" cy="16" r="2"/></svg></span>
         <span class="bu-section-title" id="buAlbumsSectionTitle">BUBBLING UNDER</span>
-        <span class="bu-type-label" data-i18n="chart_type_albums">Albums</span>
+        <span class="bu-type-label" id="buAlbumsTypeLabel" data-i18n="chart_type_albums">Albums</span>
         <span class="bu-count-pill" id="buAlbumsCount">0</span>
         <span class="bu-toggle-icon" id="buAlbumsToggleIcon">▼</span>
         <div class="section-rule"></div>
@@ -1063,7 +1067,7 @@
       <div class="off-section-header" onclick="toggleOffSection('albums')">
         <svg class="off-type-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="23 18 13.5 8.5 8.5 13.5 1 6"/><polyline points="17 18 23 18 23 12"/></svg>
         <span class="off-section-title" id="offAlbumsSectionTitle" data-i18n="sec_off_chart">Off the Chart</span>
-        <span class="bu-type-label" data-i18n="drop_col_albums">◈ Albums</span>
+        <span class="bu-type-label" id="offAlbumsTypeLabel" data-i18n="drop_col_albums">◈ Albums</span>
         <span class="off-count-pill" id="offAlbumsCount">0</span>
         <span class="off-toggle-icon" id="offAlbumsToggleIcon">▼</span>
         <div class="section-rule"></div>
@@ -1089,7 +1093,7 @@
             <tr>
               <th>RANK</th>
               <th style="width:52px;"></th>
-              <th>Album · Artist</th>
+              <th id="newAlbumsThName">Album · Artist</th>
               <th style="text-align:right;">Plays</th>
             </tr>
           </thead>
@@ -4060,6 +4064,21 @@ function deleteGenreTriggers() {
             <label class="cert-row">💿 Platinum <input type="number" id="certSongPlat" min="1" class="cert-input"></label>
             <label class="cert-row">💎 Diamond <input type="number" id="certSongDiamond" min="1" class="cert-input"></label>
           </div>
+          <!-- Only shown while that type is separated out. A single judged on
+               the album ladder is judged as an album, so the fields would have
+               no effect and showing them would promise one. -->
+          <div class="cert-config-col" id="certColSingle" style="display:none">
+            <div class="cert-config-col-hdr" data-i18n="rtype_single_plural">Singles</div>
+            <label class="cert-row">⭐ Gold <input type="number" id="certSingleGold" min="1" class="cert-input"></label>
+            <label class="cert-row">💿 Platinum <input type="number" id="certSinglePlat" min="1" class="cert-input"></label>
+            <label class="cert-row">💎 Diamond <input type="number" id="certSingleDiamond" min="1" class="cert-input"></label>
+          </div>
+          <div class="cert-config-col" id="certColEp" style="display:none">
+            <div class="cert-config-col-hdr" data-i18n="rtype_ep_plural">EPs</div>
+            <label class="cert-row">⭐ Gold <input type="number" id="certEpGold" min="1" class="cert-input"></label>
+            <label class="cert-row">💿 Platinum <input type="number" id="certEpPlat" min="1" class="cert-input"></label>
+            <label class="cert-row">💎 Diamond <input type="number" id="certEpDiamond" min="1" class="cert-input"></label>
+          </div>
         </div>
         <div class="cert-config-footer">
           <p class="src-modal-hint">Plays needed to earn each badge.</p>
@@ -4104,6 +4123,23 @@ function deleteGenreTriggers() {
           <p class="src-modal-hint" data-i18n="rtype_settings_hint">Mark releases as singles, EPs, live albums or soundtracks. Marking only records what a release is — your charts and certifications are unchanged until you separate a type out.</p>
           <button type="button" class="cert-reset-btn" onclick="openReleaseTypesModal()" data-i18n="rtype_settings_btn">Manage types</button>
         </div>
+        <!-- The switch that makes a mark mean something. "With albums" is the
+             default for both, so marking stays inert until asked otherwise. -->
+        <div class="set-row rt-sep-row">
+          <span class="rt-sep-label" data-i18n="rtype_sep_singles">Singles in the albums chart</span>
+          <div class="rt-sep-seg" role="group">
+            <button type="button" class="rt-sep-btn" data-sep="single" data-mode="with" onclick="setReleaseSeparationFromUI('single','with')" data-i18n="rtype_sep_with">With albums</button>
+            <button type="button" class="rt-sep-btn" data-sep="single" data-mode="apart" onclick="setReleaseSeparationFromUI('single','apart')" data-i18n="rtype_sep_apart">Apart</button>
+          </div>
+        </div>
+        <div class="set-row rt-sep-row">
+          <span class="rt-sep-label" data-i18n="rtype_sep_eps">EPs in the albums chart</span>
+          <div class="rt-sep-seg" role="group">
+            <button type="button" class="rt-sep-btn" data-sep="ep" data-mode="with" onclick="setReleaseSeparationFromUI('ep','with')" data-i18n="rtype_sep_with">With albums</button>
+            <button type="button" class="rt-sep-btn" data-sep="ep" data-mode="apart" onclick="setReleaseSeparationFromUI('ep','apart')" data-i18n="rtype_sep_apart">Apart</button>
+          </div>
+        </div>
+        <p class="src-modal-hint rt-sep-hint" data-i18n="rtype_sep_hint">Apart pulls that type out of the albums chart and gives it its own, with its own #1s and its own certification thresholds above.</p>
       </div>
 
       <div class="cert-config-group">
