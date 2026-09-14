@@ -27,7 +27,7 @@
   <!-- html2canvas, SheetJS (xlsx) and JSZip are intentionally NOT loaded here — they
        total ~1.2 MB and are only needed for image exports and Excel/ZIP imports.
        app.js pulls them from the CDN on first use (see ensureLazyLib). -->
-  <link rel="stylesheet" href="style.css?v=236">
+  <link rel="stylesheet" href="style.css?v=237">
   <!-- All scripts are deferred so the page paints without waiting on them.
        defer preserves execution order, which matters: translations → Chart.js →
        hammer → zoom plugin → firebase SDKs → firebase.js → app.js (in body). -->
@@ -3234,6 +3234,23 @@
     </div>
   </div>
 
+  <!-- ── Release Type Detection Review ──
+       Detection collects proposals; this is where they are seen and picked
+       before anything is written. -->
+  <div id="rtDetectModal" class="modal-overlay modal-overlay--stacked" role="dialog" aria-modal="true">
+    <div class="src-modal-box">
+      <h3 class="src-modal-title" data-i18n="rtd_modal_title">Detected Release Types</h3>
+      <p style="font-size:0.78rem;color:var(--text3);margin:0 0 0.7rem" data-i18n="rtd_modal_desc">Everything found is listed here before anything is written. Untick what looks wrong — whatever you change becomes your own mark, and a later scan will not touch it again.</p>
+      <div id="rtDetectBody" style="max-height:340px;overflow-y:auto"></div>
+      <!-- Apply lives outside the scrolling list. Inside it, a sweep of three
+           hundred proposals buries the only button that does anything. -->
+      <div class="rtd-footer">
+        <span id="rtDetectFooter"></span>
+        <button class="src-btn-cancel" onclick="closeRtDetectModal()" data-i18n="comp_modal_close">Close</button>
+      </div>
+    </div>
+  </div>
+
   <!-- ── Similar Rule Warning Modal ── -->
   <div id="similarRuleModal" class="modal-overlay" role="dialog" aria-modal="true">
     <div class="src-modal-box" style="max-width:440px">
@@ -4123,6 +4140,30 @@ function deleteGenreTriggers() {
           <p class="src-modal-hint" data-i18n="rtype_settings_hint">Mark releases as singles, EPs, live albums or soundtracks. Marking only records what a release is — your charts and certifications are unchanged until you separate a type out.</p>
           <button type="button" class="cert-reset-btn" onclick="openReleaseTypesModal()" data-i18n="rtype_settings_btn">Manage types</button>
         </div>
+        <!-- Detection is off until switched on, and even then it only ever
+             proposes: the review panel writes nothing until Apply. -->
+        <div class="set-row rt-sep-row">
+          <span class="rt-sep-label" data-i18n="rtd_setting">Detect release types automatically</span>
+          <span class="src-switch">
+            <input type="checkbox" id="rtAutodetectOn" onchange="toggleRtAutodetect(this.checked)">
+            <span class="src-switch-slider"></span>
+          </span>
+        </div>
+        <div id="rtAutodetectOpts" style="display:none">
+          <label class="rtd-opt">
+            <input type="checkbox" id="rtAutodetectTitle" onchange="setRtAutodetectRule('title',this.checked)">
+            <span data-i18n="rtd_rule_title">Match "Single" / "EP" tags in album titles</span>
+          </label>
+          <label class="rtd-opt">
+            <input type="checkbox" id="rtAutodetectDeezer" onchange="setRtAutodetectRule('deezer',this.checked)">
+            <span data-i18n="rtd_rule_deezer">Use Deezer's release type</span>
+          </label>
+          <div class="cert-config-footer">
+            <p class="src-modal-hint" data-i18n="rtd_hint">Detection proposes; nothing is written until you review and apply it. Anything you have marked by hand is left alone.</p>
+            <button type="button" class="cert-reset-btn" onclick="openRtDetectModal()" data-i18n="rtd_review_btn">Review detected</button>
+          </div>
+        </div>
+
         <!-- The switch that makes a mark mean something. "With albums" is the
              default for both, so marking stays inert until asked otherwise. -->
         <div class="set-row rt-sep-row">

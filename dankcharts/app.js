@@ -577,6 +577,14 @@ function dcApplyAllSettings() {
       if (releaseSeparation[k] !== next) { releaseSeparation[k] = next; _releaseEpoch++; }
     }
   } catch (e) {}
+  try {
+    const savedAd = JSON.parse(localStorage.getItem(RT_AUTODETECT_KEY) || 'null');
+    if (savedAd && typeof savedAd === 'object') {
+      releaseAutodetect.on     = savedAd.on === true;
+      releaseAutodetect.title  = savedAd.title !== false;
+      releaseAutodetect.deezer = savedAd.deezer !== false;
+    }
+  } catch (e) {}
   const evSel = document.getElementById('eventsLimitSelect');
   if (evSel) evSel.value = eventsArtistLimit;
   // tmToggles is a const object — mutate in place so the TM section reflects the loaded state
@@ -903,10 +911,16 @@ function _saveReleaseTypes(map) {
   if (typeof dcSaveReleaseTypesToFirestore === 'function') dcSaveReleaseTypesToFirestore(json);
 }
 
-/* Marks one release. Passing 'album' clears the entry rather than storing it:
-   album is the default, so an unmarked release and one marked as an album are
-   the same thing, and not storing it keeps the map to what the user actually
-   changed. Returns true when something moved. */
+/* Marks one release. Returns true when something moved.
+
+   Choosing 'album' by hand PINS it: the entry is stored as an album rather
+   than deleted. Behaviourally a pin and an unmarked release are identical —
+   releaseTypeOf() says 'album' either way — but the pin records that the user
+   decided, which is what stops auto-detection proposing the same release over
+   and over. "This really is an album" needs somewhere to live.
+
+   An auto pass never writes 'album', so only a person can create a pin.
+   clearReleaseType() below is the way back to genuinely undecided. */
 function setReleaseType(album, artist, type, src) {
   const name = String(album || '').trim();
   if (!name || name === '—') return false;
@@ -914,13 +928,27 @@ function setReleaseType(album, artist, type, src) {
   const k = releaseTypeKey(name, artist);
   const map = { ..._rtMap() };
   const prev = map[k];
-  if (t === 'album') {
+  const s = src === 'auto' ? 'auto' : 'user';
+  if (t === 'album' && s === 'auto') {
+    // Nothing to record: detection has no opinion worth storing here.
     if (!prev) return false;
     delete map[k];
   } else {
-    if (prev && prev.t === t) return false;
-    map[k] = { t, s: src === 'auto' ? 'auto' : 'user', a: String(artist || ''), n: name };
+    if (prev && prev.t === t && prev.s === s) return false;
+    map[k] = { t, s, a: String(artist || ''), n: name };
   }
+  _saveReleaseTypes(map);
+  return true;
+}
+
+/* Forgets a release entirely — not "it is an album" but "no opinion". The
+   difference matters only to auto-detection, which will consider a cleared
+   release again and leave a pinned one alone. */
+function clearReleaseType(album, artist) {
+  const k = releaseTypeKey(String(album || '').trim(), artist);
+  const map = { ..._rtMap() };
+  if (!map[k]) return false;
+  delete map[k];
   _saveReleaseTypes(map);
   return true;
 }
@@ -2075,6 +2103,276 @@ function toggleAlbumCompilation(albumName, on) {
   openAlbumModal(albumName + '|||' + albumArtist(play));
 }
 
+// ─── RELEASE TYPE AUTO-DETECTION ──────────────────────────────
+/* Marking a few hundred singles by hand is the chore that would kill this
+   feature, so detection does the sweep and the user corrects it. It is off
+   until switched on, it never writes without being shown first, and a mark
+   the user has touched is never overwritten by a later run.
+
+   Two signals only:
+     title   " - Single", "(EP)" and friends — free, no network, and the
+             convention Apple Music and Spotify scrobbles carry.
+     deezer  the record_type Deezer already returned alongside the cover art.
+
+   A third rule was considered and rejected: "the album has one distinct track
+   whose title matches the album's". It fires on every title track of a full
+   album, which is a mess, not a single. */
+const RT_AUTODETECT_KEY = 'dc_release_autodetect';
+
+let releaseAutodetect = (() => {
+  const base = { on: false, title: true, deezer: true };
+  try {
+    const saved = JSON.parse(localStorage.getItem(RT_AUTODETECT_KEY) || 'null');
+    if (saved && typeof saved === 'object') {
+      base.on     = saved.on === true;
+      base.title  = saved.title !== false;
+      base.deezer = saved.deezer !== false;
+    }
+  } catch (e) {}
+  return base;
+})();
+
+function saveReleaseAutodetect() {
+  try { localStorage.setItem(RT_AUTODETECT_KEY, JSON.stringify(releaseAutodetect)); } catch (e) {}
+  if (typeof dcSaveUserConfig === 'function') dcSaveUserConfig();
+}
+
+/* Delimited forms only. A bare /single/ would swallow "The Singles
+   Collection" and "Single Ladies"; the tag is only a tag when it is fenced off
+   at the end of the title, which is exactly how the stores write it.
+   En and em dashes included — Apple Music uses a plain hyphen, but retagged
+   libraries and MusicBrainz exports do not always agree. */
+const RT_TITLE_RULES = [
+  { re: /[\s]*[-–—][\s]*single\s*$/i,       t: 'single' },
+  { re: /[([\[]\s*single\s*[)\]]\s*$/i,     t: 'single' },
+  { re: /[\s]*[-–—][\s]*ep\s*$/i,           t: 'ep' },
+  { re: /[([\[]\s*ep\s*[)\]]\s*$/i,         t: 'ep' },
+  { re: /[\s]*[-–—][\s]*single\s+version\s*$/i, t: 'single' }
+];
+
+// The type the title claims, or null. Sync and free — no network, no cache.
+function detectTypeFromTitle(album) {
+  const name = String(album || '').trim();
+  if (!name || name === '—') return null;
+  for (const r of RT_TITLE_RULES) if (r.re.test(name)) return r.t;
+  return null;
+}
+
+// Deezer's own word for it, narrowed to the types this app separates.
+// 'compilation' is deliberately dropped: compilations keep their own list.
+function _rtFromDeezer(recordType) {
+  const rt = String(recordType || '').toLowerCase();
+  return (rt === 'single' || rt === 'ep') ? rt : null;
+}
+
+/* Every album entry in the library, heaviest first. Order matters: a scan is
+   capped, and the albums worth getting right are the ones actually played. */
+function _rtLibraryReleases() {
+  const seen = {};
+  for (const p of allPlays) {
+    if (!p.album || p.album === '—') continue;
+    const artist = albumArtist(p);
+    const k = releaseTypeKey(p.album, artist);
+    if (!seen[k]) seen[k] = { key: k, album: p.album, artist, count: 0 };
+    seen[k].count++;
+  }
+  return Object.values(seen).sort((a, b) => b.count - a.count);
+}
+
+/* State of a scan in flight. Held at module level so the panel can render
+   progress and the Stop button can reach it. */
+let rtScan = null;
+
+function rtScanRunning() { return !!(rtScan && !rtScan.done); }
+
+/* Walks the library and collects proposals. Never writes: everything lands in
+   rtScan.proposals for the review panel to apply.
+
+   Releases the user has marked by hand are skipped outright — a correction
+   must survive every later run, which is the whole reason the store records
+   who made each mark. Releases already carrying the *same* auto mark are
+   skipped too, so a second run only surfaces what is genuinely new. */
+async function rtStartScan(opts) {
+  if (rtScanRunning()) return;
+  const useTitle  = releaseAutodetect.title;
+  const useDeezer = releaseAutodetect.deezer;
+  const limit = (opts && opts.limit) || 400;
+
+  const all = _rtLibraryReleases();
+  const candidates = all.filter(r => releaseTypeSource(r.album, r.artist) !== 'user');
+
+  rtScan = {
+    done: false, cancelled: false,
+    total: candidates.length, checked: 0, networkChecked: 0,
+    limit, proposals: [], skippedUser: all.length - candidates.length
+  };
+  renderRtScanPanel();
+
+  const propose = (r, type, reason) => {
+    if (releaseTypeOf(r.album, r.artist) === type) return;   // already marked so
+    rtScan.proposals.push({ ...r, type, reason, pick: true });
+  };
+
+  // ── Pass 1: titles. Free, so it runs over the whole library. ──
+  const needNetwork = [];
+  for (const r of candidates) {
+    if (rtScan.cancelled) break;
+    const byTitle = useTitle ? detectTypeFromTitle(r.album) : null;
+    if (byTitle) { propose(r, byTitle, 'title'); rtScan.checked++; continue; }
+    if (useDeezer) needNetwork.push(r); else rtScan.checked++;
+  }
+
+  // ── Pass 2: Deezer, capped and heaviest-first. ──
+  if (useDeezer && !rtScan.cancelled) {
+    const queue = needNetwork.slice(0, limit);
+    rtScan.pending = queue.length;
+    rtScan.checked += needNetwork.length - queue.length;   // the uncapped tail
+    /* Four at a time. The proxy is a shared endpoint and a library can hold
+       thousands of albums, so this walks rather than stampedes. */
+    let next = 0;
+    const worker = async () => {
+      while (next < queue.length && !rtScan.cancelled) {
+        const r = queue[next++];
+        try {
+          const rt = _rtFromDeezer(await deezerReleaseType(r.album, r.artist));
+          if (rt) propose(r, rt, 'deezer');
+        } catch (e) { /* one album failing is not a reason to stop the sweep */ }
+        rtScan.checked++;
+        rtScan.networkChecked++;
+        if (rtScan.checked % 10 === 0) renderRtScanPanel();
+      }
+    };
+    await Promise.all([worker(), worker(), worker(), worker()]);
+  }
+
+  rtScan.done = true;
+  renderRtScanPanel();
+}
+
+function rtCancelScan() {
+  if (rtScan) rtScan.cancelled = true;
+}
+
+/* Writes the ticked proposals. Marked 'auto', so the review panel can tell
+   them apart from hand corrections and a later run can revisit them. */
+function rtApplyProposals() {
+  if (!rtScan) return;
+  const picked = rtScan.proposals.filter(p => p.pick);
+  for (const p of picked) setReleaseType(p.album, p.artist, p.type, 'auto');
+  rtScan.applied = picked.length;
+  rtScan.proposals = [];
+  renderRtScanPanel();
+  renderReleaseTypesList();
+  if (typeof renderAll === 'function') renderAll();
+}
+
+function rtToggleProposal(i, on) {
+  if (rtScan && rtScan.proposals[i]) rtScan.proposals[i].pick = on;
+  const btn = document.getElementById('rtApplyBtn');
+  if (btn) btn.textContent = t('rtd_apply', { n: rtScan.proposals.filter(p => p.pick).length });
+}
+
+function rtSetAllProposals(on) {
+  if (!rtScan) return;
+  rtScan.proposals.forEach(p => { p.pick = on; });
+  renderRtScanPanel();
+}
+
+/* The review panel. Detection proposes here and writes nothing until Apply,
+   which is the whole contract: an aggressive sweep is only safe if you can see
+   what it wants to do before it does it. */
+function openRtDetectModal() {
+  document.getElementById('rtDetectModal').classList.add('open');
+  renderRtScanPanel();
+}
+
+function closeRtDetectModal() {
+  rtCancelScan();
+  document.getElementById('rtDetectModal').classList.remove('open');
+}
+
+function renderRtScanPanel() {
+  const el = document.getElementById('rtDetectBody');
+  if (!el) return;
+  // The footer is rewritten on every path, so a stale Apply from a previous
+  // scan cannot outlive the list it belonged to.
+  const setFooter = html => {
+    const f = document.getElementById('rtDetectFooter');
+    if (f) f.innerHTML = html || '';
+  };
+  setFooter('');
+
+  // Never run: the panel is an invitation, not a report.
+  if (!rtScan) {
+    el.innerHTML = `<div class="rtd-idle">
+      <p class="rtd-idle-text">${esc(t('rtd_idle'))}</p>
+      <button class="rtd-scan-btn" onclick="rtStartScan()">${esc(t('rtd_scan'))}</button>
+    </div>`;
+    return;
+  }
+
+  const pct = rtScan.total ? Math.round(rtScan.checked / rtScan.total * 100) : 100;
+  let html = '';
+
+  if (!rtScan.done) {
+    html += `<div class="rtd-progress">
+      <div class="rtd-progress-bar"><div class="rtd-progress-fill" style="width:${Math.min(100, pct)}%"></div></div>
+      <div class="rtd-progress-text">${esc(t('rtd_scanning', { done: rtScan.checked.toLocaleString(), total: rtScan.total.toLocaleString() }))}</div>
+      <button class="rtd-stop-btn" onclick="rtCancelScan()">${esc(t('rtd_stop'))}</button>
+    </div>`;
+    el.innerHTML = html;
+    return;
+  }
+
+  if (rtScan.applied) {
+    html += `<div class="rtd-done">${esc(t('rtd_applied', { n: rtScan.applied }))}</div>`;
+  }
+
+  const props = rtScan.proposals;
+  if (!props.length) {
+    html += `<div class="rtd-idle">
+      <p class="rtd-idle-text">${esc(rtScan.applied ? t('rtd_nothing_left') : t('rtd_nothing_found'))}</p>
+      <button class="rtd-scan-btn" onclick="rtScan=null;rtStartScan()">${esc(t('rtd_rescan'))}</button>
+    </div>`;
+    el.innerHTML = html;
+    return;
+  }
+
+  const nPicked = props.filter(p => p.pick).length;
+  html += `<div class="rtd-summary">
+    <span>${esc(t('rtd_found', { n: props.length }))}</span>
+    <span class="rtd-bulk">
+      <button onclick="rtSetAllProposals(true)">${esc(t('rtd_all'))}</button>
+      <button onclick="rtSetAllProposals(false)">${esc(t('rtd_none'))}</button>
+    </span>
+  </div>`;
+  if (rtScan.skippedUser) {
+    const nSk = rtScan.skippedUser;
+    html += `<div class="rtd-note">${esc(t(nSk === 1 ? 'rtd_skipped_user_one' : 'rtd_skipped_user_other', { n: nSk }))}</div>`;
+  }
+
+  // Grouped by proposed type so a whole group can be judged at a glance.
+  for (const id of RELEASE_TYPE_IDS) {
+    if (id === 'album') continue;
+    const group = props.map((p, i) => ({ p, i })).filter(x => x.p.type === id);
+    if (!group.length) continue;
+    html += `<div class="rt-group-hdr">${esc(t('rtype_' + id + '_plural'))} <span class="rt-group-n">${group.length}</span></div>`;
+    for (const { p, i } of group) {
+      html += `<label class="rtd-row">
+        <input type="checkbox" ${p.pick ? 'checked' : ''} onchange="rtToggleProposal(${i},this.checked)">
+        <span class="rt-row-name">
+          <span class="rt-row-album">${esc(p.album)}</span>
+          <span class="rt-row-artist">${esc(p.artist)} · ${tCount('plays', p.count)}</span>
+        </span>
+        <span class="rtd-reason rtd-reason--${p.reason}">${esc(t('rtd_reason_' + p.reason))}</span>
+      </label>`;
+    }
+  }
+
+  el.innerHTML = html;
+  setFooter(`<button class="rtd-apply-btn" id="rtApplyBtn" onclick="rtApplyProposals()">${esc(t('rtd_apply', { n: nPicked }))}</button>`);
+}
+
 // ─── RELEASE TYPE MANAGER ─────────────────────────────────────
 /* Marking a release from the album page. Unlike the compilation switch, this
    moves nothing about how the album is keyed or credited, so there is no
@@ -2084,9 +2382,12 @@ function toggleAlbumCompilation(albumName, on) {
 function setAlbumReleaseType(albumName, artistName, type) {
   setReleaseType(albumName, artistName, type);
   renderReleaseTypesList();
-  // The chip carries an is-set class that dims it back down at 'album'.
+  /* The chip stays lit for a pinned album as well as a typed one: choosing
+     Album by hand is a decision the user made and should be able to see they
+     made, even though it changes nothing about the charts. */
   const wrap = document.querySelector('#albumModalCompRow .alb-rtype-toggle');
-  if (wrap) wrap.classList.toggle('is-set', type !== 'album');
+  if (wrap) wrap.classList.toggle('is-set', !!releaseTypeSource(albumName, artistName));
+  if (typeof renderAll === 'function') renderAll();
 }
 
 /* The picker maps a display string back to the album it names. Release types
@@ -2149,11 +2450,15 @@ function renderReleaseTypesList() {
     return;
   }
   let html = '';
-  for (const id of RELEASE_TYPE_IDS) {
-    if (id === 'album') continue;
+  /* Pinned albums are listed last and under their own heading: they are not a
+     type the chart does anything with, they are a record of "I checked, this
+     is an album" — which is what keeps detection from asking again. */
+  const order = RELEASE_TYPE_IDS.filter(id => id !== 'album').concat('album');
+  for (const id of order) {
     const group = entries.filter(e => e.type === id);
     if (!group.length) continue;
-    html += `<div class="rt-group-hdr">${esc(t('rtype_' + id))} <span class="rt-group-n">${group.length}</span></div>`;
+    const hdr = id === 'album' ? t('rtype_pinned_albums') : t('rtype_' + id);
+    html += `<div class="rt-group-hdr">${esc(hdr)} <span class="rt-group-n">${group.length}</span></div>`;
     for (const e of group) {
       const opts = RELEASE_TYPE_IDS.map(o =>
         `<option value="${o}" ${o === e.type ? 'selected' : ''}>${esc(t('rtype_' + o))}</option>`
@@ -2165,7 +2470,7 @@ function renderReleaseTypesList() {
         </div>
         ${e.src === 'auto' ? `<span class="rt-row-auto" title="${esc(t('rtype_auto_hint'))}">${esc(t('rtype_auto'))}</span>` : ''}
         <select class="rt-row-select" onchange="changeReleaseTypeFromList(${esc(JSON.stringify(e.album))},${esc(JSON.stringify(e.artist))},this.value)">${opts}</select>
-        <button class="rt-row-remove" onclick="changeReleaseTypeFromList(${esc(JSON.stringify(e.album))},${esc(JSON.stringify(e.artist))},'album')">${esc(t('comp_remove'))}</button>
+        <button class="rt-row-remove" onclick="clearReleaseTypeFromList(${esc(JSON.stringify(e.album))},${esc(JSON.stringify(e.artist))})" title="${esc(t('rtype_forget_hint'))}">${esc(t('comp_remove'))}</button>
       </div>`;
     }
   }
@@ -2175,6 +2480,15 @@ function renderReleaseTypesList() {
 function changeReleaseTypeFromList(album, artist, type) {
   setReleaseType(album, artist, type);
   renderReleaseTypesList();
+  if (typeof renderAll === 'function') renderAll();
+}
+
+// "Remove" forgets the release rather than calling it an album — see
+// clearReleaseType(). Picking Album from the select pins it instead.
+function clearReleaseTypeFromList(album, artist) {
+  clearReleaseType(album, artist);
+  renderReleaseTypesList();
+  if (typeof renderAll === 'function') renderAll();
 }
 
 function addReleaseTypeFromInput() {
@@ -2633,6 +2947,16 @@ function deezerAlbumImageCandidates(album, artist) {
         x.title?.toLowerCase().includes(album.toLowerCase()) &&
         (comp || x.artist?.name?.toLowerCase().includes(artist.toLowerCase().split(/[\s,&]/)[0]))
       );
+      /* Deezer says what kind of release this is, in the same response the
+         cover comes from. Harvesting it here means release-type detection
+         costs no extra request for any album whose art has ever been loaded —
+         which, after a few minutes of browsing, is most of them. Only the best
+         match is recorded: the fallback list is "anything the search returned"
+         and is far too loose to take a verdict from. */
+      if (matches.length) {
+        const rt = String(matches[0].record_type || '').toLowerCase();
+        if (rt) deezerAlbumTypeCache[k] = rt;
+      }
       const urls = [];
       for (const c of (matches.length ? matches : items)) {
         const url = deezerPickImage(c, 'cover');
@@ -2643,6 +2967,25 @@ function deezerAlbumImageCandidates(album, artist) {
   })();
   deezerAlbumCandidateCache[k] = p;
   return p;
+}
+
+/* Deezer's record_type per album, harvested above and by the scanner below.
+   'album' | 'single' | 'ep' | 'compilation', or undefined for never looked up.
+   Kept in memory only: it is derived from a third party and cheap to refetch,
+   and persisting it would just be a cache to invalidate. */
+const deezerAlbumTypeCache = {};
+
+/* The type Deezer has for this release, fetching if it has not been seen.
+   Shares deezerAlbumImageCandidates' request and its cache, so a scan of an
+   album whose cover is already loaded resolves without touching the network. */
+async function deezerReleaseType(album, artist) {
+  const k = artist.toLowerCase() + '|||' + album.toLowerCase();
+  if (k in deezerAlbumTypeCache) return deezerAlbumTypeCache[k];
+  await deezerAlbumImageCandidates(album, artist);
+  // Recorded as null rather than left absent, so a release Deezer has no
+  // confident match for is not asked about again in this session.
+  if (!(k in deezerAlbumTypeCache)) deezerAlbumTypeCache[k] = null;
+  return deezerAlbumTypeCache[k];
 }
 
 async function deezerAlbumImage(album, artist) {
@@ -4226,6 +4569,7 @@ function openSourceModal() {
   document.getElementById('certEpPlat').value    = CERT.ep.plat;
   document.getElementById('certEpDiamond').value = CERT.ep.diamond;
   syncReleaseSeparationUI();
+  syncRtAutodetectUI();
   document.getElementById('eventsArtistLimitSelect').value = eventsArtistLimit;
   document.getElementById('srcNoArtistSplit').checked = noArtistSplit;
   document.getElementById('srcChartAnim').checked = chartAnimEnabled;
@@ -4268,6 +4612,32 @@ function syncReleaseSeparationUI() {
 /* Applied immediately rather than on Save & Load: it re-ranks the charts
    behind the panel, and the two threshold columns it reveals have to be
    fillable before the same Save writes them. */
+function toggleRtAutodetect(on) {
+  releaseAutodetect.on = !!on;
+  saveReleaseAutodetect();
+  syncRtAutodetectUI();
+}
+
+function setRtAutodetectRule(rule, on) {
+  releaseAutodetect[rule] = !!on;
+  /* Both rules off would make a scan a no-op that still looks like it ran, so
+     turning the second one off turns detection off with it. */
+  if (!releaseAutodetect.title && !releaseAutodetect.deezer) releaseAutodetect.on = false;
+  saveReleaseAutodetect();
+  syncRtAutodetectUI();
+}
+
+function syncRtAutodetectUI() {
+  const on = document.getElementById('rtAutodetectOn');
+  const ti = document.getElementById('rtAutodetectTitle');
+  const dz = document.getElementById('rtAutodetectDeezer');
+  const box = document.getElementById('rtAutodetectOpts');
+  if (on) on.checked = releaseAutodetect.on;
+  if (ti) ti.checked = releaseAutodetect.title;
+  if (dz) dz.checked = releaseAutodetect.deezer;
+  if (box) box.style.display = releaseAutodetect.on ? '' : 'none';
+}
+
 function setReleaseSeparationFromUI(type, mode) {
   setReleaseSeparation(type, mode);
   syncReleaseSeparationUI();
@@ -20660,6 +21030,7 @@ function openAlbumModal(albumKey) {
        does not touch the other. Marking a type changes nothing about the
        charts on its own; separating a type out is an opt-in setting. */
     const curType = releaseTypeOf(albumName, artistName);
+    const curPinned = !!releaseTypeSource(albumName, artistName);
     const opts = RELEASE_TYPE_IDS.map(id =>
       `<option value="${id}" ${id === curType ? 'selected' : ''}>${esc(t('rtype_' + id))}</option>`
     ).join('');
@@ -20667,7 +21038,7 @@ function openAlbumModal(albumKey) {
       <input type="checkbox" ${albIsComp ? 'checked' : ''} onchange="toggleAlbumCompilation(${esc(JSON.stringify(albumName))},this.checked)">
       <span>${t('comp_toggle_label')}</span>
     </label>
-    <label class="alb-rtype-toggle${curType !== 'album' ? ' is-set' : ''}" title="${esc(t('rtype_toggle_hint'))}">
+    <label class="alb-rtype-toggle${curPinned ? ' is-set' : ''}" title="${esc(t('rtype_toggle_hint'))}">
       <span>${t('rtype_toggle_label')}</span>
       <select onchange="setAlbumReleaseType(${esc(JSON.stringify(albumName))},${esc(JSON.stringify(artistName))},this.value)">${opts}</select>
     </label>`;

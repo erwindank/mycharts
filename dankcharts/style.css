@@ -30121,6 +30121,172 @@ body.red-light .modal-cb-label--tracks {
   margin-top: 0.55rem;
 }
 
+/* ── Auto-detection: settings sub-options and the review panel ── */
+.rtd-opt {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  margin: 0.35rem 0 0 0.9rem;
+  font-size: 0.78rem;
+  color: var(--text3);
+  cursor: pointer;
+}
+
+.rtd-opt input {
+  width: 0.85rem;
+  height: 0.85rem;
+  margin: 0;
+  accent-color: var(--accent);
+  cursor: pointer;
+}
+
+.rtd-idle {
+  padding: 1.4rem 0.4rem;
+  text-align: center;
+}
+
+.rtd-idle-text {
+  margin: 0 0 0.8rem;
+  font-size: 0.8rem;
+  color: var(--text3);
+  line-height: 1.5;
+}
+
+.rtd-scan-btn,
+.rtd-apply-btn {
+  padding: 0.4rem 1rem;
+  border: 1px solid var(--accent);
+  border-radius: 999px;
+  background: var(--accent);
+  /* var(--on-accent), never #fff — the yellow theme's accent is light. */
+  color: var(--on-accent);
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.rtd-stop-btn {
+  margin-top: 0.6rem;
+  padding: 0.25rem 0.8rem;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--bg2);
+  color: var(--text2);
+  font-family: var(--font-mono);
+  font-size: 0.66rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.rtd-progress {
+  padding: 1.6rem 0.4rem;
+  text-align: center;
+}
+
+.rtd-progress-bar {
+  height: 4px;
+  border-radius: 999px;
+  background: var(--bg2);
+  overflow: hidden;
+}
+
+.rtd-progress-fill {
+  height: 100%;
+  background: var(--accent);
+  transition: width 0.25s ease;
+}
+
+.rtd-progress-text {
+  margin-top: 0.6rem;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--text3);
+}
+
+.rtd-summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  padding-bottom: 0.4rem;
+  font-size: 0.78rem;
+  color: var(--text2);
+  border-bottom: 1px solid var(--border);
+}
+
+.rtd-bulk {
+  display: inline-flex;
+  gap: 0.3rem;
+}
+
+.rtd-bulk button {
+  padding: 0.15rem 0.5rem;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--bg2);
+  color: var(--text3);
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.rtd-note,
+.rtd-done {
+  margin: 0.45rem 0;
+  font-size: 0.72rem;
+  color: var(--text3);
+}
+
+.rtd-done { color: var(--accent); }
+
+.rtd-row {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.35rem 0.1rem;
+  border-bottom: 1px solid var(--border);
+  cursor: pointer;
+}
+
+.rtd-row input {
+  flex-shrink: 0;
+  width: 0.85rem;
+  height: 0.85rem;
+  margin: 0;
+  accent-color: var(--accent);
+  cursor: pointer;
+}
+
+/* Says which rule fired, so an odd-looking row can be judged rather than
+   just trusted. Dashed, like the "Detected" pill in the manager list. */
+.rtd-reason {
+  flex-shrink: 0;
+  padding: 0.1rem 0.4rem;
+  border: 1px dashed var(--border);
+  border-radius: 999px;
+  font-family: var(--font-mono);
+  font-size: 0.58rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--text3);
+}
+
+/* Apply sits beside Close, outside the scrolling list, so it is reachable
+   whether the sweep found three proposals or three hundred. */
+.rtd-footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  margin-top: 0.8rem;
+}
+
 /* ══════════════════════════════════════════════════════════
    CERTIFIED THIS PERIOD — the moving shelf
    The plaques are the wall's, unchanged. Everything here is the
