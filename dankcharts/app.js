@@ -6412,11 +6412,18 @@ function buildRecords() {
       key: 'artists', icon: recEntIco('artists'), label: t('rec_th_artists'), data: artist1s, type: 'artist',
       nameRow: function (k, d, i, imgId) { return '<td class="rec-rank">' + (i + 1) + '</td><td class="thumb-cell"><div class="thumb-wrap"><div id="' + imgId + '"><div class="thumb-initials">' + esc(initials(k)) + '</div></div><button id="srcbtn-' + imgId + '" class="img-src-btn" data-imgid="' + imgId + '" data-type="artist" data-prefkey="' + esc('artist:' + k.toLowerCase()) + '" data-name="' + esc(k) + '" data-artist="' + esc(k) + '" data-album="">Deezer</button></div></td><td><div class="rec-name">' + esc(k) + '</div></td>'; }
     },
-    {
-      key: 'albums', icon: recEntIco('albums'), label: t('rec_th_albums'), data: album1s, type: 'album',
-      nameRow: function (k, d, i, imgId) { return '<td class="rec-rank">' + (i + 1) + '</td><td class="thumb-cell"><div class="thumb-wrap"><div id="' + imgId + '"><div class="thumb-initials">' + esc(initials(d.album)) + '</div></div><button id="srcbtn-' + imgId + '" class="img-src-btn" data-imgid="' + imgId + '" data-type="album" data-prefkey="' + esc('album:' + d.artist.toLowerCase() + '|||' + d.album.toLowerCase()) + '" data-name="' + esc(d.album) + '" data-artist="' + esc(d.artist) + '" data-album="' + esc(d.album) + '">Deezer</button></div></td><td><div class="rec-name">' + esc(d.album) + '</div><div class="rec-sub">' + esc(d.artist) + '</div></td>'; }
-    },
   ];
+  /* One entry per album-side entity — Albums alone for most users, plus
+     Singles and/or EPs when those types are separated. The name row is
+     identical for all of them: a single is still a record with a cover, a
+     title and a credit, and drawing it differently would be decoration. */
+  for (const ae of recAlbumEnts()) {
+    entityConfig.push({
+      key: ae.key, icon: ae.icon, label: ae.label, type: 'album',
+      data: recSplitAlbums(album1s, ae.bucket),
+      nameRow: function (k, d, i, imgId) { return '<td class="rec-rank">' + (i + 1) + '</td><td class="thumb-cell"><div class="thumb-wrap"><div id="' + imgId + '"><div class="thumb-initials">' + esc(initials(d.album)) + '</div></div><button id="srcbtn-' + imgId + '" class="img-src-btn" data-imgid="' + imgId + '" data-type="album" data-prefkey="' + esc('album:' + d.artist.toLowerCase() + '|||' + d.album.toLowerCase()) + '" data-name="' + esc(d.album) + '" data-artist="' + esc(d.artist) + '" data-album="' + esc(d.album) + '">Deezer</button></div></td><td><div class="rec-name">' + esc(d.album) + '</div><div class="rec-sub">' + esc(d.artist) + '</div></td>'; }
+    });
+  }
   /* One panel per entity, one on screen at a time — the same pills Milestones,
      Fastest and New Charts wear, built by recEntTabsHtml(). Nine tables (three
      entities × weekly/monthly/yearly) was never one scroll anybody read.
@@ -6859,13 +6866,17 @@ function buildRecords() {
       return ah;
     },
 
-    albums: function (cfg) {
-      const tops = Object.entries(albumApps[cfg.pt]).sort((a, b) => b[1] - a[1]);
+    /* `ent` is the album-side entity being drawn — Albums, or Singles/EPs when
+       those are separated. Everything that used to say "albums" now says what
+       the entity says, and every generated id carries ent.key so the Albums
+       and Singles panels cannot collide on element ids. */
+    albums: function (cfg, ent) {
+      const tops = Object.entries(appsByKey[ent.key][cfg.pt]).sort((a, b) => b[1] - a[1]);
       const sliced = isFinite(lim) ? tops.slice(0, lim) : tops;
-      const tableId = 'app-tbl-albums-' + cfg.pt;
-      let ah = '<div class="rec-section"><div class="rec-section-title">' + recEntIco('albums') + ' ' + t('rec_th_albums') + ' &mdash; ' + t('rec_most_appearances_on', { period: cfg.label }) + ' ' + t('rec_suffix_non_consec') + '</div>';
+      const tableId = 'app-tbl-' + ent.key + '-' + cfg.pt;
+      let ah = '<div class="rec-section"><div class="rec-section-title">' + ent.icon + ' ' + esc(ent.label) + ' &mdash; ' + t('rec_most_appearances_on', { period: cfg.label }) + ' ' + t('rec_suffix_non_consec') + '</div>';
       ah += '<div class="app-table-wrap"><table class="rec-table app-appearances-table" id="' + tableId + '"><thead><tr>';
-      ah += '<th>#</th><th></th><th>' + t('rec_th_albums') + '</th><th class="app-art-th"></th><th>' + t('rec_th_artist') + '</th>';
+      ah += '<th>#</th><th></th><th>' + esc(ent.label) + '</th><th class="app-art-th"></th><th>' + t('rec_th_artist') + '</th>';
       ah += '<th>' + t('rec_th_first_song') + '</th>';
       ah += '<th>' + t('rec_th_first_streamed') + '</th>';
       ah += '<th>' + t('rec_th_on_chart', { unit: cfg.big }) + '</th><th class="rec-cr-th"><button class="rec-expand-all-btn" onclick="event.stopPropagation();toggleAllAppCr(\'' + tableId + '\',this)" title="' + t('rec_expand_all') + '">▶▶</button></th>';
@@ -6875,9 +6886,9 @@ function buildRecords() {
         const n = albumNames[k] || {};
         const album = n.album || k.split('|||')[0];
         const artist = n.artist || '';
-        const imgId = 'app-album-img-' + cfg.pt + '-' + i;
-        const artImgId = 'app-art-album-' + cfg.pt + '-' + i;
-        const crRowId = 'app-cr-row-album-' + cfg.pt + '-' + i;
+        const imgId = 'app-album-img-' + ent.key + '-' + cfg.pt + '-' + i;
+        const artImgId = 'app-art-album-' + ent.key + '-' + cfg.pt + '-' + i;
+        const crRowId = 'app-cr-row-album-' + ent.key + '-' + cfg.pt + '-' + i;
         const firstSong = albumFirstSongName[k] || '—';
         const firstDate = albumFirstPlayDate[k] ? fmt(albumFirstPlayDate[k]) : '—';
         const rankCls = i === 0 ? 'rec-rank-1' : i === 1 ? 'rec-rank-2' : i === 2 ? 'rec-rank-3' : '';
@@ -6905,7 +6916,7 @@ function buildRecords() {
   const APP_REC_TYPES = [
     { key: 'songs', icon: recEntIco('songs'), label: t('rec_th_songs') },
     { key: 'artists', icon: recEntIco('artists'), label: t('rec_th_artists') },
-    { key: 'albums', icon: recEntIco('albums'), label: t('rec_th_albums') }
+    ...recAlbumEnts()
   ];
 
   /* ── The same appearances, counted consecutively ────────────────
@@ -6925,10 +6936,15 @@ function buildRecords() {
      type, and reusing them keeps this table's artwork identical to that one's. */
   const onesEntByKey = {};
   entityConfig.forEach(function (e) { onesEntByKey[e.key] = e; });
-  const appsByKey = { songs: songApps, artists: artistApps, albums: albumApps };
+  /* One entry per pill, the album-side ones each narrowed to their bucket.
+     Built from the same recAlbumEnts() list the pills come from, so a pill can
+     never exist without data behind it or the other way round. */
+  const appsByKey = { songs: songApps, artists: artistApps };
+  for (const ae of recAlbumEnts()) appsByKey[ae.key] = recSplitAlbums(albumApps, ae.bucket);
   function appConsecSection(ent, cfg) {
     const nameEnt = onesEntByKey[ent.key];
-    const runs = (allChartRun[cfg.pt] && allChartRun[cfg.pt].result && allChartRun[cfg.pt].result[ent.key]) || {};
+    // recRunKey: singles and EPs live in the run's one result.albums.
+    const runs = (allChartRun[cfg.pt] && allChartRun[cfg.pt].result && allChartRun[cfg.pt].result[recRunKey(ent.key)]) || {};
     const rows = [];
     for (const k of Object.keys(appsByKey[ent.key][cfg.pt])) {
       const crEntries = (runs[k] && runs[k].entries) || [];
@@ -6941,7 +6957,7 @@ function buildRecords() {
       if (ent.key === 'songs') {
         const n = songNames[k] || {};
         d = { title: n.title || k.split('|||')[0], artist: n.artist || '', album: n.album || '' };
-      } else if (ent.key === 'albums') {
+      } else if (recIsAlbumEnt(ent.key)) {
         const n = albumNames[k] || {};
         d = { album: n.album || k.split('|||')[0], artist: n.artist || '' };
       } else {
@@ -7021,7 +7037,7 @@ function buildRecords() {
       html += '<div class="rec-per-panel" role="tabpanel"'
         + ' data-rec-per-scope="' + esc(perScope) + '" data-rec-per="' + cfg.pt + '"'
         + ' data-rec-scope="' + esc(perScope + '-' + cfg.pt) + '" style="display:none">'
-        + appBuild[ent.key](cfg)
+        + appBuild[recRunKey(ent.key)](cfg, ent)
         // Two records per period panel now — the total, then the longest run.
         + appConsecSection(ent, cfg)
         + '</div>';
@@ -7155,22 +7171,22 @@ function buildRecords() {
       return dh;
     },
 
-    albums: function (cfg) {
-      const debs = Object.entries(albumDebuts[cfg.pt]).sort(debSort);
+    albums: function (cfg, ent) {
+      const debs = Object.entries(debsByKey[ent.key][cfg.pt]).sort(debSort);
       const sliced = isFinite(lim) ? debs.slice(0, lim) : debs;
-      let dh = '<div class="rec-section"><div class="rec-section-title">' + recEntIco('albums') + ' ' + t('rec_th_albums') + ' &mdash; ' + t('rec_biggest_debuts_on', { period: cfg.nav }) + '</div>';
+      let dh = '<div class="rec-section"><div class="rec-section-title">' + ent.icon + ' ' + esc(ent.label) + ' &mdash; ' + t('rec_biggest_debuts_on', { period: cfg.nav }) + '</div>';
       if (!sliced.length) {
         dh += '<div class="rec-empty">' + t('rec_no_data') + '</div>';
       } else {
         dh += '<div class="app-table-wrap"><table class="rec-table debut-rich-table"><thead><tr>';
-        dh += '<th>#</th><th class="debut-mini-art-th"></th><th>' + t('rec_th_albums') + '</th><th class="debut-mini-art-th"></th><th>' + t('rec_th_artist') + '</th>';
+        dh += '<th>#</th><th class="debut-mini-art-th"></th><th>' + esc(ent.label) + '</th><th class="debut-mini-art-th"></th><th>' + t('rec_th_artist') + '</th>';
         dh += '<th>' + t('rec_th_plays') + '</th><th>' + t('rec_th_debut_rank') + '</th><th>' + cfg.unitLabel + '</th>';
         dh += '</tr></thead><tbody>';
         sliced.forEach(function (e, i) {
           const d = e[1];
           const rankCls = i === 0 ? 'rec-rank-1' : i === 1 ? 'rec-rank-2' : i === 2 ? 'rec-rank-3' : '';
-          const albImgId = 'deb-alb-img-' + cfg.pt + '-' + i;
-          const artImgId = 'deb-alb-art-' + cfg.pt + '-' + i;
+          const albImgId = 'deb-alb-img-' + ent.key + '-' + cfg.pt + '-' + i;
+          const artImgId = 'deb-alb-art-' + ent.key + '-' + cfg.pt + '-' + i;
           const albPrefKey = 'album:' + d.artist.toLowerCase() + '|||' + d.album.toLowerCase();
           const artPrefKey = 'artist:' + d.artist.toLowerCase();
           dh += '<tr class="' + rankCls + '" data-rec-artist="' + esc(d.artist) + '" data-rec-type="album"'
@@ -7196,8 +7212,89 @@ function buildRecords() {
   const DEB_REC_TYPES = [
     { key: 'songs', icon: recEntIco('songs'), label: t('rec_th_songs') },
     { key: 'artists', icon: recEntIco('artists'), label: t('rec_th_artists') },
-    { key: 'albums', icon: recEntIco('albums'), label: t('rec_th_albums') }
+    ...recAlbumEnts()
   ];
+  const debsByKey = {};
+  for (const ae of recAlbumEnts()) debsByKey[ae.key] = recSplitAlbums(albumDebuts, ae.bucket);
+  /* ── Released as a single first ──────────────────────────────────
+     The one record that only exists because release types do: a song that
+     arrived as a single and turned up on an album later. Nothing else in the
+     app can see that — the album charts show the two releases as unrelated
+     entries, and the song chart shows one song with no idea it moved house.
+
+     Read straight off the plays rather than off any chart: a song qualifies on
+     when it was first *heard* under each release, not on whether either
+     release ever charted. A B-side that never troubled a chart still went
+     single-first.
+
+     Only built when singles are separated — with singles sitting among the
+     albums there is no distinction to draw. */
+  function buildSingleFirstRows() {
+    if (!isTypeSeparated('single')) return [];
+    // songKey -> { single: {album, artist, ms}, album: {album, artist, ms} }
+    // Each side keeps the EARLIEST play seen under that bucket.
+    const bySong = {};
+    for (const p of allPlays) {
+      if (!p.album || p.album === '—') continue;
+      const bucket = albumBucketOf(p.album, albumArtist(p));
+      if (bucket !== 'single' && bucket !== 'album') continue;
+      const sk = songKey(p);
+      const ms = msOf(p);
+      let e = bySong[sk];
+      if (!e) e = bySong[sk] = { title: p.title, artist: p.artist };
+      const side = e[bucket];
+      if (!side || ms < side.ms) {
+        e[bucket] = { album: p.album, artist: albumArtist(p), ms };
+      }
+    }
+    const rows = [];
+    for (const sk in bySong) {
+      const e = bySong[sk];
+      // Both sides, and the single genuinely first. Same-day arrivals are not
+      // a pipeline — that is one import, or an album and its lead single
+      // landing together, and calling it a release history would be a story
+      // the data does not tell.
+      if (!e.single || !e.album) continue;
+      const gapDays = Math.floor((e.album.ms - e.single.ms) / 86400000);
+      if (gapDays < 1) continue;
+      rows.push({ key: sk, title: e.title, artist: e.artist,
+                  single: e.single, album: e.album, gapDays });
+    }
+    // Longest wait first: the further apart, the better the story.
+    rows.sort(function (a, b) { return b.gapDays - a.gapDays; });
+    return rows;
+  }
+
+  function singleFirstSection() {
+    const rows = buildSingleFirstRows();
+    let h = '<div class="rec-section"><div class="rec-section-title">'
+      + recEntIco('singles') + ' ' + t('rec_single_first_title') + '</div>';
+    h += '<div class="rec-section-sub">' + t('rec_single_first_sub') + '</div>';
+    if (!rows.length) {
+      h += '<div class="rec-empty">' + t('rec_no_data') + '</div></div>';
+      return h;
+    }
+    const sliced = isFinite(lim) ? rows.slice(0, lim) : rows;
+    h += '<div class="app-table-wrap"><table class="rec-table"><thead><tr>'
+      + '<th>#</th><th>' + t('rec_th_songs') + '</th>'
+      + '<th>' + t('rtype_single_plural') + '</th>'
+      + '<th>' + t('rec_th_albums') + '</th>'
+      + '<th>' + t('rec_single_first_gap') + '</th></tr></thead><tbody>';
+    sliced.forEach(function (r, i) {
+      const rankCls = i === 0 ? 'rec-rank-1' : i === 1 ? 'rec-rank-2' : i === 2 ? 'rec-rank-3' : '';
+      h += '<tr class="' + rankCls + '" data-rec-artist="' + esc(r.artist) + '" data-rec-type="song"'
+        + ' data-rec-name="' + esc(r.title) + '">'
+        + '<td class="rec-rank">' + (i + 1) + '</td>'
+        + '<td><div class="rec-name">' + esc(r.title) + '</div><div class="rec-sub">' + esc(r.artist) + '</div></td>'
+        + '<td><div class="rec-name">' + esc(r.single.album) + '</div><div class="rec-sub">' + esc(fmt(new Date(r.single.ms))) + '</div></td>'
+        + '<td><div class="rec-name">' + esc(r.album.album) + '</div><div class="rec-sub">' + esc(fmt(new Date(r.album.ms))) + '</div></td>'
+        + '<td class="rec-count">' + tCount('days', r.gapDays) + '</td>'
+        + '</tr>';
+    });
+    h += '</tbody></table></div></div>';
+    return h;
+  }
+
   const debPanels = DEB_REC_TYPES.map(function (ent) {
     // 'deb-songs' is a different stored period choice from 'deb-albums', so
     // each entity remembers the chart you last looked at it on.
@@ -7217,9 +7314,14 @@ function buildRecords() {
       html += '<div class="rec-per-panel" role="tabpanel"'
         + ' data-rec-per-scope="' + esc(perScope) + '" data-rec-per="' + cfg.pt + '"'
         + ' data-rec-scope="' + esc(perScope + '-' + cfg.pt) + '" style="display:none">'
-        + debBuild[ent.key](cfg)
+        + debBuild[recRunKey(ent.key)](cfg, ent)
         + '</div>';
     }
+    /* Outside the period panels, because it is not a per-period record: a song
+       went single-first or it did not, whatever chart you are looking at. It
+       lives under the Singles pill because that is the only place it means
+       anything. */
+    if (ent.bucket === 'single') html += singleFirstSection();
     return { key: ent.key, icon: ent.icon, label: ent.label, html: html };
   });
 
@@ -7271,9 +7373,11 @@ function buildRecords() {
         { rowAttrs: function (i) { return recRowAttrs(top[i][0], 'artist', top[i][0]); } }
       );
     },
-    albums: function (cfg) {
-      const top = Object.entries(cfg.lPP).sort(function (a, b) { return b[1].count - a[1].count; });
-      return recTable(['#', t('rec_th_albums') + ' &middot; ' + t('rec_th_artist'), t('rec_th_plays'), cfg.unitLabel],
+    albums: function (cfg, ent) {
+      // cfg.lPP is the whole album tally for this period; ppByKey narrows it to
+      // the entity's bucket, and is the untouched original when nothing is apart.
+      const top = Object.entries(ppByKey[ent.key][cfg.pt]).sort(function (a, b) { return b[1].count - a[1].count; });
+      return recTable(['#', esc(ent.label) + ' &middot; ' + t('rec_th_artist'), t('rec_th_plays'), cfg.unitLabel],
         top.map(function (e, i) { const d = e[1]; const n = albumNames[e[0]] || {}; return '<td class="rec-rank">' + (i + 1) + '</td><td><div class="rec-name">' + esc(d.album || n.album || e[0].split('|||')[0]) + '</div><div class="rec-sub">' + esc(d.artist || n.artist || '') + '</div></td><td class="rec-count">' + d.count + '</td><td class="rec-meta">' + fmtPeriodKey(d.period, cfg.pt) + '</td>'; }),
         lim, null, null,
         { rowAttrs: function (i) { const d = top[i][1], n = albumNames[top[i][0]] || {};
@@ -7284,8 +7388,10 @@ function buildRecords() {
   const PP_REC_TYPES = [
     { key: 'songs', icon: recEntIco('songs'), label: t('rec_th_songs') },
     { key: 'artists', icon: recEntIco('artists'), label: t('rec_th_artists') },
-    { key: 'albums', icon: recEntIco('albums'), label: t('rec_th_albums') }
+    ...recAlbumEnts()
   ];
+  const ppByKey = {};
+  for (const ae of recAlbumEnts()) ppByKey[ae.key] = recSplitAlbums(albumPP, ae.bucket);
   const ppPanels = PP_REC_TYPES.map(function (ent) {
     // One period pill row per entity panel, so each entity remembers its own
     // period — 'pp-songs' is a different stored choice from 'pp-albums'.
@@ -7308,7 +7414,7 @@ function buildRecords() {
         + ' data-rec-scope="' + esc(perScope + '-' + cfg.pt) + '" style="display:none">'
         + '<div class="rec-section"><div class="rec-section-title">'
         + t('rec_most_plays_single', { unit: cfg.unitLabel }) + '</div>'
-        + ppBuild[ent.key](cfg) + '</div>'
+        + ppBuild[recRunKey(ent.key)](cfg, ent) + '</div>'
         + '</div>';
     }
     return { key: ent.key, icon: ent.icon, label: ent.label, html: html };
@@ -7470,10 +7576,14 @@ function buildRecords() {
       key: 'artists', icon: recEntIco('artists'), label: t('rec_th_artists'), title: recEntIco('artists') + ' ' + t('rec_artists_milestones'),
       sub: t('mil_ladder_landmark'), empty: 'mil_no_data'
     },
-    {
-      key: 'albums', icon: recEntIco('albums'), label: t('rec_th_albums'), title: recEntIco('albums') + ' ' + t('rec_albums_milestones'),
-      sub: t('mil_ladder_landmark'), empty: 'mil_no_data_albums'
-    }
+    ...recAlbumEnts().map(function (ae) {
+      return {
+        key: ae.key, icon: ae.icon, label: ae.label,
+        title: ae.icon + ' ' + (ae.bucket === 'album' ? t('rec_albums_milestones')
+                                : t('rec_type_milestones', { type: ae.label })),
+        sub: t('mil_ladder_landmark'), empty: 'mil_no_data_albums'
+      };
+    })
   ];
   /* Name lookups. The overview block further down declares its own songNm /
      albumNm consts, but those are `const` in this same function scope and are
@@ -7496,13 +7606,21 @@ function buildRecords() {
         imgType: 'artist', idPrefix: 'artists', emptyKey: 'mil_no_data'
       });
     },
-    albums: function () {
-      return milTimeline({
-        ms: albumMS, first: albumFirst, nameFn: milAlbumNm, subFn: milAlbumArt,
-        imgType: 'album', idPrefix: 'albums', emptyKey: 'mil_no_data_albums'
-      });
-    }
   };
+  /* One timeline per album-side entity, each over its own bucket's milestones.
+     idPrefix carries the entity key so the Albums and Singles timelines cannot
+     collide on the element ids milTimeline() generates. */
+  for (const ae of recAlbumEnts()) {
+    MIL_BY_TYPE[ae.key] = (function (bucket, key) {
+      return function () {
+        return milTimeline({
+          ms: recSplitFlat(albumMS, bucket), first: albumFirst,
+          nameFn: milAlbumNm, subFn: milAlbumArt,
+          imgType: 'album', idPrefix: key, emptyKey: 'mil_no_data_albums'
+        });
+      };
+    })(ae.bucket, ae.key);
+  }
 
   let mh = '<div class="mil-tabs" id="milRecTypeTabs" role="tablist" aria-label="' + esc(t('mil_tabs_label')) + '">';
   for (const ty of MIL_REC_TYPES) {
@@ -7567,14 +7685,17 @@ function buildRecords() {
       nm: function (k) { return k; },
       art: function (k) { return k; }
     },
-    {
-      key: 'albums', icon: recEntIco('albums'), label: t('rec_th_albums'), ms: albumMS, first: albumFirst,
-      unit: 'albums', type: 'album',
-      title: function (m) { return t('rec_fastest_to', { type: recEntIco('albums') + ' ' + t('rec_th_albums'), n: m.toLocaleString(), s: 's' }); },
-      head: t('rec_th_albums') + ' &middot; ' + t('rec_th_artist'),
-      nm: function (k) { return (albumNames[k] || {}).album || String(k).split('|||')[0]; },
-      art: function (k) { return (albumNames[k] || {}).artist || ''; }
-    }
+    ...recAlbumEnts().map(function (ae) {
+      return {
+        key: ae.key, icon: ae.icon, label: ae.label,
+        ms: recSplitFlat(albumMS, ae.bucket), first: albumFirst,
+        unit: 'albums', type: 'album',
+        title: function (m) { return t('rec_fastest_to', { type: ae.icon + ' ' + ae.label, n: m.toLocaleString(), s: 's' }); },
+        head: ae.label + ' &middot; ' + t('rec_th_artist'),
+        nm: function (k) { return (albumNames[k] || {}).album || String(k).split('|||')[0]; },
+        art: function (k) { return (albumNames[k] || {}).artist || ''; }
+      };
+    })
   ];
 
   /* One tier of one entity: everyone who ever reached `m` plays, ranked by how
@@ -7631,7 +7752,10 @@ function buildRecords() {
     // The first rung that actually has anybody on it stays open; the rest wait
     // to be asked for. Empty tiers return '' and so never claim that slot.
     let body = '';
-    for (const m of FAST_TIERS[ty.key]) body += fastTierSection(ty, m, body !== '');
+    // recRunKey: singles and EPs climb the same play-count ladder albums do —
+    // the tiers describe plays, not formats, and FAST_TIERS has no key of their
+    // own. Without this the loop throws and takes the rest of Records with it.
+    for (const m of FAST_TIERS[recRunKey(ty.key)]) body += fastTierSection(ty, m, body !== '');
     fh += '<div class="fast-panel" role="tabpanel" data-fast-type="' + ty.key + '"'
       + ' data-rec-scope="fast-' + ty.key + '" style="display:none">'
       + (body || '<div class="rec-empty">' + t('rec_no_data') + '</div>')
@@ -7654,7 +7778,15 @@ function buildRecords() {
      built (see buildCertLedger). */
   _certLedgers = certW.map(function (e) { return { artist: e.art, songs: e.songs, albums: e.albums }; });
   let ch = '<div class="rec-section"><div class="rec-section-title">' + t('rec_artists_with_certs') + '</div>';
-  ch += '<div class="rec-section-sub">' + t('rec_certs_thresholds', { sg: CERT.song.gold, sp: CERT.song.plat, sd: CERT.song.diamond, ag: CERT.album.gold, ap: CERT.album.plat, ad: CERT.album.diamond }) + '</div>';
+  ch += '<div class="rec-section-sub">' + t('rec_certs_thresholds', { sg: CERT.song.gold, sp: CERT.song.plat, sd: CERT.song.diamond, ag: CERT.album.gold, ap: CERT.album.plat, ad: CERT.album.diamond })
+    /* A separated type is judged on its own ladder, so the line that states the
+       thresholds has to state those too — otherwise the album column here is
+       counting awards the stated numbers never granted. */
+    + separatedTypes().map(function (ty) {
+        const c = CERT[ty];
+        return ' · ' + t('rec_certs_thresholds_type', { type: t('rtype_' + ty + '_plural'), g: c.gold, p: c.plat, d: c.diamond });
+      }).join('')
+    + '</div>';
   if (!certW.length) {
     ch += '<div class="rec-empty">' + t('rec_no_certifications') + '</div>';
   } else {
@@ -7983,7 +8115,12 @@ function buildRecords() {
   const STREAK_ENTS = [
     { key: 'songs', kind: 'song', icon: recEntIco('songs'), label: t('rec_th_songs') },
     { key: 'artists', kind: 'artist', icon: recEntIco('artists'), label: t('rec_th_artists') },
-    { key: 'albums', kind: 'album', icon: recEntIco('albums'), label: t('rec_th_albums') },
+    /* Album-side entities all keep kind 'album' — they are streaked out of the
+       same tally and named by the same strName entry. Only `bucket` differs,
+       and it is what narrows the rows below. */
+    ...recAlbumEnts().map(function (ae) {
+      return { key: ae.key, kind: 'album', bucket: ae.bucket, icon: ae.icon, label: ae.label };
+    }),
   ];
   /* `runs` is the odd one out — it ranks plays, not calendar units — so it
      carries a date column and its own per-entity blurb, and its rows are
@@ -8023,7 +8160,9 @@ function buildRecords() {
       // Years carry an extra column: the leanest year of the run, which is also
       // what breaks their ties. See STREAK_CMP for why they need one.
       const hasDepth = cfg.pd === 'years';
-      const src = isRuns ? bestRuns[ent.kind] : streaks[ent.kind][cfg.pd];
+      // recSplitFlat is a pass-through for songs and artists, which carry no
+      // bucket, and for anyone who has separated nothing.
+      const src = recSplitFlat(isRuns ? bestRuns[ent.kind] : streaks[ent.kind][cfg.pd], ent.bucket);
       // Longest first, then each ladder's own tiebreak (STREAK_CMP); runs rank
       // on their own figure entirely and break ties on the most recent.
       const entries = Object.entries(src).sort(isRuns
@@ -10082,7 +10221,21 @@ const REC_ENT_ICON_PARTS = {
   albums: '<path d="M2.1 12.2V3.1a1 1 0 0 1 1-1h9.1"/>'
     + '<circle cx="9.2" cy="9.2" r="4.4"/>'
     + '<path class="rei-groove" d="M9.2 6.5a2.7 2.7 0 0 1 2.34 1.35"/>'
-    + '<circle cx="9.2" cy="9.2" r="0.6" fill="currentColor" stroke="none"/>'
+    + '<circle cx="9.2" cy="9.2" r="0.6" fill="currentColor" stroke="none"/>',
+  /* A single, sleeveless: the disc alone with one groove and a bigger spindle.
+     Deliberately the albums glyph minus the sleeve corner — a single is the
+     record without the packaging, and reading it as "an album with something
+     taken away" is exactly right. */
+  singles: '<circle cx="8" cy="8" r="5.6"/>'
+    + '<path class="rei-groove" d="M8 4.6a3.4 3.4 0 0 1 2.95 1.7"/>'
+    + '<circle cx="8" cy="8" r="1.15" fill="currentColor" stroke="none"/>',
+  /* An EP sits between the two: the sleeve corner is there, but the disc is
+     smaller and paired, because an EP is the short record that still comes in
+     a sleeve. */
+  eps: '<path d="M2.1 12.2V3.1a1 1 0 0 1 1-1h9.1"/>'
+    + '<circle cx="9.5" cy="9.5" r="3.9"/>'
+    + '<path class="rei-groove" d="M9.5 7.1a2.4 2.4 0 0 1 2.1 1.2"/>'
+    + '<circle cx="9.5" cy="9.5" r="0.55" fill="currentColor" stroke="none"/>'
 };
 
 // One glyph, wherever an entity is named: the pill row, and the section title
@@ -10090,6 +10243,60 @@ const REC_ENT_ICON_PARTS = {
 function recEntIco(key) {
   return '<svg class="rec-ent-ico rec-ent-ico--' + key + '" viewBox="0 0 16 16"'
     + ' aria-hidden="true" focusable="false">' + REC_ENT_ICON_PARTS[key] + '</svg>';
+}
+
+/* ── Album-side entities in Records ───────────────────────────────────
+   Every Records section that lists albums offers the same set: Albums, plus
+   one entity per separated release type. Nothing is separated for most users,
+   so recAlbumEnts() is a one-element array and every section below behaves
+   exactly as it did before this existed.
+
+   `bucket` is what albumBucketOfKey() returns for the rows that belong here,
+   and `key` doubles as the pill's stored id and its icon name — which is why
+   the icons above are named 'singles'/'eps' rather than 'single'/'ep'. */
+function recAlbumEnts() {
+  const ents = [{ key: 'albums', bucket: 'album', label: t('rec_th_albums'), icon: recEntIco('albums') }];
+  for (const ty of separatedTypes()) {
+    const key = ty === 'ep' ? 'eps' : 'singles';
+    ents.push({ key, bucket: ty, label: t('rtype_' + ty + '_plural'), icon: recEntIco(key) });
+  }
+  return ents;
+}
+
+/* Narrows one of the Records album containers — album1s, albumApps,
+   albumDebuts and the rest, all of them { week, month, year } maps keyed by
+   album key — to a single bucket. Returns the container untouched when nothing
+   is separated, so the common path allocates nothing. */
+function recSplitAlbums(container, bucket) {
+  if (!separatedTypes().length) return container;
+  const out = { week: {}, month: {}, year: {} };
+  for (const pt of ['week', 'month', 'year']) {
+    const src = container[pt] || {};
+    for (const k in src) if (albumBucketOfKey(k) === bucket) out[pt][k] = src[k];
+  }
+  return out;
+}
+
+/* Which chart-run result an album-side entity reads. The run keeps ONE
+   result.albums holding every bucket (see _buildChartRunFull) — a release is
+   in exactly one bucket so the keys never collide — so 'singles' and 'eps'
+   both look themselves up there. Song and artist entities pass through. */
+const REC_ALBUM_ENT_BUCKET = { albums: 'album', singles: 'single', eps: 'ep' };
+
+function recRunKey(entKey) {
+  return REC_ALBUM_ENT_BUCKET[entKey] ? 'albums' : entKey;
+}
+
+function recIsAlbumEnt(entKey) {
+  return !!REC_ALBUM_ENT_BUCKET[entKey];
+}
+
+// The flat (non-period) twin, for the containers keyed by album key alone.
+function recSplitFlat(map, bucket) {
+  if (!bucket || !separatedTypes().length) return map;
+  const out = {};
+  for (const k in map) if (albumBucketOfKey(k) === bucket) out[k] = map[k];
+  return out;
 }
 
 /* ── Entity pills for every other record section ──────────────────────
@@ -20599,6 +20806,38 @@ function openArtistModal(artistName) {
     const items = certAlbums.filter(a => a.count >= CERT.album.gold && a.count < CERT.album.plat);
     acc.push(accRow('🪙', t('acc_cert', { n: goldAlbums, cert: t('cert_gold'), unit: tUnit('albums', goldAlbums), plays: CERT.album.gold, plays_unit: tUnit('plays', CERT.album.gold) }),
       items.map(a => ({ name: a.album, plays: a.count, date: firstAlbumPlay(a.album) }))));
+  }
+
+  /* Rows of their own for each separated type. These are the ones the albums
+     block above leaves out on purpose: a row names one threshold ("3 albums at
+     120 plays"), which stops being true the moment the group mixes ladders. A
+     single judged at 60 plays therefore gets its own row saying 60, rather
+     than being counted among records that needed twice that. */
+  for (const ty of separatedTypes()) {
+    const cfg = CERT[ty];
+    const unitKey = ty === 'ep' ? 'eps' : 'singles';
+    const pool = allAlbumsSorted.filter(a =>
+      !isCompilationAlbum(a.album) && albumBucketOf(a.album, a.primaryArtist || artistName) === ty);
+    if (!pool.length) continue;
+    const maxMult = pool.reduce((m, a) => Math.max(m, Math.floor(a.count / cfg.diamond)), 0);
+    for (let mult = maxMult; mult >= 1; mult--) {
+      const items = pool.filter(a => Math.floor(a.count / cfg.diamond) === mult);
+      if (!items.length) continue;
+      const { icon } = diamondMultiLabel(mult);
+      const plays = mult * cfg.diamond;
+      acc.push(accRow(icon, t('acc_cert', { n: items.length, cert: tDiamondLabel(mult), unit: tUnit(unitKey, items.length), plays, plays_unit: tUnit('plays', plays) }),
+        items.map(a => ({ name: a.album, plays: a.count, date: firstAlbumPlay(a.album) }))));
+    }
+    const platN = pool.filter(a => a.count >= cfg.plat && a.count < cfg.diamond);
+    if (platN.length) {
+      acc.push(accRow('💿', t('acc_cert', { n: platN.length, cert: t('cert_plat'), unit: tUnit(unitKey, platN.length), plays: cfg.plat, plays_unit: tUnit('plays', cfg.plat) }),
+        platN.map(a => ({ name: a.album, plays: a.count, date: firstAlbumPlay(a.album) }))));
+    }
+    const goldN = pool.filter(a => a.count >= cfg.gold && a.count < cfg.plat);
+    if (goldN.length) {
+      acc.push(accRow('🪙', t('acc_cert', { n: goldN.length, cert: t('cert_gold'), unit: tUnit(unitKey, goldN.length), plays: cfg.gold, plays_unit: tUnit('plays', cfg.gold) }),
+        goldN.map(a => ({ name: a.album, plays: a.count, date: firstAlbumPlay(a.album) }))));
+    }
   }
 
   if (!acc.length) acc.push(`<div style="font-family:var(--font-sans);font-style:italic;font-size:0.85rem;color:var(--text3);padding:0.5rem 0;">${t('acc_none', { n: chartSize })}</div>`);

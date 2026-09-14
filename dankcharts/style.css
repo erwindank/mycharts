@@ -13137,6 +13137,28 @@
       animation: reiSpin 3.4s linear 320ms infinite;
     }
 
+    /* The singles and EP discs spin the same way the album one does — they are
+       the same glyph family and sitting still beside a spinning neighbour
+       reads as a bug. Each origin is its own spindle, not the album's: the
+       discs are drawn at different centres, and reusing 9.2/9.2 would swing
+       the groove around a point outside it. */
+    :is(.nc-rec-tab, .mil-tab, .fast-tab, .rec-ent-tab).active .rec-ent-ico--singles,
+    :is(.nc-rec-tab, .mil-tab, .fast-tab, .rec-ent-tab).active .rec-ent-ico--eps {
+      animation: reiPop 320ms var(--ease) backwards;
+    }
+
+    :is(.nc-rec-tab, .mil-tab, .fast-tab, .rec-ent-tab).active .rec-ent-ico--singles .rei-groove {
+      transform-box: view-box;
+      transform-origin: 8px 8px;
+      animation: reiSpin 3.4s linear 320ms infinite;
+    }
+
+    :is(.nc-rec-tab, .mil-tab, .fast-tab, .rec-ent-tab).active .rec-ent-ico--eps .rei-groove {
+      transform-box: view-box;
+      transform-origin: 9.5px 9.5px;
+      animation: reiSpin 3.4s linear 320ms infinite;
+    }
+
     @keyframes reiPop {
       from { transform: scale(0.6); }
       60%  { transform: scale(1.14); }
