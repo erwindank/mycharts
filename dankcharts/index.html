@@ -27,7 +27,7 @@
   <!-- html2canvas, SheetJS (xlsx) and JSZip are intentionally NOT loaded here — they
        total ~1.2 MB and are only needed for image exports and Excel/ZIP imports.
        app.js pulls them from the CDN on first use (see ensureLazyLib). -->
-  <link rel="stylesheet" href="style.css?v=237">
+  <link rel="stylesheet" href="style.css?v=238">
   <!-- All scripts are deferred so the page paints without waiting on them.
        defer preserves execution order, which matters: translations → Chart.js →
        hammer → zoom plugin → firebase SDKs → firebase.js → app.js (in body). -->
@@ -4142,12 +4142,18 @@ function deleteGenreTriggers() {
         </div>
         <!-- Detection is off until switched on, and even then it only ever
              proposes: the review panel writes nothing until Apply. -->
-        <div class="set-row rt-sep-row">
-          <span class="rt-sep-label" data-i18n="rtd_setting">Detect release types automatically</span>
-          <span class="src-switch">
-            <input type="checkbox" id="rtAutodetectOn" onchange="toggleRtAutodetect(this.checked)">
-            <span class="src-switch-slider"></span>
-          </span>
+        <div class="set-row">
+          <!-- .src-switch-row must be a <label>: the checkbox inside .src-switch
+               is opacity:0 and zero-sized, so the slider is only clickable
+               through label association. A <div> here makes the switch
+               decorative. Same shape as the Behavior switches below. -->
+          <label class="src-switch-row">
+            <span class="src-switch-label" data-i18n="rtd_setting">Detect release types automatically</span>
+            <span class="src-switch">
+              <input type="checkbox" id="rtAutodetectOn" onchange="toggleRtAutodetect(this.checked)">
+              <span class="src-switch-slider"></span>
+            </span>
+          </label>
         </div>
         <div id="rtAutodetectOpts" style="display:none">
           <label class="rtd-opt">

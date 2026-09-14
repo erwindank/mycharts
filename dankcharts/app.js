@@ -1082,6 +1082,17 @@ function setAlbumsChartFilter(bucket, silent) {
    real translated words rather than an "s" appended to one, because the
    plurals differ per language and "EP"/"EPs" is not the pattern "Album"/
    "Albums" follows either. */
+/* What to say when the albums table has nothing in it. Without the filter an
+   empty table really did mean "this library has no album data", which is what
+   the stock message says. With a bucket on show it usually means something far
+   less alarming — you simply played no singles this week — and telling that
+   user to check their CSV for an Album column is both wrong and worrying. */
+function albumsEmptyMessage(fallbackKey) {
+  const want = albumsFilterBucket();
+  if (!want || want === 'album') return t(fallbackKey);
+  return t('afilter_empty', { type: albumBucketNoun(true).toLowerCase() });
+}
+
 function albumBucketNoun(plural) {
   const want = albumsFilterBucket();
   if (want === null) return plural ? t('afilter_all_noun') : t('afilter_all_noun_one');
@@ -13016,7 +13027,7 @@ function renderPage(type, peaks) {
   } else if (type === 'albums') {
     const imgItems = [];
     if (slice.length === 0) {
-      document.getElementById('albumsBody').innerHTML = `<tr><td colspan="${colSpan}"><div class="empty-state"><p>${t('empty_no_album_data')}</p></div></td></tr>`;
+      document.getElementById('albumsBody').innerHTML = `<tr><td colspan="${colSpan}"><div class="empty-state"><p>${albumsEmptyMessage('empty_no_album_data')}</p></div></td></tr>`;
     } else {
       document.getElementById('albumsBody').innerHTML = slice.flatMap((a, i) => {
         const rank = rankOf(a);
@@ -15805,7 +15816,7 @@ function renderAlbums(plays, peaks, monthlyStats) {
   const _prevMapAlbums = buildPrevRankMap(_animPrevPlays, 'albums');
   const _animAlbums = _animPrevPlays !== null;
   if (sorted.length === 0) {
-    document.getElementById('albumsBody').innerHTML = `<tr><td colspan="${colCount}"><div class="empty-state"><p>${t('empty_no_album_data_csv')}</p></div></td></tr>`;
+    document.getElementById('albumsBody').innerHTML = `<tr><td colspan="${colCount}"><div class="empty-state"><p>${albumsEmptyMessage('empty_no_album_data_csv')}</p></div></td></tr>`;
   } else {
     const currPairsL = sorted.map(({ album, artist, count, tracks }, i) => {
       const ak = album + '|||' + artist;
