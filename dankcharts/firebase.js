@@ -18,7 +18,7 @@ const SYNC_KEYS = [
   'dc_lfm_api_secret', 'dc_lfm_session_key', 'dc_lfm_session_user',
   'dc_display_name', 'dc_timezone', 'dc_cert_config',
   'dc_events_artist_limit', 'dc_theme', 'dc_lang',
-  'dc_autocorrect_rules', 'dc_compilation_albums', 'dc_no_artist_split', 'dc_tm_api_key',
+  'dc_autocorrect_rules', 'dc_compilation_albums', 'dc_release_types', 'dc_no_artist_split', 'dc_tm_api_key',
   'dc_tm_toggles',
   'dc_events_type_filter', 'dc_cal_view', 'dc_events_view_modes',
   'dc_sectionDisplayToggles', 'dc_subChartToggles',
@@ -51,6 +51,13 @@ async function _loadAndApplyConfig(uid) {
         if ((key === 'dc_autocorrect_rules' || key === 'dc_compilation_albums') && data[key] === '[]') {
           const local = localStorage.getItem(key);
           if (local && local !== '[]') { applied = true; continue; }
+        }
+        // Same guard for the release-type map, whose empty form is an object.
+        // It is hand-built (and later machine-detected) over a whole library,
+        // so an empty remote value must never flatten a populated local one.
+        if (key === 'dc_release_types' && data[key] === '{}') {
+          const local = localStorage.getItem(key);
+          if (local && local !== '{}' && local !== '') { applied = true; continue; }
         }
         localStorage.setItem(key, String(data[key]));
         applied = true;
@@ -98,6 +105,18 @@ async function dcSaveCompilationsToFirestore(listJson) {
     await _configRef(_currentUser.uid).set({ dc_compilation_albums: listJson }, { merge: true });
   } catch (err) {
     console.warn('[dankcharts] Firebase compilations save error:', err);
+  }
+}
+
+// Targeted for the same reason as the two above: the release-type map is
+// written on a single click and must not be round-tripped through localStorage
+// by a racing dcSaveUserConfig().
+async function dcSaveReleaseTypesToFirestore(mapJson) {
+  if (!_currentUser) return;
+  try {
+    await _configRef(_currentUser.uid).set({ dc_release_types: mapJson }, { merge: true });
+  } catch (err) {
+    console.warn('[dankcharts] Firebase release types save error:', err);
   }
 }
 
@@ -259,6 +278,7 @@ window.dcSignOut                   = dcSignOut;
 window.dcSaveUserConfig            = dcSaveUserConfig;
 window.dcSaveRulesToFirestore      = dcSaveRulesToFirestore;
 window.dcSaveCompilationsToFirestore = dcSaveCompilationsToFirestore;
+window.dcSaveReleaseTypesToFirestore = dcSaveReleaseTypesToFirestore;
 window.dcSaveEventsCache           = dcSaveEventsCache;
 window.dcLoadEventsCache           = dcLoadEventsCache;
 window.dcSaveAwards                = dcSaveAwards;
@@ -283,6 +303,7 @@ _auth.onAuthStateChanged(async (user) => {
   const applied = await _loadAndApplyConfig(user.uid);
   if (applied && typeof dcResetRulesCache === 'function') dcResetRulesCache();
   if (applied && typeof dcResetCompilationsCache === 'function') dcResetCompilationsCache();
+  if (applied && typeof dcResetReleaseTypesCache === 'function') dcResetReleaseTypesCache();
   if (applied && typeof dcApplyDisplayToggles === 'function') dcApplyDisplayToggles();
   if (applied && typeof dcApplyAllSettings    === 'function') dcApplyAllSettings();
 

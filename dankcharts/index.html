@@ -27,7 +27,7 @@
   <!-- html2canvas, SheetJS (xlsx) and JSZip are intentionally NOT loaded here — they
        total ~1.2 MB and are only needed for image exports and Excel/ZIP imports.
        app.js pulls them from the CDN on first use (see ensureLazyLib). -->
-  <link rel="stylesheet" href="style.css?v=234">
+  <link rel="stylesheet" href="style.css?v=235">
   <!-- All scripts are deferred so the page paints without waiting on them.
        defer preserves execution order, which matters: translations → Chart.js →
        hammer → zoom plugin → firebase SDKs → firebase.js → app.js (in body). -->
@@ -3178,7 +3178,7 @@
   </div>
 
   <!-- ── Compilation Albums Modal ── -->
-  <div id="compilationsModal" class="modal-overlay" role="dialog" aria-modal="true">
+  <div id="compilationsModal" class="modal-overlay modal-overlay--stacked" role="dialog" aria-modal="true">
     <div class="src-modal-box">
       <h3 class="src-modal-title" data-i18n="comp_modal_title">Compilation Albums</h3>
       <p style="font-size:0.78rem;color:var(--text3);margin:0 0 0.7rem" data-i18n="comp_modal_desc">Each album listed here is counted as one record credited to Various Artists, however many singers appear on it. Nothing about the tracks changes: every song stays with the artist who sang it, in the artist charts and in its own certifications.</p>
@@ -3194,6 +3194,38 @@
         <!-- Every change here is already saved, so this dismisses rather than
              cancels — btn_cancel would be a lie about what the button does. -->
         <button class="src-btn-cancel" onclick="closeCompilationsModal()" data-i18n="comp_modal_close">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Release Types Manager ──
+       What kind of record each album entry is. Separate from the compilations
+       list above it: a compilation counts as an album here, and marking a type
+       changes nothing about the charts until the user separates that type in
+       Settings. -->
+  <div id="releaseTypesModal" class="modal-overlay modal-overlay--stacked" role="dialog" aria-modal="true">
+    <div class="src-modal-box">
+      <h3 class="src-modal-title" data-i18n="rtype_modal_title">Release Types</h3>
+      <p style="font-size:0.78rem;color:var(--text3);margin:0 0 0.7rem" data-i18n="rtype_modal_desc">Mark what kind of record each release is — a single, an EP, a live album, a soundtrack. Marking changes nothing on its own: your charts, certifications and records stay exactly as they are until you choose to separate a type in Settings.</p>
+      <div style="display:flex;gap:0.4rem;margin-bottom:0.35rem;flex-wrap:wrap">
+        <input type="text" id="releaseTypesInput" list="releaseTypesDatalist" placeholder="Album · Artist…" data-i18n-placeholder="rtype_modal_placeholder"
+          onkeydown="if(event.key==='Enter'){event.preventDefault();addReleaseTypeFromInput();}"
+          style="flex:1;min-width:0;padding:0.35rem 0.6rem;font-size:0.8rem;border:1px solid var(--border);border-radius:4px;background:var(--bg2);color:var(--text2);outline:none">
+        <datalist id="releaseTypesDatalist"></datalist>
+        <select id="releaseTypesAddType"
+          style="flex-shrink:0;padding:0.35rem 0.5rem;font-size:0.8rem;border:1px solid var(--border);border-radius:4px;background:var(--bg2);color:var(--text2)">
+          <option value="single" data-i18n="rtype_single">Single</option>
+          <option value="ep" data-i18n="rtype_ep">EP</option>
+          <option value="live" data-i18n="rtype_live">Live album</option>
+          <option value="soundtrack" data-i18n="rtype_soundtrack">Soundtrack</option>
+        </select>
+        <button onclick="addReleaseTypeFromInput()" style="flex-shrink:0;font-size:0.75rem;padding:0.3rem 0.8rem;border:1px solid var(--border);border-radius:4px;background:var(--bg2);color:var(--text2);cursor:pointer" data-i18n="comp_modal_add">Add</button>
+      </div>
+      <div id="releaseTypesError" class="rt-error" style="display:none"></div>
+      <div id="releaseTypesList" style="max-height:300px;overflow-y:auto;"></div>
+      <div style="display:flex;justify-content:flex-end;margin-top:0.8rem">
+        <!-- Saved on every change, like the compilations list — this dismisses. -->
+        <button class="src-btn-cancel" onclick="closeReleaseTypesModal()" data-i18n="comp_modal_close">Close</button>
       </div>
     </div>
   </div>
@@ -4060,6 +4092,17 @@ function deleteGenreTriggers() {
         <div class="cert-config-footer">
           <p class="src-modal-hint" data-i18n="comp_settings_hint">Albums whose tracks are each credited to a different singer (a soundtrack, a sampler) counted as one record by Various Artists. Artist and song charts are unaffected.</p>
           <button type="button" class="cert-reset-btn" onclick="openCompilationsModal()" data-i18n="comp_settings_btn">Manage list</button>
+        </div>
+      </div>
+
+      <!-- Release types: what kind of record each album entry is. Stage 1 is
+           the mark alone — nothing about the charts, certifications or records
+           changes until a type is separated out, which is a later setting. -->
+      <div class="cert-config-group">
+        <div class="cert-config-title" data-i18n="rtype_settings_title">Release Types</div>
+        <div class="cert-config-footer">
+          <p class="src-modal-hint" data-i18n="rtype_settings_hint">Mark releases as singles, EPs, live albums or soundtracks. Marking only records what a release is — your charts and certifications are unchanged until you separate a type out.</p>
+          <button type="button" class="cert-reset-btn" onclick="openReleaseTypesModal()" data-i18n="rtype_settings_btn">Manage types</button>
         </div>
       </div>
 

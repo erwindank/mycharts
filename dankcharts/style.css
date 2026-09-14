@@ -29865,6 +29865,176 @@ body.red-light .modal-cb-label--tracks {
   cursor: pointer;
 }
 
+/* ── Sub-modals opened from inside Settings ──
+   The compilations and release-type managers are reached from a button inside
+   the Settings modal, which stays open behind them. Every .modal-overlay sits
+   at z-index 1000, and Settings is later in the document, so without this the
+   manager opens *underneath* the panel that launched it — visible as a
+   double-dimmed backdrop with nothing reachable. */
+.modal-overlay.modal-overlay--stacked {
+  z-index: 1010;
+}
+
+/* ── Release type chip, beside the compilation switch on the album page ──
+   Same dimmed-hairline treatment as .alb-comp-toggle so the two read as one
+   row of controls, and the same brightening on hover. is-set keeps it lit
+   whenever the release carries a type, which is the select's equivalent of
+   the checkbox's :checked state. */
+.alb-rtype-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-top: 0.45rem;
+  margin-left: 0.4rem;
+  padding: 0.2rem 0.4rem 0.2rem 0.55rem;
+  border: 1px solid currentColor;
+  border-radius: 999px;
+  opacity: 0.6;
+  font-family: var(--font-mono);
+  font-size: 0.66rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: currentColor;
+  cursor: pointer;
+  transition: opacity 0.18s ease, background 0.18s ease;
+}
+
+.alb-rtype-toggle:hover,
+.alb-rtype-toggle:focus-within,
+.alb-rtype-toggle.is-set {
+  opacity: 1;
+  background: rgba(255, 255, 255, 0.16);
+}
+
+/* The select borrows the chip's own colour rather than the form default, which
+   would punch a light rectangle into a dark masthead. */
+.alb-rtype-toggle select {
+  border: none;
+  background: transparent;
+  color: currentColor;
+  font: inherit;
+  letter-spacing: inherit;
+  text-transform: inherit;
+  cursor: pointer;
+  outline: none;
+  padding: 0;
+}
+
+/* The option list is drawn by the OS, which does not inherit the chip colour —
+   so it gets explicit tokens or it renders black-on-black in dark themes. */
+.alb-rtype-toggle select option {
+  background: var(--bg2);
+  color: var(--text2);
+  text-transform: none;
+  letter-spacing: normal;
+}
+
+/* ── Release types manager list ── */
+.rt-group-hdr {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin: 0.7rem 0 0.3rem;
+  font-family: var(--font-mono);
+  font-size: 0.66rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text3);
+}
+
+.rt-group-hdr:first-child { margin-top: 0; }
+
+.rt-group-n {
+  padding: 0.05rem 0.35rem;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  font-size: 0.62rem;
+  color: var(--text3);
+}
+
+.rt-row {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.35rem 0.1rem;
+  border-bottom: 1px solid var(--border);
+}
+
+/* The name column is the only part allowed to shrink, so a long album title
+   truncates instead of pushing the select and the remove button off the edge. */
+.rt-row-name {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  line-height: 1.25;
+}
+
+.rt-row-album {
+  font-size: 0.8rem;
+  color: var(--text2);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rt-row-artist {
+  font-size: 0.68rem;
+  color: var(--text3);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Marks the rows a later auto-detection pass proposed, so a hand correction is
+   visibly different from a guess. */
+.rt-row-auto {
+  flex-shrink: 0;
+  padding: 0.1rem 0.35rem;
+  border: 1px dashed var(--border);
+  border-radius: 999px;
+  font-family: var(--font-mono);
+  font-size: 0.58rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text3);
+}
+
+.rt-row-select {
+  flex-shrink: 0;
+  padding: 0.2rem 0.35rem;
+  font-size: 0.72rem;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--bg2);
+  color: var(--text2);
+  cursor: pointer;
+}
+
+.rt-row-remove {
+  flex-shrink: 0;
+  font-size: 0.72rem;
+  padding: 0.2rem 0.5rem;
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  background: var(--bg2);
+  color: var(--text2);
+  cursor: pointer;
+}
+
+.rt-empty {
+  padding: 1rem 0.2rem;
+  font-size: 0.78rem;
+  color: var(--text3);
+  text-align: center;
+}
+
+.rt-error {
+  margin: 0 0 0.5rem;
+  font-size: 0.72rem;
+  color: var(--accent);
+}
+
 /* ══════════════════════════════════════════════════════════
    CERTIFIED THIS PERIOD — the moving shelf
    The plaques are the wall's, unchanged. Everything here is the

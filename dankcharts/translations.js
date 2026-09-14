@@ -194,6 +194,26 @@ const TRANSLATIONS = {
     comp_remove: 'Remove',
     comp_modal_close: 'Close',
 
+    // Release types — what kind of record an album entry is. Marking is inert:
+    // it records the fact and nothing else until a type is separated out.
+    rtype_album: 'Album',
+    rtype_single: 'Single',
+    rtype_ep: 'EP',
+    rtype_live: 'Live album',
+    rtype_soundtrack: 'Soundtrack',
+    rtype_toggle_label: 'Release type',
+    rtype_toggle_hint: 'What kind of record this is. Marking it changes nothing about your charts, certifications or records until you separate that type out in Settings.',
+    rtype_settings_title: 'Release Types',
+    rtype_settings_hint: 'Mark releases as singles, EPs, live albums or soundtracks. Marking only records what a release is — your charts and certifications are unchanged until you separate a type out.',
+    rtype_settings_btn: 'Manage types',
+    rtype_modal_title: 'Release Types',
+    rtype_modal_desc: 'Mark what kind of record each release is — a single, an EP, a live album, a soundtrack. Marking changes nothing on its own: your charts, certifications and records stay exactly as they are until you choose to separate a type in Settings.',
+    rtype_modal_placeholder: 'Album · Artist…',
+    rtype_none: 'No releases marked yet. You can also mark one from any album page.',
+    rtype_no_match: 'No album in your library matches that. Pick one from the suggestions.',
+    rtype_auto: 'Detected',
+    rtype_auto_hint: 'Detected automatically. Changing it here makes it yours, and it will not be detected over again.',
+
     // "Certified this period" — the moving shelf of plaques on the weekly and
     // monthly charts.
     creel_title: '🏆 CERTIFIED THIS PERIOD',
@@ -1733,6 +1753,26 @@ const TRANSLATIONS = {
     comp_remove: 'Quitar',
     comp_modal_close: 'Cerrar',
 
+    // Tipos de lanzamiento — qué clase de disco es cada álbum. Marcar no
+    // cambia nada por sí solo hasta que se separa un tipo.
+    rtype_album: 'Álbum',
+    rtype_single: 'Sencillo',
+    rtype_ep: 'EP',
+    rtype_live: 'Álbum en vivo',
+    rtype_soundtrack: 'Banda sonora',
+    rtype_toggle_label: 'Tipo de lanzamiento',
+    rtype_toggle_hint: 'Qué clase de disco es. Marcarlo no cambia nada en tus listas, certificaciones ni récords hasta que separes ese tipo en Ajustes.',
+    rtype_settings_title: 'Tipos de lanzamiento',
+    rtype_settings_hint: 'Marca lanzamientos como sencillos, EP, álbumes en vivo o bandas sonoras. Marcar solo registra qué es cada lanzamiento: tus listas y certificaciones no cambian hasta que separes un tipo.',
+    rtype_settings_btn: 'Gestionar tipos',
+    rtype_modal_title: 'Tipos de lanzamiento',
+    rtype_modal_desc: 'Marca qué clase de disco es cada lanzamiento: un sencillo, un EP, un álbum en vivo, una banda sonora. Marcar no cambia nada por sí solo: tus listas, certificaciones y récords siguen igual hasta que decidas separar un tipo en Ajustes.',
+    rtype_modal_placeholder: 'Álbum · Artista…',
+    rtype_none: 'Todavía no has marcado ningún lanzamiento. También puedes marcarlo desde la página de cualquier álbum.',
+    rtype_no_match: 'Ningún álbum de tu biblioteca coincide. Elige uno de las sugerencias.',
+    rtype_auto: 'Detectado',
+    rtype_auto_hint: 'Detectado automáticamente. Si lo cambias aquí pasa a ser tuyo y no se volverá a detectar.',
+
     creel_title: '🏆 CERTIFICADOS EN ESTE PERIODO',
     creel_hint: 'Pasa el cursor para pausar · arrastra para explorar',
     modal_calendar_days_played: 'Días Calendario<br>Escuchado',
@@ -3104,6 +3144,26 @@ const TRANSLATIONS = {
     comp_no_plays: 'Nenhuma reprodução corresponde a este título.',
     comp_remove: 'Remover',
     comp_modal_close: 'Fechar',
+
+    // Tipos de lançamento — que tipo de disco cada álbum é. Marcar não muda
+    // nada sozinho até que um tipo seja separado.
+    rtype_album: 'Álbum',
+    rtype_single: 'Single',
+    rtype_ep: 'EP',
+    rtype_live: 'Álbum ao vivo',
+    rtype_soundtrack: 'Trilha sonora',
+    rtype_toggle_label: 'Tipo de lançamento',
+    rtype_toggle_hint: 'Que tipo de disco é este. Marcar não muda nada nas suas paradas, certificações ou recordes até você separar esse tipo nas Configurações.',
+    rtype_settings_title: 'Tipos de lançamento',
+    rtype_settings_hint: 'Marque lançamentos como singles, EPs, álbuns ao vivo ou trilhas sonoras. Marcar apenas registra o que cada lançamento é — suas paradas e certificações não mudam até você separar um tipo.',
+    rtype_settings_btn: 'Gerenciar tipos',
+    rtype_modal_title: 'Tipos de lançamento',
+    rtype_modal_desc: 'Marque que tipo de disco é cada lançamento — um single, um EP, um álbum ao vivo, uma trilha sonora. Marcar não muda nada sozinho: suas paradas, certificações e recordes continuam exatamente como estão até você escolher separar um tipo nas Configurações.',
+    rtype_modal_placeholder: 'Álbum · Artista…',
+    rtype_none: 'Nenhum lançamento marcado ainda. Você também pode marcar na página de qualquer álbum.',
+    rtype_no_match: 'Nenhum álbum da sua biblioteca corresponde a isso. Escolha um nas sugestões.',
+    rtype_auto: 'Detectado',
+    rtype_auto_hint: 'Detectado automaticamente. Mudar aqui torna a marcação sua, e ela não será detectada de novo.',
 
     creel_title: '🏆 CERTIFICADOS NESTE PERÍODO',
     creel_hint: 'Passe o cursor para pausar · arraste para explorar',
@@ -4477,6 +4537,26 @@ const TRANSLATIONS = {
     comp_no_plays: 'Nenhuma reprodução corresponde a este título.',
     comp_remove: 'Remover',
     comp_modal_close: 'Fechar',
+
+    // Tipos de lançamento — que tipo de disco é cada álbum. Marcar não muda
+    // nada por si só até que um tipo seja separado.
+    rtype_album: 'Álbum',
+    rtype_single: 'Single',
+    rtype_ep: 'EP',
+    rtype_live: 'Álbum ao vivo',
+    rtype_soundtrack: 'Banda sonora',
+    rtype_toggle_label: 'Tipo de lançamento',
+    rtype_toggle_hint: 'Que tipo de disco é este. Marcá-lo não muda nada nas suas tabelas, certificações ou recordes até separares esse tipo nas Definições.',
+    rtype_settings_title: 'Tipos de lançamento',
+    rtype_settings_hint: 'Marca lançamentos como singles, EPs, álbuns ao vivo ou bandas sonoras. Marcar apenas regista o que cada lançamento é — as tuas tabelas e certificações não mudam até separares um tipo.',
+    rtype_settings_btn: 'Gerir tipos',
+    rtype_modal_title: 'Tipos de lançamento',
+    rtype_modal_desc: 'Marca que tipo de disco é cada lançamento — um single, um EP, um álbum ao vivo, uma banda sonora. Marcar não muda nada por si só: as tuas tabelas, certificações e recordes ficam exactamente como estão até escolheres separar um tipo nas Definições.',
+    rtype_modal_placeholder: 'Álbum · Artista…',
+    rtype_none: 'Ainda não marcaste nenhum lançamento. Também podes marcar a partir da página de qualquer álbum.',
+    rtype_no_match: 'Nenhum álbum da tua biblioteca corresponde a isso. Escolhe um nas sugestões.',
+    rtype_auto: 'Detectado',
+    rtype_auto_hint: 'Detectado automaticamente. Mudá-lo aqui torna a marcação tua, e não voltará a ser detectada.',
 
     creel_title: '🏆 CERTIFICADOS NESTE PERÍODO',
     creel_hint: 'Passe o cursor para pausar · arraste para explorar',

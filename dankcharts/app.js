@@ -791,6 +791,157 @@ function removeCompilationAlbum(title) {
   _saveCompilationAlbums(getCompilationAlbums().filter(a => a.toLowerCase() !== lc));
 }
 
+// ─── RELEASE TYPES ─────────────────────────────────────────────
+/* What kind of release an album entry actually is: a proper album, a single,
+   an EP, a live record, a soundtrack. Scrobbles carry an album name and
+   nothing else, so a two-track single sits in the album charts next to a
+   fourteen-track record and is certified against the same thresholds.
+
+   STAGE 1 — this file stores the mark and nothing reads it yet. Marking a
+   release changes no chart, no certification and no record. Separating a type
+   out of the albums chart is a later, opt-in setting; until the user asks for
+   it in Settings, the app behaves exactly as it did before.
+
+   Compilations are deliberately NOT part of this map. They keep their own
+   dc_compilation_albums list: that key is already in the Firestore SYNC_KEYS,
+   and a device still running older code would sync a stale value back over a
+   migrated list. A compilation counts as an album here.
+
+   Keyed on artist|||album rather than the title alone, which is where this
+   differs from the compilations list. You have a dozen compilations and their
+   titles are distinctive; you have hundreds of singles and their titles
+   collide constantly — "Alone", "Heaven", "Anti-Hero". Keying on the title
+   alone would mark four releases when you meant one. The key shape is the
+   same one albumKeyOf() builds. */
+const RELEASE_TYPES_KEY = 'dc_release_types';
+
+// 'album' is the default and is never stored — an unmarked release is an album.
+const RELEASE_TYPE_IDS = ['album', 'single', 'ep', 'live', 'soundtrack'];
+
+// Parsed map, or null when it has not been read from localStorage yet.
+// Shape: { 'artist|||album': { t: 'single', s: 'user' } }
+//   t  the type id
+//   s  'user' (marked by hand) or 'auto' (detected). A user mark outranks a
+//      detected one and must survive a later re-run of auto-detection.
+let _releaseTypeMap = null;
+
+/* Bumped on every change and folded into _crGeneration(), so the chart and
+   Records caches retire when a mark moves. Nothing reads the type during
+   chart building yet, so in stage 1 this only costs one needless rebuild on a
+   rare user action — cheap insurance against a stale cache once stage 2 does
+   read it. It deliberately does NOT bump _stampEpoch: release type never
+   touches albumArtist(), so the per-play stamps stay valid and the whole
+   library is not re-walked. That is what makes marking hundreds of singles
+   cheap where marking one compilation is not. */
+let _releaseEpoch = 0;
+
+// Called by the Firestore sync when the map arrives from another device.
+window.dcResetReleaseTypesCache = () => {
+  _releaseTypeMap = null;
+  _releaseEpoch++;
+};
+
+// The key an album entry is filed under. Artist is the album credit — what
+// albumArtist() returns — so a compilation files under 'Various Artists' and
+// stays one entry, exactly as it appears in the charts.
+function releaseTypeKey(album, artist) {
+  return String(artist || '').toLowerCase().trim() + '|||' + String(album || '').toLowerCase().trim();
+}
+
+function _rtMap() {
+  if (_releaseTypeMap === null) {
+    try {
+      const raw = JSON.parse(localStorage.getItem(RELEASE_TYPES_KEY) || '{}');
+      _releaseTypeMap = (raw && typeof raw === 'object' && !Array.isArray(raw)) ? raw : {};
+    } catch { _releaseTypeMap = {}; }
+  }
+  return _releaseTypeMap;
+}
+
+/* Called once per album entry inside the chart loops once stage 2 lands, so
+   the empty-map fast path matters: a user who has never marked anything pays
+   one property read. */
+function releaseTypeOf(album, artist) {
+  if (!album || album === '—') return 'album';
+  const m = _rtMap();
+  const e = m[releaseTypeKey(album, artist)];
+  return (e && RELEASE_TYPE_IDS.includes(e.t)) ? e.t : 'album';
+}
+
+// Same question asked of a play rather than an album entry.
+function releaseTypeOfPlay(p) {
+  return releaseTypeOf(p.album, albumArtist(p));
+}
+
+// Was this mark made by hand, or detected? Stage 3 needs it so re-running
+// auto-detection never overwrites a correction.
+function releaseTypeSource(album, artist) {
+  const e = _rtMap()[releaseTypeKey(album, artist)];
+  return e ? (e.s === 'auto' ? 'auto' : 'user') : null;
+}
+
+/* Writes the map and pushes it straight to Firestore with the in-memory value.
+   Not dcSaveUserConfig() — that re-reads localStorage and can race the auth
+   callback into saving a stale value, which is how the autocorrect rules were
+   once lost. Same reasoning as _saveCompilationAlbums(). */
+function _saveReleaseTypes(map) {
+  const json = JSON.stringify(map);
+  localStorage.setItem(RELEASE_TYPES_KEY, json);
+  _releaseTypeMap = map;
+  _releaseEpoch++;
+  if (typeof dcInvalidateRecords === 'function') dcInvalidateRecords();
+  if (typeof dcSaveReleaseTypesToFirestore === 'function') dcSaveReleaseTypesToFirestore(json);
+}
+
+/* Marks one release. Passing 'album' clears the entry rather than storing it:
+   album is the default, so an unmarked release and one marked as an album are
+   the same thing, and not storing it keeps the map to what the user actually
+   changed. Returns true when something moved. */
+function setReleaseType(album, artist, type, src) {
+  const name = String(album || '').trim();
+  if (!name || name === '—') return false;
+  const t = RELEASE_TYPE_IDS.includes(type) ? type : 'album';
+  const k = releaseTypeKey(name, artist);
+  const map = { ..._rtMap() };
+  const prev = map[k];
+  if (t === 'album') {
+    if (!prev) return false;
+    delete map[k];
+  } else {
+    if (prev && prev.t === t) return false;
+    map[k] = { t, s: src === 'auto' ? 'auto' : 'user', a: String(artist || ''), n: name };
+  }
+  _saveReleaseTypes(map);
+  return true;
+}
+
+/* Every marked release, for the manager list. The stored `a`/`n` fields carry
+   the casing the release was marked in, so the list reads like the charts
+   rather than like the lowercased key. Entries written before those fields
+   existed fall back to splitting the key. */
+function getReleaseTypeEntries() {
+  const map = _rtMap();
+  return Object.keys(map).map(k => {
+    const e = map[k] || {};
+    const parts = k.split('|||');
+    return {
+      key: k,
+      album:  e.n || parts[1] || '',
+      artist: e.a || parts[0] || '',
+      type:   RELEASE_TYPE_IDS.includes(e.t) ? e.t : 'album',
+      src:    e.s === 'auto' ? 'auto' : 'user'
+    };
+  });
+}
+
+// How many releases carry each type — the manager heading and, later, the
+// settings hint.
+function releaseTypeCounts() {
+  const out = {};
+  for (const e of getReleaseTypeEntries()) out[e.type] = (out[e.type] || 0) + 1;
+  return out;
+}
+
 // Primary artist for album grouping — always the first artist so that feat. tracks
 // don't split into a separate album entry. Compilations are the exception: they
 // are credited to Various Artists so all their singers fold into one album.
@@ -1723,6 +1874,127 @@ function toggleAlbumCompilation(albumName, on) {
   const modal = document.getElementById('albumModal');
   if (!play) { if (modal) modal.classList.remove('open'); return; }
   openAlbumModal(albumName + '|||' + albumArtist(play));
+}
+
+// ─── RELEASE TYPE MANAGER ─────────────────────────────────────
+/* Marking a release from the album page. Unlike the compilation switch, this
+   moves nothing about how the album is keyed or credited, so there is no
+   reopening the modal and no re-reading the artist from the plays: the album
+   in front of you is still the same album. Only the chip's own state and the
+   manager list need refreshing. */
+function setAlbumReleaseType(albumName, artistName, type) {
+  setReleaseType(albumName, artistName, type);
+  renderReleaseTypesList();
+  // The chip carries an is-set class that dims it back down at 'album'.
+  const wrap = document.querySelector('#albumModalCompRow .alb-rtype-toggle');
+  if (wrap) wrap.classList.toggle('is-set', type !== 'album');
+}
+
+/* The picker maps a display string back to the album it names. Release types
+   are keyed by artist AND album, so the manager cannot take a bare title the
+   way the compilations box does — "Alone" names a dozen different records.
+   Building the map at open time means the datalist and the lookup can never
+   disagree about what a given line refers to. */
+let _rtPickMap = {};
+
+function _rtPickLabel(album, artist) {
+  return album + '  ·  ' + artist;
+}
+
+function openReleaseTypesModal() {
+  const dl = document.getElementById('releaseTypesDatalist');
+  if (dl) {
+    // Rebuilt from scratch, not added to: editing a scrobble can rename an
+    // album, and a stale line would still resolve to the old name.
+    _rtPickMap = {};
+    /* Every album entry in the library, listed the way the charts group them:
+       one line per album credit, so a compilation offers its single Various
+       Artists line rather than one per singer.
+
+       Already-marked releases stay in the suggestions, unlike the compilations
+       box which drops them. Adding one again just changes its type, which is
+       what you want once the list below has grown past a screenful. */
+    const seen = new Set();
+    const rows = [];
+    for (const p of allPlays) {
+      if (!p.album || p.album === '—') continue;
+      const artist = albumArtist(p);
+      const k = releaseTypeKey(p.album, artist);
+      if (seen.has(k)) continue;
+      seen.add(k);
+      const label = _rtPickLabel(p.album, artist);
+      _rtPickMap[label] = { album: p.album, artist };
+      rows.push(label);
+    }
+    rows.sort((a, b) => a.localeCompare(b));
+    dl.innerHTML = rows.map(r => `<option value="${esc(r)}"></option>`).join('');
+  }
+  const err = document.getElementById('releaseTypesError');
+  if (err) err.style.display = 'none';
+  renderReleaseTypesList();
+  document.getElementById('releaseTypesModal').classList.add('open');
+}
+
+function closeReleaseTypesModal() {
+  document.getElementById('releaseTypesModal').classList.remove('open');
+}
+
+function renderReleaseTypesList() {
+  const el = document.getElementById('releaseTypesList');
+  if (!el) return;
+  // Grouped by type, and 'album' never appears: it is the absence of a mark.
+  const entries = getReleaseTypeEntries()
+    .sort((a, b) => a.album.localeCompare(b.album));
+  if (!entries.length) {
+    el.innerHTML = `<div class="rt-empty">${esc(t('rtype_none'))}</div>`;
+    return;
+  }
+  let html = '';
+  for (const id of RELEASE_TYPE_IDS) {
+    if (id === 'album') continue;
+    const group = entries.filter(e => e.type === id);
+    if (!group.length) continue;
+    html += `<div class="rt-group-hdr">${esc(t('rtype_' + id))} <span class="rt-group-n">${group.length}</span></div>`;
+    for (const e of group) {
+      const opts = RELEASE_TYPE_IDS.map(o =>
+        `<option value="${o}" ${o === e.type ? 'selected' : ''}>${esc(t('rtype_' + o))}</option>`
+      ).join('');
+      html += `<div class="rt-row">
+        <div class="rt-row-name">
+          <span class="rt-row-album">${esc(e.album)}</span>
+          <span class="rt-row-artist">${esc(e.artist)}</span>
+        </div>
+        ${e.src === 'auto' ? `<span class="rt-row-auto" title="${esc(t('rtype_auto_hint'))}">${esc(t('rtype_auto'))}</span>` : ''}
+        <select class="rt-row-select" onchange="changeReleaseTypeFromList(${esc(JSON.stringify(e.album))},${esc(JSON.stringify(e.artist))},this.value)">${opts}</select>
+        <button class="rt-row-remove" onclick="changeReleaseTypeFromList(${esc(JSON.stringify(e.album))},${esc(JSON.stringify(e.artist))},'album')">${esc(t('comp_remove'))}</button>
+      </div>`;
+    }
+  }
+  el.innerHTML = html;
+}
+
+function changeReleaseTypeFromList(album, artist, type) {
+  setReleaseType(album, artist, type);
+  renderReleaseTypesList();
+}
+
+function addReleaseTypeFromInput() {
+  const input = document.getElementById('releaseTypesInput');
+  const sel   = document.getElementById('releaseTypesAddType');
+  const err   = document.getElementById('releaseTypesError');
+  if (!input || !sel) return;
+  const pick = _rtPickMap[input.value.trim()];
+  /* A typed line that matches no album is rejected rather than guessed at.
+     Guessing is what the title-only compilations key does, and it is exactly
+     the ambiguity this store was keyed by artist to avoid. */
+  if (!pick) {
+    if (err) { err.textContent = t('rtype_no_match'); err.style.display = ''; }
+    return;
+  }
+  if (err) err.style.display = 'none';
+  setReleaseType(pick.album, pick.artist, sel.value);
+  input.value = '';
+  renderReleaseTypesList();
 }
 
 // ─── EDIT SCROBBLE ────────────────────────────────────────────
@@ -13315,7 +13587,10 @@ function _crSlice(full, curKey) {
    stampPlays, which every data path already calls); the six size settings are
    what the run is truncated by. */
 function _crGeneration() {
-  return _stampEpoch + '|' + _playsVersion + '|' +
+  // _releaseEpoch rides along so that marking a release type retires the chart
+  // and Records caches. Nothing reads the type during chart building yet; this
+  // is here so that the day it does, a stale cache cannot survive a mark.
+  return _stampEpoch + '|' + _playsVersion + '|' + _releaseEpoch + '|' +
     chartSizeSongsW + ',' + chartSizeArtistsW + ',' + chartSizeAlbumsW + ',' +
     chartSizeSongsM + ',' + chartSizeArtistsM + ',' + chartSizeAlbumsM + ',' +
     chartSizeSongsY + ',' + chartSizeArtistsY + ',' + chartSizeAlbumsY;
@@ -20026,9 +20301,23 @@ function openAlbumModal(albumKey) {
   // whether it is merged, so it is the natural place to flip it.
   const compRowEl = document.getElementById('albumModalCompRow');
   if (compRowEl) {
+    /* Release type sits beside the compilation switch because both answer the
+       same question — what kind of record is this — and the album page is the
+       only place you can see the answer. The two are independent: a
+       compilation is an album as far as the type goes, so marking one here
+       does not touch the other. Marking a type changes nothing about the
+       charts on its own; separating a type out is an opt-in setting. */
+    const curType = releaseTypeOf(albumName, artistName);
+    const opts = RELEASE_TYPE_IDS.map(id =>
+      `<option value="${id}" ${id === curType ? 'selected' : ''}>${esc(t('rtype_' + id))}</option>`
+    ).join('');
     compRowEl.innerHTML = `<label class="alb-comp-toggle" title="${esc(t('comp_toggle_hint'))}">
       <input type="checkbox" ${albIsComp ? 'checked' : ''} onchange="toggleAlbumCompilation(${esc(JSON.stringify(albumName))},this.checked)">
       <span>${t('comp_toggle_label')}</span>
+    </label>
+    <label class="alb-rtype-toggle${curType !== 'album' ? ' is-set' : ''}" title="${esc(t('rtype_toggle_hint'))}">
+      <span>${t('rtype_toggle_label')}</span>
+      <select onchange="setAlbumReleaseType(${esc(JSON.stringify(albumName))},${esc(JSON.stringify(artistName))},this.value)">${opts}</select>
     </label>`;
   }
 
