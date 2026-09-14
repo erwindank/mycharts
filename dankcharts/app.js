@@ -12004,6 +12004,27 @@ function renderPage(type, peaks) {
   const rankMap = new Map(allData.map((item, i) => [item, i + 1]));
   const rankOf = (item) => rankMap.get(item) || 0;
 
+  // Peak tags — yearly rows carry the same "PEAK #n" badge weekly and monthly ones do:
+  // the best rank this entry ever reached on a yearly chart. All-Time has no earlier
+  // chart of its own to have peaked on, so it stays badge-less there.
+  const showPeak = currentPeriod === 'year' && !!peaks;
+  const peakMap = !showPeak ? null
+    : type === 'songs' ? peaks.songPeakMap
+    : type === 'artists' ? peaks.artistPeakMap
+    : peaks.albumPeakMap;
+  // buildPeriodPeaks() deliberately leaves the currently viewed year out (its ranks
+  // aren't settled until render time), so fold the ranks just computed here back in —
+  // same reconciliation renderSongs/renderArtists/renderAlbums do for week/month.
+  if (showPeak) {
+    allData.forEach((item, i) => {
+      const k = type === 'songs' ? songKey(item)
+              : type === 'artists' ? item.name
+              : item.album + '|||' + item.artist;
+      const r = i + 1;
+      if (!peakMap[k] || r < peakMap[k]) peakMap[k] = r;
+    });
+  }
+
   const hasCR = (currentPeriod === 'year' || currentPeriod === 'alltime');
   // Yearly has a previous year to compare against, so it renders the Previous/movement
   // and Years-on-chart columns. All-Time never does, and is pinned to null here rather
@@ -12025,12 +12046,13 @@ function renderPage(type, peaks) {
       const histMaxSong = playsPeakMaps ? (playsPeakMaps.songs[k] || 0) : 0;
       const isPlaysPeak = histMaxSong > 0 && s.count >= histMaxSong;
       const barCls = mvBarCls(ms, 'songs', k, rank);
+      const pk = showPeak ? peakMap[k] : null;
       const mainRow = `<tr data-songkey="${encodeURIComponent(k)}" class="${rank === 1 ? 'rank-1' : rank === 2 ? 'rank-2' : rank === 3 ? 'rank-3' : ''} song-row${mvRowCls(barCls)}">
         <td class="rank-cell">${rank}</td>
         ${ms ? mPrevCell(rank, k, 'songs', ms) : ''}
         <td class="thumb-cell"><div class="thumb-wrap"><div id="${imgId}"><div class="thumb-initials">${esc(initials(s.title))}</div></div><button id="srcbtn-${imgId}" class="img-src-btn" data-imgid="${imgId}" data-type="song" data-prefkey="${esc(prefKey)}" data-name="${esc(s.title)}" data-artist="${esc(s.artist)}" data-album="${esc(s.album)}">${srcLabel(itemSourcePrefs[prefKey] || 'deezer')}</button></div></td>
         <td>
-          <div class="song-title">${esc(s.title)}${certBadge(cumSongPlays, 'song')}${ratingSongBadge(k)}</div>
+          <div class="song-title">${esc(s.title)}${pk ? peakBadge(pk) : ''}${certBadge(cumSongPlays, 'song')}${ratingSongBadge(k)}</div>
           <div class="song-artist">${esc(s.artist)}</div>
           <button class="yt-play-btn" data-title="${esc(s.title)}" data-artist="${esc(s.artist)}" data-album="${esc(s.album)}" onclick="event.stopPropagation();ytPlayFromBtn(this)" title="Play on YouTube"><span class="yt-btn-content"><svg class="yt-btn-icon" viewBox="0 0 24 24"><path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.5 12 3.5 12 3.5s-7.5 0-9.4.5A3 3 0 0 0 .5 6.2C0 8.1 0 12 0 12s0 3.9.5 5.8a3 3 0 0 0 2.1 2.1c1.9.5 9.4.5 9.4.5s7.5 0 9.4-.5a3 3 0 0 0 2.1-2.1C24 15.9 24 12 24 12s0-3.9-.5-5.8zM9.7 15.5V8.5l6.3 3.5-6.3 3.5z"/></svg>YouTube</span></button>${dcPlBtnHtml('song', s.title, s.artist, s.album)}
         </td>
@@ -12061,11 +12083,12 @@ function renderPage(type, peaks) {
       const histMaxArtist = playsPeakMaps ? (playsPeakMaps.artists[a.name] || 0) : 0;
       const isArtistPlaysPeak = histMaxArtist > 0 && a.count >= histMaxArtist;
       const barCls = mvBarCls(ms, 'artists', a.name, rank);
+      const pk = showPeak ? peakMap[a.name] : null;
       const mainRow = `<tr class="${rank === 1 ? 'rank-1' : rank === 2 ? 'rank-2' : rank === 3 ? 'rank-3' : ''} artist-row${mvRowCls(barCls)}" data-artist="${esc(a.name)}">
         <td class="rank-cell">${rank}</td>
         ${ms ? mPrevCell(rank, a.name, 'artists', ms) : ''}
         <td class="thumb-cell"><div class="thumb-wrap"><div id="${imgId}"><div class="thumb-initials">${esc(initials(a.name))}</div></div><button id="srcbtn-${imgId}" class="img-src-btn" data-imgid="${imgId}" data-type="artist" data-prefkey="${esc(prefKey)}" data-name="${esc(a.name)}" data-artist="${esc(a.name)}" data-album="">${srcLabel(itemSourcePrefs[prefKey] || 'deezer')}</button></div></td>
-        <td><div class="song-title">${esc(a.name)}</div><button class="yt-play-btn" data-title="" data-artist="${esc(a.name)}" data-album="" onclick="event.stopPropagation();buShowTrackList(this,'artists')" title="Show recently played tracks"><span class="yt-btn-content"><svg class="yt-btn-icon" viewBox="0 0 24 24"><path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.5 12 3.5 12 3.5s-7.5 0-9.4.5A3 3 0 0 0 .5 6.2C0 8.1 0 12 0 12s0 3.9.5 5.8a3 3 0 0 0 2.1 2.1c1.9.5 9.4.5 9.4.5s7.5 0 9.4-.5a3 3 0 0 0 2.1-2.1C24 15.9 24 12 24 12s0-3.9-.5-5.8zM9.7 15.5V8.5l6.3 3.5-6.3 3.5z"/></svg>YouTube</span></button>${dcPlBtnHtml('artist', '', a.name, '')}</td>
+        <td><div class="song-title">${esc(a.name)}${pk ? peakBadge(pk) : ''}</div><button class="yt-play-btn" data-title="" data-artist="${esc(a.name)}" data-album="" onclick="event.stopPropagation();buShowTrackList(this,'artists')" title="Show recently played tracks"><span class="yt-btn-content"><svg class="yt-btn-icon" viewBox="0 0 24 24"><path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.5 12 3.5 12 3.5s-7.5 0-9.4.5A3 3 0 0 0 .5 6.2C0 8.1 0 12 0 12s0 3.9.5 5.8a3 3 0 0 0 2.1 2.1c1.9.5 9.4.5 9.4.5s7.5 0 9.4-.5a3 3 0 0 0 2.1-2.1C24 15.9 24 12 24 12s0-3.9-.5-5.8zM9.7 15.5V8.5l6.3 3.5-6.3 3.5z"/></svg>YouTube</span></button>${dcPlBtnHtml('artist', '', a.name, '')}</td>
         <td class="meta-col"><div class="song-artist">${tCount('songs', a.songs.size)}</div></td>
         ${ms ? mMthsCell(a.name, 'artists', ms) : ''}
         <td>
@@ -12097,12 +12120,13 @@ function renderPage(type, peaks) {
         const histMaxAlbum = playsPeakMaps ? (playsPeakMaps.albums[ak] || 0) : 0;
         const isAlbumPlaysPeak = histMaxAlbum > 0 && a.count >= histMaxAlbum;
         const barCls = mvBarCls(ms, 'albums', ak, rank);
+        const pk = showPeak ? peakMap[ak] : null;
         const mainRow = `<tr class="${rank === 1 ? 'rank-1' : rank === 2 ? 'rank-2' : rank === 3 ? 'rank-3' : ''} album-row${mvRowCls(barCls)}" data-albumkey="${esc(ak)}">
         <td class="rank-cell">${rank}</td>
         ${ms ? mPrevCell(rank, ak, 'albums', ms) : ''}
         <td class="thumb-cell"><div class="thumb-wrap"><div id="${imgId}"><div class="thumb-initials">${esc(initials(a.album))}</div></div><button id="srcbtn-${imgId}" class="img-src-btn" data-imgid="${imgId}" data-type="album" data-prefkey="${esc(prefKey)}" data-name="${esc(a.album)}" data-artist="${esc(a.artist)}" data-album="${esc(a.album)}">${srcLabel(itemSourcePrefs[prefKey] || 'deezer')}</button></div></td>
         <td>
-          <div class="song-title">${esc(a.album)}${certBadge(cumAlbumPlays, 'album')}${ratingAlbumBadge(ak)}</div>
+          <div class="song-title">${esc(a.album)}${pk ? peakBadge(pk) : ''}${certBadge(cumAlbumPlays, 'album')}${ratingAlbumBadge(ak)}</div>
           <div class="song-artist">${esc(a.artist)}</div>
           <button class="yt-play-btn" data-title="" data-artist="${esc(a.artist)}" data-album="${esc(a.album)}" onclick="event.stopPropagation();buShowTrackList(this,'albums')" title="Show recently played tracks"><span class="yt-btn-content"><svg class="yt-btn-icon" viewBox="0 0 24 24"><path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.5 12 3.5 12 3.5s-7.5 0-9.4.5A3 3 0 0 0 .5 6.2C0 8.1 0 12 0 12s0 3.9.5 5.8a3 3 0 0 0 2.1 2.1c1.9.5 9.4.5 9.4.5s7.5 0 9.4-.5a3 3 0 0 0 2.1-2.1C24 15.9 24 12 24 12s0-3.9-.5-5.8zM9.7 15.5V8.5l6.3 3.5-6.3 3.5z"/></svg>YouTube</span></button>${dcPlBtnHtml('album', '', a.artist, a.album)}
         </td>
