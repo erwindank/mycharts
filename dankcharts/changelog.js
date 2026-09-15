@@ -61,6 +61,10 @@ const DC_CHANGELOG = [
 
   /* ========== SEPTEMBER 2026 ========== */
 
+  { d: '2026-09-15', t: 'fix', a: 'charts', h: 'fd69202',
+    title: 'PEAK tags on the singles and EP charts count the right chart',
+    detail: 'A single that had led the singles chart for weeks still wore PEAK #2, because the tag was measuring it against every album as well — a chart it is no longer shown on — while the chart run in the same row said #1. The albums chart had the mirror of it, an album peaking lower than it ever really did because separated singles had been counted above it. Every peak now belongs to the chart it was set on, all-time ranks in the album and artist windows included.' },
+
   { d: '2026-09-15', t: 'fix', a: 'charts', h: '9d91497',
     title: 'A single\'s chart run opens the singles chart, not the albums one',
     detail: 'Clicking a box in the chart run of a separated single or EP listed that week\'s albums chart underneath a rank that had never come from it — the box said #1 and the list showed the album sitting at #1 instead. Once a type is pulled out, the album side of a week is several charts rather than one, and the box preview now shows the chart the box was ranked on, titled with its name.' },
