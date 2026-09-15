@@ -61,6 +61,10 @@ const DC_CHANGELOG = [
 
   /* ========== SEPTEMBER 2026 ========== */
 
+  { d: '2026-09-15', t: 'fix', a: 'charts', h: '9d91497',
+    title: 'A single\'s chart run opens the singles chart, not the albums one',
+    detail: 'Clicking a box in the chart run of a separated single or EP listed that week\'s albums chart underneath a rank that had never come from it — the box said #1 and the list showed the album sitting at #1 instead. Once a type is pulled out, the album side of a week is several charts rather than one, and the box preview now shows the chart the box was ranked on, titled with its name.' },
+
   { d: '2026-09-14', t: 'fix', a: 'charts', h: '1ea4cf5',
     title: 'Singles certify on their own ladder immediately',
     detail: 'The certification ladder was keyed off whether a type had been separated into its own chart, which conflated two different questions. Separation is about where a release sits in the charts; the ladder is about what the record is. A hundred plays of a two-track single is a different achievement from a hundred plays of a fourteen-track album, and that stays true wherever it charts. Live albums and soundtracks stay on the album ladder, because they are full-length records.' },
