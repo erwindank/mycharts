@@ -4797,10 +4797,14 @@ function syncReleaseSeparationUI() {
   });
   const hint = document.getElementById('rollupHint');
   if (hint) hint.textContent = chartsOk ? t('rollup_hint') : t('rollup_hint_needs_apart');
+  /* The two ladders are always on show and always editable. They apply to
+     anything marked a single or an EP whether or not that type has been
+     separated out, so hiding them behind the Apart switch would hide numbers
+     that are already deciding badges. */
   const colS = document.getElementById('certColSingle');
   const colE = document.getElementById('certColEp');
-  if (colS) colS.style.display = isTypeSeparated('single') ? '' : 'none';
-  if (colE) colE.style.display = isTypeSeparated('ep') ? '' : 'none';
+  if (colS) colS.style.display = '';
+  if (colE) colE.style.display = '';
 }
 
 /* Applied immediately rather than on Save & Load: it re-ranks the charts
@@ -6466,9 +6470,9 @@ function buildRecords() {
       const aa = albumArtist(p);
       const isComp = aa === VARIOUS_ARTISTS;
       const ak = p.album + '|||' + aa;
-      /* A separated single is judged on the single ladder, not the album one.
-         certKindFor() returns 'album' for anything not separated, so this is
-         the album threshold for every user who has separated nothing. */
+      /* A single is judged on the single ladder. certKindFor() returns 'album'
+         for anything not marked as a single or an EP, so this is the album
+         threshold for every user who has marked nothing. */
       const akKind = certKindFor(p.album, aa);
       certTouch(certAlbumItems, ak, p, 'album', CERT[akKind], {
         title: p.album, artist: aa, artists: [aa], album: '', certKind: akKind,
@@ -7992,7 +7996,7 @@ function buildRecords() {
     /* A separated type is judged on its own ladder, so the line that states the
        thresholds has to state those too — otherwise the album column here is
        counting awards the stated numbers never granted. */
-    + separatedTypes().map(function (ty) {
+    + certLadderTypesInUse().map(function (ty) {
         const c = CERT[ty];
         return ' · ' + t('rec_certs_thresholds_type', { type: t('rtype_' + ty + '_plural'), g: c.gold, p: c.plat, d: c.diamond });
       }).join('')
@@ -18211,18 +18215,33 @@ const CERT = {
   } catch (e) {}
 })();
 
-/* Which ladder an album entry is judged on. A type that is not separated is
-   judged as an album, so turning the setting off restores every badge the
-   album thresholds would have given it. */
+/* Which ladder a release is judged on — decided by what it IS, not by where
+   it sits in the charts. Marking something a single means a hundred plays is a
+   different achievement than a hundred plays of a fourteen-track album, and
+   that stays true whether or not singles have been pulled into a chart of
+   their own. Separation is a question about the chart; this is a question
+   about the record.
+
+   Only singles and EPs have ladders. Live albums and soundtracks are marked so
+   they can be seen, but they are full-length records and are judged as one. */
 function certKindFor(album, artist) {
-  const b = albumBucketOf(album, artist);
-  return b === 'album' ? 'album' : b;
+  const t = releaseTypeOf(album, artist);
+  return (t === 'single' || t === 'ep') ? t : 'album';
 }
 
 // The threshold ladder itself, for the places that compare against gold/plat/
 // diamond directly rather than asking certBadge() for markup.
 function certCfgFor(album, artist) {
   return CERT[certKindFor(album, artist)] || CERT.album;
+}
+
+/* The ladder types this library actually uses — nothing for a user who has
+   marked no singles or EPs, so every caller below collapses to the album-only
+   behaviour without a separate branch. Driven by the marks, not by whether the
+   type has been separated. */
+function certLadderTypesInUse() {
+  const counts = releaseTypeCounts();
+  return ['single', 'ep'].filter(ty => counts[ty] > 0);
 }
 
 function diamondMultiLabel(n) {
@@ -20772,13 +20791,13 @@ function openArtistModal(artistName) {
   /* Compilations are left out of the count on purpose. Their certification is
      awarded to the record as a whole, not to each singer on it — the album is
      still listed above, it just isn't tallied here. */
-  /* Separated types are left out too. The accomplishment rows below label a
-     whole group with one threshold ("3 albums at 120 plays"), which stops
-     being true the moment the group mixes ladders — so while singles are
-     apart they are simply not counted among the albums here. They get rows of
-     their own when the Records side learns about them. */
+  /* Singles and EPs are left out of the album rows because they are judged on
+     their own ladders. The rows below label a whole group with one threshold
+     ("3 albums at 120 plays"), which stops being true the moment the group
+     mixes ladders — so each ladder gets its own rows, further down. Keyed off
+     the mark, not the Apart switch: the ladder applies either way. */
   const certAlbums = allAlbumsSorted.filter(a =>
-    !isCompilationAlbum(a.album) && albumBucketOf(a.album, a.primaryArtist || artistName) === 'album');
+    !isCompilationAlbum(a.album) && certKindFor(a.album, a.primaryArtist || artistName) === 'album');
   const goldAlbums = certAlbums.filter(a => a.count >= CERT.album.gold).length;
   const platAlbums = certAlbums.filter(a => a.count >= CERT.album.plat).length;
   const diamondAlbums = certAlbums.filter(a => a.count >= CERT.album.diamond).length;
@@ -21069,16 +21088,16 @@ function openArtistModal(artistName) {
       items.map(a => ({ name: a.album, plays: a.count, date: firstAlbumPlay(a.album) }))));
   }
 
-  /* Rows of their own for each separated type. These are the ones the albums
-     block above leaves out on purpose: a row names one threshold ("3 albums at
-     120 plays"), which stops being true the moment the group mixes ladders. A
+  /* Rows of their own for each ladder. These are the records the albums block
+     above leaves out on purpose: a row names one threshold ("3 albums at 120
+     plays"), which stops being true the moment the group mixes ladders. A
      single judged at 60 plays therefore gets its own row saying 60, rather
      than being counted among records that needed twice that. */
-  for (const ty of separatedTypes()) {
+  for (const ty of certLadderTypesInUse()) {
     const cfg = CERT[ty];
     const unitKey = ty === 'ep' ? 'eps' : 'singles';
     const pool = allAlbumsSorted.filter(a =>
-      !isCompilationAlbum(a.album) && albumBucketOf(a.album, a.primaryArtist || artistName) === ty);
+      !isCompilationAlbum(a.album) && certKindFor(a.album, a.primaryArtist || artistName) === ty);
     if (!pool.length) continue;
     const maxMult = pool.reduce((m, a) => Math.max(m, Math.floor(a.count / cfg.diamond)), 0);
     for (let mult = maxMult; mult >= 1; mult--) {

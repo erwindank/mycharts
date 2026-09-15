@@ -27,7 +27,7 @@
   <!-- html2canvas, SheetJS (xlsx) and JSZip are intentionally NOT loaded here — they
        total ~1.2 MB and are only needed for image exports and Excel/ZIP imports.
        app.js pulls them from the CDN on first use (see ensureLazyLib). -->
-  <link rel="stylesheet" href="style.css?v=240">
+  <link rel="stylesheet" href="style.css?v=241">
   <!-- All scripts are deferred so the page paints without waiting on them.
        defer preserves execution order, which matters: translations → Chart.js →
        hammer → zoom plugin → firebase SDKs → firebase.js → app.js (in body). -->
@@ -3210,7 +3210,7 @@
   <div id="releaseTypesModal" class="modal-overlay modal-overlay--stacked" role="dialog" aria-modal="true">
     <div class="src-modal-box">
       <h3 class="src-modal-title" data-i18n="rtype_modal_title">Release Types</h3>
-      <p style="font-size:0.78rem;color:var(--text3);margin:0 0 0.7rem" data-i18n="rtype_modal_desc">Mark what kind of record each release is — a single, an EP, a live album, a soundtrack. Marking changes nothing on its own: your charts, certifications and records stay exactly as they are until you choose to separate a type in Settings.</p>
+      <p style="font-size:0.78rem;color:var(--text3);margin:0 0 0.7rem" data-i18n="rtype_modal_desc">Mark what kind of record each release is — a single, an EP, a live album, a soundtrack. Singles and EPs are then certified on their own thresholds, since a hundred plays means something different for a two-track single. Your charts stay exactly as they are until you choose to separate a type in Settings.</p>
       <div style="display:flex;gap:0.4rem;margin-bottom:0.35rem;flex-wrap:wrap">
         <input type="text" id="releaseTypesInput" list="releaseTypesDatalist" placeholder="Album · Artist…" data-i18n-placeholder="rtype_modal_placeholder"
           onkeydown="if(event.key==='Enter'){event.preventDefault();addReleaseTypeFromInput();}"
@@ -4081,16 +4081,16 @@ function deleteGenreTriggers() {
             <label class="cert-row">💿 Platinum <input type="number" id="certSongPlat" min="1" class="cert-input"></label>
             <label class="cert-row">💎 Diamond <input type="number" id="certSongDiamond" min="1" class="cert-input"></label>
           </div>
-          <!-- Only shown while that type is separated out. A single judged on
-               the album ladder is judged as an album, so the fields would have
-               no effect and showing them would promise one. -->
-          <div class="cert-config-col" id="certColSingle" style="display:none">
+          <!-- Always shown: these apply to anything marked a single or an EP,
+               separated or not. The ladder follows what the record is, not
+               where it sits in the charts. -->
+          <div class="cert-config-col" id="certColSingle">
             <div class="cert-config-col-hdr" data-i18n="rtype_single_plural">Singles</div>
             <label class="cert-row">⭐ Gold <input type="number" id="certSingleGold" min="1" class="cert-input"></label>
             <label class="cert-row">💿 Platinum <input type="number" id="certSinglePlat" min="1" class="cert-input"></label>
             <label class="cert-row">💎 Diamond <input type="number" id="certSingleDiamond" min="1" class="cert-input"></label>
           </div>
-          <div class="cert-config-col" id="certColEp" style="display:none">
+          <div class="cert-config-col" id="certColEp">
             <div class="cert-config-col-hdr" data-i18n="rtype_ep_plural">EPs</div>
             <label class="cert-row">⭐ Gold <input type="number" id="certEpGold" min="1" class="cert-input"></label>
             <label class="cert-row">💿 Platinum <input type="number" id="certEpPlat" min="1" class="cert-input"></label>
@@ -4137,7 +4137,7 @@ function deleteGenreTriggers() {
       <div class="cert-config-group">
         <div class="cert-config-title" data-i18n="rtype_settings_title">Release Types</div>
         <div class="cert-config-footer">
-          <p class="src-modal-hint" data-i18n="rtype_settings_hint">Mark releases as singles, EPs, live albums or soundtracks. Marking only records what a release is — your charts and certifications are unchanged until you separate a type out.</p>
+          <p class="src-modal-hint" data-i18n="rtype_settings_hint">Mark releases as singles, EPs, live albums or soundtracks. A single or an EP is then certified on its own thresholds; your charts stay as they are until you separate a type out.</p>
           <button type="button" class="cert-reset-btn" onclick="openReleaseTypesModal()" data-i18n="rtype_settings_btn">Manage types</button>
         </div>
         <!-- Detection is off until switched on, and even then it only ever
@@ -4186,7 +4186,7 @@ function deleteGenreTriggers() {
             <button type="button" class="rt-sep-btn" data-sep="ep" data-mode="apart" onclick="setReleaseSeparationFromUI('ep','apart')" data-i18n="rtype_sep_apart">Apart</button>
           </div>
         </div>
-        <p class="src-modal-hint rt-sep-hint" data-i18n="rtype_sep_hint">Apart pulls that type out of the albums chart and gives it its own, with its own #1s and its own certification thresholds above.</p>
+        <p class="src-modal-hint rt-sep-hint" data-i18n="rtype_sep_hint">Apart pulls that type out of the albums chart and gives it its own, with its own #1s and its own Records. Certification thresholds apply either way &mdash; a single is judged as a single wherever it charts.</p>
 
         <!-- Counting a single toward the album its song ended up on. Three
              levels because the album page and the charts are separable; the
