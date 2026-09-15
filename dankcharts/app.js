@@ -324,6 +324,10 @@ let _nmfCalMonth = tzNow().getMonth();
 let _nmfCalSelectedFriday = null;
 const PAGE_SIZE = 100;
 const pageState = { songs: 0, artists: 0, albums: 0, newSongs: 0, newArtists: 0, newAlbums: 0 };
+/* What the paginated lists were built from last time they were built. A render
+   that lands on the same signature is a redraw of the same list, so the page
+   the user is on survives it — see the reset in renderAll(). */
+let _lastPageSig = null;
 const fullData = { songs: [], artists: [], albums: [] };
 const fullNewData = { newSongs: [], newArtists: [], newAlbums: [] };
 let lastPeriodStats = null;
@@ -12801,8 +12805,16 @@ function renderAll() {
     fullData.songs   = buildSongsFull(plays, periodStats).slice(0, limSongs);
     fullData.artists = buildArtistsFull(plays, periodStats).slice(0, limArtists);
     fullData.albums  = buildAlbumsFull(plays, periodStats).slice(0, limAlbums);
-    // Reset to page 0 when period/year/view changes
-    pageState.songs = 0; pageState.artists = 0; pageState.albums = 0;
+    /* Page 0 when the list underneath genuinely changed — a different period,
+       year, album bucket or size limit. This used to fire on EVERY render,
+       which meant any in-place edit threw the reader back to the top: marking
+       a release type from the album window re-rendered the charts, and page 7
+       of the all-time albums became page 1 again. */
+    const pageSig = [currentPeriod, currentOffset, albumsChartFilter, limSongs, limArtists, limAlbums].join('|');
+    if (pageSig !== _lastPageSig) {
+      pageState.songs = 0; pageState.artists = 0; pageState.albums = 0;
+      _lastPageSig = pageSig;
+    }
 
     document.querySelector('#songsSectionTitle .section-title-text').textContent   = (isFinite(limSongs)   ? t('sec_songs_top',   { n: limSongs   }) : t('sec_songs_all',   { n: fullData.songs.length.toLocaleString()   })).replace(/^[★♦◈]\s*/, '');
     document.querySelector('#artistsSectionTitle .section-title-text').textContent = (isFinite(limArtists) ? t('sec_artists_top', { n: limArtists }) : t('sec_artists_all', { n: fullData.artists.length.toLocaleString() })).replace(/^[★♦◈]\s*/, '');
@@ -13324,8 +13336,12 @@ function renderPage(type, peaks) {
   const allData = fullData[type];
   const data = filteredData(type);
   const isFiltered = searchState[type].length > 0;
-  const page = pageState[type];
   const totalPages = Math.ceil(data.length / PAGE_SIZE);
+  /* A kept page can outlive the rows under it — delete enough scrobbles and
+     page 7 is off the end of the list. Clamped here rather than reset, so the
+     reader lands on the last real page instead of the first. */
+  if (pageState[type] > 0 && pageState[type] > totalPages - 1) pageState[type] = Math.max(0, totalPages - 1);
+  const page = pageState[type];
   const slice = data.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE);
   const max = allData[0]?.count || 1;
 
