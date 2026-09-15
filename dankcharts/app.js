@@ -14560,7 +14560,11 @@ function _crBucketAlbums(albums) {
   for (const b of order) byBucket[b] = [];
   for (const k in albums) {
     const d = albums[k];
-    (byBucket[albumBucketOf(d._album, d._artist)] || byBucket.album).push([k, d]);
+    /* The run's own tally carries the credit on the entry; the peak-map
+       tallies store a bare count, so their bucket is read back out of the
+       key. Same question, two shapes of answer. */
+    const b = d._album ? albumBucketOf(d._album, d._artist) : albumBucketOfKey(k);
+    (byBucket[b] || byBucket.album).push([k, d]);
   }
   return order.map(b => byBucket[b]).filter(g => g.length);
 }
@@ -15844,9 +15848,14 @@ function buildAllTimePeaks() {
     if (!lp[k]) lp[k] = { count: 0, firstAchieved: p.date };
     lp[k].count++;
   }
-  const albumsSorted = Object.entries(lp).sort(([, a], [, b]) => rankSort(a, b)).slice(0, chartSizeAllTime);
+  /* Separated types are their own all-time chart, so a single's all-time rank
+     is its rank among singles — the same split the chart on screen makes. */
   const albumPeakMap = {};
-  albumsSorted.forEach(([k], i) => { albumPeakMap[k] = i + 1; });
+  const albumGroups = separatedTypes().length ? _crBucketAlbums(lp) : [Object.entries(lp)];
+  for (const g of albumGroups) {
+    g.sort(([, a], [, b]) => rankSort(a, b)).slice(0, chartSizeAllTime)
+     .forEach(([k], i) => { albumPeakMap[k] = i + 1; });
+  }
 
   return { songPeakMap, artistPeakMap, albumPeakMap };
 }
@@ -15913,14 +15922,25 @@ function buildPeriodPeaks(period) {
         data.chartStatus = prevRk !== undefined ? 0 : ppEver[type].has(k) ? 1 : 2;
         data.prevRank = prevRk !== undefined ? prevRk : Infinity;
       }
+      /* Each bucket is its own chart and so its own peak: a single that led
+         the singles chart peaked at #1 there even while an album sat above it
+         on the mixed one. This is the same split _buildChartRunFull() makes,
+         which is what the badge was contradicting — the row said PEAK #2 and
+         the chart run under it said #1. Accumulated into one map and one
+         prev-rank map, or the second bucket would wipe the first's. */
+      const groups = (type === 'albums' && separatedTypes().length)
+        ? _crBucketAlbums(pm.albums)
+        : [Object.entries(pm[type])];
       const newPrev = new Map();
-      Object.entries(pm[type]).sort(([, a], [, b]) => rankSortWithStatus(a, b)).slice(0, chartSize).forEach(([k], i) => {
-        newPrev.set(k, i + 1); ppEver[type].add(k);
-        const rank = i + 1;
-        if (type === 'songs') { if (!songPeakMap[k] || rank < songPeakMap[k]) songPeakMap[k] = rank; }
-        if (type === 'artists') { if (!artistPeakMap[k] || rank < artistPeakMap[k]) artistPeakMap[k] = rank; }
-        if (type === 'albums') { if (!albumPeakMap[k] || rank < albumPeakMap[k]) albumPeakMap[k] = rank; }
-      });
+      for (const groupEntries of groups) {
+        groupEntries.sort(([, a], [, b]) => rankSortWithStatus(a, b)).slice(0, chartSize).forEach(([k], i) => {
+          newPrev.set(k, i + 1); ppEver[type].add(k);
+          const rank = i + 1;
+          if (type === 'songs') { if (!songPeakMap[k] || rank < songPeakMap[k]) songPeakMap[k] = rank; }
+          if (type === 'artists') { if (!artistPeakMap[k] || rank < artistPeakMap[k]) artistPeakMap[k] = rank; }
+          if (type === 'albums') { if (!albumPeakMap[k] || rank < albumPeakMap[k]) albumPeakMap[k] = rank; }
+        });
+      }
       ppPrev[type] = newPrev;
     }
   }
