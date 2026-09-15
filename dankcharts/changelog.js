@@ -61,6 +61,10 @@ const DC_CHANGELOG = [
 
   /* ========== SEPTEMBER 2026 ========== */
 
+  { d: '2026-09-15', t: 'fix', a: 'charts', h: 'a922768',
+    title: 'Release-type detection now finds live albums, soundtracks, and the rest of your library',
+    detail: 'Two things were keeping the scan quiet. It asked Deezer about your most-played releases first, which is exactly where singles are not — and its budget was being spent re-reading answers it already had, so scanning a second time walked the same few hundred albums and never went any deeper. It now settles what it already knows for free, spends the lookups on releases nobody has checked, tells you how many it did not reach, and carries on from there the next time you scan. Live albums and soundtracks were never detectable at all, because Deezer only knows album, single and EP: they are now read from the way the titles are labelled, so a "(Live at ...)" or an "(Original Motion Picture Soundtrack)" is recognised on sight.' },
+
   { d: '2026-09-15', t: 'fix', a: 'charts', h: '4825445',
     title: 'Deep in a chart, an edit no longer sends you back to #1',
     detail: 'Marking an album as a single or an EP from its window rebuilds the charts behind it, and every rebuild used to send the all-time and yearly lists back to their first page — so closing the window after a one-second edit cost you the place you had paged down to. The page now survives anything that leaves the list it belongs to intact. Changing period, stepping to another year or switching between the album and singles charts still starts you at the top, because those really are a different list.' },
