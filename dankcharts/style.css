@@ -30143,6 +30143,36 @@ body.red-light .modal-cb-label--tracks {
   margin-top: 0.55rem;
 }
 
+/* The charts level of the roll-up needs singles separated, so it sits there
+   visibly unavailable rather than vanishing — the row would otherwise change
+   shape depending on a setting three lines above it. */
+.rt-sep-btn.is-disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.rt-sep-btn.is-disabled:hover { color: var(--text3); }
+
+/* Says the album total counted its singles. A quiet chip beside the release
+   controls: the number above it is not the one the user would get by adding
+   up this release's own plays, and that needs saying without shouting. */
+.alb-rollup-note {
+  display: inline-flex;
+  align-items: center;
+  margin-top: 0.45rem;
+  margin-left: 0.4rem;
+  padding: 0.2rem 0.55rem;
+  border: 1px dashed currentColor;
+  border-radius: 999px;
+  opacity: 0.6;
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: currentColor;
+  cursor: help;
+}
+
 /* ── Auto-detection: settings sub-options and the review panel ── */
 .rtd-opt {
   display: flex;

@@ -585,6 +585,11 @@ function dcApplyAllSettings() {
       releaseAutodetect.deezer = savedAd.deezer !== false;
     }
   } catch (e) {}
+  try {
+    const savedRu = localStorage.getItem(SINGLE_ROLLUP_KEY);
+    const nextRu = SINGLE_ROLLUP_LEVELS.includes(savedRu) ? savedRu : 'off';
+    if (singleRollup !== nextRu) { singleRollup = nextRu; _rollupCache = null; _releaseEpoch++; }
+  } catch (e) {}
   const evSel = document.getElementById('eventsLimitSelect');
   if (evSel) evSel.value = eventsArtistLimit;
   // tmToggles is a const object — mutate in place so the TM section reflects the loaded state
@@ -1167,6 +1172,170 @@ function applyAlbumsFilterByKey(counts) {
   if (!want) return counts;
   const out = {};
   for (const k in counts) if (albumBucketOfKey(k) === want) out[k] = counts[k];
+  return out;
+}
+
+// ─── SINGLES COUNTED TOWARD THEIR ALBUM ───────────────────────
+/* A single and the album its song ended up on are two different releases, and
+   every tally in this app keys on the release — so half a song's plays can sit
+   on one and half on the other, and the album reads low. This folds a single's
+   plays back into its album the way a streaming service would.
+
+   Three levels, because the two halves of the idea are separable:
+     'off'     nothing happens. The default.
+     'modal'   the album's own page counts its singles. Charts untouched.
+     'charts'  the album's chart row, records and certification count them too,
+               while the single keeps its own row and its own figure.
+
+   The 'charts' level deliberately double-counts: a play is represented on the
+   album's entry AND on the single's. That is the point — the two entries answer
+   different questions. It is safe because nothing in the app sums album rows to
+   present a total; every headline figure (the masthead, the artist modal, plays
+   per day) counts plays directly, so no two screens can disagree.
+
+   Nothing says which single belongs to which album — scrobbles carry no release
+   metadata — so it is inferred from the one link there is: a single's track also
+   appearing on the album. */
+const SINGLE_ROLLUP_KEY = 'dc_single_rollup';
+const SINGLE_ROLLUP_LEVELS = ['off', 'modal', 'charts'];
+
+let singleRollup = (() => {
+  try {
+    const v = localStorage.getItem(SINGLE_ROLLUP_KEY);
+    return SINGLE_ROLLUP_LEVELS.includes(v) ? v : 'off';
+  } catch (e) { return 'off'; }
+})();
+
+/* The charts level needs somewhere for the single to survive: with singles
+   sitting among the albums, rolling one up would either show it twice in the
+   same chart or delete it. So it is only available once singles are Apart, and
+   it quietly falls back to 'modal' if that setting is turned off later. */
+function singleRollupLevel() {
+  if (singleRollup === 'charts' && !isTypeSeparated('single')) return 'modal';
+  return singleRollup;
+}
+
+function rollupAffectsModal()  { return singleRollupLevel() !== 'off'; }
+function rollupAffectsCharts() { return singleRollupLevel() === 'charts'; }
+
+function setSingleRollup(level) {
+  if (!SINGLE_ROLLUP_LEVELS.includes(level) || singleRollup === level) return;
+  singleRollup = level;
+  try { localStorage.setItem(SINGLE_ROLLUP_KEY, level); } catch (e) {}
+  _rollupCache = null;
+  // Album totals move, so the chart and Records caches have to retire. Play
+  // stamps do not: this changes what a play is counted toward, never how it
+  // is keyed.
+  _releaseEpoch++;
+  if (typeof dcInvalidateRecords === 'function') dcInvalidateRecords();
+}
+
+/* singleAlbumKey -> { parent, tracks }
+     parent  the album key its plays are counted toward
+     tracks  the song keys it shares with that album — the only plays that roll
+             up, so a B-side stays on the single alone and the album's total
+             still equals the sum of its track rows.
+   Null until built; rebuilt when the marks, the separation or the plays move. */
+let _rollupCache = null;
+let _rollupCacheGen = null;
+
+function _rollupGen() {
+  return _releaseEpoch + '|' + _playsVersion + '|' + _stampEpoch + '|' + singleRollup;
+}
+
+function rollupMap() {
+  const gen = _rollupGen();
+  if (_rollupCache && _rollupCacheGen === gen) return _rollupCache;
+  _rollupCacheGen = gen;
+  _rollupCache = new Map();
+  if (singleRollup === 'off') return _rollupCache;
+
+  /* One pass over the library: for every song, how many plays it has under
+     each release, and when that release first played it. Everything below
+     reads this rather than walking the plays again per single. */
+  const songAlbums = new Map();   // songKey -> Map(albumKey -> { n, first })
+  const isSingleKey = new Map();  // albumKey -> true/false, memoised
+  for (const p of allPlays) {
+    if (!p.album || p.album === '—') continue;
+    const ak = albumKeyOf(p);
+    if (!isSingleKey.has(ak)) {
+      isSingleKey.set(ak, releaseTypeOf(p.album, albumArtist(p)) === 'single');
+    }
+    const sk = songKey(p);
+    let m = songAlbums.get(sk);
+    if (!m) songAlbums.set(sk, m = new Map());
+    const e = m.get(ak);
+    const ms = msOf(p);
+    if (!e) m.set(ak, { n: 1, first: ms });
+    else { e.n++; if (ms < e.first) e.first = ms; }
+  }
+
+  // Every release marked as a single, and the songs it holds.
+  const singleTracks = new Map();  // singleKey -> Set(songKey)
+  for (const [sk, m] of songAlbums) {
+    for (const ak of m.keys()) {
+      if (!isSingleKey.get(ak)) continue;
+      let s = singleTracks.get(ak);
+      if (!s) singleTracks.set(ak, s = new Set());
+      s.add(sk);
+    }
+  }
+
+  for (const [singleKey, tracks] of singleTracks) {
+    /* Score every album that shares a track with this single, by how many
+       plays of those shared tracks it holds. Most-played wins; a tie goes to
+       whichever album played them first. Exactly one album can win, which is
+       the invariant that stops one single inflating two records. */
+    const scores = new Map();     // candidateKey -> { n, first }
+    for (const sk of tracks) {
+      const m = songAlbums.get(sk);
+      if (!m) continue;
+      for (const [ak, e] of m) {
+        if (ak === singleKey || isSingleKey.get(ak)) continue;   // singles cannot parent singles
+        const c = scores.get(ak);
+        if (!c) scores.set(ak, { n: e.n, first: e.first });
+        else { c.n += e.n; if (e.first < c.first) c.first = e.first; }
+      }
+    }
+    if (!scores.size) continue;   // a standalone single — it belongs to nothing
+    let parent = null, best = null;
+    for (const [ak, c] of scores) {
+      if (!best || c.n > best.n || (c.n === best.n && c.first < best.first)) { parent = ak; best = c; }
+    }
+    // Only the tracks the parent actually has: a B-side rolls up nowhere.
+    const shared = new Set();
+    for (const sk of tracks) {
+      const m = songAlbums.get(sk);
+      if (m && m.has(parent)) shared.add(sk);
+    }
+    if (shared.size) _rollupCache.set(singleKey, { parent, tracks: shared });
+  }
+  return _rollupCache;
+}
+
+/* The album a play should ALSO be credited to, or null. Called once per play
+   inside the chart loops at the 'charts' level, so the off path is one string
+   comparison and the on path is one Map.get plus one Set.has. */
+function rollupParentOf(p) {
+  if (singleRollup === 'off') return null;
+  const m = rollupMap();
+  if (!m.size) return null;
+  const e = m.get(albumKeyOf(p));
+  if (!e) return null;
+  return e.tracks.has(songKey(p)) ? e.parent : null;
+}
+
+// Does this play roll up into that particular album? The album modal's filter.
+function rollupBelongsTo(p, albumKey) {
+  return rollupParentOf(p) === albumKey;
+}
+
+// The singles counted toward one album, for the line the album page shows.
+function rollupSourcesFor(albumKey) {
+  const out = [];
+  for (const [singleKey, e] of rollupMap()) {
+    if (e.parent === albumKey) out.push(singleKey);
+  }
   return out;
 }
 
@@ -4611,9 +4780,23 @@ function resetCertDefaults() {
 /* Lights the chosen segment and shows a type's threshold column only while
    that type is separated — the fields do nothing otherwise. */
 function syncReleaseSeparationUI() {
-  document.querySelectorAll('.rt-sep-btn').forEach(b => {
+  document.querySelectorAll('.rt-sep-btn[data-sep]').forEach(b => {
     b.classList.toggle('active', releaseSeparation[b.dataset.sep] === b.dataset.mode);
   });
+  /* The roll-up row. singleRollupLevel() rather than the raw setting, so a
+     stored 'charts' shows as the 'modal' it actually behaves as while singles
+     are not separated. */
+  const lvl = singleRollupLevel();
+  const chartsOk = isTypeSeparated('single');
+  document.querySelectorAll('.rt-sep-btn[data-rollup]').forEach(b => {
+    b.classList.toggle('active', b.dataset.rollup === lvl);
+    const off = b.dataset.rollup === 'charts' && !chartsOk;
+    b.disabled = off;
+    b.classList.toggle('is-disabled', off);
+    b.title = off ? t('rollup_needs_apart') : '';
+  });
+  const hint = document.getElementById('rollupHint');
+  if (hint) hint.textContent = chartsOk ? t('rollup_hint') : t('rollup_hint_needs_apart');
   const colS = document.getElementById('certColSingle');
   const colE = document.getElementById('certColEp');
   if (colS) colS.style.display = isTypeSeparated('single') ? '' : 'none';
@@ -4653,6 +4836,15 @@ function setReleaseSeparationFromUI(type, mode) {
   setReleaseSeparation(type, mode);
   syncReleaseSeparationUI();
   syncAlbumsFilterBar();
+  if (typeof renderAll === 'function') renderAll();
+}
+
+function setSingleRollupFromUI(level) {
+  // The charts level is unreachable while singles sit with the albums — the
+  // button is disabled, but a stored value could still name it.
+  if (level === 'charts' && !isTypeSeparated('single')) return;
+  setSingleRollup(level);
+  syncReleaseSeparationUI();
   if (typeof renderAll === 'function') renderAll();
 }
 
@@ -6244,6 +6436,7 @@ function buildRecords() {
      another Diamond on the same record, the way the album modal already
      labels 2× and 3× Diamond. Gold and Platinum are earned once. */
   const certSongItems = {}, certAlbumItems = {};
+  const _certRoll = rollupAffectsCharts();
   const certCross = function (n, cfg) {
     // Diamond is tested first so a configuration where plat === diamond still
     // awards the higher tier instead of stopping at Platinum.
@@ -6287,6 +6480,23 @@ function buildRecords() {
       if (isComp) {
         const contribs = certAlbumItems[ak].contributors;
         for (const a of (p.artists && p.artists.length ? p.artists : [p.artist])) contribs.add(a);
+      }
+      /* The album this single counts toward certifies on the merged figure, so
+         the plaque agrees with the play count printed beside it. The same
+         plays earn the single's own plaque too — which is exactly how a real
+         certification works: a single and the album carrying it are certified
+         separately off the same listening. */
+      if (_certRoll) {
+        const par = rollupParentOf(p);
+        if (par && par !== ak) {
+          const pi = par.lastIndexOf('|||');
+          const pAlbum = par.slice(0, pi), pArtist = par.slice(pi + 3);
+          const pKind = certKindFor(pAlbum, pArtist);
+          certTouch(certAlbumItems, par, p, 'album', CERT[pKind], {
+            title: pAlbum, artist: pArtist, artists: [pArtist], album: '', certKind: pKind,
+            comp: false, contributors: null
+          });
+        }
       }
     }
   }
@@ -13070,12 +13280,26 @@ function buildArtistsFull(plays, ms) {
 
 function buildAlbumsFull(plays, ms) {
   let counts = {};
+  const roll = rollupAffectsCharts();
   for (const p of plays) {
     if (!p.album || p.album === '—') continue;
     const k = albumKeyOf(p);
     if (!counts[k]) counts[k] = { album: p.album, artist: albumArtist(p), count: 0, tracks: new Set(), firstAchieved: p.date };
     counts[k].count++;
     counts[k].tracks.add(p.title);
+    /* The same play credited a second time, to the album this single was
+       counted toward. Deliberate: the single keeps its own entry and its own
+       figure, and the album's entry reflects the plays its song actually got.
+       Nothing sums these rows, so the overlap stays on the entries. */
+    const par = roll ? rollupParentOf(p) : null;
+    if (par && par !== k) {
+      if (!counts[par]) {
+        const i = par.lastIndexOf('|||');
+        counts[par] = { album: par.slice(0, i), artist: par.slice(i + 3), count: 0, tracks: new Set(), firstAchieved: p.date };
+      }
+      counts[par].count++;
+      counts[par].tracks.add(p.title);
+    }
   }
   /* Filtered between the tally and the sort, so ranks renumber: the albums
      chart with its singles removed reads #1, #2, #3, not #1, #4, #7. A no-op
@@ -14330,6 +14554,7 @@ function _crBucketAlbums(albums) {
 function _buildChartRunFull(period) {
   const periodMap = {};
   const _isYear = period === 'year';
+  const _crRoll = rollupAffectsCharts();
   for (const p of allPlays) {
     let key;
     if (period === 'week') key = playWeekKeyOf(p);
@@ -14348,6 +14573,19 @@ function _buildChartRunFull(period) {
     const ak = albumKeyOf(p);
     if (!pm.albums[ak]) { pm.albums[ak] = { count: 0, firstAchieved: p.date, _album: p.album, _artist: albumArtist(p) }; pm.dayAlbums[ak] = new Set(); }
     pm.albums[ak].count++; pm.dayAlbums[ak].add(dayStr);
+    /* The album this single counts toward, credited in the same period the
+       play happened in — which is why the roll-up is applied here rather than
+       added to a finished total: a single played this week lifts the album
+       this week, not across the whole run. */
+    const _par = _crRoll ? rollupParentOf(p) : null;
+    if (_par && _par !== ak) {
+      if (!pm.albums[_par]) {
+        const _i = _par.lastIndexOf('|||');
+        pm.albums[_par] = { count: 0, firstAchieved: p.date, _album: _par.slice(0, _i), _artist: _par.slice(_i + 3) };
+        pm.dayAlbums[_par] = new Set();
+      }
+      pm.albums[_par].count++; pm.dayAlbums[_par].add(dayStr);
+    }
     // For yearly: track unique months per item per year. The tz-adjusted Date
     // is only needed here, so it is read inside the branch rather than for
     // every play on the week and month runs too.
@@ -14362,6 +14600,10 @@ function _buildChartRunFull(period) {
       }
       if (!pm.yrMonths.albums[ak]) pm.yrMonths.albums[ak] = new Set();
       pm.yrMonths.albums[ak].add(mo);
+      if (_par && _par !== ak) {
+        if (!pm.yrMonths.albums[_par]) pm.yrMonths.albums[_par] = new Set();
+        pm.yrMonths.albums[_par].add(mo);
+      }
     }
   }
 
@@ -15342,6 +15584,7 @@ function navigateToCrChart(period, periodKey) {
 // Handles 'week', 'month' and 'year' — All-Time has no previous period.
 function buildPeriodStats(period) {
   const now = tzNow();
+  const _bpRoll = rollupAffectsCharts();
   let curKey, prevKey;
 
   if (period === 'week') {
@@ -15381,6 +15624,13 @@ function buildPeriodStats(period) {
     const ak = albumKeyOf(p);
     if (!mm.albums[ak]) mm.albums[ak] = { count: 0, firstAchieved: p.date };
     mm.albums[ak].count++;
+    // Same double-credit, so last week's chart and this week's movement
+    // arrows describe the same numbers the chart itself is showing.
+    const _bpPar = _bpRoll ? rollupParentOf(p) : null;
+    if (_bpPar && _bpPar !== ak) {
+      if (!mm.albums[_bpPar]) mm.albums[_bpPar] = { count: 0, firstAchieved: p.date };
+      mm.albums[_bpPar].count++;
+    }
   }
 
   /* Everything below — previous chart, ever-charted, Bubbling Under, peak
@@ -15989,11 +16239,22 @@ function renderArtists(plays, peaks, monthlyStats) {
 
 function renderAlbums(plays, peaks, monthlyStats) {
   let counts = {};
+  const roll = rollupAffectsCharts();
   for (const p of plays) {
     const k = albumKeyOf(p);
     if (!counts[k]) counts[k] = { album: p.album, artist: albumArtist(p), count: 0, tracks: new Set(), firstAchieved: p.date };
     counts[k].count++;
     counts[k].tracks.add(p.title);
+    // Same double-credit as buildAlbumsFull(); see the comment there.
+    const par = roll ? rollupParentOf(p) : null;
+    if (par && par !== k) {
+      if (!counts[par]) {
+        const i = par.lastIndexOf('|||');
+        counts[par] = { album: par.slice(0, i), artist: par.slice(i + 3), count: 0, tracks: new Set(), firstAchieved: p.date };
+      }
+      counts[par].count++;
+      counts[par].tracks.add(p.title);
+    }
   }
   // Same filter, same reason as buildAlbumsFull() — and applied before the
   // Bubbling Under pool is sliced, so BU is the tail of the chart on screen.
@@ -21191,8 +21452,17 @@ function openAlbumModal(albumKey) {
   ensureAllChartRun();
 
   const [albumName, artistName] = albumKey.split('|||');
-  const albumPlays = allPlays.filter(p => (albumKeyOf(p)) === albumKey);
+  /* Plays of the singles counted toward this album join the array itself
+     rather than being added to a total afterwards, so every figure on the page
+     — first and last played, the track list, the streaks, the per-track share,
+     the certification — comes out merged without any of them being told about
+     it. Only shared tracks roll up, so the totals still add up down the page. */
+  const albumPlays = rollupAffectsModal()
+    ? allPlays.filter(p => albumKeyOf(p) === albumKey || rollupBelongsTo(p, albumKey))
+    : allPlays.filter(p => albumKeyOf(p) === albumKey);
   const totalPlays = albumPlays.length;
+  // The singles folded in, for the line under the title that says so.
+  const rolledSingles = rollupAffectsModal() ? rollupSourcesFor(albumKey) : [];
   const ek = encodeURIComponent(albumKey);
 
   // Tracks — allPlays sorted newest→oldest, so first = lastPlayed, last = firstPlayed
@@ -21291,7 +21561,14 @@ function openAlbumModal(albumKey) {
     <label class="alb-rtype-toggle${curPinned ? ' is-set' : ''}" title="${esc(t('rtype_toggle_hint'))}">
       <span>${t('rtype_toggle_label')}</span>
       <select onchange="setAlbumReleaseType(${esc(JSON.stringify(albumName))},${esc(JSON.stringify(artistName))},this.value)">${opts}</select>
-    </label>`;
+    </label>` +
+    /* A merged total has to say so, or the page silently disagrees with the
+       chart the user came from. Names the singles it counted, because which
+       ones were attached is a guess the app made and the user should be able
+       to check it. */
+    (rolledSingles.length
+      ? `<span class="alb-rollup-note" title="${esc(rolledSingles.map(k => k.split('|||')[0]).join(' · '))}">${esc(t(rolledSingles.length === 1 ? 'rollup_note' : 'rollup_note_other', { n: rolledSingles.length }))}</span>`
+      : '');
   }
 
   // ── IMAGE ─────────────────────────────────────────────────────────────────

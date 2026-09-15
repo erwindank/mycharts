@@ -27,7 +27,7 @@
   <!-- html2canvas, SheetJS (xlsx) and JSZip are intentionally NOT loaded here — they
        total ~1.2 MB and are only needed for image exports and Excel/ZIP imports.
        app.js pulls them from the CDN on first use (see ensureLazyLib). -->
-  <link rel="stylesheet" href="style.css?v=239">
+  <link rel="stylesheet" href="style.css?v=240">
   <!-- All scripts are deferred so the page paints without waiting on them.
        defer preserves execution order, which matters: translations → Chart.js →
        hammer → zoom plugin → firebase SDKs → firebase.js → app.js (in body). -->
@@ -4187,6 +4187,20 @@ function deleteGenreTriggers() {
           </div>
         </div>
         <p class="src-modal-hint rt-sep-hint" data-i18n="rtype_sep_hint">Apart pulls that type out of the albums chart and gives it its own, with its own #1s and its own certification thresholds above.</p>
+
+        <!-- Counting a single toward the album its song ended up on. Three
+             levels because the album page and the charts are separable; the
+             charts level needs singles Apart or the single has nowhere to
+             survive, so it disables itself and says why. -->
+        <div class="set-row rt-sep-row">
+          <span class="rt-sep-label" data-i18n="rollup_label">Count singles toward their album</span>
+          <div class="rt-sep-seg" role="group">
+            <button type="button" class="rt-sep-btn" data-rollup="off" onclick="setSingleRollupFromUI('off')" data-i18n="rollup_off">Off</button>
+            <button type="button" class="rt-sep-btn" data-rollup="modal" onclick="setSingleRollupFromUI('modal')" data-i18n="rollup_modal">Album pages</button>
+            <button type="button" class="rt-sep-btn" data-rollup="charts" onclick="setSingleRollupFromUI('charts')" data-i18n="rollup_charts">Pages &amp; charts</button>
+          </div>
+        </div>
+        <p class="src-modal-hint rt-sep-hint" id="rollupHint" data-i18n="rollup_hint">A single's plays are counted toward the album its song appears on, the way a streaming service shows them. The single keeps its own entry and its own count either way.</p>
       </div>
 
       <div class="cert-config-group">
