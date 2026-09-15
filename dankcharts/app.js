@@ -2331,7 +2331,19 @@ const RT_TITLE_RULES = [
   { re: /[([\[]\s*single\s*[)\]]\s*$/i,     t: 'single' },
   { re: /[\s]*[-–—][\s]*ep\s*$/i,           t: 'ep' },
   { re: /[([\[]\s*ep\s*[)\]]\s*$/i,         t: 'ep' },
-  { re: /[\s]*[-–—][\s]*single\s+version\s*$/i, t: 'single' }
+  { re: /[\s]*[-–—][\s]*single\s+version\s*$/i, t: 'single' },
+  /* Live and soundtrack are the two types Deezer cannot help with: its
+     record_type knows only album / single / ep / compilation, so a live album
+     and a soundtrack both come back "album". The title is the only signal
+     there is, and both kinds are labelled by convention — fenced at the end of
+     the name, which is the same delimited shape the rules above insist on.
+     A venue may follow ("Live at Wembley"), so the tag is allowed a tail
+     inside its brackets, but never a bare /live/ that would eat "Alive" or
+     "Live Your Life". */
+  { re: /[\s]*[-–—][\s]*live(\s+(?:at|from|in|on)\s+.+)?\s*$/i,        t: 'live' },
+  { re: /[([\[]\s*live(\s+(?:at|from|in|on)\s+[^)\]]+)?\s*[)\]]\s*$/i, t: 'live' },
+  { re: /[([\[][^)\]]*\b(?:soundtrack|original\s+score|cast\s+recording|music\s+from\s+the\s+(?:motion\s+picture|film|series|show))\b[^)\]]*[)\]]\s*$/i, t: 'soundtrack' },
+  { re: /[\s]*[-–—][\s]*(?:original\s+)?soundtrack\s*$/i,             t: 'soundtrack' }
 ];
 
 // The type the title claims, or null. Sync and free — no network, no cache.
@@ -2363,6 +2375,12 @@ function _rtLibraryReleases() {
   return Object.values(seen).sort((a, b) => b.count - a.count);
 }
 
+/* How many releases one run may ask Deezer about. A library runs to thousands
+   and the proxy is shared, so a sweep is bounded and cancellable rather than a
+   stampede — but the run now advances through the library instead of stopping
+   at the same place every time, so "Scan again" reaches the rest. */
+const RT_SCAN_NETWORK_LIMIT = 1000;
+
 /* State of a scan in flight. Held at module level so the panel can render
    progress and the Stop button can reach it. */
 let rtScan = null;
@@ -2380,7 +2398,7 @@ async function rtStartScan(opts) {
   if (rtScanRunning()) return;
   const useTitle  = releaseAutodetect.title;
   const useDeezer = releaseAutodetect.deezer;
-  const limit = (opts && opts.limit) || 400;
+  const limit = (opts && opts.limit) || RT_SCAN_NETWORK_LIMIT;
 
   const all = _rtLibraryReleases();
   const candidates = all.filter(r => releaseTypeSource(r.album, r.artist) !== 'user');
@@ -2388,7 +2406,8 @@ async function rtStartScan(opts) {
   rtScan = {
     done: false, cancelled: false,
     total: candidates.length, checked: 0, networkChecked: 0,
-    limit, proposals: [], skippedUser: all.length - candidates.length
+    limit, proposals: [], skippedUser: all.length - candidates.length,
+    remaining: 0
   };
   renderRtScanPanel();
 
@@ -2397,20 +2416,37 @@ async function rtStartScan(opts) {
     rtScan.proposals.push({ ...r, type, reason, pick: true });
   };
 
-  // ── Pass 1: titles. Free, so it runs over the whole library. ──
+  // ── Pass 1: titles, plus anything Deezer has already answered. Free, so
+  //    it runs over the whole library. ──
   const needNetwork = [];
   for (const r of candidates) {
     if (rtScan.cancelled) break;
     const byTitle = useTitle ? detectTypeFromTitle(r.album) : null;
     if (byTitle) { propose(r, byTitle, 'title'); rtScan.checked++; continue; }
-    if (useDeezer) needNetwork.push(r); else rtScan.checked++;
+    if (!useDeezer) { rtScan.checked++; continue; }
+    /* Settled without a request: either an earlier scan asked about this one,
+       or its cover art was loaded at some point. This is what makes a second
+       scan go DEEPER instead of re-walking the same head of the library —
+       the cap used to be spent re-reading cached answers, so the releases past
+       it could never be reached at all. */
+    const known = deezerKnownReleaseType(r.album, r.artist);
+    if (known !== undefined) {
+      const rt = _rtFromDeezer(known);
+      if (rt) propose(r, rt, 'deezer');
+      rtScan.checked++;
+      continue;
+    }
+    needNetwork.push(r);
   }
 
   // ── Pass 2: Deezer, capped and heaviest-first. ──
   if (useDeezer && !rtScan.cancelled) {
     const queue = needNetwork.slice(0, limit);
     rtScan.pending = queue.length;
-    rtScan.checked += needNetwork.length - queue.length;   // the uncapped tail
+    /* What this run will not reach. Reported rather than counted as done: a
+       progress bar that fills up while most of the library was never looked at
+       is how this went unnoticed in the first place. */
+    rtScan.remaining = needNetwork.length - queue.length;
     /* Four at a time. The proxy is a shared endpoint and a library can hold
        thousands of albums, so this walks rather than stampedes. */
     let next = 0;
@@ -2512,10 +2548,18 @@ function renderRtScanPanel() {
     html += `<div class="rtd-done">${esc(t('rtd_applied', { n: rtScan.applied }))}</div>`;
   }
 
+  /* A run is capped, so "nothing found" can mean "nothing in the part of the
+     library this run reached". Saying which is the difference between a
+     feature that looks broken and one the user knows to run again. */
+  const moreNote = rtScan.remaining
+    ? `<div class="rtd-note">${esc(t('rtd_more_to_scan', { n: rtScan.remaining.toLocaleString() }))}</div>`
+    : '';
+
   const props = rtScan.proposals;
   if (!props.length) {
     html += `<div class="rtd-idle">
       <p class="rtd-idle-text">${esc(rtScan.applied ? t('rtd_nothing_left') : t('rtd_nothing_found'))}</p>
+      ${moreNote}
       <button class="rtd-scan-btn" onclick="rtScan=null;rtStartScan()">${esc(t('rtd_rescan'))}</button>
     </div>`;
     el.innerHTML = html;
@@ -2534,6 +2578,7 @@ function renderRtScanPanel() {
     const nSk = rtScan.skippedUser;
     html += `<div class="rtd-note">${esc(t(nSk === 1 ? 'rtd_skipped_user_one' : 'rtd_skipped_user_other', { n: nSk }))}</div>`;
   }
+  html += moreNote;
 
   // Grouped by proposed type so a whole group can be judged at a glance.
   for (const id of RELEASE_TYPE_IDS) {
@@ -3170,6 +3215,16 @@ async function deezerReleaseType(album, artist) {
   // confident match for is not asked about again in this session.
   if (!(k in deezerAlbumTypeCache)) deezerAlbumTypeCache[k] = null;
   return deezerAlbumTypeCache[k];
+}
+
+/* What Deezer has already said about a release, without asking again: a
+   record_type, null if it was asked and had no confident match, or undefined
+   if nobody has ever looked. Loading cover art fills this in as a side effect
+   (record_type rides along in the same response), so a browsed library comes
+   to a scan already part-answered — and the scan can spend its budget on the
+   releases nobody has looked at. */
+function deezerKnownReleaseType(album, artist) {
+  return deezerAlbumTypeCache[artist.toLowerCase() + '|||' + album.toLowerCase()];
 }
 
 async function deezerAlbumImage(album, artist) {
