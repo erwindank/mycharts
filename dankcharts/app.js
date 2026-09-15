@@ -14530,6 +14530,16 @@ function _crCurKey(period) {
   return String(now.getFullYear() - currentOffset);
 }
 
+/* The Top N a given type is cut to for a given period. Pulled out of the run
+   builder so the box preview can quote exactly the chart the run ranked —
+   it used to slice by the `chartSize` global, which is whatever section
+   rendered last. */
+function crSizeForType(type, period) {
+  if (type === 'artists') return period === 'year' ? chartSizeArtistsY : period === 'month' ? chartSizeArtistsM : chartSizeArtistsW;
+  if (type === 'albums')  return period === 'year' ? chartSizeAlbumsY  : period === 'month' ? chartSizeAlbumsM  : chartSizeAlbumsW;
+  return period === 'year' ? chartSizeSongsY : period === 'month' ? chartSizeSongsM : chartSizeSongsW;
+}
+
 /* Builds the chart run across the WHOLE history, with no cutoff.
 
    The old code rebuilt this from scratch on every render, cut off at the
@@ -14620,9 +14630,9 @@ function _buildChartRunFull(period) {
   // Each type's own per-period SIZE setting — not one shared (Songs-only) size —
   // so the Artists/Albums SIZE bar actually affects their chart-run truncation.
   const sizeByType = {
-    songs:   period === 'year' ? chartSizeSongsY   : period === 'month' ? chartSizeSongsM   : chartSizeSongsW,
-    artists: period === 'year' ? chartSizeArtistsY : period === 'month' ? chartSizeArtistsM : chartSizeArtistsW,
-    albums:  period === 'year' ? chartSizeAlbumsY  : period === 'month' ? chartSizeAlbumsM  : chartSizeAlbumsW,
+    songs:   crSizeForType('songs', period),
+    artists: crSizeForType('artists', period),
+    albums:  crSizeForType('albums', period),
   };
   for (const pk of Object.keys(periodMap).sort()) {
     const pm = periodMap[pk];
@@ -15350,7 +15360,22 @@ function showCrPreview(periodKey, type, encodedKey, boxEl, periodName) {
   const period = crData.period;
   const title = crPeriodTitle(period, periodKey);
   const typeLabels = { songs: t('rec_th_songs'), artists: t('rec_th_artists'), albums: t('rec_th_albums') };
-  const ranked = Object.entries(pm[type]).sort(([, a], [, b]) => rankSortWithStatus(a, b)).slice(0, Math.min(chartSize, 30));
+  /* Once a type is separated, the album side of a period is several charts and
+     not one — _buildChartRunFull() ranks each bucket on its own. So a single's
+     box carries its rank on the singles chart, and this list has to be that
+     same chart: pooling every bucket printed the albums chart underneath a
+     rank that never came from it. Bucket read off the period entry the way
+     _crBucketAlbums() reads it, with the key as the fallback for a release
+     that somehow isn't in this period's map. */
+  let pool = Object.entries(pm[type]);
+  let typeLabel = typeLabels[type];
+  if (type === 'albums' && separatedTypes().length) {
+    const kd = pm.albums[key];
+    const bucket = kd ? albumBucketOf(kd._album, kd._artist) : albumBucketOfKey(key);
+    pool = pool.filter(([, d]) => albumBucketOf(d._album, d._artist) === bucket);
+    if (bucket !== 'album') typeLabel = t('rtype_' + bucket + '_plural');
+  }
+  const ranked = pool.sort(([, a], [, b]) => rankSortWithStatus(a, b)).slice(0, Math.min(crSizeForType(type, period), 30));
   let items = ranked.map(([k, data], i) => {
     const rank = i + 1;
     const isActive = (k === key);
@@ -15364,7 +15389,7 @@ function showCrPreview(periodKey, type, encodedKey, boxEl, periodName) {
   popup.className = 'cr-preview';
   popup.id = 'crPreviewPopup';
   popup.style.position = 'fixed';
-  popup.innerHTML = `<button class="cr-preview-close" onclick="hideCrPreview()">✕</button><div class="cr-preview-title"><a class="cr-preview-link" href="#chart/${period}/${periodKey}" onclick="event.preventDefault();navigateToCrChart('${period}','${periodKey}')">${esc(title)}</a> · ${typeLabels[type]}</div>${items}`;
+  popup.innerHTML = `<button class="cr-preview-close" onclick="hideCrPreview()">✕</button><div class="cr-preview-title"><a class="cr-preview-link" href="#chart/${period}/${periodKey}" onclick="event.preventDefault();navigateToCrChart('${period}','${periodKey}')">${esc(title)}</a> · ${esc(typeLabel)}</div>${items}`;
   document.body.appendChild(popup);
   // Position near box
   const rect = boxEl.getBoundingClientRect();
