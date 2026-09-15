@@ -1040,6 +1040,9 @@ const TRANSLATIONS = {
 
     // Footer
     footer_line1: "dankcharts.fm · Erwin's Personal Music Charts · Est. 2016",
+    footer_changelog: 'What’s New',
+    cl_title: 'What’s New',
+    cl_search: 'Search every change…',
     footer_line2: 'All data stays in your browser. Nothing is uploaded or stored externally.',
 
     // Modal
@@ -2504,6 +2507,9 @@ const TRANSLATIONS = {
 
     // Footer
     footer_line1: "dankcharts.fm · Rankings Personales de Música de Erwin · Est. 2016",
+    footer_changelog: 'Novedades',
+    cl_title: 'Novedades',
+    cl_search: 'Busca en todos los cambios…',
     footer_line2: 'Todos los datos permanecen en tu navegador. No se sube ni almacena nada externamente.',
 
     // Modal
@@ -3958,6 +3964,9 @@ const TRANSLATIONS = {
 
     // Footer
     footer_line1: "dankcharts.fm · Paradas Musicais Pessoais do Erwin · Est. 2016",
+    footer_changelog: 'Novidades',
+    cl_title: 'Novidades',
+    cl_search: 'Pesquisar todas as mudanças…',
     footer_line2: 'Todos os dados ficam no seu navegador. Nada é enviado ou armazenado externamente.',
 
     // Modal
@@ -5411,6 +5420,9 @@ const TRANSLATIONS = {
 
     // Footer
     footer_line1: "dankcharts.fm · Tops Pessoais de Música do Erwin · Est. 2016",
+    footer_changelog: 'Novidades',
+    cl_title: 'Novidades',
+    cl_search: 'Pesquisar todas as alterações…',
     footer_line2: 'Todos os dados ficam no seu navegador. Nada é enviado ou armazenado externamente.',
 
     // Modal

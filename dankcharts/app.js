@@ -37400,16 +37400,6 @@ function dcRenderChartsGuideView() {
     { q: 'What period does "Your Soundtrack" cover?', a: 'Whichever you pick — a single month, a full year, or your entire history. The buttons at the top of the tab switch between the three, and the arrows step through months or years from there.' },
   ];
 
-  /* ── Changelog ────────────────────────────────────────────────── */
-  const changelog = [
-    { version: 'Aug 2026', items: ['Charts Guide rebuilt as six numbered chapters, ordered the way a new user actually asks questions', 'New first-visit welcome gate that routes you to the tour or the guide', 'Guided tour extended to eleven steps and now explains how a chart row is read', 'New "How Charts Work" chapter covering periods, ranking, movement, peaks and autocorrect', 'Guided tour now opens the real ⋮ chart-options menu and walks its four tabs, instead of describing it twice'] },
-    { version: 'Jun 2026', items: ['Added the Charts Guide tab', 'Split the navigation bar into two rows: chart views on top, insight views below'] },
-    { version: 'May 2026', items: ['Music player overhaul: 12 queue management improvements', 'Collapse All toggle bar above chart sections', 'Redesigned light themes: white cards on tinted page backgrounds'] },
-    { version: 'Apr 2026', items: ['Real-life awards panel in the Awards tab', 'New Music Friday integration in Events', 'Time Machine section in the Playlists tab'] },
-    { version: 'Mar 2026', items: ['Your Soundtrack: era-song detection algorithm', 'Graveyard view in Graphs for dormant artists', 'Firestore sync for autocorrect rules across devices'] },
-    { version: 'Feb 2026', items: ['Records tab: chart run statistics and all-time bests', 'Streak banners on weekly charts', 'CSV file upload as a third data source option'] },
-  ];
-
   /* ── Export & share walkthroughs ──────────────────────────────── */
   const exportGuide = [
     { icon: '🖼', title: 'Image Card (PNG)', steps: ['Open any Weekly, Monthly or Yearly chart', 'Open the ⋮ menu in the section header', 'Choose the image card export', 'Adjust format, layout and font sizes, then Download'] },
@@ -37716,14 +37706,16 @@ function dcRenderChartsGuideView() {
     </div>
   </div>`;
 
-  h += foldHead('changelog', "What's new");
-  h += `<div class="cg-collapsible" id="cg-changelog-body" style="display:none">
-    <div class="cg-changelog">
-      ${changelog.map(entry => `<div class="cg-cl-entry">
-        <div class="cg-cl-version">${esc(entry.version)}</div>
-        <ul class="cg-cl-items">${entry.items.map(i => `<li>${esc(i)}</li>`).join('')}</ul>
-      </div>`).join('')}
-    </div>
+  /* The changelog itself lives in the footer overlay, not here. A guide is
+     read once; a changelog is checked again and again, and burying the
+     second kind inside the first is how it went unread. This is the
+     signpost, and the count comes from the real list so it cannot go stale. */
+  h += `<div class="cg-sub-label">What's new</div>
+  <div class="cg-panel cg-changelog-pointer">
+    <p>Every change to dankcharts.fm since April 2026 — ${
+      typeof DC_CHANGELOG !== 'undefined' ? DC_CHANGELOG.length : ''
+    } of them, searchable and filterable by what changed and where.</p>
+    <button class="cg-mini-btn" onclick="openChangelog()">Open the changelog</button>
   </div>`;
 
   const savedFeedback = (() => { try { return localStorage.getItem('dc_guide_feedback') || ''; } catch(e) { return ''; } })();
@@ -37743,6 +37735,199 @@ function dcRenderChartsGuideView() {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
+// CHANGELOG - THE RECORD OF EVERY CHANGE
+// ===========================================================================
+// Reads DC_CHANGELOG from changelog.js and renders it as a full-screen overlay
+// opened from the page footer.
+//
+// It deliberately does NOT live in the Charts Guide. The guide answers "how do
+// I use this" and is meant to be read once; the changelog answers "what
+// changed" and is meant to be checked again and again. Burying a thing you
+// return to inside a thing you read once is how it got missed before.
+//
+// Every entry is rendered once on first open and then filtered by toggling a
+// hidden attribute, rather than re-rendering. Seven hundred rows is nothing for
+// the DOM, and keeping the nodes alive means an open detail stays open while
+// you narrow the filters around it.
+
+let dcChangelogBuilt = false;
+
+/* Which type/area pills are currently on. Empty set = no filter (show all). */
+const dcClActiveTypes = new Set();
+const dcClActiveAreas = new Set();
+
+function openChangelog() {
+  const m = document.getElementById('changelogModal');
+  if (!m) return;
+  if (!dcChangelogBuilt) { dcRenderChangelog(); dcChangelogBuilt = true; }
+  m.classList.add('open');
+  document.body.style.overflow = 'hidden';   // the overlay scrolls, not the page
+  // Deep link, so a specific changelog can be sent to someone.
+  if (location.hash !== '#changelog') history.replaceState(null, '', '#changelog');
+}
+
+function closeChangelog() {
+  const m = document.getElementById('changelogModal');
+  if (!m) return;
+  m.classList.remove('open');
+  document.body.style.overflow = '';
+  if (location.hash === '#changelog') history.replaceState(null, '', location.pathname + location.search);
+}
+
+/* Month label for a grouping key like "2026-04". */
+function dcClMonthLabel(key) {
+  const parts = key.split('-');
+  const names = ['January','February','March','April','May','June',
+                 'July','August','September','October','November','December'];
+  return names[parseInt(parts[1], 10) - 1] + ' ' + parts[0];
+}
+
+function dcRenderChangelog() {
+  const body = document.getElementById('clBody');
+  if (!body || typeof DC_CHANGELOG === 'undefined') return;
+
+  /* -- Header stats -------------------------------------------------- */
+  const counts = {};
+  DC_CHANGELOG.forEach(e => { counts[e.t] = (counts[e.t] || 0) + 1; });
+  const oldest = DC_CHANGELOG.length ? DC_CHANGELOG[DC_CHANGELOG.length - 1].d : '';
+  const since  = oldest ? dcClMonthLabel(oldest.slice(0, 7)) : '';
+  const stats  = document.getElementById('clStats');
+  if (stats) {
+    stats.innerHTML =
+      '<span class="cl-stat"><b>' + DC_CHANGELOG.length + '</b> changes</span>' +
+      Object.keys(DC_CL_TYPES).filter(t => counts[t]).map(t =>
+        '<span class="cl-stat"><b>' + counts[t] + '</b> ' +
+        esc(DC_CL_TYPES[t].label.toLowerCase()) + '</span>').join('') +
+      (since ? '<span class="cl-stat cl-stat-since">since ' + esc(since) + '</span>' : '');
+  }
+
+  /* -- Filter pills --------------------------------------------------- */
+  const typeWrap = document.getElementById('clTypeFilters');
+  if (typeWrap) {
+    typeWrap.innerHTML = Object.keys(DC_CL_TYPES)
+      .filter(t => counts[t])
+      .map(t => '<button class="cl-pill cl-pill-' + DC_CL_TYPES[t].cls + '" data-cltype="' + esc(t) + '"' +
+                ' onclick="dcClTogglePill(&quot;type&quot;,&quot;' + esc(t) + '&quot;,this)">' +
+                esc(DC_CL_TYPES[t].label) + '</button>')
+      .join('');
+  }
+  const areaWrap = document.getElementById('clAreaFilters');
+  if (areaWrap) {
+    const areaCounts = {};
+    DC_CHANGELOG.forEach(e => { areaCounts[e.a] = (areaCounts[e.a] || 0) + 1; });
+    areaWrap.innerHTML = Object.keys(DC_CL_AREAS)
+      .filter(a => areaCounts[a])
+      .map(a => '<button class="cl-pill cl-pill-area" data-clarea="' + esc(a) + '"' +
+                ' onclick="dcClTogglePill(&quot;area&quot;,&quot;' + esc(a) + '&quot;,this)">' +
+                esc(DC_CL_AREAS[a]) + ' <span class="cl-pill-n">' + areaCounts[a] + '</span></button>')
+      .join('');
+  }
+
+  /* -- Entries, grouped by month -------------------------------------- */
+  let h = '', lastMonth = '';
+  DC_CHANGELOG.forEach((e, i) => {
+    const month = e.d.slice(0, 7);
+    if (month !== lastMonth) {
+      if (lastMonth) h += '</div>';
+      h += '<div class="cl-month" data-clmonth="' + esc(month) + '">' +
+           '<div class="cl-month-head"><span>' + esc(dcClMonthLabel(month)) + '</span></div>';
+      lastMonth = month;
+    }
+    const ty  = DC_CL_TYPES[e.t] || { label: e.t, cls: 'data' };
+    const day = parseInt(e.d.slice(8, 10), 10);
+    /* Search haystack precomputed into an attribute - filtering 700 rows on
+       every keystroke should not be reading textContent out of the DOM. */
+    const hay = (e.title + ' ' + (e.detail || '') + ' ' +
+                 (DC_CL_AREAS[e.a] || '') + ' ' + ty.label).toLowerCase();
+    h += '<div class="cl-entry" data-cli="' + i + '" data-clt="' + esc(e.t) + '"' +
+         ' data-cla="' + esc(e.a) + '" data-clhay="' + esc(hay) + '">' +
+         '<button class="cl-entry-head" onclick="dcClToggleEntry(' + i + ')" aria-expanded="false">' +
+           '<span class="cl-day">' + day + '</span>' +
+           '<span class="cl-badge cl-badge-' + ty.cls + '">' + esc(ty.label) + '</span>' +
+           '<span class="cl-entry-title">' + esc(e.title) + '</span>' +
+           '<span class="cl-entry-area">' + esc(DC_CL_AREAS[e.a] || '') + '</span>' +
+           '<span class="cl-chev" aria-hidden="true">&rsaquo;</span>' +
+         '</button>' +
+         '<div class="cl-entry-detail" id="cl-detail-' + i + '" hidden>' +
+           '<p>' + esc(e.detail || '') + '</p>' +
+           (e.h ? '<span class="cl-hash">' + esc(e.h) + '</span>' : '') +
+         '</div>' +
+       '</div>';
+  });
+  if (lastMonth) h += '</div>';
+  h += '<div class="cl-empty" id="clEmpty" hidden>Nothing matches those filters.</div>';
+  body.innerHTML = h;
+}
+
+/* Expand or collapse one entry's detail. */
+function dcClToggleEntry(i) {
+  const d = document.getElementById('cl-detail-' + i);
+  if (!d) return;
+  const open = !d.hidden;
+  d.hidden = open;
+  const head = d.parentElement.querySelector('.cl-entry-head');
+  if (head) head.setAttribute('aria-expanded', String(!open));
+  d.parentElement.classList.toggle('cl-entry-open', !open);
+}
+
+/* Pills are additive within a row and AND across rows: picking Fix and Charts
+   means fixes in Charts; picking Fix and New means either kind. */
+function dcClTogglePill(kind, val, btn) {
+  const set = kind === 'type' ? dcClActiveTypes : dcClActiveAreas;
+  if (set.has(val)) { set.delete(val); btn.classList.remove('on'); }
+  else              { set.add(val);    btn.classList.add('on');    }
+  dcChangelogFilter();
+}
+
+function dcChangelogFilter() {
+  const qEl = document.getElementById('clSearch');
+  const q   = (qEl ? qEl.value : '').trim().toLowerCase();
+  let shown = 0;
+
+  document.querySelectorAll('#clBody .cl-entry').forEach(el => {
+    const okT = !dcClActiveTypes.size || dcClActiveTypes.has(el.dataset.clt);
+    const okA = !dcClActiveAreas.size || dcClActiveAreas.has(el.dataset.cla);
+    const okQ = !q || (el.dataset.clhay || '').indexOf(q) !== -1;
+    const ok  = okT && okA && okQ;
+    el.hidden = !ok;
+    if (ok) shown++;
+  });
+
+  /* A month heading with nothing under it is noise, so it goes too. */
+  document.querySelectorAll('#clBody .cl-month').forEach(m => {
+    m.hidden = !m.querySelector('.cl-entry:not([hidden])');
+  });
+
+  const empty = document.getElementById('clEmpty');
+  if (empty) empty.hidden = shown > 0;
+}
+
+/* Close on Escape, and open straight away if the page was loaded at
+   #changelog so the deep link actually lands somewhere. */
+document.addEventListener('keydown', function (ev) {
+  if (ev.key === 'Escape') {
+    const m = document.getElementById('changelogModal');
+    if (m && m.classList.contains('open')) { ev.stopPropagation(); closeChangelog(); }
+  }
+}, true);
+
+window.addEventListener('DOMContentLoaded', function () {
+  if (location.hash === '#changelog') openChangelog();
+});
+
+/* Arriving at #changelog from a link on a page that is already loaded is a
+   same-document navigation: no reload, no DOMContentLoaded. Without this, a
+   pasted deep link only works on a cold load, which is the one case nobody
+   tests by hand. Also lets the back button close the overlay. */
+window.addEventListener('hashchange', function () {
+  const m = document.getElementById('changelogModal');
+  if (!m) return;
+  const open = m.classList.contains('open');
+  if (location.hash === '#changelog' && !open) openChangelog();
+  else if (location.hash !== '#changelog' && open) closeChangelog();
+});
+
 // RATINGS — CRITICAL EVALUATION SYSTEM
 // ═══════════════════════════════════════════════════════════════════════════
 // Lets the user review their own library the way a critic does: every song is

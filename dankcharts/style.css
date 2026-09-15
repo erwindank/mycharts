@@ -28142,30 +28142,14 @@ body.red-light .modal-cb-label--tracks {
     .cg-tl-date  { font-size: 0.75rem; color: var(--accent); font-family: var(--font-mono); margin-top: 0.1rem; }
     .cg-tl-detail { font-size: 0.75rem; color: var(--text3); margin-top: 0.1rem; }
 
-    /* ── 6 · Changelog ───────────────────────────────────── */
-    .cg-changelog {
-      background: var(--bg2);
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      overflow: hidden;
-    }
-    .cg-cl-entry { padding: 0.75rem 1rem; border-bottom: 1px solid var(--border); }
-    .cg-cl-entry:last-child { border-bottom: none; }
-    .cg-cl-version {
-      font-family: var(--font-mono);
-      font-size: 0.72rem;
-      font-weight: 700;
-      color: var(--accent);
-      text-transform: uppercase;
-      letter-spacing: 0.06em;
-      margin-bottom: 0.3rem;
-    }
-    .cg-cl-items {
-      margin: 0;
-      padding-left: 1.1rem;
-      font-size: 0.8rem;
-      color: var(--text3);
+    /* ── 6 · Changelog pointer ─────────────────── */
+    /* The changelog itself is the footer overlay (.cl-box); this is only the
+       signpost to it, so it stays a single panel with one button. */
+    .cg-changelog-pointer p {
+      margin: 0 0 0.7rem;
+      font-size: 0.82rem;
       line-height: 1.6;
+      color: var(--text2);
     }
 
     /* ── 19 · Export grid ────────────────────────────────── */
@@ -31373,3 +31357,268 @@ body.red-light .modal-cb-label--tracks {
       grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
       gap: 0.4rem 1.4rem;
     }
+
+
+/* ===========================================================================
+   CHANGELOG OVERLAY
+   ===========================================================================
+   Opened from the page footer, not from a tab. A long reference list, so the
+   header (stats, search, filters) is sticky and only the entry list scrolls -
+   otherwise the filters scroll away exactly when a long list needs them most.
+
+   Every colour is a token. The badge hues reuse the semantic colours already
+   defined per theme (--green, --amber, --teal...), so the changelog inherits
+   all ten themes without a single theme-specific rule of its own.
+   ------------------------------------------------------------------------ */
+
+.cl-box {
+  max-width: 940px;
+  margin: 0 auto;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  box-shadow: var(--shadow-3);
+  display: flex;
+  flex-direction: column;
+  /* .modal-overlay pads 2rem top/bottom; the box takes what is left so the
+     inner list, not the page, is the thing that scrolls. */
+  max-height: calc(100vh - 4rem);
+  overflow: hidden;
+}
+
+/* -- Sticky header ------------------------------------------------------- */
+.cl-head {
+  padding: 1.1rem 1.3rem 0.85rem;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg3);
+  flex: 0 0 auto;
+}
+
+.cl-head-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0.55rem;
+}
+
+.cl-title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.35rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--text);
+}
+
+.cl-close {
+  flex: 0 0 auto;
+  padding: 0.35rem 0.7rem;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--bg2);
+  color: var(--text2);
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.06em;
+  cursor: pointer;
+  transition: color var(--t-fast) var(--ease), border-color var(--t-fast) var(--ease);
+}
+.cl-close:hover { color: var(--text); border-color: var(--accent); }
+
+/* Stat strip: the shape of the whole history in one line. */
+.cl-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem 0.9rem;
+  margin-bottom: 0.7rem;
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  color: var(--text3);
+  letter-spacing: 0.02em;
+}
+.cl-stats b { color: var(--accent); font-weight: 700; }
+.cl-stat-since { opacity: 0.75; font-style: italic; }
+
+.cl-search {
+  width: 100%;
+  padding: 0.5rem 0.7rem;
+  margin-bottom: 0.6rem;
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  background: var(--bg2);
+  color: var(--text);
+  font-family: var(--font-sans);
+  font-size: 0.84rem;
+}
+.cl-search:focus { outline: none; border-color: var(--accent); }
+.cl-search::placeholder { color: var(--text3); }
+
+/* -- Filter pills -------------------------------------------------------- */
+.cl-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+.cl-filters-area { margin-top: 0.35rem; }
+
+.cl-pill {
+  padding: 0.24rem 0.6rem;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--bg2);
+  color: var(--text3);
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: color var(--t-fast) var(--ease), border-color var(--t-fast) var(--ease),
+              background var(--t-fast) var(--ease);
+}
+.cl-pill:hover { color: var(--text); border-color: var(--text3); }
+
+/* Selected pill: a tinted wash plus an accent border, NOT a solid accent fill.
+   A solid fill would need --on-accent, and --on-accent is #fff everywhere
+   except yellow-dark — but navy-dark, purple, red and pink all have light
+   accents too (#58aaf6, #8f80f8, #f65454, #f65cb2), so white on them measures
+   2.5-3.4:1. Tinting instead keeps the label on --text, which every theme
+   already tunes for contrast against its own surfaces, and the border carries
+   the "on" signal. Measured 7.5:1 or better on all ten themes. */
+.cl-pill.on {
+  background: color-mix(in srgb, var(--accent) 20%, var(--bg2));
+  border-color: var(--accent);
+  color: var(--text);
+  font-weight: 600;
+}
+.cl-pill-n { opacity: 0.6; margin-left: 0.15rem; }
+
+/* -- Scrolling entry list ------------------------------------------------ */
+.cl-body {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  padding: 0 1.3rem 1.3rem;
+}
+
+.cl-month-head {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  padding: 0.85rem 0 0.45rem;
+  background: var(--bg2);
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text3);
+  border-bottom: 1px solid var(--border);
+}
+
+/* -- One entry ----------------------------------------------------------- */
+.cl-entry { border-bottom: 1px solid var(--border-t); }
+
+.cl-entry-head {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.55rem 0.2rem;
+  border: 0;
+  background: none;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+  font-family: var(--font-sans);
+}
+.cl-entry-head:hover .cl-entry-title { color: var(--accent); }
+
+.cl-day {
+  flex: 0 0 1.6rem;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--text3);
+  text-align: right;
+}
+
+.cl-badge {
+  flex: 0 0 auto;
+  min-width: 4.6rem;
+  padding: 0.12rem 0.4rem;
+  border-radius: 3px;
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  text-align: center;
+  /* Tinted background with a full-strength text colour: readable in both
+     light and dark themes without needing a per-theme override. */
+  border: 1px solid currentColor;
+  background: color-mix(in srgb, currentColor 12%, transparent);
+}
+.cl-badge-feature { color: var(--green); }
+.cl-badge-fix     { color: var(--amber); }
+.cl-badge-change  { color: var(--rose); }
+.cl-badge-design  { color: var(--accent2); }
+.cl-badge-perf    { color: var(--teal); }
+.cl-badge-i18n    { color: var(--gold1); }
+.cl-badge-data    { color: var(--text3); }
+
+.cl-entry-title {
+  flex: 1 1 auto;
+  font-size: 0.87rem;
+  color: var(--text);
+  transition: color var(--t-fast) var(--ease);
+}
+
+.cl-entry-area {
+  flex: 0 0 auto;
+  font-family: var(--font-mono);
+  font-size: 0.63rem;
+  color: var(--text3);
+  opacity: 0.8;
+}
+
+.cl-chev {
+  flex: 0 0 auto;
+  color: var(--text3);
+  font-size: 1rem;
+  transition: transform var(--t-fast) var(--ease);
+}
+.cl-entry-open .cl-chev { transform: rotate(90deg); }
+
+.cl-entry-detail {
+  padding: 0 0.2rem 0.75rem 2.3rem;
+}
+.cl-entry-detail p {
+  margin: 0 0 0.4rem;
+  font-size: 0.82rem;
+  line-height: 1.65;
+  color: var(--text2);
+  max-width: 68ch;
+}
+.cl-hash {
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  color: var(--text3);
+  opacity: 0.65;
+}
+
+.cl-empty {
+  padding: 2.5rem 0;
+  text-align: center;
+  color: var(--text3);
+  font-size: 0.85rem;
+}
+
+/* -- Narrow screens ------------------------------------------------------ */
+@media (max-width: 620px) {
+  .cl-box { max-height: calc(100vh - 2rem); }
+  .cl-head { padding: 0.9rem 0.9rem 0.7rem; }
+  .cl-body { padding: 0 0.9rem 1rem; }
+  .cl-title { font-size: 1.15rem; }
+  /* The area label is the first thing to go; it is also a filter pill. */
+  .cl-entry-area { display: none; }
+  .cl-entry-head { flex-wrap: wrap; gap: 0.4rem; }
+  .cl-entry-title { flex: 1 1 100%; order: 3; }
+  .cl-entry-detail { padding-left: 0.2rem; }
+}

@@ -27,7 +27,7 @@
   <!-- html2canvas, SheetJS (xlsx) and JSZip are intentionally NOT loaded here — they
        total ~1.2 MB and are only needed for image exports and Excel/ZIP imports.
        app.js pulls them from the CDN on first use (see ensureLazyLib). -->
-  <link rel="stylesheet" href="style.css?v=241">
+  <link rel="stylesheet" href="style.css?v=242">
   <!-- All scripts are deferred so the page paints without waiting on them.
        defer preserves execution order, which matters: translations → Chart.js →
        hammer → zoom plugin → firebase SDKs → firebase.js → app.js (in body). -->
@@ -2403,6 +2403,31 @@
     <span data-i18n="footer_line1">dankcharts.fm · Erwin's Personal Music Charts · Est. 2016</span><br>
     <span data-i18n="footer_line2">All data stays in your browser. Nothing is uploaded or stored externally.</span><br>
     <a href="terms.html" target="_blank" rel="noopener" style="color:var(--text3);font-size:0.75rem;text-decoration:none;">Terms of Service &amp; Privacy Policy</a>
+    <!-- The changelog lives here rather than in the Charts Guide: the guide
+         answers "how do I use this", the changelog answers "what changed".
+         Different question, different reader, so a different door. -->
+    <span style="color:var(--text3);font-size:0.75rem;"> · </span>
+    <a href="#changelog" onclick="event.preventDefault();openChangelog()" style="color:var(--text3);font-size:0.75rem;text-decoration:none;" data-i18n="footer_changelog">What&rsquo;s New</a>
+  </div>
+
+  <!-- ── CHANGELOG ──
+       Every user-facing change since 2026-04-02, rewritten from the git
+       history. Body is built by dcRenderChangelog() on first open and cached,
+       because the list only grows and never changes while the page is up. -->
+  <div id="changelogModal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="clTitle">
+    <div class="cl-box">
+      <div class="cl-head">
+        <div class="cl-head-top">
+          <h3 class="cl-title" id="clTitle" data-i18n="cl_title">What&rsquo;s New</h3>
+          <button class="cl-close" onclick="closeChangelog()" aria-label="Close" data-i18n="btn_close">&#10005; CLOSE</button>
+        </div>
+        <div class="cl-stats" id="clStats"></div>
+        <input type="text" class="cl-search" id="clSearch" placeholder="Search every change…" oninput="dcChangelogFilter()" data-i18n-placeholder="cl_search">
+        <div class="cl-filters" id="clTypeFilters"></div>
+        <div class="cl-filters cl-filters-area" id="clAreaFilters"></div>
+      </div>
+      <div class="cl-body" id="clBody"></div>
+    </div>
   </div>
 
   <!-- IG SHARE PREVIEW MODAL -->
@@ -3303,7 +3328,8 @@
 
   <!-- defer keeps app.js last in the script execution order (after translations,
        Chart.js and firebase.js) while letting the whole page parse and paint first -->
-  <script defer src="app.js?v=193"></script>
+  <script defer src="changelog.js?v=1"></script>
+  <script defer src="app.js?v=194"></script>
 
   <!-- ── Settings Modal ──
        Split into three tabs so the whole form is never dumped on screen at
