@@ -61,6 +61,10 @@ const DC_CHANGELOG = [
 
   /* ========== SEPTEMBER 2026 ========== */
 
+  { d: '2026-09-15', t: 'fix', a: 'charts', h: '4825445',
+    title: 'Deep in a chart, an edit no longer sends you back to #1',
+    detail: 'Marking an album as a single or an EP from its window rebuilds the charts behind it, and every rebuild used to send the all-time and yearly lists back to their first page — so closing the window after a one-second edit cost you the place you had paged down to. The page now survives anything that leaves the list it belongs to intact. Changing period, stepping to another year or switching between the album and singles charts still starts you at the top, because those really are a different list.' },
+
   { d: '2026-09-15', t: 'fix', a: 'charts', h: 'fd69202',
     title: 'PEAK tags on the singles and EP charts count the right chart',
     detail: 'A single that had led the singles chart for weeks still wore PEAK #2, because the tag was measuring it against every album as well — a chart it is no longer shown on — while the chart run in the same row said #1. The albums chart had the mirror of it, an album peaking lower than it ever really did because separated singles had been counted above it. Every peak now belongs to the chart it was set on, all-time ranks in the album and artist windows included.' },
