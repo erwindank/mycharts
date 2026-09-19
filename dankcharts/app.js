@@ -950,6 +950,33 @@ function setReleaseType(album, artist, type, src) {
   return true;
 }
 
+/* Marks many releases in one write. rtApplyProposals() used to call
+   setReleaseType() in a loop, and every call serialised the whole map to
+   localStorage and pushed it to Firestore — a sweep that finds four hundred
+   singles was four hundred Firestore writes. One map, one save.
+
+   Same rules as setReleaseType(): an auto pass never writes 'album' (only a
+   person creates a pin), and an entry already carrying this exact mark from
+   this exact source is left alone. Returns how many actually moved. */
+function setReleaseTypesBulk(items, src) {
+  const s = src === 'auto' ? 'auto' : 'user';
+  const map = { ..._rtMap() };
+  let n = 0;
+  for (const it of items) {
+    const name = String(it.album || '').trim();
+    if (!name || name === '—') continue;
+    const t = RELEASE_TYPE_IDS.includes(it.type) ? it.type : 'album';
+    if (t === 'album' && s === 'auto') continue;
+    const k = releaseTypeKey(name, it.artist);
+    const prev = map[k];
+    if (prev && prev.t === t && prev.s === s) continue;
+    map[k] = { t, s, a: String(it.artist || ''), n: name };
+    n++;
+  }
+  if (n) _saveReleaseTypes(map);
+  return n;
+}
+
 /* Forgets a release entirely — not "it is an album" but "no opinion". The
    difference matters only to auto-detection, which will consider a cleared
    release again and leave a pinned one alone. */
@@ -2405,6 +2432,9 @@ async function rtStartScan(opts) {
 
   rtScan = {
     done: false, cancelled: false,
+    // An unattended run started by rtAutoSweep(). The review panel renders it
+    // the same way; what changes is that closing the panel must not kill it.
+    auto: !!(opts && opts.auto),
     total: candidates.length, checked: 0, networkChecked: 0,
     limit, proposals: [], skippedUser: all.length - candidates.length,
     remaining: 0
@@ -2459,7 +2489,9 @@ async function rtStartScan(opts) {
         } catch (e) { /* one album failing is not a reason to stop the sweep */ }
         rtScan.checked++;
         rtScan.networkChecked++;
-        if (rtScan.checked % 10 === 0) renderRtScanPanel();
+        // The settings line ticks along with the panel: a background sweep is
+        // most often watched from Settings, with the review panel shut.
+        if (rtScan.checked % 10 === 0) { renderRtScanPanel(); syncRtAutodetectUI(); }
       }
     };
     await Promise.all([worker(), worker(), worker(), worker()]);
@@ -2473,12 +2505,86 @@ function rtCancelScan() {
   if (rtScan) rtScan.cancelled = true;
 }
 
+/* ── The switch that actually switches something on ──────────────────────
+   "Detect release types automatically" used to reveal an options box and do
+   nothing else: every scan had to be started by hand from the review panel,
+   which is why a library could sit for months with nothing detected while the
+   setting read as on. When the setting is on, the sweep now runs itself once
+   the library is in, applies what it finds as 'auto' marks, and keeps going
+   run after run until the whole library has been looked at — over several
+   sessions if it takes that, because the Deezer answers are persisted now.
+
+   What it is still not allowed to do has not changed:
+     · a release the user marked by hand is never a candidate
+       (releaseTypeSource() !== 'user', enforced in rtStartScan)
+     · an auto pass never writes 'album', so it cannot un-mark anything
+     · every mark it writes is listed in the release-type manager, where
+       Remove puts a release back to undecided
+   The review panel is still there for anyone who would rather look first: it
+   shows this sweep's progress live, and its own Scan button is unchanged. */
+
+// A sweep is per page session; the persisted Deezer cache is what carries
+// progress across sessions, so a reload picks up where the last one stopped.
+let _rtAutoSweepQueued = false;
+let _rtAutoSweepRan = false;
+// Safety valve. At RT_SCAN_NETWORK_LIMIT a run, this covers a library far
+// larger than any seen, and stops a bug turning into an endless request loop.
+const RT_AUTO_SWEEP_MAX_PASSES = 30;
+
+async function rtAutoSweep() {
+  _rtAutoSweepQueued = false;
+  if (!releaseAutodetect.on) return;
+  if (_rtAutoSweepRan || rtScanRunning()) return;
+  if (!allPlays || !allPlays.length) return;
+  _rtAutoSweepRan = true;
+
+  let applied = 0;
+  for (let pass = 0; pass < RT_AUTO_SWEEP_MAX_PASSES; pass++) {
+    rtScan = null;
+    await rtStartScan({ auto: true });
+    if (!rtScan || rtScan.cancelled) break;
+    if (rtScan.proposals.length) {
+      applied += setReleaseTypesBulk(rtScan.proposals, 'auto');
+      rtScan.applied = rtScan.proposals.length;
+      rtScan.proposals = [];
+    }
+    renderRtScanPanel();
+    syncRtAutodetectUI();
+    // The manager fills in as the sweep goes, rather than all at the end: a
+    // full sweep is minutes long and it should be watchable. renderAll() is
+    // held back to the end, though — re-ranking the charts under someone
+    // thirty times is not "watchable", it is the page moving on its own.
+    renderReleaseTypesList();
+    // Nothing left unchecked: the library has been swept.
+    if (!rtScan.remaining) break;
+    /* Breathe between runs. A sweep is background work, not the reason the
+       page is open, and the Deezer proxy is shared. */
+    await new Promise(r => setTimeout(r, 1500));
+  }
+
+  if (applied) {
+    renderReleaseTypesList();
+    if (typeof renderAll === 'function') renderAll();
+  }
+  syncRtAutodetectUI();
+}
+
+/* Asked for by renderAll() once there are plays to sweep, and by the switch
+   itself so turning it on starts working immediately rather than at the next
+   reload. Deferred: the first paint and its cover art come first. */
+function rtQueueAutoSweep(delay) {
+  if (_rtAutoSweepQueued || _rtAutoSweepRan) return;
+  if (!releaseAutodetect.on) return;
+  _rtAutoSweepQueued = true;
+  setTimeout(rtAutoSweep, delay == null ? 6000 : delay);
+}
+
 /* Writes the ticked proposals. Marked 'auto', so the review panel can tell
    them apart from hand corrections and a later run can revisit them. */
 function rtApplyProposals() {
   if (!rtScan) return;
   const picked = rtScan.proposals.filter(p => p.pick);
-  for (const p of picked) setReleaseType(p.album, p.artist, p.type, 'auto');
+  setReleaseTypesBulk(picked, 'auto');
   rtScan.applied = picked.length;
   rtScan.proposals = [];
   renderRtScanPanel();
@@ -2507,7 +2613,10 @@ function openRtDetectModal() {
 }
 
 function closeRtDetectModal() {
-  rtCancelScan();
+  // Only a scan the user started here is theirs to stop by walking away. A
+  // background sweep keeps going — closing the window it happens to be
+  // rendered in is not a decision to abandon it.
+  if (rtScan && !rtScan.auto) rtCancelScan();
   document.getElementById('rtDetectModal').classList.remove('open');
 }
 
@@ -3182,10 +3291,15 @@ function deezerAlbumImageCandidates(album, artist) {
          which, after a few minutes of browsing, is most of them. Only the best
          match is recorded: the fallback list is "anything the search returned"
          and is far too loose to take a verdict from. */
-      if (matches.length) {
-        const rt = String(matches[0].record_type || '').toLowerCase();
-        if (rt) deezerAlbumTypeCache[k] = rt;
-      }
+      /* Recorded even when nothing matched, as null: "asked, no confident
+         answer" is a real result and a capped scan must not spend its budget
+         asking the same unanswerable release again every run. Only reached on
+         a response that actually came back — the !r.ok and catch paths above
+         leave the entry absent, so a proxy hiccup is retried rather than
+         frozen into a permanent "unknown". */
+      const rt = matches.length ? String(matches[0].record_type || '').toLowerCase() : '';
+      deezerAlbumTypeCache[k] = rt || null;
+      _saveDeezerRtypeCache();
       const urls = [];
       for (const c of (matches.length ? matches : items)) {
         const url = deezerPickImage(c, 'cover');
@@ -3199,10 +3313,83 @@ function deezerAlbumImageCandidates(album, artist) {
 }
 
 /* Deezer's record_type per album, harvested above and by the scanner below.
-   'album' | 'single' | 'ep' | 'compilation', or undefined for never looked up.
-   Kept in memory only: it is derived from a third party and cheap to refetch,
-   and persisting it would just be a cache to invalidate. */
-const deezerAlbumTypeCache = {};
+   'album' | 'single' | 'ep' | 'compilation', null for asked-and-unanswerable,
+   or absent for never looked up.
+
+   PERSISTED, and that is the whole point of it. A scan is capped per run, so
+   while these answers died with the tab every fresh session re-walked the same
+   heaviest thousand releases and could never reach the tail of the library —
+   which is exactly where the singles are (play count is anti-correlated with
+   being a single). Writing the answers down is what makes a sweep resumable
+   across sessions instead of eternally restarting.
+
+   One letter per release so a library of thousands still fits in localStorage.
+   Not synced to Firestore: it is a third-party cache, cheap to refetch, and
+   every device fills its own in as it browses. */
+const DEEZER_RTYPE_KEY = 'dc_deezer_rtype';
+// Entries kept. A run is 1,000 releases and the biggest libraries seen are
+// under 10,000, so this holds a whole library several times over.
+const DEEZER_RTYPE_MAX = 40000;
+const _DZ_RT_ENC = { album: 'a', single: 's', ep: 'e', compilation: 'c' };
+const _DZ_RT_DEC = { a: 'album', s: 'single', e: 'ep', c: 'compilation', '0': null };
+
+const deezerAlbumTypeCache = (() => {
+  try {
+    const raw = JSON.parse(localStorage.getItem(DEEZER_RTYPE_KEY) || '{}');
+    if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return {};
+    const out = {};
+    for (const k in raw) {
+      const v = raw[k];
+      if (typeof v === 'string' && v in _DZ_RT_DEC) out[k] = _DZ_RT_DEC[v];
+    }
+    return out;
+  } catch (e) { return {}; }
+})();
+
+/* Answers that failed rather than came back empty: offline, proxy 503, a
+   search that threw. Session-only and deliberately NOT in the persisted map —
+   a transient failure must not become a permanent verdict of "unknown", which
+   is what writing null into the cache would make it. A later run tries again. */
+const deezerRtypeTransientMiss = {};
+
+let _dzRtSaveTimer = null;
+/* Debounced: a sweep settles hundreds of releases in a burst, and there is no
+   reason to serialise the whole map once per release. */
+function _saveDeezerRtypeCache() {
+  if (_dzRtSaveTimer) return;
+  _dzRtSaveTimer = setTimeout(() => {
+    _dzRtSaveTimer = null;
+    try {
+      const keys = Object.keys(deezerAlbumTypeCache);
+      const pack = from => {
+        const out = {};
+        for (let i = from; i < keys.length; i++) {
+          const v = deezerAlbumTypeCache[keys[i]];
+          out[keys[i]] = (v && _DZ_RT_ENC[v]) || '0';
+        }
+        return JSON.stringify(out);
+      };
+      // Insertion order puts the oldest answers first, so trimming from the
+      // front drops the ones most likely to have gone stale.
+      let start = Math.max(0, keys.length - DEEZER_RTYPE_MAX);
+      /* localStorage is shared with the cached play history, so a big library
+         can genuinely run out of room. Half the entries kept is worth far more
+         than none: dropping the write entirely is what would put a sweep back
+         to restarting from the head of the library every session. */
+      for (let attempt = 0; attempt < 4; attempt++) {
+        try {
+          localStorage.setItem(DEEZER_RTYPE_KEY, pack(start));
+          return;
+        } catch (e) {
+          const next = Math.floor((start + keys.length) / 2);
+          if (next <= start) break;
+          start = next;
+        }
+      }
+      try { localStorage.removeItem(DEEZER_RTYPE_KEY); } catch (e) {}
+    } catch (e) { /* the cache is an optimisation, never state */ }
+  }, 2000);
+}
 
 /* The type Deezer has for this release, fetching if it has not been seen.
    Shares deezerAlbumImageCandidates' request and its cache, so a scan of an
@@ -3210,11 +3397,13 @@ const deezerAlbumTypeCache = {};
 async function deezerReleaseType(album, artist) {
   const k = artist.toLowerCase() + '|||' + album.toLowerCase();
   if (k in deezerAlbumTypeCache) return deezerAlbumTypeCache[k];
+  if (k in deezerRtypeTransientMiss) return null;
   await deezerAlbumImageCandidates(album, artist);
-  // Recorded as null rather than left absent, so a release Deezer has no
-  // confident match for is not asked about again in this session.
-  if (!(k in deezerAlbumTypeCache)) deezerAlbumTypeCache[k] = null;
-  return deezerAlbumTypeCache[k];
+  if (k in deezerAlbumTypeCache) return deezerAlbumTypeCache[k];
+  // The request itself never landed. Parked for this session so the scan moves
+  // on, but left out of the persisted map so a later run asks again.
+  deezerRtypeTransientMiss[k] = 1;
+  return null;
 }
 
 /* What Deezer has already said about a release, without asking again: a
@@ -3224,7 +3413,10 @@ async function deezerReleaseType(album, artist) {
    to a scan already part-answered — and the scan can spend its budget on the
    releases nobody has looked at. */
 function deezerKnownReleaseType(album, artist) {
-  return deezerAlbumTypeCache[artist.toLowerCase() + '|||' + album.toLowerCase()];
+  const k = artist.toLowerCase() + '|||' + album.toLowerCase();
+  if (k in deezerAlbumTypeCache) return deezerAlbumTypeCache[k];
+  if (k in deezerRtypeTransientMiss) return null;
+  return undefined;
 }
 
 async function deezerAlbumImage(album, artist) {
@@ -4873,6 +5065,10 @@ function toggleRtAutodetect(on) {
   releaseAutodetect.on = !!on;
   saveReleaseAutodetect();
   syncRtAutodetectUI();
+  /* Turning it on starts a sweep now, not at the next reload — a switch whose
+     effect you cannot see is how this feature came to look broken. Short delay
+     so the settings panel finishes painting first. */
+  if (releaseAutodetect.on) rtQueueAutoSweep(800);
 }
 
 function setRtAutodetectRule(rule, on) {
@@ -4893,6 +5089,24 @@ function syncRtAutodetectUI() {
   if (ti) ti.checked = releaseAutodetect.title;
   if (dz) dz.checked = releaseAutodetect.deezer;
   if (box) box.style.display = releaseAutodetect.on ? '' : 'none';
+
+  /* What the sweep is doing, in the one place the user goes looking. Silence
+     here is what made a working detector indistinguishable from a dead one. */
+  const st = document.getElementById('rtAutoStatus');
+  if (st) {
+    if (!releaseAutodetect.on) {
+      st.textContent = '';
+    } else if (rtScanRunning()) {
+      st.textContent = t('rtd_auto_running', {
+        done: (rtScan.checked || 0).toLocaleString(),
+        total: (rtScan.total || 0).toLocaleString()
+      });
+    } else if (_rtAutoSweepRan) {
+      st.textContent = t('rtd_auto_done', { n: getReleaseTypeEntries().length.toLocaleString() });
+    } else {
+      st.textContent = t('rtd_auto_queued');
+    }
+  }
 }
 
 function setReleaseSeparationFromUI(type, mode) {
@@ -12337,6 +12551,11 @@ function renderAll() {
   syncAlbumsFilterBar();
   // Exit early if no data has been loaded yet
   if (!allPlays || allPlays.length === 0) { return; }
+  /* There are plays, so release-type detection has something to sweep. Hooked
+     here rather than at each loader because every data source — Last.fm,
+     Sheets, CSV, the sample library — arrives at this same render. Guarded to
+     run once. */
+  rtQueueAutoSweep();
   const { start, end, label, sub } = getDateRange();
   const plays = currentPeriod === 'alltime'
     ? allPlays
