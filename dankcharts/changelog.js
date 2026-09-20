@@ -61,7 +61,7 @@ const DC_CHANGELOG = [
 
   /* ========== SEPTEMBER 2026 ========== */
 
-  { d: '2026-09-20', t: 'change', a: 'awards', h: 'pending',
+  { d: '2026-09-20', t: 'change', a: 'awards', h: '67adb23',
     title: 'The rated best-of list is gone from the Awards tab',
     detail: 'The Awards tab opened with a ★ Best Of, By My Ratings panel — two ranked columns, best albums and best songs of the year, ordered by the scores you gave them rather than by how much you played them. It has been taken out, so the tab now starts with the awards themselves. Your ratings are untouched: every score you have given is still there, and the Ratings tab still shows the same year-end lists.' },
 
