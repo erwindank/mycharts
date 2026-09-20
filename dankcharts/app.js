@@ -1160,6 +1160,15 @@ function retitleAlbumsSectionForFilter() {
 function syncAlbumsFilterBar() {
   const bar = document.getElementById('albumsFilterBar');
   if (!bar) return;
+  /* The chips only mean something where an albums chart is on screen. Raw Data,
+     Graphs, Records, Events, Awards, Your Soundtrack and Playlists each hide
+     the chart sections one by one but leave #albumsChartGroup itself mounted,
+     so without this gate the bar goes on hanging over views that never consult
+     it. */
+  if (!['week', 'month', 'year', 'alltime'].includes(currentPeriod)) {
+    bar.style.display = 'none';
+    return;
+  }
   const seps = separatedTypes();
   if (!seps.length) { bar.style.display = 'none'; bar.innerHTML = ''; return; }
   bar.style.display = '';
@@ -11222,6 +11231,15 @@ document.getElementById('periodNav').addEventListener('click', e => {
      chart-period path at the bottom ends in renderAll(), which puts it straight
      back up for weekly and monthly. */
   hideCertReel();
+
+  /* Same story for the album bucket chips (Albums/Singles/EPs/All): the branches
+     below take the chart sections down one by one but not the group that holds
+     the bar, and only the chart-period path at the bottom paints it again
+     (renderAll -> syncAlbumsFilterBar). */
+  if (!['week', 'month', 'year', 'alltime'].includes(btn.dataset.period)) {
+    const afBar = document.getElementById('albumsFilterBar');
+    if (afBar) afBar.style.display = 'none';
+  }
 
   if (btn.dataset.period === 'rawdata') {
     // Switch to raw data view
