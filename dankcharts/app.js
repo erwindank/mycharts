@@ -25770,18 +25770,20 @@ function renderBirthdayCard(entry) {
   const [, mm, dd] = dateStr.split('-');
   const displayDate = fmtDate(new Date(currentYear + (daysUntil < 0 ? 1 : 0), parseInt(mm) - 1, parseInt(dd)));
   const countdownLabel = isToday ? 'TODAY' : `in ${daysUntil} day${daysUntil === 1 ? '' : 's'}`;
-  const searchUrl = `https://www.google.com/search?q=${encodeURIComponent(artistName + ' birthday')}`;
   const imgHtml = `<img class="upcoming-card-img upcoming-card-img-pending" alt="" loading="lazy" data-artist="${esc(artistName)}" data-title="" data-sources="deezer-artist">`;
-  // The card itself opens a Google search; the ＋ builds a playlist from what
-  // the user has actually played by this artist (see dcPlTracksFor).
-  return `<a class="upcoming-card${isToday ? ' event-today' : ''}" href="${searchUrl}" target="_blank" rel="noopener noreferrer">
+  // The card opens the artist action menu (Spotify, a playlist, the last 10
+  // songs, Google) instead of jumping straight out to the birthday search —
+  // that search is still there, as the menu's Google option. The ＋ stays the
+  // shortcut: it builds a playlist from what the user has actually played by
+  // this artist (see dcPlTracksFor).
+  return `<div class="upcoming-card${isToday ? ' event-today' : ''}" onclick="_tmShowBirthdayMenu(event,${esc(JSON.stringify(artistName))})">
     ${dcPlBtnHtml('artist', '', artistName, '', 'dc-pl-add-card')}
     ${imgHtml}
     <div class="upcoming-card-date${isToday ? ' soon' : ''}">${countdownLabel}</div>
     <div class="upcoming-card-title">${esc(artistName)}</div>
     <div class="upcoming-card-artist">${esc(displayDate)} · Turning ${age}</div>
     <div class="upcoming-card-type">🎂 Birthday</div>
-  </a>`;
+  </div>`;
 }
 
 function renderRecentBirthdayCard(entry) {
@@ -25792,16 +25794,15 @@ function renderRecentBirthdayCard(entry) {
   const [, mm, dd] = dateStr.split('-');
   const displayDate = fmtDate(new Date(currentYear, parseInt(mm) - 1, parseInt(dd)));
   const daysAgoLabel = `${daysAgo} day${daysAgo === 1 ? '' : 's'} ago`;
-  const searchUrl = `https://www.google.com/search?q=${encodeURIComponent(artistName + ' birthday')}`;
   const imgHtml = `<img class="upcoming-card-img upcoming-card-img-pending" alt="" loading="lazy" data-artist="${esc(artistName)}" data-title="" data-sources="deezer-artist">`;
-  return `<a class="upcoming-card" href="${searchUrl}" target="_blank" rel="noopener noreferrer">
+  return `<div class="upcoming-card" onclick="_tmShowBirthdayMenu(event,${esc(JSON.stringify(artistName))})">
     ${dcPlBtnHtml('artist', '', artistName, '', 'dc-pl-add-card')}
     ${imgHtml}
     <div class="upcoming-card-date recent">${daysAgoLabel}</div>
     <div class="upcoming-card-title">${esc(artistName)}</div>
     <div class="upcoming-card-artist">${esc(displayDate)} · Turned ${age}</div>
     <div class="upcoming-card-type">🎂 Birthday</div>
-  </a>`;
+  </div>`;
 }
 
 function renderAnniversaryCard(entry) {
@@ -25810,19 +25811,20 @@ function renderAnniversaryCard(entry) {
   const typeKey = 'mb_type_' + (type || 'Release').toLowerCase();
   const typeLabel = t(typeKey) || type || 'Release';
   const countdownLabel = isToday ? 'TODAY' : `in ${daysUntil} day${daysUntil === 1 ? '' : 's'}`;
-  const searchUrl = `https://www.google.com/search?q=${encodeURIComponent(title + ' ' + artistName)}`;
   const imgSrc = mbid ? `https://coverartarchive.org/release-group/${mbid}/front-250` : null;
   const imgHtml = `<img class="upcoming-card-img${imgSrc ? '' : ' upcoming-card-img-pending'}" ${imgSrc ? `src="${imgSrc}" onerror="releaseImgFallback(this)"` : ''} alt="" loading="lazy" data-artist="${esc(artistName)}" data-title="${esc(title)}" data-sources="deezer,itunes,lastfm">`;
-  // ＋ pulls this release's played tracks, falling back to the release itself
-  // when it has never been played (see dcPlTracksFor).
-  return `<a class="upcoming-card${isToday ? ' event-today' : ''}" href="${searchUrl}" target="_blank" rel="noopener noreferrer">
+  // The card opens the release action menu (Spotify, a playlist, the last 10
+  // songs, Google) instead of going straight to Google. The ＋ is still the
+  // shortcut: it pulls this release's played tracks, falling back to the
+  // release itself when it has never been played (see dcPlTracksFor).
+  return `<div class="upcoming-card${isToday ? ' event-today' : ''}" onclick="_tmShowAlbumMenu(event,${esc(JSON.stringify(title))},${esc(JSON.stringify(artistName))})">
     ${dcPlBtnHtml('album', title, artistName, title, 'dc-pl-add-card')}
     ${imgHtml}
     <div class="upcoming-card-date${isToday ? ' soon' : ''}">${countdownLabel}</div>
     <div class="upcoming-card-title">${esc(title)}</div>
     <div class="upcoming-card-artist">${esc(artistName)}</div>
     <div class="upcoming-card-type">${releaseIcon(type)} ${ordinalSuffix(years)} Anniversary · ${esc(typeLabel)} · ${releaseDate.slice(0, 4)}</div>
-  </a>`;
+  </div>`;
 }
 
 function renderRecentAnniversaryCard(entry) {
@@ -25830,17 +25832,16 @@ function renderRecentAnniversaryCard(entry) {
   const typeKey = 'mb_type_' + (type || 'Release').toLowerCase();
   const typeLabel = t(typeKey) || type || 'Release';
   const daysAgoLabel = `${daysAgo} day${daysAgo === 1 ? '' : 's'} ago`;
-  const searchUrl = `https://www.google.com/search?q=${encodeURIComponent(title + ' ' + artistName)}`;
   const imgSrc = mbid ? `https://coverartarchive.org/release-group/${mbid}/front-250` : null;
   const imgHtml = `<img class="upcoming-card-img${imgSrc ? '' : ' upcoming-card-img-pending'}" ${imgSrc ? `src="${imgSrc}" onerror="releaseImgFallback(this)"` : ''} alt="" loading="lazy" data-artist="${esc(artistName)}" data-title="${esc(title)}" data-sources="deezer,itunes,lastfm">`;
-  return `<a class="upcoming-card" href="${searchUrl}" target="_blank" rel="noopener noreferrer">
+  return `<div class="upcoming-card" onclick="_tmShowAlbumMenu(event,${esc(JSON.stringify(title))},${esc(JSON.stringify(artistName))})">
     ${dcPlBtnHtml('album', title, artistName, title, 'dc-pl-add-card')}
     ${imgHtml}
     <div class="upcoming-card-date recent">${daysAgoLabel}</div>
     <div class="upcoming-card-title">${esc(title)}</div>
     <div class="upcoming-card-artist">${esc(artistName)}</div>
     <div class="upcoming-card-type">${releaseIcon(type)} ${ordinalSuffix(years)} Anniversary · ${esc(typeLabel)} · ${releaseDate.slice(0, 4)}</div>
-  </a>`;
+  </div>`;
 }
 
 // ─── EVENTS CALENDAR VIEW ──────────────────────────────────────
@@ -26242,10 +26243,11 @@ function _evReRenderSection(sectionKey) {
   if (itemsMap[sectionKey]) _evRenderSectionByKey(sectionKey, itemsMap[sectionKey]());
 }
 
-// `pl` (added below for the sections that link straight out to a search instead
-// of opening the action menu) is what the ＋ add-to-playlist button on each row
-// or card is built from — see dcPlBtnHtml. Sections carrying a `menuAction`
-// don't need it: their menu already offers the playlist option.
+// `pl` is what the ＋ add-to-playlist button on each row or card is built from
+// — see dcPlBtnHtml. `menuAction` (plus `menuArgs`, when the menu wants
+// something other than the item's own title and artist) names the global that
+// opens the card's action menu; `href` is the fallback for the sections that
+// still link straight out to a purpose-built page (Deezer, Ticketmaster).
 function _evNormalize(sectionKey, items) {
   const out = [];
   const mkLabel = (n, unit) => `${n} ${unit}${n === 1 ? '' : 's'}`;
@@ -26259,7 +26261,7 @@ function _evNormalize(sectionKey, items) {
       out.push({ title: artistName, artist: `${fmtDate(d)} · Turning ${curYr - age + (daysUntil < 0 ? 1 : 0)}`,
         dateLabel: isToday ? 'TODAY' : `in ${mkLabel(daysUntil, 'day')}`, dateSort: daysUntil,
         artistSort: artistName, typeLabel: '🎂 Birthday',
-        href: `https://www.google.com/search?q=${encodeURIComponent(artistName + ' birthday')}`,
+        menuAction: '_tmShowBirthdayMenu', menuArgs: [artistName],
         pl: { kind: 'artist', title: '', artist: artistName, album: '' },
         imgSrc: null, imgAttr: { artist: artistName, title: '', sources: 'deezer-artist' }, isToday });
     }
@@ -26270,7 +26272,7 @@ function _evNormalize(sectionKey, items) {
       out.push({ title, artist: artistName,
         dateLabel: isToday ? 'TODAY' : `in ${mkLabel(daysUntil, 'day')}`, dateSort: daysUntil,
         artistSort: artistName, typeLabel: `🎵 ${ordinalSuffix(years)} Anniversary · ${tl} · ${releaseDate.slice(0, 4)}`,
-        href: `https://www.google.com/search?q=${encodeURIComponent(title + ' ' + artistName)}`,
+        menuAction: '_tmShowAlbumMenu', menuArgs: [title, artistName],
         pl: { kind: 'album', title, artist: artistName, album: title },
         imgSrc: mbid ? `https://coverartarchive.org/release-group/${mbid}/front-250` : null,
         imgAttr: { artist: artistName, title, sources: 'deezer,itunes,lastfm' }, isToday });
@@ -26304,7 +26306,7 @@ function _evNormalize(sectionKey, items) {
         artist: `${fmtDate(new Date(curYr, parseInt(mm) - 1, parseInt(dd)))} · Turned ${curYr - birthYr}`,
         dateLabel: mkLabel(daysAgo, 'day') + ' ago', dateSort: -daysAgo,
         artistSort: artistName, typeLabel: '🎂 Birthday',
-        href: `https://www.google.com/search?q=${encodeURIComponent(artistName + ' birthday')}`,
+        menuAction: '_tmShowBirthdayMenu', menuArgs: [artistName],
         pl: { kind: 'artist', title: '', artist: artistName, album: '' },
         imgSrc: null, imgAttr: { artist: artistName, title: '', sources: 'deezer-artist' }, isToday: false });
     }
@@ -26314,7 +26316,7 @@ function _evNormalize(sectionKey, items) {
       out.push({ title, artist: artistName,
         dateLabel: mkLabel(daysAgo, 'day') + ' ago', dateSort: -daysAgo,
         artistSort: artistName, typeLabel: `🎵 ${ordinalSuffix(years)} Anniversary · ${tl} · ${releaseDate.slice(0, 4)}`,
-        href: `https://www.google.com/search?q=${encodeURIComponent(title + ' ' + artistName)}`,
+        menuAction: '_tmShowAlbumMenu', menuArgs: [title, artistName],
         pl: { kind: 'album', title, artist: artistName, album: title },
         imgSrc: mbid ? `https://coverartarchive.org/release-group/${mbid}/front-250` : null,
         imgAttr: { artist: artistName, title, sources: 'deezer,itunes,lastfm' }, isToday: false });
@@ -26332,7 +26334,8 @@ function _evNormalize(sectionKey, items) {
         dateSort: dateStr,
         artistSort: album.artist?.name || '',
         typeLabel,
-        href,
+        menuAction: '_nmfShowMenu',
+        menuArgs: [album.title || '', album.artist?.name || '', href],
         imgSrc: album.cover_xl || album.cover_big || album.cover_medium || null,
         imgAttr: { artist: album.artist?.name || '', title: album.title || '', sources: 'deezer' },
         isToday: false
@@ -26420,14 +26423,18 @@ function _evRenderSectionByKey(sectionKey, items) {
   else if (mode === 'list') _evList(gridEl, sectionKey, normalized);
 }
 
-// onclick attr for a card whose section uses a popup menu instead of a direct link
-// (item.menuAction names the global function to call: _relShowMenu or _tmShowAlbumMenu).
+// onclick attr for a card whose section uses a popup menu instead of a direct
+// link. `item.menuAction` names the global to call; `item.menuArgs` are the
+// arguments after the event, defaulting to the item's own title and artist —
+// which is wrong for a birthday, whose `artist` column holds the date.
 function _evReleaseClickAttr(item) {
-  return `onclick="${item.menuAction}(event,${esc(JSON.stringify(item.title))},${esc(JSON.stringify(item.artist))})"`;
+  const args = (item.menuArgs || [item.title, item.artist])
+    .map(a => esc(JSON.stringify(a))).join(',');
+  return `onclick="${item.menuAction}(event,${args})"`;
 }
 
-// ＋ add-to-playlist button for a normalized event item, or nothing when the row
-// already opens an action menu that carries the option (see _evNormalize).
+// ＋ add-to-playlist button for a normalized event item, or nothing when the
+// section has no single track to stage from it (see _evNormalize).
 function _evPlBtn(item, extraCls) {
   return item.pl ? dcPlBtnHtml(item.pl.kind, item.pl.title, item.pl.artist, item.pl.album, extraCls) : '';
 }
@@ -26472,7 +26479,7 @@ function _evTable(gridEl, items) {
   gridEl.className = 'ev-table-wrap';
   // The ＋ gets its own trailing column rather than sharing the 42px image cell,
   // which would stack it under the thumbnail and double every row's height.
-  // Sections whose rows open an action menu instead don't get the column at all.
+  // Sections with no single track to stage from a row don't get the column.
   const hasPl = items.some(it => it.pl);
   const rows = items.map(item => {
     const evCell = item.menuAction
@@ -26719,13 +26726,16 @@ function renderNMFCard(album) {
   const imgHtml = cover
     ? `<img class="upcoming-card-img" src="${esc(cover)}" onerror="releaseImgFallback(this)" alt="" loading="lazy" data-artist="${esc(album.artist?.name||'')}" data-title="${esc(album.title||'')}" data-sources="deezer">`
     : `<img class="upcoming-card-img upcoming-card-img-pending" alt="" loading="lazy" data-artist="${esc(album.artist?.name||'')}" data-title="${esc(album.title||'')}" data-sources="deezer">`;
-  return `<a class="upcoming-card" href="${esc(href)}" target="_blank" rel="noopener noreferrer">
+  // The card opens the release action menu rather than the Deezer page. The
+  // release still comes from Deezer — cover, title, date and type all below —
+  // and that page is the menu's first option.
+  return `<div class="upcoming-card" onclick="_nmfShowMenu(event,${esc(JSON.stringify(album.title || ''))},${esc(JSON.stringify(album.artist?.name || ''))},${esc(JSON.stringify(href))})">
     ${imgHtml}
     <div class="upcoming-card-date">${esc(dateStr)}</div>
     <div class="upcoming-card-title">${esc(album.title || '')}</div>
     <div class="upcoming-card-artist">${esc(album.artist?.name || '')}</div>
     <div class="upcoming-card-type">${esc(typeLabel)}</div>
-  </a>`;
+  </div>`;
 }
 
 function _renderNMF(albums, fromCache) {
@@ -32059,18 +32069,37 @@ let _tmMenuEl = null;
 // Machine, the Soundtrack reel and the Events reels alike, so which one to hold
 // still is a question about the card that was clicked, not a fixed element.
 let _tmPausedReel = null;
+// The card the open menu is anchored to — see _tmScrollClose, which needs to
+// know whether a scroll actually moved this card or happened somewhere else.
+let _tmMenuCard = null;
 
 function _tmCloseMenu() {
   if (_tmMenuEl) { _tmMenuEl.remove(); _tmMenuEl = null; }
   if (_tmPausedReel) { _tmPausedReel.dataset.reelPaused = '0'; _tmPausedReel = null; }
+  _tmMenuCard = null;
   document.removeEventListener('click', _tmOutsideMenuClick, true);
   document.removeEventListener('keydown', _tmMenuKeydown, true);
-  window.removeEventListener('scroll', _tmCloseMenu, true);
+  window.removeEventListener('scroll', _tmScrollClose, true);
   window.removeEventListener('resize', _tmCloseMenu, true);
 }
 
 function _tmOutsideMenuClick(e) {
   if (_tmMenuEl && !_tmMenuEl.contains(e.target)) _tmCloseMenu();
+}
+
+/* The menu is a tooltip pinned to a card, so a scroll that moves that card has
+   to close it. Listening on window in capture phase is the only way to hear a
+   scroll inside an arbitrary scroller — but it also hears every *other*
+   scroller on the page, and the release reels rewrite their own scrollLeft on
+   every animation frame. That fired a scroll a frame or two after the menu
+   opened and closed it again instantly: on a page with more than one reel the
+   options never appeared at all. So only a scroll that this card actually sits
+   inside counts; the reel it is parked on is already held still. */
+function _tmScrollClose(e) {
+  const tgt = e.target;
+  if (tgt === document || tgt === document.documentElement || tgt === document.body || tgt === window) { _tmCloseMenu(); return; }
+  if (tgt === _tmPausedReel) return;
+  if (tgt instanceof Element && _tmMenuCard && tgt.contains(_tmMenuCard)) _tmCloseMenu();
 }
 
 function _tmMenuKeydown(e) {
@@ -32113,10 +32142,11 @@ function _tmOpenMenu(menu, card) {
   if (_tmPausedReel) _tmPausedReel.dataset.reelPaused = '1';
 
   _tmMenuEl = menu;
+  _tmMenuCard = card;
   setTimeout(() => {
     document.addEventListener('click', _tmOutsideMenuClick, true);
     document.addEventListener('keydown', _tmMenuKeydown, true);
-    window.addEventListener('scroll', _tmCloseMenu, true);
+    window.addEventListener('scroll', _tmScrollClose, true);
     window.addEventListener('resize', _tmCloseMenu, true);
   }, 0);
 }
@@ -32191,16 +32221,26 @@ function _tmQueueToast(n) {
 // "last 10 songs" sub-view (add one-by-one or all at once), and a Google search.
 // `searchQuery` drives both the Spotify and Google links; `fetchSongs(limit)`
 // supplies the songs for the sub-view; `plLabel` names the entity in the
-// playlist picker (the search query reads badly there — it's "Album Artist");
-// `plFallback` is what the playlist option stages when there's no play history
-// at all, and is the only reason that option can appear when the queue ones
-// don't.
-function _tmShowEntityMenu(ev, searchQuery, fetchSongs, plLabel, plFallback) {
+// playlist picker (the search query reads badly there — it's "Album Artist").
+// `opts` carries what varies between the cards that use this menu:
+//   plFallback  what the playlist option stages when there's no play history at
+//               all, and the only reason that option can appear when the queue
+//               ones don't.
+//   googleQuery splits the two searches apart for the cards whose Google link
+//               means something the music services would make nonsense of
+//               ("<artist> birthday"); left out, both use `searchQuery`.
+//   sourceLink  { url, icon, label } for a card built from a service that has
+//               its own page for this release — New Music Friday comes from
+//               Deezer, and that page is where the card used to go. It sits at
+//               the top of the menu, above the searches.
+function _tmShowEntityMenu(ev, searchQuery, fetchSongs, plLabel, opts) {
   ev.stopPropagation();
   const card = ev.currentTarget;
   _tmCloseMenu();
 
+  const { plFallback, googleQuery, sourceLink } = opts || {};
   const q = encodeURIComponent(searchQuery);
+  const gq = encodeURIComponent(googleQuery || searchQuery);
   const menu = document.createElement('div');
   menu.className = 'tm-action-menu';
 
@@ -32211,10 +32251,18 @@ function _tmShowEntityMenu(ev, searchQuery, fetchSongs, plLabel, plFallback) {
     const canPlaylist = hasPlays || (plFallback && plFallback.length);
     menu.innerHTML =
       '<div class="tm-action-menu-arrow"></div>' +
+      (sourceLink ? '<button class="tm-action-menu-item" data-act="source">' + esc(sourceLink.icon) + ' ' + esc(sourceLink.label) + '</button>' : '') +
       '<button class="tm-action-menu-item" data-act="spotify">🎧 ' + esc(t('tm_action_spotify')) + '</button>' +
       (canPlaylist ? '<button class="tm-action-menu-item" data-act="playlist">' + DC_PL_ICON + esc(t('tm_action_playlist')) + '</button>' : '') +
       (hasPlays ? '<button class="tm-action-menu-item" data-act="last10">🎵 ' + esc(t('tm_action_last10')) + '</button>' : '') +
       '<button class="tm-action-menu-item" data-act="google">🔎 ' + esc(t('tm_action_google')) + '</button>';
+    if (sourceLink) {
+      menu.querySelector('[data-act="source"]').addEventListener('click', (e) => {
+        e.stopPropagation();
+        window.open(sourceLink.url, '_blank', 'noopener');
+        _tmCloseMenu();
+      });
+    }
     menu.querySelector('[data-act="spotify"]').addEventListener('click', (e) => {
       e.stopPropagation();
       window.open('https://open.spotify.com/search/' + q, '_blank', 'noopener');
@@ -32239,7 +32287,7 @@ function _tmShowEntityMenu(ev, searchQuery, fetchSongs, plLabel, plFallback) {
     }
     menu.querySelector('[data-act="google"]').addEventListener('click', (e) => {
       e.stopPropagation();
-      window.open('https://www.google.com/search?q=' + q, '_blank', 'noopener');
+      window.open('https://www.google.com/search?q=' + gq, '_blank', 'noopener');
       _tmCloseMenu();
     });
   }
@@ -32305,6 +32353,14 @@ function _tmShowArtistMenu(ev, artist) {
   _tmShowEntityMenu(ev, artist, (limit) => _tmArtistLastSongs(artist, limit), artist);
 }
 
+// Birthday cards (Events tab). The same artist menu, except the Google option
+// keeps the birthday search the card used to jump straight to — that is what
+// the card is about, and it is the one query Spotify would make nothing of.
+function _tmShowBirthdayMenu(ev, artist) {
+  _tmShowEntityMenu(ev, artist, (limit) => _tmArtistLastSongs(artist, limit), artist,
+    { googleQuery: artist + ' birthday' });
+}
+
 // Most-recently-played songs from an album (by this artist), newest first.
 function _tmAlbumLastSongs(album, artist, limit) {
   const seen = new Set();
@@ -32327,7 +32383,21 @@ function _tmShowAlbumMenu(ev, album, artist) {
   // Release" is still a perfectly good thing to save. It stays out of
   // fetchSongs so the player-queue options keep their play-history-only rule.
   _tmShowEntityMenu(ev, album + ' ' + artist, (limit) => _tmAlbumLastSongs(album, artist, limit),
-    album, [{ title: album, artist, album }]);
+    album, { plFallback: [{ title: album, artist, album }] });
+}
+
+// New Music Friday cards. Deezer is where the release itself comes from — the
+// cover, the title, the date and the album page — so the menu keeps a way back
+// to that page as its first option, which is where the card used to go on its
+// own. Everything under it is the ordinary release menu; a record that came out
+// this morning has no play history, so in practice it offers Deezer, Spotify, a
+// playlist and Google.
+function _nmfShowMenu(ev, album, artist, deezerUrl) {
+  _tmShowEntityMenu(ev, album + ' ' + artist, (limit) => _tmAlbumLastSongs(album, artist, limit),
+    album, {
+      plFallback: [{ title: album, artist, album }],
+      sourceLink: deezerUrl ? { url: deezerUrl, icon: '🔗', label: t('tm_action_deezer') } : null
+    });
 }
 
 // Tooltip popup for unreleased upcoming-release cards (the main Upcoming Releases section
