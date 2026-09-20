@@ -435,7 +435,6 @@ const TRANSLATIONS = {
     btn_display_cert: '🏅 CERT BADGES',
     // ── Ratings (critical evaluation system) ──
     btn_display_score: '★ MY SCORES',
-    awards_bestof_title: '★ Best Of, By My Ratings',
     modal_rating_song: '★ My Rating',
     modal_rating_album: '★ My Evaluation',
     modal_rating_artist: '★ My Ratings',
@@ -2080,7 +2079,6 @@ const TRANSLATIONS = {
     btn_display_cert: '🏅 INSIGNIAS CERT',
     // ── Valoraciones (sistema de evaluación crítica) ──
     btn_display_score: '★ MIS NOTAS',
-    awards_bestof_title: '★ Lo Mejor, Según Mis Valoraciones',
     modal_rating_song: '★ Mi Valoración',
     modal_rating_album: '★ Mi Evaluación',
     modal_rating_artist: '★ Mis Valoraciones',
@@ -3560,7 +3558,6 @@ const TRANSLATIONS = {
     btn_display_cert: '🏅 SELOS CERT',
     // ── Avaliações (sistema de avaliação crítica) ──
     btn_display_score: '★ MINHAS NOTAS',
-    awards_bestof_title: '★ O Melhor, Pelas Minhas Avaliações',
     modal_rating_song: '★ Minha Avaliação',
     modal_rating_album: '★ Minha Avaliação',
     modal_rating_artist: '★ Minhas Avaliações',
@@ -5041,7 +5038,6 @@ const TRANSLATIONS = {
     btn_display_cert: '🏅 SELOS CERT',
     // ── Avaliações (sistema de avaliação crítica) ──
     btn_display_score: '★ AS MINHAS NOTAS',
-    awards_bestof_title: '★ O Melhor, Pelas Minhas Avaliações',
     modal_rating_song: '★ A Minha Avaliação',
     modal_rating_album: '★ A Minha Avaliação',
     modal_rating_artist: '★ As Minhas Avaliações',

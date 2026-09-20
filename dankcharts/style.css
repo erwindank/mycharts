@@ -31338,26 +31338,6 @@ body.red-light .modal-cb-label--tracks {
       .rt-dist-count { font-size: 0.6rem; }
     }
 
-    /* ── Awards: year-end Best Of, ranked from the user's own ratings ── */
-    .awards-bestof {
-      margin: 1.2rem 0;
-      padding: 1rem 1.1rem;
-      background: var(--bg3);
-      border: 1px solid var(--border);
-      border-radius: var(--r-md, 8px);
-    }
-    .awards-bestof-title {
-      margin: 0 0 0.2rem;
-      font-size: 0.95rem;
-      font-weight: 800;
-      color: var(--text);
-    }
-    .rt-bestof-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-      gap: 0.4rem 1.4rem;
-    }
-
 
 /* ===========================================================================
    CHANGELOG OVERLAY

@@ -61,6 +61,10 @@ const DC_CHANGELOG = [
 
   /* ========== SEPTEMBER 2026 ========== */
 
+  { d: '2026-09-20', t: 'change', a: 'awards', h: 'pending',
+    title: 'The rated best-of list is gone from the Awards tab',
+    detail: 'The Awards tab opened with a ★ Best Of, By My Ratings panel — two ranked columns, best albums and best songs of the year, ordered by the scores you gave them rather than by how much you played them. It has been taken out, so the tab now starts with the awards themselves. Your ratings are untouched: every score you have given is still there, and the Ratings tab still shows the same year-end lists.' },
+
   { d: '2026-09-20', t: 'fix', a: 'events', h: '9e45e81',
     title: 'Clicking a Recent Release shows its options again',
     detail: 'On the Weekly, Monthly and Yearly charts, clicking a card under Recent Releases did nothing — the little menu with Spotify, a playlist, the player and Google flashed up and vanished before you could read it. The menu watches for scrolling so it can get out of the way when the card it is pinned to moves, but it was listening to everything on the page that scrolls rather than only the card’s own surroundings. The reels of release cards slide along by themselves, so the Upcoming Releases reel drifting away just above was enough to close the menu about a fiftieth of a second after it opened. It now only closes when the page itself scrolls, or when something the card actually sits inside does. The same flicker was closing menus all over the Events tab, where reels sit stacked one under another, so those are fixed by the same change.' },

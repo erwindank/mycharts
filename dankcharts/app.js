@@ -33076,8 +33076,6 @@ async function awardsRenderYear(year) {
   document.getElementById('awardsEligStart').value = data.eligStart;
   document.getElementById('awardsEligEnd').value   = data.eligEnd;
   _awardsRenderCatList(data);
-  // Ranked year-end list from the user's own ratings.
-  renderAwardsBestOf(year);
 }
 
 function _awardsRenderCatToggles(data) {
@@ -39700,67 +39698,3 @@ function renderRatingRecordsSection() {
   </div>`;
 }
 
-// ─── RATINGS IN AWARDS ─────────────────────────────────────────
-// Year-end "best of" built from the user's own scores rather than play counts.
-// eligStart/eligEnd come from the awards year config so the window matches the
-// rest of that tab.
-// ─── AWARDS: YEAR-END "BEST OF" FROM RATINGS ───────────────────
-// A ranked year-end list built from the user's own scores rather than play
-// counts, which is the one list the rest of the Awards tab cannot produce.
-function renderAwardsBestOf(year) {
-  const el = document.getElementById('awardsBestOfBody');
-  if (!el) return;
-  const albums = ratingYearEndAlbums(year, 10);
-  const songs  = ratingYearEndSongs(year, 10);
-
-  if (!albums.length && !songs.length) {
-    el.innerHTML = `<div class="rt-empty">Nothing you played in ${year} has been rated yet. Score some albums and your ranked best-of ${year} builds itself here.</div>`;
-    return;
-  }
-
-  const list = (items, kind) => `<div class="rt-tracktable">
-    ${items.map((it, i) => `<button class="rt-tracktable-row" onclick="${kind === 'album' ? 'openAlbumModal' : 'openSongModal'}(${esc(JSON.stringify(it.key))})">
-      <span class="rt-lib-rank">${i + 1}</span>
-      <span class="rt-lib-name">${esc(it.name)}<span class="rt-lib-artist">${esc(it.artist)}</span></span>
-      ${ratingChip(it.score)}
-    </button>`).join('')}
-  </div>`;
-
-  el.innerHTML = `
-    <div class="rt-bestof-grid">
-      ${albums.length ? `<div><div class="rt-sub-label">Best albums of ${year}</div>${list(albums, 'album')}</div>` : ''}
-      ${songs.length  ? `<div><div class="rt-sub-label">Best songs of ${year}</div>${list(songs, 'song')}</div>` : ''}
-    </div>`;
-}
-
-function ratingYearEndAlbums(year, limit = 10) {
-  const start = new Date(`${year}-01-01T00:00:00`);
-  const end   = new Date(`${year}-12-31T23:59:59`);
-  // An album qualifies for a year if the user actually played it that year —
-  // the app has no release-date data for every source, and "what you listened
-  // to this year" is the honest basis for a personal year-end list anyway.
-  const inYear = new Set();
-  for (const p of allPlays) {
-    if (!p.album || p.album === '—') continue;
-    const d = tzDate(p.date);
-    if (d >= start && d <= end) inYear.add(albumKeyOf(p));
-  }
-  return _ratingsAllRatedAlbums()
-    .filter(a => inYear.has(a.key))
-    .sort((a, b) => b.score - a.score)
-    .slice(0, limit);
-}
-
-function ratingYearEndSongs(year, limit = 10) {
-  const start = new Date(`${year}-01-01T00:00:00`);
-  const end   = new Date(`${year}-12-31T23:59:59`);
-  const inYear = new Set();
-  for (const p of allPlays) {
-    const d = tzDate(p.date);
-    if (d >= start && d <= end) inYear.add(songKey(p));
-  }
-  return _ratingsAllRatedSongs()
-    .filter(s => inYear.has(s.key))
-    .sort((a, b) => b.score - a.score)
-    .slice(0, limit);
-}
