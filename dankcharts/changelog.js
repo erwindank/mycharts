@@ -61,6 +61,18 @@ const DC_CHANGELOG = [
 
   /* ========== SEPTEMBER 2026 ========== */
 
+  { d: '2026-09-20', t: 'fix', a: 'events', h: '9e45e81',
+    title: 'Clicking a Recent Release shows its options again',
+    detail: 'On the Weekly, Monthly and Yearly charts, clicking a card under Recent Releases did nothing — the little menu with Spotify, a playlist, the player and Google flashed up and vanished before you could read it. The menu watches for scrolling so it can get out of the way when the card it is pinned to moves, but it was listening to everything on the page that scrolls rather than only the card’s own surroundings. The reels of release cards slide along by themselves, so the Upcoming Releases reel drifting away just above was enough to close the menu about a fiftieth of a second after it opened. It now only closes when the page itself scrolls, or when something the card actually sits inside does. The same flicker was closing menus all over the Events tab, where reels sit stacked one under another, so those are fixed by the same change.' },
+
+  { d: '2026-09-20', t: 'change', a: 'events', h: '9e45e81',
+    title: 'Every card on the Events tab opens its menu instead of jumping to Google',
+    detail: 'Birthdays, Anniversaries, Recent Birthdays and Recent Anniversaries used to be plain links: one click and you were in a Google search, with no way to do anything else. They now open the same little menu the release cards have — search on Spotify, add to a playlist, the artist’s or the release’s last 10 songs, and search on Google. The Google option on a birthday card still searches for the artist’s birthday, the way the card used to, since that is the one search the music services would make nothing of. This works in all four ways of showing a section: Tiles, Reel, List and Table. The ＋ in the corner of a card is unchanged, still the one-click way to save straight to a playlist.' },
+
+  { d: '2026-09-20', t: 'change', a: 'events', h: '9e45e81',
+    title: 'New Music Friday cards open the menu, with Deezer at the top of it',
+    detail: 'A New Music Friday card used to take you straight to the album on Deezer. Now it opens the menu, and Open on Deezer is its first option — so that page is still one click away, and searching Spotify, saving to a playlist or searching Google are the others. Nothing about where the releases come from has changed: the cover, the title, the release date and whether it is an album, a single or an EP are all still read from Deezer every Friday.' },
+
   { d: '2026-09-20', t: 'fix', a: 'charts', h: 'e29a616',
     title: 'The Albums/Singles/EPs chips stay on the chart tabs where they belong',
     detail: 'Once you set a release type to sit apart from the albums, a row of chips appeared for switching between Albums, Singles, EPs and All. It was meant for the Weekly, Monthly, Yearly and All-Time charts, but it followed you everywhere: Raw Data, Graphs, Records, Events, Awards, Your Soundtrack, Playlists and the Charts Guide all showed the chips above the page, where they changed nothing at all. They now show only on the four chart tabs, and only while the Albums chart is the one on screen.' },
