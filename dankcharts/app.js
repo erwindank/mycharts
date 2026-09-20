@@ -32356,7 +32356,6 @@ const AWARD_CATEGORIES = [
   { id: 'best_discovery',    label: 'Best Discovery',             type: 'artist', filter: 'discovery',   defaultOn: true,  emoji: '🔭' },
   { id: 'most_growth',       label: 'Most Growth',                type: 'artist', filter: 'growth',      defaultOn: false, emoji: '📈' },
   { id: 'obsessive_play',    label: 'Most Obsessive Play',        type: 'song',   filter: 'spike',       defaultOn: true,  emoji: '🔁' },
-  { id: 'streak_song',       label: 'Streak Award',               type: 'song',   filter: 'streak',      defaultOn: false, emoji: '🔥' },
   { id: 'one_hit_wonder',    label: 'One-Hit Wonder of the Year', type: 'artist', filter: 'one_hit',     defaultOn: false, emoji: '⚡' },
   { id: 'best_remix',        label: 'Best Remix',                 type: 'song',   filter: 'remix',       defaultOn: false, emoji: '🎚️' },
   { id: 'late_discovery',    label: 'Album You Discovered Late',  type: 'album',  filter: 'late_disc',   defaultOn: false, emoji: '🕰️' },
@@ -32377,10 +32376,31 @@ const AWARD_CATEGORIES = [
   { id: 'best_hiphop_album', label: 'Best Hip-Hop Album',         type: 'album',  filter: 'genre:hip-hop',     defaultOn: false, emoji: '🎧' },
   { id: 'best_latin_album',  label: 'Best Latin Album',           type: 'album',  filter: 'genre:latin',       defaultOn: false, emoji: '💃' },
   { id: 'best_kpop_album',   label: 'Best K-Pop Album',           type: 'album',  filter: 'genre:k-pop',       defaultOn: false, emoji: '💜' },
+  // Ceremony categories (opt-in)
+  { id: 'video_of_year',     label: 'Video of the Year',          type: 'song',   filter: 'all',               defaultOn: false, emoji: '📹' },
+  { id: 'record_of_year',    label: 'Record of the Year',         type: 'song',   filter: 'all',               defaultOn: false, emoji: '💽' },
+  { id: 'best_country_song', label: 'Best Country Song',          type: 'song',   filter: 'genre:country',     defaultOn: false, emoji: '🤠' },
+  { id: 'best_pop_solo',     label: 'Best Pop Solo Song',         type: 'song',   filter: 'pop_solo',          defaultOn: false, emoji: '🎤' },
+  { id: 'best_pop_duo',      label: 'Best Pop Duo/Group Song',    type: 'song',   filter: 'pop_duo',           defaultOn: false, emoji: '👯' },
+  { id: 'best_dance_rec',    label: 'Best Dance/Electronic Recording', type: 'song', filter: 'genre:electronic', defaultOn: false, emoji: '🕺' },
+  { id: 'best_dancepop_rec', label: 'Best Dance Pop Recording',   type: 'song',   filter: 'genre:dance-pop',   defaultOn: false, emoji: '✨' },
+  { id: 'best_remixed_rec',  label: 'Best Remixed Recording',     type: 'song',   filter: 'remix',             defaultOn: false, emoji: '🎛️' },
+  { id: 'best_soundtrack_song', label: 'Best Soundtrack Song',    type: 'song',   filter: 'soundtrack',        defaultOn: false, emoji: '🎬' },
+  { id: 'best_country_album', label: 'Best Country Album',        type: 'album',  filter: 'genre:country',     defaultOn: false, emoji: '🤠' },
+  { id: 'best_pop_vocal_album', label: 'Best Pop Vocal Album',    type: 'album',  filter: 'genre:pop',         defaultOn: false, emoji: '🎙️' },
+  { id: 'best_dance_album',  label: 'Best Dance/Electronic Album', type: 'album', filter: 'genre:electronic',  defaultOn: false, emoji: '🪩' },
+  { id: 'best_reggae_album', label: 'Best Reggae Album',          type: 'album',  filter: 'genre:reggae',      defaultOn: false, emoji: '🌴' },
+  { id: 'best_soundtrack_album', label: 'Best Soundtrack Album',  type: 'album',  filter: 'soundtrack',        defaultOn: false, emoji: '🎬' },
   // Stat awards (auto-awarded)
   { id: 'stat_top_song',     label: 'Most Played Song',           type: 'song',   filter: 'stat',        defaultOn: true,  auto: true, emoji: '🎶' },
   { id: 'stat_top_album',    label: 'Most Played Album',          type: 'album',  filter: 'stat',        defaultOn: true,  auto: true, emoji: '📀' },
   { id: 'stat_top_artist',   label: 'Most Played Artist',         type: 'artist', filter: 'stat',        defaultOn: true,  auto: true, emoji: '⭐' },
+  { id: 'stat_streak_song',  label: 'Longest Daily Streak for a Song',   type: 'song',   filter: 'streak', defaultOn: false, auto: true, emoji: '🔥' },
+  { id: 'stat_streak_album', label: 'Longest Daily Streak for an Album', type: 'album',  filter: 'streak', defaultOn: false, auto: true, emoji: '🔥' },
+  { id: 'stat_streak_artist',label: 'Longest Daily Streak for an Artist',type: 'artist', filter: 'streak', defaultOn: false, auto: true, emoji: '🔥' },
+  { id: 'stat_days_song',    label: 'Song with Most Days Played',        type: 'song',   filter: 'days',   defaultOn: false, auto: true, emoji: '📅' },
+  { id: 'stat_days_album',   label: 'Album with Most Days Played',       type: 'album',  filter: 'days',   defaultOn: false, auto: true, emoji: '📅' },
+  { id: 'stat_days_artist',  label: 'Artist with Most Days Played',      type: 'artist', filter: 'days',   defaultOn: false, auto: true, emoji: '📅' },
 ];
 
 const COLLAB_EXCEPTIONS = [
@@ -32642,9 +32662,24 @@ function _genreMatch(tags, filterStr) {
     'latin':       ['latin','reggaeton','latin pop','salsa','cumbia','bachata','latin rap','regional mexicano'],
     'electronic':  ['electronic','edm','house','techno','dance','electro','synth-pop','trance','ambient'],
     'k-pop':       ['k-pop','kpop','korean pop','k pop','korean'],
+    'country':     ['country','country pop','country rock','americana','bluegrass','alt-country','outlaw country','nashville'],
+    'reggae':      ['reggae','dancehall','roots reggae','ska','dub','reggae fusion'],
+    // Dance pop is its own award, so it gets its own list rather than leaning on
+    // 'pop' (which would let any ballad in) or 'electronic' (which would not).
+    'dance-pop':   ['dance pop','dance-pop','dancepop','electropop','eurodance','disco','nu-disco'],
   };
   const list = aliases[g] || [g];
   return tags.some(t => list.some(m => t === m));
+}
+
+/* Warm the genre cache for every artist in the window: Gemini first (one call
+   for the lot, if a key is set), then Last.fm tags for whatever it left unknown.
+   Both are capped — a window can hold thousands of artists and the awards only
+   ever rank the top of the pile. */
+async function _awardsEnsureGenres(plays) {
+  const uniq = [...new Set(plays.map(p => _pa(p)))];
+  await _awardsGeminiClassifyArtists(uniq.slice(0, 150));
+  await Promise.all(uniq.filter(a => _awardsGenreCache[a.toLowerCase()] === undefined).slice(0, 60).map(a => _awardsGetArtistGenre(a)));
 }
 
 async function _awardsGeminiClassifyArtists(artists) {
@@ -32652,7 +32687,7 @@ async function _awardsGeminiClassifyArtists(artists) {
   if (!apiKey) return;
   const needed = artists.filter(a => _awardsGenreCache[a.toLowerCase()] === undefined);
   if (!needed.length) return;
-  const tags = 'rock, classic rock, hard rock, indie rock, punk rock, alternative rock, metal, emo, post-rock, alternative, indie, indie rock, post-punk, dream pop, shoegaze, hip-hop, hip hop, rap, trap, conscious hip hop, r&b, soul, neo soul, contemporary r&b, rnb, rhythm and blues, pop, dance pop, indie pop, pop rock, teen pop, synth-pop, electropop, latin, reggaeton, latin pop, salsa, cumbia, bachata, latin rap, regional mexicano, electronic, edm, house, techno, dance, electro, trance, ambient, k-pop, kpop, korean pop, k pop, korean';
+  const tags = 'rock, classic rock, hard rock, indie rock, punk rock, alternative rock, metal, emo, post-rock, alternative, indie, indie rock, post-punk, dream pop, shoegaze, hip-hop, hip hop, rap, trap, conscious hip hop, r&b, soul, neo soul, contemporary r&b, rnb, rhythm and blues, pop, dance pop, indie pop, pop rock, teen pop, synth-pop, electropop, latin, reggaeton, latin pop, salsa, cumbia, bachata, latin rap, regional mexicano, electronic, edm, house, techno, dance, electro, trance, ambient, k-pop, kpop, korean pop, k pop, korean, country, country pop, country rock, americana, bluegrass, alt-country, outlaw country, nashville, reggae, dancehall, roots reggae, ska, dub, reggae fusion, eurodance, disco, nu-disco';
   const prompt = `Classify each music artist using ONLY these genre tags (use multiple per artist if applicable):\n${tags}\n\nReturn a JSON object: { "Artist Name": ["tag1", "tag2"] }. Include every artist listed, even if unsure — guess based on your knowledge.\n\nArtists to classify:\n${needed.join('\n')}`;
   try {
     const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${encodeURIComponent(apiKey)}`, {
@@ -32772,19 +32807,67 @@ async function _awardsGetCandidates(catDef, eligStart, eligEnd, log) {
     for (const v of Object.values(weekPeak)) { if (!best[v.sk] || v.plays > best[v.sk].plays) best[v.sk] = v; }
     return _awardsTopN(best, 20, 3);
   }
-  if (f === 'streak') {
+  /* Two day-based ladders off one pass: 'streak' is the longest unbroken run of
+     days, 'days' is simply how many days of the window the item was played at
+     all. Both answer song / album / artist, so the category's type picks the key.
+     A single day is neither a streak nor a record, so the floor is two. */
+  if (f === 'streak' || f === 'days') {
     const dayMap = {};
     for (const p of inWin) {
       const d = tzDateOf(p);
       const day = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
-      const k = _sk(p);
-      if (!dayMap[k]) dayMap[k] = { title: p.title, artist: p.artist, album: p.album, days: new Set() };
+      let k, seed;
+      if (catDef.type === 'album') {
+        if (!p.album) continue;
+        k = _ak(p); seed = { album: p.album, artist: _pa(p) };
+      } else if (catDef.type === 'artist') {
+        k = _pk(p); seed = { artist: _pa(p) };
+      } else {
+        k = _sk(p); seed = { title: p.title, artist: p.artist, album: p.album };
+      }
+      if (!dayMap[k]) dayMap[k] = Object.assign({ days: new Set() }, seed);
       dayMap[k].days.add(day);
     }
     const m = {};
     for (const [k, v] of Object.entries(dayMap)) {
-      const streak = longestConsecutiveDays(v.days);
-      if (streak >= 2) m[k] = { title: v.title, artist: v.artist, album: v.album, plays: streak, playLabel: `${streak}-day streak` };
+      const n = f === 'streak' ? longestConsecutiveDays(v.days) : v.days.size;
+      if (n < 2) continue;
+      // Rebuilt field by field rather than copied: the Set never reaches Firestore,
+      // and `plays` is what _awardsTopN and every nominee row already rank on.
+      const item = { plays: n, playLabel: f === 'streak' ? `${n}-day streak` : `${n} days played` };
+      if (v.title)  item.title  = v.title;
+      if (v.album)  item.album  = v.album;
+      if (v.artist) item.artist = v.artist;
+      m[k] = item;
+    }
+    // Auto categories crown the top row outright, so one artist must not be capped out of it.
+    return _awardsTopN(m, catDef.auto ? 1 : 20, catDef.auto ? 99 : 3);
+  }
+  // Songs and albums that belong to a release marked as a soundtrack.
+  if (f === 'soundtrack') {
+    const m = {};
+    for (const p of inWin) {
+      if (!p.album || releaseTypeOfPlay(p) !== 'soundtrack') continue;
+      const k = catDef.type === 'album' ? _ak(p) : _sk(p);
+      if (!m[k]) m[k] = catDef.type === 'album'
+        ? { album: p.album, artist: _pa(p), plays: 0 }
+        : { title: p.title, artist: p.artist, album: p.album, plays: 0 };
+      m[k].plays++;
+    }
+    return _awardsTopN(m, 20, catDef.type === 'album' ? 2 : 3);
+  }
+  /* Pop split by billing: solo songs on one side, duos and groups on the other.
+     _isDuo is a subset of _isCollab, so the one test sorts both sides. */
+  if (f === 'pop_solo' || f === 'pop_duo') {
+    await _awardsEnsureGenres(inWin);
+    const m = {};
+    for (const p of inWin) {
+      const tags = _awardsGenreCache[_pa(p).toLowerCase()] || [];
+      if (!_genreMatch(tags, 'genre:pop')) continue;
+      if (f === 'pop_solo' ? _isCollab(p) : !_isCollab(p)) continue;
+      const k = _sk(p);
+      if (!m[k]) m[k] = { title: p.title, artist: p.artist, album: p.album, plays: 0 };
+      m[k].plays++;
     }
     return _awardsTopN(m, 20, 3);
   }
@@ -32842,9 +32925,7 @@ async function _awardsGetCandidates(catDef, eligStart, eligEnd, log) {
     return _awardsTopN(m, 20, 3);
   }
   if (f.startsWith('genre:')) {
-    const uniq = [...new Set(inWin.map(p => _pa(p)))];
-    await _awardsGeminiClassifyArtists(uniq.slice(0, 150));
-    await Promise.all(uniq.filter(a => _awardsGenreCache[a.toLowerCase()] === undefined).slice(0, 60).map(a => _awardsGetArtistGenre(a)));
+    await _awardsEnsureGenres(inWin);
     const gs = {}, ga = {}, gr = {};
     for (const p of inWin) {
       const tags = _awardsGenreCache[_pa(p).toLowerCase()] || [];
@@ -33096,6 +33177,12 @@ function _awardsPickerPlayFits(p) {
   if (f === 'duo')        return _isDuo(p);
   if (f === 'remix')      return _isRemix(p);
   if (f === 'nonenglish') return _hasNonLatinScript(p.title) || _hasNonLatinScript(p.artist);
+  // The album guard comes first so the fake play _awardsPickerHasFit() probes with
+  // answers false instead of reaching releaseTypeOf() with nothing to look up.
+  if (f === 'soundtrack') return !!p.album && releaseTypeOfPlay(p) === 'soundtrack';
+  // Half the answer — the pop half is genre, so it waits for _awardsPickerItemFits().
+  if (f === 'pop_solo')   return !_isCollab(p);
+  if (f === 'pop_duo')    return _isCollab(p);
   return null;
 }
 
@@ -33105,6 +33192,11 @@ function _awardsPickerPlayFits(p) {
 function _awardsPickerItemFits(item) {
   const f = _awardsPickerCatFilter;
   if (f === 'summer') return (item.summerPlays || 0) > 0;
+  // Billing was settled at index time; the genre half is answered here, from the cache.
+  if (f === 'pop_solo' || f === 'pop_duo') {
+    const tags = _awardsGenreCache[(item.artist || '').toLowerCase()];
+    return !!item.fit && tags !== undefined && _genreMatch(tags, 'genre:pop');
+  }
   if (f.startsWith('genre:')) {
     const tags = _awardsGenreCache[(item.artist || '').toLowerCase()];
     return tags === undefined ? false : _genreMatch(tags, f);
@@ -33127,6 +33219,9 @@ function _awardsPickerFitLabel() {
   if (f === 'remix')      return 'Remixes, edits & versions';
   if (f === 'nonenglish') return 'Non-English ' + kind;
   if (f === 'summer')     return 'Summer songs';
+  if (f === 'soundtrack') return 'Soundtrack ' + kind;
+  if (f === 'pop_solo')   return 'Solo pop songs';
+  if (f === 'pop_duo')    return 'Pop duos & groups';
   if (f.startsWith('genre:')) return f.replace('genre:', '').replace('rnb', 'R&B').replace(/^./, c => c.toUpperCase()) + ' ' + kind;
   return '';
 }
