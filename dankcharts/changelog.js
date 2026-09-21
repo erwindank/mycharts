@@ -61,6 +61,10 @@ const DC_CHANGELOG = [
 
   /* ========== SEPTEMBER 2026 ========== */
 
+  { d: '2026-09-21', t: 'change', a: 'ui', h: '',
+    title: 'The browser tab, the footer and Google all use your name now',
+    detail: 'The masthead already read "★ Your Personal Music Charts ★" until you filled in a display name in Settings, at which point it became yours. The footer line and the browser-tab title did not — they carried the site owner’s name for everyone, which is also what Google printed as the headline for dankcharts.fm in search results. Both now follow the masthead: "Your Personal Music Charts" until you set a display name, and your own name once you do, in all four languages, with the footer taking its “Est.” year from your first scrobble instead of a fixed 2016. Google picks the new title up the next time it crawls the site, so the old one can linger in search for a while.' },
+
   { d: '2026-09-21', t: 'fix', a: 'data', h: '50605e8',
     title: 'Last.fm syncs no longer stop short of your full history',
     detail: 'If Last.fm rate-limited the sync — which it does when a big library is downloaded fast, and which phones on slower connections hit more often — the pages it refused were quietly skipped, and the sync saved whatever had made it through as if it were your whole history. Every sync after that only asked for scrobbles newer than that, so an account could sit at a fraction of its real play count indefinitely, with nothing on screen to say so. Refused pages are now waited out and retried, and anything still missing at the end is re-downloaded on the next sync instead of being locked in; a short sync says so in the status line rather than claiming success. Syncs still start out just as fast and only slow down if Last.fm actually pushes back. Separately, if the phone refuses to store the offline copy — the usual cause is a full or locked-down iPhone — the status line now tells you instead of failing in silence.' },

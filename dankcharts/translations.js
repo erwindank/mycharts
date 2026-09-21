@@ -1066,7 +1066,13 @@ const TRANSLATIONS = {
     masthead_streaming: 'Streaming since {{date}}',
 
     // Footer
-    footer_line1: "dankcharts.fm · Erwin's Personal Music Charts · Est. 2016",
+    // Same name-aware pair as masthead_est: {{possessive}} when a display name is
+    // set in Settings, the _default wording when it isn't. Stamped by
+    // updateMastheadDynamic(), not by the plain applyI18n() pass.
+    footer_line1: "dankcharts.fm · {{possessive}} Personal Music Charts · Est. {{year}}",
+    footer_line1_default: "dankcharts.fm · Your Personal Music Charts · Est. {{year}}",
+    page_title: "dankcharts.fm — {{possessive}} Personal Music Charts",
+    page_title_default: "dankcharts.fm — Your Personal Music Charts",
     footer_changelog: 'What’s New',
     cl_title: 'What’s New',
     cl_search: 'Search every change…',
@@ -2562,7 +2568,10 @@ const TRANSLATIONS = {
     masthead_streaming: 'Escuchando desde el {{date}}',
 
     // Footer
-    footer_line1: "dankcharts.fm · Rankings Personales de Música de Erwin · Est. 2016",
+    footer_line1: "dankcharts.fm · Rankings Personales de Música de {{name}} · Est. {{year}}",
+    footer_line1_default: "dankcharts.fm · Tus Rankings Personales de Música · Est. {{year}}",
+    page_title: "dankcharts.fm — Rankings Personales de Música de {{name}}",
+    page_title_default: "dankcharts.fm — Tus Rankings Personales de Música",
     footer_changelog: 'Novedades',
     cl_title: 'Novedades',
     cl_search: 'Busca en todos los cambios…',
@@ -4048,7 +4057,10 @@ const TRANSLATIONS = {
     masthead_streaming: 'Ouvindo desde {{date}}',
 
     // Footer
-    footer_line1: "dankcharts.fm · Paradas Musicais Pessoais do Erwin · Est. 2016",
+    footer_line1: "dankcharts.fm · Paradas Musicais Pessoais de {{name}} · Est. {{year}}",
+    footer_line1_default: "dankcharts.fm · Suas Paradas Musicais Pessoais · Est. {{year}}",
+    page_title: "dankcharts.fm — Paradas Musicais Pessoais de {{name}}",
+    page_title_default: "dankcharts.fm — Suas Paradas Musicais Pessoais",
     footer_changelog: 'Novidades',
     cl_title: 'Novidades',
     cl_search: 'Pesquisar todas as mudanças…',
@@ -5533,7 +5545,10 @@ const TRANSLATIONS = {
     masthead_streaming: 'A ouvir desde {{date}}',
 
     // Footer
-    footer_line1: "dankcharts.fm · Tops Pessoais de Música do Erwin · Est. 2016",
+    footer_line1: "dankcharts.fm · Tops Pessoais de Música de {{name}} · Est. {{year}}",
+    footer_line1_default: "dankcharts.fm · Os Seus Tops Pessoais de Música · Est. {{year}}",
+    page_title: "dankcharts.fm — Tops Pessoais de Música de {{name}}",
+    page_title_default: "dankcharts.fm — Os Seus Tops Pessoais de Música",
     footer_changelog: 'Novidades',
     cl_title: 'Novidades',
     cl_search: 'Pesquisar todas as alterações…',
@@ -6187,12 +6202,26 @@ function updateMastheadDynamic() {
   const firstDate = window.firstScrobbleDate;
   const year = firstDate ? firstDate.getFullYear() : new Date().getFullYear();
 
+  // English needs the possessive ("Alex's", "Chris'"); the other languages use "de {{name}}"
+  // and ignore the possessive, so both are handed to every string.
+  const possessive = name ? (name.match(/s$/i) ? name + "'" : name + "'s") : '';
+
   const estEl = document.querySelector('[data-i18n="masthead_est"]');
   if (estEl) {
     const key = name ? 'masthead_est' : 'masthead_est_default';
-    const possessive = name ? (name.match(/s$/i) ? name + "'" : name + "'s") : '';
     estEl.textContent = t(key, { name, possessive, year });
   }
+
+  // The footer carries the same line as the masthead, so it follows the same rule:
+  // the display name from Settings when there is one, "Your…" when there isn't.
+  const footEl = document.querySelector('[data-i18n="footer_line1"]');
+  if (footEl) {
+    footEl.textContent = t(name ? 'footer_line1' : 'footer_line1_default', { name, possessive, year });
+  }
+
+  // And so does the browser tab / search-result headline. Nobody visiting without a
+  // display name should ever see someone else's name here.
+  document.title = t(name ? 'page_title' : 'page_title_default', { name, possessive, year });
 
   const streamEl = document.querySelector('[data-i18n="masthead_streaming"]');
   if (streamEl) {
@@ -6209,7 +6238,10 @@ function updateMastheadDynamic() {
 
 function applyI18n() {
   document.querySelectorAll('[data-i18n]').forEach(el => {
-    if (el.dataset.i18n === 'masthead_est' || el.dataset.i18n === 'masthead_streaming') return;
+    // These three carry the display name and the first-scrobble year, so they are
+    // stamped by updateMastheadDynamic() below instead of with the raw template.
+    if (el.dataset.i18n === 'masthead_est' || el.dataset.i18n === 'masthead_streaming'
+        || el.dataset.i18n === 'footer_line1') return;
     // #syncStatus carries a live status set by app.js (sync results, page counters,
     // errors…). Once one has been set, re-stamping the static placeholder here would
     // clobber it — e.g. a language switch used to permanently replace "✓ Synced" with

@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>dankcharts.fm — Erwin's Personal Music Charts</title>
+  <title>dankcharts.fm — Your Personal Music Charts</title>
   <link rel="icon" type="image/svg+xml" href="favicon.svg">
   <link rel="apple-touch-icon" href="favicon.svg">
   <meta property="og:title" content="dankcharts.fm">
@@ -31,7 +31,7 @@
   <!-- All scripts are deferred so the page paints without waiting on them.
        defer preserves execution order, which matters: translations → Chart.js →
        hammer → zoom plugin → firebase SDKs → firebase.js → app.js (in body). -->
-  <script defer src="translations.js?v=7"></script>
+  <script defer src="translations.js?v=8"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8/hammer.min.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@1.2.1/dist/chartjs-plugin-zoom.min.js"></script>
@@ -298,7 +298,7 @@
       </div>
     </div>
 
-    <span class="est" data-i18n="masthead_est">★ Erwin's Personal Music Charts · Est. 2016 ★</span>
+    <span class="est" data-i18n="masthead_est">★ Your Personal Music Charts · Est. 2016 ★</span>
     <div class="wordmark">
       <span class="wordmark-dank">dank</span><span class="wordmark-station">charts</span><span
         class="wordmark-fm">.fm</span>
@@ -2393,7 +2393,7 @@
   </div>
 
   <div class="page-footer">
-    <span data-i18n="footer_line1">dankcharts.fm · Erwin's Personal Music Charts · Est. 2016</span><br>
+    <span data-i18n="footer_line1">dankcharts.fm · Your Personal Music Charts · Est. 2016</span><br>
     <span data-i18n="footer_line2">All data stays in your browser. Nothing is uploaded or stored externally.</span><br>
     <a href="terms.html" target="_blank" rel="noopener" style="color:var(--text3);font-size:0.75rem;text-decoration:none;">Terms of Service &amp; Privacy Policy</a>
     <!-- The changelog lives here rather than in the Charts Guide: the guide
@@ -3321,7 +3321,7 @@
 
   <!-- defer keeps app.js last in the script execution order (after translations,
        Chart.js and firebase.js) while letting the whole page parse and paint first -->
-  <script defer src="changelog.js?v=20"></script>
+  <script defer src="changelog.js?v=21"></script>
   <script defer src="app.js?v=210"></script>
 
   <!-- ── Settings Modal ──
