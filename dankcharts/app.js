@@ -23199,10 +23199,17 @@ async function loadUpcomingReleases(forceRefresh = false) {
   document.getElementById('upcomingRefreshBtn').style.display = 'none';
 
   gridEl.innerHTML = '';
+  gridEl.className = 'upcoming-grid'; // a previous Reel/Table/List render left its own class here
+  /* The header buttons are markup-default "Reel" until something says
+     otherwise; sync them now so they match the view the progressive render
+     below is about to use, not only once the whole Top 200 has loaded. */
+  document.querySelectorAll('#upcomingViewBtns .ev-view-btn')
+    .forEach(b => b.classList.toggle('active', b.dataset.view === (eventsViewModes['upcoming'] || 'carousel')));
   statusEl.textContent = t('mb_searching', { n: artists.length });
 
   const allReleases = []; // { release, artistName }
   let found = 0;
+  let lastPaint = 0; // throttles the progressive render below
 
   for (let i = 0; i < artists.length; i++) {
     const name = artists[i];
@@ -23217,12 +23224,20 @@ async function loadUpcomingReleases(forceRefresh = false) {
       found++;
     }
 
-    // Progressive render — update grid as results come in (no triggerPendingImgs here;
-    // those img elements get replaced on the next batch, orphaning any in-flight fetches)
+    /* Progressive render — the section stays usable while the rest of the Top
+       200 is still being fetched. It goes through _evRenderSectionByKey so it
+       honours the chosen view; painting the tile markup straight into the grid
+       used to pin the section to Tiles until the loop finished, whatever the
+       header buttons said. _upcomingLastData is kept current for the same
+       reason — those buttons re-render from it, so mid-load they did nothing.
+       Throttled by EV_PROGRESS_PAINT_MS; renderUpcomingResults() paints the
+       final, complete list when the loop ends. */
     if (releases.length > 0) {
-      const sorted = sortUpcomingReleases([...allReleases]);
-      gridEl.innerHTML = sorted.map(({ release, artistName }) =>
-        renderUpcomingCard(release, artistName)).join('');
+      _upcomingLastData = sortUpcomingReleases([...allReleases]);
+      if (Date.now() - lastPaint >= EV_PROGRESS_PAINT_MS) {
+        lastPaint = Date.now();
+        _evRenderSectionByKey('upcoming', _upcomingLastData);
+      }
     }
   }
 
@@ -23344,9 +23359,16 @@ async function loadRecentReleases(forceRefresh = false) {
   document.getElementById('recentRefreshBtn').style.display = 'none';
 
   gridEl.innerHTML = '';
+  gridEl.className = 'upcoming-grid'; // a previous Reel/Table/List render left its own class here
+  /* The header buttons are markup-default "Reel" until something says
+     otherwise; sync them now so they match the view the progressive render
+     below is about to use, not only once the whole Top 200 has loaded. */
+  document.querySelectorAll('#recentViewBtns .ev-view-btn')
+    .forEach(b => b.classList.toggle('active', b.dataset.view === (eventsViewModes['recent'] || 'carousel')));
   statusEl.textContent = t('mb_searching', { n: artists.length });
 
   const allReleases = [];
+  let lastPaint = 0; // throttles the progressive render below
 
   for (let i = 0; i < artists.length; i++) {
     const name = artists[i];
@@ -23358,10 +23380,15 @@ async function loadRecentReleases(forceRefresh = false) {
     const releases = await fetchRecentReleasesForMBID(mbid);
     for (const r of releases) allReleases.push({ release: r, artistName: name });
 
+    /* Same deal as loadUpcomingReleases(): render through the view-aware path
+       and keep _recentLastData fresh, so the section opens in Reel (the
+       default) rather than Tiles and the header buttons work mid-load. */
     if (releases.length > 0) {
-      const sorted = sortRecentReleases([...allReleases]);
-      gridEl.innerHTML = sorted.map(({ release, artistName }) =>
-        renderRecentCard(release, artistName)).join('');
+      _recentLastData = sortRecentReleases([...allReleases]);
+      if (Date.now() - lastPaint >= EV_PROGRESS_PAINT_MS) {
+        lastPaint = Date.now();
+        _evRenderSectionByKey('recent', _recentLastData);
+      }
     }
   }
 
@@ -26324,6 +26351,11 @@ const _eventsViewDefaults = {
 const eventsViewModes = Object.assign({}, _eventsViewDefaults,
   (() => { try { return JSON.parse(localStorage.getItem('dc_events_view_modes') || '{}'); } catch (e) { return {}; } })()
 );
+/* How often the Upcoming/Recent release loops are allowed to repaint while
+   they walk the Top 200. Each repaint rebuilds the whole section, so in Reel
+   view it remounts the carousel and re-fires every artwork fetch — once per
+   artist was enough to make the reel unusable until the loop finished. */
+const EV_PROGRESS_PAINT_MS = 1500;
 let _eventsLastData = null;
 let _upcomingLastData = null;
 let _recentLastData = null;
