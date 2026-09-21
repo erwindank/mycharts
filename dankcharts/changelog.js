@@ -61,7 +61,7 @@ const DC_CHANGELOG = [
 
   /* ========== SEPTEMBER 2026 ========== */
 
-  { d: '2026-09-21', t: 'fix', a: 'events', h: 'PENDING',
+  { d: '2026-09-21', t: 'fix', a: 'events', h: 'e1b171a',
     title: 'Upcoming and Recent Releases open in Reel view again',
     detail: 'Both sections search your Top 200 artists one at a time, and while that ran they redrew themselves as Tiles after every artist, whatever the Reel / Tiles / Table / List buttons said — so they opened in the wrong view and the buttons did nothing until all 200 artists had been looked up, which can take a couple of minutes. They now redraw in whichever view is selected, Reel by default, and switching views works straight away instead of waiting for the search to finish. The redraws are also spaced out, so the reel no longer restarts from the beginning every time an artist comes back.' },
 
