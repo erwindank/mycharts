@@ -69,7 +69,7 @@ const DC_CHANGELOG = [
     title: 'Concerts open the menu too, with Ticketmaster at the top of it',
     detail: 'A concert used to be a one-way trip to Ticketmaster, both on the cards in the Concerts section and on the teal pills in the calendar. Now they open the menu, and Tickets on Ticketmaster is its first option — so the show page is still one click away, with the artist’s Spotify, a playlist and their last 10 songs alongside it. This came in with the calendar change: the calendar shows concerts next to birthdays and releases, and having only some of them open a menu would have been worse than none.' },
 
-  { d: '2026-09-20', t: 'feature', a: 'awards', h: 'PENDING',
+  { d: '2026-09-20', t: 'feature', a: 'awards', h: '1c78a5b',
     title: 'Real-Life Awards now shows actual Grammy nominations',
     detail: 'The Real-Life Awards tab was empty for almost every year. It was asking MusicBrainz for award relationships, and MusicBrainz barely records them — a handful of artists have them, nobody else does, so the tab shrugged and said nothing. It now reads grammy.com itself. Pick a year and you get that ceremony by name — the 68th Annual Grammy Awards, held 2026 for 2025 releases — and then, for each of your top twenty artists from the year being honoured, every category they were nominated in, which ones they won, and the song or album it was for, alongside their all-time record. The list is in your own listening order, so your number one artist of the year leads it. Going back through the years works the same way, all the way to the 1st Annual Grammy Awards in 1959. Twenty artists are checked at once instead of one every second, and each artist is looked up only once no matter how many years you flip through.' },
 
