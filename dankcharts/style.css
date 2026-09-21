@@ -22344,11 +22344,55 @@ body[class*="-light"] .tm-card-search:hover {
 }
 .awards-reallife-credit a { color: var(--text2); }
 .awards-reallife-card {
+  display: flex;
+  align-items: stretch;
+  gap: 14px;
   background: var(--surface2);
   border: 1px solid var(--border);
   border-radius: 10px;
   padding: 12px 16px;
   margin-bottom: 10px;
+}
+.awards-reallife-body { flex: 1; min-width: 0; }
+/* The artist's picture runs the height of their card, however many
+   nominations it holds — square on a short card, taller on a long one. */
+.awards-reallife-portrait {
+  flex: 0 0 auto;
+  width: 132px;
+  min-height: 132px;
+  border-radius: 9px;
+  overflow: hidden;
+  background: var(--surface3);
+}
+.awards-reallife-portrait > div { width: 100%; height: 100%; }
+.awards-reallife-portrait .thumb,
+.awards-reallife-portrait .thumb-initials {
+  width: 100% !important;
+  height: 100% !important;
+  border-radius: 0 !important;
+  border: none !important;
+  object-fit: cover;
+}
+.awards-reallife-portrait .thumb-initials { font-size: 1.8rem !important; }
+/* Cover art for the nominated song or album */
+.awards-reallife-thumb {
+  flex: 0 0 auto;
+  width: 30px;
+  height: 30px;
+  border-radius: 5px;
+  overflow: hidden;
+  background: var(--surface3);
+}
+.awards-reallife-thumb.is-blank { background: none; }
+.awards-reallife-thumb > div { width: 100%; height: 100%; }
+.awards-reallife-thumb .thumb,
+.awards-reallife-thumb .thumb-initials {
+  width: 100% !important;
+  height: 100% !important;
+  border-radius: 0 !important;
+  border: none !important;
+  object-fit: cover;
+  font-size: 0.6rem !important;
 }
 .awards-reallife-artist {
   display: flex;
@@ -22387,15 +22431,45 @@ body[class*="-light"] .tm-card-search:hover {
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+/* On a phone the portrait gives up half its width rather than squeezing the
+   category and the work it was nominated for into nothing. */
+@media (max-width: 600px) {
+  .awards-reallife-card { gap: 10px; padding: 10px 12px; }
+  /* A square at the top of the card rather than a strip running its full
+     height — at this width that stretch turns into a sliver. */
+  .awards-reallife-portrait { width: 76px; min-height: 0; aspect-ratio: 1; align-self: flex-start; }
+  .awards-reallife-portrait .thumb-initials { font-size: 1.1rem !important; }
+  .awards-reallife-artist { flex-wrap: wrap; gap: 2px 8px; }
+  .awards-reallife-thumb, .awards-reallife-thumb.is-blank { width: 24px; height: 24px; }
+  .awards-reallife-row { align-items: flex-start; gap: 6px; }
+  .awards-reallife-badge { min-width: 84px; }
+  .awards-reallife-rowtext { flex-direction: column; gap: 0; }
+  .awards-reallife-cat { flex: none; }
+  .awards-reallife-work { text-align: left; max-width: 100%; }
+}
 .awards-reallife-badge {
   padding: 2px 7px;
   border-radius: 5px;
   font-size: 0.7rem;
   font-weight: 700;
   white-space: nowrap;
+  /* Won and Nominated are different lengths; a floor on the width keeps the
+     categories beside them on one left edge instead of a ragged one. */
+  min-width: 94px;
+  text-align: center;
 }
 .awards-reallife-badge.won  { background: #FFD70022; color: #FFD700; border: 1px solid #FFD70066; }
 .awards-reallife-badge.nom  { background: #6366f122; color: #818cf8; border: 1px solid #6366f166; }
+/* Category on the left, the work it was nominated for on the right — until the
+   screen is too narrow for both, where they stack instead of wrapping the
+   category down three lines. */
+.awards-reallife-rowtext {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+}
 .awards-reallife-cat  { flex: 1; color: var(--text2); }
 .awards-reallife-year { color: var(--text3); font-family: var(--font-sans); font-weight: 600; font-size: 0.72rem; }
 

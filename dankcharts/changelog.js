@@ -61,6 +61,10 @@ const DC_CHANGELOG = [
 
   /* ========== SEPTEMBER 2026 ========== */
 
+  { d: '2026-09-21', t: 'design', a: 'awards', h: 'PENDING',
+    title: 'Real-Life Awards has pictures now',
+    detail: 'Each artist in the Real-Life Awards tab now carries their picture down the side of their card, and every nomination shows the cover of the song or album it was for — the album cover for the album categories, the single’s artwork for everything else. A category with no work behind it, like Best New Artist or Producer Of The Year, shows nothing rather than repeating the artist photo. The pictures come from the same place the charts get theirs, so anything you have pinned turns up here too, under your own spelling of the artist rather than the one grammy.com files them under. On a phone the picture sits square at the top of the card and each nomination puts its title under the category instead of squeezing both onto one line.' },
+
   { d: '2026-09-20', t: 'change', a: 'events', h: 'afd4f53',
     title: 'The events calendar opens the menu instead of jumping to a Google search',
     detail: 'Clicking anything in the Events tab calendar sent you straight to a Google search — in the Month and Week grids, and in the Day panel underneath. Every one of them now opens the same little menu the cards elsewhere on the tab have, picked to suit what the event is: a birthday offers the artist’s Spotify, a playlist, the last 10 songs and the birthday search; an anniversary and a release that is already out offer the same for the record; and a release that is not out yet offers only Spotify and Google, since there is nothing to play. Hovering still brings up the little preview card with the artwork — it just steps out of the way once you click, rather than sitting on top of the menu.' },

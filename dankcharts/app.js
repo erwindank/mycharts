@@ -33969,21 +33969,90 @@ async function loadRealLifeAwards(year) {
   const noms = results.reduce((n, r) => n + r.entries.length, 0);
   const tally = `<div class="awards-reallife-tally">Your artists picked up <strong>${noms}</strong> ${noms === 1 ? 'nomination' : 'nominations'}${wins ? ` and won <strong>${wins}</strong>` : ''}.</div>`;
 
-  contentEl.innerHTML = headline + tally + results.map(r => {
+  // Artwork is loaded after the list paints, through the app's normal image
+  // cascade, so a picture pinned on the charts shows up here too.
+  const artQueue = [];
+
+  contentEl.innerHTML = headline + tally + results.map((r, ri) => {
     // Wins first within an artist, so the good news is at the top of the card.
     const rows = r.entries.slice().sort((a, b) => (b.won ? 1 : 0) - (a.won ? 1 : 0));
+    const artistId = `rl-art-${ri}`;
+    artQueue.push({ imgId: artistId, type: 'artist', item: {
+      name: r.played.artist, artist: r.played.artist,
+      prefKey: 'artist:' + r.played.artist.toLowerCase(),
+    } });
+
+    // The artist's portrait runs down the whole card, with their name and every
+    // nomination beside it.
     return `<div class="awards-reallife-card">
-      <div class="awards-reallife-artist">
-        <a href="${esc(r.data.url)}" target="_blank" rel="noopener">${esc(r.data.artist)}</a>
-        <span class="awards-reallife-alltime">${r.data.wins} ${r.data.wins === 1 ? 'win' : 'wins'} · ${r.data.nominations} all-time</span>
+      ${_rlArtHtml(artistId, r.played.artist, 'awards-reallife-portrait')}
+      <div class="awards-reallife-body">
+        <div class="awards-reallife-artist">
+          <a href="${esc(r.data.url)}" target="_blank" rel="noopener">${esc(r.data.artist)}</a>
+          <span class="awards-reallife-alltime">${r.data.wins} ${r.data.wins === 1 ? 'win' : 'wins'} · ${r.data.nominations} all-time</span>
+        </div>
+        ${rows.map((e, ei) => {
+          const workId = `rl-work-${ri}-${ei}`;
+          const art = _rlWorkArt(e, r);
+          if (art) artQueue.push({ imgId: workId, type: art.type, item: art.item });
+          return `<div class="awards-reallife-row">
+            ${art ? _rlArtHtml(workId, e.title, 'awards-reallife-thumb') : '<div class="awards-reallife-thumb is-blank"></div>'}
+            <span class="awards-reallife-badge ${e.won ? 'won' : 'nom'}">${e.won ? '🏆 Won' : '🎗 Nominated'}</span>
+            <span class="awards-reallife-rowtext">
+              <span class="awards-reallife-cat">${esc(e.category)}</span>
+              ${e.title ? `<span class="awards-reallife-work">${esc(e.title)}</span>` : ''}
+            </span>
+          </div>`;
+        }).join('')}
       </div>
-      ${rows.map(e => `<div class="awards-reallife-row">
-        <span class="awards-reallife-badge ${e.won ? 'won' : 'nom'}">${e.won ? '🏆 Won' : '🎗 Nominated'}</span>
-        <span class="awards-reallife-cat">${esc(e.category)}</span>
-        ${e.title ? `<span class="awards-reallife-work">${esc(e.title)}</span>` : ''}
-      </div>`).join('')}
     </div>`;
   }).join('') + credit;
+
+  _realLifeLoadArt(artQueue, token);
+}
+
+// An empty thumb slot with the initials showing, for fetchAndInjectImage to fill
+// in place — the same shape the ceremony slides use.
+function _rlArtHtml(imgId, label, cls) {
+  return `<div class="${cls}"><div id="${imgId}"><div class="thumb-initials">${esc(initials(label || ''))}</div></div></div>`;
+}
+
+// What picture belongs next to one nomination, in the shape fetchAndInjectImage
+// wants. Album categories get the album's cover, everything else the single's —
+// and a category with no work at all (Best New Artist, Producer Of The Year)
+// gets nothing rather than a repeat of the artist photo above it.
+function _rlWorkArt(entry, result) {
+  if (!entry.title) return null;
+
+  // Look the artwork up under the user's own spelling of the artist, not
+  // grammy.com's, so it shares a prefKey with their charts — a picture they
+  // pinned on "Beyoncé" is found here, where grammy.com would say "Beyoncé
+  // Knowles". On a row the artist only wrote or featured on, the credited name
+  // is the one that will actually find the cover.
+  const credited = entry.artists || [];
+  const isTheirs = !credited.length ||
+    credited.some(a => a.toLowerCase() === (result.data.artist || '').toLowerCase());
+  const artist = isTheirs ? result.played.artist : credited[0];
+
+  const type = /\balbum\b|soundtrack|compendium|recording package/i.test(entry.category) ? 'album' : 'song';
+  const key = artist.toLowerCase() + '|||' + entry.title.toLowerCase();
+  return type === 'album'
+    ? { type, item: { name: entry.title, album: entry.title, artist, prefKey: 'album:' + key } }
+    : { type, item: { name: entry.title, title: entry.title, artist, prefKey: 'song:' + key } };
+}
+
+// One at a time: fetchAndInjectImage already paces the Deezer proxy, and it drops
+// any job whose container has left the DOM, so a year the user has navigated
+// away from stops loading by itself.
+async function _realLifeLoadArt(queue, token) {
+  for (const job of queue) {
+    if (token !== _realLifeLoadToken) return;
+    const el = document.getElementById(job.imgId);
+    if (!el) continue;
+    try {
+      await fetchAndInjectImage(el, { imgId: job.imgId, prefKey: 'artist:' + (job.item.artist || '').toLowerCase(), ...job.item }, job.type);
+    } catch (e) {}
+  }
 }
 
 // ── Ceremony ──────────────────────────────────────────────────────────────────
