@@ -32457,7 +32457,7 @@ const AWARD_CATEGORIES = [
   { id: 'song_of_year',      label: 'Song of the Year',           type: 'song',   filter: 'all',         defaultOn: true,  emoji: '🎵' },
   { id: 'album_of_year',     label: 'Album of the Year',          type: 'album',  filter: 'all',         defaultOn: true,  emoji: '💿' },
   { id: 'artist_of_year',    label: 'Artist of the Year',         type: 'artist', filter: 'all',         defaultOn: true,  emoji: '🎤' },
-  { id: 'new_artist',        label: 'New Artist of the Year',     type: 'artist', filter: 'new',         defaultOn: true,  emoji: '🌱' },
+  { id: 'new_artist',        label: 'Best New Artist',            type: 'artist', filter: 'new',         defaultOn: true,  emoji: '🌱' },
   { id: 'best_collab',       label: 'Best Collaboration',         type: 'song',   filter: 'collab',      defaultOn: true,  emoji: '🤝' },
   { id: 'best_duo',          label: 'Best Duo',                   type: 'song',   filter: 'duo',         defaultOn: false, emoji: '👥' },
   { id: 'song_summer',       label: 'Song of the Summer',         type: 'song',   filter: 'summer',      defaultOn: true,  emoji: '🏖️' },
@@ -32500,6 +32500,7 @@ const AWARD_CATEGORIES = [
   { id: 'best_dance_album',  label: 'Best Dance/Electronic Album', type: 'album', filter: 'genre:electronic',  defaultOn: false, emoji: '🪩' },
   { id: 'best_reggae_album', label: 'Best Reggae Album',          type: 'album',  filter: 'genre:reggae',      defaultOn: false, emoji: '🌴' },
   { id: 'best_soundtrack_album', label: 'Best Soundtrack Album',  type: 'album',  filter: 'soundtrack',        defaultOn: false, emoji: '🎬' },
+  { id: 'best_album_cover',  label: 'Best Album Cover',           type: 'album',  filter: 'all',               defaultOn: false, emoji: '🖼️' },
   // Stat awards (auto-awarded)
   { id: 'stat_top_song',     label: 'Most Played Song',           type: 'song',   filter: 'stat',        defaultOn: true,  auto: true, emoji: '🎶' },
   { id: 'stat_top_album',    label: 'Most Played Album',          type: 'album',  filter: 'stat',        defaultOn: true,  auto: true, emoji: '📀' },
@@ -37368,7 +37369,7 @@ const _cgTourSteps = [
     nav: 'events' },
 
   { title: 'Awards',
-    content: 'A full awards ceremony generated from your own chart data, with 33 categories available — Song, Album, Artist and New Artist of the Year, Best Collaboration, Song of the Summer, Best Comeback, Best Discovery, Most Obsessive Play, and opt-in genre categories across pop, rock, alternative, hip-hop, R&B, Latin, electronic and K-pop. Set the eligibility window, choose your categories, then run the ceremony and watch the envelopes open. There is a separate Real-Life Awards tab alongside My Grammys.',
+    content: 'A full awards ceremony generated from your own chart data, with 53 categories available — Song, Album and Artist of the Year, Best New Artist, Best Collaboration, Song of the Summer, Best Comeback, Best Discovery, Most Obsessive Play, and opt-in genre categories across pop, rock, alternative, hip-hop, R&B, Latin, electronic and K-pop. Set the eligibility window, choose your categories, then run the ceremony and watch the envelopes open. There is a separate Real-Life Awards tab alongside My Grammys.',
     nav: 'awards' },
 
   { title: 'Your Soundtrack',
@@ -38075,7 +38076,7 @@ function dcRenderChartsGuideView() {
       tabs: [
         { name: 'Records',         period: 'records',    icon: '🏆', desc: 'Eleven sections behind the button row at the top: All #1s, Perfect All Kill, Most Chart Appearances, Biggest Debuts, Most Plays in a Period, Play Count Milestones, Fastest to Milestone, Certifications, Streak Records, New Charts and an Overview.', use: 'Your record book.' },
         { name: 'Events',          period: 'events',     icon: '🎂', desc: 'A calendar of artist birthdays, album anniversaries and new releases for the artists in your charts.', use: 'Knowing when something is worth replaying.' },
-        { name: 'Awards',          period: 'awards',     icon: '🏅', desc: '33 categories generated from your own chart data — the four majors plus Best Collaboration, Song of the Summer, Best Comeback, Best Discovery, Most Obsessive Play and opt-in genre awards. Set an eligibility window, pick categories, then run the ceremony. Real-Life Awards sits alongside My Grammys.', use: 'The fun one. Run it every December.' },
+        { name: 'Awards',          period: 'awards',     icon: '🏅', desc: '53 categories generated from your own chart data — the four majors plus Best Collaboration, Song of the Summer, Best Comeback, Best Discovery, Most Obsessive Play and opt-in genre awards. Set an eligibility window, pick categories, then run the ceremony. Real-Life Awards sits alongside My Grammys.', use: 'The fun one. Run it every December.' },
         { name: 'Your Soundtrack', period: 'soundtrack', icon: '🎬', desc: 'A full recap of any month, year or all time: a reel, headline stats, top charts, a featured artist, your listening patterns, discoveries, milestones, streaks, a mini awards run and a hidden gem — plus an animated chart replay and a shareable card.', use: 'The nostalgic pass through your history.' },
         { name: 'Playlists',       period: 'playlists',  icon: '🎵', desc: 'Save any chart as a named playlist, queue tracks from anywhere, and use the Time Machine to replay exactly what you had on for any past date.', use: 'Turning a chart back into listening.' },
         { name: 'Charts Guide',    period: 'chartsguide',icon: '📖', desc: 'You are here. Setup checks, the tab breakdown, how charts are calculated, shortcuts, glossary, FAQ and your milestones.', use: 'Whenever something does not make sense.' },

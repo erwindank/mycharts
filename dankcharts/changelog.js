@@ -61,6 +61,14 @@ const DC_CHANGELOG = [
 
   /* ========== SEPTEMBER 2026 ========== */
 
+  { d: '2026-09-20', t: 'feature', a: 'awards', h: '',
+    title: 'My Grammys has a Best Album Cover category',
+    detail: 'A new opt-in category in My Grammys, for the year’s best-looking record rather than the best-sounding one. Turn it on under Configure Year and it works like the other album categories — pick nominees from anything you played in the eligibility window, crown a winner, and the ceremony gives it the same envelope as the rest, with the covers themselves filling the cards.' },
+
+  { d: '2026-09-20', t: 'change', a: 'awards', h: '',
+    title: 'New Artist of the Year is now Best New Artist',
+    detail: 'Renamed to match what the award is actually called everywhere else, including the Real-Life Awards tab alongside it. Nothing about how it works has changed, and any nominees or winners you already picked for it stay exactly where they were — only the name on the card is different. Translated in Spanish and Portuguese too.' },
+
   { d: '2026-09-21', t: 'design', a: 'awards', h: 'a6501f3',
     title: 'Real-Life Awards has pictures now',
     detail: 'Each artist in the Real-Life Awards tab now carries their picture down the side of their card, and every nomination shows the cover of the song or album it was for — the album cover for the album categories, the single’s artwork for everything else. A category with no work behind it, like Best New Artist or Producer Of The Year, shows nothing rather than repeating the artist photo. The pictures come from the same place the charts get theirs, so anything you have pinned turns up here too, under your own spelling of the artist rather than the one grammy.com files them under. On a phone the picture sits square at the top of the card and each nomination puts its title under the category instead of squeezing both onto one line.' },
