@@ -61,11 +61,11 @@ const DC_CHANGELOG = [
 
   /* ========== SEPTEMBER 2026 ========== */
 
-  { d: '2026-09-20', t: 'feature', a: 'awards', h: '',
+  { d: '2026-09-20', t: 'feature', a: 'awards', h: 'd0157c2',
     title: 'My Grammys has a Best Album Cover category',
     detail: 'A new opt-in category in My Grammys, for the year’s best-looking record rather than the best-sounding one. Turn it on under Configure Year and it works like the other album categories — pick nominees from anything you played in the eligibility window, crown a winner, and the ceremony gives it the same envelope as the rest, with the covers themselves filling the cards.' },
 
-  { d: '2026-09-20', t: 'change', a: 'awards', h: '',
+  { d: '2026-09-20', t: 'change', a: 'awards', h: 'd0157c2',
     title: 'New Artist of the Year is now Best New Artist',
     detail: 'Renamed to match what the award is actually called everywhere else, including the Real-Life Awards tab alongside it. Nothing about how it works has changed, and any nominees or winners you already picked for it stay exactly where they were — only the name on the card is different. Translated in Spanish and Portuguese too.' },
 
