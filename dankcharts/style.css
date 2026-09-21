@@ -692,6 +692,41 @@
 
     .ctrl-btn-narrow { display: none; }
 
+    /* WHAT'S NEW badge — the changelog's front door in the masthead.
+       Only in the DOM's flow while unseen entries exist (dcClRefreshBadge
+       toggles display), so the control row is unchanged the rest of the time.
+
+       Every colour here is currentColor. The masthead banner is dark under
+       some light themes and light under others, and each theme already sets
+       .ctrl-group-btn's colour to something readable on its own banner —
+       deriving from that is the only way this reads correctly in all ten
+       without a per-theme rule. */
+    .masthead .ctrl-group-btn.cl-new-btn {
+      background: color-mix(in srgb, currentColor 12%, transparent);
+      border-color: color-mix(in srgb, currentColor 60%, transparent);
+    }
+
+    .cl-new-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: currentColor;
+      flex-shrink: 0;
+      display: inline-block;
+      animation: clNewPulse 2.4s ease-in-out infinite;
+    }
+
+    /* A slow halo rather than a blink: enough to catch the eye on the way past,
+       not enough to sit in the corner demanding to be dealt with. */
+    @keyframes clNewPulse {
+      0%, 100% { box-shadow: 0 0 0 0 color-mix(in srgb, currentColor 55%, transparent); }
+      50%      { box-shadow: 0 0 0 4px transparent; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .cl-new-dot { animation: none; }
+    }
+
     /* Theme panel: horizontal strip of color chips */
     #themeCtrlGroup .ctrl-group-panel {
       flex-wrap: nowrap;
@@ -11104,6 +11139,16 @@
       .ctrl-theme-dot {
         width: 13px;
         height: 13px;
+      }
+
+      /* No room for a dot and a number inside a 30px circle, so the count wins
+         and the whole button carries the pulse instead. */
+      .cl-new-btn .cl-new-dot { display: none; }
+      .cl-new-btn { animation: clNewPulse 2.4s ease-in-out infinite; }
+      #clNewCount {
+        font-family: var(--font-mono);
+        font-size: 11px;
+        font-weight: 700;
       }
 
       /* Panels drop downward on mobile, aligned to the right edge of the button */
@@ -31552,6 +31597,17 @@ body.red-light .modal-cb-label--tracks {
 .cl-stats b { color: var(--accent); font-weight: 700; }
 .cl-stat-since { opacity: 0.75; font-style: italic; }
 
+/* Rendered first in the strip and only when there is something to count, so
+   the answer to "what changed since I was last here" is the first thing read. */
+.cl-stat-new {
+  padding: 0.05rem 0.45rem;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--green) 55%, transparent);
+  background: color-mix(in srgb, var(--green) 12%, transparent);
+  color: var(--green);
+}
+.cl-stat-new b { color: var(--green); }
+
 .cl-search {
   width: 100%;
   padding: 0.5rem 0.7rem;
@@ -31626,8 +31682,42 @@ body.red-light .modal-cb-label--tracks {
   border-bottom: 1px solid var(--border);
 }
 
+/* -- Where the unread entries stop --------------------------------------- */
+/* A single labelled rule. Everything above it arrived since this browser last
+   opened the overlay; everything below it has already been seen. Drawn once,
+   in the full list only - dcChangelogFilter() hides it as soon as a pill or a
+   search makes its position meaningless. */
+.cl-newmark {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  padding: 0.9rem 0.2rem 0.5rem;
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text3);
+}
+.cl-newmark::before,
+.cl-newmark::after {
+  content: '';
+  flex: 1 1 auto;
+  height: 1px;
+  background: var(--border);
+}
+.cl-newmark[hidden] { display: none; }
+
 /* -- One entry ----------------------------------------------------------- */
 .cl-entry { border-bottom: 1px solid var(--border-t); }
+
+/* Unread entries carry a quiet accent rail rather than another badge - the
+   row already has a day, a type badge and an area on it. */
+.cl-entry-new {
+  border-left: 2px solid var(--green);
+  margin-left: -0.55rem;
+  padding-left: 0.55rem;
+  background: color-mix(in srgb, var(--green) 4%, transparent);
+}
 
 .cl-entry-head {
   width: 100%;

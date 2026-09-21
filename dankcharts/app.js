@@ -38669,10 +38669,92 @@ let dcChangelogBuilt = false;
 const dcClActiveTypes = new Set();
 const dcClActiveAreas = new Set();
 
+// ── "New since your last visit" ─────────────────────────────────────────────
+// The changelog used to have exactly one door: a 0.75rem link at the very
+// bottom of the page. Nothing on screen ever said anything had changed, so
+// there was never a reason to go looking, and the list went unread. Three
+// small pieces fix that without leaving permanent furniture behind:
+//
+//   1. dc_changelog_seen - the date of the newest entry this browser has
+//      already been shown. One key, one ISO date string.
+//   2. A masthead button - rendered only while unseen entries exist, and gone
+//      again the moment the overlay is opened. Nothing new, nothing on screen.
+//   3. A divider in the list - so opening it lands you on what is actually new
+//      rather than on seven hundred undifferentiated rows.
+//
+// Kept per-browser (localStorage) rather than per-account on purpose: "have I
+// read this yet" is a property of the screen you are sitting at, and syncing
+// it through Firestore would mean reading it on the laptop silently eats the
+// badge on the phone.
+const DC_CL_SEEN_KEY = 'dc_changelog_seen';
+
+/* First run has no stored date. Falling back to "two weeks before the newest
+   entry" means shipping this nudges everyone exactly once, instead of staying
+   invisible to every existing user until the next entry happens to land. */
+const DC_CL_FIRST_RUN_DAYS = 14;
+
+/* The cutoff the currently-built list was rendered against, so the divider and
+   the badge always agree about where this visit started. */
+let dcClRenderCutoff = '';
+
+/* Date (YYYY-MM-DD) an entry must be NEWER than to count as unseen. */
+function dcClUnseenCutoff() {
+  if (typeof DC_CHANGELOG === 'undefined' || !DC_CHANGELOG.length) return '9999-12-31';
+  let seen = '';
+  try { seen = localStorage.getItem(DC_CL_SEEN_KEY) || ''; } catch (e) {}
+  if (seen) return seen;
+  const d = new Date(DC_CHANGELOG[0].d + 'T00:00:00');
+  d.setDate(d.getDate() - DC_CL_FIRST_RUN_DAYS);
+  return d.toISOString().slice(0, 10);
+}
+
+/* ISO dates sort correctly as plain strings, so this needs no Date objects. */
+function dcClUnseenCount(cutoff) {
+  if (typeof DC_CHANGELOG === 'undefined' || !cutoff) return 0;
+  let n = 0;
+  for (let i = 0; i < DC_CHANGELOG.length; i++) {
+    if (DC_CHANGELOG[i].d > cutoff) n++; else break;  // newest-first, so stop early
+  }
+  return n;
+}
+
+/* Show or hide the masthead badge. Called once on load; also after marking
+   seen, which is the only other moment the answer can change. */
+function dcClRefreshBadge() {
+  const grp = document.getElementById('clNewCtrlGroup');
+  if (!grp) return;
+  const n = dcClUnseenCount(dcClUnseenCutoff());
+  grp.style.display = n ? '' : 'none';
+  if (!n) return;
+  /* The narrow (mobile) face is a 30px circle, so the count is capped rather
+     than allowed to push the button out of round. */
+  const count = document.getElementById('clNewCount');
+  if (count) count.textContent = n > 9 ? '9+' : String(n);
+  const btn = document.getElementById('clNewBtn');
+  if (btn) btn.title = t('ctrl_btn_whats_new_title', { n: n });
+}
+
+/* Everything currently in the list counts as read from here on. The divider
+   already rendered keeps its place, so the list does not reshuffle under you
+   while you are still reading it. */
+function dcClMarkSeen() {
+  if (typeof DC_CHANGELOG === 'undefined' || !DC_CHANGELOG.length) return;
+  try { localStorage.setItem(DC_CL_SEEN_KEY, DC_CHANGELOG[0].d); } catch (e) {}
+  const grp = document.getElementById('clNewCtrlGroup');
+  if (grp) grp.style.display = 'none';
+}
+
 function openChangelog() {
   const m = document.getElementById('changelogModal');
   if (!m) return;
-  if (!dcChangelogBuilt) { dcRenderChangelog(); dcChangelogBuilt = true; }
+  /* Read the cutoff BEFORE anything is marked seen - the divider is drawn from
+     where this visit started, not from where it ends. */
+  if (!dcChangelogBuilt) {
+    dcClRenderCutoff = dcClUnseenCutoff();
+    dcRenderChangelog();
+    dcChangelogBuilt = true;
+  }
+  dcClMarkSeen();
   m.classList.add('open');
   document.body.style.overflow = 'hidden';   // the overlay scrolls, not the page
   // Deep link, so a specific changelog can be sent to someone.
@@ -38705,8 +38787,14 @@ function dcRenderChangelog() {
   const oldest = DC_CHANGELOG.length ? DC_CHANGELOG[DC_CHANGELOG.length - 1].d : '';
   const since  = oldest ? dcClMonthLabel(oldest.slice(0, 7)) : '';
   const stats  = document.getElementById('clStats');
+  /* How many entries landed since this browser last opened the overlay. Read
+     once here and reused for both the stat and the divider below, so the two
+     can never disagree. */
+  const newCount = dcClUnseenCount(dcClRenderCutoff);
   if (stats) {
     stats.innerHTML =
+      (newCount ? '<span class="cl-stat cl-stat-new"><b>' + newCount + '</b> ' +
+                  esc(t('cl_stat_new')) + '</span>' : '') +
       '<span class="cl-stat"><b>' + DC_CHANGELOG.length + '</b> changes</span>' +
       Object.keys(DC_CL_TYPES).filter(t => counts[t]).map(t =>
         '<span class="cl-stat"><b>' + counts[t] + '</b> ' +
@@ -38737,8 +38825,15 @@ function dcRenderChangelog() {
   }
 
   /* -- Entries, grouped by month -------------------------------------- */
+  /* One rule is drawn where the unread entries stop. Nothing new (or nothing
+     but new) means no rule at all - a divider with nothing above or below it
+     is just a line. */
+  let dividerDone = !newCount;
   let h = '', lastMonth = '';
   DC_CHANGELOG.forEach((e, i) => {
+    /* Guarded on the cutoff itself: an empty one would mark the whole list
+       as new, which is worse than marking none of it. */
+    const isNew = !!dcClRenderCutoff && e.d > dcClRenderCutoff;
     const month = e.d.slice(0, 7);
     if (month !== lastMonth) {
       if (lastMonth) h += '</div>';
@@ -38746,13 +38841,20 @@ function dcRenderChangelog() {
            '<div class="cl-month-head"><span>' + esc(dcClMonthLabel(month)) + '</span></div>';
       lastMonth = month;
     }
+    /* Emitted after the month head so it always sits inside a month block and
+       is hidden along with it when that month filters out. */
+    if (!dividerDone && !isNew) {
+      h += '<div class="cl-newmark" id="clNewDivider"><span>' +
+           esc(t('cl_seen_divider')) + '</span></div>';
+      dividerDone = true;
+    }
     const ty  = DC_CL_TYPES[e.t] || { label: e.t, cls: 'data' };
     const day = parseInt(e.d.slice(8, 10), 10);
     /* Search haystack precomputed into an attribute - filtering 700 rows on
        every keystroke should not be reading textContent out of the DOM. */
     const hay = (e.title + ' ' + (e.detail || '') + ' ' +
                  (DC_CL_AREAS[e.a] || '') + ' ' + ty.label).toLowerCase();
-    h += '<div class="cl-entry" data-cli="' + i + '" data-clt="' + esc(e.t) + '"' +
+    h += '<div class="cl-entry' + (isNew ? ' cl-entry-new' : '') + '" data-cli="' + i + '" data-clt="' + esc(e.t) + '"' +
          ' data-cla="' + esc(e.a) + '" data-clhay="' + esc(hay) + '">' +
          '<button class="cl-entry-head" onclick="dcClToggleEntry(' + i + ')" aria-expanded="false">' +
            '<span class="cl-day">' + day + '</span>' +
@@ -38811,6 +38913,12 @@ function dcChangelogFilter() {
     m.hidden = !m.querySelector('.cl-entry:not([hidden])');
   });
 
+  /* "Since your last visit" only reads as true in the full, date-ordered list.
+     Once a pill or a search reorders what is on screen, its position is
+     arbitrary, so it goes away until the filters are cleared again. */
+  const divider = document.getElementById('clNewDivider');
+  if (divider) divider.hidden = !!(q || dcClActiveTypes.size || dcClActiveAreas.size);
+
   const empty = document.getElementById('clEmpty');
   if (empty) empty.hidden = shown > 0;
 }
@@ -38826,6 +38934,9 @@ document.addEventListener('keydown', function (ev) {
 
 window.addEventListener('DOMContentLoaded', function () {
   if (location.hash === '#changelog') openChangelog();
+  /* changelog.js and translations.js are both plain defer scripts loaded ahead
+     of app.js, so DC_CHANGELOG and t() are both ready by the time this runs. */
+  dcClRefreshBadge();
 });
 
 /* Arriving at #changelog from a link on a page that is already loaded is a

@@ -27,11 +27,11 @@
   <!-- html2canvas, SheetJS (xlsx) and JSZip are intentionally NOT loaded here — they
        total ~1.2 MB and are only needed for image exports and Excel/ZIP imports.
        app.js pulls them from the CDN on first use (see ensureLazyLib). -->
-  <link rel="stylesheet" href="style.css?v=246">
+  <link rel="stylesheet" href="style.css?v=247">
   <!-- All scripts are deferred so the page paints without waiting on them.
        defer preserves execution order, which matters: translations → Chart.js →
        hammer → zoom plugin → firebase SDKs → firebase.js → app.js (in body). -->
-  <script defer src="translations.js?v=8"></script>
+  <script defer src="translations.js?v=9"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8/hammer.min.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@1.2.1/dist/chartjs-plugin-zoom.min.js"></script>
@@ -254,6 +254,19 @@
 
   <div class="masthead">
     <div class="theme-toggle">
+      <!-- "What's New" badge. Hidden by default and only revealed by
+           dcClRefreshBadge() when changelog.js holds entries newer than the
+           last one this browser was shown; opening the overlay hides it again.
+           Deliberately has no .ctrl-group-panel — it is a plain button that
+           borrows the control row's look so it sits in the masthead without
+           adding a new piece of furniture. -->
+      <div class="ctrl-group" id="clNewCtrlGroup" style="display:none;">
+        <button class="ctrl-group-btn cl-new-btn" id="clNewBtn" onclick="openChangelog()" aria-label="What&rsquo;s New">
+          <span class="cl-new-dot" aria-hidden="true"></span>
+          <span class="ctrl-btn-wide" data-i18n="ctrl_btn_whats_new">WHAT&rsquo;S NEW</span>
+          <span class="ctrl-btn-narrow" id="clNewCount">1</span>
+        </button>
+      </div>
       <div class="ctrl-group" id="themeCtrlGroup">
         <button class="ctrl-group-btn" id="themeGroupBtn" aria-label="Theme" title="Theme">
           <span class="ctrl-btn-wide"><span class="ctrl-theme-dot"></span><span data-i18n="ctrl_btn_theme">THEME</span></span>
@@ -3321,8 +3334,8 @@
 
   <!-- defer keeps app.js last in the script execution order (after translations,
        Chart.js and firebase.js) while letting the whole page parse and paint first -->
-  <script defer src="changelog.js?v=23"></script>
-  <script defer src="app.js?v=211"></script>
+  <script defer src="changelog.js?v=24"></script>
+  <script defer src="app.js?v=212"></script>
 
   <!-- ── Settings Modal ──
        Split into three tabs so the whole form is never dumped on screen at

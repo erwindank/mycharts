@@ -1076,6 +1076,10 @@ const TRANSLATIONS = {
     footer_changelog: 'What’s New',
     cl_title: 'What’s New',
     cl_search: 'Search every change…',
+    ctrl_btn_whats_new: 'WHAT’S NEW',
+    ctrl_btn_whats_new_title: '{{n}} new since your last visit',
+    cl_stat_new: 'new since your last visit',
+    cl_seen_divider: 'You’ve seen everything below',
     footer_line2: 'All data stays in your browser. Nothing is uploaded or stored externally.',
 
     // Modal
@@ -2575,6 +2579,10 @@ const TRANSLATIONS = {
     footer_changelog: 'Novedades',
     cl_title: 'Novedades',
     cl_search: 'Busca en todos los cambios…',
+    ctrl_btn_whats_new: 'NOVEDADES',
+    ctrl_btn_whats_new_title: '{{n}} novedades desde tu última visita',
+    cl_stat_new: 'novedades desde tu última visita',
+    cl_seen_divider: 'Ya has visto todo lo de abajo',
     footer_line2: 'Todos los datos permanecen en tu navegador. No se sube ni almacena nada externamente.',
 
     // Modal
@@ -4064,6 +4072,10 @@ const TRANSLATIONS = {
     footer_changelog: 'Novidades',
     cl_title: 'Novidades',
     cl_search: 'Pesquisar todas as mudanças…',
+    ctrl_btn_whats_new: 'NOVIDADES',
+    ctrl_btn_whats_new_title: '{{n}} novidades desde a sua última visita',
+    cl_stat_new: 'novidades desde a sua última visita',
+    cl_seen_divider: 'Você já viu tudo o que está abaixo',
     footer_line2: 'Todos os dados ficam no seu navegador. Nada é enviado ou armazenado externamente.',
 
     // Modal
@@ -5552,6 +5564,10 @@ const TRANSLATIONS = {
     footer_changelog: 'Novidades',
     cl_title: 'Novidades',
     cl_search: 'Pesquisar todas as alterações…',
+    ctrl_btn_whats_new: 'NOVIDADES',
+    ctrl_btn_whats_new_title: '{{n}} novidades desde a sua última visita',
+    cl_stat_new: 'novidades desde a sua última visita',
+    cl_seen_divider: 'Já viu tudo o que está abaixo',
     footer_line2: 'Todos os dados ficam no seu navegador. Nada é enviado ou armazenado externamente.',
 
     // Modal
