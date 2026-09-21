@@ -61,11 +61,11 @@ const DC_CHANGELOG = [
 
   /* ========== SEPTEMBER 2026 ========== */
 
-  { d: '2026-09-20', t: 'perf', a: 'awards', h: 'PENDING',
+  { d: '2026-09-20', t: 'perf', a: 'awards', h: '08b5000',
     title: 'Picking nominees no longer crawls on a phone',
     detail: 'Adding or removing a nominee in an Awards category could take a second or more on a phone, and worse the bigger your library. Every tap was throwing the whole list away and building it again from scratch — re-sorting the year’s songs, albums or artists and regenerating sixty rows of the browse list — all to move one tick mark. The rating score shown on each row was the expensive part: working out an album’s score means finding its tracklist, and finding a tracklist meant reading through every play in your history. Sixty rows meant sixty passes over the lot, and an artist category, which averages all of that artist’s albums, meant hundreds. A tap now just flips the one row it touched, and album and artist scores are worked out once and remembered until something actually changes. On a 60,000-play library the work behind a tap went from about 276 milliseconds to under a fifth of one.' },
 
-  { d: '2026-09-20', t: 'fix', a: 'awards', h: 'PENDING',
+  { d: '2026-09-20', t: 'fix', a: 'awards', h: '08b5000',
     title: 'Nominees no longer go missing when you switch apps',
     detail: 'Your ballot was the one thing you write in the app that was only ever kept in the cloud, never on the device. So if the save had not finished travelling when you left Chrome for another app — and phones freeze or throw away a tab in the background whenever they feel like it — the nominees were simply gone, with nothing on screen to say so. Three things now stop that. Every save writes to the device first and the cloud second, so the ballot is safe the instant you tap Save. The cloud connection keeps its own queue on disk, so a save made with no signal is still sent later instead of being forgotten. And if a save really is refused while you are signed in, it now says so on screen rather than failing silently. When the app next opens it takes whichever copy was written last, so a save that never reached the cloud is picked up from the device and sent on.' },
 
