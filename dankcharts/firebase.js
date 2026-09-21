@@ -35,6 +35,37 @@ let _auth = null;
 let _db   = null;
 let _currentUser = null;
 
+/* Firestore, with on-disk offline persistence.
+   Every write in this file is fire-and-forget from the UI's point of view, and
+   Android Chrome freezes or outright discards a backgrounded tab whenever it
+   feels like it. Without a durable queue, a write that had not yet reached the
+   network when the user switched apps simply vanished — which is how nominees
+   picked on a phone could come back missing. With persistence the write lands
+   in IndexedDB the moment it is issued and replays on the next load.
+
+   enablePersistence() has to run before any other call on the instance, so every
+   path goes through here and awaits it. Its rejections are expected and
+   non-fatal: 'failed-precondition' means another tab already holds the lease and
+   'unimplemented' means no IndexedDB at all (private browsing). Either way
+   Firestore carries on in memory, exactly as it behaved before.                */
+let _dbReady = null;
+function _ensureDb() {
+  if (_db) return Promise.resolve(_db);
+  if (!_dbReady) {
+    _dbReady = (async () => {
+      const db = firebase.firestore();
+      try {
+        await db.enablePersistence({ synchronizeTabs: true });
+      } catch (err) {
+        console.warn('[dankcharts] Offline persistence unavailable:', err && err.code);
+      }
+      _db = db;
+      return db;
+    })();
+  }
+  return _dbReady;
+}
+
 function _configRef(uid) {
   return _db.collection('users').doc(uid).collection('data').doc('config');
 }
@@ -74,6 +105,7 @@ async function _loadAndApplyConfig(uid) {
 
 async function dcSaveUserConfig() {
   if (!_currentUser) return;
+  await _ensureDb();
   const cfg = {};
   for (const key of SYNC_KEYS) {
     const v = localStorage.getItem(key);
@@ -141,7 +173,8 @@ function _ratingsRef(uid) {
 // stale localStorage value could race the in-memory list back over the top of a
 // fresh edit. Writing the payload directly can't be raced that way.
 async function dcSaveRatings(payload) {
-  if (!_currentUser || !_db) return;
+  if (!_currentUser) return;
+  await _ensureDb();
   try {
     await _ratingsRef(_currentUser.uid).set(payload);
   } catch (err) {
@@ -150,7 +183,8 @@ async function dcSaveRatings(payload) {
 }
 
 async function dcLoadRatings() {
-  if (!_currentUser || !_db) return null;
+  if (!_currentUser) return null;
+  await _ensureDb();
   try {
     const snap = await _ratingsRef(_currentUser.uid).get();
     return snap.exists ? snap.data() : null;
@@ -165,7 +199,8 @@ function _playlistsRef(uid) {
 }
 
 async function dcSavePlaylistsToFirestore(playlistsJson, modifiedJson, deletedJson) {
-  if (!_currentUser || !_db) return;
+  if (!_currentUser) return;
+  await _ensureDb();
   try {
     await _playlistsRef(_currentUser.uid).set({ data: playlistsJson, modified: modifiedJson || '{}', deleted: deletedJson || '{}' });
   } catch (err) {
@@ -174,7 +209,8 @@ async function dcSavePlaylistsToFirestore(playlistsJson, modifiedJson, deletedJs
 }
 
 async function dcLoadPlaylistsFromFirestore() {
-  if (!_currentUser || !_db) return null;
+  if (!_currentUser) return null;
+  await _ensureDb();
   try {
     const snap = await _playlistsRef(_currentUser.uid).get();
     if (!snap.exists) return null;
@@ -186,17 +222,29 @@ async function dcLoadPlaylistsFromFirestore() {
   }
 }
 
+// Whether there is a signed-in account at all. Callers use it to tell a failed
+// write apart from the ordinary signed-out case, where local-only is the point.
+function dcIsSignedIn() { return !!_currentUser; }
+
+// Returns whether the write was accepted, so the Awards tab can tell the user
+// when their ballot only exists on this device. With persistence on, an offline
+// write resolves straight away and replays later — this only reports a real
+// rejection (no auth, rules, quota), not a missing network.
 async function dcSaveAwards(year, data) {
-  if (!_currentUser || !_db) return;
+  if (!_currentUser) return false;
+  await _ensureDb();
   try {
     await _awardsRef(_currentUser.uid, year).set(data);
+    return true;
   } catch (err) {
     console.warn('[dankcharts] Awards save error:', err);
+    return false;
   }
 }
 
 async function dcLoadAwards(year) {
-  if (!_currentUser || !_db) return null;
+  if (!_currentUser) return null;
+  await _ensureDb();
   try {
     const snap = await _awardsRef(_currentUser.uid, year).get();
     return snap.exists ? snap.data() : null;
@@ -207,7 +255,8 @@ async function dcLoadAwards(year) {
 }
 
 async function dcSaveEventsCache(data) {
-  if (!_currentUser || !_db) return;
+  if (!_currentUser) return;
+  await _ensureDb();
   try {
     await _eventsCacheRef(_currentUser.uid).set(data);
   } catch (err) {
@@ -216,7 +265,8 @@ async function dcSaveEventsCache(data) {
 }
 
 async function dcLoadEventsCache() {
-  if (!_currentUser || !_db) return null;
+  if (!_currentUser) return null;
+  await _ensureDb();
   try {
     const snap = await _eventsCacheRef(_currentUser.uid).get();
     return snap.exists ? snap.data() : null;
@@ -283,6 +333,7 @@ window.dcSaveCompilationsToFirestore = dcSaveCompilationsToFirestore;
 window.dcSaveReleaseTypesToFirestore = dcSaveReleaseTypesToFirestore;
 window.dcSaveEventsCache           = dcSaveEventsCache;
 window.dcLoadEventsCache           = dcLoadEventsCache;
+window.dcIsSignedIn                = dcIsSignedIn;
 window.dcSaveAwards                = dcSaveAwards;
 window.dcLoadAwards                = dcLoadAwards;
 window.dcSaveRatings               = dcSaveRatings;
@@ -300,7 +351,7 @@ _auth.onAuthStateChanged(async (user) => {
 
   if (!user) return;
 
-  if (!_db) _db = firebase.firestore();
+  await _ensureDb();
 
   const applied = await _loadAndApplyConfig(user.uid);
   if (applied && typeof dcResetRulesCache === 'function') dcResetRulesCache();

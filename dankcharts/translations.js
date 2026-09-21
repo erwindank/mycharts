@@ -50,6 +50,7 @@ const TRANSLATIONS = {
     awards_picker_hint: 'Select 4–8 nominees · {{count}} candidates found',
     awards_save_nominees: 'Save Nominees',
     awards_picker_selected: '{{count}} selected',
+    awards_save_local_only: 'Saved on this device only — couldn’t reach the cloud.',
     awards_ceremony_no_nom: 'No nominees recorded.',
     awards_no_categories: 'No categories enabled. Click ⚙ Configure Year to enable some.',
     // Award category names
@@ -1714,6 +1715,7 @@ const TRANSLATIONS = {
     awards_picker_hint: 'Selecciona 4–8 nominados · {{count}} candidatos encontrados',
     awards_save_nominees: 'Guardar nominados',
     awards_picker_selected: '{{count}} seleccionados',
+    awards_save_local_only: 'Guardado solo en este dispositivo: no se pudo conectar con la nube.',
     awards_ceremony_no_nom: 'No se registraron nominados.',
     awards_no_categories: 'No hay categorías habilitadas. Haz clic en ⚙ Configurar Año para habilitar algunas.',
     // Nombres de categorías
@@ -3193,6 +3195,7 @@ const TRANSLATIONS = {
     awards_picker_hint: 'Selecione 4–8 indicados · {{count}} candidatos encontrados',
     awards_save_nominees: 'Salvar indicados',
     awards_picker_selected: '{{count}} selecionados',
+    awards_save_local_only: 'Salvo apenas neste dispositivo — não foi possível acessar a nuvem.',
     awards_ceremony_no_nom: 'Nenhum indicado registrado.',
     awards_no_categories: 'Nenhuma categoria habilitada. Clique em ⚙ Configurar Ano para habilitar algumas.',
     // Nomes das categorias
@@ -4673,6 +4676,7 @@ const TRANSLATIONS = {
     awards_picker_hint: 'Seleciona 4–8 nomeados · {{count}} candidatos encontrados',
     awards_save_nominees: 'Guardar nomeados',
     awards_picker_selected: '{{count}} selecionados',
+    awards_save_local_only: 'Guardado só neste dispositivo — non se puido acceder á nube.',
     awards_ceremony_no_nom: 'Nenhum nomeado registado.',
     awards_no_categories: 'Nenhuma categoria ativa. Clica em ⚙ Configurar Ano para ativar algumas.',
     // Nomes das categorias

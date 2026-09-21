@@ -32529,18 +32529,54 @@ function _awardsDefaultData(year) {
   return { year, eligStart: `${year}-01-01`, eligEnd: `${year}-12-31`, categories: cats };
 }
 
+/* ─── Awards persistence ───────────────────────────────────────────────────────
+   A year's ballot used to live only in Firestore plus this tab's memory. That
+   made it the one piece of user-authored work in the app with no local copy, so
+   anything that stopped the write landing — signed out, offline, or Android
+   simply discarding the backgrounded tab before the request went out — lost the
+   nominees silently. Now every save writes localStorage first (synchronous, so
+   it survives the tab being killed the instant afterwards) and Firestore second,
+   and the load picks whichever copy was written last.                          */
+function _awardsLocalKey(year) { return 'dc_awards_' + year; }
+
+function _awardsReadLocal(year) {
+  try {
+    const raw = JSON.parse(localStorage.getItem(_awardsLocalKey(year)) || 'null');
+    return (raw && typeof raw === 'object' && raw.categories) ? raw : null;
+  } catch (e) { return null; }   // corrupt payload — fall back to the remote copy
+}
+
+function _awardsWriteLocal(year, data) {
+  try { localStorage.setItem(_awardsLocalKey(year), JSON.stringify(data)); } catch (e) {}
+}
+
+// Newly-added categories won't exist in a ballot saved by an older build.
+function _awardsFillCats(data) {
+  for (const cat of AWARD_CATEGORIES) {
+    if (!data.categories[cat.id]) data.categories[cat.id] = { enabled: cat.defaultOn, nominees: [], winner: null };
+  }
+  return data;
+}
+
 async function _awardsLoad(year) {
   if (_awardsYearData[year]) return _awardsYearData[year];
   const remote = (typeof dcLoadAwards === 'function') ? await dcLoadAwards(year) : null;
-  if (remote) {
-    // Ensure any newly-added categories exist in the loaded data
-    for (const cat of AWARD_CATEGORIES) {
-      if (!remote.categories[cat.id]) remote.categories[cat.id] = { enabled: cat.defaultOn, nominees: [], winner: null };
-    }
-    _awardsYearData[year] = remote;
+  const local  = _awardsReadLocal(year);
+
+  // savedAt is stamped by _awardsSave. A local copy that is newer than the
+  // remote one is a write that never made it off the device — take it, and push
+  // it up so the next device to look gets it too.
+  let chosen = null, rescued = false;
+  if (local && remote) {
+    if ((local.savedAt || 0) > (remote.savedAt || 0)) { chosen = local; rescued = true; }
+    else chosen = remote;
   } else {
-    _awardsYearData[year] = _awardsDefaultData(year);
+    chosen = local || remote;
+    rescued = !!local && !remote;
   }
+
+  _awardsYearData[year] = chosen ? _awardsFillCats(chosen) : _awardsDefaultData(year);
+  if (rescued) _awardsSave(year);
   return _awardsYearData[year];
 }
 
@@ -32593,7 +32629,18 @@ function _renderModalGrammyStrip(artistName) {
 async function _awardsSave(year) {
   const data = _awardsYearData[year];
   if (!data) return;
-  if (typeof dcSaveAwards === 'function') await dcSaveAwards(year, data);
+  data.savedAt = Date.now();
+  // Local first and synchronously: whatever happens to the network request after
+  // this line, the ballot is already safe on the device.
+  _awardsWriteLocal(year, data);
+  if (typeof dcSaveAwards !== 'function') return;
+  const ok = await dcSaveAwards(year, data);
+  // Not signed in is a normal state, not a failure worth nagging about — the
+  // local copy is the whole story there. A rejected write for a signed-in user
+  // is worth saying out loud, because it used to be swallowed entirely.
+  if (!ok && typeof dcIsSignedIn === 'function' && dcIsSignedIn() && typeof dcPlToast === 'function') {
+    dcPlToast(t('awards_save_local_only'));
+  }
 }
 
 function _isCollab(play) {
@@ -33503,12 +33550,42 @@ function _awardsPickerBodyHtml() {
   return html;
 }
 
-function _awardsPickerRefresh(resetPaging) {
-  if (resetPaging) { _awardsPickerShown = AWARDS_PICKER_PAGE; _awardsPickerActive = -1; }
+// Repaint just the nominee chips and the count. The browse list underneath is
+// not touched, so nothing gets re-filtered, re-sorted or re-rendered.
+function _awardsPickerSyncSel() {
   const selEl   = document.getElementById('awardsPickerSelected');
   const countEl = document.getElementById('awardsPickerCount');
   if (selEl)   selEl.innerHTML = _awardsPickerSelHtml();
   if (countEl) countEl.textContent = t('awards_picker_selected', { count: _awardsPickerSel.length });
+}
+
+/* Flip the picked state of the rows already on screen, in place. Rebuilding the
+   body instead — which is what adding or removing a nominee used to do — re-runs
+   _awardsPickerVisible() over the whole year's index and regenerates 60 rows of
+   HTML, each with a rating chip behind it, all to change one tick mark. On a
+   phone with a large library that was seconds of jank per tap.
+   Pass a key to touch only that item's row; pass nothing to resync them all. */
+function _awardsPickerSyncRows(onlyKey) {
+  const bodyEl = document.getElementById('awardsPickerBody');
+  if (!bodyEl) return;
+  _awardsPickerRows.forEach((item, i) => {
+    const k = _awardItemKey(item);
+    if (onlyKey && k !== onlyKey) return;
+    const row = bodyEl.querySelector(`.awards-picker-result-row[data-idx="${i}"]`);
+    if (!row) return;
+    const picked = _awardsPickerSelKeys.has(k);
+    row.classList.toggle('is-picked', picked);
+    row.title = picked ? 'Click to remove' : 'Click to nominate';
+    const icon = row.querySelector('.awards-picker-add-icon');
+    if (icon) icon.textContent = picked ? '✓' : '+';
+  });
+}
+
+// Full rebuild — only for the things that genuinely reorder the list (sort,
+// search, paging). Selection changes go through the two helpers above.
+function _awardsPickerRefresh(resetPaging) {
+  if (resetPaging) { _awardsPickerShown = AWARDS_PICKER_PAGE; _awardsPickerActive = -1; }
+  _awardsPickerSyncSel();
   const bodyEl = document.getElementById('awardsPickerBody');
   if (bodyEl) bodyEl.innerHTML = _awardsPickerBodyHtml();
 }
@@ -33613,7 +33690,8 @@ function awardsPickerToggleRow(idx) {
     _awardsPickerSelKeys.add(k);
   }
   _awardsPickerActive = idx;
-  _awardsPickerRefresh();
+  _awardsPickerSyncSel();
+  _awardsPickerSyncRows(k);
   _awardsPickerPaintActive();
 }
 
@@ -33621,15 +33699,18 @@ function awardsPickerRemoveNom(btn) {
   const i = +btn.dataset.i;
   const item = _awardsPickerSel[i];
   if (!item) return;
-  _awardsPickerSelKeys.delete(_awardItemKey(item));
+  const k = _awardItemKey(item);
+  _awardsPickerSelKeys.delete(k);
   _awardsPickerSel.splice(i, 1);
-  _awardsPickerRefresh();
+  _awardsPickerSyncSel();
+  _awardsPickerSyncRows(k);   // the same item may be on screen in the browse list
 }
 
 function awardsPickerClearSel() {
   _awardsPickerSel = [];
   _awardsPickerSelKeys = new Set();
-  _awardsPickerRefresh();
+  _awardsPickerSyncSel();
+  _awardsPickerSyncRows();
 }
 
 // One-click ballot: take the top N of whatever list is currently on screen
@@ -33641,7 +33722,8 @@ function awardsPickerFillTop(n) {
     _awardsPickerSel.push(item);
     _awardsPickerSelKeys.add(k);
   }
-  _awardsPickerRefresh();
+  _awardsPickerSyncSel();
+  _awardsPickerSyncRows();
 }
 
 function awardsPickerShowMore() {
@@ -33681,10 +33763,11 @@ function awardsPickerDrop(e, to) {
   e.preventDefault();
   const from = _awardsPickerDragFrom;
   _awardsPickerDragFrom = -1;
-  if (from < 0 || from === to) { _awardsPickerRefresh(); return; }
+  // Reordering only changes the chips — the browse list is unaffected either way.
+  if (from < 0 || from === to) { _awardsPickerSyncSel(); return; }
   const [moved] = _awardsPickerSel.splice(from, 1);
   _awardsPickerSel.splice(to, 0, moved);
-  _awardsPickerRefresh();
+  _awardsPickerSyncSel();
 }
 
 function awardsPickerBgClick(e) { if (e.target.id === 'awardsPickerOverlay') awardsPickerClose(); }
@@ -38578,6 +38661,9 @@ function ratingWeightOf(id) {
 // Debounced so dragging a slider does not fire a Firestore write per pixel.
 let _ratingsSaveTimer = null;
 function ratingsPersist(immediate) {
+  // Every mutation of _ratings funnels through here, so this is the one place
+  // the memoised album/artist scores need dropping.
+  ratingMemoInvalidate();
   try { localStorage.setItem('dc_ratings', JSON.stringify(_ratings)); } catch (e) {}
   clearTimeout(_ratingsSaveTimer);
   const push = () => { if (typeof dcSaveRatings === 'function') dcSaveRatings(_ratings); };
@@ -38638,6 +38724,43 @@ function ratingsRefreshUI() {
 function ratingSongEntry(key)  { return _ratings.songs[key]  || null; }
 function ratingAlbumEntry(key) { return _ratings.albums[key] || null; }
 
+/* ─── Score memo ───────────────────────────────────────────────────────────────
+   ratingAlbumTrackKeys() walks the whole of allPlays to work out one album's
+   tracklist, and ratingArtistSummary() walks it once more and then calls
+   ratingAlbumScore() per album — so every one of those is a full library pass.
+   Surfaces that ask for a score per row multiply that out fast: the Awards
+   nominee picker renders 60 rows, so one tap on an artist category used to cost
+   hundreds of passes over allPlays and visibly locked up a phone.
+
+   The answers only change when a rating changes or the library reloads, so they
+   are memoised here. The library is fingerprinted by array identity plus length
+   because allPlays is replaced wholesale on every load path rather than mutated
+   in place; the only in-place edits are sorts, and none of these aggregations
+   depend on play order. The cached objects are shared, not copied, so callers
+   must treat them as read-only (every current one does).                       */
+const _rtMemo = { plays: null, len: -1, tracks: new Map(), album: new Map(), artist: new Map() };
+
+// Drop everything. Called whenever a rating or the rubric config changes.
+function ratingMemoInvalidate() {
+  _rtMemo.tracks.clear();
+  _rtMemo.album.clear();
+  _rtMemo.artist.clear();
+  _rtMemo.plays = null;
+  _rtMemo.len   = -1;
+}
+
+// The memo, cleared first if the library underneath it has been swapped out.
+function _rtMemoFresh() {
+  const plays = (typeof allPlays !== 'undefined' && allPlays) ? allPlays : null;
+  const len   = plays ? plays.length : 0;
+  if (_rtMemo.plays !== plays || _rtMemo.len !== len) {
+    ratingMemoInvalidate();
+    _rtMemo.plays = plays;
+    _rtMemo.len   = len;
+  }
+  return _rtMemo;
+}
+
 // A song's total. Quick mode is the gut score as typed. Detailed mode is the
 // weighted mean of every enabled criterion that actually has a number —
 // criteria left blank or marked N/A drop out of both the numerator and the
@@ -38674,6 +38797,9 @@ function ratingAlbumAspectScore(albumKey) {
 // identically for Last.fm, Google Sheets and uploaded CSVs because it reads the
 // normalised allPlays objects rather than any one provider's API.
 function ratingAlbumTrackKeys(albumKey) {
+  const memo = _rtMemoFresh();
+  const hit  = memo.tracks.get(albumKey);
+  if (hit) return hit;
   const seen = new Map();
   for (const p of allPlays) {
     if (albumKeyOf(p) !== albumKey) continue;
@@ -38681,7 +38807,9 @@ function ratingAlbumTrackKeys(albumKey) {
     if (!seen.has(k)) seen.set(k, { key: k, title: p.title, artist: p.artist, count: 0 });
     seen.get(k).count++;
   }
-  return [...seen.values()].sort((a, b) => b.count - a.count);
+  const out = [...seen.values()].sort((a, b) => b.count - a.count);
+  memo.tracks.set(albumKey, out);
+  return out;
 }
 
 // The headline album number.
@@ -38692,6 +38820,16 @@ function ratingAlbumTrackKeys(albumKey) {
 // becomes the whole score instead of being silently halved. Rating six album
 // aspects and no tracks should read as the score you gave, not as 25% of it.
 function ratingAlbumScore(albumKey) {
+  const memo = _rtMemoFresh();
+  // `null` is a real answer here (nothing rated), so probe with has() rather
+  // than treating a cached null as a miss and recomputing it every time.
+  if (memo.album.has(albumKey)) return memo.album.get(albumKey);
+  const res = _ratingAlbumScoreCalc(albumKey);
+  memo.album.set(albumKey, res);
+  return res;
+}
+
+function _ratingAlbumScoreCalc(albumKey) {
   const tracks = ratingAlbumTrackKeys(albumKey);
   const scored = tracks.map(t => ratingSongScore(t.key)).filter(v => v != null);
   const trackAvg  = scored.length ? Math.round((scored.reduce((a, b) => a + b, 0) / scored.length) * 10) / 10 : null;
@@ -38752,6 +38890,15 @@ function ratingAlbumInsights(albumKey) {
 // An artist's aggregate standing: how their rated albums and songs average out.
 // Used by the artist modal and by the Records tab.
 function ratingArtistSummary(artistName) {
+  const memo = _rtMemoFresh();
+  const hit  = memo.artist.get(artistName);
+  if (hit) return hit;
+  const out = _ratingArtistSummaryCalc(artistName);
+  memo.artist.set(artistName, out);
+  return out;
+}
+
+function _ratingArtistSummaryCalc(artistName) {
   const albumKeys = new Set();
   const songKeys  = new Set();
   for (const p of allPlays) {
