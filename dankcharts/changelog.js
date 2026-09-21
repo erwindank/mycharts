@@ -61,7 +61,7 @@ const DC_CHANGELOG = [
 
   /* ========== SEPTEMBER 2026 ========== */
 
-  { d: '2026-09-21', t: 'design', a: 'awards', h: 'PENDING',
+  { d: '2026-09-21', t: 'design', a: 'awards', h: 'a6501f3',
     title: 'Real-Life Awards has pictures now',
     detail: 'Each artist in the Real-Life Awards tab now carries their picture down the side of their card, and every nomination shows the cover of the song or album it was for — the album cover for the album categories, the single’s artwork for everything else. A category with no work behind it, like Best New Artist or Producer Of The Year, shows nothing rather than repeating the artist photo. The pictures come from the same place the charts get theirs, so anything you have pinned turns up here too, under your own spelling of the artist rather than the one grammy.com files them under. On a phone the picture sits square at the top of the card and each nomination puts its title under the category instead of squeezing both onto one line.' },
 
