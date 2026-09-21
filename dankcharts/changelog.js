@@ -61,6 +61,18 @@ const DC_CHANGELOG = [
 
   /* ========== SEPTEMBER 2026 ========== */
 
+  { d: '2026-09-20', t: 'change', a: 'events', h: 'afd4f53',
+    title: 'The events calendar opens the menu instead of jumping to a Google search',
+    detail: 'Clicking anything in the Events tab calendar sent you straight to a Google search — in the Month and Week grids, and in the Day panel underneath. Every one of them now opens the same little menu the cards elsewhere on the tab have, picked to suit what the event is: a birthday offers the artist’s Spotify, a playlist, the last 10 songs and the birthday search; an anniversary and a release that is already out offer the same for the record; and a release that is not out yet offers only Spotify and Google, since there is nothing to play. Hovering still brings up the little preview card with the artwork — it just steps out of the way once you click, rather than sitting on top of the menu.' },
+
+  { d: '2026-09-20', t: 'change', a: 'events', h: 'afd4f53',
+    title: 'Concerts open the menu too, with Ticketmaster at the top of it',
+    detail: 'A concert used to be a one-way trip to Ticketmaster, both on the cards in the Concerts section and on the teal pills in the calendar. Now they open the menu, and Tickets on Ticketmaster is its first option — so the show page is still one click away, with the artist’s Spotify, a playlist and their last 10 songs alongside it. This came in with the calendar change: the calendar shows concerts next to birthdays and releases, and having only some of them open a menu would have been worse than none.' },
+
+  { d: '2026-09-20', t: 'feature', a: 'awards', h: 'PENDING',
+    title: 'Real-Life Awards now shows actual Grammy nominations',
+    detail: 'The Real-Life Awards tab was empty for almost every year. It was asking MusicBrainz for award relationships, and MusicBrainz barely records them — a handful of artists have them, nobody else does, so the tab shrugged and said nothing. It now reads grammy.com itself. Pick a year and you get that ceremony by name — the 68th Annual Grammy Awards, held 2026 for 2025 releases — and then, for each of your top twenty artists from the year being honoured, every category they were nominated in, which ones they won, and the song or album it was for, alongside their all-time record. The list is in your own listening order, so your number one artist of the year leads it. Going back through the years works the same way, all the way to the 1st Annual Grammy Awards in 1959. Twenty artists are checked at once instead of one every second, and each artist is looked up only once no matter how many years you flip through.' },
+
   { d: '2026-09-20', t: 'perf', a: 'awards', h: '08b5000',
     title: 'Picking nominees no longer crawls on a phone',
     detail: 'Adding or removing a nominee in an Awards category could take a second or more on a phone, and worse the bigger your library. Every tap was throwing the whole list away and building it again from scratch — re-sorting the year’s songs, albums or artists and regenerating sixty rows of the browse list — all to move one tick mark. The rating score shown on each row was the expensive part: working out an album’s score means finding its tracklist, and finding a tracklist meant reading through every play in your history. Sixty rows meant sixty passes over the lot, and an artist category, which averages all of that artist’s albums, meant hundreds. A tap now just flips the one row it touched, and album and artist scores are worked out once and remembered until something actually changes. On a 60,000-play library the work behind a tap went from about 276 milliseconds to under a fifth of one.' },
