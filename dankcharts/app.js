@@ -4108,16 +4108,21 @@ async function loadFromIDB(key) {
     });
   } catch (e) { return null; }
 }
+// Resolves true on success, false on failure — and never rejects. iOS Safari's
+// storage quota is much tighter than Chrome's, and a quota-exceeded transaction
+// rejecting into an awaiting caller used to abort the rest of a sync (status
+// message, timers and all) instead of just losing the cache write.
 async function saveToIDB(key, value) {
   try {
     const db = await openIDB();
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve) => {
       const tx = db.transaction(IDB_STORE, 'readwrite');
       tx.objectStore(IDB_STORE).put(value, key);
-      tx.oncomplete = resolve;
-      tx.onerror = e => reject(e.target.error);
+      tx.oncomplete = () => resolve(true);
+      tx.onerror = e => { console.warn('IDB save failed for ' + key + ':', e.target.error && e.target.error.name); resolve(false); };
+      tx.onabort = e => { console.warn('IDB save aborted for ' + key + ':', tx.error && tx.error.name); resolve(false); };
     });
-  } catch (e) { /* ignore */ }
+  } catch (e) { console.warn('IDB unavailable:', e); return false; }
 }
 async function deleteFromIDB(key) {
   try {
@@ -4272,21 +4277,65 @@ async function syncFromSheets() {
   pollTimer = setTimeout(pollSheets, POLL_INTERVAL_MS);
 }
 
+// ─── Last.fm rate-limit governor ──────────────────────────────
+//
+// Last.fm allows roughly 5 requests/second per IP and answers a burst with
+// HTTP 200 plus a JSON body of {error: 29, "Rate Limit Exceeded"}. A big library
+// (4,500 pages for 900k scrobbles) fetched by the concurrency pool below blows
+// straight past that, and the error used to be thrown on the first try and then
+// swallowed by the pool's catch — every rate-limited page became a silent hole in
+// the history. These two shared knobs let all in-flight requests wait out one
+// pause together and permanently slow the pool down once we have been warned,
+// instead of each request burning its own retries against a closed door.
+let lastfmPauseUntil = 0;         // no request may start before this timestamp
+let lastfmMaxInFlight = 10;       // pool width; shrinks when the API pushes back
+const LASTFM_MIN_IN_FLIGHT = 2;
+// 8 = operation failed, 11 = service offline, 16 = temporarily unavailable,
+// 29 = rate limit. Everything else (bad key, no such user) is permanent.
+const LASTFM_RETRYABLE_ERRORS = new Set([8, 11, 16, 29]);
+
+function lastfmThrottle(ms) {
+  lastfmPauseUntil = Math.max(lastfmPauseUntil, Date.now() + ms);
+  lastfmMaxInFlight = Math.max(LASTFM_MIN_IN_FLIGHT, Math.floor(lastfmMaxInFlight / 2));
+}
+// Wait out a shared pause in short hops so a long backoff still ends promptly.
+async function lastfmAwaitPause() {
+  for (let wait = lastfmPauseUntil - Date.now(); wait > 0; wait = lastfmPauseUntil - Date.now()) {
+    await new Promise(r => setTimeout(r, Math.min(wait, 500)));
+  }
+}
+
 // fromUts > 0 turns the request incremental: Last.fm only returns scrobbles after
 // that unix timestamp, so totalPages shrinks to just the new listens.
-async function fetchLastFmPage(username, page, fromUts = 0) {
+async function fetchLastFmPage(username, page, fromUts = 0, attempts = 6) {
   const url = `https://ws.audioscrobbler.com/2.0/?method=user.getrecenttracks`
     + `&user=${encodeURIComponent(username)}&api_key=${LASTFM_KEY}`
     + `&format=json&limit=200&page=${page}`
     + (fromUts > 0 ? `&from=${fromUts}` : '');
-  for (let attempt = 0; attempt < 3; attempt++) {
-    if (attempt > 0) await new Promise(r => setTimeout(r, 1000 * Math.pow(2, attempt - 1)));
-    const res = await fetch(url);
-    if (!res.ok) { if (attempt === 2) throw new Error('HTTP ' + res.status); continue; }
-    const data = await res.json();
-    if (data.error) throw new Error(data.message);
+  let lastErr = null;
+  for (let attempt = 0; attempt < attempts; attempt++) {
+    await lastfmAwaitPause();
+    // Jittered exponential backoff (0.5s → 8s), so retries from concurrent
+    // requests don't all come back in the same instant.
+    if (attempt > 0) await new Promise(r => setTimeout(r, Math.min(8000, 500 * Math.pow(2, attempt - 1)) + Math.random() * 400));
+    let data;
+    try {
+      const res = await fetch(url);
+      if (res.status === 429) { lastfmThrottle(Math.min(6000, 2000 * (attempt + 1))); lastErr = new Error('HTTP 429'); continue; }
+      if (!res.ok) { lastErr = new Error('HTTP ' + res.status); continue; }
+      data = await res.json();
+    } catch (e) { lastErr = e; continue; }   // network blip / connection dropped mid-flight
+    if (data && data.error) {
+      const code = Number(data.error);
+      lastErr = new Error(data.message || ('Last.fm error ' + code));
+      if (!LASTFM_RETRYABLE_ERRORS.has(code)) throw lastErr;  // permanent — don't waste retries
+      if (code === 29) lastfmThrottle(Math.min(6000, 2000 * (attempt + 1)));
+      continue;
+    }
+    if (!data || !data.recenttracks) { lastErr = new Error('malformed Last.fm response'); continue; }
     return data;
   }
+  throw lastErr || new Error('Last.fm request failed');
 }
 
 async function syncFromLastFm() {
@@ -4328,7 +4377,15 @@ async function syncFromLastFm() {
   // cached one via the `from` param. The full history download only happens on first
   // connect, after a cache clear, or every LASTFM_FULL_RESYNC_MS as an edit/deletion
   // safety net.
-  const cacheUsable = renderedFromCache && Array.isArray(cached?.data) && cached.data.length > 0;
+  // `complete === false` marks a cache written from a download that lost pages
+  // (rate limits, dropped requests). Going incremental on top of one of those would
+  // only ever fetch what is *newer* than it, so the missing scrobbles could never
+  // come back — the account would sit at a fraction of its real history forever.
+  // Treating it as unusable forces the full re-download that heals it.
+  // Caches written before this flag existed are unverified: they may well be the
+  // truncated ones, so they earn one full re-download too (the cached charts stay
+  // on screen while it runs, and the flag is written afterwards so it happens once).
+  const cacheUsable = renderedFromCache && Array.isArray(cached?.data) && cached.data.length > 0 && cached.complete === true;
   const incremental = cacheUsable && age < LASTFM_FULL_RESYNC_MS;
   let sinceUts = 0;
   // Newest cached uts — scan instead of trusting row 0, since concurrently fetched
@@ -4336,6 +4393,11 @@ async function syncFromLastFm() {
   if (incremental) for (const row of cached.data) { if (row[3] > sinceUts) sinceUts = row[3]; }
 
   let rawTracks = [];
+  // Pages that failed even after their own retries — swept again, one at a time,
+  // once the pool has drained. Whatever is still missing after that is a hole, and
+  // the cache gets flagged incomplete so the next sync re-downloads from scratch.
+  let failedPages = [];
+  let missingPages = 0;
   // Progressive first paint: set once the partial early render (below) has happened,
   // so the final render downgrades to a quiet refresh instead of a second full paint.
   let earlyRendered = false;
@@ -4360,10 +4422,12 @@ async function syncFromLastFm() {
     for (const tr of tracks) { if (tr.date && tr.date.uts && parseInt(tr.date.uts) > sinceUts) rawTracks.push(tr); }
 
     if (totalPages > 1) {
-      // Rolling concurrency pool: always keep up to CONCURRENCY requests in-flight.
+      // Rolling concurrency pool: always keep up to lastfmMaxInFlight requests in-flight.
       // Unlike fixed batches, this never idles waiting for the slowest request in a group.
-      // CONCURRENCY=10 keeps us within Last.fm's ~5 req/s limit for large accounts.
-      const CONCURRENCY = 10;
+      // Reset to 10 per sync: fast connections stay fast, and the rate-limit governor
+      // above halves the width if Last.fm starts answering with error 29, so a throttled
+      // connection slows down instead of dropping pages.
+      lastfmMaxInFlight = 10;
       // Progressive first paint: on a first-time full download (nothing on screen yet),
       // render the charts once the newest EARLY_RENDER_PAGES pages are all in, instead of
       // making the user watch the page counter until the entire history arrives. Only
@@ -4379,7 +4443,7 @@ async function syncFromLastFm() {
       await new Promise((resolve) => {
         let inFlight = 0;
         function fill() {
-          while (inFlight < CONCURRENCY && nextPage <= totalPages) {
+          while (inFlight < lastfmMaxInFlight && nextPage <= totalPages) {
             const p = nextPage++;
             inFlight++;
             fetchLastFmPage(username, p, sinceUts).then(data => {
@@ -4388,7 +4452,10 @@ async function syncFromLastFm() {
               for (const tr of t) { if (tr.date && tr.date.uts && parseInt(tr.date.uts) > sinceUts) rawTracks.push(tr); }
               donePages.add(p); // success only — a failed page would leave a data hole
             }).catch(e => {
-              console.warn(`Last.fm: page ${p} failed (${e.message}), skipping`);
+              // Remember it for the retry sweep below — a dropped page is missing
+              // scrobbles, which is much worse than a slow sync.
+              failedPages.push(p);
+              console.warn(`Last.fm: page ${p} failed (${e.message}), queued for retry`);
             }).finally(() => {
               completedPages++;
               if (completedPages % 20 === 0 || completedPages === totalPages) {
@@ -4410,6 +4477,30 @@ async function syncFromLastFm() {
         }
         fill();
       });
+
+      // Retry sweep: one more pass over the failed pages, sequentially, with the
+      // governor's pause fully respected. Slow on purpose — this is the difference
+      // between a complete history and a silently truncated one.
+      if (failedPages.length) {
+        const queue = failedPages;
+        failedPages = [];
+        setSyncStatus(t('sync_retrying', { done: 0, total: queue.length }), 'loading');
+        let swept = 0;
+        for (const p of queue) {
+          if (++swept % 10 === 0) setSyncStatus(t('sync_retrying', { done: swept, total: queue.length }), 'loading');
+          try {
+            const data = await fetchLastFmPage(username, p, sinceUts, 8);
+            // Named `pageTracks`, not `t` like the pool above — `t` is the translator,
+            // and this block calls it for the status line.
+            let pageTracks = data.recenttracks.track;
+            if (!Array.isArray(pageTracks)) pageTracks = pageTracks ? [pageTracks] : [];
+            for (const tr of pageTracks) { if (tr.date && tr.date.uts && parseInt(tr.date.uts) > sinceUts) rawTracks.push(tr); }
+          } catch (e) {
+            missingPages++;
+            console.warn(`Last.fm: page ${p} lost after retries (${e.message})`);
+          }
+        }
+      }
     }
   } catch (e) {
     setSyncStatus('Last.fm error: ' + e.message, 'err');
@@ -4438,7 +4529,7 @@ async function syncFromLastFm() {
     // No new scrobbles — the cached charts on screen are already correct; just freshen
     // the cache timestamp so the 7-day full-resync clock keeps counting from now.
     lastSyncTime = new Date();
-    await saveToIDB(IDB_LASTFM_KEY, { data: cached.data, ts: lastSyncTime.getTime() });
+    await saveToIDB(IDB_LASTFM_KEY, { data: cached.data, ts: lastSyncTime.getTime(), complete: cached.complete });
     setSyncStatus(t('sync_ok', { time: lastSyncTime.toLocaleTimeString(), n: allPlays.length.toLocaleString() }), 'ok');
     btn.disabled = false;
     clearTimeout(syncTimer);
@@ -4459,20 +4550,44 @@ async function syncFromLastFm() {
     allPlays = [...applyAutocorrectRules(compact.map(rowToPlay)), ...allPlays];
     compact = [...compact, ...cached.data]; // new scrobbles on top of cached history (for the IDB save below)
   } else {
+    // A full download that lost pages must never replace a cache that has more:
+    // merge the two and keep the union, so a bad network moment can only ever add
+    // scrobbles back, not take them away.
+    if (missingPages > 0 && Array.isArray(cached?.data) && cached.data.length) {
+      const seen = new Set(compact.map(r => r[3] + '|' + r[0] + '|' + r[1]));
+      for (const r of cached.data) {
+        const k = r[3] + '|' + r[0] + '|' + r[1];
+        if (!seen.has(k)) { seen.add(k); compact.push(r); }
+      }
+      compact.sort((a, b) => b[3] - a[3]);
+    }
     allPlays = applyAutocorrectRules(compact.map(rowToPlay));
   }
 
-  await saveToIDB(IDB_LASTFM_KEY, { data: compact, ts: Date.now() });
+  // `complete` tells the next sync whether it may go incremental — see cacheUsable above.
+  const saved = await saveToIDB(IDB_LASTFM_KEY, { data: compact, ts: Date.now(), complete: missingPages === 0 });
   lastSyncTime = new Date();
 
-  setSyncStatus(t('sync_ok', { time: lastSyncTime.toLocaleTimeString(), n: allPlays.length.toLocaleString() }), 'ok');
+  if (missingPages > 0) {
+    // Be honest about a short history rather than reporting a clean sync: the user
+    // can see the number is wrong, and silence used to leave them guessing.
+    setSyncStatus(t('sync_partial', { n: allPlays.length.toLocaleString(), pages: missingPages }), 'err');
+  } else if (!saved) {
+    // Charts are correct in memory, but nothing was cached — this device's storage
+    // is full or blocked (common on iOS with Private Browsing / low disk).
+    setSyncStatus(t('sync_nocache', { n: allPlays.length.toLocaleString() }), 'err');
+  } else {
+    setSyncStatus(t('sync_ok', { time: lastSyncTime.toLocaleTimeString(), n: allPlays.length.toLocaleString() }), 'ok');
+  }
   // If charts were already painted (from cache, or by the progressive early render
   // during a first-time download), refresh quietly — keeps the user's current view
   // instead of re-running the full settings-restoring first paint.
   if (renderedFromCache || earlyRendered) refreshAfterPoll(); else finalizeLoad();
   btn.disabled = false;
   clearTimeout(syncTimer);
-  syncTimer = setTimeout(syncFromLastFm, SYNC_INTERVAL_MS);
+  // Missing pages get another go in 10 minutes instead of waiting 6 hours — by then
+  // the rate-limit window has long reset, and the sweep only has to fetch the holes.
+  syncTimer = setTimeout(syncFromLastFm, missingPages > 0 ? 10 * 60 * 1000 : SYNC_INTERVAL_MS);
   clearTimeout(pollTimer);
   pollTimer = setTimeout(pollLastFm, POLL_INTERVAL_MS);
 }
@@ -4583,7 +4698,9 @@ async function pollLastFm() {
         const cached = await loadFromIDB(IDB_LASTFM_KEY);
         if (cached) {
           const newCompact = newTracks.map(tr => [tr.name || '', tr.artist?.['#text'] || '', tr.album?.['#text'] || '', parseInt(tr.date.uts)]);
-          await saveToIDB(IDB_LASTFM_KEY, { data: [...newCompact, ...cached.data], ts: cached.ts });
+          // Spread `cached` so flags like `complete` survive a poll top-up — dropping
+          // it would silently re-bless an incomplete history as complete.
+          await saveToIDB(IDB_LASTFM_KEY, { ...cached, data: [...newCompact, ...cached.data], ts: cached.ts });
         }
         lastSyncTime = new Date();
         setSyncStatus(t('sync_ok', { time: lastSyncTime.toLocaleTimeString(), n: allPlays.length.toLocaleString() }), 'ok');
