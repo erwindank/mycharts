@@ -25866,7 +25866,7 @@ function buildCalendarDayMap(data, dateSet) {
     const age = currentYear - birthYear;
     const [, mm, dd] = b.dateStr.split('-');
     const dispDate = fmtDate(new Date(currentYear, parseInt(mm) - 1, parseInt(dd)));
-    add(ds, { icon: '🎂', label: b.artistName, past: false, url: `https://www.google.com/search?q=${encodeURIComponent(b.artistName + ' birthday')}`, cls: 'cal-ev-birthday',
+    add(ds, { icon: '🎂', label: b.artistName, past: false, menuAction: '_tmShowBirthdayMenu', menuArgs: [b.artistName], cls: 'cal-ev-birthday',
       ttType: 'birthday', ttArtist: b.artistName, ttTitle: b.artistName, ttMbid: '',
       ttDetail: `🎂 Birthday · ${dispDate} · Turning ${age}`,
       ttDateTxt: isToday ? 'TODAY' : `in ${b.daysUntil} day${b.daysUntil === 1 ? '' : 's'}`, ttDateCls: isToday ? 'soon' : '' });
@@ -25878,7 +25878,7 @@ function buildCalendarDayMap(data, dateSet) {
     const age = currentYear - birthYear;
     const [, mm, dd] = b.dateStr.split('-');
     const dispDate = fmtDate(new Date(currentYear, parseInt(mm) - 1, parseInt(dd)));
-    add(ds, { icon: '🎂', label: b.artistName, past: true, url: `https://www.google.com/search?q=${encodeURIComponent(b.artistName + ' birthday')}`, cls: 'cal-ev-birthday',
+    add(ds, { icon: '🎂', label: b.artistName, past: true, menuAction: '_tmShowBirthdayMenu', menuArgs: [b.artistName], cls: 'cal-ev-birthday',
       ttType: 'birthday', ttArtist: b.artistName, ttTitle: b.artistName, ttMbid: '',
       ttDetail: `🎂 Birthday · ${dispDate} · Turned ${age}`,
       ttDateTxt: `${b.daysAgo} day${b.daysAgo === 1 ? '' : 's'} ago`, ttDateCls: 'recent' });
@@ -25889,7 +25889,7 @@ function buildCalendarDayMap(data, dateSet) {
     const isToday = a.daysUntil === 0;
     const typeKey = 'mb_type_' + (a.type || 'Release').toLowerCase();
     const typeLabel = t(typeKey) || a.type || 'Release';
-    add(ds, { icon: releaseIcon(a.type), label: a.title, sub: a.artistName, past: false, url: `https://www.google.com/search?q=${encodeURIComponent(a.title + ' ' + a.artistName)}`, cls: 'cal-ev-anniversary',
+    add(ds, { icon: releaseIcon(a.type), label: a.title, sub: a.artistName, past: false, menuAction: '_tmShowAlbumMenu', menuArgs: [a.title, a.artistName], cls: 'cal-ev-anniversary',
       ttType: 'anniversary', ttArtist: a.artistName, ttTitle: a.title, ttMbid: a.mbid || '',
       ttDetail: `${releaseIcon(a.type)} ${ordinalSuffix(a.years)} Anniversary · ${typeLabel} · ${(a.releaseDate || '').slice(0, 4)}`,
       ttDateTxt: isToday ? 'TODAY' : `in ${a.daysUntil} day${a.daysUntil === 1 ? '' : 's'}`, ttDateCls: isToday ? 'soon' : '' });
@@ -25899,7 +25899,7 @@ function buildCalendarDayMap(data, dateSet) {
     if (!dateSet.has(ds)) continue;
     const typeKey = 'mb_type_' + (a.type || 'Release').toLowerCase();
     const typeLabel = t(typeKey) || a.type || 'Release';
-    add(ds, { icon: releaseIcon(a.type), label: a.title, sub: a.artistName, past: true, url: `https://www.google.com/search?q=${encodeURIComponent(a.title + ' ' + a.artistName)}`, cls: 'cal-ev-anniversary',
+    add(ds, { icon: releaseIcon(a.type), label: a.title, sub: a.artistName, past: true, menuAction: '_tmShowAlbumMenu', menuArgs: [a.title, a.artistName], cls: 'cal-ev-anniversary',
       ttType: 'anniversary', ttArtist: a.artistName, ttTitle: a.title, ttMbid: a.mbid || '',
       ttDetail: `${releaseIcon(a.type)} ${ordinalSuffix(a.years)} Anniversary · ${typeLabel} · ${(a.releaseDate || '').slice(0, 4)}`,
       ttDateTxt: `${a.daysAgo} day${a.daysAgo === 1 ? '' : 's'} ago`, ttDateCls: 'recent' });
@@ -25909,7 +25909,7 @@ function buildCalendarDayMap(data, dateSet) {
     const { label: dateLabel, soon } = upcomingDateLabel(r.date);
     const typeKey = 'mb_type_' + (r.type || 'Release').toLowerCase();
     const typeLabel = t(typeKey) || r.type || 'Release';
-    add(r.date, { icon: releaseIcon(r.type), label: r.title, sub: artistName, past: false, url: `https://www.google.com/search?q=${encodeURIComponent(r.title + ' ' + artistName)}`, cls: 'cal-ev-release',
+    add(r.date, { icon: releaseIcon(r.type), label: r.title, sub: artistName, past: false, menuAction: '_relShowMenu', menuArgs: [r.title, artistName], cls: 'cal-ev-release',
       ttType: 'release', ttArtist: artistName, ttTitle: r.title, ttMbid: r.mbid || '',
       ttDetail: `${releaseIcon(r.type)} ${typeLabel}`,
       ttDateTxt: dateLabel, ttDateCls: soon ? 'soon' : '' });
@@ -25918,7 +25918,7 @@ function buildCalendarDayMap(data, dateSet) {
     if (!r.date || !dateSet.has(r.date)) continue;
     const typeKey = 'mb_type_' + (r.type || 'Release').toLowerCase();
     const typeLabel = t(typeKey) || r.type || 'Release';
-    add(r.date, { icon: releaseIcon(r.type), label: r.title, sub: artistName, past: true, url: `https://www.google.com/search?q=${encodeURIComponent(r.title + ' ' + artistName)}`, cls: 'cal-ev-release',
+    add(r.date, { icon: releaseIcon(r.type), label: r.title, sub: artistName, past: true, menuAction: '_tmShowAlbumMenu', menuArgs: [r.title, artistName], cls: 'cal-ev-release',
       ttType: 'release', ttArtist: artistName, ttTitle: r.title, ttMbid: r.mbid || '',
       ttDetail: `${releaseIcon(r.type)} ${typeLabel}`,
       ttDateTxt: fmtDate(new Date(r.date + 'T00:00:00')), ttDateCls: 'recent' });
@@ -25938,7 +25938,8 @@ function buildCalendarDayMap(data, dateSet) {
     const daysUntil = Math.round((showDate - todayCal) / 86400000);
     const isToday = daysUntil === 0;
     add(date, { icon: '🎤', label: artistName, sub: venueName + (loc ? ' · ' + loc : ''), past: isPast,
-      url: ev.url || `https://www.ticketmaster.com/search?q=${encodeURIComponent(artistName)}`, cls: 'cal-ev-concert',
+      menuAction: '_concertShowMenu', cls: 'cal-ev-concert',
+      menuArgs: [artistName, ev.url || `https://www.ticketmaster.com/search?q=${encodeURIComponent(artistName)}`],
       ttType: 'concert', ttArtist: artistName, ttTitle: ev.name || artistName, ttMbid: '',
       ttDetail: `🎤 Live Show · ${venueName}${loc ? ' · ' + loc : ''}${time ? ' · ' + time.slice(0, 5) : ''}`,
       ttDateTxt: isToday ? 'TODAY' : isPast ? fmtDate(showDate) : `in ${daysUntil} day${daysUntil === 1 ? '' : 's'}`,
@@ -25974,11 +25975,26 @@ function _calAdjustDate(year, month, day, delta) {
   return { year: d.getFullYear(), month: d.getMonth(), day: d.getDate() };
 }
 
+// onclick attr for a calendar event, built the same way the section cards' is:
+// `menuAction` names the global, `menuArgs` are what follows the event. Every
+// event type in the calendar has one — see buildCalendarDayMap.
+function _calEvClickAttr(ev) {
+  if (!ev.menuAction) return '';
+  const args = (ev.menuArgs || []).map(a => esc(JSON.stringify(a))).join(',');
+  return `onclick="${ev.menuAction}(event${args ? ',' + args : ''})"`;
+}
+
+// The data-ct* attributes feed the hover mini-card (see _showCalEvTooltip);
+// they stay on the element whether it opens a menu or a link.
+function _calEvTtAttrs(ev) {
+  return `data-ctt="${esc(ev.ttType||'')}" data-cta="${esc(ev.ttArtist||'')}" data-ctl="${esc(ev.ttTitle||'')}" data-ctm="${esc(ev.ttMbid||'')}" data-ctd="${esc(ev.ttDetail||'')}" data-ctx="${esc(ev.ttDateTxt||'')}" data-ctf="${esc(ev.ttDateCls||'')}"`;
+}
+
 function renderCalEventsHtml(events) {
   return `<div class="cal-cell-events">` + events.map(ev =>
-    `<a class="cal-ev ${ev.cls}${ev.past ? ' cal-ev-past' : ''}" href="${ev.url}" target="_blank" rel="noopener noreferrer" data-ctt="${esc(ev.ttType||'')}" data-cta="${esc(ev.ttArtist||'')}" data-ctl="${esc(ev.ttTitle||'')}" data-ctm="${esc(ev.ttMbid||'')}" data-ctd="${esc(ev.ttDetail||'')}" data-ctx="${esc(ev.ttDateTxt||'')}" data-ctf="${esc(ev.ttDateCls||'')}">
+    `<div class="cal-ev ${ev.cls}${ev.past ? ' cal-ev-past' : ''}" ${_calEvClickAttr(ev)} ${_calEvTtAttrs(ev)}>
       <span class="cal-ev-icon">${ev.icon}</span><span class="cal-ev-text"><span class="cal-ev-label">${esc(ev.label)}</span>${ev.sub ? `<span class="cal-ev-sub">${esc(ev.sub)}</span>` : ''}</span>
-    </a>`
+    </div>`
   ).join('') + `</div>`;
 }
 
@@ -26071,14 +26087,14 @@ function renderCalDay(calEl, titleEl, data, year, month, day) {
   const html = events.map(ev => {
     const mainTitle = ev.ttType === 'birthday' ? ev.ttArtist : ev.ttTitle;
     const artistLine = ev.ttType !== 'birthday' ? `<div class="cal-day-item-artist">${esc(ev.ttArtist)}</div>` : '';
-    return `<a class="cal-day-item ${ev.cls}${ev.past ? ' cal-ev-past' : ''}" href="${ev.url}" target="_blank" rel="noopener noreferrer" data-ctt="${esc(ev.ttType||'')}" data-cta="${esc(ev.ttArtist||'')}" data-ctl="${esc(ev.ttTitle||'')}" data-ctm="${esc(ev.ttMbid||'')}" data-ctd="${esc(ev.ttDetail||'')}" data-ctx="${esc(ev.ttDateTxt||'')}" data-ctf="${esc(ev.ttDateCls||'')}">
+    return `<div class="cal-day-item ${ev.cls}${ev.past ? ' cal-ev-past' : ''}" ${_calEvClickAttr(ev)} ${_calEvTtAttrs(ev)}>
       <div class="cal-day-item-img-wrap" data-mbid="${esc(ev.ttMbid||'')}" data-artist="${esc(ev.ttArtist||'')}" data-evtype="${esc(ev.ttType||'')}"></div>
       <div class="cal-day-item-body">
         <div class="cal-day-item-title">${esc(mainTitle)}</div>
         ${artistLine}
         <div class="cal-day-item-detail">${ev.ttDetail}</div>
       </div>
-    </a>`;
+    </div>`;
   }).join('');
 
   calEl.className = 'events-cal-day';
@@ -26246,8 +26262,9 @@ function _evReRenderSection(sectionKey) {
 // `pl` is what the ＋ add-to-playlist button on each row or card is built from
 // — see dcPlBtnHtml. `menuAction` (plus `menuArgs`, when the menu wants
 // something other than the item's own title and artist) names the global that
-// opens the card's action menu; `href` is the fallback for the sections that
-// still link straight out to a purpose-built page (Deezer, Ticketmaster).
+// opens the card's action menu. Every section has one: the two built from a
+// service with a page of its own, New Music Friday and Concerts, pass that
+// page to the menu instead, where it sits at the top as `sourceLink`.
 function _evNormalize(sectionKey, items) {
   const out = [];
   const mkLabel = (n, unit) => `${n} ${unit}${n === 1 ? '' : 's'}`;
@@ -26358,7 +26375,7 @@ function _evNormalize(sectionKey, items) {
         dateLabel: du === null ? '' : isToday ? 'TODAY' : `in ${mkLabel(du, 'day')}`,
         dateSort: du !== null ? du : 9999, artistSort: artistName,
         typeLabel: `🎤 Live Show · ${date ? fmtDate(sd) : ''}${time ? ' · ' + time.slice(0, 5) : ''}`,
-        href: url, imgSrc: null,
+        menuAction: '_concertShowMenu', menuArgs: [artistName, url], imgSrc: null,
         imgAttr: { artist: artistName, title: '', sources: 'deezer-artist' }, isToday: !!isToday });
     }
   }
@@ -26482,9 +26499,7 @@ function _evTable(gridEl, items) {
   // Sections with no single track to stage from a row don't get the column.
   const hasPl = items.some(it => it.pl);
   const rows = items.map(item => {
-    const evCell = item.menuAction
-      ? `<span class="ev-tbl-link ev-tbl-link-btn" ${_evReleaseClickAttr(item)}>${esc(item.title)}</span>`
-      : `<a class="ev-tbl-link" href="${esc(item.href)}" target="_blank" rel="noopener noreferrer">${esc(item.title)}</a>`;
+    const evCell = `<span class="ev-tbl-link ev-tbl-link-btn" ${_evReleaseClickAttr(item)}>${esc(item.title)}</span>`;
     return `<tr><td class="ev-tbl-img">${_evImgTag(item, 'ev-tbl-thumb')}</td>` +
       `<td class="ev-tbl-ev">${evCell}</td>` +
       `<td class="ev-tbl-artist">${esc(item.artist)}</td>` +
@@ -26504,19 +26519,13 @@ function _evCarousel(gridEl, items) {
      onto an identical frame, and copy B is hidden when the deck is short enough
      to fit — see dcMountReel(), which drives the motion and the drag. */
   const card = (item, dupe) => {
-    const tag = item.menuAction ? 'div' : 'a';
-    const openAttrs = item.menuAction
-      ? _evReleaseClickAttr(item)
-      // draggable=false: a grab that starts on a link would otherwise become a
-      // native link drag and take the pointer away from the reel mid-scroll.
-      : `href="${esc(item.href)}" target="_blank" rel="noopener noreferrer" draggable="false"`;
-    return `<${tag} class="ev-carousel-card${item.isToday ? ' event-today' : ''}${dupe ? ' dcreel-dupe' : ''}" ${openAttrs}>` +
+    return `<div class="ev-carousel-card${item.isToday ? ' event-today' : ''}${dupe ? ' dcreel-dupe' : ''}" ${_evReleaseClickAttr(item)}>` +
       `${_evPlBtn(item, 'dc-pl-add-card')}` +
       `${_evImgTag(item, 'ev-carousel-img')}` +
       `<div class="ev-carousel-date">${esc(item.dateLabel)}</div>` +
       `<div class="ev-carousel-title">${esc(item.title)}</div>` +
       `<div class="ev-carousel-artist">${esc(item.artist)}</div>` +
-      `<div class="ev-carousel-type">${esc(item.typeLabel)}</div></${tag}>`;
+      `<div class="ev-carousel-type">${esc(item.typeLabel)}</div></div>`;
   };
   gridEl.innerHTML = `<div class="ev-carousel-track">${items.map(it => card(it, false)).join('')}${items.map(it => card(it, true)).join('')}</div>`;
   dcMountReel(gridEl, gridEl.firstElementChild, dur);
@@ -26531,18 +26540,14 @@ function _evList(gridEl, sectionKey, items) {
     : typeof a.dateSort === 'string' ? a.dateSort.localeCompare(b.dateSort) : a.dateSort - b.dateSort
   );
   const rows = sorted.map(item => {
-    const tag = item.menuAction ? 'div' : 'a';
-    const openAttrs = item.menuAction
-      ? _evReleaseClickAttr(item)
-      : `href="${esc(item.href)}" target="_blank" rel="noopener noreferrer"`;
     // The row is a fixed 4-column grid; the extra child needs its own column or
     // it wraps onto a second line (see .ev-list-row--pl).
-    return `<${tag} class="ev-list-row${item.pl ? ' ev-list-row--pl' : ''}${item.isToday ? ' event-today' : ''}" ${openAttrs}>` +
+    return `<div class="ev-list-row${item.pl ? ' ev-list-row--pl' : ''}${item.isToday ? ' event-today' : ''}" ${_evReleaseClickAttr(item)}>` +
       `${_evPlBtn(item, 'dc-pl-add-sm')}` +
       `<span class="ev-list-date">${esc(item.dateLabel)}</span>` +
       `<span class="ev-list-title">${esc(item.title)}</span>` +
       `<span class="ev-list-artist">${esc(item.artist)}</span>` +
-      `<span class="ev-list-type">${esc(item.typeLabel)}</span></${tag}>`;
+      `<span class="ev-list-type">${esc(item.typeLabel)}</span></div>`;
   }).join('');
   gridEl.innerHTML =
     `<div class="ev-list-sort"><span class="ev-list-sort-lbl">Sort:</span>` +
@@ -26603,13 +26608,15 @@ function renderConcertCard(event, artistName) {
   const timeLabel = time ? ' · ' + time.slice(0, 5) : '';
 
   const imgHtml = `<img class="upcoming-card-img upcoming-card-img-pending" alt="" loading="lazy" data-artist="${esc(artistName)}" data-title="" data-sources="deezer-artist">`;
-  return `<a class="upcoming-card${isToday ? ' event-today' : ''}" href="${esc(url)}" target="_blank" rel="noopener noreferrer">
+  // The card opens the artist action menu, with the show's ticket page — where
+  // the card used to go on its own — as the menu's first option.
+  return `<div class="upcoming-card${isToday ? ' event-today' : ''}" onclick="_concertShowMenu(event,${esc(JSON.stringify(artistName))},${esc(JSON.stringify(url))})">
     ${imgHtml}
     <div class="upcoming-card-date${isToday || isSoon ? ' soon' : ''}">${esc(countdownLabel)}</div>
     <div class="upcoming-card-title">${esc(artistName)}</div>
     <div class="upcoming-card-artist">${esc(venueName)}${location ? ' · ' + esc(location) : ''}</div>
     <div class="upcoming-card-type">🎤 Live Show · ${esc(displayDate)}${esc(timeLabel)}</div>
-  </a>`;
+  </div>`;
 }
 
 // ─── NMF History helpers ───────────────────────────────────────
@@ -31758,6 +31765,9 @@ async function _loadCalTtArtistImg(imgWrap, artist) {
 }
 
 function _showCalEvTooltip(target) {
+  // The pill's action menu is the popup that matters once it is open; the
+  // hover mini-card would sit on top of it.
+  if (_tmMenuEl) return;
   clearTimeout(_calEvHideTimer);
   const { ctt: evType = '', cta: artist = '', ctl: title = '', ctm: mbid = '', ctd: detail = '', ctx: dtxt = '', ctf: dtf = '' } = target.dataset;
 
@@ -32141,6 +32151,11 @@ function _tmOpenMenu(menu, card) {
   _tmPausedReel = card.closest('.dcreel');
   if (_tmPausedReel) _tmPausedReel.dataset.reelPaused = '1';
 
+  // A calendar pill carries a hover mini-card as well; two popups over the same
+  // cell is one too many, so the menu takes the place of the tooltip.
+  const calTt = document.getElementById('calEvTooltip');
+  if (calTt) calTt.style.display = 'none';
+
   _tmMenuEl = menu;
   _tmMenuCard = card;
   setTimeout(() => {
@@ -32392,6 +32407,12 @@ function _tmShowAlbumMenu(ev, album, artist) {
 // own. Everything under it is the ordinary release menu; a record that came out
 // this morning has no play history, so in practice it offers Deezer, Spotify, a
 // playlist and Google.
+function _concertShowMenu(ev, artist, ticketUrl) {
+  _tmShowEntityMenu(ev, artist, (limit) => _tmArtistLastSongs(artist, limit), artist, {
+    sourceLink: ticketUrl ? { url: ticketUrl, icon: '🎟️', label: t('tm_action_tickets') } : null
+  });
+}
+
 function _nmfShowMenu(ev, album, artist, deezerUrl) {
   _tmShowEntityMenu(ev, album + ' ' + artist, (limit) => _tmAlbumLastSongs(album, artist, limit),
     album, {
@@ -33102,7 +33123,9 @@ function awardsChangeYear(delta) {
 }
 
 function realLifeAwardsChangeYear(delta) {
-  _realLifeYear = Math.max(2000, Math.min(tzNow().getFullYear(), _realLifeYear + delta));
+  // 1959 is the first ceremony; the current year is the most recent one that has
+  // actually happened, so we never land on an empty future page.
+  _realLifeYear = Math.max(1959, Math.min(tzNow().getFullYear(), _realLifeYear + delta));
   document.getElementById('realLifeYearLabel').textContent = _realLifeYear;
   loadRealLifeAwards(_realLifeYear);
 }
@@ -33828,68 +33851,134 @@ async function awardsRemoveNominee(e, year, catId, item) {
 
 // ── Real-Life Awards ──────────────────────────────────────────────────────────
 
+// The year in this tab is the *ceremony* year, the way grammy.com labels it: the
+// 68th Grammys were held in February 2026 and honour music released in 2025. So
+// the artists we match against are the ones the user played during the
+// eligibility year (the year before), because that's the music being judged.
+const GRAMMY_FIRST_CEREMONY_YEAR = 1959;   // the 1st Annual Grammy Awards
+
+function _grammyCeremonyNo(year) { return year - GRAMMY_FIRST_CEREMONY_YEAR + 1; }
+
+function _ordinal(n) {
+  const rem100 = n % 100, rem10 = n % 10;
+  if (rem100 >= 11 && rem100 <= 13) return n + 'th';
+  return n + (({ 1: 'st', 2: 'nd', 3: 'rd' })[rem10] || 'th');
+}
+
+// One entry per artist name, holding the promise so that flipping between years
+// (or back to a year already seen) never refetches the same artist.
+const _grammyArtistCache = {};
+// Bumped on every load so a slow year that the user has already navigated away
+// from can't paint over the year they're looking at now.
+let _realLifeLoadToken = 0;
+
+// Ask our own /grammy-proxy Function for an artist's complete Grammy record —
+// every nomination and win, with the ceremony year on each. See
+// functions/grammy-proxy.js for why grammy.com can't be read from the browser.
+function _grammyFetchArtist(artist) {
+  const key = (artist || '').toLowerCase();
+  if (_grammyArtistCache[key]) return _grammyArtistCache[key];
+
+  const isLocal = location.hostname === 'localhost' || location.hostname === '127.0.0.1';
+  const base = isLocal ? 'https://dankcharts.fm/grammy-proxy' : '/grammy-proxy';
+
+  _grammyArtistCache[key] = fetch(base + '?artist=' + encodeURIComponent(artist))
+    .then(r => r.ok ? r.json() : { found: false })
+    .catch(() => ({ found: false }));
+  return _grammyArtistCache[key];
+}
+
+// Walk a list with a handful of requests in flight at once — 20 artists one at a
+// time would be a long wait, 20 at once is rude to the proxy.
+async function _grammyMapLimit(items, limit, fn) {
+  const out = new Array(items.length);
+  let next = 0;
+  await Promise.all(Array.from({ length: Math.min(limit, items.length) }, async () => {
+    while (next < items.length) {
+      const i = next++;
+      out[i] = await fn(items[i], i);
+    }
+  }));
+  return out;
+}
+
 async function loadRealLifeAwards(year) {
   const contentEl = document.getElementById('realLifeContent');
   const statusEl  = document.getElementById('realLifeStatus');
+  const token = ++_realLifeLoadToken;
   contentEl.innerHTML = '';
-  statusEl.textContent = `Looking up Grammy nominations for your top artists in ${year}…`;
 
-  const start = new Date(`${year}-01-01`);
-  const end   = new Date(`${year}-12-31T23:59:59`);
-  const inYear = allPlays.filter(p => p.date >= start && p.date <= end);
-  if (!inYear.length && !allPlays.length) {
+  if (!allPlays.length) {
     statusEl.textContent = 'Load your music data first.';
     return;
   }
+
+  // Top artists of the eligibility year — the music this ceremony is judging.
+  // Users whose data doesn't reach back that far fall back to everything they
+  // have, so the tab still says something useful.
+  const eligYear = year - 1;
+  const start = new Date(`${eligYear}-01-01`);
+  const end   = new Date(`${eligYear}-12-31T23:59:59`);
+  const inYear = allPlays.filter(p => p.date >= start && p.date <= end);
   const pool = inYear.length ? inYear : allPlays;
   const { artists } = _awardsCountMaps(pool);
   const topArtists  = _awardsTopN(artists, 20, 1);
 
-  const results = [];
-  for (const a of topArtists) {
-    const awards = await _mbFetchAwards(a.artist, year);
-    if (awards.length) results.push({ artist: a.artist, awards });
-    await new Promise(r => setTimeout(r, 1100));
-  }
+  const ceremony = `${_ordinal(_grammyCeremonyNo(year))} Annual Grammy Awards`;
+  let done = 0;
+  const tick = () => {
+    if (token !== _realLifeLoadToken) return;
+    statusEl.textContent = `Checking your top ${topArtists.length} artists of ${eligYear} against the ${ceremony}… (${done}/${topArtists.length})`;
+  };
+  tick();
+
+  const looked = await _grammyMapLimit(topArtists, 5, async a => {
+    const data = await _grammyFetchArtist(a.artist);
+    done++; tick();
+    return { played: a, data };
+  });
+  if (token !== _realLifeLoadToken) return;   // the user moved on
+
+  // Keep the user's own listening order: their #1 artist of the year leads.
+  const results = looked
+    .filter(r => r.data?.found)
+    .map(r => ({ ...r, entries: (r.data.entries || []).filter(e => e.year === year) }))
+    .filter(r => r.entries.length);
 
   statusEl.textContent = '';
+
+  const headline = `<div class="awards-reallife-head">
+      <div class="awards-reallife-ceremony">${esc(ceremony)}</div>
+      <div class="awards-reallife-sub">Held ${year} · honouring ${eligYear} releases${inYear.length ? '' : ' · matched against your all-time top artists'}</div>
+    </div>`;
+  const credit = `<div class="awards-reallife-credit">Nominations and winners from <a href="https://www.grammy.com/awards/" target="_blank" rel="noopener">grammy.com</a></div>`;
+
   if (!results.length) {
-    contentEl.innerHTML = `<div class="awards-empty">No Grammy data found for your top ${topArtists.length} artists in ${year}. MusicBrainz coverage may be incomplete for this period.</div>`;
+    contentEl.innerHTML = headline +
+      `<div class="awards-empty">None of your top ${topArtists.length} artists of ${eligYear} were nominated at the ${esc(ceremony)}.</div>` +
+      credit;
     return;
   }
 
-  contentEl.innerHTML = results.map(r =>
-    `<div class="awards-reallife-card">
-      <div class="awards-reallife-artist">${esc(r.artist)}</div>
-      ${r.awards.map(a => `<div class="awards-reallife-row">
-        <span class="awards-reallife-badge ${a.won ? 'won' : 'nom'}">${a.won ? '🏆 Won' : '🎗 Nominated'}</span>
-        <span class="awards-reallife-cat">${esc(a.category)}</span>
-        ${a.year ? `<span class="awards-reallife-year">${a.year}</span>` : ''}
-      </div>`).join('')}
-    </div>`
-  ).join('');
-}
+  const wins = results.reduce((n, r) => n + r.entries.filter(e => e.won).length, 0);
+  const noms = results.reduce((n, r) => n + r.entries.length, 0);
+  const tally = `<div class="awards-reallife-tally">Your artists picked up <strong>${noms}</strong> ${noms === 1 ? 'nomination' : 'nominations'}${wins ? ` and won <strong>${wins}</strong>` : ''}.</div>`;
 
-async function _mbFetchAwards(artist, year) {
-  try {
-    const r1 = await fetch(`https://musicbrainz.org/ws/2/artist/?query=${encodeURIComponent(`"${artist}"`)}&fmt=json&limit=1`);
-    const d1 = await r1.json();
-    const mbid = d1?.artists?.[0]?.id;
-    if (!mbid) return [];
-    await new Promise(r => setTimeout(r, 1100));
-    const r2 = await fetch(`https://musicbrainz.org/ws/2/artist/${mbid}?inc=artist-rels&fmt=json`);
-    const d2 = await r2.json();
-    const out = [];
-    for (const rel of (d2.relations || [])) {
-      if (!rel.series) continue;
-      const name = rel.series?.name || '';
-      if (!/grammy/i.test(name)) continue;
-      const relYear = (rel.begin || rel.end || '').split('-')[0];
-      if (relYear && Math.abs(parseInt(relYear) - year) > 1) continue;
-      out.push({ category: name, year: relYear, won: (rel.attributes || []).includes('Winner') });
-    }
-    return out;
-  } catch(_) { return []; }
+  contentEl.innerHTML = headline + tally + results.map(r => {
+    // Wins first within an artist, so the good news is at the top of the card.
+    const rows = r.entries.slice().sort((a, b) => (b.won ? 1 : 0) - (a.won ? 1 : 0));
+    return `<div class="awards-reallife-card">
+      <div class="awards-reallife-artist">
+        <a href="${esc(r.data.url)}" target="_blank" rel="noopener">${esc(r.data.artist)}</a>
+        <span class="awards-reallife-alltime">${r.data.wins} ${r.data.wins === 1 ? 'win' : 'wins'} · ${r.data.nominations} all-time</span>
+      </div>
+      ${rows.map(e => `<div class="awards-reallife-row">
+        <span class="awards-reallife-badge ${e.won ? 'won' : 'nom'}">${e.won ? '🏆 Won' : '🎗 Nominated'}</span>
+        <span class="awards-reallife-cat">${esc(e.category)}</span>
+        ${e.title ? `<span class="awards-reallife-work">${esc(e.title)}</span>` : ''}
+      </div>`).join('')}
+    </div>`;
+  }).join('') + credit;
 }
 
 // ── Ceremony ──────────────────────────────────────────────────────────────────
