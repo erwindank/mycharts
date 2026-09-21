@@ -33856,6 +33856,8 @@ async function awardsRemoveNominee(e, year, catId, item) {
 // the artists we match against are the ones the user played during the
 // eligibility year (the year before), because that's the music being judged.
 const GRAMMY_FIRST_CEREMONY_YEAR = 1959;   // the 1st Annual Grammy Awards
+const REAL_LIFE_ARTIST_COUNT     = 50;     // how deep into the year's artists to look
+const REAL_LIFE_CONCURRENCY      = 8;      // lookups in flight at once
 
 function _grammyCeremonyNo(year) { return year - GRAMMY_FIRST_CEREMONY_YEAR + 1; }
 
@@ -33888,8 +33890,8 @@ function _grammyFetchArtist(artist) {
   return _grammyArtistCache[key];
 }
 
-// Walk a list with a handful of requests in flight at once — 20 artists one at a
-// time would be a long wait, 20 at once is rude to the proxy.
+// Walk a list with a handful of requests in flight at once — fifty artists one
+// at a time would be a long wait, fifty at once is rude to the proxy.
 async function _grammyMapLimit(items, limit, fn) {
   const out = new Array(items.length);
   let next = 0;
@@ -33922,7 +33924,10 @@ async function loadRealLifeAwards(year) {
   const inYear = allPlays.filter(p => p.date >= start && p.date <= end);
   const pool = inYear.length ? inYear : allPlays;
   const { artists } = _awardsCountMaps(pool);
-  const topArtists  = _awardsTopN(artists, 20, 1);
+  // 50 rather than a handful: past the top ten or so is exactly where the
+  // surprises are, the artist you played twice who turns out to have been
+  // nominated. Each one is a single cached proxy call, so the depth is cheap.
+  const topArtists  = _awardsTopN(artists, REAL_LIFE_ARTIST_COUNT, 1);
 
   const ceremony = `${_ordinal(_grammyCeremonyNo(year))} Annual Grammy Awards`;
   let done = 0;
@@ -33932,7 +33937,7 @@ async function loadRealLifeAwards(year) {
   };
   tick();
 
-  const looked = await _grammyMapLimit(topArtists, 5, async a => {
+  const looked = await _grammyMapLimit(topArtists, REAL_LIFE_CONCURRENCY, async a => {
     const data = await _grammyFetchArtist(a.artist);
     done++; tick();
     return { played: a, data };
