@@ -61,7 +61,7 @@ const DC_CHANGELOG = [
 
   /* ========== SEPTEMBER 2026 ========== */
 
-  { d: '2026-09-21', t: 'change', a: 'ui', h: '',
+  { d: '2026-09-21', t: 'change', a: 'ui', h: '2942861',
     title: 'The browser tab, the footer and Google all use your name now',
     detail: 'The masthead already read "★ Your Personal Music Charts ★" until you filled in a display name in Settings, at which point it became yours. The footer line and the browser-tab title did not — they carried the site owner’s name for everyone, which is also what Google printed as the headline for dankcharts.fm in search results. Both now follow the masthead: "Your Personal Music Charts" until you set a display name, and your own name once you do, in all four languages, with the footer taking its “Est.” year from your first scrobble instead of a fixed 2016. Google picks the new title up the next time it crawls the site, so the old one can linger in search for a while.' },
 
