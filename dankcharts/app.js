@@ -33404,7 +33404,7 @@ function _awardsRenderCatList(data) {
     document.getElementById('awardsCeremonyBar').style.display = 'none';
     return;
   }
-  el.innerHTML = activeCats.map(cat => _awardsRenderCatCard(cat, data.categories[cat.id] || { enabled: true, nominees: [], winner: null }, data.year)).join('');
+  el.innerHTML = activeCats.map((cat, i) => _awardsRenderCatCard(cat, data.categories[cat.id] || { enabled: true, nominees: [], winner: null }, data.year, i)).join('');
   const hasWinner = activeCats.some(c => data.categories[c.id]?.winner);
   document.getElementById('awardsCeremonyBar').style.display = hasWinner ? '' : 'none';
 }
@@ -33413,7 +33413,7 @@ function _awardItemKey(item) {
   return JSON.stringify({ t: item.title || '', al: item.album || '', ar: item.artist || '' });
 }
 
-function _awardsRenderCatCard(cat, catData, year) {
+function _awardsRenderCatCard(cat, catData, year, idx) {
   const nominees  = catData.nominees || [];
   const winner    = catData.winner   || null;
   const winnerKey = winner ? _awardItemKey(winner) : null;
@@ -33421,21 +33421,29 @@ function _awardsRenderCatCard(cat, catData, year) {
 
   let bodyHtml = '';
   if (cat.auto && nominees.length) {
-    const w = nominees[0];
-    bodyHtml = `<div class="awards-auto-winner">
-      <span class="awards-winner-trophy">🏆</span>
-      <span class="awards-winner-text">${esc(w.title || w.album || w.artist || '')}</span>
-      ${(w.title || w.album) && w.artist ? `<span class="awards-winner-sub">${esc(w.artist)}</span>` : ''}
+    // Auto-awarded categories have no ballot to vote on, so their single result
+    // reuses the same gold winner band the picked categories use.
+    const w   = nominees[0];
+    const lbl = w.title || w.album || w.artist || '';
+    const sub = (w.title || w.album) && w.artist ? w.artist : '';
+    bodyHtml = `<div class="awards-nominee-row is-winner awards-auto-winner">
+      <span class="awards-nominee-icon">🏆</span>
+      <span class="awards-nominee-label" title="${esc(lbl)}">${esc(lbl)}</span>
+      ${sub ? `<span class="awards-nominee-sub" title="${esc(sub)}">${esc(sub)}</span>` : ''}
     </div>`;
   } else if (nominees.length) {
-    bodyHtml = nominees.map(item => {
+    bodyHtml = nominees.map((item, i) => {
       const ik  = _awardItemKey(item);
+      const isW = ik === winnerKey;
       const lbl = item.title || item.album || item.artist || '';
       const sub = item.title ? item.artist : (item.album ? item.artist : (item.song || ''));
-      return `<div class="awards-nominee-row${ik === winnerKey ? ' is-winner' : ''}" onclick="awardsPickWinner(${year},'${esc(cat.id)}',${esc(JSON.stringify(item))})">
-        <span class="awards-nominee-icon">${ik === winnerKey ? '🏆' : '○'}</span>
-        <span class="awards-nominee-label">${esc(lbl)}</span>
-        ${sub ? `<span class="awards-nominee-sub">${esc(sub)}</span>` : ''}
+      // Rank number instead of a bullet: the list is an ordered ballot and the
+      // number is what the ceremony counts down. The winner swaps it for a trophy.
+      const mark = isW ? '🏆' : String(i + 1).padStart(2, '0');
+      return `<div class="awards-nominee-row${isW ? ' is-winner' : ''}" style="--i:${i}" onclick="awardsPickWinner(${year},'${esc(cat.id)}',${esc(JSON.stringify(item))})">
+        <span class="awards-nominee-icon">${mark}</span>
+        <span class="awards-nominee-label" title="${esc(lbl)}">${esc(lbl)}</span>
+        ${sub ? `<span class="awards-nominee-sub" title="${esc(sub)}">${esc(sub)}</span>` : ''}
         <button class="awards-nominee-remove" onclick="awardsRemoveNominee(event,${year},'${esc(cat.id)}',${esc(JSON.stringify(item))})" title="Remove">✕</button>
       </div>`;
     }).join('') + (!winner ? `<div class="awards-pick-hint">${t('awards_pick_hint')}</div>` : '');
@@ -33445,10 +33453,15 @@ function _awardsRenderCatCard(cat, catData, year) {
 
   const genBtn = cat.auto ? '' : `<button class="awards-cat-action-btn" onclick="awardsGenerateCatCandidates(${year},'${esc(cat.id)}')" data-catid="${esc(cat.id)}">${nominees.length ? t('awards_change_btn') : t('awards_pick_nominees_btn')}</button>`;
 
-  return `<div class="awards-cat-card${winner ? ' has-winner' : ''}" id="awardsCat_${cat.id}">
+  // data-awtype picks the card's --cat-hue (song / album / artist); --i staggers
+  // the reveal so the grid fills in as a wave instead of all at once.
+  return `<div class="awards-cat-card${winner ? ' has-winner' : ''}" id="awardsCat_${cat.id}" data-awtype="${esc(cat.type || '')}" style="--i:${idx || 0}">
     <div class="awards-cat-header">
       <span class="awards-cat-emoji">${emoji}</span>
-      <span class="awards-cat-name">${esc(t('awards_cat_' + cat.id))}</span>
+      <span class="awards-cat-heading">
+        <span class="awards-cat-kicker">${esc(cat.type || '')}${nominees.length ? ' · ' + nominees.length : ''}</span>
+        <span class="awards-cat-name">${esc(t('awards_cat_' + cat.id))}</span>
+      </span>
       ${cat.auto ? '<span class="awards-auto-tag">auto</span>' : ''}
     </div>
     <div class="awards-cat-body">${bodyHtml}</div>

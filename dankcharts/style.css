@@ -21808,66 +21808,92 @@ body[class*="-light"] .tm-card-search:hover {
 
 /* ─── AWARDS ────────────────────────────────────────────────────────────────── */
 
+/* Segmented control rather than two loose pills — the two panels are one
+   either/or switch, and a single tray makes that read at a glance. */
 .awards-subnav {
-  display: flex;
-  gap: 6px;
+  display: inline-flex;
+  gap: 2px;
   margin: 8px 0 18px;
-  flex-wrap: wrap;
+  padding: 3px;
+  border: 1px solid var(--border);
+  background: var(--surface1);
+  border-radius: var(--r-full);
+  max-width: 100%;
 }
 .awards-subnav-btn {
   padding: 6px 16px;
-  border-radius: 20px;
-  border: 1.5px solid var(--border);
+  border-radius: var(--r-full);
+  border: none;
   background: transparent;
-  color: var(--text2);
-  font-size: 0.82rem;
+  color: var(--text3);
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  white-space: nowrap;
   cursor: pointer;
-  transition: background 0.15s, color 0.15s, border-color 0.15s;
+  transition: background var(--t-fast) var(--ease), color var(--t-fast) var(--ease);
 }
-.awards-subnav-btn.active,
-.awards-subnav-btn:hover {
+.awards-subnav-btn:hover { color: var(--text1); }
+.awards-subnav-btn.active {
   background: var(--accent);
   color: var(--on-accent);
-  border-color: var(--accent);
 }
 
 /* Year bar */
 .awards-year-bar {
   display: flex;
   align-items: center;
-  gap: 8px;
-  margin-bottom: 14px;
+  gap: 6px;
+  margin-bottom: 16px;
   flex-wrap: wrap;
 }
+/* Round steppers flanking an oversized display-font year — the year is the
+   headline of the page, not another button in the row. */
 .awards-year-nav-btn {
-  background: var(--surface2);
+  flex: none;
+  width: 28px;
+  height: 28px;
+  display: grid;
+  place-items: center;
+  background: transparent;
   border: 1px solid var(--border);
-  color: var(--text1);
-  padding: 4px 10px;
-  border-radius: 6px;
+  color: var(--text3);
+  border-radius: var(--r-full);
   cursor: pointer;
-  font-size: 0.85rem;
+  font-size: 0.6rem;
+  line-height: 1;
+  transition: background var(--t-fast) var(--ease), color var(--t-fast) var(--ease), border-color var(--t-fast) var(--ease);
 }
-.awards-year-nav-btn:hover { background: var(--surface3); }
+.awards-year-nav-btn:hover {
+  background: color-mix(in srgb, var(--accent) 14%, transparent);
+  border-color: var(--accent);
+  color: var(--text1);
+}
 .awards-year-label {
-  font-size: 1.4rem;
+  font-family: var(--font-display);
+  font-size: 1.8rem;
   font-weight: 700;
   color: var(--text1);
-  min-width: 54px;
+  min-width: 78px;
   text-align: center;
-  font-family: var(--font-sans);
-  letter-spacing: -0.02em;
+  letter-spacing: -0.035em;
+  font-feature-settings: "tnum";
+  line-height: 1;
 }
+.awards-config-btn { margin-left: 8px; }
+/* Pills, to sit with the round steppers and the segmented sub-nav — the old
+   8px chips were the one square thing left in the header row. */
 .awards-config-btn,
 .awards-generate-btn {
-  padding: 5px 12px;
-  border-radius: 8px;
-  border: 1.5px solid var(--border);
+  padding: 7px 15px;
+  border-radius: var(--r-full);
+  border: 1px solid var(--border);
   background: var(--surface2);
   color: var(--text2);
-  font-size: 0.78rem;
+  font-size: 0.76rem;
   cursor: pointer;
-  transition: background 0.15s, color 0.15s;
+  transition: background var(--t-fast) var(--ease), color var(--t-fast) var(--ease), border-color var(--t-fast) var(--ease);
 }
 .awards-config-btn:hover { background: var(--accent); color: var(--on-accent); border-color: var(--accent); }
 .awards-config-btn.active  { background: var(--accent); color: var(--on-accent); border-color: var(--accent); }
@@ -21974,9 +22000,9 @@ body[class*="-light"] .tm-card-search:hover {
   font-weight: 700;
   text-transform: uppercase;
 }
-.awards-type-song   { background: #3b82f633; color: #60a5fa; }
-.awards-type-album  { background: #8b5cf633; color: #a78bfa; }
-.awards-type-artist { background: #10b98133; color: #34d399; }
+.awards-type-song   { background: color-mix(in srgb, var(--teal) 18%, transparent);    color: var(--teal); }
+.awards-type-album  { background: color-mix(in srgb, var(--accent2) 18%, transparent); color: var(--accent2); }
+.awards-type-artist { background: color-mix(in srgb, var(--green) 18%, transparent);   color: var(--green); }
 .awards-auto-badge  {
   font-size: 0.6rem;
   padding: 1px 5px;
@@ -21995,117 +22021,288 @@ body[class*="-light"] .tm-card-search:hover {
   font-style: italic;
 }
 
-/* Category cards grid */
+/* Category cards grid ─────────────────────────────────────────────────────────
+   These are styled as printed award ballots: a mono rank column down the left
+   like a voting slip, a thin type-coloured rail across the top edge, and the
+   winner lifted out of the plain list into a full-bleed gold foil band. Every
+   card carries --cat-hue (set per nominee type below) so the rail, the emoji
+   tile, the hover glow and the footer button all pick up the same colour from
+   one place — nothing here hard-codes a hex, so all themes follow along. */
 #awardsCatList {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 14px;
-  margin-top: 4px;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 16px;
+  margin-top: 8px;
 }
 .awards-cat-card {
-  background: var(--surface2);
-  border: 1.5px solid var(--border);
-  border-radius: 12px;
+  --cat-hue: var(--accent);
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  /* Flat fills read as dead space; the radial washes the card's own type colour
+     into the top-left corner so the grid has some light in it. */
+  background:
+    radial-gradient(120% 90% at 0% 0%, color-mix(in srgb, var(--cat-hue) 10%, transparent) 0%, transparent 60%),
+    var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
   overflow: hidden;
-  transition: border-color 0.2s;
+  transition: border-color var(--t-med) var(--ease), box-shadow var(--t-med) var(--ease), transform var(--t-med) var(--ease);
+  animation: awCardIn 420ms var(--ease) both;
+  animation-delay: calc(var(--i, 0) * 45ms);
 }
+/* Type rail — the only chrome that separates song / album / artist cards at a glance. */
+.awards-cat-card::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 2px;
+  background: linear-gradient(90deg, var(--cat-hue), color-mix(in srgb, var(--cat-hue) 12%, transparent));
+}
+.awards-cat-card[data-awtype="song"]   { --cat-hue: var(--teal); }
+.awards-cat-card[data-awtype="album"]  { --cat-hue: var(--accent2); }
+.awards-cat-card[data-awtype="artist"] { --cat-hue: var(--green); }
+.awards-cat-card:hover {
+  border-color: color-mix(in srgb, var(--cat-hue) 45%, var(--border));
+  box-shadow: 0 6px 24px color-mix(in srgb, var(--cat-hue) 14%, transparent);
+  transform: translateY(-2px);
+}
+/* A decided category switches its whole hue to gold — rail, glow and footer
+   button all go with it, so a filled ballot is obvious from across the grid. */
 .awards-cat-card.has-winner {
-  border-color: #FFD700;
-  box-shadow: 0 0 10px #FFD70022;
+  --cat-hue: var(--gold1);
+  border-color: color-mix(in srgb, var(--gold1) 50%, var(--border));
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--gold1) 20%, transparent),
+              0 6px 26px color-mix(in srgb, var(--gold1) 12%, transparent);
 }
+@keyframes awCardIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: none; }
+}
+
+/* Card header — mono kicker over a display-font category name */
 .awards-cat-header {
   display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 10px 12px 8px;
-  border-bottom: 1px solid var(--border);
-  background: var(--surface3);
+  gap: 10px;
+  padding: 14px 14px 10px;
 }
-.awards-cat-emoji { font-size: 1rem; }
-.awards-cat-name  { font-size: 0.82rem; font-weight: 600; color: var(--text1); flex: 1; }
-.awards-auto-tag  {
-  font-size: 0.6rem;
-  padding: 1px 5px;
-  border-radius: 4px;
-  background: color-mix(in srgb, var(--amber) 18%, transparent);
-  color: var(--amber);
+.awards-cat-emoji {
+  flex: none;
+  width: 30px;
+  height: 30px;
+  display: grid;
+  place-items: center;
+  font-size: 0.95rem;
+  border-radius: var(--r-sm);
+  background: color-mix(in srgb, var(--cat-hue) 14%, var(--surface3));
+  border: 1px solid color-mix(in srgb, var(--cat-hue) 24%, transparent);
+}
+.awards-cat-heading {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.awards-cat-kicker {
+  font-family: var(--font-mono);
+  font-size: 0.56rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--cat-hue) 65%, var(--text3));
+}
+.awards-cat-name {
+  font-family: var(--font-display);
+  font-size: 0.95rem;
   font-weight: 700;
+  letter-spacing: -0.015em;
+  line-height: 1.15;
+  color: var(--text1);
+}
+.awards-auto-tag  {
+  flex: none;
+  font-size: 0.55rem;
+  padding: 2px 6px;
+  border-radius: var(--r-full);
+  background: color-mix(in srgb, var(--amber) 16%, transparent);
+  color: var(--amber);
+  font-family: var(--font-mono);
+  font-weight: 500;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
 }
-.awards-cat-body { padding: 10px 12px; min-height: 40px; }
+.awards-cat-body { padding: 0 8px 6px; }
 .awards-cat-footer {
-  padding: 6px 12px 10px;
+  margin-top: auto;           /* pins the button to the bottom so uneven cards line up */
+  padding: 4px 14px 14px;
   display: flex;
-  gap: 6px;
 }
 
-/* Nominees */
+/* Nominees — ballot rows */
 .awards-nominee-row {
   display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 5px 4px;
-  border-radius: 6px;
+  gap: 8px;
+  padding: 6px;
+  border-radius: var(--r-sm);
   cursor: pointer;
-  transition: background 0.12s;
   font-size: 0.8rem;
   color: var(--text2);
+  transition: background var(--t-fast) var(--ease), color var(--t-fast) var(--ease);
+  animation: awRowIn 300ms var(--ease) both;
+  animation-delay: calc(var(--i, 0) * 22ms);
 }
-.awards-nominee-row:hover { background: var(--surface3); }
-.awards-nominee-row.is-winner {
-  background: #FFD70015;
+@keyframes awRowIn {
+  from { opacity: 0; transform: translateY(5px); }
+  to   { opacity: 1; transform: none; }
+}
+.awards-nominee-row:hover {
+  background: color-mix(in srgb, var(--cat-hue) 9%, var(--surface3));
   color: var(--text1);
-  font-weight: 600;
 }
-.awards-nominee-icon { font-size: 0.9rem; min-width: 18px; }
-.awards-nominee-label { flex: 1; }
+/* The rank number is the ballot's spine: tabular mono so 01…10 never shifts. */
+.awards-nominee-icon {
+  flex: none;
+  width: 18px;
+  text-align: right;
+  font-family: var(--font-mono);
+  font-size: 0.66rem;
+  font-feature-settings: "tnum";
+  color: var(--text3);
+  opacity: 0.6;
+  transition: color var(--t-fast) var(--ease), opacity var(--t-fast) var(--ease);
+}
+.awards-nominee-row:hover .awards-nominee-icon { color: var(--cat-hue); opacity: 1; }
+/* Titles and artists are clipped, not wrapped — long remix titles used to blow a
+   row out to three lines and wreck the grid's rhythm. Full text is in title=. */
+.awards-nominee-label {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 .awards-nominee-sub {
-  font-size: 0.72rem;
+  flex: 0 1 auto;
+  min-width: 0;
+  max-width: 42%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.68rem;
   color: var(--text3);
 }
 .awards-nominee-remove {
+  flex: none;
+  width: 14px;                /* reserved even when hidden, so rows never jump on hover */
   background: none;
   border: none;
   color: var(--text3);
   cursor: pointer;
   font-size: 0.7rem;
-  padding: 0 2px;
+  padding: 0;
   opacity: 0;
-  transition: opacity 0.12s;
+  transition: opacity var(--t-fast) var(--ease), color var(--t-fast) var(--ease);
 }
 .awards-nominee-row:hover .awards-nominee-remove { opacity: 1; }
-.awards-nominee-remove:hover { color: #ef4444; }
+.awards-nominee-remove:hover { color: var(--rose); }
+
+/* Winner — full-bleed gold band with a gold rail and a one-shot foil sweep */
+.awards-nominee-row.is-winner {
+  position: relative;
+  overflow: hidden;
+  margin: 2px -8px;           /* breaks out of .awards-cat-body padding, edge to edge */
+  padding: 8px 14px;
+  border-radius: 0;
+  color: var(--text1);
+  font-weight: 600;
+  background: linear-gradient(90deg,
+    color-mix(in srgb, var(--gold1) 24%, transparent) 0%,
+    color-mix(in srgb, var(--gold1) 7%, transparent) 65%,
+    transparent 100%);
+  box-shadow: inset 3px 0 0 var(--gold1);
+}
+.awards-nominee-row.is-winner:hover {
+  background: linear-gradient(90deg,
+    color-mix(in srgb, var(--gold1) 32%, transparent) 0%,
+    color-mix(in srgb, var(--gold1) 10%, transparent) 65%,
+    transparent 100%);
+}
+.awards-nominee-row.is-winner .awards-nominee-icon { font-size: 0.85rem; opacity: 1; }
+.awards-nominee-row.is-winner .awards-nominee-sub {
+  color: color-mix(in srgb, var(--gold1) 55%, var(--text2));
+}
+/* Foil sweep: one pass on render, then it stays put — a looping shimmer on a
+   grid of 12 cards would be noise, a single sweep reads as the envelope opening. */
+.awards-nominee-row.is-winner::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(105deg, transparent 38%,
+    color-mix(in srgb, var(--gold2) 28%, transparent) 50%, transparent 62%);
+  transform: translateX(-130%);
+  animation: awFoil 1300ms var(--ease) 300ms 1 forwards;
+}
+@keyframes awFoil { to { transform: translateX(130%); } }
+
+/* Auto-awarded categories reuse the winner band but are not clickable */
+.awards-auto-winner { cursor: default; margin-top: 6px; }
+
 .awards-pick-hint {
-  font-size: 0.7rem;
+  font-family: var(--font-mono);
+  font-size: 0.58rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
   color: var(--text3);
   text-align: center;
-  padding: 4px 0 0;
-  font-style: italic;
+  padding: 8px 0 4px;
+  opacity: 0.75;
 }
-.awards-no-nominees { font-size: 0.78rem; color: var(--text3); padding: 4px 0; }
-
-/* Auto-winner display */
-.awards-auto-winner {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 6px 4px;
+.awards-no-nominees {
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text3);
+  text-align: center;
+  padding: 18px 6px;
+  margin: 4px 6px;
+  border: 1px dashed var(--border);
+  border-radius: var(--r-sm);
+  opacity: 0.8;
 }
-.awards-winner-trophy { font-size: 1.2rem; }
-.awards-winner-text { font-size: 0.84rem; font-weight: 600; color: var(--text1); flex: 1; }
-.awards-winner-sub  { font-size: 0.74rem; color: var(--text3); }
 
-/* Category action button */
+/* Category action button — a full-width ghost slip at the foot of the ballot */
 .awards-cat-action-btn {
-  padding: 4px 10px;
-  border-radius: 7px;
-  border: 1px solid var(--border);
-  background: var(--surface3);
-  color: var(--text2);
-  font-size: 0.75rem;
+  flex: 1;
+  padding: 7px 12px;
+  border-radius: var(--r-sm);
+  border: 1px dashed color-mix(in srgb, var(--cat-hue) 35%, var(--border));
+  background: transparent;
+  color: color-mix(in srgb, var(--cat-hue) 50%, var(--text2));
+  font-family: var(--font-mono);
+  font-size: 0.64rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
   cursor: pointer;
+  transition: background var(--t-fast) var(--ease), color var(--t-fast) var(--ease), border-color var(--t-fast) var(--ease);
 }
-.awards-cat-action-btn:hover { background: var(--accent); color: var(--on-accent); border-color: var(--accent); }
+.awards-cat-action-btn:hover {
+  background: color-mix(in srgb, var(--cat-hue) 14%, transparent);
+  border-style: solid;
+  border-color: var(--cat-hue);
+  color: var(--text1);
+}
+
+/* Reveal animations are decorative only — the grid is fully readable without them. */
+@media (prefers-reduced-motion: reduce) {
+  .awards-cat-card,
+  .awards-nominee-row,
+  .awards-nominee-row.is-winner::after { animation: none; }
+  .awards-cat-card:hover { transform: none; }
+}
 
 /* Ceremony launch bar */
 .awards-ceremony-bar {
