@@ -61,6 +61,14 @@ const DC_CHANGELOG = [
 
   /* ========== SEPTEMBER 2026 ========== */
 
+  { d: '2026-09-21', t: 'perf', a: 'data', h: '',
+    title: 'Big Last.fm libraries no longer crash the browser on a phone',
+    detail: 'Loading your history downloaded every scrobble from Last.fm and held all of it in memory until the very last page arrived — and not just the four things this site uses, but everything Last.fm sends with each scrobble: internal identifiers, a link, and four cover-art addresses. That is about ten times more than needed, and on an account with 750,000 scrobbles it added up to roughly 1.6 GB, far more than a phone allows a single browser tab. Somewhere around page 3,500 of 3,900 the phone would kill the tab and you were dropped on the browser’s own crash screen, while the same account loaded fine on a computer with memory to spare. Only the four fields are kept now — around 160 MB for that same library instead of 1.6 GB — so the download fits on a phone.' },
+
+  { d: '2026-09-21', t: 'fix', a: 'data', h: '',
+    title: 'An interrupted history download carries on instead of starting over',
+    detail: 'Your history was only saved to the device once the entire download had finished. For most libraries that is fine, but a very large one takes thousands of pages, and anything that stopped it halfway — locking your phone, the browser discarding the tab in the background, the tab running out of memory — threw the whole thing away. Coming back started again at page one, which for the biggest accounts meant it could never finish at all. Progress is now saved every 250 pages, and the next visit shows the charts built from what was already downloaded and then asks Last.fm only for the part that is still missing, picking up exactly where it stopped. It works across several visits too: each one gets further back through your history than the last.' },
+
   { d: '2026-09-21', t: 'feature', a: 'ui', h: 'fff1b2a',
     title: 'What’s New tells you when there is something new',
     detail: 'The changelog had one way in: a small link at the very bottom of the page, which never said whether anything had actually changed — so there was no reason to ever click it. Now a WHAT’S NEW button appears at the top right of the masthead, beside Theme and Language, whenever entries have landed since you last opened the list, and disappears again the moment you read them. When there is nothing new it is not on screen at all. Opening it also shows how many entries are new, marks each of them with a green rail, and draws a line across the list where the ones you have already seen begin, so you can stop reading at the right place instead of scrolling through seven hundred rows. The footer link stays where it was for anyone who wants the full history. What you have read is remembered per browser, so reading it on a laptop does not clear the badge on a phone.' },

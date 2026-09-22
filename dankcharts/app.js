@@ -4077,6 +4077,12 @@ const POLL_INTERVAL_MS = 30 * 60 * 1000;     // background poll every 30 minutes
 // full re-download is kept as a safety net: it picks up edits/deletions made on
 // Last.fm itself, which an incremental fetch can never see.
 const LASTFM_FULL_RESYNC_MS = 7 * 24 * 60 * 60 * 1000; // full history re-download every 7 days
+// Checkpoint the history download to IndexedDB every this many pages. A 750k-scrobble
+// account is ~3,900 pages, and the cache used to be written only once the whole download
+// finished — so a phone that locked its screen (or a tab the browser discarded, or a
+// renderer the OS killed) lost the entire run and restarted at page 1. On mobile that
+// meant a library this size could never complete a first sync at all.
+const LASTFM_CHECKPOINT_PAGES = 250;
 let syncTimer = null;
 let pollTimer = null;
 let lastSyncTime = null;
@@ -4307,11 +4313,15 @@ async function lastfmAwaitPause() {
 
 // fromUts > 0 turns the request incremental: Last.fm only returns scrobbles after
 // that unix timestamp, so totalPages shrinks to just the new listens.
-async function fetchLastFmPage(username, page, fromUts = 0, attempts = 6) {
+// toUts > 0 is the mirror image — only scrobbles up to that instant — which is how an
+// interrupted download resumes: everything newer is already checkpointed in the cache,
+// so the resume run asks only for the older tail instead of the whole history again.
+async function fetchLastFmPage(username, page, fromUts = 0, attempts = 6, toUts = 0) {
   const url = `https://ws.audioscrobbler.com/2.0/?method=user.getrecenttracks`
     + `&user=${encodeURIComponent(username)}&api_key=${LASTFM_KEY}`
     + `&format=json&limit=200&page=${page}`
-    + (fromUts > 0 ? `&from=${fromUts}` : '');
+    + (fromUts > 0 ? `&from=${fromUts}` : '')
+    + (toUts   > 0 ? `&to=${toUts}`     : '');
   let lastErr = null;
   for (let attempt = 0; attempt < attempts; attempt++) {
     await lastfmAwaitPause();
@@ -4392,7 +4402,56 @@ async function syncFromLastFm() {
   // pages can land slightly out of order in older caches.
   if (incremental) for (const row of cached.data) { if (row[3] > sinceUts) sinceUts = row[3]; }
 
-  let rawTracks = [];
+  // A checkpointed partial download: everything newer than `resumeUts` is already in the
+  // cache (and was rendered above), so this run only has to fetch what is older. Caches
+  // written before checkpointing existed carry no resumeUts and still earn the full
+  // re-download that heals them.
+  const resumeUts = (!cacheUsable && renderedFromCache && cached && cached.complete === false
+    && Number.isFinite(cached.resumeUts) && cached.resumeUts > 0) ? cached.resumeUts : 0;
+  // `to` is inclusive, and a checkpoint deliberately drops its own boundary second (see
+  // saveCheckpoint), so asking for <= resumeUts re-fetches that one second whole.
+  const toUts = resumeUts;
+
+  // Compact rows [title, artist, album, uts], built as each page lands — never the raw
+  // Last.fm track objects. A raw track is ~818 bytes of JSON (mbid, url, streamable and a
+  // four-entry image array of cover URLs) of which this app reads exactly four fields;
+  // holding 750k of them alive until the last page arrived came to ~1.4GB of live objects,
+  // far past what a mobile browser allows one tab, so the renderer was killed mid-sync and
+  // the user just saw the browser's crash page. These rows are ~9x smaller.
+  //
+  // Kept per page rather than in one flat array so a checkpoint can write the contiguous
+  // newest-first prefix of the download: concurrent requests finish out of order, and a
+  // prefix with a hole in it would record a resume boundary that skips real scrobbles.
+  const pageRows = [];
+  // Which scrobbles a page response contributes: newer than the cache when incremental,
+  // strictly the older tail when resuming, everything on a first full download.
+  const keepUts = resumeUts > 0 ? (uts => uts <= resumeUts) : (uts => uts > sinceUts);
+  const addPage = (p, tracks) => {
+    if (!Array.isArray(tracks)) tracks = tracks ? [tracks] : [];
+    const rows = [];
+    for (const tr of tracks) {
+      if (!tr.date || !tr.date.uts) continue;   // the "now playing" row — no timestamp yet
+      const uts = parseInt(tr.date.uts);
+      if (!keepUts(uts)) continue;
+      rows.push([tr.name || '', (tr.artist && tr.artist['#text']) || '', (tr.album && tr.album['#text']) || '', uts]);
+    }
+    pageRows[p] = rows;
+  };
+  // Every row downloaded so far, newest-first. Walking by page number leaves the array
+  // almost sorted already (pages come newest-first, and so do the rows inside one), so
+  // the sort stays cheap even at 750k rows.
+  const collectRows = (maxPage = Infinity) => {
+    const out = [];
+    const last = Math.min(maxPage, pageRows.length - 1);
+    for (let p = 1; p <= last; p++) { const rows = pageRows[p]; if (rows) for (const r of rows) out.push(r); }
+    out.sort((a, b) => b[3] - a[3]);
+    return out;
+  };
+  const rowToPlay = ([title, artist, album, uts]) => {
+    const ar = artist || '';
+    return { title, artist: ar, artists: splitArtists(ar), album: album || '—', date: new Date(uts * 1000) };
+  };
+
   // Pages that failed even after their own retries — swept again, one at a time,
   // once the pool has drained. Whatever is still missing after that is a hole, and
   // the cache gets flagged incomplete so the next sync re-downloads from scratch.
@@ -4405,21 +4464,48 @@ async function syncFromLastFm() {
   // the one early render during a long first-time download — recent periods are
   // already accurate because pages arrive newest-first.
   const renderPartial = () => {
-    allPlays = applyAutocorrectRules(rawTracks.map(tr => {
-      const ar = (tr.artist && tr.artist['#text']) || '';
-      return { title: tr.name || '', artist: ar, artists: splitArtists(ar), album: (tr.album && tr.album['#text']) || '—', date: new Date(parseInt(tr.date.uts) * 1000) };
-    })).sort((a, b) => b.date - a.date);
+    allPlays = applyAutocorrectRules(collectRows().map(rowToPlay));
     finalizeLoad();
+  };
+
+  // ── Checkpointing ────────────────────────────────────────────
+  // Write the contiguous newest-first prefix to the cache mid-download, so an interruption
+  // costs only the pages since the last checkpoint instead of the entire run. `complete:
+  // false` still stops the next sync going incremental on top of a partial history, and
+  // `resumeUts` records how far back the prefix reaches so that sync can resume from there.
+  let lastCheckpointPage = 0;
+  let checkpointing = false;
+  const saveCheckpoint = async (contig) => {
+    const rows = collectRows(contig);
+    if (!rows.length) return;
+    let oldest = Infinity;
+    for (const r of rows) if (r[3] < oldest) oldest = r[3];
+    // Drop the boundary second and let the resume re-fetch it whole: two scrobbles can
+    // share a timestamp across a page edge, and one second fetched twice is a much better
+    // trade than half a second silently lost.
+    const kept = rows.filter(r => r[3] > oldest);
+    if (!kept.length) return;
+    // When resuming, the cached rows are the newer half of the same history — they stay in
+    // front and are already newest-first, so the join needs no re-sort.
+    const data = resumeUts > 0 ? [...cached.data, ...kept] : kept;
+    await saveToIDB(IDB_LASTFM_KEY, { data, ts: Date.now(), complete: false, resumeUts: oldest });
+  };
+  const maybeCheckpoint = (contig) => {
+    if (checkpointing || contig - lastCheckpointPage < LASTFM_CHECKPOINT_PAGES) return;
+    lastCheckpointPage = contig;
+    checkpointing = true;
+    // Deliberately not awaited — the download pool keeps running while the write lands.
+    saveCheckpoint(contig).catch(() => {}).finally(() => { checkpointing = false; });
   };
   try {
     // Fetch page 1 to discover totalPages
-    setSyncStatus(incremental ? 'Checking Last.fm for new scrobbles…' : 'Loading Last.fm history… page 1', 'loading');
-    const firstData = await fetchLastFmPage(username, 1, sinceUts);
+    setSyncStatus(incremental ? 'Checking Last.fm for new scrobbles…'
+      : resumeUts > 0 ? 'Resuming Last.fm history… page 1'
+      : 'Loading Last.fm history… page 1', 'loading');
+    const firstData = await fetchLastFmPage(username, 1, sinceUts, 6, toUts);
     const totalPages = parseInt(firstData.recenttracks['@attr'].totalPages) || 1;
-    let tracks = firstData.recenttracks.track;
-    if (!Array.isArray(tracks)) tracks = tracks ? [tracks] : [];
-    // The > sinceUts filter also dedupes the boundary scrobble if Last.fm treats `from` inclusively
-    for (const tr of tracks) { if (tr.date && tr.date.uts && parseInt(tr.date.uts) > sinceUts) rawTracks.push(tr); }
+    // keepUts also dedupes the boundary scrobble if Last.fm treats `from` inclusively
+    addPage(1, firstData.recenttracks.track);
 
     if (totalPages > 1) {
       // Rolling concurrency pool: always keep up to lastfmMaxInFlight requests in-flight.
@@ -4446,10 +4532,8 @@ async function syncFromLastFm() {
           while (inFlight < lastfmMaxInFlight && nextPage <= totalPages) {
             const p = nextPage++;
             inFlight++;
-            fetchLastFmPage(username, p, sinceUts).then(data => {
-              let t = data.recenttracks.track;
-              if (!Array.isArray(t)) t = t ? [t] : [];
-              for (const tr of t) { if (tr.date && tr.date.uts && parseInt(tr.date.uts) > sinceUts) rawTracks.push(tr); }
+            fetchLastFmPage(username, p, sinceUts, 6, toUts).then(data => {
+              addPage(p, data.recenttracks.track);
               donePages.add(p); // success only — a failed page would leave a data hole
             }).catch(e => {
               // Remember it for the retry sweep below — a dropped page is missing
@@ -4459,15 +4543,17 @@ async function syncFromLastFm() {
             }).finally(() => {
               completedPages++;
               if (completedPages % 20 === 0 || completedPages === totalPages) {
-                setSyncStatus(`Loading Last.fm history… ${completedPages} / ${totalPages} pages`, 'loading');
+                setSyncStatus(`${resumeUts > 0 ? 'Resuming' : 'Loading'} Last.fm history… ${completedPages} / ${totalPages} pages`, 'loading');
               }
-              if (doEarlyRender && !earlyRendered) {
-                while (donePages.has(contigDone + 1)) contigDone++;
-                if (contigDone >= EARLY_RENDER_PAGES) {
-                  earlyRendered = true;
-                  renderPartial(); // one-time partial paint; the download continues behind it
-                }
+              // Advance the contiguous prefix on every page now, not just while the early
+              // render is pending: the checkpoints below are only safe up to the last
+              // hole-free page, so they need it kept current for the whole download.
+              while (donePages.has(contigDone + 1)) contigDone++;
+              if (doEarlyRender && !earlyRendered && contigDone >= EARLY_RENDER_PAGES) {
+                earlyRendered = true;
+                renderPartial(); // one-time partial paint; the download continues behind it
               }
+              maybeCheckpoint(contigDone);
               inFlight--;
               if (nextPage > totalPages && inFlight === 0) resolve();
               else fill();
@@ -4489,12 +4575,8 @@ async function syncFromLastFm() {
         for (const p of queue) {
           if (++swept % 10 === 0) setSyncStatus(t('sync_retrying', { done: swept, total: queue.length }), 'loading');
           try {
-            const data = await fetchLastFmPage(username, p, sinceUts, 8);
-            // Named `pageTracks`, not `t` like the pool above — `t` is the translator,
-            // and this block calls it for the status line.
-            let pageTracks = data.recenttracks.track;
-            if (!Array.isArray(pageTracks)) pageTracks = pageTracks ? [pageTracks] : [];
-            for (const tr of pageTracks) { if (tr.date && tr.date.uts && parseInt(tr.date.uts) > sinceUts) rawTracks.push(tr); }
+            const data = await fetchLastFmPage(username, p, sinceUts, 8, toUts);
+            addPage(p, data.recenttracks.track);
           } catch (e) {
             missingPages++;
             console.warn(`Last.fm: page ${p} lost after retries (${e.message})`);
@@ -4515,15 +4597,9 @@ async function syncFromLastFm() {
     return;
   }
 
-  // Compact rows [title, artist, album, uts]. Sort newest-first explicitly —
-  // concurrently fetched pages complete (and push) in arbitrary order.
-  let compact = rawTracks.map(tr => [
-    tr.name || '',
-    (tr.artist && tr.artist['#text']) || '',
-    (tr.album  && tr.album['#text'])  || '',
-    parseInt(tr.date.uts)
-  ]);
-  compact.sort((a, b) => b[3] - a[3]);
+  // Every row this run downloaded, newest-first — concurrently fetched pages land in
+  // arbitrary order, so collectRows does the sorting.
+  let compact = collectRows();
 
   if (incremental && compact.length === 0) {
     // No new scrobbles — the cached charts on screen are already correct; just freshen
@@ -4538,10 +4614,6 @@ async function syncFromLastFm() {
     pollTimer = setTimeout(pollLastFm, POLL_INTERVAL_MS);
     return;
   }
-  const rowToPlay = ([title, artist, album, uts]) => {
-    const ar = artist || '';
-    return { title, artist: ar, artists: splitArtists(ar), album: album || '—', date: new Date(uts * 1000) };
-  };
   if (incremental) {
     // allPlays already holds the corrected play objects built from cached.data above —
     // only build objects for the new scrobbles and prepend them (same as pollLastFm).
@@ -4549,6 +4621,12 @@ async function syncFromLastFm() {
     // large libraries every time a few new scrobbles arrived.
     allPlays = [...applyAutocorrectRules(compact.map(rowToPlay)), ...allPlays];
     compact = [...compact, ...cached.data]; // new scrobbles on top of cached history (for the IDB save below)
+  } else if (resumeUts > 0) {
+    // Resume: the cached half is already on screen as play objects, and everything this
+    // run fetched is older — so append rather than rebuild 750k play objects from scratch,
+    // the same saving the incremental branch makes at the other end of the history.
+    allPlays = [...allPlays, ...applyAutocorrectRules(compact.map(rowToPlay))];
+    compact = [...cached.data, ...compact];   // cached rows are all newer, so order holds
   } else {
     // A full download that lost pages must never replace a cache that has more:
     // merge the two and keep the union, so a bad network moment can only ever add
@@ -4565,7 +4643,9 @@ async function syncFromLastFm() {
   }
 
   // `complete` tells the next sync whether it may go incremental — see cacheUsable above.
-  const saved = await saveToIDB(IDB_LASTFM_KEY, { data: compact, ts: Date.now(), complete: missingPages === 0 });
+  // A run that lost pages saves no resumeUts on purpose: a hole is not a prefix, so the
+  // next sync has to re-download in full to heal it rather than resume past the gap.
+  const saved = await saveToIDB(IDB_LASTFM_KEY, { data: compact, ts: Date.now(), complete: missingPages === 0, resumeUts: 0 });
   lastSyncTime = new Date();
 
   if (missingPages > 0) {
@@ -4587,7 +4667,11 @@ async function syncFromLastFm() {
   clearTimeout(syncTimer);
   // Missing pages get another go in 10 minutes instead of waiting 6 hours — by then
   // the rate-limit window has long reset, and the sweep only has to fetch the holes.
-  syncTimer = setTimeout(syncFromLastFm, missingPages > 0 ? 10 * 60 * 1000 : SYNC_INTERVAL_MS);
+  // A finished resume gets a near-immediate follow-up instead: it only fetched the old
+  // tail, so anything scrobbled while it ran is still missing — and that follow-up is a
+  // one-page incremental sync now that the cache is finally marked complete.
+  syncTimer = setTimeout(syncFromLastFm,
+    missingPages > 0 ? 10 * 60 * 1000 : (resumeUts > 0 ? 5000 : SYNC_INTERVAL_MS));
   clearTimeout(pollTimer);
   pollTimer = setTimeout(pollLastFm, POLL_INTERVAL_MS);
 }
