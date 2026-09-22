@@ -61,7 +61,7 @@ const DC_CHANGELOG = [
 
   /* ========== SEPTEMBER 2026 ========== */
 
-  { d: '2026-09-22', t: 'fix', a: 'awards', h: 'PENDING',
+  { d: '2026-09-22', t: 'fix', a: 'awards', h: '97e3365',
     title: 'The ceremony plays the right song now, not a remix or a karaoke cover',
     detail: 'The 30-second preview took whatever the music stores returned first, without ever checking it was the right recording — and the first result is very often wrong. Searching for Taylor Swift’s The Fate of Ophelia returned the Chainsmokers remix first and a spoken “Track by Track” commentary second, with the actual song third, so the ceremony would announce the winner and then play a remix, or somebody talking. Covers by tribute bands and string quartets, karaoke versions and live takes all rank high the same way, and a nominee that is itself a remix would get the original instead. Every result is now checked against the nominee before anything plays: the artist has to match, the title has to match, and a remix, live or acoustic version only plays if that is what the nominee actually is. When nothing matches with confidence the player stays quiet and says so, because silence is better than the wrong song at the moment the envelope opens. The player also names the recording it found, so a bad match is obvious rather than just confusing, and when more than one plausible version exists a small button beside it plays the next-best match. Deezer is a real fallback now too — it was being asked the question but its answer was never read, so anything the first store did not have simply played nothing.' },
 
