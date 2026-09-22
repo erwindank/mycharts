@@ -34646,6 +34646,13 @@ function _cerNorm(s) {
     .toLowerCase()
     .normalize('NFD').replace(/[̀-ͯ]/g, '')
     .replace(/[‘’ʼ`]/g, "'")
+    // Stylised letters, before punctuation is stripped. Deezer files JOYRIDE.
+    // under "Ke$ha" while we hold "Kesha"; dropping the $ left "ke ha", which
+    // matched nothing and threw away a perfect hit. Same for P!nk and A$AP.
+    .replace(/\$/g, 's')
+    .replace(/!/g, 'i')
+    .replace(/[ø∅]/g, 'o')
+    .replace(/@/g, 'a')
     .replace(/&/g, ' and ')
     .replace(/[^a-z0-9' ]+/g, ' ')
     .replace(/\s+/g, ' ')
@@ -34654,11 +34661,14 @@ function _cerNorm(s) {
 
 // "The Fate of Ophelia (Loud Luxury Remix)" and "Song - Live at Wembley" both
 // reduce to their plain title, so a nominee still matches its own recording.
-function _cerCoreTitle(s) {
-  return _cerNorm(String(s || '')
+function _cerPlainTitle(s) {
+  return String(s || '')
     .replace(/\s*[\(\[][^)\]]*[\)\]]/g, ' ')
-    .replace(/\s+-\s+.*$/, ''));
+    .replace(/\s+-\s+.*$/, '')
+    .replace(/\s+/g, ' ')
+    .trim();
 }
+function _cerCoreTitle(s) { return _cerNorm(_cerPlainTitle(s)); }
 
 // Versions we only want when the nominee itself asks for them.
 const _CER_QUALS = ['remix', 'live', 'acoustic', 'instrumental', 'demo', 'remaster',
@@ -34669,6 +34679,14 @@ function _cerQuals(s) {
 }
 
 // Never the recording anyone meant, whatever the search engine thinks.
+// Technically the right recording, but nobody wants the instrumental playing
+// under a winner's name — allowed only as a last resort, never ahead of a real
+// take, so these are penalised rather than rejected.
+// Words that only join names together, never identify an artist.
+const _CER_JOINERS = new Set(['and', 'the', 'feat', 'ft', 'featuring', 'with', 'x', 'vs', 'versus', 'a', 'of']);
+
+const _CER_WEAK = ['instrumental', 'acapella', 'a cappella', 'sped up', 'slowed', 'demo', 'karaoke'];
+
 const _CER_JUNK = /\b(karaoke|tribute|made famous|made popular|originally performed|in the style of|cover version|track by track|commentary|interview|8 bit|lullaby|music box|string quartet|piano version|as made)\b/;
 
 /* Scores one search result against the nominee. Returns -Infinity for anything
@@ -34679,18 +34697,24 @@ function _cerMatchScore(wantArtist, wantTitle, candArtist, candTitle) {
 
   // The nominee's artist has to be recognisable in the candidate's credit. A
   // collaboration ("Lady Gaga & Bruno Mars") still counts for either half.
+  // Credits are compared as sets of names, ignoring the words that only join
+  // them — "Lady Gaga, Bruno Mars", "Lady Gaga & Bruno Mars" and "Lady Gaga
+  // feat. Bruno Mars" are one credit written three ways, and a plain substring
+  // test scores the shortest, least complete version highest.
+  const wt = wa.split(' ').filter(x => !_CER_JOINERS.has(x));
+  const ct = ca.split(' ').filter(x => !_CER_JOINERS.has(x));
+  const ctSet = new Set(ct), wtSet = new Set(wt);
+  if (!wt.length || !ct.length) return -Infinity;
+  const fwd = wt.filter(x => ctSet.has(x)).length / wt.length;   // they list everyone we asked for
+  const rev = ct.filter(x => wtSet.has(x)).length / ct.length;   // they list nobody we did not
+
   let aScore;
-  const wt = wa.split(' '), ct = new Set(ca.split(' '));
-  const hit = wt.filter(x => ct.has(x)).length;
-  if (wa === ca) aScore = 3;
-  // Every name in the credit is present, just joined differently: "Lady Gaga,
-  // Bruno Mars" against "Lady Gaga & Bruno Mars". That is the full credit and
-  // must outrank the bare "Lady Gaga" upload, which the substring branch below
-  // would otherwise score higher.
-  else if (hit === wt.length) aScore = 3;
-  else if (ca.includes(wa) || wa.includes(ca)) aScore = 2;
-  else aScore = hit >= Math.ceil(wt.length / 2) ? 1 : 0;
+  if (fwd === 1 || rev === 1) aScore = 3;                        // one credit contains the other
+  else if (Math.max(fwd, rev) >= 0.5) aScore = 1;
+  else aScore = 0;
   if (!aScore) return -Infinity;
+  // Among equals, prefer the pressing that names the whole line-up.
+  const creditBonus = fwd === 1 ? 1 : 0;
 
   const wFull = _cerNorm(wantTitle), cFull = _cerNorm(candTitle);
   const wCore = _cerCoreTitle(wantTitle), cCore = _cerCoreTitle(candTitle);
@@ -34715,19 +34739,13 @@ function _cerMatchScore(wantArtist, wantTitle, candArtist, candTitle) {
     for (const k of cq) q += wq.has(k) ? 2 : -4;
     for (const k of wq) if (!cq.has(k)) q -= 3;
   }
-  return aScore * 2 + tScore + q;
+  for (const w of _CER_WEAK) if (cFull.includes(w) && !wFull.includes(w)) q -= 8;
+  return aScore * 2 + tScore + q + creditBonus;
 }
 
-/* Ranked list of playable takes for a nominee: [{ url, label }], best first. */
-async function _ceremonyPreviewTakes(item, type) {
-  const artist = item.artist || '';
-  const name   = type === 'album' ? (item.album || '') : type === 'artist' ? '' : (item.title || '');
-  const key    = `${type}:${artist.toLowerCase()}|||${name.toLowerCase()}`;
-  if (key in _ceremonyPreviewCache) return _ceremonyPreviewCache[key];
-
-  const term  = `${artist} ${name}`.trim();
+/* Runs one search term past both stores and returns whatever survives scoring. */
+async function _cerSearchTakes(term, artist, name, type) {
   const takes = [];
-
   // A wide net, because the right recording is regularly several rows down.
   try {
     const r = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(term)}&entity=song&limit=25`);
@@ -34739,12 +34757,13 @@ async function _ceremonyPreviewTakes(item, type) {
       const candTitle = type === 'album' ? (x.collectionName || '') : (x.trackName || '');
       const score = _cerMatchScore(artist, name, x.artistName || '', candTitle);
       if (score === -Infinity) return;
-      takes.push({ url: x.previewUrl, label: `${x.trackName || ''} — ${x.artistName || ''}`, score, order: i });
+      takes.push({ url: x.previewUrl, label: `${x.trackName || ''} — ${x.artistName || ''}`, title: x.trackName || '', score, order: i });
     });
   } catch (e) {}
 
-  // Deezer as the second opinion. This branch never ran before: deezerFetch
-  // resolves to a Response, and the old code read .data straight off it.
+  // Deezer as the second opinion, and often the better one: it carries remixes
+  // and edits Apple never lists. This branch never ran before — deezerFetch
+  // resolves to a Response and the old code read .data straight off it.
   try {
     const r = await deezerFetch(`search/track?q=${encodeURIComponent(term)}&limit=25`);
     if (r.ok) {
@@ -34754,7 +34773,7 @@ async function _ceremonyPreviewTakes(item, type) {
         const candTitle = type === 'album' ? (x.album?.title || '') : (x.title || '');
         const score = _cerMatchScore(artist, name, x.artist?.name || '', candTitle);
         if (score === -Infinity) return;
-        takes.push({ url: x.preview, label: `${x.title || ''} — ${x.artist?.name || ''}`, score, order: i + 0.5 });
+        takes.push({ url: x.preview, label: `${x.title || ''} — ${x.artist?.name || ''}`, title: x.title || '', score, order: i + 0.5 });
       });
     }
   } catch (e) {}
@@ -34762,7 +34781,38 @@ async function _ceremonyPreviewTakes(item, type) {
   // Best score first; within a score keep the store's own relevance order.
   takes.sort((a, b) => (b.score - a.score) || (a.order - b.order));
   const seen = new Set();
-  const out = takes.filter(x => !seen.has(x.url) && seen.add(x.url));
+  return takes.filter(x => !seen.has(x.url) && seen.add(x.url));
+}
+
+/* Ranked list of playable takes for a nominee: [{ url, label }], best first.
+
+   Widens the search in steps rather than giving up on the first miss. Both
+   stores narrow on every word in the term, so a version name they have never
+   heard of sinks the whole query: "Kesha JOYRIDE. - Revved Up Remix" returns
+   nothing at all from iTunes, while "Kesha JOYRIDE" finds the record. Dropping
+   the qualifier, then the featured credits, gets the base recording of the right
+   song, which the scorer ranks below an exact take but well above silence. */
+async function _ceremonyPreviewTakes(item, type) {
+  const artist = item.artist || '';
+  const name   = type === 'album' ? (item.album || '') : type === 'artist' ? '' : (item.title || '');
+  const key    = `${type}:${artist.toLowerCase()}|||${name.toLowerCase()}`;
+  if (key in _ceremonyPreviewCache) return _ceremonyPreviewCache[key];
+
+  const plain = _cerPlainTitle(name);
+  // Lead artist only — a store often files "Tate McRae, Wreckno" under just the
+  // first name, and the scorer still checks the full credit afterwards.
+  const lead  = artist.split(/,|;|&|\bfeat\.?\b|\bft\.?\b|\bwith\b/i)[0].trim();
+
+  const terms = [];
+  for (const term of [`${artist} ${name}`.trim(), `${artist} ${plain}`.trim(), `${lead} ${plain}`.trim(), plain]) {
+    if (term && !terms.includes(term)) terms.push(term);
+  }
+
+  let out = [];
+  for (const term of terms) {
+    out = await _cerSearchTakes(term, artist, name, type);
+    if (out.length) break;
+  }
   _ceremonyPreviewCache[key] = out;
   return out;
 }
@@ -34822,10 +34872,14 @@ function _ceremonyStartPreview(item, type, takeIdx) {
     fillId: 'ceremonyPlayFill',
     takeIdx: _cerTakeIdx,
     // Naming the recording makes a bad match obvious instead of merely puzzling,
-    // and the button beside it steps to the next-best take.
+    // and the button beside it steps to the next-best take. The name is shown
+    // whenever the take is not literally the nominee's own title, so a stand-in
+    // version is never substituted quietly.
     label: (take, total) => {
       _ceremonyPaintTakeBtn(total);
-      return total > 1 ? take.label : '30-second preview';
+      const want = type === 'album' ? (item.album || '') : type === 'artist' ? '' : (item.title || '');
+      const exact = want && _cerNorm(take.title) === _cerNorm(want);
+      return (!exact || total > 1) ? take.label : '30-second preview';
     },
   });
 }
