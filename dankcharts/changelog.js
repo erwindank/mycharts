@@ -61,7 +61,7 @@ const DC_CHANGELOG = [
 
   /* ========== SEPTEMBER 2026 ========== */
 
-  { d: '2026-09-22', t: 'fix', a: 'awards', h: 'PENDING',
+  { d: '2026-09-22', t: 'fix', a: 'awards', h: 'f7698e5',
     title: 'The ceremony no longer gives away the winner of the automatic awards',
     detail: 'The automatic categories — Most Played Song, Longest Daily Streak for an Album, Artist with Most Days Played and the rest — are not voted on: they have no field of nominees, just the one name your plays already decided. The ceremony did not know that and printed that single name as a nominee card above the envelope, so every one of those categories showed its answer before you had opened anything, which took all the suspense out of the last stretch of the show. Those slides now show a blank sealed card and a line explaining there are no nominees, and the name appears only when the envelope opens, with the artwork, the trophy and the confetti like every other category. Categories you picked yourself are unchanged: they still show the full field beforehand, because seeing who is up for it is the point.' },
 
