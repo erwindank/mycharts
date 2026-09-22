@@ -61,7 +61,7 @@ const DC_CHANGELOG = [
 
   /* ========== SEPTEMBER 2026 ========== */
 
-  { d: '2026-09-21', t: 'design', a: 'awards', h: 'PENDING',
+  { d: '2026-09-21', t: 'design', a: 'awards', h: '942b2b0',
     title: 'The My Grammys nominee cards look like ballots now',
     detail: 'The category cards were plain boxes: a grey header strip, a column of circles, and a winner marked only by a faint gold tint on one line — twelve of them side by side read as a spreadsheet rather than an awards ballot. Each card now carries a thin coloured rail along its top edge in its own type colour, so song, album and artist categories are told apart at a glance, and the same colour runs through the icon tile, the hover glow and the button at the foot. Nominees are numbered 01, 02, 03 down the left in the mono typeface, like a printed voting slip, and the winner is lifted out of the list into a full-width gold band with a gold rail and a single foil sweep across it when the grid draws. Long remix titles no longer wrap over three lines and throw the grid out of step — they are shortened with the full text on hover — and the cards fade in as a wave rather than all at once. A category that has been decided turns gold all over, so a finished ballot is obvious from across the page. The year picker above got the same treatment: round steppers either side of a much larger year, and the two panel tabs became a single switch.' },
 
