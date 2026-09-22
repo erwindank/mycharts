@@ -34470,7 +34470,11 @@ function _ceremonyCatSlideHtml(cat, catData, queue) {
 
   if (!nominees.length && !winner) return `<div class="ceremony-no-nom">${t('awards_ceremony_no_nom')}</div>`;
 
-  const cards = nominees.map((n, i) => {
+  // An auto category's "nominees" list holds exactly one entry and that entry IS
+  // the winner — printing it above the envelope showed the answer before anyone
+  // opened anything. Those categories get a sealed placeholder instead, and the
+  // name only appears in the winner panel after the reveal.
+  const cards = (cat.auto ? [] : nominees).map((n, i) => {
     const imgId = `cerArt_${seq}_${i}`;
     queue.push({ imgId, item: n, type });
     const lbl = n.title || n.album || n.artist || '';
@@ -34482,6 +34486,15 @@ function _ceremonyCatSlideHtml(cat, catData, queue) {
       <span class="cer-nom-trophy">🏆</span>
     </div>`;
   }).join('');
+
+  // Standing in for the field an auto category does not have: a blank sleeve, so
+  // the slide is not just an envelope floating in empty space.
+  const sealedHtml = (cat.auto && winner)
+    ? `<div class="cer-sealed">
+         <div class="cer-sealed-card"><span class="cer-sealed-mark">?</span></div>
+         <div class="cer-sealed-note">${esc(t('awards_ceremony_auto_sealed'))}</div>
+       </div>`
+    : '';
 
   // Winner artwork is queued first so the reveal never lands on an empty square
   let winnerHtml = '';
@@ -34528,7 +34541,7 @@ function _ceremonyCatSlideHtml(cat, catData, queue) {
        </div>`
     : `<div class="cer-no-winner">No winner crowned in this category yet — close the ceremony and click a nominee to crown one.</div>`;
 
-  return `<div class="cer-nominees">${cards}</div>${envelope}${winnerHtml}`;
+  return `${cards ? `<div class="cer-nominees">${cards}</div>` : sealedHtml}${envelope}${winnerHtml}`;
 }
 
 function _ceremonyFinaleHtml(data, queue) {
