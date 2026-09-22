@@ -61,7 +61,7 @@ const DC_CHANGELOG = [
 
   /* ========== SEPTEMBER 2026 ========== */
 
-  { d: '2026-09-22', t: 'fix', a: 'awards', h: 'PENDING',
+  { d: '2026-09-22', t: 'fix', a: 'awards', h: '4b15c3d',
     title: 'Remixes and stylised artist names find their preview again',
     detail: 'Checking that a preview really was the right recording stopped the ceremony playing the wrong song, but it also went quiet on tracks it should have found. Kesha’s JOYRIDE. - Revved Up Remix showed “no preview found” even though the remix is there to stream: the store files it under “Ke$ha”, and stripping the dollar sign left a name that matched nothing. Stylised spellings now read as the letters they stand for, so Ke$ha, P!nk, A$AP and MØ match the names you have. The search also gives up less easily. Both stores narrow on every word they are given, so a remix name they have never heard of returns nothing at all rather than the song it belongs to — the search now drops the version, then the featured credits, until something comes back, which finds the original recording when a particular remix is genuinely missing. The name of the recording is shown whenever it is not exactly the nominee’s own title, so a stand-in is never slipped in quietly, and credits are compared as a set of names now, meaning the pressing that lists the whole line-up wins over the one that names only the lead. Every remix in a Best Remix category tried — Kesha, The Weeknd, Tate McRae, Taylor Swift, Alex Warren, Selena Gomez — now finds its own remix rather than the original or nothing.' },
 
