@@ -53,6 +53,7 @@ const TRANSLATIONS = {
     awards_save_local_only: 'Saved on this device only — couldn’t reach the cloud.',
     awards_ceremony_no_nom: 'No nominees recorded.',
     awards_ceremony_auto_sealed: 'No nominees here — your plays already decided this one.',
+    awards_preview_wrong: 'Wrong track? Play the next match',
     awards_no_categories: 'No categories enabled. Click ⚙ Configure Year to enable some.',
     // Award category names
     awards_cat_song_of_year: 'Song of the Year',
@@ -1734,6 +1735,7 @@ const TRANSLATIONS = {
     awards_save_local_only: 'Guardado solo en este dispositivo: no se pudo conectar con la nube.',
     awards_ceremony_no_nom: 'No se registraron nominados.',
     awards_ceremony_auto_sealed: 'Sin nominados — tus reproducciones ya decidieron este.',
+    awards_preview_wrong: '¿Pista equivocada? Reproducir la siguiente coincidencia',
     awards_no_categories: 'No hay categorías habilitadas. Haz clic en ⚙ Configurar Año para habilitar algunas.',
     // Nombres de categorías
     awards_cat_song_of_year: 'Canción del Año',
@@ -3227,6 +3229,7 @@ const TRANSLATIONS = {
     awards_save_local_only: 'Salvo apenas neste dispositivo — não foi possível acessar a nuvem.',
     awards_ceremony_no_nom: 'Nenhum indicado registrado.',
     awards_ceremony_auto_sealed: 'Sem indicados — suas reproduções já decidiram este.',
+    awards_preview_wrong: 'Faixa errada? Tocar a próxima correspondência',
     awards_no_categories: 'Nenhuma categoria habilitada. Clique em ⚙ Configurar Ano para habilitar algumas.',
     // Nomes das categorias
     awards_cat_song_of_year: 'Música do Ano',
@@ -4721,6 +4724,7 @@ const TRANSLATIONS = {
     awards_save_local_only: 'Guardado só neste dispositivo — non se puido acceder á nube.',
     awards_ceremony_no_nom: 'Nenhum nomeado registado.',
     awards_ceremony_auto_sealed: 'Sem nomeados — as tuas reproduções já decidiram este.',
+    awards_preview_wrong: 'Faixa errada? Tocar a correspondência seguinte',
     awards_no_categories: 'Nenhuma categoria ativa. Clica em ⚙ Configurar Ano para ativar algumas.',
     // Nomes das categorias
     awards_cat_song_of_year: 'Música do Ano',

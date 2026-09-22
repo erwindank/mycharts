@@ -23087,6 +23087,29 @@ body[class*="-light"] .tm-card-search:hover {
 /* Envelope after the walk-through: it is the only thing left to do */
 .cer-envelope.is-ready { filter: drop-shadow(0 14px 30px rgba(0,0,0,0.45)) drop-shadow(0 0 18px #FFD70055); }
 
+/* "Wrong track?" — only appears when the search turned up more than one
+   plausible take, so the usual case stays a plain player. */
+.cer-take-btn {
+  flex: none;
+  width: 24px;
+  height: 24px;
+  display: grid;
+  place-items: center;
+  border-radius: var(--r-full);
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text3);
+  font-size: 0.8rem;
+  line-height: 1;
+  cursor: pointer;
+  transition: background var(--t-fast) var(--ease), color var(--t-fast) var(--ease), border-color var(--t-fast) var(--ease);
+}
+.cer-take-btn:hover {
+  background: color-mix(in srgb, var(--accent) 16%, transparent);
+  border-color: var(--accent);
+  color: var(--text1);
+}
+
 /* Sealed placeholder — stands where the nominee strip would be on an auto
    category, which has no field to show and must not print its winner above the
    envelope. Goes away with the envelope once the name is out. */

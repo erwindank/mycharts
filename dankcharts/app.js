@@ -34317,7 +34317,9 @@ let _ceremonyAudioToken = 0;         // guards async preview lookups against fas
 let _ceremonyFadeTimer = null;
 let _ceremonySound = localStorage.getItem('dc_ceremony_sound') !== 'off';
 let _ceremonyKeyHandler = null;
-const _ceremonyPreviewCache = {};    // "type:artist|||name" → preview url or null
+const _ceremonyPreviewCache = {};    // "type:artist|||name" → ranked [{url,label}]
+let _cerTakeIdx = 0;                 // which take the winner panel is on
+let _cerTakeCtx = null;              // { item, type } behind that panel, for "wrong track?"
 
 // Nominee showcase: walks the nominees one at a time with a clip of each, before
 // anyone touches the envelope.
@@ -34515,6 +34517,7 @@ function _ceremonyCatSlideHtml(cat, catData, queue) {
         <button class="cer-play-btn" id="ceremonyPlayBtn" onclick="ceremonyTogglePlay()" title="30-second preview">▶</button>
         <div class="cer-player-bar"><div class="cer-player-fill" id="ceremonyPlayFill"></div></div>
         <span class="cer-player-note" id="ceremonyPlayNote">preview</span>
+        <button class="cer-take-btn" id="ceremonyTakeBtn" onclick="ceremonyNextTake()" style="display:none" title="${esc(t('awards_preview_wrong'))}">⤿</button>
       </div>
     </div>`;
   }
@@ -34622,27 +34625,146 @@ function ceremonyGoTo(idx) {
 /* ── Song previews ────────────────────────────────────────────────────────── */
 
 // 30-second clip for the winner: iTunes first (no proxy, wide catalogue), Deezer second.
-async function _ceremonyPreviewUrl(item, type) {
+/* ── Preview matching ─────────────────────────────────────────────────────────
+   iTunes search is a fuzzy free-text match and its first hit is very often the
+   wrong recording. Searching "Taylor Swift The Fate of Ophelia" returns the
+   Chainsmokers remix first and a spoken "Track by Track" commentary second,
+   with the actual song only third; covers by the Vitamin String Quartet or the
+   Piano Tribute Players rank high whenever the real track is thin on metadata.
+   Taking the first result that happened to carry a previewUrl therefore played
+   the wrong thing often enough to spoil the reveal.
+
+   Every candidate is now scored against the nominee and anything that does not
+   clearly match is thrown away — at the moment the envelope opens, silence is
+   better than somebody else's song. What survives is kept as a ranked list so
+   the player can offer the next-best take if the top one is still off. */
+
+// Accents, curly quotes and punctuation all differ between our data and the
+// stores', so comparisons run on a flattened form of the string.
+function _cerNorm(s) {
+  return String(s || '')
+    .toLowerCase()
+    .normalize('NFD').replace(/[̀-ͯ]/g, '')
+    .replace(/[‘’ʼ`]/g, "'")
+    .replace(/&/g, ' and ')
+    .replace(/[^a-z0-9' ]+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+// "The Fate of Ophelia (Loud Luxury Remix)" and "Song - Live at Wembley" both
+// reduce to their plain title, so a nominee still matches its own recording.
+function _cerCoreTitle(s) {
+  return _cerNorm(String(s || '')
+    .replace(/\s*[\(\[][^)\]]*[\)\]]/g, ' ')
+    .replace(/\s+-\s+.*$/, ''));
+}
+
+// Versions we only want when the nominee itself asks for them.
+const _CER_QUALS = ['remix', 'live', 'acoustic', 'instrumental', 'demo', 'remaster',
+                    'radio edit', 'extended', 'sped up', 'slowed', 'reprise', 'edit'];
+function _cerQuals(s) {
+  const n = _cerNorm(s);
+  return new Set(_CER_QUALS.filter(q => n.includes(q)));
+}
+
+// Never the recording anyone meant, whatever the search engine thinks.
+const _CER_JUNK = /\b(karaoke|tribute|made famous|made popular|originally performed|in the style of|cover version|track by track|commentary|interview|8 bit|lullaby|music box|string quartet|piano version|as made)\b/;
+
+/* Scores one search result against the nominee. Returns -Infinity for anything
+   that should not be played at all, so callers can simply drop those. */
+function _cerMatchScore(wantArtist, wantTitle, candArtist, candTitle) {
+  const wa = _cerNorm(wantArtist), ca = _cerNorm(candArtist);
+  if (!wa || !ca) return -Infinity;
+
+  // The nominee's artist has to be recognisable in the candidate's credit. A
+  // collaboration ("Lady Gaga & Bruno Mars") still counts for either half.
+  let aScore;
+  const wt = wa.split(' '), ct = new Set(ca.split(' '));
+  const hit = wt.filter(x => ct.has(x)).length;
+  if (wa === ca) aScore = 3;
+  // Every name in the credit is present, just joined differently: "Lady Gaga,
+  // Bruno Mars" against "Lady Gaga & Bruno Mars". That is the full credit and
+  // must outrank the bare "Lady Gaga" upload, which the substring branch below
+  // would otherwise score higher.
+  else if (hit === wt.length) aScore = 3;
+  else if (ca.includes(wa) || wa.includes(ca)) aScore = 2;
+  else aScore = hit >= Math.ceil(wt.length / 2) ? 1 : 0;
+  if (!aScore) return -Infinity;
+
+  const wFull = _cerNorm(wantTitle), cFull = _cerNorm(candTitle);
+  const wCore = _cerCoreTitle(wantTitle), cCore = _cerCoreTitle(candTitle);
+
+  // Junk is only junk when the nominee did not ask for it — somebody really can
+  // have a song called "Karaoke".
+  if (_CER_JUNK.test(cFull + ' ' + ca) && !_CER_JUNK.test(wFull + ' ' + wa)) return -Infinity;
+
+  let tScore;
+  if (!wFull) tScore = 0;                                   // artist award: any track by them
+  else if (wFull === cFull) tScore = 6;
+  else if (wCore && wCore === cCore) tScore = 4;
+  else if (wCore && cCore.includes(wCore)) tScore = 2;
+  else if (wCore && wCore.includes(cCore) && cCore.length > 4) tScore = 1;
+  else return -Infinity;
+
+  // A remix or a live take when the nominee is the studio cut is the single most
+  // common way this went wrong, so disagreement is punished hard.
+  let q = 0;
+  if (wFull) {
+    const wq = _cerQuals(wantTitle), cq = _cerQuals(candTitle);
+    for (const k of cq) q += wq.has(k) ? 2 : -4;
+    for (const k of wq) if (!cq.has(k)) q -= 3;
+  }
+  return aScore * 2 + tScore + q;
+}
+
+/* Ranked list of playable takes for a nominee: [{ url, label }], best first. */
+async function _ceremonyPreviewTakes(item, type) {
   const artist = item.artist || '';
   const name   = type === 'album' ? (item.album || '') : type === 'artist' ? '' : (item.title || '');
   const key    = `${type}:${artist.toLowerCase()}|||${name.toLowerCase()}`;
   if (key in _ceremonyPreviewCache) return _ceremonyPreviewCache[key];
 
-  const term = `${artist} ${name}`.trim();
-  let url = null;
+  const term  = `${artist} ${name}`.trim();
+  const takes = [];
+
+  // A wide net, because the right recording is regularly several rows down.
   try {
-    const r = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(term)}&entity=song&limit=5`);
+    const r = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(term)}&entity=song&limit=25`);
     const d = await r.json();
-    url = (d?.results || []).find(x => x.previewUrl)?.previewUrl || null;
+    (d?.results || []).forEach((x, i) => {
+      if (!x.previewUrl) return;
+      // An album award wants any track off that record, so it is the album name
+      // that has to match, not the track name.
+      const candTitle = type === 'album' ? (x.collectionName || '') : (x.trackName || '');
+      const score = _cerMatchScore(artist, name, x.artistName || '', candTitle);
+      if (score === -Infinity) return;
+      takes.push({ url: x.previewUrl, label: `${x.trackName || ''} — ${x.artistName || ''}`, score, order: i });
+    });
   } catch (e) {}
-  if (!url) {
-    try {
-      const d = await deezerFetch(`search/track?q=${encodeURIComponent(term)}&limit=5`);
-      url = (d?.data || []).find(x => x.preview)?.preview || null;
-    } catch (e) {}
-  }
-  _ceremonyPreviewCache[key] = url;
-  return url;
+
+  // Deezer as the second opinion. This branch never ran before: deezerFetch
+  // resolves to a Response, and the old code read .data straight off it.
+  try {
+    const r = await deezerFetch(`search/track?q=${encodeURIComponent(term)}&limit=25`);
+    if (r.ok) {
+      const d = await r.json();
+      (d?.data || []).forEach((x, i) => {
+        if (!x.preview) return;
+        const candTitle = type === 'album' ? (x.album?.title || '') : (x.title || '');
+        const score = _cerMatchScore(artist, name, x.artist?.name || '', candTitle);
+        if (score === -Infinity) return;
+        takes.push({ url: x.preview, label: `${x.title || ''} — ${x.artist?.name || ''}`, score, order: i + 0.5 });
+      });
+    }
+  } catch (e) {}
+
+  // Best score first; within a score keep the store's own relevance order.
+  takes.sort((a, b) => (b.score - a.score) || (a.order - b.order));
+  const seen = new Set();
+  const out = takes.filter(x => !seen.has(x.url) && seen.add(x.url));
+  _ceremonyPreviewCache[key] = out;
+  return out;
 }
 
 function _ceremonyPaintPlayer(state, note) {
@@ -34663,11 +34785,13 @@ async function _ceremonyPlayClip(item, type, opts) {
   const token = ++_ceremonyAudioToken;
   paint('◌', 'finding preview…');
 
-  const url = await _ceremonyPreviewUrl(item, type);
+  const takes = await _ceremonyPreviewTakes(item, type);
   if (token !== _ceremonyAudioToken) return null;
-  if (!url) { paint('▶', 'no preview found'); return null; }
+  if (!takes.length) { paint('▶', 'no preview found'); return null; }
+  // Wrap, so stepping past the last take comes back round to the best one.
+  const take = takes[((opts.takeIdx || 0) % takes.length + takes.length) % takes.length];
 
-  const audio = _ceremonyAudio = new Audio(url);
+  const audio = _ceremonyAudio = new Audio(take.url);
   audio.volume = 0;
   if (opts.fillId) {
     audio.addEventListener('timeupdate', () => {
@@ -34679,7 +34803,7 @@ async function _ceremonyPlayClip(item, type, opts) {
   try {
     await audio.play();
     if (token !== _ceremonyAudioToken) { audio.pause(); return null; }
-    paint('❚❚', opts.playingNote || '30-second preview');
+    paint('❚❚', opts.label ? opts.label(take, takes.length) : (opts.playingNote || '30-second preview'));
     _ceremonyFadeIn(audio);
     return audio;
   } catch (e) {
@@ -34690,12 +34814,32 @@ async function _ceremonyPlayClip(item, type, opts) {
   }
 }
 
-function _ceremonyStartPreview(item, type) {
+function _ceremonyStartPreview(item, type, takeIdx) {
+  _cerTakeCtx = { item, type };
+  _cerTakeIdx = takeIdx || 0;
   return _ceremonyPlayClip(item, type, {
     paint: _ceremonyPaintPlayer,
     fillId: 'ceremonyPlayFill',
-    playingNote: '30-second preview',
+    takeIdx: _cerTakeIdx,
+    // Naming the recording makes a bad match obvious instead of merely puzzling,
+    // and the button beside it steps to the next-best take.
+    label: (take, total) => {
+      _ceremonyPaintTakeBtn(total);
+      return total > 1 ? take.label : '30-second preview';
+    },
   });
+}
+
+/* Show the "wrong track?" button only when there is another take to offer. */
+function _ceremonyPaintTakeBtn(total) {
+  const btn = document.getElementById('ceremonyTakeBtn');
+  if (btn) btn.style.display = total > 1 ? '' : 'none';
+}
+
+/* Step to the next-best match for the winner that is currently on screen. */
+function ceremonyNextTake() {
+  if (!_cerTakeCtx) return;
+  _ceremonyStartPreview(_cerTakeCtx.item, _cerTakeCtx.type, _cerTakeIdx + 1);
 }
 
 /* ── Nominee showcase ─────────────────────────────────────────────────────── */
