@@ -61,7 +61,7 @@ const DC_CHANGELOG = [
 
   /* ========== SEPTEMBER 2026 ========== */
 
-  { d: '2026-09-23', t: 'change', a: 'awards', h: '',
+  { d: '2026-09-23', t: 'change', a: 'awards', h: '0517647',
     title: 'The ceremony’s final stats show who won the most',
     detail: 'The results are out by the end of the ceremony, so the final stats now end with Most wins in the year instead of a nominations ranking. Each artist who won gets their own block with their photo, their win and nomination counts, and every award they took home: a trophy, the song or album cover (or the artist photo for artist awards), the song or album name and the award name. When featured artists are counted, a featured win also names the lead artist. Shared ceremony links show it after Update link. The nominations ranking on the My Grammys page also lines up properly now: the bars started at a different point on rows with and without a trophy count.' },
 
