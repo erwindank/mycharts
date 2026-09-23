@@ -27,11 +27,11 @@
   <!-- html2canvas, SheetJS (xlsx) and JSZip are intentionally NOT loaded here — they
        total ~1.2 MB and are only needed for image exports and Excel/ZIP imports.
        app.js pulls them from the CDN on first use (see ensureLazyLib). -->
-  <link rel="stylesheet" href="style.css?v=251">
+  <link rel="stylesheet" href="style.css?v=253">
   <!-- All scripts are deferred so the page paints without waiting on them.
        defer preserves execution order, which matters: translations → Chart.js →
        hammer → zoom plugin → firebase SDKs → firebase.js → app.js (in body). -->
-  <script defer src="translations.js?v=12"></script>
+  <script defer src="translations.js?v=14"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8/hammer.min.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@1.2.1/dist/chartjs-plugin-zoom.min.js"></script>
@@ -2451,112 +2451,34 @@
           </div>
         </div>
         <div class="ig-controls-panel">
-          <div class="ig-ctrl-group">
-            <div class="ig-ctrl-group-title" data-i18n="ig_format">Format</div>
-            <div class="ig-format-btns">
-              <button class="ig-format-btn active" id="igFmtPost" onclick="setIgFormat('post')" data-i18n="ig_post">📷 Post (1:1)</button>
-              <button class="ig-format-btn" id="igFmtStory" onclick="setIgFormat('story')" data-i18n="ig_story">📱 Story (9:16)</button>
+          <!-- Design + palette chips are painted by shRenderDesignPickers('ig') -->
+          <div class="sh-group">
+            <div class="sh-group-title" data-i18n="sh_design">Design</div>
+            <div class="sh-tpl-row" id="igTemplateRow"></div>
+          </div>
+          <div class="sh-group">
+            <div class="sh-group-title" data-i18n="sh_palette">Palette</div>
+            <div class="sh-swatch-row" id="igPaletteRow"></div>
+          </div>
+          <div class="sh-group">
+            <div class="sh-group-title" data-i18n="ig_format">Format</div>
+            <div class="sh-seg" id="igFormatBtns">
+              <button class="sh-seg-btn active" data-fmt="post" onclick="setIgFormat('post')" data-i18n="sh_fmt_post">Post 1:1</button>
+              <button class="sh-seg-btn" data-fmt="portrait" onclick="setIgFormat('portrait')" data-i18n="sh_fmt_portrait">Portrait 4:5</button>
+              <button class="sh-seg-btn" data-fmt="story" onclick="setIgFormat('story')" data-i18n="sh_fmt_story">Story 9:16</button>
             </div>
           </div>
-          <div class="ig-ctrl-group">
-            <div class="ig-ctrl-group-title" data-i18n="ig_font_size">Font Size</div>
-            <div style="display:flex;gap:0.4rem;margin-bottom:0.4rem;">
-              <button class="ig-minmax-btn" onclick="setAllIgFonts('max')" data-i18n="ig_max_all">MAX ALL</button>
-              <button class="ig-minmax-btn" onclick="setAllIgFonts('min')" data-i18n="ig_min_all">MIN ALL</button>
+          <div class="sh-group">
+            <div class="sh-group-title" data-i18n="ig_show_hide">Show / Hide</div>
+            <label class="ig-ctrl-row"><input type="checkbox" id="igOpt_showArt" checked
+                onchange="updateIgPreview()"><span data-i18n="ig_album_art">Album Art</span></label>
+            <div id="igArtSourceRow" class="sh-src-row">
+              <span class="sh-src-label" data-i18n="ig_source">Source:</span>
+              <button class="sh-mini-btn ig-art-src-btn active" data-src="deezer" onclick="setIgArtSource('deezer')">Deezer</button>
+              <button class="sh-mini-btn ig-art-src-btn" data-src="itunes" onclick="setIgArtSource('itunes')">iTunes</button>
+              <button class="sh-mini-btn ig-art-src-btn" data-src="lastfm" onclick="setIgArtSource('lastfm')">Last.fm</button>
+              <button class="sh-mini-btn ig-art-src-btn" data-src="youtube" onclick="setIgArtSource('youtube')">YouTube</button>
             </div>
-            <div style="display:flex;align-items:center;gap:0.6rem;">
-              <span data-i18n="ig_top_brand"
-                style="font-family:var(--font-mono);font-size:0.58rem;color:var(--text3);min-width:72px;">Top Brand</span>
-              <input type="range" id="igTopBrandSize" min="0" max="22" value="0" step="1"
-                oninput="updateIgFontLabels();updateIgPreview()" style="flex:1;accent-color:var(--accent);">
-              <span id="igTopBrandSizeLabel"
-                style="font-family:var(--font-mono);font-size:0.7rem;color:var(--accent);min-width:36px;">Auto</span>
-            </div>
-            <div style="display:flex;align-items:center;gap:0.6rem;">
-              <span data-i18n="ig_card_title_size"
-                style="font-family:var(--font-mono);font-size:0.58rem;color:var(--text3);min-width:72px;">Card Title</span>
-              <input type="range" id="igCardTitleSize" min="0" max="40" value="0" step="1"
-                oninput="updateIgFontLabels();updateIgPreview()" style="flex:1;accent-color:var(--accent);">
-              <span id="igCardTitleSizeLabel"
-                style="font-family:var(--font-mono);font-size:0.7rem;color:var(--accent);min-width:36px;">Auto</span>
-            </div>
-            <div style="display:flex;align-items:center;gap:0.6rem;">
-              <span data-i18n="ig_date"
-                style="font-family:var(--font-mono);font-size:0.58rem;color:var(--text3);min-width:72px;">Date</span>
-              <input type="range" id="igDateSize" min="0" max="20" value="0" step="1"
-                oninput="updateIgFontLabels();updateIgPreview()" style="flex:1;accent-color:var(--accent);">
-              <span id="igDateSizeLabel"
-                style="font-family:var(--font-mono);font-size:0.7rem;color:var(--accent);min-width:36px;">Auto</span>
-            </div>
-            <div style="display:flex;align-items:center;gap:0.6rem;">
-              <span data-i18n="ig_rank_size"
-                style="font-family:var(--font-mono);font-size:0.58rem;color:var(--text3);min-width:72px;">Rank</span>
-              <input type="range" id="igRankSize" min="0" max="32" value="0" step="1"
-                oninput="updateIgFontLabels();updateIgPreview()" style="flex:1;accent-color:var(--accent);">
-              <span id="igRankSizeLabel"
-                style="font-family:var(--font-mono);font-size:0.7rem;color:var(--accent);min-width:36px;">Auto</span>
-            </div>
-            <div style="display:flex;align-items:center;gap:0.6rem;">
-              <span id="igTitleNameLabel" data-i18n="ig_title_size"
-                style="font-family:var(--font-mono);font-size:0.58rem;color:var(--text3);min-width:72px;">Title</span>
-              <input type="range" id="igTitleSize" min="0" max="24" value="0" step="1"
-                oninput="updateIgFontLabels();updateIgPreview()" style="flex:1;accent-color:var(--accent);">
-              <span id="igTitleSizeLabel"
-                style="font-family:var(--font-mono);font-size:0.7rem;color:var(--accent);min-width:36px;">Auto</span>
-            </div>
-            <div id="igArtistSizeRow" style="display:flex;align-items:center;gap:0.6rem;">
-              <span data-i18n="ig_artist_size"
-                style="font-family:var(--font-mono);font-size:0.58rem;color:var(--text3);min-width:72px;">Artist</span>
-              <input type="range" id="igArtistSize" min="0" max="24" value="0" step="1"
-                oninput="updateIgFontLabels();updateIgPreview()" style="flex:1;accent-color:var(--accent);">
-              <span id="igArtistSizeLabel"
-                style="font-family:var(--font-mono);font-size:0.7rem;color:var(--accent);min-width:36px;">Auto</span>
-            </div>
-            <div id="igSongsCountSizeRow" style="display:none;align-items:center;gap:0.6rem;">
-              <span data-i18n="ig_songs_count_size"
-                style="font-family:var(--font-mono);font-size:0.58rem;color:var(--text3);min-width:72px;">Songs Ct.</span>
-              <input type="range" id="igSongsCountSize" min="0" max="24" value="0" step="1"
-                oninput="updateIgFontLabels();updateIgPreview()" style="flex:1;accent-color:var(--accent);">
-              <span id="igSongsCountSizeLabel"
-                style="font-family:var(--font-mono);font-size:0.7rem;color:var(--accent);min-width:36px;">Auto</span>
-            </div>
-            <div style="display:flex;align-items:center;gap:0.6rem;">
-              <span data-i18n="ig_peak_size"
-                style="font-family:var(--font-mono);font-size:0.58rem;color:var(--text3);min-width:72px;">Peak</span>
-              <input type="range" id="igPeakSize" min="0" max="20" value="0" step="1"
-                oninput="updateIgFontLabels();updateIgPreview()" style="flex:1;accent-color:var(--accent);">
-              <span id="igPeakSizeLabel"
-                style="font-family:var(--font-mono);font-size:0.7rem;color:var(--accent);min-width:36px;">Auto</span>
-            </div>
-            <div style="display:flex;align-items:center;gap:0.6rem;">
-              <span data-i18n="ig_weeks_size"
-                style="font-family:var(--font-mono);font-size:0.58rem;color:var(--text3);min-width:72px;">Weeks</span>
-              <input type="range" id="igWeeksSize" min="0" max="20" value="0" step="1"
-                oninput="updateIgFontLabels();updateIgPreview()" style="flex:1;accent-color:var(--accent);">
-              <span id="igWeeksSizeLabel"
-                style="font-family:var(--font-mono);font-size:0.7rem;color:var(--accent);min-width:36px;">Auto</span>
-            </div>
-            <div style="display:flex;align-items:center;gap:0.6rem;">
-              <span data-i18n="ig_plays_size"
-                style="font-family:var(--font-mono);font-size:0.58rem;color:var(--text3);min-width:72px;">Plays</span>
-              <input type="range" id="igPlaysSize" min="0" max="22" value="0" step="1"
-                oninput="updateIgFontLabels();updateIgPreview()" style="flex:1;accent-color:var(--accent);">
-              <span id="igPlaysSizeLabel"
-                style="font-family:var(--font-mono);font-size:0.7rem;color:var(--accent);min-width:36px;">Auto</span>
-            </div>
-            <div style="display:flex;align-items:center;gap:0.6rem;">
-              <span data-i18n="ig_bottom_brand"
-                style="font-family:var(--font-mono);font-size:0.58rem;color:var(--text3);min-width:72px;">Bottom Brand</span>
-              <input type="range" id="igBottomBrandSize" min="0" max="22" value="0" step="1"
-                oninput="updateIgFontLabels();updateIgPreview()" style="flex:1;accent-color:var(--accent);">
-              <span id="igBottomBrandSizeLabel"
-                style="font-family:var(--font-mono);font-size:0.7rem;color:var(--accent);min-width:36px;">Auto</span>
-            </div>
-            <div style="font-family:var(--font-mono);font-size:0.55rem;color:var(--text3);letter-spacing:0.06em;" data-i18n="ig_slide_auto">
-              Slide to override · leftmost = Auto</div>
-          </div>
-          <div class="ig-ctrl-group">
-            <div class="ig-ctrl-group-title" data-i18n="ig_show_hide">Show / Hide</div>
             <label class="ig-ctrl-row"><input type="checkbox" id="igOpt_showMovement" checked
                 onchange="updateIgPreview()"><span data-i18n="ig_movement">Movement (▲▼ NEW RE)</span></label>
             <label class="ig-ctrl-row"><input type="checkbox" id="igOpt_showPeak" checked
@@ -2571,23 +2493,27 @@
                 onchange="updateIgPreview()"><span data-i18n="ig_date_period">Date / Period</span></label>
             <label class="ig-ctrl-row"><input type="checkbox" id="igOpt_showFooter" checked
                 onchange="updateIgPreview()"><span data-i18n="ig_footer_branding">Footer Branding</span></label>
-            <label class="ig-ctrl-row"><input type="checkbox" id="igOpt_showArt"
-                onchange="updateIgPreview()"><span>Album Art</span></label>
-            <div id="igArtSourceRow" style="display:flex;gap:0.3rem;margin-top:0.3rem;flex-wrap:wrap;">
-              <button class="ig-format-btn ig-art-src-btn active" data-src="deezer" onclick="setIgArtSource('deezer')">Deezer</button>
-              <button class="ig-format-btn ig-art-src-btn" data-src="itunes" onclick="setIgArtSource('itunes')">iTunes</button>
-              <button class="ig-format-btn ig-art-src-btn" data-src="lastfm" onclick="setIgArtSource('lastfm')">Last.fm</button>
+          </div>
+          <div class="sh-group">
+            <div class="sh-group-title" data-i18n="sh_entries">Entries shown</div>
+            <div class="sh-slider-row">
+              <input type="range" id="igTopN" min="0" max="25" value="10" step="1" oninput="updateIgPreview()">
+              <span class="sh-slider-val" id="igTopNLabel">10</span>
+            </div>
+            <div class="sh-hint" data-i18n="sh_entries_hint">0 = use the current chart size</div>
+            <div class="sh-group-title" style="margin-top:0.6rem;" data-i18n="sh_text_size">Text size</div>
+            <div class="sh-slider-row">
+              <input type="range" id="igTextScale" min="80" max="130" value="100" step="2" oninput="updateIgPreview()">
+              <span class="sh-slider-val" id="igTextScaleLabel">100%</span>
             </div>
           </div>
-          <div class="ig-ctrl-group">
-            <div class="ig-ctrl-group-title">Entries</div>
-            <div style="display:flex;align-items:center;gap:0.6rem;">
-              <span style="font-family:var(--font-mono);font-size:0.58rem;color:var(--text3);min-width:72px;">Top N</span>
-              <input type="range" id="igTopN" min="0" max="20" value="0" step="1"
-                oninput="updateIgPreview()" style="flex:1;accent-color:var(--accent);">
-              <span id="igTopNLabel" style="font-family:var(--font-mono);font-size:0.7rem;color:var(--accent);min-width:36px;">Auto</span>
+          <div class="sh-group">
+            <div class="sh-group-title" data-i18n="sh_quality">Quality</div>
+            <div class="sh-seg" id="igQualityBtns">
+              <button class="sh-seg-btn" data-q="1" onclick="setIgQuality(1)" data-i18n="sh_quality_std">Standard</button>
+              <button class="sh-seg-btn active" data-q="2" onclick="setIgQuality(2)" data-i18n="sh_quality_high">High</button>
             </div>
-            <div style="font-family:var(--font-mono);font-size:0.55rem;color:var(--text3);letter-spacing:0.06em;">0 = use current chart size</div>
+            <div class="sh-hint" id="igQualityNote">2160 × 2160 px</div>
           </div>
         </div>
       </div>
@@ -2623,168 +2549,103 @@
         <div class="ig-controls-panel">
           <!-- ── CHART RUN CONTROLS ── -->
           <div id="crIgChartRunControls">
-            <div class="ig-ctrl-group">
-              <div class="ig-ctrl-group-title" data-i18n="ig_format">Format</div>
-              <div class="ig-format-btns">
-                <button class="ig-format-btn active" id="crIgFmtPost" onclick="setCrIgFormat('post')" data-i18n="ig_post">📷 Post
-                  (1:1)</button>
-                <button class="ig-format-btn" id="crIgFmtStory" onclick="setCrIgFormat('story')" data-i18n="ig_story">📱 Story
-                  (9:16)</button>
+            <div class="sh-group">
+              <div class="sh-group-title" data-i18n="sh_design">Design</div>
+              <div class="sh-tpl-row" id="crTemplateRow"></div>
+            </div>
+            <div class="sh-group">
+              <div class="sh-group-title" data-i18n="sh_palette">Palette</div>
+              <div class="sh-swatch-row" id="crPaletteRow"></div>
+            </div>
+            <div class="sh-group">
+              <div class="sh-group-title" data-i18n="ig_format">Format</div>
+              <div class="sh-seg" id="crFormatBtns">
+                <button class="sh-seg-btn active" data-fmt="post" onclick="setCrFormat('post')" data-i18n="sh_fmt_post">Post 1:1</button>
+                <button class="sh-seg-btn" data-fmt="portrait" onclick="setCrFormat('portrait')" data-i18n="sh_fmt_portrait">Portrait 4:5</button>
+                <button class="sh-seg-btn" data-fmt="story" onclick="setCrFormat('story')" data-i18n="sh_fmt_story">Story 9:16</button>
               </div>
             </div>
-            <div class="ig-ctrl-group">
-              <div class="ig-ctrl-group-title" data-i18n="cr_range">Range</div>
-              <div class="ig-format-btns" id="crIgRangeBtns">
-                <button class="ig-format-btn" id="crIgRangeYear" onclick="setCrIgRange('year')">Year Only</button>
-                <button class="ig-format-btn" id="crIgRangeUptoYear" onclick="setCrIgRange('uptoYear')">Up to
-                  Year</button>
-                <button class="ig-format-btn active" id="crIgRangeNow" onclick="setCrIgRange('now')">All-Time</button>
+            <div class="sh-group">
+              <div class="sh-group-title" data-i18n="cr_range">Range</div>
+              <div class="sh-seg" id="crIgRangeBtns">
+                <button class="sh-seg-btn" id="crIgRangeYear" onclick="setCrIgRange('year')">Year Only</button>
+                <button class="sh-seg-btn" id="crIgRangeUptoYear" onclick="setCrIgRange('uptoYear')">Up to Year</button>
+                <button class="sh-seg-btn active" id="crIgRangeNow" onclick="setCrIgRange('now')">All-Time</button>
               </div>
-              <div
-                style="font-family:var(--font-mono);font-size:0.55rem;color:var(--text3);letter-spacing:0.06em;margin-top:3px;">
-                <span data-i18n="cr_range_note">Range for the chart run boxes shown</span></div>
-              <div class="ig-ctrl-group" id="crIgIncludeGroup">
-                <div class="ig-ctrl-group-title" data-i18n="cr_include_runs">Include Chart Runs</div>
-                <label class="ig-ctrl-row"><input type="checkbox" id="crIgOpt_showYear" checked
-                    onchange="updateCrIgPreview()"><span data-i18n="cr_yearly_run">🗓️ Yearly Chart Run + Stats</span></label>
-                <label class="ig-ctrl-row"><input type="checkbox" id="crIgOpt_showMonth" checked
-                    onchange="updateCrIgPreview()"><span data-i18n="cr_monthly_run">📊 Monthly Chart Run + Stats</span></label>
-                <label class="ig-ctrl-row"><input type="checkbox" id="crIgOpt_showWeek" checked
-                    onchange="updateCrIgPreview()"><span data-i18n="cr_weekly_run">📈 Weekly Chart Run + Stats</span></label>
+              <div class="sh-hint" data-i18n="cr_range_note">Range for the chart run boxes shown</div>
+            </div>
+            <div class="sh-group" id="crIgIncludeGroup">
+              <div class="sh-group-title" data-i18n="cr_include_runs">Include Chart Runs</div>
+              <label class="ig-ctrl-row"><input type="checkbox" id="crIgOpt_showYear" checked
+                  onchange="updateCrIgPreview()"><span data-i18n="cr_yearly_run">🗓️ Yearly Chart Run + Stats</span></label>
+              <label class="ig-ctrl-row"><input type="checkbox" id="crIgOpt_showMonth" checked
+                  onchange="updateCrIgPreview()"><span data-i18n="cr_monthly_run">📊 Monthly Chart Run + Stats</span></label>
+              <label class="ig-ctrl-row"><input type="checkbox" id="crIgOpt_showWeek" checked
+                  onchange="updateCrIgPreview()"><span data-i18n="cr_weekly_run">📈 Weekly Chart Run + Stats</span></label>
+            </div>
+            <div class="sh-group">
+              <div class="sh-group-title" data-i18n="ig_show_hide">Show / Hide</div>
+              <label class="ig-ctrl-row"><input type="checkbox" id="crIgOpt_showImage" checked
+                  onchange="updateCrIgPreview()"><span data-i18n="ig_cover_art">Cover Art / Photo</span></label>
+              <div class="sh-src-row">
+                <span class="sh-src-label" data-i18n="ig_source">Source:</span>
+                <button class="sh-mini-btn active" id="crIgSrc_deezer" onclick="setCrIgImgSource('deezer')">Deezer</button>
+                <button class="sh-mini-btn" id="crIgSrc_itunes" onclick="setCrIgImgSource('itunes')">iTunes</button>
+                <button class="sh-mini-btn" id="crIgSrc_lastfm" onclick="setCrIgImgSource('lastfm')">Last.fm</button>
+                <button class="sh-mini-btn" id="crIgSrc_youtube" onclick="setCrIgImgSource('youtube')">YouTube</button>
               </div>
-              <div class="ig-ctrl-group">
-                <div class="ig-ctrl-group-title" data-i18n="ig_show_hide">Show / Hide</div>
-                <label class="ig-ctrl-row"><input type="checkbox" id="crIgOpt_showImage" checked
-                    onchange="updateCrIgPreview()"><span data-i18n="ig_cover_art">Cover Art / Photo</span></label>
-                <label class="ig-ctrl-row"><input type="checkbox" id="crIgOpt_showWeekDate" checked
-                    onchange="updateCrIgPreview()"><span data-i18n="ig_week_date_sub">Week Date Subtitle</span></label>
-                <label class="ig-ctrl-row"><input type="checkbox" id="crIgOpt_showSubtitle" checked
-                    onchange="updateCrIgPreview()"><span data-i18n="ig_artist_sublabel">Artist / Sub-label</span></label>
-                <label class="ig-ctrl-row"><input type="checkbox" id="crIgOpt_showSectionSummary" checked
-                    onchange="updateCrIgPreview()"><span data-i18n="ig_section_summary">📈 Section Summary Stats</span></label>
-                <label class="ig-ctrl-row"><input type="checkbox" id="crIgOpt_showFooter" checked
-                    onchange="updateCrIgPreview()"><span data-i18n="ig_footer_branding">Footer Branding</span></label>
-                <div style="display:flex;align-items:center;gap:0.4rem;padding-left:22px;flex-wrap:wrap;">
-                  <span
-                    style="font-family:var(--font-mono);font-size:0.58rem;color:var(--text3);flex-shrink:0;" data-i18n="ig_source">Source:</span>
-                  <button class="ig-format-btn active" id="crIgSrc_deezer" onclick="setCrIgImgSource('deezer')"
-                    style="padding:0.2rem 0.45rem;font-size:0.6rem;">Deezer</button>
-                  <button class="ig-format-btn" id="crIgSrc_itunes" onclick="setCrIgImgSource('itunes')"
-                    style="padding:0.2rem 0.45rem;font-size:0.6rem;">iTunes</button>
-                  <button class="ig-format-btn" id="crIgSrc_lastfm" onclick="setCrIgImgSource('lastfm')"
-                    style="padding:0.2rem 0.45rem;font-size:0.6rem;">Last.fm</button>
-                  <button class="ig-format-btn" id="crIgSrc_youtube" onclick="setCrIgImgSource('youtube')"
-                    style="padding:0.2rem 0.45rem;font-size:0.6rem;">YouTube</button>
-                </div>
+              <label class="ig-ctrl-row"><input type="checkbox" id="crIgOpt_showWeekDate" checked
+                  onchange="updateCrIgPreview()"><span data-i18n="ig_week_date_sub">Week Date Subtitle</span></label>
+              <label class="ig-ctrl-row"><input type="checkbox" id="crIgOpt_showSubtitle" checked
+                  onchange="updateCrIgPreview()"><span data-i18n="ig_artist_sublabel">Artist / Sub-label</span></label>
+              <label class="ig-ctrl-row"><input type="checkbox" id="crIgOpt_showSectionSummary" checked
+                  onchange="updateCrIgPreview()"><span data-i18n="ig_section_summary">📈 Section Summary Stats</span></label>
+              <label class="ig-ctrl-row"><input type="checkbox" id="crIgOpt_showFooter" checked
+                  onchange="updateCrIgPreview()"><span data-i18n="ig_footer_branding">Footer Branding</span></label>
+            </div>
+            <div class="sh-group">
+              <div class="sh-group-title" data-i18n="sh_text_size">Text size</div>
+              <div class="sh-slider-row">
+                <input type="range" id="crTextScale" min="80" max="130" value="100" step="2" oninput="updateCrIgPreview()">
+                <span class="sh-slider-val" id="crTextScaleLabel">100%</span>
               </div>
-              <div class="ig-ctrl-group">
-                <div class="ig-ctrl-group-title" data-i18n="cr_fonts">Fonts</div>
-                <div style="display:flex;flex-direction:column;gap:0.35rem;">
-                  <div style="display:flex;align-items:center;gap:0.5rem;">
-                    <span
-                      style="font-family:var(--font-mono);font-size:0.6rem;color:var(--text3);min-width:52px;" data-i18n="cr_title_font">Title</span>
-                    <select id="crIgTitleFont" onchange="updateCrIgPreview()"
-                      style="flex:1;background:var(--bg3);border:1px solid var(--border2);color:var(--text2);font-family:var(--font-mono);font-size:0.65rem;padding:3px 5px;border-radius:4px;">
-                      <option value="IBM Plex Sans">IBM Plex Sans</option>
-                      <option value="Bricolage Grotesque">Bricolage Grotesque</option>
-                      <option value="JetBrains Mono">JetBrains Mono</option>
-                      <option value="Georgia">Georgia</option>
-                      <option value="Arial">Arial</option>
-                      <option value="Verdana">Verdana</option>
-                    </select>
-                  </div>
-                  <div style="display:flex;align-items:center;gap:0.5rem;">
-                    <span
-                      style="font-family:var(--font-mono);font-size:0.6rem;color:var(--text3);min-width:52px;" data-i18n="cr_labels_font">Labels</span>
-                    <select id="crIgLabelFont" onchange="updateCrIgPreview()"
-                      style="flex:1;background:var(--bg3);border:1px solid var(--border2);color:var(--text2);font-family:var(--font-mono);font-size:0.65rem;padding:3px 5px;border-radius:4px;">
-                      <option value="JetBrains Mono">JetBrains Mono</option>
-                      <option value="IBM Plex Sans">IBM Plex Sans</option>
-                      <option value="Bricolage Grotesque">Bricolage Grotesque</option>
-                      <option value="Verdana">Verdana</option>
-                      <option value="Arial">Arial</option>
-                    </select>
-                  </div>
-                  <div style="display:flex;align-items:center;gap:0.5rem;">
-                    <span
-                      style="font-family:var(--font-mono);font-size:0.6rem;color:var(--text3);min-width:52px;" data-i18n="cr_cover_art">Cover
-                      Art/Photo</span>
-                    <input type="range" id="crIgImageScale" min="80" max="150" value="100"
-                      oninput="updateCrIgSizeLabels();updateCrIgPreview()" style="flex:1;accent-color:var(--accent);">
-                    <span id="crIgImageScaleLabel"
-                      style="font-family:var(--font-mono);font-size:0.6rem;color:var(--text2);min-width:30px;text-align:right;">100%</span>
-                  </div>
-                  <div style="display:flex;align-items:center;gap:0.5rem;">
-                    <span
-                      style="font-family:var(--font-mono);font-size:0.6rem;color:var(--text3);min-width:52px;" data-i18n="cr_brand_px">Brand
-                      px</span>
-                    <input type="range" id="crIgBrandSize" min="0" max="18" value="0"
-                      oninput="updateCrIgSizeLabels();updateCrIgPreview()" style="flex:1;accent-color:var(--accent);">
-                    <span id="crIgBrandSizeLabel"
-                      style="font-family:var(--font-mono);font-size:0.6rem;color:var(--text2);min-width:30px;text-align:right;">Auto</span>
-                  </div>
-                  <div style="display:flex;align-items:center;gap:0.5rem;">
-                    <span
-                      style="font-family:var(--font-mono);font-size:0.6rem;color:var(--text3);min-width:52px;" data-i18n="cr_song_artist_px">Song/Artist
-                      px</span>
-                    <input type="range" id="crIgTitleSize" min="0" max="60" value="0"
-                      oninput="updateCrIgSizeLabels();updateCrIgPreview()" style="flex:1;accent-color:var(--accent);">
-                    <span id="crIgTitleSizeLabel"
-                      style="font-family:var(--font-mono);font-size:0.6rem;color:var(--text2);min-width:30px;text-align:right;">Auto</span>
-                  </div>
-                  <div style="display:flex;align-items:center;gap:0.5rem;">
-                    <span
-                      style="font-family:var(--font-mono);font-size:0.6rem;color:var(--text3);min-width:52px;" data-i18n="cr_week_date_px">Week
-                      Date px</span>
-                    <input type="range" id="crIgWeekDateSize" min="0" max="20" value="0"
-                      oninput="updateCrIgSizeLabels();updateCrIgPreview()" style="flex:1;accent-color:var(--accent);">
-                    <span id="crIgWeekDateSizeLabel"
-                      style="font-family:var(--font-mono);font-size:0.6rem;color:var(--text2);min-width:30px;text-align:right;">Auto</span>
-                  </div>
-                  <div style="display:flex;align-items:center;gap:0.5rem;">
-                    <span
-                      style="font-family:var(--font-mono);font-size:0.6rem;color:var(--text3);min-width:52px;" data-i18n="cr_section_px">Section
-                      px</span>
-                    <input type="range" id="crIgSectionSize" min="0" max="18" value="0"
-                      oninput="updateCrIgSizeLabels();updateCrIgPreview()" style="flex:1;accent-color:var(--accent);">
-                    <span id="crIgSectionSizeLabel"
-                      style="font-family:var(--font-mono);font-size:0.6rem;color:var(--text2);min-width:30px;text-align:right;">Auto</span>
-                  </div>
-                  <div style="display:flex;align-items:center;gap:0.5rem;">
-                    <span
-                      style="font-family:var(--font-mono);font-size:0.6rem;color:var(--text3);min-width:52px;" data-i18n="cr_boxes_px">Boxes
-                      px</span>
-                    <input type="range" id="crIgBoxSize" min="0" max="22" value="0"
-                      oninput="updateCrIgSizeLabels();updateCrIgPreview()" style="flex:1;accent-color:var(--accent);">
-                    <span id="crIgBoxSizeLabel"
-                      style="font-family:var(--font-mono);font-size:0.6rem;color:var(--text2);min-width:30px;text-align:right;">Auto</span>
-                  </div>
-                </div>
-                <div style="display:flex;gap:0.4rem;flex-wrap:wrap;margin-top:4px;">
-                  <button class="ig-format-btn" onclick="setCrIgAllSliders(true)"
-                    style="padding:0.2rem 0.55rem;font-size:0.6rem;flex:0 0 auto;" data-i18n="btn_max_all">Max All</button>
-                  <button class="ig-format-btn" onclick="setCrIgAllSliders(false)"
-                    style="padding:0.2rem 0.55rem;font-size:0.6rem;flex:0 0 auto;" data-i18n="btn_min_all">Min All</button>
-                </div>
-                <div
-                  style="font-family:var(--font-mono);font-size:0.55rem;color:var(--text3);letter-spacing:0.06em;margin-top:4px;" data-i18n="ig_slide_auto">
-                  Slide to override · leftmost = Auto</div>
+              <div class="sh-group-title" style="margin-top:0.6rem;" data-i18n="sh_quality">Quality</div>
+              <div class="sh-seg" id="crQualityBtns">
+                <button class="sh-seg-btn" data-q="1" onclick="setCrQuality(1)" data-i18n="sh_quality_std">Standard</button>
+                <button class="sh-seg-btn active" data-q="2" onclick="setCrQuality(2)" data-i18n="sh_quality_high">High</button>
               </div>
+              <div class="sh-hint" id="crQualityNote">2160 × 2160 px</div>
             </div>
           </div>
           <!-- ── ENTRY POST CONTROLS ── -->
           <div id="crIgEntryControls" style="display:none;">
-            <div class="ig-ctrl-group">
-              <div class="ig-ctrl-group-title" data-i18n="ig_format">Format</div>
-              <div class="ig-format-btns">
-                <button class="ig-format-btn active" id="entPostFmtPost" onclick="setCrIgFormat('post')" data-i18n="ig_post">📷 Post
-                  (1:1)</button>
-                <button class="ig-format-btn" id="entPostFmtStory" onclick="setCrIgFormat('story')" data-i18n="ig_story">📱 Story
-                  (9:16)</button>
+            <div class="sh-group">
+              <div class="sh-group-title" data-i18n="sh_design">Design</div>
+              <div class="sh-tpl-row" id="epTemplateRow"></div>
+            </div>
+            <div class="sh-group">
+              <div class="sh-group-title" data-i18n="sh_palette">Palette</div>
+              <div class="sh-swatch-row" id="epPaletteRow"></div>
+            </div>
+            <div class="sh-group">
+              <div class="sh-group-title" data-i18n="ig_format">Format</div>
+              <div class="sh-seg" id="epFormatBtns">
+                <button class="sh-seg-btn" data-fmt="post" onclick="setEpFormat('post')" data-i18n="sh_fmt_post">Post 1:1</button>
+                <button class="sh-seg-btn" data-fmt="portrait" onclick="setEpFormat('portrait')" data-i18n="sh_fmt_portrait">Portrait 4:5</button>
+                <button class="sh-seg-btn active" data-fmt="story" onclick="setEpFormat('story')" data-i18n="sh_fmt_story">Story 9:16</button>
               </div>
             </div>
-            <div class="ig-ctrl-group">
-              <div class="ig-ctrl-group-title" data-i18n="ig_show_hide">Show / Hide</div>
+            <div class="sh-group">
+              <div class="sh-group-title" data-i18n="ig_show_hide">Show / Hide</div>
+              <label class="ig-ctrl-row"><input type="checkbox" id="entPostOpt_showImage" checked
+                  onchange="updateCrIgPreview()"><span data-i18n="ig_cover_art">Cover Art / Photo</span></label>
+              <div class="sh-src-row">
+                <span class="sh-src-label" data-i18n="ig_source">Source:</span>
+                <button class="sh-mini-btn active" id="entPostSrc_deezer" onclick="setEntPostImgSource('deezer')">Deezer</button>
+                <button class="sh-mini-btn" id="entPostSrc_itunes" onclick="setEntPostImgSource('itunes')">iTunes</button>
+                <button class="sh-mini-btn" id="entPostSrc_lastfm" onclick="setEntPostImgSource('lastfm')">Last.fm</button>
+                <button class="sh-mini-btn" id="entPostSrc_youtube" onclick="setEntPostImgSource('youtube')">YouTube</button>
+              </div>
               <label class="ig-ctrl-row"><input type="checkbox" id="entPostOpt_showWeekDate" checked
                   onchange="updateCrIgPreview()"><span data-i18n="ig_week_date_sub">Week Date Subtitle</span></label>
               <label class="ig-ctrl-row"><input type="checkbox" id="entPostOpt_showDescription" checked
@@ -2792,151 +2653,44 @@
               <label class="ig-ctrl-row"><input type="checkbox" id="entPostOpt_showSubtitle" checked
                   onchange="updateCrIgPreview()"><span data-i18n="ep_artist_album">Artist / Album Info</span></label>
               <label class="ig-ctrl-row"><input type="checkbox" id="entPostOpt_showMovement" checked
-                  onchange="updateCrIgPreview()"><span data-i18n="ep_movement_bl">Movement (Bottom Left)</span></label>
+                  onchange="updateCrIgPreview()"><span data-i18n="ep_movement_bl">Movement badge</span></label>
+              <label class="ig-ctrl-row"><input type="checkbox" id="entPostOpt_showStats" checked
+                  onchange="updateCrIgPreview()"><span data-i18n="ep_stats">Stat chips (weeks · peak · plays)</span></label>
               <label class="ig-ctrl-row"><input type="checkbox" id="entPostOpt_showFooter" checked
                   onchange="updateCrIgPreview()"><span data-i18n="ig_footer_branding">Footer Branding</span></label>
-              <label class="ig-ctrl-row"><input type="checkbox" id="entPostOpt_showImage" checked
-                  onchange="updateCrIgPreview()"><span data-i18n="ig_cover_art">Cover Art / Photo</span></label>
-              <div
-                style="display:flex;align-items:center;gap:0.4rem;padding-left:22px;flex-wrap:wrap;margin-top:0.25rem;">
-                <span
-                  style="font-family:var(--font-mono);font-size:0.58rem;color:var(--text3);flex-shrink:0;" data-i18n="ig_source">Source:</span>
-                <button class="ig-format-btn active" id="entPostSrc_deezer" onclick="setEntPostImgSource('deezer')"
-                  style="padding:0.2rem 0.45rem;font-size:0.6rem;">Deezer</button>
-                <button class="ig-format-btn" id="entPostSrc_itunes" onclick="setEntPostImgSource('itunes')"
-                  style="padding:0.2rem 0.45rem;font-size:0.6rem;">iTunes</button>
-                <button class="ig-format-btn" id="entPostSrc_lastfm" onclick="setEntPostImgSource('lastfm')"
-                  style="padding:0.2rem 0.45rem;font-size:0.6rem;">Last.fm</button>
-                <button class="ig-format-btn" id="entPostSrc_youtube" onclick="setEntPostImgSource('youtube')"
-                  style="padding:0.2rem 0.45rem;font-size:0.6rem;">YouTube</button>
-              </div>
             </div>
-            <div class="ig-ctrl-group">
-              <div class="ig-ctrl-group-title" data-i18n="ep_font_sizes">Font Sizes</div>
-              <div style="display:flex;flex-direction:column;gap:0.35rem;">
-                <div style="display:flex;align-items:center;gap:0.5rem;">
-                  <span
-                    style="font-family:var(--font-mono);font-size:0.6rem;color:var(--text3);min-width:66px;" data-i18n="ep_branding">Branding</span>
-                  <input type="range" id="entPostBrandSize" min="0" max="20" value="0"
-                    oninput="updateEntPostSizeLabels();updateCrIgPreview()" style="flex:1;accent-color:var(--accent);">
-                  <span id="entPostBrandSizeLabel"
-                    style="font-family:var(--font-mono);font-size:0.6rem;color:var(--text2);min-width:30px;text-align:right;">Auto</span>
-                </div>
-                <div style="display:flex;align-items:center;gap:0.5rem;">
-                  <span
-                    style="font-family:var(--font-mono);font-size:0.6rem;color:var(--text3);min-width:66px;" data-i18n="ep_chart_name">Chart
-                    Name</span>
-                  <input type="range" id="entPostChartNameSize" min="0" max="28" value="0"
-                    oninput="updateEntPostSizeLabels();updateCrIgPreview()" style="flex:1;accent-color:var(--accent);">
-                  <span id="entPostChartNameSizeLabel"
-                    style="font-family:var(--font-mono);font-size:0.6rem;color:var(--text2);min-width:30px;text-align:right;">Auto</span>
-                </div>
-                <div style="display:flex;align-items:center;gap:0.5rem;">
-                  <span style="font-family:var(--font-mono);font-size:0.6rem;color:var(--text3);min-width:66px;" data-i18n="ep_week_date">Week
-                    Date</span>
-                  <input type="range" id="entPostWeekDateSize" min="0" max="22" value="0"
-                    oninput="updateEntPostSizeLabels();updateCrIgPreview()" style="flex:1;accent-color:var(--accent);">
-                  <span id="entPostWeekDateSizeLabel"
-                    style="font-family:var(--font-mono);font-size:0.6rem;color:var(--text2);min-width:30px;text-align:right;">Auto</span>
-                </div>
-                <div style="display:flex;align-items:center;gap:0.5rem;">
-                  <span
-                    style="font-family:var(--font-mono);font-size:0.6rem;color:var(--text3);min-width:66px;" data-i18n="ep_image">Image</span>
-                  <input type="range" id="entPostImageSize" min="0" max="320" value="0"
-                    oninput="updateEntPostSizeLabels();updateCrIgPreview()" style="flex:1;accent-color:var(--accent);">
-                  <span id="entPostImageSizeLabel"
-                    style="font-family:var(--font-mono);font-size:0.6rem;color:var(--text2);min-width:30px;text-align:right;">Auto</span>
-                </div>
-                <div style="display:flex;align-items:center;gap:0.5rem;">
-                  <span id="entPostTitleSizeText"
-                    style="font-family:var(--font-mono);font-size:0.6rem;color:var(--text3);min-width:66px;">Title</span>
-                  <input type="range" id="entPostTitleSize" min="0" max="36" value="0"
-                    oninput="updateEntPostSizeLabels();updateCrIgPreview()" style="flex:1;accent-color:var(--accent);">
-                  <span id="entPostTitleSizeLabel"
-                    style="font-family:var(--font-mono);font-size:0.6rem;color:var(--text2);min-width:30px;text-align:right;">Auto</span>
-                </div>
-                <div style="display:flex;align-items:center;gap:0.5rem;">
-                  <span
-                    style="font-family:var(--font-mono);font-size:0.6rem;color:var(--text3);min-width:66px;" data-i18n="ep_artist">Artist</span>
-                  <input type="range" id="entPostSubtitleSize" min="0" max="28" value="0"
-                    oninput="updateEntPostSizeLabels();updateCrIgPreview()" style="flex:1;accent-color:var(--accent);">
-                  <span id="entPostSubtitleSizeLabel"
-                    style="font-family:var(--font-mono);font-size:0.6rem;color:var(--text2);min-width:30px;text-align:right;">Auto</span>
-                </div>
-                <div style="display:flex;align-items:center;gap:0.5rem;">
-                  <span
-                    style="font-family:var(--font-mono);font-size:0.6rem;color:var(--text3);min-width:66px;" data-i18n="ep_album">Album</span>
-                  <input type="range" id="entPostAlbumSize" min="0" max="22" value="0"
-                    oninput="updateEntPostSizeLabels();updateCrIgPreview()" style="flex:1;accent-color:var(--accent);">
-                  <span id="entPostAlbumSizeLabel"
-                    style="font-family:var(--font-mono);font-size:0.6rem;color:var(--text2);min-width:30px;text-align:right;">Auto</span>
-                </div>
-                <div style="display:flex;align-items:center;gap:0.5rem;">
-                  <span
-                    style="font-family:var(--font-mono);font-size:0.6rem;color:var(--text3);min-width:66px;" data-i18n="ep_description">Description</span>
-                  <input type="range" id="entPostDescSize" min="0" max="22" value="0"
-                    oninput="updateEntPostSizeLabels();updateCrIgPreview()" style="flex:1;accent-color:var(--accent);">
-                  <span id="entPostDescSizeLabel"
-                    style="font-family:var(--font-mono);font-size:0.6rem;color:var(--text2);min-width:30px;text-align:right;">Auto</span>
-                </div>
-                <div style="display:flex;align-items:center;gap:0.5rem;">
-                  <span
-                    style="font-family:var(--font-mono);font-size:0.6rem;color:var(--text3);min-width:66px;" data-i18n="ep_movement">Movement</span>
-                  <input type="range" id="entPostMvSize" min="0" max="24" value="0"
-                    oninput="updateEntPostSizeLabels();updateCrIgPreview()" style="flex:1;accent-color:var(--accent);">
-                  <span id="entPostMvSizeLabel"
-                    style="font-family:var(--font-mono);font-size:0.6rem;color:var(--text2);min-width:30px;text-align:right;">Auto</span>
-                </div>
-                <div style="display:flex;align-items:center;gap:0.5rem;">
-                  <span
-                    style="font-family:var(--font-mono);font-size:0.6rem;color:var(--text3);min-width:66px;" data-i18n="ep_position">Position
-                    #</span>
-                  <input type="range" id="entPostRankSize" min="0" max="120" value="0"
-                    oninput="updateEntPostSizeLabels();updateCrIgPreview()" style="flex:1;accent-color:var(--accent);">
-                  <span id="entPostRankSizeLabel"
-                    style="font-family:var(--font-mono);font-size:0.6rem;color:var(--text2);min-width:30px;text-align:right;">Auto</span>
-                </div>
-                <div style="display:flex;align-items:center;gap:0.5rem;">
-                  <span
-                    style="font-family:var(--font-mono);font-size:0.6rem;color:var(--text3);min-width:66px;" data-i18n="ep_story_y">Story
-                    Y</span>
-                  <input type="range" id="entPostStatusY" min="-120" max="220" value="0"
-                    oninput="updateEntPostSizeLabels();updateCrIgPreview()" style="flex:1;accent-color:var(--accent);">
-                  <span id="entPostStatusYLabel"
-                    style="font-family:var(--font-mono);font-size:0.6rem;color:var(--text2);min-width:30px;text-align:right;">Auto</span>
-                </div>
-              </div>
-              <div style="display:flex;gap:0.4rem;flex-wrap:wrap;margin-top:4px;">
-                <button class="ig-format-btn" onclick="setEntPostAllSliders(true)"
-                  style="padding:0.2rem 0.55rem;font-size:0.6rem;flex:0 0 auto;" data-i18n="btn_max_all">Max All</button>
-                <button class="ig-format-btn" onclick="setEntPostAllSliders(false)"
-                  style="padding:0.2rem 0.55rem;font-size:0.6rem;flex:0 0 auto;" data-i18n="btn_min_all">Min All</button>
-              </div>
-              <div
-                style="font-family:var(--font-mono);font-size:0.55rem;color:var(--text3);letter-spacing:0.06em;margin-top:4px;" data-i18n="ig_slide_auto">
-                Slide to override · leftmost = Auto</div>
-            </div>
-            <div class="ig-ctrl-group">
-              <div class="ig-ctrl-group-title" data-i18n="cr_desc_text">Description Text</div>
-              <div style="display:flex;gap:0.4rem;flex-wrap:wrap;">
-                <button class="ig-format-btn active" id="entPostDescModeAuto" onclick="setEntPostDescMode('auto')"
-                  style="padding:0.2rem 0.5rem;font-size:0.6rem;flex:0 0 auto;" data-i18n="cr_auto">Auto</button>
-                <button class="ig-format-btn" id="entPostDescShuffle" onclick="shuffleEntPostDescription()"
-                  style="padding:0.2rem 0.5rem;font-size:0.6rem;flex:0 0 auto;" data-i18n="cr_shuffle">Shuffle</button>
-                <button class="ig-format-btn" id="entPostDescModeCustom" onclick="setEntPostDescMode('custom')"
-                  style="padding:0.2rem 0.5rem;font-size:0.6rem;flex:0 0 auto;" data-i18n="cr_use_custom">Use Custom</button>
+            <div class="sh-group">
+              <div class="sh-group-title" data-i18n="cr_desc_text">Description Text</div>
+              <div class="sh-seg">
+                <button class="sh-seg-btn active" id="entPostDescModeAuto" onclick="setEntPostDescMode('auto')" data-i18n="cr_auto">Auto</button>
+                <button class="sh-seg-btn" id="entPostDescShuffle" onclick="shuffleEntPostDescription()" data-i18n="cr_shuffle">Shuffle</button>
+                <button class="sh-seg-btn" id="entPostDescModeCustom" onclick="setEntPostDescMode('custom')" data-i18n="cr_use_custom">Use Custom</button>
               </div>
               <textarea id="entPostDescCustom" rows="3" placeholder="Type your own description..." data-i18n-placeholder="cr_desc_placeholder"
-                oninput="updateEntPostCustomDescription(this.value)"
-                style="width:100%;resize:vertical;min-height:56px;max-height:120px;background:var(--bg3);border:1px solid var(--border2);border-radius:6px;color:var(--text2);font-family:var(--font-sans);font-size:0.74rem;padding:6px 8px;"></textarea>
-              <div style="font-family:var(--font-mono);font-size:0.55rem;color:var(--text3);letter-spacing:0.06em;" data-i18n="cr_desc_hint">
+                oninput="updateEntPostCustomDescription(this.value)" class="sh-textarea"></textarea>
+              <div class="sh-hint" data-i18n="cr_desc_hint">
                 Auto uses data up to the currently viewed date. Shuffle cycles generated variants.</div>
+            </div>
+            <div class="sh-group">
+              <div class="sh-group-title" data-i18n="sh_text_size">Text size</div>
+              <div class="sh-slider-row">
+                <input type="range" id="epTextScale" min="80" max="130" value="100" step="2" oninput="updateCrIgPreview()">
+                <span class="sh-slider-val" id="epTextScaleLabel">100%</span>
+              </div>
+              <div class="sh-group-title" style="margin-top:0.6rem;" data-i18n="sh_quality">Quality</div>
+              <div class="sh-seg" id="epQualityBtns">
+                <button class="sh-seg-btn" data-q="1" onclick="setEpQuality(1)" data-i18n="sh_quality_std">Standard</button>
+                <button class="sh-seg-btn active" data-q="2" onclick="setEpQuality(2)" data-i18n="sh_quality_high">High</button>
+              </div>
+              <div class="sh-hint" id="epQualityNote">2160 × 3840 px</div>
             </div>
           </div>
         </div>
       </div>
       <div class="ig-modal-footer">
         <button class="ig-modal-close" onclick="closeCrIgModal()" data-i18n="btn_cancel">Cancel</button>
+        <button class="ig-copy-btn" id="crIgCopyBtn" onclick="copyCrIg()">📋 Copy</button>
+        <button class="ig-copy-btn ig-share-native-btn" id="crIgShareBtn" onclick="shareCrIgNative()">📤 Share</button>
         <button class="ig-download-btn" id="crIgDownloadBtn" onclick="downloadCrIg()" data-i18n="btn_download_image">↓
           Download Image</button>
       </div>
@@ -3334,8 +3088,8 @@
 
   <!-- defer keeps app.js last in the script execution order (after translations,
        Chart.js and firebase.js) while letting the whole page parse and paint first -->
-  <script defer src="changelog.js?v=32"></script>
-  <script defer src="app.js?v=217"></script>
+  <script defer src="changelog.js?v=33"></script>
+  <script defer src="app.js?v=218"></script>
 
   <!-- ── Settings Modal ──
        Split into three tabs so the whole form is never dumped on screen at

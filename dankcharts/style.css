@@ -6538,7 +6538,7 @@
       border: 1px solid var(--border2);
       border-radius: 10px;
       width: 100%;
-      max-width: 820px;
+      max-width: 940px;
       max-height: 92vh;
       overflow: hidden;
       display: flex;
@@ -6592,6 +6592,7 @@
 
     .ig-preview-panel {
       flex-shrink: 0;
+      width: 306px;
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -6618,29 +6619,245 @@
       transform-origin: top left;
     }
 
+    /* ── SHARE-CARD DESIGN CONTROLS ──────────────────────────────
+       Used by all three share panels (charts, chart run, entry post):
+       design chips, palette swatches, segmented toggles and sliders. */
+    .sh-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+      padding-bottom: 0.85rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .sh-group:last-child {
+      border-bottom: none;
+      padding-bottom: 0;
+    }
+
+    .sh-group-title {
+      font-family: var(--font-mono);
+      font-size: 0.58rem;
+      letter-spacing: 0.16em;
+      color: var(--text3);
+      text-transform: uppercase;
+    }
+
+    .sh-tpl-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.35rem;
+    }
+
+    .sh-tpl {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.4rem 0.6rem;
+      border: 1px solid var(--border2);
+      border-radius: 8px;
+      background: var(--bg3);
+      color: var(--text2);
+      cursor: pointer;
+      transition: border-color 0.12s, color 0.12s, background 0.12s;
+    }
+
+    .sh-tpl:hover {
+      border-color: var(--accent);
+      color: var(--text);
+    }
+
+    .sh-tpl.active {
+      border-color: var(--accent);
+      background: color-mix(in srgb, var(--accent) 16%, transparent);
+      color: var(--text);
+    }
+
+    .sh-tpl-glyph {
+      font-size: 0.85rem;
+      line-height: 1;
+    }
+
+    .sh-tpl-name {
+      font-family: var(--font-mono);
+      font-size: 0.62rem;
+      letter-spacing: 0.04em;
+    }
+
+    .sh-swatch-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.35rem;
+    }
+
+    .sh-swatch {
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.3rem 0.5rem 0.3rem 0.35rem;
+      border: 1px solid var(--border2);
+      border-radius: 999px;
+      background: var(--bg3);
+      color: var(--text3);
+      cursor: pointer;
+      transition: border-color 0.12s, color 0.12s;
+    }
+
+    .sh-swatch:hover {
+      border-color: var(--accent);
+      color: var(--text);
+    }
+
+    .sh-swatch.active {
+      border-color: var(--accent);
+      color: var(--text);
+    }
+
+    .sh-swatch-dots {
+      display: inline-flex;
+      align-items: center;
+      flex-shrink: 0;
+    }
+
+    .sh-swatch-dot {
+      width: 13px;
+      height: 13px;
+      border-radius: 50%;
+      border: 1px solid var(--border2);
+      display: inline-block;
+    }
+
+    .sh-swatch-dot + .sh-swatch-dot {
+      margin-left: -5px;
+    }
+
+    .sh-swatch-name {
+      font-family: var(--font-mono);
+      font-size: 0.6rem;
+      letter-spacing: 0.03em;
+      white-space: nowrap;
+    }
+
+    .sh-seg {
+      display: flex;
+      gap: 0.3rem;
+      flex-wrap: wrap;
+    }
+
+    .sh-seg-btn {
+      flex: 1 1 auto;
+      min-width: 0;
+      padding: 0.4rem 0.5rem;
+      border: 1px solid var(--border2);
+      border-radius: 6px;
+      background: var(--bg3);
+      color: var(--text2);
+      font-family: var(--font-mono);
+      font-size: 0.62rem;
+      letter-spacing: 0.05em;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.12s;
+    }
+
+    .sh-seg-btn:hover {
+      border-color: var(--accent);
+      color: var(--text);
+    }
+
+    .sh-seg-btn.active {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: var(--on-accent);
+      font-weight: 700;
+    }
+
+    .sh-slider-row {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+    }
+
+    .sh-slider-row input[type="range"] {
+      flex: 1;
+      accent-color: var(--accent);
+      min-width: 0;
+    }
+
+    .sh-slider-val {
+      font-family: var(--font-mono);
+      font-size: 0.66rem;
+      color: var(--accent);
+      min-width: 44px;
+      text-align: right;
+    }
+
+    .sh-hint {
+      font-family: var(--font-mono);
+      font-size: 0.55rem;
+      letter-spacing: 0.05em;
+      color: var(--text3);
+    }
+
+    .sh-src-row {
+      display: flex;
+      align-items: center;
+      gap: 0.3rem;
+      flex-wrap: wrap;
+      padding-left: 22px;
+    }
+
+    .sh-src-label {
+      font-family: var(--font-mono);
+      font-size: 0.56rem;
+      color: var(--text3);
+      flex-shrink: 0;
+    }
+
+    .sh-mini-btn {
+      padding: 0.2rem 0.45rem;
+      border: 1px solid var(--border2);
+      border-radius: 5px;
+      background: var(--bg3);
+      color: var(--text3);
+      font-family: var(--font-mono);
+      font-size: 0.58rem;
+      cursor: pointer;
+      transition: all 0.12s;
+    }
+
+    .sh-mini-btn:hover {
+      border-color: var(--accent);
+      color: var(--text);
+    }
+
+    .sh-mini-btn.active {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: var(--on-accent);
+      font-weight: 700;
+    }
+
+    .sh-textarea {
+      width: 100%;
+      resize: vertical;
+      min-height: 56px;
+      max-height: 120px;
+      background: var(--bg3);
+      border: 1px solid var(--border2);
+      border-radius: 6px;
+      color: var(--text2);
+      font-family: var(--font-sans);
+      font-size: 0.74rem;
+      padding: 6px 8px;
+    }
+
     .ig-controls-panel {
       flex: 1;
       display: flex;
       flex-direction: column;
       gap: 1rem;
       min-width: 200px;
-    }
-
-    .ig-ctrl-group {
-      display: flex;
-      flex-direction: column;
-      gap: 0.4rem;
-    }
-
-    .ig-ctrl-group-title {
-      font-family: var(--font-mono);
-      font-size: 0.6rem;
-      letter-spacing: 0.15em;
-      color: var(--accent2);
-      text-transform: uppercase;
-      margin-bottom: 0.15rem;
-      border-bottom: 1px solid var(--border);
-      padding-bottom: 0.25rem;
     }
 
     .ig-ctrl-row {
@@ -6663,67 +6880,6 @@
       font-family: var(--font-sans);
       font-size: 0.78rem;
       color: var(--text2);
-    }
-
-    .ig-format-btns {
-      display: flex;
-      gap: 0.5rem;
-    }
-
-    .ig-minmax-btn {
-      flex: 1;
-      padding: 0.3rem 0.5rem;
-      background: var(--bg3);
-      border: 1px solid var(--border2);
-      color: var(--text3);
-      font-family: var(--font-mono);
-      font-size: 0.55rem;
-      letter-spacing: 0.08em;
-      border-radius: 3px;
-      cursor: pointer;
-      transition: all 0.12s;
-      font-weight: 700;
-    }
-
-    .ig-minmax-btn:hover {
-      border-color: var(--accent);
-      color: var(--text);
-    }
-
-    .ig-format-btn {
-      flex: 1;
-      padding: 0.45rem;
-      border: 1px solid var(--border2);
-      background: none;
-      color: var(--text2);
-      font-family: var(--font-mono);
-      font-size: 0.65rem;
-      letter-spacing: 0.06em;
-      border-radius: 4px;
-      cursor: pointer;
-      transition: all 0.12s;
-      text-align: center;
-    }
-
-    .ig-format-btn.active {
-      background: var(--accent);
-      color: var(--on-accent);
-      border-color: var(--accent);
-      font-weight: 700;
-    }
-
-    body.yellow .ig-format-btn.active {
-      color: #1a1600;
-    }
-
-    .ig-format-btn:not(.active):hover {
-      border-color: var(--accent);
-      color: var(--text);
-      font-weight: 700;
-    }
-
-    .ig-format-btn.active:hover {
-      font-weight: 900;
     }
 
     .ig-modal-mode-bar {
@@ -11281,6 +11437,10 @@
       .ig-preview-panel {
         width: 100%;
         align-items: center;
+      }
+
+      .ig-controls-panel .sh-group {
+        gap: 0.45rem;
       }
 
       .ig-controls-panel {

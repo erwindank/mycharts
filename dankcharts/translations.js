@@ -1223,6 +1223,21 @@ const TRANSLATIONS = {
     ig_plays_word: 'plays',
     ig_songs_word: 'songs',
     ig_personal_charts: 'PERSONAL MUSIC CHARTS',
+    // Share-image design system (templates / palettes / quality)
+    sh_design: 'Design',
+    sh_palette: 'Palette',
+    sh_quality: 'Quality',
+    sh_quality_std: 'Standard',
+    sh_quality_high: 'High',
+    sh_text_size: 'Text size',
+    sh_entries: 'Entries shown',
+    sh_entries_hint: '0 = use the current chart size',
+    sh_fmt_post: 'Post 1:1',
+    sh_fmt_portrait: 'Portrait 4:5',
+    sh_fmt_story: 'Story 9:16',
+    ig_album_art: 'Album Art',
+    ep_stats: 'Stat chips (weeks · peak · plays)',
+    ep_position_label: 'Position',
 
     // CR modal
     cr_chart_run: '📊 Chart Run',
@@ -1277,7 +1292,7 @@ const TRANSLATIONS = {
     // Entry post
     ep_chart_story: 'Chart Story Description',
     ep_artist_album: 'Artist / Album Info',
-    ep_movement_bl: 'Movement (Bottom Left)',
+    ep_movement_bl: 'Movement badge',
     ep_branding: 'Branding',
     ep_chart_name: 'Chart Name',
     ep_week_date: 'Week Date',
@@ -2729,6 +2744,21 @@ const TRANSLATIONS = {
     ig_plays_word: 'reprod.',
     ig_songs_word: 'canc.',
     ig_personal_charts: 'RANKINGS PERSONALES DE MÚSICA',
+    // Sistema de diseno de imagenes para compartir
+    sh_design: 'Diseño',
+    sh_palette: 'Paleta',
+    sh_quality: 'Calidad',
+    sh_quality_std: 'Estándar',
+    sh_quality_high: 'Alta',
+    sh_text_size: 'Tamaño de texto',
+    sh_entries: 'Entradas mostradas',
+    sh_entries_hint: '0 = usar el tamaño de ranking actual',
+    sh_fmt_post: 'Post 1:1',
+    sh_fmt_portrait: 'Vertical 4:5',
+    sh_fmt_story: 'Historia 9:16',
+    ig_album_art: 'Portada',
+    ep_stats: 'Chips de datos (sem. · pico · reprod.)',
+    ep_position_label: 'Posición',
 
     // CR modal
     cr_chart_run: '📊 Recorrido en el Ranking',
@@ -2783,7 +2813,7 @@ const TRANSLATIONS = {
     // Entry post
     ep_chart_story: 'Descripción de la Historia del Ranking',
     ep_artist_album: 'Info de Artista / Álbum',
-    ep_movement_bl: 'Movimiento (Abajo Izquierda)',
+    ep_movement_bl: 'Insignia de movimiento',
     ep_branding: 'Marca',
     ep_chart_name: 'Nombre del Ranking',
     ep_week_date: 'Fecha de Semana',
@@ -4225,6 +4255,21 @@ const TRANSLATIONS = {
     ig_plays_word: 'reprod.',
     ig_songs_word: 'canc.',
     ig_personal_charts: 'PARADAS MUSICAIS PESSOAIS',
+    // Sistema de design das imagens de compartilhamento
+    sh_design: 'Design',
+    sh_palette: 'Paleta',
+    sh_quality: 'Qualidade',
+    sh_quality_std: 'Padrão',
+    sh_quality_high: 'Alta',
+    sh_text_size: 'Tamanho do texto',
+    sh_entries: 'Entradas exibidas',
+    sh_entries_hint: '0 = usar o tamanho atual da parada',
+    sh_fmt_post: 'Post 1:1',
+    sh_fmt_portrait: 'Retrato 4:5',
+    sh_fmt_story: 'Story 9:16',
+    ig_album_art: 'Capa',
+    ep_stats: 'Chips de dados (sem. · pico · repr.)',
+    ep_position_label: 'Posição',
 
     // CR modal
     cr_chart_run: '📊 Trajetória na Parada',
@@ -4279,7 +4324,7 @@ const TRANSLATIONS = {
     // Entry post
     ep_chart_story: 'Descrição da História na Parada',
     ep_artist_album: 'Info de Artista / Álbum',
-    ep_movement_bl: 'Movimento (Inferior Esquerdo)',
+    ep_movement_bl: 'Selo de movimento',
     ep_branding: 'Marca',
     ep_chart_name: 'Nome da Parada',
     ep_week_date: 'Data da Semana',
@@ -5720,6 +5765,21 @@ const TRANSLATIONS = {
     ig_plays_word: 'reprod.',
     ig_songs_word: 'canc.',
     ig_personal_charts: 'TOPS PESSOAIS DE MÚSICA',
+    // Sistema de design das imagens de partilha
+    sh_design: 'Design',
+    sh_palette: 'Paleta',
+    sh_quality: 'Qualidade',
+    sh_quality_std: 'Padrão',
+    sh_quality_high: 'Alta',
+    sh_text_size: 'Tamanho do texto',
+    sh_entries: 'Entradas mostradas',
+    sh_entries_hint: '0 = usar o tamanho atual do top',
+    sh_fmt_post: 'Post 1:1',
+    sh_fmt_portrait: 'Retrato 4:5',
+    sh_fmt_story: 'Story 9:16',
+    ig_album_art: 'Capa',
+    ep_stats: 'Chips de dados (sem. · pico · repr.)',
+    ep_position_label: 'Posição',
 
     // CR modal
     cr_chart_run: '📊 Trajetória no Top',
@@ -5774,7 +5834,7 @@ const TRANSLATIONS = {
     // Entry post
     ep_chart_story: 'Descrição da História no Top',
     ep_artist_album: 'Info de Artista / Álbum',
-    ep_movement_bl: 'Movimento (Inferior Esquerdo)',
+    ep_movement_bl: 'Selo de movimento',
     ep_branding: 'Marca',
     ep_chart_name: 'Nome do Top',
     ep_week_date: 'Data da Semana',

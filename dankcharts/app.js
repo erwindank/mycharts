@@ -19224,6 +19224,332 @@ function exportChartData(type, format) {
   URL.revokeObjectURL(url);
 }
 
+// ─── SHARE CARD DESIGN SYSTEM ───────────────────────────────────
+// Every share card is laid out in a fixed 1080px-wide "design space", so the
+// numbers in the template builders below are real export pixels. The preview
+// just scales that node down; html2canvas captures it at 1× (1080px wide) or
+// 2× (2160px wide) depending on the chosen quality.
+//
+// A card is built from three pieces:
+//   1. a format   → SHARE_FORMATS   (canvas size)
+//   2. a palette  → SHARE_PALETTES  (colour tokens, independent of app theme)
+//   3. a template → SH_CHART_TEMPLATES / SH_ENTRY_TEMPLATES / SH_RUN_TEMPLATES
+// Templates only do layout — they never reach into app state, they get a
+// prepared context object. Adding a new design is therefore a self-contained
+// job: write one function, add one entry to the template list.
+
+const SHARE_FORMATS = {
+  post:     { w: 1080, h: 1080, ratio: '1:1' },
+  portrait: { w: 1080, h: 1350, ratio: '4:5' },
+  story:    { w: 1080, h: 1920, ratio: '9:16' },
+};
+function shDims(fmt) { return SHARE_FORMATS[fmt] || SHARE_FORMATS.post; }
+
+// Explicit font stacks — the html2canvas clone can't always resolve CSS vars.
+const SH_FONT = {
+  display: "'Bricolage Grotesque','IBM Plex Sans',system-ui,sans-serif",
+  sans: "'IBM Plex Sans',system-ui,sans-serif",
+  mono: "'JetBrains Mono',ui-monospace,'Cascadia Mono',monospace",
+};
+
+// Story format needs headroom for the Instagram/TikTok chrome at the top and
+// the reply bar at the bottom — keep content inside these safe insets.
+function shSafeTop(fmt) { return fmt === 'story' ? 190 : fmt === 'portrait' ? 70 : 64; }
+function shSafeBottom(fmt) { return fmt === 'story' ? 180 : fmt === 'portrait' ? 60 : 54; }
+
+// ─── COLOUR HELPERS ─────────────────────────────────────────────
+function _shHex(c) {
+  if (!c) return null;
+  c = String(c).trim();
+  if (c[0] === '#') {
+    if (c.length === 4) return '#' + c[1] + c[1] + c[2] + c[2] + c[3] + c[3];
+    if (c.length >= 7) return c.slice(0, 7);
+    return null;
+  }
+  const m = c.match(/rgba?\(\s*([\d.]+)[,\s]+([\d.]+)[,\s]+([\d.]+)/i);
+  if (m) return _shRgbHex(+m[1], +m[2], +m[3]);
+  return null;
+}
+function _shRgbHex(r, g, b) {
+  const h = v => Math.max(0, Math.min(255, Math.round(v))).toString(16).padStart(2, '0');
+  return '#' + h(r) + h(g) + h(b);
+}
+function _shRgb(hex) {
+  const h = _shHex(hex) || '#000000';
+  return [parseInt(h.slice(1, 3), 16), parseInt(h.slice(3, 5), 16), parseInt(h.slice(5, 7), 16)];
+}
+// Mix two colours — t=0 returns a, t=1 returns b.
+function _shMix(a, b, tt) {
+  const A = _shRgb(a), B = _shRgb(b);
+  return _shRgbHex(A[0] + (B[0] - A[0]) * tt, A[1] + (B[1] - A[1]) * tt, A[2] + (B[2] - A[2]) * tt);
+}
+// Same colour at a given alpha, as rgba() — used for hairlines, scrims, glows.
+function _shA(hex, a) {
+  const c = _shRgb(hex);
+  return `rgba(${c[0]},${c[1]},${c[2]},${a})`;
+}
+// Relative luminance (sRGB, gamma-corrected) — decides black-vs-white on a fill.
+function _shLum(hex) {
+  const [r, g, b] = _shRgb(hex).map(v => {
+    v /= 255;
+    return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4);
+  });
+  return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+}
+function _shOn(hex) { return _shLum(hex) > 0.45 ? '#0a0a0c' : '#ffffff'; }
+
+function _shRgbToHsl(r, g, b) {
+  r /= 255; g /= 255; b /= 255;
+  const mx = Math.max(r, g, b), mn = Math.min(r, g, b);
+  let h = 0, s = 0; const l = (mx + mn) / 2;
+  const d = mx - mn;
+  if (d) {
+    s = l > 0.5 ? d / (2 - mx - mn) : d / (mx + mn);
+    if (mx === r) h = ((g - b) / d + (g < b ? 6 : 0));
+    else if (mx === g) h = (b - r) / d + 2;
+    else h = (r - g) / d + 4;
+    h /= 6;
+  }
+  return [h, s, l];
+}
+function _shHslToHex(h, s, l) {
+  const f = n => {
+    const k = (n + h * 12) % 12;
+    const a = s * Math.min(l, 1 - l);
+    return Math.round(255 * (l - a * Math.max(-1, Math.min(k - 3, Math.min(9 - k, 1)))));
+  };
+  return _shRgbHex(f(0), f(8), f(4));
+}
+// Push a sampled artwork colour into a range that reads well as an accent:
+// enough saturation to feel deliberate, light enough to sit on a dark card.
+function _shVivid(hex) {
+  const rgb = _shRgb(hex);
+  const hsl = _shRgbToHsl(rgb[0], rgb[1], rgb[2]);
+  return _shHslToHex(hsl[0], Math.min(0.92, Math.max(0.55, hsl[1] * 1.25)), Math.min(0.72, Math.max(0.55, hsl[2])));
+}
+
+// ─── ARTWORK COLOUR SAMPLING ────────────────────────────────────
+// The "Cover" palette derives a whole card from the leading artwork. Sampling
+// is async (the image has to decode first), so results are memoised and the
+// card re-renders once a colour lands — templates only ever read the cache.
+const _shDomCache = {};
+function shDominant(url) { return url ? (_shDomCache[url] || null) : null; }
+
+async function shComputeDominant(url) {
+  if (!url || url in _shDomCache) return _shDomCache[url] || null;
+  _shDomCache[url] = null;
+  try {
+    const img = await _shLoadImage(url);
+    const N = 48;
+    const cv = document.createElement('canvas');
+    cv.width = cv.height = N;
+    const cx = cv.getContext('2d', { willReadFrequently: true });
+    cx.drawImage(img, 0, 0, N, N);
+    const d = cx.getImageData(0, 0, N, N).data;
+    // Bucket by hue (24 slices), weighted by saturation and mid-lightness — a
+    // muted-but-huge background then loses to a smaller, more characterful hue.
+    const bins = {};
+    for (let i = 0; i < d.length; i += 4) {
+      if (d[i + 3] < 128) continue;
+      const hsl = _shRgbToHsl(d[i], d[i + 1], d[i + 2]);
+      if (hsl[2] < 0.12 || hsl[2] > 0.93) continue;
+      const w = Math.pow(hsl[1], 1.5) * (1 - Math.abs(hsl[2] - 0.5) * 1.1);
+      if (w <= 0.01) continue;
+      const k = Math.round(hsl[0] * 24) % 24;
+      const b = bins[k] || (bins[k] = { w: 0, r: 0, g: 0, b: 0 });
+      b.w += w; b.r += d[i] * w; b.g += d[i + 1] * w; b.b += d[i + 2] * w;
+    }
+    let best = null;
+    for (const k in bins) if (!best || bins[k].w > best.w) best = bins[k];
+    if (!best) return (_shDomCache[url] = null);
+    _shDomCache[url] = _shVivid(_shRgbHex(best.r / best.w, best.g / best.w, best.b / best.w));
+  } catch (e) { _shDomCache[url] = null; }
+  return _shDomCache[url];
+}
+
+function _shLoadImage(url) {
+  return new Promise((res, rej) => {
+    const im = new Image();
+    im.crossOrigin = 'anonymous';
+    im.onload = () => res(im);
+    im.onerror = rej;
+    im.src = url;
+  });
+}
+
+// Pre-blurred artwork for the Poster backdrop. html2canvas can't rasterise a
+// CSS `filter: blur()`, so the blur is baked into a small data-URL image here.
+const _shBlurCache = {};
+function shBlurred(url) { return url ? (_shBlurCache[url] || null) : null; }
+async function shComputeBlur(url) {
+  if (!url || url in _shBlurCache) return _shBlurCache[url] || null;
+  _shBlurCache[url] = null;
+  try {
+    const img = await _shLoadImage(url);
+    const S = 320;
+    const cv = document.createElement('canvas');
+    cv.width = cv.height = S;
+    const cx = cv.getContext('2d');
+    cx.filter = 'blur(26px) saturate(155%)';
+    cx.drawImage(img, -S * 0.14, -S * 0.14, S * 1.28, S * 1.28);
+    _shBlurCache[url] = cv.toDataURL('image/jpeg', 0.88);
+  } catch (e) { _shBlurCache[url] = null; }
+  return _shBlurCache[url];
+}
+
+// ─── PALETTES ───────────────────────────────────────────────────
+// `app` mirrors the live theme; `cover` is generated from the artwork; the rest
+// are fixed, hand-tuned looks that stay put whatever theme the app is wearing.
+const SHARE_PALETTES = [
+  { id: 'app', name: 'App theme', chip: ['#173060', '#4aacff'] },
+  { id: 'onyx', name: 'Onyx', chip: ['#0a0a0c', '#f5f5f7'] },
+  { id: 'aurora', name: 'Aurora', chip: ['#0a1030', '#7c8cff'] },
+  { id: 'ember', name: 'Ember', chip: ['#150806', '#ff7a3d'] },
+  { id: 'bloom', name: 'Bloom', chip: ['#160a1c', '#f472b6'] },
+  { id: 'moss', name: 'Moss', chip: ['#061210', '#34d399'] },
+  { id: 'paper', name: 'Paper', chip: ['#f5f2ea', '#c2410c'] },
+  { id: 'cover', name: 'Cover', chip: ['#1a1a24', '#f472b6'] },
+];
+
+// Resolve a palette id into the token set every template reads.
+// coverHex: sampled artwork colour, only used by the `cover` palette.
+function shPalette(id, coverHex) {
+  const mk = (bg, bg2, text, dim, accent, opt) => {
+    const o = opt || {};
+    const dark = _shLum(bg) < 0.4;
+    return {
+      id, dark, bg, bg2,
+      bgImage: o.bgImage || `radial-gradient(120% 80% at 82% -12%, ${_shA(accent, dark ? 0.22 : 0.14)} 0%, transparent 58%)`,
+      panel: o.panel || (dark ? _shMix(bg, '#ffffff', 0.07) : _shMix(bg, '#000000', 0.05)),
+      text, dim,
+      faint: o.faint || _shMix(dim, bg, 0.45),
+      line: o.line || _shA(text, dark ? 0.12 : 0.14),
+      line2: o.line2 || _shA(text, dark ? 0.22 : 0.2),
+      accent,
+      onAccent: _shOn(accent),
+      glow: _shA(accent, dark ? 0.3 : 0.18),
+      gold: o.gold || (dark ? '#f2b544' : '#a97208'),
+      silver: o.silver || (dark ? '#c3ccd9' : '#6b7280'),
+      bronze: o.bronze || (dark ? '#d08a5c' : '#9a5b32'),
+      pos: o.pos || (dark ? '#3ddc97' : '#0f9d58'),
+      neg: o.neg || (dark ? '#ff6b81' : '#d93025'),
+    };
+  };
+
+  if (id === 'onyx') return mk('#0a0a0c', '#16161a', '#fafafa', '#8f8f99', '#ffffff', { bgImage: 'radial-gradient(100% 70% at 50% -20%, rgba(255,255,255,0.10) 0%, transparent 60%)' });
+  if (id === 'aurora') return mk('#070b1c', '#111a3e', '#f2f5ff', '#93a3cf', '#7c8cff', { bgImage: 'radial-gradient(110% 75% at 85% -10%, rgba(124,140,255,0.34) 0%, transparent 58%), radial-gradient(90% 60% at 5% 105%, rgba(56,189,248,0.22) 0%, transparent 60%)' });
+  if (id === 'ember') return mk('#120806', '#241009', '#fff4ec', '#c09384', '#ff7a3d', { bgImage: 'radial-gradient(110% 75% at 80% -12%, rgba(255,122,61,0.32) 0%, transparent 56%), radial-gradient(80% 55% at 0% 100%, rgba(244,63,94,0.20) 0%, transparent 58%)' });
+  if (id === 'bloom') return mk('#140819', '#261030', '#fdf2ff', '#bb9ccb', '#f472b6', { bgImage: 'radial-gradient(110% 75% at 78% -10%, rgba(244,114,182,0.32) 0%, transparent 58%), radial-gradient(85% 60% at 8% 104%, rgba(139,92,246,0.26) 0%, transparent 60%)' });
+  if (id === 'moss') return mk('#061210', '#0d211d', '#ecfdf5', '#84a89c', '#34d399', { bgImage: 'radial-gradient(110% 72% at 84% -10%, rgba(52,211,153,0.26) 0%, transparent 58%)' });
+  if (id === 'paper') return mk('#f5f2ea', '#ffffff', '#16130f', '#6d675c', '#c2410c', {
+    line: 'rgba(22,19,15,0.13)', line2: 'rgba(22,19,15,0.22)',
+    bgImage: 'radial-gradient(120% 80% at 85% -15%, rgba(194,65,12,0.10) 0%, transparent 55%)',
+  });
+  if (id === 'cover') {
+    const a = coverHex || '#7c8cff';
+    return mk(_shMix(a, '#06070b', 0.87), _shMix(a, '#0c0e14', 0.74), '#ffffff', _shMix(a, '#8f97ab', 0.55), a, {
+      bgImage: `radial-gradient(115% 78% at 82% -12%, ${_shA(a, 0.36)} 0%, transparent 58%), radial-gradient(85% 58% at 4% 104%, ${_shA(a, 0.2)} 0%, transparent 60%)`,
+    });
+  }
+  // `app` — follow whatever theme the app is on right now.
+  const c = igColors();
+  return mk(c.bg, c.bg3, c.text, c.text3, c.accent, {
+    panel: c.surface, line: _shA(c.border, 0.85), line2: c.border,
+    gold: c.gold1, pos: c.green, neg: c.rose,
+  });
+}
+
+// ─── SHARED CARD PRIMITIVES ─────────────────────────────────────
+// Small building blocks reused across every template so the designs speak one
+// visual language (chips, rank colours, brand lockup, artwork frames).
+
+// Some translated labels carry a decorative glyph ("◈ ALBUM", "📊 Chart Run").
+// The cards set their own typography, so strip the leading ornament.
+function _shPlain(str) { return String(str || '').replace(/^[^\p{L}\p{N}#]+/u, '').trim(); }
+
+function shRankColor(p, rank) {
+  return rank === 1 ? p.gold : rank === 2 ? p.silver : rank === 3 ? p.bronze : p.text;
+}
+
+// Pill used for peak / weeks / any short piece of metadata.
+function shChip(p, text, opt) {
+  const o = opt || {};
+  const fs = o.size || 22;
+  const col = o.color || p.dim;
+  const bg = o.bg || _shA(col, 0.13);
+  const bd = o.border || _shA(col, 0.32);
+  return `<span style="display:inline-block;font-family:${SH_FONT.mono};font-size:${fs}px;font-weight:600;color:${col};background:${bg};border:1px solid ${bd};border-radius:${Math.round(fs * 0.45)}px;padding:${Math.round(fs * 0.22)}px ${Math.round(fs * 0.5)}px;letter-spacing:0.06em;white-space:nowrap;line-height:1.1;">${text}</span>`;
+}
+
+// Peak chip — gold / silver / bronze for the podium, muted otherwise.
+function shPeakChip(p, peak, size) {
+  if (!peak) return '';
+  const col = peak === 1 ? p.gold : peak === 2 ? p.silver : peak === 3 ? p.bronze : p.dim;
+  return shChip(p, `${esc(t('peak_label'))} #${peak}`, { size: size || 20, color: col });
+}
+
+// Movement badge. `compact` renders just the arrow + delta, with no pill.
+function shMove(p, mv, size, compact) {
+  if (!mv || !mv.label) return '';
+  const col = mv.cls === 'up' ? p.pos : mv.cls === 'down' ? p.neg : mv.cls === 'new' ? p.accent : mv.cls === 're' ? p.gold : p.dim;
+  if (compact) {
+    return `<span style="font-family:${SH_FONT.mono};font-size:${size}px;font-weight:700;color:${col};letter-spacing:0.03em;white-space:nowrap;line-height:1;">${esc(mv.label)}</span>`;
+  }
+  return shChip(p, esc(mv.label), { size, color: col });
+}
+
+// Rounded artwork tile with a graceful initials fallback.
+function shArt(p, url, size, opt) {
+  const o = opt || {};
+  const r = o.radius != null ? o.radius : Math.round(size * 0.08);
+  const shadow = o.shadow === false ? '' : `,0 ${Math.round(size * 0.05)}px ${Math.round(size * 0.14)}px rgba(0,0,0,${p.dark ? 0.45 : 0.16})`;
+  const ring = `box-shadow:inset 0 0 0 1px ${p.line2}${shadow};`;
+  if (url) {
+    return `<div style="width:${size}px;height:${size}px;border-radius:${r}px;overflow:hidden;flex-shrink:0;${ring}background:${p.panel};">
+      <img src="${url}" width="${size}" height="${size}" style="width:${size}px;height:${size}px;object-fit:cover;display:block;">
+    </div>`;
+  }
+  return `<div style="width:${size}px;height:${size}px;border-radius:${r}px;flex-shrink:0;${ring}background:linear-gradient(145deg,${p.panel},${p.bg2});display:flex;align-items:center;justify-content:center;">
+    <span style="font-family:${SH_FONT.display};font-size:${Math.round(size * 0.3)}px;font-weight:700;color:${_shA(p.text, 0.35)};letter-spacing:0.02em;">${esc(o.initials || '♪')}</span>
+  </div>`;
+}
+
+// Bottom brand lockup. Every card ends with the same signature.
+function shFooter(p, fmt, opt) {
+  const o = opt || {};
+  if (o.show === false) return `<div style="flex-shrink:0;height:${shSafeBottom(fmt)}px;"></div>`;
+  const pad = o.padX != null ? o.padX : 72;
+  return `<div style="flex-shrink:0;padding:22px ${pad}px ${shSafeBottom(fmt)}px;display:flex;align-items:center;justify-content:space-between;gap:16px;">
+    <div style="display:flex;align-items:center;gap:10px;min-width:0;">
+      <span style="width:9px;height:9px;border-radius:50%;background:${p.accent};flex-shrink:0;"></span>
+      <span style="font-family:${SH_FONT.mono};font-size:20px;font-weight:600;letter-spacing:0.1em;color:${o.light ? p.text : p.dim};white-space:nowrap;">dankcharts.fm</span>
+    </div>
+    <span style="font-family:${SH_FONT.mono};font-size:17px;letter-spacing:0.18em;color:${_shA(o.light ? p.text : p.dim, 0.7)};text-transform:uppercase;white-space:nowrap;">${esc(t('ig_personal_charts'))}</span>
+  </div>`;
+}
+
+// Eyebrow: the tiny accent-coloured kicker at the very top of a card.
+function shEyebrow(p, text, opt) {
+  const o = opt || {};
+  return `<div style="display:flex;align-items:center;gap:12px;">
+    ${o.dot === false ? '' : `<span style="width:10px;height:10px;border-radius:50%;background:${p.accent};flex-shrink:0;"></span>`}
+    <span style="font-family:${SH_FONT.mono};font-size:${o.size || 21}px;font-weight:600;letter-spacing:0.26em;color:${o.color || p.accent};text-transform:uppercase;white-space:nowrap;overflow:hidden;">${esc(text)}</span>
+  </div>`;
+}
+
+// Clamp text to n lines without -webkit-line-clamp (the rasteriser ignores it)
+// — a hard max-height on a known line-height does the same job.
+function shClamp(lines, fontSize, lh) {
+  return `max-height:${Math.ceil(fontSize * (lh || 1.15) * lines)}px;overflow:hidden;`;
+}
+
+// The outermost card shell: fixed size, palette background, no scrollbars.
+function shShell(p, fmt, inner, opt) {
+  const o = opt || {};
+  const d = shDims(fmt);
+  return `<div style="width:${d.w}px;height:${d.h}px;position:relative;overflow:hidden;background:${o.bg || p.bg};${o.noBgImage ? '' : `background-image:${p.bgImage};`}background-repeat:no-repeat;font-family:${SH_FONT.sans};color:${p.text};display:flex;flex-direction:column;box-sizing:border-box;">${inner}</div>`;
+}
+
 // ─── SHARE AS IMAGE ─────────────────────────────────────────────
 function updateShareBtns() {
   const show = currentPeriod !== 'rawdata' && allPlays.length > 0;
@@ -19240,7 +19566,7 @@ function updateShareBtns() {
 // Collect current top N card data for a given type
 function getIgCardItems(type) {
   const items = fullData[type] || [];
-  const maxSize = isPaginated() ? Math.min(currentPeriod === 'year' ? chartSizeYearly : chartSizeAllTime, 20) : Math.min(chartSize, 20);
+  const maxSize = isPaginated() ? Math.min(currentPeriod === 'year' ? chartSizeYearly : chartSizeAllTime, 25) : Math.min(chartSize, 25);
   const size = (igOptions.topN > 0) ? Math.min(igOptions.topN, maxSize) : maxSize;
   return items.slice(0, size);
 }
@@ -19260,18 +19586,11 @@ function igMovement(rank, key, type) {
   return { label: (diff > 0 ? '▲' : '▼') + Math.abs(diff), cls: diff > 0 ? 'up' : 'down' };
 }
 
-// Build peak badge HTML for a card row — matches chart style
-function igPeak(key, type, peaks, fontSize) {
-  if (!peaks) return '';
+// Peak rank lookup for a chart row (0 when unknown)
+function igPeakOf(key, type, peaks) {
+  if (!peaks) return 0;
   const map = type === 'songs' ? peaks.songPeakMap : type === 'artists' ? peaks.artistPeakMap : peaks.albumPeakMap;
-  const peak = map && map[key];
-  if (!peak) return '';
-  const fs = fontSize + 'px'; // caller already computes the desired badge font size
-  const peakLabel = t('peak_label');
-  if (peak === 1) return `<span style="font-family:var(--font-mono);font-size:${fs};background:rgba(245,158,11,0.2);color:#f0aa30;padding:1px 5px;border-radius:3px;border:1px solid rgba(245,158,11,0.35);letter-spacing:0.05em;white-space:nowrap;">${peakLabel} #1</span>`;
-  if (peak === 2) return `<span style="font-family:var(--font-mono);font-size:${fs};background:rgba(148,163,184,0.2);color:#94a3b8;padding:1px 5px;border-radius:3px;border:1px solid rgba(148,163,184,0.35);letter-spacing:0.05em;white-space:nowrap;">${peakLabel} #2</span>`;
-  if (peak === 3) return `<span style="font-family:var(--font-mono);font-size:${fs};background:rgba(192,120,80,0.2);color:#c07850;padding:1px 5px;border-radius:3px;border:1px solid rgba(192,120,80,0.35);letter-spacing:0.05em;white-space:nowrap;">${peakLabel} #3</span>`;
-  return `<span style="font-family:var(--font-mono);font-size:${fs};background:rgba(255,255,255,0.08);color:#7aa0d0;padding:1px 5px;border-radius:3px;border:1px solid rgba(255,255,255,0.12);letter-spacing:0.05em;white-space:nowrap;">${peakLabel} #${peak}</span>`;
+  return (map && map[key]) || 0;
 }
 
 // Theme-aware color getter
@@ -19302,9 +19621,13 @@ function igColors() {
   };
 }
 
-// ─── IG PREVIEW STATE ───────────────────────────────────────────
+// ─── CHART SHARE STATE ──────────────────────────────────────────
 const igOptions = {
   format: 'post',
+  template: 'editorial',
+  palette: 'app',
+  textScale: 100,
+  quality: 2,
   showMovement: true,
   showPeak: true,
   showWeeks: true,
@@ -19312,29 +19635,35 @@ const igOptions = {
   showSubtitle: true,
   showDate: true,
   showFooter: true,
-  showArt: false,
+  showArt: true,
   artSource: 'deezer',
-  topN: 0,
+  topN: 10,
 };
 let igPreviewType = null;
 const igArtCache = {}; // `${key}:ig:${source}` → data URL or null
 
+const IG_SETTING_KEYS = ['format', 'template', 'palette', 'textScale', 'quality', 'showMovement', 'showPeak',
+  'showWeeks', 'showPlays', 'showSubtitle', 'showDate', 'showFooter', 'showArt', 'artSource', 'topN'];
+
 function saveIgSettings() {
   try {
-    localStorage.setItem('dc_igSettings', JSON.stringify({
-      format: igOptions.format, showMovement: igOptions.showMovement, showPeak: igOptions.showPeak,
-      showWeeks: igOptions.showWeeks, showPlays: igOptions.showPlays, showSubtitle: igOptions.showSubtitle,
-      showDate: igOptions.showDate, showFooter: igOptions.showFooter,
-      showArt: igOptions.showArt, artSource: igOptions.artSource, topN: igOptions.topN,
-    }));
+    const out = {};
+    IG_SETTING_KEYS.forEach(k => { out[k] = igOptions[k]; });
+    localStorage.setItem('dc_igSettings', JSON.stringify(out));
   } catch {}
 }
 
 function loadIgSettings() {
   try {
     const saved = JSON.parse(localStorage.getItem('dc_igSettings') || 'null');
-    if (saved && typeof saved === 'object') Object.assign(igOptions, saved);
+    if (saved && typeof saved === 'object') {
+      IG_SETTING_KEYS.forEach(k => { if (saved[k] !== undefined) igOptions[k] = saved[k]; });
+    }
   } catch {}
+  // Guard against ids written by an older build that no longer exist.
+  if (!SH_CHART_TEMPLATES[igOptions.template]) igOptions.template = 'editorial';
+  if (!SHARE_PALETTES.some(p => p.id === igOptions.palette)) igOptions.palette = 'app';
+  if (!SHARE_FORMATS[igOptions.format]) igOptions.format = 'post';
 }
 
 async function _igToDataUrl(url) {
@@ -19352,6 +19681,22 @@ async function _igToDataUrl(url) {
 
 const _IG_SOURCES = ['deezer', 'itunes', 'lastfm', 'youtube'];
 
+// Artwork from the search APIs comes back at whatever size the endpoint likes —
+// often 300px, which turns to mush inside a 1080px (or 2160px) card. Rewrite the
+// known CDN URL shapes to ask for the largest square they serve.
+function shHiResArt(url) {
+  if (!url) return url;
+  try {
+    // iTunes / Apple Music: .../100x100bb.jpg
+    if (/mzstatic\.com/.test(url)) return url.replace(/\/\d+x\d+bb(-\d+)?\.(jpg|png)/i, '/1200x1200bb.$2');
+    // Last.fm: /i/u/300x300/<hash> → /i/u/<hash> (original upload)
+    if (/lastfm.*\/i\/u\//.test(url)) return url.replace(/\/i\/u\/[^/]+\//, '/i/u/');
+    // Deezer already hands out cover_xl (1000px); normalise any smaller variant.
+    if (/dzcdn\.net/.test(url)) return url.replace(/\/\d+x\d+-/, '/1000x1000-');
+  } catch (e) {}
+  return url;
+}
+
 // Tries preferred source first, then rotates through remaining sources until one has art.
 async function _igFetchArtWithFallback(type, item, preferredSource) {
   const startIdx = Math.max(0, _IG_SOURCES.indexOf(preferredSource));
@@ -19363,14 +19708,14 @@ async function _igFetchArtWithFallback(type, item, preferredSource) {
       else if (type === 'artists') url = await getArtistImage(item.name, src);
       else url = await getAlbumImage(item.album, item.artist, src);
     } catch (e) {}
-    if (url) return url;
+    if (url) return shHiResArt(url);
   }
   return null;
 }
 
 async function prefetchIgArt(type) {
   const source = igOptions.artSource;
-  const items = (fullData[type] || []).slice(0, 20);
+  const items = getIgCardItems(type);
   await Promise.all(items.map(async item => {
     const itemKey = type === 'songs' ? songKey(item)
                   : type === 'artists' ? item.name
@@ -19380,240 +19725,388 @@ async function prefetchIgArt(type) {
     const url = await _igFetchArtWithFallback(type, item, source);
     igArtCache[ck] = url ? await _igToDataUrl(url) : null;
   }));
+  // The leading cover drives both the Cover palette and the Poster backdrop.
+  const hero = _igHeroArtUrl(type);
+  if (hero) await Promise.all([shComputeDominant(hero), shComputeBlur(hero)]);
   if (document.getElementById('igPreviewModal').classList.contains('open') && igPreviewType === type) {
     _renderIgPreview();
   }
+}
+
+function _igHeroArtUrl(type) {
+  const items = getIgCardItems(type);
+  if (!items.length) return null;
+  const it = items[0];
+  const k = type === 'songs' ? songKey(it) : type === 'artists' ? it.name : it.album + '|||' + it.artist;
+  return igArtCache[k + ':ig:' + (igOptions.artSource || 'deezer')] || null;
 }
 
 function setIgArtSource(src) {
   igOptions.artSource = src;
   document.querySelectorAll('.ig-art-src-btn').forEach(b => b.classList.toggle('active', b.dataset.src === src));
   saveIgSettings();
-  if (igOptions.showArt && igPreviewType) prefetchIgArt(igPreviewType);
+  if (igPreviewType) prefetchIgArt(igPreviewType);
 }
 
-function _renderIgPreview() {
-  if (!igPreviewType) return;
-  const isPost = igOptions.format === 'post';
-  const cardW = 540, cardH = isPost ? 540 : 960;
-  const scale = isPost ? 0.5 : 0.4;
-  const html = buildIgCardHTML(igPreviewType, igOptions);
-  if (!html) return;
-  const frame = document.getElementById('igPreviewFrame');
-  const inner = document.getElementById('igPreviewInner');
-  frame.style.width = Math.round(cardW * scale) + 'px';
-  frame.style.height = Math.round(cardH * scale) + 'px';
-  inner.innerHTML = html;
-  inner.style.width = cardW + 'px';
-  inner.style.height = cardH + 'px';
-  inner.style.transform = `scale(${scale})`;
-  inner.style.transformOrigin = 'top left';
-  const canvas = document.getElementById('igCardCanvas');
-  canvas.innerHTML = html;
-  canvas.style.width = cardW + 'px';
-  canvas.style.height = cardH + 'px';
-}
-
-function buildIgCardHTML(type, opts) {
-  const c = igColors();
-  const isPost = opts.format === 'post';
-  const cardW = 540;
-  const cardH = isPost ? 540 : 960;
+// ─── CHART CARD: DATA PREP ──────────────────────────────────────
+// Everything a chart-list template needs, resolved once, so templates stay pure
+// layout. Returns null when there is nothing to draw.
+function shChartContext(type, opts) {
   const items = getIgCardItems(type);
-  if (!items.length) return '';
+  if (!items.length) return null;
+  const fmt = SHARE_FORMATS[opts.format] ? opts.format : 'post';
+  const d = shDims(fmt);
   const n = items.length;
-  const { label, sub } = getDateRange();
+  const dr = getDateRange();
+  const typeWord = { songs: t('ig_type_songs'), artists: t('ig_type_artists'), albums: t('ig_type_albums') }[type];
 
-  // Period-aware titles (translated)
-  const typeWord = { songs: t('ig_type_songs'), artists: t('ig_type_artists'), albums: t('ig_type_albums') };
-  const typeIcon = { songs: '★', artists: '♦', albums: '◈' };
-  let cardTitle, periodLine;
-  if (currentPeriod === 'week') {
-    cardTitle = `TOP ${n} ${typeIcon[type]} ${typeWord[type]} ${t('ig_period_of_week')}`;
-    periodLine = sub || label;
-  } else if (currentPeriod === 'month') {
-    cardTitle = `TOP ${n} ${typeIcon[type]} ${typeWord[type]} ${t('ig_period_of_month')}`;
-    periodLine = label;
-  } else if (currentPeriod === 'year') {
-    cardTitle = `TOP ${n} ${typeIcon[type]} ${typeWord[type]} ${t('ig_period_of_year', { year: label })}`;
-    periodLine = label;
-  } else if (currentPeriod === 'alltime') {
-    cardTitle = `${t('ig_alltime_prefix')} TOP ${n} ${typeIcon[type]} ${typeWord[type]}`;
-    periodLine = t('ig_alltime_period');
-  } else {
-    cardTitle = `TOP ${n} ${typeIcon[type]} ${typeWord[type].toUpperCase()}`;
-    periodLine = sub || label;
-  }
+  // The headline splits in two so templates can set the second half in a
+  // lighter colour — "Top 10 Albums" / "of the Week".
+  let headline = `Top ${n} ${typeWord}`, kicker = '', dateLine = dr.sub || dr.label;
+  if (currentPeriod === 'week') { kicker = t('ig_period_of_week'); dateLine = dr.sub || dr.label; }
+  else if (currentPeriod === 'month') { kicker = t('ig_period_of_month'); dateLine = dr.label; }
+  else if (currentPeriod === 'year') { kicker = t('ig_period_of_year', { year: dr.label }); dateLine = dr.label; }
+  else if (currentPeriod === 'alltime') { kicker = t('ig_alltime_period'); dateLine = t('ig_alltime_period'); }
 
-  const headerH = isPost ? 90 : 168;
-  const footerH = opts.showFooter ? 36 : 0;
-  const rowH = Math.floor((cardH - headerH - footerH) / n);
-
-  // Per-element font size overrides (0 = Auto)
-  const _v = id => parseInt(document.getElementById(id)?.value || 0);
-  const autoBase = isPost ? Math.max(10, Math.min(14, rowH - 4)) : Math.max(12, Math.min(20, rowH - 6));
-  const rankFontSize    = _v('igRankSize')      || (autoBase + 2);
-  const titleFontSize   = _v('igTitleSize')     || autoBase;
-  const artistFontSize  = _v('igArtistSize')    || Math.max(6, titleFontSize - 2);
-  const songsCountFontSize = type === 'artists' ? (_v('igSongsCountSize') || Math.max(6, titleFontSize - 2)) : artistFontSize;
-  const peakFontSize    = _v('igPeakSize')      || Math.max(6, autoBase - 4);
-  const weeksFontSize   = _v('igWeeksSize')     || Math.max(6, autoBase - 3);
-  const playsFontSize   = _v('igPlaysSize')     || (autoBase - 1);
-  const topBrandSize    = _v('igTopBrandSize')  || (isPost ? 9 : 10);
-  const cardTitleSize   = _v('igCardTitleSize') || (isPost ? 20 : 26);
-  const dateFontSize    = _v('igDateSize')      || (isPost ? 10 : 11);
-  const bottomBrandSize = _v('igBottomBrandSize') || Math.max(7, topBrandSize - 1);
-
-  const moveCls = { up: c.green, down: c.rose, new: c.accent, re: c.amber, same: c.text3, '': c.text3 };
-  const headerPadding = isPost ? '14px 16px' : '62px 20px 16px';
-  const playsWord = t('ig_plays_word');
-  const songsWord = t('ig_songs_word');
-  const personalCharts = t('ig_personal_charts');
-
-  const thumbSz = opts.showArt ? Math.min(rowH - 6, 52) : 0;
-
+  const src = opts.artSource || 'deezer';
   const rows = items.map((item, i) => {
     const rank = i + 1;
     let key, name, sub2, songCount;
     if (type === 'songs') { key = songKey(item); name = item.title; sub2 = item.artist; songCount = null; }
     else if (type === 'artists') { key = item.name; name = item.name; sub2 = ''; songCount = item.songs ? item.songs.size : null; }
     else { key = item.album + '|||' + item.artist; name = item.album; sub2 = item.artist; songCount = null; }
-    const { label: mvLabel, cls: mvCls } = igMovement(rank, key, type);
-    const peak = igPeak(key, type, lastPeaks, peakFontSize);
     const weeks = lastPeriodStats ? (lastPeriodStats.periodsOnChart[type][key] || 1) : null;
-    const weeksLabel = weeks ? (weeks === 1 ? t('ig_week_1') : t('ig_weeks_n', { n: weeks })) : null;
-    const plays = item.count;
-    const rowBg = i % 2 === 0 ? c.bg2 : c.bg;
-    const rankColor = rank === 1 ? c.gold1 : rank === 2 ? c.text : rank === 3 ? c.amber : c.text3;
-    const moveColor = moveCls[mvCls] || c.text3;
-    const artDataUrl = opts.showArt ? (igArtCache[key + ':ig:' + (opts.artSource || 'deezer')] ?? null) : null;
-    const thumbHtml = opts.showArt
-      ? `<div style="width:${thumbSz}px;height:${thumbSz}px;border-radius:3px;overflow:hidden;flex-shrink:0;background:${c.bg3};display:flex;align-items:center;justify-content:center;">${
-          artDataUrl
-            ? `<img src="${artDataUrl}" width="${thumbSz}" height="${thumbSz}" style="object-fit:cover;display:block;">`
-            : `<div style="font-size:${Math.max(9, Math.floor(thumbSz / 2.5))}px;color:${c.text3};font-weight:700;">${esc((name[0] || '?').toUpperCase())}</div>`
-        }</div>`
-      : '';
-    return `<div style="display:flex;align-items:center;min-height:${rowH}px;padding:4px 10px;background:${rowBg};border-bottom:1px solid ${c.border};gap:6px;">
-      <div style="font-family:var(--font-mono);font-size:${rankFontSize}px;font-weight:700;color:${rankColor};min-width:28px;text-align:right;flex-shrink:0;">${rank}</div>
-      ${opts.showMovement ? `<div style="font-family:var(--font-mono);font-size:${Math.max(6,rankFontSize-3)}px;color:${moveColor};min-width:24px;text-align:center;line-height:1;flex-shrink:0;white-space:nowrap;">${mvLabel || '—'}</div>` : ''}
-      ${thumbHtml}
-      <div style="flex:1;min-width:0;">
-        <div style="font-family:var(--font-sans);font-size:${titleFontSize}px;font-weight:600;color:${c.text};white-space:normal;word-break:break-word;line-height:1.25;">${esc(name)}</div>
-        ${opts.showSubtitle && sub2 ? `<div style="font-family:var(--font-sans);font-size:${songsCountFontSize}px;color:${c.text3};white-space:normal;word-break:break-word;line-height:1.25;">${esc(sub2)}</div>` : ''}
-      </div>
-      ${opts.showSubtitle && songCount !== null ? `<div style="font-family:var(--font-mono);font-size:${songsCountFontSize}px;color:${c.text3};font-weight:600;white-space:nowrap;text-align:right;flex-shrink:0;">${songCount} <span style="font-size:${Math.max(5,songsCountFontSize-3)}px;font-weight:400;opacity:0.75;">${songsWord}</span></div>` : ''}
-      ${opts.showPeak && peak ? `<div style="flex-shrink:0;">${peak}</div>` : ''}
-      ${opts.showWeeks && weeksLabel ? `<div style="font-family:var(--font-mono);font-size:${weeksFontSize}px;color:${c.text3};white-space:nowrap;flex-shrink:0;">${weeksLabel}</div>` : ''}
-      ${opts.showPlays ? `<div style="font-family:var(--font-mono);font-size:${playsFontSize}px;color:${c.accent};font-weight:700;white-space:nowrap;min-width:40px;text-align:right;flex-shrink:0;">${plays} <span style="font-size:${Math.max(5,playsFontSize-3)}px;font-weight:400;opacity:0.75;">${playsWord}</span></div>` : ''}
-    </div>`;
-  }).join('');
+    return {
+      rank, key, name, sub: sub2, songCount,
+      plays: item.count,
+      weeks,
+      weeksLabel: weeks ? (weeks === 1 ? t('ig_week_1') : t('ig_weeks_n', { n: weeks })) : '',
+      peak: igPeakOf(key, type, lastPeaks),
+      mv: igMovement(rank, key, type),
+      art: opts.showArt ? (igArtCache[key + ':ig:' + src] || null) : null,
+    };
+  });
 
-  return `<div style="width:${cardW}px;height:${cardH}px;background:${c.bg};overflow:hidden;display:flex;flex-direction:column;font-family:var(--font-sans);">
-    <div style="background:linear-gradient(135deg,${c.bg3},${c.surface});padding:${headerPadding};border-bottom:2px solid ${c.accent};">
-      <div style="font-family:var(--font-mono);font-size:${topBrandSize}px;letter-spacing:0.2em;color:${c.accent};text-transform:uppercase;margin-bottom:4px;">dankcharts.fm</div>
-      <div style="font-family:var(--font-sans);font-size:${cardTitleSize}px;font-weight:700;color:${c.text};letter-spacing:-0.02em;line-height:1.15;">${esc(cardTitle)}</div>
-      ${opts.showDate ? `<div style="font-family:var(--font-mono);font-size:${dateFontSize}px;color:${c.text2};margin-top:4px;letter-spacing:0.05em;">${esc(periodLine)}</div>` : ''}
+  const heroArt = igArtCache[rows[0].key + ':ig:' + src] || null;
+  return {
+    type, opts, fmt, W: d.w, H: d.h, n,
+    p: shPalette(opts.palette, shDominant(heroArt)),
+    S: (opts.textScale || 100) / 100,
+    rows, heroArt,
+    headline, kicker, dateLine, typeWord,
+    playsWord: t('ig_plays_word'),
+    songsWord: t('ig_songs_word'),
+  };
+}
+
+// Text scaler — every type size in a template goes through this.
+function _shS(ctx, v) { return Math.max(8, Math.round(v * ctx.S)); }
+
+// ─── CHART CARD: TEMPLATES ──────────────────────────────────────
+
+// Masthead shared by the list-style templates.
+function _shChartHeader(ctx, opt) {
+  const o = opt || {};
+  const p = ctx.p, opts = ctx.opts;
+  const s = v => _shS(ctx, v);
+  const padX = o.padX != null ? o.padX : 72;
+  const big = o.titleSize || (ctx.fmt === 'story' ? 82 : ctx.fmt === 'portrait' ? 72 : 64);
+  return `<div style="flex-shrink:0;padding:${shSafeTop(ctx.fmt)}px ${padX}px ${o.padBottom || 34}px;">
+    ${shEyebrow(p, 'dankcharts.fm', { size: s(21), color: o.light ? p.text : p.accent })}
+    <div style="margin-top:${o.gap || 20}px;font-family:${SH_FONT.display};font-size:${s(big)}px;font-weight:700;line-height:1.0;color:${p.text};">
+      ${esc(ctx.headline)}${ctx.kicker ? `<span style="color:${_shA(p.text, 0.42)};"> ${esc(ctx.kicker)}</span>` : ''}
     </div>
-    <div style="flex:1;overflow:hidden;">${rows}</div>
-    ${opts.showFooter ? `<div style="padding:8px 12px;background:${c.bg3};border-top:1px solid ${c.border};display:flex;justify-content:space-between;align-items:center;">
-      <div style="font-family:var(--font-mono);font-size:${bottomBrandSize}px;color:${c.text3};letter-spacing:0.12em;">dankcharts.fm · ${personalCharts}</div>
-      <div style="font-family:var(--font-mono);font-size:8px;color:${c.accent};letter-spacing:0.08em;text-transform:uppercase;">${playsWord}</div>
+    ${opts.showDate && ctx.dateLine ? `<div style="margin-top:${Math.round((o.gap || 20) * 0.75)}px;display:flex;align-items:center;gap:14px;">
+      <span style="width:${s(46)}px;height:3px;background:${p.accent};border-radius:2px;flex-shrink:0;"></span>
+      <span style="font-family:${SH_FONT.mono};font-size:${s(22)}px;letter-spacing:0.16em;color:${p.dim};text-transform:uppercase;white-space:nowrap;">${esc(ctx.dateLine)}</span>
     </div>` : ''}
   </div>`;
 }
 
-function updateIgFontLabel() {
-  updateIgFontLabels();
+// Right-hand metric stack: the play count, with weeks/peak tucked underneath.
+function _shChartMetrics(ctx, r, opt) {
+  const o = opt || {};
+  const p = ctx.p, opts = ctx.opts;
+  const s = v => _shS(ctx, v);
+  const sub = [];
+  if (opts.showWeeks && r.weeksLabel) sub.push(esc(r.weeksLabel));
+  if (opts.showPeak && r.peak) sub.push(`${esc(t('peak_label'))} #${r.peak}`);
+  if (opts.showSubtitle && r.songCount != null) sub.push(`${r.songCount} ${esc(ctx.songsWord)}`);
+  if (!opts.showPlays && !sub.length) return '';
+  const size = o.size || 32;
+  return `<div style="flex-shrink:0;text-align:right;min-width:${o.minW || 150}px;">
+    ${opts.showPlays ? `<div style="font-family:${SH_FONT.mono};font-size:${s(size)}px;font-weight:700;color:${o.color || p.text};line-height:1;white-space:nowrap;">${r.plays.toLocaleString()}<span style="font-size:${s(size * 0.55)}px;font-weight:400;color:${p.dim};letter-spacing:0.04em;"> ${esc(ctx.playsWord)}</span></div>` : ''}
+    ${sub.length ? `<div style="margin-top:${s(8)}px;font-family:${SH_FONT.mono};font-size:${s(19)}px;color:${_shA(p.dim, 0.95)};letter-spacing:0.04em;white-space:nowrap;">${sub.join(' · ')}</div>` : ''}
+  </div>`;
 }
 
-function updateIgFontLabels() {
-  const pairs = [
-    ['igTopBrandSize', 'igTopBrandSizeLabel'],
-    ['igCardTitleSize', 'igCardTitleSizeLabel'],
-    ['igDateSize', 'igDateSizeLabel'],
-    ['igRankSize', 'igRankSizeLabel'],
-    ['igTitleSize', 'igTitleSizeLabel'],
-    ['igArtistSize', 'igArtistSizeLabel'],
-    ['igSongsCountSize', 'igSongsCountSizeLabel'],
-    ['igPeakSize', 'igPeakSizeLabel'],
-    ['igWeeksSize', 'igWeeksSizeLabel'],
-    ['igPlaysSize', 'igPlaysSizeLabel'],
-    ['igBottomBrandSize', 'igBottomBrandSizeLabel'],
-  ];
-  pairs.forEach(([sliderId, labelId]) => {
-    const val = parseInt(document.getElementById(sliderId)?.value || 0);
-    const lbl = document.getElementById(labelId);
-    if (lbl) lbl.textContent = val === 0 ? 'Auto' : val + 'px';
+const SH_CHART_TEMPLATES = {
+
+  // EDITORIAL — the default. Magazine masthead, airy rows, hairline rules.
+  editorial(ctx) {
+    const p = ctx.p, opts = ctx.opts, rows = ctx.rows, n = ctx.n;
+    const s = v => _shS(ctx, v);
+    const padX = 72;
+    const footerH = (opts.showFooter ? 42 : 0) + shSafeBottom(ctx.fmt);
+    const headH = shSafeTop(ctx.fmt) + s(ctx.fmt === 'story' ? 82 : ctx.fmt === 'portrait' ? 72 : 64) + (opts.showDate ? s(56) : 0) + s(34) + 34;
+    const rowH = Math.max(50, Math.floor((ctx.H - headH - footerH) / n));
+    const artSz = Math.max(36, Math.min(rowH - 16, ctx.fmt === 'post' ? 84 : 100));
+    const nameSize = Math.min(s(34), Math.round(rowH * 0.40));
+    const subSize = Math.max(11, Math.round(nameSize * 0.72));
+    const rankSize = Math.min(s(40), Math.round(rowH * 0.52));
+
+    const body = rows.map(r => `<div style="display:flex;align-items:center;gap:${Math.round(artSz * 0.2)}px;height:${rowH}px;border-top:1px solid ${p.line};padding:0 ${padX}px;box-sizing:border-box;">
+      <div style="flex-shrink:0;width:${s(64)}px;font-family:${SH_FONT.display};font-size:${rankSize}px;font-weight:700;color:${shRankColor(p, r.rank)};line-height:1;">${r.rank}</div>
+      ${opts.showMovement ? `<div style="flex-shrink:0;width:${s(60)}px;">${shMove(p, r.mv, s(19), true) || `<span style="font-family:${SH_FONT.mono};font-size:${s(19)}px;color:${_shA(p.dim, 0.5)};">—</span>`}</div>` : ''}
+      ${opts.showArt ? shArt(p, r.art, artSz, { initials: initials(r.name), radius: Math.round(artSz * 0.16) }) : ''}
+      <div style="flex:1;min-width:0;">
+        <div style="font-family:${SH_FONT.sans};font-size:${nameSize}px;font-weight:600;color:${p.text};line-height:1.12;${shClamp(opts.showSubtitle && r.sub ? 1 : 2, nameSize, 1.12)}">${esc(r.name)}</div>
+        ${opts.showSubtitle && r.sub ? `<div style="margin-top:${s(5)}px;font-family:${SH_FONT.sans};font-size:${subSize}px;color:${p.dim};line-height:1.15;${shClamp(1, subSize, 1.15)}">${esc(r.sub)}</div>` : ''}
+      </div>
+      ${_shChartMetrics(ctx, r, { minW: s(158) })}
+    </div>`).join('');
+
+    return shShell(p, ctx.fmt, `${_shChartHeader(ctx, { padX })}<div style="flex:1;min-height:0;border-bottom:1px solid ${p.line};">${body}</div>${shFooter(p, ctx.fmt, { show: opts.showFooter, padX })}`);
+  },
+
+  // MINIMAL — typography only. No artwork, no chips, maximum air.
+  minimal(ctx) {
+    const p = ctx.p, opts = ctx.opts, rows = ctx.rows, n = ctx.n;
+    const s = v => _shS(ctx, v);
+    const padX = 88;
+    const titleSize = ctx.fmt === 'story' ? 76 : 60;
+    const headH = shSafeTop(ctx.fmt) + s(titleSize) + (opts.showDate ? s(56) : 0) + s(34) + 40;
+    const footerH = (opts.showFooter ? 42 : 0) + shSafeBottom(ctx.fmt);
+    const rowH = Math.max(44, Math.floor((ctx.H - headH - footerH) / n));
+    const nameSize = Math.min(s(38), Math.round(rowH * 0.44));
+
+    const body = rows.map(r => `<div style="display:flex;align-items:center;gap:${s(26)}px;height:${rowH}px;padding:0 ${padX}px;box-sizing:border-box;border-top:1px solid ${p.line};">
+      <span style="flex-shrink:0;width:${s(54)}px;font-family:${SH_FONT.mono};font-size:${Math.round(nameSize * 0.6)}px;font-weight:500;color:${r.rank <= 3 ? p.accent : _shA(p.dim, 0.85)};letter-spacing:0.02em;">${String(r.rank).padStart(2, '0')}</span>
+      <div style="flex:1;min-width:0;">
+        <div style="font-family:${SH_FONT.sans};font-size:${nameSize}px;font-weight:500;color:${p.text};white-space:nowrap;overflow:hidden;line-height:1.2;">${esc(r.name)}</div>
+        ${opts.showSubtitle && r.sub ? `<div style="font-family:${SH_FONT.sans};font-size:${Math.round(nameSize * 0.58)}px;color:${p.dim};white-space:nowrap;overflow:hidden;line-height:1.25;">${esc(r.sub)}</div>` : ''}
+      </div>
+      ${opts.showMovement ? `<span style="flex-shrink:0;">${shMove(p, r.mv, s(18), true)}</span>` : ''}
+      ${opts.showPlays ? `<span style="flex-shrink:0;font-family:${SH_FONT.mono};font-size:${Math.round(nameSize * 0.66)}px;font-weight:600;color:${p.text};min-width:${s(86)}px;text-align:right;">${r.plays.toLocaleString()}</span>` : ''}
+    </div>`).join('');
+
+    return shShell(p, ctx.fmt, `${_shChartHeader(ctx, { padX, titleSize })}<div style="flex:1;min-height:0;border-bottom:1px solid ${p.line};">${body}</div>${shFooter(p, ctx.fmt, { show: opts.showFooter, padX })}`, { noBgImage: true });
+  },
+
+  // SPOTLIGHT — the #1 gets a hero block, everything else rides underneath.
+  spotlight(ctx) {
+    const p = ctx.p, opts = ctx.opts, rows = ctx.rows;
+    const s = v => _shS(ctx, v);
+    const padX = 64;
+    const hero = rows[0];
+    const rest = rows.slice(1);
+    const heroArt = ctx.fmt === 'story' ? 420 : ctx.fmt === 'portrait' ? 360 : 300;
+    const titleSize = ctx.fmt === 'story' ? 62 : 50;
+    const headH = shSafeTop(ctx.fmt) + s(titleSize) + (opts.showDate ? s(56) : 0) + s(26) + 26;
+    const footerH = (opts.showFooter ? 42 : 0) + shSafeBottom(ctx.fmt);
+    const restH = Math.max(0, ctx.H - headH - heroArt - s(34) - footerH);
+    const rowH = rest.length ? Math.max(42, Math.floor(restH / rest.length)) : 0;
+    const smallArt = Math.max(30, Math.min(rowH - 14, 74));
+    const nameSize = Math.min(s(30), Math.round(rowH * 0.40));
+
+    const heroBlock = `<div style="flex-shrink:0;padding:0 ${padX}px ${s(30)}px;display:flex;align-items:flex-end;gap:${s(30)}px;">
+      ${shArt(p, hero.art, heroArt, { initials: initials(hero.name), radius: 20 })}
+      <div style="flex:1;min-width:0;padding-bottom:${s(4)}px;">
+        <div style="font-family:${SH_FONT.display};font-size:${s(104)}px;font-weight:800;color:${p.accent};line-height:0.82;">#1</div>
+        <div style="margin-top:${s(16)}px;font-family:${SH_FONT.sans};font-size:${s(36)}px;font-weight:700;color:${p.text};line-height:1.1;${shClamp(2, s(36), 1.1)}">${esc(hero.name)}</div>
+        ${opts.showSubtitle && hero.sub ? `<div style="margin-top:${s(6)}px;font-family:${SH_FONT.sans};font-size:${s(25)}px;color:${p.dim};${shClamp(1, s(25), 1.2)}">${esc(hero.sub)}</div>` : ''}
+        <div style="margin-top:${s(16)}px;display:flex;flex-wrap:wrap;gap:${s(9)}px;">
+          ${opts.showPlays ? shChip(p, `${hero.plays.toLocaleString()} ${esc(ctx.playsWord)}`, { size: s(20), color: p.accent }) : ''}
+          ${opts.showWeeks && hero.weeksLabel ? shChip(p, esc(hero.weeksLabel), { size: s(20) }) : ''}
+          ${opts.showPeak && hero.peak ? shPeakChip(p, hero.peak, s(20)) : ''}
+          ${opts.showMovement ? shMove(p, hero.mv, s(20)) : ''}
+        </div>
+      </div>
+    </div>`;
+
+    const list = rest.map(r => `<div style="display:flex;align-items:center;gap:${s(20)}px;height:${rowH}px;padding:0 ${padX}px;box-sizing:border-box;border-top:1px solid ${p.line};">
+      <span style="flex-shrink:0;width:${s(44)}px;font-family:${SH_FONT.display};font-size:${Math.round(nameSize * 1.05)}px;font-weight:700;color:${shRankColor(p, r.rank)};">${r.rank}</span>
+      ${opts.showArt ? shArt(p, r.art, smallArt, { initials: initials(r.name), radius: Math.round(smallArt * 0.16), shadow: false }) : ''}
+      <div style="flex:1;min-width:0;">
+        <div style="font-family:${SH_FONT.sans};font-size:${nameSize}px;font-weight:600;color:${p.text};white-space:nowrap;overflow:hidden;line-height:1.2;">${esc(r.name)}</div>
+        ${opts.showSubtitle && r.sub ? `<div style="font-family:${SH_FONT.sans};font-size:${Math.round(nameSize * 0.68)}px;color:${p.dim};white-space:nowrap;overflow:hidden;line-height:1.25;">${esc(r.sub)}</div>` : ''}
+      </div>
+      ${opts.showMovement ? `<span style="flex-shrink:0;">${shMove(p, r.mv, s(18), true)}</span>` : ''}
+      ${opts.showPlays ? `<span style="flex-shrink:0;font-family:${SH_FONT.mono};font-size:${Math.round(nameSize * 0.76)}px;font-weight:700;color:${p.text};min-width:${s(78)}px;text-align:right;">${r.plays.toLocaleString()}</span>` : ''}
+    </div>`).join('');
+
+    return shShell(p, ctx.fmt, `${_shChartHeader(ctx, { padX, titleSize, padBottom: s(26) })}${heroBlock}<div style="flex:1;min-height:0;">${list}</div>${shFooter(p, ctx.fmt, { show: opts.showFooter, padX })}`);
+  },
+
+  // GRID — artwork first. Covers in a grid with the rank stamped on each tile.
+  grid(ctx) {
+    const p = ctx.p, opts = ctx.opts, rows = ctx.rows, n = ctx.n;
+    const s = v => _shS(ctx, v);
+    const padX = 56;
+    const gap = 18;
+    const capH = opts.showSubtitle ? s(72) : s(44);
+    // Tiles have to fit the column *and* the rows left over after the masthead,
+    // otherwise the last row falls off the bottom of the card.
+    const headH = shSafeTop(ctx.fmt) + s(ctx.fmt === 'story' ? 66 : 54) + (opts.showDate ? s(56) : 0) + s(28) + 28;
+    const footerH = (opts.showFooter ? 42 : 0) + shSafeBottom(ctx.fmt);
+    const availH = Math.max(160, ctx.H - headH - footerH);
+    let cols = 3, tile = 0;
+    for (let c = 2; c <= 5; c++) {
+      const rows = Math.ceil(n / c);
+      const byW = Math.floor((ctx.W - padX * 2 - gap * (c - 1)) / c);
+      const byH = Math.floor((availH - gap * (rows - 1)) / rows) - capH;
+      const fit = Math.min(byW, byH);
+      if (fit > tile) { tile = fit; cols = c; }
+    }
+    tile = Math.max(90, tile);
+
+    const tiles = rows.map(r => `<div style="width:${tile}px;">
+      <div style="position:relative;width:${tile}px;height:${tile}px;border-radius:${Math.round(tile * 0.07)}px;overflow:hidden;background:${p.panel};box-shadow:inset 0 0 0 1px ${p.line2};">
+        ${r.art ? `<img src="${r.art}" width="${tile}" height="${tile}" style="width:${tile}px;height:${tile}px;object-fit:cover;display:block;">`
+          : `<div style="width:${tile}px;height:${tile}px;display:flex;align-items:center;justify-content:center;font-family:${SH_FONT.display};font-size:${Math.round(tile * 0.26)}px;color:${_shA(p.text, 0.3)};">${esc(initials(r.name))}</div>`}
+        <div style="position:absolute;left:0;bottom:0;width:${tile}px;height:${Math.round(tile * 0.45)}px;background:linear-gradient(180deg,rgba(0,0,0,0),rgba(0,0,0,0.78));"></div>
+        <div style="position:absolute;left:${Math.round(tile * 0.06)}px;bottom:${Math.round(tile * 0.04)}px;font-family:${SH_FONT.display};font-size:${Math.round(tile * 0.26)}px;font-weight:800;color:#fff;line-height:0.95;text-shadow:0 2px 12px rgba(0,0,0,0.6);">${r.rank}</div>
+        ${opts.showPlays ? `<div style="position:absolute;right:${Math.round(tile * 0.06)}px;bottom:${Math.round(tile * 0.07)}px;font-family:${SH_FONT.mono};font-size:${Math.round(tile * 0.095)}px;font-weight:700;color:#fff;text-shadow:0 2px 10px rgba(0,0,0,0.7);">${r.plays.toLocaleString()}</div>` : ''}
+        ${opts.showMovement && r.mv.label ? `<div style="position:absolute;right:${Math.round(tile * 0.055)}px;top:${Math.round(tile * 0.055)}px;">${shMove(p, r.mv, Math.max(11, Math.round(tile * 0.082)))}</div>` : ''}
+      </div>
+      <div style="height:${capH}px;padding-top:${s(10)}px;overflow:hidden;">
+        <div style="font-family:${SH_FONT.sans};font-size:${s(21)}px;font-weight:600;color:${p.text};line-height:1.2;${shClamp(opts.showSubtitle && r.sub ? 1 : 2, s(21), 1.2)}">${esc(r.name)}</div>
+        ${opts.showSubtitle && r.sub ? `<div style="font-family:${SH_FONT.sans};font-size:${s(18)}px;color:${p.dim};line-height:1.2;${shClamp(1, s(18), 1.2)}">${esc(r.sub)}</div>` : ''}
+      </div>
+    </div>`).join('');
+
+    return shShell(p, ctx.fmt, `${_shChartHeader(ctx, { padX, titleSize: ctx.fmt === 'story' ? 66 : 54, padBottom: s(28) })}
+      <div style="flex:1;min-height:0;padding:0 ${padX}px;display:flex;flex-wrap:wrap;gap:${gap}px;align-content:center;justify-content:center;overflow:hidden;">${tiles}</div>
+      ${shFooter(p, ctx.fmt, { show: opts.showFooter, padX })}`);
+  },
+
+  // POSTER — the #1 artwork blown up and blurred behind the whole card.
+  poster(ctx) {
+    const p = ctx.p, opts = ctx.opts, rows = ctx.rows;
+    const s = v => _shS(ctx, v);
+    const padX = 68;
+    const blur = shBlurred(ctx.heroArt);
+    const scrim = p.dark
+      ? 'linear-gradient(180deg, rgba(4,5,8,0.38) 0%, rgba(4,5,8,0.74) 38%, rgba(4,5,8,0.94) 100%)'
+      : 'linear-gradient(180deg, rgba(250,248,244,0.48) 0%, rgba(250,248,244,0.86) 42%, rgba(250,248,244,0.97) 100%)';
+    const backdrop = `<div style="position:absolute;left:0;top:0;width:${ctx.W}px;height:${ctx.H}px;overflow:hidden;">
+      ${blur ? `<img src="${blur}" width="${ctx.W}" height="${ctx.H}" style="width:${ctx.W}px;height:${ctx.H}px;object-fit:cover;display:block;">` : `<div style="width:${ctx.W}px;height:${ctx.H}px;background:${p.bg2};"></div>`}
+      <div style="position:absolute;left:0;top:0;width:${ctx.W}px;height:${ctx.H}px;background:${scrim};"></div>
+    </div>`;
+
+    const titleSize = ctx.fmt === 'story' ? 76 : 62;
+    const headH = shSafeTop(ctx.fmt) + s(titleSize) + (opts.showDate ? s(50) : 0) + s(44) + 26;
+    const footerH = (opts.showFooter ? 42 : 0) + shSafeBottom(ctx.fmt);
+    const rowH = Math.max(44, Math.floor((ctx.H - headH - footerH) / rows.length));
+    const nameSize = Math.min(s(32), Math.round(rowH * 0.42));
+
+    const list = rows.map(r => `<div style="display:flex;align-items:center;gap:${s(22)}px;height:${rowH}px;padding:0 ${padX}px;box-sizing:border-box;border-top:1px solid ${_shA(p.text, 0.16)};">
+      <span style="flex-shrink:0;width:${s(58)}px;font-family:${SH_FONT.display};font-size:${Math.round(nameSize * 1.25)}px;font-weight:800;color:${r.rank === 1 ? p.accent : _shA(p.text, 0.85)};line-height:1;">${r.rank}</span>
+      <div style="flex:1;min-width:0;">
+        <div style="font-family:${SH_FONT.sans};font-size:${nameSize}px;font-weight:600;color:${p.text};white-space:nowrap;overflow:hidden;line-height:1.2;">${esc(r.name)}</div>
+        ${opts.showSubtitle && r.sub ? `<div style="font-family:${SH_FONT.sans};font-size:${Math.round(nameSize * 0.66)}px;color:${_shA(p.text, 0.62)};white-space:nowrap;overflow:hidden;line-height:1.25;">${esc(r.sub)}</div>` : ''}
+      </div>
+      ${opts.showMovement ? `<span style="flex-shrink:0;">${shMove(p, r.mv, s(18), true)}</span>` : ''}
+      ${opts.showPlays ? `<span style="flex-shrink:0;font-family:${SH_FONT.mono};font-size:${Math.round(nameSize * 0.72)}px;font-weight:700;color:${p.text};min-width:${s(82)}px;text-align:right;">${r.plays.toLocaleString()}</span>` : ''}
+    </div>`).join('');
+
+    const content = `<div style="position:relative;width:${ctx.W}px;height:${ctx.H}px;display:flex;flex-direction:column;box-sizing:border-box;">
+      <div style="flex-shrink:0;padding:${shSafeTop(ctx.fmt)}px ${padX}px ${s(26)}px;">
+        ${shEyebrow(p, 'dankcharts.fm', { size: s(21), color: p.text })}
+        <div style="margin-top:${s(18)}px;font-family:${SH_FONT.display};font-size:${s(titleSize)}px;font-weight:800;line-height:0.98;color:${p.text};${p.dark ? 'text-shadow:0 2px 24px rgba(0,0,0,0.5);' : ''}">${esc(ctx.headline)}${ctx.kicker ? `<span style="color:${_shA(p.text, 0.55)};"> ${esc(ctx.kicker)}</span>` : ''}</div>
+        ${opts.showDate && ctx.dateLine ? `<div style="margin-top:${s(14)}px;font-family:${SH_FONT.mono};font-size:${s(22)}px;letter-spacing:0.16em;color:${_shA(p.text, 0.72)};text-transform:uppercase;">${esc(ctx.dateLine)}</div>` : ''}
+      </div>
+      <div style="flex:1;min-height:0;">${list}</div>
+      ${shFooter(p, ctx.fmt, { show: opts.showFooter, padX, light: true })}
+    </div>`;
+
+    return shShell(p, ctx.fmt, backdrop + content, { noBgImage: true });
+  },
+};
+
+const SH_CHART_TEMPLATE_LIST = [
+  { id: 'editorial', name: 'Editorial', glyph: '▤' },
+  { id: 'minimal', name: 'Minimal', glyph: '≡' },
+  { id: 'spotlight', name: 'Spotlight', glyph: '◉' },
+  { id: 'grid', name: 'Grid', glyph: '▦' },
+  { id: 'poster', name: 'Poster', glyph: '◧' },
+];
+
+function buildIgCardHTML(type, opts) {
+  const ctx = shChartContext(type, opts);
+  if (!ctx) return '';
+  const tpl = SH_CHART_TEMPLATES[opts.template] || SH_CHART_TEMPLATES.editorial;
+  return tpl(ctx);
+}
+
+// ─── PREVIEW / EXPORT PLUMBING ──────────────────────────────────
+// Fit a 1080-wide design into whatever room the preview column has.
+function shFitPreview(frameId, innerId, fmt, html) {
+  const d = shDims(fmt);
+  const frame = document.getElementById(frameId);
+  const inner = document.getElementById(innerId);
+  if (!frame || !inner) return;
+  const availW = Math.max(180, (frame.parentElement ? frame.parentElement.clientWidth : 320) - 4);
+  const availH = Math.max(240, Math.min(window.innerHeight * 0.6, 640));
+  const scale = Math.min(availW / d.w, availH / d.h);
+  frame.style.width = Math.round(d.w * scale) + 'px';
+  frame.style.height = Math.round(d.h * scale) + 'px';
+  inner.innerHTML = html;
+  inner.style.width = d.w + 'px';
+  inner.style.height = d.h + 'px';
+  inner.style.transform = `scale(${scale})`;
+  inner.style.transformOrigin = 'top left';
+}
+
+// Capture a hidden 1080-wide node. `quality` is the pixel multiplier:
+// 1 → 1080px wide, 2 → 2160px wide.
+async function shCapture(nodeId, fmt, quality) {
+  const d = shDims(fmt);
+  try { await document.fonts.ready; } catch (e) {}
+  return html2canvas(document.getElementById(nodeId), {
+    scale: Math.max(1, Math.min(2, quality || 2)),
+    useCORS: true, allowTaint: false, backgroundColor: null, logging: false,
+    width: d.w, height: d.h, windowWidth: d.w, windowHeight: d.h,
+    imageTimeout: 0, scrollX: 0, scrollY: 0,
   });
 }
 
-function setAllIgFonts(mode) {
-  const sliders = [
-    { id: 'igTopBrandSize', max: 22 },
-    { id: 'igCardTitleSize', max: 40 },
-    { id: 'igDateSize', max: 20 },
-    { id: 'igRankSize', max: 32 },
-    { id: 'igTitleSize', max: 24 },
-    { id: 'igArtistSize', max: 24 },
-    { id: 'igSongsCountSize', max: 24 },
-    { id: 'igPeakSize', max: 20 },
-    { id: 'igWeeksSize', max: 20 },
-    { id: 'igPlaysSize', max: 22 },
-    { id: 'igBottomBrandSize', max: 22 },
-  ];
-  sliders.forEach(({ id, max }) => {
-    const el = document.getElementById(id);
-    if (el) el.value = mode === 'max' ? max : 0;
-  });
-  updateIgFontLabels();
-  updateIgPreview();
+function shCanvasBlob(cvs) {
+  return new Promise(res => cvs.toBlob(res, 'image/png'));
 }
 
+function _renderIgPreview() {
+  if (!igPreviewType) return;
+  const html = buildIgCardHTML(igPreviewType, igOptions);
+  if (!html) return;
+  shFitPreview('igPreviewFrame', 'igPreviewInner', igOptions.format, html);
+  const canvas = document.getElementById('igCardCanvas');
+  const d = shDims(igOptions.format);
+  canvas.innerHTML = html;
+  canvas.style.width = d.w + 'px';
+  canvas.style.height = d.h + 'px';
+}
+
+// ─── CHART SHARE MODAL ──────────────────────────────────────────
 function openIgPreviewModal(type) {
   loadIgSettings();
   igPreviewType = type;
-  const titleMap = { songs: `★ ${t('ig_type_songs')}`, artists: `♦ ${t('ig_type_artists')}`, albums: `◈ ${t('ig_type_albums')}` };
+  const titleMap = { songs: t('ig_type_songs'), artists: t('ig_type_artists'), albums: t('ig_type_albums') };
   document.getElementById('igPreviewTitle').textContent = t('ig_share_title') + ' — ' + titleMap[type];
-  // Reset font sliders to Auto (0) — not persisted
-  ['igTopBrandSize','igCardTitleSize','igDateSize','igRankSize','igTitleSize','igArtistSize',
-   'igSongsCountSize','igPeakSize','igWeeksSize','igPlaysSize','igBottomBrandSize'].forEach(id => {
-    const el = document.getElementById(id);
-    if (el) el.value = 0;
-  });
-  // Update title label and artist row visibility based on chart type
-  const titleNameLabelEl = document.getElementById('igTitleNameLabel');
-  const artistRowEl = document.getElementById('igArtistSizeRow');
-  const songsCountRowEl = document.getElementById('igSongsCountSizeRow');
-  if (type === 'artists') {
-    if (titleNameLabelEl) titleNameLabelEl.textContent = t('ig_artist_size');
-    if (artistRowEl) artistRowEl.style.display = 'none';
-    if (songsCountRowEl) songsCountRowEl.style.display = 'flex';
-  } else {
-    const titleKey = type === 'albums' ? 'ig_title_size_albums' : 'ig_title_size_songs';
-    if (titleNameLabelEl) titleNameLabelEl.textContent = t(titleKey);
-    if (artistRowEl) artistRowEl.style.display = 'flex';
-    if (songsCountRowEl) songsCountRowEl.style.display = 'none';
-  }
-  updateIgFontLabels();
-  // Sync checkboxes (includes showArt)
+  shRenderDesignPickers('ig');
   ['showMovement', 'showPeak', 'showWeeks', 'showPlays', 'showSubtitle', 'showDate', 'showFooter', 'showArt'].forEach(k => {
     const el = document.getElementById('igOpt_' + k);
     if (el) el.checked = igOptions[k];
   });
-  // Sync art source buttons
   document.querySelectorAll('.ig-art-src-btn').forEach(b => b.classList.toggle('active', b.dataset.src === igOptions.artSource));
-  // Sync topN slider
   const topNEl = document.getElementById('igTopN');
-  if (topNEl) {
-    topNEl.value = igOptions.topN;
-    const topNLabel = document.getElementById('igTopNLabel');
-    if (topNLabel) topNLabel.textContent = igOptions.topN > 0 ? igOptions.topN : 'Auto';
-  }
-  setIgFormat(igOptions.format);
-  if (igOptions.showArt) prefetchIgArt(type);
-  updateIgPreview();
+  if (topNEl) topNEl.value = igOptions.topN || 10;
+  const tsEl = document.getElementById('igTextScale');
+  if (tsEl) tsEl.value = igOptions.textScale || 100;
+  shSyncIgLabels();
   document.getElementById('igPreviewModal').classList.add('open');
+  prefetchIgArt(type);
+  updateIgPreview();
 }
 
 function closeIgPreviewModal() {
@@ -19623,75 +20116,95 @@ function closeIgPreviewModal() {
 
 function setIgFormat(fmt) {
   igOptions.format = fmt;
-  document.getElementById('igFmtPost').classList.toggle('active', fmt === 'post');
-  document.getElementById('igFmtStory').classList.toggle('active', fmt === 'story');
+  document.querySelectorAll('#igFormatBtns .sh-seg-btn').forEach(b => b.classList.toggle('active', b.dataset.fmt === fmt));
+  saveIgSettings();
   updateIgPreview();
+}
+
+function setIgTemplate(id) {
+  igOptions.template = id;
+  document.querySelectorAll('#igTemplateRow .sh-tpl').forEach(b => b.classList.toggle('active', b.dataset.tpl === id));
+  saveIgSettings();
+  updateIgPreview();
+}
+
+function setIgPalette(id) {
+  igOptions.palette = id;
+  document.querySelectorAll('#igPaletteRow .sh-swatch').forEach(b => b.classList.toggle('active', b.dataset.pal === id));
+  saveIgSettings();
+  updateIgPreview();
+}
+
+function setIgQuality(q) {
+  igOptions.quality = q;
+  document.querySelectorAll('#igQualityBtns .sh-seg-btn').forEach(b => b.classList.toggle('active', +b.dataset.q === q));
+  saveIgSettings();
+  shSyncIgLabels();
+}
+
+function shSyncIgLabels() {
+  const n = document.getElementById('igTopNLabel');
+  if (n) n.textContent = igOptions.topN > 0 ? igOptions.topN : 'Auto';
+  const ts = document.getElementById('igTextScaleLabel');
+  if (ts) ts.textContent = (igOptions.textScale || 100) + '%';
+  const q = document.getElementById('igQualityNote');
+  if (q) {
+    const d = shDims(igOptions.format);
+    const m = Math.max(1, Math.min(2, igOptions.quality || 2));
+    q.textContent = `${d.w * m} × ${d.h * m} px`;
+  }
 }
 
 function updateIgPreview() {
   if (!igPreviewType) return;
-  // Read checkboxes
   ['showMovement', 'showPeak', 'showWeeks', 'showPlays', 'showSubtitle', 'showDate', 'showFooter', 'showArt'].forEach(k => {
     const el = document.getElementById('igOpt_' + k);
     if (el) igOptions[k] = el.checked;
   });
-  // Read topN slider
   const topNEl = document.getElementById('igTopN');
-  if (topNEl) {
-    igOptions.topN = parseInt(topNEl.value) || 0;
-    const topNLabel = document.getElementById('igTopNLabel');
-    if (topNLabel) topNLabel.textContent = igOptions.topN > 0 ? igOptions.topN : 'Auto';
-  }
+  if (topNEl) igOptions.topN = parseInt(topNEl.value) || 0;
+  const tsEl = document.getElementById('igTextScale');
+  if (tsEl) igOptions.textScale = parseInt(tsEl.value) || 100;
+  shSyncIgLabels();
   saveIgSettings();
-  // Kick off art prefetch when enabled (renders again when done)
-  if (igOptions.showArt) prefetchIgArt(igPreviewType);
+  if (igOptions.showArt || igOptions.palette === 'cover' || igOptions.template === 'poster') prefetchIgArt(igPreviewType);
   _renderIgPreview();
 }
 
-function downloadIgFromPreview() {
+function _igFileName(ext) {
+  const dr = getDateRange();
+  const typeLabel = { songs: 'Songs', artists: 'Artists', albums: 'Albums' }[igPreviewType] || 'Chart';
+  const periodSlug = (currentPeriod === 'alltime') ? 'AllTime' : (dr.sub || dr.label).replace(/[^a-z0-9]/gi, '').slice(0, 20);
+  return `dankcharts_${typeLabel}_${periodSlug}_${igOptions.template}_${igOptions.format}.${ext || 'png'}`;
+}
+
+async function downloadIgFromPreview() {
   const btn = document.getElementById('igDownloadBtn');
-  const origText = btn.textContent;
-  btn.textContent = '⏳ Generating…';
-  btn.disabled = true;
-  const isPost = igOptions.format === 'post';
-  const cardW = 540, cardH = isPost ? 540 : 960;
-  const canvas = document.getElementById('igCardCanvas');
-  const { label, sub } = getDateRange();
-  const typeLabel = { songs: 'Songs', artists: 'Artists', albums: 'Albums' }[igPreviewType];
-  const periodSlug = (currentPeriod === 'alltime') ? 'AllTime' : (sub || label).replace(/[^a-z0-9]/gi, '').slice(0, 20);
-  html2canvas(canvas, {
-    scale: 2, useCORS: false, allowTaint: true, backgroundColor: null, logging: false, width: cardW, height: cardH,
-  }).then(cvs => {
-    const link = document.createElement('a');
-    link.download = `dankcharts_${typeLabel}_${periodSlug}_${igOptions.format}.png`;
-    link.href = cvs.toDataURL('image/png');
-    link.click();
-    btn.textContent = origText;
-    btn.disabled = false;
-  }).catch(() => {
-    btn.textContent = origText;
-    btn.disabled = false;
-  });
+  const orig = btn.textContent;
+  btn.textContent = '⏳ …'; btn.disabled = true;
+  try {
+    const cvs = await shCapture('igCardCanvas', igOptions.format, igOptions.quality);
+    const a = document.createElement('a');
+    a.download = _igFileName('png');
+    a.href = cvs.toDataURL('image/png');
+    a.click();
+  } catch (e) { console.error('Share image failed:', e); }
+  btn.textContent = orig; btn.disabled = false;
 }
 
 async function copyIgFromPreview() {
   if (!navigator.clipboard?.write) { downloadIgFromPreview(); return; }
   const btn = document.getElementById('igCopyBtn');
   const orig = btn.textContent;
-  btn.textContent = '⏳…';
-  btn.disabled = true;
+  btn.textContent = '⏳…'; btn.disabled = true;
   try {
-    const isPost = igOptions.format === 'post';
-    const cardW = 540, cardH = isPost ? 540 : 960;
-    const canvas = document.getElementById('igCardCanvas');
-    const cvs = await html2canvas(canvas, { scale: 2, useCORS: false, allowTaint: true, backgroundColor: null, logging: false, width: cardW, height: cardH });
-    const blob = await new Promise(res => cvs.toBlob(res, 'image/png'));
+    const cvs = await shCapture('igCardCanvas', igOptions.format, igOptions.quality);
+    const blob = await shCanvasBlob(cvs);
     await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
     btn.textContent = '✓ Copied!';
-    setTimeout(() => { btn.textContent = orig; btn.disabled = false; }, 2000);
-  } catch {
-    btn.textContent = orig;
-    btn.disabled = false;
+    setTimeout(() => { btn.textContent = orig; btn.disabled = false; }, 1800);
+  } catch (e) {
+    btn.textContent = orig; btn.disabled = false;
     downloadIgFromPreview();
   }
 }
@@ -19699,16 +20212,11 @@ async function copyIgFromPreview() {
 async function shareIgNative() {
   const btn = document.getElementById('igShareNativeBtn');
   const orig = btn.textContent;
-  btn.textContent = '⏳…';
-  btn.disabled = true;
+  btn.textContent = '⏳…'; btn.disabled = true;
   try {
-    const isPost = igOptions.format === 'post';
-    const cardW = 540, cardH = isPost ? 540 : 960;
-    const canvas = document.getElementById('igCardCanvas');
-    const cvs = await html2canvas(canvas, { scale: 2, useCORS: false, allowTaint: true, backgroundColor: null, logging: false, width: cardW, height: cardH });
-    const blob = await new Promise(res => cvs.toBlob(res, 'image/png'));
-    const typeLabel = { songs: 'Songs', artists: 'Artists', albums: 'Albums' }[igPreviewType] || 'Chart';
-    const file = new File([blob], `dankcharts_${typeLabel}.png`, { type: 'image/png' });
+    const cvs = await shCapture('igCardCanvas', igOptions.format, igOptions.quality);
+    const blob = await shCanvasBlob(cvs);
+    const file = new File([blob], _igFileName('png'), { type: 'image/png' });
     if (navigator.canShare?.({ files: [file] })) {
       await navigator.share({ files: [file], title: 'dankcharts.fm' });
     } else {
@@ -19717,17 +20225,93 @@ async function shareIgNative() {
       link.href = URL.createObjectURL(blob);
       link.click();
     }
-  } catch {}
-  btn.textContent = orig;
-  btn.disabled = false;
+  } catch (e) {}
+  btn.textContent = orig; btn.disabled = false;
+}
+
+// ─── DESIGN PICKER UI (shared by all three share panels) ────────
+// `scope` is the id prefix: 'ig' (charts), 'cr' (chart run), 'ep' (entry post).
+// Each scope points at its own template list and its own slice of state, so one
+// renderer paints the design chips, palette swatches, format and quality rows.
+const SH_SCOPES = {
+  ig: { templates: () => SH_CHART_TEMPLATE_LIST, get: () => igOptions, setTpl: 'setIgTemplate', setPal: 'setIgPalette' },
+  cr: { templates: () => SH_RUN_TEMPLATE_LIST, get: () => crIgState.run, setTpl: 'setCrTemplate', setPal: 'setCrPalette' },
+  ep: { templates: () => SH_ENTRY_TEMPLATE_LIST, get: () => crIgState.ent, setTpl: 'setEpTemplate', setPal: 'setEpPalette' },
+};
+
+function shRenderDesignPickers(scope) {
+  const cfg = SH_SCOPES[scope];
+  if (!cfg) return;
+  const state = cfg.get();
+  const tplRow = document.getElementById(scope + 'TemplateRow');
+  if (tplRow) {
+    tplRow.innerHTML = cfg.templates().map(tp =>
+      `<button class="sh-tpl${tp.id === state.template ? ' active' : ''}" data-tpl="${esc(tp.id)}" onclick="${cfg.setTpl}('${esc(tp.id)}')" title="${esc(tp.name)}">
+         <span class="sh-tpl-glyph">${tp.glyph}</span><span class="sh-tpl-name">${esc(tp.name)}</span>
+       </button>`).join('');
+  }
+  const palRow = document.getElementById(scope + 'PaletteRow');
+  if (palRow) {
+    palRow.innerHTML = SHARE_PALETTES.map(pl =>
+      `<button class="sh-swatch${pl.id === state.palette ? ' active' : ''}" data-pal="${esc(pl.id)}" onclick="${cfg.setPal}('${esc(pl.id)}')" title="${esc(pl.name)}">
+         <span class="sh-swatch-dots"><span class="sh-swatch-dot" style="background:${pl.chip[0]};"></span><span class="sh-swatch-dot" style="background:${pl.chip[1]};"></span></span>
+         <span class="sh-swatch-name">${esc(pl.name)}</span>
+       </button>`).join('');
+  }
+  const fmtRow = document.getElementById(scope + 'FormatBtns');
+  if (fmtRow) fmtRow.querySelectorAll('.sh-seg-btn').forEach(b => b.classList.toggle('active', b.dataset.fmt === state.format));
+  const qRow = document.getElementById(scope + 'QualityBtns');
+  if (qRow) qRow.querySelectorAll('.sh-seg-btn').forEach(b => b.classList.toggle('active', +b.dataset.q === (state.quality || 2)));
 }
 
 document.getElementById('igPreviewModal').addEventListener('click', e => {
   if (e.target === document.getElementById('igPreviewModal')) closeIgPreviewModal();
 });
 
-// ─── CHART RUN SHARE IMAGE ──────────────────────────────────────
-let crIgState = { type: null, key: null, rank: 0, format: 'post', rangeMode: 'now', imgUrl: null, imgSource: 'deezer', entPostImgUrl: null, entPostImgSource: 'deezer', mode: 'chartrun', viewedYear: null, cutoffKeys: null, entPostDescMode: 'auto', entPostDescCustom: '', entPostDescVariant: 0 };
+// ─── CHART RUN & ENTRY SHARE IMAGE ──────────────────────────────
+// Both live in the same modal (two tabs), so they share state, artwork
+// fetching and export plumbing but keep separate design settings — the look you
+// pick for a chart run shouldn't overwrite the look you picked for an entry.
+let crIgState = {
+  type: null, key: null, rank: 0, mode: 'chartrun',
+  rangeMode: 'now', period: null, viewedYear: null, cutoffKeys: null,
+  imgUrl: null, imgSource: 'deezer',
+  entPostImgUrl: null, entPostImgSource: 'deezer',
+  entPostDescMode: 'auto', entPostDescCustom: '', entPostDescVariant: 0,
+  run: { template: 'timeline', palette: 'app', format: 'post', textScale: 100, quality: 2 },
+  ent: { template: 'cover', palette: 'cover', format: 'story', textScale: 100, quality: 2 },
+};
+
+const CR_DESIGN_KEYS = ['template', 'palette', 'format', 'textScale', 'quality'];
+
+function saveCrIgSettings() {
+  try {
+    const pick = o => { const r = {}; CR_DESIGN_KEYS.forEach(k => { r[k] = o[k]; }); return r; };
+    localStorage.setItem('dc_crIgSettings', JSON.stringify({ run: pick(crIgState.run), ent: pick(crIgState.ent) }));
+  } catch {}
+}
+
+function loadCrIgSettings() {
+  try {
+    const saved = JSON.parse(localStorage.getItem('dc_crIgSettings') || 'null');
+    if (saved && typeof saved === 'object') {
+      ['run', 'ent'].forEach(g => {
+        if (!saved[g]) return;
+        CR_DESIGN_KEYS.forEach(k => { if (saved[g][k] !== undefined) crIgState[g][k] = saved[g][k]; });
+      });
+    }
+  } catch {}
+  // Drop ids written by an older build.
+  if (!SH_RUN_TEMPLATES[crIgState.run.template]) crIgState.run.template = 'timeline';
+  if (!SH_ENTRY_TEMPLATES[crIgState.ent.template]) crIgState.ent.template = 'cover';
+  ['run', 'ent'].forEach(g => {
+    if (!SHARE_PALETTES.some(p => p.id === crIgState[g].palette)) crIgState[g].palette = 'app';
+    if (!SHARE_FORMATS[crIgState[g].format]) crIgState[g].format = 'post';
+  });
+}
+
+// Design state for whichever tab is showing.
+function crDesign() { return crIgState.mode === 'entrypost' ? crIgState.ent : crIgState.run; }
 
 function setCrIgMode(mode) {
   crIgState.mode = mode;
@@ -19735,13 +20319,35 @@ function setCrIgMode(mode) {
   document.getElementById('crIgModeEntry').classList.toggle('active', mode === 'entrypost');
   document.getElementById('crIgChartRunControls').style.display = mode === 'chartrun' ? '' : 'none';
   document.getElementById('crIgEntryControls').style.display = mode === 'entrypost' ? '' : 'none';
-  // Keep format buttons in sync across both panels
-  const fmt = crIgState.format;
-  document.getElementById('entPostFmtPost').classList.toggle('active', fmt === 'post');
-  document.getElementById('entPostFmtStory').classList.toggle('active', fmt === 'story');
+  shRenderDesignPickers(mode === 'entrypost' ? 'ep' : 'cr');
+  shSyncCrLabels();
   updateCrIgPreview();
 }
 
+// ─── DESIGN SETTERS (one pair per tab) ──────────────────────────
+function setCrTemplate(id) { crIgState.run.template = id; shRenderDesignPickers('cr'); saveCrIgSettings(); updateCrIgPreview(); }
+function setCrPalette(id) { crIgState.run.palette = id; shRenderDesignPickers('cr'); saveCrIgSettings(); updateCrIgPreview(); }
+function setCrFormat(fmt) { crIgState.run.format = fmt; shRenderDesignPickers('cr'); saveCrIgSettings(); updateCrIgPreview(); }
+function setCrQuality(q) { crIgState.run.quality = q; shRenderDesignPickers('cr'); saveCrIgSettings(); shSyncCrLabels(); }
+function setEpTemplate(id) { crIgState.ent.template = id; shRenderDesignPickers('ep'); saveCrIgSettings(); updateCrIgPreview(); }
+function setEpPalette(id) { crIgState.ent.palette = id; shRenderDesignPickers('ep'); saveCrIgSettings(); updateCrIgPreview(); }
+function setEpFormat(fmt) { crIgState.ent.format = fmt; shRenderDesignPickers('ep'); saveCrIgSettings(); updateCrIgPreview(); }
+function setEpQuality(q) { crIgState.ent.quality = q; shRenderDesignPickers('ep'); saveCrIgSettings(); shSyncCrLabels(); }
+
+function shSyncCrLabels() {
+  const d = crDesign();
+  const scope = crIgState.mode === 'entrypost' ? 'ep' : 'cr';
+  const ts = document.getElementById(scope + 'TextScaleLabel');
+  if (ts) ts.textContent = (d.textScale || 100) + '%';
+  const note = document.getElementById(scope + 'QualityNote');
+  if (note) {
+    const dim = shDims(d.format);
+    const m = Math.max(1, Math.min(2, d.quality || 2));
+    note.textContent = `${dim.w * m} × ${dim.h * m} px`;
+  }
+}
+
+// ─── ARTWORK ────────────────────────────────────────────────────
 function _syncEntPostSrcBtns() {
   ['deezer', 'itunes', 'lastfm', 'youtube'].forEach(s => {
     const el = document.getElementById('entPostSrc_' + s);
@@ -19763,19 +20369,19 @@ async function _lookupImgUrl(type, key, source) {
     const crAny = allChartRun.year?.result?.[type]?.[key]
       || allChartRun.month?.result?.[type]?.[key]
       || allChartRun.week?.result?.[type]?.[key];
-    if (type === 'artists') return await getArtistImage(key, source);
+    if (type === 'artists') return shHiResArt(await getArtistImage(key, source));
     if (type === 'songs') {
-      return await getTrackImage(
+      return shHiResArt(await getTrackImage(
         crAny?._title || key.split('|||')[0] || key,
         crAny?._artist || key.split('|||')[1] || '',
         source
-      );
+      ));
     }
-    return await getAlbumImage(
+    return shHiResArt(await getAlbumImage(
       crAny?._album || key.split('|||')[0] || key,
       crAny?._artist || key.split('|||')[1] || '',
       source
-    );
+    ));
   } catch (e) { return null; }
 }
 
@@ -19794,6 +20400,16 @@ async function _fetchWithSourceFallback(type, key, startSource) {
   return { url: null, source: 'deezer' };
 }
 
+// Artwork is inlined as a data URL: it keeps the export canvas untainted and it
+// is what lets the Cover palette read pixels back out of the image.
+async function _crInlineArt(url) {
+  if (!url) return null;
+  const data = await _igToDataUrl(url);
+  const final = data || url;
+  await Promise.all([shComputeDominant(final), shComputeBlur(final)]);
+  return final;
+}
+
 async function _fetchEntPostImage(type, key) {
   if (crIgState.entPostImgSource === 'off') {
     crIgState.entPostImgUrl = null;
@@ -19805,58 +20421,46 @@ async function _fetchEntPostImage(type, key) {
     crIgState.entPostImgSource = source;
     _syncEntPostSrcBtns();
   }
-  crIgState.entPostImgUrl = url || null;
+  crIgState.entPostImgUrl = await _crInlineArt(url);
   if (document.getElementById('crIgModal').classList.contains('open') && crIgState.key === key && crIgState.mode === 'entrypost') {
     updateCrIgPreview();
   }
 }
 
-function updateEntPostSizeLabels() {
-  [['entPostBrandSize', 'entPostBrandSizeLabel'], ['entPostChartNameSize', 'entPostChartNameSizeLabel'], ['entPostWeekDateSize', 'entPostWeekDateSizeLabel'], ['entPostImageSize', 'entPostImageSizeLabel'], ['entPostTitleSize', 'entPostTitleSizeLabel'],
-  ['entPostSubtitleSize', 'entPostSubtitleSizeLabel'], ['entPostAlbumSize', 'entPostAlbumSizeLabel'],
-  ['entPostDescSize', 'entPostDescSizeLabel'], ['entPostMvSize', 'entPostMvSizeLabel'], ['entPostRankSize', 'entPostRankSizeLabel'], ['entPostStatusY', 'entPostStatusYLabel']].forEach(([id, lbl]) => {
-    const v = parseInt(document.getElementById(id)?.value || 0);
-    const el = document.getElementById(lbl);
-    if (el) el.textContent = v !== 0 ? v + 'px' : 'Auto';
+// Fetches cover art for the given type/key using crIgState.imgSource, with automatic source fallback.
+async function fetchCrIgImage(type, key) {
+  if (crIgState.imgSource === 'off') {
+    crIgState.imgUrl = null;
+    if (document.getElementById('crIgModal').classList.contains('open') && crIgState.key === key) updateCrIgPreview();
+    return;
+  }
+  const { url, source } = await _fetchWithSourceFallback(type, key, crIgState.imgSource || 'deezer');
+  if (source !== crIgState.imgSource) {
+    crIgState.imgSource = source;
+    _syncCrIgSrcBtns();
+  }
+  crIgState.imgUrl = await _crInlineArt(url);
+  if (document.getElementById('crIgModal').classList.contains('open') && crIgState.key === key) {
+    updateCrIgPreview();
+  }
+}
+
+// Sync source button active states to crIgState.imgSource
+function _syncCrIgSrcBtns() {
+  ['deezer', 'itunes', 'lastfm', 'youtube'].forEach(s => {
+    document.getElementById('crIgSrc_' + s)?.classList.toggle('active', s === crIgState.imgSource);
   });
 }
 
-function syncEntPostTitleLabel(type) {
-  const el = document.getElementById('entPostTitleSizeText');
-  if (!el) return;
-  el.textContent = type === 'songs' ? t('ep_title_song') : t('ep_title');
+function setCrIgImgSource(source) {
+  crIgState.imgSource = source;
+  _syncCrIgSrcBtns();
+  crIgState.imgUrl = null;       // clear cached URL so preview shows the fallback tile
+  updateCrIgPreview();           // render immediately without image
+  fetchCrIgImage(crIgState.type, crIgState.key); // then fetch + refresh
 }
 
-function setEntPostAllSliders(toMax) {
-  // Respect current format limits (Story has higher caps for some sliders).
-  applyEntPostFormatLimits(crIgState.format || 'post');
-  const sliderIds = [
-    'entPostBrandSize', 'entPostChartNameSize', 'entPostWeekDateSize', 'entPostImageSize', 'entPostTitleSize',
-    'entPostSubtitleSize', 'entPostAlbumSize', 'entPostDescSize', 'entPostMvSize',
-    'entPostRankSize', 'entPostStatusY'
-  ];
-  sliderIds.forEach(id => {
-    const el = document.getElementById(id);
-    if (!el) return;
-    const target = toMax ? parseInt(el.max || el.value || '0', 10) : parseInt(el.min || '0', 10);
-    el.value = String(Number.isFinite(target) ? target : 0);
-  });
-  updateEntPostSizeLabels();
-  updateCrIgPreview();
-}
-
-function setCrIgAllSliders(toMax) {
-  const sliderIds = ['crIgImageScale', 'crIgBrandSize', 'crIgTitleSize', 'crIgWeekDateSize', 'crIgSectionSize', 'crIgBoxSize'];
-  sliderIds.forEach(id => {
-    const el = document.getElementById(id);
-    if (!el) return;
-    const target = toMax ? parseInt(el.max || el.value || '0', 10) : parseInt(el.min || '0', 10);
-    el.value = String(Number.isFinite(target) ? target : 0);
-  });
-  updateCrIgSizeLabels();
-  updateCrIgPreview();
-}
-
+// ─── DESCRIPTION CONTROLS ───────────────────────────────────────
 function _syncEntPostDescModeBtns() {
   const isAuto = crIgState.entPostDescMode !== 'custom';
   document.getElementById('entPostDescModeAuto')?.classList.toggle('active', isAuto);
@@ -19883,10 +20487,11 @@ function shuffleEntPostDescription() {
   updateCrIgPreview();
 }
 
+// ─── MODAL ──────────────────────────────────────────────────────
 function openCrIgModal(type, encodedKey, rank) {
   const key = decodeURIComponent(encodedKey);
+  loadCrIgSettings();
   crIgState.type = type; crIgState.key = key; crIgState.rank = rank || 0;
-  syncEntPostTitleLabel(type);
 
   // Store which period opened the modal so card rendering stays context-aware
   crIgState.period = currentPeriod;
@@ -19960,19 +20565,20 @@ function openCrIgModal(type, encodedKey, rank) {
   _rUpto.textContent = _igLabels.uptoYear; _rUpto.title = _igTitles.uptoYear;
   _rNow.textContent = _igLabels.now; _rNow.title = _igTitles.now;
   setCrIgRange(crIgState.rangeMode);
-  setCrIgFormat(crIgState.format);
-  // Reset all size sliders
-  ['crIgTitleSize', 'crIgBrandSize', 'crIgSectionSize', 'crIgBoxSize'].forEach(id => {
-    const el = document.getElementById(id); if (el) el.value = 0;
-  });
-  updateCrIgSizeLabels();
+
   const descInput = document.getElementById('entPostDescCustom');
   if (descInput) descInput.value = crIgState.entPostDescCustom || '';
   _syncEntPostDescModeBtns();
-  // Reset image source to deezer and update source button states
+
+  // Restore the design sliders for both tabs
+  const crTs = document.getElementById('crTextScale');
+  if (crTs) crTs.value = crIgState.run.textScale || 100;
+  const epTs = document.getElementById('epTextScale');
+  if (epTs) epTs.value = crIgState.ent.textScale || 100;
+
+  // Clear previous images, start fresh fetch
   crIgState.imgSource = 'deezer';
   _syncCrIgSrcBtns();
-  // Clear previous images, start fresh fetch
   crIgState.imgUrl = null;
   crIgState.entPostImgUrl = null;
   crIgState.entPostImgSource = 'deezer';
@@ -19985,104 +20591,9 @@ function openCrIgModal(type, encodedKey, rank) {
   _fetchEntPostImage(type, key);
 }
 
-// Fetches cover art for the given type/key using crIgState.imgSource, with automatic source fallback.
-async function fetchCrIgImage(type, key) {
-  if (crIgState.imgSource === 'off') {
-    crIgState.imgUrl = null;
-    if (document.getElementById('crIgModal').classList.contains('open') && crIgState.key === key) updateCrIgPreview();
-    return;
-  }
-  const { url, source } = await _fetchWithSourceFallback(type, key, crIgState.imgSource || 'deezer');
-  if (source !== crIgState.imgSource) {
-    crIgState.imgSource = source;
-    _syncCrIgSrcBtns();
-  }
-  crIgState.imgUrl = url || null;
-  if (document.getElementById('crIgModal').classList.contains('open') && crIgState.key === key) {
-    updateCrIgPreview();
-  }
-}
-
-// Sync source button active states to crIgState.imgSource
-function _syncCrIgSrcBtns() {
-  ['deezer', 'itunes', 'lastfm', 'youtube'].forEach(s => {
-    document.getElementById('crIgSrc_' + s)?.classList.toggle('active', s === crIgState.imgSource);
-  });
-}
-
-function setCrIgImgSource(source) {
-  crIgState.imgSource = source;
-  _syncCrIgSrcBtns();
-  crIgState.imgUrl = null;       // clear cached URL so preview shows loading state
-  updateCrIgPreview();           // render immediately without image
-  fetchCrIgImage(crIgState.type, crIgState.key); // then fetch + refresh
-}
-
-function updateCrIgSizeLabels() {
-  [
-    ['crIgTitleSize', 'crIgTitleSizeLabel'],
-    ['crIgBrandSize', 'crIgBrandSizeLabel'],
-    ['crIgWeekDateSize', 'crIgWeekDateSizeLabel'],
-    ['crIgSectionSize', 'crIgSectionSizeLabel'],
-    ['crIgBoxSize', 'crIgBoxSizeLabel'],
-  ].forEach(([sliderId, labelId]) => {
-    const val = parseInt(document.getElementById(sliderId)?.value || 0);
-    const lbl = document.getElementById(labelId);
-    if (lbl) lbl.textContent = val === 0 ? 'Auto' : val + 'px';
-  });
-  // Update Image Scale label
-  const scaleVal = parseInt(document.getElementById('crIgImageScale')?.value || 100);
-  const scaleLbl = document.getElementById('crIgImageScaleLabel');
-  if (scaleLbl) scaleLbl.textContent = scaleVal + '%';
-}
-// Keep backward-compat alias used by openCrIgModal
-function updateCrIgTitleSizeLabel() { updateCrIgSizeLabels(); }
-
 function closeCrIgModal() {
   document.getElementById('crIgModal').classList.remove('open');
   document.getElementById('crIgCanvas').innerHTML = '';
-}
-
-function applyCrIgFormatLimits(fmt) {
-  const isStory = fmt === 'story';
-  // Increase max values for Section px and Boxes px in Story format
-  const sectionSlider = document.getElementById('crIgSectionSize');
-  const boxSlider = document.getElementById('crIgBoxSize');
-  if (sectionSlider) {
-    sectionSlider.max = String(isStory ? 32 : 18);
-    if (parseInt(sectionSlider.value || '0', 10) > parseInt(sectionSlider.max, 10)) sectionSlider.value = sectionSlider.max;
-  }
-  if (boxSlider) {
-    boxSlider.max = String(isStory ? 40 : 22);
-    if (parseInt(boxSlider.value || '0', 10) > parseInt(boxSlider.max, 10)) boxSlider.value = boxSlider.max;
-  }
-  updateCrIgSizeLabels();
-}
-
-function applyEntPostFormatLimits(fmt) {
-  const isStory = fmt === 'story';
-  const chartSlider = document.getElementById('entPostChartNameSize');
-  const rankSlider = document.getElementById('entPostRankSize');
-  if (chartSlider) {
-    chartSlider.max = String(isStory ? 44 : 28);
-    if (parseInt(chartSlider.value || '0', 10) > parseInt(chartSlider.max, 10)) chartSlider.value = chartSlider.max;
-  }
-  if (rankSlider) {
-    rankSlider.max = String(isStory ? 180 : 120);
-    if (parseInt(rankSlider.value || '0', 10) > parseInt(rankSlider.max, 10)) rankSlider.value = rankSlider.max;
-  }
-  updateEntPostSizeLabels();
-}
-
-function setCrIgFormat(fmt) {
-  crIgState.format = fmt;
-  document.getElementById('crIgFmtPost').classList.toggle('active', fmt === 'post');
-  document.getElementById('crIgFmtStory').classList.toggle('active', fmt === 'story');
-  document.getElementById('entPostFmtPost').classList.toggle('active', fmt === 'post');
-  document.getElementById('entPostFmtStory').classList.toggle('active', fmt === 'story');
-  applyCrIgFormatLimits(fmt);
-  applyEntPostFormatLimits(fmt);
-  updateCrIgPreview();
 }
 
 function setCrIgRange(mode) {
@@ -20094,11 +20605,10 @@ function setCrIgRange(mode) {
   updateCrIgPreview();
 }
 
-function buildCrIgCardHTML(type, key, opts) {
-  const c = igColors();
-  const isPost = opts.format === 'post';
-  const cardW = 540, cardH = isPost ? 540 : 960;
-
+// ─── CHART RUN CARD: DATA PREP ──────────────────────────────────
+// Resolves the selected periods into plain section objects (entries + summary
+// numbers) so the run templates only have to lay them out.
+function shRunContext(type, key, opts) {
   // Resolve display name
   let displayName = key.split('|||')[0], artistName = key.split('|||')[1] || '';
   const crAny = allChartRun.year?.result?.[type]?.[key] || allChartRun.month?.result?.[type]?.[key] || allChartRun.week?.result?.[type]?.[key];
@@ -20109,10 +20619,10 @@ function buildCrIgCardHTML(type, key, opts) {
   }
 
   // Only show sections relevant to the period that opened the modal
-  const _activePeriod = opts.period || currentPeriod;
-  const periodConf = _activePeriod === 'week'
+  const activePeriod = opts.period || currentPeriod;
+  const periodConf = activePeriod === 'week'
     ? [{ id: 'week', label: t('cr_weekly_label').toUpperCase(), check: true }]
-    : _activePeriod === 'month'
+    : activePeriod === 'month'
       ? [{ id: 'month', label: t('cr_monthly_label').toUpperCase(), check: true }]
       : [
         { id: 'year', label: t('cr_yearly_label').toUpperCase(), check: opts.showYear },
@@ -20124,219 +20634,427 @@ function buildCrIgCardHTML(type, key, opts) {
   const vy = getViewedYear();
   const cutoffKeys = getViewedCutoffKeys();
   let rangeLabelMap;
-  if (_activePeriod === 'week') {
+  if (activePeriod === 'week') {
     rangeLabelMap = { year: t('cr_ytd', { year: vy }), uptoYear: t('cr_up_to_this_week'), now: t('cr_all_time') };
-  } else if (_activePeriod === 'month') {
+  } else if (activePeriod === 'month') {
     rangeLabelMap = { year: t('cr_ytd', { year: vy }), uptoYear: t('cr_up_to_this_month'), now: t('cr_all_time') };
   } else {
     rangeLabelMap = { year: t('cr_year_only_label', { year: vy }), uptoYear: t('cr_up_to_year_label', { year: vy }), now: t('cr_all_time') };
   }
-  const sections = periodConf.filter(p => p.check).map(pc => {
+
+  const chartSizes = opts.chartSizes || {};
+  const sections = periodConf.filter(pc => pc.check).map(pc => {
     const crData = allChartRun[pc.id];
-    if (!crData?.result?.[type]?.[key]) return '';
-    const rawD = crData.result[type][key];
-    const d = filterCrD(rawD, pc.id, rangeMode, vy, cutoffKeys);
-    if (!d) return '';
-    const period = pc.id;
-    const n = d.entries.length;
-    const peak = d.peak;
-    const top1 = d.entries.filter(e => e.rank === 1).length;
-    const top5 = d.entries.filter(e => e.rank <= 5).length;
-    const top10 = d.entries.filter(e => e.rank <= 10).length;
-    const pSize = (opts.chartSizes && opts.chartSizes[period]) ?? Infinity; // chartSize for this period
-    // Box sizing — driven by opts.boxSize slider (auto = 11px for rank)
-    const boxRankSize = opts.boxSize || 11;
-    const boxLabelSize = Math.max(5, boxRankSize - 4.5);
-    const baseW = period === 'week' ? 30 : 36;
-    const boxW = opts.boxSize ? Math.round(opts.boxSize * (period === 'week' ? 2.8 : 3.3)) : baseW;
-    const gap = Math.max(2, Math.round(boxW * 0.09));
-    // 2D capacity: how many boxes fit across multiple wrapped rows
-    const boxesPerRow = Math.max(1, Math.floor((cardW - 28) / (boxW + gap)));
-    const pad = Math.max(2, Math.round(boxRankSize * 0.27));
-    const boxH = Math.ceil(boxRankSize + Math.max(5, boxRankSize - 4.5) + pad * 2 + 4);
-    const rowH = boxH + gap;
-    const numSecs = Math.max(1, periodConf.filter(p => p.check).length);
-    const bodyH = cardH - (isPost ? 90 : 120) - (opts.showFooter ? 24 : 0) - (isPost ? 20 : 28);
-    const secAvailH = Math.floor(bodyH / numSecs) - ((opts.sectionSize || 8) * 2 + 22);
-    const maxRows = Math.max(2, Math.floor(secAvailH / rowH));
-    const maxBoxes = maxRows * boxesPerRow;
-    const shown = d.entries.length <= maxBoxes ? d.entries : d.entries.slice(-maxBoxes);
-    const truncated = d.entries.length > maxBoxes;
-
-    const secSize = opts.sectionSize || 8;
-    const lFont = `'${opts.labelFont || 'JetBrains Mono'}',monospace`;
-
-    // Inline peak badge matching chart style (gold/silver/bronze)
-    const _peakBadge = (p) => {
-      const fs = (secSize + 1) + 'px';
-      const base = `font-family:${lFont};font-size:${fs};padding:1px 5px;border-radius:3px;letter-spacing:0.05em;white-space:nowrap;font-weight:700;`;
-      const peakLabel = t('peak_label');
-      if (p === 1) return `<span style="${base}background:rgba(245,158,11,0.2);color:#f0aa30;border:1px solid rgba(245,158,11,0.45);">${peakLabel} #1</span>`;
-      if (p === 2) return `<span style="${base}background:rgba(148,163,184,0.2);color:#94a3b8;border:1px solid rgba(148,163,184,0.4);">${peakLabel} #2</span>`;
-      if (p === 3) return `<span style="${base}background:rgba(192,120,80,0.2);color:#c07850;border:1px solid rgba(192,120,80,0.4);">${peakLabel} #3</span>`;
-      return `<span style="${base}background:rgba(255,255,255,0.08);color:#7aa0d0;border:1px solid rgba(255,255,255,0.14);">${peakLabel} #${p}</span>`;
+    if (!crData?.result?.[type]?.[key]) return null;
+    const d = filterCrD(crData.result[type][key], pc.id, rangeMode, vy, cutoffKeys);
+    if (!d || !d.entries.length) return null;
+    const entries = d.entries;
+    const unit = n => pc.id === 'week' ? tUnit('cr_week', n) : pc.id === 'month' ? tUnit('months', n) : tUnit('years', n);
+    return {
+      id: pc.id, label: pc.label, entries,
+      n: entries.length,
+      peak: d.peak,
+      worst: entries.reduce((m, e) => Math.max(m, e.rank), 1),
+      top1: entries.filter(e => e.rank === 1).length,
+      top5: entries.filter(e => e.rank <= 5).length,
+      top10: entries.filter(e => e.rank <= 10).length,
+      size: chartSizes[pc.id] != null ? chartSizes[pc.id] : Infinity,
+      unit,
     };
-    // Stat chip: bold value + dimmed label
-    const _stat = (val, label) => `<span style="font-family:${lFont};font-size:${secSize}px;color:${c.text3};white-space:nowrap;"><strong style="color:${c.text};font-size:${secSize + 1}px;font-weight:700;">${val}</strong> ${label}</span>`;
-
-    const boxesHtml = shown.map(e => {
-      const isPeak = e.rank === d.peak;
-      const bg = isPeak ? 'rgba(245,158,11,0.1)' : 'linear-gradient(180deg, rgba(255,255,255,0.08), rgba(255,255,255,0.02)), ' + c.surface;
-      const border = isPeak ? 'rgba(245,158,11,0.45)' : 'rgba(255,255,255,0.22)';
-      const rc = isPeak ? c.gold1 : c.text;
-      return `<div style="background:${bg};border:1px solid ${border};border-radius:4px;padding:${pad}px ${pad + 1}px;text-align:center;min-width:${boxW}px;flex-shrink:0;">
-        <div style="font-family:var(--font-display);font-size:${boxRankSize}px;font-weight:700;color:${rc};line-height:1.1">#${e.rank}</div>
-        <div style="font-family:${lFont};font-size:${boxLabelSize}px;color:${c.text3};white-space:nowrap;margin-top:2px">${e.label}</div>
-      </div>`;
-    }).join('');
-
-    return `<div style="margin-bottom:9px;">
-      <div style="font-family:${lFont};font-size:${secSize}px;letter-spacing:0.14em;color:${c.accent};text-transform:uppercase;margin-bottom:4px;">${pc.label}</div>
-      ${opts.showSectionSummary ? `<div style="display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin-bottom:5px;">
-        ${_stat(n + ' ' + (period === 'week' ? tUnit('cr_week', n) : period === 'month' ? tUnit('months', n) : tUnit('years', n)), t('cr_on_chart'))}
-        ${_peakBadge(peak)}
-        ${top1 ? _stat(top1 + ' ' + (period === 'week' ? tUnit('cr_week', top1) : period === 'month' ? tUnit('months', top1) : tUnit('years', top1)), t('cr_at_1')) : ''}
-        ${top5 && 5 < pSize ? _stat(top5 + ' ' + (period === 'week' ? tUnit('cr_week', top5) : period === 'month' ? tUnit('months', top5) : tUnit('years', top5)), t('cr_in_top5')) : ''}
-        ${top10 && 10 < pSize ? _stat(top10 + ' ' + (period === 'week' ? tUnit('cr_week', top10) : period === 'month' ? tUnit('months', top10) : tUnit('years', top10)), t('cr_in_top10')) : ''}
-        ${truncated ? `<span style="font-family:${lFont};font-size:${secSize}px;color:${c.text3};">· ${t('cr_last_shown', { n: maxBoxes })}</span>` : ''}
-      </div>` : ''}
-      <div style="display:flex;flex-wrap:wrap;gap:${gap}px;">${boxesHtml}</div>
-    </div>`;
   }).filter(Boolean);
 
-  if (!sections.length) return '';
+  if (!sections.length) return null;
 
-  const tFont = `'${opts.titleFont || 'IBM Plex Sans'}',sans-serif`;
-  const lFont2 = `'${opts.labelFont || 'JetBrains Mono'}',monospace`;
-  const autoTitleSize = isPost ? 17 : 22;
-  const titleFontSize = opts.titleSize || autoTitleSize;
-  const subtitleSize = Math.max(10, titleFontSize - 6);
-  const brandFontSize = opts.brandSize || 8;
-  const weekDateFontSize = opts.weekDateSize || (isPost ? 9 : 11);
-  const dr2 = getDateRange();
-  const periodLine2 = _activePeriod === 'week' ? (dr2.sub || dr2.label)
-    : _activePeriod === 'month' ? dr2.label
-      : _activePeriod === 'year' ? dr2.label
-        : null;
-  let imgSize = isPost ? 64 : 80;
-  // Apply image scale to cover art size
-  if (opts.imageScale) {
-    imgSize = Math.round(imgSize * opts.imageScale);
-  }
-  const typeLabel = t('cr_type_' + (type === 'songs' ? 'song' : type === 'artists' ? 'artist' : 'album'));
-  const showImg = opts.showImage && opts.imgUrl;
-  const headerPad = isPost ? '12px 16px' : '62px 20px 16px';
-  const headerInner = `
-    <div style="font-family:${lFont2};font-size:${brandFontSize}px;letter-spacing:0.2em;color:${c.accent};text-transform:uppercase;margin-bottom:${showImg ? '4' : '3'}px;">dankcharts.fm · ${typeLabel} CHART RUN · ${rangeLabelMap[rangeMode]}</div>
-    <div style="font-family:${tFont};font-size:${titleFontSize}px;font-weight:700;color:${c.text};line-height:1.15;letter-spacing:-0.02em;">${esc(displayName)}</div>
-    ${opts.showSubtitle && artistName ? `<div style="font-family:${tFont};font-size:${subtitleSize}px;color:${c.text3};margin-top:2px;">${esc(artistName)}</div>` : ''}
-    ${opts.showWeekDate && periodLine2 ? `<div style="font-family:${lFont2};font-size:${weekDateFontSize}px;color:${c.text3};letter-spacing:0.1em;margin-top:3px;text-transform:uppercase;">${esc(periodLine2)}</div>` : ''}
-  `;
-  const headerContent = showImg
-    ? `<div style="display:flex;align-items:center;gap:12px;">
-        <img src="${opts.imgUrl}" crossorigin="anonymous" style="width:${imgSize}px;height:${imgSize}px;object-fit:cover;border-radius:6px;flex-shrink:0;border:1px solid ${c.border};">
-        <div style="flex:1;min-width:0;">${headerInner}</div>
-       </div>`
-    : headerInner;
-  return `<div style="width:${cardW}px;height:${cardH}px;background:${c.bg};overflow:hidden;display:flex;flex-direction:column;font-family:${tFont};">
-    <div style="background:linear-gradient(135deg,${c.bg3},${c.surface});padding:${headerPad};border-bottom:2px solid ${c.accent};flex-shrink:0;">${headerContent}</div>
-    <div style="flex:1;overflow:hidden;padding:${isPost ? '10px 14px' : '14px 18px'};">${sections.join('<div style="height:1px;background:' + c.border + ';margin:6px 0;"></div>')}</div>
-    ${opts.showFooter ? `<div style="padding:7px 12px;background:${c.bg3};border-top:1px solid ${c.border};flex-shrink:0;"><div style="font-family:${lFont2};font-size:${brandFontSize}px;color:${c.text3};letter-spacing:0.12em;">dankcharts.fm · PERSONAL MUSIC CHARTS</div></div>` : ''}
+  const fmt = SHARE_FORMATS[opts.format] ? opts.format : 'post';
+  const d = shDims(fmt);
+  const dr = getDateRange();
+  const periodLine = activePeriod === 'week' ? (dr.sub || dr.label)
+    : activePeriod === 'month' ? dr.label
+      : activePeriod === 'year' ? dr.label : t('cr_all_time');
+
+  return {
+    type, key, opts, fmt, W: d.w, H: d.h,
+    p: shPalette(opts.palette, shDominant(opts.imgUrl)),
+    S: (opts.textScale || 100) / 100,
+    displayName, artistName,
+    art: opts.showImage ? opts.imgUrl : null,
+    sections,
+    periodLine,
+    rangeLabel: rangeLabelMap[rangeMode] || '',
+    typeLabel: _shPlain(t('cr_type_' + (type === 'songs' ? 'song' : type === 'artists' ? 'artist' : 'album'))),
+  };
+}
+
+// ─── CHART RUN CARD: SVG CHART ──────────────────────────────────
+function _shSvgUrl(svg) {
+  return 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
+}
+
+// A rank-over-time line. Rank 1 sits at the top, the axis is inverted, and the
+// path is broken wherever the entry skipped a period so a re-entry doesn't
+// read as a continuous run. Geometry only — labels are drawn as HTML on top.
+function _shRunLineSvg(sec, w, h, pal, opt) {
+  const o = opt || {};
+  const pad = { l: 8, r: 8, t: 14, b: 14 };
+  const iw = w - pad.l - pad.r, ih = h - pad.t - pad.b;
+  const pts = sec.entries;
+  const worst = Math.max(sec.worst, sec.peak + 1);
+  const xOf = i => pts.length === 1 ? pad.l + iw / 2 : pad.l + (iw * i) / (pts.length - 1);
+  const yOf = r => pad.t + (ih * (r - 1)) / Math.max(1, worst - 1);
+
+  // Split into unbroken segments so gaps in the run stay visible.
+  const segs = [];
+  let cur = [];
+  pts.forEach((e, i) => {
+    if (i > 0 && crPeriodGap(sec.id, pts[i - 1].periodKey, e.periodKey) > 0) { segs.push(cur); cur = []; }
+    cur.push({ x: xOf(i), y: yOf(e.rank), rank: e.rank });
+  });
+  if (cur.length) segs.push(cur);
+
+  const acc = _shHex(pal.accent) || '#4aacff';
+  const gold = _shHex(pal.gold) || '#f2b544';
+  const grid = _shA(pal.text, 0.1);
+
+  let paths = '', area = '', dots = '';
+  segs.forEach(sg => {
+    if (sg.length > 1) {
+      const dAttr = sg.map((q, i) => `${i ? 'L' : 'M'}${q.x.toFixed(1)},${q.y.toFixed(1)}`).join(' ');
+      paths += `<path d="${dAttr}" fill="none" stroke="${acc}" stroke-width="${o.stroke || 4}" stroke-linecap="round" stroke-linejoin="round"/>`;
+      area += `<path d="${dAttr} L${sg[sg.length - 1].x.toFixed(1)},${(h - pad.b).toFixed(1)} L${sg[0].x.toFixed(1)},${(h - pad.b).toFixed(1)} Z" fill="url(#shGrad)"/>`;
+    }
+    sg.forEach(q => {
+      const isPeak = q.rank === sec.peak;
+      dots += `<circle cx="${q.x.toFixed(1)}" cy="${q.y.toFixed(1)}" r="${isPeak ? (o.dot || 7) + 2 : (o.dot || 7)}" fill="${isPeak ? gold : acc}" stroke="${_shHex(pal.bg)}" stroke-width="${isPeak ? 3 : 2}"/>`;
+    });
+  });
+
+  // Faint guide lines at #1 and at the worst rank reached.
+  const guides = `<line x1="${pad.l}" y1="${yOf(1)}" x2="${w - pad.r}" y2="${yOf(1)}" stroke="${grid}" stroke-width="2" stroke-dasharray="6 8"/>
+    <line x1="${pad.l}" y1="${yOf(worst)}" x2="${w - pad.r}" y2="${yOf(worst)}" stroke="${grid}" stroke-width="2" stroke-dasharray="6 8"/>`;
+
+  return _shSvgUrl(`<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}">
+    <defs><linearGradient id="shGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="${acc}" stop-opacity="0.34"/>
+      <stop offset="100%" stop-color="${acc}" stop-opacity="0.02"/>
+    </linearGradient></defs>${guides}${area}${paths}${dots}</svg>`);
+}
+
+// Tiny inline sparkline for the stat-sheet template.
+function _shSparkSvg(sec, w, h, pal) {
+  const pts = sec.entries;
+  const worst = Math.max(sec.worst, sec.peak + 1);
+  const xOf = i => pts.length === 1 ? w / 2 : (w * i) / (pts.length - 1);
+  const yOf = r => 4 + ((h - 8) * (r - 1)) / Math.max(1, worst - 1);
+  const dAttr = pts.map((e, i) => `${i ? 'L' : 'M'}${xOf(i).toFixed(1)},${yOf(e.rank).toFixed(1)}`).join(' ');
+  const acc = _shHex(pal.accent) || '#4aacff';
+  return _shSvgUrl(`<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}"><path d="${dAttr}" fill="none" stroke="${acc}" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>`);
+}
+
+// ─── CHART RUN CARD: TEMPLATES ──────────────────────────────────
+
+// Header shared by all run templates: artwork, name, type + range eyebrow.
+function _shRunHeader(ctx, opt) {
+  const o = opt || {};
+  const p = ctx.p, opts = ctx.opts;
+  const s = v => _shS(ctx, v);
+  const padX = o.padX != null ? o.padX : 64;
+  const art = ctx.fmt === 'story' ? 168 : ctx.fmt === 'portrait' ? 146 : 132;
+  const nameSize = s(ctx.fmt === 'story' ? 50 : 42);
+  return `<div style="flex-shrink:0;padding:${shSafeTop(ctx.fmt)}px ${padX}px ${o.padBottom || 30}px;">
+    ${shEyebrow(p, `${ctx.typeLabel} · ${_shPlain(t('cr_chart_run'))} · ${ctx.rangeLabel}`, { size: s(19) })}
+    <div style="margin-top:${s(20)}px;display:flex;align-items:center;gap:${s(24)}px;">
+      ${opts.showImage ? shArt(p, ctx.art, art, { initials: initials(ctx.displayName), radius: 16 }) : ''}
+      <div style="flex:1;min-width:0;">
+        <div style="font-family:${SH_FONT.display};font-size:${nameSize}px;font-weight:700;color:${p.text};line-height:1.06;${shClamp(2, nameSize, 1.06)}">${esc(ctx.displayName)}</div>
+        ${opts.showSubtitle && ctx.artistName ? `<div style="margin-top:${s(8)}px;font-family:${SH_FONT.sans};font-size:${s(28)}px;color:${p.dim};${shClamp(1, s(28), 1.2)}">${esc(ctx.artistName)}</div>` : ''}
+        ${opts.showWeekDate && ctx.periodLine ? `<div style="margin-top:${s(10)}px;font-family:${SH_FONT.mono};font-size:${s(20)}px;letter-spacing:0.14em;color:${_shA(p.dim, 0.9)};text-transform:uppercase;">${esc(ctx.periodLine)}</div>` : ''}
+      </div>
+    </div>
   </div>`;
 }
 
+// Summary numbers for one section, as a row of label/value blocks.
+function _shRunStats(ctx, sec, opt) {
+  const o = opt || {};
+  const p = ctx.p;
+  const s = v => _shS(ctx, v);
+  const big = o.size || 34;
+  const cell = (val, lbl, col) => `<div style="min-width:0;">
+    <div style="font-family:${SH_FONT.display};font-size:${s(big)}px;font-weight:700;color:${col || p.text};line-height:1;">${val}</div>
+    <div style="margin-top:${s(6)}px;font-family:${SH_FONT.mono};font-size:${s(16)}px;letter-spacing:0.12em;color:${p.dim};text-transform:uppercase;white-space:nowrap;">${lbl}</div>
+  </div>`;
+  const cells = [cell(sec.n, esc(sec.unit(sec.n) + ' ' + t('cr_on_chart')))];
+  cells.push(cell('#' + sec.peak, esc(t('peak_label')), p.gold));
+  if (sec.top1) cells.push(cell(sec.top1, esc(t('cr_at_1'))));
+  if (sec.top5 && 5 < sec.size) cells.push(cell(sec.top5, esc(t('cr_in_top5'))));
+  if (sec.top10 && 10 < sec.size) cells.push(cell(sec.top10, esc(t('cr_in_top10'))));
+  return `<div style="display:flex;gap:${s(34)}px;flex-wrap:wrap;">${cells.join('')}</div>`;
+}
+
+const SH_RUN_TEMPLATES = {
+
+  // TIMELINE — the run drawn as a rank-over-time line. One chart per section.
+  timeline(ctx) {
+    const p = ctx.p, opts = ctx.opts;
+    const s = v => _shS(ctx, v);
+    const padX = 64;
+    const header = _shRunHeader(ctx, { padX });
+    const headH = shSafeTop(ctx.fmt) + s(ctx.fmt === 'story' ? 50 : 42) * 2 + s(90) + 30;
+    const footerH = (opts.showFooter ? 42 : 0) + shSafeBottom(ctx.fmt);
+    const nSec = ctx.sections.length;
+    const secH = Math.max(160, Math.floor((ctx.H - headH - footerH) / nSec));
+    const chartW = ctx.W - padX * 2;
+
+    const blocks = ctx.sections.map(sec => {
+      const statsH = opts.showSectionSummary ? s(76) : 0;
+      // A single section shouldn't balloon into a mostly-empty box.
+      const chartCap = ctx.fmt === 'story' ? 560 : ctx.fmt === 'portrait' ? 440 : 360;
+      const chartH = Math.max(140, Math.min(chartCap, secH - statsH - s(70)));
+      const first = sec.entries[0], last = sec.entries[sec.entries.length - 1];
+      // A line drawn through one or two points says nothing — show tiles instead.
+      const tooShort = sec.entries.length < 3;
+      return `<div style="padding:0 ${padX}px ${s(18)}px;">
+        <div style="display:flex;align-items:baseline;justify-content:space-between;gap:16px;margin-bottom:${s(12)}px;">
+          <span style="font-family:${SH_FONT.mono};font-size:${s(19)}px;letter-spacing:0.18em;color:${p.accent};text-transform:uppercase;">${esc(sec.label)}</span>
+          ${opts.showSectionSummary ? '' : `<span style="font-family:${SH_FONT.mono};font-size:${s(18)}px;color:${p.dim};letter-spacing:0.06em;">${sec.n} ${esc(sec.unit(sec.n))}</span>`}
+        </div>
+        ${opts.showSectionSummary ? `<div style="margin-bottom:${s(14)}px;">${_shRunStats(ctx, sec, { size: 32 })}</div>` : ''}
+        ${tooShort
+          ? `<div style="display:flex;gap:${s(12)}px;flex-wrap:wrap;">${sec.entries.map(e => `<div style="padding:${s(16)}px ${s(24)}px;border-radius:14px;background:${e.rank === sec.peak ? _shA(p.gold, 0.12) : _shA(p.text, p.dark ? 0.05 : 0.04)};border:1px solid ${e.rank === sec.peak ? _shA(p.gold, 0.45) : p.line};text-align:center;">
+              <div style="font-family:${SH_FONT.display};font-size:${s(44)}px;font-weight:700;color:${e.rank === sec.peak ? p.gold : p.text};line-height:1;">#${e.rank}</div>
+              <div style="margin-top:${s(8)}px;font-family:${SH_FONT.mono};font-size:${s(17)}px;color:${p.dim};white-space:nowrap;">${esc(e.label)}</div>
+            </div>`).join('')}</div>`
+          : `<div style="position:relative;width:${chartW}px;height:${chartH}px;background:${_shA(p.text, p.dark ? 0.03 : 0.025)};border:1px solid ${p.line};border-radius:16px;overflow:hidden;">
+              <img src="${_shRunLineSvg(sec, chartW, chartH, p, { stroke: 4, dot: 6 })}" width="${chartW}" height="${chartH}" style="display:block;width:${chartW}px;height:${chartH}px;">
+              <span style="position:absolute;left:14px;top:8px;font-family:${SH_FONT.mono};font-size:${s(15)}px;color:${_shA(p.dim, 0.9)};">#1</span>
+              <span style="position:absolute;left:14px;bottom:8px;font-family:${SH_FONT.mono};font-size:${s(15)}px;color:${_shA(p.dim, 0.9)};">#${Math.max(sec.worst, sec.peak + 1)}</span>
+            </div>
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:${s(10)}px;font-family:${SH_FONT.mono};font-size:${s(17)}px;color:${p.dim};letter-spacing:0.05em;">
+              <span>${esc(first.label)}</span>
+              <span style="color:${p.gold};">${esc(t('peak_label'))} #${sec.peak}</span>
+              <span>${esc(last.label)}</span>
+            </div>`}
+      </div>`;
+    }).join('');
+
+    return shShell(p, ctx.fmt, `${header}<div style="flex:1;min-height:0;display:flex;flex-direction:column;justify-content:center;">${blocks}</div>${shFooter(p, ctx.fmt, { show: opts.showFooter, padX })}`);
+  },
+
+  // CHIPS — every charting period as its own rank tile. Dense but tidy.
+  chips(ctx) {
+    const p = ctx.p, opts = ctx.opts;
+    const s = v => _shS(ctx, v);
+    const padX = 60;
+    const headH = shSafeTop(ctx.fmt) + s(ctx.fmt === 'story' ? 50 : 42) * 2 + s(90) + 30;
+    const footerH = (opts.showFooter ? 42 : 0) + shSafeBottom(ctx.fmt);
+    const nSec = ctx.sections.length;
+    const secH = Math.floor((ctx.H - headH - footerH) / nSec);
+
+    const blocks = ctx.sections.map(sec => {
+      const boxW = s(sec.id === 'week' ? 118 : 132);
+      const boxH = s(88);
+      const gap = 10;
+      const perRow = Math.max(1, Math.floor((ctx.W - padX * 2 + gap) / (boxW + gap)));
+      const statsH = opts.showSectionSummary ? s(84) : 0;
+      const rowsFit = Math.max(1, Math.floor((secH - statsH - s(46)) / (boxH + gap)));
+      const maxBoxes = rowsFit * perRow;
+      const shown = sec.entries.length <= maxBoxes ? sec.entries : sec.entries.slice(-maxBoxes);
+      const truncated = sec.entries.length > maxBoxes;
+
+      const boxes = shown.map(e => {
+        const isPeak = e.rank === sec.peak;
+        return `<div style="width:${boxW}px;height:${boxH}px;box-sizing:border-box;border-radius:12px;padding:${s(10)}px 0 0;text-align:center;background:${isPeak ? _shA(p.gold, 0.12) : _shA(p.text, p.dark ? 0.05 : 0.04)};border:1px solid ${isPeak ? _shA(p.gold, 0.45) : p.line};">
+          <div style="font-family:${SH_FONT.display};font-size:${s(30)}px;font-weight:700;color:${isPeak ? p.gold : p.text};line-height:1;">#${e.rank}</div>
+          <div style="margin-top:${s(7)}px;font-family:${SH_FONT.mono};font-size:${s(15)}px;color:${p.dim};letter-spacing:0.03em;white-space:nowrap;">${esc(e.label)}</div>
+        </div>`;
+      }).join('');
+
+      return `<div style="padding:0 ${padX}px ${s(18)}px;">
+        <div style="display:flex;align-items:baseline;justify-content:space-between;gap:16px;margin-bottom:${s(12)}px;">
+          <span style="font-family:${SH_FONT.mono};font-size:${s(19)}px;letter-spacing:0.18em;color:${p.accent};text-transform:uppercase;">${esc(sec.label)}</span>
+          ${truncated ? `<span style="font-family:${SH_FONT.mono};font-size:${s(16)}px;color:${p.dim};">${esc(t('cr_last_shown', { n: maxBoxes }))}</span>` : ''}
+        </div>
+        ${opts.showSectionSummary ? `<div style="margin-bottom:${s(16)}px;">${_shRunStats(ctx, sec, { size: 32 })}</div>` : ''}
+        <div style="display:flex;flex-wrap:wrap;gap:${gap}px;">${boxes}</div>
+      </div>`;
+    }).join('');
+
+    return shShell(p, ctx.fmt, `${_shRunHeader(ctx, { padX })}<div style="flex:1;min-height:0;overflow:hidden;display:flex;flex-direction:column;justify-content:center;">${blocks}</div>${shFooter(p, ctx.fmt, { show: opts.showFooter, padX })}`);
+  },
+
+  // STATSHEET — headline numbers, big and quiet, with a sparkline per section.
+  statsheet(ctx) {
+    const p = ctx.p, opts = ctx.opts;
+    const s = v => _shS(ctx, v);
+    const padX = 64;
+    const sparkW = ctx.W - padX * 2;
+
+    const blocks = ctx.sections.map(sec => {
+      const sparkH = s(ctx.fmt === 'story' ? 120 : 96);
+      const cells = [
+        { v: sec.n, l: esc(sec.unit(sec.n) + ' ' + t('cr_on_chart')), c: p.text },
+        { v: '#' + sec.peak, l: esc(t('peak_label')), c: p.gold },
+        sec.top1 ? { v: sec.top1, l: esc(t('cr_at_1')), c: p.accent }
+                 : { v: sec.top5, l: esc(t('cr_in_top5')), c: p.text },
+        { v: sec.top10, l: esc(t('cr_in_top10')), c: p.text },
+      ];
+      return `<div style="padding:0 ${padX}px ${s(26)}px;">
+        <div style="font-family:${SH_FONT.mono};font-size:${s(19)}px;letter-spacing:0.18em;color:${p.accent};text-transform:uppercase;margin-bottom:${s(16)}px;">${esc(sec.label)}</div>
+        <div style="display:flex;gap:${s(12)}px;">
+          ${cells.map(c => `<div style="flex:1;min-width:0;background:${_shA(p.text, p.dark ? 0.04 : 0.035)};border:1px solid ${p.line};border-radius:16px;padding:${s(18)}px ${s(16)}px;">
+            <div style="font-family:${SH_FONT.display};font-size:${s(46)}px;font-weight:700;color:${c.c};line-height:1;">${c.v}</div>
+            <div style="margin-top:${s(8)}px;font-family:${SH_FONT.mono};font-size:${s(15)}px;letter-spacing:0.1em;color:${p.dim};text-transform:uppercase;">${c.l}</div>
+          </div>`).join('')}
+        </div>
+        <div style="margin-top:${s(16)}px;">
+          <img src="${_shSparkSvg(sec, sparkW, sparkH, p)}" width="${sparkW}" height="${sparkH}" style="display:block;width:${sparkW}px;height:${sparkH}px;">
+          <div style="display:flex;justify-content:space-between;margin-top:${s(6)}px;font-family:${SH_FONT.mono};font-size:${s(16)}px;color:${p.dim};">
+            <span>${esc(sec.entries[0].label)}</span><span>${esc(sec.entries[sec.entries.length - 1].label)}</span>
+          </div>
+        </div>
+      </div>`;
+    }).join('');
+
+    return shShell(p, ctx.fmt, `${_shRunHeader(ctx, { padX })}<div style="flex:1;min-height:0;overflow:hidden;display:flex;flex-direction:column;justify-content:center;">${blocks}</div>${shFooter(p, ctx.fmt, { show: opts.showFooter, padX })}`);
+  },
+};
+
+const SH_RUN_TEMPLATE_LIST = [
+  { id: 'timeline', name: 'Timeline', glyph: '📈' },
+  { id: 'chips', name: 'Chips', glyph: '▦' },
+  { id: 'statsheet', name: 'Stat sheet', glyph: '◫' },
+];
+
+function buildCrIgCardHTML(type, key, opts) {
+  const ctx = shRunContext(type, key, opts);
+  if (!ctx) return '';
+  const tpl = SH_RUN_TEMPLATES[opts.template] || SH_RUN_TEMPLATES.timeline;
+  return tpl(ctx);
+}
+
+// ─── PREVIEW + EXPORT ───────────────────────────────────────────
 function updateCrIgPreview() {
   if (!crIgState.type) return;
-  const _sz = id => { const v = parseInt(document.getElementById(id)?.value || 0); return v > 0 ? v : null; };
-  const isPost = crIgState.format === 'post';
-  const cardW = 540, cardH = isPost ? 540 : 960;
-  const scale = isPost ? 0.5 : 0.4;
+  const isEntry = crIgState.mode === 'entrypost';
+  const design = crDesign();
+
+  // Pull the live slider value for the active tab before rendering.
+  const tsEl = document.getElementById((isEntry ? 'ep' : 'cr') + 'TextScale');
+  if (tsEl) design.textScale = parseInt(tsEl.value) || 100;
+  shSyncCrLabels();
+  saveCrIgSettings();
+
+  const chk = (id, dflt) => {
+    const el = document.getElementById(id);
+    return el ? el.checked : dflt;
+  };
+
   let html;
-  if (crIgState.mode === 'entrypost') {
-    const opts = {
-      format: crIgState.format,
+  if (isEntry) {
+    html = buildEntryIgCardHTML(crIgState.type, crIgState.key, crIgState.rank, {
+      format: design.format, template: design.template, palette: design.palette,
+      textScale: design.textScale,
       period: crIgState.period || currentPeriod,
       viewedYear: crIgState.viewedYear,
       cutoffKeys: crIgState.cutoffKeys,
       descMode: crIgState.entPostDescMode,
       descCustom: crIgState.entPostDescCustom,
       descVariant: crIgState.entPostDescVariant || 0,
-      showWeekDate: (document.getElementById('entPostOpt_showWeekDate') || { checked: true }).checked,
-      showDescription: (document.getElementById('entPostOpt_showDescription') || { checked: true }).checked,
-      showSubtitle: (document.getElementById('entPostOpt_showSubtitle') || { checked: true }).checked,
-      showMovement: (document.getElementById('entPostOpt_showMovement') || { checked: true }).checked,
-      showFooter: (document.getElementById('entPostOpt_showFooter') || { checked: true }).checked,
-      showImage: (document.getElementById('entPostOpt_showImage') || { checked: true }).checked,
+      showWeekDate: chk('entPostOpt_showWeekDate', true),
+      showDescription: chk('entPostOpt_showDescription', true),
+      showSubtitle: chk('entPostOpt_showSubtitle', true),
+      showMovement: chk('entPostOpt_showMovement', true),
+      showStats: chk('entPostOpt_showStats', true),
+      showFooter: chk('entPostOpt_showFooter', true),
+      showImage: chk('entPostOpt_showImage', true),
       imgUrl: crIgState.entPostImgUrl,
-      chartNameSize: _sz('entPostChartNameSize'),
-      entBrandSize: _sz('entPostBrandSize'),
-      entWeekDateSize: _sz('entPostWeekDateSize'),
-      entTitleSize: _sz('entPostTitleSize'),
-      entSubtitleSize: _sz('entPostSubtitleSize'),
-      entAlbumSize: _sz('entPostAlbumSize'),
-      entDescSize: _sz('entPostDescSize'),
-      entImageSize: _sz('entPostImageSize'),
-      entRankSize: _sz('entPostRankSize'),
-      entMvSize: _sz('entPostMvSize'),
-      entStatusY: parseInt(document.getElementById('entPostStatusY')?.value || 0),
-    };
-    html = buildEntryIgCardHTML(crIgState.type, crIgState.key, crIgState.rank, opts);
+    });
   } else {
-    const opts = {
-      format: crIgState.format,
+    html = buildCrIgCardHTML(crIgState.type, crIgState.key, {
+      format: design.format, template: design.template, palette: design.palette,
+      textScale: design.textScale,
       rangeMode: crIgState.rangeMode,
       period: crIgState.period || currentPeriod,
       chartSizes: { year: Infinity, month: chartSizeMonthly, week: chartSizeWeekly },
-      showYear: document.getElementById('crIgOpt_showYear')?.checked ?? true,
-      showMonth: document.getElementById('crIgOpt_showMonth')?.checked ?? true,
-      showWeek: document.getElementById('crIgOpt_showWeek')?.checked ?? true,
-      showWeekDate: document.getElementById('crIgOpt_showWeekDate')?.checked ?? true,
-      showSubtitle: document.getElementById('crIgOpt_showSubtitle')?.checked ?? true,
-      showFooter: document.getElementById('crIgOpt_showFooter')?.checked ?? true,
-      showImage: document.getElementById('crIgOpt_showImage')?.checked ?? true,
-      showSectionSummary: document.getElementById('crIgOpt_showSectionSummary')?.checked ?? true,
+      showYear: chk('crIgOpt_showYear', true),
+      showMonth: chk('crIgOpt_showMonth', true),
+      showWeek: chk('crIgOpt_showWeek', true),
+      showWeekDate: chk('crIgOpt_showWeekDate', true),
+      showSubtitle: chk('crIgOpt_showSubtitle', true),
+      showFooter: chk('crIgOpt_showFooter', true),
+      showImage: chk('crIgOpt_showImage', true),
+      showSectionSummary: chk('crIgOpt_showSectionSummary', true),
       imgUrl: crIgState.imgUrl,
-      titleFont: document.getElementById('crIgTitleFont')?.value || 'IBM Plex Sans',
-      labelFont: document.getElementById('crIgLabelFont')?.value || 'JetBrains Mono',
-      titleSize: _sz('crIgTitleSize'),
-      brandSize: _sz('crIgBrandSize'),
-      weekDateSize: _sz('crIgWeekDateSize'),
-      sectionSize: _sz('crIgSectionSize'),
-      boxSize: _sz('crIgBoxSize'),
-      imageScale: parseInt(document.getElementById('crIgImageScale')?.value || 100) / 100,
-    };
-    html = buildCrIgCardHTML(crIgState.type, crIgState.key, opts);
+    });
   }
   if (!html) return;
-  const frame = document.getElementById('crIgPreviewFrame');
-  const inner = document.getElementById('crIgPreviewInner');
-  frame.style.width = Math.round(cardW * scale) + 'px';
-  frame.style.height = Math.round(cardH * scale) + 'px';
-  inner.innerHTML = html;
-  inner.style.width = cardW + 'px';
-  inner.style.height = cardH + 'px';
-  inner.style.transform = `scale(${scale})`;
-  inner.style.transformOrigin = 'top left';
+  shFitPreview('crIgPreviewFrame', 'crIgPreviewInner', design.format, html);
   const cvs = document.getElementById('crIgCanvas');
+  const d = shDims(design.format);
   cvs.innerHTML = html;
-  cvs.style.width = cardW + 'px'; cvs.style.height = cardH + 'px';
+  cvs.style.width = d.w + 'px';
+  cvs.style.height = d.h + 'px';
 }
 
-function downloadCrIg() {
-  const btn = document.getElementById('crIgDownloadBtn');
-  const orig = btn.textContent; btn.textContent = '⏳ Generating…'; btn.disabled = true;
-  const isPost = crIgState.format === 'post';
-  const cardW = 540, cardH = isPost ? 540 : 960;
-  const cvs = document.getElementById('crIgCanvas');
-  const slug = (crIgState.key.split('|||')[0] || 'entry').replace(/[^a-z0-9]/gi, '').slice(0, 20);
+function _crFileName() {
+  const design = crDesign();
+  const slug = (crIgState.key.split('|||')[0] || 'entry').replace(/[^a-z0-9]/gi, '').slice(0, 24);
   const prefix = crIgState.mode === 'entrypost' ? 'dankcharts_entry_' : 'dankcharts_chartrun_';
-  html2canvas(cvs, { scale: 2, useCORS: true, allowTaint: false, backgroundColor: null, logging: false, width: cardW, height: cardH })
-    .then(c => {
-      const a = document.createElement('a');
-      a.download = prefix + slug + '_' + crIgState.format + '.png';
-      a.href = c.toDataURL('image/png'); a.click();
-      btn.textContent = orig; btn.disabled = false;
-    }).catch(err => { console.error('Download failed:', err); btn.textContent = orig; btn.disabled = false; });
+  return `${prefix}${slug}_${design.template}_${design.format}.png`;
+}
+
+async function downloadCrIg() {
+  const btn = document.getElementById('crIgDownloadBtn');
+  const orig = btn.textContent;
+  btn.textContent = '⏳ …'; btn.disabled = true;
+  const design = crDesign();
+  try {
+    const c = await shCapture('crIgCanvas', design.format, design.quality);
+    const a = document.createElement('a');
+    a.download = _crFileName();
+    a.href = c.toDataURL('image/png');
+    a.click();
+  } catch (err) { console.error('Download failed:', err); }
+  btn.textContent = orig; btn.disabled = false;
+}
+
+async function copyCrIg() {
+  if (!navigator.clipboard?.write) { downloadCrIg(); return; }
+  const btn = document.getElementById('crIgCopyBtn');
+  const orig = btn.textContent;
+  btn.textContent = '⏳…'; btn.disabled = true;
+  const design = crDesign();
+  try {
+    const c = await shCapture('crIgCanvas', design.format, design.quality);
+    const blob = await shCanvasBlob(c);
+    await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
+    btn.textContent = '✓ Copied!';
+    setTimeout(() => { btn.textContent = orig; btn.disabled = false; }, 1800);
+  } catch (e) {
+    btn.textContent = orig; btn.disabled = false;
+    downloadCrIg();
+  }
+}
+
+async function shareCrIgNative() {
+  const btn = document.getElementById('crIgShareBtn');
+  const orig = btn.textContent;
+  btn.textContent = '⏳…'; btn.disabled = true;
+  const design = crDesign();
+  try {
+    const c = await shCapture('crIgCanvas', design.format, design.quality);
+    const blob = await shCanvasBlob(c);
+    const file = new File([blob], _crFileName(), { type: 'image/png' });
+    if (navigator.canShare?.({ files: [file] })) {
+      await navigator.share({ files: [file], title: 'dankcharts.fm' });
+    } else {
+      const link = document.createElement('a');
+      link.download = file.name;
+      link.href = URL.createObjectURL(blob);
+      link.click();
+    }
+  } catch (e) {}
+  btn.textContent = orig; btn.disabled = false;
 }
 
 document.getElementById('crIgModal').addEventListener('click', e => {
@@ -20345,29 +21063,37 @@ document.getElementById('crIgModal').addEventListener('click', e => {
 
 // ─── ENTRY SHARE IMAGE (builders only — UI lives in crIgModal) ──
 
-function buildEntryIgCardHTML(type, key, rank, opts) {
-  const c = igColors();
-  const isPost = opts.format === 'post';
-  const cardW = 540, cardH = isPost ? 540 : 960;
+// Everything a single-entry template needs: names, chart title, movement
+// sentence, the narrative description and the headline stats.
+function shEntryContext(type, key, rank, opts) {
   const period = opts.period || currentPeriod;
+  const fmt = SHARE_FORMATS[opts.format] ? opts.format : 'post';
+  const d = shDims(fmt);
 
   // Resolve display names from chart run data
   let displayName = key.split('|||')[0], artistName = key.split('|||')[1] || '', albumName = '';
-  const crAny = (allChartRun[period] && allChartRun[period].result && allChartRun[period].result[type] && allChartRun[period].result[type][key])
-    || (allChartRun.year && allChartRun.year.result && allChartRun.year.result[type] && allChartRun.year.result[type][key])
-    || (allChartRun.month && allChartRun.month.result && allChartRun.month.result[type] && allChartRun.month.result[type][key])
-    || (allChartRun.week && allChartRun.week.result && allChartRun.week.result[type] && allChartRun.week.result[type][key]);
+  const crAny = allChartRun[period]?.result?.[type]?.[key]
+    || allChartRun.year?.result?.[type]?.[key]
+    || allChartRun.month?.result?.[type]?.[key]
+    || allChartRun.week?.result?.[type]?.[key];
   if (crAny) {
     if (type === 'songs') { displayName = crAny._title || displayName; artistName = crAny._artist || artistName; }
     if (type === 'albums') { displayName = crAny._album || displayName; artistName = crAny._artist || artistName; }
     if (type === 'artists') { displayName = key; artistName = ''; }
   }
+  let plays = null;
   if (type === 'songs') {
-    const s = fullData.songs && fullData.songs.find(function (s2) { return songKey(s2) === key; });
-    if (s) albumName = s.album || '';
+    const s = (fullData.songs || []).find(s2 => songKey(s2) === key);
+    if (s) { albumName = s.album || ''; plays = s.count; }
+  } else if (type === 'artists') {
+    const a = (fullData.artists || []).find(a2 => a2.name === key);
+    if (a) plays = a.count;
+  } else {
+    const al = (fullData.albums || []).find(a2 => (a2.album + '|||' + a2.artist) === key);
+    if (al) plays = al.count;
   }
 
-  // Period header text (descriptive title with chart size + type + date range)
+  // Chart title: "Top 10 Songs of the Week" + the date range underneath.
   const dr = getDateRange();
   const typeWord = t('ep_type_' + type) || 'Entries';
   const topN = period === 'week' ? chartSizeWeekly
@@ -20389,56 +21115,20 @@ function buildEntryIgCardHTML(type, key, rank, opts) {
     chartName = `${t('cr_all_time')} ${topLabel} ${typeWord}`;
     periodLine = t('cr_all_time');
   }
-  const typeLabel = t('cr_type_' + (type === 'songs' ? 'song' : type === 'artists' ? 'artist' : 'album'));
 
-  // Movement label
+  // Movement, written out as a sentence rather than an arrow.
   const mv = _entryMovement(rank, key, type, period);
-  let mvText, mvColor;
-  if (mv.cls === 'new') { mvText = t('ep_mv_new'); mvColor = c.green; }
-  else if (mv.cls === 're') { mvText = t('ep_mv_return'); mvColor = c.amber; }
-  else if (mv.cls === 'same') { mvText = t('ep_mv_same'); mvColor = c.text3; }
+  let mvText, mvKind = mv.cls;
+  if (mv.cls === 'new') mvText = t('ep_mv_new');
+  else if (mv.cls === 're') mvText = t('ep_mv_return');
+  else if (mv.cls === 'same') mvText = t('ep_mv_same');
   else if (mv.cls === 'up') {
     const n = parseInt(mv.label.replace(/[^\d]/g, '')) || 0;
-    mvText = t(n === 1 ? 'ep_mv_up_one' : 'ep_mv_up_other', { n }); mvColor = c.green;
+    mvText = t(n === 1 ? 'ep_mv_up_one' : 'ep_mv_up_other', { n });
   } else if (mv.cls === 'down') {
     const n = parseInt(mv.label.replace(/[^\d]/g, '')) || 0;
-    mvText = t(n === 1 ? 'ep_mv_down_one' : 'ep_mv_down_other', { n }); mvColor = c.rose;
-  } else { mvText = mv.label || '\u2014'; mvColor = c.text3; }
-
-  // Rank colour: gold / silver / bronze / accent
-  const rankColor = rank === 1 ? c.gold1 : rank === 2 ? '#94a3b8' : rank === 3 ? '#c07850' : c.accent;
-
-  // Layout sizes — opts override auto values
-  const _ov = (override, auto) => (override != null ? override : auto);
-  const headerMinH = isPost ? 90 : 176;
-  const storyBottomSafe = isPost ? 6 : 18;
-  const rankFont = _ov(opts.entRankSize, isPost ? 72 : 96);
-  const mvFont = _ov(opts.entMvSize, isPost ? 12 : 16);
-  const titleFont = _ov(opts.entTitleSize, isPost ? 20 : 27);
-  const subFont = _ov(opts.entSubtitleSize, isPost ? 13 : 17);
-  const monoFont = _ov(opts.entAlbumSize, isPost ? 10 : 13);
-  const descFont = _ov(opts.entDescSize, isPost ? 11 : 14);
-  // chartNameSize controls the chart-name line in the header
-  const chartNameFont = _ov(opts.chartNameSize, isPost ? 15 : 19);
-  const weekDateFont = _ov(opts.entWeekDateSize, isPost ? 9 : 11);
-  const brandFont = _ov(opts.entBrandSize, isPost ? 8.5 : 10);
-  const dateFont = isPost ? 8.5 : 9.5;
-  // As header text grows, shrink the image and add spacing to avoid visual collisions.
-  const headerCrowd = Math.max(0, chartNameFont - (isPost ? 18 : 24))
-    + Math.max(0, brandFont - (isPost ? 9 : 11))
-    + Math.max(0, dateFont - (isPost ? 9 : 11));
-  const bodyCrowd = Math.max(0, titleFont - (isPost ? 22 : 30))
-    + Math.max(0, subFont - (isPost ? 15 : 20))
-    + Math.max(0, monoFont - (isPost ? 11 : 15))
-    + Math.max(0, descFont - (isPost ? 12 : 16));
-  const imgBase = isPost ? 172 : 240;
-  const imgMin = isPost ? 144 : 200;
-  const imgShrink = Math.min(imgBase - imgMin, Math.round(headerCrowd * 1.6 + bodyCrowd * 0.7));
-  const autoImgSize = imgBase - imgShrink;
-  const imgSize = Math.max(isPost ? 96 : 128, Math.min(isPost ? 260 : 340, _ov(opts.entImageSize, autoImgSize)));
-  const nameMT = Math.max(isPost ? 4 : 8, (isPost ? 10 : 14) + Math.min(8, Math.round(headerCrowd * 0.4)) - Math.min(5, Math.round(bodyCrowd * 0.5)));
-  const bodyPadBottom = (isPost ? 8 : 16) + Math.min(isPost ? 24 : 34, Math.round(bodyCrowd * 2.1));
-  const descMaxH = isPost ? Math.max(24, 60 - Math.round(bodyCrowd * 4.5)) : Math.max(34, 94 - Math.round(bodyCrowd * 5.2));
+    mvText = t(n === 1 ? 'ep_mv_down_one' : 'ep_mv_down_other', { n });
+  } else mvText = mv.label || '—';
 
   const desc = opts.showDescription ? _entryDescriptionText(type, key, rank, period, {
     viewedYear: opts.viewedYear,
@@ -20448,54 +21138,202 @@ function buildEntryIgCardHTML(type, key, rank, opts) {
     variant: opts.descVariant,
     periodLine,
   }) : '';
-  const descInMediaZone = !!desc && descFont >= (isPost ? 13 : 17);
-  const descOverlayMaxW = Math.round(imgSize * (isPost ? 1.14 : 1.08));
-  const descOverlayMaxH = Math.round(imgSize * (isPost ? 0.62 : 0.55));
-  const descOverlayFont = Math.max(10, descFont - 1);
-  const metaRankSize = Math.max(isPost ? 34 : 48, Math.round(rankFont * 0.58));
-  const metaMvSize = Math.max(10, Math.round(mvFont * 0.95));
-  const storyStatusY = isPost ? 0 : (parseInt(opts.entStatusY || 0, 10) || 0);
 
-  const imgHTML = (opts.showImage && opts.imgUrl)
-    ? '<img src="' + opts.imgUrl + '" crossorigin="anonymous" style="width:' + imgSize + 'px;height:' + imgSize + 'px;object-fit:cover;border-radius:' + (isPost ? 10 : 14) + 'px;box-shadow:0 8px 32px rgba(0,0,0,0.55);border:1px solid ' + c.border + ';display:block;">'
-    : '<div style="width:' + imgSize + 'px;height:' + imgSize + 'px;background:' + c.surface + ';border-radius:' + (isPost ? 10 : 14) + 'px;border:1px solid ' + c.border + ';display:flex;align-items:center;justify-content:center;"><span style="font-family:var(--font-display);font-size:' + Math.round(imgSize * 0.32) + 'px;color:' + c.accent2 + ';">' + esc(initials(displayName)) + '</span></div>';
+  const weeks = lastPeriodStats ? (lastPeriodStats.periodsOnChart[type]?.[key] || 1) : null;
+  const p = shPalette(opts.palette, shDominant(opts.imgUrl));
+  return {
+    type, key, rank, opts, fmt, W: d.w, H: d.h, p,
+    S: (opts.textScale || 100) / 100,
+    displayName, artistName, albumName, plays,
+    chartName, periodLine, desc,
+    mvText, mvKind,
+    mvColor: mvKind === 'up' ? p.pos : mvKind === 'down' ? p.neg : mvKind === 'new' ? p.accent : mvKind === 're' ? p.gold : p.dim,
+    rankColor: shRankColor(p, rank),
+    weeks,
+    weeksLabel: weeks ? (weeks === 1 ? t('ig_week_1') : t('ig_weeks_n', { n: weeks })) : '',
+    peak: igPeakOf(key, type, lastPeaks),
+    periodUnit: n => period === 'month' ? tUnit('months', n) : period === 'year' ? tUnit('years', n) : tUnit('cr_week', n),
+    art: opts.showImage ? opts.imgUrl : null,
+    typeLabel: _shPlain(t('cr_type_' + (type === 'songs' ? 'song' : type === 'artists' ? 'artist' : 'album'))),
+    playsWord: t('ig_plays_word'),
+  };
+}
 
-  const header = '<div style="padding:' + (isPost ? '24px 22px 14px' : '86px 26px 18px') + ';background:linear-gradient(135deg,' + c.bg3 + ',' + c.surface + ');border-bottom:2px solid ' + c.accent + ';flex-shrink:0;min-height:' + headerMinH + 'px;box-sizing:border-box;display:flex;flex-direction:column;justify-content:flex-start;">'
-    + '<div style="font-family:var(--font-mono);font-size:' + brandFont + 'px;letter-spacing:0.22em;color:' + c.accent + ';text-transform:uppercase;margin-bottom:3px;">dankcharts.fm \u00b7 ' + esc(typeLabel) + '</div>'
-    + '<div style="font-family:var(--font-display);font-size:' + chartNameFont + 'px;color:' + c.text + ';line-height:1.1;">' + esc(chartName) + '</div>'
-    + (opts.showWeekDate && periodLine ? '<div style="font-family:var(--font-mono);font-size:' + weekDateFont + 'px;color:' + c.text3 + ';letter-spacing:0.1em;margin-top:4px;text-transform:uppercase;">' + esc(periodLine) + '</div>' : '')
-    + '</div>';
+// The shared stat strip: weeks on chart · peak · plays.
+function _shEntryStats(ctx, opt) {
+  const o = opt || {};
+  const p = ctx.p;
+  const s = v => _shS(ctx, v);
+  if (ctx.opts.showStats === false) return '';
+  const chips = [];
+  if (ctx.weeksLabel) chips.push(shChip(p, esc(ctx.weeksLabel), { size: s(o.size || 22), color: o.color || p.text }));
+  if (ctx.peak) chips.push(shPeakChip(p, ctx.peak, s(o.size || 22)));
+  if (ctx.plays != null) chips.push(shChip(p, `${ctx.plays.toLocaleString()} ${esc(ctx.playsWord)}`, { size: s(o.size || 22), color: p.accent }));
+  if (!chips.length) return '';
+  return `<div style="display:flex;flex-wrap:wrap;gap:${s(10)}px;${o.center ? 'justify-content:center;' : ''}">${chips.join('')}</div>`;
+}
 
-  const body = '<div style="flex:1;overflow:hidden;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:' + (isPost ? ('12px 22px ' + bodyPadBottom + 'px') : ('22px 28px ' + bodyPadBottom + 'px')) + ';position:relative;">'
-    + '<div style="position:absolute;width:' + (imgSize + 80) + 'px;height:' + (imgSize + 80) + 'px;border-radius:50%;background:radial-gradient(circle,' + c.accent + '14 0%,transparent 68%);pointer-events:none;"></div>'
-    + '<div style="position:relative;margin-bottom:' + nameMT + 'px;display:flex;flex-direction:column;align-items:center;">' + imgHTML
-    + '</div>'
-    + '<div style="text-align:center;width:100%;position:relative;">'
-    + '<div style="font-family:var(--font-sans);font-size:' + titleFont + 'px;font-weight:700;color:' + c.text + ';line-height:1.2;margin-bottom:2px;max-height:' + (isPost ? 54 : 78) + 'px;overflow:hidden;">' + esc(displayName) + '</div>'
-    + (opts.showSubtitle && artistName ? '<div style="font-family:var(--font-sans);font-size:' + subFont + 'px;color:' + c.text2 + ';line-height:1.25;margin-bottom:1px;max-height:' + (isPost ? 34 : 48) + 'px;overflow:hidden;">' + esc(artistName) + '</div>' : '')
-    + (opts.showSubtitle && type === 'songs' && albumName ? '<div style="font-family:var(--font-mono);font-size:' + monoFont + 'px;color:' + c.text3 + ';letter-spacing:0.06em;margin-bottom:2px;">' + esc(albumName) + '</div>' : '')
-    + (descInMediaZone ? '<div style="margin-top:' + (isPost ? 6 : 8) + 'px;max-width:' + (isPost ? '92%' : '88%') + ';max-height:' + descOverlayMaxH + 'px;overflow:hidden;padding:' + (isPost ? '6px 8px' : '8px 10px') + ';font-family:var(--font-sans);font-size:' + descOverlayFont + 'px;color:' + c.text + ';font-style:italic;line-height:1.35;background:' + (c.isDark ? 'linear-gradient(180deg, rgba(8,18,30,0.28), rgba(8,18,30,0.72))' : c.bg2 + 'cc') + ';border:1px solid ' + (c.isDark ? 'rgba(255,255,255,0.22)' : c.border) + ';border-radius:' + (isPost ? 8 : 10) + 'px;' + (c.isDark ? 'text-shadow:0 1px 2px rgba(0,0,0,0.7);' : '') + 'margin-left:auto;margin-right:auto;">' + esc(desc) + '</div>' : '')
-    + (desc && !descInMediaZone ? '<div style="font-family:var(--font-sans);font-size:' + descFont + 'px;color:' + c.text3 + ';margin-top:' + (isPost ? 6 : 8) + 'px;font-style:italic;line-height:1.45;padding:0 6px;max-height:' + descMaxH + 'px;overflow:hidden;">' + esc(desc) + '</div>' : '')
-    + (isPost
-      ? '<div style="display:flex;justify-content:center;margin-top:4px;"><div style="display:flex;align-items:center;justify-content:space-between;width:100%;padding:0 4px;">'
-      : '')
-    + (!isPost
-      ? '<div style="position:absolute;left:28px;right:28px;bottom:16px;transform:translateY(' + storyStatusY + 'px);display:flex;align-items:center;justify-content:space-between;">'
-      : '')
-    + (opts.showMovement
-      ? '<div style="font-family:var(--font-mono);font-size:' + metaMvSize + 'px;color:' + mvColor + ';font-weight:700;letter-spacing:0.07em;line-height:1;">' + esc(mvText) + '</div>'
-      : '<div style="width:1px;height:1px;"></div>')
-    + '<div style="font-family:var(--font-display);font-size:' + metaRankSize + 'px;color:' + rankColor + ';line-height:1;letter-spacing:-0.02em;">#' + rank + '</div>'
-    + '</div>'
-    + (isPost ? '</div>' : '')
-    + '</div>'
-    + '</div>';
+const SH_ENTRY_TEMPLATES = {
 
-  const footer = opts.showFooter
-    ? '<div style="padding:5px 14px;background:' + c.bg3 + ';border-top:1px solid ' + c.border + ';flex-shrink:0;"><div style="font-family:var(--font-mono);font-size:7px;color:' + c.text3 + ';letter-spacing:0.12em;">dankcharts.fm \u00b7 PERSONAL MUSIC CHARTS</div></div>'
-    : '';
+  // COVER — full-bleed artwork, everything set on a scrim at the bottom.
+  cover(ctx) {
+    const p = ctx.p, opts = ctx.opts;
+    const s = v => _shS(ctx, v);
+    const padX = 64;
+    const artH = Math.round(ctx.H * (ctx.fmt === 'story' ? 0.72 : ctx.fmt === 'portrait' ? 0.68 : 0.66));
+    const titleSize = s(ctx.fmt === 'story' ? 66 : 54);
 
-  return '<div style="width:' + cardW + 'px;height:' + cardH + 'px;background:' + c.bg + ';overflow:hidden;display:flex;flex-direction:column;font-family:var(--font-sans);">' + header + body + (storyBottomSafe ? '<div style="height:' + storyBottomSafe + 'px;flex-shrink:0;"></div>' : '') + footer + '</div>';
+    const backdrop = `<div style="position:absolute;left:0;top:0;width:${ctx.W}px;height:${artH}px;overflow:hidden;">
+      ${ctx.art ? `<img src="${ctx.art}" width="${ctx.W}" height="${artH}" style="width:${ctx.W}px;height:${artH}px;object-fit:cover;display:block;">`
+        : `<div style="width:${ctx.W}px;height:${artH}px;background:linear-gradient(150deg,${p.panel},${p.bg2});display:flex;align-items:center;justify-content:center;font-family:${SH_FONT.display};font-size:${s(180)}px;color:${_shA(p.text, 0.18)};">${esc(initials(ctx.displayName))}</div>`}
+      <div style="position:absolute;left:0;top:0;width:${ctx.W}px;height:${artH}px;background:linear-gradient(180deg, ${p.dark ? 'rgba(0,0,0,0.86)' : 'rgba(255,255,255,0.9)'} 0%, ${p.dark ? 'rgba(0,0,0,0.5)' : 'rgba(255,255,255,0.56)'} 18%, ${p.dark ? 'rgba(0,0,0,0.12)' : 'rgba(255,255,255,0.16)'} 32%, ${_shA(p.bg, 0.06)} 44%, ${_shA(p.bg, 0.78)} 78%, ${p.bg} 100%);"></div>
+    </div>`;
+
+    return shShell(p, ctx.fmt, `${backdrop}
+      <div style="position:relative;width:${ctx.W}px;height:${ctx.H}px;display:flex;flex-direction:column;box-sizing:border-box;">
+        <div style="flex-shrink:0;padding:${shSafeTop(ctx.fmt)}px ${padX}px 0;text-shadow:${p.dark ? '0 2px 10px rgba(0,0,0,0.9),0 0 26px rgba(0,0,0,0.6)' : '0 2px 10px rgba(255,255,255,0.9),0 0 26px rgba(255,255,255,0.7)'};">
+          ${shEyebrow(p, ctx.typeLabel + ' · dankcharts.fm', { size: s(20), color: p.text })}
+          ${opts.showWeekDate ? `<div style="margin-top:${s(14)}px;font-family:${SH_FONT.sans};font-size:${s(30)}px;font-weight:600;color:${p.text};">${esc(ctx.chartName)}</div>
+          <div style="margin-top:${s(6)}px;font-family:${SH_FONT.mono};font-size:${s(19)}px;letter-spacing:0.16em;color:${_shA(p.text, 0.7)};text-transform:uppercase;">${esc(ctx.periodLine)}</div>` : ''}
+        </div>
+        <div style="flex:1;min-height:0;"></div>
+        <div style="flex-shrink:0;padding:0 ${padX}px ${s(10)}px;">
+          <div style="display:flex;align-items:flex-end;gap:${s(24)}px;">
+            <div style="flex:1;min-width:0;">
+              ${opts.showMovement ? `<div style="margin-bottom:${s(12)}px;font-family:${SH_FONT.mono};font-size:${s(22)}px;font-weight:700;letter-spacing:0.1em;color:${ctx.mvColor};text-transform:uppercase;">${esc(ctx.mvText)}</div>` : ''}
+              <div style="font-family:${SH_FONT.display};font-size:${titleSize}px;font-weight:800;color:${p.text};line-height:1.02;${shClamp(3, titleSize, 1.02)}">${esc(ctx.displayName)}</div>
+              ${opts.showSubtitle && ctx.artistName ? `<div style="margin-top:${s(10)}px;font-family:${SH_FONT.sans};font-size:${s(32)}px;color:${_shA(p.text, 0.76)};${shClamp(1, s(32), 1.2)}">${esc(ctx.artistName)}</div>` : ''}
+              ${opts.showSubtitle && ctx.albumName && ctx.type === 'songs' ? `<div style="margin-top:${s(4)}px;font-family:${SH_FONT.mono};font-size:${s(20)}px;color:${_shA(p.text, 0.55)};letter-spacing:0.06em;${shClamp(1, s(20), 1.2)}">${esc(ctx.albumName)}</div>` : ''}
+            </div>
+            <div style="flex-shrink:0;text-align:right;">
+              <div style="font-family:${SH_FONT.mono};font-size:${s(20)}px;letter-spacing:0.2em;color:${_shA(p.text, 0.6)};text-transform:uppercase;">${esc(t('ep_position_label'))}</div>
+              <div style="font-family:${SH_FONT.display};font-size:${s(ctx.fmt === 'story' ? 150 : 124)}px;font-weight:800;color:${ctx.rankColor};line-height:0.84;">${ctx.rank}</div>
+            </div>
+          </div>
+          ${ctx.desc ? `<div style="margin-top:${s(20)}px;font-family:${SH_FONT.sans};font-size:${s(25)}px;font-style:italic;line-height:1.4;color:${_shA(p.text, 0.82)};${shClamp(3, s(25), 1.4)}">${esc(ctx.desc)}</div>` : ''}
+          <div style="margin-top:${s(20)}px;">${_shEntryStats(ctx)}</div>
+        </div>
+        ${shFooter(p, ctx.fmt, { show: opts.showFooter, padX, light: true })}
+      </div>`, { noBgImage: true });
+  },
+
+  // SPLIT — square artwork on top, a flat information panel beneath it.
+  split(ctx) {
+    const p = ctx.p, opts = ctx.opts;
+    const s = v => _shS(ctx, v);
+    const padX = 64;
+    const artH = Math.round(ctx.H * (ctx.fmt === 'story' ? 0.6 : ctx.fmt === 'portrait' ? 0.55 : 0.5));
+    const titleSize = s(ctx.fmt === 'story' ? 58 : 48);
+
+    const art = `<div style="flex-shrink:0;width:${ctx.W}px;height:${artH}px;overflow:hidden;position:relative;">
+      ${ctx.art ? `<img src="${ctx.art}" width="${ctx.W}" height="${artH}" style="width:${ctx.W}px;height:${artH}px;object-fit:cover;display:block;">`
+        : `<div style="width:${ctx.W}px;height:${artH}px;background:linear-gradient(150deg,${p.panel},${p.bg2});display:flex;align-items:center;justify-content:center;font-family:${SH_FONT.display};font-size:${s(160)}px;color:${_shA(p.text, 0.18)};">${esc(initials(ctx.displayName))}</div>`}
+      <div style="position:absolute;left:${padX}px;top:${shSafeTop(ctx.fmt)}px;background:rgba(0,0,0,0.45);border-radius:999px;padding:${s(8)}px ${s(18)}px;">
+        ${shEyebrow(p, ctx.typeLabel + ' · dankcharts.fm', { size: s(19), color: '#ffffff' })}
+      </div>
+    </div>`;
+    const badge = `<div style="position:absolute;right:${padX}px;top:${artH - Math.round(s(132) / 2)}px;width:${s(132)}px;height:${s(132)}px;border-radius:50%;background:${p.accent};display:flex;align-items:center;justify-content:center;box-shadow:0 10px 36px rgba(0,0,0,0.4);">
+      <span style="font-family:${SH_FONT.display};font-size:${s(62)}px;font-weight:800;color:${p.onAccent};line-height:1;">${ctx.rank}</span>
+    </div>`;
+
+    return shShell(p, ctx.fmt, `${art}${badge}
+      <div style="flex:1;min-height:0;padding:${s(48)}px ${padX}px 0;display:flex;flex-direction:column;justify-content:center;">
+        ${opts.showWeekDate ? `<div style="font-family:${SH_FONT.mono};font-size:${s(19)}px;letter-spacing:0.18em;color:${p.accent};text-transform:uppercase;margin-bottom:${s(16)}px;">${esc(ctx.chartName)} · ${esc(ctx.periodLine)}</div>` : ''}
+        <div style="font-family:${SH_FONT.display};font-size:${titleSize}px;font-weight:700;color:${p.text};line-height:1.05;${shClamp(2, titleSize, 1.05)}">${esc(ctx.displayName)}</div>
+        ${opts.showSubtitle && ctx.artistName ? `<div style="margin-top:${s(10)}px;font-family:${SH_FONT.sans};font-size:${s(30)}px;color:${p.dim};${shClamp(1, s(30), 1.2)}">${esc(ctx.artistName)}</div>` : ''}
+        ${opts.showMovement ? `<div style="margin-top:${s(18)}px;">${shChip(p, esc(ctx.mvText), { size: s(22), color: ctx.mvColor })}</div>` : ''}
+        ${ctx.desc ? `<div style="margin-top:${s(18)}px;font-family:${SH_FONT.sans};font-size:${s(24)}px;font-style:italic;line-height:1.42;color:${p.dim};${shClamp(3, s(24), 1.42)}">${esc(ctx.desc)}</div>` : ''}
+        <div style="margin-top:${s(22)}px;">${_shEntryStats(ctx)}</div>
+      </div>
+      ${shFooter(p, ctx.fmt, { show: opts.showFooter, padX })}`);
+  },
+
+  // FRAME — artwork floated on the palette, everything centred under it.
+  frame(ctx) {
+    const p = ctx.p, opts = ctx.opts;
+    const s = v => _shS(ctx, v);
+    const padX = 72;
+    const artSz = ctx.fmt === 'story' ? 640 : ctx.fmt === 'portrait' ? 580 : 460;
+    const titleSize = s(ctx.fmt === 'story' ? 56 : 46);
+
+    return shShell(p, ctx.fmt, `
+      <div style="flex-shrink:0;padding:${shSafeTop(ctx.fmt)}px ${padX}px ${s(26)}px;text-align:center;">
+        <div style="display:flex;justify-content:center;">${shEyebrow(p, ctx.typeLabel + ' · dankcharts.fm', { size: s(20) })}</div>
+        ${opts.showWeekDate ? `<div style="margin-top:${s(14)}px;font-family:${SH_FONT.sans};font-size:${s(30)}px;font-weight:600;color:${p.text};">${esc(ctx.chartName)}</div>
+        <div style="margin-top:${s(6)}px;font-family:${SH_FONT.mono};font-size:${s(19)}px;letter-spacing:0.16em;color:${p.dim};text-transform:uppercase;">${esc(ctx.periodLine)}</div>` : ''}
+      </div>
+      <div style="flex:1;min-height:0;display:flex;flex-direction:column;justify-content:center;">
+      <div style="flex-shrink:0;display:flex;justify-content:center;position:relative;">
+        ${shArt(p, ctx.art, artSz, { initials: initials(ctx.displayName), radius: 24 })}
+        <div style="position:absolute;left:${Math.round((ctx.W - artSz) / 2) - s(34)}px;top:${-s(26)}px;width:${s(124)}px;height:${s(124)}px;border-radius:50%;background:${p.accent};display:flex;align-items:center;justify-content:center;box-shadow:0 12px 40px rgba(0,0,0,0.45);">
+          <span style="font-family:${SH_FONT.display};font-size:${s(58)}px;font-weight:800;color:${p.onAccent};line-height:1;">${ctx.rank}</span>
+        </div>
+      </div>
+      <div style="flex-shrink:0;padding:${s(34)}px ${padX}px 0;text-align:center;">
+        <div style="font-family:${SH_FONT.display};font-size:${titleSize}px;font-weight:700;color:${p.text};line-height:1.06;${shClamp(2, titleSize, 1.06)}">${esc(ctx.displayName)}</div>
+        ${opts.showSubtitle && ctx.artistName ? `<div style="margin-top:${s(10)}px;font-family:${SH_FONT.sans};font-size:${s(29)}px;color:${p.dim};${shClamp(1, s(29), 1.2)}">${esc(ctx.artistName)}</div>` : ''}
+        ${opts.showMovement ? `<div style="margin-top:${s(16)}px;display:flex;justify-content:center;">${shChip(p, esc(ctx.mvText), { size: s(22), color: ctx.mvColor })}</div>` : ''}
+        ${ctx.desc ? `<div style="margin-top:${s(18)}px;font-family:${SH_FONT.sans};font-size:${s(24)}px;font-style:italic;line-height:1.42;color:${p.dim};${shClamp(3, s(24), 1.42)}">${esc(ctx.desc)}</div>` : ''}
+        <div style="margin-top:${s(22)}px;">${_shEntryStats(ctx, { center: true })}</div>
+      </div>
+      </div>
+      ${shFooter(p, ctx.fmt, { show: opts.showFooter, padX })}`);
+  },
+
+  // TICKET — artwork beside a stub of numbers, split by a perforated rule.
+  ticket(ctx) {
+    const p = ctx.p, opts = ctx.opts;
+    const s = v => _shS(ctx, v);
+    const padX = 56;
+    const cardW = ctx.W - padX * 2;
+    const artSz = ctx.fmt === 'story' ? 520 : ctx.fmt === 'portrait' ? 400 : 340;
+    const titleSize = s(ctx.fmt === 'story' ? 50 : 44);
+    const stat = (val, lbl, col) => `<div style="flex:1;min-width:0;text-align:center;">
+      <div style="font-family:${SH_FONT.display};font-size:${s(46)}px;font-weight:700;color:${col || p.text};line-height:1;">${val}</div>
+      <div style="margin-top:${s(7)}px;font-family:${SH_FONT.mono};font-size:${s(16)}px;letter-spacing:0.12em;color:${p.dim};text-transform:uppercase;">${lbl}</div>
+    </div>`;
+
+    return shShell(p, ctx.fmt, `
+      <div style="flex-shrink:0;padding:${shSafeTop(ctx.fmt)}px ${padX}px ${s(24)}px;">
+        ${shEyebrow(p, ctx.typeLabel + ' · dankcharts.fm', { size: s(20) })}
+      </div>
+      <div style="flex:1;min-height:0;padding:0 ${padX}px;display:flex;flex-direction:column;justify-content:center;">
+        <div style="width:${cardW}px;box-sizing:border-box;background:${_shA(p.text, p.dark ? 0.045 : 0.035)};border:1px solid ${p.line};border-radius:26px;overflow:hidden;">
+          <div style="padding:${s(30)}px ${s(32)}px ${s(26)}px;display:flex;gap:${s(28)}px;align-items:center;">
+            ${shArt(p, ctx.art, artSz, { initials: initials(ctx.displayName), radius: 18 })}
+            <div style="flex:1;min-width:0;">
+              <div style="font-family:${SH_FONT.display};font-size:${s(96)}px;font-weight:800;color:${ctx.rankColor};line-height:0.86;">#${ctx.rank}</div>
+              ${opts.showMovement ? `<div style="margin-top:${s(12)}px;">${shChip(p, esc(ctx.mvText), { size: s(21), color: ctx.mvColor })}</div>` : ''}
+              <div style="margin-top:${s(18)}px;font-family:${SH_FONT.display};font-size:${titleSize}px;font-weight:700;color:${p.text};line-height:1.06;${shClamp(2, titleSize, 1.06)}">${esc(ctx.displayName)}</div>
+              ${opts.showSubtitle && ctx.artistName ? `<div style="margin-top:${s(8)}px;font-family:${SH_FONT.sans};font-size:${s(27)}px;color:${p.dim};${shClamp(1, s(27), 1.2)}">${esc(ctx.artistName)}</div>` : ''}
+            </div>
+          </div>
+          <div style="height:1px;background:${p.line};margin:0 ${s(28)}px;"></div>
+          <div style="padding:${s(26)}px ${s(28)}px;display:flex;gap:${s(16)}px;">
+            ${stat('#' + (ctx.peak || ctx.rank), esc(t('peak_label')), p.gold)}
+            ${stat(ctx.weeks || 1, esc(ctx.periodUnit(ctx.weeks || 1) + ' ' + t('cr_on_chart')))}
+            ${ctx.plays != null ? stat(ctx.plays.toLocaleString(), esc(ctx.playsWord), p.accent) : ''}
+          </div>
+          ${opts.showWeekDate ? `<div style="padding:0 ${s(28)}px ${s(24)}px;font-family:${SH_FONT.mono};font-size:${s(18)}px;letter-spacing:0.14em;color:${p.dim};text-transform:uppercase;">${esc(ctx.chartName)} · ${esc(ctx.periodLine)}</div>` : ''}
+        </div>
+        ${ctx.desc ? `<div style="margin-top:${s(24)}px;font-family:${SH_FONT.sans};font-size:${s(25)}px;font-style:italic;line-height:1.42;color:${p.dim};${shClamp(3, s(25), 1.42)}">${esc(ctx.desc)}</div>` : ''}
+      </div>
+      ${shFooter(p, ctx.fmt, { show: opts.showFooter, padX })}`);
+  },
+};
+
+const SH_ENTRY_TEMPLATE_LIST = [
+  { id: 'cover', name: 'Cover', glyph: '◧' },
+  { id: 'split', name: 'Split', glyph: '⬒' },
+  { id: 'frame', name: 'Frame', glyph: '◫' },
+  { id: 'ticket', name: 'Ticket', glyph: '🎟' },
+];
+
+function buildEntryIgCardHTML(type, key, rank, opts) {
+  const ctx = shEntryContext(type, key, rank, opts);
+  if (!ctx) return '';
+  const tpl = SH_ENTRY_TEMPLATES[opts.template] || SH_ENTRY_TEMPLATES.cover;
+  return tpl(ctx);
 }
 
 // Movement helper — week/month use lastPeriodStats; year uses chart run history
