@@ -61,7 +61,7 @@ const DC_CHANGELOG = [
 
   /* ========== SEPTEMBER 2026 ========== */
 
-  { d: '2026-09-23', t: 'feature', a: 'awards', h: '',
+  { d: '2026-09-23', t: 'feature', a: 'awards', h: '1840849',
     title: 'Share your awards ceremony with a link',
     detail: 'A new Share button sits next to View Ceremony. It makes a link anyone can open to watch your ceremony — the nominees with their artwork, the sealed envelopes, the winner reveals with song previews and the roll call at the end — without an account, and without any music data of their own. Your name goes on it if you have set a display name. Only the ceremony is shared: the nominees, the winners and their pictures, nothing else from your library. The link is a snapshot, so after you change nominees or winners press Update link, and the link you already sent shows the new version. Stop sharing takes it down for everyone. Creating a link needs a Google sign-in, so that only you can update or remove it. Works the same for Last.fm, Google Sheets and CSV libraries.' },
 
