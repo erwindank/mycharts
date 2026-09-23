@@ -61,7 +61,7 @@ const DC_CHANGELOG = [
 
   /* ========== SEPTEMBER 2026 ========== */
 
-  { d: '2026-09-23', t: 'feature', a: 'awards', h: '',
+  { d: '2026-09-23', t: 'feature', a: 'awards', h: 'c14b612',
     title: 'Make a playlist of a category’s nominees',
     detail: 'Every My Grammys category with nominees now has a ♫ Playlist button next to Change. It puts the whole field into a playlist, new or existing, so you can listen to them all before crowning a winner. A song nominee adds itself. An album adds every song from it you played in that year’s eligibility window, most played first. An artist adds their five most played songs from the window. Auto-awarded categories don’t get the button, since there is nothing to decide. Works the same for Last.fm, Google Sheets and CSV libraries.' },
 
