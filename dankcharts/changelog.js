@@ -61,11 +61,11 @@ const DC_CHANGELOG = [
 
   /* ========== SEPTEMBER 2026 ========== */
 
-  { d: '2026-09-22', t: 'design', a: 'share', h: '',
+  { d: '2026-09-22', t: 'design', a: 'share', h: '6ed89d7',
     title: 'Share images rebuilt: twelve designs, eight palettes, three shapes',
     detail: 'The shareable images had grown into one stiff layout per card with a wall of sliders bolted to the side — eleven of them for a chart, eleven more for an entry — and every picture came out looking the same: a gradient header bar, striped rows, tiny type and a lot of boxes. All three kinds of card have been redesigned from scratch and now start from a design you pick rather than a size you nudge. A chart can be Editorial (a magazine masthead over airy rows with hairline rules), Minimal (type only, no artwork, maximum air), Spotlight (the #1 blown up with its cover, the rest underneath), Grid (nothing but covers, ranked, sized to fill the card) or Poster (the #1 artwork blurred behind the whole thing). A chart run can be a Timeline — the run drawn as a real rank-over-time line with the peak marked in gold and gaps left as gaps, so a re-entry does not read as a continuous run — or Chips (the old tiles, retuned) or a Stat sheet. A single entry can be Cover (full-bleed artwork with the position set large across the bottom), Split, Frame or Ticket. Alongside the design sits a palette: App theme follows whatever theme you are on, then Onyx, Aurora, Ember, Bloom, Moss and Paper stay put whatever the app is wearing, and Cover reads the colours out of the artwork itself and builds the card around them. There is a new Portrait 4:5 size next to Post and Story, since 4:5 is the tallest shape a feed post keeps. Everything else you could set is still there — what to show and hide, which store the artwork comes from, how many entries, and one Text size slider in place of the old sliders — and the Chart Run panel gained Copy and Share buttons to match the chart one.' },
 
-  { d: '2026-09-22', t: 'change', a: 'share', h: '',
+  { d: '2026-09-22', t: 'change', a: 'share', h: '6ed89d7',
     title: 'Shared images are four times the resolution',
     detail: 'Cards used to be laid out at 540 pixels wide and doubled on the way out, which put a 1080px image on Instagram and left the type soft the moment anything zoomed in. They are now laid out at the full 1080 and exported at 2160 by default, with a Standard option if you want the smaller file. Cover art is requested at the largest size each store will serve rather than the 300px thumbnail the search happens to return, so the artwork holds up at the bigger size, and the fonts are given time to load before the picture is taken so nothing renders in a fallback typeface.' },
 
