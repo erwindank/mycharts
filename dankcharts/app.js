@@ -32734,6 +32734,7 @@ const AWARD_CATEGORIES = [
   { id: 'best_reggae_album', label: 'Best Reggae Album',          type: 'album',  filter: 'genre:reggae',      defaultOn: false, emoji: '🌴' },
   { id: 'best_soundtrack_album', label: 'Best Soundtrack Album',  type: 'album',  filter: 'soundtrack',        defaultOn: false, emoji: '🎬' },
   { id: 'best_album_cover',  label: 'Best Album Cover',           type: 'album',  filter: 'all',               defaultOn: false, emoji: '🖼️' },
+  { id: 'best_album_concept', label: 'Best Album Concept',        type: 'album',  filter: 'all',               defaultOn: false, emoji: '💡' },
   // Stat awards (auto-awarded)
   { id: 'stat_top_song',     label: 'Most Played Song',           type: 'song',   filter: 'stat',        defaultOn: true,  auto: true, emoji: '🎶' },
   { id: 'stat_top_album',    label: 'Most Played Album',          type: 'album',  filter: 'stat',        defaultOn: true,  auto: true, emoji: '📀' },
