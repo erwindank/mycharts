@@ -61,7 +61,7 @@ const DC_CHANGELOG = [
 
   /* ========== SEPTEMBER 2026 ========== */
 
-  { d: '2026-09-22', t: 'feature', a: 'awards', h: '',
+  { d: '2026-09-22', t: 'feature', a: 'awards', h: '43825c7',
     title: 'New My Grammys category: Best Album Concept',
     detail: 'Best Album Cover already let you honour the sleeve; there was nothing for the record behind it — the album built as one idea rather than a set of songs. Best Album Concept is a new album category in the My Grammys ballot, off by default like the other opt‑in ones, so turn it on in the category list for a year and it appears with a full field of nominees to pick from and its own slide in the ceremony. Any album you played in that year’s eligibility window can be nominated.' },
 
