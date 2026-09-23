@@ -27,11 +27,11 @@
   <!-- html2canvas, SheetJS (xlsx) and JSZip are intentionally NOT loaded here — they
        total ~1.2 MB and are only needed for image exports and Excel/ZIP imports.
        app.js pulls them from the CDN on first use (see ensureLazyLib). -->
-  <link rel="stylesheet" href="style.css?v=253">
+  <link rel="stylesheet" href="style.css?v=254">
   <!-- All scripts are deferred so the page paints without waiting on them.
        defer preserves execution order, which matters: translations → Chart.js →
        hammer → zoom plugin → firebase SDKs → firebase.js → app.js (in body). -->
-  <script defer src="translations.js?v=14"></script>
+  <script defer src="translations.js?v=15"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8/hammer.min.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@1.2.1/dist/chartjs-plugin-zoom.min.js"></script>
@@ -2306,16 +2306,9 @@
     <div class="st-section st-reveal" id="stCardSection">
       <div class="st-section-title" data-i18n="st_card_title">Share Your Soundtrack</div>
       <div class="st-card-actions">
-        <button class="st-card-btn" onclick="stOpenCard('story')" data-i18n="st_card_story">📱 Story (9:16)</button>
-        <button class="st-card-btn" onclick="stOpenCard('square')" data-i18n="st_card_square">⬜ Square (1:1)</button>
+        <button class="st-card-btn" onclick="stOpenCard()" data-i18n="st_card_open">📷 Make a share image</button>
       </div>
-      <div id="stCardPreview" style="display:none;">
-        <div id="stCardCanvas" class="st-card-canvas"></div>
-        <div class="st-card-download-row">
-          <button class="st-card-download-btn" onclick="stDownloadCard()" data-i18n="st_card_download">⬇ Download Image</button>
-          <button class="st-card-close-btn" onclick="stCloseCard()" data-i18n="btn_close">✕</button>
-        </div>
-      </div>
+      <div class="st-card-hint" data-i18n="st_card_hint">Five designs, eight palettes and three sizes — pick one, then download or copy it.</div>
     </div>
   </div>
   <!-- END YOUR SOUNDTRACK VIEW -->
@@ -2697,6 +2690,92 @@
     </div>
   </div>
   <div id="crIgCanvas" style="position:fixed;left:-9999px;top:0;pointer-events:none;"></div>
+
+  <!-- YOUR SOUNDTRACK SHARE MODAL -->
+  <div class="ig-modal-overlay" id="stCardModal">
+    <div class="ig-modal-box">
+      <div class="ig-modal-header">
+        <h3 data-i18n="st_card_title">Share Your Soundtrack</h3>
+        <button class="ig-modal-close" onclick="stCloseCard()" data-i18n="btn_close">✕ CLOSE</button>
+      </div>
+      <div class="ig-modal-body">
+        <div class="ig-preview-panel">
+          <div class="ig-preview-label" data-i18n="ig_preview_label">Preview</div>
+          <div class="ig-preview-frame" id="stCardFrame">
+            <div class="ig-preview-inner" id="stCardInner"></div>
+          </div>
+        </div>
+        <div class="ig-controls-panel">
+          <!-- Design + palette chips are painted by shRenderDesignPickers('st') -->
+          <div class="sh-group">
+            <div class="sh-group-title" data-i18n="sh_design">Design</div>
+            <div class="sh-tpl-row" id="stTemplateRow"></div>
+          </div>
+          <div class="sh-group">
+            <div class="sh-group-title" data-i18n="sh_palette">Palette</div>
+            <div class="sh-swatch-row" id="stPaletteRow"></div>
+          </div>
+          <div class="sh-group">
+            <div class="sh-group-title" data-i18n="ig_format">Format</div>
+            <div class="sh-seg" id="stFormatBtns">
+              <button class="sh-seg-btn" data-fmt="post" onclick="setStFormat('post')" data-i18n="sh_fmt_post">Post 1:1</button>
+              <button class="sh-seg-btn" data-fmt="portrait" onclick="setStFormat('portrait')" data-i18n="sh_fmt_portrait">Portrait 4:5</button>
+              <button class="sh-seg-btn active" data-fmt="story" onclick="setStFormat('story')" data-i18n="sh_fmt_story">Story 9:16</button>
+            </div>
+          </div>
+          <div class="sh-group">
+            <div class="sh-group-title" data-i18n="ig_show_hide">Show / Hide</div>
+            <label class="ig-ctrl-row"><input type="checkbox" id="stOpt_showArt" checked
+                onchange="stUpdateCardPreview()"><span data-i18n="ig_album_art">Album Art</span></label>
+            <div class="sh-src-row">
+              <span class="sh-src-label" data-i18n="ig_source">Source:</span>
+              <button class="sh-mini-btn st-art-src-btn active" data-src="deezer" onclick="setStArtSource('deezer')">Deezer</button>
+              <button class="sh-mini-btn st-art-src-btn" data-src="itunes" onclick="setStArtSource('itunes')">iTunes</button>
+              <button class="sh-mini-btn st-art-src-btn" data-src="lastfm" onclick="setStArtSource('lastfm')">Last.fm</button>
+              <button class="sh-mini-btn st-art-src-btn" data-src="youtube" onclick="setStArtSource('youtube')">YouTube</button>
+            </div>
+            <label class="ig-ctrl-row"><input type="checkbox" id="stOpt_showStats" checked
+                onchange="stUpdateCardPreview()"><span data-i18n="st_card_opt_stats">Stat numbers</span></label>
+            <label class="ig-ctrl-row"><input type="checkbox" id="stOpt_showPeak" checked
+                onchange="stUpdateCardPreview()"><span data-i18n="st_card_opt_peak">Peak day</span></label>
+            <label class="ig-ctrl-row"><input type="checkbox" id="stOpt_showArtists" checked
+                onchange="stUpdateCardPreview()"><span data-i18n="st_top_artists">Top Artists</span></label>
+            <label class="ig-ctrl-row"><input type="checkbox" id="stOpt_showSongs" checked
+                onchange="stUpdateCardPreview()"><span data-i18n="st_top_songs">Top Songs</span></label>
+            <label class="ig-ctrl-row"><input type="checkbox" id="stOpt_showFooter" checked
+                onchange="stUpdateCardPreview()"><span data-i18n="ig_footer_branding">Footer Branding</span></label>
+          </div>
+          <div class="sh-group">
+            <div class="sh-group-title" data-i18n="sh_entries">Entries shown</div>
+            <div class="sh-slider-row">
+              <input type="range" id="stTopN" min="3" max="10" value="5" step="1" oninput="stUpdateCardPreview()">
+              <span class="sh-slider-val" id="stTopNLabel">5</span>
+            </div>
+            <div class="sh-group-title" style="margin-top:0.6rem;" data-i18n="sh_text_size">Text size</div>
+            <div class="sh-slider-row">
+              <input type="range" id="stTextScale" min="80" max="130" value="100" step="2" oninput="stUpdateCardPreview()">
+              <span class="sh-slider-val" id="stTextScaleLabel">100%</span>
+            </div>
+          </div>
+          <div class="sh-group">
+            <div class="sh-group-title" data-i18n="sh_quality">Quality</div>
+            <div class="sh-seg" id="stQualityBtns">
+              <button class="sh-seg-btn" data-q="1" onclick="setStQuality(1)" data-i18n="sh_quality_std">Standard</button>
+              <button class="sh-seg-btn active" data-q="2" onclick="setStQuality(2)" data-i18n="sh_quality_high">High</button>
+            </div>
+            <div class="sh-hint" id="stQualityNote">2160 × 3840 px</div>
+          </div>
+        </div>
+      </div>
+      <div class="ig-modal-footer">
+        <button class="ig-modal-close" onclick="stCloseCard()" data-i18n="btn_cancel">Cancel</button>
+        <button class="ig-copy-btn" id="stCardCopyBtn" onclick="stCopyCard()">📋 Copy</button>
+        <button class="ig-copy-btn ig-share-native-btn" id="stCardShareBtn" onclick="stShareCard()">📤 Share</button>
+        <button class="ig-download-btn" id="stCardDownloadBtn" onclick="stDownloadCard()" data-i18n="btn_download_image">↓ Download Image</button>
+      </div>
+    </div>
+  </div>
+  <div id="stCardCanvas" style="position:fixed;left:-9999px;top:0;pointer-events:none;"></div>
 
   <!-- EXPORT PLAYLIST MODAL -->
   <div class="modal-overlay" id="exportModal" onclick="if(event.target===this)closeExportModal()">
@@ -3088,8 +3167,8 @@
 
   <!-- defer keeps app.js last in the script execution order (after translations,
        Chart.js and firebase.js) while letting the whole page parse and paint first -->
-  <script defer src="changelog.js?v=33"></script>
-  <script defer src="app.js?v=218"></script>
+  <script defer src="changelog.js?v=34"></script>
+  <script defer src="app.js?v=219"></script>
 
   <!-- ── Settings Modal ──
        Split into three tabs so the whole form is never dumped on screen at

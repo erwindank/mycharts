@@ -20237,6 +20237,7 @@ const SH_SCOPES = {
   ig: { templates: () => SH_CHART_TEMPLATE_LIST, get: () => igOptions, setTpl: 'setIgTemplate', setPal: 'setIgPalette' },
   cr: { templates: () => SH_RUN_TEMPLATE_LIST, get: () => crIgState.run, setTpl: 'setCrTemplate', setPal: 'setCrPalette' },
   ep: { templates: () => SH_ENTRY_TEMPLATE_LIST, get: () => crIgState.ent, setTpl: 'setEpTemplate', setPal: 'setEpPalette' },
+  st: { templates: () => SH_ST_TEMPLATE_LIST, get: () => stCard, setTpl: 'setStTemplate', setPal: 'setStPalette' },
 };
 
 function shRenderDesignPickers(scope) {
@@ -35934,7 +35935,6 @@ let _stReplayIdx = 0;
 let _stReplayMax = 0;
 let _stReplayPaused = false;
 let _stReplaySpeedMs = 1200;
-let _stCardMode = null;
 let _stMilestonesCount = 0;
 let _stBubbleTimer = null;
 let _stBubbleSeeds = [];
@@ -38093,119 +38093,533 @@ function stStopReplay() {
 }
 
 // ── Shareable Card ────────────────────────────────────────────
-function stOpenCard(mode) {
-  _stCardMode = mode;
-  const preview = document.getElementById('stCardPreview');
-  const canvas = document.getElementById('stCardCanvas');
-  if (!preview || !canvas) return;
+// Built on the same share-card design system as the chart, chart-run and entry
+// images (SHARE_FORMATS / SHARE_PALETTES / shShell / shCapture) — see the
+// SHARE CARD DESIGN SYSTEM block for the primitives and the html2canvas rules.
 
-  const isStory = mode === 'story';
-  const w = isStory ? 360 : 360;
-  const h = isStory ? 640 : 360;
+const stCard = {
+  format: 'story',
+  template: 'recap',
+  palette: 'app',
+  textScale: 100,
+  quality: 2,
+  topN: 5,
+  showStats: true,
+  showArtists: true,
+  showSongs: true,
+  showPeak: true,
+  showArt: true,
+  showFooter: true,
+  artSource: 'deezer',
+};
+const ST_CARD_KEYS = ['format', 'template', 'palette', 'textScale', 'quality', 'topN',
+  'showStats', 'showArtists', 'showSongs', 'showPeak', 'showArt', 'showFooter', 'artSource'];
+const stArtCache = {}; // `a:<artist>:<src>` / `s:<songKey>:<src>` → data URL or null
 
-  canvas.innerHTML = stBuildCardHTML(mode);
-  canvas.style.width = w + 'px';
-  canvas.style.height = h + 'px';
-  preview.style.display = '';
-  preview.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+function stSaveCardSettings() {
+  try {
+    const out = {};
+    ST_CARD_KEYS.forEach(k => { out[k] = stCard[k]; });
+    localStorage.setItem('dc_stCardSettings', JSON.stringify(out));
+  } catch {}
 }
 
-function stCloseCard() {
-  const preview = document.getElementById('stCardPreview');
-  if (preview) preview.style.display = 'none';
-  _stCardMode = null;
+function stLoadCardSettings() {
+  try {
+    const saved = JSON.parse(localStorage.getItem('dc_stCardSettings') || 'null');
+    if (saved && typeof saved === 'object') {
+      ST_CARD_KEYS.forEach(k => { if (saved[k] !== undefined) stCard[k] = saved[k]; });
+    }
+  } catch {}
+  if (!SH_ST_TEMPLATES[stCard.template]) stCard.template = 'recap';
+  if (!SHARE_PALETTES.some(p => p.id === stCard.palette)) stCard.palette = 'app';
+  if (!SHARE_FORMATS[stCard.format]) stCard.format = 'story';
 }
 
-function stBuildCardHTML(mode) {
-  const plays = _stCurrentPlays;
-  const isStory = mode === 'story';
-  const label = stGetPeriodLabel();
+// ── Data prep ─────────────────────────────────────────────────
+// Everything a soundtrack template needs, resolved once. Artists are counted
+// per comma-split credit, the same rule the rest of the Soundtrack view uses,
+// so "Tyler, The Creator" stays one artist and a duet counts for both.
+function stCardContext(opts) {
+  const plays = _stCurrentPlays || [];
+  if (!plays.length) return null;
+  const fmt = SHARE_FORMATS[opts.format] ? opts.format : 'story';
+  const d = shDims(fmt);
+  const n = Math.max(3, Math.min(10, opts.topN || 5));
+  const src = opts.artSource || 'deezer';
 
   const artistCounts = {};
-  for (const p of plays) artistCounts[p.artist] = (artistCounts[p.artist] || 0) + 1;
-  const topArtists = Object.entries(artistCounts).sort((a, b) => b[1] - a[1]).slice(0, 5);
+  for (const p of plays) {
+    for (const a of (p.artists || splitArtists(p.artist))) artistCounts[a] = (artistCounts[a] || 0) + 1;
+  }
+  const topArtists = Object.entries(artistCounts).sort((a, b) => b[1] - a[1]).slice(0, n)
+    .map(([name, count], i) => ({ rank: i + 1, name, count, art: opts.showArt ? (stArtCache['a:' + name + ':' + src] || null) : null }));
 
   const songCounts = {};
   for (const p of plays) {
     const sk = songKey(p);
-    if (!songCounts[sk]) songCounts[sk] = { title: p.title, artist: p.artist, count: 0 };
+    if (!songCounts[sk]) songCounts[sk] = { key: sk, title: p.title, artist: p.artist, count: 0 };
     songCounts[sk].count++;
   }
-  const topSongs = Object.values(songCounts).sort((a, b) => b.count - a.count).slice(0, 5);
+  const topSongs = Object.values(songCounts).sort((a, b) => b.count - a.count).slice(0, n)
+    .map((s, i) => Object.assign({ rank: i + 1, art: opts.showArt ? (stArtCache['s:' + s.key + ':' + src] || null) : null }, s));
 
-  const artistsHTML = topArtists.map(([name, count], i) =>
-    `<div class="stc-row"><span class="stc-rank">${i+1}</span><span class="stc-name">${esc(name)}</span><span class="stc-ct">${count.toLocaleString()}</span></div>`
-  ).join('');
-  const songsHTML = topSongs.map((s, i) =>
-    `<div class="stc-row"><span class="stc-rank">${i+1}</span><div class="stc-name-wrap"><span class="stc-name">${esc(s.title)}</span><span class="stc-sub">${esc(s.artist)}</span></div><span class="stc-ct">${s.count.toLocaleString()}</span></div>`
-  ).join('');
+  // Days, distinct artists and the busiest single day.
+  const dayCounts = {};
+  for (const p of plays) {
+    const dd = tzDateOf(p);
+    const dk = `${dd.getFullYear()}-${dd.getMonth()}-${dd.getDate()}`;
+    (dayCounts[dk] || (dayCounts[dk] = { count: 0, date: dd })).count++;
+  }
+  let peakKey = null;
+  for (const k in dayCounts) if (!peakKey || dayCounts[k].count > dayCounts[peakKey].count) peakKey = k;
+  const peakDate = peakKey ? dayCounts[peakKey].date : null;
 
-  const totalPlays = plays.length;
-  const daySet = new Set(plays.map(p => { const d = tzDateOf(p); return `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`; }));
-  const artistSet = new Set(plays.map(p => p.artist.toLowerCase()));
+  // New discoveries — artists whose first ever play lands inside this period.
+  const fsMap = stGetFirstSeenArtists();
+  const splitArtistSet = new Set(plays.flatMap(p => p.artists || splitArtists(p.artist)));
+  let newCount = 0;
+  for (const a of splitArtistSet) {
+    const fd = fsMap[a];
+    if (!fd) continue;
+    const ftz = tzDate(fd);
+    const inPeriod = stPeriodType === 'alltime' ? true
+      : stPeriodType === 'year' ? ftz.getFullYear() === stYear
+        : ftz.getFullYear() === stYear && (ftz.getMonth() + 1) === stMonth;
+    if (inPeriod) newCount++;
+  }
 
-  const layout = isStory ? 'flex-direction:column;' : 'flex-direction:column;';
-  const cardH = isStory ? '640px' : '360px';
-  const cardW = '360px';
-  const topColDir = isStory ? 'column' : 'row';
+  const heroArt = (topArtists[0] && topArtists[0].art) || (topSongs[0] && topSongs[0].art) || null;
+  return {
+    opts, fmt, W: d.w, H: d.h, n,
+    p: shPalette(opts.palette, shDominant(heroArt)),
+    S: (opts.textScale || 100) / 100,
+    plays, topArtists, topSongs, heroArt,
+    periodLabel: stGetPeriodLabel(),
+    title: t('nav_soundtrack'),
+    totalPlays: plays.length,
+    days: Object.keys(dayCounts).length,
+    artists: new Set(plays.map(p => p.artist.toLowerCase())).size,
+    newCount,
+    peakLabel: peakDate ? `${t(ST_MONTH_KEYS[peakDate.getMonth()]).substring(0, 3)} ${peakDate.getDate()}` : '—',
+    peakCount: peakKey ? dayCounts[peakKey].count : 0,
+    playsWord: tUnit('plays', plays.length),
+    artistsWord: t('st_top_artists'),
+    songsWord: t('st_top_songs'),
+  };
+}
 
-  return `<div class="stc-root" style="width:${cardW};height:${cardH};background:linear-gradient(135deg,#0d1117 0%,#1a1f2e 50%,#0d1117 100%);padding:20px;box-sizing:border-box;display:flex;flex-direction:column;font-family:var(--font-mono);color:#e2e8f0;position:relative;overflow:hidden;">
-    <div style="position:absolute;top:-40px;right:-40px;width:200px;height:200px;background:radial-gradient(circle,rgba(99,102,241,0.15) 0%,transparent 70%);pointer-events:none;"></div>
-    <div class="stc-header" style="margin-bottom:${isStory?'16px':'10px'};">
-      <div style="font-size:0.6rem;letter-spacing:0.15em;color:#6366f1;text-transform:uppercase;margin-bottom:2px;">dankcharts.fm</div>
-      <div style="font-size:${isStory?'1.4rem':'1.1rem'};font-weight:700;color:#f8fafc;line-height:1.1;">${t('nav_soundtrack')}</div>
-      <div style="font-size:0.75rem;color:#94a3b8;">${label}</div>
+// ── Artwork ───────────────────────────────────────────────────
+// Reuses the chart card's source-fallback fetcher, then inlines each hit as a
+// data URL so the export canvas stays untainted and the Cover palette can read
+// pixels back out of the leading image.
+async function stPrefetchArt() {
+  const src = stCard.artSource || 'deezer';
+  const ctx = stCardContext(Object.assign({}, stCard, { showArt: false }));
+  if (!ctx) return;
+  const jobs = [];
+  ctx.topArtists.forEach(a => {
+    const ck = 'a:' + a.name + ':' + src;
+    if (ck in stArtCache) return;
+    jobs.push((async () => {
+      const url = await _igFetchArtWithFallback('artists', { name: a.name }, src);
+      stArtCache[ck] = url ? await _igToDataUrl(url) : null;
+    })());
+  });
+  ctx.topSongs.forEach(s => {
+    const ck = 's:' + s.key + ':' + src;
+    if (ck in stArtCache) return;
+    jobs.push((async () => {
+      const url = await _igFetchArtWithFallback('songs', { title: s.title, artist: s.artist }, src);
+      stArtCache[ck] = url ? await _igToDataUrl(url) : null;
+    })());
+  });
+  await Promise.all(jobs);
+  const hero = stArtCache['a:' + (ctx.topArtists[0] ? ctx.topArtists[0].name : '') + ':' + src]
+    || stArtCache['s:' + (ctx.topSongs[0] ? ctx.topSongs[0].key : '') + ':' + src] || null;
+  if (hero) await Promise.all([shComputeDominant(hero), shComputeBlur(hero)]);
+  if (document.getElementById('stCardModal').classList.contains('open')) stRenderCardPreview();
+}
+
+function setStArtSource(src) {
+  stCard.artSource = src;
+  document.querySelectorAll('.st-art-src-btn').forEach(b => b.classList.toggle('active', b.dataset.src === src));
+  stSaveCardSettings();
+  stPrefetchArt();
+}
+
+// ── Shared pieces ─────────────────────────────────────────────
+
+// Masthead: "Your Soundtrack" over the period, with the brand kicker above.
+function _stHeader(ctx, opt) {
+  const o = opt || {};
+  const p = ctx.p;
+  const s = v => _shS(ctx, v);
+  const padX = o.padX != null ? o.padX : 72;
+  const big = o.titleSize || (ctx.fmt === 'story' ? 84 : ctx.fmt === 'portrait' ? 74 : 62);
+  return `<div style="flex-shrink:0;padding:${shSafeTop(ctx.fmt)}px ${padX}px ${o.padBottom || 30}px;">
+    ${shEyebrow(p, 'dankcharts.fm', { size: s(21), color: o.light ? p.text : p.accent })}
+    <div style="margin-top:${s(18)}px;font-family:${SH_FONT.display};font-size:${s(big)}px;font-weight:800;line-height:1.0;color:${p.text};">${esc(ctx.title)}</div>
+    <div style="margin-top:${s(14)}px;display:flex;align-items:center;gap:14px;">
+      <span style="width:${s(46)}px;height:3px;background:${p.accent};border-radius:2px;flex-shrink:0;"></span>
+      <span style="font-family:${SH_FONT.mono};font-size:${s(24)}px;letter-spacing:0.14em;color:${p.dim};text-transform:uppercase;white-space:nowrap;">${esc(ctx.periodLabel)}</span>
     </div>
-    <div class="stc-stats" style="display:flex;gap:12px;margin-bottom:${isStory?'14px':'10px'};">
-      <div style="text-align:center;flex:1;background:rgba(99,102,241,0.12);border-radius:8px;padding:8px 4px;">
-        <div style="font-size:1.1rem;font-weight:700;color:#818cf8;">${totalPlays.toLocaleString()}</div>
-        <div style="font-size:0.5rem;color:#94a3b8;letter-spacing:0.08em;text-transform:uppercase;">${tUnit('plays', totalPlays)}</div>
+  </div>`;
+}
+
+// The headline numbers. `compact` drops the tile chrome down to a plain row.
+function _stStats(ctx, opt) {
+  const o = opt || {};
+  const p = ctx.p;
+  const s = v => _shS(ctx, v);
+  if (!ctx.opts.showStats) return '';
+  const cells = [
+    { v: ctx.totalPlays.toLocaleString(), l: tUnit('plays', ctx.totalPlays) },
+    { v: ctx.days.toLocaleString(), l: t('st_stat_days') },
+    { v: ctx.artists.toLocaleString(), l: t('st_stat_artists') },
+  ];
+  if (ctx.newCount) cells.push({ v: ctx.newCount.toLocaleString(), l: t('st_stat_new_discoveries') });
+  if (ctx.opts.showPeak && ctx.peakCount) cells.push({ v: ctx.peakLabel, l: t('st_stat_peak_day'), small: true });
+  const size = o.size || 42;
+  if (o.compact) {
+    return `<div style="display:flex;column-gap:${s(30)}px;row-gap:${s(18)}px;flex-wrap:wrap;align-items:flex-end;">${cells.map(c => `<div>
+      <div style="font-family:${SH_FONT.display};font-size:${s(size)}px;font-weight:700;color:${c.small ? p.text : p.accent};line-height:1;">${esc(c.v)}</div>
+      <div style="margin-top:${s(7)}px;font-family:${SH_FONT.mono};font-size:${s(16)}px;letter-spacing:0.12em;color:${p.dim};text-transform:uppercase;white-space:nowrap;">${esc(c.l)}</div>
+    </div>`).join('')}</div>`;
+  }
+  return `<div style="display:flex;gap:${s(12)}px;">${cells.map(c => `<div style="flex:1;min-width:0;background:${_shA(p.text, p.dark ? 0.05 : 0.04)};border:1px solid ${p.line};border-radius:16px;padding:${s(18)}px ${s(14)}px;text-align:center;">
+    <div style="font-family:${SH_FONT.display};font-size:${s(c.small ? size * 0.72 : size)}px;font-weight:700;color:${c.small ? p.text : p.accent};line-height:1;">${esc(c.v)}</div>
+    <div style="margin-top:${s(8)}px;font-family:${SH_FONT.mono};font-size:${s(15)}px;letter-spacing:0.1em;color:${p.dim};text-transform:uppercase;">${esc(c.l)}</div>
+  </div>`).join('')}</div>`;
+}
+
+// Row height that fills the leftover vertical space.
+//   usedH  — everything above and below the lists (masthead, stats, footer…)
+//   lists  — how many stacked lists share that space
+function _stRowH(ctx, usedH, lists, cap) {
+  const s = v => _shS(ctx, v);
+  const n = Math.max(1, lists);
+  const headingH = s(43); // section label + its margin
+  const avail = ctx.H - usedH - headingH * n;
+  const raw = Math.floor(avail / Math.max(1, ctx.n * n));
+  return Math.max(s(52), Math.min(cap || s(120), raw));
+}
+
+// One ranked list — artists (round artwork) or songs (square artwork).
+function _stList(ctx, rows, heading, opt) {
+  const o = opt || {};
+  const p = ctx.p;
+  const s = v => _shS(ctx, v);
+  if (!rows.length) return '';
+  const rowH = o.rowH || s(78);
+  const art = Math.min(rowH - s(16), s(78));
+  const nameSize = o.nameSize || s(28);
+  return `<div style="min-width:0;">
+    <div style="font-family:${SH_FONT.mono};font-size:${s(19)}px;letter-spacing:0.18em;color:${p.accent};text-transform:uppercase;margin-bottom:${s(12)}px;">${esc(heading)}</div>
+    ${rows.map(r => `<div style="display:flex;align-items:center;gap:${s(16)}px;height:${rowH}px;border-top:1px solid ${p.line};">
+      <span style="flex-shrink:0;width:${s(34)}px;font-family:${SH_FONT.display};font-size:${s(30)}px;font-weight:700;color:${r.rank === 1 ? p.accent : _shA(p.dim, 0.9)};">${r.rank}</span>
+      ${ctx.opts.showArt ? shArt(p, r.art, art, { initials: initials(r.name || r.title), radius: o.round ? Math.round(art / 2) : Math.round(art * 0.18), shadow: false }) : ''}
+      <div style="flex:1;min-width:0;">
+        <div style="font-family:${SH_FONT.sans};font-size:${nameSize}px;font-weight:600;color:${p.text};white-space:nowrap;overflow:hidden;line-height:1.2;">${esc(r.name || r.title)}</div>
+        ${r.artist ? `<div style="font-family:${SH_FONT.sans};font-size:${Math.round(nameSize * 0.68)}px;color:${p.dim};white-space:nowrap;overflow:hidden;line-height:1.25;">${esc(r.artist)}</div>` : ''}
       </div>
-      <div style="text-align:center;flex:1;background:rgba(99,102,241,0.12);border-radius:8px;padding:8px 4px;">
-        <div style="font-size:1.1rem;font-weight:700;color:#818cf8;">${daySet.size.toLocaleString()}</div>
-        <div style="font-size:0.5rem;color:#94a3b8;letter-spacing:0.08em;text-transform:uppercase;">${t('st_stat_days')}</div>
+      <span style="flex-shrink:0;font-family:${SH_FONT.mono};font-size:${Math.round(nameSize * 0.78)}px;font-weight:700;color:${p.text};">${r.count.toLocaleString()}</span>
+    </div>`).join('')}
+  </div>`;
+}
+
+// ── Templates ─────────────────────────────────────────────────
+const SH_ST_TEMPLATES = {
+
+  // RECAP — the default. Masthead, stat tiles, then both lists.
+  recap(ctx) {
+    const p = ctx.p, opts = ctx.opts;
+    const s = v => _shS(ctx, v);
+    const padX = 64;
+    const sideBySide = ctx.fmt === 'post' && opts.showArtists && opts.showSongs;
+    const stacked = (opts.showArtists ? 1 : 0) + (opts.showSongs ? 1 : 0);
+    const headH = shSafeTop(ctx.fmt) + s(ctx.fmt === 'story' ? 84 : ctx.fmt === 'portrait' ? 74 : 62) + s(56) + 30;
+    const usedH = headH + (opts.showFooter ? 42 : 0) + shSafeBottom(ctx.fmt) + (opts.showStats ? s(120) : 0) + s(96);
+    const rowH = _stRowH(ctx, usedH, sideBySide ? 1 : stacked, s(ctx.fmt === 'post' ? 84 : 116));
+    const lists = `<div style="display:flex;gap:${s(30)}px;flex-direction:${sideBySide ? 'row' : 'column'};">
+      ${opts.showArtists ? _stList(ctx, ctx.topArtists, ctx.artistsWord, { round: true, rowH, nameSize: s(sideBySide ? 24 : 28) }) : ''}
+      ${opts.showSongs ? _stList(ctx, ctx.topSongs, ctx.songsWord, { rowH, nameSize: s(sideBySide ? 24 : 28) }) : ''}
+    </div>`;
+    return shShell(p, ctx.fmt, `${_stHeader(ctx, { padX })}
+      <div style="flex:1;min-height:0;padding:0 ${padX}px;display:flex;flex-direction:column;justify-content:center;gap:${s(26)}px;overflow:hidden;">
+        ${_stStats(ctx)}
+        ${lists}
       </div>
-      <div style="text-align:center;flex:1;background:rgba(99,102,241,0.12);border-radius:8px;padding:8px 4px;">
-        <div style="font-size:1.1rem;font-weight:700;color:#818cf8;">${artistSet.size.toLocaleString()}</div>
-        <div style="font-size:0.5rem;color:#94a3b8;letter-spacing:0.08em;text-transform:uppercase;">${t('st_stat_artists')}</div>
+      ${shFooter(p, ctx.fmt, { show: opts.showFooter, padX })}`);
+  },
+
+  // WRAPPED — the #1 artist gets a hero portrait, the rest rides underneath.
+  wrapped(ctx) {
+    const p = ctx.p, opts = ctx.opts;
+    const s = v => _shS(ctx, v);
+    const padX = 64;
+    const hero = ctx.topArtists[0];
+    const heroSz = ctx.fmt === 'story' ? 380 : ctx.fmt === 'portrait' ? 330 : 280;
+    const headH = shSafeTop(ctx.fmt) + s(ctx.fmt === 'story' ? 62 : 52) + s(56) + 26;
+    const usedH = headH + heroSz + s(28) + (opts.showFooter ? 42 : 0) + shSafeBottom(ctx.fmt) + (opts.showStats ? s(86) : 0) + s(88);
+    const rowH = _stRowH(ctx, usedH, 1, s(ctx.fmt === 'post' ? 76 : 104));
+    const heroBlock = hero ? `<div style="flex-shrink:0;padding:0 ${padX}px ${s(28)}px;display:flex;align-items:center;gap:${s(28)}px;">
+      ${shArt(p, hero.art, heroSz, { initials: initials(hero.name), radius: Math.round(heroSz / 2) })}
+      <div style="flex:1;min-width:0;">
+        <div style="font-family:${SH_FONT.mono};font-size:${s(19)}px;letter-spacing:0.2em;color:${p.accent};text-transform:uppercase;">${esc(t('st_stat_top_artist'))}</div>
+        <div style="margin-top:${s(12)}px;font-family:${SH_FONT.display};font-size:${s(46)}px;font-weight:800;color:${p.text};line-height:1.04;${shClamp(2, s(46), 1.04)}">${esc(hero.name)}</div>
+        <div style="margin-top:${s(14)}px;">${shChip(p, `${hero.count.toLocaleString()} ${esc(tUnit('plays', hero.count))}`, { size: s(21), color: p.accent })}</div>
       </div>
-    </div>
-    <div style="display:flex;gap:10px;flex:1;flex-direction:${topColDir};">
-      <div style="flex:1;">
-        <div style="font-size:0.55rem;letter-spacing:0.12em;color:#6366f1;text-transform:uppercase;margin-bottom:6px;">${t('st_top_artists')}</div>
-        ${artistsHTML}
+    </div>` : '';
+    return shShell(p, ctx.fmt, `${_stHeader(ctx, { padX, titleSize: ctx.fmt === 'story' ? 62 : 52, padBottom: s(26) })}
+      ${heroBlock}
+      <div style="flex:1;min-height:0;padding:0 ${padX}px;display:flex;flex-direction:column;justify-content:center;gap:${s(24)}px;overflow:hidden;">
+        ${_stStats(ctx, { compact: true, size: 38 })}
+        ${opts.showSongs ? _stList(ctx, ctx.topSongs, ctx.songsWord, { rowH, nameSize: s(26) }) : ''}
+        ${!opts.showSongs && opts.showArtists ? _stList(ctx, ctx.topArtists.slice(1), ctx.artistsWord, { round: true, rowH, nameSize: s(26) }) : ''}
       </div>
-      <div style="flex:1;${isStory?'margin-top:10px;':''}">
-        <div style="font-size:0.55rem;letter-spacing:0.12em;color:#6366f1;text-transform:uppercase;margin-bottom:6px;">${t('st_top_songs')}</div>
-        ${songsHTML}
+      ${shFooter(p, ctx.fmt, { show: opts.showFooter, padX })}`);
+  },
+
+  // COLLAGE — artwork first: artists as a row of portraits, songs as a grid.
+  collage(ctx) {
+    const p = ctx.p, opts = ctx.opts;
+    const s = v => _shS(ctx, v);
+    const padX = 56;
+    const gap = 16;
+    const aCols = Math.min(ctx.topArtists.length, 5) || 1;
+    const aSz = Math.floor((ctx.W - padX * 2 - gap * (aCols - 1)) / aCols);
+    const sCols = Math.min(ctx.topSongs.length, 5) || 1;
+    const sSz = Math.floor((ctx.W - padX * 2 - gap * (sCols - 1)) / sCols);
+
+    const artistTiles = ctx.topArtists.slice(0, aCols).map(a => `<div style="width:${aSz}px;">
+      ${shArt(p, a.art, aSz, { initials: initials(a.name), radius: Math.round(aSz / 2), shadow: false })}
+      <div style="margin-top:${s(10)}px;text-align:center;font-family:${SH_FONT.sans};font-size:${s(19)}px;font-weight:600;color:${p.text};line-height:1.2;${shClamp(2, s(19), 1.2)}">${esc(a.name)}</div>
+      <div style="text-align:center;font-family:${SH_FONT.mono};font-size:${s(16)}px;color:${p.dim};">${a.count.toLocaleString()}</div>
+    </div>`).join('');
+
+    const songTiles = ctx.topSongs.slice(0, sCols).map(so => `<div style="width:${sSz}px;">
+      <div style="position:relative;width:${sSz}px;height:${sSz}px;border-radius:${Math.round(sSz * 0.09)}px;overflow:hidden;background:${p.panel};box-shadow:inset 0 0 0 1px ${p.line2};">
+        ${so.art ? `<img src="${so.art}" width="${sSz}" height="${sSz}" style="width:${sSz}px;height:${sSz}px;object-fit:cover;display:block;">`
+          : `<div style="width:${sSz}px;height:${sSz}px;display:flex;align-items:center;justify-content:center;font-family:${SH_FONT.display};font-size:${Math.round(sSz * 0.3)}px;color:${_shA(p.text, 0.3)};">${esc(initials(so.title))}</div>`}
+        <div style="position:absolute;left:0;bottom:0;width:${sSz}px;height:${Math.round(sSz * 0.45)}px;background:linear-gradient(180deg,rgba(0,0,0,0),rgba(0,0,0,0.78));"></div>
+        <div style="position:absolute;left:${Math.round(sSz * 0.08)}px;bottom:${Math.round(sSz * 0.05)}px;font-family:${SH_FONT.display};font-size:${Math.round(sSz * 0.26)}px;font-weight:800;color:#fff;line-height:0.95;text-shadow:0 2px 12px rgba(0,0,0,0.6);">${so.rank}</div>
       </div>
-    </div>
-    <div style="margin-top:auto;padding-top:8px;text-align:center;font-size:0.5rem;color:#475569;letter-spacing:0.1em;">dankcharts.fm · ${t('nav_soundtrack')}</div>
-  </div>
-  <style>
-    .stc-row{display:flex;align-items:center;gap:6px;margin-bottom:4px;font-size:0.65rem;}
-    .stc-rank{color:#6366f1;font-weight:700;min-width:12px;}
-    .stc-name{color:#e2e8f0;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-    .stc-sub{display:block;font-size:0.5rem;color:#94a3b8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-    .stc-name-wrap{flex:1;min-width:0;}
-    .stc-ct{color:#818cf8;font-size:0.6rem;white-space:nowrap;}
-  </style>`;
+      <div style="margin-top:${s(10)}px;font-family:${SH_FONT.sans};font-size:${s(19)}px;font-weight:600;color:${p.text};line-height:1.2;${shClamp(1, s(19), 1.2)}">${esc(so.title)}</div>
+      <div style="font-family:${SH_FONT.sans};font-size:${s(16)}px;color:${p.dim};line-height:1.2;${shClamp(1, s(16), 1.2)}">${esc(so.artist)}</div>
+    </div>`).join('');
+
+    return shShell(p, ctx.fmt, `${_stHeader(ctx, { padX, titleSize: ctx.fmt === 'story' ? 66 : 54, padBottom: s(26) })}
+      <div style="flex:1;min-height:0;padding:0 ${padX}px;display:flex;flex-direction:column;justify-content:center;gap:${s(30)}px;overflow:hidden;">
+        ${opts.showArtists && artistTiles ? `<div>
+          <div style="font-family:${SH_FONT.mono};font-size:${s(19)}px;letter-spacing:0.18em;color:${p.accent};text-transform:uppercase;margin-bottom:${s(14)}px;">${esc(ctx.artistsWord)}</div>
+          <div style="display:flex;gap:${gap}px;">${artistTiles}</div>
+        </div>` : ''}
+        ${_stStats(ctx, { compact: true, size: 40 })}
+        ${opts.showSongs && songTiles ? `<div>
+          <div style="font-family:${SH_FONT.mono};font-size:${s(19)}px;letter-spacing:0.18em;color:${p.accent};text-transform:uppercase;margin-bottom:${s(14)}px;">${esc(ctx.songsWord)}</div>
+          <div style="display:flex;gap:${gap}px;">${songTiles}</div>
+        </div>` : ''}
+      </div>
+      ${shFooter(p, ctx.fmt, { show: opts.showFooter, padX })}`);
+  },
+
+  // MINIMAL — no artwork. The numbers carry the card.
+  minimal(ctx) {
+    const p = ctx.p, opts = ctx.opts;
+    const s = v => _shS(ctx, v);
+    const padX = 88;
+    const noArt = Object.assign({}, ctx, { opts: Object.assign({}, opts, { showArt: false }) });
+    const stacked = (opts.showArtists ? 1 : 0) + (opts.showSongs ? 1 : 0);
+    const headH = shSafeTop(ctx.fmt) + s(ctx.fmt === 'story' ? 76 : 60) + s(56) + 30;
+    const usedH = headH + (opts.showFooter ? 42 : 0) + shSafeBottom(ctx.fmt) + (opts.showStats ? s(140) : 0) + s(96);
+    const rowH = _stRowH(ctx, usedH, stacked, s(ctx.fmt === 'post' ? 80 : 110));
+    return shShell(p, ctx.fmt, `${_stHeader(ctx, { padX, titleSize: ctx.fmt === 'story' ? 76 : 60 })}
+      <div style="flex:1;min-height:0;padding:0 ${padX}px;display:flex;flex-direction:column;justify-content:center;gap:${s(30)}px;overflow:hidden;">
+        ${_stStats(noArt, { compact: true, size: ctx.fmt === 'story' ? 42 : 36 })}
+        ${opts.showArtists ? _stList(noArt, ctx.topArtists, ctx.artistsWord, { rowH, nameSize: s(30) }) : ''}
+        ${opts.showSongs ? _stList(noArt, ctx.topSongs, ctx.songsWord, { rowH, nameSize: s(30) }) : ''}
+      </div>
+      ${shFooter(p, ctx.fmt, { show: opts.showFooter, padX })}`, { noBgImage: true });
+  },
+
+  // POSTER — the leading artwork blurred behind the whole card.
+  poster(ctx) {
+    const p = ctx.p, opts = ctx.opts;
+    const s = v => _shS(ctx, v);
+    const padX = 68;
+    const blur = shBlurred(ctx.heroArt);
+    const scrim = p.dark
+      ? 'linear-gradient(180deg, rgba(4,5,8,0.42) 0%, rgba(4,5,8,0.76) 36%, rgba(4,5,8,0.95) 100%)'
+      : 'linear-gradient(180deg, rgba(250,248,244,0.52) 0%, rgba(250,248,244,0.88) 40%, rgba(250,248,244,0.97) 100%)';
+    const backdrop = `<div style="position:absolute;left:0;top:0;width:${ctx.W}px;height:${ctx.H}px;overflow:hidden;">
+      ${blur ? `<img src="${blur}" width="${ctx.W}" height="${ctx.H}" style="width:${ctx.W}px;height:${ctx.H}px;object-fit:cover;display:block;">` : `<div style="width:${ctx.W}px;height:${ctx.H}px;background:${p.bg2};"></div>`}
+      <div style="position:absolute;left:0;top:0;width:${ctx.W}px;height:${ctx.H}px;background:${scrim};"></div>
+    </div>`;
+    const stacked = (opts.showArtists ? 1 : 0) + (opts.showSongs ? 1 : 0);
+    const headH = shSafeTop(ctx.fmt) + s(ctx.fmt === 'story' ? 76 : 62) + s(50) + 26;
+    const usedH = headH + (opts.showFooter ? 42 : 0) + shSafeBottom(ctx.fmt) + (opts.showStats ? s(136) : 0) + s(92);
+    const rowH = _stRowH(ctx, usedH, stacked, s(ctx.fmt === 'post' ? 80 : 110));
+    const noArt = Object.assign({}, ctx, { opts: Object.assign({}, opts, { showArt: false }) });
+    const content = `<div style="position:relative;width:${ctx.W}px;height:${ctx.H}px;display:flex;flex-direction:column;box-sizing:border-box;">
+      <div style="flex-shrink:0;padding:${shSafeTop(ctx.fmt)}px ${padX}px ${s(26)}px;${p.dark ? 'text-shadow:0 2px 16px rgba(0,0,0,0.65);' : ''}">
+        ${shEyebrow(p, 'dankcharts.fm', { size: s(21), color: p.text })}
+        <div style="margin-top:${s(18)}px;font-family:${SH_FONT.display};font-size:${s(ctx.fmt === 'story' ? 76 : 62)}px;font-weight:800;line-height:1.0;color:${p.text};">${esc(ctx.title)}</div>
+        <div style="margin-top:${s(12)}px;font-family:${SH_FONT.mono};font-size:${s(23)}px;letter-spacing:0.14em;color:${_shA(p.text, 0.76)};text-transform:uppercase;">${esc(ctx.periodLabel)}</div>
+      </div>
+      <div style="flex:1;min-height:0;padding:0 ${padX}px;display:flex;flex-direction:column;justify-content:center;gap:${s(28)}px;overflow:hidden;">
+        ${_stStats(noArt, { compact: true, size: ctx.fmt === 'story' ? 44 : 38 })}
+        ${opts.showArtists ? _stList(noArt, ctx.topArtists, ctx.artistsWord, { rowH, nameSize: s(28) }) : ''}
+        ${opts.showSongs ? _stList(noArt, ctx.topSongs, ctx.songsWord, { rowH, nameSize: s(28) }) : ''}
+      </div>
+      ${shFooter(p, ctx.fmt, { show: opts.showFooter, padX, light: true })}
+    </div>`;
+    return shShell(p, ctx.fmt, backdrop + content, { noBgImage: true });
+  },
+};
+
+const SH_ST_TEMPLATE_LIST = [
+  { id: 'recap', name: 'Recap', glyph: '▤' },
+  { id: 'wrapped', name: 'Wrapped', glyph: '◉' },
+  { id: 'collage', name: 'Collage', glyph: '▦' },
+  { id: 'minimal', name: 'Minimal', glyph: '≡' },
+  { id: 'poster', name: 'Poster', glyph: '◧' },
+];
+
+function stBuildCardHTML(opts) {
+  const ctx = stCardContext(opts);
+  if (!ctx) return '';
+  const tpl = SH_ST_TEMPLATES[opts.template] || SH_ST_TEMPLATES.recap;
+  return tpl(ctx);
+}
+
+// ── Modal ─────────────────────────────────────────────────────
+function stOpenCard() {
+  if (!(_stCurrentPlays || []).length) return;
+  stLoadCardSettings();
+  shRenderDesignPickers('st');
+  ['showStats', 'showArtists', 'showSongs', 'showPeak', 'showArt', 'showFooter'].forEach(k => {
+    const el = document.getElementById('stOpt_' + k);
+    if (el) el.checked = stCard[k];
+  });
+  document.querySelectorAll('.st-art-src-btn').forEach(b => b.classList.toggle('active', b.dataset.src === stCard.artSource));
+  const topNEl = document.getElementById('stTopN');
+  if (topNEl) topNEl.value = stCard.topN || 5;
+  const tsEl = document.getElementById('stTextScale');
+  if (tsEl) tsEl.value = stCard.textScale || 100;
+  document.getElementById('stCardModal').classList.add('open');
+  stPrefetchArt();
+  stUpdateCardPreview();
+}
+
+function stCloseCard() {
+  document.getElementById('stCardModal').classList.remove('open');
+  document.getElementById('stCardCanvas').innerHTML = '';
+}
+
+function setStFormat(fmt) { stCard.format = fmt; shRenderDesignPickers('st'); stSaveCardSettings(); stUpdateCardPreview(); }
+function setStTemplate(id) { stCard.template = id; shRenderDesignPickers('st'); stSaveCardSettings(); stUpdateCardPreview(); }
+function setStPalette(id) { stCard.palette = id; shRenderDesignPickers('st'); stSaveCardSettings(); stUpdateCardPreview(); }
+function setStQuality(q) { stCard.quality = q; shRenderDesignPickers('st'); stSaveCardSettings(); stSyncCardLabels(); }
+
+function stSyncCardLabels() {
+  const n = document.getElementById('stTopNLabel');
+  if (n) n.textContent = stCard.topN;
+  const ts = document.getElementById('stTextScaleLabel');
+  if (ts) ts.textContent = (stCard.textScale || 100) + '%';
+  const q = document.getElementById('stQualityNote');
+  if (q) {
+    const d = shDims(stCard.format);
+    const m = Math.max(1, Math.min(2, stCard.quality || 2));
+    q.textContent = `${d.w * m} × ${d.h * m} px`;
+  }
+}
+
+function stUpdateCardPreview() {
+  ['showStats', 'showArtists', 'showSongs', 'showPeak', 'showArt', 'showFooter'].forEach(k => {
+    const el = document.getElementById('stOpt_' + k);
+    if (el) stCard[k] = el.checked;
+  });
+  const topNEl = document.getElementById('stTopN');
+  if (topNEl) stCard.topN = parseInt(topNEl.value) || 5;
+  const tsEl = document.getElementById('stTextScale');
+  if (tsEl) stCard.textScale = parseInt(tsEl.value) || 100;
+  stSyncCardLabels();
+  stSaveCardSettings();
+  if (stCard.showArt || stCard.palette === 'cover' || stCard.template === 'poster') stPrefetchArt();
+  stRenderCardPreview();
+}
+
+function stRenderCardPreview() {
+  const html = stBuildCardHTML(stCard);
+  if (!html) return;
+  shFitPreview('stCardFrame', 'stCardInner', stCard.format, html);
+  const canvas = document.getElementById('stCardCanvas');
+  const d = shDims(stCard.format);
+  canvas.innerHTML = html;
+  canvas.style.width = d.w + 'px';
+  canvas.style.height = d.h + 'px';
+}
+
+function _stFileName() {
+  const slug = stGetPeriodLabel().replace(/\s+/g, '-').toLowerCase();
+  return `dankcharts_soundtrack_${slug}_${stCard.template}_${stCard.format}.png`;
 }
 
 async function stDownloadCard() {
-  const canvas = document.getElementById('stCardCanvas');
-  if (!canvas || !_stCardMode) return;
-  const isStory = _stCardMode === 'story';
-  const w = isStory ? 720 : 720;
-  const h = isStory ? 1280 : 720;
+  const btn = document.getElementById('stCardDownloadBtn');
+  const orig = btn.textContent;
+  btn.textContent = '⏳ …'; btn.disabled = true;
   try {
-    const cvs = await html2canvas(canvas, { scale: 2, useCORS: false, allowTaint: true, backgroundColor: null, logging: false, width: 360, height: isStory ? 640 : 360 });
+    const cvs = await shCapture('stCardCanvas', stCard.format, stCard.quality);
     const link = document.createElement('a');
-    link.download = `your-soundtrack-${stGetPeriodLabel().replace(/\s+/g,'-').toLowerCase()}-${_stCardMode}.png`;
+    link.download = _stFileName();
     link.href = cvs.toDataURL('image/png');
     link.click();
   } catch (e) { console.error('Card download failed', e); }
+  btn.textContent = orig; btn.disabled = false;
 }
+
+async function stCopyCard() {
+  if (!navigator.clipboard?.write) { stDownloadCard(); return; }
+  const btn = document.getElementById('stCardCopyBtn');
+  const orig = btn.textContent;
+  btn.textContent = '⏳…'; btn.disabled = true;
+  try {
+    const cvs = await shCapture('stCardCanvas', stCard.format, stCard.quality);
+    const blob = await shCanvasBlob(cvs);
+    await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
+    btn.textContent = '✓ Copied!';
+    setTimeout(() => { btn.textContent = orig; btn.disabled = false; }, 1800);
+  } catch (e) {
+    btn.textContent = orig; btn.disabled = false;
+    stDownloadCard();
+  }
+}
+
+async function stShareCard() {
+  const btn = document.getElementById('stCardShareBtn');
+  const orig = btn.textContent;
+  btn.textContent = '⏳…'; btn.disabled = true;
+  try {
+    const cvs = await shCapture('stCardCanvas', stCard.format, stCard.quality);
+    const blob = await shCanvasBlob(cvs);
+    const file = new File([blob], _stFileName(), { type: 'image/png' });
+    if (navigator.canShare?.({ files: [file] })) {
+      await navigator.share({ files: [file], title: 'dankcharts.fm' });
+    } else {
+      const link = document.createElement('a');
+      link.download = file.name;
+      link.href = URL.createObjectURL(blob);
+      link.click();
+    }
+  } catch (e) {}
+  btn.textContent = orig; btn.disabled = false;
+}
+
+document.getElementById('stCardModal').addEventListener('click', e => {
+  if (e.target === document.getElementById('stCardModal')) stCloseCard();
+});
 
 // ─── CURRENT STREAK BANNER ──────────────────────────────────
 function computeCurrentStreak(plays) {

@@ -26480,47 +26480,19 @@ body[class*="-light"] .tm-card-search:hover {
   cursor: pointer;
   transition: background 0.15s, border-color 0.15s, transform 0.15s;
 }
+.st-card-hint {
+  margin-top: 0.5rem;
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.04em;
+  color: var(--text3);
+}
+
 .st-card-btn:hover { background: var(--sc); color: #fff; border-color: var(--sc); transform: translateY(-1px); }
 
-.st-card-canvas {
-  display: inline-block;
-  border-radius: 14px;
-  overflow: hidden;
-  box-shadow: 0 8px 32px rgba(0,0,0,0.35);
-  margin-bottom: 0.7rem;
-}
 
-.st-card-download-row {
-  display: flex;
-  gap: 0.6rem;
-  align-items: center;
-}
 
-.st-card-download-btn {
-  font-family: var(--font-mono);
-  font-size: 0.75rem;
-  font-weight: 600;
-  padding: 0.55rem 1.1rem;
-  background: var(--sc);
-  color: #fff;
-  border: none;
-  border-radius: 999px;
-  cursor: pointer;
-  letter-spacing: 0.03em;
-}
-.st-card-download-btn:hover { opacity: 0.88; }
 
-.st-card-close-btn {
-  font-family: var(--font-mono);
-  font-size: 0.72rem;
-  padding: 0.5rem 0.8rem;
-  background: transparent;
-  border: 1px solid var(--border);
-  border-radius: 999px;
-  color: var(--text2);
-  cursor: pointer;
-}
-.st-card-close-btn:hover { background: var(--bg3); }
 
 /* ── Scroll Reveal ───────────────────────────────────────────── */
 .st-reveal {
