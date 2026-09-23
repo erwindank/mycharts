@@ -61,11 +61,11 @@ const DC_CHANGELOG = [
 
   /* ========== SEPTEMBER 2026 ========== */
 
-  { d: '2026-09-23', t: 'design', a: 'soundtrack', h: '',
+  { d: '2026-09-23', t: 'design', a: 'soundtrack', h: 'a3c44ba',
     title: 'Share Your Soundtrack rebuilt on the same five-design system',
     detail: 'The Soundtrack share card was the last one still on the old recipe: one fixed 360-pixel layout, everything set in the small monospace face, a hard-coded indigo that ignored whichever theme you were using, no artwork anywhere, and — in the tall version — a third of the picture left empty under the last song. It now works exactly like the chart, chart-run and entry images. Pick a design: Recap (a masthead over the stat tiles with both top-fives beneath, side by side on a square), Wrapped (your #1 artist as a large round portrait with their play count, then the songs), Collage (nothing but faces and covers, ranked), Minimal (no artwork, the numbers carry it) or Poster (your #1 artist blurred behind the whole card). Pick a palette: App theme follows the theme you are on, Onyx, Aurora, Ember, Bloom, Moss and Paper stay put, and Cover reads the colours out of the artwork and builds the card from them. Pick a shape: Post 1:1, Portrait 4:5 or Story 9:16. Artists and songs now carry their pictures, pulled from Deezer, iTunes, Last.fm or YouTube, and the lists stretch to fill the card instead of stopping halfway down it. New discoveries and your peak day join plays, active days and artists in the stat row, you can show or hide any of it, choose between three and ten entries, and nudge one text-size slider. It all lives in a proper preview window now, with Copy and Share buttons next to Download.' },
 
-  { d: '2026-09-23', t: 'change', a: 'soundtrack', h: '',
+  { d: '2026-09-23', t: 'change', a: 'soundtrack', h: 'a3c44ba',
     title: 'The Soundtrack image is four times the resolution',
     detail: 'It used to be drawn at 360 pixels and doubled on the way out, which is why the type looked soft the moment it was opened on a phone. It is now laid out at the full 1080 and exported at 2160 by default, with a Standard option if you would rather have the smaller file. Artwork is requested at the largest size each store serves, and the fonts are given time to load before the picture is taken.' },
 
