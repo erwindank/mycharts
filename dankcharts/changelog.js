@@ -61,7 +61,7 @@ const DC_CHANGELOG = [
 
   /* ========== SEPTEMBER 2026 ========== */
 
-  { d: '2026-09-23', t: 'feature', a: 'awards', h: '',
+  { d: '2026-09-23', t: 'feature', a: 'awards', h: '91bd87d',
     title: 'Stats & records at the top of every My Grammys year',
     detail: 'Each year of My Grammys now opens with a summary above the nominees. It shows the all-time leaders in nominations and in wins for artists, albums and songs, counted up to that year, so going back to an earlier year shows the records as they stood then, with the next two in line under each leader. Below that is the year’s ranking of the artists with the most nominations, with their wins. Every record holder and ranked artist has their picture or cover art. The ceremony opens with the same summary as its first slide, before the first category. There it leaves out this year’s wins and auto-awarded categories, so nothing is given away before an envelope is opened. Shared ceremony links carry the summary too. An artist is credited for their songs and albums as well as artist categories. Works the same for Last.fm, Google Sheets and CSV libraries.' },
 
