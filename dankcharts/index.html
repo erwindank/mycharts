@@ -27,7 +27,7 @@
   <!-- html2canvas, SheetJS (xlsx) and JSZip are intentionally NOT loaded here — they
        total ~1.2 MB and are only needed for image exports and Excel/ZIP imports.
        app.js pulls them from the CDN on first use (see ensureLazyLib). -->
-  <link rel="stylesheet" href="style.css?v=259">
+  <link rel="stylesheet" href="style.css?v=260">
   <!-- All scripts are deferred so the page paints without waiting on them.
        defer preserves execution order, which matters: translations → Chart.js →
        hammer → zoom plugin → firebase SDKs → firebase.js → app.js (in body). -->
@@ -40,7 +40,7 @@
   <script defer src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
   <script defer src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
   <script defer src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
-  <script defer src="firebase.js?v=4"></script>
+  <script defer src="firebase.js?v=5"></script>
 </head>
 
 <body>
@@ -2084,6 +2084,20 @@
             <label>Gemini API Key <span class="awards-gemini-hint">for smarter genre detection — <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">get free key</a></span></label>
             <input type="password" id="awardsGeminiKey" placeholder="AIza…" autocomplete="off" oninput="localStorage.setItem('dc_gemini_api_key',this.value.trim())">
           </div>
+          <!-- Global, not per year: who gets credit in Stats &amp; records and the
+               artist pages. Must stay a <label> so the hidden checkbox inside
+               .src-switch is clickable (see the Settings modal switches). -->
+          <div class="awards-config-row awards-switch-row">
+            <label class="src-switch-row">
+              <span class="src-switch-label">Count featured artists
+                <span class="set-switch-note">A nomination or win also counts for everyone featured on it, not just the lead artist. Applies to every year's stats and records and to artist pages.</span>
+              </span>
+              <span class="src-switch">
+                <input type="checkbox" id="awardsCreditFeatures" onchange="awardsSetCreditFeatures(this.checked)">
+                <span class="src-switch-slider"></span>
+              </span>
+            </label>
+          </div>
           <div class="awards-cat-toggles-header">
             <span data-i18n="awards_categories_for_year">Categories for this year</span>
             <button class="awards-cat-toggle-all" onclick="awardsToggleAllCats(true)" data-i18n="awards_enable_all">Enable All</button>
@@ -3185,8 +3199,8 @@
 
   <!-- defer keeps app.js last in the script execution order (after translations,
        Chart.js and firebase.js) while letting the whole page parse and paint first -->
-  <script defer src="changelog.js?v=37"></script>
-  <script defer src="app.js?v=221"></script>
+  <script defer src="changelog.js?v=38"></script>
+  <script defer src="app.js?v=222"></script>
 
   <!-- ── Settings Modal ──
        Split into three tabs so the whole form is never dumped on screen at

@@ -61,6 +61,10 @@ const DC_CHANGELOG = [
 
   /* ========== SEPTEMBER 2026 ========== */
 
+  { d: '2026-09-23', t: 'feature', a: 'awards', h: '',
+    title: 'Final stats at the end of the ceremony, and credit for featured artists',
+    detail: 'The ceremony’s closing roll call now ends with Final stats & records: the all-time leaders in nominations and wins with this year’s results counted in, and the year’s final nomination ranking with each artist’s wins. Any record whose holder changed during the ceremony is marked New. Shared ceremony links include it too, after you press Update link. A new Count featured artists switch under Configure Year lets a nomination or win count for everyone featured on it, not just the lead artist. It reads features from the artist name (feat., ft., featuring, with, or a comma list) and from the song title, as in (feat. A & B). Duos written with & stay one act. It applies to every year’s stats and records and to the Grammy count on artist pages, and it syncs across your devices. Works the same for Last.fm, Google Sheets and CSV libraries.' },
+
   { d: '2026-09-23', t: 'feature', a: 'awards', h: '91bd87d',
     title: 'Stats & records at the top of every My Grammys year',
     detail: 'Each year of My Grammys now opens with a summary above the nominees. It shows the all-time leaders in nominations and in wins for artists, albums and songs, counted up to that year, so going back to an earlier year shows the records as they stood then, with the next two in line under each leader. Below that is the year’s ranking of the artists with the most nominations, with their wins. Every record holder and ranked artist has their picture or cover art. The ceremony opens with the same summary as its first slide, before the first category. There it leaves out this year’s wins and auto-awarded categories, so nothing is given away before an envelope is opened. Shared ceremony links carry the summary too. An artist is credited for their songs and albums as well as artist categories. Works the same for Last.fm, Google Sheets and CSV libraries.' },

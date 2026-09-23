@@ -22099,6 +22099,8 @@ body[class*="-light"] .tm-card-search:hover {
   color: var(--text1);
   font-size: 0.8rem;
 }
+/* The label is the whole row, so the switch sits at the far right like in Settings */
+.awards-switch-row > .src-switch-row { flex: 1; }
 .awards-gemini-row { flex-wrap: wrap; gap: 4px 8px; }
 .awards-gemini-row label { flex: 1 1 100%; margin-bottom: 2px; }
 .awards-gemini-hint { font-size: 0.72rem; color: var(--text3); font-weight: 400; }
@@ -23500,10 +23502,31 @@ body[class*="-light"] .tm-card-search:hover {
 .ceremony-slide.is-intro .aw-sum { margin-bottom: 0; }
 /* The stage header already says "Stats & records" */
 .ceremony-slide.is-intro .aw-sum-title { display: none; }
-/* The ceremony stage is narrower than the tab, so its record cards stand the
-   artwork on top instead of beside the text — three across still fits. */
-.ceremony-slide.is-intro .aw-sum-rec { flex-direction: column; align-items: stretch; }
-.ceremony-slide.is-intro .aw-sum-rec-art { width: 96px; }
+/* The ceremony stage is narrower than the tab, so its record cards (opening
+   slide and roll call alike) stand the artwork on top instead of beside the
+   text — three across still fits. */
+.ceremony-slide .aw-sum-rec { flex-direction: column; align-items: stretch; }
+.ceremony-slide .aw-sum-rec-art { width: 96px; }
+/* Roll call: the final records follow the winners grid */
+.cer-finale-stats { width: 100%; margin-top: 26px; }
+.cer-finale-stats .aw-sum { margin-bottom: 0; }
+/* A record whose holder changed tonight */
+.aw-sum-new {
+  display: inline-block;
+  margin-left: 4px;
+  padding: 1px 6px;
+  border-radius: var(--r-full);
+  /* Tinted, not filled: --gold1 is a dark bronze on the light themes, so a
+     solid fill has no ink colour that reads on every theme */
+  background: color-mix(in srgb, var(--gold1) 18%, transparent);
+  border: 1px solid color-mix(in srgb, var(--gold1) 45%, transparent);
+  color: var(--gold1);
+  font-family: var(--font-mono);
+  font-size: 0.52rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  vertical-align: 1px;
+}
 .aw-sum-head { display: flex; flex-direction: column; gap: 3px; }
 .aw-sum-kicker {
   font-family: var(--font-mono);
@@ -23654,8 +23677,8 @@ body[class*="-light"] .tm-card-search:hover {
 @media (max-width: 760px) {
   .aw-sum { padding: 14px; gap: 16px; }
   .aw-sum-recs { grid-template-columns: minmax(0, 1fr); }
-  .ceremony-slide.is-intro .aw-sum-rec { flex-direction: row; align-items: flex-start; }
-  .ceremony-slide.is-intro .aw-sum-rec-art { width: 60px; }
+  .ceremony-slide .aw-sum-rec { flex-direction: row; align-items: flex-start; }
+  .ceremony-slide .aw-sum-rec-art { width: 60px; }
   .aw-sum-rec-art { width: 60px; }
   /* The bar is the first thing to go on a phone; the count says the same */
   .aw-sum-rank-row { grid-template-columns: 22px 32px minmax(0, 1fr) auto auto; gap: 8px; }

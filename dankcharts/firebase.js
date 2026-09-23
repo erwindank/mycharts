@@ -28,7 +28,7 @@ const SYNC_KEYS = [
   'dc_chartSizeSongsW', 'dc_chartSizeSongsM', 'dc_chartSizeSongsY', 'dc_chartSizeSongsAT',
   'dc_chartSizeArtistsW', 'dc_chartSizeArtistsM', 'dc_chartSizeArtistsY', 'dc_chartSizeArtistsAT',
   'dc_chartSizeAlbumsW', 'dc_chartSizeAlbumsM', 'dc_chartSizeAlbumsY', 'dc_chartSizeAlbumsAT',
-  'dc_chart_anim'
+  'dc_chart_anim', 'dc_awards_credit_features'
 ];
 
 let _auth = null;
@@ -151,6 +151,18 @@ async function dcSaveReleaseTypesToFirestore(mapJson) {
     await _configRef(_currentUser.uid).set({ dc_release_types: mapJson }, { merge: true });
   } catch (err) {
     console.warn('[dankcharts] Firebase release types save error:', err);
+  }
+}
+
+// Targeted save of one synced setting, for one-click switches (the My Grammys
+// "Count featured artists" switch) — same reasoning as the targeted saves above.
+async function dcSaveConfigKey(key, value) {
+  if (!_currentUser || !SYNC_KEYS.includes(key)) return;
+  await _ensureDb();
+  try {
+    await _configRef(_currentUser.uid).set({ [key]: value }, { merge: true });
+  } catch (err) {
+    console.warn('[dankcharts] Firebase setting save error:', err);
   }
 }
 

@@ -571,6 +571,7 @@ function dcApplyAllSettings() {
   chartAnimEnabled  = localStorage.getItem('dc_chart_anim') === '1'; // opt-in; see declaration
   eventsArtistLimit = parseInt(localStorage.getItem('dc_events_artist_limit') || '50') || 50;
   noArtistSplit     = localStorage.getItem('dc_no_artist_split') === '1';
+  _awardsCreditFeatures = localStorage.getItem(AWARDS_CREDIT_FEATURES_KEY) === '1';
   /* Separation arrived from another device: re-read it and retire the chart
      caches, since which bucket a release ranks in has just changed. Mutated
      in place so every closure already holding releaseSeparation sees it. */
@@ -33700,8 +33701,12 @@ function _renderModalGrammyStrip(artistName) {
       if (!cat.enabled) continue;
       const catInfo = catMap[catId];
       if (!catInfo) continue;
-      const inNominees = (cat.nominees || []).some(n => n.artist === artistName);
-      const isWinner = cat.winner?.artist === artistName;
+      // Credited the same way as the Stats & records summary: the full credit
+      // as written, the lead artist, and featured artists when the switch is on
+      const credited = n => !!n && (n.artist === artistName ||
+        _awardsCredits(n, _awardsCreditFeatures).some(a => a.toLowerCase() === artistName.toLowerCase()));
+      const inNominees = (cat.nominees || []).some(credited);
+      const isWinner = credited(cat.winner);
       if (inNominees || isWinner) entries.push({ year: parseInt(year), label: catInfo.label, isWin: isWinner });
     }
   }
@@ -34271,7 +34276,10 @@ function _awardsRenderCatList(data) {
    • Only enabled categories count, the same as the artist modal's Grammy strip.
    • Every nominee entry is one nomination (two songs in one category = two).
    • An artist is credited for every nominee they lead: songs and albums as
-     well as artist categories. Features are not credited, only the first name.
+     well as artist categories. Featured artists are credited too when the
+     "Count featured artists" switch is on (_awardsCreditFeatures); otherwise
+     only the first name gets it. Either way the album and song records are
+     unchanged, since a feature never splits the record itself.
    • Albums and songs only count in categories of their own type.
    • "All time" means every year up to and including the one on screen, so
      flipping back to 2021 shows the records as they stood in 2021.
@@ -34282,13 +34290,53 @@ function _awardsRenderCatList(data) {
 const AWARDS_SUMMARY_RANK_N = 10;   // rows in the "most nominations this year" list
 let _awardsSummarySeq = 0;          // guards the tab's async render against fast year flips
 
+/* Featured artists get award credit only when the user asks for it. Global,
+   not per year, and synced across devices like the other settings. */
+const AWARDS_CREDIT_FEATURES_KEY = 'dc_awards_credit_features';
+let _awardsCreditFeatures = localStorage.getItem(AWARDS_CREDIT_FEATURES_KEY) === '1';
+
+// "A feat. B", "A ft. B", "A featuring B" and "A with B" inside one artist string
+const _AWARDS_FEAT_SPLIT = /\s+(?:feat\.?|ft\.?|featuring|with)\s+/i;
+// "(feat. B & C)" / "[ft. B]" in a song title, where many libraries keep features
+const _AWARDS_TITLE_FEAT = /[(\[]\s*(?:feat\.?|ft\.?|featuring|with)\s+([^)\]]+)[)\]]/i;
+
+/* Every artist a nominee credits, lead first, no repeats. The artist string is
+   split the same way as the rest of the app (commas, via splitArtists, which
+   honours the comma exceptions and the "keep as one artist" setting) and then
+   on feat./ft. A bare "&" is never split, so duos like Simon & Garfunkel stay
+   whole; inside a title's "(feat. …)" it is safe to, since that list is only
+   ever names. */
+function _awardsCredits(n, withFeatures) {
+  const out = [], seen = new Set();
+  const add = name => {
+    const nm = (name || '').trim();
+    const k = nm.toLowerCase();
+    if (nm && !seen.has(k)) { seen.add(k); out.push(nm); }
+  };
+  for (const part of splitArtists(n.artist || '')) part.split(_AWARDS_FEAT_SPLIT).forEach(add);
+  if (!withFeatures) return out.slice(0, 1);
+  const m = (n.title || '').match(_AWARDS_TITLE_FEAT);
+  if (m) m[1].split(/\s*,\s*|\s+&\s+|\s+and\s+/i).forEach(add);
+  return out;
+}
+
 function _awardsPrimaryCredit(artistStr) {
-  if (!artistStr) return '';
-  return (splitArtists(artistStr)[0] || artistStr).trim();
+  return _awardsCredits({ artist: artistStr }, false)[0] || '';
+}
+
+// The switch in the My Grammys settings panel
+function awardsSetCreditFeatures(on) {
+  _awardsCreditFeatures = !!on;
+  localStorage.setItem(AWARDS_CREDIT_FEATURES_KEY, on ? '1' : '0');
+  // Targeted write, like the other one-click settings, so a racing full-config
+  // save can't push a stale value back up
+  if (typeof dcSaveConfigKey === 'function') dcSaveConfigKey(AWARDS_CREDIT_FEATURES_KEY, on ? '1' : '0');
+  if (_awardsYearData[_awardsYear]) _awardsRenderSummary(_awardsYear);
 }
 
 function _awardsSummary(year, opts) {
   const spoilerFree = !!(opts && opts.spoilerFree);
+  const withFeatures = _awardsCreditFeatures;
   const known = Object.fromEntries(AWARD_CATEGORIES.map(c => [c.id, c]));
   // key → { item, noms, wins }; item is the shape _cerArtHtml/_cerImgItem expect
   const all  = { artist: {}, album: {}, song: {} };
@@ -34299,13 +34347,17 @@ function _awardsSummary(year, opts) {
     const e = bucket[key] || (bucket[key] = { item, noms: 0, wins: 0 });
     e[field]++;
   };
-  // One nominee (or winner) credits its lead artist, plus the album or song itself
+  // One nominee (or winner) credits its lead artist (and, when the switch is on,
+  // everyone featured on it), plus the album or song itself
   const credit = (n, type, field, isThisYear) => {
-    const artist = _awardsPrimaryCredit(n.artist);
-    if (!artist) return;
-    const ak = artist.toLowerCase();
-    bump(all.artist, ak, { artist }, field);
-    if (isThisYear) bump(yr, ak, { artist }, field);
+    const credits = _awardsCredits(n, withFeatures);
+    if (!credits.length) return;
+    for (const artist of credits) {
+      const k = artist.toLowerCase();
+      bump(all.artist, k, { artist }, field);
+      if (isThisYear) bump(yr, k, { artist }, field);
+    }
+    const ak = credits[0].toLowerCase();
     if (type === 'album' && n.album) {
       bump(all.album, `${n.album.toLowerCase()}|||${ak}`, { album: n.album, artist: n.artist }, field);
     }
@@ -34371,11 +34423,26 @@ function _awardsSummary(year, opts) {
 
 const AWARDS_SUMMARY_TYPE_LABEL = { artist: 'Artist', album: 'Album', song: 'Song' };
 
-// Shared by the tab and the ceremony slide. queue collects the artwork jobs;
-// idp keeps image ids unique between the two (and between renders).
-function _awardsSummaryHtml(sum, queue, idp) {
-  // A shared link's summary comes from someone else's document, so check its shape
-  if (!sum || !sum.yearNoms || !Array.isArray(sum.records) || !Array.isArray(sum.ranking)) return '';
+// A shared link's summary comes from someone else's document, so check its shape
+function _awardsSummaryOk(sum) {
+  return !!(sum && sum.yearNoms && Array.isArray(sum.records) && Array.isArray(sum.ranking));
+}
+
+// Who holds a record, as a comparable string
+function _awardsRecKey(item) {
+  return item ? `${(item.title || item.album || item.artist || '').toLowerCase()}|||${(item.artist || '').toLowerCase()}` : '';
+}
+
+/* Shared by the tab, the ceremony's opening slide and its roll call. queue
+   collects the artwork jobs; idp keeps image ids unique between them (and
+   between renders). opts:
+     kicker, title — override the header wording
+     before        — an earlier summary (the ceremony's opening one); a record
+                     whose holder has changed since then is marked "New". */
+function _awardsSummaryHtml(sum, queue, idp, opts) {
+  opts = opts || {};
+  if (!_awardsSummaryOk(sum)) return '';
+  const before = _awardsSummaryOk(opts.before) ? opts.before : null;
   const plural = (n, one, many) => `${n} ${n === 1 ? one : many}`;
   const hasWins = sum.records.some(r => r.field === 'wins' && r.items?.length);
 
@@ -34395,13 +34462,19 @@ function _awardsSummaryHtml(sum, queue, idp) {
     const sub  = (lead.title || lead.album) ? (lead.artist || '') : '';
     // A runner-up level with the leader is a shared record, so say so
     const tied = items.slice(1).filter(x => x.count === lead.count).length;
+    // Compared with the opening slide: a different holder means tonight broke
+    // or claimed the record. No badge where there was no record to break.
+    const prevLead = before && (before.records.find(r => r.field === rec.field && r.type === rec.type)?.items || [])[0];
+    // A previous holder still level at the top shares the record, so that is not a change.
+    const prevStillTop = !!prevLead && items.some(x => x.count === lead.count && _awardsRecKey(x) === _awardsRecKey(prevLead));
+    const isNew = !!(prevLead && !prevStillTop) || !!(before && !prevLead && rec.field === 'wins');
     const rest = items.slice(1).map(x =>
       `<span class="aw-sum-rec-next"><span class="aw-sum-rec-next-name">${esc(x.title || x.album || x.artist || '')}</span> <b>${x.count}</b></span>`
     ).join('');
     return `<div class="aw-sum-rec${rec.field === 'wins' ? ' is-wins' : ''}" data-awtype="${rec.type}">
       ${_cerArtHtml(lead, rec.type, imgId, 'aw-sum-rec-art')}
       <div class="aw-sum-rec-body">
-        <div class="aw-sum-rec-type">${AWARDS_SUMMARY_TYPE_LABEL[rec.type]}${tied ? ' · tied' : ''}</div>
+        <div class="aw-sum-rec-type">${AWARDS_SUMMARY_TYPE_LABEL[rec.type]}${tied ? ' · tied' : ''}${isNew ? ' <span class="aw-sum-new">New</span>' : ''}</div>
         <div class="aw-sum-rec-name" title="${esc(name)}">${esc(name)}</div>
         ${sub ? `<div class="aw-sum-rec-sub" title="${esc(sub)}">${esc(sub)}</div>` : ''}
         <div class="aw-sum-rec-count"><b>${lead.count}</b> ${lead.count === 1 ? kind : kind + 's'}</div>
@@ -34436,11 +34509,12 @@ function _awardsSummaryHtml(sum, queue, idp) {
   const more = sum.artistCount > sum.ranking.length
     ? `<div class="aw-sum-rank-more">+ ${plural(sum.artistCount - sum.ranking.length, 'more artist', 'more artists')} nominated</div>` : '';
 
-  const kicker = sum.spoilerFree ? `Going into the ${sum.year} ceremony` : `${sum.year} at a glance`;
+  const kicker = opts.kicker || (sum.spoilerFree ? `Going into the ${sum.year} ceremony` : `${sum.year} at a glance`);
+  const title  = opts.title || 'Stats & records';
   return `<section class="aw-sum">
     <header class="aw-sum-head">
       <div class="aw-sum-kicker">${esc(kicker)}</div>
-      <div class="aw-sum-title">Stats &amp; records</div>
+      <div class="aw-sum-title">${esc(title)}</div>
       <div class="aw-sum-meta">${plural(sum.yearNoms, 'nomination', 'nominations')} · ${plural(sum.yearCats, 'category', 'categories')} · ${plural(sum.artistCount, 'artist', 'artists')}</div>
     </header>
     ${group('noms', 'All-time most nominations')}
@@ -34534,6 +34608,9 @@ function awardsToggleConfig() {
   if (!open) {
     const keyEl = document.getElementById('awardsGeminiKey');
     if (keyEl) keyEl.value = localStorage.getItem('dc_gemini_api_key') || '';
+    // Read on open, so a value synced from another device shows correctly
+    const featEl = document.getElementById('awardsCreditFeatures');
+    if (featEl) featEl.checked = _awardsCreditFeatures;
   }
 }
 
@@ -35370,6 +35447,7 @@ let _ceremonyShared = null;          // { id, name } while watching someone else
 let _ceremonyCats = [];
 let _ceremonyIdx  = 0;               // -1 = the stats & records intro, cats.length = the roll call
 let _ceremonySummary = null;         // _awardsSummary() for the opening slide, or null for none
+let _ceremonySummaryFinal = null;    // the same with tonight's results in, for the roll call
 let _ceremonyRevealed = new Set();   // category ids already opened this session
 let _ceremonyRenderSeq = 0;          // bumped per render so stale image loads can't land
 let _ceremonyAudio = null;           // one <audio>, reused by every slide
@@ -35405,16 +35483,18 @@ async function startAwardsCeremony() {
   // The opening slide's all-time records need every year's ballot. The tab has
   // usually loaded them already for its own summary, so this is normally instant.
   await _awardsEnsureAllYearsLoaded();
-  _ceremonyOpen(data, year, _ceremonyCatsFor(data), _awardsSummary(year, { spoilerFree: true }));
+  _ceremonyOpen(data, year, _ceremonyCatsFor(data),
+    _awardsSummary(year, { spoilerFree: true }), _awardsSummary(year));
 }
 
 // Everything below reads the ballot from _ceremonyData, so the same stage plays
 // the user's own year and a shared copy loaded from a link.
-function _ceremonyOpen(data, year, cats, summary) {
+function _ceremonyOpen(data, year, cats, summary, finalSummary) {
   _ceremonyData = data;
   _ceremonyYear = year;
   _ceremonyCats = cats;
-  _ceremonySummary = (summary && summary.yearNoms && Array.isArray(summary.records) && Array.isArray(summary.ranking)) ? summary : null;
+  _ceremonySummary      = _awardsSummaryOk(summary) ? summary : null;
+  _ceremonySummaryFinal = _awardsSummaryOk(finalSummary) ? finalSummary : null;
   if (!_ceremonyCats.length) return;
   _ceremonyIdx = _ceremonyFirstIdx();
   _ceremonyRevealed = new Set();
@@ -35700,8 +35780,17 @@ function _ceremonyFinaleHtml(data, queue) {
   const cta = _ceremonyShared
     ? `<div class="cer-shared-cta"><a href="${esc(location.pathname)}" class="cer-shared-cta-btn">🏆 Make your own awards on dankcharts.fm</a></div>`
     : '';
-  if (!rows) return `<div class="ceremony-no-nom">No winners crowned yet.</div>${cta}`;
-  return `<div class="cer-finale-grid">${rows}</div>${cta}`;
+  // After the roll call, the records again with tonight's results counted in,
+  // marked where a holder changed since the opening slide
+  const stats = _ceremonySummaryFinal
+    ? `<div class="cer-finale-stats">${_awardsSummaryHtml(_ceremonySummaryFinal, queue, `cerFinSum_${seq}`, {
+        kicker: `After the ${_ceremonyYear} ceremony`,
+        title: 'Final stats & records',
+        before: _ceremonySummary,
+      })}</div>`
+    : '';
+  if (!rows) return `<div class="ceremony-no-nom">No winners crowned yet.</div>${stats}${cta}`;
+  return `<div class="cer-finale-grid">${rows}</div>${stats}${cta}`;
 }
 
 /* ── The reveal ───────────────────────────────────────────────────────────── */
@@ -36271,10 +36360,12 @@ async function _cerBuildShare(year, data, onProgress) {
   // worked out here and travels with the copy, spoiler-free like the owner's.
   await _awardsEnsureAllYearsLoaded();
   const summary = _awardsSummary(year, { spoilerFree: true });
-  const sumJobs = summary.yearNoms
-    ? [...summary.records.flatMap(r => r.items.slice(0, 1).map(item => ({ item, type: r.type }))),
-       ...summary.ranking.map(item => ({ item, type: 'artist' }))]
+  const summaryFinal = _awardsSummary(year);   // the roll call's version, with the results in
+  const jobsFor = sum => sum.yearNoms
+    ? [...sum.records.flatMap(r => r.items.slice(0, 1).map(item => ({ item, type: r.type }))),
+       ...sum.ranking.map(item => ({ item, type: 'artist' }))]
     : [];
+  const sumJobs = [...jobsFor(summary), ...jobsFor(summaryFinal)];
   const total = sumJobs.length + cats.reduce((n, c) => {
     const cd = data.categories[c.id];
     return n + (cd.nominees?.length || 0) + (cd.winner ? 1 : 0);
@@ -36308,6 +36399,7 @@ async function _cerBuildShare(year, data, onProgress) {
     cats: out,
   };
   if (summary.yearNoms) payload.summary = summary;
+  if (summaryFinal.yearNoms) payload.summaryFinal = summaryFinal;
   return payload;
 }
 
@@ -36488,7 +36580,7 @@ async function openSharedCeremony(id) {
   _ceremonyShared = { id, name: snap.name || '' };
   document.getElementById('ceremonyPrevBtn').style.visibility = '';
   // Links made before the stats slide existed have no summary; they just start on the first category
-  _ceremonyOpen(data, snap.year, cats, snap.summary || null);
+  _ceremonyOpen(data, snap.year, cats, snap.summary || null, snap.summaryFinal || null);
   document.title = `${_ceremonyTitle()} · dankcharts.fm`;
 }
 
