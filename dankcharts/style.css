@@ -22451,6 +22451,9 @@ body[class*="-light"] .tm-card-search:hover {
   cursor: pointer;
   transition: background var(--t-fast) var(--ease), color var(--t-fast) var(--ease), border-color var(--t-fast) var(--ease);
 }
+/* The playlist button sits beside Change / Pick nominees, sized to its label */
+.awards-cat-footer { gap: 6px; }
+.awards-cat-pl-btn { flex: none; }
 .awards-cat-action-btn:hover {
   background: color-mix(in srgb, var(--cat-hue) 14%, transparent);
   border-style: solid;

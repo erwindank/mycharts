@@ -34692,6 +34692,10 @@ function _awardsRenderCatCard(cat, catData, year, idx) {
   }
 
   const genBtn = cat.auto ? '' : `<button class="awards-cat-action-btn" onclick="awardsGenerateCatCandidates(${year},'${esc(cat.id)}')" data-catid="${esc(cat.id)}">${nominees.length ? t('awards_change_btn') : t('awards_pick_nominees_btn')}</button>`;
+  // Listen to the whole field before choosing. Auto categories have nothing to decide.
+  const plBtn = (!cat.auto && nominees.length)
+    ? `<button class="awards-cat-action-btn awards-cat-pl-btn" onclick="awardsCatPlaylist(${year},'${esc(cat.id)}')" title="Make a playlist of these nominees">♫ Playlist</button>`
+    : '';
 
   // data-awtype picks the card's --cat-hue (song / album / artist); --i staggers
   // the reveal so the grid fills in as a wave instead of all at once.
@@ -34705,8 +34709,63 @@ function _awardsRenderCatCard(cat, catData, year, idx) {
       ${cat.auto ? '<span class="awards-auto-tag">auto</span>' : ''}
     </div>
     <div class="awards-cat-body">${bodyHtml}</div>
-    <div class="awards-cat-footer">${genBtn}</div>
+    <div class="awards-cat-footer">${genBtn}${plBtn}</div>
   </div>`;
+}
+
+/* ─── Nominee playlist ─────────────────────────────────────────────────────────
+   One button per category card: every nominee into a playlist, so the whole
+   field can be heard before a winner is picked. It goes through the app's usual
+   playlist picker (add to an existing playlist or start a new one).
+
+   What each nominee contributes:
+   • a song — itself
+   • an album — every song from it you played in the year's eligibility
+     window, most played first
+   • an artist — their AWARDS_PL_ARTIST_SONGS most played songs in the window
+   An album or artist with no plays in the window falls back to the same
+   songs the rest of the app's playlist buttons use (dcPlTracksFor). Plays come
+   from allPlays, so it works the same for Last.fm, Sheets and CSV libraries. */
+const AWARDS_PL_ARTIST_SONGS = 5;
+
+function _awardsPlTopSongs(plays, limit) {
+  const m = {};
+  for (const p of plays) {
+    const k = _sk(p);
+    (m[k] = m[k] || { title: p.title, artist: p.artist, album: p.album, plays: 0 }).plays++;
+  }
+  return Object.values(m).sort((a, b) => b.plays - a.plays).slice(0, limit || Infinity)
+    .map(x => ({ title: x.title, artist: x.artist, album: x.album }));
+}
+
+function awardsCatPlaylist(year, catId) {
+  const data = _awardsYearData[year];
+  const cat  = AWARD_CATEGORIES.find(c => c.id === catId);
+  const nominees = data?.categories?.[catId]?.nominees || [];
+  if (!cat || !nominees.length) return;
+  const start = new Date((data.eligStart || `${year}-01-01`) + 'T00:00:00');
+  const end   = new Date((data.eligEnd   || `${year}-12-31`) + 'T23:59:59');
+  const inWin = allPlays.filter(p => p.date >= start && p.date <= end);
+
+  const tracks = [];
+  for (const n of nominees) {
+    if (cat.type === 'song') { tracks.push({ title: n.title, artist: n.artist, album: n.album || '' }); continue; }
+    const artistLc = (n.artist || '').toLowerCase();
+    let songs;
+    if (cat.type === 'album') {
+      const albumLc = (n.album || '').toLowerCase();
+      // Same album identity as the nominee picker: album title + lead artist
+      songs = _awardsPlTopSongs(inWin.filter(p => (p.album || '').toLowerCase() === albumLc && _pk(p) === artistLc));
+      if (!songs.length) songs = dcPlTracksFor('album', '', n.artist, n.album);
+    } else {
+      songs = _awardsPlTopSongs(inWin.filter(p => _pk(p) === artistLc), AWARDS_PL_ARTIST_SONGS);
+      if (!songs.length) songs = dcPlTracksFor('artist', '', n.artist, '');
+    }
+    tracks.push(...songs);
+  }
+
+  const name = t('awards_cat_' + cat.id);
+  dcOpenPlaylistPicker(tracks, `${name} ${year}`, `${year} My Grammys · ${name} nominees`);
 }
 
 function awardsToggleConfig() {
