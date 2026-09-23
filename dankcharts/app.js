@@ -6973,7 +6973,13 @@ function buildRecords() {
         comp: isComp, contributors: isComp ? new Set() : null
       });
       if (isComp) {
-        const contribs = certAlbumItems[ak].contributors;
+        /* The item may already exist from a single rolling up into this
+           compilation (created before any direct play), so make sure it has
+           a contributor set before adding to it. */
+        const item = certAlbumItems[ak];
+        item.comp = true;
+        if (!item.contributors) item.contributors = new Set();
+        const contribs = item.contributors;
         for (const a of (p.artists && p.artists.length ? p.artists : [p.artist])) contribs.add(a);
       }
       /* The album this single counts toward certifies on the merged figure, so
@@ -6989,7 +6995,10 @@ function buildRecords() {
           const pKind = certKindFor(pAlbum, pArtist);
           certTouch(certAlbumItems, par, p, 'album', CERT[pKind], {
             title: pAlbum, artist: pArtist, artists: [pArtist], album: '', certKind: pKind,
-            comp: false, contributors: null
+            // The parent can itself be a compilation — mark it as one so
+            // later direct plays find a contributor set to add to.
+            comp: pArtist === VARIOUS_ARTISTS,
+            contributors: pArtist === VARIOUS_ARTISTS ? new Set() : null
           });
         }
       }
