@@ -7992,6 +7992,25 @@
 
     .dc-plpick-new:hover { opacity: 0.85; }
 
+    /* Secondary to "New playlist": same shape, outlined, for the Soundiiz text export */
+    .dc-plpick-text {
+      display: block;
+      width: 100%;
+      background: transparent;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--text2);
+      font-family: var(--font-mono);
+      font-size: 0.68rem;
+      letter-spacing: 0.06em;
+      text-align: left;
+      padding: 0.5rem 0.75rem;
+      margin: -0.25rem 0 0.6rem;
+      cursor: pointer;
+      transition: border-color 0.12s, color 0.12s;
+    }
+    .dc-plpick-text:hover { border-color: var(--accent); color: var(--text1); }
+
     .dc-plpick-list {
       display: flex;
       flex-direction: column;

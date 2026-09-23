@@ -61,6 +61,10 @@ const DC_CHANGELOG = [
 
   /* ========== SEPTEMBER 2026 ========== */
 
+  { d: '2026-09-23', t: 'feature', a: 'playlists', h: '',
+    title: 'Send any playlist to Soundiiz as text',
+    detail: 'The Add to Playlist window now has a Copy as text for Soundiiz option under New playlist. It opens the same Export Playlist window the charts use, filled with those songs: one Artist - Title per line to copy (optionally with the album), a .txt or .csv to download, suggested playlist names to copy, and the steps to import it in Soundiiz, which then builds the playlist on Spotify, Apple Music, YouTube Music, Deezer and more. It works from every ♫ Playlist button in the app, including the new one on My Grammys categories, so a category’s nominees can go straight to your streaming service. Copying a suggested name with an apostrophe in it also works properly now.' },
+
   { d: '2026-09-23', t: 'feature', a: 'awards', h: 'c14b612',
     title: 'Make a playlist of a category’s nominees',
     detail: 'Every My Grammys category with nominees now has a ♫ Playlist button next to Change. It puts the whole field into a playlist, new or existing, so you can listen to them all before crowning a winner. A song nominee adds itself. An album adds every song from it you played in that year’s eligibility window, most played first. An artist adds their five most played songs from the window. Auto-awarded categories don’t get the button, since there is nothing to decide. Works the same for Last.fm, Google Sheets and CSV libraries.' },

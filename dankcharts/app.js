@@ -19072,19 +19072,30 @@ function openCalendarExportModal() {
   const events = (dayMap[ds] || []).filter(ev => ev.ttType === 'anniversary' || ev.ttType === 'release');
   if (!events.length) { alert('No singles found on this day.'); return; }
 
-  _exportSongsOverride = events.map(ev => ({ title: ev.ttTitle, artist: ev.ttArtist, album: '' }));
   const dateLabel = fmtDate(dateObj);
+  dcOpenTextExport(
+    events.map(ev => ({ title: ev.ttTitle, artist: ev.ttArtist, album: '' })),
+    dateLabel,
+    [`Singles · ${dateLabel}`, `New Releases · ${dateLabel}`, `🎵 ${dateLabel}`]
+  );
+}
+
+/* Opens the Soundiiz text export (the chart's Export modal) with any song list
+   instead of the current chart: "Artist - Title" per line to copy, a .txt or
+   .csv to download, and suggested playlist names to copy. Used by the calendar
+   and by the playlist picker's "Copy as text" option, so every place that can
+   make a playlist can also hand it to Soundiiz. */
+function dcOpenTextExport(songs, label, names) {
+  _exportSongsOverride = (songs || []).map(s => ({ title: s.title, artist: s.artist || '', album: s.album || '' }));
+  if (!_exportSongsOverride.length) { _exportSongsOverride = null; return; }
 
   document.getElementById('exportModalSubtitle').textContent =
-    `${tCount('songs', _exportSongsOverride.length)} · ${dateLabel}`;
+    `${tCount('songs', _exportSongsOverride.length)}${label ? ' · ' + label : ''}`;
 
-  const names = [
-    `Singles · ${dateLabel}`,
-    `New Releases · ${dateLabel}`,
-    `🎵 ${dateLabel}`,
-  ];
+  names = [...new Set((names || []).filter(Boolean))];
+  // JSON.stringify then esc: a name with an apostrophe must not end the JS string early
   document.getElementById('exportNameChips').innerHTML = names.map(name =>
-    `<button class="export-name-chip" onclick="copyChipName(this,'${esc(name)}')">${esc(name)}</button>`
+    `<button class="export-name-chip" onclick="copyChipName(this,${esc(JSON.stringify(name))})">${esc(name)}</button>`
   ).join('');
 
   exportReversed = false;
@@ -30358,6 +30369,8 @@ function _dcPickRenderList() {
   const staged = new Set(_dcPickTracks.map(_dcPickKey));
 
   let html = `<button class="dc-plpick-new" onclick="_dcPickShowNew()">＋ ${esc(t('pl_pick_new'))}</button>`;
+  // For a playlist on a streaming service instead: Soundiiz imports this text
+  html += `<button class="dc-plpick-text" onclick="_dcPickExportText()">📋 Copy as text for Soundiiz</button>`;
 
   if (!names.length) {
     html += `<div class="dc-plpick-empty">${esc(t('pl_pick_none_yet'))}</div>`;
@@ -30377,6 +30390,16 @@ function _dcPickRenderList() {
     }).join('') + `</div>`;
   }
   body.innerHTML = html;
+}
+
+// Hands the staged tracks to the Soundiiz text export. The picker closes first
+// (which clears the staged list, so it is copied out beforehand) so the two
+// windows are never stacked.
+function _dcPickExportText() {
+  const tracks = _dcPickTracks.slice();
+  const label = _dcPickLabel, suggest = _dcPickSuggest;
+  dcClosePlaylistPicker();
+  dcOpenTextExport(tracks, label, [suggest, label]);
 }
 
 // View 2 — name and create a brand-new playlist from the staged tracks.
