@@ -23477,6 +23477,195 @@ body[class*="-light"] .tm-card-search:hover {
 .cer-fin-name { font-size: 0.78rem; font-weight: 700; color: var(--text1); line-height: 1.25; }
 .cer-fin-sub  { font-size: 0.68rem; color: var(--text3); }
 
+/* ── Stats & records summary ──────────────────────────────────────────────────
+   Sits above a year's nominees on the awards tab and is the ceremony's opening
+   slide (_awardsSummaryHtml). Record cards take the same per-type hue as the
+   ballot cards (song teal / album accent2 / artist green); the wins row turns
+   gold like a decided category. Token colours only, so every theme follows. */
+.aw-sum {
+  width: 100%;
+  max-width: 980px;
+  margin: 0 auto 18px;
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  background:
+    radial-gradient(90% 70% at 100% 0%, color-mix(in srgb, var(--gold1) 8%, transparent) 0%, transparent 60%),
+    var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  animation: awCardIn 420ms var(--ease) both;
+}
+.ceremony-slide.is-intro .aw-sum { margin-bottom: 0; }
+/* The stage header already says "Stats & records" */
+.ceremony-slide.is-intro .aw-sum-title { display: none; }
+/* The ceremony stage is narrower than the tab, so its record cards stand the
+   artwork on top instead of beside the text — three across still fits. */
+.ceremony-slide.is-intro .aw-sum-rec { flex-direction: column; align-items: stretch; }
+.ceremony-slide.is-intro .aw-sum-rec-art { width: 96px; }
+.aw-sum-head { display: flex; flex-direction: column; gap: 3px; }
+.aw-sum-kicker {
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--gold1) 70%, var(--text3));
+}
+.aw-sum-title {
+  font-family: var(--font-display);
+  font-size: 1.35rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+  color: var(--text1);
+}
+.aw-sum-meta { font-size: 0.74rem; color: var(--text3); }
+
+.aw-sum-group { display: flex; flex-direction: column; gap: 10px; }
+.aw-sum-group-title {
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text2);
+}
+
+/* Record cards: artwork left, the record holder and the count right */
+.aw-sum-recs {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+.aw-sum-rec {
+  --cat-hue: var(--accent);
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  min-width: 0;
+  padding: 10px;
+  background:
+    radial-gradient(120% 90% at 0% 0%, color-mix(in srgb, var(--cat-hue) 10%, transparent) 0%, transparent 60%),
+    var(--surface3);
+  border: 1px solid color-mix(in srgb, var(--cat-hue) 22%, var(--border));
+  border-radius: var(--r-md, 12px);
+}
+.aw-sum-rec[data-awtype="song"]   { --cat-hue: var(--teal); }
+.aw-sum-rec[data-awtype="album"]  { --cat-hue: var(--accent2); }
+.aw-sum-rec[data-awtype="artist"] { --cat-hue: var(--green); }
+.aw-sum-rec.is-wins               { --cat-hue: var(--gold1); }
+.aw-sum-rec.is-empty { align-items: center; min-height: 64px; }
+.aw-sum-rec-art {
+  flex: none;
+  width: 72px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.28);
+}
+.aw-sum-rec[data-awtype="artist"] .aw-sum-rec-art { border-radius: 50%; }
+.aw-sum-rec-body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.aw-sum-rec-type {
+  font-family: var(--font-mono);
+  font-size: 0.56rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--cat-hue) 70%, var(--text3));
+}
+.aw-sum-rec-name,
+.aw-sum-rec-sub {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.aw-sum-rec-name { font-size: 0.86rem; font-weight: 700; color: var(--text1); line-height: 1.25; }
+.aw-sum-rec-sub  { font-size: 0.7rem; color: var(--text3); }
+.aw-sum-rec-count { margin-top: 3px; font-size: 0.72rem; color: var(--text2); }
+.aw-sum-rec-count b {
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+  color: var(--cat-hue);
+  margin-right: 2px;
+}
+.aw-sum-rec-rest { display: flex; flex-direction: column; gap: 1px; margin-top: 4px; }
+.aw-sum-rec-next {
+  display: flex;
+  gap: 6px;
+  font-size: 0.66rem;
+  color: var(--text3);
+  min-width: 0;
+}
+.aw-sum-rec-next-name { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.aw-sum-rec-next b { color: var(--text2); font-weight: 700; }
+.aw-sum-rec-none { font-size: 0.74rem; color: var(--text3); font-style: italic; }
+
+/* This year's ranking: rank, face, name, a bar scaled to the leader, the count */
+.aw-sum-rank { display: flex; flex-direction: column; gap: 4px; }
+.aw-sum-rank-row {
+  display: grid;
+  grid-template-columns: 26px 36px minmax(0, 1.2fr) minmax(40px, 1fr) auto auto;
+  align-items: center;
+  gap: 10px;
+  padding: 5px 8px;
+  border-radius: var(--r-sm);
+  animation: awCardIn 360ms var(--ease) both;
+  animation-delay: calc(var(--i, 0) * 35ms);
+}
+.aw-sum-rank-row:nth-child(odd) { background: color-mix(in srgb, var(--surface3) 60%, transparent); }
+.aw-sum-rank-no {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  color: var(--text3);
+  text-align: right;
+}
+.aw-sum-rank-row.is-top .aw-sum-rank-no { color: var(--gold1); font-weight: 700; }
+.aw-sum-rank-art { width: 36px; border-radius: 50%; }
+.aw-sum-rank-art .thumb-initials { font-size: 0.7rem !important; }
+.aw-sum-rank-name {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--text1);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.aw-sum-rank-bar {
+  height: 6px;
+  border-radius: var(--r-full);
+  background: color-mix(in srgb, var(--surface3) 80%, transparent);
+  overflow: hidden;
+}
+.aw-sum-rank-bar > span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, color-mix(in srgb, var(--green) 60%, transparent), var(--green));
+}
+.aw-sum-rank-row.is-top .aw-sum-rank-bar > span {
+  background: linear-gradient(90deg, color-mix(in srgb, var(--gold1) 55%, transparent), var(--gold1));
+}
+.aw-sum-rank-noms { font-size: 0.72rem; color: var(--text3); white-space: nowrap; text-align: right; }
+.aw-sum-rank-noms b { font-size: 0.86rem; color: var(--text1); }
+.aw-sum-rank-wins {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--gold1);
+  white-space: nowrap;
+}
+.aw-sum-rank-more { font-size: 0.7rem; color: var(--text3); padding-left: 44px; }
+
+@media (max-width: 760px) {
+  .aw-sum { padding: 14px; gap: 16px; }
+  .aw-sum-recs { grid-template-columns: minmax(0, 1fr); }
+  .ceremony-slide.is-intro .aw-sum-rec { flex-direction: row; align-items: flex-start; }
+  .ceremony-slide.is-intro .aw-sum-rec-art { width: 60px; }
+  .aw-sum-rec-art { width: 60px; }
+  /* The bar is the first thing to go on a phone; the count says the same */
+  .aw-sum-rank-row { grid-template-columns: 22px 32px minmax(0, 1fr) auto auto; gap: 8px; }
+  .aw-sum-rank-bar { display: none; }
+  .aw-sum-rank-art { width: 32px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .aw-sum, .aw-sum-rank-row { animation: none; }
+}
+
 /* Sound toggle, next to the close button */
 .ceremony-sound-btn {
   position: absolute;

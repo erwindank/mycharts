@@ -34215,6 +34215,7 @@ async function awardsRenderYear(year) {
   if (!allPlays.length) {
     statusEl.textContent = 'Load your music data to use My Grammys.';
     document.getElementById('awardsCatList').innerHTML = '';
+    document.getElementById('awardsSummary').innerHTML = '';
     document.getElementById('awardsCeremonyBar').style.display = 'none';
     return;
   }
@@ -34247,11 +34248,222 @@ function _awardsRenderCatList(data) {
   if (!activeCats.length) {
     el.innerHTML = `<div class="awards-empty">${t('awards_no_categories')}</div>`;
     document.getElementById('awardsCeremonyBar').style.display = 'none';
+    _awardsRenderSummary(data.year);
     return;
   }
   el.innerHTML = activeCats.map((cat, i) => _awardsRenderCatCard(cat, data.categories[cat.id] || { enabled: true, nominees: [], winner: null }, data.year, i)).join('');
   const hasWinner = activeCats.some(c => data.categories[c.id]?.winner);
   document.getElementById('awardsCeremonyBar').style.display = hasWinner ? '' : 'none';
+  // Every change to the ballot comes through here, so the stats block above the
+  // cards stays in step with a new nominee or a freshly crowned winner.
+  _awardsRenderSummary(data.year);
+}
+
+/* ─── Stats & records summary ──────────────────────────────────────────────────
+   The block at the top of a year's nominees (and the opening slide of the
+   ceremony): the all-time leaders in nominations and wins as they stood that
+   year, for artists, albums and songs, plus that year's nomination ranking.
+
+   Everything is counted from the saved ballots, not from plays, so it reads the
+   same for Last.fm, Google Sheets and CSV libraries alike.
+
+   Counting rules:
+   • Only enabled categories count, the same as the artist modal's Grammy strip.
+   • Every nominee entry is one nomination (two songs in one category = two).
+   • An artist is credited for every nominee they lead: songs and albums as
+     well as artist categories. Features are not credited, only the first name.
+   • Albums and songs only count in categories of their own type.
+   • "All time" means every year up to and including the one on screen, so
+     flipping back to 2021 shows the records as they stood in 2021.
+
+   spoilerFree (the ceremony) leaves out this year's wins, and this year's auto
+   categories entirely, because their only nominee is the winner. The summary
+   is shown before any envelope is opened, so it must not give a result away. */
+const AWARDS_SUMMARY_RANK_N = 10;   // rows in the "most nominations this year" list
+let _awardsSummarySeq = 0;          // guards the tab's async render against fast year flips
+
+function _awardsPrimaryCredit(artistStr) {
+  if (!artistStr) return '';
+  return (splitArtists(artistStr)[0] || artistStr).trim();
+}
+
+function _awardsSummary(year, opts) {
+  const spoilerFree = !!(opts && opts.spoilerFree);
+  const known = Object.fromEntries(AWARD_CATEGORIES.map(c => [c.id, c]));
+  // key → { item, noms, wins }; item is the shape _cerArtHtml/_cerImgItem expect
+  const all  = { artist: {}, album: {}, song: {} };
+  const yr   = {};                    // this year's artists only
+  let yearNoms = 0, yearCats = 0;
+
+  const bump = (bucket, key, item, field) => {
+    const e = bucket[key] || (bucket[key] = { item, noms: 0, wins: 0 });
+    e[field]++;
+  };
+  // One nominee (or winner) credits its lead artist, plus the album or song itself
+  const credit = (n, type, field, isThisYear) => {
+    const artist = _awardsPrimaryCredit(n.artist);
+    if (!artist) return;
+    const ak = artist.toLowerCase();
+    bump(all.artist, ak, { artist }, field);
+    if (isThisYear) bump(yr, ak, { artist }, field);
+    if (type === 'album' && n.album) {
+      bump(all.album, `${n.album.toLowerCase()}|||${ak}`, { album: n.album, artist: n.artist }, field);
+    }
+    if (type === 'song' && n.title) {
+      bump(all.song, `${n.title.toLowerCase()}|||${(n.artist || '').toLowerCase()}`,
+        { title: n.title, artist: n.artist, album: n.album || '' }, field);
+    }
+  };
+
+  for (const [ys, yd] of Object.entries(_awardsYearData)) {
+    const y = parseInt(ys, 10);
+    if (!(y <= year) || !yd?.categories) continue;
+    const isThisYear = y === year;
+    for (const [catId, cd] of Object.entries(yd.categories)) {
+      const cat = known[catId];
+      if (!cat || !cd?.enabled) continue;
+      if (spoilerFree && isThisYear && cat.auto) continue;
+      const noms = cd.nominees || [];
+      const wk = cd.winner ? _awardItemKey(cd.winner) : null;
+      // A winner is always one of the field; if an old ballot somehow has it
+      // missing from the list, it still earned the nomination.
+      const field = (wk && !noms.some(n => _awardItemKey(n) === wk)) ? [...noms, cd.winner] : noms;
+      if (isThisYear && field.length) yearCats++;
+      for (const n of field) {
+        credit(n, cat.type, 'noms', isThisYear);
+        if (isThisYear) yearNoms++;
+      }
+      if (cd.winner && !(spoilerFree && isThisYear)) credit(cd.winner, cat.type, 'wins', isThisYear);
+    }
+  }
+
+  const nameOf = e => (e.item.title || e.item.album || e.item.artist || '').toLowerCase();
+  // Top three for one measure; the other measure breaks ties, then the name
+  const top = (bucket, field) => {
+    const other = field === 'noms' ? 'wins' : 'noms';
+    return Object.values(bucket)
+      .filter(e => e[field] > 0)
+      .sort((a, b) => (b[field] - a[field]) || (b[other] - a[other]) || nameOf(a).localeCompare(nameOf(b)))
+      .slice(0, 3)
+      .map(e => ({ ...e.item, count: e[field] }));
+  };
+  const records = [];
+  for (const field of ['noms', 'wins']) {
+    // Nothing to show for wins when the only ceremony so far is tonight's
+    for (const type of ['artist', 'album', 'song']) records.push({ field, type, items: top(all[type], field) });
+  }
+
+  // Standard competition ranking: two artists on 5 share #2 and the next is #4
+  const ranked = Object.values(yr)
+    .filter(e => e.noms > 0)
+    .sort((a, b) => (b.noms - a.noms) || (b.wins - a.wins) || nameOf(a).localeCompare(nameOf(b)));
+  const ranking = [];
+  ranked.slice(0, AWARDS_SUMMARY_RANK_N).forEach((e, i) => {
+    const prev = ranked[i - 1];
+    const rank = (prev && prev.noms === e.noms && (spoilerFree || prev.wins === e.wins)) ? ranking[i - 1].rank : i + 1;
+    const row = { artist: e.item.artist, noms: e.noms, rank };
+    if (!spoilerFree) row.wins = e.wins;   // Firestore refuses undefined, so leave it out entirely
+    ranking.push(row);
+  });
+
+  return { year, spoilerFree, yearNoms, yearCats, artistCount: ranked.length, records, ranking };
+}
+
+const AWARDS_SUMMARY_TYPE_LABEL = { artist: 'Artist', album: 'Album', song: 'Song' };
+
+// Shared by the tab and the ceremony slide. queue collects the artwork jobs;
+// idp keeps image ids unique between the two (and between renders).
+function _awardsSummaryHtml(sum, queue, idp) {
+  // A shared link's summary comes from someone else's document, so check its shape
+  if (!sum || !sum.yearNoms || !Array.isArray(sum.records) || !Array.isArray(sum.ranking)) return '';
+  const plural = (n, one, many) => `${n} ${n === 1 ? one : many}`;
+  const hasWins = sum.records.some(r => r.field === 'wins' && r.items?.length);
+
+  const recordCard = (rec, ri) => {
+    const items = Array.isArray(rec.items) ? rec.items : [];
+    const lead = items[0];
+    const kind = rec.field === 'noms' ? 'nomination' : 'win';
+    if (!lead) {
+      return `<div class="aw-sum-rec is-empty" data-awtype="${rec.type}">
+        <div class="aw-sum-rec-type">${AWARDS_SUMMARY_TYPE_LABEL[rec.type]}</div>
+        <div class="aw-sum-rec-none">No ${kind}s yet</div>
+      </div>`;
+    }
+    const imgId = `${idp}_rec_${ri}`;
+    queue.push({ imgId, item: lead, type: rec.type });
+    const name = lead.title || lead.album || lead.artist || '';
+    const sub  = (lead.title || lead.album) ? (lead.artist || '') : '';
+    // A runner-up level with the leader is a shared record, so say so
+    const tied = items.slice(1).filter(x => x.count === lead.count).length;
+    const rest = items.slice(1).map(x =>
+      `<span class="aw-sum-rec-next"><span class="aw-sum-rec-next-name">${esc(x.title || x.album || x.artist || '')}</span> <b>${x.count}</b></span>`
+    ).join('');
+    return `<div class="aw-sum-rec${rec.field === 'wins' ? ' is-wins' : ''}" data-awtype="${rec.type}">
+      ${_cerArtHtml(lead, rec.type, imgId, 'aw-sum-rec-art')}
+      <div class="aw-sum-rec-body">
+        <div class="aw-sum-rec-type">${AWARDS_SUMMARY_TYPE_LABEL[rec.type]}${tied ? ' · tied' : ''}</div>
+        <div class="aw-sum-rec-name" title="${esc(name)}">${esc(name)}</div>
+        ${sub ? `<div class="aw-sum-rec-sub" title="${esc(sub)}">${esc(sub)}</div>` : ''}
+        <div class="aw-sum-rec-count"><b>${lead.count}</b> ${lead.count === 1 ? kind : kind + 's'}</div>
+        ${rest ? `<div class="aw-sum-rec-rest">${rest}</div>` : ''}
+      </div>
+    </div>`;
+  };
+
+  const group = (field, title) => {
+    const recs = sum.records.map((r, i) => ({ r, i })).filter(x => x.r.field === field);
+    return `<div class="aw-sum-group">
+      <div class="aw-sum-group-title">${field === 'wins' ? '🏆' : '🏅'} ${title}</div>
+      <div class="aw-sum-recs">${recs.map(x => recordCard(x.r, x.i)).join('')}</div>
+    </div>`;
+  };
+
+  const maxNoms = sum.ranking[0]?.noms || 1;
+  const rows = sum.ranking.map((r, i) => {
+    const imgId = `${idp}_rank_${i}`;
+    queue.push({ imgId, item: r, type: 'artist' });
+    const wins = r.wins
+      ? `<span class="aw-sum-rank-wins" title="${plural(r.wins, 'win', 'wins')}">🏆 ${r.wins}</span>` : '';
+    return `<div class="aw-sum-rank-row${r.rank === 1 ? ' is-top' : ''}" style="--i:${i}">
+      <span class="aw-sum-rank-no">${String(r.rank).padStart(2, '0')}</span>
+      ${_cerArtHtml(r, 'artist', imgId, 'aw-sum-rank-art')}
+      <span class="aw-sum-rank-name" title="${esc(r.artist)}">${esc(r.artist)}</span>
+      <span class="aw-sum-rank-bar"><span style="width:${Math.max(6, Math.round(r.noms / maxNoms * 100))}%"></span></span>
+      <span class="aw-sum-rank-noms"><b>${r.noms}</b> nom${r.noms === 1 ? '' : 's'}</span>
+      ${wins}
+    </div>`;
+  }).join('');
+  const more = sum.artistCount > sum.ranking.length
+    ? `<div class="aw-sum-rank-more">+ ${plural(sum.artistCount - sum.ranking.length, 'more artist', 'more artists')} nominated</div>` : '';
+
+  const kicker = sum.spoilerFree ? `Going into the ${sum.year} ceremony` : `${sum.year} at a glance`;
+  return `<section class="aw-sum">
+    <header class="aw-sum-head">
+      <div class="aw-sum-kicker">${esc(kicker)}</div>
+      <div class="aw-sum-title">Stats &amp; records</div>
+      <div class="aw-sum-meta">${plural(sum.yearNoms, 'nomination', 'nominations')} · ${plural(sum.yearCats, 'category', 'categories')} · ${plural(sum.artistCount, 'artist', 'artists')}</div>
+    </header>
+    ${group('noms', 'All-time most nominations')}
+    ${hasWins ? group('wins', sum.spoilerFree ? 'All-time most wins, before tonight' : 'All-time most wins') : ''}
+    <div class="aw-sum-group">
+      <div class="aw-sum-group-title">📊 Most nominations in ${sum.year}</div>
+      <div class="aw-sum-rank">${rows}</div>
+      ${more}
+    </div>
+  </section>`;
+}
+
+// The tab's copy. All-time records need every year's ballot, which only the
+// year on screen has loaded until now, so this waits for the rest first.
+async function _awardsRenderSummary(year) {
+  const el = document.getElementById('awardsSummary');
+  if (!el) return;
+  const seq = ++_awardsSummarySeq;
+  await _awardsEnsureAllYearsLoaded();
+  if (seq !== _awardsSummarySeq || year !== _awardsYear) return;   // the user moved on
+  const queue = [];
+  el.innerHTML = _awardsSummaryHtml(_awardsSummary(year), queue, `awSum${seq}`);
+  _awardsLoadArtQueue(queue, () => seq === _awardsSummarySeq);
 }
 
 function _awardItemKey(item) {
@@ -35156,7 +35368,8 @@ let _ceremonyYear = null;
 let _ceremonyData = null;            // the ballot on stage: the user's own year, or a shared copy
 let _ceremonyShared = null;          // { id, name } while watching someone else's shared link
 let _ceremonyCats = [];
-let _ceremonyIdx  = 0;
+let _ceremonyIdx  = 0;               // -1 = the stats & records intro, cats.length = the roll call
+let _ceremonySummary = null;         // _awardsSummary() for the opening slide, or null for none
 let _ceremonyRevealed = new Set();   // category ids already opened this session
 let _ceremonyRenderSeq = 0;          // bumped per render so stale image loads can't land
 let _ceremonyAudio = null;           // one <audio>, reused by every slide
@@ -35184,21 +35397,26 @@ function _ceremonyCatsFor(data) {
   });
 }
 
-function startAwardsCeremony() {
-  const data = _awardsYearData[_awardsYear];
+async function startAwardsCeremony() {
+  const year = _awardsYear;
+  const data = _awardsYearData[year];
   if (!data) return;
   _ceremonyShared = null;
-  _ceremonyOpen(data, _awardsYear, _ceremonyCatsFor(data));
+  // The opening slide's all-time records need every year's ballot. The tab has
+  // usually loaded them already for its own summary, so this is normally instant.
+  await _awardsEnsureAllYearsLoaded();
+  _ceremonyOpen(data, year, _ceremonyCatsFor(data), _awardsSummary(year, { spoilerFree: true }));
 }
 
 // Everything below reads the ballot from _ceremonyData, so the same stage plays
 // the user's own year and a shared copy loaded from a link.
-function _ceremonyOpen(data, year, cats) {
+function _ceremonyOpen(data, year, cats, summary) {
   _ceremonyData = data;
   _ceremonyYear = year;
   _ceremonyCats = cats;
+  _ceremonySummary = (summary && summary.yearNoms && Array.isArray(summary.records) && Array.isArray(summary.ranking)) ? summary : null;
   if (!_ceremonyCats.length) return;
-  _ceremonyIdx = 0;
+  _ceremonyIdx = _ceremonyFirstIdx();
   _ceremonyRevealed = new Set();
   document.getElementById('awardsCeremonyOverlay').style.display = 'flex';
   document.body.style.overflow = 'hidden';
@@ -35236,6 +35454,9 @@ function ceremonyOverlayClick(e) {
 }
 
 function _ceremonyIsFinale() { return _ceremonyIdx >= _ceremonyCats.length; }
+function _ceremonyIsIntro()  { return _ceremonyIdx < 0; }
+// The stats slide opens the show when there is one; otherwise it starts on the first category
+function _ceremonyFirstIdx() { return _ceremonySummary ? -1 : 0; }
 
 // "2025 My Grammys" for your own; a shared copy is someone else's, so it carries
 // their name when they set one.
@@ -35255,16 +35476,21 @@ function _ceremonyCatName(cat) {
 function _ceremonyDrawSidebar(data) {
   document.getElementById('ceremonySidebar').innerHTML =
     `<div class="ceremony-sidebar-title">${esc(_ceremonyTitle())}</div>` +
+    (_ceremonySummary
+      ? `<div class="ceremony-sidebar-row ceremony-sidebar-intro${_ceremonyIsIntro() ? ' active' : ''}" data-idx="-1" onclick="ceremonyGoTo(-1)">
+          <span class="ceremony-sidebar-dot">📊</span> Stats &amp; records
+        </div>`
+      : '') +
     _ceremonyCats.map((cat, i) => {
       const hasWinner = !!data.categories[cat.id]?.winner;
       // The trophy only appears once the envelope has actually been opened —
       // the sidebar shouldn't spoil a category the user hasn't reached yet.
       const opened = hasWinner && _ceremonyRevealed.has(cat.id);
-      return `<div class="ceremony-sidebar-row${i === _ceremonyIdx ? ' active' : ''}${opened ? ' done' : ''}" onclick="ceremonyGoTo(${i})">
+      return `<div class="ceremony-sidebar-row${i === _ceremonyIdx ? ' active' : ''}${opened ? ' done' : ''}" data-idx="${i}" onclick="ceremonyGoTo(${i})">
         <span class="ceremony-sidebar-dot">${opened ? '🏆' : (hasWinner ? '✉' : '○')}</span> ${esc(_ceremonyCatName(cat))}
       </div>`;
     }).join('') +
-    `<div class="ceremony-sidebar-row ceremony-sidebar-finale${_ceremonyIsFinale() ? ' active' : ''}" onclick="ceremonyGoTo(${_ceremonyCats.length})">
+    `<div class="ceremony-sidebar-row ceremony-sidebar-finale${_ceremonyIsFinale() ? ' active' : ''}" data-idx="${_ceremonyCats.length}" onclick="ceremonyGoTo(${_ceremonyCats.length})">
       <span class="ceremony-sidebar-dot">🎬</span> All winners
     </div>`;
 }
@@ -35295,8 +35521,14 @@ function _cerArtHtml(item, type, imgId, cls) {
 // Deezer proxy, and it drops anything whose container left the DOM, so switching
 // slides mid-load resolves itself.
 async function _ceremonyLoadArt(queue, seq) {
+  return _awardsLoadArtQueue(queue, () => seq === _ceremonyRenderSeq);
+}
+
+// isLive() is asked before each job, so a render that has been replaced stops
+// fetching. Shared by the ceremony and the stats summary on the awards tab.
+async function _awardsLoadArtQueue(queue, isLive) {
   for (const job of queue) {
-    if (seq !== _ceremonyRenderSeq) return;
+    if (!isLive()) return;
     const el = document.getElementById(job.imgId);
     if (!el) continue;
     // A shared copy carries the owner's artwork, so the guest sees the same
@@ -35331,7 +35563,13 @@ function _ceremonyRender() {
   badge.textContent = _ceremonyTitle();
 
   const queue = [];
-  if (_ceremonyIsFinale()) {
+  if (_ceremonyIsIntro()) {
+    // Opening slide: where the records stand before tonight's first envelope
+    name.textContent = 'Stats & records';
+    prog.textContent = '📊 Before the show';
+    slide.className = 'ceremony-slide is-intro';
+    slide.innerHTML = _awardsSummaryHtml(_ceremonySummary, queue, `cerSum_${seq}`);
+  } else if (_ceremonyIsFinale()) {
     name.textContent = 'The Winners';
     prog.textContent = '🎬 Roll call';
     slide.className = 'ceremony-slide is-finale';
@@ -35347,10 +35585,12 @@ function _ceremonyRender() {
     if (opened) _ceremonyMarkWinnerCard(catData.winner);
   }
 
-  prevBtn.disabled = _ceremonyIdx === 0;
-  nextBtn.textContent = _ceremonyIdx === _ceremonyCats.length - 1 ? '🏆 All winners' : t('awards_ceremony_next');
+  prevBtn.disabled = _ceremonyIdx === _ceremonyFirstIdx();
+  nextBtn.textContent = _ceremonyIsIntro() ? '🎬 Start the show'
+    : (_ceremonyIdx === _ceremonyCats.length - 1 ? '🏆 All winners' : t('awards_ceremony_next'));
   nextBtn.style.visibility = _ceremonyIsFinale() ? 'hidden' : '';
-  document.querySelectorAll('.ceremony-sidebar-row').forEach((el, i) => el.classList.toggle('active', i === _ceremonyIdx));
+  // Rows carry their own index, since the optional intro row shifts the positions
+  document.querySelectorAll('.ceremony-sidebar-row').forEach(el => el.classList.toggle('active', +el.dataset.idx === _ceremonyIdx));
   document.getElementById('ceremonyStage').scrollTop = 0;
   _ceremonyLoadArt(queue, seq);
 }
@@ -35504,7 +35744,7 @@ function _ceremonyMarkWinnerCard(winner) {
 function ceremonyNav(delta) {
   const data = _ceremonyData;
   if (!data) return;
-  const idx = Math.max(0, Math.min(_ceremonyCats.length, _ceremonyIdx + delta));
+  const idx = Math.max(_ceremonyFirstIdx(), Math.min(_ceremonyCats.length, _ceremonyIdx + delta));
   if (idx === _ceremonyIdx) return;
   _ceremonyIdx = idx;
   _ceremonyDrawSidebar(data);
@@ -35514,7 +35754,7 @@ function ceremonyNav(delta) {
 function ceremonyGoTo(idx) {
   const data = _ceremonyData;
   if (!data) return;
-  _ceremonyIdx = Math.max(0, Math.min(_ceremonyCats.length, idx));
+  _ceremonyIdx = Math.max(_ceremonyFirstIdx(), Math.min(_ceremonyCats.length, idx));
   _ceremonyDrawSidebar(data);
   _ceremonyRender();
 }
@@ -35944,6 +36184,7 @@ function ceremonyTogglePlay() {
   // No clip loaded yet (muted, autoplay refused, or a fresh visit) — fetch it now
   if (_ceremonyIsFinale()) return;
   const cat = _ceremonyCats[_ceremonyIdx];
+  if (!cat) return;   // the stats intro has no category and no clip
   const winner = _ceremonyData?.categories?.[cat.id]?.winner;
   if (!winner) return;
   if (!_ceremonySound) { _ceremonySound = true; localStorage.setItem('dc_ceremony_sound', 'on'); _ceremonyPaintSoundBtn(); }
@@ -36026,7 +36267,15 @@ async function _cerResolveImg(item, type) {
 // lookups, which are the only slow part.
 async function _cerBuildShare(year, data, onProgress) {
   const cats = _ceremonyCatsFor(data);
-  const total = cats.reduce((n, c) => {
+  // The guest has no other years to count from, so the opening stats slide is
+  // worked out here and travels with the copy, spoiler-free like the owner's.
+  await _awardsEnsureAllYearsLoaded();
+  const summary = _awardsSummary(year, { spoilerFree: true });
+  const sumJobs = summary.yearNoms
+    ? [...summary.records.flatMap(r => r.items.slice(0, 1).map(item => ({ item, type: r.type }))),
+       ...summary.ranking.map(item => ({ item, type: 'artist' }))]
+    : [];
+  const total = sumJobs.length + cats.reduce((n, c) => {
     const cd = data.categories[c.id];
     return n + (cd.nominees?.length || 0) + (cd.winner ? 1 : 0);
   }, 0);
@@ -36047,11 +36296,19 @@ async function _cerBuildShare(year, data, onProgress) {
     const winner = cd.winner ? _cerShareItem(cd.winner, await art(cd.winner, cat.type)) : null;
     out.push({ id: cat.id, label: cat.label, type: cat.type, auto: !!cat.auto, nominees, winner });
   }
-  return {
+  // Only the leaders' pictures are shown on the slide, so only they get one.
+  // The items are summary-only objects, so the URL is written onto them directly.
+  for (const job of sumJobs) {
+    const img = await art(job.item, job.type);
+    if (img) job.item.img = img;
+  }
+  const payload = {
     year,
     name: (localStorage.getItem('dc_display_name') || '').trim().slice(0, 60),
     cats: out,
   };
+  if (summary.yearNoms) payload.summary = summary;
+  return payload;
 }
 
 /* ── The share dialog ─────────────────────────────────────────────────────── */
@@ -36230,7 +36487,8 @@ async function openSharedCeremony(id) {
   });
   _ceremonyShared = { id, name: snap.name || '' };
   document.getElementById('ceremonyPrevBtn').style.visibility = '';
-  _ceremonyOpen(data, snap.year, cats);
+  // Links made before the stats slide existed have no summary; they just start on the first category
+  _ceremonyOpen(data, snap.year, cats, snap.summary || null);
   document.title = `${_ceremonyTitle()} · dankcharts.fm`;
 }
 

@@ -61,6 +61,10 @@ const DC_CHANGELOG = [
 
   /* ========== SEPTEMBER 2026 ========== */
 
+  { d: '2026-09-23', t: 'feature', a: 'awards', h: '',
+    title: 'Stats & records at the top of every My Grammys year',
+    detail: 'Each year of My Grammys now opens with a summary above the nominees. It shows the all-time leaders in nominations and in wins for artists, albums and songs, counted up to that year, so going back to an earlier year shows the records as they stood then, with the next two in line under each leader. Below that is the year’s ranking of the artists with the most nominations, with their wins. Every record holder and ranked artist has their picture or cover art. The ceremony opens with the same summary as its first slide, before the first category. There it leaves out this year’s wins and auto-awarded categories, so nothing is given away before an envelope is opened. Shared ceremony links carry the summary too. An artist is credited for their songs and albums as well as artist categories. Works the same for Last.fm, Google Sheets and CSV libraries.' },
+
   { d: '2026-09-23', t: 'feature', a: 'awards', h: '1840849',
     title: 'Share your awards ceremony with a link',
     detail: 'A new Share button sits next to View Ceremony. It makes a link anyone can open to watch your ceremony — the nominees with their artwork, the sealed envelopes, the winner reveals with song previews and the roll call at the end — without an account, and without any music data of their own. Your name goes on it if you have set a display name. Only the ceremony is shared: the nominees, the winners and their pictures, nothing else from your library. The link is a snapshot, so after you change nominees or winners press Update link, and the link you already sent shows the new version. Stop sharing takes it down for everyone. Creating a link needs a Google sign-in, so that only you can update or remove it. Works the same for Last.fm, Google Sheets and CSV libraries.' },
