@@ -22484,6 +22484,61 @@ body[class*="-light"] .tm-card-search:hover {
 }
 .awards-ceremony-launch-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 24px #FFD70066; }
 
+/* Share sits beside the launch button — quieter, so View Ceremony stays the lead */
+.awards-ceremony-bar { gap: 10px; flex-wrap: wrap; }
+.awards-ceremony-share-btn {
+  padding: 10px 20px;
+  border-radius: 24px;
+  background: transparent;
+  color: var(--text);
+  font-weight: 700;
+  font-size: 0.95rem;
+  border: 1px solid var(--border2);
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s;
+}
+.awards-ceremony-share-btn:hover { border-color: #FFD700; color: #FFD700; }
+
+/* Share dialog (see _cerShareRender) — reuses the playlist-picker box and the
+   create-playlist buttons; these only cover what is new. */
+.cer-share-text {
+  font-size: 0.8rem;
+  line-height: 1.5;
+  color: var(--text2);
+  margin: 0 0 1rem;
+}
+.cer-share-note {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  letter-spacing: 0.05em;
+  color: var(--accent);
+  margin: -0.4rem 0 0.9rem;
+}
+.cer-share-link-row { display: flex; gap: 0.5rem; align-items: flex-start; }
+.cer-share-link-row .cer-share-link { flex: 1; min-width: 0; margin-bottom: 0.75rem; }
+.cer-share-link-row .cal-create-pl-confirm-btn { padding: 0.5rem 0.9rem; }
+.cer-share-actions { flex-wrap: wrap; }
+.cer-share-stop { margin-right: auto; }
+.cer-share-stop:hover { border-color: #e5484d; color: #e5484d; }
+
+/* Shared-link guests have no app behind the overlay, so it gets a solid floor
+   instead of a see-through scrim over the empty page. */
+.awards-ceremony-overlay.is-shared { background: var(--bg); }
+
+/* Shared-link guests: the way back into the site, under the roll call */
+.cer-shared-cta { display: flex; justify-content: center; margin: 24px 0 8px; }
+.cer-shared-cta-btn {
+  padding: 10px 24px;
+  border-radius: 24px;
+  background: linear-gradient(135deg, #FFD700, #FF8C00);
+  color: #1a1a1a;
+  font-weight: 700;
+  font-size: 0.9rem;
+  text-decoration: none;
+  box-shadow: 0 4px 18px #FFD70044;
+}
+.cer-shared-cta-btn:hover { transform: translateY(-2px); }
+
 /* Candidate Picker modal */
 .awards-picker-overlay {
   position: fixed;

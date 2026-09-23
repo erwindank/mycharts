@@ -27,7 +27,7 @@
   <!-- html2canvas, SheetJS (xlsx) and JSZip are intentionally NOT loaded here — they
        total ~1.2 MB and are only needed for image exports and Excel/ZIP imports.
        app.js pulls them from the CDN on first use (see ensureLazyLib). -->
-  <link rel="stylesheet" href="style.css?v=254">
+  <link rel="stylesheet" href="style.css?v=256">
   <!-- All scripts are deferred so the page paints without waiting on them.
        defer preserves execution order, which matters: translations → Chart.js →
        hammer → zoom plugin → firebase SDKs → firebase.js → app.js (in body). -->
@@ -40,7 +40,7 @@
   <script defer src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
   <script defer src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
   <script defer src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
-  <script defer src="firebase.js?v=3"></script>
+  <script defer src="firebase.js?v=4"></script>
 </head>
 
 <body>
@@ -2101,6 +2101,8 @@
         <!-- Ceremony launch -->
         <div class="awards-ceremony-bar" id="awardsCeremonyBar" style="display:none;">
           <button class="awards-ceremony-launch-btn" onclick="startAwardsCeremony()" data-i18n="awards_ceremony_btn">🎬 View Ceremony</button>
+          <!-- Public link anyone can watch without an account (openCeremonyShare) -->
+          <button class="awards-ceremony-share-btn" onclick="openCeremonyShare()">🔗 Share</button>
         </div>
       </div>
 
@@ -2143,6 +2145,19 @@
     </div>
   </div>
   <!-- END CEREMONY OVERLAY -->
+
+  <!-- SHARE CEREMONY — creates / updates / removes the public link. Body is
+       rendered by _cerShareRender() for whichever step the owner is on. -->
+  <div class="modal-overlay" id="cerShareModal" onclick="if(event.target===this)closeCeremonyShare()">
+    <div class="dc-plpick-box cer-share-box">
+      <div class="dc-plpick-header">
+        <div class="dc-plpick-title">🔗 Share ceremony</div>
+        <button class="modal-close" onclick="closeCeremonyShare()">✕ CLOSE</button>
+      </div>
+      <div class="dc-plpick-sub" id="cerShareSub"></div>
+      <div id="cerShareBody"></div>
+    </div>
+  </div>
 
   <!-- YOUR SOUNDTRACK VIEW -->
   <div id="soundtrackView" style="display:none;">
@@ -3167,8 +3182,8 @@
 
   <!-- defer keeps app.js last in the script execution order (after translations,
        Chart.js and firebase.js) while letting the whole page parse and paint first -->
-  <script defer src="changelog.js?v=34"></script>
-  <script defer src="app.js?v=219"></script>
+  <script defer src="changelog.js?v=35"></script>
+  <script defer src="app.js?v=220"></script>
 
   <!-- ── Settings Modal ──
        Split into three tabs so the whole form is never dumped on screen at

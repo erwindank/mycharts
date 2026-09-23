@@ -254,6 +254,64 @@ async function dcLoadAwards(year) {
   }
 }
 
+/* ── Shared ceremonies ──────────────────────────────────────────────────────
+   A shared ceremony is a frozen copy of one year's awards, written to a public
+   collection so a friend can watch it from a link without an account or any
+   music data of their own. It lives outside users/{uid} on purpose: that path
+   is private by rule, and loosening it would expose the rest of the account.
+   See firestore.rules for who may read and write these.                      */
+function _sharedCeremonyRef(id) {
+  return _db.collection('sharedCeremonies').doc(id);
+}
+
+// Short, unguessable link ids. Firestore's own auto-ids are 20 characters; ten
+// from a 62-letter alphabet is still far beyond guessing and reads better in a URL.
+function _newShareId() {
+  const abc = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  const bytes = crypto.getRandomValues(new Uint8Array(10));
+  return Array.from(bytes, b => abc[b % abc.length]).join('');
+}
+
+// Writes the snapshot and returns its id. Passing an existing id refreshes that
+// same link, so a link already sent to friends keeps working after an update.
+async function dcShareCeremony(id, payload) {
+  if (!_currentUser) return null;
+  await _ensureDb();
+  const shareId = id || _newShareId();
+  try {
+    await _sharedCeremonyRef(shareId).set({ ...payload, owner: _currentUser.uid, updatedAt: Date.now() });
+    return shareId;
+  } catch (err) {
+    console.warn('[dankcharts] Ceremony share error:', err);
+    return null;
+  }
+}
+
+// Public read — works signed out. Returns null for a link that never existed
+// or was taken down.
+async function dcLoadSharedCeremony(id) {
+  await _ensureDb();
+  try {
+    const snap = await _sharedCeremonyRef(id).get();
+    return snap.exists ? snap.data() : null;
+  } catch (err) {
+    console.warn('[dankcharts] Shared ceremony load error:', err);
+    return null;
+  }
+}
+
+async function dcUnshareCeremony(id) {
+  if (!_currentUser || !id) return false;
+  await _ensureDb();
+  try {
+    await _sharedCeremonyRef(id).delete();
+    return true;
+  } catch (err) {
+    console.warn('[dankcharts] Ceremony unshare error:', err);
+    return false;
+  }
+}
+
 async function dcSaveEventsCache(data) {
   if (!_currentUser) return;
   await _ensureDb();
@@ -336,6 +394,9 @@ window.dcLoadEventsCache           = dcLoadEventsCache;
 window.dcIsSignedIn                = dcIsSignedIn;
 window.dcSaveAwards                = dcSaveAwards;
 window.dcLoadAwards                = dcLoadAwards;
+window.dcShareCeremony             = dcShareCeremony;
+window.dcLoadSharedCeremony        = dcLoadSharedCeremony;
+window.dcUnshareCeremony           = dcUnshareCeremony;
 window.dcSaveRatings               = dcSaveRatings;
 window.dcLoadRatings               = dcLoadRatings;
 window.dcSavePlaylistsToFirestore  = dcSavePlaylistsToFirestore;
@@ -396,7 +457,9 @@ _auth.onAuthStateChanged(async (user) => {
       if (typeof dcMaybeShowWelcomeGate === 'function') dcMaybeShowWelcomeGate();
       if (typeof syncNow === 'function') syncNow();
     }
-  } else {
+  } else if (!window.dcCeremonyViewer) {
+    // A shared-ceremony link never boots the viewer's own charts behind the
+    // overlay — they only asked to watch someone else's ceremony.
     if (typeof syncNow === 'function') syncNow();
   }
 });

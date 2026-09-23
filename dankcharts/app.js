@@ -5678,6 +5678,11 @@ function skipLanding() {
 
 // Auto-sync on page load — use cached data if synced within the last hour
 window.addEventListener('load', async () => {
+  // A shared awards ceremony link plays that ceremony and nothing else — no
+  // landing screen, no charts. Checked first so neither ever flashes up.
+  const sharedCeremony = new URLSearchParams(location.search).get(CER_SHARE_PARAM);
+  if (sharedCeremony) { openSharedCeremony(sharedCeremony); return; }
+
   updateMastheadDynamic();
   updateLfmAuthStatus();
   localStorage.removeItem('dc_sync_csv'); // clean up old oversized key if present
@@ -35148,6 +35153,8 @@ async function _realLifeLoadArt(queue, token) {
 // track playing underneath. The last slide is a roll call of every winner.
 
 let _ceremonyYear = null;
+let _ceremonyData = null;            // the ballot on stage: the user's own year, or a shared copy
+let _ceremonyShared = null;          // { id, name } while watching someone else's shared link
 let _ceremonyCats = [];
 let _ceremonyIdx  = 0;
 let _ceremonyRevealed = new Set();   // category ids already opened this session
@@ -35169,14 +35176,27 @@ let _cerShowToken = 0;               // cancels a step whose async work outlived
 const CER_SHOW_MS        = 15000;    // seconds per nominee, with sound
 const CER_SHOW_SILENT_MS = 6000;     // …and without
 
-function startAwardsCeremony() {
-  const data = _awardsYearData[_awardsYear];
-  if (!data) return;
-  _ceremonyYear = _awardsYear;
-  _ceremonyCats = AWARD_CATEGORIES.filter(c => {
+// The categories that make it on stage: switched on, and with something to show.
+function _ceremonyCatsFor(data) {
+  return AWARD_CATEGORIES.filter(c => {
     const cd = data.categories[c.id];
     return cd?.enabled && (cd.nominees?.length > 0 || cd.winner);
   });
+}
+
+function startAwardsCeremony() {
+  const data = _awardsYearData[_awardsYear];
+  if (!data) return;
+  _ceremonyShared = null;
+  _ceremonyOpen(data, _awardsYear, _ceremonyCatsFor(data));
+}
+
+// Everything below reads the ballot from _ceremonyData, so the same stage plays
+// the user's own year and a shared copy loaded from a link.
+function _ceremonyOpen(data, year, cats) {
+  _ceremonyData = data;
+  _ceremonyYear = year;
+  _ceremonyCats = cats;
   if (!_ceremonyCats.length) return;
   _ceremonyIdx = 0;
   _ceremonyRevealed = new Set();
@@ -35199,6 +35219,9 @@ function startAwardsCeremony() {
 }
 
 function closeCeremony() {
+  // A shared link has no app of its own behind it — leaving the ceremony takes
+  // the guest to the front page, which is also the invitation to make their own.
+  if (_ceremonyShared) { location.href = location.pathname; return; }
   document.getElementById('awardsCeremonyOverlay').style.display = 'none';
   document.body.style.overflow = '';
   cerShowStop(true);
@@ -35207,21 +35230,38 @@ function closeCeremony() {
 }
 
 function ceremonyOverlayClick(e) {
-  if (e.target.id === 'awardsCeremonyOverlay') closeCeremony();
+  // A guest has nowhere to go back to, so a stray click on the backdrop must
+  // not throw them out of the ceremony they were sent.
+  if (e.target.id === 'awardsCeremonyOverlay' && !_ceremonyShared) closeCeremony();
 }
 
 function _ceremonyIsFinale() { return _ceremonyIdx >= _ceremonyCats.length; }
 
+// "2025 My Grammys" for your own; a shared copy is someone else's, so it carries
+// their name when they set one.
+function _ceremonyTitle() {
+  if (!_ceremonyShared) return `${_ceremonyYear} My Grammys`;
+  return _ceremonyShared.name ? `${_ceremonyShared.name}'s ${_ceremonyYear} Grammys` : `${_ceremonyYear} Grammys`;
+}
+
+// A shared copy may come from a newer build with a category this one does not
+// know yet, so the label saved alongside it is the fallback.
+function _ceremonyCatName(cat) {
+  const key = 'awards_cat_' + cat.id;
+  const name = t(key);
+  return name === key ? (cat.label || cat.id) : name;
+}
+
 function _ceremonyDrawSidebar(data) {
   document.getElementById('ceremonySidebar').innerHTML =
-    `<div class="ceremony-sidebar-title">${_ceremonyYear} My Grammys</div>` +
+    `<div class="ceremony-sidebar-title">${esc(_ceremonyTitle())}</div>` +
     _ceremonyCats.map((cat, i) => {
       const hasWinner = !!data.categories[cat.id]?.winner;
       // The trophy only appears once the envelope has actually been opened —
       // the sidebar shouldn't spoil a category the user hasn't reached yet.
       const opened = hasWinner && _ceremonyRevealed.has(cat.id);
       return `<div class="ceremony-sidebar-row${i === _ceremonyIdx ? ' active' : ''}${opened ? ' done' : ''}" onclick="ceremonyGoTo(${i})">
-        <span class="ceremony-sidebar-dot">${opened ? '🏆' : (hasWinner ? '✉' : '○')}</span> ${esc(t('awards_cat_' + cat.id))}
+        <span class="ceremony-sidebar-dot">${opened ? '🏆' : (hasWinner ? '✉' : '○')}</span> ${esc(_ceremonyCatName(cat))}
       </div>`;
     }).join('') +
     `<div class="ceremony-sidebar-row ceremony-sidebar-finale${_ceremonyIsFinale() ? ' active' : ''}" onclick="ceremonyGoTo(${_ceremonyCats.length})">
@@ -35259,6 +35299,17 @@ async function _ceremonyLoadArt(queue, seq) {
     if (seq !== _ceremonyRenderSeq) return;
     const el = document.getElementById(job.imgId);
     if (!el) continue;
+    // A shared copy carries the owner's artwork, so the guest sees the same
+    // pictures they did. If one has gone dead, look it up the normal way.
+    if (job.item.img) {
+      const lbl = job.item.title || job.item.album || job.item.artist || '';
+      el.innerHTML = `<img class="thumb" alt="" src="${esc(job.item.img)}">`;
+      el.querySelector('img').onerror = () => {
+        el.innerHTML = `<div class="thumb-initials">${esc(initials(lbl))}</div>`;
+        fetchAndInjectImage(el, _cerImgItem(job.item, job.type, job.imgId), job.type).catch(() => {});
+      };
+      continue;
+    }
     try { await fetchAndInjectImage(el, _cerImgItem(job.item, job.type, job.imgId), job.type); } catch (e) {}
   }
 }
@@ -35266,7 +35317,7 @@ async function _ceremonyLoadArt(queue, seq) {
 /* ── Slides ───────────────────────────────────────────────────────────────── */
 
 function _ceremonyRender() {
-  const data = _awardsYearData[_ceremonyYear];
+  const data = _ceremonyData;
   if (!data) return;
   cerShowStop(true);
   _ceremonyStopAudio();
@@ -35277,7 +35328,7 @@ function _ceremonyRender() {
   const prog  = document.getElementById('ceremonyProgress');
   const nextBtn = document.getElementById('ceremonyNextBtn');
   const prevBtn = document.getElementById('ceremonyPrevBtn');
-  badge.textContent = `${_ceremonyYear} My Grammys`;
+  badge.textContent = _ceremonyTitle();
 
   const queue = [];
   if (_ceremonyIsFinale()) {
@@ -35288,7 +35339,7 @@ function _ceremonyRender() {
   } else {
     const cat     = _ceremonyCats[_ceremonyIdx];
     const catData = data.categories[cat.id] || { nominees: [], winner: null };
-    name.textContent = t('awards_cat_' + cat.id);
+    name.textContent = _ceremonyCatName(cat);
     prog.textContent = `${_ceremonyIdx + 1} / ${_ceremonyCats.length}`;
     const opened = _ceremonyRevealed.has(cat.id) && catData.winner;
     slide.className = 'ceremony-slide' + (opened ? ' is-revealed' : '');
@@ -35382,7 +35433,9 @@ function _ceremonyCatSlideHtml(cat, catData, queue) {
            <button class="ceremony-reveal-btn" onclick="ceremonyReveal()">✉ ${t('awards_open_envelope')}</button>
          </div>
        </div>`
-    : `<div class="cer-no-winner">No winner crowned in this category yet — close the ceremony and click a nominee to crown one.</div>`;
+    : `<div class="cer-no-winner">${_ceremonyShared
+        ? 'No winner announced in this category yet.'
+        : 'No winner crowned in this category yet — close the ceremony and click a nominee to crown one.'}</div>`;
 
   return `${cards ? `<div class="cer-nominees">${cards}</div>` : sealedHtml}${envelope}${winnerHtml}`;
 }
@@ -35396,15 +35449,19 @@ function _ceremonyFinaleHtml(data, queue) {
     queue.push({ imgId, item: w, type: cat.type });
     const lbl = w.title || w.album || w.artist || '';
     const sub = (w.title || w.album) ? (w.artist || '') : '';
-    return `<div class="cer-fin-card" onclick="ceremonyGoTo(${i})" title="${esc(t('awards_cat_' + cat.id))}">
+    return `<div class="cer-fin-card" onclick="ceremonyGoTo(${i})" title="${esc(_ceremonyCatName(cat))}">
       ${_cerArtHtml(w, cat.type, imgId, 'cer-art-md')}
-      <div class="cer-fin-cat">${esc(t('awards_cat_' + cat.id))}</div>
+      <div class="cer-fin-cat">${esc(_ceremonyCatName(cat))}</div>
       <div class="cer-fin-name">${esc(lbl)}</div>
       ${sub ? `<div class="cer-fin-sub">${esc(sub)}</div>` : ''}
     </div>`;
   }).join('');
-  if (!rows) return `<div class="ceremony-no-nom">No winners crowned yet.</div>`;
-  return `<div class="cer-finale-grid">${rows}</div>`;
+  // A guest reaching the end is the moment to tell them where this came from.
+  const cta = _ceremonyShared
+    ? `<div class="cer-shared-cta"><a href="${esc(location.pathname)}" class="cer-shared-cta-btn">🏆 Make your own awards on dankcharts.fm</a></div>`
+    : '';
+  if (!rows) return `<div class="ceremony-no-nom">No winners crowned yet.</div>${cta}`;
+  return `<div class="cer-finale-grid">${rows}</div>${cta}`;
 }
 
 /* ── The reveal ───────────────────────────────────────────────────────────── */
@@ -35412,7 +35469,7 @@ function _ceremonyFinaleHtml(data, queue) {
 function ceremonyReveal() {
   if (_ceremonyIsFinale()) return;
   const cat  = _ceremonyCats[_ceremonyIdx];
-  const data = _awardsYearData[_ceremonyYear];
+  const data = _ceremonyData;
   const winner = data?.categories?.[cat?.id]?.winner;
   if (!cat || !winner || _ceremonyRevealed.has(cat.id)) return;
   const slide = document.getElementById('ceremonySlide');
@@ -35445,7 +35502,7 @@ function _ceremonyMarkWinnerCard(winner) {
 }
 
 function ceremonyNav(delta) {
-  const data = _awardsYearData[_ceremonyYear];
+  const data = _ceremonyData;
   if (!data) return;
   const idx = Math.max(0, Math.min(_ceremonyCats.length, _ceremonyIdx + delta));
   if (idx === _ceremonyIdx) return;
@@ -35455,7 +35512,7 @@ function ceremonyNav(delta) {
 }
 
 function ceremonyGoTo(idx) {
-  const data = _awardsYearData[_ceremonyYear];
+  const data = _ceremonyData;
   if (!data) return;
   _ceremonyIdx = Math.max(0, Math.min(_ceremonyCats.length, idx));
   _ceremonyDrawSidebar(data);
@@ -35741,7 +35798,7 @@ function ceremonyNextTake() {
 function _ceremonyNominees() {
   const cat = _ceremonyCats[_ceremonyIdx];
   if (!cat) return [];
-  return _awardsYearData[_ceremonyYear]?.categories?.[cat.id]?.nominees || [];
+  return _ceremonyData?.categories?.[cat.id]?.nominees || [];
 }
 
 function cerShowStart() {
@@ -35887,7 +35944,7 @@ function ceremonyTogglePlay() {
   // No clip loaded yet (muted, autoplay refused, or a fresh visit) — fetch it now
   if (_ceremonyIsFinale()) return;
   const cat = _ceremonyCats[_ceremonyIdx];
-  const winner = _awardsYearData[_ceremonyYear]?.categories?.[cat.id]?.winner;
+  const winner = _ceremonyData?.categories?.[cat.id]?.winner;
   if (!winner) return;
   if (!_ceremonySound) { _ceremonySound = true; localStorage.setItem('dc_ceremony_sound', 'on'); _ceremonyPaintSoundBtn(); }
   _ceremonyStartPreview(winner, cat.type);
@@ -35905,6 +35962,276 @@ function _ceremonyPaintSoundBtn() {
   if (!btn) return;
   btn.textContent = _ceremonySound ? '🔊' : '🔇';
   btn.title = _ceremonySound ? 'Song previews on' : 'Song previews off';
+}
+
+/* ── Sharing ──────────────────────────────────────────────────────────────────
+   "Share ceremony" freezes the year's ballot into a public copy (see
+   dcShareCeremony in firebase.js) and hands back a link. Whoever opens the link
+   gets this same stage — nominees, envelopes, previews, the roll call — without
+   an account or any music data of their own. It works the same for every data
+   source, because what is copied is the finished ballot, not the plays behind it.
+
+   The copy is a snapshot: changing a winner afterwards does not touch it until
+   the owner presses "Update link", which rewrites the same document so the link
+   they already sent keeps working.                                            */
+
+const CER_SHARE_PARAM = 'ceremony';
+
+function _cerShareUrl(id) {
+  return `${location.origin}${location.pathname}?${CER_SHARE_PARAM}=${encodeURIComponent(id)}`;
+}
+
+// Only the fields the stage reads. Play counts and anything else hanging off a
+// nominee stay on the owner's device. Firestore refuses undefined values, so
+// absent fields are left out rather than written empty.
+function _cerShareItem(item, img) {
+  const out = { artist: item.artist || '' };
+  if (item.title) out.title = item.title;
+  if (item.album) out.album = item.album;
+  if (img) out.img = img;
+  return out;
+}
+
+/* The picture the owner sees for an item, as a plain URL, so the guest gets the
+   same artwork instead of whatever their own lookup lands on. Mirrors the order
+   fetchAndInjectImage uses — a pinned choice first, then the remembered source,
+   then the rest — without touching the page. The getters cache, so anything the
+   owner has already looked at costs nothing. */
+async function _cerResolveImg(item, type) {
+  const it = _cerImgItem(item, type, '');
+  const choice = it.prefKey && imgChoicePrefs[it.prefKey];
+  if (choice) {
+    if (choice.source === 'off') return null;
+    // Only real web addresses travel: an uploaded picture held as a data: or
+    // blob: URL is either far too big for the document or means nothing on
+    // another device.
+    if (/^https?:\/\//.test(choice.url || '')) return choice.url;
+  }
+  const SOURCES = ['deezer', 'itunes', 'lastfm', 'youtube'];
+  const pref = (it.prefKey && itemSourcePrefs[it.prefKey]) || 'deezer';
+  if (pref === 'off') return null;
+  for (const source of [pref, ...SOURCES.filter(x => x !== pref)]) {
+    try {
+      let url = null;
+      if (type === 'artist')     url = await getArtistImage(it.name, source);
+      else if (type === 'album') url = await getAlbumImage(it.album, it.artist, source);
+      else                       url = await getTrackImage(it.title, it.artist, source);
+      if (url && /^https?:\/\//.test(url)) return url;
+    } catch (e) {}
+  }
+  return null;
+}
+
+// The public copy of one year. onProgress(done, total) reports the artwork
+// lookups, which are the only slow part.
+async function _cerBuildShare(year, data, onProgress) {
+  const cats = _ceremonyCatsFor(data);
+  const total = cats.reduce((n, c) => {
+    const cd = data.categories[c.id];
+    return n + (cd.nominees?.length || 0) + (cd.winner ? 1 : 0);
+  }, 0);
+  let done = 0;
+  const seen = new Map();   // the same record nominated twice is only looked up once
+  const art = async (item, type) => {
+    const k = type + '|' + _awardItemKey(item);
+    if (!seen.has(k)) seen.set(k, await _cerResolveImg(item, type));
+    onProgress && onProgress(++done, total);
+    return seen.get(k);
+  };
+
+  const out = [];
+  for (const cat of cats) {
+    const cd = data.categories[cat.id];
+    const nominees = [];
+    for (const n of (cd.nominees || [])) nominees.push(_cerShareItem(n, await art(n, cat.type)));
+    const winner = cd.winner ? _cerShareItem(cd.winner, await art(cd.winner, cat.type)) : null;
+    out.push({ id: cat.id, label: cat.label, type: cat.type, auto: !!cat.auto, nominees, winner });
+  }
+  return {
+    year,
+    name: (localStorage.getItem('dc_display_name') || '').trim().slice(0, 60),
+    cats: out,
+  };
+}
+
+/* ── The share dialog ─────────────────────────────────────────────────────── */
+
+let _cerShareBusy = false;
+
+function openCeremonyShare() {
+  const data = _awardsYearData[_awardsYear];
+  if (!data || !_ceremonyCatsFor(data).length) { dcPlToast('Add some nominees before sharing the ceremony.'); return; }
+  document.getElementById('cerShareSub').textContent = `${_awardsYear} My Grammys`;
+  document.getElementById('cerShareModal').classList.add('open');
+  _cerShareRender();
+}
+
+function closeCeremonyShare() {
+  if (_cerShareBusy) return;   // let a write in flight finish before the dialog goes
+  document.getElementById('cerShareModal').classList.remove('open');
+}
+
+// Draws whichever step the dialog is on: signed out, not shared yet, or live.
+function _cerShareRender(note) {
+  const body = document.getElementById('cerShareBody');
+  if (!body) return;
+  const data = _awardsYearData[_awardsYear];
+  const signedIn = typeof dcIsSignedIn === 'function' && dcIsSignedIn();
+  const noteHtml = note ? `<div class="cer-share-note">${esc(note)}</div>` : '';
+
+  // Writing the public copy needs an account, so the link can be updated or
+  // taken down later by the person who made it — and only by them.
+  if (!signedIn) {
+    body.innerHTML = `
+      <p class="cer-share-text">Sign in with Google to create a link. Anyone you send it to can watch the ceremony without an account.</p>
+      ${noteHtml}
+      <div class="cal-create-pl-actions">
+        <button class="cal-create-pl-confirm-btn" onclick="_cerShareSignIn()">Sign in with Google</button>
+      </div>`;
+    return;
+  }
+
+  if (!data?.shareId) {
+    body.innerHTML = `
+      <p class="cer-share-text">Creates a link anyone can open to watch this ceremony: the nominees, the envelopes, the winners and their artwork. Nothing else from your library is shared.</p>
+      ${noteHtml}
+      <div class="cal-create-pl-actions">
+        <button class="cal-create-pl-confirm-btn" onclick="_cerSharePublish()">🔗 Create link</button>
+      </div>`;
+    return;
+  }
+
+  const url = _cerShareUrl(data.shareId);
+  const canNative = typeof navigator.share === 'function';
+  body.innerHTML = `
+    <div class="cer-share-link-row">
+      <input class="cal-create-pl-input cer-share-link" id="cerShareLink" type="text" readonly value="${esc(url)}" onfocus="this.select()">
+      <button class="cal-create-pl-confirm-btn" onclick="_cerShareCopy()">Copy</button>
+    </div>
+    <p class="cer-share-text">Anyone with this link can watch. It's a snapshot — if you change nominees or winners, press Update link.</p>
+    ${noteHtml}
+    <div class="cal-create-pl-actions cer-share-actions">
+      <button class="cal-create-pl-cancel-btn cer-share-stop" onclick="_cerShareStop()">Stop sharing</button>
+      <button class="cal-create-pl-cancel-btn" onclick="_cerSharePublish()">↻ Update link</button>
+      ${canNative ? `<button class="cal-create-pl-confirm-btn" onclick="_cerShareNative()">Share…</button>` : ''}
+    </div>`;
+}
+
+async function _cerShareSignIn() {
+  if (typeof dcSignIn !== 'function') return;
+  await dcSignIn();
+  _cerShareRender();
+}
+
+// Create the link, or refresh the one that already exists.
+async function _cerSharePublish() {
+  if (_cerShareBusy) return;
+  const year = _awardsYear;
+  const data = _awardsYearData[year];
+  if (!data) return;
+  _cerShareBusy = true;
+  const body = document.getElementById('cerShareBody');
+  body.innerHTML = `<p class="cer-share-text" id="cerShareProgress">Gathering artwork…</p>`;
+  try {
+    const payload = await _cerBuildShare(year, data, (done, total) => {
+      const el = document.getElementById('cerShareProgress');
+      if (el) el.textContent = `Gathering artwork… ${done} / ${total}`;
+    });
+    const el = document.getElementById('cerShareProgress');
+    if (el) el.textContent = 'Saving…';
+    const id = await dcShareCeremony(data.shareId || null, payload);
+    if (!id) { _cerShareBusy = false; _cerShareRender('Could not save the link. Check your connection and try again.'); return; }
+    const isNew = data.shareId !== id;
+    data.shareId = id;
+    if (isNew) _awardsSave(year);   // remember the link, on every device, so Update reuses it
+    _cerShareBusy = false;
+    _cerShareRender(isNew ? 'Link created.' : 'Link updated.');
+  } catch (e) {
+    console.warn('[dankcharts] Ceremony share failed:', e);
+    _cerShareBusy = false;
+    _cerShareRender('Something went wrong creating the link. Try again.');
+  }
+}
+
+async function _cerShareCopy() {
+  const input = document.getElementById('cerShareLink');
+  if (!input) return;
+  try { await navigator.clipboard.writeText(input.value); }
+  catch (e) { input.select(); document.execCommand('copy'); }
+  dcPlToast('Link copied');
+}
+
+function _cerShareNative() {
+  const data = _awardsYearData[_awardsYear];
+  if (!data?.shareId) return;
+  navigator.share({ title: `My ${_awardsYear} Grammys`, text: `Watch my ${_awardsYear} music awards ceremony`, url: _cerShareUrl(data.shareId) }).catch(() => {});
+}
+
+// Taking a link down deletes the public copy, so everyone who has it loses it.
+async function _cerShareStop() {
+  const year = _awardsYear;
+  const data = _awardsYearData[year];
+  if (!data?.shareId || _cerShareBusy) return;
+  if (!confirm('Stop sharing? The link will stop working for everyone who has it.')) return;
+  _cerShareBusy = true;
+  const ok = await dcUnshareCeremony(data.shareId);
+  _cerShareBusy = false;
+  if (!ok) { _cerShareRender('Could not remove the link. Try again.'); return; }
+  delete data.shareId;
+  _awardsSave(year);
+  _cerShareRender('Link removed.');
+}
+
+/* ── Watching a shared link ───────────────────────────────────────────────── */
+
+// Runs instead of the normal boot when the page is opened with ?ceremony=<id>.
+// The guest's own charts never load; the overlay is the whole page.
+async function openSharedCeremony(id) {
+  window.dcCeremonyViewer = true;   // firebase.js skips its background sync for this visit
+  _ceremonyShared = { id, name: '' };
+
+  // The overlay sits inside the hidden main app in the markup. Lift it out so
+  // it shows on its own.
+  const overlay = document.getElementById('awardsCeremonyOverlay');
+  document.body.appendChild(overlay);
+  overlay.classList.add('is-shared');
+  overlay.style.display = 'flex';
+  document.body.style.overflow = 'hidden';
+  _ceremonyPaintSoundBtn();
+
+  const slide = document.getElementById('ceremonySlide');
+  const say = (html) => {
+    document.getElementById('ceremonySidebar').innerHTML = '';
+    document.getElementById('ceremonyYearBadge').textContent = 'dankcharts.fm';
+    document.getElementById('ceremonyCatName').textContent = '';
+    document.getElementById('ceremonyProgress').textContent = '';
+    document.getElementById('ceremonyPrevBtn').style.visibility = 'hidden';
+    document.getElementById('ceremonyNextBtn').style.visibility = 'hidden';
+    slide.className = 'ceremony-slide';
+    slide.innerHTML = html;
+  };
+  say(`<div class="ceremony-no-nom">Loading the ceremony…</div>`);
+
+  const snap = /^[A-Za-z0-9]{6,40}$/.test(id) && typeof dcLoadSharedCeremony === 'function'
+    ? await dcLoadSharedCeremony(id) : null;
+  if (!snap || !Array.isArray(snap.cats) || !snap.cats.length) {
+    say(`<div class="ceremony-no-nom">This ceremony isn't available. The link may be wrong, or it was taken down.</div>
+         <div class="cer-shared-cta"><a href="${esc(location.pathname)}" class="cer-shared-cta-btn">Go to dankcharts.fm</a></div>`);
+    return;
+  }
+
+  // Rebuild the shape the stage expects. Category details come from this
+  // build where it knows the id, so types and auto flags stay authoritative.
+  const known = Object.fromEntries(AWARD_CATEGORIES.map(c => [c.id, c]));
+  const data = { year: snap.year, categories: {} };
+  const cats = snap.cats.map(c => {
+    data.categories[c.id] = { enabled: true, nominees: c.nominees || [], winner: c.winner || null };
+    return { ...(known[c.id] || {}), id: c.id, label: c.label, type: c.type || known[c.id]?.type || 'song', auto: !!c.auto };
+  });
+  _ceremonyShared = { id, name: snap.name || '' };
+  document.getElementById('ceremonyPrevBtn').style.visibility = '';
+  _ceremonyOpen(data, snap.year, cats);
+  document.title = `${_ceremonyTitle()} · dankcharts.fm`;
 }
 
 function _triggerConfetti() {
