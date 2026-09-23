@@ -5214,6 +5214,8 @@ function openSourceModal() {
   syncRtAutodetectUI();
   document.getElementById('eventsArtistLimitSelect').value = eventsArtistLimit;
   document.getElementById('srcNoArtistSplit').checked = noArtistSplit;
+  const awFeatEl = document.getElementById('srcAwardsCreditFeatures');
+  if (awFeatEl) awFeatEl.checked = _awardsCreditFeatures;
   document.getElementById('srcChartAnim').checked = chartAnimEnabled;
   updateSourceModalFields();
   initSrcFileUpload();
@@ -34297,15 +34299,32 @@ let _awardsCreditFeatures = localStorage.getItem(AWARDS_CREDIT_FEATURES_KEY) ===
 
 // "A feat. B", "A ft. B", "A featuring B" and "A with B" inside one artist string
 const _AWARDS_FEAT_SPLIT = /\s+(?:feat\.?|ft\.?|featuring|with)\s+/i;
+// "A & B", "A x B", "A and B", "A vs B": a collaboration, or a duo's own name
+const _AWARDS_COLLAB_SPLIT = /\s+(?:&|x|and|vs\.?)\s+/i;
 // "(feat. B & C)" / "[ft. B]" in a song title, where many libraries keep features
 const _AWARDS_TITLE_FEAT = /[(\[]\s*(?:feat\.?|ft\.?|featuring|with)\s+([^)\]]+)[)\]]/i;
 
 /* Every artist a nominee credits, lead first, no repeats. The artist string is
    split the same way as the rest of the app (commas, via splitArtists, which
    honours the comma exceptions and the "keep as one artist" setting) and then
-   on feat./ft. A bare "&" is never split, so duos like Simon & Garfunkel stay
-   whole; inside a title's "(feat. …)" it is safe to, since that list is only
-   ever names. */
+   on feat./ft. With the switch on, "&" / "x" / "and" / "vs" split too, but
+   only when every name is an artist in its own right in the library, so duos
+   like Simon & Garfunkel stay whole. Inside a title's "(feat. …)" the list is
+   only ever names, so it always splits. */
+/* Every artist name in the library, lowercased, to tell a collaboration from a
+   duo: "Lady Gaga & Bruno Mars" splits because both play on their own, while
+   "Simon & Garfunkel" stays whole because nobody called "Simon" does. Rebuilt
+   whenever the library changes size. */
+let _awardsKnownArtists = null, _awardsKnownArtistsN = -1;
+function _awardsIsKnownArtist(name) {
+  if (_awardsKnownArtistsN !== allPlays.length) {
+    _awardsKnownArtists = new Set();
+    for (const p of allPlays) for (const a of splitArtists(p.artist || '')) _awardsKnownArtists.add(a.trim().toLowerCase());
+    _awardsKnownArtistsN = allPlays.length;
+  }
+  return _awardsKnownArtists.has(name.trim().toLowerCase());
+}
+
 function _awardsCredits(n, withFeatures) {
   const out = [], seen = new Set();
   const add = name => {
@@ -34313,7 +34332,15 @@ function _awardsCredits(n, withFeatures) {
     const k = nm.toLowerCase();
     if (nm && !seen.has(k)) { seen.add(k); out.push(nm); }
   };
-  for (const part of splitArtists(n.artist || '')) part.split(_AWARDS_FEAT_SPLIT).forEach(add);
+  for (const part of splitArtists(n.artist || '')) {
+    for (const name of part.split(_AWARDS_FEAT_SPLIT)) {
+      // With the switch on, "A & B" credits both, but only when every name in it
+      // is an artist of its own in the library (see _awardsIsKnownArtist)
+      const pieces = withFeatures ? name.split(_AWARDS_COLLAB_SPLIT) : [name];
+      if (pieces.length > 1 && pieces.every(_awardsIsKnownArtist)) pieces.forEach(add);
+      else add(name);
+    }
+  }
   if (!withFeatures) return out.slice(0, 1);
   const m = (n.title || '').match(_AWARDS_TITLE_FEAT);
   if (m) m[1].split(/\s*,\s*|\s+&\s+|\s+and\s+/i).forEach(add);
@@ -34328,6 +34355,11 @@ function _awardsPrimaryCredit(artistStr) {
 function awardsSetCreditFeatures(on) {
   _awardsCreditFeatures = !!on;
   localStorage.setItem(AWARDS_CREDIT_FEATURES_KEY, on ? '1' : '0');
+  // The same switch lives in Settings and in Configure Year; keep both in step
+  for (const id of ['awardsCreditFeatures', 'srcAwardsCreditFeatures']) {
+    const el = document.getElementById(id);
+    if (el) el.checked = _awardsCreditFeatures;
+  }
   // Targeted write, like the other one-click settings, so a racing full-config
   // save can't push a stale value back up
   if (typeof dcSaveConfigKey === 'function') dcSaveConfigKey(AWARDS_CREDIT_FEATURES_KEY, on ? '1' : '0');

@@ -2089,8 +2089,8 @@
                .src-switch is clickable (see the Settings modal switches). -->
           <div class="awards-config-row awards-switch-row">
             <label class="src-switch-row">
-              <span class="src-switch-label">Count featured artists
-                <span class="set-switch-note">A nomination or win also counts for everyone featured on it, not just the lead artist. Applies to every year's stats and records and to artist pages.</span>
+              <span class="src-switch-label">Count featured &amp; collaborating artists
+                <span class="set-switch-note">A nomination or win also counts for everyone featured or collaborating on it, not just the lead artist. Applies to every year's stats and records and to artist pages.</span>
               </span>
               <span class="src-switch">
                 <input type="checkbox" id="awardsCreditFeatures" onchange="awardsSetCreditFeatures(this.checked)">
@@ -3199,8 +3199,8 @@
 
   <!-- defer keeps app.js last in the script execution order (after translations,
        Chart.js and firebase.js) while letting the whole page parse and paint first -->
-  <script defer src="changelog.js?v=39"></script>
-  <script defer src="app.js?v=224"></script>
+  <script defer src="changelog.js?v=40"></script>
+  <script defer src="app.js?v=225"></script>
 
   <!-- ── Settings Modal ──
        Split into three tabs so the whole form is never dumped on screen at
@@ -4124,6 +4124,19 @@ function deleteGenreTriggers() {
             </span>
             <span class="src-switch">
               <input type="checkbox" id="srcNoArtistSplit">
+              <span class="src-switch-slider"></span>
+            </span>
+          </label>
+        </div>
+        <!-- Mirror of the switch in My Grammys → Configure Year; both call
+             awardsSetCreditFeatures, which saves at once (no Save needed) -->
+        <div class="set-row">
+          <label class="src-switch-row">
+            <span class="src-switch-label">Awards count for featured &amp; collaborating artists
+              <span class="set-switch-note">In My Grammys, a nomination or win also counts for everyone featured or collaborating on it, not just the lead artist.</span>
+            </span>
+            <span class="src-switch">
+              <input type="checkbox" id="srcAwardsCreditFeatures" onchange="awardsSetCreditFeatures(this.checked)">
               <span class="src-switch-slider"></span>
             </span>
           </label>
