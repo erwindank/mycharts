@@ -61,7 +61,7 @@ const DC_CHANGELOG = [
 
   /* ========== SEPTEMBER 2026 ========== */
 
-  { d: '2026-09-23', t: 'change', a: 'awards', h: '',
+  { d: '2026-09-23', t: 'change', a: 'awards', h: '878c964',
     title: 'Award credit for collaborating artists, now in Settings too',
     detail: 'The switch that lets My Grammys nominations and wins count for everyone on a record is now also in Settings, under Charts → Behavior, as Awards count for featured & collaborating artists. It was only under Configure Year before, which was easy to miss. Both switches stay in step and take effect right away. With it on, collaborations written with &, x, and or vs (such as Lady Gaga & Bruno Mars) now credit each artist too. That only happens when every name in the credit is also an artist in your library on its own, so duos like Simon & Garfunkel still count as one act.' },
 
