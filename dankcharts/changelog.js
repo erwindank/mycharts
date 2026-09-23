@@ -61,7 +61,7 @@ const DC_CHANGELOG = [
 
   /* ========== SEPTEMBER 2026 ========== */
 
-  { d: '2026-09-23', t: 'fix', a: 'records', h: '',
+  { d: '2026-09-23', t: 'fix', a: 'records', h: 'd1cb7e3',
     title: 'Records tab works again for libraries with compilations',
     detail: 'For some libraries the Records tab stayed empty and just said to load your data. It happened when a single you played counts toward a Various Artists compilation: the build tripped over that album and stopped before any record was shown. Compilations are now set up properly either way, so every record section fills in again.' },
 
