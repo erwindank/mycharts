@@ -23623,7 +23623,9 @@ body[class*="-light"] .tm-card-search:hover {
 .aw-sum-rank { display: flex; flex-direction: column; gap: 4px; }
 .aw-sum-rank-row {
   display: grid;
-  grid-template-columns: 26px 36px minmax(0, 1.2fr) minmax(40px, 1fr) auto auto;
+  /* Fixed count columns: sized to content they differed row to row and the bars
+     started at a different x on every line */
+  grid-template-columns: 26px 36px minmax(0, 1.2fr) minmax(40px, 1fr) 68px 42px;
   align-items: center;
   gap: 10px;
   padding: 5px 8px;
@@ -23672,6 +23674,83 @@ body[class*="-light"] .tm-card-search:hover {
   color: var(--gold1);
   white-space: nowrap;
 }
+.aw-sum-rank-noms, .aw-sum-rank-wins { text-align: right; }
+
+/* Roll call: "Most wins" — one block per artist, their awards listed under them */
+.aw-sum-winners { display: flex; flex-direction: column; gap: 10px; }
+.aw-sum-winner {
+  padding: 10px 12px 12px;
+  background: var(--surface3);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md, 12px);
+  animation: awCardIn 380ms var(--ease) both;
+  animation-delay: calc(var(--i, 0) * 45ms);
+}
+.aw-sum-winner.is-top {
+  border-color: color-mix(in srgb, var(--gold1) 50%, var(--border));
+  background:
+    radial-gradient(90% 120% at 0% 0%, color-mix(in srgb, var(--gold1) 12%, transparent) 0%, transparent 60%),
+    var(--surface3);
+}
+.aw-sum-winner-head {
+  display: grid;
+  grid-template-columns: 26px 44px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+}
+.aw-sum-winner.is-top .aw-sum-rank-no { color: var(--gold1); font-weight: 700; }
+.aw-sum-winner-art { width: 44px; border-radius: 50%; }
+.aw-sum-winner-art .thumb-initials { font-size: 0.8rem !important; }
+.aw-sum-winner-name {
+  font-family: var(--font-display);
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text1);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.aw-sum-winner-count { font-size: 0.74rem; color: var(--text2); white-space: nowrap; }
+.aw-sum-winner-count b { font-family: var(--font-display); font-size: 1.1rem; color: var(--gold1); }
+.aw-sum-winner-noms { color: var(--text3); }
+/* The awards line up under the name, past the rank and the photo */
+.aw-sum-win-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 6px;
+  margin: 10px 0 0 36px;
+}
+.aw-sum-win {
+  display: grid;
+  grid-template-columns: 16px 38px minmax(0, 1fr);
+  align-items: center;
+  gap: 8px;
+  padding: 5px 8px 5px 6px;
+  border-radius: var(--r-sm);
+  background: color-mix(in srgb, var(--surface2) 70%, transparent);
+  border: 1px solid color-mix(in srgb, var(--gold1) 16%, transparent);
+}
+.aw-sum-win-trophy { font-size: 0.8rem; text-align: center; }
+.aw-sum-win-art { width: 38px; border-radius: 6px; }
+.aw-sum-win-art.is-round { border-radius: 50%; }
+.aw-sum-win-art .thumb-initials { font-size: 0.7rem !important; }
+.aw-sum-win-text { display: flex; flex-direction: column; min-width: 0; }
+.aw-sum-win-work,
+.aw-sum-win-cat {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.aw-sum-win-work { font-size: 0.8rem; font-weight: 700; color: var(--text1); }
+.aw-sum-win-lead { font-weight: 400; color: var(--text3); }
+.aw-sum-win-cat  {
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--gold1) 75%, var(--text3));
+}
+
 .aw-sum-rank-more { font-size: 0.7rem; color: var(--text3); padding-left: 44px; }
 
 @media (max-width: 760px) {
@@ -23681,12 +23760,16 @@ body[class*="-light"] .tm-card-search:hover {
   .ceremony-slide .aw-sum-rec-art { width: 60px; }
   .aw-sum-rec-art { width: 60px; }
   /* The bar is the first thing to go on a phone; the count says the same */
-  .aw-sum-rank-row { grid-template-columns: 22px 32px minmax(0, 1fr) auto auto; gap: 8px; }
+  .aw-sum-rank-row { grid-template-columns: 22px 32px minmax(0, 1fr) 62px 38px; gap: 8px; }
   .aw-sum-rank-bar { display: none; }
   .aw-sum-rank-art { width: 32px; }
+  .aw-sum-winner-head { grid-template-columns: 22px 38px minmax(0, 1fr) auto; gap: 8px; }
+  .aw-sum-winner-art { width: 38px; }
+  .aw-sum-winner-noms { display: none; }
+  .aw-sum-win-list { margin-left: 0; grid-template-columns: minmax(0, 1fr); }
 }
 @media (prefers-reduced-motion: reduce) {
-  .aw-sum, .aw-sum-rank-row { animation: none; }
+  .aw-sum, .aw-sum-rank-row, .aw-sum-winner { animation: none; }
 }
 
 /* Sound toggle, next to the close button */

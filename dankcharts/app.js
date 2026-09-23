@@ -34341,6 +34341,7 @@ function _awardsSummary(year, opts) {
   // key → { item, noms, wins }; item is the shape _cerArtHtml/_cerImgItem expect
   const all  = { artist: {}, album: {}, song: {} };
   const yr   = {};                    // this year's artists only
+  const yrWins = {};                  // this year's wins per credited artist: key → [win]
   let yearNoms = 0, yearCats = 0;
 
   const bump = (bucket, key, item, field) => {
@@ -34385,7 +34386,20 @@ function _awardsSummary(year, opts) {
         credit(n, cat.type, 'noms', isThisYear);
         if (isThisYear) yearNoms++;
       }
-      if (cd.winner && !(spoilerFree && isThisYear)) credit(cd.winner, cat.type, 'wins', isThisYear);
+      if (cd.winner && !(spoilerFree && isThisYear)) {
+        credit(cd.winner, cat.type, 'wins', isThisYear);
+        // Remember what each artist won tonight, for the roll call's "Most wins" list.
+        // Only fields that exist are written: Firestore refuses undefined.
+        if (isThisYear) {
+          const w = cd.winner;
+          const win = { catId: cat.id, cat: _ceremonyCatName(cat), type: cat.type, artist: w.artist || '' };
+          if (w.title) win.title = w.title;
+          if (w.album) win.album = w.album;
+          for (const a of _awardsCredits(w, withFeatures)) {
+            (yrWins[a.toLowerCase()] = yrWins[a.toLowerCase()] || []).push(win);
+          }
+        }
+      }
     }
   }
 
@@ -34418,7 +34432,22 @@ function _awardsSummary(year, opts) {
     ranking.push(row);
   });
 
-  return { year, spoilerFree, yearNoms, yearCats, artistCount: ranked.length, records, ranking };
+  // Every artist who won this year, most wins first, each with the list of what
+  // they won. Nominations break ties. Ranked the same way as the list above.
+  const winners = [];
+  if (!spoilerFree) {
+    const byWins = Object.values(yr)
+      .filter(e => e.wins > 0)
+      .sort((a, b) => (b.wins - a.wins) || (b.noms - a.noms) || nameOf(a).localeCompare(nameOf(b)));
+    byWins.forEach((e, i) => {
+      const prev = byWins[i - 1];
+      const rank = (prev && prev.wins === e.wins) ? winners[i - 1].rank : i + 1;
+      winners.push({ artist: e.item.artist, wins: e.wins, noms: e.noms, rank,
+        items: yrWins[e.item.artist.toLowerCase()] || [] });
+    });
+  }
+
+  return { year, spoilerFree, yearNoms, yearCats, artistCount: ranked.length, records, ranking, winners };
 }
 
 const AWARDS_SUMMARY_TYPE_LABEL = { artist: 'Artist', album: 'Album', song: 'Song' };
@@ -34491,12 +34520,17 @@ function _awardsSummaryHtml(sum, queue, idp, opts) {
     </div>`;
   };
 
+  // The roll call swaps the nominations list for the wins list. A link shared
+  // before the wins list existed has no winners in it, so it keeps the old list.
+  const winsView = !!opts.winsView && !sum.spoilerFree && Array.isArray(sum.winners);
   const maxNoms = sum.ranking[0]?.noms || 1;
-  const rows = sum.ranking.map((r, i) => {
+  const rows = winsView ? '' : sum.ranking.map((r, i) => {
     const imgId = `${idp}_rank_${i}`;
     queue.push({ imgId, item: r, type: 'artist' });
-    const wins = r.wins
-      ? `<span class="aw-sum-rank-wins" title="${plural(r.wins, 'win', 'wins')}">🏆 ${r.wins}</span>` : '';
+    // Always emitted (empty when none) so every row has the same columns and the bars line up
+    const wins = sum.spoilerFree ? '' : (r.wins
+      ? `<span class="aw-sum-rank-wins" title="${plural(r.wins, 'win', 'wins')}">🏆 ${r.wins}</span>`
+      : `<span class="aw-sum-rank-wins"></span>`);
     return `<div class="aw-sum-rank-row${r.rank === 1 ? ' is-top' : ''}" style="--i:${i}">
       <span class="aw-sum-rank-no">${String(r.rank).padStart(2, '0')}</span>
       ${_cerArtHtml(r, 'artist', imgId, 'aw-sum-rank-art')}
@@ -34509,6 +34543,53 @@ function _awardsSummaryHtml(sum, queue, idp, opts) {
   const more = sum.artistCount > sum.ranking.length
     ? `<div class="aw-sum-rank-more">+ ${plural(sum.artistCount - sum.ranking.length, 'more artist', 'more artists')} nominated</div>` : '';
 
+  /* Roll-call view (opts.winsView): the results are out, so the year's list is
+     who won the most, and each artist carries every award they took home, with
+     the song, album or artist picture beside the award's name. */
+  const winnersHtml = () => {
+    const list = sum.winners;
+    if (!list.length) return `<div class="aw-sum-rec-none">No winners crowned yet.</div>`;
+    return list.map((w, i) => {
+      const imgId = `${idp}_win_${i}`;
+      queue.push({ imgId, item: { artist: w.artist }, type: 'artist' });
+      const items = (Array.isArray(w.items) ? w.items : []).map((it, j) => {
+        const artId = `${idp}_win_${i}_${j}`;
+        queue.push({ imgId: artId, item: it, type: it.type });
+        const work = it.title || it.album || it.artist || '';
+        // A featured credit names who led the record, so it is clear why it is here
+        const leadName = _awardsCredits(it, false)[0] || '';
+        const lead = (it.artist && (it.title || it.album) && leadName.toLowerCase() !== (w.artist || '').toLowerCase()) ? it.artist : '';
+        return `<div class="aw-sum-win">
+          <span class="aw-sum-win-trophy">🏆</span>
+          ${_cerArtHtml(it, it.type, artId, 'aw-sum-win-art' + (it.type === 'artist' ? ' is-round' : ''))}
+          <span class="aw-sum-win-text">
+            <span class="aw-sum-win-work" title="${esc(work)}">${esc(work)}${lead ? ` <span class="aw-sum-win-lead">· ${esc(lead)}</span>` : ''}</span>
+            <span class="aw-sum-win-cat">${esc(it.cat || '')}</span>
+          </span>
+        </div>`;
+      }).join('');
+      return `<div class="aw-sum-winner${w.rank === 1 ? ' is-top' : ''}" style="--i:${i}">
+        <div class="aw-sum-winner-head">
+          <span class="aw-sum-rank-no">${String(w.rank).padStart(2, '0')}</span>
+          ${_cerArtHtml(w, 'artist', imgId, 'aw-sum-winner-art')}
+          <span class="aw-sum-winner-name" title="${esc(w.artist)}">${esc(w.artist)}</span>
+          <span class="aw-sum-winner-count"><b>${w.wins}</b> ${w.wins === 1 ? 'win' : 'wins'}<span class="aw-sum-winner-noms"> · ${plural(w.noms, 'nom', 'noms')}</span></span>
+        </div>
+        <div class="aw-sum-win-list">${items}</div>
+      </div>`;
+    }).join('');
+  };
+  const yearGroup = winsView
+    ? `<div class="aw-sum-group">
+        <div class="aw-sum-group-title">🏆 Most wins in ${sum.year}</div>
+        <div class="aw-sum-winners">${winnersHtml()}</div>
+      </div>`
+    : `<div class="aw-sum-group">
+        <div class="aw-sum-group-title">📊 Most nominations in ${sum.year}</div>
+        <div class="aw-sum-rank">${rows}</div>
+        ${more}
+      </div>`;
+
   const kicker = opts.kicker || (sum.spoilerFree ? `Going into the ${sum.year} ceremony` : `${sum.year} at a glance`);
   const title  = opts.title || 'Stats & records';
   return `<section class="aw-sum">
@@ -34519,11 +34600,7 @@ function _awardsSummaryHtml(sum, queue, idp, opts) {
     </header>
     ${group('noms', 'All-time most nominations')}
     ${hasWins ? group('wins', sum.spoilerFree ? 'All-time most wins, before tonight' : 'All-time most wins') : ''}
-    <div class="aw-sum-group">
-      <div class="aw-sum-group-title">📊 Most nominations in ${sum.year}</div>
-      <div class="aw-sum-rank">${rows}</div>
-      ${more}
-    </div>
+    ${yearGroup}
   </section>`;
 }
 
@@ -35787,6 +35864,7 @@ function _ceremonyFinaleHtml(data, queue) {
         kicker: `After the ${_ceremonyYear} ceremony`,
         title: 'Final stats & records',
         before: _ceremonySummary,
+        winsView: true,
       })}</div>`
     : '';
   if (!rows) return `<div class="ceremony-no-nom">No winners crowned yet.</div>${stats}${cta}`;
@@ -36361,10 +36439,14 @@ async function _cerBuildShare(year, data, onProgress) {
   await _awardsEnsureAllYearsLoaded();
   const summary = _awardsSummary(year, { spoilerFree: true });
   const summaryFinal = _awardsSummary(year);   // the roll call's version, with the results in
-  const jobsFor = sum => sum.yearNoms
-    ? [...sum.records.flatMap(r => r.items.slice(0, 1).map(item => ({ item, type: r.type }))),
-       ...sum.ranking.map(item => ({ item, type: 'artist' }))]
-    : [];
+  // The opening slide shows the nominations ranking; the roll call shows the
+  // wins list instead, with a picture for every award as well as every artist
+  const jobsFor = sum => !sum.yearNoms ? [] : [
+    ...sum.records.flatMap(r => r.items.slice(0, 1).map(item => ({ item, type: r.type }))),
+    ...(sum.spoilerFree
+      ? sum.ranking.map(item => ({ item, type: 'artist' }))
+      : sum.winners.flatMap(w => [{ item: w, type: 'artist' }, ...w.items.map(item => ({ item, type: item.type }))])),
+  ];
   const sumJobs = [...jobsFor(summary), ...jobsFor(summaryFinal)];
   const total = sumJobs.length + cats.reduce((n, c) => {
     const cd = data.categories[c.id];

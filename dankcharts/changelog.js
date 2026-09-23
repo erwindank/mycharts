@@ -61,6 +61,10 @@ const DC_CHANGELOG = [
 
   /* ========== SEPTEMBER 2026 ========== */
 
+  { d: '2026-09-23', t: 'change', a: 'awards', h: '',
+    title: 'The ceremony’s final stats show who won the most',
+    detail: 'The results are out by the end of the ceremony, so the final stats now end with Most wins in the year instead of a nominations ranking. Each artist who won gets their own block with their photo, their win and nomination counts, and every award they took home: a trophy, the song or album cover (or the artist photo for artist awards), the song or album name and the award name. When featured artists are counted, a featured win also names the lead artist. Shared ceremony links show it after Update link. The nominations ranking on the My Grammys page also lines up properly now: the bars started at a different point on rows with and without a trophy count.' },
+
   { d: '2026-09-23', t: 'feature', a: 'awards', h: '558999f',
     title: 'Final stats at the end of the ceremony, and credit for featured artists',
     detail: 'The ceremony’s closing roll call now ends with Final stats & records: the all-time leaders in nominations and wins with this year’s results counted in, and the year’s final nomination ranking with each artist’s wins. Any record whose holder changed during the ceremony is marked New. Shared ceremony links include it too, after you press Update link. A new Count featured artists switch under Configure Year lets a nomination or win count for everyone featured on it, not just the lead artist. It reads features from the artist name (feat., ft., featuring, with, or a comma list) and from the song title, as in (feat. A & B). Duos written with & stay one act. It applies to every year’s stats and records and to the Grammy count on artist pages, and it syncs across your devices. Works the same for Last.fm, Google Sheets and CSV libraries.' },
