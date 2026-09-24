@@ -61,7 +61,7 @@ const DC_CHANGELOG = [
 
   /* ========== SEPTEMBER 2026 ========== */
 
-  { d: '2026-09-23', t: 'design', a: 'awards', h: '',
+  { d: '2026-09-23', t: 'design', a: 'awards', h: '63aad44',
     title: 'Clearer record cards in the awards summary',
     detail: 'The all-time most nominations and most wins cards now read as a race: the record holder up top with a bigger count, then the runners-up on their own numbered rows with a bar showing how close they came, in larger, brighter text. Songs and albums also name the artist next to each runner-up. The little arrow under the year picker now only shows on hover.' },
 
