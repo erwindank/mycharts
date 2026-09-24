@@ -34593,14 +34593,16 @@ function _awardsSummaryHtml(sum, queue, idp, opts) {
     queue.push({ imgId, item: r, type: 'artist' });
     // Always emitted (empty when none) so every row has the same columns and the bars line up
     const wins = sum.spoilerFree ? '' : (r.wins
-      ? `<span class="aw-sum-rank-wins" title="${plural(r.wins, 'win', 'wins')}">🏆 ${r.wins}</span>`
-      : `<span class="aw-sum-rank-wins"></span>`);
+      ? `<span class="aw-sum-rank-wins" title="${plural(r.wins, 'win', 'wins')}"><span class="aw-sum-rank-wins-ico">🏆</span>${r.wins}</span>`
+      : `<span class="aw-sum-rank-wins is-empty"></span>`);
     return `<div class="aw-sum-rank-row${r.rank === 1 ? ' is-top' : ''}" style="--i:${i}">
       <span class="aw-sum-rank-no">${String(r.rank).padStart(2, '0')}</span>
       ${_cerArtHtml(r, 'artist', imgId, 'aw-sum-rank-art')}
-      <span class="aw-sum-rank-name" title="${esc(r.artist)}">${esc(r.artist)}</span>
-      <span class="aw-sum-rank-bar"><span style="width:${Math.max(6, Math.round(r.noms / maxNoms * 100))}%"></span></span>
-      <span class="aw-sum-rank-noms"><b>${r.noms}</b> nom${r.noms === 1 ? '' : 's'}</span>
+      <span class="aw-sum-rank-main">
+        <span class="aw-sum-rank-name" title="${esc(r.artist)}">${esc(r.artist)}</span>
+        <span class="aw-sum-rank-bar"><span style="width:${Math.max(6, Math.round(r.noms / maxNoms * 100))}%"></span></span>
+      </span>
+      <span class="aw-sum-rank-noms"><b>${r.noms}</b><small>nom${r.noms === 1 ? '' : 's'}</small></span>
       ${wins}
     </div>`;
   }).join('');

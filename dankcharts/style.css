@@ -23645,12 +23645,13 @@ body[class*="-light"] .tm-card-search:hover {
 .aw-sum-rank { display: flex; flex-direction: column; gap: 4px; }
 .aw-sum-rank-row {
   display: grid;
-  /* Fixed count columns: sized to content they differed row to row and the bars
-     started at a different x on every line */
-  grid-template-columns: 26px 36px minmax(0, 1.2fr) minmax(40px, 1fr) 68px 42px;
+  /* rank · face · name with its bar underneath · nominations · wins.
+     The bar sits under the name so there's no empty stretch between the
+     artist and their numbers; the count columns are fixed so every row lines up */
+  grid-template-columns: 26px 40px minmax(0, 1fr) 64px 56px;
   align-items: center;
-  gap: 10px;
-  padding: 5px 8px;
+  gap: 12px;
+  padding: 7px 10px;
   border-radius: var(--r-sm);
   animation: awCardIn 360ms var(--ease) both;
   animation-delay: calc(var(--i, 0) * 35ms);
@@ -23663,10 +23664,12 @@ body[class*="-light"] .tm-card-search:hover {
   text-align: right;
 }
 .aw-sum-rank-row.is-top .aw-sum-rank-no { color: var(--gold1); font-weight: 700; }
-.aw-sum-rank-art { width: 36px; border-radius: 50%; }
+.aw-sum-rank-art { width: 40px; border-radius: 50%; }
 .aw-sum-rank-art .thumb-initials { font-size: 0.7rem !important; }
+/* Name on top, the nominations bar right under it */
+.aw-sum-rank-main { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
 .aw-sum-rank-name {
-  font-size: 0.82rem;
+  font-size: 0.9rem;
   font-weight: 600;
   color: var(--text1);
   white-space: nowrap;
@@ -23674,7 +23677,7 @@ body[class*="-light"] .tm-card-search:hover {
   text-overflow: ellipsis;
 }
 .aw-sum-rank-bar {
-  height: 6px;
+  height: 4px;
   border-radius: var(--r-full);
   background: color-mix(in srgb, var(--surface3) 80%, transparent);
   overflow: hidden;
@@ -23688,15 +23691,46 @@ body[class*="-light"] .tm-card-search:hover {
 .aw-sum-rank-row.is-top .aw-sum-rank-bar > span {
   background: linear-gradient(90deg, color-mix(in srgb, var(--gold1) 55%, transparent), var(--gold1));
 }
-.aw-sum-rank-noms { font-size: 0.72rem; color: var(--text3); white-space: nowrap; text-align: right; }
-.aw-sum-rank-noms b { font-size: 0.86rem; color: var(--text1); }
-.aw-sum-rank-wins {
-  font-size: 0.7rem;
-  font-weight: 700;
-  color: var(--gold1);
+/* Nominations: a big number with a small label under it */
+.aw-sum-rank-noms {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  line-height: 1;
   white-space: nowrap;
 }
-.aw-sum-rank-noms, .aw-sum-rank-wins { text-align: right; }
+.aw-sum-rank-noms b {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--text1);
+  font-variant-numeric: tabular-nums;
+}
+.aw-sum-rank-noms small {
+  margin-top: 3px;
+  font-size: 0.6rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text3);
+}
+.aw-sum-rank-row.is-top .aw-sum-rank-noms b { color: var(--gold1); }
+/* Wins: a gold pill, left empty (but still taking its column) when there are none */
+.aw-sum-rank-wins {
+  justify-self: end;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 9px;
+  border-radius: var(--r-full);
+  font-size: 0.82rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--gold1);
+  background: color-mix(in srgb, var(--gold1) 14%, transparent);
+  border: 1px solid color-mix(in srgb, var(--gold1) 30%, transparent);
+  white-space: nowrap;
+}
+.aw-sum-rank-wins.is-empty { visibility: hidden; }
+.aw-sum-rank-wins-ico { font-size: 0.78rem; line-height: 1; }
 
 /* Roll call: "Most wins" — one block per artist, their awards listed under them */
 .aw-sum-winners { display: flex; flex-direction: column; gap: 10px; }
@@ -23773,7 +23807,7 @@ body[class*="-light"] .tm-card-search:hover {
   color: color-mix(in srgb, var(--gold1) 75%, var(--text3));
 }
 
-.aw-sum-rank-more { font-size: 0.7rem; color: var(--text3); padding-left: 44px; }
+.aw-sum-rank-more { font-size: 0.72rem; color: var(--text3); padding-left: 88px; margin-top: 4px; }
 
 @media (max-width: 760px) {
   .aw-sum { padding: 14px; gap: 16px; }
@@ -23782,9 +23816,10 @@ body[class*="-light"] .tm-card-search:hover {
   .ceremony-slide .aw-sum-rec-art { width: 60px; }
   .aw-sum-rec-art { width: 60px; }
   /* The bar is the first thing to go on a phone; the count says the same */
-  .aw-sum-rank-row { grid-template-columns: 22px 32px minmax(0, 1fr) 62px 38px; gap: 8px; }
-  .aw-sum-rank-bar { display: none; }
-  .aw-sum-rank-art { width: 32px; }
+  .aw-sum-rank-row { grid-template-columns: 22px 34px minmax(0, 1fr) 44px 50px; gap: 8px; padding: 6px 8px; }
+  .aw-sum-rank-art { width: 34px; }
+  .aw-sum-rank-name { font-size: 0.84rem; }
+  .aw-sum-rank-wins { padding: 3px 7px; font-size: 0.76rem; }
   .aw-sum-winner-head { grid-template-columns: 22px 38px minmax(0, 1fr) auto; gap: 8px; }
   .aw-sum-winner-art { width: 38px; }
   .aw-sum-winner-noms { display: none; }

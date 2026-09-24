@@ -61,6 +61,10 @@ const DC_CHANGELOG = [
 
   /* ========== SEPTEMBER 2026 ========== */
 
+  { d: '2026-09-23', t: 'design', a: 'awards', h: '',
+    title: 'Easier-to-read nominations list in the awards summary',
+    detail: 'In the "Most nominations" list the bar now sits right under each artist's name, so the numbers are no longer stranded on the far side of an empty gap. The nomination count is bigger and bolder, and wins show as a gold trophy pill.' },
+
   { d: '2026-09-23', t: 'fix', a: 'records', h: 'd1cb7e3',
     title: 'Records tab works again for libraries with compilations',
     detail: 'For some libraries the Records tab stayed empty and just said to load your data. It happened when a single you played counts toward a Various Artists compilation: the build tripped over that album and stopped before any record was shown. Compilations are now set up properly either way, so every record section fills in again.' },
