@@ -63,7 +63,7 @@ const DC_CHANGELOG = [
 
   { d: '2026-09-23', t: 'design', a: 'awards', h: 'a02dc42',
     title: 'Easier-to-read nominations list in the awards summary',
-    detail: 'In the "Most nominations" list the bar now sits right under each artist's name, so the numbers are no longer stranded on the far side of an empty gap. The nomination count is bigger and bolder, and wins show as a gold trophy pill.' },
+    detail: 'In the "Most nominations" list the bar now sits right under each artist’s name, so the numbers are no longer stranded on the far side of an empty gap. The nomination count is bigger and bolder, and wins show as a gold trophy pill.' },
 
   { d: '2026-09-23', t: 'fix', a: 'records', h: 'd1cb7e3',
     title: 'Records tab works again for libraries with compilations',
