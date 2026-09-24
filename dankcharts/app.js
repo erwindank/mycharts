@@ -34679,18 +34679,34 @@ function _awardsSummaryHtml(sum, queue, idp, opts) {
     // A previous holder still level at the top shares the record, so that is not a change.
     const prevStillTop = !!prevLead && items.some(x => x.count === lead.count && _awardsRecKey(x) === _awardsRecKey(prevLead));
     const isNew = !!(prevLead && !prevStillTop) || !!(before && !prevLead && rec.field === 'wins');
-    const rest = items.slice(1).map(x =>
-      `<span class="aw-sum-rec-next"><span class="aw-sum-rec-next-name">${esc(x.title || x.album || x.artist || '')}</span> <b>${x.count}</b></span>`
-    ).join('');
+    /* Runners-up as their own ranked rows: place, name (+ artist for songs and
+       albums), a bar showing how close they came to the leader, and the count.
+       Places are competition ranks, so a runner-up level with the leader is 1. */
+    const rest = items.slice(1).map(x => {
+      const place = 1 + items.filter(y => y.count > x.count).length;
+      const xName = x.title || x.album || x.artist || '';
+      const xBy   = (x.title || x.album) ? (x.artist || '') : '';
+      const pct   = Math.max(4, Math.round(x.count / (lead.count || 1) * 100));
+      return `<li class="aw-sum-rec-next">
+        <span class="aw-sum-rec-next-no">${place}</span>
+        <span class="aw-sum-rec-next-main">
+          <span class="aw-sum-rec-next-name" title="${esc(xBy ? `${xName} · ${xBy}` : xName)}">${esc(xName)}${xBy ? `<span class="aw-sum-rec-next-by"> · ${esc(xBy)}</span>` : ''}</span>
+          <span class="aw-sum-rec-next-bar"><span style="width:${pct}%"></span></span>
+        </span>
+        <b>${x.count}</b>
+      </li>`;
+    }).join('');
     return `<div class="aw-sum-rec${rec.field === 'wins' ? ' is-wins' : ''}" data-awtype="${rec.type}">
-      ${_cerArtHtml(lead, rec.type, imgId, 'aw-sum-rec-art')}
-      <div class="aw-sum-rec-body">
-        <div class="aw-sum-rec-type">${AWARDS_SUMMARY_TYPE_LABEL[rec.type]}${tied ? ' · tied' : ''}${isNew ? ' <span class="aw-sum-new">New</span>' : ''}</div>
-        <div class="aw-sum-rec-name" title="${esc(name)}">${esc(name)}</div>
-        ${sub ? `<div class="aw-sum-rec-sub" title="${esc(sub)}">${esc(sub)}</div>` : ''}
-        <div class="aw-sum-rec-count"><b>${lead.count}</b> ${lead.count === 1 ? kind : kind + 's'}</div>
-        ${rest ? `<div class="aw-sum-rec-rest">${rest}</div>` : ''}
+      <div class="aw-sum-rec-head">
+        ${_cerArtHtml(lead, rec.type, imgId, 'aw-sum-rec-art')}
+        <div class="aw-sum-rec-body">
+          <div class="aw-sum-rec-type">${AWARDS_SUMMARY_TYPE_LABEL[rec.type]}${tied ? ' · tied' : ''}${isNew ? ' <span class="aw-sum-new">New</span>' : ''}</div>
+          <div class="aw-sum-rec-name" title="${esc(name)}">${esc(name)}</div>
+          ${sub ? `<div class="aw-sum-rec-sub" title="${esc(sub)}">${esc(sub)}</div>` : ''}
+          <div class="aw-sum-rec-count"><b>${lead.count}</b> ${lead.count === 1 ? kind : kind + 's'}</div>
+        </div>
       </div>
+      ${rest ? `<ol class="aw-sum-rec-rest">${rest}</ol>` : ''}
     </div>`;
   };
 

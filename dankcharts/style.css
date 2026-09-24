@@ -22068,13 +22068,16 @@ body[class*="-light"] .tm-card-search:hover {
   background: color-mix(in srgb, var(--accent) 16%, transparent);
   color: var(--text1);
 }
-/* The year is a button: click it to open the year picker. A small caret says so. */
+/* The year is a button: click it to open the year picker. The caret only
+   shows on hover / keyboard focus / while open, and is absolutely placed so
+   the year never shifts when it appears. */
 .awards-year-label {
+  position: relative;
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  justify-content: center;
   height: 32px;
-  padding: 0 8px 0 10px;
+  padding: 0 14px;
   background: transparent;
   border: none;
   border-radius: var(--r-full);
@@ -22084,7 +22087,6 @@ body[class*="-light"] .tm-card-search:hover {
   font-weight: 700;
   color: var(--text1);
   min-width: 70px;
-  justify-content: center;
   letter-spacing: -0.035em;
   font-feature-settings: "tnum";
   line-height: 1;
@@ -22092,17 +22094,24 @@ body[class*="-light"] .tm-card-search:hover {
 }
 .awards-year-label::after {
   content: '';
-  width: 6px;
-  height: 6px;
-  margin-top: -3px;
-  border-right: 2px solid var(--text3);
-  border-bottom: 2px solid var(--text3);
+  position: absolute;
+  left: 50%;
+  bottom: 1px;
+  width: 5px;
+  height: 5px;
+  margin-left: -3px;
+  border-right: 1.5px solid var(--text3);
+  border-bottom: 1.5px solid var(--text3);
   transform: rotate(45deg);
-  transition: transform var(--t-fast) var(--ease), margin var(--t-fast) var(--ease);
+  opacity: 0;
+  transition: opacity var(--t-fast) var(--ease), transform var(--t-fast) var(--ease);
 }
+.awards-year-label:hover::after,
+.awards-year-label:focus-visible::after,
+.awards-year-label.is-open::after { opacity: 1; }
+.awards-year-label.is-open::after { transform: rotate(-135deg); bottom: -1px; }
 .awards-year-label:hover,
 .awards-year-label.is-open { background: color-mix(in srgb, var(--accent) 14%, transparent); }
-.awards-year-label.is-open::after { transform: rotate(-135deg); margin-top: 3px; }
 .awards-year-nav-btn:disabled { opacity: 0.3; cursor: default; background: transparent; }
 
 /* Year picker popover: a grid of year chips, newest first, scrolls if long */
@@ -23625,7 +23634,7 @@ body[class*="-light"] .tm-card-search:hover {
 /* The ceremony stage is narrower than the tab, so its record cards (opening
    slide and roll call alike) stand the artwork on top instead of beside the
    text — three across still fits. */
-.ceremony-slide .aw-sum-rec { flex-direction: column; align-items: stretch; }
+.ceremony-slide .aw-sum-rec-head { flex-direction: column; align-items: flex-start; }
 .ceremony-slide .aw-sum-rec-art { width: 96px; }
 /* Roll call: the final records follow the winners grid */
 .cer-finale-stats { width: 100%; margin-top: 26px; }
@@ -23680,13 +23689,15 @@ body[class*="-light"] .tm-card-search:hover {
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 10px;
 }
+/* Record card: the holder up top (art, name, big count), then the runners-up
+   as ranked rows with bars, so it reads at a glance as a three-way race. */
 .aw-sum-rec {
   --cat-hue: var(--accent);
   display: flex;
+  flex-direction: column;
   gap: 12px;
-  align-items: flex-start;
   min-width: 0;
-  padding: 10px;
+  padding: 14px;
   background:
     radial-gradient(120% 90% at 0% 0%, color-mix(in srgb, var(--cat-hue) 10%, transparent) 0%, transparent 60%),
     var(--surface3);
@@ -23697,20 +23708,21 @@ body[class*="-light"] .tm-card-search:hover {
 .aw-sum-rec[data-awtype="album"]  { --cat-hue: var(--accent2); }
 .aw-sum-rec[data-awtype="artist"] { --cat-hue: var(--green); }
 .aw-sum-rec.is-wins               { --cat-hue: var(--gold1); }
-.aw-sum-rec.is-empty { align-items: center; min-height: 64px; }
+.aw-sum-rec.is-empty { justify-content: center; min-height: 64px; gap: 4px; }
+.aw-sum-rec-head { display: flex; gap: 14px; align-items: center; min-width: 0; }
 .aw-sum-rec-art {
   flex: none;
-  width: 72px;
+  width: 76px;
   box-shadow: 0 6px 18px rgba(0, 0, 0, 0.28);
 }
 .aw-sum-rec[data-awtype="artist"] .aw-sum-rec-art { border-radius: 50%; }
 .aw-sum-rec-body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
 .aw-sum-rec-type {
   font-family: var(--font-mono);
-  font-size: 0.56rem;
-  letter-spacing: 0.16em;
+  font-size: 0.6rem;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: color-mix(in srgb, var(--cat-hue) 70%, var(--text3));
+  color: color-mix(in srgb, var(--cat-hue) 75%, var(--text3));
 }
 .aw-sum-rec-name,
 .aw-sum-rec-sub {
@@ -23718,25 +23730,78 @@ body[class*="-light"] .tm-card-search:hover {
   overflow: hidden;
   text-overflow: ellipsis;
 }
-.aw-sum-rec-name { font-size: 0.86rem; font-weight: 700; color: var(--text1); line-height: 1.25; }
-.aw-sum-rec-sub  { font-size: 0.7rem; color: var(--text3); }
-.aw-sum-rec-count { margin-top: 3px; font-size: 0.72rem; color: var(--text2); }
+.aw-sum-rec-name { font-size: 1rem; font-weight: 700; color: var(--text1); line-height: 1.25; }
+.aw-sum-rec-sub  { font-size: 0.78rem; color: var(--text2); }
+.aw-sum-rec-count { margin-top: 4px; font-size: 0.78rem; color: var(--text2); line-height: 1; }
 .aw-sum-rec-count b {
   font-family: var(--font-display);
-  font-size: 1.05rem;
+  font-size: 1.5rem;
+  line-height: 1;
   color: var(--cat-hue);
-  margin-right: 2px;
+  margin-right: 3px;
+  font-variant-numeric: tabular-nums;
 }
-.aw-sum-rec-rest { display: flex; flex-direction: column; gap: 1px; margin-top: 4px; }
-.aw-sum-rec-next {
+/* Runners-up: a hairline divider, then one clear row each */
+.aw-sum-rec-rest {
+  list-style: none;
+  margin: 0;
+  padding: 10px 0 0;
+  border-top: 1px solid color-mix(in srgb, var(--cat-hue) 18%, var(--border));
   display: flex;
-  gap: 6px;
-  font-size: 0.66rem;
-  color: var(--text3);
+  flex-direction: column;
+  gap: 9px;
+}
+.aw-sum-rec-next {
+  display: grid;
+  grid-template-columns: 20px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
   min-width: 0;
 }
-.aw-sum-rec-next-name { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.aw-sum-rec-next b { color: var(--text2); font-weight: 700; }
+.aw-sum-rec-next-no {
+  width: 20px;
+  height: 20px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  font-family: var(--font-mono);
+  font-size: 0.66rem;
+  font-weight: 700;
+  color: var(--text2);
+  background: color-mix(in srgb, var(--text3) 16%, transparent);
+}
+.aw-sum-rec-next-main { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.aw-sum-rec-next-name {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--text1);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.2;
+}
+.aw-sum-rec-next-by { font-weight: 400; color: var(--text3); }
+.aw-sum-rec-next-bar {
+  height: 3px;
+  border-radius: var(--r-full);
+  background: color-mix(in srgb, var(--text3) 14%, transparent);
+  overflow: hidden;
+}
+.aw-sum-rec-next-bar > span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: color-mix(in srgb, var(--cat-hue) 65%, transparent);
+}
+.aw-sum-rec-next > b {
+  font-family: var(--font-display);
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--text1);
+  font-variant-numeric: tabular-nums;
+  min-width: 2ch;
+  text-align: right;
+}
 .aw-sum-rec-none { font-size: 0.74rem; color: var(--text3); font-style: italic; }
 
 /* This year's ranking: rank, face, name, a bar scaled to the leader, the count */
@@ -23910,9 +23975,9 @@ body[class*="-light"] .tm-card-search:hover {
 @media (max-width: 760px) {
   .aw-sum { padding: 14px; gap: 16px; }
   .aw-sum-recs { grid-template-columns: minmax(0, 1fr); }
-  .ceremony-slide .aw-sum-rec { flex-direction: row; align-items: flex-start; }
-  .ceremony-slide .aw-sum-rec-art { width: 60px; }
-  .aw-sum-rec-art { width: 60px; }
+  .ceremony-slide .aw-sum-rec-head { flex-direction: row; align-items: center; }
+  .ceremony-slide .aw-sum-rec-art { width: 64px; }
+  .aw-sum-rec-art { width: 64px; }
   /* The bar is the first thing to go on a phone; the count says the same */
   .aw-sum-rank-row { grid-template-columns: 22px 34px minmax(0, 1fr) 72px 50px; gap: 8px; padding: 6px 8px; }
   .aw-sum-rank-noms small { font-size: 0.54rem; letter-spacing: 0.02em; }
