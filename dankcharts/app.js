@@ -34220,13 +34220,14 @@ async function _awardsGetCandidates(catDef, eligStart, eligEnd, log) {
 // ── UI Rendering ──────────────────────────────────────────────────────────────
 
 async function awardsInit() {
-  document.getElementById('awardsYearLabel').textContent   = _awardsYear;
-  document.getElementById('realLifeYearLabel').textContent = _realLifeYear;
+  _awardsSyncYearUI('mygrammys');
+  _awardsSyncYearUI('reallife');
   awardsSubTab(_awardsSubTab);
 }
 
 function awardsSubTab(tab) {
   _awardsSubTab = tab;
+  _awardsCloseYearPicker();
   document.querySelectorAll('.awards-subnav-btn').forEach(b => b.classList.toggle('active', b.dataset.awardsTab === tab));
   document.getElementById('awardsMyGrammys').style.display = tab === 'mygrammys' ? '' : 'none';
   document.getElementById('awardsRealLife').style.display  = tab === 'reallife'  ? '' : 'none';
@@ -34234,18 +34235,135 @@ function awardsSubTab(tab) {
   if (tab === 'reallife')  loadRealLifeAwards(_realLifeYear);
 }
 
-function awardsChangeYear(delta) {
-  _awardsYear = Math.max(2000, Math.min(tzNow().getFullYear(), _awardsYear + delta));
-  document.getElementById('awardsYearLabel').textContent = _awardsYear;
-  awardsRenderYear(_awardsYear);
+/* Year of the oldest play in the library (any source), cached until the data
+   changes. allPlays isn't guaranteed to be sorted, so scan instead of peeking. */
+let _awardsFirstYearCache = null;
+function _awardsFirstPlayYear() {
+  if (!allPlays.length) return null;
+  const c = _awardsFirstYearCache;
+  if (c && c.n === allPlays.length && c.head === allPlays[0]) return c.year;
+  let min = allPlays[0].date;
+  for (const p of allPlays) if (p.date < min) min = p.date;
+  const year = tzDate(min).getFullYear();
+  _awardsFirstYearCache = { n: allPlays.length, head: allPlays[0], year };
+  return year;
 }
 
-function realLifeAwardsChangeYear(delta) {
-  // 1959 is the first ceremony; the current year is the most recent one that has
-  // actually happened, so we never land on an empty future page.
-  _realLifeYear = Math.max(1959, Math.min(tzNow().getFullYear(), _realLifeYear + delta));
-  document.getElementById('realLifeYearLabel').textContent = _realLifeYear;
-  loadRealLifeAwards(_realLifeYear);
+/* The years each tab can show.
+   My Grammys: from the year of your first play to this year.
+   Real-Life: 1959 (the first ceremony) to this year — the most recent one that
+   has actually happened, so we never land on an empty future page. */
+function _awardsYearBounds(kind) {
+  const max = tzNow().getFullYear();
+  if (kind === 'reallife') return { min: 1959, max };
+  const first = _awardsFirstPlayYear();
+  return { min: first == null ? max - 1 : Math.min(first, max), max };
+}
+
+// Label text, plus the arrows greyed out at either end of the range
+function _awardsSyncYearUI(kind) {
+  const year  = kind === 'reallife' ? _realLifeYear : _awardsYear;
+  const label = document.getElementById(kind === 'reallife' ? 'realLifeYearLabel' : 'awardsYearLabel');
+  if (!label) return;
+  label.textContent = year;
+  const { min, max } = _awardsYearBounds(kind);
+  const [prev, next] = label.parentElement.querySelectorAll('.awards-year-nav-btn');
+  if (prev) prev.disabled = year <= min;
+  if (next) next.disabled = year >= max;
+}
+
+// Single entry point for both the arrows and the picker
+function _awardsSetYear(kind, year) {
+  const { min, max } = _awardsYearBounds(kind);
+  year = Math.max(min, Math.min(max, year));
+  if (kind === 'reallife') {
+    _realLifeYear = year;
+    _awardsSyncYearUI(kind);
+    loadRealLifeAwards(year);
+  } else {
+    _awardsYear = year;
+    _awardsSyncYearUI(kind);
+    awardsRenderYear(year);
+  }
+}
+
+function awardsChangeYear(delta)         { _awardsSetYear('mygrammys', _awardsYear + delta); }
+function realLifeAwardsChangeYear(delta) { _awardsSetYear('reallife', _realLifeYear + delta); }
+
+/* Year picker: clicking the year opens a grid of every year in range, newest
+   first, so you can jump straight to one instead of stepping through them all.
+   Lives on <body> with fixed positioning so no parent's overflow can clip it. */
+function awardsOpenYearPicker(kind) {
+  const label = document.getElementById(kind === 'reallife' ? 'realLifeYearLabel' : 'awardsYearLabel');
+  const existing = document.getElementById('awardsYearPicker');
+  if (existing) {
+    const wasSame = existing.dataset.kind === kind;
+    _awardsCloseYearPicker();
+    if (wasSame) return;   // a second click on the year closes it
+  }
+  const { min, max } = _awardsYearBounds(kind);
+  const current = kind === 'reallife' ? _realLifeYear : _awardsYear;
+  let chips = '';
+  for (let y = max; y >= min; y--) {
+    chips += `<button type="button" class="awards-year-chip${y === current ? ' is-current' : ''}" data-year="${y}">${y}</button>`;
+  }
+  const pop = document.createElement('div');
+  pop.id = 'awardsYearPicker';
+  pop.className = 'awards-year-picker';
+  pop.dataset.kind = kind;
+  pop.setAttribute('role', 'dialog');
+  pop.setAttribute('aria-label', 'Pick a year');
+  pop.innerHTML = `<div class="awards-year-picker-grid">${chips}</div>`;
+  document.body.appendChild(pop);
+
+  // Under the stepper pill, left edges aligned, kept inside the viewport
+  const r = label.parentElement.getBoundingClientRect();
+  pop.style.top  = `${r.bottom + 8}px`;
+  pop.style.left = `${Math.max(8, Math.min(r.left, window.innerWidth - pop.offsetWidth - 8))}px`;
+  label.classList.add('is-open');
+  label.setAttribute('aria-expanded', 'true');
+
+  pop.addEventListener('click', e => {
+    const chip = e.target.closest('.awards-year-chip');
+    if (!chip) return;
+    _awardsCloseYearPicker();
+    _awardsSetYear(kind, +chip.dataset.year);
+    label.focus();
+  });
+  const cur = pop.querySelector('.is-current');
+  if (cur) { cur.scrollIntoView({ block: 'nearest' }); cur.focus({ preventScroll: true }); }
+
+  // Outside click / Escape / page scroll / resize close it (deferred so the
+  // click that opened it doesn't immediately close it)
+  setTimeout(() => {
+    document.addEventListener('pointerdown', _awardsYearPickerOutside, true);
+    document.addEventListener('keydown', _awardsYearPickerKey, true);
+    window.addEventListener('scroll', _awardsCloseYearPicker, { passive: true });
+    window.addEventListener('resize', _awardsCloseYearPicker);
+  }, 0);
+}
+
+function _awardsYearPickerOutside(e) {
+  const pop = document.getElementById('awardsYearPicker');
+  if (!pop || pop.contains(e.target) || e.target.closest('.awards-year-label')) return;
+  _awardsCloseYearPicker();
+}
+function _awardsYearPickerKey(e) {
+  if (e.key !== 'Escape') return;
+  const kind = document.getElementById('awardsYearPicker')?.dataset.kind;
+  _awardsCloseYearPicker();
+  document.getElementById(kind === 'reallife' ? 'realLifeYearLabel' : 'awardsYearLabel')?.focus();
+}
+function _awardsCloseYearPicker() {
+  document.getElementById('awardsYearPicker')?.remove();
+  document.querySelectorAll('.awards-year-label.is-open').forEach(l => {
+    l.classList.remove('is-open');
+    l.setAttribute('aria-expanded', 'false');
+  });
+  document.removeEventListener('pointerdown', _awardsYearPickerOutside, true);
+  document.removeEventListener('keydown', _awardsYearPickerKey, true);
+  window.removeEventListener('scroll', _awardsCloseYearPicker);
+  window.removeEventListener('resize', _awardsCloseYearPicker);
 }
 
 async function awardsRenderYear(year) {
@@ -34602,7 +34720,7 @@ function _awardsSummaryHtml(sum, queue, idp, opts) {
         <span class="aw-sum-rank-name" title="${esc(r.artist)}">${esc(r.artist)}</span>
         <span class="aw-sum-rank-bar"><span style="width:${Math.max(6, Math.round(r.noms / maxNoms * 100))}%"></span></span>
       </span>
-      <span class="aw-sum-rank-noms"><b>${r.noms}</b><small>nom${r.noms === 1 ? '' : 's'}</small></span>
+      <span class="aw-sum-rank-noms"><b>${r.noms}</b><small>${r.noms === 1 ? 'nomination' : 'nominations'}</small></span>
       ${wins}
     </div>`;
   }).join('');
@@ -34639,7 +34757,7 @@ function _awardsSummaryHtml(sum, queue, idp, opts) {
           <span class="aw-sum-rank-no">${String(w.rank).padStart(2, '0')}</span>
           ${_cerArtHtml(w, 'artist', imgId, 'aw-sum-winner-art')}
           <span class="aw-sum-winner-name" title="${esc(w.artist)}">${esc(w.artist)}</span>
-          <span class="aw-sum-winner-count"><b>${w.wins}</b> ${w.wins === 1 ? 'win' : 'wins'}<span class="aw-sum-winner-noms"> · ${plural(w.noms, 'nom', 'noms')}</span></span>
+          <span class="aw-sum-winner-count"><b>${w.wins}</b> ${w.wins === 1 ? 'win' : 'wins'}<span class="aw-sum-winner-noms"> · ${plural(w.noms, 'nomination', 'nominations')}</span></span>
         </div>
         <div class="aw-sum-win-list">${items}</div>
       </div>`;

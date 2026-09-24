@@ -61,6 +61,10 @@ const DC_CHANGELOG = [
 
   /* ========== SEPTEMBER 2026 ========== */
 
+  { d: '2026-09-23', t: 'feature', a: 'awards', h: '',
+    title: 'Jump straight to any year on the awards page',
+    detail: 'Click the year to open a grid of years and pick one, instead of stepping through them with the arrows. My Grammys goes back as far as the year of your first play, and the arrows grey out at either end. Real-Life Awards gets the same picker, back to the first ceremony in 1959. The nominations list in the awards summary also spells out “nominations” instead of “noms”.' },
+
   { d: '2026-09-23', t: 'design', a: 'awards', h: '749c533',
     title: 'Fresher year picker and buttons on the awards page',
     detail: 'The year and its arrows now sit together in one rounded control with clean chevrons, on both My Grammys and Real-Life Awards. Configure Year is a light outlined button with a settings icon, and Generate Nominees is a solid button in your theme’s color with a sparkle icon and a soft glow.' },

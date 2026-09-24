@@ -22068,17 +22068,78 @@ body[class*="-light"] .tm-card-search:hover {
   background: color-mix(in srgb, var(--accent) 16%, transparent);
   color: var(--text1);
 }
+/* The year is a button: click it to open the year picker. A small caret says so. */
 .awards-year-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 32px;
+  padding: 0 8px 0 10px;
+  background: transparent;
+  border: none;
+  border-radius: var(--r-full);
+  cursor: pointer;
   font-family: var(--font-display);
   font-size: 1.5rem;
   font-weight: 700;
   color: var(--text1);
   min-width: 70px;
-  text-align: center;
+  justify-content: center;
   letter-spacing: -0.035em;
   font-feature-settings: "tnum";
   line-height: 1;
+  transition: background var(--t-fast) var(--ease);
 }
+.awards-year-label::after {
+  content: '';
+  width: 6px;
+  height: 6px;
+  margin-top: -3px;
+  border-right: 2px solid var(--text3);
+  border-bottom: 2px solid var(--text3);
+  transform: rotate(45deg);
+  transition: transform var(--t-fast) var(--ease), margin var(--t-fast) var(--ease);
+}
+.awards-year-label:hover,
+.awards-year-label.is-open { background: color-mix(in srgb, var(--accent) 14%, transparent); }
+.awards-year-label.is-open::after { transform: rotate(-135deg); margin-top: 3px; }
+.awards-year-nav-btn:disabled { opacity: 0.3; cursor: default; background: transparent; }
+
+/* Year picker popover: a grid of year chips, newest first, scrolls if long */
+.awards-year-picker {
+  position: fixed;
+  z-index: 1200;
+  width: 272px;
+  max-height: min(320px, 60vh);
+  overflow-y: auto;
+  padding: 8px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md, 12px);
+  box-shadow: 0 16px 40px -12px rgba(0, 0, 0, 0.55);
+  animation: awYearPickIn 140ms var(--ease) both;
+}
+@keyframes awYearPickIn {
+  from { opacity: 0; transform: translateY(-4px); }
+  to   { opacity: 1; transform: none; }
+}
+.awards-year-picker-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; }
+.awards-year-chip {
+  height: 36px;
+  border: none;
+  border-radius: var(--r-sm);
+  background: transparent;
+  color: var(--text2);
+  font-size: 0.86rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+  transition: background var(--t-fast) var(--ease), color var(--t-fast) var(--ease);
+}
+.awards-year-chip:hover,
+.awards-year-chip:focus-visible { background: color-mix(in srgb, var(--accent) 16%, transparent); color: var(--text1); outline: none; }
+.awards-year-chip.is-current { background: var(--accent); color: var(--on-accent); }
+@media (prefers-reduced-motion: reduce) { .awards-year-picker { animation: none; } }
 /* Action buttons: 40px pills with a line icon, matching the stepper's height */
 .awards-config-btn,
 .awards-generate-btn {
@@ -23685,7 +23746,7 @@ body[class*="-light"] .tm-card-search:hover {
   /* rank · face · name with its bar underneath · nominations · wins.
      The bar sits under the name so there's no empty stretch between the
      artist and their numbers; the count columns are fixed so every row lines up */
-  grid-template-columns: 26px 40px minmax(0, 1fr) 64px 56px;
+  grid-template-columns: 26px 40px minmax(0, 1fr) 96px 60px;
   align-items: center;
   gap: 12px;
   padding: 7px 10px;
@@ -23745,7 +23806,7 @@ body[class*="-light"] .tm-card-search:hover {
 .aw-sum-rank-noms small {
   margin-top: 3px;
   font-size: 0.6rem;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.05em;
   text-transform: uppercase;
   color: var(--text3);
 }
@@ -23853,7 +23914,8 @@ body[class*="-light"] .tm-card-search:hover {
   .ceremony-slide .aw-sum-rec-art { width: 60px; }
   .aw-sum-rec-art { width: 60px; }
   /* The bar is the first thing to go on a phone; the count says the same */
-  .aw-sum-rank-row { grid-template-columns: 22px 34px minmax(0, 1fr) 44px 50px; gap: 8px; padding: 6px 8px; }
+  .aw-sum-rank-row { grid-template-columns: 22px 34px minmax(0, 1fr) 72px 50px; gap: 8px; padding: 6px 8px; }
+  .aw-sum-rank-noms small { font-size: 0.54rem; letter-spacing: 0.02em; }
   .aw-sum-rank-art { width: 34px; }
   .aw-sum-rank-name { font-size: 0.84rem; }
   .aw-sum-rank-wins { padding: 3px 7px; font-size: 0.76rem; }

@@ -27,7 +27,7 @@
   <!-- html2canvas, SheetJS (xlsx) and JSZip are intentionally NOT loaded here — they
        total ~1.2 MB and are only needed for image exports and Excel/ZIP imports.
        app.js pulls them from the CDN on first use (see ensureLazyLib). -->
-  <link rel="stylesheet" href="style.css?v=265">
+  <link rel="stylesheet" href="style.css?v=267">
   <!-- All scripts are deferred so the page paints without waiting on them.
        defer preserves execution order, which matters: translations → Chart.js →
        hammer → zoom plugin → firebase SDKs → firebase.js → app.js (in body). -->
@@ -2068,7 +2068,7 @@
           <!-- Year stepper: arrows and year share one pill -->
           <div class="awards-year-stepper">
             <button class="awards-year-nav-btn" onclick="awardsChangeYear(-1)" aria-label="Previous year"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg></button>
-            <span class="awards-year-label" id="awardsYearLabel">2024</span>
+            <button class="awards-year-label" id="awardsYearLabel" onclick="awardsOpenYearPicker('mygrammys')" aria-haspopup="true" aria-expanded="false" title="Pick a year">2024</button>
             <button class="awards-year-nav-btn" onclick="awardsChangeYear(1)" aria-label="Next year"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18l6-6-6-6"/></svg></button>
           </div>
           <!-- Icons are inline SVG; the labels alone are translated -->
@@ -2132,7 +2132,7 @@
         <div class="awards-year-bar">
           <div class="awards-year-stepper">
             <button class="awards-year-nav-btn" onclick="realLifeAwardsChangeYear(-1)" aria-label="Previous year"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg></button>
-            <span class="awards-year-label" id="realLifeYearLabel">2024</span>
+            <button class="awards-year-label" id="realLifeYearLabel" onclick="awardsOpenYearPicker('reallife')" aria-haspopup="true" aria-expanded="false" title="Pick a year">2024</button>
             <button class="awards-year-nav-btn" onclick="realLifeAwardsChangeYear(1)" aria-label="Next year"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18l6-6-6-6"/></svg></button>
           </div>
         </div>
@@ -3205,8 +3205,8 @@
 
   <!-- defer keeps app.js last in the script execution order (after translations,
        Chart.js and firebase.js) while letting the whole page parse and paint first -->
-  <script defer src="changelog.js?v=45"></script>
-  <script defer src="app.js?v=230"></script>
+  <script defer src="changelog.js?v=46"></script>
+  <script defer src="app.js?v=231"></script>
 
   <!-- ── Settings Modal ──
        Split into three tabs so the whole form is never dumped on screen at
