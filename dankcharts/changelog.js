@@ -61,7 +61,7 @@ const DC_CHANGELOG = [
 
   /* ========== SEPTEMBER 2026 ========== */
 
-  { d: '2026-09-23', t: 'design', a: 'awards', h: '',
+  { d: '2026-09-23', t: 'design', a: 'awards', h: 'a02dc42',
     title: 'Easier-to-read nominations list in the awards summary',
     detail: 'In the "Most nominations" list the bar now sits right under each artist's name, so the numbers are no longer stranded on the far side of an empty gap. The nomination count is bigger and bolder, and wins show as a gold trophy pill.' },
 
