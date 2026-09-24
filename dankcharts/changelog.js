@@ -61,7 +61,7 @@ const DC_CHANGELOG = [
 
   /* ========== SEPTEMBER 2026 ========== */
 
-  { d: '2026-09-23', t: 'feature', a: 'awards', h: '',
+  { d: '2026-09-23', t: 'feature', a: 'awards', h: '5109aa4',
     title: 'Jump straight to any year on the awards page',
     detail: 'Click the year to open a grid of years and pick one, instead of stepping through them with the arrows. My Grammys goes back as far as the year of your first play, and the arrows grey out at either end. Real-Life Awards gets the same picker, back to the first ceremony in 1959. The nominations list in the awards summary also spells out “nominations” instead of “noms”.' },
 
