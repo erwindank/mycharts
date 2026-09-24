@@ -61,7 +61,7 @@ const DC_CHANGELOG = [
 
   /* ========== SEPTEMBER 2026 ========== */
 
-  { d: '2026-09-23', t: 'design', a: 'awards', h: '',
+  { d: '2026-09-23', t: 'design', a: 'awards', h: '749c533',
     title: 'Fresher year picker and buttons on the awards page',
     detail: 'The year and its arrows now sit together in one rounded control with clean chevrons, on both My Grammys and Real-Life Awards. Configure Year is a light outlined button with a settings icon, and Generate Nominees is a solid button in your theme’s color with a sparkle icon and a soft glow.' },
 
