@@ -61,6 +61,10 @@ const DC_CHANGELOG = [
 
   /* ========== SEPTEMBER 2026 ========== */
 
+  { d: '2026-09-23', t: 'design', a: 'awards', h: '',
+    title: 'Fresher year picker and buttons on the awards page',
+    detail: 'The year and its arrows now sit together in one rounded control with clean chevrons, on both My Grammys and Real-Life Awards. Configure Year is a light outlined button with a settings icon, and Generate Nominees is a solid button in your theme’s color with a sparkle icon and a soft glow.' },
+
   { d: '2026-09-23', t: 'design', a: 'awards', h: 'a02dc42',
     title: 'Easier-to-read nominations list in the awards summary',
     detail: 'In the "Most nominations" list the bar now sits right under each artist’s name, so the numbers are no longer stranded on the far side of an empty gap. The nomination count is bigger and bolder, and wins show as a gold trophy pill.' },

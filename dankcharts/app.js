@@ -34851,8 +34851,8 @@ async function awardsGenerateCandidates() {
   const statusEl = document.getElementById('awardsStatus');
   const log = msg => { if (statusEl) statusEl.textContent = msg; };
 
-  // The button label is HTML (it carries the ✨ icon span), so stash/restore innerHTML —
-  // writing t('awards_generate') into textContent would print the raw markup.
+  // The button holds an SVG icon plus a label span, so stash/restore innerHTML —
+  // writing t('awards_generate') into textContent would drop the icon.
   const btnLabel = btn ? btn.innerHTML : '';
   if (btn) { btn.disabled = true; btn.textContent = t('awards_generating'); }
 

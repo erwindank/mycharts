@@ -22027,71 +22027,108 @@ body[class*="-light"] .tm-card-search:hover {
   margin-bottom: 16px;
   flex-wrap: wrap;
 }
-/* Round steppers flanking an oversized display-font year — the year is the
-   headline of the page, not another button in the row. */
+/* Year stepper: one soft pill holding ‹ year › — the year stays the headline,
+   the arrows are quiet chevrons inside the same shape. */
+.awards-year-stepper {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 4px;
+  border-radius: var(--r-full);
+  background: color-mix(in srgb, var(--surface2) 70%, transparent);
+  border: 1px solid var(--border);
+  margin-right: 6px;
+}
 .awards-year-nav-btn {
   flex: none;
-  width: 28px;
-  height: 28px;
+  width: 32px;
+  height: 32px;
   display: grid;
   place-items: center;
   background: transparent;
-  border: 1px solid var(--border);
+  border: none;
   color: var(--text3);
   border-radius: var(--r-full);
   cursor: pointer;
-  font-size: 0.6rem;
-  line-height: 1;
-  transition: background var(--t-fast) var(--ease), color var(--t-fast) var(--ease), border-color var(--t-fast) var(--ease);
+  transition: background var(--t-fast) var(--ease), color var(--t-fast) var(--ease);
+}
+.awards-year-nav-btn svg,
+.awards-config-btn svg,
+.awards-generate-btn svg {
+  width: 16px;
+  height: 16px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  flex: none;
 }
 .awards-year-nav-btn:hover {
-  background: color-mix(in srgb, var(--accent) 14%, transparent);
-  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 16%, transparent);
   color: var(--text1);
 }
 .awards-year-label {
   font-family: var(--font-display);
-  font-size: 1.8rem;
+  font-size: 1.5rem;
   font-weight: 700;
   color: var(--text1);
-  min-width: 78px;
+  min-width: 70px;
   text-align: center;
   letter-spacing: -0.035em;
   font-feature-settings: "tnum";
   line-height: 1;
 }
-.awards-config-btn { margin-left: 8px; }
-/* Pills, to sit with the round steppers and the segmented sub-nav — the old
-   8px chips were the one square thing left in the header row. */
+/* Action buttons: 40px pills with a line icon, matching the stepper's height */
 .awards-config-btn,
 .awards-generate-btn {
-  padding: 7px 15px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 42px;
+  padding: 0 18px 0 15px;
   border-radius: var(--r-full);
   border: 1px solid var(--border);
-  background: var(--surface2);
-  color: var(--text2);
-  font-size: 0.76rem;
+  font-size: 0.82rem;
+  font-weight: 600;
+  letter-spacing: 0.005em;
   cursor: pointer;
-  transition: background var(--t-fast) var(--ease), color var(--t-fast) var(--ease), border-color var(--t-fast) var(--ease);
+  transition: background var(--t-fast) var(--ease), color var(--t-fast) var(--ease),
+              border-color var(--t-fast) var(--ease), box-shadow var(--t-fast) var(--ease), transform var(--t-fast) var(--ease);
 }
-.awards-config-btn:hover { background: var(--accent); color: var(--on-accent); border-color: var(--accent); }
-.awards-config-btn.active  { background: var(--accent); color: var(--on-accent); border-color: var(--accent); }
-/* Tinted with the theme's own accent (color-mix) rather than a fixed gold/gradient — a fixed
-   hue looked calm only in the yellow theme and clashed as a foreign orange sticker against
-   blue/purple/pink/red themes. Mixing the active --accent into --surface2 always harmonizes
-   with whatever palette is active, while the solid --accent border still marks it as the CTA. */
-.awards-generate-btn {
-  background: color-mix(in srgb, var(--accent) 16%, var(--surface2) 84%);
+.awards-config-btn:active,
+.awards-generate-btn:active:not(:disabled) { transform: translateY(1px); }
+/* Secondary: a quiet ghost button that tints toward the accent on hover/open */
+.awards-config-btn {
+  background: transparent;
+  color: var(--text2);
+}
+.awards-config-btn:hover {
+  background: color-mix(in srgb, var(--accent) 10%, transparent);
+  border-color: color-mix(in srgb, var(--accent) 45%, var(--border));
   color: var(--text1);
-  border-color: var(--accent);
-  font-weight: 700;
 }
-.awards-generate-btn:hover { background: color-mix(in srgb, var(--accent) 30%, var(--surface2) 70%); }
-.awards-generate-btn:disabled { opacity: 0.6; cursor: wait; }
-/* Emoji glyph is bright/light on its own colors, which washes out against a light-tinted
-   button — drop-shadow (not text-shadow, which color emoji glyphs mostly ignore) gives it
-   an edge to read against. */
-.awards-generate-icon { filter: drop-shadow(0 1px 1.5px rgba(0, 0, 0, 0.45)); }
+.awards-config-btn.active {
+  background: color-mix(in srgb, var(--accent) 16%, transparent);
+  border-color: var(--accent);
+  color: var(--text1);
+}
+/* Primary: the theme's own accent as a solid fill (so it fits every theme),
+   text in --on-accent, a soft accent glow underneath. */
+.awards-generate-btn {
+  background: var(--accent);
+  border-color: transparent;
+  color: var(--on-accent);
+  font-weight: 700;
+  box-shadow: 0 4px 16px -6px color-mix(in srgb, var(--accent) 70%, transparent),
+              inset 0 1px 0 rgba(255, 255, 255, 0.18);
+}
+.awards-generate-btn:hover {
+  background: color-mix(in srgb, var(--accent) 88%, #fff 12%);
+  box-shadow: 0 6px 22px -6px color-mix(in srgb, var(--accent) 85%, transparent),
+              inset 0 1px 0 rgba(255, 255, 255, 0.22);
+}
+.awards-generate-btn:disabled { opacity: 0.6; cursor: wait; box-shadow: none; }
 
 /* Config panel */
 .awards-config-panel {
