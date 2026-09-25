@@ -61,11 +61,11 @@ const DC_CHANGELOG = [
 
   /* ========== SEPTEMBER 2026 ========== */
 
-  { d: '2026-09-24', t: 'fix', a: 'awards', h: '',
+  { d: '2026-09-24', t: 'fix', a: 'awards', h: 'a7cf9a2',
     title: 'Switching phones no longer wipes your nominations',
     detail: 'A phone left open on an older copy of your awards used to save that old copy over nominees you had picked since on another phone. Now each save checks for newer changes first, keeps them, and adds yours on top. The awards page also catches up with your other devices when you come back to the app.' },
 
-  { d: '2026-09-24', t: 'feature', a: 'data', h: '',
+  { d: '2026-09-24', t: 'feature', a: 'data', h: 'a7cf9a2',
     title: 'Backups you can restore from Settings',
     detail: 'Your settings, awards and ratings are backed up to your account once a day, and awards are also backed up whenever another device changes them. Settings → Profile lists the last 30 backups, and any of them can be restored on every device in one click. You can also back up by hand, or download a backup file to keep yourself, for example on Google Drive.' },
 
