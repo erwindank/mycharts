@@ -5171,6 +5171,8 @@ function switchSettingsTab(name) {
     }
     if (pane) pane.hidden = idx !== i;
   });
+  // The backup list lives in the cloud, so it's fetched when its tab opens
+  if (name === 'profile' && typeof renderBackupsPanel === 'function') renderBackupsPanel();
   // Scroll back to the top of the box — panels differ wildly in height and
   // landing mid-form after a tab switch is disorienting.
   document.querySelector('#sourceModal .set-box')?.scrollIntoView({ block: 'start' });
@@ -33710,9 +33712,456 @@ async function _awardsLoad(year) {
     rescued = !!local && !remote;
   }
 
+  // A device copy holding nominees the cloud no longer has is the one thing
+  // that can still bring back a ballot another device wiped — keep it as a
+  // backup before mirroring the cloud copy over it below.
+  if (local && remote && !rescued && _awardsHasMissingNoms(local, remote)) {
+    _backupAwardsSnapshot(year, local, 'device-copy');
+  }
+
   _awardsYearData[year] = chosen ? _awardsFillCats(chosen) : _awardsDefaultData(year);
+  // The base is the version the cloud is known to hold. A rescued local copy
+  // was never uploaded, so its base is the remote copy it is about to replace.
+  // With no remote at all (signed out, or sign-in not finished yet) the device
+  // copy is the base: if the cloud turns out newer, only what this session
+  // changes on top of it will win the merge; if the device copy is newer, its
+  // savedAt passes the check and it goes up whole.
+  _awardsSetBase(year, (rescued && remote) ? remote : chosen);
   if (rescued) _awardsSave(year);
+  else if (remote && chosen === remote) _awardsWriteLocal(year, remote);   // keep the device copy a true mirror
   return _awardsYearData[year];
+}
+
+/* ─── Awards: merging instead of overwriting ─────────────────────────────────
+   Each device holds a year in memory for the whole session and writes the
+   whole year back on every click. A phone left open on an older ballot used to
+   push it straight over nominees picked since on another phone. Now each save
+   is checked against the version this device started from (the "base"): if
+   the cloud has moved on, the two are merged category by category — the
+   categories this device changed win, every other category keeps the cloud's
+   newer picks — and the result is saved instead.                             */
+const _awardsBase      = {};   // year → stable JSON of the version the cloud is known to hold
+const _awardsPushChain = {};   // year → promise, so one year's saves go up strictly in order
+
+// JSON with sorted keys, so two copies of the same ballot compare equal even
+// when Firestore hands the fields back in a different order.
+function _stableJson(v) {
+  if (Array.isArray(v)) return '[' + v.map(_stableJson).join(',') + ']';
+  if (v && typeof v === 'object') {
+    return '{' + Object.keys(v).sort().map(k => JSON.stringify(k) + ':' + _stableJson(v[k])).join(',') + '}';
+  }
+  return JSON.stringify(v === undefined ? null : v);
+}
+
+function _awardsSetBase(year, data) { _awardsBase[year] = data ? _stableJson(data) : null; }
+function _awardsGetBase(year) {
+  try { return _awardsBase[year] ? JSON.parse(_awardsBase[year]) : null; } catch (e) { return null; }
+}
+
+// Fields that describe a save rather than the ballot itself.
+const _AWARDS_META_KEYS = new Set(['savedAt', 'device']);
+
+// Three-way merge. `theirs` is the newer cloud copy; anything in `mine` that
+// differs from `base` is a change this device made, and wins.
+function _awardsMerge(base, mine, theirs) {
+  const out = JSON.parse(JSON.stringify(theirs));
+  out.categories = out.categories || {};
+  const b = base || { categories: {} };
+  const bc = b.categories || {};
+  for (const k of new Set([...Object.keys(mine), ...Object.keys(b)])) {
+    if (k === 'categories' || _AWARDS_META_KEYS.has(k)) continue;
+    if (_stableJson(mine[k]) === _stableJson(b[k])) continue;
+    if (k in mine) out[k] = mine[k]; else delete out[k];
+  }
+  for (const [id, cat] of Object.entries(mine.categories || {})) {
+    if (_stableJson(cat) !== _stableJson(bc[id])) out.categories[id] = JSON.parse(JSON.stringify(cat));
+  }
+  return _awardsFillCats(out);
+}
+
+// Same ballot, ignoring when and where it was saved?
+function _awardsSameBallot(a, b) {
+  const strip = d => { const c = Object.assign({}, d); _AWARDS_META_KEYS.forEach(k => delete c[k]); return _stableJson(c); };
+  return strip(a) === strip(b);
+}
+
+// Does `a` have a nominee or winner that `b` doesn't?
+function _awardsHasMissingNoms(a, b) {
+  const keys = d => {
+    const s = new Set();
+    for (const [id, c] of Object.entries(d?.categories || {})) {
+      for (const n of (c.nominees || [])) s.add(id + '|' + _awardItemKey(n));
+      if (c.winner) s.add(id + '|win|' + _awardItemKey(c.winner));
+    }
+    return s;
+  };
+  const kb = keys(b);
+  for (const k of keys(a)) if (!kb.has(k)) return true;
+  return false;
+}
+
+// Callers keep a reference to the year object and re-render from it after a
+// save, so a merge result is copied into that same object, never swapped in.
+function _awardsReplaceInPlace(year, next) {
+  const data = _awardsYearData[year];
+  if (!data) { _awardsYearData[year] = next; return; }
+  for (const k of Object.keys(data)) delete data[k];
+  Object.assign(data, next);
+}
+
+function _awardsRerenderIfShown(year) {
+  if (+year !== +_awardsYear) return;
+  if (!document.getElementById('awardsCatList')?.offsetParent) return;
+  awardsRenderYear(+year);
+}
+
+function _awardsQueuePush(year) {
+  _awardsPushChain[year] = (_awardsPushChain[year] || Promise.resolve())
+    .then(() => _awardsPush(year))
+    .catch(e => console.warn('[dankcharts] awards push:', e));
+  return _awardsPushChain[year];
+}
+
+async function _awardsPush(year) {
+  if (typeof dcSaveAwardsChecked !== 'function') return;
+  // Three tries covers a merge followed by another device saving yet again
+  // in the same second; past that, the next click simply tries again.
+  for (let attempt = 0; attempt < 3; attempt++) {
+    if (!_awardsYearData[year]) return;
+    // Snapshot what is being sent, so an edit made while the request is in
+    // flight isn't mistaken for part of what the cloud now holds.
+    const sentJson = JSON.stringify(_awardsYearData[year]);
+    const sent     = JSON.parse(sentJson);
+    const base     = _awardsGetBase(year);
+    const res = await dcSaveAwardsChecked(year, sent, base ? (base.savedAt || 0) : 0);
+
+    if (res.status === 'ok' || res.status === 'queued') {
+      _awardsSetBase(year, sent);
+      // The cloud copy just replaced came from another device — worth keeping
+      // a copy of, since this is exactly the hand-off where ballots got lost.
+      if (res.replaced && res.replaced.device !== _dcDeviceId() && !_awardsSameBallot(res.replaced, sent)) {
+        _backupAwardsSnapshot(year, res.replaced, 'other-device');
+      }
+      return;
+    }
+    if (res.status === 'signed-out') return;
+    if (res.status === 'conflict') {
+      const remote = res.remote;
+      _backupAwardsSnapshot(year, remote, 'conflict');
+      const merged = _awardsMerge(base, _awardsYearData[year], remote);
+      merged.savedAt = Date.now();
+      merged.device  = _dcDeviceId();
+      _awardsReplaceInPlace(year, merged);
+      _awardsSetBase(year, remote);
+      _awardsWriteLocal(year, merged);
+      _awardsRerenderIfShown(year);
+      if (typeof dcPlToast === 'function') dcPlToast(t('awards_merged_other_device'));
+      continue;   // save the merged ballot
+    }
+    // A real rejection for a signed-in user is worth saying out loud.
+    if (typeof dcIsSignedIn === 'function' && dcIsSignedIn() && typeof dcPlToast === 'function') {
+      dcPlToast(t('awards_save_local_only'));
+    }
+    return;
+  }
+}
+
+/* Pull in changes made on another device while this one sat in the background
+   (or before sign-in finished). Runs when the app comes back to the front, so
+   switching phones shows the latest ballot before the next click, not after. */
+let _awardsLastCloudCheck = 0;
+async function _awardsRefreshFromCloud(force) {
+  if (typeof dcIsSignedIn !== 'function' || !dcIsSignedIn()) return;
+  if (!force && Date.now() - _awardsLastCloudCheck < 10000) return;
+  _awardsLastCloudCheck = Date.now();
+  for (const year of Object.keys(_awardsYearData)) {
+    await _awardsPushChain[year];   // let an in-flight save land first
+    const remote = await dcLoadAwards(year);
+    if (!remote) continue;
+    const base = _awardsGetBase(year);
+    if ((remote.savedAt || 0) <= (base ? (base.savedAt || 0) : 0)) continue;
+    const merged = _awardsMerge(base, _awardsYearData[year], remote);
+    const unsaved = !_awardsSameBallot(merged, remote);   // this device has changes the cloud lacks
+    if (unsaved) { merged.savedAt = Date.now(); merged.device = _dcDeviceId(); }
+    _awardsReplaceInPlace(year, merged);
+    _awardsSetBase(year, remote);
+    _awardsWriteLocal(year, merged);
+    if (unsaved) _awardsQueuePush(year);
+    _awardsRerenderIfShown(year);
+  }
+}
+
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible') _awardsRefreshFromCloud();
+});
+
+/* ─── Backups ─────────────────────────────────────────────────────────────────
+   Snapshots of everything the user has authored — synced settings, every
+   awards year, ratings — kept in their account (see firebase.js for storage)
+   and restorable from Settings → Profile. Made:
+     • once a day, the first time the app is opened signed in
+     • by hand ("Back up now")
+     • right before a restore, so a restore can itself be undone
+     • for one awards year, whenever a save replaces or merges over another
+       device's ballot, and when this device holds nominees the cloud lost —
+       the hand-offs between phones where ballots have gone missing.
+   A downloadable JSON file covers signed-out use and off-site copies (save
+   it to Google Drive from the phone's share sheet). Playlists are left out:
+   they already merge per playlist across devices.                          */
+let _dcDeviceIdCache = null;
+function _dcDeviceId() {
+  if (_dcDeviceIdCache) return _dcDeviceIdCache;
+  try {
+    let id = localStorage.getItem('dc_device_id');
+    if (!id) { id = Math.random().toString(36).slice(2, 10); localStorage.setItem('dc_device_id', id); }
+    _dcDeviceIdCache = id;
+  } catch (e) { _dcDeviceIdCache = 'nostorage'; }
+  return _dcDeviceIdCache;
+}
+
+// Human-readable, for the backup list: "iPhone", "Android (installed app)"…
+function _dcDeviceLabel() {
+  const ua = navigator.userAgent || '';
+  const os = /iPhone/.test(ua) ? 'iPhone' : /iPad/.test(ua) ? 'iPad' : /Android/.test(ua) ? 'Android'
+           : /Windows/.test(ua) ? 'Windows' : /Macintosh/.test(ua) ? 'Mac' : /Linux/.test(ua) ? 'Linux' : 'Browser';
+  let app = false;
+  try { app = window.matchMedia('(display-mode: standalone)').matches || navigator.standalone === true; } catch (e) {}
+  return os + (app ? ' (installed app)' : '');
+}
+
+function _backupCountNoms(awards) {
+  let n = 0;
+  for (const d of Object.values(awards || {})) {
+    for (const c of Object.values(d?.categories || {})) n += (c.nominees || []).length;
+  }
+  return n;
+}
+
+function _backupSummary(p) {
+  const years = Object.keys(p.awards || {}).filter(y => _backupCountNoms({ y: p.awards[y] }) > 0).sort();
+  return {
+    settings: Object.keys(p.config || {}).length,
+    years,
+    nominees: _backupCountNoms(p.awards),
+    ratings: Object.keys(p.ratings?.songs || {}).length + Object.keys(p.ratings?.albums || {}).length
+  };
+}
+
+// Everything restorable, freshest copy of each piece.
+async function _backupCollect() {
+  const config = {};
+  if (typeof SYNC_KEYS !== 'undefined') {
+    for (const k of SYNC_KEYS) { const v = localStorage.getItem(k); if (v !== null) config[k] = v; }
+  }
+  // Awards: this device's copies, then the cloud's, then this session's memory
+  // — each replacing the previous only when it was saved later.
+  const awards = {};
+  const offer = (y, d) => { if (d && d.categories && (!awards[y] || (d.savedAt || 0) >= (awards[y].savedAt || 0))) awards[y] = d; };
+  try {
+    for (let i = 0; i < localStorage.length; i++) {
+      const k = localStorage.key(i);
+      if (/^dc_awards_\d{4}$/.test(k)) offer(k.slice(10), _awardsReadLocal(k.slice(10)));
+    }
+  } catch (e) {}
+  if (typeof dcLoadAllAwards === 'function') {
+    for (const [y, d] of Object.entries(await dcLoadAllAwards())) offer(y, d);
+  }
+  for (const [y, d] of Object.entries(_awardsYearData)) offer(String(y), d);
+  const hasRatings = Object.keys(_ratings.songs).length || Object.keys(_ratings.albums).length || _ratings.cfgTs;
+  return JSON.parse(JSON.stringify({
+    app: 'dankcharts', v: 1, createdAt: Date.now(),
+    config, awards, ratings: hasRatings ? _ratings : null
+  }));
+}
+
+// Full backup to the account. Returns the id, or null.
+async function dcBackupNow(reason) {
+  if (typeof dcBackupWrite !== 'function' || typeof dcIsSignedIn !== 'function' || !dcIsSignedIn()) return null;
+  const p = await _backupCollect();
+  const summary = _backupSummary(p);
+  if (!summary.settings && !summary.nominees && !summary.ratings) return null;   // nothing worth keeping yet
+  return dcBackupWrite({ createdAt: p.createdAt, reason, kind: 'full', device: _dcDeviceLabel(), summary }, JSON.stringify(p));
+}
+
+// One awards year, at a risky moment. Throttled so a back-and-forth editing
+// session between two phones doesn't fill the list with near-identical copies.
+function _backupAwardsSnapshot(year, data, reason) {
+  if (!data || !_backupCountNoms({ y: data })) return;
+  if (typeof dcBackupWrite !== 'function' || typeof dcIsSignedIn !== 'function' || !dcIsSignedIn()) return;
+  let seen = {};
+  try { seen = JSON.parse(localStorage.getItem('dc_backup_seen') || '{}') || {}; } catch (e) {}
+  // A device copy is only worth keeping once per version; the others at most
+  // every half hour per year.
+  const key = reason === 'device-copy' ? `${year}|dc|${data.savedAt || 0}` : `${year}|${reason}`;
+  if (reason === 'device-copy' ? seen[key] : (Date.now() - (seen[key] || 0) < 30 * 60 * 1000)) return;
+  seen[key] = Date.now();
+  // Forget throttle entries older than a month so the key can't grow forever.
+  for (const k of Object.keys(seen)) if (Date.now() - seen[k] > 30 * 86400000) delete seen[k];
+  try { localStorage.setItem('dc_backup_seen', JSON.stringify(seen)); } catch (e) {}
+  const p = { app: 'dankcharts', v: 1, createdAt: Date.now(), awards: { [year]: JSON.parse(JSON.stringify(data)) } };
+  dcBackupWrite({ createdAt: p.createdAt, reason, kind: 'awards', device: _dcDeviceLabel(), summary: _backupSummary(p) }, JSON.stringify(p));
+}
+
+async function dcAutoBackup() {
+  if (typeof dcBackupList !== 'function') return;
+  const list = await dcBackupList();
+  const lastFull = list.find(e => (e.kind || 'full') === 'full');
+  if (!lastFull || Date.now() - lastFull.createdAt > 20 * 3600 * 1000) await dcBackupNow('daily');
+}
+
+// Called by firebase.js once sign-in has settled.
+async function dcAfterSignInSync() {
+  try {
+    await _awardsRefreshFromCloud(true);
+    await dcAutoBackup();
+  } catch (e) {
+    console.warn('[dankcharts] post sign-in sync:', e);
+  }
+}
+window.dcAfterSignInSync = dcAfterSignInSync;
+
+// Resolves after `ms` at the latest — the writes it guards keep going in the
+// background (Firestore queues them), the restore just stops waiting on them.
+function _withTimeout(p, ms) {
+  return Promise.race([p, new Promise(r => setTimeout(r, ms))]);
+}
+
+// Puts a backup's contents back — locally and in the cloud — then reloads.
+// Only the pieces the backup holds are touched: a one-year awards snapshot
+// restores that year and nothing else.
+async function _backupApply(p) {
+  const now = Date.now();
+  if (p.config && typeof SYNC_KEYS !== 'undefined') {
+    for (const [k, v] of Object.entries(p.config)) {
+      if (SYNC_KEYS.includes(k) && typeof v === 'string') localStorage.setItem(k, v);
+    }
+    if (typeof dcSaveUserConfig === 'function') await _withTimeout(dcSaveUserConfig(), 10000);
+  }
+  for (const [y, d] of Object.entries(p.awards || {})) {
+    if (!/^\d{4}$/.test(y) || !d || !d.categories) continue;
+    // Stamped now, so every other device sees the restored ballot as the newest.
+    const copy = Object.assign({}, d, { savedAt: now, device: _dcDeviceId() });
+    _awardsWriteLocal(y, copy);
+    if (typeof dcSaveAwards === 'function') await _withTimeout(dcSaveAwards(y, copy), 10000);
+  }
+  if (p.ratings && typeof p.ratings === 'object') {
+    // Every entry re-stamped so the per-entry merge on other devices keeps the
+    // restored scores rather than their own older ones.
+    const r = JSON.parse(JSON.stringify(p.ratings));
+    for (const b of ['songs', 'albums']) {
+      r[b] = r[b] || {};
+      for (const e of Object.values(r[b])) if (e && typeof e === 'object') e.ts = now;
+    }
+    r.cfg = Object.assign(_ratingsDefaultCfg(), r.cfg || {});
+    r.cfgTs = now;
+    _ratings = Object.assign({ v: 1 }, r);
+    try { localStorage.setItem('dc_ratings', JSON.stringify(_ratings)); } catch (e) {}
+    if (typeof dcSaveRatings === 'function') await _withTimeout(dcSaveRatings(_ratings), 10000);
+  }
+  location.reload();
+}
+
+const BACKUP_REASON_LABELS = {
+  'daily':          'Daily backup',
+  'manual':         'Made by you',
+  'before-restore': 'Before a restore',
+  'other-device':   'Before a save from another device',
+  'conflict':       'Before merging two devices',
+  'device-copy':    'Copy kept on this device'
+};
+
+function _backupSummaryText(e) {
+  const s = e.summary || {};
+  const parts = [];
+  if (e.kind === 'awards') {
+    parts.push(`${(s.years || []).join(', ')} awards`, `${s.nominees || 0} nominee${s.nominees === 1 ? '' : 's'}`);
+  } else {
+    if (s.settings) parts.push('Settings');
+    if (s.years?.length) {
+      const yrs = s.years.length > 1 ? `${s.years[0]}–${s.years[s.years.length - 1]}` : s.years[0];
+      parts.push(`Awards ${yrs} (${s.nominees} nominee${s.nominees === 1 ? '' : 's'})`);
+    }
+    if (s.ratings) parts.push(`${s.ratings} rating${s.ratings === 1 ? '' : 's'}`);
+  }
+  return parts.join(' · ');
+}
+
+// Draws the list in Settings → Profile. Called each time that tab opens.
+async function renderBackupsPanel() {
+  const el = document.getElementById('setBackupsList');
+  const nowBtn = document.getElementById('setBackupNowBtn');
+  if (!el) return;
+  const signedIn = typeof dcIsSignedIn === 'function' && dcIsSignedIn();
+  if (nowBtn) nowBtn.hidden = !signedIn;
+  if (!signedIn) {
+    el.innerHTML = '<p class="src-modal-hint">Sign in with Google to keep automatic backups in your account. You can still download a backup file.</p>';
+    return;
+  }
+  el.innerHTML = '<p class="src-modal-hint">Loading backups…</p>';
+  const list = await dcBackupList();
+  if (!list.length) {
+    el.innerHTML = '<p class="src-modal-hint">No backups yet — one is made automatically each day you open the app.</p>';
+    return;
+  }
+  const fmt = ts => new Date(ts).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' });
+  el.innerHTML = list.map(e => `
+    <div class="bk-row">
+      <div class="bk-main">
+        <span class="bk-when">${esc(fmt(e.createdAt))}</span>
+        <span class="bk-what">${esc(BACKUP_REASON_LABELS[e.reason] || e.reason || '')}${e.device ? ' · ' + esc(e.device) : ''}</span>
+        <span class="bk-sum">${esc(_backupSummaryText(e))}</span>
+      </div>
+      <button type="button" class="cert-reset-btn" onclick="backupsRestore(${esc(JSON.stringify(e.id))})">Restore</button>
+    </div>`).join('');
+}
+
+async function backupsNow() {
+  const btn = document.getElementById('setBackupNowBtn');
+  if (btn) { btn.disabled = true; btn.textContent = 'Backing up…'; }
+  const id = await dcBackupNow('manual');
+  if (btn) { btn.disabled = false; btn.textContent = 'Back up now'; }
+  if (typeof dcPlToast === 'function') dcPlToast(id ? 'Backup saved to your account.' : 'Backup failed — check your connection and try again.');
+  renderBackupsPanel();
+}
+
+async function backupsRestore(id) {
+  const list = await dcBackupList();
+  const e = list.find(x => x.id === id);
+  if (!e) return;
+  const when = new Date(e.createdAt).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' });
+  const what = e.kind === 'awards' ? `your ${(e.summary?.years || []).join(', ')} awards` : 'your settings, awards and ratings';
+  if (!confirm(`Restore the backup from ${when}?\n\nThis replaces ${what} with that copy, on every device. A backup of how things are right now is made first, so you can undo this.`)) return;
+  const p = await dcBackupRead(id);
+  if (!p) { dcPlToast('Couldn’t open that backup — check your connection and try again.'); return; }
+  dcPlToast('Restoring…');
+  await dcBackupNow('before-restore');
+  await _backupApply(p);
+}
+
+async function backupsDownload() {
+  const p = await _backupCollect();
+  const blob = new Blob([JSON.stringify(p, null, 1)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `dankcharts-backup-${new Date().toLocaleDateString('en-CA')}.json`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 5000);
+}
+
+async function backupsUpload(input) {
+  const file = input.files && input.files[0];
+  input.value = '';   // so picking the same file again still fires onchange
+  if (!file) return;
+  let p = null;
+  try { p = JSON.parse(await file.text()); } catch (e) {}
+  if (!p || p.app !== 'dankcharts') { dcPlToast('That file isn’t a dankcharts backup.'); return; }
+  const when = p.createdAt ? new Date(p.createdAt).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' }) : 'an unknown date';
+  if (!confirm(`Restore the backup file from ${when}?\n\nThis replaces your settings, awards and ratings with the copy in the file.`)) return;
+  dcPlToast('Restoring…');
+  await dcBackupNow('before-restore');
+  await _backupApply(p);
 }
 
 async function _awardsEnsureAllYearsLoaded() {
@@ -33769,17 +34218,14 @@ async function _awardsSave(year) {
   const data = _awardsYearData[year];
   if (!data) return;
   data.savedAt = Date.now();
+  data.device  = _dcDeviceId();   // lets the next save tell a hand-off between devices apart
   // Local first and synchronously: whatever happens to the network request after
   // this line, the ballot is already safe on the device.
   _awardsWriteLocal(year, data);
-  if (typeof dcSaveAwards !== 'function') return;
-  const ok = await dcSaveAwards(year, data);
-  // Not signed in is a normal state, not a failure worth nagging about — the
-  // local copy is the whole story there. A rejected write for a signed-in user
-  // is worth saying out loud, because it used to be swallowed entirely.
-  if (!ok && typeof dcIsSignedIn === 'function' && dcIsSignedIn() && typeof dcPlToast === 'function') {
-    dcPlToast(t('awards_save_local_only'));
-  }
+  // The cloud save is checked and, if another device got there first, merged
+  // (see _awardsPush). Not awaited — offline, a transaction can take a while to
+  // give up, and the click that triggered this shouldn't wait on it.
+  _awardsQueuePush(year);
 }
 
 function _isCollab(play) {

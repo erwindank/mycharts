@@ -27,11 +27,11 @@
   <!-- html2canvas, SheetJS (xlsx) and JSZip are intentionally NOT loaded here — they
        total ~1.2 MB and are only needed for image exports and Excel/ZIP imports.
        app.js pulls them from the CDN on first use (see ensureLazyLib). -->
-  <link rel="stylesheet" href="style.css?v=268">
+  <link rel="stylesheet" href="style.css?v=269">
   <!-- All scripts are deferred so the page paints without waiting on them.
        defer preserves execution order, which matters: translations → Chart.js →
        hammer → zoom plugin → firebase SDKs → firebase.js → app.js (in body). -->
-  <script defer src="translations.js?v=16"></script>
+  <script defer src="translations.js?v=17"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8/hammer.min.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@1.2.1/dist/chartjs-plugin-zoom.min.js"></script>
@@ -40,7 +40,7 @@
   <script defer src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
   <script defer src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
   <script defer src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
-  <script defer src="firebase.js?v=5"></script>
+  <script defer src="firebase.js?v=6"></script>
 </head>
 
 <body>
@@ -3205,8 +3205,8 @@
 
   <!-- defer keeps app.js last in the script execution order (after translations,
        Chart.js and firebase.js) while letting the whole page parse and paint first -->
-  <script defer src="changelog.js?v=47"></script>
-  <script defer src="app.js?v=232"></script>
+  <script defer src="changelog.js?v=48"></script>
+  <script defer src="app.js?v=233"></script>
 
   <!-- ── Settings Modal ──
        Split into three tabs so the whole form is never dumped on screen at
@@ -4166,6 +4166,23 @@ function deleteGenreTriggers() {
             <select id="srcTimezone"></select>
           </label>
           <p class="src-modal-hint">Chart weeks, months and years start at midnight here.</p>
+        </div>
+
+        <!-- Backups: snapshots of settings, awards and ratings kept in the
+             account (one a day, plus one at every risky hand-off between
+             devices). The list is fetched by renderBackupsPanel() each time
+             this tab opens. The file buttons work signed out too. -->
+        <div class="cert-config-group set-backups">
+          <div class="cert-config-title">Backups</div>
+          <p class="src-modal-hint">Copies of your settings, awards and ratings. Restoring one puts it back on every device.</p>
+          <div id="setBackupsList" class="bk-list"></div>
+          <div class="bk-actions">
+            <button type="button" class="cert-reset-btn" id="setBackupNowBtn" onclick="backupsNow()">Back up now</button>
+            <button type="button" class="cert-reset-btn" onclick="backupsDownload()">Download backup file</button>
+            <button type="button" class="cert-reset-btn" onclick="document.getElementById('backupsFileInput').click()">Restore from file</button>
+            <input type="file" id="backupsFileInput" accept=".json,application/json" hidden onchange="backupsUpload(this)">
+          </div>
+          <p class="src-modal-hint">The file includes your API keys, so keep it somewhere private, like your own Google Drive.</p>
         </div>
       </section>
 

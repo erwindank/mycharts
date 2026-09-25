@@ -266,6 +266,148 @@ async function dcLoadAwards(year) {
   }
 }
 
+/* Conflict-checked awards save.
+   dcSaveAwards() overwrites the whole year blindly, which is how a phone left
+   open with an older ballot wiped nominees picked since on another phone: its
+   next click wrote the stale copy over the top. This version reads the cloud
+   copy inside a transaction and only writes if nobody has saved since the
+   version this device started from (baseSavedAt). Otherwise it hands the newer
+   cloud copy back so app.js can merge the two instead of clobbering.
+
+   Returns { status }:
+     'ok'         written; `replaced` is the cloud copy it replaced (or null)
+     'conflict'   not written; `remote` is the newer cloud copy
+     'queued'     offline — written through the persistent queue, unchecked
+     'signed-out' nothing to do
+     'error'      rejected (rules, quota…)                                   */
+async function dcSaveAwardsChecked(year, data, baseSavedAt) {
+  if (!_currentUser) return { status: 'signed-out' };
+  await _ensureDb();
+  const ref = _awardsRef(_currentUser.uid, year);
+  try {
+    return await _db.runTransaction(async tx => {
+      const snap = await tx.get(ref);
+      const remote = snap.exists ? snap.data() : null;
+      if (remote && (remote.savedAt || 0) > (baseSavedAt || 0)) return { status: 'conflict', remote };
+      tx.set(ref, data);
+      return { status: 'ok', replaced: remote };
+    });
+  } catch (err) {
+    // Transactions need the network. Offline, fall back to a plain write through
+    // the persistent queue so the change still goes up when the phone reconnects.
+    // Not awaited: an offline set() only resolves once the server acknowledges it.
+    if (err && ['unavailable', 'deadline-exceeded', 'failed-precondition', 'aborted'].includes(err.code)) {
+      ref.set(data).catch(e => console.warn('[dankcharts] Awards queued save error:', e));
+      return { status: 'queued' };
+    }
+    console.warn('[dankcharts] Awards checked save error:', err);
+    return { status: 'error' };
+  }
+}
+
+// Every awards year in the cloud, as { year: data }. Used by backups, which need
+// all years, not just the ones this session happened to open.
+async function dcLoadAllAwards() {
+  if (!_currentUser) return {};
+  await _ensureDb();
+  const out = {};
+  try {
+    const docId = firebase.firestore.FieldPath.documentId();
+    const snap = await _db.collection('users').doc(_currentUser.uid).collection('data')
+      .where(docId, '>=', 'awards_').where(docId, '<', 'awards_').get();
+    snap.forEach(d => { out[d.id.slice(7)] = d.data(); });
+  } catch (err) {
+    console.warn('[dankcharts] Awards list error:', err);
+  }
+  return out;
+}
+
+/* ── Backups ────────────────────────────────────────────────────────────────
+   Snapshots of the user's own work (settings, awards, ratings) kept in the
+   account so a bad overwrite can be undone from Settings → Profile. They live
+   under users/{uid}/data/ like everything else, so the existing rule already
+   covers them — no Firebase Console change needed.
+
+   Two kinds of document:
+     data/backups        the index: a small list of { id, createdAt, reason,
+                         kind, device, summary } read to draw the list
+     data/backup_<id>    one snapshot; `payload` is a JSON string so odd keys
+                         (dots, slashes in song names) can't trip Firestore
+   The index keeps the list cheap to open — no need to download every snapshot
+   just to show their dates.                                                  */
+const BACKUP_KEEP_PER_KIND = 30;   // 30 full backups + 30 single-year awards snapshots
+
+function _backupIndexRef(uid) {
+  return _db.collection('users').doc(uid).collection('data').doc('backups');
+}
+function _backupRef(uid, id) {
+  return _db.collection('users').doc(uid).collection('data').doc('backup_' + id);
+}
+
+// meta: { createdAt, reason, kind: 'full' | 'awards', device, summary }
+// Returns the new id, or null (signed out, offline, or too big for one doc).
+async function dcBackupWrite(meta, payloadJson) {
+  if (!_currentUser) return null;
+  await _ensureDb();
+  // Firestore's per-document ceiling is 1 MiB; leave room for the meta fields.
+  if (new Blob([payloadJson]).size > 1000000) {
+    console.warn('[dankcharts] Backup too large for one document — skipped');
+    return null;
+  }
+  const uid = _currentUser.uid;
+  const id  = meta.createdAt + '_' + Math.random().toString(36).slice(2, 6);
+  try {
+    await _backupRef(uid, id).set({ ...meta, payload: payloadJson });
+    // Add to the index and prune in one transaction, so two devices backing
+    // up at the same moment can't each drop the other's entry.
+    let dropped = [];
+    await _db.runTransaction(async tx => {
+      const snap = await tx.get(_backupIndexRef(uid));
+      const list = (snap.exists && Array.isArray(snap.data().list)) ? snap.data().list : [];
+      list.push({ id, ...meta });
+      list.sort((a, b) => b.createdAt - a.createdAt);
+      const kept = [], seen = {};
+      dropped = [];
+      for (const e of list) {
+        const k = e.kind || 'full';
+        seen[k] = (seen[k] || 0) + 1;
+        (seen[k] <= BACKUP_KEEP_PER_KIND ? kept : dropped).push(e);
+      }
+      tx.set(_backupIndexRef(uid), { list: kept });
+    });
+    for (const d of dropped) _backupRef(uid, d.id).delete().catch(() => {});
+    return id;
+  } catch (err) {
+    console.warn('[dankcharts] Backup write error:', err);
+    return null;
+  }
+}
+
+async function dcBackupList() {
+  if (!_currentUser) return [];
+  await _ensureDb();
+  try {
+    const snap = await _backupIndexRef(_currentUser.uid).get();
+    return (snap.exists && Array.isArray(snap.data().list)) ? snap.data().list : [];
+  } catch (err) {
+    console.warn('[dankcharts] Backup list error:', err);
+    return [];
+  }
+}
+
+// The snapshot's parsed payload, or null.
+async function dcBackupRead(id) {
+  if (!_currentUser) return null;
+  await _ensureDb();
+  try {
+    const snap = await _backupRef(_currentUser.uid, id).get();
+    return snap.exists ? JSON.parse(snap.data().payload) : null;
+  } catch (err) {
+    console.warn('[dankcharts] Backup read error:', err);
+    return null;
+  }
+}
+
 /* ── Shared ceremonies ──────────────────────────────────────────────────────
    A shared ceremony is a frozen copy of one year's awards, written to a public
    collection so a friend can watch it from a link without an account or any
@@ -406,6 +548,11 @@ window.dcLoadEventsCache           = dcLoadEventsCache;
 window.dcIsSignedIn                = dcIsSignedIn;
 window.dcSaveAwards                = dcSaveAwards;
 window.dcLoadAwards                = dcLoadAwards;
+window.dcSaveAwardsChecked         = dcSaveAwardsChecked;
+window.dcLoadAllAwards             = dcLoadAllAwards;
+window.dcBackupWrite               = dcBackupWrite;
+window.dcBackupList                = dcBackupList;
+window.dcBackupRead                = dcBackupRead;
 window.dcShareCeremony             = dcShareCeremony;
 window.dcLoadSharedCeremony        = dcLoadSharedCeremony;
 window.dcUnshareCeremony           = dcUnshareCeremony;
@@ -448,6 +595,11 @@ _auth.onAuthStateChanged(async (user) => {
   // Always push local config to Firestore — handles both first-time migration
   // and new SYNC_KEYS (like dc_autocorrect_rules) not yet in the Firestore document.
   await dcSaveUserConfig();
+
+  // Awards opened before sign-in finished were loaded from this device's copy
+  // only — catch them up with the cloud now, then take the daily backup if due.
+  // Not awaited: neither should hold up the first chart render.
+  if (!window.dcCeremonyViewer && typeof dcAfterSignInSync === 'function') dcAfterSignInSync();
 
   // Refresh any UI that depends on the just-loaded settings
   if (typeof updateMastheadDynamic === 'function') updateMastheadDynamic();
