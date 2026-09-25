@@ -1216,6 +1216,37 @@ function applyAlbumsFilterByKey(counts) {
   return out;
 }
 
+/* Credits one play to an album tally exactly the way the albums chart on
+   screen does: plays with no album never enter it, and while singles count
+   toward their album on the charts the same play is credited to that album
+   too. Every tally that ranks albums against the chart (last week's chart,
+   Off the Chart, Bubbling Under, peaks, chart runs) goes through here — when
+   they counted on their own, a #10 album that owed two plays to its single
+   was ranked #11 by Off the Chart and listed as having dropped out.
+   `make(key)` builds a fresh entry in whatever shape the caller keeps. */
+function tallyAlbumPlay(map, p, roll, make) {
+  if (!p.album || p.album === '—') return;
+  const ak = albumKeyOf(p);
+  (map[ak] || (map[ak] = make(ak, p))).count++;
+  const par = roll ? rollupParentOf(p) : null;
+  if (par && par !== ak) (map[par] || (map[par] = make(par, p))).count++;
+}
+
+/* Is the albums chart on screen the combined "All" one while something is
+   separated? Then it ranks singles and EPs against albums, and every history
+   drawn beside it (chart runs, Bubbling Under runs, peaks) has to be that
+   combined chart's history rather than each type's own. */
+function albumsViewIsMixed() {
+  return separatedTypes().length > 0 && albumsFilterBucket() === null;
+}
+
+/* Which table of a chart run (or BU run) describes the chart on screen. The
+   runs keep the per-type ranking under 'albums' — Records and the modals read
+   that — and the combined ranking under 'albumsMixed'. */
+function crRunType(type) {
+  return (type === 'albums' && albumsViewIsMixed()) ? 'albumsMixed' : type;
+}
+
 // ─── SINGLES COUNTED TOWARD THEIR ALBUM ───────────────────────
 /* A single and the album its song ended up on are two different releases, and
    every tally in this app keys on the release — so half a song's plays can sit
@@ -12580,15 +12611,25 @@ function renderNewEntries(plays, start, end) {
 
   // New albums
   const albumCounts = {};
+  // A new album's figure includes the plays its singles lend it, as on the
+  // albums chart above — otherwise the same album shows two different totals.
+  const _neRoll = rollupAffectsCharts();
+  const _neCredit = (ak, p) => {
+    const first = albumFirst[ak];
+    if (!(first && first >= start && first <= end)) return;
+    if (!albumCounts[ak]) {
+      const i = ak.lastIndexOf('|||');
+      albumCounts[ak] = { album: ak.slice(0, i), artist: ak.slice(i + 3), count: 0, tracks: new Set(), firstAchieved: p.date };
+    }
+    albumCounts[ak].count++;
+    albumCounts[ak].tracks.add(p.title);
+  };
   for (const p of plays) {
     if (!p.album || p.album === '—') continue;
     const ak = albumKeyOf(p);
-    const first = albumFirst[ak];
-    if (first && first >= start && first <= end) {
-      if (!albumCounts[ak]) albumCounts[ak] = { album: p.album, artist: albumArtist(p), count: 0, tracks: new Set(), firstAchieved: p.date };
-      albumCounts[ak].count++;
-      albumCounts[ak].tracks.add(p.title);
-    }
+    _neCredit(ak, p);
+    const par = _neRoll ? rollupParentOf(p) : null;
+    if (par && par !== ak) _neCredit(par, p);
   }
   // New Entries follows the chart it sits under: while the singles bucket is
   // on show, a new album is not a new entry on it.
@@ -13409,11 +13450,13 @@ function buildPrevRankMap(prevPlays, type) {
       }
     }
   } else if (type === 'albums') {
-    for (const p of prevPlays) {
-      const k = albumKeyOf(p);
-      if (!counts[k]) counts[k] = { count: 0, firstAchieved: p.date };
-      counts[k].count++;
-    }
+    // Last period's albums chart as it was shown: same credit, same bucket.
+    const roll = rollupAffectsCharts();
+    for (const p of prevPlays) tallyAlbumPlay(counts, p, roll, () => ({ count: 0, firstAchieved: p.date }));
+    const kept = applyAlbumsFilterByKey(counts);
+    const map = {};
+    Object.entries(kept).sort(([, a], [, b]) => rankSort(a, b)).forEach(([k], i) => { map[k] = i; });
+    return map;
   }
   const map = {};
   Object.entries(counts).sort(([, a], [, b]) => rankSort(a, b)).forEach(([k], i) => { map[k] = i; });
@@ -13438,12 +13481,14 @@ function buildPrevSortedEntries(prevPlays, type) {
       }
     }
   } else if (type === 'albums') {
-    for (const p of prevPlays) {
-      const k = albumKeyOf(p);
-      if (!counts[k]) counts[k] = { album: p.album, artist: albumArtist(p), count: 0, firstAchieved: p.date };
-      counts[k].count++;
-    }
-    return Object.values(counts).filter(a => a.album && a.album !== '—').sort(rankSort);
+    // Same credit and same bucket as the chart it animates into, or the
+    // "previous" chart shows singles sliding into an albums-only chart.
+    const roll = rollupAffectsCharts();
+    for (const p of prevPlays) tallyAlbumPlay(counts, p, roll, (k) => {
+      const i = k.lastIndexOf('|||');
+      return { album: k.slice(0, i), artist: k.slice(i + 3), count: 0, firstAchieved: p.date };
+    });
+    return Object.values(applyAlbumsFilter(counts)).sort(rankSort);
   }
   return Object.values(counts).sort(rankSort);
 }
@@ -14203,7 +14248,7 @@ function buildCrPanelHTML(type, key) {
   // Show "+ BU" toggle only in weekly view when BU history exists for this entry.
   // Build BU data now if not already cached (normally only built when the BU table is opened).
   if (currentPeriod === 'week' && !buChartRunData) buildBuChartRun();
-  const hasBuData = currentPeriod === 'week' && !!(buChartRunData?.result?.[type]?.[key]?.entries?.length);
+  const hasBuData = currentPeriod === 'week' && !!(buChartRunData?.result?.[crRunType(type)]?.[key]?.entries?.length);
   const buToggleBtn = hasBuData
     ? `<button class="cr-bu-toggle" onclick="toggleCrBuView(this)" title="Toggle combined Chart + BU timeline">+ BU</button>`
     : '';
@@ -14230,7 +14275,9 @@ function buildCrPanelHTML(type, key) {
       { id: 'week', label: t('cr_weekly_label') },
     ].map(({ id, label }) => {
       const crData = allChartRun[id];
-      const rawD = crData?.result?.[type]?.[key];
+      // The history of the chart on screen — on the albums "All" view that is
+      // the combined chart's, not each type's own (see crRunType).
+      const rawD = crData?.result?.[crRunType(type)]?.[key];
       const d = filterCrD(rawD, id, getCrRangeMode(type, key), vy, cutoffKeys);
       // Each section counts plays over its own periodMap, so the total tracks
       // that section's granularity and cutoff rather than the panel's.
@@ -14246,7 +14293,7 @@ function buildCrPanelHTML(type, key) {
     }).join('');
   } else {
     const crData = allChartRun[currentPeriod] || chartRunData;
-    const rawD = crData?.result?.[type]?.[key];
+    const rawD = crData?.result?.[crRunType(type)]?.[key];
     const d = filterCrD(rawD, currentPeriod, getCrRangeMode(type, key), vy, cutoffKeys);
     const rangeOpts = { mode: getCrRangeMode(type, key), viewedYear: vy, cutoffKeys, periodMap: crData?.periodMap };
     if (d && hasBuData) {
@@ -15117,13 +15164,18 @@ function _buildChartRunFull(period) {
       pm.artists[a].count++; pm.dayArtists[a].add(dayStr);
     }
     const ak = albumKeyOf(p);
-    if (!pm.albums[ak]) { pm.albums[ak] = { count: 0, firstAchieved: p.date, _album: p.album, _artist: albumArtist(p) }; pm.dayAlbums[ak] = new Set(); }
-    pm.albums[ak].count++; pm.dayAlbums[ak].add(dayStr);
+    // No-album plays are never on the albums chart, so they must not take a
+    // slot in its history either — they used to push every real album down.
+    const _hasAlbum = !!p.album && p.album !== '—';
+    if (_hasAlbum) {
+      if (!pm.albums[ak]) { pm.albums[ak] = { count: 0, firstAchieved: p.date, _album: p.album, _artist: albumArtist(p) }; pm.dayAlbums[ak] = new Set(); }
+      pm.albums[ak].count++; pm.dayAlbums[ak].add(dayStr);
+    }
     /* The album this single counts toward, credited in the same period the
        play happened in — which is why the roll-up is applied here rather than
        added to a finished total: a single played this week lifts the album
        this week, not across the whole run. */
-    const _par = _crRoll ? rollupParentOf(p) : null;
+    const _par = (_crRoll && _hasAlbum) ? rollupParentOf(p) : null;
     if (_par && _par !== ak) {
       if (!pm.albums[_par]) {
         const _i = _par.lastIndexOf('|||');
@@ -15144,8 +15196,10 @@ function _buildChartRunFull(period) {
         if (!pm.yrMonths.artists[a]) pm.yrMonths.artists[a] = new Set();
         pm.yrMonths.artists[a].add(mo);
       }
-      if (!pm.yrMonths.albums[ak]) pm.yrMonths.albums[ak] = new Set();
-      pm.yrMonths.albums[ak].add(mo);
+      if (_hasAlbum) {
+        if (!pm.yrMonths.albums[ak]) pm.yrMonths.albums[ak] = new Set();
+        pm.yrMonths.albums[ak].add(mo);
+      }
       if (_par && _par !== ak) {
         if (!pm.yrMonths.albums[_par]) pm.yrMonths.albums[_par] = new Set();
         pm.yrMonths.albums[_par].add(mo);
@@ -15153,12 +15207,20 @@ function _buildChartRunFull(period) {
     }
   }
 
+  /* While a type is separated the run also keeps 'albumsMixed': every release
+     ranked on one combined chart, which is what the albums section shows on
+     its "All" view. 'albums' stays the per-type ranking everything else reads.
+     The mixed pass runs first so the chartStatus left on the shared period
+     entries is the per-type one, as it always was. */
+  const _sepRun = separatedTypes().length > 0;
+  const runTypes = _sepRun ? ['songs', 'artists', 'albumsMixed', 'albums'] : ['songs', 'artists', 'albums'];
   const result = { songs: {}, artists: {}, albums: {} };
-  const dayFields = { songs: 'daySongs', artists: 'dayArtists', albums: 'dayAlbums' };
+  if (_sepRun) result.albumsMixed = {};
+  const dayFields = { songs: 'daySongs', artists: 'dayArtists', albums: 'dayAlbums', albumsMixed: 'dayAlbums' };
   // Track prev-period chart and ever-charted sets so we can assign chartStatus
   // exactly as the render functions do, making box ranks match displayed ranks.
-  const prevChartKeys = { songs: new Map(), artists: new Map(), albums: new Map() };
-  const everChartedKeys = { songs: new Set(), artists: new Set(), albums: new Set() };
+  const prevChartKeys = { songs: new Map(), artists: new Map(), albums: new Map(), albumsMixed: new Map() };
+  const everChartedKeys = { songs: new Set(), artists: new Set(), albums: new Set(), albumsMixed: new Set() };
   // Each type's own per-period SIZE setting — not one shared (Songs-only) size —
   // so the Artists/Albums SIZE bar actually affects their chart-run truncation.
   const sizeByType = {
@@ -15166,12 +15228,14 @@ function _buildChartRunFull(period) {
     artists: crSizeForType('artists', period),
     albums:  crSizeForType('albums', period),
   };
+  sizeByType.albumsMixed = sizeByType.albums;
   for (const pk of Object.keys(periodMap).sort()) {
     const pm = periodMap[pk];
     const lbl = crPeriodLabel(period, pk);
-    for (const type of ['songs', 'artists', 'albums']) {
+    for (const type of runTypes) {
+      const src = type === 'albumsMixed' ? 'albums' : type;   // the tally it ranks
       // Assign chartStatus to each item for this period
-      for (const [k, data] of Object.entries(pm[type])) {
+      for (const [k, data] of Object.entries(pm[src])) {
         const prevRk = prevChartKeys[type].get(k);
         data.chartStatus = prevRk !== undefined ? 0 : everChartedKeys[type].has(k) ? 1 : 2;
         data.prevRank = prevRk !== undefined ? prevRk : Infinity;
@@ -15187,7 +15251,7 @@ function _buildChartRunFull(period) {
          Everything else, and albums while nothing is separated, is one group. */
       const groups = (type === 'albums' && separatedTypes().length)
         ? _crBucketAlbums(pm.albums)
-        : [Object.entries(pm[type])];
+        : [Object.entries(pm[src])];
       // Accumulated across the groups and assigned once, or the second bucket
       // would wipe the first one's prev-rank map.
       const newPrevKeys = new Map();
@@ -15199,13 +15263,15 @@ function _buildChartRunFull(period) {
           const days = pm[dayFields[type]][k]?.size || 0;
           if (!result[type][k]) result[type][k] = {
             entries: [], peak: rank, peakPlays: 0, peakDays: 0, peakMonths: 0,
-            _title: data._title, _artist: data._artist, _album: data._album
+            _title: data._title, _artist: data._artist, _album: data._album,
+            // Marks a combined-chart history, so a clicked box previews that chart.
+            _mixed: type === 'albumsMixed' || undefined
           };
           const entry = { periodKey: pk, label: lbl, rank, plays: data.count, days };
           // Yearly runs count the distinct months an item charted in. Recorded per
           // entry as well as in the running peak, because a sliced view has to be
           // able to recompute the peak from just the entries it keeps.
-          if (period === 'year' && pm.yrMonths) entry.months = pm.yrMonths[type][k]?.size || 0;
+          if (period === 'year' && pm.yrMonths) entry.months = pm.yrMonths[src][k]?.size || 0;
           result[type][k].entries.push(entry);
           if (rank < result[type][k].peak) result[type][k].peak = rank;
           if (data.count > result[type][k].peakPlays) result[type][k].peakPlays = data.count;
@@ -15224,9 +15290,10 @@ function _buildChartRunFull(period) {
 /* Narrows a full-history run to everything up to and including curKey.
    Equivalent to having built the run with that cutoff in the first place. */
 function _crSlice(full, curKey) {
-  const result = { songs: {}, artists: {}, albums: {} };
-  for (const type of ['songs', 'artists', 'albums']) {
-    const src = full.result[type], dst = result[type];
+  const result = {};
+  // Every table the full run has — including 'albumsMixed' when present.
+  for (const type in full.result) {
+    const src = full.result[type], dst = result[type] = {};
     for (const k in src) {
       const d = src[k];
       const all = d.entries;
@@ -15245,7 +15312,7 @@ function _crSlice(full, curKey) {
         if (e.months !== undefined && e.months > peakMonths) peakMonths = e.months;
       }
       dst[k] = { entries, peak, peakPlays, peakDays, peakMonths,
-                 _title: d._title, _artist: d._artist, _album: d._album };
+                 _title: d._title, _artist: d._artist, _album: d._album, _mixed: d._mixed };
     }
   }
   const periodMap = {};
@@ -15463,7 +15530,7 @@ function crBoxesHTML(type, key, crData, preD, periodOverride) {
   const boxes = d.entries.flatMap((e, i) => {
     const isPeak = (e.rank === d.peak);
     const cls = isPeak ? 'cr-box cr-box-peak' : 'cr-box';
-    const box = `<div class="${cls}" onclick="showCrPreview('${esc(e.periodKey)}','${type}','${safeKey}',this,'${period}')">
+    const box = `<div class="${cls}" onclick="showCrPreview('${esc(e.periodKey)}','${type}','${safeKey}',this,'${period}'${d._mixed ? ',1' : ''})">
       <div class="cr-box-rank">#${e.rank}</div>
       <div class="cr-box-label">${esc(crPeriodLabel(period, e.periodKey))}</div>
     </div>`;
@@ -15883,7 +15950,10 @@ function toggleAllCertLedgers(tableId, btn) {
 }
 
 let _crPreviewCleanup = null;
-function showCrPreview(periodKey, type, encodedKey, boxEl, periodName) {
+/* `mixed` is set by boxes drawn from a combined-chart history (the albums
+   "All" view): their rank came from every release ranked together, so the
+   list shown under it must be that same chart and not one type's. */
+function showCrPreview(periodKey, type, encodedKey, boxEl, periodName, mixed) {
   hideCrPreview();
   const crData = (periodName && allChartRun[periodName]) || chartRunData;
   if (!crData || !crData.periodMap[periodKey]) return;
@@ -15901,7 +15971,7 @@ function showCrPreview(periodKey, type, encodedKey, boxEl, periodName) {
      that somehow isn't in this period's map. */
   let pool = Object.entries(pm[type]);
   let typeLabel = typeLabels[type];
-  if (type === 'albums' && separatedTypes().length) {
+  if (type === 'albums' && separatedTypes().length && !mixed) {
     const kd = pm.albums[key];
     const bucket = kd ? albumBucketOf(kd._album, kd._artist) : albumBucketOfKey(key);
     pool = pool.filter(([, d]) => albumBucketOf(d._album, d._artist) === bucket);
@@ -16182,16 +16252,11 @@ function buildPeriodStats(period) {
       if (!mm.artists[a]) mm.artists[a] = { count: 0, firstAchieved: p.date };
       mm.artists[a].count++;
     }
-    const ak = albumKeyOf(p);
-    if (!mm.albums[ak]) mm.albums[ak] = { count: 0, firstAchieved: p.date };
-    mm.albums[ak].count++;
-    // Same double-credit, so last week's chart and this week's movement
-    // arrows describe the same numbers the chart itself is showing.
-    const _bpPar = _bpRoll ? rollupParentOf(p) : null;
-    if (_bpPar && _bpPar !== ak) {
-      if (!mm.albums[_bpPar]) mm.albums[_bpPar] = { count: 0, firstAchieved: p.date };
-      mm.albums[_bpPar].count++;
-    }
+    // Same double-credit, and the same no-album skip, as the chart itself, so
+    // last week's chart and this week's movement arrows describe the numbers
+    // on screen. (No-album plays used to take chart slots here and nowhere
+    // else, pushing real albums down last week's chart.)
+    tallyAlbumPlay(mm.albums, p, _bpRoll, () => ({ count: 0, firstAchieved: p.date }));
   }
 
   /* Everything below — previous chart, ever-charted, Bubbling Under, peak
@@ -16344,7 +16409,10 @@ function mMthsCell(key, type, ms) {
 // ─── ALL-TIME PEAK MAPS ────────────────────────────────────────
 // Peak positions are calculated within the top N (chartSize) only —
 // so #1 all-time means #1 within whichever chart size is selected.
-function buildAllTimePeaks() {
+/* `forView` is the all-time chart's own call (buildPeaks): only there does the
+   combined "All" view rank albums as one chart. Everyone else — Records, the
+   modals — wants each type's own all-time rank. */
+function buildAllTimePeaks(forView) {
   // Songs — rank within top chartSize
   const sp = {};
   for (const p of allPlays) {
@@ -16371,15 +16439,13 @@ function buildAllTimePeaks() {
 
   // Albums — rank within top chartSizeAllTime
   const lp = {};
-  for (const p of allPlays) {
-    const k = albumKeyOf(p);
-    if (!lp[k]) lp[k] = { count: 0, firstAchieved: p.date };
-    lp[k].count++;
-  }
+  const _atRoll = rollupAffectsCharts();
+  for (const p of allPlays) tallyAlbumPlay(lp, p, _atRoll, () => ({ count: 0, firstAchieved: p.date }));
   /* Separated types are their own all-time chart, so a single's all-time rank
      is its rank among singles — the same split the chart on screen makes. */
   const albumPeakMap = {};
-  const albumGroups = separatedTypes().length ? _crBucketAlbums(lp) : [Object.entries(lp)];
+  const albumGroups = (separatedTypes().length && !(forView && albumsViewIsMixed()))
+    ? _crBucketAlbums(lp) : [Object.entries(lp)];
   for (const g of albumGroups) {
     g.sort(([, a], [, b]) => rankSort(a, b)).slice(0, chartSizeAllTime)
      .forEach(([k], i) => { albumPeakMap[k] = i + 1; });
@@ -16407,6 +16473,7 @@ function buildPeriodPeaks(period) {
   }
 
   const periodMap = {};
+  const _ppRoll = rollupAffectsCharts();
 
   for (const p of allPlays) {
     // All three branches read a cached stamp; none needs a Date object built.
@@ -16428,9 +16495,8 @@ function buildPeriodPeaks(period) {
       pm.artists[a].count++;
     }
 
-    const ak = albumKeyOf(p);
-    if (!pm.albums[ak]) pm.albums[ak] = { count: 0, firstAchieved: p.date };
-    pm.albums[ak].count++;
+    // Counted the way the albums chart counts, or PEAK badges disagree with it.
+    tallyAlbumPlay(pm.albums, p, _ppRoll, () => ({ count: 0, firstAchieved: p.date }));
   }
 
   const songPeakMap = {};
@@ -16456,7 +16522,10 @@ function buildPeriodPeaks(period) {
          which is what the badge was contradicting — the row said PEAK #2 and
          the chart run under it said #1. Accumulated into one map and one
          prev-rank map, or the second bucket would wipe the first's. */
-      const groups = (type === 'albums' && separatedTypes().length)
+      /* On the combined "All" view the chart on screen is one mixed chart, so
+         the badge is the peak on that chart — the same one the chart run
+         beside it now shows (see crRunType). */
+      const groups = (type === 'albums' && separatedTypes().length && !albumsViewIsMixed())
         ? _crBucketAlbums(pm.albums)
         : [Object.entries(pm[type])];
       const newPrev = new Map();
@@ -16539,7 +16608,7 @@ function buildPeaks() {
   if (currentPeriod === 'week' || currentPeriod === 'month' || currentPeriod === 'year') {
     return buildPeriodPeaks(currentPeriod);
   }
-  return buildAllTimePeaks();
+  return buildAllTimePeaks(true);
 }
 
 function peakBadge(peak) {
@@ -16976,6 +17045,7 @@ function _buildBuChartRunFull(size) {
 
   // Collect weekly play counts for all entries
   const periodMap = {};
+  const _buRoll = rollupAffectsCharts();
   for (const p of allPlays) {
     const pk = playWeekKeyOf(p);
     if (!periodMap[pk]) periodMap[pk] = { songs: {}, artists: {}, albums: {} };
@@ -16987,44 +17057,57 @@ function _buildBuChartRunFull(size) {
       if (!pm.artists[a]) pm.artists[a] = { count: 0, firstAchieved: p.date };
       pm.artists[a].count++;
     }
-    const ak = albumKeyOf(p);
-    if (!pm.albums[ak]) pm.albums[ak] = { count: 0, firstAchieved: p.date };
-    pm.albums[ak].count++;
+    // Counted exactly as the albums chart counts (roll-up credit, no-album skip)
+    // so a week's BU zone is the tail of that week's real chart.
+    tallyAlbumPlay(pm.albums, p, _buRoll, () => ({ count: 0, firstAchieved: p.date }));
   }
 
+  /* Same split as _buildChartRunFull(): with a type separated, 'albums' holds
+     each type's own BU zone (a single's BU run is its run below the singles
+     chart) and 'albumsMixed' the combined chart's, for the "All" view. */
+  const _sepRun = separatedTypes().length > 0;
+  const runTypes = _sepRun ? ['songs', 'artists', 'albumsMixed', 'albums'] : ['songs', 'artists', 'albums'];
   const result = { songs: {}, artists: {}, albums: {} };
+  if (_sepRun) result.albumsMixed = {};
   // Stores BU zone snapshot per week for the tooltip preview (key → { songs: [], artists: [], albums: [] })
   const buPeriodMap = {};
   // Track prev/ever chart sets so chartStatus matches the main render functions
-  const prevChartKeys = { songs: new Map(), artists: new Map(), albums: new Map() };
-  const everChartedKeys = { songs: new Set(), artists: new Set(), albums: new Set() };
+  const prevChartKeys = { songs: new Map(), artists: new Map(), albums: new Map(), albumsMixed: new Map() };
+  const everChartedKeys = { songs: new Set(), artists: new Set(), albums: new Set(), albumsMixed: new Set() };
 
   for (const pk of Object.keys(periodMap).sort()) {
     const pm = periodMap[pk];
     const lbl = crPeriodLabel('week', pk);
-    for (const type of ['songs', 'artists', 'albums']) {
+    for (const type of runTypes) {
+      const src = type === 'albumsMixed' ? 'albums' : type;   // the tally it ranks
       // Assign chartStatus so the sort matches how the main render functions rank entries
-      for (const [k, data] of Object.entries(pm[type])) {
+      for (const [k, data] of Object.entries(pm[src])) {
         const prevRk = prevChartKeys[type].get(k);
         data.chartStatus = prevRk !== undefined ? 0 : everChartedKeys[type].has(k) ? 1 : 2;
         data.prevRank = prevRk !== undefined ? prevRk : Infinity;
       }
-      const allSorted = Object.entries(pm[type]).sort(([, a], [, b]) => rankSortWithStatus(a, b));
-      // Update chart-zone prev/ever sets for the next period
+      const groups = (type === 'albums' && _sepRun) ? _crBucketAlbums(pm.albums) : [Object.entries(pm[src])];
+      // Accumulated across the groups and assigned once, or the second bucket
+      // would wipe the first one's prev-rank map.
       const newPrev = new Map();
-      allSorted.slice(0, size).forEach(([k], i) => { newPrev.set(k, i + 1); everChartedKeys[type].add(k); });
-      prevChartKeys[type] = newPrev;
-      // Record BU zone entries (buRank 1 = just below the chart, highest possible position in BU)
       if (!buPeriodMap[pk]) buPeriodMap[pk] = { songs: [], artists: [], albums: [] };
-      allSorted.slice(size, size + buSize).forEach(([k, data], i) => {
-        const buRank = i + 1;
-        const displayName = type === 'songs' ? (data._title || k.split('|||')[0]) : k.split('|||')[0];
-        buPeriodMap[pk][type].push({ key: k, buRank, plays: data.count, displayName });
-        if (!result[type][k]) result[type][k] = { entries: [], peakBuRank: buRank, peakPlays: 0 };
-        result[type][k].entries.push({ periodKey: pk, label: lbl, buRank, plays: data.count });
-        if (buRank < result[type][k].peakBuRank) result[type][k].peakBuRank = buRank;
-        if (data.count > result[type][k].peakPlays) result[type][k].peakPlays = data.count;
-      });
+      if (type === 'albumsMixed' && !buPeriodMap[pk].albumsMixed) buPeriodMap[pk].albumsMixed = [];
+      for (const groupEntries of groups) {
+        const allSorted = groupEntries.sort(([, a], [, b]) => rankSortWithStatus(a, b));
+        // Update chart-zone prev/ever sets for the next period
+        allSorted.slice(0, size).forEach(([k], i) => { newPrev.set(k, i + 1); everChartedKeys[type].add(k); });
+        // Record BU zone entries (buRank 1 = just below the chart, highest possible position in BU)
+        allSorted.slice(size, size + buSize).forEach(([k, data], i) => {
+          const buRank = i + 1;
+          const displayName = type === 'songs' ? (data._title || k.split('|||')[0]) : k.split('|||')[0];
+          buPeriodMap[pk][type].push({ key: k, buRank, plays: data.count, displayName });
+          if (!result[type][k]) result[type][k] = { entries: [], peakBuRank: buRank, peakPlays: 0 };
+          result[type][k].entries.push({ periodKey: pk, label: lbl, buRank, plays: data.count });
+          if (buRank < result[type][k].peakBuRank) result[type][k].peakBuRank = buRank;
+          if (data.count > result[type][k].peakPlays) result[type][k].peakPlays = data.count;
+        });
+      }
+      prevChartKeys[type] = newPrev;
     }
   }
 
@@ -17033,9 +17116,9 @@ function _buildBuChartRunFull(size) {
 
 // Narrows a full-history BU run to everything up to and including curKey.
 function _buSlice(full, curKey) {
-  const result = { songs: {}, artists: {}, albums: {} };
-  for (const type of ['songs', 'artists', 'albums']) {
-    const src = full.result[type], dst = result[type];
+  const result = {};
+  for (const type in full.result) {   // includes 'albumsMixed' when present
+    const src = full.result[type], dst = result[type] = {};
     for (const k in src) {
       const all = src[k].entries;
       let n = all.length;   // entries are chronological, so the kept ones are a prefix
@@ -17079,7 +17162,7 @@ function buildBuChartRun() {
 // buRank 1 = closest position to the main chart in that week.
 // Each box is clickable: shows a tooltip with the full BU chart for that week + a link to navigate there.
 function buCrBoxesHTML(type, key) {
-  const d = buChartRunData?.result?.[type]?.[key];
+  const d = buChartRunData?.result?.[crRunType(type)]?.[key];
   if (!d || !d.entries.length) return '<div style="font-size:0.6rem;color:var(--text3);padding:4px 0">No Bubbling Under history yet.</div>';
   const safeKey = encodeKeyForOnclick(key);
   const boxes = d.entries.flatMap((e, i) => {
@@ -17102,8 +17185,8 @@ function buCrBoxesHTML(type, key) {
 // Official chart boxes are green (#N); BU boxes are indigo (BUN).
 // Entries are merged chronologically with gap indicators between non-consecutive weeks.
 function buildCombinedCrBoxesHTML(type, key) {
-  const buD = buChartRunData?.result?.[type]?.[key];
-  const crD = allChartRun.week?.result?.[type]?.[key];
+  const buD = buChartRunData?.result?.[crRunType(type)]?.[key];
+  const crD = allChartRun.week?.result?.[crRunType(type)]?.[key];
 
   if ((!buD || !buD.entries.length) && (!crD || !crD.entries.length)) {
     return '<div style="font-size:0.6rem;color:var(--text3);padding:4px 0">No history yet.</div>';
@@ -17122,7 +17205,7 @@ function buildCombinedCrBoxesHTML(type, key) {
       const isPeak = crD && e.rank === crD.peak;
       cls = isPeak ? 'cr-box cr-box-official cr-box-official-peak' : 'cr-box cr-box-official';
       rankText = `#${e.rank}`;
-      onclk = `showCrPreview('${esc(e.periodKey)}','${type}','${safeKey}',this,'week')`;
+      onclk = `showCrPreview('${esc(e.periodKey)}','${type}','${safeKey}',this,'week'${albumsViewIsMixed() && type === 'albums' ? ',1' : ''})`;
     } else {
       const isPeak = buD && e.buRank === buD.peakBuRank;
       cls = isPeak ? 'cr-box cr-box-bu-entry cr-box-peak' : 'cr-box cr-box-bu-entry';
@@ -17151,7 +17234,7 @@ function buildCombinedCrBoxesHTML(type, key) {
 // Chart weeks keep their standard styling; BU weeks appear in orange/red to mark
 // "almost made it" weeks where the entry was in the BU zone but missed the official chart.
 function buildCrWithBuBoxesHTML(type, key, d) {
-  const buD = buChartRunData?.result?.[type]?.[key];
+  const buD = buChartRunData?.result?.[crRunType(type)]?.[key];
   if (!buD || !buD.entries.length) return '';
 
   // Merge chart entries (already filtered by range) with all BU entries, sorted chronologically
@@ -17167,7 +17250,7 @@ function buildCrWithBuBoxesHTML(type, key, d) {
       const isPeak = d && e.rank === d.peak;
       cls = isPeak ? 'cr-box cr-box-peak' : 'cr-box';
       rankText = `#${e.rank}`;
-      onclk = `showCrPreview('${esc(e.periodKey)}','${type}','${safeKey}',this,'week')`;
+      onclk = `showCrPreview('${esc(e.periodKey)}','${type}','${safeKey}',this,'week'${albumsViewIsMixed() && type === 'albums' ? ',1' : ''})`;
     } else {
       const isPeak = buD && e.buRank === buD.peakBuRank;
       cls = isPeak ? 'cr-box cr-box-bu-miss cr-box-bu-miss-peak' : 'cr-box cr-box-bu-miss';
@@ -17223,9 +17306,9 @@ function toggleCrBuView(btn) {
 // Builds the full BU chart run panel HTML (header + stats + boxes).
 // Includes a "+ Chart" toggle button that shows a combined BU + official chart timeline.
 function buildBuCrPanelHTML(type, key) {
-  const d = buChartRunData?.result?.[type]?.[key];
+  const d = buChartRunData?.result?.[crRunType(type)]?.[key];
   // Show toggle only when the entry also has official chart history
-  const hasCrData = !!(allChartRun.week?.result?.[type]?.[key]?.entries?.length);
+  const hasCrData = !!(allChartRun.week?.result?.[crRunType(type)]?.[key]?.entries?.length);
   const toggleBtn = hasCrData
     ? `<button class="bu-combined-toggle" onclick="toggleBuCombinedView(this)" title="Toggle combined Chart + BU timeline">+ Chart</button>`
     : '';
@@ -17294,9 +17377,17 @@ function showBuCrPreview(periodKey, type, encodedKey, boxEl) {
   hideBuCrPreview();
   if (!buChartRunData?.buPeriodMap?.[periodKey]) return;
   const key = decodeURIComponent(encodedKey);
-  const entries = buChartRunData.buPeriodMap[periodKey][type] || [];
   const title = crPeriodTitle('week', periodKey);
   const typeLabels = { songs: t('rec_th_songs'), artists: t('rec_th_artists'), albums: t('rec_th_albums') };
+  /* Albums with a type separated: on the "All" view the combined chart's BU
+     list; otherwise the BU list of the chart this release sits on — the
+     per-type lists are stored side by side, so keep only this one's bucket. */
+  let entries = buChartRunData.buPeriodMap[periodKey][crRunType(type)] || [];
+  if (type === 'albums' && separatedTypes().length && !albumsViewIsMixed()) {
+    const bucket = albumBucketOfKey(key);
+    entries = entries.filter(e => albumBucketOfKey(e.key) === bucket);
+    if (bucket !== 'album') typeLabels.albums = t('rtype_' + bucket + '_plural');
+  }
   const items = entries.map(e => {
     const isActive = (e.key === key);
     return `<div class="cr-preview-item${isActive ? ' highlighted' : ''}"><span class="cr-preview-rank">BU${e.buRank}</span><span>${esc(e.displayName)}</span></div>`;
@@ -18491,7 +18582,7 @@ function _wvStack(items, max, ms, imgItems, type) {
     const ttlInner = `<span class="wv-stk-artist" onclick="event.stopPropagation();_wvOpenModal(${jtype},${jmodalKey})">${esc(ttl)}</span>`;
 
     // Expand shelf: chart run summary + squares
-    const crD = crData?.result?.[type]?.[k];
+    const crD = crData?.result?.[crRunType(type)]?.[k];
     const crPeak = crD ? crD.peak : null;
     const crWks  = crD ? crD.entries.length : null;
     const sumParts = [];
@@ -18583,12 +18674,12 @@ function renderOffChart(type, plays, periodStats, buPool, lowestChartCount) {
       }
     }
   } else {
-    for (const p of plays) {
-      if (!p.album || p.album === '—') continue;
-      const k = albumKeyOf(p);
-      if (!counts[k]) counts[k] = { count: 0, firstAchieved: p.date };
-      counts[k].count++;
-    }
+    /* Counted the way the albums chart counts — including the plays a single
+       lends its album. Without that credit an album sitting at #10 on screen
+       was re-ranked here a couple of plays short, fell below the cutoff and
+       was listed as having dropped out while still on the chart. */
+    const roll = rollupAffectsCharts();
+    for (const p of plays) tallyAlbumPlay(counts, p, roll, () => ({ count: 0, firstAchieved: p.date }));
   }
   /* Off the Chart reports who fell out of the chart above it, so it has to be
      looking at the same chart — the current bucket's, not the mixed one.
@@ -21371,7 +21462,8 @@ function buildEntryIgCardHTML(type, key, rank, opts) {
 function _entryMovement(rank, key, type, period) {
   if (period !== 'year') return igMovement(rank, key, type);
   const crData = allChartRun.year || (chartRunData && chartRunData.period === 'year' ? chartRunData : null);
-  const d = crData && crData.result && crData.result[type] && crData.result[type][key];
+  const _rt = crRunType(type);   // the chart the shared rank came from
+  const d = crData && crData.result && crData.result[_rt] && crData.result[_rt][key];
   const _newKey = type === 'songs' ? 'badge_new_songs' : 'badge_new';
   if (!d || !d.entries.length) return { label: t(_newKey), cls: 'new' };
   if (d.entries.length < 2) return { label: t(_newKey), cls: 'new' };
@@ -21388,7 +21480,8 @@ function _entryDescription(type, key, rank, period, ctx) {
   ctx = ctx || {};
   const crData = allChartRun[period] || (chartRunData && chartRunData.period === period ? chartRunData : null);
   if (!crData) return '';
-  const rawD = crData.result && crData.result[type] && crData.result[type][key];
+  const _rt = crRunType(type);   // the chart the shared rank came from
+  const rawD = crData.result && crData.result[_rt] && crData.result[_rt][key];
   const viewedYear = ctx.viewedYear != null ? ctx.viewedYear : getViewedYear();
   const cutoffKeys = ctx.cutoffKeys || getViewedCutoffKeys();
   const d = filterCrD(rawD, period, 'uptoYear', viewedYear, cutoffKeys);

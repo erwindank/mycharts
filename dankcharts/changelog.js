@@ -61,6 +61,10 @@ const DC_CHANGELOG = [
 
   /* ========== SEPTEMBER 2026 ========== */
 
+  { d: '2026-09-24', t: 'fix', a: 'charts', h: '',
+    title: 'Albums, Singles, EPs and All now keep their side charts in step',
+    detail: 'With singles or EPs on their own charts, Off the Chart could list a release that was still on the chart, because it counted the week without the plays a single lends its album. Off the Chart, Bubbling Under, New Entries, PEAK badges, the chart animation and the chart-run boxes now all count the same way as the chart above them. On the All view they follow the combined chart, and on Albums, Singles or EPs each follows its own. Tracks with no album also no longer take hidden spots in last week’s albums chart.' },
+
   { d: '2026-09-24', t: 'fix', a: 'awards', h: 'a7cf9a2',
     title: 'Switching phones no longer wipes your nominations',
     detail: 'A phone left open on an older copy of your awards used to save that old copy over nominees you had picked since on another phone. Now each save checks for newer changes first, keeps them, and adds yours on top. The awards page also catches up with your other devices when you come back to the app.' },
