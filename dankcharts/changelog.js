@@ -80,7 +80,7 @@ const DC_CHANGELOG = [
 
   /* ========== SEPTEMBER 2026 ========== */
 
-  { d: '2026-09-28', t: 'i18n', a: 'guide', h: '',
+  { d: '2026-09-28', t: 'i18n', a: 'guide', h: 'd02d9f6',
     title: 'The setup guide is now fully in Spanish and Portuguese',
     detail: 'Only the language menu on the setup guide used to change; every step, tip and troubleshooting answer stayed in English. Now the whole guide follows the language you pick, in Spanish, Brazilian Portuguese and European Portuguese, including the step-by-step buttons and progress. Google’s own menus and buttons are named the way Google shows them in your language. Buttons from the dankcharts Settings window keep their English names, because that window is still in English.' },
 
