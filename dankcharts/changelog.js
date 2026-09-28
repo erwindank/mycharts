@@ -20,7 +20,26 @@
    New entries go at the TOP of DC_CHANGELOG (newest first). When adding one,
    bump the ?v= on the changelog.js tag in index.html or the browser will serve
    the old list from cache.
+
+   -- Other languages ---------------------------------------------------------
+   This file stays English. Each entry's translation lives in its own file per
+   language - changelog.es.js, changelog.pt-BR.js, changelog.pt-PT.js - keyed
+   by the English title, and is fetched only when the overlay is opened in
+   that language, so English readers never download three more copies of it.
+
+   Adding an entry means adding it to all three files too. One that is missing
+   is not an error: that entry alone shows in English. The same goes for an
+   English title that gets edited - its translation stops matching and the
+   entry falls back to English, which is right, because the old translation
+   no longer says what the entry says. Bump DC_CL_I18N_V below after editing
+   any of the three, for the same cache reason as the ?v= above.
+
+   Type and area labels and the rest of the overlay's chrome are ordinary keys
+   in translations.js (cl_type_*, cl_area_*, cl_stat_*); the labels below are
+   only the English fallback.
    =========================================================================== */
+
+const DC_CL_I18N_V = 1;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {

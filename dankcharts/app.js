@@ -41892,9 +41892,16 @@ function openChangelog() {
   /* Read the cutoff BEFORE anything is marked seen - the divider is drawn from
      where this visit started, not from where it ends. */
   if (!dcChangelogBuilt) {
-    dcClRenderCutoff = dcClUnseenCutoff();
-    dcRenderChangelog();
-    dcChangelogBuilt = true;
+    /* Only the first build of the visit takes a cutoff: a rebuild after a
+       language switch must keep the divider where it was drawn. */
+    if (!dcClRenderCutoff) dcClRenderCutoff = dcClUnseenCutoff();
+    /* The entries may have to be fetched for this language first. The overlay
+       opens straight away regardless; its body fills in a moment later. */
+    dcClEnsureLang(() => {
+      if (dcChangelogBuilt) return;
+      dcRenderChangelog();
+      dcChangelogBuilt = true;
+    });
   }
   dcClMarkSeen();
   m.classList.add('open');
@@ -41911,12 +41918,79 @@ function closeChangelog() {
   if (location.hash === '#changelog') history.replaceState(null, '', location.pathname + location.search);
 }
 
-/* Month label for a grouping key like "2026-04". */
+/* Month label for a grouping key like "2026-04", in the current language.
+   Intl gives Spanish and Portuguese in lowercase ("septiembre de 2026"), which
+   is right mid-sentence but not as a heading, so the first letter is raised. */
 function dcClMonthLabel(key) {
   const parts = key.split('-');
-  const names = ['January','February','March','April','May','June',
-                 'July','August','September','October','November','December'];
-  return names[parseInt(parts[1], 10) - 1] + ' ' + parts[0];
+  const localeMap = { en: 'en-US', es: 'es', 'pt-BR': 'pt-BR', 'pt-PT': 'pt-PT' };
+  const d = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, 1);
+  const s = new Intl.DateTimeFormat(localeMap[currentLang] || 'en-US',
+                                    { month: 'long', year: 'numeric' }).format(d);
+  return s.charAt(0).toUpperCase() + s.slice(1);
+}
+
+/* Chrome labels. t() hands back the key itself when it is missing, so each
+   falls back to the English in changelog.js rather than printing "cl_area_x". */
+function dcClTypeLabel(type) {
+  const key = 'cl_type_' + type;
+  const s = t(key);
+  return s !== key ? s : (DC_CL_TYPES[type] ? DC_CL_TYPES[type].label : type);
+}
+function dcClAreaLabel(area) {
+  const key = 'cl_area_' + area;
+  const s = t(key);
+  return s !== key ? s : (DC_CL_AREAS[area] || '');
+}
+
+// ── Entry translations ──────────────────────────────────────────────────────
+// changelog.js is English only. Each other language has its own file that
+// fills DC_CHANGELOG_I18N[lang] with { 'English title': [title, detail] }, and
+// it is fetched the first time the overlay opens in that language - 700
+// entries in three more languages is far too much to make every visitor
+// download for an overlay most of them never open.
+window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
+const dcClLangLoading = {};
+
+/* Calls done() once the current language's entries are in - or have failed to
+   load, in which case every entry simply shows in English. */
+function dcClEnsureLang(done) {
+  const lang = currentLang;
+  if (lang === 'en' || window.DC_CHANGELOG_I18N[lang]) { done(); return; }
+  if (dcClLangLoading[lang]) { dcClLangLoading[lang].push(done); return; }
+  dcClLangLoading[lang] = [done];
+  const s = document.createElement('script');
+  s.src = 'changelog.' + lang + '.js?v=' + (typeof DC_CL_I18N_V !== 'undefined' ? DC_CL_I18N_V : 1);
+  const finish = () => {
+    const cbs = dcClLangLoading[lang] || [];
+    delete dcClLangLoading[lang];
+    cbs.forEach(cb => cb());
+  };
+  s.onload = finish;
+  s.onerror = finish;
+  document.head.appendChild(s);
+}
+
+/* The title and detail to show for one entry in the current language. */
+function dcClEntryText(e) {
+  const dict = currentLang !== 'en' ? window.DC_CHANGELOG_I18N[currentLang] : null;
+  const tr = dict ? dict[e.title] : null;
+  return tr ? { title: tr[0], detail: tr[1] || '' } : { title: e.title, detail: e.detail || '' };
+}
+
+/* Called by setLanguage(). The list is built once and kept, so a language
+   switch has to throw it away; if the overlay is open it is rebuilt on the
+   spot. The filters live in dcClActiveTypes/Areas and the search box, and the
+   divider in dcClRenderCutoff, so all three come through the rebuild. */
+function dcClOnLanguageChange() {
+  dcChangelogBuilt = false;
+  dcClRefreshBadge();
+  const m = document.getElementById('changelogModal');
+  if (!m || !m.classList.contains('open')) return;
+  dcClEnsureLang(() => {
+    dcRenderChangelog();
+    dcChangelogBuilt = true;
+  });
 }
 
 function dcRenderChangelog() {
@@ -41934,24 +42008,33 @@ function dcRenderChangelog() {
      can never disagree. */
   const newCount = dcClUnseenCount(dcClRenderCutoff);
   if (stats) {
+    /* The per-type counts have their own keys (cl_stat_type_*) rather than the
+       badge label lowercased: "12 new" works in English, but Spanish and
+       Portuguese need the plural ("12 nuevos") that a badge never does. */
     stats.innerHTML =
       (newCount ? '<span class="cl-stat cl-stat-new"><b>' + newCount + '</b> ' +
                   esc(t('cl_stat_new')) + '</span>' : '') +
-      '<span class="cl-stat"><b>' + DC_CHANGELOG.length + '</b> changes</span>' +
-      Object.keys(DC_CL_TYPES).filter(t => counts[t]).map(t =>
-        '<span class="cl-stat"><b>' + counts[t] + '</b> ' +
-        esc(DC_CL_TYPES[t].label.toLowerCase()) + '</span>').join('') +
-      (since ? '<span class="cl-stat cl-stat-since">since ' + esc(since) + '</span>' : '');
+      '<span class="cl-stat"><b>' + DC_CHANGELOG.length + '</b> ' + esc(t('cl_stat_changes')) + '</span>' +
+      Object.keys(DC_CL_TYPES).filter(ty => counts[ty]).map(ty => {
+        const key = 'cl_stat_type_' + ty;
+        const s = t(key);
+        return '<span class="cl-stat"><b>' + counts[ty] + '</b> ' +
+               esc(s !== key ? s : dcClTypeLabel(ty).toLowerCase()) + '</span>';
+      }).join('') +
+      (since ? '<span class="cl-stat cl-stat-since">' + esc(t('cl_stat_since', { date: since })) + '</span>' : '');
   }
 
   /* -- Filter pills --------------------------------------------------- */
+  /* Drawn with their "on" state from the active sets, because this also runs
+     after a language switch, with filters already chosen. */
   const typeWrap = document.getElementById('clTypeFilters');
   if (typeWrap) {
     typeWrap.innerHTML = Object.keys(DC_CL_TYPES)
-      .filter(t => counts[t])
-      .map(t => '<button class="cl-pill cl-pill-' + DC_CL_TYPES[t].cls + '" data-cltype="' + esc(t) + '"' +
-                ' onclick="dcClTogglePill(&quot;type&quot;,&quot;' + esc(t) + '&quot;,this)">' +
-                esc(DC_CL_TYPES[t].label) + '</button>')
+      .filter(ty => counts[ty])
+      .map(ty => '<button class="cl-pill cl-pill-' + DC_CL_TYPES[ty].cls + (dcClActiveTypes.has(ty) ? ' on' : '') +
+                '" data-cltype="' + esc(ty) + '"' +
+                ' onclick="dcClTogglePill(&quot;type&quot;,&quot;' + esc(ty) + '&quot;,this)">' +
+                esc(dcClTypeLabel(ty)) + '</button>')
       .join('');
   }
   const areaWrap = document.getElementById('clAreaFilters');
@@ -41960,9 +42043,10 @@ function dcRenderChangelog() {
     DC_CHANGELOG.forEach(e => { areaCounts[e.a] = (areaCounts[e.a] || 0) + 1; });
     areaWrap.innerHTML = Object.keys(DC_CL_AREAS)
       .filter(a => areaCounts[a])
-      .map(a => '<button class="cl-pill cl-pill-area" data-clarea="' + esc(a) + '"' +
+      .map(a => '<button class="cl-pill cl-pill-area' + (dcClActiveAreas.has(a) ? ' on' : '') +
+                '" data-clarea="' + esc(a) + '"' +
                 ' onclick="dcClTogglePill(&quot;area&quot;,&quot;' + esc(a) + '&quot;,this)">' +
-                esc(DC_CL_AREAS[a]) + ' <span class="cl-pill-n">' + areaCounts[a] + '</span></button>')
+                esc(dcClAreaLabel(a)) + ' <span class="cl-pill-n">' + areaCounts[a] + '</span></button>')
       .join('');
   }
 
@@ -41991,28 +42075,31 @@ function dcRenderChangelog() {
       dividerDone = true;
     }
     const ty  = DC_CL_TYPES[e.t] || { label: e.t, cls: 'data' };
+    const tyLabel = DC_CL_TYPES[e.t] ? dcClTypeLabel(e.t) : e.t;
+    const areaLabel = dcClAreaLabel(e.a);
+    const tx  = dcClEntryText(e);
     const day = parseInt(e.d.slice(8, 10), 10);
     /* Search haystack precomputed into an attribute - filtering 700 rows on
-       every keystroke should not be reading textContent out of the DOM. */
-    const hay = (e.title + ' ' + (e.detail || '') + ' ' +
-                 (DC_CL_AREAS[e.a] || '') + ' ' + ty.label).toLowerCase();
+       every keystroke should not be reading textContent out of the DOM. It
+       holds only what is on screen, in the language it is on screen in. */
+    const hay = (tx.title + ' ' + tx.detail + ' ' + areaLabel + ' ' + tyLabel).toLowerCase();
     h += '<div class="cl-entry' + (isNew ? ' cl-entry-new' : '') + '" data-cli="' + i + '" data-clt="' + esc(e.t) + '"' +
          ' data-cla="' + esc(e.a) + '" data-clhay="' + esc(hay) + '">' +
          '<button class="cl-entry-head" onclick="dcClToggleEntry(' + i + ')" aria-expanded="false">' +
            '<span class="cl-day">' + day + '</span>' +
-           '<span class="cl-badge cl-badge-' + ty.cls + '">' + esc(ty.label) + '</span>' +
-           '<span class="cl-entry-title">' + esc(e.title) + '</span>' +
-           '<span class="cl-entry-area">' + esc(DC_CL_AREAS[e.a] || '') + '</span>' +
+           '<span class="cl-badge cl-badge-' + ty.cls + '">' + esc(tyLabel) + '</span>' +
+           '<span class="cl-entry-title">' + esc(tx.title) + '</span>' +
+           '<span class="cl-entry-area">' + esc(areaLabel) + '</span>' +
            '<span class="cl-chev" aria-hidden="true">&rsaquo;</span>' +
          '</button>' +
          '<div class="cl-entry-detail" id="cl-detail-' + i + '" hidden>' +
-           '<p>' + esc(e.detail || '') + '</p>' +
+           '<p>' + esc(tx.detail) + '</p>' +
            (e.h ? '<span class="cl-hash">' + esc(e.h) + '</span>' : '') +
          '</div>' +
        '</div>';
   });
   if (lastMonth) h += '</div>';
-  h += '<div class="cl-empty" id="clEmpty" hidden>Nothing matches those filters.</div>';
+  h += '<div class="cl-empty" id="clEmpty" hidden>' + esc(t('cl_empty')) + '</div>';
   body.innerHTML = h;
 }
 
