@@ -8,6 +8,9 @@
   <link rel="icon" href="favicon.svg" type="image/svg+xml">
   <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300..800&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=JetBrains+Mono:ital,wght@0,400..800;1,400&display=swap" rel="stylesheet">
   <script src="translations.js"></script>
+  <!-- The guide's own ES / PT strings, merged into TRANSLATIONS. Must load
+       after translations.js and before its DOMContentLoaded pass runs. -->
+  <script src="setup-guide-i18n.js"></script>
   <style>
     /* ═══════════════════════════════════════════════════════════════════
        SETUP GUIDE — visual system
@@ -1960,7 +1963,7 @@
 <!-- Theme + language switchers, same components as the app masthead -->
 <div class="guide-controls">
   <div class="ctrl-group" id="guideThemeGroup">
-    <button class="ctrl-group-btn" aria-label="Theme" title="Theme">
+    <button data-i18n-title="sg_theme" class="ctrl-group-btn" aria-label="Theme" title="Theme">
       <span class="ctrl-theme-dot"></span>
       <span data-i18n="ctrl_btn_theme">THEME</span>
     </button>
@@ -1978,7 +1981,7 @@
     </div>
   </div>
   <div class="ctrl-group" id="guideLangGroup">
-    <button class="ctrl-group-btn" aria-label="Language" title="Language">
+    <button data-i18n-title="sg_language" class="ctrl-group-btn" aria-label="Language" title="Language">
       🌐 <span data-i18n="ctrl_btn_language">LANGUAGE</span>
     </button>
     <div class="ctrl-group-panel">
@@ -2004,26 +2007,26 @@
 <div class="page">
 
   <header class="guide-hero">
-    <a class="guide-wordmark print-no-url" href="https://dankcharts.fm" aria-label="dankcharts.fm home">
+    <a data-i18n-aria="sg_home_aria" class="guide-wordmark print-no-url" href="https://dankcharts.fm" aria-label="dankcharts.fm home">
       <span class="wordmark-dank">dank</span><span class="wordmark-station">charts</span><span class="wordmark-fm">.fm</span>
     </a>
-    <h1 class="guide-title">Setup Guide</h1>
-    <p class="guide-tagline">Three ways to get your listening history in. Pick the one you started with and follow it end to end.</p>
+    <h1 data-i18n="sg_title" class="guide-title">Setup Guide</h1>
+    <p data-i18n="sg_tagline" class="guide-tagline">Three ways to get your listening history in. Pick the one you started with and follow it end to end.</p>
     <div class="guide-hero-actions">
-      <button class="btn-ghost" onclick="window.print()">⤓ Save as PDF</button>
-      <a class="btn-ghost" href="https://dankcharts.fm">Back to charts <span class="btn-arrow" aria-hidden="true">→</span></a>
+      <button data-i18n="sg_save_pdf" class="btn-ghost" onclick="window.print()">⤓ Save as PDF</button>
+      <a data-i18n-html="sg_back_charts" class="btn-ghost" href="https://dankcharts.fm">Back to charts <span class="btn-arrow" aria-hidden="true">→</span></a>
     </div>
   </header>
 
   <!-- Source picker: the same two choices, wearing the same cards and the
        same animated icons the visitor clicked on the landing screen. -->
-  <div class="guide-tabs" role="tablist" aria-label="Setup path">
+  <div data-i18n-aria="sg_tabs_aria" class="guide-tabs" role="tablist" aria-label="Setup path">
     <button class="guide-tab active" id="guideTabSheets" data-tab="sheets"
             role="tab" aria-selected="true" aria-controls="tab-sheets">
       <span class="tab-icon-sheets" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
       <span class="guide-tab-text">
         <span class="guide-tab-name">Google Sheets</span>
-        <span class="guide-tab-meta">7 steps · ~10 min</span>
+        <span data-i18n="sg_meta_sheets" class="guide-tab-meta">7 steps · ~10 min</span>
       </span>
     </button>
     <button class="guide-tab" id="guideTabLastfm" data-tab="lastfm"
@@ -2033,8 +2036,8 @@
         <span class="vinyl-tonearm"></span>
       </span>
       <span class="guide-tab-text">
-        <span class="guide-tab-name">Last.fm Scrobbling</span>
-        <span class="guide-tab-meta">4 steps · ~5 min</span>
+        <span data-i18n="sg_tab_lastfm" class="guide-tab-name">Last.fm Scrobbling</span>
+        <span data-i18n="sg_meta_lastfm" class="guide-tab-meta">4 steps · ~5 min</span>
       </span>
     </button>
     <button class="guide-tab" id="guideTabFile" data-tab="file"
@@ -2045,8 +2048,8 @@
         <span class="up-sheet up-sheet-1"><span></span><span></span><span></span></span>
       </span>
       <span class="guide-tab-text">
-        <span class="guide-tab-name">Upload a File</span>
-        <span class="guide-tab-meta">4 steps · ~10 min</span>
+        <span data-i18n="sg_tab_file" class="guide-tab-name">Upload a File</span>
+        <span data-i18n="sg_meta_file" class="guide-tab-meta">4 steps · ~10 min</span>
       </span>
     </button>
   </div>
@@ -2054,22 +2057,22 @@
   <!-- ═══════════════════════════ SHEETS PATH ═══════════════════════════ -->
   <div class="guide-tab-panel guide-panel" id="tab-sheets" role="tabpanel" aria-labelledby="guideTabSheets">
 
-    <h2 class="section-label">What you'll need</h2>
+    <h2 data-i18n="sg_needs_title" class="section-label">What you'll need</h2>
     <ul class="needs">
-      <li>A Google account</li>
-      <li>A Last.fm account with some listening history</li>
-      <li>A free Last.fm API key — don't have one? Step 2 creates it, takes two minutes</li>
+      <li data-i18n="sg_sh_need1">A Google account</li>
+      <li data-i18n="sg_sh_need2">A Last.fm account with some listening history</li>
+      <li data-i18n="sg_sh_need3">A free Last.fm API key — don't have one? Step 2 creates it, takes two minutes</li>
     </ul>
 
     <div class="viewbar">
       <div class="progress" data-progress="sheets">
         <div class="progress-track"><div class="progress-fill"></div></div>
         <span class="progress-label"></span>
-        <button type="button" class="progress-reset" hidden>Start over</button>
+        <button data-i18n="sg_start_over" type="button" class="progress-reset" hidden>Start over</button>
       </div>
-      <div class="viewtoggle" role="group" aria-label="How to show the steps">
-        <button type="button" class="viewtoggle-btn" data-view="guided" aria-pressed="true">Guided</button>
-        <button type="button" class="viewtoggle-btn" data-view="text" aria-pressed="false">Full text</button>
+      <div data-i18n-aria="sg_view_aria" class="viewtoggle" role="group" aria-label="How to show the steps">
+        <button data-i18n="sg_view_guided" type="button" class="viewtoggle-btn" data-view="guided" aria-pressed="true">Guided</button>
+        <button data-i18n="sg_view_text" type="button" class="viewtoggle-btn" data-view="text" aria-pressed="false">Full text</button>
       </div>
     </div>
 
@@ -2080,10 +2083,10 @@
           <span class="step-num">01</span><span class="step-tick" aria-hidden="true">✓</span>
         </button>
         <div class="step-card">
-          <h3 class="step-title">Copy the template sheet</h3>
+          <h3 data-i18n="sg_sh1_title" class="step-title">Copy the template sheet</h3>
           <div class="step-body">
-            <p>Open the template and click <strong>Make a copy</strong>. It lands in your own Drive — private to you.</p>
-            <p><a href="https://docs.google.com/spreadsheets/d/19brQQYXn1WQNhCkSMCYnGVYmxhmLzKOE2A3E3QFCeqk/copy" target="_blank" rel="noopener"><strong>Open the template →</strong></a></p>
+            <p data-i18n-html="sg_sh1_p1">Open the template and click <strong>Make a copy</strong>. It lands in your own Drive — private to you.</p>
+            <p data-i18n-html="sg_sh1_open"><a href="https://docs.google.com/spreadsheets/d/19brQQYXn1WQNhCkSMCYnGVYmxhmLzKOE2A3E3QFCeqk/copy" target="_blank" rel="noopener"><strong>Open the template →</strong></a></p>
           </div>
         </div>
       </li>
@@ -2093,17 +2096,17 @@
           <span class="step-num">02</span><span class="step-tick" aria-hidden="true">✓</span>
         </button>
         <div class="step-card">
-          <h3 class="step-title">Get your free Last.fm API key</h3>
+          <h3 data-i18n="sg_sh2_title" class="step-title">Get your free Last.fm API key</h3>
           <div class="step-body">
-            <p>The sheet pulls your plays through Last.fm's API, and that needs a key of your own. Free, instant, no approval — sign in to Last.fm and fill in the form at <a href="https://www.last.fm/api/account/create" target="_blank" rel="noopener"><strong>last.fm/api/account/create</strong></a>. The values can be anything:</p>
+            <p data-i18n-html="sg_sh2_p1">The sheet pulls your plays through Last.fm's API, and that needs a key of your own. Free, instant, no approval — sign in to Last.fm and fill in the form at <a href="https://www.last.fm/api/account/create" target="_blank" rel="noopener"><strong>last.fm/api/account/create</strong></a>. The values can be anything:</p>
             <div class="spec">
-              <div class="spec-head"><span>Field</span><span>What to enter</span></div>
-              <div class="spec-row"><span class="spec-key">Application name</span><span class="spec-val">My Music Charts</span></div>
-              <div class="spec-row"><span class="spec-key">Description</span><span class="spec-val">Personal use</span></div>
-              <div class="spec-row"><span class="spec-key">Homepage <em>(optional)</em></span><span class="spec-val">https://dankcharts.fm</span></div>
-              <div class="spec-row"><span class="spec-key">Callback URL <em>(optional)</em></span><span class="spec-val">https://dankcharts.fm</span></div>
+              <div data-i18n-html="sg_spec_head_form" class="spec-head"><span>Field</span><span>What to enter</span></div>
+              <div class="spec-row"><span class="spec-key">Application name</span><span data-i18n="sg_form_name" class="spec-val">My Music Charts</span></div>
+              <div class="spec-row"><span class="spec-key">Description</span><span data-i18n="sg_form_desc" class="spec-val">Personal use</span></div>
+              <div class="spec-row"><span data-i18n-html="sg_form_home_opt" class="spec-key">Homepage <em>(optional)</em></span><span class="spec-val">https://dankcharts.fm</span></div>
+              <div class="spec-row"><span data-i18n-html="sg_form_cb_opt" class="spec-key">Callback URL <em>(optional)</em></span><span class="spec-val">https://dankcharts.fm</span></div>
             </div>
-            <p>Copy the <strong>API Key</strong> it shows you — that's all this path needs. It also shows a Shared Secret; ignore that here, it's only for scrobble pushing.</p>
+            <p data-i18n-html="sg_sh2_p2">Copy the <strong>API Key</strong> it shows you — that's all this path needs. It also shows a Shared Secret; ignore that here, it's only for scrobble pushing.</p>
           </div>
         </div>
       </li>
@@ -2113,11 +2116,11 @@
           <span class="step-num">03</span><span class="step-tick" aria-hidden="true">✓</span>
         </button>
         <div class="step-card">
-          <h3 class="step-title">Fill in your details</h3>
+          <h3 data-i18n="sg_sh3_title" class="step-title">Fill in your details</h3>
           <div class="step-body">
-            <p>In your copy, open the <strong>Settings</strong> tab at the bottom and fill in column B.</p>
+            <p data-i18n-html="sg_sh3_p1">In your copy, open the <strong>Settings</strong> tab at the bottom and fill in column B.</p>
             <div class="spec">
-              <div class="spec-head"><span>Column A</span><span>Column B — fill these in</span></div>
+              <div data-i18n-html="sg_sh3_head" class="spec-head"><span>Column A</span><span>Column B — fill these in</span></div>
               <div class="spec-row">
                 <span class="spec-key">Last.fm Username:</span>
                 <span class="spec-val">your_lastfm_username</span>
@@ -2128,10 +2131,10 @@
               </div>
               <div class="spec-row">
                 <span class="spec-key">Data Tab Name:</span>
-                <span class="spec-val muted">leave as-is</span>
+                <span data-i18n="sg_leave_asis" class="spec-val muted">leave as-is</span>
               </div>
             </div>
-            <p>The API key is the one you copied in Step 2 — paste it exactly, no extra spaces.</p>
+            <p data-i18n="sg_sh3_p2">The API key is the one you copied in Step 2 — paste it exactly, no extra spaces.</p>
           </div>
         </div>
       </li>
@@ -2141,22 +2144,22 @@
           <span class="step-num">04</span><span class="step-tick" aria-hidden="true">✓</span>
         </button>
         <div class="step-card">
-          <h3 class="step-title">The script is already there</h3>
+          <h3 data-i18n="sg_sh4_title" class="step-title">The script is already there</h3>
           <div class="step-body">
-            <p>It came with the template — nothing to add. To see it:</p>
+            <p data-i18n="sg_sh4_p1">It came with the template — nothing to add. To see it:</p>
             <div class="path">
-              <span class="path-step">Extensions</span>
+              <span data-i18n="sg_g_extensions" class="path-step">Extensions</span>
               <span class="path-arrow" aria-hidden="true">→</span>
               <span class="path-step">Apps Script</span>
             </div>
-            <p>Close that tab and carry on.</p>
+            <p data-i18n="sg_sh4_p2">Close that tab and carry on.</p>
             <details class="disclose">
-              <summary>Replace the script manually</summary>
+              <summary data-i18n="sg_sh4_replace">Replace the script manually</summary>
               <div class="disclose-body">
-                <p>Paste this into Extensions → Apps Script, replacing everything there. Save with Ctrl+S, then redeploy if you set up a Web App in Step 7.</p>
+                <p data-i18n="sg_sh4_paste">Paste this into Extensions → Apps Script, replacing everything there. Save with Ctrl+S, then redeploy if you set up a Web App in Step 7.</p>
                 <div class="code-wrap">
                   <pre id="guideAppsScriptCode"></pre>
-                  <button type="button" class="code-copy" id="copyGuideAppsScriptBtn" onclick="copyGuideAppsScript()">Copy</button>
+                  <button data-i18n="sg_copy" type="button" class="code-copy" id="copyGuideAppsScriptBtn" onclick="copyGuideAppsScript()">Copy</button>
                 </div>
               </div>
             </details>
@@ -2169,58 +2172,58 @@
           <span class="step-num">05</span><span class="step-tick" aria-hidden="true">✓</span>
         </button>
         <div class="step-card">
-          <h3 class="step-title">Start auto-sync</h3>
+          <h3 data-i18n="sg_sh5_title" class="step-title">Start auto-sync</h3>
           <div class="step-body">
-            <p>Everything is in place — this switches it on. Go back to the browser tab with your sheet: there's now a <strong>Last.fm</strong> menu in the menu bar at the top, just right of <strong>Help</strong>.</p>
+            <p data-i18n-html="sg_sh5_p1">Everything is in place — this switches it on. Go back to the browser tab with your sheet: there's now a <strong>Last.fm</strong> menu in the menu bar at the top, just right of <strong>Help</strong>.</p>
             <aside class="note">
               <span class="note-icon" aria-hidden="true">i</span>
-              <div class="note-body">
+              <div data-i18n-html="sg_sh5_note" class="note-body">
                 <strong>Don't see a Last.fm menu?</strong> Reload the page. That menu is added each time the sheet opens, so a tab you already had open won't have it yet.
               </div>
             </aside>
 
-            <p class="step-sub">Switch it on</p>
+            <p data-i18n="sg_sh5_sub1" class="step-sub">Switch it on</p>
             <div class="path">
               <span class="path-step">Last.fm</span>
               <span class="path-arrow" aria-hidden="true">→</span>
               <span class="path-step">Start Auto-Update (90 min)</span>
             </div>
 
-            <p class="step-sub">Approve it — one time only</p>
-            <p>The first time you run anything from that menu, Google asks you to approve the script. It walks you through four screens, and one of them looks scarier than it is:</p>
+            <p data-i18n="sg_sh5_sub2" class="step-sub">Approve it — one time only</p>
+            <p data-i18n="sg_sh5_p2">The first time you run anything from that menu, Google asks you to approve the script. It walks you through four screens, and one of them looks scarier than it is:</p>
             <div class="spec">
-              <div class="spec-head"><span>Screen you'll see</span><span>What to click</span></div>
+              <div data-i18n-html="sg_sh5_head" class="spec-head"><span>Screen you'll see</span><span>What to click</span></div>
               <div class="spec-row">
-                <span class="spec-key">Authorization required</span>
-                <span class="spec-val">Continue / Review permissions</span>
+                <span data-i18n="sg_auth1_k" class="spec-key">Authorization required</span>
+                <span data-i18n="sg_auth1_v" class="spec-val">Continue / Review permissions</span>
               </div>
               <div class="spec-row">
-                <span class="spec-key">Choose an account</span>
-                <span class="spec-val">your own Google account</span>
+                <span data-i18n="sg_auth2_k" class="spec-key">Choose an account</span>
+                <span data-i18n="sg_auth2_v" class="spec-val">your own Google account</span>
               </div>
               <div class="spec-row">
-                <span class="spec-key">Google hasn't verified this app</span>
-                <span class="spec-val">Advanced, then "Go to … (unsafe)"</span>
+                <span data-i18n="sg_auth3_k" class="spec-key">Google hasn't verified this app</span>
+                <span data-i18n="sg_auth3_v" class="spec-val">Advanced, then "Go to … (unsafe)"</span>
               </div>
               <div class="spec-row">
-                <span class="spec-key">… wants access to your Google Account</span>
-                <span class="spec-val">Allow</span>
+                <span data-i18n="sg_auth4_k" class="spec-key">… wants access to your Google Account</span>
+                <span data-i18n="sg_auth4_v" class="spec-val">Allow</span>
               </div>
             </div>
             <aside class="note note-warn">
               <span class="note-icon" aria-hidden="true">!</span>
-              <div class="note-body">
+              <div data-i18n-html="sg_sh5_warn" class="note-body">
                 <strong>"Unsafe" reads worse than it is.</strong> Google shows that screen for every personal script that hasn't gone through its commercial review — including this one, which is <em>your</em> copy sitting in <em>your</em> Drive. It fetches your plays from Last.fm and writes them to this one sheet. Nothing else, and nobody else can run it. Every line is readable under <strong>Extensions → Apps Script</strong>.
               </div>
             </aside>
 
-            <p class="step-sub">What happens after that</p>
-            <p>Nothing lands instantly — the first batch of plays arrives about a minute later, then a fresh one every 90 minutes. Each sync resumes from the last play it saved, so nothing is fetched twice.</p>
-            <p>It runs on Google's servers, so you can close the sheet and the browser entirely. Want the newest plays right now instead of waiting? <strong>Last.fm → Fetch Latest Tracks</strong> runs the same sync on the spot.</p>
+            <p data-i18n="sg_sh5_sub3" class="step-sub">What happens after that</p>
+            <p data-i18n="sg_sh5_p3">Nothing lands instantly — the first batch of plays arrives about a minute later, then a fresh one every 90 minutes. Each sync resumes from the last play it saved, so nothing is fetched twice.</p>
+            <p data-i18n-html="sg_sh5_p4">It runs on Google's servers, so you can close the sheet and the browser entirely. Want the newest plays right now instead of waiting? <strong>Last.fm → Fetch Latest Tracks</strong> runs the same sync on the spot.</p>
             <details class="why">
-              <summary>Why 90 minutes?</summary>
+              <summary data-i18n="sg_sh5_why">Why 90 minutes?</summary>
               <div class="why-body">
-                <p>Some services — Deezer especially — lag before their scrobbles reach Last.fm. A wider window means nothing gets missed.</p>
+                <p data-i18n="sg_sh5_why_body">Some services — Deezer especially — lag before their scrobbles reach Last.fm. A wider window means nothing gets missed.</p>
               </div>
             </details>
           </div>
@@ -2232,58 +2235,58 @@
           <span class="step-num">06</span><span class="step-tick" aria-hidden="true">✓</span>
         </button>
         <div class="step-card">
-          <h3 class="step-title">Connect it to dankcharts.fm</h3>
+          <h3 data-i18n="sg_sh6_title" class="step-title">Connect it to dankcharts.fm</h3>
           <div class="step-body">
-            <p>Your sheet is filling up with plays — now point the site at it. This is the last step you actually need.</p>
+            <p data-i18n="sg_sh6_p1">Your sheet is filling up with plays — now point the site at it. This is the last step you actually need.</p>
 
-            <p class="step-sub">First, let the site read the sheet</p>
-            <p>dankcharts.fm reads your sheet straight from your browser and never signs in to your Google account, so a private sheet gives it nothing back. Open the <strong>Share</strong> button at the top right of your sheet and change one setting:</p>
+            <p data-i18n="sg_sh6_sub1" class="step-sub">First, let the site read the sheet</p>
+            <p data-i18n-html="sg_sh6_p2">dankcharts.fm reads your sheet straight from your browser and never signs in to your Google account, so a private sheet gives it nothing back. Open the <strong>Share</strong> button at the top right of your sheet and change one setting:</p>
             <div class="spec">
-              <div class="spec-head"><span>In the Share dialog</span><span>Set it to</span></div>
+              <div data-i18n-html="sg_sh6_head1" class="spec-head"><span>In the Share dialog</span><span>Set it to</span></div>
               <div class="spec-row">
-                <span class="spec-key">General access</span>
-                <span class="spec-val">Anyone with the link</span>
+                <span data-i18n="sg_share_k1" class="spec-key">General access</span>
+                <span data-i18n="sg_share_v1" class="spec-val">Anyone with the link</span>
               </div>
               <div class="spec-row">
-                <span class="spec-key">The role beside it</span>
-                <span class="spec-val">Viewer</span>
+                <span data-i18n="sg_share_k2" class="spec-key">The role beside it</span>
+                <span data-i18n="sg_share_v2" class="spec-val">Viewer</span>
               </div>
             </div>
             <aside class="note note-tip">
               <span class="note-icon" aria-hidden="true">✦</span>
-              <div class="note-body">
+              <div data-i18n-html="sg_sh6_tip" class="note-body">
                 <strong>This doesn't publish your listening history.</strong> "Anyone with the link" means the link <em>is</em> the key — the sheet isn't listed in anyone else's Drive, and nobody stumbles across it. <strong>Viewer</strong> means even someone holding the link can only read it, never change it.
               </div>
             </aside>
 
-            <p class="step-sub">Copy the link from that same dialog</p>
-            <p>While you're still in the Share dialog, use its <strong>Copy link</strong> button — not the URL in your browser's address bar.</p>
+            <p data-i18n="sg_sh6_sub2" class="step-sub">Copy the link from that same dialog</p>
+            <p data-i18n-html="sg_sh6_p3">While you're still in the Share dialog, use its <strong>Copy link</strong> button — not the URL in your browser's address bar.</p>
             <aside class="note note-warn">
               <span class="note-icon" aria-hidden="true">!</span>
-              <div class="note-body">
+              <div data-i18n-html="sg_sh6_warn" class="note-body">
                 <strong>The address bar carries a hidden tab pointer.</strong> It ends in <code>#gid=…</code>, naming whichever tab you happen to be looking at — and that quietly overrules the tab name you set below. Copy it while the <strong>Settings</strong> tab is open and the site reads your Settings tab, finds no plays, and shows you empty charts with no error. <strong>Copy link</strong> gives you a clean URL with no pointer.
               </div>
             </aside>
 
-            <p class="step-sub">Paste it into the site</p>
+            <p data-i18n="sg_sh6_sub3" class="step-sub">Paste it into the site</p>
             <div class="path">
-              <span class="path-step">Settings ⚙</span>
+              <span data-i18n="sg_path_settings" class="path-step">Settings ⚙</span>
               <span class="path-arrow" aria-hidden="true">→</span>
               <span class="path-step">Google Sheets</span>
             </div>
             <div class="spec">
-              <div class="spec-head"><span>Field</span><span>What to put in it</span></div>
+              <div data-i18n-html="sg_sh6_head2" class="spec-head"><span>Field</span><span>What to put in it</span></div>
               <div class="spec-row">
                 <span class="spec-key">Sheet URL or ID</span>
-                <span class="spec-val">the link you just copied</span>
+                <span data-i18n="sg_sh6_v1" class="spec-val">the link you just copied</span>
               </div>
               <div class="spec-row">
                 <span class="spec-key">Tab name</span>
-                <span class="spec-val muted">leave empty</span>
+                <span data-i18n="sg_leave_empty" class="spec-val muted">leave empty</span>
               </div>
             </div>
-            <p>Leave <strong>Tab name</strong> empty unless you renamed the data tab in your copy — empty means <em>Full Raw Listening History</em>, which is what the template calls it.</p>
-            <p>Hit <strong>Save &amp; Load</strong>. Your plays are read on the spot and your charts appear. That's the setup done — Step 7 is optional, and only worth it if you want to change your listening history <em>from</em> the site rather than in the sheet.</p>
+            <p data-i18n-html="sg_sh6_p4">Leave <strong>Tab name</strong> empty unless you renamed the data tab in your copy — empty means <em>Full Raw Listening History</em>, which is what the template calls it.</p>
+            <p data-i18n-html="sg_sh6_p5">Hit <strong>Save &amp; Load</strong>. Your plays are read on the spot and your charts appear. That's the setup done — Step 7 is optional, and only worth it if you want to change your listening history <em>from</em> the site rather than in the sheet.</p>
           </div>
         </div>
       </li>
@@ -2293,51 +2296,51 @@
           <span class="step-num">07</span><span class="step-tick" aria-hidden="true">✓</span>
         </button>
         <div class="step-card">
-          <h3 class="step-title">Let the site write back to your sheet <span class="optional-badge">Optional</span></h3>
+          <h3 data-i18n-html="sg_sh7_title" class="step-title">Let the site write back to your sheet <span class="optional-badge">Optional</span></h3>
           <div class="step-body">
-            <p>Everything so far is one-way: the site <em>reads</em> your sheet. Skip this step and your charts work perfectly — you just can't change anything from the site. Spend five more minutes here and three things switch on:</p>
+            <p data-i18n-html="sg_sh7_p1">Everything so far is one-way: the site <em>reads</em> your sheet. Skip this step and your charts work perfectly — you just can't change anything from the site. Spend five more minutes here and three things switch on:</p>
             <ul class="needs">
-              <li><strong>+ Add Play</strong> — log a play that never scrobbled (a record, a live set, a friend's aux cord)</li>
-              <li><strong>Fixing a play sticks</strong> — the <strong>✎</strong> button in Raw Data writes the correction into the sheet itself, instead of only tidying what you see in this browser</li>
-              <li><strong>Autocorrect rules save</strong> — "this misspelling always means that artist" gets remembered and applied to the sheet on every load</li>
+              <li data-i18n-html="sg_sh7_li1"><strong>+ Add Play</strong> — log a play that never scrobbled (a record, a live set, a friend's aux cord)</li>
+              <li data-i18n-html="sg_sh7_li2"><strong>Fixing a play sticks</strong> — the <strong>✎</strong> button in Raw Data writes the correction into the sheet itself, instead of only tidying what you see in this browser</li>
+              <li data-i18n-html="sg_sh7_li3"><strong>Autocorrect rules save</strong> — "this misspelling always means that artist" gets remembered and applied to the sheet on every load</li>
             </ul>
 
-            <p class="step-sub">Deploy the script as a Web App</p>
-            <p>The script that's been syncing your plays can also listen for messages from the site — but only once it's published with a URL of its own.</p>
+            <p data-i18n="sg_sh7_sub1" class="step-sub">Deploy the script as a Web App</p>
+            <p data-i18n="sg_sh7_p2">The script that's been syncing your plays can also listen for messages from the site — but only once it's published with a URL of its own.</p>
             <div class="path">
-              <span class="path-step">Extensions</span>
+              <span data-i18n="sg_g_extensions" class="path-step">Extensions</span>
               <span class="path-arrow" aria-hidden="true">→</span>
               <span class="path-step">Apps Script</span>
               <span class="path-arrow" aria-hidden="true">→</span>
-              <span class="path-step">Deploy</span>
+              <span data-i18n="sg_g_deploy" class="path-step">Deploy</span>
               <span class="path-arrow" aria-hidden="true">→</span>
-              <span class="path-step">New deployment</span>
+              <span data-i18n="sg_g_newdeploy" class="path-step">New deployment</span>
             </div>
             <aside class="note">
               <span class="note-icon" aria-hidden="true">i</span>
-              <div class="note-body">
+              <div data-i18n-html="sg_sh7_note" class="note-body">
                 <strong>The type isn't a dropdown.</strong> In that dialog, click the small <strong>gear icon</strong> beside "Select type" and choose <strong>Web app</strong> from it. It's the step most people hunt around for.
               </div>
             </aside>
             <div class="spec">
-              <div class="spec-head"><span>Setting</span><span>Value</span></div>
-              <div class="spec-row"><span class="spec-key">Type <em>(the gear icon)</em></span><span class="spec-val">Web app</span></div>
-              <div class="spec-row"><span class="spec-key">Description</span><span class="spec-val muted">anything, or nothing</span></div>
-              <div class="spec-row"><span class="spec-key">Execute as</span><span class="spec-val">Me</span></div>
-              <div class="spec-row"><span class="spec-key">Who has access</span><span class="spec-val">Anyone</span></div>
+              <div data-i18n-html="sg_sh7_head" class="spec-head"><span>Setting</span><span>Value</span></div>
+              <div class="spec-row"><span data-i18n-html="sg_sh7_k1" class="spec-key">Type <em>(the gear icon)</em></span><span data-i18n="sg_g_webapp" class="spec-val">Web app</span></div>
+              <div class="spec-row"><span data-i18n="sg_g_desc" class="spec-key">Description</span><span data-i18n="sg_sh7_v2" class="spec-val muted">anything, or nothing</span></div>
+              <div class="spec-row"><span data-i18n="sg_g_execas" class="spec-key">Execute as</span><span data-i18n="sg_g_me" class="spec-val">Me</span></div>
+              <div class="spec-row"><span data-i18n="sg_g_whoaccess" class="spec-key">Who has access</span><span data-i18n="sg_g_anyone" class="spec-val">Anyone</span></div>
             </div>
             <aside class="note note-warn">
               <span class="note-icon" aria-hidden="true">!</span>
-              <div class="note-body">
+              <div data-i18n-html="sg_sh7_warn" class="note-body">
                 <strong>"Anyone" is wider than it sounds, and it's the only setting that works.</strong> Your browser calls this script without being signed in to Google, so it has to accept an anonymous request. <strong>Execute as: Me</strong> keeps it running with your permissions on your sheet and nothing else. The URL is what stands in for a password — it's long and random, but treat it that way: anyone you hand it to could add rows to your sheet.
               </div>
             </aside>
-            <p>Press <strong>Deploy</strong>. Google asks you to authorise it, exactly as in Step 5 — same <strong>Advanced → Go to … (unsafe) → Allow</strong> path.</p>
+            <p data-i18n-html="sg_sh7_p3">Press <strong>Deploy</strong>. Google asks you to authorise it, exactly as in Step 5 — same <strong>Advanced → Go to … (unsafe) → Allow</strong> path.</p>
 
-            <p class="step-sub">Copy the URL it gives you</p>
-            <p>The deployment finishes on a <strong>Web app URL</strong> — a long one ending in <code>/exec</code>, like <code>https://script.google.com/macros/s/AKfy…/exec</code>. Copy it, then paste it into the site. It lives one fold down from where you put your sheet link:</p>
+            <p data-i18n="sg_sh7_sub2" class="step-sub">Copy the URL it gives you</p>
+            <p data-i18n-html="sg_sh7_p4">The deployment finishes on a <strong>Web app URL</strong> — a long one ending in <code>/exec</code>, like <code>https://script.google.com/macros/s/AKfy…/exec</code>. Copy it, then paste it into the site. It lives one fold down from where you put your sheet link:</p>
             <div class="path">
-              <span class="path-step">Settings ⚙</span>
+              <span data-i18n="sg_path_settings" class="path-step">Settings ⚙</span>
               <span class="path-arrow" aria-hidden="true">→</span>
               <span class="path-step">Google Sheets</span>
               <span class="path-arrow" aria-hidden="true">→</span>
@@ -2345,10 +2348,10 @@
               <span class="path-arrow" aria-hidden="true">→</span>
               <span class="path-step">Apps Script Web App URL</span>
             </div>
-            <p>Hit <strong>Save &amp; Load</strong>. Open the <strong>Raw Data</strong> tab and you'll find <strong>+ Add Play</strong> waiting at the top.</p>
+            <p data-i18n-html="sg_sh7_p5">Hit <strong>Save &amp; Load</strong>. Open the <strong>Raw Data</strong> tab and you'll find <strong>+ Add Play</strong> waiting at the top.</p>
             <aside class="note note-tip">
               <span class="note-icon" aria-hidden="true">✦</span>
-              <div class="note-body">
+              <div data-i18n-html="sg_sh7_tip" class="note-body">
                 <strong>If you ever edit the script</strong>, this URL stops matching it until you republish: <strong>Deploy → Manage deployments → the pencil icon → Version: New version → Deploy</strong>. The URL itself stays the same, so there's nothing to re-paste here.
               </div>
             </aside>
@@ -2358,37 +2361,37 @@
     </ol>
 
     <section class="guide-section">
-      <h2 class="section-label">Troubleshooting</h2>
+      <h2 data-i18n="sg_troubleshooting" class="section-label">Troubleshooting</h2>
       <div class="faq">
         <details class="faq-item">
-          <summary>The Last.fm menu doesn't appear in my sheet.</summary>
+          <summary data-i18n="sg_sh_q1">The Last.fm menu doesn't appear in my sheet.</summary>
           <div class="faq-body">
-            <p>Close and reopen the sheet. The <code>onOpen</code> function runs when the sheet loads — if you had the sheet open right after making your copy, just refresh the page.</p>
+            <p data-i18n-html="sg_sh_a1">Close and reopen the sheet. The <code>onOpen</code> function runs when the sheet loads — if you had the sheet open right after making your copy, just refresh the page.</p>
           </div>
         </details>
         <details class="faq-item">
-          <summary>No data is being imported.</summary>
+          <summary data-i18n="sg_sh_q2">No data is being imported.</summary>
           <div class="faq-body">
-            <p>Check that your Last.fm username (B1) and API key (B2) in the Settings tab are correct and have no extra spaces. You can test by clicking <strong>Last.fm → Fetch Latest Tracks</strong> and then going to <strong>View → Logs</strong> in the Apps Script editor.</p>
+            <p data-i18n-html="sg_sh_a2">Check that your Last.fm username (B1) and API key (B2) in the Settings tab are correct and have no extra spaces. You can test by clicking <strong>Last.fm → Fetch Latest Tracks</strong> and then going to <strong>View → Logs</strong> in the Apps Script editor.</p>
           </div>
         </details>
         <details class="faq-item">
-          <summary>The site shows "No Google Sheet configured".</summary>
+          <summary data-i18n="sg_sh_q3">The site shows "No Google Sheet configured".</summary>
           <div class="faq-body">
-            <p>Make sure you've pasted the sheet URL in dankcharts.fm Settings and that the sheet is shared as "Anyone with the link can view".</p>
+            <p data-i18n="sg_sh_a3">Make sure you've pasted the sheet URL in dankcharts.fm Settings and that the sheet is shared as "Anyone with the link can view".</p>
           </div>
         </details>
         <details class="faq-item">
-          <summary>My charts are empty, but the sheet is full of plays.</summary>
+          <summary data-i18n="sg_sh_q4">My charts are empty, but the sheet is full of plays.</summary>
           <div class="faq-body">
-            <p>Look at the URL you pasted into Settings. If it ends in <code>#gid=</code> followed by a number, it's pointing at one specific tab — whichever one was open when you copied it from the address bar. When that's the <strong>Settings</strong> tab, the site reads three rows of configuration instead of your listening history and shows empty charts without complaining.</p>
-            <p>Fix it by deleting everything from <code>#gid=</code> onwards, or by re-copying the link with the <strong>Copy link</strong> button inside the sheet's Share dialog, which never includes one.</p>
+            <p data-i18n-html="sg_sh_a4a">Look at the URL you pasted into Settings. If it ends in <code>#gid=</code> followed by a number, it's pointing at one specific tab — whichever one was open when you copied it from the address bar. When that's the <strong>Settings</strong> tab, the site reads three rows of configuration instead of your listening history and shows empty charts without complaining.</p>
+            <p data-i18n-html="sg_sh_a4b">Fix it by deleting everything from <code>#gid=</code> onwards, or by re-copying the link with the <strong>Copy link</strong> button inside the sheet's Share dialog, which never includes one.</p>
           </div>
         </details>
         <details class="faq-item">
-          <summary>Manual entry gives an error.</summary>
+          <summary data-i18n="sg_sh_q5">Manual entry gives an error.</summary>
           <div class="faq-body">
-            <p>The Web App URL must be redeployed after any script change. In Apps Script: <strong>Deploy → Manage deployments → edit the existing deployment → Deploy</strong>.</p>
+            <p data-i18n-html="sg_sh_a5">The Web App URL must be redeployed after any script change. In Apps Script: <strong>Deploy → Manage deployments → edit the existing deployment → Deploy</strong>.</p>
           </div>
         </details>
       </div>
@@ -2396,10 +2399,10 @@
 
     <div class="support">
       <div class="support-glyph" aria-hidden="true">🎧</div>
-      <div class="support-title">Need help?</div>
-      <p>Can't get it working? Open a support ticket and we'll get back to you.</p>
-      <button class="btn-primary" onclick="openZohoSupport()">Open a Support Ticket</button>
-      <p class="support-alt">or email <a href="mailto:support@dankcharts.fm">support@dankcharts.fm</a></p>
+      <div data-i18n="sg_need_help" class="support-title">Need help?</div>
+      <p data-i18n="sg_support_p">Can't get it working? Open a support ticket and we'll get back to you.</p>
+      <button data-i18n="sg_support_btn" class="btn-primary" onclick="openZohoSupport()">Open a Support Ticket</button>
+      <p data-i18n-html="sg_support_alt" class="support-alt">or email <a href="mailto:support@dankcharts.fm">support@dankcharts.fm</a></p>
     </div>
 
   </div><!-- /tab-sheets -->
@@ -2407,22 +2410,22 @@
   <!-- ═══════════════════════ LAST.FM SCROBBLING PATH ═══════════════════ -->
   <div class="guide-tab-panel guide-panel" id="tab-lastfm" role="tabpanel" aria-labelledby="guideTabLastfm" style="display:none">
 
-    <h2 class="section-label">What you'll need</h2>
+    <h2 data-i18n="sg_needs_title" class="section-label">What you'll need</h2>
     <ul class="needs">
-      <li>A Last.fm account</li>
-      <li>A free Last.fm API key &amp; shared secret — <a href="https://www.last.fm/api/account/create" target="_blank" rel="noopener">last.fm/api/account/create</a></li>
-      <li>dankcharts.fm loaded with your listening history — either from this guide's API connection, or by uploading a CSV from <a href="https://mainstream.ghan.nl/export.html" target="_blank" rel="noopener">ghan.nl's Last.fm exporter</a> (see the <strong>Upload a File</strong> guide)</li>
+      <li data-i18n="sg_lf_need1">A Last.fm account</li>
+      <li data-i18n-html="sg_lf_need2">A free Last.fm API key &amp; shared secret — <a href="https://www.last.fm/api/account/create" target="_blank" rel="noopener">last.fm/api/account/create</a></li>
+      <li data-i18n-html="sg_lf_need3">dankcharts.fm loaded with your listening history — either from this guide's API connection, or by uploading a CSV from <a href="https://mainstream.ghan.nl/export.html" target="_blank" rel="noopener">ghan.nl's Last.fm exporter</a> (see the <strong>Upload a File</strong> guide)</li>
     </ul>
 
     <div class="viewbar">
       <div class="progress" data-progress="lastfm">
         <div class="progress-track"><div class="progress-fill"></div></div>
         <span class="progress-label"></span>
-        <button type="button" class="progress-reset" hidden>Start over</button>
+        <button data-i18n="sg_start_over" type="button" class="progress-reset" hidden>Start over</button>
       </div>
-      <div class="viewtoggle" role="group" aria-label="How to show the steps">
-        <button type="button" class="viewtoggle-btn" data-view="guided" aria-pressed="true">Guided</button>
-        <button type="button" class="viewtoggle-btn" data-view="text" aria-pressed="false">Full text</button>
+      <div data-i18n-aria="sg_view_aria" class="viewtoggle" role="group" aria-label="How to show the steps">
+        <button data-i18n="sg_view_guided" type="button" class="viewtoggle-btn" data-view="guided" aria-pressed="true">Guided</button>
+        <button data-i18n="sg_view_text" type="button" class="viewtoggle-btn" data-view="text" aria-pressed="false">Full text</button>
       </div>
     </div>
 
@@ -2433,17 +2436,17 @@
           <span class="step-num">01</span><span class="step-tick" aria-hidden="true">✓</span>
         </button>
         <div class="step-card">
-          <h3 class="step-title">Create a Last.fm API app</h3>
+          <h3 data-i18n="sg_lf1_title" class="step-title">Create a Last.fm API app</h3>
           <div class="step-body">
-            <p>Fill in the form at <a href="https://www.last.fm/api/account/create" target="_blank" rel="noopener">last.fm/api/account/create</a> — the values can be anything.</p>
+            <p data-i18n-html="sg_lf1_p1">Fill in the form at <a href="https://www.last.fm/api/account/create" target="_blank" rel="noopener">last.fm/api/account/create</a> — the values can be anything.</p>
             <div class="spec">
-              <div class="spec-head"><span>Field</span><span>What to enter</span></div>
-              <div class="spec-row"><span class="spec-key">Application name</span><span class="spec-val">My Music Charts</span></div>
-              <div class="spec-row"><span class="spec-key">Description</span><span class="spec-val">Personal use</span></div>
+              <div data-i18n-html="sg_spec_head_form" class="spec-head"><span>Field</span><span>What to enter</span></div>
+              <div class="spec-row"><span class="spec-key">Application name</span><span data-i18n="sg_form_name" class="spec-val">My Music Charts</span></div>
+              <div class="spec-row"><span class="spec-key">Description</span><span data-i18n="sg_form_desc" class="spec-val">Personal use</span></div>
               <div class="spec-row"><span class="spec-key">Homepage</span><span class="spec-val">https://dankcharts.fm</span></div>
               <div class="spec-row"><span class="spec-key">Callback URL</span><span class="spec-val">https://dankcharts.fm</span></div>
             </div>
-            <p>Copy the <strong>API Key</strong> and <strong>Shared Secret</strong> it gives you. Free, instant, no approval.</p>
+            <p data-i18n-html="sg_lf1_p2">Copy the <strong>API Key</strong> and <strong>Shared Secret</strong> it gives you. Free, instant, no approval.</p>
           </div>
         </div>
       </li>
@@ -2453,10 +2456,10 @@
           <span class="step-num">02</span><span class="step-tick" aria-hidden="true">✓</span>
         </button>
         <div class="step-card">
-          <h3 class="step-title">Paste them into dankcharts.fm</h3>
+          <h3 data-i18n="sg_lf2_title" class="step-title">Paste them into dankcharts.fm</h3>
           <div class="step-body">
             <div class="path">
-              <span class="path-step">Settings ⚙</span>
+              <span data-i18n="sg_path_settings" class="path-step">Settings ⚙</span>
               <span class="path-arrow" aria-hidden="true">→</span>
               <span class="path-step">Data Source</span>
               <span class="path-arrow" aria-hidden="true">→</span>
@@ -2466,7 +2469,7 @@
             </div>
             <aside class="note note-warn">
               <span class="note-icon" aria-hidden="true">!</span>
-              <div class="note-body">
+              <div data-i18n-html="sg_lf2_warn" class="note-body">
                 <strong>Both fields are required.</strong> The Shared Secret signs every request — without it, Connect won't work.
               </div>
             </aside>
@@ -2479,21 +2482,21 @@
           <span class="step-num">03</span><span class="step-tick" aria-hidden="true">✓</span>
         </button>
         <div class="step-card">
-          <h3 class="step-title">Connect your account</h3>
+          <h3 data-i18n="sg_lf3_title" class="step-title">Connect your account</h3>
           <div class="step-body">
             <div class="path">
               <span class="path-step">Connect to Last.fm</span>
               <span class="path-arrow" aria-hidden="true">→</span>
-              <span class="path-step">Allow access</span>
+              <span data-i18n="sg_lf3_allow" class="path-step">Allow access</span>
               <span class="path-arrow" aria-hidden="true">→</span>
-              <span class="path-step">back to the site</span>
+              <span data-i18n="sg_lf3_back" class="path-step">back to the site</span>
             </div>
-            <p>Clicking Connect opens Last.fm in a new tab. Approve it there, come back, and the status flips to <span style="color:var(--green);font-weight:600">● Connected as [your username]</span> on its own.</p>
-            <p>Until that happens it says <strong>● Waiting for your approval on Last.fm</strong>, which is the honest answer: opening the Last.fm tab does not connect anything by itself. If you approved it and the status hasn't caught up, press <strong>Check now</strong>. Only a verified reply from Last.fm turns it green.</p>
+            <p data-i18n-html="sg_lf3_p1">Clicking Connect opens Last.fm in a new tab. Approve it there, come back, and the status flips to <span style="color:var(--green);font-weight:600">● Connected as [your username]</span> on its own.</p>
+            <p data-i18n-html="sg_lf3_p2">Until that happens it says <strong>● Waiting for your approval on Last.fm</strong>, which is the honest answer: opening the Last.fm tab does not connect anything by itself. If you approved it and the status hasn't caught up, press <strong>Check now</strong>. Only a verified reply from Last.fm turns it green.</p>
             <details class="why">
-              <summary>Where is this stored?</summary>
+              <summary data-i18n="sg_lf3_why">Where is this stored?</summary>
               <div class="why-body">
-                <p>In this browser only. Switch browsers or clear site data and you'll reconnect. Everyone connects their own account — credentials are never shared.</p>
+                <p data-i18n="sg_lf3_why_body">In this browser only. Switch browsers or clear site data and you'll reconnect. Everyone connects their own account — credentials are never shared.</p>
               </div>
             </details>
           </div>
@@ -2505,19 +2508,19 @@
           <span class="step-num">04</span><span class="step-tick" aria-hidden="true">✓</span>
         </button>
         <div class="step-card">
-          <h3 class="step-title">Fix and push scrobbles</h3>
+          <h3 data-i18n="sg_lf4_title" class="step-title">Fix and push scrobbles</h3>
           <div class="step-body">
-            <p>Open the <strong>Raw Data</strong> tab. Every row has a <strong>✎</strong> button — click it, fix the artist, title, album or time, then hit <strong>Push to Last.fm</strong>.</p>
+            <p data-i18n-html="sg_lf4_p1">Open the <strong>Raw Data</strong> tab. Every row has a <strong>✎</strong> button — click it, fix the artist, title, album or time, then hit <strong>Push to Last.fm</strong>.</p>
             <aside class="note note-warn">
               <span class="note-icon" aria-hidden="true">!</span>
-              <div class="note-body">
+              <div data-i18n-html="sg_lf4_warn" class="note-body">
                 <strong>Last.fm's API can add scrobbles, never delete them.</strong> A correction adds a <em>new</em> scrobble beside the old one — delete the original yourself on <a href="https://www.last.fm" target="_blank" rel="noopener">last.fm</a> under Profile → Scrobbles.
               </div>
             </aside>
             <details class="why">
-              <summary>Fixing the same track everywhere?</summary>
+              <summary data-i18n="sg_lf4_why">Fixing the same track everywhere?</summary>
               <div class="why-body">
-                <p>Tick <strong>Apply to all matching entries</strong> in the edit panel to correct that artist/track across your whole local history, then push once.</p>
+                <p data-i18n-html="sg_lf4_why_body">Tick <strong>Apply to all matching entries</strong> in the edit panel to correct that artist/track across your whole local history, then push once.</p>
               </div>
             </details>
           </div>
@@ -2526,30 +2529,30 @@
     </ol>
 
     <section class="guide-section">
-      <h2 class="section-label">Troubleshooting</h2>
+      <h2 data-i18n="sg_troubleshooting" class="section-label">Troubleshooting</h2>
       <div class="faq">
         <details class="faq-item">
-          <summary>The "Push to Last.fm" button doesn't appear in the edit panel.</summary>
+          <summary data-i18n="sg_lf_q1">The "Push to Last.fm" button doesn't appear in the edit panel.</summary>
           <div class="faq-body">
-            <p>You need to complete Step 3 first. Open Settings → Data Source → Last.fm Account and check that the status shows "Connected". This section sits below the source cards and stays available whichever source you use, so you can connect from Google Sheets or a CSV upload too.</p>
+            <p data-i18n="sg_lf_a1">You need to complete Step 3 first. Open Settings → Data Source → Last.fm Account and check that the status shows "Connected". This section sits below the source cards and stays available whichever source you use, so you can connect from Google Sheets or a CSV upload too.</p>
           </div>
         </details>
         <details class="faq-item">
-          <summary>Clicking "Connect to Last.fm" gives an error.</summary>
+          <summary data-i18n="sg_lf_q2">Clicking "Connect to Last.fm" gives an error.</summary>
           <div class="faq-body">
-            <p>Make sure both your API Key and Shared Secret are filled in under "Use custom API credentials". The button won't work with just a username.</p>
+            <p data-i18n="sg_lf_a2">Make sure both your API Key and Shared Secret are filled in under "Use custom API credentials". The button won't work with just a username.</p>
           </div>
         </details>
         <details class="faq-item">
-          <summary>"Push to Last.fm" shows an error after connecting.</summary>
+          <summary data-i18n="sg_lf_q3">"Push to Last.fm" shows an error after connecting.</summary>
           <div class="faq-body">
-            <p>Your session may have expired. Go to Settings → Disconnect, then reconnect following Step 3 again.</p>
+            <p data-i18n="sg_lf_a3">Your session may have expired. Go to Settings → Disconnect, then reconnect following Step 3 again.</p>
           </div>
         </details>
         <details class="faq-item">
-          <summary>The scrobble appears twice on Last.fm.</summary>
+          <summary data-i18n="sg_lf_q4">The scrobble appears twice on Last.fm.</summary>
           <div class="faq-body">
-            <p>That's expected — the push added the corrected version but the original is still there. Delete the original manually on the Last.fm website (Profile → Scrobbles).</p>
+            <p data-i18n="sg_lf_a4">That's expected — the push added the corrected version but the original is still there. Delete the original manually on the Last.fm website (Profile → Scrobbles).</p>
           </div>
         </details>
       </div>
@@ -2557,10 +2560,10 @@
 
     <div class="support">
       <div class="support-glyph" aria-hidden="true">🎧</div>
-      <div class="support-title">Need help?</div>
-      <p>Can't get it working? Open a support ticket and we'll get back to you.</p>
-      <button class="btn-primary" onclick="openZohoSupport()">Open a Support Ticket</button>
-      <p class="support-alt">or email <a href="mailto:support@dankcharts.fm">support@dankcharts.fm</a></p>
+      <div data-i18n="sg_need_help" class="support-title">Need help?</div>
+      <p data-i18n="sg_support_p">Can't get it working? Open a support ticket and we'll get back to you.</p>
+      <button data-i18n="sg_support_btn" class="btn-primary" onclick="openZohoSupport()">Open a Support Ticket</button>
+      <p data-i18n-html="sg_support_alt" class="support-alt">or email <a href="mailto:support@dankcharts.fm">support@dankcharts.fm</a></p>
     </div>
 
   </div><!-- /tab-lastfm -->
@@ -2568,16 +2571,16 @@
   <!-- ═══════════════════════════ FILE UPLOAD PATH ══════════════════════ -->
   <div class="guide-tab-panel guide-panel" id="tab-file" role="tabpanel" aria-labelledby="guideTabFile" style="display:none">
 
-    <h2 class="section-label">What you'll need</h2>
+    <h2 data-i18n="sg_needs_title" class="section-label">What you'll need</h2>
     <ul class="needs">
-      <li>A data export from your music service — or any spreadsheet of plays</li>
-      <li>A spreadsheet editor, if your export needs reshaping (Google Sheets, Excel and Numbers all work)</li>
-      <li>Patience: most services take a few days to send your data</li>
+      <li data-i18n="sg_fi_need1">A data export from your music service — or any spreadsheet of plays</li>
+      <li data-i18n="sg_fi_need2">A spreadsheet editor, if your export needs reshaping (Google Sheets, Excel and Numbers all work)</li>
+      <li data-i18n="sg_fi_need3">Patience: most services take a few days to send your data</li>
     </ul>
 
     <aside class="note note-tip" style="margin-bottom:2rem">
       <span class="note-icon" aria-hidden="true">✦</span>
-      <div class="note-body">
+      <div data-i18n-html="sg_fi_tip" class="note-body">
         <strong>Your file never leaves your device.</strong> It's read and parsed in your browser, then stored locally — nothing is uploaded to a server.
       </div>
     </aside>
@@ -2586,11 +2589,11 @@
       <div class="progress" data-progress="file">
         <div class="progress-track"><div class="progress-fill"></div></div>
         <span class="progress-label"></span>
-        <button type="button" class="progress-reset" hidden>Start over</button>
+        <button data-i18n="sg_start_over" type="button" class="progress-reset" hidden>Start over</button>
       </div>
-      <div class="viewtoggle" role="group" aria-label="How to show the steps">
-        <button type="button" class="viewtoggle-btn" data-view="guided" aria-pressed="true">Guided</button>
-        <button type="button" class="viewtoggle-btn" data-view="text" aria-pressed="false">Full text</button>
+      <div data-i18n-aria="sg_view_aria" class="viewtoggle" role="group" aria-label="How to show the steps">
+        <button data-i18n="sg_view_guided" type="button" class="viewtoggle-btn" data-view="guided" aria-pressed="true">Guided</button>
+        <button data-i18n="sg_view_text" type="button" class="viewtoggle-btn" data-view="text" aria-pressed="false">Full text</button>
       </div>
     </div>
 
@@ -2601,69 +2604,69 @@
           <span class="step-num">01</span><span class="step-tick" aria-hidden="true">✓</span>
         </button>
         <div class="step-card">
-          <h3 class="step-title">Get your export</h3>
+          <h3 data-i18n="sg_fi1_title" class="step-title">Get your export</h3>
           <div class="step-body">
-            <p class="picker-prompt">Where's your history coming from?</p>
+            <p data-i18n="sg_fi1_prompt" class="picker-prompt">Where's your history coming from?</p>
             <!-- Picking a service filters this list and Step 2 down to just that
                  one. All six stay in the markup and the script hides the rest,
                  so no-JS and print still get everything. -->
-            <div class="picker" role="group" aria-label="Your music service">
+            <div data-i18n-aria="sg_fi1_picker_aria" class="picker" role="group" aria-label="Your music service">
               <button type="button" class="picker-btn" data-svc="spotify" aria-pressed="false">Spotify</button>
               <button type="button" class="picker-btn" data-svc="deezer" aria-pressed="false">Deezer</button>
               <button type="button" class="picker-btn" data-svc="lastfm" aria-pressed="false">Last.fm</button>
               <button type="button" class="picker-btn" data-svc="youtube" aria-pressed="false">YouTube Music</button>
               <button type="button" class="picker-btn" data-svc="apple" aria-pressed="false">Apple Music</button>
-              <button type="button" class="picker-btn" data-svc="other" aria-pressed="false">Something else</button>
+              <button data-i18n="sg_fi_other" type="button" class="picker-btn" data-svc="other" aria-pressed="false">Something else</button>
             </div>
 
             <ul class="svc">
               <li data-svc="spotify" data-fmt="zip">
-                <div class="svc-head"><span class="svc-name">Spotify</span><span class="svc-fmt">.zip · drop it in</span></div>
-                <p>Account → <strong>Privacy settings</strong> → Download your data. Tick <strong>Extended streaming history</strong> — "Account data" is only the last year.</p>
-                <p>Arrives by email as a ZIP. <strong>Upload it without unpacking.</strong></p>
+                <div class="svc-head"><span class="svc-name">Spotify</span><span data-i18n="sg_fmt_zip" class="svc-fmt">.zip · drop it in</span></div>
+                <p data-i18n-html="sg_fi_spotify1">Account → <strong>Privacy settings</strong> → Download your data. Tick <strong>Extended streaming history</strong> — "Account data" is only the last year.</p>
+                <p data-i18n-html="sg_fi_spotify2">Arrives by email as a ZIP. <strong>Upload it without unpacking.</strong></p>
                 <details class="why">
-                  <summary>How long does it take?</summary>
+                  <summary data-i18n="sg_fi_spotify_why">How long does it take?</summary>
                   <div class="why-body">
-                    <p>A few days for account data, up to 30 for extended history.</p>
+                    <p data-i18n="sg_fi_spotify_why_body">A few days for account data, up to 30 for extended history.</p>
                   </div>
                 </details>
               </li>
               <li data-svc="deezer" data-fmt="xlsx">
-                <div class="svc-head"><span class="svc-name">Deezer</span><span class="svc-fmt svc-fmt-work">.xlsx · one edit first</span></div>
-                <p>Settings → <strong>My personal data</strong> → request your data.</p>
-                <p>You get a workbook of several sheets, and only the <strong>first</strong> one is read. Drag your listening history to the front, save, upload.</p>
+                <div class="svc-head"><span class="svc-name">Deezer</span><span data-i18n="sg_fmt_xlsx" class="svc-fmt svc-fmt-work">.xlsx · one edit first</span></div>
+                <p data-i18n-html="sg_fi_deezer1">Settings → <strong>My personal data</strong> → request your data.</p>
+                <p data-i18n-html="sg_fi_deezer2">You get a workbook of several sheets, and only the <strong>first</strong> one is read. Drag your listening history to the front, save, upload.</p>
               </li>
               <li data-svc="lastfm" data-fmt="csv">
-                <div class="svc-head"><span class="svc-name">Last.fm</span><span class="svc-fmt">.csv · drop it in</span></div>
-                <p>No built-in export — use <a href="https://mainstream.ghan.nl/export.html" target="_blank" rel="noopener"><strong>ghan.nl's exporter</strong></a>: username → <strong>scrobbles</strong> → <strong>CSV</strong>. No API key, no sign-in, no editing afterwards.</p>
+                <div class="svc-head"><span class="svc-name">Last.fm</span><span data-i18n="sg_fmt_csv" class="svc-fmt">.csv · drop it in</span></div>
+                <p data-i18n-html="sg_fi_lastfm1">No built-in export — use <a href="https://mainstream.ghan.nl/export.html" target="_blank" rel="noopener"><strong>ghan.nl's exporter</strong></a>: username → <strong>scrobbles</strong> → <strong>CSV</strong>. No API key, no sign-in, no editing afterwards.</p>
                 <details class="why">
-                  <summary>Two things worth knowing</summary>
+                  <summary data-i18n="sg_fi_lastfm_why">Two things worth knowing</summary>
                   <div class="why-body">
-                    <p>Over 100,000 scrobbles takes a minute or two to build.</p>
-                    <p>It can fetch only what's newer than a previous export — but uploads here <em>replace</em> rather than merge, so keep the full file.</p>
+                    <p data-i18n="sg_fi_lastfm_why1">Over 100,000 scrobbles takes a minute or two to build.</p>
+                    <p data-i18n-html="sg_fi_lastfm_why2">It can fetch only what's newer than a previous export — but uploads here <em>replace</em> rather than merge, so keep the full file.</p>
                   </div>
                 </details>
               </li>
               <li data-svc="youtube" data-fmt="convert">
-                <div class="svc-head"><span class="svc-name">YouTube Music</span><span class="svc-fmt svc-fmt-work">convert first</span></div>
-                <p><a href="https://takeout.google.com" target="_blank" rel="noopener">Google Takeout</a> → deselect everything → <strong>YouTube and YouTube Music</strong> → limit to <strong>history</strong>.</p>
-                <p>Takeout's ZIP isn't a shape we read. Turn its watch-history file into a CSV — Step 3.</p>
+                <div class="svc-head"><span class="svc-name">YouTube Music</span><span data-i18n="sg_fmt_convert" class="svc-fmt svc-fmt-work">convert first</span></div>
+                <p data-i18n-html="sg_fi_yt1"><a href="https://takeout.google.com" target="_blank" rel="noopener">Google Takeout</a> → deselect everything → <strong>YouTube and YouTube Music</strong> → limit to <strong>history</strong>.</p>
+                <p data-i18n="sg_fi_yt2">Takeout's ZIP isn't a shape we read. Turn its watch-history file into a CSV — Step 3.</p>
               </li>
               <li data-svc="apple" data-fmt="convert">
-                <div class="svc-head"><span class="svc-name">Apple Music</span><span class="svc-fmt svc-fmt-work">rename headers</span></div>
-                <p><a href="https://privacy.apple.com" target="_blank" rel="noopener">privacy.apple.com</a> → Request a copy of your data → <strong>Apple Media Services information</strong>.</p>
-                <p>The play-history CSV uses Apple's own column names — rename the header row in Step 3.</p>
+                <div class="svc-head"><span class="svc-name">Apple Music</span><span data-i18n="sg_fmt_rename" class="svc-fmt svc-fmt-work">rename headers</span></div>
+                <p data-i18n-html="sg_fi_apple1"><a href="https://privacy.apple.com" target="_blank" rel="noopener">privacy.apple.com</a> → Request a copy of your data → <strong>Apple Media Services information</strong>.</p>
+                <p data-i18n="sg_fi_apple2">The play-history CSV uses Apple's own column names — rename the header row in Step 3.</p>
               </li>
               <li data-svc="other" data-fmt="convert">
-                <div class="svc-head"><span class="svc-name">Something else</span><span class="svc-fmt svc-fmt-work">rename headers</span></div>
-                <p>Tidal, Amazon Music, SoundCloud, Plex, a DJ set log, a spreadsheet you keep by hand — anything with a track, an artist and a date works. Step 3 has the column names.</p>
+                <div class="svc-head"><span data-i18n="sg_fi_other" class="svc-name">Something else</span><span data-i18n="sg_fmt_rename" class="svc-fmt svc-fmt-work">rename headers</span></div>
+                <p data-i18n="sg_fi_other1">Tidal, Amazon Music, SoundCloud, Plex, a DJ set log, a spreadsheet you keep by hand — anything with a track, an artist and a date works. Step 3 has the column names.</p>
               </li>
             </ul>
 
             <details class="why">
-              <summary>Menu doesn't match what you see?</summary>
+              <summary data-i18n="sg_fi1_why">Menu doesn't match what you see?</summary>
               <div class="why-body">
-                <p>These paths move around. Search your service's help centre for "download my data" — the export itself is what matters, not the route to it.</p>
+                <p data-i18n="sg_fi1_why_body">These paths move around. Search your service's help centre for "download my data" — the export itself is what matters, not the route to it.</p>
               </div>
             </details>
           </div>
@@ -2675,29 +2678,29 @@
           <span class="step-num">02</span><span class="step-tick" aria-hidden="true">✓</span>
         </button>
         <div class="step-card">
-          <h3 class="step-title">Can it go straight in?</h3>
+          <h3 data-i18n="sg_fi2_title" class="step-title">Can it go straight in?</h3>
           <div class="step-body">
-            <p>Three shapes need no editing. If yours is one, skip to Step 4.</p>
+            <p data-i18n="sg_fi2_p1">Three shapes need no editing. If yours is one, skip to Step 4.</p>
             <div class="spec">
-              <div class="spec-head"><span>File</span><span>What's read</span></div>
-              <div class="spec-row"><span class="spec-key">.zip</span><span class="spec-val">Spotify streaming history</span></div>
-              <div class="spec-row"><span class="spec-key">.xlsx / .xls</span><span class="spec-val">first sheet only</span></div>
-              <div class="spec-row"><span class="spec-key">.csv</span><span class="spec-val">column names from Step 3</span></div>
+              <div data-i18n-html="sg_fi2_head" class="spec-head"><span>File</span><span>What's read</span></div>
+              <div class="spec-row"><span class="spec-key">.zip</span><span data-i18n="sg_fi2_v1" class="spec-val">Spotify streaming history</span></div>
+              <div class="spec-row"><span class="spec-key">.xlsx / .xls</span><span data-i18n="sg_fi2_v2" class="spec-val">first sheet only</span></div>
+              <div class="spec-row"><span class="spec-key">.csv</span><span data-i18n="sg_fi2_v3" class="spec-val">column names from Step 3</span></div>
             </div>
 
             <div data-fmt-block="zip">
-              <p class="step-sub">Spotify ZIP</p>
-              <p>Upload it whole. Plays under 30 seconds are dropped, and so is anything without both a track and an artist — which is how podcasts fall out. A lower total than you expected is usually that, not a failure.</p>
+              <p data-i18n="sg_fi2_zip_sub" class="step-sub">Spotify ZIP</p>
+              <p data-i18n="sg_fi2_zip">Upload it whole. Plays under 30 seconds are dropped, and so is anything without both a track and an artist — which is how podcasts fall out. A lower total than you expected is usually that, not a failure.</p>
             </div>
 
             <div data-fmt-block="xlsx">
-              <p class="step-sub">Deezer XLSX</p>
-              <p>Only the first sheet is read, so move your listening history to the front. English or French headings both work — <em>titre</em>, <em>artiste</em>, <em>album</em>, <em>écoute</em>.</p>
+              <p data-i18n="sg_fi2_xlsx_sub" class="step-sub">Deezer XLSX</p>
+              <p data-i18n-html="sg_fi2_xlsx">Only the first sheet is read, so move your listening history to the front. English or French headings both work — <em>titre</em>, <em>artiste</em>, <em>album</em>, <em>écoute</em>.</p>
             </div>
 
             <div data-fmt-block="csv">
-              <p class="step-sub">A CSV you already have</p>
-              <p>If its header row already uses a name from Step 3, it's ready. <a href="https://mainstream.ghan.nl/export.html" target="_blank" rel="noopener">ghan.nl</a> exports are — their extra MusicBrainz ID columns are simply ignored.</p>
+              <p data-i18n="sg_fi2_csv_sub" class="step-sub">A CSV you already have</p>
+              <p data-i18n-html="sg_fi2_csv">If its header row already uses a name from Step 3, it's ready. <a href="https://mainstream.ghan.nl/export.html" target="_blank" rel="noopener">ghan.nl</a> exports are — their extra MusicBrainz ID columns are simply ignored.</p>
             </div>
           </div>
         </div>
@@ -2708,50 +2711,50 @@
           <span class="step-num">03</span><span class="step-tick" aria-hidden="true">✓</span>
         </button>
         <div class="step-card">
-          <h3 class="step-title">Make it a CSV</h3>
+          <h3 data-i18n="sg_fi3_title" class="step-title">Make it a CSV</h3>
           <div class="step-body">
             <aside class="note note-tip" data-skip-hint hidden>
               <span class="note-icon" aria-hidden="true">✦</span>
-              <div class="note-body">
+              <div data-i18n-html="sg_fi3_skip" class="note-body">
                 <strong>You can skip this step.</strong> Your export already imports as it comes — head to Step 4.
               </div>
             </aside>
-            <p>The universal path: any export becomes importable once row 1 uses these names.</p>
+            <p data-i18n="sg_fi3_p1">The universal path: any export becomes importable once row 1 uses these names.</p>
             <div class="spec">
-              <div class="spec-head"><span>Column</span><span>Header — any one of these</span></div>
+              <div data-i18n-html="sg_fi3_head" class="spec-head"><span>Column</span><span>Header — any one of these</span></div>
               <div class="spec-row">
-                <span class="spec-key">Song title <em>(required)</em></span>
+                <span data-i18n-html="sg_fi3_k1" class="spec-key">Song title <em>(required)</em></span>
                 <span class="spec-val">song title · title · track · track name · song name</span>
               </div>
               <div class="spec-row">
-                <span class="spec-key">Artist <em>(required)</em></span>
+                <span data-i18n-html="sg_fi3_k2" class="spec-key">Artist <em>(required)</em></span>
                 <span class="spec-val">artist · artist name · performer</span>
               </div>
               <div class="spec-row">
-                <span class="spec-key">Date and time <em>(required)</em></span>
+                <span data-i18n-html="sg_fi3_k3" class="spec-key">Date and time <em>(required)</em></span>
                 <span class="spec-val">date and time · date · datetime · timestamp · time · played at · scrobble time · uts · utc_time</span>
               </div>
               <div class="spec-row">
-                <span class="spec-key">Album <em>(optional)</em></span>
+                <span data-i18n-html="sg_fi3_k4" class="spec-key">Album <em>(optional)</em></span>
                 <span class="spec-val">album · album name · release</span>
               </div>
             </div>
-            <p><strong>One row per play</strong> — a track you've heard forty times is forty rows.</p>
+            <p data-i18n-html="sg_fi3_p2"><strong>One row per play</strong> — a track you've heard forty times is forty rows.</p>
             <aside class="note note-warn">
               <span class="note-icon" aria-hidden="true">!</span>
-              <div class="note-body">
+              <div data-i18n-html="sg_fi3_warn" class="note-body">
                 <strong>Format dates as <code>YYYY-MM-DD</code>.</strong> <code>03/04/2024</code> is read as <strong>March 4th</strong>, not April 3rd — a day-first export lands a whole year on the wrong days.
               </div>
             </aside>
             <details class="why">
-              <summary>What else is accepted?</summary>
+              <summary data-i18n="sg_fi3_why">What else is accepted?</summary>
               <div class="why-body">
-                <p>Extra columns are ignored, capitalisation doesn't matter, and column order is irrelevant. Renaming row 1 is the whole job.</p>
-                <p>Dates work as <code>2024-03-09 21:14:05</code>, <code>2024-03-09</code>, ISO 8601, <code>03/09/2024</code> or unix seconds — as long as the year is 2000 or later.</p>
-                <p>In Google Sheets, reformat a date column with Format → Number → Custom date and time → <code>yyyy-mm-dd hh:mm:ss</code>.</p>
+                <p data-i18n="sg_fi3_why1">Extra columns are ignored, capitalisation doesn't matter, and column order is irrelevant. Renaming row 1 is the whole job.</p>
+                <p data-i18n-html="sg_fi3_why2">Dates work as <code>2024-03-09 21:14:05</code>, <code>2024-03-09</code>, ISO 8601, <code>03/09/2024</code> or unix seconds — as long as the year is 2000 or later.</p>
+                <p data-i18n-html="sg_fi3_why3">In Google Sheets, reformat a date column with Format → Number → Custom date and time → <code>yyyy-mm-dd hh:mm:ss</code>.</p>
               </div>
             </details>
-            <p>Save it out with <strong>File → Download → Comma-separated values</strong> (Excel: <strong>Save As → CSV UTF-8</strong>). Let the spreadsheet write the file and commas inside song titles look after themselves.</p>
+            <p data-i18n-html="sg_fi3_p3">Save it out with <strong>File → Download → Comma-separated values</strong> (Excel: <strong>Save As → CSV UTF-8</strong>). Let the spreadsheet write the file and commas inside song titles look after themselves.</p>
           </div>
         </div>
       </li>
@@ -2761,17 +2764,17 @@
           <span class="step-num">04</span><span class="step-tick" aria-hidden="true">✓</span>
         </button>
         <div class="step-card">
-          <h3 class="step-title">Upload it</h3>
+          <h3 data-i18n="sg_fi4_title" class="step-title">Upload it</h3>
           <div class="step-body">
             <div class="path">
-              <span class="path-step">Settings ⚙</span>
+              <span data-i18n="sg_path_settings" class="path-step">Settings ⚙</span>
               <span class="path-arrow" aria-hidden="true">→</span>
               <span class="path-step">Upload File</span>
             </div>
-            <p>Drop the file on the box or click to browse — <code>.csv</code>, <code>.zip</code>, <code>.xlsx</code>, <code>.xls</code>. You'll see <strong>✓ N plays loaded</strong> and your charts appear.</p>
+            <p data-i18n-html="sg_fi4_p1">Drop the file on the box or click to browse — <code>.csv</code>, <code>.zip</code>, <code>.xlsx</code>, <code>.xls</code>. You'll see <strong>✓ N plays loaded</strong> and your charts appear.</p>
             <aside class="note">
               <span class="note-icon" aria-hidden="true">i</span>
-              <div class="note-body">
+              <div data-i18n-html="sg_fi4_note" class="note-body">
                 <strong>Uploading replaces, it doesn't merge.</strong> Combining two services? Join them into one CSV first.
               </div>
             </aside>
@@ -2781,48 +2784,48 @@
     </ol>
 
     <section class="guide-section">
-      <h2 class="section-label">Troubleshooting</h2>
+      <h2 data-i18n="sg_troubleshooting" class="section-label">Troubleshooting</h2>
       <div class="faq">
         <details class="faq-item">
-          <summary>It says the required columns are missing.</summary>
+          <summary data-i18n="sg_fi_q1">It says the required columns are missing.</summary>
           <div class="faq-body">
-            <p>The header row needs a title column, an artist column and a date column, spelled as one of the accepted names in Step 3. Check row 1 specifically — if your export has a title banner or a blank line above the headers, delete those rows so the header row is the very first line of the file.</p>
+            <p data-i18n="sg_fi_a1">The header row needs a title column, an artist column and a date column, spelled as one of the accepted names in Step 3. Check row 1 specifically — if your export has a title banner or a blank line above the headers, delete those rows so the header row is the very first line of the file.</p>
           </div>
         </details>
         <details class="faq-item">
-          <summary>It says no valid records were found.</summary>
+          <summary data-i18n="sg_fi_q2">It says no valid records were found.</summary>
           <div class="faq-body">
-            <p>Almost always the date column. Every row needs a date that parses to the year 2000 or later — rows without one are skipped, and if that's every row you get this message. Reformat the column to <code>yyyy-mm-dd hh:mm:ss</code> and try again.</p>
+            <p data-i18n-html="sg_fi_a2">Almost always the date column. Every row needs a date that parses to the year 2000 or later — rows without one are skipped, and if that's every row you get this message. Reformat the column to <code>yyyy-mm-dd hh:mm:ss</code> and try again.</p>
           </div>
         </details>
         <details class="faq-item">
-          <summary>My Spotify ZIP imported far fewer plays than I expected.</summary>
+          <summary data-i18n="sg_fi_q3">My Spotify ZIP imported far fewer plays than I expected.</summary>
           <div class="faq-body">
-            <p>That's usually correct rather than broken. Plays shorter than 30 seconds are skipped, and podcasts and videos are dropped because they have no artist and track pair. If you got the basic "Account data" export rather than <strong>Extended streaming history</strong>, it also only covers about the past year.</p>
+            <p data-i18n-html="sg_fi_a3">That's usually correct rather than broken. Plays shorter than 30 seconds are skipped, and podcasts and videos are dropped because they have no artist and track pair. If you got the basic "Account data" export rather than <strong>Extended streaming history</strong>, it also only covers about the past year.</p>
           </div>
         </details>
         <details class="faq-item">
-          <summary>My Deezer XLSX imported nothing.</summary>
+          <summary data-i18n="sg_fi_q4">My Deezer XLSX imported nothing.</summary>
           <div class="faq-body">
-            <p>Only the first sheet of a workbook is read, and Deezer's export usually opens on a different one. Move the listening-history sheet to the front of the workbook, save, and upload again.</p>
+            <p data-i18n="sg_fi_a4">Only the first sheet of a workbook is read, and Deezer's export usually opens on a different one. Move the listening-history sheet to the front of the workbook, save, and upload again.</p>
           </div>
         </details>
         <details class="faq-item">
-          <summary>My Google Takeout ZIP does nothing.</summary>
+          <summary data-i18n="sg_fi_q5">My Google Takeout ZIP does nothing.</summary>
           <div class="faq-body">
-            <p>Only Spotify's ZIP layout is recognised — Takeout's is different, so nothing inside it is found. Open the watch-history file from the Takeout archive, reshape it into a CSV as described in Step 3, and upload that instead.</p>
+            <p data-i18n="sg_fi_a5">Only Spotify's ZIP layout is recognised — Takeout's is different, so nothing inside it is found. Open the watch-history file from the Takeout archive, reshape it into a CSV as described in Step 3, and upload that instead.</p>
           </div>
         </details>
         <details class="faq-item">
-          <summary>My ghan.nl export won't upload.</summary>
+          <summary data-i18n="sg_fi_q6">My ghan.nl export won't upload.</summary>
           <div class="faq-body">
-            <p>That tool offers XML, CSV and JSON — only the <strong>CSV</strong> option can be uploaded here. It also exports loved tracks and events, which aren't play histories; make sure <strong>scrobbles</strong> is the selected export type.</p>
+            <p data-i18n-html="sg_fi_a6">That tool offers XML, CSV and JSON — only the <strong>CSV</strong> option can be uploaded here. It also exports loved tracks and events, which aren't play histories; make sure <strong>scrobbles</strong> is the selected export type.</p>
           </div>
         </details>
         <details class="faq-item">
-          <summary>Everything imported, but the dates are all wrong.</summary>
+          <summary data-i18n="sg_fi_q7">Everything imported, but the dates are all wrong.</summary>
           <div class="faq-body">
-            <p>Your export is almost certainly day-first (<code>DD/MM/YYYY</code>), which is read as month-first. Reformat that column to <code>yyyy-mm-dd hh:mm:ss</code> in your spreadsheet, export again, and re-upload.</p>
+            <p data-i18n-html="sg_fi_a7">Your export is almost certainly day-first (<code>DD/MM/YYYY</code>), which is read as month-first. Reformat that column to <code>yyyy-mm-dd hh:mm:ss</code> in your spreadsheet, export again, and re-upload.</p>
           </div>
         </details>
       </div>
@@ -2830,22 +2833,58 @@
 
     <div class="support">
       <div class="support-glyph" aria-hidden="true">🎧</div>
-      <div class="support-title">Need help?</div>
-      <p>Stuck on a format we haven't covered? Open a ticket with a couple of sample rows and we'll work out the mapping with you.</p>
-      <button class="btn-primary" onclick="openZohoSupport()">Open a Support Ticket</button>
-      <p class="support-alt">or email <a href="mailto:support@dankcharts.fm">support@dankcharts.fm</a></p>
+      <div data-i18n="sg_need_help" class="support-title">Need help?</div>
+      <p data-i18n="sg_fi_support_p">Stuck on a format we haven't covered? Open a ticket with a couple of sample rows and we'll work out the mapping with you.</p>
+      <button data-i18n="sg_support_btn" class="btn-primary" onclick="openZohoSupport()">Open a Support Ticket</button>
+      <p data-i18n-html="sg_support_alt" class="support-alt">or email <a href="mailto:support@dankcharts.fm">support@dankcharts.fm</a></p>
     </div>
 
   </div><!-- /tab-file -->
 
   <footer class="guide-footer">
-    <p><a href="https://dankcharts.fm" class="print-no-url">dankcharts.fm</a> — your personal music charts</p>
-    <p>Last.fm API key: <a href="https://www.last.fm/api/account/create" target="_blank" rel="noopener">last.fm/api/account/create</a></p>
+    <p data-i18n-html="sg_footer1"><a href="https://dankcharts.fm" class="print-no-url">dankcharts.fm</a> — your personal music charts</p>
+    <p data-i18n-html="sg_footer2">Last.fm API key: <a href="https://www.last.fm/api/account/create" target="_blank" rel="noopener">last.fm/api/account/create</a></p>
   </footer>
 
 </div>
 <script>
 (function () {
+  // ── Translation ──────────────────────────────────────────────────────
+  // The English copy of this page lives in the markup, not in a dictionary.
+  // Before translations.js runs its first applyI18n() (on DOMContentLoaded,
+  // which fires after this inline script), copy each tagged element's English
+  // into TRANSLATIONS.en so switching back to English restores it. The
+  // ES / PT versions are in setup-guide-i18n.js.
+  (function captureEnglish() {
+    var en = TRANSLATIONS.en;
+    function keep(key, val) { if (key && en[key] === undefined) en[key] = val; }
+    document.querySelectorAll('[data-i18n]').forEach(function (el) { keep(el.dataset.i18n, el.textContent); });
+    document.querySelectorAll('[data-i18n-html]').forEach(function (el) { keep(el.dataset.i18nHtml, el.innerHTML); });
+    document.querySelectorAll('[data-i18n-title]').forEach(function (el) { keep(el.dataset.i18nTitle, el.title); });
+    document.querySelectorAll('[data-i18n-aria]').forEach(function (el) { keep(el.dataset.i18nAria, el.getAttribute('aria-label')); });
+  })();
+
+  // Things applyI18n() doesn't reach: aria-labels, the page title (which
+  // applyI18n actually overwrites with the app's title), and text the script
+  // builds itself (wizard chrome), which registers a callback here.
+  var relabelers = [];
+  function relabelGuide() {
+    document.title = t('sg_page_title');
+    var desc = document.querySelector('meta[name="description"]');
+    if (desc) desc.setAttribute('content', t('sg_page_desc'));
+    document.querySelectorAll('[data-i18n-aria]').forEach(function (el) {
+      el.setAttribute('aria-label', t(el.dataset.i18nAria));
+    });
+    relabelers.forEach(function (fn) { fn(); });
+  }
+  // The language buttons call the global setLanguage(); wrap it so the guide's
+  // own pass runs after every switch. (Only this page's copy is wrapped.)
+  var baseSetLanguage = window.setLanguage;
+  window.setLanguage = function (lang) {
+    baseSetLanguage(lang);
+    relabelGuide();
+  };
+
   var THEME_CLASSES = ['navy-light','purple','purple-light','red','red-light','yellow','yellow-light','pink','pink-light'];
   var THEME_DOT_COLORS = {
     'navy-dark':'#1a6eb5','navy-light':'#90c4f4',
@@ -3405,8 +3444,8 @@
     var code = document.getElementById('guideAppsScriptCode').textContent;
     var btn = document.getElementById('copyGuideAppsScriptBtn');
     function markCopied() {
-      btn.textContent = 'Copied!';
-      setTimeout(function() { btn.textContent = 'Copy'; }, 2000);
+      btn.textContent = t('sg_copied');
+      setTimeout(function() { btn.textContent = t('sg_copy'); }, 2000);
     }
     if (navigator.clipboard && navigator.clipboard.writeText) {
       navigator.clipboard.writeText(code).then(markCopied).catch(markCopied);
@@ -3458,6 +3497,9 @@
     initGuidedFlow();
     initServicePicker();
     initViewToggle();
+    // translations.js has already run applyI18n() by now (its listener was
+    // registered first); this finishes the job for the saved language.
+    relabelGuide();
   });
 
   function prefersReduced() {
@@ -3523,20 +3565,12 @@
   // in the markup: the HTML stays a plain readable list for no-JS visitors,
   // and the wizard is layered on top.
   function initGuidedFlow() {
-    // Short rail labels, one per step, in step order per path. They live
-    // here (not in the markup) because they're wizard chrome; if a step is
-    // ever added or reordered in the HTML, keep these lists in step.
-    var WIZ_LABELS = {
-      sheets: ['Copy template', 'API key', 'Your details', 'The script', 'Auto-sync', 'Connect', 'Write access'],
-      lastfm: ['API app', 'Paste keys', 'Connect', 'Fix & push'],
-      file:   ['Get export', 'Check format', 'Make a CSV', 'Upload']
-    };
-    // The finish panel's line under "All done", per path.
-    var DONE_COPY = {
-      sheets: 'Your sheet now syncs itself every 90 minutes — head back and watch the plays roll in.',
-      lastfm: 'You’re connected. Every fix you push from Raw Data now lands on your Last.fm profile.',
-      file:   'Your plays are loaded. Head back and see what your listening actually looks like.'
-    };
+    // Short rail labels, one per step, in step order per path, and the finish
+    // panel's line under "All done". They're wizard chrome rather than markup,
+    // so they live in setup-guide-i18n.js as sg_wiz_<path> (labels separated
+    // by |) and sg_done_<path>. If a step is ever added or reordered in the
+    // HTML, keep those label lists in step — in all four languages.
+    function wizLabels(path) { return t('sg_wiz_' + path).split('|'); }
 
     document.querySelectorAll('.guide-tab-panel').forEach(function (panel) {
       var bar = panel.querySelector('.progress');
@@ -3565,17 +3599,16 @@
           rail.appendChild(seg);
           segs.push(seg);
         }
-        var short = (WIZ_LABELS[path] || [])[i] || ('Step ' + (i + 1));
+        // The label text and aria-label are filled in by relabel() below
         var dot = document.createElement('button');
         dot.type = 'button';
         dot.className = 'wiz-dot';
-        dot.setAttribute('aria-label', 'Go to step ' + (i + 1) + ': ' + short);
         dot.innerHTML =
           '<span class="wiz-dot-circle">' +
             '<span class="wiz-dot-num">' + (i < 9 ? '0' : '') + (i + 1) + '</span>' +
             '<span class="wiz-dot-tick" aria-hidden="true">✓</span>' +
           '</span>' +
-          '<span class="wiz-dot-label">' + short + '</span>';
+          '<span class="wiz-dot-label"></span>';
         dot.addEventListener('click', function () { go(i, i < cur ? -1 : 1); });
         rail.appendChild(dot);
         dots.push(dot);
@@ -3589,10 +3622,10 @@
       var nav = document.createElement('div');
       nav.className = 'wiz-nav';
       nav.innerHTML =
-        '<button type="button" class="btn-ghost wiz-back">← Back</button>' +
+        '<button type="button" class="btn-ghost wiz-back"></button>' +
         '<div class="wiz-nav-right">' +
-          '<button type="button" class="btn-ghost wiz-skip" hidden>Skip for now</button>' +
-          '<button type="button" class="btn-primary wiz-next">✓&nbsp; Done — next step</button>' +
+          '<button type="button" class="btn-ghost wiz-skip" hidden></button>' +
+          '<button type="button" class="btn-primary wiz-next"></button>' +
         '</div>';
       var backBtn = nav.querySelector('.wiz-back');
       var skipBtn = nav.querySelector('.wiz-skip');
@@ -3604,12 +3637,35 @@
       doneEl.setAttribute('role', 'status');
       doneEl.innerHTML =
         '<span class="wiz-done-glyph" aria-hidden="true">✓</span>' +
-        '<h3 class="wiz-done-title">All done — go make some charts</h3>' +
-        '<p class="wiz-done-copy">' + (DONE_COPY[path] || '') + '</p>' +
+        '<h3 class="wiz-done-title"></h3>' +
+        '<p class="wiz-done-copy"></p>' +
         '<div class="wiz-done-actions">' +
-          '<a class="btn-primary" href="https://dankcharts.fm">Back to your charts <span class="btn-arrow" aria-hidden="true">→</span></a>' +
-          '<button type="button" class="btn-ghost wiz-restart">Start over</button>' +
+          '<a class="btn-primary" href="https://dankcharts.fm"><span class="wiz-done-back"></span> <span class="btn-arrow" aria-hidden="true">→</span></a>' +
+          '<button type="button" class="btn-ghost wiz-restart"></button>' +
         '</div>';
+
+      // Every piece of wizard text, in the current language. Runs once below
+      // and again after each language switch (via relabelGuide).
+      function relabel() {
+        var labels = wizLabels(path);
+        dots.forEach(function (d, i) {
+          var short = labels[i] || t('sg_step_n', { n: i + 1 });
+          d.querySelector('.wiz-dot-label').textContent = short;
+          d.setAttribute('aria-label', t('sg_goto_step', { n: i + 1, label: short }));
+        });
+        steps.forEach(function (s, i) {
+          var node = s.querySelector('.step-node');
+          if (node) node.setAttribute('aria-label', t('sg_mark_done', { n: i + 1 }));
+        });
+        backBtn.textContent = t('sg_wiz_back');
+        skipBtn.textContent = t('sg_wiz_skip');
+        doneEl.querySelector('.wiz-done-title').textContent = t('sg_all_done');
+        doneEl.querySelector('.wiz-done-copy').textContent = t('sg_done_' + path);
+        doneEl.querySelector('.wiz-done-back').textContent = t('sg_back_to_charts');
+        doneEl.querySelector('.wiz-restart').textContent = t('sg_start_over');
+        render();
+      }
+      relabelers.push(relabel);
 
       stepsOl.parentNode.insertBefore(rail, stepsOl);
       stepsOl.parentNode.insertBefore(count, stepsOl);
@@ -3647,10 +3703,10 @@
         // --p is a 0–1 fraction; the fill is transformed, never resized.
         fill.style.setProperty('--p', steps.length ? doneCount / steps.length : 0);
         if (doneCount === steps.length) {
-          label.textContent = 'All done — go make some charts';
+          label.textContent = t('sg_all_done');
           label.classList.add('progress-done');
         } else {
-          label.textContent = doneCount + ' of ' + steps.length + ' done';
+          label.textContent = t('sg_progress', { n: doneCount, total: steps.length });
           label.classList.remove('progress-done');
         }
         reset.hidden = doneCount === 0;
@@ -3673,13 +3729,11 @@
         });
 
         // Counter + nav
-        count.textContent = 'Step ' + (cur + 1) + ' of ' + steps.length;
+        count.textContent = t('sg_step_of', { n: cur + 1, total: steps.length });
         backBtn.disabled = cur === 0;
         // Skip only appears on steps that are genuinely optional
         skipBtn.hidden = !steps[cur].classList.contains('step-optional');
-        nextBtn.innerHTML = (cur === steps.length - 1)
-          ? '✓&nbsp; Finish setup'
-          : '✓&nbsp; Done — next step';
+        nextBtn.innerHTML = t(cur === steps.length - 1 ? 'sg_wiz_finish' : 'sg_wiz_next');
 
         panel.classList.toggle('wiz-finished', finished);
       }

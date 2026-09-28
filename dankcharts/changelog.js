@@ -61,6 +61,10 @@ const DC_CHANGELOG = [
 
   /* ========== SEPTEMBER 2026 ========== */
 
+  { d: '2026-09-28', t: 'i18n', a: 'guide', h: '',
+    title: 'The setup guide is now fully in Spanish and Portuguese',
+    detail: 'Only the language menu on the setup guide used to change; every step, tip and troubleshooting answer stayed in English. Now the whole guide follows the language you pick, in Spanish, Brazilian Portuguese and European Portuguese, including the step-by-step buttons and progress. Google’s own menus and buttons are named the way Google shows them in your language. Buttons from the dankcharts Settings window keep their English names, because that window is still in English.' },
+
   { d: '2026-09-24', t: 'fix', a: 'charts', h: 'f581407',
     title: 'Albums, Singles, EPs and All now keep their side charts in step',
     detail: 'With singles or EPs on their own charts, Off the Chart could list a release that was still on the chart, because it counted the week without the plays a single lends its album. Off the Chart, Bubbling Under, New Entries, PEAK badges, the chart animation and the chart-run boxes now all count the same way as the chart above them. On the All view they follow the combined chart, and on Albums, Singles or EPs each follows its own. Tracks with no album also no longer take hidden spots in last week’s albums chart.' },
