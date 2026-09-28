@@ -33726,7 +33726,22 @@ const COLLAB_EXCEPTIONS = [
   'Of Monsters and Men', 'Panic! at the Disco', 'Portugal. The Man',
 ];
 
-let _awardsYear     = tzNow().getFullYear() - 1;
+/* Each awards tab reopens on the year you last looked at, per browser, instead
+   of jumping back to the default on every refresh. A saved year outside
+   1959..this year is ignored; the tighter My Grammys floor (first play year)
+   needs the plays loaded, so awardsInit applies it when the tab opens. */
+function _awardsSavedYear(kind, fallback) {
+  try {
+    const y = parseInt(localStorage.getItem('dc_awards_year_' + kind), 10);
+    if (y >= 1959 && y <= tzNow().getFullYear()) return y;
+  } catch (e) {}
+  return fallback;
+}
+function _awardsRememberYear(kind, year) {
+  try { localStorage.setItem('dc_awards_year_' + kind, String(year)); } catch (e) {}
+}
+
+let _awardsYear     = _awardsSavedYear('mygrammys', tzNow().getFullYear() - 1);
 let _awardsYearData = {};
 let _awardsSubTab   = 'mygrammys';
 let _awardsGenreCache = {};
@@ -33749,7 +33764,7 @@ let _awardsPickerCtx      = { year: 0, catId: '', typeLabel: '' };
 let _awardsPickerKeyHandler = null;    // document keydown listener, removed on close
 let _awardsPickerDragFrom = -1;        // index of the nominee chip being dragged
 const AWARDS_PICKER_PAGE  = 60;        // rows added per "Show more"
-let _realLifeYear   = tzNow().getFullYear();
+let _realLifeYear   = _awardsSavedYear('reallife', tzNow().getFullYear());
 
 function _awardsDefaultData(year) {
   const cats = {};
@@ -34759,6 +34774,14 @@ async function _awardsGetCandidates(catDef, eligStart, eligEnd, log) {
 // ── UI Rendering ──────────────────────────────────────────────────────────────
 
 async function awardsInit() {
+  // The remembered year was checked before the plays loaded; now they have, pull
+  // it inside the real range so it never opens on a year before your first play.
+  // With no plays yet the bounds fall back to "last year only", which would
+  // throw the remembered year away, so leave it alone until there is a library.
+  if (_awardsFirstPlayYear() != null) {
+    const { min, max } = _awardsYearBounds('mygrammys');
+    _awardsYear = Math.max(min, Math.min(max, _awardsYear));
+  }
   _awardsSyncYearUI('mygrammys');
   _awardsSyncYearUI('reallife');
   awardsSubTab(_awardsSubTab);
@@ -34815,6 +34838,7 @@ function _awardsSyncYearUI(kind) {
 function _awardsSetYear(kind, year) {
   const { min, max } = _awardsYearBounds(kind);
   year = Math.max(min, Math.min(max, year));
+  _awardsRememberYear(kind, year);
   if (kind === 'reallife') {
     _realLifeYear = year;
     _awardsSyncYearUI(kind);
