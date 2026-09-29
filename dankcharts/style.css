@@ -22661,6 +22661,522 @@ body[class*="-light"] .tm-card-search:hover {
   .awards-cat-card:hover { transform: none; }
 }
 
+/* Nominee view switcher ───────────────────────────────────────────────────────
+   A segmented pill above the grid, right-aligned so it reads as a display
+   setting for the cards rather than another action. */
+.awards-view-bar {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  margin: 18px 0 4px;
+}
+.awards-view-bar-label {
+  font-family: var(--font-mono);
+  font-size: 0.58rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--text3);
+}
+.awards-view-seg {
+  display: inline-flex;
+  gap: 2px;
+  padding: 3px;
+  max-width: 100%;
+  overflow-x: auto;
+  scrollbar-width: none;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--r-full);
+}
+.awards-view-opt {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border: 0;
+  border-radius: var(--r-full);
+  background: transparent;
+  color: var(--text3);
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background var(--t-fast) var(--ease), color var(--t-fast) var(--ease), box-shadow var(--t-fast) var(--ease);
+}
+.awards-view-opt svg {
+  width: 14px;
+  height: 14px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.awards-view-opt:hover { color: var(--text1); background: var(--surface3); }
+.awards-view-opt:focus-visible { outline: 2px solid var(--gold1); outline-offset: 1px; }
+.awards-view-opt[aria-checked="true"] {
+  color: var(--text1);
+  background: color-mix(in srgb, var(--gold1) 16%, var(--surface3));
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--gold1) 40%, transparent);
+}
+.awards-view-opt[aria-checked="true"] svg { stroke: color-mix(in srgb, var(--gold1) 80%, var(--text1)); }
+
+/* Shared by the art views ─────────────────────────────────────────────────────
+   Every artwork slot is an .aw-art box; the injected .thumb / .thumb-initials
+   are stretched to fill it, whatever size the view gives it. */
+.aw-art {
+  position: relative;
+  overflow: hidden;
+  background: var(--surface3);
+}
+.aw-art > div { width: 100%; height: 100%; }
+.aw-art .thumb,
+.aw-art .thumb-initials {
+  width: 100% !important;
+  height: 100% !important;
+  border: none !important;
+  border-radius: 0 !important;
+  object-fit: cover;
+}
+[data-pick] { cursor: pointer; }
+[data-pick]:focus-visible { outline: 2px solid var(--cat-hue); outline-offset: 2px; }
+
+/* Rank chip and remove button float over artwork, so they sit on their own dark
+   glass whatever the picture or theme. The winner's chip turns gold. */
+.aw-rank {
+  position: absolute;
+  top: 6px;
+  left: 6px;
+  z-index: 1;
+  min-width: 22px;
+  padding: 2px 5px;
+  border-radius: var(--r-xs);
+  background: rgba(8, 10, 14, 0.62);
+  backdrop-filter: blur(6px);
+  color: #fff;
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  font-feature-settings: "tnum";
+  line-height: 1.35;
+  text-align: center;
+  pointer-events: none;
+}
+.is-winner .aw-rank { background: var(--gold1); color: #1a1204; }
+.aw-x {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  z-index: 2;
+  width: 22px;
+  height: 22px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: rgba(8, 10, 14, 0.62);
+  color: #fff;
+  font-size: 0.6rem;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity var(--t-fast) var(--ease), background var(--t-fast) var(--ease);
+}
+[data-pick]:hover .aw-x,
+[data-pick]:focus-within .aw-x { opacity: 1; }
+.aw-x:hover { background: var(--rose); }
+@media (hover: none) { .aw-x { opacity: 0.85; } }
+
+/* Spotlight ───────────────────────────────────────────────────────────────────
+   The winner as a hero over a heavy blur of its own artwork (a scrim in the
+   card's surface colour keeps the text on theme), then the field below as rows
+   with thumbnails. Before a winner is crowned the hero is a sealed square. */
+.aw-spot-hero {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-height: 128px;
+  margin: 0 -8px 8px;
+  padding: 16px 14px;
+  border-block: 1px solid var(--border);
+}
+.aw-spot-bd {
+  position: absolute;
+  inset: -40px;
+  z-index: -2;
+  background: radial-gradient(80% 120% at 15% 50%, color-mix(in srgb, var(--cat-hue) 35%, transparent), transparent 70%);
+  background-size: cover;
+  background-position: center;
+  filter: blur(28px) saturate(1.35);
+  opacity: 0.6;
+}
+.aw-spot-hero::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(90deg,
+    color-mix(in srgb, var(--surface2) 40%, transparent),
+    color-mix(in srgb, var(--surface2) 82%, transparent));
+}
+.aw-spot-art {
+  flex: none;
+  width: 96px;
+  aspect-ratio: 1;
+  border-radius: var(--r-md);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.45), 0 0 0 1.5px color-mix(in srgb, var(--gold1) 65%, transparent);
+}
+.aw-spot-art .thumb-initials { font-size: 1.8rem !important; }
+.aw-spot-sealed {
+  flex: none;
+  width: 96px;
+  aspect-ratio: 1;
+  display: grid;
+  place-items: center;
+  border-radius: var(--r-md);
+  border: 1px dashed color-mix(in srgb, var(--gold1) 45%, var(--border));
+  background: color-mix(in srgb, var(--gold1) 6%, var(--surface3));
+  color: color-mix(in srgb, var(--gold1) 70%, var(--text3));
+  font-family: var(--font-display);
+  font-size: 2rem;
+  font-weight: 700;
+}
+.aw-spot-meta {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.aw-spot-label {
+  font-family: var(--font-mono);
+  font-size: 0.58rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--gold1) 70%, var(--text1));
+}
+.aw-spot-hero.is-open .aw-spot-label { color: var(--text3); }
+.aw-spot-name {
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+  color: var(--text1);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.aw-spot-sub,
+.aw-spot-rname,
+.aw-spot-rsub,
+.aw-tile-name,
+.aw-tile-sub,
+.aw-col-name,
+.aw-col-sub,
+.aw-poster-name,
+.aw-poster-sub {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.aw-spot-sub { font-size: 0.76rem; color: var(--text2); }
+.aw-spot-score {
+  margin-top: 2px;
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  font-feature-settings: "tnum";
+  color: var(--text3);
+}
+.aw-spot-list { display: flex; flex-direction: column; gap: 2px; }
+.aw-spot-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 5px 6px;
+  border-radius: var(--r-sm);
+  font-size: 0.8rem;
+  color: var(--text2);
+  transition: background var(--t-fast) var(--ease), color var(--t-fast) var(--ease);
+  animation: awRowIn 300ms var(--ease) both;
+  animation-delay: calc(var(--i, 0) * 22ms);
+}
+.aw-spot-row:hover {
+  background: color-mix(in srgb, var(--cat-hue) 9%, var(--surface3));
+  color: var(--text1);
+}
+.aw-spot-rank {
+  flex: none;
+  width: 18px;
+  text-align: right;
+  font-family: var(--font-mono);
+  font-size: 0.66rem;
+  font-feature-settings: "tnum";
+  color: var(--text3);
+  opacity: 0.7;
+}
+.aw-spot-thumb {
+  flex: none;
+  width: 34px;
+  height: 34px;
+  border-radius: var(--r-sm);
+}
+.aw-spot-thumb .thumb-initials { font-size: 0.7rem !important; }
+.aw-spot-text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  line-height: 1.25;
+}
+.aw-spot-rsub { font-size: 0.68rem; color: var(--text3); }
+.aw-spot-rscore {
+  flex: none;
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  font-feature-settings: "tnum";
+  color: var(--text3);
+}
+.aw-spot-row .aw-x {
+  position: static;
+  flex: none;
+  width: 16px;
+  height: 16px;
+  background: none;
+  color: var(--text3);
+}
+.aw-spot-row .aw-x:hover { background: none; color: var(--rose); }
+.aw-spot-row.is-winner {
+  color: var(--text1);
+  font-weight: 600;
+  background: linear-gradient(90deg, color-mix(in srgb, var(--gold1) 20%, transparent), transparent 80%);
+  box-shadow: inset 3px 0 0 var(--gold1);
+}
+.aw-spot-row.is-winner .aw-spot-rank { opacity: 1; }
+.aw-spot-row.is-winner .aw-spot-thumb { box-shadow: 0 0 0 1.5px var(--gold1); }
+
+/* Tiles ───────────────────────────────────────────────────────────────────────
+   Square covers with the title underneath, like a streaming library shelf. */
+.aw-tiles {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(82px, 1fr));
+  gap: 14px 10px;
+  padding: 4px 6px 8px;
+}
+.aw-tile {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  animation: awRowIn 300ms var(--ease) both;
+  animation-delay: calc(var(--i, 0) * 30ms);
+}
+.aw-tile-frame {
+  position: relative;
+  margin-bottom: 5px;
+  border-radius: var(--r-md);
+  overflow: hidden;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.28), 0 0 0 1px var(--border);
+  transition: transform var(--t-med) var(--ease), box-shadow var(--t-med) var(--ease);
+}
+.aw-tile-art { width: 100%; aspect-ratio: 1; }
+.aw-tile-art .thumb-initials { font-size: 1.2rem !important; }
+.aw-tile:hover .aw-tile-frame {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 22px rgba(0, 0, 0, 0.35), 0 0 0 1px color-mix(in srgb, var(--cat-hue) 60%, transparent);
+}
+.aw-tile-name { font-size: 0.74rem; font-weight: 600; color: var(--text1); }
+.aw-tile-sub  { font-size: 0.64rem; color: var(--text3); }
+.aw-tile.is-winner .aw-tile-frame {
+  box-shadow: 0 0 0 2px var(--gold1), 0 8px 24px color-mix(in srgb, var(--gold1) 30%, transparent);
+}
+.aw-tile.is-winner .aw-tile-name { color: color-mix(in srgb, var(--gold1) 60%, var(--text1)); }
+
+/* Collage ─────────────────────────────────────────────────────────────────────
+   Edge-to-edge mosaic, four square columns sized off the card's own width (the
+   container query unit), the winner at 2×2. Names ride a dark scrim that shows
+   on hover, and always on the winner and on touch screens. */
+.aw-collage { container-type: inline-size; margin: 0 -8px 2px; }
+.aw-collage-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  grid-auto-rows: calc((100cqi - 6px) / 4);
+  grid-auto-flow: dense;
+  gap: 2px;
+}
+.aw-col-cell {
+  position: relative;
+  overflow: hidden;
+  background: var(--surface3);
+  animation: awRowIn 300ms var(--ease) both;
+  animation-delay: calc(var(--i, 0) * 30ms);
+}
+.aw-col-cell.is-winner { grid-column: span 2; grid-row: span 2; }
+.aw-col-cell.is-winner::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  box-shadow: inset 0 0 0 2px var(--gold1);
+  pointer-events: none;
+}
+.aw-col-art { position: absolute; inset: 0; }
+.aw-col-art .thumb { transition: transform 600ms var(--ease); }
+.aw-col-cell:hover .aw-col-art .thumb { transform: scale(1.06); }
+.aw-col-art .thumb-initials { font-size: 1.1rem !important; }
+.aw-col-cell.is-winner .aw-col-art .thumb-initials { font-size: 2.2rem !important; }
+.aw-col-cap {
+  position: absolute;
+  inset: auto 0 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  padding: 20px 7px 6px;
+  background: linear-gradient(transparent, rgba(6, 8, 12, 0.9));
+  color: #fff;
+  opacity: 0;
+  transform: translateY(4px);
+  transition: opacity var(--t-fast) var(--ease), transform var(--t-fast) var(--ease);
+  pointer-events: none;
+}
+.aw-col-cell:hover .aw-col-cap,
+.aw-col-cell:focus-visible .aw-col-cap,
+.aw-col-cell.is-winner .aw-col-cap { opacity: 1; transform: none; }
+.aw-col-name { font-size: 0.66rem; font-weight: 600; }
+.aw-col-sub  { font-size: 0.58rem; opacity: 0.75; }
+.aw-col-win {
+  font-family: var(--font-mono);
+  font-size: 0.54rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--gold1) 70%, #fff);
+}
+.aw-col-cell.is-winner .aw-col-cap { padding: 36px 10px 9px; }
+.aw-col-cell.is-winner .aw-col-name {
+  font-family: var(--font-display);
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: -0.015em;
+}
+.aw-col-cell.is-winner .aw-col-sub { font-size: 0.7rem; }
+@media (hover: none) {
+  .aw-col-cap { opacity: 1; transform: none; }
+  .aw-col-cell:not(.is-winner) .aw-col-sub { display: none; }
+}
+
+/* Reel ────────────────────────────────────────────────────────────────────────
+   One full-width row per category; the field scrolls sideways as posters, with
+   the buttons moved up into the header next to a pair of scroll arrows. */
+#awardsCatList[data-view="reel"] { grid-template-columns: 1fr; }
+.aw-v-reel .awards-cat-header { flex-wrap: wrap; }
+/* Keeps the name on one line; when there's no room the buttons wrap under it */
+.aw-v-reel .awards-cat-heading { min-width: 170px; }
+.aw-reel-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: auto;
+}
+.aw-reel-actions .awards-cat-action-btn { flex: none; }
+.aw-reel-nav {
+  flex: none;
+  width: 28px;
+  height: 28px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  background: var(--surface3);
+  color: var(--text2);
+  cursor: pointer;
+  transition: color var(--t-fast) var(--ease), border-color var(--t-fast) var(--ease);
+}
+.aw-reel-nav svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.aw-reel-nav:hover { color: var(--text1); border-color: var(--cat-hue); }
+@media (hover: none) { .aw-reel-nav { display: none; } }
+.aw-reel-track {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 152px;
+  gap: 14px;
+  padding: 4px 6px 12px;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scroll-snap-type: x mandatory;
+  scroll-padding: 0 6px;
+  scrollbar-width: thin;
+}
+.aw-poster {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  scroll-snap-align: start;
+  animation: awRowIn 300ms var(--ease) both;
+  animation-delay: calc(var(--i, 0) * 35ms);
+}
+.aw-poster-frame {
+  position: relative;
+  margin-bottom: 6px;
+  border-radius: var(--r-lg);
+  overflow: hidden;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.3), 0 0 0 1px var(--border);
+  transition: transform var(--t-med) var(--ease), box-shadow var(--t-med) var(--ease);
+}
+.aw-poster-art { width: 100%; aspect-ratio: 1; }
+.aw-poster-art .thumb-initials { font-size: 1.8rem !important; }
+.aw-poster:hover .aw-poster-frame {
+  transform: translateY(-3px);
+  box-shadow: 0 14px 30px rgba(0, 0, 0, 0.38), 0 0 0 1px color-mix(in srgb, var(--cat-hue) 60%, transparent);
+}
+.aw-poster-name { font-size: 0.8rem; font-weight: 600; color: var(--text1); }
+.aw-poster-sub  { font-size: 0.68rem; color: var(--text3); }
+.aw-poster-score {
+  font-family: var(--font-mono);
+  font-size: 0.58rem;
+  font-feature-settings: "tnum";
+  color: color-mix(in srgb, var(--cat-hue) 55%, var(--text3));
+}
+.aw-poster.is-winner .aw-poster-frame {
+  box-shadow: 0 0 0 2px var(--gold1), 0 12px 30px color-mix(in srgb, var(--gold1) 28%, transparent);
+}
+.aw-poster.is-winner .aw-poster-name { color: color-mix(in srgb, var(--gold1) 60%, var(--text1)); }
+.aw-poster-ribbon {
+  position: absolute;
+  inset: auto 0 0 0;
+  padding: 5px 8px;
+  text-align: center;
+  background: linear-gradient(90deg, var(--gold1), var(--gold2));
+  color: #1a1204;
+  font-family: var(--font-mono);
+  font-size: 0.56rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+@media (max-width: 560px) {
+  .awards-view-bar { justify-content: flex-start; }
+  .awards-view-bar-label { display: none; }
+  .awards-view-opt { padding: 7px 11px; }
+  .awards-view-opt span { display: none; }       /* icons only; names stay in title= */
+  .aw-reel-track { grid-auto-columns: 132px; }
+  .aw-spot-art, .aw-spot-sealed { width: 80px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .aw-spot-row, .aw-tile, .aw-col-cell, .aw-poster { animation: none; }
+  .aw-tile:hover .aw-tile-frame,
+  .aw-poster:hover .aw-poster-frame,
+  .aw-col-cell:hover .aw-col-art .thumb { transform: none; }
+}
+
 /* Ceremony launch bar */
 .awards-ceremony-bar {
   margin: 20px 0 8px;

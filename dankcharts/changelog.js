@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 13;
+const DC_CL_I18N_V = 14;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,10 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== SEPTEMBER 2026 ========== */
+
+  { d: '2026-09-29', t: 'feature', a: 'awards', h: '',
+    title: 'New ways to view the nominees in My Grammys',
+    detail: 'The category cards in My Grammys can now be shown five ways, picked from the View switch above them: Ballot, the text list as before; Spotlight, with the winner shown large over a blur of its artwork and the other nominees as rows with pictures and play counts; Tiles, a grid of covers and artist photos; Collage, a mosaic of the whole field with the winner at double size; and Reel, one full-width row per category with the nominees as posters you scroll sideways. Clicking a nominee still crowns it in every view, and the Change and Playlist buttons are all still there. Pictures you picked for a song, artist or album show here too, and the view you choose is remembered on that device.' },
 
   { d: '2026-09-29', t: 'feature', a: 'ui', h: '36b0621',
     title: 'Pick the picture in song, artist and album profiles, saved to your account',

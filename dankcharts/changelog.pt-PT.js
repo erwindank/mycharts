@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['pt-PT'] = {
 
   /* ========== SETEMBRO 2026 ========== */
 
+  'New ways to view the nominees in My Grammys':
+    ['Novas formas de ver os nomeados nos Meus Grammys',
+     'Os cartões de categoria dos Meus Grammys podem agora ser mostrados de cinco formas, no seletor Vista por cima deles: Boletim, a lista de texto de sempre; Destaque, com o vencedor em grande sobre um desfoque da sua imagem e os outros nomeados em linhas com imagem e reproduções; Blocos, uma grelha de capas e fotos de artistas; Colagem, um mosaico com todos os nomeados e o vencedor em tamanho duplo; e Carrossel, uma linha a toda a largura por categoria com os nomeados como pósteres que se deslizam para o lado. Clicar num nomeado continua a coroá-lo em todas as vistas, e os botões Alterar e Playlist continuam lá. As imagens que escolheste para uma música, artista ou álbum também aparecem aqui, e a vista que escolheres fica guardada nesse dispositivo.'],
+
   'Pick the picture in song, artist and album profiles, saved to your account':
     ['Escolha a imagem nos perfis de músicas, artistas e álbuns, guardada na sua conta',
      'A imagem no topo do perfil de uma música, artista ou álbum tem agora o mesmo seletor das tabelas: passe o cursor por cima e clique no lápis, ou mantenha premido no telemóvel. Uma imagem que escolher aí também aparece ao lado dessa música, artista ou álbum nas tabelas, e vice-versa. As imagens escolhidas são agora também guardadas na sua conta, pelo que o acompanham nos seus outros dispositivos, e voltar uma para automático também é sincronizado. Uma imagem que carregou a partir do seu dispositivo fica apenas nesse dispositivo.'],

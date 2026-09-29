@@ -35033,6 +35033,7 @@ async function awardsRenderYear(year) {
   if (!allPlays.length) {
     statusEl.textContent = 'Load your music data to use My Grammys.';
     document.getElementById('awardsCatList').innerHTML = '';
+    _awardsRenderViewBar(false);
     document.getElementById('awardsSummary').innerHTML = '';
     document.getElementById('awardsCeremonyBar').style.display = 'none';
     return;
@@ -35063,13 +35064,31 @@ function _awardsRenderCatList(data) {
   const el = document.getElementById('awardsCatList');
   if (!el) return;
   const activeCats = AWARD_CATEGORIES.filter(c => data.categories[c.id]?.enabled ?? c.defaultOn);
+  const seq = ++_awardsViewSeq;
+  _awardsRenderViewBar(activeCats.length > 0);
   if (!activeCats.length) {
     el.innerHTML = `<div class="awards-empty">${t('awards_no_categories')}</div>`;
     document.getElementById('awardsCeremonyBar').style.display = 'none';
     _awardsRenderSummary(data.year);
     return;
   }
-  el.innerHTML = activeCats.map((cat, i) => _awardsRenderCatCard(cat, data.categories[cat.id] || { enabled: true, nominees: [], winner: null }, data.year, i)).join('');
+  const view  = _awardsView;
+  const queue = [];
+  el.dataset.view = view;
+  el.innerHTML = activeCats.map((cat, i) => {
+    const cd = data.categories[cat.id] || { enabled: true, nominees: [], winner: null };
+    return view === 'ballot'
+      ? _awardsRenderCatCard(cat, cd, data.year, i)
+      : _awardsRenderArtCard(cat, cd, data.year, i, view, `awv${seq}_${i}`, queue);
+  }).join('');
+  if (queue.length) _awardsViewLoadArt(queue, seq);
+  // Art-view entries are role="button" divs; Enter and Space should crown them too
+  if (!el.dataset.keys) {
+    el.dataset.keys = '1';
+    el.addEventListener('keydown', e => {
+      if ((e.key === 'Enter' || e.key === ' ') && e.target.matches?.('[data-pick]')) { e.preventDefault(); e.target.click(); }
+    });
+  }
   const hasWinner = activeCats.some(c => data.categories[c.id]?.winner);
   document.getElementById('awardsCeremonyBar').style.display = hasWinner ? '' : 'none';
   // Every change to the ballot comes through here, so the stats block above the
@@ -35538,25 +35557,334 @@ function _awardsRenderCatCard(cat, catData, year, idx) {
     bodyHtml = `<div class="awards-no-nominees">${t('awards_no_nominees')}</div>`;
   }
 
-  const genBtn = cat.auto ? '' : `<button class="awards-cat-action-btn" onclick="awardsGenerateCatCandidates(${year},'${esc(cat.id)}')" data-catid="${esc(cat.id)}">${nominees.length ? t('awards_change_btn') : t('awards_pick_nominees_btn')}</button>`;
-  // Listen to the whole field before choosing. Auto categories have nothing to decide.
-  const plBtn = (!cat.auto && nominees.length)
-    ? `<button class="awards-cat-action-btn awards-cat-pl-btn" onclick="awardsCatPlaylist(${year},'${esc(cat.id)}')" title="Make a playlist of these nominees">♫ Playlist</button>`
-    : '';
-
   // data-awtype picks the card's --cat-hue (song / album / artist); --i staggers
   // the reveal so the grid fills in as a wave instead of all at once.
   return `<div class="awards-cat-card${winner ? ' has-winner' : ''}" id="awardsCat_${cat.id}" data-awtype="${esc(cat.type || '')}" style="--i:${idx || 0}">
-    <div class="awards-cat-header">
+    ${_awardsCatHeadHtml(cat, nominees.length)}
+    <div class="awards-cat-body">${bodyHtml}</div>
+    <div class="awards-cat-footer">${_awardsCatActionsHtml(cat, year, nominees.length)}</div>
+  </div>`;
+}
+
+// Card header, shared by every nominee view. `extra` lands at the right-hand end
+// (the reel view puts its buttons there instead of in a footer).
+function _awardsCatHeadHtml(cat, count, extra) {
+  const emoji = cat.emoji || { song: '🎵', album: '💿', artist: '🎤' }[cat.type] || '🏆';
+  return `<div class="awards-cat-header">
       <span class="awards-cat-emoji">${emoji}</span>
       <span class="awards-cat-heading">
-        <span class="awards-cat-kicker">${esc(cat.type || '')}${nominees.length ? ' · ' + nominees.length : ''}</span>
+        <span class="awards-cat-kicker">${esc(cat.type || '')}${count ? ' · ' + count : ''}</span>
         <span class="awards-cat-name">${esc(t('awards_cat_' + cat.id))}</span>
       </span>
-      ${cat.auto ? '<span class="awards-auto-tag">auto</span>' : ''}
-    </div>
-    <div class="awards-cat-body">${bodyHtml}</div>
-    <div class="awards-cat-footer">${genBtn}${plBtn}</div>
+      ${cat.auto ? '<span class="awards-auto-tag">auto</span>' : ''}${extra || ''}
+    </div>`;
+}
+
+// Change / Pick nominees, plus the playlist button once there is a field to hear
+function _awardsCatActionsHtml(cat, year, count) {
+  const genBtn = cat.auto ? '' : `<button class="awards-cat-action-btn" onclick="awardsGenerateCatCandidates(${year},'${esc(cat.id)}')" data-catid="${esc(cat.id)}">${count ? t('awards_change_btn') : t('awards_pick_nominees_btn')}</button>`;
+  // Listen to the whole field before choosing. Auto categories have nothing to decide.
+  const plBtn = (!cat.auto && count)
+    ? `<button class="awards-cat-action-btn awards-cat-pl-btn" onclick="awardsCatPlaylist(${year},'${esc(cat.id)}')" title="Make a playlist of these nominees">♫ Playlist</button>`
+    : '';
+  return genBtn + plBtn;
+}
+
+/* ─── Nominee views ────────────────────────────────────────────────────────────
+   The category cards come in five layouts, picked from the switcher above the
+   grid and remembered on this device:
+   • ballot    — the text ballot above, no artwork (the default)
+   • spotlight — the winner large over a blur of its own artwork, then the field
+                 as rows with thumbnails and play counts
+   • tiles     — the field as a grid of square covers
+   • collage   — an edge-to-edge mosaic, the winner at double size
+   • reel      — one full-width row per category, the field as scrolling posters
+   They all call the same awardsPickWinner / awardsRemoveNominee /
+   awardsPickTieWinner handlers, so crowning and removing work the same in all
+   of them. Artwork goes through fetchAndInjectImage with the charts' prefKeys,
+   so a picture pinned in a profile modal shows up here too. */
+const AWARDS_VIEWS = ['ballot', 'spotlight', 'tiles', 'collage', 'reel'];
+const AWARDS_VIEW_ICONS = {
+  ballot:    '<path d="M9 6h11M9 12h11M9 18h11M4 6h1M4 12h1M4 18h1"/>',
+  spotlight: '<rect x="3" y="3" width="18" height="8" rx="2"/><path d="M3 15h18M3 19h12"/>',
+  tiles:     '<rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/>',
+  collage:   '<rect x="3" y="3" width="11" height="11" rx="1.5"/><rect x="17" y="3" width="4" height="4.5" rx="1"/><rect x="17" y="9.5" width="4" height="4.5" rx="1"/><rect x="3" y="17" width="5" height="4" rx="1"/><rect x="10" y="17" width="11" height="4" rx="1"/>',
+  reel:      '<rect x="2" y="5" width="6" height="14" rx="1.5"/><rect x="10" y="5" width="6" height="14" rx="1.5"/><rect x="18" y="5" width="6" height="14" rx="1.5"/>',
+};
+let _awardsView = (() => {
+  try { const v = localStorage.getItem('dc_awards_view'); return AWARDS_VIEWS.includes(v) ? v : 'ballot'; }
+  catch (e) { return 'ballot'; }
+})();
+let _awardsViewSeq = 0;         // bumped per render, so a replaced render stops fetching art
+const _awardsArtSrc = {};       // "type:item key" → a picture that has already loaded this session
+
+function awardsSetView(view) {
+  if (!AWARDS_VIEWS.includes(view) || view === _awardsView) return;
+  _awardsView = view;
+  try { localStorage.setItem('dc_awards_view', view); } catch (e) {}
+  const data = _awardsYearData[_awardsYear];
+  if (data) _awardsRenderCatList(data);
+}
+
+function _awardsRenderViewBar(show) {
+  const bar = document.getElementById('awardsViewBar');
+  if (!bar) return;
+  bar.style.display = show ? '' : 'none';
+  if (!show) return;
+  bar.innerHTML = `<span class="awards-view-bar-label">${esc(t('awards_view_label'))}</span>
+    <div class="awards-view-seg" role="radiogroup" aria-label="${esc(t('awards_view_label'))}">${AWARDS_VIEWS.map(v => {
+      const name = t('awards_view_' + v);
+      return `<button class="awards-view-opt" role="radio" aria-checked="${v === _awardsView}" onclick="awardsSetView('${v}')" title="${esc(name)}" aria-label="${esc(name)}"><svg viewBox="0 0 24 24" aria-hidden="true">${AWARDS_VIEW_ICONS[v]}</svg><span>${esc(name)}</span></button>`;
+    }).join('')}</div>`;
+}
+
+// What a view can show without a lookup: a picture pinned in a profile modal, or
+// one that already loaded this session. '' = pinned to no picture (initials);
+// null = unknown, so it has to be fetched.
+function _awardsArtKnown(item, type) {
+  const pin = imgChoicePrefs[_cerImgItem(item, type, '').prefKey];
+  if (pin) return (pin.source === 'off' || !pin.url) ? '' : pin.url;
+  return _awardsArtSrc[type + ':' + _awardItemKey(item)] || null;
+}
+
+/* One artwork slot. Known pictures are painted straight into the markup, so the
+   re-render that follows every crown or removal doesn't flash initials; the rest
+   queue for _awardsViewLoadArt. `opts.hd` asks for the CDN's largest size once
+   the normal one has loaded (for the big slots); `opts.bd` is the id of a
+   backdrop that should take the same picture (the spotlight's blur). */
+function _awardsArtSlot(item, type, imgId, queue, cls, opts) {
+  opts = opts || {};
+  const label = item.title || item.album || item.artist || '';
+  const known = _awardsArtKnown(item, type);
+  if (known === null) queue.push({ imgId, item, type, ck: type + ':' + _awardItemKey(item), hd: !!opts.hd, bd: opts.bd || '' });
+  const inner = known
+    ? `<img class="thumb" alt="" src="${esc(known)}" onerror="_awardsArtBroken(this)" data-ck="${esc(type + ':' + _awardItemKey(item))}">`
+    : `<div class="thumb-initials">${esc(initials(label))}</div>`;
+  return `<div class="aw-art ${cls || ''}"><div id="${imgId}">${inner}</div></div>`;
+}
+
+// A remembered picture that has since gone dead: forget it and show initials;
+// the next render looks it up again.
+function _awardsArtBroken(img) {
+  delete _awardsArtSrc[img.dataset.ck];
+  const box = img.parentElement;
+  if (box) box.innerHTML = `<div class="thumb-initials">?</div>`;
+}
+
+async function _awardsViewLoadArt(queue, seq) {
+  const bdUrl = u => `url("${String(u).replace(/"/g, '%22')}")`;
+  for (const job of queue) {
+    if (seq !== _awardsViewSeq) return;
+    const el = document.getElementById(job.imgId);
+    if (!el) continue;
+    try { await fetchAndInjectImage(el, _cerImgItem(job.item, job.type, job.imgId), job.type); } catch (e) {}
+    const img = el.querySelector('img');
+    if (!img) continue;
+    // Remember it once it has actually loaded, after any source fallback, not
+    // just once a URL was found.
+    const done = () => {
+      const src = img.currentSrc || img.src;
+      if (!src) return;
+      _awardsArtSrc[job.ck] = src;
+      if (job.bd) { const bd = document.getElementById(job.bd); if (bd) bd.style.backgroundImage = bdUrl(src); }
+      if (job.hd) {
+        const hi = shHiResArt(src);
+        if (hi && hi !== src) {
+          const pre = new Image();
+          pre.onload = () => { if (img.isConnected) img.src = hi; };   // fires done() again with the large one
+          pre.src = hi;
+        }
+      }
+    };
+    img.addEventListener('load', done);
+    if (img.complete && img.naturalWidth) done();
+  }
+}
+
+// The field as the art views see it. Auto categories: their single entry is the
+// award, and in a tie the rest of the tied field follows, one click from taking it.
+function _awardsCatField(cat, catData) {
+  const nominees = catData.nominees || [];
+  if (cat.auto) {
+    const w = nominees[0];
+    if (!w) return { winner: null, entries: [] };
+    const wk = _awardItemKey(w);
+    const ties = (catData.ties || []).length > 1 ? catData.ties : [];
+    return {
+      winner: w,
+      entries: [{ item: w, isW: true, mark: '🏆' },
+        ...ties.map((item, i) => ({ item, tie: i, mark: '=' })).filter(e => _awardItemKey(e.item) !== wk)],
+    };
+  }
+  const wk = catData.winner ? _awardItemKey(catData.winner) : null;
+  return {
+    winner: wk ? catData.winner : null,
+    entries: nominees.map((item, i) => {
+      const isW = _awardItemKey(item) === wk;
+      return { item, isW, removable: true, mark: isW ? '🏆' : String(i + 1).padStart(2, '0') };
+    }),
+  };
+}
+
+function _awardsEntryText(item) {
+  const plays = Number(item.plays);
+  return {
+    lbl:   item.title || item.album || item.artist || '',
+    sub:   (item.title ? item.artist : (item.album ? item.artist : item.song)) || '',
+    score: item.playLabel || (plays ? `${plays.toLocaleString()} plays` : ''),
+  };
+}
+
+// Click (and Enter / Space, via the list's keydown handler) crowns the entry,
+// or hands a tied auto award over. The auto winner itself does nothing.
+function _awardsEntryAttrs(year, cat, e) {
+  if (cat.auto) {
+    return e.tie == null ? ''
+      : ` data-pick role="button" tabindex="0" title="Make this the winner" onclick="awardsPickTieWinner(${year},'${esc(cat.id)}',${e.tie})"`;
+  }
+  return ` data-pick role="button" tabindex="0" onclick="awardsPickWinner(${year},'${esc(cat.id)}',${esc(JSON.stringify(e.item))})"`;
+}
+
+function _awardsEntryRemove(year, cat, e) {
+  return e.removable
+    ? `<button class="aw-x" onclick="awardsRemoveNominee(event,${year},'${esc(cat.id)}',${esc(JSON.stringify(e.item))})" title="Remove" aria-label="Remove">✕</button>`
+    : '';
+}
+
+function _awardsSpotlightBody(cat, f, year, idp, queue) {
+  const w = f.winner;
+  let hero;
+  if (w) {
+    const x = _awardsEntryText(w);
+    const heroId = `${idp}_hero`;
+    const known = _awardsArtKnown(w, cat.type);
+    hero = `<div class="aw-spot-hero is-crowned">
+      <div class="aw-spot-bd" id="${heroId}_bd"${known ? ` style="background-image:url(&quot;${esc(known)}&quot;)"` : ''}></div>
+      ${_awardsArtSlot(w, cat.type, heroId, queue, 'aw-spot-art', { hd: true, bd: heroId + '_bd' })}
+      <div class="aw-spot-meta">
+        <span class="aw-spot-label">${esc(t('awards_winner'))}</span>
+        <span class="aw-spot-name" title="${esc(x.lbl)}">${esc(x.lbl)}</span>
+        ${x.sub ? `<span class="aw-spot-sub" title="${esc(x.sub)}">${esc(x.sub)}</span>` : ''}
+        ${x.score ? `<span class="aw-spot-score">${esc(x.score)}</span>` : ''}
+      </div>
+    </div>`;
+  } else {
+    hero = `<div class="aw-spot-hero is-open">
+      <div class="aw-spot-bd"></div>
+      <div class="aw-spot-sealed" aria-hidden="true">?</div>
+      <div class="aw-spot-meta">
+        <span class="aw-spot-label">${esc(t('awards_view_uncrowned'))}</span>
+        <span class="aw-spot-name">${f.entries.length} ${f.entries.length === 1 ? 'nominee' : 'nominees'}</span>
+        <span class="aw-spot-sub">${esc(t('awards_pick_hint'))}</span>
+      </div>
+    </div>`;
+  }
+  // An auto award's winner is the hero already; below it go only the tied rest
+  const rows = (cat.auto ? f.entries.filter(e => !e.isW) : f.entries).map((e, k) => {
+    const x = _awardsEntryText(e.item);
+    return `<div class="aw-spot-row${e.isW ? ' is-winner' : ''}" style="--i:${k}"${_awardsEntryAttrs(year, cat, e)}>
+      <span class="aw-spot-rank">${e.mark}</span>
+      ${_awardsArtSlot(e.item, cat.type, `${idp}_r${k}`, queue, 'aw-spot-thumb')}
+      <span class="aw-spot-text">
+        <span class="aw-spot-rname" title="${esc(x.lbl)}">${esc(x.lbl)}</span>
+        ${x.sub ? `<span class="aw-spot-rsub" title="${esc(x.sub)}">${esc(x.sub)}</span>` : ''}
+      </span>
+      ${x.score ? `<span class="aw-spot-rscore">${esc(x.score)}</span>` : ''}
+      ${_awardsEntryRemove(year, cat, e)}
+    </div>`;
+  }).join('');
+  return hero + (rows ? `<div class="aw-spot-list">${rows}</div>` : '');
+}
+
+function _awardsTilesBody(cat, f, year, idp, queue) {
+  return `<div class="aw-tiles">${f.entries.map((e, k) => {
+    const x = _awardsEntryText(e.item);
+    return `<div class="aw-tile${e.isW ? ' is-winner' : ''}" style="--i:${k}"${_awardsEntryAttrs(year, cat, e)}>
+      <div class="aw-tile-frame">
+        ${_awardsArtSlot(e.item, cat.type, `${idp}_t${k}`, queue, 'aw-tile-art')}
+        <span class="aw-rank">${e.mark}</span>
+        ${_awardsEntryRemove(year, cat, e)}
+      </div>
+      <span class="aw-tile-name" title="${esc(x.lbl)}">${esc(x.lbl)}</span>
+      ${x.sub ? `<span class="aw-tile-sub" title="${esc(x.sub)}">${esc(x.sub)}</span>` : ''}
+    </div>`;
+  }).join('')}</div>`;
+}
+
+/* Four columns, the winner leading at 2×2. The last cell stretches over any
+   columns left empty in its row, so the mosaic always closes as a rectangle. */
+function _awardsCollageBody(cat, f, year, idp, queue) {
+  const ordered = f.winner ? [...f.entries.filter(e => e.isW), ...f.entries.filter(e => !e.isW)] : f.entries;
+  const cells = ordered.length + (f.winner ? 3 : 0);
+  const gap = cells % 4 ? 4 - cells % 4 : 0;
+  return `<div class="aw-collage"><div class="aw-collage-grid">${ordered.map((e, k) => {
+    const x = _awardsEntryText(e.item);
+    // A lone entry (an untied auto award) would fill only half the width, so it
+    // becomes a full-width banner instead
+    const span = ordered.length === 1 ? ';grid-column:1 / -1'
+      : (k === ordered.length - 1 && gap && !e.isW) ? `;grid-column:span ${gap + 1}` : '';
+    return `<div class="aw-col-cell${e.isW ? ' is-winner' : ''}" style="--i:${k}${span}"${_awardsEntryAttrs(year, cat, e)}>
+      ${_awardsArtSlot(e.item, cat.type, `${idp}_c${k}`, queue, 'aw-col-art', { hd: e.isW })}
+      <span class="aw-rank">${e.mark}</span>
+      ${_awardsEntryRemove(year, cat, e)}
+      <div class="aw-col-cap">
+        ${e.isW ? `<span class="aw-col-win">${esc(t('awards_winner'))}</span>` : ''}
+        <span class="aw-col-name" title="${esc(x.lbl)}">${esc(x.lbl)}</span>
+        ${x.sub ? `<span class="aw-col-sub">${esc(x.sub)}</span>` : ''}
+      </div>
+    </div>`;
+  }).join('')}</div></div>`;
+}
+
+function _awardsReelBody(cat, f, year, idp, queue) {
+  return `<div class="aw-reel-track">${f.entries.map((e, k) => {
+    const x = _awardsEntryText(e.item);
+    return `<div class="aw-poster${e.isW ? ' is-winner' : ''}" style="--i:${k}"${_awardsEntryAttrs(year, cat, e)}>
+      <div class="aw-poster-frame">
+        ${_awardsArtSlot(e.item, cat.type, `${idp}_p${k}`, queue, 'aw-poster-art', { hd: true })}
+        <span class="aw-rank">${e.mark}</span>
+        ${_awardsEntryRemove(year, cat, e)}
+        ${e.isW ? `<span class="aw-poster-ribbon">${esc(t('awards_winner'))}</span>` : ''}
+      </div>
+      <span class="aw-poster-name" title="${esc(x.lbl)}">${esc(x.lbl)}</span>
+      ${x.sub ? `<span class="aw-poster-sub" title="${esc(x.sub)}">${esc(x.sub)}</span>` : ''}
+      ${x.score ? `<span class="aw-poster-score">${esc(x.score)}</span>` : ''}
+    </div>`;
+  }).join('')}</div>`;
+}
+
+function awardsReelScroll(btn, dir) {
+  const track = btn.closest('.awards-cat-card')?.querySelector('.aw-reel-track');
+  if (track) track.scrollBy({ left: dir * track.clientWidth * 0.8, behavior: 'smooth' });
+}
+
+function _awardsRenderArtCard(cat, catData, year, idx, view, idp, queue) {
+  const f = _awardsCatField(cat, catData);
+  const count = (catData.nominees || []).length;
+  const bodyFn = { spotlight: _awardsSpotlightBody, tiles: _awardsTilesBody, collage: _awardsCollageBody, reel: _awardsReelBody }[view];
+  let body = f.entries.length
+    ? bodyFn(cat, f, year, idp, queue)
+    : `<div class="awards-no-nominees">${t('awards_no_nominees')}</div>`;
+  if (cat.auto && f.entries.length > 1) {
+    const w = f.winner;
+    body = `<div class="awards-tie-hint">${esc(t('awards_tie_hint', { score: w.playLabel || `${w.plays} plays` }))}</div>` + body;
+  }
+  // The spotlight's open hero already says it
+  if (!cat.auto && count && !f.winner && view !== 'spotlight') body += `<div class="awards-pick-hint">${t('awards_pick_hint')}</div>`;
+
+  const actions = _awardsCatActionsHtml(cat, year, count);
+  const chev = d => `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="${d}"/></svg>`;
+  const head = view === 'reel'
+    ? _awardsCatHeadHtml(cat, count, `<div class="aw-reel-actions">${actions}${f.entries.length > 1
+        ? `<button class="aw-reel-nav" onclick="awardsReelScroll(this,-1)" aria-label="Scroll back">${chev('M15 18l-6-6 6-6')}</button><button class="aw-reel-nav" onclick="awardsReelScroll(this,1)" aria-label="Scroll forward">${chev('M9 18l6-6-6-6')}</button>`
+        : ''}</div>`)
+    : _awardsCatHeadHtml(cat, count);
+  const foot = (view === 'reel' || !actions) ? '' : `<div class="awards-cat-footer">${actions}</div>`;
+
+  return `<div class="awards-cat-card aw-v-${view}${catData.winner ? ' has-winner' : ''}" id="awardsCat_${cat.id}" data-awtype="${esc(cat.type || '')}" style="--i:${idx || 0}">
+    ${head}
+    <div class="awards-cat-body">${body}</div>
+    ${foot}
   </div>`;
 }
 
