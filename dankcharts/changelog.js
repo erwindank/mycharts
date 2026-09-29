@@ -80,7 +80,7 @@ const DC_CHANGELOG = [
 
   /* ========== SEPTEMBER 2026 ========== */
 
-  { d: '2026-09-28', t: 'feature', a: 'awards', h: '',
+  { d: '2026-09-28', t: 'feature', a: 'awards', h: '61ac565',
     title: 'Watch a bit of each video when picking Video of the Year',
     detail: 'When you pick nominees for Video of the Year, every song has a ▶ button. It finds the music video on YouTube and plays it in a small window at the top of the picker, so you can remind yourself what the video looks like before nominating it. Clicking ▶ does not nominate the song; clicking the row still does. Press ■ or ✕ to close the video, and if YouTube found the wrong one, a link opens the search on YouTube.' },
 
