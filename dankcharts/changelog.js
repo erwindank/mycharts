@@ -80,7 +80,7 @@ const DC_CHANGELOG = [
 
   /* ========== SEPTEMBER 2026 ========== */
 
-  { d: '2026-09-29', t: 'feature', a: 'awards', h: '',
+  { d: '2026-09-29', t: 'feature', a: 'awards', h: 'ec1a92a',
     title: 'Break ties in the automatic awards yourself',
     detail: 'When an automatic award like Most Played Song or Longest Daily Streak ends in a tie, the award card now lists everything tied for first under the winner. Click one to make it the winner instead, and change your mind as often as you like. Your choice is kept when you generate the awards again, as long as that item is still tied for first. Before, the award quietly went to whichever tied item happened to be listed first. Years you generated before this change need Generate again for their ties to show.' },
 
