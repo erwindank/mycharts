@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 9;
+const DC_CL_I18N_V = 10;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,10 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== SEPTEMBER 2026 ========== */
+
+  { d: '2026-09-29', t: 'fix', a: 'charts', h: '',
+    title: 'Song and artist profiles say which chart each stat is from',
+    detail: 'The Chart Debut card on a song’s profile now says which chart it means, for example Weekly Chart Debut · Week of Sep 20, 26 or Monthly Chart Debut · Sep 2026. It shows the debut on the chart you opened the song from, or the weekly one when you open it from the all-time chart. Before, it mixed the weekly, monthly and yearly charts and could show a monthly debut as if it were a date. Weeks, months and years on the chart, re-entries and time at #1 now name their chart as well, on both song and artist profiles.' },
 
   { d: '2026-09-29', t: 'feature', a: 'charts', h: 'c8422a3',
     title: 'Click a name in the Songs and Albums charts to open it',

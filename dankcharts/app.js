@@ -22449,12 +22449,12 @@ function openArtistModal(artistName) {
   const weeklyDebutRank = _firstWkEntry ? _firstWkEntry.rank : null;
   const recordsEl = document.getElementById('modalRecordsStrip');
   recordsEl.innerHTML = `
-    <div class="modal-stat ${weeksAtNo1 > 0 ? 'modal-stat--gold' : ''}"><div class="se">🥇</div><div class="sv ${weeksAtNo1 > 0 ? 'sv--gold' : ''}" data-countup="${weeksAtNo1}">${weeksAtNo1}</div><div class="sl">Weeks at #1</div></div>
-    <div class="modal-stat"><div class="se">🌙</div><div class="sv ${monthsAtNo1 > 0 ? 'sv--gold' : ''}" data-countup="${monthsAtNo1}">${monthsAtNo1}</div><div class="sl">Months at #1</div></div>
-    <div class="modal-stat"><div class="se">⭐</div><div class="sv ${yearsAtNo1 > 0 ? 'sv--gold' : ''}" data-countup="${yearsAtNo1}">${yearsAtNo1}</div><div class="sl">Years at #1</div></div>
+    <div class="modal-stat ${weeksAtNo1 > 0 ? 'modal-stat--gold' : ''}"><div class="se">🥇</div><div class="sv ${weeksAtNo1 > 0 ? 'sv--gold' : ''}" data-countup="${weeksAtNo1}">${weeksAtNo1}</div><div class="sl">Weeks at #1 on the<br>Weekly Chart</div></div>
+    <div class="modal-stat"><div class="se">🌙</div><div class="sv ${monthsAtNo1 > 0 ? 'sv--gold' : ''}" data-countup="${monthsAtNo1}">${monthsAtNo1}</div><div class="sl">Months at #1 on the<br>Monthly Chart</div></div>
+    <div class="modal-stat"><div class="se">⭐</div><div class="sv ${yearsAtNo1 > 0 ? 'sv--gold' : ''}" data-countup="${yearsAtNo1}">${yearsAtNo1}</div><div class="sl">Years at #1 on the<br>Yearly Chart</div></div>
     <div class="modal-stat"><div class="se">📅</div><div class="sv" data-countup="${weeklyApps}">${weeklyApps}</div><div class="sl">Weekly Chart<br>Appearances</div></div>
     <div class="modal-stat"><div class="se">🗓️</div><div class="sv" data-countup="${monthlyApps}">${monthlyApps}</div><div class="sl">Monthly Chart<br>Appearances</div></div>
-    ${weeklyDebutRank ? `<div class="modal-stat"><div class="se">🚀</div><div class="sv ${peakCls(weeklyDebutRank)}">#${weeklyDebutRank}</div><div class="sl">Weekly<br>Debut Rank</div></div>` : ''}
+    ${weeklyDebutRank ? `<div class="modal-stat"><div class="se">🚀</div><div class="sv ${peakCls(weeklyDebutRank)}">#${weeklyDebutRank}</div><div class="sl">Weekly Chart<br>Debut Rank</div></div>` : ''}
   `;
   animateModalCountup(recordsEl);
 
@@ -23626,16 +23626,19 @@ function openSongModal(key) {
   const peakCls = r => !r ? '' : r===1 ? 'sv--gold' : r<=3 ? 'sv--silver' : r<=10 ? 'sv--bronze' : '';
 
   // ── Chart debut ───────────────────────────────────────────────
+  // One chart's debut, named on the card. The chart being viewed wins, so a
+  // song opened from the monthly chart shows its monthly debut; otherwise
+  // weekly → monthly → yearly. (Pooling all three and sorting by periodKey
+  // compared '2026-09' against '2026-09-20' as strings and mixed charts.)
   let debutEntry = null, debutPeriod = null;
-  const allEntries = [
-    ...(songCrW?.entries||[]).map(e=>({...e,period:'week'})),
-    ...(songCrM?.entries||[]).map(e=>({...e,period:'month'})),
-    ...(songCrY?.entries||[]).map(e=>({...e,period:'year'})),
-  ];
-  if (allEntries.length) {
-    allEntries.sort((a,b)=>a.periodKey.localeCompare(b.periodKey));
-    debutEntry  = allEntries[0];
-    debutPeriod = debutEntry.period;
+  const debutRuns = { week: songCrW, month: songCrM, year: songCrY };
+  const debutOrder = [...(debutRuns[currentPeriod] ? [currentPeriod] : []), 'week', 'month', 'year'];
+  for (const p of debutOrder) {
+    const ents = debutRuns[p]?.entries;
+    if (!ents?.length) continue;
+    debutEntry  = [...ents].sort((a,b)=>a.periodKey.localeCompare(b.periodKey))[0];
+    debutPeriod = p;
+    break;
   }
 
   // ── HEADER ────────────────────────────────────────────────────
@@ -23677,13 +23680,16 @@ function openSongModal(key) {
     </div>`;
   }
   if (debutEntry) {
-    const debutLabel = debutPeriod === 'week' ? crPeriodLabel('week', debutEntry.periodKey)
-                     : debutPeriod === 'month' ? crPeriodLabel('month', debutEntry.periodKey)
-                     : debutEntry.periodKey;
+    // Month spelled with the full year: crPeriodLabel's "Sep 26" reads as a day.
+    const dk = debutEntry.periodKey;
+    const debutLabel = debutPeriod === 'week' ? 'Week of ' + crPeriodLabel('week', dk)
+                     : debutPeriod === 'month' ? t(_CR_MON_SHORT[+dk.split('-')[1] - 1]) + ' ' + dk.split('-')[0]
+                     : dk;
+    const debutChart = { week: 'Weekly', month: 'Monthly', year: 'Yearly' }[debutPeriod];
     rankCardsHTML += `<div class="modal-rank-card">
       <div class="mrc-icon">🚀</div>
       <div class="mrc-rank">#${debutEntry.rank}</div>
-      <div class="mrc-label">Chart Debut · ${esc(debutLabel)}</div>
+      <div class="mrc-label">${debutChart} Chart Debut · ${esc(debutLabel)}</div>
     </div>`;
   }
   if (rankCardsHTML) {
@@ -23705,13 +23711,13 @@ function openSongModal(key) {
     <div class="modal-stat"><div class="se">⏰</div><div class="sv">${peakHour !== null ? fmtHour(peakHour) : '—'}</div><div class="sl">Peak Listen Hour</div></div>
     <div class="modal-stat"><div class="se">🌙</div><div class="sv">${midnightPct}%</div><div class="sl">Late-Night Plays<br><span style="font-size:0.65rem;color:var(--text3)">12–4 AM</span></div></div>
     <div class="modal-stat"><div class="se">🔄</div><div class="sv">${replayDepth}</div><div class="sl">Avg Plays/Day Played</div></div>
-    ${reentries > 0 ? `<div class="modal-stat"><div class="se">↩️</div><div class="sv">${reentries}</div><div class="sl">Chart Re-entries</div></div>` : ''}
+    ${reentries > 0 ? `<div class="modal-stat"><div class="se">↩️</div><div class="sv">${reentries}</div><div class="sl">Re-entries on the<br>Weekly Chart</div></div>` : ''}
     ${longestGap > 1 ? `<div class="modal-stat"><div class="se">⏳</div><div class="sv">${longestGap}</div><div class="sl">Longest Gap (days)</div></div>` : ''}
     ${daysToPeak !== null ? `<div class="modal-stat"><div class="se">🎯</div><div class="sv">${daysToPeak}</div><div class="sl">Days to Peak</div></div>` : ''}
     ${maxConsecYears > 1 ? `<div class="modal-stat"><div class="se">🗓</div><div class="sv">${maxConsecYears}</div><div class="sl">Consecutive Years</div></div>` : ''}
-    ${totalWeeksOnChart ? `<div class="modal-stat"><div class="se">📊</div><div class="sv">${totalWeeksOnChart}</div><div class="sl">Weeks on Chart</div></div>` : ''}
-    ${totalMonthsOnChart ? `<div class="modal-stat"><div class="se">🌙</div><div class="sv">${totalMonthsOnChart}</div><div class="sl">Months on Chart</div></div>` : ''}
-    ${totalYearsOnChart ? `<div class="modal-stat"><div class="se">⭐</div><div class="sv">${totalYearsOnChart}</div><div class="sl">Years on Chart</div></div>` : ''}
+    ${totalWeeksOnChart ? `<div class="modal-stat"><div class="se">📊</div><div class="sv">${totalWeeksOnChart}</div><div class="sl">Weeks on the<br>Weekly Chart</div></div>` : ''}
+    ${totalMonthsOnChart ? `<div class="modal-stat"><div class="se">🌙</div><div class="sv">${totalMonthsOnChart}</div><div class="sl">Months on the<br>Monthly Chart</div></div>` : ''}
+    ${totalYearsOnChart ? `<div class="modal-stat"><div class="se">⭐</div><div class="sv">${totalYearsOnChart}</div><div class="sl">Years on the<br>Yearly Chart</div></div>` : ''}
     ${certBadge(totalPlays, 'song') ? `<div class="modal-stat"><div class="sv" style="font-size:0.85rem">${certBadge(totalPlays, 'song')}</div><div class="sl">Certification</div></div>` : ''}
   `;
 
@@ -23750,15 +23756,15 @@ function openSongModal(key) {
   const records = [];
   if (weeklySongPeak === 1 && songCrW) {
     const no1Weeks = songCrW.entries.filter(e=>e.rank===1).length;
-    if (no1Weeks) records.push(`<div class="modal-stat"><div class="se">🥇</div><div class="sv">${no1Weeks}</div><div class="sl">Weeks at #1</div></div>`);
+    if (no1Weeks) records.push(`<div class="modal-stat"><div class="se">🥇</div><div class="sv">${no1Weeks}</div><div class="sl">Weeks at #1 on the<br>Weekly Chart</div></div>`);
   }
   if (monthlySongPeak === 1 && songCrM) {
     const no1Months = songCrM.entries.filter(e=>e.rank===1).length;
-    if (no1Months) records.push(`<div class="modal-stat"><div class="se">🥇</div><div class="sv">${no1Months}</div><div class="sl">Months at #1</div></div>`);
+    if (no1Months) records.push(`<div class="modal-stat"><div class="se">🥇</div><div class="sv">${no1Months}</div><div class="sl">Months at #1 on the<br>Monthly Chart</div></div>`);
   }
   if (yearlySongPeak === 1 && songCrY) {
     const no1Years = songCrY.entries.filter(e=>e.rank===1).length;
-    if (no1Years) records.push(`<div class="modal-stat"><div class="se">🥇</div><div class="sv">${no1Years}</div><div class="sl">Years at #1</div></div>`);
+    if (no1Years) records.push(`<div class="modal-stat"><div class="se">🥇</div><div class="sv">${no1Years}</div><div class="sl">Years at #1 on the<br>Yearly Chart</div></div>`);
   }
   if (longestStreak >= 7) records.push(`<div class="modal-stat"><div class="se">🔥</div><div class="sv">${longestStreak}</div><div class="sl">Day Streak Record</div></div>`);
   if (peakDayPlays >= 10) records.push(`<div class="modal-stat"><div class="se">📈</div><div class="sv">${peakDayPlays}</div><div class="sl">Plays in One Day</div></div>`);

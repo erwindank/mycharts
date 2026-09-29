@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['es'] = {
 
   /* ========== SEPTIEMBRE 2026 ========== */
 
+  'Song and artist profiles say which chart each stat is from':
+    ['Los perfiles de canciones y artistas indican de qué lista es cada dato',
+     'La tarjeta de debut del perfil de una canción ahora dice de qué lista se trata, por ejemplo Weekly Chart Debut · Week of Sep 20, 26 o Monthly Chart Debut · Sep 2026. Muestra el debut en la lista desde la que abriste la canción, o el de la semanal si la abres desde la lista histórica. Antes mezclaba las listas semanal, mensual y anual y podía mostrar un debut mensual como si fuera una fecha. Las semanas, meses y años en la lista, los reingresos y el tiempo en el #1 ahora también nombran su lista, en los perfiles de canciones y de artistas.'],
+
   'Click a name in the Songs and Albums charts to open it':
     ['Haz clic en un nombre de las listas de Canciones y Álbumes para abrirlo',
      'En las listas de Canciones y Álbumes, el título de la canción, el título del álbum y el nombre del artista ahora son enlaces. Haz clic en una canción o un álbum para abrir su perfil, o en el artista para abrir el suyo. Cuando una canción acredita a más de un artista, cada nombre es su propio enlace. Various Artists en los álbumes recopilatorios sigue siendo texto normal, porque no tiene perfil propio. Los nombres se ven igual que antes hasta que pasas el cursor sobre ellos.'],

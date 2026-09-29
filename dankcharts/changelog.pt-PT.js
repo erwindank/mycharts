@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['pt-PT'] = {
 
   /* ========== SETEMBRO 2026 ========== */
 
+  'Song and artist profiles say which chart each stat is from':
+    ['Os perfis de músicas e artistas indicam de que tabela é cada dado',
+     'O cartão de estreia no perfil de uma música indica agora de que tabela se trata, por exemplo Weekly Chart Debut · Week of Sep 20, 26 ou Monthly Chart Debut · Sep 2026. Mostra a estreia na tabela a partir da qual abriu a música, ou na semanal se a abrir a partir da tabela de sempre. Antes misturava as tabelas semanal, mensal e anual e podia mostrar uma estreia mensal como se fosse uma data. As semanas, meses e anos na tabela, as reentradas e o tempo no #1 indicam agora também a sua tabela, nos perfis de músicas e de artistas.'],
+
   'Click a name in the Songs and Albums charts to open it':
     ['Clique num nome nas tabelas de Músicas e Álbuns para o abrir',
      'Nas tabelas de Músicas e Álbuns, o título da música, o título do álbum e o nome do artista são agora ligações. Clique numa música ou num álbum para abrir o respetivo perfil, ou no artista para abrir o dele. Quando uma música credita mais de um artista, cada nome é uma ligação própria. Various Artists nos álbuns de compilação continua a ser texto simples, pois não tem perfil próprio. Os nomes têm o mesmo aspeto de antes até passar o cursor por cima.'],
