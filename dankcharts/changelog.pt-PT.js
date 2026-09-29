@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['pt-PT'] = {
 
   /* ========== SETEMBRO 2026 ========== */
 
+  'Click a name in the Songs and Albums charts to open it':
+    ['Clique num nome nas tabelas de Músicas e Álbuns para o abrir',
+     'Nas tabelas de Músicas e Álbuns, o título da música, o título do álbum e o nome do artista são agora ligações. Clique numa música ou num álbum para abrir o respetivo perfil, ou no artista para abrir o dele. Quando uma música credita mais de um artista, cada nome é uma ligação própria. Various Artists nos álbuns de compilação continua a ser texto simples, pois não tem perfil próprio. Os nomes têm o mesmo aspeto de antes até passar o cursor por cima.'],
+
   'Easier-to-read gold in the light themes':
     ['Dourado mais fácil de ler nos temas claros',
      'Nos temas claros, o dourado brilhante do seletor de nomeados quase não se via sobre o fundo branco: a linha do ano e da categoria no topo, os números de posição dos teus nomeados e as marcas das linhas escolhidas. Agora usam um dourado mais profundo, fácil de ler, e o vermelho dos botões de remover também ficou mais escuro. Os selos de Venceu nos prémios reais e o botão Partilhar da cerimónia receberam a mesma correção. Os temas escuros ficam iguais.'],

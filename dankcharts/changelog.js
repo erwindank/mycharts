@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 8;
+const DC_CL_I18N_V = 9;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,10 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== SEPTEMBER 2026 ========== */
+
+  { d: '2026-09-29', t: 'feature', a: 'charts', h: '',
+    title: 'Click a name in the Songs and Albums charts to open it',
+    detail: 'In the Songs and Albums charts, the song title, album title and artist name are now links. Click a song or album to open its profile, or click the artist to open theirs. When a song credits more than one artist, each name is its own link. Various Artists on compilation albums stays plain text, since it has no profile of its own. The names look the same as before until you point at them.' },
 
   { d: '2026-09-29', t: 'design', a: 'awards', h: '7dadc69',
     title: 'A roomier nominee picker',

@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['es'] = {
 
   /* ========== SEPTIEMBRE 2026 ========== */
 
+  'Click a name in the Songs and Albums charts to open it':
+    ['Haz clic en un nombre de las listas de Canciones y Álbumes para abrirlo',
+     'En las listas de Canciones y Álbumes, el título de la canción, el título del álbum y el nombre del artista ahora son enlaces. Haz clic en una canción o un álbum para abrir su perfil, o en el artista para abrir el suyo. Cuando una canción acredita a más de un artista, cada nombre es su propio enlace. Various Artists en los álbumes recopilatorios sigue siendo texto normal, porque no tiene perfil propio. Los nombres se ven igual que antes hasta que pasas el cursor sobre ellos.'],
+
   'Easier-to-read gold in the light themes':
     ['Dorado más fácil de leer en los temas claros',
      'En los temas claros, el dorado brillante del selector de nominados casi no se veía sobre el fondo blanco: la línea del año y la categoría arriba, los números de posición de tus nominados y las marcas de las filas elegidas. Ahora usan un dorado más profundo que se lee fácilmente, y el rojo de los botones para quitar también es más oscuro. Las insignias de Ganó en los premios reales y el botón Compartir de la ceremonia recibieron el mismo arreglo. Los temas oscuros se ven igual que antes.'],

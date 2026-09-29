@@ -16625,6 +16625,21 @@ function peakBadge(peak) {
 // a UI control rather than a colorful pictograph; three ascending bars = "stats/history".
 const CR_ICON = '<svg class="cr-icon" viewBox="0 0 16 16" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><path d="M3 13V9"/><path d="M8 13V5"/><path d="M13 13V7"/></svg>';
 
+// Song / album names in the chart tables open their modal. stopPropagation
+// keeps the row's own click handler (album rows, all-time song rows) from
+// opening a second modal underneath.
+function chartNameLink(text, fn, key) {
+  return `<a href="javascript:void(0)" class="chart-name-link" onclick="event.stopPropagation();${fn}(${esc(JSON.stringify(key))})">${esc(text)}</a>`;
+}
+
+// Each credited artist gets its own link, split the same way p.artists is,
+// so "A, B" opens A's or B's profile. Various Artists has no profile of its
+// own, so it stays plain text.
+function chartArtistLinks(artistStr) {
+  if (!artistStr || artistStr === VARIOUS_ARTISTS) return esc(artistStr || '');
+  return splitArtists(artistStr).map(a => chartNameLink(a, 'openArtistModal', a)).join(', ');
+}
+
 function renderSongs(plays, peaks, monthlyStats) {
   const counts = {};
   for (const p of plays) {
@@ -16689,8 +16704,8 @@ function renderSongs(plays, peaks, monthlyStats) {
       ${monthlyStats ? mPrevCell(i + 1, k, 'songs', monthlyStats) : ''}
       <td class="thumb-cell"><div class="thumb-wrap"><div id="${imgId}"><div class="thumb-initials">${esc(initials(s.title))}</div></div><button id="srcbtn-${imgId}" class="img-src-btn" data-imgid="${imgId}" data-type="song" data-prefkey="${esc(prefKey)}" data-name="${esc(s.title)}" data-artist="${esc(s.artist)}" data-album="${esc(s.album)}">${srcLabel(itemSourcePrefs[prefKey] || 'deezer')}</button></div></td>
       <td>
-        <div class="song-title">${esc(s.title)}${pk ? peakBadge(pk) : ''}${certBadge(cumSongPlays, 'song')}${ratingSongBadge(k)}</div>
-        <div class="song-artist">${esc(s.artist)}</div>
+        <div class="song-title">${chartNameLink(s.title, 'openSongModal', k)}${pk ? peakBadge(pk) : ''}${certBadge(cumSongPlays, 'song')}${ratingSongBadge(k)}</div>
+        <div class="song-artist">${chartArtistLinks(s.artist)}</div>
         <button class="yt-play-btn" data-title="${esc(s.title)}" data-artist="${esc(s.artist)}" data-album="${esc(s.album)}" onclick="event.stopPropagation();ytPlayFromBtn(this)" title="Play on YouTube"><span class="yt-btn-content"><svg class="yt-btn-icon" viewBox="0 0 24 24"><path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.5 12 3.5 12 3.5s-7.5 0-9.4.5A3 3 0 0 0 .5 6.2C0 8.1 0 12 0 12s0 3.9.5 5.8a3 3 0 0 0 2.1 2.1c1.9.5 9.4.5 9.4.5s7.5 0 9.4-.5a3 3 0 0 0 2.1-2.1C24 15.9 24 12 24 12s0-3.9-.5-5.8zM9.7 15.5V8.5l6.3 3.5-6.3 3.5z"/></svg>YouTube</span></button>${dcPlBtnHtml('song', s.title, s.artist, s.album)}
       </td>
       <td class="meta-col"><div class="song-album">${esc(s.album)}${cumAlbumPlays ? certBadge(cumAlbumPlays, certKindFor(s.album, albumArtistOfSong(s))) : ''}</div></td>
@@ -16954,8 +16969,8 @@ function renderAlbums(plays, peaks, monthlyStats) {
       ${monthlyStats ? mPrevCell(i + 1, ak, 'albums', monthlyStats) : ''}
       <td class="thumb-cell"><div class="thumb-wrap"><div id="${imgId}"><div class="thumb-initials">${esc(initials(album))}</div></div><button id="srcbtn-${imgId}" class="img-src-btn" data-imgid="${imgId}" data-type="album" data-prefkey="${esc(prefKey)}" data-name="${esc(album)}" data-artist="${esc(artist)}" data-album="${esc(album)}">${srcLabel(itemSourcePrefs[prefKey] || 'deezer')}</button></div></td>
       <td>
-        <div class="song-title">${esc(album)}${pk ? peakBadge(pk) : ''}${certBadge(cumAlbumPlays, certKindFor(album, artist))}${ratingAlbumBadge(ak)}</div>
-        <div class="song-artist">${esc(artist)}</div>
+        <div class="song-title">${chartNameLink(album, 'openAlbumModal', ak)}${pk ? peakBadge(pk) : ''}${certBadge(cumAlbumPlays, certKindFor(album, artist))}${ratingAlbumBadge(ak)}</div>
+        <div class="song-artist">${chartArtistLinks(artist)}</div>
         <button class="yt-play-btn" data-title="" data-artist="${esc(artist)}" data-album="${esc(album)}" onclick="event.stopPropagation();buShowTrackList(this,'albums')" title="Show recently played tracks"><span class="yt-btn-content"><svg class="yt-btn-icon" viewBox="0 0 24 24"><path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.5 12 3.5 12 3.5s-7.5 0-9.4.5A3 3 0 0 0 .5 6.2C0 8.1 0 12 0 12s0 3.9.5 5.8a3 3 0 0 0 2.1 2.1c1.9.5 9.4.5 9.4.5s7.5 0 9.4-.5a3 3 0 0 0 2.1-2.1C24 15.9 24 12 24 12s0-3.9-.5-5.8zM9.7 15.5V8.5l6.3 3.5-6.3 3.5z"/></svg>YouTube</span></button>${dcPlBtnHtml('album', '', artist, album)}
       </td>
       <td class="meta-col"><div class="song-artist">${tCount('tracks', tracks.size)}</div></td>
