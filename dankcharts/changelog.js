@@ -80,7 +80,7 @@ const DC_CHANGELOG = [
 
   /* ========== SEPTEMBER 2026 ========== */
 
-  { d: '2026-09-29', t: 'feature', a: 'awards', h: '',
+  { d: '2026-09-29', t: 'feature', a: 'awards', h: '6e3321f',
     title: 'Compare album covers at a glance when picking Best Album Cover',
     detail: 'The Best Album Cover picker now shows a small cover next to every album, so you can compare them without opening each one. The ⤢ button on a row shows that cover as large as the picker allows. Clicking ⤢ does not nominate the album; clicking the row still does. Best Album Concept keeps its i button with the write-up and tracklist.' },
 
