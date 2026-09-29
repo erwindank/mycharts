@@ -80,7 +80,7 @@ const DC_CHANGELOG = [
 
   /* ========== SEPTEMBER 2026 ========== */
 
-  { d: '2026-09-29', t: 'feature', a: 'awards', h: '',
+  { d: '2026-09-29', t: 'feature', a: 'awards', h: '5e9317c',
     title: 'Year stats for every candidate when picking Song, Album and Artist of the Year',
     detail: 'When you pick nominees for Song of the Year, Album of the Year or Artist of the Year, every row now shows how it did over the year: its longest streak of days in a row, how many days, weeks and months you played it, its best weekly chart position and weeks at #1, and its biggest day. The Stats button opens everything else: its play rank for the year and share of your plays, longest weekly streak, biggest day, week and month, first and last play, how many songs and albums of an artist you played or how many tracks of an album, its weekly and monthly chart records, and a bar for each month. You can also sort the list by longest streak, most days played, biggest day, most weeks at #1 or best chart peak. Everything counts only the plays inside the eligibility window set for that year.' },
 
