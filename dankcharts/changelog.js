@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 12;
+const DC_CL_I18N_V = 13;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,10 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== SEPTEMBER 2026 ========== */
+
+  { d: '2026-09-29', t: 'feature', a: 'ui', h: '',
+    title: 'Pick the picture in song, artist and album profiles, saved to your account',
+    detail: 'The picture at the top of a song, artist or album profile now has the same picker as the charts: hover over it and click the pencil, or press and hold it on a phone. A picture you pick there also shows next to that song, artist or album in the charts, and the other way round. Picked pictures are now saved to your account too, so they follow you to your other devices, and putting one back to automatic carries over as well. A picture you uploaded from your device stays on that device only.' },
 
   { d: '2026-09-29', t: 'fix', a: 'themes', h: '',
     title: 'Easier-to-read score chips in the light themes',

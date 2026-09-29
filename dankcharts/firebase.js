@@ -206,6 +206,36 @@ async function dcLoadRatings() {
   }
 }
 
+function _imgChoicesRef(uid) {
+  return _db.collection('users').doc(uid).collection('data').doc('imageChoices');
+}
+
+// Pictures picked in the ✎ image picker: { choices: { prefKey: { url, source,
+// at } }, resets: { prefKey: at } }. Own document, written whole on each pick,
+// for the same reason as ratings above. Merged on sign-in by
+// dcMergeImgChoices() in app.js.
+async function dcSaveImgChoices(payload) {
+  if (!_currentUser) return;
+  await _ensureDb();
+  try {
+    await _imgChoicesRef(_currentUser.uid).set(payload);
+  } catch (err) {
+    console.warn('[dankcharts] Image choices save error:', err);
+  }
+}
+
+async function dcLoadImgChoices() {
+  if (!_currentUser) return null;
+  await _ensureDb();
+  try {
+    const snap = await _imgChoicesRef(_currentUser.uid).get();
+    return snap.exists ? snap.data() : null;
+  } catch (err) {
+    console.warn('[dankcharts] Image choices load error:', err);
+    return null;
+  }
+}
+
 function _playlistsRef(uid) {
   return _db.collection('users').doc(uid).collection('data').doc('playlists');
 }
@@ -558,6 +588,8 @@ window.dcLoadSharedCeremony        = dcLoadSharedCeremony;
 window.dcUnshareCeremony           = dcUnshareCeremony;
 window.dcSaveRatings               = dcSaveRatings;
 window.dcLoadRatings               = dcLoadRatings;
+window.dcSaveImgChoices            = dcSaveImgChoices;
+window.dcLoadImgChoices            = dcLoadImgChoices;
 window.dcSavePlaylistsToFirestore  = dcSavePlaylistsToFirestore;
 window.dcLoadPlaylistsFromFirestore = dcLoadPlaylistsFromFirestore;
 
@@ -588,6 +620,10 @@ _auth.onAuthStateChanged(async (user) => {
   // resolves per-entry by last-edited timestamp, so neither side clobbers the other.
   const remoteRatings = await dcLoadRatings();
   if (typeof dcMergeRatings === 'function') dcMergeRatings(remoteRatings);
+
+  // Same per-entry merge for pictures picked in the image picker.
+  const remoteImgChoices = await dcLoadImgChoices();
+  if (typeof dcMergeImgChoices === 'function') dcMergeImgChoices(remoteImgChoices);
 
   const hasLocalConfig = SYNC_KEYS.some(k => localStorage.getItem(k) !== null);
   if (!hasLocalConfig && !applied) return; // truly fresh user with no data anywhere

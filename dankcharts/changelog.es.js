@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['es'] = {
 
   /* ========== SEPTIEMBRE 2026 ========== */
 
+  'Pick the picture in song, artist and album profiles, saved to your account':
+    ['Elige la imagen en los perfiles de canciones, artistas y álbumes, guardada en tu cuenta',
+     'La imagen de arriba del perfil de una canción, artista o álbum ahora tiene el mismo selector que las listas: pasa el cursor por encima y haz clic en el lápiz, o manténla pulsada en el teléfono. Una imagen que elijas ahí también aparece junto a esa canción, artista o álbum en las listas, y al revés. Las imágenes elegidas ahora también se guardan en tu cuenta, así que te siguen a tus otros dispositivos, y volver una a automático también se sincroniza. Una imagen que subiste desde tu dispositivo se queda solo en ese dispositivo.'],
+
   'Easier-to-read score chips in the light themes':
     ['Etiquetas de puntuación más fáciles de leer en los temas claros',
      'En los temas claros, algunas etiquetas de puntuación junto a canciones y álbumes todavía costaban de leer, sobre todo las doradas de Masterpiece y las verdes de Essential en las filas de color de lo alto de una lista. Ahora todos los colores de puntuación son un poco más intensos en los temas claros, así que cada uno se lee bien en cualquier fila, y los anillos y barras de puntuación coinciden. Los colores mantienen su orden de mejor a peor, y los temas oscuros se ven igual que antes.'],

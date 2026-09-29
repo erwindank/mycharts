@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['pt-BR'] = {
 
   /* ========== SETEMBRO 2026 ========== */
 
+  'Pick the picture in song, artist and album profiles, saved to your account':
+    ['Escolha a imagem nos perfis de músicas, artistas e álbuns, salva na sua conta',
+     'A imagem no topo do perfil de uma música, artista ou álbum agora tem o mesmo seletor das paradas: passe o cursor sobre ela e clique no lápis, ou mantenha pressionado no celular. Uma imagem que você escolher ali também aparece ao lado dessa música, artista ou álbum nas paradas, e vice-versa. As imagens escolhidas agora também são salvas na sua conta, então acompanham você nos seus outros dispositivos, e voltar uma para automático também é sincronizado. Uma imagem que você enviou do seu dispositivo fica só nele.'],
+
   'Easier-to-read score chips in the light themes':
     ['Etiquetas de nota mais fáceis de ler nos temas claros',
      'Nos temas claros, algumas etiquetas de nota ao lado de músicas e álbuns ainda eram difíceis de ler, principalmente as douradas de Masterpiece e as verdes de Essential nas linhas coloridas do topo de uma parada. Agora todas as cores de nota ficaram um pouco mais fortes nos temas claros, então cada uma é fácil de ler em qualquer linha, e os anéis e barras de nota combinam. As cores mantêm a ordem da melhor para a pior, e os temas escuros continuam iguais.'],

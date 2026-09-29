@@ -8866,6 +8866,21 @@
       flex-shrink: 0;
     }
 
+    /* Profile-modal header artwork is drawn by fetchAndInjectImage() (see
+       loadModalArt), which writes the chart classes .thumb / .thumb-initials —
+       sized up here to the modal's 72px, with a roomier ✎ badge. */
+    .modal-thumb-wrap { flex-shrink: 0; }
+    .modal-thumb-wrap .thumb,
+    .modal-thumb-wrap .thumb-initials {
+      width: 72px;
+      height: 72px;
+      border-radius: 8px;
+      border: 1px solid var(--border2);
+    }
+    .modal-thumb-wrap .thumb-initials { font-size: 1.8rem; }
+    .modal-thumb-wrap .img-src-btn { top: 4px; right: 4px; width: 22px; height: 22px; }
+    .modal-thumb-wrap .img-src-btn::before { font-size: 12px; }
+
     .modal-artist-initials {
       width: 72px;
       height: 72px;

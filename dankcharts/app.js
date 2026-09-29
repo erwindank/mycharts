@@ -1488,10 +1488,65 @@ const itemSourcePrefs = JSON.parse(localStorage.getItem('itemSourcePrefs') || '{
 // not a different source.
 const deezerCandidateIdxPrefs = JSON.parse(localStorage.getItem('deezerCandidateIdxPrefs') || '{}');
 // Exact image the user picked in the picker popover, pinned per prefKey:
-// { url, source }. Checked before the automatic source cascade. source 'off'
-// means "show initials"; 'custom' is a user-pasted URL.
+// { url, source, at }. Checked before the automatic source cascade. source 'off'
+// means "show initials"; 'custom' is a user-pasted URL. `at` is when it was
+// picked, for the cross-device merge (entries from before sync have none).
 const imgChoicePrefs = JSON.parse(localStorage.getItem('imgChoicePrefs') || '{}');
-function saveImgChoicePrefs() { localStorage.setItem('imgChoicePrefs', JSON.stringify(imgChoicePrefs)); }
+// prefKey → when the user put a picture back to automatic. Kept so that reset
+// reaches the account too: without it, the next sign-in merge would bring the
+// old pick straight back from the cloud copy.
+const imgChoiceResets = JSON.parse(localStorage.getItem('imgChoiceResets') || '{}');
+function saveImgChoicePrefs() {
+  localStorage.setItem('imgChoicePrefs', JSON.stringify(imgChoicePrefs));
+  localStorage.setItem('imgChoiceResets', JSON.stringify(imgChoiceResets));
+}
+
+// ── Account sync for picked pictures ──
+// Stored in users/{uid}/data/imageChoices via dcSaveImgChoices() (firebase.js),
+// its own document for the same reason ratings have one: written on a single
+// click, and never round-tripped through the wholesale config save. Only real
+// web addresses travel — an uploaded picture held as a data:/blob: URL is too
+// big for the document and means nothing on another device (same rule as
+// _cerResolveImg). Until the sign-in merge has run, pushes wait: writing this
+// device's partial set first would wipe the picks made on the others.
+let _imgChoicesMerged = false;
+function imgChoicesPayload() {
+  const choices = {};
+  for (const [k, c] of Object.entries(imgChoicePrefs)) {
+    if (!c || (c.source !== 'off' && !/^https?:\/\//.test(c.url || ''))) continue;
+    choices[k] = { url: c.source === 'off' ? '' : c.url, source: c.source, at: c.at || 0 };
+  }
+  return { choices, resets: Object.assign({}, imgChoiceResets) };
+}
+function imgChoicesPush() {
+  if (!_imgChoicesMerged || typeof dcSaveImgChoices !== 'function') return;
+  if (typeof dcIsSignedIn === 'function' && !dcIsSignedIn()) return;
+  dcSaveImgChoices(imgChoicesPayload());
+}
+// Called by firebase.js once the user signs in. Per prefKey, the newest of this
+// device's pick, this device's reset and the cloud's pick/reset wins.
+function dcMergeImgChoices(remote) {
+  const rc = (remote && remote.choices) || {};
+  const rr = (remote && remote.resets) || {};
+  const mineAt = k => Math.max(imgChoicePrefs[k] ? (imgChoicePrefs[k].at || 0) : 0, imgChoiceResets[k] || 0);
+  const changed = [];
+  for (const [k, c] of Object.entries(rc)) {
+    if (!c || (c.at || 0) <= mineAt(k)) continue;
+    imgChoicePrefs[k] = { url: c.url || '', source: c.source, at: c.at };
+    delete imgChoiceResets[k];
+    changed.push(k);
+  }
+  for (const [k, at] of Object.entries(rr)) {
+    if (!(at > mineAt(k))) continue;
+    if (imgChoicePrefs[k]) { delete imgChoicePrefs[k]; changed.push(k); }
+    imgChoiceResets[k] = at;
+  }
+  _imgChoicesMerged = true;
+  saveImgChoicePrefs();
+  imgChoicesPush();
+  changed.forEach(refreshImgInstances);
+}
+window.dcMergeImgChoices = dcMergeImgChoices;
 function srcLabel(s) {
   if (s === 'itunes') return 'iTunes';
   if (s === 'lastfm') return 'Last.fm';
@@ -3881,22 +3936,60 @@ function applyImgChoice(o, url, source) {
     delete deezerCandidateIdxPrefs[o.prefkey];
     localStorage.setItem('itemSourcePrefs', JSON.stringify(itemSourcePrefs));
     localStorage.setItem('deezerCandidateIdxPrefs', JSON.stringify(deezerCandidateIdxPrefs));
+    imgChoiceResets[o.prefkey] = Date.now();
   } else {
-    imgChoicePrefs[o.prefkey] = { url: url || '', source };
+    imgChoicePrefs[o.prefkey] = { url: url || '', source, at: Date.now() };
+    delete imgChoiceResets[o.prefkey];
   }
   saveImgChoicePrefs();
+  imgChoicesPush();
   closeImgPicker();
-  // Refresh every rendered instance of this item (same prefKey can appear in
-  // several tables/views at once — each has its own srcbtn to find it by).
+  refreshImgInstances(o.prefkey);
+}
+
+// Header artwork for the song, artist and album profile modals. Drawn by the
+// same fetchAndInjectImage() the charts use, so a picture picked anywhere shows
+// here too, and given the same ✎ picker (hover badge, or press-and-hold on
+// touch). The modal element is reused for every item, so the button's data-*
+// are rewritten on each open rather than only on the first.
+function loadModalArt(el, type, o) {
+  let wrap = el.parentElement;
+  if (!wrap.classList.contains('thumb-wrap')) {
+    wrap = document.createElement('div');
+    wrap.className = 'thumb-wrap modal-thumb-wrap';
+    el.parentNode.insertBefore(wrap, el);
+    wrap.appendChild(el);
+  }
+  let btn = wrap.querySelector('.img-src-btn');
+  if (!btn) {
+    btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'img-src-btn';
+    btn.id = 'srcbtn-' + el.id;
+    btn.dataset.imgid = el.id;
+    wrap.appendChild(btn);
+  }
+  const label = type === 'album' ? o.album : o.name;
+  Object.assign(btn.dataset, { type, prefkey: o.prefKey, name: o.name, artist: o.artist || '', album: o.album || '' });
+  btn.title = t('img_picker_change');
+  btn.setAttribute('aria-label', t('img_picker_change_for', { name: label }));
+  el.innerHTML = `<div class="thumb-initials">${esc(initials(label))}</div>`;
+  fetchAndInjectImage(el, { imgId: el.id, name: o.name, title: o.name, artist: o.artist || '', album: o.album || '', prefKey: o.prefKey }, type);
+}
+
+// Redraws every rendered instance of one item (the same prefKey can appear in
+// several tables, views and an open profile modal at once — each has its own
+// srcbtn to find it by).
+function refreshImgInstances(prefkey) {
   document.querySelectorAll('.img-src-btn[data-prefkey]').forEach(btn => {
-    if (btn.dataset.prefkey !== o.prefkey) return;
+    if (btn.dataset.prefkey !== prefkey) return;
     const el = document.getElementById(btn.dataset.imgid);
     if (!el) return;
     const item = {
       imgId: btn.dataset.imgid,
       name: btn.dataset.name, title: btn.dataset.name,
       artist: btn.dataset.artist || '', album: btn.dataset.album || '',
-      prefKey: o.prefkey
+      prefKey: prefkey
     };
     imgQueue = imgQueue.then(() => fetchAndInjectImage(el, item, btn.dataset.type || 'song'));
   });
@@ -22369,16 +22462,8 @@ function openArtistModal(artistName) {
     `Top ${isFinite(chartSizeAllTime) ? chartSizeAllTime : '∞'} ${t('modal_chart_profile')} · ${t('period_alltime')}`;
 
   // Artist image
-  const imgEl = document.getElementById('modalArtistImg');
-  const cached = imgCache['artist:' + artistName.toLowerCase()];
-  if (cached) {
-    imgEl.innerHTML = `<img class="modal-artist-img" src="${esc(cached)}" alt="" onerror="this.outerHTML='<div class=modal-artist-initials>${esc(initials(artistName))}</div>'">`;
-  } else {
-    imgEl.innerHTML = `<div class="modal-artist-initials">${esc(initials(artistName))}</div>`;
-    getArtistImage(artistName).then(url => {
-      if (url) imgEl.innerHTML = `<img class="modal-artist-img" src="${esc(url)}" alt="">`;
-    });
-  }
+  loadModalArt(document.getElementById('modalArtistImg'), 'artist',
+    { name: artistName, artist: artistName, prefKey: 'artist:' + artistName.toLowerCase() });
 
   // Additional stats for the expanded stats strip
   const firstPlayed = artistPlays.length ? artistPlays[artistPlays.length - 1].date : null;
@@ -23122,19 +23207,8 @@ function openAlbumModal(albumKey) {
   }
 
   // ── IMAGE ─────────────────────────────────────────────────────────────────
-  const imgEl = document.getElementById('albumModalImg');
-  const prefKey = 'album:' + artistName.toLowerCase() + '|||' + albumName.toLowerCase();
-  const source = itemSourcePrefs[prefKey] || 'deezer';
-  const cacheKey = 'album:' + albumName.toLowerCase() + ':' + source;
-  const cached = imgCache[cacheKey] || imgCache['album:' + albumName.toLowerCase() + ':deezer'];
-  if (cached) {
-    imgEl.innerHTML = `<img class="modal-artist-img" src="${esc(cached)}" alt="" onerror="this.outerHTML='<div class=modal-artist-initials>${esc(initials(albumName))}</div>'">`;
-  } else {
-    imgEl.innerHTML = `<div class="modal-artist-initials">${esc(initials(albumName))}</div>`;
-    getAlbumImage(albumName, artistName, source).then(url => {
-      if (url) imgEl.innerHTML = `<img class="modal-artist-img" src="${esc(url)}" alt="">`;
-    });
-  }
+  loadModalArt(document.getElementById('albumModalImg'), 'album',
+    { name: albumName, artist: artistName, album: albumName, prefKey: 'album:' + artistName.toLowerCase() + '|||' + albumName.toLowerCase() });
 
   // ── STATS STRIP ROW 1: core totals + all-time hero ───────────────────────
   document.getElementById('albumModalStats').innerHTML = `
@@ -23649,19 +23723,10 @@ function openSongModal(key) {
     ` · Song Profile`;
 
   // ── IMAGE ─────────────────────────────────────────────────────
-  const imgEl  = document.getElementById('songModalImg');
-  const prefKey = 'song:' + propArtist.toLowerCase() + '|||' + propTitle.toLowerCase();
-  const source  = itemSourcePrefs[prefKey] || 'deezer';
-  const cacheKey = 'song:' + propTitle.toLowerCase() + ':' + source;
-  const cached   = imgCache[cacheKey] || imgCache['song:' + propTitle.toLowerCase() + ':deezer'];
-  if (cached) {
-    imgEl.innerHTML = `<img class="modal-artist-img" src="${esc(cached)}" alt="" onerror="this.outerHTML='<div class=modal-artist-initials>${esc(initials(propTitle))}</div>'">`;
-  } else {
-    imgEl.innerHTML = `<div class="modal-artist-initials">${esc(initials(propTitle))}</div>`;
-    getAlbumImage(propAlbum || propTitle, propArtist, source).then(url => {
-      if (url && imgEl.isConnected) imgEl.innerHTML = `<img class="modal-artist-img" src="${esc(url)}" alt="">`;
-    });
-  }
+  // Same prefKey as the song's chart row, so a picture picked in either place
+  // shows in both.
+  loadModalArt(document.getElementById('songModalImg'), 'song',
+    { name: propTitle, artist: propArtist, album: propAlbum, prefKey: 'song:' + propArtist.toLowerCase() + '|||' + propTitle.toLowerCase() });
 
   // ── RANK CARDS ────────────────────────────────────────────────
   let rankCardsHTML = '';
