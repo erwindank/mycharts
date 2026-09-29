@@ -80,7 +80,7 @@ const DC_CHANGELOG = [
 
   /* ========== SEPTEMBER 2026 ========== */
 
-  { d: '2026-09-29', t: 'feature', a: 'awards', h: '',
+  { d: '2026-09-29', t: 'feature', a: 'awards', h: 'c1d3cc8',
     title: 'Most Viral Song award, and Album You Discovered Late is now Best Album Discovered Late',
     detail: 'My Grammys has a new Most Viral Song category, off by default: turn it on under Configure Year and pick your nominees from the songs you played most that year. The Album You Discovered Late category is now called Best Album Discovered Late, with the same rules as before.' },
 
