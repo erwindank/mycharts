@@ -35792,13 +35792,14 @@ function _awardsPickerResultRow(item, idx) {
     + (idx === _awardsPickerActive ? ' is-active' : '');
   return `<div class="${cls}" data-idx="${idx}" onclick="awardsPickerToggleRow(${idx})" title="${picked ? 'Click to remove' : 'Click to nominate'}">
     <span class="awards-picker-add-icon">${picked ? '✓' : '+'}</span>
-    ${_awardsPickerThumbHtml(item, idx)}
+    ${_awardsPickerThumbHtml(item, 'awPkThumb' + idx)}
     <span class="awards-picker-lbl">${esc(lbl)}</span>
     ${sub ? `<span class="awards-picker-sub">${esc(sub)}${rel}</span>` : ''}
     ${genreHtml}
     ${_awardsPickerScoreChip(item)}
     <span class="awards-picker-plays">${item.playLabel || item.plays + ' plays'}</span>
     ${_awardsPickerPrevBtn(item, `awardsPickerPreviewRow(${idx})`)}
+    ${_awardsPickerListenBtns(item, `awardsPickerPlayRow(${idx})`)}
   </div>`;
 }
 
@@ -35815,9 +35816,11 @@ function _awardsPickerSelHtml() {
         ondrop="awardsPickerDrop(event,${i})"
         ondragend="awardsPickerDragEnd(event)">
       <span class="awards-picker-nom-num">${i + 1}</span>
+      ${_awardsPickerThumbHtml(item, 'awPkNomThumb' + i)}
       <span class="awards-picker-nom-lbl">${esc(lbl)}</span>
       ${sub ? `<span class="awards-picker-nom-sub">${esc(sub)}</span>` : ''}
       ${_awardsPickerPrevBtn(item, `awardsPickerPreviewNom(${i})`)}
+      ${_awardsPickerListenBtns(item, `awardsPickerPlayNom(${i})`)}
       <button class="awards-picker-nom-x" data-i="${i}" onclick="awardsPickerRemoveNom(this)" title="Remove">✕</button>
     </div>`;
   }).join('');
@@ -35861,7 +35864,7 @@ function _awardsPickerBodyHtml() {
 function _awardsPickerSyncSel() {
   const selEl   = document.getElementById('awardsPickerSelected');
   const countEl = document.getElementById('awardsPickerCount');
-  if (selEl)   selEl.innerHTML = _awardsPickerSelHtml();
+  if (selEl)   { selEl.innerHTML = _awardsPickerSelHtml(); _awardsPickerLoadNomThumbs(); }
   if (countEl) countEl.textContent = t('awards_picker_selected', { count: _awardsPickerSel.length });
 }
 
@@ -35953,7 +35956,8 @@ function _awardsShowPicker(year, catId, candidates) {
   const wrap = document.createElement('div');
   wrap.innerHTML = html;
   document.body.appendChild(wrap.firstElementChild);
-  _awardsPickerLoadThumbs();   // Best Album Cover row thumbnails (no-op elsewhere)
+  _awardsPickerLoadThumbs();   // row and nominee-chip artwork
+  _awardsPickerLoadNomThumbs();
   requestAnimationFrame(() => document.getElementById('awardsPickerSearch')?.focus());
 
   // Keyboard: ↑↓ walk the list, Enter adds/removes, Ctrl/⌘+Enter saves, Esc closes
@@ -36111,23 +36115,200 @@ function _awardsPickerPreviewKind() {
   return _AWARDS_PREVIEW_KIND[_awardsPickerCtx?.catId] || null;
 }
 
-/* Cover thumbnails on the Best Album Cover rows. Loaded after every rebuild of
-   the list (open, search, sort, "show more"), one at a time through the same
-   paced queue as the ceremony artwork; a newer rebuild stops an older queue. */
+/* Artwork on every row and nominee chip, so a list of names reads at a glance:
+   the song's art, the album cover or the artist's picture, whichever the
+   category is about. Loaded after every rebuild of the list (open, search,
+   sort, "show more"), one at a time through the same image cascade as the
+   charts; a newer rebuild stops an older queue. The chips are rebuilt on every
+   add, remove and drag, so a picture that has already arrived is remembered
+   and put straight back instead of flashing back to initials. */
 let _awardsThumbSeq = 0;
-function _awardsPickerHasThumbs() {
-  return _awardsPickerPreviewKind() === 'cover';
+let _awardsNomThumbSeq = 0;
+const _awardsThumbSrc = {};   // "type:item key" → image URL already shown once
+
+function _awardsPickerThumbType() {
+  return _awardsPickerCatType === 'artist' ? 'artist' : _awardsPickerCatType === 'album' ? 'album' : 'song';
 }
-function _awardsPickerThumbHtml(item, idx) {
-  return _awardsPickerHasThumbs() && item.album ? _cerArtHtml(item, 'album', 'awPkThumb' + idx, 'awards-picker-thumb') : '';
+function _awardsThumbCacheKey(item) { return _awardsPickerThumbType() + ':' + _awardItemKey(item); }
+
+function _awardsPickerThumbHtml(item, imgId) {
+  const type = _awardsPickerThumbType();
+  const cls = 'awards-picker-thumb' + (type === 'artist' ? ' is-artist' : '');
+  const src = _awardsThumbSrc[_awardsThumbCacheKey(item)];
+  if (src) return `<div class="cer-art ${cls}"><div id="${imgId}"><img class="thumb" alt="" src="${esc(src)}"></div></div>`;
+  return _cerArtHtml(item, type, imgId, cls);
 }
+
+async function _awardsPickerThumbQueue(jobs, isLive) {
+  const type = _awardsPickerThumbType();
+  for (const { imgId, item } of jobs) {
+    if (!isLive()) return;
+    const el = document.getElementById(imgId);
+    if (!el || el.querySelector('img')) continue;   // gone, or already filled from the cache
+    const ck = _awardsThumbCacheKey(item);
+    if (_awardsThumbSrc[ck]) { el.innerHTML = `<img class="thumb" alt="" src="${esc(_awardsThumbSrc[ck])}">`; continue; }
+    try { await fetchAndInjectImage(el, _cerImgItem(item, type, imgId), type); } catch (e) {}
+    const src = document.getElementById(imgId)?.querySelector('img')?.getAttribute('src');
+    if (src) _awardsThumbSrc[ck] = src;
+  }
+}
+/* List rows load lazily: a row joins the queue only once it scrolls within
+   200px of the visible part of the list, and the queue is drained in list
+   order, one lookup at a time. A rebuild (search, sort, "show more") drops the
+   old observer and anything still waiting. The nominee chips are few and all
+   on screen, so they skip this and just load. */
+let _awardsThumbObs = null;
+let _awardsThumbPending = [];   // [{ idx, imgId, item }] seen but not loaded yet
+let _awardsThumbPumping = false;
+
 function _awardsPickerLoadThumbs() {
-  if (!_awardsPickerHasThumbs()) return;
   const seq = ++_awardsThumbSeq;
-  const queue = _awardsPickerRows
-    .map((item, i) => ({ imgId: 'awPkThumb' + i, item, type: 'album' }))
-    .filter(j => j.item.album);
-  _awardsLoadArtQueue(queue, () => seq === _awardsThumbSeq);
+  if (_awardsThumbObs) { _awardsThumbObs.disconnect(); _awardsThumbObs = null; }
+  _awardsThumbPending = [];
+  const bodyEl = document.getElementById('awardsPickerBody');
+  if (!bodyEl) return;
+  if (!('IntersectionObserver' in window)) {
+    _awardsPickerThumbQueue(_awardsPickerRows.map((item, i) => ({ imgId: 'awPkThumb' + i, item })), () => seq === _awardsThumbSeq);
+    return;
+  }
+  const obs = _awardsThumbObs = new IntersectionObserver(entries => {
+    if (seq !== _awardsThumbSeq) return;
+    for (const e of entries) {
+      if (!e.isIntersecting) continue;
+      obs.unobserve(e.target);
+      const idx = +e.target.dataset.idx;
+      const item = _awardsPickerRows[idx];
+      if (item) _awardsThumbPending.push({ idx, imgId: 'awPkThumb' + idx, item });
+    }
+    _awardsThumbPending.sort((a, b) => a.idx - b.idx);
+    _awardsPickerPumpThumbs();
+  }, { root: bodyEl, rootMargin: '200px 0px' });
+  // Rows whose picture came straight from the cache have nothing to fetch
+  bodyEl.querySelectorAll('.awards-picker-result-row').forEach(row => {
+    if (!row.querySelector('.awards-picker-thumb img')) obs.observe(row);
+  });
+}
+
+async function _awardsPickerPumpThumbs() {
+  if (_awardsThumbPumping) return;   // the running pump will get to the new jobs
+  _awardsThumbPumping = true;
+  const seq = _awardsThumbSeq;
+  try {
+    while (seq === _awardsThumbSeq && _awardsThumbPending.length) {
+      const job = _awardsThumbPending.shift();
+      await _awardsPickerThumbQueue([job], () => seq === _awardsThumbSeq);
+    }
+  } finally { _awardsThumbPumping = false; }
+  // A rebuild while the last lookup was in flight leaves its jobs for a fresh pump
+  if (_awardsThumbPending.length) _awardsPickerPumpThumbs();
+}
+function _awardsPickerLoadNomThumbs() {
+  const seq = ++_awardsNomThumbSeq;
+  _awardsPickerThumbQueue(_awardsPickerSel.map((item, i) => ({ imgId: 'awPkNomThumb' + i, item })), () => seq === _awardsNomThumbSeq);
+}
+
+/* Listening: every category but Video of the Year (which has its own video
+   button) gets a ♪ that plays a 30-second store preview of the nominee, found
+   the same way the ceremony finds them, and a link to a YouTube search for it.
+   For an artist the sample is whichever of their songs the stores rank first.
+   One sample at a time, through the ceremony's audio slot. */
+let _awardsClipKey = null;           // key of the nominee whose sample is loading/playing
+let _awardsClipLoading = false;
+const _awardsClipMiss = new Set();   // keys neither store had a preview for
+
+function _awardsPickerHasListen() { return _awardsPickerPreviewKind() !== 'video'; }
+
+function _awardsPickerYtQuery(item) {
+  const a = item.artist || '';
+  if (_awardsPickerCatType === 'artist') return a;
+  if (_awardsPickerCatType === 'album')  return `${a} ${item.album || ''} album`.trim();
+  return `${a} ${item.title || ''}`.trim();
+}
+
+function _awardsPickerClipUi(item) {
+  const k = _awardItemKey(item);
+  if (_awardsClipKey === k) return _awardsClipLoading
+    ? { icon: '◌', cls: ' is-on is-loading', title: 'Finding a sample…' }
+    : { icon: '❚❚', cls: ' is-on', title: 'Stop the sample' };
+  if (_awardsClipMiss.has(k)) return { icon: '♪', cls: ' is-miss', title: 'No sample found — try the YouTube link' };
+  return { icon: '♪', cls: '', title: 'Play a 30-second sample' };
+}
+
+function _awardsPickerListenBtns(item, onclick) {
+  if (!_awardsPickerHasListen()) return '';
+  const ui = _awardsPickerClipUi(item);
+  const yt = 'https://www.youtube.com/results?search_query=' + encodeURIComponent(_awardsPickerYtQuery(item));
+  // stopPropagation: the row itself toggles the nomination on click
+  return `<button class="awards-picker-clip-btn${ui.cls}" onclick="event.stopPropagation();${onclick}" title="${ui.title}">${ui.icon}</button>`
+    + `<a class="awards-picker-yt-btn" href="${esc(yt)}" target="_blank" rel="noopener" draggable="false" onclick="event.stopPropagation()" title="Search YouTube">`
+    + `<svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path fill="currentColor" d="M23 7.2a3 3 0 0 0-2.1-2.1C19 4.6 12 4.6 12 4.6s-7 0-8.9.5A3 3 0 0 0 1 7.2 31 31 0 0 0 .5 12a31 31 0 0 0 .5 4.8 3 3 0 0 0 2.1 2.1c1.9.5 8.9.5 8.9.5s7 0 8.9-.5a3 3 0 0 0 2.1-2.1 31 31 0 0 0 .5-4.8 31 31 0 0 0-.5-4.8zM9.7 15.1V8.9l5.8 3.1-5.8 3.1z"/></svg></a>`;
+}
+
+// Only the ♪ buttons change, so the list and chips aren't rebuilt
+function _awardsPickerPaintClipBtns() {
+  const paint = (sel, items, attr) => document.querySelectorAll(sel).forEach(row => {
+    const item = items[+row.dataset[attr]];
+    const btn = row.querySelector('.awards-picker-clip-btn');
+    if (!item || !btn) return;
+    const ui = _awardsPickerClipUi(item);
+    btn.className = 'awards-picker-clip-btn' + ui.cls;
+    btn.textContent = ui.icon;
+    btn.title = ui.title;
+  });
+  paint('#awardsPickerBody .awards-picker-result-row', _awardsPickerRows, 'idx');
+  paint('#awardsPickerSelected .awards-picker-nom-row', _awardsPickerSel, 'i');
+}
+
+function _awardsPickerStopClip() {
+  if (!_awardsClipKey) return;
+  _ceremonyStopAudio();
+  _awardsClipKey = null;
+  _awardsClipLoading = false;
+  _awardsPickerPaintClipBtns();
+}
+
+function awardsPickerPlayRow(idx) { const it = _awardsPickerRows[idx]; if (it) _awardsPickerPlayClip(it); }
+function awardsPickerPlayNom(i)   { const it = _awardsPickerSel[i];    if (it) _awardsPickerPlayClip(it); }
+
+async function _awardsPickerPlayClip(item) {
+  const k = _awardItemKey(item);
+  if (_awardsClipKey === k) { _awardsPickerStopClip(); return; }   // second click stops it
+  _ceremonyStopAudio();
+  try { if (_ytPlayer && _ytPlayer.getPlayerState() === YT.PlayerState.PLAYING) _ytPlayer.pauseVideo(); } catch (e) {}
+  _awardsClipKey = k;
+  _awardsClipLoading = true;
+  _awardsClipMiss.delete(k);
+  _awardsPickerPaintClipBtns();
+  const token = _ceremonyAudioToken;   // any later stop or play bumps it
+
+  let takes = [];
+  try { takes = await _ceremonyPreviewTakes(item, _awardsPickerCatType); } catch (e) {}
+  if (token !== _ceremonyAudioToken || _awardsClipKey !== k) return;
+  if (!takes.length) {
+    _awardsClipMiss.add(k);
+    _awardsClipKey = null;
+    _awardsClipLoading = false;
+    _awardsPickerPaintClipBtns();
+    return;
+  }
+  const audio = _ceremonyAudio = new Audio(takes[0].url);
+  audio.volume = 0.8;
+  audio.addEventListener('ended', () => {
+    if (_ceremonyAudio !== audio) return;
+    _ceremonyAudio = null;
+    _awardsClipKey = null;
+    _awardsPickerPaintClipBtns();
+  });
+  try {
+    await audio.play();
+    if (token !== _ceremonyAudioToken) { audio.pause(); return; }
+    _awardsClipLoading = false;
+  } catch (e) {
+    if (_ceremonyAudio === audio) _ceremonyAudio = null;
+    _awardsClipKey = null;
+    _awardsClipLoading = false;
+  }
+  _awardsPickerPaintClipBtns();
 }
 
 function _awardsPickerPrevBtn(item, onclick) {
@@ -36193,6 +36374,7 @@ async function _awardsPickerPreview(item) {
   }
 
   // Two sounds at once is never wanted: pause the mini player if it's going
+  _awardsPickerStopClip();
   try { if (_ytPlayer && _ytPlayer.getPlayerState() === YT.PlayerState.PLAYING) _ytPlayer.pauseVideo(); } catch (e) {}
 
   const query = `${item.artist || ''} ${item.title} official music video`.trim();
@@ -36335,6 +36517,11 @@ function awardsPickerClose() {
   _awardsPrevKey         = null;   // the preview went away with the overlay
   _awardsPrevSeq++;
   _awardsThumbSeq++;               // stop loading row thumbnails
+  _awardsNomThumbSeq++;
+  if (_awardsThumbObs) { _awardsThumbObs.disconnect(); _awardsThumbObs = null; }
+  _awardsThumbPending = [];
+  _awardsPickerStopClip();         // a sample shouldn't outlive the picker
+  _awardsClipMiss.clear();
 }
 
 // Indexed items carry picker-only fields (fit, grp, last, summerPlays…) — keep them out of

@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['pt-PT'] = {
 
   /* ========== SETEMBRO 2026 ========== */
 
+  'See and hear every nominee while you pick them':
+    ['Vê e ouve cada nomeado enquanto os escolhes',
+     'Ao escolher os nomeados de qualquer prémio, cada linha e cada nomeado escolhido mostra agora a arte da música, a capa do álbum ou a foto do artista, para a lista se perceber num relance. As imagens carregam à medida que aparecem ao deslizar. Todas as categorias, exceto Vídeo do Ano, têm também um botão ♪ que toca uma amostra de 30 segundos e um botão do YouTube que abre uma pesquisa num novo separador. Para um artista, a amostra é uma das suas músicas mais conhecidas. Carregar em qualquer um dos botões não nomeia nada; carregar na linha, sim. Vídeo do Ano mantém o seu próprio botão de vídeo.'],
+
   'Compare album covers at a glance when picking Best Album Cover':
     ['Compara as capas num relance ao escolher a Melhor Capa de Álbum',
      'O seletor de Melhor Capa de Álbum mostra agora uma capa pequena ao lado de cada álbum, para as poderes comparar sem abrir uma a uma. O botão ⤢ de uma linha mostra essa capa no maior tamanho que cabe no seletor. Carregar em ⤢ não nomeia o álbum; carregar na linha, sim. Melhor Conceito de Álbum mantém o botão i com o texto e a lista de faixas.'],

@@ -23039,6 +23039,51 @@ body[class*="-light"] .tm-card-search:hover {
   border-radius: 5px;
 }
 .awards-picker-result-row .awards-picker-thumb .thumb-initials { font-size: 0.62rem; }
+/* The same artwork, smaller, on the nominee chips; artists get a round picture */
+.awards-picker-nom-row .awards-picker-thumb {
+  width: 22px;
+  flex-shrink: 0;
+  border-radius: 4px;
+}
+.awards-picker-nom-row .awards-picker-thumb .thumb-initials { font-size: 0.45rem; }
+.awards-picker-thumb.is-artist { border-radius: 50%; }
+/* ♪ plays a 30-second sample; the YouTube icon opens a search in a new tab */
+.awards-picker-clip-btn,
+.awards-picker-yt-btn {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 22px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--surface2);
+  color: var(--text2);
+  font-size: 0.72rem;
+  line-height: 1;
+  cursor: pointer;
+  text-decoration: none;
+  transition: color 0.12s, border-color 0.12s, background 0.12s;
+}
+.awards-picker-clip-btn:hover { color: var(--accent); border-color: var(--accent); }
+.awards-picker-clip-btn.is-on { background: var(--accent); border-color: var(--accent); color: var(--on-accent); font-size: 0.56rem; }
+.awards-picker-clip-btn.is-loading { font-size: 0.72rem; animation: awardsClipSpin 1s linear infinite; }
+.awards-picker-clip-btn.is-miss { opacity: 0.4; text-decoration: line-through; }
+.awards-picker-yt-btn:hover { color: #FF3B3B; border-color: #FF3B3B; }
+@keyframes awardsClipSpin { to { transform: rotate(360deg); } }
+.awards-picker-nom-row .awards-picker-clip-btn,
+.awards-picker-nom-row .awards-picker-yt-btn { width: 20px; height: 18px; font-size: 0.6rem; border-radius: 9px; }
+.awards-picker-nom-row .awards-picker-clip-btn.is-on { font-size: 0.48rem; }
+.awards-picker-nom-row .awards-picker-yt-btn svg { width: 11px; height: 11px; }
+@media (prefers-reduced-motion: reduce) {
+  .awards-picker-clip-btn.is-loading { animation: none; }
+}
+@media (max-width: 560px) {
+  .awards-picker-result-row { gap: 6px; }
+  .awards-picker-lbl { min-width: 0; overflow-wrap: anywhere; }
+  .awards-picker-result-row .awards-picker-thumb { width: 32px; }
+}
 @media (max-width: 560px) {
   .awards-picker-preview-bigcover .awards-picker-preview-cover { width: min(260px, 32vh, 100%); }
   .awards-picker-preview-album .awards-picker-preview-cover { width: 84px; }

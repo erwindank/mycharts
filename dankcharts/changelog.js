@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 4;
+const DC_CL_I18N_V = 5;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,10 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== SEPTEMBER 2026 ========== */
+
+  { d: '2026-09-29', t: 'feature', a: 'awards', h: '',
+    title: 'See and hear every nominee while you pick them',
+    detail: 'When you pick nominees for any award, every row and every chosen nominee now shows the song’s art, the album cover or the artist’s picture, so the list reads at a glance. Pictures load as they scroll into view. Every category except Video of the Year also gets a ♪ button that plays a 30-second sample, and a YouTube button that opens a search for it in a new tab. For an artist, the sample is one of their best-known songs. Clicking either button does not nominate anything; clicking the row still does. Video of the Year keeps its own video button.' },
 
   { d: '2026-09-29', t: 'feature', a: 'awards', h: '6e3321f',
     title: 'Compare album covers at a glance when picking Best Album Cover',
