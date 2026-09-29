@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['es'] = {
 
   /* ========== SEPTIEMBRE 2026 ========== */
 
+  'Break ties in the automatic awards yourself':
+    ['Desempata tú mismo los premios automáticos',
+     'Cuando un premio automático como Canción Más Escuchada o Racha Diaria Más Larga termina en empate, la tarjeta del premio ahora muestra todo lo empatado en primer lugar debajo del ganador. Haz clic en uno para convertirlo en el ganador, y cambia de opinión cuantas veces quieras. Tu elección se mantiene al volver a generar los premios, siempre que ese elemento siga empatado en primer lugar. Antes, el premio se lo llevaba sin avisar el elemento empatado que apareciera primero. Los años generados antes de este cambio necesitan volver a Generar para que se vean sus empates.'],
+
   'See and hear every nominee while you pick them':
     ['Ve y escucha a cada nominado mientras los eliges',
      'Al elegir nominados para cualquier premio, cada fila y cada nominado elegido muestra ahora la carátula de la canción, la portada del álbum o la foto del artista, para que la lista se entienda de un vistazo. Las imágenes se cargan a medida que aparecen al desplazarte. Todas las categorías excepto Vídeo del Año tienen además un botón ♪ que reproduce una muestra de 30 segundos y un botón de YouTube que abre una búsqueda en una pestaña nueva. Para un artista, la muestra es una de sus canciones más conocidas. Pulsar cualquiera de los dos botones no nomina nada; pulsar la fila sí. Vídeo del Año conserva su propio botón de vídeo.'],

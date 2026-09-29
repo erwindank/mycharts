@@ -22563,6 +22563,18 @@ body[class*="-light"] .tm-card-search:hover {
 
 /* Auto-awarded categories reuse the winner band but are not clickable */
 .awards-auto-winner { cursor: default; margin-top: 6px; }
+/* An auto category that ended in a tie: the rest of the tied field, one click
+   from taking the award */
+.awards-tie-hint {
+  font-family: var(--font-mono);
+  font-size: 0.58rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--amber);
+  padding: 8px 10px 2px;
+}
+.awards-tie-row { cursor: pointer; }
+.awards-tie-row .awards-nominee-icon { font-family: var(--font-mono); }
 
 .awards-pick-hint {
   font-family: var(--font-mono);

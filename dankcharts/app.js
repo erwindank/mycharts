@@ -34402,6 +34402,18 @@ function _awardsTopN(map, n, cap) {
   return result;
 }
 
+/* Auto categories: everything level with the top score, not just the first of
+   them. When two songs share the most plays, which one "wins" was an accident
+   of sort order; returning the whole tie lets the user break it themselves.
+   Capped so a pile of 2-day streaks doesn't turn into a 200-way tie. */
+const AWARDS_MAX_TIES = 12;
+function _awardsTopTied(map) {
+  const sorted = Object.values(map).sort((a, b) => b.plays - a.plays);
+  if (!sorted.length) return [];
+  const top = sorted[0].plays;
+  return sorted.filter(x => x.plays === top).slice(0, AWARDS_MAX_TIES);
+}
+
 async function _awardsGetArtistGenre(artist) {
   const key = (artist || '').toLowerCase();
   if (_awardsGenreCache[key] !== undefined) return _awardsGenreCache[key];
@@ -34549,9 +34561,9 @@ async function _awardsGetCandidates(catDef, eligStart, eligEnd, log) {
   const f = catDef.filter;
 
   if (f === 'stat') {
-    if (catDef.type === 'song')   return _awardsTopN(songs,   1, 99);
-    if (catDef.type === 'album')  return _awardsTopN(albums,  1, 99);
-    if (catDef.type === 'artist') return _awardsTopN(artists, 1, 99);
+    if (catDef.type === 'song')   return _awardsTopTied(songs);
+    if (catDef.type === 'album')  return _awardsTopTied(albums);
+    if (catDef.type === 'artist') return _awardsTopTied(artists);
     return [];
   }
   if (f === 'all') {
@@ -34668,8 +34680,8 @@ async function _awardsGetCandidates(catDef, eligStart, eligEnd, log) {
       if (v.artist) item.artist = v.artist;
       m[k] = item;
     }
-    // Auto categories crown the top row outright, so one artist must not be capped out of it.
-    return _awardsTopN(m, catDef.auto ? 1 : 20, catDef.auto ? 99 : 3);
+    // Auto categories crown the top score outright — with every item tied on it
+    return catDef.auto ? _awardsTopTied(m) : _awardsTopN(m, 20, 3);
   }
   // Songs and albums that belong to a release marked as a soundtrack.
   if (f === 'soundtrack') {
@@ -35402,6 +35414,24 @@ function _awardsRenderCatCard(cat, catData, year, idx) {
       <span class="awards-nominee-label" title="${esc(lbl)}">${esc(lbl)}</span>
       ${sub ? `<span class="awards-nominee-sub" title="${esc(sub)}">${esc(sub)}</span>` : ''}
     </div>`;
+    // A tie at the top: the rest of the tied field sits under the winner, and
+    // clicking one hands it the award.
+    const ties = catData.ties || [];
+    if (ties.length > 1) {
+      const wk = _awardItemKey(w);
+      const score = w.playLabel || `${w.plays} plays`;
+      bodyHtml += `<div class="awards-tie-hint">${esc(t('awards_tie_hint', { score }))}</div>`
+        + ties.map((item, i) => {
+          if (_awardItemKey(item) === wk) return '';
+          const tl  = item.title || item.album || item.artist || '';
+          const ts  = (item.title || item.album) && item.artist ? item.artist : '';
+          return `<div class="awards-nominee-row awards-tie-row" onclick="awardsPickTieWinner(${year},'${esc(cat.id)}',${i})" title="Make this the winner">
+            <span class="awards-nominee-icon">=</span>
+            <span class="awards-nominee-label" title="${esc(tl)}">${esc(tl)}</span>
+            ${ts ? `<span class="awards-nominee-sub" title="${esc(ts)}">${esc(ts)}</span>` : ''}
+          </div>`;
+        }).join('');
+    }
   } else if (nominees.length) {
     bodyHtml = nominees.map((item, i) => {
       const ik  = _awardItemKey(item);
@@ -35564,8 +35594,12 @@ async function awardsGenerateCandidates() {
       const cands = await _awardsGetCandidates(cat, data.eligStart, data.eligEnd, log);
       const cd = data.categories[cat.id];
       if (cat.auto) {
-        cd.nominees = cands.slice(0, 1);
-        cd.winner   = cands[0] || null;
+        // A tie keeps the user's earlier tie-break if that item is still in it
+        const prevKey = cd.winner ? _awardItemKey(cd.winner) : null;
+        const w = (cands.length > 1 && cands.find(c => _awardItemKey(c) === prevKey)) || cands[0] || null;
+        cd.nominees = w ? [w] : [];
+        cd.winner   = w;
+        if (cands.length > 1) cd.ties = cands; else delete cd.ties;
       } else if (!cd.nominees.length && cands.length) {
         cd.nominees = cands.slice(0, 8);
       }
@@ -36554,6 +36588,19 @@ async function awardsPickWinner(year, catId, item) {
   data.categories[catId].winner = (_awardItemKey(item) === curWk) ? null : item;
   await _awardsSave(year);
   _awardsRenderCatList(data);
+}
+
+// Break a tie in an auto category: the chosen item becomes its one nominee and
+// winner, which is all the ceremony and a shared copy read. The tie stays on
+// record so the choice can be changed again.
+async function awardsPickTieWinner(year, catId, i) {
+  const cd = _awardsYearData[year]?.categories?.[catId];
+  const item = cd?.ties?.[i];
+  if (!item) return;
+  cd.nominees = [item];
+  cd.winner   = item;
+  await _awardsSave(year);
+  _awardsRenderCatList(_awardsYearData[year]);
 }
 
 async function awardsRemoveNominee(e, year, catId, item) {

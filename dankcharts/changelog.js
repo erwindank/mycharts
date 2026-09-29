@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 5;
+const DC_CL_I18N_V = 6;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,10 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== SEPTEMBER 2026 ========== */
+
+  { d: '2026-09-29', t: 'feature', a: 'awards', h: '',
+    title: 'Break ties in the automatic awards yourself',
+    detail: 'When an automatic award like Most Played Song or Longest Daily Streak ends in a tie, the award card now lists everything tied for first under the winner. Click one to make it the winner instead, and change your mind as often as you like. Your choice is kept when you generate the awards again, as long as that item is still tied for first. Before, the award quietly went to whichever tied item happened to be listed first. Years you generated before this change need Generate again for their ties to show.' },
 
   { d: '2026-09-29', t: 'feature', a: 'awards', h: 'c92abfd',
     title: 'See and hear every nominee while you pick them',

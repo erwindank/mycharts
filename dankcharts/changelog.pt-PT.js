@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['pt-PT'] = {
 
   /* ========== SETEMBRO 2026 ========== */
 
+  'Break ties in the automatic awards yourself':
+    ['Desempata tu mesmo os prémios automáticos',
+     'Quando um prémio automático como Música Mais Ouvida ou Maior Sequência Diária termina empatado, o cartão do prémio mostra agora tudo o que empatou em primeiro lugar por baixo do vencedor. Carrega num para o tornar o vencedor, e muda de ideias as vezes que quiseres. A tua escolha mantém-se quando voltas a gerar os prémios, desde que esse item continue empatado em primeiro. Antes, o prémio ia sem aviso para o item empatado que aparecesse primeiro. Os anos gerados antes desta mudança precisam de voltar a Gerar para os empates aparecerem.'],
+
   'See and hear every nominee while you pick them':
     ['Vê e ouve cada nomeado enquanto os escolhes',
      'Ao escolher os nomeados de qualquer prémio, cada linha e cada nomeado escolhido mostra agora a arte da música, a capa do álbum ou a foto do artista, para a lista se perceber num relance. As imagens carregam à medida que aparecem ao deslizar. Todas as categorias, exceto Vídeo do Ano, têm também um botão ♪ que toca uma amostra de 30 segundos e um botão do YouTube que abre uma pesquisa num novo separador. Para um artista, a amostra é uma das suas músicas mais conhecidas. Carregar em qualquer um dos botões não nomeia nada; carregar na linha, sim. Vídeo do Ano mantém o seu próprio botão de vídeo.'],
