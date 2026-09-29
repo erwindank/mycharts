@@ -80,11 +80,11 @@ const DC_CHANGELOG = [
 
   /* ========== SEPTEMBER 2026 ========== */
 
-  { d: '2026-09-29', t: 'fix', a: 'themes', h: '',
+  { d: '2026-09-29', t: 'fix', a: 'themes', h: 'e32bac6',
     title: 'Readable rating and medal colours in the light themes',
     detail: 'In the light themes, the rating colours were the ones made for the dark themes, so Masterpiece, the score ring and the score chips showed bright yellow on white, and the other score colours were pale too. They now use each light theme’s own darker colours. The gold, silver and bronze peak numbers in song, artist and album profiles, and the Most Played Song of All Time and Most Played Song of the Year numbers, got darker, easy-to-read versions as well. The dark themes look the same as before.' },
 
-  { d: '2026-09-29', t: 'fix', a: 'charts', h: '',
+  { d: '2026-09-29', t: 'fix', a: 'charts', h: '64b940a',
     title: 'Song and artist profiles say which chart each stat is from',
     detail: 'The Chart Debut card on a song’s profile now says which chart it means, for example Weekly Chart Debut · Week of Sep 20, 26 or Monthly Chart Debut · Sep 2026. It shows the debut on the chart you opened the song from, or the weekly one when you open it from the all-time chart. Before, it mixed the weekly, monthly and yearly charts and could show a monthly debut as if it were a date. Weeks, months and years on the chart, re-entries and time at #1 now name their chart as well, on both song and artist profiles.' },
 
