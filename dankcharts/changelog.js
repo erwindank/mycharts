@@ -80,7 +80,7 @@ const DC_CHANGELOG = [
 
   /* ========== SEPTEMBER 2026 ========== */
 
-  { d: '2026-09-29', t: 'feature', a: 'awards', h: '',
+  { d: '2026-09-29', t: 'feature', a: 'awards', h: 'd3308ed',
     title: 'See what an album is about when picking Best Album Concept',
     detail: 'When you pick nominees for Best Album Concept or Best Album Cover, every album has an i button. It shows the cover large, Last.fm’s short write-up of the album, which usually explains its story or theme, and the tracklist with how many times you played each song that year. Songs you played that aren’t on the standard tracklist, like bonus tracks, are listed at the end. Clicking i does not nominate the album; clicking the row still does.' },
 
