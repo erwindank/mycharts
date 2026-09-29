@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['es'] = {
 
   /* ========== SEPTIEMBRE 2026 ========== */
 
+  'Reorder the nominees right on the category cards':
+    ['Reordena los nominados directamente en las tarjetas de categoría',
+     'El orden de los nominados en una tarjeta de categoría de Mis Grammys, que también es el orden que sigue la ceremonia, ahora se puede cambiar en la propia tarjeta en lugar de en la ventana para elegir nominados. Con el ratón, arrastra un nominado al lugar de otro, en cualquier vista. En el teléfono o con el teclado, pulsa Reordenar al pie de la tarjeta para que cada nominado tenga botones de flecha, y Listo cuando termines. Mientras Reordenar está activo, hacer clic en un nominado no lo corona.'],
+
   'Year stats for every candidate when picking Song, Album and Artist of the Year':
     ['Estadísticas del año de cada candidato al elegir Canción, Álbum y Artista del Año',
      'Al elegir nominados para Canción del Año, Álbum del Año o Artista del Año, cada fila ahora muestra cómo le fue durante el año: su racha más larga de días seguidos, cuántos días, semanas y meses lo escuchaste, su mejor posición en la lista semanal y sus semanas en el #1, y su día con más reproducciones. El botón Stats abre todo lo demás: su puesto del año por reproducciones y su parte del total, su racha semanal más larga, su mejor día, semana y mes, la primera y la última reproducción, cuántas canciones y álbumes de un artista escuchaste o cuántas pistas de un álbum, sus récords en las listas semanales y mensuales, y una barra por cada mes. También puedes ordenar la lista por racha más larga, más días escuchado, mejor día, más semanas en el #1 o mejor posición. Todo cuenta solo las reproducciones dentro del periodo de elegibilidad de ese año.'],

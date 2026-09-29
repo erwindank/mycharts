@@ -22661,6 +22661,91 @@ body[class*="-light"] .tm-card-search:hover {
   .awards-cat-card:hover { transform: none; }
 }
 
+/* Reordering nominees on the cards ────────────────────────────────────────────
+   Drag with a mouse in any view; ⇅ Reorder turns on arrow buttons for touch and
+   keyboard, outlines the card and pauses crowning until Done. */
+[data-nom-i] img { -webkit-user-drag: none; user-select: none; }
+.awards-cat-card.is-reordering {
+  border-style: dashed;
+  border-color: color-mix(in srgb, var(--accent) 60%, var(--border));
+}
+.awards-cat-card.is-reordering [data-nom-i] { cursor: grab; }
+.awards-cat-card.is-sorting [data-nom-i] { cursor: grabbing; }
+[data-nom-i].is-dragging { opacity: 0.35; }
+[data-nom-i].is-drop {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: var(--r-sm);
+}
+/* A card redrawn after a move shouldn't replay its entrance or the foil sweep */
+.awards-cat-card.no-anim,
+.awards-cat-card.no-anim *,
+.awards-cat-card.no-anim *::after { animation: none !important; }
+
+.aw-move {
+  display: inline-flex;
+  flex: none;
+  gap: 2px;
+}
+.aw-move button {
+  width: 24px;
+  height: 22px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: var(--r-xs);
+  background: var(--surface3);
+  color: var(--text2);
+  font-size: 0.56rem;
+  line-height: 1;
+  cursor: pointer;
+  transition: color var(--t-fast) var(--ease), border-color var(--t-fast) var(--ease), background var(--t-fast) var(--ease);
+}
+.aw-move button:hover:not(:disabled) {
+  color: var(--text1);
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 16%, var(--surface3));
+}
+.aw-move button:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.aw-move button:disabled { opacity: 0.3; cursor: default; }
+/* Over artwork: a dark glass pill in the middle of the picture, clear of the
+   rank chip, the ✕ / ✎ corner and the reel's winner ribbon */
+.aw-tile-frame .aw-move,
+.aw-poster-frame .aw-move,
+.aw-col-cell .aw-move {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  z-index: 3;
+  transform: translate(-50%, -50%);
+  padding: 3px;
+  border-radius: var(--r-sm);
+  background: rgba(8, 10, 14, 0.66);
+  backdrop-filter: blur(6px);
+}
+.aw-tile-frame .aw-move button,
+.aw-poster-frame .aw-move button,
+.aw-col-cell .aw-move button {
+  width: 28px;
+  height: 26px;
+  border-color: rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+  font-size: 0.62rem;
+}
+.aw-tile-frame .aw-move button:hover:not(:disabled),
+.aw-poster-frame .aw-move button:hover:not(:disabled),
+.aw-col-cell .aw-move button:hover:not(:disabled) { background: var(--accent); border-color: var(--accent); }
+.aw-reorder-hint { color: color-mix(in srgb, var(--accent) 70%, var(--text3)); opacity: 1; }
+.awards-cat-reorder-btn { flex: none; }
+.awards-cat-reorder-btn.is-on {
+  border-style: solid;
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 16%, transparent);
+  color: var(--text1);
+}
+
 /* Nominee view switcher ───────────────────────────────────────────────────────
    A segmented pill above the grid, right-aligned so it reads as a display
    setting for the cards rather than another action. */

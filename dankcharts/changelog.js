@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 16;
+const DC_CL_I18N_V = 17;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,10 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== SEPTEMBER 2026 ========== */
+
+  { d: '2026-09-29', t: 'feature', a: 'awards', h: '',
+    title: 'Reorder the nominees right on the category cards',
+    detail: 'The order of the nominees on a My Grammys category card, which is also the order the ceremony follows, can now be changed on the card itself instead of in the Pick nominees window. With a mouse, drag a nominee onto another one\'s place, in any view. On a phone or with the keyboard, press Reorder at the bottom of the card to get arrow buttons on each nominee, then Done when you\'re finished. While Reorder is on, clicking a nominee doesn\'t crown it.' },
 
   { d: '2026-09-29', t: 'feature', a: 'awards', h: '5e9317c',
     title: 'Year stats for every candidate when picking Song, Album and Artist of the Year',

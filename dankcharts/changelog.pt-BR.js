@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['pt-BR'] = {
 
   /* ========== SETEMBRO 2026 ========== */
 
+  'Reorder the nominees right on the category cards':
+    ['Reordene os indicados direto nos cartões de categoria',
+     'A ordem dos indicados em um cartão de categoria de Meus Grammys, que também é a ordem que a cerimônia segue, agora pode ser mudada no próprio cartão em vez de na janela de escolher indicados. Com o mouse, arraste um indicado para o lugar de outro, em qualquer visualização. No celular ou pelo teclado, toque em Reordenar no pé do cartão para ter botões de seta em cada indicado, e em Pronto quando terminar. Enquanto Reordenar estiver ligado, clicar em um indicado não coroa ele.'],
+
   'Year stats for every candidate when picking Song, Album and Artist of the Year':
     ['Estatísticas do ano de cada candidato ao escolher Música, Álbum e Artista do Ano',
      'Ao escolher indicados para Música do Ano, Álbum do Ano ou Artista do Ano, cada linha agora mostra como foi o ano dele: a maior sequência de dias seguidos, em quantos dias, semanas e meses você ouviu, a melhor posição na parada semanal e as semanas em #1, e o dia com mais reproduções. O botão Stats abre todo o resto: a posição do ano por reproduções e a fatia do seu total, a maior sequência semanal, o melhor dia, semana e mês, a primeira e a última reprodução, quantas músicas e álbuns de um artista você ouviu ou quantas faixas de um álbum, os recordes nas paradas semanais e mensais, e uma barra para cada mês. Você também pode ordenar a lista por maior sequência, mais dias ouvido, melhor dia, mais semanas em #1 ou melhor posição. Tudo conta só as reproduções dentro do período de elegibilidade daquele ano.'],

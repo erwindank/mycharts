@@ -35089,6 +35089,7 @@ function _awardsRenderCatList(data) {
     el.addEventListener('keydown', e => {
       if ((e.key === 'Enter' || e.key === ' ') && e.target.matches?.('[data-pick]')) { e.preventDefault(); e.target.click(); }
     });
+    _awardsBindDrag(el);
   }
   const hasWinner = activeCats.some(c => data.categories[c.id]?.winner);
   document.getElementById('awardsCeremonyBar').style.display = hasWinner ? '' : 'none';
@@ -35547,20 +35548,23 @@ function _awardsRenderCatCard(cat, catData, year, idx) {
       // Rank number instead of a bullet: the list is an ordered ballot and the
       // number is what the ceremony counts down. The winner swaps it for a trophy.
       const mark = isW ? '🏆' : String(i + 1).padStart(2, '0');
-      return `<div class="awards-nominee-row${isW ? ' is-winner' : ''}" style="--i:${i}" onclick="awardsPickWinner(${year},'${esc(cat.id)}',${esc(JSON.stringify(item))})">
+      const reordering = _awardsReordering.has(cat.id);
+      const pick = reordering ? '' : ` onclick="awardsPickWinner(${year},'${esc(cat.id)}',${esc(JSON.stringify(item))})"`;
+      return `<div class="awards-nominee-row${isW ? ' is-winner' : ''}" style="--i:${i}" data-nom-i="${i}" draggable="true"${pick}>
         <span class="awards-nominee-icon">${mark}</span>
         <span class="awards-nominee-label" title="${esc(lbl)}">${esc(lbl)}</span>
         ${sub ? `<span class="awards-nominee-sub" title="${esc(sub)}">${esc(sub)}</span>` : ''}
+        ${_awardsMoveCtl(year, cat, { i, n: nominees.length }, 'y')}
         <button class="awards-nominee-remove" onclick="awardsRemoveNominee(event,${year},'${esc(cat.id)}',${esc(JSON.stringify(item))})" title="Remove">✕</button>
       </div>`;
-    }).join('') + (!winner ? `<div class="awards-pick-hint">${t('awards_pick_hint')}</div>` : '');
+    }).join('') + (_awardsReorderHint(cat) || (!winner ? `<div class="awards-pick-hint">${t('awards_pick_hint')}</div>` : ''));
   } else {
     bodyHtml = `<div class="awards-no-nominees">${t('awards_no_nominees')}</div>`;
   }
 
   // data-awtype picks the card's --cat-hue (song / album / artist); --i staggers
   // the reveal so the grid fills in as a wave instead of all at once.
-  return `<div class="awards-cat-card${winner ? ' has-winner' : ''}" id="awardsCat_${cat.id}" data-awtype="${esc(cat.type || '')}" style="--i:${idx || 0}">
+  return `<div class="awards-cat-card${winner ? ' has-winner' : ''}${_awardsReordering.has(cat.id) ? ' is-reordering' : ''}" id="awardsCat_${cat.id}" data-year="${year}" data-awtype="${esc(cat.type || '')}" style="--i:${idx || 0}">
     ${_awardsCatHeadHtml(cat, nominees.length)}
     <div class="awards-cat-body">${bodyHtml}</div>
     <div class="awards-cat-footer">${_awardsCatActionsHtml(cat, year, nominees.length)}</div>
@@ -35588,7 +35592,17 @@ function _awardsCatActionsHtml(cat, year, count) {
   const plBtn = (!cat.auto && count)
     ? `<button class="awards-cat-action-btn awards-cat-pl-btn" onclick="awardsCatPlaylist(${year},'${esc(cat.id)}')" title="Make a playlist of these nominees">♫ Playlist</button>`
     : '';
-  return genBtn + plBtn;
+  // Reorder mode, for touch and keyboard (a mouse can just drag)
+  const on = _awardsReordering.has(cat.id);
+  const roBtn = (!cat.auto && count > 1)
+    ? `<button class="awards-cat-action-btn awards-cat-reorder-btn${on ? ' is-on' : ''}" onclick="awardsToggleReorder(${year},'${esc(cat.id)}')" aria-pressed="${on}" title="${on ? 'Finish reordering' : 'Change the order of the nominees'}">${on ? '✓ ' + esc(t('awards_reorder_done')) : '⇅ ' + esc(t('awards_reorder'))}</button>`
+    : '';
+  return genBtn + plBtn + roBtn;
+}
+
+// Replaces the "click to crown" hint while a card is in reorder mode
+function _awardsReorderHint(cat) {
+  return _awardsReordering.has(cat.id) ? `<div class="awards-pick-hint aw-reorder-hint">${esc(t('awards_reorder_hint'))}</div>` : '';
 }
 
 /* ─── Nominee views ────────────────────────────────────────────────────────────
@@ -35744,7 +35758,7 @@ function _awardsCatField(cat, catData) {
     winner: wk ? catData.winner : null,
     entries: nominees.map((item, i) => {
       const isW = _awardItemKey(item) === wk;
-      return { item, isW, removable: true, mark: isW ? '🏆' : String(i + 1).padStart(2, '0') };
+      return { item, i, n: nominees.length, isW, removable: true, mark: isW ? '🏆' : String(i + 1).padStart(2, '0') };
     }),
   };
 }
@@ -35765,7 +35779,122 @@ function _awardsEntryAttrs(year, cat, e) {
     return e.tie == null ? ''
       : ` data-pick role="button" tabindex="0" title="Make this the winner" onclick="awardsPickTieWinner(${year},'${esc(cat.id)}',${e.tie})"`;
   }
-  return ` data-pick role="button" tabindex="0" onclick="awardsPickWinner(${year},'${esc(cat.id)}',${esc(JSON.stringify(e.item))})"`;
+  // Every nominee can be dragged to a new place; in reorder mode that is all a
+  // click does, so crowning is off until Done
+  const drag = ` data-nom-i="${e.i}" draggable="true"`;
+  if (_awardsReordering.has(cat.id)) return drag;
+  return `${drag} data-pick role="button" tabindex="0" onclick="awardsPickWinner(${year},'${esc(cat.id)}',${esc(JSON.stringify(e.item))})"`;
+}
+
+/* ─── Reordering nominees on the cards ─────────────────────────────────────────
+   The order on a card is the order of the category's nominees array, which is
+   also the ceremony's order, so it is worth being able to fix without opening
+   the picker. Two ways, in every view:
+   • drag a nominee onto another one's place (mouse; native drag and drop)
+   • ⇅ Reorder in the card's actions, which gives each nominee ◀ ▶ (or ▲ ▼ in
+     the list views) buttons, for touch screens and the keyboard
+   A move redraws only that card, so the rest of the grid doesn't replay its
+   entrance animation, and focus stays on the arrow that was pressed. */
+const _awardsReordering = new Set();   // category ids with reorder mode on
+let _awardsDrag = null;                // { card, from } while a nominee is dragged
+let _awardsCardSeq = 0;                // keeps image ids unique across single-card redraws
+
+function _awardsMoveCtl(year, cat, e, axis) {
+  if (cat.auto || !_awardsReordering.has(cat.id)) return '';
+  const [back, fwd] = axis === 'x' ? ['◀', '▶'] : ['▲', '▼'];
+  const btn = (dir, to, glyph, label, off) =>
+    `<button type="button" data-dir="${dir}" onclick="event.stopPropagation();awardsMoveNominee(${year},'${esc(cat.id)}',${e.i},${to},'${dir}')" aria-label="${label}" title="${label}"${off ? ' disabled' : ''}>${glyph}</button>`;
+  return `<span class="aw-move aw-move-${axis}">${btn('back', e.i - 1, back, 'Move earlier', e.i === 0)}${btn('fwd', e.i + 1, fwd, 'Move later', e.i === e.n - 1)}</span>`;
+}
+
+function awardsToggleReorder(year, catId) {
+  if (_awardsReordering.has(catId)) _awardsReordering.delete(catId);
+  else _awardsReordering.add(catId);
+  const card = _awardsRerenderCard(year, catId);
+  card?.querySelector('.awards-cat-reorder-btn')?.focus();
+}
+
+async function awardsMoveNominee(year, catId, from, to, focusDir) {
+  const data = _awardsYearData[year];
+  const noms = data?.categories?.[catId]?.nominees;
+  if (!noms || from === to || from < 0 || to < 0 || from >= noms.length || to >= noms.length) return;
+  const [moved] = noms.splice(from, 1);
+  noms.splice(to, 0, moved);
+  const card = _awardsRerenderCard(year, catId);
+  if (focusDir && card) {
+    // Follow the nominee to its new place; at either end the arrow that still works
+    const ctl = card.querySelector(`[data-nom-i="${to}"] .aw-move`);
+    const btn = ctl?.querySelector(`[data-dir="${focusDir}"]:not(:disabled)`) || ctl?.querySelector('button:not(:disabled)');
+    btn?.focus();
+  }
+  await _awardsSave(year);
+}
+
+// Redraws one category card in place, in the current view. Returns the new card.
+function _awardsRerenderCard(year, catId) {
+  const data = _awardsYearData[year];
+  const old  = document.getElementById('awardsCat_' + catId);
+  if (!data || !old) return null;
+  const active = AWARD_CATEGORIES.filter(c => data.categories[c.id]?.enabled ?? c.defaultOn);
+  const i   = active.findIndex(c => c.id === catId);
+  const cat = active[i];
+  if (!cat) return null;
+  const cd = data.categories[catId] || { enabled: true, nominees: [], winner: null };
+  const queue = [];
+  const html = _awardsView === 'ballot'
+    ? _awardsRenderCatCard(cat, cd, year, i)
+    : _awardsRenderArtCard(cat, cd, year, i, _awardsView, `awv${_awardsViewSeq}_${i}m${++_awardsCardSeq}`, queue);
+  const tmp = document.createElement('div');
+  tmp.innerHTML = html;
+  const card = tmp.firstElementChild;
+  card.classList.add('no-anim');
+  const scrollX = old.querySelector('.aw-reel-track')?.scrollLeft || 0;
+  old.replaceWith(card);
+  if (scrollX) { const tr = card.querySelector('.aw-reel-track'); if (tr) tr.scrollLeft = scrollX; }
+  if (queue.length) _awardsViewLoadArt(queue, _awardsViewSeq);
+  return card;
+}
+
+// Native drag and drop, delegated from the list so it survives every re-render.
+// A nominee only ever lands inside its own card.
+function _awardsBindDrag(el) {
+  const clear = () => el.querySelectorAll('.is-drop, .is-dragging').forEach(n => n.classList.remove('is-drop', 'is-dragging'));
+  el.addEventListener('dragstart', e => {
+    const it = e.target.closest?.('[data-nom-i]');
+    if (!it) return;
+    const card = it.closest('.awards-cat-card');
+    _awardsDrag = { card, from: +it.dataset.nomI };
+    e.dataTransfer.effectAllowed = 'move';
+    try { e.dataTransfer.setData('text/plain', it.dataset.nomI); } catch (_) {}
+    it.classList.add('is-dragging');
+    card.classList.add('is-sorting');
+  });
+  el.addEventListener('dragover', e => {
+    const it = e.target.closest?.('[data-nom-i]');
+    if (!_awardsDrag || !it || it.closest('.awards-cat-card') !== _awardsDrag.card) return;
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    if (!it.classList.contains('is-drop')) {
+      _awardsDrag.card.querySelectorAll('.is-drop').forEach(n => n.classList.remove('is-drop'));
+      if (+it.dataset.nomI !== _awardsDrag.from) it.classList.add('is-drop');
+    }
+  });
+  el.addEventListener('drop', e => {
+    const it = e.target.closest?.('[data-nom-i]');
+    const d = _awardsDrag;
+    if (!d || !it || it.closest('.awards-cat-card') !== d.card) return;
+    e.preventDefault();
+    _awardsDrag = null;
+    clear();
+    d.card.classList.remove('is-sorting');
+    const catId = d.card.id.replace(/^awardsCat_/, '');
+    awardsMoveNominee(+d.card.dataset.year, catId, d.from, +it.dataset.nomI);
+  });
+  el.addEventListener('dragend', () => {
+    if (_awardsDrag) _awardsDrag.card.classList.remove('is-sorting');
+    _awardsDrag = null;
+    clear();
+  });
 }
 
 function _awardsEntryRemove(year, cat, e) {
@@ -35813,6 +35942,7 @@ function _awardsSpotlightBody(cat, f, year, idp, queue) {
         ${x.sub ? `<span class="aw-spot-rsub" title="${esc(x.sub)}">${esc(x.sub)}</span>` : ''}
       </span>
       ${x.score ? `<span class="aw-spot-rscore">${esc(x.score)}</span>` : ''}
+      ${_awardsMoveCtl(year, cat, e, 'y')}
       ${_awardsEntryRemove(year, cat, e)}
     </div>`;
   }).join('');
@@ -35827,6 +35957,7 @@ function _awardsTilesBody(cat, f, year, idp, queue) {
         ${_awardsArtSlot(e.item, cat.type, `${idp}_t${k}`, queue, 'aw-tile-art')}
         <span class="aw-rank">${e.mark}</span>
         ${_awardsEntryRemove(year, cat, e)}
+        ${_awardsMoveCtl(year, cat, e, 'x')}
       </div>
       <span class="aw-tile-name" title="${esc(x.lbl)}">${esc(x.lbl)}</span>
       ${x.sub ? `<span class="aw-tile-sub" title="${esc(x.sub)}">${esc(x.sub)}</span>` : ''}
@@ -35850,6 +35981,7 @@ function _awardsCollageBody(cat, f, year, idp, queue) {
       ${_awardsArtSlot(e.item, cat.type, `${idp}_c${k}`, queue, 'aw-col-art', { hd: e.isW })}
       <span class="aw-rank">${e.mark}</span>
       ${_awardsEntryRemove(year, cat, e)}
+      ${_awardsMoveCtl(year, cat, e, 'x')}
       <div class="aw-col-cap">
         ${e.isW ? `<span class="aw-col-win">${esc(t('awards_winner'))}</span>` : ''}
         <span class="aw-col-name" title="${esc(x.lbl)}">${esc(x.lbl)}</span>
@@ -35867,6 +35999,7 @@ function _awardsReelBody(cat, f, year, idp, queue) {
         ${_awardsArtSlot(e.item, cat.type, `${idp}_p${k}`, queue, 'aw-poster-art', { hd: true })}
         <span class="aw-rank">${e.mark}</span>
         ${_awardsEntryRemove(year, cat, e)}
+        ${_awardsMoveCtl(year, cat, e, 'x')}
         ${e.isW ? `<span class="aw-poster-ribbon">${esc(t('awards_winner'))}</span>` : ''}
       </div>
       <span class="aw-poster-name" title="${esc(x.lbl)}">${esc(x.lbl)}</span>
@@ -35893,7 +36026,9 @@ function _awardsRenderArtCard(cat, catData, year, idx, view, idp, queue) {
     body = `<div class="awards-tie-hint">${esc(t('awards_tie_hint', { score: w.playLabel || `${w.plays} plays` }))}</div>` + body;
   }
   // The spotlight's open hero already says it
-  if (!cat.auto && count && !f.winner && view !== 'spotlight') body += `<div class="awards-pick-hint">${t('awards_pick_hint')}</div>`;
+  const roHint = _awardsReorderHint(cat);
+  if (roHint) body += roHint;
+  else if (!cat.auto && count && !f.winner && view !== 'spotlight') body += `<div class="awards-pick-hint">${t('awards_pick_hint')}</div>`;
 
   const actions = _awardsCatActionsHtml(cat, year, count);
   const chev = d => `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="${d}"/></svg>`;
@@ -35904,7 +36039,7 @@ function _awardsRenderArtCard(cat, catData, year, idx, view, idp, queue) {
     : _awardsCatHeadHtml(cat, count);
   const foot = (view === 'reel' || !actions) ? '' : `<div class="awards-cat-footer">${actions}</div>`;
 
-  return `<div class="awards-cat-card aw-v-${view}${catData.winner ? ' has-winner' : ''}" id="awardsCat_${cat.id}" data-awtype="${esc(cat.type || '')}" style="--i:${idx || 0}">
+  return `<div class="awards-cat-card aw-v-${view}${catData.winner ? ' has-winner' : ''}${_awardsReordering.has(cat.id) ? ' is-reordering' : ''}" id="awardsCat_${cat.id}" data-year="${year}" data-awtype="${esc(cat.type || '')}" style="--i:${idx || 0}">
     ${head}
     <div class="awards-cat-body">${body}</div>
     ${foot}
