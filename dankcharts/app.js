@@ -35842,8 +35842,9 @@ function _awardsPickerSelHtml() {
   return _awardsPickerSel.map((item, i) => {
     const lbl = item.title || item.album || item.artist || '';
     const sub = item.title ? item.artist : (item.album ? item.artist : '');
-    // Draggable chips: the order here is the order the nominees appear on the award card
-    return `<div class="awards-picker-nom-row" draggable="true" data-i="${i}"
+    const tip = sub ? `${lbl} — ${sub}` : lbl;
+    // Draggable cards: the order here is the order the nominees appear on the award card
+    return `<div class="awards-picker-nom-row" draggable="true" data-i="${i}" title="${esc(tip)} · drag to reorder"
         ondragstart="awardsPickerDragStart(event,${i})"
         ondragover="awardsPickerDragOver(event)"
         ondragleave="awardsPickerDragLeave(event)"
@@ -35851,11 +35852,15 @@ function _awardsPickerSelHtml() {
         ondragend="awardsPickerDragEnd(event)">
       <span class="awards-picker-nom-num">${i + 1}</span>
       ${_awardsPickerThumbHtml(item, 'awPkNomThumb' + i)}
-      <span class="awards-picker-nom-lbl">${esc(lbl)}</span>
-      ${sub ? `<span class="awards-picker-nom-sub">${esc(sub)}</span>` : ''}
-      ${_awardsPickerPrevBtn(item, `awardsPickerPreviewNom(${i})`)}
-      ${_awardsPickerListenBtns(item, `awardsPickerPlayNom(${i})`)}
-      <button class="awards-picker-nom-x" data-i="${i}" onclick="awardsPickerRemoveNom(this)" title="Remove">✕</button>
+      <span class="awards-picker-nom-text">
+        <span class="awards-picker-nom-lbl">${esc(lbl)}</span>
+        ${sub ? `<span class="awards-picker-nom-sub">${esc(sub)}</span>` : ''}
+      </span>
+      <span class="awards-picker-nom-actions">
+        ${_awardsPickerPrevBtn(item, `awardsPickerPreviewNom(${i})`)}
+        ${_awardsPickerListenBtns(item, `awardsPickerPlayNom(${i})`)}
+      </span>
+      <button class="awards-picker-nom-x" data-i="${i}" onclick="event.stopPropagation();awardsPickerRemoveNom(this)" title="Remove" aria-label="Remove ${esc(lbl)}">✕</button>
     </div>`;
   }).join('');
 }
@@ -35898,8 +35903,10 @@ function _awardsPickerBodyHtml() {
 function _awardsPickerSyncSel() {
   const selEl   = document.getElementById('awardsPickerSelected');
   const countEl = document.getElementById('awardsPickerCount');
+  const tallyEl = document.getElementById('awardsPickerTally');
   if (selEl)   { selEl.innerHTML = _awardsPickerSelHtml(); _awardsPickerLoadNomThumbs(); }
   if (countEl) countEl.textContent = t('awards_picker_selected', { count: _awardsPickerSel.length });
+  if (tallyEl) tallyEl.textContent = _awardsPickerSel.length;
 }
 
 /* Flip the picked state of the rows already on screen, in place. Rebuilding the
@@ -35959,11 +35966,22 @@ function _awardsShowPicker(year, catId, candidates) {
   const html = `<div class="awards-picker-overlay" id="awardsPickerOverlay" onclick="awardsPickerBgClick(event)">
     <div class="awards-picker-modal">
       <div class="awards-picker-head">
+        <span class="awards-picker-eyebrow">${year} · ${typeLabel}</span>
         <span class="awards-picker-title">${esc(t('awards_cat_' + catDef.id))}</span>
-        <span class="awards-picker-hint">Click a row to add or remove · drag the chips to reorder · ↑↓ then Enter</span>
-        <button class="awards-picker-close" onclick="awardsPickerClose()">✕</button>
+        <button class="awards-picker-close" onclick="awardsPickerClose()" aria-label="Close">✕</button>
       </div>
-      <div class="awards-picker-selected" id="awardsPickerSelected">${_awardsPickerSelHtml()}</div>
+      <div class="awards-picker-ballot">
+        <div class="awards-picker-ballot-head">
+          <span class="awards-picker-ballot-title">Nominees <span class="awards-picker-tally" id="awardsPickerTally">${_awardsPickerSel.length}</span></span>
+          <span class="awards-picker-ballot-hint">Drag to reorder</span>
+          <div class="awards-picker-quick">
+            <button onclick="awardsPickerFillTop(8)" title="Add the top 8 of the list below">Fill top 8</button>
+            <button onclick="awardsPickerFillTop(5)" title="Add the top 5 of the list below">Top 5</button>
+            <button class="awards-picker-quick-clear" onclick="awardsPickerClearSel()">Clear</button>
+          </div>
+        </div>
+        <div class="awards-picker-selected" id="awardsPickerSelected">${_awardsPickerSelHtml()}</div>
+      </div>
       ${_awardsPickerPreviewKind() ? '<div class="awards-picker-preview" id="awardsPickerPreview" hidden></div>' : ''}
       <div class="awards-picker-tools">
         <input type="text" id="awardsPickerSearch" placeholder="Search all ${typeLabel} from ${year}…" oninput="awardsPickerDoSearch()" autocomplete="off" spellcheck="false">
@@ -35974,14 +35992,9 @@ function _awardsShowPicker(year, catId, candidates) {
           <option value="rated">Highest rated</option>
         </select>
       </div>
-      <div class="awards-picker-quick">
-        <button onclick="awardsPickerFillTop(8)">Fill top 8</button>
-        <button onclick="awardsPickerFillTop(5)">Top 5</button>
-        <button onclick="awardsPickerClearSel()">Clear all</button>
-      </div>
       <div class="awards-picker-body" id="awardsPickerBody">${_awardsPickerBodyHtml()}</div>
       <div class="awards-picker-foot">
-        <span class="awards-picker-count" id="awardsPickerCount">${t('awards_picker_selected', { count: _awardsPickerSel.length })}</span>
+        <span class="awards-picker-count" id="awardsPickerCount" title="Click a row to add or remove · ↑↓ then Enter · Ctrl+Enter saves">${t('awards_picker_selected', { count: _awardsPickerSel.length })}</span>
         <button class="awards-picker-save" onclick="awardsPickerSave(${year},'${catId}')">${t('awards_save_nominees')}</button>
       </div>
     </div>

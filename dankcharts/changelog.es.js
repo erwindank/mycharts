@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['es'] = {
 
   /* ========== SEPTIEMBRE 2026 ========== */
 
+  'A roomier nominee picker':
+    ['Un selector de nominados más espacioso',
+     'La ventana donde eliges los nominados de un premio tiene más espacio. Tus nominados elegidos ahora están en su propio panel de Nominados arriba, como tarjetas iguales en dos columnas, cada una con una imagen más grande y el nombre y el artista en líneas separadas, así que los títulos largos ya no se cortan a las pocas letras. Una lista completa de 8 cabe sin desplazarse. Rellenar top 8, Top 5 y Borrar se movieron a ese panel, junto a un contador de cuántos llevas elegidos. Arrastra las tarjetas para reordenarlas, como antes. En el teléfono las tarjetas se apilan en una columna.'],
+
   'Break ties in the automatic awards yourself':
     ['Desempata tú mismo los premios automáticos',
      'Cuando un premio automático como Canción Más Escuchada o Racha Diaria Más Larga termina en empate, la tarjeta del premio ahora muestra todo lo empatado en primer lugar debajo del ganador. Haz clic en uno para convertirlo en el ganador, y cambia de opinión cuantas veces quieras. Tu elección se mantiene al volver a generar los premios, siempre que ese elemento siga empatado en primer lugar. Antes, el premio se lo llevaba sin avisar el elemento empatado que apareciera primero. Los años generados antes de este cambio necesitan volver a Generar para que se vean sus empates.'],

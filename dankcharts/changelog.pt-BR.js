@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['pt-BR'] = {
 
   /* ========== SETEMBRO 2026 ========== */
 
+  'A roomier nominee picker':
+    ['Um seletor de indicados mais espaçoso',
+     'A janela onde você escolhe os indicados de um prêmio ficou mais espaçosa. Seus indicados escolhidos agora ficam em um painel próprio de Indicados no topo, como cartões iguais em duas colunas, cada um com uma imagem maior e o nome e o artista em linhas separadas, então títulos longos não são mais cortados depois de poucas letras. Uma lista completa de 8 cabe sem rolar. Preencher top 8, Top 5 e Limpar foram para esse painel, ao lado de um contador de quantos você escolheu. Arraste os cartões para reordená-los, como antes. No celular os cartões ficam em uma coluna.'],
+
   'Break ties in the automatic awards yourself':
     ['Desempate você mesmo os prêmios automáticos',
      'Quando um prêmio automático como Música Mais Ouvida ou Maior Sequência Diária termina empatado, o cartão do prêmio agora mostra tudo o que empatou em primeiro lugar abaixo do vencedor. Clique em um para torná-lo o vencedor, e mude de ideia quantas vezes quiser. Sua escolha é mantida quando você gera os prêmios de novo, desde que esse item continue empatado em primeiro. Antes, o prêmio ia sem aviso para o item empatado que aparecesse primeiro. Anos gerados antes desta mudança precisam de um novo Gerar para os empates aparecerem.'],

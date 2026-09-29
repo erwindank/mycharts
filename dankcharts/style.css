@@ -22721,35 +22721,49 @@ body[class*="-light"] .tm-card-search:hover {
 .awards-picker-modal {
   background: var(--surface1);
   border: 1px solid var(--border);
-  border-radius: 14px;
-  width: min(560px, 96vw);
-  max-height: 86vh;
+  border-radius: 16px;
+  width: min(660px, 96vw);
+  max-height: 88vh;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.5);
   display: flex;
   flex-direction: column;
   overflow: hidden;
 }
 .awards-picker-head {
-  padding: 14px 16px 10px;
-  border-bottom: 1px solid var(--border);
+  padding: 16px 52px 12px 18px;
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 3px;
   position: relative;
 }
-.awards-picker-title { font-weight: 700; font-size: 0.9rem; color: var(--text1); }
-.awards-picker-hint  { font-size: 0.74rem; color: var(--text3); }
+.awards-picker-eyebrow {
+  font-size: 0.64rem;
+  font-family: var(--font-mono);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #FFD700;
+  opacity: 0.8;
+}
+.awards-picker-title { font-weight: 700; font-size: 1.1rem; line-height: 1.2; color: var(--text1); }
 .awards-picker-close {
   position: absolute;
-  top: 12px; right: 14px;
+  top: 14px; right: 14px;
+  width: 30px; height: 30px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   background: none;
   border: none;
+  border-radius: 8px;
   color: var(--text3);
-  font-size: 1rem;
+  font-size: 0.95rem;
   cursor: pointer;
+  transition: color 0.12s, background 0.12s;
 }
-.awards-picker-close:hover { color: var(--text1); }
+.awards-picker-close:hover { color: var(--text1); background: var(--surface3); }
 .awards-picker-tools {
-  padding: 8px 12px;
+  padding: 12px 14px 10px;
+  border-bottom: 1px solid var(--border);
   display: flex;
   gap: 6px;
   align-items: center;
@@ -22778,80 +22792,143 @@ body[class*="-light"] .tm-card-search:hover {
   cursor: pointer;
 }
 .awards-picker-sort:focus { outline: none; border-color: var(--accent); }
+/* The ballot: the chosen nominees, in award-card order */
+.awards-picker-ballot {
+  /* Must not be squeezed by the modal's flex column — the body is the only part that flexes */
+  flex: 0 0 auto;
+  margin: 0 14px;
+  padding: 10px;
+  background: linear-gradient(180deg, #FFD7000d, #FFD70004);
+  border: 1px solid #FFD70030;
+  border-radius: 12px;
+}
+.awards-picker-ballot-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 2px 8px;
+}
+.awards-picker-ballot-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text2);
+}
+.awards-picker-tally {
+  min-width: 20px;
+  height: 18px;
+  padding: 0 6px;
+  box-sizing: border-box;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9px;
+  background: #FFD700;
+  color: #1a1a1a;
+  font-family: var(--font-mono);
+  font-size: 0.66rem;
+  letter-spacing: 0;
+}
+.awards-picker-ballot-hint { font-size: 0.7rem; color: var(--text3); }
 /* Quick ballot actions */
 .awards-picker-quick {
   display: flex;
-  gap: 6px;
-  padding: 0 12px 8px;
-  border-bottom: 1px solid var(--border);
+  gap: 4px;
+  margin-left: auto;
 }
 .awards-picker-quick button {
   padding: 4px 10px;
   background: var(--surface2);
   border: 1px solid var(--border);
   border-radius: 20px;
-  color: var(--text3);
-  font-size: 0.72rem;
+  color: var(--text2);
+  font-size: 0.7rem;
   font-weight: 600;
   cursor: pointer;
+  white-space: nowrap;
   transition: color 0.12s, border-color 0.12s;
 }
 .awards-picker-quick button:hover { color: var(--text1); border-color: var(--accent); }
-/* Selected nominees panel */
+.awards-picker-quick .awards-picker-quick-clear { background: none; border-color: transparent; color: var(--text3); }
+.awards-picker-quick .awards-picker-quick-clear:hover { color: #FF6B6B; border-color: transparent; }
 .awards-picker-selected {
-  /* Must not be squeezed by the modal's flex column — the body is the only part that flexes */
-  flex: 0 0 auto;
-  padding: 8px 10px;
-  border-bottom: 1px solid var(--border);
-  display: flex;
-  flex-wrap: wrap;
-  align-content: flex-start;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 6px;
-  /* Tall enough for a full 8-nominee ballot without clipping a chip mid-row */
-  max-height: 152px;
+  /* A full 8-nominee ballot (4 rows of cards) fits before it scrolls */
+  max-height: 212px;
   overflow-y: auto;
+  scrollbar-width: thin;
 }
 .awards-picker-nom-empty {
-  font-size: 0.74rem;
+  grid-column: 1 / -1;
+  font-size: 0.76rem;
   color: var(--text3);
-  padding: 4px 2px;
-  font-style: italic;
+  padding: 16px 10px;
+  text-align: center;
+  border: 1px dashed var(--border);
+  border-radius: 9px;
 }
 .awards-picker-nom-row {
   display: flex;
   align-items: center;
-  gap: 5px;
-  background: #FFD70018;
-  border: 1px solid #FFD70055;
-  border-radius: 20px;
-  padding: 3px 6px 3px 10px;
-  font-size: 0.78rem;
+  gap: 8px;
+  min-width: 0;
+  padding: 6px 6px 6px 4px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  font-size: 0.8rem;
   color: var(--text1);
+  cursor: grab;
+  user-select: none;
+  transition: opacity 0.12s, box-shadow 0.12s, border-color 0.12s;
 }
-.awards-picker-nom-row { cursor: grab; user-select: none; transition: opacity 0.12s, box-shadow 0.12s; }
+.awards-picker-nom-row:hover { border-color: #FFD70066; }
 .awards-picker-nom-row.is-dragging { opacity: 0.4; cursor: grabbing; }
-.awards-picker-nom-row.is-dropzone { box-shadow: -2px 0 0 0 var(--accent); }
+.awards-picker-nom-row.is-dropzone { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
 .awards-picker-nom-num {
-  font-size: 0.62rem;
+  flex-shrink: 0;
+  width: 18px;
+  font-size: 0.7rem;
+  font-weight: 700;
   font-family: var(--font-mono);
-  color: var(--text3);
-  min-width: 9px;
+  color: #FFD700;
   text-align: center;
 }
-.awards-picker-nom-lbl { font-weight: 600; white-space: nowrap; max-width: 130px; overflow: hidden; text-overflow: ellipsis; }
-.awards-picker-nom-sub { font-size: 0.7rem; color: var(--text3); white-space: nowrap; max-width: 90px; overflow: hidden; text-overflow: ellipsis; }
+.awards-picker-nom-text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  line-height: 1.25;
+}
+.awards-picker-nom-lbl { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.awards-picker-nom-sub { font-size: 0.7rem; color: var(--text3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .awards-picker-nom-plays { font-size: 0.68rem; color: var(--text3); font-family: var(--font-mono); white-space: nowrap; }
+.awards-picker-nom-actions { display: inline-flex; gap: 3px; flex-shrink: 0; }
+.awards-picker-nom-actions:empty { display: none; }
 .awards-picker-nom-x {
+  flex-shrink: 0;
+  width: 22px; height: 22px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   background: none;
   border: none;
+  border-radius: 6px;
   color: var(--text3);
   font-size: 0.72rem;
   cursor: pointer;
-  padding: 0 2px;
   line-height: 1;
-  flex-shrink: 0;
+  transition: color 0.12s, background 0.12s;
 }
-.awards-picker-nom-x:hover { color: var(--text1); }
+.awards-picker-nom-x:hover { color: #FF6B6B; background: #FF6B6B1a; }
 /* Results list */
 .awards-picker-body {
   overflow-y: auto;
@@ -22935,9 +23012,9 @@ body[class*="-light"] .tm-card-search:hover {
 }
 .awards-picker-prev-btn:hover { color: var(--accent); border-color: var(--accent); }
 .awards-picker-prev-btn.is-on { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
-.awards-picker-nom-row .awards-picker-prev-btn { width: 20px; height: 18px; font-size: 0.55rem; border-radius: 9px; }
+.awards-picker-nom-row .awards-picker-prev-btn { width: 24px; height: 22px; font-size: 0.6rem; }
 .awards-picker-preview {
-  padding: 8px 12px 4px;
+  padding: 10px 14px 4px;
   border-bottom: 1px solid var(--border);
 }
 .awards-picker-preview[hidden] { display: none; }
@@ -23053,11 +23130,11 @@ body[class*="-light"] .tm-card-search:hover {
 .awards-picker-result-row .awards-picker-thumb .thumb-initials { font-size: 0.62rem; }
 /* The same artwork, smaller, on the nominee chips; artists get a round picture */
 .awards-picker-nom-row .awards-picker-thumb {
-  width: 22px;
+  width: 34px;
   flex-shrink: 0;
-  border-radius: 4px;
+  border-radius: 5px;
 }
-.awards-picker-nom-row .awards-picker-thumb .thumb-initials { font-size: 0.45rem; }
+.awards-picker-nom-row .awards-picker-thumb .thumb-initials { font-size: 0.58rem; }
 .awards-picker-thumb.is-artist { border-radius: 50%; }
 /* ♪ plays a 30-second sample; the YouTube icon opens a search in a new tab */
 .awards-picker-clip-btn,
@@ -23085,13 +23162,16 @@ body[class*="-light"] .tm-card-search:hover {
 .awards-picker-yt-btn:hover { color: #FF3B3B; border-color: #FF3B3B; }
 @keyframes awardsClipSpin { to { transform: rotate(360deg); } }
 .awards-picker-nom-row .awards-picker-clip-btn,
-.awards-picker-nom-row .awards-picker-yt-btn { width: 20px; height: 18px; font-size: 0.6rem; border-radius: 9px; }
-.awards-picker-nom-row .awards-picker-clip-btn.is-on { font-size: 0.48rem; }
-.awards-picker-nom-row .awards-picker-yt-btn svg { width: 11px; height: 11px; }
+.awards-picker-nom-row .awards-picker-yt-btn { width: 24px; height: 22px; font-size: 0.66rem; }
+.awards-picker-nom-row .awards-picker-clip-btn.is-on { font-size: 0.52rem; }
+.awards-picker-nom-row .awards-picker-yt-btn svg { width: 12px; height: 12px; }
 @media (prefers-reduced-motion: reduce) {
   .awards-picker-clip-btn.is-loading { animation: none; }
 }
 @media (max-width: 560px) {
+  .awards-picker-selected { grid-template-columns: minmax(0, 1fr); max-height: 176px; }
+  .awards-picker-ballot { margin: 0 10px; }
+  .awards-picker-ballot-hint { display: none; }
   .awards-picker-result-row { gap: 6px; }
   .awards-picker-lbl { min-width: 0; overflow-wrap: anywhere; }
   .awards-picker-result-row .awards-picker-thumb { width: 32px; }
@@ -23103,7 +23183,7 @@ body[class*="-light"] .tm-card-search:hover {
   .awards-picker-preview-tracks { columns: 1; }
 }
 .awards-picker-foot {
-  padding: 10px 14px;
+  padding: 12px 16px;
   border-top: 1px solid var(--border);
   display: flex;
   align-items: center;
@@ -23111,7 +23191,7 @@ body[class*="-light"] .tm-card-search:hover {
 }
 .awards-picker-count { font-size: 0.78rem; color: var(--text3); }
 .awards-picker-save {
-  padding: 6px 18px;
+  padding: 8px 20px;
   background: var(--accent);
   color: var(--on-accent);
   border: none;
