@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 14;
+const DC_CL_I18N_V = 15;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,10 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== SEPTEMBER 2026 ========== */
+
+  { d: '2026-09-29', t: 'feature', a: 'awards', h: '',
+    title: 'Change the picture of any nominee in My Grammys',
+    detail: 'Every picture in the Spotlight, Tiles, Collage and Reel views, and every thumbnail in the Pick nominees window, now has the same picture picker as the charts: hover over it and click the pencil, or press and hold it on a phone. Clicking the pencil never crowns or adds the nominee. The picture you choose is used for that song, album or artist everywhere in the app and is saved to your account.' },
 
   { d: '2026-09-29', t: 'feature', a: 'awards', h: '67cfdb1',
     title: 'New ways to view the nominees in My Grammys',

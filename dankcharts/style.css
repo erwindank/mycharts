@@ -22741,6 +22741,33 @@ body[class*="-light"] .tm-card-search:hover {
   border-radius: 0 !important;
   object-fit: cover;
 }
+/* The slots double as .thumb-wrap for the ✎ picker, whose base rule makes a
+   centred flex column; these stay plain boxes (so does the Pick nominees
+   window's thumb). */
+.aw-art.thumb-wrap,
+.cer-art.thumb-wrap { display: block; }
+/* ✎ badge: top right on the art, a little larger on the big slots, and moved
+   left of the ✕ wherever the entry can be removed. */
+.aw-art .img-src-btn { top: 6px; right: 6px; width: 22px; height: 22px; }
+.aw-art .img-src-btn::before { font-size: 12px; }
+.aw-tile-frame:has(.aw-x) .img-src-btn,
+.aw-poster-frame:has(.aw-x) .img-src-btn,
+.aw-col-cell:has(.aw-x) .img-src-btn { right: 32px; }
+/* The Pick nominees thumbs are ~30px and round for artists, where a corner
+   badge would be clipped, so theirs sits in the middle */
+.awards-picker-thumb .img-src-btn {
+  top: 50%;
+  right: auto;
+  left: 50%;
+  width: 18px;
+  height: 18px;
+  transform: translate(-50%, -50%);
+}
+.aw-spot-thumb .img-src-btn { top: 1px; right: 1px; width: 16px; height: 16px; }
+.aw-spot-thumb .img-src-btn::before { font-size: 9px; }
+/* The art box is smaller than its cell in these views, so hovering anywhere on
+   the entry shows the badge, not only the picture itself. */
+[data-pick]:hover .img-src-btn { opacity: 1; }
 [data-pick] { cursor: pointer; }
 [data-pick]:focus-visible { outline: 2px solid var(--cat-hue); outline-offset: 2px; }
 

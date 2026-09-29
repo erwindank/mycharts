@@ -3945,6 +3945,7 @@ function applyImgChoice(o, url, source) {
   imgChoicesPush();
   closeImgPicker();
   refreshImgInstances(o.prefkey);
+  _awardsOnImgChoice(o.prefkey);
 }
 
 // Header artwork for the song, artist and album profile modals. Drawn by the
@@ -35616,7 +35617,7 @@ let _awardsView = (() => {
   catch (e) { return 'ballot'; }
 })();
 let _awardsViewSeq = 0;         // bumped per render, so a replaced render stops fetching art
-const _awardsArtSrc = {};       // "type:item key" → a picture that has already loaded this session
+const _awardsArtSrc = {};       // prefKey → a picture that has already loaded this session
 
 function awardsSetView(view) {
   if (!AWARDS_VIEWS.includes(view) || view === _awardsView) return;
@@ -35642,25 +35643,47 @@ function _awardsRenderViewBar(show) {
 // one that already loaded this session. '' = pinned to no picture (initials);
 // null = unknown, so it has to be fetched.
 function _awardsArtKnown(item, type) {
-  const pin = imgChoicePrefs[_cerImgItem(item, type, '').prefKey];
+  const key = _cerImgItem(item, type, '').prefKey;
+  const pin = imgChoicePrefs[key];
   if (pin) return (pin.source === 'off' || !pin.url) ? '' : pin.url;
-  return _awardsArtSrc[type + ':' + _awardItemKey(item)] || null;
+  return _awardsArtSrc[key] || null;
 }
 
 /* One artwork slot. Known pictures are painted straight into the markup, so the
    re-render that follows every crown or removal doesn't flash initials; the rest
    queue for _awardsViewLoadArt. `opts.hd` asks for the CDN's largest size once
    the normal one has loaded (for the big slots); `opts.bd` is the id of a
-   backdrop that should take the same picture (the spotlight's blur). */
+   backdrop that should take the same picture (the spotlight's blur).
+
+   The slot is a .thumb-wrap with the app's ✎ .img-src-btn beside the image, so
+   the shared picker handlers pick it up: the badge on hover, press-and-hold on
+   touch. Its click is caught in the capture phase, so it never crowns the
+   nominee underneath. */
 function _awardsArtSlot(item, type, imgId, queue, cls, opts) {
   opts = opts || {};
   const label = item.title || item.album || item.artist || '';
+  const img   = _cerImgItem(item, type, imgId);
   const known = _awardsArtKnown(item, type);
-  if (known === null) queue.push({ imgId, item, type, ck: type + ':' + _awardItemKey(item), hd: !!opts.hd, bd: opts.bd || '' });
+  if (known === null) queue.push({ imgId, item, type, ck: img.prefKey, hd: !!opts.hd, bd: opts.bd || '' });
   const inner = known
-    ? `<img class="thumb" alt="" src="${esc(known)}" onerror="_awardsArtBroken(this)" data-ck="${esc(type + ':' + _awardItemKey(item))}">`
+    ? `<img class="thumb" alt="" src="${esc(known)}" onerror="_awardsArtBroken(this)" data-ck="${esc(img.prefKey)}">`
     : `<div class="thumb-initials">${esc(initials(label))}</div>`;
-  return `<div class="aw-art ${cls || ''}"><div id="${imgId}">${inner}</div></div>`;
+  return `<div class="aw-art thumb-wrap ${cls || ''}"><div id="${imgId}">${inner}</div><button type="button" class="img-src-btn" id="srcbtn-${imgId}" data-imgid="${imgId}" data-type="${type}" data-prefkey="${esc(img.prefKey)}" data-name="${esc(img.name)}" data-artist="${esc(img.artist || '')}" data-album="${esc(img.album || '')}" title="${esc(t('img_picker_change'))}" aria-label="${esc(t('img_picker_change_for', { name: label }))}"></button></div>`;
+}
+
+// A picture picked (or reset) in the ✎ picker. refreshImgInstances() has already
+// redrawn every slot showing it; what's left is the session cache, which would
+// otherwise hand the old picture to the next render, and the spotlight's blurred
+// backdrop, which isn't a slot of its own.
+function _awardsOnImgChoice(prefkey) {
+  delete _awardsArtSrc[prefkey];
+  delete _awardsThumbSrc[prefkey];   // the Pick nominees window's own cache
+  const pin = imgChoicePrefs[prefkey];
+  const url = pin && pin.source !== 'off' ? pin.url : '';
+  document.querySelectorAll('.aw-spot-bd[data-prefkey]').forEach(bd => {
+    if (bd.dataset.prefkey !== prefkey) return;
+    bd.style.backgroundImage = url ? `url("${String(url).replace(/"/g, '%22')}")` : '';
+  });
 }
 
 // A remembered picture that has since gone dead: forget it and show initials;
@@ -35759,7 +35782,7 @@ function _awardsSpotlightBody(cat, f, year, idp, queue) {
     const heroId = `${idp}_hero`;
     const known = _awardsArtKnown(w, cat.type);
     hero = `<div class="aw-spot-hero is-crowned">
-      <div class="aw-spot-bd" id="${heroId}_bd"${known ? ` style="background-image:url(&quot;${esc(known)}&quot;)"` : ''}></div>
+      <div class="aw-spot-bd" id="${heroId}_bd" data-prefkey="${esc(_cerImgItem(w, cat.type, '').prefKey)}"${known ? ` style="background-image:url(&quot;${esc(known)}&quot;)"` : ''}></div>
       ${_awardsArtSlot(w, cat.type, heroId, queue, 'aw-spot-art', { hd: true, bd: heroId + '_bd' })}
       <div class="aw-spot-meta">
         <span class="aw-spot-label">${esc(t('awards_winner'))}</span>
@@ -36585,19 +36608,28 @@ function _awardsPickerPreviewKind() {
    and put straight back instead of flashing back to initials. */
 let _awardsThumbSeq = 0;
 let _awardsNomThumbSeq = 0;
-const _awardsThumbSrc = {};   // "type:item key" → image URL already shown once
+const _awardsThumbSrc = {};   // prefKey → image URL already shown once
 
 function _awardsPickerThumbType() {
   return _awardsPickerCatType === 'artist' ? 'artist' : _awardsPickerCatType === 'album' ? 'album' : 'song';
 }
-function _awardsThumbCacheKey(item) { return _awardsPickerThumbType() + ':' + _awardItemKey(item); }
+// Keyed like the ✎ picker's choices, so a new pick can drop the stale entry
+function _awardsThumbCacheKey(item) { return _cerImgItem(item, _awardsPickerThumbType(), '').prefKey; }
 
+/* Each thumb carries the app's ✎ .img-src-btn (badge on hover, press-and-hold
+   on touch), so a wrong picture can be swapped without leaving the picker. Its
+   click is caught in the capture phase, so it never toggles the row. A picked
+   picture is drawn from the pin; fetchAndInjectImage would find it anyway, but
+   the cache below would otherwise put the old one back first. */
 function _awardsPickerThumbHtml(item, imgId) {
-  const type = _awardsPickerThumbType();
-  const cls = 'awards-picker-thumb' + (type === 'artist' ? ' is-artist' : '');
-  const src = _awardsThumbSrc[_awardsThumbCacheKey(item)];
-  if (src) return `<div class="cer-art ${cls}"><div id="${imgId}"><img class="thumb" alt="" src="${esc(src)}"></div></div>`;
-  return _cerArtHtml(item, type, imgId, cls);
+  const type  = _awardsPickerThumbType();
+  const cls   = 'awards-picker-thumb' + (type === 'artist' ? ' is-artist' : '');
+  const label = item.title || item.album || item.artist || '';
+  const img   = _cerImgItem(item, type, imgId);
+  const pin   = imgChoicePrefs[img.prefKey];
+  const src   = pin ? (pin.source !== 'off' && pin.url) || '' : _awardsThumbSrc[img.prefKey];
+  const inner = src ? `<img class="thumb" alt="" src="${esc(src)}">` : `<div class="thumb-initials">${esc(initials(label))}</div>`;
+  return `<div class="cer-art thumb-wrap ${cls}"><div id="${imgId}">${inner}</div><button type="button" class="img-src-btn" id="srcbtn-${imgId}" data-imgid="${imgId}" data-type="${type}" data-prefkey="${esc(img.prefKey)}" data-name="${esc(img.name)}" data-artist="${esc(img.artist || '')}" data-album="${esc(img.album || '')}" title="${esc(t('img_picker_change'))}" aria-label="${esc(t('img_picker_change_for', { name: label }))}"></button></div>`;
 }
 
 async function _awardsPickerThumbQueue(jobs, isLive) {
@@ -36607,7 +36639,7 @@ async function _awardsPickerThumbQueue(jobs, isLive) {
     const el = document.getElementById(imgId);
     if (!el || el.querySelector('img')) continue;   // gone, or already filled from the cache
     const ck = _awardsThumbCacheKey(item);
-    if (_awardsThumbSrc[ck]) { el.innerHTML = `<img class="thumb" alt="" src="${esc(_awardsThumbSrc[ck])}">`; continue; }
+    if (_awardsThumbSrc[ck] && !imgChoicePrefs[ck]) { el.innerHTML = `<img class="thumb" alt="" src="${esc(_awardsThumbSrc[ck])}">`; continue; }
     try { await fetchAndInjectImage(el, _cerImgItem(item, type, imgId), type); } catch (e) {}
     const src = document.getElementById(imgId)?.querySelector('img')?.getAttribute('src');
     if (src) _awardsThumbSrc[ck] = src;

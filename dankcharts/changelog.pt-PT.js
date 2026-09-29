@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['pt-PT'] = {
 
   /* ========== SETEMBRO 2026 ========== */
 
+  'Change the picture of any nominee in My Grammys':
+    ['Muda a imagem de qualquer nomeado nos Meus Grammys',
+     'Cada imagem das vistas Destaque, Blocos, Colagem e Carrossel, e cada miniatura da janela de escolher nomeados, tem agora o mesmo seletor de imagem das tabelas: passa o cursor por cima e clica no lápis, ou mantém-na premida no telemóvel. Clicar no lápis nunca coroa nem adiciona o nomeado. A imagem que escolheres é usada para essa música, álbum ou artista em toda a app e fica guardada na tua conta.'],
+
   'New ways to view the nominees in My Grammys':
     ['Novas formas de ver os nomeados nos Meus Grammys',
      'Os cartões de categoria dos Meus Grammys podem agora ser mostrados de cinco formas, no seletor Vista por cima deles: Boletim, a lista de texto de sempre; Destaque, com o vencedor em grande sobre um desfoque da sua imagem e os outros nomeados em linhas com imagem e reproduções; Blocos, uma grelha de capas e fotos de artistas; Colagem, um mosaico com todos os nomeados e o vencedor em tamanho duplo; e Carrossel, uma linha a toda a largura por categoria com os nomeados como pósteres que se deslizam para o lado. Clicar num nomeado continua a coroá-lo em todas as vistas, e os botões Alterar e Playlist continuam lá. As imagens que escolheste para uma música, artista ou álbum também aparecem aqui, e a vista que escolheres fica guardada nesse dispositivo.'],
