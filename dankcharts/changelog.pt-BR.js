@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['pt-BR'] = {
 
   /* ========== SETEMBRO 2026 ========== */
 
+  'See what an album is about when picking Best Album Concept':
+    ['Veja do que se trata um álbum ao escolher o Melhor Conceito de Álbum',
+     'Ao escolher os indicados de Melhor Conceito de Álbum ou Melhor Capa de Álbum, cada álbum tem um botão i. Ele mostra a capa em tamanho grande, o breve texto do Last.fm sobre o álbum, que costuma explicar a história ou o tema, e a lista de faixas com quantas vezes você ouviu cada música naquele ano. Músicas que você ouviu e não estão na lista padrão, como faixas bônus, aparecem no final. Clicar em i não indica o álbum; clicar na linha, sim.'],
+
   'Watch a bit of each video when picking Video of the Year':
     ['Assista a um pouco de cada vídeo ao escolher o Vídeo do Ano',
      'Ao escolher os indicados de Vídeo do Ano, cada música tem um botão ▶. Ele encontra o clipe no YouTube e toca numa janelinha no topo do seletor, para você lembrar como é o vídeo antes de indicá-lo. Clicar em ▶ não indica a música; clicar na linha, sim. Aperte ■ ou ✕ para fechar o vídeo, e se o YouTube achou o vídeo errado, um link abre a busca no YouTube.'],

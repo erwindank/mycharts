@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 2;
+const DC_CL_I18N_V = 3;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,10 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== SEPTEMBER 2026 ========== */
+
+  { d: '2026-09-29', t: 'feature', a: 'awards', h: '',
+    title: 'See what an album is about when picking Best Album Concept',
+    detail: 'When you pick nominees for Best Album Concept or Best Album Cover, every album has an i button. It shows the cover large, Last.fm’s short write-up of the album, which usually explains its story or theme, and the tracklist with how many times you played each song that year. Songs you played that aren’t on the standard tracklist, like bonus tracks, are listed at the end. Clicking i does not nominate the album; clicking the row still does.' },
 
   { d: '2026-09-28', t: 'feature', a: 'awards', h: '61ac565',
     title: 'Watch a bit of each video when picking Video of the Year',

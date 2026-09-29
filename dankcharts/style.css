@@ -22908,7 +22908,7 @@ body[class*="-light"] .tm-card-search:hover {
 .awards-picker-genre-unk  { opacity: 0.5; font-style: italic; }
 .awards-picker-plays{ font-size: 0.7rem; color: var(--text3); font-family: var(--font-mono); }
 /* Video of the Year: ▶ on each song row / chip opens a small video preview */
-.awards-picker-vid-btn {
+.awards-picker-prev-btn {
   flex-shrink: 0;
   width: 26px;
   height: 22px;
@@ -22921,9 +22921,9 @@ body[class*="-light"] .tm-card-search:hover {
   cursor: pointer;
   transition: color 0.12s, border-color 0.12s, background 0.12s;
 }
-.awards-picker-vid-btn:hover { color: var(--accent); border-color: var(--accent); }
-.awards-picker-vid-btn.is-on { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
-.awards-picker-nom-row .awards-picker-vid-btn { width: 20px; height: 18px; font-size: 0.55rem; border-radius: 9px; }
+.awards-picker-prev-btn:hover { color: var(--accent); border-color: var(--accent); }
+.awards-picker-prev-btn.is-on { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+.awards-picker-nom-row .awards-picker-prev-btn { width: 20px; height: 18px; font-size: 0.55rem; border-radius: 9px; }
 .awards-picker-preview {
   padding: 8px 12px 4px;
   border-bottom: 1px solid var(--border);
@@ -22970,6 +22970,67 @@ body[class*="-light"] .tm-card-search:hover {
   text-decoration: none;
 }
 .awards-picker-preview-yt:hover { opacity: 1; text-decoration: underline; }
+/* Album info ("i" button): serif-ish italic i, so it reads as "info" not a letter */
+.awards-picker-prev-btn--album { font-family: Georgia, serif; font-style: italic; font-weight: 700; font-size: 0.78rem; }
+.awards-picker-prev-btn--album.is-on { font-family: inherit; font-style: normal; font-size: 0.62rem; }
+/* Cover on the left, Last.fm's write-up on the right */
+.awards-picker-preview-album {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+}
+.awards-picker-preview-album .awards-picker-preview-cover {
+  width: 112px;
+  flex-shrink: 0;
+}
+.awards-picker-preview-info { flex: 1; min-width: 0; }
+.awards-picker-preview-about {
+  margin: 0;
+  font-size: 0.76rem;
+  line-height: 1.5;
+  color: var(--text2);
+  max-height: 112px;       /* as tall as the cover; longer write-ups scroll */
+  overflow-y: auto;
+}
+.awards-picker-preview-about.is-muted { color: var(--text3); font-style: italic; }
+.awards-picker-preview-info .awards-picker-preview-yt { text-align: left; }
+.awards-picker-preview-tally {
+  font-size: 0.66rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text3);
+  font-weight: 700;
+  margin: 10px 0 4px;
+}
+/* Tracklist: two columns on wide screens, capped so the list below stays usable */
+.awards-picker-preview-tracks {
+  list-style: none;
+  margin: 0 0 6px;
+  padding: 0;
+  columns: 2;
+  column-gap: 18px;
+  max-height: 22vh;
+  overflow-y: auto;
+  font-size: 0.74rem;
+}
+.awards-picker-preview-tracks li {
+  display: flex;
+  gap: 6px;
+  align-items: baseline;
+  padding: 2px 0;
+  color: var(--text3);
+  break-inside: avoid;
+}
+.awards-picker-preview-tracks li.is-played { color: var(--text1); }
+.awards-picker-preview-tnum { font-family: var(--font-mono); font-size: 0.64rem; min-width: 16px; text-align: right; color: var(--text3); }
+.awards-picker-preview-tname { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.awards-picker-preview-tplays { font-family: var(--font-mono); font-size: 0.64rem; color: var(--text3); flex-shrink: 0; }
+.awards-picker-preview-tracks li.is-played .awards-picker-preview-tplays { color: var(--accent); }
+@media (max-width: 560px) {
+  .awards-picker-preview-album .awards-picker-preview-cover { width: 84px; }
+  .awards-picker-preview-about { max-height: 84px; }
+  .awards-picker-preview-tracks { columns: 1; }
+}
 .awards-picker-foot {
   padding: 10px 14px;
   border-top: 1px solid var(--border);

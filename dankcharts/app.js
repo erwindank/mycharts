@@ -35797,7 +35797,7 @@ function _awardsPickerResultRow(item, idx) {
     ${genreHtml}
     ${_awardsPickerScoreChip(item)}
     <span class="awards-picker-plays">${item.playLabel || item.plays + ' plays'}</span>
-    ${_awardsPickerVidBtn(item, `awardsPickerPreviewRow(${idx})`)}
+    ${_awardsPickerPrevBtn(item, `awardsPickerPreviewRow(${idx})`)}
   </div>`;
 }
 
@@ -35816,7 +35816,7 @@ function _awardsPickerSelHtml() {
       <span class="awards-picker-nom-num">${i + 1}</span>
       <span class="awards-picker-nom-lbl">${esc(lbl)}</span>
       ${sub ? `<span class="awards-picker-nom-sub">${esc(sub)}</span>` : ''}
-      ${_awardsPickerVidBtn(item, `awardsPickerPreviewNom(${i})`)}
+      ${_awardsPickerPrevBtn(item, `awardsPickerPreviewNom(${i})`)}
       <button class="awards-picker-nom-x" data-i="${i}" onclick="awardsPickerRemoveNom(this)" title="Remove">✕</button>
     </div>`;
   }).join('');
@@ -35912,7 +35912,7 @@ function _awardsShowPicker(year, catId, candidates) {
   _awardsPickerShown     = AWARDS_PICKER_PAGE;
   _awardsPickerActive    = -1;
   _awardsPickerRows      = [];
-  _awardsVidKey          = null;   // no video preview open yet
+  _awardsPrevKey         = null;   // no preview open yet
 
   const typeLabel = catDef.type === 'song' ? 'songs' : catDef.type === 'album' ? 'albums' : 'artists';
   _awardsPickerCtx = { year, catId, typeLabel };
@@ -35926,7 +35926,7 @@ function _awardsShowPicker(year, catId, candidates) {
         <button class="awards-picker-close" onclick="awardsPickerClose()">✕</button>
       </div>
       <div class="awards-picker-selected" id="awardsPickerSelected">${_awardsPickerSelHtml()}</div>
-      ${_awardsPickerIsVideo() ? '<div class="awards-picker-preview" id="awardsPickerPreview" hidden></div>' : ''}
+      ${_awardsPickerPreviewKind() ? '<div class="awards-picker-preview" id="awardsPickerPreview" hidden></div>' : ''}
       <div class="awards-picker-tools">
         <input type="text" id="awardsPickerSearch" placeholder="Search all ${typeLabel} from ${year}…" oninput="awardsPickerDoSearch()" autocomplete="off" spellcheck="false">
         <select class="awards-picker-sort" id="awardsPickerSort" onchange="awardsPickerSetSort(this.value)" title="Sort the list">
@@ -36077,73 +36077,97 @@ function awardsPickerDrop(e, to) {
   _awardsPickerSyncSel();
 }
 
-/* --- Video of the Year: watch a bit of each video before nominating it ---
-   Every song row (and nominee chip) in this one category gets a ▶ button that
+/* --- Previews inside the picker, so you can judge a nominee before picking it ---
+   Video of the Year: every song row (and nominee chip) gets a ▶ button that
    finds the song's music video through the same YouTube lookup the mini player
-   uses and plays it in a small panel at the top of the picker. Clicking ▶ on
-   the song already showing closes the panel. The video lives inside the picker,
-   so closing the picker stops it. */
-const _awardsVidCache = {};     // item key → YouTube video id ('' when none was found)
-let _awardsVidKey = null;       // key of the song in the preview panel, null when closed
-let _awardsVidSeq = 0;          // guards the async lookup against a quick second click
+   uses and plays it in a small panel at the top of the picker.
+   Best Album Concept / Best Album Cover: every album gets an "i" button that
+   shows the cover large, Last.fm's write-up of the album (which usually says
+   what it is about), and its tracklist with what you played that year.
+   Clicking the button on the one already showing closes the panel. The panel
+   lives inside the picker, so closing the picker closes it (and stops a video). */
+const _awardsVidCache = {};       // item key → YouTube video id ('' when none was found)
+const _awardsAlbumInfoCache = {}; // item key → { summary, url, tracks[] } from Last.fm
+let _awardsPrevKey = null;        // key of the item in the preview panel, null when closed
+let _awardsPrevSeq = 0;           // guards the async lookups against a quick second click
 
-function _awardsPickerIsVideo() {
-  return _awardsPickerCtx?.catId === 'video_of_year';
+// Categories that get a preview button, and which kind
+const _AWARDS_PREVIEW_KIND = {
+  video_of_year:      'video',
+  best_album_concept: 'album',
+  best_album_cover:   'album',
+};
+const _AWARDS_PREVIEW_UI = {
+  video: { icon: '▶', onIcon: '■', title: 'Watch a bit of the video', onTitle: 'Close the video' },
+  album: { icon: 'i', onIcon: '✕', title: 'About this album',         onTitle: 'Close the album info' },
+};
+
+function _awardsPickerPreviewKind() {
+  return _AWARDS_PREVIEW_KIND[_awardsPickerCtx?.catId] || null;
 }
 
-function _awardsPickerVidBtn(item, onclick) {
-  if (!_awardsPickerIsVideo() || !item.title) return '';
-  const on = _awardsVidKey === _awardItemKey(item);
+function _awardsPickerPrevBtn(item, onclick) {
+  const kind = _awardsPickerPreviewKind();
+  if (!kind || !(kind === 'video' ? item.title : item.album)) return '';
+  const ui = _AWARDS_PREVIEW_UI[kind];
+  const on = _awardsPrevKey === _awardItemKey(item);
   // stopPropagation: the row itself toggles the nomination on click
-  return `<button class="awards-picker-vid-btn${on ? ' is-on' : ''}" onclick="event.stopPropagation();${onclick}" title="${on ? 'Close the video' : 'Watch a bit of the video'}">${on ? '■' : '▶'}</button>`;
+  return `<button class="awards-picker-prev-btn awards-picker-prev-btn--${kind}${on ? ' is-on' : ''}" onclick="event.stopPropagation();${onclick}" title="${on ? ui.onTitle : ui.title}">${on ? ui.onIcon : ui.icon}</button>`;
 }
 
 function awardsPickerPreviewRow(idx) { const it = _awardsPickerRows[idx]; if (it) _awardsPickerPreview(it); }
 function awardsPickerPreviewNom(i)   { const it = _awardsPickerSel[i];    if (it) _awardsPickerPreview(it); }
 
-// Only the ▶/■ buttons change, so the list and chips aren't rebuilt
-function _awardsPickerPaintVidBtns() {
+// Only the preview buttons change, so the list and chips aren't rebuilt
+function _awardsPickerPaintPrevBtns() {
+  const ui = _AWARDS_PREVIEW_UI[_awardsPickerPreviewKind()];
+  if (!ui) return;
   const paint = (sel, items, attr) => document.querySelectorAll(sel).forEach(row => {
     const item = items[+row.dataset[attr]];
-    const btn = row.querySelector('.awards-picker-vid-btn');
+    const btn = row.querySelector('.awards-picker-prev-btn');
     if (!item || !btn) return;
-    const on = _awardsVidKey === _awardItemKey(item);
+    const on = _awardsPrevKey === _awardItemKey(item);
     btn.classList.toggle('is-on', on);
-    btn.textContent = on ? '■' : '▶';
-    btn.title = on ? 'Close the video' : 'Watch a bit of the video';
+    btn.textContent = on ? ui.onIcon : ui.icon;
+    btn.title = on ? ui.onTitle : ui.title;
   });
   paint('#awardsPickerBody .awards-picker-result-row', _awardsPickerRows, 'idx');
   paint('#awardsPickerSelected .awards-picker-nom-row', _awardsPickerSel, 'i');
 }
 
 function awardsPickerClosePreview() {
-  _awardsVidKey = null;
-  _awardsVidSeq++;
+  _awardsPrevKey = null;
+  _awardsPrevSeq++;
   const panel = document.getElementById('awardsPickerPreview');
   if (panel) { panel.innerHTML = ''; panel.hidden = true; }   // emptying it stops the video
-  _awardsPickerPaintVidBtns();
+  _awardsPickerPaintPrevBtns();
 }
 
 async function _awardsPickerPreview(item) {
   const panel = document.getElementById('awardsPickerPreview');
-  if (!panel) return;
+  const kind = _awardsPickerPreviewKind();
+  if (!panel || !kind) return;
   const k = _awardItemKey(item);
-  if (_awardsVidKey === k) { awardsPickerClosePreview(); return; }
-  _awardsVidKey = k;
-  const seq = ++_awardsVidSeq;
-  _awardsPickerPaintVidBtns();
+  if (_awardsPrevKey === k) { awardsPickerClosePreview(); return; }
+  _awardsPrevKey = k;
+  const seq = ++_awardsPrevSeq;
+  _awardsPickerPaintPrevBtns();
+
+  const ui = _AWARDS_PREVIEW_UI[kind];
+  const name = kind === 'video' ? item.title : item.album;
+  const head = `<div class="awards-picker-preview-head">
+      <span class="awards-picker-preview-lbl">${esc(name)} <span>· ${esc(item.artist || '')}</span></span>
+      <button class="awards-picker-nom-x" onclick="awardsPickerClosePreview()" title="${ui.onTitle}">✕</button>
+    </div>`;
+  panel.hidden = false;
+  if (kind === 'album') return _awardsPickerAlbumPreview(item, k, seq, panel, head);
 
   // Two sounds at once is never wanted: pause the mini player if it's going
   try { if (_ytPlayer && _ytPlayer.getPlayerState() === YT.PlayerState.PLAYING) _ytPlayer.pauseVideo(); } catch (e) {}
 
   const query = `${item.artist || ''} ${item.title} official music video`.trim();
   const ytSearch = 'https://www.youtube.com/results?search_query=' + encodeURIComponent(query);
-  const head = `<div class="awards-picker-preview-head">
-      <span class="awards-picker-preview-lbl">${esc(item.title)} <span>· ${esc(item.artist || '')}</span></span>
-      <button class="awards-picker-nom-x" onclick="awardsPickerClosePreview()" title="Close the video">✕</button>
-    </div>`;
-  const status = msg => { if (seq === _awardsVidSeq) panel.innerHTML = head + `<div class="awards-picker-preview-msg">${msg}</div>`; };
-  panel.hidden = false;
+  const status = msg => { if (seq === _awardsPrevSeq) panel.innerHTML = head + `<div class="awards-picker-preview-msg">${msg}</div>`; };
   status('Finding the video…');
 
   let vid = _awardsVidCache[k];
@@ -36160,11 +36184,11 @@ async function _awardsPickerPreview(item) {
         status('Waking up the server…');
         await new Promise(r => setTimeout(r, 6000));
       }
-      if (seq !== _awardsVidSeq) return;
+      if (seq !== _awardsPrevSeq) return;
     }
     if (vid !== null) _awardsVidCache[k] = vid;   // don't remember a network failure
   }
-  if (seq !== _awardsVidSeq) return;
+  if (seq !== _awardsPrevSeq) return;
 
   if (!vid) {
     status(`No video found — <a href="${esc(ytSearch)}" target="_blank" rel="noopener">search YouTube ↗</a>`);
@@ -36178,6 +36202,95 @@ async function _awardsPickerPreview(item) {
     <a class="awards-picker-preview-yt" href="https://www.youtube.com/watch?v=${encodeURIComponent(vid)}" target="_blank" rel="noopener">Wrong video? It came from YouTube search: open on YouTube ↗</a>`;
 }
 
+// "Song (Remastered)" / "Song - Live" / "Song [feat. X]" all count as "song"
+function _awardsTrackNorm(s) {
+  return (s || '').toLowerCase().replace(/\s*[(\[][^)\]]*[)\]]/g, '').replace(/\s+-\s+.*$/, '').trim();
+}
+
+// Last.fm album.getInfo, trimmed to what the panel shows. Works for every data
+// source: it only needs the album and artist names, not a Last.fm account.
+async function _awardsFetchAlbumInfo(item, k) {
+  if (_awardsAlbumInfoCache[k]) return _awardsAlbumInfoCache[k];
+  const r = await fetch(lfmUrl('album.getInfo', { album: item.album, artist: _primaryArtist(item.artist || ''), autocorrect: 1 }));
+  const d = await r.json();
+  const a = d && d.album;
+  let summary = '';
+  if (a?.wiki?.summary) {
+    // The summary is HTML ending in a "Read more on Last.fm" link. DOMParser turns
+    // it into plain text without running anything in it (unlike innerHTML).
+    summary = new DOMParser().parseFromString(a.wiki.summary, 'text/html').body.textContent || '';
+    summary = summary.replace(/\s*Read more on Last\.fm\.?\s*$/i, '').trim();
+  }
+  let tracks = a?.tracks?.track || [];
+  if (!Array.isArray(tracks)) tracks = [tracks];   // a one-track album comes back as an object
+  const info = { summary, url: a?.url || '', tracks: tracks.map(t => t.name).filter(Boolean) };
+  _awardsAlbumInfoCache[k] = info;   // only reached on a good response, so failures are retried
+  return info;
+}
+
+async function _awardsPickerAlbumPreview(item, k, seq, panel, head) {
+  // What you played from this album in the category's eligibility window
+  const start = new Date(_awardsPickerEligWin.start + 'T00:00:00');
+  const end   = new Date(_awardsPickerEligWin.end   + 'T23:59:59');
+  const ak = _ak(item);
+  const played = new Map();   // normalised title → { title, plays }
+  for (const p of allPlays) {
+    if (!p.album || p.date < start || p.date > end || _ak(p) !== ak) continue;
+    const n = _awardsTrackNorm(p.title);
+    const e = played.get(n) || { title: p.title, plays: 0 };
+    e.plays++;
+    played.set(n, e);
+  }
+
+  const imgId = 'awardsPrevCover';
+  const year = _awardsPickerCtx.year;
+  // info: undefined while Last.fm is being asked, null when it couldn't be reached
+  const render = (info, note) => {
+    if (seq !== _awardsPrevSeq) return;
+    // Tracklist: Last.fm's order when it has one, with your plays matched in;
+    // anything you played that it doesn't list (bonus tracks) goes at the end.
+    const listed = info?.tracks || [];
+    const rows = [], used = new Set();
+    listed.forEach((name, i) => {
+      const n = _awardsTrackNorm(name);
+      const hit = played.get(n);
+      if (hit) used.add(n);
+      rows.push({ title: name, plays: hit ? hit.plays : 0, num: i + 1 });
+    });
+    const extra = [...played.entries()].filter(([n]) => !used.has(n)).map(([, e]) => e).sort((a, b) => b.plays - a.plays);
+    for (const e of extra) rows.push({ title: e.title, plays: e.plays, num: listed.length ? '+' : rows.length + 1 });
+    // Count the album's own tracks against its length; bonus/deluxe ones separately,
+    // or "18 of 13 tracks" happens
+    const nListed = used.size;
+    const tally = listed.length
+      ? `You played ${nListed} of ${listed.length} tracks in ${year}` + (extra.length ? ` · plus ${extra.length} more` : '')
+      : `${extra.length} track${extra.length === 1 ? '' : 's'} you played in ${year}`;
+
+    const about = info === undefined ? `<p class="awards-picker-preview-about is-muted">Looking up the album…</p>`
+      : info?.summary ? `<p class="awards-picker-preview-about">${esc(info.summary)}</p>`
+      : `<p class="awards-picker-preview-about is-muted">${esc(note || 'Last.fm has no write-up for this album.')}</p>`;
+    const more = info?.url ? `<a class="awards-picker-preview-yt" href="${esc(info.url)}/+wiki" target="_blank" rel="noopener">Read more on Last.fm ↗</a>` : '';
+    const tracksHtml = rows.length ? `<div class="awards-picker-preview-tally">${tally}</div>
+      <ol class="awards-picker-preview-tracks">${rows.map(r => `<li class="${r.plays ? 'is-played' : ''}">
+        <span class="awards-picker-preview-tnum">${r.num}</span>
+        <span class="awards-picker-preview-tname">${esc(r.title)}</span>
+        <span class="awards-picker-preview-tplays">${r.plays ? r.plays + (r.plays === 1 ? ' play' : ' plays') : '–'}</span>
+      </li>`).join('')}</ol>` : '';
+
+    panel.innerHTML = head + `<div class="awards-picker-preview-album">
+        ${_cerArtHtml(item, 'album', imgId, 'awards-picker-preview-cover')}
+        <div class="awards-picker-preview-info">${about}${more}</div>
+      </div>${tracksHtml}`;
+    _awardsLoadArtQueue([{ imgId, item, type: 'album' }], () => seq === _awardsPrevSeq);
+  };
+
+  render(undefined);   // your own plays and the cover straight away, the write-up when it lands
+  let info = null, note = '';
+  try { info = await _awardsFetchAlbumInfo(item, k); }
+  catch (e) { note = 'Couldn’t reach Last.fm for the write-up.'; }
+  render(info, note);
+}
+
 function awardsPickerBgClick(e) { if (e.target.id === 'awardsPickerOverlay') awardsPickerClose(); }
 
 function awardsPickerClose() {
@@ -36189,8 +36302,8 @@ function awardsPickerClose() {
   _awardsPickerAllItems = [];   // drop the index so a big library isn't held in memory
   _awardsPickerRows     = [];
   _awardsPickerSuggKeys = new Set();
-  _awardsVidKey         = null;   // the preview went away with the overlay
-  _awardsVidSeq++;
+  _awardsPrevKey         = null;   // the preview went away with the overlay
+  _awardsPrevSeq++;
 }
 
 // Indexed items carry picker-only fields (fit, grp, last, summerPlays…) — keep them out of
