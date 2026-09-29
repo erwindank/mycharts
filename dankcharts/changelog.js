@@ -80,7 +80,7 @@ const DC_CHANGELOG = [
 
   /* ========== SEPTEMBER 2026 ========== */
 
-  { d: '2026-09-29', t: 'design', a: 'awards', h: '',
+  { d: '2026-09-29', t: 'design', a: 'awards', h: '7dadc69',
     title: 'A roomier nominee picker',
     detail: 'The window where you pick an award’s nominees has more room. Your chosen nominees now sit in their own Nominees panel at the top, as even cards in two columns, each with a bigger picture and the name and artist on separate lines, so long titles no longer get cut off after a few letters. A full ballot of 8 fits without scrolling. Fill top 8, Top 5 and Clear moved into that panel, next to a count of how many you have picked. Drag the cards to reorder them, as before. On a phone the cards stack in one column.' },
 
