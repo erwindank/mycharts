@@ -33761,7 +33761,8 @@ const AWARD_CATEGORIES = [
   { id: 'obsessive_play',    label: 'Most Obsessive Play',        type: 'song',   filter: 'spike',       defaultOn: true,  emoji: '🔁' },
   { id: 'one_hit_wonder',    label: 'One-Hit Wonder of the Year', type: 'artist', filter: 'one_hit',     defaultOn: false, emoji: '⚡' },
   { id: 'best_remix',        label: 'Best Remix',                 type: 'song',   filter: 'remix',       defaultOn: false, emoji: '🎚️' },
-  { id: 'late_discovery',    label: 'Album You Discovered Late',  type: 'album',  filter: 'late_disc',   defaultOn: false, emoji: '🕰️' },
+  { id: 'late_discovery',    label: 'Best Album Discovered Late', type: 'album',  filter: 'late_disc',   defaultOn: false, emoji: '🕰️' },
+  { id: 'most_viral_song',   label: 'Most Viral Song',            type: 'song',   filter: 'all',         defaultOn: false, emoji: '🦠' },
   // Genre-based songs (opt-in)
   { id: 'best_pop_song',     label: 'Best Pop Song',              type: 'song',   filter: 'genre:pop',         defaultOn: false, emoji: '🎀' },
   { id: 'best_rock_song',    label: 'Best Rock Song',             type: 'song',   filter: 'genre:rock',        defaultOn: false, emoji: '🎸' },

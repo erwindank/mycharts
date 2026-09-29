@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['pt-BR'] = {
 
   /* ========== SETEMBRO 2026 ========== */
 
+  'Most Viral Song award, and Album You Discovered Late is now Best Album Discovered Late':
+    ['Prêmio de Música mais Viral, e Álbum que Você Descobriu Tarde agora é Melhor Álbum Descoberto Tarde',
+     'Meus Grammys tem uma nova categoria, Música mais Viral, desligada por padrão: ligue em Configurar Ano e escolha seus indicados entre as músicas que você mais ouviu naquele ano. A categoria Álbum que Você Descobriu Tarde agora se chama Melhor Álbum Descoberto Tarde, com as mesmas regras de antes.'],
+
   'Reorder the nominees right on the category cards':
     ['Reordene os indicados direto nos cartões de categoria',
      'A ordem dos indicados em um cartão de categoria de Meus Grammys, que também é a ordem que a cerimônia segue, agora pode ser mudada no próprio cartão em vez de na janela de escolher indicados. Com o mouse, arraste um indicado para o lugar de outro, em qualquer visualização. No celular ou pelo teclado, toque em Reordenar no pé do cartão para ter botões de seta em cada indicado, e em Pronto quando terminar. Enquanto Reordenar estiver ligado, clicar em um indicado não coroa ele.'],

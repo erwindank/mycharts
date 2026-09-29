@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 17;
+const DC_CL_I18N_V = 18;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,10 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== SEPTEMBER 2026 ========== */
+
+  { d: '2026-09-29', t: 'feature', a: 'awards', h: '',
+    title: 'Most Viral Song award, and Album You Discovered Late is now Best Album Discovered Late',
+    detail: 'My Grammys has a new Most Viral Song category, off by default: turn it on under Configure Year and pick your nominees from the songs you played most that year. The Album You Discovered Late category is now called Best Album Discovered Late, with the same rules as before.' },
 
   { d: '2026-09-29', t: 'feature', a: 'awards', h: '524c95e',
     title: 'Reorder the nominees right on the category cards',
