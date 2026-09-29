@@ -80,7 +80,7 @@ const DC_CHANGELOG = [
 
   /* ========== SEPTEMBER 2026 ========== */
 
-  { d: '2026-09-29', t: 'feature', a: 'awards', h: '',
+  { d: '2026-09-29', t: 'feature', a: 'awards', h: 'af64473',
     title: 'Change the picture of any nominee in My Grammys',
     detail: 'Every picture in the Spotlight, Tiles, Collage and Reel views, and every thumbnail in the Pick nominees window, now has the same picture picker as the charts: hover over it and click the pencil, or press and hold it on a phone. Clicking the pencil never crowns or adds the nominee. The picture you choose is used for that song, album or artist everywhere in the app and is saved to your account.' },
 
