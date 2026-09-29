@@ -32145,6 +32145,25 @@ body.red-light .modal-rank-card--year .mrc-rank {
       --rt-none:        var(--text3);
     }
 
+    /* Light themes: the score is small bold text on a 14% tint of its own
+       band, often inside a tinted chart row, and the raw light-theme hues land
+       at 2.5–4.2:1 there (--gold2 worst). Pull every band toward the theme's
+       own ink by the same amount — hue and ramp order are kept, and the fills,
+       rings and bars that read the same tokens stay in step. */
+    body.navy-light,
+    body.purple-light,
+    body.yellow-light,
+    body.pink-light,
+    body.red-light {
+      --rt-masterpiece: color-mix(in srgb, var(--gold2) 60%, var(--text));
+      --rt-essential:   color-mix(in srgb, var(--green) 60%, var(--text));
+      --rt-great:       color-mix(in srgb, color-mix(in srgb, var(--green) 65%, var(--teal)) 60%, var(--text));
+      --rt-good:        color-mix(in srgb, var(--teal) 60%, var(--text));
+      --rt-mixed:       color-mix(in srgb, var(--amber) 60%, var(--text));
+      --rt-weak:        color-mix(in srgb, color-mix(in srgb, var(--amber) 45%, var(--rose)) 60%, var(--text));
+      --rt-poor:        color-mix(in srgb, var(--rose) 60%, var(--text));
+    }
+
     /* One class per band. `color` drives text and `--rt-c` is the handle every
        fill, ring stroke and border reads, so a band class can be dropped on any
        element and it just works. */

@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 11;
+const DC_CL_I18N_V = 12;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,10 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== SEPTEMBER 2026 ========== */
+
+  { d: '2026-09-29', t: 'fix', a: 'themes', h: '',
+    title: 'Easier-to-read score chips in the light themes',
+    detail: 'In the light themes, some score chips next to songs and albums were still hard to read, above all the gold Masterpiece scores and the green Essential ones on the coloured rows at the top of a chart. Every score colour is now a little deeper in the light themes, so each one is easy to read on any row, and the score rings and bars match. The colours keep their order from best to worst, and the dark themes look the same as before.' },
 
   { d: '2026-09-29', t: 'fix', a: 'themes', h: 'e32bac6',
     title: 'Readable rating and medal colours in the light themes',

@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['pt-BR'] = {
 
   /* ========== SETEMBRO 2026 ========== */
 
+  'Easier-to-read score chips in the light themes':
+    ['Etiquetas de nota mais fáceis de ler nos temas claros',
+     'Nos temas claros, algumas etiquetas de nota ao lado de músicas e álbuns ainda eram difíceis de ler, principalmente as douradas de Masterpiece e as verdes de Essential nas linhas coloridas do topo de uma parada. Agora todas as cores de nota ficaram um pouco mais fortes nos temas claros, então cada uma é fácil de ler em qualquer linha, e os anéis e barras de nota combinam. As cores mantêm a ordem da melhor para a pior, e os temas escuros continuam iguais.'],
+
   'Readable rating and medal colours in the light themes':
     ['Cores de avaliações e medalhas legíveis nos temas claros',
      'Nos temas claros, as cores das avaliações eram as dos temas escuros, então Masterpiece, o anel de nota e as etiquetas de nota apareciam em amarelo brilhante sobre branco, e as outras cores de nota também eram pálidas. Agora elas usam as cores mais escuras de cada tema claro. Os números de pico em ouro, prata e bronze nos perfis de músicas, artistas e álbuns, e os números de música mais ouvida de todos os tempos e do ano, também ganharam versões mais escuras e fáceis de ler. Os temas escuros continuam iguais.'],

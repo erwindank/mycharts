@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['es'] = {
 
   /* ========== SEPTIEMBRE 2026 ========== */
 
+  'Easier-to-read score chips in the light themes':
+    ['Etiquetas de puntuación más fáciles de leer en los temas claros',
+     'En los temas claros, algunas etiquetas de puntuación junto a canciones y álbumes todavía costaban de leer, sobre todo las doradas de Masterpiece y las verdes de Essential en las filas de color de lo alto de una lista. Ahora todos los colores de puntuación son un poco más intensos en los temas claros, así que cada uno se lee bien en cualquier fila, y los anillos y barras de puntuación coinciden. Los colores mantienen su orden de mejor a peor, y los temas oscuros se ven igual que antes.'],
+
   'Readable rating and medal colours in the light themes':
     ['Colores de valoraciones y medallas legibles en los temas claros',
      'En los temas claros, los colores de las valoraciones eran los de los temas oscuros, así que Masterpiece, el anillo de puntuación y las etiquetas de puntuación salían en amarillo brillante sobre blanco, y los demás colores de puntuación también eran pálidos. Ahora usan los colores más oscuros de cada tema claro. Los números de posición máxima en oro, plata y bronce de los perfiles de canciones, artistas y álbumes, y los números de canción más escuchada de todos los tiempos y del año, también tienen versiones más oscuras y fáciles de leer. Los temas oscuros se ven igual que antes.'],
