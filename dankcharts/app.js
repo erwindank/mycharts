@@ -36138,6 +36138,8 @@ function _awardsPickerBuildIndex() {
   const start = new Date(_awardsPickerEligWin.start + 'T00:00:00');
   const end   = new Date(_awardsPickerEligWin.end   + 'T23:59:59');
   const map   = {};
+  const stats = _awardsPickerHasStats();
+  let total = 0;
   for (const p of allPlays) {
     if (p.date < start || p.date > end) continue;
     let k;
@@ -36157,6 +36159,7 @@ function _awardsPickerBuildIndex() {
     item.plays++;
     const ts = +p.date;
     if (ts > item.last) item.last = ts;
+    if (stats) { total++; _awardsStatAddPlay(item, p, ts); }
     if (_awardsPickerCatFilter === 'summer') {
       const mo = tzDateOf(p).getMonth();
       if (mo >= 5 && mo <= 7) item.summerPlays = (item.summerPlays || 0) + 1;
@@ -36187,6 +36190,250 @@ function _awardsPickerBuildIndex() {
   }
 
   _awardsPickerAllItems = Object.values(map).sort((a, b) => b.plays - a.plays);
+  if (stats) _awardsStatFinish(_awardsPickerAllItems, total);
+}
+
+/* ─── Year stats in the picker ────────────────────────────────────────────────
+   Song, Album and Artist of the Year are the big three, so their picker shows
+   how each candidate actually lived through the eligibility window, not just
+   its play count: streaks, days / weeks / months played, its biggest day, week
+   and month, and where it got to on the weekly and monthly charts. Everything
+   is limited to the window the year is configured with.
+
+   Collected in the index pass (_awardsStatAddPlay), reduced to numbers once it
+   ends (_awardsStatFinish), and the per-day maps dropped, so the only extra
+   cost of opening the picker is one Map update per play. */
+const AWARDS_STAT_CATS = new Set(['song_of_year', 'album_of_year', 'artist_of_year']);
+
+function _awardsPickerHasStats() {
+  return AWARDS_STAT_CATS.has(_awardsPickerCtx?.catId);
+}
+
+// Extra sort orders for those categories. Each returns "bigger is better";
+// chart peak is negated so #1 sorts first and never-charted sorts last.
+const AWARDS_STAT_SORTS = {
+  streak:   s => s.streak.len,
+  days:     s => s.days,
+  bestday:  s => s.peakDay.n,
+  weeks1:   s => (s.wChart ? s.wChart.at1 : 0) * 1000 + (s.wChart ? s.wChart.top10 : 0),
+  peak:     s => s.wChart ? -s.wChart.peak : -Infinity,
+};
+const AWARDS_STAT_SORT_LABELS = {
+  streak: 'Longest streak', days: 'Most days played', bestday: 'Biggest day',
+  weeks1: 'Most weeks at #1', peak: 'Best chart peak',
+};
+
+function _awardsStatAddPlay(item, p, ts) {
+  if (!item._d) {
+    item._d = new Map(); item._w = new Map(); item._m = new Map();
+    item.first = ts;
+    // The key the chart runs file this item under, which is not always the
+    // picker's own (albums there are keyed on the raw album + album artist)
+    item.crKey = _awardsPickerCatType === 'song' ? songKey(p)
+      : _awardsPickerCatType === 'album' ? albumKeyOf(p) : _pa(p);
+    if (_awardsPickerCatType === 'artist') { item._songs = new Set(); item._albums = new Set(); }
+    if (_awardsPickerCatType === 'album')  item._songs = new Set();
+  }
+  if (ts < item.first) item.first = ts;
+  const ds = dayStrOf(p), wk = playWeekKeyOf(p), mk = monthKeyOf(p);
+  item._d.set(ds, (item._d.get(ds) || 0) + 1);
+  item._w.set(wk, (item._w.get(wk) || 0) + 1);
+  item._m.set(mk, (item._m.get(mk) || 0) + 1);
+  if (item._songs) item._songs.add(songKey(p));
+  if (item._albums && p.album) item._albums.add(albumKeyOf(p));
+}
+
+// "YYYY-MM-DD" → whole days since the epoch, so consecutive dates differ by 1
+function _awardsStatDayNo(ds) {
+  return Date.UTC(+ds.slice(0, 4), +ds.slice(5, 7) - 1, +ds.slice(8, 10)) / 864e5;
+}
+
+// Longest run of keys `step` days apart: { len, from, to }
+function _awardsStatRun(keys, step) {
+  const sorted = [...keys].sort();
+  let best = { len: 0, from: '', to: '' }, len = 0, from = '', prev = null;
+  for (const k of sorted) {
+    const n = _awardsStatDayNo(k);
+    if (prev !== null && n - prev === step) len++;
+    else { len = 1; from = k; }
+    if (len > best.len) best = { len, from, to: k };
+    prev = n;
+  }
+  return best;
+}
+
+// Largest entry of a key → count map: { n, key }
+function _awardsStatMax(m) {
+  let n = 0, key = '';
+  for (const [k, v] of m) if (v > n || (v === n && k < key)) { n = v; key = k; }
+  return { n, key };
+}
+
+// Every month of the eligibility window, as "YYYY-MM"
+function _awardsStatWindowMonths() {
+  const out = [];
+  let y = +_awardsPickerEligWin.start.slice(0, 4), m = +_awardsPickerEligWin.start.slice(5, 7);
+  const endY = +_awardsPickerEligWin.end.slice(0, 4), endM = +_awardsPickerEligWin.end.slice(5, 7);
+  while ((y < endY || (y === endY && m <= endM)) && out.length < 36) {
+    out.push(`${y}-${String(m).padStart(2, '0')}`);
+    if (++m > 12) { m = 1; y++; }
+  }
+  return out;
+}
+
+/* Weekly and monthly chart records inside the window, read from the cached
+   full-history chart runs (the same ones the chart-run panel and Records use),
+   so a "#1" here is the #1 the Charts tab showed that week. A week counts when
+   any of its days falls in the window. */
+function _awardsStatChartRuns() {
+  const type = _awardsPickerCatType === 'song' ? 'songs' : _awardsPickerCatType === 'album' ? 'albums' : 'artists';
+  const s = new Date(_awardsPickerEligWin.start + 'T00:00:00');
+  s.setDate(s.getDate() - 6);
+  const win = {
+    week:  { lo: localDateStr(s), hi: _awardsPickerEligWin.end },
+    month: { lo: _awardsPickerEligWin.start.slice(0, 7), hi: _awardsPickerEligWin.end.slice(0, 7) },
+  };
+  const out = {};
+  for (const period of ['week', 'month']) {
+    try { out[period] = { res: _crFull(period).result[type] || {}, ...win[period] }; }
+    catch (e) { out[period] = null; }
+  }
+  return out;
+}
+
+function _awardsStatChart(run, key) {
+  const d = run && key ? run.res[key] : null;
+  if (!d) return null;
+  let peak = Infinity, at1 = 0, top10 = 0, on = 0, peakKey = '';
+  for (const e of d.entries) {
+    if (e.periodKey < run.lo || e.periodKey > run.hi) continue;
+    on++;
+    if (e.rank === 1) at1++;
+    if (e.rank <= 10) top10++;
+    if (e.rank < peak) { peak = e.rank; peakKey = e.periodKey; }
+  }
+  return on ? { peak, peakKey, at1, top10, on } : null;
+}
+
+function _awardsStatFinish(items, total) {
+  const months = _awardsStatWindowMonths();
+  const runs = _awardsStatChartRuns();
+  let rank = 0, prevPlays = -1;
+  items.forEach((item, i) => {
+    // Competition ranking on plays: level items share a place
+    if (item.plays !== prevPlays) { rank = i + 1; prevPlays = item.plays; }
+    if (!item._d) return;   // a suggestion the index could not reproduce
+    item.st = {
+      rank, of: items.length,
+      share: total ? item.plays / total : 0,
+      days: item._d.size, weeks: item._w.size, months: item._m.size,
+      streak:  _awardsStatRun(item._d.keys(), 1),
+      wstreak: _awardsStatRun(item._w.keys(), 7),
+      peakDay: _awardsStatMax(item._d), peakWeek: _awardsStatMax(item._w), peakMonth: _awardsStatMax(item._m),
+      first: item.first, last: item.last,
+      songs: item._songs ? item._songs.size : 0,
+      albums: item._albums ? item._albums.size : 0,
+      monthly: months.map(mk => [mk, item._m.get(mk) || 0]),
+      wChart: _awardsStatChart(runs.week, item.crKey),
+      mChart: _awardsStatChart(runs.month, item.crKey),
+    };
+    delete item._d; delete item._w; delete item._m; delete item._songs; delete item._albums;
+  });
+}
+
+// Short date labels for the stats: "3 Mar 2024", "March 2024"
+function _awardsStatDate(ds)  { return fmtDate(new Date(ds + 'T00:00:00')); }
+function _awardsStatMonth(mk) { return `${t(_CR_MON_LONG[+mk.slice(5, 7) - 1])} ${mk.slice(0, 4)}`; }
+
+// The one-line summary under each row
+function _awardsPickerStatLine(item, idx) {
+  const s = item.st;
+  if (!s) return '';
+  const bits = [];
+  if (s.streak.len > 1) bits.push(`<span class="aw-pst-hot" title="Longest run of days in a row with a play">🔥 ${s.streak.len}-day streak</span>`);
+  bits.push(`<span title="Days, weeks and months with at least one play">${s.days} ${s.days === 1 ? 'day' : 'days'} · ${s.weeks} wk · ${s.months} mo</span>`);
+  if (s.wChart) {
+    bits.push(`<span class="${s.wChart.peak === 1 ? 'aw-pst-gold' : ''}" title="Best position on your weekly chart">peak #${s.wChart.peak}${s.wChart.at1 ? ` · ${s.wChart.at1} wk at #1` : ''}</span>`);
+  }
+  bits.push(`<span title="Most plays in a single day">best day ${s.peakDay.n}</span>`);
+  return `<span class="awards-picker-statline">${bits.join('<i aria-hidden="true">·</i>')}<button type="button" class="awards-picker-stats-btn" onclick="event.stopPropagation();awardsPickerToggleStats(${idx},this)" title="All stats for ${esc(String(_awardsPickerCtx.year))}" aria-expanded="false">📊 Stats</button></span>`;
+}
+
+// The full card, opened under a row by its 📊 button
+function _awardsPickerStatsHtml(item) {
+  const s = item.st;
+  if (!s) return '';
+  const type = _awardsPickerCatType;
+  const noun = type === 'song' ? 'songs' : type === 'album' ? 'albums' : 'artists';
+  const tile = (label, value, note, cls) => `<div class="aw-pst-tile${cls ? ' ' + cls : ''}">
+      <span class="aw-pst-label">${label}</span>
+      <span class="aw-pst-value">${value}</span>
+      ${note ? `<span class="aw-pst-note">${note}</span>` : ''}
+    </div>`;
+  const range = r => r.len > 1 ? `${_awardsStatDate(r.from)} – ${_awardsStatDate(r.to)}` : (r.from ? _awardsStatDate(r.from) : '');
+  const nMonths = s.monthly.length;
+
+  const tiles = [
+    tile('Plays', item.plays.toLocaleString(),`${(s.share * 100).toFixed(s.share < 0.01 ? 2 : 1)}% of all your plays`),
+    tile('Year rank', `#${s.rank}`, `of ${s.of.toLocaleString()} ${noun} played`, s.rank === 1 ? 'is-gold' : ''),
+    tile('Days played', s.days, `in ${s.weeks} ${s.weeks === 1 ? 'week' : 'weeks'} · ${s.months} of ${nMonths} months`),
+    tile('Longest streak', `${s.streak.len} ${s.streak.len === 1 ? 'day' : 'days'}`, range(s.streak), s.streak.len >= 7 ? 'is-hot' : ''),
+    tile('Weekly streak', `${s.wstreak.len} ${s.wstreak.len === 1 ? 'week' : 'weeks'}`, s.wstreak.len > 1 ? `from the week of ${_awardsStatDate(s.wstreak.from)}` : 'weeks in a row with a play'),
+    tile('Biggest day', `${s.peakDay.n} plays`, _awardsStatDate(s.peakDay.key)),
+    tile('Biggest week', `${s.peakWeek.n} plays`, `week of ${_awardsStatDate(s.peakWeek.key)}`),
+    tile('Biggest month', `${s.peakMonth.n} plays`, _awardsStatMonth(s.peakMonth.key)),
+    tile('First play', _awardsStatDate(localDateStr(tzDate(new Date(s.first)))), 'in this window'),
+    tile('Last play', _awardsStatDate(localDateStr(tzDate(new Date(s.last)))), 'in this window'),
+  ];
+  if (type === 'artist') tiles.push(tile('Catalogue', `${s.songs} ${s.songs === 1 ? 'song' : 'songs'}`, `from ${s.albums} ${s.albums === 1 ? 'album' : 'albums'}`));
+  if (type === 'album')  tiles.push(tile('Tracks played', s.songs, 'different songs from it'));
+
+  const chartRow = (label, c, unit) => c
+    ? `<div class="aw-pst-chart">
+        <span class="aw-pst-chart-name">${label}</span>
+        <span class="aw-pst-chip${c.peak === 1 ? ' is-gold' : ''}">Peak #${c.peak}</span>
+        ${c.at1 ? `<span class="aw-pst-chip is-gold">${c.at1} ${unit}${c.at1 === 1 ? '' : 's'} at #1</span>` : ''}
+        ${c.top10 ? `<span class="aw-pst-chip">${c.top10} in the top 10</span>` : ''}
+        <span class="aw-pst-chip">${c.on} ${unit}${c.on === 1 ? '' : 's'} on the chart</span>
+      </div>`
+    : `<div class="aw-pst-chart"><span class="aw-pst-chart-name">${label}</span><span class="aw-pst-none">Didn't chart in this window</span></div>`;
+
+  const top = Math.max(1, ...s.monthly.map(([, n]) => n));
+  const bars = s.monthly.map(([mk, n]) => {
+    const pct = n ? Math.max(4, Math.round(n / top * 100)) : 0;
+    const peak = n && mk === s.peakMonth.key;
+    return `<div class="aw-pst-bar${peak ? ' is-peak' : ''}" title="${esc(_awardsStatMonth(mk))}: ${n} ${n === 1 ? 'play' : 'plays'}">
+        <span class="aw-pst-bar-fill" style="height:${pct}%"></span>
+        <span class="aw-pst-bar-lbl">${esc(t(_CR_MON_SHORT[+mk.slice(5, 7) - 1]).slice(0, 1))}</span>
+      </div>`;
+  }).join('');
+
+  return `<div class="aw-pst-grid">${tiles.join('')}</div>
+    <div class="aw-pst-charts">${chartRow('Weekly chart', s.wChart, 'week')}${chartRow('Monthly chart', s.mChart, 'month')}</div>
+    <div class="aw-pst-months" style="--n:${nMonths}" aria-label="Plays per month">${bars}</div>
+    <div class="aw-pst-foot">${esc(_awardsStatDate(_awardsPickerEligWin.start))} – ${esc(_awardsStatDate(_awardsPickerEligWin.end))} · the year's eligibility window</div>`;
+}
+
+// Opens the card straight under its row, without re-rendering the list
+function awardsPickerToggleStats(idx, btn) {
+  const row = btn.closest('.awards-picker-result-row');
+  if (!row) return;
+  const open = row.nextElementSibling?.classList.contains('awards-picker-stats') ? row.nextElementSibling : null;
+  if (open) {
+    open.remove();
+    btn.setAttribute('aria-expanded', 'false');
+    row.classList.remove('has-stats-open');
+    return;
+  }
+  const item = _awardsPickerRows[idx];
+  if (!item?.st) return;
+  const card = document.createElement('div');
+  card.className = 'awards-picker-stats';
+  card.innerHTML = _awardsPickerStatsHtml(item);
+  row.after(card);
+  btn.setAttribute('aria-expanded', 'true');
+  row.classList.add('has-stats-open');
+  card.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
 }
 
 // The list the body should show right now: search filter + genre filter + sort
@@ -36206,6 +36453,14 @@ function _awardsPickerVisible() {
     list.sort((a, b) => (a.title || a.album || a.artist || '').localeCompare(b.title || b.album || b.artist || ''));
   } else if (_awardsPickerSort === 'recent') {
     list.sort((a, b) => b.last - a.last);
+  } else if (AWARDS_STAT_SORTS[_awardsPickerSort]) {
+    // Stat sorts: items without stats (suggestions the index could not
+    // reproduce) go last, and play count breaks every tie
+    const val = AWARDS_STAT_SORTS[_awardsPickerSort];
+    list.sort((a, b) => {
+      const va = a.st ? val(a.st) : -Infinity, vb = b.st ? val(b.st) : -Infinity;
+      return vb - va || b.plays - a.plays;
+    });
   } else if (_awardsPickerSort === 'rated') {
     // Unrated candidates sort last rather than as a zero — never rated is not
     // the same judgement as rated badly, and burying them under the 0.x scores
@@ -36258,9 +36513,11 @@ function _awardsPickerResultRow(item, idx) {
       genreHtml = `<span class="awards-picker-genre-tags"><span class="awards-picker-genre-tag awards-picker-genre-unk">${tags === undefined ? '?' : 'no genre'}</span></span>`;
     }
   }
+  const statLine = _awardsPickerStatLine(item, idx);
   const cls = 'awards-picker-result-row'
     + (picked ? ' is-picked' : '')
-    + (idx === _awardsPickerActive ? ' is-active' : '');
+    + (idx === _awardsPickerActive ? ' is-active' : '')
+    + (statLine ? ' has-stats' : '');
   return `<div class="${cls}" data-idx="${idx}" onclick="awardsPickerToggleRow(${idx})" title="${picked ? 'Click to remove' : 'Click to nominate'}">
     <span class="awards-picker-add-icon">${picked ? '✓' : '+'}</span>
     ${_awardsPickerThumbHtml(item, 'awPkThumb' + idx)}
@@ -36271,6 +36528,7 @@ function _awardsPickerResultRow(item, idx) {
     <span class="awards-picker-plays">${item.playLabel || item.plays + ' plays'}</span>
     ${_awardsPickerPrevBtn(item, `awardsPickerPreviewRow(${idx})`)}
     ${_awardsPickerListenBtns(item, `awardsPickerPlayRow(${idx})`)}
+    ${statLine}
   </div>`;
 }
 
@@ -36427,6 +36685,7 @@ function _awardsShowPicker(year, catId, candidates) {
           <option value="az">A–Z</option>
           <option value="recent">Most recent</option>
           <option value="rated">Highest rated</option>
+          ${_awardsPickerHasStats() ? Object.entries(AWARDS_STAT_SORT_LABELS).map(([v, l]) => `<option value="${v}">${l}</option>`).join('') : ''}
         </select>
       </div>
       <div class="awards-picker-body" id="awardsPickerBody">${_awardsPickerBodyHtml()}</div>

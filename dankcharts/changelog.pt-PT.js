@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['pt-PT'] = {
 
   /* ========== SETEMBRO 2026 ========== */
 
+  'Year stats for every candidate when picking Song, Album and Artist of the Year':
+    ['Estatísticas do ano de cada candidato ao escolher Música, Álbum e Artista do Ano',
+     'Ao escolheres nomeados para Música do Ano, Álbum do Ano ou Artista do Ano, cada linha mostra agora como lhe correu o ano: a maior sequência de dias seguidos, em quantos dias, semanas e meses o ouviste, a melhor posição na tabela semanal e as semanas em #1, e o dia com mais reproduções. O botão Stats abre todo o resto: a posição do ano por reproduções e a fatia do teu total, a maior sequência semanal, o melhor dia, semana e mês, a primeira e a última reprodução, quantas músicas e álbuns de um artista ouviste ou quantas faixas de um álbum, os recordes nas tabelas semanais e mensais, e uma barra para cada mês. Também podes ordenar a lista por maior sequência, mais dias ouvido, melhor dia, mais semanas em #1 ou melhor posição. Tudo conta só as reproduções dentro do período de elegibilidade desse ano.'],
+
   'Change the picture of any nominee in My Grammys':
     ['Muda a imagem de qualquer nomeado nos Meus Grammys',
      'Cada imagem das vistas Destaque, Blocos, Colagem e Carrossel, e cada miniatura da janela de escolher nomeados, tem agora o mesmo seletor de imagem das tabelas: passa o cursor por cima e clica no lápis, ou mantém-na premida no telemóvel. Clicar no lápis nunca coroa nem adiciona o nomeado. A imagem que escolheres é usada para essa música, álbum ou artista em toda a app e fica guardada na tua conta.'],

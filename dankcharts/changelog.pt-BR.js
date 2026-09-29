@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['pt-BR'] = {
 
   /* ========== SETEMBRO 2026 ========== */
 
+  'Year stats for every candidate when picking Song, Album and Artist of the Year':
+    ['Estatísticas do ano de cada candidato ao escolher Música, Álbum e Artista do Ano',
+     'Ao escolher indicados para Música do Ano, Álbum do Ano ou Artista do Ano, cada linha agora mostra como foi o ano dele: a maior sequência de dias seguidos, em quantos dias, semanas e meses você ouviu, a melhor posição na parada semanal e as semanas em #1, e o dia com mais reproduções. O botão Stats abre todo o resto: a posição do ano por reproduções e a fatia do seu total, a maior sequência semanal, o melhor dia, semana e mês, a primeira e a última reprodução, quantas músicas e álbuns de um artista você ouviu ou quantas faixas de um álbum, os recordes nas paradas semanais e mensais, e uma barra para cada mês. Você também pode ordenar a lista por maior sequência, mais dias ouvido, melhor dia, mais semanas em #1 ou melhor posição. Tudo conta só as reproduções dentro do período de elegibilidade daquele ano.'],
+
   'Change the picture of any nominee in My Grammys':
     ['Troque a imagem de qualquer indicado em Meus Grammys',
      'Cada imagem das visualizações Destaque, Blocos, Colagem e Carrossel, e cada miniatura da janela de escolher indicados, agora tem o mesmo seletor de imagem das paradas: passe o cursor por cima e clique no lápis, ou mantenha pressionada no celular. Clicar no lápis nunca coroa nem adiciona o indicado. A imagem que você escolher é usada para essa música, álbum ou artista no app inteiro e fica salva na sua conta.'],
