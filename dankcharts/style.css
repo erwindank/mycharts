@@ -23026,7 +23026,21 @@ body[class*="-light"] .tm-card-search:hover {
 .awards-picker-preview-tname { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .awards-picker-preview-tplays { font-family: var(--font-mono); font-size: 0.64rem; color: var(--text3); flex-shrink: 0; }
 .awards-picker-preview-tracks li.is-played .awards-picker-preview-tplays { color: var(--accent); }
+/* Best Album Cover: the ⤢ button shows the cover as large as fits */
+.awards-picker-preview-bigcover { display: flex; justify-content: center; padding-bottom: 6px; }
+.awards-picker-preview-bigcover .awards-picker-preview-cover {
+  width: min(340px, 40vh, 100%);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
+}
+/* ...and every row gets a small cover so they can be compared at a glance */
+.awards-picker-result-row .awards-picker-thumb {
+  width: 36px;
+  flex-shrink: 0;
+  border-radius: 5px;
+}
+.awards-picker-result-row .awards-picker-thumb .thumb-initials { font-size: 0.62rem; }
 @media (max-width: 560px) {
+  .awards-picker-preview-bigcover .awards-picker-preview-cover { width: min(260px, 32vh, 100%); }
   .awards-picker-preview-album .awards-picker-preview-cover { width: 84px; }
   .awards-picker-preview-about { max-height: 84px; }
   .awards-picker-preview-tracks { columns: 1; }

@@ -35792,6 +35792,7 @@ function _awardsPickerResultRow(item, idx) {
     + (idx === _awardsPickerActive ? ' is-active' : '');
   return `<div class="${cls}" data-idx="${idx}" onclick="awardsPickerToggleRow(${idx})" title="${picked ? 'Click to remove' : 'Click to nominate'}">
     <span class="awards-picker-add-icon">${picked ? '✓' : '+'}</span>
+    ${_awardsPickerThumbHtml(item, idx)}
     <span class="awards-picker-lbl">${esc(lbl)}</span>
     ${sub ? `<span class="awards-picker-sub">${esc(sub)}${rel}</span>` : ''}
     ${genreHtml}
@@ -35892,7 +35893,7 @@ function _awardsPickerRefresh(resetPaging) {
   if (resetPaging) { _awardsPickerShown = AWARDS_PICKER_PAGE; _awardsPickerActive = -1; }
   _awardsPickerSyncSel();
   const bodyEl = document.getElementById('awardsPickerBody');
-  if (bodyEl) bodyEl.innerHTML = _awardsPickerBodyHtml();
+  if (bodyEl) { bodyEl.innerHTML = _awardsPickerBodyHtml(); _awardsPickerLoadThumbs(); }
 }
 
 function _awardsShowPicker(year, catId, candidates) {
@@ -35952,6 +35953,7 @@ function _awardsShowPicker(year, catId, candidates) {
   const wrap = document.createElement('div');
   wrap.innerHTML = html;
   document.body.appendChild(wrap.firstElementChild);
+  _awardsPickerLoadThumbs();   // Best Album Cover row thumbnails (no-op elsewhere)
   requestAnimationFrame(() => document.getElementById('awardsPickerSearch')?.focus());
 
   // Keyboard: ↑↓ walk the list, Enter adds/removes, Ctrl/⌘+Enter saves, Esc closes
@@ -36036,7 +36038,7 @@ function awardsPickerFillTop(n) {
 function awardsPickerShowMore() {
   _awardsPickerShown += AWARDS_PICKER_PAGE;
   const bodyEl = document.getElementById('awardsPickerBody');
-  if (bodyEl) bodyEl.innerHTML = _awardsPickerBodyHtml();
+  if (bodyEl) { bodyEl.innerHTML = _awardsPickerBodyHtml(); _awardsPickerLoadThumbs(); }
 }
 
 function awardsPickerSetSort(v) {
@@ -36048,7 +36050,7 @@ function awardsPickerDoSearch() {
   _awardsPickerShown  = AWARDS_PICKER_PAGE;
   _awardsPickerActive = -1;
   const bodyEl = document.getElementById('awardsPickerBody');
-  if (bodyEl) bodyEl.innerHTML = _awardsPickerBodyHtml();
+  if (bodyEl) { bodyEl.innerHTML = _awardsPickerBodyHtml(); _awardsPickerLoadThumbs(); }
 }
 
 /* --- Drag to reorder the selected nominees --- */
@@ -36081,9 +36083,11 @@ function awardsPickerDrop(e, to) {
    Video of the Year: every song row (and nominee chip) gets a ▶ button that
    finds the song's music video through the same YouTube lookup the mini player
    uses and plays it in a small panel at the top of the picker.
-   Best Album Concept / Best Album Cover: every album gets an "i" button that
-   shows the cover large, Last.fm's write-up of the album (which usually says
-   what it is about), and its tracklist with what you played that year.
+   Best Album Concept: every album gets an "i" button that shows the cover,
+   Last.fm's write-up of the album (which usually says what it is about), and
+   its tracklist with what you played that year.
+   Best Album Cover: the cover is the whole point, so every row carries a small
+   thumbnail, and the ⤢ button shows the cover as large as the picker allows.
    Clicking the button on the one already showing closes the panel. The panel
    lives inside the picker, so closing the picker closes it (and stops a video). */
 const _awardsVidCache = {};       // item key → YouTube video id ('' when none was found)
@@ -36095,15 +36099,35 @@ let _awardsPrevSeq = 0;           // guards the async lookups against a quick se
 const _AWARDS_PREVIEW_KIND = {
   video_of_year:      'video',
   best_album_concept: 'album',
-  best_album_cover:   'album',
+  best_album_cover:   'cover',
 };
 const _AWARDS_PREVIEW_UI = {
   video: { icon: '▶', onIcon: '■', title: 'Watch a bit of the video', onTitle: 'Close the video' },
   album: { icon: 'i', onIcon: '✕', title: 'About this album',         onTitle: 'Close the album info' },
+  cover: { icon: '⤢', onIcon: '✕', title: 'See the cover large',      onTitle: 'Close the cover' },
 };
 
 function _awardsPickerPreviewKind() {
   return _AWARDS_PREVIEW_KIND[_awardsPickerCtx?.catId] || null;
+}
+
+/* Cover thumbnails on the Best Album Cover rows. Loaded after every rebuild of
+   the list (open, search, sort, "show more"), one at a time through the same
+   paced queue as the ceremony artwork; a newer rebuild stops an older queue. */
+let _awardsThumbSeq = 0;
+function _awardsPickerHasThumbs() {
+  return _awardsPickerPreviewKind() === 'cover';
+}
+function _awardsPickerThumbHtml(item, idx) {
+  return _awardsPickerHasThumbs() && item.album ? _cerArtHtml(item, 'album', 'awPkThumb' + idx, 'awards-picker-thumb') : '';
+}
+function _awardsPickerLoadThumbs() {
+  if (!_awardsPickerHasThumbs()) return;
+  const seq = ++_awardsThumbSeq;
+  const queue = _awardsPickerRows
+    .map((item, i) => ({ imgId: 'awPkThumb' + i, item, type: 'album' }))
+    .filter(j => j.item.album);
+  _awardsLoadArtQueue(queue, () => seq === _awardsThumbSeq);
 }
 
 function _awardsPickerPrevBtn(item, onclick) {
@@ -36161,6 +36185,12 @@ async function _awardsPickerPreview(item) {
     </div>`;
   panel.hidden = false;
   if (kind === 'album') return _awardsPickerAlbumPreview(item, k, seq, panel, head);
+  if (kind === 'cover') {
+    const imgId = 'awardsPrevCover';
+    panel.innerHTML = head + `<div class="awards-picker-preview-bigcover">${_cerArtHtml(item, 'album', imgId, 'awards-picker-preview-cover')}</div>`;
+    _awardsLoadArtQueue([{ imgId, item, type: 'album' }], () => seq === _awardsPrevSeq);
+    return;
+  }
 
   // Two sounds at once is never wanted: pause the mini player if it's going
   try { if (_ytPlayer && _ytPlayer.getPlayerState() === YT.PlayerState.PLAYING) _ytPlayer.pauseVideo(); } catch (e) {}
@@ -36304,6 +36334,7 @@ function awardsPickerClose() {
   _awardsPickerSuggKeys = new Set();
   _awardsPrevKey         = null;   // the preview went away with the overlay
   _awardsPrevSeq++;
+  _awardsThumbSeq++;               // stop loading row thumbnails
 }
 
 // Indexed items carry picker-only fields (fit, grp, last, summerPlays…) — keep them out of

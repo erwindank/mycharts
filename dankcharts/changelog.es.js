@@ -16,9 +16,13 @@ window.DC_CHANGELOG_I18N['es'] = {
 
   /* ========== SEPTIEMBRE 2026 ========== */
 
+  'Compare album covers at a glance when picking Best Album Cover':
+    ['Compara las portadas de un vistazo al elegir la Mejor Portada de Álbum',
+     'El selector de Mejor Portada de Álbum ahora muestra una portada pequeña junto a cada álbum, para que puedas compararlas sin abrir cada una. El botón ⤢ de una fila muestra esa portada lo más grande que cabe en el selector. Pulsar ⤢ no nomina el álbum; pulsar la fila sí. Mejor Concepto de Álbum conserva su botón i con la reseña y la lista de canciones.'],
+
   'See what an album is about when picking Best Album Concept':
     ['Descubre de qué va un álbum al elegir el Mejor Concepto de Álbum',
-     'Al elegir nominados para Mejor Concepto de Álbum o Mejor Portada de Álbum, cada álbum tiene un botón i. Muestra la portada en grande, la breve reseña del álbum en Last.fm, que suele explicar su historia o su tema, y la lista de canciones con cuántas veces escuchaste cada una ese año. Las canciones que escuchaste y no están en la lista estándar, como los temas extra, aparecen al final. Pulsar i no nomina el álbum; pulsar la fila sí.'],
+     'Al elegir nominados para Mejor Concepto de Álbum, cada álbum tiene un botón i. Muestra la portada en grande, la breve reseña del álbum en Last.fm, que suele explicar su historia o su tema, y la lista de canciones con cuántas veces escuchaste cada una ese año. Las canciones que escuchaste y no están en la lista estándar, como los temas extra, aparecen al final. Pulsar i no nomina el álbum; pulsar la fila sí.'],
 
   'Watch a bit of each video when picking Video of the Year':
     ['Mira un poco de cada vídeo al elegir el Vídeo del Año',

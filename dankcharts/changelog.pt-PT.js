@@ -16,9 +16,13 @@ window.DC_CHANGELOG_I18N['pt-PT'] = {
 
   /* ========== SETEMBRO 2026 ========== */
 
+  'Compare album covers at a glance when picking Best Album Cover':
+    ['Compara as capas num relance ao escolher a Melhor Capa de Álbum',
+     'O seletor de Melhor Capa de Álbum mostra agora uma capa pequena ao lado de cada álbum, para as poderes comparar sem abrir uma a uma. O botão ⤢ de uma linha mostra essa capa no maior tamanho que cabe no seletor. Carregar em ⤢ não nomeia o álbum; carregar na linha, sim. Melhor Conceito de Álbum mantém o botão i com o texto e a lista de faixas.'],
+
   'See what an album is about when picking Best Album Concept':
     ['Vê do que trata um álbum ao escolher o Melhor Conceito de Álbum',
-     'Ao escolher os nomeados para Melhor Conceito de Álbum ou Melhor Capa de Álbum, cada álbum tem um botão i. Mostra a capa em grande, o pequeno texto do Last.fm sobre o álbum, que costuma explicar a história ou o tema, e a lista de faixas com quantas vezes ouviste cada música nesse ano. As músicas que ouviste e que não estão na lista normal, como faixas bónus, aparecem no fim. Carregar em i não nomeia o álbum; carregar na linha, sim.'],
+     'Ao escolher os nomeados para Melhor Conceito de Álbum, cada álbum tem um botão i. Mostra a capa em grande, o pequeno texto do Last.fm sobre o álbum, que costuma explicar a história ou o tema, e a lista de faixas com quantas vezes ouviste cada música nesse ano. As músicas que ouviste e que não estão na lista normal, como faixas bónus, aparecem no fim. Carregar em i não nomeia o álbum; carregar na linha, sim.'],
 
   'Watch a bit of each video when picking Video of the Year':
     ['Vê um pouco de cada vídeo ao escolher o Vídeo do Ano',
