@@ -80,7 +80,7 @@ const DC_CHANGELOG = [
 
   /* ========== SEPTEMBER 2026 ========== */
 
-  { d: '2026-09-29', t: 'feature', a: 'awards', h: '',
+  { d: '2026-09-29', t: 'feature', a: 'awards', h: 'c92abfd',
     title: 'See and hear every nominee while you pick them',
     detail: 'When you pick nominees for any award, every row and every chosen nominee now shows the song’s art, the album cover or the artist’s picture, so the list reads at a glance. Pictures load as they scroll into view. Every category except Video of the Year also gets a ♪ button that plays a 30-second sample, and a YouTube button that opens a search for it in a new tab. For an artist, the sample is one of their best-known songs. Clicking either button does not nominate anything; clicking the row still does. Video of the Year keeps its own video button.' },
 
