@@ -22907,6 +22907,69 @@ body[class*="-light"] .tm-card-search:hover {
 .awards-picker-genre-tag  { font-size: 0.6rem; padding: 1px 5px; border-radius: 10px; background: var(--surface3); color: var(--text3); border: 1px solid var(--border); white-space: nowrap; }
 .awards-picker-genre-unk  { opacity: 0.5; font-style: italic; }
 .awards-picker-plays{ font-size: 0.7rem; color: var(--text3); font-family: var(--font-mono); }
+/* Video of the Year: ▶ on each song row / chip opens a small video preview */
+.awards-picker-vid-btn {
+  flex-shrink: 0;
+  width: 26px;
+  height: 22px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--surface2);
+  color: var(--text2);
+  font-size: 0.62rem;
+  line-height: 1;
+  cursor: pointer;
+  transition: color 0.12s, border-color 0.12s, background 0.12s;
+}
+.awards-picker-vid-btn:hover { color: var(--accent); border-color: var(--accent); }
+.awards-picker-vid-btn.is-on { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+.awards-picker-nom-row .awards-picker-vid-btn { width: 20px; height: 18px; font-size: 0.55rem; border-radius: 9px; }
+.awards-picker-preview {
+  padding: 8px 12px 4px;
+  border-bottom: 1px solid var(--border);
+}
+.awards-picker-preview[hidden] { display: none; }
+.awards-picker-preview-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+.awards-picker-preview-lbl {
+  flex: 1;
+  min-width: 0;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text1);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.awards-picker-preview-lbl span { font-weight: 400; color: var(--text3); }
+/* 16:9 player; capped so the list below stays usable on short screens */
+.awards-picker-preview-frame {
+  position: relative;
+  width: 100%;
+  max-width: min(420px, calc(28vh * 16 / 9));
+  margin: 0 auto;
+  aspect-ratio: 16 / 9;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #000;
+}
+.awards-picker-preview-frame iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+.awards-picker-preview-msg { font-size: 0.78rem; color: var(--text3); padding: 10px 0 8px; text-align: center; }
+.awards-picker-preview-msg a,
+.awards-picker-preview-yt { color: var(--accent); }
+.awards-picker-preview-yt {
+  display: block;
+  text-align: center;
+  font-size: 0.68rem;
+  opacity: 0.75;
+  padding: 5px 0 2px;
+  text-decoration: none;
+}
+.awards-picker-preview-yt:hover { opacity: 1; text-decoration: underline; }
 .awards-picker-foot {
   padding: 10px 14px;
   border-top: 1px solid var(--border);

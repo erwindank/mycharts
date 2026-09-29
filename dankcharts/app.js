@@ -35797,6 +35797,7 @@ function _awardsPickerResultRow(item, idx) {
     ${genreHtml}
     ${_awardsPickerScoreChip(item)}
     <span class="awards-picker-plays">${item.playLabel || item.plays + ' plays'}</span>
+    ${_awardsPickerVidBtn(item, `awardsPickerPreviewRow(${idx})`)}
   </div>`;
 }
 
@@ -35815,6 +35816,7 @@ function _awardsPickerSelHtml() {
       <span class="awards-picker-nom-num">${i + 1}</span>
       <span class="awards-picker-nom-lbl">${esc(lbl)}</span>
       ${sub ? `<span class="awards-picker-nom-sub">${esc(sub)}</span>` : ''}
+      ${_awardsPickerVidBtn(item, `awardsPickerPreviewNom(${i})`)}
       <button class="awards-picker-nom-x" data-i="${i}" onclick="awardsPickerRemoveNom(this)" title="Remove">✕</button>
     </div>`;
   }).join('');
@@ -35910,6 +35912,7 @@ function _awardsShowPicker(year, catId, candidates) {
   _awardsPickerShown     = AWARDS_PICKER_PAGE;
   _awardsPickerActive    = -1;
   _awardsPickerRows      = [];
+  _awardsVidKey          = null;   // no video preview open yet
 
   const typeLabel = catDef.type === 'song' ? 'songs' : catDef.type === 'album' ? 'albums' : 'artists';
   _awardsPickerCtx = { year, catId, typeLabel };
@@ -35923,6 +35926,7 @@ function _awardsShowPicker(year, catId, candidates) {
         <button class="awards-picker-close" onclick="awardsPickerClose()">✕</button>
       </div>
       <div class="awards-picker-selected" id="awardsPickerSelected">${_awardsPickerSelHtml()}</div>
+      ${_awardsPickerIsVideo() ? '<div class="awards-picker-preview" id="awardsPickerPreview" hidden></div>' : ''}
       <div class="awards-picker-tools">
         <input type="text" id="awardsPickerSearch" placeholder="Search all ${typeLabel} from ${year}…" oninput="awardsPickerDoSearch()" autocomplete="off" spellcheck="false">
         <select class="awards-picker-sort" id="awardsPickerSort" onchange="awardsPickerSetSort(this.value)" title="Sort the list">
@@ -36073,6 +36077,107 @@ function awardsPickerDrop(e, to) {
   _awardsPickerSyncSel();
 }
 
+/* --- Video of the Year: watch a bit of each video before nominating it ---
+   Every song row (and nominee chip) in this one category gets a ▶ button that
+   finds the song's music video through the same YouTube lookup the mini player
+   uses and plays it in a small panel at the top of the picker. Clicking ▶ on
+   the song already showing closes the panel. The video lives inside the picker,
+   so closing the picker stops it. */
+const _awardsVidCache = {};     // item key → YouTube video id ('' when none was found)
+let _awardsVidKey = null;       // key of the song in the preview panel, null when closed
+let _awardsVidSeq = 0;          // guards the async lookup against a quick second click
+
+function _awardsPickerIsVideo() {
+  return _awardsPickerCtx?.catId === 'video_of_year';
+}
+
+function _awardsPickerVidBtn(item, onclick) {
+  if (!_awardsPickerIsVideo() || !item.title) return '';
+  const on = _awardsVidKey === _awardItemKey(item);
+  // stopPropagation: the row itself toggles the nomination on click
+  return `<button class="awards-picker-vid-btn${on ? ' is-on' : ''}" onclick="event.stopPropagation();${onclick}" title="${on ? 'Close the video' : 'Watch a bit of the video'}">${on ? '■' : '▶'}</button>`;
+}
+
+function awardsPickerPreviewRow(idx) { const it = _awardsPickerRows[idx]; if (it) _awardsPickerPreview(it); }
+function awardsPickerPreviewNom(i)   { const it = _awardsPickerSel[i];    if (it) _awardsPickerPreview(it); }
+
+// Only the ▶/■ buttons change, so the list and chips aren't rebuilt
+function _awardsPickerPaintVidBtns() {
+  const paint = (sel, items, attr) => document.querySelectorAll(sel).forEach(row => {
+    const item = items[+row.dataset[attr]];
+    const btn = row.querySelector('.awards-picker-vid-btn');
+    if (!item || !btn) return;
+    const on = _awardsVidKey === _awardItemKey(item);
+    btn.classList.toggle('is-on', on);
+    btn.textContent = on ? '■' : '▶';
+    btn.title = on ? 'Close the video' : 'Watch a bit of the video';
+  });
+  paint('#awardsPickerBody .awards-picker-result-row', _awardsPickerRows, 'idx');
+  paint('#awardsPickerSelected .awards-picker-nom-row', _awardsPickerSel, 'i');
+}
+
+function awardsPickerClosePreview() {
+  _awardsVidKey = null;
+  _awardsVidSeq++;
+  const panel = document.getElementById('awardsPickerPreview');
+  if (panel) { panel.innerHTML = ''; panel.hidden = true; }   // emptying it stops the video
+  _awardsPickerPaintVidBtns();
+}
+
+async function _awardsPickerPreview(item) {
+  const panel = document.getElementById('awardsPickerPreview');
+  if (!panel) return;
+  const k = _awardItemKey(item);
+  if (_awardsVidKey === k) { awardsPickerClosePreview(); return; }
+  _awardsVidKey = k;
+  const seq = ++_awardsVidSeq;
+  _awardsPickerPaintVidBtns();
+
+  // Two sounds at once is never wanted: pause the mini player if it's going
+  try { if (_ytPlayer && _ytPlayer.getPlayerState() === YT.PlayerState.PLAYING) _ytPlayer.pauseVideo(); } catch (e) {}
+
+  const query = `${item.artist || ''} ${item.title} official music video`.trim();
+  const ytSearch = 'https://www.youtube.com/results?search_query=' + encodeURIComponent(query);
+  const head = `<div class="awards-picker-preview-head">
+      <span class="awards-picker-preview-lbl">${esc(item.title)} <span>· ${esc(item.artist || '')}</span></span>
+      <button class="awards-picker-nom-x" onclick="awardsPickerClosePreview()" title="Close the video">✕</button>
+    </div>`;
+  const status = msg => { if (seq === _awardsVidSeq) panel.innerHTML = head + `<div class="awards-picker-preview-msg">${msg}</div>`; };
+  panel.hidden = false;
+  status('Finding the video…');
+
+  let vid = _awardsVidCache[k];
+  if (vid === undefined) {
+    // The server sleeps when idle and can take ~30s to wake, like in _ytSearch
+    for (let attempt = 0; attempt <= 5 && vid === undefined; attempt++) {
+      try {
+        const res = await fetch(`${BACKEND_API}/api/youtube/search?q=${encodeURIComponent(query)}`);
+        if (res.status === 502 || res.status === 503) throw new TypeError('asleep');
+        const data = await res.json();
+        vid = data.videoId || '';
+      } catch (e) {
+        if (e.name !== 'TypeError' || attempt === 5) { vid = null; break; }
+        status('Waking up the server…');
+        await new Promise(r => setTimeout(r, 6000));
+      }
+      if (seq !== _awardsVidSeq) return;
+    }
+    if (vid !== null) _awardsVidCache[k] = vid;   // don't remember a network failure
+  }
+  if (seq !== _awardsVidSeq) return;
+
+  if (!vid) {
+    status(`No video found — <a href="${esc(ytSearch)}" target="_blank" rel="noopener">search YouTube ↗</a>`);
+    return;
+  }
+  panel.innerHTML = head + `<div class="awards-picker-preview-frame">
+      <iframe src="https://www.youtube-nocookie.com/embed/${encodeURIComponent(vid)}?autoplay=1&rel=0&playsinline=1"
+        allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen
+        title="${esc(item.title)} video"></iframe>
+    </div>
+    <a class="awards-picker-preview-yt" href="https://www.youtube.com/watch?v=${encodeURIComponent(vid)}" target="_blank" rel="noopener">Wrong video? It came from YouTube search: open on YouTube ↗</a>`;
+}
+
 function awardsPickerBgClick(e) { if (e.target.id === 'awardsPickerOverlay') awardsPickerClose(); }
 
 function awardsPickerClose() {
@@ -36084,6 +36189,8 @@ function awardsPickerClose() {
   _awardsPickerAllItems = [];   // drop the index so a big library isn't held in memory
   _awardsPickerRows     = [];
   _awardsPickerSuggKeys = new Set();
+  _awardsVidKey         = null;   // the preview went away with the overlay
+  _awardsVidSeq++;
 }
 
 // Indexed items carry picker-only fields (fit, grp, last, summerPlays…) — keep them out of

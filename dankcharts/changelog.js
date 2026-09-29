@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 1;
+const DC_CL_I18N_V = 2;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,10 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== SEPTEMBER 2026 ========== */
+
+  { d: '2026-09-28', t: 'feature', a: 'awards', h: '',
+    title: 'Watch a bit of each video when picking Video of the Year',
+    detail: 'When you pick nominees for Video of the Year, every song has a ▶ button. It finds the music video on YouTube and plays it in a small window at the top of the picker, so you can remind yourself what the video looks like before nominating it. Clicking ▶ does not nominate the song; clicking the row still does. Press ■ or ✕ to close the video, and if YouTube found the wrong one, a link opens the search on YouTube.' },
 
   { d: '2026-09-28', t: 'i18n', a: 'guide', h: 'd02d9f6',
     title: 'The setup guide is now fully in Spanish and Portuguese',

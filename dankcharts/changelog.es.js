@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['es'] = {
 
   /* ========== SEPTIEMBRE 2026 ========== */
 
+  'Watch a bit of each video when picking Video of the Year':
+    ['Mira un poco de cada vídeo al elegir el Vídeo del Año',
+     'Al elegir nominados para Vídeo del Año, cada canción tiene un botón ▶. Busca el videoclip en YouTube y lo reproduce en una ventanita en la parte de arriba del selector, para que recuerdes cómo es el vídeo antes de nominarlo. Pulsar ▶ no nomina la canción; pulsar la fila sí. Pulsa ■ o ✕ para cerrar el vídeo, y si YouTube encontró el que no era, un enlace abre la búsqueda en YouTube.'],
+
   'The setup guide is now fully in Spanish and Portuguese':
     ['La guía de configuración ya está entera en español y portugués',
      'En la guía de configuración antes solo cambiaba el menú de idioma; cada paso, consejo y respuesta de solución de problemas se quedaba en inglés. Ahora toda la guía sigue el idioma que elijas, en español, portugués de Brasil y portugués europeo, incluidos los botones y el progreso del paso a paso. Los menús y botones de Google se nombran tal como Google los muestra en tu idioma. Los botones de la ventana de Ajustes de dankcharts conservan su nombre en inglés, porque esa ventana sigue en inglés.'],
