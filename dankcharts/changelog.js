@@ -80,7 +80,7 @@ const DC_CHANGELOG = [
 
   /* ========== SEPTEMBER 2026 ========== */
 
-  { d: '2026-09-29', t: 'feature', a: 'charts', h: '',
+  { d: '2026-09-29', t: 'feature', a: 'charts', h: 'c8422a3',
     title: 'Click a name in the Songs and Albums charts to open it',
     detail: 'In the Songs and Albums charts, the song title, album title and artist name are now links. Click a song or album to open its profile, or click the artist to open theirs. When a song credits more than one artist, each name is its own link. Various Artists on compilation albums stays plain text, since it has no profile of its own. The names look the same as before until you point at them.' },
 
