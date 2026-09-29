@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['pt-PT'] = {
 
   /* ========== SETEMBRO 2026 ========== */
 
+  'Readable rating and medal colours in the light themes':
+    ['Cores de avaliações e medalhas legíveis nos temas claros',
+     'Nos temas claros, as cores das avaliações eram as dos temas escuros, pelo que Masterpiece, o anel de nota e as etiquetas de nota apareciam em amarelo vivo sobre branco, e as outras cores de nota também eram pálidas. Agora usam as cores mais escuras de cada tema claro. Os números de pico em ouro, prata e bronze nos perfis de músicas, artistas e álbuns, e os números de música mais ouvida de sempre e do ano, também ganharam versões mais escuras e fáceis de ler. Os temas escuros continuam iguais.'],
+
   'Song and artist profiles say which chart each stat is from':
     ['Os perfis de músicas e artistas indicam de que tabela é cada dado',
      'O cartão de estreia no perfil de uma música indica agora de que tabela se trata, por exemplo Weekly Chart Debut · Week of Sep 20, 26 ou Monthly Chart Debut · Sep 2026. Mostra a estreia na tabela a partir da qual abriu a música, ou na semanal se a abrir a partir da tabela de sempre. Antes misturava as tabelas semanal, mensal e anual e podia mostrar uma estreia mensal como se fosse uma data. As semanas, meses e anos na tabela, as reentradas e o tempo no #1 indicam agora também a sua tabela, nos perfis de músicas e de artistas.'],

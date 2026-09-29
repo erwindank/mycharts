@@ -29213,6 +29213,46 @@ body.red-light .modal-cb-label--tracks {
   color: #047857;
 }
 
+/* Modal peak/rank medals — #ffd700 gold (~1.4:1), #c0c8d8 silver and the
+   #60a5fa year card vanish on light surfaces, and a neon glow is a
+   dark-surface idea. Gold/silver/bronze take the light-theme --medal-*
+   tokens (AA on white); the year card takes the same blue-700 as the
+   weekly Chart Breakdown header above. */
+body.navy-light :is(.sv--gold, .modal-rank-card--gold .mrc-rank, .modal-cb-detail-peak--gold),
+body.purple-light :is(.sv--gold, .modal-rank-card--gold .mrc-rank, .modal-cb-detail-peak--gold),
+body.yellow-light :is(.sv--gold, .modal-rank-card--gold .mrc-rank, .modal-cb-detail-peak--gold),
+body.pink-light :is(.sv--gold, .modal-rank-card--gold .mrc-rank, .modal-cb-detail-peak--gold),
+body.red-light :is(.sv--gold, .modal-rank-card--gold .mrc-rank, .modal-cb-detail-peak--gold) {
+  color: var(--medal-gold);
+  text-shadow: none;
+}
+body.navy-light :is(.sv--silver, .modal-cb-detail-peak--silver),
+body.purple-light :is(.sv--silver, .modal-cb-detail-peak--silver),
+body.yellow-light :is(.sv--silver, .modal-cb-detail-peak--silver),
+body.pink-light :is(.sv--silver, .modal-cb-detail-peak--silver),
+body.red-light :is(.sv--silver, .modal-cb-detail-peak--silver) {
+  color: var(--medal-silver);
+  text-shadow: none;
+}
+body.navy-light :is(.sv--bronze, .modal-cb-detail-peak--bronze),
+body.purple-light :is(.sv--bronze, .modal-cb-detail-peak--bronze),
+body.yellow-light :is(.sv--bronze, .modal-cb-detail-peak--bronze),
+body.pink-light :is(.sv--bronze, .modal-cb-detail-peak--bronze),
+body.red-light :is(.sv--bronze, .modal-cb-detail-peak--bronze) {
+  color: var(--medal-bronze);
+  text-shadow: none;
+}
+body.navy-light .modal-rank-card--gold,   body.purple-light .modal-rank-card--gold,
+body.yellow-light .modal-rank-card--gold, body.pink-light .modal-rank-card--gold,
+body.red-light .modal-rank-card--gold {
+  border-color: color-mix(in srgb, var(--medal-gold) 35%, transparent);
+}
+body.navy-light .modal-rank-card--year .mrc-rank,   body.purple-light .modal-rank-card--year .mrc-rank,
+body.yellow-light .modal-rank-card--year .mrc-rank, body.pink-light .modal-rank-card--year .mrc-rank,
+body.red-light .modal-rank-card--year .mrc-rank {
+  color: #1d4ed8;
+}
+
 .wv-r1.wv-stk-card .wv-bar-fill { background: var(--gold1) !important; }
 .wv-stk-shelf { display: none; padding: 0 10px 10px; border-top: 1px solid var(--border); padding-top: 8px; }
 .wv-stk-card.wv-stk-open .wv-stk-shelf { display: block; }
@@ -32088,8 +32128,13 @@ body.red-light .modal-cb-label--tracks {
        green would be unreadable on the light themes and wrong on the tinted
        ones. Ramp runs gold → green → teal → amber → rose, which is monotonic in
        quality, and the score number is ALWAYS rendered next to the colour, so
-       colour never carries the value on its own. */
-    :root {
+       colour never carries the value on its own.
+
+       Declared on body, not :root: the theme blocks set --gold2 etc. on body,
+       and a var() resolves where the property is declared — on :root these
+       froze to the default navy palette, so light themes got #fcd34d yellow
+       on white. Same reason as DERIVED SEMANTIC TOKENS near the top. */
+    body {
       --rt-masterpiece: var(--gold2);
       --rt-essential:   var(--green);
       --rt-great:       color-mix(in srgb, var(--green) 65%, var(--teal));
