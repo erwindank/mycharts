@@ -22667,6 +22667,11 @@ body[class*="-light"] .tm-card-search:hover {
   transition: border-color 0.15s, color 0.15s;
 }
 .awards-ceremony-share-btn:hover { border-color: #FFD700; color: #FFD700; }
+body.navy-light .awards-ceremony-share-btn:hover,
+body.purple-light .awards-ceremony-share-btn:hover,
+body.red-light .awards-ceremony-share-btn:hover,
+body.yellow-light .awards-ceremony-share-btn:hover,
+body.pink-light .awards-ceremony-share-btn:hover { border-color: var(--medal-gold); color: var(--medal-gold); }
 
 /* Share dialog (see _cerShareRender) — reuses the playlist-picker box and the
    create-playlist buttons; these only cover what is new. */
@@ -22719,6 +22724,10 @@ body[class*="-light"] .tm-card-search:hover {
   justify-content: center;
 }
 .awards-picker-modal {
+  /* Gold for text, ticks and tints. Pure #FFD700 is ~1.4:1 on the light themes'
+     white surface, so there it drops to the darker medal gold (AA on white). */
+  --pk-gold: #FFD700;
+  --pk-danger: #FF6B6B;
   background: var(--surface1);
   border: 1px solid var(--border);
   border-radius: 16px;
@@ -22739,10 +22748,10 @@ body[class*="-light"] .tm-card-search:hover {
 .awards-picker-eyebrow {
   font-size: 0.64rem;
   font-family: var(--font-mono);
+  font-weight: 600;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: #FFD700;
-  opacity: 0.8;
+  color: var(--pk-gold);
 }
 .awards-picker-title { font-weight: 700; font-size: 1.1rem; line-height: 1.2; color: var(--text1); }
 .awards-picker-close {
@@ -22798,8 +22807,8 @@ body[class*="-light"] .tm-card-search:hover {
   flex: 0 0 auto;
   margin: 0 14px;
   padding: 10px;
-  background: linear-gradient(180deg, #FFD7000d, #FFD70004);
-  border: 1px solid #FFD70030;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--pk-gold) 5%, transparent), color-mix(in srgb, var(--pk-gold) 2%, transparent));
+  border: 1px solid color-mix(in srgb, var(--pk-gold) 19%, transparent);
   border-radius: 12px;
 }
 .awards-picker-ballot-head {
@@ -22854,7 +22863,7 @@ body[class*="-light"] .tm-card-search:hover {
 }
 .awards-picker-quick button:hover { color: var(--text1); border-color: var(--accent); }
 .awards-picker-quick .awards-picker-quick-clear { background: none; border-color: transparent; color: var(--text3); }
-.awards-picker-quick .awards-picker-quick-clear:hover { color: #FF6B6B; border-color: transparent; }
+.awards-picker-quick .awards-picker-quick-clear:hover { color: var(--pk-danger); border-color: transparent; }
 .awards-picker-selected {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -22888,7 +22897,7 @@ body[class*="-light"] .tm-card-search:hover {
   user-select: none;
   transition: opacity 0.12s, box-shadow 0.12s, border-color 0.12s;
 }
-.awards-picker-nom-row:hover { border-color: #FFD70066; }
+.awards-picker-nom-row:hover { border-color: color-mix(in srgb, var(--pk-gold) 40%, transparent); }
 .awards-picker-nom-row.is-dragging { opacity: 0.4; cursor: grabbing; }
 .awards-picker-nom-row.is-dropzone { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
 .awards-picker-nom-num {
@@ -22897,7 +22906,7 @@ body[class*="-light"] .tm-card-search:hover {
   font-size: 0.7rem;
   font-weight: 700;
   font-family: var(--font-mono);
-  color: #FFD700;
+  color: var(--pk-gold);
   text-align: center;
 }
 .awards-picker-nom-text {
@@ -22928,7 +22937,7 @@ body[class*="-light"] .tm-card-search:hover {
   line-height: 1;
   transition: color 0.12s, background 0.12s;
 }
-.awards-picker-nom-x:hover { color: #FF6B6B; background: #FF6B6B1a; }
+.awards-picker-nom-x:hover { color: var(--pk-danger); background: color-mix(in srgb, var(--pk-danger) 10%, transparent); }
 /* Results list */
 .awards-picker-body {
   overflow-y: auto;
@@ -22954,8 +22963,8 @@ body[class*="-light"] .tm-card-search:hover {
 }
 .awards-picker-result-row:hover { background: var(--surface3); color: var(--text1); }
 /* Already on the ballot — clicking again removes it */
-.awards-picker-result-row.is-picked { background: #FFD70012; border-color: #FFD70044; color: var(--text1); }
-.awards-picker-result-row.is-picked .awards-picker-add-icon { color: #FFD700; }
+.awards-picker-result-row.is-picked { background: color-mix(in srgb, var(--pk-gold) 7%, transparent); border-color: color-mix(in srgb, var(--pk-gold) 27%, transparent); color: var(--text1); }
+.awards-picker-result-row.is-picked .awards-picker-add-icon { color: var(--pk-gold); font-weight: 700; }
 /* Keyboard cursor (arrow keys) */
 .awards-picker-result-row.is-active { border-color: var(--accent); background: var(--surface3); }
 .awards-picker-group {
@@ -23160,6 +23169,23 @@ body[class*="-light"] .tm-card-search:hover {
 .awards-picker-clip-btn.is-loading { font-size: 0.72rem; animation: awardsClipSpin 1s linear infinite; }
 .awards-picker-clip-btn.is-miss { opacity: 0.4; text-decoration: line-through; }
 .awards-picker-yt-btn:hover { color: #FF3B3B; border-color: #FF3B3B; }
+/* Light themes: gold and red tuned for white surfaces (the tally keeps its #FFD700
+   fill — dark ink on it is already ~13:1). The tints follow the darker gold, so
+   picked rows and the ballot panel still read as gold instead of washing out. */
+body.navy-light .awards-picker-modal,
+body.purple-light .awards-picker-modal,
+body.red-light .awards-picker-modal,
+body.yellow-light .awards-picker-modal,
+body.pink-light .awards-picker-modal {
+  --pk-gold: var(--medal-gold);
+  --pk-danger: var(--rose);
+  box-shadow: var(--shadow-3);
+}
+body.navy-light .awards-picker-yt-btn:hover,
+body.purple-light .awards-picker-yt-btn:hover,
+body.red-light .awards-picker-yt-btn:hover,
+body.yellow-light .awards-picker-yt-btn:hover,
+body.pink-light .awards-picker-yt-btn:hover { color: #CC0000; border-color: #CC0000; }
 @keyframes awardsClipSpin { to { transform: rotate(360deg); } }
 .awards-picker-nom-row .awards-picker-clip-btn,
 .awards-picker-nom-row .awards-picker-yt-btn { width: 24px; height: 22px; font-size: 0.66rem; }
@@ -23349,6 +23375,16 @@ body[class*="-light"] .tm-card-search:hover {
 }
 .awards-reallife-badge.won  { background: #FFD70022; color: #FFD700; border: 1px solid #FFD70066; }
 .awards-reallife-badge.nom  { background: #6366f122; color: #818cf8; border: 1px solid #6366f166; }
+body.navy-light .awards-reallife-badge.won,
+body.purple-light .awards-reallife-badge.won,
+body.red-light .awards-reallife-badge.won,
+body.yellow-light .awards-reallife-badge.won,
+body.pink-light .awards-reallife-badge.won { background: #FFD70033; color: var(--medal-gold); border-color: var(--medal-gold); }
+body.navy-light .awards-reallife-badge.nom,
+body.purple-light .awards-reallife-badge.nom,
+body.red-light .awards-reallife-badge.nom,
+body.yellow-light .awards-reallife-badge.nom,
+body.pink-light .awards-reallife-badge.nom { color: #4338ca; border-color: #6366f1aa; }
 /* Category on the left, the work it was nominated for on the right — until the
    screen is too narrow for both, where they stack instead of wrapping the
    category down three lines. */

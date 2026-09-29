@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['pt-BR'] = {
 
   /* ========== SETEMBRO 2026 ========== */
 
+  'Easier-to-read gold in the light themes':
+    ['Dourado mais fácil de ler nos temas claros',
+     'Nos temas claros, o dourado brilhante do seletor de indicados quase não aparecia sobre o fundo branco: a linha do ano e da categoria no topo, os números de posição dos seus indicados e as marcas das linhas escolhidas. Agora eles usam um dourado mais profundo, fácil de ler, e o vermelho dos botões de remover também ficou mais escuro. Os selos de Venceu nos prêmios reais e o botão Compartilhar da cerimônia receberam a mesma correção. Os temas escuros continuam iguais.'],
+
   'A roomier nominee picker':
     ['Um seletor de indicados mais espaçoso',
      'A janela onde você escolhe os indicados de um prêmio ficou mais espaçosa. Seus indicados escolhidos agora ficam em um painel próprio de Indicados no topo, como cartões iguais em duas colunas, cada um com uma imagem maior e o nome e o artista em linhas separadas, então títulos longos não são mais cortados depois de poucas letras. Uma lista completa de 8 cabe sem rolar. Preencher top 8, Top 5 e Limpar foram para esse painel, ao lado de um contador de quantos você escolheu. Arraste os cartões para reordená-los, como antes. No celular os cartões ficam em uma coluna.'],

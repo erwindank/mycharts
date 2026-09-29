@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['es'] = {
 
   /* ========== SEPTIEMBRE 2026 ========== */
 
+  'Easier-to-read gold in the light themes':
+    ['Dorado más fácil de leer en los temas claros',
+     'En los temas claros, el dorado brillante del selector de nominados casi no se veía sobre el fondo blanco: la línea del año y la categoría arriba, los números de posición de tus nominados y las marcas de las filas elegidas. Ahora usan un dorado más profundo que se lee fácilmente, y el rojo de los botones para quitar también es más oscuro. Las insignias de Ganó en los premios reales y el botón Compartir de la ceremonia recibieron el mismo arreglo. Los temas oscuros se ven igual que antes.'],
+
   'A roomier nominee picker':
     ['Un selector de nominados más espacioso',
      'La ventana donde eliges los nominados de un premio tiene más espacio. Tus nominados elegidos ahora están en su propio panel de Nominados arriba, como tarjetas iguales en dos columnas, cada una con una imagen más grande y el nombre y el artista en líneas separadas, así que los títulos largos ya no se cortan a las pocas letras. Una lista completa de 8 cabe sin desplazarse. Rellenar top 8, Top 5 y Borrar se movieron a ese panel, junto a un contador de cuántos llevas elegidos. Arrastra las tarjetas para reordenarlas, como antes. En el teléfono las tarjetas se apilan en una columna.'],

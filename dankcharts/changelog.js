@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 7;
+const DC_CL_I18N_V = 8;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -83,6 +83,10 @@ const DC_CHANGELOG = [
   { d: '2026-09-29', t: 'design', a: 'awards', h: '7dadc69',
     title: 'A roomier nominee picker',
     detail: 'The window where you pick an award’s nominees has more room. Your chosen nominees now sit in their own Nominees panel at the top, as even cards in two columns, each with a bigger picture and the name and artist on separate lines, so long titles no longer get cut off after a few letters. A full ballot of 8 fits without scrolling. Fill top 8, Top 5 and Clear moved into that panel, next to a count of how many you have picked. Drag the cards to reorder them, as before. On a phone the cards stack in one column.' },
+
+  { d: '2026-09-29', t: 'fix', a: 'awards', h: '',
+    title: 'Easier-to-read gold in the light themes',
+    detail: 'In the light themes, the bright gold used in the nominee picker was nearly invisible on the white background: the year and category line at the top, the rank numbers on your nominees and the ticks on picked rows. They now use a deeper gold that is easy to read, and the red on the remove buttons is darker too. The Won badges on real-life awards and the Share button on the ceremony screen got the same fix. The dark themes look the same as before.' },
 
   { d: '2026-09-29', t: 'feature', a: 'awards', h: 'ec1a92a',
     title: 'Break ties in the automatic awards yourself',
