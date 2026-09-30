@@ -80,7 +80,7 @@ const DC_CHANGELOG = [
 
   /* ========== SEPTEMBER 2026 ========== */
 
-  { d: '2026-09-30', t: 'fix', a: 'settings', h: '',
+  { d: '2026-09-30', t: 'fix', a: 'settings', h: 'fbdf73b',
     title: 'Backups work again with big awards collections',
     detail: 'Once your awards grew past a certain size, backups in Settings → Profile quietly stopped being saved, because the whole backup no longer fit in one piece. Big backups are now split into several pieces and put back together when you restore, so they save again however many categories you have. Older backups still restore as before.' },
 
