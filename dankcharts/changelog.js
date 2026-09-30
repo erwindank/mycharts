@@ -80,7 +80,7 @@ const DC_CHANGELOG = [
 
   /* ========== SEPTEMBER 2026 ========== */
 
-  { d: '2026-09-29', t: 'feature', a: 'awards', h: '',
+  { d: '2026-09-29', t: 'feature', a: 'awards', h: 'c5dbc1a',
     title: 'Configure Year: search, filter and browse the award categories',
     detail: 'The category list under Configure Year is now easier to get around. Type in the search box to find a category by name or by what it is about ("rock", "album", "cover"). Narrow the list to song, album or artist categories, or to the ones that are on or off, and use the chips to show one group at a time. Categories are grouped into Main awards, Genres, Albums & formats, Song types, Your listening, Just for fun and Stat awards, each with its own All on / All off. Every category is now a card with a line on what it is built from and a switch. Enable All and Disable All work on whatever is showing, so searching "rock" and pressing Enable shown turns on every rock award at once.' },
 
