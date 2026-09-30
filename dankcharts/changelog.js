@@ -80,7 +80,7 @@ const DC_CHANGELOG = [
 
   /* ========== SEPTEMBER 2026 ========== */
 
-  { d: '2026-09-29', t: 'feature', a: 'awards', h: '',
+  { d: '2026-09-29', t: 'feature', a: 'awards', h: 'd899a03',
     title: 'Goth Rock song and album awards',
     detail: 'My Grammys has two new rock categories, Best Goth Rock Song and Best Goth Rock Album, off by default and listed in the Rock group under Configure Year. They count artists tagged gothic rock, deathrock, darkwave or gothic metal. Early goth bands tagged post-punk can still be nominated for Post-Punk/New Wave as well.' },
 
