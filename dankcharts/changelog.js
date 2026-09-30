@@ -80,7 +80,7 @@ const DC_CHANGELOG = [
 
   /* ========== SEPTEMBER 2026 ========== */
 
-  { d: '2026-09-29', t: 'feature', a: 'awards', h: '',
+  { d: '2026-09-29', t: 'feature', a: 'awards', h: '1e99a27',
     title: 'Best Collaboration suggests real team-ups, not duets',
     detail: 'Generate Nominees used to suggest any song with two or more artists for Best Collaboration, so duets turned up there as well as in Best Duo. It now suggests team-ups where only one artist really sings because the other is a DJ or producer (David Guetta, Tiësto, benny blanco), and songs where one of the artists is a group or band. Each artist is checked on MusicBrainz, and each nominee says why it qualified ("with a DJ/producer" or "with a group"). The first time can take up to a minute, since MusicBrainz allows one lookup a second; the answers are remembered in this browser, so after that it takes seconds. You can still add any song by hand. Also fixed: a band name with "&" in it, like Simon & Garfunkel, is no longer split into two artists.' },
 
