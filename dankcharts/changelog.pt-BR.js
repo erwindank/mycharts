@@ -16,6 +16,14 @@ window.DC_CHANGELOG_I18N['pt-BR'] = {
 
   /* ========== SETEMBRO 2026 ========== */
 
+  '22 new award categories, and Most Growth shows the change on the year before':
+    ['22 categorias de prêmios novas, e Maior Crescimento mostra a mudança em relação ao ano anterior',
+     'Meus Grammys tem 22 categorias novas, todas desativadas por padrão: ative-as em Configurar Ano. Gêneros novos: músicas Indie Pop, Metal/Hard Rock, Punk/Emo, Afrobeats e J-Pop/Anime, e álbuns de Jazz e Clássico/Instrumental. Formatos de álbum: Melhor EP, Melhor Álbum ao Vivo, Melhor Álbum de Estreia (o primeiro álbum de um artista na sua biblioteca, lançado este ano ou no anterior), Melhor Reedição/Remasterização e Melhor Coletânea/Grandes Sucessos. Tipos de música: Melhor Cover e Melhor Versão Acústica (identificadas pelo título), Melhor Throwback (álbuns lançados há 10 anos ou mais), Melhor Faixa Escondida (faixas de álbum que você nunca ouviu como single) e Melhor Música de Término. Pelo jeito que você ouve: Melhor Música da Noite (das 22h às 4h), Melhor Música da Manhã (das 5h às 11h) e Artista mais Fiel (ouvido todo mês). Por diversão: Prazer Culpado do Ano, e Música mais Subestimada, que usa a popularidade no Deezer para achar músicas que você amou e que poucos ouvem. Maior Crescimento agora mostra a mudança de cada indicado em relação ao ano anterior, em porcentagem e em reproduções, nos cartões e na janela de escolher indicados. Também não deixa mais de contar as reproduções do último dia do ano anterior.'],
+
+  'Folk/Acoustic, Singer-Songwriter and Deluxe Album awards':
+    ['Prêmios Folk/Acústico, Cantor-Compositor e Álbum Deluxe',
+     'Meus Grammys tem cinco categorias novas, todas desativadas por padrão: ative-as em Configurar Ano. Melhor Música Folk/Acústica e Melhor Álbum Folk/Acústico cobrem artistas de folk-pop e acústicos, e Melhor Música de Cantor-Compositor é mais ampla, para compositores acústicos e de piano que não estão marcados como folk. Melhor Álbum Deluxe e Melhor Capa de Álbum Deluxe são para edições deluxe, expandidas, de aniversário e outras especiais, identificadas pelo título do álbum ("Deluxe", ou um "… Edition" entre parênteses). Uma edição deluxe que não diz isso no título ainda pode ser escolhida à mão.'],
+
   'Most Viral Song award, and Album You Discovered Late is now Best Album Discovered Late':
     ['Prêmio de Música mais Viral, e Álbum que Você Descobriu Tarde agora é Melhor Álbum Descoberto Tarde',
      'Meus Grammys tem uma nova categoria, Música mais Viral, desligada por padrão: ligue em Configurar Ano e escolha seus indicados entre as músicas que você mais ouviu naquele ano. A categoria Álbum que Você Descobriu Tarde agora se chama Melhor Álbum Descoberto Tarde, com as mesmas regras de antes.'],

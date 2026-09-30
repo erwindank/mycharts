@@ -16,6 +16,14 @@ window.DC_CHANGELOG_I18N['es'] = {
 
   /* ========== SEPTIEMBRE 2026 ========== */
 
+  '22 new award categories, and Most Growth shows the change on the year before':
+    ['22 categorías de premios nuevas, y Mayor Crecimiento muestra el cambio respecto al año anterior',
+     'Mis Grammys tiene 22 categorías nuevas, todas desactivadas por defecto: actívalas en Configurar Año. Géneros nuevos: canciones Indie Pop, Metal/Hard Rock, Punk/Emo, Afrobeats y J-Pop/Anime, y álbumes de Jazz y Clásico/Instrumental. Formatos de álbum: Mejor EP, Mejor Álbum en Vivo, Mejor Álbum Debut (el primer álbum de un artista en tu biblioteca, publicado este año o el anterior), Mejor Reedición/Remasterización y Mejor Recopilatorio/Grandes Éxitos. Tipos de canción: Mejor Versión (Cover) y Mejor Versión Acústica (detectadas por el título), Mejor Clásico Recuperado (álbumes de hace 10 años o más), Mejor Joya Escondida (canciones de álbum que nunca escuchaste como sencillo) y Mejor Canción de Desamor. Según cómo escuchas: Mejor Canción Nocturna (de 22 a 4 h), Mejor Canción Matutina (de 5 a 11 h) y Artista más Constante (escuchado todos los meses). Por diversión: Placer Culpable del Año, y Canción más Infravalorada, que usa la popularidad de Deezer para encontrar canciones que te encantaron y que pocos escuchan. Mayor Crecimiento ahora muestra el cambio de cada nominado respecto al año anterior, en porcentaje y en reproducciones, en las tarjetas y en la ventana para elegir nominados. Además ya no se salta las reproducciones del último día del año anterior.'],
+
+  'Folk/Acoustic, Singer-Songwriter and Deluxe Album awards':
+    ['Premios Folk/Acústico, Cantautor y Álbum Deluxe',
+     'Mis Grammys tiene cinco categorías nuevas, todas desactivadas por defecto: actívalas en Configurar Año. Mejor Canción Folk/Acústica y Mejor Álbum Folk/Acústico cubren a artistas de folk-pop y acústicos, y Mejor Canción de Cantautor abarca más, para cantautores acústicos y de piano que no están etiquetados como folk. Mejor Álbum Deluxe y Mejor Portada de Álbum Deluxe son para ediciones deluxe, ampliadas, de aniversario y otras especiales, detectadas por el título del álbum ("Deluxe", o un "… Edition" entre paréntesis). Una edición deluxe que no lo dice en el título se puede elegir a mano.'],
+
   'Most Viral Song award, and Album You Discovered Late is now Best Album Discovered Late':
     ['Premio a la Canción más Viral, y Álbum que Descubriste Tarde ahora es Mejor Álbum Descubierto Tarde',
      'Mis Grammys tiene una nueva categoría, Canción más Viral, desactivada por defecto: actívala en Configurar Año y elige a tus nominados entre las canciones que más escuchaste ese año. La categoría Álbum que Descubriste Tarde ahora se llama Mejor Álbum Descubierto Tarde, con las mismas reglas que antes.'],

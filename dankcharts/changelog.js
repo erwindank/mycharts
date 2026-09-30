@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 18;
+const DC_CL_I18N_V = 20;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,14 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== SEPTEMBER 2026 ========== */
+
+  { d: '2026-09-29', t: 'feature', a: 'awards', h: '',
+    title: '22 new award categories, and Most Growth shows the change on the year before',
+    detail: 'My Grammys has 22 new categories, all off by default: turn them on under Configure Year. New genres: Indie Pop, Metal/Hard Rock, Punk/Emo, Afrobeats and J-Pop/Anime songs, and Jazz and Classical/Instrumental albums. Album formats: Best EP, Best Live Album, Best Debut Album (an artist\'s first album in your library, released this year or last), Best Reissue/Remaster and Best Compilation/Greatest Hits. Song types: Best Cover Song and Best Acoustic/Stripped Version (told apart by the title), Best Throwback (albums released 10+ years earlier), Best Deep Cut (album tracks you never played as a single) and Best Breakup Song. From your listening: Best Night Song (10pm to 4am), Best Morning Song (5am to 11am) and Most Loyal Artist (played every month). Just for fun: Guilty Pleasure of the Year, and Most Underrated Song, which uses Deezer\'s popularity to find songs you loved that few others play. Most Growth now shows each nominee\'s change on the year before, as a percentage and in plays, on the cards and in the Pick nominees window. It also no longer misses plays from the last day of the year before.' },
+
+  { d: '2026-09-29', t: 'feature', a: 'awards', h: '',
+    title: 'Folk/Acoustic, Singer-Songwriter and Deluxe Album awards',
+    detail: 'My Grammys has five new categories, all off by default: turn them on under Configure Year. Best Folk/Acoustic Song and Best Folk/Acoustic Album cover folk-pop and acoustic artists, and Best Singer-Songwriter Song is a wider net for acoustic and piano songwriters who are not tagged folk. Best Deluxe Album and Best Deluxe Album Cover are for deluxe, expanded, anniversary and other special editions, spotted by the album title ("Deluxe", or a bracketed "… Edition"). A deluxe edition that does not say so in its title can still be picked by hand.' },
 
   { d: '2026-09-29', t: 'feature', a: 'awards', h: 'c1d3cc8',
     title: 'Most Viral Song award, and Album You Discovered Late is now Best Album Discovered Late',

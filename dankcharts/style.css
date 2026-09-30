@@ -23105,6 +23105,29 @@ body[class*="-light"] .tm-card-search:hover {
 }
 .aw-tile-name { font-size: 0.74rem; font-weight: 600; color: var(--text1); }
 .aw-tile-sub  { font-size: 0.64rem; color: var(--text3); }
+
+/* Most Growth: the change on the year before, as a small up/down pill. Used in
+   the list, tiles and collage views; spotlight and reel print it as the score. */
+.aw-growth {
+  flex: 0 0 auto;
+  align-self: center;
+  width: fit-content;
+  padding: 1px 6px;
+  border-radius: 999px;
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  font-weight: 600;
+  white-space: nowrap;
+  line-height: 1.5;
+}
+.aw-growth-up   { color: var(--chart-up);   background: color-mix(in srgb, var(--chart-up) 14%, transparent); }
+.aw-growth-down { color: var(--chart-down); background: color-mix(in srgb, var(--chart-down) 14%, transparent); }
+.aw-growth-flat { color: var(--text3);      background: color-mix(in srgb, var(--text3) 12%, transparent); }
+/* A tile is narrower than a big percentage plus the plays, so there it wraps
+   onto two lines instead of spilling into the next tile */
+.aw-tile .aw-growth { max-width: 100%; white-space: normal; border-radius: 6px; margin-top: 2px; }
+/* On top of cover art the tint alone is unreadable, so it sits on a dark scrim */
+.aw-col-cap .aw-growth { background: rgba(0, 0, 0, 0.55); margin-top: 3px; }
 .aw-tile.is-winner .aw-tile-frame {
   box-shadow: 0 0 0 2px var(--gold1), 0 8px 24px color-mix(in srgb, var(--gold1) 30%, transparent);
 }

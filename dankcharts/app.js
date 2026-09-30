@@ -2477,6 +2477,74 @@ function detectTypeFromTitle(album) {
   return null;
 }
 
+/* Deluxe / expanded / anniversary editions, by title alone — the stores never
+   say so any other way. "Deluxe" is safe as a bare word (no one names a record
+   that by accident); the other words only count fenced off in brackets or after
+   a dash, the same shape as the rules above, so "Special" or "Complete" in a
+   real title stays out. Any bracketed "... Edition" / "... Version" counts too:
+   "(3am Edition)", "(Tour Edition)", "(Bonus Track Version)", "(Taylor's Version)"
+   is excluded since a re-recording is its own album, not an edition of one. */
+const DELUXE_TITLE_RE = /\bdeluxe\b/i;
+const DELUXE_FENCED_RE = /(?:[([\[][^)\]]*\b(?:expanded|special|anniversary|platinum|complete|collector'?s|extended|super|bonus\s+tracks?|repackage|reloaded|edition)\b[^)\]]*[)\]]|[-–—]\s*(?:expanded|special|anniversary|platinum|complete|extended)\b.*)\s*$/i;
+function _isDeluxeAlbum(album) {
+  const name = String(album || '').trim();
+  if (!name || name === '—') return false;
+  if (/taylor'?s\s+version/i.test(name) && !DELUXE_TITLE_RE.test(name)) return false;
+  return DELUXE_TITLE_RE.test(name) || DELUXE_FENCED_RE.test(name);
+}
+
+/* Title tests for the format and song-type awards. Same rule as the deluxe
+   test: a word only counts fenced off at the end of the name, in brackets or
+   after a dash, so "Cover Me Up" or "Acoustic Soul" stay out. */
+function _fencedTagRe(words) {
+  return new RegExp(`(?:[([\\[][^)\\]]*\\b(?:${words})\\b[^)\\]]*[)\\]]|\\s[-–—]\\s.*\\b(?:${words})\\b.*)\\s*$`, 'i');
+}
+const COVER_TAG_RE    = _fencedTagRe('cover');
+const ACOUSTIC_TAG_RE = _fencedTagRe('acoustic|stripped|unplugged|piano\\s+version|a\\s+cappella|live\\s+lounge');
+// "Remastered" and "reissue" never turn up by accident, so they count anywhere
+const REISSUE_RE      = /\b(?:remaster(?:ed)?|reissue|re-issue)\b/i;
+const COMPILATION_TITLE_RE = /\b(?:greatest\s+hits|best\s+of|the\s+very\s+best|the\s+essential|essentials|anthology|the\s+collection|the\s+singles|number\s+ones|retrospective|hits\s+collection)\b/i;
+
+function _isCoverSong(p)       { return COVER_TAG_RE.test(p.title || ''); }
+function _isAcousticVersion(p) { return ACOUSTIC_TAG_RE.test(p.title || '') || ACOUSTIC_TAG_RE.test(p.album || ''); }
+function _isReissueAlbum(album) { return !!album && album !== '—' && REISSUE_RE.test(album); }
+// A greatest-hits record by its title, or any album on the compilations list
+function _isCompilationPlay(p) {
+  return !!p.album && p.album !== '—' && (isCompilationAlbum(p.album) || COMPILATION_TITLE_RE.test(p.album));
+}
+// Release types: the marks from the album page and the Deezer scan, or failing
+// those the title's own tag ("… - EP", "(Live at …)").
+function _isReleaseTypePlay(p, type) {
+  return !!p.album && p.album !== '—' && (releaseTypeOfPlay(p) === type || detectTypeFromTitle(p.album) === type);
+}
+// A plain studio album: not a single, EP, live record, soundtrack or compilation
+function _isStudioAlbumPlay(p) {
+  return !!p.album && p.album !== '—' && !isCompilationAlbum(p.album)
+    && releaseTypeOfPlay(p) === 'album' && !detectTypeFromTitle(p.album);
+}
+
+/* Every song you have played off a single or an EP anywhere in the library.
+   Best Deep Cut leaves these out: a track that was put out on its own was a
+   single, whichever copy you happened to play. Rebuilt when the plays change. */
+let _singleSongSet = null, _singleSongSig = -1;
+function _singleSongKeys() {
+  if (_singleSongSet && _singleSongSig === allPlays.length) return _singleSongSet;
+  const set = new Set();
+  for (const p of allPlays) {
+    if (_isReleaseTypePlay(p, 'single') || _isReleaseTypePlay(p, 'ep')) set.add(_sk(p));
+  }
+  _singleSongSet = set;
+  _singleSongSig = allPlays.length;
+  return set;
+}
+function _isDeepCut(p) {
+  if (!_isStudioAlbumPlay(p)) return false;
+  // A title track is nearly always a single, so it is never a deep cut
+  const base = p.album.replace(/\s*[([\[].*$/, '').trim().toLowerCase();
+  if ((p.title || '').toLowerCase().trim() === base) return false;
+  return !_singleSongKeys().has(_sk(p));
+}
+
 // Deezer's own word for it, narrowed to the types this app separates.
 // 'compilation' is deliberately dropped: compilations keep their own list.
 function _rtFromDeezer(recordType) {
@@ -33772,6 +33840,13 @@ const AWARD_CATEGORIES = [
   { id: 'best_latin_song',   label: 'Best Latin Song',            type: 'song',   filter: 'genre:latin',       defaultOn: false, emoji: '💃' },
   { id: 'best_electronic',   label: 'Best Electronic/Dance Song', type: 'song',   filter: 'genre:electronic',  defaultOn: false, emoji: '🪩' },
   { id: 'best_kpop_song',    label: 'Best K-Pop Song',            type: 'song',   filter: 'genre:k-pop',       defaultOn: false, emoji: '💜' },
+  { id: 'best_folk_song',    label: 'Best Folk/Acoustic Song',    type: 'song',   filter: 'genre:folk',        defaultOn: false, emoji: '🪕' },
+  { id: 'best_songwriter_song', label: 'Best Singer-Songwriter Song', type: 'song', filter: 'genre:singer-songwriter', defaultOn: false, emoji: '✍️' },
+  { id: 'best_indiepop_song', label: 'Best Indie Pop Song',       type: 'song',   filter: 'genre:indie-pop',   defaultOn: false, emoji: '🌸' },
+  { id: 'best_metal_song',   label: 'Best Metal/Hard Rock Song',  type: 'song',   filter: 'genre:metal',       defaultOn: false, emoji: '⛓️' },
+  { id: 'best_punk_song',    label: 'Best Punk/Emo Song',         type: 'song',   filter: 'genre:punk',        defaultOn: false, emoji: '🧷' },
+  { id: 'best_afrobeats_song', label: 'Best Afrobeats Song',      type: 'song',   filter: 'genre:afrobeats',   defaultOn: false, emoji: '🥁' },
+  { id: 'best_jpop_song',    label: 'Best J-Pop/Anime Song',      type: 'song',   filter: 'genre:j-pop',       defaultOn: false, emoji: '🎌' },
   { id: 'best_nonenglish',   label: 'Best Non-English Song',      type: 'song',   filter: 'nonenglish',        defaultOn: false, emoji: '🌍' },
   // Genre-based albums (opt-in)
   { id: 'best_pop_album',    label: 'Best Pop Album',             type: 'album',  filter: 'genre:pop',         defaultOn: false, emoji: '🎀' },
@@ -33780,6 +33855,28 @@ const AWARD_CATEGORIES = [
   { id: 'best_hiphop_album', label: 'Best Hip-Hop Album',         type: 'album',  filter: 'genre:hip-hop',     defaultOn: false, emoji: '🎧' },
   { id: 'best_latin_album',  label: 'Best Latin Album',           type: 'album',  filter: 'genre:latin',       defaultOn: false, emoji: '💃' },
   { id: 'best_kpop_album',   label: 'Best K-Pop Album',           type: 'album',  filter: 'genre:k-pop',       defaultOn: false, emoji: '💜' },
+  { id: 'best_folk_album',   label: 'Best Folk/Acoustic Album',   type: 'album',  filter: 'genre:folk',        defaultOn: false, emoji: '🪕' },
+  { id: 'best_jazz_album',   label: 'Best Jazz Album',            type: 'album',  filter: 'genre:jazz',        defaultOn: false, emoji: '🎺' },
+  { id: 'best_classical_album', label: 'Best Classical/Instrumental Album', type: 'album', filter: 'genre:classical', defaultOn: false, emoji: '🎻' },
+  // Album formats (opt-in): release types, library history and album titles
+  { id: 'best_ep',           label: 'Best EP',                    type: 'album',  filter: 'rt:ep',             defaultOn: false, emoji: '📼' },
+  { id: 'best_live_album',   label: 'Best Live Album',            type: 'album',  filter: 'rt:live',           defaultOn: false, emoji: '🏟️' },
+  { id: 'best_debut_album',  label: 'Best Debut Album',           type: 'album',  filter: 'debut',             defaultOn: false, emoji: '🐣' },
+  { id: 'best_reissue',      label: 'Best Reissue/Remaster',      type: 'album',  filter: 'reissue',           defaultOn: false, emoji: '♻️' },
+  { id: 'best_compilation',  label: 'Best Compilation/Greatest Hits', type: 'album', filter: 'compilation',     defaultOn: false, emoji: '📚' },
+  // Song types (opt-in)
+  { id: 'best_cover_song',   label: 'Best Cover Song',            type: 'song',   filter: 'cover',             defaultOn: false, emoji: '🎭' },
+  { id: 'best_acoustic_version', label: 'Best Acoustic/Stripped Version', type: 'song', filter: 'acoustic',    defaultOn: false, emoji: '🕯️' },
+  { id: 'best_breakup_song', label: 'Best Breakup Song',          type: 'song',   filter: 'all',               defaultOn: false, emoji: '💔' },
+  { id: 'best_throwback',    label: 'Best Throwback',             type: 'song',   filter: 'throwback',         defaultOn: false, emoji: '⏪' },
+  { id: 'best_deep_cut',     label: 'Best Deep Cut',              type: 'song',   filter: 'deep_cut',          defaultOn: false, emoji: '🔍' },
+  // When and how you listened (opt-in)
+  { id: 'best_night_song',   label: 'Best Night Song',            type: 'song',   filter: 'night',             defaultOn: false, emoji: '🌙' },
+  { id: 'best_morning_song', label: 'Best Morning Song',          type: 'song',   filter: 'morning',           defaultOn: false, emoji: '☀️' },
+  { id: 'most_loyal_artist', label: 'Most Loyal Artist',          type: 'artist', filter: 'loyal',             defaultOn: false, emoji: '🫶' },
+  // Just for fun (opt-in)
+  { id: 'guilty_pleasure',   label: 'Guilty Pleasure of the Year', type: 'song',  filter: 'all',               defaultOn: false, emoji: '🙈' },
+  { id: 'most_underrated_song', label: 'Most Underrated Song',    type: 'song',   filter: 'underrated',        defaultOn: false, emoji: '🪙' },
   // Ceremony categories (opt-in)
   { id: 'video_of_year',     label: 'Video of the Year',          type: 'song',   filter: 'all',               defaultOn: false, emoji: '📹' },
   { id: 'record_of_year',    label: 'Record of the Year',         type: 'song',   filter: 'all',               defaultOn: false, emoji: '💽' },
@@ -33796,6 +33893,9 @@ const AWARD_CATEGORIES = [
   { id: 'best_reggae_album', label: 'Best Reggae Album',          type: 'album',  filter: 'genre:reggae',      defaultOn: false, emoji: '🌴' },
   { id: 'best_soundtrack_album', label: 'Best Soundtrack Album',  type: 'album',  filter: 'soundtrack',        defaultOn: false, emoji: '🎬' },
   { id: 'best_album_cover',  label: 'Best Album Cover',           type: 'album',  filter: 'all',               defaultOn: false, emoji: '🖼️' },
+  // Deluxe, expanded and anniversary editions, told apart by the album title
+  { id: 'best_deluxe_album', label: 'Best Deluxe Album',          type: 'album',  filter: 'deluxe',            defaultOn: false, emoji: '💎' },
+  { id: 'best_deluxe_cover', label: 'Best Deluxe Album Cover',    type: 'album',  filter: 'deluxe',            defaultOn: false, emoji: '🖼️' },
   { id: 'best_album_concept', label: 'Best Album Concept',        type: 'album',  filter: 'all',               defaultOn: false, emoji: '💡' },
   // Stat awards (auto-awarded)
   { id: 'stat_top_song',     label: 'Most Played Song',           type: 'song',   filter: 'stat',        defaultOn: true,  auto: true, emoji: '🎶' },
@@ -34595,6 +34695,21 @@ function _genreMatch(tags, filterStr) {
     // Dance pop is its own award, so it gets its own list rather than leaning on
     // 'pop' (which would let any ballad in) or 'electronic' (which would not).
     'dance-pop':   ['dance pop','dance-pop','dancepop','electropop','eurodance','disco','nu-disco'],
+    // Folk-pop acts (Myles Smith, Noah Kahan, Hozier) are tagged folk or acoustic
+    // far more often than pop, so both halves of the name count.
+    'folk':        ['folk','folk pop','folk-pop','indie folk','contemporary folk','folk rock','acoustic','stomp and holler'],
+    // Broader than folk on purpose: catches acoustic and piano writers (Ed Sheeran,
+    // Lewis Capaldi, Gracie Abrams) that are never tagged folk.
+    'singer-songwriter': ['singer-songwriter','singer songwriter','songwriter','acoustic','acoustic pop','piano','soft rock'],
+    'indie-pop':   ['indie pop','indie-pop','bedroom pop','dream pop','chamber pop','twee pop','indietronica'],
+    'metal':       ['metal','heavy metal','hard rock','metalcore','nu metal','alternative metal','thrash metal','death metal','progressive metal','black metal','doom metal'],
+    'punk':        ['punk','punk rock','pop punk','pop-punk','emo','emo pop','midwest emo','post-hardcore','hardcore punk','skate punk'],
+    'afrobeats':   ['afrobeats','afrobeat','afropop','afro pop','afroswing','amapiano','naija','alte'],
+    'j-pop':       ['j-pop','jpop','j pop','japanese','anime','j-rock','jrock','city pop','vocaloid','anison'],
+    'jazz':        ['jazz','smooth jazz','vocal jazz','jazz fusion','bebop','contemporary jazz','jazz pop','swing','cool jazz'],
+    // Instrumental music rides along with classical: film scores and modern
+    // piano records are tagged either way and nobody splits them by hand.
+    'classical':   ['classical','instrumental','orchestral','neoclassical','modern classical','contemporary classical','baroque','opera','piano','score'],
   };
   const list = aliases[g] || [g];
   return tags.some(t => list.some(m => t === m));
@@ -34615,7 +34730,7 @@ async function _awardsGeminiClassifyArtists(artists) {
   if (!apiKey) return;
   const needed = artists.filter(a => _awardsGenreCache[a.toLowerCase()] === undefined);
   if (!needed.length) return;
-  const tags = 'rock, classic rock, hard rock, indie rock, punk rock, alternative rock, metal, emo, post-rock, alternative, indie, indie rock, post-punk, dream pop, shoegaze, hip-hop, hip hop, rap, trap, conscious hip hop, r&b, soul, neo soul, contemporary r&b, rnb, rhythm and blues, pop, dance pop, indie pop, pop rock, teen pop, synth-pop, electropop, latin, reggaeton, latin pop, salsa, cumbia, bachata, latin rap, regional mexicano, electronic, edm, house, techno, dance, electro, trance, ambient, k-pop, kpop, korean pop, k pop, korean, country, country pop, country rock, americana, bluegrass, alt-country, outlaw country, nashville, reggae, dancehall, roots reggae, ska, dub, reggae fusion, eurodance, disco, nu-disco';
+  const tags = 'rock, classic rock, hard rock, indie rock, punk rock, alternative rock, metal, emo, post-rock, alternative, indie, indie rock, post-punk, dream pop, shoegaze, hip-hop, hip hop, rap, trap, conscious hip hop, r&b, soul, neo soul, contemporary r&b, rnb, rhythm and blues, pop, dance pop, indie pop, pop rock, teen pop, synth-pop, electropop, latin, reggaeton, latin pop, salsa, cumbia, bachata, latin rap, regional mexicano, electronic, edm, house, techno, dance, electro, trance, ambient, k-pop, kpop, korean pop, k pop, korean, country, country pop, country rock, americana, bluegrass, alt-country, outlaw country, nashville, reggae, dancehall, roots reggae, ska, dub, reggae fusion, eurodance, disco, nu-disco, folk, folk pop, indie folk, contemporary folk, folk rock, acoustic, singer-songwriter, acoustic pop, piano, soft rock, indie pop, bedroom pop, chamber pop, heavy metal, metalcore, nu metal, alternative metal, pop punk, midwest emo, post-hardcore, afrobeats, afropop, amapiano, j-pop, japanese, anime, j-rock, city pop, jazz, smooth jazz, vocal jazz, jazz fusion, classical, instrumental, orchestral, neoclassical, modern classical, opera';
   const prompt = `Classify each music artist using ONLY these genre tags (use multiple per artist if applicable):\n${tags}\n\nReturn a JSON object: { "Artist Name": ["tag1", "tag2"] }. Include every artist listed, even if unsure — guess based on your knowledge.\n\nArtists to classify:\n${needed.join('\n')}`;
   try {
     const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${encodeURIComponent(apiKey)}`, {
@@ -34638,6 +34753,140 @@ async function _awardsGeminiClassifyArtists(artists) {
       }
     }
   } catch (e) { /* fall through to Last.fm */ }
+}
+
+// Play-level tests for the categories that are just "plays that pass a test".
+// Each one answers false (never throws) for a play with no fields, which is how
+// the nominee picker probes whether a category can rank its browse list.
+const _AWARDS_PLAY_TESTS = {
+  'rt:ep':     p => _isReleaseTypePlay(p, 'ep'),
+  'rt:live':   p => _isReleaseTypePlay(p, 'live'),
+  reissue:     p => _isReissueAlbum(p.album),
+  compilation: p => _isCompilationPlay(p),
+  cover:       p => _isCoverSong(p),
+  acoustic:    p => _isAcousticVersion(p),
+  deep_cut:    p => _isDeepCut(p),
+};
+
+// A deep cut has at least this many songs on its album better known than it
+const AWARDS_DEEP_CUT_MIN_POS = 3;
+
+// Night runs 10pm – 4am, morning 5am – 11am
+function _awardsHourFits(f, h) {
+  return f === 'night' ? (h >= 22 || h < 4) : (h >= 5 && h < 11);
+}
+
+// Runs fn over items a few at a time, so a long list of lookups doesn't fire
+// dozens of requests at once
+async function _awardsBatched(items, size, fn) {
+  for (let i = 0; i < items.length; i += size) await Promise.all(items.slice(i, i + size).map(fn));
+}
+
+// Deezer's entry for a song: { id, rank, albumId }, where rank is its
+// popularity (0 – 1,000,000, higher is better known). null when it can't be
+// found. Memoized for the session.
+const AWARDS_UNDERRATED_MAX_RANK = 500000;
+const _awardsDzTrackCache = {};
+async function _awardsDeezerTrack(title, artist) {
+  const k = (artist + '|||' + title).toLowerCase();
+  if (k in _awardsDzTrackCache) return _awardsDzTrackCache[k];
+  let hit = null;
+  try {
+    const r = await deezerFetch(`search/track?q=${encodeURIComponent(artist + ' ' + title)}&limit=10`);
+    if (r.ok) {
+      const items = (await r.json())?.data || [];
+      const tl = title.toLowerCase(), aw = artist.toLowerCase().split(/[\s,&]/)[0];
+      const x = items.find(x => x.title?.toLowerCase().includes(tl) && x.artist?.name?.toLowerCase().includes(aw));
+      if (x) hit = { id: x.id, rank: x.rank || 0, albumId: x.album?.id || null };
+    }
+  } catch (e) {}
+  return (_awardsDzTrackCache[k] = hit);
+}
+async function _awardsDeezerTrackRank(title, artist) {
+  return (await _awardsDeezerTrack(title, artist))?.rank || null;
+}
+
+// Every track id on a Deezer album, best known first; null when it can't be read
+const _awardsDzAlbumCache = {};
+function _awardsDeezerAlbumOrder(albumId) {
+  if (albumId in _awardsDzAlbumCache) return _awardsDzAlbumCache[albumId];
+  return (_awardsDzAlbumCache[albumId] = (async () => {
+    try {
+      const r = await deezerFetch(`album/${albumId}/tracks?limit=100`);
+      if (!r.ok) return null;
+      const items = (await r.json())?.data || [];
+      return items.length ? items.sort((a, b) => (b.rank || 0) - (a.rank || 0)).map(x => x.id) : null;
+    } catch (e) { return null; }
+  })());
+}
+
+// "1st", "2nd", "3rd", "11th"…
+function _awardsOrdinal(n) {
+  const t = n % 100, o = n % 10;
+  return n + ((t >= 11 && t <= 13) ? 'th' : o === 1 ? 'st' : o === 2 ? 'nd' : o === 3 ? 'rd' : 'th');
+}
+
+/* ── Most Growth: this year against the one before ────────────────────────────
+   The comparison window is the twelve months right before the eligibility
+   window starts, so a Jan–Dec year compares against the previous calendar year.
+   Computed from the plays whenever a card is drawn, rather than stored with
+   the nominee, so hand-picked nominees and ones saved before this existed get
+   it too. Cached per year until the plays or the window change. */
+function _awardsGrowthWindows(start) {
+  const prevS = new Date(start); prevS.setFullYear(prevS.getFullYear() - 1);
+  const prevE = new Date(start.getTime() - 1);   // the last millisecond before the window
+  return { prevS, prevE };
+}
+
+const _awardsGrowthCache = {};
+function _awardsGrowthCounts(eligStart, eligEnd) {
+  const sig = eligStart + '|' + eligEnd + '|' + allPlays.length;
+  if (_awardsGrowthCache[sig]) return _awardsGrowthCache[sig];
+  const start = new Date(eligStart + 'T00:00:00');
+  const end   = new Date(eligEnd   + 'T23:59:59');
+  const { prevS, prevE } = _awardsGrowthWindows(start);
+  const cur = {}, prev = {};
+  for (const p of allPlays) {
+    if (p.date >= start && p.date <= end) { const k = _pk(p); cur[k] = (cur[k] || 0) + 1; }
+    else if (p.date >= prevS && p.date <= prevE) { const k = _pk(p); prev[k] = (prev[k] || 0) + 1; }
+  }
+  // "vs 2024" for a calendar year, "vs the year before" for a custom window
+  const vs = (start.getMonth() === 0 && start.getDate() === 1) ? String(prevS.getFullYear()) : 'the year before';
+  return (_awardsGrowthCache[sig] = { cur, prev, vs });
+}
+
+// { cur, prev, diff, pct, vs } for an artist; pct is null when there were no
+// plays the year before (growth from nothing has no percentage)
+function _awardsGrowthDelta(artist, eligStart, eligEnd) {
+  const c = _awardsGrowthCounts(eligStart, eligEnd);
+  const k = (artist || '').toLowerCase();
+  const cur = c.cur[k] || 0, prev = c.prev[k] || 0;
+  return { cur, prev, diff: cur - prev, pct: prev ? (cur - prev) / prev * 100 : null, vs: c.vs };
+}
+
+function _awardsSigned(n) { return (n > 0 ? '+' : n < 0 ? '−' : '±') + Math.abs(n).toLocaleString(); }
+
+// "+85% · +142 plays vs 2024", or "new · +142 plays vs 2024"
+function _awardsGrowthLabel(d) {
+  const pct = d.pct === null ? 'new' : _awardsSigned(Math.round(d.pct)) + '%';
+  return `${pct} · ${_awardsSigned(d.diff)} plays vs ${d.vs}`;
+}
+
+// The Most Growth delta for a nominee on a card, or null for any other category
+function _awardsGrowthFor(cat, year, item) {
+  if (!cat || cat.filter !== 'growth' || !item?.artist) return null;
+  const data = _awardsYearData[year] || {};
+  return _awardsGrowthDelta(item.artist, data.eligStart || `${year}-01-01`, data.eligEnd || `${year}-12-31`);
+}
+
+// A small up/down chip for the views that don't print a score line
+function _awardsGrowthChip(cat, year, item, cls) {
+  const d = _awardsGrowthFor(cat, year, item);
+  if (!d) return '';
+  const dir = d.diff > 0 ? 'up' : d.diff < 0 ? 'down' : 'flat';
+  const pct = d.pct === null ? 'new' : _awardsSigned(Math.round(d.pct)) + '%';
+  const tip = `${d.prev.toLocaleString()} → ${d.cur.toLocaleString()} plays (${_awardsSigned(d.diff)}) vs ${d.vs}`;
+  return `<span class="aw-growth aw-growth-${dir}${cls ? ' ' + cls : ''}" title="${esc(tip)}">${esc(pct)} · ${esc(_awardsSigned(d.diff))}</span>`;
 }
 
 async function _awardsGetCandidates(catDef, eligStart, eligEnd, log) {
@@ -34712,13 +34961,13 @@ async function _awardsGetCandidates(catDef, eligStart, eligEnd, log) {
     return _awardsTopN(m, 20, 1);
   }
   if (f === 'growth') {
-    const prevS = new Date(start); prevS.setFullYear(prevS.getFullYear() - 1);
-    const prevE = new Date(start); prevE.setDate(prevE.getDate() - 1);
+    const { prevS, prevE } = _awardsGrowthWindows(start);
     const { artists: prev } = _awardsCountMaps(allPlays.filter(p => p.date >= prevS && p.date <= prevE));
     const m = {};
     for (const [k, d] of Object.entries(artists)) {
       const delta = d.plays - (prev[k]?.plays || 0);
-      if (delta > 0) m[k] = { artist: d.artist, plays: delta };
+      // Ranked on the gain in plays; the label carries the percentage too
+      if (delta > 0) m[k] = { artist: d.artist, plays: delta, playLabel: _awardsGrowthLabel(_awardsGrowthDelta(d.artist, eligStart, eligEnd)) };
     }
     return _awardsTopN(m, 20, 1);
   }
@@ -34783,6 +35032,161 @@ async function _awardsGetCandidates(catDef, eligStart, eligEnd, log) {
       m[k].plays++;
     }
     return _awardsTopN(m, 20, catDef.type === 'album' ? 2 : 3);
+  }
+  /* Best Deep Cut: album tracks that were never singles. The library can only
+     rule out songs you played off a single or EP, and most people play the
+     singles from the album, so Deezer settles the rest: a track is a deep cut
+     when at least three songs on its album are better known. A song Deezer
+     can't place stays in on the library's word alone. */
+  if (f === 'deep_cut') {
+    const m = {};
+    for (const p of inWin) {
+      if (!_isDeepCut(p)) continue;
+      const k = _sk(p);
+      if (!m[k]) m[k] = { title: p.title, artist: p.artist, album: p.album, plays: 0 };
+      m[k].plays++;
+    }
+    const pool = _awardsTopN(m, 60, 3);
+    if (log) log(`Checking which of ${pool.length} album track${pool.length !== 1 ? 's were' : ' was'} singles…`);
+    await _awardsBatched(pool, 8, async c => {
+      const tr = await _awardsDeezerTrack(c.title, c.artist);
+      if (!tr?.albumId) return;
+      const order = await _awardsDeezerAlbumOrder(tr.albumId);
+      const pos = order ? order.indexOf(tr.id) : -1;
+      if (pos >= 0) c.albumPos = pos + 1;
+    });
+    return pool
+      .filter(c => !c.albumPos || c.albumPos > AWARDS_DEEP_CUT_MIN_POS)
+      .slice(0, 20)
+      .map(({ albumPos, ...c }) => albumPos
+        ? Object.assign(c, { playLabel: `${c.plays.toLocaleString()} plays · ${_awardsOrdinal(albumPos)} best known on the album` })
+        : c);
+  }
+  /* Awards whose field is simply "the plays that pass a test": the format
+     awards on albums, and song versions told apart by their titles. */
+  const playTest = _AWARDS_PLAY_TESTS[f];
+  if (playTest) {
+    const m = {};
+    for (const p of inWin) {
+      if (!playTest(p)) continue;
+      const k = catDef.type === 'album' ? _ak(p) : _sk(p);
+      if (!m[k]) m[k] = catDef.type === 'album'
+        ? { album: p.album, artist: _pa(p), plays: 0 }
+        : { title: p.title, artist: p.artist, album: p.album, plays: 0 };
+      m[k].plays++;
+    }
+    return _awardsTopN(m, 20, catDef.type === 'album' ? 2 : 3);
+  }
+  // Songs ranked on the plays that fell in one part of the day, in your timezone
+  if (f === 'night' || f === 'morning') {
+    const { songs: ss } = _awardsCountMaps(inWin.filter(p => _awardsHourFits(f, tzDateOf(p).getHours())));
+    for (const v of Object.values(ss)) v.playLabel = `${v.plays.toLocaleString()} ${f} plays`;
+    return _awardsTopN(ss, 20, 3);
+  }
+  /* Most Loyal Artist: played in every month of the window (up to today, for
+     the year still running), most plays first. Artists one month short follow,
+     labelled as such, so a year with few perfect runs still has a field. */
+  if (f === 'loyal') {
+    const now  = new Date();
+    const last = end < now ? end : now;
+    let need = 0;
+    for (let d = new Date(start.getFullYear(), start.getMonth(), 1); d <= last; d.setMonth(d.getMonth() + 1)) need++;
+    const m = {};
+    for (const p of inWin) {
+      const d = tzDateOf(p), k = _pk(p);
+      if (!m[k]) m[k] = { artist: _pa(p), plays: 0, months: new Set() };
+      m[k].plays++;
+      m[k].months.add(d.getFullYear() * 12 + d.getMonth());
+    }
+    return Object.values(m)
+      .map(v => ({ artist: v.artist, plays: v.plays, n: v.months.size }))
+      .filter(v => v.n >= Math.max(2, need - 1))
+      .sort((a, b) => b.n - a.n || b.plays - a.plays)
+      .slice(0, 20)
+      // Rebuilt without the month count, which only ranked them
+      .map(v => ({ artist: v.artist, plays: v.plays,
+        playLabel: (v.n >= need ? 'every month' : `${v.n} of ${need} months`) + ` · ${v.plays.toLocaleString()} plays` }));
+  }
+  /* Best Throwback: the year's most played songs whose album came out at least
+     ten years before it. Release years come from the same lookups as the late
+     discovery award; a song whose year can't be found is left out. */
+  if (f === 'throwback') {
+    const awardsYear = start.getFullYear();
+    const withAlbum = {};
+    for (const [k, v] of Object.entries(songs)) if (v.album && v.album !== '—') withAlbum[k] = v;
+    // Throwbacks rarely top the year, so the pool reaches well down the list;
+    // the lookups are per album, and most of a year's songs share a few albums
+    const pool = _awardsTopN(withAlbum, 200, 5);
+    const albumsToCheck = [...new Map(pool.map(c => [c.album.toLowerCase() + '|||' + c.artist.toLowerCase(), c])).values()];
+    if (log) log(`Fetching release years for ${albumsToCheck.length} album${albumsToCheck.length !== 1 ? 's' : ''}…`);
+    await _awardsBatched(albumsToCheck, 10, c => _awardsGetAlbumYear(c.album, c.artist));
+    const m = {};
+    for (const c of pool) {
+      const yr = _awardsAlbumYearCache[c.album.toLowerCase() + '|||' + c.artist.toLowerCase()];
+      if (!yr || yr > awardsYear - 10) continue;
+      m[_sk(c)] = { title: c.title, artist: c.artist, album: c.album, plays: c.plays, releaseYear: yr,
+        playLabel: `from ${yr} · ${c.plays.toLocaleString()} plays` };
+    }
+    return _awardsTopN(m, 20, 3);
+  }
+  /* Most Underrated Song: songs you played a lot that the wider world mostly
+     hasn't. "The wider world" is Deezer's popularity rank (0 – 1,000,000, no
+     API key needed, so it works for every data source). Scored as plays times
+     how obscure the song is; big hits drop out entirely. If Deezer can't be
+     reached, the field falls back to the year's top songs to pick from. */
+  if (f === 'underrated') {
+    const pool = _awardsTopN(songs, 60, 3).map(c => Object.assign({}, c));
+    if (log) log(`Checking how well known ${pool.length} song${pool.length !== 1 ? 's are' : ' is'}…`);
+    await _awardsBatched(pool, 10, async c => { c.rank = await _awardsDeezerTrackRank(c.title, c.artist); });
+    const known = pool.filter(c => c.rank);
+    if (!known.length) return pool.slice(0, 20).map(({ rank, ...c }) => c);
+    return known
+      .filter(c => c.rank < AWARDS_UNDERRATED_MAX_RANK)
+      .sort((a, b) => b.plays * (1 - b.rank / 1e6) - a.plays * (1 - a.rank / 1e6))
+      .slice(0, 20)
+      .map(c => ({ title: c.title, artist: c.artist, album: c.album, plays: c.plays,
+        playLabel: `${c.plays.toLocaleString()} plays · popularity ${Math.round(c.rank / 10000)}/100` }));
+  }
+  /* Best Debut Album: an artist's first studio album to reach your library,
+     first played in this window, and released this year or last. The release
+     year is what keeps out an artist new to you with a long back catalogue;
+     an album whose year can't be found stays in. */
+  if (f === 'debut') {
+    const awardsYear = start.getFullYear();
+    const albumFirst = {}, artistFirst = {};
+    for (const p of allPlays) {
+      if (!_isStudioAlbumPlay(p)) continue;
+      const ak = _ak(p), pk = _pk(p);
+      if (!albumFirst[ak] || p.date < albumFirst[ak].date) albumFirst[ak] = { date: p.date, pk };
+      if (!artistFirst[pk] || p.date < artistFirst[pk].date) artistFirst[pk] = { date: p.date, ak };
+    }
+    const m = {};
+    for (const p of inWin) {
+      if (!p.album) continue;
+      const ak = _ak(p), a = albumFirst[ak];
+      if (!a || a.date < start || artistFirst[a.pk].ak !== ak) continue;
+      if (!m[ak]) m[ak] = { album: p.album, artist: _pa(p), plays: 0 };
+      m[ak].plays++;
+    }
+    const pool = _awardsTopN(m, 30, 1);
+    if (log) log(`Fetching release years for ${pool.length} album${pool.length !== 1 ? 's' : ''}…`);
+    await _awardsBatched(pool, 8, c => _awardsGetAlbumYear(c.album, c.artist));
+    return pool.filter(c => {
+      const yr = _awardsAlbumYearCache[c.album.toLowerCase() + '|||' + c.artist.toLowerCase()];
+      if (yr) c.releaseYear = yr;
+      return !yr || yr >= awardsYear - 1;
+    }).slice(0, 20);
+  }
+  // Albums whose title marks them as a deluxe / expanded / anniversary edition.
+  if (f === 'deluxe') {
+    const m = {};
+    for (const p of inWin) {
+      if (!p.album || !_isDeluxeAlbum(p.album)) continue;
+      const k = _ak(p);
+      if (!m[k]) m[k] = { album: p.album, artist: _pa(p), plays: 0 };
+      m[k].plays++;
+    }
+    return _awardsTopN(m, 20, 2);
   }
   /* Pop split by billing: solo songs on one side, duos and groups on the other.
      _isDuo is a subset of _isCollab, so the one test sorts both sides. */
@@ -35555,6 +35959,7 @@ function _awardsRenderCatCard(cat, catData, year, idx) {
         <span class="awards-nominee-icon">${mark}</span>
         <span class="awards-nominee-label" title="${esc(lbl)}">${esc(lbl)}</span>
         ${sub ? `<span class="awards-nominee-sub" title="${esc(sub)}">${esc(sub)}</span>` : ''}
+        ${_awardsGrowthChip(cat, year, item)}
         ${_awardsMoveCtl(year, cat, { i, n: nominees.length }, 'y')}
         <button class="awards-nominee-remove" onclick="awardsRemoveNominee(event,${year},'${esc(cat.id)}',${esc(JSON.stringify(item))})" title="Remove">✕</button>
       </div>`;
@@ -35764,12 +36169,15 @@ function _awardsCatField(cat, catData) {
   };
 }
 
-function _awardsEntryText(item) {
+function _awardsEntryText(item, cat, year) {
   const plays = Number(item.plays);
+  // Most Growth reads its delta off the plays every time, so a nominee added by
+  // hand shows it as well as a suggested one
+  const growth = _awardsGrowthFor(cat, year, item);
   return {
     lbl:   item.title || item.album || item.artist || '',
     sub:   (item.title ? item.artist : (item.album ? item.artist : item.song)) || '',
-    score: item.playLabel || (plays ? `${plays.toLocaleString()} plays` : ''),
+    score: growth ? _awardsGrowthLabel(growth) : (item.playLabel || (plays ? `${plays.toLocaleString()} plays` : '')),
   };
 }
 
@@ -35908,7 +36316,7 @@ function _awardsSpotlightBody(cat, f, year, idp, queue) {
   const w = f.winner;
   let hero;
   if (w) {
-    const x = _awardsEntryText(w);
+    const x = _awardsEntryText(w, cat, year);
     const heroId = `${idp}_hero`;
     const known = _awardsArtKnown(w, cat.type);
     hero = `<div class="aw-spot-hero is-crowned">
@@ -35934,7 +36342,7 @@ function _awardsSpotlightBody(cat, f, year, idp, queue) {
   }
   // An auto award's winner is the hero already; below it go only the tied rest
   const rows = (cat.auto ? f.entries.filter(e => !e.isW) : f.entries).map((e, k) => {
-    const x = _awardsEntryText(e.item);
+    const x = _awardsEntryText(e.item, cat, year);
     return `<div class="aw-spot-row${e.isW ? ' is-winner' : ''}" style="--i:${k}"${_awardsEntryAttrs(year, cat, e)}>
       <span class="aw-spot-rank">${e.mark}</span>
       ${_awardsArtSlot(e.item, cat.type, `${idp}_r${k}`, queue, 'aw-spot-thumb')}
@@ -35952,7 +36360,7 @@ function _awardsSpotlightBody(cat, f, year, idp, queue) {
 
 function _awardsTilesBody(cat, f, year, idp, queue) {
   return `<div class="aw-tiles">${f.entries.map((e, k) => {
-    const x = _awardsEntryText(e.item);
+    const x = _awardsEntryText(e.item, cat, year);
     return `<div class="aw-tile${e.isW ? ' is-winner' : ''}" style="--i:${k}"${_awardsEntryAttrs(year, cat, e)}>
       <div class="aw-tile-frame">
         ${_awardsArtSlot(e.item, cat.type, `${idp}_t${k}`, queue, 'aw-tile-art')}
@@ -35962,6 +36370,7 @@ function _awardsTilesBody(cat, f, year, idp, queue) {
       </div>
       <span class="aw-tile-name" title="${esc(x.lbl)}">${esc(x.lbl)}</span>
       ${x.sub ? `<span class="aw-tile-sub" title="${esc(x.sub)}">${esc(x.sub)}</span>` : ''}
+      ${_awardsGrowthChip(cat, year, e.item)}
     </div>`;
   }).join('')}</div>`;
 }
@@ -35973,7 +36382,7 @@ function _awardsCollageBody(cat, f, year, idp, queue) {
   const cells = ordered.length + (f.winner ? 3 : 0);
   const gap = cells % 4 ? 4 - cells % 4 : 0;
   return `<div class="aw-collage"><div class="aw-collage-grid">${ordered.map((e, k) => {
-    const x = _awardsEntryText(e.item);
+    const x = _awardsEntryText(e.item, cat, year);
     // A lone entry (an untied auto award) would fill only half the width, so it
     // becomes a full-width banner instead
     const span = ordered.length === 1 ? ';grid-column:1 / -1'
@@ -35987,6 +36396,7 @@ function _awardsCollageBody(cat, f, year, idp, queue) {
         ${e.isW ? `<span class="aw-col-win">${esc(t('awards_winner'))}</span>` : ''}
         <span class="aw-col-name" title="${esc(x.lbl)}">${esc(x.lbl)}</span>
         ${x.sub ? `<span class="aw-col-sub">${esc(x.sub)}</span>` : ''}
+        ${_awardsGrowthChip(cat, year, e.item)}
       </div>
     </div>`;
   }).join('')}</div></div>`;
@@ -35994,7 +36404,7 @@ function _awardsCollageBody(cat, f, year, idp, queue) {
 
 function _awardsReelBody(cat, f, year, idp, queue) {
   return `<div class="aw-reel-track">${f.entries.map((e, k) => {
-    const x = _awardsEntryText(e.item);
+    const x = _awardsEntryText(e.item, cat, year);
     return `<div class="aw-poster${e.isW ? ' is-winner' : ''}" style="--i:${k}"${_awardsEntryAttrs(year, cat, e)}>
       <div class="aw-poster-frame">
         ${_awardsArtSlot(e.item, cat.type, `${idp}_p${k}`, queue, 'aw-poster-art', { hd: true })}
@@ -36223,6 +36633,8 @@ function _awardsPickerPlayFits(p) {
   // The album guard comes first so the fake play _awardsPickerHasFit() probes with
   // answers false instead of reaching releaseTypeOf() with nothing to look up.
   if (f === 'soundtrack') return !!p.album && releaseTypeOfPlay(p) === 'soundtrack';
+  if (f === 'deluxe')     return !!p.album && _isDeluxeAlbum(p.album);
+  if (_AWARDS_PLAY_TESTS[f]) return _AWARDS_PLAY_TESTS[f](p);
   // Half the answer — the pop half is genre, so it waits for _awardsPickerItemFits().
   if (f === 'pop_solo')   return !_isCollab(p);
   if (f === 'pop_duo')    return _isCollab(p);
@@ -36235,6 +36647,7 @@ function _awardsPickerPlayFits(p) {
 function _awardsPickerItemFits(item) {
   const f = _awardsPickerCatFilter;
   if (f === 'summer') return (item.summerPlays || 0) > 0;
+  if (f === 'night' || f === 'morning') return (item.hourPlays || 0) > 0;
   // Billing was settled at index time; the genre half is answered here, from the cache.
   if (f === 'pop_solo' || f === 'pop_duo') {
     const tags = _awardsGenreCache[(item.artist || '').toLowerCase()];
@@ -36250,7 +36663,7 @@ function _awardsPickerItemFits(item) {
 // Whether this category can rank the browse list at all
 function _awardsPickerHasFit() {
   const f = _awardsPickerCatFilter;
-  return f === 'summer' || f.startsWith('genre:') || _awardsPickerPlayFits({}) !== null;
+  return f === 'summer' || f === 'night' || f === 'morning' || f.startsWith('genre:') || _awardsPickerPlayFits({}) !== null;
 }
 
 // Plural noun for the category's matches, used in the group headers
@@ -36263,8 +36676,25 @@ function _awardsPickerFitLabel() {
   if (f === 'nonenglish') return 'Non-English ' + kind;
   if (f === 'summer')     return 'Summer songs';
   if (f === 'soundtrack') return 'Soundtrack ' + kind;
+  if (f === 'deluxe')     return 'Deluxe editions';
+  if (f === 'rt:ep')      return 'EPs';
+  if (f === 'rt:live')    return 'Live albums';
+  if (f === 'reissue')    return 'Reissues & remasters';
+  if (f === 'compilation') return 'Compilations & greatest hits';
+  if (f === 'cover')      return 'Covers';
+  if (f === 'acoustic')   return 'Acoustic & stripped versions';
+  if (f === 'deep_cut')   return 'Album tracks that were never singles';
+  if (f === 'night')      return 'Songs played at night';
+  if (f === 'morning')    return 'Songs played in the morning';
   if (f === 'pop_solo')   return 'Solo pop songs';
   if (f === 'pop_duo')    return 'Pop duos & groups';
+  if (f === 'genre:folk') return 'Folk & acoustic ' + kind;
+  if (f === 'genre:singer-songwriter') return 'Singer-songwriter ' + kind;
+  if (f === 'genre:indie-pop') return 'Indie pop ' + kind;
+  if (f === 'genre:metal')     return 'Metal & hard rock ' + kind;
+  if (f === 'genre:punk')      return 'Punk & emo ' + kind;
+  if (f === 'genre:j-pop')     return 'J-pop & anime ' + kind;
+  if (f === 'genre:classical') return 'Classical & instrumental ' + kind;
   if (f.startsWith('genre:')) return f.replace('genre:', '').replace('rnb', 'R&B').replace(/^./, c => c.toUpperCase()) + ' ' + kind;
   return '';
 }
@@ -36300,10 +36730,23 @@ function _awardsPickerBuildIndex() {
       const mo = tzDateOf(p).getMonth();
       if (mo >= 5 && mo <= 7) item.summerPlays = (item.summerPlays || 0) + 1;
     }
+    if ((_awardsPickerCatFilter === 'night' || _awardsPickerCatFilter === 'morning')
+        && _awardsHourFits(_awardsPickerCatFilter, tzDateOf(p).getHours())) {
+      item.hourPlays = (item.hourPlays || 0) + 1;
+    }
   }
   // Song of the Summer ranks on summer plays, so label the rows with that number
   if (_awardsPickerCatFilter === 'summer') {
     for (const item of Object.values(map)) item.playLabel = (item.summerPlays || 0) + ' summer plays';
+  }
+  // Same for the night and morning songs
+  if (_awardsPickerCatFilter === 'night' || _awardsPickerCatFilter === 'morning') {
+    for (const item of Object.values(map)) item.playLabel = (item.hourPlays || 0) + ' ' + _awardsPickerCatFilter + ' plays';
+  }
+  // Most Growth: every artist row shows its change on the year before
+  if (_awardsPickerCatFilter === 'growth') {
+    const { start: es, end: ee } = _awardsPickerEligWin;
+    for (const item of Object.values(map)) item.playLabel = _awardsGrowthLabel(_awardsGrowthDelta(item.artist, es, ee));
   }
 
   // Carry the suggestion metadata (custom play labels, release years) onto the indexed
@@ -36983,6 +37426,7 @@ const _AWARDS_PREVIEW_KIND = {
   video_of_year:      'video',
   best_album_concept: 'album',
   best_album_cover:   'cover',
+  best_deluxe_cover:  'cover',
 };
 const _AWARDS_PREVIEW_UI = {
   video: { icon: '▶', onIcon: '■', title: 'Watch a bit of the video', onTitle: 'Close the video' },
