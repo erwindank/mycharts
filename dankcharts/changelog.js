@@ -80,11 +80,11 @@ const DC_CHANGELOG = [
 
   /* ========== SEPTEMBER 2026 ========== */
 
-  { d: '2026-09-30', t: 'feature', a: 'awards', h: '',
+  { d: '2026-09-30', t: 'feature', a: 'awards', h: '58bdbb8',
     title: 'Play samples from My Grammys nominee cards',
     detail: 'Configure Year has a new switch, Play samples from nominee cards. With it on, every nominee gets a ♪ button that plays a 30-second preview, so you can hear the field before you pick a winner. Click it again to stop. It works in all five views, and clicking the ♪ never crowns the nominee. It is off to start with, applies to every year and syncs across your devices.' },
 
-  { d: '2026-09-30', t: 'feature', a: 'awards', h: '',
+  { d: '2026-09-30', t: 'feature', a: 'awards', h: '58bdbb8',
     title: 'Show your scores on My Grammys nominee cards',
     detail: 'Configure Year has a new switch, Show my scores on nominee cards. With it on, every nominee you have rated shows your score out of 10 next to it, in all five views. Songs and albums you have not rated show nothing, and artists use the average of their rated albums. It is off to start with, applies to every year and syncs across your devices.' },
 
