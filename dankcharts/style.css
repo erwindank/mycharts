@@ -22297,44 +22297,230 @@ body[class*="-light"] .tm-card-search:hover {
   min-width: 0;
 }
 .awards-gemini-row input[type=password]:focus { outline: none; border-color: var(--accent); }
-.awards-cat-toggles-header {
+/* ─── Configure Year: category browser ───────────────────────────────────────
+   Search + type / on-off filters + group chips on top, then one section per
+   group with a card per category. The list scrolls inside the panel so the
+   bar above it never leaves the screen. */
+.awc { margin-top: 6px; }
+.awc-head {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+.awc-title { font-family: var(--font-display); font-size: 1rem; font-weight: 700; color: var(--text1); }
+.awc-count { font-family: var(--font-mono); font-size: 0.72rem; color: var(--text3); }
+
+.awc-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+.awc-search {
+  position: relative;
+  flex: 1 1 260px;
+  min-width: 0;
+}
+.awc-search svg {
+  position: absolute;
+  left: 11px;
+  top: 50%;
+  width: 16px;
+  height: 16px;
+  transform: translateY(-50%);
+  fill: none;
+  stroke: var(--text3);
+  stroke-width: 2;
+  stroke-linecap: round;
+  pointer-events: none;
+}
+.awc-search input {
+  width: 100%;
+  height: 38px;
+  padding: 0 34px 0 36px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--surface3);
+  color: var(--text1);
+  font-size: 0.88rem;
+}
+.awc-search input::-webkit-search-cancel-button { display: none; }
+.awc-search input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 22%, transparent); }
+.awc-search-clear {
+  position: absolute;
+  right: 6px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 26px;
+  height: 26px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--text3);
+  cursor: pointer;
+  font-size: 0.8rem;
+}
+.awc-search-clear:hover { background: var(--surface2); color: var(--text1); }
+
+/* Segmented filters: Type and On/Off */
+.awc-seg {
+  display: inline-flex;
+  padding: 3px;
+  gap: 2px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--surface3);
+}
+.awc-seg button {
+  height: 30px;
+  padding: 0 11px;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--text2);
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.awc-seg button:hover { color: var(--text1); }
+.awc-seg button[aria-pressed="true"] { background: var(--accent); color: var(--on-accent); }
+
+.awc-bulk { display: inline-flex; gap: 6px; margin-left: auto; }
+.awc-bulk-btn {
+  height: 36px;
+  padding: 0 12px;
+  border-radius: 9px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text2);
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.awc-bulk-btn:hover { border-color: var(--accent); color: var(--text1); }
+
+/* Group chips: scroll sideways on a phone instead of wrapping into a block */
+.awc-chips {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+  margin-bottom: 8px;
+  scrollbar-width: thin;
+}
+.awc-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex: 0 0 auto;
+  height: 32px;
+  padding: 0 12px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text2);
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+.awc-chip:hover:not(:disabled) { border-color: color-mix(in srgb, var(--accent) 60%, var(--border)); color: var(--text1); }
+.awc-chip[aria-pressed="true"] {
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 16%, transparent);
+  color: var(--text1);
+}
+.awc-chip:disabled { opacity: 0.4; cursor: default; }
+.awc-chip-n { font-family: var(--font-mono); font-size: 0.68rem; color: var(--text3); }
+
+.awc-list {
+  max-height: min(62vh, 640px);
+  overflow-y: auto;
+  padding-right: 4px;
+  scrollbar-width: thin;
+}
+.awc-group + .awc-group { margin-top: 16px; }
+/* The heading sticks while its section scrolls under it */
+.awc-group-head {
+  position: sticky;
+  top: 0;
+  z-index: 1;
   display: flex;
   align-items: center;
   gap: 8px;
-  margin-bottom: 8px;
-  font-size: 0.82rem;
-  color: var(--text2);
-  font-weight: 600;
+  padding: 6px 0 8px;
+  background: var(--surface2);
 }
-.awards-cat-toggle-all {
+.awc-group-icon { font-size: 1rem; }
+.awc-group-head h4 { margin: 0; font-family: var(--font-display); font-size: 0.92rem; font-weight: 700; color: var(--text1); }
+.awc-group-n { font-family: var(--font-mono); font-size: 0.7rem; color: var(--text3); }
+.awc-group-acts { display: inline-flex; gap: 4px; margin-left: auto; }
+.awc-group-acts button {
   padding: 3px 9px;
   border-radius: 6px;
-  border: 1px solid var(--border);
-  background: var(--surface3);
-  color: var(--text2);
-  font-size: 0.75rem;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--text3);
+  font-size: 0.72rem;
+  font-weight: 600;
   cursor: pointer;
 }
-.awards-cat-toggle-all:hover { background: var(--accent); color: var(--on-accent); border-color: var(--accent); }
-.awards-cat-toggles {
+.awc-group-acts button:hover { border-color: var(--border); color: var(--text1); }
+
+.awc-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-  gap: 4px;
-  max-height: 320px;
-  overflow-y: auto;
+  grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
+  gap: 8px;
 }
-.awards-cat-toggle-row {
+/* A whole card is the switch's label, so clicking anywhere on it flips it */
+.awc-card {
   display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 4px 6px;
-  border-radius: 6px;
-  font-size: 0.78rem;
+  gap: 10px;
+  min-width: 0;
+  padding: 10px 12px;
+  border-radius: 11px;
+  border: 1px solid var(--border);
+  background: var(--surface1);
   cursor: pointer;
-  color: var(--text2);
+  transition: border-color 0.15s, background 0.15s;
 }
-.awards-cat-toggle-row:hover { background: var(--surface3); }
-.awards-cat-toggle-row input[type=checkbox] { accent-color: var(--accent); }
+.awc-card:hover { border-color: color-mix(in srgb, var(--accent) 45%, var(--border)); }
+.awc-card.is-on {
+  border-color: color-mix(in srgb, var(--accent) 55%, var(--border));
+  background: color-mix(in srgb, var(--accent) 8%, var(--surface1));
+}
+.awc-card:has(input:focus-visible) { outline: 2px solid var(--accent); outline-offset: 2px; }
+.awc-emoji {
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  width: 36px;
+  height: 36px;
+  border-radius: 9px;
+  background: var(--surface3);
+  font-size: 1.1rem;
+}
+.awc-card:not(.is-on) .awc-emoji { filter: grayscale(0.6); opacity: 0.75; }
+.awc-text { display: flex; flex-direction: column; gap: 2px; flex: 1 1 auto; min-width: 0; }
+.awc-name { font-size: 0.86rem; font-weight: 600; color: var(--text1); line-height: 1.25; }
+.awc-card:not(.is-on) .awc-name { color: var(--text2); }
+.awc-name mark { background: color-mix(in srgb, var(--accent) 30%, transparent); color: inherit; border-radius: 3px; padding: 0 1px; }
+.awc-hint { font-size: 0.72rem; color: var(--text3); line-height: 1.3; }
+.awc-tags { display: flex; flex-direction: column; align-items: flex-end; gap: 3px; flex: 0 0 auto; }
+.awc-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 28px 12px;
+  color: var(--text3);
+  font-size: 0.85rem;
+  text-align: center;
+}
 .awards-type-badge {
   font-size: 0.62rem;
   padding: 1px 5px;
@@ -25271,7 +25457,11 @@ body.pink-light .awards-reallife-badge.nom { color: #4338ca; border-color: #6366
   .cer-show-name { font-size: 1.1rem; }
   .cer-show-bar { width: 160px; }
   #awardsCatList { grid-template-columns: 1fr; }
-  .awards-cat-toggles { grid-template-columns: 1fr; }
+  .awc-grid { grid-template-columns: 1fr; }
+  .awc-bulk { margin-left: 0; width: 100%; }
+  .awc-bulk-btn { flex: 1 1 0; }
+  .awc-seg { flex: 1 1 auto; }
+  .awc-seg button { flex: 1 1 0; padding: 0 6px; }
 }
 
 /* ─── STREAK DETAILS MODAL ──────────────────────────────────── */

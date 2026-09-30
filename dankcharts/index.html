@@ -27,11 +27,11 @@
   <!-- html2canvas, SheetJS (xlsx) and JSZip are intentionally NOT loaded here — they
        total ~1.2 MB and are only needed for image exports and Excel/ZIP imports.
        app.js pulls them from the CDN on first use (see ensureLazyLib). -->
-  <link rel="stylesheet" href="style.css?v=287">
+  <link rel="stylesheet" href="style.css?v=288">
   <!-- All scripts are deferred so the page paints without waiting on them.
        defer preserves execution order, which matters: translations → Chart.js →
        hammer → zoom plugin → firebase SDKs → firebase.js → app.js (in body). -->
-  <script defer src="translations.js?v=24"></script>
+  <script defer src="translations.js?v=25"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8/hammer.min.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@1.2.1/dist/chartjs-plugin-zoom.min.js"></script>
@@ -2102,12 +2102,42 @@
               </span>
             </label>
           </div>
-          <div class="awards-cat-toggles-header">
-            <span data-i18n="awards_categories_for_year">Categories for this year</span>
-            <button class="awards-cat-toggle-all" onclick="awardsToggleAllCats(true)" data-i18n="awards_enable_all">Enable All</button>
-            <button class="awards-cat-toggle-all" onclick="awardsToggleAllCats(false)" data-i18n="awards_disable_all">Disable All</button>
+          <!-- Category browser: search, filters and grouped cards (_awardsRenderCatToggles).
+               The bar is static so typing in the search never loses focus; only
+               the chips, counts and list below it are redrawn. -->
+          <div class="awc" id="awardsCatBrowser">
+            <div class="awc-head">
+              <span class="awc-title" data-i18n="awards_categories_for_year">Categories for this year</span>
+              <span class="awc-count" id="awardsCatCount"></span>
+            </div>
+            <div class="awc-bar">
+              <div class="awc-search">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+                <input type="search" id="awardsCatSearch" autocomplete="off" spellcheck="false"
+                  placeholder="Search categories — rock, album, cover…" data-i18n-placeholder="awards_cat_search"
+                  aria-label="Search categories" oninput="awardsCatFilter('q', this.value)"
+                  onkeydown="if (event.key === 'Escape' && this.value) { event.preventDefault(); this.value = ''; awardsCatFilter('q', ''); }">
+                <button type="button" class="awc-search-clear" id="awardsCatSearchClear" hidden onclick="awardsCatFilter('q', ''); const i = document.getElementById('awardsCatSearch'); i.value = ''; i.focus();" aria-label="Clear search">✕</button>
+              </div>
+              <div class="awc-seg" role="group" aria-label="Type" id="awardsCatTypeSeg">
+                <button type="button" data-v="all" onclick="awardsCatFilter('type','all')" data-i18n="awards_cat_f_all">All</button>
+                <button type="button" data-v="song" onclick="awardsCatFilter('type','song')" data-i18n="awards_cat_f_songs">Songs</button>
+                <button type="button" data-v="album" onclick="awardsCatFilter('type','album')" data-i18n="awards_cat_f_albums">Albums</button>
+                <button type="button" data-v="artist" onclick="awardsCatFilter('type','artist')" data-i18n="awards_cat_f_artists">Artists</button>
+              </div>
+              <div class="awc-seg" role="group" aria-label="Status" id="awardsCatStatusSeg">
+                <button type="button" data-v="all" onclick="awardsCatFilter('status','all')" data-i18n="awards_cat_f_any">Any</button>
+                <button type="button" data-v="on" onclick="awardsCatFilter('status','on')" data-i18n="awards_cat_f_on">On</button>
+                <button type="button" data-v="off" onclick="awardsCatFilter('status','off')" data-i18n="awards_cat_f_off">Off</button>
+              </div>
+              <div class="awc-bulk">
+                <button type="button" class="awc-bulk-btn" id="awardsCatAllOn" onclick="awardsToggleAllCats(true)">Enable All</button>
+                <button type="button" class="awc-bulk-btn" id="awardsCatAllOff" onclick="awardsToggleAllCats(false)">Disable All</button>
+              </div>
+            </div>
+            <div class="awc-chips" id="awardsCatGroups" role="group" aria-label="Category groups"></div>
+            <div class="awc-list" id="awardsCatToggles"></div>
           </div>
-          <div class="awards-cat-toggles" id="awardsCatToggles"></div>
         </div>
 
         <!-- Status message -->
@@ -3208,8 +3238,8 @@
 
   <!-- defer keeps app.js last in the script execution order (after translations,
        Chart.js and firebase.js) while letting the whole page parse and paint first -->
-  <script defer src="changelog.js?v=72"></script>
-  <script defer src="app.js?v=252"></script>
+  <script defer src="changelog.js?v=73"></script>
+  <script defer src="app.js?v=253"></script>
 
   <!-- ── Settings Modal ──
        Split into three tabs so the whole form is never dumped on screen at

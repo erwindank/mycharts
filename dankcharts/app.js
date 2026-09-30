@@ -35453,17 +35453,198 @@ async function awardsRenderYear(year) {
   _awardsRenderCatList(data);
 }
 
+/* ─── Configure Year: the category browser ─────────────────────────────────────
+   Eighty-odd categories in one flat grid of checkboxes was a wall of text, so
+   they are grouped into sections, each card says in a line what the category
+   is built from, and the list can be searched and narrowed by type (song /
+   album / artist), by on/off, and by group. Enable All / Disable All act on
+   whatever is showing, so "search rock, Enable All" turns on every rock award.
+   The filters are per session and never saved: they're a way of looking, not
+   part of the year. */
+const AWARD_GROUPS = [
+  { id: 'core',      icon: '🏆', ids: ['song_of_year', 'album_of_year', 'artist_of_year', 'record_of_year', 'new_artist', 'video_of_year', 'best_collab', 'best_duo'] },
+  { id: 'genre',     icon: '🎼', test: c => c.filter.startsWith('genre:') || ['best_pop_solo', 'best_pop_duo', 'best_nonenglish'].includes(c.id) },
+  { id: 'format',    icon: '💿', ids: ['best_album_cover', 'best_album_concept', 'best_deluxe_album', 'best_deluxe_cover', 'best_ep', 'best_live_album', 'best_debut_album', 'best_reissue', 'best_compilation', 'best_soundtrack_album', 'late_discovery'] },
+  { id: 'songtype',  icon: '🎵', ids: ['song_summer', 'most_viral_song', 'best_remix', 'best_remixed_rec', 'best_soundtrack_song', 'best_cover_song', 'best_acoustic_version', 'best_breakup_song', 'best_throwback', 'best_deep_cut'] },
+  { id: 'listening', icon: '🎧', ids: ['best_discovery', 'best_comeback', 'most_growth', 'obsessive_play', 'one_hit_wonder', 'best_night_song', 'best_morning_song', 'most_loyal_artist'] },
+  { id: 'fun',       icon: '🎉', ids: ['guilty_pleasure', 'most_underrated_song'] },
+  { id: 'stats',     icon: '📊', test: c => !!c.auto },
+];
+// Anything added later without a group still shows up, under "More"
+const AWARD_GROUP_OTHER = { id: 'other', icon: '✨' };
+
+let _awcQ = '', _awcType = 'all', _awcStatus = 'all', _awcGroup = 'all';
+
+function _awardsCatGroup(cat) {
+  return AWARD_GROUPS.find(g => g.ids ? g.ids.includes(cat.id) : g.test(cat)) || AWARD_GROUP_OTHER;
+}
+
+// One line on what the category is built from, keyed on its filter
+function _awardsCatHint(cat) {
+  const key = cat.filter.startsWith('genre:') ? 'genre' : cat.filter.replace(':', '_');
+  return t('awards_hint_' + key);
+}
+
+function _awcEnabled(data, cat) { return data.categories[cat.id]?.enabled ?? cat.defaultOn; }
+
+// Lower-cased with accents dropped, so "album" finds "Álbum" in Spanish
+function _awcNorm(str) { return String(str || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, ''); }
+
+// Does a category pass the search and filters? The group filter can be left
+// out, which is how each group chip counts what it would show.
+function _awcMatches(cat, data, withGroup = true) {
+  if (_awcType !== 'all' && cat.type !== _awcType) return false;
+  if (_awcStatus !== 'all' && _awcEnabled(data, cat) !== (_awcStatus === 'on')) return false;
+  if (withGroup && _awcGroup !== 'all' && _awardsCatGroup(cat).id !== _awcGroup) return false;
+  if (!_awcQ) return true;
+  const hay = _awcNorm([t('awards_cat_' + cat.id), cat.label, _awardsCatHint(cat),
+    t('awards_group_' + _awardsCatGroup(cat).id), cat.type, cat.filter.replace('genre:', '')].join(' '));
+  // Every word has to match somewhere, in any order: "rock album", "album rock"
+  return _awcNorm(_awcQ).split(/\s+/).filter(Boolean).every(w => hay.includes(w));
+}
+
+function _awcFiltering() { return !!_awcQ || _awcType !== 'all' || _awcStatus !== 'all' || _awcGroup !== 'all'; }
+
+// The name with the searched words picked out
+function _awcMark(text) {
+  const words = _awcQ ? _awcNorm(_awcQ).split(/\s+/).filter(Boolean) : [];
+  if (!words.length) return esc(text);
+  const norm = _awcNorm(text);
+  // Mark by position on the normalised copy; stripping accents keeps lengths
+  const hit = new Array(text.length).fill(false);
+  for (const w of words) {
+    let i = norm.indexOf(w);
+    while (i !== -1) { for (let k = i; k < i + w.length && k < hit.length; k++) hit[k] = true; i = norm.indexOf(w, i + w.length); }
+  }
+  let out = '', open = false;
+  for (let k = 0; k < text.length; k++) {
+    if (hit[k] !== open) { out += hit[k] ? '<mark>' : '</mark>'; open = hit[k]; }
+    out += esc(text[k]);
+  }
+  return out + (open ? '</mark>' : '');
+}
+
+function _awcCardHtml(cat, data) {
+  const on = _awcEnabled(data, cat);
+  const name = t('awards_cat_' + cat.id);
+  return `<label class="awc-card${on ? ' is-on' : ''}" data-cat="${esc(cat.id)}">
+    <span class="awc-emoji" aria-hidden="true">${cat.emoji || '🏆'}</span>
+    <span class="awc-text">
+      <span class="awc-name">${_awcMark(name)}</span>
+      <span class="awc-hint">${esc(_awardsCatHint(cat))}</span>
+    </span>
+    <span class="awc-tags">
+      <span class="awards-type-badge awards-type-${cat.type}">${esc(t('awards_cat_type_' + cat.type))}</span>
+      ${cat.auto ? `<span class="awards-auto-badge">${esc(t('awards_cat_auto'))}</span>` : ''}
+    </span>
+    <span class="src-switch">
+      <input type="checkbox" ${on ? 'checked' : ''} onchange="awardsToggleCat('${esc(cat.id)}',this.checked)" aria-label="${esc(name)}">
+      <span class="src-switch-slider"></span>
+    </span>
+  </label>`;
+}
+
 function _awardsRenderCatToggles(data) {
   const el = document.getElementById('awardsCatToggles');
-  if (!el) return;
-  el.innerHTML = AWARD_CATEGORIES.map(cat => {
-    const enabled = data.categories[cat.id]?.enabled ?? cat.defaultOn;
-    return `<label class="awards-cat-toggle-row">
-      <input type="checkbox" ${enabled ? 'checked' : ''} onchange="awardsToggleCat('${cat.id}',this.checked)">
-      <span class="awards-type-badge awards-type-${cat.type}">${cat.type}</span>
-      ${esc(t('awards_cat_' + cat.id))}${cat.auto ? ' <span class="awards-auto-badge">auto</span>' : ''}
-    </label>`;
-  }).join('');
+  if (!el || !data) return;
+  // Filter buttons and the clear ✕ follow the state (they live in the static bar)
+  document.querySelectorAll('#awardsCatTypeSeg button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.v === _awcType)));
+  document.querySelectorAll('#awardsCatStatusSeg button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.v === _awcStatus)));
+  const clr = document.getElementById('awardsCatSearchClear');
+  if (clr) clr.hidden = !_awcQ;
+
+  // Group chips: what each group would show under the other filters
+  const groups = [...AWARD_GROUPS, AWARD_GROUP_OTHER];
+  const chipsEl = document.getElementById('awardsCatGroups');
+  if (chipsEl) {
+    const pool = AWARD_CATEGORIES.filter(c => _awcMatches(c, data, false));
+    const chip = (id, icon, label, n) =>
+      `<button type="button" class="awc-chip" data-g="${id}" aria-pressed="${_awcGroup === id}" onclick="awardsCatFilter('group','${id}')"${n === 0 && _awcGroup !== id ? ' disabled' : ''}>${icon ? `<span aria-hidden="true">${icon}</span>` : ''}${esc(label)}<span class="awc-chip-n">${n}</span></button>`;
+    chipsEl.innerHTML = chip('all', '', t('awards_group_all'), pool.length)
+      + groups.map(g => {
+        const n = pool.filter(c => _awardsCatGroup(c).id === g.id).length;
+        return (g.id === 'other' && !AWARD_CATEGORIES.some(c => _awardsCatGroup(c).id === 'other')) ? '' : chip(g.id, g.icon, t('awards_group_' + g.id), n);
+      }).join('');
+  }
+
+  const shown = AWARD_CATEGORIES.filter(c => _awcMatches(c, data));
+  if (!shown.length) {
+    el.innerHTML = `<div class="awc-empty">
+      <span>${esc(_awcQ ? t('awards_cat_none_q', { q: _awcQ }) : t('awards_cat_none'))}</span>
+      <button type="button" class="awc-bulk-btn" onclick="awardsCatClearFilters()">${esc(t('awards_cat_clear'))}</button>
+    </div>`;
+  } else {
+    el.innerHTML = groups.map(g => {
+      let cats = shown.filter(c => _awardsCatGroup(c).id === g.id);
+      if (!cats.length) return '';
+      // Genres are the long list, so they go A–Z, which also pairs each
+      // genre's song and album awards
+      if (g.id === 'genre') cats = cats.slice().sort((a, b) => t('awards_cat_' + a.id).localeCompare(t('awards_cat_' + b.id)));
+      return `<section class="awc-group" data-g="${g.id}">
+        <header class="awc-group-head">
+          <span class="awc-group-icon" aria-hidden="true">${g.icon}</span>
+          <h4>${esc(t('awards_group_' + g.id))}</h4>
+          <span class="awc-group-n" data-awc-gcount="${g.id}"></span>
+          <span class="awc-group-acts">
+            <button type="button" onclick="awardsCatGroupSet('${g.id}',true)">${esc(t('awards_cat_all_on'))}</button>
+            <button type="button" onclick="awardsCatGroupSet('${g.id}',false)">${esc(t('awards_cat_all_off'))}</button>
+          </span>
+        </header>
+        <div class="awc-grid">${cats.map(c => _awcCardHtml(c, data)).join('')}</div>
+      </section>`;
+    }).join('');
+  }
+  _awcUpdateCounts(data);
+}
+
+// Counts and bulk-button labels, patched in place after a single switch flips
+// so the list doesn't redraw under the pointer (and a card switched off while
+// "On" is the filter stays put until the filters change)
+function _awcUpdateCounts(data) {
+  const on = AWARD_CATEGORIES.filter(c => _awcEnabled(data, c)).length;
+  const cnt = document.getElementById('awardsCatCount');
+  if (cnt) cnt.textContent = t('awards_cat_count', { on, total: AWARD_CATEGORIES.length });
+  const shown = AWARD_CATEGORIES.filter(c => _awcMatches(c, data));
+  const filtering = _awcFiltering();
+  const allOn = document.getElementById('awardsCatAllOn'), allOff = document.getElementById('awardsCatAllOff');
+  if (allOn)  allOn.textContent  = filtering ? t('awards_enable_shown',  { n: shown.length }) : t('awards_enable_all');
+  if (allOff) allOff.textContent = filtering ? t('awards_disable_shown', { n: shown.length }) : t('awards_disable_all');
+  document.querySelectorAll('#awardsCatToggles [data-awc-gcount]').forEach(el => {
+    const cats = AWARD_CATEGORIES.filter(c => _awardsCatGroup(c).id === el.dataset.awcGcount);
+    el.textContent = t('awards_cat_group_count', { on: cats.filter(c => _awcEnabled(data, c)).length, total: cats.length });
+  });
+}
+
+function awardsCatFilter(kind, value) {
+  if (kind === 'q') _awcQ = String(value || '').trim();
+  else if (kind === 'type') _awcType = value;
+  else if (kind === 'status') _awcStatus = value;
+  else if (kind === 'group') _awcGroup = (value === _awcGroup && value !== 'all') ? 'all' : value;  // a second click lets go
+  _awardsRenderCatToggles(_awardsYearData[_awardsYear]);
+}
+
+function awardsCatClearFilters() {
+  _awcQ = ''; _awcType = 'all'; _awcStatus = 'all'; _awcGroup = 'all';
+  const i = document.getElementById('awardsCatSearch');
+  if (i) i.value = '';
+  _awardsRenderCatToggles(_awardsYearData[_awardsYear]);
+}
+
+// A section's All on / All off: the section's cards that are showing
+function awardsCatGroupSet(groupId, enabled) {
+  const data = _awardsYearData[_awardsYear];
+  if (!data) return;
+  _awardsSetCats(data, AWARD_CATEGORIES.filter(c => _awardsCatGroup(c).id === groupId && _awcMatches(c, data)), enabled);
+}
+
+function _awardsSetCats(data, cats, enabled) {
+  for (const cat of cats) {
+    if (!data.categories[cat.id]) data.categories[cat.id] = { enabled, nominees: [], winner: null };
+    data.categories[cat.id].enabled = enabled;
+  }
+  _awardsRenderCatToggles(data);
+  _awardsSave(_awardsYear);
+  _awardsRenderCatList(data);
 }
 
 function _awardsRenderCatList(data) {
@@ -36541,18 +36722,17 @@ function awardsToggleCat(catId, enabled) {
   data.categories[catId].enabled = enabled;
   _awardsSave(_awardsYear);
   _awardsRenderCatList(data);
+  // The card's own look and the counts; the list itself stays as it is
+  document.querySelector(`#awardsCatToggles .awc-card[data-cat="${catId}"]`)?.classList.toggle('is-on', enabled);
+  _awcUpdateCounts(data);
 }
 
+// Enable All / Disable All: every category showing under the current search
+// and filters (all of them when nothing narrows the list)
 function awardsToggleAllCats(enabled) {
   const data = _awardsYearData[_awardsYear];
   if (!data) return;
-  for (const cat of AWARD_CATEGORIES) {
-    if (!data.categories[cat.id]) data.categories[cat.id] = { enabled, nominees: [], winner: null };
-    data.categories[cat.id].enabled = enabled;
-  }
-  _awardsRenderCatToggles(data);
-  _awardsSave(_awardsYear);
-  _awardsRenderCatList(data);
+  _awardsSetCats(data, AWARD_CATEGORIES.filter(c => _awcMatches(c, data)), enabled);
 }
 
 async function awardsGenerateCandidates() {
