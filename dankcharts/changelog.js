@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 29;
+const DC_CL_I18N_V = 30;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,10 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== SEPTEMBER 2026 ========== */
+
+  { d: '2026-09-30', t: 'change', a: 'awards', h: '',
+    title: 'Genre awards say what the genre sounds like',
+    detail: 'In Configure Year, every genre award used to carry the same line, "By the artist’s genre tags". Each one now describes its genre instead, so Best Shoegaze/Dream Pop Song reads "Hazy walls of guitar and soft, floating vocals" and Best Post-Punk/New Wave Song reads "Dark, angular guitars, driving bass and cold 80s synths". Nominees are still picked the same way.' },
 
   { d: '2026-09-30', t: 'fix', a: 'settings', h: 'fbdf73b',
     title: 'Backups work again with big awards collections',

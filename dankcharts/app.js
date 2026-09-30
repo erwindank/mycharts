@@ -35740,8 +35740,14 @@ function _awardsCatHint(cat) {
   // A category can name its own hint when its filter alone would mislead
   // (the ceremony-style rock awards share Best Rock Song's filter)
   if (cat.hint) return t('awards_hint_' + cat.hint);
-  const key = cat.filter.startsWith('genre:') ? 'genre' : cat.filter.replace(':', '_');
-  return t('awards_hint_' + key);
+  // Genre awards describe what the genre sounds like (awards_hint_genre_<slug>,
+  // '-' becomes '_'); a genre without its own line falls back to the generic one
+  if (cat.filter.startsWith('genre:')) {
+    const gKey = 'awards_hint_genre_' + cat.filter.slice(6).replace(/-/g, '_');
+    const line = t(gKey);
+    return line && line !== gKey ? line : t('awards_hint_genre');
+  }
+  return t('awards_hint_' + cat.filter.replace(':', '_'));
 }
 
 function _awcEnabled(data, cat) { return data.categories[cat.id]?.enabled ?? cat.defaultOn; }

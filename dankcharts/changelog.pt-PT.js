@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['pt-PT'] = {
 
   /* ========== SETEMBRO 2026 ========== */
 
+  'Genre awards say what the genre sounds like':
+    ['Os prémios de género dizem como soa o género',
+     'Em Configurar ano, todos os prémios de género tinham a mesma linha, "Pelas etiquetas de género do artista". Agora cada um descreve o seu género, por isso Melhor música shoegaze/dream pop diz "Paredes de guitarra enevoadas e vozes suaves e flutuantes" e Melhor música post-punk/new wave diz "Guitarras sombrias e angulosas, baixo marcante e sintetizadores frios dos anos 80". Os nomeados continuam a ser escolhidos da mesma forma.'],
+
   'Backups work again with big awards collections':
     ['As cópias de segurança voltam a funcionar com prémios grandes',
      'Quando os seus prémios passavam de um certo tamanho, as cópias de segurança em Definições → Perfil deixavam de ser guardadas sem aviso, porque a cópia inteira já não cabia numa só parte. Agora as cópias grandes são divididas em várias partes e voltam a ser juntadas ao restaurar, por isso voltam a ser guardadas independentemente de quantas categorias tiver. As cópias antigas continuam a ser restauradas como antes.'],

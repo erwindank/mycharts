@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['pt-BR'] = {
 
   /* ========== SETEMBRO 2026 ========== */
 
+  'Genre awards say what the genre sounds like':
+    ['Os prêmios de gênero dizem como o gênero soa',
+     'Em Configurar ano, todos os prêmios de gênero tinham a mesma linha, "Pelas tags de gênero do artista". Agora cada um descreve o seu gênero, então Melhor música shoegaze/dream pop diz "Paredes de guitarra enevoadas e vozes suaves e flutuantes" e Melhor música post-punk/new wave diz "Guitarras sombrias e angulosas, baixo marcante e synths frios dos anos 80". Os indicados continuam sendo escolhidos do mesmo jeito.'],
+
   'Backups work again with big awards collections':
     ['Os backups voltam a funcionar com premiações grandes',
      'Quando suas premiações passavam de certo tamanho, os backups em Configurações → Perfil paravam de ser salvos sem aviso, porque o backup inteiro não cabia mais em uma só parte. Agora os backups grandes são divididos em várias partes e remontados na restauração, então voltam a ser salvos não importa quantas categorias você tenha. Os backups antigos continuam sendo restaurados como antes.'],
