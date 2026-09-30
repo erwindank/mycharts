@@ -80,7 +80,7 @@ const DC_CHANGELOG = [
 
   /* ========== SEPTEMBER 2026 ========== */
 
-  { d: '2026-09-30', t: 'change', a: 'awards', h: '',
+  { d: '2026-09-30', t: 'change', a: 'awards', h: '87a0fa9',
     title: 'Genre awards say what the genre sounds like',
     detail: 'In Configure Year, every genre award used to carry the same line, "By the artist’s genre tags". Each one now describes its genre instead, so Best Shoegaze/Dream Pop Song reads "Hazy walls of guitar and soft, floating vocals" and Best Post-Punk/New Wave Song reads "Dark, angular guitars, driving bass and cold 80s synths". Nominees are still picked the same way.' },
 
