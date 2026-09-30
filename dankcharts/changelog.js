@@ -80,11 +80,11 @@ const DC_CHANGELOG = [
 
   /* ========== SEPTEMBER 2026 ========== */
 
-  { d: '2026-09-29', t: 'feature', a: 'awards', h: '',
+  { d: '2026-09-29', t: 'feature', a: 'awards', h: 'f972b11',
     title: 'Hide plays on My Grammys nominee cards',
     detail: 'Configure Year has a new switch, Hide plays on nominee cards. With it on, the nominee cards stop showing play counts, so the ballot is about your picks rather than the numbers. The nominee picker still shows plays, and suggestions work the same. The setting applies to every year and syncs across your devices.' },
 
-  { d: '2026-09-29', t: 'change', a: 'awards', h: '',
+  { d: '2026-09-29', t: 'change', a: 'awards', h: 'f972b11',
     title: 'Most Viral Song is now Favorite Viral Song',
     detail: 'The Most Viral Song award in My Grammys is now called Favorite Viral Song. Nominees and winners you already picked are kept.' },
 
