@@ -33858,6 +33858,7 @@ const AWARD_CATEGORIES = [
   { id: 'best_postpunk_song', label: 'Best Post-Punk/New Wave Song', type: 'song', filter: 'genre:post-punk',  defaultOn: false, emoji: '🖤' },
   { id: 'best_grunge_song',  label: 'Best Grunge/90s Alternative Song', type: 'song', filter: 'genre:grunge',  defaultOn: false, emoji: '🥀' },
   { id: 'best_shoegaze_song', label: 'Best Shoegaze/Dream Pop Song', type: 'song', filter: 'genre:shoegaze',   defaultOn: false, emoji: '🌫️' },
+  { id: 'best_goth_song',    label: 'Best Goth Rock Song',        type: 'song',   filter: 'genre:goth',        defaultOn: false, emoji: '🦇' },
   // Ceremony-style rock awards: the field is the year's rock songs, the pick is yours
   { id: 'best_rock_performance', label: 'Best Rock Performance',  type: 'song',   filter: 'genre:rock',        defaultOn: false, emoji: '🤟', hint: 'rock_pick' },
   { id: 'best_rock_ballad',  label: 'Best Rock Ballad',           type: 'song',   filter: 'genre:rock',        defaultOn: false, emoji: '🌹', hint: 'rock_pick' },
@@ -33878,6 +33879,7 @@ const AWARD_CATEGORIES = [
   { id: 'best_metal_album',  label: 'Best Metal Album',           type: 'album',  filter: 'genre:metal',       defaultOn: false, emoji: '⛓️' },
   { id: 'best_punk_album',   label: 'Best Punk/Emo Album',        type: 'album',  filter: 'genre:punk',        defaultOn: false, emoji: '🧷' },
   { id: 'best_prog_album',   label: 'Best Prog/Psychedelic Rock Album', type: 'album', filter: 'genre:prog',   defaultOn: false, emoji: '🌀' },
+  { id: 'best_goth_album',   label: 'Best Goth Rock Album',       type: 'album',  filter: 'genre:goth',        defaultOn: false, emoji: '🦇' },
   // Album formats (opt-in): release types, library history and album titles
   { id: 'best_ep',           label: 'Best EP',                    type: 'album',  filter: 'rt:ep',             defaultOn: false, emoji: '📼' },
   { id: 'best_live_album',   label: 'Best Live Album',            type: 'album',  filter: 'rt:live',           defaultOn: false, emoji: '🏟️' },
@@ -34741,6 +34743,8 @@ function _genreMatch(tags, filterStr) {
     'grunge':      ['grunge','post-grunge','britpop','90s alternative','90s rock','seattle'],
     'prog':        ['progressive rock','prog rock','prog','psychedelic rock','psychedelic','neo-psychedelia','art rock','krautrock','space rock'],
     'shoegaze':    ['shoegaze','dream pop','noise pop','dreampop','nu gaze','slowcore'],
+    // Goth keeps "gothic rock" shared with post-punk, where the genre started
+    'goth':        ['gothic rock','goth rock','goth','gothic','deathrock','darkwave','dark wave','ethereal wave','gothic metal','gothic post-punk'],
   };
   const list = aliases[g] || [g];
   return tags.some(t => list.some(m => t === m));
@@ -34761,7 +34765,7 @@ async function _awardsGeminiClassifyArtists(artists) {
   if (!apiKey) return;
   const needed = artists.filter(a => _awardsGenreCache[a.toLowerCase()] === undefined);
   if (!needed.length) return;
-  const tags = 'rock, classic rock, hard rock, indie rock, punk rock, alternative rock, metal, emo, post-rock, alternative, indie, indie rock, post-punk, dream pop, shoegaze, hip-hop, hip hop, rap, trap, conscious hip hop, r&b, soul, neo soul, contemporary r&b, rnb, rhythm and blues, pop, dance pop, indie pop, pop rock, teen pop, synth-pop, electropop, latin, reggaeton, latin pop, salsa, cumbia, bachata, latin rap, regional mexicano, electronic, edm, house, techno, dance, electro, trance, ambient, k-pop, kpop, korean pop, k pop, korean, country, country pop, country rock, americana, bluegrass, alt-country, outlaw country, nashville, reggae, dancehall, roots reggae, ska, dub, reggae fusion, eurodance, disco, nu-disco, folk, folk pop, indie folk, contemporary folk, folk rock, acoustic, singer-songwriter, acoustic pop, piano, soft rock, indie pop, bedroom pop, chamber pop, heavy metal, metalcore, nu metal, alternative metal, pop punk, midwest emo, post-hardcore, afrobeats, afropop, amapiano, j-pop, japanese, anime, j-rock, city pop, jazz, smooth jazz, vocal jazz, jazz fusion, classical, instrumental, orchestral, neoclassical, modern classical, opera, pop rock, power pop, garage rock, post-punk revival, classic rock, album rock, arena rock, blues rock, southern rock, glam rock, heavy rock, post-grunge, stoner rock, new wave, gothic rock, darkwave, grunge, britpop, progressive rock, psychedelic rock, art rock, noise pop';
+  const tags = 'rock, classic rock, hard rock, indie rock, punk rock, alternative rock, metal, emo, post-rock, alternative, indie, indie rock, post-punk, dream pop, shoegaze, hip-hop, hip hop, rap, trap, conscious hip hop, r&b, soul, neo soul, contemporary r&b, rnb, rhythm and blues, pop, dance pop, indie pop, pop rock, teen pop, synth-pop, electropop, latin, reggaeton, latin pop, salsa, cumbia, bachata, latin rap, regional mexicano, electronic, edm, house, techno, dance, electro, trance, ambient, k-pop, kpop, korean pop, k pop, korean, country, country pop, country rock, americana, bluegrass, alt-country, outlaw country, nashville, reggae, dancehall, roots reggae, ska, dub, reggae fusion, eurodance, disco, nu-disco, folk, folk pop, indie folk, contemporary folk, folk rock, acoustic, singer-songwriter, acoustic pop, piano, soft rock, indie pop, bedroom pop, chamber pop, heavy metal, metalcore, nu metal, alternative metal, pop punk, midwest emo, post-hardcore, afrobeats, afropop, amapiano, j-pop, japanese, anime, j-rock, city pop, jazz, smooth jazz, vocal jazz, jazz fusion, classical, instrumental, orchestral, neoclassical, modern classical, opera, pop rock, power pop, garage rock, post-punk revival, classic rock, album rock, arena rock, blues rock, southern rock, glam rock, heavy rock, post-grunge, stoner rock, new wave, gothic rock, darkwave, grunge, britpop, progressive rock, psychedelic rock, art rock, noise pop, goth rock, goth, deathrock, gothic metal';
   const prompt = `Classify each music artist using ONLY these genre tags (use multiple per artist if applicable):\n${tags}\n\nReturn a JSON object: { "Artist Name": ["tag1", "tag2"] }. Include every artist listed, even if unsure — guess based on your knowledge.\n\nArtists to classify:\n${needed.join('\n')}`;
   try {
     const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${encodeURIComponent(apiKey)}`, {
@@ -35523,7 +35527,7 @@ const AWARD_GROUPS = [
   // Rock first, so its awards gather here instead of in the long Genres list
   { id: 'rock',      icon: '🎸', ids: ['best_rock_song', 'best_rock_album', 'best_alt_song', 'best_alt_album', 'best_metal_song', 'best_metal_album',
                                        'best_punk_song', 'best_punk_album', 'best_poprock_song', 'best_poppunk_song', 'best_indierock_song', 'best_indierock_album',
-                                       'best_classicrock_song', 'best_hardrock_song', 'best_postpunk_song', 'best_grunge_song', 'best_prog_album', 'best_shoegaze_song',
+                                       'best_classicrock_song', 'best_hardrock_song', 'best_postpunk_song', 'best_grunge_song', 'best_prog_album', 'best_shoegaze_song', 'best_goth_song', 'best_goth_album',
                                        'best_rock_performance', 'best_rock_ballad', 'best_guitar_moment', 'best_rock_group'] },
   { id: 'genre',     icon: '🎼', test: c => c.filter.startsWith('genre:') || ['best_pop_solo', 'best_pop_duo', 'best_nonenglish'].includes(c.id) },
   { id: 'format',    icon: '💿', ids: ['best_album_cover', 'best_album_concept', 'best_deluxe_album', 'best_deluxe_cover', 'best_ep', 'best_live_album', 'best_debut_album', 'best_reissue', 'best_compilation', 'best_soundtrack_album', 'late_discovery'] },
@@ -36947,6 +36951,7 @@ function _awardsPickerFitLabel() {
   if (f === 'genre:grunge')    return 'Grunge & 90s alternative ' + kind;
   if (f === 'genre:prog')      return 'Prog & psychedelic ' + kind;
   if (f === 'genre:shoegaze')  return 'Shoegaze & dream pop ' + kind;
+  if (f === 'genre:goth')      return 'Goth rock ' + kind;
   if (f === 'genre:punk')      return 'Punk & emo ' + kind;
   if (f === 'genre:j-pop')     return 'J-pop & anime ' + kind;
   if (f === 'genre:classical') return 'Classical & instrumental ' + kind;

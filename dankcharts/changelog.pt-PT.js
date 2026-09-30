@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['pt-PT'] = {
 
   /* ========== SETEMBRO 2026 ========== */
 
+  'Goth Rock song and album awards':
+    ['Prémios de Música e Álbum de Rock Gótico',
+     'Os Meus Grammys têm duas categorias novas de rock, Melhor Música de Rock Gótico e Melhor Álbum de Rock Gótico, desativadas por predefinição e no grupo Rock de Configurar Ano. Contam artistas marcados como rock gótico, deathrock, darkwave ou metal gótico. As primeiras bandas góticas marcadas como post-punk podem continuar a ser nomeadas em Post-Punk/New Wave.'],
+
   '16 rock award categories and a Rock group in Configure Year':
     ['16 categorias de rock e um grupo Rock em Configurar Ano',
      'Os Meus Grammys têm 16 categorias novas de rock, todas desativadas por predefinição. Músicas: Pop/Rock, Pop-Punk, Indie Rock, Rock Clássico, Hard Rock, Post-Punk/New Wave, Grunge/Alternativa dos Anos 90 e Shoegaze/Dream Pop. Álbuns: Indie Rock, Metal, Punk/Emo e Rock Progressivo/Psicadélico. Para a cerimónia: Melhor Interpretação Rock, Melhor Balada Rock e Melhor Riff/Solo de Guitarra, escolhidos por ti entre as músicas rock do ano, e Melhor Música Rock de Duo/Grupo, músicas rock de bandas e duos (o MusicBrainz distingue bandas de artistas a solo). Melhor Música Metal/Hard Rock é agora Melhor Música Metal, já que o hard rock tem o seu próprio prémio. Todos os prémios de rock, antigos e novos, estão agora juntos num grupo Rock na lista de Configurar Ano.'],

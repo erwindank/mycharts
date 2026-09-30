@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 22;
+const DC_CL_I18N_V = 23;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,10 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== SEPTEMBER 2026 ========== */
+
+  { d: '2026-09-29', t: 'feature', a: 'awards', h: '',
+    title: 'Goth Rock song and album awards',
+    detail: 'My Grammys has two new rock categories, Best Goth Rock Song and Best Goth Rock Album, off by default and listed in the Rock group under Configure Year. They count artists tagged gothic rock, deathrock, darkwave or gothic metal. Early goth bands tagged post-punk can still be nominated for Post-Punk/New Wave as well.' },
 
   { d: '2026-09-29', t: 'feature', a: 'awards', h: '3fd0ea7',
     title: '16 rock award categories and a Rock group in Configure Year',
