@@ -24214,6 +24214,7 @@ function getTop200Artists() {
 
 const _mbidCache = {};
 const _mbBirthdayCache = {}; // artist name → "YYYY-MM-DD" captured from MB search results
+const _mbArtistTypeCache = {}; // artist name → 'Person' | 'Group' | 'Orchestra' | … from the same search
 async function searchArtistMBID(name) {
   if (_mbidCache[name] !== undefined) return _mbidCache[name];
   try {
@@ -24223,6 +24224,7 @@ async function searchArtistMBID(name) {
       || artists.find(a => a.score >= 90)
       || artists[0];
     _mbidCache[name] = match?.id || null;
+    _mbArtistTypeCache[name] = match?.type || null;
     const born = match?.['life-span']?.begin;
     if (born && born.length >= 10) _mbBirthdayCache[name] = born.slice(0, 10);
     return _mbidCache[name];
@@ -33843,10 +33845,24 @@ const AWARD_CATEGORIES = [
   { id: 'best_folk_song',    label: 'Best Folk/Acoustic Song',    type: 'song',   filter: 'genre:folk',        defaultOn: false, emoji: '🪕' },
   { id: 'best_songwriter_song', label: 'Best Singer-Songwriter Song', type: 'song', filter: 'genre:singer-songwriter', defaultOn: false, emoji: '✍️' },
   { id: 'best_indiepop_song', label: 'Best Indie Pop Song',       type: 'song',   filter: 'genre:indie-pop',   defaultOn: false, emoji: '🌸' },
-  { id: 'best_metal_song',   label: 'Best Metal/Hard Rock Song',  type: 'song',   filter: 'genre:metal',       defaultOn: false, emoji: '⛓️' },
+  { id: 'best_metal_song',   label: 'Best Metal Song',            type: 'song',   filter: 'genre:metal',       defaultOn: false, emoji: '⛓️' },
   { id: 'best_punk_song',    label: 'Best Punk/Emo Song',         type: 'song',   filter: 'genre:punk',        defaultOn: false, emoji: '🧷' },
   { id: 'best_afrobeats_song', label: 'Best Afrobeats Song',      type: 'song',   filter: 'genre:afrobeats',   defaultOn: false, emoji: '🥁' },
   { id: 'best_jpop_song',    label: 'Best J-Pop/Anime Song',      type: 'song',   filter: 'genre:j-pop',       defaultOn: false, emoji: '🎌' },
+  // Rock, split finer than one Rock award (opt-in)
+  { id: 'best_poprock_song', label: 'Best Pop/Rock Song',         type: 'song',   filter: 'genre:pop-rock',    defaultOn: false, emoji: '💫' },
+  { id: 'best_poppunk_song', label: 'Best Pop-Punk Song',         type: 'song',   filter: 'genre:pop-punk',    defaultOn: false, emoji: '🛹' },
+  { id: 'best_indierock_song', label: 'Best Indie Rock Song',     type: 'song',   filter: 'genre:indie-rock',  defaultOn: false, emoji: '📻' },
+  { id: 'best_classicrock_song', label: 'Best Classic Rock Song', type: 'song',   filter: 'genre:classic-rock', defaultOn: false, emoji: '🏛️' },
+  { id: 'best_hardrock_song', label: 'Best Hard Rock Song',       type: 'song',   filter: 'genre:hard-rock',   defaultOn: false, emoji: '🔊' },
+  { id: 'best_postpunk_song', label: 'Best Post-Punk/New Wave Song', type: 'song', filter: 'genre:post-punk',  defaultOn: false, emoji: '🖤' },
+  { id: 'best_grunge_song',  label: 'Best Grunge/90s Alternative Song', type: 'song', filter: 'genre:grunge',  defaultOn: false, emoji: '🥀' },
+  { id: 'best_shoegaze_song', label: 'Best Shoegaze/Dream Pop Song', type: 'song', filter: 'genre:shoegaze',   defaultOn: false, emoji: '🌫️' },
+  // Ceremony-style rock awards: the field is the year's rock songs, the pick is yours
+  { id: 'best_rock_performance', label: 'Best Rock Performance',  type: 'song',   filter: 'genre:rock',        defaultOn: false, emoji: '🤟', hint: 'rock_pick' },
+  { id: 'best_rock_ballad',  label: 'Best Rock Ballad',           type: 'song',   filter: 'genre:rock',        defaultOn: false, emoji: '🌹', hint: 'rock_pick' },
+  { id: 'best_guitar_moment', label: 'Best Guitar Riff/Solo',     type: 'song',   filter: 'genre:rock',        defaultOn: false, emoji: '🎸', hint: 'rock_pick' },
+  { id: 'best_rock_group',   label: 'Best Rock Duo/Group Song',   type: 'song',   filter: 'rock_group',        defaultOn: false, emoji: '🎶' },
   { id: 'best_nonenglish',   label: 'Best Non-English Song',      type: 'song',   filter: 'nonenglish',        defaultOn: false, emoji: '🌍' },
   // Genre-based albums (opt-in)
   { id: 'best_pop_album',    label: 'Best Pop Album',             type: 'album',  filter: 'genre:pop',         defaultOn: false, emoji: '🎀' },
@@ -33858,6 +33874,10 @@ const AWARD_CATEGORIES = [
   { id: 'best_folk_album',   label: 'Best Folk/Acoustic Album',   type: 'album',  filter: 'genre:folk',        defaultOn: false, emoji: '🪕' },
   { id: 'best_jazz_album',   label: 'Best Jazz Album',            type: 'album',  filter: 'genre:jazz',        defaultOn: false, emoji: '🎺' },
   { id: 'best_classical_album', label: 'Best Classical/Instrumental Album', type: 'album', filter: 'genre:classical', defaultOn: false, emoji: '🎻' },
+  { id: 'best_indierock_album', label: 'Best Indie Rock Album',   type: 'album',  filter: 'genre:indie-rock',  defaultOn: false, emoji: '📻' },
+  { id: 'best_metal_album',  label: 'Best Metal Album',           type: 'album',  filter: 'genre:metal',       defaultOn: false, emoji: '⛓️' },
+  { id: 'best_punk_album',   label: 'Best Punk/Emo Album',        type: 'album',  filter: 'genre:punk',        defaultOn: false, emoji: '🧷' },
+  { id: 'best_prog_album',   label: 'Best Prog/Psychedelic Rock Album', type: 'album', filter: 'genre:prog',   defaultOn: false, emoji: '🌀' },
   // Album formats (opt-in): release types, library history and album titles
   { id: 'best_ep',           label: 'Best EP',                    type: 'album',  filter: 'rt:ep',             defaultOn: false, emoji: '📼' },
   { id: 'best_live_album',   label: 'Best Live Album',            type: 'album',  filter: 'rt:live',           defaultOn: false, emoji: '🏟️' },
@@ -34702,7 +34722,7 @@ function _genreMatch(tags, filterStr) {
     // Lewis Capaldi, Gracie Abrams) that are never tagged folk.
     'singer-songwriter': ['singer-songwriter','singer songwriter','songwriter','acoustic','acoustic pop','piano','soft rock'],
     'indie-pop':   ['indie pop','indie-pop','bedroom pop','dream pop','chamber pop','twee pop','indietronica'],
-    'metal':       ['metal','heavy metal','hard rock','metalcore','nu metal','alternative metal','thrash metal','death metal','progressive metal','black metal','doom metal'],
+    'metal':       ['metal','heavy metal','metalcore','nu metal','alternative metal','thrash metal','death metal','progressive metal','black metal','doom metal'],
     'punk':        ['punk','punk rock','pop punk','pop-punk','emo','emo pop','midwest emo','post-hardcore','hardcore punk','skate punk'],
     'afrobeats':   ['afrobeats','afrobeat','afropop','afro pop','afroswing','amapiano','naija','alte'],
     'j-pop':       ['j-pop','jpop','j pop','japanese','anime','j-rock','jrock','city pop','vocaloid','anison'],
@@ -34710,6 +34730,17 @@ function _genreMatch(tags, filterStr) {
     // Instrumental music rides along with classical: film scores and modern
     // piano records are tagged either way and nobody splits them by hand.
     'classical':   ['classical','instrumental','orchestral','neoclassical','modern classical','contemporary classical','baroque','opera','piano','score'],
+    // Rock, finer grained. Each list stays inside its own sound, so a band can
+    // sit in two (hard rock and grunge) but a pop act never reaches classic rock.
+    'pop-rock':    ['pop rock','pop-rock','power pop','soft rock','piano rock'],
+    'pop-punk':    ['pop punk','pop-punk','emo pop','easycore'],
+    'indie-rock':  ['indie rock','indie-rock','garage rock','garage rock revival','post-punk revival','lo-fi','slacker rock'],
+    'classic-rock': ['classic rock','album rock','arena rock','blues rock','southern rock','heartland rock','glam rock'],
+    'hard-rock':   ['hard rock','heavy rock','post-grunge','stoner rock','glam metal'],
+    'post-punk':   ['post-punk','new wave','gothic rock','darkwave','coldwave','no wave'],
+    'grunge':      ['grunge','post-grunge','britpop','90s alternative','90s rock','seattle'],
+    'prog':        ['progressive rock','prog rock','prog','psychedelic rock','psychedelic','neo-psychedelia','art rock','krautrock','space rock'],
+    'shoegaze':    ['shoegaze','dream pop','noise pop','dreampop','nu gaze','slowcore'],
   };
   const list = aliases[g] || [g];
   return tags.some(t => list.some(m => t === m));
@@ -34730,7 +34761,7 @@ async function _awardsGeminiClassifyArtists(artists) {
   if (!apiKey) return;
   const needed = artists.filter(a => _awardsGenreCache[a.toLowerCase()] === undefined);
   if (!needed.length) return;
-  const tags = 'rock, classic rock, hard rock, indie rock, punk rock, alternative rock, metal, emo, post-rock, alternative, indie, indie rock, post-punk, dream pop, shoegaze, hip-hop, hip hop, rap, trap, conscious hip hop, r&b, soul, neo soul, contemporary r&b, rnb, rhythm and blues, pop, dance pop, indie pop, pop rock, teen pop, synth-pop, electropop, latin, reggaeton, latin pop, salsa, cumbia, bachata, latin rap, regional mexicano, electronic, edm, house, techno, dance, electro, trance, ambient, k-pop, kpop, korean pop, k pop, korean, country, country pop, country rock, americana, bluegrass, alt-country, outlaw country, nashville, reggae, dancehall, roots reggae, ska, dub, reggae fusion, eurodance, disco, nu-disco, folk, folk pop, indie folk, contemporary folk, folk rock, acoustic, singer-songwriter, acoustic pop, piano, soft rock, indie pop, bedroom pop, chamber pop, heavy metal, metalcore, nu metal, alternative metal, pop punk, midwest emo, post-hardcore, afrobeats, afropop, amapiano, j-pop, japanese, anime, j-rock, city pop, jazz, smooth jazz, vocal jazz, jazz fusion, classical, instrumental, orchestral, neoclassical, modern classical, opera';
+  const tags = 'rock, classic rock, hard rock, indie rock, punk rock, alternative rock, metal, emo, post-rock, alternative, indie, indie rock, post-punk, dream pop, shoegaze, hip-hop, hip hop, rap, trap, conscious hip hop, r&b, soul, neo soul, contemporary r&b, rnb, rhythm and blues, pop, dance pop, indie pop, pop rock, teen pop, synth-pop, electropop, latin, reggaeton, latin pop, salsa, cumbia, bachata, latin rap, regional mexicano, electronic, edm, house, techno, dance, electro, trance, ambient, k-pop, kpop, korean pop, k pop, korean, country, country pop, country rock, americana, bluegrass, alt-country, outlaw country, nashville, reggae, dancehall, roots reggae, ska, dub, reggae fusion, eurodance, disco, nu-disco, folk, folk pop, indie folk, contemporary folk, folk rock, acoustic, singer-songwriter, acoustic pop, piano, soft rock, indie pop, bedroom pop, chamber pop, heavy metal, metalcore, nu metal, alternative metal, pop punk, midwest emo, post-hardcore, afrobeats, afropop, amapiano, j-pop, japanese, anime, j-rock, city pop, jazz, smooth jazz, vocal jazz, jazz fusion, classical, instrumental, orchestral, neoclassical, modern classical, opera, pop rock, power pop, garage rock, post-punk revival, classic rock, album rock, arena rock, blues rock, southern rock, glam rock, heavy rock, post-grunge, stoner rock, new wave, gothic rock, darkwave, grunge, britpop, progressive rock, psychedelic rock, art rock, noise pop';
   const prompt = `Classify each music artist using ONLY these genre tags (use multiple per artist if applicable):\n${tags}\n\nReturn a JSON object: { "Artist Name": ["tag1", "tag2"] }. Include every artist listed, even if unsure — guess based on your knowledge.\n\nArtists to classify:\n${needed.join('\n')}`;
   try {
     const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${encodeURIComponent(apiKey)}`, {
@@ -34767,6 +34798,9 @@ const _AWARDS_PLAY_TESTS = {
   acoustic:    p => _isAcousticVersion(p),
   deep_cut:    p => _isDeepCut(p),
 };
+
+// How many artists Best Rock Duo/Group Song asks MusicBrainz about (~1s each)
+const AWARDS_MB_TYPE_CHECKS = 20;
 
 // A deep cut has at least this many songs on its album better known than it
 const AWARDS_DEEP_CUT_MIN_POS = 3;
@@ -35188,6 +35222,29 @@ async function _awardsGetCandidates(catDef, eligStart, eligEnd, log) {
     }
     return _awardsTopN(m, 20, 2);
   }
+  /* Best Rock Duo/Group Song: rock songs by bands and duos. A song credited to
+     two or more artists is a duo on its face; for a single credit, MusicBrainz
+     says whether the artist is a person or a group. Its rate limit means one
+     lookup at a time, so only the leading artists are checked, and an artist it
+     can't place stays in rather than wrongly dropping a band. */
+  if (f === 'rock_group') {
+    await _awardsEnsureGenres(inWin);
+    const m = {};
+    for (const p of inWin) {
+      if (!_genreMatch(_awardsGenreCache[_pa(p).toLowerCase()] || [], 'genre:rock')) continue;
+      const k = _sk(p);
+      if (!m[k]) m[k] = { title: p.title, artist: p.artist, album: p.album, plays: 0, lead: _pa(p), collab: _isCollab(p) };
+      m[k].plays++;
+    }
+    const pool = _awardsTopN(m, 40, 3);
+    const leads = [...new Set(pool.filter(c => !c.collab).map(c => c.lead))].slice(0, AWARDS_MB_TYPE_CHECKS);
+    if (log && leads.length) log(`Checking which of ${leads.length} rock artist${leads.length !== 1 ? 's are bands' : ' is a band'}…`);
+    for (const a of leads) if (_mbidCache[a] === undefined) await searchArtistMBID(a);
+    return pool
+      .filter(c => c.collab || _mbArtistTypeCache[c.lead] !== 'Person')
+      .slice(0, 20)
+      .map(({ lead, collab, ...c }) => c);
+  }
   /* Pop split by billing: solo songs on one side, duos and groups on the other.
      _isDuo is a subset of _isCollab, so the one test sorts both sides. */
   if (f === 'pop_solo' || f === 'pop_duo') {
@@ -35463,6 +35520,11 @@ async function awardsRenderYear(year) {
    part of the year. */
 const AWARD_GROUPS = [
   { id: 'core',      icon: '🏆', ids: ['song_of_year', 'album_of_year', 'artist_of_year', 'record_of_year', 'new_artist', 'video_of_year', 'best_collab', 'best_duo'] },
+  // Rock first, so its awards gather here instead of in the long Genres list
+  { id: 'rock',      icon: '🎸', ids: ['best_rock_song', 'best_rock_album', 'best_alt_song', 'best_alt_album', 'best_metal_song', 'best_metal_album',
+                                       'best_punk_song', 'best_punk_album', 'best_poprock_song', 'best_poppunk_song', 'best_indierock_song', 'best_indierock_album',
+                                       'best_classicrock_song', 'best_hardrock_song', 'best_postpunk_song', 'best_grunge_song', 'best_prog_album', 'best_shoegaze_song',
+                                       'best_rock_performance', 'best_rock_ballad', 'best_guitar_moment', 'best_rock_group'] },
   { id: 'genre',     icon: '🎼', test: c => c.filter.startsWith('genre:') || ['best_pop_solo', 'best_pop_duo', 'best_nonenglish'].includes(c.id) },
   { id: 'format',    icon: '💿', ids: ['best_album_cover', 'best_album_concept', 'best_deluxe_album', 'best_deluxe_cover', 'best_ep', 'best_live_album', 'best_debut_album', 'best_reissue', 'best_compilation', 'best_soundtrack_album', 'late_discovery'] },
   { id: 'songtype',  icon: '🎵', ids: ['song_summer', 'most_viral_song', 'best_remix', 'best_remixed_rec', 'best_soundtrack_song', 'best_cover_song', 'best_acoustic_version', 'best_breakup_song', 'best_throwback', 'best_deep_cut'] },
@@ -35481,6 +35543,9 @@ function _awardsCatGroup(cat) {
 
 // One line on what the category is built from, keyed on its filter
 function _awardsCatHint(cat) {
+  // A category can name its own hint when its filter alone would mislead
+  // (the ceremony-style rock awards share Best Rock Song's filter)
+  if (cat.hint) return t('awards_hint_' + cat.hint);
   const key = cat.filter.startsWith('genre:') ? 'genre' : cat.filter.replace(':', '_');
   return t('awards_hint_' + key);
 }
@@ -35579,7 +35644,7 @@ function _awardsRenderCatToggles(data) {
       if (!cats.length) return '';
       // Genres are the long list, so they go A–Z, which also pairs each
       // genre's song and album awards
-      if (g.id === 'genre') cats = cats.slice().sort((a, b) => t('awards_cat_' + a.id).localeCompare(t('awards_cat_' + b.id)));
+      if (g.id === 'genre' || g.id === 'rock') cats = cats.slice().sort((a, b) => t('awards_cat_' + a.id).localeCompare(t('awards_cat_' + b.id)));
       return `<section class="awc-group" data-g="${g.id}">
         <header class="awc-group-head">
           <span class="awc-group-icon" aria-hidden="true">${g.icon}</span>
@@ -36833,9 +36898,9 @@ function _awardsPickerItemFits(item) {
     const tags = _awardsGenreCache[(item.artist || '').toLowerCase()];
     return !!item.fit && tags !== undefined && _genreMatch(tags, 'genre:pop');
   }
-  if (f.startsWith('genre:')) {
+  if (f.startsWith('genre:') || f === 'rock_group') {
     const tags = _awardsGenreCache[(item.artist || '').toLowerCase()];
-    return tags === undefined ? false : _genreMatch(tags, f);
+    return tags === undefined ? false : _genreMatch(tags, f === 'rock_group' ? 'genre:rock' : f);
   }
   return item.fit;
 }
@@ -36843,7 +36908,7 @@ function _awardsPickerItemFits(item) {
 // Whether this category can rank the browse list at all
 function _awardsPickerHasFit() {
   const f = _awardsPickerCatFilter;
-  return f === 'summer' || f === 'night' || f === 'morning' || f.startsWith('genre:') || _awardsPickerPlayFits({}) !== null;
+  return f === 'summer' || f === 'night' || f === 'morning' || f === 'rock_group' || f.startsWith('genre:') || _awardsPickerPlayFits({}) !== null;
 }
 
 // Plural noun for the category's matches, used in the group headers
@@ -36871,7 +36936,17 @@ function _awardsPickerFitLabel() {
   if (f === 'genre:folk') return 'Folk & acoustic ' + kind;
   if (f === 'genre:singer-songwriter') return 'Singer-songwriter ' + kind;
   if (f === 'genre:indie-pop') return 'Indie pop ' + kind;
-  if (f === 'genre:metal')     return 'Metal & hard rock ' + kind;
+  if (f === 'genre:metal')     return 'Metal ' + kind;
+  if (f === 'rock_group')      return 'Rock songs';
+  if (f === 'genre:pop-rock')  return 'Pop/rock ' + kind;
+  if (f === 'genre:pop-punk')  return 'Pop-punk ' + kind;
+  if (f === 'genre:indie-rock') return 'Indie rock ' + kind;
+  if (f === 'genre:classic-rock') return 'Classic rock ' + kind;
+  if (f === 'genre:hard-rock') return 'Hard rock ' + kind;
+  if (f === 'genre:post-punk') return 'Post-punk & new wave ' + kind;
+  if (f === 'genre:grunge')    return 'Grunge & 90s alternative ' + kind;
+  if (f === 'genre:prog')      return 'Prog & psychedelic ' + kind;
+  if (f === 'genre:shoegaze')  return 'Shoegaze & dream pop ' + kind;
   if (f === 'genre:punk')      return 'Punk & emo ' + kind;
   if (f === 'genre:j-pop')     return 'J-pop & anime ' + kind;
   if (f === 'genre:classical') return 'Classical & instrumental ' + kind;
@@ -37264,7 +37339,7 @@ function _awardsPickerResultRow(item, idx) {
   const sub = item.title ? item.artist : (item.album ? item.artist : '');
   const rel = item.releaseYear ? ' · ' + item.releaseYear : (item.releaseYear === null ? ' · year unknown' : '');
   let genreHtml = '';
-  if (_awardsPickerCatFilter.startsWith('genre:') && item.grp !== 2) {
+  if ((_awardsPickerCatFilter.startsWith('genre:') || _awardsPickerCatFilter === 'rock_group') && item.grp !== 2) {
     const tags = _awardsGenreCache[(item.artist || '').toLowerCase()];
     if (tags && tags.length) {
       genreHtml = `<span class="awards-picker-genre-tags">${tags.slice(0, 3).map(t => `<span class="awards-picker-genre-tag">${esc(t)}</span>`).join('')}</span>`;

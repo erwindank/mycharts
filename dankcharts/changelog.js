@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 21;
+const DC_CL_I18N_V = 22;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,10 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== SEPTEMBER 2026 ========== */
+
+  { d: '2026-09-29', t: 'feature', a: 'awards', h: '',
+    title: '16 rock award categories and a Rock group in Configure Year',
+    detail: 'My Grammys has 16 new rock categories, all off by default. Songs: Pop/Rock, Pop-Punk, Indie Rock, Classic Rock, Hard Rock, Post-Punk/New Wave, Grunge/90s Alternative and Shoegaze/Dream Pop. Albums: Indie Rock, Metal, Punk/Emo and Prog/Psychedelic Rock. Ceremony picks: Best Rock Performance, Best Rock Ballad and Best Guitar Riff/Solo, chosen by you from the year\'s rock songs, and Best Rock Duo/Group Song, rock songs by bands and duos (MusicBrainz tells bands from solo artists). Best Metal/Hard Rock Song is now Best Metal Song, since hard rock has its own award. All rock awards, old and new, now sit together in a Rock group in the Configure Year list.' },
 
   { d: '2026-09-29', t: 'feature', a: 'awards', h: 'c5dbc1a',
     title: 'Configure Year: search, filter and browse the award categories',

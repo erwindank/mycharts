@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['pt-BR'] = {
 
   /* ========== SETEMBRO 2026 ========== */
 
+  '16 rock award categories and a Rock group in Configure Year':
+    ['16 categorias de rock e um grupo Rock em Configurar Ano',
+     'Meus Grammys tem 16 categorias novas de rock, todas desativadas por padrão. Músicas: Pop/Rock, Pop-Punk, Indie Rock, Rock Clássico, Hard Rock, Post-Punk/New Wave, Grunge/Alternativa dos Anos 90 e Shoegaze/Dream Pop. Álbuns: Indie Rock, Metal, Punk/Emo e Rock Progressivo/Psicodélico. Para a cerimônia: Melhor Performance de Rock, Melhor Balada de Rock e Melhor Riff/Solo de Guitarra, escolhidos por você entre as músicas de rock do ano, e Melhor Música de Rock de Dupla/Grupo, músicas de rock de bandas e duplas (o MusicBrainz diferencia bandas de artistas solo). Melhor Música Metal/Hard Rock agora é Melhor Música Metal, já que o hard rock tem seu próprio prêmio. Todos os prêmios de rock, antigos e novos, agora ficam juntos num grupo Rock na lista de Configurar Ano.'],
+
   'Configure Year: search, filter and browse the award categories':
     ['Configurar Ano: busque, filtre e navegue pelas categorias',
      'A lista de categorias em Configurar Ano ficou mais fácil de percorrer. Digite na busca para achar uma categoria pelo nome ou pelo assunto ("rock", "álbum", "cover"). Filtre por categorias de músicas, álbuns ou artistas, ou pelas ativas ou inativas, e use os chips para ver um grupo de cada vez. As categorias estão agrupadas em Prêmios principais, Gêneros, Álbuns e formatos, Tipos de música, Como você ouve, Por diversão e Prêmios de estatísticas, cada grupo com seu próprio Ativar / Desativar. Cada categoria agora é um cartão com uma linha explicando em que se baseia e um interruptor. Ativar tudo e Desativar tudo agem sobre o que está visível, então buscar "rock" e tocar em Ativar as visíveis liga todos os prêmios de rock de uma vez.'],
