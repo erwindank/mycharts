@@ -28,7 +28,7 @@ const SYNC_KEYS = [
   'dc_chartSizeSongsW', 'dc_chartSizeSongsM', 'dc_chartSizeSongsY', 'dc_chartSizeSongsAT',
   'dc_chartSizeArtistsW', 'dc_chartSizeArtistsM', 'dc_chartSizeArtistsY', 'dc_chartSizeArtistsAT',
   'dc_chartSizeAlbumsW', 'dc_chartSizeAlbumsM', 'dc_chartSizeAlbumsY', 'dc_chartSizeAlbumsAT',
-  'dc_chart_anim', 'dc_awards_credit_features'
+  'dc_chart_anim', 'dc_awards_credit_features', 'dc_awards_hide_plays'
 ];
 
 let _auth = null;

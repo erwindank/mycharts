@@ -16,6 +16,14 @@ window.DC_CHANGELOG_I18N['pt-BR'] = {
 
   /* ========== SETEMBRO 2026 ========== */
 
+  'Hide plays on My Grammys nominee cards':
+    ['Ocultar reproduções nos cartões de indicados de Meus Grammys',
+     'Configurar Ano tem um novo botão, Ocultar reproduções nos cartões de indicados. Com ele ligado, os cartões de indicados param de mostrar o número de reproduções, para que a votação seja sobre as suas escolhas e não sobre os números. O seletor de indicados continua mostrando as reproduções e as sugestões funcionam igual. A configuração vale para todos os anos e sincroniza entre seus dispositivos.'],
+
+  'Most Viral Song is now Favorite Viral Song':
+    ['Música mais Viral agora é Música Viral Favorita',
+     'O prêmio Música mais Viral de Meus Grammys agora se chama Música Viral Favorita. Os indicados e vencedores que você já escolheu continuam salvos.'],
+
   'Best Collaboration suggests real team-ups, not duets':
     ['Melhor Colaboração sugere parcerias de verdade, não duetos',
      'Gerar Indicados sugeria para Melhor Colaboração qualquer música com dois ou mais artistas, então os duetos apareciam ali e também em Melhor Dupla. Agora sugere parcerias em que só um canta porque o outro é DJ ou produtor (David Guetta, Tiësto, benny blanco), e músicas em que um dos artistas é um grupo ou banda. Cada artista é conferido no MusicBrainz, e cada indicado diz por que entrou ("with a DJ/producer" ou "with a group"). Na primeira vez pode levar até um minuto, porque o MusicBrainz permite uma consulta por segundo; as respostas ficam salvas neste navegador, então depois leva segundos. Você ainda pode adicionar qualquer música à mão. Também corrigido: um nome de banda com "&", como Simon & Garfunkel, não é mais separado em dois artistas.'],

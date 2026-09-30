@@ -572,6 +572,7 @@ function dcApplyAllSettings() {
   eventsArtistLimit = parseInt(localStorage.getItem('dc_events_artist_limit') || '50') || 50;
   noArtistSplit     = localStorage.getItem('dc_no_artist_split') === '1';
   _awardsCreditFeatures = localStorage.getItem(AWARDS_CREDIT_FEATURES_KEY) === '1';
+  _awardsHidePlays      = localStorage.getItem(AWARDS_HIDE_PLAYS_KEY) === '1';
   /* Separation arrived from another device: re-read it and retire the chart
      caches, since which bucket a release ranks in has just changed. Mutated
      in place so every closure already holding releaseSeparation sees it. */
@@ -33851,7 +33852,7 @@ const AWARD_CATEGORIES = [
   { id: 'one_hit_wonder',    label: 'One-Hit Wonder of the Year', type: 'artist', filter: 'one_hit',     defaultOn: false, emoji: '⚡' },
   { id: 'best_remix',        label: 'Best Remix',                 type: 'song',   filter: 'remix',       defaultOn: false, emoji: '🎚️' },
   { id: 'late_discovery',    label: 'Best Album Discovered Late', type: 'album',  filter: 'late_disc',   defaultOn: false, emoji: '🕰️' },
-  { id: 'most_viral_song',   label: 'Most Viral Song',            type: 'song',   filter: 'all',         defaultOn: false, emoji: '🦠' },
+  { id: 'most_viral_song',   label: 'Favorite Viral Song',        type: 'song',   filter: 'all',         defaultOn: false, emoji: '🦠' },
   // Genre-based songs (opt-in)
   { id: 'best_pop_song',     label: 'Best Pop Song',              type: 'song',   filter: 'genre:pop',         defaultOn: false, emoji: '🎀' },
   { id: 'best_rock_song',    label: 'Best Rock Song',             type: 'song',   filter: 'genre:rock',        defaultOn: false, emoji: '🎸' },
@@ -34979,6 +34980,7 @@ function _awardsGrowthFor(cat, year, item) {
 
 // A small up/down chip for the views that don't print a score line
 function _awardsGrowthChip(cat, year, item, cls) {
+  if (_awardsHidePlays) return '';   // "Hide plays on nominee cards" is on
   const d = _awardsGrowthFor(cat, year, item);
   if (!d) return '';
   const dir = d.diff > 0 ? 'up' : d.diff < 0 ? 'down' : 'flat';
@@ -35878,6 +35880,13 @@ let _awardsSummarySeq = 0;          // guards the tab's async render against fas
 const AWARDS_CREDIT_FEATURES_KEY = 'dc_awards_credit_features';
 let _awardsCreditFeatures = localStorage.getItem(AWARDS_CREDIT_FEATURES_KEY) === '1';
 
+/* Hides the play counts (and play-based labels like "+85% · +142") on the
+   nominee cards, for a ballot that reads as a pure opinion rather than a stats
+   sheet. Display only: the picker still ranks and shows plays, and suggestions
+   are unchanged. Global and synced, like the switch above. */
+const AWARDS_HIDE_PLAYS_KEY = 'dc_awards_hide_plays';
+let _awardsHidePlays = localStorage.getItem(AWARDS_HIDE_PLAYS_KEY) === '1';
+
 // "A feat. B", "A ft. B", "A featuring B" and "A with B" inside one artist string
 const _AWARDS_FEAT_SPLIT = /\s+(?:feat\.?|ft\.?|featuring|with)\s+/i;
 // "A & B", "A x B", "A and B", "A vs B": a collaboration, or a duo's own name
@@ -35945,6 +35954,18 @@ function awardsSetCreditFeatures(on) {
   // save can't push a stale value back up
   if (typeof dcSaveConfigKey === 'function') dcSaveConfigKey(AWARDS_CREDIT_FEATURES_KEY, on ? '1' : '0');
   if (_awardsYearData[_awardsYear]) _awardsRenderSummary(_awardsYear);
+}
+
+// The "Hide plays on nominee cards" switch in Configure Year
+function awardsSetHidePlays(on) {
+  _awardsHidePlays = !!on;
+  localStorage.setItem(AWARDS_HIDE_PLAYS_KEY, on ? '1' : '0');
+  const el = document.getElementById('awardsHidePlays');
+  if (el) el.checked = _awardsHidePlays;
+  // Targeted write, same as awardsSetCreditFeatures
+  if (typeof dcSaveConfigKey === 'function') dcSaveConfigKey(AWARDS_HIDE_PLAYS_KEY, on ? '1' : '0');
+  const data = _awardsYearData[_awardsYear];
+  if (data) _awardsRenderCatList(data);
 }
 
 function _awardsSummary(year, opts) {
@@ -36521,7 +36542,8 @@ function _awardsEntryText(item, cat, year) {
   return {
     lbl:   item.title || item.album || item.artist || '',
     sub:   (item.title ? item.artist : (item.album ? item.artist : item.song)) || '',
-    score: growth ? _awardsGrowthLabel(growth) : (item.playLabel || (plays ? `${plays.toLocaleString()} plays` : '')),
+    // Blank when the user has hidden plays; every view already skips an empty score
+    score: _awardsHidePlays ? '' : growth ? _awardsGrowthLabel(growth) : (item.playLabel || (plays ? `${plays.toLocaleString()} plays` : '')),
   };
 }
 
@@ -36867,6 +36889,8 @@ function awardsToggleConfig() {
     // Read on open, so a value synced from another device shows correctly
     const featEl = document.getElementById('awardsCreditFeatures');
     if (featEl) featEl.checked = _awardsCreditFeatures;
+    const hideEl = document.getElementById('awardsHidePlays');
+    if (hideEl) hideEl.checked = _awardsHidePlays;
   }
 }
 

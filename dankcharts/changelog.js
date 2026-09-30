@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 24;
+const DC_CL_I18N_V = 26;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,14 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== SEPTEMBER 2026 ========== */
+
+  { d: '2026-09-29', t: 'feature', a: 'awards', h: '',
+    title: 'Hide plays on My Grammys nominee cards',
+    detail: 'Configure Year has a new switch, Hide plays on nominee cards. With it on, the nominee cards stop showing play counts, so the ballot is about your picks rather than the numbers. The nominee picker still shows plays, and suggestions work the same. The setting applies to every year and syncs across your devices.' },
+
+  { d: '2026-09-29', t: 'change', a: 'awards', h: '',
+    title: 'Most Viral Song is now Favorite Viral Song',
+    detail: 'The Most Viral Song award in My Grammys is now called Favorite Viral Song. Nominees and winners you already picked are kept.' },
 
   { d: '2026-09-29', t: 'feature', a: 'awards', h: '1e99a27',
     title: 'Best Collaboration suggests real team-ups, not duets',

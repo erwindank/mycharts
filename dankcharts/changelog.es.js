@@ -16,6 +16,14 @@ window.DC_CHANGELOG_I18N['es'] = {
 
   /* ========== SEPTIEMBRE 2026 ========== */
 
+  'Hide plays on My Grammys nominee cards':
+    ['Ocultar reproducciones en las tarjetas de nominados de Mis Grammys',
+     'Configurar Año tiene un nuevo interruptor, Ocultar reproducciones en las tarjetas de nominados. Al activarlo, las tarjetas de nominados dejan de mostrar el número de reproducciones, así la votación trata de tus elecciones y no de los números. El selector de nominados sigue mostrándolas y las sugerencias funcionan igual. El ajuste vale para todos los años y se sincroniza entre tus dispositivos.'],
+
+  'Most Viral Song is now Favorite Viral Song':
+    ['Canción más Viral ahora es Canción Viral Favorita',
+     'El premio Canción más Viral de Mis Grammys ahora se llama Canción Viral Favorita. Los nominados y ganadores que ya elegiste se mantienen.'],
+
   'Best Collaboration suggests real team-ups, not duets':
     ['Mejor Colaboración sugiere colaboraciones reales, no dúos',
      'Generar Nominados sugería para Mejor Colaboración cualquier canción con dos o más artistas, así que los dúos aparecían ahí y también en Mejor Dúo. Ahora sugiere colaboraciones donde solo canta uno porque el otro es DJ o productor (David Guetta, Tiësto, benny blanco), y canciones donde uno de los artistas es un grupo o banda. Cada artista se comprueba en MusicBrainz, y cada nominado dice por qué entró ("with a DJ/producer" o "with a group"). La primera vez puede tardar hasta un minuto, porque MusicBrainz permite una consulta por segundo; las respuestas se guardan en este navegador, así que después tarda segundos. Puedes seguir añadiendo cualquier canción a mano. También corregido: un nombre de banda con "&", como Simon & Garfunkel, ya no se separa en dos artistas.'],
