@@ -16,6 +16,14 @@ window.DC_CHANGELOG_I18N['pt-BR'] = {
 
   /* ========== SETEMBRO 2026 ========== */
 
+  'Play samples from My Grammys nominee cards':
+    ['Toque prévias pelos cartões de indicados do Meus Grammys',
+     'Configurar ano tem um novo botão, Tocar prévias pelos cartões de indicados. Com ele ligado, cada indicado ganha um botão ♪ que toca uma prévia de 30 segundos, para você ouvir os candidatos antes de escolher o vencedor. Clique de novo para parar. Funciona nas cinco visualizações, e clicar no ♪ nunca coroa o indicado. Começa desligado, vale para todos os anos e sincroniza entre seus dispositivos.'],
+
+  'Show your scores on My Grammys nominee cards':
+    ['Mostre suas notas nos cartões de indicados do Meus Grammys',
+     'Configurar ano tem um novo botão, Mostrar minhas notas nos cartões de indicados. Com ele ligado, cada indicado que você avaliou mostra sua nota de 0 a 10 ao lado, nas cinco visualizações. Músicas e álbuns sem nota não mostram nada, e artistas usam a média dos álbuns avaliados. Começa desligado, vale para todos os anos e sincroniza entre seus dispositivos.'],
+
   'Hide plays on My Grammys nominee cards':
     ['Ocultar reproduções nos cartões de indicados de Meus Grammys',
      'Configurar Ano tem um novo botão, Ocultar reproduções nos cartões de indicados. Com ele ligado, os cartões de indicados param de mostrar o número de reproduções, para que a votação seja sobre as suas escolhas e não sobre os números. O seletor de indicados continua mostrando as reproduções e as sugestões funcionam igual. A configuração vale para todos os anos e sincroniza entre seus dispositivos.'],

@@ -16,6 +16,14 @@ window.DC_CHANGELOG_I18N['es'] = {
 
   /* ========== SEPTIEMBRE 2026 ========== */
 
+  'Play samples from My Grammys nominee cards':
+    ['Reproduce muestras desde las tarjetas de nominados de Mis Grammys',
+     'Configurar año tiene un nuevo interruptor, Reproducir muestras desde las tarjetas de nominados. Al activarlo, cada nominado tiene un botón ♪ que reproduce una vista previa de 30 segundos, para que puedas escuchar a los candidatos antes de elegir al ganador. Haz clic otra vez para pararla. Funciona en las cinco vistas, y hacer clic en ♪ nunca corona al nominado. Empieza desactivado, se aplica a todos los años y se sincroniza entre tus dispositivos.'],
+
+  'Show your scores on My Grammys nominee cards':
+    ['Muestra tus puntuaciones en las tarjetas de nominados de Mis Grammys',
+     'Configurar año tiene un nuevo interruptor, Mostrar mis puntuaciones en las tarjetas de nominados. Al activarlo, cada nominado que hayas puntuado muestra tu puntuación sobre 10 a su lado, en las cinco vistas. Las canciones y álbumes sin puntuar no muestran nada, y los artistas usan la media de sus álbumes puntuados. Empieza desactivado, se aplica a todos los años y se sincroniza entre tus dispositivos.'],
+
   'Hide plays on My Grammys nominee cards':
     ['Ocultar reproducciones en las tarjetas de nominados de Mis Grammys',
      'Configurar Año tiene un nuevo interruptor, Ocultar reproducciones en las tarjetas de nominados. Al activarlo, las tarjetas de nominados dejan de mostrar el número de reproducciones, así la votación trata de tus elecciones y no de los números. El selector de nominados sigue mostrándolas y las sugerencias funcionan igual. El ajuste vale para todos los años y se sincroniza entre tus dispositivos.'],

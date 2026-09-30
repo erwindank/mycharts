@@ -573,6 +573,8 @@ function dcApplyAllSettings() {
   noArtistSplit     = localStorage.getItem('dc_no_artist_split') === '1';
   _awardsCreditFeatures = localStorage.getItem(AWARDS_CREDIT_FEATURES_KEY) === '1';
   _awardsHidePlays      = localStorage.getItem(AWARDS_HIDE_PLAYS_KEY) === '1';
+  _awardsShowRating     = localStorage.getItem(AWARDS_SHOW_RATING_KEY) === '1';
+  _awardsSamples        = localStorage.getItem(AWARDS_SAMPLES_KEY) === '1';
   /* Separation arrived from another device: re-read it and retire the chart
      caches, since which bucket a release ranks in has just changed. Mutated
      in place so every closure already holding releaseSeparation sees it. */
@@ -34978,6 +34980,98 @@ function _awardsGrowthFor(cat, year, item) {
   return _awardsGrowthDelta(item.artist, data.eligStart || `${year}-01-01`, data.eligEnd || `${year}-12-31`);
 }
 
+// The user's own score for a nominee, when "Show my scores on nominee cards"
+// is on. Uses the same lookup as the nominee picker (_awardsPickerItemScore).
+function _awardsRatingChip(item) {
+  if (!_awardsShowRating) return '';
+  const s = _awardsPickerItemScore(item);
+  return s == null ? '' : ratingChip(s, 'rt-chip--row aw-rt');
+}
+
+/* ♪ on a nominee card ("Play samples from nominee cards"). One sample at a
+   time through the ceremony's audio slot, like the picker's ♪. The buttons
+   carry the nominee's key so a play/stop repaints them without a rebuild; a
+   rebuild draws them from the state below anyway. */
+let _awardsCardClipKey = null;          // key of the nominee whose sample is loading/playing
+let _awardsCardClipLoading = false;
+const _awardsCardClipMiss = new Set();  // keys neither store had a preview for
+
+function _awardsCardClipUi(k) {
+  if (_awardsCardClipKey === k) return _awardsCardClipLoading
+    ? { icon: '◌', cls: ' is-on is-loading', title: 'Finding a sample…' }
+    : { icon: '❚❚', cls: ' is-on', title: 'Stop the sample' };
+  if (_awardsCardClipMiss.has(k)) return { icon: '♪', cls: ' is-miss', title: 'No sample found' };
+  return { icon: '♪', cls: '', title: 'Play a 30-second sample' };
+}
+
+function _awardsClipBtn(cat, item) {
+  if (!_awardsSamples || !item) return '';
+  const k  = _awardItemKey(item);
+  const ui = _awardsCardClipUi(k);
+  // stopPropagation: a click on the entry itself crowns it
+  return `<button type="button" class="aw-clip${ui.cls}" data-clipkey="${esc(k)}" onclick="event.stopPropagation();awardsCardPlayClip('${esc(cat.type || 'song')}',${esc(JSON.stringify(item))})" title="${ui.title}" aria-label="${ui.title}">${ui.icon}</button>`;
+}
+
+// Only the ♪ buttons change, so the cards aren't rebuilt
+function _awardsCardPaintClips() {
+  document.querySelectorAll('.aw-clip[data-clipkey]').forEach(btn => {
+    const ui = _awardsCardClipUi(btn.dataset.clipkey);
+    btn.className = 'aw-clip' + ui.cls;
+    btn.textContent = ui.icon;
+    btn.title = ui.title;
+    btn.setAttribute('aria-label', ui.title);
+  });
+}
+
+function _awardsCardStopClip() {
+  if (!_awardsCardClipKey) return;
+  _ceremonyStopAudio();
+  _awardsCardClipKey = null;
+  _awardsCardClipLoading = false;
+  _awardsCardPaintClips();
+}
+
+async function awardsCardPlayClip(type, item) {
+  const k = _awardItemKey(item);
+  if (_awardsCardClipKey === k) { _awardsCardStopClip(); return; }   // second click stops it
+  _ceremonyStopAudio();
+  try { if (_ytPlayer && _ytPlayer.getPlayerState() === YT.PlayerState.PLAYING) _ytPlayer.pauseVideo(); } catch (e) {}
+  _awardsCardClipKey = k;
+  _awardsCardClipLoading = true;
+  _awardsCardClipMiss.delete(k);
+  _awardsCardPaintClips();
+  const token = _ceremonyAudioToken;   // any later stop or play bumps it
+
+  let takes = [];
+  try { takes = await _ceremonyPreviewTakes(item, type); } catch (e) {}
+  if (token !== _ceremonyAudioToken || _awardsCardClipKey !== k) return;
+  if (!takes.length) {
+    _awardsCardClipMiss.add(k);
+    _awardsCardClipKey = null;
+    _awardsCardClipLoading = false;
+    _awardsCardPaintClips();
+    return;
+  }
+  const audio = _ceremonyAudio = new Audio(takes[0].url);
+  audio.volume = 0.8;
+  audio.addEventListener('ended', () => {
+    if (_ceremonyAudio !== audio) return;
+    _ceremonyAudio = null;
+    _awardsCardClipKey = null;
+    _awardsCardPaintClips();
+  });
+  try {
+    await audio.play();
+    if (token !== _ceremonyAudioToken) { audio.pause(); return; }
+    _awardsCardClipLoading = false;
+  } catch (e) {
+    if (_ceremonyAudio === audio) _ceremonyAudio = null;
+    _awardsCardClipKey = null;
+    _awardsCardClipLoading = false;
+  }
+  _awardsCardPaintClips();
+}
+
 // A small up/down chip for the views that don't print a score line
 function _awardsGrowthChip(cat, year, item, cls) {
   if (_awardsHidePlays) return '';   // "Hide plays on nominee cards" is on
@@ -35887,6 +35981,18 @@ let _awardsCreditFeatures = localStorage.getItem(AWARDS_CREDIT_FEATURES_KEY) ===
 const AWARDS_HIDE_PLAYS_KEY = 'dc_awards_hide_plays';
 let _awardsHidePlays = localStorage.getItem(AWARDS_HIDE_PLAYS_KEY) === '1';
 
+/* Shows the user's own score (0–10, from the ratings system) as a chip on the
+   nominee cards. Off by default; global and synced, like the switches above.
+   Unrated nominees simply show no chip. */
+const AWARDS_SHOW_RATING_KEY = 'dc_awards_show_rating';
+let _awardsShowRating = localStorage.getItem(AWARDS_SHOW_RATING_KEY) === '1';
+
+/* Puts a ♪ on each nominee that plays its 30-second store preview, the same
+   sample the nominee picker and the ceremony play. Off by default; global and
+   synced, like the switches above. */
+const AWARDS_SAMPLES_KEY = 'dc_awards_samples';
+let _awardsSamples = localStorage.getItem(AWARDS_SAMPLES_KEY) === '1';
+
 // "A feat. B", "A ft. B", "A featuring B" and "A with B" inside one artist string
 const _AWARDS_FEAT_SPLIT = /\s+(?:feat\.?|ft\.?|featuring|with)\s+/i;
 // "A & B", "A x B", "A and B", "A vs B": a collaboration, or a duo's own name
@@ -35964,6 +36070,32 @@ function awardsSetHidePlays(on) {
   if (el) el.checked = _awardsHidePlays;
   // Targeted write, same as awardsSetCreditFeatures
   if (typeof dcSaveConfigKey === 'function') dcSaveConfigKey(AWARDS_HIDE_PLAYS_KEY, on ? '1' : '0');
+  const data = _awardsYearData[_awardsYear];
+  if (data) _awardsRenderCatList(data);
+}
+
+// The "Play samples from nominee cards" switch in Configure Year
+function awardsSetSamples(on) {
+  _awardsSamples = !!on;
+  localStorage.setItem(AWARDS_SAMPLES_KEY, on ? '1' : '0');
+  const el = document.getElementById('awardsSamples');
+  if (el) el.checked = _awardsSamples;
+  // Turning it off mid-sample stops the sample, since its button is going away
+  if (!on) _awardsCardStopClip();
+  // Targeted write, same as awardsSetCreditFeatures
+  if (typeof dcSaveConfigKey === 'function') dcSaveConfigKey(AWARDS_SAMPLES_KEY, on ? '1' : '0');
+  const data = _awardsYearData[_awardsYear];
+  if (data) _awardsRenderCatList(data);
+}
+
+// The "Show my scores on nominee cards" switch in Configure Year
+function awardsSetShowRating(on) {
+  _awardsShowRating = !!on;
+  localStorage.setItem(AWARDS_SHOW_RATING_KEY, on ? '1' : '0');
+  const el = document.getElementById('awardsShowRating');
+  if (el) el.checked = _awardsShowRating;
+  // Targeted write, same as awardsSetCreditFeatures
+  if (typeof dcSaveConfigKey === 'function') dcSaveConfigKey(AWARDS_SHOW_RATING_KEY, on ? '1' : '0');
   const data = _awardsYearData[_awardsYear];
   if (data) _awardsRenderCatList(data);
 }
@@ -36288,8 +36420,10 @@ function _awardsRenderCatCard(cat, catData, year, idx) {
     const sub = (w.title || w.album) && w.artist ? w.artist : '';
     bodyHtml = `<div class="awards-nominee-row is-winner awards-auto-winner">
       <span class="awards-nominee-icon">🏆</span>
+      ${_awardsClipBtn(cat, w)}
       <span class="awards-nominee-label" title="${esc(lbl)}">${esc(lbl)}</span>
       ${sub ? `<span class="awards-nominee-sub" title="${esc(sub)}">${esc(sub)}</span>` : ''}
+      ${_awardsRatingChip(w)}
     </div>`;
     // A tie at the top: the rest of the tied field sits under the winner, and
     // clicking one hands it the award.
@@ -36322,8 +36456,10 @@ function _awardsRenderCatCard(cat, catData, year, idx) {
       const pick = reordering ? '' : ` onclick="awardsPickWinner(${year},'${esc(cat.id)}',${esc(JSON.stringify(item))})"`;
       return `<div class="awards-nominee-row${isW ? ' is-winner' : ''}" style="--i:${i}" data-nom-i="${i}" draggable="true"${pick}>
         <span class="awards-nominee-icon">${mark}</span>
+        ${_awardsClipBtn(cat, item)}
         <span class="awards-nominee-label" title="${esc(lbl)}">${esc(lbl)}</span>
         ${sub ? `<span class="awards-nominee-sub" title="${esc(sub)}">${esc(sub)}</span>` : ''}
+        ${_awardsRatingChip(item)}
         ${_awardsGrowthChip(cat, year, item)}
         ${_awardsMoveCtl(year, cat, { i, n: nominees.length }, 'y')}
         <button class="awards-nominee-remove" onclick="awardsRemoveNominee(event,${year},'${esc(cat.id)}',${esc(JSON.stringify(item))})" title="Remove">✕</button>
@@ -36688,11 +36824,13 @@ function _awardsSpotlightBody(cat, f, year, idp, queue) {
     hero = `<div class="aw-spot-hero is-crowned">
       <div class="aw-spot-bd" id="${heroId}_bd" data-prefkey="${esc(_cerImgItem(w, cat.type, '').prefKey)}"${known ? ` style="background-image:url(&quot;${esc(known)}&quot;)"` : ''}></div>
       ${_awardsArtSlot(w, cat.type, heroId, queue, 'aw-spot-art', { hd: true, bd: heroId + '_bd' })}
+      ${_awardsClipBtn(cat, w)}
       <div class="aw-spot-meta">
         <span class="aw-spot-label">${esc(t('awards_winner'))}</span>
         <span class="aw-spot-name" title="${esc(x.lbl)}">${esc(x.lbl)}</span>
         ${x.sub ? `<span class="aw-spot-sub" title="${esc(x.sub)}">${esc(x.sub)}</span>` : ''}
         ${x.score ? `<span class="aw-spot-score">${esc(x.score)}</span>` : ''}
+        ${_awardsRatingChip(w)}
       </div>
     </div>`;
   } else {
@@ -36712,10 +36850,12 @@ function _awardsSpotlightBody(cat, f, year, idp, queue) {
     return `<div class="aw-spot-row${e.isW ? ' is-winner' : ''}" style="--i:${k}"${_awardsEntryAttrs(year, cat, e)}>
       <span class="aw-spot-rank">${e.mark}</span>
       ${_awardsArtSlot(e.item, cat.type, `${idp}_r${k}`, queue, 'aw-spot-thumb')}
+      ${_awardsClipBtn(cat, e.item)}
       <span class="aw-spot-text">
         <span class="aw-spot-rname" title="${esc(x.lbl)}">${esc(x.lbl)}</span>
         ${x.sub ? `<span class="aw-spot-rsub" title="${esc(x.sub)}">${esc(x.sub)}</span>` : ''}
       </span>
+      ${_awardsRatingChip(e.item)}
       ${x.score ? `<span class="aw-spot-rscore">${esc(x.score)}</span>` : ''}
       ${_awardsMoveCtl(year, cat, e, 'y')}
       ${_awardsEntryRemove(year, cat, e)}
@@ -36731,11 +36871,13 @@ function _awardsTilesBody(cat, f, year, idp, queue) {
       <div class="aw-tile-frame">
         ${_awardsArtSlot(e.item, cat.type, `${idp}_t${k}`, queue, 'aw-tile-art')}
         <span class="aw-rank">${e.mark}</span>
+        ${_awardsClipBtn(cat, e.item)}
         ${_awardsEntryRemove(year, cat, e)}
         ${_awardsMoveCtl(year, cat, e, 'x')}
       </div>
       <span class="aw-tile-name" title="${esc(x.lbl)}">${esc(x.lbl)}</span>
       ${x.sub ? `<span class="aw-tile-sub" title="${esc(x.sub)}">${esc(x.sub)}</span>` : ''}
+      ${_awardsRatingChip(e.item)}
       ${_awardsGrowthChip(cat, year, e.item)}
     </div>`;
   }).join('')}</div>`;
@@ -36756,12 +36898,14 @@ function _awardsCollageBody(cat, f, year, idp, queue) {
     return `<div class="aw-col-cell${e.isW ? ' is-winner' : ''}" style="--i:${k}${span}"${_awardsEntryAttrs(year, cat, e)}>
       ${_awardsArtSlot(e.item, cat.type, `${idp}_c${k}`, queue, 'aw-col-art', { hd: e.isW })}
       <span class="aw-rank">${e.mark}</span>
+      ${_awardsClipBtn(cat, e.item)}
       ${_awardsEntryRemove(year, cat, e)}
       ${_awardsMoveCtl(year, cat, e, 'x')}
       <div class="aw-col-cap">
         ${e.isW ? `<span class="aw-col-win">${esc(t('awards_winner'))}</span>` : ''}
         <span class="aw-col-name" title="${esc(x.lbl)}">${esc(x.lbl)}</span>
         ${x.sub ? `<span class="aw-col-sub">${esc(x.sub)}</span>` : ''}
+        ${_awardsRatingChip(e.item)}
         ${_awardsGrowthChip(cat, year, e.item)}
       </div>
     </div>`;
@@ -36775,6 +36919,7 @@ function _awardsReelBody(cat, f, year, idp, queue) {
       <div class="aw-poster-frame">
         ${_awardsArtSlot(e.item, cat.type, `${idp}_p${k}`, queue, 'aw-poster-art', { hd: true })}
         <span class="aw-rank">${e.mark}</span>
+        ${_awardsClipBtn(cat, e.item)}
         ${_awardsEntryRemove(year, cat, e)}
         ${_awardsMoveCtl(year, cat, e, 'x')}
         ${e.isW ? `<span class="aw-poster-ribbon">${esc(t('awards_winner'))}</span>` : ''}
@@ -36782,6 +36927,7 @@ function _awardsReelBody(cat, f, year, idp, queue) {
       <span class="aw-poster-name" title="${esc(x.lbl)}">${esc(x.lbl)}</span>
       ${x.sub ? `<span class="aw-poster-sub" title="${esc(x.sub)}">${esc(x.sub)}</span>` : ''}
       ${x.score ? `<span class="aw-poster-score">${esc(x.score)}</span>` : ''}
+      ${_awardsRatingChip(e.item)}
     </div>`;
   }).join('')}</div>`;
 }
@@ -36891,6 +37037,10 @@ function awardsToggleConfig() {
     if (featEl) featEl.checked = _awardsCreditFeatures;
     const hideEl = document.getElementById('awardsHidePlays');
     if (hideEl) hideEl.checked = _awardsHidePlays;
+    const rateEl = document.getElementById('awardsShowRating');
+    if (rateEl) rateEl.checked = _awardsShowRating;
+    const clipEl = document.getElementById('awardsSamples');
+    if (clipEl) clipEl.checked = _awardsSamples;
   }
 }
 

@@ -27,7 +27,7 @@
   <!-- html2canvas, SheetJS (xlsx) and JSZip are intentionally NOT loaded here — they
        total ~1.2 MB and are only needed for image exports and Excel/ZIP imports.
        app.js pulls them from the CDN on first use (see ensureLazyLib). -->
-  <link rel="stylesheet" href="style.css?v=288">
+  <link rel="stylesheet" href="style.css?v=290">
   <!-- All scripts are deferred so the page paints without waiting on them.
        defer preserves execution order, which matters: translations → Chart.js →
        hammer → zoom plugin → firebase SDKs → firebase.js → app.js (in body). -->
@@ -40,7 +40,7 @@
   <script defer src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
   <script defer src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
   <script defer src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
-  <script defer src="firebase.js?v=8"></script>
+  <script defer src="firebase.js?v=10"></script>
 </head>
 
 <body>
@@ -2114,6 +2114,30 @@
               </span>
             </label>
           </div>
+          <!-- Also global: shows the user's own 0–10 score on nominee cards (awardsSetShowRating) -->
+          <div class="awards-config-row awards-switch-row">
+            <label class="src-switch-row">
+              <span class="src-switch-label">Show my scores on nominee cards
+                <span class="set-switch-note">Each nominee you've rated shows your score (0–10) next to it. Unrated songs and albums show nothing; artists use the average of their rated albums.</span>
+              </span>
+              <span class="src-switch">
+                <input type="checkbox" id="awardsShowRating" onchange="awardsSetShowRating(this.checked)">
+                <span class="src-switch-slider"></span>
+              </span>
+            </label>
+          </div>
+          <!-- Also global: a ♪ on each nominee that plays its 30-second sample (awardsSetSamples) -->
+          <div class="awards-config-row awards-switch-row">
+            <label class="src-switch-row">
+              <span class="src-switch-label">Play samples from nominee cards
+                <span class="set-switch-note">Each nominee gets a ♪ button that plays a 30-second preview, so you can hear the field before you pick. Click it again to stop.</span>
+              </span>
+              <span class="src-switch">
+                <input type="checkbox" id="awardsSamples" onchange="awardsSetSamples(this.checked)">
+                <span class="src-switch-slider"></span>
+              </span>
+            </label>
+          </div>
           <!-- Category browser: search, filters and grouped cards (_awardsRenderCatToggles).
                The bar is static so typing in the search never loses focus; only
                the chips, counts and list below it are redrawn. -->
@@ -3250,8 +3274,8 @@
 
   <!-- defer keeps app.js last in the script execution order (after translations,
        Chart.js and firebase.js) while letting the whole page parse and paint first -->
-  <script defer src="changelog.js?v=79"></script>
-  <script defer src="app.js?v=258"></script>
+  <script defer src="changelog.js?v=81"></script>
+  <script defer src="app.js?v=260"></script>
 
   <!-- ── Settings Modal ──
        Split into three tabs so the whole form is never dumped on screen at

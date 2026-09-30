@@ -16,6 +16,14 @@ window.DC_CHANGELOG_I18N['pt-PT'] = {
 
   /* ========== SETEMBRO 2026 ========== */
 
+  'Play samples from My Grammys nominee cards':
+    ['Ouça amostras a partir dos cartões de nomeados dos Meus Grammys',
+     'Configurar ano tem um novo interruptor, Tocar amostras a partir dos cartões de nomeados. Com ele ligado, cada nomeado ganha um botão ♪ que toca uma amostra de 30 segundos, para ouvir os candidatos antes de escolher o vencedor. Clique outra vez para parar. Funciona nas cinco vistas, e clicar no ♪ nunca coroa o nomeado. Começa desligado, aplica-se a todos os anos e sincroniza entre os seus dispositivos.'],
+
+  'Show your scores on My Grammys nominee cards':
+    ['Mostre as suas notas nos cartões de nomeados dos Meus Grammys',
+     'Configurar ano tem um novo interruptor, Mostrar as minhas notas nos cartões de nomeados. Com ele ligado, cada nomeado que avaliou mostra a sua nota de 0 a 10 ao lado, nas cinco vistas. Músicas e álbuns sem nota não mostram nada, e os artistas usam a média dos álbuns avaliados. Começa desligado, aplica-se a todos os anos e sincroniza entre os seus dispositivos.'],
+
   'Hide plays on My Grammys nominee cards':
     ['Ocultar reproduções nos cartões de nomeados dos Meus Grammys',
      'Configurar Ano tem um novo interruptor, Ocultar reproduções nos cartões de nomeados. Com ele ligado, os cartões de nomeados deixam de mostrar o número de reproduções, para que a votação seja sobre as tuas escolhas e não sobre os números. O seletor de nomeados continua a mostrá-las e as sugestões funcionam da mesma forma. A definição aplica-se a todos os anos e sincroniza entre os teus dispositivos.'],

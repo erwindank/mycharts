@@ -23308,6 +23308,60 @@ body[class*="-light"] .tm-card-search:hover {
 }
 .aw-growth-up   { color: var(--chart-up);   background: color-mix(in srgb, var(--chart-up) 14%, transparent); }
 .aw-growth-down { color: var(--chart-down); background: color-mix(in srgb, var(--chart-down) 14%, transparent); }
+
+/* The user's own score on a nominee ("Show my scores on nominee cards").
+   The chip itself is the shared .rt-chip; this only fits it into the rows and
+   the stacked captions, where it must not stretch or indent. */
+.aw-rt { flex: 0 0 auto; align-self: center; width: fit-content; }
+.aw-spot-meta .aw-rt,
+.aw-tile .aw-rt,
+.aw-col-cap .aw-rt,
+.aw-poster .aw-rt { align-self: flex-start; margin-left: 0; margin-top: 2px; }
+
+/* ♪ sample button on a nominee ("Play samples from nominee cards"). Inline in
+   the ballot and spotlight rows; on the artwork elsewhere, as dark glass in the
+   bottom-right corner, clear of the rank chip, the ✕ / ✎ corner and the
+   centred reorder pill. */
+.aw-clip {
+  flex: none;
+  display: inline-grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  background: var(--surface2);
+  color: var(--text2);
+  font-size: 0.68rem;
+  line-height: 1;
+  cursor: pointer;
+  transition: color var(--t-fast) var(--ease), background var(--t-fast) var(--ease), border-color var(--t-fast) var(--ease);
+}
+.aw-clip:hover { color: var(--accent); border-color: var(--accent); }
+.aw-clip.is-on { background: var(--accent); border-color: var(--accent); color: var(--on-accent); font-size: 0.5rem; }
+.aw-clip.is-loading { font-size: 0.68rem; animation: awardsClipSpin 1s linear infinite; }
+.aw-clip.is-miss { opacity: 0.4; text-decoration: line-through; }
+.awards-nominee-row .aw-clip { margin-right: 6px; }
+.aw-tile-frame .aw-clip,
+.aw-poster-frame .aw-clip,
+.aw-col-cell .aw-clip,
+.aw-spot-hero .aw-clip {
+  position: absolute;
+  right: 6px;
+  bottom: 6px;
+  z-index: 2;
+  border: 0;
+  background: rgba(8, 10, 14, 0.62);
+  backdrop-filter: blur(6px);
+  color: #fff;
+}
+.aw-tile-frame .aw-clip.is-on,
+.aw-poster-frame .aw-clip.is-on,
+.aw-col-cell .aw-clip.is-on,
+.aw-spot-hero .aw-clip.is-on { background: var(--accent); color: var(--on-accent); }
+/* The reel's winner ribbon runs along the bottom of the poster */
+.aw-poster.is-winner .aw-clip { bottom: 30px; }
 .aw-growth-flat { color: var(--text3);      background: color-mix(in srgb, var(--text3) 12%, transparent); }
 /* A tile is narrower than a big percentage plus the plays, so there it wraps
    onto two lines instead of spilling into the next tile */
