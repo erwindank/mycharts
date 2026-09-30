@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['pt-BR'] = {
 
   /* ========== SETEMBRO 2026 ========== */
 
+  'Backups work again with big awards collections':
+    ['Os backups voltam a funcionar com premiações grandes',
+     'Quando suas premiações passavam de certo tamanho, os backups em Configurações → Perfil paravam de ser salvos sem aviso, porque o backup inteiro não cabia mais em uma só parte. Agora os backups grandes são divididos em várias partes e remontados na restauração, então voltam a ser salvos não importa quantas categorias você tenha. Os backups antigos continuam sendo restaurados como antes.'],
+
   'Play samples from My Grammys nominee cards':
     ['Toque prévias pelos cartões de indicados do Meus Grammys',
      'Configurar ano tem um novo botão, Tocar prévias pelos cartões de indicados. Com ele ligado, cada indicado ganha um botão ♪ que toca uma prévia de 30 segundos, para você ouvir os candidatos antes de escolher o vencedor. Clique de novo para parar. Funciona nas cinco visualizações, e clicar no ♪ nunca coroa o indicado. Começa desligado, vale para todos os anos e sincroniza entre seus dispositivos.'],

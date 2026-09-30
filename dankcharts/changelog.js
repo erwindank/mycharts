@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 28;
+const DC_CL_I18N_V = 29;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,10 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== SEPTEMBER 2026 ========== */
+
+  { d: '2026-09-30', t: 'fix', a: 'settings', h: '',
+    title: 'Backups work again with big awards collections',
+    detail: 'Once your awards grew past a certain size, backups in Settings → Profile quietly stopped being saved, because the whole backup no longer fit in one piece. Big backups are now split into several pieces and put back together when you restore, so they save again however many categories you have. Older backups still restore as before.' },
 
   { d: '2026-09-30', t: 'feature', a: 'awards', h: '58bdbb8',
     title: 'Play samples from My Grammys nominee cards',

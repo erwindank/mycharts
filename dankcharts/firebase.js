@@ -364,8 +364,16 @@ async function dcLoadAllAwards() {
      data/backup_<id>    one snapshot; `payload` is a JSON string so odd keys
                          (dots, slashes in song names) can't trip Firestore
    The index keeps the list cheap to open — no need to download every snapshot
-   just to show their dates.                                                  */
+   just to show their dates.
+
+   Firestore caps a document at 1 MiB, and a full backup with every awards year
+   can go past that. So the payload is cut into pieces: the first rides in
+   backup_<id> itself, the rest go in backup_<id>_p1, _p2, … and `parts` on the
+   main doc says how many there are in total.                                 */
 const BACKUP_KEEP_PER_KIND = 30;   // 30 full backups + 30 single-year awards snapshots
+// Characters per piece. A JS char is at most 3 bytes in UTF-8 (a surrogate
+// pair is 4 bytes for 2 chars), so 300k chars stays under ~900 KB.
+const BACKUP_PART_CHARS = 300000;
 
 function _backupIndexRef(uid) {
   return _db.collection('users').doc(uid).collection('data').doc('backups');
@@ -373,21 +381,47 @@ function _backupIndexRef(uid) {
 function _backupRef(uid, id) {
   return _db.collection('users').doc(uid).collection('data').doc('backup_' + id);
 }
+function _backupPartRef(uid, id, n) {
+  return _db.collection('users').doc(uid).collection('data').doc('backup_' + id + '_p' + n);
+}
+
+// Cut a string into pieces of at most BACKUP_PART_CHARS, never between the two
+// halves of an emoji (a lone half isn't valid text and Firestore would mangle it).
+function _backupSplit(str) {
+  const parts = [];
+  let i = 0;
+  while (i < str.length) {
+    let end = Math.min(i + BACKUP_PART_CHARS, str.length);
+    const c = str.charCodeAt(end - 1);
+    if (end < str.length && c >= 0xD800 && c <= 0xDBFF) end--;
+    parts.push(str.slice(i, end));
+    i = end;
+  }
+  return parts.length ? parts : [''];
+}
+
+// Remove a backup and all its pieces. Missing pieces are fine.
+function _backupDelete(uid, entry) {
+  _backupRef(uid, entry.id).delete().catch(() => {});
+  for (let n = 1; n < (entry.parts || 1); n++) _backupPartRef(uid, entry.id, n).delete().catch(() => {});
+}
 
 // meta: { createdAt, reason, kind: 'full' | 'awards', device, summary }
-// Returns the new id, or null (signed out, offline, or too big for one doc).
+// Returns the new id, or null (signed out or offline).
 async function dcBackupWrite(meta, payloadJson) {
   if (!_currentUser) return null;
   await _ensureDb();
-  // Firestore's per-document ceiling is 1 MiB; leave room for the meta fields.
-  if (new Blob([payloadJson]).size > 1000000) {
-    console.warn('[dankcharts] Backup too large for one document — skipped');
-    return null;
-  }
   const uid = _currentUser.uid;
   const id  = meta.createdAt + '_' + Math.random().toString(36).slice(2, 6);
+  const pieces = _backupSplit(payloadJson);
+  meta = { ...meta, parts: pieces.length };
   try {
-    await _backupRef(uid, id).set({ ...meta, payload: payloadJson });
+    // Extra pieces first, main doc last — so a backup only shows as readable
+    // once all of it has landed.
+    for (let n = 1; n < pieces.length; n++) {
+      await _backupPartRef(uid, id, n).set({ payload: pieces[n] });
+    }
+    await _backupRef(uid, id).set({ ...meta, payload: pieces[0] });
     // Add to the index and prune in one transaction, so two devices backing
     // up at the same moment can't each drop the other's entry.
     let dropped = [];
@@ -405,7 +439,7 @@ async function dcBackupWrite(meta, payloadJson) {
       }
       tx.set(_backupIndexRef(uid), { list: kept });
     });
-    for (const d of dropped) _backupRef(uid, d.id).delete().catch(() => {});
+    for (const d of dropped) _backupDelete(uid, d);
     return id;
   } catch (err) {
     console.warn('[dankcharts] Backup write error:', err);
@@ -430,8 +464,17 @@ async function dcBackupRead(id) {
   if (!_currentUser) return null;
   await _ensureDb();
   try {
-    const snap = await _backupRef(_currentUser.uid, id).get();
-    return snap.exists ? JSON.parse(snap.data().payload) : null;
+    const uid  = _currentUser.uid;
+    const snap = await _backupRef(uid, id).get();
+    if (!snap.exists) return null;
+    // Older backups have no `parts` — they're a single piece.
+    const main  = snap.data();
+    const total = main.parts || 1;
+    const rest  = await Promise.all(
+      Array.from({ length: total - 1 }, (_, i) => _backupPartRef(uid, id, i + 1).get())
+    );
+    if (rest.some(s => !s.exists)) throw new Error('backup piece missing');
+    return JSON.parse(main.payload + rest.map(s => s.data().payload).join(''));
   } catch (err) {
     console.warn('[dankcharts] Backup read error:', err);
     return null;

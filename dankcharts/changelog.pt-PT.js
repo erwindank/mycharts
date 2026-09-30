@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['pt-PT'] = {
 
   /* ========== SETEMBRO 2026 ========== */
 
+  'Backups work again with big awards collections':
+    ['As cópias de segurança voltam a funcionar com prémios grandes',
+     'Quando os seus prémios passavam de um certo tamanho, as cópias de segurança em Definições → Perfil deixavam de ser guardadas sem aviso, porque a cópia inteira já não cabia numa só parte. Agora as cópias grandes são divididas em várias partes e voltam a ser juntadas ao restaurar, por isso voltam a ser guardadas independentemente de quantas categorias tiver. As cópias antigas continuam a ser restauradas como antes.'],
+
   'Play samples from My Grammys nominee cards':
     ['Ouça amostras a partir dos cartões de nomeados dos Meus Grammys',
      'Configurar ano tem um novo interruptor, Tocar amostras a partir dos cartões de nomeados. Com ele ligado, cada nomeado ganha um botão ♪ que toca uma amostra de 30 segundos, para ouvir os candidatos antes de escolher o vencedor. Clique outra vez para parar. Funciona nas cinco vistas, e clicar no ♪ nunca coroa o nomeado. Começa desligado, aplica-se a todos os anos e sincroniza entre os seus dispositivos.'],
