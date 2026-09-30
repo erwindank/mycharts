@@ -24215,6 +24215,18 @@ function getTop200Artists() {
 const _mbidCache = {};
 const _mbBirthdayCache = {}; // artist name → "YYYY-MM-DD" captured from MB search results
 const _mbArtistTypeCache = {}; // artist name → 'Person' | 'Group' | 'Orchestra' | … from the same search
+// artist name → { type, dis, tags[] } from the same search: the type, the short
+// note MusicBrainz shows beside the name ("French DJ"), and its lower-cased tags.
+// null when nothing matched. Kept in this browser so the award checks that need
+// it (Best Collaboration, Best Rock Duo/Group Song) don't wait on the same
+// one-a-second lookups every time; losing it only means looking them up again.
+const MB_INFO_KEY = 'dc_mb_artist_info';
+const _mbArtistInfoCache = (() => {
+  try { return JSON.parse(localStorage.getItem(MB_INFO_KEY) || '{}') || {}; } catch (e) { return {}; }
+})();
+function _mbSaveArtistInfo() {
+  try { localStorage.setItem(MB_INFO_KEY, JSON.stringify(_mbArtistInfoCache)); } catch (e) {}
+}
 async function searchArtistMBID(name) {
   if (_mbidCache[name] !== undefined) return _mbidCache[name];
   try {
@@ -24225,6 +24237,13 @@ async function searchArtistMBID(name) {
       || artists[0];
     _mbidCache[name] = match?.id || null;
     _mbArtistTypeCache[name] = match?.type || null;
+    _mbArtistInfoCache[name] = match ? {
+      type: match.type || null,
+      dis:  match.disambiguation || '',
+      // The first 30 are plenty; popular artists collect long tails of joke tags
+      tags: (match.tags || []).slice(0, 30).map(t => String(t.name || '').toLowerCase()),
+    } : null;
+    _mbSaveArtistInfo();
     const born = match?.['life-span']?.begin;
     if (born && born.length >= 10) _mbBirthdayCache[name] = born.slice(0, 10);
     return _mbidCache[name];
@@ -34547,11 +34566,50 @@ async function _awardsSave(year) {
 }
 
 function _isCollab(play) {
-  if (Array.isArray(play.artists) && play.artists.length > 1) return true;
+  return _collabArtists(play).length > 1;
+}
+
+// Every artist credited on a play: the structured list when the source has one,
+// otherwise the artist string split on commas, &, feat., ft. and x (band names
+// with a comma in them, like "Tyler, The Creator", held together)
+function _collabArtists(play) {
+  if (Array.isArray(play.artists) && play.artists.length > 1) return play.artists.slice();
   const artist = play.artist || '';
-  const cleaned = COLLAB_EXCEPTIONS.reduce((s, ex) => s.replace(ex, ex.replace(/,/g, '​')), artist);
-  const parts = cleaned.split(/,|(?:\s+(?:&|feat\.?|ft\.?|x)\s+)/i).map(s => s.trim()).filter(Boolean);
-  return parts.length > 1;
+  // Commas and ampersands inside a protected name are swapped for invisible
+  // stand-ins while splitting, then put back
+  const cleaned = COLLAB_EXCEPTIONS.reduce((s, ex) => s.replace(ex, ex.replace(/,/g, '​').replace(/&/g, '‌')), artist);
+  return cleaned.split(/,|(?:\s+(?:&|feat\.?|ft\.?|x)\s+)/i)
+    .map(s => s.replace(/​/g, ',').replace(/‌/g, '&').trim()).filter(Boolean);
+}
+
+/* What an artist brings to a collaboration, for Best Collaboration:
+   'group'  — MusicBrainz types them as a group, orchestra or choir
+   'dj'     — a DJ or producer who mostly doesn't sing: MusicBrainz's note
+              beside the name says so ("Dutch DJ and record producer"), or
+              the artist is steeped in DJ genres (see below)
+   'singer' — a person MusicBrainz knows, with neither sign
+   null     — not looked up, or not found
+   Genre tags alone are a weak signal: MusicBrainz tags Lady Gaga "edm" and
+   "electro house" and Katy Perry "house". A real DJ carries several DJ-genre
+   tags (David Guetta has ten) and no vocal ones, so it takes three distinct DJ
+   genres and no "female vocals" / "singer-songwriter" style tag. Tags come
+   from MusicBrainz plus whatever Last.fm or Gemini gave the genre awards. */
+const MB_GROUP_TYPES = new Set(['Group', 'Orchestra', 'Choir']);
+const DJ_ROLE_RE = /\b(?:dj|disc jockey|producer|production|beatmaker)\b/i;
+// Genres made almost entirely by DJs and producers. Not "dance" or
+// "electronic", which take in plenty of singers.
+const DJ_GENRE_RE = /\b(?:house|edm|techno|trance|dubstep|future bass|drum and bass|big room|future rave|hardstyle|trap edm)\b/;
+const VOCAL_TAG_RE = /\b(?:vocals?|vocalist|singer|singer-songwriter|rapper)\b/;
+const AWARDS_DJ_MIN_GENRES = 3;
+function _awardsCollabRole(name) {
+  const mb = _mbArtistInfoCache[name];
+  if (mb && MB_GROUP_TYPES.has(mb.type)) return 'group';
+  if (DJ_ROLE_RE.test(mb?.dis || '')) return 'dj';
+  const tags = new Set([...(mb?.tags || []), ...(_awardsGenreCache[String(name).toLowerCase()] || [])]);
+  if (tags.has('dj')) return 'dj';
+  const djGenres = [...tags].filter(t => DJ_GENRE_RE.test(t)).length;
+  if (djGenres >= AWARDS_DJ_MIN_GENRES && ![...tags].some(t => VOCAL_TAG_RE.test(t))) return 'dj';
+  return mb ? 'singer' : null;
 }
 
 function _isDuo(play) {
@@ -34805,6 +34863,8 @@ const _AWARDS_PLAY_TESTS = {
 
 // How many artists Best Rock Duo/Group Song asks MusicBrainz about (~1s each)
 const AWARDS_MB_TYPE_CHECKS = 20;
+// …and Best Collaboration, which has two or more artists per song
+const AWARDS_MB_COLLAB_CHECKS = 45;
 
 // A deep cut has at least this many songs on its album better known than it
 const AWARDS_DEEP_CUT_MIN_POS = 3;
@@ -34947,10 +35007,43 @@ async function _awardsGetCandidates(catDef, eligStart, eligEnd, log) {
     if (catDef.type === 'artist') return _awardsTopN(artists, 20, 1);
     return [];
   }
+  /* Best Collaboration isn't every song with two names on it (two singers
+     trading lines is a duet, and Best Duo's): it's a team-up where only one
+     artist really sings, because the other is a DJ or producer, or where one
+     side is a group. Each artist on the leading songs is looked up on
+     MusicBrainz, one at a time (its rate limit), and a song with an artist it
+     couldn't check stays in rather than being dropped on a guess. */
   if (f === 'collab') {
     const m = {};
-    for (const p of inWin) { if (!_isCollab(p)) continue; const k = _sk(p); m[k] = m[k] || { title: p.title, artist: p.artist, album: p.album, plays: 0 }; m[k].plays++; }
-    return _awardsTopN(m, 20, 4);
+    for (const p of inWin) {
+      if (!_isCollab(p)) continue;
+      const k = _sk(p);
+      if (!m[k]) m[k] = { title: p.title, artist: p.artist, album: p.album, plays: 0, names: _collabArtists(p) };
+      m[k].plays++;
+    }
+    const pool = _awardsTopN(m, 40, 4);
+    const names = [...new Set(pool.flatMap(c => c.names))];
+    const toCheck = names.filter(n => _mbArtistInfoCache[n] === undefined && _mbidCache[n] === undefined).slice(0, AWARDS_MB_COLLAB_CHECKS);
+    if (log && toCheck.length) log(`Checking ${toCheck.length} artist${toCheck.length !== 1 ? 's' : ''} for DJs, producers and groups…`);
+    for (const n of toCheck) {
+      await searchArtistMBID(n);
+      // A failed request (MusicBrainz answers 503 when busy) leaves no info
+      // behind, unlike "no such artist"; give it one more go after a pause
+      if (_mbArtistInfoCache[n] === undefined) {
+        delete _mbidCache[n];
+        await new Promise(r => setTimeout(r, 2000));
+        await searchArtistMBID(n);
+      }
+    }
+    const out = [];
+    for (const { names: artists, ...item } of pool) {
+      const roles = artists.map(_awardsCollabRole);
+      const why = roles.includes('dj') ? 'dj' : roles.includes('group') ? 'group' : roles.includes(null) ? 'unknown' : null;
+      if (!why) continue;   // every artist a known solo singer
+      if (why !== 'unknown') item.playLabel = `${item.plays.toLocaleString()} plays · ${why === 'dj' ? 'with a DJ/producer' : 'with a group'}`;
+      out.push(item);
+    }
+    return out.slice(0, 20);
   }
   if (f === 'duo') {
     const m = {};
@@ -35241,11 +35334,12 @@ async function _awardsGetCandidates(catDef, eligStart, eligEnd, log) {
       m[k].plays++;
     }
     const pool = _awardsTopN(m, 40, 3);
-    const leads = [...new Set(pool.filter(c => !c.collab).map(c => c.lead))].slice(0, AWARDS_MB_TYPE_CHECKS);
+    const leads = [...new Set(pool.filter(c => !c.collab).map(c => c.lead))]
+      .filter(a => _mbArtistInfoCache[a] === undefined).slice(0, AWARDS_MB_TYPE_CHECKS);
     if (log && leads.length) log(`Checking which of ${leads.length} rock artist${leads.length !== 1 ? 's are bands' : ' is a band'}…`);
-    for (const a of leads) if (_mbidCache[a] === undefined) await searchArtistMBID(a);
+    for (const a of leads) if (_mbArtistInfoCache[a] === undefined && _mbidCache[a] === undefined) await searchArtistMBID(a);
     return pool
-      .filter(c => c.collab || _mbArtistTypeCache[c.lead] !== 'Person')
+      .filter(c => c.collab || _mbArtistInfoCache[c.lead]?.type !== 'Person')
       .slice(0, 20)
       .map(({ lead, collab, ...c }) => c);
   }

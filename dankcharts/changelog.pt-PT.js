@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['pt-PT'] = {
 
   /* ========== SETEMBRO 2026 ========== */
 
+  'Best Collaboration suggests real team-ups, not duets':
+    ['Melhor Colaboração sugere parcerias a sério, não duetos',
+     'Gerar Nomeados sugeria para Melhor Colaboração qualquer música com dois ou mais artistas, por isso os duetos apareciam ali e também em Melhor Duo. Agora sugere parcerias em que só um canta porque o outro é DJ ou produtor (David Guetta, Tiësto, benny blanco), e músicas em que um dos artistas é um grupo ou banda. Cada artista é verificado no MusicBrainz, e cada nomeado diz porque entrou ("with a DJ/producer" ou "with a group"). Da primeira vez pode demorar até um minuto, porque o MusicBrainz permite uma consulta por segundo; as respostas ficam guardadas neste navegador, por isso depois demora segundos. Continuas a poder adicionar qualquer música à mão. Também corrigido: um nome de banda com "&", como Simon & Garfunkel, já não é separado em dois artistas.'],
+
   'Goth Rock song and album awards':
     ['Prémios de Música e Álbum de Rock Gótico',
      'Os Meus Grammys têm duas categorias novas de rock, Melhor Música de Rock Gótico e Melhor Álbum de Rock Gótico, desativadas por predefinição e no grupo Rock de Configurar Ano. Contam artistas marcados como rock gótico, deathrock, darkwave ou metal gótico. As primeiras bandas góticas marcadas como post-punk podem continuar a ser nomeadas em Post-Punk/New Wave.'],
