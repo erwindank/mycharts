@@ -37648,15 +37648,211 @@ function _awardsPickerStatsHtml(item) {
   const first = short(localDateStr(tzDate(new Date(s.first))));
   const last  = short(localDateStr(tzDate(new Date(s.last))));
 
+  const ax = type === 'artist' ? _awardsArtistExtras(item) : null;
+
   return hero
+    + (ax ? ax.highlights : '')
     + section('Through the year', `<div class="aw-pst-months" style="--n:${s.monthly.length}" aria-label="Plays per month">${bars}</div>
         <div class="aw-pst-span"><span>First play <b>${first}</b></span><span>Last play <b>${last}</b></span></div>`)
     + section('How you listened', `<div class="aw-pst-grid">${tiles.join('')}</div>`)
     + section('On your charts', `<div class="aw-pst-charts">${chartRow('Weekly', s.wChart, 'week')}${chartRow('Monthly', s.mChart, 'month')}</div>`)
+    + (ax ? ax.rest : '')
     + `<div class="aw-pst-foot">Counting ${esc(_awardsStatDate(_awardsPickerEligWin.start))} – ${esc(_awardsStatDate(_awardsPickerEligWin.end))}, this year's eligibility window</div>`;
 }
 
 // Opens the card straight under its row, without re-rendering the list
+/* ── Artist of the Year extras ───────────────────────────────────────────────
+   Unlockable highlights, career growth year by year, the plaques earned in the
+   window and every record the artist holds. Built when a card opens, not with
+   the picker index, since only artists get them and most cards stay shut. */
+
+// Plays per calendar year for every artist (primary artist, as the picker
+// counts them), cached until the plays change
+let _awardsArtistYearIdx = null, _awardsArtistYearIdxKey = '';
+function _awardsArtistYears() {
+  const key = allPlays.length + '|' + (allPlays.length ? +allPlays[0].date : 0);
+  if (_awardsArtistYearIdx && _awardsArtistYearIdxKey === key) return _awardsArtistYearIdx;
+  const years = new Map();   // "2016" → Map(artistKey → plays)
+  for (const p of allPlays) {
+    const y = dayStrOf(p).slice(0, 4);
+    let m = years.get(y);
+    if (!m) years.set(y, m = new Map());
+    const k = _pk(p);
+    m.set(k, (m.get(k) || 0) + 1);
+  }
+  _awardsArtistYearIdxKey = key;
+  return (_awardsArtistYearIdx = years);
+}
+
+// Does a credit string name this artist (collabs count for each artist named)
+function _awardsCredits(credit, lower) {
+  if (!credit) return false;
+  if (credit.toLowerCase() === lower) return true;
+  return splitArtists(credit).some(a => a.trim().toLowerCase() === lower);
+}
+
+function _awardsArtistExtras(item) {
+  const s = item.st;
+  const name = item.artist, lower = name.toLowerCase(), key = lower;
+  const year = String(_awardsPickerCtx.year);
+  const pl = (n, a, b) => `${n.toLocaleString()} ${n === 1 ? a : b}`;
+  const short = ds => _awardsStatDate(ds).replace(/\s\d{4}$/, '');
+  const section = (title, body, cls) => `<div class="aw-pst-sec${cls ? ' ' + cls : ''}"><div class="aw-pst-sec-title">${title}</div>${body}</div>`;
+  const start = new Date(_awardsPickerEligWin.start + 'T00:00:00');
+  const end   = new Date(_awardsPickerEligWin.end + 'T23:59:59');
+
+  // Their songs in the window, and the first play ever
+  const songs = new Map();
+  let firstEver = null;
+  for (const p of allPlays) {
+    if (_pk(p) !== key) continue;
+    if (!firstEver || p.date < firstEver) firstEver = p.date;
+    if (p.date < start || p.date > end) continue;
+    const sk = songKey(p);
+    const e = songs.get(sk) || songs.set(sk, { title: p.title, n: 0 }).get(sk);
+    e.n++;
+  }
+  const topSongs = [...songs.values()].sort((a, b) => b.n - a.n).slice(0, 3);
+
+  // Their songs and albums on the weekly charts inside the window
+  const hits = { song1: [], songTop10: 0, songOn: 0, album1: [], albumTop10: 0 };
+  try {
+    const wk = new Date(start); wk.setDate(wk.getDate() - 6);
+    const lo = localDateStr(wk), hi = _awardsPickerEligWin.end;
+    const full = _crFull('week').result;
+    const scan = (res, nameOf, ones, top10Key, onKey) => {
+      for (const d of Object.values(res || {})) {
+        if (!_awardsCredits(d._artist, lower)) continue;
+        let best = Infinity, at1 = 0;
+        for (const e of d.entries) {
+          if (e.periodKey < lo || e.periodKey > hi) continue;
+          if (e.rank < best) best = e.rank;
+          if (e.rank === 1) at1++;
+        }
+        if (best === Infinity) continue;
+        if (onKey) hits[onKey]++;
+        if (best <= 10) hits[top10Key]++;
+        if (best === 1) ones.push({ name: nameOf(d), at1 });
+      }
+    };
+    scan(full.songs,  d => d._title, hits.song1,  'songTop10', 'songOn');
+    scan(full.albums, d => d._album, hits.album1, 'albumTop10', null);
+    hits.song1.sort((a, b) => b.at1 - a.at1);
+  } catch (e) {}
+
+  // Plaques earned in the window, and how many they hold in all
+  let certs = [], certsAll = 0;
+  try {
+    certs = certsInRange(start, end).filter(c => _awardsCredits(c.artist, lower));
+    certsAll = _certTimeline.filter(c => _awardsCredits(c.artist, lower)).length;
+  } catch (e) {}
+
+  // Year by year
+  const yIdx = _awardsArtistYears();
+  const allYears = [...yIdx.keys()].sort();
+  const career = allYears.map(y => {
+    const m = yIdx.get(y), n = m.get(key) || 0;
+    let rank = 0;
+    if (n) { rank = 1; for (const v of m.values()) if (v > n) rank++; }
+    return { y, n, rank };
+  });
+  // Trim the empty years before they arrived
+  while (career.length > 1 && !career[0].n) career.shift();
+  const cur = career.find(c => c.y === year);
+  const prev = career[career.indexOf(cur) - 1];
+  const bestYear = career.reduce((a, c) => (c.n > a.n ? c : a), { n: 0 });
+  const bestRank = career.filter(c => c.rank).reduce((a, c) => (!a || c.rank < a.rank ? c : a), null);
+  const firstDay = firstEver ? localDateStr(tzDate(firstEver)) : '';
+  const firstYear = firstDay.slice(0, 4);
+
+  // ── Highlights: the badges they unlocked ──
+  const badges = [];
+  const badge = (icon, title, sub, cls) => badges.push(`<div class="aw-pst-badge${cls ? ' ' + cls : ''}" style="--i:${badges.length}">
+      <span class="aw-pst-badge-icon" aria-hidden="true">${icon}</span>
+      <span class="aw-pst-badge-text"><b>${title}</b>${sub ? `<small>${sub}</small>` : ''}</span>
+    </div>`);
+  if (firstYear === year) badge('🆕', 'Breakout year', `You first played them on ${short(firstDay)}`, 'is-new');
+  if (cur && bestYear.y === year && career.length > 1) badge('📈', 'Biggest year ever', `${pl(cur.n, 'play', 'plays')}, more than any other year`, 'is-gold');
+  if (hits.song1.length) badge('👑', `${pl(hits.song1.length, '#1 hit', '#1 hits')}`, esc(hits.song1.slice(0, 2).map(h => h.name).join(', ')) + (hits.song1.length > 2 ? ` +${hits.song1.length - 2}` : ''), 'is-gold');
+  if (hits.album1.length) badge('💽', `${pl(hits.album1.length, '#1 album', '#1 albums')}`, esc(hits.album1.map(h => h.name).slice(0, 2).join(', ')), 'is-gold');
+  if (hits.songTop10) badge('🔟', `${pl(hits.songTop10, 'top 10 hit', 'top 10 hits')}`, `of ${pl(hits.songOn, 'song', 'songs')} that made your weekly chart`);
+  if (certs.length) badge('💿', `${pl(certs.length, 'new plaque', 'new plaques')}`, 'certified this year', 'is-plat');
+  if (s.streak.len >= 7) badge('🔥', `${s.streak.len}-day streak`, 'played every single day', 'is-hot');
+  if (s.peakDay.n >= 10) badge('🎧', `${s.peakDay.n} plays in one day`, `on ${short(s.peakDay.key)}`, 'is-hot');
+  if (topSongs[0]) badge('🎤', esc(topSongs[0].title), `their biggest song, ${pl(topSongs[0].n, 'play', 'plays')}`);
+  const highlights = badges.length ? section('Highlights', `<div class="aw-pst-badges">${badges.join('')}</div>`) : '';
+
+  // ── Career: one bar per year ──
+  let careerHtml = '';
+  if (career.length > 1 && cur) {
+    const top = Math.max(1, ...career.map(c => c.n));
+    const delta = prev && prev.n ? Math.round((cur.n - prev.n) / prev.n * 100) : null;
+    const trend = !prev || !prev.n
+      ? `<span class="aw-pst-trend is-new">New in ${esc(year)}</span>`
+      : delta >= 0
+        ? `<span class="aw-pst-trend is-up">▲ ${delta}% vs ${esc(prev.y)}</span>`
+        : `<span class="aw-pst-trend is-down">▼ ${Math.abs(delta)}% vs ${esc(prev.y)}</span>`;
+    const bars = career.map(c => `<div class="aw-pst-yr${c.y === year ? ' is-cur' : ''}${c.n ? '' : ' is-empty'}" title="${esc(c.y)}: ${pl(c.n, 'play', 'plays')}${c.rank ? `, #${c.rank} artist` : ''}">
+        <span class="aw-pst-yr-n">${c.n || ''}</span>
+        <span class="aw-pst-yr-fill" style="height:${c.n ? Math.max(6, Math.round(c.n / top * 100)) : 0}%"></span>
+        <span class="aw-pst-yr-lbl">${esc(career.length <= 8 ? c.y : "'" + c.y.slice(2))}</span>
+        <span class="aw-pst-yr-rank">${c.rank ? '#' + c.rank : '–'}</span>
+      </div>`).join('');
+    careerHtml = section(`Year by year ${trend}`,
+      `<div class="aw-pst-years" style="--n:${career.length}">${bars}</div>
+       <div class="aw-pst-span"><span>Bars are plays, <b>#</b> is their artist rank that year</span>${bestRank ? `<span>Best rank <b>#${bestRank.rank}</b> in ${esc(bestRank.y)}</span>` : ''}</div>`);
+  }
+
+  // ── Plaques earned in the window ──
+  const tierIcon = { gold: '🪙', platinum: '💿', diamond: '💎' };
+  const tierName = c => c.tier === 'diamond' ? tDiamondLabel(c.mult) : c.tier === 'platinum' ? 'Platinum' : 'Gold';
+  const certHtml = section(`Certifications <span class="aw-pst-sec-count">${pl(certsAll, 'plaque', 'plaques')} all time</span>`,
+    certs.length
+      ? `<div class="aw-pst-plaques">${certs.slice().sort((a, b) => a.date - b.date).map(c => `
+          <div class="aw-pst-plaque is-${c.tier}">
+            <span class="aw-pst-plaque-icon" aria-hidden="true">${tierIcon[c.tier] || '🪙'}</span>
+            <span class="aw-pst-plaque-text"><b>${esc(c.title)}</b><small>${esc(tierName(c))} ${c.type === 'album' ? 'album' : 'song'} · ${pl(c.n, 'play', 'plays')} · ${esc(short(localDateStr(c.tz)))}</small></span>
+          </div>`).join('')}</div>`
+      : `<div class="aw-pst-none">No new plaques in ${esc(year)}</div>`);
+
+  // ── Records: filled in after the card opens, the tally may need building ──
+  const recHtml = section('Records they hold', '<div class="aw-pst-recs"><div class="aw-pst-none">Counting records…</div></div>', 'aw-pst-rec-sec');
+
+  return { highlights, rest: careerHtml + certHtml + recHtml };
+}
+
+// Every all-time record the artist holds, from the Records tab's tally
+function _awardsArtistFillRecords(card, artist) {
+  const paint = () => {
+    const box = card.querySelector('.aw-pst-recs');
+    if (!box || !card.isConnected) return;
+    const recs = (recArtistRecordsFor(artist) || []).filter(r => !r.isCert);
+    if (!recs.length) { box.innerHTML = `<div class="aw-pst-none">No all-time records yet</div>`; return; }
+    // Records they top first, then by their place in the table
+    const rk = r => parseInt(String(r.rank).replace(/\D/g, ''), 10) || 999;
+    recs.sort((a, b) => rk(a) - rk(b));
+    const top1 = recs.filter(r => rk(r) === 1).length;
+    const row = r => {
+      const d = r.details || [];
+      const hi = d.length ? d[pickHeadlineDetail(d)] : null;
+      const n = rk(r);
+      return `<div class="aw-pst-rec${n === 1 ? ' is-gold' : n <= 3 ? ' is-podium' : ''}">
+          <span class="aw-pst-rec-rank">${n === 1 ? '🥇' : n === 2 ? '🥈' : n === 3 ? '🥉' : n < 999 ? '#' + n : '•'}</span>
+          <span class="aw-pst-rec-text"><b>${esc(r.label)}${r.qualifier ? ` <i>${esc(r.qualifier)}</i>` : ''}</b><small>${esc(r.name)}</small></span>
+          ${hi ? `<span class="aw-pst-rec-fig">${esc(hi.value)}</span>` : ''}
+        </div>`;
+    };
+    const SHOW = 6;
+    box.innerHTML = `<div class="aw-pst-rec-sum"><b>${recs.length}</b> ${recs.length === 1 ? 'record' : 'records'} on your Records tab${top1 ? ` · <b>${top1}</b> at #1` : ''}</div>
+      <div class="aw-pst-rec-list">${recs.slice(0, SHOW).map(row).join('')}</div>
+      ${recs.length > SHOW ? `<div class="aw-pst-rec-list aw-pst-rec-more" hidden>${recs.slice(SHOW).map(row).join('')}</div>
+        <button type="button" class="aw-pst-rec-toggle" onclick="event.stopPropagation();const m=this.previousElementSibling;m.hidden=!m.hidden;this.textContent=m.hidden?'Show all ${recs.length}':'Show fewer'">Show all ${recs.length}</button>` : ''}`;
+  };
+  if (_recArtistTally) { paint(); return; }
+  // Records not built this session: build once, after the card has painted
+  setTimeout(() => { try { if (!_recArtistTally) buildRecords(); } catch (e) {} paint(); }, 80);
+}
+
 function awardsPickerToggleStats(idx, btn) {
   const row = btn.closest('.awards-picker-result-row');
   if (!row) return;
@@ -37673,6 +37869,7 @@ function awardsPickerToggleStats(idx, btn) {
   card.className = 'awards-picker-stats';
   card.innerHTML = _awardsPickerStatsHtml(item);
   row.after(card);
+  if (_awardsPickerCatType === 'artist') _awardsArtistFillRecords(card, item.artist);
   btn.setAttribute('aria-expanded', 'true');
   row.classList.add('has-stats-open');
   card.scrollIntoView({ block: 'nearest', behavior: 'smooth' });

@@ -24146,6 +24146,228 @@ body.pink-light .awards-ceremony-share-btn:hover { border-color: var(--medal-gol
   white-space: nowrap;
 }
 .aw-pst-bar.is-empty .aw-pst-bar-lbl { opacity: 0.55; }
+/* ── Artist of the Year extras ─────────────────────────────────────────── */
+.aw-pst-sec-count {
+  margin-left: 6px;
+  font-size: 0.64rem;
+  font-weight: 500;
+  color: var(--text3);
+}
+
+/* Highlights: unlocked-achievement badges that pop in one after another */
+.aw-pst-badges {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+  gap: 6px;
+}
+.aw-pst-badge {
+  --tint: var(--accent);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  padding: 9px 11px;
+  border-radius: var(--r-md);
+  border: 1px solid color-mix(in srgb, var(--tint) 30%, var(--border));
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--tint) 18%, transparent), transparent 70%),
+    var(--surface3);
+  animation: awBadgeIn 420ms cubic-bezier(.2, 1.4, .4, 1) both;
+  animation-delay: calc(var(--i, 0) * 60ms);
+}
+.aw-pst-badge.is-gold { --tint: var(--pk-gold); }
+.aw-pst-badge.is-hot  { --tint: var(--amber); }
+.aw-pst-badge.is-new  { --tint: var(--green); }
+.aw-pst-badge.is-plat { --tint: var(--teal); }
+.aw-pst-badge-icon {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  font-size: 1.05rem;
+  background: color-mix(in srgb, var(--tint) 22%, var(--surface2));
+  box-shadow: 0 0 14px color-mix(in srgb, var(--tint) 35%, transparent);
+}
+.aw-pst-badge-text { display: flex; flex-direction: column; min-width: 0; }
+.aw-pst-badge-text b {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--text1);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.aw-pst-badge-text small {
+  font-size: 0.64rem;
+  color: var(--text3);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+@keyframes awBadgeIn {
+  from { opacity: 0; transform: translateY(6px) scale(0.94); }
+  to   { opacity: 1; transform: none; }
+}
+
+/* Year by year: one bar per year, this year lit up */
+.aw-pst-trend {
+  margin-left: 6px;
+  padding: 1px 7px;
+  border-radius: var(--r-full);
+  font-size: 0.62rem;
+  font-weight: 700;
+  vertical-align: 1px;
+}
+.aw-pst-trend.is-up   { color: var(--green); background: color-mix(in srgb, var(--green) 14%, transparent); }
+.aw-pst-trend.is-down { color: var(--rose);  background: color-mix(in srgb, var(--rose) 14%, transparent); }
+.aw-pst-trend.is-new  { color: var(--teal);  background: color-mix(in srgb, var(--teal) 14%, transparent); }
+.aw-pst-years {
+  display: grid;
+  grid-template-columns: repeat(var(--n, 5), minmax(0, 1fr));
+  gap: 6px;
+  height: 116px;
+}
+.aw-pst-yr {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  gap: 3px;
+  min-width: 0;
+  text-align: center;
+}
+.aw-pst-yr-n { font-size: 0.6rem; font-weight: 600; color: var(--text2); font-feature-settings: "tnum"; }
+.aw-pst-yr-fill {
+  display: block;
+  border-radius: var(--r-sm) var(--r-sm) 2px 2px;
+  background: linear-gradient(to top, color-mix(in srgb, var(--accent) 35%, var(--surface3)), color-mix(in srgb, var(--accent) 65%, var(--surface3)));
+  transform-origin: bottom;
+  animation: awBarGrow 600ms var(--ease) both;
+}
+.aw-pst-yr.is-cur .aw-pst-yr-fill {
+  background: linear-gradient(to top, color-mix(in srgb, var(--pk-gold) 70%, var(--surface3)), var(--pk-gold));
+  box-shadow: 0 0 16px color-mix(in srgb, var(--pk-gold) 40%, transparent);
+}
+.aw-pst-yr.is-cur .aw-pst-yr-n,
+.aw-pst-yr.is-cur .aw-pst-yr-lbl { color: var(--pk-gold); font-weight: 700; }
+.aw-pst-yr-lbl  { font-size: 0.62rem; color: var(--text2); white-space: nowrap; }
+.aw-pst-yr-rank { font-size: 0.58rem; color: var(--text3); font-feature-settings: "tnum"; }
+.aw-pst-yr.is-empty .aw-pst-yr-lbl { opacity: 0.5; }
+.aw-pst-bar-fill { transform-origin: bottom; animation: awBarGrow 600ms var(--ease) both; }
+@keyframes awBarGrow { from { transform: scaleY(0); } to { transform: none; } }
+
+/* Plaques, tinted by tier */
+.aw-pst-plaques {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+  gap: 6px;
+}
+.aw-pst-plaque {
+  --tint: var(--pk-gold);
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  min-width: 0;
+  padding: 7px 10px;
+  border-radius: var(--r-sm);
+  border: 1px solid color-mix(in srgb, var(--tint) 35%, var(--border));
+  background: linear-gradient(120deg, color-mix(in srgb, var(--tint) 14%, var(--surface3)), var(--surface3) 75%);
+}
+.aw-pst-plaque.is-platinum { --tint: #cbd5e1; }
+.aw-pst-plaque.is-diamond  { --tint: #7dd3fc; }
+.aw-pst-plaque-icon { flex: none; font-size: 1.1rem; }
+.aw-pst-plaque-text { display: flex; flex-direction: column; min-width: 0; }
+.aw-pst-plaque-text b,
+.aw-pst-plaque-text small { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.aw-pst-plaque-text b { font-size: 0.74rem; color: var(--text1); }
+.aw-pst-plaque-text small { font-size: 0.62rem; color: var(--text3); }
+
+/* Records they hold */
+.aw-pst-rec-sum { margin-bottom: 6px; font-size: 0.7rem; color: var(--text3); }
+.aw-pst-rec-sum b { color: var(--text1); }
+.aw-pst-rec-list { display: flex; flex-direction: column; gap: 4px; }
+.aw-pst-rec-more { margin-top: 4px; }
+.aw-pst-rec-more[hidden] { display: none; }
+.aw-pst-rec {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 10px;
+  border-radius: var(--r-sm);
+  background: var(--surface3);
+  border: 1px solid var(--border);
+  animation: awRowIn 260ms var(--ease) both;
+}
+.aw-pst-rec.is-gold {
+  border-color: color-mix(in srgb, var(--pk-gold) 40%, var(--border));
+  background: linear-gradient(120deg, color-mix(in srgb, var(--pk-gold) 12%, var(--surface3)), var(--surface3) 70%);
+}
+.aw-pst-rec-rank {
+  flex: none;
+  width: 26px;
+  text-align: center;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--text3);
+  font-feature-settings: "tnum";
+}
+.aw-pst-rec-text { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+.aw-pst-rec-text b {
+  font-size: 0.74rem;
+  font-weight: 700;
+  color: var(--text1);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.aw-pst-rec-text b i { font-style: normal; font-weight: 500; color: var(--text3); }
+.aw-pst-rec-text small {
+  font-size: 0.64rem;
+  color: var(--text3);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.aw-pst-rec-fig {
+  flex: none;
+  font-family: var(--font-display);
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--text1);
+  font-feature-settings: "tnum";
+}
+.aw-pst-rec.is-gold .aw-pst-rec-fig { color: var(--pk-gold); }
+.aw-pst-rec-toggle {
+  margin-top: 6px;
+  padding: 4px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--r-full);
+  background: var(--surface2);
+  color: var(--text2);
+  font-size: 0.66rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+.aw-pst-rec-toggle:hover { color: var(--text1); border-color: var(--accent); }
+
+/* A bit more modern for every card: glowing headline */
+.aw-pst-hero {
+  background:
+    radial-gradient(140% 120% at 0% 0%, color-mix(in srgb, var(--accent) 14%, transparent), transparent 60%),
+    var(--surface3);
+}
+.aw-pst-hero.is-gold {
+  background:
+    radial-gradient(140% 120% at 0% 0%, color-mix(in srgb, var(--pk-gold) 20%, transparent), transparent 60%),
+    var(--surface3);
+}
+.aw-pst-hero.is-gold .aw-pst-hero-rank { text-shadow: 0 0 18px color-mix(in srgb, var(--pk-gold) 55%, transparent); }
+
+@media (prefers-reduced-motion: reduce) {
+  .aw-pst-badge, .aw-pst-yr-fill, .aw-pst-bar-fill, .aw-pst-rec { animation: none; }
+}
+
 .aw-pst-foot {
   margin-top: 12px;
   font-size: 0.62rem;

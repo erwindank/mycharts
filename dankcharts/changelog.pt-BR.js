@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['pt-BR'] = {
 
   /* ========== OUTUBRO 2026 ========== */
 
+  'Artist of the Year stats show highlights, growth, plaques and records':
+    ['As estatísticas de Artista do Ano mostram conquistas, crescimento, placas e recordes',
+     'Quando você abre o cartão de estatísticas de um artista no seletor de Artista do Ano, ele agora conta toda a história do artista. Primeiro vêm as conquistas em forma de selos, como um ano de revelação, o maior ano de todos, hits e álbuns #1, hits no top 10, placas novas, sequências longas e a música mais ouvida. Ano a ano mostra uma barra para cada ano desde que você ouviu o artista pela primeira vez, com a posição dele entre os artistas embaixo de cada barra e quanto cresceu ou caiu em relação ao ano anterior. Certificações mostra cada placa que as músicas e álbuns dele ganharam naquele ano, junto com o total de todos os tempos. Recordes que ele tem mostra cada recorde dele na sua aba de Recordes, com medalhas para o primeiro, segundo e terceiro lugar.'],
+
   'Award nominee stats are easier to read':
     ['As estatísticas dos indicados ficaram mais fáceis de ler',
      'Quando você escolhe os indicados em Meus Grammys, a linha embaixo de cada sugestão era uma sequência de abreviações como "8 days · 5 wk · 4 mo · peak #1 · 1 wk at #1". Agora são poucas etiquetas curtas em palavras simples, como "#1 por 1 semana", "4 dias seguidos" e "Ouvida em 8 dias", com a mais importante primeiro. O cartão de estatísticas que abre embaixo de cada linha também ficou mais fácil de acompanhar: começa com a posição da música no ano e quantas reproduções ela teve, depois mostra as reproduções por mês com o número em cada barra, em seguida seus hábitos de escuta e, por fim, como ela foi nas suas paradas semanais e mensais.'],
