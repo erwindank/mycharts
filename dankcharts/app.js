@@ -3179,9 +3179,14 @@ function _serializePlaysCsv() {
   const esc = v => (v.includes(',') || v.includes('"') || v.includes('\n'))
     ? '"' + v.replace(/"/g, '""') + '"' : v;
   const fmtDate = d => `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
-  const rows = ['Song Title,Artist,Album,Date and Time'];
+  // Sheet genres ride along so the cached copy doesn't lose them after an edit
+  const maxGenres = Math.min(5, allPlays.reduce((m, p) => Math.max(m, p.genres ? p.genres.length : 0), 0));
+  const genreHead = Array.from({ length: maxGenres }, (_, i) => ',Genre ' + (i + 1)).join('');
+  const rows = ['Song Title,Artist,Album,Date and Time' + genreHead];
   for (const p of allPlays) {
-    rows.push([esc(p.title), esc(p.artist), esc(p.album === '—' ? '' : p.album), fmtDate(p.date)].join(','));
+    const cells = [esc(p.title), esc(p.artist), esc(p.album === '—' ? '' : p.album), fmtDate(p.date)];
+    for (let i = 0; i < maxGenres; i++) cells.push(esc((p.genres && p.genres[i]) || ''));
+    rows.push(cells.join(','));
   }
   return rows.join('\n');
 }
@@ -4882,6 +4887,31 @@ function syncNow() {
 
 // ─── BACKGROUND POLL (every 30 min) ───────────────────────────
 
+// Genre columns a sheet can carry next to the play itself: "Genre 1" … "Genre 5"
+// (one tag per cell) or a single "Genre"/"Genres" cell split on , ; / |. Returns
+// a reader for one row, or null when the sheet has none. Tag lists are interned,
+// so 200k plays of the same song share one array instead of 200k copies.
+function makeGenreReader(headers) {
+  const cols = [];
+  headers.forEach((h, i) => { if (/^genres?(\s*\d+)?$/.test(h)) cols.push(i); });
+  if (!cols.length) return null;
+  const interned = new Map();
+  return get => {
+    const tags = [];
+    for (const i of cols) {
+      for (const t of get(i).split(/[;,/|]/)) {
+        const g = t.trim().toLowerCase();
+        if (g && !tags.includes(g)) tags.push(g);
+      }
+    }
+    if (!tags.length) return null;
+    const k = tags.join('|');
+    let arr = interned.get(k);
+    if (!arr) { arr = tags; interned.set(k, arr); }
+    return arr;
+  };
+}
+
 // Pure CSV parser — returns sorted plays array or null, no UI side effects.
 function parsePlaysCsv(text) {
   const lines = text.trim().split(/\r?\n/);
@@ -4910,6 +4940,7 @@ function parsePlaysCsv(text) {
     }
   }
   if (colMap.title === undefined || colMap.artist === undefined || colMap.datetime === undefined) return null;
+  const readGenres = makeGenreReader(headers);
   let fastDateParse = null;
   for (let i = 1; i < lines.length && !fastDateParse; i++) {
     const r = splitCsvRow(lines[i]);
@@ -4928,7 +4959,10 @@ function parsePlaysCsv(text) {
     if (!dt && fastDateParse !== parseDate) dt = parseDate(rawDate);
     if (!dt || dt.getFullYear() < 2000) continue;
     const artistRaw = get(colMap.artist);
-    plays.push({ title: get(colMap.title), artist: artistRaw, artists: splitArtists(artistRaw), album: get(colMap.album) || '—', date: dt });
+    const play = { title: get(colMap.title), artist: artistRaw, artists: splitArtists(artistRaw), album: get(colMap.album) || '—', date: dt };
+    const genres = readGenres && readGenres(get);
+    if (genres) play.genres = genres;
+    plays.push(play);
   }
   if (!plays.length) return null;
   plays.sort((a, b) => b.date - a.date);
@@ -6001,6 +6035,7 @@ function parseCsv(text, fromSheets = false) {
   if (colMap.title === undefined || colMap.artist === undefined || colMap.datetime === undefined) {
     setSyncStatus(t('sync_missing_cols'), 'err'); return false;
   }
+  const readGenres = makeGenreReader(headers);
 
   allPlays = [];
   let skippedBlank = 0;
@@ -6043,6 +6078,8 @@ function parseCsv(text, fromSheets = false) {
       _ts: +dt,
       _sheetRow: i + 1,
     });
+    const genres = readGenres && readGenres(get);
+    if (genres) allPlays[allPlays.length - 1].genres = genres;
   }
 
   const totalSkipped = skippedBlank + skippedDate;
@@ -34807,8 +34844,56 @@ function _genreMatch(tags, filterStr) {
     // Goth keeps "gothic rock" shared with post-punk, where the genre started
     'goth':        ['gothic rock','goth rock','goth','gothic','deathrock','darkwave','dark wave','ethereal wave','gothic metal','gothic post-punk'],
   };
-  const list = aliases[g] || [g];
-  return tags.some(t => list.some(m => t === m));
+  // Spelling-blind: "Dance-Pop", "dance pop" and "dancepop" are one genre, so a tag
+  // typed into the sheet doesn't have to match Last.fm's punctuation to count.
+  const norm = t => String(t).toLowerCase().replace(/[\s\-_]+/g, '');
+  const list = (aliases[g] || [g]).map(norm);
+  return tags.some(t => list.includes(norm(t)));
+}
+
+/* Genres typed into the sheet (Genre 1–5), by song and by album. The sheet is
+   the user's own call, so wherever it has an answer it wins over the Last.fm /
+   Gemini artist tags, which only ever fill in for songs the sheet leaves blank.
+   A song takes its newest tagged play (allPlays is newest-first), so editing the
+   genres on the latest rows is enough. Rebuilt whenever allPlays is replaced. */
+let _awardsSheetGenreCache = null;
+function _awardsSheetGenres() {
+  const c = _awardsSheetGenreCache;
+  if (c && c.plays === allPlays && c.n === allPlays.length) return c;
+  const songs = new Map(), albums = new Map();
+  for (const p of allPlays) {
+    if (!p.genres) continue;
+    const sk = _sk(p);
+    if (songs.has(sk)) continue;
+    songs.set(sk, p.genres);
+    if (p.album && p.album !== '—') {
+      const ak = _ak(p);
+      if (!albums.has(ak)) albums.set(ak, []);
+      albums.get(ak).push(p.genres);
+    }
+  }
+  return (_awardsSheetGenreCache = { plays: allPlays, n: allPlays.length, songs, albums });
+}
+
+// A song's tags: the sheet's, else the artist's (undefined = artist not looked up yet)
+function _awardsSongTags(p) {
+  return _awardsSheetGenres().songs.get(_sk(p)) || _awardsGenreCache[_pa(p).toLowerCase()];
+}
+
+// An album fits a genre when at least half its sheet-tagged tracks do; null = no sheet data
+function _awardsAlbumSheetFits(p, f) {
+  const tracks = _awardsSheetGenres().albums.get(_ak(p));
+  if (!tracks) return null;
+  return tracks.filter(tags => _genreMatch(tags, f)).length * 2 >= tracks.length;
+}
+
+// An album's most common sheet genres across its tracks, for the picker row
+function _awardsAlbumSheetTags(p) {
+  const tracks = _awardsSheetGenres().albums.get(_ak(p));
+  if (!tracks) return undefined;
+  const n = {};
+  for (const tags of tracks) for (const t of tags) n[t] = (n[t] || 0) + 1;
+  return Object.keys(n).sort((a, b) => n[b] - n[a]);
 }
 
 /* Warm the genre cache for every artist in the window: Gemini first (one call
@@ -35424,7 +35509,7 @@ async function _awardsGetCandidates(catDef, eligStart, eligEnd, log) {
     await _awardsEnsureGenres(inWin);
     const m = {};
     for (const p of inWin) {
-      if (!_genreMatch(_awardsGenreCache[_pa(p).toLowerCase()] || [], 'genre:rock')) continue;
+      if (!_genreMatch(_awardsSongTags(p) || [], 'genre:rock')) continue;
       const k = _sk(p);
       if (!m[k]) m[k] = { title: p.title, artist: p.artist, album: p.album, plays: 0, lead: _pa(p), collab: _isCollab(p) };
       m[k].plays++;
@@ -35445,7 +35530,7 @@ async function _awardsGetCandidates(catDef, eligStart, eligEnd, log) {
     await _awardsEnsureGenres(inWin);
     const m = {};
     for (const p of inWin) {
-      const tags = _awardsGenreCache[_pa(p).toLowerCase()] || [];
+      const tags = _awardsSongTags(p) || [];
       if (!_genreMatch(tags, 'genre:pop')) continue;
       if (f === 'pop_solo' ? _isCollab(p) : !_isCollab(p)) continue;
       const k = _sk(p);
@@ -35511,13 +35596,22 @@ async function _awardsGetCandidates(catDef, eligStart, eligEnd, log) {
     await _awardsEnsureGenres(inWin);
     const gs = {}, ga = {}, gr = {};
     for (const p of inWin) {
-      const tags = _awardsGenreCache[_pa(p).toLowerCase()] || [];
-      if (!_genreMatch(tags, f)) continue;
+      const artistTags = _awardsGenreCache[_pa(p).toLowerCase()] || [];
       const sk = _sk(p), ak = _ak(p), rk = _rk(p);
-      if (!gs[sk]) gs[sk] = { title: p.title, artist: p.artist, album: p.album, plays: 0 };
-      if (!ga[ak] && p.album) ga[ak] = { album: p.album, artist: p.artist, plays: 0 };
-      if (!gr[rk]) gr[rk] = { artist: p.artist, plays: 0 };
-      gs[sk].plays++; if (p.album) ga[ak].plays++; gr[rk].plays++;
+      if (_genreMatch(_awardsSongTags(p) || [], f)) {
+        if (!gs[sk]) gs[sk] = { title: p.title, artist: p.artist, album: p.album, plays: 0 };
+        gs[sk].plays++;
+      }
+      // An album is judged as a whole (its tagged tracks), not track by track
+      const albumFits = _awardsAlbumSheetFits(p, f);
+      if (p.album && (albumFits ?? _genreMatch(artistTags, f))) {
+        if (!ga[ak]) ga[ak] = { album: p.album, artist: p.artist, plays: 0 };
+        ga[ak].plays++;
+      }
+      if (_genreMatch(artistTags, f)) {
+        if (!gr[rk]) gr[rk] = { artist: p.artist, plays: 0 };
+        gr[rk].plays++;
+      }
     }
     if (catDef.type === 'song')   return _awardsTopN(gs, 20, 3);
     if (catDef.type === 'album')  return _awardsTopN(ga, 20, 2);
@@ -37173,14 +37267,26 @@ function _awardsPickerItemFits(item) {
   if (f === 'night' || f === 'morning') return (item.hourPlays || 0) > 0;
   // Billing was settled at index time; the genre half is answered here, from the cache.
   if (f === 'pop_solo' || f === 'pop_duo') {
-    const tags = _awardsGenreCache[(item.artist || '').toLowerCase()];
+    const tags = _awardsPickerItemTags(item);
     return !!item.fit && tags !== undefined && _genreMatch(tags, 'genre:pop');
   }
   if (f.startsWith('genre:') || f === 'rock_group') {
-    const tags = _awardsGenreCache[(item.artist || '').toLowerCase()];
-    return tags === undefined ? false : _genreMatch(tags, f === 'rock_group' ? 'genre:rock' : f);
+    const g = f === 'rock_group' ? 'genre:rock' : f;
+    if (_awardsPickerCatType === 'album') {
+      const fits = _awardsAlbumSheetFits(item, g);
+      if (fits !== null) return fits;
+    }
+    const tags = _awardsPickerItemTags(item);
+    return tags === undefined ? false : _genreMatch(tags, g);
   }
   return item.fit;
+}
+
+// Genre tags for a picker row: the sheet's for that song / album, else the artist's
+function _awardsPickerItemTags(item) {
+  if (_awardsPickerCatType === 'song')  return _awardsSongTags(item);
+  if (_awardsPickerCatType === 'album') return _awardsAlbumSheetTags(item) || _awardsGenreCache[(item.artist || '').toLowerCase()];
+  return _awardsGenreCache[(item.artist || '').toLowerCase()];
 }
 
 // Whether this category can rank the browse list at all
@@ -37619,7 +37725,7 @@ function _awardsPickerResultRow(item, idx) {
   const rel = item.releaseYear ? ' · ' + item.releaseYear : (item.releaseYear === null ? ' · year unknown' : '');
   let genreHtml = '';
   if ((_awardsPickerCatFilter.startsWith('genre:') || _awardsPickerCatFilter === 'rock_group') && item.grp !== 2) {
-    const tags = _awardsGenreCache[(item.artist || '').toLowerCase()];
+    const tags = _awardsPickerItemTags(item);
     if (tags && tags.length) {
       genreHtml = `<span class="awards-picker-genre-tags">${tags.slice(0, 3).map(t => `<span class="awards-picker-genre-tag">${esc(t)}</span>`).join('')}</span>`;
     } else {

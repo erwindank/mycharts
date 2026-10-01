@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 30;
+const DC_CL_I18N_V = 31;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -77,6 +77,12 @@ const DC_CL_AREAS = {
    Newest first. Backfilled from the full git history, 679 entries.
    ------------------------------------------------------------------------- */
 const DC_CHANGELOG = [
+
+  /* ========== OCTOBER 2026 ========== */
+
+  { d: '2026-10-01', t: 'fix', a: 'awards', h: '',
+    title: 'Genre awards follow the genres in your Google Sheet',
+    detail: 'If your Google Sheet has Genre 1 to Genre 5 columns, the genre awards in My Grammys now use them, so a genre you change in the sheet changes which songs and albums qualify. Before, the sheet’s genres were ignored and every song took its artist’s tags from Last.fm, so editing them had no effect. A song uses the genres on its most recent row that has any, and an album fits a genre when at least half of its tagged songs do. Songs with no genres in the sheet still fall back to the artist’s tags. Spelling no longer matters either: Dance-Pop, dance pop and dancepop all count as the same genre. Nominees you already picked stay as they are, so clear and re-pick a category to refresh it.' },
 
   /* ========== SEPTEMBER 2026 ========== */
 

@@ -14,6 +14,12 @@
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['pt-BR'] = {
 
+  /* ========== OUTUBRO 2026 ========== */
+
+  'Genre awards follow the genres in your Google Sheet':
+    ['Os prêmios de gênero seguem os gêneros da sua planilha do Google',
+     'Se a sua planilha do Google tem as colunas Genre 1 a Genre 5, os prêmios de gênero de Meus Grammys agora usam essas colunas, então um gênero que você muda na planilha muda quais músicas e álbuns se qualificam. Antes, os gêneros da planilha eram ignorados e cada música pegava as tags do artista no Last.fm, então editá-los não fazia efeito. Uma música usa os gêneros da linha mais recente que tiver algum, e um álbum entra num gênero quando pelo menos metade das músicas marcadas entra. Músicas sem gênero na planilha continuam usando as tags do artista. A grafia também não importa mais: Dance-Pop, dance pop e dancepop contam como o mesmo gênero. Os indicados que você já escolheu continuam como estão, então limpe e escolha de novo os de uma categoria para atualizá-la.'],
+
   /* ========== SETEMBRO 2026 ========== */
 
   'Genre awards say what the genre sounds like':

@@ -14,6 +14,12 @@
 window.DC_CHANGELOG_I18N = window.DC_CHANGELOG_I18N || {};
 window.DC_CHANGELOG_I18N['pt-PT'] = {
 
+  /* ========== OUTUBRO 2026 ========== */
+
+  'Genre awards follow the genres in your Google Sheet':
+    ['Os prémios de género seguem os géneros da tua folha do Google',
+     'Se a tua folha do Google tem as colunas Genre 1 a Genre 5, os prémios de género dos Meus Grammys passam a usá-las, por isso um género que mudes na folha muda as músicas e álbuns que se qualificam. Antes, os géneros da folha eram ignorados e cada música ficava com as etiquetas do artista no Last.fm, por isso editá-los não tinha efeito. Uma música usa os géneros da linha mais recente que tenha algum, e um álbum entra num género quando pelo menos metade das músicas etiquetadas entra. As músicas sem géneros na folha continuam a usar as etiquetas do artista. A grafia também já não importa: Dance-Pop, dance pop e dancepop contam como o mesmo género. Os nomeados que já escolheste ficam como estão, por isso limpa e volta a escolher os de uma categoria para a atualizar.'],
+
   /* ========== SETEMBRO 2026 ========== */
 
   'Genre awards say what the genre sounds like':
