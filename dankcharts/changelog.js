@@ -80,7 +80,7 @@ const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
 
-  { d: '2026-10-01', t: 'feature', a: 'awards', h: 'HASH',
+  { d: '2026-10-01', t: 'feature', a: 'awards', h: 'd8d9c4b',
     title: 'Artist of the Year stats show highlights, growth, plaques and records',
     detail: 'When you open the Stats card for an artist in the Artist of the Year picker, it now tells their whole story. Highlights come first as badges, such as a breakout year, their biggest year ever, #1 hits and albums, top 10 hits, new plaques, long streaks and their biggest song. Year by year shows one bar for every year since you first played them, with their artist rank under each bar and how much they grew or dropped compared with the year before. Certifications lists every plaque their songs and albums earned that year, along with their all-time total. Records they hold lists every record they have on your Records tab, with medals for first, second and third place.' },
 
