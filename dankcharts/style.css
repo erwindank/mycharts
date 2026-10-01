@@ -23934,16 +23934,32 @@ body.pink-light .awards-ceremony-share-btn:hover { border-color: var(--medal-gol
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 2px 7px;
+  gap: 4px 5px;
   padding-left: 68px;               /* + icon 16, gap 8, thumb 36, gap 8 */
-  font-family: var(--font-mono);
-  font-size: 0.64rem;
+  font-size: 0.7rem;
   font-feature-settings: "tnum";
-  color: var(--text3);
+  color: var(--text2);
 }
-.awards-picker-statline > i { font-style: normal; opacity: 0.45; }
-.aw-pst-hot  { color: color-mix(in srgb, var(--amber) 80%, var(--text2)); }
-.aw-pst-gold { color: color-mix(in srgb, var(--pk-gold) 75%, var(--text1)); }
+.aw-pst-pill {
+  padding: 2px 8px;
+  border-radius: var(--r-full);
+  background: var(--surface3);
+  border: 1px solid var(--border);
+  white-space: nowrap;
+}
+.aw-pst-pill b { font-weight: 700; color: var(--text1); }
+.aw-pst-pill.is-hot {
+  color: color-mix(in srgb, var(--amber) 80%, var(--text2));
+  border-color: color-mix(in srgb, var(--amber) 35%, var(--border));
+  background: color-mix(in srgb, var(--amber) 10%, var(--surface2));
+}
+.aw-pst-pill.is-hot b { color: color-mix(in srgb, var(--amber) 85%, var(--text1)); }
+.aw-pst-pill.is-gold {
+  color: color-mix(in srgb, var(--pk-gold) 75%, var(--text2));
+  border-color: color-mix(in srgb, var(--pk-gold) 40%, var(--border));
+  background: color-mix(in srgb, var(--pk-gold) 12%, var(--surface2));
+}
+.aw-pst-pill.is-gold b { color: color-mix(in srgb, var(--pk-gold) 80%, var(--text1)); }
 .awards-picker-stats-btn {
   margin-left: auto;
   padding: 2px 8px;
@@ -23978,7 +23994,7 @@ body.pink-light .awards-ceremony-share-btn:hover { border-color: var(--medal-gol
 }
 .aw-pst-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(128px, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 6px;
 }
 .aw-pst-tile {
@@ -23992,12 +24008,58 @@ body.pink-light .awards-ceremony-share-btn:hover { border-color: var(--medal-gol
   border: 1px solid var(--border);
 }
 .aw-pst-label {
-  font-family: var(--font-mono);
-  font-size: 0.56rem;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
+  font-size: 0.66rem;
+  font-weight: 600;
   color: var(--text3);
 }
+
+/* Headline: rank badge + one sentence */
+.aw-pst-hero {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: var(--r-sm);
+  background: var(--surface3);
+  border: 1px solid var(--border);
+}
+.aw-pst-hero.is-gold {
+  border-color: color-mix(in srgb, var(--pk-gold) 45%, var(--border));
+  background: color-mix(in srgb, var(--pk-gold) 8%, var(--surface3));
+}
+.aw-pst-hero-rank {
+  flex: none;
+  font-family: var(--font-display);
+  font-size: 1.7rem;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  color: var(--text1);
+  font-feature-settings: "tnum";
+}
+.aw-pst-hero.is-gold .aw-pst-hero-rank { color: var(--pk-gold); }
+.aw-pst-hero-text { min-width: 0; }
+.aw-pst-hero-main { font-size: 0.9rem; font-weight: 700; color: var(--text1); }
+.aw-pst-hero-sub  { margin-top: 2px; font-size: 0.7rem; color: var(--text3); line-height: 1.4; }
+.aw-pst-hero-sub b { color: var(--text1); font-weight: 700; }
+
+/* Each block gets a plain heading */
+.aw-pst-sec { margin-top: 14px; }
+.aw-pst-sec-title {
+  margin-bottom: 6px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--text2);
+}
+.aw-pst-span {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 6px;
+  font-size: 0.66rem;
+  color: var(--text3);
+}
+.aw-pst-span b { color: var(--text1); font-weight: 600; }
 .aw-pst-value {
   font-family: var(--font-display);
   font-size: 1rem;
@@ -24016,16 +24078,15 @@ body.pink-light .awards-ceremony-share-btn:hover { border-color: var(--medal-gol
 .aw-pst-tile.is-hot  { border-color: color-mix(in srgb, var(--amber) 45%, var(--border)); }
 .aw-pst-tile.is-hot .aw-pst-value { color: color-mix(in srgb, var(--amber) 80%, var(--text1)); }
 
-.aw-pst-charts { display: flex; flex-direction: column; gap: 6px; margin-top: 10px; }
+.aw-pst-charts { display: flex; flex-direction: column; gap: 6px; }
 .aw-pst-chart { display: flex; flex-wrap: wrap; align-items: center; gap: 5px; }
 .aw-pst-chart-name {
-  width: 104px;
-  font-family: var(--font-mono);
-  font-size: 0.6rem;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
+  width: 64px;
+  font-size: 0.68rem;
+  font-weight: 600;
   color: var(--text3);
 }
+.aw-pst-chip.is-strong { color: var(--text1); font-weight: 600; }
 .aw-pst-chip {
   padding: 2px 8px;
   border-radius: var(--r-full);
@@ -24048,8 +24109,7 @@ body.pink-light .awards-ceremony-share-btn:hover { border-color: var(--medal-gol
   display: grid;
   grid-template-columns: repeat(var(--n, 12), 1fr);
   gap: 4px;
-  height: 74px;
-  margin-top: 12px;
+  height: 92px;
 }
 .aw-pst-bar {
   display: flex;
@@ -24059,6 +24119,15 @@ body.pink-light .awards-ceremony-share-btn:hover { border-color: var(--medal-gol
   gap: 3px;
   min-width: 0;
 }
+.aw-pst-bar-n {
+  flex: none;
+  text-align: center;
+  font-size: 0.6rem;
+  font-weight: 600;
+  color: var(--text2);
+  font-feature-settings: "tnum";
+}
+.aw-pst-bar.is-peak .aw-pst-bar-n { color: var(--pk-gold); }
 .aw-pst-bar-fill {
   display: block;
   min-height: 0;
@@ -24071,12 +24140,14 @@ body.pink-light .awards-ceremony-share-btn:hover { border-color: var(--medal-gol
 .aw-pst-bar-lbl {
   flex: none;
   text-align: center;
-  font-family: var(--font-mono);
-  font-size: 0.56rem;
+  font-size: 0.6rem;
   color: var(--text3);
+  overflow: hidden;
+  white-space: nowrap;
 }
+.aw-pst-bar.is-empty .aw-pst-bar-lbl { opacity: 0.55; }
 .aw-pst-foot {
-  margin-top: 8px;
+  margin-top: 12px;
   font-size: 0.62rem;
   color: var(--text3);
 }
@@ -24084,6 +24155,7 @@ body.pink-light .awards-ceremony-share-btn:hover { border-color: var(--medal-gol
   .awards-picker-statline { padding-left: 0; }
   .aw-pst-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .aw-pst-chart-name { width: 100%; }
+  .aw-pst-bar-lbl { font-size: 0.5rem; }
 }
 @media (prefers-reduced-motion: reduce) { .awards-picker-stats { animation: none; } }
 /* Video of the Year: ▶ on each song row / chip opens a small video preview */

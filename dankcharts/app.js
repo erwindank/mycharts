@@ -37568,14 +37568,19 @@ function _awardsStatMonth(mk) { return `${t(_CR_MON_LONG[+mk.slice(5, 7) - 1])} 
 function _awardsPickerStatLine(item, idx) {
   const s = item.st;
   if (!s) return '';
+  // A few labelled pills, number first; weeks/months live in the full card
+  const pl = (n, one, many) => `${n} ${n === 1 ? one : many}`;
+  const pill = (title, html, cls) => `<span class="aw-pst-pill${cls ? ' ' + cls : ''}" title="${title}">${html}</span>`;
   const bits = [];
-  if (s.streak.len > 1) bits.push(`<span class="aw-pst-hot" title="Longest run of days in a row with a play">🔥 ${s.streak.len}-day streak</span>`);
-  bits.push(`<span title="Days, weeks and months with at least one play">${s.days} ${s.days === 1 ? 'day' : 'days'} · ${s.weeks} wk · ${s.months} mo</span>`);
-  if (s.wChart) {
-    bits.push(`<span class="${s.wChart.peak === 1 ? 'aw-pst-gold' : ''}" title="Best position on your weekly chart">peak #${s.wChart.peak}${s.wChart.at1 ? ` · ${s.wChart.at1} wk at #1` : ''}</span>`);
+  if (s.wChart && s.wChart.at1) {
+    bits.push(pill('Weeks at #1 on your weekly chart', `👑 #1 for <b>${pl(s.wChart.at1, 'week', 'weeks')}</b>`, 'is-gold'));
+  } else if (s.wChart) {
+    bits.push(pill('Best position on your weekly chart', `Peaked at <b>#${s.wChart.peak}</b>`));
   }
-  bits.push(`<span title="Most plays in a single day">best day ${s.peakDay.n}</span>`);
-  return `<span class="awards-picker-statline">${bits.join('<i aria-hidden="true">·</i>')}<button type="button" class="awards-picker-stats-btn" onclick="event.stopPropagation();awardsPickerToggleStats(${idx},this)" title="All stats for ${esc(String(_awardsPickerCtx.year))}" aria-expanded="false">📊 Stats</button></span>`;
+  if (s.streak.len > 1) bits.push(pill('Longest run of days in a row with a play', `🔥 <b>${s.streak.len} days</b> in a row`, 'is-hot'));
+  bits.push(pill(`Days with at least one play (${pl(s.weeks, 'week', 'weeks')}, ${pl(s.months, 'month', 'months')})`, `Played on <b>${pl(s.days, 'day', 'days')}</b>`));
+  if (s.peakDay.n > 1) bits.push(pill('Most plays in a single day', `<b>${s.peakDay.n} plays</b> in one day`));
+  return `<span class="awards-picker-statline">${bits.join('')}<button type="button" class="awards-picker-stats-btn" onclick="event.stopPropagation();awardsPickerToggleStats(${idx},this)" title="All stats for ${esc(String(_awardsPickerCtx.year))}" aria-expanded="false">📊 Stats</button></span>`;
 }
 
 // The full card, opened under a row by its 📊 button
@@ -37584,53 +37589,71 @@ function _awardsPickerStatsHtml(item) {
   if (!s) return '';
   const type = _awardsPickerCatType;
   const noun = type === 'song' ? 'songs' : type === 'album' ? 'albums' : 'artists';
+  const one = type === 'song' ? 'song' : type === 'album' ? 'album' : 'artist';
+  const year = esc(String(_awardsPickerCtx.year));
+  const pl = (n, a, b) => `${n.toLocaleString()} ${n === 1 ? a : b}`;
+  const short = ds => _awardsStatDate(ds).replace(/\s\d{4}$/, '');   // "11 Jan", the year is a given
   const tile = (label, value, note, cls) => `<div class="aw-pst-tile${cls ? ' ' + cls : ''}">
       <span class="aw-pst-label">${label}</span>
       <span class="aw-pst-value">${value}</span>
       ${note ? `<span class="aw-pst-note">${note}</span>` : ''}
     </div>`;
-  const range = r => r.len > 1 ? `${_awardsStatDate(r.from)} – ${_awardsStatDate(r.to)}` : (r.from ? _awardsStatDate(r.from) : '');
-  const nMonths = s.monthly.length;
+  const section = (title, body) => `<div class="aw-pst-sec"><div class="aw-pst-sec-title">${title}</div>${body}</div>`;
 
+  // Headline: how many plays, and where that puts it
+  const pct = `${(s.share * 100).toFixed(s.share < 0.01 ? 2 : 1)}%`;
+  const hero = `<div class="aw-pst-hero${s.rank === 1 ? ' is-gold' : ''}">
+      <div class="aw-pst-hero-rank">#${s.rank}</div>
+      <div class="aw-pst-hero-text">
+        <div class="aw-pst-hero-main">${s.rank === 1 ? `Your most played ${one} of ${year}` : `Your #${s.rank} ${one} of ${year}`}</div>
+        <div class="aw-pst-hero-sub"><b>${pl(item.plays, 'play', 'plays')}</b> out of ${s.of.toLocaleString()} ${noun} you played · ${pct} of all your listening</div>
+      </div>
+    </div>`;
+
+  // Habits: how often and how hard
+  const range = r => r.len > 1 ? `${short(r.from)} – ${short(r.to)}` : '';
   const tiles = [
-    tile('Plays', item.plays.toLocaleString(),`${(s.share * 100).toFixed(s.share < 0.01 ? 2 : 1)}% of all your plays`),
-    tile('Year rank', `#${s.rank}`, `of ${s.of.toLocaleString()} ${noun} played`, s.rank === 1 ? 'is-gold' : ''),
-    tile('Days played', s.days, `in ${s.weeks} ${s.weeks === 1 ? 'week' : 'weeks'} · ${s.months} of ${nMonths} months`),
-    tile('Longest streak', `${s.streak.len} ${s.streak.len === 1 ? 'day' : 'days'}`, range(s.streak), s.streak.len >= 7 ? 'is-hot' : ''),
-    tile('Weekly streak', `${s.wstreak.len} ${s.wstreak.len === 1 ? 'week' : 'weeks'}`, s.wstreak.len > 1 ? `from the week of ${_awardsStatDate(s.wstreak.from)}` : 'weeks in a row with a play'),
-    tile('Biggest day', `${s.peakDay.n} plays`, _awardsStatDate(s.peakDay.key)),
-    tile('Biggest week', `${s.peakWeek.n} plays`, `week of ${_awardsStatDate(s.peakWeek.key)}`),
-    tile('Biggest month', `${s.peakMonth.n} plays`, _awardsStatMonth(s.peakMonth.key)),
-    tile('First play', _awardsStatDate(localDateStr(tzDate(new Date(s.first)))), 'in this window'),
-    tile('Last play', _awardsStatDate(localDateStr(tzDate(new Date(s.last)))), 'in this window'),
+    tile('Days you played it', pl(s.days, 'day', 'days'), `across ${pl(s.months, 'month', 'months')}`),
+    tile('Longest streak', `${pl(s.streak.len, 'day', 'days')} in a row`, range(s.streak), s.streak.len >= 7 ? 'is-hot' : ''),
+    tile('Weeks in a row', pl(s.wstreak.len, 'week', 'weeks'), s.wstreak.len > 1 ? `from the week of ${short(s.wstreak.from)}` : ''),
+    tile('Best day', pl(s.peakDay.n, 'play', 'plays'), `on ${short(s.peakDay.key)}`),
+    tile('Best week', pl(s.peakWeek.n, 'play', 'plays'), `week of ${short(s.peakWeek.key)}`),
+    tile('Best month', pl(s.peakMonth.n, 'play', 'plays'), `in ${esc(_awardsStatMonth(s.peakMonth.key).split(' ')[0])}`),
   ];
-  if (type === 'artist') tiles.push(tile('Catalogue', `${s.songs} ${s.songs === 1 ? 'song' : 'songs'}`, `from ${s.albums} ${s.albums === 1 ? 'album' : 'albums'}`));
-  if (type === 'album')  tiles.push(tile('Tracks played', s.songs, 'different songs from it'));
+  if (type === 'artist') tiles.push(tile('Songs played', pl(s.songs, 'song', 'songs'), `from ${pl(s.albums, 'album', 'albums')}`));
+  if (type === 'album')  tiles.push(tile('Tracks played', pl(s.songs, 'track', 'tracks'), 'different songs from it'));
 
-  const chartRow = (label, c, unit) => c
-    ? `<div class="aw-pst-chart">
-        <span class="aw-pst-chart-name">${label}</span>
-        <span class="aw-pst-chip${c.peak === 1 ? ' is-gold' : ''}">Peak #${c.peak}</span>
-        ${c.at1 ? `<span class="aw-pst-chip is-gold">${c.at1} ${unit}${c.at1 === 1 ? '' : 's'} at #1</span>` : ''}
-        ${c.top10 ? `<span class="aw-pst-chip">${c.top10} in the top 10</span>` : ''}
-        <span class="aw-pst-chip">${c.on} ${unit}${c.on === 1 ? '' : 's'} on the chart</span>
-      </div>`
-    : `<div class="aw-pst-chart"><span class="aw-pst-chart-name">${label}</span><span class="aw-pst-none">Didn't chart in this window</span></div>`;
+  // Charts: one plain sentence per chart, the #1 run first
+  const chartRow = (label, c, unit) => {
+    if (!c) return `<div class="aw-pst-chart"><span class="aw-pst-chart-name">${label}</span><span class="aw-pst-none">Never made the chart</span></div>`;
+    const chips = [c.at1
+      ? `<span class="aw-pst-chip is-gold">👑 #1 for ${pl(c.at1, unit, unit + 's')}</span>`
+      : `<span class="aw-pst-chip is-strong">Peaked at #${c.peak}</span>`];
+    if (c.top10) chips.push(`<span class="aw-pst-chip">${pl(c.top10, unit, unit + 's')} in the top 10</span>`);
+    chips.push(`<span class="aw-pst-chip">${pl(c.on, unit, unit + 's')} on the chart</span>`);
+    return `<div class="aw-pst-chart"><span class="aw-pst-chart-name">${label}</span>${chips.join('')}</div>`;
+  };
 
+  // Plays per month, each bar labelled with its count
   const top = Math.max(1, ...s.monthly.map(([, n]) => n));
   const bars = s.monthly.map(([mk, n]) => {
-    const pct = n ? Math.max(4, Math.round(n / top * 100)) : 0;
+    const h = n ? Math.max(6, Math.round(n / top * 100)) : 0;
     const peak = n && mk === s.peakMonth.key;
-    return `<div class="aw-pst-bar${peak ? ' is-peak' : ''}" title="${esc(_awardsStatMonth(mk))}: ${n} ${n === 1 ? 'play' : 'plays'}">
-        <span class="aw-pst-bar-fill" style="height:${pct}%"></span>
-        <span class="aw-pst-bar-lbl">${esc(t(_CR_MON_SHORT[+mk.slice(5, 7) - 1]).slice(0, 1))}</span>
+    return `<div class="aw-pst-bar${peak ? ' is-peak' : ''}${n ? '' : ' is-empty'}" title="${esc(_awardsStatMonth(mk))}: ${pl(n, 'play', 'plays')}">
+        <span class="aw-pst-bar-n">${n || ''}</span>
+        <span class="aw-pst-bar-fill" style="height:${h}%"></span>
+        <span class="aw-pst-bar-lbl">${esc(t(_CR_MON_SHORT[+mk.slice(5, 7) - 1]))}</span>
       </div>`;
   }).join('');
+  const first = short(localDateStr(tzDate(new Date(s.first))));
+  const last  = short(localDateStr(tzDate(new Date(s.last))));
 
-  return `<div class="aw-pst-grid">${tiles.join('')}</div>
-    <div class="aw-pst-charts">${chartRow('Weekly chart', s.wChart, 'week')}${chartRow('Monthly chart', s.mChart, 'month')}</div>
-    <div class="aw-pst-months" style="--n:${nMonths}" aria-label="Plays per month">${bars}</div>
-    <div class="aw-pst-foot">${esc(_awardsStatDate(_awardsPickerEligWin.start))} – ${esc(_awardsStatDate(_awardsPickerEligWin.end))} · the year's eligibility window</div>`;
+  return hero
+    + section('Through the year', `<div class="aw-pst-months" style="--n:${s.monthly.length}" aria-label="Plays per month">${bars}</div>
+        <div class="aw-pst-span"><span>First play <b>${first}</b></span><span>Last play <b>${last}</b></span></div>`)
+    + section('How you listened', `<div class="aw-pst-grid">${tiles.join('')}</div>`)
+    + section('On your charts', `<div class="aw-pst-charts">${chartRow('Weekly', s.wChart, 'week')}${chartRow('Monthly', s.mChart, 'month')}</div>`)
+    + `<div class="aw-pst-foot">Counting ${esc(_awardsStatDate(_awardsPickerEligWin.start))} – ${esc(_awardsStatDate(_awardsPickerEligWin.end))}, this year's eligibility window</div>`;
 }
 
 // Opens the card straight under its row, without re-rendering the list

@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['pt-PT'] = {
 
   /* ========== OUTUBRO 2026 ========== */
 
+  'Award nominee stats are easier to read':
+    ['As estatísticas dos nomeados estão mais fáceis de ler',
+     'Quando escolhes os nomeados nos Meus Grammys, a linha por baixo de cada sugestão era uma sequência de abreviaturas como "8 days · 5 wk · 4 mo · peak #1 · 1 wk at #1". Agora são poucas etiquetas curtas em palavras simples, como "#1 durante 1 semana", "4 dias seguidos" e "Ouvida em 8 dias", com a mais importante primeiro. O cartão de estatísticas que abre por baixo de cada linha também é mais fácil de seguir: começa com a posição da música no ano e quantas reproduções teve, depois mostra as reproduções por mês com o número em cada barra, a seguir os teus hábitos de audição e, por fim, como se saiu nas tuas tabelas semanais e mensais.'],
+
   'Genre awards follow the genres in your Google Sheet':
     ['Os prémios de género seguem os géneros da tua folha do Google',
      'Se a tua folha do Google tem as colunas Genre 1 a Genre 5, os prémios de género dos Meus Grammys passam a usá-las, por isso um género que mudes na folha muda as músicas e álbuns que se qualificam. Antes, os géneros da folha eram ignorados e cada música ficava com as etiquetas do artista no Last.fm, por isso editá-los não tinha efeito. Uma música usa os géneros da linha mais recente que tenha algum, e um álbum entra num género quando pelo menos metade das músicas etiquetadas entra. As músicas sem géneros na folha continuam a usar as etiquetas do artista. A grafia também já não importa: Dance-Pop, dance pop e dancepop contam como o mesmo género. Os nomeados que já escolheste ficam como estão, por isso limpa e volta a escolher os de uma categoria para a atualizar.'],
