@@ -80,7 +80,7 @@ const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
 
-  { d: '2026-10-01', t: 'design', a: 'awards', h: 'HASH',
+  { d: '2026-10-01', t: 'design', a: 'awards', h: 'ea22ea8',
     title: 'Award nominee stats are easier to read',
     detail: 'When you pick nominees in My Grammys, the line under each suggestion used to be a run of abbreviations like "8 days · 5 wk · 4 mo · peak #1 · 1 wk at #1". It is now a few short labels in plain words, such as "#1 for 1 week", "4 days in a row" and "Played on 8 days", with the biggest one first. The Stats card that opens under a row is easier to follow too: it starts with where the song ranked in the year and how many plays it had, then shows plays per month with the count on each bar, then your listening habits, then how it did on your weekly and monthly charts.' },
 
