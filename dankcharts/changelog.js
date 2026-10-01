@@ -80,7 +80,7 @@ const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
 
-  { d: '2026-10-01', t: 'fix', a: 'awards', h: '',
+  { d: '2026-10-01', t: 'fix', a: 'awards', h: '74299e2',
     title: 'Genre awards follow the genres in your Google Sheet',
     detail: 'If your Google Sheet has Genre 1 to Genre 5 columns, the genre awards in My Grammys now use them, so a genre you change in the sheet changes which songs and albums qualify. Before, the sheet’s genres were ignored and every song took its artist’s tags from Last.fm, so editing them had no effect. A song uses the genres on its most recent row that has any, and an album fits a genre when at least half of its tagged songs do. Songs with no genres in the sheet still fall back to the artist’s tags. Spelling no longer matters either: Dance-Pop, dance pop and dancepop all count as the same genre. Nominees you already picked stay as they are, so clear and re-pick a category to refresh it.' },
 
