@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['es'] = {
 
   /* ========== OCTUBRE 2026 ========== */
 
+  'Real-Life Awards now cover the MTV VMAs':
+    ['Premios Reales ahora incluye los MTV VMAs',
+     'Premios Reales ahora tiene dos pestañas: Grammys y VMAs. Elige un año desde 1984 y la pestaña VMAs muestra cada artista que escuchaste esa temporada y que estuvo nominado, con lo que ganó, y luego todas las categorías de la noche con los ganadores en negrita y tus artistas marcados. La temporada va de julio a junio, igual que los premios. Los ganadores y nominados vienen de Wikipedia, y cada año se carga una sola vez.'],
+
   'Real life Grammys show up again':
     ['Los Grammys de la vida real vuelven a aparecer',
      'En Premios, Premios de la Vida Real había dejado de mostrar victorias y nominaciones a los Grammy, porque grammy.com cambió cómo su búsqueda devuelve las páginas de artistas. La búsqueda ahora entiende el nuevo formato, así que el historial de Grammys de cada artista vuelve a cargar.'],

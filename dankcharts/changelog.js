@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 47;
+const DC_CL_I18N_V = 48;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,10 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+
+  { d: '2026-10-02', t: 'feature', a: 'awards', h: '6fc55fc',
+    title: 'Real-Life Awards now cover the MTV VMAs',
+    detail: 'Real-Life Awards has two tabs now: Grammys and VMAs. Pick a year from 1984 on and the VMAs tab shows every artist you played that season who was nominated, with what they won, then every category of the night with the winners in bold and your artists marked. The season runs July to June, like the awards themselves. Winners and nominees come from Wikipedia, and a year only loads once.' },
 
   { d: '2026-10-02', t: 'fix', a: 'awards', h: '21c0f33',
     title: 'Real life Grammys show up again',
