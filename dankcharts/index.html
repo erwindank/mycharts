@@ -27,7 +27,7 @@
   <!-- html2canvas, SheetJS (xlsx) and JSZip are intentionally NOT loaded here — they
        total ~1.2 MB and are only needed for image exports and Excel/ZIP imports.
        app.js pulls them from the CDN on first use (see ensureLazyLib). -->
-  <link rel="stylesheet" href="style.css?v=306">
+  <link rel="stylesheet" href="style.css?v=307">
   <!-- All scripts are deferred so the page paints without waiting on them.
        defer preserves execution order, which matters: translations → Chart.js →
        hammer → zoom plugin → firebase SDKs → firebase.js → app.js (in body). -->
@@ -2198,12 +2198,13 @@
 
       <!-- REAL-LIFE AWARDS PANEL -->
       <div id="awardsRealLife" style="display:none;">
-        <!-- Which show: the Grammys (from grammy.com), or the MTV VMAs, AMAs and iHeartRadio Music Awards (from Wikipedia) -->
+        <!-- Which show: the Grammys (from grammy.com), or the MTV VMAs, AMAs, iHeartRadio Music Awards and World Music Awards (from Wikipedia) -->
         <div class="awards-view-seg awards-show-seg" role="radiogroup" aria-label="Awards show">
           <button type="button" class="awards-view-opt awards-show-opt" role="radio" aria-checked="true" data-show="grammys" onclick="realLifeSetShow('grammys')">Grammys</button>
           <button type="button" class="awards-view-opt awards-show-opt" role="radio" aria-checked="false" data-show="vmas" onclick="realLifeSetShow('vmas')">VMAs</button>
           <button type="button" class="awards-view-opt awards-show-opt" role="radio" aria-checked="false" data-show="amas" onclick="realLifeSetShow('amas')">AMAs</button>
           <button type="button" class="awards-view-opt awards-show-opt" role="radio" aria-checked="false" data-show="iheart" onclick="realLifeSetShow('iheart')">iHeartRadio</button>
+          <button type="button" class="awards-view-opt awards-show-opt" role="radio" aria-checked="false" data-show="wma" onclick="realLifeSetShow('wma')">World Music</button>
         </div>
         <div class="awards-year-bar">
           <div class="awards-year-stepper">
@@ -3282,7 +3283,7 @@
   <!-- defer keeps app.js last in the script execution order (after translations,
        Chart.js and firebase.js) while letting the whole page parse and paint first -->
   <script defer src="changelog.js?v=113"></script>
-  <script defer src="app.js?v=278"></script>
+  <script defer src="app.js?v=279"></script>
 
   <!-- ── Settings Modal ──
        Split into three tabs so the whole form is never dumped on screen at

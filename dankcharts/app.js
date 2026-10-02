@@ -35727,10 +35727,15 @@ function _awardsFirstPlayYear() {
    My Grammys: from the year of your first play to this year.
    Real-Life: the show's first ceremony (Grammys 1959, VMAs 1984) to this year —
    the most recent one that has actually happened, so we never land on an empty
-   future page. */
+   future page. A show with a fixed list of years (the World Music Awards, which
+   ended in 2014 and skipped plenty before that) spans just that list. */
 function _awardsYearBounds(kind) {
   const max = tzNow().getFullYear();
-  if (kind === 'reallife') return { min: RL_WIKI_SHOWS[_realLifeShow]?.first || GRAMMY_FIRST_CEREMONY_YEAR, max };
+  if (kind === 'reallife') {
+    const list = _realLifeYearList();
+    if (list) return { min: list[0], max: list[list.length - 1] };
+    return { min: RL_WIKI_SHOWS[_realLifeShow]?.first || GRAMMY_FIRST_CEREMONY_YEAR, max };
+  }
   const first = _awardsFirstPlayYear();
   return { min: first == null ? max - 1 : Math.min(first, max), max };
 }
@@ -35747,10 +35752,24 @@ function _awardsSyncYearUI(kind) {
   if (next) next.disabled = year >= max;
 }
 
+// The years the current Real-Life show can show, oldest first, when it's a
+// fixed list rather than every year from its first — or null
+function _realLifeYearList() {
+  return RL_WIKI_SHOWS[_realLifeShow]?.years || null;
+}
+// The listed year closest to `year` (the later one on a tie), or `year` itself
+// when the show has no list
+function _realLifeSnapYear(year) {
+  const list = _realLifeYearList();
+  if (!list || list.includes(year)) return year;
+  return list.reduce((best, y) => Math.abs(y - year) <= Math.abs(best - year) ? y : best, list[0]);
+}
+
 // Single entry point for both the arrows and the picker
 function _awardsSetYear(kind, year) {
   const { min, max } = _awardsYearBounds(kind);
   year = Math.max(min, Math.min(max, year));
+  if (kind === 'reallife') year = _realLifeSnapYear(year);
   _awardsRememberYear(kind, year);
   if (kind === 'reallife') {
     _realLifeYear = year;
@@ -35764,7 +35783,13 @@ function _awardsSetYear(kind, year) {
 }
 
 function awardsChangeYear(delta)         { _awardsSetYear('mygrammys', _awardsYear + delta); }
-function realLifeAwardsChangeYear(delta) { _awardsSetYear('reallife', _realLifeYear + delta); }
+function realLifeAwardsChangeYear(delta) {
+  // With a fixed list of years, the arrows jump to the next one that has a show
+  const list = _realLifeYearList();
+  if (!list) return _awardsSetYear('reallife', _realLifeYear + delta);
+  const next = delta > 0 ? list.find(y => y > _realLifeYear) : list.slice().reverse().find(y => y < _realLifeYear);
+  if (next != null) _awardsSetYear('reallife', next);
+}
 
 /* Year picker: clicking the year opens a grid of every year in range, newest
    first, so you can jump straight to one instead of stepping through them all.
@@ -35780,7 +35805,9 @@ function awardsOpenYearPicker(kind) {
   const { min, max } = _awardsYearBounds(kind);
   const current = kind === 'reallife' ? _realLifeYear : _awardsYear;
   let chips = '';
+  const list = kind === 'reallife' ? _realLifeYearList() : null;
   for (let y = max; y >= min; y--) {
+    if (list && !list.includes(y)) continue;   // only years that had a show
     chips += `<button type="button" class="awards-year-chip${y === current ? ' is-current' : ''}" data-year="${y}">${y}</button>`;
   }
   const pop = document.createElement('div');
@@ -39235,9 +39262,9 @@ async function _grammyMapLimit(items, limit, fn) {
 
 // Which show the Real-Life Awards tab is on: the Grammys, or one of the shows
 // read from Wikipedia (RL_WIKI_SHOWS: the MTV VMAs, the AMAs, the iHeartRadio
-// Music Awards). They all share
+// Music Awards, the World Music Awards). They all share
 // one year stepper and one content area; this just picks the loader.
-const RL_SHOW_IDS = ['grammys', 'vmas', 'amas', 'iheart'];
+const RL_SHOW_IDS = ['grammys', 'vmas', 'amas', 'iheart', 'wma'];
 let _realLifeShow = (() => {
   try { const v = localStorage.getItem('dc_awards_reallife_show'); return RL_SHOW_IDS.includes(v) ? v : 'grammys'; }
   catch (e) { return 'grammys'; }
@@ -39265,8 +39292,8 @@ function loadRealLifeAwards(year) {
   _realLifeSyncShowUI();
   // A year remembered from the Grammys can be older than the show's first ceremony
   const { min, max } = _awardsYearBounds('reallife');
-  if (year < min || year > max) {
-    year = Math.max(min, Math.min(max, year));
+  if (year < min || year > max || _realLifeSnapYear(year) !== year) {
+    year = _realLifeSnapYear(Math.max(min, Math.min(max, year)));
     _realLifeYear = year;
     _awardsSyncYearUI('reallife');
   }
@@ -39487,6 +39514,26 @@ const RL_WIKI_SHOWS = {
     // Held in spring (March to May), honouring the radio year before it
     window: _rlWikiYearBefore,
   },
+  wma: {
+    first: 1999,
+    short: 'World Music Awards',
+    // Held 1989–2014, on and off, and wound up after that. Wikipedia only has a
+    // page for these years (1989–1998, 2000, 2002 and 2011–2013 have none, and
+    // 2009's title points at the general article), so the year arrows step
+    // between just these.
+    years: [1999, 2001, 2003, 2004, 2005, 2006, 2007, 2008, 2010, 2014],
+    pages: y => [{ title: `${y}_World_Music_Awards` }],
+    ceremony: y => `${y} World Music Awards`,
+    // No tables on these pages: the winners are bullet lists under headings
+    lists: true,
+    // The awards went to the year's best sellers, and most shows were held late
+    // in the year, so without a date on the page match the calendar year itself
+    window: (y, date) => date ? _rlWikiYearBefore(y, date) : {
+      start: new Date(`${y}-01-01`),
+      end:   new Date(`${y}-12-31T23:59:59`),
+      label: String(y),
+    },
+  },
 };
 // Bump the version whenever the parsing changes, so years saved under the old
 // rules are read again
@@ -39521,7 +39568,7 @@ function _rlWikiFetchYear(showId, year) {
   }
 
   const pages = RL_WIKI_SHOWS[showId].pages(year);
-  const p = Promise.all(pages.map(pg => _rlWikiFetchPage(pg.title, year)))
+  const p = Promise.all(pages.map(pg => _rlWikiFetchPage(pg.title, year, RL_WIKI_SHOWS[showId])))
     .then(parsed => {
       const got = parsed.map((r, i) => ({ ...r, group: pages[i].group })).filter(r => r.categories.length);
       // With two shows in one year, each category says which night it was
@@ -39530,6 +39577,7 @@ function _rlWikiFetchYear(showId, year) {
         : r.categories);
       const data = {
         found: categories.length > 0, year, categories,
+        hasPage: parsed.some(r => r.hasPage),   // a page, even one with no winners listed
         url: 'https://en.wikipedia.org/wiki/' + (got[0]?.title || pages[0].title),
         date: got[got.length - 1]?.date || null,   // the later show sets the listening window
       };
@@ -39547,7 +39595,7 @@ function _rlWikiFetchYear(showId, year) {
 // One Wikipedia page → { title, date, categories }. A missing page, or one that
 // redirects somewhere without the year in its name (2024's AMAs weren't held,
 // so that title just points at the general AMAs article), counts as no ceremony.
-async function _rlWikiFetchPage(title, year) {
+async function _rlWikiFetchPage(title, year, show) {
   const api = 'https://en.wikipedia.org/w/api.php?' + new URLSearchParams({
     action: 'parse', page: title, prop: 'text', format: 'json', formatversion: '2', redirects: '1', origin: '*',
   });
@@ -39555,10 +39603,12 @@ async function _rlWikiFetchPage(title, year) {
   if (!r.ok) throw new Error('wikipedia ' + r.status);
   const j = await r.json();
   if (!j || j.error || !j.parse || !String(j.parse.title || '').includes(String(year))) {
-    return { title, date: null, categories: [] };
+    return { title, date: null, categories: [], hasPage: false };
   }
   const doc = new DOMParser().parseFromString(j.parse.text || '', 'text/html');
-  return { title: j.parse.title.replace(/ /g, '_'), date: _rlWikiDate(doc), categories: _rlWikiParse(doc) };
+  let categories = _rlWikiParse(doc);
+  if (!categories.length && show?.lists) categories = _rlWikiParseLists(doc);
+  return { title: j.parse.title.replace(/ /g, '_'), date: _rlWikiDate(doc), categories, hasPage: true };
 }
 
 // The ceremony date from the page's infobox ("May 26, 2025"), as an ISO date
@@ -39645,6 +39695,83 @@ function _rlWikiParse(doc) {
     }
   }
   return categories;
+}
+
+// Pages with no winners tables (the World Music Awards) list the awards as
+// bullets under headings instead, written a few ways over the years:
+//   `Category: Winner`, maybe with `Nominees: a, b` or `Runners-up: a, b and c`
+//     nested under it (1999, 2003, 2006)
+//   a heading per category, then its nominees with the winner in bold (2008, 2010)
+//   a heading with a plain list of names and nobody in bold, which is a list of
+//     honourees, so everyone on it won (Legend Award)
+// Sections about the show rather than the awards (performers, references…)
+// are skipped.
+const RL_WIKI_SKIP_SECTIONS = /^(performers?|performances|presenters|hosts|references|notes|external links|see also|international telecasts|broadcast|delays|records|charity|official sponsor|top award winners|ceremony|background)/i;
+
+function _rlWikiParseLists(doc) {
+  const categories = [];
+  let h2 = '', h3 = '';
+  const nodes = [...doc.querySelectorAll('h2, h3, ul')];
+  for (const node of nodes) {
+    if (node.tagName === 'H2') { h2 = _rlWikiText(node); h3 = ''; continue; }
+    if (node.tagName === 'H3') { h3 = _rlWikiText(node); continue; }
+    // A top-level list only: nested ones are read with their parent, and
+    // lists in tables, infoboxes and navboxes aren't award lists
+    if (!h2 || node.closest('li, table, .navbox, .reflist, .infobox')) continue;
+    if (RL_WIKI_SKIP_SECTIONS.test(h2) || RL_WIKI_SKIP_SECTIONS.test(h3)) continue;
+
+    const bare = [];   // names with no "Category:" in front, for the heading's category
+    for (const li of node.querySelectorAll(':scope > li')) {
+      const top = li.cloneNode(true);
+      top.querySelectorAll(':scope > ul').forEach(e => e.remove());
+      const text = _rlWikiText(top);
+      // Full-width colons turn up too (`Chinese Artist ：Nicholas Tse`)
+      const labelled = text.match(/^(.{3,120}?)\s*[:：]\s*(.+)$/);
+      if (!labelled) { bare.push(_rlWikiListEntry(top, text, !!top.querySelector('b'))); continue; }
+
+      const winnerEl = doc.createElement('span');
+      winnerEl.textContent = labelled[2];
+      const nominees = [_rlWikiListEntry(winnerEl, labelled[2], true)];
+      // "Nominees: Puff Daddy, Usher" / "Runners-up: Daddy Yankee, RBD, Mana and Juanes".
+      // Only lines labelled like that: other nested lines are commentary
+      // (2007 quotes the presenters' speeches under the Legend Awards).
+      for (const sub of li.querySelectorAll(':scope > ul > li')) {
+        const line = _rlWikiText(sub);
+        const label = line.match(/^(other\s+)?(nominees|runners?[- ]up)\s*:\s*/i);
+        if (!label) continue;
+        for (const name of line.slice(label[0].length).split(/,\s*|\s+and\s+/)) {
+          if (name.trim()) nominees.push({ who: name.trim(), title: '', rest: '', won: false });
+        }
+      }
+      categories.push({ name: labelled[1].trim(), nominees: nominees.filter(n => n.who) });
+    }
+
+    // A plain list straight under "Winners" or "Nominees" is a roll call of
+    // everyone who won something (2003), repeating the real categories below it
+    const heading = h3 || h2;
+    const kept = bare.filter(n => n.who);
+    if (kept.length && !/^(winners|nominees|nominees (and|&) winners)$/i.test(heading)) {
+      if (!kept.some(n => n.won)) kept.forEach(n => { n.won = true; });   // an honours list
+      categories.push({ name: heading, nominees: kept });
+    }
+  }
+  return categories;
+}
+
+// One name in a bullet list. Like a table entry, plus the "by" form these
+// pages use for songs and albums: `"Sexy Chick" by David Guetta feat. Akon`,
+// `The Fame by Lady Gaga` (the title in quotes or italics, so a band called
+// "Stand by Me" isn't split).
+function _rlWikiListEntry(el, text, won) {
+  const by = text.match(/^(.+?)\s+by\s+(.+)$/);
+  if (by) {
+    const i = el.querySelector('i');
+    const quoted = by[1].match(/^["“](.+)["”]$/);
+    if (quoted || (i && _rlWikiText(i) === by[1])) {
+      return { who: by[2].trim(), title: (quoted ? quoted[1] : by[1]).trim(), rest: '', won };
+    }
+  }
+  return _rlWikiEntry(el, won);
 }
 
 // A table cell holding several names split by <br> → one element per name
@@ -39772,7 +39899,9 @@ async function _loadRealLifeWiki(showId, year) {
       ? `Couldn't reach Wikipedia for the ${esc(ceremony)}. Try again in a moment.`
       : year >= tzNow().getFullYear()
         ? `The ${year} ${show.short} haven't happened yet, or aren't written up yet. Check back after the ceremony.`
-        : `There's no ${show.short} ceremony on record for ${year}.`;
+        : data.hasPage
+          ? `Wikipedia's page on the ${esc(ceremony)} doesn't list the winners.`
+          : `There's no ${show.short} ceremony on record for ${year}.`;
     contentEl.innerHTML = `<div class="awards-empty">${msg}</div>` + credit;
     return;
   }
@@ -44288,7 +44417,7 @@ const _cgTourSteps = [
     nav: 'events' },
 
   { title: 'Awards',
-    content: 'A full awards ceremony generated from your own chart data, with 53 categories available — Song, Album and Artist of the Year, Best New Artist, Best Collaboration, Song of the Summer, Best Comeback, Best Discovery, Most Obsessive Play, and opt-in genre categories across pop, rock, alternative, hip-hop, R&B, Latin, electronic and K-pop. Set the eligibility window, choose your categories, then run the ceremony and watch the envelopes open. There is a separate Real-Life Awards tab alongside My Grammys, showing which of your artists were nominated for or won real Grammys, MTV VMAs, American Music Awards and iHeartRadio Music Awards.',
+    content: 'A full awards ceremony generated from your own chart data, with 53 categories available — Song, Album and Artist of the Year, Best New Artist, Best Collaboration, Song of the Summer, Best Comeback, Best Discovery, Most Obsessive Play, and opt-in genre categories across pop, rock, alternative, hip-hop, R&B, Latin, electronic and K-pop. Set the eligibility window, choose your categories, then run the ceremony and watch the envelopes open. There is a separate Real-Life Awards tab alongside My Grammys, showing which of your artists were nominated for or won real Grammys, MTV VMAs, American Music Awards, iHeartRadio Music Awards and World Music Awards.',
     nav: 'awards' },
 
   { title: 'Your Soundtrack',
@@ -44995,7 +45124,7 @@ function dcRenderChartsGuideView() {
       tabs: [
         { name: 'Records',         period: 'records',    icon: '🏆', desc: 'Eleven sections behind the button row at the top: All #1s, Perfect All Kill, Most Chart Appearances, Biggest Debuts, Most Plays in a Period, Play Count Milestones, Fastest to Milestone, Certifications, Streak Records, New Charts and an Overview.', use: 'Your record book.' },
         { name: 'Events',          period: 'events',     icon: '🎂', desc: 'A calendar of artist birthdays, album anniversaries and new releases for the artists in your charts.', use: 'Knowing when something is worth replaying.' },
-        { name: 'Awards',          period: 'awards',     icon: '🏅', desc: '53 categories generated from your own chart data — the four majors plus Best Collaboration, Song of the Summer, Best Comeback, Best Discovery, Most Obsessive Play and opt-in genre awards. Set an eligibility window, pick categories, then run the ceremony. Real-Life Awards sits alongside My Grammys, with the real Grammys, VMAs, AMAs and iHeartRadio awards your artists were up for.', use: 'The fun one. Run it every December.' },
+        { name: 'Awards',          period: 'awards',     icon: '🏅', desc: '53 categories generated from your own chart data — the four majors plus Best Collaboration, Song of the Summer, Best Comeback, Best Discovery, Most Obsessive Play and opt-in genre awards. Set an eligibility window, pick categories, then run the ceremony. Real-Life Awards sits alongside My Grammys, with the real Grammys, VMAs, AMAs, iHeartRadio and World Music Awards your artists were up for.', use: 'The fun one. Run it every December.' },
         { name: 'Your Soundtrack', period: 'soundtrack', icon: '🎬', desc: 'A full recap of any month, year or all time: a reel, headline stats, top charts, a featured artist, your listening patterns, discoveries, milestones, streaks, a mini awards run and a hidden gem — plus an animated chart replay and a shareable card.', use: 'The nostalgic pass through your history.' },
         { name: 'Playlists',       period: 'playlists',  icon: '🎵', desc: 'Save any chart as a named playlist, queue tracks from anywhere, and use the Time Machine to replay exactly what you had on for any past date.', use: 'Turning a chart back into listening.' },
         { name: 'Charts Guide',    period: 'chartsguide',icon: '📖', desc: 'You are here. Setup checks, the tab breakdown, how charts are calculated, shortcuts, glossary, FAQ and your milestones.', use: 'Whenever something does not make sense.' },

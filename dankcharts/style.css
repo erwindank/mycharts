@@ -24956,6 +24956,12 @@ body.pink-light .awards-reallife-badge.nom { color: #4338ca; border-color: #6366
 /* Grammys / VMAs tabs at the top of Real-Life Awards — the same segmented pill
    as the nominee view switcher, sat above the year stepper */
 .awards-show-seg { margin-bottom: 14px; }
+/* Five shows don't fit across a phone, so the tabs wrap onto a second row
+   instead of scrolling the one you picked out of sight; the tray squares off a
+   little so two rows still read as one control */
+@media (max-width: 520px) {
+  .awards-show-seg { flex-wrap: wrap; overflow: visible; border-radius: 16px; }
+}
 
 /* VMAs / AMAs: every category of the ceremony, after the user's own artists' cards.
    Compact cards in a grid; the winner is bold with a trophy, and any line that
