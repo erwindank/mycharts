@@ -39263,9 +39263,9 @@ async function _grammyMapLimit(items, limit, fn) {
 // Which show the Real-Life Awards tab is on: the Grammys, or one of the shows
 // read from Wikipedia (RL_WIKI_SHOWS: the MTV VMAs, the AMAs, the iHeartRadio
 // Music Awards, the World Music Awards, the Billboard Music Awards, the ARIA
-// Music Awards, the Juno Awards). They all share
+// Music Awards, the Juno Awards, the BRIT Awards). They all share
 // one year stepper and one content area; this just picks the loader.
-const RL_SHOW_IDS = ['grammys', 'vmas', 'amas', 'iheart', 'wma', 'billboard', 'aria', 'juno'];
+const RL_SHOW_IDS = ['grammys', 'vmas', 'amas', 'iheart', 'wma', 'billboard', 'aria', 'juno', 'brit'];
 let _realLifeShow = (() => {
   try { const v = localStorage.getItem('dc_awards_reallife_show'); return RL_SHOW_IDS.includes(v) ? v : 'grammys'; }
   catch (e) { return 'grammys'; }
@@ -39583,12 +39583,23 @@ const RL_WIKI_SHOWS = {
     // known, and the end of January stands in when it isn't
     window: _rlWikiYearBefore,
   },
+  brit: {
+    first: 1977,   // the first BRIT Awards, for the Queen's Silver Jubilee
+    short: 'BRIT Awards',
+    // A one-off in 1977, then every year from 1982
+    years: [1977, ...Array.from({ length: Math.max(0, new Date().getFullYear() - 1981) }, (_, i) => 1982 + i)],
+    pages: y => [{ title: `Brit_Awards_${y}` }],
+    ceremony: y => `BRIT Awards ${y}`,
+    lists: true,
+    // Held in February or March for the year before
+    window: _rlWikiYearBefore,
+  },
 };
 // Bump the version whenever the parsing changes, so years saved under the old
 // rules are read again
-const RL_WIKI_CACHE_LS = 'dc_rl_wiki_cache_v5';  // parsed ceremonies, so a past year is fetched once, ever
+const RL_WIKI_CACHE_LS = 'dc_rl_wiki_cache_v6';  // parsed ceremonies, so a past year is fetched once, ever
 const RL_WIKI_FRESH_MS = 86400000;                // this year's page can still change (winners land late), so refetch daily
-try { ['dc_vma_cache_v1', 'dc_rl_wiki_cache_v1', 'dc_rl_wiki_cache_v2', 'dc_rl_wiki_cache_v3', 'dc_rl_wiki_cache_v4'].forEach(k => localStorage.removeItem(k)); } catch (e) {}   // caches this replaced
+try { ['dc_vma_cache_v1', 'dc_rl_wiki_cache_v1', 'dc_rl_wiki_cache_v2', 'dc_rl_wiki_cache_v3', 'dc_rl_wiki_cache_v4', 'dc_rl_wiki_cache_v5'].forEach(k => localStorage.removeItem(k)); } catch (e) {}   // caches this replaced
 
 const _rlWikiCache = {};   // "show:year" → promise of the parsed ceremony, for this session
 
@@ -39648,7 +39659,13 @@ async function _rlWikiFetchPage(title, year, show) {
   const api = 'https://en.wikipedia.org/w/api.php?' + new URLSearchParams({
     action: 'parse', page: title, prop: 'text', format: 'json', formatversion: '2', redirects: '1', origin: '*',
   });
-  const r = await fetch(api);
+  // Wikipedia turns away a burst of requests (429) now and then; one short wait
+  // and a second try gets through, and only then is it reported as a failure
+  let r = await fetch(api);
+  if (r.status === 429 || r.status >= 500) {
+    await new Promise(res => setTimeout(res, 1500));
+    r = await fetch(api);
+  }
   if (!r.ok) throw new Error('wikipedia ' + r.status);
   const j = await r.json();
   if (!j || j.error || !j.parse || !String(j.parse.title || '').includes(String(year))) {
@@ -39661,7 +39678,25 @@ async function _rlWikiFetchPage(title, year, show) {
   if (!categories.length && show?.lists) categories = _rlWikiParseResultTables(doc);
   if (!categories.length && show?.lists) categories = _rlWikiParseLists(doc, show);
   if (!categories.length && show?.lists) categories = _rlWikiParse(doc, true);
+  categories = _rlWikiTidy(categories);
   return { title: j.parse.title.replace(/ /g, '_'), date: _rlWikiDate(doc), categories, hasPage: true };
+}
+
+// Final touches on any page's results, whichever reader produced them:
+//   who presented the award is dropped — `British Single of the Year
+//     (presented by Simon Mayo)` is just British Single of the Year
+//   a special award written `Global Success Award: Adele` names Adele as the
+//     winner and the award as what she won
+function _rlWikiTidy(categories) {
+  const presenter = /\s*\((?:co-)?presented by [^)]*\)/gi;
+  return categories.map(c => ({
+    name: c.name.replace(presenter, '').trim(),
+    nominees: c.nominees.map(n => {
+      const who = n.who.replace(presenter, '').trim();
+      const honour = !n.title && who.match(/^([^:]{3,60}(?:award|of the year|contribution[^:]*|producer[^:]*)):\s+(.+)$/i);
+      return honour ? { ...n, who: honour[2].trim(), title: honour[1].trim() } : { ...n, who };
+    }).filter(n => n.who),
+  })).filter(c => c.name && c.nominees.length);
 }
 
 // The ceremony date from the page's infobox ("May 26, 2025"), as an ISO date
@@ -39983,8 +40018,9 @@ function _rlWikiEntry(el, won) {
   // Dashes come as en, em, hyphen, or now and then a minus sign (2016's AMAs),
   // and once in a while straight after a closing quote or bracket with no space
   // (`"God's Plan"– Drake`, `"Call Me Maybe"- Carly Rae Jepsen`,
-  // `Megan Thee Stallion (featuring Beyoncé)– "Savage"`)
-  const parts = text.split(/\s[–—−-]\s|(?<=["”)])[–—−-]\s/);
+  // `Megan Thee Stallion (featuring Beyoncé)– "Savage"`) or straight before an
+  // opening quote (`Tony Christie –"(Is This the Way to) Amarillo"`)
+  const parts = text.split(/\s[–—−-]\s|(?<=["”)])[–—−-]\s|\s[–—−](?=["“])/);
   const i = el.querySelector('i');
   const italic = i ? _rlWikiText(i) : '';
   const quotes = s => (s.match(/["“”]/g) || []).length;
@@ -44637,7 +44673,7 @@ const _cgTourSteps = [
     nav: 'events' },
 
   { title: 'Awards',
-    content: 'A full awards ceremony generated from your own chart data, with 53 categories available — Song, Album and Artist of the Year, Best New Artist, Best Collaboration, Song of the Summer, Best Comeback, Best Discovery, Most Obsessive Play, and opt-in genre categories across pop, rock, alternative, hip-hop, R&B, Latin, electronic and K-pop. Set the eligibility window, choose your categories, then run the ceremony and watch the envelopes open. There is a separate Real-Life Awards tab alongside My Grammys, showing which of your artists were nominated for or won real Grammys, MTV VMAs, American Music Awards, iHeartRadio Music Awards, World Music Awards, Billboard Music Awards, ARIA Music Awards and Juno Awards.',
+    content: 'A full awards ceremony generated from your own chart data, with 53 categories available — Song, Album and Artist of the Year, Best New Artist, Best Collaboration, Song of the Summer, Best Comeback, Best Discovery, Most Obsessive Play, and opt-in genre categories across pop, rock, alternative, hip-hop, R&B, Latin, electronic and K-pop. Set the eligibility window, choose your categories, then run the ceremony and watch the envelopes open. There is a separate Real-Life Awards tab alongside My Grammys, showing which of your artists were nominated for or won real Grammys, MTV VMAs, American Music Awards, iHeartRadio Music Awards, World Music Awards, Billboard Music Awards, ARIA Music Awards, Juno Awards and BRIT Awards.',
     nav: 'awards' },
 
   { title: 'Your Soundtrack',
@@ -45344,7 +45380,7 @@ function dcRenderChartsGuideView() {
       tabs: [
         { name: 'Records',         period: 'records',    icon: '🏆', desc: 'Eleven sections behind the button row at the top: All #1s, Perfect All Kill, Most Chart Appearances, Biggest Debuts, Most Plays in a Period, Play Count Milestones, Fastest to Milestone, Certifications, Streak Records, New Charts and an Overview.', use: 'Your record book.' },
         { name: 'Events',          period: 'events',     icon: '🎂', desc: 'A calendar of artist birthdays, album anniversaries and new releases for the artists in your charts.', use: 'Knowing when something is worth replaying.' },
-        { name: 'Awards',          period: 'awards',     icon: '🏅', desc: '53 categories generated from your own chart data — the four majors plus Best Collaboration, Song of the Summer, Best Comeback, Best Discovery, Most Obsessive Play and opt-in genre awards. Set an eligibility window, pick categories, then run the ceremony. Real-Life Awards sits alongside My Grammys, with the real Grammys, VMAs, AMAs, iHeartRadio, World Music, Billboard, ARIA and Juno Awards your artists were up for.', use: 'The fun one. Run it every December.' },
+        { name: 'Awards',          period: 'awards',     icon: '🏅', desc: '53 categories generated from your own chart data — the four majors plus Best Collaboration, Song of the Summer, Best Comeback, Best Discovery, Most Obsessive Play and opt-in genre awards. Set an eligibility window, pick categories, then run the ceremony. Real-Life Awards sits alongside My Grammys, with the real Grammys, VMAs, AMAs, iHeartRadio, World Music, Billboard, ARIA, Juno and BRIT Awards your artists were up for.', use: 'The fun one. Run it every December.' },
         { name: 'Your Soundtrack', period: 'soundtrack', icon: '🎬', desc: 'A full recap of any month, year or all time: a reel, headline stats, top charts, a featured artist, your listening patterns, discoveries, milestones, streaks, a mini awards run and a hidden gem — plus an animated chart replay and a shareable card.', use: 'The nostalgic pass through your history.' },
         { name: 'Playlists',       period: 'playlists',  icon: '🎵', desc: 'Save any chart as a named playlist, queue tracks from anywhere, and use the Time Machine to replay exactly what you had on for any past date.', use: 'Turning a chart back into listening.' },
         { name: 'Charts Guide',    period: 'chartsguide',icon: '📖', desc: 'You are here. Setup checks, the tab breakdown, how charts are calculated, shortcuts, glossary, FAQ and your milestones.', use: 'Whenever something does not make sense.' },
