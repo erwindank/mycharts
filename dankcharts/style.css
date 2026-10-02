@@ -23887,6 +23887,15 @@ body.pink-light .awards-ceremony-share-btn:hover { border-color: var(--medal-gol
 .awards-picker-quick button:hover { color: var(--text1); border-color: var(--accent); }
 .awards-picker-quick .awards-picker-quick-clear { background: none; border-color: transparent; color: var(--text3); }
 .awards-picker-quick .awards-picker-quick-clear:hover { color: var(--pk-danger); border-color: transparent; }
+/* Clear's "remove all?" question, shown in place of the quick actions */
+.awards-picker-quick.is-confirming { align-items: center; }
+.awards-picker-quick-ask { font-size: 0.7rem; font-weight: 600; color: var(--text2); margin-right: 4px; white-space: nowrap; }
+.awards-picker-quick .awards-picker-quick-danger {
+  background: color-mix(in srgb, var(--pk-danger) 14%, transparent);
+  border-color: color-mix(in srgb, var(--pk-danger) 45%, transparent);
+  color: var(--pk-danger);
+}
+.awards-picker-quick .awards-picker-quick-danger:hover { background: var(--pk-danger); border-color: var(--pk-danger); color: #fff; }
 .awards-picker-selected {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
