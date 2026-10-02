@@ -39234,22 +39234,24 @@ async function _grammyMapLimit(items, limit, fn) {
 }
 
 // Which show the Real-Life Awards tab is on: the Grammys, or one of the shows
-// read from Wikipedia (RL_WIKI_SHOWS: the MTV VMAs, the AMAs). They all share
+// read from Wikipedia (RL_WIKI_SHOWS: the MTV VMAs, the AMAs, the iHeartRadio
+// Music Awards). They all share
 // one year stepper and one content area; this just picks the loader.
-const RL_SHOW_IDS = ['grammys', 'vmas', 'amas'];
+const RL_SHOW_IDS = ['grammys', 'vmas', 'amas', 'iheart'];
 let _realLifeShow = (() => {
   try { const v = localStorage.getItem('dc_awards_reallife_show'); return RL_SHOW_IDS.includes(v) ? v : 'grammys'; }
   catch (e) { return 'grammys'; }
 })();
 
-// Light up the Grammys / VMAs / AMAs tab that's showing
+// Light up the tab of the show that's showing
 function _realLifeSyncShowUI() {
   document.querySelectorAll('.awards-show-opt').forEach(b =>
     b.setAttribute('aria-checked', b.dataset.show === _realLifeShow ? 'true' : 'false'));
 }
 
 // Clicking a show's tab. Going through _awardsSetYear pulls the year inside the
-// new show's range (the VMAs only go back to 1984, the AMAs to 1974) and loads it.
+// new show's range (the VMAs only go back to 1984, the AMAs to 1974, iHeartRadio
+// to 2014) and loads it.
 function realLifeSetShow(show) {
   if (!RL_SHOW_IDS.includes(show)) return;
   _awardsCloseYearPicker();
@@ -39422,9 +39424,9 @@ async function _realLifeLoadArt(queue, token) {
   }
 }
 
-// ── Real-Life Awards: shows read from Wikipedia (VMAs, AMAs) ──────────────────
+// ── Real-Life Awards: shows read from Wikipedia (VMAs, AMAs, iHeartRadio) ─────
 
-// The VMAs and AMAs have no artist database like grammy.com's, but Wikipedia
+// The VMAs, AMAs and iHeartRadio awards have no artist database like grammy.com's, but Wikipedia
 // keeps one page per ceremony ("2025 MTV Video Music Awards", "American Music
 // Awards of 2025") with every category's winner and nominees in a table. Its
 // API sends CORS headers when asked (origin=*), so the browser reads it directly
@@ -39437,6 +39439,17 @@ async function _realLifeLoadArt(queue, token) {
 //   pages(year)        → Wikipedia titles; more than one when a year had two shows
 //   window(year, date) → { start, end, label } of the plays to match; `date` is
 //                        the ceremony date from the page's infobox, or null
+
+// The twelve months leading up to the night itself — for shows that move
+// around the calendar and cover about the year before them. Without a date
+// from the page, assume the end of January.
+function _rlWikiYearBefore(y, date) {
+  const end = date || new Date(`${y}-01-31T23:59:59`);
+  const start = new Date(end); start.setFullYear(start.getFullYear() - 1);
+  const fmt = d => d.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+  return { start, end, label: `${fmt(start)} to ${fmt(end)}` };
+}
+
 const RL_WIKI_SHOWS = {
   vmas: {
     first: 1984,   // the 1st MTV Video Music Awards
@@ -39464,17 +39477,22 @@ const RL_WIKI_SHOWS = {
     // The AMAs have moved around — January for decades, then November, now May —
     // and each show covers about the year before it. So match the twelve months
     // leading up to the night itself, read off the page.
-    window: (y, date) => {
-      const end = date || new Date(`${y}-01-31T23:59:59`);
-      const start = new Date(end); start.setFullYear(start.getFullYear() - 1);
-      const fmt = d => d.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
-      return { start, end, label: `${fmt(start)} to ${fmt(end)}` };
-    },
+    window: _rlWikiYearBefore,
+  },
+  iheart: {
+    first: 2014,   // the 1st iHeartRadio Music Awards
+    short: 'iHeartRadio Music Awards',
+    pages: y => [{ title: `${y}_iHeartRadio_Music_Awards` }],
+    ceremony: y => `${y} iHeartRadio Music Awards`,
+    // Held in spring (March to May), honouring the radio year before it
+    window: _rlWikiYearBefore,
   },
 };
-const RL_WIKI_CACHE_LS = 'dc_rl_wiki_cache_v1';  // parsed ceremonies, so a past year is fetched once, ever
+// Bump the version whenever the parsing changes, so years saved under the old
+// rules are read again
+const RL_WIKI_CACHE_LS = 'dc_rl_wiki_cache_v2';  // parsed ceremonies, so a past year is fetched once, ever
 const RL_WIKI_FRESH_MS = 86400000;                // this year's page can still change (winners land late), so refetch daily
-try { localStorage.removeItem('dc_vma_cache_v1'); } catch (e) {}   // the VMA-only cache this replaced
+try { ['dc_vma_cache_v1', 'dc_rl_wiki_cache_v1'].forEach(k => localStorage.removeItem(k)); } catch (e) {}   // caches this replaced
 
 const _rlWikiCache = {};   // "show:year" → promise of the parsed ceremony, for this session
 
@@ -39645,16 +39663,40 @@ function _rlWikiSplitCell(td) {
 // over (a director, "starring …") is kept so its artists can still be matched.
 function _rlWikiEntry(el, won) {
   const text = _rlWikiText(el);
-  // Dashes come as en, em, hyphen, or now and then a minus sign (2016's AMAs)
-  const parts = text.split(/\s[–—−-]\s/);
+  // Dashes come as en, em, hyphen, or now and then a minus sign (2016's AMAs),
+  // and once in a while straight after a closing quote with no space
+  // (`"God's Plan"– Drake`)
+  const parts = text.split(/\s[–—−-]\s|(?<=["”])[–—−]\s/);
   const i = el.querySelector('i');
   const italic = i ? _rlWikiText(i) : '';
-  const unquote = s => s.replace(/^["“]\s*|\s*["”]$/g, '').trim();
+  const quotes = s => (s.match(/["“”]/g) || []).length;
+  // Strip the outer quotes — but only a closing quote that's actually unpaired,
+  // so a nickname at the end (`Luis Angel "El Flaco"`) keeps its own
+  const unquote = s => {
+    s = s.trim().replace(/^["“]\s*/, '');
+    return (quotes(s) % 2 ? s.replace(/\s*["”]$/, '') : s).trim();
+  };
   // Title first when the first half is all quotes or italics, or opens a quote
   // that only closes at the very end (`"Work – Rihanna featuring Drake"`) —
   // but not a nickname like `"Weird Al" Yankovic`, whose quote closes early.
-  if (parts.length > 1 && (/^["“].*["”]$/.test(parts[0]) || /^["“][^"”]*$/.test(parts[0]) || (italic && italic === parts[0]))) {
-    return { who: unquote(parts.slice(1).join(' – ')), title: unquote(parts[0]), rest: '', won };
+  // The iHeartRadio pages add two twists: a song followed by a note in
+  // brackets (`"Savage" (Remix)`, a cover's `"Black Dog" (Led Zeppelin)`),
+  // which stays part of the title so the original artist isn't credited, and a
+  // label in front (`Pop: 25 – Adele` in Album of the Year per genre).
+  if (parts.length > 1) {
+    // The whole first half is tried before the label is peeled off, so a title
+    // with its own colon (`Selena Gomez: My Mind & Me – Selena Gomez`) stays whole
+    const lead = parts[0].match(/^([^:"“]{1,30}):\s+(.+)$/);
+    const tries = [{ head: parts[0], label: '' }];
+    if (lead) tries.push({ head: lead[2], label: ` (${lead[1]})` });
+    const who = unquote(parts.slice(1).join(' – '));
+    for (const { head, label } of tries) {
+      const bracketed = head.match(/^["“]([^"”]+)["”]\s*(\(.*\))$/);
+      if (bracketed) return { who, title: `${bracketed[1].trim()} ${bracketed[2]}${label}`, rest: '', won };
+      if (/^["“].*["”]$/.test(head) || /^["“][^"”]*$/.test(head) || (italic && italic === head)) {
+        return { who, title: unquote(head) + label, rest: '', won };
+      }
+    }
   }
   // The 1970s AMA tables use a comma instead of a dash, before an album in
   // italics or a song in quotes: `Charlie Rich, Behind Closed Doors`,
@@ -44246,7 +44288,7 @@ const _cgTourSteps = [
     nav: 'events' },
 
   { title: 'Awards',
-    content: 'A full awards ceremony generated from your own chart data, with 53 categories available — Song, Album and Artist of the Year, Best New Artist, Best Collaboration, Song of the Summer, Best Comeback, Best Discovery, Most Obsessive Play, and opt-in genre categories across pop, rock, alternative, hip-hop, R&B, Latin, electronic and K-pop. Set the eligibility window, choose your categories, then run the ceremony and watch the envelopes open. There is a separate Real-Life Awards tab alongside My Grammys, showing which of your artists were nominated for or won real Grammys, MTV VMAs and American Music Awards.',
+    content: 'A full awards ceremony generated from your own chart data, with 53 categories available — Song, Album and Artist of the Year, Best New Artist, Best Collaboration, Song of the Summer, Best Comeback, Best Discovery, Most Obsessive Play, and opt-in genre categories across pop, rock, alternative, hip-hop, R&B, Latin, electronic and K-pop. Set the eligibility window, choose your categories, then run the ceremony and watch the envelopes open. There is a separate Real-Life Awards tab alongside My Grammys, showing which of your artists were nominated for or won real Grammys, MTV VMAs, American Music Awards and iHeartRadio Music Awards.',
     nav: 'awards' },
 
   { title: 'Your Soundtrack',
@@ -44953,7 +44995,7 @@ function dcRenderChartsGuideView() {
       tabs: [
         { name: 'Records',         period: 'records',    icon: '🏆', desc: 'Eleven sections behind the button row at the top: All #1s, Perfect All Kill, Most Chart Appearances, Biggest Debuts, Most Plays in a Period, Play Count Milestones, Fastest to Milestone, Certifications, Streak Records, New Charts and an Overview.', use: 'Your record book.' },
         { name: 'Events',          period: 'events',     icon: '🎂', desc: 'A calendar of artist birthdays, album anniversaries and new releases for the artists in your charts.', use: 'Knowing when something is worth replaying.' },
-        { name: 'Awards',          period: 'awards',     icon: '🏅', desc: '53 categories generated from your own chart data — the four majors plus Best Collaboration, Song of the Summer, Best Comeback, Best Discovery, Most Obsessive Play and opt-in genre awards. Set an eligibility window, pick categories, then run the ceremony. Real-Life Awards sits alongside My Grammys, with the real Grammys, VMAs and AMAs your artists were up for.', use: 'The fun one. Run it every December.' },
+        { name: 'Awards',          period: 'awards',     icon: '🏅', desc: '53 categories generated from your own chart data — the four majors plus Best Collaboration, Song of the Summer, Best Comeback, Best Discovery, Most Obsessive Play and opt-in genre awards. Set an eligibility window, pick categories, then run the ceremony. Real-Life Awards sits alongside My Grammys, with the real Grammys, VMAs, AMAs and iHeartRadio awards your artists were up for.', use: 'The fun one. Run it every December.' },
         { name: 'Your Soundtrack', period: 'soundtrack', icon: '🎬', desc: 'A full recap of any month, year or all time: a reel, headline stats, top charts, a featured artist, your listening patterns, discoveries, milestones, streaks, a mini awards run and a hidden gem — plus an animated chart replay and a shareable card.', use: 'The nostalgic pass through your history.' },
         { name: 'Playlists',       period: 'playlists',  icon: '🎵', desc: 'Save any chart as a named playlist, queue tracks from anywhere, and use the Time Machine to replay exactly what you had on for any past date.', use: 'Turning a chart back into listening.' },
         { name: 'Charts Guide',    period: 'chartsguide',icon: '📖', desc: 'You are here. Setup checks, the tab breakdown, how charts are calculated, shortcuts, glossary, FAQ and your milestones.', use: 'Whenever something does not make sense.' },

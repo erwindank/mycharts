@@ -2198,11 +2198,12 @@
 
       <!-- REAL-LIFE AWARDS PANEL -->
       <div id="awardsRealLife" style="display:none;">
-        <!-- Which show: the Grammys (from grammy.com), or the MTV VMAs and AMAs (from Wikipedia) -->
+        <!-- Which show: the Grammys (from grammy.com), or the MTV VMAs, AMAs and iHeartRadio Music Awards (from Wikipedia) -->
         <div class="awards-view-seg awards-show-seg" role="radiogroup" aria-label="Awards show">
           <button type="button" class="awards-view-opt awards-show-opt" role="radio" aria-checked="true" data-show="grammys" onclick="realLifeSetShow('grammys')">Grammys</button>
           <button type="button" class="awards-view-opt awards-show-opt" role="radio" aria-checked="false" data-show="vmas" onclick="realLifeSetShow('vmas')">VMAs</button>
           <button type="button" class="awards-view-opt awards-show-opt" role="radio" aria-checked="false" data-show="amas" onclick="realLifeSetShow('amas')">AMAs</button>
+          <button type="button" class="awards-view-opt awards-show-opt" role="radio" aria-checked="false" data-show="iheart" onclick="realLifeSetShow('iheart')">iHeartRadio</button>
         </div>
         <div class="awards-year-bar">
           <div class="awards-year-stepper">
@@ -3281,7 +3282,7 @@
   <!-- defer keeps app.js last in the script execution order (after translations,
        Chart.js and firebase.js) while letting the whole page parse and paint first -->
   <script defer src="changelog.js?v=112"></script>
-  <script defer src="app.js?v=277"></script>
+  <script defer src="app.js?v=278"></script>
 
   <!-- ── Settings Modal ──
        Split into three tabs so the whole form is never dumped on screen at
