@@ -80,7 +80,7 @@ const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
 
-  { d: '2026-10-01', t: 'fix', a: 'awards', h: '',
+  { d: '2026-10-01', t: 'fix', a: 'awards', h: 'a028294',
     title: 'Nominee suggestions are readable on phones',
     detail: 'On a phone, the list of suggested nominees in My Grammys tried to fit the song title, artist, genre tags, plays and buttons on one line, which squeezed the title so narrow that it was written one letter per line. Now the title gets its own line next to the cover, and the artist, tags, plays and buttons sit on the lines below it.' },
 
