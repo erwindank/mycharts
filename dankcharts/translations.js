@@ -1743,6 +1743,19 @@ const TRANSLATIONS = {
     landing_continue_link: 'Continue to charts',
     landing_support_text: 'Questions or need help?',
     landing_support_btn: 'Contact Support',
+    // Contact Support form (support.js)
+    sup_title: 'Contact Support',
+    sup_intro: 'Found a bug, have a question or an idea? Send it here and we will reply by email.',
+    sup_email: 'Your email',
+    sup_message: 'Message',
+    sup_send: 'Send message',
+    sup_sending: 'Sending…',
+    sup_close: 'Close',
+    sup_sent_title: 'Message sent',
+    sup_sent_text: 'Thanks! We will reply to {{email}} as soon as we can.',
+    sup_err_email: 'Please enter a valid email so we can reply.',
+    sup_err_message: 'Please write a message.',
+    sup_err_send: 'Sending failed. Please try again, or email us at',
     landing_terms_privacy: 'Terms & Privacy',
 
     // Edit / Manual Scrobble & Rules modals
@@ -3453,6 +3466,19 @@ const TRANSLATIONS = {
     landing_continue_link: 'Ir a los charts',
     landing_support_text: '¿Preguntas o necesitas ayuda?',
     landing_support_btn: 'Contactar soporte',
+    // Contact Support form (support.js)
+    sup_title: 'Contactar soporte',
+    sup_intro: '¿Encontraste un error, tienes una pregunta o una idea? Envíala aquí y te responderemos por correo.',
+    sup_email: 'Tu correo',
+    sup_message: 'Mensaje',
+    sup_send: 'Enviar mensaje',
+    sup_sending: 'Enviando…',
+    sup_close: 'Cerrar',
+    sup_sent_title: 'Mensaje enviado',
+    sup_sent_text: '¡Gracias! Responderemos a {{email}} lo antes posible.',
+    sup_err_email: 'Introduce un correo válido para que podamos responderte.',
+    sup_err_message: 'Escribe un mensaje.',
+    sup_err_send: 'No se pudo enviar. Inténtalo de nuevo o escríbenos a',
     landing_terms_privacy: 'Términos y privacidad',
 
     // Edit / Manual Scrobble & Rules modals
@@ -5157,6 +5183,19 @@ const TRANSLATIONS = {
     landing_continue_link: 'Ir para os charts',
     landing_support_text: 'Dúvidas ou precisa de ajuda?',
     landing_support_btn: 'Contactar suporte',
+    // Contact Support form (support.js)
+    sup_title: 'Contactar suporte',
+    sup_intro: 'Encontrou um erro, tem uma dúvida ou uma ideia? Envie aqui e responderemos por e-mail.',
+    sup_email: 'Seu e-mail',
+    sup_message: 'Mensagem',
+    sup_send: 'Enviar mensagem',
+    sup_sending: 'Enviando…',
+    sup_close: 'Fechar',
+    sup_sent_title: 'Mensagem enviada',
+    sup_sent_text: 'Obrigado! Responderemos para {{email}} assim que possível.',
+    sup_err_email: 'Digite um e-mail válido para podermos responder.',
+    sup_err_message: 'Escreva uma mensagem.',
+    sup_err_send: 'Não foi possível enviar. Tente novamente ou escreva para',
     landing_terms_privacy: 'Termos e privacidade',
 
     // Edit / Manual Scrobble & Rules modals
@@ -6860,6 +6899,19 @@ const TRANSLATIONS = {
     landing_continue_link: 'Ir para os charts',
     landing_support_text: 'Questões ou precisas de ajuda?',
     landing_support_btn: 'Contactar suporte',
+    // Contact Support form (support.js)
+    sup_title: 'Contactar suporte',
+    sup_intro: 'Encontrou um erro, tem uma dúvida ou uma ideia? Envie aqui e responderemos por e-mail.',
+    sup_email: 'O seu e-mail',
+    sup_message: 'Mensagem',
+    sup_send: 'Enviar mensagem',
+    sup_sending: 'A enviar…',
+    sup_close: 'Fechar',
+    sup_sent_title: 'Mensagem enviada',
+    sup_sent_text: 'Obrigado! Responderemos para {{email}} assim que possível.',
+    sup_err_email: 'Introduza um e-mail válido para podermos responder.',
+    sup_err_message: 'Escreva uma mensagem.',
+    sup_err_send: 'Não foi possível enviar. Tente novamente ou escreva para',
     landing_terms_privacy: 'Termos e privacidade',
 
     // Edit / Manual Scrobble & Rules modals

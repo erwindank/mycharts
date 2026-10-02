@@ -21594,8 +21594,6 @@ body.yellow-light .hero-stats { --hero-link: #ffe066; }  /* 3.94:1 on strip */
   margin-top: 2px;
 }
 
-/* Zoho Desk ASAP — hide launcher widget until user triggers it */
-[id*="zohodesk"],[id*="zohoasap"],[id*="zd-asap"],[class*="zohodesk"],[class*="zohoasap"],iframe[id*="zoho"] { display: none !important; }
 
 /* ── Nav hint (keyboard shortcut reminder) ──
    Plain quiet caption, no pill/box chrome — it used to be styled as a tab

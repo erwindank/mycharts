@@ -27,11 +27,11 @@
   <!-- html2canvas, SheetJS (xlsx) and JSZip are intentionally NOT loaded here — they
        total ~1.2 MB and are only needed for image exports and Excel/ZIP imports.
        app.js pulls them from the CDN on first use (see ensureLazyLib). -->
-  <link rel="stylesheet" href="style.css?v=294">
+  <link rel="stylesheet" href="style.css?v=295">
   <!-- All scripts are deferred so the page paints without waiting on them.
        defer preserves execution order, which matters: translations → Chart.js →
        hammer → zoom plugin → firebase SDKs → firebase.js → app.js (in body). -->
-  <script defer src="translations.js?v=30"></script>
+  <script defer src="translations.js?v=31"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8/hammer.min.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@1.2.1/dist/chartjs-plugin-zoom.min.js"></script>
@@ -247,7 +247,7 @@
     <p class="landing-skip"><span data-i18n="landing_already_setup">Already set up?</span> <a href="#" onclick="skipLanding(); return false;"><span class="landing-skip-deck" aria-hidden="true"><i class="landing-skip-arm"></i></span><span class="landing-skip-label" data-i18n="landing_continue_link">Continue to charts</span></a></p>
 
     <div class="landing-support-note">
-      <span data-i18n="landing_support_text">Questions or need help?</span> <button class="landing-support-link" onclick="openZohoSupport()" data-i18n="landing_support_btn">Contact Support</button>
+      <span data-i18n="landing_support_text">Questions or need help?</span> <button class="landing-support-link" onclick="openSupport()" data-i18n="landing_support_btn">Contact Support</button>
       &nbsp;·&nbsp; <a href="terms.html" target="_blank" rel="noopener" style="color:var(--text3);font-size:0.8rem;" data-i18n="landing_terms_privacy">Terms &amp; Privacy</a>
     </div>
   </div>
@@ -2500,7 +2500,7 @@
 
   <div class="app-support-bar">
     <span>Questions or issues?</span>
-    <button class="app-support-btn" onclick="openZohoSupport()">Contact Support</button>
+    <button class="app-support-btn" onclick="openSupport()">Contact Support</button>
     <span class="app-support-sep">·</span>
     <a href="mailto:support@dankcharts.fm">support@dankcharts.fm</a>
   </div>
@@ -3274,7 +3274,7 @@
 
   <!-- defer keeps app.js last in the script execution order (after translations,
        Chart.js and firebase.js) while letting the whole page parse and paint first -->
-  <script defer src="changelog.js?v=98"></script>
+  <script defer src="changelog.js?v=99"></script>
   <script defer src="app.js?v=267"></script>
 
   <!-- ── Settings Modal ──
@@ -4433,62 +4433,8 @@ function deleteGenreTriggers() {
   <button class="yt-queue-dismiss-btn" onclick="document.getElementById('ytQueueToast').style.display='none'">✕</button>
 </div>
 
-<script type="text/javascript" id="zohodeskasap">
-window.ZohoDeskAsapReady=function(s){var e=window.ZohoDeskAsap__asyncalls=window.ZohoDeskAsap__asyncalls||[];window.ZohoDeskAsapReadyStatus?(s&&e.push(s),e.forEach(function(f){f&&f()}),window.ZohoDeskAsap__asyncalls=null):s&&e.push(s)};
-window.addEventListener('load',function(){var d=document,s=d.createElement('script');s.type='text/javascript';s.id='zohodeskasapscript';s.async=true;s.src='https://desk.zoho.com/portal/api/web/asapApp/1336756000000408048?orgId=922864240';d.body.appendChild(s);});
-</script>
-<script>
-(function(){
-  var _ze=null, _hideTimer=null;
-  function isZohoNode(n){
-    if(!n||n.nodeType!==1)return false;
-    var tag=n.tagName.toUpperCase();
-    if(tag==='SCRIPT'||tag==='LINK'||tag==='STYLE'||tag==='META'||tag==='NOSCRIPT')return false;
-    var id=(n.id||'').toLowerCase(), cl=(typeof n.className==='string'?n.className:'').toLowerCase();
-    return id.indexOf('zoho')>=0||id.indexOf('zd-asap')>=0||cl.indexOf('zoho')>=0||cl.indexOf('zd-asap')>=0;
-  }
-  var bodyObs=new MutationObserver(function(muts){
-    muts.forEach(function(m){
-      m.addedNodes.forEach(function(n){
-        if(isZohoNode(n)&&!_ze){_ze=n;n.style.setProperty('display','none','important');}
-      });
-    });
-  });
-  bodyObs.observe(document.body,{childList:true});
-
-  function startHide(){
-    function h(){window.ZohoDeskAsap&&window.ZohoDeskAsap.invoke('hideLauncher');}
-    if(_ze) _ze.style.setProperty('display','none','important');
-    h(); _hideTimer=setInterval(h,1000);
-  }
-  function stopHide(){
-    if(_hideTimer){clearInterval(_hideTimer);_hideTimer=null;}
-  }
-
-  window.openZohoSupport=function(){
-    if(!_ze) _ze=document.querySelector('[id*="zohodesk"],[id*="zohoasap"],[id*="zd-asap"],[class*="zohodesk"]');
-    stopHide();
-    if(_ze) _ze.style.setProperty('display','block','important');
-    window.ZohoDeskAsapReady&&window.ZohoDeskAsapReady(function(){
-      if(!window.ZohoDeskAsap)return;
-      window.ZohoDeskAsap.invoke('open');
-      function onClose(){startHide();}
-      try{window.ZohoDeskAsap.on('close',onClose);}catch(e){}
-      if(!_ze)return;
-      var wasOpen=false;
-      var poll=setInterval(function(){
-        if(!_ze){clearInterval(poll);return;}
-        var h=_ze.getBoundingClientRect().height;
-        if(h>200) wasOpen=true;
-        if(wasOpen&&h>0&&h<120){onClose();clearInterval(poll);}
-      },500);
-      setTimeout(function(){clearInterval(poll);},300000);
-    });
-  };
-
-  window.ZohoDeskAsapReady(function(){startHide();});
-})();
-</script>
+<!-- Contact Support form (replaces the Zoho Desk widget) - see support.js -->
+<script defer src="support.js?v=3"></script>
 
   <!-- STREAK DETAILS MODAL -->
   <div id="streakModal" class="modal-overlay" onclick="if(event.target===this)closeStreakModal()">

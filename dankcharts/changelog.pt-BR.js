@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['pt-BR'] = {
 
   /* ========== OUTUBRO 2026 ========== */
 
+  'Contact Support now opens a message form':
+    ['Contactar suporte agora abre um formulário de mensagem',
+     'O chat de suporte parou de funcionar, então Contactar suporte agora abre um formulário curto: digite seu e-mail e sua mensagem, toque em Enviar e ela chega até nós por e-mail. Respondemos direto para o endereço que você digitou. Se você estiver conectado, seu e-mail já vem preenchido. Funciona no site principal e no guia de configuração.'],
+
   'Missing covers no longer use up the YouTube search limit':
     ['Capas que faltam não esgotam mais o limite de buscas do YouTube',
      'Quando uma capa não era encontrada no Deezer, iTunes ou Last.fm, o site a buscava no YouTube como última tentativa. Todos os usuários compartilham um pequeno limite diário do YouTube, então um único chart grande com muitas músicas raras podia esgotá-lo em minutos, e as buscas de imagens do YouTube paravam de funcionar pelo resto do dia. Agora as capas são buscadas automaticamente só no Deezer, iTunes e Last.fm. Você ainda pode escolher uma imagem do YouTube à mão no seletor de imagens, e o que já estava no YouTube continua assim.'],

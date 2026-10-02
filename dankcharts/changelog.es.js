@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['es'] = {
 
   /* ========== OCTUBRE 2026 ========== */
 
+  'Contact Support now opens a message form':
+    ['Contactar soporte ahora abre un formulario de mensaje',
+     'El chat de soporte dejó de funcionar, así que Contactar soporte ahora abre un formulario corto: escribe tu correo y tu mensaje, pulsa Enviar y nos llega por correo. Respondemos directamente a la dirección que escribiste. Si iniciaste sesión, tu correo ya aparece escrito. Funciona en el sitio principal y en la guía de configuración.'],
+
   'Missing covers no longer use up the YouTube search limit':
     ['Las portadas que faltan ya no agotan el límite de búsquedas de YouTube',
      'Cuando no se encontraba una portada en Deezer, iTunes o Last.fm, el sitio la buscaba en YouTube como último intento. Todos los usuarios comparten un pequeño límite diario de YouTube, así que un solo chart grande con muchas canciones poco conocidas podía agotarlo en minutos, y las búsquedas de imágenes de YouTube dejaban de funcionar el resto del día. Ahora las portadas solo se buscan automáticamente en Deezer, iTunes y Last.fm. Aún puedes elegir a mano una imagen de YouTube en el selector de imágenes, y lo que ya tenías en YouTube se mantiene.'],
