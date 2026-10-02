@@ -80,7 +80,7 @@ const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
 
-  { d: '2026-10-01', t: 'feature', a: 'awards', h: '',
+  { d: '2026-10-01', t: 'feature', a: 'awards', h: '4d3eb10',
     title: 'Expand all and Collapse all can skip categories that already have a winner',
     detail: 'In My Grammys, the Expand All and Collapse All buttons now have an All / No Winner switch in front of them. On All they work on every category, as before. On No Winner they only open or fold the categories still waiting on a winner, and leave the decided ones as they are. The switch is remembered on this device.' },
 
