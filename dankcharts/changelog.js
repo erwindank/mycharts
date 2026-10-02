@@ -80,7 +80,7 @@ const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
 
-  { d: '2026-10-01', t: 'feature', a: 'awards', h: '',
+  { d: '2026-10-01', t: 'feature', a: 'awards', h: '931e8cc',
     title: 'Hide categories that already have a winner, or fold any card away',
     detail: 'My Grammys has a new Hide Decided switch next to the view picker. Turn it on and every category that already has a winner disappears, so only the ones you still need to vote on are left. The switch shows how many it is hiding. Each category card also has a small arrow in its corner that folds the card down to just its name, and a second click opens it again. Folded cards stay folded on this device until you open them.' },
 
