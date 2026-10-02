@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['es'] = {
 
   /* ========== OCTUBRE 2026 ========== */
 
+  'Expand all and Collapse all can skip categories that already have a winner':
+    ['Expandir todo y Contraer todo pueden saltarse las categorías que ya tienen ganador',
+     'En Mis Grammys, los botones Expandir todo y Contraer todo ahora tienen delante un interruptor Todas / Sin ganador. Con Todas afectan a todas las categorías, como antes. Con Sin ganador solo abren o pliegan las categorías que aún esperan ganador y dejan las decididas como están. El interruptor se recuerda en este dispositivo.'],
+
   'See how many categories still need a winner, and fold or open them all at once':
     ['Mira cuántas categorías aún necesitan ganador, y pliégalas o ábrelas todas a la vez',
      'La barra sobre tus categorías de Mis Grammys ahora muestra cuántas siguen esperando ganador, por ejemplo 3/12 por decidir. Baja a medida que eliges ganadores y se vuelve dorada cuando todas están decididas. Al lado están los botones Expandir todo y Contraer todo, que abren o pliegan todas las tarjetas en pantalla con un clic.'],

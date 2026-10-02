@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 38;
+const DC_CL_I18N_V = 39;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,10 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+
+  { d: '2026-10-01', t: 'feature', a: 'awards', h: '',
+    title: 'Expand all and Collapse all can skip categories that already have a winner',
+    detail: 'In My Grammys, the Expand All and Collapse All buttons now have an All / No Winner switch in front of them. On All they work on every category, as before. On No Winner they only open or fold the categories still waiting on a winner, and leave the decided ones as they are. The switch is remembered on this device.' },
 
   { d: '2026-10-01', t: 'feature', a: 'awards', h: '765bb09',
     title: 'See how many categories still need a winner, and fold or open them all at once',

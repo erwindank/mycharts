@@ -23037,6 +23037,16 @@ body[class*="-light"] .tm-card-search:hover {
   box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--gold1) 40%, transparent);
 }
 .awards-view-opt[aria-pressed="true"] svg { stroke: color-mix(in srgb, var(--gold1) 80%, var(--text1)); }
+/* All / No winner: picks what Expand all / Collapse all touch. Its own inner
+   pill with a divider after it, so it reads as a setting for the two buttons */
+.awards-fold-scopes {
+  display: inline-flex;
+  gap: 2px;
+  padding-right: 4px;
+  margin-right: 2px;
+  border-right: 1px solid var(--border);
+}
+.awards-fold-scope { padding: 6px 10px; }
 /* "View" label + view buttons, kept together and on the right when the bar wraps */
 .awards-view-pick {
   display: flex;
@@ -23628,6 +23638,7 @@ body[class*="-light"] .tm-card-search:hover {
   .awards-view-bar-label { display: none; }
   .awards-view-opt { padding: 7px 11px; }
   .awards-view-opt span { display: none; }       /* icons only; names stay in title= */
+  .awards-fold-scope { padding: 7px 9px; }
   .aw-reel-track { grid-auto-columns: 132px; }
   .aw-spot-art, .aw-spot-sealed { width: 80px; }
 }

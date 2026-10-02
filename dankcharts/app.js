@@ -36720,11 +36720,34 @@ function awardsSetView(view) {
   if (data) _awardsRenderCatList(data);
 }
 
+/* What Expand all / Collapse all act on: 'all' cards on screen, or only the
+   'pending' ones still without a winner. Picked with the All / No winner
+   switch in front of the two buttons; remembered on this device. */
+const AWARDS_FOLD_SCOPE_KEY = 'dc_awards_fold_scope';
+let _awardsFoldScope = (() => {
+  try { return localStorage.getItem(AWARDS_FOLD_SCOPE_KEY) === 'pending' ? 'pending' : 'all'; }
+  catch (e) { return 'all'; }
+})();
+
+// The All / No winner switch. Updated in place: nothing on the cards changes
+// until Expand or Collapse is pressed.
+function awardsSetFoldScope(scope) {
+  _awardsFoldScope = scope === 'pending' ? 'pending' : 'all';
+  try { localStorage.setItem(AWARDS_FOLD_SCOPE_KEY, _awardsFoldScope); } catch (e) {}
+  document.querySelectorAll('#awardsViewBar .awards-fold-scope').forEach(b =>
+    b.setAttribute('aria-checked', String(b.dataset.scope === _awardsFoldScope)));
+}
+
 // Expand all / Collapse all in the view bar: folds or opens every card on
-// screen at once, in place like the per-card chevron
+// screen at once (or only those without a winner, per _awardsFoldScope),
+// in place like the per-card chevron
 function awardsCollapseAll(fold) {
+  const data  = _awardsYearData[_awardsYear];
+  const byId  = Object.fromEntries(AWARD_CATEGORIES.map(c => [c.id, c]));
   document.querySelectorAll('#awardsCatList .awards-cat-card').forEach(card => {
     const catId = card.id.replace(/^awardsCat_/, '');
+    // "No winner" scope leaves decided cards exactly as they are
+    if (_awardsFoldScope === 'pending' && byId[catId] && _awardsCatDecided(byId[catId], data?.categories[catId])) return;
     if (fold) _awardsCollapsed.add(catId); else _awardsCollapsed.delete(catId);
     card.classList.toggle('is-collapsed', fold);
     const btn = card.querySelector('.awards-cat-collapse');
@@ -36756,6 +36779,8 @@ function _awardsRenderViewBar(show, counts) {
         <button class="awards-view-opt awards-hide-decided" aria-pressed="${_awardsHideDecided}" onclick="awardsSetHideDecided(${!_awardsHideDecided})" title="${esc(t('awards_hide_decided_tip'))}" aria-label="${esc(hdName)}">${ico('M3 3l18 18M10.6 5.1A10 10 0 0 1 12 5c5 0 9 4.5 10 7-0.4 1-1.2 2.3-2.4 3.5M6.6 6.6C4.4 8 2.8 10.2 2 12c1 2.5 5 7 10 7 1.9 0 3.6-0.6 5.1-1.6M9.9 9.9a3 3 0 0 0 4.2 4.2')}<span>${esc(hdName)}${_awardsHideDecided && hidden ? ` · ${hidden}` : ''}</span></button>
       </div>
       <div class="awards-view-seg">
+        <div class="awards-fold-scopes" role="radiogroup" aria-label="${esc(t('awards_fold_scope'))}">${['all', 'pending'].map(sc =>
+          `<button class="awards-view-opt awards-fold-scope" role="radio" data-scope="${sc}" aria-checked="${_awardsFoldScope === sc}" onclick="awardsSetFoldScope('${sc}')" title="${esc(t('awards_fold_scope_' + sc + '_tip'))}">${esc(t('awards_fold_scope_' + sc))}</button>`).join('')}</div>
         <button class="awards-view-opt awards-expand-all" onclick="awardsCollapseAll(false)" title="${esc(t('awards_expand_all'))}" aria-label="${esc(t('awards_expand_all'))}">${ico('M7 8l5-5 5 5M7 16l5 5 5-5')}<span>${esc(t('awards_expand_all'))}</span></button>
         <button class="awards-view-opt awards-collapse-all" onclick="awardsCollapseAll(true)" title="${esc(t('awards_collapse_all'))}" aria-label="${esc(t('awards_collapse_all'))}">${ico('M7 3l5 5 5-5M7 21l5-5 5 5')}<span>${esc(t('awards_collapse_all'))}</span></button>
       </div>

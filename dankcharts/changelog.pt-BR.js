@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['pt-BR'] = {
 
   /* ========== OUTUBRO 2026 ========== */
 
+  'Expand all and Collapse all can skip categories that already have a winner':
+    ['Expandir tudo e Recolher tudo podem pular as categorias que já têm vencedor',
+     'Em Meus Grammys, os botões Expandir tudo e Recolher tudo agora têm um seletor Todas / Sem vencedor na frente. Em Todas eles agem em todas as categorias, como antes. Em Sem vencedor só abrem ou recolhem as categorias que ainda esperam um vencedor, e deixam as decididas como estão. A escolha fica salva neste dispositivo.'],
+
   'See how many categories still need a winner, and fold or open them all at once':
     ['Veja quantas categorias ainda precisam de vencedor, e recolha ou abra todas de uma vez',
      'A barra acima das suas categorias de Meus Grammys agora mostra quantas ainda esperam um vencedor, por exemplo 3/12 para decidir. O número diminui conforme você escolhe vencedores e fica dourado quando todas estão decididas. Ao lado ficam os botões Expandir tudo e Recolher tudo, que abrem ou recolhem todos os cartões na tela com um clique.'],
