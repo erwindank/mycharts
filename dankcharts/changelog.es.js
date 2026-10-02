@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['es'] = {
 
   /* ========== OCTUBRE 2026 ========== */
 
+  'Real-Life Awards now cover the Billboard Music Awards':
+    ['Premios Reales ahora incluye los Billboard Music Awards',
+     'Premios Reales tiene una sexta pestaña, Billboard, para los Billboard Music Awards. Wikipedia tiene los ganadores y nominados de 1990, 1991, 1999, de 2001 a 2006 y de cada año de 2011 a 2024, y las flechas de año se saltan los años intermedios. Los años siguientes también aparecen, así que una nueva ceremonia se muestra en cuanto Wikipedia tenga su página. Cada año se compara con lo que escuchaste en los doce meses antes de la ceremonia. Cuando Wikipedia no dice quién ganó una categoría, se muestran los nominados sin ganador en lugar de adivinar.'],
+
   'Real-Life Awards now cover the World Music Awards':
     ['Premios Reales ahora incluye los World Music Awards',
      'Premios Reales tiene una quinta pestaña, World Music, para los World Music Awards. La ceremonia se hizo de forma intermitente hasta 2014, y Wikipedia solo tiene los ganadores de diez de esos años: 1999, 2001, de 2003 a 2008, 2010 y 2014. Las flechas y el selector de año saltan directamente entre esos años. La mayoría de los años solo tienen los ganadores, pero algunos también tienen nominados o finalistas. Cada año se compara con lo que escuchaste ese año calendario, o en los doce meses antes de la ceremonia cuando la página da la fecha. En el celular, las cinco pestañas ahora pasan a una segunda fila para que no se corte ninguna.'],

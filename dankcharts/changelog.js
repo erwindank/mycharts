@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 51;
+const DC_CL_I18N_V = 52;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,10 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+
+  { d: '2026-10-02', t: 'feature', a: 'awards', h: '3545048',
+    title: 'Real-Life Awards now cover the Billboard Music Awards',
+    detail: 'Real-Life Awards has a sixth tab, Billboard, for the Billboard Music Awards. Wikipedia lists the winners and nominees for 1990, 1991, 1999, 2001 to 2006, and every year from 2011 to 2024, and the year arrows skip the years in between. Later years are offered too, so a new show appears once Wikipedia has a page for it. Each year is matched against your plays from the twelve months before the show. When Wikipedia does not say who won a category, the nominees are shown with no winner instead of a guess.' },
 
   { d: '2026-10-02', t: 'feature', a: 'awards', h: '8efc477',
     title: 'Real-Life Awards now cover the World Music Awards',

@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['pt-PT'] = {
 
   /* ========== OUTUBRO 2026 ========== */
 
+  'Real-Life Awards now cover the Billboard Music Awards':
+    ['Prémios Reais agora inclui os Billboard Music Awards',
+     'Prémios Reais tem um sexto separador, Billboard, para os Billboard Music Awards. A Wikipédia tem os vencedores e nomeados de 1990, 1991, 1999, de 2001 a 2006 e de todos os anos de 2011 a 2024, e as setas de ano saltam os anos pelo meio. Os anos seguintes também aparecem, por isso uma nova cerimónia surge assim que a Wikipédia tiver a página dela. Cada ano é comparado com o que ouviste nos doze meses antes da cerimónia. Quando a Wikipédia não diz quem ganhou uma categoria, os nomeados aparecem sem vencedor em vez de um palpite.'],
+
   'Real-Life Awards now cover the World Music Awards':
     ['Prémios Reais agora inclui os World Music Awards',
      'Prémios Reais tem um quinto separador, World Music, para os World Music Awards. A cerimónia realizou-se de forma irregular até 2014, e a Wikipédia só tem os vencedores de dez desses anos: 1999, 2001, de 2003 a 2008, 2010 e 2014. As setas e o seletor de ano saltam diretamente entre esses anos. A maioria dos anos só tem os vencedores, mas alguns também têm nomeados ou finalistas. Cada ano é comparado com o que ouviste nesse ano civil, ou nos doze meses antes da cerimónia quando a página indica a data. No telemóvel, os cinco separadores passam agora para uma segunda linha para nenhum ficar cortado.'],
