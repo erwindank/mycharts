@@ -80,7 +80,7 @@ const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
 
-  { d: '2026-10-01', t: 'feature', a: 'awards', h: '',
+  { d: '2026-10-01', t: 'feature', a: 'awards', h: '765bb09',
     title: 'See how many categories still need a winner, and fold or open them all at once',
     detail: 'The bar above your My Grammys categories now shows how many are still waiting on a winner, for example 3/12 left to decide. It counts down as you crown winners and turns gold once every category is decided. Next to it are Expand All and Collapse All buttons, which open or fold every category card on screen in one click.' },
 
