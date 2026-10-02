@@ -24953,6 +24953,73 @@ body.pink-light .awards-reallife-badge.nom { color: #4338ca; border-color: #6366
 .awards-reallife-cat  { flex: 1; color: var(--text2); }
 .awards-reallife-year { color: var(--text3); font-family: var(--font-sans); font-weight: 600; font-size: 0.72rem; }
 
+/* Grammys / VMAs tabs at the top of Real-Life Awards — the same segmented pill
+   as the nominee view switcher, sat above the year stepper */
+.awards-show-seg { margin-bottom: 14px; }
+
+/* VMAs: every category of the ceremony, after the user's own artists' cards.
+   Compact cards in a grid; the winner is bold with a trophy, and any line that
+   credits an artist the user played gets an accent dot. */
+.vma-all { margin-top: 22px; }
+.vma-all-head {
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--text3);
+  margin-bottom: 10px;
+}
+.vma-cat-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 280px), 1fr));
+  gap: 10px;
+}
+.vma-cat {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 10px 12px;
+  min-width: 0;
+}
+.vma-cat-name {
+  font-weight: 700;
+  font-size: 0.82rem;
+  color: var(--text1);
+  margin-bottom: 6px;
+}
+.vma-cat-list { list-style: none; margin: 0; padding: 0; }
+.vma-cat-list li {
+  display: flex;
+  gap: 6px;
+  align-items: baseline;
+  font-size: 0.74rem;
+  line-height: 1.35;
+  color: var(--text3);
+  padding: 2px 0;
+}
+.vma-cat-mark { flex: 0 0 1.1em; font-size: 0.72rem; }
+.vma-cat-text { min-width: 0; overflow-wrap: anywhere; }
+.vma-cat-title { color: var(--text3); font-style: italic; }
+.vma-cat-list li.is-won { color: var(--text1); font-weight: 700; }
+.vma-cat-list li.is-won .vma-cat-title { color: var(--text2); }
+.vma-cat-list li.is-yours .vma-cat-who { color: var(--text1); }
+.vma-cat-list li.is-yours .vma-cat-who::after,
+.vma-key-dot {
+  content: '';
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent);
+  vertical-align: middle;
+}
+.vma-cat-list li.is-yours .vma-cat-who::after { margin-left: 5px; }
+.vma-all-key {
+  font-size: 0.7rem;
+  color: var(--text3);
+  margin-top: 10px;
+}
+
 /* ── CEREMONY OVERLAY ─────────────────────────────────────────────────────── */
 .awards-ceremony-overlay {
   position: fixed;

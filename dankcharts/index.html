@@ -27,7 +27,7 @@
   <!-- html2canvas, SheetJS (xlsx) and JSZip are intentionally NOT loaded here — they
        total ~1.2 MB and are only needed for image exports and Excel/ZIP imports.
        app.js pulls them from the CDN on first use (see ensureLazyLib). -->
-  <link rel="stylesheet" href="style.css?v=304">
+  <link rel="stylesheet" href="style.css?v=305">
   <!-- All scripts are deferred so the page paints without waiting on them.
        defer preserves execution order, which matters: translations → Chart.js →
        hammer → zoom plugin → firebase SDKs → firebase.js → app.js (in body). -->
@@ -2198,6 +2198,11 @@
 
       <!-- REAL-LIFE AWARDS PANEL -->
       <div id="awardsRealLife" style="display:none;">
+        <!-- Which show: the Grammys (from grammy.com) or the MTV VMAs (from Wikipedia) -->
+        <div class="awards-view-seg awards-show-seg" role="radiogroup" aria-label="Awards show">
+          <button type="button" class="awards-view-opt awards-show-opt" role="radio" aria-checked="true" data-show="grammys" onclick="realLifeSetShow('grammys')">Grammys</button>
+          <button type="button" class="awards-view-opt awards-show-opt" role="radio" aria-checked="false" data-show="vmas" onclick="realLifeSetShow('vmas')">VMAs</button>
+        </div>
         <div class="awards-year-bar">
           <div class="awards-year-stepper">
             <button class="awards-year-nav-btn" onclick="realLifeAwardsChangeYear(-1)" aria-label="Previous year"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg></button>
@@ -3275,7 +3280,7 @@
   <!-- defer keeps app.js last in the script execution order (after translations,
        Chart.js and firebase.js) while letting the whole page parse and paint first -->
   <script defer src="changelog.js?v=110"></script>
-  <script defer src="app.js?v=275"></script>
+  <script defer src="app.js?v=276"></script>
 
   <!-- ── Settings Modal ──
        Split into three tabs so the whole form is never dumped on screen at
