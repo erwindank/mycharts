@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['pt-PT'] = {
 
   /* ========== OUTUBRO 2026 ========== */
 
+  'Real life Grammys show up again':
+    ['Os Grammys da vida real voltaram a aparecer',
+     'Em Prémios, Prémios da Vida Real tinha deixado de mostrar vitórias e nomeações aos Grammy, porque o grammy.com mudou a forma como a pesquisa devolve as páginas de artistas. A pesquisa agora entende o novo formato, por isso o histórico de Grammys de cada artista volta a carregar.'],
+
   'Audio samples find the right recording more often':
     ['As amostras de áudio encontram a gravação certa mais vezes',
      'Nos Meus Grammys, o botão de reproduzir de um nomeado também procura o próprio álbum e reproduz a partir da lista de faixas, a começar pela faixa-título. Antes, um álbum cujas músicas também estão numa compilação, como To the Summit de Jon Schmidt, podia ficar sem amostra. Uma música cuja pesquisa só encontrava versões ao vivo ou acústicas agora também verifica o próprio álbum para encontrar a versão de estúdio, por isso I Write Sins Not Tragedies dos Panic! at the Disco toca a música verdadeira e não uma versão ao vivo. Uma versão remasterizada agora conta como a original.'],
