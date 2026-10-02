@@ -5480,30 +5480,35 @@
       color: var(--text3);
     }
 
-    /* CHART TABLE */
+    /* CHART TABLE — 2026-10 refresh.
+       Was a boxed spreadsheet: filled thead, vertical rules between every
+       header cell, full-width hairlines and flat square row tints. Now each
+       row is its own rounded strip floating on the section card, separated
+       by a few px of air instead of a line, with a borderless header that
+       just labels the columns. border-collapse has to be `separate` for the
+       per-cell rounding below — collapse ignores border-radius on cells. */
     .chart-table {
       width: 100%;
-      border-collapse: collapse;
-      background: var(--bg2);
-      border: 1px solid var(--border-t);
-      border-radius: var(--r-md);
-      overflow: hidden;
+      border-collapse: separate;
+      border-spacing: 0 4px;
+      background: transparent;
+      margin-top: -4px; /* swallow the first spacing gap so the header sits flush */
     }
 
     .chart-table thead {
-      background: var(--bg3);
+      background: transparent;
     }
 
     .chart-table thead th {
       font-family: var(--font-mono);
-      font-size: 0.62rem;
-      letter-spacing: 0.15em;
+      font-size: 0.58rem;
+      letter-spacing: 0.16em;
       text-transform: uppercase;
-      padding: 0.75rem 1rem;
+      padding: 0.55rem 0.85rem 0.5rem;
       text-align: left;
-      border-right: 1px solid var(--border);
-      color: var(--text);
+      color: var(--text3);
       font-weight: 500;
+      border-bottom: 1px solid var(--border-t);
     }
 
     .chart-table thead th:first-child {
@@ -5511,51 +5516,108 @@
       width: 52px;
     }
 
-    .chart-table thead th:last-child {
-      border-right: none;
-    }
-
     .chart-table tbody tr {
-      border-bottom: 1px solid var(--border);
       transition: background var(--t-fast) var(--ease);
     }
 
-    .chart-table tbody tr:last-child {
-      border-bottom: none;
+    /* The row strip is painted on the cells (not the <tr>) because browsers
+       don't round a <tr>; the first and last cell carry the corners. */
+    .chart-table tbody tr > td {
+      background: color-mix(in srgb, var(--text) 3%, transparent);
+      transition: background var(--t-fast) var(--ease);
     }
 
-    .chart-table tbody tr:hover {
+    .chart-table tbody tr > td:first-child {
+      border-radius: 12px 0 0 12px;
+    }
+
+    .chart-table tbody tr > td:last-child {
+      border-radius: 0 12px 12px 0;
+    }
+
+    /* A single-cell row (the chart-run panel, empty states) is rounded all round */
+    .chart-table tbody tr > td:only-child {
+      border-radius: 12px;
+    }
+
+    .chart-table tbody tr:hover > td {
       background: var(--hover);
     }
 
-    .chart-table tbody tr.rank-1:hover {
-      background: rgba(240, 170, 48, 0.26);
+    /* The chart-run row carries its own rounded card (.cr-panel), so the
+       strip tint and hover wash stay off it. */
+    .chart-table tbody tr.cr-row > td,
+    .chart-table tbody tr.cr-row:hover > td {
+      background: transparent;
     }
 
-    .chart-table tbody tr.rank-2:hover {
-      background: rgba(148, 163, 184, 0.20);
+    /* Medal rows: a tint of the medal token itself (light themes already
+       darken --medal-*), so the strip reads as gold/silver/bronze on every
+       theme instead of the old hard-coded rgba amber that went muddy on light. */
+    .chart-table tbody tr.rank-1 > td {
+      background: color-mix(in srgb, var(--medal-gold) 11%, transparent);
     }
 
-    .chart-table tbody tr.rank-3:hover {
-      background: rgba(192, 120, 80, 0.20);
+    .chart-table tbody tr.rank-2 > td {
+      background: color-mix(in srgb, var(--medal-silver) 8%, transparent);
+    }
+
+    .chart-table tbody tr.rank-3 > td {
+      background: color-mix(in srgb, var(--medal-bronze) 9%, transparent);
+    }
+
+    .chart-table tbody tr.rank-1:hover > td {
+      background: color-mix(in srgb, var(--medal-gold) 18%, transparent);
+    }
+
+    .chart-table tbody tr.rank-2:hover > td {
+      background: color-mix(in srgb, var(--medal-silver) 14%, transparent);
+    }
+
+    .chart-table tbody tr.rank-3:hover > td {
+      background: color-mix(in srgb, var(--medal-bronze) 15%, transparent);
+    }
+
+    /* #1 also gets a hairline ring in gold so it lifts off the list like the
+       top slot on a chart-show lower third. Drawn as an inset shadow on each
+       cell (top/bottom on all, plus the outer side on the end cells) since a
+       <tr> can't take a rounded outline. */
+    .chart-table tbody tr.rank-1 > td {
+      box-shadow: inset 0 1px 0 color-mix(in srgb, var(--medal-gold) 30%, transparent),
+                  inset 0 -1px 0 color-mix(in srgb, var(--medal-gold) 30%, transparent);
+    }
+
+    .chart-table tbody tr.rank-1 > td:first-child {
+      box-shadow: inset 1px 1px 0 color-mix(in srgb, var(--medal-gold) 30%, transparent),
+                  inset 0 -1px 0 color-mix(in srgb, var(--medal-gold) 30%, transparent);
+    }
+
+    .chart-table tbody tr.rank-1 > td:last-child {
+      box-shadow: inset -1px 1px 0 color-mix(in srgb, var(--medal-gold) 30%, transparent),
+                  inset 0 -1px 0 color-mix(in srgb, var(--medal-gold) 30%, transparent);
     }
 
     .chart-table td {
-      padding: 0.65rem 0.85rem;
+      padding: 0.6rem 0.85rem;
       vertical-align: middle;
       font-size: 0.88rem;
     }
 
-    /* RANK NUMBER */
+    /* RANK NUMBER — heavy display numerals with tabular figures so 1 and 10
+       sit on the same centre line; positioned so the NEW/RE rail can hang
+       off its left edge. */
     .rank-cell {
       text-align: center;
       font-family: var(--font-display);
-      font-weight: 600;
-      letter-spacing: -0.02em;
+      font-weight: 800;
+      letter-spacing: -0.04em;
+      font-feature-settings: "tnum";
       font-size: 1.6rem !important;
-      color: var(--text3);
+      line-height: 1;
+      color: var(--text2);
       width: 64px;
       padding: 0 !important;
+      position: relative;
     }
 
     /* Trailing chart-run icon column — the button used to live inside .rank-cell */
@@ -5565,22 +5627,37 @@
       padding: 0 !important;
     }
 
-    .rank-1 {
-      background: rgba(240, 170, 48, 0.18);
-    }
-
-    .rank-2 {
-      background: rgba(148, 163, 184, 0.13);
-    }
-
-    .rank-3 {
-      background: rgba(192, 120, 80, 0.13);
-    }
-
     /* medal colors via tokens — light themes flip to dark AA values; the old
        3px side stripes were dropped, the row bg tint already signals top-3 */
     .rank-1 .rank-cell {
       color: var(--medal-gold);
+    }
+
+    /* The #1 numeral is foil-stamped: a vertical gradient from a lifted gold
+       down to the medal gold, like the embossed number on a record sleeve.
+       Mixing toward --text lightens it on dark themes and deepens it on light
+       ones, so it keeps contrast both ways. Plain colour above is the fallback. */
+    @supports ((-webkit-background-clip: text) or (background-clip: text)) {
+      /* tbody tr … td.rank-cell: has to out-rank the row's td:first-child ring rule */
+      .chart-table tbody tr.rank-1 > td.rank-cell {
+        background-image: linear-gradient(180deg,
+          color-mix(in srgb, var(--medal-gold) 65%, var(--text)) 15%,
+          var(--medal-gold) 60%);
+        -webkit-background-clip: text;
+        background-clip: text;
+        -webkit-text-fill-color: transparent;
+        /* background-clip:text clips every background layer, which would
+           strip this cell's share of the row tint — so the tint is repainted
+           as a big inset shadow (shadows sit above the background, below the
+           text), alongside the gold ring lines from the row rule. */
+        --r1-tint: color-mix(in srgb, var(--medal-gold) 11%, transparent);
+        box-shadow: inset 1px 1px 0 color-mix(in srgb, var(--medal-gold) 30%, transparent),
+                    inset 0 -1px 0 color-mix(in srgb, var(--medal-gold) 30%, transparent),
+                    inset 0 0 0 200px var(--r1-tint);
+      }
+      .chart-table tbody tr.rank-1:hover > td.rank-cell {
+        --r1-tint: color-mix(in srgb, var(--medal-gold) 18%, transparent);
+      }
     }
 
     .rank-2 .rank-cell {
@@ -5664,17 +5741,20 @@
       user-select: text;
     }
 
+    /* Fully rounded 4px capsule on a translucent track (was a 3px bar on a
+       solid --border track, which read as a divider line). */
     .play-bar {
-      height: 3px;
-      background: var(--border);
-      margin-top: 4px;
-      border-radius: 2px;
+      height: 4px;
+      background: color-mix(in srgb, var(--text) 9%, transparent);
+      margin-top: 6px;
+      border-radius: 999px;
+      overflow: hidden;
     }
 
     .play-bar-fill {
       height: 100%;
       background: var(--accent);
-      border-radius: 2px;
+      border-radius: 999px;
       transition: width 0.5s ease;
     }
 
@@ -5692,7 +5772,7 @@
       width: 44px;
       height: 44px;
       object-fit: cover;
-      border-radius: var(--r-sm);
+      border-radius: 8px;
       border: 1px solid var(--border-t);
       display: block;
       background: var(--surface);
@@ -5711,7 +5791,7 @@
       justify-content: center;
       flex-shrink: 0;
       border: 1px solid var(--border-t);
-      border-radius: var(--r-sm);
+      border-radius: 8px;
     }
 
     .rank-1 .thumb-initials {
@@ -8604,7 +8684,7 @@
       letter-spacing: 0.1em;
       padding: 4px 14px;
       margin: 5px auto 0;
-      border-radius: 4px;
+      border-radius: 999px;
       /* var(--green) rather than a flat hex — light themes already carry a
          deep-forest variant of --green, so this reads calm instead of neon */
       border: 1px solid color-mix(in srgb, var(--green) 50%, transparent);
@@ -9858,8 +9938,14 @@
       color: var(--accent);
     }
 
+    /* Row hover lives on .chart-table tbody tr:hover > td now (rounded strip);
+       this only covers artist rows rendered outside a .chart-table. */
     .artist-row:hover td {
       background: var(--bg3);
+    }
+    .chart-table .artist-row:hover > td,
+    .chart-table .album-row:hover > td {
+      background: var(--hover);
     }
 
     .album-row {
@@ -9931,6 +10017,56 @@
       letter-spacing: 0.05em;
     }
 
+    /* Table-view refresh: peak tags become soft capsules — rounded ends and a
+       fainter edge, so they read as labels on the name rather than boxed
+       form fields. Colours stay per medal (light themes override them below). */
+    .chart-table .peak-badge-1,
+    .chart-table .peak-badge-2,
+    .chart-table .peak-badge-3,
+    .chart-table .peak-badge {
+      border-radius: 999px;
+      padding: 2px 8px;
+      margin-left: 7px;
+      font-size: 0.55rem;
+      letter-spacing: 0.08em;
+    }
+
+    .chart-table .peak-badge {
+      background: color-mix(in srgb, var(--text) 6%, transparent);
+      border-color: transparent;
+    }
+
+    /* Movement column: the arrow+number becomes a small tinted capsule in
+       its own movement colour, so a column of ▲▼ reads at a glance as a
+       column of colour. NEW / RE get the same treatment. */
+    .chart-table .m-col > .m-up,
+    .chart-table .m-col > .m-down,
+    .chart-table .m-col > .m-same,
+    .chart-table .m-col > .m-new,
+    .chart-table .m-col > .m-re {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 999px;
+      font-size: 0.66rem;
+      line-height: 1.35;
+    }
+    .chart-table .m-col > .m-up   { background: color-mix(in srgb, var(--chart-up) 15%, transparent); }
+    .chart-table .m-col > .m-down { background: color-mix(in srgb, var(--chart-down) 15%, transparent); }
+    .chart-table .m-col > .m-new  { background: color-mix(in srgb, var(--chart-new) 16%, transparent); }
+    .chart-table .m-col > .m-re   { background: color-mix(in srgb, var(--chart-re) 16%, transparent); }
+    /* No change: a neutral grey capsule, so the column stays a column of pills */
+    .chart-table .m-col > .m-same { background: color-mix(in srgb, var(--text3) 18%, transparent); color: var(--text2); }
+    .chart-table .m-col .m-prev-rank { margin-top: 3px; }
+    /* Phones: slimmer pills so the movement column doesn't push the table
+       wider than the section */
+    @media (max-width: 600px) {
+      .chart-table .m-col > .m-up,
+      .chart-table .m-col > .m-down,
+      .chart-table .m-col > .m-same,
+      .chart-table .m-col > .m-new,
+      .chart-table .m-col > .m-re { padding: 1px 5px; font-size: 0.6rem; }
+    }
+
     /* CHART RUN TOGGLE & PANEL */
     .cr-toggle-btn {
       display: inline-flex;
@@ -9953,6 +10089,19 @@
     /* In its own trailing column there's no rank number to sit next to */
     .cr-cell .cr-toggle-btn {
       margin-right: 0;
+    }
+
+    /* Ghost button in the table: no outline until the row is hovered, so a
+       column of ten boxed icons stops competing with the play counts. */
+    .chart-table .cr-cell .cr-toggle-btn:not(.active) {
+      border-color: transparent;
+      border-radius: 8px;
+      opacity: 0.7;
+    }
+    .chart-table tbody tr:hover .cr-cell .cr-toggle-btn:not(.active),
+    .chart-table .cr-cell .cr-toggle-btn:focus-visible {
+      opacity: 1;
+      background: var(--hover);
     }
 
     .cr-toggle-btn:hover {
@@ -10096,25 +10245,21 @@
     }
 
     .cr-panel-section {
-      border-top: 1px solid var(--border2);
-      padding-top: 0.45rem;
-      margin-top: 0.45rem;
+      margin-top: 0.5rem;
     }
 
     .cr-panel-section:first-child {
-      border-top: none;
-      padding-top: 0;
       margin-top: 0;
     }
 
     .cr-panel-section-header {
       display: flex;
       align-items: center;
-      gap: 6px;
+      gap: 8px;
       cursor: pointer;
       user-select: none;
-      padding: 2px 0;
-      margin-bottom: 0.2rem;
+      padding: 0.35rem 0.1rem;
+      margin-bottom: 0.3rem;
     }
 
     .cr-panel-section-header:hover .cr-panel-section-title {
@@ -10123,26 +10268,30 @@
 
     .cr-panel-section-title {
       font-family: var(--font-mono);
-      font-size: 0.58rem;
-      letter-spacing: 0.12em;
-      color: var(--text3);
+      font-size: 0.6rem;
+      font-weight: 600;
+      letter-spacing: 0.14em;
+      color: var(--text2);
       text-transform: uppercase;
       transition: color 0.15s;
     }
 
+    /* Ghost pill, quiet until hovered - Share is a side action, not the
+       panel's main control. */
     .cr-ig-share-btn {
-      display: inline-block;
-      margin-top: 0.55rem;
-      background: none;
-      border: 1px solid var(--border2);
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35em;
+      background: color-mix(in srgb, var(--text) 5%, transparent);
+      border: 1px solid transparent;
       color: var(--text2);
       font-family: var(--font-mono);
-      font-size: 0.58rem;
+      font-size: 0.6rem;
       letter-spacing: 0.08em;
-      padding: 0.22rem 0.65rem;
-      border-radius: 4px;
+      padding: 0.32rem 0.8rem;
+      border-radius: 999px;
       cursor: pointer;
-      transition: background 0.12s, color 0.12s;
+      transition: background 0.15s, color 0.15s, border-color 0.15s;
     }
 
     .cr-ig-share-btn:hover {
@@ -10158,43 +10307,54 @@
     .cr-range-bar {
       display: flex;
       align-items: center;
-      gap: 4px;
+      gap: 8px;
       flex-wrap: wrap;
-      margin-bottom: 7px;
+      margin-bottom: 0.85rem;
     }
 
     .cr-range-label {
       font-family: var(--font-mono);
       font-size: 0.55rem;
-      letter-spacing: 0.1em;
+      letter-spacing: 0.14em;
       color: var(--text3);
       text-transform: uppercase;
-      margin-right: 2px;
+    }
+
+    /* Segmented control: the range buttons (and the streak tabs, which reuse
+       .cr-range-btn) sit in one rounded track and the active one is a raised
+       thumb - reads as "pick one of these" instead of a row of loose buttons. */
+    .cr-seg {
+      display: inline-flex;
+      flex-wrap: wrap;
+      gap: 2px;
+      padding: 3px;
+      border-radius: 999px;
+      background: color-mix(in srgb, var(--text) 6%, transparent);
     }
 
     .cr-range-btn {
       background: none;
-      border: 1px solid var(--border2);
+      border: none;
       color: var(--text3);
       font-family: var(--font-mono);
-      font-size: 0.58rem;
+      font-size: 0.6rem;
       letter-spacing: 0.06em;
-      padding: 0.18rem 0.55rem;
-      border-radius: 4px;
+      padding: 0.3rem 0.8rem;
+      border-radius: 999px;
       cursor: pointer;
-      transition: background 0.12s, color 0.12s, border-color 0.12s;
+      transition: background 0.15s, color 0.15s, box-shadow 0.15s;
       white-space: nowrap;
     }
 
     .cr-range-btn:hover {
-      border-color: var(--accent2);
-      color: var(--accent2);
+      color: var(--text);
+      background: var(--hover);
     }
 
     .cr-range-btn.active {
       background: var(--accent);
-      border-color: var(--accent);
       color: var(--on-accent);
+      box-shadow: 0 1px 6px color-mix(in srgb, var(--accent) 35%, transparent);
     }
 
     body.yellow .cr-range-btn.active {
@@ -10202,29 +10362,85 @@
     }
 
     .cr-range-btn.active:hover {
-      font-weight: 700;
+      background: var(--accent);
+      color: var(--on-accent);
     }
 
+    /* The panel is its own rounded card under the row strip it opened from
+       (chart-table rows are rounded strips too), rather than a flat
+       full-width band with a heavy bottom rule. */
     .cr-panel {
-      padding: 0.55rem 0.85rem 0.65rem;
-      background: var(--surface);
-      border-top: 1px solid var(--border);
-      border-bottom: 2px solid var(--border2);
+      margin: 2px 0 6px;
+      padding: 1rem 1.15rem 1.1rem;
+      background: color-mix(in srgb, var(--surface) 88%, var(--bg));
+      border: 1px solid var(--border-t);
+      border-radius: 14px;
+      box-shadow: var(--shadow-1);
     }
 
+    /* Panel header: title + one-line description, + BU toggle on the right */
+    .cr-head {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 0.85rem;
+    }
+
+    .cr-head-title {
+      display: flex;
+      align-items: center;
+      gap: 0.55em;
+      font-family: var(--font-display);
+      font-size: 1.05rem;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+      color: var(--text);
+    }
+
+    .cr-head-sub {
+      font-family: var(--font-sans);
+      font-size: 0.72rem;
+      color: var(--text3);
+      margin-top: 3px;
+    }
+
+    /* Phones: tighter card so the panel doesn't widen the table past the
+       section (the chart table is already at its narrowest at 390px) */
+    @media (max-width: 600px) {
+      .cr-panel {
+        padding: 0.75rem 0.65rem 0.8rem;
+        border-radius: 12px;
+      }
+      .cr-subsection-body {
+        padding: 0.1rem 0.6rem 0.7rem;
+      }
+      .cr-stats {
+        grid-template-columns: repeat(auto-fill, minmax(84px, 1fr));
+      }
+    }
+
+    /* Streaks / heatmap / full history: each is a rounded disclosure card */
     .cr-subsection {
-      margin-top: 8px;
-      border-top: 1px solid var(--border);
-      padding-top: 6px;
+      margin-top: 0.6rem;
+      border-radius: 12px;
+      background: color-mix(in srgb, var(--text) 3%, transparent);
+      border: 1px solid var(--border-t);
     }
 
     .cr-subsection-header {
       display: flex;
       align-items: center;
-      gap: 6px;
+      gap: 8px;
       cursor: pointer;
       user-select: none;
-      padding: 2px 0;
+      padding: 0.65rem 0.85rem;
+      border-radius: 12px;
+      transition: background 0.15s;
+    }
+
+    .cr-subsection-header:hover {
+      background: var(--hover);
     }
 
     .cr-subsection-header:hover .cr-subsection-label {
@@ -10239,18 +10455,46 @@
       transition: color 0.15s;
     }
 
+    /* Inside chart-run panels the text glyph is swapped for a chevron that
+       rotates open (toggleCrSubsection / toggleCrPanelSection set .is-open). */
+    .cr-panel .cr-subsection-toggle {
+      font-size: 0;
+      width: 18px;
+      height: 18px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      background: color-mix(in srgb, var(--text) 7%, transparent);
+      flex-shrink: 0;
+    }
+
+    .cr-panel .cr-subsection-toggle::before {
+      content: '';
+      width: 5px;
+      height: 5px;
+      border-right: 1.5px solid var(--text2);
+      border-bottom: 1.5px solid var(--text2);
+      transform: translateX(-1px) rotate(-45deg);
+      transition: transform 0.2s var(--ease);
+    }
+
+    .cr-panel .is-open > .cr-subsection-toggle::before {
+      transform: translateY(-1px) rotate(45deg);
+    }
+
     .cr-subsection-label {
       font-family: var(--font-mono);
       font-size: 0.6rem;
-      font-weight: 700;
-      letter-spacing: 0.12em;
+      font-weight: 600;
+      letter-spacing: 0.14em;
       text-transform: uppercase;
-      color: var(--text3);
+      color: var(--text2);
       transition: color 0.15s;
     }
 
     .cr-subsection-body {
-      margin-top: 6px;
+      padding: 0.15rem 0.85rem 0.85rem;
     }
 
     /* ── Listening heatmap: rain-in reveal ──────────────────────────────────
@@ -10308,41 +10552,45 @@
       .cr-item-heatmap .heatmap-legend { animation: none; }
     }
 
+    /* Stat strip -> a row of small tiles: the number big on top, its label
+       underneath. Was one long line of figures split by thin rules, which
+       wrapped awkwardly and made every value look equally (un)important. */
     .cr-stats {
-      display: flex;
-      align-items: center;
-      flex-wrap: wrap;
-      gap: 0;
-      margin-bottom: 0.55rem;
-      padding-bottom: 0.45rem;
-      border-bottom: 1px solid var(--border);
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
+      gap: 6px;
+      margin-bottom: 0.85rem;
     }
 
     .cr-stat {
       display: flex;
-      align-items: baseline;
-      gap: 0.3em;
+      flex-direction: column;
+      justify-content: center;
+      gap: 3px;
       font-family: var(--font-mono);
-      font-size: 0.58rem;
+      font-size: 0.52rem;
       color: var(--text3);
       text-transform: uppercase;
-      letter-spacing: 0.05em;
-      padding: 1px 0.9rem 1px 0;
-      margin-right: 0.9rem;
-      border-right: 1px solid var(--border);
+      letter-spacing: 0.1em;
+      padding: 0.55rem 0.7rem;
+      border-radius: 10px;
+      background: color-mix(in srgb, var(--text) 4%, transparent);
     }
 
     .cr-stat:last-child {
-      border-right: none;
       margin-right: 0;
-      padding-right: 0;
     }
 
     .cr-stat strong {
       color: var(--text);
-      font-size: 0.82rem;
+      font-family: var(--font-display);
+      font-size: 1.05rem;
       font-weight: 700;
-      letter-spacing: 0;
+      letter-spacing: -0.02em;
+      text-transform: none;
+      line-height: 1.1;
+      font-feature-settings: "tnum";
+      white-space: nowrap;
     }
 
     /* Total plays is the one figure in the strip that answers "how much did I
@@ -10359,74 +10607,101 @@
     .cr-boxes {
       display: flex;
       flex-wrap: wrap;
-      gap: 4px;
+      align-items: center;
+      gap: 6px;
       padding: 2px 1px;
     }
 
+    /* One chip per charting week/month/year. Soft fill, no hard white edge;
+       the rank is the hero, the date a small caption under it. */
     .cr-box {
-      background: linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.02)), var(--surface);
-      border: 1px solid rgba(255, 255, 255, 0.22);
-      border-radius: 4px;
-      padding: 3px 6px;
+      background: color-mix(in srgb, var(--text) 6%, transparent);
+      border: 1px solid transparent;
+      border-radius: 10px;
+      padding: 5px 9px 4px;
       text-align: center;
       cursor: pointer;
-      transition: border-color 0.15s, background 0.15s;
-      min-width: 36px;
+      transition: border-color 0.15s, background 0.15s, transform 0.15s var(--ease);
+      min-width: 44px;
       user-select: none;
     }
 
     .cr-box:hover {
-      border-color: var(--accent2);
-      background: linear-gradient(180deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.03)), var(--bg2);
+      border-color: color-mix(in srgb, var(--accent) 55%, transparent);
+      background: color-mix(in srgb, var(--accent) 10%, transparent);
+      transform: translateY(-1px);
     }
 
+    /* Top-3 weeks (not the peak): a light accent tint */
+    .cr-box-top3 {
+      background: color-mix(in srgb, var(--accent) 12%, transparent);
+    }
+
+    .cr-box-top3 .cr-box-rank {
+      color: var(--accent);
+    }
+
+    /* Peak: the medal gold token (light themes darken it), soft ring, no glow */
     .cr-box-peak {
-      background: rgba(245, 158, 11, 0.2);
-      border-color: rgba(245, 158, 11, 0.7);
-      box-shadow: 0 0 7px rgba(245, 158, 11, 0.35);
+      background: color-mix(in srgb, var(--medal-gold) 16%, transparent);
+      border-color: color-mix(in srgb, var(--medal-gold) 55%, transparent);
     }
 
     .cr-box-peak:hover {
-      background: rgba(245, 158, 11, 0.28);
+      background: color-mix(in srgb, var(--medal-gold) 24%, transparent);
+      border-color: var(--medal-gold);
     }
 
     .cr-box-rank {
       font-family: var(--font-display);
-      font-size: 0.9rem;
+      font-size: 0.95rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      font-feature-settings: "tnum";
       color: var(--text);
       line-height: 1.1;
     }
 
     .cr-box-peak .cr-box-rank {
-      color: var(--gold1);
+      color: var(--medal-gold);
     }
 
     .cr-box-label {
       font-family: var(--font-mono);
-      font-size: 0.47rem;
+      font-size: 0.48rem;
       color: var(--text3);
       letter-spacing: 0.03em;
-      margin-top: 2px;
+      margin-top: 3px;
       white-space: nowrap;
     }
 
+    /* Time off the chart between two runs: no box at all, just a faint
+       dotted dash with the gap length, so it reads as a break in the line
+       rather than another (greyed-out) entry. */
     .cr-box-gap {
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      min-width: 28px;
-      padding: 3px 5px;
-      border-radius: 4px;
-      background: var(--bg2);
-      border: 1px dashed var(--border);
-      opacity: 0.42;
+      min-width: 26px;
+      padding: 0 2px;
+      background: none;
+      border: none;
+      opacity: 0.6;
       align-self: center;
+    }
+
+    .cr-box-gap::before {
+      content: '';
+      width: 100%;
+      min-width: 18px;
+      border-top: 2px dotted var(--text3);
+      margin-bottom: 3px;
     }
 
     .cr-box-gap-label {
       font-family: var(--font-mono);
-      font-size: 0.65rem;
+      font-size: 0.55rem;
       color: var(--text3);
       line-height: 1.1;
     }
@@ -30223,8 +30498,27 @@ body.albums-hide-cert #albumsSection .wv-film-cert-ov { display: none; }
 .wv-r1.wv-stk-card.wv-stk-new, .wv-r1.wv-stk-card.wv-stk-re,
 .wv-r2.wv-stk-card.wv-stk-new, .wv-r2.wv-stk-card.wv-stk-re,
 .wv-r3.wv-stk-card.wv-stk-new, .wv-r3.wv-stk-card.wv-stk-re { clip-path: inset(-80px -80px -80px 0); }
-tr.wv-row-new .rank-cell { border-left: 3px solid var(--chart-new); }
-tr.wv-row-re  .rank-cell { border-left: 3px solid var(--chart-re); }
+/* Debut / re-entry rows: a short rounded rail hanging inside the rank cell's
+   left edge (was a full-height 3px border, which ran square into the row's
+   rounded corner). .rank-cell is position:relative for this. */
+tr.wv-row-new > .rank-cell::before,
+tr.wv-row-re  > .rank-cell::before {
+  content: '';
+  position: absolute;
+  left: 5px;
+  top: 26%;
+  bottom: 26%;
+  width: 3px;
+  border-radius: 3px;
+  background: var(--chart-new);
+}
+tr.wv-row-re > .rank-cell::before { background: var(--chart-re); }
+/* Phones: the rank cell shrinks to 40px, so tuck the rail against the edge
+   or it runs into a two-digit rank like "10". */
+@media (max-width: 600px) {
+  tr.wv-row-new > .rank-cell::before,
+  tr.wv-row-re  > .rank-cell::before { left: 1px; width: 2.5px; }
+}
 .wv-stk-row { display: flex; align-items: center; gap: 10px; padding: 8px 10px; }
 .wv-stk-rank { font-family: var(--font-mono); font-size: 2.2rem; font-weight: 900; color: rgba(255,255,255,0.55); min-width: 48px; text-align: center; flex-shrink: 0; line-height: 1; }
 .wv-r1 .wv-stk-rank { color: rgba(240,170,48,0.9); }
@@ -30472,11 +30766,14 @@ body.red-light .bu-badge-yoyo {
 }
 
 /* 7c. BU chart run boxes + toggle buttons — neon rank text and invisible white border */
-/* Regular cr-box: white border is invisible on light; swap for a real dark border */
+/* Regular cr-box: used to swap the dark themes' white edge for a dark one.
+   Since the 2026-10 chart-run refresh plain boxes are borderless soft chips on
+   every theme, so this only keeps them borderless (peak / BU / official boxes
+   set their own border colour in the rules below). */
 body.navy-light .cr-box,   body.purple-light .cr-box,
 body.yellow-light .cr-box, body.pink-light .cr-box,
 body.red-light .cr-box {
-  border-color: var(--border2);
+  border-color: transparent;
 }
 
 /* BU-only view: give plain boxes an indigo tint (scoped to .bu-cr-view-bu so it
@@ -32478,11 +32775,15 @@ body.red-light .modal-rank-card--year .mrc-rank {
     }
 
     /* ── Tabs ── */
+    /* Same segmented track as the chart-run range control (.cr-seg) */
     .cr-stk-tabs {
-      display: flex;
+      display: inline-flex;
       flex-wrap: wrap;
-      gap: 4px;
-      margin-bottom: 0.55rem;
+      gap: 2px;
+      padding: 3px;
+      border-radius: 999px;
+      background: color-mix(in srgb, var(--text) 6%, transparent);
+      margin-bottom: 0.75rem;
     }
 
     .cr-stk-tab {
@@ -32497,8 +32798,8 @@ body.red-light .modal-rank-card--year .mrc-rank {
       font-size: 0.52rem;
       font-weight: 700;
       line-height: 1;
-      padding: 2px 4px;
-      border-radius: 3px;
+      padding: 2px 5px;
+      border-radius: 999px;
       background: var(--bg3);
       color: var(--text3);
       letter-spacing: 0;
@@ -32757,7 +33058,7 @@ body.red-light .modal-rank-card--year .mrc-rank {
     .cr-stk-nav {
       background: none;
       border: 1px solid var(--border2);
-      border-radius: 4px;
+      border-radius: 999px;
       color: var(--text3);
       font-family: inherit;
       font-size: 0.5rem;
@@ -32787,8 +33088,8 @@ body.red-light .modal-rank-card--year .mrc-rank {
       color: var(--text3);
       background: var(--bg3);
       border: 1px solid var(--border);
-      border-radius: 4px;
-      padding: 0.16rem 0.42rem;
+      border-radius: 999px;
+      padding: 0.2rem 0.6rem;
       white-space: nowrap;
       font-feature-settings: "tnum";
     }

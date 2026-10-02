@@ -14467,18 +14467,20 @@ function buildCrPanelHTML(type, key) {
   const buToggleBtn = hasBuData
     ? `<button class="cr-bu-toggle" onclick="toggleCrBuView(this)" title="Toggle combined Chart + BU timeline">+ BU</button>`
     : '';
-  const headerHtml = `<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid var(--border);">
+  // Styled by .cr-head* in style.css (was inline styles) so the panel can be
+  // restyled per theme from one place.
+  const headerHtml = `<div class="cr-head">
     <div>
-      <div style="font-family:var(--font-mono);font-size:0.65rem;font-weight:700;letter-spacing:0.18em;color:var(--text);text-transform:uppercase;">${t('cr_chart_run')}</div>
-      <div style="font-family:var(--font-mono);font-size:0.54rem;letter-spacing:0.07em;color:var(--text3);margin-top:2px;">${t('cr_rank_history')}</div>
+      <div class="cr-head-title">${t('cr_chart_run')}</div>
+      <div class="cr-head-sub">${t('cr_rank_history')}</div>
     </div>
     ${buToggleBtn}
   </div>`;
   const toggleHtml = `<div class="cr-range-bar">
     <span class="cr-range-label">${t('cr_range')}</span>
-    ${['year', 'uptoYear', 'now'].map(m =>
+    <div class="cr-seg">${['year', 'uptoYear', 'now'].map(m =>
     `<button class="cr-range-btn${getCrRangeMode(type, key) === m ? ' active' : ''}" onclick="setCrRangeMode('${m}','${type}','${encodeKeyForOnclick(key)}');event.stopPropagation()">${modeLabels[m]}</button>`
-  ).join('')}
+  ).join('')}</div>
     <button class="cr-ig-share-btn" style="margin-left:auto;" onclick="openCrIgModalFromPanel('${type}','${encodeKeyForOnclick(key)}');event.stopPropagation()">${t('cr_share_btn')}</button>
   </div>`;
 
@@ -14499,7 +14501,7 @@ function buildCrPanelHTML(type, key) {
       const rangeOpts = { mode: getCrRangeMode(type, key), viewedYear: vy, cutoffKeys, periodMap: crData?.periodMap };
       const bodyHtml = d ? `<div class="cr-stats">${crStats(type, key, id, null, d, rangeOpts)}</div>${crBoxesHTML(type, key, null, d, id)}` : `<div style="font-size:0.6rem;color:var(--text3);padding:2px 0">${t('cr_no_history')}</div>`;
       return `<div class="cr-panel-section">
-        <div class="cr-panel-section-header" onclick="toggleCrPanelSection(this)">
+        <div class="cr-panel-section-header is-open" onclick="toggleCrPanelSection(this)">
           <span class="cr-subsection-toggle">▼</span>
           <span class="cr-panel-section-title">${label}</span>
         </div>
@@ -14558,6 +14560,9 @@ function toggleCrPanelSection(headerEl) {
   const isOpen = body.style.display !== 'none';
   body.style.display = isOpen ? 'none' : '';
   toggle.textContent = isOpen ? '▶' : '▼';
+  // is-open drives the rotating CSS chevron; the ▶/▼ text stays for anything
+  // that still reads it, but is hidden inside chart-run panels.
+  headerEl.classList.toggle('is-open', !isOpen);
 }
 
 function toggleCrSubsection(headerEl) {
@@ -14575,6 +14580,9 @@ function toggleCrSubsection(headerEl) {
   }
   body.style.display = isOpen ? 'none' : '';
   toggle.textContent = isOpen ? '▶' : '▼';
+  // is-open drives the rotating CSS chevron; the ▶/▼ text stays for anything
+  // that still reads it, but is hidden inside chart-run panels.
+  headerEl.classList.toggle('is-open', !isOpen);
 }
 
 const _crHeatmapData = new Map();
@@ -15744,7 +15752,9 @@ function crBoxesHTML(type, key, crData, preD, periodOverride) {
   const unit = (gap) => period === 'week' ? tUnit('weeks', gap) : period === 'month' ? tUnit('months', gap) : tUnit('years', gap);
   const boxes = d.entries.flatMap((e, i) => {
     const isPeak = (e.rank === d.peak);
-    const cls = isPeak ? 'cr-box cr-box-peak' : 'cr-box';
+    // Top-3 weeks that aren't the peak get a light accent tint, so the run's
+    // strongest stretch reads at a glance without competing with the gold peak.
+    const cls = isPeak ? 'cr-box cr-box-peak' : e.rank <= 3 ? 'cr-box cr-box-top3' : 'cr-box';
     const box = `<div class="${cls}" onclick="showCrPreview('${esc(e.periodKey)}','${type}','${safeKey}',this,'${period}'${d._mixed ? ',1' : ''})">
       <div class="cr-box-rank">#${e.rank}</div>
       <div class="cr-box-label">${esc(crPeriodLabel(period, e.periodKey))}</div>
@@ -17049,8 +17059,10 @@ function renderArtists(plays, peaks, monthlyStats) {
       <td class="meta-col"><div class="song-artist">${tCount('songs', data.songs.size)}</div></td>
       ${monthlyStats ? mMthsCell(artist, 'artists', monthlyStats) : ''}
       <td>
-        <div class="play-count">${isPlaysPeak ? playsPeakBadge() : ''}${tCountHtml('plays', data.count)}${monthlyStats ? deltaInline(data.count, artist, 'artists', monthlyStats) : ''}</div>
+        <div class="play-count">${tCountHtml('plays', data.count)}${monthlyStats ? deltaInline(data.count, artist, 'artists', monthlyStats) : ''}</div>
         <div class="play-bar"><div class="play-bar-fill${barCls}" style="width:${Math.round(data.count / max * 100)}%"></div></div>
+        ${/* under the bar, same as the songs chart — it used to sit above the count here */ ''}
+        ${isPlaysPeak ? playsPeakBadge() : ''}
       </td>
       <td class="cr-cell"><button class="cr-toggle-btn" title="${t('tooltip_cr_toggle_btn_artist')}" onclick="event.stopPropagation();toggleChartRun(this,'${rowId}')">${CR_ICON}</button></td>
     </tr>`;
@@ -17191,8 +17203,10 @@ function renderAlbums(plays, peaks, monthlyStats) {
       <td class="meta-col"><div class="song-artist">${tCount('tracks', tracks.size)}</div></td>
       ${monthlyStats ? mMthsCell(ak, 'albums', monthlyStats) : ''}
       <td>
-        <div class="play-count">${isPlaysPeak ? playsPeakBadge() : ''}${tCountHtml('plays', count)}${monthlyStats ? deltaInline(count, ak, 'albums', monthlyStats) : ''}</div>
+        <div class="play-count">${tCountHtml('plays', count)}${monthlyStats ? deltaInline(count, ak, 'albums', monthlyStats) : ''}</div>
         <div class="play-bar"><div class="play-bar-fill${barCls}" style="width:${Math.round(count / max * 100)}%"></div></div>
+        ${/* under the bar, same as the songs chart — it used to sit above the count here */ ''}
+        ${isPlaysPeak ? playsPeakBadge() : ''}
       </td>
       <td class="cr-cell"><button class="cr-toggle-btn" title="${t('tooltip_cr_toggle_btn_album')}" onclick="event.stopPropagation();toggleChartRun(this,'${rowId}')">${CR_ICON}</button></td>
     </tr>`;
