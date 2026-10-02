@@ -39262,9 +39262,10 @@ async function _grammyMapLimit(items, limit, fn) {
 
 // Which show the Real-Life Awards tab is on: the Grammys, or one of the shows
 // read from Wikipedia (RL_WIKI_SHOWS: the MTV VMAs, the AMAs, the iHeartRadio
-// Music Awards, the World Music Awards, the Billboard Music Awards). They all share
+// Music Awards, the World Music Awards, the Billboard Music Awards, the ARIA
+// Music Awards). They all share
 // one year stepper and one content area; this just picks the loader.
-const RL_SHOW_IDS = ['grammys', 'vmas', 'amas', 'iheart', 'wma', 'billboard'];
+const RL_SHOW_IDS = ['grammys', 'vmas', 'amas', 'iheart', 'wma', 'billboard', 'aria'];
 let _realLifeShow = (() => {
   try { const v = localStorage.getItem('dc_awards_reallife_show'); return RL_SHOW_IDS.includes(v) ? v : 'grammys'; }
   catch (e) { return 'grammys'; }
@@ -39559,12 +39560,24 @@ const RL_WIKI_SHOWS = {
     // that year, May shows for the year before — the date on the page sorts it
     window: _rlWikiDateOrCalendarYear,
   },
+  aria: {
+    first: 1987,   // the 1st ARIA Music Awards
+    short: 'ARIA Music Awards',
+    pages: y => [{ title: `${y}_ARIA_Music_Awards` }],
+    ceremony: y => `${y} ARIA Music Awards`,
+    // 2011 on are tables; before that, nested bullet lists (1987–2008) and
+    // results tables (2009–2010)
+    lists: true,
+    // Held in November for releases from about the year to mid-year, and
+    // their pages give no date, so match the calendar year of the show
+    window: _rlWikiDateOrCalendarYear,
+  },
 };
 // Bump the version whenever the parsing changes, so years saved under the old
 // rules are read again
-const RL_WIKI_CACHE_LS = 'dc_rl_wiki_cache_v3';  // parsed ceremonies, so a past year is fetched once, ever
+const RL_WIKI_CACHE_LS = 'dc_rl_wiki_cache_v4';  // parsed ceremonies, so a past year is fetched once, ever
 const RL_WIKI_FRESH_MS = 86400000;                // this year's page can still change (winners land late), so refetch daily
-try { ['dc_vma_cache_v1', 'dc_rl_wiki_cache_v1', 'dc_rl_wiki_cache_v2'].forEach(k => localStorage.removeItem(k)); } catch (e) {}   // caches this replaced
+try { ['dc_vma_cache_v1', 'dc_rl_wiki_cache_v1', 'dc_rl_wiki_cache_v2', 'dc_rl_wiki_cache_v3'].forEach(k => localStorage.removeItem(k)); } catch (e) {}   // caches this replaced
 
 const _rlWikiCache = {};   // "show:year" → promise of the parsed ceremony, for this session
 
@@ -39631,7 +39644,10 @@ async function _rlWikiFetchPage(title, year, show) {
     return { title, date: null, categories: [], hasPage: false };
   }
   const doc = new DOMParser().parseFromString(j.parse.text || '', 'text/html');
+  // The winners tables first; for shows whose older pages are laid out other
+  // ways, results tables, then bullet lists
   let categories = _rlWikiParse(doc);
+  if (!categories.length && show?.lists) categories = _rlWikiParseResultTables(doc);
   if (!categories.length && show?.lists) categories = _rlWikiParseLists(doc, show);
   return { title: j.parse.title.replace(/ /g, '_'), date: _rlWikiDate(doc), categories, hasPage: true };
 }
@@ -39722,25 +39738,44 @@ function _rlWikiParse(doc) {
   return categories;
 }
 
-// Pages with no winners tables (the World Music Awards) list the awards as
-// bullets under headings instead, written a few ways over the years:
+// Pages with no winners tables (the World Music Awards, older ARIAs) list the
+// awards as bullets under headings instead, written a few ways over the years:
 //   `Category: Winner`, maybe with `Nominees: a, b` or `Runners-up: a, b and c`
-//     nested under it (1999, 2003, 2006)
-//   a heading per category, then its nominees with the winner in bold (2008, 2010)
+//     nested under it (WMA 1999, 2003, 2006)
+//   a heading per category, then its nominees with the winner in bold (WMA
+//     2008, 2010) — the "heading" can also be a small <dt> label (ARIA 2007)
+//   the bold winner with the other nominees nested under it (ARIA 2007)
+//   a bullet per category with the winner and nominees nested under it
+//     (ARIA 1987–2006: `Album of the Year` → **Tina Arena – Don't Ask** → …)
 //   a heading with a plain list of names and nobody in bold — for a show that
-//     says so (`honours`), a list of honourees, so everyone on it won (Legend
-//     Award); for others it just means the page never marked the winner
-// Sections about the show rather than the awards (performers, references…)
-// are skipped.
-const RL_WIKI_SKIP_SECTIONS = /^(performers?|performances|presenters|hosts|references|notes|external links|see also|international telecasts|broadcast|delays|records|charity|official sponsor|top award winners|ceremony|background)/i;
+//     says so (`honours`) or an honour by its name (Hall of Fame, Legend
+//     Award), a list of honourees, so everyone on it won; otherwise it just
+//     means the page never marked the winner
+// Sections about the show rather than the awards (performers, references, the
+// "multiple winners" tallies…) are skipped.
+const RL_WIKI_SKIP_SECTIONS = /^(performers?|performances|presenters|hosts|references|notes|external links|see also|international telecasts|broadcast|delays|records|charity|official sponsor|top award winners|ceremony|background|multiple (winners|nominations|wins)|most (wins|nominations)|judging)/i;
+const RL_WIKI_HONOURS = /hall of fame|legend|lifetime achievement|icon award/i;
 
 function _rlWikiParseLists(doc, show) {
   const categories = [];
-  let h2 = '', h3 = '';
-  const nodes = [...doc.querySelectorAll('h2, h3, ul')];
+  let h2 = '', h3 = '', label = '';
+  const nodes = [...doc.querySelectorAll('h2, h3, h4, dt, ul')];
+  // An entry plus everything nested under it, as nominees
+  const withNested = (li, won) => {
+    const top = li.cloneNode(true);
+    top.querySelectorAll(':scope > ul').forEach(e => e.remove());
+    return [
+      _rlWikiListEntry(top, _rlWikiText(top), won),
+      ...[...li.querySelectorAll(':scope > ul > li')].map(sub => _rlWikiEntry(sub, false)),
+    ];
+  };
   for (const node of nodes) {
-    if (node.tagName === 'H2') { h2 = _rlWikiText(node); h3 = ''; continue; }
-    if (node.tagName === 'H3') { h3 = _rlWikiText(node); continue; }
+    if (node.tagName === 'H2') { h2 = _rlWikiText(node); h3 = ''; label = ''; continue; }
+    if (node.tagName === 'H3') { h3 = _rlWikiText(node); label = ''; continue; }
+    if (node.tagName === 'H4' || node.tagName === 'DT') {
+      if (!node.closest('table, .navbox, .infobox')) label = _rlWikiText(node);
+      continue;
+    }
     // A top-level list only: nested ones are read with their parent, and
     // lists in tables, infoboxes and navboxes aren't award lists
     if (!h2 || node.closest('li, table, .navbox, .reflist, .infobox')) continue;
@@ -39751,9 +39786,37 @@ function _rlWikiParseLists(doc, show) {
       const top = li.cloneNode(true);
       top.querySelectorAll(':scope > ul').forEach(e => e.remove());
       const text = _rlWikiText(top);
-      // Full-width colons turn up too (`Chinese Artist ：Nicholas Tse`)
-      const labelled = text.match(/^(.{3,120}?)\s*[:：]\s*(.+)$/);
-      if (!labelled) { bare.push(_rlWikiListEntry(top, text, !!top.querySelector('b'))); continue; }
+      const subs = [...li.querySelectorAll(':scope > ul > li')];
+      const bold = !!top.querySelector('b');
+
+      // A bullet that's only a category name (which can have its own dash:
+      // `Breakthrough Artist – Album`), with the bold winner nested under it
+      // (ARIA 1987–2006)
+      if (!bold && subs.length && !/[:：]/.test(text) &&
+          subs.some(sub => sub.querySelector(':scope > b'))) {
+        const nominees = subs.flatMap(sub => withNested(sub, !!sub.querySelector(':scope > b')));
+        const kept = nominees.filter(n => n.who && n.who.length <= 90);
+        if (kept.length) categories.push({ name: text, nominees: kept });
+        continue;
+      }
+
+      // Full-width colons turn up too (`Chinese Artist ：Nicholas Tse`). A colon
+      // after a dash belongs to the title (`Hilltop Hoods – The Hard Road:
+      // Restrung`), not a category label.
+      const labelled = /^[^:：]*\s[–—−-]\s/.test(text) ? null : text.match(/^(.{3,120}?)\s*[:：]\s*(.+)$/);
+      if (!labelled) {
+        // A bold winner can carry the other nominees nested under it (ARIA 2007)
+        if (bold && subs.length) bare.push(...withNested(li, true));
+        else bare.push(_rlWikiListEntry(top, text, bold));
+        continue;
+      }
+      // `Natalie Imbruglia: recognises her international chart success…` — a
+      // special award written up as a sentence: the name before the colon is
+      // who won it, and the heading above names the award
+      if (labelled[2].length > 90) {
+        bare.push({ who: labelled[1].trim(), title: '', rest: '', won: true });
+        continue;
+      }
 
       const winnerEl = doc.createElement('span');
       winnerEl.textContent = labelled[2];
@@ -39774,14 +39837,52 @@ function _rlWikiParseLists(doc, show) {
 
     // A plain list straight under "Winners" or "Nominees" is a roll call of
     // everyone who won something (2003), repeating the real categories below it
-    const heading = h3 || h2;
-    const kept = bare.filter(n => n.who);
+    const heading = label || h3 || h2;
+    label = '';   // a <dt> label names just the one list after it
+    // A whole sentence isn't a name: some special awards are written up as a
+    // line of prose ("recognises her international chart success…")
+    const kept = bare.filter(n => n.who && n.who.length <= 90);
     if (kept.length && !/^(winners|nominees|nominees (and|&) winners)$/i.test(heading)) {
-      if (show?.honours && !kept.some(n => n.won)) kept.forEach(n => { n.won = true; });   // an honours list
+      if ((show?.honours || RL_WIKI_HONOURS.test(heading)) && !kept.some(n => n.won)) {
+        kept.forEach(n => { n.won = true; });   // an honours list
+      }
       categories.push({ name: heading, nominees: kept });
     }
   }
   return categories;
+}
+
+// Results tables (ARIA 2009–2010): a header row per category, then a row per
+// nominee — artist, work, and a Result cell reading "Won" or "Nominated":
+//   ┌ Album of the Year ─────────────────────────┐
+//   │ Artist        │ Album              │ Result │
+//   │ Empire of the Sun │ Walking on a Dream │ Won │
+function _rlWikiParseResultTables(doc) {
+  const categories = [];
+  for (const table of doc.querySelectorAll('table.wikitable')) {
+    if (![...table.querySelectorAll('th')].some(th => /^result/i.test(_rlWikiText(th)))) continue;
+    let name = '', cur = null;
+    for (const tr of table.rows) {
+      const cells = [...tr.children];
+      const tds = cells.filter(c => c.tagName === 'TD');
+      if (!tds.length) {
+        // One header cell across the row is a category; a row of several
+        // (Artist | Album | Result) is the column headings
+        const ths = cells.filter(c => c.tagName === 'TH');
+        if (ths.length === 1) { const t = _rlWikiText(ths[0]); if (t) { name = t; cur = null; } }
+        continue;
+      }
+      if (tds.length < 2 || !name) continue;
+      const result = _rlWikiText(tds[tds.length - 1]);
+      if (!/^(won|winner|nominated|nominee)/i.test(result)) continue;
+      const workCell = tds.length > 2 ? tds[1] : null;
+      const i = workCell?.querySelector('i');
+      const title = workCell ? (i ? _rlWikiText(i) : _rlWikiText(workCell).replace(/^["“]|["”]$/g, '').trim()) : '';
+      if (!cur) { cur = { name, nominees: [] }; categories.push(cur); }
+      cur.nominees.push({ who: _rlWikiText(tds[0]), title, rest: '', won: /^(won|winner)/i.test(result) });
+    }
+  }
+  return categories.filter(c => c.nominees.some(n => n.who));
 }
 
 // One name in a bullet list. Like a table entry, plus the "by" form these
@@ -39889,20 +39990,35 @@ function _rlWikiNorm(s) {
     .toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
 }
 
-// Which of the user's artists a nominee line credits. Every run of 1–6 words in
-// the credit is looked up as a whole name, so "Rosé and Bruno Mars" finds both
-// Rosé and Bruno Mars, but "Mars" alone never matches an artist called "Mars
-// Volta". The work's own title is left out: a song called "Taylor Swift" isn't
-// a nomination for her.
-function _rlWikiMatch(nominee, byNorm) {
-  const words = _rlWikiNorm(nominee.who + ' ' + nominee.rest).split(' ').filter(Boolean);
+// Which of the user's artists a nominee line credits. The credit is split into
+// the separate artists it names — at "and", "featuring", "&", commas, brackets,
+// "for" and the like — and each one has to match one of the user's artists by
+// its whole name. So "Rosé and Bruno Mars" finds both Rosé and Bruno Mars, but
+// an artist called just "Selena" or "Max" doesn't pick up Selena Gomez's or
+// Max Martin's nominations. The whole credit is tried too, so a name with its
+// own "and" or comma (Earth, Wind & Fire; Tyler, the Creator) still matches,
+// and " x " collaborations are split as a second step so Lil Nas X stays whole.
+// Quote marks split too, so `Taylor Swift's "Question...?"` (iHeartRadio's
+// sample award) finds Taylor Swift. A leading "The" is ignored on both sides.
+// The work's own title is left out:
+// a song called "Taylor Swift" isn't a nomination for her.
+const RL_WIKI_CREDIT_SPLIT = /\s*(?:,|;|&|\+|\/|:|\(|\)|\[|\]|["“”]|\band\b|\bfeaturing\b|\bfeat\b\.?|\bft\b\.?|\bwith\b|\bvs\b\.?|\bversus\b|\bstarring\b|\bpresents\b|\bfor\b|\bdirectors?\b)\s*/i;
+
+// The lookup key for an artist name: folded, with any leading "The" dropped
+function _rlWikiKey(s) {
+  return _rlWikiNorm(s).replace(/^the /, '');
+}
+
+function _rlWikiMatch(nominee, byKey) {
   const hits = new Set();
-  for (let i = 0; i < words.length; i++) {
-    let phrase = '';
-    for (let j = i; j < Math.min(words.length, i + 6); j++) {
-      phrase = phrase ? phrase + ' ' + words[j] : words[j];
-      const a = byNorm.get(phrase);
-      if (a) hits.add(a);
+  for (const part of [nominee.who, nominee.rest]) {
+    if (!part) continue;
+    const clean = part.replace(/['’]s\b/g, '');   // "Taylor Swift's" → "Taylor Swift"
+    for (const piece of [clean, ...clean.split(RL_WIKI_CREDIT_SPLIT)]) {
+      for (const name of [piece, ...piece.split(/\s+x\s+/i)]) {
+        const a = byKey.get(_rlWikiKey(name));
+        if (a) hits.add(a);
+      }
     }
   }
   return [...hits];
@@ -39947,19 +40063,19 @@ async function _loadRealLifeWiki(showId, year) {
   const inWindow = allPlays.filter(p => p.date >= win.start && p.date <= win.end);
   const pool = inWindow.length ? inWindow : allPlays;
   const { artists } = _awardsCountMaps(pool);
-  const byNorm = new Map();
+  const byKey = new Map();   // _rlWikiKey(name) → the user's most-played artist by that name
   for (const a of Object.values(artists)) {
-    const n = _rlWikiNorm(a.artist);
-    if (n.length < 2) continue;
-    const had = byNorm.get(n);
-    if (!had || had.plays < a.plays) byNorm.set(n, a);
+    const k = _rlWikiKey(a.artist);
+    if (k.length < 2) continue;
+    const had = byKey.get(k);
+    if (!had || had.plays < a.plays) byKey.set(k, a);
   }
 
   // Group the user's artists' nominations by artist, in listening order
   const mine = new Map();   // played artist → { played, rows: [{ category, nominee }] }
   const yours = new Set();  // "catIdx:nomIdx" of every line that credits one of them
   data.categories.forEach((cat, ci) => cat.nominees.forEach((nom, ni) => {
-    for (const a of _rlWikiMatch(nom, byNorm)) {
+    for (const a of _rlWikiMatch(nom, byKey)) {
       yours.add(ci + ':' + ni);
       if (!mine.has(a)) mine.set(a, { played: a, rows: [] });
       mine.get(a).rows.push({ category: cat.name, nominee: nom });
@@ -44451,7 +44567,7 @@ const _cgTourSteps = [
     nav: 'events' },
 
   { title: 'Awards',
-    content: 'A full awards ceremony generated from your own chart data, with 53 categories available — Song, Album and Artist of the Year, Best New Artist, Best Collaboration, Song of the Summer, Best Comeback, Best Discovery, Most Obsessive Play, and opt-in genre categories across pop, rock, alternative, hip-hop, R&B, Latin, electronic and K-pop. Set the eligibility window, choose your categories, then run the ceremony and watch the envelopes open. There is a separate Real-Life Awards tab alongside My Grammys, showing which of your artists were nominated for or won real Grammys, MTV VMAs, American Music Awards, iHeartRadio Music Awards, World Music Awards and Billboard Music Awards.',
+    content: 'A full awards ceremony generated from your own chart data, with 53 categories available — Song, Album and Artist of the Year, Best New Artist, Best Collaboration, Song of the Summer, Best Comeback, Best Discovery, Most Obsessive Play, and opt-in genre categories across pop, rock, alternative, hip-hop, R&B, Latin, electronic and K-pop. Set the eligibility window, choose your categories, then run the ceremony and watch the envelopes open. There is a separate Real-Life Awards tab alongside My Grammys, showing which of your artists were nominated for or won real Grammys, MTV VMAs, American Music Awards, iHeartRadio Music Awards, World Music Awards, Billboard Music Awards and ARIA Music Awards.',
     nav: 'awards' },
 
   { title: 'Your Soundtrack',
@@ -45158,7 +45274,7 @@ function dcRenderChartsGuideView() {
       tabs: [
         { name: 'Records',         period: 'records',    icon: '🏆', desc: 'Eleven sections behind the button row at the top: All #1s, Perfect All Kill, Most Chart Appearances, Biggest Debuts, Most Plays in a Period, Play Count Milestones, Fastest to Milestone, Certifications, Streak Records, New Charts and an Overview.', use: 'Your record book.' },
         { name: 'Events',          period: 'events',     icon: '🎂', desc: 'A calendar of artist birthdays, album anniversaries and new releases for the artists in your charts.', use: 'Knowing when something is worth replaying.' },
-        { name: 'Awards',          period: 'awards',     icon: '🏅', desc: '53 categories generated from your own chart data — the four majors plus Best Collaboration, Song of the Summer, Best Comeback, Best Discovery, Most Obsessive Play and opt-in genre awards. Set an eligibility window, pick categories, then run the ceremony. Real-Life Awards sits alongside My Grammys, with the real Grammys, VMAs, AMAs, iHeartRadio, World Music and Billboard Music Awards your artists were up for.', use: 'The fun one. Run it every December.' },
+        { name: 'Awards',          period: 'awards',     icon: '🏅', desc: '53 categories generated from your own chart data — the four majors plus Best Collaboration, Song of the Summer, Best Comeback, Best Discovery, Most Obsessive Play and opt-in genre awards. Set an eligibility window, pick categories, then run the ceremony. Real-Life Awards sits alongside My Grammys, with the real Grammys, VMAs, AMAs, iHeartRadio, World Music, Billboard and ARIA Music Awards your artists were up for.', use: 'The fun one. Run it every December.' },
         { name: 'Your Soundtrack', period: 'soundtrack', icon: '🎬', desc: 'A full recap of any month, year or all time: a reel, headline stats, top charts, a featured artist, your listening patterns, discoveries, milestones, streaks, a mini awards run and a hidden gem — plus an animated chart replay and a shareable card.', use: 'The nostalgic pass through your history.' },
         { name: 'Playlists',       period: 'playlists',  icon: '🎵', desc: 'Save any chart as a named playlist, queue tracks from anywhere, and use the Time Machine to replay exactly what you had on for any past date.', use: 'Turning a chart back into listening.' },
         { name: 'Charts Guide',    period: 'chartsguide',icon: '📖', desc: 'You are here. Setup checks, the tab breakdown, how charts are calculated, shortcuts, glossary, FAQ and your milestones.', use: 'Whenever something does not make sense.' },
