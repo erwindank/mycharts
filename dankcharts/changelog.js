@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 50;
+const DC_CL_I18N_V = 51;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,10 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+
+  { d: '2026-10-02', t: 'feature', a: 'awards', h: '8efc477',
+    title: 'Real-Life Awards now cover the World Music Awards',
+    detail: 'Real-Life Awards has a fifth tab, World Music, for the World Music Awards. The show ran on and off until 2014, and Wikipedia only lists winners for ten of those years: 1999, 2001, 2003 to 2008, 2010 and 2014. The year arrows and the year picker jump straight between those years. Most years list only the winners, but some also list nominees or runners-up. Each year is matched against your plays from that calendar year, or from the twelve months before the show when the page gives its date. On a phone, the five show tabs now wrap onto a second row so none get cut off.' },
 
   { d: '2026-10-02', t: 'feature', a: 'awards', h: '692bc04',
     title: 'Real-Life Awards now cover the iHeartRadio Music Awards',

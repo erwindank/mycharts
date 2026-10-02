@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['pt-BR'] = {
 
   /* ========== OUTUBRO 2026 ========== */
 
+  'Real-Life Awards now cover the World Music Awards':
+    ['Prêmios Reais agora inclui o World Music Awards',
+     'Prêmios Reais ganhou uma quinta aba, World Music, para o World Music Awards. A cerimônia aconteceu de forma irregular até 2014, e a Wikipedia só tem os vencedores de dez desses anos: 1999, 2001, de 2003 a 2008, 2010 e 2014. As setas e o seletor de ano pulam direto entre esses anos. A maioria dos anos só tem os vencedores, mas alguns também têm indicados ou finalistas. Cada ano é comparado com o que você ouviu naquele ano, ou nos doze meses antes da cerimônia quando a página traz a data. No celular, as cinco abas agora passam para uma segunda linha para nenhuma ficar cortada.'],
+
   'Real-Life Awards now cover the iHeartRadio Music Awards':
     ['Prêmios Reais agora inclui o iHeartRadio Music Awards',
      'Prêmios Reais ganhou uma quarta aba, iHeartRadio, ao lado de Grammys, VMAs e AMAs. Escolha um ano a partir de 2014 para ver quais dos seus artistas foram indicados e o que ganharam, e depois todas as categorias da noite com os vencedores em negrito e seus artistas marcados. Cada ano é comparado com o que você ouviu nos doze meses antes daquela cerimônia. Remixes e covers mantêm a observação, como Savage (Remix), então um cover é creditado a quem cantou e não ao artista original. Vencedores e indicados vêm da Wikipedia.'],
