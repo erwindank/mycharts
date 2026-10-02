@@ -80,7 +80,7 @@ const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
 
-  { d: '2026-10-01', t: 'fix', a: 'charts', h: '',
+  { d: '2026-10-01', t: 'fix', a: 'charts', h: '9c160f4',
     title: 'Missing covers no longer use up the YouTube search limit',
     detail: 'When a cover could not be found on Deezer, iTunes or Last.fm, the site searched YouTube for it as a last try. Everyone on the site shares one small daily YouTube limit, so a single big chart with many rare songs could use it all up in minutes, and YouTube image searches then stopped working for the rest of the day. Covers now only search Deezer, iTunes and Last.fm on their own. You can still pick a YouTube picture by hand in the image picker, and anything you already set to YouTube keeps it.' },
 
