@@ -80,7 +80,7 @@ const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
 
-  { d: '2026-10-01', t: 'fix', a: 'ui', h: '',
+  { d: '2026-10-01', t: 'fix', a: 'ui', h: '65e14ea',
     title: 'Contact Support now opens a message form',
     detail: 'The support chat stopped working, so Contact Support now opens a short form instead: enter your email and your message, press Send, and it reaches us by email. We reply straight to the address you entered. If you are signed in, your email is filled in for you. It works on the main site and in the setup guide.' },
 
