@@ -80,7 +80,7 @@ const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
 
-  { d: '2026-10-02', t: 'feature', a: 'awards', h: '',
+  { d: '2026-10-02', t: 'feature', a: 'awards', h: '8683e78',
     title: 'Each category card now says what it is about',
     detail: 'In My Grammys, every category card shows a short line under its name on what belongs in it, so you know what to look for when picking nominees. Genre awards describe how the genre sounds, for example Grunge says sludgy, distorted 90s guitars full of angst. Categories that pull from the same songs now read differently too: Song of the Year is about the writing, Record of the Year about the performance and production, and Rock Ballad and Guitar Riff/Solo each say what to listen for. The same lines show in the category list.' },
 
