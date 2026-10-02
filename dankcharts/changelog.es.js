@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['es'] = {
 
   /* ========== OCTUBRE 2026 ========== */
 
+  'My Grammys works again after the Artist stats update':
+    ['Mis Grammys vuelve a funcionar tras la actualización de estadísticas de artistas',
+     'Tras la actualización de estadísticas de Artista del Año, partes de Mis Grammys dejaron de funcionar: los resúmenes de categorías y la lista de ganadores podían no cargarse, y la consola se llenaba de errores. Dos partes del código tenían el mismo nombre, así que una reemplazaba a la otra. Ahora tienen nombres distintos y todo vuelve a cargar.'],
+
   'Nominee suggestions show all five genres':
     ['Las sugerencias de nominados muestran los cinco géneros',
      'En las categorías de género de Mis Grammys, cada nominado sugerido mostraba solo sus tres primeros géneros. Ahora muestra hasta cinco, así que aparecen todos los géneros de tu Google Sheet (Género 1 a Género 5), igual que las etiquetas de Last.fm o de un archivo CSV. Cuando una fila tiene muchos géneros, pasan a una segunda línea en vez de apretar el título, el artista o las reproducciones.'],

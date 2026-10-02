@@ -37685,7 +37685,7 @@ function _awardsArtistYears() {
 }
 
 // Does a credit string name this artist (collabs count for each artist named)
-function _awardsCredits(credit, lower) {
+function _awardsCreditMatches(credit, lower) {
   if (!credit) return false;
   if (credit.toLowerCase() === lower) return true;
   return splitArtists(credit).some(a => a.trim().toLowerCase() === lower);
@@ -37722,7 +37722,7 @@ function _awardsArtistExtras(item) {
     const full = _crFull('week').result;
     const scan = (res, nameOf, ones, top10Key, onKey) => {
       for (const d of Object.values(res || {})) {
-        if (!_awardsCredits(d._artist, lower)) continue;
+        if (!_awardsCreditMatches(d._artist, lower)) continue;
         let best = Infinity, at1 = 0;
         for (const e of d.entries) {
           if (e.periodKey < lo || e.periodKey > hi) continue;
@@ -37743,8 +37743,8 @@ function _awardsArtistExtras(item) {
   // Plaques earned in the window, and how many they hold in all
   let certs = [], certsAll = 0;
   try {
-    certs = certsInRange(start, end).filter(c => _awardsCredits(c.artist, lower));
-    certsAll = _certTimeline.filter(c => _awardsCredits(c.artist, lower)).length;
+    certs = certsInRange(start, end).filter(c => _awardsCreditMatches(c.artist, lower));
+    certsAll = _certTimeline.filter(c => _awardsCreditMatches(c.artist, lower)).length;
   } catch (e) {}
 
   // Year by year

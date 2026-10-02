@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 33;
+const DC_CL_I18N_V = 34;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,10 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+
+  { d: '2026-10-01', t: 'fix', a: 'awards', h: '',
+    title: 'My Grammys works again after the Artist stats update',
+    detail: 'After the Artist of the Year stats update, parts of My Grammys stopped working: the category summaries and the winners list could fail to load, and the console filled with errors. Two pieces of code had ended up with the same name, so one replaced the other. They now have separate names and everything loads again.' },
 
   { d: '2026-10-01', t: 'change', a: 'awards', h: 'e59f179',
     title: 'Nominee suggestions show all five genres',
