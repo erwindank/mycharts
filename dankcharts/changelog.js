@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 41;
+const DC_CL_I18N_V = 42;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,10 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+
+  { d: '2026-10-02', t: 'change', a: 'awards', h: '',
+    title: 'Clearing the nominee picker now asks first',
+    detail: 'In My Grammys, the Clear button in the nominee picker now asks you to confirm before it removes every nominee from the category, so one stray click no longer wipes a ballot you built by hand. If there are no nominees yet, it does nothing.' },
 
   { d: '2026-10-02', t: 'feature', a: 'awards', h: '2e140e6',
     title: 'Nominee picker shows how well each candidate fits the category',

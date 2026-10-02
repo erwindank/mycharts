@@ -38413,6 +38413,10 @@ function awardsPickerRemoveNom(btn) {
 }
 
 function awardsPickerClearSel() {
+  // Ask first — one stray click would otherwise wipe a hand-built ballot
+  const n = _awardsPickerSel.length;
+  if (!n) return;
+  if (!confirm(`Remove all ${n} nominee${n === 1 ? '' : 's'} from this category?`)) return;
   _awardsPickerSel = [];
   _awardsPickerSelKeys = new Set();
   _awardsPickerSyncSel();

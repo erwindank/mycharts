@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['pt-PT'] = {
 
   /* ========== OUTUBRO 2026 ========== */
 
+  'Clearing the nominee picker now asks first':
+    ['Limpar o seletor de nomeados pergunta agora antes',
+     'Nos Meus Grammys, o botão Limpar do seletor de nomeados pede agora confirmação antes de remover todos os nomeados da categoria, para que um clique sem querer já não apague uma lista que montaste à mão. Se ainda não houver nomeados, não faz nada.'],
+
   'Nominee picker shows how well each candidate fits the category':
     ['O seletor de nomeados mostra quanto cada candidato encaixa na categoria',
      'Nos Meus Grammys, o seletor de nomeados põe agora uma pequena etiqueta de encaixe ao lado de cada candidato nas categorias de género e em Música do Verão e nas músicas da noite e da manhã, por exemplo 92% fit. Num prémio de género diz com que força a música, o álbum ou o artista está marcado com esse género: um género listado primeiro conta mais do que um listado em quinto, e um parente próximo como metal para Melhor Música Rock conta um pouco menos do que rock. Em Música do Verão é a parte das reproduções da música que caíram entre junho e agosto, e as músicas da noite e da manhã funcionam da mesma forma. Os encaixes fortes aparecem a dourado. Passa o rato sobre uma etiqueta para veres o que mede. As categorias que são um simples sim ou não, como Melhor Colaboração ou Melhor Versão, não a têm.'],

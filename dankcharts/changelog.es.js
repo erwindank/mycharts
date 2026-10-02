@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['es'] = {
 
   /* ========== OCTUBRE 2026 ========== */
 
+  'Clearing the nominee picker now asks first':
+    ['Limpiar el selector de nominados ahora pregunta antes',
+     'En Mis Grammys, el botón Limpiar del selector de nominados ahora pide confirmación antes de quitar todos los nominados de la categoría, así un clic sin querer ya no borra una lista que armaste a mano. Si todavía no hay nominados, no hace nada.'],
+
   'Nominee picker shows how well each candidate fits the category':
     ['El selector de nominados muestra cuánto encaja cada candidato en la categoría',
      'En Mis Grammys, el selector de nominados ahora pone una pequeña etiqueta de encaje junto a cada candidato en las categorías de género y en Canción del Verano y las canciones de noche y de mañana, por ejemplo 92% fit. En un premio de género indica con qué fuerza la canción, el álbum o el artista está etiquetado con ese género: un género que aparece primero cuenta más que uno que aparece quinto, y un pariente cercano como metal para Mejor Canción Rock cuenta un poco menos que rock. En Canción del Verano es la parte de las reproducciones de la canción que cayeron entre junio y agosto, y las canciones de noche y de mañana funcionan igual. Los encajes fuertes se ven en dorado. Pasa el cursor sobre una etiqueta para ver qué mide. Las categorías que son un simple sí o no, como Mejor Colaboración o Mejor Versión, no la tienen.'],

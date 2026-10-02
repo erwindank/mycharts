@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['pt-BR'] = {
 
   /* ========== OUTUBRO 2026 ========== */
 
+  'Clearing the nominee picker now asks first':
+    ['Limpar o seletor de indicados agora pergunta antes',
+     'Em Meus Grammys, o botão Limpar do seletor de indicados agora pede confirmação antes de remover todos os indicados da categoria, assim um clique sem querer não apaga mais uma lista que você montou à mão. Se ainda não houver indicados, ele não faz nada.'],
+
   'Nominee picker shows how well each candidate fits the category':
     ['O seletor de indicados mostra o quanto cada candidato combina com a categoria',
      'Em Meus Grammys, o seletor de indicados agora coloca uma pequena etiqueta de encaixe ao lado de cada candidato nas categorias de gênero e em Música do Verão e nas músicas da noite e da manhã, por exemplo 92% fit. Num prêmio de gênero ela diz com que força a música, o álbum ou o artista está marcado com aquele gênero: um gênero listado primeiro conta mais que um listado em quinto, e um parente próximo como metal para Melhor Música de Rock conta um pouco menos que rock. Em Música do Verão é a parte das reproduções da música que caíram entre junho e agosto, e as músicas da noite e da manhã funcionam do mesmo jeito. Encaixes fortes aparecem em dourado. Passe o mouse sobre uma etiqueta para ver o que ela mede. Categorias que são um simples sim ou não, como Melhor Colaboração ou Melhor Cover, não ganham uma.'],
