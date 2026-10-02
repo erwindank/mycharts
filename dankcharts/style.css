@@ -24086,6 +24086,9 @@ body.pink-light .awards-ceremony-share-btn:hover { border-color: var(--medal-gol
 .awards-picker-genre-tags { display: inline-flex; flex-wrap: wrap; gap: 3px; flex-shrink: 1; min-width: 0; }
 .awards-picker-genre-tag  { font-size: 0.6rem; padding: 1px 5px; border-radius: 10px; background: var(--surface3); color: var(--text3); border: 1px solid var(--border); white-space: nowrap; }
 .awards-picker-genre-unk  { opacity: 0.5; font-style: italic; }
+/* Every row carries the genre box so the lazy lookup can fill it; an empty one
+   would still take a gap in the row, so it hides until something lands in it */
+.awards-picker-genre-tags:empty { display: none; }
 /* "92% fit": how well a candidate fits a genre or summer/night/morning category.
    Strong fits take the picker's gold, middling ones stay neutral, weak ones fade. */
 .awards-picker-fit { font-size: 0.62rem; font-family: var(--font-mono); padding: 1px 6px; border-radius: 10px; white-space: nowrap; flex-shrink: 0; border: 1px solid var(--border); }

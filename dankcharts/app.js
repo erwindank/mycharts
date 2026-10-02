@@ -34017,9 +34017,35 @@ function _awardsRememberYear(kind, year) {
 let _awardsYear     = _awardsSavedYear('mygrammys', tzNow().getFullYear() - 1);
 let _awardsYearData = {};
 let _awardsSubTab   = 'mygrammys';
-let _awardsGenreCache = {};
+/* Artist genre tags and album release years are both slow web lookups, and the
+   nominee picker now asks for them on every row it shows. So the answers are
+   kept in localStorage across visits: an album is looked up once, ever. Only
+   real answers are saved — an empty tag list or a year nobody found may just be
+   a dead key or a dropped connection, so those stay in memory for the session
+   and get another try next visit. */
+const AWARDS_GENRE_LS = 'dc_awards_genre_cache';
+const AWARDS_YEAR_LS  = 'dc_awards_year_cache';
+function _awardsLoadLookupCache(lsKey) {
+  try { const v = JSON.parse(localStorage.getItem(lsKey) || '{}'); return v && typeof v === 'object' ? v : {}; }
+  catch (e) { return {}; }
+}
+let _awardsGenreCache = _awardsLoadLookupCache(AWARDS_GENRE_LS);
 let _awardsGenreQueue = {};
-const _awardsAlbumYearCache = {};
+const _awardsAlbumYearCache = _awardsLoadLookupCache(AWARDS_YEAR_LS);
+// Lookups land in bursts (a page of rows at a time), so the save waits for the burst to end
+let _awardsLookupSaveTimer = null;
+function _awardsSaveLookupCaches() {
+  clearTimeout(_awardsLookupSaveTimer);
+  _awardsLookupSaveTimer = setTimeout(() => {
+    const genres = {}, years = {};
+    for (const [k, v] of Object.entries(_awardsGenreCache))     if (Array.isArray(v) && v.length) genres[k] = v;
+    for (const [k, v] of Object.entries(_awardsAlbumYearCache)) if (v) years[k] = v;
+    try {
+      localStorage.setItem(AWARDS_GENRE_LS, JSON.stringify(genres));
+      localStorage.setItem(AWARDS_YEAR_LS, JSON.stringify(years));
+    } catch (e) { /* storage full or blocked: the in-memory caches still work */ }
+  }, 1500);
+}
 // --- Nominee picker state (all reset every time the modal opens) ---
 let _awardsPickerSel      = [];        // ordered list of chosen nominees (order = display order)
 let _awardsPickerSelKeys  = new Set(); // _awardItemKey() of everything in _awardsPickerSel, for O(1) lookups
@@ -34737,6 +34763,7 @@ async function _awardsGetArtistGenre(artist) {
     const tags = (d?.toptags?.tag || []).map(t => t.name.toLowerCase()).slice(0, 10);
     _awardsGenreCache[key] = tags;
     delete _awardsGenreQueue[key];
+    _awardsSaveLookupCaches();
     return tags;
   }).catch(() => { _awardsGenreCache[key] = []; delete _awardsGenreQueue[key]; return []; });
   return _awardsGenreQueue[key];
@@ -34762,6 +34789,7 @@ async function _awardsGetAlbumYear(album, artist) {
     if (match?.releaseDate) {
       const year = new Date(match.releaseDate).getFullYear();
       _awardsAlbumYearCache[key] = year;
+      _awardsSaveLookupCaches();
       return year;
     }
   } catch (e) {}
@@ -34779,6 +34807,7 @@ async function _awardsGetAlbumYear(album, artist) {
       const year = match?.release_date ? parseInt(match.release_date.slice(0, 4), 10) : null;
       if (year) {
         _awardsAlbumYearCache[key] = year;
+        _awardsSaveLookupCaches();
         return year;
       }
     }
@@ -34794,6 +34823,7 @@ async function _awardsGetAlbumYear(album, artist) {
       const year = match?.['first-release-date'] ? parseInt(match['first-release-date'].slice(0, 4), 10) : null;
       if (year) {
         _awardsAlbumYearCache[key] = year;
+        _awardsSaveLookupCaches();
         return year;
       }
     }
@@ -34965,6 +34995,7 @@ async function _awardsGeminiClassifyArtists(artists) {
         _awardsGenreCache[key] = Array.isArray(artistTags) ? artistTags.map(t => String(t).toLowerCase()) : [];
       }
     }
+    _awardsSaveLookupCaches();
   } catch (e) { /* fall through to Last.fm */ }
 }
 
@@ -38147,21 +38178,120 @@ function _awardsPickerScoreChip(item) {
   return s == null ? '' : ratingChip(s, 'rt-chip--row');
 }
 
+/* ─── Year and genres on every picker row ───────────────────────────────────
+   Every song and album row shows its release year, and every row shows its
+   genres, not just the suggested ones. Both come from slow web lookups, so a
+   row is only looked up once it scrolls into view (the same observer as the
+   thumbnails), a few at a time, and answers are saved for next time (see
+   _awardsSaveLookupCaches). Sheet genres need no lookup and show straight away. */
+
+// The album key the release-year lookups use; '' for artists and songs with no album
+function _awardsPickerYearKey(item) {
+  if (_awardsPickerCatType === 'artist' || !item.album || item.album === '—') return '';
+  return item.album.toLowerCase() + '|||' + (item.artist || '').toLowerCase();
+}
+
+// undefined = not looked up yet, null = looked up and not found
+function _awardsPickerItemYear(item) {
+  if (item.releaseYear !== undefined) return item.releaseYear;   // a suggestion that came with its year
+  const k = _awardsPickerYearKey(item);
+  if (!k) return null;
+  return k in _awardsAlbumYearCache ? _awardsAlbumYearCache[k] : undefined;
+}
+
+function _awardsPickerYearText(item) {
+  const y = _awardsPickerItemYear(item);
+  if (y) return ' · ' + y;
+  // Only the categories that rank on release year say so when it's missing;
+  // anywhere else a blank is quieter than "year unknown" on half the list
+  return y === null && item.releaseYear === null ? ' · year unknown' : '';
+}
+
+// Genre chips for a row. Genre categories show five and flag the unknowns,
+// since the genre is the point there; elsewhere three, and a blank when none.
+function _awardsPickerGenreInner(item) {
+  const isGenreCat = _awardsPickerCatFilter.startsWith('genre:') || _awardsPickerCatFilter === 'rock_group';
+  const tags = _awardsPickerItemTags(item);
+  if (tags && tags.length) {
+    return tags.slice(0, isGenreCat ? 5 : 3).map(t => `<span class="awards-picker-genre-tag">${esc(t)}</span>`).join('');
+  }
+  if (!isGenreCat) return '';
+  return `<span class="awards-picker-genre-tag awards-picker-genre-unk">${tags === undefined ? '…' : 'no genre'}</span>`;
+}
+
+// The artist whose tags stand in for a row with no sheet genres (as _awardsSongTags reads them)
+function _awardsPickerGenreArtist(item) {
+  return _awardsPickerCatType === 'song' ? _pa(item) : (item.artist || '');
+}
+
+// One release-year lookup per album at a time, however many rows ask for it
+const _awardsAlbumYearQueue = {};
+function _awardsAlbumYearOnce(album, artist) {
+  const k = album.toLowerCase() + '|||' + artist.toLowerCase();
+  if (k in _awardsAlbumYearCache) return Promise.resolve(_awardsAlbumYearCache[k]);
+  if (!_awardsAlbumYearQueue[k]) {
+    _awardsAlbumYearQueue[k] = _awardsGetAlbumYear(album, artist).finally(() => { delete _awardsAlbumYearQueue[k]; });
+  }
+  return _awardsAlbumYearQueue[k];
+}
+
+let _awardsMetaPending = [];   // [{ idx, item }] rows seen but not looked up yet
+let _awardsMetaPumping = false;
+const AWARDS_META_PARALLEL = 6;   // gentle on Last.fm, iTunes and MusicBrainz
+
+// Whether a row still has anything to look up
+function _awardsPickerNeedsMeta(item) {
+  return _awardsPickerItemYear(item) === undefined || _awardsPickerItemTags(item) === undefined;
+}
+
+async function _awardsPickerFetchMeta(item) {
+  const jobs = [];
+  if (_awardsPickerItemYear(item) === undefined) jobs.push(_awardsAlbumYearOnce(item.album, item.artist || ''));
+  if (_awardsPickerItemTags(item) === undefined) {
+    const a = _awardsPickerGenreArtist(item);
+    if (a) jobs.push(_awardsGetArtistGenre(a));
+  }
+  try { await Promise.all(jobs); } catch (e) {}
+}
+
+// Repaint one row's year and genres in place, if it's still the same row
+function _awardsPickerPaintMeta(idx, item) {
+  if (_awardsPickerRows[idx] !== item) return;
+  const row = document.querySelector(`#awardsPickerBody .awards-picker-result-row[data-idx="${idx}"]`);
+  if (!row) return;
+  const y = row.querySelector('.awards-picker-year');
+  if (y) y.textContent = _awardsPickerYearText(item);
+  const g = row.querySelector('.awards-picker-genre-tags');
+  if (g) g.innerHTML = _awardsPickerGenreInner(item);
+}
+
+async function _awardsPickerPumpMeta() {
+  if (_awardsMetaPumping) return;   // the running pump will get to the new jobs
+  _awardsMetaPumping = true;
+  const seq = _awardsThumbSeq;      // a rebuild bumps this, same as for the thumbnails
+  // A pool of workers, not batches: one slow album (MusicBrainz can take
+  // seconds) shouldn't hold up the rows behind it
+  const worker = async () => {
+    while (seq === _awardsThumbSeq && _awardsMetaPending.length) {
+      const { idx, item } = _awardsMetaPending.shift();
+      await _awardsPickerFetchMeta(item);
+      if (seq === _awardsThumbSeq) _awardsPickerPaintMeta(idx, item);
+    }
+  };
+  try {
+    await Promise.all(Array.from({ length: AWARDS_META_PARALLEL }, worker));
+  } finally { _awardsMetaPumping = false; }
+  if (_awardsMetaPending.length) _awardsPickerPumpMeta();
+}
+
 function _awardsPickerResultRow(item, idx) {
 
   const picked = _awardsPickerSelKeys.has(_awardItemKey(item));
   const lbl = item.title || item.album || item.artist || '';
   const sub = item.title ? item.artist : (item.album ? item.artist : '');
-  const rel = item.releaseYear ? ' · ' + item.releaseYear : (item.releaseYear === null ? ' · year unknown' : '');
-  let genreHtml = '';
-  if ((_awardsPickerCatFilter.startsWith('genre:') || _awardsPickerCatFilter === 'rock_group') && item.grp !== 2) {
-    const tags = _awardsPickerItemTags(item);
-    if (tags && tags.length) {
-      genreHtml = `<span class="awards-picker-genre-tags">${tags.slice(0, 5).map(t => `<span class="awards-picker-genre-tag">${esc(t)}</span>`).join('')}</span>`;
-    } else {
-      genreHtml = `<span class="awards-picker-genre-tags"><span class="awards-picker-genre-tag awards-picker-genre-unk">${tags === undefined ? '?' : 'no genre'}</span></span>`;
-    }
-  }
+  // Year and genres sit in their own spans so the lazy lookup can fill them in place
+  const rel = `<span class="awards-picker-year">${esc(_awardsPickerYearText(item))}</span>`;
+  const genreHtml = `<span class="awards-picker-genre-tags">${_awardsPickerGenreInner(item)}</span>`;
   const statLine = _awardsPickerStatLine(item, idx);
   const cls = 'awards-picker-result-row'
     + (picked ? ' is-picked' : '')
@@ -38621,10 +38751,13 @@ function _awardsPickerLoadThumbs() {
   const seq = ++_awardsThumbSeq;
   if (_awardsThumbObs) { _awardsThumbObs.disconnect(); _awardsThumbObs = null; }
   _awardsThumbPending = [];
+  _awardsMetaPending = [];
   const bodyEl = document.getElementById('awardsPickerBody');
   if (!bodyEl) return;
   if (!('IntersectionObserver' in window)) {
     _awardsPickerThumbQueue(_awardsPickerRows.map((item, i) => ({ imgId: 'awPkThumb' + i, item })), () => seq === _awardsThumbSeq);
+    _awardsPickerRows.forEach((item, idx) => { if (_awardsPickerNeedsMeta(item)) _awardsMetaPending.push({ idx, item }); });
+    _awardsPickerPumpMeta();
     return;
   }
   const obs = _awardsThumbObs = new IntersectionObserver(entries => {
@@ -38634,14 +38767,22 @@ function _awardsPickerLoadThumbs() {
       obs.unobserve(e.target);
       const idx = +e.target.dataset.idx;
       const item = _awardsPickerRows[idx];
-      if (item) _awardsThumbPending.push({ idx, imgId: 'awPkThumb' + idx, item });
+      if (!item) continue;
+      if (!e.target.querySelector('.awards-picker-thumb img')) _awardsThumbPending.push({ idx, imgId: 'awPkThumb' + idx, item });
+      // A row can be answered by another row's lookup (same album, same artist)
+      // after it was drawn, so one with nothing left to fetch still gets repainted
+      if (_awardsPickerNeedsMeta(item)) _awardsMetaPending.push({ idx, item });
+      else _awardsPickerPaintMeta(idx, item);
     }
     _awardsThumbPending.sort((a, b) => a.idx - b.idx);
+    _awardsMetaPending.sort((a, b) => a.idx - b.idx);
     _awardsPickerPumpThumbs();
+    _awardsPickerPumpMeta();
   }, { root: bodyEl, rootMargin: '200px 0px' });
-  // Rows whose picture came straight from the cache have nothing to fetch
+  // Rows with a cached picture and a known year and genre have nothing to fetch
   bodyEl.querySelectorAll('.awards-picker-result-row').forEach(row => {
-    if (!row.querySelector('.awards-picker-thumb img')) obs.observe(row);
+    const item = _awardsPickerRows[+row.dataset.idx];
+    if (!row.querySelector('.awards-picker-thumb img') || (item && _awardsPickerNeedsMeta(item))) obs.observe(row);
   });
 }
 
