@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['pt-PT'] = {
 
   /* ========== OUTUBRO 2026 ========== */
 
+  'Audio samples find the right recording more often':
+    ['As amostras de áudio encontram a gravação certa mais vezes',
+     'Nos Meus Grammys, o botão de reproduzir de um nomeado também procura o próprio álbum e reproduz a partir da lista de faixas, a começar pela faixa-título. Antes, um álbum cujas músicas também estão numa compilação, como To the Summit de Jon Schmidt, podia ficar sem amostra. Uma música cuja pesquisa só encontrava versões ao vivo ou acústicas agora também verifica o próprio álbum para encontrar a versão de estúdio, por isso I Write Sins Not Tragedies dos Panic! at the Disco toca a música verdadeira e não uma versão ao vivo. Uma versão remasterizada agora conta como a original.'],
+
   'Nominee picker shows the year and genres for every candidate':
     ['O seletor de nomeados mostra o ano e os géneros de cada candidato',
      'Nos Meus Grammys, cada música e álbum do seletor de nomeados mostra agora o ano de lançamento ao lado do artista, e cada candidato mostra até três géneros, não apenas os sugeridos no topo. As categorias de género continuam a mostrar até cinco. Os géneros da tua folha do Google aparecem logo. O resto é procurado online à medida que deslizas, por isso uma linha pode ser preenchida um ou dois segundos depois de aparecer. As respostas ficam guardadas no teu navegador, por isso da próxima vez que abrires o seletor aparecem logo.'],

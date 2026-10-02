@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 45;
+const DC_CL_I18N_V = 46;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,10 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+
+  { d: '2026-10-02', t: 'fix', a: 'awards', h: '8a7e42e',
+    title: 'Audio samples find the right recording more often',
+    detail: 'In My Grammys, the play button on a nominee now also looks up the album itself and plays from its tracklist, title track first. Before, an album whose songs are also on a compilation, like To the Summit by Jon Schmidt, could come up with no sample at all. A song whose search only turned up live or acoustic versions now also checks its own album for the studio version, so I Write Sins Not Tragedies by Panic! at the Disco plays the real song instead of a live take. A remastered version now counts as the original.' },
 
   { d: '2026-10-02', t: 'feature', a: 'awards', h: '9eebb3c',
     title: 'Nominee picker shows the year and genres for every candidate',
