@@ -39910,8 +39910,11 @@ function _cerMatchScore(wantArtist, wantTitle, candArtist, candTitle) {
   let q = 0;
   if (wFull) {
     const wq = _cerQuals(wantTitle), cq = _cerQuals(candTitle);
-    for (const k of cq) q += wq.has(k) ? 2 : -4;
-    for (const k of wq) if (!cq.has(k)) q -= 3;
+    // A remaster is the same recording, so it is no worse than the plain title.
+    // Deezer now only carries some studio cuts as "(2025 Remaster)", and the old
+    // penalty tied them with "Live In Denver", which then won on search order.
+    for (const k of cq) if (k !== 'remaster') q += wq.has(k) ? 2 : -4;
+    for (const k of wq) if (!cq.has(k) && k !== 'remaster') q -= 3;
   }
   for (const w of _CER_WEAK) if (cFull.includes(w) && !wFull.includes(w)) q -= 8;
   return aScore * 2 + tScore + q + creditBonus;
@@ -39987,8 +39990,75 @@ async function _ceremonyPreviewTakes(item, type) {
     out = await _cerSearchTakes(term, artist, name, type);
     if (out.length) break;
   }
+
+  // Track search alone misses two things: an album whose songs are also filed on
+  // a compilation (Jon Schmidt's "To the Summit" comes back only as a track on
+  // "Solo Sessions Vol. 2", so the album name never matches), and a studio cut
+  // that search ranks below every live and acoustic take (Panic!'s "I Write Sins
+  // Not Tragedies"). Looking the record up as an album and reading its tracklist
+  // catches both. Songs only pay for it when nothing clean was found.
+  const albumName = item.album || '';
+  if (albumName && type !== 'artist' && (type === 'album' || !out.some(t => _cerCleanTake(name, t.title)))) {
+    const more = await _cerAlbumTakes(artist, albumName, name, type);
+    if (more.length) {
+      const seen = new Set(out.map(t => t.url));
+      out = out.concat(more.filter(t => !seen.has(t.url)))
+               .sort((a, b) => (b.score - a.score) || (a.order - b.order));
+    }
+  }
   _ceremonyPreviewCache[key] = out;
   return out;
+}
+
+// True when a take is the version the nominee names: no live/acoustic/remix
+// tag it didn't ask for, and none it asked for missing. A remaster counts as clean.
+function _cerCleanTake(wantTitle, candTitle) {
+  const wq = _cerQuals(wantTitle), cq = _cerQuals(candTitle);
+  wq.delete('remaster'); cq.delete('remaster');
+  if (wq.size !== cq.size || [...wq].some(k => !cq.has(k))) return false;
+  const c = _cerNorm(candTitle), w = _cerNorm(wantTitle);
+  return !_CER_WEAK.some(x => c.includes(x) && !w.includes(x));
+}
+
+/* Finds the nominee's album on Deezer and returns playable takes from its
+   tracklist. For an album award every track counts, title track first; for a
+   song award only the tracks whose name matches. */
+async function _cerAlbumTakes(artist, albumName, songName, type) {
+  const takes = [];
+  try {
+    const lead = artist.split(/,|;|&|\bfeat\.?\b|\bft\.?\b|\bwith\b/i)[0].trim();
+    const r = await deezerFetch(`search/album?q=${encodeURIComponent(`${lead} ${_cerPlainTitle(albumName)}`)}&limit=10`);
+    if (!r.ok) return takes;
+    const d = await r.json();
+    // Best two matching albums: the plain release and, when it's gone, the deluxe reissue
+    const albums = (d?.data || [])
+      .map((x, i) => ({ id: x.id, score: _cerMatchScore(artist, albumName, x.artist?.name || '', x.title || ''), i }))
+      .filter(x => x.score !== -Infinity)
+      .sort((a, b) => (b.score - a.score) || (a.i - b.i))
+      .slice(0, 2);
+    const albumCore = _cerCoreTitle(albumName);
+    for (const al of albums) {
+      const tr = await deezerFetch(`album/${al.id}/tracks?limit=100`);
+      if (!tr.ok) continue;
+      const td = await tr.json();
+      (td?.data || []).forEach((x, i) => {
+        if (!x.preview) return;
+        const label = `${x.title || ''} — ${x.artist?.name || ''}`;
+        let score;
+        if (type === 'album') {
+          // Any track is the album; the title track (if there is one) leads, and
+          // tracks the scorer would mark down (demos, live bonus cuts) trail.
+          if (!_cerCleanTake('', x.title || '')) return;
+          score = al.score + (_cerCoreTitle(x.title) === albumCore ? 1 : 0);
+        } else {
+          score = _cerMatchScore(artist, songName, x.artist?.name || '', x.title || '');
+          if (score === -Infinity) return;
+        }
+        takes.push({ url: x.preview, label, title: x.title || '', score, order: 100 + i });
+      });
+    }
+  } catch (e) {}
+  return takes;
 }
 
 function _ceremonyPaintPlayer(state, note) {
