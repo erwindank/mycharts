@@ -39262,9 +39262,9 @@ async function _grammyMapLimit(items, limit, fn) {
 
 // Which show the Real-Life Awards tab is on: the Grammys, or one of the shows
 // read from Wikipedia (RL_WIKI_SHOWS: the MTV VMAs, the AMAs, the iHeartRadio
-// Music Awards, the World Music Awards). They all share
+// Music Awards, the World Music Awards, the Billboard Music Awards). They all share
 // one year stepper and one content area; this just picks the loader.
-const RL_SHOW_IDS = ['grammys', 'vmas', 'amas', 'iheart', 'wma'];
+const RL_SHOW_IDS = ['grammys', 'vmas', 'amas', 'iheart', 'wma', 'billboard'];
 let _realLifeShow = (() => {
   try { const v = localStorage.getItem('dc_awards_reallife_show'); return RL_SHOW_IDS.includes(v) ? v : 'grammys'; }
   catch (e) { return 'grammys'; }
@@ -39477,6 +39477,17 @@ function _rlWikiYearBefore(y, date) {
   return { start, end, label: `${fmt(start)} to ${fmt(end)}` };
 }
 
+// For shows whose awards went to a calendar year's chart or sales leaders: the
+// twelve months before the night when the page gives its date, otherwise the
+// calendar year itself (they were mostly held late in that year)
+function _rlWikiDateOrCalendarYear(y, date) {
+  return date ? _rlWikiYearBefore(y, date) : {
+    start: new Date(`${y}-01-01`),
+    end:   new Date(`${y}-12-31T23:59:59`),
+    label: String(y),
+  };
+}
+
 const RL_WIKI_SHOWS = {
   vmas: {
     first: 1984,   // the 1st MTV Video Music Awards
@@ -39526,20 +39537,34 @@ const RL_WIKI_SHOWS = {
     ceremony: y => `${y} World Music Awards`,
     // No tables on these pages: the winners are bullet lists under headings
     lists: true,
-    // The awards went to the year's best sellers, and most shows were held late
-    // in the year, so without a date on the page match the calendar year itself
-    window: (y, date) => date ? _rlWikiYearBefore(y, date) : {
-      start: new Date(`${y}-01-01`),
-      end:   new Date(`${y}-12-31T23:59:59`),
-      label: String(y),
-    },
+    // A list with nobody in bold is an honours list (Legend Award), so
+    // everyone on it won
+    honours: true,
+    // The awards went to the year's best sellers
+    window: _rlWikiDateOrCalendarYear,
+  },
+  billboard: {
+    first: 1990,
+    short: 'Billboard Music Awards',
+    // Held 1990–2007, then from 2011 on. Wikipedia has pages for these years
+    // up to 2024; every year since is offered too, so a new show turns up on
+    // its own once its page exists.
+    years: [1990, 1991, 1999, 2001, 2002, 2003, 2004, 2005, 2006,
+      ...Array.from({ length: Math.max(0, new Date().getFullYear() - 2010) }, (_, i) => 2011 + i)],
+    pages: y => [{ title: `${y}_Billboard_Music_Awards` }],
+    ceremony: y => `${y} Billboard Music Awards`,
+    // Most years are tables; 2001 is bullet lists under headings
+    lists: true,
+    // The awards go to the year's Billboard chart leaders: December shows for
+    // that year, May shows for the year before — the date on the page sorts it
+    window: _rlWikiDateOrCalendarYear,
   },
 };
 // Bump the version whenever the parsing changes, so years saved under the old
 // rules are read again
-const RL_WIKI_CACHE_LS = 'dc_rl_wiki_cache_v2';  // parsed ceremonies, so a past year is fetched once, ever
+const RL_WIKI_CACHE_LS = 'dc_rl_wiki_cache_v3';  // parsed ceremonies, so a past year is fetched once, ever
 const RL_WIKI_FRESH_MS = 86400000;                // this year's page can still change (winners land late), so refetch daily
-try { ['dc_vma_cache_v1', 'dc_rl_wiki_cache_v1'].forEach(k => localStorage.removeItem(k)); } catch (e) {}   // caches this replaced
+try { ['dc_vma_cache_v1', 'dc_rl_wiki_cache_v1', 'dc_rl_wiki_cache_v2'].forEach(k => localStorage.removeItem(k)); } catch (e) {}   // caches this replaced
 
 const _rlWikiCache = {};   // "show:year" → promise of the parsed ceremony, for this session
 
@@ -39607,7 +39632,7 @@ async function _rlWikiFetchPage(title, year, show) {
   }
   const doc = new DOMParser().parseFromString(j.parse.text || '', 'text/html');
   let categories = _rlWikiParse(doc);
-  if (!categories.length && show?.lists) categories = _rlWikiParseLists(doc);
+  if (!categories.length && show?.lists) categories = _rlWikiParseLists(doc, show);
   return { title: j.parse.title.replace(/ /g, '_'), date: _rlWikiDate(doc), categories, hasPage: true };
 }
 
@@ -39702,13 +39727,14 @@ function _rlWikiParse(doc) {
 //   `Category: Winner`, maybe with `Nominees: a, b` or `Runners-up: a, b and c`
 //     nested under it (1999, 2003, 2006)
 //   a heading per category, then its nominees with the winner in bold (2008, 2010)
-//   a heading with a plain list of names and nobody in bold, which is a list of
-//     honourees, so everyone on it won (Legend Award)
+//   a heading with a plain list of names and nobody in bold — for a show that
+//     says so (`honours`), a list of honourees, so everyone on it won (Legend
+//     Award); for others it just means the page never marked the winner
 // Sections about the show rather than the awards (performers, references…)
 // are skipped.
 const RL_WIKI_SKIP_SECTIONS = /^(performers?|performances|presenters|hosts|references|notes|external links|see also|international telecasts|broadcast|delays|records|charity|official sponsor|top award winners|ceremony|background)/i;
 
-function _rlWikiParseLists(doc) {
+function _rlWikiParseLists(doc, show) {
   const categories = [];
   let h2 = '', h3 = '';
   const nodes = [...doc.querySelectorAll('h2, h3, ul')];
@@ -39751,7 +39777,7 @@ function _rlWikiParseLists(doc) {
     const heading = h3 || h2;
     const kept = bare.filter(n => n.who);
     if (kept.length && !/^(winners|nominees|nominees (and|&) winners)$/i.test(heading)) {
-      if (!kept.some(n => n.won)) kept.forEach(n => { n.won = true; });   // an honours list
+      if (show?.honours && !kept.some(n => n.won)) kept.forEach(n => { n.won = true; });   // an honours list
       categories.push({ name: heading, nominees: kept });
     }
   }
@@ -39791,9 +39817,10 @@ function _rlWikiSplitCell(td) {
 function _rlWikiEntry(el, won) {
   const text = _rlWikiText(el);
   // Dashes come as en, em, hyphen, or now and then a minus sign (2016's AMAs),
-  // and once in a while straight after a closing quote with no space
-  // (`"God's Plan"– Drake`)
-  const parts = text.split(/\s[–—−-]\s|(?<=["”])[–—−]\s/);
+  // and once in a while straight after a closing quote or bracket with no space
+  // (`"God's Plan"– Drake`, `"Call Me Maybe"- Carly Rae Jepsen`,
+  // `Megan Thee Stallion (featuring Beyoncé)– "Savage"`)
+  const parts = text.split(/\s[–—−-]\s|(?<=["”)])[–—−-]\s/);
   const i = el.querySelector('i');
   const italic = i ? _rlWikiText(i) : '';
   const quotes = s => (s.match(/["“”]/g) || []).length;
@@ -39832,6 +39859,13 @@ function _rlWikiEntry(el, won) {
   if (parts.length === 1) {
     const sq = text.match(/^(.+?),\s*["“]([^"”]+)["”]\s*$/);
     if (sq) return { who: sq[1].trim(), title: sq[2].trim(), rest: '', won };
+    // Billboard puts the song after the credit with no dash: in brackets —
+    // `Camila Cabello featuring Young Thug ("Havana")` — or straight after a
+    // bracketed feature — `Ellie Goulding x Diplo (featuring Swae Lee) "Close to Me"`.
+    // Only those two shapes, so a nickname at the end (`Luis Angel "El Flaco"`)
+    // isn't mistaken for a song.
+    const bq = text.match(/^(.+?)\s*\(["“]([^"”]+)["”]\)\s*$/) || text.match(/^(.+\))\s*["“]([^"”]+)["”]\s*$/);
+    if (bq) return { who: bq[1].trim(), title: bq[2].trim(), rest: '', won };
     if (italic && text !== italic && text.endsWith(italic)) {
       return { who: text.slice(0, -italic.length).replace(/[\s,]+$/, ''), title: italic, rest: '', won };
     }
@@ -39901,7 +39935,7 @@ async function _loadRealLifeWiki(showId, year) {
         ? `The ${year} ${show.short} haven't happened yet, or aren't written up yet. Check back after the ceremony.`
         : data.hasPage
           ? `Wikipedia's page on the ${esc(ceremony)} doesn't list the winners.`
-          : `There's no ${show.short} ceremony on record for ${year}.`;
+          : `Wikipedia has no page for the ${esc(ceremony)}, so it may not have been held.`;
     contentEl.innerHTML = `<div class="awards-empty">${msg}</div>` + credit;
     return;
   }
@@ -44417,7 +44451,7 @@ const _cgTourSteps = [
     nav: 'events' },
 
   { title: 'Awards',
-    content: 'A full awards ceremony generated from your own chart data, with 53 categories available — Song, Album and Artist of the Year, Best New Artist, Best Collaboration, Song of the Summer, Best Comeback, Best Discovery, Most Obsessive Play, and opt-in genre categories across pop, rock, alternative, hip-hop, R&B, Latin, electronic and K-pop. Set the eligibility window, choose your categories, then run the ceremony and watch the envelopes open. There is a separate Real-Life Awards tab alongside My Grammys, showing which of your artists were nominated for or won real Grammys, MTV VMAs, American Music Awards, iHeartRadio Music Awards and World Music Awards.',
+    content: 'A full awards ceremony generated from your own chart data, with 53 categories available — Song, Album and Artist of the Year, Best New Artist, Best Collaboration, Song of the Summer, Best Comeback, Best Discovery, Most Obsessive Play, and opt-in genre categories across pop, rock, alternative, hip-hop, R&B, Latin, electronic and K-pop. Set the eligibility window, choose your categories, then run the ceremony and watch the envelopes open. There is a separate Real-Life Awards tab alongside My Grammys, showing which of your artists were nominated for or won real Grammys, MTV VMAs, American Music Awards, iHeartRadio Music Awards, World Music Awards and Billboard Music Awards.',
     nav: 'awards' },
 
   { title: 'Your Soundtrack',
@@ -45124,7 +45158,7 @@ function dcRenderChartsGuideView() {
       tabs: [
         { name: 'Records',         period: 'records',    icon: '🏆', desc: 'Eleven sections behind the button row at the top: All #1s, Perfect All Kill, Most Chart Appearances, Biggest Debuts, Most Plays in a Period, Play Count Milestones, Fastest to Milestone, Certifications, Streak Records, New Charts and an Overview.', use: 'Your record book.' },
         { name: 'Events',          period: 'events',     icon: '🎂', desc: 'A calendar of artist birthdays, album anniversaries and new releases for the artists in your charts.', use: 'Knowing when something is worth replaying.' },
-        { name: 'Awards',          period: 'awards',     icon: '🏅', desc: '53 categories generated from your own chart data — the four majors plus Best Collaboration, Song of the Summer, Best Comeback, Best Discovery, Most Obsessive Play and opt-in genre awards. Set an eligibility window, pick categories, then run the ceremony. Real-Life Awards sits alongside My Grammys, with the real Grammys, VMAs, AMAs, iHeartRadio and World Music Awards your artists were up for.', use: 'The fun one. Run it every December.' },
+        { name: 'Awards',          period: 'awards',     icon: '🏅', desc: '53 categories generated from your own chart data — the four majors plus Best Collaboration, Song of the Summer, Best Comeback, Best Discovery, Most Obsessive Play and opt-in genre awards. Set an eligibility window, pick categories, then run the ceremony. Real-Life Awards sits alongside My Grammys, with the real Grammys, VMAs, AMAs, iHeartRadio, World Music and Billboard Music Awards your artists were up for.', use: 'The fun one. Run it every December.' },
         { name: 'Your Soundtrack', period: 'soundtrack', icon: '🎬', desc: 'A full recap of any month, year or all time: a reel, headline stats, top charts, a featured artist, your listening patterns, discoveries, milestones, streaks, a mini awards run and a hidden gem — plus an animated chart replay and a shareable card.', use: 'The nostalgic pass through your history.' },
         { name: 'Playlists',       period: 'playlists',  icon: '🎵', desc: 'Save any chart as a named playlist, queue tracks from anywhere, and use the Time Machine to replay exactly what you had on for any past date.', use: 'Turning a chart back into listening.' },
         { name: 'Charts Guide',    period: 'chartsguide',icon: '📖', desc: 'You are here. Setup checks, the tab breakdown, how charts are calculated, shortcuts, glossary, FAQ and your milestones.', use: 'Whenever something does not make sense.' },
