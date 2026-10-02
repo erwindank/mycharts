@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['pt-PT'] = {
 
   /* ========== OUTUBRO 2026 ========== */
 
+  'Real-Life Awards now cover the BRIT Awards':
+    ['Prémios Reais agora inclui os BRIT Awards',
+     'Prémios Reais tem um nono separador, BRIT, para os BRIT Awards: a primeira cerimónia em 1977 e depois todos os anos desde 1982 até hoje. As setas de ano saltam de 1978 a 1981, quando não houve cerimónia. Mostra quais dos teus artistas foram nomeados e o que ganharam, e depois todas as categorias da noite com os vencedores a negrito e os teus artistas assinalados. Cada ano é comparado com o que ouviste nos doze meses antes da cerimónia. Os nomes das categorias já não indicam quem entregou o prémio, em nenhum separador. Se a Wikipédia estiver ocupada por um momento, o separador agora espera e tenta de novo antes de mostrar um erro.'],
+
   'Real-Life Awards now cover the Juno Awards':
     ['Prémios Reais agora inclui os Juno Awards',
      'Prémios Reais tem um oitavo separador, Juno, para os Juno Awards do Canadá, com todos os anos desde 1971 até hoje. Em 1988 não houve cerimónia, e o separador indica-o. Mostra quais dos teus artistas foram nomeados e o que ganharam, e depois todas as categorias da noite com os vencedores a negrito e os teus artistas assinalados. Os empates mostram todos os vencedores, como o Single do Ano de 1981, que foi para Anne Murray e para os Martha and the Muffins. Cada ano é comparado com o que ouviste nos doze meses antes da cerimónia. Os vencedores e nomeados vêm da Wikipédia.'],

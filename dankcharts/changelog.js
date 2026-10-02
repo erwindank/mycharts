@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 54;
+const DC_CL_I18N_V = 55;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,10 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+
+  { d: '2026-10-02', t: 'feature', a: 'awards', h: 'b5b282f',
+    title: 'Real-Life Awards now cover the BRIT Awards',
+    detail: 'Real-Life Awards has a ninth tab, BRIT, for the BRIT Awards: the first show in 1977, then every year from 1982 to now. The year arrows skip 1978 to 1981, when there was no show. It shows which of your artists were nominated and what they won, then every category of the night with the winners in bold and your artists marked. Each year is matched against your plays from the twelve months before the show. Category names no longer list who presented them, on any tab. If Wikipedia is briefly busy, the tab now waits a moment and tries again before showing an error.' },
 
   { d: '2026-10-02', t: 'feature', a: 'awards', h: '7244db5',
     title: 'Real-Life Awards now cover the Juno Awards',

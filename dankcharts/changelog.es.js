@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['es'] = {
 
   /* ========== OCTUBRE 2026 ========== */
 
+  'Real-Life Awards now cover the BRIT Awards':
+    ['Premios Reales ahora incluye los BRIT Awards',
+     'Premios Reales tiene una novena pestaña, BRIT, para los BRIT Awards: la primera ceremonia en 1977 y luego todos los años desde 1982 hasta hoy. Las flechas de año se saltan de 1978 a 1981, cuando no hubo ceremonia. Muestra cuáles de tus artistas estuvieron nominados y qué ganaron, y luego todas las categorías de la noche con los ganadores en negrita y tus artistas marcados. Cada año se compara con lo que escuchaste en los doce meses antes de la ceremonia. Los nombres de las categorías ya no incluyen quién entregó el premio, en ninguna pestaña. Si Wikipedia está ocupada un momento, la pestaña ahora espera y vuelve a intentarlo antes de mostrar un error.'],
+
   'Real-Life Awards now cover the Juno Awards':
     ['Premios Reales ahora incluye los Juno Awards',
      'Premios Reales tiene una octava pestaña, Juno, para los Juno Awards de Canadá, con todos los años desde 1971 hasta hoy. En 1988 no hubo ceremonia, y la pestaña lo indica. Muestra cuáles de tus artistas estuvieron nominados y qué ganaron, y luego todas las categorías de la noche con los ganadores en negrita y tus artistas marcados. Los empates muestran a todos los ganadores, como el Sencillo del Año de 1981, que ganaron Anne Murray y Martha and the Muffins. Cada año se compara con lo que escuchaste en los doce meses antes de la ceremonia. Los ganadores y nominados vienen de Wikipedia.'],
