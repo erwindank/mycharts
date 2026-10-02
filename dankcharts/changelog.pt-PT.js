@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['pt-PT'] = {
 
   /* ========== OUTUBRO 2026 ========== */
 
+  'Nominee suggestions are readable on phones':
+    ['Sugestões de nomeados legíveis no telemóvel',
+     'No telemóvel, a lista de nomeados sugeridos dos Meus Grammys tentava encaixar o título, o artista, as etiquetas de género, as reproduções e os botões numa só linha, e o título ficava tão estreito que aparecia uma letra por linha. Agora o título tem a sua própria linha ao lado da capa, e o artista, as etiquetas, as reproduções e os botões ficam nas linhas de baixo.'],
+
   'Artist of the Year stats show highlights, growth, plaques and records':
     ['As estatísticas de Artista do Ano mostram conquistas, crescimento, placas e recordes',
      'Quando abres o cartão de estatísticas de um artista no seletor de Artista do Ano, ele passa a contar toda a história do artista. Primeiro aparecem as conquistas em forma de distintivos, como um ano de revelação, o maior ano de sempre, êxitos e álbuns #1, êxitos no top 10, placas novas, sequências longas e a música mais ouvida. Ano a ano mostra uma barra por cada ano desde que o ouviste pela primeira vez, com a posição dele entre os artistas por baixo de cada barra e quanto cresceu ou desceu em relação ao ano anterior. Certificações mostra cada placa que as músicas e álbuns dele ganharam nesse ano, junto com o total de sempre. Recordes que tem mostra cada recorde dele no teu separador de Recordes, com medalhas para o primeiro, segundo e terceiro lugar.'],

@@ -24573,9 +24573,17 @@ body.pink-light .awards-picker-yt-btn:hover { color: #CC0000; border-color: #CC0
   .awards-picker-selected { grid-template-columns: minmax(0, 1fr); max-height: 176px; }
   .awards-picker-ballot { margin: 0 10px; }
   .awards-picker-ballot-hint { display: none; }
-  .awards-picker-result-row { gap: 6px; }
-  .awards-picker-lbl { min-width: 0; overflow-wrap: anywhere; }
-  .awards-picker-result-row .awards-picker-thumb { width: 32px; }
+  /* Too many pieces for one line on a phone (title, artist, genre tags, score,
+     plays, buttons) — the title got squeezed to one letter per line. Wrap
+     instead: the + and the cover are pinned in a left column (8px padding +
+     16 + 6 + 32 + 6 = 68px), the title gets the whole first line, and the
+     artist, tags, plays and buttons wrap onto lines below, all lined up under
+     the title rather than spilling back to the left edge. */
+  .awards-picker-result-row { position: relative; gap: 6px; flex-wrap: wrap; row-gap: 4px; padding-left: 68px; min-height: 46px; }
+  .awards-picker-result-row .awards-picker-add-icon { position: absolute; left: 8px; top: 13px; }
+  .awards-picker-result-row .awards-picker-thumb { position: absolute; left: 30px; top: 7px; width: 32px; }
+  .awards-picker-lbl { flex: 1 1 100%; min-width: 0; overflow-wrap: anywhere; }
+  .awards-picker-genre-tags { flex-wrap: wrap; flex-shrink: 1; min-width: 0; }
 }
 @media (max-width: 560px) {
   .awards-picker-preview-bigcover .awards-picker-preview-cover { width: min(260px, 32vh, 100%); }
