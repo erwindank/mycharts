@@ -79,7 +79,11 @@ async function lookupArtist(artist) {
   const doc = await resolveArtist(artist);
   if (!doc) return { found: false, artist };
 
-  const page = await fetch(doc.permalink, {
+  // The search index used to hand back full URLs but now gives site-relative
+  // paths ("/artists/kendrick-lamar/17949/"), and fetch() throws on those —
+  // which broke every lookup. Resolve both forms against grammy.com.
+  const pageUrl = absUrl(doc.permalink);
+  const page = await fetch(pageUrl, {
     headers: { 'User-Agent': UA, 'Accept': 'text/html' },
     cf: { cacheTtl: DAY, cacheEverything: true },
   });
@@ -90,12 +94,17 @@ async function lookupArtist(artist) {
   return {
     found: true,
     artist: decodeEntities(doc.post_title || artist),
-    url: doc.permalink,
-    image: doc.post_thumbnail || null,
+    url: pageUrl,
+    image: doc.post_thumbnail ? absUrl(doc.post_thumbnail) : null,
     wins: entries.filter(e => e.won).length,
     nominations: entries.length,
     entries,
   };
+}
+
+// Make a grammy.com link absolute, whether it arrives full or site-relative.
+function absUrl(link) {
+  return new URL(link, 'https://www.grammy.com').href;
 }
 
 // ── Name → grammy.com artist page ────────────────────────────────────────────
