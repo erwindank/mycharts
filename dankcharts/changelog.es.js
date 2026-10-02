@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['es'] = {
 
   /* ========== OCTUBRE 2026 ========== */
 
+  'See how many categories still need a winner, and fold or open them all at once':
+    ['Mira cuántas categorías aún necesitan ganador, y pliégalas o ábrelas todas a la vez',
+     'La barra sobre tus categorías de Mis Grammys ahora muestra cuántas siguen esperando ganador, por ejemplo 3/12 por decidir. Baja a medida que eliges ganadores y se vuelve dorada cuando todas están decididas. Al lado están los botones Expandir todo y Contraer todo, que abren o pliegan todas las tarjetas en pantalla con un clic.'],
+
   'Hide categories that already have a winner, or fold any card away':
     ['Oculta las categorías que ya tienen ganador, o pliega cualquier tarjeta',
      'Mis Grammys tiene un nuevo interruptor Ocultar decididas junto al selector de vista. Al activarlo desaparecen todas las categorías que ya tienen ganador, y solo quedan las que aún tienes que votar. El interruptor muestra cuántas está ocultando. Cada tarjeta de categoría también tiene una pequeña flecha en la esquina que la pliega hasta dejar solo su nombre; otro clic la vuelve a abrir. Las tarjetas plegadas siguen así en este dispositivo hasta que las abras.'],

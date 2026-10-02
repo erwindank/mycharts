@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 37;
+const DC_CL_I18N_V = 38;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,10 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+
+  { d: '2026-10-01', t: 'feature', a: 'awards', h: '',
+    title: 'See how many categories still need a winner, and fold or open them all at once',
+    detail: 'The bar above your My Grammys categories now shows how many are still waiting on a winner, for example 3/12 left to decide. It counts down as you crown winners and turns gold once every category is decided. Next to it are Expand All and Collapse All buttons, which open or fold every category card on screen in one click.' },
 
   { d: '2026-10-01', t: 'feature', a: 'awards', h: '931e8cc',
     title: 'Hide categories that already have a winner, or fold any card away',

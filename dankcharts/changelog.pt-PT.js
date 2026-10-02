@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['pt-PT'] = {
 
   /* ========== OUTUBRO 2026 ========== */
 
+  'See how many categories still need a winner, and fold or open them all at once':
+    ['Vê quantas categorias ainda precisam de vencedor, e recolhe ou abre todas de uma vez',
+     'A barra acima das tuas categorias dos Meus Grammys mostra agora quantas ainda esperam um vencedor, por exemplo 3/12 por decidir. O número desce à medida que escolhes vencedores e fica dourado quando todas estão decididas. Ao lado estão os botões Expandir tudo e Recolher tudo, que abrem ou recolhem todos os cartões no ecrã com um clique.'],
+
   'Hide categories that already have a winner, or fold any card away':
     ['Oculta as categorias que já têm vencedor, ou recolhe qualquer cartão',
      'Os Meus Grammys têm um novo botão Ocultar decididas ao lado do seletor de vista. Ao ativá-lo, todas as categorias que já têm vencedor desaparecem e ficam só as que ainda tens de votar. O botão mostra quantas está a ocultar. Cada cartão de categoria tem também uma pequena seta no canto que o recolhe até mostrar só o nome; outro clique volta a abri-lo. Os cartões recolhidos ficam assim neste dispositivo até os abrires.'],

@@ -36019,7 +36019,12 @@ function _awardsRenderCatList(data) {
     ? activeCats.filter(c => !_awardsCatDecided(c, data.categories[c.id]))
     : activeCats;
   const seq = ++_awardsViewSeq;
-  _awardsRenderViewBar(activeCats.length > 0, activeCats.length - shownCats.length);
+  _awardsRenderViewBar(activeCats.length > 0, {
+    hidden:  activeCats.length - shownCats.length,
+    // Still waiting on a winner, whether or not "Hide decided" is on
+    pending: activeCats.filter(c => !_awardsCatDecided(c, data.categories[c.id])).length,
+    total:   activeCats.length,
+  });
   if (!activeCats.length) {
     el.innerHTML = `<div class="awards-empty">${t('awards_no_categories')}</div>`;
     document.getElementById('awardsCeremonyBar').style.display = 'none';
@@ -36715,21 +36720,53 @@ function awardsSetView(view) {
   if (data) _awardsRenderCatList(data);
 }
 
-// hiddenN = how many decided categories "Hide decided" is leaving out right now
-function _awardsRenderViewBar(show, hiddenN) {
+// Expand all / Collapse all in the view bar: folds or opens every card on
+// screen at once, in place like the per-card chevron
+function awardsCollapseAll(fold) {
+  document.querySelectorAll('#awardsCatList .awards-cat-card').forEach(card => {
+    const catId = card.id.replace(/^awardsCat_/, '');
+    if (fold) _awardsCollapsed.add(catId); else _awardsCollapsed.delete(catId);
+    card.classList.toggle('is-collapsed', fold);
+    const btn = card.querySelector('.awards-cat-collapse');
+    if (btn) {
+      btn.setAttribute('aria-expanded', String(!fold));
+      btn.title = t(fold ? 'awards_expand' : 'awards_collapse');
+    }
+  });
+  try { localStorage.setItem(AWARDS_COLLAPSED_KEY, JSON.stringify([..._awardsCollapsed])); } catch (e) {}
+}
+
+/* counts: { hidden, pending, total }
+     hidden  = decided categories "Hide decided" is leaving out right now
+     pending = categories still waiting on a winner
+     total   = enabled categories this year */
+function _awardsRenderViewBar(show, counts) {
   const bar = document.getElementById('awardsViewBar');
   if (!bar) return;
   bar.style.display = show ? '' : 'none';
   if (!show) return;
+  const { hidden = 0, pending = 0, total = 0 } = counts || {};
   const hdName = t('awards_hide_decided');
-  bar.innerHTML = `<div class="awards-view-seg awards-hide-decided-seg">
-      <button class="awards-view-opt awards-hide-decided" aria-pressed="${_awardsHideDecided}" onclick="awardsSetHideDecided(${!_awardsHideDecided})" title="${esc(t('awards_hide_decided_tip'))}" aria-label="${esc(hdName)}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3l18 18M10.6 5.1A10 10 0 0 1 12 5c5 0 9 4.5 10 7-0.4 1-1.2 2.3-2.4 3.5M6.6 6.6C4.4 8 2.8 10.2 2 12c1 2.5 5 7 10 7 1.9 0 3.6-0.6 5.1-1.6M9.9 9.9a3 3 0 0 0 4.2 4.2"/></svg><span>${esc(hdName)}${_awardsHideDecided && hiddenN ? ` · ${hiddenN}` : ''}</span></button>
+  // Progress chip: "3/12 left to decide", or a gold "all decided" once done
+  const pendLbl = pending ? t('awards_pending') : t('awards_none_pending');
+  const ico = d => `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="${d}"/></svg>`;
+  bar.innerHTML = `<div class="awards-bar-tools">
+      <span class="awards-pending-chip${pending ? '' : ' is-done'}" role="status">${pending ? `<b>${pending}/${total}</b>` : '✓'}<span>${esc(pendLbl)}</span></span>
+      <div class="awards-view-seg">
+        <button class="awards-view-opt awards-hide-decided" aria-pressed="${_awardsHideDecided}" onclick="awardsSetHideDecided(${!_awardsHideDecided})" title="${esc(t('awards_hide_decided_tip'))}" aria-label="${esc(hdName)}">${ico('M3 3l18 18M10.6 5.1A10 10 0 0 1 12 5c5 0 9 4.5 10 7-0.4 1-1.2 2.3-2.4 3.5M6.6 6.6C4.4 8 2.8 10.2 2 12c1 2.5 5 7 10 7 1.9 0 3.6-0.6 5.1-1.6M9.9 9.9a3 3 0 0 0 4.2 4.2')}<span>${esc(hdName)}${_awardsHideDecided && hidden ? ` · ${hidden}` : ''}</span></button>
+      </div>
+      <div class="awards-view-seg">
+        <button class="awards-view-opt awards-expand-all" onclick="awardsCollapseAll(false)" title="${esc(t('awards_expand_all'))}" aria-label="${esc(t('awards_expand_all'))}">${ico('M7 8l5-5 5 5M7 16l5 5 5-5')}<span>${esc(t('awards_expand_all'))}</span></button>
+        <button class="awards-view-opt awards-collapse-all" onclick="awardsCollapseAll(true)" title="${esc(t('awards_collapse_all'))}" aria-label="${esc(t('awards_collapse_all'))}">${ico('M7 3l5 5 5-5M7 21l5-5 5 5')}<span>${esc(t('awards_collapse_all'))}</span></button>
+      </div>
     </div>
+    <div class="awards-view-pick">
     <span class="awards-view-bar-label">${esc(t('awards_view_label'))}</span>
     <div class="awards-view-seg" role="radiogroup" aria-label="${esc(t('awards_view_label'))}">${AWARDS_VIEWS.map(v => {
       const name = t('awards_view_' + v);
       return `<button class="awards-view-opt" role="radio" aria-checked="${v === _awardsView}" onclick="awardsSetView('${v}')" title="${esc(name)}" aria-label="${esc(name)}"><svg viewBox="0 0 24 24" aria-hidden="true">${AWARDS_VIEW_ICONS[v]}</svg><span>${esc(name)}</span></button>`;
-    }).join('')}</div>`;
+    }).join('')}</div>
+    </div>`;
 }
 
 // What a view can show without a lookup: a picture pinned in a profile modal, or

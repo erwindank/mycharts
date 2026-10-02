@@ -22971,6 +22971,7 @@ body[class*="-light"] .tm-card-search:hover {
    setting for the cards rather than another action. */
 .awards-view-bar {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: flex-end;
   gap: 10px;
@@ -23036,7 +23037,48 @@ body[class*="-light"] .tm-card-search:hover {
   box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--gold1) 40%, transparent);
 }
 .awards-view-opt[aria-pressed="true"] svg { stroke: color-mix(in srgb, var(--gold1) 80%, var(--text1)); }
-.awards-view-bar .awards-hide-decided-seg { margin-right: auto; }
+/* "View" label + view buttons, kept together and on the right when the bar wraps */
+.awards-view-pick {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-left: auto;
+  max-width: 100%;
+}
+/* Left side of the view bar: pending count, Hide decided, Expand/Collapse all */
+.awards-bar-tools {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-right: auto;
+}
+.awards-pending-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 6px 12px;
+  border-radius: var(--r-full);
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  color: var(--text2);
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.awards-pending-chip b {
+  color: var(--text1);
+  font-size: 0.8rem;
+  letter-spacing: 0;
+}
+/* Every category has its winner */
+.awards-pending-chip.is-done {
+  color: color-mix(in srgb, var(--gold1) 80%, var(--text1));
+  background: color-mix(in srgb, var(--gold1) 12%, var(--surface2));
+  border-color: color-mix(in srgb, var(--gold1) 40%, transparent);
+}
 .awards-empty .awards-cat-action-btn { margin-left: 8px; }
 
 /* Shared by the art views ─────────────────────────────────────────────────────
@@ -23582,6 +23624,7 @@ body[class*="-light"] .tm-card-search:hover {
 
 @media (max-width: 560px) {
   .awards-view-bar { justify-content: flex-start; }
+  .awards-view-pick { margin-left: 0; }
   .awards-view-bar-label { display: none; }
   .awards-view-opt { padding: 7px 11px; }
   .awards-view-opt span { display: none; }       /* icons only; names stay in title= */
