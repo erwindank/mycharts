@@ -22646,6 +22646,12 @@ body[class*="-light"] .tm-card-search:hover {
   line-height: 1.15;
   color: var(--text1);
 }
+/* What the category is about, under its name, so nominees are easier to pick */
+.awards-cat-desc {
+  font-size: 0.7rem;
+  line-height: 1.3;
+  color: var(--text3);
+}
 .awards-auto-tag  {
   flex: none;
   font-size: 0.55rem;

@@ -35835,6 +35835,12 @@ function _awardsCatGroup(cat) {
 
 // One line on what the category is built from, keyed on its filter
 function _awardsCatHint(cat) {
+  // A hand-written line on what to look for (awards_desc_<id>) wins over the
+  // filter-based ones, for categories that share a filter (Song vs Record of
+  // the Year, the rock ballad / riff awards) and would otherwise read the same
+  const dKey = 'awards_desc_' + cat.id;
+  const desc = t(dKey);
+  if (desc && desc !== dKey) return desc;
   // A category can name its own hint when its filter alone would mislead
   // (the ceremony-style rock awards share Best Rock Song's filter)
   if (cat.hint) return t('awards_hint_' + cat.hint);
@@ -36619,6 +36625,7 @@ function _awardsCatHeadHtml(cat, count, extra) {
       <span class="awards-cat-heading">
         <span class="awards-cat-kicker">${esc(cat.type || '')}${count ? ' · ' + count : ''}</span>
         <span class="awards-cat-name">${esc(t('awards_cat_' + cat.id))}</span>
+        <span class="awards-cat-desc">${esc(_awardsCatHint(cat))}</span>
       </span>
       ${cat.auto ? '<span class="awards-auto-tag">auto</span>' : ''}${extra || ''}
       ${_awardsCollapseBtn(cat)}

@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['pt-PT'] = {
 
   /* ========== OUTUBRO 2026 ========== */
 
+  'Each category card now says what it is about':
+    ['Cada categoria diz agora do que se trata',
+     'Nos Meus Grammys, cada cartão de categoria mostra uma linha curta por baixo do nome sobre o que cabe nela, para saberes o que procurar ao escolher os nomeados. Os prémios de género descrevem como o género soa, por exemplo Grunge diz guitarras distorcidas dos anos 90 cheias de angústia. As categorias que partem das mesmas músicas também se distinguem agora: Música do Ano é sobre a composição, Gravação do Ano sobre a interpretação e a produção, e Balada Rock e Riff/Solo de Guitarra dizem o que ouvir. As mesmas linhas aparecem na lista de categorias.'],
+
   'Expand all and Collapse all can skip categories that already have a winner':
     ['Expandir tudo e Recolher tudo podem ignorar as categorias que já têm vencedor',
      'Nos Meus Grammys, os botões Expandir tudo e Recolher tudo têm agora um seletor Todas / Sem vencedor à frente. Em Todas atuam em todas as categorias, como antes. Em Sem vencedor só abrem ou recolhem as categorias que ainda esperam um vencedor e deixam as decididas como estão. A escolha fica guardada neste dispositivo.'],
