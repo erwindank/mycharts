@@ -80,7 +80,7 @@ const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
 
-  { d: '2026-10-02', t: 'change', a: 'awards', h: '',
+  { d: '2026-10-02', t: 'change', a: 'awards', h: '95e153d',
     title: 'Clearing the nominee picker now asks first',
     detail: 'In My Grammys, the Clear button in the nominee picker now asks you to confirm before it removes every nominee from the category, so one stray click no longer wipes a ballot you built by hand. If there are no nominees yet, it does nothing.' },
 
