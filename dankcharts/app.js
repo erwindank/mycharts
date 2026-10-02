@@ -37947,7 +37947,7 @@ function _awardsPickerResultRow(item, idx) {
   if ((_awardsPickerCatFilter.startsWith('genre:') || _awardsPickerCatFilter === 'rock_group') && item.grp !== 2) {
     const tags = _awardsPickerItemTags(item);
     if (tags && tags.length) {
-      genreHtml = `<span class="awards-picker-genre-tags">${tags.slice(0, 3).map(t => `<span class="awards-picker-genre-tag">${esc(t)}</span>`).join('')}</span>`;
+      genreHtml = `<span class="awards-picker-genre-tags">${tags.slice(0, 5).map(t => `<span class="awards-picker-genre-tag">${esc(t)}</span>`).join('')}</span>`;
     } else {
       genreHtml = `<span class="awards-picker-genre-tags"><span class="awards-picker-genre-tag awards-picker-genre-unk">${tags === undefined ? '?' : 'no genre'}</span></span>`;
     }

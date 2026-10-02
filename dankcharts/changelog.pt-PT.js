@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['pt-PT'] = {
 
   /* ========== OUTUBRO 2026 ========== */
 
+  'Nominee suggestions show all five genres':
+    ['Sugestões de nomeados mostram os cinco géneros',
+     'Nas categorias de género dos Meus Grammys, cada nomeado sugerido mostrava só os três primeiros géneros. Agora mostra até cinco, por isso todos os géneros da sua Google Sheet (Género 1 a Género 5) aparecem, tal como as etiquetas do Last.fm ou de um ficheiro CSV. Quando uma linha tem muitos géneros, passam para uma segunda linha em vez de apertar o título, o artista ou as reproduções.'],
+
   'Nominee suggestions are readable on phones':
     ['Sugestões de nomeados legíveis no telemóvel',
      'No telemóvel, a lista de nomeados sugeridos dos Meus Grammys tentava encaixar o título, o artista, as etiquetas de género, as reproduções e os botões numa só linha, e o título ficava tão estreito que aparecia uma letra por linha. Agora o título tem a sua própria linha ao lado da capa, e o artista, as etiquetas, as reproduções e os botões ficam nas linhas de baixo.'],

@@ -80,6 +80,10 @@ const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
 
+  { d: '2026-10-01', t: 'change', a: 'awards', h: '',
+    title: 'Nominee suggestions show all five genres',
+    detail: 'In genre categories of My Grammys, each suggested nominee used to show only its first three genres. It now shows up to five, so every genre from your Google Sheet (Genre 1 to Genre 5) is there, along with tags from Last.fm or a CSV file. When a row has a lot of genres, they wrap onto a second line instead of squeezing the song title, artist or play count.' },
+
   { d: '2026-10-01', t: 'fix', a: 'awards', h: 'a028294',
     title: 'Nominee suggestions are readable on phones',
     detail: 'On a phone, the list of suggested nominees in My Grammys tried to fit the song title, artist, genre tags, plays and buttons on one line, which squeezed the title so narrow that it was written one letter per line. Now the title gets its own line next to the cover, and the artist, tags, plays and buttons sit on the lines below it.' },

@@ -23918,12 +23918,13 @@ body.pink-light .awards-ceremony-share-btn:hover { border-color: var(--medal-gol
   flex-shrink: 0;
 }
 .awards-picker-result-row:hover .awards-picker-add-icon { color: var(--accent); }
-.awards-picker-lbl  { flex: 1; }
-.awards-picker-sub  { font-size: 0.72rem; color: var(--text3); }
-.awards-picker-genre-tags { display: inline-flex; gap: 3px; flex-shrink: 0; }
+.awards-picker-lbl  { flex: 1; min-width: 110px; }
+.awards-picker-sub  { font-size: 0.72rem; color: var(--text3); white-space: nowrap; }
+/* Up to five genres (the sheet has Genre 1–5) — they wrap rather than crowd the title */
+.awards-picker-genre-tags { display: inline-flex; flex-wrap: wrap; gap: 3px; flex-shrink: 1; min-width: 0; }
 .awards-picker-genre-tag  { font-size: 0.6rem; padding: 1px 5px; border-radius: 10px; background: var(--surface3); color: var(--text3); border: 1px solid var(--border); white-space: nowrap; }
 .awards-picker-genre-unk  { opacity: 0.5; font-style: italic; }
-.awards-picker-plays{ font-size: 0.7rem; color: var(--text3); font-family: var(--font-mono); }
+.awards-picker-plays{ font-size: 0.7rem; color: var(--text3); font-family: var(--font-mono); white-space: nowrap; }
 
 /* Year stats (Song / Album / Artist of the Year) ──────────────────────────────
    A second line on each row, lined up under the title (past the + and the
