@@ -80,7 +80,7 @@ const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
 
-  { d: '2026-10-01', t: 'fix', a: 'awards', h: '',
+  { d: '2026-10-01', t: 'fix', a: 'awards', h: '0e5c7f4',
     title: 'My Grammys works again after the Artist stats update',
     detail: 'After the Artist of the Year stats update, parts of My Grammys stopped working: the category summaries and the winners list could fail to load, and the console filled with errors. Two pieces of code had ended up with the same name, so one replaced the other. They now have separate names and everything loads again.' },
 
