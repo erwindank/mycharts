@@ -39263,9 +39263,9 @@ async function _grammyMapLimit(items, limit, fn) {
 // Which show the Real-Life Awards tab is on: the Grammys, or one of the shows
 // read from Wikipedia (RL_WIKI_SHOWS: the MTV VMAs, the AMAs, the iHeartRadio
 // Music Awards, the World Music Awards, the Billboard Music Awards, the ARIA
-// Music Awards). They all share
+// Music Awards, the Juno Awards). They all share
 // one year stepper and one content area; this just picks the loader.
-const RL_SHOW_IDS = ['grammys', 'vmas', 'amas', 'iheart', 'wma', 'billboard', 'aria'];
+const RL_SHOW_IDS = ['grammys', 'vmas', 'amas', 'iheart', 'wma', 'billboard', 'aria', 'juno'];
 let _realLifeShow = (() => {
   try { const v = localStorage.getItem('dc_awards_reallife_show'); return RL_SHOW_IDS.includes(v) ? v : 'grammys'; }
   catch (e) { return 'grammys'; }
@@ -39572,12 +39572,23 @@ const RL_WIKI_SHOWS = {
     // their pages give no date, so match the calendar year of the show
     window: _rlWikiDateOrCalendarYear,
   },
+  juno: {
+    first: 1971,   // the 1st Juno Awards (1970's were still the Gold Leaf Awards)
+    short: 'Juno Awards',
+    pages: y => [{ title: `Juno_Awards_of_${y}` }],
+    ceremony: y => `Juno Awards of ${y}`,
+    // 2013 on are tables; before that, `Winner:` paragraphs and bullet lists
+    lists: true,
+    // Held in spring for the year before; the date is on the page when it's
+    // known, and the end of January stands in when it isn't
+    window: _rlWikiYearBefore,
+  },
 };
 // Bump the version whenever the parsing changes, so years saved under the old
 // rules are read again
-const RL_WIKI_CACHE_LS = 'dc_rl_wiki_cache_v4';  // parsed ceremonies, so a past year is fetched once, ever
+const RL_WIKI_CACHE_LS = 'dc_rl_wiki_cache_v5';  // parsed ceremonies, so a past year is fetched once, ever
 const RL_WIKI_FRESH_MS = 86400000;                // this year's page can still change (winners land late), so refetch daily
-try { ['dc_vma_cache_v1', 'dc_rl_wiki_cache_v1', 'dc_rl_wiki_cache_v2', 'dc_rl_wiki_cache_v3'].forEach(k => localStorage.removeItem(k)); } catch (e) {}   // caches this replaced
+try { ['dc_vma_cache_v1', 'dc_rl_wiki_cache_v1', 'dc_rl_wiki_cache_v2', 'dc_rl_wiki_cache_v3', 'dc_rl_wiki_cache_v4'].forEach(k => localStorage.removeItem(k)); } catch (e) {}   // caches this replaced
 
 const _rlWikiCache = {};   // "show:year" → promise of the parsed ceremony, for this session
 
@@ -39649,6 +39660,7 @@ async function _rlWikiFetchPage(title, year, show) {
   let categories = _rlWikiParse(doc);
   if (!categories.length && show?.lists) categories = _rlWikiParseResultTables(doc);
   if (!categories.length && show?.lists) categories = _rlWikiParseLists(doc, show);
+  if (!categories.length && show?.lists) categories = _rlWikiParse(doc, true);
   return { title: j.parse.title.replace(/ /g, '_'), date: _rlWikiDate(doc), categories, hasPage: true };
 }
 
@@ -39680,16 +39692,18 @@ function _rlWikiText(node) {
 //     are a <ul> nested under it
 //   one row per category (older AMAs): category | winner | nominees, with the
 //     names in each cell split by <br>
-function _rlWikiParse(doc) {
+function _rlWikiParse(doc, anywhere = false) {
   const head = doc.getElementById('Winners_and_nominees') || doc.querySelector('h2[id^="Winners"], h2[id^="Nominations"], h2[id^="Nominees"]');
-  if (!head) return [];
+  // With no such heading, `anywhere` (a last resort, for pages that file the
+  // tables under "People", "Albums"… like the 2004 Junos) reads every table
+  if (!head && !anywhere) return [];
 
   // Only tables between that heading and the next section count — later
   // sections (performances, presenters) use the same table class.
   const FOLLOWS = Node.DOCUMENT_POSITION_FOLLOWING;
-  const nextH2 = [...doc.querySelectorAll('h2')].find(h => h !== head && (head.compareDocumentPosition(h) & FOLLOWS));
-  const tables = [...doc.querySelectorAll('table.wikitable')].filter(t =>
-    (head.compareDocumentPosition(t) & FOLLOWS) && (!nextH2 || (t.compareDocumentPosition(nextH2) & FOLLOWS)));
+  const nextH2 = head && [...doc.querySelectorAll('h2')].find(h => h !== head && (head.compareDocumentPosition(h) & FOLLOWS));
+  const tables = [...doc.querySelectorAll('table.wikitable')].filter(t => !head ||
+    ((head.compareDocumentPosition(t) & FOLLOWS) && (!nextH2 || (t.compareDocumentPosition(nextH2) & FOLLOWS))));
 
   const categories = [];
   for (const table of tables) {
@@ -39751,15 +39765,21 @@ function _rlWikiParse(doc) {
 //     says so (`honours`) or an honour by its name (Hall of Fame, Legend
 //     Award), a list of honourees, so everyone on it won; otherwise it just
 //     means the page never marked the winner
+//   a heading per category, a `Winner: Luba` paragraph, then an "Other
+//     nominees" list (Junos 1971–2012). Pages written this way also carry
+//     `Category: Name` bullets in their intro about late changes to the
+//     nominees, which aren't results, so those are dropped when this shape is
+//     found.
 // Sections about the show rather than the awards (performers, references, the
-// "multiple winners" tallies…) are skipped.
-const RL_WIKI_SKIP_SECTIONS = /^(performers?|performances|presenters|hosts|references|notes|external links|see also|international telecasts|broadcast|delays|records|charity|official sponsor|top award winners|ceremony|background|multiple (winners|nominations|wins)|most (wins|nominations)|judging)/i;
+// "multiple winners" tallies, the broadcast and events schedule…) are skipped.
+const RL_WIKI_SKIP_SECTIONS = /^(performers?|performances|presenters|hosts|references|notes|external links|see also|international telecasts?|broadcast|delays|records|charity|official sponsor|top award winners|(primary |main )?ceremon|background|multiple (winners|nominations|wins)|most (wins|nominations)|judging|presentations|events|bidding|(saturday |sunday )?gala|sunday|saturday)/i;
 const RL_WIKI_HONOURS = /hall of fame|legend|lifetime achievement|icon award/i;
 
 function _rlWikiParseLists(doc, show) {
   const categories = [];
   let h2 = '', h3 = '', label = '';
-  const nodes = [...doc.querySelectorAll('h2, h3, h4, dt, ul')];
+  let pending = null;   // the category a `Winner:` paragraph just opened, waiting for its nominees list
+  const nodes = [...doc.querySelectorAll('h2, h3, h4, dt, p, ul')];
   // An entry plus everything nested under it, as nominees
   const withNested = (li, won) => {
     const top = li.cloneNode(true);
@@ -39770,16 +39790,54 @@ function _rlWikiParseLists(doc, show) {
     ];
   };
   for (const node of nodes) {
-    if (node.tagName === 'H2') { h2 = _rlWikiText(node); h3 = ''; label = ''; continue; }
-    if (node.tagName === 'H3') { h3 = _rlWikiText(node); label = ''; continue; }
+    if (node.tagName === 'H2') { h2 = _rlWikiText(node); h3 = ''; label = ''; pending = null; continue; }
+    if (node.tagName === 'H3') { h3 = _rlWikiText(node); label = ''; pending = null; continue; }
     if (node.tagName === 'H4' || node.tagName === 'DT') {
-      if (!node.closest('table, .navbox, .infobox')) label = _rlWikiText(node);
+      if (!node.closest('table, .navbox, .infobox')) { label = _rlWikiText(node); pending = null; }
       continue;
     }
     // A top-level list only: nested ones are read with their parent, and
     // lists in tables, infoboxes and navboxes aren't award lists
     if (!h2 || node.closest('li, table, .navbox, .reflist, .infobox')) continue;
     if (RL_WIKI_SKIP_SECTIONS.test(h2) || RL_WIKI_SKIP_SECTIONS.test(h3)) continue;
+
+    // `Winner: Luba` (Junos): opens the heading's category with its winner. A
+    // tie is `Winner (tie):` with nothing after it, and the winners in the
+    // next list instead.
+    if (node.tagName === 'P') {
+      const text = _rlWikiText(node);
+      const m = text.match(/^winners?(\s*\([^)]*\))?\s*[:：]\s*(.*)$/i);
+      if (!m) continue;
+      const name = label || h3 || h2;
+      if (!m[2].trim()) {
+        pending = { name, nominees: [], winnerPara: true, listWins: true };
+        categories.push(pending);
+        continue;
+      }
+      const el = node.cloneNode(true);
+      // Drop the bold "Winner:" label, so only the winner's own markup is left
+      const tag = [...el.querySelectorAll('b')].find(b => /^winners?(\s*\([^)]*\))?\s*[:：]?$/i.test(_rlWikiText(b)));
+      if (tag) tag.remove();
+      const winner = _rlWikiListEntry(el, m[2].trim(), true);
+      if (!winner.who) continue;
+      pending = { name, nominees: [winner], winnerPara: true };
+      categories.push(pending);
+      continue;
+    }
+    // …and the list after it fills that category in: the tied winners, or
+    // the "Other nominees"
+    if (pending) {
+      for (const li of node.querySelectorAll(':scope > li')) {
+        const top = li.cloneNode(true);
+        top.querySelectorAll(':scope > ul').forEach(e => e.remove());
+        const entry = _rlWikiListEntry(top, _rlWikiText(top), !!pending.listWins);
+        if (entry.who && entry.who.length <= 90) pending.nominees.push(entry);
+      }
+      // After a tie's winners, the next list is still this category's nominees
+      if (pending.listWins) pending.listWins = false;
+      else pending = null;
+      continue;
+    }
 
     const bare = [];   // names with no "Category:" in front, for the heading's category
     for (const li of node.querySelectorAll(':scope > li')) {
@@ -39832,7 +39890,7 @@ function _rlWikiParseLists(doc, show) {
           if (name.trim()) nominees.push({ who: name.trim(), title: '', rest: '', won: false });
         }
       }
-      categories.push({ name: labelled[1].trim(), nominees: nominees.filter(n => n.who) });
+      categories.push({ name: labelled[1].trim(), nominees: nominees.filter(n => n.who), labelled: true });
     }
 
     // A plain list straight under "Winners" or "Nominees" is a roll call of
@@ -39849,7 +39907,12 @@ function _rlWikiParseLists(doc, show) {
       categories.push({ name: heading, nominees: kept });
     }
   }
-  return categories;
+  // On a page laid out as `Winner:` paragraphs, the `Category: Name` bullets
+  // are the intro's notes on late changes to the nominees, not results
+  const byPara = categories.some(c => c.winnerPara);
+  return categories
+    .filter(c => !(byPara && c.labelled))
+    .map(({ name, nominees }) => ({ name, nominees }));
 }
 
 // Results tables (ARIA 2009–2010): a header row per category, then a row per
@@ -39958,6 +40021,13 @@ function _rlWikiEntry(el, won) {
   // `Merle Haggard, "If We Make It Through December"`. The title has to come
   // off, or its words ("Make") get matched as artists.
   if (parts.length === 1) {
+    // The Junos go the other way, title first: `Anne Murray Duets: Friends &
+    // Legends, Anne Murray` (album in italics), `"Hello", Martha Wainwright`
+    const tq = text.match(/^["“]([^"”]+)["”]\s*,\s*(.+)$/);
+    if (tq) return { who: tq[2].trim(), title: tq[1].trim(), rest: '', won };
+    if (italic && text.startsWith(italic) && /^\s*,\s*\S/.test(text.slice(italic.length))) {
+      return { who: text.slice(italic.length).replace(/^\s*,\s*/, '').trim(), title: italic, rest: '', won };
+    }
     const sq = text.match(/^(.+?),\s*["“]([^"”]+)["”]\s*$/);
     if (sq) return { who: sq[1].trim(), title: sq[2].trim(), rest: '', won };
     // Billboard puts the song after the credit with no dash: in brackets —
@@ -44567,7 +44637,7 @@ const _cgTourSteps = [
     nav: 'events' },
 
   { title: 'Awards',
-    content: 'A full awards ceremony generated from your own chart data, with 53 categories available — Song, Album and Artist of the Year, Best New Artist, Best Collaboration, Song of the Summer, Best Comeback, Best Discovery, Most Obsessive Play, and opt-in genre categories across pop, rock, alternative, hip-hop, R&B, Latin, electronic and K-pop. Set the eligibility window, choose your categories, then run the ceremony and watch the envelopes open. There is a separate Real-Life Awards tab alongside My Grammys, showing which of your artists were nominated for or won real Grammys, MTV VMAs, American Music Awards, iHeartRadio Music Awards, World Music Awards, Billboard Music Awards and ARIA Music Awards.',
+    content: 'A full awards ceremony generated from your own chart data, with 53 categories available — Song, Album and Artist of the Year, Best New Artist, Best Collaboration, Song of the Summer, Best Comeback, Best Discovery, Most Obsessive Play, and opt-in genre categories across pop, rock, alternative, hip-hop, R&B, Latin, electronic and K-pop. Set the eligibility window, choose your categories, then run the ceremony and watch the envelopes open. There is a separate Real-Life Awards tab alongside My Grammys, showing which of your artists were nominated for or won real Grammys, MTV VMAs, American Music Awards, iHeartRadio Music Awards, World Music Awards, Billboard Music Awards, ARIA Music Awards and Juno Awards.',
     nav: 'awards' },
 
   { title: 'Your Soundtrack',
@@ -45274,7 +45344,7 @@ function dcRenderChartsGuideView() {
       tabs: [
         { name: 'Records',         period: 'records',    icon: '🏆', desc: 'Eleven sections behind the button row at the top: All #1s, Perfect All Kill, Most Chart Appearances, Biggest Debuts, Most Plays in a Period, Play Count Milestones, Fastest to Milestone, Certifications, Streak Records, New Charts and an Overview.', use: 'Your record book.' },
         { name: 'Events',          period: 'events',     icon: '🎂', desc: 'A calendar of artist birthdays, album anniversaries and new releases for the artists in your charts.', use: 'Knowing when something is worth replaying.' },
-        { name: 'Awards',          period: 'awards',     icon: '🏅', desc: '53 categories generated from your own chart data — the four majors plus Best Collaboration, Song of the Summer, Best Comeback, Best Discovery, Most Obsessive Play and opt-in genre awards. Set an eligibility window, pick categories, then run the ceremony. Real-Life Awards sits alongside My Grammys, with the real Grammys, VMAs, AMAs, iHeartRadio, World Music, Billboard and ARIA Music Awards your artists were up for.', use: 'The fun one. Run it every December.' },
+        { name: 'Awards',          period: 'awards',     icon: '🏅', desc: '53 categories generated from your own chart data — the four majors plus Best Collaboration, Song of the Summer, Best Comeback, Best Discovery, Most Obsessive Play and opt-in genre awards. Set an eligibility window, pick categories, then run the ceremony. Real-Life Awards sits alongside My Grammys, with the real Grammys, VMAs, AMAs, iHeartRadio, World Music, Billboard, ARIA and Juno Awards your artists were up for.', use: 'The fun one. Run it every December.' },
         { name: 'Your Soundtrack', period: 'soundtrack', icon: '🎬', desc: 'A full recap of any month, year or all time: a reel, headline stats, top charts, a featured artist, your listening patterns, discoveries, milestones, streaks, a mini awards run and a hidden gem — plus an animated chart replay and a shareable card.', use: 'The nostalgic pass through your history.' },
         { name: 'Playlists',       period: 'playlists',  icon: '🎵', desc: 'Save any chart as a named playlist, queue tracks from anywhere, and use the Time Machine to replay exactly what you had on for any past date.', use: 'Turning a chart back into listening.' },
         { name: 'Charts Guide',    period: 'chartsguide',icon: '📖', desc: 'You are here. Setup checks, the tab breakdown, how charts are calculated, shortcuts, glossary, FAQ and your milestones.', use: 'Whenever something does not make sense.' },
