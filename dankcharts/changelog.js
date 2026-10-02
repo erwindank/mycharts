@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 49;
+const DC_CL_I18N_V = 50;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,10 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+
+  { d: '2026-10-02', t: 'feature', a: 'awards', h: '692bc04',
+    title: 'Real-Life Awards now cover the iHeartRadio Music Awards',
+    detail: 'Real-Life Awards has a fourth tab, iHeartRadio, next to Grammys, VMAs and AMAs. Pick a year from 2014 on to see which of your artists were nominated and what they won, then every category of the night with the winners in bold and your artists marked. Each year is matched against your plays from the twelve months before that show. Remixes and covers keep their note, like Savage (Remix), so a cover is credited to the artist who sang it and not the original artist. Winners and nominees come from Wikipedia.' },
 
   { d: '2026-10-02', t: 'feature', a: 'awards', h: '79cf383',
     title: 'Real-Life Awards now cover the American Music Awards',

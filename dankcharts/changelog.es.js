@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['es'] = {
 
   /* ========== OCTUBRE 2026 ========== */
 
+  'Real-Life Awards now cover the iHeartRadio Music Awards':
+    ['Premios Reales ahora incluye los iHeartRadio Music Awards',
+     'Premios Reales tiene una cuarta pestaña, iHeartRadio, junto a Grammys, VMAs y AMAs. Elige un año desde 2014 para ver cuáles de tus artistas estuvieron nominados y qué ganaron, y luego todas las categorías de la noche con los ganadores en negrita y tus artistas marcados. Cada año se compara con lo que escuchaste en los doce meses antes de esa ceremonia. Los remixes y covers conservan su nota, como Savage (Remix), así que un cover se le atribuye a quien lo cantó y no al artista original. Los ganadores y nominados vienen de Wikipedia.'],
+
   'Real-Life Awards now cover the American Music Awards':
     ['Premios Reales ahora incluye los American Music Awards',
      'Premios Reales tiene una tercera pestaña, AMAs, junto a Grammys y VMAs. Elige un año desde 1974 para ver cuáles de tus artistas estuvieron nominados y qué ganaron, y luego todas las categorías de la noche con los ganadores en negrita y tus artistas marcados. Los AMAs han cambiado de fecha con los años, así que cada año se compara con lo que escuchaste en los doce meses antes de esa ceremonia. En 2003 hubo dos ceremonias y aparecen las dos. No hubo ceremonia en 2023 ni en 2024, y la pestaña lo indica. Los ganadores y nominados vienen de Wikipedia.'],
