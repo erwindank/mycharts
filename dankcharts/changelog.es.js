@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['es'] = {
 
   /* ========== OCTUBRE 2026 ========== */
 
+  'Hide categories that already have a winner, or fold any card away':
+    ['Oculta las categorías que ya tienen ganador, o pliega cualquier tarjeta',
+     'Mis Grammys tiene un nuevo interruptor Ocultar decididas junto al selector de vista. Al activarlo desaparecen todas las categorías que ya tienen ganador, y solo quedan las que aún tienes que votar. El interruptor muestra cuántas está ocultando. Cada tarjeta de categoría también tiene una pequeña flecha en la esquina que la pliega hasta dejar solo su nombre; otro clic la vuelve a abrir. Las tarjetas plegadas siguen así en este dispositivo hasta que las abras.'],
+
   'Contact Support now opens a message form':
     ['Contactar soporte ahora abre un formulario de mensaje',
      'El chat de soporte dejó de funcionar, así que Contactar soporte ahora abre un formulario corto: escribe tu correo y tu mensaje, pulsa Enviar y nos llega por correo. Respondemos directamente a la dirección que escribiste. Si iniciaste sesión, tu correo ya aparece escrito. Funciona en el sitio principal y en la guía de configuración.'],

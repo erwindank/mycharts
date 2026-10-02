@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['pt-BR'] = {
 
   /* ========== OUTUBRO 2026 ========== */
 
+  'Hide categories that already have a winner, or fold any card away':
+    ['Oculte as categorias que já têm vencedor, ou recolha qualquer cartão',
+     'Meus Grammys ganhou um novo botão Ocultar decididas ao lado do seletor de visualização. Ative-o e todas as categorias que já têm vencedor somem, deixando só as que você ainda precisa votar. O botão mostra quantas está ocultando. Cada cartão de categoria também tem uma pequena seta no canto que o recolhe até mostrar só o nome; outro clique abre de novo. Os cartões recolhidos continuam assim neste dispositivo até você abri-los.'],
+
   'Contact Support now opens a message form':
     ['Contactar suporte agora abre um formulário de mensagem',
      'O chat de suporte parou de funcionar, então Contactar suporte agora abre um formulário curto: digite seu e-mail e sua mensagem, toque em Enviar e ela chega até nós por e-mail. Respondemos direto para o endereço que você digitou. Se você estiver conectado, seu e-mail já vem preenchido. Funciona no site principal e no guia de configuração.'],

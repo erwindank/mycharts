@@ -575,6 +575,7 @@ function dcApplyAllSettings() {
   _awardsHidePlays      = localStorage.getItem(AWARDS_HIDE_PLAYS_KEY) === '1';
   _awardsShowRating     = localStorage.getItem(AWARDS_SHOW_RATING_KEY) === '1';
   _awardsSamples        = localStorage.getItem(AWARDS_SAMPLES_KEY) === '1';
+  _awardsHideDecided    = localStorage.getItem(AWARDS_HIDE_DECIDED_KEY) === '1';
   /* Separation arrived from another device: re-read it and retire the chart
      caches, since which bucket a release ranks in has just changed. Mutated
      in place so every closure already holding releaseSeparation sees it. */
@@ -36013,8 +36014,12 @@ function _awardsRenderCatList(data) {
   const el = document.getElementById('awardsCatList');
   if (!el) return;
   const activeCats = AWARD_CATEGORIES.filter(c => data.categories[c.id]?.enabled ?? c.defaultOn);
+  // "Hide decided" leaves out the categories that already have a winner
+  const shownCats = _awardsHideDecided
+    ? activeCats.filter(c => !_awardsCatDecided(c, data.categories[c.id]))
+    : activeCats;
   const seq = ++_awardsViewSeq;
-  _awardsRenderViewBar(activeCats.length > 0);
+  _awardsRenderViewBar(activeCats.length > 0, activeCats.length - shownCats.length);
   if (!activeCats.length) {
     el.innerHTML = `<div class="awards-empty">${t('awards_no_categories')}</div>`;
     document.getElementById('awardsCeremonyBar').style.display = 'none';
@@ -36024,7 +36029,11 @@ function _awardsRenderCatList(data) {
   const view  = _awardsView;
   const queue = [];
   el.dataset.view = view;
-  el.innerHTML = activeCats.map((cat, i) => {
+  el.innerHTML = !shownCats.length
+    // Every category is decided and they're all hidden: say so, with a way back
+    ? `<div class="awards-empty">${esc(t('awards_all_decided'))}
+        <button class="awards-cat-action-btn" onclick="awardsSetHideDecided(false)">${esc(t('awards_show_decided'))}</button></div>`
+    : shownCats.map((cat, i) => {
     const cd = data.categories[cat.id] || { enabled: true, nominees: [], winner: null };
     return view === 'ballot'
       ? _awardsRenderCatCard(cat, cd, data.year, i)
@@ -36095,6 +36104,21 @@ let _awardsShowRating = localStorage.getItem(AWARDS_SHOW_RATING_KEY) === '1';
    synced, like the switches above. */
 const AWARDS_SAMPLES_KEY = 'dc_awards_samples';
 let _awardsSamples = localStorage.getItem(AWARDS_SAMPLES_KEY) === '1';
+
+/* "Hide decided" switch in the view bar: leaves out every category that already
+   has a winner (auto categories always do), so only the ones still to vote on
+   are on screen. Display only; global and synced, like the switches above. */
+const AWARDS_HIDE_DECIDED_KEY = 'dc_awards_hide_decided';
+let _awardsHideDecided = localStorage.getItem(AWARDS_HIDE_DECIDED_KEY) === '1';
+
+/* Categories folded down to their header with the card's chevron. Kept on this
+   device only (not synced), by category id, so a fold sticks across years and
+   reloads until it's opened again. */
+const AWARDS_COLLAPSED_KEY = 'dc_awards_collapsed';
+const _awardsCollapsed = (() => {
+  try { return new Set(JSON.parse(localStorage.getItem(AWARDS_COLLAPSED_KEY) || '[]')); }
+  catch (e) { return new Set(); }
+})();
 
 // "A feat. B", "A ft. B", "A featuring B" and "A with B" inside one artist string
 const _AWARDS_FEAT_SPLIT = /\s+(?:feat\.?|ft\.?|featuring|with)\s+/i;
@@ -36574,7 +36598,7 @@ function _awardsRenderCatCard(cat, catData, year, idx) {
 
   // data-awtype picks the card's --cat-hue (song / album / artist); --i staggers
   // the reveal so the grid fills in as a wave instead of all at once.
-  return `<div class="awards-cat-card${winner ? ' has-winner' : ''}${_awardsReordering.has(cat.id) ? ' is-reordering' : ''}" id="awardsCat_${cat.id}" data-year="${year}" data-awtype="${esc(cat.type || '')}" style="--i:${idx || 0}">
+  return `<div class="awards-cat-card${winner ? ' has-winner' : ''}${_awardsReordering.has(cat.id) ? ' is-reordering' : ''}${_awardsCollapsed.has(cat.id) ? ' is-collapsed' : ''}" id="awardsCat_${cat.id}" data-year="${year}" data-awtype="${esc(cat.type || '')}" style="--i:${idx || 0}">
     ${_awardsCatHeadHtml(cat, nominees.length)}
     <div class="awards-cat-body">${bodyHtml}</div>
     <div class="awards-cat-footer">${_awardsCatActionsHtml(cat, year, nominees.length)}</div>
@@ -36592,7 +36616,14 @@ function _awardsCatHeadHtml(cat, count, extra) {
         <span class="awards-cat-name">${esc(t('awards_cat_' + cat.id))}</span>
       </span>
       ${cat.auto ? '<span class="awards-auto-tag">auto</span>' : ''}${extra || ''}
+      ${_awardsCollapseBtn(cat)}
     </div>`;
+}
+
+// The fold chevron at the end of every card header (awardsToggleCollapse)
+function _awardsCollapseBtn(cat) {
+  const folded = _awardsCollapsed.has(cat.id);
+  return `<button class="awards-cat-collapse" onclick="awardsToggleCollapse('${esc(cat.id)}')" aria-expanded="${!folded}" title="${esc(t(folded ? 'awards_expand' : 'awards_collapse'))}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button>`;
 }
 
 // Change / Pick nominees, plus the playlist button once there is a field to hear
@@ -36643,6 +36674,39 @@ let _awardsView = (() => {
 let _awardsViewSeq = 0;         // bumped per render, so a replaced render stops fetching art
 const _awardsArtSrc = {};       // prefKey → a picture that has already loaded this session
 
+// A category counts as decided once it has a winner; an auto category is
+// decided as soon as it has its result, since nobody votes on it
+function _awardsCatDecided(cat, cd) {
+  if (!cd) return false;
+  return !!cd.winner || !!(cat.auto && (cd.nominees || []).length);
+}
+
+// The "Hide decided" switch in the view bar
+function awardsSetHideDecided(on) {
+  _awardsHideDecided = !!on;
+  localStorage.setItem(AWARDS_HIDE_DECIDED_KEY, on ? '1' : '0');
+  // Targeted write, same as awardsSetCreditFeatures
+  if (typeof dcSaveConfigKey === 'function') dcSaveConfigKey(AWARDS_HIDE_DECIDED_KEY, on ? '1' : '0');
+  const data = _awardsYearData[_awardsYear];
+  if (data) _awardsRenderCatList(data);
+}
+
+// The chevron on a category card: folds it down to its header (or opens it).
+// Flips the class in place rather than re-rendering, so artwork isn't refetched.
+function awardsToggleCollapse(catId) {
+  const folded = !_awardsCollapsed.has(catId);
+  if (folded) _awardsCollapsed.add(catId); else _awardsCollapsed.delete(catId);
+  try { localStorage.setItem(AWARDS_COLLAPSED_KEY, JSON.stringify([..._awardsCollapsed])); } catch (e) {}
+  const card = document.getElementById('awardsCat_' + catId);
+  if (!card) return;
+  card.classList.toggle('is-collapsed', folded);
+  const btn = card.querySelector('.awards-cat-collapse');
+  if (btn) {
+    btn.setAttribute('aria-expanded', String(!folded));
+    btn.title = t(folded ? 'awards_expand' : 'awards_collapse');
+  }
+}
+
 function awardsSetView(view) {
   if (!AWARDS_VIEWS.includes(view) || view === _awardsView) return;
   _awardsView = view;
@@ -36651,12 +36715,17 @@ function awardsSetView(view) {
   if (data) _awardsRenderCatList(data);
 }
 
-function _awardsRenderViewBar(show) {
+// hiddenN = how many decided categories "Hide decided" is leaving out right now
+function _awardsRenderViewBar(show, hiddenN) {
   const bar = document.getElementById('awardsViewBar');
   if (!bar) return;
   bar.style.display = show ? '' : 'none';
   if (!show) return;
-  bar.innerHTML = `<span class="awards-view-bar-label">${esc(t('awards_view_label'))}</span>
+  const hdName = t('awards_hide_decided');
+  bar.innerHTML = `<div class="awards-view-seg awards-hide-decided-seg">
+      <button class="awards-view-opt awards-hide-decided" aria-pressed="${_awardsHideDecided}" onclick="awardsSetHideDecided(${!_awardsHideDecided})" title="${esc(t('awards_hide_decided_tip'))}" aria-label="${esc(hdName)}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3l18 18M10.6 5.1A10 10 0 0 1 12 5c5 0 9 4.5 10 7-0.4 1-1.2 2.3-2.4 3.5M6.6 6.6C4.4 8 2.8 10.2 2 12c1 2.5 5 7 10 7 1.9 0 3.6-0.6 5.1-1.6M9.9 9.9a3 3 0 0 0 4.2 4.2"/></svg><span>${esc(hdName)}${_awardsHideDecided && hiddenN ? ` · ${hiddenN}` : ''}</span></button>
+    </div>
+    <span class="awards-view-bar-label">${esc(t('awards_view_label'))}</span>
     <div class="awards-view-seg" role="radiogroup" aria-label="${esc(t('awards_view_label'))}">${AWARDS_VIEWS.map(v => {
       const name = t('awards_view_' + v);
       return `<button class="awards-view-opt" role="radio" aria-checked="${v === _awardsView}" onclick="awardsSetView('${v}')" title="${esc(name)}" aria-label="${esc(name)}"><svg viewBox="0 0 24 24" aria-hidden="true">${AWARDS_VIEW_ICONS[v]}</svg><span>${esc(name)}</span></button>`;
@@ -37065,7 +37134,7 @@ function _awardsRenderArtCard(cat, catData, year, idx, view, idp, queue) {
     : _awardsCatHeadHtml(cat, count);
   const foot = (view === 'reel' || !actions) ? '' : `<div class="awards-cat-footer">${actions}</div>`;
 
-  return `<div class="awards-cat-card aw-v-${view}${catData.winner ? ' has-winner' : ''}${_awardsReordering.has(cat.id) ? ' is-reordering' : ''}" id="awardsCat_${cat.id}" data-year="${year}" data-awtype="${esc(cat.type || '')}" style="--i:${idx || 0}">
+  return `<div class="awards-cat-card aw-v-${view}${catData.winner ? ' has-winner' : ''}${_awardsReordering.has(cat.id) ? ' is-reordering' : ''}${_awardsCollapsed.has(cat.id) ? ' is-collapsed' : ''}" id="awardsCat_${cat.id}" data-year="${year}" data-awtype="${esc(cat.type || '')}" style="--i:${idx || 0}">
     ${head}
     <div class="awards-cat-body">${body}</div>
     ${foot}

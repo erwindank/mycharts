@@ -22658,6 +22658,42 @@ body[class*="-light"] .tm-card-search:hover {
   letter-spacing: 0.12em;
   text-transform: uppercase;
 }
+/* Fold chevron at the end of the header (awardsToggleCollapse) */
+.awards-cat-collapse {
+  flex: none;
+  width: 28px;
+  height: 28px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  border-radius: var(--r-full);
+  background: transparent;
+  color: var(--text3);
+  cursor: pointer;
+  transition: background var(--t-fast) var(--ease), color var(--t-fast) var(--ease);
+}
+.awards-cat-collapse svg {
+  width: 16px;
+  height: 16px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  transition: transform var(--t-fast) var(--ease);
+}
+.awards-cat-collapse:hover { color: var(--text1); background: var(--surface3); }
+.awards-cat-collapse:focus-visible { outline: 2px solid var(--gold1); outline-offset: 1px; }
+/* Folded: just the header, pointing the chevron sideways; align-self keeps the
+   card from stretching to the height of its row-mates in the grid */
+.awards-cat-card.is-collapsed { align-self: start; }
+.awards-cat-card.is-collapsed .awards-cat-header { padding-bottom: 14px; }
+.awards-cat-card.is-collapsed .awards-cat-body,
+.awards-cat-card.is-collapsed .awards-cat-footer { display: none; }
+.awards-cat-card.is-collapsed .awards-cat-collapse svg { transform: rotate(-90deg); }
+.awards-cat-card.is-collapsed .aw-reel-actions .aw-reel-nav { display: none; }
+
 .awards-cat-body { padding: 0 8px 6px; }
 .awards-cat-footer {
   margin-top: auto;           /* pins the button to the bottom so uneven cards line up */
@@ -22992,6 +23028,16 @@ body[class*="-light"] .tm-card-search:hover {
   box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--gold1) 40%, transparent);
 }
 .awards-view-opt[aria-checked="true"] svg { stroke: color-mix(in srgb, var(--gold1) 80%, var(--text1)); }
+/* "Hide decided" is an on/off switch, not one of the views, so it lives in its
+   own pill and lights up the same way when on */
+.awards-view-opt[aria-pressed="true"] {
+  color: var(--text1);
+  background: color-mix(in srgb, var(--gold1) 16%, var(--surface3));
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--gold1) 40%, transparent);
+}
+.awards-view-opt[aria-pressed="true"] svg { stroke: color-mix(in srgb, var(--gold1) 80%, var(--text1)); }
+.awards-view-bar .awards-hide-decided-seg { margin-right: auto; }
+.awards-empty .awards-cat-action-btn { margin-left: 8px; }
 
 /* Shared by the art views ─────────────────────────────────────────────────────
    Every artwork slot is an .aw-art box; the injected .thumb / .thumb-initials

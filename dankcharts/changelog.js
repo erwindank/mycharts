@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 36;
+const DC_CL_I18N_V = 37;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,10 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+
+  { d: '2026-10-01', t: 'feature', a: 'awards', h: '',
+    title: 'Hide categories that already have a winner, or fold any card away',
+    detail: 'My Grammys has a new Hide Decided switch next to the view picker. Turn it on and every category that already has a winner disappears, so only the ones you still need to vote on are left. The switch shows how many it is hiding. Each category card also has a small arrow in its corner that folds the card down to just its name, and a second click opens it again. Folded cards stay folded on this device until you open them.' },
 
   { d: '2026-10-01', t: 'fix', a: 'ui', h: '65e14ea',
     title: 'Contact Support now opens a message form',
