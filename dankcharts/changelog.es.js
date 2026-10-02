@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['es'] = {
 
   /* ========== OCTUBRE 2026 ========== */
 
+  'Nominee picker shows how well each candidate fits the category':
+    ['El selector de nominados muestra cuánto encaja cada candidato en la categoría',
+     'En Mis Grammys, el selector de nominados ahora pone una pequeña etiqueta de encaje junto a cada candidato en las categorías de género y en Canción del Verano y las canciones de noche y de mañana, por ejemplo 92% fit. En un premio de género indica con qué fuerza la canción, el álbum o el artista está etiquetado con ese género: un género que aparece primero cuenta más que uno que aparece quinto, y un pariente cercano como metal para Mejor Canción Rock cuenta un poco menos que rock. En Canción del Verano es la parte de las reproducciones de la canción que cayeron entre junio y agosto, y las canciones de noche y de mañana funcionan igual. Los encajes fuertes se ven en dorado. Pasa el cursor sobre una etiqueta para ver qué mide. Las categorías que son un simple sí o no, como Mejor Colaboración o Mejor Versión, no la tienen.'],
+
   'Each category card now says what it is about':
     ['Cada categoría ahora dice de qué trata',
      'En Mis Grammys, cada tarjeta de categoría muestra una línea corta bajo su nombre sobre lo que encaja en ella, para que sepas qué buscar al elegir nominados. Los premios de género describen cómo suena el género, por ejemplo Grunge dice guitarras distorsionadas de los 90 llenas de angustia. Las categorías que salen de las mismas canciones ahora también se distinguen: Canción del Año trata de la composición, Grabación del Año de la interpretación y la producción, y Balada Rock y Riff/Solo de Guitarra dicen qué escuchar. Las mismas líneas aparecen en la lista de categorías.'],

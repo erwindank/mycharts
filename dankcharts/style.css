@@ -24028,6 +24028,12 @@ body.pink-light .awards-ceremony-share-btn:hover { border-color: var(--medal-gol
 .awards-picker-genre-tags { display: inline-flex; flex-wrap: wrap; gap: 3px; flex-shrink: 1; min-width: 0; }
 .awards-picker-genre-tag  { font-size: 0.6rem; padding: 1px 5px; border-radius: 10px; background: var(--surface3); color: var(--text3); border: 1px solid var(--border); white-space: nowrap; }
 .awards-picker-genre-unk  { opacity: 0.5; font-style: italic; }
+/* "92% fit": how well a candidate fits a genre or summer/night/morning category.
+   Strong fits take the picker's gold, middling ones stay neutral, weak ones fade. */
+.awards-picker-fit { font-size: 0.62rem; font-family: var(--font-mono); padding: 1px 6px; border-radius: 10px; white-space: nowrap; flex-shrink: 0; border: 1px solid var(--border); }
+.awards-picker-fit.is-hi  { color: var(--pk-gold); background: color-mix(in srgb, var(--pk-gold) 12%, transparent); border-color: color-mix(in srgb, var(--pk-gold) 35%, transparent); font-weight: 600; }
+.awards-picker-fit.is-mid { color: var(--text2); background: var(--surface3); }
+.awards-picker-fit.is-lo  { color: var(--text3); border-style: dashed; }
 .awards-picker-plays{ font-size: 0.7rem; color: var(--text3); font-family: var(--font-mono); white-space: nowrap; }
 
 /* Year stats (Song / Album / Artist of the Year) ──────────────────────────────

@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['pt-BR'] = {
 
   /* ========== OUTUBRO 2026 ========== */
 
+  'Nominee picker shows how well each candidate fits the category':
+    ['O seletor de indicados mostra o quanto cada candidato combina com a categoria',
+     'Em Meus Grammys, o seletor de indicados agora coloca uma pequena etiqueta de encaixe ao lado de cada candidato nas categorias de gênero e em Música do Verão e nas músicas da noite e da manhã, por exemplo 92% fit. Num prêmio de gênero ela diz com que força a música, o álbum ou o artista está marcado com aquele gênero: um gênero listado primeiro conta mais que um listado em quinto, e um parente próximo como metal para Melhor Música de Rock conta um pouco menos que rock. Em Música do Verão é a parte das reproduções da música que caíram entre junho e agosto, e as músicas da noite e da manhã funcionam do mesmo jeito. Encaixes fortes aparecem em dourado. Passe o mouse sobre uma etiqueta para ver o que ela mede. Categorias que são um simples sim ou não, como Melhor Colaboração ou Melhor Cover, não ganham uma.'],
+
   'Each category card now says what it is about':
     ['Cada categoria agora diz do que se trata',
      'Em Meus Grammys, cada cartão de categoria mostra uma linha curta abaixo do nome sobre o que cabe nela, para você saber o que procurar ao escolher os indicados. Os prêmios de gênero descrevem como o gênero soa, por exemplo Grunge diz guitarras distorcidas dos anos 90 cheias de angústia. As categorias que puxam das mesmas músicas agora também se diferenciam: Música do Ano é sobre a composição, Gravação do Ano sobre a interpretação e a produção, e Balada de Rock e Riff/Solo de Guitarra dizem o que ouvir. As mesmas linhas aparecem na lista de categorias.'],

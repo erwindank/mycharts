@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 40;
+const DC_CL_I18N_V = 41;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,10 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+
+  { d: '2026-10-02', t: 'feature', a: 'awards', h: '',
+    title: 'Nominee picker shows how well each candidate fits the category',
+    detail: 'In My Grammys, the nominee picker now puts a small fit tag next to each candidate in genre categories and in Song of the Summer and the night and morning songs, for example 92% fit. For a genre award it says how strongly the song, album or artist is tagged with that genre: a genre listed first counts more than one listed fifth, and a close relative like metal for Best Rock Song counts a little less than rock itself. For Song of the Summer it is the share of the song’s plays that landed in June to August, and the night and morning songs work the same way. Strong fits show in gold. Hover a tag to see what it measures. Categories that are a plain yes or no, like Best Collaboration or Best Cover, do not get one.' },
 
   { d: '2026-10-02', t: 'feature', a: 'awards', h: '8683e78',
     title: 'Each category card now says what it is about',

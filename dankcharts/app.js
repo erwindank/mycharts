@@ -34803,9 +34803,9 @@ async function _awardsGetAlbumYear(album, artist) {
   return null;
 }
 
-function _genreMatch(tags, filterStr) {
-  const g = filterStr.replace('genre:', '');
-  const aliases = {
+// Which tags count as each genre. Shared by _genreMatch (does it fit?) and
+// _genreFitScore (how strongly?) so the two never disagree.
+const _GENRE_ALIASES = {
     'pop':         ['pop','dance pop','electropop','synth-pop','teen pop','pop rock','indie pop'],
     'rock':        ['rock','classic rock','hard rock','indie rock','punk rock','alternative rock','metal','emo','post-rock'],
     'alternative': ['alternative','indie','indie rock','alternative rock','post-punk','dream pop','shoegaze'],
@@ -34847,12 +34847,40 @@ function _genreMatch(tags, filterStr) {
     'shoegaze':    ['shoegaze','dream pop','noise pop','dreampop','nu gaze','slowcore'],
     // Goth keeps "gothic rock" shared with post-punk, where the genre started
     'goth':        ['gothic rock','goth rock','goth','gothic','deathrock','darkwave','dark wave','ethereal wave','gothic metal','gothic post-punk'],
-  };
-  // Spelling-blind: "Dance-Pop", "dance pop" and "dancepop" are one genre, so a tag
-  // typed into the sheet doesn't have to match Last.fm's punctuation to count.
-  const norm = t => String(t).toLowerCase().replace(/[\s\-_]+/g, '');
-  const list = (aliases[g] || [g]).map(norm);
-  return tags.some(t => list.includes(norm(t)));
+};
+
+// Spelling-blind: "Dance-Pop", "dance pop" and "dancepop" are one genre, so a tag
+// typed into the sheet doesn't have to match Last.fm's punctuation to count.
+const _genreNorm = t => String(t).toLowerCase().replace(/[\s\-_]+/g, '');
+function _genreAliasList(filterStr) {
+  const g = filterStr.replace('genre:', '');
+  return (_GENRE_ALIASES[g] || [g]).map(_genreNorm);
+}
+
+function _genreMatch(tags, filterStr) {
+  const list = _genreAliasList(filterStr);
+  return tags.some(t => list.includes(_genreNorm(t)));
+}
+
+/* How strongly a tag list belongs to a genre, 0 – 100, for the nominee picker's
+   fit tag. Tags arrive in order — the sheet's Genre 1–5 as typed, Last.fm's by
+   how many listeners used them — so the first matching tag sets the score by
+   its position. The genre's own name (the head of its alias list) counts in
+   full; a related tag (metal for Rock, indie for Alternative) counts a little
+   less. Each further matching tag adds a few points, up to 100. */
+const GENRE_FIT_BY_POS = [100, 85, 72, 62, 54, 48, 43, 39, 36, 33];
+const GENRE_FIT_RELATED = 0.85;   // a related tag, not the genre itself
+const GENRE_FIT_EXTRA = 5;        // per extra matching tag
+function _genreFitScore(tags, filterStr) {
+  const list = _genreAliasList(filterStr);
+  let best = 0, hits = 0;
+  tags.slice(0, GENRE_FIT_BY_POS.length).forEach((t, i) => {
+    const at = list.indexOf(_genreNorm(t));
+    if (at < 0) return;
+    hits++;
+    best = Math.max(best, GENRE_FIT_BY_POS[i] * (at === 0 ? 1 : GENRE_FIT_RELATED));
+  });
+  return hits ? Math.min(100, Math.round(best + (hits - 1) * GENRE_FIT_EXTRA)) : 0;
 }
 
 /* Genres typed into the sheet (Genre 1–5), by song and by album. The sheet is
@@ -37423,6 +37451,47 @@ function _awardsPickerItemFits(item) {
   return item.fit;
 }
 
+/* How well a candidate fits the category, 0 – 100, or null when the category
+   has nothing to measure. Only categories with a real degree get one: genres
+   (how strongly its tags point there) and the summer / night / morning songs
+   (the share of its plays that landed then). Yes-or-no rules like Collab or
+   Cover have no in-between, so they keep the plain matches grouping instead.
+   A candidate whose genre hasn't been looked up yet gets null too, since its
+   genre chip already shows "?". */
+function _awardsPickerFitPct(item) {
+  const f = _awardsPickerCatFilter;
+  if (!item.plays) return null;
+  if (f === 'summer') return Math.round((item.summerPlays || 0) / item.plays * 100);
+  if (f === 'night' || f === 'morning') return Math.round((item.hourPlays || 0) / item.plays * 100);
+  let g;
+  if (f === 'pop_solo' || f === 'pop_duo') {
+    if (!item.fit) return null;             // wrong billing: no amount of pop makes it fit
+    g = 'genre:pop';
+  } else if (f === 'rock_group') g = 'genre:rock';
+  else if (f.startsWith('genre:')) g = f;
+  else return null;
+  // An album the sheet has genres for: the average fit of its tracks
+  if (_awardsPickerCatType === 'album') {
+    const tracks = _awardsSheetGenres().albums.get(_ak(item));
+    if (tracks && tracks.length) return Math.round(tracks.reduce((n, tags) => n + _genreFitScore(tags, g), 0) / tracks.length);
+  }
+  const tags = _awardsPickerItemTags(item);
+  return tags === undefined ? null : _genreFitScore(tags, g);
+}
+
+// The fit tag on a picker row ("92% fit"). Nothing for a 0, which would only
+// repeat what the grouping already says.
+function _awardsPickerFitChip(item) {
+  const pct = _awardsPickerFitPct(item);
+  if (!pct) return '';
+  const f = _awardsPickerCatFilter;
+  const tier = pct >= 75 ? 'hi' : pct >= 45 ? 'mid' : 'lo';
+  const tip = f === 'summer' ? `${pct}% of its plays in this awards year were in summer (June – August)`
+    : (f === 'night' || f === 'morning') ? `${pct}% of its plays in this awards year were in the ${f}`
+    : `How strongly its genre tags match this category: ${pct}%`;
+  return `<span class="awards-picker-fit is-${tier}" title="${esc(tip)}">${pct}% fit</span>`;
+}
+
 // Genre tags for a picker row: the sheet's for that song / album, else the artist's
 function _awardsPickerItemTags(item) {
   if (_awardsPickerCatType === 'song')  return _awardsSongTags(item);
@@ -38104,6 +38173,7 @@ function _awardsPickerResultRow(item, idx) {
     <span class="awards-picker-lbl">${esc(lbl)}</span>
     ${sub ? `<span class="awards-picker-sub">${esc(sub)}${rel}</span>` : ''}
     ${genreHtml}
+    ${_awardsPickerFitChip(item)}
     ${_awardsPickerScoreChip(item)}
     <span class="awards-picker-plays">${item.playLabel || item.plays + ' plays'}</span>
     ${_awardsPickerPrevBtn(item, `awardsPickerPreviewRow(${idx})`)}
