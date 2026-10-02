@@ -35730,7 +35730,7 @@ function _awardsFirstPlayYear() {
    future page. */
 function _awardsYearBounds(kind) {
   const max = tzNow().getFullYear();
-  if (kind === 'reallife') return { min: _realLifeShow === 'vmas' ? VMA_FIRST_YEAR : GRAMMY_FIRST_CEREMONY_YEAR, max };
+  if (kind === 'reallife') return { min: RL_WIKI_SHOWS[_realLifeShow]?.first || GRAMMY_FIRST_CEREMONY_YEAR, max };
   const first = _awardsFirstPlayYear();
   return { min: first == null ? max - 1 : Math.min(first, max), max };
 }
@@ -39233,23 +39233,25 @@ async function _grammyMapLimit(items, limit, fn) {
   return out;
 }
 
-// Which show the Real-Life Awards tab is on: the Grammys or the MTV VMAs. Both
-// share one year stepper and one content area; this just picks the loader.
+// Which show the Real-Life Awards tab is on: the Grammys, or one of the shows
+// read from Wikipedia (RL_WIKI_SHOWS: the MTV VMAs, the AMAs). They all share
+// one year stepper and one content area; this just picks the loader.
+const RL_SHOW_IDS = ['grammys', 'vmas', 'amas'];
 let _realLifeShow = (() => {
-  try { return localStorage.getItem('dc_awards_reallife_show') === 'vmas' ? 'vmas' : 'grammys'; }
+  try { const v = localStorage.getItem('dc_awards_reallife_show'); return RL_SHOW_IDS.includes(v) ? v : 'grammys'; }
   catch (e) { return 'grammys'; }
 })();
 
-// Light up the Grammys / VMAs tab that's showing
+// Light up the Grammys / VMAs / AMAs tab that's showing
 function _realLifeSyncShowUI() {
   document.querySelectorAll('.awards-show-opt').forEach(b =>
     b.setAttribute('aria-checked', b.dataset.show === _realLifeShow ? 'true' : 'false'));
 }
 
-// Clicking the Grammys or VMAs tab. Going through _awardsSetYear pulls the year
-// inside the new show's range (the VMAs only go back to 1984) and loads it.
+// Clicking a show's tab. Going through _awardsSetYear pulls the year inside the
+// new show's range (the VMAs only go back to 1984, the AMAs to 1974) and loads it.
 function realLifeSetShow(show) {
-  if (show !== 'grammys' && show !== 'vmas') return;
+  if (!RL_SHOW_IDS.includes(show)) return;
   _awardsCloseYearPicker();
   _realLifeShow = show;
   try { localStorage.setItem('dc_awards_reallife_show', show); } catch (e) {}
@@ -39259,14 +39261,14 @@ function realLifeSetShow(show) {
 // Entry point for the Real-Life tab, whichever show is picked
 function loadRealLifeAwards(year) {
   _realLifeSyncShowUI();
-  // A year remembered from the Grammys can be older than the first VMAs
+  // A year remembered from the Grammys can be older than the show's first ceremony
   const { min, max } = _awardsYearBounds('reallife');
   if (year < min || year > max) {
     year = Math.max(min, Math.min(max, year));
     _realLifeYear = year;
     _awardsSyncYearUI('reallife');
   }
-  return _realLifeShow === 'vmas' ? _loadRealLifeVmas(year) : _loadRealLifeGrammys(year);
+  return RL_WIKI_SHOWS[_realLifeShow] ? _loadRealLifeWiki(_realLifeShow, year) : _loadRealLifeGrammys(year);
 }
 
 async function _loadRealLifeGrammys(year) {
@@ -39420,80 +39422,157 @@ async function _realLifeLoadArt(queue, token) {
   }
 }
 
-// ── Real-Life Awards: MTV VMAs ────────────────────────────────────────────────
+// ── Real-Life Awards: shows read from Wikipedia (VMAs, AMAs) ──────────────────
 
-// The VMAs have no artist database like grammy.com's, but Wikipedia keeps one
-// page per ceremony ("2025 MTV Video Music Awards") with every category's winner
-// and nominees in a table. Its API sends CORS headers when asked (origin=*), so
-// the browser reads it directly and DOMParser does the parsing — no proxy needed.
-// One fetch gets the whole ceremony, so we can match every artist the user
-// played, not just their top 50 like the Grammys tab.
-const VMA_FIRST_YEAR = 1984;              // the 1st MTV Video Music Awards
-const VMA_CACHE_LS   = 'dc_vma_cache_v1'; // parsed ceremonies, so a past year is fetched once, ever
-const VMA_FRESH_MS   = 86400000;          // this year's page can still change (winners land late), so refetch daily
+// The VMAs and AMAs have no artist database like grammy.com's, but Wikipedia
+// keeps one page per ceremony ("2025 MTV Video Music Awards", "American Music
+// Awards of 2025") with every category's winner and nominees in a table. Its
+// API sends CORS headers when asked (origin=*), so the browser reads it directly
+// and DOMParser does the parsing — no proxy needed. One fetch gets the whole
+// ceremony, so we can match every artist the user played, not just their top 50
+// like the Grammys tab.
+//
+// Each show says which page(s) hold a year, what to call the ceremony, and which
+// stretch of the user's listening it judges:
+//   pages(year)        → Wikipedia titles; more than one when a year had two shows
+//   window(year, date) → { start, end, label } of the plays to match; `date` is
+//                        the ceremony date from the page's infobox, or null
+const RL_WIKI_SHOWS = {
+  vmas: {
+    first: 1984,   // the 1st MTV Video Music Awards
+    short: 'VMAs',
+    pages: y => [{ title: `${y}_MTV_Video_Music_Awards` }],
+    ceremony: y => `${y} MTV Video Music Awards`,
+    // The VMAs judge videos from roughly mid-June of the year before to
+    // mid-June of the ceremony year, so: July to June.
+    window: y => ({
+      start: new Date(`${y - 1}-07-01`),
+      end:   new Date(`${y}-06-30T23:59:59`),
+      label: `July ${y - 1} to June ${y}`,
+    }),
+  },
+  amas: {
+    first: 1974,   // the 1st American Music Awards
+    short: 'AMAs',
+    // 2003 had two shows, one in January and one in November, and Wikipedia
+    // splits them into two pages under a disambiguation title.
+    pages: y => y === 2003
+      ? [{ title: 'American_Music_Awards_of_2003_(January)', group: 'January' },
+         { title: 'American_Music_Awards_of_2003_(November)', group: 'November' }]
+      : [{ title: `American_Music_Awards_of_${y}` }],
+    ceremony: y => `American Music Awards of ${y}`,
+    // The AMAs have moved around — January for decades, then November, now May —
+    // and each show covers about the year before it. So match the twelve months
+    // leading up to the night itself, read off the page.
+    window: (y, date) => {
+      const end = date || new Date(`${y}-01-31T23:59:59`);
+      const start = new Date(end); start.setFullYear(start.getFullYear() - 1);
+      const fmt = d => d.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+      return { start, end, label: `${fmt(start)} to ${fmt(end)}` };
+    },
+  },
+};
+const RL_WIKI_CACHE_LS = 'dc_rl_wiki_cache_v1';  // parsed ceremonies, so a past year is fetched once, ever
+const RL_WIKI_FRESH_MS = 86400000;                // this year's page can still change (winners land late), so refetch daily
+try { localStorage.removeItem('dc_vma_cache_v1'); } catch (e) {}   // the VMA-only cache this replaced
 
-const _vmaYearCache = {};   // year → promise of the parsed ceremony, for this session
+const _rlWikiCache = {};   // "show:year" → promise of the parsed ceremony, for this session
 
-function _vmaStored() {
-  try { const v = JSON.parse(localStorage.getItem(VMA_CACHE_LS) || '{}'); return v && typeof v === 'object' ? v : {}; }
+function _rlWikiStored() {
+  try { const v = JSON.parse(localStorage.getItem(RL_WIKI_CACHE_LS) || '{}'); return v && typeof v === 'object' ? v : {}; }
   catch (e) { return {}; }
 }
-function _vmaStore(year, data) {
-  const all = _vmaStored();
-  all[year] = { at: Date.now(), data };
-  try { localStorage.setItem(VMA_CACHE_LS, JSON.stringify(all)); } catch (e) { /* full or blocked: memory cache still works */ }
+function _rlWikiStore(key, data) {
+  const all = _rlWikiStored();
+  all[key] = { at: Date.now(), data };
+  try { localStorage.setItem(RL_WIKI_CACHE_LS, JSON.stringify(all)); } catch (e) { /* full or blocked: memory cache still works */ }
 }
 
-// The parsed ceremony for one year:
-//   { found, year, url, categories: [{ name, nominees: [{ who, title, rest, won }] }] }
-// `found: false` means Wikipedia has no page (yet); `error: true` means we
-// couldn't reach it, which isn't cached so the next visit tries again.
-function _vmaFetchYear(year) {
-  if (_vmaYearCache[year]) return _vmaYearCache[year];
+// The parsed ceremony for one show and year:
+//   { found, year, url, date, categories: [{ name, nominees: [{ who, title, rest, won }] }] }
+// `found: false` means Wikipedia has no page for it (not held, or not written
+// up yet); `error: true` means we couldn't reach it, which isn't cached so the
+// next visit tries again.
+function _rlWikiFetchYear(showId, year) {
+  const key = showId + ':' + year;
+  if (_rlWikiCache[key]) return _rlWikiCache[key];
 
-  const stored = _vmaStored()[year];
-  if (stored && (year < tzNow().getFullYear() || Date.now() - stored.at < VMA_FRESH_MS)) {
-    return (_vmaYearCache[year] = Promise.resolve(stored.data));
+  const stored = _rlWikiStored()[key];
+  if (stored && (year < tzNow().getFullYear() || Date.now() - stored.at < RL_WIKI_FRESH_MS)) {
+    return (_rlWikiCache[key] = Promise.resolve(stored.data));
   }
 
-  const page = `${year}_MTV_Video_Music_Awards`;
-  const api = 'https://en.wikipedia.org/w/api.php?' + new URLSearchParams({
-    action: 'parse', page, prop: 'text', format: 'json', formatversion: '2', redirects: '1', origin: '*',
-  });
-  const p = fetch(api)
-    .then(r => { if (!r.ok) throw new Error('wikipedia ' + r.status); return r.json(); })
-    .then(j => {
-      // A missing page comes back as a 200 with an error body
-      if (!j || j.error || !j.parse) return { found: false, year };
-      const categories = _vmaParse(j.parse.text || '');
-      const data = { found: categories.length > 0, year, url: 'https://en.wikipedia.org/wiki/' + page, categories };
-      if (data.found) _vmaStore(year, data);
+  const pages = RL_WIKI_SHOWS[showId].pages(year);
+  const p = Promise.all(pages.map(pg => _rlWikiFetchPage(pg.title, year)))
+    .then(parsed => {
+      const got = parsed.map((r, i) => ({ ...r, group: pages[i].group })).filter(r => r.categories.length);
+      // With two shows in one year, each category says which night it was
+      const categories = got.flatMap(r => r.group
+        ? r.categories.map(c => ({ ...c, name: `${c.name} (${r.group})` }))
+        : r.categories);
+      const data = {
+        found: categories.length > 0, year, categories,
+        url: 'https://en.wikipedia.org/wiki/' + (got[0]?.title || pages[0].title),
+        date: got[got.length - 1]?.date || null,   // the later show sets the listening window
+      };
+      if (data.found) _rlWikiStore(key, data);
       return data;
     })
     .catch(() => {
-      delete _vmaYearCache[year];
+      delete _rlWikiCache[key];
       return { found: false, year, error: true };
     });
-  _vmaYearCache[year] = p;
+  _rlWikiCache[key] = p;
   return p;
 }
 
+// One Wikipedia page → { title, date, categories }. A missing page, or one that
+// redirects somewhere without the year in its name (2024's AMAs weren't held,
+// so that title just points at the general AMAs article), counts as no ceremony.
+async function _rlWikiFetchPage(title, year) {
+  const api = 'https://en.wikipedia.org/w/api.php?' + new URLSearchParams({
+    action: 'parse', page: title, prop: 'text', format: 'json', formatversion: '2', redirects: '1', origin: '*',
+  });
+  const r = await fetch(api);
+  if (!r.ok) throw new Error('wikipedia ' + r.status);
+  const j = await r.json();
+  if (!j || j.error || !j.parse || !String(j.parse.title || '').includes(String(year))) {
+    return { title, date: null, categories: [] };
+  }
+  const doc = new DOMParser().parseFromString(j.parse.text || '', 'text/html');
+  return { title: j.parse.title.replace(/ /g, '_'), date: _rlWikiDate(doc), categories: _rlWikiParse(doc) };
+}
+
+// The ceremony date from the page's infobox ("May 26, 2025"), as an ISO date
+// string so it survives the localStorage round trip, or null
+function _rlWikiDate(doc) {
+  const row = [...doc.querySelectorAll('.infobox tr')].find(tr => /^\s*Date/i.test(tr.querySelector('th')?.textContent || ''));
+  const cell = row?.querySelector('td');
+  if (!cell) return null;
+  const m = _rlWikiText(cell).match(/[A-Z][a-z]+ \d{1,2}, \d{4}/);
+  const d = m ? new Date(m[0]) : null;
+  if (!d || isNaN(d)) return null;
+  // Built from the local date parts, not toISOString(), which can slip a day
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
 // Plain text of a node with footnote markers ([1], [a]) left out
-function _vmaText(node) {
+function _rlWikiText(node) {
   const c = node.cloneNode(true);
   c.querySelectorAll('sup, .reference, style').forEach(e => e.remove());
   return c.textContent.replace(/\s+/g, ' ').trim();
 }
 
 // Read every category out of the "Winners and nominees" section. Wikipedia lays
-// the categories out two ways over the years, and both are handled:
-//   newer pages: each <td> starts with its own <div> header
-//   older pages: a <th> row of headers, then a <td> row underneath, by column
-// Inside a cell the winner is the bold top-level <li>, and the other nominees
-// are a <ul> nested under it.
-function _vmaParse(html) {
-  const doc = new DOMParser().parseFromString(html, 'text/html');
-  const head = doc.getElementById('Winners_and_nominees') || doc.querySelector('h2[id^="Winners"], h2[id^="Nominations"]');
+// the categories out three ways over the years, and all are handled:
+//   list cells, newer: each <td> starts with its own <div> header, then a list
+//   list cells, older: a <th> row of headers, then a <td> row of lists, by column
+//     — in both, the winner is the bold top-level <li> and the other nominees
+//     are a <ul> nested under it
+//   one row per category (older AMAs): category | winner | nominees, with the
+//     names in each cell split by <br>
+function _rlWikiParse(doc) {
+  const head = doc.getElementById('Winners_and_nominees') || doc.querySelector('h2[id^="Winners"], h2[id^="Nominations"], h2[id^="Nominees"]');
   if (!head) return [];
 
   // Only tables between that heading and the next section count — later
@@ -39509,21 +39588,38 @@ function _vmaParse(html) {
     for (const tr of table.rows) {
       const cells = [...tr.children];
       const tds = cells.filter(c => c.tagName === 'TD');
-      if (!tds.length) {   // a header row for the old layout
-        headers = cells.filter(c => c.tagName === 'TH').map(_vmaText);
+      if (!tds.length) {   // a header row for the older list layout
+        headers = cells.filter(c => c.tagName === 'TH').map(_rlWikiText);
         continue;
       }
+
+      // One row per category: name, winner(s), nominees. A table whose first
+      // column isn't the category (1987's "Other awards": Winner | Award |
+      // Work) is a one-off honour in a different shape, so it's left out.
+      if (tds.length >= 3 && !tds.some(td => td.querySelector(':scope > ul'))) {
+        if (headers.length && !/categor|award|^$/i.test(headers[0])) continue;
+        const name = _rlWikiText(tds[0]);
+        const nominees = [
+          ..._rlWikiSplitCell(tds[1]).map(el => _rlWikiEntry(el, true)),
+          ..._rlWikiSplitCell(tds[2]).map(el => _rlWikiEntry(el, false)),
+        ].filter(n => n.who);
+        if (name && nominees.length) categories.push({ name, nominees });
+        continue;
+      }
+
       tds.forEach((td, col) => {
         const list = td.querySelector(':scope > ul');
         if (!list) return;
         const own = td.querySelector(':scope > div');
-        const name = own ? _vmaText(own) : (headers[col] || '');
+        const name = own ? _rlWikiText(own) : (headers[col] || '');
         if (!name) return;
 
         const nominees = [];
         for (const li of list.querySelectorAll(':scope > li')) {
-          nominees.push(_vmaEntry(li, !!li.querySelector(':scope > b')));
-          for (const sub of li.querySelectorAll(':scope > ul > li')) nominees.push(_vmaEntry(sub, false));
+          const top = li.cloneNode(true);
+          top.querySelectorAll(':scope > ul').forEach(e => e.remove());
+          nominees.push(_rlWikiEntry(top, !!top.querySelector('b')));
+          for (const sub of li.querySelectorAll(':scope > ul > li')) nominees.push(_rlWikiEntry(sub, false));
         }
         const kept = nominees.filter(n => n.who);
         if (kept.length) categories.push({ name, nominees: kept });
@@ -39533,32 +39629,59 @@ function _vmaParse(html) {
   return categories;
 }
 
-// One nominee line, e.g. `Lady Gaga and Bruno Mars – "Die with a Smile"`:
-// the credited artists before the dash, the video after it, and anything left
-// over (a director, "starring …") kept so their artists can still be matched.
-function _vmaEntry(li, won) {
-  const c = li.cloneNode(true);
-  c.querySelectorAll(':scope > ul').forEach(e => e.remove());
-  const text = _vmaText(c);
-  const parts = text.split(/\s[–—-]\s/);
+// A table cell holding several names split by <br> → one element per name
+function _rlWikiSplitCell(td) {
+  return td.innerHTML.split(/<br\s*\/?>/i).map(html => {
+    const el = td.ownerDocument.createElement('span');
+    el.innerHTML = html;
+    return el;
+  }).filter(el => el.textContent.trim());
+}
+
+// One nominee line. Usually the credited artists come first and the work after
+// a dash — `Lady Gaga and Bruno Mars – "Die with a Smile"` — but the older AMA
+// tables put the work first — `Hangin' Tough – New Kids on the Block` — so a
+// first half that's all quotes or italics is read as the title. Anything left
+// over (a director, "starring …") is kept so its artists can still be matched.
+function _rlWikiEntry(el, won) {
+  const text = _rlWikiText(el);
+  // Dashes come as en, em, hyphen, or now and then a minus sign (2016's AMAs)
+  const parts = text.split(/\s[–—−-]\s/);
+  const i = el.querySelector('i');
+  const italic = i ? _rlWikiText(i) : '';
+  const unquote = s => s.replace(/^["“]\s*|\s*["”]$/g, '').trim();
+  // Title first when the first half is all quotes or italics, or opens a quote
+  // that only closes at the very end (`"Work – Rihanna featuring Drake"`) —
+  // but not a nickname like `"Weird Al" Yankovic`, whose quote closes early.
+  if (parts.length > 1 && (/^["“].*["”]$/.test(parts[0]) || /^["“][^"”]*$/.test(parts[0]) || (italic && italic === parts[0]))) {
+    return { who: unquote(parts.slice(1).join(' – ')), title: unquote(parts[0]), rest: '', won };
+  }
+  // The 1970s AMA tables use a comma instead of a dash, before an album in
+  // italics or a song in quotes: `Charlie Rich, Behind Closed Doors`,
+  // `Merle Haggard, "If We Make It Through December"`. The title has to come
+  // off, or its words ("Make") get matched as artists.
+  if (parts.length === 1) {
+    const sq = text.match(/^(.+?),\s*["“]([^"”]+)["”]\s*$/);
+    if (sq) return { who: sq[1].trim(), title: sq[2].trim(), rest: '', won };
+    if (italic && text !== italic && text.endsWith(italic)) {
+      return { who: text.slice(0, -italic.length).replace(/[\s,]+$/, ''), title: italic, rest: '', won };
+    }
+  }
+
   const who = parts.shift().trim();
   const after = parts.join(' – ').trim();
-
   // Songs are in quotes, albums and films in italics
   let title = '';
   const q = after.match(/"([^"]+)"/) || after.match(/“([^”]+)”/);
   if (q) title = q[1].trim();
-  else if (after) {
-    const i = c.querySelector('i');
-    title = i ? _vmaText(i) : after.replace(/\s*\(.*$/, '').trim();
-  }
+  else if (after) title = italic || after.replace(/\s*\(.*$/, '').trim();
   const rest = title ? after.replace(q ? q[0] : title, '').trim() : after;
   return { who, title, rest, won };
 }
 
 // Same folding as the Grammy proxy: accents and punctuation away, so
 // "Beyoncé", "BEYONCE" and "Beyonce" all compare equal.
-function _vmaNorm(s) {
+function _rlWikiNorm(s) {
   return (s || '').normalize('NFD').replace(/[̀-ͯ]/g, '')
     .toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
 }
@@ -39566,10 +39689,10 @@ function _vmaNorm(s) {
 // Which of the user's artists a nominee line credits. Every run of 1–6 words in
 // the credit is looked up as a whole name, so "Rosé and Bruno Mars" finds both
 // Rosé and Bruno Mars, but "Mars" alone never matches an artist called "Mars
-// Volta". The video's own title is left out: a song called "Taylor Swift" isn't
+// Volta". The work's own title is left out: a song called "Taylor Swift" isn't
 // a nomination for her.
-function _vmaMatch(nominee, byNorm) {
-  const words = _vmaNorm(nominee.who + ' ' + nominee.rest).split(' ').filter(Boolean);
+function _rlWikiMatch(nominee, byNorm) {
+  const words = _rlWikiNorm(nominee.who + ' ' + nominee.rest).split(' ').filter(Boolean);
   const hits = new Set();
   for (let i = 0; i < words.length; i++) {
     let phrase = '';
@@ -39582,7 +39705,8 @@ function _vmaMatch(nominee, byNorm) {
   return [...hits];
 }
 
-async function _loadRealLifeVmas(year) {
+async function _loadRealLifeWiki(showId, year) {
+  const show = RL_WIKI_SHOWS[showId];
   const contentEl = document.getElementById('realLifeContent');
   const statusEl  = document.getElementById('realLifeStatus');
   const token = ++_realLifeLoadToken;
@@ -39593,36 +39717,34 @@ async function _loadRealLifeVmas(year) {
     return;
   }
 
-  const ceremony = `${year} MTV Video Music Awards`;
+  const ceremony = show.ceremony(year);
   statusEl.textContent = `Loading the ${ceremony}…`;
-  const data = await _vmaFetchYear(year);
+  const data = await _rlWikiFetchYear(showId, year);
   if (token !== _realLifeLoadToken) return;   // the user moved on
   statusEl.textContent = '';
 
-  const credit = `<div class="awards-reallife-credit">Winners and nominees from <a href="${esc(data.url || 'https://en.wikipedia.org/wiki/MTV_Video_Music_Awards')}" target="_blank" rel="noopener">Wikipedia</a></div>`;
+  const credit = `<div class="awards-reallife-credit">Winners and nominees from <a href="${esc(data.url || 'https://en.wikipedia.org/')}" target="_blank" rel="noopener">Wikipedia</a></div>`;
 
   if (!data.found) {
     const msg = data.error
       ? `Couldn't reach Wikipedia for the ${esc(ceremony)}. Try again in a moment.`
       : year >= tzNow().getFullYear()
-        ? `The ${year} VMAs haven't happened yet. Check back after the ceremony.`
-        : `Couldn't find the winners and nominees for the ${esc(ceremony)}.`;
+        ? `The ${year} ${show.short} haven't happened yet, or aren't written up yet. Check back after the ceremony.`
+        : `There's no ${show.short} ceremony on record for ${year}.`;
     contentEl.innerHTML = `<div class="awards-empty">${msg}</div>` + credit;
     return;
   }
 
-  // The VMAs judge videos from roughly mid-June of the year before to mid-June
-  // of the ceremony year, so match against plays from that stretch — July to
-  // June. Like the Grammys tab, data that doesn't reach back that far falls
-  // back to the whole library.
-  const start = new Date(`${year - 1}-07-01`);
-  const end   = new Date(`${year}-06-30T23:59:59`);
-  const inWindow = allPlays.filter(p => p.date >= start && p.date <= end);
+  // Match against the stretch of listening this ceremony judges. Like the
+  // Grammys tab, data that doesn't reach back that far falls back to the
+  // whole library.
+  const win = show.window(year, data.date ? new Date(data.date + 'T23:59:59') : null);
+  const inWindow = allPlays.filter(p => p.date >= win.start && p.date <= win.end);
   const pool = inWindow.length ? inWindow : allPlays;
   const { artists } = _awardsCountMaps(pool);
   const byNorm = new Map();
   for (const a of Object.values(artists)) {
-    const n = _vmaNorm(a.artist);
+    const n = _rlWikiNorm(a.artist);
     if (n.length < 2) continue;
     const had = byNorm.get(n);
     if (!had || had.plays < a.plays) byNorm.set(n, a);
@@ -39632,7 +39754,7 @@ async function _loadRealLifeVmas(year) {
   const mine = new Map();   // played artist → { played, rows: [{ category, nominee }] }
   const yours = new Set();  // "catIdx:nomIdx" of every line that credits one of them
   data.categories.forEach((cat, ci) => cat.nominees.forEach((nom, ni) => {
-    for (const a of _vmaMatch(nom, byNorm)) {
+    for (const a of _rlWikiMatch(nom, byNorm)) {
       yours.add(ci + ':' + ni);
       if (!mine.has(a)) mine.set(a, { played: a, rows: [] });
       mine.get(a).rows.push({ category: cat.name, nominee: nom });
@@ -39642,9 +39764,7 @@ async function _loadRealLifeVmas(year) {
 
   // Before the show, the page lists nominees with nobody in bold yet
   const decided = data.categories.some(c => c.nominees.some(n => n.won));
-  const windowLabel = inWindow.length
-    ? `matched against your plays from July ${year - 1} to June ${year}`
-    : 'matched against your whole library';
+  const windowLabel = inWindow.length ? `matched against your plays from ${win.label}` : 'matched against your whole library';
   const headline = `<div class="awards-reallife-head">
       <div class="awards-reallife-ceremony">${esc(ceremony)}</div>
       <div class="awards-reallife-sub">${data.categories.length} categories · ${windowLabel}${decided ? '' : ' · winners not announced yet'}</div>
@@ -39662,7 +39782,7 @@ async function _loadRealLifeVmas(year) {
     // Same card as the Grammys tab: portrait down the side, one row per nomination
     cards = results.map((r, ri) => {
       const rows = r.rows.slice().sort((a, b) => (b.nominee.won ? 1 : 0) - (a.nominee.won ? 1 : 0));
-      const artistId = `vma-art-${ri}`;
+      const artistId = `rlw-art-${ri}`;
       artQueue.push({ imgId: artistId, type: 'artist', item: {
         name: r.played.artist, artist: r.played.artist,
         prefKey: 'artist:' + r.played.artist.toLowerCase(),
@@ -39676,12 +39796,12 @@ async function _loadRealLifeVmas(year) {
             <span class="awards-reallife-alltime">${plays.toLocaleString()} ${plays === 1 ? 'play' : 'plays'}${inWindow.length ? ' that season' : ''}</span>
           </div>
           ${rows.map((x, xi) => {
-            const workId = `vma-work-${ri}-${xi}`;
-            const art = _vmaWorkArt(x.nominee, r.played);
+            const workId = `rlw-work-${ri}-${xi}`;
+            const art = _rlWikiWorkArt(x.category, x.nominee, r.played);
             if (art) artQueue.push({ imgId: workId, type: art.type, item: art.item });
             const work = x.nominee.title || '';
             // On a shared credit ("Lady Gaga and Bruno Mars") say who it was with
-            const withWho = _vmaNorm(x.nominee.who) !== _vmaNorm(r.played.artist) ? x.nominee.who : '';
+            const withWho = _rlWikiNorm(x.nominee.who) !== _rlWikiNorm(r.played.artist) ? x.nominee.who : '';
             return `<div class="awards-reallife-row">
               ${art ? _rlArtHtml(workId, work, 'awards-reallife-thumb') : '<div class="awards-reallife-thumb is-blank"></div>'}
               <span class="awards-reallife-badge ${x.nominee.won ? 'won' : 'nom'}">${x.nominee.won ? '🏆 Won' : '🎗 Nominated'}</span>
@@ -39697,35 +39817,38 @@ async function _loadRealLifeVmas(year) {
   }
 
   // Then the whole ceremony, every category, with the user's artists marked
-  const all = `<div class="vma-all">
-      <div class="vma-all-head">Every category</div>
-      <div class="vma-cat-grid">${data.categories.map((cat, ci) => `
-        <div class="vma-cat">
-          <div class="vma-cat-name">${esc(cat.name)}</div>
-          <ul class="vma-cat-list">${cat.nominees.map((n, ni) => `
+  const all = `<div class="rlw-all">
+      <div class="rlw-all-head">Every category</div>
+      <div class="rlw-cat-grid">${data.categories.map((cat, ci) => `
+        <div class="rlw-cat">
+          <div class="rlw-cat-name">${esc(cat.name)}</div>
+          <ul class="rlw-cat-list">${cat.nominees.map((n, ni) => `
             <li class="${n.won ? 'is-won' : ''}${yours.has(ci + ':' + ni) ? ' is-yours' : ''}">
-              <span class="vma-cat-mark" aria-hidden="true">${n.won ? '🏆' : ''}</span>
-              <span class="vma-cat-text"><span class="vma-cat-who">${esc(n.who)}</span>${n.title ? ` <span class="vma-cat-title">${esc(n.title)}</span>` : ''}</span>
+              <span class="rlw-cat-mark" aria-hidden="true">${n.won ? '🏆' : ''}</span>
+              <span class="rlw-cat-text"><span class="rlw-cat-who">${esc(n.who)}</span>${n.title ? ` <span class="rlw-cat-title">${esc(n.title)}</span>` : ''}</span>
             </li>`).join('')}
           </ul>
         </div>`).join('')}
       </div>
-      <div class="vma-all-key"><span class="vma-key-dot" aria-hidden="true"></span> An artist you played</div>
+      <div class="rlw-all-key"><span class="rlw-key-dot" aria-hidden="true"></span> An artist you played</div>
     </div>`;
 
   contentEl.innerHTML = headline + tally + cards + all + credit;
   _realLifeLoadArt(artQueue, token);
 }
 
-// A video's thumbnail is its song's cover. Looked up under the user's own
-// spelling of the artist when the credit is theirs, so a picture they pinned on
-// their charts shows up here too.
-function _vmaWorkArt(nominee, played) {
+// A nomination's thumbnail: the album cover for album categories, the song's
+// cover for everything else. Looked up under the user's own spelling of the
+// artist when the credit is theirs, so a picture they pinned on their charts
+// shows up here too.
+function _rlWikiWorkArt(category, nominee, played) {
   if (!nominee.title) return null;
   const mainCredit = nominee.who.split(/\s+(?:and|&|featuring|feat\.|ft\.|with|x)\s+|,\s*/i)[0].trim();
-  const artist = _vmaNorm(nominee.who).startsWith(_vmaNorm(played.artist)) ? played.artist : (mainCredit || played.artist);
+  const artist = _rlWikiNorm(nominee.who).startsWith(_rlWikiNorm(played.artist)) ? played.artist : (mainCredit || played.artist);
   const key = artist.toLowerCase() + '|||' + nominee.title.toLowerCase();
-  return { type: 'song', item: { name: nominee.title, title: nominee.title, artist, prefKey: 'song:' + key } };
+  return /\balbum\b|soundtrack/i.test(category)
+    ? { type: 'album', item: { name: nominee.title, album: nominee.title, artist, prefKey: 'album:' + key } }
+    : { type: 'song',  item: { name: nominee.title, title: nominee.title, artist, prefKey: 'song:' + key } };
 }
 
 // ── Ceremony ──────────────────────────────────────────────────────────────────
@@ -44123,7 +44246,7 @@ const _cgTourSteps = [
     nav: 'events' },
 
   { title: 'Awards',
-    content: 'A full awards ceremony generated from your own chart data, with 53 categories available — Song, Album and Artist of the Year, Best New Artist, Best Collaboration, Song of the Summer, Best Comeback, Best Discovery, Most Obsessive Play, and opt-in genre categories across pop, rock, alternative, hip-hop, R&B, Latin, electronic and K-pop. Set the eligibility window, choose your categories, then run the ceremony and watch the envelopes open. There is a separate Real-Life Awards tab alongside My Grammys, showing which of your artists were nominated for or won real Grammys and MTV VMAs.',
+    content: 'A full awards ceremony generated from your own chart data, with 53 categories available — Song, Album and Artist of the Year, Best New Artist, Best Collaboration, Song of the Summer, Best Comeback, Best Discovery, Most Obsessive Play, and opt-in genre categories across pop, rock, alternative, hip-hop, R&B, Latin, electronic and K-pop. Set the eligibility window, choose your categories, then run the ceremony and watch the envelopes open. There is a separate Real-Life Awards tab alongside My Grammys, showing which of your artists were nominated for or won real Grammys, MTV VMAs and American Music Awards.',
     nav: 'awards' },
 
   { title: 'Your Soundtrack',
@@ -44830,7 +44953,7 @@ function dcRenderChartsGuideView() {
       tabs: [
         { name: 'Records',         period: 'records',    icon: '🏆', desc: 'Eleven sections behind the button row at the top: All #1s, Perfect All Kill, Most Chart Appearances, Biggest Debuts, Most Plays in a Period, Play Count Milestones, Fastest to Milestone, Certifications, Streak Records, New Charts and an Overview.', use: 'Your record book.' },
         { name: 'Events',          period: 'events',     icon: '🎂', desc: 'A calendar of artist birthdays, album anniversaries and new releases for the artists in your charts.', use: 'Knowing when something is worth replaying.' },
-        { name: 'Awards',          period: 'awards',     icon: '🏅', desc: '53 categories generated from your own chart data — the four majors plus Best Collaboration, Song of the Summer, Best Comeback, Best Discovery, Most Obsessive Play and opt-in genre awards. Set an eligibility window, pick categories, then run the ceremony. Real-Life Awards sits alongside My Grammys, with the real Grammys and VMAs your artists were up for.', use: 'The fun one. Run it every December.' },
+        { name: 'Awards',          period: 'awards',     icon: '🏅', desc: '53 categories generated from your own chart data — the four majors plus Best Collaboration, Song of the Summer, Best Comeback, Best Discovery, Most Obsessive Play and opt-in genre awards. Set an eligibility window, pick categories, then run the ceremony. Real-Life Awards sits alongside My Grammys, with the real Grammys, VMAs and AMAs your artists were up for.', use: 'The fun one. Run it every December.' },
         { name: 'Your Soundtrack', period: 'soundtrack', icon: '🎬', desc: 'A full recap of any month, year or all time: a reel, headline stats, top charts, a featured artist, your listening patterns, discoveries, milestones, streaks, a mini awards run and a hidden gem — plus an animated chart replay and a shareable card.', use: 'The nostalgic pass through your history.' },
         { name: 'Playlists',       period: 'playlists',  icon: '🎵', desc: 'Save any chart as a named playlist, queue tracks from anywhere, and use the Time Machine to replay exactly what you had on for any past date.', use: 'Turning a chart back into listening.' },
         { name: 'Charts Guide',    period: 'chartsguide',icon: '📖', desc: 'You are here. Setup checks, the tab breakdown, how charts are calculated, shortcuts, glossary, FAQ and your milestones.', use: 'Whenever something does not make sense.' },
