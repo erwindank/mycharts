@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 48;
+const DC_CL_I18N_V = 49;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,10 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+
+  { d: '2026-10-02', t: 'feature', a: 'awards', h: '79cf383',
+    title: 'Real-Life Awards now cover the American Music Awards',
+    detail: 'Real-Life Awards has a third tab, AMAs, next to Grammys and VMAs. Pick a year from 1974 on to see which of your artists were nominated and what they won, then every category of the night with the winners in bold and your artists marked. The AMAs have moved around the calendar over the years, so each year is matched against your plays from the twelve months before that show. 2003 had two shows, and both are listed. There was no show in 2023 or 2024, and the tab says so. Winners and nominees come from Wikipedia.' },
 
   { d: '2026-10-02', t: 'feature', a: 'awards', h: '6fc55fc',
     title: 'Real-Life Awards now cover the MTV VMAs',

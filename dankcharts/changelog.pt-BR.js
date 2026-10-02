@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['pt-BR'] = {
 
   /* ========== OUTUBRO 2026 ========== */
 
+  'Real-Life Awards now cover the American Music Awards':
+    ['Prêmios Reais agora inclui o American Music Awards',
+     'Prêmios Reais ganhou uma terceira aba, AMAs, ao lado de Grammys e VMAs. Escolha um ano a partir de 1974 para ver quais dos seus artistas foram indicados e o que ganharam, e depois todas as categorias da noite com os vencedores em negrito e seus artistas marcados. O AMAs mudou de data ao longo dos anos, então cada ano é comparado com o que você ouviu nos doze meses antes daquela cerimônia. Em 2003 houve duas cerimônias, e as duas aparecem. Não houve cerimônia em 2023 nem em 2024, e a aba avisa isso. Vencedores e indicados vêm da Wikipedia.'],
+
   'Real-Life Awards now cover the MTV VMAs':
     ['Prêmios Reais agora inclui os MTV VMAs',
      'Prêmios Reais agora tem duas abas: Grammys e VMAs. Escolha um ano a partir de 1984 e a aba VMAs mostra cada artista que você ouviu naquela temporada e foi indicado, com o que ganhou, e depois todas as categorias da noite com os vencedores em negrito e seus artistas marcados. A temporada vai de julho a junho, como os próprios prêmios. Vencedores e indicados vêm da Wikipedia, e cada ano só carrega uma vez.'],
