@@ -38252,7 +38252,6 @@ function _awardsPickerSyncSel() {
   if (selEl)   { selEl.innerHTML = _awardsPickerSelHtml(); _awardsPickerLoadNomThumbs(); }
   if (countEl) countEl.textContent = t('awards_picker_selected', { count: _awardsPickerSel.length });
   if (tallyEl) tallyEl.textContent = _awardsPickerSel.length;
-  _awardsPickerQuickReset();   // a pending "remove all N?" no longer has the right N
 }
 
 /* Flip the picked state of the rows already on screen, in place. Rebuilding the
@@ -38320,7 +38319,11 @@ function _awardsShowPicker(year, catId, candidates) {
         <div class="awards-picker-ballot-head">
           <span class="awards-picker-ballot-title">Nominees <span class="awards-picker-tally" id="awardsPickerTally">${_awardsPickerSel.length}</span></span>
           <span class="awards-picker-ballot-hint">Drag to reorder</span>
-          <div class="awards-picker-quick" id="awardsPickerQuick">${_awardsPickerQuickHtml()}</div>
+          <div class="awards-picker-quick">
+            <button onclick="awardsPickerFillTop(8)" title="Add the top 8 of the list below">Fill top 8</button>
+            <button onclick="awardsPickerFillTop(5)" title="Add the top 5 of the list below">Top 5</button>
+            <button class="awards-picker-quick-clear" onclick="awardsPickerClearSel()">Clear</button>
+          </div>
         </div>
         <div class="awards-picker-selected" id="awardsPickerSelected">${_awardsPickerSelHtml()}</div>
       </div>
@@ -38353,13 +38356,16 @@ function _awardsShowPicker(year, catId, candidates) {
   // Keyboard: ↑↓ walk the list, Enter adds/removes, Ctrl/⌘+Enter saves, Esc closes
   _awardsPickerKeyHandler = e => {
     if (!document.getElementById('awardsPickerOverlay')) return;
-    if (e.key === 'Escape') {
-      e.preventDefault();
-      // An open "remove all?" question is closed first, the picker on the next press
-      if (document.querySelector('#awardsPickerQuick.is-confirming')) awardsPickerClearCancel();
-      else awardsPickerClose();
+    // While the "remove all?" warning is open it owns the keyboard: Escape
+    // closes only the warning, and Enter/Space press whichever button has focus
+    // instead of toggling a row in the list behind it
+    if (document.getElementById('awardsPickerConfirm')) {
+      if (e.key === 'Escape') { e.preventDefault(); awardsPickerClearCancel(); }
+      else if (e.key === 'Tab') _awardsPickerConfirmTrapTab(e);
+      else if (e.key !== 'Enter' && e.key !== ' ') e.preventDefault();
       return;
     }
+    if (e.key === 'Escape') { e.preventDefault(); awardsPickerClose(); return; }
     if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) { e.preventDefault(); awardsPickerSave(year, catId); return; }
     if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
       if (!_awardsPickerRows.length) return;
@@ -38415,43 +38421,51 @@ function awardsPickerRemoveNom(btn) {
   _awardsPickerSyncRows(k);   // the same item may be on screen in the browse list
 }
 
-// The ballot's quick actions: Fill top 8, Top 5 and Clear
-function _awardsPickerQuickHtml() {
-  return `<button onclick="awardsPickerFillTop(8)" title="Add the top 8 of the list below">Fill top 8</button>
-            <button onclick="awardsPickerFillTop(5)" title="Add the top 5 of the list below">Top 5</button>
-            <button class="awards-picker-quick-clear" onclick="awardsPickerClearSel()">Clear</button>`;
-}
-
-// Put the quick actions back after the "remove all?" question is answered
-function _awardsPickerQuickReset() {
-  const quick = document.getElementById('awardsPickerQuick');
-  if (!quick || !quick.classList.contains('is-confirming')) return;
-  quick.classList.remove('is-confirming');
-  quick.innerHTML = _awardsPickerQuickHtml();
-}
-
-let _awardsPickerAskedAt = 0;   // when the "remove all?" question last appeared
-
 /* Clear asks first — one stray click would otherwise wipe a hand-built ballot.
-   The question replaces the quick actions in place, in the site's own style,
-   rather than popping the browser's confirm() box over the picker. */
+   The warning is the site's own window, opened over the picker, rather than the
+   browser's confirm() box. It lives inside the picker overlay, so closing the
+   picker takes it along. Cancel has focus, so a reflex Enter is the safe answer. */
 function awardsPickerClearSel() {
   const n = _awardsPickerSel.length;
-  const quick = document.getElementById('awardsPickerQuick');
-  if (!n || !quick) return;
-  _awardsPickerAskedAt = Date.now();
-  quick.classList.add('is-confirming');
-  quick.innerHTML = `<span class="awards-picker-quick-ask">Remove all ${n} nominee${n === 1 ? '' : 's'}?</span>
-            <button onclick="awardsPickerClearCancel()">Cancel</button>
-            <button class="awards-picker-quick-danger" onclick="awardsPickerClearConfirm()">Remove all</button>`;
+  const overlay = document.getElementById('awardsPickerOverlay');
+  if (!n || !overlay || document.getElementById('awardsPickerConfirm')) return;
+  const catName = _awardsPickerCtx ? t('awards_cat_' + _awardsPickerCtx.catId) : '';
+  const wrap = document.createElement('div');
+  wrap.innerHTML = `<div class="awards-picker-confirm" id="awardsPickerConfirm" onclick="if(event.target===this)awardsPickerClearCancel()">
+    <div class="awards-picker-confirm-box" role="alertdialog" aria-modal="true" aria-labelledby="awardsPickerConfirmTitle" aria-describedby="awardsPickerConfirmText">
+      <div class="awards-picker-confirm-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+      </div>
+      <div class="awards-picker-confirm-title" id="awardsPickerConfirmTitle">Remove all nominees?</div>
+      <div class="awards-picker-confirm-text" id="awardsPickerConfirmText">This takes all <strong>${n}</strong> nominee${n === 1 ? '' : 's'} off ${catName ? `<strong>${esc(catName)}</strong>` : 'this category'}. Nothing is saved until you press Save Nominees, so closing the picker without saving keeps your current ballot.</div>
+      <div class="awards-picker-confirm-actions">
+        <button type="button" class="awards-picker-confirm-cancel" onclick="awardsPickerClearCancel()">Cancel</button>
+        <button type="button" class="awards-picker-confirm-ok" onclick="awardsPickerClearConfirm()">Remove all</button>
+      </div>
+    </div>
+  </div>`;
+  overlay.appendChild(wrap.firstElementChild);
+  document.querySelector('#awardsPickerConfirm .awards-picker-confirm-cancel')?.focus();
 }
 
-function awardsPickerClearCancel() { _awardsPickerQuickReset(); }
+// Keep Tab cycling between the warning's two buttons
+function _awardsPickerConfirmTrapTab(e) {
+  const btns = [...document.querySelectorAll('#awardsPickerConfirm button')];
+  if (!btns.length) return;
+  e.preventDefault();
+  const i = btns.indexOf(document.activeElement);
+  btns[(i + (e.shiftKey ? -1 : 1) + btns.length) % btns.length].focus();
+}
+
+function _awardsPickerConfirmClose() {
+  document.getElementById('awardsPickerConfirm')?.remove();
+  document.getElementById('awardsPickerSearch')?.focus();   // back to where typing goes
+}
+
+function awardsPickerClearCancel() { _awardsPickerConfirmClose(); }
 
 function awardsPickerClearConfirm() {
-  // Remove all sits right where Clear was, so a double-click on Clear would
-  // answer its own question — ignore clicks that come too soon to be a decision
-  if (Date.now() - _awardsPickerAskedAt < 400) return;
+  _awardsPickerConfirmClose();
   _awardsPickerSel = [];
   _awardsPickerSelKeys = new Set();
   _awardsPickerSyncSel();

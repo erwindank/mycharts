@@ -18,7 +18,7 @@ window.DC_CHANGELOG_I18N['pt-PT'] = {
 
   'Clearing the nominee picker now asks first':
     ['Limpar o seletor de nomeados pergunta agora antes',
-     'Nos Meus Grammys, o botão Limpar do seletor de nomeados pergunta agora ali mesmo no seletor, com os botões Cancelar e Remover todos, antes de remover todos os nomeados da categoria. Esc cancela. Um clique sem querer, ou um duplo clique, já não apague uma lista que montaste à mão. Se ainda não houver nomeados, não faz nada.'],
+     'Nos Meus Grammys, o botão Limpar do seletor de nomeados abre agora uma pequena janela de aviso sobre o seletor, com os botões Cancelar e Remover todos, antes de remover todos os nomeados da categoria. Cancelar vem selecionado, e Esc ou um clique fora da janela também cancelam. Um clique sem querer, ou um duplo clique, já não apague uma lista que montaste à mão. Se ainda não houver nomeados, não faz nada.'],
 
   'Nominee picker shows how well each candidate fits the category':
     ['O seletor de nomeados mostra quanto cada candidato encaixa na categoria',
