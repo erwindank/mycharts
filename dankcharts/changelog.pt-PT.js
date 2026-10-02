@@ -16,6 +16,14 @@ window.DC_CHANGELOG_I18N['pt-PT'] = {
 
   /* ========== OUTUBRO 2026 ========== */
 
+  'The Chart Run panel has a cleaner, more modern look':
+    ['O painel de Trajetória no Top está mais limpo e moderno',
+     'A Trajetória no Top que abre por baixo de uma entrada é agora um cartão arredondado próprio. Os botões de intervalo são um único seletor com a opção escolhida em destaque, e os separadores de sequências funcionam da mesma forma. As semanas na tabela, o total de reproduções, o pico e os outros números ficam em pequenos blocos com o número em cima. Cada semana é uma ficha suave e arredondada: o pico é dourado e as outras semanas no top 3 têm um tom de cor, por isso o melhor troço destaca-se. O tempo fora da tabela aparece como uma pausa pontilhada. Recordes de sequência, Mapa de calor e Histórico completo são cartões arredondados com uma seta que roda ao abrir.'],
+
+  'The chart tables have a cleaner, more modern look':
+    ['As tabelas estão mais limpas e modernas',
+     'A vista de tabela já não parece uma folha de cálculo. Cada entrada é uma faixa arredondada com algum espaço entre linhas, e as linhas de coluna e o cabeçalho preenchido desapareceram. As três primeiras linhas têm tons de ouro, prata e bronze em cores que também funcionam nos temas claros, e o número 1 tem um efeito de folha dourada. O movimento na coluna Anterior, incluindo sem alteração, aparece como pequenas pílulas coloridas, e as etiquetas de pico são arredondadas. Nas tabelas semanais de Artistas e Álbuns, a etiqueta de recorde de reproduções fica agora por baixo da barra, tal como em Músicas.'],
+
   'Real-Life Awards now cover the BRIT Awards':
     ['Prémios Reais agora inclui os BRIT Awards',
      'Prémios Reais tem um nono separador, BRIT, para os BRIT Awards: a primeira cerimónia em 1977 e depois todos os anos desde 1982 até hoje. As setas de ano saltam de 1978 a 1981, quando não houve cerimónia. Mostra quais dos teus artistas foram nomeados e o que ganharam, e depois todas as categorias da noite com os vencedores a negrito e os teus artistas assinalados. Cada ano é comparado com o que ouviste nos doze meses antes da cerimónia. Os nomes das categorias já não indicam quem entregou o prémio, em nenhum separador. Se a Wikipédia estiver ocupada por um momento, o separador agora espera e tenta de novo antes de mostrar um erro.'],

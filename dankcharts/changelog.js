@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 55;
+const DC_CL_I18N_V = 56;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,14 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+
+  { d: '2026-10-02', t: 'design', a: 'charts', h: 'c9025cb',
+    title: 'The Chart Run panel has a cleaner, more modern look',
+    detail: 'The Chart Run that opens under an entry is now its own rounded card. The range buttons are one switch with the chosen option highlighted, and the streak tabs work the same way. The weeks on chart, total plays, peak and other figures sit in small tiles with the number on top. Each week is a soft rounded chip: the peak is gold and other top-3 weeks are tinted, so the best stretch stands out. Time off the chart shows as a faint dotted break. Streak Records, Listening Heatmap and Full Streaming History are rounded cards with an arrow that turns when opened.' },
+
+  { d: '2026-10-02', t: 'design', a: 'charts', h: 'c9025cb',
+    title: 'The chart tables have a cleaner, more modern look',
+    detail: 'The Table view no longer looks like a spreadsheet. Each entry is a rounded strip with a little space between rows, and the column lines and filled header are gone. The top three rows are tinted gold, silver and bronze in colours that also work on light themes, and the number 1 has a gold foil look. Movement in the Previous column, including no change, shows as small coloured pills, and Peak tags are rounded. On the weekly Artists and Albums charts, the Plays Peak tag now sits under the play bar, the same as on Songs.' },
 
   { d: '2026-10-02', t: 'feature', a: 'awards', h: 'b5b282f',
     title: 'Real-Life Awards now cover the BRIT Awards',

@@ -16,6 +16,14 @@ window.DC_CHANGELOG_I18N['es'] = {
 
   /* ========== OCTUBRE 2026 ========== */
 
+  'The Chart Run panel has a cleaner, more modern look':
+    ['El panel de Recorrido en el Ranking tiene un aspecto más limpio y moderno',
+     'El Recorrido en el Ranking que se abre debajo de una entrada ahora es su propia tarjeta redondeada. Los botones de rango son un solo selector con la opción elegida resaltada, y las pestañas de rachas funcionan igual. Las semanas en lista, las reproducciones totales, el pico y las demás cifras están en pequeños recuadros con el número arriba. Cada semana es una ficha suave y redondeada: el pico es dorado y las demás semanas en el top 3 tienen un tono de color, así que el mejor tramo destaca. El tiempo fuera de la lista se muestra como una pausa punteada. Récords de rachas, Mapa de calor y Historial completo son tarjetas redondeadas con una flecha que gira al abrirse.'],
+
+  'The chart tables have a cleaner, more modern look':
+    ['Las tablas de las listas tienen un aspecto más limpio y moderno',
+     'La vista de tabla ya no parece una hoja de cálculo. Cada entrada es una franja redondeada con un poco de espacio entre filas, y desaparecen las líneas de columna y el encabezado relleno. Las tres primeras filas tienen un tono oro, plata y bronce con colores que también funcionan en los temas claros, y el número 1 tiene un efecto de lámina dorada. El movimiento en la columna Anterior, incluido sin cambios, se muestra como pequeñas píldoras de color, y las etiquetas de pico son redondeadas. En las listas semanales de Artistas y Álbumes, la etiqueta de récord de reproducciones ahora va debajo de la barra, igual que en Canciones.'],
+
   'Real-Life Awards now cover the BRIT Awards':
     ['Premios Reales ahora incluye los BRIT Awards',
      'Premios Reales tiene una novena pestaña, BRIT, para los BRIT Awards: la primera ceremonia en 1977 y luego todos los años desde 1982 hasta hoy. Las flechas de año se saltan de 1978 a 1981, cuando no hubo ceremonia. Muestra cuáles de tus artistas estuvieron nominados y qué ganaron, y luego todas las categorías de la noche con los ganadores en negrita y tus artistas marcados. Cada año se compara con lo que escuchaste en los doce meses antes de la ceremonia. Los nombres de las categorías ya no incluyen quién entregó el premio, en ninguna pestaña. Si Wikipedia está ocupada un momento, la pestaña ahora espera y vuelve a intentarlo antes de mostrar un error.'],
