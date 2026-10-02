@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 34;
+const DC_CL_I18N_V = 35;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,10 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+
+  { d: '2026-10-01', t: 'fix', a: 'charts', h: '',
+    title: 'Missing covers no longer use up the YouTube search limit',
+    detail: 'When a cover could not be found on Deezer, iTunes or Last.fm, the site searched YouTube for it as a last try. Everyone on the site shares one small daily YouTube limit, so a single big chart with many rare songs could use it all up in minutes, and YouTube image searches then stopped working for the rest of the day. Covers now only search Deezer, iTunes and Last.fm on their own. You can still pick a YouTube picture by hand in the image picker, and anything you already set to YouTube keeps it.' },
 
   { d: '2026-10-01', t: 'fix', a: 'awards', h: '0e5c7f4',
     title: 'My Grammys works again after the Artist stats update',

@@ -1484,6 +1484,22 @@ const YOUTUBE_KEY = 'AIzaSyDAyHsCQ8Eb5Avz32ayqBGMUyV-21xVMtc';
 const imgCache = {}; // key → url string or null
 
 const IMG_SOURCES = ['deezer', 'itunes', 'lastfm', 'youtube', 'off'];
+
+// The sources tried automatically when an image is missing. YouTube is left
+// out on purpose: its key is shared by every visitor and a search costs 100 of
+// the 10,000 daily units, so as the last fallback for every missing cover it
+// burned through the whole day's quota in minutes. It stays pickable by hand
+// (image picker, source button), and an item already set to YouTube still
+// tries it first.
+const AUTO_IMG_SOURCES = ['deezer', 'itunes', 'lastfm'];
+
+// The order to try sources in, starting from the preferred one and walking
+// forward through AUTO_IMG_SOURCES (never wrapping back to deezer).
+function autoImgChain(pref) {
+  if (pref === 'youtube') return ['youtube', ...AUTO_IMG_SOURCES];
+  const i = AUTO_IMG_SOURCES.indexOf(pref);
+  return AUTO_IMG_SOURCES.slice(Math.max(0, i));
+}
 const itemSourcePrefs = JSON.parse(localStorage.getItem('itemSourcePrefs') || '{}');
 // Which same-named Deezer artist candidate (see deezerArtistImageCandidates)
 // the user has manually stepped to for a given artist prefKey — separate from
@@ -3784,7 +3800,7 @@ function thumbHtml(url, fallbackStr, isRank1) {
 // Called when a browser fails to render an image URL — cycles through remaining sources automatically.
 // Tracks tried sources via data-tried-src to prevent repeating and stops once all are exhausted.
 async function _imgFallback(img) {
-  const FALLBACK_SOURCES = ['deezer', 'itunes', 'lastfm', 'youtube'];
+  const FALLBACK_SOURCES = AUTO_IMG_SOURCES;
   const tried = new Set(img.dataset.triedSrc ? img.dataset.triedSrc.split(',') : []);
   const type = img.dataset.type || '';
   const prefKey = img.dataset.prefkey || '';
@@ -3853,16 +3869,12 @@ async function fetchAndInjectImage(el, item, type) {
     return;
   }
 
-  const FALLBACK_SOURCES = ['deezer', 'itunes', 'lastfm', 'youtube'];
   const preferredSource = (item.prefKey && itemSourcePrefs[item.prefKey]) || 'deezer';
   let url = null;
   let usedSource = preferredSource;
 
   if (preferredSource !== 'off') {
-    const startIdx = Math.max(0, FALLBACK_SOURCES.indexOf(preferredSource));
-    for (let i = 0; i < FALLBACK_SOURCES.length; i++) {
-      const source = FALLBACK_SOURCES[(startIdx + i) % FALLBACK_SOURCES.length];
-      if (i > 0 && source === 'deezer') break;
+    for (const source of autoImgChain(preferredSource)) {
       try {
         if (type === 'artist' && source === 'deezer' && item.prefKey && deezerCandidateIdxPrefs[item.prefKey]) {
           // User previously stepped past the top fan-count pick for this
@@ -20017,8 +20029,6 @@ async function _igToDataUrl(url) {
   } catch { return null; }
 }
 
-const _IG_SOURCES = ['deezer', 'itunes', 'lastfm', 'youtube'];
-
 // Artwork from the search APIs comes back at whatever size the endpoint likes —
 // often 300px, which turns to mush inside a 1080px (or 2160px) card. Rewrite the
 // known CDN URL shapes to ask for the largest square they serve.
@@ -20037,9 +20047,7 @@ function shHiResArt(url) {
 
 // Tries preferred source first, then rotates through remaining sources until one has art.
 async function _igFetchArtWithFallback(type, item, preferredSource) {
-  const startIdx = Math.max(0, _IG_SOURCES.indexOf(preferredSource));
-  for (let i = 0; i < _IG_SOURCES.length; i++) {
-    const src = _IG_SOURCES[(startIdx + i) % _IG_SOURCES.length];
+  for (const src of autoImgChain(preferredSource)) {
     let url = null;
     try {
       if (type === 'songs') url = await getTrackImage(item.title, item.artist, src);
@@ -20724,15 +20732,10 @@ async function _lookupImgUrl(type, key, source) {
   } catch (e) { return null; }
 }
 
-const _CRIG_SOURCES = ['deezer', 'itunes', 'lastfm', 'youtube'];
-
-// Cycles through _CRIG_SOURCES starting from startSource, stops before looping back to 'deezer'.
+// Walks autoImgChain from startSource (YouTube only when it was picked by hand).
 // Returns { url, source } for the first hit, or { url: null, source: 'deezer' } when all fail.
 async function _fetchWithSourceFallback(type, key, startSource) {
-  const startIdx = Math.max(0, _CRIG_SOURCES.indexOf(startSource));
-  for (let i = 0; i < _CRIG_SOURCES.length; i++) {
-    const source = _CRIG_SOURCES[(startIdx + i) % _CRIG_SOURCES.length];
-    if (i > 0 && source === 'deezer') break; // cycled back to sentinel — stop
+  for (const source of autoImgChain(startSource)) {
     const url = await _lookupImgUrl(type, key, source);
     if (url) return { url, source };
   }
@@ -39880,7 +39883,7 @@ async function _cerResolveImg(item, type) {
     // another device.
     if (/^https?:\/\//.test(choice.url || '')) return choice.url;
   }
-  const SOURCES = ['deezer', 'itunes', 'lastfm', 'youtube'];
+  const SOURCES = AUTO_IMG_SOURCES;
   const pref = (it.prefKey && itemSourcePrefs[it.prefKey]) || 'deezer';
   if (pref === 'off') return null;
   for (const source of [pref, ...SOURCES.filter(x => x !== pref)]) {
@@ -41654,10 +41657,10 @@ function stRenderMilestoneList(items, bodyId, wrapId, toggleId, kind) {
     // art, once fetched — stays hidden (icon badge only) if art fails.
     // Queued (see stLoyaltyImg above) so a page of milestones doesn't fire
     // all its lookups in the same instant. Deezer alone misses plenty of
-    // tracks, so walk the same itunes/lastfm/youtube fallback chain the
+    // tracks, so walk the same itunes/lastfm fallback chain the
     // coverflow uses instead of giving up after one source.
     if (m.rawTitle) {
-      const MS_ART_SOURCES = ['deezer', 'itunes', 'lastfm', 'youtube'];
+      const MS_ART_SOURCES = AUTO_IMG_SOURCES;
       imgQueue = imgQueue.then(async () => {
         let url = null;
         for (const source of MS_ART_SOURCES) {

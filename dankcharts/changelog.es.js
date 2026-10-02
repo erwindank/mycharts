@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['es'] = {
 
   /* ========== OCTUBRE 2026 ========== */
 
+  'Missing covers no longer use up the YouTube search limit':
+    ['Las portadas que faltan ya no agotan el límite de búsquedas de YouTube',
+     'Cuando no se encontraba una portada en Deezer, iTunes o Last.fm, el sitio la buscaba en YouTube como último intento. Todos los usuarios comparten un pequeño límite diario de YouTube, así que un solo chart grande con muchas canciones poco conocidas podía agotarlo en minutos, y las búsquedas de imágenes de YouTube dejaban de funcionar el resto del día. Ahora las portadas solo se buscan automáticamente en Deezer, iTunes y Last.fm. Aún puedes elegir a mano una imagen de YouTube en el selector de imágenes, y lo que ya tenías en YouTube se mantiene.'],
+
   'My Grammys works again after the Artist stats update':
     ['Mis Grammys vuelve a funcionar tras la actualización de estadísticas de artistas',
      'Tras la actualización de estadísticas de Artista del Año, partes de Mis Grammys dejaron de funcionar: los resúmenes de categorías y la lista de ganadores podían no cargarse, y la consola se llenaba de errores. Dos partes del código tenían el mismo nombre, así que una reemplazaba a la otra. Ahora tienen nombres distintos y todo vuelve a cargar.'],
