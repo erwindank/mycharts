@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 53;
+const DC_CL_I18N_V = 54;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,10 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+
+  { d: '2026-10-02', t: 'feature', a: 'awards', h: '7244db5',
+    title: 'Real-Life Awards now cover the Juno Awards',
+    detail: 'Real-Life Awards has an eighth tab, Juno, for Canada\'s Juno Awards, covering every year from 1971 to now. There was no show in 1988, and the tab says so. It shows which of your artists were nominated and what they won, then every category of the night with the winners in bold and your artists marked. Ties show every winner, like 1981\'s Single of the Year, which went to both Anne Murray and Martha and the Muffins. Each year is matched against your plays from the twelve months before the show. Winners and nominees come from Wikipedia.' },
 
   { d: '2026-10-02', t: 'fix', a: 'awards', h: '2f3eea1',
     title: 'Real-Life Awards only credit the artist who was actually nominated',

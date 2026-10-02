@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['es'] = {
 
   /* ========== OCTUBRE 2026 ========== */
 
+  'Real-Life Awards now cover the Juno Awards':
+    ['Premios Reales ahora incluye los Juno Awards',
+     'Premios Reales tiene una octava pestaña, Juno, para los Juno Awards de Canadá, con todos los años desde 1971 hasta hoy. En 1988 no hubo ceremonia, y la pestaña lo indica. Muestra cuáles de tus artistas estuvieron nominados y qué ganaron, y luego todas las categorías de la noche con los ganadores en negrita y tus artistas marcados. Los empates muestran a todos los ganadores, como el Sencillo del Año de 1981, que ganaron Anne Murray y Martha and the Muffins. Cada año se compara con lo que escuchaste en los doce meses antes de la ceremonia. Los ganadores y nominados vienen de Wikipedia.'],
+
   'Real-Life Awards only credit the artist who was actually nominated':
     ['Premios Reales solo le atribuye la nominación al artista que de verdad fue nominado',
      'En las pestañas VMAs, AMAs, iHeartRadio, World Music, Billboard y ARIA, un artista con un nombre de una sola palabra podía recibir la nominación de otro cuando su nombre era parte de uno más largo. Por ejemplo, un artista llamado Selena recibía las nominaciones de Selena Gomez, y Max las de Max Martin. Ahora cada nominación se separa en los artistas que nombra, y solo cuenta si el nombre coincide completo. Los créditos compartidos siguen contando para todos, así que Rosé y Bruno Mars reciben los dos Apt., y nombres como Earth, Wind & Fire y Lil Nas X se mantienen enteros.'],
