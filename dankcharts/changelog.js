@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 52;
+const DC_CL_I18N_V = 53;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,14 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+
+  { d: '2026-10-02', t: 'fix', a: 'awards', h: '2f3eea1',
+    title: 'Real-Life Awards only credit the artist who was actually nominated',
+    detail: 'On the VMAs, AMAs, iHeartRadio, World Music, Billboard and ARIA tabs, an artist with a one-word name could be credited with someone else\'s nomination when their name was part of a longer one. For example, an artist called Selena picked up Selena Gomez\'s nominations, and Max picked up Max Martin\'s. Each nomination is now split into the artists it names, and only a full name match counts. Shared credits still count for everyone named, so Rosé and Bruno Mars both get Apt., and names like Earth, Wind & Fire and Lil Nas X stay in one piece.' },
+
+  { d: '2026-10-02', t: 'feature', a: 'awards', h: '2f3eea1',
+    title: 'Real-Life Awards now cover the ARIA Music Awards',
+    detail: 'Real-Life Awards has a seventh tab, ARIA, for Australia\'s ARIA Music Awards, covering every year from 1987 to now. It shows which of your artists were nominated and what they won, then every category of the night with the winners in bold and your artists marked. Hall of Fame inductees count as winners. Each year is matched against your plays from that calendar year. This year\'s nominees are already listed, and the winners will appear once the show has happened. Winners and nominees come from Wikipedia.' },
 
   { d: '2026-10-02', t: 'feature', a: 'awards', h: '3545048',
     title: 'Real-Life Awards now cover the Billboard Music Awards',

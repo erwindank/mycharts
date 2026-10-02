@@ -16,6 +16,14 @@ window.DC_CHANGELOG_I18N['pt-BR'] = {
 
   /* ========== OUTUBRO 2026 ========== */
 
+  'Real-Life Awards only credit the artist who was actually nominated':
+    ['Prêmios Reais só credita a indicação ao artista que foi indicado de verdade',
+     'Nas abas VMAs, AMAs, iHeartRadio, World Music, Billboard e ARIA, um artista com nome de uma palavra só podia receber a indicação de outro quando o nome dele fazia parte de um nome maior. Por exemplo, um artista chamado Selena recebia as indicações de Selena Gomez, e Max as de Max Martin. Agora cada indicação é separada nos artistas que ela cita, e só vale se o nome bater por inteiro. Créditos compartilhados continuam valendo para todos, então Rosé e Bruno Mars recebem os dois Apt., e nomes como Earth, Wind & Fire e Lil Nas X continuam inteiros.'],
+
+  'Real-Life Awards now cover the ARIA Music Awards':
+    ['Prêmios Reais agora inclui o ARIA Music Awards',
+     'Prêmios Reais ganhou uma sétima aba, ARIA, para o ARIA Music Awards da Austrália, com todos os anos de 1987 até hoje. Ela mostra quais dos seus artistas foram indicados e o que ganharam, e depois todas as categorias da noite com os vencedores em negrito e seus artistas marcados. Quem entrou para o Hall da Fama conta como vencedor. Cada ano é comparado com o que você ouviu naquele ano. Os indicados deste ano já aparecem, e os vencedores vão aparecer depois da cerimônia. Vencedores e indicados vêm da Wikipedia.'],
+
   'Real-Life Awards now cover the Billboard Music Awards':
     ['Prêmios Reais agora inclui o Billboard Music Awards',
      'Prêmios Reais ganhou uma sexta aba, Billboard, para o Billboard Music Awards. A Wikipedia tem os vencedores e indicados de 1990, 1991, 1999, de 2001 a 2006 e de todos os anos de 2011 a 2024, e as setas de ano pulam os anos no meio. Os anos seguintes também aparecem, então uma nova cerimônia surge assim que a Wikipedia tiver a página dela. Cada ano é comparado com o que você ouviu nos doze meses antes da cerimônia. Quando a Wikipedia não diz quem ganhou uma categoria, os indicados aparecem sem vencedor em vez de um palpite.'],

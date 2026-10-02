@@ -16,6 +16,14 @@ window.DC_CHANGELOG_I18N['es'] = {
 
   /* ========== OCTUBRE 2026 ========== */
 
+  'Real-Life Awards only credit the artist who was actually nominated':
+    ['Premios Reales solo le atribuye la nominación al artista que de verdad fue nominado',
+     'En las pestañas VMAs, AMAs, iHeartRadio, World Music, Billboard y ARIA, un artista con un nombre de una sola palabra podía recibir la nominación de otro cuando su nombre era parte de uno más largo. Por ejemplo, un artista llamado Selena recibía las nominaciones de Selena Gomez, y Max las de Max Martin. Ahora cada nominación se separa en los artistas que nombra, y solo cuenta si el nombre coincide completo. Los créditos compartidos siguen contando para todos, así que Rosé y Bruno Mars reciben los dos Apt., y nombres como Earth, Wind & Fire y Lil Nas X se mantienen enteros.'],
+
+  'Real-Life Awards now cover the ARIA Music Awards':
+    ['Premios Reales ahora incluye los ARIA Music Awards',
+     'Premios Reales tiene una séptima pestaña, ARIA, para los ARIA Music Awards de Australia, con todos los años desde 1987 hasta hoy. Muestra cuáles de tus artistas estuvieron nominados y qué ganaron, y luego todas las categorías de la noche con los ganadores en negrita y tus artistas marcados. Los integrantes del Salón de la Fama cuentan como ganadores. Cada año se compara con lo que escuchaste ese año calendario. Los nominados de este año ya aparecen, y los ganadores se verán cuando se haga la ceremonia. Los ganadores y nominados vienen de Wikipedia.'],
+
   'Real-Life Awards now cover the Billboard Music Awards':
     ['Premios Reales ahora incluye los Billboard Music Awards',
      'Premios Reales tiene una sexta pestaña, Billboard, para los Billboard Music Awards. Wikipedia tiene los ganadores y nominados de 1990, 1991, 1999, de 2001 a 2006 y de cada año de 2011 a 2024, y las flechas de año se saltan los años intermedios. Los años siguientes también aparecen, así que una nueva ceremonia se muestra en cuanto Wikipedia tenga su página. Cada año se compara con lo que escuchaste en los doce meses antes de la ceremonia. Cuando Wikipedia no dice quién ganó una categoría, se muestran los nominados sin ganador en lugar de adivinar.'],
