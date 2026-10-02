@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 44;
+const DC_CL_I18N_V = 45;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,10 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+
+  { d: '2026-10-02', t: 'feature', a: 'awards', h: '9eebb3c',
+    title: 'Nominee picker shows the year and genres for every candidate',
+    detail: 'In My Grammys, every song and album in the nominee picker now shows its release year next to the artist, and every candidate shows up to three genres, not just the suggested ones at the top. Genre categories still show up to five. Genres from your Google Sheet show right away. The rest are looked up online as you scroll, so a row can fill in a second or two after it appears. Answers are saved in your browser, so the next time you open the picker they show instantly.' },
 
   { d: '2026-10-02', t: 'change', a: 'awards', h: '95e153d',
     title: 'Clearing the nominee picker now asks first',

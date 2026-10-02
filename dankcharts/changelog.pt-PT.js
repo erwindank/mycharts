@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['pt-PT'] = {
 
   /* ========== OUTUBRO 2026 ========== */
 
+  'Nominee picker shows the year and genres for every candidate':
+    ['O seletor de nomeados mostra o ano e os géneros de cada candidato',
+     'Nos Meus Grammys, cada música e álbum do seletor de nomeados mostra agora o ano de lançamento ao lado do artista, e cada candidato mostra até três géneros, não apenas os sugeridos no topo. As categorias de género continuam a mostrar até cinco. Os géneros da tua folha do Google aparecem logo. O resto é procurado online à medida que deslizas, por isso uma linha pode ser preenchida um ou dois segundos depois de aparecer. As respostas ficam guardadas no teu navegador, por isso da próxima vez que abrires o seletor aparecem logo.'],
+
   'Clearing the nominee picker now asks first':
     ['Limpar o seletor de nomeados pergunta agora antes',
      'Nos Meus Grammys, o botão Limpar do seletor de nomeados abre agora uma pequena janela de aviso sobre o seletor, com os botões Cancelar e Remover todos, antes de remover todos os nomeados da categoria. Cancelar vem selecionado, e Esc ou um clique fora da janela também cancelam. Um clique sem querer, ou um duplo clique, já não apague uma lista que montaste à mão. Se ainda não houver nomeados, não faz nada.'],
