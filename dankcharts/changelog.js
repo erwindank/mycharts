@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 61;
+const DC_CL_I18N_V = 62;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,10 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+
+  { d: '2026-10-03', t: 'feature', a: 'awards', h: 'b052e5a',
+    title: 'Favorite award categories',
+    detail: 'Any My Grammys category can be starred as a favorite: from its card in Configure Year, from the header of its nominee card, or from the top of the nominee picker. Favorites stay the same from year to year and sync across your devices. In Configure Year, the new Favorites filter shows just your starred categories, and the Favorites only button turns those on and every other category off, so setting up a new year with your usual awards takes one click. Nominees you already picked are kept.' },
 
   { d: '2026-10-02', t: 'feature', a: 'awards', h: 'a24da91',
     title: '14 new awards: Gospel & Christian and Instrumental groups',

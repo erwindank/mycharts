@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['pt-PT'] = {
 
   /* ========== OUTUBRO 2026 ========== */
 
+  'Favorite award categories':
+    ['Categorias de prémios favoritas',
+     'Qualquer categoria dos Meus Grammys pode ser marcada como favorita com a estrela: no cartão dela em Configurar ano, no cabeçalho do cartão de nomeados ou no topo do seletor de nomeados. As favoritas mantêm-se de um ano para o outro e sincronizam entre os teus dispositivos. Em Configurar ano, o novo filtro Favoritas mostra só as categorias marcadas, e o botão Só favoritas ativa essas e desativa todas as outras, por isso preparar um ano novo com os teus prémios habituais leva um clique. Os nomeados que já escolheste são mantidos.'],
+
   '14 new awards: Gospel & Christian and Instrumental groups':
     ['14 prémios novos: grupos Gospel e cristã e Instrumental',
      'Os Meus Grammys têm mais dois grupos em Configurar ano. Gospel e cristã acrescenta Melhor Música e Álbum Gospel, Melhor Música e Álbum Cristão Contemporâneo, Melhor Música de Adoração, Artista Cristão/Gospel do Ano, Melhor Música de Hip-Hop Cristão e Melhor Colaboração Gospel/Cristã. Instrumental acrescenta Melhor Música Instrumental, Melhor Versão Instrumental (versões instrumentais e de karaoke, pelo título), Melhores Beats Lo-Fi/Chill, Melhor Peça para Piano, Melhor Música de Videojogo e Melhor Composição Instrumental, e agora também junta os prémios de álbum de jazz e clássico/instrumental.'],
