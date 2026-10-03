@@ -743,6 +743,7 @@ const TRANSLATIONS = {
     badge_plays_peak: 'PLAYS PEAK',
     btn_display_yt_btns: 'YOUTUBE',
     btn_display_bu_legend: '🏷️ BU LEGEND',
+    btn_display_desc: '📝 DESCRIPTIONS',
 
     // Chart type + sub-chart toggle bars above the chart sections
     chart_type_songs: 'Songs',
@@ -2758,6 +2759,7 @@ const TRANSLATIONS = {
     badge_plays_peak: 'LOGRO MÁS ALTO',
     btn_display_yt_btns: 'YOUTUBE',
     btn_display_bu_legend: '🏷️ LEYENDA BU',
+    btn_display_desc: '📝 DESCRIPCIONES',
 
     // Chart type + sub-chart toggle bars above the chart sections
     chart_type_songs: 'Canciones',
@@ -4602,6 +4604,7 @@ const TRANSLATIONS = {
     btn_display_peak_tags: '🏷️ TAGS PICO',
     btn_display_yt_btns: 'YOUTUBE',
     btn_display_bu_legend: '🏷️ LEGENDA BU',
+    btn_display_desc: '📝 DESCRIÇÕES',
     badge_plays_peak: 'PICO DE REPROD.',
 
     // Chart type + sub-chart toggle bars above the chart sections
@@ -6448,6 +6451,7 @@ const TRANSLATIONS = {
     btn_display_peak_tags: '🏷️ TAGS PICO',
     btn_display_yt_btns: 'YOUTUBE',
     btn_display_bu_legend: '🏷️ LEGENDA BU',
+    btn_display_desc: '📝 DESCRIÇÕES',
     badge_plays_peak: 'PICO DE REPROD.',
 
     // Chart type + sub-chart toggle bars above the chart sections

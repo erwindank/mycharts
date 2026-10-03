@@ -27,11 +27,11 @@
   <!-- html2canvas, SheetJS (xlsx) and JSZip are intentionally NOT loaded here — they
        total ~1.2 MB and are only needed for image exports and Excel/ZIP imports.
        app.js pulls them from the CDN on first use (see ensureLazyLib). -->
-  <link rel="stylesheet" href="style.css?v=327">
+  <link rel="stylesheet" href="style.css?v=328">
   <!-- All scripts are deferred so the page paints without waiting on them.
        defer preserves execution order, which matters: translations → Chart.js →
        hammer → zoom plugin → firebase SDKs → firebase.js → app.js (in body). -->
-  <script defer src="translations.js?v=42"></script>
+  <script defer src="translations.js?v=43"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8/hammer.min.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@1.2.1/dist/chartjs-plugin-zoom.min.js"></script>
@@ -566,6 +566,7 @@
               <button id="togglePeakTagsBtn" class="kebab-check-row active" onclick="toggleSectionDisplay('peak-tags', 'songs')"><span class="kebab-check">✓</span><span class="kebab-row-label"><span data-i18n="btn_display_peak_tags">Peak Tags</span></span></button>
               <button id="toggleYtBtnsBtn" class="kebab-check-row active" onclick="toggleSectionDisplay('yt-btns', 'songs')"><span class="kebab-check">✓</span><span class="kebab-row-label"><svg class="yt-btn-icon" viewBox="0 0 24 24"><path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.5 12 3.5 12 3.5s-7.5 0-9.4.5A3 3 0 0 0 .5 6.2C0 8.1 0 12 0 12s0 3.9.5 5.8a3 3 0 0 0 2.1 2.1c1.9.5 9.4.5 9.4.5s7.5 0 9.4-.5a3 3 0 0 0 2.1-2.1C24 15.9 24 12 24 12s0-3.9-.5-5.8zM9.7 15.5V8.5l6.3 3.5-6.3 3.5z"/></svg> <span data-i18n="btn_display_yt_btns">YouTube</span></span></button>
               <button id="toggleBuLegendBtn" class="kebab-check-row active" onclick="toggleSectionDisplay('bu-legend', 'songs')"><span class="kebab-check">✓</span><span class="kebab-row-label"><span data-i18n="btn_display_bu_legend">BU Legend</span></span></button>
+              <button id="toggleDescBtn" class="kebab-check-row active" onclick="toggleSectionDisplay('desc', 'songs')"><span class="kebab-check">✓</span><span class="kebab-row-label"><span data-i18n="btn_display_desc">Descriptions</span></span></button>
             </div>
             <div class="kebab-panel" data-panel="size" style="display:none">
               <div class="chart-size-bar section-size-bar" id="sizeBarSongs">
@@ -768,6 +769,7 @@
               <button id="togglePeakTagsBtnArtists" class="kebab-check-row active" onclick="toggleSectionDisplay('peak-tags', 'artists')"><span class="kebab-check">✓</span><span class="kebab-row-label"><span data-i18n="btn_display_peak_tags">Peak Tags</span></span></button>
               <button id="toggleYtBtnsBtnArtists" class="kebab-check-row active" onclick="toggleSectionDisplay('yt-btns', 'artists')"><span class="kebab-check">✓</span><span class="kebab-row-label"><svg class="yt-btn-icon" viewBox="0 0 24 24"><path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.5 12 3.5 12 3.5s-7.5 0-9.4.5A3 3 0 0 0 .5 6.2C0 8.1 0 12 0 12s0 3.9.5 5.8a3 3 0 0 0 2.1 2.1c1.9.5 9.4.5 9.4.5s7.5 0 9.4-.5a3 3 0 0 0 2.1-2.1C24 15.9 24 12 24 12s0-3.9-.5-5.8zM9.7 15.5V8.5l6.3 3.5-6.3 3.5z"/></svg> <span data-i18n="btn_display_yt_btns">YouTube</span></span></button>
               <button id="toggleBuLegendBtnArtists" class="kebab-check-row active" onclick="toggleSectionDisplay('bu-legend', 'artists')"><span class="kebab-check">✓</span><span class="kebab-row-label"><span data-i18n="btn_display_bu_legend">BU Legend</span></span></button>
+              <button id="toggleDescBtnArtists" class="kebab-check-row active" onclick="toggleSectionDisplay('desc', 'artists')"><span class="kebab-check">✓</span><span class="kebab-row-label"><span data-i18n="btn_display_desc">Descriptions</span></span></button>
             </div>
             <div class="kebab-panel" data-panel="size" style="display:none">
               <div class="chart-size-bar section-size-bar" id="sizeBarArtists">
@@ -971,6 +973,7 @@
               <button id="togglePeakTagsBtnAlbums" class="kebab-check-row active" onclick="toggleSectionDisplay('peak-tags', 'albums')"><span class="kebab-check">✓</span><span class="kebab-row-label"><span data-i18n="btn_display_peak_tags">Peak Tags</span></span></button>
               <button id="toggleYtBtnsBtnAlbums" class="kebab-check-row active" onclick="toggleSectionDisplay('yt-btns', 'albums')"><span class="kebab-check">✓</span><span class="kebab-row-label"><svg class="yt-btn-icon" viewBox="0 0 24 24"><path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.5 12 3.5 12 3.5s-7.5 0-9.4.5A3 3 0 0 0 .5 6.2C0 8.1 0 12 0 12s0 3.9.5 5.8a3 3 0 0 0 2.1 2.1c1.9.5 9.4.5 9.4.5s7.5 0 9.4-.5a3 3 0 0 0 2.1-2.1C24 15.9 24 12 24 12s0-3.9-.5-5.8zM9.7 15.5V8.5l6.3 3.5-6.3 3.5z"/></svg> <span data-i18n="btn_display_yt_btns">YouTube</span></span></button>
               <button id="toggleBuLegendBtnAlbums" class="kebab-check-row active" onclick="toggleSectionDisplay('bu-legend', 'albums')"><span class="kebab-check">✓</span><span class="kebab-row-label"><span data-i18n="btn_display_bu_legend">BU Legend</span></span></button>
+              <button id="toggleDescBtnAlbums" class="kebab-check-row active" onclick="toggleSectionDisplay('desc', 'albums')"><span class="kebab-check">✓</span><span class="kebab-row-label"><span data-i18n="btn_display_desc">Descriptions</span></span></button>
             </div>
             <div class="kebab-panel" data-panel="size" style="display:none">
               <div class="chart-size-bar section-size-bar" id="sizeBarAlbums">
@@ -3331,7 +3334,7 @@
   <!-- defer keeps app.js last in the script execution order (after translations,
        Chart.js and firebase.js) while letting the whole page parse and paint first -->
   <script defer src="changelog.js?v=128"></script>
-  <script defer src="app.js?v=292"></script>
+  <script defer src="app.js?v=293"></script>
 
   <!-- ── Settings Modal ──
        Split into three tabs so the whole form is never dumped on screen at

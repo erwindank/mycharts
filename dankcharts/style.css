@@ -35245,3 +35245,9 @@ body.red-light .modal-rank-card--year .mrc-rank {
 .pdf-scope .sh-seg-btn { flex: 1; }
 .pdf-box .src-switch-row { margin-bottom: 0.5rem; }
 .pdf-hint { margin: 0.75rem 0 1rem; }
+
+/* "Descriptions" switch in each chart's ⋮ → Show menu (toggleSectionDisplay 'desc')
+   hides the grey one-line explainers under that chart's headings */
+body.songs-hide-desc   #songsChartGroup   .section-sub,
+body.artists-hide-desc #artistsChartGroup .section-sub,
+body.albums-hide-desc  #albumsChartGroup  .section-sub { display: none !important; }

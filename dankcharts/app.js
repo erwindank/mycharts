@@ -429,13 +429,15 @@ const SECTION_TOGGLE_CONFIG = {
     'plays-peak': { btnId: 'togglePlaysPeakBtn',        bodyClass: 'songs-hide-plays-peak' },
     'peak-tags':  { btnId: 'togglePeakTagsBtn',         bodyClass: 'songs-hide-peak-tags' },
     'yt-btns':    { btnId: 'toggleYtBtnsBtn',           bodyClass: 'songs-hide-yt-btns' },
-    'bu-legend':  { btnId: 'toggleBuLegendBtn',          bodyClass: 'songs-hide-bu-legend' }
+    'bu-legend':  { btnId: 'toggleBuLegendBtn',          bodyClass: 'songs-hide-bu-legend' },
+    'desc':       { btnId: 'toggleDescBtn',             bodyClass: 'songs-hide-desc' }
   },
   artists: {
     'plays-peak': { btnId: 'togglePlaysPeakBtnArtists', bodyClass: 'artists-hide-plays-peak' },
     'peak-tags':  { btnId: 'togglePeakTagsBtnArtists',  bodyClass: 'artists-hide-peak-tags' },
     'yt-btns':    { btnId: 'toggleYtBtnsBtnArtists',    bodyClass: 'artists-hide-yt-btns' },
-    'bu-legend':  { btnId: 'toggleBuLegendBtnArtists',   bodyClass: 'artists-hide-bu-legend' }
+    'bu-legend':  { btnId: 'toggleBuLegendBtnArtists',   bodyClass: 'artists-hide-bu-legend' },
+    'desc':       { btnId: 'toggleDescBtnArtists',      bodyClass: 'artists-hide-desc' }
   },
   albums: {
     'cert':       { btnId: 'toggleCertBtnAlbums',       bodyClass: 'albums-hide-cert' },
@@ -443,14 +445,15 @@ const SECTION_TOGGLE_CONFIG = {
     'plays-peak': { btnId: 'togglePlaysPeakBtnAlbums',  bodyClass: 'albums-hide-plays-peak' },
     'peak-tags':  { btnId: 'togglePeakTagsBtnAlbums',   bodyClass: 'albums-hide-peak-tags' },
     'yt-btns':    { btnId: 'toggleYtBtnsBtnAlbums',     bodyClass: 'albums-hide-yt-btns' },
-    'bu-legend':  { btnId: 'toggleBuLegendBtnAlbums',    bodyClass: 'albums-hide-bu-legend' }
+    'bu-legend':  { btnId: 'toggleBuLegendBtnAlbums',    bodyClass: 'albums-hide-bu-legend' },
+    'desc':       { btnId: 'toggleDescBtnAlbums',       bodyClass: 'albums-hide-desc' }
   }
 };
 
 // Per-section state — all toggles default on
 const sectionToggleState = (() => {
   function withDefaults(s) {
-    const d = { cert: true, score: true, 'plays-peak': true, 'peak-tags': true, 'yt-btns': true, 'bu-legend': true };
+    const d = { cert: true, score: true, 'plays-peak': true, 'peak-tags': true, 'yt-btns': true, 'bu-legend': true, desc: true };
     return Object.assign(d, s || {});
   }
   try {
