@@ -34372,6 +34372,9 @@ const AWARD_CATEGORIES = [
   { id: 'best_night_song',   label: 'Best Night Song',            type: 'song',   filter: 'night',             defaultOn: false, emoji: '🌙' },
   { id: 'best_morning_song', label: 'Best Morning Song',          type: 'song',   filter: 'morning',           defaultOn: false, emoji: '☀️' },
   { id: 'most_loyal_artist', label: 'Most Loyal Artist',          type: 'artist', filter: 'loyal',             defaultOn: false, emoji: '🫶' },
+  // No concert data to go on, so the field is your songs and the pick is yours:
+  // the song that hit hardest live, at a show you went to that year
+  { id: 'best_concert_song', label: 'Best Song Heard in Concert', type: 'song',  filter: 'all',               defaultOn: false, emoji: '🎟️', hint: 'concert_pick' },
   // Just for fun (opt-in)
   { id: 'guilty_pleasure',   label: 'Guilty Pleasure of the Year', type: 'song',  filter: 'all',               defaultOn: false, emoji: '🙈' },
   { id: 'most_underrated_song', label: 'Most Underrated Song',    type: 'song',   filter: 'underrated',        defaultOn: false, emoji: '🪙' },
@@ -36489,7 +36492,7 @@ const AWARD_GROUPS = [
   { id: 'genre',     icon: '🎼', test: c => c.filter.startsWith('genre:') || ['best_pop_solo', 'best_pop_duo', 'best_nonenglish'].includes(c.id) },
   { id: 'format',    icon: '💿', ids: ['best_album_cover', 'best_album_concept', 'best_holiday_album', 'best_deluxe_album', 'best_deluxe_cover', 'best_ep', 'best_live_album', 'best_debut_album', 'best_reissue', 'best_compilation', 'best_soundtrack_album', 'late_discovery'] },
   { id: 'songtype',  icon: '🎵', ids: ['song_summer', 'best_holiday_song', 'most_viral_song', 'best_remix', 'best_remixed_rec', 'best_soundtrack_song', 'best_cover_song', 'best_acoustic_version', 'best_breakup_song', 'best_throwback', 'best_deep_cut'] },
-  { id: 'listening', icon: '🎧', ids: ['best_discovery', 'best_comeback', 'most_growth', 'obsessive_play', 'one_hit_wonder', 'best_night_song', 'best_morning_song', 'most_loyal_artist'] },
+  { id: 'listening', icon: '🎧', ids: ['best_discovery', 'best_comeback', 'most_growth', 'obsessive_play', 'one_hit_wonder', 'best_night_song', 'best_morning_song', 'most_loyal_artist', 'best_concert_song'] },
   { id: 'fun',       icon: '🎉', ids: ['guilty_pleasure', 'most_underrated_song'] },
   { id: 'stats',     icon: '📊', test: c => !!c.auto },
 ];
