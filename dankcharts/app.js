@@ -20428,7 +20428,9 @@ async function shCapture(nodeId, fmt, quality) {
     scale: Math.max(1, Math.min(2, quality || 2)),
     useCORS: true, allowTaint: false, backgroundColor: null, logging: false,
     width: d.w, height: d.h, windowWidth: d.w, windowHeight: d.h,
-    imageTimeout: 0, scrollX: 0, scrollY: 0,
+    // Artwork is already inlined as data URLs; the timeout only stops one stuck
+    // image from hanging the export forever (0 = wait indefinitely).
+    imageTimeout: 15000, scrollX: 0, scrollY: 0,
     // html2canvas clones the whole document before drawing — with a big library
     // that's tens of thousands of nodes and most of the wait. Only clone the
     // card, its ancestors (so scoped CSS still matches) and <head> styles.
@@ -20438,6 +20440,95 @@ async function shCapture(nodeId, fmt, quality) {
 
 function shCanvasBlob(cvs) {
   return new Promise(res => cvs.toBlob(res, 'image/png'));
+}
+
+// ─── NATIVE SHARE (phones) ──────────────────────────────────────
+// Browsers only open the share sheet straight after a tap ("user activation").
+// Rendering the PNG takes seconds on a phone, so share-after-render used to be
+// refused silently and the button sat on ⏳ forever. Instead the image is
+// rendered in the background whenever a preview settles, and the Share tap
+// hands the ready file to navigator.share() with no await in between.
+// Only files are passed (no title/text): with extra text some targets —
+// Instagram Stories, WhatsApp Status — drop the image or don't appear at all.
+const shShareJobs = {}; // nodeId → { gen, file, promise }
+let _shCanShareFiles = null;
+function shCanShareFiles() {
+  if (_shCanShareFiles === null) {
+    try {
+      _shCanShareFiles = !!(navigator.canShare && navigator.canShare({ files: [new File([''], 'x.png', { type: 'image/png' })] }));
+    } catch (e) { _shCanShareFiles = false; }
+  }
+  return _shCanShareFiles;
+}
+
+// Call after every preview render. `getOpts` is read when the render starts so
+// it always matches the card currently in the hidden node.
+function shPrepareShare(nodeId, btnId, getOpts, immediate) {
+  if (!shCanShareFiles()) return null;
+  // The Share button is CSS-hidden above 768px — don't burn CPU rendering for it.
+  const shareBtn = document.getElementById(btnId);
+  if (!immediate && (!shareBtn || getComputedStyle(shareBtn).display === 'none')) return null;
+  const job = shShareJobs[nodeId] || (shShareJobs[nodeId] = { gen: 0 });
+  const gen = ++job.gen;
+  job.file = null;
+  shSetShareBtn(btnId, 'busy');
+  clearTimeout(job.timer);
+  // A superseded job whose timer was cleared must still settle, or anyone
+  // waiting on it (shShareNow) would wait forever.
+  if (job.resolve) job.resolve(null);
+  job.promise = new Promise(resolve => {
+    job.resolve = resolve;
+    // Debounce so dragging a slider doesn't queue a render per tick.
+    job.timer = setTimeout(async () => {
+      if (gen !== job.gen) return resolve(null);
+      try {
+        const o = getOpts();
+        const cvs = await shCapture(nodeId, o.format, o.quality);
+        const blob = await shCanvasBlob(cvs);
+        if (gen !== job.gen || !blob) return resolve(null);
+        job.file = new File([blob], o.fileName, { type: 'image/png' });
+        shSetShareBtn(btnId, 'ready');
+        resolve(job.file);
+      } catch (e) {
+        console.error('Share image failed:', e);
+        if (gen === job.gen) shSetShareBtn(btnId, 'ready');
+        resolve(null);
+      }
+    }, immediate ? 0 : 500);
+  });
+  return job.promise;
+}
+
+function shSetShareBtn(btnId, state) {
+  const btn = document.getElementById(btnId);
+  if (!btn) return;
+  if (!btn.dataset.label) btn.dataset.label = btn.textContent;
+  btn.classList.toggle('sh-share-busy', state === 'busy');
+  btn.textContent = state === 'busy' ? '⏳ ' + btn.dataset.label.replace(/^\S+\s*/, '') : btn.dataset.label;
+}
+
+// Share tap. If the file is ready the sheet opens immediately. If it is still
+// rendering, wait for it and then ask for one more tap (the first tap's
+// permission will have expired by then). Without file sharing → download.
+function shShareNow(nodeId, btnId, getOpts, fallbackDownload) {
+  if (!shCanShareFiles()) { fallbackDownload(); return; }
+  const job = shShareJobs[nodeId];
+  if (job && job.file) {
+    navigator.share({ files: [job.file] }).catch(e => {
+      // AbortError = the user closed the sheet; anything else → plain download
+      if (e && e.name !== 'AbortError') fallbackDownload();
+    });
+    return;
+  }
+  const btn = document.getElementById(btnId);
+  // Follow the newest render: if the preview re-rendered meanwhile (artwork
+  // arriving, an option changed), the older job resolves null and is skipped.
+  const wait = p => p.then(file => {
+    const latest = shShareJobs[nodeId] && shShareJobs[nodeId].promise;
+    if (!file) { if (latest && latest !== p) wait(latest); return; }
+    if (btn) btn.textContent = '📤 ' + t('sh_tap_to_share');
+  });
+  wait((job && job.promise) || shPrepareShare(nodeId, btnId, getOpts, true));
 }
 
 function _renderIgPreview() {
@@ -20450,6 +20541,11 @@ function _renderIgPreview() {
   canvas.innerHTML = html;
   canvas.style.width = d.w + 'px';
   canvas.style.height = d.h + 'px';
+  shPrepareShare('igCardCanvas', 'igShareNativeBtn', _igShareOpts);
+}
+
+function _igShareOpts() {
+  return { format: igOptions.format, quality: igOptions.quality, fileName: _igFileName('png') };
 }
 
 // ─── CHART SHARE MODAL ──────────────────────────────────────────
@@ -20574,24 +20670,8 @@ async function copyIgFromPreview() {
   }
 }
 
-async function shareIgNative() {
-  const btn = document.getElementById('igShareNativeBtn');
-  const orig = btn.textContent;
-  btn.textContent = '⏳…'; btn.disabled = true;
-  try {
-    const cvs = await shCapture('igCardCanvas', igOptions.format, igOptions.quality);
-    const blob = await shCanvasBlob(cvs);
-    const file = new File([blob], _igFileName('png'), { type: 'image/png' });
-    if (navigator.canShare?.({ files: [file] })) {
-      await navigator.share({ files: [file], title: 'dankcharts.fm' });
-    } else {
-      const link = document.createElement('a');
-      link.download = file.name;
-      link.href = URL.createObjectURL(blob);
-      link.click();
-    }
-  } catch (e) {}
-  btn.textContent = orig; btn.disabled = false;
+function shareIgNative() {
+  shShareNow('igCardCanvas', 'igShareNativeBtn', _igShareOpts, downloadIgFromPreview);
 }
 
 // ─── DESIGN PICKER UI (shared by all three share panels) ────────
@@ -21355,6 +21435,12 @@ function updateCrIgPreview() {
   cvs.innerHTML = html;
   cvs.style.width = d.w + 'px';
   cvs.style.height = d.h + 'px';
+  shPrepareShare('crIgCanvas', 'crIgShareBtn', _crShareOpts);
+}
+
+function _crShareOpts() {
+  const design = crDesign();
+  return { format: design.format, quality: design.quality, fileName: _crFileName() };
 }
 
 function _crFileName() {
@@ -21397,25 +21483,8 @@ async function copyCrIg() {
   }
 }
 
-async function shareCrIgNative() {
-  const btn = document.getElementById('crIgShareBtn');
-  const orig = btn.textContent;
-  btn.textContent = '⏳…'; btn.disabled = true;
-  const design = crDesign();
-  try {
-    const c = await shCapture('crIgCanvas', design.format, design.quality);
-    const blob = await shCanvasBlob(c);
-    const file = new File([blob], _crFileName(), { type: 'image/png' });
-    if (navigator.canShare?.({ files: [file] })) {
-      await navigator.share({ files: [file], title: 'dankcharts.fm' });
-    } else {
-      const link = document.createElement('a');
-      link.download = file.name;
-      link.href = URL.createObjectURL(blob);
-      link.click();
-    }
-  } catch (e) {}
-  btn.textContent = orig; btn.disabled = false;
+function shareCrIgNative() {
+  shShareNow('crIgCanvas', 'crIgShareBtn', _crShareOpts, downloadCrIg);
 }
 
 document.getElementById('crIgModal').addEventListener('click', e => {
@@ -44502,6 +44571,11 @@ function stRenderCardPreview() {
   canvas.innerHTML = html;
   canvas.style.width = d.w + 'px';
   canvas.style.height = d.h + 'px';
+  shPrepareShare('stCardCanvas', 'stCardShareBtn', _stShareOpts);
+}
+
+function _stShareOpts() {
+  return { format: stCard.format, quality: stCard.quality, fileName: _stFileName() };
 }
 
 function _stFileName() {
@@ -44540,24 +44614,8 @@ async function stCopyCard() {
   }
 }
 
-async function stShareCard() {
-  const btn = document.getElementById('stCardShareBtn');
-  const orig = btn.textContent;
-  btn.textContent = '⏳…'; btn.disabled = true;
-  try {
-    const cvs = await shCapture('stCardCanvas', stCard.format, stCard.quality);
-    const blob = await shCanvasBlob(cvs);
-    const file = new File([blob], _stFileName(), { type: 'image/png' });
-    if (navigator.canShare?.({ files: [file] })) {
-      await navigator.share({ files: [file], title: 'dankcharts.fm' });
-    } else {
-      const link = document.createElement('a');
-      link.download = file.name;
-      link.href = URL.createObjectURL(blob);
-      link.click();
-    }
-  } catch (e) {}
-  btn.textContent = orig; btn.disabled = false;
+function stShareCard() {
+  shShareNow('stCardCanvas', 'stCardShareBtn', _stShareOpts, stDownloadCard);
 }
 
 document.getElementById('stCardModal').addEventListener('click', e => {
