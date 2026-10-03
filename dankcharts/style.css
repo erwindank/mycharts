@@ -35237,3 +35237,11 @@ body.red-light .modal-rank-card--year .mrc-rank {
   .cl-entry-title { flex: 1 1 100%; order: 3; }
   .cl-entry-detail { padding-left: 0.2rem; }
 }
+
+/* ─── PRINTABLE PDF DIALOG (openPdfModal) ─── */
+/* Print-only styles live with the printout itself (_PDF_CSS in app.js). */
+.pdf-box { max-width: 420px; }
+.pdf-scope { margin: 0.25rem 0 0.75rem; }
+.pdf-scope .sh-seg-btn { flex: 1; }
+.pdf-box .src-switch-row { margin-bottom: 0.5rem; }
+.pdf-hint { margin: 0.75rem 0 1rem; }

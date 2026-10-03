@@ -27,11 +27,11 @@
   <!-- html2canvas, SheetJS (xlsx) and JSZip are intentionally NOT loaded here — they
        total ~1.2 MB and are only needed for image exports and Excel/ZIP imports.
        app.js pulls them from the CDN on first use (see ensureLazyLib). -->
-  <link rel="stylesheet" href="style.css?v=326">
+  <link rel="stylesheet" href="style.css?v=327">
   <!-- All scripts are deferred so the page paints without waiting on them.
        defer preserves execution order, which matters: translations → Chart.js →
        hammer → zoom plugin → firebase SDKs → firebase.js → app.js (in body). -->
-  <script defer src="translations.js?v=41"></script>
+  <script defer src="translations.js?v=42"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8/hammer.min.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@1.2.1/dist/chartjs-plugin-zoom.min.js"></script>
@@ -617,9 +617,12 @@
               </div>
               <button class="export-playlist-btn" id="exportPlaylistBtn" title="Export this chart as a playlist — save to Spotify, Last.fm, or a text file" data-i18n-title="tooltip_export_playlist" onclick="openExportModal()" data-i18n="btn_export_playlist">📤 EXPORT PLAYLIST</button>
               <button id="songsShareBtn" class="ig-share-btn section-share-btn" data-i18n-title="tooltip_share_image" onclick="openIgPreviewModal('songs')" data-i18n="btn_share_image" style="display:none">📷 SHARE AS IMAGE</button>
+              <!-- Shown/hidden with the share button (updateShareBtns); in All Entries mode the PDF button in the export bar takes over -->
+              <button id="songsPdfBtn" class="ig-share-btn section-share-btn" data-i18n-title="pdf_tooltip" onclick="openPdfModal('songs')" data-i18n="btn_pdf" style="display:none">📄 PRINTABLE PDF</button>
               <div class="chart-export-bar" id="songsExportBarTop">
                 <button class="chart-export-btn" onclick="exportChartData('songs','txt')">⬇ TXT</button>
                 <button class="chart-export-btn" onclick="exportChartData('songs','csv')">⬇ CSV</button>
+                <button class="chart-export-btn" onclick="openPdfModal('songs')" data-i18n-title="pdf_tooltip" title="Printable PDF of the full chart">⬇ PDF</button>
               </div>
             </div>
           </div>
@@ -660,6 +663,7 @@
           <span>EXPORT:</span>
           <button class="chart-export-btn" onclick="exportChartData('songs','txt')">⬇ TXT</button>
           <button class="chart-export-btn" onclick="exportChartData('songs','csv')">⬇ CSV</button>
+                <button class="chart-export-btn" onclick="openPdfModal('songs')" data-i18n-title="pdf_tooltip" title="Printable PDF of the full chart">⬇ PDF</button>
         </div>
       </div>
     </div>
@@ -810,9 +814,12 @@
             </div>
             <div class="kebab-panel" data-panel="export" style="display:none">
               <button id="artistsShareBtn" class="ig-share-btn section-share-btn" data-i18n-title="tooltip_share_image" onclick="openIgPreviewModal('artists')" data-i18n="btn_share_image" style="display:none">📷 SHARE AS IMAGE</button>
+              <!-- Shown/hidden with the share button (updateShareBtns); in All Entries mode the PDF button in the export bar takes over -->
+              <button id="artistsPdfBtn" class="ig-share-btn section-share-btn" data-i18n-title="pdf_tooltip" onclick="openPdfModal('artists')" data-i18n="btn_pdf" style="display:none">📄 PRINTABLE PDF</button>
               <div class="chart-export-bar" id="artistsExportBarTop">
                 <button class="chart-export-btn" onclick="exportChartData('artists','txt')">⬇ TXT</button>
                 <button class="chart-export-btn" onclick="exportChartData('artists','csv')">⬇ CSV</button>
+                <button class="chart-export-btn" onclick="openPdfModal('artists')" data-i18n-title="pdf_tooltip" title="Printable PDF of the full chart">⬇ PDF</button>
               </div>
             </div>
           </div>
@@ -853,6 +860,7 @@
           <span>EXPORT:</span>
           <button class="chart-export-btn" onclick="exportChartData('artists','txt')">⬇ TXT</button>
           <button class="chart-export-btn" onclick="exportChartData('artists','csv')">⬇ CSV</button>
+                <button class="chart-export-btn" onclick="openPdfModal('artists')" data-i18n-title="pdf_tooltip" title="Printable PDF of the full chart">⬇ PDF</button>
         </div>
       </div>
     </div>
@@ -1009,9 +1017,12 @@
             </div>
             <div class="kebab-panel" data-panel="export" style="display:none">
               <button id="albumsShareBtn" class="ig-share-btn section-share-btn" data-i18n-title="tooltip_share_image" onclick="openIgPreviewModal('albums')" data-i18n="btn_share_image" style="display:none">📷 SHARE AS IMAGE</button>
+              <!-- Shown/hidden with the share button (updateShareBtns); in All Entries mode the PDF button in the export bar takes over -->
+              <button id="albumsPdfBtn" class="ig-share-btn section-share-btn" data-i18n-title="pdf_tooltip" onclick="openPdfModal('albums')" data-i18n="btn_pdf" style="display:none">📄 PRINTABLE PDF</button>
               <div class="chart-export-bar" id="albumsExportBarTop">
                 <button class="chart-export-btn" onclick="exportChartData('albums','txt')">⬇ TXT</button>
                 <button class="chart-export-btn" onclick="exportChartData('albums','csv')">⬇ CSV</button>
+                <button class="chart-export-btn" onclick="openPdfModal('albums')" data-i18n-title="pdf_tooltip" title="Printable PDF of the full chart">⬇ PDF</button>
               </div>
             </div>
           </div>
@@ -1052,6 +1063,7 @@
           <span>EXPORT:</span>
           <button class="chart-export-btn" onclick="exportChartData('albums','txt')">⬇ TXT</button>
           <button class="chart-export-btn" onclick="exportChartData('albums','csv')">⬇ CSV</button>
+                <button class="chart-export-btn" onclick="openPdfModal('albums')" data-i18n-title="pdf_tooltip" title="Printable PDF of the full chart">⬇ PDF</button>
         </div>
       </div>
     </div>
@@ -2255,6 +2267,35 @@
 
   <!-- SHARE CEREMONY — creates / updates / removes the public link. Body is
        rendered by _cerShareRender() for whichever step the owner is on. -->
+  <!-- Printable PDF of a chart (openPdfModal / createChartPdf in app.js) -->
+  <div class="modal-overlay" id="pdfModal" onclick="if(event.target===this)closePdfModal()">
+    <div class="dc-plpick-box pdf-box">
+      <div class="dc-plpick-header">
+        <div class="dc-plpick-title" data-i18n="pdf_title">📄 Printable PDF</div>
+        <button class="modal-close" onclick="closePdfModal()" data-i18n="btn_close">✕ CLOSE</button>
+      </div>
+      <div class="dc-plpick-sub" id="pdfSub"></div>
+      <div class="sh-seg pdf-scope" id="pdfScopeBtns">
+        <button class="sh-seg-btn active" data-scope="one" id="pdfScopeOne" onclick="setPdfScope('one')">This chart</button>
+        <button class="sh-seg-btn" data-scope="all" onclick="setPdfScope('all')" data-i18n="pdf_all_charts">All three charts</button>
+      </div>
+      <!-- .src-switch-row must be a <label> so the whole row toggles the switch -->
+      <label class="src-switch-row">
+        <span class="src-switch-label" data-i18n="pdf_opt_art">Cover art</span>
+        <span class="src-switch"><input type="checkbox" id="pdfOptArt"><span class="src-switch-slider"></span></span>
+      </label>
+      <label class="src-switch-row" id="pdfOptBuRow">
+        <span class="src-switch-label" data-i18n="pdf_opt_bu">Bubbling Under</span>
+        <span class="src-switch"><input type="checkbox" id="pdfOptBu"><span class="src-switch-slider"></span></span>
+      </label>
+      <p class="cer-share-text pdf-hint" data-i18n="pdf_hint">Your print window opens next. Choose “Save as PDF” as the printer to download it.</p>
+      <div class="cal-create-pl-actions">
+        <button class="cal-create-pl-cancel-btn" onclick="closePdfModal()" data-i18n="btn_cancel">Cancel</button>
+        <button class="cal-create-pl-confirm-btn" id="pdfCreateBtn" onclick="createChartPdf()">Create PDF</button>
+      </div>
+    </div>
+  </div>
+
   <div class="modal-overlay" id="cerShareModal" onclick="if(event.target===this)closeCeremonyShare()">
     <div class="dc-plpick-box cer-share-box">
       <div class="dc-plpick-header">
@@ -3290,7 +3331,7 @@
   <!-- defer keeps app.js last in the script execution order (after translations,
        Chart.js and firebase.js) while letting the whole page parse and paint first -->
   <script defer src="changelog.js?v=127"></script>
-  <script defer src="app.js?v=291"></script>
+  <script defer src="app.js?v=292"></script>
 
   <!-- ── Settings Modal ──
        Split into three tabs so the whole form is never dumped on screen at

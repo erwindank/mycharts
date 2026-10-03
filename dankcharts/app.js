@@ -17693,6 +17693,7 @@ function toggleNeSection(type) {
 }
 
 function hideBuSection(type) {
+  _pdfBuPools[type] = [];
   const ucType = type.charAt(0).toUpperCase() + type.slice(1);
   const sectionEl = document.getElementById('bu' + ucType + 'Section');
   if (sectionEl) sectionEl.style.display = 'none';
@@ -17722,6 +17723,7 @@ function hideOffSection(type) {
 // ms: monthlyStats (must have bubblingUnderWeeks, prevBubblingUnder, everChartedBefore, prevChart)
 // lowestChartCount: play count of the last entry on the main chart (for "X plays away")
 function renderBubblingUnder(type, normalizedPool, ms, lowestChartCount) {
+  _pdfBuPools[type] = normalizedPool || []; // read by the printable PDF export
   const ucType = type.charAt(0).toUpperCase() + type.slice(1);
   const sectionEl  = document.getElementById('bu' + ucType + 'Section');
   const countEl    = document.getElementById('bu' + ucType + 'Count');
@@ -19588,6 +19590,265 @@ function exportChartData(type, format) {
   URL.revokeObjectURL(url);
 }
 
+// ─── PRINTABLE PDF ──────────────────────────────────────────────
+// "⬇ PDF" next to TXT/CSV. Builds a clean black-on-white version of the full
+// chart (optionally all three charts, Bubbling Under and cover art) and opens
+// the browser's print window, where the user picks "Save as PDF".
+// Printing instead of generating a .pdf in JS keeps text sharp and selectable
+// and renders every script (Korean, Japanese, accents…) without shipping
+// multi-MB font files — PDF libraries only include basic Latin fonts.
+// The printout lives in #dcPrintRoot (a body child, hidden on screen); while
+// printing, html.dc-printing hides every other body child. Printing the main
+// window rather than an iframe matters: iOS Safari prints the parent page when
+// asked to print an iframe.
+const _pdfBuPools = { songs: [], artists: [], albums: [] };
+let _pdfType = 'songs';
+let _pdfScope = 'one'; // 'one' = just this chart, 'all' = songs + artists + albums
+let _pdfBusy = false;
+
+function _pdfLoadOpts() {
+  const def = { scope: 'one', art: true, bu: true };
+  try { return Object.assign(def, JSON.parse(localStorage.getItem('dc_pdf_opts') || '{}')); } catch (e) { return def; }
+}
+
+function _pdfTypeWord(type) {
+  return { songs: t('ig_type_songs'), artists: t('ig_type_artists'), albums: t('ig_type_albums') }[type];
+}
+
+function openPdfModal(type) {
+  if (!(fullData[type] || []).length) return;
+  _pdfType = type;
+  const o = _pdfLoadOpts();
+  document.getElementById('pdfScopeOne').textContent = t('pdf_this_chart', { type: _pdfTypeWord(type) });
+  setPdfScope(o.scope === 'all' ? 'all' : 'one');
+  document.getElementById('pdfOptArt').checked = !!o.art;
+  document.getElementById('pdfOptBu').checked = !!o.bu;
+  // Bubbling Under only exists on weekly charts
+  document.getElementById('pdfOptBuRow').style.display = currentPeriod === 'week' ? '' : 'none';
+  const dr = getDateRange();
+  document.getElementById('pdfSub').textContent = dr.sub || dr.label;
+  const btn = document.getElementById('pdfCreateBtn');
+  btn.textContent = t('pdf_create'); btn.disabled = false;
+  document.getElementById('pdfModal').classList.add('open');
+}
+
+function setPdfScope(scope) {
+  _pdfScope = scope;
+  document.querySelectorAll('#pdfScopeBtns .sh-seg-btn').forEach(b => b.classList.toggle('active', b.dataset.scope === scope));
+}
+
+function closePdfModal() {
+  if (_pdfBusy) return; // artwork still loading — let it finish
+  document.getElementById('pdfModal').classList.remove('open');
+}
+
+// Ask the image CDNs for a small square — a 24pt thumbnail doesn't need a
+// 1000px cover, and embedding full-size art makes the PDF huge.
+function _pdfThumbArt(url) {
+  if (!url) return url;
+  if (/mzstatic\.com/.test(url)) return url.replace(/\/\d+x\d+bb(-\d+)?\.(jpg|png)/i, '/120x120bb.$2');
+  if (/lastfm.*\/i\/u\//.test(url)) return url.replace(/\/i\/u\/(?:[^/]+\/)?([^/]+)$/, '/i/u/174s/$1');
+  if (/dzcdn\.net/.test(url)) return url.replace(/\/\d+x\d+-/, '/120x120-');
+  return url;
+}
+
+// Same lookup order as the chart rows (fetchAndInjectImage): a picker-pinned
+// image first, then the item's remembered source and the automatic fallbacks.
+async function _pdfArtUrl(r) {
+  const choice = r.prefKey && imgChoicePrefs[r.prefKey];
+  if (choice) return (choice.source === 'off' || !choice.url) ? null : choice.url;
+  const pref = (r.prefKey && itemSourcePrefs[r.prefKey]) || 'deezer';
+  if (pref === 'off') return null;
+  for (const source of autoImgChain(pref)) {
+    try {
+      const url = r.kind === 'artist' ? await getArtistImage(r.name, source)
+        : r.kind === 'album' ? await getAlbumImage(r.album, r.artist, source)
+        : await getTrackImage(r.title, r.artist, source);
+      if (url) return url;
+    } catch (e) {}
+  }
+  return null;
+}
+
+// Fields shared by chart rows and Bubbling Under rows. prefKey matches the
+// chart rows' own keys so pinned/remembered artwork carries over.
+function _pdfEntry(type, name, artist) {
+  name = name || ''; artist = artist || '';
+  if (type === 'songs') return { kind: 'song', name, sub: artist, title: name, artist, prefKey: 'song:' + artist.toLowerCase() + '|||' + name.toLowerCase() };
+  if (type === 'artists') return { kind: 'artist', name, sub: '', prefKey: 'artist:' + name.toLowerCase() };
+  return { kind: 'album', name, sub: artist, album: name, artist, prefKey: 'album:' + artist.toLowerCase() + '|||' + name.toLowerCase() };
+}
+
+// One printable row per entry, in chart order. Bubbling Under rows carry no
+// movement/weeks/peak — they aren't on the chart.
+// Bubbling Under is numbered on from the chart's own length: chartSize is per
+// type and only holds the last-rendered type's size by now.
+function _pdfRows(type, bu) {
+  if (bu) {
+    const size = (fullData[type] || []).length;
+    return (_pdfBuPools[type] || []).map((it, i) =>
+      Object.assign(_pdfEntry(type, it.displayName, it.subName), { rank: size + 1 + i, plays: it.count }));
+  }
+  return (fullData[type] || []).map((item, i) => {
+    const rank = i + 1;
+    const key = type === 'songs' ? songKey(item) : type === 'artists' ? item.name : item.album + '|||' + item.artist;
+    const r = type === 'songs' ? _pdfEntry(type, item.title, item.artist)
+      : type === 'artists' ? _pdfEntry(type, item.name)
+      : _pdfEntry(type, item.album, item.artist);
+    return Object.assign(r, {
+      rank, plays: item.count,
+      mv: igMovement(rank, key, type),
+      weeks: lastPeriodStats ? (lastPeriodStats.periodsOnChart[type][key] || 1) : null,
+      peak: igPeakOf(key, type, lastPeaks),
+    });
+  });
+}
+
+function _pdfTableHTML(rows, opts, isBu) {
+  const unitHead = currentPeriod === 'month' ? t('th_months') : currentPeriod === 'year' ? t('th_years') : t('th_weeks');
+  const hasStats = currentPeriod !== 'alltime' && !!lastPeriodStats;
+  // Bubbling Under keeps an empty Move column so its artwork lines up with the
+  // chart above it, but has no weeks/peak — those entries aren't on the chart.
+  const showMove = hasStats;
+  const showStats = hasStats && !isBu;
+  const head = `<tr><th class="pr-rank">#</th>`
+    + (showMove ? `<th class="pr-mv">${isBu ? '' : esc(t('pdf_move'))}</th>` : '')
+    + (opts.art ? '<th class="pr-art"></th>' : '')
+    + `<th></th><th class="pr-num">${esc(t('th_plays'))}</th>`
+    + (showStats ? `<th class="pr-num">${esc(unitHead)}</th><th class="pr-num">${esc(t('pdf_peak'))}</th>` : '')
+    + '</tr>';
+  const body = rows.map(r => '<tr>'
+    + `<td class="pr-rank">${r.rank}</td>`
+    + (showMove ? (r.mv ? `<td class="pr-mv pr-mv-${esc(r.mv.cls || '')}">${esc(r.mv.label || '')}</td>` : '<td class="pr-mv"></td>') : '')
+    + (opts.art ? `<td class="pr-art">${r.art ? `<img src="${esc(r.art)}" alt="">` : `<span class="pr-noart">${esc(initials(r.name))}</span>`}</td>` : '')
+    + `<td class="pr-name"><div class="pr-title">${esc(r.name)}</div>${r.sub ? `<div class="pr-sub">${esc(r.sub)}</div>` : ''}</td>`
+    + `<td class="pr-num">${r.plays}</td>`
+    + (showStats ? `<td class="pr-num">${r.weeks || ''}</td><td class="pr-num">${r.peak || ''}</td>` : '')
+    + '</tr>').join('');
+  return `<table class="pr-table"><thead>${head}</thead><tbody>${body}</tbody></table>`;
+}
+
+// Print-only styles, injected with the printout so they live next to it.
+const _PDF_CSS = `
+#dcPrintRoot { display: none; }
+@media print {
+  @page { margin: 14mm 12mm; }
+  html.dc-printing, html.dc-printing body { background: #fff !important; color: #111 !important; height: auto !important; overflow: visible !important; }
+  html.dc-printing body > *:not(#dcPrintRoot) { display: none !important; }
+  html.dc-printing #dcPrintRoot { display: block; }
+  #dcPrintRoot { font-family: 'IBM Plex Sans', system-ui, sans-serif; color: #111; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .pr-chart + .pr-chart { break-before: page; }
+  .pr-brand { font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 8pt; letter-spacing: .08em; text-transform: uppercase; color: #666; }
+  .pr-h1 { font-family: 'Bricolage Grotesque', 'IBM Plex Sans', sans-serif; font-size: 22pt; font-weight: 800; margin: 2pt 0 0; }
+  .pr-date { font-size: 10pt; color: #444; margin: 2pt 0 10pt; }
+  .pr-h2 { font-size: 12pt; font-weight: 700; margin: 16pt 0 4pt; break-after: avoid; }
+  .pr-table { width: 100%; border-collapse: collapse; font-size: 9.5pt; }
+  .pr-table thead th { font-family: 'JetBrains Mono', ui-monospace, monospace; letter-spacing: .06em; font-size: 7pt; text-transform: uppercase; color: #666; font-weight: 600; text-align: left; border-bottom: 1.2pt solid #111; padding: 3pt 4pt; }
+  .pr-table td { border-bottom: .5pt solid #ddd; padding: 3pt 4pt; vertical-align: middle; }
+  .pr-table tr { break-inside: avoid; }
+  .pr-table td.pr-rank { width: 26pt; font-family: 'Bricolage Grotesque', 'IBM Plex Sans', sans-serif; font-weight: 800; font-size: 11pt; text-align: right; }
+  .pr-table th.pr-rank { text-align: right; }
+  .pr-mv { width: 34pt; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 8pt; font-weight: 700; white-space: nowrap; }
+  .pr-mv-up { color: #138a3e; } .pr-mv-down { color: #c62828; } .pr-mv-new { color: #b8860b; } .pr-mv-re { color: #1565c0; } .pr-mv-same { color: #888; }
+  .pr-art { width: 28pt; }
+  .pr-art img, .pr-noart { display: block; width: 24pt; height: 24pt; object-fit: cover; border-radius: 2pt; }
+  .pr-noart { background: #eee; color: #777; font-size: 7pt; font-weight: 700; text-align: center; line-height: 24pt; }
+  .pr-title { font-weight: 700; }
+  .pr-sub { color: #555; font-size: 8.5pt; }
+  .pr-table .pr-num { width: 38pt; text-align: right; font-variant-numeric: tabular-nums; }
+}`;
+
+// Looks up artwork a few at a time (the image APIs rate-limit), then waits for
+// each picture to actually load so none print as blank boxes.
+async function _pdfLoadArt(rows, onProgress) {
+  let done = 0, next = 0;
+  const worker = async () => {
+    while (next < rows.length) {
+      const r = rows[next++];
+      r.art = _pdfThumbArt(await _pdfArtUrl(r));
+      if (r.art) {
+        await new Promise(res => {
+          const im = new Image();
+          const timer = setTimeout(() => { r.art = null; res(); }, 8000);
+          im.onload = () => { clearTimeout(timer); res(); };
+          im.onerror = () => { clearTimeout(timer); r.art = null; res(); };
+          im.src = r.art;
+        });
+      }
+      onProgress(++done);
+    }
+  };
+  await Promise.all(Array.from({ length: 6 }, worker));
+}
+
+async function createChartPdf() {
+  if (_pdfBusy) return;
+  const opts = {
+    scope: _pdfScope,
+    art: document.getElementById('pdfOptArt').checked,
+    bu: document.getElementById('pdfOptBu').checked,
+  };
+  try { localStorage.setItem('dc_pdf_opts', JSON.stringify(opts)); } catch (e) {}
+  const withBu = opts.bu && currentPeriod === 'week';
+  const types = (opts.scope === 'all' ? ['songs', 'artists', 'albums'] : [_pdfType]).filter(ty => (fullData[ty] || []).length);
+  const charts = types.map(ty => ({ type: ty, rows: _pdfRows(ty, false), bu: withBu ? _pdfRows(ty, true) : [] }));
+
+  const btn = document.getElementById('pdfCreateBtn');
+  _pdfBusy = true; btn.disabled = true;
+  try {
+    if (opts.art) {
+      const all = charts.flatMap(c => c.rows.concat(c.bu));
+      btn.textContent = t('pdf_preparing', { n: 0, total: all.length });
+      await _pdfLoadArt(all, n => { btn.textContent = t('pdf_preparing', { n, total: all.length }); });
+    }
+
+    const dr = getDateRange();
+    const dateLine = dr.sub || dr.label;
+    const html = charts.map(c => `
+      <section class="pr-chart">
+        <div class="pr-brand">dankcharts.fm</div>
+        <h1 class="pr-h1">${esc(t('pdf_chart_title', { type: _pdfTypeWord(c.type) }))}</h1>
+        <div class="pr-date">${esc(dateLine)}</div>
+        ${_pdfTableHTML(c.rows, opts, false)}
+        ${c.bu.length ? `<h2 class="pr-h2">${esc(t('sec_bubbling_under', { n: c.rows.length }))}</h2>${_pdfTableHTML(c.bu, opts, true)}` : ''}
+      </section>`).join('');
+
+    let root = document.getElementById('dcPrintRoot');
+    if (!root) { root = document.createElement('div'); root.id = 'dcPrintRoot'; document.body.appendChild(root); }
+    root.innerHTML = `<style>${_PDF_CSS}</style>${html}`;
+
+    // The page title becomes the suggested PDF file name.
+    const oldTitle = document.title;
+    document.title = `dankcharts - ${types.map(_pdfTypeWord).join(', ')} - ${dateLine}`;
+    document.documentElement.classList.add('dc-printing');
+    let cleaned = false;
+    const cleanup = () => {
+      if (cleaned) return;
+      cleaned = true;
+      document.documentElement.classList.remove('dc-printing');
+      document.title = oldTitle;
+      root.innerHTML = '';
+      window.removeEventListener('afterprint', cleanup);
+    };
+    window.addEventListener('afterprint', cleanup);
+    _pdfBusy = false;
+    closePdfModal();
+    // Let the dialog close before the print snapshot is taken.
+    setTimeout(() => {
+      window.print();
+      // Some mobile browsers return from print() early and never fire
+      // afterprint — tidy up after a while regardless.
+      setTimeout(cleanup, 60000);
+    }, 100);
+  } catch (e) {
+    console.error('PDF export failed:', e);
+  } finally {
+    _pdfBusy = false;
+    btn.disabled = false;
+    btn.textContent = t('pdf_create');
+  }
+}
+
 // ─── SHARE CARD DESIGN SYSTEM ───────────────────────────────────
 // Every share card is laid out in a fixed 1080px-wide "design space", so the
 // numbers in the template builders below are real export pixels. The preview
@@ -19924,6 +20185,8 @@ function updateShareBtns() {
   ['songs', 'artists', 'albums'].forEach(t => {
     const btn = document.getElementById(t + 'ShareBtn');
     if (btn) btn.style.display = allowed ? 'inline-flex' : 'none';
+    const pdfBtn = document.getElementById(t + 'PdfBtn');
+    if (pdfBtn) pdfBtn.style.display = allowed ? 'inline-flex' : 'none';
   });
 }
 
