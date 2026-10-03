@@ -13246,7 +13246,6 @@ function renderAll() {
   animateStatStrip(document.getElementById('statsStrip'));
 
   // Second stats strip: song of the moment + new songs/artists/albums
-  const strip1El = document.getElementById('statsStrip');
   const strip2El = document.getElementById('statsStrip2');
   const showStrip2 = _showStrip2;
   if (showStrip2 && strip2El) {
@@ -13510,12 +13509,10 @@ function renderAll() {
     }
 
     strip2El.style.display = '';
-    if (strip1El) strip1El.style.marginBottom = '0';
   } else if (strip2El) {
     strip2El.style.display = 'none';
     const strip3ElFallback = document.getElementById('statsStrip3');
     if (strip3ElFallback) strip3ElFallback.style.display = 'none';
-    if (strip1El) strip1El.style.marginBottom = '';
   }
 
   renderTableHeaders();
