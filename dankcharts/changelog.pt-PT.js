@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['pt-PT'] = {
 
   /* ========== OUTUBRO 2026 ========== */
 
+  'Album records show what their songs earned':
+    ['Os recordes de álbum mostram o que as suas canções conquistaram',
+     'No resumo dos prémios, os cartões de recorde de álbum têm agora uma linha pequena como “+3 das suas canções” quando canções desse álbum também foram nomeadas ou venceram. Só as nomeações e vitórias do próprio álbum contam para o recorde, tal como nos Grammy reais, por isso um álbum grande com alguns singles de sucesso não fica com os recordes de álbum só pelas canções.'],
+
   'The Chart Run panel has a cleaner, more modern look':
     ['O painel de Trajetória no Top está mais limpo e moderno',
      'A Trajetória no Top que abre por baixo de uma entrada é agora um cartão arredondado próprio. Os botões de intervalo são um único seletor com a opção escolhida em destaque, e os separadores de sequências funcionam da mesma forma. As semanas na tabela, o total de reproduções, o pico e os outros números ficam em pequenos blocos com o número em cima. Cada semana é uma ficha suave e arredondada: o pico é dourado e as outras semanas no top 3 têm um tom de cor, por isso o melhor troço destaca-se. O tempo fora da tabela aparece como uma pausa pontilhada. Recordes de sequência, Mapa de calor e Histórico completo são cartões arredondados com uma seta que roda ao abrir.'],

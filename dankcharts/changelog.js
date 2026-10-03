@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 56;
+const DC_CL_I18N_V = 57;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,10 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+
+  { d: '2026-10-02', t: 'feature', a: 'awards', h: 'cff6fbd',
+    title: 'Album records show what their songs earned',
+    detail: 'In the awards summary, the album record cards now add a small line such as “+3 from its songs” when songs from that album were nominated or won too. Only the album’s own nominations and wins count toward the record, the same way the real Grammys count, so a big album with a few hit singles does not take the album records on its songs alone.' },
 
   { d: '2026-10-02', t: 'design', a: 'ui', h: 'eb4de18',
     title: 'The arrow-keys hint now sits inside the date bar',

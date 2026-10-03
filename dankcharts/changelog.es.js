@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['es'] = {
 
   /* ========== OCTUBRE 2026 ========== */
 
+  'Album records show what their songs earned':
+    ['Los récords de álbum muestran lo que lograron sus canciones',
+     'En el resumen de premios, las tarjetas de récord de álbum ahora añaden una línea pequeña como “+3 de sus canciones” cuando canciones de ese álbum también fueron nominadas o ganaron. Solo las nominaciones y victorias del propio álbum cuentan para el récord, igual que en los Grammy reales, así que un gran álbum con varios sencillos exitosos no se queda con los récords de álbum solo por sus canciones.'],
+
   'The Chart Run panel has a cleaner, more modern look':
     ['El panel de Recorrido en el Ranking tiene un aspecto más limpio y moderno',
      'El Recorrido en el Ranking que se abre debajo de una entrada ahora es su propia tarjeta redondeada. Los botones de rango son un solo selector con la opción elegida resaltada, y las pestañas de rachas funcionan igual. Las semanas en lista, las reproducciones totales, el pico y las demás cifras están en pequeños recuadros con el número arriba. Cada semana es una ficha suave y redondeada: el pico es dorado y las demás semanas en el top 3 tienen un tono de color, así que el mejor tramo destaca. El tiempo fuera de la lista se muestra como una pausa punteada. Récords de rachas, Mapa de calor y Historial completo son tarjetas redondeadas con una flecha que gira al abrirse.'],
