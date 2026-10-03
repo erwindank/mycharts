@@ -35251,3 +35251,11 @@ body.red-light .modal-rank-card--year .mrc-rank {
 body.songs-hide-desc   #songsChartGroup   .section-sub,
 body.artists-hide-desc #artistsChartGroup .section-sub,
 body.albums-hide-desc  #albumsChartGroup  .section-sub { display: none !important; }
+
+/* ─── CHART PAGE SECTIONS (Settings → Charts, applyChartPageSections) ───
+   Only the charts-page blocks; the Events tab's own sections have other ids */
+body.cp-hide-time-machine #timeMachineSection,
+body.cp-hide-period-stats .stats-strips-wrap,
+body.cp-hide-cert-reel    #certReelSection,
+body.cp-hide-upcoming     #upcomingSection,
+body.cp-hide-recent       #recentSection { display: none !important; }

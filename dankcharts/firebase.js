@@ -29,7 +29,8 @@ const SYNC_KEYS = [
   'dc_chartSizeArtistsW', 'dc_chartSizeArtistsM', 'dc_chartSizeArtistsY', 'dc_chartSizeArtistsAT',
   'dc_chartSizeAlbumsW', 'dc_chartSizeAlbumsM', 'dc_chartSizeAlbumsY', 'dc_chartSizeAlbumsAT',
   'dc_chart_anim', 'dc_awards_credit_features', 'dc_awards_hide_plays', 'dc_awards_show_rating', 'dc_awards_samples',
-  'dc_awards_hide_decided', 'dc_awards_fav_cats'
+  'dc_awards_hide_decided', 'dc_awards_fav_cats',
+  'dc_chart_page_sections'
 ];
 
 let _auth = null;

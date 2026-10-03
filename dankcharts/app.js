@@ -488,6 +488,51 @@ function initSectionDisplayToggles() {
   });
 }
 
+// ─── CHART PAGE SECTIONS (Settings → Charts) ────────────────────
+// One switch per optional block on the charts page. Hiding is a body class +
+// CSS rule, so it never fights the render code that shows/hides these blocks
+// for data reasons. The Events tab has its own Upcoming/Recent sections, which
+// these don't touch. Stored as { key: shown } and synced via SYNC_KEYS.
+const CHART_PAGE_SECTIONS_KEY = 'dc_chart_page_sections';
+const CHART_PAGE_SECTIONS = {
+  timeMachine: { bodyClass: 'cp-hide-time-machine', inputId: 'setCpTimeMachine' },
+  periodStats: { bodyClass: 'cp-hide-period-stats', inputId: 'setCpPeriodStats' },
+  certReel:    { bodyClass: 'cp-hide-cert-reel',    inputId: 'setCpCertReel' },
+  upcoming:    { bodyClass: 'cp-hide-upcoming',     inputId: 'setCpUpcoming' },
+  recent:      { bodyClass: 'cp-hide-recent',       inputId: 'setCpRecent' },
+};
+
+function _readChartPageSections() {
+  let saved = {};
+  try { saved = JSON.parse(localStorage.getItem(CHART_PAGE_SECTIONS_KEY) || '{}') || {}; } catch (e) {}
+  const out = {};
+  for (const k of Object.keys(CHART_PAGE_SECTIONS)) out[k] = saved[k] !== false; // default: shown
+  return out;
+}
+
+// Paints body classes and the Settings switches from storage
+function applyChartPageSections() {
+  const state = _readChartPageSections();
+  for (const [k, cfg] of Object.entries(CHART_PAGE_SECTIONS)) {
+    document.body.classList.toggle(cfg.bodyClass, !state[k]);
+    const input = document.getElementById(cfg.inputId);
+    if (input) input.checked = state[k];
+  }
+}
+
+// Settings switch handler — saves at once, no Save button needed
+function setChartPageSection(key, shown) {
+  if (!CHART_PAGE_SECTIONS[key]) return;
+  const state = _readChartPageSections();
+  state[key] = !!shown;
+  const json = JSON.stringify(state);
+  try { localStorage.setItem(CHART_PAGE_SECTIONS_KEY, json); } catch (e) {}
+  applyChartPageSections();
+  // Targeted write so a racing full-config save can't push a stale value back
+  if (typeof dcSaveConfigKey === 'function') dcSaveConfigKey(CHART_PAGE_SECTIONS_KEY, json);
+}
+applyChartPageSections();
+
 function toggleSectionDisplay(type, section) {
   const cfg = SECTION_TOGGLE_CONFIG[section]?.[type];
   if (!cfg) return;
@@ -581,6 +626,7 @@ function dcApplyAllSettings() {
   _awardsHideDecided    = localStorage.getItem(AWARDS_HIDE_DECIDED_KEY) === '1';
   _awardsFavCats        = _awardsReadFavCats();
   _awardsPaintFavBtns();
+  applyChartPageSections();
   /* Separation arrived from another device: re-read it and retire the chart
      caches, since which bucket a release ranks in has just changed. Mutated
      in place so every closure already holding releaseSeparation sees it. */

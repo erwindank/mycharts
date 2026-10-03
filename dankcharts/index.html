@@ -27,7 +27,7 @@
   <!-- html2canvas, SheetJS (xlsx) and JSZip are intentionally NOT loaded here — they
        total ~1.2 MB and are only needed for image exports and Excel/ZIP imports.
        app.js pulls them from the CDN on first use (see ensureLazyLib). -->
-  <link rel="stylesheet" href="style.css?v=328">
+  <link rel="stylesheet" href="style.css?v=329">
   <!-- All scripts are deferred so the page paints without waiting on them.
        defer preserves execution order, which matters: translations → Chart.js →
        hammer → zoom plugin → firebase SDKs → firebase.js → app.js (in body). -->
@@ -40,7 +40,7 @@
   <script defer src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
   <script defer src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
   <script defer src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
-  <script defer src="firebase.js?v=12"></script>
+  <script defer src="firebase.js?v=13"></script>
 </head>
 
 <body>
@@ -3334,7 +3334,7 @@
   <!-- defer keeps app.js last in the script execution order (after translations,
        Chart.js and firebase.js) while letting the whole page parse and paint first -->
   <script defer src="changelog.js?v=129"></script>
-  <script defer src="app.js?v=293"></script>
+  <script defer src="app.js?v=294"></script>
 
   <!-- ── Settings Modal ──
        Split into three tabs so the whole form is never dumped on screen at
@@ -4236,6 +4236,67 @@ function deleteGenreTriggers() {
           </div>
         </div>
         <p class="src-modal-hint rt-sep-hint" id="rollupHint" data-i18n="rollup_hint">A single's plays are counted toward the album its song appears on, the way a streaming service shows them. The single keeps its own entry and its own count either way.</p>
+      </div>
+
+      <!-- Chart page sections: each switch saves at once (setChartPageSection)
+           and hides that block on the charts page only, never on the Events tab -->
+      <div class="cert-config-group">
+        <div class="cert-config-title">Chart page sections</div>
+        <div class="set-row">
+          <label class="src-switch-row">
+            <span class="src-switch-label">⏳ Time Machine
+              <span class="set-switch-note">What you were playing on this day in past years.</span>
+            </span>
+            <span class="src-switch">
+              <input type="checkbox" id="setCpTimeMachine" checked onchange="setChartPageSection('timeMachine', this.checked)">
+              <span class="src-switch-slider"></span>
+            </span>
+          </label>
+        </div>
+        <div class="set-row">
+          <label class="src-switch-row">
+            <span class="src-switch-label">📊 Period stats
+              <span class="set-switch-note">The row of stat cards under the date bar.</span>
+            </span>
+            <span class="src-switch">
+              <input type="checkbox" id="setCpPeriodStats" checked onchange="setChartPageSection('periodStats', this.checked)">
+              <span class="src-switch-slider"></span>
+            </span>
+          </label>
+        </div>
+        <div class="set-row">
+          <label class="src-switch-row">
+            <span class="src-switch-label">🏆 Certified this period
+              <span class="set-switch-note">The reel of plaques earned during the week or month on screen.</span>
+            </span>
+            <span class="src-switch">
+              <input type="checkbox" id="setCpCertReel" checked onchange="setChartPageSection('certReel', this.checked)">
+              <span class="src-switch-slider"></span>
+            </span>
+          </label>
+        </div>
+        <div class="set-row">
+          <label class="src-switch-row">
+            <span class="src-switch-label">🔜 Upcoming releases
+              <span class="set-switch-note">Shown at the bottom of the charts. The Events tab keeps its own.</span>
+            </span>
+            <span class="src-switch">
+              <input type="checkbox" id="setCpUpcoming" checked onchange="setChartPageSection('upcoming', this.checked)">
+              <span class="src-switch-slider"></span>
+            </span>
+          </label>
+        </div>
+        <div class="set-row">
+          <label class="src-switch-row">
+            <span class="src-switch-label">🆕 Recent releases
+              <span class="set-switch-note">Shown at the bottom of the charts. The Events tab keeps its own.</span>
+            </span>
+            <span class="src-switch">
+              <input type="checkbox" id="setCpRecent" checked onchange="setChartPageSection('recent', this.checked)">
+              <span class="src-switch-slider"></span>
+            </span>
+          </label>
+        </div>
       </div>
 
       <div class="cert-config-group">
