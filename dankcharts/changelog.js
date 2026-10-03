@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 67;
+const DC_CL_I18N_V = 68;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,10 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+
+  { d: '2026-10-03', t: 'i18n', a: 'settings', h: '8df4e57',
+    title: 'Settings in your language',
+    detail: 'The whole Settings window is now translated into Spanish and both Portuguese variants: all three tabs, the Google Sheets setup steps, the Last.fm connection messages, upload status and backups. Switching language updates it straight away, even while it is open.' },
 
   { d: '2026-10-03', t: 'feature', a: 'settings', h: 'f64e490',
     title: 'Choose which sections the charts page shows',

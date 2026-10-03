@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['pt-BR'] = {
 
   /* ========== OUTUBRO 2026 ========== */
 
+  'Settings in your language':
+    ['As configurações no seu idioma',
+     'Toda a janela de Configurações agora está traduzida para espanhol e para as duas variantes do português: as três abas, os passos de configuração do Google Sheets, as mensagens de conexão com o Last.fm, o status do envio de arquivos e os backups. Ao trocar de idioma, ela se atualiza na hora, mesmo aberta.'],
+
   'Choose which sections the charts page shows':
     ['Escolha quais seções a página de paradas mostra',
      'Configurações → Paradas tem um novo grupo Seções da página de paradas com um botão para Máquina do tempo, os cartões de estatísticas do período, Certificados neste período, Próximos lançamentos e Lançamentos recentes. Desative qualquer um para escondê-lo da página de paradas. A aba Eventos mantém seus próprios lançamentos próximos e recentes. As mudanças valem na hora e são lembradas em todos os seus dispositivos.'],

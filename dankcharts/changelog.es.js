@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['es'] = {
 
   /* ========== OCTUBRE 2026 ========== */
 
+  'Settings in your language':
+    ['Los ajustes en tu idioma',
+     'Toda la ventana de Ajustes está ahora traducida al español y a las dos variantes de portugués: las tres pestañas, los pasos de configuración de Google Sheets, los mensajes de conexión con Last.fm, el estado de la subida de archivos y las copias de seguridad. Al cambiar de idioma se actualiza al instante, incluso con la ventana abierta.'],
+
   'Choose which sections the charts page shows':
     ['Elige qué secciones muestra la página de listas',
      'Configuración → Listas tiene un nuevo grupo Secciones de la página de listas con un interruptor para Máquina del tiempo, las tarjetas de estadísticas del periodo, Certificados este periodo, Próximos lanzamientos y Lanzamientos recientes. Desactiva cualquiera para ocultarla de la página de listas. La pestaña Eventos conserva sus propios próximos y recientes lanzamientos. Los cambios se aplican al momento y se recuerdan en todos tus dispositivos.'],

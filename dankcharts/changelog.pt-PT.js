@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['pt-PT'] = {
 
   /* ========== OUTUBRO 2026 ========== */
 
+  'Settings in your language':
+    ['As definições no teu idioma',
+     'Toda a janela de Definições está agora traduzida para espanhol e para as duas variantes do português: os três separadores, os passos de configuração do Google Sheets, as mensagens de ligação ao Last.fm, o estado do carregamento de ficheiros e as cópias de segurança. Ao mudar de idioma, atualiza-se logo, mesmo aberta.'],
+
   'Choose which sections the charts page shows':
     ['Escolhe que secções a página de tabelas mostra',
      'Definições → Tabelas tem um novo grupo Secções da página de tabelas com um interruptor para Máquina do tempo, os cartões de estatísticas do período, Certificados neste período, Próximos lançamentos e Lançamentos recentes. Desliga qualquer um para o esconder da página de tabelas. O separador Eventos mantém os seus próprios lançamentos próximos e recentes. As alterações aplicam-se logo e ficam guardadas em todos os teus dispositivos.'],
