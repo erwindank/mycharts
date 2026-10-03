@@ -80,6 +80,14 @@ const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
 
+  { d: '2026-10-02', t: 'design', a: 'charts', h: '51f2e6e',
+    title: 'The stats at the top of each chart have a cleaner, more modern look',
+    detail: 'The stat cards under the date bar lost their glowing outlined labels. Each one now has a small tinted icon and a bigger, easier-to-read title, and the change from last period sits in a small coloured pill. The two rows of cards no longer touch, and every row of cards is evenly spaced. The New Albums card is now called New Albums & Singles, to match the Albums & Singles card above it.' },
+
+  { d: '2026-10-02', t: 'design', a: 'ui', h: '51f2e6e',
+    title: 'Tidier view tabs and date bar',
+    detail: 'The second row of view tabs is a step smaller again, as it was meant to be, so Your Soundtrack fits on one line on wide screens, and a stray line at the end of the More/Less bar is gone. The dots that mark tabs with new content sit in the corner of each tab instead of pushing its name off-centre. The date bar is now its own rounded card with square arrow buttons, instead of a strip hanging off the bottom of the tabs.' },
+
   { d: '2026-10-02', t: 'design', a: 'charts', h: 'c9025cb',
     title: 'The Chart Run panel has a cleaner, more modern look',
     detail: 'The Chart Run that opens under an entry is now its own rounded card. The range buttons are one switch with the chosen option highlighted, and the streak tabs work the same way. The weeks on chart, total plays, peak and other figures sit in small tiles with the number on top. Each week is a soft rounded chip: the peak is gold and other top-3 weeks are tinted, so the best stretch stands out. Time off the chart shows as a faint dotted break. Streak Records, Listening Heatmap and Full Streaming History are rounded cards with an arrow that turns when opened.' },
