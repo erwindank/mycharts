@@ -80,6 +80,10 @@ const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
 
+  { d: '2026-10-02', t: 'design', a: 'ui', h: 'eb4de18',
+    title: 'The arrow-keys hint now sits inside the date bar',
+    detail: 'The "arrow keys to navigate periods" reminder (or "swipe to navigate" on a phone) now sits inside the date bar, right under the date range, instead of floating on its own between the date bar and the stat cards.' },
+
   { d: '2026-10-02', t: 'design', a: 'charts', h: '51f2e6e',
     title: 'The stats at the top of each chart have a cleaner, more modern look',
     detail: 'The stat cards under the date bar lost their glowing outlined labels. Each one now has a small tinted icon and a bigger, easier-to-read title, and the change from last period sits in a small coloured pill. The two rows of cards no longer touch, and every row of cards is evenly spaced. The New Albums card is now called New Albums & Singles, to match the Albums & Singles card above it.' },
