@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 57;
+const DC_CL_I18N_V = 58;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,10 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+
+  { d: '2026-10-02', t: 'fix', a: 'awards', h: '68900db',
+    title: 'Audio samples no longer pick live recordings with plain titles',
+    detail: 'In My Grammys, the play button could still play a live version when a store listed it under the plain song name and only the album said live. I Write Sins Not Tragedies by Panic! at the Disco was one: the sample came from a live session single. Samples now also check which album a recording comes from, and pass over live, acoustic, remix and demo albums unless the nominee is from one of them. The album lookup now searches Apple Music as well as Deezer.' },
 
   { d: '2026-10-02', t: 'feature', a: 'awards', h: 'cff6fbd',
     title: 'Album records show what their songs earned',

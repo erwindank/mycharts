@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['pt-PT'] = {
 
   /* ========== OUTUBRO 2026 ========== */
 
+  'Audio samples no longer pick live recordings with plain titles':
+    ['As amostras de áudio já não escolhem gravações ao vivo com títulos normais',
+     'Nos Meus Grammys, o botão de reproduzir ainda podia tocar uma versão ao vivo quando uma loja a listava com o nome normal da música e só o álbum dizia ao vivo. I Write Sins Not Tragedies dos Panic! at the Disco era um caso: a amostra vinha de um single de uma sessão ao vivo. Agora as amostras também verificam de que álbum vem a gravação, e ignoram álbuns ao vivo, acústicos, de remixes e de demos, a não ser que o nomeado venha de um deles. A pesquisa por álbum agora procura no Apple Music além do Deezer.'],
+
   'Album records show what their songs earned':
     ['Os recordes de álbum mostram o que as suas canções conquistaram',
      'No resumo dos prémios, os cartões de recorde de álbum têm agora uma linha pequena como “+3 das suas canções” quando canções desse álbum também foram nomeadas ou venceram. Só as nomeações e vitórias do próprio álbum contam para o recorde, tal como nos Grammy reais, por isso um álbum grande com alguns singles de sucesso não fica com os recordes de álbum só pelas canções.'],
