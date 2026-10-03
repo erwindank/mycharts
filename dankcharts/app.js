@@ -4164,7 +4164,7 @@ function _mosDominantGlow(url, tile) {
       const sz = 20;
       const canvas = document.createElement('canvas');
       canvas.width = canvas.height = sz;
-      const ctx = canvas.getContext('2d');
+      const ctx = canvas.getContext('2d', { willReadFrequently: true });
       ctx.drawImage(this, 0, 0, sz, sz);
       const data = ctx.getImageData(0, 0, sz, sz).data;
       let bestR = 0, bestG = 0, bestB = 0, bestSat = -1;
@@ -20423,11 +20423,16 @@ function shFitPreview(frameId, innerId, fmt, html) {
 async function shCapture(nodeId, fmt, quality) {
   const d = shDims(fmt);
   try { await document.fonts.ready; } catch (e) {}
-  return html2canvas(document.getElementById(nodeId), {
+  const node = document.getElementById(nodeId);
+  return html2canvas(node, {
     scale: Math.max(1, Math.min(2, quality || 2)),
     useCORS: true, allowTaint: false, backgroundColor: null, logging: false,
     width: d.w, height: d.h, windowWidth: d.w, windowHeight: d.h,
     imageTimeout: 0, scrollX: 0, scrollY: 0,
+    // html2canvas clones the whole document before drawing — with a big library
+    // that's tens of thousands of nodes and most of the wait. Only clone the
+    // card, its ancestors (so scoped CSS still matches) and <head> styles.
+    ignoreElements: el => !(el.contains(node) || node.contains(el) || document.head.contains(el)),
   });
 }
 
