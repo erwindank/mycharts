@@ -40840,20 +40840,29 @@ function _cerMatchScore(wantArtist, wantTitle, candArtist, candTitle) {
 }
 
 /* Runs one search term past both stores and returns whatever survives scoring. */
-async function _cerSearchTakes(term, artist, name, type) {
+async function _cerSearchTakes(term, artist, name, type, wantAlbum) {
   const takes = [];
+  // Song awards also read the record a take comes from: Apple files a live take
+  // as plain "I Write Sins Not Tragedies" on "Live Session (iTunes Exclusive)",
+  // and from the title alone that looked like the studio cut and won.
+  const add = (url, title, candArtist, candAlbum, order) => {
+    // An album award wants any track off that record, so it is the album name
+    // that has to match, not the track name.
+    const candTitle = type === 'album' ? candAlbum : title;
+    let score = _cerMatchScore(artist, name, candArtist, candTitle);
+    if (score === -Infinity) return;
+    const pen = type === 'album' ? 0 : _cerAlbumPenalty(candAlbum, name, wantAlbum);
+    score += pen;
+    takes.push({ url, label: `${title} — ${candArtist}`, title, score, order,
+                 clean: !pen && _cerCleanTake(type === 'album' ? '' : name, title) });
+  };
+
   // A wide net, because the right recording is regularly several rows down.
   try {
     const r = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(term)}&entity=song&limit=25`);
     const d = await r.json();
     (d?.results || []).forEach((x, i) => {
-      if (!x.previewUrl) return;
-      // An album award wants any track off that record, so it is the album name
-      // that has to match, not the track name.
-      const candTitle = type === 'album' ? (x.collectionName || '') : (x.trackName || '');
-      const score = _cerMatchScore(artist, name, x.artistName || '', candTitle);
-      if (score === -Infinity) return;
-      takes.push({ url: x.previewUrl, label: `${x.trackName || ''} — ${x.artistName || ''}`, title: x.trackName || '', score, order: i });
+      if (x.previewUrl) add(x.previewUrl, x.trackName || '', x.artistName || '', x.collectionName || '', i);
     });
   } catch (e) {}
 
@@ -40865,11 +40874,7 @@ async function _cerSearchTakes(term, artist, name, type) {
     if (r.ok) {
       const d = await r.json();
       (d?.data || []).forEach((x, i) => {
-        if (!x.preview) return;
-        const candTitle = type === 'album' ? (x.album?.title || '') : (x.title || '');
-        const score = _cerMatchScore(artist, name, x.artist?.name || '', candTitle);
-        if (score === -Infinity) return;
-        takes.push({ url: x.preview, label: `${x.title || ''} — ${x.artist?.name || ''}`, title: x.title || '', score, order: i + 0.5 });
+        if (x.preview) add(x.preview, x.title || '', x.artist?.name || '', x.album?.title || '', i + 0.5);
       });
     }
   } catch (e) {}
@@ -40891,7 +40896,8 @@ async function _cerSearchTakes(term, artist, name, type) {
 async function _ceremonyPreviewTakes(item, type) {
   const artist = item.artist || '';
   const name   = type === 'album' ? (item.album || '') : type === 'artist' ? '' : (item.title || '');
-  const key    = `${type}:${artist.toLowerCase()}|||${name.toLowerCase()}`;
+  const albumName = type === 'artist' ? '' : (item.album || '');
+  const key    = `${type}:${artist.toLowerCase()}|||${name.toLowerCase()}|||${albumName.toLowerCase()}`;
   if (key in _ceremonyPreviewCache) return _ceremonyPreviewCache[key];
 
   const plain = _cerPlainTitle(name);
@@ -40906,7 +40912,7 @@ async function _ceremonyPreviewTakes(item, type) {
 
   let out = [];
   for (const term of terms) {
-    out = await _cerSearchTakes(term, artist, name, type);
+    out = await _cerSearchTakes(term, artist, name, type, albumName);
     if (out.length) break;
   }
 
@@ -40916,8 +40922,7 @@ async function _ceremonyPreviewTakes(item, type) {
   // that search ranks below every live and acoustic take (Panic!'s "I Write Sins
   // Not Tragedies"). Looking the record up as an album and reading its tracklist
   // catches both. Songs only pay for it when nothing clean was found.
-  const albumName = item.album || '';
-  if (albumName && type !== 'artist' && (type === 'album' || !out.some(t => _cerCleanTake(name, t.title)))) {
+  if (albumName && (type === 'album' || !out.some(t => t.clean))) {
     const more = await _cerAlbumTakes(artist, albumName, name, type);
     if (more.length) {
       const seen = new Set(out.map(t => t.url));
@@ -40939,42 +40944,76 @@ function _cerCleanTake(wantTitle, candTitle) {
   return !_CER_WEAK.some(x => c.includes(x) && !w.includes(x));
 }
 
-/* Finds the nominee's album on Deezer and returns playable takes from its
-   tracklist. For an album award every track counts, title track first; for a
-   song award only the tracks whose name matches. */
+// Whole words only: album names say "Deluxe Edition", which a plain substring
+// test reads as "edit".
+const _CER_ALBUM_QUALS = [/\blive\b/, /\bacoustic\b/, /\bunplugged\b/, /\bremix(es)?\b/, /\bdemos?\b/, /\binstrumentals?\b/];
+
+// Marks down a take whose record is a live, acoustic or remix release the
+// nominee didn't come from. The nominee's own album saying "Live" (Hole's "Live
+// Through This") means it's wanted, so those words are let through.
+function _cerAlbumPenalty(candAlbum, wantTitle, wantAlbum) {
+  const c = _cerNorm(candAlbum), w = _cerNorm(`${wantTitle} ${wantAlbum || ''}`);
+  let pen = 0;
+  for (const re of _CER_ALBUM_QUALS) if (re.test(c) && !re.test(w)) pen -= 4;
+  return pen;
+}
+
+/* Finds the nominee's album on iTunes and Deezer and returns playable takes from
+   its tracklist. For an album award every track counts, title track first; for
+   a song award only the tracks whose name matches. */
 async function _cerAlbumTakes(artist, albumName, songName, type) {
+  const lead = artist.split(/,|;|&|\bfeat\.?\b|\bft\.?\b|\bwith\b/i)[0].trim();
+  const q = encodeURIComponent(`${lead} ${_cerPlainTitle(albumName)}`);
+  const albumCore = _cerCoreTitle(albumName);
   const takes = [];
+
+  // Best two matching albums per store: the plain release and, when it's gone,
+  // the deluxe reissue (Deezer only has Panic!'s debut as a 20th anniversary set)
+  const bestTwo = list => list
+    .map((x, i) => ({ ...x, score: _cerMatchScore(artist, albumName, x.artist, x.title), i }))
+    .filter(x => x.score !== -Infinity)
+    .sort((a, b) => (b.score - a.score) || (a.i - b.i))
+    .slice(0, 2);
+
+  const addTrack = (al, url, title, candArtist, order) => {
+    if (!url) return;
+    let score;
+    if (type === 'album') {
+      // Any track is the album; the title track (if there is one) leads, and
+      // tracks the scorer would mark down (demos, live bonus cuts) are skipped.
+      if (!_cerCleanTake('', title)) return;
+      score = al.score + (_cerCoreTitle(title) === albumCore ? 1 : 0);
+    } else {
+      score = _cerMatchScore(artist, songName, candArtist, title);
+      if (score === -Infinity) return;
+    }
+    takes.push({ url, label: `${title} — ${candArtist}`, title, score, order,
+                 clean: _cerCleanTake(type === 'album' ? '' : songName, title) });
+  };
+
   try {
-    const lead = artist.split(/,|;|&|\bfeat\.?\b|\bft\.?\b|\bwith\b/i)[0].trim();
-    const r = await deezerFetch(`search/album?q=${encodeURIComponent(`${lead} ${_cerPlainTitle(albumName)}`)}&limit=10`);
-    if (!r.ok) return takes;
+    const r = await fetch(`https://itunes.apple.com/search?term=${q}&entity=album&limit=10`);
     const d = await r.json();
-    // Best two matching albums: the plain release and, when it's gone, the deluxe reissue
-    const albums = (d?.data || [])
-      .map((x, i) => ({ id: x.id, score: _cerMatchScore(artist, albumName, x.artist?.name || '', x.title || ''), i }))
-      .filter(x => x.score !== -Infinity)
-      .sort((a, b) => (b.score - a.score) || (a.i - b.i))
-      .slice(0, 2);
-    const albumCore = _cerCoreTitle(albumName);
+    const albums = bestTwo((d?.results || []).map(x => ({ id: x.collectionId, artist: x.artistName || '', title: x.collectionName || '' })));
     for (const al of albums) {
-      const tr = await deezerFetch(`album/${al.id}/tracks?limit=100`);
-      if (!tr.ok) continue;
+      const tr = await fetch(`https://itunes.apple.com/lookup?id=${al.id}&entity=song&limit=200`);
       const td = await tr.json();
-      (td?.data || []).forEach((x, i) => {
-        if (!x.preview) return;
-        const label = `${x.title || ''} — ${x.artist?.name || ''}`;
-        let score;
-        if (type === 'album') {
-          // Any track is the album; the title track (if there is one) leads, and
-          // tracks the scorer would mark down (demos, live bonus cuts) trail.
-          if (!_cerCleanTake('', x.title || '')) return;
-          score = al.score + (_cerCoreTitle(x.title) === albumCore ? 1 : 0);
-        } else {
-          score = _cerMatchScore(artist, songName, x.artist?.name || '', x.title || '');
-          if (score === -Infinity) return;
-        }
-        takes.push({ url: x.preview, label, title: x.title || '', score, order: 100 + i });
-      });
+      (td?.results || []).filter(x => x.wrapperType === 'track')
+        .forEach((x, i) => addTrack(al, x.previewUrl, x.trackName || '', x.artistName || '', 100 + i));
+    }
+  } catch (e) {}
+
+  try {
+    const r = await deezerFetch(`search/album?q=${q}&limit=10`);
+    if (r.ok) {
+      const d = await r.json();
+      const albums = bestTwo((d?.data || []).map(x => ({ id: x.id, artist: x.artist?.name || '', title: x.title || '' })));
+      for (const al of albums) {
+        const tr = await deezerFetch(`album/${al.id}/tracks?limit=100`);
+        if (!tr.ok) continue;
+        const td = await tr.json();
+        (td?.data || []).forEach((x, i) => addTrack(al, x.preview, x.title || '', x.artist?.name || '', 100.5 + i));
+      }
     }
   } catch (e) {}
   return takes;
