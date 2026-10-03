@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['pt-PT'] = {
 
   /* ========== OUTUBRO 2026 ========== */
 
+  'Share images download much faster':
+    ['As imagens para partilhar descarregam muito mais depressa',
+     'Descarregar, copiar ou partilhar uma imagem demorava vários segundos, e mais quanto maior a tua biblioteca, porque a página inteira era copiada nos bastidores antes de desenhar a imagem. Agora só o cartão é copiado, por isso as imagens ficam prontas em cerca de meio segundo. As imagens ficam exatamente iguais a antes.'],
+
   'Favorite award categories':
     ['Categorias de prémios favoritas',
      'Qualquer categoria dos Meus Grammys pode ser marcada como favorita com a estrela: no cartão dela em Configurar ano, no cabeçalho do cartão de nomeados ou no topo do seletor de nomeados. As favoritas mantêm-se de um ano para o outro e sincronizam entre os teus dispositivos. Em Configurar ano, o novo filtro Favoritas mostra só as categorias marcadas, e o botão Só favoritas ativa essas e desativa todas as outras, por isso preparar um ano novo com os teus prémios habituais leva um clique. Os nomeados que já escolheste são mantidos.'],

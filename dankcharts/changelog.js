@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 62;
+const DC_CL_I18N_V = 63;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,10 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+
+  { d: '2026-10-03', t: 'perf', a: 'share', h: 'e8eb486',
+    title: 'Share images download much faster',
+    detail: 'Downloading, copying or sharing a share image used to take several seconds, and longer the bigger your library, because the whole page was copied behind the scenes before the image was drawn. Now only the card itself is copied, so images are ready in about half a second. The images look exactly the same as before.' },
 
   { d: '2026-10-03', t: 'feature', a: 'awards', h: 'b052e5a',
     title: 'Favorite award categories',
