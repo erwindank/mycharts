@@ -21942,21 +21942,16 @@ body.yellow-light .hero-stats { --hero-link: #ffe066; }  /* 3.94:1 on strip */
 
 
 /* ── Nav hint (keyboard shortcut reminder) ──
-   Plain quiet caption, no pill/box chrome — it used to be styled as a tab
-   hanging off the date-nav bar above it, but the gap between the two made it
-   read as a random floating capsule instead of an attached label. */
+   Plain quiet caption, no pill/box chrome. Lives inside the date card
+   (.date-nav-center), directly under the date-range button, instead of
+   floating on the page between the date card and the stat cards. */
 .nav-hint {
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
   width: fit-content;
-  /* Negative top margin, not 0 — .sticky-nav-bar above has its own 1.75rem
-     margin-bottom, and adjacent sibling margins collapse to the larger one,
-     so a small positive/zero margin here gets swallowed. This pulls the
-     collapsed gap down to a few px instead of touching the shared
-     .sticky-nav-bar spacing (which other, hint-less views also rely on). */
-  margin: -1.05rem auto 1rem;
+  margin: 0.1rem auto 0;
   font-family: var(--font-mono);
   font-size: 0.62rem;
   color: var(--text3);

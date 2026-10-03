@@ -27,7 +27,7 @@
   <!-- html2canvas, SheetJS (xlsx) and JSZip are intentionally NOT loaded here — they
        total ~1.2 MB and are only needed for image exports and Excel/ZIP imports.
        app.js pulls them from the CDN on first use (see ensureLazyLib). -->
-  <link rel="stylesheet" href="style.css?v=322">
+  <link rel="stylesheet" href="style.css?v=323">
   <!-- All scripts are deferred so the page paints without waiting on them.
        defer preserves execution order, which matters: translations → Chart.js →
        hammer → zoom plugin → firebase SDKs → firebase.js → app.js (in body). -->
@@ -464,16 +464,16 @@
             <select id="yearPicker" class="picker-input" style="display:none"
               data-i18n-title="tooltip_jump_to_year"></select>
           </div>
+          <!-- Keyboard / swipe hint lives inside the date card, under the date range -->
+          <div id="navHint" class="nav-hint">
+            <span class="nav-hint-keyboard"><kbd>←</kbd><kbd>→</kbd> <span data-i18n="nav_hint_keyboard">arrow keys to navigate periods</span></span>
+            <span class="nav-hint-swipe"><span class="swipe-arrow swipe-arrow-left">◀</span> <span data-i18n="nav_hint_swipe">swipe to navigate</span> <span class="swipe-arrow swipe-arrow-right">▶</span></span>
+          </div>
         </div>
         <button id="nextBtn" class="date-nav-chevron" data-i18n-title="btn_next" aria-label="Next period">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9,18 15,12 9,6"/></svg>
         </button>
       </div>
-    </div>
-
-    <div id="navHint" class="nav-hint">
-      <span class="nav-hint-keyboard"><kbd>←</kbd><kbd>→</kbd> <span data-i18n="nav_hint_keyboard">arrow keys to navigate periods</span></span>
-      <span class="nav-hint-swipe"><span class="swipe-arrow swipe-arrow-left">◀</span> <span data-i18n="nav_hint_swipe">swipe to navigate</span> <span class="swipe-arrow swipe-arrow-right">▶</span></span>
     </div>
 
     <!-- Wrapper exists purely so mobile CSS can collapse the three strips
