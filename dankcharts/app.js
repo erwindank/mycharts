@@ -1686,7 +1686,8 @@ function updateScrobbleBtn() {
 const LFM_TOKEN_TTL_MS  = 55 * 60 * 1000; // Last.fm tokens die after ~60 min
 const LFM_POLL_EVERY_MS = 3000;
 const LFM_POLL_MAX      = 60;             // give up watching after ~3 minutes
-const LFM_HINT_IDLE     = 'Lets you add and edit plays from this site.';
+// Idle hint under the Last.fm connect button; a function so it follows the language
+const LFM_HINT_IDLE     = () => t('set_lfm_hint_idle');
 
 let _lfmPollTimer = null;
 let _lfmPollTries = 0;
@@ -1720,17 +1721,17 @@ function updateLfmAuthStatus() {
   const connectBtn= document.getElementById('lfmConnectBtn');
   const disconnBtn= document.getElementById('lfmDisconnectBtn');
   if (sess && user) {
-    if (statusEl)   statusEl.innerHTML = `<span class="lfm-auth-dot connected"></span> Connected as <strong>${esc(user)}</strong>`;
+    if (statusEl)   statusEl.innerHTML = `<span class="lfm-auth-dot connected"></span> ${t('set_lfm_connected', { user: esc(user) })}`;
     if (connectBtn) connectBtn.style.display = 'none';
-    if (disconnBtn) { disconnBtn.style.display = ''; disconnBtn.textContent = 'Disconnect'; }
+    if (disconnBtn) { disconnBtn.style.display = ''; disconnBtn.textContent = t('set_lfm_disconnect'); }
   } else if (pending) {
     // Honest middle state: we asked, Last.fm hasn't said yes yet.
-    if (statusEl)   statusEl.innerHTML = '<span class="lfm-auth-dot pending"></span> Waiting for your approval on Last.fm';
-    if (connectBtn) { connectBtn.style.display = ''; connectBtn.textContent = 'Check now'; connectBtn.disabled = false; }
-    if (disconnBtn) { disconnBtn.style.display = ''; disconnBtn.textContent = 'Cancel'; }
+    if (statusEl)   statusEl.innerHTML = `<span class="lfm-auth-dot pending"></span> ${esc(t('set_lfm_waiting'))}`;
+    if (connectBtn) { connectBtn.style.display = ''; connectBtn.textContent = t('set_lfm_check_now'); connectBtn.disabled = false; }
+    if (disconnBtn) { disconnBtn.style.display = ''; disconnBtn.textContent = t('btn_cancel'); }
   } else {
-    if (statusEl)   statusEl.innerHTML = '<span class="lfm-auth-dot"></span> Not connected';
-    if (connectBtn) { connectBtn.style.display = ''; connectBtn.textContent = 'Connect to Last.fm'; connectBtn.disabled = false; }
+    if (statusEl)   statusEl.innerHTML = `<span class="lfm-auth-dot"></span> ${esc(t('set_lfm_not_connected'))}`;
+    if (connectBtn) { connectBtn.style.display = ''; connectBtn.textContent = t('set_lfm_connect'); connectBtn.disabled = false; }
     if (disconnBtn) disconnBtn.style.display = 'none';
   }
   updateScrobbleBtn();
@@ -1750,24 +1751,24 @@ async function lfmAuthConnect() {
   const key    = getScrobbleKey();
   const secret = getScrobbleSecret();
   if (!key || !secret) {
-    setLfmHint('Enter your API key and secret above first.', 'err');
+    setLfmHint(t('set_lfm_need_keys'), 'err');
     return;
   }
   const btn = document.getElementById('lfmConnectBtn');
   btn.disabled = true;
-  btn.textContent = 'Getting token…';
+  btn.textContent = t('set_lfm_getting_token');
   try {
     const data = await lfmPost({ method: 'auth.getToken' });
     localStorage.setItem('dc_lfm_pending_token', data.token);
     localStorage.setItem('dc_lfm_pending_ts', String(Date.now()));
     window.open(`https://www.last.fm/api/auth/?api_key=${encodeURIComponent(key)}&token=${encodeURIComponent(data.token)}`, '_blank');
     updateLfmAuthStatus();
-    setLfmHint('Click Allow on the Last.fm tab that just opened. This page checks on its own and switches to Connected once it goes through.');
+    setLfmHint(t('set_lfm_click_allow'));
     lfmAuthStartPolling();
   } catch (e) {
     clearLfmPendingToken();
     updateLfmAuthStatus();
-    setLfmHint('Could not reach Last.fm: ' + e.message, 'err');
+    setLfmHint(t('set_lfm_unreachable', { msg: e.message }), 'err');
   }
 }
 
@@ -1777,7 +1778,7 @@ async function lfmAuthVerify(silent) {
   const token = getLfmPendingToken();
   if (!token) { updateLfmAuthStatus(); return false; }
   const btn = document.getElementById('lfmConnectBtn');
-  if (!silent && btn) { btn.disabled = true; btn.textContent = 'Checking…'; }
+  if (!silent && btn) { btn.disabled = true; btn.textContent = t('set_lfm_checking'); }
   try {
     const data = await lfmPost({ method: 'auth.getSession', token });
     if (!data?.session?.key) throw new Error('No session returned');
@@ -1786,7 +1787,7 @@ async function lfmAuthVerify(silent) {
     clearLfmPendingToken();
     lfmAuthStopPolling();
     updateLfmAuthStatus();
-    setLfmHint(`Verified. Scrobbling as ${data.session.name}.`, 'ok');
+    setLfmHint(t('set_lfm_verified', { user: data.session.name }), 'ok');
     // On Sheets/CSV this connection is the only thing standing between the user and
     // the live bar — light it up now rather than waiting for the next sync.
     startNowPlaying();
@@ -1799,8 +1800,8 @@ async function lfmAuthVerify(silent) {
     updateLfmAuthStatus();
     if (!silent) {
       setLfmHint(notYet
-        ? 'Not authorized yet. Finish the Allow step on the Last.fm tab, then check again.'
-        : 'That authorization expired. Hit Connect to Last.fm to start again.', 'err');
+        ? t('set_lfm_not_yet')
+        : t('set_lfm_expired'), 'err');
     }
     return false;
   }
@@ -1816,7 +1817,7 @@ function lfmAuthStartPolling() {
     if (!modal || !modal.classList.contains('open')) { lfmAuthStopPolling(); return; }
     if (++_lfmPollTries > LFM_POLL_MAX) {
       lfmAuthStopPolling();
-      setLfmHint('Still waiting on Last.fm. Once you have clicked Allow, press Check now.');
+      setLfmHint(t('set_lfm_still_waiting'));
       return;
     }
     await lfmAuthVerify(true);
@@ -1832,7 +1833,7 @@ function lfmAuthDisconnect() {
   localStorage.removeItem('dc_lfm_session_user');
   clearLfmPendingToken();
   lfmAuthStopPolling();
-  setLfmHint(LFM_HINT_IDLE);
+  setLfmHint(LFM_HINT_IDLE());
   updateLfmAuthStatus();
   // Drops the live bar for Sheets/CSV users; a Last.fm-source user keeps theirs,
   // since getNowPlayingUser() still resolves via their charting username.
@@ -1971,8 +1972,8 @@ function copyAppsScript() {
   const code = document.getElementById('appsScriptCode').textContent;
   navigator.clipboard.writeText(code).then(() => {
     const btn = document.getElementById('copyAppsScriptBtn');
-    btn.textContent = '✓ Copied';
-    setTimeout(() => { btn.textContent = 'Copy the script'; }, 2000);
+    btn.textContent = t('set_copied');
+    setTimeout(() => { btn.textContent = t('set_copy_script'); }, 2000);
   });
 }
 
@@ -1983,8 +1984,20 @@ function toggleAppsScript(btn) {
   if (!pre) return;
   const show = pre.hidden;
   pre.hidden = !show;
-  btn.textContent = show ? 'Hide it' : 'View it';
+  btn.textContent = show ? t('set_hide_it') : t('set_view_it');
   btn.setAttribute('aria-expanded', show ? 'true' : 'false');
+}
+
+// Re-labels the Settings text that depends on state rather than on a static
+// data-i18n key. Called by setLanguage() after applyI18n().
+function refreshSettingsI18n() {
+  updateLfmAuthStatus();
+  const pre = document.getElementById('appsScriptCode');
+  const tog = document.querySelector('.set-code-toggle');
+  if (pre && tog) tog.textContent = pre.hidden ? t('set_view_it') : t('set_hide_it');
+  const modal = document.getElementById('sourceModal');
+  const profile = document.getElementById('setPanelProfile');
+  if (modal && modal.classList.contains('open') && profile && !profile.hidden) renderBackupsPanel();
 }
 
 // ─── AUTO-CORRECT RULES ───────────────────────────────────────
@@ -29039,18 +29052,18 @@ async function parseDeezerXlsx(file) {
 async function importFileData(file) {
   if (!file) return;
   const statusEl = document.getElementById('srcFileStatus');
-  if (statusEl) statusEl.textContent = `Parsing ${file.name}…`;
+  if (statusEl) statusEl.textContent = t('set_file_parsing', { name: file.name });
   try {
     const fname = file.name.toLowerCase();
     if (fname.endsWith('.csv')) {
       // CSV: delegate to existing parseCsv which sets allPlays and calls finalizeLoad
       const text = await readFileAsText(file);
       parseCsv(text, false);
-      if (!allPlays.length) { if (statusEl) statusEl.textContent = 'No valid records found.'; return; }
+      if (!allPlays.length) { if (statusEl) statusEl.textContent = t('set_file_none'); return; }
       const compact = allPlays.map(p => [p.title, p.artist, p.album, Math.floor(p.date.getTime()/1000)]);
       await saveToIDB(IDB_FILE_KEY, { ts: Date.now(), data: compact });
       localStorage.setItem('dc_source', 'file');
-      if (statusEl) statusEl.textContent = `✓ ${allPlays.length.toLocaleString()} plays loaded`;
+      if (statusEl) statusEl.textContent = t('set_file_loaded', { n: allPlays.length.toLocaleString() });
       closeSourceModal();
       return;
     }
@@ -29068,22 +29081,22 @@ async function importFileData(file) {
         return { title: s.track || '', artist: ar, artists: splitArtists(ar), album: s.album || '—', date: s.date };
       });
     } else {
-      if (statusEl) statusEl.textContent = 'Unsupported file type.';
+      if (statusEl) statusEl.textContent = t('set_file_unsupported');
       return;
     }
     plays = plays.filter(p => p.title && p.artist && p.date && !isNaN(p.date));
-    if (!plays.length) { if (statusEl) statusEl.textContent = 'No valid records found.'; return; }
+    if (!plays.length) { if (statusEl) statusEl.textContent = t('set_file_none'); return; }
     plays.sort((a, b) => b.date - a.date);
     allPlays = plays;
     const compact = allPlays.map(p => [p.title, p.artist, p.album, Math.floor(p.date.getTime()/1000)]);
     await saveToIDB(IDB_FILE_KEY, { ts: Date.now(), data: compact });
     localStorage.setItem('dc_source', 'file');
-    if (statusEl) statusEl.textContent = `✓ ${allPlays.length.toLocaleString()} plays loaded`;
+    if (statusEl) statusEl.textContent = t('set_file_loaded', { n: allPlays.length.toLocaleString() });
     closeSourceModal();
     setSyncStatus(`✓ ${allPlays.length.toLocaleString()} plays loaded from ${file.name}`, 'ok');
     finalizeLoad();
   } catch (e) {
-    if (statusEl) statusEl.textContent = `Error: ${e.message}`;
+    if (statusEl) statusEl.textContent = t('set_error', { msg: e.message });
   }
 }
 
@@ -34919,27 +34932,29 @@ async function _backupApply(p) {
   location.reload();
 }
 
+// Reason → translation key; read through t() at render time so it follows the language
 const BACKUP_REASON_LABELS = {
-  'daily':          'Daily backup',
-  'manual':         'Made by you',
-  'before-restore': 'Before a restore',
-  'other-device':   'Before a save from another device',
-  'conflict':       'Before merging two devices',
-  'device-copy':    'Copy kept on this device'
+  'daily':          'set_bk_daily',
+  'manual':         'set_bk_manual',
+  'before-restore': 'set_bk_before_restore',
+  'other-device':   'set_bk_other_device',
+  'conflict':       'set_bk_conflict',
+  'device-copy':    'set_bk_device_copy'
 };
 
 function _backupSummaryText(e) {
   const s = e.summary || {};
   const parts = [];
+  const noms = n => n === 1 ? t('set_bk_nominees_1') : t('set_bk_nominees_n', { n: n || 0 });
   if (e.kind === 'awards') {
-    parts.push(`${(s.years || []).join(', ')} awards`, `${s.nominees || 0} nominee${s.nominees === 1 ? '' : 's'}`);
+    parts.push(t('set_bk_years_awards', { years: (s.years || []).join(', ') }), noms(s.nominees));
   } else {
-    if (s.settings) parts.push('Settings');
+    if (s.settings) parts.push(t('set_bk_settings'));
     if (s.years?.length) {
       const yrs = s.years.length > 1 ? `${s.years[0]}–${s.years[s.years.length - 1]}` : s.years[0];
-      parts.push(`Awards ${yrs} (${s.nominees} nominee${s.nominees === 1 ? '' : 's'})`);
+      parts.push(`${t('set_bk_awards', { years: yrs })} (${noms(s.nominees)})`);
     }
-    if (s.ratings) parts.push(`${s.ratings} rating${s.ratings === 1 ? '' : 's'}`);
+    if (s.ratings) parts.push(s.ratings === 1 ? t('set_bk_ratings_1') : t('set_bk_ratings_n', { n: s.ratings }));
   }
   return parts.join(' · ');
 }
@@ -34952,13 +34967,13 @@ async function renderBackupsPanel() {
   const signedIn = typeof dcIsSignedIn === 'function' && dcIsSignedIn();
   if (nowBtn) nowBtn.hidden = !signedIn;
   if (!signedIn) {
-    el.innerHTML = '<p class="src-modal-hint">Sign in with Google to keep automatic backups in your account. You can still download a backup file.</p>';
+    el.innerHTML = `<p class="src-modal-hint">${esc(t('set_backups_signed_out'))}</p>`;
     return;
   }
-  el.innerHTML = '<p class="src-modal-hint">Loading backups…</p>';
+  el.innerHTML = `<p class="src-modal-hint">${esc(t('set_backups_loading'))}</p>`;
   const list = await dcBackupList();
   if (!list.length) {
-    el.innerHTML = '<p class="src-modal-hint">No backups yet — one is made automatically each day you open the app.</p>';
+    el.innerHTML = `<p class="src-modal-hint">${esc(t('set_backups_none'))}</p>`;
     return;
   }
   const fmt = ts => new Date(ts).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' });
@@ -34966,19 +34981,19 @@ async function renderBackupsPanel() {
     <div class="bk-row">
       <div class="bk-main">
         <span class="bk-when">${esc(fmt(e.createdAt))}</span>
-        <span class="bk-what">${esc(BACKUP_REASON_LABELS[e.reason] || e.reason || '')}${e.device ? ' · ' + esc(e.device) : ''}</span>
+        <span class="bk-what">${esc(BACKUP_REASON_LABELS[e.reason] ? t(BACKUP_REASON_LABELS[e.reason]) : (e.reason || ''))}${e.device ? ' · ' + esc(e.device) : ''}</span>
         <span class="bk-sum">${esc(_backupSummaryText(e))}</span>
       </div>
-      <button type="button" class="cert-reset-btn" onclick="backupsRestore(${esc(JSON.stringify(e.id))})">Restore</button>
+      <button type="button" class="cert-reset-btn" onclick="backupsRestore(${esc(JSON.stringify(e.id))})">${esc(t('set_backup_restore'))}</button>
     </div>`).join('');
 }
 
 async function backupsNow() {
   const btn = document.getElementById('setBackupNowBtn');
-  if (btn) { btn.disabled = true; btn.textContent = 'Backing up…'; }
+  if (btn) { btn.disabled = true; btn.textContent = t('set_backing_up'); }
   const id = await dcBackupNow('manual');
-  if (btn) { btn.disabled = false; btn.textContent = 'Back up now'; }
-  if (typeof dcPlToast === 'function') dcPlToast(id ? 'Backup saved to your account.' : 'Backup failed — check your connection and try again.');
+  if (btn) { btn.disabled = false; btn.textContent = t('set_backup_now'); }
+  if (typeof dcPlToast === 'function') dcPlToast(id ? t('set_bk_saved') : t('set_bk_failed'));
   renderBackupsPanel();
 }
 
@@ -34987,11 +35002,11 @@ async function backupsRestore(id) {
   const e = list.find(x => x.id === id);
   if (!e) return;
   const when = new Date(e.createdAt).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' });
-  const what = e.kind === 'awards' ? `your ${(e.summary?.years || []).join(', ')} awards` : 'your settings, awards and ratings';
-  if (!confirm(`Restore the backup from ${when}?\n\nThis replaces ${what} with that copy, on every device. A backup of how things are right now is made first, so you can undo this.`)) return;
+  const what = e.kind === 'awards' ? t('set_bk_what_awards', { years: (e.summary?.years || []).join(', ') }) : t('set_bk_what_all');
+  if (!confirm(t('set_bk_confirm', { when, what }))) return;
   const p = await dcBackupRead(id);
-  if (!p) { dcPlToast('Couldn’t open that backup — check your connection and try again.'); return; }
-  dcPlToast('Restoring…');
+  if (!p) { dcPlToast(t('set_bk_open_failed')); return; }
+  dcPlToast(t('set_bk_restoring'));
   await dcBackupNow('before-restore');
   await _backupApply(p);
 }
@@ -35014,10 +35029,10 @@ async function backupsUpload(input) {
   if (!file) return;
   let p = null;
   try { p = JSON.parse(await file.text()); } catch (e) {}
-  if (!p || p.app !== 'dankcharts') { dcPlToast('That file isn’t a dankcharts backup.'); return; }
-  const when = p.createdAt ? new Date(p.createdAt).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' }) : 'an unknown date';
-  if (!confirm(`Restore the backup file from ${when}?\n\nThis replaces your settings, awards and ratings with the copy in the file.`)) return;
-  dcPlToast('Restoring…');
+  if (!p || p.app !== 'dankcharts') { dcPlToast(t('set_bk_not_backup')); return; }
+  const when = p.createdAt ? new Date(p.createdAt).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' }) : t('set_bk_unknown_date');
+  if (!confirm(t('set_bk_confirm_file', { when }))) return;
+  dcPlToast(t('set_bk_restoring'));
   await dcBackupNow('before-restore');
   await _backupApply(p);
 }
