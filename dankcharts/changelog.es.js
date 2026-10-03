@@ -18,7 +18,7 @@ window.DC_CHANGELOG_I18N['es'] = {
 
   'Clear the nominee picker search in one click':
     ['Borra la búsqueda del selector de nominados con un clic',
-     'El cuadro de búsqueda del selector de nominados tiene una × que lo vacía y vuelve a mostrar la lista completa. Después de pulsar Intro para añadir un resultado, el texto de búsqueda queda seleccionado, así que puedes escribir la siguiente búsqueda directamente encima.'],
+     'El cuadro de búsqueda del selector de nominados tiene una × que lo vacía y vuelve a mostrar la lista completa.'],
 
   'Settings in your language':
     ['Los ajustes en tu idioma',

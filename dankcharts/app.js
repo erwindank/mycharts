@@ -39246,9 +39246,6 @@ function _awardsShowPicker(year, catId, candidates) {
     if (e.key === 'Enter') {
       e.preventDefault();
       awardsPickerToggleRow(_awardsPickerActive >= 0 ? _awardsPickerActive : 0);
-      // Select the search text after Enter so the next search can be typed straight over it
-      const searchEl = document.getElementById('awardsPickerSearch');
-      if (searchEl && document.activeElement === searchEl) searchEl.select();
     }
   };
   document.addEventListener('keydown', _awardsPickerKeyHandler);
