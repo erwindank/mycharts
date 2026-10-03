@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['pt-PT'] = {
 
   /* ========== OUTUBRO 2026 ========== */
 
+  'Clear the nominee picker search in one click':
+    ['Limpa a pesquisa do seletor de nomeados com um clique',
+     'A caixa de pesquisa do seletor de nomeados tem um × que a esvazia e volta a mostrar a lista completa. Depois de carregares em Enter para adicionar um resultado, o texto da pesquisa fica selecionado, por isso podes escrever a pesquisa seguinte logo por cima.'],
+
   'Settings in your language':
     ['As definições no teu idioma',
      'Toda a janela de Definições está agora traduzida para espanhol e para as duas variantes do português: os três separadores, os passos de configuração do Google Sheets, as mensagens de ligação ao Last.fm, o estado do carregamento de ficheiros e as cópias de segurança. Ao mudar de idioma, atualiza-se logo, mesmo aberta.'],

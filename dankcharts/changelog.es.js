@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['es'] = {
 
   /* ========== OCTUBRE 2026 ========== */
 
+  'Clear the nominee picker search in one click':
+    ['Borra la búsqueda del selector de nominados con un clic',
+     'El cuadro de búsqueda del selector de nominados tiene una × que lo vacía y vuelve a mostrar la lista completa. Después de pulsar Intro para añadir un resultado, el texto de búsqueda queda seleccionado, así que puedes escribir la siguiente búsqueda directamente encima.'],
+
   'Settings in your language':
     ['Los ajustes en tu idioma',
      'Toda la ventana de Ajustes está ahora traducida al español y a las dos variantes de portugués: las tres pestañas, los pasos de configuración de Google Sheets, los mensajes de conexión con Last.fm, el estado de la subida de archivos y las copias de seguridad. Al cambiar de idioma se actualiza al instante, incluso con la ventana abierta.'],

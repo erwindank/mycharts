@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['pt-BR'] = {
 
   /* ========== OUTUBRO 2026 ========== */
 
+  'Clear the nominee picker search in one click':
+    ['Limpe a busca do seletor de indicados com um clique',
+     'A caixa de busca do seletor de indicados tem um × que a esvazia e mostra a lista completa de novo. Depois de apertar Enter para adicionar um resultado, o texto da busca fica selecionado, então você pode digitar a próxima busca direto por cima.'],
+
   'Settings in your language':
     ['As configurações no seu idioma',
      'Toda a janela de Configurações agora está traduzida para espanhol e para as duas variantes do português: as três abas, os passos de configuração do Google Sheets, as mensagens de conexão com o Last.fm, o status do envio de arquivos e os backups. Ao trocar de idioma, ela se atualiza na hora, mesmo aberta.'],

@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 68;
+const DC_CL_I18N_V = 69;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,10 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+
+  { d: '2026-10-03', t: 'feature', a: 'awards', h: 'bacb5f5',
+    title: 'Clear the nominee picker search in one click',
+    detail: 'The search box in the nominee picker has an × that empties it and brings back the full list. After pressing Enter to add a result, the search text is now selected, so you can type the next search straight over it.' },
 
   { d: '2026-10-03', t: 'i18n', a: 'settings', h: '8df4e57',
     title: 'Settings in your language',
