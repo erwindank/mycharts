@@ -33899,6 +33899,7 @@ const AWARD_CATEGORIES = [
   { id: 'best_collab',       label: 'Best Collaboration',         type: 'song',   filter: 'collab',      defaultOn: true,  emoji: '🤝' },
   { id: 'best_duo',          label: 'Best Duo',                   type: 'song',   filter: 'duo',         defaultOn: false, emoji: '👥' },
   { id: 'song_summer',       label: 'Song of the Summer',         type: 'song',   filter: 'summer',      defaultOn: true,  emoji: '🏖️' },
+  { id: 'best_holiday_song', label: 'Best Holiday Season Song',   type: 'song',   filter: 'holiday',     defaultOn: false, emoji: '🎄' },
   { id: 'best_comeback',     label: 'Best Comeback',              type: 'artist', filter: 'comeback',    defaultOn: true,  emoji: '💪' },
   { id: 'best_discovery',    label: 'Best Discovery',             type: 'artist', filter: 'discovery',   defaultOn: true,  emoji: '🔭' },
   { id: 'most_growth',       label: 'Most Growth',                type: 'artist', filter: 'growth',      defaultOn: false, emoji: '📈' },
@@ -33987,14 +33988,65 @@ const AWARD_CATEGORIES = [
   { id: 'best_pop_vocal_album', label: 'Best Pop Vocal Album',    type: 'album',  filter: 'genre:pop',         defaultOn: false, emoji: '🎙️' },
   { id: 'best_dance_album',  label: 'Best Dance/Electronic Album', type: 'album', filter: 'genre:electronic',  defaultOn: false, emoji: '🪩' },
   { id: 'best_reggae_album', label: 'Best Reggae Album',          type: 'album',  filter: 'genre:reggae',      defaultOn: false, emoji: '🌴' },
+  { id: 'best_holiday_album', label: 'Best Holiday Season Album', type: 'album', filter: 'holiday',          defaultOn: false, emoji: '🎁' },
   { id: 'best_soundtrack_album', label: 'Best Soundtrack Album',  type: 'album',  filter: 'soundtrack',        defaultOn: false, emoji: '🎬' },
   { id: 'best_album_cover',  label: 'Best Album Cover',           type: 'album',  filter: 'all',               defaultOn: false, emoji: '🖼️' },
   // Deluxe, expanded and anniversary editions, told apart by the album title
   { id: 'best_deluxe_album', label: 'Best Deluxe Album',          type: 'album',  filter: 'deluxe',            defaultOn: false, emoji: '💎' },
   { id: 'best_deluxe_cover', label: 'Best Deluxe Album Cover',    type: 'album',  filter: 'deluxe',            defaultOn: false, emoji: '🖼️' },
   { id: 'best_album_concept', label: 'Best Album Concept',        type: 'album',  filter: 'all',               defaultOn: false, emoji: '💡' },
+  // Pop, split finer than one Pop award (opt-in). The "+genre:pop" filters are
+  // another category's rule with the pop test on top (see _awardsSplitPop)
+  { id: 'pop_artist_of_year', label: 'Pop Artist of the Year',    type: 'artist', filter: 'genre:pop',         defaultOn: false, emoji: '👑' },
+  { id: 'best_new_pop_artist', label: 'Best New Pop Artist',      type: 'artist', filter: 'new+genre:pop',     defaultOn: false, emoji: '🌷', hint: 'pop_new' },
+  { id: 'best_pop_debut_album', label: 'Best Pop Debut Album',    type: 'album',  filter: 'debut+genre:pop',   defaultOn: false, emoji: '🐣', hint: 'pop_debut' },
+  { id: 'best_pop_ep',       label: 'Best Pop EP',                type: 'album',  filter: 'rt:ep+genre:pop',   defaultOn: false, emoji: '📼', hint: 'pop_ep' },
+  { id: 'best_pop_remix',    label: 'Best Pop Remix',             type: 'song',   filter: 'remix+genre:pop',   defaultOn: false, emoji: '🎚️', hint: 'pop_remix' },
+  { id: 'best_pop_ballad',   label: 'Best Pop Ballad',            type: 'song',   filter: 'genre:pop',         defaultOn: false, emoji: '🌹', hint: 'pop_pick' },
+  { id: 'best_pop_vocal',    label: 'Best Pop Vocal Performance', type: 'song',   filter: 'genre:pop',         defaultOn: false, emoji: '🎙️', hint: 'pop_pick' },
+  { id: 'best_pop_hook',     label: 'Best Pop Hook/Chorus',       type: 'song',   filter: 'genre:pop',         defaultOn: false, emoji: '🪝', hint: 'pop_pick' },
+  { id: 'best_synthpop_song', label: 'Best Synth-Pop/Electropop Song', type: 'song', filter: 'genre:synth-pop', defaultOn: false, emoji: '🎹' },
+  { id: 'best_latinpop_song', label: 'Best Latin Pop Song',       type: 'song',   filter: 'genre:latin-pop',   defaultOn: false, emoji: '🌺' },
+  { id: 'best_altpop_song',  label: 'Best Alt-Pop/Bedroom Pop Song', type: 'song', filter: 'genre:alt-pop',    defaultOn: false, emoji: '🛏️' },
+  { id: 'best_hyperpop_song', label: 'Best Hyperpop Song',        type: 'song',   filter: 'genre:hyperpop',    defaultOn: false, emoji: '💥' },
+  { id: 'best_artpop_album', label: 'Best Art Pop Album',         type: 'album',  filter: 'genre:art-pop',     defaultOn: false, emoji: '🎨' },
+  // Music videos (opt-in). There's no video data, so the field is your songs
+  // (by genre, billing or newness) and the pick, on the video, is yours
+  { id: 'best_pop_video',    label: 'Best Pop Video',             type: 'song',   filter: 'genre:pop',         defaultOn: false, emoji: '📺', hint: 'video_pick' },
+  { id: 'best_hiphop_video', label: 'Best Hip-Hop Video',         type: 'song',   filter: 'genre:hip-hop',     defaultOn: false, emoji: '📺', hint: 'video_pick' },
+  { id: 'best_rnb_video',    label: 'Best R&B Video',             type: 'song',   filter: 'genre:rnb',         defaultOn: false, emoji: '📺', hint: 'video_pick' },
+  { id: 'best_rock_video',   label: 'Best Rock Video',            type: 'song',   filter: 'genre:rock',        defaultOn: false, emoji: '📺', hint: 'video_pick' },
+  { id: 'best_alt_video',    label: 'Best Alternative Video',     type: 'song',   filter: 'genre:alternative', defaultOn: false, emoji: '📺', hint: 'video_pick' },
+  { id: 'best_latin_video',  label: 'Best Latin Video',           type: 'song',   filter: 'genre:latin',       defaultOn: false, emoji: '📺', hint: 'video_pick' },
+  { id: 'best_kpop_video',   label: 'Best K-Pop Video',           type: 'song',   filter: 'genre:k-pop',       defaultOn: false, emoji: '📺', hint: 'video_pick' },
+  { id: 'best_collab_video', label: 'Best Collaboration Video',   type: 'song',   filter: 'feat',              defaultOn: false, emoji: '🤝', hint: 'video_collab' },
+  { id: 'best_new_artist_video', label: 'Best New Artist Video',  type: 'song',   filter: 'new_song',          defaultOn: false, emoji: '🌱', hint: 'video_new' },
+  { id: 'best_video_direction', label: 'Best Direction',          type: 'song',   filter: 'all',               defaultOn: false, emoji: '🎬', hint: 'video_craft' },
+  { id: 'best_choreography', label: 'Best Choreography',          type: 'song',   filter: 'all',               defaultOn: false, emoji: '💃', hint: 'video_craft' },
+  { id: 'best_cinematography', label: 'Best Cinematography',      type: 'song',   filter: 'all',               defaultOn: false, emoji: '🎥', hint: 'video_craft' },
+  { id: 'best_art_direction', label: 'Best Art Direction',        type: 'song',   filter: 'all',               defaultOn: false, emoji: '🖌️', hint: 'video_craft' },
+  { id: 'best_visual_effects', label: 'Best Visual Effects',      type: 'song',   filter: 'all',               defaultOn: false, emoji: '✨', hint: 'video_craft' },
+  { id: 'best_video_editing', label: 'Best Editing',              type: 'song',   filter: 'all',               defaultOn: false, emoji: '✂️', hint: 'video_craft' },
+  { id: 'best_live_performance', label: 'Best Live Performance',  type: 'song',   filter: 'all',               defaultOn: false, emoji: '🎤', hint: 'live_pick' },
+  { id: 'best_music_film',   label: 'Best Music Film/Long-Form Video', type: 'album', filter: 'all',           defaultOn: false, emoji: '🎞️', hint: 'film_pick' },
+  // Gospel and Christian (opt-in)
+  { id: 'best_gospel_song',  label: 'Best Gospel Song',           type: 'song',   filter: 'genre:gospel',      defaultOn: false, emoji: '🙏' },
+  { id: 'best_ccm_song',     label: 'Best Contemporary Christian Song', type: 'song', filter: 'genre:ccm',     defaultOn: false, emoji: '🕊️' },
+  { id: 'best_worship_song', label: 'Best Worship Song',          type: 'song',   filter: 'genre:worship',     defaultOn: false, emoji: '🙌' },
+  { id: 'best_gospel_album', label: 'Best Gospel Album',          type: 'album',  filter: 'genre:gospel',      defaultOn: false, emoji: '🙏' },
+  { id: 'best_ccm_album',    label: 'Best Contemporary Christian Album', type: 'album', filter: 'genre:ccm',   defaultOn: false, emoji: '🕊️' },
+  { id: 'christian_artist_of_year', label: 'Christian/Gospel Artist of the Year', type: 'artist', filter: 'genre:christian', defaultOn: false, emoji: '✨' },
+  { id: 'best_christian_hiphop_song', label: 'Best Christian Hip-Hop Song', type: 'song', filter: 'genre:christian-hip-hop', defaultOn: false, emoji: '🎧' },
+  { id: 'best_gospel_collab', label: 'Best Gospel/Christian Collaboration', type: 'song', filter: 'feat+genre:christian', defaultOn: false, emoji: '🤝', hint: 'gospel_collab' },
+  // Instrumental (opt-in)
+  { id: 'best_instrumental_song', label: 'Best Instrumental Song',  type: 'song',   filter: 'genre:instrumental', defaultOn: false, emoji: '🎼' },
+  { id: 'best_instrumental_version', label: 'Best Instrumental Version', type: 'song', filter: 'instr_ver',     defaultOn: false, emoji: '🔇' },
+  { id: 'best_lofi_song',    label: 'Best Lo-Fi/Chill Beats',      type: 'song',   filter: 'genre:lo-fi',       defaultOn: false, emoji: '☕' },
+  { id: 'best_piano_piece',  label: 'Best Piano Piece',            type: 'song',   filter: 'genre:piano',       defaultOn: false, emoji: '🎹' },
+  { id: 'best_game_music',   label: 'Best Video Game Music',       type: 'song',   filter: 'genre:video-game',  defaultOn: false, emoji: '🎮' },
+  { id: 'best_instrumental_composition', label: 'Best Instrumental Composition', type: 'song', filter: 'genre:instrumental', defaultOn: false, emoji: '🖋️', hint: 'instr_pick' },
   // Stat awards (auto-awarded)
-  { id: 'stat_top_song',     label: 'Most Played Song',           type: 'song',   filter: 'stat',        defaultOn: true,  auto: true, emoji: '🎶' },
+  { id: 'stat_top_song',    label: 'Most Played Song',           type: 'song',   filter: 'stat',        defaultOn: true,  auto: true, emoji: '🎶' },
   { id: 'stat_top_album',    label: 'Most Played Album',          type: 'album',  filter: 'stat',        defaultOn: true,  auto: true, emoji: '📀' },
   { id: 'stat_top_artist',   label: 'Most Played Artist',         type: 'artist', filter: 'stat',        defaultOn: true,  auto: true, emoji: '⭐' },
   { id: 'stat_streak_song',  label: 'Longest Daily Streak for a Song',   type: 'song',   filter: 'streak', defaultOn: false, auto: true, emoji: '🔥' },
@@ -34736,8 +34788,12 @@ function _awardsCountMaps(plays) {
   return { songs, albums, artists };
 }
 
+/* Set above 1 while a "base+genre:x" category runs its base (_awardsSplitGenre),
+   so the base hands back a bigger field and the genre cut still leaves a full one */
+let _awardsPoolScale = 1;
 function _awardsTopN(map, n, cap) {
   cap = cap || 3;
+  n *= _awardsPoolScale;
   const sorted = Object.values(map).sort((a, b) => b.plays - a.plays);
   const result = [], ac = {};
   for (const item of sorted) {
@@ -34878,6 +34934,25 @@ const _GENRE_ALIASES = {
     // Rock, finer grained. Each list stays inside its own sound, so a band can
     // sit in two (hard rock and grunge) but a pop act never reaches classic rock.
     'pop-rock':    ['pop rock','pop-rock','power pop','soft rock','piano rock'],
+    // Pop, finer grained, for the Pop group's style awards
+    'synth-pop':   ['synth-pop','synthpop','synth pop','electropop','electro-pop','electro pop','synthwave','chillwave','new wave'],
+    'latin-pop':   ['latin pop','latin-pop','pop latino','urbano latino','latin urban','pop en espanol','tropical pop'],
+    'alt-pop':     ['alt-pop','alternative pop','alt pop','bedroom pop','dark pop','sad pop','indie pop'],
+    'hyperpop':    ['hyperpop','hyper pop','pc music','glitchcore','digicore','bubblegum bass','deconstructed club'],
+    'art-pop':     ['art pop','art-pop','artpop','experimental pop','avant-pop','baroque pop','chamber pop'],
+    // Gospel and Christian. 'christian' is all of them together, for the
+    // artist and collaboration awards that span every style
+    'gospel':      ['gospel','gospel music','black gospel','urban gospel','contemporary gospel','southern gospel','traditional gospel','choir'],
+    'ccm':         ['ccm','contemporary christian','christian contemporary','christian','christian pop','christian rock','christian music'],
+    'worship':     ['worship','praise & worship','praise and worship','christian worship','worship music'],
+    'christian-hip-hop': ['christian hip hop','christian hip-hop','christian rap','gospel rap','holy hip hop','chh'],
+    'christian':   ['christian','gospel','ccm','contemporary christian','worship','praise & worship','praise and worship','christian pop','christian rock',
+                    'christian hip hop','christian rap','gospel rap','southern gospel','black gospel','urban gospel','christian alternative','christian metal'],
+    // Instrumental, split by sound
+    'instrumental': ['instrumental','instrumental hip hop','instrumental rock','post-rock','beats','lo-fi beats','solo piano','instrumental pop'],
+    'lo-fi':       ['lo-fi hip hop','lofi hip hop','lo-fi beats','chillhop','jazzhop','chill beats','study beats'],
+    'piano':       ['solo piano','neoclassical','modern classical','contemporary classical','piano ambient'],
+    'video-game':  ['video game music','video game','vgm','game music','game soundtrack','video game soundtrack','ost (video game)'],
     'pop-punk':    ['pop punk','pop-punk','emo pop','easycore'],
     'indie-rock':  ['indie rock','indie-rock','garage rock','garage rock revival','post-punk revival','lo-fi','slacker rock'],
     'classic-rock': ['classic rock','album rock','arena rock','blues rock','southern rock','heartland rock','glam rock'],
@@ -34933,7 +35008,7 @@ let _awardsSheetGenreCache = null;
 function _awardsSheetGenres() {
   const c = _awardsSheetGenreCache;
   if (c && c.plays === allPlays && c.n === allPlays.length) return c;
-  const songs = new Map(), albums = new Map();
+  const songs = new Map(), albums = new Map(), artists = new Map();
   for (const p of allPlays) {
     if (!p.genres) continue;
     const sk = _sk(p);
@@ -34944,8 +35019,12 @@ function _awardsSheetGenres() {
       if (!albums.has(ak)) albums.set(ak, []);
       albums.get(ak).push(p.genres);
     }
+    // Every tagged song by an artist, so artist awards can use the sheet too
+    const pk = _pk(p);
+    if (!artists.has(pk)) artists.set(pk, []);
+    artists.get(pk).push(p.genres);
   }
-  return (_awardsSheetGenreCache = { plays: allPlays, n: allPlays.length, songs, albums });
+  return (_awardsSheetGenreCache = { plays: allPlays, n: allPlays.length, songs, albums, artists });
 }
 
 // A song's tags: the sheet's, else the artist's (undefined = artist not looked up yet)
@@ -34958,6 +35037,21 @@ function _awardsAlbumSheetFits(p, f) {
   const tracks = _awardsSheetGenres().albums.get(_ak(p));
   if (!tracks) return null;
   return tracks.filter(tags => _genreMatch(tags, f)).length * 2 >= tracks.length;
+}
+
+// An artist's most common sheet genres across their songs; undefined = none tagged
+function _awardsArtistSheetTags(p) {
+  const tracks = _awardsSheetGenres().artists.get(_pk(p));
+  if (!tracks) return undefined;
+  const n = {};
+  for (const tags of tracks) for (const t of tags) n[t] = (n[t] || 0) + 1;
+  return Object.keys(n).sort((a, b) => n[b] - n[a]);
+}
+// An artist's tags: the sheet's (their top five, so one stray song doesn't
+// make a rapper pop), else the Last.fm / Gemini ones
+function _awardsArtistTags(p) {
+  const sheet = _awardsArtistSheetTags(p);
+  return sheet ? sheet.slice(0, 5) : _awardsGenreCache[_pa(p).toLowerCase()];
 }
 
 // An album's most common sheet genres across its tracks, for the picker row
@@ -34984,7 +35078,7 @@ async function _awardsGeminiClassifyArtists(artists) {
   if (!apiKey) return;
   const needed = artists.filter(a => _awardsGenreCache[a.toLowerCase()] === undefined);
   if (!needed.length) return;
-  const tags = 'rock, classic rock, hard rock, indie rock, punk rock, alternative rock, metal, emo, post-rock, alternative, indie, indie rock, post-punk, dream pop, shoegaze, hip-hop, hip hop, rap, trap, conscious hip hop, r&b, soul, neo soul, contemporary r&b, rnb, rhythm and blues, pop, dance pop, indie pop, pop rock, teen pop, synth-pop, electropop, latin, reggaeton, latin pop, salsa, cumbia, bachata, latin rap, regional mexicano, electronic, edm, house, techno, dance, electro, trance, ambient, k-pop, kpop, korean pop, k pop, korean, country, country pop, country rock, americana, bluegrass, alt-country, outlaw country, nashville, reggae, dancehall, roots reggae, ska, dub, reggae fusion, eurodance, disco, nu-disco, folk, folk pop, indie folk, contemporary folk, folk rock, acoustic, singer-songwriter, acoustic pop, piano, soft rock, indie pop, bedroom pop, chamber pop, heavy metal, metalcore, nu metal, alternative metal, pop punk, midwest emo, post-hardcore, afrobeats, afropop, amapiano, j-pop, japanese, anime, j-rock, city pop, jazz, smooth jazz, vocal jazz, jazz fusion, classical, instrumental, orchestral, neoclassical, modern classical, opera, pop rock, power pop, garage rock, post-punk revival, classic rock, album rock, arena rock, blues rock, southern rock, glam rock, heavy rock, post-grunge, stoner rock, new wave, gothic rock, darkwave, grunge, britpop, progressive rock, psychedelic rock, art rock, noise pop, goth rock, goth, deathrock, gothic metal';
+  const tags = 'rock, classic rock, hard rock, indie rock, punk rock, alternative rock, metal, emo, post-rock, alternative, indie, indie rock, post-punk, dream pop, shoegaze, hip-hop, hip hop, rap, trap, conscious hip hop, r&b, soul, neo soul, contemporary r&b, rnb, rhythm and blues, pop, dance pop, indie pop, pop rock, teen pop, synth-pop, electropop, latin, reggaeton, latin pop, salsa, cumbia, bachata, latin rap, regional mexicano, electronic, edm, house, techno, dance, electro, trance, ambient, k-pop, kpop, korean pop, k pop, korean, country, country pop, country rock, americana, bluegrass, alt-country, outlaw country, nashville, reggae, dancehall, roots reggae, ska, dub, reggae fusion, eurodance, disco, nu-disco, folk, folk pop, indie folk, contemporary folk, folk rock, acoustic, singer-songwriter, acoustic pop, piano, soft rock, indie pop, bedroom pop, chamber pop, heavy metal, metalcore, nu metal, alternative metal, pop punk, midwest emo, post-hardcore, afrobeats, afropop, amapiano, j-pop, japanese, anime, j-rock, city pop, jazz, smooth jazz, vocal jazz, jazz fusion, classical, instrumental, orchestral, neoclassical, modern classical, opera, pop rock, power pop, garage rock, post-punk revival, classic rock, album rock, arena rock, blues rock, southern rock, glam rock, heavy rock, post-grunge, stoner rock, new wave, gothic rock, darkwave, grunge, britpop, progressive rock, psychedelic rock, art rock, noise pop, goth rock, goth, deathrock, gothic metal, synthpop, alternative pop, alt-pop, dark pop, hyperpop, pc music, glitchcore, art pop, experimental pop, baroque pop, urbano latino, gospel, contemporary christian, ccm, christian, worship, christian hip hop, christian rap, instrumental hip hop, lo-fi hip hop, chillhop, solo piano, video game music';
   const prompt = `Classify each music artist using ONLY these genre tags (use multiple per artist if applicable):\n${tags}\n\nReturn a JSON object: { "Artist Name": ["tag1", "tag2"] }. Include every artist listed, even if unsure — guess based on your knowledge.\n\nArtists to classify:\n${needed.join('\n')}`;
   try {
     const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${encodeURIComponent(apiKey)}`, {
@@ -35021,6 +35115,8 @@ const _AWARDS_PLAY_TESTS = {
   cover:       p => _isCoverSong(p),
   acoustic:    p => _isAcousticVersion(p),
   deep_cut:    p => _isDeepCut(p),
+  feat:        p => _isCollab(p),
+  instr_ver:   p => /\b(instrumental|karaoke version|backing track)\b/i.test(p.title || ''),
 };
 
 // How many artists Best Rock Duo/Group Song asks MusicBrainz about (~1s each)
@@ -35030,6 +35126,28 @@ const AWARDS_MB_COLLAB_CHECKS = 45;
 
 // A deep cut has at least this many songs on its album better known than it
 const AWARDS_DEEP_CUT_MIN_POS = 3;
+
+/* Best Holiday Season Song. A song is in the running two ways: its title (or
+   its album's, for Christmas albums) mentions Christmas, New Year's and the
+   like, or you played it in the holiday season — the last three weeks of
+   December (11th – 31st) and the first two weeks of January (1st – 14th).
+   A holiday-titled song counts every play in the year; any other song counts
+   only the plays that fell in the season. Best Holiday Season Album adds up
+   the same plays per album, so a Christmas album counts all year. Bare "holiday" is left out on
+   purpose (Madonna, Green Day), and so are the Santa place names. */
+const AWARDS_HOLIDAY_RE = /\b(christmas|xmas|x-mas|navidad|nochebuena|natal|no[eë]l|santa(?! (monica|fe|cruz|barbara|clara|ana|rosa|maria|marta|catarina))|sleigh|mistletoe|jingle|reindeer|rudolph|snowman|happy holidays?|holidays|new year'?s?|a[nñ]o nuevo|ano novo|auld lang syne|silent night|holy night|winter wonderland|let it snow|deck the halls|feliz navidad|hanukk?ah|chanukah|yuletide|yule|nutcracker|kwanzaa)\b/i;
+function _isHolidayTitled(p) {
+  return AWARDS_HOLIDAY_RE.test(p.title || '') || AWARDS_HOLIDAY_RE.test(p.album || '');
+}
+// Dec 11 – Jan 14, in your timezone
+function _awardsInHolidaySeason(p) {
+  const d = tzDateOf(p), m = d.getMonth(), day = d.getDate();
+  return (m === 11 && day >= 11) || (m === 0 && day <= 14);
+}
+// Does this play count toward a song's holiday score?
+function _awardsHolidayPlay(p) {
+  return _isHolidayTitled(p) || _awardsInHolidaySeason(p);
+}
 
 // Night runs 10pm – 4am, morning 5am – 11am
 function _awardsHourFits(f, h) {
@@ -35242,7 +35360,28 @@ function _awardsGrowthChip(cat, year, item, cls) {
   return `<span class="aw-growth aw-growth-${dir}${cls ? ' ' + cls : ''}" title="${esc(tip)}">${esc(pct)} · ${esc(_awardsSigned(d.diff))}</span>`;
 }
 
+/* "base+genre:x" categories (Best New Pop Artist is "new+genre:pop"): the
+   base category's own field, kept to the entries whose genre fits. Genre is
+   judged the way the plain genre awards judge it: the sheet's tags first, then
+   the artist's Last.fm / Gemini tags. */
+async function _awardsSplitGenre(catDef, eligStart, eligEnd, log) {
+  const [base, g] = catDef.filter.split('+');
+  _awardsPoolScale = 4;
+  let pool;
+  try { pool = await _awardsGetCandidates({ ...catDef, filter: base }, eligStart, eligEnd, log); }
+  finally { _awardsPoolScale = 1; }
+  await _awardsEnsureGenres(pool);
+  return pool.filter(c => _awardsItemGenreFits(c, catDef.type, g)).slice(0, 20);
+}
+function _awardsItemGenreFits(item, type, g) {
+  const artistTags = _awardsGenreCache[(item.artist || '').toLowerCase()] || [];
+  if (type === 'song') return _genreMatch(_awardsSongTags(item) || [], g);
+  if (type === 'album') return _awardsAlbumSheetFits(item, g) ?? _genreMatch(artistTags, g);
+  return _genreMatch(_awardsArtistTags(item) || [], g);
+}
+
 async function _awardsGetCandidates(catDef, eligStart, eligEnd, log) {
+  if (catDef.filter.includes('+genre:')) return _awardsSplitGenre(catDef, eligStart, eligEnd, log);
   const start = new Date(eligStart + 'T00:00:00');
   const end   = new Date(eligEnd   + 'T23:59:59');
   const inWin = allPlays.filter(p => p.date >= start && p.date <= end);
@@ -35314,6 +35453,26 @@ async function _awardsGetCandidates(catDef, eligStart, eligEnd, log) {
     const sp = inWin.filter(p => { const m = tzDateOf(p).getMonth(); return m >= 5 && m <= 7; });
     const { songs: ss } = _awardsCountMaps(sp);
     return _awardsTopN(ss, 20, 3);
+  }
+  // Holiday songs and albums ranked on their holiday plays (see _awardsHolidayPlay)
+  if (f === 'holiday') {
+    const { songs: hs, albums: ha } = _awardsCountMaps(inWin.filter(_awardsHolidayPlay));
+    const m = catDef.type === 'album' ? ha : hs;
+    for (const v of Object.values(m)) v.playLabel = `${v.plays.toLocaleString()} holiday plays`;
+    return _awardsTopN(m, 20, catDef.type === 'album' ? 2 : 3);
+  }
+  // Songs by artists you first played this year (Best New Artist Video)
+  if (f === 'new_song') {
+    if (!firstSeenMaps) firstSeenMaps = buildFirstSeenMaps();
+    const m = {};
+    for (const p of inWin) {
+      const first = firstSeenMaps.artistFirst[_pa(p)];
+      if (!first || first < start) continue;
+      const k = _sk(p);
+      m[k] = m[k] || { title: p.title, artist: p.artist, album: p.album, plays: 0 };
+      m[k].plays++;
+    }
+    return _awardsTopN(m, 20, 2);
   }
   if (f === 'new' || f === 'discovery') {
     if (!firstSeenMaps) firstSeenMaps = buildFirstSeenMaps();
@@ -35561,7 +35720,7 @@ async function _awardsGetCandidates(catDef, eligStart, eligEnd, log) {
       const yr = _awardsAlbumYearCache[c.album.toLowerCase() + '|||' + c.artist.toLowerCase()];
       if (yr) c.releaseYear = yr;
       return !yr || yr >= awardsYear - 1;
-    }).slice(0, 20);
+    }).slice(0, 20 * _awardsPoolScale);
   }
   // Albums whose title marks them as a deluxe / expanded / anniversary edition.
   if (f === 'deluxe') {
@@ -35682,8 +35841,8 @@ async function _awardsGetCandidates(catDef, eligStart, eligEnd, log) {
         if (!ga[ak]) ga[ak] = { album: p.album, artist: p.artist, plays: 0 };
         ga[ak].plays++;
       }
-      if (_genreMatch(artistTags, f)) {
-        if (!gr[rk]) gr[rk] = { artist: p.artist, plays: 0 };
+      if (_genreMatch(_awardsArtistTags(p) || [], f)) {
+        if (!gr[rk]) gr[rk] = { artist: _pa(p), plays: 0 };
         gr[rk].plays++;
       }
     }
@@ -35915,9 +36074,18 @@ const AWARD_GROUPS = [
                                        'best_punk_song', 'best_punk_album', 'best_poprock_song', 'best_poppunk_song', 'best_indierock_song', 'best_indierock_album',
                                        'best_classicrock_song', 'best_hardrock_song', 'best_postpunk_song', 'best_grunge_song', 'best_prog_album', 'best_shoegaze_song', 'best_goth_song', 'best_goth_album',
                                        'best_rock_performance', 'best_rock_ballad', 'best_guitar_moment', 'best_rock_group'] },
+  { id: 'pop',       icon: '🎀', ids: ['best_pop_song', 'best_pop_album', 'best_pop_vocal_album', 'best_pop_solo', 'best_pop_duo', 'best_dancepop_rec', 'best_indiepop_song',
+                                       'pop_artist_of_year', 'best_new_pop_artist', 'best_pop_debut_album', 'best_pop_ep', 'best_pop_remix', 'best_pop_ballad', 'best_pop_vocal',
+                                       'best_pop_hook', 'best_synthpop_song', 'best_latinpop_song', 'best_altpop_song', 'best_hyperpop_song', 'best_artpop_album'] },
+  // Every music video award, Video of the Year aside (it stays with the majors)
+  { id: 'video',     icon: '📹', test: c => c.id !== 'video_of_year' && ((c.hint || '').startsWith('video_') || ['best_live_performance', 'best_music_film'].includes(c.id)) },
+  { id: 'gospel',    icon: '🙏', ids: ['best_gospel_song', 'best_ccm_song', 'best_worship_song', 'best_gospel_album', 'best_ccm_album', 'christian_artist_of_year',
+                                       'best_christian_hiphop_song', 'best_gospel_collab'] },
+  { id: 'instrumental', icon: '🎹', ids: ['best_instrumental_song', 'best_instrumental_version', 'best_lofi_song', 'best_piano_piece', 'best_game_music',
+                                       'best_instrumental_composition', 'best_jazz_album', 'best_classical_album'] },
   { id: 'genre',     icon: '🎼', test: c => c.filter.startsWith('genre:') || ['best_pop_solo', 'best_pop_duo', 'best_nonenglish'].includes(c.id) },
-  { id: 'format',    icon: '💿', ids: ['best_album_cover', 'best_album_concept', 'best_deluxe_album', 'best_deluxe_cover', 'best_ep', 'best_live_album', 'best_debut_album', 'best_reissue', 'best_compilation', 'best_soundtrack_album', 'late_discovery'] },
-  { id: 'songtype',  icon: '🎵', ids: ['song_summer', 'most_viral_song', 'best_remix', 'best_remixed_rec', 'best_soundtrack_song', 'best_cover_song', 'best_acoustic_version', 'best_breakup_song', 'best_throwback', 'best_deep_cut'] },
+  { id: 'format',    icon: '💿', ids: ['best_album_cover', 'best_album_concept', 'best_holiday_album', 'best_deluxe_album', 'best_deluxe_cover', 'best_ep', 'best_live_album', 'best_debut_album', 'best_reissue', 'best_compilation', 'best_soundtrack_album', 'late_discovery'] },
+  { id: 'songtype',  icon: '🎵', ids: ['song_summer', 'best_holiday_song', 'most_viral_song', 'best_remix', 'best_remixed_rec', 'best_soundtrack_song', 'best_cover_song', 'best_acoustic_version', 'best_breakup_song', 'best_throwback', 'best_deep_cut'] },
   { id: 'listening', icon: '🎧', ids: ['best_discovery', 'best_comeback', 'most_growth', 'obsessive_play', 'one_hit_wonder', 'best_night_song', 'best_morning_song', 'most_loyal_artist'] },
   { id: 'fun',       icon: '🎉', ids: ['guilty_pleasure', 'most_underrated_song'] },
   { id: 'stats',     icon: '📊', test: c => !!c.auto },
@@ -37493,8 +37661,9 @@ async function awardsGenerateCatCandidates(year, catId) {
 // structured `artists` array the indexed item drops. `null` = the category is about listening
 // history (new artist, comeback, growth…) rather than the item itself, so it can't rank a
 // browse list; genre is answered later, from the tag cache, since those load asynchronously.
-function _awardsPickerPlayFits(p) {
-  const f = _awardsPickerCatFilter;
+function _awardsPickerPlayFits(p, f = _awardsPickerCatFilter) {
+  // A combined filter is its base's rule; the genre half waits for the tags
+  if (f.includes('+genre:')) return _awardsPickerPlayFits(p, f.split('+')[0]);
   if (f === 'collab')     return _isCollab(p);
   if (f === 'duo')        return _isDuo(p);
   if (f === 'remix')      return _isRemix(p);
@@ -37516,14 +37685,17 @@ function _awardsPickerPlayFits(p) {
 function _awardsPickerItemFits(item) {
   const f = _awardsPickerCatFilter;
   if (f === 'summer') return (item.summerPlays || 0) > 0;
+  if (f === 'holiday') return (item.holidayPlays || 0) > 0;
   if (f === 'night' || f === 'morning') return (item.hourPlays || 0) > 0;
   // Billing was settled at index time; the genre half is answered here, from the cache.
   if (f === 'pop_solo' || f === 'pop_duo') {
     const tags = _awardsPickerItemTags(item);
     return !!item.fit && tags !== undefined && _genreMatch(tags, 'genre:pop');
   }
-  if (f.startsWith('genre:') || f === 'rock_group') {
-    const g = f === 'rock_group' ? 'genre:rock' : f;
+  // Combined filters: the base's rule (when it has one) and the genre both have to fit
+  if (f.includes('+genre:') && item.fit === false) return false;
+  if (f.startsWith('genre:') || f === 'rock_group' || f.includes('+genre:')) {
+    const g = f === 'rock_group' ? 'genre:rock' : f.includes('+genre:') ? f.split('+')[1] : f;
     if (_awardsPickerCatType === 'album') {
       const fits = _awardsAlbumSheetFits(item, g);
       if (fits !== null) return fits;
@@ -37545,11 +37717,15 @@ function _awardsPickerFitPct(item) {
   const f = _awardsPickerCatFilter;
   if (!item.plays) return null;
   if (f === 'summer') return Math.round((item.summerPlays || 0) / item.plays * 100);
+  if (f === 'holiday') return Math.round((item.holidayPlays || 0) / item.plays * 100);
   if (f === 'night' || f === 'morning') return Math.round((item.hourPlays || 0) / item.plays * 100);
   let g;
   if (f === 'pop_solo' || f === 'pop_duo') {
     if (!item.fit) return null;             // wrong billing: no amount of pop makes it fit
     g = 'genre:pop';
+  } else if (f.includes('+genre:')) {
+    if (item.fit === false) return null;
+    g = f.split('+')[1];
   } else if (f === 'rock_group') g = 'genre:rock';
   else if (f.startsWith('genre:')) g = f;
   else return null;
@@ -37570,6 +37746,8 @@ function _awardsPickerFitChip(item) {
   const f = _awardsPickerCatFilter;
   const tier = pct >= 75 ? 'hi' : pct >= 45 ? 'mid' : 'lo';
   const tip = f === 'summer' ? `${pct}% of its plays in this awards year were in summer (June – August)`
+    : f === 'holiday' ? (pct === 100 ? 'Holiday by its title, or played only in the holiday season'
+      : `${pct}% of its plays in this awards year were in the holiday season (Dec 11 – Jan 14)`)
     : (f === 'night' || f === 'morning') ? `${pct}% of its plays in this awards year were in the ${f}`
     : `How strongly its genre tags match this category: ${pct}%`;
   return `<span class="awards-picker-fit is-${tier}" title="${esc(tip)}">${pct}% fit</span>`;
@@ -37579,13 +37757,13 @@ function _awardsPickerFitChip(item) {
 function _awardsPickerItemTags(item) {
   if (_awardsPickerCatType === 'song')  return _awardsSongTags(item);
   if (_awardsPickerCatType === 'album') return _awardsAlbumSheetTags(item) || _awardsGenreCache[(item.artist || '').toLowerCase()];
-  return _awardsGenreCache[(item.artist || '').toLowerCase()];
+  return _awardsArtistTags(item);
 }
 
 // Whether this category can rank the browse list at all
 function _awardsPickerHasFit() {
   const f = _awardsPickerCatFilter;
-  return f === 'summer' || f === 'night' || f === 'morning' || f === 'rock_group' || f.startsWith('genre:') || _awardsPickerPlayFits({}) !== null;
+  return f === 'summer' || f === 'holiday' || f === 'night' || f === 'morning' || f === 'rock_group' || f.startsWith('genre:') || f.includes('+genre:') || _awardsPickerPlayFits({}) !== null;
 }
 
 // Plural noun for the category's matches, used in the group headers
@@ -37597,6 +37775,7 @@ function _awardsPickerFitLabel() {
   if (f === 'remix')      return 'Remixes, edits & versions';
   if (f === 'nonenglish') return 'Non-English ' + kind;
   if (f === 'summer')     return 'Summer songs';
+  if (f === 'holiday')    return 'Holiday ' + kind;
   if (f === 'soundtrack') return 'Soundtrack ' + kind;
   if (f === 'deluxe')     return 'Deluxe editions';
   if (f === 'rt:ep')      return 'EPs';
@@ -37610,6 +37789,23 @@ function _awardsPickerFitLabel() {
   if (f === 'morning')    return 'Songs played in the morning';
   if (f === 'pop_solo')   return 'Solo pop songs';
   if (f === 'pop_duo')    return 'Pop duos & groups';
+  if (f === 'feat')       return 'Songs with two or more artists';
+  if (f === 'feat+genre:christian') return 'Christian & gospel collaborations';
+  if (f === 'instr_ver')  return 'Instrumental versions';
+  if (f === 'genre:ccm')  return 'Contemporary Christian ' + kind;
+  if (f === 'genre:christian') return 'Christian & gospel ' + kind;
+  if (f === 'genre:christian-hip-hop') return 'Christian hip-hop ' + kind;
+  if (f === 'genre:lo-fi') return 'Lo-fi & chill beats';
+  if (f === 'genre:piano') return 'Piano ' + kind;
+  if (f === 'genre:video-game') return 'Video game music';
+  if (f === 'new+genre:pop')   return 'New pop artists';
+  if (f === 'debut+genre:pop') return 'Pop albums';
+  if (f === 'rt:ep+genre:pop') return 'Pop EPs';
+  if (f === 'remix+genre:pop') return 'Pop remixes & versions';
+  if (f === 'genre:synth-pop') return 'Synth-pop & electropop ' + kind;
+  if (f === 'genre:latin-pop') return 'Latin pop ' + kind;
+  if (f === 'genre:alt-pop')   return 'Alt-pop & bedroom pop ' + kind;
+  if (f === 'genre:art-pop')   return 'Art pop ' + kind;
   if (f === 'genre:folk') return 'Folk & acoustic ' + kind;
   if (f === 'genre:singer-songwriter') return 'Singer-songwriter ' + kind;
   if (f === 'genre:indie-pop') return 'Indie pop ' + kind;
@@ -37663,6 +37859,7 @@ function _awardsPickerBuildIndex() {
       const mo = tzDateOf(p).getMonth();
       if (mo >= 5 && mo <= 7) item.summerPlays = (item.summerPlays || 0) + 1;
     }
+    if (_awardsPickerCatFilter === 'holiday' && _awardsHolidayPlay(p)) item.holidayPlays = (item.holidayPlays || 0) + 1;
     if ((_awardsPickerCatFilter === 'night' || _awardsPickerCatFilter === 'morning')
         && _awardsHourFits(_awardsPickerCatFilter, tzDateOf(p).getHours())) {
       item.hourPlays = (item.hourPlays || 0) + 1;
@@ -37671,6 +37868,10 @@ function _awardsPickerBuildIndex() {
   // Song of the Summer ranks on summer plays, so label the rows with that number
   if (_awardsPickerCatFilter === 'summer') {
     for (const item of Object.values(map)) item.playLabel = (item.summerPlays || 0) + ' summer plays';
+  }
+  // Same for the holiday song, on its holiday plays
+  if (_awardsPickerCatFilter === 'holiday') {
+    for (const item of Object.values(map)) item.playLabel = (item.holidayPlays || 0) + ' holiday plays';
   }
   // Same for the night and morning songs
   if (_awardsPickerCatFilter === 'night' || _awardsPickerCatFilter === 'morning') {
@@ -38173,6 +38374,7 @@ function _awardsPickerVisible() {
   const q = (document.getElementById('awardsPickerSearch')?.value || '').toLowerCase().trim();
   const hasFit = _awardsPickerHasFit();
   const isSummer = _awardsPickerCatFilter === 'summer';
+  const isHoliday = _awardsPickerCatFilter === 'holiday';
 
   const list = _awardsPickerAllItems.filter(item =>
     !q || [item.title, item.album, item.artist].filter(Boolean).join(' ').toLowerCase().includes(q));
@@ -38207,6 +38409,7 @@ function _awardsPickerVisible() {
   } else {
     list.sort((a, b) => a.grp - b.grp
       || (isSummer ? (b.summerPlays || 0) - (a.summerPlays || 0) : 0)
+      || (isHoliday ? (b.holidayPlays || 0) - (a.holidayPlays || 0) : 0)
       || b.plays - a.plays);
   }
   return list;
@@ -38262,7 +38465,7 @@ function _awardsPickerYearText(item) {
 // Genre chips for a row. Genre categories show five and flag the unknowns,
 // since the genre is the point there; elsewhere three, and a blank when none.
 function _awardsPickerGenreInner(item) {
-  const isGenreCat = _awardsPickerCatFilter.startsWith('genre:') || _awardsPickerCatFilter === 'rock_group';
+  const isGenreCat = _awardsPickerCatFilter.startsWith('genre:') || _awardsPickerCatFilter === 'rock_group' || _awardsPickerCatFilter.includes('+genre:');
   const tags = _awardsPickerItemTags(item);
   if (tags && tags.length) {
     return tags.slice(0, isGenreCat ? 5 : 3).map(t => `<span class="awards-picker-genre-tag">${esc(t)}</span>`).join('');
