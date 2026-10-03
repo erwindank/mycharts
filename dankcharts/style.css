@@ -26048,6 +26048,14 @@ body.pink-light .awards-reallife-badge.nom { color: #4338ca; border-color: #6366
   margin-right: 3px;
   font-variant-numeric: tabular-nums;
 }
+/* Album cards: what the album's songs earned, as a quiet line under the count */
+.aw-sum-rec-songs {
+  display: block;
+  margin-top: 5px;
+  font-size: 0.72rem;
+  color: var(--text3, var(--text2));
+  white-space: nowrap;
+}
 /* Runners-up: a hairline divider, then one clear row each */
 .aw-sum-rec-rest {
   list-style: none;

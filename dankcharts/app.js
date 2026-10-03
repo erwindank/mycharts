@@ -36367,8 +36367,13 @@ function _awardsSummary(year, opts) {
     if (type === 'song' && n.title) {
       bump(all.song, `${n.title.toLowerCase()}|||${(n.artist || '').toLowerCase()}`,
         { title: n.title, artist: n.artist, album: n.album || '' }, field);
+      // Also noted against the song's album, keyed like the album records, so an
+      // album card can say "+3 from its songs". Kept apart so it never changes
+      // who holds an album record.
+      if (n.album) bump(fromSongs, `${n.album.toLowerCase()}|||${ak}`, null, field);
     }
   };
+  const fromSongs = {};               // album key → { noms, wins } its songs earned
 
   for (const [ys, yd] of Object.entries(_awardsYearData)) {
     const y = parseInt(ys, 10);
@@ -36409,11 +36414,18 @@ function _awardsSummary(year, opts) {
   // Top three for one measure; the other measure breaks ties, then the name
   const top = (bucket, field) => {
     const other = field === 'noms' ? 'wins' : 'noms';
-    return Object.values(bucket)
-      .filter(e => e[field] > 0)
-      .sort((a, b) => (b[field] - a[field]) || (b[other] - a[other]) || nameOf(a).localeCompare(nameOf(b)))
+    return Object.entries(bucket)
+      .filter(([, e]) => e[field] > 0)
+      .sort(([, a], [, b]) => (b[field] - a[field]) || (b[other] - a[other]) || nameOf(a).localeCompare(nameOf(b)))
       .slice(0, 3)
-      .map(e => ({ ...e.item, count: e[field] }));
+      .map(([k, e]) => {
+        const out = { ...e.item, count: e[field] };
+        // Albums carry what their songs earned on the side. Only written when
+        // there is some: Firestore refuses undefined in a shared summary.
+        const songs = bucket === all.album ? fromSongs[k]?.[field] : 0;
+        if (songs) out.fromSongs = songs;
+        return out;
+      });
   };
   const records = [];
   for (const field of ['noms', 'wins']) {
@@ -36523,7 +36535,8 @@ function _awardsSummaryHtml(sum, queue, idp, opts) {
           <div class="aw-sum-rec-type">${AWARDS_SUMMARY_TYPE_LABEL[rec.type]}${tied ? ' · tied' : ''}${isNew ? ' <span class="aw-sum-new">New</span>' : ''}</div>
           <div class="aw-sum-rec-name" title="${esc(name)}">${esc(name)}</div>
           ${sub ? `<div class="aw-sum-rec-sub" title="${esc(sub)}">${esc(sub)}</div>` : ''}
-          <div class="aw-sum-rec-count"><b>${lead.count}</b> ${lead.count === 1 ? kind : kind + 's'}</div>
+          <div class="aw-sum-rec-count"><b>${lead.count}</b> ${lead.count === 1 ? kind : kind + 's'}${lead.fromSongs > 0
+            ? `<span class="aw-sum-rec-songs" title="${plural(lead.fromSongs, kind, kind + 's')} for songs from this album, not counted in the record">+${lead.fromSongs} from its songs</span>` : ''}</div>
         </div>
       </div>
       ${rest ? `<ol class="aw-sum-rec-rest">${rest}</ol>` : ''}
