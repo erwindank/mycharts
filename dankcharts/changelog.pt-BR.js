@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['pt-BR'] = {
 
   /* ========== OUTUBRO 2026 ========== */
 
+  'New award: Best Song Heard in Concert':
+    ['Novo prêmio: Melhor Música Ouvida em Show',
+     'Uma categoria opcional do Meus Grammys para a música que mais te marcou ao vivo, num show que você foi naquele ano. Fica em Configurar ano, em Como você ouve.'],
+
   'Clear the nominee picker search in one click':
     ['Limpe a busca do seletor de indicados com um clique',
      'A caixa de busca do seletor de indicados tem um × que a esvazia e mostra a lista completa de novo.'],

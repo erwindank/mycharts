@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 70;
+const DC_CL_I18N_V = 71;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,10 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+
+  { d: '2026-10-03', t: 'feature', a: 'awards', h: 'a2f0f9c',
+    title: 'New award: Best Song Heard in Concert',
+    detail: 'An opt-in My Grammys category for the song that hit hardest live, at a concert you went to that year. Find it in Configure Year under Your listening.' },
 
   { d: '2026-10-03', t: 'feature', a: 'awards', h: 'bacb5f5',
     title: 'Clear the nominee picker search in one click',
