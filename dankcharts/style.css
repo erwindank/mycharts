@@ -23033,6 +23033,40 @@ body[class*="-light"] .tm-card-search:hover {
 }
 .awards-cat-collapse:hover { color: var(--text1); background: var(--surface3); }
 .awards-cat-collapse:focus-visible { outline: 2px solid var(--gold1); outline-offset: 1px; }
+/* Favourite-category star (awardsToggleFavCat): Configure Year cards, nominee
+   card headers and the picker. Outline when off, gold fill when starred. */
+.awards-fav-btn {
+  flex: none;
+  width: 28px;
+  height: 28px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  border-radius: var(--r-full);
+  background: transparent;
+  color: var(--text3);
+  cursor: pointer;
+  transition: background var(--t-fast) var(--ease), color var(--t-fast) var(--ease), transform var(--t-fast) var(--ease);
+}
+.awards-fav-btn svg {
+  width: 16px;
+  height: 16px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linejoin: round;
+}
+.awards-fav-btn:hover { color: var(--gold1); background: var(--surface3); }
+.awards-fav-btn:active { transform: scale(0.88); }
+.awards-fav-btn:focus-visible { outline: 2px solid var(--gold1); outline-offset: 1px; }
+.awards-fav-btn.is-fav { color: var(--gold1); }
+.awards-fav-btn.is-fav svg { fill: currentColor; }
+/* In the picker head it sits just left of the close ✕ */
+.awards-picker-fav { position: absolute; top: 15px; right: 50px; }
+.awards-picker-head:has(.awards-picker-fav) { padding-right: 88px; }
+.awc-seg-n { opacity: 0.6; font-variant-numeric: tabular-nums; }
+.awc-favs-only:disabled { opacity: 0.5; cursor: default; border-color: var(--border); color: var(--text3); }
 /* Folded: just the header, pointing the chevron sideways; align-self keeps the
    card from stretching to the height of its row-mates in the grid */
 .awards-cat-card.is-collapsed { align-self: start; }
@@ -26409,8 +26443,10 @@ body.pink-light .awards-reallife-badge.nom { color: #4338ca; border-color: #6366
   .cer-show-bar { width: 160px; }
   #awardsCatList { grid-template-columns: 1fr; }
   .awc-grid { grid-template-columns: 1fr; }
-  .awc-bulk { margin-left: 0; width: 100%; }
+  .awc-bulk { margin-left: 0; width: 100%; flex-wrap: wrap; }
   .awc-bulk-btn { flex: 1 1 0; }
+  /* Third button gets its own full-width row */
+  .awc-bulk-btn.awc-favs-only { flex-basis: 100%; }
   .awc-seg { flex: 1 1 auto; }
   .awc-seg button { flex: 1 1 0; padding: 0 6px; }
 }

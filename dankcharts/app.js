@@ -576,6 +576,8 @@ function dcApplyAllSettings() {
   _awardsShowRating     = localStorage.getItem(AWARDS_SHOW_RATING_KEY) === '1';
   _awardsSamples        = localStorage.getItem(AWARDS_SAMPLES_KEY) === '1';
   _awardsHideDecided    = localStorage.getItem(AWARDS_HIDE_DECIDED_KEY) === '1';
+  _awardsFavCats        = _awardsReadFavCats();
+  _awardsPaintFavBtns();
   /* Separation arrived from another device: re-read it and retire the chart
      caches, since which bucket a release ranks in has just changed. Mutated
      in place so every closure already holding releaseSeparation sees it. */
@@ -36122,6 +36124,68 @@ function _awardsCatHint(cat) {
 
 function _awcEnabled(data, cat) { return data.categories[cat.id]?.enabled ?? cat.defaultOn; }
 
+/* Favourite categories: a ★ on a category, kept across years (not per year) so
+   a new year can be set up with just the favourites ("Favorites only" in
+   Configure Year). Starred from the Configure Year cards, the nominee card
+   headers and the nominee picker. Synced like the other awards settings, as a
+   JSON array of category ids. */
+const AWARDS_FAV_CATS_KEY = 'dc_awards_fav_cats';
+function _awardsReadFavCats() {
+  try { const a = JSON.parse(localStorage.getItem(AWARDS_FAV_CATS_KEY) || '[]'); return new Set(Array.isArray(a) ? a : []); }
+  catch (e) { return new Set(); }
+}
+let _awardsFavCats = _awardsReadFavCats();
+
+// The star button, shared by every surface. data-fav-cat lets a flip repaint
+// every copy of it in place (card header and picker can both be on screen).
+function _awardsFavBtn(catId, cls) {
+  const on = _awardsFavCats.has(catId);
+  const tip = t(on ? 'awards_fav_remove' : 'awards_fav_add');
+  return `<button type="button" class="awards-fav-btn${cls ? ' ' + cls : ''}${on ? ' is-fav' : ''}" data-fav-cat="${esc(catId)}" aria-pressed="${on}" title="${esc(tip)}" aria-label="${esc(tip)}" onclick="awardsToggleFavCat(event,'${esc(catId)}')"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.5l2.6 5.3 5.9.9-4.3 4.1 1 5.8L12 16.9l-5.2 2.7 1-5.8-4.3-4.1 5.9-.9z"/></svg></button>`;
+}
+
+function awardsToggleFavCat(e, catId) {
+  // The Configure Year card is a <label>; don't let the click reach its switch
+  if (e) { e.preventDefault(); e.stopPropagation(); }
+  const on = !_awardsFavCats.has(catId);
+  if (on) _awardsFavCats.add(catId); else _awardsFavCats.delete(catId);
+  const val = JSON.stringify([..._awardsFavCats]);
+  localStorage.setItem(AWARDS_FAV_CATS_KEY, val);
+  // Targeted write, same as awardsSetCreditFeatures
+  if (typeof dcSaveConfigKey === 'function') dcSaveConfigKey(AWARDS_FAV_CATS_KEY, val);
+  _awardsPaintFavBtns();
+  const data = _awardsYearData[_awardsYear];
+  if (data) _awcUpdateCounts(data);
+}
+
+// Repaint every star on screen from _awardsFavCats (also after a cloud sync)
+function _awardsPaintFavBtns() {
+  document.querySelectorAll('.awards-fav-btn[data-fav-cat]').forEach(b => {
+    const on = _awardsFavCats.has(b.dataset.favCat);
+    const tip = t(on ? 'awards_fav_remove' : 'awards_fav_add');
+    b.classList.toggle('is-fav', on);
+    b.setAttribute('aria-pressed', String(on));
+    b.title = tip;
+    b.setAttribute('aria-label', tip);
+    b.closest('.awc-card')?.classList.toggle('is-fav', on);
+  });
+}
+
+// "Favorites only": the favourites on, every other category off, whatever the
+// filters show. Nominees already picked are kept, so it can be undone.
+function awardsCatFavsOnly() {
+  const data = _awardsYearData[_awardsYear];
+  if (!data || !_awardsFavCats.size) return;
+  for (const cat of AWARD_CATEGORIES) {
+    const enabled = _awardsFavCats.has(cat.id);
+    if (!data.categories[cat.id]) data.categories[cat.id] = { enabled, nominees: [], winner: null };
+    data.categories[cat.id].enabled = enabled;
+  }
+  _awardsRenderCatToggles(data);
+  _awardsSave(_awardsYear);
+  _awardsRenderCatList(data);
+}
+
 // Lower-cased with accents dropped, so "album" finds "Álbum" in Spanish
 function _awcNorm(str) { return String(str || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, ''); }
 
@@ -36129,7 +36193,8 @@ function _awcNorm(str) { return String(str || '').toLowerCase().normalize('NFD')
 // out, which is how each group chip counts what it would show.
 function _awcMatches(cat, data, withGroup = true) {
   if (_awcType !== 'all' && cat.type !== _awcType) return false;
-  if (_awcStatus !== 'all' && _awcEnabled(data, cat) !== (_awcStatus === 'on')) return false;
+  if (_awcStatus === 'fav') { if (!_awardsFavCats.has(cat.id)) return false; }
+  else if (_awcStatus !== 'all' && _awcEnabled(data, cat) !== (_awcStatus === 'on')) return false;
   if (withGroup && _awcGroup !== 'all' && _awardsCatGroup(cat).id !== _awcGroup) return false;
   if (!_awcQ) return true;
   const hay = _awcNorm([t('awards_cat_' + cat.id), cat.label, _awardsCatHint(cat),
@@ -36162,7 +36227,7 @@ function _awcMark(text) {
 function _awcCardHtml(cat, data) {
   const on = _awcEnabled(data, cat);
   const name = t('awards_cat_' + cat.id);
-  return `<label class="awc-card${on ? ' is-on' : ''}" data-cat="${esc(cat.id)}">
+  return `<label class="awc-card${on ? ' is-on' : ''}${_awardsFavCats.has(cat.id) ? ' is-fav' : ''}" data-cat="${esc(cat.id)}">
     <span class="awc-emoji" aria-hidden="true">${cat.emoji || '🏆'}</span>
     <span class="awc-text">
       <span class="awc-name">${_awcMark(name)}</span>
@@ -36172,6 +36237,7 @@ function _awcCardHtml(cat, data) {
       <span class="awards-type-badge awards-type-${cat.type}">${esc(t('awards_cat_type_' + cat.type))}</span>
       ${cat.auto ? `<span class="awards-auto-badge">${esc(t('awards_cat_auto'))}</span>` : ''}
     </span>
+    ${_awardsFavBtn(cat.id, 'awc-fav')}
     <span class="src-switch">
       <input type="checkbox" ${on ? 'checked' : ''} onchange="awardsToggleCat('${esc(cat.id)}',this.checked)" aria-label="${esc(name)}">
       <span class="src-switch-slider"></span>
@@ -36244,6 +36310,16 @@ function _awcUpdateCounts(data) {
   const allOn = document.getElementById('awardsCatAllOn'), allOff = document.getElementById('awardsCatAllOff');
   if (allOn)  allOn.textContent  = filtering ? t('awards_enable_shown',  { n: shown.length }) : t('awards_enable_all');
   if (allOff) allOff.textContent = filtering ? t('awards_disable_shown', { n: shown.length }) : t('awards_disable_all');
+  // Favorites only needs at least one star; the status button shows how many
+  const favN = AWARD_CATEGORIES.filter(c => _awardsFavCats.has(c.id)).length;
+  const favOnly = document.getElementById('awardsCatFavsOnly');
+  if (favOnly) {
+    favOnly.disabled = !favN;
+    favOnly.textContent = t('awards_cat_favs_only', { n: favN });
+    favOnly.title = t(favN ? 'awards_cat_favs_only_tip' : 'awards_cat_favs_none');
+  }
+  const favSeg = document.querySelector('#awardsCatStatusSeg button[data-v="fav"] .awc-seg-n');
+  if (favSeg) favSeg.textContent = favN;
   document.querySelectorAll('#awardsCatToggles [data-awc-gcount]').forEach(el => {
     const cats = AWARD_CATEGORIES.filter(c => _awardsCatGroup(c).id === el.dataset.awcGcount);
     el.textContent = t('awards_cat_group_count', { on: cats.filter(c => _awcEnabled(data, c)).length, total: cats.length });
@@ -36907,6 +36983,7 @@ function _awardsCatHeadHtml(cat, count, extra) {
         <span class="awards-cat-desc">${esc(_awardsCatHint(cat))}</span>
       </span>
       ${cat.auto ? '<span class="awards-auto-tag">auto</span>' : ''}${extra || ''}
+      ${_awardsFavBtn(cat.id, 'awards-cat-fav')}
       ${_awardsCollapseBtn(cat)}
     </div>`;
 }
@@ -38698,6 +38775,7 @@ function _awardsShowPicker(year, catId, candidates) {
       <div class="awards-picker-head">
         <span class="awards-picker-eyebrow">${year} · ${typeLabel}</span>
         <span class="awards-picker-title">${esc(t('awards_cat_' + catDef.id))}</span>
+        ${_awardsFavBtn(catDef.id, 'awards-picker-fav')}
         <button class="awards-picker-close" onclick="awardsPickerClose()" aria-label="Close">✕</button>
       </div>
       <div class="awards-picker-ballot">
