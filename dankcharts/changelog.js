@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 64;
+const DC_CL_I18N_V = 65;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,10 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+
+  { d: '2026-10-03', t: 'feature', a: 'charts', h: 'b4ac5c4',
+    title: 'Printable PDF of any chart',
+    detail: 'Every chart now has a Printable PDF button next to Share as image. Choose just that chart or all three (songs, artists and albums, each on its own page), and whether to include cover art and the Bubbling Under list. Your print window then opens; pick Save as PDF to download it. The PDF lists every entry with its movement, plays, weeks and peak, in clean black-on-white that prints well, and names in any language show correctly.' },
 
   { d: '2026-10-03', t: 'fix', a: 'share', h: 'b12169d',
     title: 'Share button works on phones',

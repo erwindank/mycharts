@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['es'] = {
 
   /* ========== OCTUBRE 2026 ========== */
 
+  'Printable PDF of any chart':
+    ['PDF imprimible de cualquier lista',
+     'Cada lista tiene ahora un botón PDF imprimible junto a Compartir como imagen. Elige solo esa lista o las tres (canciones, artistas y álbumes, cada una en su página), y si incluir portadas y la lista Casi en el top. Después se abre la ventana de impresión; elige Guardar como PDF para descargarlo. El PDF muestra cada entrada con su movimiento, reproducciones, semanas y pico, en un diseño limpio en blanco y negro que se imprime bien, y los nombres en cualquier idioma se ven correctamente.'],
+
   'Share button works on phones':
     ['El botón Compartir funciona en el móvil',
      'En el móvil, el botón Compartir de las imágenes para compartir mostraba un reloj de arena y nunca abría nada. Ahora la imagen se prepara en segundo plano mientras ves la vista previa, así que al tocar Compartir se abre enseguida el menú para compartir de tu teléfono: elige Instagram para Historias o WhatsApp para Estados. Si tocas antes de que esté lista, el botón cambia a Toca para compartir cuando lo esté.'],

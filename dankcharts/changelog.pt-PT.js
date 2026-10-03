@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['pt-PT'] = {
 
   /* ========== OUTUBRO 2026 ========== */
 
+  'Printable PDF of any chart':
+    ['PDF para imprimir de qualquer tabela',
+     'Cada tabela tem agora um botão PDF para imprimir ao lado de Partilhar como imagem. Escolhe só essa tabela ou as três (músicas, artistas e álbuns, cada uma na sua página), e se queres incluir capas e a lista Quase no top. Depois abre a janela de impressão; escolhe Guardar como PDF para descarregar. O PDF mostra cada entrada com movimento, reproduções, semanas e pico, num aspeto limpo a preto e branco que imprime bem, e os nomes em qualquer idioma aparecem corretamente.'],
+
   'Share button works on phones':
     ['O botão Partilhar funciona no telemóvel',
      'No telemóvel, o botão Partilhar das imagens para partilhar mostrava uma ampulheta e nunca abria nada. Agora a imagem é preparada em segundo plano enquanto vês a pré-visualização, por isso tocar em Partilhar abre logo o menu de partilha do telemóvel: escolhe Instagram para Stories ou WhatsApp para Estado. Se tocares antes de estar pronta, o botão muda para Toca para partilhar quando estiver.'],
