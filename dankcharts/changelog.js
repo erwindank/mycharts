@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 58;
+const DC_CL_I18N_V = 61;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,18 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+
+  { d: '2026-10-02', t: 'feature', a: 'awards', h: 'a24da91',
+    title: '14 new awards: Gospel & Christian and Instrumental groups',
+    detail: 'My Grammys has two more groups in Configure Year. Gospel & Christian adds Best Gospel Song and Album, Best Contemporary Christian Song and Album, Best Worship Song, Christian/Gospel Artist of the Year, Best Christian Hip-Hop Song and Best Gospel/Christian Collaboration. Instrumental adds Best Instrumental Song, Best Instrumental Version (instrumental and karaoke versions, found by the song title), Best Lo-Fi/Chill Beats, Best Piano Piece, Best Video Game Music and Best Instrumental Composition, and now holds the Jazz and Classical/Instrumental album awards too.' },
+
+  { d: '2026-10-02', t: 'feature', a: 'awards', h: 'a24da91',
+    title: '30 new awards: a Pop group and a Videos group',
+    detail: 'My Grammys has two new groups in Configure Year. Pop gathers the existing pop awards and adds Pop Artist of the Year, Best New Pop Artist, Best Pop Debut Album, Best Pop EP, Best Pop Remix, Best Pop Ballad, Best Pop Vocal Performance, Best Pop Hook/Chorus and style awards for synth-pop, Latin pop, alt-pop, hyperpop and art pop. Videos adds VMA-style awards: Best Pop, Hip-Hop, R&B, Rock, Alternative, Latin and K-Pop Video, Best Collaboration Video, Best New Artist Video, Best Direction, Choreography, Cinematography, Art Direction, Visual Effects and Editing, Best Live Performance and Best Music Film. There is no video data, so the field is your songs and the pick is yours. Artist genre awards now also read the genres typed into your sheet.' },
+
+  { d: '2026-10-02', t: 'feature', a: 'awards', h: 'a24da91',
+    title: 'Two holiday awards: Best Holiday Season Song and Album',
+    detail: 'My Grammys has two new opt-in categories. A song or album is in the running when its title mentions Christmas, New Year’s and the like, or when you played it in the holiday season, from December 11 to January 14. Holiday titles count every play of the year; anything else counts only its plays in the season. A Christmas album counts as holiday even when the song titles don’t say so.' },
 
   { d: '2026-10-02', t: 'fix', a: 'awards', h: '68900db',
     title: 'Audio samples no longer pick live recordings with plain titles',

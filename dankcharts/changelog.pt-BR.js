@@ -16,6 +16,18 @@ window.DC_CHANGELOG_I18N['pt-BR'] = {
 
   /* ========== OUTUBRO 2026 ========== */
 
+  '14 new awards: Gospel & Christian and Instrumental groups':
+    ['14 prêmios novos: grupos Gospel e cristã e Instrumental',
+     'Meus Grammys ganhou mais dois grupos em Configurar ano. Gospel e cristã soma Melhor Música e Álbum Gospel, Melhor Música e Álbum Cristão Contemporâneo, Melhor Música de Adoração, Artista Cristão/Gospel do Ano, Melhor Música de Hip-Hop Cristão e Melhor Colaboração Gospel/Cristã. Instrumental soma Melhor Música Instrumental, Melhor Versão Instrumental (versões instrumentais e de karaokê, pelo título), Melhores Beats Lo-Fi/Chill, Melhor Peça para Piano, Melhor Música de Videogame e Melhor Composição Instrumental, e agora também reúne os prêmios de álbum de jazz e clássico/instrumental.'],
+
+  '30 new awards: a Pop group and a Videos group':
+    ['30 prêmios novos: um grupo Pop e um grupo Clipes',
+     'Meus Grammys ganhou dois grupos novos em Configurar ano. Pop reúne os prêmios pop que já existiam e soma Artista Pop do Ano, Melhor Novo Artista Pop, Melhor Álbum de Estreia Pop, Melhor EP Pop, Melhor Remix Pop, Melhor Balada Pop, Melhor Performance Vocal Pop, Melhor Refrão Pop e prêmios de estilo para synth-pop, pop latino, alt-pop, hyperpop e art pop. Clipes soma prêmios no estilo do VMA: Melhor Clipe Pop, de Hip-Hop, R&B, Rock, Alternativo, Latino e K-Pop, Melhor Clipe de Colaboração, Melhor Clipe de Artista Revelação, Melhor Direção, Coreografia, Fotografia, Direção de Arte, Efeitos Visuais e Edição, Melhor Performance ao Vivo e Melhor Filme Musical. Não há dados de vídeo, então a disputa é entre suas músicas e a escolha é sua. Os prêmios de artista por gênero agora também leem os gêneros escritos na sua planilha.'],
+
+  'Two holiday awards: Best Holiday Season Song and Album':
+    ['Dois prêmios de fim de ano: Melhor Música e Melhor Álbum de Fim de Ano',
+     'Meus Grammys ganhou duas categorias novas opcionais. Uma música ou um álbum entra na disputa quando o título menciona Natal, Ano Novo e afins, ou quando você ouviu na temporada de fim de ano, de 11 de dezembro a 14 de janeiro. Títulos de fim de ano contam todas as reproduções do ano; o resto conta só as da temporada. Um álbum de Natal conta como de fim de ano mesmo quando os títulos das músicas não dizem isso.'],
+
   'Audio samples no longer pick live recordings with plain titles':
     ['As amostras de áudio não escolhem mais gravações ao vivo com títulos normais',
      'Em Meus Grammys, o botão de tocar ainda podia tocar uma versão ao vivo quando uma loja a listava com o nome normal da música e só o álbum dizia ao vivo. I Write Sins Not Tragedies do Panic! at the Disco era um caso: a amostra vinha de um single de uma sessão ao vivo. Agora as amostras também conferem de qual álbum vem a gravação, e pulam álbuns ao vivo, acústicos, de remixes e de demos, a menos que o indicado venha de um deles. A busca por álbum agora procura no Apple Music além do Deezer.'],

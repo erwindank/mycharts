@@ -16,6 +16,18 @@ window.DC_CHANGELOG_I18N['es'] = {
 
   /* ========== OCTUBRE 2026 ========== */
 
+  '14 new awards: Gospel & Christian and Instrumental groups':
+    ['14 premios nuevos: grupos Góspel y cristiana e Instrumental',
+     'Mis Grammys tiene dos grupos más en Configurar año. Góspel y cristiana suma Mejor Canción y Álbum Góspel, Mejor Canción y Álbum Cristiano Contemporáneo, Mejor Canción de Adoración, Artista Cristiano/Góspel del Año, Mejor Canción de Hip-Hop Cristiano y Mejor Colaboración Góspel/Cristiana. Instrumental suma Mejor Canción Instrumental, Mejor Versión Instrumental (versiones instrumentales y de karaoke, según el título), Mejores Beats Lo-Fi/Chill, Mejor Pieza para Piano, Mejor Música de Videojuego y Mejor Composición Instrumental, y ahora también reúne los premios de álbum de jazz y clásico/instrumental.'],
+
+  '30 new awards: a Pop group and a Videos group':
+    ['30 premios nuevos: un grupo Pop y un grupo Videos',
+     'Mis Grammys tiene dos grupos nuevos en Configurar año. Pop reúne los premios pop que ya había y suma Artista Pop del Año, Mejor Nuevo Artista Pop, Mejor Álbum Debut Pop, Mejor EP Pop, Mejor Remix Pop, Mejor Balada Pop, Mejor Interpretación Vocal Pop, Mejor Gancho/Estribillo Pop y premios de estilo para synth-pop, pop latino, alt-pop, hyperpop y art pop. Videos suma premios al estilo de los VMA: Mejor Video Pop, Hip-Hop, R&B, Rock, Alternativo, Latino y K-Pop, Mejor Video Colaborativo, Mejor Video de Artista Nuevo, Mejor Dirección, Coreografía, Fotografía, Dirección de Arte, Efectos Visuales y Edición, Mejor Presentación en Vivo y Mejor Película Musical. No hay datos de video, así que el campo son tus canciones y la elección es tuya. Los premios de artista por género ahora también leen los géneros escritos en tu hoja.'],
+
+  'Two holiday awards: Best Holiday Season Song and Album':
+    ['Dos premios navideños: Mejor Canción y Mejor Álbum de la temporada',
+     'Mis Grammys tiene dos categorías nuevas opcionales. Una canción o un álbum entra en la competencia cuando su título menciona la Navidad, el Año Nuevo y similares, o cuando lo escuchaste en la temporada navideña, del 11 de diciembre al 14 de enero. Los títulos navideños cuentan todas sus reproducciones del año; el resto solo cuenta las de la temporada. Un álbum de Navidad cuenta como navideño aunque los títulos de sus canciones no lo digan.'],
+
   'Audio samples no longer pick live recordings with plain titles':
     ['Las muestras de audio ya no eligen grabaciones en vivo con títulos normales',
      'En Mis Grammys, el botón de reproducir todavía podía sonar una versión en vivo cuando una tienda la listaba con el nombre normal de la canción y solo el álbum decía en vivo. I Write Sins Not Tragedies de Panic! at the Disco era un caso: la muestra venía de un sencillo de una sesión en vivo. Ahora las muestras también revisan de qué álbum viene la grabación, y pasan de largo los álbumes en vivo, acústicos, de remixes y de demos, salvo que el nominado venga de uno de ellos. La búsqueda por álbum ahora busca en Apple Music además de Deezer.'],
