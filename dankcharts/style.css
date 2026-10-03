@@ -24187,6 +24187,36 @@ body.pink-light .awards-ceremony-share-btn:hover { border-color: var(--medal-gol
   color: var(--text1);
   font-size: 0.82rem;
 }
+/* Search box + its × clear button; the wrap takes the input's old flex slot */
+.awards-picker-search-wrap {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+  display: flex;
+}
+.awards-picker-search-wrap input { padding-right: 30px; }
+.awards-picker-search-clear {
+  position: absolute;
+  top: 50%;
+  right: 5px;
+  transform: translateY(-50%);
+  width: 22px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--text3);
+  font-size: 1.05rem;
+  line-height: 1;
+  cursor: pointer;
+}
+.awards-picker-search-clear[hidden] { display: none; }
+.awards-picker-search-clear:hover { color: var(--text1); background: var(--surface3, var(--border)); }
+.awards-picker-search-clear:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
 .awards-picker-tools input::placeholder { color: var(--text3); }
 .awards-picker-tools input:focus { outline: none; border-color: var(--accent); }
 .awards-picker-sort {

@@ -39193,7 +39193,11 @@ function _awardsShowPicker(year, catId, candidates) {
       </div>
       ${_awardsPickerPreviewKind() ? '<div class="awards-picker-preview" id="awardsPickerPreview" hidden></div>' : ''}
       <div class="awards-picker-tools">
-        <input type="text" id="awardsPickerSearch" placeholder="Search all ${typeLabel} from ${year}…" oninput="awardsPickerDoSearch()" autocomplete="off" spellcheck="false">
+        <div class="awards-picker-search-wrap">
+          <input type="text" id="awardsPickerSearch" placeholder="Search all ${typeLabel} from ${year}…" oninput="awardsPickerDoSearch()" autocomplete="off" spellcheck="false">
+          <!-- × clears the search; only shown while there is text (see awardsPickerDoSearch) -->
+          <button type="button" class="awards-picker-search-clear" id="awardsPickerSearchClear" onclick="awardsPickerClearSearch()" title="Clear search" aria-label="Clear search" hidden>×</button>
+        </div>
         <select class="awards-picker-sort" id="awardsPickerSort" onchange="awardsPickerSetSort(this.value)" title="Sort the list">
           <option value="plays">Most played</option>
           <option value="az">A–Z</option>
@@ -39242,6 +39246,9 @@ function _awardsShowPicker(year, catId, candidates) {
     if (e.key === 'Enter') {
       e.preventDefault();
       awardsPickerToggleRow(_awardsPickerActive >= 0 ? _awardsPickerActive : 0);
+      // Select the search text after Enter so the next search can be typed straight over it
+      const searchEl = document.getElementById('awardsPickerSearch');
+      if (searchEl && document.activeElement === searchEl) searchEl.select();
     }
   };
   document.addEventListener('keydown', _awardsPickerKeyHandler);
@@ -39365,6 +39372,18 @@ function awardsPickerDoSearch() {
   _awardsPickerActive = -1;
   const bodyEl = document.getElementById('awardsPickerBody');
   if (bodyEl) { bodyEl.innerHTML = _awardsPickerBodyHtml(); _awardsPickerLoadThumbs(); }
+  // Show the × only while there is something to clear
+  const clearBtn = document.getElementById('awardsPickerSearchClear');
+  if (clearBtn) clearBtn.hidden = !document.getElementById('awardsPickerSearch')?.value;
+}
+
+// The × in the search box: empty it, show the full list again, keep typing focus
+function awardsPickerClearSearch() {
+  const searchEl = document.getElementById('awardsPickerSearch');
+  if (!searchEl) return;
+  searchEl.value = '';
+  awardsPickerDoSearch();
+  searchEl.focus();
 }
 
 /* --- Drag to reorder the selected nominees --- */
