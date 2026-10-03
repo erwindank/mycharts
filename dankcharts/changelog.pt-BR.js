@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['pt-BR'] = {
 
   /* ========== OUTUBRO 2026 ========== */
 
+  'Hide chart descriptions':
+    ['Ocultar as descrições das paradas',
+     'A aba Mostrar do menu ⋮ de cada parada tem um novo botão Descrições. Desative para esconder as explicações curtas sob os títulos dessa parada, como “Pelo total de reproduções de todas as faixas”. Músicas, artistas e álbuns são ajustados separadamente, e a escolha é lembrada em todos os seus dispositivos.'],
+
   'Printable PDF of any chart':
     ['PDF para imprimir de qualquer parada',
      'Cada parada agora tem um botão PDF para imprimir ao lado de Compartilhar como imagem. Escolha só essa parada ou as três (músicas, artistas e álbuns, cada uma em sua página), e se quer incluir capas e a lista Quase no top. Depois a janela de impressão abre; escolha Salvar como PDF para baixar. O PDF mostra cada entrada com movimento, reproduções, semanas e pico, num visual limpo em preto e branco que imprime bem, e nomes em qualquer idioma aparecem corretamente.'],

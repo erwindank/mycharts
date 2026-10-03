@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 65;
+const DC_CL_I18N_V = 66;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,10 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+
+  { d: '2026-10-03', t: 'feature', a: 'charts', h: '750643b',
+    title: 'Hide chart descriptions',
+    detail: 'The Show tab of each chart’s ⋮ menu has a new Descriptions switch. Turn it off to hide the short explanations under that chart’s headings, like “By total play count across all tracks”. Songs, artists and albums are set separately, and the choice is remembered on all your devices.' },
 
   { d: '2026-10-03', t: 'feature', a: 'charts', h: 'b4ac5c4',
     title: 'Printable PDF of any chart',

@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['pt-PT'] = {
 
   /* ========== OUTUBRO 2026 ========== */
 
+  'Hide chart descriptions':
+    ['Ocultar as descrições das tabelas',
+     'O separador Mostrar do menu ⋮ de cada tabela tem um novo interruptor Descrições. Desliga-o para esconder as explicações curtas sob os títulos dessa tabela, como “Pelo total de reproduções de todas as faixas”. Músicas, artistas e álbuns são ajustados em separado, e a escolha fica guardada em todos os teus dispositivos.'],
+
   'Printable PDF of any chart':
     ['PDF para imprimir de qualquer tabela',
      'Cada tabela tem agora um botão PDF para imprimir ao lado de Partilhar como imagem. Escolhe só essa tabela ou as três (músicas, artistas e álbuns, cada uma na sua página), e se queres incluir capas e a lista Quase no top. Depois abre a janela de impressão; escolhe Guardar como PDF para descarregar. O PDF mostra cada entrada com movimento, reproduções, semanas e pico, num aspeto limpo a preto e branco que imprime bem, e os nomes em qualquer idioma aparecem corretamente.'],

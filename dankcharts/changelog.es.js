@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['es'] = {
 
   /* ========== OCTUBRE 2026 ========== */
 
+  'Hide chart descriptions':
+    ['Ocultar las descripciones de las listas',
+     'La pestaña Mostrar del menú ⋮ de cada lista tiene un nuevo interruptor Descripciones. Desactívalo para ocultar las explicaciones cortas bajo los títulos de esa lista, como “Por reproducciones totales de todas las pistas”. Canciones, artistas y álbumes se ajustan por separado, y la elección se recuerda en todos tus dispositivos.'],
+
   'Printable PDF of any chart':
     ['PDF imprimible de cualquier lista',
      'Cada lista tiene ahora un botón PDF imprimible junto a Compartir como imagen. Elige solo esa lista o las tres (canciones, artistas y álbumes, cada una en su página), y si incluir portadas y la lista Casi en el top. Después se abre la ventana de impresión; elige Guardar como PDF para descargarlo. El PDF muestra cada entrada con su movimiento, reproducciones, semanas y pico, en un diseño limpio en blanco y negro que se imprime bien, y los nombres en cualquier idioma se ven correctamente.'],
