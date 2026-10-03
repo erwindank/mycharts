@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['pt-PT'] = {
 
   /* ========== OUTUBRO 2026 ========== */
 
+  'Share button works on phones':
+    ['O botão Partilhar funciona no telemóvel',
+     'No telemóvel, o botão Partilhar das imagens para partilhar mostrava uma ampulheta e nunca abria nada. Agora a imagem é preparada em segundo plano enquanto vês a pré-visualização, por isso tocar em Partilhar abre logo o menu de partilha do telemóvel: escolhe Instagram para Stories ou WhatsApp para Estado. Se tocares antes de estar pronta, o botão muda para Toca para partilhar quando estiver.'],
+
   'Share images download much faster':
     ['As imagens para partilhar descarregam muito mais depressa',
      'Descarregar, copiar ou partilhar uma imagem demorava vários segundos, e mais quanto maior a tua biblioteca, porque a página inteira era copiada nos bastidores antes de desenhar a imagem. Agora só o cartão é copiado, por isso as imagens ficam prontas em cerca de meio segundo. As imagens ficam exatamente iguais a antes.'],

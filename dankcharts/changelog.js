@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 63;
+const DC_CL_I18N_V = 64;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,10 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+
+  { d: '2026-10-03', t: 'fix', a: 'share', h: 'b12169d',
+    title: 'Share button works on phones',
+    detail: 'On phones, the Share button on share images showed an hourglass and never opened anything. The image is now prepared in the background while you look at the preview, so tapping Share opens your phone’s share sheet right away — pick Instagram for Stories or WhatsApp for Status. If you tap before it’s ready, the button changes to Tap to share once it is.' },
 
   { d: '2026-10-03', t: 'perf', a: 'share', h: 'e8eb486',
     title: 'Share images download much faster',

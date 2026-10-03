@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['pt-BR'] = {
 
   /* ========== OUTUBRO 2026 ========== */
 
+  'Share button works on phones':
+    ['O botão Compartilhar funciona no celular',
+     'No celular, o botão Compartilhar das imagens para compartilhar mostrava uma ampulheta e nunca abria nada. Agora a imagem é preparada em segundo plano enquanto você vê a prévia, então tocar em Compartilhar abre na hora o menu de compartilhamento do celular: escolha Instagram para Stories ou WhatsApp para Status. Se você tocar antes de ficar pronta, o botão muda para Toque para compartilhar quando estiver.'],
+
   'Share images download much faster':
     ['As imagens para compartilhar baixam muito mais rápido',
      'Baixar, copiar ou compartilhar uma imagem levava vários segundos, e mais quanto maior a sua biblioteca, porque a página inteira era copiada por trás antes de desenhar a imagem. Agora só o cartão é copiado, então as imagens ficam prontas em cerca de meio segundo. As imagens ficam exatamente iguais a antes.'],
