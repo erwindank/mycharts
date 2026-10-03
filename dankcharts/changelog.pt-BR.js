@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['pt-BR'] = {
 
   /* ========== OUTUBRO 2026 ========== */
 
+  'Choose which sections the charts page shows':
+    ['Escolha quais seções a página de paradas mostra',
+     'Configurações → Paradas tem um novo grupo Seções da página de paradas com um botão para Máquina do tempo, os cartões de estatísticas do período, Certificados neste período, Próximos lançamentos e Lançamentos recentes. Desative qualquer um para escondê-lo da página de paradas. A aba Eventos mantém seus próprios lançamentos próximos e recentes. As mudanças valem na hora e são lembradas em todos os seus dispositivos.'],
+
   'Hide chart descriptions':
     ['Ocultar as descrições das paradas',
      'A aba Mostrar do menu ⋮ de cada parada tem um novo botão Descrições. Desative para esconder as explicações curtas sob os títulos dessa parada, como “Pelo total de reproduções de todas as faixas”. Músicas, artistas e álbuns são ajustados separadamente, e a escolha é lembrada em todos os seus dispositivos.'],

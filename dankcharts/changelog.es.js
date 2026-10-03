@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['es'] = {
 
   /* ========== OCTUBRE 2026 ========== */
 
+  'Choose which sections the charts page shows':
+    ['Elige qué secciones muestra la página de listas',
+     'Configuración → Listas tiene un nuevo grupo Secciones de la página de listas con un interruptor para Máquina del tiempo, las tarjetas de estadísticas del periodo, Certificados este periodo, Próximos lanzamientos y Lanzamientos recientes. Desactiva cualquiera para ocultarla de la página de listas. La pestaña Eventos conserva sus propios próximos y recientes lanzamientos. Los cambios se aplican al momento y se recuerdan en todos tus dispositivos.'],
+
   'Hide chart descriptions':
     ['Ocultar las descripciones de las listas',
      'La pestaña Mostrar del menú ⋮ de cada lista tiene un nuevo interruptor Descripciones. Desactívalo para ocultar las explicaciones cortas bajo los títulos de esa lista, como “Por reproducciones totales de todas las pistas”. Canciones, artistas y álbumes se ajustan por separado, y la elección se recuerda en todos tus dispositivos.'],

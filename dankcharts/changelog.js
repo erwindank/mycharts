@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 66;
+const DC_CL_I18N_V = 67;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,10 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+
+  { d: '2026-10-03', t: 'feature', a: 'settings', h: 'f64e490',
+    title: 'Choose which sections the charts page shows',
+    detail: 'Settings → Charts has a new Chart page sections group with a switch for each of Time Machine, the period stats cards, Certified this period, Upcoming releases and Recent releases. Turn any of them off to hide it from the charts page. The Events tab keeps its own Upcoming and Recent releases either way. Changes apply straight away and are remembered on all your devices.' },
 
   { d: '2026-10-03', t: 'feature', a: 'charts', h: '750643b',
     title: 'Hide chart descriptions',

@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['pt-PT'] = {
 
   /* ========== OUTUBRO 2026 ========== */
 
+  'Choose which sections the charts page shows':
+    ['Escolhe que secções a página de tabelas mostra',
+     'Definições → Tabelas tem um novo grupo Secções da página de tabelas com um interruptor para Máquina do tempo, os cartões de estatísticas do período, Certificados neste período, Próximos lançamentos e Lançamentos recentes. Desliga qualquer um para o esconder da página de tabelas. O separador Eventos mantém os seus próprios lançamentos próximos e recentes. As alterações aplicam-se logo e ficam guardadas em todos os teus dispositivos.'],
+
   'Hide chart descriptions':
     ['Ocultar as descrições das tabelas',
      'O separador Mostrar do menu ⋮ de cada tabela tem um novo interruptor Descrições. Desliga-o para esconder as explicações curtas sob os títulos dessa tabela, como “Pelo total de reproduções de todas as faixas”. Músicas, artistas e álbuns são ajustados em separado, e a escolha fica guardada em todos os teus dispositivos.'],
