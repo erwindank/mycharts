@@ -47086,6 +47086,7 @@ function ratingsPersist(immediate) {
   // Every mutation of _ratings funnels through here, so this is the one place
   // the memoised album/artist scores need dropping.
   ratingMemoInvalidate();
+  _ratingEditedSinceOpen = true;
   try { localStorage.setItem('dc_ratings', JSON.stringify(_ratings)); } catch (e) {}
   clearTimeout(_ratingsSaveTimer);
   const push = () => { if (typeof dcSaveRatings === 'function') dcSaveRatings(_ratings); };
@@ -47160,23 +47161,26 @@ function ratingAlbumEntry(key) { return _ratings.albums[key] || null; }
    in place; the only in-place edits are sorts, and none of these aggregations
    depend on play order. The cached objects are shared, not copied, so callers
    must treat them as read-only (every current one does).                       */
-const _rtMemo = { plays: null, len: -1, tracks: new Map(), album: new Map(), artist: new Map() };
+const _rtMemo = { plays: null, len: -1, tracks: new Map(), artistKeys: new Map(), album: new Map(), artist: new Map() };
 
-// Drop everything. Called whenever a rating or the rubric config changes.
+// Drop the scores. Called whenever a rating or the rubric config changes.
+// The tracklists and artist key sets are left alone: they come from the library
+// alone, not from any score, and rebuilding them is the expensive part — each is
+// a full walk of allPlays, and the album editor asks for one on every slider tick.
 function ratingMemoInvalidate() {
-  _rtMemo.tracks.clear();
   _rtMemo.album.clear();
   _rtMemo.artist.clear();
-  _rtMemo.plays = null;
-  _rtMemo.len   = -1;
 }
 
-// The memo, cleared first if the library underneath it has been swapped out.
+// The memo, cleared first (library lookups included) if the library underneath
+// it has been swapped out.
 function _rtMemoFresh() {
   const plays = (typeof allPlays !== 'undefined' && allPlays) ? allPlays : null;
   const len   = plays ? plays.length : 0;
   if (_rtMemo.plays !== plays || _rtMemo.len !== len) {
     ratingMemoInvalidate();
+    _rtMemo.tracks.clear();
+    _rtMemo.artistKeys.clear();
     _rtMemo.plays = plays;
     _rtMemo.len   = len;
   }
@@ -47320,7 +47324,12 @@ function ratingArtistSummary(artistName) {
   return out;
 }
 
-function _ratingArtistSummaryCalc(artistName) {
+// Which albums and songs an artist appears on. Library-only, so memoised apart
+// from the scores and kept across rating edits (see ratingMemoInvalidate).
+function _ratingArtistKeys(artistName) {
+  const memo = _rtMemoFresh();
+  const hit  = memo.artistKeys.get(artistName);
+  if (hit) return hit;
   const albumKeys = new Set();
   const songKeys  = new Set();
   for (const p of allPlays) {
@@ -47328,6 +47337,13 @@ function _ratingArtistSummaryCalc(artistName) {
     songKeys.add(songKey(p));
     if (p.album && p.album !== '—') albumKeys.add(albumKeyOf(p));
   }
+  const out = { albumKeys, songKeys };
+  memo.artistKeys.set(artistName, out);
+  return out;
+}
+
+function _ratingArtistSummaryCalc(artistName) {
+  const { albumKeys, songKeys } = _ratingArtistKeys(artistName);
 
   const albums = [...albumKeys].map(k => {
     const r = ratingAlbumScore(k);
@@ -47429,11 +47445,14 @@ function ratingCritBar(crit, value) {
 // rubric and come back, so _ratingNav is a small breadcrumb stack rather than
 // two separate modals stacked on top of each other.
 let _ratingNav = [];
+// Set by ratingsPersist() on any change while the editor is open, so closing an
+// editor that was only looked at can skip the save and the repaints entirely.
+let _ratingEditedSinceOpen = false;
 
 function ratingCurrentView() { return _ratingNav[_ratingNav.length - 1] || null; }
 
 function openRatingModal(kind, key, opts = {}) {
-  if (!opts.push) _ratingNav = [];
+  if (!opts.push) { _ratingNav = []; _ratingEditedSinceOpen = false; }
   _ratingNav.push({ kind, key, tab: opts.tab || (kind === 'album' ? 'aspects' : 'rubric') });
   const modal = document.getElementById('ratingModal');
   if (!modal) return;
@@ -47449,15 +47468,46 @@ function closeRatingModal() {
   const modal = document.getElementById('ratingModal');
   if (modal) modal.classList.remove('open', 'modal-on-top');
   _ratingNav = [];
+  // Opened and closed without touching anything: there is nothing to save and
+  // nothing to repaint, so the editor just goes away.
+  if (!_ratingEditedSinceOpen) return;
+  _ratingEditedSinceOpen = false;
   // Flush immediately: the user is done editing, so there is no reason to sit
   // on the debounce and risk losing the last edit to a closed tab.
   ratingsPersist(true);
-  ratingsRefreshUI();
-  // Repaint whichever profile modal is still open behind this one so the new
-  // score is visible the moment the editor closes.
-  if (typeof _currentSongKey  !== 'undefined' && document.getElementById('songModal')?.classList.contains('open'))  renderSongRatingSection(_currentSongKey);
-  if (typeof _currentAlbumKey !== 'undefined' && document.getElementById('albumModal')?.classList.contains('open')) renderAlbumRatingSection(_currentAlbumKey);
-  if (_ratingArtistOpen && document.getElementById('artistModal')?.classList.contains('open')) renderArtistRatingSection(_ratingArtistOpen);
+  // The repaints below re-render the whole visible chart, which on a big
+  // library takes a noticeable moment. Run synchronously they held the editor
+  // on screen until they finished, so closing felt frozen. Waiting one frame
+  // lets the browser take the editor down first; the profile modal the user is
+  // looking at is repainted before the chart that sits hidden behind it.
+  requestAnimationFrame(() => setTimeout(() => {
+    // Repaint whichever profile modal is still open behind this one so the new
+    // score is visible the moment the editor closes.
+    if (typeof _currentSongKey  !== 'undefined' && document.getElementById('songModal')?.classList.contains('open'))  renderSongRatingSection(_currentSongKey);
+    if (typeof _currentAlbumKey !== 'undefined' && document.getElementById('albumModal')?.classList.contains('open')) renderAlbumRatingSection(_currentAlbumKey);
+    if (_ratingArtistOpen && document.getElementById('artistModal')?.classList.contains('open')) renderArtistRatingSection(_ratingArtistOpen);
+    _ratingsRefreshWhenUncovered();
+  }, 0));
+}
+
+// The chart repaint is the slow part (over a second on a large library), and
+// while a profile modal is still open the chart is hidden behind it anyway —
+// repainting it then only freezes the modal the user is reading. So it waits
+// until the last open overlay closes, then runs once.
+let _ratingsRefreshObs = null;
+function _ratingsRefreshWhenUncovered() {
+  const anyOpen = () => !!document.querySelector('.modal-overlay.open');
+  if (!anyOpen()) { ratingsRefreshUI(); return; }
+  if (_ratingsRefreshObs) return; // already waiting — one repaint covers every edit
+  _ratingsRefreshObs = new MutationObserver(() => {
+    if (anyOpen()) return;
+    _ratingsRefreshObs.disconnect();
+    _ratingsRefreshObs = null;
+    // Let the closing modal's own frame paint before the heavy repaint starts.
+    requestAnimationFrame(() => setTimeout(ratingsRefreshUI, 0));
+  });
+  document.querySelectorAll('.modal-overlay').forEach(m =>
+    _ratingsRefreshObs.observe(m, { attributes: true, attributeFilter: ['class'] }));
 }
 
 function ratingNavBack() {
