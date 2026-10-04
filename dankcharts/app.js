@@ -5666,6 +5666,8 @@ function saveSourceConfig() {
   if (displayName) localStorage.setItem('dc_display_name', displayName);
   else localStorage.removeItem('dc_display_name');
   const selTz = document.getElementById('srcTimezone').value;
+  // Only when the zone actually changed: the rebuild below costs a full render.
+  const tzChanged = !!selTz && selTz !== userTimezone;
   if (selTz) {
     userTimezone = selTz;
     _tzFmt = null;
@@ -5673,6 +5675,13 @@ function saveSourceConfig() {
     dcInvalidatePlayStamps();
     stampPlays(allPlays);
     try { localStorage.setItem('dc_timezone', selTz); } catch(e) {}
+  }
+  if (tzChanged) {
+    // These hold timezone-adjusted dates but are not keyed on the stamp epoch,
+    // so they would keep the old zone until the next data load. firstSeenMaps
+    // drives New Songs/Artists/Albums; the other is the first year in Awards.
+    firstSeenMaps = null;
+    _awardsFirstYearCache = null;
   }
   updateMastheadDynamic();
   const isFile   = document.getElementById('srcRadioFile')?.checked;
@@ -5691,6 +5700,8 @@ function saveSourceConfig() {
     localStorage.removeItem('dc_sheet_gid');
     localStorage.removeItem('dc_sheet_write_url');
     closeSourceModal();
+    // No sync follows for a CSV, so nothing else would redraw in the new zone.
+    if (tzChanged) renderAll();
     document.getElementById('srcFileInput')?.click();
     return;
   }
@@ -5764,6 +5775,9 @@ function saveSourceConfig() {
   localStorage.setItem('dc_chart_anim', chartAnimEnabled ? '1' : '0');
   closeSourceModal();
   if (typeof dcSaveUserConfig === 'function') dcSaveUserConfig();
+  // Redraw now rather than waiting on the sync: a failed or offline sync never
+  // re-renders, which would leave the charts cut in the old timezone.
+  if (tzChanged) renderAll();
   syncNow();
 }
 
@@ -33677,22 +33691,24 @@ let tmImgQueue = Promise.resolve();
 let tmLoaderId = 0;
 
 function buildTimeMachineData() {
-  const today = new Date();
+  // "Today" and each play's day are both read in the user's chosen timezone
+  // (tzNow / tzDateOf), so a late-night play lands on the same calendar day
+  // here as it does on the charts.
+  const today = tzNow();
   const todayMonth = today.getMonth();
   const todayDay = today.getDate();
   const todayYear = today.getFullYear();
 
-  const pastPlays = allPlays.filter(p =>
-    p.date instanceof Date &&
-    p.date.getMonth() === todayMonth &&
-    p.date.getDate() === todayDay &&
-    p.date.getFullYear() < todayYear
-  );
+  const pastPlays = allPlays.filter(p => {
+    if (!(p.date instanceof Date)) return false;
+    const d = tzDateOf(p);
+    return d.getMonth() === todayMonth && d.getDate() === todayDay && d.getFullYear() < todayYear;
+  });
 
   const songsSeen = new Set();
   const songs = [];
   for (const p of pastPlays) {
-    const year = p.date.getFullYear();
+    const year = tzDateOf(p).getFullYear();
     const k = p.title + '\0' + p.artist + '\0' + year;
     if (!songsSeen.has(k)) {
       songsSeen.add(k);
@@ -33703,7 +33719,7 @@ function buildTimeMachineData() {
   const artistsSeen = new Set();
   const artists = [];
   for (const p of pastPlays) {
-    const year = p.date.getFullYear();
+    const year = tzDateOf(p).getFullYear();
     const list = (p.artists && p.artists.length) ? p.artists : [p.artist];
     for (const ar of list) {
       const k = ar + '\0' + year;
@@ -33718,7 +33734,7 @@ function buildTimeMachineData() {
   const albums = [];
   for (const p of pastPlays) {
     if (!p.album || p.album === '—') continue;
-    const year = p.date.getFullYear();
+    const year = tzDateOf(p).getFullYear();
     const aa = albumArtist(p);
     const k = p.album + '\0' + aa + '\0' + year;
     if (!albumsSeen.has(k)) {
