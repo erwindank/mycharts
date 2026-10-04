@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['pt-BR'] = {
 
   /* ========== OUTUBRO 2026 ========== */
 
+  'Week start day moved to Settings':
+    ['O dia de início da semana foi para as Configurações',
+     'O botão Dia inicial saiu do topo da página. Escolha o dia em que suas paradas semanais começam em Configurações → Paradas → Semana das paradas. Vale na hora, e sua escolha atual é mantida.'],
+
   'The rating editor closes instantly':
     ['O editor de avaliações fecha na hora',
      'Fechar ou salvar uma avaliação travava a janela por um segundo ou mais enquanto o chart inteiro era redesenhado atrás. Agora fecha na hora, a janela do álbum ou da música mostra a nova nota imediatamente e o chart se atualiza quando você volta para ele. Mexer nos controles deslizantes ao avaliar um álbum também ficou mais rápido.'],

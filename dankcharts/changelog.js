@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 73;
+const DC_CL_I18N_V = 74;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,10 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+
+  { d: '2026-10-04', t: 'change', a: 'settings', h: '09a158c',
+    title: 'Week start day moved to Settings',
+    detail: 'The Start Day button is gone from the top of the page. Pick the day your weekly charts begin under Settings → Charts → Chart Week instead. It still applies straight away, and your current choice is kept.' },
 
   { d: '2026-10-03', t: 'perf', a: 'ratings', h: '70f548e',
     title: 'The rating editor closes instantly',

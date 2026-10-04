@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['es'] = {
 
   /* ========== OCTUBRE 2026 ========== */
 
+  'Week start day moved to Settings':
+    ['El día de inicio de semana pasa a Ajustes',
+     'El botón Día de inicio ya no está arriba de la página. Elige el día en que empiezan tus listas semanales en Ajustes → Rankings → Semana de las listas. Se aplica al instante y tu elección actual se mantiene.'],
+
   'The rating editor closes instantly':
     ['El editor de calificaciones se cierra al instante',
      'Cerrar o guardar una calificación congelaba la ventana un segundo o más mientras se redibujaba todo el chart detrás. Ahora se cierra enseguida, la ventana del álbum o la canción muestra la nueva nota al momento y el chart se actualiza cuando vuelves a él. Mover los deslizadores al calificar un álbum también es más rápido.'],
