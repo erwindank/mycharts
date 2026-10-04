@@ -690,9 +690,7 @@ function updateWeekStartDay(day) {
   // Week/day keys are derived from this — retire the old stamps before rendering.
   dcInvalidatePlayStamps();
   stampPlays(allPlays);
-  const dayGroupAbbrev = document.getElementById('dayGroupAbbrev');
-  if (dayGroupAbbrev) dayGroupAbbrev.textContent = DAY_ABBREVS[day];
-  document.querySelectorAll('.day-btn').forEach(btn => {
+  document.querySelectorAll('#daySwitcher .rt-sep-btn').forEach(btn => {
     btn.classList.toggle('active', parseInt(btn.dataset.day) === day);
   });
   renderAll();
@@ -704,20 +702,20 @@ try {
   weekStartDay = saved !== null ? parseInt(saved) : 0;
 } catch (e) { weekStartDay = 0; }
 
+// Lives in Settings → Charts (Chart Week). Uses the same segmented pill as
+// the release-type rows there, so it follows the settings theme tokens.
 const daySwitcher = document.getElementById('daySwitcher');
 if (daySwitcher) {
   DAY_ABBREVS.forEach((abbrev, index) => {
     const btn = document.createElement('button');
-    btn.className = 'day-btn' + (index === weekStartDay ? ' active' : '');
+    btn.type = 'button';
+    btn.className = 'rt-sep-btn' + (index === weekStartDay ? ' active' : '');
     btn.dataset.day = index;
     btn.textContent = abbrev;
     btn.addEventListener('click', () => updateWeekStartDay(index));
     daySwitcher.appendChild(btn);
   });
 }
-
-const dayGroupAbbrev = document.getElementById('dayGroupAbbrev');
-if (dayGroupAbbrev) dayGroupAbbrev.textContent = DAY_ABBREVS[weekStartDay];
 
 // ─── CTRL GROUP TOGGLE (mobile) ────────────────────────────────
 document.querySelectorAll('.ctrl-group-btn').forEach(btn => {
@@ -729,7 +727,7 @@ document.querySelectorAll('.ctrl-group-btn').forEach(btn => {
     if (!wasOpen) group.classList.add('open');
     // Defined later in this file (MASTHEAD CONTROLS AUTO-HIDE). Guarded with
     // typeof since this handler is wired up before that block runs, and it
-    // makes sure opening a theme/day/language panel keeps the whole fixed
+    // makes sure opening a theme/language panel keeps the whole fixed
     // stack visible/un-faded even if the mobile idle-hide timer had already
     // fired since the last scroll.
     if (typeof window._showMastheadControls === 'function') window._showMastheadControls();
@@ -26381,7 +26379,7 @@ backToTopBtn.addEventListener('click', () => {
 });
 
 // ── MASTHEAD CONTROLS AUTO-HIDE (mobile) ──
-// The theme/day/language button stack (.theme-toggle) is position:fixed on
+// The theme/language button stack (.theme-toggle) is position:fixed on
 // mobile (see the max-width:700px rules in style.css) so it's always on
 // screen. That's convenient, but it also means it can sit on top of content
 // — including the sticky date-nav bar — while the user is just reading and
@@ -26409,7 +26407,7 @@ if (mastheadControls) {
     clearTimeout(controlsIdleTimer);
     if (!isMobileControls()) return;
     controlsIdleTimer = setTimeout(function checkIdle() {
-      // If the user has one of the theme/day/language panels open (tapped
+      // If the user has one of the theme/language panels open (tapped
       // a ctrl-group-btn to expand it), hiding the whole stack out from
       // under them mid-tap would be jarring and could strand an open
       // panel with no way to close it visibly. Instead, keep polling every

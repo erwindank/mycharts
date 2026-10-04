@@ -31,7 +31,7 @@
   <!-- All scripts are deferred so the page paints without waiting on them.
        defer preserves execution order, which matters: translations → Chart.js →
        hammer → zoom plugin → firebase SDKs → firebase.js → app.js (in body). -->
-  <script defer src="translations.js?v=45"></script>
+  <script defer src="translations.js?v=46"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8/hammer.min.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@1.2.1/dist/chartjs-plugin-zoom.min.js"></script>
@@ -284,15 +284,6 @@
           <button class="theme-btn" data-theme="pink" data-i18n-title="tooltip_theme_pink_dark">●</button>
           <button class="theme-btn" data-theme="pink-light" data-i18n-title="tooltip_theme_pink_light">●</button>
           <span id="themeLabel">Navy</span>
-        </div>
-      </div>
-      <div class="ctrl-group" id="dayCtrlGroup">
-        <button class="ctrl-group-btn" id="dayGroupBtn" aria-label="Week start day" title="Week start day">
-          <span class="ctrl-btn-wide">📅 <span data-i18n="ctrl_btn_start_day">START DAY</span></span>
-          <span class="ctrl-btn-narrow" id="dayGroupAbbrev">Su</span>
-        </button>
-        <div class="ctrl-group-panel">
-          <div class="day-switcher" id="daySwitcher"></div>
         </div>
       </div>
       <div class="ctrl-group" id="langCtrlGroup">
@@ -3334,7 +3325,7 @@
   <!-- defer keeps app.js last in the script execution order (after translations,
        Chart.js and firebase.js) while letting the whole page parse and paint first -->
   <script defer src="changelog.js?v=136"></script>
-  <script defer src="app.js?v=300"></script>
+  <script defer src="app.js?v=301"></script>
 
   <!-- ── Settings Modal ──
        Split into three tabs so the whole form is never dumped on screen at
@@ -4096,6 +4087,18 @@ function deleteGenreTriggers() {
 
       <!-- ══ 02 · CHARTS ══ -->
       <section class="set-panel" id="setPanelCharts" role="tabpanel" aria-labelledby="setTabCharts" hidden>
+
+      <!-- Week start day (moved here from the masthead). The day buttons are
+           built by app.js (WEEK START DAY SELECTOR) and save at once — no
+           Save needed, same as the other segmented rows in this tab. -->
+      <div class="cert-config-group">
+        <div class="cert-config-title" data-i18n="set_week_title">Chart Week</div>
+        <div class="set-row rt-sep-row">
+          <span class="rt-sep-label" data-i18n="set_week_label">Weekly charts start on</span>
+          <div class="rt-sep-seg" role="group" id="daySwitcher"></div>
+        </div>
+        <p class="src-modal-hint rt-sep-hint" data-i18n="set_week_hint">The day each weekly chart begins. Changing it rebuilds every week at once.</p>
+      </div>
 
       <div class="cert-config-group">
         <div class="cert-config-title" data-i18n="set_cert_title">Certification Thresholds (Plays)</div>
