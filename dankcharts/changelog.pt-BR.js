@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['pt-BR'] = {
 
   /* ========== OUTUBRO 2026 ========== */
 
+  'The rating editor closes instantly':
+    ['O editor de avaliações fecha na hora',
+     'Fechar ou salvar uma avaliação travava a janela por um segundo ou mais enquanto o chart inteiro era redesenhado atrás. Agora fecha na hora, a janela do álbum ou da música mostra a nova nota imediatamente e o chart se atualiza quando você volta para ele. Mexer nos controles deslizantes ao avaliar um álbum também ficou mais rápido.'],
+
   'Month names on chart share images follow your language':
     ['Os meses nas imagens dos charts seguem seu idioma',
      'As imagens de um chart mensal mostravam o mês no idioma do navegador em vez do escolhido no dankcharts. Agora usam o idioma do site.'],

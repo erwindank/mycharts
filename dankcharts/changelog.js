@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 72;
+const DC_CL_I18N_V = 73;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,10 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+
+  { d: '2026-10-03', t: 'perf', a: 'ratings', h: '70f548e',
+    title: 'The rating editor closes instantly',
+    detail: 'Closing or saving a rating used to freeze the window for a second or more while the whole chart redrew behind it. It now closes right away, the album or song window shows the new score at once, and the chart updates once you are back on it. Moving sliders while rating an album is quicker too.' },
 
   { d: '2026-10-03', t: 'fix', a: 'share', h: '9b1ce11',
     title: 'Month names on chart share images follow your language',

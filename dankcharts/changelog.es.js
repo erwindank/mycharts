@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['es'] = {
 
   /* ========== OCTUBRE 2026 ========== */
 
+  'The rating editor closes instantly':
+    ['El editor de calificaciones se cierra al instante',
+     'Cerrar o guardar una calificación congelaba la ventana un segundo o más mientras se redibujaba todo el chart detrás. Ahora se cierra enseguida, la ventana del álbum o la canción muestra la nueva nota al momento y el chart se actualiza cuando vuelves a él. Mover los deslizadores al calificar un álbum también es más rápido.'],
+
   'Month names on chart share images follow your language':
     ['Los meses en las imágenes de los charts siguen tu idioma',
      'Las imágenes de un chart mensual mostraban el mes en el idioma del navegador en vez del elegido en dankcharts. Ahora usan el idioma del sitio.'],
