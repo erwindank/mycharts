@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['pt-BR'] = {
 
   /* ========== OUTUBRO 2026 ========== */
 
+  'Your week start day follows you to every device':
+    ['Seu dia de início da semana te acompanha em todos os aparelhos',
+     'Com a sessão iniciada, o dia em que suas paradas semanais começam fica salvo na sua conta como as outras configurações, então todos os aparelhos cortam as semanas do mesmo jeito. Um dia ou fuso horário mudado em outro aparelho vale assim que você entra, sem recarregar a página.'],
+
   'Changing your timezone now updates everything at once':
     ['Mudar o fuso horário agora atualiza tudo de uma vez',
      'Depois de mudar o fuso horário, as listas de Músicas, Artistas e Álbuns novos podiam continuar usando o anterior até recarregar a página, e com um CSV enviado as paradas não eram redesenhadas. Agora tudo atualiza assim que você salva. A Máquina do tempo também segue o fuso escolhido em vez do relógio do aparelho.'],

@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 75;
+const DC_CL_I18N_V = 76;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,10 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+
+  { d: '2026-10-04', t: 'feature', a: 'settings', h: 'e0efde1',
+    title: 'Your week start day follows you to every device',
+    detail: 'When you are signed in, the day your weekly charts start on is saved to your account like your other settings, so every device cuts the weeks the same way. A day or timezone changed on another device now applies as soon as you sign in, without reloading the page.' },
 
   { d: '2026-10-04', t: 'fix', a: 'charts', h: '9728d27',
     title: 'Changing your timezone now updates everything at once',
