@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['es'] = {
 
   /* ========== OCTUBRE 2026 ========== */
 
+  'YouTube plays no longer claim to be scrobbled when they were not saved':
+    ['Las reproducciones de YouTube ya no dicen que se hizo scrobble cuando no se guardaron',
+     'Si reproducías una canción en el reproductor de YouTube sin el scrobbling de Last.fm ni una hoja de Google conectados, el reproductor decía "Scrobbled" aunque la reproducción nunca llegaba a tus listas. Ahora te avisa de que no se guardó, con un enlace para conectar Last.fm, y el anillo de cuenta atrás solo aparece cuando la reproducción se puede guardar de verdad.'],
+
   'Your week start day follows you to every device':
     ['Tu día de inicio de semana te sigue en todos tus dispositivos',
      'Con la sesión iniciada, el día en que empiezan tus listas semanales se guarda en tu cuenta como tus demás ajustes, así que todos tus dispositivos cortan las semanas igual. Un día o una zona horaria cambiados en otro dispositivo se aplican en cuanto inicias sesión, sin recargar la página.'],

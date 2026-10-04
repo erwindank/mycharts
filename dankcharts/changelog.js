@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 76;
+const DC_CL_I18N_V = 77;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,10 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+
+  { d: '2026-10-04', t: 'fix', a: 'player', h: '196d4ad',
+    title: 'YouTube plays no longer claim to be scrobbled when they were not saved',
+    detail: 'If you play a song in the YouTube player without Last.fm scrobbling or a Google Sheet connected, the player used to say "Scrobbled" even though the play was never added to your charts. It now tells you the play was not saved, with a link to connect Last.fm, and the countdown ring only appears when the play can actually be saved.' },
 
   { d: '2026-10-04', t: 'feature', a: 'settings', h: 'e0efde1',
     title: 'Your week start day follows you to every device',
