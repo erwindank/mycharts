@@ -534,58 +534,7 @@
       margin-left: 3px;
     }
 
-    #weekStartDaySelect {
-      background: var(--bg2);
-      border: 1px solid var(--border);
-      border-radius: 4px;
-      padding: 3px 6px;
-      color: var(--text);
-      font-family: var(--font-sans);
-      font-size: 0.75rem;
-      cursor: pointer;
-      outline: none;
-    }
-
-    #weekStartDaySelect:focus {
-      border-color: var(--accent);
-    }
-
-    #weekStartDaySelect option {
-      background: var(--bg2);
-      color: var(--text);
-    }
-
     /* LANGUAGE SWITCHER */
-    .day-switcher {
-      display: flex;
-      align-items: center;
-      gap: 3px;
-    }
-
-    .day-btn {
-      background: transparent;
-      border: 1px solid rgba(255, 255, 255, 0.18);
-      border-radius: 4px;
-      color: rgba(255, 255, 255, 0.5);
-      cursor: pointer;
-      font-family: var(--font-mono);
-      font-size: 0.58rem;
-      letter-spacing: 0.06em;
-      padding: 2px 5px;
-      transition: border-color 0.15s, color 0.15s, background 0.15s;
-      white-space: nowrap;
-    }
-
-    .day-btn:hover {
-      border-color: rgba(255, 255, 255, 0.45);
-      color: rgba(255, 255, 255, 0.8);
-    }
-
-    .day-btn.active {
-      background: rgba(255, 255, 255, 0.12);
-      border-color: rgba(255, 255, 255, 0.55);
-      color: rgba(255, 255, 255, 0.95);
-    }
 
     .lang-switcher {
       display: flex;
@@ -619,7 +568,6 @@
     }
 
     /* CTRL GROUP — vertical collapsible controls */
-    .ctrl-sep { display: none; }
 
     .ctrl-group {
       display: flex;
@@ -756,32 +704,6 @@
       display: none;
     }
 
-    .src-toggle-btn {
-      background: transparent;
-      border: 1px solid rgba(255, 255, 255, 0.18);
-      border-radius: 4px;
-      color: rgba(255, 255, 255, 0.5);
-      cursor: pointer;
-      font-family: var(--font-mono);
-      font-size: 0.58rem;
-      letter-spacing: 0.06em;
-      padding: 2px 5px;
-      transition: border-color 0.15s, color 0.15s, background 0.15s;
-      white-space: nowrap;
-    }
-
-    .src-toggle-btn:hover {
-      border-color: rgba(255, 255, 255, 0.45);
-      color: rgba(255, 255, 255, 0.8);
-    }
-
-    .src-toggle-btn.hidden-active {
-      background: rgba(255, 255, 255, 0.12);
-      border-color: rgba(255, 255, 255, 0.55);
-      color: rgba(255, 255, 255, 0.95);
-      text-decoration: line-through;
-    }
-
     * {
       margin: 0;
       padding: 0;
@@ -912,19 +834,16 @@
       color: rgba(4, 14, 28, 0.95);
     }
 
-    body.navy-light .day-btn,
     body.navy-light .lang-btn {
       color: rgba(4, 14, 28, 0.65);
       border-color: rgba(4, 14, 28, 0.2);
     }
 
-    body.navy-light .day-btn:hover,
     body.navy-light .lang-btn:hover {
       border-color: rgba(4, 14, 28, 0.45);
       color: rgba(4, 14, 28, 0.85);
     }
 
-    body.navy-light .day-btn.active,
     body.navy-light .lang-btn.active {
       background: rgba(4, 14, 28, 0.1);
       border-color: rgba(4, 14, 28, 0.55);
@@ -995,37 +914,25 @@
       color: var(--text);
     }
 
-    body.purple-light .day-btn,
     body.purple-light .lang-btn,
-    body.red-light .day-btn,
     body.red-light .lang-btn,
-    body.yellow-light .day-btn,
     body.yellow-light .lang-btn,
-    body.pink-light .day-btn,
     body.pink-light .lang-btn {
       color: var(--text2);
       border-color: var(--border);
     }
 
-    body.purple-light .day-btn:hover,
     body.purple-light .lang-btn:hover,
-    body.red-light .day-btn:hover,
     body.red-light .lang-btn:hover,
-    body.yellow-light .day-btn:hover,
     body.yellow-light .lang-btn:hover,
-    body.pink-light .day-btn:hover,
     body.pink-light .lang-btn:hover {
       border-color: var(--border2);
       color: var(--text);
     }
 
-    body.purple-light .day-btn.active,
     body.purple-light .lang-btn.active,
-    body.red-light .day-btn.active,
     body.red-light .lang-btn.active,
-    body.yellow-light .day-btn.active,
     body.yellow-light .lang-btn.active,
-    body.pink-light .day-btn.active,
     body.pink-light .lang-btn.active {
       background: var(--bg3);
       border-color: var(--border2);
@@ -1035,17 +942,14 @@
     /* Yellow light — border/border2 are too yellow to read as UI outlines in the
        panel dropdown (pale page bg); use text-based colors. (.ctrl-group-btn itself
        lives on the dark masthead banner and gets a light-text treatment above.) */
-    body.yellow-light .day-btn,
     body.yellow-light .lang-btn {
       border-color: var(--text3);
     }
 
-    body.yellow-light .day-btn:hover,
     body.yellow-light .lang-btn:hover {
       border-color: var(--text2);
     }
 
-    body.yellow-light .day-btn.active,
     body.yellow-light .lang-btn.active {
       background: var(--surface);
       border-color: var(--text2);
@@ -4181,11 +4085,6 @@
       background: var(--accent);
       opacity: 0.7;
     }
-    @keyframes nav-badge-pulse {
-      0%, 100% { opacity: 1; transform: scale(1); }
-      50% { opacity: 0.35; transform: scale(0.7); }
-    }
-
     /* Last button in each row has no right border */
     .period-nav-row button:last-child {
       border-right: none;
@@ -4305,82 +4204,6 @@
       border-color: var(--accent);
     }
 
-    /* DISPLAY TOGGLES */
-    .chart-display-toggles {
-      display: flex;
-      align-items: center;
-      background: var(--bg2);
-      border: 1px solid var(--border);
-      border-top: none;
-      padding: 0.45rem 1rem;
-      gap: 0.75rem;
-    }
-
-    .chart-display-toggles label {
-      font-family: var(--font-mono);
-      font-size: 0.65rem;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-      color: var(--text3);
-      white-space: nowrap;
-    }
-
-    .chart-display-toggles .toggle-btns {
-      display: flex;
-      gap: 4px;
-      flex-wrap: wrap;
-    }
-
-    .display-toggle-btn {
-      background: none;
-      border: 1px solid var(--border);
-      padding: 0.2rem 0.7rem;
-      cursor: pointer;
-      font-family: var(--font-mono);
-      font-size: 0.62rem;
-      letter-spacing: 0.06em;
-      color: var(--text3);
-      border-radius: 4px;
-      transition: background 0.15s, color 0.15s, border-color 0.15s, opacity 0.15s;
-      opacity: 0.5;
-    }
-
-    .display-toggle-btn:hover {
-      background: var(--bg3);
-      color: var(--text);
-      opacity: 0.85;
-    }
-
-    .display-toggle-btn.active {
-      background: var(--accent);
-      color: var(--on-accent);
-      border-color: var(--accent);
-      opacity: 1;
-    }
-
-    body.yellow .display-toggle-btn.active {
-      color: #0d0d00;
-    }
-
-    /* YT BUTTONS toggle — styled to match inline YouTube play buttons */
-    .display-toggle-btn.yt-toggle-btn {
-      border-color: #FF0000;
-      color: #FF0000;
-      opacity: 0.5;
-    }
-    .display-toggle-btn.yt-toggle-btn:hover {
-      background: rgba(255, 0, 0, 0.12);
-      border-color: #FF0000;
-      color: #FF0000;
-      opacity: 0.85;
-    }
-    .display-toggle-btn.yt-toggle-btn.active {
-      background: #FF0000;
-      border-color: #FF0000;
-      color: #fff;
-      opacity: 1;
-    }
-
     /* Section controls row — below subtitle, above chart table */
     .section-controls {
       display: flex;
@@ -4390,28 +4213,6 @@
       flex-wrap: wrap;
       margin-top: 0.5rem;
       margin-bottom: 0.75rem;
-    }
-
-    /* Fixed-width gap between action buttons and display toggles */
-    .controls-spacer {
-      width: 0.75rem;
-      flex-shrink: 0;
-    }
-
-    /* Action buttons group — left side of section-controls */
-    .controls-actions {
-      display: flex;
-      align-items: center;
-      gap: 4px;
-      flex-wrap: wrap;
-    }
-
-    /* Display toggles group — right side of section-controls */
-    .controls-toggles {
-      display: flex;
-      align-items: center;
-      gap: 4px;
-      flex-wrap: wrap;
     }
 
     /* Export playlist button inside section controls resets its standalone positioning */
@@ -5696,31 +5497,6 @@
       color: var(--medal-bronze);
     }
 
-    .badge-new,
-    .badge-re {
-      display: inline-block;
-      font-family: var(--font-mono);
-      font-size: 0.52rem;
-      font-weight: 500;
-      letter-spacing: 0.08em;
-      padding: 1px 5px;
-      border-radius: 3px;
-      vertical-align: middle;
-      margin-left: 5px;
-    }
-
-    .badge-new {
-      background: rgba(251, 113, 133, 0.18);
-      color: var(--rose);
-      border: 1px solid rgba(251, 113, 133, 0.3);
-    }
-
-    .badge-re {
-      background: rgba(251, 191, 36, 0.15);
-      color: var(--amber);
-      border: 1px solid rgba(251, 191, 36, 0.3);
-    }
-
     .song-title {
       font-family: var(--font-sans);
       font-weight: 600;
@@ -6074,12 +5850,6 @@
 
     .imgpk-url-input:focus {
       border-color: var(--accent);
-    }
-
-    .entry-info {
-      display: flex;
-      flex-direction: column;
-      gap: 1px;
     }
 
     /* ==========================================================================
@@ -6647,7 +6417,6 @@
     }
 
     /* SHARE AS IMAGE BUTTONS */
-    .ig-share-bar,
     .chart-export-bar {
       display: none;
       align-items: center;
@@ -6659,7 +6428,6 @@
       letter-spacing: 0.08em;
     }
 
-    .ig-share-bar.visible,
     .chart-export-bar.visible {
       display: flex;
     }
@@ -9000,15 +8768,6 @@
       border-bottom: 1px solid var(--border);
     }
 
-    .modal-artist-img {
-      width: 72px;
-      height: 72px;
-      object-fit: cover;
-      border-radius: 8px;
-      border: 1px solid var(--border2);
-      flex-shrink: 0;
-    }
-
     /* Profile-modal header artwork is drawn by fetchAndInjectImage() (see
        loadModalArt), which writes the chart classes .thumb / .thumb-initials —
        sized up here to the modal's 72px, with a roomier ✎ badge. */
@@ -9023,21 +8782,6 @@
     .modal-thumb-wrap .thumb-initials { font-size: 1.8rem; }
     .modal-thumb-wrap .img-src-btn { top: 4px; right: 4px; width: 22px; height: 22px; }
     .modal-thumb-wrap .img-src-btn::before { font-size: 12px; }
-
-    .modal-artist-initials {
-      width: 72px;
-      height: 72px;
-      background: var(--surface);
-      color: var(--accent2);
-      font-family: var(--font-display);
-      font-size: 1.8rem;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex-shrink: 0;
-      border: 1px solid var(--border2);
-      border-radius: 8px;
-    }
 
     .modal-artist-name {
       font-family: var(--font-display);
@@ -9979,26 +9723,6 @@
 
     .artist-row {
       cursor: pointer;
-    }
-
-    .view-profile-link {
-      display: inline;
-      background: none;
-      border: none;
-      padding: 0;
-      margin: 0;
-      font-size: 0.7rem;
-      letter-spacing: 0.06em;
-      font-style: normal;
-      font-family: var(--font-mono);
-      color: var(--text3);
-      cursor: pointer;
-      text-decoration: none;
-    }
-
-    .view-profile-link:hover {
-      text-decoration: underline;
-      color: var(--accent);
     }
 
     /* Row hover lives on .chart-table tbody tr:hover > td now (rounded strip);
@@ -11821,21 +11545,8 @@
       }
 
       /* Allow chart control bars to wrap */
-      .chart-size-bar,
-      .chart-display-toggles {
+      .chart-size-bar {
         flex-wrap: wrap;
-      }
-
-      /* Compact display toggle buttons on one row */
-      .chart-display-toggles .toggle-btns {
-        flex-wrap: nowrap;
-        gap: 3px;
-      }
-
-      .display-toggle-btn {
-        font-size: 0.52rem;
-        padding: 0.15rem 0.35rem;
-        letter-spacing: 0.03em;
       }
 
       /* section-controls wraps naturally on mobile — no extra overrides needed */
@@ -11969,18 +11680,10 @@
       .streak-banner,
       .period-nav,
       .chart-size-bar:not(.section-size-bar),
-      .date-nav,
-      .chart-display-toggles {
+      .date-nav {
         margin-left: -1rem;
         margin-right: -1rem;
         width: calc(100% + 2rem);
-      }
-
-      /* Compact display toggle bar */
-      .chart-display-toggles {
-        gap: 0.4rem;
-        padding-left: 0.75rem;
-        padding-right: 0.75rem;
       }
 
       /* Remove corner rounding on elements that are now edge-to-edge */
@@ -14225,7 +13928,6 @@
     /* A match inside a collapsed section is still a match: search overrides
        the stored collapse state rather than swallowing results. */
     #recordsView.rec-searching .chart-section.collapsed .section-body,
-    #recordsView.rec-searching .rec-section-sub-wrapper.rec-subsection-collapsed .rec-subsection-content,
     #recordsView.rec-searching .rec-section.rec-collapsed>.rec-empty,
     /* Milestone timelines sit directly under .rec-section as a <table>, so the
        div: rule below never reached them and a hit inside a collapsed
@@ -14581,13 +14283,6 @@
       border-color: var(--accent);
     }
 
-    .rec-section-sub-header {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-      margin-bottom: 0.6rem;
-    }
-
     .rec-subsection-collapse-btn {
       flex-shrink: 0;
       width: 14px;
@@ -14612,10 +14307,6 @@
       border-color: var(--accent);
     }
 
-    .rec-section-sub-wrapper.rec-subsection-collapsed .rec-subsection-content {
-      display: none;
-    }
-
     .rec-section-sub-wrapper {
       margin-bottom: 0.5rem;
     }
@@ -14636,7 +14327,6 @@
     .rec-section.rec-collapsed>.rec-table,
     .rec-section.rec-collapsed>.milestone-table,
     .rec-section.rec-collapsed>.pak-list,
-    .rec-section.rec-collapsed>.rec-grid-2,
     .rec-section.rec-collapsed>.rec-empty,
     .rec-section.rec-collapsed>div:not(.rec-section-header):not(.rec-section-title):not(.rec-section-sub) {
       display: none;
@@ -15623,19 +15313,6 @@
 
       .mil-timeline .mil-tier {
         align-self: center;
-      }
-    }
-
-    .rec-grid-2 {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 1rem;
-      margin-bottom: 0.5rem;
-    }
-
-    @media (max-width: 620px) {
-      .rec-grid-2 {
-        grid-template-columns: 1fr;
       }
     }
 
@@ -19671,12 +19348,6 @@ body.purple .landing-card-config input:focus {
 .yt-now-playing-row > td:first-child { box-shadow: inset 2px 0 0 #FF0000; }
 
 /* ── Play All / Shuffle row ─── */
-.yt-playall-row {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.35rem;
-  /* margin-left removed — section-controls gap handles spacing */
-}
 .yt-playall-btn {
   background: none;
   border: 1px solid var(--border);
@@ -22018,15 +21689,6 @@ body.yellow-light .hero-stats { --hero-link: #ffe066; }  /* 3.94:1 on strip */
 }
 
 /* ─── CHART ROW ENTRANCE ANIMATION ─────────────────────────────── */
-@keyframes chartRowFadeOut {
-  from { opacity: 1; }
-  to   { opacity: 0; }
-}
-.chart-row-fade-out {
-  animation: chartRowFadeOut 0.35s ease-in forwards;
-  pointer-events: none;
-}
-
 @keyframes chartRowSlideIn {
   from { opacity: 0.75; }
   to   { opacity: 1; }
@@ -22043,7 +21705,6 @@ body.yellow-light .hero-stats { --hero-link: #ffe066; }  /* 3.94:1 on strip */
 .chart-row-anim .peak-badge-1,
 .chart-row-anim .peak-badge-2,
 .chart-row-anim .peak-badge-3,
-.chart-row-anim .peak-badge-other,
 .chart-row-anim .plays-peak-badge,
 .chart-row-anim .play-bar,
 .chart-row-anim .m-col {
@@ -24406,7 +24067,6 @@ body.pink-light .awards-ceremony-share-btn:hover { border-color: var(--medal-gol
 }
 .awards-picker-nom-lbl { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .awards-picker-nom-sub { font-size: 0.7rem; color: var(--text3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.awards-picker-nom-plays { font-size: 0.68rem; color: var(--text3); font-family: var(--font-mono); white-space: nowrap; }
 .awards-picker-nom-actions { display: inline-flex; gap: 3px; flex-shrink: 0; }
 .awards-picker-nom-actions:empty { display: none; }
 .awards-picker-nom-x {
@@ -25357,7 +25017,6 @@ body.pink-light .awards-reallife-badge.nom { color: #4338ca; border-color: #6366
   gap: 10px;
 }
 .awards-reallife-cat  { flex: 1; color: var(--text2); }
-.awards-reallife-year { color: var(--text3); font-family: var(--font-sans); font-weight: 600; font-size: 0.72rem; }
 
 /* Grammys / VMAs tabs at the top of Real-Life Awards — the same segmented pill
    as the nominee view switcher, sat above the year stepper */
@@ -30154,14 +29813,6 @@ body.pink-light .awards-reallife-badge.nom { color: #4338ca; border-color: #6366
   border-top: 1px solid var(--border);
   position: relative; /* anchors the .weekly-view-btns dropdown when open */
 }
-.weekly-view-label {
-  font-family: var(--font-mono);
-  font-size: 0.55rem;
-  letter-spacing: 0.1em;
-  color: var(--text3);
-  text-transform: uppercase;
-  flex-shrink: 0;
-}
 .weekly-view-btns {
   display: flex;
   flex-wrap: wrap;
@@ -32614,8 +32265,7 @@ body.red-light .modal-rank-card--year .mrc-rank {
       width: auto;
       border-top: none;
     }
-    .kebab-panel .chart-size-bar label,
-    .kebab-panel .weekly-view-label {
+    .kebab-panel .chart-size-bar label {
       display: none;
     }
     .kebab-panel .size-btns,

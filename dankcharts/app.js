@@ -1584,8 +1584,6 @@ const YOUTUBE_KEY = 'AIzaSyDAyHsCQ8Eb5Avz32ayqBGMUyV-21xVMtc';
 
 const imgCache = {}; // key → url string or null
 
-const IMG_SOURCES = ['deezer', 'itunes', 'lastfm', 'youtube', 'off'];
-
 // The sources tried automatically when an image is missing. YouTube is left
 // out on purpose: its key is shared by every visitor and a search costs 100 of
 // the 10,000 daily units, so as the last fallback for every missing cover it
@@ -5257,6 +5255,10 @@ function _npHistory(track) {
 }
 
 function _npOrdinal(n) {
+  // Spanish and European Portuguese write "43.ª", Brazilian Portuguese "43ª"
+  // (feminine, agreeing with reproducción / reprodução)
+  if (currentLang === 'es' || currentLang === 'pt-PT') return n.toLocaleString() + '.ª';
+  if (currentLang === 'pt-BR') return n.toLocaleString() + 'ª';
   const rem100 = n % 100;
   // 11th/12th/13th are the exceptions to the last-digit rule
   const suffix = (rem100 >= 11 && rem100 <= 13) ? 'th'
@@ -12727,17 +12729,6 @@ function buildNewEntryPeakStats(periodType, cutoffKey) {
 
 // ─── STAT STRIP HELPERS ────────────────────────────────────────
 
-function buildSparklineValues(periodType, cutoffKey, n) {
-  const { index, keys: allKeys } = _periodAgg(periodType);
-  const keys = (cutoffKey ? allKeys.filter(k => k <= cutoffKey) : allKeys).slice(-n);
-  return {
-    plays:   keys.map(k => index[k].plays),
-    songs:   keys.map(k => index[k].songs),
-    artists: keys.map(k => index[k].artists),
-    albums:  keys.map(k => index[k].albums),
-  };
-}
-
 function sparklineSvg(vals) {
   if (!vals || vals.length < 2) return '';
   const w = 56, h = 20;
@@ -13330,7 +13321,6 @@ function renderAll() {
   const _showStrip2 = ['week', 'month', 'year'].includes(currentPeriod) && plays.length > 0;
   const _numDays = currentPeriod !== 'alltime' ? Math.max(1, Math.round((end - start) / 86400000) + 1) : null;
   const playsPerDay = (_numDays && _numDays > 1 && plays.length > 0) ? (plays.length / _numDays).toFixed(1) : null;
-  const sparkData = cutoffKey ? buildSparklineValues(currentPeriod, cutoffKey, 8) : null;
   let discoveryRate = null;
   if (_showStrip2 && songSet.size > 0) {
     if (!firstSeenMaps) firstSeenMaps = buildFirstSeenMaps();
@@ -13882,46 +13872,6 @@ function buildPrevChartHtml(prevSorted, size, colCount, type) {
 }
 
 // ─── SLIDING-WINDOW CHART MORPH ────────────────────────────────
-// Computes chart counts for a sliding window that transitions from prevPlays to currPlays.
-// step 0 = full prevPlays, step totalSteps = full currPlays.
-// forceKeys: Set of keys to always append after the top chartSize (new entrants below the fold).
-function computeWindowCountsForType(pSorted, cSorted, step, totalSteps, type, forceKeys) {
-  const prevDrop = Math.round(step / totalSteps * pSorted.length);
-  const currAdd  = Math.round(step / totalSteps * cSorted.length);
-  const pool = pSorted.slice(prevDrop).concat(cSorted.slice(0, currAdd));
-  const counts = {};
-  if (type === 'songs') {
-    for (const p of pool) {
-      const k = songKey(p);
-      if (!counts[k]) counts[k] = { key: k, count: 0 };
-      counts[k].count++;
-    }
-  } else if (type === 'artists') {
-    for (const p of pool) {
-      for (const artist of p.artists) {
-        if (!counts[artist]) counts[artist] = { key: artist, count: 0 };
-        counts[artist].count++;
-      }
-    }
-  } else if (type === 'albums') {
-    for (const p of pool) {
-      if (!p.album || p.album === '—') continue;
-      const k = albumKeyOf(p);
-      if (!counts[k]) counts[k] = { key: k, count: 0 };
-      counts[k].count++;
-    }
-  }
-  const sorted = Object.values(counts).sort((a, b) => b.count - a.count);
-  const topN = sorted.slice(0, chartSize);
-  if (!forceKeys || !forceKeys.size) return topN;
-  // Append forced new entrants not already in top N so they're always visible below the fold
-  const topNSet = new Set(topN.map(c => c.key));
-  const forced = [...forceKeys]
-    .filter(k => !topNSet.has(k))
-    .map(k => counts[k] || { key: k, count: 0 });
-  return [...topN, ...forced];
-}
-
 // Animates tbody rows through the sliding window from prev→curr period using FLIP.
 // Each frame drops the oldest prev plays and adds the oldest curr plays so counts
 // change continuously and entries visibly climb/fall through positions.
@@ -17925,7 +17875,6 @@ function renderBubblingUnder(type, normalizedPool, ms, lowestChartCount) {
     const isClinging       = everCharted && !wasOnLastWeek && wasBuLastWeek && entryFromChart;
 
     // Idea 19: was in top 3 last week, now dropped into BU → fallen
-    const histPeak         = ms.peakRank?.[type]?.[key];
     const lastWeekRank     = ms.prevChart[type][key]?.rank;
     const isFallen         = wasOnLastWeek && lastWeekRank <= 3;
 
@@ -23002,7 +22951,6 @@ function openArtistModal(artistName) {
   // Certifications count
   const goldSongs = allSongsSorted.filter(s => s.count >= CERT.song.gold).length;
   const platSongs = allSongsSorted.filter(s => s.count >= CERT.song.plat).length;
-  const diamondSongs = allSongsSorted.filter(s => s.count >= CERT.song.diamond).length;
   /* Compilations are left out of the count on purpose. Their certification is
      awarded to the record as a whole, not to each singer on it — the album is
      still listed above, it just isn't tallied here. */
@@ -23015,7 +22963,6 @@ function openArtistModal(artistName) {
     !isCompilationAlbum(a.album) && certKindFor(a.album, a.primaryArtist || artistName) === 'album');
   const goldAlbums = certAlbums.filter(a => a.count >= CERT.album.gold).length;
   const platAlbums = certAlbums.filter(a => a.count >= CERT.album.plat).length;
-  const diamondAlbums = certAlbums.filter(a => a.count >= CERT.album.diamond).length;
 
   // All-time / per-period chart peaks
   const artistPeak = peaks.artistPeakMap[artistName];
@@ -23652,23 +23599,6 @@ if (albumsBody) {
       openAlbumModal(albumKey);
     }
   }, false);
-}
-
-function findAlbumNo1Weeks(albumKey) {
-  const weekMap = {};
-  for (const p of allPlays) {
-    if (!p.album || p.album === '—') continue;
-    const key = playWeekKeyOf(p);
-    const ak = albumKeyOf(p);
-    if (!weekMap[key]) weekMap[key] = { sunday: new Date(key + 'T00:00:00'), albums: {} };
-    weekMap[key].albums[ak] = (weekMap[key].albums[ak] || 0) + 1;
-  }
-  const results = [];
-  for (const [key, wk] of Object.entries(weekMap)) {
-    const sorted = Object.entries(wk.albums).sort((a, b) => b[1] - a[1]);
-    if (sorted[0]?.[0] === albumKey) results.push({ key, sunday: wk.sunday, plays: sorted[0][1] });
-  }
-  return results.sort((a, b) => b.key.localeCompare(a.key));
 }
 
 let _currentAlbumKey = null;
@@ -24626,7 +24556,6 @@ function toggleSongModalGrammyDetail(btn) {
 
 // ─── SONG SPARKLINE ──────────────────────────────────────────────
 let _songSparklinePlays = null;
-let _songSparklineKey   = null;
 
 function songMonthClick(month) {
   const panel = document.getElementById('song-month-detail');
@@ -24652,7 +24581,6 @@ function songMonthClick(month) {
 
 function buildSongSparklineHTML(plays, title, key) {
   _songSparklinePlays = plays;
-  _songSparklineKey   = key;
   if (plays.length < 2) return '';
   const monthCounts = {};
   for (const p of plays) {
@@ -36995,10 +36923,6 @@ function _awardsCredits(n, withFeatures) {
   return out;
 }
 
-function _awardsPrimaryCredit(artistStr) {
-  return _awardsCredits({ artist: artistStr }, false)[0] || '';
-}
-
 // The switch in the My Grammys settings panel
 function awardsSetCreditFeatures(on) {
   _awardsCreditFeatures = !!on;
@@ -42361,7 +42285,6 @@ let _stReplayIdx = 0;
 let _stReplayMax = 0;
 let _stReplayPaused = false;
 let _stReplaySpeedMs = 1200;
-let _stMilestonesCount = 0;
 let _stBubbleTimer = null;
 let _stBubbleSeeds = [];
 let _stBubbleQueue = [];
@@ -47068,7 +46991,6 @@ const RATING_ALBUM_CRITERIA = [
 ];
 
 const _songCritById  = Object.fromEntries(RATING_SONG_CRITERIA.map(c => [c.id, c]));
-const _albumCritById = Object.fromEntries(RATING_ALBUM_CRITERIA.map(c => [c.id, c]));
 
 // Verdict bands. The thresholds follow how the decimal scale is read in
 // practice — 8.0 is the "Best New Music" line, below 3.0 is a pan.
