@@ -16,7 +16,7 @@ const SYNC_KEYS = [
   'dc_source', 'dc_sheet_id', 'dc_sheet_gid', 'dc_sheet_tab',
   'dc_sheet_write_url', 'dc_lastfm_user', 'dc_lfm_api_key',
   'dc_lfm_api_secret', 'dc_lfm_session_key', 'dc_lfm_session_user',
-  'dc_display_name', 'dc_timezone', 'dc_cert_config',
+  'dc_display_name', 'dc_timezone', 'dc_week_start_day', 'dc_cert_config',
   'dc_events_artist_limit', 'dc_theme', 'dc_lang',
   'dc_autocorrect_rules', 'dc_compilation_albums', 'dc_release_types',
   'dc_release_separation', 'dc_release_autodetect', 'dc_single_rollup',

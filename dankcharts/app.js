@@ -627,6 +627,7 @@ function dcApplyAllSettings() {
   _awardsFavCats        = _awardsReadFavCats();
   _awardsPaintFavBtns();
   applyChartPageSections();
+  dcApplyTimeSettings();
   /* Separation arrived from another device: re-read it and retire the chart
      caches, since which bucket a release ranks in has just changed. Mutated
      in place so every closure already holding releaseSeparation sees it. */
@@ -685,22 +686,72 @@ function replayChartAnimation(type) {
 // ─── WEEK START DAY SELECTOR ───────────────────────────────────
 const DAY_ABBREVS = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
 
+/* Synced across devices through firebase.js SYNC_KEYS. The key used to be
+   'dankcharts-weekStartDay' (device-only); it is read once as a fallback below
+   so nobody loses their choice in the move. */
+const WEEK_START_KEY = 'dc_week_start_day';
+const WEEK_START_LEGACY_KEY = 'dankcharts-weekStartDay';
+
+// Reads the stored day, falling back to the old device-only key, then Sunday.
+function readWeekStartDay() {
+  try {
+    let saved = localStorage.getItem(WEEK_START_KEY);
+    if (saved === null) {
+      saved = localStorage.getItem(WEEK_START_LEGACY_KEY);
+      if (saved !== null) localStorage.setItem(WEEK_START_KEY, saved);
+    }
+    const day = parseInt(saved);
+    return day >= 0 && day <= 6 ? day : 0;
+  } catch (e) { return 0; }
+}
+
+// Lights the matching button in Settings → Charts → Chart Week.
+function paintWeekStartButtons() {
+  document.querySelectorAll('#daySwitcher .rt-sep-btn').forEach(btn => {
+    btn.classList.toggle('active', parseInt(btn.dataset.day) === weekStartDay);
+  });
+}
+
 function updateWeekStartDay(day) {
   weekStartDay = day;
   // Week/day keys are derived from this — retire the old stamps before rendering.
   dcInvalidatePlayStamps();
   stampPlays(allPlays);
-  document.querySelectorAll('#daySwitcher .rt-sep-btn').forEach(btn => {
-    btn.classList.toggle('active', parseInt(btn.dataset.day) === day);
-  });
+  paintWeekStartButtons();
   renderAll();
-  try { localStorage.setItem('dankcharts-weekStartDay', day); } catch (e) { }
+  try { localStorage.setItem(WEEK_START_KEY, String(day)); } catch (e) { }
+  // Targeted save (not dcSaveUserConfig) so a racing full-config push can't
+  // send an older value back up.
+  if (typeof dcSaveConfigKey === 'function') dcSaveConfigKey(WEEK_START_KEY, String(day));
 }
 
-try {
-  const saved = localStorage.getItem('dankcharts-weekStartDay');
-  weekStartDay = saved !== null ? parseInt(saved) : 0;
-} catch (e) { weekStartDay = 0; }
+weekStartDay = readWeekStartDay();
+
+/* Called from dcApplyAllSettings() after signing in pulls settings from the
+   cloud. userTimezone and weekStartDay are read once at startup, so without
+   this a day or zone chosen on another device only took effect on the next
+   page load. Re-stamps and redraws only when something actually changed. */
+function dcApplyTimeSettings() {
+  const nextDay = readWeekStartDay();
+  let nextTz = BROWSER_TZ;
+  try { nextTz = localStorage.getItem('dc_timezone') || BROWSER_TZ; } catch (e) { }
+  const dayChanged = nextDay !== weekStartDay;
+  const tzChanged = nextTz !== userTimezone;
+  if (!dayChanged && !tzChanged) return;
+  weekStartDay = nextDay;
+  paintWeekStartButtons();
+  if (tzChanged) {
+    userTimezone = nextTz;
+    _tzFmt = null;
+    // Same caches saveSourceConfig() clears on a timezone change.
+    firstSeenMaps = null;
+    _awardsFirstYearCache = null;
+    const tzSel = document.getElementById('srcTimezone');
+    if (tzSel) tzSel.value = userTimezone;
+  }
+  dcInvalidatePlayStamps();
+  if (allPlays.length) { stampPlays(allPlays); renderAll(); }
+}
 
 // Lives in Settings → Charts (Chart Week). Uses the same segmented pill as
 // the release-type rows there, so it follows the settings theme tokens.
