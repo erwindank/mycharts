@@ -6,10 +6,6 @@ services:
     buildCommand: pip install -r requirements.txt
     startCommand: gunicorn app:app
     envVars:
-      - key: SUPABASE_URL
-        sync: false
-      - key: SUPABASE_KEY
-        sync: false
       - key: YOUTUBE_API_KEY
         sync: false
       - key: RESEND_API_KEY

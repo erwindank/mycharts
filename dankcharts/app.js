@@ -29390,7 +29390,8 @@ function _ytOnState(event) {
     if (!_ytScrobbled) {
       if (_ytScrobbleThreshold === '30s') {
         _ytScrobbleTimer = setTimeout(_ytScrobble, 30000);
-        _ytStartScrobbleRing();
+        // The countdown ring promises a scrobble — only show it when one can happen
+        if (_ytHasScrobbleDest()) _ytStartScrobbleRing();
       }
     }
     _ytStartSeekUpdate();
@@ -29486,6 +29487,13 @@ function _ytOnError(event) {
   }
 }
 
+// A YouTube play can only be saved where the charts read it back: Last.fm
+// (with scrobbling authorized) or the user's own Google Sheet.
+function _ytHasScrobbleDest() {
+  return !!(getScrobbleSession() && getScrobbleUser())
+      || !!(getSheetWriteUrl() && getDataSource() === 'sheets');
+}
+
 async function _ytScrobble() {
   if (!_ytCurrentTrack || _ytScrobbled) return;
   _ytScrobbled = true;
@@ -29494,7 +29502,18 @@ async function _ytScrobble() {
   const statusEl  = document.getElementById('ytMiniStatus');
   const hasLfm    = !!(getScrobbleSession() && getScrobbleUser());
   const hasSheet  = !!(getSheetWriteUrl() && getDataSource() === 'sheets');
-  const username  = getLastFmUser();
+  // Nowhere to save the play. This used to post it to the backend database,
+  // which nothing ever read, while the player claimed "✓ Scrobbled". Say so
+  // honestly instead and point at the setting that fixes it. _ytScrobbled
+  // stays true so the 50%/70% thresholds don't repeat this every tick.
+  if (!hasLfm && !hasSheet) {
+    _ytStopScrobbleRing();
+    if (statusEl) {
+      statusEl.innerHTML = `${esc(t('yt_scrobble_no_dest'))} <button class="yt-err-open-btn" onclick="openSourceModal()">${esc(t('yt_scrobble_connect'))}</button>`;
+      statusEl.className = 'yt-mini-status';
+    }
+    return;
+  }
   try {
     if (hasLfm) {
       const params = { method: 'track.scrobble', artist, track: title, timestamp: String(timestamp), sk: getScrobbleSession() };
@@ -29507,15 +29526,6 @@ async function _ytScrobble() {
       const res  = await fetch(getSheetWriteUrl(), { method: 'POST', body: JSON.stringify({ artist, track: title, album, timestamp }) });
       const data = await res.json();
       if (data.status === 'error') throw new Error(data.message || 'Script error');
-    } else if (username) {
-      const r = await fetch(`${BACKEND_API}/api/sync/rows/${encodeURIComponent(username)}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ rows: [{ artist, track: title, album: album || '', scrobbled_at: new Date(timestamp * 1000).toISOString() }] })
-      });
-      if (!r.ok) throw new Error('Backend error');
-    } else {
-      throw new Error('No scrobble destination');
     }
     if (statusEl) { statusEl.textContent = '✓ Scrobbled'; statusEl.className = 'yt-mini-status ok'; }
     _ytFlashScrobbleRing();

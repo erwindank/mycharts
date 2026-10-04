@@ -1,5 +1,4 @@
 from flask import Blueprint, jsonify, request, Response
-import datetime
 import io
 import csv
 import re
@@ -11,50 +10,6 @@ bp = Blueprint('sync', __name__, url_prefix='/api/sync')
 
 def api_error(message, status=400):
     return jsonify({'error': message}), status
-
-
-def get_or_create_user(db, username):
-    result = db.table('dc_users').select('id').eq('lastfm_username', username).execute()
-    if result.data:
-        return result.data[0]['id']
-    result = db.table('dc_users').insert({
-        'lastfm_username': username,
-        'last_seen_at': datetime.datetime.now(datetime.timezone.utc).isoformat(),
-    }).execute()
-    return result.data[0]['id']
-
-
-def insert_scrobbles(db, user_id, scrobbles):
-    """Insert scrobbles in batches, silently skipping duplicates."""
-    if not scrobbles:
-        return 0
-    seen_ts = set()
-    deduped = []
-    for s in scrobbles:
-        ts = s.get('scrobbled_at')
-        if ts and ts not in seen_ts:
-            seen_ts.add(ts)
-            deduped.append(s)
-
-    rows = [{'user_id': user_id, **s} for s in deduped]
-    total = 0
-    for i in range(0, len(rows), 500):
-        batch = rows[i:i + 500]
-        try:
-            db.table('dc_scrobbles').upsert(
-                batch,
-                on_conflict='user_id,scrobbled_at',
-                ignore_duplicates=True,
-            ).execute()
-            total += len(batch)
-        except Exception:
-            for row in batch:
-                try:
-                    db.table('dc_scrobbles').insert(row).execute()
-                    total += 1
-                except Exception:
-                    pass
-    return total
 
 
 # ── GOOGLE SHEETS ─────────────────────────────────────────────────
@@ -136,34 +91,3 @@ def sheets_proxy():
         return api_error(f'Could not fetch sheet ({e.response.status_code})', 502)
     except Exception as e:
         return api_error(f'Could not fetch sheet: {str(e)}', 502)
-
-
-# ── PRE-PARSED ROWS ───────────────────────────────────────────────
-
-@bp.route('/rows/<username>', methods=['POST'])
-def sync_rows(username):
-    from database import get_db
-
-    try:
-        body = request.get_json(silent=True) or {}
-        rows = body.get('rows', [])
-        if not isinstance(rows, list) or not rows:
-            return api_error('No rows provided')
-
-        scrobbles = []
-        for row in rows:
-            if not isinstance(row, dict):
-                continue
-            artist = str(row.get('artist', '') or '').strip()
-            track  = str(row.get('track',  '') or '').strip()
-            album  = str(row.get('album',  '') or '').strip()
-            ts     = str(row.get('scrobbled_at', '') or '').strip()
-            if artist and track and ts:
-                scrobbles.append({'artist': artist, 'album': album, 'track': track, 'scrobbled_at': ts})
-
-        db = get_db()
-        user_id = get_or_create_user(db, username)
-        count = insert_scrobbles(db, user_id, scrobbles)
-        return jsonify({'synced': count, 'total': len(scrobbles)})
-    except Exception as e:
-        return api_error(f'Server error: {str(e)}', 500)

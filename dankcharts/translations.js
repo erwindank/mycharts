@@ -2106,6 +2106,8 @@ const TRANSLATIONS = {
     np_first_time: '✦ First time',
     np_nth_play: '{{n}} play',        // {{n}} is a pre-formatted ordinal, e.g. "43rd"
     np_by_artist: '{{n}} by this artist',
+    yt_scrobble_no_dest: 'Not saved — nowhere to scrobble to.',
+    yt_scrobble_connect: 'Connect Last.fm →',
   },
 
   // ── SPANISH ───────────────────────────────────────────────────────────────────
@@ -4098,6 +4100,8 @@ const TRANSLATIONS = {
     np_first_time: '✦ Primera vez',
     np_nth_play: '{{n}} reproducción',
     np_by_artist: '{{n}} de este artista',
+    yt_scrobble_no_dest: 'No se guardó — no hay dónde hacer scrobble.',
+    yt_scrobble_connect: 'Conectar Last.fm →',
   },
 
   // ── PORTUGUESE — BRAZIL ───────────────────────────────────────────────────────
@@ -6091,6 +6095,8 @@ const TRANSLATIONS = {
     np_first_time: '✦ Primeira vez',
     np_nth_play: '{{n}} reprodução',
     np_by_artist: '{{n}} deste artista',
+    yt_scrobble_no_dest: 'Não salvo — não há onde fazer scrobble.',
+    yt_scrobble_connect: 'Conectar Last.fm →',
   },
 
   // ── PORTUGUESE — EUROPEAN ─────────────────────────────────────────────────────
@@ -8083,6 +8089,8 @@ const TRANSLATIONS = {
     np_first_time: '✦ Primeira vez',
     np_nth_play: '{{n}} reprodução',
     np_by_artist: '{{n}} deste artista',
+    yt_scrobble_no_dest: 'Não guardado — não há onde fazer scrobble.',
+    yt_scrobble_connect: 'Ligar o Last.fm →',
   },
 };
 
