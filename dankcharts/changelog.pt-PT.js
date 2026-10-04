@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['pt-PT'] = {
 
   /* ========== OUTUBRO 2026 ========== */
 
+  'Changing your timezone now updates everything at once':
+    ['Mudar o fuso horário agora atualiza tudo de uma vez',
+     'Depois de mudar o fuso horário, as listas de Músicas, Artistas e Álbuns novos podiam continuar a usar o anterior até recarregar a página, e com um CSV carregado as tabelas não eram redesenhadas. Agora tudo se atualiza assim que guarda. A Máquina do tempo também segue o fuso escolhido em vez do relógio do dispositivo.'],
+
   'Week start day moved to Settings':
     ['O dia de início da semana passou para as Definições',
      'O botão Dia inicial saiu do topo da página. Escolha o dia em que as suas tabelas semanais começam em Definições → Tops → Semana das tabelas. Aplica-se de imediato e a sua escolha atual mantém-se.'],

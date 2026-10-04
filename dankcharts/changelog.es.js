@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['es'] = {
 
   /* ========== OCTUBRE 2026 ========== */
 
+  'Changing your timezone now updates everything at once':
+    ['Cambiar la zona horaria ahora lo actualiza todo a la vez',
+     'Después de cambiar la zona horaria, las listas de Canciones, Artistas y Álbumes nuevos podían seguir usando la anterior hasta recargar la página, y con un CSV subido las listas no se volvían a dibujar. Ahora todo se actualiza en cuanto guardas. La Máquina del tiempo también sigue la zona horaria elegida en vez del reloj del dispositivo.'],
+
   'Week start day moved to Settings':
     ['El día de inicio de semana pasa a Ajustes',
      'El botón Día de inicio ya no está arriba de la página. Elige el día en que empiezan tus listas semanales en Ajustes → Rankings → Semana de las listas. Se aplica al instante y tu elección actual se mantiene.'],

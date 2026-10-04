@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 74;
+const DC_CL_I18N_V = 75;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,10 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+
+  { d: '2026-10-04', t: 'fix', a: 'charts', h: '9728d27',
+    title: 'Changing your timezone now updates everything at once',
+    detail: 'After changing your timezone, the New Songs, New Artists and New Albums lists could keep using the old one until you reloaded the page, and with a CSV upload the charts did not redraw at all. Everything now updates as soon as you save. Time Machine also follows your chosen timezone instead of your device clock.' },
 
   { d: '2026-10-04', t: 'change', a: 'settings', h: '09a158c',
     title: 'Week start day moved to Settings',
