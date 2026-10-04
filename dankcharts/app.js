@@ -12762,7 +12762,10 @@ function getDateRange() {
     const d = new Date(now.getFullYear(), now.getMonth() - currentOffset, 1);
     start = new Date(d.getFullYear(), d.getMonth(), 1);
     end = new Date(d.getFullYear(), d.getMonth() + 1, 0, 23, 59, 59, 999);
-    label = d.toLocaleString('default', { month: 'long', year: 'numeric' });
+    // Translated month name — toLocaleString('default') followed the browser's
+    // language, not the app's, so share images showed e.g. English months in Spanish
+    const monthLongKey = ['month_january', 'month_february', 'month_march', 'month_april', 'month_may', 'month_june', 'month_july', 'month_august', 'month_september', 'month_october', 'month_november', 'month_december'][d.getMonth()];
+    label = `${t(monthLongKey)} ${d.getFullYear()}`;
     sub = `${fmt(start)} – ${fmt(end)}`;
   } else {
     const yr = now.getFullYear() - currentOffset;
