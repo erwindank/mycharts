@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 71;
+const DC_CL_I18N_V = 72;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,10 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+
+  { d: '2026-10-03', t: 'fix', a: 'share', h: '9b1ce11',
+    title: 'Month names on chart share images follow your language',
+    detail: 'Share images of a monthly chart showed the month in your browser’s language instead of the one picked in dankcharts. They now use the site language.' },
 
   { d: '2026-10-03', t: 'feature', a: 'awards', h: 'a2f0f9c',
     title: 'New award: Best Song Heard in Concert',

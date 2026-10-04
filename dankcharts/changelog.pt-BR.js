@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['pt-BR'] = {
 
   /* ========== OUTUBRO 2026 ========== */
 
+  'Month names on chart share images follow your language':
+    ['Os meses nas imagens dos charts seguem seu idioma',
+     'As imagens de um chart mensal mostravam o mês no idioma do navegador em vez do escolhido no dankcharts. Agora usam o idioma do site.'],
+
   'New award: Best Song Heard in Concert':
     ['Novo prêmio: Melhor Música Ouvida em Show',
      'Uma categoria opcional do Meus Grammys para a música que mais te marcou ao vivo, num show que você foi naquele ano. Fica em Configurar ano, em Como você ouve.'],
