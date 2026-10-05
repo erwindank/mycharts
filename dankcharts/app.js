@@ -14277,7 +14277,7 @@ function renderPage(type, peaks) {
           <div class="song-artist">${esc(s.artist)}</div>
           <button class="yt-play-btn" data-title="${esc(s.title)}" data-artist="${esc(s.artist)}" data-album="${esc(s.album)}" onclick="event.stopPropagation();ytPlayFromBtn(this)" title="Play on YouTube"><span class="yt-btn-content"><svg class="yt-btn-icon" viewBox="0 0 24 24"><path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.5 12 3.5 12 3.5s-7.5 0-9.4.5A3 3 0 0 0 .5 6.2C0 8.1 0 12 0 12s0 3.9.5 5.8a3 3 0 0 0 2.1 2.1c1.9.5 9.4.5 9.4.5s7.5 0 9.4-.5a3 3 0 0 0 2.1-2.1C24 15.9 24 12 24 12s0-3.9-.5-5.8zM9.7 15.5V8.5l6.3 3.5-6.3 3.5z"/></svg>YouTube</span></button>${dcPlBtnHtml('song', s.title, s.artist, s.album)}
         </td>
-        <td class="meta-col"><div class="song-album">${esc(s.album)}${cumAlbumPlays ? certBadge(cumAlbumPlays, certKindFor(s.album, albumArtistOfSong(s))) : ''}</div></td>
+        <td class="meta-col"><div class="song-album">${s.album ? chartNameLink(s.album, 'openAlbumModal', s.album + '|||' + albumArtistOfSong(s)) : ''}${cumAlbumPlays ? certBadge(cumAlbumPlays, certKindFor(s.album, albumArtistOfSong(s))) : ''}</div></td>
         ${ms ? mMthsCell(k, 'songs', ms) : ''}
         <td>
           <div class="play-count">${tCountHtml('plays', s.count)}${ms ? deltaInline(s.count, k, 'songs', ms) : ''}</div>
@@ -17010,7 +17010,7 @@ function renderSongs(plays, peaks, monthlyStats) {
         <div class="song-artist">${chartArtistLinks(s.artist)}</div>
         <button class="yt-play-btn" data-title="${esc(s.title)}" data-artist="${esc(s.artist)}" data-album="${esc(s.album)}" onclick="event.stopPropagation();ytPlayFromBtn(this)" title="Play on YouTube"><span class="yt-btn-content"><svg class="yt-btn-icon" viewBox="0 0 24 24"><path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.5 12 3.5 12 3.5s-7.5 0-9.4.5A3 3 0 0 0 .5 6.2C0 8.1 0 12 0 12s0 3.9.5 5.8a3 3 0 0 0 2.1 2.1c1.9.5 9.4.5 9.4.5s7.5 0 9.4-.5a3 3 0 0 0 2.1-2.1C24 15.9 24 12 24 12s0-3.9-.5-5.8zM9.7 15.5V8.5l6.3 3.5-6.3 3.5z"/></svg>YouTube</span></button>${dcPlBtnHtml('song', s.title, s.artist, s.album)}
       </td>
-      <td class="meta-col"><div class="song-album">${esc(s.album)}${cumAlbumPlays ? certBadge(cumAlbumPlays, certKindFor(s.album, albumArtistOfSong(s))) : ''}</div></td>
+      <td class="meta-col"><div class="song-album">${s.album ? chartNameLink(s.album, 'openAlbumModal', s.album + '|||' + albumArtistOfSong(s)) : ''}${cumAlbumPlays ? certBadge(cumAlbumPlays, certKindFor(s.album, albumArtistOfSong(s))) : ''}</div></td>
       ${monthlyStats ? mMthsCell(k, 'songs', monthlyStats) : ''}
       <td>
         <div class="play-count">${tCountHtml('plays', s.count)}${monthlyStats ? deltaInline(s.count, k, 'songs', monthlyStats) : ''}</div>
