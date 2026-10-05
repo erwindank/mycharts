@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 79;
+const DC_CL_I18N_V = 80;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,14 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+
+  { d: '2026-10-04', t: 'feature', a: 'ratings', h: 'e0be351',
+    title: "You can rate an artist's albums straight from their page",
+    detail: 'In an artist\'s ratings section, clicking a rated album now opens its rating editor, and a new "Not rated yet" list shows the albums you have not scored, most played first, each ready to rate in one click. The small arrow on each row still opens the album page.' },
+
+  { d: '2026-10-04', t: 'fix', a: 'ratings', h: 'e0be351',
+    title: "Song names in your ratings keep their real capitalisation",
+    detail: 'Rated songs showed up all in lowercase in a few places, like the top rated songs on an artist\'s page, the song rating editor and the ratings library in the Graphs tab. They now appear exactly as they are spelled in your library.' },
 
   { d: '2026-10-04', t: 'feature', a: 'ratings', h: '71ed437',
     title: "Long song titles on the Grid score image can shrink to initials",

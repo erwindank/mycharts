@@ -16,6 +16,14 @@ window.DC_CHANGELOG_I18N['es'] = {
 
   /* ========== OCTUBRE 2026 ========== */
 
+  "You can rate an artist's albums straight from their page":
+    ['Puedes calificar los álbumes de un artista desde su página',
+     'En la sección de calificaciones de un artista, al hacer clic en un álbum calificado ahora se abre su editor, y una nueva lista "Sin calificar" muestra los álbumes que aún no tienen nota, los más escuchados primero, listos para calificar con un clic. La flechita de cada fila sigue abriendo la página del álbum.'],
+
+  "Song names in your ratings keep their real capitalisation":
+    ['Los nombres de canciones en tus calificaciones mantienen sus mayúsculas',
+     'Las canciones calificadas aparecían todo en minúsculas en algunos lugares, como las mejores canciones en la página de un artista, el editor de calificación y la biblioteca de calificaciones en la pestaña Gráficos. Ahora aparecen tal como están escritas en tu biblioteca.'],
+
   "Long song titles on the Grid score image can shrink to initials":
     ['Los títulos largos en la imagen Cuadrícula pueden quedar en iniciales',
      'El diseño Cuadrícula de la imagen de la nota del álbum tiene una nueva opción, "Acortar títulos largos a iniciales". Cualquier título demasiado largo para su fila se convierte en la primera letra de cada palabra, así "Nice To Meet You (feat. Lainey Wilson)" aparece como NTMY. Los títulos que ya caben se quedan igual.'],

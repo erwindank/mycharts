@@ -16,6 +16,14 @@ window.DC_CHANGELOG_I18N['pt-PT'] = {
 
   /* ========== OUTUBRO 2026 ========== */
 
+  "You can rate an artist's albums straight from their page":
+    ['Pode avaliar os álbuns de um artista diretamente na página dele',
+     'Na secção de avaliações de um artista, clicar num álbum avaliado abre agora o editor de avaliação, e uma nova lista "Ainda sem nota" mostra os álbuns que ainda não avaliou, os mais ouvidos primeiro, prontos a avaliar com um clique. A pequena seta em cada linha continua a abrir a página do álbum.'],
+
+  "Song names in your ratings keep their real capitalisation":
+    ['Os nomes das músicas nas suas avaliações mantêm as maiúsculas',
+     'As músicas avaliadas apareciam todas em minúsculas em alguns sítios, como as mais bem avaliadas na página de um artista, o editor de avaliação e a biblioteca de avaliações no separador Gráficos. Agora aparecem exatamente como estão escritas na sua biblioteca.'],
+
   "Long song titles on the Grid score image can shrink to initials":
     ['Os títulos longos na imagem em grelha podem passar a iniciais',
      'O design Grelha da imagem da nota do álbum tem uma nova opção, "Encurtar títulos longos para iniciais". Qualquer título demasiado longo para a linha passa a ser a primeira letra de cada palavra, por isso "Nice To Meet You (feat. Lainey Wilson)" aparece como NTMY. Os títulos que já cabem ficam iguais.'],
