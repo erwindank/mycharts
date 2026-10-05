@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['pt-PT'] = {
 
   /* ========== OUTUBRO 2026 ========== */
 
+  'You can share an album's score as an image":
+    ['Pode partilhar a nota de um álbum como imagem',
+     'Os álbuns avaliados têm agora um botão "Partilhar nota" ao lado de "Edit rating". Cria uma imagem do seu veredicto: a nota e o que significa, o seu comentário, a melhor e a pior faixa, os aspetos do álbum e a nota de cada faixa. Escolha entre três designs, todas as paletas de cores e tamanho publicação, retrato ou story, e depois copie, partilhe ou transfira.'],
+
   'YouTube plays no longer claim to be scrobbled when they were not saved':
     ['As reproduções do YouTube já não dizem que fizeram scrobble quando não foram guardadas',
      'Se tocasse uma música no leitor do YouTube sem o scrobbling do Last.fm ou uma folha do Google ligados, o leitor dizia "Scrobbled" mesmo que a reprodução nunca entrasse nos seus tops. Agora avisa que a reprodução não foi guardada, com uma ligação para ligar o Last.fm, e o anel de contagem só aparece quando a reprodução pode mesmo ser guardada.'],

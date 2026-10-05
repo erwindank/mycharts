@@ -80,6 +80,10 @@ const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
 
+  { d: '2026-10-04', t: 'feature', a: 'ratings', h: 'c2b1f9c',
+    title: "You can share an album's score as an image",
+    detail: 'Rated albums now have a "Share score" button next to "Edit rating". It makes a picture of your verdict: the score and what it means, your review note, the peak and weakest tracks, the album aspects and every track score. Pick from three designs, all the colour palettes and post, portrait or story size, then copy, share or download it.' },
+
   { d: '2026-10-04', t: 'fix', a: 'player', h: '196d4ad',
     title: 'YouTube plays no longer claim to be scrobbled when they were not saved',
     detail: 'If you play a song in the YouTube player without Last.fm scrobbling or a Google Sheet connected, the player used to say "Scrobbled" even though the play was never added to your charts. It now tells you the play was not saved, with a link to connect Last.fm, and the countdown ring only appears when the play can actually be saved.' },
