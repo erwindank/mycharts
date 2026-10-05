@@ -27,11 +27,11 @@
   <!-- html2canvas, SheetJS (xlsx) and JSZip are intentionally NOT loaded here — they
        total ~1.2 MB and are only needed for image exports and Excel/ZIP imports.
        app.js pulls them from the CDN on first use (see ensureLazyLib). -->
-  <link rel="stylesheet" href="style.css?v=335">
+  <link rel="stylesheet" href="style.css?v=336">
   <!-- All scripts are deferred so the page paints without waiting on them.
        defer preserves execution order, which matters: translations → Chart.js →
        hammer → zoom plugin → firebase SDKs → firebase.js → app.js (in body). -->
-  <script defer src="translations.js?v=51"></script>
+  <script defer src="translations.js?v=54"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8/hammer.min.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@1.2.1/dist/chartjs-plugin-zoom.min.js"></script>
@@ -3232,6 +3232,114 @@
     </div>
   </div>
 
+  <!-- ── Discography scores share image ──
+       Declared after #artistModal on purpose: every overlay shares one
+       z-index, so the later one in the DOM wins and this opens on top. -->
+  <div class="ig-modal-overlay" id="raCardModal">
+    <div class="ig-modal-box">
+      <div class="ig-modal-header">
+        <h3 id="raCardTitle" data-i18n="ra_card_title">Share Discography Scores</h3>
+        <button class="ig-modal-close" onclick="raCloseCard()" data-i18n="btn_close">✕ CLOSE</button>
+      </div>
+      <div class="ig-modal-body">
+        <div class="ig-preview-panel">
+          <div class="ig-preview-label" data-i18n="ig_preview_label">Preview</div>
+          <div class="ig-preview-frame" id="raCardFrame">
+            <div class="ig-preview-inner" id="raCardInner"></div>
+          </div>
+          <!-- Page arrows sit under the preview, where the page is seen. -->
+          <div class="ra-pager">
+            <button class="sh-seg-btn" id="raPagePrev" onclick="raGoPage(-1)" aria-label="Previous page">‹</button>
+            <span class="ra-pager-label" id="raPageLabel">—</span>
+            <button class="sh-seg-btn" id="raPageNext" onclick="raGoPage(1)" aria-label="Next page">›</button>
+          </div>
+        </div>
+        <div class="ig-controls-panel">
+          <!-- Design + palette chips are painted by shRenderDesignPickers('ra') -->
+          <div class="sh-group">
+            <div class="sh-group-title" data-i18n="sh_design">Design</div>
+            <div class="sh-tpl-row" id="raTemplateRow"></div>
+          </div>
+          <div class="sh-group">
+            <div class="sh-group-title" data-i18n="sh_palette">Palette</div>
+            <div class="sh-swatch-row" id="raPaletteRow"></div>
+          </div>
+          <div class="sh-group">
+            <div class="sh-group-title" data-i18n="ig_format">Format</div>
+            <div class="sh-seg" id="raFormatBtns">
+              <button class="sh-seg-btn" data-fmt="post" onclick="setRaFormat('post')" data-i18n="sh_fmt_post">Post 1:1</button>
+              <button class="sh-seg-btn" data-fmt="portrait" onclick="setRaFormat('portrait')" data-i18n="sh_fmt_portrait">Portrait 4:5</button>
+              <button class="sh-seg-btn active" data-fmt="story" onclick="setRaFormat('story')" data-i18n="sh_fmt_story">Story 9:16</button>
+            </div>
+            <div class="sh-hint rt-grid-hint" id="raHint"></div>
+          </div>
+          <div class="sh-group">
+            <div class="sh-group-title" data-i18n="ra_card_per_page">Albums per page</div>
+            <div class="sh-slider-row">
+              <input type="range" id="raPerPage" min="1" max="12" value="6" step="1" oninput="raUpdateCardPreview()">
+              <span class="sh-slider-val" id="raPerPageLabel">6</span>
+            </div>
+            <div class="sh-group-title" style="margin-top:0.6rem;" data-i18n="ra_card_order">Order</div>
+            <div class="sh-seg" id="raOrderBtns">
+              <button class="sh-seg-btn active" data-order="year" onclick="setRaOrder('year')" data-i18n="ra_card_order_year">Release year</button>
+              <button class="sh-seg-btn" data-order="first" onclick="setRaOrder('first')" data-i18n="ra_card_order_first">First played</button>
+              <button class="sh-seg-btn" data-order="score" onclick="setRaOrder('score')" data-i18n="ra_card_order_score">Score</button>
+            </div>
+          </div>
+          <div class="sh-group">
+            <div class="sh-group-title" data-i18n="rt_card_score_shown">Score shown</div>
+            <div class="sh-seg" id="raScoreModeBtns">
+              <button class="sh-seg-btn active" data-mode="album" onclick="setRaScoreMode('album')" data-i18n="rt_card_mode_album">Album score</button>
+              <button class="sh-seg-btn" data-mode="avg" onclick="setRaScoreMode('avg')" data-i18n="rt_card_mode_avg">Track average</button>
+              <button class="sh-seg-btn" data-mode="both" onclick="setRaScoreMode('both')" data-i18n="rt_card_mode_both">Both</button>
+            </div>
+            <div class="sh-hint" data-i18n="rt_card_score_shown_hint">Album score counts your album aspects too; track average is just the songs.</div>
+          </div>
+          <div class="sh-group">
+            <div class="sh-group-title" data-i18n="ra_card_include">Albums on the card</div>
+            <div class="ra-album-list" id="raAlbumList"></div>
+          </div>
+          <div class="sh-group">
+            <div class="sh-group-title" data-i18n="ig_show_hide">Show / Hide</div>
+            <label class="ig-ctrl-row"><input type="checkbox" id="raOpt_showArt" checked
+                onchange="raUpdateCardPreview()"><span data-i18n="ra_card_opt_photo">Artist photo</span></label>
+            <label class="ig-ctrl-row"><input type="checkbox" id="raOpt_showCovers" checked
+                onchange="raUpdateCardPreview()"><span data-i18n="ra_card_opt_covers">Album covers</span></label>
+            <label class="ig-ctrl-row"><input type="checkbox" id="raOpt_showSingles"
+                onchange="raUpdateCardPreview()"><span data-i18n="ra_card_opt_singles">Singles &amp; EPs</span></label>
+            <label class="ig-ctrl-row"><input type="checkbox" id="raOpt_showLegend" checked
+                onchange="raUpdateCardPreview()"><span data-i18n="ra_card_opt_legend">Colour key</span></label>
+            <label class="ig-ctrl-row"><input type="checkbox" id="raOpt_showFooter" checked
+                onchange="raUpdateCardPreview()"><span data-i18n="ig_footer_branding">Footer Branding</span></label>
+          </div>
+          <div class="sh-group">
+            <div class="sh-group-title" data-i18n="sh_text_size">Text size</div>
+            <div class="sh-slider-row">
+              <input type="range" id="raTextScale" min="80" max="130" value="100" step="2" oninput="raUpdateCardPreview()">
+              <span class="sh-slider-val" id="raTextScaleLabel">100%</span>
+            </div>
+          </div>
+          <div class="sh-group">
+            <div class="sh-group-title" data-i18n="sh_quality">Quality</div>
+            <div class="sh-seg" id="raQualityBtns">
+              <button class="sh-seg-btn" data-q="1" onclick="setRaQuality(1)" data-i18n="sh_quality_std">Standard</button>
+              <button class="sh-seg-btn active" data-q="2" onclick="setRaQuality(2)" data-i18n="sh_quality_high">High</button>
+            </div>
+            <div class="sh-hint" id="raQualityNote">2160 × 3840 px</div>
+          </div>
+        </div>
+      </div>
+      <div class="ig-modal-footer">
+        <button class="ig-modal-close" onclick="raCloseCard()" data-i18n="btn_cancel">Cancel</button>
+        <button class="ig-copy-btn" id="raCardCopyBtn" onclick="raCopyCard()">📋 Copy</button>
+        <button class="ig-copy-btn ig-share-native-btn" id="raCardShareBtn" onclick="raShareCard()">📤 Share</button>
+        <button class="ig-copy-btn" id="raCardAllBtn" onclick="raDownloadAllPages()" style="display:none" data-i18n="ra_card_download_all">↓ All pages</button>
+        <button class="ig-download-btn" id="raCardDownloadBtn" onclick="raDownloadCard()" data-i18n="btn_download_image">↓ Download Image</button>
+      </div>
+    </div>
+  </div>
+  <div id="raCardCanvas" style="position:fixed;left:-9999px;top:0;pointer-events:none;"></div>
+
   <button id="backToTop" data-i18n-title="tooltip_back_to_top" aria-label="Back to top">&#8679;</button>
 
   <!-- ── Edit Scrobble Modal ── -->
@@ -3424,7 +3532,7 @@
   <!-- defer keeps app.js last in the script execution order (after translations,
        Chart.js and firebase.js) while letting the whole page parse and paint first -->
   <script defer src="changelog.js?v=146"></script>
-  <script defer src="app.js?v=311"></script>
+  <script defer src="app.js?v=314"></script>
 
   <!-- ── Settings Modal ──
        Split into three tabs so the whole form is never dumped on screen at

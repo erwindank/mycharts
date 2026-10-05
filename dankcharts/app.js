@@ -21025,6 +21025,8 @@ const SH_SCOPES = {
   st: { templates: () => SH_ST_TEMPLATE_LIST, get: () => stCard, setTpl: 'setStTemplate', setPal: 'setStPalette' },
   // Album score card — lives with the ratings code (search "ALBUM SCORE SHARE CARD").
   rt: { templates: () => SH_RT_TEMPLATE_LIST, get: () => rtCard, setTpl: 'setRtTemplate', setPal: 'setRtPalette' },
+  // Discography scores card — lives with the ratings code (search "DISCOGRAPHY SCORE SHARE CARD").
+  ra: { templates: () => SH_RA_TEMPLATE_LIST, get: () => raCard, setTpl: 'setRaTemplate', setPal: 'setRaPalette' },
 };
 
 function shRenderDesignPickers(scope) {
@@ -48458,7 +48460,7 @@ function _rtTile(ctx, tr, num, w, h) {
   const rad = Math.round(Math.min(w, h) * 0.16);
   const corner = num ? `<span style="position:absolute;left:${Math.round(h * 0.1)}px;top:${Math.round(h * 0.07)}px;font-family:${SH_FONT.mono};font-size:${Math.max(9, Math.round(h * 0.17))}px;font-weight:600;line-height:1;color:${ink};opacity:0.72;">${num}</span>` : '';
   return `<div style="position:relative;width:${w}px;height:${h}px;border-radius:${rad}px;background:${fill};${has ? '' : `border:1px solid ${p.line};`}display:flex;align-items:center;justify-content:center;flex-shrink:0;box-sizing:border-box;">
-    ${corner}<span style="font-family:${SH_FONT.display};font-size:${Math.round(h * 0.42)}px;font-weight:800;line-height:1;color:${ink};">${has ? ratingFmt(tr.score) : '–'}</span>
+    ${corner}<span style="font-family:${SH_FONT.display};font-size:${Math.round(Math.min(h * 0.62, w * 0.29))}px;font-weight:800;line-height:1;color:${ink};">${has ? ratingFmt(tr.score) : '–'}</span>
   </div>`;
 }
 
@@ -48915,6 +48917,9 @@ function renderArtistRatingSection(artistName) {
       <div class="rt-block-meta">
         <div class="rt-block-verdict ${ratingBand(headline).cls}">${esc(ratingBand(headline).label)}</div>
         <div class="rt-block-sub">${sum.albumAvg != null ? 'Average across their rated albums' : 'Average across their rated songs'}</div>
+        ${sum.ratedAlbums ? `<div class="rt-btn-row">
+          <button class="rt-btn" onclick="raOpenCard(${esc(JSON.stringify(artistName))})">${esc(t('ra_card_btn'))}</button>
+        </div>` : ''}
       </div>
     </div>
     <div class="modal-stats-strip rt-insights">
@@ -48979,6 +48984,643 @@ function ratingArtistTogglePending() {
   _ratingArtistPendingAll = !_ratingArtistPendingAll;
   if (_ratingArtistOpen) renderArtistRatingSection(_ratingArtistOpen);
 }
+
+// ─── DISCOGRAPHY SCORE SHARE CARD ──────────────────────────────
+// The artist-wide version of the album Grid: one column per rated album (in
+// release order by default), one row per track number, every tile coloured by
+// its band, and each album's score along the bottom. A long discography splits
+// across pages — the user picks how many albums go on one — and each page can
+// be downloaded alone or all at once. Built on the same share-card system as
+// the album card (shShell / shCapture / palettes / formats), and it reads only
+// ratings + allPlays, so it works for Last.fm, Google Sheets and CSV alike.
+
+const raCard = {
+  template: 'stacked',
+  palette: 'app',
+  format: 'story',
+  textScale: 100,
+  quality: 2,
+  perPage: 6,
+  order: 'year',        // 'year' | 'first' | 'score'
+  scoreMode: 'album',   // what the bottom row and the headline show
+  showArt: true,        // artist photo
+  showCovers: true,     // album covers above each column
+  showLegend: true,
+  showFooter: true,
+  showSingles: false,   // singles and EPs get their own columns only when asked
+};
+const RA_CARD_KEYS = Object.keys(raCard);
+const RA_CARD_TOGGLES = ['showArt', 'showCovers', 'showLegend', 'showFooter', 'showSingles'];
+const RA_ORDERS = ['year', 'first', 'score'];
+const RA_PICKS_LS = 'dc_raPicks';         // artist → { albumKey: on/off } the user ticked by hand
+let _raArtist = null;
+let _raPage = 0;
+let _raLast = null;                        // context of the last render, for the fit pass
+const _raArtCache = {};                    // artist name → inlined photo, or null
+
+function raSaveCardSettings() {
+  try {
+    const out = {};
+    RA_CARD_KEYS.forEach(k => { out[k] = raCard[k]; });
+    localStorage.setItem('dc_raCardSettings', JSON.stringify(out));
+  } catch {}
+}
+
+function raLoadCardSettings() {
+  try {
+    const saved = JSON.parse(localStorage.getItem('dc_raCardSettings') || 'null');
+    if (saved && typeof saved === 'object') {
+      RA_CARD_KEYS.forEach(k => { if (saved[k] !== undefined) raCard[k] = saved[k]; });
+    }
+  } catch {}
+  // Drop values written by an older build.
+  if (!SH_RA_TEMPLATES[raCard.template]) raCard.template = 'stacked';
+  if (!SHARE_PALETTES.some(p => p.id === raCard.palette)) raCard.palette = 'app';
+  if (!SHARE_FORMATS[raCard.format]) raCard.format = 'story';
+  if (!RA_ORDERS.includes(raCard.order)) raCard.order = 'year';
+  if (!RT_SCORE_MODES.includes(raCard.scoreMode)) raCard.scoreMode = 'album';
+  raCard.perPage = Math.max(1, Math.min(12, parseInt(raCard.perPage) || 6));
+}
+
+// Albums the user ticked or unticked by hand for this artist. Anything not
+// in here follows the default (a.auto, see _raAlbums). Kept per artist across
+// visits, so a compilation left off once stays off.
+function _raPicks(artist) {
+  try {
+    const all = JSON.parse(localStorage.getItem(RA_PICKS_LS) || '{}') || {};
+    return (all[artist] && typeof all[artist] === 'object') ? all[artist] : {};
+  } catch { return {}; }
+}
+function _raSavePicks(artist, picks) {
+  try {
+    const all = JSON.parse(localStorage.getItem(RA_PICKS_LS) || '{}') || {};
+    if (Object.keys(picks).length) all[artist] = picks; else delete all[artist];
+    localStorage.setItem(RA_PICKS_LS, JSON.stringify(all));
+  } catch {}
+}
+function _raIsOn(a, picks) { return a.key in picks ? !!picks[a.key] : a.auto; }
+
+// Every rated album by the artist, with what the card sorts and labels it by:
+// release year (read from the awards year cache, which raPrefetch fills in the
+// background), first play, and the album's score.
+function _raAlbums(artist) {
+  const sum = ratingArtistSummary(artist);
+  const keys = new Set(sum.albums.map(a => a.key));
+  const first = {};
+  for (const p of allPlays) {
+    if (!p.album || p.album === '—') continue;
+    const k = albumKeyOf(p);
+    if (!keys.has(k)) continue;
+    const ms = tzMsOf(p);
+    if (first[k] == null || ms < first[k]) first[k] = ms;
+  }
+  return sum.albums.map(a => {
+    const [album, art] = a.key.split('|||');
+    const year = _awardsAlbumYearCache[album.toLowerCase() + '|||' + (art || '').toLowerCase()] || null;
+    // On the card by default only when it was rated as an album: its album
+    // aspects are scored, or a good share of its tracks are. A song rated once
+    // also counts for every edition it was scrobbled under ("1989 (Deluxe)",
+    // a karaoke release), which would otherwise each claim a column on the
+    // strength of one track.
+    const total = Math.max(1, _rtGridTracks(a.key).tracks.length);
+    const auto = ratingAlbumAspectScore(a.key) != null
+      || (a.ratedTracks >= Math.min(3, total) && a.ratedTracks / total >= 0.4);
+    return { key: a.key, name: album, artist: art, res: a, year, first: first[a.key] || 0,
+             single: _raIsSingle(a.key, album, art), auto, total };
+  });
+}
+
+// Singles and EPs would otherwise each take a column — a rated single shows up
+// in the library as its own one-track "album". A release counts as one when the
+// user marked it a single or EP, or when it has three tracks or fewer (the
+// official tracklist once fetched, the library's tracks until then). An album
+// the user pinned as an album by hand always stays an album.
+function _raIsSingle(key, album, artist) {
+  const type = releaseTypeOf(album, artist);
+  if (type === 'single' || type === 'ep') return true;
+  if (type === 'album' && releaseTypeSource(album, artist) === 'user') return false;
+  if (type !== 'album') return false;   // live / soundtrack are full releases
+  return _rtGridTracks(key).tracks.length <= 3;
+}
+
+// The albums a card can use under the current settings (before the checklist).
+function _raEligible(list, opts) {
+  return opts.showSingles ? list : list.filter(a => !a.single);
+}
+
+function _raSorted(list, order) {
+  const byFirst = (a, b) => a.first - b.first;
+  if (order === 'score') return list.sort((a, b) => (b.res.score - a.res.score) || byFirst(a, b));
+  if (order === 'first') return list.sort(byFirst);
+  // Release year. An album with no known year is placed by the year it was
+  // first played, which is usually close and never leaves it stranded at one end.
+  const yr = a => a.year || new Date(a.first).getFullYear();
+  return list.sort((a, b) => (yr(a) - yr(b)) || byFirst(a, b));
+}
+
+// Split into pages of at most perPage, balanced so 7 albums at 6 a page come
+// out 4 + 3 rather than 6 + 1 lonely column.
+function _raPages(albums, perPage) {
+  if (!albums.length) return [];
+  const pages = Math.ceil(albums.length / perPage);
+  const size = Math.ceil(albums.length / pages);
+  const out = [];
+  for (let i = 0; i < albums.length; i += size) out.push(albums.slice(i, i + size));
+  return out;
+}
+
+// ── Data prep ── everything a template needs, resolved once.
+function raCardContext(artist, opts) {
+  const picks = _raPicks(artist);
+  const all = _raSorted(_raAlbums(artist), opts.order);
+  const included = _raEligible(all, opts).filter(a => _raIsOn(a, picks));
+  const pages = _raPages(included, Math.max(1, opts.perPage || 6));
+  if (!pages.length) return null;
+  const page = Math.max(0, Math.min(_raPage, pages.length - 1));
+  const fmt = SHARE_FORMATS[opts.format] ? opts.format : 'story';
+  const d = shDims(fmt);
+  const art = _raArtCache[artist] || null;
+
+  const cols = pages[page].map(a => ({
+    ...a,
+    tracks: _rtGridTracks(a.key).tracks,
+    art: opts.showCovers ? (_rtCardArtCache[a.key] || null) : null,
+  }));
+
+  // The headline covers every album on the card (all pages), so each page of
+  // a split discography carries the same verdict. A song on two releases (the
+  // album and its deluxe) counts once.
+  const mean = arr => arr.length ? Math.round((arr.reduce((x, y) => x + y, 0) / arr.length) * 10) / 10 : null;
+  const songScores = new Map();
+  included.forEach(a => ratingAlbumTrackKeys(a.key).forEach(tr => {
+    const sc = ratingSongScore(tr.key);
+    if (sc != null) songScores.set(tr.key, sc);
+  }));
+
+  return {
+    artist, opts, fmt, W: d.w, H: d.h,
+    p: shPalette(opts.palette, shDominant(art)),
+    S: (opts.textScale || 100) / 100,
+    art: opts.showArt ? art : null,
+    cols, page, pageCount: pages.length,
+    albumCount: included.length,
+    albumAvg: mean(included.map(a => a.res.score)),
+    songAvg: mean([...songScores.values()]),
+    ratedSongs: songScores.size,
+  };
+}
+
+// The number(s) heading the card, per "Score shown".
+function _raHeadline(ctx) {
+  const mode = ctx.opts.scoreMode;
+  const albumAvg = ctx.albumAvg != null ? ctx.albumAvg : ctx.songAvg;
+  if (mode === 'avg')  return { main: ctx.songAvg != null ? ctx.songAvg : albumAvg, label: t('ra_card_song_avg') };
+  if (mode === 'both') return { main: albumAvg, label: t('ra_card_album_avg'), second: ctx.songAvg, secondLabel: t('ra_card_song_avg') };
+  return { main: albumAvg, label: t('ra_card_album_avg') };
+}
+
+// Big score + band + what it is. `align` is 'left' | 'right'.
+function _raScoreBlock(ctx, size, align) {
+  const p = ctx.p;
+  const s = v => _shS(ctx, v);
+  const hl = _raHeadline(ctx);
+  const band = ratingBand(hl.main);
+  return `<div style="flex-shrink:0;text-align:${align};">
+    <div style="font-family:${SH_FONT.display};font-size:${s(size)}px;font-weight:800;line-height:0.9;color:${_rtGridHex(p, hl.main)};">${ratingFmt(hl.main)}</div>
+    <div style="margin-top:${s(8)}px;font-family:${SH_FONT.mono};font-size:${s(17)}px;font-weight:700;letter-spacing:0.14em;color:${p.text};text-transform:uppercase;white-space:nowrap;">${esc(band ? band.label : '')}</div>
+    <div style="margin-top:${s(4)}px;font-family:${SH_FONT.mono};font-size:${s(15)}px;letter-spacing:0.1em;color:${p.dim};text-transform:uppercase;white-space:nowrap;">${esc(hl.label)}</div>
+    ${hl.second != null ? `<div style="margin-top:${s(10)}px;font-family:${SH_FONT.mono};font-size:${s(19)}px;color:${p.dim};white-space:nowrap;"><span style="font-weight:700;color:${_rtGridHex(p, hl.second)};">${ratingFmt(hl.second)}</span> ${esc(hl.secondLabel)}</div>` : ''}
+  </div>`;
+}
+
+function _raEyebrow(ctx) {
+  const pg = ctx.pageCount > 1 ? ' · ' + t('ra_card_page', { n: ctx.page + 1, total: ctx.pageCount }) : '';
+  return shEyebrow(ctx.p, 'dankcharts.fm · ' + t('ra_card_eyebrow') + pg, { size: _shS(ctx, 20) });
+}
+
+function _raSub(ctx) {
+  return `<div style="font-family:${SH_FONT.mono};font-size:${_shS(ctx, 16)}px;letter-spacing:0.08em;color:${ctx.p.dim};text-transform:uppercase;line-height:1.4;">${esc(t('ra_card_sub', { albums: ctx.albumCount, songs: ctx.ratedSongs }))}</div>`;
+}
+
+function _raName(ctx, size, lines) {
+  const fs = _shS(ctx, size);
+  return `<div style="font-family:${SH_FONT.display};font-size:${fs}px;font-weight:800;line-height:1.04;color:${ctx.p.text};${shClamp(lines || 2, fs, 1.04)}">${esc(ctx.artist)}</div>`;
+}
+
+// ── The grid ── sized after layout by _raFitGrid, like the album Grid.
+// Columns: label gutter, then one per album. Rows: the column heads (cover,
+// title, year), one per track number, then the score row(s).
+function _raGridHTML(ctx, W, H) {
+  const p = ctx.p, cols = ctx.cols, n = cols.length;
+  if (!n || W < 40 || H < 40) return '';
+  const R = Math.max(1, ...cols.map(c => c.tracks.length));
+  const both = ctx.opts.scoreMode === 'both';
+  const scoreRows = both ? 2 : 1;
+  const gap = Math.max(3, Math.round(Math.min(W, H) * 0.008));
+  const labelW = Math.round(Math.max(30, Math.min(58, W * 0.055)));
+  // Columns are capped so two or three albums don't become huge slabs.
+  const colW = Math.floor(Math.min(190, (W - labelW - gap * n) / n));
+  const titleFs = Math.round(Math.max(11, Math.min(_shS(ctx, 20), colW * 0.12)));
+  const scoreFs = Math.round(Math.max(13, Math.min(_shS(ctx, 40), colW * 0.26)));
+  const scoreRowH = Math.round(scoreFs * 1.55);
+
+  const layout = thumb => {
+    const headH = (thumb ? thumb + gap : 0) + Math.ceil(titleFs * 1.15 * 2) + Math.ceil(titleFs * 0.85 * 1.3) + gap;
+    const avail = H - headH - scoreRows * scoreRowH - gap * (R + scoreRows);
+    return Math.floor(Math.min(colW * 0.62, avail / R));
+  };
+  let thumb = ctx.opts.showCovers ? Math.round(Math.min(colW, 130, H * 0.15)) : 0;
+  let tileH = layout(thumb);
+  // A long album leaves little height per row — give it the covers' space
+  // first, and drop the covers altogether before tiles get unreadably thin.
+  if (thumb && tileH < 18) {
+    thumb = Math.max(0, thumb - (18 - tileH) * R);
+    if (thumb < 44) thumb = 0;
+    tileH = layout(thumb);
+  }
+  tileH = Math.max(8, tileH);
+
+  const rowFs = Math.max(9, Math.round(Math.min(tileH * 0.45, labelW * 0.42, _shS(ctx, 18))));
+  const label = (txt, h, fs) => `<div style="width:${labelW}px;height:${h}px;flex-shrink:0;display:flex;align-items:center;justify-content:flex-end;padding-right:${Math.round(gap * 1.5)}px;box-sizing:border-box;font-family:${SH_FONT.mono};font-size:${fs || rowFs}px;color:${p.dim};white-space:nowrap;">${txt}</div>`;
+  const row = (inner, h) => `<div style="display:flex;gap:${gap}px;height:${h}px;">${inner}</div>`;
+
+  const head = `<div style="display:flex;gap:${gap}px;align-items:flex-end;">
+    <div style="width:${labelW}px;flex-shrink:0;"></div>
+    ${cols.map(c => `<div style="width:${colW}px;flex-shrink:0;display:flex;flex-direction:column;align-items:center;gap:${gap}px;">
+      ${thumb ? shArt(p, c.art, thumb, { initials: initials(c.name), radius: Math.round(thumb * 0.08), shadow: false }) : ''}
+      <div style="width:${colW}px;text-align:center;font-family:${SH_FONT.sans};font-size:${titleFs}px;font-weight:700;line-height:1.15;color:${p.text};word-break:break-word;${shClamp(2, titleFs, 1.15)}">${esc(c.name)}</div>
+      <div style="height:${Math.ceil(titleFs * 0.85 * 1.3)}px;font-family:${SH_FONT.mono};font-size:${Math.round(titleFs * 0.85)}px;color:${p.dim};line-height:1.3;">${c.year || ''}</div>
+    </div>`).join('')}
+  </div>`;
+
+  const body = Array.from({ length: R }, (_, i) => row(
+    label(String(i + 1), tileH) + cols.map(c => c.tracks[i]
+      ? _rtTile(ctx, c.tracks[i], '', colW, tileH)
+      : `<div style="width:${colW}px;height:${tileH}px;flex-shrink:0;"></div>`).join(''),
+    tileH)).join('');
+
+  // Score rows: the number in its band colour over a short band-coloured bar,
+  // the way a season average sits under its column.
+  const scoreCell = v => `<div style="width:${colW}px;height:${scoreRowH}px;flex-shrink:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:${Math.max(2, Math.round(scoreFs * 0.12))}px;">
+    <span style="font-family:${SH_FONT.display};font-size:${scoreFs}px;font-weight:800;line-height:1;color:${v != null ? _rtGridHex(p, v) : p.dim};">${ratingFmt(v)}</span>
+    <span style="width:${Math.round(colW * 0.7)}px;height:${Math.max(3, Math.round(scoreFs * 0.12))}px;border-radius:2px;background:${v != null ? _rtGridHex(p, v) : 'transparent'};"></span>
+  </div>`;
+  // Sized to fit the gutter: mono glyphs are ~0.62em wide, and the label
+  // keeps the right padding every row label has. "Album" was clipped at 16px.
+  const labelFit = txt => Math.max(9, Math.min(_shS(ctx, 16), Math.floor((labelW - gap * 1.5 - 2) / (Math.max(1, String(txt).length) * 0.62))));
+  const labelFs = Math.min(labelFit(t('ra_row_album')), labelFit(t('ra_row_avg')));
+  const albumRow = row(label(esc(t('ra_row_album')), scoreRowH, labelFs) + cols.map(c => scoreCell(c.res.score)).join(''), scoreRowH);
+  const avgRow = row(label(esc(t('ra_row_avg')), scoreRowH, labelFs) + cols.map(c => scoreCell(c.res.trackAvg != null ? c.res.trackAvg : c.res.score)).join(''), scoreRowH);
+  const scores = ctx.opts.scoreMode === 'avg' ? avgRow : both ? albumRow + avgRow : albumRow;
+
+  return `<div style="display:flex;flex-direction:column;gap:${gap}px;width:${labelW + n * (colW + gap)}px;margin:0 auto;">
+    ${head}${body}<div style="height:${Math.round(gap * 0.5)}px;"></div>${scores}
+  </div>`;
+}
+
+function _raFitGrid(root) {
+  const host = root.querySelector('[data-ra-grid]');
+  if (!host || !_raLast) return;
+  host.innerHTML = _raGridHTML(_raLast, host.clientWidth, host.clientHeight);
+}
+
+// ── Templates ──
+const SH_RA_TEMPLATES = {
+
+  // STACKED — artist photo, name and headline across the top, colour key,
+  // then the grid filling the rest.
+  stacked(ctx) {
+    const p = ctx.p, opts = ctx.opts;
+    const s = v => _shS(ctx, v);
+    const padX = 56;
+    const photo = ctx.fmt === 'story' ? 170 : ctx.fmt === 'portrait' ? 136 : 112;
+    const allTracks = ctx.cols.flatMap(c => c.tracks);
+    return shShell(p, ctx.fmt, `
+      <div style="flex:1;min-height:0;padding:${shSafeTop(ctx.fmt)}px ${padX}px 0;display:flex;flex-direction:column;gap:${s(ctx.fmt === 'post' ? 14 : 22)}px;overflow:hidden;">
+        <div style="flex-shrink:0;">${_raEyebrow(ctx)}</div>
+        <div style="flex-shrink:0;display:flex;align-items:center;gap:${s(24)}px;">
+          ${opts.showArt ? shArt(p, ctx.art, photo, { initials: initials(ctx.artist), radius: Math.round(photo / 2) }) : ''}
+          <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:${s(10)}px;">
+            ${_raName(ctx, ctx.fmt === 'story' ? 54 : 46)}
+            ${_raSub(ctx)}
+          </div>
+          ${_raScoreBlock(ctx, ctx.fmt === 'story' ? 100 : ctx.fmt === 'portrait' ? 86 : 72, 'right')}
+        </div>
+        ${opts.showLegend ? _rtLegend(ctx, allTracks) : ''}
+        <div data-ra-grid style="flex:1;min-height:0;overflow:hidden;"></div>
+      </div>
+      ${shFooter(p, ctx.fmt, { show: opts.showFooter, padX })}`);
+  },
+
+  // SIDEBAR — the artist panel down the left (photo, score, name, key), the
+  // grid to its right. The look of a series-ratings chart.
+  sidebar(ctx) {
+    const p = ctx.p, opts = ctx.opts;
+    const s = v => _shS(ctx, v);
+    const padX = 48;
+    const sideW = ctx.fmt === 'post' ? 250 : 280;
+    const allTracks = ctx.cols.flatMap(c => c.tracks);
+    const photoH = ctx.fmt === 'story' ? 340 : ctx.fmt === 'portrait' ? 280 : 220;
+    // The key stacks one band per line in the narrow panel.
+    const legend = opts.showLegend ? `<div style="display:flex;flex-direction:column;gap:${s(7)}px;">${
+      RATING_BANDS.map(b => ({ label: b.label, col: _rtGridHex(p, b.min) }))
+        .concat(allTracks.some(tr => tr.score == null) ? [{ label: t('rt_card_unrated'), col: _shA(p.text, p.dark ? 0.22 : 0.18) }] : [])
+        .map(it => `<span style="display:flex;align-items:center;gap:${s(9)}px;">
+          <span style="width:${s(15)}px;height:${s(15)}px;border-radius:50%;background:${it.col};flex-shrink:0;"></span>
+          <span style="font-family:${SH_FONT.sans};font-size:${s(18)}px;font-weight:500;color:${p.dim};white-space:nowrap;">${esc(it.label)}</span>
+        </span>`).join('')}</div>` : '';
+    const photoBox = opts.showArt
+      ? (ctx.art
+        ? `<div style="width:${sideW}px;height:${photoH}px;border-radius:16px;overflow:hidden;flex-shrink:0;background:${p.panel};"><img src="${ctx.art}" width="${sideW}" height="${photoH}" style="width:${sideW}px;height:${photoH}px;object-fit:cover;display:block;"></div>`
+        : `<div style="width:${sideW}px;height:${photoH}px;border-radius:16px;flex-shrink:0;background:linear-gradient(145deg,${p.panel},${p.bg2});display:flex;align-items:center;justify-content:center;font-family:${SH_FONT.display};font-size:${Math.round(sideW * 0.3)}px;font-weight:700;color:${_shA(p.text, 0.35)};">${esc(initials(ctx.artist))}</div>`)
+      : '';
+    return shShell(p, ctx.fmt, `
+      <div style="flex:1;min-height:0;padding:${shSafeTop(ctx.fmt)}px ${padX}px 0;display:flex;flex-direction:column;gap:${s(18)}px;overflow:hidden;">
+        <div style="flex-shrink:0;">${_raEyebrow(ctx)}</div>
+        <div style="flex:1;min-height:0;display:flex;gap:${s(30)}px;">
+          <div style="width:${sideW}px;flex-shrink:0;display:flex;flex-direction:column;gap:${s(18)}px;overflow:hidden;">
+            ${photoBox}
+            ${_raScoreBlock(ctx, ctx.fmt === 'post' ? 64 : 80, 'left')}
+            ${_raName(ctx, ctx.fmt === 'post' ? 36 : 42, 3)}
+            ${_raSub(ctx)}
+            ${legend}
+          </div>
+          <div data-ra-grid style="flex:1;min-width:0;min-height:0;overflow:hidden;"></div>
+        </div>
+      </div>
+      ${shFooter(p, ctx.fmt, { show: opts.showFooter, padX })}`);
+  },
+};
+
+const SH_RA_TEMPLATE_LIST = [
+  { id: 'stacked', name: 'Stacked', glyph: '▤' },
+  { id: 'sidebar', name: 'Sidebar', glyph: '◫' },
+];
+
+function raBuildCardHTML(artist, opts) {
+  const ctx = raCardContext(artist, opts);
+  _raLast = ctx;
+  if (!ctx) return '';
+  const tpl = SH_RA_TEMPLATES[opts.template] || SH_RA_TEMPLATES.stacked;
+  return tpl(ctx);
+}
+
+// ── Background lookups ──
+// The artist photo, then for every album (the page on screen first): its
+// release year, cover and tracklist. Each finished album repaints the preview,
+// batched so a dozen lookups landing together paint once.
+let _raPrefetchToken = null;
+let _raRenderTimer = null;
+function _raScheduleRender() {
+  clearTimeout(_raRenderTimer);
+  _raRenderTimer = setTimeout(() => {
+    if (_raArtist && document.getElementById('raCardModal').classList.contains('open')) raRenderCardPreview();
+  }, 250);
+}
+
+async function raPrefetch(artist) {
+  const token = (_raPrefetchToken = {});   // a newer open supersedes this run
+  if (!(artist in _raArtCache)) {
+    _raArtCache[artist] = null;
+    try {
+      const url = await _igFetchArtWithFallback('artists', { name: artist }, 'deezer');
+      _raArtCache[artist] = await _crInlineArt(url);
+    } catch (e) {}
+    _raScheduleRender();
+  }
+  const ctx = _raLast;
+  const onPage = new Set(ctx && ctx.artist === artist ? ctx.cols.map(c => c.key) : []);
+  const albums = _raAlbums(artist).sort((a, b) => (onPage.has(b.key) ? 1 : 0) - (onPage.has(a.key) ? 1 : 0));
+  for (const a of albums) {
+    if (token !== _raPrefetchToken) return;
+    await rtPrefetchTracklist(a.key);
+    if (!raCard.showSingles && _raIsSingle(a.key, a.name, a.artist)) { _raScheduleRender(); continue; }
+    const fresh = _raAlbums(artist).find(x => x.key === a.key);
+    if (fresh && !_raIsOn(fresh, _raPicks(artist))) { _raScheduleRender(); continue; }
+    const jobs = [];
+    const yk = a.name.toLowerCase() + '|||' + (a.artist || '').toLowerCase();
+    if (!(yk in _awardsAlbumYearCache)) jobs.push(_awardsGetAlbumYear(a.name, a.artist || '').catch(() => null));
+    if (!(a.key in _rtCardArtCache)) {
+      _rtCardArtCache[a.key] = null;
+      jobs.push((async () => {
+        try {
+          const url = await _igFetchArtWithFallback('albums', { album: a.name, artist: a.artist }, 'deezer');
+          _rtCardArtCache[a.key] = await _crInlineArt(url);
+        } catch (e) {}
+      })());
+    }
+    await Promise.all(jobs);
+    _raScheduleRender();
+  }
+}
+
+// ── Modal ──
+function raOpenCard(artist) {
+  if (!artist || !ratingArtistSummary(artist).ratedAlbums) return;
+  _raArtist = artist;
+  _raPage = 0;
+  raLoadCardSettings();
+  shRenderDesignPickers('ra');
+  RA_CARD_TOGGLES.forEach(k => {
+    const el = document.getElementById('raOpt_' + k);
+    if (el) el.checked = raCard[k];
+  });
+  const pp = document.getElementById('raPerPage');
+  if (pp) pp.value = raCard.perPage;
+  const ts = document.getElementById('raTextScale');
+  if (ts) ts.value = raCard.textScale || 100;
+  document.getElementById('raCardTitle').textContent = t('ra_card_title') + ' — ' + artist.slice(0, 40);
+  document.getElementById('raCardModal').classList.add('open');
+  raUpdateCardPreview();
+  raPrefetch(artist);
+}
+
+function raCloseCard() {
+  document.getElementById('raCardModal').classList.remove('open');
+  document.getElementById('raCardCanvas').innerHTML = '';
+  _raPrefetchToken = null;
+}
+
+function setRaFormat(fmt) { raCard.format = fmt; shRenderDesignPickers('ra'); raSaveCardSettings(); raRenderCardPreview(); }
+function setRaTemplate(id) { raCard.template = id; shRenderDesignPickers('ra'); raSaveCardSettings(); raRenderCardPreview(); }
+function setRaPalette(id) { raCard.palette = id; shRenderDesignPickers('ra'); raSaveCardSettings(); raRenderCardPreview(); }
+function setRaQuality(q) { raCard.quality = q; shRenderDesignPickers('ra'); raSaveCardSettings(); raSyncControls(); }
+function setRaOrder(o) { if (RA_ORDERS.includes(o)) raCard.order = o; _raPage = 0; raSaveCardSettings(); raRenderCardPreview(); }
+function setRaScoreMode(m) { if (RT_SCORE_MODES.includes(m)) raCard.scoreMode = m; raSaveCardSettings(); raRenderCardPreview(); }
+function raGoPage(delta) { _raPage = Math.max(0, _raPage + delta); raRenderCardPreview(); }
+
+function raToggleAlbum(key, on) {
+  if (!_raArtist) return;
+  const picks = _raPicks(_raArtist);
+  const a = _raAlbums(_raArtist).find(x => x.key === key);
+  // Back to the default → forget the pick, so the default can still change
+  // later (more tracks rated) without a stale override pinning it.
+  if (a && a.auto === on) delete picks[key]; else picks[key] = on;
+  _raSavePicks(_raArtist, picks);
+  raRenderCardPreview();
+}
+
+function raUpdateCardPreview() {
+  const singlesBefore = raCard.showSingles;
+  RA_CARD_TOGGLES.forEach(k => {
+    const el = document.getElementById('raOpt_' + k);
+    if (el) raCard[k] = el.checked;
+  });
+  if (raCard.showSingles && !singlesBefore && _raArtist) raPrefetch(_raArtist);
+  const pp = document.getElementById('raPerPage');
+  if (pp) raCard.perPage = Math.max(1, Math.min(12, parseInt(pp.value) || 6));
+  const ts = document.getElementById('raTextScale');
+  if (ts) raCard.textScale = parseInt(ts.value) || 100;
+  raSaveCardSettings();
+  raRenderCardPreview();
+}
+
+// Same two-step render as the album card: lay the card out at full size in the
+// hidden export node, size the grid to the space it got, then mirror that
+// exact markup into the scaled preview.
+function raRenderCardPreview() {
+  if (!_raArtist) return;
+  const canvas = document.getElementById('raCardCanvas');
+  const html = raBuildCardHTML(_raArtist, raCard);
+  const d = shDims(raCard.format);
+  canvas.style.width = d.w + 'px';
+  canvas.style.height = d.h + 'px';
+  canvas.innerHTML = html;
+  if (html) _raFitGrid(canvas);
+  if (_raLast) _raPage = _raLast.page;
+  shFitPreview('raCardFrame', 'raCardInner', raCard.format, html ? canvas.innerHTML : '');
+  raSyncControls();
+  if (html) shPrepareShare('raCardCanvas', 'raCardShareBtn', _raShareOpts);
+}
+
+// Page nav, the album checklist, segment states and the hints.
+function raSyncControls() {
+  const ctx = _raLast;
+  const pages = ctx ? ctx.pageCount : 0;
+  const lbl = document.getElementById('raPageLabel');
+  if (lbl) lbl.textContent = pages ? t('ra_card_page', { n: ctx.page + 1, total: pages }) : '—';
+  const prev = document.getElementById('raPagePrev'), next = document.getElementById('raPageNext');
+  if (prev) prev.disabled = !ctx || ctx.page <= 0;
+  if (next) next.disabled = !ctx || ctx.page >= pages - 1;
+  const all = document.getElementById('raCardAllBtn');
+  if (all) all.style.display = pages > 1 ? '' : 'none';
+  const ppl = document.getElementById('raPerPageLabel');
+  if (ppl) ppl.textContent = raCard.perPage;
+  const tsl = document.getElementById('raTextScaleLabel');
+  if (tsl) tsl.textContent = (raCard.textScale || 100) + '%';
+  const q = document.getElementById('raQualityNote');
+  if (q) {
+    const d = shDims(raCard.format);
+    const m = Math.max(1, Math.min(2, raCard.quality || 2));
+    q.textContent = `${d.w * m} × ${d.h * m} px`;
+  }
+  document.querySelectorAll('#raOrderBtns .sh-seg-btn').forEach(b => b.classList.toggle('active', b.dataset.order === raCard.order));
+  document.querySelectorAll('#raScoreModeBtns .sh-seg-btn').forEach(b => b.classList.toggle('active', b.dataset.mode === raCard.scoreMode));
+
+  // Album checklist, in card order, so ticking reads top-to-bottom like the card.
+  const list = document.getElementById('raAlbumList');
+  if (list && _raArtist) {
+    const picks = _raPicks(_raArtist);
+    list.innerHTML = _raEligible(_raSorted(_raAlbums(_raArtist), raCard.order), raCard).map(a => {
+      const k = esc(JSON.stringify(a.key));
+      const meta = [a.year, t('ra_card_rated_of', { n: a.res.ratedTracks, total: a.total })].filter(Boolean).join(' · ');
+      return `<label class="ig-ctrl-row ra-album-row"><input type="checkbox" ${_raIsOn(a, picks) ? 'checked' : ''}
+          onchange="raToggleAlbum(${k}, this.checked)">
+        <span class="ra-album-name">${esc(a.name)}</span>
+        <span class="ra-album-meta">${esc(meta)}</span>${ratingChip(a.res.score)}</label>`;
+    }).join('');
+  }
+
+  const hint = document.getElementById('raHint');
+  if (hint) {
+    const lines = [];
+    if (!ctx) lines.push(esc(t('ra_card_none')));
+    else {
+      const longest = Math.max(...ctx.cols.map(c => c.tracks.length));
+      if (raCard.format !== 'story' && longest > (raCard.format === 'post' ? 12 : 16)) {
+        lines.push(`${esc(t('rt_card_grid_long', { n: longest }))} <button class="sh-link-btn" onclick="setRaFormat('story')">${esc(t('rt_card_grid_use_story'))}</button>`);
+      }
+      if (ctx.cols.length > (raCard.template === 'sidebar' ? 5 : 8)) lines.push(esc(t('ra_card_narrow')));
+    }
+    hint.innerHTML = lines.map(l => `<div>${l}</div>`).join('');
+  }
+}
+
+function _raShareOpts() {
+  return { format: raCard.format, quality: raCard.quality, fileName: _raFileName() };
+}
+
+function _raFileName(page) {
+  const slug = (_raArtist || 'artist').replace(/[^a-z0-9]+/gi, '-').replace(/^-|-$/g, '').slice(0, 40).toLowerCase() || 'artist';
+  const n = page != null ? page : (_raLast ? _raLast.page : 0);
+  const pg = _raLast && _raLast.pageCount > 1 ? `_p${n + 1}` : '';
+  return `dankcharts_discography_${slug}${pg}_${raCard.format}.png`;
+}
+
+async function _raDownloadCurrent() {
+  const cvs = await shCapture('raCardCanvas', raCard.format, raCard.quality);
+  const link = document.createElement('a');
+  link.download = _raFileName();
+  link.href = cvs.toDataURL('image/png');
+  link.click();
+}
+
+async function raDownloadCard() {
+  const btn = document.getElementById('raCardDownloadBtn');
+  const orig = btn.textContent;
+  btn.textContent = '⏳ …'; btn.disabled = true;
+  try { await _raDownloadCurrent(); } catch (e) { console.error('Discography card download failed', e); }
+  btn.textContent = orig; btn.disabled = false;
+}
+
+// Every page, one file each. Renders each page into the export node in turn,
+// then puts the page the user was looking at back.
+async function raDownloadAllPages() {
+  if (!_raLast || _raLast.pageCount < 2) { raDownloadCard(); return; }
+  const btn = document.getElementById('raCardAllBtn');
+  const orig = btn.textContent;
+  btn.disabled = true;
+  const keep = _raPage, total = _raLast.pageCount;
+  try {
+    for (let i = 0; i < total; i++) {
+      btn.textContent = `⏳ ${i + 1}/${total}`;
+      _raPage = i;
+      raRenderCardPreview();
+      await new Promise(r => setTimeout(r, 80));
+      await _raDownloadCurrent();
+      // A short pause between files — browsers drop rapid back-to-back downloads.
+      await new Promise(r => setTimeout(r, 350));
+    }
+  } catch (e) { console.error('Discography pages download failed', e); }
+  _raPage = keep;
+  raRenderCardPreview();
+  btn.textContent = orig; btn.disabled = false;
+}
+
+async function raCopyCard() {
+  if (!navigator.clipboard?.write) { raDownloadCard(); return; }
+  const btn = document.getElementById('raCardCopyBtn');
+  const orig = btn.textContent;
+  btn.textContent = '⏳…'; btn.disabled = true;
+  try {
+    const cvs = await shCapture('raCardCanvas', raCard.format, raCard.quality);
+    const blob = await shCanvasBlob(cvs);
+    await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
+    btn.textContent = '✓ Copied!';
+    setTimeout(() => { btn.textContent = orig; btn.disabled = false; }, 1800);
+  } catch (e) {
+    btn.textContent = orig; btn.disabled = false;
+    raDownloadCard();
+  }
+}
+
+function raShareCard() {
+  shShareNow('raCardCanvas', 'raCardShareBtn', _raShareOpts, raDownloadCard);
+}
+
+document.getElementById('raCardModal')?.addEventListener('click', e => {
+  if (e.target === document.getElementById('raCardModal')) raCloseCard();
+});
 
 // ─── RATINGS HOME — inside the Graphs tab ──────────────────────
 // The Graphs tab is where the whole rated library lives: the score

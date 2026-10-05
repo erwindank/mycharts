@@ -6758,6 +6758,34 @@
     }
     .rt-grid-hint > div + div { margin-top: 0.3rem; }
 
+    /* Discography scores card: page arrows under the preview, album checklist. */
+    .ra-pager {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.6rem;
+      margin-top: 0.6rem;
+    }
+    .ra-pager .sh-seg-btn { flex: 0 0 auto; min-width: 2.2rem; font-size: 0.85rem; }
+    .ra-pager .sh-seg-btn:disabled { opacity: 0.35; cursor: default; }
+    .ra-pager-label {
+      font-family: var(--font-mono);
+      font-size: 0.66rem;
+      letter-spacing: 0.06em;
+      color: var(--text2);
+      min-width: 6.5rem;
+      text-align: center;
+    }
+    .ra-album-list {
+      display: flex;
+      flex-direction: column;
+      max-height: 15rem;
+      overflow-y: auto;
+    }
+    .ra-album-row { gap: 0.5rem; }
+    .ra-album-name { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .ra-album-meta { flex: 0 0 auto; font-family: var(--font-mono); font-size: 0.62rem; color: var(--text3); }
+
     /* Inline text button inside a share hint ("Use 9:16"). */
     .sh-link-btn {
       padding: 0;
