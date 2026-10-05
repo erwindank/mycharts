@@ -34174,6 +34174,50 @@ body.red-light .modal-rank-card--year .mrc-rank {
     .rt-tt-plays { flex: 0 0 auto; font-size: 0.72rem; color: var(--text3); font-variant-numeric: tabular-nums; }
     .rt-tt-unrated { flex: 0 0 auto; font-size: 0.7rem; color: var(--text3); font-style: italic; }
 
+    /* Artist modal album rows: the row opens the rating editor, the arrow button opens the album. */
+    .rt-tt-editable:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+    .rt-tt-cta {
+      flex: 0 0 auto;
+      font-family: var(--font-mono);
+      font-size: 0.66rem;
+      letter-spacing: 0.06em;
+      color: var(--accent);
+      opacity: 0;
+      transition: opacity 0.12s ease;
+    }
+    .rt-tt-editable:hover .rt-tt-cta,
+    .rt-tt-editable:focus-visible .rt-tt-cta { opacity: 1; }
+    /* Touch screens have no hover, so the hint stays visible there. */
+    @media (hover: none) { .rt-tt-cta { opacity: 1; } }
+    .rt-tt-open {
+      flex: 0 0 auto;
+      width: 1.7rem;
+      height: 1.7rem;
+      border: 1px solid var(--border2);
+      border-radius: 6px;
+      background: transparent;
+      color: var(--text3);
+      font-size: 0.8rem;
+      line-height: 1;
+      cursor: pointer;
+    }
+    .rt-tt-open:hover { color: var(--accent); border-color: var(--accent); }
+    .rt-sub-count { margin-left: 0.3rem; color: var(--text3); font-weight: 400; }
+    .rt-tt-more {
+      align-self: flex-start;
+      margin-top: 0.45rem;
+      padding: 0.3rem 0.7rem;
+      border: 1px solid var(--border2);
+      border-radius: 999px;
+      background: transparent;
+      color: var(--text2);
+      font-family: var(--font-mono);
+      font-size: 0.66rem;
+      cursor: pointer;
+    }
+    .rt-tt-more:hover { color: var(--accent); border-color: var(--accent); }
+    .rt-block--pending { margin-top: 0.6rem; }
+
     /* ═══ RATING EDITOR MODAL ═══════════════════════════════════ */
     .rt-modal-box { max-width: 720px; }
 

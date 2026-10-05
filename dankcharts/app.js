@@ -47160,7 +47160,7 @@ function ratingAlbumEntry(key) { return _ratings.albums[key] || null; }
    in place; the only in-place edits are sorts, and none of these aggregations
    depend on play order. The cached objects are shared, not copied, so callers
    must treat them as read-only (every current one does).                       */
-const _rtMemo = { plays: null, len: -1, tracks: new Map(), artistKeys: new Map(), album: new Map(), artist: new Map() };
+const _rtMemo = { plays: null, len: -1, tracks: new Map(), artistKeys: new Map(), album: new Map(), artist: new Map(), songNames: null };
 
 // Drop the scores. Called whenever a rating or the rubric config changes.
 // The tracklists and artist key sets are left alone: they come from the library
@@ -47180,10 +47180,31 @@ function _rtMemoFresh() {
     ratingMemoInvalidate();
     _rtMemo.tracks.clear();
     _rtMemo.artistKeys.clear();
+    _rtMemo.songNames = null;
     _rtMemo.plays = plays;
     _rtMemo.len   = len;
   }
   return _rtMemo;
+}
+
+// A song key is lowercased ("opalite|||taylor swift") so differently-cased
+// scrobbles of one song share a score, which makes it useless for display.
+// This gives the song's title and artist as the library actually spells them
+// (first play wins), falling back to the key itself for a song that has been
+// rated but is no longer in the library.
+function ratingSongNames(key) {
+  const memo = _rtMemoFresh();
+  if (!memo.songNames) {
+    memo.songNames = new Map();
+    for (const p of (allPlays || [])) {
+      const k = songKey(p);
+      if (!memo.songNames.has(k)) memo.songNames.set(k, { title: p.title, artist: p.artist });
+    }
+  }
+  const hit = memo.songNames.get(key);
+  if (hit) return hit;
+  const [title, artist] = String(key || '').split('|||');
+  return { title: title || '', artist: artist || '' };
 }
 
 // A song's total. Quick mode is the gut score as typed. Detailed mode is the
@@ -47351,7 +47372,7 @@ function _ratingArtistSummaryCalc(artistName) {
 
   const songs = [...songKeys].map(k => {
     const s = ratingSongScore(k);
-    return s == null ? null : { key: k, title: k.split('|||')[0], score: s };
+    return s == null ? null : { key: k, title: ratingSongNames(k).title, score: s };
   }).filter(Boolean).sort((a, b) => b.score - a.score);
 
   const avg = arr => arr.length ? Math.round((arr.reduce((a, b) => a + b.score, 0) / arr.length) * 10) / 10 : null;
@@ -47543,7 +47564,7 @@ function renderRatingModal() {
 function _ratingSongEditorHTML(view) {
   const key = view.key;
   const e = _ratingEnsureEntry('song', key);
-  const [title, artist] = key.split('|||');
+  const { title, artist } = ratingSongNames(key);
   const quick = e.m === 'quick';
   const score = ratingSongScore(key);
 
@@ -48768,16 +48789,18 @@ function renderArtistRatingSection(artistName) {
   const el = document.getElementById('modalArtistRating');
   if (!el || !artistName) return;
   _ratingArtistOpen = artistName;
+  if (_ratingArtistPendingFor !== artistName) { _ratingArtistPendingFor = artistName; _ratingArtistPendingAll = false; }
   const sum = ratingArtistSummary(artistName);
+  const pending = _ratingArtistPendingHTML(artistName);
 
   if (!sum.ratedAlbums && !sum.ratedSongs) {
     el.innerHTML = `<div class="rt-block rt-block--empty">
       ${ratingRing(null)}
       <div class="rt-empty-copy">
         <div class="rt-empty-title">Nothing rated for this artist yet</div>
-        <div class="rt-empty-sub">Open one of their albums or songs below to start scoring — the average lands back here.</div>
+        <div class="rt-empty-sub">Pick one of their albums below to start scoring — the average lands back here.</div>
       </div>
-    </div>`;
+    </div>${pending ? `<div class="rt-block rt-block--pending">${pending}</div>` : ''}`;
     return;
   }
 
@@ -48788,11 +48811,8 @@ function renderArtistRatingSection(artistName) {
 
   const albumList = sum.albums.length ? `<div class="rt-sub-label">Rated albums</div>
     <div class="rt-tracktable">
-      ${sum.albums.map(a => `<button class="rt-tracktable-row" onclick="openAlbumModal(${esc(JSON.stringify(a.key))})">
-        <span class="rt-tt-title">${esc(a.name)}</span>
-        <span class="rt-tt-plays">${a.ratedTracks}/${a.totalTracks} tracks rated</span>
-        ${ratingChip(a.score)}
-      </button>`).join('')}
+      ${sum.albums.map(a => _ratingArtistAlbumRow(a.key, a.name,
+        `<span class="rt-tt-plays">${a.ratedTracks}/${a.totalTracks} tracks rated</span>${ratingChip(a.score)}`, 'Edit')).join('')}
     </div>` : '';
 
   const songList = sum.songs.length ? `<div class="rt-sub-label">Top rated songs</div>
@@ -48817,8 +48837,59 @@ function renderArtistRatingSection(artistName) {
       <div class="modal-stat"><div class="se">🎵</div><div class="sv">${sum.ratedSongs}/${sum.totalSongs}</div><div class="sl">Songs rated</div></div>
     </div>
     ${albumList}
+    ${pending}
     ${songList}
   </div>`;
+}
+
+// One album row in the artist modal. The row itself opens the rating editor;
+// the small ↗ button beside it still goes to the album's page. A div with
+// role=button rather than a <button>, because a button can't contain another.
+function _ratingArtistAlbumRow(key, name, meta, cta) {
+  const k = esc(JSON.stringify(key));
+  return `<div class="rt-tracktable-row rt-tt-editable" role="button" tabindex="0"
+      onclick="openRatingModal('album', ${k})"
+      onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openRatingModal('album', ${k});}">
+    <span class="rt-tt-title">${esc(name)}</span>
+    ${meta}
+    <span class="rt-tt-cta">${esc(cta)}</span>
+    <button class="rt-tt-open" title="Open album page" aria-label="Open album page"
+      onclick="event.stopPropagation();openAlbumModal(${k})">↗</button>
+  </div>`;
+}
+
+// Albums by this artist that have no score yet, most played first. The first
+// few show straight away; the rest sit behind "Show all" so an artist with a
+// hundred releases doesn't bury the rest of the modal.
+let _ratingArtistPendingFor = null;
+let _ratingArtistPendingAll = false;
+const RT_ARTIST_PENDING_SHOWN = 6;
+
+function _ratingArtistPendingHTML(artistName) {
+  const { albumKeys } = _ratingArtistKeys(artistName);
+  const plays = {};
+  for (const p of allPlays) {
+    if (!p.artists.includes(artistName) || !p.album || p.album === '—') continue;
+    const k = albumKeyOf(p);
+    if (albumKeys.has(k)) plays[k] = (plays[k] || 0) + 1;
+  }
+  const list = [...albumKeys].filter(k => !ratingAlbumScore(k))
+    .sort((a, b) => (plays[b] || 0) - (plays[a] || 0));
+  if (!list.length) return '';
+  const shown = _ratingArtistPendingAll ? list : list.slice(0, RT_ARTIST_PENDING_SHOWN);
+  const more = list.length - shown.length;
+  return `<div class="rt-sub-label">Not rated yet <span class="rt-sub-count">${list.length}</span></div>
+    <div class="rt-tracktable">
+      ${shown.map(k => _ratingArtistAlbumRow(k, k.split('|||')[0],
+        `<span class="rt-tt-plays">${plays[k] || 0} ${tUnit('plays', plays[k] || 0)}</span>`, 'Rate →')).join('')}
+    </div>
+    ${list.length > RT_ARTIST_PENDING_SHOWN ? `<button class="rt-tt-more" onclick="ratingArtistTogglePending()">${
+      more ? `Show all ${list.length}` : 'Show fewer'}</button>` : ''}`;
+}
+
+function ratingArtistTogglePending() {
+  _ratingArtistPendingAll = !_ratingArtistPendingAll;
+  if (_ratingArtistOpen) renderArtistRatingSection(_ratingArtistOpen);
 }
 
 // ─── RATINGS HOME — inside the Graphs tab ──────────────────────
@@ -48855,7 +48926,7 @@ function _ratingsAllRatedSongs() {
   return Object.keys(_ratings.songs).map(k => {
     const s = ratingSongScore(k);
     if (s == null) return null;
-    const [name, artist] = k.split('|||');
+    const { title: name, artist } = ratingSongNames(k);
     return { key: k, kind: 'song', name, artist, score: s, plays: plays[k] || 0,
              ts: _ratings.songs[k]?.ts || 0, mode: _ratings.songs[k]?.m || 'detailed' };
   }).filter(Boolean);
@@ -48917,7 +48988,7 @@ function _ratingsUnratedHTML() {
     return `<div class="rt-empty">Everything you play often has a score. Impressive.</div>`;
   }
   const row = (k, n, kind) => {
-    const [name, artist] = k.split('|||');
+    const { title: name, artist } = kind === 'song' ? ratingSongNames(k) : { title: k.split('|||')[0], artist: k.split('|||')[1] };
     return `<button class="rt-unrated-row" onclick="openRatingModal('${kind}', ${esc(JSON.stringify(k))})">
       <span class="rt-unrated-name">${esc(name)}<span class="rt-unrated-artist">${esc(artist)}</span></span>
       <span class="rt-unrated-plays">${n} ${tUnit('plays', n)}</span>
