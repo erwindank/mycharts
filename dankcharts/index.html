@@ -31,7 +31,7 @@
   <!-- All scripts are deferred so the page paints without waiting on them.
        defer preserves execution order, which matters: translations → Chart.js →
        hammer → zoom plugin → firebase SDKs → firebase.js → app.js (in body). -->
-  <script defer src="translations.js?v=49"></script>
+  <script defer src="translations.js?v=50"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8/hammer.min.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@1.2.1/dist/chartjs-plugin-zoom.min.js"></script>
@@ -3139,6 +3139,8 @@
                 onchange="rtUpdateCardPreview()"><span data-i18n="ig_footer_branding">Footer Branding</span></label>
             <label class="ig-ctrl-row" data-rt-grid-only style="display:none"><input type="checkbox" id="rtOpt_gridTitles" checked
                 onchange="rtUpdateCardPreview()"><span data-i18n="rt_card_opt_titles">Song titles</span></label>
+            <label class="ig-ctrl-row" data-rt-grid-only style="display:none"><input type="checkbox" id="rtOpt_gridAcronyms"
+                onchange="rtUpdateCardPreview()"><span data-i18n="rt_card_opt_acronyms">Shorten long titles to initials</span></label>
           </div>
           <!-- Grid design only: which number heads the card. -->
           <div class="sh-group" data-rt-grid-only style="display:none">
@@ -3422,7 +3424,7 @@
   <!-- defer keeps app.js last in the script execution order (after translations,
        Chart.js and firebase.js) while letting the whole page parse and paint first -->
   <script defer src="changelog.js?v=142"></script>
-  <script defer src="app.js?v=306"></script>
+  <script defer src="app.js?v=308"></script>
 
   <!-- ── Settings Modal ──
        Split into three tabs so the whole form is never dumped on screen at

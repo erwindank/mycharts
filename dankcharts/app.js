@@ -47985,10 +47985,11 @@ const rtCard = {
   // Grid design only: song titles beside the tiles, and which number heads
   // the card — the real album score, the plain track average, or both.
   gridTitles: true,
+  gridAcronyms: false,   // titles too long for their row become initials
   scoreMode: 'album',
 };
 const RT_CARD_KEYS = Object.keys(rtCard);
-const RT_CARD_TOGGLES = ['showArt', 'showInsights', 'showAspects', 'showNote', 'showTracks', 'showFooter', 'gridTitles'];
+const RT_CARD_TOGGLES = ['showArt', 'showInsights', 'showAspects', 'showNote', 'showTracks', 'showFooter', 'gridTitles', 'gridAcronyms'];
 const RT_SCORE_MODES = ['album', 'avg', 'both'];
 let _rtCardAlbum = null;        // albumKey of the card being built
 const _rtCardArtCache = {};     // albumKey → inlined cover (data URL) or null
@@ -48372,22 +48373,21 @@ function _rtGridTileLayout(n, W, H, gap) {
 // Tiles with titles: 1–3 columns of "tile · number · title" rows. Rejects a
 // layout whose rows would be too thin to read or whose title column would be
 // cramped — the caller then falls back to tiles only.
-function _rtGridTitledLayout(n, W, H, gap) {
+function _rtGridTitledLayout(n, W, H, gap, minChars) {
   let best = null;
   for (let c = 1; c <= 3; c++) {
     const r = Math.ceil(n / c);
     const colGap = gap * 3;
     const cellW = (W - (c - 1) * colGap) / c;
-    const h = Math.min(90, (H - (r - 1) * gap) / r);
-    const w = h * 1.55;
+    let h = Math.min(90, (H - (r - 1) * gap) / r);
+    // A row is tile (1.55h) + two inner gaps (0.44h) + track number (1.5 × fs)
+    // + title, with fs = 0.44h as _rtGridHTML sets it. Leave the title room
+    // for about `minChars` × fs (≈ twice that many letters): if the tallest
+    // rows wouldn't, shrink them until they do, rather than dropping the
+    // column count — so more columns only win when titles still read.
+    h = Math.min(h, cellW / (1.55 + 0.44 + 0.66 + 0.44 * minChars));
     if (h < 26) continue;
-    // Room left for the title after the tile and the track number must hold
-    // roughly 15 characters at the size the row would set it — otherwise more
-    // columns only buy bigger tiles with titles cut to a few letters.
-    const fs = h * 0.36;
-    const titleW = cellW - w - h * 0.44 - fs * 1.5;
-    if (titleW < fs * 8) continue;
-    if (!best || h > best.h + 0.5) best = { c, r, colGap, cellW: Math.floor(cellW), w: Math.floor(w), h: Math.floor(h) };
+    if (!best || h > best.h + 0.5) best = { c, r, colGap, cellW: Math.floor(cellW), w: Math.floor(h * 1.55), h: Math.floor(h) };
   }
   return best;
 }
@@ -48400,7 +48400,9 @@ function _rtGridHTML(ctx, tracks, W, H) {
   const n = tracks.length;
   if (!n || W < 20 || H < 20) return '';
   const gap = Math.max(4, Math.round(Math.min(W, H) * 0.011));
-  const L = ctx.opts.gridTitles ? _rtGridTitledLayout(n, W, H, gap) : null;
+  // With "shorten to initials" on, a cramped title costs nothing (it becomes
+  // its initials), so rows can be taller in more columns.
+  const L = ctx.opts.gridTitles ? _rtGridTitledLayout(n, W, H, gap, ctx.opts.gridAcronyms ? 5 : 10) : null;
 
   if (L) {
     // Columns read top-to-bottom, like a printed tracklist.
@@ -48411,7 +48413,7 @@ function _rtGridHTML(ctx, tracks, W, H) {
       <div style="display:flex;align-items:center;gap:${Math.round(L.h * 0.22)}px;height:${L.h}px;">
         ${_rtTile(ctx, tr, '', L.w, L.h)}
         <span style="flex-shrink:0;width:${Math.round(fs * 1.5)}px;font-family:${SH_FONT.mono};font-size:${Math.round(fs * 0.78)}px;color:${p.dim};">${String(i + 1).padStart(2, '0')}</span>
-        <span style="flex:1;min-width:0;font-family:${SH_FONT.sans};font-size:${fs}px;font-weight:600;line-height:1.2;color:${tr.score != null ? p.text : p.dim};white-space:nowrap;overflow:hidden;">${esc(tr.title)}</span>
+        <span style="flex:1;min-width:0;font-family:${SH_FONT.sans};font-size:${fs}px;font-weight:600;line-height:1.2;color:${tr.score != null ? p.text : p.dim};white-space:nowrap;overflow:hidden;" data-rt-title>${esc(tr.title)}</span>
       </div>`).join('')}</div>`).join('')}</div>`;
   }
 
@@ -48426,6 +48428,25 @@ function _rtFitGrid(root) {
   const host = root.querySelector('[data-rt-grid]');
   if (!host || !_rtGridLast) return;
   host.innerHTML = _rtGridHTML(_rtGridLast.ctx, _rtGridLast.tracks, host.clientWidth, host.clientHeight);
+  // "Shorten long titles": now that the rows are laid out, any title wider
+  // than its space is swapped for its initials — measured, not guessed, so
+  // titles that already fit are left alone.
+  if (_rtGridLast.ctx.opts.gridAcronyms) {
+    host.querySelectorAll('[data-rt-title]').forEach(el => {
+      if (el.scrollWidth > el.clientWidth + 1) el.textContent = _rtAcronym(el.textContent);
+    });
+  }
+}
+
+// "Nice To Meet You (feat. Lainey Wilson)" → "NTMY". The bracketed/dashed
+// version part is dropped first (it would only add letters nobody can read
+// back), then each word gives its first letter or digit — "'Till" gives T.
+function _rtAcronym(title) {
+  const plain = _cerPlainTitle(title) || String(title || '');
+  const out = plain.split(/[\s\-–—\/]+/)
+    .map(w => (w.match(/[\p{L}\p{N}]/u) || [''])[0])
+    .join('').toUpperCase();
+  return out || title;
 }
 
 // ── Templates ──
