@@ -1805,6 +1805,7 @@ const TRANSLATIONS = {
     tooltip_cr_all_time_range: 'Every chart appearance across your entire scrobble history',
     tooltip_cr_toggle_btn_song: 'View chart run history — see how this song has ranked over time',
     tooltip_cr_toggle_btn_artist: 'View chart run history — see how this artist has ranked over time',
+    tooltip_artist_songs_rank: 'See which of their songs you played most in this period',
     tooltip_cr_toggle_btn_album: 'View chart run history — see how this album has ranked over time',
 
     // Entry post description strings
@@ -3831,6 +3832,7 @@ const TRANSLATIONS = {
     tooltip_cr_all_time_range: 'Todas las apariciones en el ranking a lo largo de todo tu historial de scrobbles',
     tooltip_cr_toggle_btn_song: 'Ver historial del Recorrido en el Ranking — Cómo ha ido escalando posiciones esta canción',
     tooltip_cr_toggle_btn_artist: 'Ver historial del Recorrido en el Ranking — Cómo ha ido escalando posiciones este artista',
+    tooltip_artist_songs_rank: 'Mira cuáles de sus canciones escuchaste más en este período',
     tooltip_cr_toggle_btn_album: 'Ver historial del Recorrido en el Ranking — Cómo ha ido escalando posiciones este álbum',
 
     // Entry post description strings
@@ -5853,6 +5855,7 @@ const TRANSLATIONS = {
     tooltip_cr_all_time_range: 'Todas as aparições na parada ao longo de todo o seu histórico de scrobbles',
     tooltip_cr_toggle_btn_song: 'Ver histórico da trajetória na parada — veja como esta música foi se posicionando ao longo do tempo',
     tooltip_cr_toggle_btn_artist: 'Ver histórico da trajetória na parada — veja como este artista foi se posicionando ao longo do tempo',
+    tooltip_artist_songs_rank: 'Veja quais músicas desse artista você mais ouviu neste período',
     tooltip_cr_toggle_btn_album: 'Ver histórico da trajetória na parada — veja como este álbum foi se posicionando ao longo do tempo',
 
     // Entry post description strings
@@ -7874,6 +7877,7 @@ const TRANSLATIONS = {
     tooltip_cr_all_time_range: 'Todas as aparições no top ao longo de todo o seu histórico de scrobbles',
     tooltip_cr_toggle_btn_song: 'Ver histórico da trajetória no top — veja como esta música foi classificada ao longo do tempo',
     tooltip_cr_toggle_btn_artist: 'Ver histórico da trajetória no top — veja como este artista foi classificado ao longo do tempo',
+    tooltip_artist_songs_rank: 'Veja quais as músicas deste artista que mais ouviu neste período',
     tooltip_cr_toggle_btn_album: 'Ver histórico da trajetória no top — veja como este álbum foi classificado ao longo do tempo',
 
     // Entry post description strings

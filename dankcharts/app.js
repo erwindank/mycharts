@@ -14309,8 +14309,8 @@ function renderPage(type, peaks) {
         <td class="rank-cell">${rank}</td>
         ${ms ? mPrevCell(rank, a.name, 'artists', ms) : ''}
         <td class="thumb-cell"><div class="thumb-wrap"><div id="${imgId}"><div class="thumb-initials">${esc(initials(a.name))}</div></div><button id="srcbtn-${imgId}" class="img-src-btn" data-imgid="${imgId}" data-type="artist" data-prefkey="${esc(prefKey)}" data-name="${esc(a.name)}" data-artist="${esc(a.name)}" data-album="">${srcLabel(itemSourcePrefs[prefKey] || 'deezer')}</button></div></td>
-        <td><div class="song-title">${esc(a.name)}${pk ? peakBadge(pk) : ''}</div><button class="yt-play-btn" data-title="" data-artist="${esc(a.name)}" data-album="" onclick="event.stopPropagation();buShowTrackList(this,'artists')" title="Show recently played tracks"><span class="yt-btn-content"><svg class="yt-btn-icon" viewBox="0 0 24 24"><path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.5 12 3.5 12 3.5s-7.5 0-9.4.5A3 3 0 0 0 .5 6.2C0 8.1 0 12 0 12s0 3.9.5 5.8a3 3 0 0 0 2.1 2.1c1.9.5 9.4.5 9.4.5s7.5 0 9.4-.5a3 3 0 0 0 2.1-2.1C24 15.9 24 12 24 12s0-3.9-.5-5.8zM9.7 15.5V8.5l6.3 3.5-6.3 3.5z"/></svg>YouTube</span></button>${dcPlBtnHtml('artist', '', a.name, '')}</td>
-        <td class="meta-col"><div class="song-artist">${tCount('songs', a.songs.size)}</div></td>
+        <td><div class="song-title">${chartNameLink(a.name, 'openArtistModal', a.name)}${pk ? peakBadge(pk) : ''}</div><button class="yt-play-btn" data-title="" data-artist="${esc(a.name)}" data-album="" onclick="event.stopPropagation();buShowTrackList(this,'artists')" title="Show recently played tracks"><span class="yt-btn-content"><svg class="yt-btn-icon" viewBox="0 0 24 24"><path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.5 12 3.5 12 3.5s-7.5 0-9.4.5A3 3 0 0 0 .5 6.2C0 8.1 0 12 0 12s0 3.9.5 5.8a3 3 0 0 0 2.1 2.1c1.9.5 9.4.5 9.4.5s7.5 0 9.4-.5a3 3 0 0 0 2.1-2.1C24 15.9 24 12 24 12s0-3.9-.5-5.8zM9.7 15.5V8.5l6.3 3.5-6.3 3.5z"/></svg>YouTube</span></button>${dcPlBtnHtml('artist', '', a.name, '')}</td>
+        <td class="meta-col"><div class="song-artist">${artistSongsRankBtn(a.name, a.songs.size)}</div></td>
         ${ms ? mMthsCell(a.name, 'artists', ms) : ''}
         <td>
           <div class="play-count">${tCountHtml('plays', a.count)}${ms ? deltaInline(a.count, a.name, 'artists', ms) : ''}</div>
@@ -17132,8 +17132,8 @@ function renderArtists(plays, peaks, monthlyStats) {
       <td class="rank-cell">${i + 1}</td>
       ${monthlyStats ? mPrevCell(i + 1, artist, 'artists', monthlyStats) : ''}
       <td class="thumb-cell"><div class="thumb-wrap"><div id="${imgId}"><div class="thumb-initials">${esc(initials(artist))}</div></div><button id="srcbtn-${imgId}" class="img-src-btn" data-imgid="${imgId}" data-type="artist" data-prefkey="${esc(prefKey)}" data-name="${esc(artist)}" data-artist="${esc(artist)}" data-album="">${srcLabel(itemSourcePrefs[prefKey] || 'deezer')}</button></div></td>
-      <td><div class="song-title">${esc(artist)}${pk ? peakBadge(pk) : ''}</div><button class="yt-play-btn" data-title="" data-artist="${esc(artist)}" data-album="" onclick="event.stopPropagation();buShowTrackList(this,'artists')" title="Show recently played tracks"><span class="yt-btn-content"><svg class="yt-btn-icon" viewBox="0 0 24 24"><path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.5 12 3.5 12 3.5s-7.5 0-9.4.5A3 3 0 0 0 .5 6.2C0 8.1 0 12 0 12s0 3.9.5 5.8a3 3 0 0 0 2.1 2.1c1.9.5 9.4.5 9.4.5s7.5 0 9.4-.5a3 3 0 0 0 2.1-2.1C24 15.9 24 12 24 12s0-3.9-.5-5.8zM9.7 15.5V8.5l6.3 3.5-6.3 3.5z"/></svg>YouTube</span></button>${dcPlBtnHtml('artist', '', artist, '')}</td>
-      <td class="meta-col"><div class="song-artist">${tCount('songs', data.songs.size)}</div></td>
+      <td><div class="song-title">${chartNameLink(artist, 'openArtistModal', artist)}${pk ? peakBadge(pk) : ''}</div><button class="yt-play-btn" data-title="" data-artist="${esc(artist)}" data-album="" onclick="event.stopPropagation();buShowTrackList(this,'artists')" title="Show recently played tracks"><span class="yt-btn-content"><svg class="yt-btn-icon" viewBox="0 0 24 24"><path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.5 12 3.5 12 3.5s-7.5 0-9.4.5A3 3 0 0 0 .5 6.2C0 8.1 0 12 0 12s0 3.9.5 5.8a3 3 0 0 0 2.1 2.1c1.9.5 9.4.5 9.4.5s7.5 0 9.4-.5a3 3 0 0 0 2.1-2.1C24 15.9 24 12 24 12s0-3.9-.5-5.8zM9.7 15.5V8.5l6.3 3.5-6.3 3.5z"/></svg>YouTube</span></button>${dcPlBtnHtml('artist', '', artist, '')}</td>
+      <td class="meta-col"><div class="song-artist">${artistSongsRankBtn(artist, data.songs.size)}</div></td>
       ${monthlyStats ? mMthsCell(artist, 'artists', monthlyStats) : ''}
       <td>
         <div class="play-count">${tCountHtml('plays', data.count)}${monthlyStats ? deltaInline(data.count, artist, 'artists', monthlyStats) : ''}</div>
@@ -33573,6 +33573,94 @@ document.addEventListener('mouseout', e => {
   if (to && (to.closest('.na-songs-trigger') || to.closest('#naSongsTooltip'))) return;
   _naHideTooltip();
 });
+
+// ─── ARTIST CHART: SONG RANKING TOOLTIP ────────────────────────
+/* The "unique songs" count in the artist charts is a button. Clicking it
+   pops a small ranking of that artist's songs played in the period on
+   screen, most played first. The list is built on click from allPlays and
+   the current date range, so it works the same for every data source and
+   every period (week, month, year, all time) without the chart renderers
+   having to carry per-song counts around. */
+function artistSongsRankBtn(artist, nSongs) {
+  return `<button type="button" class="ars-trigger" data-artist="${esc(artist)}" title="${esc(t('tooltip_artist_songs_rank'))}" onclick="event.stopPropagation();_arsToggle(this)">${tCount('songs', nSongs)}</button>`;
+}
+
+const _arsTooltip = (() => {
+  const el = document.createElement('div');
+  el.id = 'arsTooltip';
+  el.className = 'ars-tooltip';
+  el.style.display = 'none';
+  document.body.appendChild(el);
+  return el;
+})();
+let _arsTrigger = null;
+
+// Songs of one artist in the current period, ranked by plays.
+// Grouped by title, the same way the chart's "unique songs" count is.
+function _arsRanking(artist) {
+  const all = currentPeriod === 'alltime';
+  const range = all ? null : getDateRange();
+  const s = all ? 0 : +range.start, e = all ? 0 : +range.end;
+  const byTitle = new Map();
+  for (const p of allPlays) {
+    if (!p.artists.includes(artist)) continue;
+    if (!all) { const m = tzMsOf(p); if (m < s || m > e) continue; }
+    let row = byTitle.get(p.title);
+    if (!row) { row = { title: p.title, key: songKey(p), count: 0 }; byTitle.set(p.title, row); }
+    row.count++;
+  }
+  return [...byTitle.values()].sort((a, b) => b.count - a.count || a.title.localeCompare(b.title));
+}
+
+function _arsHide() {
+  _arsTooltip.style.display = 'none';
+  if (_arsTrigger) _arsTrigger.classList.remove('open');
+  _arsTrigger = null;
+}
+
+function _arsToggle(btn) {
+  if (_arsTrigger === btn) { _arsHide(); return; }
+  _arsHide();
+  const artist = btn.dataset.artist;
+  const rows = _arsRanking(artist);
+  const label = currentPeriod === 'alltime' ? '' : getDateRange().label;
+  // Ties share a rank (1, 2, 2, 4), like the charts themselves
+  let rank = 0;
+  _arsTooltip.innerHTML =
+    `<div class="ars-head"><span class="ars-head-artist">${esc(artist)}</span>${label ? `<span class="ars-head-period">${esc(label)}</span>` : ''}</div>
+    <ol class="ars-list">${rows.map((r, i) => {
+      if (i === 0 || r.count !== rows[i - 1].count) rank = i + 1;
+      return `<li class="ars-item">
+        <span class="ars-rank">${rank}</span>
+        <a href="javascript:void(0)" class="ars-title" onclick="_arsHide();openSongModal(${esc(JSON.stringify(r.key))})">${esc(r.title)}</a>
+        <span class="ars-count">${r.count}</span>
+      </li>`;
+    }).join('')}</ol>`;
+  _arsTooltip.style.display = 'block';
+  _arsTrigger = btn;
+  btn.classList.add('open');
+  // Below the count, flipped above it when there is no room
+  const rect = btn.getBoundingClientRect();
+  const ttW = _arsTooltip.offsetWidth;
+  let left = rect.left;
+  let top = rect.bottom + 6;
+  if (left + ttW > window.innerWidth - 8) left = window.innerWidth - ttW - 8;
+  if (left < 8) left = 8;
+  if (top + _arsTooltip.offsetHeight > window.innerHeight - 8) top = Math.max(8, rect.top - _arsTooltip.offsetHeight - 6);
+  _arsTooltip.style.left = left + 'px';
+  _arsTooltip.style.top = top + 'px';
+}
+
+// Close on a click elsewhere, on Escape, or when the page scrolls under it
+document.addEventListener('click', e => {
+  if (!_arsTrigger) return;
+  if (e.target.closest('#arsTooltip') || e.target.closest('.ars-trigger')) return;
+  _arsHide();
+});
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && _arsTrigger) _arsHide(); });
+window.addEventListener('scroll', e => {
+  if (_arsTrigger && !(e.target instanceof Element && e.target.closest('#arsTooltip'))) _arsHide();
+}, true);
 
 // ─── EVENTS CALENDAR MINI-CARD TOOLTIP ─────────────────────────
 const _calEvTooltip = (() => {

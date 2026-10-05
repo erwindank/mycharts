@@ -21537,6 +21537,97 @@ body.yellow-light .hero-stats { --hero-link: #ffe066; }  /* 3.94:1 on strip */
 
 .na-tt-yt-btn { flex-shrink: 0; margin-top: 0; }
 
+/* ── Artist charts: song ranking tooltip (the unique-songs count) ── */
+.ars-trigger {
+  background: none;
+  border: none;
+  padding: 0;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  text-decoration: underline dotted;
+  text-underline-offset: 3px;
+  transition: color 0.12s;
+}
+.ars-trigger:hover,
+.ars-trigger:focus-visible,
+.ars-trigger.open { color: var(--accent); }
+
+.ars-tooltip {
+  position: fixed;
+  z-index: var(--z-float);
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.5rem 0.55rem 0.4rem;
+  box-shadow: 0 6px 24px rgba(0,0,0,0.45);
+  min-width: 200px;
+  max-width: 300px;
+}
+.ars-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.6rem;
+  padding: 0 0.15rem 0.35rem;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 0.2rem;
+}
+.ars-head-artist {
+  font-weight: 700;
+  font-size: 0.8rem;
+  color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ars-head-period {
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text2);
+  white-space: nowrap;
+}
+.ars-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  max-height: 320px;
+  overflow-y: auto;
+}
+.ars-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.22rem 0.15rem;
+}
+.ars-rank {
+  width: 1.4rem;
+  flex-shrink: 0;
+  text-align: right;
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  color: var(--text2);
+}
+.ars-title {
+  flex: 1;
+  min-width: 0;
+  font-size: 0.78rem;
+  color: var(--text);
+  text-decoration: none;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ars-title:hover { color: var(--accent); text-decoration: underline; text-underline-offset: 2px; }
+.ars-count {
+  flex-shrink: 0;
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  color: var(--text2);
+}
+
 /* ── Events Calendar mini-card tooltip ── */
 .cal-ev-tooltip {
   position: fixed;
