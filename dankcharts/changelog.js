@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 81;
+const DC_CL_I18N_V = 82;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -80,9 +80,13 @@ const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
 
+  { d: '2026-10-04', t: 'feature', a: 'charts', h: 'd809690',
+    title: "Artist charts: clickable names and a song ranking per artist",
+    detail: 'In the artist charts, the artist name is now a link to their page (clicking anywhere else on the row still works too). The song count next to each artist is clickable as well: it opens a small ranking of that artist\'s songs you played in that week, month or year, most played first. Click a song in the list to open its page.' },
+
   { d: '2026-10-04', t: 'feature', a: 'charts', h: 'db9f019',
     title: "Album names in song charts open the album page",
-    detail: 'In the song charts, the album name next to each song is now a link. Click it to open that album's page, the same way song and artist names already work.' },
+    detail: 'In the song charts, the album name next to each song is now a link. Click it to open that album\'s page, the same way song and artist names already work.' },
 
   { d: '2026-10-04', t: 'feature', a: 'ratings', h: 'e0be351',
     title: "You can rate an artist's albums straight from their page",

@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['pt-PT'] = {
 
   /* ========== OUTUBRO 2026 ========== */
 
+  "Artist charts: clickable names and a song ranking per artist":
+    ['Tabelas de artistas: nomes com ligação e uma classificação de músicas por artista',
+     'Nas tabelas de artistas, o nome do artista é agora uma ligação para a página dele (clicar no resto da linha continua a funcionar). O número de músicas ao lado de cada artista também é clicável: abre uma pequena classificação das músicas desse artista que ouviu nessa semana, mês ou ano, da mais ouvida para a menos ouvida. Clique numa música da lista para abrir a página dela.'],
+
   "Album names in song charts open the album page":
     ['Os nomes dos álbuns nas tabelas de músicas abrem a página do álbum',
      'Nas tabelas de músicas, o nome do álbum ao lado de cada música é agora uma ligação. Clique para abrir a página desse álbum, tal como já acontece com os nomes das músicas e dos artistas.'],

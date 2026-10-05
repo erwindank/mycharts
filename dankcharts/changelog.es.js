@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['es'] = {
 
   /* ========== OCTUBRE 2026 ========== */
 
+  "Artist charts: clickable names and a song ranking per artist":
+    ['Listas de artistas: nombres con enlace y un ranking de canciones por artista',
+     'En las listas de artistas, el nombre del artista ahora es un enlace a su página (hacer clic en el resto de la fila sigue funcionando). El número de canciones junto a cada artista también se puede pulsar: abre un pequeño ranking de las canciones de ese artista que escuchaste en esa semana, mes o año, de la más escuchada a la menos. Haz clic en una canción de la lista para abrir su página.'],
+
   "Album names in song charts open the album page":
     ['Los nombres de álbum en las listas de canciones abren la página del álbum',
      'En las listas de canciones, el nombre del álbum junto a cada canción ahora es un enlace. Haz clic para abrir la página de ese álbum, igual que ya funcionan los nombres de canciones y artistas.'],
