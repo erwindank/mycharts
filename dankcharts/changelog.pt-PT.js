@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['pt-PT'] = {
 
   /* ========== OUTUBRO 2026 ========== */
 
+  "Album names in song charts open the album page":
+    ['Os nomes dos álbuns nas tabelas de músicas abrem a página do álbum',
+     'Nas tabelas de músicas, o nome do álbum ao lado de cada música é agora uma ligação. Clique para abrir a página desse álbum, tal como já acontece com os nomes das músicas e dos artistas.'],
+
   "You can rate an artist's albums straight from their page":
     ['Pode avaliar os álbuns de um artista diretamente na página dele',
      'Na secção de avaliações de um artista, clicar num álbum avaliado abre agora o editor de avaliação, e uma nova lista "Ainda sem nota" mostra os álbuns que ainda não avaliou, os mais ouvidos primeiro, prontos a avaliar com um clique. A pequena seta em cada linha continua a abrir a página do álbum.'],

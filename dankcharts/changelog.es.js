@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['es'] = {
 
   /* ========== OCTUBRE 2026 ========== */
 
+  "Album names in song charts open the album page":
+    ['Los nombres de álbum en las listas de canciones abren la página del álbum',
+     'En las listas de canciones, el nombre del álbum junto a cada canción ahora es un enlace. Haz clic para abrir la página de ese álbum, igual que ya funcionan los nombres de canciones y artistas.'],
+
   "You can rate an artist's albums straight from their page":
     ['Puedes calificar los álbumes de un artista desde su página',
      'En la sección de calificaciones de un artista, al hacer clic en un álbum calificado ahora se abre su editor, y una nueva lista "Sin calificar" muestra los álbumes que aún no tienen nota, los más escuchados primero, listos para calificar con un clic. La flechita de cada fila sigue abriendo la página del álbum.'],
