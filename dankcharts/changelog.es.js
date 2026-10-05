@@ -16,7 +16,7 @@ window.DC_CHANGELOG_I18N['es'] = {
 
   /* ========== OCTUBRE 2026 ========== */
 
-  'You can share an album's score as an image":
+  "You can share an album's score as an image":
     ['Puedes compartir la nota de un álbum como imagen',
      'Los álbumes calificados ahora tienen un botón "Compartir nota" junto a "Edit rating". Crea una imagen de tu veredicto: la nota y lo que significa, tu comentario, la mejor y la peor canción, los aspectos del álbum y la nota de cada canción. Elige entre tres diseños, todas las paletas de color y tamaño post, retrato o historia, y luego cópiala, compártela o descárgala.'],
 
