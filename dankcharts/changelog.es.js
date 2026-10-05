@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['es'] = {
 
   /* ========== OCTUBRE 2026 ========== */
 
+  "A Grid design for sharing an album's score":
+    ['Un diseño de cuadrícula para compartir la nota de un álbum',
+     'La imagen de la nota de un álbum tiene un cuarto diseño, Cuadrícula. Cada canción es una casilla de color con su nota, en el orden del álbum, con una leyenda de colores arriba y casillas grises para las canciones que aún no calificaste. Los títulos pueden ir junto a las casillas o quitarse. Arriba eliges mostrar la nota del álbum, el promedio de tus canciones o ambas. Los álbumes largos se achican para caber, y la ventana sugiere el tamaño historia cuando las casillas quedarían pequeñas.'],
+
   "You can share an album's score as an image":
     ['Puedes compartir la nota de un álbum como imagen',
      'Los álbumes calificados ahora tienen un botón "Compartir nota" junto a "Edit rating". Crea una imagen de tu veredicto: la nota y lo que significa, tu comentario, la mejor y la peor canción, los aspectos del álbum y la nota de cada canción. Elige entre tres diseños, todas las paletas de color y tamaño post, retrato o historia, y luego cópiala, compártela o descárgala.'],

@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['pt-PT'] = {
 
   /* ========== OUTUBRO 2026 ========== */
 
+  "A Grid design for sharing an album's score":
+    ['Um design em grelha para partilhar a nota de um álbum',
+     'A imagem da nota de um álbum tem um quarto design, Grelha. Cada faixa é um bloco colorido com a nota, pela ordem do álbum, com uma legenda de cores no topo e blocos cinzentos para as faixas que ainda não avaliou. Os títulos podem aparecer ao lado dos blocos ou ser ocultados. No topo escolhe mostrar a nota do álbum, a média das faixas ou ambas. Os álbuns longos encolhem para caber, e a janela sugere o tamanho story quando os blocos ficariam pequenos.'],
+
   "You can share an album's score as an image":
     ['Pode partilhar a nota de um álbum como imagem',
      'Os álbuns avaliados têm agora um botão "Partilhar nota" ao lado de "Edit rating". Cria uma imagem do seu veredicto: a nota e o que significa, o seu comentário, a melhor e a pior faixa, os aspetos do álbum e a nota de cada faixa. Escolha entre três designs, todas as paletas de cores e tamanho publicação, retrato ou story, e depois copie, partilhe ou transfira.'],
