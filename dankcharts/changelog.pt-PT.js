@@ -24,6 +24,10 @@ window.DC_CHANGELOG_I18N['pt-PT'] = {
     ['Os nomes dos álbuns nas tabelas de músicas abrem a página do álbum',
      'Nas tabelas de músicas, o nome do álbum ao lado de cada música é agora uma ligação. Clique para abrir a página desse álbum, tal como já acontece com os nomes das músicas e dos artistas.'],
 
+  "Share an artist's whole discography of scores as an image":
+    ['Partilhe as notas de toda a discografia de um artista como imagem',
+     'Os artistas com álbuns avaliados têm agora um botão "Partilhar notas" na secção de avaliações. Cria uma imagem de cada álbum que avaliou: uma coluna por álbum com capa e ano, um bloco colorido por faixa e a nota de cada álbum em baixo, como o gráfico de notas de uma série. Escolha quantos álbuns vão em cada página, a ordem (ano de lançamento, primeira audição ou nota) e se a linha de baixo mostra a nota do álbum, a média das faixas ou ambas. Os singles e as edições pouco avaliadas ficam de fora, a não ser que os assinale na lista. Escolha entre dois designs, qualquer paleta e tamanho publicação, retrato ou story, e transfira uma página ou todas.'],
+
   "You can rate an artist's albums straight from their page":
     ['Pode avaliar os álbuns de um artista diretamente na página dele',
      'Na secção de avaliações de um artista, clicar num álbum avaliado abre agora o editor de avaliação, e uma nova lista "Ainda sem nota" mostra os álbuns que ainda não avaliou, os mais ouvidos primeiro, prontos a avaliar com um clique. A pequena seta em cada linha continua a abrir a página do álbum.'],

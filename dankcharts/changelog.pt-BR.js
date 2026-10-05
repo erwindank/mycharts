@@ -24,6 +24,10 @@ window.DC_CHANGELOG_I18N['pt-BR'] = {
     ['Nomes de álbuns nas paradas de músicas abrem a página do álbum',
      'Nas paradas de músicas, o nome do álbum ao lado de cada música agora é um link. Clique para abrir a página desse álbum, do mesmo jeito que os nomes de músicas e artistas já funcionam.'],
 
+  "Share an artist's whole discography of scores as an image":
+    ['Compartilhe as notas de toda a discografia de um artista como imagem',
+     'Artistas com álbuns avaliados agora têm um botão "Compartilhar notas" na seção de avaliações. Ele cria uma imagem de cada álbum que você avaliou: uma coluna por álbum com capa e ano, um bloco colorido por faixa e a nota de cada álbum embaixo, como o gráfico de notas de uma série. Escolha quantos álbuns vão em cada página, a ordem (ano de lançamento, primeira escuta ou nota) e se a linha de baixo mostra a nota do álbum, a média das faixas ou as duas. Singles e edições pouco avaliadas ficam de fora, a menos que você os marque na lista. Escolha entre dois designs, qualquer paleta e tamanho post, retrato ou story, e baixe uma página ou todas.'],
+
   "You can rate an artist's albums straight from their page":
     ['Você pode avaliar os álbuns de um artista direto da página dele',
      'Na seção de avaliações de um artista, clicar em um álbum avaliado agora abre o editor de avaliação, e uma nova lista "Ainda sem nota" mostra os álbuns que você não avaliou, os mais ouvidos primeiro, prontos para avaliar com um clique. A setinha em cada linha continua abrindo a página do álbum.'],

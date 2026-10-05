@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 82;
+const DC_CL_I18N_V = 83;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,10 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+
+  { d: '2026-10-04', t: 'feature', a: 'ratings', h: '90bf474',
+    title: "Share an artist's whole discography of scores as an image",
+    detail: 'Artists with rated albums now have a "Share scores" button in their ratings section. It makes a picture of every album you rated: one column per album with its cover and year, one coloured tile per track, and each album\'s score along the bottom, like a ratings chart for a TV series. Choose how many albums go on each page, the order (release year, first played or score), and whether the bottom row shows the album score, the track average or both. Singles and partly rated editions are left off unless you tick them in the album list. Pick from two designs, any palette and post, portrait or story size, then download one page or all of them.' },
 
   { d: '2026-10-04', t: 'feature', a: 'charts', h: 'd809690',
     title: "Artist charts: clickable names and a song ranking per artist",

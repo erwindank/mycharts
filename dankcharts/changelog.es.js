@@ -24,6 +24,10 @@ window.DC_CHANGELOG_I18N['es'] = {
     ['Los nombres de álbum en las listas de canciones abren la página del álbum',
      'En las listas de canciones, el nombre del álbum junto a cada canción ahora es un enlace. Haz clic para abrir la página de ese álbum, igual que ya funcionan los nombres de canciones y artistas.'],
 
+  "Share an artist's whole discography of scores as an image":
+    ['Comparte las notas de toda la discografía de un artista como imagen',
+     'Los artistas con álbumes calificados ahora tienen un botón "Compartir notas" en su sección de calificaciones. Crea una imagen de cada álbum que calificaste: una columna por álbum con su portada y año, una casilla de color por canción y la nota de cada álbum abajo, como el gráfico de calificaciones de una serie. Elige cuántos álbumes van en cada página, el orden (año de lanzamiento, primera escucha o nota) y si la fila de abajo muestra la nota del álbum, el promedio de canciones o ambas. Los sencillos y las ediciones poco calificadas quedan fuera salvo que los marques en la lista. Elige entre dos diseños, cualquier paleta y tamaño post, retrato o historia, y descarga una página o todas.'],
+
   "You can rate an artist's albums straight from their page":
     ['Puedes calificar los álbumes de un artista desde su página',
      'En la sección de calificaciones de un artista, al hacer clic en un álbum calificado ahora se abre su editor, y una nueva lista "Sin calificar" muestra los álbumes que aún no tienen nota, los más escuchados primero, listos para calificar con un clic. La flechita de cada fila sigue abriendo la página del álbum.'],
