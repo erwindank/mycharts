@@ -27,7 +27,7 @@
   <!-- html2canvas, SheetJS (xlsx) and JSZip are intentionally NOT loaded here — they
        total ~1.2 MB and are only needed for image exports and Excel/ZIP imports.
        app.js pulls them from the CDN on first use (see ensureLazyLib). -->
-  <link rel="stylesheet" href="style.css?v=331">
+  <link rel="stylesheet" href="style.css?v=332">
   <!-- All scripts are deferred so the page paints without waiting on them.
        defer preserves execution order, which matters: translations → Chart.js →
        hammer → zoom plugin → firebase SDKs → firebase.js → app.js (in body). -->
@@ -3088,6 +3088,88 @@
       </div>
     </div>
   </div>
+
+  <!-- ── Album score share image ──
+       Declared after #albumModal on purpose: every overlay shares one z-index,
+       so the later one in the DOM wins and this opens on top of its caller. -->
+  <div class="ig-modal-overlay" id="rtCardModal">
+    <div class="ig-modal-box">
+      <div class="ig-modal-header">
+        <h3 id="rtCardTitle" data-i18n="rt_card_title">Share Album Score</h3>
+        <button class="ig-modal-close" onclick="rtCloseCard()" data-i18n="btn_close">✕ CLOSE</button>
+      </div>
+      <div class="ig-modal-body">
+        <div class="ig-preview-panel">
+          <div class="ig-preview-label" data-i18n="ig_preview_label">Preview</div>
+          <div class="ig-preview-frame" id="rtCardFrame">
+            <div class="ig-preview-inner" id="rtCardInner"></div>
+          </div>
+        </div>
+        <div class="ig-controls-panel">
+          <!-- Design + palette chips are painted by shRenderDesignPickers('rt') -->
+          <div class="sh-group">
+            <div class="sh-group-title" data-i18n="sh_design">Design</div>
+            <div class="sh-tpl-row" id="rtTemplateRow"></div>
+          </div>
+          <div class="sh-group">
+            <div class="sh-group-title" data-i18n="sh_palette">Palette</div>
+            <div class="sh-swatch-row" id="rtPaletteRow"></div>
+          </div>
+          <div class="sh-group">
+            <div class="sh-group-title" data-i18n="ig_format">Format</div>
+            <div class="sh-seg" id="rtFormatBtns">
+              <button class="sh-seg-btn" data-fmt="post" onclick="setRtFormat('post')" data-i18n="sh_fmt_post">Post 1:1</button>
+              <button class="sh-seg-btn" data-fmt="portrait" onclick="setRtFormat('portrait')" data-i18n="sh_fmt_portrait">Portrait 4:5</button>
+              <button class="sh-seg-btn active" data-fmt="story" onclick="setRtFormat('story')" data-i18n="sh_fmt_story">Story 9:16</button>
+            </div>
+          </div>
+          <div class="sh-group">
+            <div class="sh-group-title" data-i18n="ig_show_hide">Show / Hide</div>
+            <label class="ig-ctrl-row"><input type="checkbox" id="rtOpt_showArt" checked
+                onchange="rtUpdateCardPreview()"><span data-i18n="ig_album_art">Album Art</span></label>
+            <label class="ig-ctrl-row"><input type="checkbox" id="rtOpt_showInsights" checked
+                onchange="rtUpdateCardPreview()"><span data-i18n="rt_card_opt_insights">Album stats</span></label>
+            <label class="ig-ctrl-row"><input type="checkbox" id="rtOpt_showAspects" checked
+                onchange="rtUpdateCardPreview()"><span data-i18n="rt_card_aspects">Album aspects</span></label>
+            <label class="ig-ctrl-row"><input type="checkbox" id="rtOpt_showNote" checked
+                onchange="rtUpdateCardPreview()"><span data-i18n="rt_card_opt_note">Review note</span></label>
+            <label class="ig-ctrl-row"><input type="checkbox" id="rtOpt_showTracks" checked
+                onchange="rtUpdateCardPreview()"><span data-i18n="rt_card_tracks">Track scores</span></label>
+            <label class="ig-ctrl-row"><input type="checkbox" id="rtOpt_showFooter" checked
+                onchange="rtUpdateCardPreview()"><span data-i18n="ig_footer_branding">Footer Branding</span></label>
+          </div>
+          <div class="sh-group">
+            <div class="sh-group-title" data-i18n="sh_entries">Entries shown</div>
+            <div class="sh-slider-row">
+              <input type="range" id="rtTopN" min="3" max="20" value="10" step="1" oninput="rtUpdateCardPreview()">
+              <span class="sh-slider-val" id="rtTopNLabel">10</span>
+            </div>
+            <div class="sh-hint" data-i18n="rt_card_fit_hint">Tracks that don't fit the format are left off.</div>
+            <div class="sh-group-title" style="margin-top:0.6rem;" data-i18n="sh_text_size">Text size</div>
+            <div class="sh-slider-row">
+              <input type="range" id="rtTextScale" min="80" max="130" value="100" step="2" oninput="rtUpdateCardPreview()">
+              <span class="sh-slider-val" id="rtTextScaleLabel">100%</span>
+            </div>
+          </div>
+          <div class="sh-group">
+            <div class="sh-group-title" data-i18n="sh_quality">Quality</div>
+            <div class="sh-seg" id="rtQualityBtns">
+              <button class="sh-seg-btn" data-q="1" onclick="setRtQuality(1)" data-i18n="sh_quality_std">Standard</button>
+              <button class="sh-seg-btn active" data-q="2" onclick="setRtQuality(2)" data-i18n="sh_quality_high">High</button>
+            </div>
+            <div class="sh-hint" id="rtQualityNote">2160 × 3840 px</div>
+          </div>
+        </div>
+      </div>
+      <div class="ig-modal-footer">
+        <button class="ig-modal-close" onclick="rtCloseCard()" data-i18n="btn_cancel">Cancel</button>
+        <button class="ig-copy-btn" id="rtCardCopyBtn" onclick="rtCopyCard()">📋 Copy</button>
+        <button class="ig-copy-btn ig-share-native-btn" id="rtCardShareBtn" onclick="rtShareCard()">📤 Share</button>
+        <button class="ig-download-btn" id="rtCardDownloadBtn" onclick="rtDownloadCard()" data-i18n="btn_download_image">↓ Download Image</button>
+      </div>
+    </div>
+  </div>
+  <div id="rtCardCanvas" style="position:fixed;left:-9999px;top:0;pointer-events:none;"></div>
 
   <!-- ARTIST PROFILE MODAL -->
   <div class="modal-overlay" id="artistModal">

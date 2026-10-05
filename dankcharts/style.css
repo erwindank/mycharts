@@ -34073,6 +34073,10 @@ body.red-light .modal-rank-card--year .mrc-rank {
     .rt-btn--danger { color: var(--rose); border-color: color-mix(in srgb, var(--rose) 45%, var(--border)); }
     .rt-btn--danger:hover { background: color-mix(in srgb, var(--rose) 12%, transparent); border-color: var(--rose); }
 
+    /* Edit rating + Share score side by side under the album verdict; wraps on
+       narrow modals instead of squeezing the labels. */
+    .rt-btn-row { display: flex; flex-wrap: wrap; gap: 0.45rem; }
+
     /* ── Link from a song through to its album's evaluation ─────── */
     .rt-albumlink {
       display: flex;

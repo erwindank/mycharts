@@ -21023,6 +21023,8 @@ const SH_SCOPES = {
   cr: { templates: () => SH_RUN_TEMPLATE_LIST, get: () => crIgState.run, setTpl: 'setCrTemplate', setPal: 'setCrPalette' },
   ep: { templates: () => SH_ENTRY_TEMPLATE_LIST, get: () => crIgState.ent, setTpl: 'setEpTemplate', setPal: 'setEpPalette' },
   st: { templates: () => SH_ST_TEMPLATE_LIST, get: () => stCard, setTpl: 'setStTemplate', setPal: 'setStPalette' },
+  // Album score card — lives with the ratings code (search "ALBUM SCORE SHARE CARD").
+  rt: { templates: () => SH_RT_TEMPLATE_LIST, get: () => rtCard, setTpl: 'setRtTemplate', setPal: 'setRtPalette' },
 };
 
 function shRenderDesignPickers(scope) {
@@ -47944,7 +47946,10 @@ function renderAlbumRatingSection(albumKey) {
         <div class="rt-block-verdict ${ratingBand(res.score).cls}">${esc(ratingBand(res.score).label)}</div>
         <div class="rt-formula rt-formula--static">${_ratingFormulaHTML(res)}</div>
         ${e?.note ? `<blockquote class="rt-block-note">${esc(e.note)}</blockquote>` : ''}
-        <button class="rt-btn" onclick="openRatingModal('album', ${esc(JSON.stringify(albumKey))})">✎ Edit rating</button>
+        <div class="rt-btn-row">
+          <button class="rt-btn" onclick="openRatingModal('album', ${esc(JSON.stringify(albumKey))})">✎ Edit rating</button>
+          <button class="rt-btn" onclick="rtOpenCard(${esc(JSON.stringify(albumKey))})">${esc(t('rt_card_share_btn'))}</button>
+        </div>
       </div>
     </div>
     ${insightStrip}
@@ -47956,6 +47961,502 @@ function renderAlbumRatingSection(albumKey) {
     ${trackTable ? `<div class="rt-sub-label">Track scores</div>${trackTable}` : ''}
   </div>`;
 }
+
+// ─── ALBUM SCORE SHARE CARD ────────────────────────────────────
+// A share image of an album's verdict: the score, its band, the derived stats,
+// the album aspects and the track-by-track scores. Built on the SHARE CARD
+// DESIGN SYSTEM (formats, palettes, shShell / shCapture / shShareNow), so the
+// same html2canvas rules apply: no letter-spacing on display text, artwork
+// inlined as a data URL, the Poster blur pre-baked by shComputeBlur.
+
+const rtCard = {
+  template: 'verdict',
+  palette: 'cover',
+  format: 'story',
+  textScale: 100,
+  quality: 2,
+  topN: 10,
+  showArt: true,
+  showInsights: true,
+  showAspects: true,
+  showNote: true,
+  showTracks: true,
+  showFooter: true,
+};
+const RT_CARD_KEYS = Object.keys(rtCard);
+const RT_CARD_TOGGLES = ['showArt', 'showInsights', 'showAspects', 'showNote', 'showTracks', 'showFooter'];
+let _rtCardAlbum = null;        // albumKey of the card being built
+const _rtCardArtCache = {};     // albumKey → inlined cover (data URL) or null
+
+function rtSaveCardSettings() {
+  try {
+    const out = {};
+    RT_CARD_KEYS.forEach(k => { out[k] = rtCard[k]; });
+    localStorage.setItem('dc_rtCardSettings', JSON.stringify(out));
+  } catch {}
+}
+
+function rtLoadCardSettings() {
+  try {
+    const saved = JSON.parse(localStorage.getItem('dc_rtCardSettings') || 'null');
+    if (saved && typeof saved === 'object') {
+      RT_CARD_KEYS.forEach(k => { if (saved[k] !== undefined) rtCard[k] = saved[k]; });
+    }
+  } catch {}
+  // Drop ids written by an older build.
+  if (!SH_RT_TEMPLATES[rtCard.template]) rtCard.template = 'verdict';
+  if (!SHARE_PALETTES.some(p => p.id === rtCard.palette)) rtCard.palette = 'cover';
+  if (!SHARE_FORMATS[rtCard.format]) rtCard.format = 'story';
+}
+
+// The rating bands as fixed hex pairs [on a dark card, on a light card]. The
+// app's --rt-* tokens are color-mix() expressions tuned to the live theme, which
+// neither html2canvas nor a fixed palette like Paper can use, so the card keeps
+// its own copy of the same hues.
+const RT_CARD_BAND_HEX = {
+  masterpiece: ['#f2b544', '#a97208'],
+  essential:   ['#3ddc97', '#0f9d58'],
+  great:       ['#5fd4b0', '#0e8a6a'],
+  good:        ['#2dd4bf', '#0f766e'],
+  mixed:       ['#fbbf24', '#b45309'],
+  weak:        ['#fb923c', '#c2410c'],
+  poor:        ['#ff6b81', '#d93025'],
+};
+function _rtBandHex(p, score) {
+  const b = ratingBand(score);
+  const pair = RT_CARD_BAND_HEX[b ? b.key : 'mixed'] || RT_CARD_BAND_HEX.mixed;
+  return p.dark ? pair[0] : pair[1];
+}
+
+// ── Data prep ──
+// Everything a template needs, resolved once. Templates never touch _ratings.
+function rtCardContext(albumKey, opts) {
+  const res = ratingAlbumScore(albumKey);
+  if (!res) return null;
+  const [album, artist] = albumKey.split('|||');
+  const e = ratingAlbumEntry(albumKey);
+  const ins = ratingAlbumInsights(albumKey);
+  const fmt = SHARE_FORMATS[opts.format] ? opts.format : 'story';
+  const d = shDims(fmt);
+  const art = opts.showArt ? (_rtCardArtCache[albumKey] || null) : null;
+  // Cover palette and Poster backdrop sample the artwork even when the visible
+  // art tile is switched off, so read the cache directly for those.
+  const anyArt = _rtCardArtCache[albumKey] || null;
+
+  const tracks = ratingAlbumTrackKeys(albumKey)
+    .map(tr => ({ title: tr.title, score: ratingSongScore(tr.key) }))
+    .filter(tr => tr.score != null)
+    .sort((a, b) => b.score - a.score)
+    .slice(0, Math.max(3, Math.min(20, opts.topN || 10)));
+
+  const aspects = RATING_ALBUM_CRITERIA
+    .filter(c => typeof e?.c?.[c.id] === 'number')
+    .map(c => ({ label: c.label, emoji: c.emoji, score: e.c[c.id] }));
+
+  const band = ratingBand(res.score);
+  return {
+    opts, fmt, W: d.w, H: d.h,
+    p: shPalette(opts.palette, shDominant(anyArt)),
+    S: (opts.textScale || 100) / 100,
+    album, artist, art, anyArt, res, ins, tracks, aspects,
+    score: res.score,
+    bandLabel: band ? band.label : '',
+    note: opts.showNote && e?.note ? String(e.note).trim() : '',
+  };
+}
+
+// ── Shared pieces ──
+
+// Circular score readout. The arc is an SVG inlined as an <img> data URL —
+// the same route the chart-run line takes — so html2canvas draws it reliably.
+function _rtRing(ctx, size, opt) {
+  const o = opt || {};
+  const p = ctx.p;
+  const col = _rtBandHex(p, ctx.score);
+  const stroke = Math.round(size * 0.065);
+  const c = size / 2, r = c - stroke / 2 - 2;
+  const circ = 2 * Math.PI * r;
+  const off = circ * (1 - Math.max(0, Math.min(1, ctx.score / RATING_MAX)));
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">
+    <circle cx="${c}" cy="${c}" r="${r}" fill="none" stroke="${_shA(p.text, p.dark ? 0.12 : 0.1)}" stroke-width="${stroke}"/>
+    <circle cx="${c}" cy="${c}" r="${r}" fill="none" stroke="${col}" stroke-width="${stroke}" stroke-linecap="round"
+      stroke-dasharray="${circ.toFixed(2)}" stroke-dashoffset="${off.toFixed(2)}" transform="rotate(-90 ${c} ${c})"/>
+  </svg>`;
+  return `<div style="position:relative;width:${size}px;height:${size}px;flex-shrink:0;">
+    <img src="${_shSvgUrl(svg)}" width="${size}" height="${size}" style="width:${size}px;height:${size}px;display:block;">
+    <div style="position:absolute;left:0;top:0;width:${size}px;height:${size}px;display:flex;flex-direction:column;align-items:center;justify-content:center;">
+      <div style="font-family:${SH_FONT.display};font-size:${Math.round(size * 0.33)}px;font-weight:800;line-height:1;color:${o.textColor || p.text};">${ratingFmt(ctx.score)}</div>
+      <div style="margin-top:${Math.round(size * 0.035)}px;font-family:${SH_FONT.mono};font-size:${Math.round(size * 0.075)}px;letter-spacing:0.12em;color:${p.dim};">/ 10</div>
+    </div>
+  </div>`;
+}
+
+// "8.6 tracks × 75% + 7.9 aspects × 25%" — how the number was built.
+function _rtFormula(ctx, size, color) {
+  const r = ctx.res;
+  const pct = Math.round(r.trackWeight * 100);
+  const parts = [];
+  if (r.trackAvg != null)  parts.push(`${ratingFmt(r.trackAvg)} ${t('rt_card_formula_tracks')}${r.aspectAvg != null ? ` × ${pct}%` : ''}`);
+  if (r.aspectAvg != null) parts.push(`${ratingFmt(r.aspectAvg)} ${t('rt_card_formula_aspects')}${r.trackAvg != null ? ` × ${100 - pct}%` : ''}`);
+  return `<div style="font-family:${SH_FONT.mono};font-size:${size}px;letter-spacing:0.08em;color:${color || ctx.p.dim};text-transform:uppercase;line-height:1.35;">${esc(parts.join('  +  '))}</div>`;
+}
+
+// Small mono section label in the accent colour.
+function _rtLabel(ctx, text, mb) {
+  const s = v => _shS(ctx, v);
+  return `<div style="flex-shrink:0;font-family:${SH_FONT.mono};font-size:${s(19)}px;letter-spacing:0.18em;color:${ctx.p.accent};text-transform:uppercase;margin-bottom:${s(mb != null ? mb : 12)}px;">${esc(text)}</div>`;
+}
+
+// Peak / weakest / consistency / filler — the stats nobody types in.
+function _rtInsights(ctx, opt) {
+  const o = opt || {};
+  const ins = ctx.ins;
+  if (!ctx.opts.showInsights || !ins) return '';
+  const p = ctx.p;
+  const s = v => _shS(ctx, v);
+  const cells = [
+    { v: ratingFmt(ins.peak.score), c: _rtBandHex(p, ins.peak.score), l: t('rt_card_peak') },
+    { v: ratingFmt(ins.floor.score), c: _rtBandHex(p, ins.floor.score), l: t('rt_card_floor') },
+    { v: ratingFmt(ins.consistency), c: _rtBandHex(p, ins.consistency), l: t('rt_card_consistency') },
+    { v: ins.fillerPct + '%', c: p.text, l: t('rt_card_filler') },
+  ];
+  const size = o.size || 40;
+  return `<div style="flex-shrink:0;display:flex;gap:${s(12)}px;">${cells.map(c => `<div style="flex:1;min-width:0;background:${_shA(p.text, p.dark ? 0.05 : 0.04)};border:1px solid ${p.line};border-radius:16px;padding:${s(16)}px ${s(10)}px;text-align:center;">
+    <div style="font-family:${SH_FONT.display};font-size:${s(size)}px;font-weight:700;color:${c.c};line-height:1;">${esc(c.v)}</div>
+    <div style="margin-top:${s(8)}px;font-family:${SH_FONT.mono};font-size:${s(15)}px;letter-spacing:0.1em;color:${p.dim};text-transform:uppercase;white-space:nowrap;overflow:hidden;">${esc(c.l)}</div>
+  </div>`).join('')}</div>`;
+}
+
+// Album aspects as a two-column grid of label + score.
+function _rtAspects(ctx) {
+  if (!ctx.opts.showAspects || !ctx.aspects.length) return '';
+  const p = ctx.p;
+  const s = v => _shS(ctx, v);
+  return `<div style="flex-shrink:0;">
+    ${_rtLabel(ctx, t('rt_card_aspects'))}
+    <div style="display:flex;flex-wrap:wrap;column-gap:${s(28)}px;">${ctx.aspects.map(a => `<div style="width:calc(50% - ${s(14)}px);display:flex;align-items:center;gap:${s(12)}px;height:${s(44)}px;border-top:1px solid ${p.line};">
+      <span style="flex:1;min-width:0;font-family:${SH_FONT.sans};font-size:${s(21)}px;color:${p.text};white-space:nowrap;overflow:hidden;">${esc(a.label)}</span>
+      <span style="flex-shrink:0;font-family:${SH_FONT.mono};font-size:${s(22)}px;font-weight:700;color:${_rtBandHex(p, a.score)};">${ratingFmt(a.score)}</span>
+    </div>`).join('')}</div>
+  </div>`;
+}
+
+// The reviewer's own note, as a pull quote.
+function _rtNote(ctx, opt) {
+  if (!ctx.note) return '';
+  const o = opt || {};
+  const p = ctx.p;
+  const s = v => _shS(ctx, v);
+  const fs = s(o.size || 26);
+  return `<div style="flex-shrink:0;border-left:4px solid ${p.accent};padding-left:${s(20)}px;font-family:${SH_FONT.sans};font-style:italic;font-size:${fs}px;line-height:1.35;color:${o.color || p.text};${shClamp(o.lines || 3, fs, 1.35)}">“${esc(ctx.note)}”</div>`;
+}
+
+// Track scores, best first. The list takes whatever height is left; rows that
+// would be cut off are dropped after layout by _rtFitTracks, so a long album
+// never ends in half a row whatever the format.
+function _rtTracks(ctx, opt) {
+  if (!ctx.opts.showTracks || !ctx.tracks.length) return '';
+  const o = opt || {};
+  const p = ctx.p;
+  const s = v => _shS(ctx, v);
+  const rowH = s(o.rowH || 58);
+  const barW = s(o.barW || 150);
+  const fs = s(o.size || 25);
+  return `<div style="flex:1;min-height:0;display:flex;flex-direction:column;">
+    ${_rtLabel(ctx, t('rt_card_tracks'))}
+    <div data-rt-tracks style="flex:1;min-height:0;overflow:hidden;">${ctx.tracks.map((tr, i) => {
+      const col = _rtBandHex(p, tr.score);
+      return `<div data-rt-row style="display:flex;align-items:center;gap:${s(16)}px;height:${rowH}px;border-top:1px solid ${p.line};">
+        <span style="flex-shrink:0;width:${s(32)}px;font-family:${SH_FONT.mono};font-size:${Math.round(fs * 0.8)}px;color:${p.dim};">${i + 1}</span>
+        <span style="flex:1;min-width:0;font-family:${SH_FONT.sans};font-size:${fs}px;font-weight:600;color:${p.text};white-space:nowrap;overflow:hidden;">${esc(tr.title)}</span>
+        ${o.noBar ? '' : `<span style="flex-shrink:0;width:${barW}px;height:${s(8)}px;border-radius:${s(4)}px;background:${_shA(p.text, p.dark ? 0.1 : 0.08)};overflow:hidden;">
+          <span style="display:block;width:${Math.round(barW * tr.score / RATING_MAX)}px;height:${s(8)}px;border-radius:${s(4)}px;background:${col};"></span>
+        </span>`}
+        <span style="flex-shrink:0;width:${s(58)}px;text-align:right;font-family:${SH_FONT.mono};font-size:${fs}px;font-weight:700;color:${col};">${ratingFmt(tr.score)}</span>
+      </div>`;
+    }).join('')}</div>
+  </div>`;
+}
+
+// Hide every track row that doesn't fit inside its list. Runs on the laid-out
+// export node (#rtCardCanvas), whose markup is then copied into the preview.
+function _rtFitTracks(root) {
+  root.querySelectorAll('[data-rt-tracks]').forEach(list => {
+    const bottom = list.getBoundingClientRect().bottom + 0.5;
+    let shown = 0;
+    list.querySelectorAll('[data-rt-row]').forEach(row => {
+      if (row.getBoundingClientRect().bottom > bottom) row.style.display = 'none';
+      else shown++;
+    });
+    // Not even one row fits — drop the heading too rather than leave it orphaned.
+    if (!shown && list.parentElement) list.parentElement.style.display = 'none';
+  });
+}
+
+// Album title + artist block.
+function _rtTitle(ctx, size, opt) {
+  const o = opt || {};
+  const p = ctx.p;
+  const s = v => _shS(ctx, v);
+  const fs = s(size);
+  // `grow` only inside a row (beside the cover); in a column it must not stretch.
+  return `<div style="${o.grow ? 'flex:1;' : 'flex-shrink:0;'}min-width:0;${o.center ? 'text-align:center;' : ''}">
+    <div style="font-family:${SH_FONT.display};font-size:${fs}px;font-weight:800;line-height:1.04;color:${p.text};${shClamp(o.lines || 2, fs, 1.04)}">${esc(ctx.album)}</div>
+    <div style="margin-top:${s(10)}px;font-family:${SH_FONT.sans};font-size:${Math.round(fs * 0.52)}px;font-weight:500;color:${o.artistColor || p.dim};line-height:1.2;white-space:nowrap;overflow:hidden;">${esc(ctx.artist || '')}</div>
+  </div>`;
+}
+
+// ── Templates ──
+const SH_RT_TEMPLATES = {
+
+  // VERDICT — the default. Cover and title, then the score ring beside its band
+  // and formula, then the stats, aspects and track list underneath.
+  verdict(ctx) {
+    const p = ctx.p, opts = ctx.opts;
+    const s = v => _shS(ctx, v);
+    const padX = 68;
+    const artSz = ctx.fmt === 'story' ? 260 : ctx.fmt === 'portrait' ? 200 : 170;
+    const ringSz = ctx.fmt === 'story' ? 270 : ctx.fmt === 'portrait' ? 220 : 190;
+    const gap = s(ctx.fmt === 'story' ? 34 : ctx.fmt === 'portrait' ? 24 : 20);
+    const bandCol = _rtBandHex(p, ctx.score);
+    return shShell(p, ctx.fmt, `
+      <div style="flex:1;min-height:0;padding:${shSafeTop(ctx.fmt)}px ${padX}px 0;display:flex;flex-direction:column;gap:${gap}px;overflow:hidden;">
+        <div style="flex-shrink:0;">${shEyebrow(p, 'dankcharts.fm · ' + t('rt_card_eyebrow'), { size: s(20) })}</div>
+        <div style="flex-shrink:0;display:flex;align-items:center;gap:${s(30)}px;">
+          ${opts.showArt ? shArt(p, ctx.art, artSz, { initials: initials(ctx.album), radius: Math.round(artSz * 0.06) }) : ''}
+          ${_rtTitle(ctx, ctx.fmt === 'story' ? 56 : 48, { grow: true })}
+        </div>
+        <div style="flex-shrink:0;display:flex;align-items:center;gap:${s(34)}px;">
+          ${_rtRing(ctx, ringSz)}
+          <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:${s(14)}px;">
+            <div style="font-family:${SH_FONT.display};font-size:${s(ctx.fmt === 'post' ? 52 : 64)}px;font-weight:800;line-height:1;color:${bandCol};">${esc(ctx.bandLabel)}</div>
+            ${_rtFormula(ctx, s(18))}
+            <div style="font-family:${SH_FONT.mono};font-size:${s(17)}px;letter-spacing:0.08em;color:${_shA(p.dim, 0.85)};text-transform:uppercase;">${esc(t('rt_card_tracks_rated', { n: ctx.res.ratedTracks, total: ctx.res.totalTracks }))}</div>
+          </div>
+        </div>
+        ${_rtNote(ctx, { lines: ctx.fmt === 'story' ? 3 : 2 })}
+        ${_rtInsights(ctx, { size: ctx.fmt === 'post' ? 34 : 40 })}
+        ${_rtAspects(ctx)}
+        ${_rtTracks(ctx, { rowH: ctx.fmt === 'post' ? 50 : 56, size: ctx.fmt === 'post' ? 22 : 24 })}
+      </div>
+      ${shFooter(p, ctx.fmt, { show: opts.showFooter, padX })}`);
+  },
+
+  // POSTER — the cover blurred behind the whole card, the artwork front and
+  // centre, and the score set huge in the band colour underneath it.
+  poster(ctx) {
+    const p = ctx.p, opts = ctx.opts;
+    const s = v => _shS(ctx, v);
+    const padX = 72;
+    const blur = shBlurred(ctx.anyArt);
+    const scrim = p.dark
+      ? 'linear-gradient(180deg, rgba(4,5,8,0.30) 0%, rgba(4,5,8,0.70) 45%, rgba(4,5,8,0.94) 100%)'
+      : 'linear-gradient(180deg, rgba(250,248,244,0.45) 0%, rgba(250,248,244,0.85) 45%, rgba(250,248,244,0.97) 100%)';
+    const backdrop = `<div style="position:absolute;left:0;top:0;width:${ctx.W}px;height:${ctx.H}px;overflow:hidden;">
+      ${blur ? `<img src="${blur}" width="${ctx.W}" height="${ctx.H}" style="width:${ctx.W}px;height:${ctx.H}px;object-fit:cover;display:block;">` : `<div style="width:${ctx.W}px;height:${ctx.H}px;background:${p.bg2};"></div>`}
+      <div style="position:absolute;left:0;top:0;width:${ctx.W}px;height:${ctx.H}px;background:${scrim};"></div>
+    </div>`;
+    const artSz = ctx.fmt === 'story' ? 500 : ctx.fmt === 'portrait' ? 380 : 270;
+    const scoreSz = s(ctx.fmt === 'story' ? 200 : ctx.fmt === 'portrait' ? 160 : 130);
+    const bandCol = _rtBandHex(p, ctx.score);
+    const shadow = p.dark ? 'text-shadow:0 2px 16px rgba(0,0,0,0.6);' : '';
+    const content = `<div style="position:relative;width:${ctx.W}px;height:${ctx.H}px;display:flex;flex-direction:column;box-sizing:border-box;">
+      <div style="flex:1;min-height:0;padding:${shSafeTop(ctx.fmt)}px ${padX}px 0;display:flex;flex-direction:column;align-items:stretch;gap:${s(ctx.fmt === 'post' ? 18 : 28)}px;overflow:hidden;">
+        <div style="flex-shrink:0;${shadow}">${shEyebrow(p, 'dankcharts.fm · ' + t('rt_card_eyebrow'), { size: s(20), color: p.text })}</div>
+        <div style="flex-shrink:0;display:flex;${ctx.fmt === 'post' ? 'flex-direction:row;align-items:center;gap:' + s(36) + 'px;' : 'flex-direction:column;align-items:center;gap:' + s(28) + 'px;'}">
+          ${opts.showArt ? shArt(p, ctx.art, artSz, { initials: initials(ctx.album), radius: Math.round(artSz * 0.04) }) : ''}
+          <div style="${ctx.fmt === 'post' ? 'flex:1;min-width:0;' : 'width:100%;text-align:center;'}${shadow}">
+            ${_rtTitle(ctx, ctx.fmt === 'story' ? 58 : 48, { center: ctx.fmt !== 'post', artistColor: _shA(p.text, 0.78) })}
+            <div style="margin-top:${s(18)}px;display:flex;align-items:baseline;${ctx.fmt === 'post' ? '' : 'justify-content:center;'}gap:${s(16)}px;">
+              <span style="font-family:${SH_FONT.display};font-size:${scoreSz}px;font-weight:800;line-height:0.9;color:${bandCol};">${ratingFmt(ctx.score)}</span>
+              <span style="font-family:${SH_FONT.mono};font-size:${Math.round(scoreSz * 0.2)}px;color:${_shA(p.text, 0.7)};">/ 10</span>
+            </div>
+            <div style="margin-top:${s(12)}px;font-family:${SH_FONT.mono};font-size:${s(24)}px;font-weight:700;letter-spacing:0.24em;color:${p.text};text-transform:uppercase;">${esc(ctx.bandLabel)}</div>
+          </div>
+        </div>
+        ${_rtNote(ctx, { lines: 2, size: 24, color: p.text })}
+        ${_rtTracks(ctx, { rowH: ctx.fmt === 'post' ? 46 : 52, size: ctx.fmt === 'post' ? 21 : 23, barW: 120 })}
+      </div>
+      ${shFooter(p, ctx.fmt, { show: opts.showFooter, padX, light: true })}
+    </div>`;
+    return shShell(p, ctx.fmt, backdrop + content, { noBgImage: true });
+  },
+
+  // MINIMAL — no artwork. One enormous number, the band, and the list.
+  minimal(ctx) {
+    const p = ctx.p, opts = ctx.opts;
+    const s = v => _shS(ctx, v);
+    const padX = 88;
+    const scoreSz = s(ctx.fmt === 'story' ? 300 : ctx.fmt === 'portrait' ? 230 : 180);
+    const bandCol = _rtBandHex(p, ctx.score);
+    const noArt = Object.assign({}, ctx, { opts: Object.assign({}, opts, { showArt: false }) });
+    return shShell(p, ctx.fmt, `
+      <div style="flex:1;min-height:0;padding:${shSafeTop(ctx.fmt)}px ${padX}px 0;display:flex;flex-direction:column;gap:${s(ctx.fmt === 'post' ? 20 : 30)}px;overflow:hidden;">
+        <div style="flex-shrink:0;">${shEyebrow(p, 'dankcharts.fm · ' + t('rt_card_eyebrow'), { size: s(20) })}</div>
+        ${_rtTitle(noArt, ctx.fmt === 'story' ? 60 : 50)}
+        <div style="flex-shrink:0;display:flex;align-items:flex-end;gap:${s(26)}px;">
+          <span style="font-family:${SH_FONT.display};font-size:${scoreSz}px;font-weight:800;line-height:0.82;color:${p.text};">${ratingFmt(ctx.score)}</span>
+          <div style="padding-bottom:${s(6)}px;">
+            <div style="font-family:${SH_FONT.mono};font-size:${s(26)}px;color:${p.dim};">/ 10</div>
+            <div style="margin-top:${s(10)}px;font-family:${SH_FONT.mono};font-size:${s(26)}px;font-weight:700;letter-spacing:0.2em;color:${bandCol};text-transform:uppercase;">${esc(ctx.bandLabel)}</div>
+          </div>
+        </div>
+        <div style="flex-shrink:0;">${_rtFormula(noArt, s(19))}</div>
+        ${_rtNote(noArt, { lines: 2 })}
+        ${_rtTracks(noArt, { rowH: ctx.fmt === 'post' ? 48 : 58, size: ctx.fmt === 'post' ? 22 : 26, noBar: true })}
+      </div>
+      ${shFooter(p, ctx.fmt, { show: opts.showFooter, padX })}`, { noBgImage: true });
+  },
+};
+
+const SH_RT_TEMPLATE_LIST = [
+  { id: 'verdict', name: 'Verdict', glyph: '◔' },
+  { id: 'poster', name: 'Poster', glyph: '◧' },
+  { id: 'minimal', name: 'Minimal', glyph: '≡' },
+];
+
+function rtBuildCardHTML(albumKey, opts) {
+  const ctx = rtCardContext(albumKey, opts);
+  if (!ctx) return '';
+  const tpl = SH_RT_TEMPLATES[opts.template] || SH_RT_TEMPLATES.verdict;
+  return tpl(ctx);
+}
+
+// ── Artwork ──
+// One cover per album, found through the usual source fallback chain and
+// inlined (which also samples it for the Cover palette and bakes the blur).
+async function rtPrefetchArt(albumKey) {
+  if (albumKey in _rtCardArtCache) return;
+  _rtCardArtCache[albumKey] = null;
+  const [album, artist] = albumKey.split('|||');
+  try {
+    const url = await _igFetchArtWithFallback('albums', { album, artist }, 'deezer');
+    _rtCardArtCache[albumKey] = await _crInlineArt(url);
+  } catch (e) { _rtCardArtCache[albumKey] = null; }
+  if (_rtCardAlbum === albumKey && document.getElementById('rtCardModal').classList.contains('open')) rtRenderCardPreview();
+}
+
+// ── Modal ──
+function rtOpenCard(albumKey) {
+  if (!albumKey || !ratingAlbumScore(albumKey)) return;
+  _rtCardAlbum = albumKey;
+  rtLoadCardSettings();
+  shRenderDesignPickers('rt');
+  RT_CARD_TOGGLES.forEach(k => {
+    const el = document.getElementById('rtOpt_' + k);
+    if (el) el.checked = rtCard[k];
+  });
+  const topNEl = document.getElementById('rtTopN');
+  if (topNEl) topNEl.value = rtCard.topN || 10;
+  const tsEl = document.getElementById('rtTextScale');
+  if (tsEl) tsEl.value = rtCard.textScale || 100;
+  document.getElementById('rtCardTitle').textContent = t('rt_card_title') + ' — ' + albumKey.split('|||')[0].slice(0, 40);
+  document.getElementById('rtCardModal').classList.add('open');
+  rtUpdateCardPreview();
+  rtPrefetchArt(albumKey);
+}
+
+function rtCloseCard() {
+  document.getElementById('rtCardModal').classList.remove('open');
+  document.getElementById('rtCardCanvas').innerHTML = '';
+}
+
+function setRtFormat(fmt) { rtCard.format = fmt; shRenderDesignPickers('rt'); rtSaveCardSettings(); rtUpdateCardPreview(); }
+function setRtTemplate(id) { rtCard.template = id; shRenderDesignPickers('rt'); rtSaveCardSettings(); rtUpdateCardPreview(); }
+function setRtPalette(id) { rtCard.palette = id; shRenderDesignPickers('rt'); rtSaveCardSettings(); rtUpdateCardPreview(); }
+function setRtQuality(q) { rtCard.quality = q; shRenderDesignPickers('rt'); rtSaveCardSettings(); rtSyncCardLabels(); }
+
+function rtSyncCardLabels() {
+  const n = document.getElementById('rtTopNLabel');
+  if (n) n.textContent = rtCard.topN;
+  const ts = document.getElementById('rtTextScaleLabel');
+  if (ts) ts.textContent = (rtCard.textScale || 100) + '%';
+  const q = document.getElementById('rtQualityNote');
+  if (q) {
+    const d = shDims(rtCard.format);
+    const m = Math.max(1, Math.min(2, rtCard.quality || 2));
+    q.textContent = `${d.w * m} × ${d.h * m} px`;
+  }
+}
+
+function rtUpdateCardPreview() {
+  RT_CARD_TOGGLES.forEach(k => {
+    const el = document.getElementById('rtOpt_' + k);
+    if (el) rtCard[k] = el.checked;
+  });
+  const topNEl = document.getElementById('rtTopN');
+  if (topNEl) rtCard.topN = parseInt(topNEl.value) || 10;
+  const tsEl = document.getElementById('rtTextScale');
+  if (tsEl) rtCard.textScale = parseInt(tsEl.value) || 100;
+  rtSyncCardLabels();
+  rtSaveCardSettings();
+  rtRenderCardPreview();
+}
+
+// Render into the hidden export node first: it is laid out at full size, so
+// the track rows that don't fit can be measured and dropped there, and the
+// preview then shows exactly what will be exported.
+function rtRenderCardPreview() {
+  if (!_rtCardAlbum) return;
+  const html = rtBuildCardHTML(_rtCardAlbum, rtCard);
+  if (!html) return;
+  const canvas = document.getElementById('rtCardCanvas');
+  const d = shDims(rtCard.format);
+  canvas.style.width = d.w + 'px';
+  canvas.style.height = d.h + 'px';
+  canvas.innerHTML = html;
+  _rtFitTracks(canvas);
+  shFitPreview('rtCardFrame', 'rtCardInner', rtCard.format, canvas.innerHTML);
+  shPrepareShare('rtCardCanvas', 'rtCardShareBtn', _rtShareOpts);
+}
+
+function _rtShareOpts() {
+  return { format: rtCard.format, quality: rtCard.quality, fileName: _rtFileName() };
+}
+
+function _rtFileName() {
+  const slug = (_rtCardAlbum || 'album').split('|||')[0].replace(/[^a-z0-9]+/gi, '-').replace(/^-|-$/g, '').slice(0, 40).toLowerCase() || 'album';
+  return `dankcharts_score_${slug}_${rtCard.template}_${rtCard.format}.png`;
+}
+
+async function rtDownloadCard() {
+  const btn = document.getElementById('rtCardDownloadBtn');
+  const orig = btn.textContent;
+  btn.textContent = '⏳ …'; btn.disabled = true;
+  try {
+    const cvs = await shCapture('rtCardCanvas', rtCard.format, rtCard.quality);
+    const link = document.createElement('a');
+    link.download = _rtFileName();
+    link.href = cvs.toDataURL('image/png');
+    link.click();
+  } catch (e) { console.error('Score card download failed', e); }
+  btn.textContent = orig; btn.disabled = false;
+}
+
+async function rtCopyCard() {
+  if (!navigator.clipboard?.write) { rtDownloadCard(); return; }
+  const btn = document.getElementById('rtCardCopyBtn');
+  const orig = btn.textContent;
+  btn.textContent = '⏳…'; btn.disabled = true;
+  try {
+    const cvs = await shCapture('rtCardCanvas', rtCard.format, rtCard.quality);
+    const blob = await shCanvasBlob(cvs);
+    await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
+    btn.textContent = '✓ Copied!';
+    setTimeout(() => { btn.textContent = orig; btn.disabled = false; }, 1800);
+  } catch (e) {
+    btn.textContent = orig; btn.disabled = false;
+    rtDownloadCard();
+  }
+}
+
+function rtShareCard() {
+  shShareNow('rtCardCanvas', 'rtCardShareBtn', _rtShareOpts, rtDownloadCard);
+}
+
+document.getElementById('rtCardModal')?.addEventListener('click', e => {
+  if (e.target === document.getElementById('rtCardModal')) rtCloseCard();
+});
 
 // ── Artist modal ──
 function renderArtistRatingSection(artistName) {
