@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['es'] = {
 
   /* ========== OCTUBRE 2026 ========== */
 
+  "Long song titles on the Grid score image can shrink to initials":
+    ['Los títulos largos en la imagen Cuadrícula pueden quedar en iniciales',
+     'El diseño Cuadrícula de la imagen de la nota del álbum tiene una nueva opción, "Acortar títulos largos a iniciales". Cualquier título demasiado largo para su fila se convierte en la primera letra de cada palabra, así "Nice To Meet You (feat. Lainey Wilson)" aparece como NTMY. Los títulos que ya caben se quedan igual.'],
+
   "A Grid design for sharing an album's score":
     ['Un diseño de cuadrícula para compartir la nota de un álbum',
      'La imagen de la nota de un álbum tiene un cuarto diseño, Cuadrícula. Cada canción es una casilla de color con su nota, en el orden del álbum, con una leyenda de colores arriba y casillas grises para las canciones que aún no calificaste. Los títulos pueden ir junto a las casillas o quitarse. Arriba eliges mostrar la nota del álbum, el promedio de tus canciones o ambas. Los álbumes largos se achican para caber, y la ventana sugiere el tamaño historia cuando las casillas quedarían pequeñas.'],

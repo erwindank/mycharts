@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['pt-PT'] = {
 
   /* ========== OUTUBRO 2026 ========== */
 
+  "Long song titles on the Grid score image can shrink to initials":
+    ['Os títulos longos na imagem em grelha podem passar a iniciais',
+     'O design Grelha da imagem da nota do álbum tem uma nova opção, "Encurtar títulos longos para iniciais". Qualquer título demasiado longo para a linha passa a ser a primeira letra de cada palavra, por isso "Nice To Meet You (feat. Lainey Wilson)" aparece como NTMY. Os títulos que já cabem ficam iguais.'],
+
   "A Grid design for sharing an album's score":
     ['Um design em grelha para partilhar a nota de um álbum',
      'A imagem da nota de um álbum tem um quarto design, Grelha. Cada faixa é um bloco colorido com a nota, pela ordem do álbum, com uma legenda de cores no topo e blocos cinzentos para as faixas que ainda não avaliou. Os títulos podem aparecer ao lado dos blocos ou ser ocultados. No topo escolhe mostrar a nota do álbum, a média das faixas ou ambas. Os álbuns longos encolhem para caber, e a janela sugere o tamanho story quando os blocos ficariam pequenos.'],

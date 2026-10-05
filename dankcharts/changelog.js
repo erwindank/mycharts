@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 78;
+const DC_CL_I18N_V = 79;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,10 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+
+  { d: '2026-10-04', t: 'feature', a: 'ratings', h: '71ed437',
+    title: "Long song titles on the Grid score image can shrink to initials",
+    detail: 'The Grid design of the album score image has a new option, "Shorten long titles to initials". Any song title too long for its row becomes the first letter of each word, so "Nice To Meet You (feat. Lainey Wilson)" shows as NTMY. Titles that already fit are left as they are.' },
 
   { d: '2026-10-04', t: 'feature', a: 'ratings', h: 'e8ac289',
     title: "A Grid design for sharing an album's score",
