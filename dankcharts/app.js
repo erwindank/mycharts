@@ -47982,9 +47982,14 @@ const rtCard = {
   showNote: true,
   showTracks: true,
   showFooter: true,
+  // Grid design only: song titles beside the tiles, and which number heads
+  // the card — the real album score, the plain track average, or both.
+  gridTitles: true,
+  scoreMode: 'album',
 };
 const RT_CARD_KEYS = Object.keys(rtCard);
-const RT_CARD_TOGGLES = ['showArt', 'showInsights', 'showAspects', 'showNote', 'showTracks', 'showFooter'];
+const RT_CARD_TOGGLES = ['showArt', 'showInsights', 'showAspects', 'showNote', 'showTracks', 'showFooter', 'gridTitles'];
+const RT_SCORE_MODES = ['album', 'avg', 'both'];
 let _rtCardAlbum = null;        // albumKey of the card being built
 const _rtCardArtCache = {};     // albumKey → inlined cover (data URL) or null
 
@@ -48007,6 +48012,7 @@ function rtLoadCardSettings() {
   if (!SH_RT_TEMPLATES[rtCard.template]) rtCard.template = 'verdict';
   if (!SHARE_PALETTES.some(p => p.id === rtCard.palette)) rtCard.palette = 'cover';
   if (!SHARE_FORMATS[rtCard.format]) rtCard.format = 'story';
+  if (!RT_SCORE_MODES.includes(rtCard.scoreMode)) rtCard.scoreMode = 'album';
 }
 
 // The rating bands as fixed hex pairs [on a dark card, on a light card]. The
@@ -48055,6 +48061,7 @@ function rtCardContext(albumKey, opts) {
 
   const band = ratingBand(res.score);
   return {
+    key: albumKey,
     opts, fmt, W: d.w, H: d.h,
     p: shPalette(opts.palette, shDominant(anyArt)),
     S: (opts.textScale || 100) / 100,
@@ -48206,6 +48213,221 @@ function _rtTitle(ctx, size, opt) {
   </div>`;
 }
 
+// ── Official tracklist (Grid design) ──
+// The grid numbers its tiles by track position, which the library alone can't
+// give — ratingAlbumTrackKeys() knows what was played, ordered by plays. So the
+// album is looked up once on Deezer and its tracklist cached, and the library's
+// own tracks are slotted into that order. Only album + artist names are sent,
+// so this works the same for Last.fm, Google Sheets and CSV libraries.
+const RT_TRACKLIST_LS = 'dc_rtTracklists';
+let _rtTracklists = null;              // albumKey → [title, …] in album order, or null = not found
+const _rtTracklistPending = new Set();
+
+function _rtTracklistStore() {
+  if (_rtTracklists) return _rtTracklists;
+  try { _rtTracklists = JSON.parse(localStorage.getItem(RT_TRACKLIST_LS) || '{}') || {}; } catch { _rtTracklists = {}; }
+  return _rtTracklists;
+}
+function _rtTracklistSave() {
+  try { localStorage.setItem(RT_TRACKLIST_LS, JSON.stringify(_rtTracklistStore())); } catch {}
+}
+
+async function rtPrefetchTracklist(albumKey) {
+  const store = _rtTracklistStore();
+  if (albumKey in store || _rtTracklistPending.has(albumKey)) return;
+  _rtTracklistPending.add(albumKey);
+  const [album, artist] = albumKey.split('|||');
+  try {
+    // Lead artist only — "A, B & C" searches worse than "A".
+    const lead = artist.split(/,|;|&|\bfeat\.?\b|\bft\.?\b|\bwith\b/i)[0].trim();
+    const r = await deezerFetch(`search/album?q=${encodeURIComponent(lead + ' ' + _cerPlainTitle(album))}&limit=10`);
+    if (!r.ok) throw new Error('album search ' + r.status);
+    const d = await r.json();
+    // Same scorer the ceremony samples use: wrong artist or wrong title is
+    // -Infinity, an exact title beats "… (Deluxe)".
+    const best = (d?.data || [])
+      .map((x, i) => ({ id: x.id, i, score: _cerMatchScore(artist, album, x.artist?.name || '', x.title || '') }))
+      .filter(x => x.score !== -Infinity)
+      .sort((a, b) => (b.score - a.score) || (a.i - b.i))[0];
+    let list = null;
+    if (best) {
+      const tr = await deezerFetch(`album/${best.id}/tracks?limit=200`);
+      if (!tr.ok) throw new Error('tracklist ' + tr.status);
+      const td = await tr.json();
+      list = (td?.data || []).map(x => x.title || '').filter(Boolean);
+      if (!list.length) list = null;
+    }
+    // A clean "not found" is cached too, so the card doesn't search every open.
+    store[albumKey] = list;
+    _rtTracklistSave();
+  } catch (e) {
+    // Network trouble — left uncached so the next open tries again.
+  }
+  _rtTracklistPending.delete(albumKey);
+  if (_rtCardAlbum === albumKey && document.getElementById('rtCardModal').classList.contains('open')) rtRenderCardPreview();
+}
+
+// Every track of the album in album order, each with its score (null = unrated,
+// drawn as a grey tile). Without a tracklist it falls back to library order.
+function _rtGridTracks(albumKey) {
+  const lib = ratingAlbumTrackKeys(albumKey);
+  const official = _rtTracklistStore()[albumKey];
+  const scored = tr => ({ title: tr.title, key: tr.key, score: ratingSongScore(tr.key) });
+  if (!official) return { tracks: lib.map(scored), ordered: false };
+
+  const used = new Set();
+  const take = pred => lib.find(tr => !used.has(tr.key) && pred(tr));
+  const tracks = official.map(title => {
+    const n = _cerNorm(title), c = _cerCoreTitle(title);
+    // Exact title first, then the plain title ("Song (feat. X)" ↔ "Song").
+    const hit = take(tr => _cerNorm(tr.title) === n) || take(tr => _cerCoreTitle(tr.title) === c);
+    if (hit) { used.add(hit.key); return scored(hit); }
+    return { title, key: null, score: null };
+  });
+  // Rated library tracks the tracklist doesn't know (a bonus cut, a single
+  // filed under the album) still belong on the card — they go on the end.
+  lib.forEach(tr => {
+    if (used.has(tr.key)) return;
+    const sc = ratingSongScore(tr.key);
+    if (sc != null) tracks.push({ title: tr.title, key: tr.key, score: sc });
+  });
+  return { tracks, ordered: true };
+}
+
+// The number(s) heading the card, per the "Score shown" setting: the real
+// album score (tracks + aspects), the plain average of the track scores, or
+// the album score with the track average beneath it.
+function _rtHeadline(ctx) {
+  const r = ctx.res;
+  const avg = r.trackAvg != null ? r.trackAvg : r.score;
+  const mode = ctx.opts.scoreMode;
+  if (mode === 'avg')  return { main: avg, label: t('rt_card_mode_avg') };
+  if (mode === 'both') return { main: r.score, label: t('rt_card_mode_album'), second: r.trackAvg, secondLabel: t('rt_card_mode_avg') };
+  return { main: r.score, label: t('rt_card_mode_album') };
+}
+
+// The Grid's own band colours [on a dark card, on a light card]. The app's
+// bands step through near-identical greens and two golds, which is fine for a
+// chip beside a number but not for a grid that is read by colour alone — so
+// every band here gets its own hue. Masterpiece stays gold, as everywhere else.
+const RT_GRID_BAND_HEX = {
+  masterpiece: ['#f5b82e', '#c98a00'],
+  essential:   ['#22c55e', '#15803d'],
+  great:       ['#2dd4bf', '#0f766e'],
+  good:        ['#60a5fa', '#2563eb'],
+  mixed:       ['#b9a3f7', '#7c3aed'],
+  weak:        ['#fb923c', '#ea580c'],
+  poor:        ['#f43f5e', '#be123c'],
+};
+function _rtGridHex(p, score) {
+  const b = ratingBand(score);
+  const pair = RT_GRID_BAND_HEX[b ? b.key : 'mixed'] || RT_GRID_BAND_HEX.mixed;
+  return p.dark ? pair[0] : pair[1];
+}
+
+// Colour key: every band, plus "Unrated" when a grey tile is on the card.
+function _rtLegend(ctx, tracks) {
+  const p = ctx.p;
+  const s = v => _shS(ctx, v);
+  const items = RATING_BANDS.map(b => ({ label: b.label, col: _rtGridHex(p, b.min) }));
+  if (tracks.some(tr => tr.score == null)) items.push({ label: t('rt_card_unrated'), col: _shA(p.text, p.dark ? 0.22 : 0.18) });
+  return `<div style="flex-shrink:0;display:flex;flex-wrap:wrap;column-gap:${s(20)}px;row-gap:${s(8)}px;">${items.map(it =>
+    `<span style="display:inline-flex;align-items:center;gap:${s(8)}px;white-space:nowrap;">
+      <span style="width:${s(16)}px;height:${s(16)}px;border-radius:50%;background:${it.col};flex-shrink:0;"></span>
+      <span style="font-family:${SH_FONT.sans};font-size:${s(19)}px;font-weight:500;color:${p.dim};">${esc(it.label)}</span>
+    </span>`).join('')}</div>`;
+}
+
+// One score tile: band colour fill, the score in black or white (whichever
+// reads on that fill), and optionally the track number in the corner.
+function _rtTile(ctx, tr, num, w, h) {
+  const p = ctx.p;
+  const has = tr.score != null;
+  const fill = has ? _rtGridHex(p, tr.score) : _shA(p.text, p.dark ? 0.09 : 0.07);
+  const ink = has ? (_shLum(fill) > 0.3 ? '#0b0d12' : '#ffffff') : p.dim;
+  const rad = Math.round(Math.min(w, h) * 0.16);
+  const corner = num ? `<span style="position:absolute;left:${Math.round(h * 0.1)}px;top:${Math.round(h * 0.07)}px;font-family:${SH_FONT.mono};font-size:${Math.max(9, Math.round(h * 0.17))}px;font-weight:600;line-height:1;color:${ink};opacity:0.72;">${num}</span>` : '';
+  return `<div style="position:relative;width:${w}px;height:${h}px;border-radius:${rad}px;background:${fill};${has ? '' : `border:1px solid ${p.line};`}display:flex;align-items:center;justify-content:center;flex-shrink:0;box-sizing:border-box;">
+    ${corner}<span style="font-family:${SH_FONT.display};font-size:${Math.round(h * 0.42)}px;font-weight:800;line-height:1;color:${ink};">${has ? ratingFmt(tr.score) : '–'}</span>
+  </div>`;
+}
+
+// Tiles only: try every column count and keep the one with the biggest tiles.
+// Tiles are a little wider than tall, and capped so a short EP doesn't blow
+// up into a few giant blocks.
+function _rtGridTileLayout(n, W, H, gap) {
+  const A = 0.66, MAXW = 230;
+  let best = null;
+  for (let c = 1; c <= Math.min(n, 10); c++) {
+    const r = Math.ceil(n / c);
+    let w = Math.min(MAXW, (W - (c - 1) * gap) / c);
+    let h = w * A;
+    const hMax = (H - (r - 1) * gap) / r;
+    if (h > hMax) { h = hMax; w = h / A; }
+    if (!best || w * h > best.w * best.h + 0.5) best = { c, r, w: Math.floor(w), h: Math.floor(h) };
+  }
+  return best;
+}
+
+// Tiles with titles: 1–3 columns of "tile · number · title" rows. Rejects a
+// layout whose rows would be too thin to read or whose title column would be
+// cramped — the caller then falls back to tiles only.
+function _rtGridTitledLayout(n, W, H, gap) {
+  let best = null;
+  for (let c = 1; c <= 3; c++) {
+    const r = Math.ceil(n / c);
+    const colGap = gap * 3;
+    const cellW = (W - (c - 1) * colGap) / c;
+    const h = Math.min(90, (H - (r - 1) * gap) / r);
+    const w = h * 1.55;
+    if (h < 26) continue;
+    // Room left for the title after the tile and the track number must hold
+    // roughly 15 characters at the size the row would set it — otherwise more
+    // columns only buy bigger tiles with titles cut to a few letters.
+    const fs = h * 0.36;
+    const titleW = cellW - w - h * 0.44 - fs * 1.5;
+    if (titleW < fs * 8) continue;
+    if (!best || h > best.h + 0.5) best = { c, r, colGap, cellW: Math.floor(cellW), w: Math.floor(w), h: Math.floor(h) };
+  }
+  return best;
+}
+
+let _rtGridLast = null;   // { ctx, tracks } from the last grid render, for the fit pass
+
+// The grid itself, sized to the box it has to fill.
+function _rtGridHTML(ctx, tracks, W, H) {
+  const p = ctx.p;
+  const n = tracks.length;
+  if (!n || W < 20 || H < 20) return '';
+  const gap = Math.max(4, Math.round(Math.min(W, H) * 0.011));
+  const L = ctx.opts.gridTitles ? _rtGridTitledLayout(n, W, H, gap) : null;
+
+  if (L) {
+    // Columns read top-to-bottom, like a printed tracklist.
+    const cols = [];
+    for (let c = 0; c < L.c; c++) cols.push(tracks.slice(c * L.r, (c + 1) * L.r).map((tr, j) => ({ tr, i: c * L.r + j })));
+    const fs = Math.max(12, Math.min(_shS(ctx, 27), Math.round(L.h * 0.44)));
+    return `<div style="display:flex;gap:${L.colGap}px;">${cols.map(col => `<div style="width:${L.cellW}px;display:flex;flex-direction:column;gap:${gap}px;">${col.map(({ tr, i }) => `
+      <div style="display:flex;align-items:center;gap:${Math.round(L.h * 0.22)}px;height:${L.h}px;">
+        ${_rtTile(ctx, tr, '', L.w, L.h)}
+        <span style="flex-shrink:0;width:${Math.round(fs * 1.5)}px;font-family:${SH_FONT.mono};font-size:${Math.round(fs * 0.78)}px;color:${p.dim};">${String(i + 1).padStart(2, '0')}</span>
+        <span style="flex:1;min-width:0;font-family:${SH_FONT.sans};font-size:${fs}px;font-weight:600;line-height:1.2;color:${tr.score != null ? p.text : p.dim};white-space:nowrap;overflow:hidden;">${esc(tr.title)}</span>
+      </div>`).join('')}</div>`).join('')}</div>`;
+  }
+
+  const T = _rtGridTileLayout(n, W, H, gap);
+  return `<div style="display:flex;flex-wrap:wrap;gap:${gap}px;width:${T.c * T.w + (T.c - 1) * gap}px;margin:0 auto;">${
+    tracks.map((tr, i) => _rtTile(ctx, tr, String(i + 1), T.w, T.h)).join('')}</div>`;
+}
+
+// Fill the grid placeholder now that the card is laid out and its free space
+// can be measured. Runs on the export node, like _rtFitTracks.
+function _rtFitGrid(root) {
+  const host = root.querySelector('[data-rt-grid]');
+  if (!host || !_rtGridLast) return;
+  host.innerHTML = _rtGridHTML(_rtGridLast.ctx, _rtGridLast.tracks, host.clientWidth, host.clientHeight);
+}
+
 // ── Templates ──
 const SH_RT_TEMPLATES = {
 
@@ -48307,12 +48529,49 @@ const SH_RT_TEMPLATES = {
       </div>
       ${shFooter(p, ctx.fmt, { show: opts.showFooter, padX })}`, { noBgImage: true });
   },
+
+  // GRID — every track as a colour-coded score tile, in album order, with a
+  // colour key on top. Unrated tracks are grey. The tiles are sized after
+  // layout by _rtFitGrid, so a long album shrinks to fit rather than being cut.
+  grid(ctx) {
+    const p = ctx.p, opts = ctx.opts;
+    const s = v => _shS(ctx, v);
+    const padX = 64;
+    const { tracks } = _rtGridTracks(ctx.key);
+    _rtGridLast = { ctx, tracks };
+    const hl = _rtHeadline(ctx);
+    const artSz = ctx.fmt === 'story' ? 210 : ctx.fmt === 'portrait' ? 160 : 132;
+    const mainSz = s(ctx.fmt === 'story' ? 104 : ctx.fmt === 'portrait' ? 88 : 76);
+    const mainCol = _rtGridHex(p, hl.main);
+    const band = ratingBand(hl.main);
+    const scoreBlock = `<div style="flex-shrink:0;text-align:right;">
+      <div style="font-family:${SH_FONT.display};font-size:${mainSz}px;font-weight:800;line-height:0.9;color:${mainCol};">${ratingFmt(hl.main)}</div>
+      <div style="margin-top:${s(8)}px;font-family:${SH_FONT.mono};font-size:${s(17)}px;font-weight:700;letter-spacing:0.14em;color:${p.text};text-transform:uppercase;white-space:nowrap;">${esc(band ? band.label : '')}</div>
+      <div style="margin-top:${s(4)}px;font-family:${SH_FONT.mono};font-size:${s(15)}px;letter-spacing:0.1em;color:${p.dim};text-transform:uppercase;white-space:nowrap;">${esc(hl.label)}</div>
+      ${hl.second != null ? `<div style="margin-top:${s(10)}px;font-family:${SH_FONT.mono};font-size:${s(19)}px;color:${p.dim};white-space:nowrap;"><span style="font-weight:700;color:${_rtGridHex(p, hl.second)};">${ratingFmt(hl.second)}</span> ${esc(hl.secondLabel)}</div>` : ''}
+    </div>`;
+    return shShell(p, ctx.fmt, `
+      <div style="flex:1;min-height:0;padding:${shSafeTop(ctx.fmt)}px ${padX}px 0;display:flex;flex-direction:column;gap:${s(ctx.fmt === 'post' ? 16 : 24)}px;overflow:hidden;">
+        <div style="flex-shrink:0;">${shEyebrow(p, 'dankcharts.fm · ' + t('rt_card_eyebrow'), { size: s(20) })}</div>
+        <div style="flex-shrink:0;display:flex;align-items:center;gap:${s(26)}px;">
+          ${opts.showArt ? shArt(p, ctx.art, artSz, { initials: initials(ctx.album), radius: Math.round(artSz * 0.06) }) : ''}
+          ${_rtTitle(ctx, ctx.fmt === 'story' ? 50 : 42, { grow: true, lines: 2 })}
+          ${scoreBlock}
+        </div>
+        <div style="flex-shrink:0;font-family:${SH_FONT.mono};font-size:${s(16)}px;letter-spacing:0.08em;color:${p.dim};text-transform:uppercase;">${esc(t('rt_card_tracks_rated', { n: tracks.filter(tr => tr.score != null).length, total: tracks.length }))}</div>
+        ${_rtNote(ctx, { lines: 2, size: 23 })}
+        ${_rtLegend(ctx, tracks)}
+        <div data-rt-grid style="flex:1;min-height:0;overflow:hidden;"></div>
+      </div>
+      ${shFooter(p, ctx.fmt, { show: opts.showFooter, padX })}`);
+  },
 };
 
 const SH_RT_TEMPLATE_LIST = [
   { id: 'verdict', name: 'Verdict', glyph: '◔' },
   { id: 'poster', name: 'Poster', glyph: '◧' },
   { id: 'minimal', name: 'Minimal', glyph: '≡' },
+  { id: 'grid', name: 'Grid', glyph: '▦' },
 ];
 
 function rtBuildCardHTML(albumKey, opts) {
@@ -48354,6 +48613,7 @@ function rtOpenCard(albumKey) {
   document.getElementById('rtCardModal').classList.add('open');
   rtUpdateCardPreview();
   rtPrefetchArt(albumKey);
+  rtPrefetchTracklist(albumKey);
 }
 
 function rtCloseCard() {
@@ -48365,6 +48625,28 @@ function setRtFormat(fmt) { rtCard.format = fmt; shRenderDesignPickers('rt'); rt
 function setRtTemplate(id) { rtCard.template = id; shRenderDesignPickers('rt'); rtSaveCardSettings(); rtUpdateCardPreview(); }
 function setRtPalette(id) { rtCard.palette = id; shRenderDesignPickers('rt'); rtSaveCardSettings(); rtUpdateCardPreview(); }
 function setRtQuality(q) { rtCard.quality = q; shRenderDesignPickers('rt'); rtSaveCardSettings(); rtSyncCardLabels(); }
+function setRtScoreMode(m) { if (RT_SCORE_MODES.includes(m)) rtCard.scoreMode = m; rtSaveCardSettings(); rtRenderCardPreview(); }
+
+// Show the controls that apply to the chosen design and hide the rest: the
+// Grid has its own (titles, score shown) and ignores stats/aspects/track list.
+// Also offers 9:16 when a long album's tiles would get small in a shorter format.
+function rtSyncTemplateControls() {
+  const isGrid = rtCard.template === 'grid';
+  document.querySelectorAll('#rtCardModal [data-rt-not-grid]').forEach(el => { el.style.display = isGrid ? 'none' : ''; });
+  document.querySelectorAll('#rtCardModal [data-rt-grid-only]').forEach(el => { el.style.display = isGrid ? '' : 'none'; });
+  document.querySelectorAll('#rtScoreModeBtns .sh-seg-btn').forEach(b => b.classList.toggle('active', b.dataset.mode === rtCard.scoreMode));
+  const hint = document.getElementById('rtGridHint');
+  if (!hint) return;
+  if (!isGrid || !_rtCardAlbum) { hint.innerHTML = ''; return; }
+  const g = _rtGridTracks(_rtCardAlbum);
+  const n = g.tracks.length;
+  const lines = [];
+  if (rtCard.format !== 'story' && n > (rtCard.format === 'post' ? 10 : 14)) {
+    lines.push(`${esc(t('rt_card_grid_long', { n }))} <button class="sh-link-btn" onclick="setRtFormat('story')">${esc(t('rt_card_grid_use_story'))}</button>`);
+  }
+  if (!g.ordered && !_rtTracklistPending.has(_rtCardAlbum)) lines.push(esc(t('rt_card_grid_no_tracklist')));
+  hint.innerHTML = lines.map(l => `<div>${l}</div>`).join('');
+}
 
 function rtSyncCardLabels() {
   const n = document.getElementById('rtTopNLabel');
@@ -48406,7 +48688,9 @@ function rtRenderCardPreview() {
   canvas.style.height = d.h + 'px';
   canvas.innerHTML = html;
   _rtFitTracks(canvas);
+  _rtFitGrid(canvas);
   shFitPreview('rtCardFrame', 'rtCardInner', rtCard.format, canvas.innerHTML);
+  rtSyncTemplateControls();
   shPrepareShare('rtCardCanvas', 'rtCardShareBtn', _rtShareOpts);
 }
 
