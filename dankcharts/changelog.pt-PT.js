@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['pt-PT'] = {
 
   /* ========== OUTUBRO 2026 ========== */
 
+  "Share an artist's most played songs":
+    ["Partilhe as músicas mais ouvidas de um artista",
+     "As páginas de artista têm agora um botão Partilhar músicas por cima das músicas. Cria o mesmo tipo de imagem que o Partilhar faixas de um álbum, com as músicas mais ouvidas do artista (até 50). No design Mosaico cada bloco mostra a capa do álbum ou single dessa música; Puzzle, Ranking, Pódio e Lista de faixas usam a fotografia do artista. Pode escolher de onde vem a fotografia ou carregar a sua, e as restantes opções funcionam como nos álbuns."],
+
   "Filmstrip scores and details are easier to read":
     ["Notas e detalhes da vista Tira mais fáceis de ler",
      "Na vista Tira das tabelas, a etiqueta da sua nota e os detalhes que abrem por baixo de cada cartão (semanas na tabela, reproduções totais) eram minúsculos. Agora estão bem maiores."],

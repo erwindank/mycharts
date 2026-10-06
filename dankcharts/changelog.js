@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 88;
+const DC_CL_I18N_V = 89;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,10 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+
+  { d: '2026-10-06', t: 'feature', a: 'charts', h: '1053917',
+    title: "Share an artist's most played songs",
+    detail: "Artist pages now have a Share songs button above their songs. It makes the same kind of image as an album's Share tracks, for the artist's most played songs (up to 50). In the Mosaic design every tile shows the cover of the album or single that song is from; Cover Puzzle, Ranking, Podium and Tracklist use the artist's photo. You can pick where the photo comes from or upload your own, and every other option works the same as on albums." },
 
   { d: '2026-10-05', t: 'fix', a: 'charts', h: '83840b7',
     title: "Filmstrip scores and details are easier to read",
