@@ -35228,7 +35228,15 @@ body.cp-hide-recent       #recentSection { display: none !important; }
   }
 }
 
+/* #boardView sits outside #mainApp's .container (like Soundtrack, Playlists
+   and the Charts Guide), so it sets the same width itself - otherwise it ran
+   the full width of the window. Keep in step with .container. */
 #boardView {
+  max-width: 980px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 0 1rem 4rem;
+  box-sizing: border-box;
   --bd-suggestion: #a78bfa;
   --bd-bug:        #f87171;
   --bd-question:   #38bdf8;
