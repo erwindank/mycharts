@@ -11840,6 +11840,9 @@ document.getElementById('periodNav').addEventListener('click', e => {
   // Loading shimmer: brief pulse to confirm tab switch (feature 15)
   btn.classList.add('nav-loading');
   setTimeout(() => btn.classList.remove('nav-loading'), 500);
+  // A board post link (#t=board/<postId>) is read before the hash is reset
+  // below, so the board branch can still open that post.
+  const _bdLink = window.location.hash.match(/^#t=board\/([\w-]+)$/);
   // Deep link: update URL hash so tab is bookmarkable/shareable (feature 13)
   history.replaceState(null, '', '#t=' + btn.dataset.period);
   // Mark this tab visited so badge disappears (features 9 + 17)
@@ -11859,6 +11862,16 @@ document.getElementById('periodNav').addEventListener('click', e => {
   if (!['week', 'month', 'year', 'alltime'].includes(btn.dataset.period)) {
     const afBar = document.getElementById('albumsFilterBar');
     if (afBar) afBar.style.display = 'none';
+  }
+
+  /* The community board (board.js) is taken down here for every other tab, so
+     the branches below don't each need a line for it. hide() also drops its
+     live Firestore listeners, which would otherwise keep reading in the
+     background. */
+  if (btn.dataset.period !== 'board') {
+    const bdView = document.getElementById('boardView');
+    if (bdView) bdView.style.display = 'none';
+    if (window.dcBoard) window.dcBoard.hide();
   }
 
   if (btn.dataset.period === 'rawdata') {
@@ -12176,6 +12189,50 @@ document.getElementById('periodNav').addEventListener('click', e => {
     return;
   }
 
+  if (btn.dataset.period === 'board') {
+    // Switch to the community board (suggestions, bugs, discussion) — board.js
+    savedOffsets[currentPeriod] = currentOffset;
+    currentPeriod = 'board';
+    localStorage.setItem('dc_period', currentPeriod);
+    document.getElementById('collapseAllBar').style.display = 'none';
+    document.getElementById('chartTypeToggleBar').style.display = 'none';
+    document.getElementById('subChartToggleBar-songs').style.display = 'none';
+    document.getElementById('subChartToggleBar-artists').style.display = 'none';
+    document.getElementById('subChartToggleBar-albums').style.display = 'none';
+    document.getElementById('exportPlaylistBtn').style.display = 'none';
+    document.getElementById('dateNav').style.display = 'none';
+    document.getElementById('navHint').style.display = 'none';
+    document.getElementById('statsStrip').style.display = 'none';
+    document.getElementById('statsStrip2').style.display = 'none';
+    const _s3bd = document.getElementById('statsStrip3'); if (_s3bd) _s3bd.style.display = 'none';
+    document.getElementById('songsSection').style.display = 'none';
+    document.getElementById('artistsSection').style.display = 'none';
+    document.getElementById('albumsSection').style.display = 'none';
+    document.getElementById('buSongsSection').style.display = 'none';
+    document.getElementById('buArtistsSection').style.display = 'none';
+    document.getElementById('buAlbumsSection').style.display = 'none';
+    COLLAPSE_ALL_TYPES.forEach(hideOffSection);
+    NEW_ENTRY_SECTIONS.forEach(id => { const el = document.getElementById(id); if (el) el.style.display = 'none'; });
+    document.getElementById('upcomingSection').style.display = 'none';
+    document.getElementById('recentSection').style.display = 'none';
+    document.getElementById('rawDataView').style.display = 'none';
+    document.getElementById('graphsView').style.display = 'none';
+    document.getElementById('recordsView').style.display = 'none';
+    document.getElementById('eventsView').classList.remove('dc-pl-mode');
+    document.getElementById('eventsView').style.display = 'none';
+    document.getElementById('awardsView').style.display = 'none';
+    document.getElementById('soundtrackView').style.display = 'none';
+    document.getElementById('playlistsView').style.display = 'none';
+    document.getElementById('chartsguideView').style.display = 'none';
+    const _tmBd = document.getElementById('timeMachineSection'); if (_tmBd) _tmBd.style.display = 'none';
+    document.getElementById('boardView').style.display = 'block';
+    // A #t=board/<postId> link opens straight onto that post
+    if (window.dcBoard) window.dcBoard.show(_bdLink ? _bdLink[1] : null);
+    if (typeof window._refreshBackToTop === 'function') window._refreshBackToTop();
+    updateScrobbleBtn();
+    return;
+  }
+
   if (btn.dataset.period === 'chartsguide') {
     // Switch to charts guide view
     savedOffsets[currentPeriod] = currentOffset;
@@ -12216,8 +12273,8 @@ document.getElementById('periodNav').addEventListener('click', e => {
     return;
   }
 
-  // Leaving raw data, graphs, records, events, awards, soundtrack, playlists, or chartsguide view — restore chart UI
-  if (currentPeriod === 'rawdata' || currentPeriod === 'graphs' || currentPeriod === 'records' || currentPeriod === 'events' || currentPeriod === 'awards' || currentPeriod === 'soundtrack' || currentPeriod === 'playlists' || currentPeriod === 'chartsguide') {
+  // Leaving raw data, graphs, records, events, awards, soundtrack, playlists, chartsguide or board view — restore chart UI
+  if (currentPeriod === 'rawdata' || currentPeriod === 'graphs' || currentPeriod === 'records' || currentPeriod === 'events' || currentPeriod === 'awards' || currentPeriod === 'soundtrack' || currentPeriod === 'playlists' || currentPeriod === 'chartsguide' || currentPeriod === 'board') {
     document.getElementById('dateNav').style.display = '';
     document.getElementById('navHint').style.display = '';
     document.getElementById('statsStrip').style.display = '';
@@ -12260,7 +12317,7 @@ document.getElementById('periodNav').addEventListener('click', e => {
     });
   }
 
-  savedOffsets[(currentPeriod === 'rawdata' || currentPeriod === 'graphs' || currentPeriod === 'records' || currentPeriod === 'events' || currentPeriod === 'awards' || currentPeriod === 'playlists' || currentPeriod === 'chartsguide') ? btn.dataset.period : currentPeriod] = currentOffset;
+  savedOffsets[(currentPeriod === 'rawdata' || currentPeriod === 'graphs' || currentPeriod === 'records' || currentPeriod === 'events' || currentPeriod === 'awards' || currentPeriod === 'playlists' || currentPeriod === 'chartsguide' || currentPeriod === 'board') ? btn.dataset.period : currentPeriod] = currentOffset;
   currentPeriod = btn.dataset.period;
   localStorage.setItem('dc_period', currentPeriod);
   currentOffset = savedOffsets[currentPeriod];
@@ -12357,9 +12414,9 @@ function dcNavUpdateBadges() {
   if (!periodNav || !row1 || !row2) return;
 
   const ROW1_DESKTOP = ['week', 'month', 'year', 'alltime', 'rawdata', 'graphs'];
-  const ROW2_DESKTOP = ['records', 'events', 'awards', 'soundtrack', 'playlists', 'chartsguide'];
+  const ROW2_DESKTOP = ['records', 'events', 'awards', 'soundtrack', 'playlists', 'board', 'chartsguide'];
   const ROW1_MOBILE = ['week', 'month', 'year', 'alltime'];
-  const ROW2_MOBILE = ['rawdata', 'graphs', 'records', 'events', 'awards', 'soundtrack', 'playlists', 'chartsguide'];
+  const ROW2_MOBILE = ['rawdata', 'graphs', 'records', 'events', 'awards', 'soundtrack', 'playlists', 'board', 'chartsguide'];
   const mq = window.matchMedia('(max-width: 700px)'); // matches the CSS mobile-grid breakpoint
 
   function reflow(isMobile) {
@@ -12431,19 +12488,26 @@ function dcNavUpdateBadges() {
 // --- Feature 13: Deep link — restore tab from URL hash on load ---
 // Hash wins over savedPeriod only if it looks like an explicit share/bookmark link
 // (i.e. hash present and different from what localStorage would restore anyway)
-(function initNavHashRestore() {
+/* Waits for DOMContentLoaded: this file is still being evaluated at this
+   point, and the tab click below reaches let/const values declared further
+   down (hideCertReel's _creelLoaderId, for one). Clicking straight away threw
+   a "before initialization" error, so every #t=<tab> link silently failed to
+   open its tab. Deferred scripts all finish before DOMContentLoaded fires. */
+document.addEventListener('DOMContentLoaded', function initNavHashRestore() {
   // Optional trailing /<section> targets a Charts Guide section deep link, e.g. #t=chartsguide/faq
   const m = window.location.hash.match(/^#t=(\w+)(?:\/([\w-]+))?$/);
   if (!m) return;
   const savedPeriod = localStorage.getItem('dc_period');
-  // If user has a saved period that differs from the hash, let finalizeLoad handle it
-  if (savedPeriod && savedPeriod !== m[1] && savedPeriod !== 'week') return;
+  // If user has a saved period that differs from the hash, let finalizeLoad handle it.
+  // A link to one board post always wins: it was shared to show that post.
+  const isBoardPost = m[1] === 'board' && m[2];
+  if (!isBoardPost && savedPeriod && savedPeriod !== m[1] && savedPeriod !== 'week') return;
   const btn = document.querySelector('#periodNav button[data-period="' + m[1] + '"]');
   if (btn) btn.click();
   if (m[1] === 'chartsguide' && m[2]) {
     setTimeout(() => { if (typeof dcGuideJump === 'function') dcGuideJump(m[2]); }, 60);
   }
-})();
+});
 
 // ─── JUMP PICKER ───────────────────────────────────────────────
 function syncPicker() {
@@ -24879,7 +24943,7 @@ async function loadUpcomingReleases(forceRefresh = false) {
   if (!allPlays.length) return;
 
   // Show the section only on chart tabs (not events/graphs/rawdata/records/awards/alltime/year/soundtrack)
-  if (!['events', 'graphs', 'rawdata', 'records', 'awards', 'alltime', 'year', 'soundtrack'].includes(currentPeriod)) {
+  if (!['events', 'graphs', 'rawdata', 'records', 'awards', 'alltime', 'year', 'soundtrack', 'board'].includes(currentPeriod)) {
     const el = document.getElementById('upcomingSection');
     el.style.display = '';
     const savedCollapsed = localStorage.getItem('dc_section_collapsed_upcomingSection') === '1';
@@ -25040,7 +25104,7 @@ async function loadRecentReleases(forceRefresh = false) {
   if (!allPlays.length) return;
 
   // Show the section only on chart tabs (not events/graphs/rawdata/records/awards/alltime/year/soundtrack)
-  if (!['events', 'graphs', 'rawdata', 'records', 'awards', 'alltime', 'year', 'soundtrack'].includes(currentPeriod)) {
+  if (!['events', 'graphs', 'rawdata', 'records', 'awards', 'alltime', 'year', 'soundtrack', 'board'].includes(currentPeriod)) {
     const el = document.getElementById('recentSection');
     el.style.display = '';
     const savedCollapsed = localStorage.getItem('dc_section_collapsed_recentSection') === '1';
@@ -33886,7 +33950,7 @@ function renderTimeMachine(forceRebuild) {
   // unchanged, so this early return is exactly what runs). Guarded on the current
   // view: a background re-render while Awards or Soundtrack is on screen must not
   // pop the ticker back up over them.
-  const tmHiddenView = currentPeriod === 'awards' || currentPeriod === 'soundtrack';
+  const tmHiddenView = currentPeriod === 'awards' || currentPeriod === 'soundtrack' || currentPeriod === 'board';
 
   if (!forceRebuild && tmData && tmData._hash === newHash && track.firstChild) {
     if (!tmHiddenView) section.style.display = ''; // cached cards are still in the track
@@ -45385,7 +45449,7 @@ let _cgTourTimers = [];// every pending auto-advance / sequence timer
 let _cgTourAppliedStep = -1; // last step index actually applied, so tab switches fire once per step
 const _cgTourSteps = [
   { title: 'Welcome',
-    content: 'Somewhere in your listening history is your number one song from a year you barely remember, the album you played to death one winter, and the artist who has quietly sat in your top ten ever since. dankcharts digs all of it out. Every song you have played becomes a chart you can flip through — week by week, year by year, right back to your very first scrobble. This tour visits all twelve tabs in about four minutes, and you can stop it any time.',
+    content: 'Somewhere in your listening history is your number one song from a year you barely remember, the album you played to death one winter, and the artist who has quietly sat in your top ten ever since. dankcharts digs all of it out. Every song you have played becomes a chart you can flip through — week by week, year by year, right back to your very first scrobble. This tour visits all thirteen tabs in about four minutes, and you can stop it any time.',
     nav: null },
 
   /* Written as short labelled lines rather than one dense paragraph — the
@@ -45560,12 +45624,16 @@ const _cgTourSteps = [
     content: 'Save any chart as a named playlist, queue tracks from anywhere in the app with + Play, and keep the queue across sessions. The Time Machine rebuilds what you were actually listening to on any specific past date — not the chart for that week, the plays themselves. Recent releases and anniversaries sit alongside it so there is always something to add.',
     nav: 'playlists' },
 
+  { title: 'Board',
+    content: 'The community board. Suggest a feature, report a bug, ask a question or just talk music with other listeners. Vote up the ideas you want most, and watch them move from Planned to In progress to Done. Anyone can read it; sign in with Google to post, reply and vote.',
+    nav: 'board' },
+
   { title: 'Charts Guide',
     content: 'Back where you started. Six chapters: setup checks, a card for every tab, how charts are actually calculated, keyboard shortcuts and lesser-known tricks, your own listening data, and an FAQ. Everything in this tour is written down here, so nothing depends on you remembering it.',
     nav: 'chartsguide' },
 
   { title: 'That is the whole app',
-    content: 'You have now seen all twelve tabs. The Charts Guide stays in the nav bar, and you can restart this tour any time from the button at the top of it. Go and look at your Weekly chart.',
+    content: 'You have now seen all thirteen tabs. The Charts Guide stays in the nav bar, and you can restart this tour any time from the button at the top of it. Go and look at your Weekly chart.',
     nav: null },
 ];
 
@@ -46127,7 +46195,7 @@ function dcGuideSaveFeedback() {
    different questions, in the order a new user actually asks them:
 
      01 Start Here        — is my setup right, and what do I do first?
-     02 The Tabs          — what is each of these twelve tabs for?
+     02 The Tabs          — what is each of these thirteen tabs for?
      03 How Charts Work   — what do these numbers and badges mean?
      04 Tips & Shortcuts  — how do I go faster?
      05 Your Data         — what does the app know about me?
@@ -46259,6 +46327,7 @@ function dcRenderChartsGuideView() {
         { name: 'Awards',          period: 'awards',     icon: '🏅', desc: '53 categories generated from your own chart data — the four majors plus Best Collaboration, Song of the Summer, Best Comeback, Best Discovery, Most Obsessive Play and opt-in genre awards. Set an eligibility window, pick categories, then run the ceremony. Real-Life Awards sits alongside My Grammys, with the real Grammys, VMAs, AMAs, iHeartRadio, World Music, Billboard, ARIA, Juno and BRIT Awards your artists were up for.', use: 'The fun one. Run it every December.' },
         { name: 'Your Soundtrack', period: 'soundtrack', icon: '🎬', desc: 'A full recap of any month, year or all time: a reel, headline stats, top charts, a featured artist, your listening patterns, discoveries, milestones, streaks, a mini awards run and a hidden gem — plus an animated chart replay and a shareable card.', use: 'The nostalgic pass through your history.' },
         { name: 'Playlists',       period: 'playlists',  icon: '🎵', desc: 'Save any chart as a named playlist, queue tracks from anywhere, and use the Time Machine to replay exactly what you had on for any past date.', use: 'Turning a chart back into listening.' },
+        { name: 'Board',           period: 'board',      icon: '💬', desc: 'The community board: suggest features, report bugs, ask questions and talk with other listeners. Vote up the ideas you want most and follow their status from Planned to Done. Reading is open to everyone; posting needs Google sign-in.', use: 'Asking for the feature you wish existed.' },
         { name: 'Charts Guide',    period: 'chartsguide',icon: '📖', desc: 'You are here. Setup checks, the tab breakdown, how charts are calculated, shortcuts, glossary, FAQ and your milestones.', use: 'Whenever something does not make sense.' },
       ],
     },

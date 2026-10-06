@@ -35190,3 +35190,281 @@ body.cp-hide-period-stats .stats-strips-wrap,
 body.cp-hide-cert-reel    #certReelSection,
 body.cp-hide-upcoming     #upcomingSection,
 body.cp-hide-recent       #recentSection { display: none !important; }
+
+/* ===========================================================================
+   COMMUNITY BOARD (board.js) — suggestions, bug reports, discussion
+   ===========================================================================
+   Built only from theme tokens so all ten themes work. Category/status hues
+   are fixed, but text drawn in them is mixed toward var(--text) so it stays
+   readable on both the light and the dark themes. */
+
+/* Nav tab: pink, plus a "typing…" dot bounce and the back bubble lifting */
+.period-nav button[data-period="board"] { --nav-c: #f472b6; } /* pink */
+.period-nav button[data-period="board"]:is(:hover, .active) .ni-dot {
+  animation: navBoardTyping 1.2s ease-in-out infinite;
+  animation-delay: calc(var(--i) * 0.15s);
+}
+.period-nav button[data-period="board"]:hover .ni-a {
+  animation: navBoardLift 0.6s ease-out both;
+}
+@keyframes navBoardTyping {
+  0%, 60%, 100% { transform: translateY(0); opacity: 0.6; }
+  30%           { transform: translateY(-1.3px); opacity: 1; }
+}
+@keyframes navBoardLift {
+  from { transform: translate(-1px, 1.2px); opacity: 0.4; }
+  to   { transform: none; opacity: 1; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .period-nav button[data-period="board"] .nav-icon * { animation: none !important; }
+}
+
+/* Phones: row 2 now holds nine tabs, so it becomes a 3×3 grid instead of a
+   4-column one with three empty cells. More room per label, too. */
+@media (max-width: 700px) {
+  .period-nav-row-2 {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    max-height: 220px;
+  }
+}
+
+#boardView {
+  --bd-suggestion: #a78bfa;
+  --bd-bug:        #f87171;
+  --bd-question:   #38bdf8;
+  --bd-discussion: #34d399;
+  --bd-danger:     #D93F44;
+}
+.bd-section .section-body { display: flex; flex-direction: column; gap: 14px; }
+
+/* Buttons and inputs */
+.bd-btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  padding: 8px 14px;
+  border-radius: 9px;
+  border: 1px solid var(--border);
+  background: var(--surface2);
+  color: var(--text1);
+  font: inherit; font-size: 0.8rem; font-weight: 600;
+  cursor: pointer;
+  transition: background 0.12s, border-color 0.12s, color 0.12s;
+  white-space: nowrap;
+}
+.bd-btn:hover { border-color: var(--accent); }
+.bd-btn:disabled { opacity: 0.55; cursor: default; }
+.bd-btn:focus-visible, .bd-chip:focus-visible, .bd-vote:focus-visible,
+.bd-seg button:focus-visible, .bd-link:focus-visible, .bd-post-title:focus-visible {
+  outline: 2px solid var(--accent); outline-offset: 2px;
+}
+.bd-btn-primary { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+.bd-btn-primary:hover { filter: brightness(1.08); }
+.bd-btn-sm { padding: 5px 10px; font-size: 0.74rem; }
+.bd-btn-danger:hover { border-color: var(--bd-danger); color: color-mix(in srgb, var(--bd-danger) 75%, var(--text)); }
+
+.bd-input {
+  box-sizing: border-box;
+  padding: 8px 11px;
+  border-radius: 9px;
+  border: 1px solid var(--border);
+  background: var(--surface2);
+  color: var(--text1);
+  font: inherit; font-size: 0.85rem;
+}
+.bd-input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 22%, transparent); }
+.bd-input::placeholder { color: var(--text3); }
+.bd-textarea { width: 100%; resize: vertical; min-height: 84px; line-height: 1.5; }
+.bd-select { padding-right: 8px; cursor: pointer; }
+
+/* Signed-out strip */
+.bd-signin {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1px dashed color-mix(in srgb, var(--accent) 45%, var(--border));
+  background: color-mix(in srgb, var(--accent) 7%, transparent);
+  color: var(--text2); font-size: 0.85rem;
+}
+.bd-signin-sm { padding: 10px 12px; font-size: 0.8rem; }
+
+/* Toolbar */
+.bd-toolbar { display: flex; flex-direction: column; gap: 10px; }
+.bd-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.bd-chip {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 6px 11px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text2);
+  font: inherit; font-size: 0.78rem; font-weight: 600;
+  cursor: pointer;
+}
+.bd-chip:hover { color: var(--text1); border-color: var(--accent); }
+.bd-chip.active { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+.bd-chip-n { font-family: var(--font-mono); font-size: 0.7rem; opacity: 0.7; }
+.bd-tools { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.bd-search { flex: 1 1 180px; min-width: 0; }
+.bd-seg { display: inline-flex; border: 1px solid var(--border); border-radius: 9px; overflow: hidden; }
+.bd-seg button {
+  padding: 7px 12px; border: 0; background: transparent; color: var(--text2);
+  font: inherit; font-size: 0.78rem; font-weight: 600; cursor: pointer;
+}
+.bd-seg button + button { border-left: 1px solid var(--border); }
+.bd-seg button:hover { color: var(--text1); }
+.bd-seg button.active { background: var(--surface2); color: var(--accent); }
+.bd-new-btn { margin-left: auto; }
+
+/* Category dots */
+.bd-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; flex: none; background: var(--text3); }
+.bd-cat-suggestion { background: var(--bd-suggestion); }
+.bd-cat-bug        { background: var(--bd-bug); }
+.bd-cat-question   { background: var(--bd-question); }
+.bd-cat-discussion { background: var(--bd-discussion); }
+
+/* Composer (new post + edit) */
+.bd-composer {
+  display: flex; flex-direction: column; gap: 10px;
+  padding: 16px;
+  border-radius: 14px;
+  border: 1px solid var(--border);
+  background: var(--surface1);
+}
+.bd-composer-edit { padding: 12px; margin: 4px 0 8px; background: var(--bg3); }
+.bd-composer-title { font-family: var(--font-display); font-weight: 700; font-size: 1rem; color: var(--text1); }
+.bd-cat-pick { display: flex; flex-wrap: wrap; gap: 6px; }
+.bd-cat-opt { position: relative; cursor: pointer; }
+.bd-cat-opt input { position: absolute; opacity: 0; width: 0; height: 0; }
+.bd-cat-opt > span {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 6px 11px; border-radius: 999px;
+  border: 1px solid var(--border); color: var(--text2);
+  font-size: 0.78rem; font-weight: 600;
+}
+.bd-cat-opt:hover > span { border-color: var(--accent); color: var(--text1); }
+.bd-cat-opt input:checked + span { border-color: var(--accent); color: var(--text1); background: color-mix(in srgb, var(--accent) 14%, transparent); }
+.bd-cat-opt input:focus-visible + span { outline: 2px solid var(--accent); outline-offset: 2px; }
+.bd-composer-foot { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.bd-composer-foot .bd-note { flex: 1 1 200px; }
+.bd-count { font-family: var(--font-mono); font-size: 0.72rem; color: var(--text3); }
+.bd-note { font-size: 0.76rem; color: var(--text3); line-height: 1.45; }
+
+/* Post list */
+.bd-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.bd-post {
+  display: flex; gap: 12px; align-items: flex-start;
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: var(--surface1);
+  transition: border-color 0.12s;
+  scroll-margin-top: 90px;
+}
+.bd-post:hover { border-color: color-mix(in srgb, var(--accent) 45%, var(--border)); }
+.bd-post.pinned { border-color: color-mix(in srgb, var(--accent) 55%, var(--border)); background: color-mix(in srgb, var(--accent) 5%, var(--surface1)); }
+.bd-post.open { border-color: var(--accent); }
+
+.bd-vote {
+  flex: none;
+  display: flex; flex-direction: column; align-items: center; gap: 1px;
+  width: 46px; padding: 6px 0;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--surface2);
+  color: var(--text2);
+  font: inherit; cursor: pointer;
+  transition: color 0.12s, border-color 0.12s, background 0.12s, transform 0.12s;
+}
+.bd-vote svg { width: 15px; height: 15px; }
+.bd-vote:hover { color: var(--accent); border-color: var(--accent); }
+.bd-vote:active { transform: scale(0.94); }
+.bd-vote.voted { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+.bd-vote-n { font-family: var(--font-mono); font-size: 0.85rem; font-weight: 700; }
+
+.bd-post-main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 5px; }
+.bd-tags { display: flex; flex-wrap: wrap; gap: 6px; }
+.bd-tag {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 2px 8px; border-radius: 999px;
+  font-size: 0.68rem; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase;
+  color: var(--text2); background: var(--surface2);
+}
+.bd-tag-pin { color: var(--accent); background: color-mix(in srgb, var(--accent) 12%, transparent); }
+.bd-status { --c: var(--text3); color: color-mix(in srgb, var(--c) 65%, var(--text)); background: color-mix(in srgb, var(--c) 16%, transparent); }
+.bd-status-planned  { --c: #a78bfa; }
+.bd-status-progress { --c: #fbbf24; }
+.bd-status-done     { --c: #34d399; }
+.bd-status-declined { --c: #94a3b8; }
+
+.bd-post-title {
+  padding: 0; border: 0; background: none; text-align: left; cursor: pointer;
+  font-family: var(--font-display); font-size: 1rem; font-weight: 700; line-height: 1.3;
+  color: var(--text1); overflow-wrap: anywhere;
+}
+.bd-post-title:hover { color: var(--accent); }
+.bd-post-snippet {
+  font-size: 0.82rem; color: var(--text2); line-height: 1.45;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+  overflow-wrap: anywhere;
+}
+.bd-post-body, .bd-reply-body { font-size: 0.88rem; color: var(--text1); line-height: 1.6; overflow-wrap: anywhere; }
+.bd-post-body a, .bd-reply-body a { color: var(--accent); }
+
+.bd-meta { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; font-size: 0.74rem; color: var(--text3); }
+.bd-author { color: var(--text2); font-weight: 600; }
+.bd-sep { opacity: 0.6; }
+.bd-op {
+  padding: 1px 6px; border-radius: 5px;
+  font-size: 0.62rem; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase;
+  color: var(--accent); background: color-mix(in srgb, var(--accent) 12%, transparent);
+}
+.bd-link { padding: 0; border: 0; background: none; color: inherit; font: inherit; cursor: pointer; }
+.bd-link:hover { color: var(--accent); }
+.bd-avatar {
+  position: relative; flex: none;
+  width: 20px; height: 20px; border-radius: 50%; overflow: hidden;
+  display: inline-flex; align-items: center; justify-content: center;
+  background: var(--surface2); color: var(--text2);
+  font-size: 0.62rem; font-weight: 700;
+}
+.bd-avatar img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+
+.bd-actions { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin-top: 6px; }
+.bd-status-pick { display: inline-flex; align-items: center; gap: 6px; font-size: 0.74rem; color: var(--text3); }
+.bd-status-pick .bd-select { padding: 4px 8px; font-size: 0.74rem; }
+
+.bd-replies { margin-top: 8px; padding-top: 12px; border-top: 1px solid var(--border); display: flex; flex-direction: column; gap: 10px; }
+.bd-reply-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 12px; }
+.bd-reply { display: flex; flex-direction: column; gap: 4px; padding-left: 10px; border-left: 2px solid var(--border); }
+.bd-reply-del { margin-left: auto; opacity: 0.7; }
+.bd-reply-del:hover { opacity: 1; color: color-mix(in srgb, var(--bd-danger) 75%, var(--text)); }
+.bd-reply-form { display: flex; flex-direction: column; gap: 8px; }
+
+.bd-empty { padding: 36px 16px; text-align: center; color: var(--text3); font-size: 0.88rem; border: 1px dashed var(--border); border-radius: 12px; }
+.bd-empty-err { color: color-mix(in srgb, var(--bd-danger) 70%, var(--text)); }
+
+/* Warning window layer: the reused .awards-picker-confirm is z-index 1
+   inside its picker; here it needs to sit above the sticky nav and bars. */
+.bd-confirm-layer { position: fixed; inset: 0; z-index: 10050; }
+
+.bd-toast {
+  position: fixed; left: 50%; bottom: 24px; z-index: 10060;
+  transform: translateX(-50%);
+  max-width: min(90vw, 420px);
+  padding: 10px 16px; border-radius: 10px;
+  background: var(--text1); color: var(--bg);
+  font-size: 0.82rem; font-weight: 600; text-align: center; overflow-wrap: anywhere;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+  animation: bdToastIn 0.18s ease-out;
+  transition: opacity 0.3s;
+}
+.bd-toast.out { opacity: 0; }
+@keyframes bdToastIn { from { opacity: 0; transform: translate(-50%, 8px); } }
+@media (prefers-reduced-motion: reduce) { .bd-toast { animation: none; } }
+
+@media (max-width: 600px) {
+  .bd-post { gap: 10px; padding: 11px 12px; }
+  .bd-vote { width: 40px; }
+  .bd-new-btn { margin-left: 0; flex: 1 1 100%; }
+  .bd-seg { flex: 1 1 auto; }
+  .bd-seg button { flex: 1; }
+}

@@ -24,5 +24,123 @@ service cloud.firestore {
                     && request.resource.data.cats.size() <= 80;
       allow delete: if request.auth != null && resource.data.owner == request.auth.uid;
     }
+
+    // ── Community board (board.js) ──────────────────────────────────────────
+    // Public to read. Posting, replying and voting need a signed-in account.
+    // Moderators are listed in boardAdmins/{uid} — an (empty) document per
+    // moderator, created by hand in the Firebase Console. Nobody can write that
+    // collection from the site, and each user can only check their own entry.
+
+    function signedIn() { return request.auth != null; }
+    function isBoardAdmin() {
+      return signedIn() && exists(/databases/$(database)/documents/boardAdmins/$(request.auth.uid));
+    }
+    function textOk(v, min, max) { return v is string && v.size() >= min && v.size() <= max; }
+    function changedOnly(keys) {
+      return request.resource.data.diff(resource.data).affectedKeys().hasOnly(keys);
+    }
+    function postPath(postId) { return /databases/$(database)/documents/boardPosts/$(postId); }
+    function replyPath(postId, replyId) {
+      return /databases/$(database)/documents/boardPosts/$(postId)/replies/$(replyId);
+    }
+
+    match /boardAdmins/{uid} {
+      allow get: if signedIn() && request.auth.uid == uid;
+      allow list, write: if false;
+    }
+
+    match /boardPosts/{postId} {
+      allow read: if true;
+
+      // A new post starts open, unpinned, with no votes or replies, stamped
+      // with the server's clock and the poster's own uid.
+      allow create: if signedIn()
+        && request.resource.data.keys().hasOnly(['title', 'body', 'category', 'authorUid', 'authorName',
+             'authorPhoto', 'createdAt', 'lastActivity', 'status', 'pinned', 'votes', 'voteCount', 'replyCount'])
+        && request.resource.data.authorUid == request.auth.uid
+        && textOk(request.resource.data.title, 3, 120)
+        && textOk(request.resource.data.body, 0, 5000)
+        && request.resource.data.category in ['suggestion', 'bug', 'question', 'discussion']
+        && textOk(request.resource.data.authorName, 1, 60)
+        && textOk(request.resource.data.authorPhoto, 0, 500)
+        && request.resource.data.createdAt == request.time
+        && request.resource.data.lastActivity == request.time
+        && request.resource.data.status == 'open'
+        && request.resource.data.pinned == false
+        && request.resource.data.votes == []
+        && request.resource.data.voteCount == 0
+        && request.resource.data.replyCount == 0;
+
+      allow update: if signedIn() && (
+        // 1. The author edits their own text or category.
+        (resource.data.authorUid == request.auth.uid
+          && changedOnly(['title', 'body', 'category', 'editedAt'])
+          && textOk(request.resource.data.title, 3, 120)
+          && textOk(request.resource.data.body, 0, 5000)
+          && request.resource.data.category in ['suggestion', 'bug', 'question', 'discussion']
+          && request.resource.data.editedAt == request.time)
+        ||
+        // 2. Anyone signed in adds or removes their OWN vote — exactly one uid
+        //    in or out, and voteCount kept equal to the list's length.
+        (changedOnly(['votes', 'voteCount'])
+          && request.resource.data.votes is list
+          && request.resource.data.voteCount == request.resource.data.votes.size()
+          && (
+            (!(request.auth.uid in resource.data.votes)
+              && request.resource.data.votes.size() == resource.data.votes.size() + 1
+              && request.resource.data.votes.hasAll(resource.data.votes)
+              && request.auth.uid in request.resource.data.votes)
+            ||
+            ((request.auth.uid in resource.data.votes)
+              && request.resource.data.votes.size() == resource.data.votes.size() - 1
+              && resource.data.votes.hasAll(request.resource.data.votes)
+              && !(request.auth.uid in request.resource.data.votes))
+          ))
+        ||
+        // 3. The reply counter, only in the same batch that adds a new reply
+        //    (lastReplyId names it) or removes an existing one.
+        (changedOnly(['replyCount', 'lastActivity', 'lastReplyId'])
+          && (
+            (request.resource.data.replyCount == resource.data.replyCount + 1
+              && request.resource.data.lastActivity == request.time
+              && !exists(replyPath(postId, request.resource.data.lastReplyId))
+              && existsAfter(replyPath(postId, request.resource.data.lastReplyId)))
+            ||
+            (request.resource.data.replyCount == resource.data.replyCount - 1
+              && request.resource.data.lastActivity == resource.data.lastActivity
+              && exists(replyPath(postId, request.resource.data.lastReplyId))
+              && !existsAfter(replyPath(postId, request.resource.data.lastReplyId)))
+          ))
+        ||
+        // 4. Moderators set the status and pin/unpin.
+        (isBoardAdmin()
+          && changedOnly(['status', 'pinned'])
+          && request.resource.data.status in ['open', 'planned', 'progress', 'done', 'declined']
+          && request.resource.data.pinned is bool)
+      );
+
+      allow delete: if signedIn() && (resource.data.authorUid == request.auth.uid || isBoardAdmin());
+
+      match /replies/{replyId} {
+        allow read: if true;
+        // Must go in together with the post's counter bump (rule 3 above).
+        allow create: if signedIn()
+          && request.resource.data.keys().hasOnly(['body', 'authorUid', 'authorName', 'authorPhoto', 'createdAt'])
+          && request.resource.data.authorUid == request.auth.uid
+          && textOk(request.resource.data.body, 1, 3000)
+          && textOk(request.resource.data.authorName, 1, 60)
+          && textOk(request.resource.data.authorPhoto, 0, 500)
+          && request.resource.data.createdAt == request.time
+          && exists(postPath(postId))
+          && getAfter(postPath(postId)).data.replyCount == get(postPath(postId)).data.replyCount + 1;
+        allow update: if false;
+        // The reply's author, the post's author (moderating their own thread,
+        // and clearing replies when deleting the post) or a moderator.
+        allow delete: if signedIn() && (
+          resource.data.authorUid == request.auth.uid
+          || get(postPath(postId)).data.authorUid == request.auth.uid
+          || isBoardAdmin());
+      }
+    }
   }
 }
