@@ -48132,10 +48132,10 @@ function rtLoadCardSettings() {
 // neither html2canvas nor a fixed palette like Paper can use, so the card keeps
 // its own copy of the same hues.
 const RT_CARD_BAND_HEX = {
-  masterpiece: ['#f2b544', '#a97208'],
-  essential:   ['#3ddc97', '#0f9d58'],
-  great:       ['#5fd4b0', '#0e8a6a'],
-  good:        ['#2dd4bf', '#0f766e'],
+  masterpiece: ['#3ddc97', '#0f9d58'],
+  essential:   ['#4fd6b8', '#0e8a6a'],
+  great:       ['#3cc4d8', '#0e7490'],
+  good:        ['#38bdf8', '#0369a1'],
   mixed:       ['#fbbf24', '#b45309'],
   weak:        ['#fb923c', '#c2410c'],
   poor:        ['#ff6b81', '#d93025'],
@@ -48421,13 +48421,14 @@ function _rtHeadline(ctx) {
 // The Grid's own band colours [on a dark card, on a light card]. The app's
 // bands step through near-identical greens and two golds, which is fine for a
 // chip beside a number but not for a grid that is read by colour alone — so
-// every band here gets its own hue. Masterpiece stays gold, as everywhere else.
+// every band here gets its own hue. Masterpiece is green, as everywhere else,
+// and Mixed is amber so yellow always means a middling score.
 const RT_GRID_BAND_HEX = {
-  masterpiece: ['#f5b82e', '#c98a00'],
-  essential:   ['#22c55e', '#15803d'],
-  great:       ['#2dd4bf', '#0f766e'],
-  good:        ['#60a5fa', '#2563eb'],
-  mixed:       ['#b9a3f7', '#7c3aed'],
+  masterpiece: ['#22c55e', '#15803d'],
+  essential:   ['#2dd4bf', '#0f766e'],
+  great:       ['#60a5fa', '#2563eb'],
+  good:        ['#b9a3f7', '#7c3aed'],
+  mixed:       ['#fbbf24', '#b45309'],
   weak:        ['#fb923c', '#ea580c'],
   poor:        ['#f43f5e', '#be123c'],
 };

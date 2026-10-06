@@ -33978,8 +33978,9 @@ body.red-light .modal-rank-card--year .mrc-rank {
        --teal, --amber, --rose) rather than hard-coded hexes, so every one of the
        ten themes tunes the ramp against its own background for free. A fixed
        green would be unreadable on the light themes and wrong on the tinted
-       ones. Ramp runs gold → green → teal → amber → rose, which is monotonic in
-       quality, and the score number is ALWAYS rendered next to the colour, so
+       ones. Ramp runs green → teal → amber → rose, which is monotonic in
+       quality — the top band is green, not gold, because gold sat too close
+       to the amber "Mixed" band and read as a middling score, and the score number is ALWAYS rendered next to the colour, so
        colour never carries the value on its own.
 
        Declared on body, not :root: the theme blocks set --gold2 etc. on body,
@@ -33987,9 +33988,9 @@ body.red-light .modal-rank-card--year .mrc-rank {
        froze to the default navy palette, so light themes got #fcd34d yellow
        on white. Same reason as DERIVED SEMANTIC TOKENS near the top. */
     body {
-      --rt-masterpiece: var(--gold2);
-      --rt-essential:   var(--green);
-      --rt-great:       color-mix(in srgb, var(--green) 65%, var(--teal));
+      --rt-masterpiece: var(--green);
+      --rt-essential:   color-mix(in srgb, var(--green) 65%, var(--teal));
+      --rt-great:       color-mix(in srgb, var(--green) 30%, var(--teal));
       --rt-good:        var(--teal);
       --rt-mixed:       var(--amber);
       --rt-weak:        color-mix(in srgb, var(--amber) 45%, var(--rose));
@@ -34007,13 +34008,29 @@ body.red-light .modal-rank-card--year .mrc-rank {
     body.yellow-light,
     body.pink-light,
     body.red-light {
-      --rt-masterpiece: color-mix(in srgb, var(--gold2) 60%, var(--text));
-      --rt-essential:   color-mix(in srgb, var(--green) 60%, var(--text));
-      --rt-great:       color-mix(in srgb, color-mix(in srgb, var(--green) 65%, var(--teal)) 60%, var(--text));
+      --rt-masterpiece: color-mix(in srgb, var(--green) 60%, var(--text));
+      --rt-essential:   color-mix(in srgb, color-mix(in srgb, var(--green) 65%, var(--teal)) 60%, var(--text));
+      --rt-great:       color-mix(in srgb, color-mix(in srgb, var(--green) 30%, var(--teal)) 60%, var(--text));
       --rt-good:        color-mix(in srgb, var(--teal) 60%, var(--text));
       --rt-mixed:       color-mix(in srgb, var(--amber) 60%, var(--text));
       --rt-weak:        color-mix(in srgb, color-mix(in srgb, var(--amber) 45%, var(--rose)) 60%, var(--text));
       --rt-poor:        color-mix(in srgb, var(--rose) 60%, var(--text));
+    }
+
+    /* The red themes recolour --teal to a red, which turned Great/Good into
+       brown and red — reading as bad scores. Point the ramp at the sky blue
+       the other themes use instead (deepened for the light variant). */
+    body.red { --rt-teal-src: #38bdf8; }
+    body.red-light { --rt-teal-src: #0c4a6e; }
+    body.red, body.red-light {
+      --rt-essential: color-mix(in srgb, var(--green) 65%, var(--rt-teal-src));
+      --rt-great:     color-mix(in srgb, var(--green) 30%, var(--rt-teal-src));
+      --rt-good:      var(--rt-teal-src);
+    }
+    body.red-light {
+      --rt-essential: color-mix(in srgb, color-mix(in srgb, var(--green) 65%, var(--rt-teal-src)) 60%, var(--text));
+      --rt-great:     color-mix(in srgb, color-mix(in srgb, var(--green) 30%, var(--rt-teal-src)) 60%, var(--text));
+      --rt-good:      color-mix(in srgb, var(--rt-teal-src) 60%, var(--text));
     }
 
     /* One class per band. `color` drives text and `--rt-c` is the handle every
