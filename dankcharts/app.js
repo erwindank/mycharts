@@ -48898,7 +48898,7 @@ let tpCard = {
   showArt: true,
   showHeader: true,
   showShare: false,
-  mono: true,          // black & white cover tiles (Mosaic / Puzzle)
+  mono: false,         // black & white tiles (Mosaic / Puzzle) — off: the picture's own colours
   showFooter: true,
 };
 const TP_CARD_KEYS = Object.keys(tpCard);
@@ -48907,13 +48907,21 @@ const TP_ORDERS = ['plays', 'album'];
 const TP_UNITS = ['plays', 'streams', 'scrobbles'];
 let _tpCardAlbum = null;       // albumKey of the card being built
 let _tpCardTracks = [];        // [{ title, count }] snapshot from the album modal
-const _tpArtCache = {};        // albumKey → inlined cover (data URL) or null
+const _tpArtCache = {};        // albumKey + '::' + picture choice → inlined picture (data URL) or null
+// Which picture the card uses: the album cover from one source, the artist's
+// photo, or an image the user uploads. Per album, not saved — an uploaded
+// photo belongs to the album it was picked for.
+const TP_PICS = ['deezer', 'itunes', 'lastfm', 'artist', 'upload'];
+let _tpPic = 'deezer';
+const _tpPicPending = new Set();
+function _tpArtKey() { return _tpCardAlbum + '::' + _tpPic; }
 const _tpGrayCache = {};       // cover data URL → black & white copy
 
 function tpSaveCardSettings() {
   try {
     const out = {};
     TP_CARD_KEYS.forEach(k => { out[k] = tpCard[k]; });
+    out.v = 2;
     localStorage.setItem('dc_tpCardSettings', JSON.stringify(out));
   } catch {}
 }
@@ -48923,6 +48931,9 @@ function tpLoadCardSettings() {
     const saved = JSON.parse(localStorage.getItem('dc_tpCardSettings') || 'null');
     if (saved && typeof saved === 'object') {
       TP_CARD_KEYS.forEach(k => { if (saved[k] !== undefined) tpCard[k] = saved[k]; });
+      // The first build had black & white tiles on by default — saved
+      // settings from it go back to the picture's own colours.
+      if (saved.v !== 2) tpCard.mono = false;
     }
   } catch {}
   // Drop ids written by an older build.
@@ -48997,7 +49008,7 @@ function tpCardContext(opts) {
   const [album, artist] = _tpCardAlbum.split('|||');
   const fmt = SHARE_FORMATS[opts.format] ? opts.format : 'portrait';
   const d = shDims(fmt);
-  const anyArt = _tpArtCache[_tpCardAlbum] || null;
+  const anyArt = _tpArtCache[_tpArtKey()] || null;
   const all = _tpOrderedTracks().tracks;
   const total = _tpCardTracks.reduce((s, tr) => s + tr.count, 0);
   const max = all.reduce((m, tr) => Math.max(m, tr.count), 0);
@@ -49289,21 +49300,78 @@ function tpBuildCardHTML(opts) {
   return tpl(ctx);
 }
 
-// ── Artwork ──
-// Shares the score card's cache when it already has the cover; otherwise the
-// usual source fallback chain, inlined, then a black & white copy baked.
-async function tpPrefetchArt(albumKey) {
-  if (albumKey in _tpArtCache) return;
-  _tpArtCache[albumKey] = _rtCardArtCache[albumKey] || null;
-  if (!_tpArtCache[albumKey]) {
-    const [album, artist] = albumKey.split('|||');
+// ── Picture ──
+// Fetches the picture for the current choice: the album cover from the chosen
+// source (no fallback to another one — the user picked it), or the artist's
+// photo through the usual source chain. Inlined, then a black & white copy
+// baked for the tiles. Uploads are handled by tpUploadPic.
+async function tpPrefetchArt() {
+  const key = _tpArtKey();
+  if (key in _tpArtCache || _tpPicPending.has(key) || _tpPic === 'upload') return;
+  _tpPicPending.add(key);
+  tpSyncPicControls();
+  const [album, artist] = _tpCardAlbum.split('|||');
+  let art = null;
+  try {
+    if (_tpPic === 'artist') {
+      // Lead artist only — "A, B & C" finds no photo.
+      const lead = artist.split(/,|;|&|\bfeat\.?\b|\bft\.?\b|\bwith\b/i)[0].trim();
+      const { url } = await _fetchWithSourceFallback('artists', lead, 'deezer');
+      art = await _crInlineArt(url);
+    } else if (_tpPic === 'deezer' && _rtCardArtCache[_tpCardAlbum]) {
+      art = _rtCardArtCache[_tpCardAlbum];   // the score card already has it
+    } else {
+      art = await _crInlineArt(await _lookupImgUrl('albums', _tpCardAlbum, _tpPic));
+    }
+  } catch (e) { art = null; }
+  if (art) await _tpComputeGray(art);
+  _tpArtCache[key] = art;
+  _tpPicPending.delete(key);
+  if (_tpArtKey() === key && document.getElementById('tpCardModal').classList.contains('open')) tpRenderCardPreview();
+}
+
+function setTpPic(pic) {
+  if (!TP_PICS.includes(pic)) return;
+  if (pic === 'upload') { document.getElementById('tpPicFile')?.click(); return; }
+  _tpPic = pic;
+  tpRenderCardPreview();
+  tpPrefetchArt();
+}
+
+// Upload your own picture. It is centre-cropped to a square (every design lays
+// pictures out as squares) and kept at most 1200px, then inlined like a cover.
+function tpUploadPic(input) {
+  const file = input.files && input.files[0];
+  input.value = '';
+  if (!file || !/^image\//.test(file.type)) return;
+  const rd = new FileReader();
+  rd.onload = async () => {
     try {
-      const url = await _igFetchArtWithFallback('albums', { album, artist }, 'deezer');
-      _tpArtCache[albumKey] = await _crInlineArt(url);
-    } catch (e) { _tpArtCache[albumKey] = null; }
-  }
-  if (_tpArtCache[albumKey]) await _tpComputeGray(_tpArtCache[albumKey]);
-  if (_tpCardAlbum === albumKey && document.getElementById('tpCardModal').classList.contains('open')) tpRenderCardPreview();
+      const img = await _shLoadImage(rd.result);
+      const side = Math.min(img.naturalWidth, img.naturalHeight);
+      const S = Math.min(1200, side);
+      const cv = document.createElement('canvas');
+      cv.width = cv.height = S;
+      cv.getContext('2d').drawImage(img, (img.naturalWidth - side) / 2, (img.naturalHeight - side) / 2, side, side, 0, 0, S, S);
+      const data = cv.toDataURL('image/jpeg', 0.92);
+      await Promise.all([shComputeDominant(data), shComputeBlur(data), _tpComputeGray(data)]);
+      _tpPic = 'upload';
+      _tpArtCache[_tpArtKey()] = data;
+      tpRenderCardPreview();
+    } catch (e) { console.error('Picture upload failed', e); }
+  };
+  rd.readAsDataURL(file);
+}
+
+// Picture buttons: which one is on, and a note while loading or when the
+// chosen source has nothing for this album.
+function tpSyncPicControls() {
+  document.querySelectorAll('#tpCardModal .sh-mini-btn[data-pic]').forEach(b => b.classList.toggle('active', b.dataset.pic === _tpPic));
+  const note = document.getElementById('tpPicNote');
+  if (!note) return;
+  const key = _tpArtKey();
+  note.textContent = _tpPicPending.has(key) ? t('tp_card_pic_loading')
+    : (key in _tpArtCache && !_tpArtCache[key]) ? t('tp_card_pic_none') : '';
 }
 
 // ── Modal ──
@@ -49312,6 +49380,7 @@ function tpOpenCard() {
   _tpCardAlbum = _currentAlbumKey;
   _tpCardTracks = _albCurrentAlbumCtx.tracks.map(tr => ({ title: tr.title, count: tr.count }));
   tpLoadCardSettings();
+  _tpPic = 'deezer';
   shRenderDesignPickers('tp');
   TP_CARD_TOGGLES.forEach(k => {
     const el = document.getElementById('tpOpt_' + k);
@@ -49323,7 +49392,7 @@ function tpOpenCard() {
   document.getElementById('tpCardTitle').textContent = t('tp_card_title') + ' — ' + _tpCardAlbum.split('|||')[0].slice(0, 40);
   document.getElementById('tpCardModal').classList.add('open');
   tpUpdateCardPreview();
-  tpPrefetchArt(_tpCardAlbum);
+  tpPrefetchArt();
   // The official tracklist, for "Album order" — fetched once, shared with the
   // score card's Grid, and it re-renders this card too when it lands.
   rtPrefetchTracklist(_tpCardAlbum);
@@ -49410,6 +49479,7 @@ function tpRenderCardPreview() {
   _tpFit(canvas);
   shFitPreview('tpCardFrame', 'tpCardInner', tpCard.format, canvas.innerHTML);
   tpSyncTemplateControls();
+  tpSyncPicControls();
   shPrepareShare('tpCardCanvas', 'tpCardShareBtn', _tpShareOpts);
 }
 

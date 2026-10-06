@@ -31,7 +31,7 @@
   <!-- All scripts are deferred so the page paints without waiting on them.
        defer preserves execution order, which matters: translations → Chart.js →
        hammer → zoom plugin → firebase SDKs → firebase.js → app.js (in body). -->
-  <script defer src="translations.js?v=55"></script>
+  <script defer src="translations.js?v=56"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8/hammer.min.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@1.2.1/dist/chartjs-plugin-zoom.min.js"></script>
@@ -3223,6 +3223,22 @@
               <button class="sh-seg-btn" data-fmt="story" onclick="setTpFormat('story')" data-i18n="sh_fmt_story">Story 9:16</button>
             </div>
           </div>
+          <!-- Which picture the card uses: album cover per source, artist photo, or an upload -->
+          <div class="sh-group">
+            <div class="sh-group-title" data-i18n="tp_card_pic">Picture</div>
+            <div class="sh-src-row" id="tpPicBtns">
+              <span class="sh-src-label" data-i18n="tp_card_pic_cover">Cover:</span>
+              <button class="sh-mini-btn active" data-pic="deezer" onclick="setTpPic('deezer')">Deezer</button>
+              <button class="sh-mini-btn" data-pic="itunes" onclick="setTpPic('itunes')">iTunes</button>
+              <button class="sh-mini-btn" data-pic="lastfm" onclick="setTpPic('lastfm')">Last.fm</button>
+            </div>
+            <div class="sh-src-row">
+              <button class="sh-mini-btn" data-pic="artist" onclick="setTpPic('artist')" data-i18n="tp_card_pic_artist">Artist photo</button>
+              <button class="sh-mini-btn" data-pic="upload" onclick="setTpPic('upload')" data-i18n="tp_card_pic_upload">⬆ Upload your own</button>
+              <input type="file" id="tpPicFile" accept="image/*" hidden onchange="tpUploadPic(this)">
+            </div>
+            <div class="sh-hint" id="tpPicNote"></div>
+          </div>
           <!-- Order of the tracks: by plays, or the official tracklist (Deezer, shared with the score card) -->
           <div class="sh-group">
             <div class="sh-group-title" data-i18n="tp_card_order">Order</div>
@@ -3247,7 +3263,7 @@
                 onchange="tpUpdateCardPreview()"><span data-i18n="tp_card_opt_header">Album title &amp; total</span></label>
             <label class="ig-ctrl-row"><input type="checkbox" id="tpOpt_showArt" checked
                 onchange="tpUpdateCardPreview()"><span data-i18n="ig_album_art">Album Art</span></label>
-            <label class="ig-ctrl-row" data-tp-tiles-only><input type="checkbox" id="tpOpt_mono" checked
+            <label class="ig-ctrl-row" data-tp-tiles-only><input type="checkbox" id="tpOpt_mono"
                 onchange="tpUpdateCardPreview()"><span data-i18n="tp_card_opt_mono">Black &amp; white tiles</span></label>
             <label class="ig-ctrl-row"><input type="checkbox" id="tpOpt_showShare"
                 onchange="tpUpdateCardPreview()"><span data-i18n="tp_card_opt_share">Share of album %</span></label>
@@ -3631,7 +3647,7 @@
   <!-- defer keeps app.js last in the script execution order (after translations,
        Chart.js and firebase.js) while letting the whole page parse and paint first -->
   <script defer src="changelog.js?v=151"></script>
-  <script defer src="app.js?v=317"></script>
+  <script defer src="app.js?v=318"></script>
 
   <!-- ── Settings Modal ──
        Split into three tabs so the whole form is never dumped on screen at
