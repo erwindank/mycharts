@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['es'] = {
 
   /* ========== OCTUBRE 2026 ========== */
 
+  "Share how much you've played every track of an album":
+    ["Comparte cuánto escuchaste cada canción de un álbum",
+     "Los álbumes ahora tienen un botón Compartir canciones encima de su lista de canciones. Crea una imagen con cada canción y sus reproducciones, en cinco diseños: Mosaico (la portada en cada cuadro con la canción y su número, como los posts de 'mis reproducciones en cada canción'), Rompecabezas (una portada cortada en un cuadro por canción), Ranking, Podio (las tres primeras en pedestales) y Lista de canciones (en el orden del álbum). Puedes mostrar los números como reproducciones, streams o scrobbles, poner los cuadros en blanco y negro, añadir el porcentaje del álbum de cada canción y elegir el tamaño y los colores."],
+
   "Top scores are now green instead of gold":
     ['Las mejores notas ahora son verdes en vez de doradas',
      'Las mejores notas (9.0 o más) eran doradas, muy parecidas al amarillo de las notas intermedias, así que un 10.0 podía parecer una nota normal. Ahora los colores van de peor a mejor: rojo, naranja, amarillo, turquesa, azul y verde, con las mejores notas en verde intenso y los 8 en un verde más suave. Las imágenes para compartir usan los mismos colores.'],

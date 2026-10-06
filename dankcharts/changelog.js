@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 85;
+const DC_CL_I18N_V = 86;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,10 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+
+  { d: '2026-10-05', t: 'feature', a: 'charts', h: '15957b9',
+    title: "Share how much you've played every track of an album",
+    detail: "Albums now have a Share tracks button above their track list. It makes an image of every song with its play count, in five designs: Mosaic (the cover on every tile with the song and its count, like the 'my plays on every song' posts), Cover Puzzle (one cover cut into a tile per song), Ranking, Podium (top three on pedestals) and Tracklist (in album order). You can show the counts as plays, streams or scrobbles, make the tiles black and white, add each song's share of the album, and pick the size and colours." },
 
   { d: '2026-10-05', t: 'design', a: 'ratings', h: '5d29f3a',
     title: "Top scores are now green instead of gold",
