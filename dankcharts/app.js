@@ -21027,6 +21027,8 @@ const SH_SCOPES = {
   rt: { templates: () => SH_RT_TEMPLATE_LIST, get: () => rtCard, setTpl: 'setRtTemplate', setPal: 'setRtPalette' },
   // Discography scores card — lives with the ratings code (search "DISCOGRAPHY SCORE SHARE CARD").
   ra: { templates: () => SH_RA_TEMPLATE_LIST, get: () => raCard, setTpl: 'setRaTemplate', setPal: 'setRaPalette' },
+  // Album track plays card — lives after the album score card (search "ALBUM TRACK PLAYS SHARE CARD").
+  tp: { templates: () => SH_TP_TEMPLATE_LIST, get: () => tpCard, setTpl: 'setTpTemplate', setPal: 'setTpPalette' },
 };
 
 function shRenderDesignPickers(scope) {
@@ -22760,13 +22762,19 @@ function sortAlbumTracksBy(criterion) {
   if (!_albCurrentAlbumCtx) return;
   const { tracks, totalPlays, crY, crM, crW, allTimeSPM, ek } = _albCurrentAlbumCtx;
   const sorted = _sortAlbTracks([...tracks], criterion, crY, crM, crW, allTimeSPM);
-  const sortBar = (c) => ['plays','rank','firstPlayed','lastPlayed'].map(s =>
-    `<button class="alb-sort-btn${c === s ? ' active' : ''}" data-sort="${s}" onclick="sortAlbumTracksBy('${s}')">${
+  document.getElementById('albumModalTracks').innerHTML =
+    _albSortBarHTML(criterion) + _buildAlbTracksHTML(sorted, totalPlays, crY, crM, crW, allTimeSPM, ek);
+}
+
+// The sort buttons above the album's track list, plus the button that turns the
+// list into a share image (tpOpenCard — "ALBUM TRACK PLAYS SHARE CARD").
+function _albSortBarHTML(criterion) {
+  const btns = ['plays','rank','firstPlayed','lastPlayed'].map(s =>
+    `<button class="alb-sort-btn${criterion === s ? ' active' : ''}" data-sort="${s}" onclick="sortAlbumTracksBy('${s}')">${
       s === 'plays' ? 'Most Played' : s === 'rank' ? 'Chart Rank' : s === 'firstPlayed' ? 'Discovered First' : 'Recently Played'
     }</button>`).join('');
-  document.getElementById('albumModalTracks').innerHTML =
-    `<div class="alb-sort-bar"><span class="alb-sort-label">Sort:</span>${sortBar(criterion)}</div>` +
-    _buildAlbTracksHTML(sorted, totalPlays, crY, crM, crW, allTimeSPM, ek);
+  return `<div class="alb-sort-bar"><span class="alb-sort-label">Sort:</span>${btns}
+    <button class="alb-sort-btn alb-share-btn" onclick="tpOpenCard()">${esc(t('tp_card_open'))}</button></div>`;
 }
 
 function _sortAlbTracks(tracks, criterion, crY, crM, crW, allTimeSPM) {
@@ -24017,13 +24025,7 @@ function openAlbumModal(albumKey) {
   _albCurrentAlbumCtx = { tracks: allTracksSorted, totalPlays, crY, crM, crW, allTimeSPM, ek };
   const sortedTracks = _sortAlbTracks([...allTracksSorted], _albCurrentTrackSort, crY, crM, crW, allTimeSPM);
   document.getElementById('albumModalTracks').innerHTML =
-    `<div class="alb-sort-bar">
-      <span class="alb-sort-label">Sort:</span>
-      <button class="alb-sort-btn active" data-sort="plays" onclick="sortAlbumTracksBy('plays')">Most Played</button>
-      <button class="alb-sort-btn" data-sort="rank" onclick="sortAlbumTracksBy('rank')">Chart Rank</button>
-      <button class="alb-sort-btn" data-sort="firstPlayed" onclick="sortAlbumTracksBy('firstPlayed')">Discovered First</button>
-      <button class="alb-sort-btn" data-sort="lastPlayed" onclick="sortAlbumTracksBy('lastPlayed')">Recently Played</button>
-    </div>` +
+    _albSortBarHTML(_albCurrentTrackSort) +
     _buildAlbTracksHTML(sortedTracks, totalPlays, crY, crM, crW, allTimeSPM, ek);
 
   // Full album evaluation — score, formula breakdown, aspects and track scores.
@@ -48377,6 +48379,8 @@ async function rtPrefetchTracklist(albumKey) {
   }
   _rtTracklistPending.delete(albumKey);
   if (_rtCardAlbum === albumKey && document.getElementById('rtCardModal').classList.contains('open')) rtRenderCardPreview();
+  // The track plays card's "Album order" waits on the same tracklist.
+  if (_tpCardAlbum === albumKey && document.getElementById('tpCardModal').classList.contains('open')) tpRenderCardPreview();
 }
 
 // Every track of the album in album order, each with its score (null = unrated,
@@ -48873,6 +48877,588 @@ function rtShareCard() {
 
 document.getElementById('rtCardModal')?.addEventListener('click', e => {
   if (e.target === document.getElementById('rtCardModal')) rtCloseCard();
+});
+
+// ─── ALBUM TRACK PLAYS SHARE CARD ──────────────────────────────
+// A share image of how much each track of an album has been played — the
+// "my plays on every song of the album" post. Opened from the album modal's
+// track list. The numbers come from the album modal itself (_albCurrentAlbumCtx),
+// so they are the same figures the modal shows: built from allPlays, merged with
+// any rolled-up singles, and identical for Last.fm, Google Sheets and CSV.
+// Built on the SHARE CARD DESIGN SYSTEM, so the html2canvas rules there apply.
+let tpCard = {
+  template: 'mosaic',
+  palette: 'onyx',
+  format: 'portrait',
+  textScale: 100,
+  quality: 2,
+  topN: 12,
+  order: 'plays',      // 'plays' = most played first, 'album' = official tracklist order
+  unit: 'plays',       // word under each number: plays / streams / scrobbles
+  showArt: true,
+  showHeader: true,
+  showShare: false,
+  mono: true,          // black & white cover tiles (Mosaic / Puzzle)
+  showFooter: true,
+};
+const TP_CARD_KEYS = Object.keys(tpCard);
+const TP_CARD_TOGGLES = ['showArt', 'showHeader', 'showShare', 'mono', 'showFooter'];
+const TP_ORDERS = ['plays', 'album'];
+const TP_UNITS = ['plays', 'streams', 'scrobbles'];
+let _tpCardAlbum = null;       // albumKey of the card being built
+let _tpCardTracks = [];        // [{ title, count }] snapshot from the album modal
+const _tpArtCache = {};        // albumKey → inlined cover (data URL) or null
+const _tpGrayCache = {};       // cover data URL → black & white copy
+
+function tpSaveCardSettings() {
+  try {
+    const out = {};
+    TP_CARD_KEYS.forEach(k => { out[k] = tpCard[k]; });
+    localStorage.setItem('dc_tpCardSettings', JSON.stringify(out));
+  } catch {}
+}
+
+function tpLoadCardSettings() {
+  try {
+    const saved = JSON.parse(localStorage.getItem('dc_tpCardSettings') || 'null');
+    if (saved && typeof saved === 'object') {
+      TP_CARD_KEYS.forEach(k => { if (saved[k] !== undefined) tpCard[k] = saved[k]; });
+    }
+  } catch {}
+  // Drop ids written by an older build.
+  if (!SH_TP_TEMPLATES[tpCard.template]) tpCard.template = 'mosaic';
+  if (!SHARE_PALETTES.some(p => p.id === tpCard.palette)) tpCard.palette = 'onyx';
+  if (!SHARE_FORMATS[tpCard.format]) tpCard.format = 'portrait';
+  if (!TP_ORDERS.includes(tpCard.order)) tpCard.order = 'plays';
+  if (!TP_UNITS.includes(tpCard.unit)) tpCard.unit = 'plays';
+}
+
+// "653 plays" / "653 streams" / "653 scrobbles", in the chosen word.
+function _tpUnit(n) {
+  if (tpCard.unit === 'plays') return tUnit('plays', n);
+  return t('tp_unit_' + tpCard.unit + (n === 1 ? '_one' : '_other'));
+}
+function _tpNum(n) { return Number(n || 0).toLocaleString(); }
+
+// ── Black & white cover ──
+// html2canvas can't rasterise `filter: grayscale()`, so the grey copy is baked
+// into its own data URL here — by hand, pixel by pixel, because canvas
+// ctx.filter is ignored by Safari.
+async function _tpComputeGray(url) {
+  if (!url || url in _tpGrayCache) return _tpGrayCache[url] || null;
+  _tpGrayCache[url] = null;
+  try {
+    const img = await _shLoadImage(url);
+    const S = Math.min(800, img.naturalWidth || 800);
+    const cv = document.createElement('canvas');
+    cv.width = cv.height = S;
+    const cx = cv.getContext('2d');
+    cx.drawImage(img, 0, 0, S, S);
+    const d = cx.getImageData(0, 0, S, S);
+    const px = d.data;
+    for (let i = 0; i < px.length; i += 4) {
+      // Rec. 709 luma with a touch of contrast, so it reads like a photo, not mud.
+      let y = 0.2126 * px[i] + 0.7152 * px[i + 1] + 0.0722 * px[i + 2];
+      y = Math.max(0, Math.min(255, (y - 128) * 1.12 + 128));
+      px[i] = px[i + 1] = px[i + 2] = y;
+    }
+    cx.putImageData(d, 0, 0);
+    _tpGrayCache[url] = cv.toDataURL('image/jpeg', 0.9);
+  } catch (e) { _tpGrayCache[url] = null; }
+  return _tpGrayCache[url];
+}
+
+// ── Data prep ──
+// The tracks in the chosen order. "Album order" slots the library's tracks into
+// the official tracklist (looked up once on Deezer and shared with the score
+// card); tracks the tracklist lists but the library never played show as 0.
+function _tpOrderedTracks() {
+  const lib = _tpCardTracks;
+  if (tpCard.order !== 'album') return { tracks: [...lib].sort((a, b) => b.count - a.count), ordered: true };
+  const official = _rtTracklistStore()[_tpCardAlbum];
+  if (!official) return { tracks: [...lib].sort((a, b) => b.count - a.count), ordered: false };
+  const used = new Set();
+  const take = pred => lib.find(tr => !used.has(tr) && pred(tr));
+  const tracks = official.map(title => {
+    const n = _cerNorm(title), c = _cerCoreTitle(title);
+    // Exact title first, then the plain title ("Song (feat. X)" ↔ "Song").
+    const hit = take(tr => _cerNorm(tr.title) === n) || take(tr => _cerCoreTitle(tr.title) === c);
+    if (hit) { used.add(hit); return hit; }
+    return { title, count: 0 };
+  });
+  // Played tracks the tracklist doesn't know (a bonus cut, a single filed
+  // under the album) still belong on the card — they go on the end.
+  lib.forEach(tr => { if (!used.has(tr)) tracks.push(tr); });
+  return { tracks, ordered: true };
+}
+
+function tpCardContext(opts) {
+  if (!_tpCardAlbum) return null;
+  const [album, artist] = _tpCardAlbum.split('|||');
+  const fmt = SHARE_FORMATS[opts.format] ? opts.format : 'portrait';
+  const d = shDims(fmt);
+  const anyArt = _tpArtCache[_tpCardAlbum] || null;
+  const all = _tpOrderedTracks().tracks;
+  const total = _tpCardTracks.reduce((s, tr) => s + tr.count, 0);
+  const max = all.reduce((m, tr) => Math.max(m, tr.count), 0);
+  // Rank is always by plays, whatever order the card is laid out in.
+  const byPlays = [...all].sort((a, b) => b.count - a.count);
+  const rankOf = new Map(byPlays.map((tr, i) => [tr, i + 1]));
+  const tracks = all.slice(0, Math.max(1, Math.min(all.length, opts.topN || 12)))
+    .map((tr, i) => ({ title: tr.title, count: tr.count, pos: i + 1, rank: rankOf.get(tr), share: total ? tr.count / total : 0 }));
+  return {
+    opts, fmt, W: d.w, H: d.h,
+    p: shPalette(opts.palette, shDominant(anyArt)),
+    S: (opts.textScale || 100) / 100,
+    album, artist, anyArt,
+    art: opts.showArt ? anyArt : null,
+    // Tile artwork: the black & white copy when asked for (and ready).
+    tileArt: anyArt ? (opts.mono ? (_tpGrayCache[anyArt] || anyArt) : anyArt) : null,
+    tracks, total, max, played: _tpCardTracks.filter(tr => tr.count > 0).length,
+  };
+}
+
+// ── Shared pieces ──
+
+// Header: cover + album/artist, and the album total underneath.
+function _tpHeader(ctx, opt) {
+  if (!ctx.opts.showHeader) return '';
+  const o = opt || {};
+  const p = ctx.p;
+  const s = v => _shS(ctx, v);
+  const artSz = o.artSz || (ctx.fmt === 'story' ? 200 : ctx.fmt === 'portrait' ? 150 : 120);
+  const sub = `${_tpNum(ctx.total)} ${_tpUnit(ctx.total)} · ${t('tp_card_tracks_played', { n: ctx.played })}`;
+  return `<div style="flex-shrink:0;display:flex;align-items:center;gap:${s(26)}px;">
+    ${ctx.art && !o.noArt ? shArt(p, ctx.art, artSz, { initials: initials(ctx.album), radius: Math.round(artSz * 0.06) }) : ''}
+    <div style="flex:1;min-width:0;">
+      ${_rtTitle(ctx, o.titleSz || (ctx.fmt === 'story' ? 54 : 44), { lines: 2 })}
+      <div style="margin-top:${s(12)}px;font-family:${SH_FONT.mono};font-size:${s(18)}px;letter-spacing:0.08em;color:${p.accent};text-transform:uppercase;white-space:nowrap;overflow:hidden;">${esc(sub)}</div>
+    </div>
+  </div>`;
+}
+
+function _tpEyebrow(ctx) {
+  return `<div style="flex-shrink:0;">${shEyebrow(ctx.p, 'dankcharts.fm · ' + t('tp_card_eyebrow'), { size: _shS(ctx, 20) })}</div>`;
+}
+
+// Square tiles: try every column count and keep the one with the biggest tiles.
+function _tpSquareLayout(n, W, H, gap) {
+  let best = null;
+  for (let c = 1; c <= Math.min(n, 12); c++) {
+    const r = Math.ceil(n / c);
+    const sz = Math.floor(Math.min((W - (c - 1) * gap) / c, (H - (r - 1) * gap) / r));
+    if (!best || sz > best.sz) best = { c, r, sz };
+  }
+  return best;
+}
+
+// The words over a tile: the title (two lines at most) and the count under it,
+// white on a dark scrim whatever the palette — they sit on artwork, not on the card.
+function _tpTileText(ctx, tr, sz) {
+  const S = ctx.S;
+  const tfs = Math.max(11, Math.round(sz * 0.078 * S));
+  const cfs = Math.max(14, Math.round(sz * 0.16 * S));
+  const sh = 'text-shadow:0 2px 10px rgba(0,0,0,0.85),0 0 2px rgba(0,0,0,0.6);';
+  return `<div style="position:absolute;left:0;top:0;width:${sz}px;height:${sz}px;background:linear-gradient(180deg, rgba(0,0,0,0) 30%, rgba(0,0,0,0.62) 100%);"></div>
+    <div style="position:absolute;left:${Math.round(sz * 0.07)}px;right:${Math.round(sz * 0.07)}px;bottom:${Math.round(sz * 0.08)}px;text-align:center;${sh}">
+      <div style="font-family:${SH_FONT.sans};font-style:italic;font-size:${tfs}px;font-weight:500;line-height:1.15;color:#ffffff;${shClamp(2, tfs, 1.15)}">${esc(tr.title)}</div>
+      <div style="margin-top:${Math.round(sz * 0.02)}px;font-family:${SH_FONT.display};font-size:${cfs}px;font-weight:800;line-height:1;color:#ffffff;">${_tpNum(tr.count)}</div>
+      ${ctx.opts.showShare ? `<div style="margin-top:${Math.round(sz * 0.015)}px;font-family:${SH_FONT.mono};font-size:${Math.max(9, Math.round(tfs * 0.8))}px;color:rgba(255,255,255,0.8);">${(tr.share * 100).toFixed(1)}%</div>` : ''}
+    </div>`;
+}
+
+// MOSAIC grid — the same cover on every tile, like a contact sheet.
+function _tpMosaicHTML(ctx, W, H) {
+  const n = ctx.tracks.length;
+  const gap = Math.max(3, Math.round(Math.min(W, H) * 0.006));
+  const L = _tpSquareLayout(n, W, H, gap);
+  const p = ctx.p;
+  return `<div style="display:flex;flex-wrap:wrap;gap:${gap}px;width:${L.c * L.sz + (L.c - 1) * gap}px;margin:0 auto;">${ctx.tracks.map(tr => {
+    const bg = ctx.tileArt
+      ? `<img src="${ctx.tileArt}" width="${L.sz}" height="${L.sz}" style="position:absolute;left:0;top:0;width:${L.sz}px;height:${L.sz}px;object-fit:cover;display:block;">`
+      : `<div style="position:absolute;left:0;top:0;width:${L.sz}px;height:${L.sz}px;background:linear-gradient(145deg,${p.panel},${_shMix(p.bg2, p.accent, 0.35)});"></div>`;
+    return `<div style="position:relative;width:${L.sz}px;height:${L.sz}px;overflow:hidden;flex-shrink:0;${tr.count ? '' : 'opacity:0.45;'}">${bg}${_tpTileText(ctx, tr, L.sz)}</div>`;
+  }).join('')}</div>`;
+}
+
+// PUZZLE grid — one cover cut into pieces across the whole grid, each piece
+// carrying a track. The image is sized to cover the grid and every tile shows
+// its own window onto it.
+function _tpPuzzleHTML(ctx, W, H) {
+  if (!ctx.tileArt) return _tpMosaicHTML(ctx, W, H);
+  const n = ctx.tracks.length;
+  const gap = Math.max(3, Math.round(Math.min(W, H) * 0.005));
+  const L = _tpSquareLayout(n, W, H, gap);
+  const gw = L.c * L.sz + (L.c - 1) * gap, gh = L.r * L.sz + (L.r - 1) * gap;
+  const img = Math.max(gw, gh);
+  const ox = Math.round((img - gw) / 2), oy = Math.round((img - gh) / 2);
+  return `<div style="display:flex;flex-wrap:wrap;gap:${gap}px;width:${gw}px;margin:0 auto;">${ctx.tracks.map((tr, i) => {
+    const x = (i % L.c) * (L.sz + gap), y = Math.floor(i / L.c) * (L.sz + gap);
+    return `<div style="position:relative;width:${L.sz}px;height:${L.sz}px;overflow:hidden;flex-shrink:0;">
+      <img src="${ctx.tileArt}" width="${img}" height="${img}" style="position:absolute;left:${-x - ox}px;top:${-y - oy}px;width:${img}px;height:${img}px;max-width:none;display:block;${tr.count ? '' : 'opacity:0.4;'}">
+      ${_tpTileText(ctx, tr, L.sz)}
+    </div>`;
+  }).join('')}</div>`;
+}
+
+// Medal colour for the top three ranks, accent-free text for the rest.
+function _tpRankCol(ctx, rank) {
+  const p = ctx.p;
+  return rank === 1 ? p.gold : rank === 2 ? p.silver : rank === 3 ? p.bronze : p.dim;
+}
+
+// A list of rows that fills the height it is given. Row height is worked out
+// from the space, so a short EP gets big rows and a long album small ones; when
+// even the smallest readable row can't hold them all, the tail is left off.
+function _tpListHTML(ctx, rows, W, H, kind) {
+  const p = ctx.p;
+  const s = v => _shS(ctx, v);
+  const gap = 0;
+  const minH = s(38), maxH = s(kind === 'tracklist' ? 74 : 96);
+  let n = rows.length;
+  if (!n || H < minH) return '';
+  let rowH = Math.min(maxH, Math.floor(H / n));
+  if (rowH < minH) { n = Math.max(1, Math.floor(H / minH)); rowH = Math.floor(H / n); }
+  const list = rows.slice(0, n);
+  const fs = Math.max(13, Math.min(s(34), Math.round(rowH * 0.4)));
+  const barW = Math.round(W * 0.24);
+  // Every count gets the width of the widest one, so the bars line up even
+  // when the counts drop from three digits to two.
+  const numW = Math.ceil(_tpNum(ctx.max).length * fs * 0.62);
+  return list.map(tr => {
+    const num = kind === 'tracklist'
+      ? `<span style="flex-shrink:0;width:${Math.round(fs * 1.7)}px;font-family:${SH_FONT.mono};font-size:${Math.round(fs * 0.78)}px;color:${p.dim};">${String(tr.pos).padStart(2, '0')}</span>`
+      : `<span style="flex-shrink:0;width:${Math.round(fs * 1.9)}px;font-family:${SH_FONT.display};font-size:${Math.round(fs * 1.12)}px;font-weight:800;line-height:1;color:${_tpRankCol(ctx, tr.rank)};">${tr.rank}</span>`;
+    const isTop = tr.rank === 1 && tr.count > 0;
+    const bar = kind === 'ranking' ? `<span style="flex-shrink:0;width:${barW}px;height:${Math.max(6, Math.round(rowH * 0.14))}px;border-radius:99px;background:${_shA(p.text, p.dark ? 0.1 : 0.08)};overflow:hidden;">
+        <span style="display:block;width:${ctx.max ? Math.max(4, Math.round(barW * tr.count / ctx.max)) : 0}px;height:100%;border-radius:99px;background:${isTop ? p.accent : _shA(p.accent, 0.6)};"></span>
+      </span>` : '';
+    const share = ctx.opts.showShare ? `<span style="flex-shrink:0;width:${Math.round(fs * 3)}px;text-align:right;font-family:${SH_FONT.mono};font-size:${Math.round(fs * 0.72)}px;color:${p.dim};">${(tr.share * 100).toFixed(1)}%</span>` : '';
+    return `<div style="display:flex;align-items:center;gap:${Math.round(fs * 0.6)}px;height:${rowH}px;border-top:1px solid ${p.line};box-sizing:border-box;">
+      ${num}
+      <span style="flex:1;min-width:0;font-family:${SH_FONT.sans};font-size:${fs}px;font-weight:600;color:${tr.count ? p.text : p.dim};white-space:nowrap;overflow:hidden;">${esc(tr.title)}</span>
+      ${bar}
+      <span style="flex-shrink:0;min-width:${numW}px;text-align:right;font-family:${SH_FONT.mono};font-size:${fs}px;font-weight:700;color:${isTop ? p.accent : p.text};white-space:nowrap;">${_tpNum(tr.count)}</span>
+      ${share}
+    </div>`;
+  }).join('');
+}
+
+let _tpLast = null;   // { ctx, rows, kind } from the last render, for the fit pass
+
+// Fill the placeholders now that the card is laid out and its free space can be
+// measured. Runs on the hidden export node, whose markup is then copied into
+// the preview — so the preview is exactly what gets exported.
+function _tpFit(root) {
+  if (!_tpLast) return;
+  const { ctx, rows, kind } = _tpLast;
+  const host = root.querySelector('[data-tp-fill]');
+  if (!host) return;
+  const W = host.clientWidth, H = host.clientHeight;
+  if (W < 20 || H < 20) { host.innerHTML = ''; return; }
+  if (kind === 'mosaic') host.innerHTML = _tpMosaicHTML(ctx, W, H);
+  else if (kind === 'puzzle') host.innerHTML = _tpPuzzleHTML(ctx, W, H);
+  else host.innerHTML = _tpListHTML(ctx, rows, W, H, kind);
+}
+
+// ── Templates ──
+const SH_TP_TEMPLATES = {
+
+  // MOSAIC — the default, after the fan posts: one tile per track, the cover on
+  // every tile (black & white by default), the title and the count over it.
+  mosaic(ctx) {
+    const p = ctx.p, opts = ctx.opts;
+    const s = v => _shS(ctx, v);
+    const padX = 56;
+    _tpLast = { ctx, rows: ctx.tracks, kind: 'mosaic' };
+    return shShell(p, ctx.fmt, `
+      <div style="flex:1;min-height:0;padding:${shSafeTop(ctx.fmt)}px ${padX}px 0;display:flex;flex-direction:column;gap:${s(ctx.fmt === 'post' ? 18 : 26)}px;overflow:hidden;">
+        ${opts.showHeader ? _tpEyebrow(ctx) : ''}
+        ${_tpHeader(ctx, { artSz: ctx.fmt === 'story' ? 150 : 110, titleSz: ctx.fmt === 'story' ? 46 : 38 })}
+        <div data-tp-fill style="flex:1;min-height:0;overflow:hidden;display:flex;align-items:center;"></div>
+      </div>
+      ${shFooter(p, ctx.fmt, { show: opts.showFooter, padX })}`);
+  },
+
+  // PUZZLE — the cover cut into one piece per track, so the grid reads as the
+  // whole artwork from a distance and as the track list up close. The header
+  // leaves its own cover off — the grid already is the cover.
+  puzzle(ctx) {
+    const p = ctx.p, opts = ctx.opts;
+    const s = v => _shS(ctx, v);
+    const padX = 56;
+    _tpLast = { ctx, rows: ctx.tracks, kind: 'puzzle' };
+    return shShell(p, ctx.fmt, `
+      <div style="flex:1;min-height:0;padding:${shSafeTop(ctx.fmt)}px ${padX}px 0;display:flex;flex-direction:column;gap:${s(ctx.fmt === 'post' ? 18 : 26)}px;overflow:hidden;">
+        ${opts.showHeader ? _tpEyebrow(ctx) : ''}
+        ${_tpHeader(ctx, { noArt: true, titleSz: ctx.fmt === 'story' ? 50 : 40 })}
+        <div data-tp-fill style="flex:1;min-height:0;overflow:hidden;display:flex;align-items:center;"></div>
+      </div>
+      ${shFooter(p, ctx.fmt, { show: opts.showFooter, padX })}`);
+  },
+
+  // RANKING — most played first, numbered, with a bar for each track's count
+  // against the album's most played song. Medal colours on the top three.
+  ranking(ctx) {
+    const p = ctx.p, opts = ctx.opts;
+    const s = v => _shS(ctx, v);
+    const padX = 68;
+    const rows = [...ctx.tracks].sort((a, b) => a.rank - b.rank);
+    _tpLast = { ctx, rows, kind: 'ranking' };
+    return shShell(p, ctx.fmt, `
+      <div style="flex:1;min-height:0;padding:${shSafeTop(ctx.fmt)}px ${padX}px 0;display:flex;flex-direction:column;gap:${s(ctx.fmt === 'post' ? 20 : 30)}px;overflow:hidden;">
+        ${_tpEyebrow(ctx)}
+        ${_tpHeader(ctx)}
+        <div data-tp-fill style="flex:1;min-height:0;overflow:hidden;"></div>
+      </div>
+      ${shFooter(p, ctx.fmt, { show: opts.showFooter, padX })}`);
+  },
+
+  // PODIUM — the top three on pedestals sized by their counts, the rest of the
+  // ranking underneath.
+  podium(ctx) {
+    const p = ctx.p, opts = ctx.opts;
+    const s = v => _shS(ctx, v);
+    const padX = 68;
+    const ranked = [...ctx.tracks].sort((a, b) => a.rank - b.rank);
+    const top = ranked.slice(0, 3);
+    _tpLast = { ctx, rows: ranked.slice(3), kind: 'ranking' };
+    const maxPed = ctx.fmt === 'story' ? 300 : ctx.fmt === 'portrait' ? 200 : 150;
+    const colW = Math.floor((ctx.W - padX * 2 - 2 * s(18)) / 3);
+    const step = tr => {
+      if (!tr) return `<div style="width:${colW}px;"></div>`;
+      const h = Math.round(maxPed * Math.max(0.38, ctx.max ? tr.count / ctx.max : 0) * (tr.rank === 1 ? 1 : tr.rank === 2 ? 0.86 : 0.74));
+      const col = _tpRankCol(ctx, tr.rank);
+      const tfs = s(tr.rank === 1 ? 30 : 25);
+      return `<div style="width:${colW}px;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;text-align:center;">
+        <div style="width:100%;font-family:${SH_FONT.sans};font-size:${tfs}px;font-weight:600;line-height:1.15;color:${p.text};${shClamp(2, tfs, 1.15)}">${esc(tr.title)}</div>
+        <div style="margin-top:${s(8)}px;font-family:${SH_FONT.display};font-size:${s(tr.rank === 1 ? 62 : 48)}px;font-weight:800;line-height:1;color:${p.text};">${_tpNum(tr.count)}</div>
+        <div style="margin-top:${s(4)}px;font-family:${SH_FONT.mono};font-size:${s(15)}px;letter-spacing:0.12em;color:${p.dim};text-transform:uppercase;">${esc(_tpUnit(tr.count))}${opts.showShare ? ` · ${(tr.share * 100).toFixed(1)}%` : ''}</div>
+        <div style="margin-top:${s(14)}px;width:100%;height:${h}px;border-radius:${s(14)}px ${s(14)}px 0 0;background:linear-gradient(180deg, ${_shA(col, 0.9)}, ${_shA(col, 0.35)});display:flex;align-items:flex-start;justify-content:center;padding-top:${s(14)}px;box-sizing:border-box;">
+          <span style="font-family:${SH_FONT.display};font-size:${s(tr.rank === 1 ? 64 : 52)}px;font-weight:800;line-height:1;color:${_shLum(col) > 0.35 ? '#0b0d12' : '#ffffff'};">${tr.rank}</span>
+        </div>
+      </div>`;
+    };
+    return shShell(p, ctx.fmt, `
+      <div style="flex:1;min-height:0;padding:${shSafeTop(ctx.fmt)}px ${padX}px 0;display:flex;flex-direction:column;gap:${s(ctx.fmt === 'post' ? 18 : 28)}px;overflow:hidden;">
+        ${_tpEyebrow(ctx)}
+        ${_tpHeader(ctx, { artSz: ctx.fmt === 'story' ? 170 : 110, titleSz: ctx.fmt === 'story' ? 50 : 40 })}
+        <div style="flex-shrink:0;display:flex;align-items:flex-end;gap:${s(18)}px;border-bottom:2px solid ${p.line2};">
+          ${step(top[1])}${step(top[0])}${step(top[2])}
+        </div>
+        <div data-tp-fill style="flex:1;min-height:0;overflow:hidden;"></div>
+      </div>
+      ${shFooter(p, ctx.fmt, { show: opts.showFooter, padX })}`);
+  },
+
+  // TRACKLIST — the back of the record: the tracks in the order chosen, track
+  // numbers down the side and each count on the right; the most played one in
+  // the accent colour. Big cover on top.
+  tracklist(ctx) {
+    const p = ctx.p, opts = ctx.opts;
+    const s = v => _shS(ctx, v);
+    const padX = 72;
+    _tpLast = { ctx, rows: ctx.tracks, kind: 'tracklist' };
+    const artSz = ctx.fmt === 'story' ? 520 : ctx.fmt === 'portrait' ? 300 : 0;
+    const big = opts.showArt && artSz;
+    return shShell(p, ctx.fmt, `
+      <div style="flex:1;min-height:0;padding:${shSafeTop(ctx.fmt)}px ${padX}px 0;display:flex;flex-direction:column;gap:${s(ctx.fmt === 'post' ? 18 : 28)}px;overflow:hidden;">
+        ${_tpEyebrow(ctx)}
+        ${big ? `<div style="flex-shrink:0;display:flex;justify-content:center;">${shArt(p, ctx.anyArt, artSz, { initials: initials(ctx.album), radius: Math.round(artSz * 0.03) })}</div>
+          ${opts.showHeader ? `<div style="flex-shrink:0;text-align:center;">${_rtTitle(ctx, ctx.fmt === 'story' ? 54 : 44, { center: true, lines: 2 })}
+            <div style="margin-top:${s(12)}px;font-family:${SH_FONT.mono};font-size:${s(18)}px;letter-spacing:0.08em;color:${p.accent};text-transform:uppercase;">${esc(`${_tpNum(ctx.total)} ${_tpUnit(ctx.total)} · ${t('tp_card_tracks_played', { n: ctx.played })}`)}</div></div>` : ''}`
+          : _tpHeader(ctx)}
+        <div data-tp-fill style="flex:1;min-height:0;overflow:hidden;"></div>
+      </div>
+      ${shFooter(p, ctx.fmt, { show: opts.showFooter, padX })}`);
+  },
+};
+
+const SH_TP_TEMPLATE_LIST = [
+  { id: 'mosaic', name: 'Mosaic', glyph: '▦' },
+  { id: 'puzzle', name: 'Cover Puzzle', glyph: '◩' },
+  { id: 'ranking', name: 'Ranking', glyph: '≡' },
+  { id: 'podium', name: 'Podium', glyph: '▟' },
+  { id: 'tracklist', name: 'Tracklist', glyph: '♪' },
+];
+
+function tpBuildCardHTML(opts) {
+  const ctx = tpCardContext(opts);
+  if (!ctx || !ctx.tracks.length) return '';
+  const tpl = SH_TP_TEMPLATES[opts.template] || SH_TP_TEMPLATES.mosaic;
+  return tpl(ctx);
+}
+
+// ── Artwork ──
+// Shares the score card's cache when it already has the cover; otherwise the
+// usual source fallback chain, inlined, then a black & white copy baked.
+async function tpPrefetchArt(albumKey) {
+  if (albumKey in _tpArtCache) return;
+  _tpArtCache[albumKey] = _rtCardArtCache[albumKey] || null;
+  if (!_tpArtCache[albumKey]) {
+    const [album, artist] = albumKey.split('|||');
+    try {
+      const url = await _igFetchArtWithFallback('albums', { album, artist }, 'deezer');
+      _tpArtCache[albumKey] = await _crInlineArt(url);
+    } catch (e) { _tpArtCache[albumKey] = null; }
+  }
+  if (_tpArtCache[albumKey]) await _tpComputeGray(_tpArtCache[albumKey]);
+  if (_tpCardAlbum === albumKey && document.getElementById('tpCardModal').classList.contains('open')) tpRenderCardPreview();
+}
+
+// ── Modal ──
+function tpOpenCard() {
+  if (!_currentAlbumKey || !_albCurrentAlbumCtx || !_albCurrentAlbumCtx.tracks.length) return;
+  _tpCardAlbum = _currentAlbumKey;
+  _tpCardTracks = _albCurrentAlbumCtx.tracks.map(tr => ({ title: tr.title, count: tr.count }));
+  tpLoadCardSettings();
+  shRenderDesignPickers('tp');
+  TP_CARD_TOGGLES.forEach(k => {
+    const el = document.getElementById('tpOpt_' + k);
+    if (el) el.checked = tpCard[k];
+  });
+  const tsEl = document.getElementById('tpTextScale');
+  if (tsEl) tsEl.value = tpCard.textScale || 100;
+  tpSyncTopNSlider();
+  document.getElementById('tpCardTitle').textContent = t('tp_card_title') + ' — ' + _tpCardAlbum.split('|||')[0].slice(0, 40);
+  document.getElementById('tpCardModal').classList.add('open');
+  tpUpdateCardPreview();
+  tpPrefetchArt(_tpCardAlbum);
+  // The official tracklist, for "Album order" — fetched once, shared with the
+  // score card's Grid, and it re-renders this card too when it lands.
+  rtPrefetchTracklist(_tpCardAlbum);
+}
+
+function tpCloseCard() {
+  document.getElementById('tpCardModal').classList.remove('open');
+  document.getElementById('tpCardCanvas').innerHTML = '';
+}
+
+function setTpFormat(fmt) { tpCard.format = fmt; shRenderDesignPickers('tp'); tpSaveCardSettings(); tpUpdateCardPreview(); }
+function setTpTemplate(id) { tpCard.template = id; shRenderDesignPickers('tp'); tpSaveCardSettings(); tpUpdateCardPreview(); }
+function setTpPalette(id) { tpCard.palette = id; shRenderDesignPickers('tp'); tpSaveCardSettings(); tpUpdateCardPreview(); }
+function setTpQuality(q) { tpCard.quality = q; shRenderDesignPickers('tp'); tpSaveCardSettings(); tpSyncCardLabels(); }
+function setTpOrder(o) { if (TP_ORDERS.includes(o)) tpCard.order = o; tpSaveCardSettings(); tpSyncTopNSlider(); tpRenderCardPreview(); }
+function setTpUnit(u) { if (TP_UNITS.includes(u)) tpCard.unit = u; tpSaveCardSettings(); tpRenderCardPreview(); }
+
+// The "Tracks shown" slider runs up to the number of tracks on the card, which
+// grows in album order (unplayed tracks from the tracklist join it).
+function tpSyncTopNSlider() {
+  const el = document.getElementById('tpTopN');
+  if (!el) return;
+  const n = Math.max(1, _tpOrderedTracks().tracks.length);
+  el.max = n;
+  el.min = Math.min(3, n);
+  el.value = Math.min(n, tpCard.topN || 12);
+}
+
+// Seg-button states, the controls that only apply to some designs, and the hints.
+function tpSyncTemplateControls() {
+  const tiles = tpCard.template === 'mosaic' || tpCard.template === 'puzzle';
+  document.querySelectorAll('#tpCardModal [data-tp-tiles-only]').forEach(el => { el.style.display = tiles ? '' : 'none'; });
+  document.querySelectorAll('#tpOrderBtns .sh-seg-btn').forEach(b => b.classList.toggle('active', b.dataset.order === tpCard.order));
+  document.querySelectorAll('#tpUnitBtns .sh-seg-btn').forEach(b => b.classList.toggle('active', b.dataset.unit === tpCard.unit));
+  const hint = document.getElementById('tpOrderHint');
+  if (hint) {
+    const pending = _rtTracklistPending.has(_tpCardAlbum);
+    hint.textContent = tpCard.order === 'album' && !_tpOrderedTracks().ordered
+      ? t(pending ? 'tp_card_tracklist_loading' : 'tp_card_no_tracklist') : '';
+  }
+}
+
+function tpSyncCardLabels() {
+  const n = document.getElementById('tpTopNLabel');
+  if (n) n.textContent = tpCard.topN;
+  const ts = document.getElementById('tpTextScaleLabel');
+  if (ts) ts.textContent = (tpCard.textScale || 100) + '%';
+  const q = document.getElementById('tpQualityNote');
+  if (q) {
+    const d = shDims(tpCard.format);
+    const m = Math.max(1, Math.min(2, tpCard.quality || 2));
+    q.textContent = `${d.w * m} × ${d.h * m} px`;
+  }
+}
+
+function tpUpdateCardPreview() {
+  TP_CARD_TOGGLES.forEach(k => {
+    const el = document.getElementById('tpOpt_' + k);
+    if (el) tpCard[k] = el.checked;
+  });
+  const topNEl = document.getElementById('tpTopN');
+  if (topNEl) tpCard.topN = parseInt(topNEl.value) || 12;
+  const tsEl = document.getElementById('tpTextScale');
+  if (tsEl) tpCard.textScale = parseInt(tsEl.value) || 100;
+  tpSyncCardLabels();
+  tpSaveCardSettings();
+  tpRenderCardPreview();
+}
+
+// Render into the hidden export node first (laid out at full size), fill the
+// tiles / rows to the space that's left, then copy that into the preview.
+function tpRenderCardPreview() {
+  if (!_tpCardAlbum) return;
+  tpSyncTopNSlider();
+  tpCard.topN = parseInt(document.getElementById('tpTopN')?.value) || tpCard.topN;
+  tpSyncCardLabels();
+  const html = tpBuildCardHTML(tpCard);
+  if (!html) return;
+  const canvas = document.getElementById('tpCardCanvas');
+  const d = shDims(tpCard.format);
+  canvas.style.width = d.w + 'px';
+  canvas.style.height = d.h + 'px';
+  canvas.innerHTML = html;
+  _tpFit(canvas);
+  shFitPreview('tpCardFrame', 'tpCardInner', tpCard.format, canvas.innerHTML);
+  tpSyncTemplateControls();
+  shPrepareShare('tpCardCanvas', 'tpCardShareBtn', _tpShareOpts);
+}
+
+function _tpShareOpts() {
+  return { format: tpCard.format, quality: tpCard.quality, fileName: _tpFileName() };
+}
+
+function _tpFileName() {
+  const slug = (_tpCardAlbum || 'album').split('|||')[0].replace(/[^a-z0-9]+/gi, '-').replace(/^-|-$/g, '').slice(0, 40).toLowerCase() || 'album';
+  return `dankcharts_tracks_${slug}_${tpCard.template}_${tpCard.format}.png`;
+}
+
+async function tpDownloadCard() {
+  const btn = document.getElementById('tpCardDownloadBtn');
+  const orig = btn.textContent;
+  btn.textContent = '⏳ …'; btn.disabled = true;
+  try {
+    const cvs = await shCapture('tpCardCanvas', tpCard.format, tpCard.quality);
+    const link = document.createElement('a');
+    link.download = _tpFileName();
+    link.href = cvs.toDataURL('image/png');
+    link.click();
+  } catch (e) { console.error('Track plays card download failed', e); }
+  btn.textContent = orig; btn.disabled = false;
+}
+
+async function tpCopyCard() {
+  if (!navigator.clipboard?.write) { tpDownloadCard(); return; }
+  const btn = document.getElementById('tpCardCopyBtn');
+  const orig = btn.textContent;
+  btn.textContent = '⏳…'; btn.disabled = true;
+  try {
+    const cvs = await shCapture('tpCardCanvas', tpCard.format, tpCard.quality);
+    const blob = await shCanvasBlob(cvs);
+    await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
+    btn.textContent = '✓ Copied!';
+    setTimeout(() => { btn.textContent = orig; btn.disabled = false; }, 1800);
+  } catch (e) {
+    btn.textContent = orig; btn.disabled = false;
+    tpDownloadCard();
+  }
+}
+
+function tpShareCard() {
+  shShareNow('tpCardCanvas', 'tpCardShareBtn', _tpShareOpts, tpDownloadCard);
+}
+
+document.getElementById('tpCardModal')?.addEventListener('click', e => {
+  if (e.target === document.getElementById('tpCardModal')) tpCloseCard();
 });
 
 // ── Artist modal ──

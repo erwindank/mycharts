@@ -9509,6 +9509,8 @@
     }
     .alb-sort-btn:hover { color: var(--text); border-color: var(--accent); }
     .alb-sort-btn.active { background: var(--accent); color: var(--on-accent); border-color: var(--accent); }
+    /* "Share tracks" — pushed to the right end of the sort bar, opens the track plays share card. */
+    .alb-share-btn { margin-left: auto; }
 
     /* TRACK SHARE BAR */
     .alb-share-wrap { display: flex; align-items: center; gap: 0.4rem; }
