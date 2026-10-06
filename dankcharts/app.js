@@ -23422,7 +23422,10 @@ function openArtistModal(artistName) {
     return `<table class="modal-table"><tbody>${rows}</tbody></table>`;
   })();
 
+  // "Share songs" opens the track plays share card for this artist's most
+  // played songs (tpOpenArtistCard — "ALBUM TRACK PLAYS SHARE CARD").
   document.getElementById('modalSongs').innerHTML =
+    `<div class="alb-sort-bar"><button class="alb-sort-btn alb-share-btn" onclick="tpOpenArtistCard(${esc(JSON.stringify(artistName))})">${esc(t('tp_card_open_artist'))}</button></div>` +
     mcsSection('♦', 'All-Time Chart', allTimeSongs.length, 'songs', allTimeSongsHTML) +
     mcsSection('📅', 'Yearly Charts', yearlySongsData.length, 'songs', yearlySongsHTML) +
     mcsSection('📆', 'Monthly Charts', monthlySongsData.length, 'songs', monthlySongsHTML) +
@@ -48323,7 +48326,7 @@ function _rtTitle(ctx, size, opt) {
   // `grow` only inside a row (beside the cover); in a column it must not stretch.
   return `<div style="${o.grow ? 'flex:1;' : 'flex-shrink:0;'}min-width:0;${o.center ? 'text-align:center;' : ''}">
     <div style="font-family:${SH_FONT.display};font-size:${fs}px;font-weight:800;line-height:1.04;color:${p.text};${shClamp(o.lines || 2, fs, 1.04)}">${esc(ctx.album)}</div>
-    <div style="margin-top:${s(10)}px;font-family:${SH_FONT.sans};font-size:${Math.round(fs * 0.52)}px;font-weight:500;color:${o.artistColor || p.dim};line-height:1.2;white-space:nowrap;overflow:hidden;">${esc(ctx.artist || '')}</div>
+    ${ctx.artist ? `<div style="margin-top:${s(10)}px;font-family:${SH_FONT.sans};font-size:${Math.round(fs * 0.52)}px;font-weight:500;color:${o.artistColor || p.dim};line-height:1.2;white-space:nowrap;overflow:hidden;">${esc(ctx.artist)}</div>` : ''}
   </div>`;
 }
 
@@ -48885,6 +48888,9 @@ document.getElementById('rtCardModal')?.addEventListener('click', e => {
 // track list. The numbers come from the album modal itself (_albCurrentAlbumCtx),
 // so they are the same figures the modal shows: built from allPlays, merged with
 // any rolled-up singles, and identical for Last.fm, Google Sheets and CSV.
+// The same card also opens from the artist modal (tpOpenArtistCard) for an
+// artist's most played songs: there the Mosaic puts each song's own album or
+// single cover on its tile, and every other design uses the artist's photo.
 // Built on the SHARE CARD DESIGN SYSTEM, so the html2canvas rules there apply.
 let tpCard = {
   template: 'mosaic',
@@ -48905,8 +48911,11 @@ const TP_CARD_KEYS = Object.keys(tpCard);
 const TP_CARD_TOGGLES = ['showArt', 'showHeader', 'showShare', 'mono', 'showFooter'];
 const TP_ORDERS = ['plays', 'album'];
 const TP_UNITS = ['plays', 'streams', 'scrobbles'];
-let _tpCardAlbum = null;       // albumKey of the card being built
-let _tpCardTracks = [];        // [{ title, count }] snapshot from the album modal
+let _tpMode = 'album';        // 'album' = one album's tracks, 'artist' = an artist's songs
+let _tpCardAlbum = null;       // albumKey of the card being built (album mode)
+let _tpCardArtist = null;      // artist name of the card being built (artist mode)
+let _tpCardTracks = [];        // [{ title, count, albumKey? }] snapshot — albumKey only in artist mode
+const TP_ARTIST_MAX = 50;      // most songs an artist card can show — beyond that the tiles get too small
 const _tpArtCache = {};        // albumKey + '::' + picture choice → inlined picture (data URL) or null
 // Which picture the card uses: the album cover from one source, the artist's
 // photo, or an image the user uploads. Per album, not saved — an uploaded
@@ -48914,7 +48923,7 @@ const _tpArtCache = {};        // albumKey + '::' + picture choice → inlined p
 const TP_PICS = ['deezer', 'itunes', 'lastfm', 'artist', 'upload'];
 let _tpPic = 'deezer';
 const _tpPicPending = new Set();
-function _tpArtKey() { return _tpCardAlbum + '::' + _tpPic; }
+function _tpArtKey() { return (_tpMode === 'artist' ? 'artist:' + _tpCardArtist : _tpCardAlbum) + '::' + _tpPic; }
 const _tpGrayCache = {};       // cover data URL → black & white copy
 
 function tpSaveCardSettings() {
@@ -48985,7 +48994,8 @@ async function _tpComputeGray(url) {
 // card); tracks the tracklist lists but the library never played show as 0.
 function _tpOrderedTracks() {
   const lib = _tpCardTracks;
-  if (tpCard.order !== 'album') return { tracks: [...lib].sort((a, b) => b.count - a.count), ordered: true };
+  // An artist's songs have no single tracklist to follow — most played first.
+  if (_tpMode === 'artist' || tpCard.order !== 'album') return { tracks: [...lib].sort((a, b) => b.count - a.count), ordered: true };
   const official = _rtTracklistStore()[_tpCardAlbum];
   if (!official) return { tracks: [...lib].sort((a, b) => b.count - a.count), ordered: false };
   const used = new Set();
@@ -49004,8 +49014,10 @@ function _tpOrderedTracks() {
 }
 
 function tpCardContext(opts) {
-  if (!_tpCardAlbum) return null;
-  const [album, artist] = _tpCardAlbum.split('|||');
+  if (_tpMode === 'artist' ? !_tpCardArtist : !_tpCardAlbum) return null;
+  // On an artist card the artist's name takes the title line and the line
+  // under it is left off (_rtTitle skips an empty artist).
+  const [album, artist] = _tpMode === 'artist' ? [_tpCardArtist, ''] : _tpCardAlbum.split('|||');
   const fmt = SHARE_FORMATS[opts.format] ? opts.format : 'portrait';
   const d = shDims(fmt);
   const anyArt = _tpArtCache[_tpArtKey()] || null;
@@ -49016,7 +49028,7 @@ function tpCardContext(opts) {
   const byPlays = [...all].sort((a, b) => b.count - a.count);
   const rankOf = new Map(byPlays.map((tr, i) => [tr, i + 1]));
   const tracks = all.slice(0, Math.max(1, Math.min(all.length, opts.topN || 12)))
-    .map((tr, i) => ({ title: tr.title, count: tr.count, pos: i + 1, rank: rankOf.get(tr), share: total ? tr.count / total : 0 }));
+    .map((tr, i) => ({ title: tr.title, count: tr.count, albumKey: tr.albumKey || null, pos: i + 1, rank: rankOf.get(tr), share: total ? tr.count / total : 0 }));
   return {
     opts, fmt, W: d.w, H: d.h,
     p: shPalette(opts.palette, shDominant(anyArt)),
@@ -49038,7 +49050,7 @@ function _tpHeader(ctx, opt) {
   const p = ctx.p;
   const s = v => _shS(ctx, v);
   const artSz = o.artSz || (ctx.fmt === 'story' ? 200 : ctx.fmt === 'portrait' ? 150 : 120);
-  const sub = `${_tpNum(ctx.total)} ${_tpUnit(ctx.total)} · ${t('tp_card_tracks_played', { n: ctx.played })}`;
+  const sub = _tpSub(ctx);
   return `<div style="flex-shrink:0;display:flex;align-items:center;gap:${s(26)}px;">
     ${ctx.art && !o.noArt ? shArt(p, ctx.art, artSz, { initials: initials(ctx.album), radius: Math.round(artSz * 0.06) }) : ''}
     <div style="flex:1;min-width:0;">
@@ -49048,8 +49060,13 @@ function _tpHeader(ctx, opt) {
   </div>`;
 }
 
+// "1,204 plays · 9 tracks played" — or "… songs played" on an artist card.
+function _tpSub(ctx) {
+  return `${_tpNum(ctx.total)} ${_tpUnit(ctx.total)} · ${t(_tpMode === 'artist' ? 'tp_card_songs_played' : 'tp_card_tracks_played', { n: ctx.played })}`;
+}
+
 function _tpEyebrow(ctx) {
-  return `<div style="flex-shrink:0;">${shEyebrow(ctx.p, 'dankcharts.fm · ' + t('tp_card_eyebrow'), { size: _shS(ctx, 20) })}</div>`;
+  return `<div style="flex-shrink:0;">${shEyebrow(ctx.p, 'dankcharts.fm · ' + t(_tpMode === 'artist' ? 'tp_card_eyebrow_artist' : 'tp_card_eyebrow'), { size: _shS(ctx, 20) })}</div>`;
 }
 
 // Square tiles: try every column count and keep the one with the biggest tiles.
@@ -49078,15 +49095,27 @@ function _tpTileText(ctx, tr, sz) {
     </div>`;
 }
 
-// MOSAIC grid — the same cover on every tile, like a contact sheet.
+// The picture on one Mosaic tile. Album card: the chosen picture on every tile.
+// Artist card: the cover of the album or single the song is played from, and
+// the artist's photo while that cover loads or when none can be found.
+function _tpTileArtFor(ctx, tr) {
+  if (_tpMode !== 'artist') return ctx.tileArt;
+  const cover = (tr.albumKey && _rtCardArtCache[tr.albumKey]) || ctx.anyArt;
+  if (!cover) return null;
+  return ctx.opts.mono ? (_tpGrayCache[cover] || cover) : cover;
+}
+
+// MOSAIC grid — a picture on every tile, like a contact sheet: the same cover
+// on an album card, each song's own cover on an artist card.
 function _tpMosaicHTML(ctx, W, H) {
   const n = ctx.tracks.length;
   const gap = Math.max(3, Math.round(Math.min(W, H) * 0.006));
   const L = _tpSquareLayout(n, W, H, gap);
   const p = ctx.p;
   return `<div style="display:flex;flex-wrap:wrap;gap:${gap}px;width:${L.c * L.sz + (L.c - 1) * gap}px;margin:0 auto;">${ctx.tracks.map(tr => {
-    const bg = ctx.tileArt
-      ? `<img src="${ctx.tileArt}" width="${L.sz}" height="${L.sz}" style="position:absolute;left:0;top:0;width:${L.sz}px;height:${L.sz}px;object-fit:cover;display:block;">`
+    const tileArt = _tpTileArtFor(ctx, tr);
+    const bg = tileArt
+      ? `<img src="${tileArt}" width="${L.sz}" height="${L.sz}" style="position:absolute;left:0;top:0;width:${L.sz}px;height:${L.sz}px;object-fit:cover;display:block;">`
       : `<div style="position:absolute;left:0;top:0;width:${L.sz}px;height:${L.sz}px;background:linear-gradient(145deg,${p.panel},${_shMix(p.bg2, p.accent, 0.35)});"></div>`;
     return `<div style="position:relative;width:${L.sz}px;height:${L.sz}px;overflow:hidden;flex-shrink:0;${tr.count ? '' : 'opacity:0.45;'}">${bg}${_tpTileText(ctx, tr, L.sz)}</div>`;
   }).join('')}</div>`;
@@ -49277,7 +49306,7 @@ const SH_TP_TEMPLATES = {
         ${_tpEyebrow(ctx)}
         ${big ? `<div style="flex-shrink:0;display:flex;justify-content:center;">${shArt(p, ctx.anyArt, artSz, { initials: initials(ctx.album), radius: Math.round(artSz * 0.03) })}</div>
           ${opts.showHeader ? `<div style="flex-shrink:0;text-align:center;">${_rtTitle(ctx, ctx.fmt === 'story' ? 54 : 44, { center: true, lines: 2 })}
-            <div style="margin-top:${s(12)}px;font-family:${SH_FONT.mono};font-size:${s(18)}px;letter-spacing:0.08em;color:${p.accent};text-transform:uppercase;">${esc(`${_tpNum(ctx.total)} ${_tpUnit(ctx.total)} · ${t('tp_card_tracks_played', { n: ctx.played })}`)}</div></div>` : ''}`
+            <div style="margin-top:${s(12)}px;font-family:${SH_FONT.mono};font-size:${s(18)}px;letter-spacing:0.08em;color:${p.accent};text-transform:uppercase;">${esc(_tpSub(ctx))}</div></div>` : ''}`
           : _tpHeader(ctx)}
         <div data-tp-fill style="flex:1;min-height:0;overflow:hidden;"></div>
       </div>
@@ -49310,10 +49339,15 @@ async function tpPrefetchArt() {
   if (key in _tpArtCache || _tpPicPending.has(key) || _tpPic === 'upload') return;
   _tpPicPending.add(key);
   tpSyncPicControls();
-  const [album, artist] = _tpCardAlbum.split('|||');
   let art = null;
   try {
-    if (_tpPic === 'artist') {
+    if (_tpMode === 'artist') {
+      // Artist card: the artist's photo from the chosen source. The name is
+      // already one artist (the modal's own), so it is not split on commas —
+      // "Tyler, The Creator" stays whole.
+      art = await _crInlineArt(await _lookupImgUrl('artists', _tpCardArtist, _tpPic));
+    } else if (_tpPic === 'artist') {
+      const [, artist] = _tpCardAlbum.split('|||');
       // Lead artist only — "A, B & C" finds no photo.
       const lead = artist.split(/,|;|&|\bfeat\.?\b|\bft\.?\b|\bwith\b/i)[0].trim();
       const { url } = await _fetchWithSourceFallback('artists', lead, 'deezer');
@@ -49328,6 +49362,47 @@ async function tpPrefetchArt() {
   _tpArtCache[key] = art;
   _tpPicPending.delete(key);
   if (_tpArtKey() === key && document.getElementById('tpCardModal').classList.contains('open')) tpRenderCardPreview();
+}
+
+// ── Song covers (artist card) ──
+// Each song on an artist card shows the cover of the album or single it is
+// played from. Covers are fetched for the songs on the card only, a few at a
+// time, into the same cache the score cards use (_rtCardArtCache), with a
+// black & white copy baked for the Mono option. A newer run (the slider moved,
+// the card reopened) supersedes an older one.
+let _tpCoverToken = null;
+let _tpRenderTimer = null;
+function _tpScheduleRender() {
+  clearTimeout(_tpRenderTimer);
+  _tpRenderTimer = setTimeout(() => {
+    if (document.getElementById('tpCardModal').classList.contains('open')) tpRenderCardPreview();
+  }, 250);
+}
+
+async function tpPrefetchCovers() {
+  if (_tpMode !== 'artist') return;
+  const token = (_tpCoverToken = {});
+  const n = Math.max(1, Math.min(TP_ARTIST_MAX, tpCard.topN || 12));
+  const keys = [...new Set(_tpOrderedTracks().tracks.slice(0, n).map(tr => tr.albumKey).filter(Boolean))];
+  for (let i = 0; i < keys.length; i += 6) {
+    if (token !== _tpCoverToken) return;
+    let changed = false;
+    await Promise.all(keys.slice(i, i + 6).map(async k => {
+      if (!(k in _rtCardArtCache)) {
+        _rtCardArtCache[k] = null;   // marks it as on its way
+        const [album, artist] = k.split('|||');
+        try {
+          const url = await _igFetchArtWithFallback('albums', { album, artist }, 'deezer');
+          _rtCardArtCache[k] = await _crInlineArt(url);
+        } catch (e) {}
+        changed = true;
+      }
+      // Covers another card fetched earlier have no grey copy yet.
+      const cover = _rtCardArtCache[k];
+      if (cover && !(cover in _tpGrayCache)) { await _tpComputeGray(cover); changed = true; }
+    }));
+    if (changed) _tpScheduleRender();
+  }
 }
 
 function setTpPic(pic) {
@@ -49377,10 +49452,60 @@ function tpSyncPicControls() {
 // ── Modal ──
 function tpOpenCard() {
   if (!_currentAlbumKey || !_albCurrentAlbumCtx || !_albCurrentAlbumCtx.tracks.length) return;
+  _tpMode = 'album';
+  _tpCardArtist = null;
   _tpCardAlbum = _currentAlbumKey;
   _tpCardTracks = _albCurrentAlbumCtx.tracks.map(tr => ({ title: tr.title, count: tr.count }));
+  _tpOpenModal(_tpCardAlbum.split('|||')[0]);
+  // The official tracklist, for "Album order" — fetched once, shared with the
+  // score card's Grid, and it re-renders this card too when it lands.
+  rtPrefetchTracklist(_tpCardAlbum);
+}
+
+// From the artist modal: the artist's most played songs. Counted straight from
+// allPlays (every play the artist is credited on, features included — the same
+// plays the artist modal counts), so Last.fm, Google Sheets and CSV all work.
+function tpOpenArtistCard(artistName) {
+  if (!artistName) return;
+  const tracks = _tpArtistSongs(artistName);
+  if (!tracks.length) return;
+  _tpMode = 'artist';
+  _tpCardAlbum = null;
+  _tpCardArtist = artistName;
+  _tpCardTracks = tracks;
+  _tpOpenModal(artistName);
+}
+
+// Every song of the artist with its play count and the album it belongs on.
+// Songs are keyed like the songs chart (title + artist, album left out), so a
+// song played from both the single and the album is one entry; its cover is
+// the album's, like bestAlbum() — the single's only when it was never played
+// from anything else.
+function _tpArtistSongs(artistName) {
+  const songs = {};
+  for (const p of allPlays) {
+    if (!p.artists.includes(artistName)) continue;
+    const k = songKey(p);
+    const s = songs[k] || (songs[k] = { title: p.title, count: 0, albums: {} });
+    s.count++;
+    if (p.album && p.album !== '—') {
+      const ak = albumKeyOf(p);
+      s.albums[ak] = (s.albums[ak] || 0) + 1;
+    }
+  }
+  return Object.values(songs).map(s => {
+    const entries = Object.entries(s.albums).sort((a, b) => b[1] - a[1]);
+    const title = s.title.toLowerCase().trim();
+    const pick = entries.find(([ak]) => ak.split('|||')[0].toLowerCase().trim() !== title) || entries[0];
+    return { title: s.title, count: s.count, albumKey: pick ? pick[0] : null };
+  }).sort((a, b) => b.count - a.count);
+}
+
+// The modal setup both openers share.
+function _tpOpenModal(name) {
   tpLoadCardSettings();
   _tpPic = 'deezer';
+  tpSyncModeControls();
   shRenderDesignPickers('tp');
   TP_CARD_TOGGLES.forEach(k => {
     const el = document.getElementById('tpOpt_' + k);
@@ -49389,16 +49514,37 @@ function tpOpenCard() {
   const tsEl = document.getElementById('tpTextScale');
   if (tsEl) tsEl.value = tpCard.textScale || 100;
   tpSyncTopNSlider();
-  document.getElementById('tpCardTitle').textContent = t('tp_card_title') + ' — ' + _tpCardAlbum.split('|||')[0].slice(0, 40);
+  document.getElementById('tpCardTitle').textContent = t(_tpMode === 'artist' ? 'tp_card_title_artist' : 'tp_card_title') + ' — ' + name.slice(0, 40);
   document.getElementById('tpCardModal').classList.add('open');
-  tpUpdateCardPreview();
+  tpUpdateCardPreview();   // also starts the song covers on an artist card
   tpPrefetchArt();
-  // The official tracklist, for "Album order" — fetched once, shared with the
-  // score card's Grid, and it re-renders this card too when it lands.
-  rtPrefetchTracklist(_tpCardAlbum);
+}
+
+// The controls that read differently, or don't apply, on an artist card: no
+// "Album order", the picture row offers the artist's photo per source instead
+// of the album cover, and the labels say artist / songs instead of album / tracks.
+// data-i18n is swapped too, so a language change keeps the right wording.
+function tpSyncModeControls() {
+  const artist = _tpMode === 'artist';
+  const label = (id, albumKey, artistKey) => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.dataset.i18n = artist ? artistKey : albumKey;
+    el.textContent = t(el.dataset.i18n);
+  };
+  label('tpPicCoverLabel', 'tp_card_pic_cover', 'tp_card_pic_photo');
+  label('tpOptHeaderLabel', 'tp_card_opt_header', 'tp_card_opt_header_artist');
+  label('tpOptArtLabel', 'ig_album_art', 'tp_card_pic_artist');
+  label('tpOptShareLabel', 'tp_card_opt_share', 'tp_card_opt_share_artist');
+  label('tpTopNTitle', 'tp_card_tracks_shown', 'tp_card_songs_shown');
+  const orderGroup = document.getElementById('tpOrderGroup');
+  if (orderGroup) orderGroup.style.display = artist ? 'none' : '';
+  const artistBtn = document.querySelector('#tpCardModal .sh-mini-btn[data-pic="artist"]');
+  if (artistBtn) artistBtn.style.display = artist ? 'none' : '';
 }
 
 function tpCloseCard() {
+  _tpCoverToken = null;   // stop fetching covers for a card nobody is looking at
   document.getElementById('tpCardModal').classList.remove('open');
   document.getElementById('tpCardCanvas').innerHTML = '';
 }
@@ -49415,7 +49561,9 @@ function setTpUnit(u) { if (TP_UNITS.includes(u)) tpCard.unit = u; tpSaveCardSet
 function tpSyncTopNSlider() {
   const el = document.getElementById('tpTopN');
   if (!el) return;
-  const n = Math.max(1, _tpOrderedTracks().tracks.length);
+  // An artist can have hundreds of songs; the card stops at TP_ARTIST_MAX.
+  const all = _tpOrderedTracks().tracks.length;
+  const n = Math.max(1, _tpMode === 'artist' ? Math.min(TP_ARTIST_MAX, all) : all);
   el.max = n;
   el.min = Math.min(3, n);
   el.value = Math.min(n, tpCard.topN || 12);
@@ -49429,8 +49577,8 @@ function tpSyncTemplateControls() {
   document.querySelectorAll('#tpUnitBtns .sh-seg-btn').forEach(b => b.classList.toggle('active', b.dataset.unit === tpCard.unit));
   const hint = document.getElementById('tpOrderHint');
   if (hint) {
-    const pending = _rtTracklistPending.has(_tpCardAlbum);
-    hint.textContent = tpCard.order === 'album' && !_tpOrderedTracks().ordered
+    const pending = _tpMode === 'album' && _rtTracklistPending.has(_tpCardAlbum);
+    hint.textContent = _tpMode === 'album' && tpCard.order === 'album' && !_tpOrderedTracks().ordered
       ? t(pending ? 'tp_card_tracklist_loading' : 'tp_card_no_tracklist') : '';
   }
 }
@@ -49460,12 +49608,14 @@ function tpUpdateCardPreview() {
   tpSyncCardLabels();
   tpSaveCardSettings();
   tpRenderCardPreview();
+  // Artist card: songs the slider just added (or Mono just switched on) need their covers.
+  tpPrefetchCovers();
 }
 
 // Render into the hidden export node first (laid out at full size), fill the
 // tiles / rows to the space that's left, then copy that into the preview.
 function tpRenderCardPreview() {
-  if (!_tpCardAlbum) return;
+  if (_tpMode === 'artist' ? !_tpCardArtist : !_tpCardAlbum) return;
   tpSyncTopNSlider();
   tpCard.topN = parseInt(document.getElementById('tpTopN')?.value) || tpCard.topN;
   tpSyncCardLabels();
@@ -49488,8 +49638,8 @@ function _tpShareOpts() {
 }
 
 function _tpFileName() {
-  const slug = (_tpCardAlbum || 'album').split('|||')[0].replace(/[^a-z0-9]+/gi, '-').replace(/^-|-$/g, '').slice(0, 40).toLowerCase() || 'album';
-  return `dankcharts_tracks_${slug}_${tpCard.template}_${tpCard.format}.png`;
+  const slug = (_tpMode === 'artist' ? _tpCardArtist || 'artist' : (_tpCardAlbum || 'album').split('|||')[0]).replace(/[^a-z0-9]+/gi, '-').replace(/^-|-$/g, '').slice(0, 40).toLowerCase() || 'album';
+  return `dankcharts_${_tpMode === 'artist' ? 'songs' : 'tracks'}_${slug}_${tpCard.template}_${tpCard.format}.png`;
 }
 
 async function tpDownloadCard() {
