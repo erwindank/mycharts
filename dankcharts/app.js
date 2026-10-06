@@ -5241,17 +5241,32 @@ function _npHistory(track) {
   // toward both. Matching the raw p.artist string instead silently under-reported
   // every collaboration, so this chip disagreed with the Artists chart.
   const aKeys = new Set((track.artists?.length ? track.artists : [track.artist || '']).map(norm));
+  // The album the live track belongs to, as a key openAlbumModal() understands.
+  // An exact albumKeyOf() hit wins; failing that, the first play with the same album
+  // name (ignoring case) by a matching artist — Last.fm's live feed and the history
+  // don't always agree on capitalisation. Stays null when the album has no plays yet,
+  // which hides the "open album" control rather than opening an empty modal.
+  const hasAlbum = track.album && track.album !== '—';
+  const wantAk   = hasAlbum ? albumKeyOf(track) : null;
+  const albNorm  = hasAlbum ? norm(track.album) : null;
+  let exactAk = null, looseAk = null;
   for (const p of allPlays) {
     // Song identity mirrors songKey() (title + the raw artist string) so this chip
     // agrees with the Songs chart entry for the same play. Counted independently of
     // the artist match below — the two charts key on deliberately different things.
     if (norm(p.title) === tKey && norm(p.artist) === aRaw) song++;
     const pArtists = (p.artists && p.artists.length) ? p.artists : [p.artist || ''];
+    let artistHit = false;
     for (const a of pArtists) {
-      if (aKeys.has(norm(a))) { artist++; break; } // break: one play, counted once
+      if (aKeys.has(norm(a))) { artist++; artistHit = true; break; } // break: one play, counted once
+    }
+    if (wantAk && !exactAk) {
+      const ak = albumKeyOf(p);
+      if (ak === wantAk) exactAk = ak;
+      else if (!looseAk && artistHit && norm(p.album) === albNorm) looseAk = ak;
     }
   }
-  return { song, artist };
+  return { song, artist, albumKey: exactAk || looseAk };
 }
 
 function _npOrdinal(n) {
@@ -5321,12 +5336,22 @@ function renderNowPlaying(track, opts) {
   const artistChip = (stats && stats.artist > 0)
     ? `<span class="np-chip">${esc(t('np_by_artist', { n: stats.artist.toLocaleString() }))}</span>`
     : '';
+  // Opens the album page for what's on air — only once the history has a matching
+  // album (see _npHistory), so it never leads to an empty modal. The art tile below
+  // does the same thing as a bigger, quieter target.
+  const albumKey  = stats?.albumKey || null;
+  const albumArg  = albumKey ? esc(JSON.stringify(albumKey)) : '';
+  const albumChip = albumKey
+    ? `<button type="button" class="np-chip np-chip-album" onclick="openAlbumModal(${albumArg})">${esc(t('np_open_album'))} ›</button>`
+    : '';
 
   el.className = 'np-bar';
   el.innerHTML = `
-    <div class="np-art-wrap">
+    ${albumKey
+      ? `<button type="button" class="np-art-wrap np-art-btn" onclick="openAlbumModal(${albumArg})" title="${esc(t('np_open_album'))}" aria-label="${esc(t('np_open_album'))}: ${esc(track.album)}">`
+      : `<div class="np-art-wrap">`}
       <div class="np-art-init" id="npArtInit">${esc(fallback)}</div>
-    </div>
+    ${albumKey ? `</button>` : `</div>`}
     <div class="np-main" aria-live="polite">
       <div class="np-label">
         <span class="np-eq" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
@@ -5335,7 +5360,7 @@ function renderNowPlaying(track, opts) {
       </div>
       <div class="np-title">${esc(track.title)}</div>
       <div class="np-artist">${esc(track.artist)}${hasAlbum ? ` · <em>${esc(track.album)}</em>` : ''}</div>
-      <div class="np-chips">${countChip}${artistChip}</div>
+      <div class="np-chips">${countChip}${artistChip}${albumChip}</div>
     </div>
     <div class="np-right" aria-hidden="true">
       <span class="np-elapsed-label">${esc(t('np_listening'))}</span>

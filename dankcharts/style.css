@@ -29617,6 +29617,33 @@ body.pink-light .awards-reallife-badge.nom { color: #4338ca; border-color: #6366
   color: var(--amber);
   border-color: color-mix(in srgb, var(--amber) 45%, var(--border));
 }
+/* "Open album" — the one chip that's a button, so it gets a pointer and a hover
+   lift; everything else in the row is read-only. */
+.np-chip-album {
+  cursor: pointer;
+  color: var(--text2);
+  line-height: inherit;
+  transition: color 0.15s, border-color 0.15s, background 0.15s;
+}
+.np-chip-album:hover,
+.np-chip-album:focus-visible {
+  color: var(--rose);
+  border-color: color-mix(in srgb, var(--rose) 55%, var(--border));
+  background: color-mix(in srgb, var(--rose) 10%, var(--bg3));
+}
+
+/* Art tile as a button (when the album is in the history) — strip button chrome
+   so it lays out exactly like the plain <div> version. */
+.np-art-btn {
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  z-index: 1; /* above the .np-bar::before sweep */
+  transition: transform 0.15s;
+}
+.np-art-btn:hover { transform: scale(1.05); }
+.np-art-btn:focus-visible { outline: 2px solid var(--rose); outline-offset: 2px; border-radius: 6px; }
 
 /* ── Elapsed clock ─── */
 .np-right {
