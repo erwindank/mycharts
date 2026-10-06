@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 84;
+const DC_CL_I18N_V = 85;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -80,9 +80,9 @@ const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
 
-  { d: '2026-10-05', t: 'design', a: 'ratings', h: 'a1aac8f',
+  { d: '2026-10-05', t: 'design', a: 'ratings', h: '5d29f3a',
     title: "Top scores are now green instead of gold",
-    detail: 'The best scores (9.0 and up) used to be gold, which looked a lot like the yellow used for middling scores, so a 10.0 could read as an average one. Scores now go from green at the top, through teal and blue, to yellow for mixed, then orange and red. The share images follow the same colours. On the red themes, good scores no longer show in brown or red.' },
+    detail: 'The best scores (9.0 and up) used to be gold, which looked a lot like the yellow used for middling scores, so a 10.0 could read as an average one. Score colours now run from worst to best as red, orange, yellow, teal, blue and green, with the top scores in full green and 8s in a softer green. The share images follow the same colours.' },
 
   { d: '2026-10-04', t: 'feature', a: 'ratings', h: '90bf474',
     title: "Share an artist's whole discography of scores as an image",

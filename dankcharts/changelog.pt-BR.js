@@ -18,7 +18,7 @@ window.DC_CHANGELOG_I18N['pt-BR'] = {
 
   "Top scores are now green instead of gold":
     ['As melhores notas agora são verdes em vez de douradas',
-     'As melhores notas (9.0 ou mais) eram douradas, muito parecidas com o amarelo das notas medianas, então um 10.0 podia parecer uma nota comum. Agora as notas vão do verde no topo, passando por turquesa e azul, até o amarelo para as mistas, e depois laranja e vermelho. As imagens de compartilhamento usam as mesmas cores. Nos temas vermelhos, as notas boas não aparecem mais em marrom ou vermelho.'],
+     'As melhores notas (9.0 ou mais) eram douradas, muito parecidas com o amarelo das notas medianas, então um 10.0 podia parecer uma nota comum. Agora as cores vão da pior para a melhor: vermelho, laranja, amarelo, turquesa, azul e verde, com as melhores notas em verde forte e os 8 em um verde mais suave. As imagens de compartilhamento usam as mesmas cores.'],
 
   "Artist charts: clickable names and a song ranking per artist":
     ['Paradas de artistas: nomes com link e um ranking de músicas por artista',
