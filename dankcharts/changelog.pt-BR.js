@@ -16,6 +16,14 @@ window.DC_CHANGELOG_I18N['pt-BR'] = {
 
   /* ========== OUTUBRO 2026 ========== */
 
+  "A community board for suggestions and bug reports":
+    ["Um fórum da comunidade para sugestões e bugs",
+     "Há uma nova aba Fórum ao lado de Playlists. Sugira um recurso, relate um bug, tire uma dúvida ou só converse sobre música com outros ouvintes. Vote nas ideias que você mais quer, responda às publicações e veja o status de cada uma, de Planejado a Em andamento a Feito. Qualquer pessoa pode ler o fórum; para publicar, responder e votar você entra com o Google. Seu nome e sua foto do Google aparecem nas suas publicações, nunca o seu e-mail. Cada publicação tem um botão Copiar link para você compartilhar."],
+
+  "Links to a tab open that tab again":
+    ["Links para uma aba voltam a abrir essa aba",
+     "Um link direto para uma aba, como um que termina em #t=awards, abria a parada semanal por causa de um erro ao carregar a página. Agora esses links abrem a aba para onde apontam."],
+
   'Open the album from the ON AIR bar':
     ['Abra o álbum pela barra NO AR',
      'A barra NO AR agora tem um botão Ver álbum, e clicar na capa faz o mesmo. Ele abre a página do álbum da música que você está ouvindo. Só aparece quando esse álbum já está no seu histórico, então nunca abre uma página vazia.'],

@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 89;
+const DC_CL_I18N_V = 90;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,14 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+
+  { d: '2026-10-06', t: 'feature', a: 'ui', h: '97db66b',
+    title: "A community board for suggestions and bug reports",
+    detail: "There's a new Board tab next to Playlists. Suggest a feature, report a bug, ask a question or just talk music with other listeners. Vote up the ideas you want most, reply to posts, and see each one's status, from Planned to In progress to Done. Anyone can read the board; you sign in with Google to post, reply and vote. Your name and Google picture show with your posts, never your email. Every post has a Copy link button so you can share it." },
+
+  { d: '2026-10-06', t: 'fix', a: 'ui', h: '97db66b',
+    title: "Links to a tab open that tab again",
+    detail: "A link straight to a tab, like one ending in #t=awards, opened the Weekly chart instead because of an error while the page loaded. These links now open the tab they point to." },
 
   { d: '2026-10-06', t: 'feature', a: 'charts', h: 'd554ed9',
     title: 'Open the album from the ON AIR bar',

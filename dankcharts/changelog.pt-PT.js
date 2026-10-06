@@ -16,6 +16,14 @@ window.DC_CHANGELOG_I18N['pt-PT'] = {
 
   /* ========== OUTUBRO 2026 ========== */
 
+  "A community board for suggestions and bug reports":
+    ["Um fórum da comunidade para sugestões e erros",
+     "Há um novo separador Fórum ao lado de Playlists. Sugere uma funcionalidade, reporta um erro, faz uma pergunta ou fala simplesmente de música com outros ouvintes. Vota nas ideias que mais queres, responde às publicações e vê o estado de cada uma, de Planeado a Em curso a Feito. Qualquer pessoa pode ler o fórum; para publicar, responder e votar inicias sessão com o Google. O teu nome e a tua foto do Google aparecem nas tuas publicações, nunca o teu e-mail. Cada publicação tem um botão Copiar ligação para a partilhares."],
+
+  "Links to a tab open that tab again":
+    ["As ligações para um separador voltam a abri-lo",
+     "Uma ligação direta para um separador, como uma que termina em #t=awards, abria a tabela semanal por causa de um erro ao carregar a página. Agora estas ligações abrem o separador para onde apontam."],
+
   'Open the album from the ON AIR bar':
     ['Abre o álbum a partir da barra NO AR',
      'A barra NO AR tem agora um botão Ver álbum, e clicar na capa faz o mesmo. Abre a página do álbum da música que estás a ouvir. Só aparece quando esse álbum já está no teu histórico, por isso nunca abre uma página vazia.'],

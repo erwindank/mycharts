@@ -16,6 +16,14 @@ window.DC_CHANGELOG_I18N['es'] = {
 
   /* ========== OCTUBRE 2026 ========== */
 
+  "A community board for suggestions and bug reports":
+    ["Un foro de la comunidad para sugerencias y errores",
+     "Hay una nueva pestaña Foro junto a Playlists. Sugiere una función, reporta un error, haz una pregunta o simplemente habla de música con otros oyentes. Vota las ideas que más quieres, responde a las publicaciones y mira el estado de cada una, de Planeado a En progreso a Hecho. Cualquiera puede leer el foro; para publicar, responder y votar inicias sesión con Google. Tu nombre y tu foto de Google aparecen con tus publicaciones, nunca tu correo. Cada publicación tiene un botón Copiar enlace para compartirla."],
+
+  "Links to a tab open that tab again":
+    ["Los enlaces a una pestaña vuelven a abrirla",
+     "Un enlace directo a una pestaña, como uno que termina en #t=awards, abría la lista semanal por un error al cargar la página. Ahora estos enlaces abren la pestaña a la que apuntan."],
+
   'Open the album from the ON AIR bar':
     ['Abre el álbum desde la barra EN EL AIRE',
      'La barra EN EL AIRE ahora tiene un botón Ver álbum, y hacer clic en la portada hace lo mismo. Abre la página del álbum de la canción que estás escuchando. Solo aparece cuando ese álbum ya está en tu historial, así que nunca abre una página vacía.'],
