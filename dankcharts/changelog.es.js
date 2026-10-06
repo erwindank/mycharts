@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['es'] = {
 
   /* ========== OCTUBRE 2026 ========== */
 
+  "The Board lines up with the rest of the site":
+    ["El Foro se alinea con el resto del sitio",
+     "La pestaña Foro ocupaba todo el ancho de la ventana en pantallas grandes. Ahora tiene el mismo ancho que las listas y el menú de arriba."],
+
   "A community board for suggestions and bug reports":
     ["Un foro de la comunidad para sugerencias y errores",
      "Hay una nueva pestaña Foro junto a Playlists. Sugiere una función, reporta un error, haz una pregunta o simplemente habla de música con otros oyentes. Vota las ideas que más quieres, responde a las publicaciones y mira el estado de cada una, de Planeado a En progreso a Hecho. Cualquiera puede leer el foro; para publicar, responder y votar inicias sesión con Google. Tu nombre y tu foto de Google aparecen con tus publicaciones, nunca tu correo. Cada publicación tiene un botón Copiar enlace para compartirla."],

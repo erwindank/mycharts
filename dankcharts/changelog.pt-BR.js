@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['pt-BR'] = {
 
   /* ========== OUTUBRO 2026 ========== */
 
+  "The Board lines up with the rest of the site":
+    ["O Fórum se alinha com o resto do site",
+     "A aba Fórum ocupava a largura inteira da janela em telas largas. Agora ela tem a mesma largura das paradas e do menu acima."],
+
   "A community board for suggestions and bug reports":
     ["Um fórum da comunidade para sugestões e bugs",
      "Há uma nova aba Fórum ao lado de Playlists. Sugira um recurso, relate um bug, tire uma dúvida ou só converse sobre música com outros ouvintes. Vote nas ideias que você mais quer, responda às publicações e veja o status de cada uma, de Planejado a Em andamento a Feito. Qualquer pessoa pode ler o fórum; para publicar, responder e votar você entra com o Google. Seu nome e sua foto do Google aparecem nas suas publicações, nunca o seu e-mail. Cada publicação tem um botão Copiar link para você compartilhar."],

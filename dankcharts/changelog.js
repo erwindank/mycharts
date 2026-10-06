@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 90;
+const DC_CL_I18N_V = 91;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,10 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+
+  { d: '2026-10-06', t: 'fix', a: 'ui', h: 'fe9e692',
+    title: "The Board lines up with the rest of the site",
+    detail: "The Board tab stretched across the whole window on wide screens. It now has the same width as the charts and the menu above it." },
 
   { d: '2026-10-06', t: 'feature', a: 'ui', h: '97db66b',
     title: "A community board for suggestions and bug reports",
