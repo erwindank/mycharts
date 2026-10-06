@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 87;
+const DC_CL_I18N_V = 88;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,10 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+
+  { d: '2026-10-05', t: 'fix', a: 'charts', h: '83840b7',
+    title: "Filmstrip scores and details are easier to read",
+    detail: "In the Filmstrip chart view, the score chip and the details that open under each card (weeks on chart, all-time plays) were tiny. They are now noticeably bigger." },
 
   { d: '2026-10-05', t: 'feature', a: 'charts', h: 'de567a5',
     title: "Pick the picture for track play images, now in full colour",

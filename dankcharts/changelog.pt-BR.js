@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['pt-BR'] = {
 
   /* ========== OUTUBRO 2026 ========== */
 
+  "Filmstrip scores and details are easier to read":
+    ["Notas e detalhes da visualização Tira ficaram mais fáceis de ler",
+     "Na visualização Tira das paradas, a etiqueta da sua nota e os detalhes que abrem embaixo de cada cartão (semanas na parada, reproduções totais) eram minúsculos. Agora estão bem maiores."],
+
   "Pick the picture for track play images, now in full colour":
     ["Escolha a imagem das reproduções por faixa, agora em cores",
      "Os designs Mosaico e Quebra-cabeça agora usam a imagem com as próprias cores em vez de preto e branco (o preto e branco continua como opção). Um novo ajuste de Imagem deixa você escolher a capa do álbum do Deezer, iTunes ou Last.fm, a foto do artista, ou enviar a sua própria imagem."],
