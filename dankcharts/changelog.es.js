@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['es'] = {
 
   /* ========== OCTUBRE 2026 ========== */
 
+  'Open the album from the ON AIR bar':
+    ['Abre el álbum desde la barra EN EL AIRE',
+     'La barra EN EL AIRE ahora tiene un botón Ver álbum, y hacer clic en la portada hace lo mismo. Abre la página del álbum de la canción que estás escuchando. Solo aparece cuando ese álbum ya está en tu historial, así que nunca abre una página vacía.'],
+
   "Share an artist's most played songs":
     ["Comparte las canciones más escuchadas de un artista",
      "Las páginas de artista ahora tienen un botón Compartir canciones encima de sus canciones. Crea el mismo tipo de imagen que Compartir canciones de un álbum, con las canciones más escuchadas del artista (hasta 50). En el diseño Mosaico cada cuadro lleva la portada del álbum o sencillo de esa canción; Rompecabezas, Ranking, Podio y Lista de canciones usan la foto del artista. Puedes elegir de dónde sale la foto o subir la tuya, y las demás opciones funcionan igual que en los álbumes."],

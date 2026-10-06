@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['pt-BR'] = {
 
   /* ========== OUTUBRO 2026 ========== */
 
+  'Open the album from the ON AIR bar':
+    ['Abra o álbum pela barra NO AR',
+     'A barra NO AR agora tem um botão Ver álbum, e clicar na capa faz o mesmo. Ele abre a página do álbum da música que você está ouvindo. Só aparece quando esse álbum já está no seu histórico, então nunca abre uma página vazia.'],
+
   "Share an artist's most played songs":
     ["Compartilhe as músicas mais ouvidas de um artista",
      "As páginas de artista agora têm um botão Compartilhar músicas acima das músicas. Ele cria o mesmo tipo de imagem que o Compartilhar faixas de um álbum, com as músicas mais ouvidas do artista (até 50). No design Mosaico cada bloco mostra a capa do álbum ou single daquela música; Quebra-cabeça, Ranking, Pódio e Lista de faixas usam a foto do artista. Dá para escolher de onde vem a foto ou enviar a sua, e as outras opções funcionam como nos álbuns."],

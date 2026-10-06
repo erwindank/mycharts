@@ -80,6 +80,10 @@ const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
 
+  { d: '2026-10-06', t: 'feature', a: 'charts', h: 'd554ed9',
+    title: 'Open the album from the ON AIR bar',
+    detail: "The ON AIR bar now has an Open album button, and clicking the cover does the same. It opens the album page for the song you're playing right now. It only shows up once that album is in your history, so it never opens an empty page." },
+
   { d: '2026-10-06', t: 'feature', a: 'charts', h: '1053917',
     title: "Share an artist's most played songs",
     detail: "Artist pages now have a Share songs button above their songs. It makes the same kind of image as an album's Share tracks, for the artist's most played songs (up to 50). In the Mosaic design every tile shows the cover of the album or single that song is from; Cover Puzzle, Ranking, Podium and Tracklist use the artist's photo. You can pick where the photo comes from or upload your own, and every other option works the same as on albums." },
