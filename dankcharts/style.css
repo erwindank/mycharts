@@ -30068,6 +30068,20 @@ body.albums-hide-yt-btns  #albumsSection  .wv-gc-hover { display: none; }
 .wv-gc-cert { position: absolute; bottom: 0; left: 0; right: 0; display: flex; justify-content: center; padding-bottom: 3px; pointer-events: none; }
 .wv-gc-cert .cert { margin-left: 0; font-size: 0.48rem; padding: 1px 4px; background: rgba(0,0,0,0.72) !important; backdrop-filter: blur(2px); }
 .wv-gc-cert .cert-icon { font-size: 8px; }
+/* Score chip over the cover art. The shared chip is a faint 14% tint meant for
+   a plain card background — over a bright or busy cover it washed out. Here it
+   sits on dark glass (the band tint layered on top of near-black), with a
+   full-strength band border and a slightly larger number so it reads on any art. */
+.wv-gc-cert .rt-chip {
+  margin-left: 0;
+  font-size: 0.72rem;
+  padding: 1px 7px;
+  background: linear-gradient(color-mix(in srgb, var(--rt-c) 22%, transparent), color-mix(in srgb, var(--rt-c) 22%, transparent)), rgba(8,10,16,0.82);
+  border-color: var(--rt-c);
+  backdrop-filter: blur(3px);
+  box-shadow: 0 1px 4px rgba(0,0,0,0.55);
+  text-shadow: 0 1px 2px rgba(0,0,0,0.6);
+}
 
 /* movement border tints (ranks 4+) */
 .wv-gc-entry.wv-card { border-color: rgba(74,222,128,0.4); box-shadow: 0 0 0 1px rgba(74,222,128,0.15) inset; }
