@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['es'] = {
 
   /* ========== OCTUBRE 2026 ========== */
 
+  "Pick the picture for track play images, now in full colour":
+    ["Elige la imagen de las reproducciones por canción, ahora a todo color",
+     "Los diseños Mosaico y Rompecabezas ahora usan la imagen con sus propios colores en vez de blanco y negro (el blanco y negro sigue siendo una opción). Un nuevo ajuste de Imagen te deja elegir la portada del álbum de Deezer, iTunes o Last.fm, la foto del artista, o subir tu propia imagen."],
+
   "Scores on card-grid covers are easier to read":
     ["Las notas sobre las portadas en la vista de tarjetas se leen mejor",
      "En la vista Tarjetas de canciones y álbumes, tu nota sobre cada portada era una etiqueta tenue y transparente que se perdía en portadas claras o recargadas. Ahora tiene un fondo oscuro con un borde de color sólido y números un poco más grandes, así que destaca en cualquier portada."],

@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['pt-BR'] = {
 
   /* ========== OUTUBRO 2026 ========== */
 
+  "Pick the picture for track play images, now in full colour":
+    ["Escolha a imagem das reproduções por faixa, agora em cores",
+     "Os designs Mosaico e Quebra-cabeça agora usam a imagem com as próprias cores em vez de preto e branco (o preto e branco continua como opção). Um novo ajuste de Imagem deixa você escolher a capa do álbum do Deezer, iTunes ou Last.fm, a foto do artista, ou enviar a sua própria imagem."],
+
   "Scores on card-grid covers are easier to read":
     ["As notas sobre as capas na visualização em cards ficaram mais fáceis de ler",
      "Na visualização em cards de músicas e álbuns, sua nota sobre cada capa era uma etiqueta fraca e transparente que sumia em capas claras ou cheias de detalhes. Agora ela tem um fundo escuro com uma borda colorida sólida e números um pouco maiores, então se destaca em qualquer capa."],

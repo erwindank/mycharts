@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 86;
+const DC_CL_I18N_V = 87;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,10 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+
+  { d: '2026-10-05', t: 'feature', a: 'charts', h: 'de567a5',
+    title: "Pick the picture for track play images, now in full colour",
+    detail: "The Mosaic and Cover Puzzle designs now use the picture in its own colours instead of black and white (black and white is still an option). A new Picture setting lets you choose the album cover from Deezer, iTunes or Last.fm, the artist's photo, or upload your own image." },
 
   { d: '2026-10-05', t: 'fix', a: 'ratings', h: '9124a29',
     title: "Scores on card-grid covers are easier to read",
