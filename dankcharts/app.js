@@ -48133,9 +48133,9 @@ function rtLoadCardSettings() {
 // its own copy of the same hues.
 const RT_CARD_BAND_HEX = {
   masterpiece: ['#3ddc97', '#0f9d58'],
-  essential:   ['#4fd6b8', '#0e8a6a'],
-  great:       ['#3cc4d8', '#0e7490'],
-  good:        ['#38bdf8', '#0369a1'],
+  essential:   ['#9be8c4', '#14532d'],
+  great:       ['#38bdf8', '#0369a1'],
+  good:        ['#2dd4bf', '#0f766e'],
   mixed:       ['#fbbf24', '#b45309'],
   weak:        ['#fb923c', '#c2410c'],
   poor:        ['#ff6b81', '#d93025'],
@@ -48425,9 +48425,9 @@ function _rtHeadline(ctx) {
 // and Mixed is amber so yellow always means a middling score.
 const RT_GRID_BAND_HEX = {
   masterpiece: ['#22c55e', '#15803d'],
-  essential:   ['#2dd4bf', '#0f766e'],
+  essential:   ['#86efac', '#14532d'],
   great:       ['#60a5fa', '#2563eb'],
-  good:        ['#b9a3f7', '#7c3aed'],
+  good:        ['#2dd4bf', '#0f766e'],
   mixed:       ['#fbbf24', '#b45309'],
   weak:        ['#fb923c', '#ea580c'],
   poor:        ['#f43f5e', '#be123c'],
