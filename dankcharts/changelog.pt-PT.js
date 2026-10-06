@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['pt-PT'] = {
 
   /* ========== OUTUBRO 2026 ========== */
 
+  "Scores on card-grid covers are easier to read":
+    ["As notas sobre as capas na vista em cartões estão mais fáceis de ler",
+     "Na vista em cartões de músicas e álbuns, a tua nota sobre cada capa era uma etiqueta fraca e transparente que desaparecia em capas claras ou cheias de detalhe. Agora tem um fundo escuro com uma borda colorida sólida e números um pouco maiores, por isso destaca-se em qualquer capa."],
+
   "Share how much you've played every track of an album":
     ["Partilhe quanto ouviu cada faixa de um álbum",
      "Os álbuns têm agora um botão Partilhar faixas por cima da lista de faixas. Cria uma imagem com cada música e as suas reproduções, em cinco designs: Mosaico (a capa em cada bloco com a música e o número, como as publicações de 'as minhas reproduções em cada música'), Puzzle (uma capa cortada num bloco por música), Ranking, Pódio (as três primeiras em pedestais) e Lista de faixas (pela ordem do álbum). Pode mostrar os números como reproduções, streams ou scrobbles, pôr os blocos a preto e branco, juntar a percentagem do álbum de cada música e escolher o tamanho e as cores."],

@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['es'] = {
 
   /* ========== OCTUBRE 2026 ========== */
 
+  "Scores on card-grid covers are easier to read":
+    ["Las notas sobre las portadas en la vista de tarjetas se leen mejor",
+     "En la vista Tarjetas de canciones y álbumes, tu nota sobre cada portada era una etiqueta tenue y transparente que se perdía en portadas claras o recargadas. Ahora tiene un fondo oscuro con un borde de color sólido y números un poco más grandes, así que destaca en cualquier portada."],
+
   "Share how much you've played every track of an album":
     ["Comparte cuánto escuchaste cada canción de un álbum",
      "Los álbumes ahora tienen un botón Compartir canciones encima de su lista de canciones. Crea una imagen con cada canción y sus reproducciones, en cinco diseños: Mosaico (la portada en cada cuadro con la canción y su número, como los posts de 'mis reproducciones en cada canción'), Rompecabezas (una portada cortada en un cuadro por canción), Ranking, Podio (las tres primeras en pedestales) y Lista de canciones (en el orden del álbum). Puedes mostrar los números como reproducciones, streams o scrobbles, poner los cuadros en blanco y negro, añadir el porcentaje del álbum de cada canción y elegir el tamaño y los colores."],

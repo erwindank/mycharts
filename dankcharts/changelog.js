@@ -80,6 +80,10 @@ const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
 
+  { d: '2026-10-05', t: 'fix', a: 'ratings', h: '9124a29',
+    title: "Scores on card-grid covers are easier to read",
+    detail: "In the Card Grid view of songs and albums, your score on each cover used to be a faint see-through chip that disappeared on bright or busy artwork. It now sits on a dark backing with a solid coloured edge and slightly bigger numbers, so it stands out on any cover." },
+
   { d: '2026-10-05', t: 'feature', a: 'charts', h: '15957b9',
     title: "Share how much you've played every track of an album",
     detail: "Albums now have a Share tracks button above their track list. It makes an image of every song with its play count, in five designs: Mosaic (the cover on every tile with the song and its count, like the 'my plays on every song' posts), Cover Puzzle (one cover cut into a tile per song), Ranking, Podium (top three on pedestals) and Tracklist (in album order). You can show the counts as plays, streams or scrobbles, make the tiles black and white, add each song's share of the album, and pick the size and colours." },
