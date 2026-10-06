@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['pt-PT'] = {
 
   /* ========== OUTUBRO 2026 ========== */
 
+  "Top scores are now green instead of gold":
+    ['As melhores notas agora são verdes em vez de douradas',
+     'As melhores notas (9.0 ou mais) eram douradas, muito parecidas com o amarelo das notas médias, por isso um 10.0 podia parecer uma nota comum. Agora as notas vão do verde no topo, passando por turquesa e azul, até ao amarelo para as mistas, e depois laranja e vermelho. As imagens para partilhar usam as mesmas cores. Nos temas vermelhos, as boas notas já não aparecem em castanho ou vermelho.'],
+
   "Artist charts: clickable names and a song ranking per artist":
     ['Tabelas de artistas: nomes com ligação e uma classificação de músicas por artista',
      'Nas tabelas de artistas, o nome do artista é agora uma ligação para a página dele (clicar no resto da linha continua a funcionar). O número de músicas ao lado de cada artista também é clicável: abre uma pequena classificação das músicas desse artista que ouviu nessa semana, mês ou ano, da mais ouvida para a menos ouvida. Clique numa música da lista para abrir a página dela.'],
