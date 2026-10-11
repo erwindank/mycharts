@@ -16,6 +16,14 @@ window.DC_CHANGELOG_I18N['pt-PT'] = {
 
   /* ========== OUTUBRO 2026 ========== */
 
+  "Chart rows line up on phones":
+    ["As linhas da tabela alinham-se no telemóvel",
+     "Com os botões do YouTube e de playlist ligados, o botão de playlist caía para baixo do YouTube no telemóvel e cada linha ficava muito mais alta. No telemóvel o YouTube mostra agora só o ícone, por isso os dois ficam lado a lado. Os selos de pico, certificação e nota que passam para a sua própria linha alinham-se agora com o título da música em vez de começarem um pouco à direita."],
+
+  "Calmer charts by default":
+    ["Tabelas mais calmas por predefinição",
+     "Uma linha da tabela mostra agora só a posição, o movimento, a capa, o título, o artista, as semanas e as reproduções. Selos de certificação, as tuas notas, pico de reproduções, selos de pico, o botão do YouTube, a legenda do Bubbling Under e as descrições começam desligados; liga qualquer um no menu ⋮ da tabela, em Mostrar. O botão + de playlist tem agora o seu próprio interruptor Playlist, separado do YouTube. Se já tinhas escolhido as tuas definições, ficam como estavam. A visita guiada liga tudo enquanto decorre para veres, e depois repõe as tuas definições."],
+
   "The Board lines up with the rest of the site":
     ["O Fórum alinha-se com o resto do site",
      "O separador Fórum ocupava a largura toda da janela em ecrãs largos. Agora tem a mesma largura das tabelas e do menu acima."],

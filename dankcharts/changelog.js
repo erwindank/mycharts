@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 91;
+const DC_CL_I18N_V = 92;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,14 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+
+  { d: '2026-10-11', t: 'fix', a: 'charts', h: 'cab252c',
+    title: 'Chart rows line up on phones',
+    detail: 'With the YouTube and playlist buttons switched on, the playlist button dropped below YouTube on a phone, making every row much taller. On phones YouTube now shows just its icon, so the two sit side by side. Peak, certification and score badges that wrap onto their own line now line up with the song title instead of starting a little to the right.' },
+
+  { d: '2026-10-11', t: 'change', a: 'charts', h: '415d92d',
+    title: 'Calmer charts by default',
+    detail: "A chart row now shows just the rank, movement, cover, title, artist, weeks and plays. Cert badges, your scores, plays peak, peak tags, the YouTube button, the Bubbling Under legend and descriptions all start switched off; turn any of them on in the chart's ⋮ menu, under Show. The playlist + button has its own Playlist switch there now, separate from YouTube. If you had already picked your own settings, they stay as they were. The feature tour switches everything on while it runs so you can see it all, then puts your settings back." },
 
   { d: '2026-10-06', t: 'fix', a: 'ui', h: 'fe9e692',
     title: "The Board lines up with the rest of the site",

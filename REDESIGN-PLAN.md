@@ -414,6 +414,8 @@ scroll, as `stickyNavBar` already tries to do.
 pins to the top as you scroll (the "it moves" report was the screenshot
 tool, see 1.7). Pinned, it is a ~100px card with the hint line, which is the
 part to fix: down to the one line above, ~48px, inside the top bar.
+Also for phase 5: on a phone the round scroll-to-top button sits over the
+chart's plays column while you scroll. Move it clear of the content.
 
 ### 4.5 Time Machine. Seen on screen
 
@@ -1004,6 +1006,10 @@ anyway, because anyone who switches them on still sees them, but check them
 with the switches on: a type or colour pass judged on default screenshots
 will miss them entirely. Two things phase 3 still owns: the YouTube red is a
 raw `#FF0000` (the same red as "dropped"), and the ＋ button's colours.
+Also for phase 3: in Red light the "Artist of the moment" label on the
+spotlight card is pale pink with a glow on a white card and hard to read.
+Check Navy light too, it looked similar. Fix the colour only, the cards
+themselves stay as they are.
 
 **Phase 5 (shell).** The period picker does not need moving into one place:
 it already is (see 4.4). What is left is making it slim enough to live in
@@ -1017,6 +1023,9 @@ on the rows themselves are still there and still need 3.8.
 off, a table row has no play button by default, so the "one action set"
 (▶ on hover, ⋮ per row, right-click) is now how most people will play
 anything from a chart. Do the action set first within phase 7. Also:
+- **The table on a phone is broken up:** the "Prev" header has its own
+  underline that doesn't match the rest, and each row's background is split
+  into pieces instead of one strip. Fix it with the table restyle.
 - **The drawer becomes the main way to see detail**, because the face of
   every layout is now the clean version. Design it for people who never open
   ⋮ → Show.
@@ -1032,8 +1041,9 @@ anything from a chart. Do the action set first within phase 7. Also:
 
 **Phase 8 (shared components).** The Show menu's rows now include
 "Playlist", and the YouTube/＋ pair has its own sizing rule
-(`.yt-play-btn:has(+ .dc-pl-add-btn…)` in `style.css`). When the shared
-button replaces `yt-play-btn`, delete that rule with it.
+(`.yt-play-btn:has(+ .dc-pl-add-btn…)` in `style.css`, plus an icon-only
+version of it for phones). When the shared button replaces `yt-play-btn`,
+delete those rules with it.
 
 **Phase 9 (Records, Stats, etc.).** Not affected: the Show switches only
 cover the three Weekly-style charts (Songs, Artists, Albums) and their
@@ -1050,10 +1060,23 @@ English only** (its text is not in `translations.js`). That breaks the
 four-languages rule in section 2 and predates this redesign. Worth its own
 small task.
 
-**Still to see on screen.** None of phase 1 has been checked in the four
-check themes, on a phone, in Portuguese or with reduced motion, which this
-section says comes before the next phase. One pass with the switches on and
-one with them off.
+**Checked on screen (2026-10-11).** Phase 1 was looked at in all four
+check themes and on a phone, with the switches off and with them all on.
+Nothing it changed was broken. Two problems showed up with the switches on,
+both fixed right away:
+- On a phone the ＋ dropped below the YouTube button, because the title
+  column is only ~85px wide. YouTube now shows just its icon on phones, so
+  the pair stays on one line.
+- A badge that wrapped onto its own line (long title, or a phone) started a
+  few pixels in from the title. The title and its badges are now one
+  wrapping row with a gap, so a wrapped badge lines up with the title.
+
+Three older problems were found and handed to later phases (each is also
+noted under its phase): the hard-to-read "Artist of the moment" label in
+Red light (phase 3), the broken-up table rows on a phone (phase 7) and the
+scroll-to-top button over the plays column (phase 5).
+
+**Still to check:** Portuguese and reduced motion.
 
 ### Taking screenshots that don't mislead
 

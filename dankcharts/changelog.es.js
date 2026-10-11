@@ -16,6 +16,14 @@ window.DC_CHANGELOG_I18N['es'] = {
 
   /* ========== OCTUBRE 2026 ========== */
 
+  "Chart rows line up on phones":
+    ["Las filas de la lista se alinean en el móvil",
+     "Con los botones de YouTube y de playlist activados, el botón de playlist caía debajo de YouTube en el móvil y cada fila quedaba mucho más alta. En el móvil YouTube ahora muestra solo su icono, así que los dos quedan uno al lado del otro. Las insignias de pico, certificación y puntuación que pasan a su propia línea ahora se alinean con el título de la canción en lugar de empezar un poco a la derecha."],
+
+  "Calmer charts by default":
+    ["Listas más tranquilas por defecto",
+     "Una fila de la lista ahora muestra solo la posición, el movimiento, la portada, el título, el artista, las semanas y las reproducciones. Las insignias de certificación, tus puntuaciones, el pico de reproducciones, las etiquetas de pico, el botón de YouTube, la leyenda de Bubbling Under y las descripciones empiezan desactivados; activa cualquiera en el menú ⋮ de la lista, en Mostrar. El botón + de playlist ahora tiene su propio interruptor Playlist, separado de YouTube. Si ya habías elegido tus propios ajustes, se quedan como estaban. El recorrido guiado activa todo mientras dura para que lo veas, y luego vuelve a poner tus ajustes."],
+
   "The Board lines up with the rest of the site":
     ["El Foro se alinea con el resto del sitio",
      "La pestaña Foro ocupaba todo el ancho de la ventana en pantallas grandes. Ahora tiene el mismo ancho que las listas y el menú de arriba."],
