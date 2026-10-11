@@ -4,6 +4,11 @@ Written 2026-10-10, updated the same day with a second set of screenshots.
 Based on full-page screenshots plus a read-through of `dankcharts/index.html`
 and `dankcharts/style.css`.
 
+**Updated 2026-10-11:** Phase 1 is done, and two of its three items turned out
+not to be bugs (see 1, problems 6 and 7). Section 5 now says what was built,
+what it changes for the later phases, and how to take screenshots that don't
+mislead.
+
 **Seen on screen:**
 - Weekly: Albums and Songs, in all six chart layouts (Table, Card grid,
   Compact, Mosaic, Filmstrip, Stack)
@@ -81,13 +86,20 @@ label, which is what gives it the "hacker terminal from 2018" look.
 5. **Pages go on forever.** Yearly Songs is over 16,000px tall: top 100, then
    20 new songs, then two release reels. Every row looks the same, so the
    eye has nowhere to rest.
-6. **A large empty gap** between the menu and the stat tiles on the Weekly
-   page in most of the screenshots (roughly 150px of nothing). Probably the
-   sticky-bar placeholder (`stickyNavSentinel`) taking up space. It looks like
-   a bug.
-7. **The period picker moves.** On the Albums screenshot "This Week" sits
-   above the stat tiles; on the Songs screenshots it's below the Certified
-   reel. It should be in one fixed place.
+6. ~~**A large empty gap** between the menu and the stat tiles.~~ **Not a
+   bug in the site (checked 2026-10-11).** Measured in a browser, the date bar
+   ends and the stat tiles start 28px later, on Songs and on Albums. The gap
+   came from how the screenshots were taken (see 7).
+7. ~~**The period picker moves.**~~ **Also not a bug.** The date bar sticks
+   to the top of the screen as you scroll (`#stickyNavBar`,
+   `position: sticky`). A screenshot tool that builds a full page by
+   scrolling and stitching catches the bar pinned to the top of a later
+   frame, so it shows up again over the Certified reel. Tools that hide
+   pinned elements after the first frame leave its usual spot empty instead,
+   which is the "gap" in 6. In the DOM the bar is always in one place: under
+   the menu, above the stat tiles. The real issue is different: once pinned,
+   the bar takes about 100px off the top of the screen. That belongs to
+   phase 5 (4.4: a slimmer bar inside the top bar).
 8. **Blocks repeat across pages.** "Rating Records" sits at the bottom of every
    Records sub-tab. Upcoming / Recent Releases (Events content) sit at the
    bottom of the Weekly chart.
@@ -290,17 +302,31 @@ The ⋮ → Show menu on each chart already switches certifications, score,
 peaks, peak tags, descriptions, YouTube buttons and the Bubbling Under
 legend on and off. **Change the defaults, not the features:**
 
-| Detail | Default now | New default |
-|---|---|---|
-| YouTube button per row | on | **off** (play from the row's ⋮ or the song pop-up) |
-| Bubbling Under legend | on | **off** (ⓘ tooltip) |
-| Peak tags ("PEAK #1") | on | **off** (Peak is its own column) |
-| Score (9.4) | on | on, as a small muted number |
-| Certification | on | on, as a small disc icon |
-| Descriptions under rows | on | off |
+**Done in phase 1 (2026-10-11), and further than first planned: every switch
+is off by default**, Score and Certification included. You decided that the
+clean chart is the default and every detail is something you switch on.
 
-Remember each person's choices, as now. Anyone who turned something on keeps
-it.
+| Switch (⋮ → Show) | Was | Now |
+|---|---|---|
+| Cert Badges | on | **off** |
+| My Scores | on | **off** |
+| Plays Peak (personal-best badge) | on | **off** |
+| Peak Tags ("PEAK #1") | on | **off** (Peak gets its own column in 4.10) |
+| YouTube button per row | on | **off** (play from the song pop-up for now; the row ⋮ comes in phase 7) |
+| Playlist ＋ button per row | rode on YouTube | **its own switch, off** |
+| BU Legend | on | **off** (ⓘ tooltip later, 3.8) |
+| Descriptions | on | **off** |
+
+- Each person's choices are kept. The first click on any switch saves all of
+  them, so people who had touched one keep exactly what they had.
+- The ＋ playlist button had always been hidden with YouTube. It now has its
+  own switch. Saved settings from before the split copy the YouTube value, so
+  nobody lost a button they could see.
+- The Charts Guide tour turns every switch on while it runs (display only,
+  nothing saved), names the switch for each thing it shows, and puts the
+  saved settings back when it ends.
+- Where Score and Certification are switched on, 4.10 still applies: score
+  as a small muted number, certification as a small disc.
 
 ---
 
@@ -383,6 +409,11 @@ left and right, and a keyboard hint below.
 Week/Month/Year/All-time switch, at `--fs-lg`. Click the date to open the
 picker (as now). Drop the hint (3.6). Make it part of the sticky top bar on
 scroll, as `stickyNavBar` already tries to do.
+
+**Checked 2026-10-11:** the picker already stays in one place and already
+pins to the top as you scroll (the "it moves" report was the screenshot
+tool, see 1.7). Pinned, it is a ~100px card with the hint line, which is the
+part to fix: down to the one line above, ~48px, inside the top bar.
 
 ### 4.5 Time Machine. Seen on screen
 
@@ -548,7 +579,11 @@ Two more gaps, outside the table:
 
 5. **The Show switches apply to every layout.** A switch hides its feature
    wherever it's drawn, on the face or in the drawer. Write the rule once per
-   feature (one class on the item), not once per layout.
+   feature (one class on the item), not once per layout. Since phase 1 all
+   eight switches default off, so **the face of every layout is the clean
+   version by default**, and the drawer is where most people will meet the
+   detail. The Playlist switch (phase 1) already follows this rule: one body
+   class, hiding the ＋ in every layout and in the cover overlays.
 6. **Every layout on every period.** Monthly, Yearly and All-Time get the
    layout buttons too, and paging works in every layout (on Card grid and
    Mosaic, as "Show more" at the bottom).
@@ -644,10 +679,9 @@ show grey initials ("WW", "MM").
   - **Peak** gets its own narrow column (a number) instead of a "PEAK #1"
     badge on every row.
   - **Tracks** column: hide by default (it's in the ⋮ "Show" menu).
-- **At most one badge next to the title:** the highest certification, as a
-  small disc icon in gold/platinum/diamond. The score (9.4) shows as a small
-  muted number. The data nerd can turn the rest back on in ⋮ → Show. Default
-  everything to the clean set.
+- **No badges next to the title by default** (phase 1 switched them all off).
+  When switched on: at most the highest certification, as a small disc icon
+  in gold/platinum/diamond, and the score (9.4) as a small muted number.
 - **Rows:** 64px tall, 48px cover, title at `--fs-base` semibold, artist at
   `--fs-sm` secondary colour. Thin divider between rows, no box per row.
   Hover lightens the row.
@@ -661,8 +695,15 @@ show grey initials ("WW", "MM").
 - **Remove** the left-edge coloured bars.
 - Rank numbers in Bricolage Grotesque at `--fs-lg`. Big, confident ranks are
   what makes a chart feel like a chart (think Billboard).
-- **YouTube button off by default** (3.9). Playing moves to the row's hover
-  ⋮ menu and the song pop-up, next to Spotify and "add to queue".
+- **YouTube button off by default** (3.9, done). Playing moves to the row's hover
+  ⋮ menu and the song pop-up, next to Spotify and "add to queue". **Until
+  phase 7 builds that menu, a table row has no play control by default**:
+  you play from the pop-up (click the title) or switch YouTube back on. See
+  "What phase 1 changed" in section 5. If that hurts in daily use, bring the
+  ▶-on-hover part of phase 7 forward on its own.
+- When both are on, the YouTube and ＋ buttons are one tidy pair (phase 1):
+  same 22px height and corner, 8px apart, and the gap goes with YouTube when
+  only the ＋ is shown.
 - **Album column** (Songs table): it wraps onto two lines on the Weekly
   table at desktop width. Show the album as a third line in muted text under
   the artist on narrow screens, or truncate it with "…" and show the full name
@@ -932,7 +973,7 @@ themes (Navy dark, Navy light, Yellow dark, Red light; see 3.2) and on a phone.
 | Phase | What | Why this order | Size |
 |---|---|---|---|
 | **0** | Update `DESIGN.md` with section 3. The July 2026 redesign already added spacing (`--sp-1…8`), radius (`--r-*`) and shadow (`--shadow-1/2/3`) tokens, but the CSS barely uses them (`--sp-*`: 0 uses, `--shadow-*`: 17 uses vs 222 raw shadows). Add the missing font-size tokens (`--fs-*`), then point the CSS at the tokens. | The tokens exist; the rest of the CSS just never adopted them. | Small |
-| **1** | **Quick wins:** change the ⋮ → Show defaults (3.9: YouTube buttons, legend, peak tags, descriptions off), fix the empty gap above the stat tiles, pin the period picker to one place. | A visibly calmer site in an afternoon, with no redesign needed. | Small |
+| **1** ✓ | **Quick wins — done 2026-10-11.** Every ⋮ → Show switch off by default, a separate Playlist switch, the YouTube/＋ pair tidied, the tour shows every switch while it runs. The gap and the moving picker were screenshot artifacts, not bugs (1.6, 1.7). | A visibly calmer site in an afternoon, with no redesign needed. | Small |
 | **2** | **Type pass:** map all 131 font sizes onto the 7 tokens (anything under 12px → 12px), switch labels/buttons/headings from mono to sans, remove most uppercase and letter-spacing. | Biggest visual improvement for the effort. Mostly find-and-replace in CSS. | Medium |
 | **3** | **Colour pass:** remove per-tile and per-label colours, the left row bars, the rainbow chart bars and extra rgba tints. Neutral tags (3.8). Movement = green/red only. | Calms the whole site at once. | Small–medium |
 | **4** | **Artwork:** fetch missing artist and album images, cache them, gradient fallback, no more initials (3.7). | The second biggest "looks unfinished" problem, and it improves every page at once. | Medium |
@@ -943,6 +984,92 @@ themes (Navy dark, Navy light, Yellow dark, Red light; see 3.2) and on a phone.
 | **9** | **Other views** in this order: Records (4.15), Stats (4.14), Raw Data (4.13), then Events, Awards, Soundtrack and the rest once seen on screen. | Records and Stats have the most concrete fixes already written down. | Large |
 | **10** | **Pop-ups and Settings** (4.20–4.21), including the side panel for song/artist/album. | | Medium |
 | **11** | **Final sweep:** move the 352 inline styles into classes, delete whatever old CSS and JS the earlier phases missed, reduce breakpoints to two, replace emoji in titles with icons. | Shrinks the 1.1 MB stylesheet and stops it drifting again. | Medium |
+
+### What phase 1 changed for the later phases
+
+Phase 1 went further than planned (everything off, not just four things),
+and some later phases now rest on different ground. Read this before
+starting any of them.
+
+**Phase 0 (DESIGN.md).** Still not done, and phase 1 went ahead without it.
+Add the new default to the rules it writes: *a chart row shows rank,
+movement, cover, title, artist, weeks and plays. Everything else is opt-in
+through ⋮ → Show.* Otherwise phase 2 onwards will style badges as though
+everyone sees them.
+
+**Phase 2 (type) and phase 3 (colour).** Smaller than they look on the
+chart. The badges, peak tags, tag colours and the red YouTube button are now
+hidden for most people, so they no longer set the look of the page. Do them
+anyway, because anyone who switches them on still sees them, but check them
+with the switches on: a type or colour pass judged on default screenshots
+will miss them entirely. Two things phase 3 still owns: the YouTube red is a
+raw `#FF0000` (the same red as "dropped"), and the ＋ button's colours.
+
+**Phase 5 (shell).** The period picker does not need moving into one place:
+it already is (see 4.4). What is left is making it slim enough to live in
+the top bar.
+
+**Phase 6 (Weekly page).** The Bubbling Under legend is off by default,
+so the "legend in a ⓘ" part of 3.8 is less urgent, though the coloured tags
+on the rows themselves are still there and still need 3.8.
+
+**Phase 7 (layouts and the action menu): now more urgent.** With YouTube
+off, a table row has no play button by default, so the "one action set"
+(▶ on hover, ⋮ per row, right-click) is now how most people will play
+anything from a chart. Do the action set first within phase 7. Also:
+- **The drawer becomes the main way to see detail**, because the face of
+  every layout is now the clean version. Design it for people who never open
+  ⋮ → Show.
+- **Show switches have to reach the drawer too** (4.9b rule 5): a switch that
+  is off should hide its feature on the face, but think about whether the
+  drawer shows everything regardless. That is the likely right answer now
+  (the drawer is where you go *for* detail), and it should be decided before
+  building it.
+- **Moving the layout buttons into the toolbar (4.9) changes the ⋮ menu.**
+  The tour walks that menu by position (`button:nth-child(1…8)` in the Show
+  tab, and the View tab's `.weekly-view-btns`). Update `_cgTourSteps` in the
+  same commit, or the tour rings the wrong rows or nothing.
+
+**Phase 8 (shared components).** The Show menu's rows now include
+"Playlist", and the YouTube/＋ pair has its own sizing rule
+(`.yt-play-btn:has(+ .dc-pl-add-btn…)` in `style.css`). When the shared
+button replaces `yt-play-btn`, delete that rule with it.
+
+**Phase 9 (Records, Stats, etc.).** Not affected: the Show switches only
+cover the three Weekly-style charts (Songs, Artists, Albums) and their
+Bubbling Under / Off the Chart / New Entries sections. Records and the rest
+draw their own badges and ignore them. Decide per view whether they should
+follow the same "clean by default" rule.
+
+**The Charts Guide tour (new dependency).** Since phase 1, the tour depends
+on the Show switches: it turns them all on while it runs and names each one
+in its text ("switch on YouTube in the chart's ⋮ menu, under Show"). Any
+phase that renames, adds, removes or moves a switch, or moves the ⋮ menu,
+must update the tour text and selectors in the same commit. **The tour is
+English only** (its text is not in `translations.js`). That breaks the
+four-languages rule in section 2 and predates this redesign. Worth its own
+small task.
+
+**Still to see on screen.** None of phase 1 has been checked in the four
+check themes, on a phone, in Portuguese or with reduced motion, which this
+section says comes before the next phase. One pass with the switches on and
+one with them off.
+
+### Taking screenshots that don't mislead
+
+Learned in phase 1: the date bar is `position: sticky`, so **scroll-and-stitch
+screenshot tools** (most "full page" browser extensions) draw it twice or
+leave a gap where it belongs. Use one of these instead:
+- Chrome DevTools → ⋮ → Run command → "Capture full size screenshot", which
+  renders the page in one go without scrolling.
+- Playwright `page.screenshot(full_page=True)` (how the gap and the picker
+  were checked), loading a sample CSV through the data-source window's file
+  upload (`openSourceModal()`, then `#srcFileInput`; the landing page's own
+  file box does not keep the data). Then "Continue to charts" and skip the
+  welcome window.
+  Step back one week from "This week" first: a sample file rarely has plays
+  in the current week, and an empty chart hides most of the page.
+- Or normal screen-sized screenshots, scrolled by hand.
 
 ### Delete as you go
 
@@ -970,7 +1097,8 @@ whole clean-up.
 ### How to check each phase
 
 There is no automated check for looks. For each phase:
-1. Take before/after screenshots of the Weekly page in the four check themes
+1. Take before/after screenshots (made as described just above, not
+   scroll-stitched) of the Weekly page in the four check themes
    (Navy dark, Navy light, Yellow dark, Red light) and at phone width
    (375px). Once per phase, check all 10 themes side by side.
    For the layouts phase: switch through all six layouts and confirm that
