@@ -9875,6 +9875,30 @@
       border-color: transparent;
     }
 
+    /* Title + badges (peak, cert, score) as one wrapping row. Each badge used
+       to carry its own margin-left, so whenever a long title or a narrow
+       phone column pushed a badge onto the next line it started indented,
+       out of line with the title above it. A flex gap only sits between
+       items on the same line, so a wrapped badge now starts flush left. */
+    .chart-table .song-title {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      column-gap: 7px;
+      row-gap: 3px;
+    }
+
+    .chart-table .song-title > .peak-badge-1,
+    .chart-table .song-title > .peak-badge-2,
+    .chart-table .song-title > .peak-badge-3,
+    .chart-table .song-title > .peak-badge,
+    .chart-table .song-title > .cert,
+    .chart-table .song-title > .rt-chip,
+    body #songsTable .song-title > .cert,  /* outranks the smaller-cert rule */
+    body #albumsTable .song-title > .cert { /* for non-all-time periods */
+      margin-left: 0;
+    }
+
     /* Movement column: the arrow+number becomes a small tinted capsule in
        its own movement colour, so a column of ▲▼ reads at a glance as a
        column of colour. NEW / RE get the same treatment. */
@@ -11705,6 +11729,22 @@
 
       .song-artist {
         font-size: 0.66rem;
+      }
+
+      /* YouTube + ＋ pair on phones: the title column is only ~85px wide, so
+         the full "YouTube" button and the ＋ could not fit side by side and
+         the ＋ dropped onto its own line, making every row much taller. Here
+         YouTube shows just its icon (the word stays in the markup for screen
+         readers, and the button keeps its title tooltip). */
+      .chart-table .yt-play-btn:has(+ .dc-pl-add-btn:not(.dc-pl-add-sm)) {
+        width: 30px;
+        padding: 0;
+        justify-content: center;
+      }
+
+      .chart-table .yt-play-btn:has(+ .dc-pl-add-btn:not(.dc-pl-add-sm)) .yt-btn-content {
+        font-size: 0;
+        gap: 0;
       }
 
       .play-count {
