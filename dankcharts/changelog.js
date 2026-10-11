@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 92;
+const DC_CL_I18N_V = 93;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,10 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+
+  { d: '2026-10-11', t: 'design', a: 'ui', h: 'd7249e6',
+    title: 'Easier-to-read text across the site',
+    detail: "Small labels, buttons, tabs and headings were set in tiny typewriter capitals, some under 10px. They now use the site's normal font at 12px or larger, without the capitals and wide letter spacing. Numbers like ranks, plays and dates keep the typewriter font, so they still line up in columns. Column headers in tables stay in small capitals." },
 
   { d: '2026-10-11', t: 'fix', a: 'charts', h: 'cab252c',
     title: 'Chart rows line up on phones',

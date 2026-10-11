@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['es'] = {
 
   /* ========== OCTUBRE 2026 ========== */
 
+  "Easier-to-read text across the site":
+    ["Texto más fácil de leer en todo el sitio",
+     "Las etiquetas pequeñas, los botones, las pestañas y los títulos usaban mayúsculas diminutas de máquina de escribir, algunas por debajo de 10px. Ahora usan la fuente normal del sitio a 12px o más, sin mayúsculas ni espaciado ancho entre letras. Los números como posiciones, reproducciones y fechas mantienen la fuente de máquina de escribir, así siguen alineados en columnas. Los encabezados de las tablas siguen en mayúsculas pequeñas."],
+
   "Chart rows line up on phones":
     ["Las filas de la lista se alinean en el móvil",
      "Con los botones de YouTube y de playlist activados, el botón de playlist caía debajo de YouTube en el móvil y cada fila quedaba mucho más alta. En el móvil YouTube ahora muestra solo su icono, así que los dos quedan uno al lado del otro. Las insignias de pico, certificación y puntuación que pasan a su propia línea ahora se alinean con el título de la canción en lugar de empezar un poco a la derecha."],
