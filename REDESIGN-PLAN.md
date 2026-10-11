@@ -976,7 +976,7 @@ themes (Navy dark, Navy light, Yellow dark, Red light; see 3.2) and on a phone.
 |---|---|---|---|
 | **0** ✓ | **Done 2026-10-11.** Update `DESIGN.md` with section 3. The July 2026 redesign already added spacing (`--sp-1…8`), radius (`--r-*`) and shadow (`--shadow-1/2/3`) tokens, but the CSS barely uses them (`--sp-*`: 0 uses, `--shadow-*`: 17 uses vs 222 raw shadows). Add the missing font-size tokens (`--fs-*`), then point the CSS at the tokens. | The tokens exist; the rest of the CSS just never adopted them. | Small |
 | **1** ✓ | **Quick wins — done 2026-10-11.** Every ⋮ → Show switch off by default, a separate Playlist switch, the YouTube/＋ pair tidied, the tour shows every switch while it runs. The gap and the moving picker were screenshot artifacts, not bugs (1.6, 1.7). | A visibly calmer site in an afternoon, with no redesign needed. | Small |
-| **2** | **Type pass:** map all 131 font sizes onto the 7 tokens (anything under 12px → 12px), switch labels/buttons/headings from mono to sans, remove most uppercase and letter-spacing. | Biggest visual improvement for the effort. Mostly find-and-replace in CSS. | Medium |
+| **2** ✓ | **Type pass — done 2026-10-11** (CSS side; see "Phase 2" below for what was left out). Map all 131 font sizes onto the 7 tokens (anything under 12px → 12px), switch labels/buttons/headings from mono to sans, remove most uppercase and letter-spacing. | Biggest visual improvement for the effort. Mostly find-and-replace in CSS. | Medium |
 | **3** | **Colour pass:** remove per-tile and per-label colours, the left row bars, the rainbow chart bars and extra rgba tints. Neutral tags (3.8). Movement = green/red only. | Calms the whole site at once. | Small–medium |
 | **4** | **Artwork:** fetch missing artist and album images, cache them, gradient fallback, no more initials (3.7). | The second biggest "looks unfinished" problem, and it improves every page at once. | Medium |
 | **5** | **Shell:** slim sticky top bar, new main tabs + More, period switch next to the date, toasts for status, merge ON AIR + streak, no masthead or Time Machine on non-chart tabs. | Fixes "can't find anything" and gives back ~1,000px on every tab. | Medium |
@@ -1020,6 +1020,46 @@ Not done in phase 0, on purpose:
   `--r-xl` 18px, with no 16px token yet. Changing them now would change
   every card and pop-up that uses them; phase 8 settles them.
 - **Font sizes.** That is phase 2.
+
+**Phase 2 (type). Done 2026-10-11 (CSS side).** Done with a script over
+`style.css` and the inline styles in `index.html`, then checked on screen
+in the four check themes, on a phone and in Portuguese, with the Show
+switches on and off. What it did:
+- ~1,390 font sizes now use `--fs-xs` … `--fs-xl`, so nothing below 12px
+  is left outside the exceptions below. Sizes of 40px and up (heroes, big
+  rank numbers) and `em` / `clamp()` sizes were left as they are.
+- Labels, buttons, tabs and headings moved from JetBrains Mono to IBM Plex
+  Sans (445 rules). Mono stays on 130 number rules (ranks, plays, dates,
+  movement, counts), which now also get `tabular-nums`.
+- `text-transform: uppercase` removed from 202 rules. Column headers keep
+  it, at 0.04em tracking. Positive letter-spacing removed everywhere else;
+  the negative tracking on display headings stays.
+- Two fixes the change needed: phones show the chart's column headers in
+  normal case (12px capitals pushed Plays off the right edge), and the
+  active tab's equalizer bars got a 7px gap (the old tracking had hidden
+  an overlap with the last letter).
+
+Left out on purpose:
+- **The "of the moment" spotlight cards** (approved as they are, see 4.7)
+  and **the masthead and wordmark** (phase 5 replaces them).
+- **Text inside small fixed-size graphics** keeps its old size: heatmap
+  axis labels, calendar cells, the back of small Mosaic tiles, the count
+  badges on the player buttons, chart-run boxes, initials inside covers,
+  and icons sized with `font-size`. 12px doesn't fit in them; they get
+  looked at with their components (phase 8/9).
+- **Share-card images** (inline styles in app.js). They are fixed-pixel
+  designs, not page text.
+- **Words written in capitals in the text itself.** About 80 translation
+  keys (×4 languages) and a few strings in app.js are typed in capitals
+  ("BEST DAY", "SYNC NOW", "PEAK #", "GOLD", "PLAYS PEAK", "RANK"), so
+  removing the CSS uppercase doesn't change them. Changing them to normal
+  case is a text change in all four languages. **Still to do**, as its own
+  step, and the place to also switch titles to sentence case.
+
+Still on phones: the chart table sticks out 21px past the screen (was 7px
+before phase 2, and the table scrolls inside its own box). Portuguese
+"reproduções" was already cut off before. Both belong to phase 7's table
+restyle.
 
 **Phase 2 (type) and phase 3 (colour).** Smaller than they look on the
 chart. The badges, peak tags, tag colours and the red YouTube button are now
