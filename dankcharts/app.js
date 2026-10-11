@@ -491,6 +491,18 @@ const sectionToggleState = (() => {
   return { songs: withDefaults(), artists: withDefaults(), albums: withDefaults() };
 })();
 
+/* While the feature tour runs, every Show switch is lifted so the tour can
+   point at things that default off (badges, scores, YouTube, ＋…). Display
+   only: the menu's ticks still show the saved state, nothing is written, and
+   a switch clicked mid-tour saves as normal. Ending the tour re-applies the
+   saved state, so whatever the user chose in the meantime is what stays. */
+let _sectionDisplayShowAll = false;
+
+function setSectionDisplayShowAll(on) {
+  _sectionDisplayShowAll = !!on;
+  initSectionDisplayToggles();
+}
+
 function initSectionDisplayToggles() {
   ['songs', 'artists', 'albums'].forEach(section => {
     const sectionCfg = SECTION_TOGGLE_CONFIG[section];
@@ -499,7 +511,7 @@ function initSectionDisplayToggles() {
       const visible = Boolean(state[type]);
       const btn = document.getElementById(cfg.btnId);
       if (btn) btn.classList.toggle('active', visible);
-      document.body.classList.toggle(cfg.bodyClass, !visible);
+      document.body.classList.toggle(cfg.bodyClass, !visible && !_sectionDisplayShowAll);
     }
   });
 }
@@ -45511,7 +45523,7 @@ const _cgTourSteps = [
          and walks its four tabs while this paragraph is being read. The holds
          below add up to a little under this phase's own hold, so the menu
          closes on the last tab instead of snapping shut mid-sequence. */
-      { content: 'Every section header has a ⋮ menu — here it is, opening on the songs chart.\n\n"Show" picks what each row carries: cert badges, plays and peak, peak tags, the YouTube button, the Bubbling Under legend.\n\n"Size" sets how many entries the chart holds, from Top 10 to Top 100, remembered separately per chart type.\n\n"View" switches the layout between table, card grid, compact, mosaic, filmstrip and stack.\n\n"Actions" plays the whole chart on YouTube, exports it as a playlist or a shareable image, and on the year and all-time charts downloads it as TXT or CSV.',
+      { content: 'Every section header has a ⋮ menu — here it is, opening on the songs chart.\n\n"Show" picks what each row carries: cert badges, your scores, plays peak, peak tags, the YouTube and playlist buttons, the Bubbling Under legend and descriptions. They all start off to keep the chart clean. The tour has switched them on for now so you can see them, and turns them back off when it ends. Tick any you want to keep.\n\n"Size" sets how many entries the chart holds, from Top 10 to Top 100, remembered separately per chart type.\n\n"View" switches the layout between table, card grid, compact, mosaic, filmstrip and stack.\n\n"Actions" plays the whole chart on YouTube, exports it as a playlist or a shareable image, and on the year and all-time charts downloads it as TXT or CSV.',
         kebabSection: '#songsSection',
         reveal: true,
         kebabSeq: [
@@ -45522,6 +45534,9 @@ const _cgTourSteps = [
           { tab: 'show',   sel: '.kebab-panel[data-panel="show"] > button:nth-child(3)', hold: 1100 },
           { tab: 'show',   sel: '.kebab-panel[data-panel="show"] > button:nth-child(4)', hold: 1100 },
           { tab: 'show',   sel: '.kebab-panel[data-panel="show"] > button:nth-child(5)', hold: 1100 },
+          { tab: 'show',   sel: '.kebab-panel[data-panel="show"] > button:nth-child(6)', hold: 1100 },
+          { tab: 'show',   sel: '.kebab-panel[data-panel="show"] > button:nth-child(7)', hold: 1100 },
+          { tab: 'show',   sel: '.kebab-panel[data-panel="show"] > button:nth-child(8)', hold: 1100 },
           { tab: 'size',   sel: '.kebab-tab[data-tab="size"]', hold: 1300 },
           { tab: 'size',   sel: '.kebab-panel[data-panel="size"] .size-btns', hold: 2400 },
           { tab: 'view',   sel: '.kebab-tab[data-tab="view"]', hold: 1300 },
@@ -45533,17 +45548,18 @@ const _cgTourSteps = [
              runs on the weekly one — it would have rung nothing. */
           { tab: 'export', sel: '.export-playlist-btn, .ig-share-btn', hold: 2600 },
         ],
-        hold: 23000 },
+        // The walk above is 25s; the rest is reading time for the longer text
+        hold: 30000 },
 
-      { content: 'The chart itself. Every row carries its position, how far it moved since last week, its all-time peak, and how many weeks it has spent on the chart altogether.',
+      { content: 'The chart itself. Every row carries its position, how far it moved since last week, its all-time peak, and how many weeks it has spent on the chart altogether.\n\nYour own score and a short description can sit on each row too. Switch on My Scores and Descriptions in the ⋮ menu, under Show.',
         spotlight: '#songsSection',
         reveal: true,
-        hold: 9000 },
+        hold: 11000 },
 
-      { content: 'Bubbling Under — the songs that just missed the cut. Next week\'s chart usually starts here.',
+      { content: 'Bubbling Under — the songs that just missed the cut. Next week\'s chart usually starts here.\n\nThe coloured tags say why each one is here. To see what each colour means, switch on BU Legend in the ⋮ menu, under Show.',
         spotlight: '#buSongsSection',
         reveal: true,
-        hold: 10000 },
+        hold: 12000 },
 
       { content: 'Off the Chart — what was here last week and has gone this week. Worth a look before it disappears from memory too.',
         spotlight: '#offSongsSection',
@@ -45573,24 +45589,20 @@ const _cgTourSteps = [
       { content: 'Where it sat last period, and how far it moved since. NEW means it has never charted before; RE means it dropped off and has come back.',
         spotlight: _cgRow('td.m-col:not(:has(.m-mths))'), column: true, hold: 7000 },
 
-      { content: 'Peak is the best position it has ever reached. Next to it sits any Gold, Platinum or Diamond badge it has earned from its total plays.',
-        spotlight: _cgRow('.peak-badge, .peak-badge-1, .peak-badge-2, .peak-badge-3, .cert'), hold: 7000 },
+      { content: 'Peak is the best position it has ever reached. Next to it sits any Gold, Platinum or Diamond badge it has earned from its total plays.\n\nTo keep them, switch on Peak Tags and Cert Badges in the chart\'s ⋮ menu, under Show.',
+        spotlight: _cgRow('.peak-badge, .peak-badge-1, .peak-badge-2, .peak-badge-3, .cert'), hold: 9000 },
 
-      { content: 'Click the red YouTube button and the song starts playing, in a small player down in the corner. If a song is already playing, this one joins the queue instead.',
-        spotlight: _cgRow('.yt-play-btn'),
-        revealBody: 'songs-hide-yt-btns artists-hide-yt-btns albums-hide-yt-btns',
-        hold: 6000 },
+      { content: 'Click the red YouTube button and the song starts playing, in a small player down in the corner. If a song is already playing, this one joins the queue instead.\n\nTo keep it, switch on YouTube in the chart\'s ⋮ menu, under Show.',
+        spotlight: _cgRow('.yt-play-btn'), hold: 8000 },
 
-      { content: 'The + button opens the playlist picker, so you can drop this row into any playlist you keep. Build one from across any chart or period, then manage them in the Playlists tab.',
-        spotlight: _cgRow('.dc-pl-add-btn'),
-        revealBody: 'songs-hide-pl-btns artists-hide-pl-btns albums-hide-pl-btns',
-        hold: 7000 },
+      { content: 'The + button opens the playlist picker, so you can drop this row into any playlist you keep. Build one from across any chart or period, then manage them in the Playlists tab.\n\nTo keep it, switch on Playlist in the chart\'s ⋮ menu, under Show.',
+        spotlight: _cgRow('.dc-pl-add-btn'), hold: 9000 },
 
       { content: 'Weeks on chart — how many weeks this has spent on the chart in total, added up across every spell it has had there.',
         spotlight: _cgRow('td.m-col:has(.m-mths)'), column: true, hold: 6000 },
 
-      { content: 'Plays in this period, the change since last period, and a bar measuring it against your number one.',
-        spotlight: _cgRow('.play-count, .play-bar'), hold: 6000 },
+      { content: 'Plays in this period, the change since last period, and a bar measuring it against your number one.\n\nA badge marks its best ever week for plays. To keep it, switch on Plays Peak in the ⋮ menu, under Show.',
+        spotlight: _cgRow('.play-count, .play-bar'), hold: 8000 },
 
       { content: 'The button at the end shows the whole story: every week this one has been on the chart, and how high it got each time.',
         spotlight: _cgRow('td.cr-cell'), click: _cgRow('.cr-toggle-btn') },
@@ -45660,6 +45672,7 @@ function dcStartChartsGuideTour() {
   _cgTourAppliedStep = -1;
   document.getElementById('cgTourBanner').style.display = 'flex';
   document.body.classList.add('cg-tour-open'); // yields the bottom-right corner
+  setSectionDisplayShowAll(true); // every Show switch on for the tour, nothing saved
   _dcApplyTourStep();
   dcGuideCheck('tour', true); // mark checklist item complete
 }
@@ -45694,10 +45707,9 @@ const _CG_HIDE_CLASSES = ['sub-chart-toggled-off', 'collapsed'];
 const _CG_BODY_SEL     = '.bu-body, .off-body';
 const _CG_ARROW_SEL    = '.bu-toggle-icon, .off-toggle-icon, .ne-toggle-icon';
 let _cgTourRevealed = [];
-/* The per-section YouTube and Playlist toggles hide their buttons through body
-   classes (songs-hide-yt-btns, songs-hide-pl-btns and friends), and both
-   default off. Their state is dc_sectionDisplayToggles, which firebase.js syncs, so the tour
-   lifts the class for a phase and puts it straight back. */
+/* revealBody lifts body classes for one phase and puts them straight back.
+   The ⋮ → Show switches no longer need it: the whole tour runs with them all
+   lifted (setSectionDisplayShowAll). */
 let _cgTourBodyClasses = [];
 
 function _dcTourRevealBody(classes) {
@@ -46073,6 +46085,7 @@ function dcEndTour() {
   _dcTourUnclick();
   _dcTourCloseKebab();
   _dcTourRestoreRevealed();
+  setSectionDisplayShowAll(false); // back to the saved switches, incl. any changed mid-tour
   _cgTourStep = 0;
   _cgTourPhase = 0;
   _cgTourAppliedStep = -1;
