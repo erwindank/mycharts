@@ -953,6 +953,7 @@ const TRANSLATIONS = {
     btn_display_peak_tags: '🏷️ PEAK TAGS',
     badge_plays_peak: 'PLAYS PEAK',
     btn_display_yt_btns: 'YOUTUBE',
+    btn_display_pl_btns: 'PLAYLIST',
     btn_display_bu_legend: '🏷️ BU LEGEND',
     btn_display_desc: '📝 DESCRIPTIONS',
 
@@ -3194,6 +3195,7 @@ const TRANSLATIONS = {
     btn_display_peak_tags: '🏷️ ETIQ. LOGRO',
     badge_plays_peak: 'LOGRO MÁS ALTO',
     btn_display_yt_btns: 'YOUTUBE',
+    btn_display_pl_btns: 'LISTA',
     btn_display_bu_legend: '🏷️ LEYENDA BU',
     btn_display_desc: '📝 DESCRIPCIONES',
 
@@ -5339,6 +5341,7 @@ const TRANSLATIONS = {
     btn_display_plays_peak: '📈 PICO REPROD.',
     btn_display_peak_tags: '🏷️ TAGS PICO',
     btn_display_yt_btns: 'YOUTUBE',
+    btn_display_pl_btns: 'PLAYLIST',
     btn_display_bu_legend: '🏷️ LEGENDA BU',
     btn_display_desc: '📝 DESCRIÇÕES',
     badge_plays_peak: 'PICO DE REPROD.',
@@ -7486,6 +7489,7 @@ const TRANSLATIONS = {
     btn_display_plays_peak: '📈 PICO REPROD.',
     btn_display_peak_tags: '🏷️ TAGS PICO',
     btn_display_yt_btns: 'YOUTUBE',
+    btn_display_pl_btns: 'PLAYLIST',
     btn_display_bu_legend: '🏷️ LEGENDA BU',
     btn_display_desc: '📝 DESCRIÇÕES',
     badge_plays_peak: 'PICO DE REPROD.',

@@ -20248,6 +20248,25 @@ body.purple .landing-card-config input:focus {
 }
 .yt-play-btn:hover { background: #cc0000; transform: scale(1.05); }
 .yt-play-btn .yt-btn-content { display: flex; align-items: center; gap: 0.3em; transition: opacity 0.12s; }
+
+/* YouTube + ＋ playlist pair under a row's title. They were different heights
+   (~18px vs 22px), the ＋ sat higher because only YouTube had a top margin,
+   and nothing spaced them apart. Here they share one height, corner, top
+   margin and an 8px gap, so they read as a tidy pair of controls. The small
+   overlay variants (.dc-pl-add-sm, on cover hovers) keep their own layout.
+   The gap is YouTube's right margin, not the ＋'s left one: either can be
+   switched off on its own, and a hidden YouTube must take the gap with it or
+   the ＋ would sit indented with nothing beside it. */
+.yt-play-btn:has(+ .dc-pl-add-btn:not(.dc-pl-add-sm)) {
+  height: 22px;
+  padding: 0 0.6em;
+  margin-top: 6px;
+  margin-right: 8px;
+  border-radius: 5px;
+  font-size: 0.68rem;
+  line-height: 1;
+}
+.yt-play-btn + .dc-pl-add-btn:not(.dc-pl-add-sm) { margin-top: 6px; }
 .yt-btn-icon { width: 10px; height: 10px; fill: currentColor; flex-shrink: 0; display: block; }
 /* Loading state */
 .yt-play-btn.yt-btn-loading { background: #888; cursor: wait; pointer-events: none; }
@@ -20278,21 +20297,20 @@ body.songs-hide-yt-btns   #newSongsSection   .yt-play-btn,
 body.artists-hide-yt-btns #newArtistsSection .yt-play-btn,
 body.albums-hide-yt-btns  #newAlbumsSection  .yt-play-btn { display: none; }
 
-/* The ＋ add-to-playlist button rides alongside the YouTube button on every chart
-   row, so the per-section "hide YouTube buttons" toggle has to take it with it —
-   otherwise switching the buttons off leaves an orphaned ＋ behind. */
-body.songs-hide-yt-btns   #songsSection     .dc-pl-add-btn,
-body.artists-hide-yt-btns #artistsSection   .dc-pl-add-btn,
-body.albums-hide-yt-btns  #albumsSection    .dc-pl-add-btn,
-body.songs-hide-yt-btns   #buSongsSection   .dc-pl-add-btn,
-body.artists-hide-yt-btns #buArtistsSection .dc-pl-add-btn,
-body.albums-hide-yt-btns  #buAlbumsSection  .dc-pl-add-btn,
-body.songs-hide-yt-btns   #offSongsSection   .dc-pl-add-btn,
-body.artists-hide-yt-btns #offArtistsSection .dc-pl-add-btn,
-body.albums-hide-yt-btns  #offAlbumsSection  .dc-pl-add-btn,
-body.songs-hide-yt-btns   #newSongsSection   .dc-pl-add-btn,
-body.artists-hide-yt-btns #newArtistsSection .dc-pl-add-btn,
-body.albums-hide-yt-btns  #newAlbumsSection  .dc-pl-add-btn { display: none; }
+/* The ＋ add-to-playlist button has its own per-section switch (⋮ → Show →
+   Playlist), separate from YouTube since redesign phase 1. Both default off. */
+body.songs-hide-pl-btns   #songsSection     .dc-pl-add-btn,
+body.artists-hide-pl-btns #artistsSection   .dc-pl-add-btn,
+body.albums-hide-pl-btns  #albumsSection    .dc-pl-add-btn,
+body.songs-hide-pl-btns   #buSongsSection   .dc-pl-add-btn,
+body.artists-hide-pl-btns #buArtistsSection .dc-pl-add-btn,
+body.albums-hide-pl-btns  #buAlbumsSection  .dc-pl-add-btn,
+body.songs-hide-pl-btns   #offSongsSection   .dc-pl-add-btn,
+body.artists-hide-pl-btns #offArtistsSection .dc-pl-add-btn,
+body.albums-hide-pl-btns  #offAlbumsSection  .dc-pl-add-btn,
+body.songs-hide-pl-btns   #newSongsSection   .dc-pl-add-btn,
+body.artists-hide-pl-btns #newArtistsSection .dc-pl-add-btn,
+body.albums-hide-pl-btns  #newAlbumsSection  .dc-pl-add-btn { display: none; }
 
 /* ── Sleep timer panel ── */
 .yt-sleep-panel {
@@ -30085,11 +30103,15 @@ body.pink-light .awards-reallife-badge.nom { color: #4338ca; border-color: #6366
 .wv-grid-card:hover .wv-gc-hover { opacity: 1; pointer-events: auto; }
 .wv-gc-play-btn { width: 38px; height: 38px; border-radius: 50%; background: rgba(255,255,255,0.92); color: #111; border: none; cursor: pointer; font-size: 1rem; display: flex; align-items: center; justify-content: center; padding-left: 3px; box-shadow: 0 2px 8px rgba(0,0,0,0.4); transition: transform 0.12s; }
 .wv-gc-play-btn:hover { transform: scale(1.1); }
-/* honour the per-type "hide YouTube buttons" setting, same as the stack and
-   filmstrip views do — the whole overlay goes, not just the button */
-body.songs-hide-yt-btns   #songsSection   .wv-gc-hover,
-body.artists-hide-yt-btns #artistsSection .wv-gc-hover,
-body.albums-hide-yt-btns  #albumsSection  .wv-gc-hover { display: none; }
+/* The overlay holds the play button (YouTube switch) and the ＋ (Playlist
+   switch). Each switch hides its own button; the dark overlay itself goes
+   only when both are off, so a hover never darkens a card for nothing. */
+body.songs-hide-yt-btns   #songsSection   .wv-gc-play-btn,
+body.artists-hide-yt-btns #artistsSection .wv-gc-play-btn,
+body.albums-hide-yt-btns  #albumsSection  .wv-gc-play-btn { display: none; }
+body.songs-hide-yt-btns.songs-hide-pl-btns     #songsSection   .wv-gc-hover,
+body.artists-hide-yt-btns.artists-hide-pl-btns #artistsSection .wv-gc-hover,
+body.albums-hide-yt-btns.albums-hide-pl-btns   #albumsSection  .wv-gc-hover { display: none; }
 
 /* cert badge overlaid on card art */
 .wv-gc-cert { position: absolute; bottom: 0; left: 0; right: 0; display: flex; justify-content: center; padding-bottom: 3px; pointer-events: none; }
@@ -30427,9 +30449,10 @@ body.albums-hide-yt-btns  #albumsSection  .wv-cx-play-btn { display: none; }
 .wv-film-thumb-wrap { position: relative; width: 100%; display: flex; justify-content: center; }
 .wv-film-thumb-hover { position: absolute; inset: 0; background: rgba(0,0,0,0.48); display: flex; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.18s; border-radius: 4px; pointer-events: none; }
 .wv-film-card:hover .wv-film-thumb-hover { opacity: 1; pointer-events: auto; }
-body.songs-hide-yt-btns   #songsSection   .wv-film-thumb-hover,
-body.artists-hide-yt-btns #artistsSection .wv-film-thumb-hover,
-body.albums-hide-yt-btns  #albumsSection  .wv-film-thumb-hover { display: none; }
+/* Same as the grid overlay: gone only when YouTube and Playlist are both off */
+body.songs-hide-yt-btns.songs-hide-pl-btns     #songsSection   .wv-film-thumb-hover,
+body.artists-hide-yt-btns.artists-hide-pl-btns #artistsSection .wv-film-thumb-hover,
+body.albums-hide-yt-btns.albums-hide-pl-btns   #albumsSection  .wv-film-thumb-hover { display: none; }
 .wv-film-peak-ov { position: absolute; bottom: 3px; left: 3px; pointer-events: none; line-height: 1; }
 .wv-film-peak-ov .peak-badge, .wv-film-peak-ov .peak-badge-1, .wv-film-peak-ov .peak-badge-2, .wv-film-peak-ov .peak-badge-3 { font-size: 0.45rem; padding: 1px 3px; margin-left: 0; background: rgba(0,0,0,0.72) !important; border-color: transparent !important; }
 body.songs-hide-peak-tags   #songsSection   .wv-film-peak-ov,

@@ -429,6 +429,7 @@ const SECTION_TOGGLE_CONFIG = {
     'plays-peak': { btnId: 'togglePlaysPeakBtn',        bodyClass: 'songs-hide-plays-peak' },
     'peak-tags':  { btnId: 'togglePeakTagsBtn',         bodyClass: 'songs-hide-peak-tags' },
     'yt-btns':    { btnId: 'toggleYtBtnsBtn',           bodyClass: 'songs-hide-yt-btns' },
+    'pl-btns':    { btnId: 'togglePlBtnsBtn',           bodyClass: 'songs-hide-pl-btns' },
     'bu-legend':  { btnId: 'toggleBuLegendBtn',          bodyClass: 'songs-hide-bu-legend' },
     'desc':       { btnId: 'toggleDescBtn',             bodyClass: 'songs-hide-desc' }
   },
@@ -436,6 +437,7 @@ const SECTION_TOGGLE_CONFIG = {
     'plays-peak': { btnId: 'togglePlaysPeakBtnArtists', bodyClass: 'artists-hide-plays-peak' },
     'peak-tags':  { btnId: 'togglePeakTagsBtnArtists',  bodyClass: 'artists-hide-peak-tags' },
     'yt-btns':    { btnId: 'toggleYtBtnsBtnArtists',    bodyClass: 'artists-hide-yt-btns' },
+    'pl-btns':    { btnId: 'togglePlBtnsBtnArtists',    bodyClass: 'artists-hide-pl-btns' },
     'bu-legend':  { btnId: 'toggleBuLegendBtnArtists',   bodyClass: 'artists-hide-bu-legend' },
     'desc':       { btnId: 'toggleDescBtnArtists',      bodyClass: 'artists-hide-desc' }
   },
@@ -445,16 +447,31 @@ const SECTION_TOGGLE_CONFIG = {
     'plays-peak': { btnId: 'togglePlaysPeakBtnAlbums',  bodyClass: 'albums-hide-plays-peak' },
     'peak-tags':  { btnId: 'togglePeakTagsBtnAlbums',   bodyClass: 'albums-hide-peak-tags' },
     'yt-btns':    { btnId: 'toggleYtBtnsBtnAlbums',     bodyClass: 'albums-hide-yt-btns' },
+    'pl-btns':    { btnId: 'togglePlBtnsBtnAlbums',     bodyClass: 'albums-hide-pl-btns' },
     'bu-legend':  { btnId: 'toggleBuLegendBtnAlbums',    bodyClass: 'albums-hide-bu-legend' },
     'desc':       { btnId: 'toggleDescBtnAlbums',       bodyClass: 'albums-hide-desc' }
   }
 };
 
-// Per-section state — all toggles default on
+// The ＋ playlist button used to ride on the YouTube switch. A section saved
+// before it had a switch of its own carries no 'pl-btns', so it inherits the
+// YouTube value: whoever saw both buttons keeps seeing both. Also applied to
+// state arriving from the cloud (dcApplySectionDisplayToggles), which can be
+// older than this browser's.
+function _withPlBtns(s) {
+  if (!s || typeof s !== 'object') return s || {};
+  if ('pl-btns' in s || !('yt-btns' in s)) return s;
+  return Object.assign({}, s, { 'pl-btns': s['yt-btns'] });
+}
+
+// Per-section state. Every toggle defaults OFF (redesign phase 1: a calm chart
+// by default, detail one click away in ⋮ → Show). Anyone who has toggled
+// anything keeps their choices: the first click saves the whole state, so a
+// saved object always carries every key and these defaults never override it.
 const sectionToggleState = (() => {
   function withDefaults(s) {
-    const d = { cert: true, score: true, 'plays-peak': true, 'peak-tags': true, 'yt-btns': true, 'bu-legend': true, desc: true };
-    return Object.assign(d, s || {});
+    const d = { cert: false, score: false, 'plays-peak': false, 'peak-tags': false, 'yt-btns': false, 'pl-btns': false, 'bu-legend': false, desc: false };
+    return Object.assign(d, _withPlBtns(s));
   }
   try {
     const saved = JSON.parse(localStorage.getItem('dc_sectionDisplayToggles') || 'null');
@@ -462,14 +479,13 @@ const sectionToggleState = (() => {
   } catch(e) {}
   // Migrate from old flat dc_displayToggles (applies to all sections)
   try {
-    const old = JSON.parse(localStorage.getItem('dc_displayToggles') || '{}');
-    const m = { cert: old.cert !== false, 'plays-peak': old['plays-peak'] !== false, 'peak-tags': old['peak-tags'] !== false, 'yt-btns': old['yt-btns'] !== false };
-    /* withDefaults, not a bare spread: getItem() returning null still parses to
-       {} and takes this branch, so on a browser that has never saved toggles
-       this is the path that actually runs. Without it, every toggle the old
-       flat format predates ('bu-legend', 'score') is missing from state
-       entirely and reads as falsy — which made its first click turn the badges
-       ON instead of off. */
+    const old = JSON.parse(localStorage.getItem('dc_displayToggles') || '{}') || {};
+    /* Carry over only the keys the old format actually stored. getItem()
+       returning null still parses to {} and takes this branch, so on a browser
+       that has never saved toggles this is the path that runs — reading a
+       missing key as "on" here would silently undo the off defaults above. */
+    const m = {};
+    ['cert', 'plays-peak', 'peak-tags', 'yt-btns'].forEach(k => { if (k in old) m[k] = old[k] !== false; });
     return { songs: withDefaults(m), artists: withDefaults(m), albums: withDefaults(m) };
   } catch(e) {}
   return { songs: withDefaults(), artists: withDefaults(), albums: withDefaults() };
@@ -603,7 +619,7 @@ function dcApplySectionDisplayToggles() {
     const saved = JSON.parse(localStorage.getItem('dc_sectionDisplayToggles') || 'null');
     if (saved && typeof saved === 'object') {
       ['songs', 'artists', 'albums'].forEach(s => {
-        if (saved[s] && sectionToggleState[s]) Object.assign(sectionToggleState[s], saved[s]);
+        if (saved[s] && sectionToggleState[s]) Object.assign(sectionToggleState[s], _withPlBtns(saved[s]));
       });
     }
   } catch(e) {}
@@ -45567,7 +45583,7 @@ const _cgTourSteps = [
 
       { content: 'The + button opens the playlist picker, so you can drop this row into any playlist you keep. Build one from across any chart or period, then manage them in the Playlists tab.',
         spotlight: _cgRow('.dc-pl-add-btn'),
-        revealBody: 'songs-hide-yt-btns artists-hide-yt-btns albums-hide-yt-btns',
+        revealBody: 'songs-hide-pl-btns artists-hide-pl-btns albums-hide-pl-btns',
         hold: 7000 },
 
       { content: 'Weeks on chart — how many weeks this has spent on the chart in total, added up across every spell it has had there.',
@@ -45678,9 +45694,9 @@ const _CG_HIDE_CLASSES = ['sub-chart-toggled-off', 'collapsed'];
 const _CG_BODY_SEL     = '.bu-body, .off-body';
 const _CG_ARROW_SEL    = '.bu-toggle-icon, .off-toggle-icon, .ne-toggle-icon';
 let _cgTourRevealed = [];
-/* The per-section "hide YouTube buttons" toggle hides both the YouTube and the
-   add-to-playlist button through a body class (songs-hide-yt-btns and friends).
-   Its state is dc_sectionDisplayToggles, which firebase.js syncs, so the tour
+/* The per-section YouTube and Playlist toggles hide their buttons through body
+   classes (songs-hide-yt-btns, songs-hide-pl-btns and friends), and both
+   default off. Their state is dc_sectionDisplayToggles, which firebase.js syncs, so the tour
    lifts the class for a phase and puts it straight back. */
 let _cgTourBodyClasses = [];
 
