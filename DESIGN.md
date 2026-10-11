@@ -140,34 +140,58 @@ colors:
   theme-red-light-rose:    "#b91c1c"
   theme-red-light-rule:    "#e2c8c8"
 typography:
+  # 2026-10 type scale. CSS tokens --fs-xs … --fs-display in style.css :root.
+  # Nothing renders below xs (12px).
+  scale:
+    xs:      "0.75rem"                # 12px — captions, column headers, badges
+    sm:      "0.8125rem"              # 13px — secondary text, chips
+    base:    "0.9375rem"              # 15px — body, table rows, buttons
+    md:      "1.125rem"               # 18px — card titles, section headings
+    lg:      "1.5rem"                 # 24px — period title, big stat numbers
+    xl:      "2.25rem"                # 36px — the hero (#1 of the week)
+    display: "clamp(3rem, 8vw, 4rem)" # 48–64px — wordmark only
   display:
     fontFamily: "'Bricolage Grotesque', 'IBM Plex Sans', sans-serif"
-    fontSize: "clamp(1.5rem, 5vw, 2.25rem)"
-    fontWeight: 400
+    fontSize: "{typography.scale.md} → {typography.scale.xl}"
+    fontWeight: 600
     lineHeight: 1.1
     letterSpacing: "normal"
   body:
     fontFamily: "'IBM Plex Sans', system-ui, sans-serif"
-    fontSize: "1rem"
+    fontSize: "{typography.scale.base}"
     fontWeight: 400
-    lineHeight: 1.4
-  data:
-    fontFamily: "'JetBrains Mono', ui-monospace, 'Cascadia Mono', monospace"
-    fontSize: "0.875rem"
+    lineHeight: 1.45
+  label:
+    fontFamily: "'IBM Plex Sans', system-ui, sans-serif"
+    fontSize: "{typography.scale.sm} → {typography.scale.base}"
     fontWeight: 500
     lineHeight: 1.3
     letterSpacing: "normal"
+  data:
+    fontFamily: "'JetBrains Mono', ui-monospace, 'Cascadia Mono', monospace"
+    fontSize: "{typography.scale.sm} → {typography.scale.base}"
+    fontWeight: 500
+    lineHeight: 1.3
+    fontVariantNumeric: "tabular-nums"
+  column-header:
+    fontFamily: "'IBM Plex Sans', system-ui, sans-serif"
+    fontSize: "{typography.scale.xs}"
+    fontWeight: 600
+    textTransform: "uppercase"
+    letterSpacing: "0.04em"
 rounded:
+  # CSS tokens --r-*. Target is four values: sm (controls), md (cards),
+  # 16px (pop-ups) and full. xs/lg/xl exist from the July redesign and
+  # fold into those as phase 8 rebuilds the components.
   xs: "4px"
   sm: "6px"
-  button-lg: "8px"
   md: "10px"
-  panel: "12px"
   lg: "14px"
   xl: "18px"
-  pill: "20px"
+  full: "999px"
   circle: "50%"
 spacing:
+  # CSS tokens --sp-1 … --sp-9 (rem, 16px root).
   1: "4px"
   2: "8px"
   3: "12px"
@@ -176,157 +200,262 @@ spacing:
   6: "32px"
   7: "40px"
   8: "48px"
+  9: "64px"
+shadows:
+  # CSS tokens --shadow-1/2/3. Dark themes: barely there. Light themes:
+  # soft and visible (redefined on body.*-light).
+  1: "hover lift"
+  2: "dropdowns, popovers"
+  3: "pop-up windows"
+  gold-glow: "certification / badge pulse — animated, the only glow"
 components:
   button-primary:
-    backgroundColor: "{colors.accent-blue}"
-    textColor: "{colors.navy-void}"
-    typography: "{typography.data}"
+    backgroundColor: "var(--accent)"
+    textColor: "var(--on-accent)"
+    typography: "{typography.label}"
     rounded: "{rounded.sm}"
-    padding: "8px 14px"
+    padding: "8px 16px"
+  button-secondary:
+    backgroundColor: "var(--surface)"
+    textColor: "var(--text)"
+    typography: "{typography.label}"
+    rounded: "{rounded.sm}"
+    padding: "8px 16px"
   button-ghost:
     backgroundColor: "transparent"
-    textColor: "{colors.ink-mid}"
-    typography: "{typography.data}"
+    textColor: "var(--text2)"
+    typography: "{typography.label}"
     rounded: "{rounded.sm}"
-    padding: "6px 12px"
+    padding: "8px 12px"
+  tag:
+    backgroundColor: "var(--raised)"
+    textColor: "var(--text2)"
+    typography: "{typography.scale.xs}"
+    rounded: "{rounded.full}"
+    padding: "2px 8px"
   badge-gold:
     backgroundColor: "transparent"
-    textColor: "{colors.gold-badge}"
-    rounded: "{rounded.pill}"
+    textColor: "var(--gold1)"
+    rounded: "{rounded.full}"
     padding: "4px 10px"
   modal-panel:
-    backgroundColor: "{colors.navy-panel}"
-    textColor: "{colors.ink-bright}"
-    rounded: "{rounded.lg}"
+    backgroundColor: "var(--surface)"
+    textColor: "var(--text)"
+    rounded: "16px"
+    shadow: "{shadows.3}"
     padding: "24px"
 ---
 
 # Design System: dankcharts.fm
 
+> **2026-10 redesign.** Section 3 of `REDESIGN-PLAN.md` rewrote the rules
+> below. Where this file and the CSS disagree, this file is the target and the
+> CSS is catching up phase by phase (`REDESIGN-PLAN.md` §5). Phase 0 added the
+> type tokens and pointed every on-scale spacing and corner value at its
+> token; everything still raw in `style.css` is off the scale and gets moved
+> onto it by a later phase.
+
 ## 1. Overview
 
 **Creative North Star: "The Scoreboard"**
 
-dankcharts.fm turns a listener's scrobble history into a leaderboard: ranked Songs, Artists, and Albums, backed by dense, precise numbers, and topped with collectible badges. The system is data-nerdy and playful at once — it never apologizes for showing exact play counts and rank deltas, but it also has fun with the presentation: a pulsing gold badge glow, nine swappable color themes (navy, purple, yellow, pink, red — each with a dark and light variant), and a dedicated share-as-image path so a chart looks intentional the moment it's screenshotted.
+dankcharts.fm turns a listener's scrobble history into a leaderboard: ranked Songs, Artists, and Albums, backed by precise numbers, and topped with collectible badges. The system is data-nerdy and playful at once. It never apologizes for showing exact play counts and rank deltas, and it has fun with the presentation: a gold glow on certifications, ten color themes (navy, purple, yellow, pink, red, each dark and light), and a share-as-image path so a chart looks intentional the moment it's screenshotted.
 
-This explicitly rejects the generic SaaS analytics-dashboard look — flat gray cards, corporate blue, data buried under chrome. Numbers and rankings are the hero; UI chrome (nav, size controls, modals) stays quiet and monospace so it reads as "data instrument," not decoration.
+It rejects the generic SaaS dashboard look: flat gray cards, corporate blue, data buried under chrome. Numbers, rankings and album art are the hero.
+
+**The model to copy.** Three things on the site already look the way everything should:
+- **The Records Overview hero:** a big image, big words, one fact.
+- **The Card grid and Mosaic chart layouts:** art-led, bold, shareable.
+- **The Records → Most Plays table:** plain rows, title over artist, a number, a date, no badges.
+
+**Three rules sit over everything else:**
+1. **Not everything is equally important.** One thing per view is the hero; the rest steps back. No uniform boxes with the same border and the same tiny uppercase label.
+2. **Shared rules, not per-feature styles.** One type scale, one set of color roles, one spacing scale, one of each component. A new feature uses them; it doesn't invent its own.
+3. **Calm by default, detail one click away.** The content shows first. Options, filters, hints and badges are opt-in. Nothing is removed: the data nerd switches it back on.
 
 **Key Characteristics:**
-- Monospace numerals for anything that is a rank, count, or stat — JetBrains Mono is the "this is real data" signal.
-- Soft, tactile surfaces: gentle shadows and 4–20px rounded corners, never sharp/flat, never glassmorphic.
-- Color theme is the personality lever — nine total themes (5 hues × dark/light) let the same layout feel completely different without touching structure.
-- Badges and share-as-image output are treated as first-class, polished surfaces, not afterthoughts.
+- Album and artist art is the most attractive thing on the page and gets room.
+- JetBrains Mono means *a number* (rank, plays, delta, date). Words are IBM Plex Sans.
+- Space separates sections, not boxes.
+- The color theme is the personality lever: the same layout, a different identity.
+- Badges and share-as-image output are polished, first-class surfaces.
 
 ## 2. Colors
 
-The default theme (Navy Dark) is a deep navy void with an electric blue accent; eight sibling themes (Navy Light, Purple, Yellow, Pink, Red — each dark + light) swap the same token set for a different hue family. All accent pairs are contrast-checked per theme (see inline comments in `style.css`, e.g. accent recalibrated from 3.96:1 to 4.88:1). Every sibling theme's full token set (`bg`/`surface`/`border`/`text`/`accent`/`gold`/etc.) is enumerated in the front matter under `theme-<name>-<token>` keys, so tooling that checks colors against this doc sees the whole system, not just the Navy Dark defaults.
+### Roles
 
-### Primary
-- **Electric Blue** (`#58aaf6` / `accent-blue`): the default theme's single accent — active states, links, primary buttons, current-rank highlight.
-- **Blue Glow** (`#8ec7f8` / `accent-blue-hi`): hover/active brightening of the primary accent, never a separate meaning.
+Every color in the CSS is a **role**, never a fixed color, and every role has a value in all ten themes. "White text" is wrong on half the themes, so nothing says "white"; it says "primary text".
 
-### Secondary
-- **Gold Badge** (`#f0aa30` → `#fcd34d` / `gold-badge` → `gold-badge-hi`): reserved for achievement badges (BU badges) and their pulse-glow animation. Gold is the one color that means "you earned this," never used for standard UI.
+| Role | What it's for | Dark themes | Light themes |
+|---|---|---|---|
+| `--bg` | page | darkest | very light, *barely* tinted |
+| `--surface` | cards, table, pop-ups | a step lighter than the page | white or near-white |
+| `--raised` | hover, selected, dropdowns, tags | another step lighter | a light tint of the hue |
+| `--text` / `--text2` / `--text3` | primary / secondary / muted text | light | dark |
+| `--border` | hairlines (rarely needed) | subtle light line | subtle dark line |
+| `--accent` | active tab, primary button, links, focus, #1 highlight | the theme hue, bright | the hue, deep enough to read as text |
+| `--on-accent` | text on an accent fill | whatever reads on that accent (Yellow dark's accent is light, so its text is dark) | usually white |
+| `--up` / `--down` / `--new` (today `--chart-up/down/new`, aliasing `--green`/`--rose`/`--accent`) | chart movement only | bright | deeper, to hold contrast |
+| `--gold1` / `--gold2` (+ platinum, diamond) | certifications only | bright metal | deeper metal (`--gold2`) |
 
-### Tertiary
-- **Teal / Green / Amber / Rose** (`#38bdf8`, `#34d399`, `#fbbf24`, `#fb7185`): a small semantic set for chart deltas and status (up/down movement, streaks, warnings). Each theme redefines these to hold contrast against its own background rather than importing the navy values verbatim.
+- app.js reads several theme colors for the canvas charts, so theme tokens stay **plain hex values per theme** (no `color-mix()` in the per-theme blocks).
+- **Nothing outside these roles.** No raw hex, no `rgba(255,255,255,…)` hover washes (they vanish on light themes), no per-feature palettes. The roles not yet in the CSS (`--raised`, `--up/--down/--new`) are added by the color pass (phase 3).
+- **Never `color: #fff` on an accent fill.** Use `--on-accent`.
 
-### Neutral
-- **Void** (`#0d141f` / `navy-void`): page background.
-- **Deep / Panel** (`#131c2c`, `#192437`): layered surfaces — nav bars, modal backgrounds.
-- **Surface** (`#1f2e4a`): raised cards, controls, the chart-size bar.
-- **Border / Border-hi** (`#2b3d5e`, `#3d5685`): default hairline vs. focus/hover border.
-- **Ink Bright / Mid / Dim** (`#edf2fa`, `#aac2e2`, `#84a4ce`): primary text, secondary labels, tertiary/disabled text — in that order of emphasis.
+The front matter lists each theme's current token values so tooling can check colors against this file. The light-theme page backgrounds there (`#ccdcf0`, `#efcfe6`, `#eee5b0`…) are the *current* values; the target is "barely tinted", which phase 3 sets.
+
+### Dark vs light, beyond swapping values
+- **Depth.** On dark themes a card stands out by being lighter than the page. On light themes it stands out with a soft shadow on a white card. The shadow tokens have a value for each.
+- **Hover.** Dark: lighten. Light: darken or tint. Always through `--raised` or `--hover`.
+- **Tint goes in the accent and `--raised`, not the page.** A strongly tinted page makes everything look colored-in and dulls the covers.
+
+### Collisions
+- **Red theme:** the accent is red, and so is "down". **Pink:** the accent is close to the "down" rose. **Yellow:** the accent is close to certification gold.
+- So **movement and certifications never rely on color alone.** Movement always carries its arrow or word (`▲2`, `▼1`, `NEW`, `RE`); certifications always carry their disc icon and word. In Red, "new" uses green or a neutral, not the accent.
+- **Red, Yellow and Pink light have a dark masthead** on a light page. Anything inside the masthead uses masthead tokens, never the page's raw theme colors.
 
 ### Heatmap Gradient Themes
-The activity heatmap has its own color-scale picker, independent of the site's nine UI themes — five two-stop gradients (dark → bright) a listener can pick per-heatmap, similar to how GitHub's contribution graph decouples its color scale from site chrome:
-- **Cosmic** (`#3a1858` → `#ff7ee0` / `heatmap-cosmic-1` → `heatmap-cosmic-2`): the default gradient — deep violet to hot pink.
-- **Fire** (`#5c1500` → `#ffd030` / `heatmap-fire-1` → `heatmap-fire-2`): charcoal-red to gold.
-- **Ocean** (`#0d3060` → `#7ee8ff` / `heatmap-ocean-1` → `heatmap-ocean-2`): deep navy to cyan.
-- **Forest** (`#174d17` → `#b0f0b0` / `heatmap-forest-1` → `heatmap-forest-2`): dark green to mint.
-- **Ember** (`#4a0a08` → `#f09000` / `heatmap-ember-1` → `heatmap-ember-2`): near-black red to amber.
+The activity heatmap has its own color-scale picker, independent of the ten UI themes: five two-stop gradients (dark → bright), like GitHub's contribution graph:
+- **Cosmic** (`#3a1858` → `#ff7ee0`): the default, deep violet to hot pink.
+- **Fire** (`#5c1500` → `#ffd030`): charcoal-red to gold.
+- **Ocean** (`#0d3060` → `#7ee8ff`): deep navy to cyan.
+- **Forest** (`#174d17` → `#b0f0b0`): dark green to mint.
+- **Ember** (`#4a0a08` → `#f09000`): near-black red to amber.
 
 ### Named Rules
-**The Heatmap Palette Is Separate Rule.** Heatmap gradient colors never bleed into UI chrome (buttons, nav, cards) and vice versa — the heatmap picker is a data-visualization surface with its own five-scale system, not a tenth site theme.
+**The Color-Means-Something Rule.** Color is for meaning: accent = active/primary, green/red = movement, gold = earned. No per-tile, per-label or per-tag colors for decoration, no rainbow chart bars, no colored left-edge bars on rows unless the screen explains what they mean.
 
-**The One Accent Per Theme Rule.** Each color theme carries exactly one primary accent hue (blue, purple, yellow, pink, red). Never mix two themes' accents on screen at once; switching themes is a full identity swap, not a palette blend.
+**The One Accent Per Theme Rule.** Each theme carries exactly one accent hue. Switching themes is a full identity swap, not a palette blend.
 
-**The Gold Means Earned Rule.** Gold (`gold-badge`) is reserved for badges/achievements. If a control isn't rewarding the user for something, it doesn't get gold.
+**The Gold Means Earned Rule.** Gold is reserved for certifications and badges. If a control isn't rewarding the user for something, it doesn't get gold.
+
+**The Heatmap Palette Is Separate Rule.** Heatmap gradients never bleed into UI chrome, and vice versa.
+
+**Check themes.** Every change is checked in **Navy dark, Navy light, Yellow dark** (light accent: white-on-accent breaks) and **Red light** (accent and "down" collide), and once per phase in all ten. Text contrast is at least 4.5:1 against its background in every theme. Record recalibrated pairs in a comment next to the value in `style.css`, as the existing ones are.
 
 ## 3. Typography
 
-**Display Font:** Bricolage Grotesque (with IBM Plex Sans, sans-serif fallback)
-**Body Font:** IBM Plex Sans (with system-ui, sans-serif fallback)
-**Data/Label Font:** JetBrains Mono (with ui-monospace, Cascadia Mono, monospace fallback)
+**Display Font:** Bricolage Grotesque (fallback IBM Plex Sans)
+**UI and Body Font:** IBM Plex Sans (fallback system-ui)
+**Number Font:** JetBrains Mono (fallback ui-monospace, Cascadia Mono), with `font-variant-numeric: tabular-nums`
 
-**Character:** A bold, slightly quirky grotesque display face (Bricolage Grotesque) gives section headers and the "dankcharts" wordmark a distinctive, modern voice, while IBM Plex Sans (body/UI) and JetBrains Mono (data) are a classic, highly legible technical pairing — sans for prose and labels, mono for anything that's a number or a rank.
+### Scale
 
-### Hierarchy
-- **Display** (400 weight, `clamp(1.5rem, 5vw, 2.25rem)`, 1.1 line-height): section titles (artist/album/track modal headers), used sparingly.
-- **Body** (400 weight, 1rem, 1.4 line-height): descriptive text, settings labels, modal copy.
-- **Data** (500 weight, 0.875rem, 1.3 line-height): rank numbers, play counts, dates, size/period controls — always JetBrains Mono.
-- **Label** (500 weight, 0.75–0.8125rem, tight tracking): buttons, nav pills, chips — JetBrains Mono, occasionally IBM Plex Sans for longer button text.
+Seven sizes. The CSS tokens are in `style.css` `:root`.
 
-### Named Rules
-**The Mono-Means-Data Rule.** If a piece of text is a number, a rank, a date, or a control label tied to data (size buttons, period nav), it renders in JetBrains Mono. IBM Plex Sans is reserved for prose and long-form copy. Never mix the two within the same numeric readout.
+| Token | Size | Use |
+|---|---|---|
+| `--fs-xs` | 12px | captions, table column headers, badges |
+| `--fs-sm` | 13px | secondary text (artist under title), chips |
+| `--fs-base` | 15px | body, table rows, buttons |
+| `--fs-md` | 18px | card titles, section headings |
+| `--fs-lg` | 24px | page / period title, big stat numbers |
+| `--fs-xl` | 36px | the hero (#1 of the week) |
+| `--fs-display` | 48–64px | the wordmark only |
 
-## 4. Elevation
-
-Surfaces are soft and tactile, not flat and not glassy. Depth comes from a combination of gentle box-shadows (`0 4px 20px rgba(0,0,0,0.35)` on raised panels, lighter `0 2px 10px rgba(0,0,0,0.12)` on light-theme cards) and generous, consistent corner rounding (4px on small controls up to 20px on pills). Badges add a second kind of depth: an animated glow (`box-shadow` pulse between transparent and a gold ring) that signals "special," standing in for elevation where a shadow would be too heavy.
-
-### Shadow Vocabulary
-- **panel-raised** (`box-shadow: 0 4px 20px rgba(0,0,0,0.35)`): modals, dropdowns, the theme switcher panel.
-- **panel-raised-strong** (`box-shadow: 0 6px 24px rgba(0,0,0,0.45)`): top-level modals (config/source modal).
-- **card-light** (`box-shadow: 0 2px 10px rgba(0,0,0,0.12)`): cards on light theme variants, kept subtle since light backgrounds need less contrast to read as "raised."
-- **badge-glow-pulse** (`box-shadow: 0 0 0 0 transparent → 0 0 10px 3px var(--gold1)`, animated): the achievement-badge signal; the only shadow that's animated rather than static.
+**Nothing below 12px.** Not for badges, not for "small print", not on phones.
 
 ### Named Rules
-**The Glow-Not-Shadow Rule for Badges.** Achievement badges signal importance with an animated gold glow, not a drop shadow. Shadows communicate physical elevation; glow communicates "earned" — don't conflate the two.
+**The Mono-Means-Numbers Rule** (amends the old Mono-Means-Data rule). JetBrains Mono is for *numbers*: ranks, play counts, deltas, dates, durations. Labels, buttons, tabs, menus and headings are IBM Plex Sans, even when they sit next to data. Never mix the two inside one numeric readout.
+
+**The Sentence-Case Rule.** Section headings are Bricolage Grotesque in sentence case ("Top 10 albums", not "TOP 10 ALBUMS" in a tagged box). Buttons and tabs are sentence case too.
+
+**The Uppercase Rule.** Uppercase is only for small column headers: 12px, weight 600, 0.04em letter-spacing. Nowhere else, and no other letter-spacing on body text.
+
+## 4. Space and Elevation
+
+### Space instead of boxes
+- **A section is a heading plus content**, separated from the next section by space (48px, `--sp-8`), not by a border.
+- **Use a card background only where things need grouping:** stat tiles, album cards, pop-ups.
+- **Never a box inside a box.** One level of container.
+- **Spacing scale:** 4, 8, 12, 16, 24, 32, 40, 48, 64 (`--sp-1` … `--sp-9`). Padding, margins and gaps come from it.
+- **Corners:** 6px for small controls (`--r-sm`), 10px for cards (`--r-md`), 16px for pop-ups, full for pills and avatars (`--r-full`). Circles use 50%.
+
+### Shadows
+Three shadows plus one glow, all tokens:
+- `--shadow-1`: hover lift (cards).
+- `--shadow-2`: dropdowns and popovers.
+- `--shadow-3`: pop-up windows.
+- **Gold glow:** the animated pulse on certifications/badges, the only animated shadow.
+
+Each has a dark-theme value (barely there) and a light-theme value (soft and visible), defined on `body` and `body.*-light`. No other `box-shadow` values.
+
+**The Glow-Not-Shadow Rule for Badges.** Badges signal importance with the gold glow, not a drop shadow. Shadows mean elevation; glow means "earned".
 
 ### Motion
-Most interactive feedback is `transform`/`opacity` only (see Buttons: color-only hover, no scale pop). The one accepted exception is **layout-property transitions on collapse/expand affordances** — the nav-indicator underline, collapsible section headers, and period-nav pill widths animate `width`/`max-height`/`transform` together (e.g. `.nav-indicator`, `.section-collapsed`, chart-size bar). These need the actual box to grow or slide, not just fade, so there's no transform-only equivalent; the elements are small and the transitions are short (~200–320ms), so the reflow cost is negligible in practice. This is a deliberate, scoped exception — don't extend layout-property animation to large surfaces (modals, full sections, images) where reflow cost is real.
+Interactive feedback is `transform`/`opacity` only. The accepted exception is layout-property transitions on collapse/expand affordances (the nav-indicator underline, collapsible section headers, period-nav pill widths), which need the box itself to grow or slide; they are small and short (~200–320ms). Don't extend layout-property animation to large surfaces (modals, full sections, images).
+
+Everything that moves on its own (carousels, reels, pulses) stops under `prefers-reduced-motion`. Nothing auto-scrolls with it on.
 
 ## 5. Components
 
+### One of each
+One button (primary, secondary, ghost), one tab, one segmented control, one chip/tag, one dropdown, one card, one table, one carousel, one pop-up frame. A new feature uses these. Today's per-feature families (`graphs-btn`, `ev-view-btn`, `creel-btn`, `tm-type-btn`, `st-period-btn`, `sh-seg-btn`, `awards-subnav-btn`, `records-nav-btn`, `weekly-view-btn`, `kebab-tab`…) are folded into them in phase 8. When the last user of an old class moves over, the old rules go in the same commit.
+
 ### Buttons
-- **Shape:** 4px (`rounded.xs`) radius on standard controls (size buttons, nav buttons), up to 8px (`rounded.button-lg`) on larger action buttons.
-- **Primary:** accent-colored background or border, JetBrains Mono label, compact padding (~8px 14px).
-- **Ghost / Icon:** transparent background, border appears on hover/focus; circular (50% radius) for icon-only buttons like the theme dots and close buttons.
-- **Hover / Focus:** border brightens from `border` to `border2`/`accent2`; no scale or shadow pop — the feedback is color-only, matching the "quiet chrome" principle.
+- **Shape:** 6px (`--r-sm`).
+- **Label:** IBM Plex Sans, `--fs-sm`–`--fs-base`, weight 500, sentence case.
+- **Primary:** `--accent` fill, `--on-accent` text. **Secondary:** `--surface` fill, `--text`. **Ghost:** transparent, `--text2`, background appears on hover.
+- **Hover / focus:** color only (background or border), no scale pop and no shadow. Focus shows `--focus-ring`.
 
-### Chips / Pills
-- **Style:** 20px radius, JetBrains Mono label, used for period-nav segments and badge pills.
-- **State:** active segment gets the theme's accent background; inactive segments stay on `surface`/`border`.
+### Tags and chips
+- **At most 2 tags per row**, only the ones that matter most.
+- **Neutral:** `--raised` background, `--text2` text, `--fs-xs`, pill shape. Only the movement word gets green/red; gold stays for certifications.
+- **A legend is a ⓘ tooltip** next to the section title, never a block of colored chips above the list.
 
-### Cards / Modals
-- **Corner Style:** 8–12px radius for modals and panels (`rounded.button-lg`–`rounded.panel`).
-- **Background:** `bg2`/`bg3` (navy-deep/navy-panel) layered over the page `bg`.
-- **Shadow Strategy:** see Elevation — `panel-raised` or `panel-raised-strong` depending on modal importance.
-- **Border:** 1px `border` hairline, brightening to `border2` on focused inputs within.
-- **Internal Padding:** ~24px for modal bodies, tighter (12–16px) for compact panels like the chart-size bar.
+### Cards and pop-ups
+- Cards: `--surface`, 10px corners, `--shadow-1` on hover where they're clickable.
+- Pop-ups: `--surface`, 16px corners, `--shadow-3`, ~24px padding, `--scrim` backdrop.
+- Hairline borders only where depth alone doesn't separate (mostly dark themes).
+
+### Tables
+Copy Records → Most Plays: plain rows, title over artist, numbers in mono and right-aligned, no colored row bars, no badges by default. Column headers follow the Uppercase Rule.
+
+### Artwork
+- **Every song, album and artist has a picture.** Fetch missing art (Deezer's public API, no key; Spotify with one) and cache it in the browser so each is fetched once.
+- **No initials.** When there really is no image: a soft gradient picked by a hash of the name (one of 8, with a dark-theme set and a light-theme set) plus a small vinyl or microphone icon.
+
+### Icons
+One SVG line-icon set everywhere (the period-nav icons are the style). **No emoji in the interface:** not in section titles, menus or buttons. Flags in the language picker are fine.
+
+### Hints and system messages
+- **One-time hints** ("arrow keys to navigate…", "Click any card for options…") show once and never again, or live behind a small ⓘ tooltip.
+- **System messages** (sync results, "Auto-corrected 6 entries", loading) are toasts in a corner that go away after a few seconds, not lines in the page.
+
+### Badges
+Pill-shaped, gold, with the glow pulse. The one component that is meant to stand out.
 
 ### Theme Switcher
-- **Style:** small (12px) circular swatches stacked top-right, one per theme; the active theme's dot gets a border ring.
+Small circular swatches, one per theme; the active one gets a ring.
 
-### Badges (BU Badges)
-- Pill-shaped, gold-accented, with the animated glow-pulse described in Elevation. The signature "you earned this" component — distinct from every other pill/chip in the system.
+## 6. Calm defaults
 
-### Navigation
-- **Period-nav / date-nav:** horizontal button rows, JetBrains Mono labels, shrink variant (`.nav-shrunk`) for narrow viewports rather than wrapping.
+**The Default Chart Row Rule.** A chart row shows **rank, movement, cover, title, artist, weeks on chart and plays**. Everything else (certifications, score, plays peak, peak tags, YouTube, playlist ＋, descriptions, the Bubbling Under legend) is opt-in through the chart's ⋮ → Show menu, and every switch there is off by default. Style badges and extras for the people who switch them on, but design the page for the people who don't: check both, with the switches off and all on.
 
-## 6. Do's and Don'ts
+- A person's own choices are kept; the defaults only apply until they touch a switch.
+- Detail is never deleted, only moved: off the face of the row and into ⋮ → Show, the row's action menu or its details drawer.
+- The Charts Guide tour turns every switch on while it runs and names each one. Anything that renames, adds, removes or moves a switch updates the tour in the same change.
+
+## 7. Do's and Don'ts
 
 ### Do:
-- **Do** use JetBrains Mono for every number, rank, date, and data-tied control label.
-- **Do** keep corner radii in the 4–20px range depending on component scale (controls small, pills largest).
-- **Do** use color-only feedback (border/background brightening) for hover/focus on buttons — no shadow pop, no scale transforms.
-- **Do** treat badges and share-as-image output as polished, screenshot-ready surfaces — they're the app's shareable moment.
-- **Do** build every visual feature so it works identically across all nine color themes, not just Navy Dark.
-- **Do** support Last.fm, Google Sheets, and CSV-upload data sources equally in any new UI — never design a control that only makes sense for one source.
+- **Do** use the tokens: `--fs-*` for size, `--sp-*` for space, `--r-*` for corners, `--shadow-*` for depth, theme roles for color.
+- **Do** use JetBrains Mono with tabular numbers for every number, and IBM Plex Sans for every word.
+- **Do** separate sections with space, and give album art room.
+- **Do** keep the default view calm and put detail one click away (⋮ → Show, the drawer, a ⓘ).
+- **Do** check every visual change in Navy dark, Navy light, Yellow dark and Red light, at 375px, in Portuguese (20–30% longer than English), and with reduced motion on.
+- **Do** treat badges and share-as-image output as polished, screenshot-ready surfaces.
+- **Do** support Last.fm, Google Sheets and CSV uploads equally in any new UI.
+- **Do** put every new string in all four languages.
 
 ### Don't:
-- **Don't** use flat gray cards or corporate-blue "SaaS dashboard" styling — that's the explicit anti-reference.
-- **Don't** put a drop shadow on a badge; badges get the animated gold glow instead.
-- **Don't** mix IBM Plex Sans and JetBrains Mono within the same numeric readout.
-- **Don't** hide or truncate precise stats to "simplify" the UI — density is intentional, not a bug to fix.
-- **Don't** introduce a second accent hue within one theme; theme-switching is the only way the accent changes.
+- **Don't** set text below 12px, or invent a size outside the seven.
+- **Don't** use mono, uppercase or letter-spacing for labels, buttons, tabs or headings.
+- **Don't** put a box inside a box, or a border where space would do.
+- **Don't** use raw hex, `rgba(255,255,255,…)` washes or `color: #fff` on an accent; use the roles.
+- **Don't** give tiles, labels or tags their own colors, or rely on color alone for movement or certifications.
+- **Don't** use initials as a placeholder for art, or emoji as interface icons.
+- **Don't** put a drop shadow on a badge; badges get the gold glow.
+- **Don't** add a second accent hue within one theme.
+- **Don't** remove a feature to make the page calmer. Change its default, move it behind a switch or a menu, and keep it reachable. Precise stats stay precise; they're the product.
+- **Don't** use flat gray cards or corporate-blue "SaaS dashboard" styling.

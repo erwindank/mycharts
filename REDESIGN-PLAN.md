@@ -7,7 +7,7 @@ and `dankcharts/style.css`.
 **Updated 2026-10-11:** Phase 1 is done, and two of its three items turned out
 not to be bugs (see 1, problems 6 and 7). Section 5 now says what was built,
 what it changes for the later phases, and how to take screenshots that don't
-mislead.
+mislead. Phase 0 is done too (same day): `DESIGN.md` now holds section 3.
 
 **Seen on screen:**
 - Weekly: Albums and Songs, in all six chart layouts (Table, Card grid,
@@ -974,7 +974,7 @@ themes (Navy dark, Navy light, Yellow dark, Red light; see 3.2) and on a phone.
 
 | Phase | What | Why this order | Size |
 |---|---|---|---|
-| **0** | Update `DESIGN.md` with section 3. The July 2026 redesign already added spacing (`--sp-1…8`), radius (`--r-*`) and shadow (`--shadow-1/2/3`) tokens, but the CSS barely uses them (`--sp-*`: 0 uses, `--shadow-*`: 17 uses vs 222 raw shadows). Add the missing font-size tokens (`--fs-*`), then point the CSS at the tokens. | The tokens exist; the rest of the CSS just never adopted them. | Small |
+| **0** ✓ | **Done 2026-10-11.** Update `DESIGN.md` with section 3. The July 2026 redesign already added spacing (`--sp-1…8`), radius (`--r-*`) and shadow (`--shadow-1/2/3`) tokens, but the CSS barely uses them (`--sp-*`: 0 uses, `--shadow-*`: 17 uses vs 222 raw shadows). Add the missing font-size tokens (`--fs-*`), then point the CSS at the tokens. | The tokens exist; the rest of the CSS just never adopted them. | Small |
 | **1** ✓ | **Quick wins — done 2026-10-11.** Every ⋮ → Show switch off by default, a separate Playlist switch, the YouTube/＋ pair tidied, the tour shows every switch while it runs. The gap and the moving picker were screenshot artifacts, not bugs (1.6, 1.7). | A visibly calmer site in an afternoon, with no redesign needed. | Small |
 | **2** | **Type pass:** map all 131 font sizes onto the 7 tokens (anything under 12px → 12px), switch labels/buttons/headings from mono to sans, remove most uppercase and letter-spacing. | Biggest visual improvement for the effort. Mostly find-and-replace in CSS. | Medium |
 | **3** | **Colour pass:** remove per-tile and per-label colours, the left row bars, the rainbow chart bars and extra rgba tints. Neutral tags (3.8). Movement = green/red only. | Calms the whole site at once. | Small–medium |
@@ -993,11 +993,33 @@ Phase 1 went further than planned (everything off, not just four things),
 and some later phases now rest on different ground. Read this before
 starting any of them.
 
-**Phase 0 (DESIGN.md).** Still not done, and phase 1 went ahead without it.
-Add the new default to the rules it writes: *a chart row shows rank,
-movement, cover, title, artist, weeks and plays. Everything else is opt-in
-through ⋮ → Show.* Otherwise phase 2 onwards will style badges as though
-everyone sees them.
+**Phase 0 (DESIGN.md). Done 2026-10-11, after phase 1.** What it did:
+- `DESIGN.md` rewritten from section 3 of this plan, including the new
+  default as its own rule (DESIGN.md §6, "The Default Chart Row Rule"):
+  *a chart row shows rank, movement, cover, title, artist, weeks and plays;
+  everything else is opt-in through ⋮ → Show.*
+- `--fs-xs` … `--fs-display` added to `:root`. Not used yet: phase 2
+  maps the font sizes onto them.
+- `--sp-9` (64px) added, and the spacing tokens are now in rem, like most
+  of the values they replaced, so they still follow the browser's text size.
+- Every padding, margin and gap that already sat exactly on the spacing
+  scale (873 values) and every corner that matched a radius token (287)
+  now uses the token. **Nothing looks different:** a script expanded the
+  tokens back to px and compared the whole stylesheet with the old one,
+  with zero differences. One small exception: someone who set a bigger
+  default text size in their browser now gets proportionally bigger
+  spacing on the ~290 values that used to be fixed px.
+- Anything still raw in `style.css` is **off** the scale (e.g. 14px,
+  0.6rem). That is how later phases find what to move.
+
+Not done in phase 0, on purpose:
+- **Shadows.** None of the 222 raw shadows equals a token, so swapping
+  them changes the look. They move in phase 8 (shared components), when
+  each one gets looked at anyway.
+- **Corners.** The target is 6 / 10 / 16 / full, but `--r-lg` is 14px and
+  `--r-xl` 18px, with no 16px token yet. Changing them now would change
+  every card and pop-up that uses them; phase 8 settles them.
+- **Font sizes.** That is phase 2.
 
 **Phase 2 (type) and phase 3 (colour).** Smaller than they look on the
 chart. The badges, peak tags, tag colours and the red YouTube button are now
