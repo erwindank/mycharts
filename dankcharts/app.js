@@ -338,7 +338,6 @@ const _replayFns = {}; // per-type full animation replay functions
 let _animSpeedFactor = 0.25; // default slow; >1 = faster, <1 = slower; controlled by speed slider
 const searchState = { songs: '', artists: '', albums: '' };
 let imgObservers = [];
-let imgQueue = Promise.resolve();
 
 let certWallData   = [];
 let certWallFilter = 'all';
@@ -1620,12 +1619,16 @@ const imgCache = {}; // key → url string or null
 // tries it first.
 const AUTO_IMG_SOURCES = ['deezer', 'itunes', 'lastfm'];
 
-// The order to try sources in, starting from the preferred one and walking
-// forward through AUTO_IMG_SOURCES (never wrapping back to deezer).
+// The order to try sources in. Always from Deezer down: a remembered iTunes or
+// Last.fm source is only where the last automatic search ended up, and it
+// used to be final (the chain never went back to Deezer). A Deezer hiccup —
+// a busy answer, a dropped request — was enough to move an item to the
+// lower-res iTunes/Last.fm art for good, so Deezer gets asked again each
+// session (one request; misses are memoised for the rest of it). YouTube is
+// only ever set by hand, so an item set to it still tries it first.
 function autoImgChain(pref) {
   if (pref === 'youtube') return ['youtube', ...AUTO_IMG_SOURCES];
-  const i = AUTO_IMG_SOURCES.indexOf(pref);
-  return AUTO_IMG_SOURCES.slice(Math.max(0, i));
+  return AUTO_IMG_SOURCES.slice();
 }
 const itemSourcePrefs = JSON.parse(localStorage.getItem('itemSourcePrefs') || '{}');
 // Which same-named Deezer artist candidate (see deezerArtistImageCandidates)
@@ -3510,11 +3513,15 @@ async function pushEditToSheet() {
   btn.disabled = false;
 }
 
+// Last.fm's image list, biggest first. Its grey-star placeholder
+// (LASTFM_ART_PLACEHOLDER) counts as no image: it is what every artist gets
+// now, and a song or album with no cover gets it too.
 function bestImage(images) {
   if (!images || !images.length) return null;
   const order = ['extralarge', 'large', 'medium', 'small'];
   for (const size of order) {
-    const found = images.find(i => i.size === size && i['#text'] && i['#text'].trim());
+    const found = images.find(i => i.size === size && i['#text'] && i['#text'].trim() &&
+      !i['#text'].includes('2a96cbd8b46e442fc41c2b86b821562f'));
     if (found) return found['#text'];
   }
   return null;
@@ -3542,10 +3549,64 @@ function deezerPickImage(entity, prefix) {
   return deezerValidUrl(entity?.[prefix + '_xl']) || deezerValidUrl(entity?.[prefix + '_big']) || deezerValidUrl(entity?.[prefix + '_medium']) || null;
 }
 
-function deezerFetch(endpoint) {
+/* Deezer says "too many requests" (code 4) or "service busy" (code 700) inside
+   an ordinary HTTP 200 answer, not with a 429. Read as data, that answer has no
+   results, so it used to count as "Deezer has no picture": the miss was
+   memoised for the session and the item was moved to iTunes/Last.fm for good
+   (itemSourcePrefs). So a busy answer is retried twice after a short wait —
+   with cache: 'reload', since an older proxy cached error answers too — and if
+   Deezer is still busy the caller gets a 503, which every caller already
+   treats as "the request failed", never as "nothing found". */
+const DEEZER_RETRY_WAITS = [800, 2000];
+async function deezerFetch(endpoint) {
   const isLocal = location.hostname === 'localhost' || location.hostname === '127.0.0.1';
   const base = isLocal ? 'https://dankcharts.fm/deezer-proxy' : '/deezer-proxy';
-  return fetch(base + '?url=' + encodeURIComponent(endpoint));
+  const url = base + '?url=' + encodeURIComponent(endpoint);
+  for (let attempt = 0; ; attempt++) {
+    let r = null, body = '', busy = false;
+    try {
+      r = await fetch(url, attempt ? { cache: 'reload' } : undefined);
+      body = await r.text();
+      busy = r.status === 429 || r.status >= 500 ||
+        /"error"\s*:\s*\{[^}]*"code"\s*:\s*(4|700)\b/.test(body);
+    } catch (e) { busy = true; }
+    if (!busy) {
+      return new Response(body, { status: r.status, headers: { 'Content-Type': 'application/json' } });
+    }
+    if (attempt >= DEEZER_RETRY_WAITS.length) {
+      return new Response('{"error":{"type":"Busy"}}', { status: 503, headers: { 'Content-Type': 'application/json' } });
+    }
+    await new Promise(res => setTimeout(res, DEEZER_RETRY_WAITS[attempt]));
+  }
+}
+
+/* The three Deezer candidate lists below are memoised as promises so the
+   picker and the normal load share one request. A failed request must not
+   stay memoised — that froze a proxy hiccup into "no picture" for the whole
+   session — so the list rejects instead, and drops itself from the cache so
+   the next ask goes back to the network. */
+function _deezerMemo(cache, k, run) {
+  if (k in cache) return cache[k];
+  const p = run();
+  cache[k] = p;
+  p.catch(() => { if (cache[k] === p) delete cache[k]; });
+  return p;
+}
+
+/* Second-chance search terms for when Deezer's search returns nothing at all.
+   Spotify-style exports write versions as a " - " suffix ("When I Grow Up -
+   Young, Wild, & Free", "Scarborough Fair - EP") and credit every artist
+   ("Flo Rida, Alan Walker"), and Deezer's search finds neither. Only used
+   after the full query comes back empty, so a search that works today is
+   never changed. */
+function _artSearchTitle(s) {
+  return String(s || '')
+    .replace(/\s+-\s+.*$/, '')                                    // " - EP", " - Acoustic Version"
+    .replace(/\s*[([](feat\.?|ft\.?|with|from)\b[^)\]]*[)\]]/gi, '') // "(feat. X)", "[from …]"
+    .trim();
+}
+function _artSearchArtist(s) {
+  return String(s || '').split(/\s*(?:,|&|\bfeat\.?|\bft\.?|\bx\b)\s*/i)[0].trim();
 }
 
 // Common artist names (Panda, Kesha, Jade, Raye…) collide with several
@@ -3563,26 +3624,21 @@ function deezerFetch(endpoint) {
 const deezerArtistCandidateCache = {};
 function deezerArtistImageCandidates(artist) {
   const k = artist.toLowerCase();
-  if (k in deezerArtistCandidateCache) return deezerArtistCandidateCache[k];
-  const p = (async () => {
-    try {
-      const r = await deezerFetch(`search/artist?q=${encodeURIComponent(artist)}&limit=10`);
-      if (!r.ok) return [];
-      const d = await r.json();
-      const items = d?.data || [];
-      const exact = items
-        .filter(x => x.name?.toLowerCase() === artist.toLowerCase())
-        .sort((a, b) => (b.nb_fan || 0) - (a.nb_fan || 0));
-      const urls = [];
-      for (const c of (exact.length ? exact : items)) {
-        const url = deezerPickImage(c, 'picture');
-        if (url && !urls.includes(url)) urls.push(url);
-      }
-      return urls;
-    } catch (e) { return []; }
-  })();
-  deezerArtistCandidateCache[k] = p;
-  return p;
+  return _deezerMemo(deezerArtistCandidateCache, k, async () => {
+    const r = await deezerFetch(`search/artist?q=${encodeURIComponent(artist)}&limit=10`);
+    if (!r.ok) throw new Error('deezer ' + r.status);
+    const d = await r.json();
+    const items = d?.data || [];
+    const exact = items
+      .filter(x => x.name?.toLowerCase() === artist.toLowerCase())
+      .sort((a, b) => (b.nb_fan || 0) - (a.nb_fan || 0));
+    const urls = [];
+    for (const c of (exact.length ? exact : items)) {
+      const url = deezerPickImage(c, 'picture');
+      if (url && !urls.includes(url)) urls.push(url);
+    }
+    return urls;
+  });
 }
 
 async function deezerArtistImage(artist) {
@@ -3597,47 +3653,55 @@ async function deezerArtistImage(artist) {
 const deezerAlbumCandidateCache = {};
 function deezerAlbumImageCandidates(album, artist) {
   const k = artist.toLowerCase() + '|||' + album.toLowerCase();
-  if (k in deezerAlbumCandidateCache) return deezerAlbumCandidateCache[k];
   /* No cover art is filed under "Various Artists" — a compilation is listed by
      its title, and matching the credit against the search result would reject
      every real hit. So the title carries the search alone. */
   const comp = artist === VARIOUS_ARTISTS;
-  const p = (async () => {
-    try {
-      const q = comp ? album : artist + ' ' + album;
-      const r = await deezerFetch(`search/album?q=${encodeURIComponent(q)}&limit=10`);
-      if (!r.ok) return [];
-      const d = await r.json();
-      const items = d?.data || [];
-      const matches = items.filter(x =>
-        x.title?.toLowerCase().includes(album.toLowerCase()) &&
-        (comp || x.artist?.name?.toLowerCase().includes(artist.toLowerCase().split(/[\s,&]/)[0]))
-      );
-      /* Deezer says what kind of release this is, in the same response the
-         cover comes from. Harvesting it here means release-type detection
-         costs no extra request for any album whose art has ever been loaded —
-         which, after a few minutes of browsing, is most of them. Only the best
-         match is recorded: the fallback list is "anything the search returned"
-         and is far too loose to take a verdict from. */
-      /* Recorded even when nothing matched, as null: "asked, no confident
-         answer" is a real result and a capped scan must not spend its budget
-         asking the same unanswerable release again every run. Only reached on
-         a response that actually came back — the !r.ok and catch paths above
-         leave the entry absent, so a proxy hiccup is retried rather than
-         frozen into a permanent "unknown". */
-      const rt = matches.length ? String(matches[0].record_type || '').toLowerCase() : '';
-      deezerAlbumTypeCache[k] = rt || null;
-      _saveDeezerRtypeCache();
-      const urls = [];
-      for (const c of (matches.length ? matches : items)) {
-        const url = deezerPickImage(c, 'cover');
-        if (url && !urls.includes(url)) urls.push(url);
+  return _deezerMemo(deezerAlbumCandidateCache, k, async () => {
+    const q = comp ? album : artist + ' ' + album;
+    const r = await deezerFetch(`search/album?q=${encodeURIComponent(q)}&limit=10`);
+    if (!r.ok) throw new Error('deezer ' + r.status);
+    const d = await r.json();
+    let items = d?.data || [];
+    // Nothing at all for the full names: one retry on the lead artist and
+    // the bare title (see _artSearchTitle).
+    let albumMatch = album;
+    if (!items.length) {
+      const a2 = comp ? '' : _artSearchArtist(artist);
+      const t2 = _artSearchTitle(album);
+      if (t2 && (t2 !== album || a2 !== artist)) {
+        const r2 = await deezerFetch(`search/album?q=${encodeURIComponent((a2 ? a2 + ' ' : '') + t2)}&limit=10`);
+        if (!r2.ok) throw new Error('deezer ' + r2.status);
+        items = (await r2.json())?.data || [];
+        albumMatch = t2;
       }
-      return urls;
-    } catch (e) { return []; }
-  })();
-  deezerAlbumCandidateCache[k] = p;
-  return p;
+    }
+    const matches = items.filter(x =>
+      x.title?.toLowerCase().includes(albumMatch.toLowerCase()) &&
+      (comp || x.artist?.name?.toLowerCase().includes(artist.toLowerCase().split(/[\s,&]/)[0]))
+    );
+    /* Deezer says what kind of release this is, in the same response the
+       cover comes from. Harvesting it here means release-type detection
+       costs no extra request for any album whose art has ever been loaded —
+       which, after a few minutes of browsing, is most of them. Only the best
+       match is recorded: the fallback list is "anything the search returned"
+       and is far too loose to take a verdict from. */
+    /* Recorded even when nothing matched, as null: "asked, no confident
+       answer" is a real result and a capped scan must not spend its budget
+       asking the same unanswerable release again every run. Only reached on
+       a response that actually came back — the !r.ok and catch paths above
+       leave the entry absent, so a proxy hiccup is retried rather than
+       frozen into a permanent "unknown". */
+    const rt = matches.length ? String(matches[0].record_type || '').toLowerCase() : '';
+    deezerAlbumTypeCache[k] = rt || null;
+    _saveDeezerRtypeCache();
+    const urls = [];
+    for (const c of (matches.length ? matches : items)) {
+      const url = deezerPickImage(c, 'cover');
+      if (url && !urls.includes(url)) urls.push(url);
+    }
+    return urls;
+  });
 }
 
 /* Deezer's record_type per album, harvested above and by the scanner below.
@@ -3726,7 +3790,7 @@ async function deezerReleaseType(album, artist) {
   const k = artist.toLowerCase() + '|||' + album.toLowerCase();
   if (k in deezerAlbumTypeCache) return deezerAlbumTypeCache[k];
   if (k in deezerRtypeTransientMiss) return null;
-  await deezerAlbumImageCandidates(album, artist);
+  try { await deezerAlbumImageCandidates(album, artist); } catch (e) { /* parked below */ }
   if (k in deezerAlbumTypeCache) return deezerAlbumTypeCache[k];
   // The request itself never landed. Parked for this session so the scan moves
   // on, but left out of the persisted map so a later run asks again.
@@ -3755,27 +3819,35 @@ async function deezerAlbumImage(album, artist) {
 const deezerTrackCandidateCache = {};
 function deezerTrackImageCandidates(track, artist) {
   const k = artist.toLowerCase() + '|||' + track.toLowerCase();
-  if (k in deezerTrackCandidateCache) return deezerTrackCandidateCache[k];
-  const p = (async () => {
-    try {
-      const r = await deezerFetch(`search/track?q=${encodeURIComponent(artist + ' ' + track)}&limit=10`);
-      if (!r.ok) return [];
-      const d = await r.json();
-      const items = d?.data || [];
-      const matches = items.filter(x =>
-        x.title?.toLowerCase().includes(track.toLowerCase()) &&
-        x.artist?.name?.toLowerCase().includes(artist.toLowerCase().split(/[\s,&]/)[0])
-      );
-      const urls = [];
-      for (const c of (matches.length ? matches : items)) {
-        const url = deezerPickImage(c.album, 'cover');
-        if (url && !urls.includes(url)) urls.push(url);
+  return _deezerMemo(deezerTrackCandidateCache, k, async () => {
+    const r = await deezerFetch(`search/track?q=${encodeURIComponent(artist + ' ' + track)}&limit=10`);
+    if (!r.ok) throw new Error('deezer ' + r.status);
+    const d = await r.json();
+    let items = d?.data || [];
+    // Nothing at all for the full names: one retry on the lead artist and
+    // the bare title (see _artSearchTitle).
+    let trackMatch = track;
+    if (!items.length) {
+      const a2 = _artSearchArtist(artist);
+      const t2 = _artSearchTitle(track);
+      if (t2 && (t2 !== track || a2 !== artist)) {
+        const r2 = await deezerFetch(`search/track?q=${encodeURIComponent(a2 + ' ' + t2)}&limit=10`);
+        if (!r2.ok) throw new Error('deezer ' + r2.status);
+        items = (await r2.json())?.data || [];
+        trackMatch = t2;
       }
-      return urls;
-    } catch (e) { return []; }
-  })();
-  deezerTrackCandidateCache[k] = p;
-  return p;
+    }
+    const matches = items.filter(x =>
+      x.title?.toLowerCase().includes(trackMatch.toLowerCase()) &&
+      x.artist?.name?.toLowerCase().includes(artist.toLowerCase().split(/[\s,&]/)[0])
+    );
+    const urls = [];
+    for (const c of (matches.length ? matches : items)) {
+      const url = deezerPickImage(c.album, 'cover');
+      if (url && !urls.includes(url)) urls.push(url);
+    }
+    return urls;
+  });
 }
 
 async function deezerTrackImage(track, artist) {
@@ -3832,108 +3904,175 @@ async function ytSearch(query) {
   return item.snippet?.thumbnails?.high?.url || null;
 }
 
-async function getArtistImage(artist, source) {
-  source = source || 'deezer';
-  const k = 'artist:' + artist.toLowerCase() + ':' + source;
-  if (k in imgCache) return imgCache[k];
-  imgCache[k] = null;
-  if (source === 'off') return null;
-  try {
-    if (source === 'itunes') {
-      const q = encodeURIComponent(artist);
-      const r = await fetch(`https://itunes.apple.com/search?term=${q}&entity=musicTrack&limit=5&attribute=artistTerm`);
-      const d = await r.json();
-      const results = (d?.results || []).filter(x => x.kind === 'song');
-      const match = results.find(x => x.artistName?.toLowerCase() === artist.toLowerCase()) || results[0];
-      if (match?.artworkUrl100) {
-        imgCache[k] = match.artworkUrl100.replace('100x100bb', '300x300bb');
-      }
-    } else if (source === 'lastfm') {
-      const r = await fetch(lfmUrl('artist.getinfo', { artist, autocorrect: 1 }));
-      const d = await r.json();
-      imgCache[k] = bestImage(d?.artist?.image) || null;
-    } else if (source === 'deezer') {
-      imgCache[k] = await deezerArtistImage(artist);
-    } else if (source === 'youtube') {
-      imgCache[k] = await ytSearch(artist + ' official');
+/* One lookup per item and source. While a lookup is in flight a second caller
+   shares its promise — imgCache used to hold a null placeholder meanwhile, so
+   the second caller read "no picture", fell through to iTunes and pinned the
+   item there (see the certifications wall's _certWallResolved for the
+   workaround this made necessary). A lookup that failed (network, Deezer busy,
+   a 5xx) resolves to undefined and is not cached, so it is asked again next
+   time; null is the cached "this source has nothing". */
+const _imgInflight = {};
+function _imgLookup(k, run) {
+  if (k in imgCache) return Promise.resolve(imgCache[k]);
+  if (_imgInflight[k]) return _imgInflight[k];
+  const p = (async () => {
+    try {
+      const url = await run();
+      imgCache[k] = url || null;
+      return imgCache[k];
+    } catch (e) {
+      return undefined;
+    } finally {
+      delete _imgInflight[k];
     }
-  } catch (e) { imgCache[k] = null; }
-  return imgCache[k];
+  })();
+  _imgInflight[k] = p;
+  return p;
 }
 
-async function getAlbumImage(album, artist, source) {
+// iTunes / Last.fm JSON. A 4xx is a real answer ("no", or iTunes refusing an
+// origin it doesn't serve — it 403s off dankcharts.fm) and caches as a miss;
+// a 429/5xx or a dropped connection is a failure and is asked again later.
+async function _imgJson(url) {
+  const r = await fetch(url);
+  if (r.status === 429 || r.status >= 500) throw new Error('busy ' + r.status);
+  if (!r.ok) return null;
+  return r.json();
+}
+
+function getArtistImage(artist, source) {
+  source = source || 'deezer';
+  const k = 'artist:' + artist.toLowerCase() + ':' + source;
+  if (source === 'off') return Promise.resolve(null);
+  return _imgLookup(k, async () => {
+    if (source === 'itunes') {
+      const d = await _imgJson(`https://itunes.apple.com/search?term=${encodeURIComponent(artist)}&entity=musicTrack&limit=5&attribute=artistTerm`);
+      const results = (d?.results || []).filter(x => x.kind === 'song');
+      const match = results.find(x => x.artistName?.toLowerCase() === artist.toLowerCase()) || results[0];
+      return match?.artworkUrl100 ? match.artworkUrl100.replace('100x100bb', '300x300bb') : null;
+    }
+    if (source === 'lastfm') {
+      // Last.fm stopped serving artist photos in 2019: every artist comes back
+      // with the same grey star, which bestImage() filters out. Still asked,
+      // in case it ever returns a real one.
+      const d = await _imgJson(lfmUrl('artist.getinfo', { artist, autocorrect: 1 }));
+      return bestImage(d?.artist?.image);
+    }
+    if (source === 'deezer') return deezerArtistImage(artist);
+    if (source === 'youtube') return ytSearch(artist + ' official');
+    return null;
+  });
+}
+
+function getAlbumImage(album, artist, source) {
   source = source || 'deezer';
   const k = 'album:' + artist.toLowerCase() + '|||' + album.toLowerCase() + ':' + source;
-  if (k in imgCache) return imgCache[k];
-  imgCache[k] = null;
-  if (source === 'off') return null;
-  try {
+  if (source === 'off') return Promise.resolve(null);
+  return _imgLookup(k, async () => {
     // Same reasoning as deezerAlbumImageCandidates: a compilation searches on
     // its title alone, since nothing is credited to "Various Artists".
     const comp = artist === VARIOUS_ARTISTS;
     if (source === 'itunes') {
-      const q = encodeURIComponent(comp ? album : artist + ' ' + album);
-      const r = await fetch(`https://itunes.apple.com/search?term=${q}&entity=album&limit=5`);
-      const d = await r.json();
+      const d = await _imgJson(`https://itunes.apple.com/search?term=${encodeURIComponent(comp ? album : artist + ' ' + album)}&entity=album&limit=5`);
       const results = d?.results || [];
       const match = results.find(x =>
         x.collectionName?.toLowerCase().includes(album.toLowerCase()) &&
         (comp || x.artistName?.toLowerCase().includes(artist.toLowerCase().split(/[\s,&]/)[0]))
       ) || results[0];
-      if (match?.artworkUrl100) {
-        imgCache[k] = match.artworkUrl100.replace('100x100bb', '600x600bb');
-      }
-    } else if (source === 'lastfm') {
-      const r = await fetch(lfmUrl('album.getinfo', { album, artist, autocorrect: 1 }));
-      const d = await r.json();
-      imgCache[k] = bestImage(d?.album?.image) || null;
-    } else if (source === 'deezer') {
-      imgCache[k] = await deezerAlbumImage(album, artist);
-    } else if (source === 'youtube') {
-      imgCache[k] = await ytSearch((comp ? album : artist + ' ' + album) + ' album');
+      return match?.artworkUrl100 ? match.artworkUrl100.replace('100x100bb', '600x600bb') : null;
     }
-  } catch (e) { imgCache[k] = null; }
-  return imgCache[k];
+    if (source === 'lastfm') {
+      const d = await _imgJson(lfmUrl('album.getinfo', { album, artist, autocorrect: 1 }));
+      return bestImage(d?.album?.image);
+    }
+    if (source === 'deezer') return deezerAlbumImage(album, artist);
+    if (source === 'youtube') return ytSearch((comp ? album : artist + ' ' + album) + ' album');
+    return null;
+  });
 }
 
-async function getTrackImage(track, artist, source) {
+function getTrackImage(track, artist, source) {
   source = source || 'deezer';
   const k = 'track:' + artist.toLowerCase() + '|||' + track.toLowerCase() + ':' + source;
-  if (k in imgCache) return imgCache[k];
-  imgCache[k] = null;
-  if (source === 'off') return null;
-  try {
+  if (source === 'off') return Promise.resolve(null);
+  return _imgLookup(k, async () => {
     if (source === 'itunes') {
-      const q = encodeURIComponent(artist + ' ' + track);
-      const r = await fetch(`https://itunes.apple.com/search?term=${q}&entity=musicTrack&limit=5`);
-      const d = await r.json();
+      const d = await _imgJson(`https://itunes.apple.com/search?term=${encodeURIComponent(artist + ' ' + track)}&entity=musicTrack&limit=5`);
       const results = (d?.results || []).filter(x => x.kind === 'song');
       const match = results.find(x =>
         x.trackName?.toLowerCase().includes(track.toLowerCase()) &&
         x.artistName?.toLowerCase().includes(artist.toLowerCase().split(/[\s,&]/)[0])
       ) || results[0];
-      if (match?.artworkUrl100) {
-        imgCache[k] = match.artworkUrl100.replace('100x100bb', '300x300bb');
-      }
-    } else if (source === 'lastfm') {
-      const r = await fetch(lfmUrl('track.getInfo', { track, artist, autocorrect: 1 }));
-      const d = await r.json();
-      imgCache[k] = bestImage(d?.track?.album?.image) || null;
-    } else if (source === 'deezer') {
-      imgCache[k] = await deezerTrackImage(track, artist);
-    } else if (source === 'youtube') {
-      imgCache[k] = await ytSearch(artist + ' ' + track);
+      return match?.artworkUrl100 ? match.artworkUrl100.replace('100x100bb', '300x300bb') : null;
     }
-  } catch (e) { imgCache[k] = null; }
-  return imgCache[k];
+    if (source === 'lastfm') {
+      const d = await _imgJson(lfmUrl('track.getInfo', { track, artist, autocorrect: 1 }));
+      return bestImage(d?.track?.album?.image);
+    }
+    if (source === 'deezer') return deezerTrackImage(track, artist);
+    if (source === 'youtube') return ytSearch(artist + ' ' + track);
+    return null;
+  });
+}
+
+/* The same cover at the size its slot needs. Deezer's best URL is 1000×1000
+   (~300 KB) and iTunes' is 600×600, but most slots are 36–132px: a 100-row
+   chart was pulling ~30 MB of artwork to draw 44px squares. Both CDNs render
+   any size from the URL, so the stored URL (cache, picks, account sync) stays
+   full size and only what goes into the <img> is shrunk — to the slot's width
+   at the screen's pixel density (capped at 2×), rounded up to a few fixed
+   sizes so the browser cache still gets reused across slots. `slot` is an
+   element or a width in CSS px; a slot with no size yet gets 500px. Last.fm
+   and YouTube URLs pass through untouched (Last.fm tops out at 300px). */
+const ART_SIZES = [120, 250, 500, 1000];
+function sizedArtUrl(url, slot) {
+  if (!url || typeof url !== 'string') return url;
+  const w = typeof slot === 'number' ? slot
+    : (slot && slot.getBoundingClientRect ? slot.getBoundingClientRect().width : 0);
+  const need = w ? Math.ceil(w * Math.min(window.devicePixelRatio || 1, 2)) : 500;
+  const px = ART_SIZES.find(s => s >= need) || 1000;
+  if (/dzcdn\.net\/images\/(artist|cover)\/[0-9a-f]+\/\d+x\d+-/.test(url)) {
+    return url.replace(/\/(\d+)x\d+-/, `/${px}x${px}-`);
+  }
+  if (/mzstatic\.com\/image\/thumb\/.*\/\d+x\d+bb\.(jpg|png|webp)$/.test(url)) {
+    return url.replace(/\/\d+x\d+bb\./, `/${px}x${px}bb.`);
+  }
+  return url;
+}
+
+/* Artwork for the places that draw it without fetchAndInjectImage() — the
+   Soundtrack bubbles, avatars and banner, streak cards, Now Playing, the bar
+   race, album plaques. Most of them asked Deezer alone, so anything Deezer
+   lacks stayed on initials there while the chart rows found it on iTunes or
+   Last.fm. This walks the same automatic chain, and honours a picture picked
+   in the image picker (or set to "No image") so a pick shows everywhere.
+   type is 'artist' | 'album' | 'song'; artist/album as for the getters. */
+async function getArtAuto(type, name, artist, album) {
+  const prefKey = type === 'artist' ? 'artist:' + (name || '').toLowerCase()
+    : type === 'album' ? 'album:' + (artist || '').toLowerCase() + '|||' + (album || name || '').toLowerCase()
+    : 'song:' + (artist || '').toLowerCase() + '|||' + (name || '').toLowerCase();
+  const choice = imgChoicePrefs[prefKey];
+  if (choice) return (choice.source === 'off' || !choice.url) ? null : choice.url;
+  for (const source of autoImgChain(itemSourcePrefs[prefKey])) {
+    let url = null;
+    try {
+      url = type === 'artist' ? await getArtistImage(name, source)
+        : type === 'album' ? await getAlbumImage(album || name, artist, source)
+        : await getTrackImage(name, artist, source);
+    } catch (e) {}
+    if (url) return url;
+  }
+  return null;
 }
 
 function initials(str) {
   return str.split(/\s+/).slice(0, 2).map(w => w[0]?.toUpperCase() || '').join('');
 }
 
+// Every slot thumbHtml() fills is small (Soundtrack avatars and bubbles,
+// 28–97px), so its art is asked for at 250px — see sizedArtUrl().
 function thumbHtml(url, fallbackStr, isRank1) {
-  if (url) return `<img class="thumb" src="${esc(url)}" alt="" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"><div class="thumb-initials" style="display:none">${esc(initials(fallbackStr))}</div>`;
+  if (url) return `<img class="thumb" src="${esc(sizedArtUrl(url, 120))}" alt="" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"><div class="thumb-initials" style="display:none">${esc(initials(fallbackStr))}</div>`;
   return `<div class="thumb-initials">${esc(initials(fallbackStr))}</div>`;
 }
 
@@ -3963,7 +4102,8 @@ async function _imgFallback(img) {
     if (!img.isConnected) return;
     if (url) {
       img.onerror = function() { _imgFallback(this); };
-      img.src = url;
+      img.dataset.fullSrc = url;
+      img.src = sizedArtUrl(url, img.parentElement);
       if (imgId) {
         const btn = document.getElementById('srcbtn-' + imgId);
         if (btn) btn.textContent = srcLabel(source);
@@ -3991,14 +4131,19 @@ async function fetchAndInjectImage(el, item, type) {
     } else {
       el.innerHTML = `<img class="thumb" alt="" loading="lazy" data-imgid="${esc(item.imgId || '')}" data-type="${esc(type)}" data-prefkey="${esc(item.prefKey || '')}" data-name="${esc(item.name || item.title || '')}" data-artist="${esc(item.artist || '')}" data-album="${esc(item.album || '')}">`;
       const pinImg = el.querySelector('img');
+      const pinSized = sizedArtUrl(choice.url, el);
       pinImg.onerror = function() {
+        // The slot-sized copy failed: try the picked URL as it was stored
+        // before giving up on it.
+        if (this.getAttribute('src') !== choice.url) { this.src = choice.url; return; }
         // The pinned URL died (CDN rotation, deleted upload) — unpin it and
         // fall back to the automatic cascade instead of a broken image.
         delete imgChoicePrefs[item.prefKey];
         saveImgChoicePrefs();
         fetchAndInjectImage(el, item, type);
       };
-      pinImg.src = choice.url;
+      pinImg.dataset.fullSrc = choice.url;
+      pinImg.src = pinSized;
       const _pinMosTile = el.closest && el.closest('.wv-mos-item');
       if (_pinMosTile && !_pinMosTile.classList.contains('wv-r1') && !_pinMosTile.classList.contains('wv-r2') && !_pinMosTile.classList.contains('wv-r3')) {
         _mosDominantGlow(choice.url, _pinMosTile);
@@ -4012,6 +4157,10 @@ async function fetchAndInjectImage(el, item, type) {
   const preferredSource = (item.prefKey && itemSourcePrefs[item.prefKey]) || 'deezer';
   let url = null;
   let usedSource = preferredSource;
+  // True when a source *failed* rather than answered "nothing" (the lookups
+  // resolve to undefined then, see _imgLookup). A result found further down
+  // the chain is still shown, but not remembered as this item's source.
+  let sawFailure = false;
 
   if (preferredSource !== 'off') {
     for (const source of autoImgChain(preferredSource)) {
@@ -4026,8 +4175,8 @@ async function fetchAndInjectImage(el, item, type) {
         } else if (type === 'artist') url = await getArtistImage(item.name, source);
         else if (type === 'album') url = await getAlbumImage(item.album, item.artist, source);
         else url = await getTrackImage(item.title, item.artist, source);
-      } catch (e) { url = null; }
-      if (source === 'deezer') await new Promise(r => setTimeout(r, 120));
+      } catch (e) { url = undefined; }
+      if (url === undefined) sawFailure = true;
       if (url) { usedSource = source; break; }
     }
     if (!url) usedSource = 'deezer';
@@ -4038,17 +4187,24 @@ async function fetchAndInjectImage(el, item, type) {
   if (url) {
     el.innerHTML = `<img class="thumb" alt="" loading="lazy" data-imgid="${esc(item.imgId || '')}" data-type="${esc(type)}" data-prefkey="${esc(item.prefKey || '')}" data-name="${esc(item.name || item.title || '')}" data-artist="${esc(item.artist || '')}" data-album="${esc(item.album || '')}" data-tried-src="${esc(usedSource)}">`;
     const newImg = el.querySelector('img');
-    newImg.onerror = function() { _imgFallback(this); };
-    newImg.src = url;
+    const sized = sizedArtUrl(url, el);
+    newImg.onerror = function() {
+      // The slot-sized copy failed: the full-size URL gets one try before
+      // the cascade moves on to the next source.
+      if (this.getAttribute('src') !== url) { this.src = url; return; }
+      _imgFallback(this);
+    };
+    newImg.dataset.fullSrc = url;
+    newImg.src = sized;
     const _mosTile = el.closest && el.closest('.wv-mos-item');
     if (_mosTile && !_mosTile.classList.contains('wv-r1') && !_mosTile.classList.contains('wv-r2') && !_mosTile.classList.contains('wv-r3')) {
-      _mosDominantGlow(url, _mosTile);
+      _mosDominantGlow(sized, _mosTile);
     }
   } else {
     el.innerHTML = `<div class="thumb-initials">${esc(initials(fallback))}</div>`;
   }
   if (item.prefKey) {
-    if (usedSource !== preferredSource) {
+    if (usedSource !== preferredSource && !sawFailure) {
       itemSourcePrefs[item.prefKey] = usedSource;
       localStorage.setItem('itemSourcePrefs', JSON.stringify(itemSourcePrefs));
     }
@@ -4060,7 +4216,37 @@ async function fetchAndInjectImage(el, item, type) {
 function clearImageObservers() {
   imgObservers.forEach(o => o.disconnect());
   imgObservers = [];
-  imgQueue = Promise.resolve();
+}
+
+/* Every artwork lookup on the page goes through this queue, three at a time.
+   It used to be a single promise chain (one at a time) because a burst of
+   requests got Deezer's "quota exceeded" answer, which was then read as "no
+   picture" and quietly moved items to lower-res iTunes/Last.fm art. That
+   answer is now retried (deezerFetch) and never remembered as a miss, so the
+   queue can run a few lanes: a 100-row chart fills in about a third of the
+   time, and three lanes stay well under Deezer's 50 requests per 5 seconds. */
+//
+// `low` is for the two reels (Time Machine, Soundtrack's reel): they resolve
+// art for every card up front, hundreds of them, most far off screen. They
+// used to run their own four-at-a-time loop beside this queue, so on the
+// charts page a 576-card reel competed with the chart rows actually in view.
+// A low task only starts when no normal one is waiting.
+const IMG_LANES = 3;
+let _imgActive = 0;
+const _imgWaiting = [];
+const _imgWaitingLow = [];
+function queueImg(task, low) {
+  return new Promise(resolve => {
+    (low ? _imgWaitingLow : _imgWaiting).push(() => Promise.resolve().then(task).catch(() => {}).then(resolve));
+    _pumpImgQueue();
+  });
+}
+function _pumpImgQueue() {
+  while (_imgActive < IMG_LANES && (_imgWaiting.length || _imgWaitingLow.length)) {
+    const run = _imgWaiting.length ? _imgWaiting.shift() : _imgWaitingLow.shift();
+    _imgActive++;
+    run().then(() => { _imgActive--; _pumpImgQueue(); });
+  }
 }
 
 // Set up IntersectionObserver so images only load when scrolled into view
@@ -4070,7 +4256,8 @@ function loadImages(items, type) {
       if (!entry.isIntersecting) continue;
       observer.unobserve(entry.target);
       const item = entry.target._imgItem;
-      if (item) imgQueue = imgQueue.then(() => fetchAndInjectImage(entry.target, item, type));
+      // A view re-rendered while this waited: its element is gone, skip it.
+      if (item) queueImg(() => entry.target.isConnected && fetchAndInjectImage(entry.target, item, type));
     }
   }, { rootMargin: '300px' });
   imgObservers.push(observer);
@@ -4144,9 +4331,13 @@ function _imgPickerEscHandler(e) { if (e.key === 'Escape') closeImgPicker(); }
 // All candidate URLs one source can offer for an item (picker tiles).
 async function imgPickerCandidates(source, type, name, artist, album) {
   if (source === 'deezer') {
-    if (type === 'artist') return deezerArtistImageCandidates(name);
-    if (type === 'album') return deezerAlbumImageCandidates(album, artist);
-    return deezerTrackImageCandidates(name, artist);
+    // A failed Deezer request rejects (see _deezerMemo); the picker shows
+    // "nothing found" for it rather than hanging on "Loading…".
+    try {
+      if (type === 'artist') return await deezerArtistImageCandidates(name);
+      if (type === 'album') return await deezerAlbumImageCandidates(album, artist);
+      return await deezerTrackImageCandidates(name, artist);
+    } catch (e) { return []; }
   }
   if (source === 'itunes') return itunesImageCandidates(type, name, artist, album);
   // Last.fm / YouTube only ever produce one image per item.
@@ -4220,7 +4411,7 @@ function refreshImgInstances(prefkey) {
       artist: btn.dataset.artist || '', album: btn.dataset.album || '',
       prefKey: prefkey
     };
-    imgQueue = imgQueue.then(() => fetchAndInjectImage(el, item, btn.dataset.type || 'song'));
+    queueImg(() => fetchAndInjectImage(el, item, btn.dataset.type || 'song'));
   });
 }
 
@@ -4229,7 +4420,8 @@ function openImgPicker(o) {
   const title = o.type === 'album' ? (o.album || o.name) : o.name;
   const sub = o.type === 'artist' ? '' : (o.artist || '');
   const currentUrl = (imgChoicePrefs[o.prefkey] && imgChoicePrefs[o.prefkey].url) ||
-    (document.getElementById(o.imgid)?.querySelector('img')?.src || '');
+    (document.getElementById(o.imgid)?.querySelector('img')?.dataset.fullSrc ||
+     document.getElementById(o.imgid)?.querySelector('img')?.src || '');
 
   const overlay = document.createElement('div');
   overlay.className = 'imgpk-overlay';
@@ -4284,7 +4476,7 @@ function openImgPicker(o) {
           return;
         }
         tiles.innerHTML = urls.map(u =>
-          `<button class="imgpk-tile${u === currentUrl ? ' imgpk-tile--current' : ''}" data-url="${esc(u)}" title="${srcLabel(s)}"><img alt="" loading="lazy" src="${esc(u)}" onerror="this.closest('.imgpk-tile').remove()"></button>`
+          `<button class="imgpk-tile${u === currentUrl ? ' imgpk-tile--current' : ''}" data-url="${esc(u)}" title="${srcLabel(s)}"><img alt="" loading="lazy" src="${esc(sizedArtUrl(u, 72))}" onerror="this.closest('.imgpk-tile').remove()"></button>`
         ).join('');
         tiles.querySelectorAll('.imgpk-tile').forEach(tile => {
           tile.onclick = () => applyImgChoice(o, tile.dataset.url, s);
@@ -5406,8 +5598,8 @@ function renderNowPlaying(track, opts) {
   (async () => {
     let url = '';
     try {
-      url = (hasAlbum ? await getAlbumImage(track.album, track.artist)
-                      : await getTrackImage(track.title, track.artist)) || '';
+      url = (hasAlbum ? await getArtAuto('album', track.album, track.artist, track.album)
+                      : await getArtAuto('song', track.title, track.artist)) || '';
     } catch (e) { /* fall through to the Last.fm image */ }
     if (!url) url = track.lfmArt;
     if (!url || token !== npArtToken) return; // track changed while we were fetching
@@ -10461,7 +10653,8 @@ function recFillReelTrack(track, records, idPrefix) {
   /* Card artwork. Fetched directly in small batches rather than through
      loadImages(), because the reel is in constant motion and its
      IntersectionObserver would fire unpredictably against a moving target —
-     the same reason the Time Machine ticker loads its cards this way. */
+     the same reason the Time Machine ticker loads its cards this way. Queued
+     as low priority, so the Overview and tables above it load first. */
   const myLoaderId = (_recReelLoaderIds[idPrefix] = (_recReelLoaderIds[idPrefix] || 0) + 1);
   (async function () {
     for (const type of ['song', 'artist', 'album']) {
@@ -10473,7 +10666,8 @@ function recFillReelTrack(track, records, idPrefix) {
           if (_recReelLoaderIds[idPrefix] !== myLoaderId) return;
           const aEl = document.getElementById(pair[0].imgId);
           if (!aEl) return;
-          await fetchAndInjectImage(aEl, pair[0], type);
+          // Behind whatever the page is showing — see queueImg().
+          await queueImg(function () { return aEl.isConnected && fetchAndInjectImage(aEl, pair[0], type); }, true);
           const bEl = pair[1] && document.getElementById(pair[1].imgId);
           if (bEl) bEl.innerHTML = aEl.innerHTML;
         }));
@@ -26050,9 +26244,9 @@ function loadRaceImage(key, meta) {
   if (raceImageCache[key] !== undefined) return;
   raceImageCache[key] = null;
   let promise;
-  if (meta.type === 'artists') promise = getArtistImage(meta.name, 'deezer');
-  else if (meta.type === 'songs') promise = getTrackImage(meta.name, meta.artist, 'deezer');
-  else promise = getAlbumImage(meta.name, meta.artist, 'deezer');
+  if (meta.type === 'artists') promise = getArtAuto('artist', meta.name);
+  else if (meta.type === 'songs') promise = getArtAuto('song', meta.name, meta.artist);
+  else promise = getArtAuto('album', meta.name, meta.artist, meta.name);
   promise.then(url => {
     if (!url) return;
     const img = new Image();
@@ -27048,9 +27242,9 @@ async function loadAlbumCertPlaqueImages(items, albumName, artistName) {
     let url = null;
     try {
       if (item.type === 'Album') {
-        url = await getAlbumImage(albumName, artistName);
+        url = await getArtAuto('album', albumName, artistName, albumName);
       } else {
-        url = await getAlbumImage(albumName, artistName) || await getTrackImage(item.name, artistName);
+        url = await getArtAuto('album', albumName, artistName, albumName) || await getArtAuto('song', item.name, artistName);
       }
     } catch (e) {}
     if (!url) continue;
@@ -34202,7 +34396,8 @@ function renderTimeMachine(forceRebuild) {
         if (tmLoaderId !== loaderId) return;
         const aEl = document.getElementById(aItem.imgId);
         if (!aEl) return;
-        await fetchAndInjectImage(aEl, aItem, type);
+        // Behind whatever the page is showing — see queueImg().
+        await queueImg(() => aEl.isConnected && fetchAndInjectImage(aEl, aItem, type), true);
         const bEl = document.getElementById(bItem.imgId);
         if (bEl) bEl.innerHTML = aEl.innerHTML;
       }));
@@ -42833,7 +43028,8 @@ async function stReelLoadBatch(pairs, type, loaderId) {
       if (_stReelLoaderId !== loaderId) return;
       const aEl = document.getElementById(aItem.imgId);
       if (!aEl) return;
-      await fetchAndInjectImage(aEl, aItem, type);
+      // Behind whatever the page is showing — see queueImg().
+      await queueImg(() => aEl.isConnected && fetchAndInjectImage(aEl, aItem, type), true);
       const bEl = bItem && document.getElementById(bItem.imgId);
       if (bEl) bEl.innerHTML = aEl.innerHTML;
     }));
@@ -43184,10 +43380,10 @@ function stInitCoverflow(viewportEl, items, label) {
       const artEl = cards[idx]?.querySelector('.st-cf-art');
       // Shares the same deezer→itunes→lastfm→youtube fallback chain (and per-item
       // source preference) as the chart tables. Routed through the same global
-      // imgQueue so requests are throttled one-at-a-time like the tables — firing
+      // queue (queueImg) so requests are throttled like the tables — firing
       // all ~7 lookups at once floods the Deezer proxy, triggers rate-limiting,
       // and silently downgrades to lower-res itunes/lastfm art.
-      if (artEl) imgQueue = imgQueue.then(() => fetchAndInjectImage(artEl, it, it.imgType));
+      if (artEl) queueImg(() => fetchAndInjectImage(artEl, it, it.imgType));
     }
   }
 
@@ -43355,7 +43551,7 @@ function stRenderFeaturedArtist(periodPlays, artistName, totalCount) {
   const bannerEl = document.getElementById('stFeaturedBanner');
   if (bannerEl) {
     bannerEl.style.backgroundImage = '';
-    getArtistImage(artistName, 'deezer').then(url => {
+    getArtAuto('artist', artistName).then(url => {
       if (bannerEl.isConnected && document.getElementById('stFeaturedArtistName')?.textContent === artistName) {
         bannerEl.style.backgroundImage = url ? `url("${url}")` : '';
       }
@@ -43742,12 +43938,12 @@ function stRenderLoyalty(plays) {
         </div>`).join('')}
     </div>` : ''}`;
 
-  // Queued through the shared imgQueue (same one the chart tables and coverflow
+  // Queued through the shared queueImg() (same one the chart tables and coverflow
   // use) instead of firing all requests at once — a synchronous burst against
   // the Deezer proxy gets rate-limited, silently downgrading art to lower-res
   // itunes/lastfm fallbacks.
   returningArtists.forEach((a, i) => {
-    imgQueue = imgQueue.then(() => getArtistImage(a.name, 'deezer').then(url => {
+    queueImg(() => getArtAuto('artist', a.name).then(url => {
       const imgEl = document.getElementById('stLoyaltyImg' + i);
       if (imgEl) imgEl.innerHTML = thumbHtml(url, a.name, false);
     }));
@@ -43856,11 +44052,11 @@ function stSpawnBubble(container, artist, isStatic) {
     if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); stPopBubble(bubble, artist); }
   });
 
-  // Queued through the shared imgQueue (see stLoyaltyImg above) — under
+  // Queued through the shared queueImg() (see stLoyaltyImg above) — under
   // prefers-reduced-motion the initial static batch spawns up to 10 bubbles
   // in one synchronous forEach, which would otherwise fire 10 concurrent
   // Deezer lookups at once.
-  imgQueue = imgQueue.then(() => getArtistImage(artist, 'deezer').then(url => {
+  queueImg(() => getArtAuto('artist', artist).then(url => {
     const avatarEl = document.getElementById(uid);
     if (avatarEl) avatarEl.innerHTML = thumbHtml(url, artist, false);
   }));
@@ -43939,7 +44135,7 @@ function stOpenArtistModal(artist) {
   const cachedImg = imgCache['artist:' + artist.toLowerCase() + ':deezer'];
   avatarEl.innerHTML = cachedImg ? thumbHtml(cachedImg, artist, false) : `<div class="thumb-initials">${esc(initials(artist))}</div>`;
   if (!cachedImg) {
-    getArtistImage(artist, 'deezer').then(url => {
+    getArtAuto('artist', artist).then(url => {
       if (document.getElementById('stArtistModalName')?.textContent === artist) avatarEl.innerHTML = thumbHtml(url, artist, false);
     });
   }
@@ -44119,7 +44315,7 @@ function stRenderMilestoneList(items, bodyId, wrapId, toggleId, kind) {
     // coverflow uses instead of giving up after one source.
     if (m.rawTitle) {
       const MS_ART_SOURCES = AUTO_IMG_SOURCES;
-      imgQueue = imgQueue.then(async () => {
+      queueImg(async () => {
         let url = null;
         for (const source of MS_ART_SOURCES) {
           try { url = await getTrackImage(m.rawTitle, m.rawArtist, source); } catch (e) { url = null; }
@@ -44395,9 +44591,9 @@ function stRenderStreaks(plays) {
 
 async function _fetchEntityStreakArt(kind, best) {
   try {
-    if (kind === 'artist') return await getArtistImage(best.label);
-    if (kind === 'album')  return await getAlbumImage(best.label, best.sub);
-    if (kind === 'song')   return best.album ? await getAlbumImage(best.album, best.sub) : await getTrackImage(best.label, best.sub);
+    if (kind === 'artist') return await getArtAuto('artist', best.label);
+    if (kind === 'album')  return await getArtAuto('album', best.label, best.sub, best.label);
+    if (kind === 'song')   return best.album ? await getArtAuto('album', best.album, best.sub, best.album) : await getArtAuto('song', best.label, best.sub);
   } catch (e) { return null; }
 }
 
@@ -44460,10 +44656,10 @@ function stRenderGrammys(plays) {
     </div>`;
   }).join('')}</div>`;
 
-  // Queued through the shared imgQueue (see stLoyaltyImg above) instead of
+  // Queued through the shared queueImg() (see stLoyaltyImg above) instead of
   // firing every card's lookup at once.
   shown.forEach((item, i) => {
-    imgQueue = imgQueue.then(() => getArtistImage(item.artist).then(url => {
+    queueImg(() => getArtistImage(item.artist).then(url => {
       if (!url) return;
       const img = document.getElementById('stGrammyArt_' + i);
       if (img) img.src = url;
@@ -44605,10 +44801,10 @@ function stReplayRenderRows(rowsEl, snap, prevTop5) {
         </div>
         <span class="st-replay-move"></span>
         <span class="st-replay-count"></span>`;
-      // Queued through the shared imgQueue (see stLoyaltyImg above) — playback
+      // Queued through the shared queueImg() (see stLoyaltyImg above) — playback
       // can introduce several new artists per step, and fast stepping through
       // history shouldn't burst the Deezer proxy.
-      imgQueue = imgQueue.then(() => getArtistImage(name, 'deezer').then(url => {
+      queueImg(() => getArtAuto('artist', name).then(url => {
         if (!el.isConnected || !url) return;
         el.querySelector('.st-replay-avatar').innerHTML = thumbHtml(url, name, false);
       }));
@@ -45448,17 +45644,17 @@ function renderStreakBanner() {
       init.style.display = 'none';
     }
     // Fetch per-play art for each mini thumb individually, queued through the
-    // shared imgQueue (see stLoyaltyImg above) instead of firing every thumb's
+    // shared queueImg() (see stLoyaltyImg above) instead of firing every thumb's
     // lookup at once.
     el.querySelectorAll('.streak-mini-thumb').forEach((thumb, i) => {
       const p = allPlays[i];
       if (!p) return;
-      imgQueue = imgQueue.then(() => _fetchPlayArt(p).then(thumbUrl => {
+      queueImg(() => _fetchPlayArt(p).then(thumbUrl => {
         const src = thumbUrl || url;
         if (!src) return;
         const tImg = document.createElement('img');
         tImg.className = 'streak-mini-img';
-        tImg.src = src;
+        tImg.src = sizedArtUrl(src, 38); // the 38px strip — see .streak-mini-thumb
         tImg.alt = '';
         tImg.onerror = () => tImg.remove();
         thumb.innerHTML = '';
@@ -45471,14 +45667,8 @@ function renderStreakBanner() {
 async function _fetchPlayArt(p) {
   try {
     const primaryArtist = albumArtist(p);
-    if (p.album && p.album !== '—') {
-      const prefKey = 'album:' + primaryArtist.toLowerCase() + '|||' + p.album.toLowerCase();
-      const source = itemSourcePrefs[prefKey] || 'deezer';
-      return await getAlbumImage(p.album, primaryArtist, source);
-    }
-    const prefKey = 'song:' + p.artist.toLowerCase() + '|||' + p.title.toLowerCase();
-    const source = itemSourcePrefs[prefKey] || 'deezer';
-    return await getTrackImage(p.title, primaryArtist, source);
+    if (p.album && p.album !== '—') return await getArtAuto('album', p.album, primaryArtist, p.album);
+    return await getArtAuto('song', p.title, primaryArtist);
   } catch (e) { return null; }
 }
 
@@ -45486,16 +45676,16 @@ async function _fetchStreakArt(streak) {
   try {
     if (streak.type === 'song') {
       return (streak.album && streak.album !== '—')
-        ? await getAlbumImage(streak.album, streak.artist)
-        : await getTrackImage(streak.title, streak.artist);
+        ? await getArtAuto('album', streak.album, streak.artist, streak.album)
+        : await getArtAuto('song', streak.title, streak.artist);
     }
-    if (streak.type === 'album')  return await getAlbumImage(streak.album, streak.artist);
-    if (streak.type === 'artist') return await getArtistImage(streak.artist);
+    if (streak.type === 'album')  return await getArtAuto('album', streak.album, streak.artist, streak.album);
+    if (streak.type === 'artist') return await getArtAuto('artist', streak.artist);
     // Shuffle: most recent play's album art
     const p = allPlays[0];
     return (p.album && p.album !== '—')
-      ? await getAlbumImage(p.album, p.artist)
-      : await getArtistImage(p.artist);
+      ? await getArtAuto('album', p.album, p.artist, p.album)
+      : await getArtAuto('artist', p.artist);
   } catch (e) { return null; }
 }
 

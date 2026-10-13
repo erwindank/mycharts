@@ -9,6 +9,12 @@ not to be bugs (see 1, problems 6 and 7). Section 5 now says what was built,
 what it changes for the later phases, and how to take screenshots that don't
 mislead. Phase 0 is done too (same day): `DESIGN.md` now holds section 3.
 
+**Updated 2026-10-13:** Problem 2 (initials instead of pictures) was mostly a
+screenshot artifact. Artwork loads lazily as each part of the page scrolls
+into view, and the screenshots were taken without scrolling there, so those
+slots had never asked for their picture. Phase 4 has been redone as a review
+of the picture system instead — see section 3.7 and the phase 4 row.
+
 **Seen on screen:**
 - Weekly: Albums and Songs, in all six chart layouts (Table, Card grid,
   Compact, Mosaic, Filmstrip, Stack)
@@ -76,6 +82,9 @@ label, which is what gives it the "hacker terminal from 2018" look.
    the Records Overview show initials. This makes the site look unfinished
    more than anything else apart from the type. Where there *is* art (Card
    grid, Mosaic, the Records hero), the site immediately looks good.
+   *(2026-10-13: mostly not real. These slots had not been scrolled into view,
+   so their pictures had never been asked for. On a real library about 99% of
+   items find a picture. See 3.7.)*
 3. **A red YouTube button on every song row.** On Yearly and All-Time that's
    100 bright red buttons in a column, the loudest thing on the page. It's
    also the same red as "dropped". (It can already be switched off in ⋮ →
@@ -276,6 +285,30 @@ picker are fine.
   seconds, not as a line in the page.
 
 ### 3.7 Every song, album and artist has a picture
+
+**Status 2026-10-13.** The site already does most of this: Deezer first, then
+iTunes, then Last.fm (YouTube only when picked by hand), with a picker to
+choose any picture. On the sample library 774 of 784 items found one. What the
+review found and fixed (phase 4):
+- Last.fm sends the same grey star for every artist; it counted as a picture.
+- A busy answer from Deezer counted as "no picture", was remembered, and moved
+  the item to lower-res iTunes/Last.fm art for good.
+- Two lookups for the same item at once: the second one read "no picture".
+- Every picture loaded at 1000×1000 (~300 KB) even in a 36px row; a 100-row
+  chart pulled about 16 MB. Now sized to the slot: about 0.3 MB.
+- Lookups ran one at a time, and the Time Machine, Soundtrack and Records reels
+  (hundreds of cards each) competed with what was on screen. Now three at a
+  time, reels last: a 100-row chart fills in about 3 s instead of 21.
+- About ten places (Soundtrack avatars, bubbles and banner, streak cards, Now
+  Playing, the bar race, album plaques) asked Deezer only.
+- Spotify-style titles ("Song - Acoustic Version", "Album - EP", "A, B" as the
+  artist) found nothing on Deezer; they now get a second search.
+
+Still open, for later phases: the gradient-and-icon stand-in below (a small
+job now that misses are rare), and artist pictures being round in some places
+and square in others (for example the two artist cards in "of the moment").
+
+The original plan:
 
 - **Fetch artist and album images** wherever they're missing. Last.fm no longer
   serves artist photos, but Deezer's public API does (no key needed), and so
@@ -978,7 +1011,7 @@ themes (Navy dark, Navy light, Yellow dark, Red light; see 3.2) and on a phone.
 | **1** ✓ | **Quick wins — done 2026-10-11.** Every ⋮ → Show switch off by default, a separate Playlist switch, the YouTube/＋ pair tidied, the tour shows every switch while it runs. The gap and the moving picker were screenshot artifacts, not bugs (1.6, 1.7). | A visibly calmer site in an afternoon, with no redesign needed. | Small |
 | **2** ✓ | **Type pass — done 2026-10-11** (CSS side; see "Phase 2" below for what was left out). Map all 131 font sizes onto the 7 tokens (anything under 12px → 12px), switch labels/buttons/headings from mono to sans, remove most uppercase and letter-spacing. | Biggest visual improvement for the effort. Mostly find-and-replace in CSS. | Medium |
 | **3** ✓ | **Colour pass — done 2026-10-12** (on branch `redesign/phase-3-colour`, see "Phase 3" below). Remove per-tile and per-label colours, the left row bars, the rainbow chart bars and extra rgba tints. Neutral tags (3.8). Movement = green/red only. | Calms the whole site at once. | Small–medium |
-| **4** | **Artwork:** fetch missing artist and album images, cache them, gradient fallback, no more initials (3.7). | The second biggest "looks unfinished" problem, and it improves every page at once. | Medium |
+| **4** ✓ | **Artwork — redone 2026-10-13** as a review of the picture system (3.7): the missing pictures were mostly a screenshot artifact. Fixed the Deezer→iTunes→Last.fm fallback, sized pictures to their slots, loaded three at a time with what's on screen first. Left for later: the gradient stand-in for the rare real miss. | Turned out smaller than planned. | Small |
 | **5** | **Shell:** slim sticky top bar, new main tabs + More, period switch next to the date, toasts for status, merge ON AIR + streak, no masthead or Time Machine on non-chart tabs. | Fixes "can't find anything" and gives back ~1,000px on every tab. | Medium |
 | **6** | **Weekly page:** one filter toolbar, sections reordered (stats + "of the moment" → chart → bubbling/off/new → certified → time machine), releases moved to Events, light-touch stat tile changes only if you choose them (4.6). | This is the page everyone sees first. | Medium |
 | **7** | **Chart table and layouts** (4.9b, 4.10, 4.11, 4.12): one item builder + one action menu + one details drawer so **every layout has every feature** (chart run, peak, plays change, player, playlist…), layouts on every period with paging, all six layouts restyled, buttons moved into the toolbar, slimmer rows from #11 down, short lists capped at 5. | The core of the product. Do the shared builder first, then restyle each layout on top of it. | Large |
