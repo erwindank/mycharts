@@ -16,6 +16,14 @@ window.DC_CHANGELOG_I18N['pt-PT'] = {
 
   /* ========== OUTUBRO 2026 ========== */
 
+  "Rounder artist cards, bigger streak covers":
+    ["Cartões de artista redondos e capas de sequência maiores",
+     "Artista do momento mostra agora uma imagem redonda, como Artista em ascensão ao lado, enquanto as imagens de músicas e álbuns continuam quadradas. As capas pequenas na faixa de sequência estão maiores, para que se perceba que músicas são."],
+
+  "Pictures load faster and find more covers":
+    ["As imagens carregam mais depressa e encontram-se mais capas",
+     "As capas carregam cerca de sete vezes mais depressa: uma tabela de 100 músicas mostra as imagens em cerca de 3 segundos e descarrega cerca de 50 vezes menos, porque cada imagem é pedida no tamanho em que aparece. O que está no ecrã carrega primeiro. Quando o Deezer não tem imagem, o iTunes e o Last.fm são agora tentados em todo o site, não só nas tabelas, e músicas com títulos como \"Música - Acoustic Version\" ou com vários artistas encontram a capa mais vezes. Um momento de sobrecarga no Deezer já não troca as capas por outras de menor qualidade para sempre, e os artistas sem fotografia mostram as iniciais em vez da estrela cinzenta do Last.fm."],
+
   "Pick any chart size":
     ["Escolha qualquer tamanho de tabela",
      "O menu Tamanho de cada tabela tem agora uma caixa Personalizado por baixo das opções Top 10 a Top 100. Escreva qualquer número de 5 a 500 e carregue em Aplicar ou Enter, e a tabela mostra esse número de entradas. Fica guardado por tabela e por período, como as opções fixas. Uma nota por baixo da caixa lembra que os picos, percursos, estreias e recordes anteriores acompanham o tamanho escolhido."],

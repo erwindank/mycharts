@@ -16,6 +16,14 @@ window.DC_CHANGELOG_I18N['pt-BR'] = {
 
   /* ========== OUTUBRO 2026 ========== */
 
+  "Rounder artist cards, bigger streak covers":
+    ["Cards de artista redondos e capas de sequência maiores",
+     "Artista do momento agora mostra uma imagem redonda, como Artista em ascensão ao lado, enquanto as imagens de músicas e álbuns continuam quadradas. As capas pequenas no banner de sequência estão maiores, então dá para ver quais músicas são."],
+
+  "Pictures load faster and find more covers":
+    ["As imagens carregam mais rápido e mais capas são encontradas",
+     "As capas carregam cerca de sete vezes mais rápido: uma parada de 100 músicas mostra as imagens em uns 3 segundos e baixa cerca de 50 vezes menos, porque cada imagem é buscada no tamanho em que aparece. O que está na tela carrega primeiro. Quando o Deezer não tem imagem, agora o iTunes e o Last.fm são tentados em todo o site, não só nas paradas, e músicas com títulos como \"Música - Acoustic Version\" ou com vários artistas encontram a capa com mais frequência. Um momento de sobrecarga no Deezer não troca mais as capas por outras de qualidade menor para sempre, e artistas sem foto mostram as iniciais em vez da estrela cinza do Last.fm."],
+
   "Pick any chart size":
     ["Escolha qualquer tamanho de parada",
      "O menu Tamanho de cada parada agora tem uma caixa Personalizado abaixo das opções Top 10 a Top 100. Digite qualquer número de 5 a 500 e clique em Aplicar ou pressione Enter, e a parada mostra essa quantidade de entradas. Fica salvo por parada e por período, como as opções fixas. Uma nota abaixo da caixa lembra que picos, trajetórias, estreias e recordes anteriores acompanham o tamanho escolhido."],

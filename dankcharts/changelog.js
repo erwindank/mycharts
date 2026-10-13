@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 101;
+const DC_CL_I18N_V = 102;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,14 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+
+  { d: '2026-10-13', t: 'design', a: 'ui', h: '5f09c94',
+    title: 'Rounder artist cards, bigger streak covers',
+    detail: "Artist of the moment now shows a round picture, like Rising artist next to it, while song and album pictures stay square. The small covers in the streak banner are bigger, so you can tell which songs they are." },
+
+  { d: '2026-10-13', t: 'perf', a: 'charts', h: '0bab8c2',
+    title: 'Pictures load faster and find more covers',
+    detail: "Cover art fills in about seven times faster: a 100-song chart now loads its pictures in around 3 seconds, and downloads about 50 times less, because each picture is fetched at the size it is shown. What is on screen loads first. When Deezer has no picture, iTunes and Last.fm are now tried everywhere on the site, not only in the charts, and songs with titles like \"Song - Acoustic Version\" or several artists find their cover more often. A busy moment at Deezer no longer swaps covers for lower-quality ones for good, and artists with no photo show their initials instead of Last.fm's grey star." },
 
   { d: '2026-10-12', t: 'feature', a: 'charts', h: 'd02cebd',
     title: 'Pick any chart size',

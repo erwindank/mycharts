@@ -16,6 +16,14 @@ window.DC_CHANGELOG_I18N['es'] = {
 
   /* ========== OCTUBRE 2026 ========== */
 
+  "Rounder artist cards, bigger streak covers":
+    ["Tarjetas de artista redondas y portadas de racha más grandes",
+     "Artista del momento ahora muestra una imagen redonda, como Artista en ascenso a su lado, mientras que las imágenes de canciones y álbumes siguen cuadradas. Las portadas pequeñas del banner de racha son más grandes, así que puedes ver qué canciones son."],
+
+  "Pictures load faster and find more covers":
+    ["Las imágenes cargan más rápido y se encuentran más portadas",
+     "Las portadas se cargan unas siete veces más rápido: una lista de 100 canciones muestra sus imágenes en unos 3 segundos y descarga unas 50 veces menos, porque cada imagen se pide al tamaño en que se muestra. Lo que está en pantalla carga primero. Cuando Deezer no tiene imagen, ahora se prueban iTunes y Last.fm en todo el sitio, no solo en las listas, y las canciones con títulos como \"Canción - Acoustic Version\" o con varios artistas encuentran su portada más a menudo. Un momento de saturación en Deezer ya no cambia las portadas por otras de menor calidad para siempre, y los artistas sin foto muestran sus iniciales en lugar de la estrella gris de Last.fm."],
+
   "Pick any chart size":
     ["Elige cualquier tamaño de lista",
      "El menú Tamaño de cada lista tiene ahora un cuadro Personalizado debajo de las opciones Top 10 a Top 100. Escribe cualquier número entre 5 y 500 y pulsa Aplicar o Enter, y la lista mostrará esa cantidad de entradas. Se guarda por lista y por periodo, igual que las opciones fijas. Una nota bajo el cuadro te recuerda que los picos, trayectorias, debuts y récords anteriores siguen el tamaño que elijas."],
