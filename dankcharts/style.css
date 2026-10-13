@@ -5794,8 +5794,12 @@
 
     /* Category color variables — drive icon/number tint across all three tiers */
     [data-cat="plays"]       { --cat-color: var(--accent); }
-    [data-cat="songs"]       { --cat-color: var(--green); }
-    [data-cat="artists"]     { --cat-color: var(--rose); }
+    /* Songs violet, Artists magenta (2026-10-12, user's pick "option A"):
+       they were green and red, the same colours as "up" and "down", so a
+       tile's big number read like growth or a drop. Deeper shades on light
+       themes, set below. */
+    [data-cat="songs"]       { --cat-color: #a78bfa; }
+    [data-cat="artists"]     { --cat-color: #e879f9; }
     [data-cat="albums"]      { --cat-color: var(--gold1); }
     [data-cat="bestday"]     { --cat-color: var(--accent); }
     [data-cat="new-songs"]   { --cat-color: var(--green); }
@@ -5806,15 +5810,26 @@
     [data-cat="aotm"]        { --cat-color: var(--rose); }
     [data-cat="albumotm"]    { --cat-color: var(--amber); }
 
-    /* Total Plays / Best Day keep their blue accent even on the Red and Pink
-       themes, instead of following those themes' own red/pink --accent —
-       a deliberate exception to "one accent per theme" for these two cards. */
+    /* Total Plays / Best Day keep their blue accent even on the Red, Pink and
+       Purple themes, instead of following those themes' own --accent —
+       a deliberate exception to "one accent per theme" for these two cards.
+       Purple added 2026-10-12: its violet accent matched the violet Songs tile. */
     body.red [data-cat="plays"], body.red [data-cat="bestday"],
-    body.pink [data-cat="plays"], body.pink [data-cat="bestday"] {
+    body.pink [data-cat="plays"], body.pink [data-cat="bestday"],
+    body.purple [data-cat="plays"], body.purple [data-cat="bestday"] {
       --cat-color: #58aaf6;
     }
+    /* Light themes: deeper violet / magenta so the numbers hold contrast
+       on the white tiles (#6d28d9 ≈ 7.1:1, #a21caf ≈ 6.3:1 on white) */
+    body.navy-light [data-cat="songs"], body.purple-light [data-cat="songs"],
+    body.yellow-light [data-cat="songs"], body.pink-light [data-cat="songs"],
+    body.red-light [data-cat="songs"] { --cat-color: #6d28d9; }
+    body.navy-light [data-cat="artists"], body.purple-light [data-cat="artists"],
+    body.yellow-light [data-cat="artists"], body.pink-light [data-cat="artists"],
+    body.red-light [data-cat="artists"] { --cat-color: #a21caf; }
     body.red-light [data-cat="plays"], body.red-light [data-cat="bestday"],
-    body.pink-light [data-cat="plays"], body.pink-light [data-cat="bestday"] {
+    body.pink-light [data-cat="plays"], body.pink-light [data-cat="bestday"],
+    body.purple-light [data-cat="plays"], body.purple-light [data-cat="bestday"] {
       --cat-color: #0852a8;
     }
 
