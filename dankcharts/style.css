@@ -104,12 +104,14 @@
          theme whose accent is a mid-to-dark colour; themes with a LIGHT accent (yellow
          dark) must override this or filled "selected" pills become unreadable. */
       --on-accent: #fff;
+      /* hover, selected, dropdowns and tags — a step above --surface (phase 3 colour pass) */
+      --raised: #26375a;
     }
 
     /* ── NAVY LIGHT ──
        Frame color softened toward slate for the 2026 redesign. */
     body.navy-light {
-      --bg: #ccdcf0;
+      --bg: #eef3fa;
       --bg2: #ffffff;
       --bg3: #ecf3fb;
       --surface: #dbe8f8;
@@ -139,6 +141,8 @@
       --gold2: #c07818;
       /* light gridlines — fixes light-theme graphs that fell back to a dark hex in JS */
       --rule: #c3d2e4;
+      /* hover, selected, dropdowns and tags — light tint of the hue (phase 3 colour pass) */
+      --raised: #e3edf9;
     }
 
     /* ── PURPLE DARK ──
@@ -168,12 +172,14 @@
       --gold2: #fcd34d;
       /* chart gridlines (plain hex — read by JS) */
       --rule: #2b2647;
+      /* hover, selected, dropdowns and tags — a step above --surface (phase 3 colour pass) */
+      --raised: #2f2950;
     }
 
     /* ── PURPLE LIGHT ──
        Frame color softened toward lavender-slate (2026 redesign). */
     body.purple-light {
-      --bg: #d6cff2;
+      --bg: #f2f0fb;
       --bg2: #ffffff;
       --bg3: #efecfa;
       --surface: #e2dcf8;
@@ -202,6 +208,8 @@
       --gold2: #b05c00;
       /* light gridlines (plain hex — read by JS) */
       --rule: #cdc6e6;
+      /* hover, selected, dropdowns and tags — light tint of the hue (phase 3 colour pass) */
+      --raised: #e9e4f9;
     }
 
     /* ── YELLOW DARK ──
@@ -233,12 +241,14 @@
       /* The one theme with a light accent — white on #f5d420 is 1.5:1, so filled
          "selected" states get the deep warm charcoal instead (≈14:1). */
       --on-accent: #14130a;
+      /* hover, selected, dropdowns and tags — a step above --surface (phase 3 colour pass) */
+      --raised: #3a351c;
     }
 
     /* ── YELLOW LIGHT ──
        Loud lemon frame softened to warm parchment-gold (2026 redesign). */
     body.yellow-light {
-      --bg: #eee5b0;
+      --bg: #f8f5e6;
       --bg2: #ffffff;
       --bg3: #faf6e0;
       --surface: #f7eecb;
@@ -262,6 +272,8 @@
       --gold2: #a05800;
       /* light gridlines (plain hex — read by JS) */
       --rule: #ddd5a8;
+      /* hover, selected, dropdowns and tags — light tint of the hue (phase 3 colour pass) */
+      --raised: #f4edcc;
     }
 
     /* ── PINK DARK ──
@@ -290,12 +302,14 @@
       --gold2: #fcd34d;
       /* chart gridlines (plain hex — read by JS) */
       --rule: #3c2533;
+      /* hover, selected, dropdowns and tags — a step above --surface (phase 3 colour pass) */
+      --raised: #3a2331;
     }
 
     /* ── PINK LIGHT ──
        Frame softened to a dusty rose (2026 redesign). */
     body.pink-light {
-      --bg: #efcfe6;
+      --bg: #f9eff6;
       --bg2: #ffffff;
       --bg3: #faf0f7;
       --surface: #f8def0;
@@ -318,6 +332,8 @@
       --gold2: #b45800;
       /* light gridlines (plain hex — read by JS) */
       --rule: #e5cbdc;
+      /* hover, selected, dropdowns and tags — light tint of the hue (phase 3 colour pass) */
+      --raised: #f8e3f1;
     }
 
     /* ── RED DARK ──
@@ -346,12 +362,14 @@
       --gold2: #fcd34d;
       /* chart gridlines (plain hex — read by JS) */
       --rule: #3a2323;
+      /* hover, selected, dropdowns and tags — a step above --surface (phase 3 colour pass) */
+      --raised: #3b2323;
     }
 
     /* ── RED LIGHT ──
        Frame softened to a dusty rosewood (2026 redesign). */
     body.red-light {
-      --bg: #efcece;
+      --bg: #f9f0f0;
       --bg2: #ffffff;
       --bg3: #faf0f0;
       --surface: #f8dede;
@@ -380,6 +398,8 @@
       --gold2: #b45800;
       /* light gridlines (plain hex — read by JS) */
       --rule: #e2c8c8;
+      /* hover, selected, dropdowns and tags — light tint of the hue (phase 3 colour pass) */
+      --raised: #f8e4e4;
     }
 
     /* ── DERIVED SEMANTIC TOKENS ──
@@ -415,11 +435,22 @@
       --violet: #a78bfa;
 
       /* chart movement semantics — alias the theme set so light themes
-         override once instead of via per-component rules */
+         override once instead of via per-component rules.
+         Phase 3 colour pass: movement is green (up) / red (down) only.
+         NEW and RE share one colour and always carry their word, so
+         re-entry no longer needs its own violet. */
       --chart-up: var(--green);
       --chart-down: var(--rose);
       --chart-new: var(--accent);
-      --chart-re: var(--violet);
+      --chart-re: var(--chart-new);
+    }
+
+    /* Red and Pink: the accent IS the "down" red/rose, so a NEW in the
+       accent looked like a drop. NEW/RE go neutral there (DESIGN.md §2,
+       Collisions); the word still says what it is. */
+    body.red, body.red-light,
+    body.pink, body.pink-light {
+      --chart-new: var(--text2);
     }
 
     /* Light-theme variants of the derived tokens */
@@ -4723,102 +4754,34 @@
       cursor: default;
     }
 
-    /* Idea 13: plays away (cyan) */
-    .bu-badge-away {
-      background: rgba(125, 211, 252, 0.12);
-      color: #7dd3fc;
-      border: 1px solid rgba(125, 211, 252, 0.25);
+    /* Phase 3 colour pass (REDESIGN-PLAN 3.8): tags are neutral, so they
+       work in every theme without a palette of their own. Was 14 colours
+       (cyan, orange, green, silver, gold, rose, yellow, teal, indigo,
+       purple, fuchsia, red, lime…), which nobody could learn. Only the
+       movement words keep colour: going up = green, going down = red.
+       Each tag still has its own class (bu-badge-away, -debut…) so it can
+       be told apart or styled again later. */
+    .bu-badge {
+      background: var(--raised);
+      color: var(--text2);
+      /* faint outline: on light themes --raised is close to the (already
+         dimmed) Bubbling Under row, and the tag vanished without it */
+      border: 1px solid var(--border-t);
     }
 
-    /* Idea 15: fading — was on chart, now below (orange) */
-    .bu-badge-fading {
-      background: rgba(251, 146, 60, 0.12);
-      color: #fb923c;
-      border: 1px solid rgba(251, 146, 60, 0.25);
-    }
-
-    /* Idea 16: trending — never charted, steadily in BU (green) */
-    .bu-badge-trending {
-      background: rgba(74, 222, 128, 0.12);
-      color: #4ade80;
-      border: 1px solid rgba(74, 222, 128, 0.25);
-    }
-
-    /* Idea 18: debut — first time ever in BU (white/silver) */
-    .bu-badge-debut {
-      background: rgba(248, 250, 252, 0.08);
-      color: #e2e8f0;
-      border: 1px solid rgba(248, 250, 252, 0.2);
-    }
-
-    /* Idea 16a-2: persistent — never charted, 5+ weeks in BU (gold) */
-    .bu-badge-persistent {
-      background: rgba(251, 191, 36, 0.12);
-      color: #fbbf24;
-      border: 1px solid rgba(251, 191, 36, 0.25);
-    }
-
-    /* Idea 19: fallen — former top-5 hit now in BU (rose) */
-    .bu-badge-fallen {
-      background: rgba(251, 113, 133, 0.12);
-      color: #fb7185;
-      border: 1px solid rgba(251, 113, 133, 0.25);
-    }
-
-    /* Idea 17: surging — biggest week-over-week gainer in BU (yellow) */
+    /* Movement up: trending toward the chart, biggest gainer */
+    .bu-badge-trending,
     .bu-badge-surging {
-      background: rgba(250, 204, 21, 0.12);
-      color: #facc15;
-      border: 1px solid rgba(250, 204, 21, 0.25);
+      color: var(--chart-up);
+      background: color-mix(in srgb, var(--chart-up) 12%, transparent);
     }
 
-    /* Idea 16b: resurgence — first time back in BU after a chart stint (teal) */
-    .bu-badge-resurgence {
-      background: rgba(45, 212, 191, 0.12);
-      color: #2dd4bf;
-      border: 1px solid rgba(45, 212, 191, 0.25);
-    }
-
-    /* Idea 16c: resurgent — persisting in BU after a chart stint (blue-teal) */
-    .bu-badge-resurgent {
-      background: rgba(99, 102, 241, 0.12);
-      color: #818cf8;
-      border: 1px solid rgba(99, 102, 241, 0.25);
-    }
-
-    /* Clinging — dropped from chart directly into BU, still holding on (amber) */
-    .bu-badge-clinging {
-      background: rgba(251, 146, 60, 0.12);
-      color: #fb923c;
-      border: 1px solid rgba(251, 146, 60, 0.25);
-    }
-
-    /* Idea 14: total weeks in BU (purple) */
-    .bu-badge-weeks {
-      background: rgba(167, 139, 250, 0.12);
-      color: #a78bfa;
-      border: 1px solid rgba(167, 139, 250, 0.25);
-    }
-
-    /* Idea 14b: consecutive streak in BU (fuchsia) */
-    .bu-badge-streak {
-      background: rgba(232, 121, 249, 0.12);
-      color: #e879f9;
-      border: 1px solid rgba(232, 121, 249, 0.25);
-    }
-
-    /* Freefall: biggest play drop in BU this week (red) */
+    /* Movement down: dropped off, fell from the top 3, biggest loser */
+    .bu-badge-fading,
+    .bu-badge-fallen,
     .bu-badge-freefall {
-      background: rgba(239, 68, 68, 0.12);
-      color: #f87171;
-      border: 1px solid rgba(239, 68, 68, 0.25);
-    }
-
-    /* Yo-Yo: 3+ separate BU stints (lime) */
-    .bu-badge-yoyo {
-      background: rgba(163, 230, 53, 0.12);
-      color: #a3e635;
-      border: 1px solid rgba(163, 230, 53, 0.25);
+      color: var(--chart-down);
+      background: color-mix(in srgb, var(--chart-down) 12%, transparent);
     }
 
     .bu-plays-cell {
@@ -4877,8 +4840,9 @@
   font-family: inherit;
   transition: background 0.1s;
 }
-.bu-tl-playall-btn { background: #FF0000; color: #fff; }
-.bu-tl-playall-btn:hover { background: #cc0000; }
+/* phase 3: primary button in the theme accent, not YouTube red */
+.bu-tl-playall-btn { background: var(--accent); color: var(--on-accent); }
+.bu-tl-playall-btn:hover { background: var(--accent2); }
 .bu-tl-queueall-btn { background: var(--bg3); color: var(--text); border: 1px solid var(--border); }
 .bu-tl-queueall-btn:hover { background: var(--border); }
 .bu-tl-close-btn {
@@ -4945,7 +4909,7 @@
   font-family: inherit;
   transition: background 0.1s, color 0.1s, border-color 0.1s;
 }
-.bu-tl-play-btn:hover { background: #FF0000; color: #fff; border-color: #FF0000; }
+.bu-tl-play-btn:hover { background: var(--accent); color: var(--on-accent); border-color: var(--accent); }
 .bu-tl-queue-btn:hover { background: var(--border); }
 
     /* =============================================
@@ -6188,6 +6152,21 @@
       -webkit-text-fill-color: transparent;
       background-clip: text;
       filter: drop-shadow(0 0 4px color-mix(in srgb, var(--rose) 60%, transparent));
+    }
+    /* Phase 3 colour pass: on light themes the pale #ff9eb5 middle stop and the
+       pink glow washed "Artist of the moment" out on the white card (worst in
+       Red light and Navy light). Same gradient shape, but the middle stop is a
+       deeper rose and the glow (a dark-surface idea) is dropped. Colour only —
+       the spotlight cards themselves are approved as they are. */
+    body.navy-light .stat-label-aotm,
+    body.purple-light .stat-label-aotm,
+    body.yellow-light .stat-label-aotm,
+    body.pink-light .stat-label-aotm,
+    body.red-light .stat-label-aotm {
+      background: linear-gradient(90deg, var(--rose), color-mix(in srgb, var(--rose) 70%, var(--text)), var(--rose));
+      -webkit-background-clip: text;
+      background-clip: text;
+      filter: none;
     }
     .stat-label-albumotm {
       background: linear-gradient(90deg, var(--amber), var(--gold2), var(--amber));
@@ -7732,8 +7711,8 @@
 
     .cal-play-all-btn:hover {
       background: var(--surface);
-      color: #FF0000;
-      border-color: #FF0000;
+      color: var(--accent);
+      border-color: var(--accent);
     }
 
     .cal-create-pl-btn {
@@ -8096,10 +8075,12 @@
       width: 22px;
       height: 22px;
       padding: 0;
-      background: transparent;
-      border: 1px solid var(--border2);
+      /* phase 3: same quiet fill as the YouTube button beside it, so the
+         pair reads as one set (was a bordered outline next to a red block) */
+      background: var(--raised);
+      border: 1px solid transparent;
       border-radius: 5px;
-      color: var(--text3);
+      color: var(--text2);
       cursor: pointer;
       vertical-align: middle;
       transition: background 0.12s, color 0.12s, border-color 0.12s;
@@ -9909,11 +9890,12 @@
       padding: 0.55rem var(--sp-3);
       cursor: pointer;
       user-select: none;
-      background: rgba(255,255,255,0.02);
+      /* phase 3: theme washes instead of white ones (invisible on light themes) */
+      background: color-mix(in srgb, var(--text) 2%, transparent);
     }
 
     .modal-chart-section-header:hover {
-      background: rgba(255,255,255,0.05);
+      background: var(--hover);
     }
 
     .mcs-tog {
@@ -19204,8 +19186,8 @@ body.purple .landing-card-config input:focus {
 @keyframes yt-ring-flash  { 0%,100% { opacity: 0.7; } 50% { opacity: 1; } }
 
 /* ── Now-playing row highlight ─── */
-.yt-now-playing-row { background: rgba(255,0,0,0.055) !important; }
-.yt-now-playing-row > td:first-child { box-shadow: inset 2px 0 0 #FF0000; }
+.yt-now-playing-row { background: color-mix(in srgb, var(--accent) 8%, transparent) !important; }
+/* phase 3: the red left bar went with the other row bars; the tint shows it */
 
 /* ── Play All / Shuffle row ─── */
 .yt-playall-btn {
@@ -19973,7 +19955,7 @@ body.purple .landing-card-config input:focus {
   font-family: inherit;
   transition: background 0.1s, color 0.1s;
 }
-.yt-queue-ctx button:hover { background: rgba(255,255,255,0.07); color: var(--text); }
+.yt-queue-ctx button:hover { background: var(--hover); color: var(--text); } /* phase 3: was a white wash */
 
 /* ── Touch drag ghost element (#19) ── */
 .yt-touch-drag-ghost {
@@ -20029,13 +20011,17 @@ body.purple .landing-card-config input:focus {
   line-height: 1.4;
 }
 
-/* YouTube play button on each song row */
+/* YouTube play button on each song row.
+   Phase 3 colour pass: was a solid YouTube-red (#FF0000) button, the loudest
+   thing on the page and the same red as "dropped". Now a quiet neutral button
+   (--raised / --text); the YouTube icon and word say what it is. The theme
+   accent shows what's playing (see .yt-btn-playing). */
 .yt-play-btn {
   position: relative;
   display: inline-flex;
   align-items: center;
-  background: #FF0000;
-  color: #fff;
+  background: var(--raised);
+  color: var(--text);
   border: none;
   border-radius: 3px;
   font-size: var(--fs-xs);
@@ -20050,7 +20036,8 @@ body.purple .landing-card-config input:focus {
   transition: background 0.15s, transform 0.1s;
   white-space: nowrap;
 }
-.yt-play-btn:hover { background: #cc0000; transform: scale(1.05); }
+/* hover is colour only, no scale pop (DESIGN.md §5 Buttons) */
+.yt-play-btn:hover { background: color-mix(in srgb, var(--text) 12%, var(--raised)); }
 .yt-play-btn .yt-btn-content { display: flex; align-items: center; gap: 0.3em; transition: opacity 0.12s; }
 
 /* YouTube + ＋ playlist pair under a row's title. They were different heights
@@ -20073,20 +20060,20 @@ body.purple .landing-card-config input:focus {
 .yt-play-btn + .dc-pl-add-btn:not(.dc-pl-add-sm) { margin-top: 6px; }
 .yt-btn-icon { width: 10px; height: 10px; fill: currentColor; flex-shrink: 0; display: block; }
 /* Loading state */
-.yt-play-btn.yt-btn-loading { background: #888; cursor: wait; pointer-events: none; }
+.yt-play-btn.yt-btn-loading { background: var(--raised); cursor: wait; pointer-events: none; }
 .yt-play-btn.yt-btn-loading .yt-btn-content { opacity: 0; }
 .yt-play-btn.yt-btn-loading::after {
   content: '';
   position: absolute;
   left: 50%; top: 50%;
   width: 0.65em; height: 0.65em;
-  border: 1.5px solid rgba(255,255,255,0.35);
-  border-top-color: #fff;
+  border: 1.5px solid color-mix(in srgb, var(--text) 35%, transparent);
+  border-top-color: var(--text);
   border-radius: 50%;
   animation: yt-spin 0.55s linear infinite;
 }
 /* Now-playing state */
-.yt-play-btn.yt-btn-playing { background: #FF0000; animation: yt-btn-pulse 1.4s ease-in-out infinite; }
+.yt-play-btn.yt-btn-playing { background: var(--accent); color: var(--on-accent); animation: yt-btn-pulse 1.4s ease-in-out infinite; }
 .yt-play-btn.yt-btn-playing .yt-btn-content::before { content: '●'; font-size: 0.55em; margin-right: 0.1em; line-height: 1; }
 body.songs-hide-yt-btns   #songsSection   .yt-play-btn,
 body.artists-hide-yt-btns #artistsSection .yt-play-btn,
@@ -26564,8 +26551,8 @@ body.pink-light .awards-reallife-badge.nom { color: #4338ca; border-color: #6366
   border-radius: 3px; border: 1px solid var(--border2); background: transparent;
   color: var(--text3); cursor: pointer; transition: background 0.13s, color 0.13s;
 }
-.sk-hm-rbtn:hover { background: rgba(255,255,255,0.07); color: var(--text2); }
-.sk-hm-rbtn.active { background: rgba(255,255,255,0.13); color: var(--text); border-color: rgba(255,255,255,0.25); }
+.sk-hm-rbtn:hover { background: var(--hover); color: var(--text2); } /* phase 3: was a white wash, invisible on light themes */
+.sk-hm-rbtn.active { background: var(--raised); color: var(--text); border-color: var(--border2); } /* phase 3: was a white wash, invisible on light themes */
 .sk-hm-themes { display: flex; gap: var(--sp-1); align-items: center; }
 .sk-hm-tswatch { width: 20px; height: 9px; border-radius: 2px; cursor: pointer; border: 1.5px solid transparent; transition: border-color 0.15s; }
 .sk-hm-tswatch.active { border-color: rgba(255,255,255,0.55); }
@@ -26624,7 +26611,7 @@ body.pink-light .awards-reallife-badge.nom { color: #4338ca; border-color: #6366
   border-radius: 3px; border: 1px solid var(--border2); background: transparent;
   color: var(--text3); cursor: pointer; transition: background 0.13s, color 0.13s;
 }
-.sk-hm-copy-btn:hover { background: rgba(255,255,255,0.07); color: var(--text2); }
+.sk-hm-copy-btn:hover { background: var(--hover); color: var(--text2); } /* phase 3: was a white wash, invisible on light themes */
 
 /* Rich tooltip */
 #skHmTip {
@@ -29885,7 +29872,7 @@ body.albums-hide-yt-btns.albums-hide-pl-btns   #albumsSection  .wv-gc-hover { di
 
 /* Row — flex-wrap so accordion shelf wraps to its own line */
 .wv-cx-row { display: flex; align-items: center; flex-wrap: wrap; gap: 0.4rem; padding: 0.3rem var(--sp-2); border-bottom: 1px solid var(--border); min-height: 40px; cursor: pointer; }
-.wv-cx-row:hover { background: rgba(255,255,255,0.025); }
+.wv-cx-row:hover { background: var(--hover); } /* phase 3: was a white wash, invisible on light themes */
 .wv-r1.wv-cx-row:hover { background: rgba(240,170,48,0.16); }
 .wv-r2.wv-cx-row:hover { background: rgba(148,163,184,0.13); }
 .wv-r3.wv-cx-row:hover { background: rgba(180,83,9,0.13); }
@@ -30218,33 +30205,11 @@ body.albums-hide-cert #albumsSection .wv-film-cert-ov { display: none; }
 .wv-r1.wv-stk-card { border-color: rgba(240,170,48,0.6); background: rgba(240,170,48,0.06); animation: stk-glow-gold 2.5s ease-in-out infinite; }
 .wv-r2.wv-stk-card { border-color: rgba(148,163,184,0.55); animation: stk-glow-silver 3s ease-in-out infinite; }
 .wv-r3.wv-stk-card { border-color: rgba(180,83,9,0.55); animation: stk-glow-bronze 3.5s ease-in-out infinite; }
-.wv-stk-new { border-left: 3px solid var(--chart-new) !important; }
-.wv-stk-re  { border-left: 3px solid var(--chart-re) !important; }
-/* For top-3 NEW/RETURN cards, clip the box-shadow glow on the left so only the accent/violet border edge shows there */
-.wv-r1.wv-stk-card.wv-stk-new, .wv-r1.wv-stk-card.wv-stk-re,
-.wv-r2.wv-stk-card.wv-stk-new, .wv-r2.wv-stk-card.wv-stk-re,
-.wv-r3.wv-stk-card.wv-stk-new, .wv-r3.wv-stk-card.wv-stk-re { clip-path: inset(-80px -80px -80px 0); }
-/* Debut / re-entry rows: a short rounded rail hanging inside the rank cell's
-   left edge (was a full-height 3px border, which ran square into the row's
-   rounded corner). .rank-cell is position:relative for this. */
-tr.wv-row-new > .rank-cell::before,
-tr.wv-row-re  > .rank-cell::before {
-  content: '';
-  position: absolute;
-  left: 5px;
-  top: 26%;
-  bottom: 26%;
-  width: 3px;
-  border-radius: 3px;
-  background: var(--chart-new);
-}
-tr.wv-row-re > .rank-cell::before { background: var(--chart-re); }
-/* Phones: the rank cell shrinks to 40px, so tuck the rail against the edge
-   or it runs into a two-digit rank like "10". */
-@media (max-width: 600px) {
-  tr.wv-row-new > .rank-cell::before,
-  tr.wv-row-re  > .rank-cell::before { left: 1px; width: 2.5px; }
-}
+/* Phase 3 colour pass: the coloured left-edge bars on NEW / RE rows and stack
+   cards are gone (DESIGN.md: no coloured row bars unless the screen explains
+   them). The NEW / RE word in the movement column already says it. The
+   wv-row-new / wv-row-re / wv-stk-new / wv-stk-re classes are still set by
+   app.js as plain status hooks, with no styling of their own. */
 .wv-stk-row { display: flex; align-items: center; gap: 10px; padding: var(--sp-2) 10px; }
 .wv-stk-rank { font-family: var(--font-mono);
       font-variant-numeric: tabular-nums; font-size: var(--fs-xl); font-weight: 900; color: rgba(255,255,255,0.55); min-width: 48px; text-align: center; flex-shrink: 0; line-height: 1; }
@@ -30262,8 +30227,9 @@ tr.wv-row-re > .rank-cell::before { background: var(--chart-re); }
 .wv-stk-meta { display: flex; align-items: center; gap: 0.4rem; flex-wrap: wrap; margin-top: 2px; }
 .wv-stk-cum { font-size: var(--fs-xs); color: var(--text3); font-family: var(--font-mono);
       font-variant-numeric: tabular-nums; }
-.wv-stk-yt-btn { background: #e00; color: #fff; border: none; border-radius: 3px; padding: 2px 6px; font-size: var(--fs-xs); cursor: pointer; flex-shrink: 0; line-height: 1.5; display: inline-flex; align-items: center; transition: background 0.12s; }
-.wv-stk-yt-btn:hover { background: #c00; }
+/* phase 3: neutral, like .yt-play-btn */
+.wv-stk-yt-btn { background: var(--raised); color: var(--text); border: none; border-radius: 3px; padding: 2px 6px; font-size: var(--fs-xs); cursor: pointer; flex-shrink: 0; line-height: 1.5; display: inline-flex; align-items: center; transition: background 0.12s; }
+.wv-stk-yt-btn:hover { background: color-mix(in srgb, var(--text) 12%, var(--raised)); }
 body.songs-hide-yt-btns   #songsSection   .wv-stk-yt-btn,
 body.artists-hide-yt-btns #artistsSection .wv-stk-yt-btn,
 body.albums-hide-yt-btns  #albumsSection  .wv-stk-yt-btn { display: none; }
@@ -30374,123 +30340,13 @@ body.yellow-light .wv-stk-card:not(.wv-r1):not(.wv-r2):not(.wv-r3) .wv-stk-rank,
 body.pink-light .wv-stk-card:not(.wv-r1):not(.wv-r2):not(.wv-r3) .wv-stk-rank,
 body.red-light .wv-stk-card:not(.wv-r1):not(.wv-r2):not(.wv-r3) .wv-stk-rank { color: var(--text2); }
 
-/* 7b. BU badges — neon colors are unreadable on light backgrounds; use very dark text + subtle bg/border */
-body.navy-light .bu-badge-away,   body.purple-light .bu-badge-away,
-body.yellow-light .bu-badge-away, body.pink-light .bu-badge-away,
-body.red-light .bu-badge-away {
-  color: #0c4a6e;
-  background: rgba(12, 74, 110, 0.07);
-  border-color: rgba(12, 74, 110, 0.3);
-}
-
-body.navy-light .bu-badge-fading,   body.purple-light .bu-badge-fading,
-body.yellow-light .bu-badge-fading, body.pink-light .bu-badge-fading,
-body.red-light .bu-badge-fading {
-  color: #7c2d12;
-  background: rgba(124, 45, 18, 0.07);
-  border-color: rgba(124, 45, 18, 0.3);
-}
-
-body.navy-light .bu-badge-trending,   body.purple-light .bu-badge-trending,
-body.yellow-light .bu-badge-trending, body.pink-light .bu-badge-trending,
-body.red-light .bu-badge-trending {
-  color: #14532d;
-  background: rgba(20, 83, 45, 0.07);
-  border-color: rgba(20, 83, 45, 0.3);
-}
-
-body.navy-light .bu-badge-debut,   body.purple-light .bu-badge-debut,
-body.yellow-light .bu-badge-debut, body.pink-light .bu-badge-debut,
-body.red-light .bu-badge-debut {
-  color: #1e293b;
-  background: rgba(30, 41, 59, 0.07);
-  border-color: rgba(30, 41, 59, 0.3);
-}
-
-body.navy-light .bu-badge-persistent,   body.purple-light .bu-badge-persistent,
-body.yellow-light .bu-badge-persistent, body.pink-light .bu-badge-persistent,
-body.red-light .bu-badge-persistent {
-  color: #78350f;
-  background: rgba(120, 53, 15, 0.07);
-  border-color: rgba(120, 53, 15, 0.3);
-}
-
-body.navy-light .bu-badge-fallen,   body.purple-light .bu-badge-fallen,
-body.yellow-light .bu-badge-fallen, body.pink-light .bu-badge-fallen,
-body.red-light .bu-badge-fallen {
-  color: #881337;
-  background: rgba(136, 19, 55, 0.07);
-  border-color: rgba(136, 19, 55, 0.3);
-}
-
-body.navy-light .bu-badge-surging,   body.purple-light .bu-badge-surging,
-body.yellow-light .bu-badge-surging, body.pink-light .bu-badge-surging,
-body.red-light .bu-badge-surging {
-  color: #713f12;
-  background: rgba(113, 63, 18, 0.07);
-  border-color: rgba(113, 63, 18, 0.3);
-}
-
-body.navy-light .bu-badge-resurgence,   body.purple-light .bu-badge-resurgence,
-body.yellow-light .bu-badge-resurgence, body.pink-light .bu-badge-resurgence,
-body.red-light .bu-badge-resurgence {
-  color: #134e4a;
-  background: rgba(19, 78, 74, 0.07);
-  border-color: rgba(19, 78, 74, 0.3);
-}
-
-body.navy-light .bu-badge-resurgent,   body.purple-light .bu-badge-resurgent,
-body.yellow-light .bu-badge-resurgent, body.pink-light .bu-badge-resurgent,
-body.red-light .bu-badge-resurgent {
-  color: #312e81;
-  background: rgba(49, 46, 129, 0.07);
-  border-color: rgba(49, 46, 129, 0.3);
-}
-
-body.navy-light .bu-badge-clinging,   body.purple-light .bu-badge-clinging,
-body.yellow-light .bu-badge-clinging, body.pink-light .bu-badge-clinging,
-body.red-light .bu-badge-clinging {
-  color: #7c2d12;
-  background: rgba(124, 45, 18, 0.07);
-  border-color: rgba(124, 45, 18, 0.3);
-}
-
-body.navy-light .bu-badge-weeks,   body.purple-light .bu-badge-weeks,
-body.yellow-light .bu-badge-weeks, body.pink-light .bu-badge-weeks,
-body.red-light .bu-badge-weeks {
-  color: #4c1d95;
-  background: rgba(76, 29, 149, 0.07);
-  border-color: rgba(76, 29, 149, 0.3);
-}
-
-body.navy-light .bu-badge-streak,   body.purple-light .bu-badge-streak,
-body.yellow-light .bu-badge-streak, body.pink-light .bu-badge-streak,
-body.red-light .bu-badge-streak {
-  color: #701a75;
-  background: rgba(112, 26, 117, 0.07);
-  border-color: rgba(112, 26, 117, 0.3);
-}
-
+/* 7b. BU badges — the per-colour light overrides were removed in the phase 3
+   colour pass: tags now use --raised / --text2 / --chart-up / --chart-down,
+   which already have light-theme values. */
 body.navy-light .dropout-streak-note,   body.purple-light .dropout-streak-note,
 body.yellow-light .dropout-streak-note, body.pink-light .dropout-streak-note,
 body.red-light .dropout-streak-note {
   color: #701a75;
-}
-
-body.navy-light .bu-badge-freefall,   body.purple-light .bu-badge-freefall,
-body.yellow-light .bu-badge-freefall, body.pink-light .bu-badge-freefall,
-body.red-light .bu-badge-freefall {
-  color: #7f1d1d;
-  background: rgba(127, 29, 29, 0.07);
-  border-color: rgba(127, 29, 29, 0.3);
-}
-
-body.navy-light .bu-badge-yoyo,   body.purple-light .bu-badge-yoyo,
-body.yellow-light .bu-badge-yoyo, body.pink-light .bu-badge-yoyo,
-body.red-light .bu-badge-yoyo {
-  color: #365314;
-  background: rgba(54, 83, 20, 0.07);
-  border-color: rgba(54, 83, 20, 0.3);
 }
 
 /* 7c. BU chart run boxes + toggle buttons — neon rank text and invisible white border */
@@ -34381,7 +34237,11 @@ body.red-light .modal-rank-card--year .mrc-rank {
       /* Keeps a bucket with very few entries visible next to a tall one. Empty
          buckets emit no bar at all, so this never paints a bare colour sliver. */
       min-height: 3px;
-      background: var(--rt-c, var(--rt-none));
+      /* Phase 3 colour pass: one colour for every bar. Each bar used to take
+         its score band's colour (a rainbow), which looked like it meant
+         something beyond the tick under it. The band class is still on the
+         bar from app.js; the score chips elsewhere keep their band colours. */
+      background: var(--accent);
       /* Rounded data-end only, anchored flat to the baseline. */
       border-radius: var(--r-xs) 4px 0 0;
     }

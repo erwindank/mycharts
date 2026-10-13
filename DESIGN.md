@@ -30,7 +30,7 @@ colors:
   heatmap-ember-1:  "#4a0a08"
   heatmap-ember-2:  "#f09000"
   # Navy Light
-  theme-navy-light-bg:      "#ccdcf0"
+  theme-navy-light-bg:      "#eef3fa"
   theme-navy-light-bg2:     "#ffffff"
   theme-navy-light-surface: "#dbe8f8"
   theme-navy-light-border:  "#9db4d2"
@@ -59,7 +59,7 @@ colors:
   theme-purple-accent2: "#a898ff"
   theme-purple-gold1:   "#f59e0b"
   # Purple Light
-  theme-purple-light-bg:      "#d6cff2"
+  theme-purple-light-bg:      "#f2f0fb"
   theme-purple-light-surface: "#e2dcf8"
   theme-purple-light-border:  "#a89dd8"
   theme-purple-light-border2: "#7262c8"
@@ -83,7 +83,7 @@ colors:
   theme-yellow-green:   "#4ade80"
   theme-yellow-rule:    "#3a3620"
   # Yellow Light
-  theme-yellow-light-bg:      "#eee5b0"
+  theme-yellow-light-bg:      "#f8f5e6"
   theme-yellow-light-bg3:     "#faf6e0"
   theme-yellow-light-surface: "#f7eecb"
   theme-yellow-light-border:  "#c2b76a"
@@ -107,7 +107,7 @@ colors:
   theme-pink-accent2: "#ff80c8"
   theme-pink-rule:    "#3c2533"
   # Pink Light
-  theme-pink-light-bg:      "#efcfe6"
+  theme-pink-light-bg:      "#f9eff6"
   theme-pink-light-bg3:     "#faf0f7"
   theme-pink-light-surface: "#f8def0"
   theme-pink-light-border:  "#d5a3c6"
@@ -129,7 +129,7 @@ colors:
   theme-red-accent2: "#f87d7d"
   theme-red-rule:    "#3a2323"
   # Red Light
-  theme-red-light-bg:      "#efcece"
+  theme-red-light-bg:      "#f9f0f0"
   theme-red-light-bg3:     "#faf0f0"
   theme-red-light-surface: "#f8dede"
   theme-red-light-border:  "#cfa5a5"
@@ -295,14 +295,14 @@ Every color in the CSS is a **role**, never a fixed color, and every role has a 
 | `--border` | hairlines (rarely needed) | subtle light line | subtle dark line |
 | `--accent` | active tab, primary button, links, focus, #1 highlight | the theme hue, bright | the hue, deep enough to read as text |
 | `--on-accent` | text on an accent fill | whatever reads on that accent (Yellow dark's accent is light, so its text is dark) | usually white |
-| `--up` / `--down` / `--new` (today `--chart-up/down/new`, aliasing `--green`/`--rose`/`--accent`) | chart movement only | bright | deeper, to hold contrast |
+| `--chart-up` / `--chart-down` / `--chart-new` (aliasing `--green` / `--rose` / `--accent`; `--chart-re` = `--chart-new`) | chart movement only | bright | deeper, to hold contrast |
 | `--gold1` / `--gold2` (+ platinum, diamond) | certifications only | bright metal | deeper metal (`--gold2`) |
 
 - app.js reads several theme colors for the canvas charts, so theme tokens stay **plain hex values per theme** (no `color-mix()` in the per-theme blocks).
-- **Nothing outside these roles.** No raw hex, no `rgba(255,255,255,…)` hover washes (they vanish on light themes), no per-feature palettes. The roles not yet in the CSS (`--raised`, `--up/--down/--new`) are added by the color pass (phase 3).
+- **Nothing outside these roles.** No raw hex, no `rgba(255,255,255,…)` hover washes (they vanish on light themes), no per-feature palettes. `--raised` has a plain hex value in all ten theme blocks (added in phase 3). Movement uses the `--chart-*` names.
 - **Never `color: #fff` on an accent fill.** Use `--on-accent`.
 
-The front matter lists each theme's current token values so tooling can check colors against this file. The light-theme page backgrounds there (`#ccdcf0`, `#efcfe6`, `#eee5b0`…) are the *current* values; the target is "barely tinted", which phase 3 sets.
+The front matter lists each theme's current token values so tooling can check colors against this file. The light-theme page backgrounds are barely tinted since phase 3 (`#eef3fa` navy, `#f9eff6` pink, `#f8f5e6` yellow…); before that they were strongly tinted (`#ccdcf0`, `#efcfe6`, `#eee5b0`).
 
 ### Dark vs light, beyond swapping values
 - **Depth.** On dark themes a card stands out by being lighter than the page. On light themes it stands out with a soft shadow on a white card. The shadow tokens have a value for each.
@@ -311,7 +311,7 @@ The front matter lists each theme's current token values so tooling can check co
 
 ### Collisions
 - **Red theme:** the accent is red, and so is "down". **Pink:** the accent is close to the "down" rose. **Yellow:** the accent is close to certification gold.
-- So **movement and certifications never rely on color alone.** Movement always carries its arrow or word (`▲2`, `▼1`, `NEW`, `RE`); certifications always carry their disc icon and word. In Red, "new" uses green or a neutral, not the accent.
+- So **movement and certifications never rely on color alone.** Movement always carries its arrow or word (`▲2`, `▼1`, `NEW`, `RE`); certifications always carry their disc icon and word. In Red and Pink, `NEW`/`RE` are neutral (`--text2`), not the accent.
 - **Red, Yellow and Pink light have a dark masthead** on a light page. Anything inside the masthead uses masthead tokens, never the page's raw theme colors.
 
 ### Heatmap Gradient Themes

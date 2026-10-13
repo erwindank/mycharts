@@ -977,7 +977,7 @@ themes (Navy dark, Navy light, Yellow dark, Red light; see 3.2) and on a phone.
 | **0** ✓ | **Done 2026-10-11.** Update `DESIGN.md` with section 3. The July 2026 redesign already added spacing (`--sp-1…8`), radius (`--r-*`) and shadow (`--shadow-1/2/3`) tokens, but the CSS barely uses them (`--sp-*`: 0 uses, `--shadow-*`: 17 uses vs 222 raw shadows). Add the missing font-size tokens (`--fs-*`), then point the CSS at the tokens. | The tokens exist; the rest of the CSS just never adopted them. | Small |
 | **1** ✓ | **Quick wins — done 2026-10-11.** Every ⋮ → Show switch off by default, a separate Playlist switch, the YouTube/＋ pair tidied, the tour shows every switch while it runs. The gap and the moving picker were screenshot artifacts, not bugs (1.6, 1.7). | A visibly calmer site in an afternoon, with no redesign needed. | Small |
 | **2** ✓ | **Type pass — done 2026-10-11** (CSS side; see "Phase 2" below for what was left out). Map all 131 font sizes onto the 7 tokens (anything under 12px → 12px), switch labels/buttons/headings from mono to sans, remove most uppercase and letter-spacing. | Biggest visual improvement for the effort. Mostly find-and-replace in CSS. | Medium |
-| **3** | **Colour pass:** remove per-tile and per-label colours, the left row bars, the rainbow chart bars and extra rgba tints. Neutral tags (3.8). Movement = green/red only. | Calms the whole site at once. | Small–medium |
+| **3** ✓ | **Colour pass — done 2026-10-12** (on branch `redesign/phase-3-colour`, see "Phase 3" below). Remove per-tile and per-label colours, the left row bars, the rainbow chart bars and extra rgba tints. Neutral tags (3.8). Movement = green/red only. | Calms the whole site at once. | Small–medium |
 | **4** | **Artwork:** fetch missing artist and album images, cache them, gradient fallback, no more initials (3.7). | The second biggest "looks unfinished" problem, and it improves every page at once. | Medium |
 | **5** | **Shell:** slim sticky top bar, new main tabs + More, period switch next to the date, toasts for status, merge ON AIR + streak, no masthead or Time Machine on non-chart tabs. | Fixes "can't find anything" and gives back ~1,000px on every tab. | Medium |
 | **6** | **Weekly page:** one filter toolbar, sections reordered (stats + "of the moment" → chart → bubbling/off/new → certified → time machine), releases moved to Events, light-touch stat tile changes only if you choose them (4.6). | This is the page everyone sees first. | Medium |
@@ -1085,6 +1085,48 @@ Also for phase 3: in Red light the "Artist of the moment" label on the
 spotlight card is pale pink with a glow on a white card and hard to read.
 Check Navy light too, it looked similar. Fix the colour only, the cards
 themselves stay as they are.
+
+**Phase 3 (colour). Done 2026-10-12**, on its own branch
+(`redesign/phase-3-colour`) so it could be looked at before going live.
+Checked on screen in all 10 themes, on a phone, with the Show switches on.
+What it did:
+- `--raised` added to all 10 themes (plain hex). Light-theme page
+  backgrounds are now barely tinted (`#ccdcf0` → `#eef3fa` navy, and the
+  same for the other four), also in `privacy.html`, `terms.html` and
+  `setup-guide.html`.
+- Movement: NEW and RE share one colour (`--chart-re` = `--chart-new`, no
+  more violet). In Red and Pink, where the accent is the "down" colour, they
+  are neutral (`--text2`).
+- The coloured left-edge bars on NEW/RE rows and stack cards are gone, and
+  so is the red bar on the now-playing row (it keeps an accent tint).
+- Bubbling Under tags: one neutral style (`--raised`, `--text2`, faint
+  outline). Only movement words keep colour: Trending/Surging green,
+  Fading/Fallen/Freefall red. The 14 per-tag colours and their 14 light-theme
+  overrides were deleted.
+- The row YouTube button and the stack ▶ are neutral (`--raised`), with no
+  scale pop on hover. "Playing" uses the accent. The ＋ uses the same fill, so
+  the pair matches. Play-all buttons in the BU track list and calendar
+  use the accent instead of YouTube red.
+- "Artist of the moment" on light themes: deeper rose middle stop, no glow.
+- Ratings score distribution: every bar in the accent (was one colour per
+  score band).
+- Six white hover washes (`rgba(255,255,255,…)`) that vanished on light
+  themes now use `--hover` / `--raised`.
+
+Left out on purpose:
+- **Stat tile number colours** (4.6 says that's your call; not changed).
+- **The YouTube player and queue** keep YouTube red. It's the player's own
+  branding, not chart content.
+- **The ON AIR / streak banner's left bars** go with phase 5, which merges
+  those two banners.
+- **The remaining ~150 `rgba(255,255,255,…)`** are mostly on photos, dark
+  overlays or the masthead, where white is right. Phase 8 looks at them
+  with each component.
+- **The #1–#3 row tints** (gold/silver/bronze) are phase 7's #1 row.
+
+**The screenshot script's "Yellow dark" was really navy** in phases 1–2: it
+passed `yellow-dark`, but the theme is called `yellow` (`applyTheme('yellow')`;
+only navy uses the `-dark` suffix). Phase 3 was checked in the real Yellow.
 
 **Phase 5 (shell).** The period picker does not need moving into one place:
 it already is (see 4.4). What is left is making it slim enough to live in
