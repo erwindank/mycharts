@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['es'] = {
 
   /* ========== OCTUBRE 2026 ========== */
 
+  "Artist and album tiles open their chart":
+    ["Los recuadros de artistas y álbumes abren su lista",
+     "Al hacer clic en el recuadro de Artistas o Álbumes, en \"Artista del momento\", \"Artista en ascenso\" o \"Álbum del momento\", ahora se cambia a la lista de Artistas o Álbumes y se desplaza hasta ella. Antes solo funcionaba si esa lista ya estaba a la vista."],
+
   "Four stat tiles instead of eight":
     ["Cuatro recuadros de estadísticas en vez de ocho",
      "Los recuadros de estadísticas arriba de cada lista ahora son cuatro: Reproducciones, Canciones, Artistas y Álbumes. Las canciones, artistas y álbumes nuevos aparecen como una línea \"+69 nuevas\" en su recuadro (haz clic para ir a esa lista, pasa el cursor para ver el cambio desde la vez anterior), y tu mejor día es una línea en Reproducciones. Los números grandes ahora son todos del mismo color, así ninguno parece una bajada."],

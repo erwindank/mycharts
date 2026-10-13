@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['pt-PT'] = {
 
   /* ========== OUTUBRO 2026 ========== */
 
+  "Artist and album tiles open their chart":
+    ["Os quadros de artistas e álbuns abrem a tabela deles",
+     "Clicar no quadro de Artistas ou Álbuns, em \"Artista do momento\", \"Artista em ascensão\" ou \"Álbum do momento\" muda agora para a tabela de Artistas ou Álbuns e desloca-se até ela. Antes só funcionava se essa tabela já estivesse aberta."],
+
   "Four stat tiles instead of eight":
     ["Quatro quadros de estatísticas em vez de oito",
      "Os quadros de estatísticas no topo de cada tabela são agora quatro: Reproduções, Músicas, Artistas e Álbuns. Músicas, artistas e álbuns novos aparecem como uma linha \"+69 novas\" no quadro correspondente (clique para ir para essa lista, passe o cursor para ver a mudança desde a última vez), e o seu melhor dia é uma linha em Reproduções. Os números grandes têm agora todos a mesma cor, para nenhum parecer uma descida."],

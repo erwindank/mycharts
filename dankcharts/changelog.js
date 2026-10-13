@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 96;
+const DC_CL_I18N_V = 97;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,10 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+
+  { d: '2026-10-12', t: 'fix', a: 'ui', h: '9b71150',
+    title: 'Artist and album tiles open their chart',
+    detail: "Clicking the Artists or Albums tile, \"Artist of the moment\", \"Rising artist\" or \"Album of the moment\" now switches to the Artists or Albums chart and scrolls to it. Before, it only worked when that chart was already the one showing." },
 
   { d: '2026-10-12', t: 'design', a: 'ui', h: '71b1554',
     title: 'Four stat tiles instead of eight',
