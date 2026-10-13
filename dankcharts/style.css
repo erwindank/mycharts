@@ -3000,7 +3000,7 @@
       width: 1.3rem;
       text-align: center;
       font-family: var(--font-sans);
-      font-size: 0.62rem;
+      font-size: var(--fs-xs);
       font-weight: 800;
       line-height: 1.1rem;
       color: var(--panel-accent, var(--accent));
@@ -14096,7 +14096,7 @@
         display: block;
         margin-bottom: 0.1rem;
         font-family: var(--font-sans);
-        font-size: 0.46rem;
+        font-size: var(--fs-xs);
         font-weight: 500;
         color: var(--text3);
         white-space: nowrap;
@@ -14122,7 +14122,7 @@
       #recordsView .rec-cards > tbody > tr > td.rec-card-foot[data-rec-label]::before {
         content: attr(data-rec-label);
         font-family: var(--font-sans);
-        font-size: 0.46rem;
+        font-size: var(--fs-xs);
         color: var(--text3);
       }
 
@@ -17757,11 +17757,9 @@ body.pink-light .landing-screen:has(.landing-card:hover) .landing-eq-skyline {
   background: color-mix(in srgb, var(--gold1) 10%, var(--surface, #1a1a2e));
   border: 1.5px solid var(--gold1);
   color: var(--gold1);
-  font-family: var(--font-mono);
-  font-size: 0.7rem;
+  font-family: var(--font-sans);
+  font-size: var(--fs-xs);
   font-weight: 800;
-  letter-spacing: 0.09em;
-  text-transform: uppercase;
   line-height: 1.35;
   padding: 0.3rem 0.62rem;
   border-radius: var(--r-sm);
@@ -17976,10 +17974,9 @@ body.pink-light .landing-screen:has(.landing-card:hover) .landing-eq-skyline {
   background: var(--surface, #1a1a2e);
   border: 1px solid var(--gold1);
   color: var(--gold1);
-  font-family: var(--font-mono);
-  font-size: 0.56rem;
+  font-family: var(--font-sans);
+  font-size: var(--fs-xs);
   font-weight: 800;
-  letter-spacing: 0.03em;
   padding: 0.18rem 0.4rem;
   border-radius: 5px;
   transform: rotate(6deg);
@@ -23607,11 +23604,9 @@ body[class*="-light"] .tm-card-search:hover {
   text-align: center;
   background: linear-gradient(90deg, var(--gold1), var(--gold2));
   color: #1a1204;
-  font-family: var(--font-mono);
-  font-size: 0.56rem;
+  font-family: var(--font-sans);
+  font-size: var(--fs-xs);
   font-weight: 700;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
 }
 
 @media (max-width: 560px) {
@@ -28565,10 +28560,9 @@ body.pink-light .awards-reallife-badge.nom { color: #4338ca; border-color: #6366
   text-align: center;
   background: linear-gradient(120deg, var(--gold1), color-mix(in srgb, var(--gold1) 55%, #fff));
   color: #1a1200;
-  font-family: var(--font-mono);
-  font-size: 0.6rem;
+  font-family: var(--font-sans);
+  font-size: var(--fs-xs);
   font-weight: 800;
-  letter-spacing: 0.02em;
   padding: var(--sp-1) 0;
   box-shadow: 0 2px 6px rgba(0,0,0,0.35);
   white-space: nowrap;

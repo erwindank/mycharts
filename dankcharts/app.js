@@ -2196,7 +2196,7 @@ function checkSimilarRules(origArtist, origTitle, origAlbum, newArtist, newTitle
     const details = document.getElementById('similarRuleDetails');
     const hasSheet = !!(getSheetWriteUrl() && getDataSource() === 'sheets');
     details.innerHTML =
-      `<div style="font-size:0.72rem;color:var(--text3);margin-bottom:0.5rem">Check the rules below to remove them when saving. Uncheck any you want to keep.</div>` +
+      `<div style="font-size:var(--fs-xs);color:var(--text3);margin-bottom:0.5rem">Check the rules below to remove them when saving. Uncheck any you want to keep.</div>` +
       similar.map((r, i) => `
         <div data-rule-row="${i}" style="padding-bottom:0.5rem;margin-bottom:0.5rem;border-bottom:1px solid var(--border)">
           <div style="display:flex;align-items:flex-start;gap:0.5rem">
@@ -2207,14 +2207,14 @@ function checkSimilarRules(origArtist, origTitle, origAlbum, newArtist, newTitle
                 <div>&rarr; Replace: <span style="color:var(--accent)">${esc(r.replace.artist)} &mdash; ${esc(r.replace.title)} &mdash; ${esc(r.replace.album)}</span></div>
               </div>
             </label>
-            ${hasSheet ? `<button class="similar-rule-run-btn" data-idx="${i}" style="flex-shrink:0;font-size:0.7rem;padding:0.2rem 0.5rem;border:1px solid var(--border);border-radius:3px;background:var(--bg2);color:var(--text2);cursor:pointer;align-self:center">Run</button>` : ''}
+            ${hasSheet ? `<button class="similar-rule-run-btn" data-idx="${i}" style="flex-shrink:0;font-size:var(--fs-xs);padding:0.2rem 0.5rem;border:1px solid var(--border);border-radius:3px;background:var(--bg2);color:var(--text2);cursor:pointer;align-self:center">Run</button>` : ''}
             <button class="similar-rule-del-btn" data-idx="${i}" title="Delete this rule" style="flex-shrink:0;padding:0.15rem 0.4rem;border:1px solid var(--border);border-radius:3px;background:var(--bg2);color:#ef4444;cursor:pointer;align-self:center;font-size:0.9rem;line-height:1">🗑</button>
           </div>
-          <div class="similar-rule-run-status" data-idx="${i}" style="font-size:0.7rem;margin-top:0.25rem;display:none"></div>
+          <div class="similar-rule-run-status" data-idx="${i}" style="font-size:var(--fs-xs);margin-top:0.25rem;display:none"></div>
         </div>
       `).join('') +
       `<div style="margin-top:0.3rem;line-height:1.6">
-        <div style="color:var(--text3);font-size:0.72rem;margin-bottom:0.1rem">New rule being saved:</div>
+        <div style="color:var(--text3);font-size:var(--fs-xs);margin-bottom:0.1rem">New rule being saved:</div>
         <div>Match: <span style="color:var(--text2)">${esc(origArtist)} &mdash; ${esc(origTitle)} &mdash; ${esc(origAlbum || '&mdash;')}</span></div>
         <div>&rarr; Replace: <span style="color:var(--accent)">${esc(newArtist)} &mdash; ${esc(newTitle)} &mdash; ${esc(newAlbum || '&mdash;')}</span></div>
       </div>`;
@@ -2442,20 +2442,20 @@ function renderRulesList() {
     ? allRules.filter(r => [r.match.artist, r.match.title, r.match.album, r.replace.artist, r.replace.title, r.replace.album].some(s => s.toLowerCase().includes(q)))
     : allRules;
   if (!allRules.length) {
-    el.innerHTML = '<p style="font-size:0.8rem;color:var(--text3);text-align:center;padding:1rem 0">No rules saved yet.</p>';
+    el.innerHTML = '<p style="font-size:var(--fs-sm);color:var(--text3);text-align:center;padding:1rem 0">No rules saved yet.</p>';
     return;
   }
   if (!rules.length) {
-    el.innerHTML = '<p style="font-size:0.8rem;color:var(--text3);text-align:center;padding:1rem 0">No rules match your search.</p>';
+    el.innerHTML = '<p style="font-size:var(--fs-sm);color:var(--text3);text-align:center;padding:1rem 0">No rules match your search.</p>';
     return;
   }
   el.innerHTML = rules.map(r => `
     <div style="display:flex;justify-content:space-between;align-items:flex-start;padding:0.5rem 0;border-bottom:1px solid var(--border);gap:0.7rem">
-      <div style="font-size:0.75rem;flex:1;min-width:0;line-height:1.5">
+      <div style="font-size:var(--fs-xs);flex:1;min-width:0;line-height:1.5">
         <div style="color:var(--text3)">Match: <span style="color:var(--text2)">${esc(r.match.artist)} &mdash; ${esc(r.match.title)} &mdash; ${esc(r.match.album)}</span></div>
         <div style="color:var(--text3)">&rarr; Replace: <span style="color:var(--accent)">${esc(r.replace.artist)} &mdash; ${esc(r.replace.title)} &mdash; ${esc(r.replace.album)}</span></div>
       </div>
-      <button onclick="deleteAutocorrectRule('${esc(r.id)}')" style="flex-shrink:0;font-size:0.72rem;padding:0.2rem 0.5rem;border:1px solid var(--border);border-radius:3px;background:var(--bg2);color:var(--text2);cursor:pointer">Delete</button>
+      <button onclick="deleteAutocorrectRule('${esc(r.id)}')" style="flex-shrink:0;font-size:var(--fs-xs);padding:0.2rem 0.5rem;border:1px solid var(--border);border-radius:3px;background:var(--bg2);color:var(--text2);cursor:pointer">Delete</button>
     </div>
   `).join('');
 }
@@ -2497,7 +2497,7 @@ function renderCompilationsList() {
   if (!el) return;
   const list = getCompilationAlbums().slice().sort((a, b) => a.localeCompare(b));
   if (!list.length) {
-    el.innerHTML = `<p style="font-size:0.8rem;color:var(--text3);text-align:center;padding:1rem 0">${t('comp_none')}</p>`;
+    el.innerHTML = `<p style="font-size:var(--fs-sm);color:var(--text3);text-align:center;padding:1rem 0">${t('comp_none')}</p>`;
     return;
   }
   el.innerHTML = list.map(function (name) {
@@ -2511,11 +2511,11 @@ function renderCompilationsList() {
     }
     const note = singers.size ? t('comp_merges', { n: singers.size }) : t('comp_no_plays');
     return `<div style="display:flex;justify-content:space-between;align-items:center;padding:0.5rem 0;border-bottom:1px solid var(--border);gap:0.7rem">
-      <div style="font-size:0.78rem;flex:1;min-width:0;line-height:1.4">
+      <div style="font-size:var(--fs-xs);flex:1;min-width:0;line-height:1.4">
         <div style="color:var(--text2)">${esc(name)}</div>
-        <div style="color:var(--text3);font-size:0.7rem">${esc(note)}</div>
+        <div style="color:var(--text3);font-size:var(--fs-xs)">${esc(note)}</div>
       </div>
-      <button onclick="removeCompilation(${esc(JSON.stringify(name))})" style="flex-shrink:0;font-size:0.72rem;padding:0.2rem 0.5rem;border:1px solid var(--border);border-radius:3px;background:var(--bg2);color:var(--text2);cursor:pointer">${t('comp_remove')}</button>
+      <button onclick="removeCompilation(${esc(JSON.stringify(name))})" style="flex-shrink:0;font-size:var(--fs-xs);padding:0.2rem 0.5rem;border:1px solid var(--border);border-radius:3px;background:var(--bg2);color:var(--text2);cursor:pointer">${t('comp_remove')}</button>
     </div>`;
   }).join('');
 }
@@ -12678,7 +12678,7 @@ function renderRawPage() {
       <td class="raw-album">${esc(p.album)}</td>
       <td class="raw-edit-cell"><button class="raw-edit-btn" title="Edit" onclick="openEditScrobbleModal(${start + i})">✎</button></td>
     </tr>`;
-  }).join('') || `<tr><td colspan="6" style="padding:1rem;color:var(--text3);font-style:italic;font-family:var(--font-mono);font-size:0.72rem;">${t('raw_no_match')}</td></tr>`;
+  }).join('') || `<tr><td colspan="6" style="padding:1rem;color:var(--text3);font-style:italic;font-family:var(--font-sans);font-size:var(--fs-xs);">${t('raw_no_match')}</td></tr>`;
 
   // Pagination
   document.getElementById('rawPrevBtn').disabled = rawPage === 0;
@@ -14693,7 +14693,7 @@ function buildCrPanelHTML(type, key) {
       // Each section counts plays over its own periodMap, so the total tracks
       // that section's granularity and cutoff rather than the panel's.
       const rangeOpts = { mode: getCrRangeMode(type, key), viewedYear: vy, cutoffKeys, periodMap: crData?.periodMap };
-      const bodyHtml = d ? `<div class="cr-stats">${crStats(type, key, id, null, d, rangeOpts)}</div>${crBoxesHTML(type, key, null, d, id)}` : `<div style="font-size:0.6rem;color:var(--text3);padding:2px 0">${t('cr_no_history')}</div>`;
+      const bodyHtml = d ? `<div class="cr-stats">${crStats(type, key, id, null, d, rangeOpts)}</div>${crBoxesHTML(type, key, null, d, id)}` : `<div style="font-size:var(--fs-xs);color:var(--text3);padding:2px 0">${t('cr_no_history')}</div>`;
       return `<div class="cr-panel-section">
         <div class="cr-panel-section-header is-open" onclick="toggleCrPanelSection(this)">
           <span class="cr-subsection-toggle">▼</span>
@@ -14715,7 +14715,7 @@ function buildCrPanelHTML(type, key) {
     } else {
       sectionsHtml = d
         ? `<div class="cr-stats">${crStats(type, key, currentPeriod, null, d, rangeOpts)}</div>${crBoxesHTML(type, key, null, d, currentPeriod)}`
-        : `<div style="font-size:0.6rem;color:var(--text3);padding:4px 0">${t('cr_no_history')}</div>`;
+        : `<div style="font-size:var(--fs-xs);color:var(--text3);padding:4px 0">${t('cr_no_history')}</div>`;
     }
   }
 
@@ -14858,7 +14858,7 @@ function buildItemHeatmapHTML(type, key) {
     if (type === 'albums') { const parts = key.split('|||'); return p.album === parts[0] && albumArtist(p) === parts[1]; }
     return false;
   });
-  if (!itemPlays.length) return '<div style="font-size:0.6rem;color:var(--text3);padding:4px 0">No play history found.</div>';
+  if (!itemPlays.length) return '<div style="font-size:var(--fs-xs);color:var(--text3);padding:4px 0">No play history found.</div>';
 
   const chrono = [...itemPlays].sort((a, b) => a.date - b.date);
 
@@ -15419,7 +15419,7 @@ function buildItemRawDataHTML(type, key) {
     if (type === 'albums') { const parts = key.split('|||'); return p.album === parts[0] && albumArtist(p) === parts[1]; }
     return false;
   });
-  if (!itemPlays.length) return '<div style="font-size:0.6rem;color:var(--text3);padding:4px 0">No play history found.</div>';
+  if (!itemPlays.length) return '<div style="font-size:var(--fs-xs);color:var(--text3);padding:4px 0">No play history found.</div>';
   const cid = 'rawdata-' + (++_rawDataCtr);
   _rawDataPlaysCache.set(cid, itemPlays);
   const initialRows = _rawDataRows(itemPlays, 'date', 'desc', '');
@@ -15429,7 +15429,7 @@ function buildItemRawDataHTML(type, key) {
       <span class="cr-rawdata-count" id="${cid}-count">${itemPlays.length.toLocaleString()} plays</span>
     </div>
     <div style="overflow-x:auto;max-height:400px;overflow-y:auto;">
-      <table class="raw-table" style="font-size:0.62rem;">
+      <table class="raw-table" style="font-size:var(--fs-xs);">
         <thead><tr>
           <th class="raw-num">#</th>
           <th data-col="date" class="sort-active" onclick="rawDataSort('${cid}','date')">Date <span class="sort-arrow">↓</span></th>
@@ -15456,7 +15456,7 @@ function _rawDataRows(plays, sort, dir, query) {
     else if (sort === 'album') cmp = a.album.localeCompare(b.album);
     return dir === 'asc' ? cmp : -cmp;
   });
-  if (!list.length) return `<tr><td colspan="5" style="text-align:center;color:var(--text3);padding:8px 0;font-size:0.62rem;">No results</td></tr>`;
+  if (!list.length) return `<tr><td colspan="5" style="text-align:center;color:var(--text3);padding:8px 0;font-size:var(--fs-xs);">No results</td></tr>`;
   return list.map((p, i) => `<tr>
     <td class="raw-num">${(i + 1).toLocaleString()}</td>
     <td class="raw-date">${rawFmtDate(p.date)}</td>
@@ -15940,7 +15940,7 @@ function toggleRecRun(btn, runId) {
 function crBoxesHTML(type, key, crData, preD, periodOverride) {
   const data = crData || chartRunData;
   const d = (preD !== undefined && preD !== null) ? preD : (data?.result?.[type]?.[key]);
-  if (!d) return '<div style="font-size:0.6rem;color:var(--text3);padding:4px 0">No chart history yet.</div>';
+  if (!d) return '<div style="font-size:var(--fs-xs);color:var(--text3);padding:4px 0">No chart history yet.</div>';
   const period = periodOverride || data?.period || currentPeriod;
   const safeKey = encodeKeyForOnclick(key);
   const unit = (gap) => period === 'week' ? tUnit('weeks', gap) : period === 'month' ? tUnit('months', gap) : tUnit('years', gap);
@@ -16464,7 +16464,7 @@ function showPakPeriodPreview(pt, periodKey, triggerEl) {
   const unit = tUnit(pt === 'week' ? 'weeks_full' : pt === 'month' ? 'months' : 'years', 1);
   const navigateLink = `<a class="cr-preview-link" href="#chart/${pt}/${periodKey}" onclick="event.preventDefault();hidePakWeekPreview();navigateToRecPeriod('${pt}','${periodKey}')">${t('rec_pak_period_preview_link', { unit: unit })}</a>`;
   if (!crData || !crData.periodMap[weekKey]) {
-    popup.innerHTML = `<button class="cr-preview-close" onclick="hidePakWeekPreview()">✕</button><div class="cr-preview-title">${esc(title)}</div><div style="padding:4px 0;font-size:0.62rem;color:var(--text3);">${navigateLink}</div>`;
+    popup.innerHTML = `<button class="cr-preview-close" onclick="hidePakWeekPreview()">✕</button><div class="cr-preview-title">${esc(title)}</div><div style="padding:4px 0;font-size:var(--fs-xs);color:var(--text3);">${navigateLink}</div>`;
   } else {
     const pm = crData.periodMap[weekKey];
     const types = [
@@ -16519,7 +16519,7 @@ function showDebutPeriodPreview(pt, weekKey, triggerEl, event) {
   const unit = tUnit(pt === 'week' ? 'weeks_full' : pt === 'month' ? 'months' : 'years', 1);
   const navigateLink = `<a class="cr-preview-link" href="#chart/${pt}/${weekKey}" onclick="event.preventDefault();hideDebutWeekPreview();navigateToRecPeriod('${pt}','${weekKey}')">${t('rec_pak_period_preview_link', { unit: unit })}</a>`;
   if (!crData || !crData.periodMap || !crData.periodMap[weekKey]) {
-    popup.innerHTML = `<button class="cr-preview-close" onclick="hideDebutWeekPreview()">✕</button><div class="cr-preview-title">${esc(title)}</div><div style="padding:4px 0;font-size:0.62rem;color:var(--text3);">${navigateLink}</div>`;
+    popup.innerHTML = `<button class="cr-preview-close" onclick="hideDebutWeekPreview()">✕</button><div class="cr-preview-title">${esc(title)}</div><div style="padding:4px 0;font-size:var(--fs-xs);color:var(--text3);">${navigateLink}</div>`;
   } else {
     const pm = crData.periodMap[weekKey];
     const types = [
@@ -16567,7 +16567,7 @@ function showNewChartRecPreview(pt, periodKey, triggerEl, event) {
   const title = crPeriodTitle(pt, periodKey);
   const navigateLink = `<a class="cr-preview-link" href="#chart/${pt}/${periodKey}" onclick="event.preventDefault();hideNewChartRecPreview();navigateToRecPeriod('${pt}','${periodKey}')">${t('rec_pak_week_preview_link')}</a>`;
   if (!pm) {
-    popup.innerHTML = `<button class="cr-preview-close" onclick="hideNewChartRecPreview()">✕</button><div class="cr-preview-title">${esc(title)}</div><div style="padding:4px 0;font-size:0.62rem;color:var(--text3);">${navigateLink}</div>`;
+    popup.innerHTML = `<button class="cr-preview-close" onclick="hideNewChartRecPreview()">✕</button><div class="cr-preview-title">${esc(title)}</div><div style="padding:4px 0;font-size:var(--fs-xs);color:var(--text3);">${navigateLink}</div>`;
   } else {
     const types = [
       { key: 'songs', icon: recEntIco('songs'), label: t('rec_th_songs'), nameOf: (d) => d.title },
@@ -16811,13 +16811,13 @@ function deltaInline(curCount, key, type, ms) {
     const isRe = ms.everChartedBefore[type].has(key);
     const badgeKey = isRe ? 'badge_re' : (type === 'songs' ? 'badge_new_songs' : 'badge_new');
     const label = t(badgeKey);
-    return `<span class="m-${isRe ? 're' : 'new'}" style="font-size:0.6rem;margin-left:0.4rem">${label}</span>`;
+    return `<span class="m-${isRe ? 're' : 'new'}" style="font-size:var(--fs-xs);margin-left:0.4rem">${label}</span>`;
   }
   const diff = curCount - prev.count;
-  if (diff === 0) return `<span class="m-same" style="font-size:0.6rem;margin-left:0.4rem">=</span>`;
+  if (diff === 0) return `<span class="m-same" style="font-size:var(--fs-xs);margin-left:0.4rem">=</span>`;
   const dir = diff > 0 ? 'up' : 'down';
   const sign = diff > 0 ? '+' : '';
-  return `<span class="m-${dir}" style="font-size:0.6rem;margin-left:0.4rem">${sign}${diff}</span>`;
+  return `<span class="m-${dir}" style="font-size:var(--fs-xs);margin-left:0.4rem">${sign}${diff}</span>`;
 }
 
 function mMthsCell(key, type, ms) {
@@ -17601,7 +17601,7 @@ function buildBuChartRun() {
 // Each box is clickable: shows a tooltip with the full BU chart for that week + a link to navigate there.
 function buCrBoxesHTML(type, key) {
   const d = buChartRunData?.result?.[crRunType(type)]?.[key];
-  if (!d || !d.entries.length) return '<div style="font-size:0.6rem;color:var(--text3);padding:4px 0">No Bubbling Under history yet.</div>';
+  if (!d || !d.entries.length) return '<div style="font-size:var(--fs-xs);color:var(--text3);padding:4px 0">No Bubbling Under history yet.</div>';
   const safeKey = encodeKeyForOnclick(key);
   const boxes = d.entries.flatMap((e, i) => {
     const isPeak = (e.buRank === d.peakBuRank);
@@ -17627,7 +17627,7 @@ function buildCombinedCrBoxesHTML(type, key) {
   const crD = allChartRun.week?.result?.[crRunType(type)]?.[key];
 
   if ((!buD || !buD.entries.length) && (!crD || !crD.entries.length)) {
-    return '<div style="font-size:0.6rem;color:var(--text3);padding:4px 0">No history yet.</div>';
+    return '<div style="font-size:var(--fs-xs);color:var(--text3);padding:4px 0">No history yet.</div>';
   }
 
   // Merge BU and official chart entries into one chronological array
@@ -17753,14 +17753,14 @@ function buildBuCrPanelHTML(type, key) {
 
   const headerHtml = `<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid var(--border);">
     <div>
-      <div style="font-family:var(--font-mono);font-size:0.65rem;font-weight:700;letter-spacing:0.18em;color:var(--text);text-transform:uppercase;">🫧 BU CHART RUN</div>
-      <div style="font-family:var(--font-mono);font-size:0.54rem;letter-spacing:0.07em;color:var(--text3);margin-top:2px;">Bubbling Under zone history · weekly</div>
+      <div style="font-family:var(--font-sans);font-size:var(--fs-xs);font-weight:700;color:var(--text);">🫧 BU CHART RUN</div>
+      <div style="font-family:var(--font-sans);font-size:var(--fs-xs);color:var(--text3);margin-top:2px;">Bubbling Under zone history · weekly</div>
     </div>
     ${toggleBtn}
   </div>`;
 
   if (!d || !d.entries.length) {
-    return headerHtml + `<div style="font-size:0.6rem;color:var(--text3);padding:4px 0">No Bubbling Under history yet.</div>`;
+    return headerHtml + `<div style="font-size:var(--fs-xs);color:var(--text3);padding:4px 0">No Bubbling Under history yet.</div>`;
   }
 
   // Compute streak and stints from the entries (which are already in chronological order)
@@ -22980,7 +22980,7 @@ function _buildAlbTrackPanelHTML(s, totalPlays, crY, crM, crW, allTimeSPM) {
 }
 
 function _buildAlbTracksHTML(tracks, totalPlays, crY, crM, crW, allTimeSPM, albumEk) {
-  if (!tracks.length) return `<div style="font-style:italic;color:var(--text3);padding:0.5rem 0;font-size:0.85rem">No tracks found.</div>`;
+  if (!tracks.length) return `<div style="font-style:italic;color:var(--text3);padding:0.5rem 0;font-size:var(--fs-sm)">No tracks found.</div>`;
   let rows = '';
   tracks.forEach((s, i) => {
     const sk = songKey(s);
@@ -23161,15 +23161,15 @@ function openArtistModal(artistName) {
   const modalStatsEl = document.getElementById('modalStats');
   modalStatsEl.innerHTML = `
     <div class="modal-stat"><div class="se">🎧</div><div class="sv" data-countup="${totalPlays}">${totalPlays.toLocaleString()}</div><div class="sl">${t('stat_total_plays')}</div></div>
-    <div class="modal-stat"><div class="sv" style="font-size:0.9rem">${firstPlayed ? fmt(firstPlayed) : '—'}</div><div class="sl">${t('modal_first_played')}</div></div>
-    <div class="modal-stat"><div class="sv" style="font-size:0.9rem">${lastPlayed ? fmt(lastPlayed) : '—'}</div><div class="sl">${t('modal_last_played')}</div></div>
+    <div class="modal-stat"><div class="sv" style="font-size:var(--fs-sm)">${firstPlayed ? fmt(firstPlayed) : '—'}</div><div class="sl">${t('modal_first_played')}</div></div>
+    <div class="modal-stat"><div class="sv" style="font-size:var(--fs-sm)">${lastPlayed ? fmt(lastPlayed) : '—'}</div><div class="sl">${t('modal_last_played')}</div></div>
     <div class="modal-stat"><div class="se">🎵</div><div class="sv" data-countup="${allSongsSorted.length}">${allSongsSorted.length}</div><div class="sl">${t('stat_unique_songs')}</div></div>
     <div class="modal-stat"><div class="se">💿</div><div class="sv" data-countup="${allAlbumsSorted.length}">${allAlbumsSorted.length}</div><div class="sl">Albums &amp; Singles</div></div>
     <div class="modal-stat"><div class="se">📅</div><div class="sv" data-countup="${calendarDays}">${calendarDays}</div><div class="sl">${t('modal_calendar_days_played')}</div></div>
     <div class="modal-stat modal-stat--gold"><div class="se">🏆</div><div class="sv">${allTimeArtistRank ? '#' + allTimeArtistRank : '—'}</div><div class="sl">Most Heard Artist<br>of All Time</div></div>
     <div class="modal-stat"><div class="se">📊</div><div class="sv" data-countup="${avgPlaysPerSong}">${avgPlaysPerSong.toLocaleString()}</div><div class="sl">${t('modal_avg_plays_per_song')}</div></div>
-    <div class="modal-stat"><div class="se">🎤</div><div class="sv" style="font-size:0.72rem;line-height:1.3;word-break:break-word;overflow-wrap:break-word;">${topSong ? esc(topSong.title) : '—'}</div><div class="sl">${t('modal_most_played_song')}</div></div>
-    <div class="modal-stat"><div class="se">💿</div><div class="sv" style="font-size:0.72rem;line-height:1.3;word-break:break-word;overflow-wrap:break-word;">${topAlbum ? esc(topAlbum.album) : '—'}</div><div class="sl">${t('modal_most_played_album')}</div></div>
+    <div class="modal-stat"><div class="se">🎤</div><div class="sv" style="font-size:var(--fs-xs);line-height:1.3;word-break:break-word;overflow-wrap:break-word;">${topSong ? esc(topSong.title) : '—'}</div><div class="sl">${t('modal_most_played_song')}</div></div>
+    <div class="modal-stat"><div class="se">💿</div><div class="sv" style="font-size:var(--fs-xs);line-height:1.3;word-break:break-word;overflow-wrap:break-word;">${topAlbum ? esc(topAlbum.album) : '—'}</div><div class="sl">${t('modal_most_played_album')}</div></div>
     <div class="modal-stat"><div class="se">🔥</div><div class="sv" data-countup="${longestStreak}">${longestStreak}</div><div class="sl">${t('modal_listening_days_streak')}</div></div>
     <div class="modal-stat"><div class="se">📋</div><div class="sv">${weeklySongsCharted.length || '—'}</div><div class="sl">${t('modal_songs_in_weekly')}</div></div>
     <div class="modal-stat"><div class="se">⚡</div><div class="sv" data-countup="${peakPlaysInDay}">${peakPlaysInDay}</div><div class="sl">Peak Plays<br>in a Day</div></div>
@@ -23267,7 +23267,7 @@ function openArtistModal(artistName) {
     const detail = detailRows.length
       ? detailRows.map(r => {
         const navAttr = r.weekOffset !== undefined ? ` onclick="goToWeek(${r.weekOffset})" style="cursor:pointer;"` : '';
-        const viewTag = r.weekOffset !== undefined ? `<span style="color:var(--accent);font-size:0.6rem;flex-shrink:0;margin-left:0.5rem;letter-spacing:0.06em;">→ VIEW</span>` : '';
+        const viewTag = r.weekOffset !== undefined ? `<span style="color:var(--accent);font-size:var(--fs-xs);flex-shrink:0;margin-left:0.5rem;">→ VIEW</span>` : '';
         return `<div class="acc-detail-row"${navAttr}><span class="acc-detail-name">${esc(r.name)}</span><span class="acc-detail-plays">${r.plays} ${tUnit('plays', r.plays)}</span>${r.date ? `<span class="acc-detail-date">${r.date}</span>` : ''}${viewTag}</div>`;
       }).join('')
       : `<div class="acc-detail-row"><span class="acc-detail-name" style="font-style:italic">${t('modal_no_detail')}</span></div>`;
@@ -23403,7 +23403,7 @@ function openArtistModal(artistName) {
     }
   }
 
-  if (!acc.length) acc.push(`<div style="font-family:var(--font-sans);font-style:italic;font-size:0.85rem;color:var(--text3);padding:0.5rem 0;">${t('acc_none', { n: chartSize })}</div>`);
+  if (!acc.length) acc.push(`<div style="font-family:var(--font-sans);font-style:italic;font-size:var(--fs-sm);color:var(--text3);padding:0.5rem 0;">${t('acc_none', { n: chartSize })}</div>`);
   document.getElementById('modalAccomplishments').innerHTML = acc.join('');
 
   // ─── SONGS ON CHART: 4 collapsible sections ──────────────────────────────
@@ -23866,8 +23866,8 @@ function openAlbumModal(albumKey) {
   // ── STATS STRIP ROW 1: core totals + all-time hero ───────────────────────
   document.getElementById('albumModalStats').innerHTML = `
     <div class="modal-stat"><div class="se">🎧</div><div class="sv">${totalPlays.toLocaleString()}</div><div class="sl">${t('stat_total_plays')}</div></div>
-    <div class="modal-stat"><div class="sv" style="font-size:0.9rem">${firstPlayed ? fmt(firstPlayed) : '—'}</div><div class="sl">${t('modal_first_played')}</div></div>
-    <div class="modal-stat"><div class="sv" style="font-size:0.9rem">${lastPlayed ? fmt(lastPlayed) : '—'}</div><div class="sl">${t('modal_last_played')}</div></div>
+    <div class="modal-stat"><div class="sv" style="font-size:var(--fs-sm)">${firstPlayed ? fmt(firstPlayed) : '—'}</div><div class="sl">${t('modal_first_played')}</div></div>
+    <div class="modal-stat"><div class="sv" style="font-size:var(--fs-sm)">${lastPlayed ? fmt(lastPlayed) : '—'}</div><div class="sl">${t('modal_last_played')}</div></div>
     <div class="modal-stat"><div class="se">🎵</div><div class="sv">${allTracksSorted.length}</div><div class="sl">${t('modal_tracks')}</div></div>
     <div class="modal-stat"><div class="se">📅</div><div class="sv">${calendarDays}</div><div class="sl">${t('modal_calendar_days_played')}</div></div>
     <div class="modal-stat"><div class="se">📊</div><div class="sv">${avgPlaysPerTrack.toLocaleString()}</div><div class="sl">${t('modal_avg_plays_per_track')}</div></div>
@@ -23875,7 +23875,7 @@ function openAlbumModal(albumKey) {
     <div class="modal-stat"><div class="se">📊</div><div class="sv ${peakCls(weeklyAlbumPeak)}">${weeklyAlbumPeak ? '#' + weeklyAlbumPeak : '—'}</div><div class="sl">${t('modal_weekly_peak_tile')}</div></div>
     <div class="modal-stat"><div class="se">🌙</div><div class="sv ${peakCls(monthlyAlbumPeak)}">${monthlyAlbumPeak ? '#' + monthlyAlbumPeak : '—'}</div><div class="sl">${t('modal_monthly_peak_tile')}</div></div>
     <div class="modal-stat"><div class="se">⭐</div><div class="sv ${peakCls(yearlyAlbumPeak)}">${yearlyAlbumPeak ? '#' + yearlyAlbumPeak : '—'}</div><div class="sl">${t('modal_yearly_peak_tile')}</div></div>
-    <div class="modal-stat"><div class="se">🎤</div><div class="sv" style="font-size:0.72rem;line-height:1.3;white-space:normal;overflow-wrap:break-word;max-width:100%">${allTracksSorted.length ? esc(allTracksSorted[0].title) : '—'}</div><div class="sl">${t('modal_top_track')}</div></div>
+    <div class="modal-stat"><div class="se">🎤</div><div class="sv" style="font-size:var(--fs-xs);line-height:1.3;white-space:normal;overflow-wrap:break-word;max-width:100%">${allTracksSorted.length ? esc(allTracksSorted[0].title) : '—'}</div><div class="sl">${t('modal_top_track')}</div></div>
     <div class="modal-stat"><div class="se">🔥</div><div class="sv">${longestStreak}</div><div class="sl">${t('modal_day_streak')}</div></div>
     <div class="modal-stat"><div class="se">📋</div><div class="sv">${chartTracksWeekly.length || '—'}</div><div class="sl">${t('modal_tracks_in_weekly')}</div></div>
     ${nextCert ? `<div class="modal-stat"><div class="se">🎯</div><div class="sv">${(nextCert[0] - totalPlays).toLocaleString()}</div><div class="sl">${t('modal_plays_to_cert', { cert: nextCert[1] })}</div></div>` : ''}
@@ -23943,7 +23943,7 @@ function openAlbumModal(albumKey) {
             ? ` onclick="goToWeek(${r.weekOffset});albumModal.classList.remove('open')" style="cursor:pointer"`
             : r.period ? ` onclick="goToPeriodFromAlbumModal('${r.period}','${r.periodKey}')" style="cursor:pointer"` : '';
           const viewTag = (r.weekOffset !== undefined || r.period)
-            ? `<span style="color:var(--accent);font-size:0.6rem;flex-shrink:0;margin-left:0.5rem;letter-spacing:0.06em;">→ VIEW</span>` : '';
+            ? `<span style="color:var(--accent);font-size:var(--fs-xs);flex-shrink:0;margin-left:0.5rem;">→ VIEW</span>` : '';
           return `<div class="acc-detail-row"${navAttr}><span class="acc-detail-name">${esc(r.name)}</span><span class="acc-detail-plays">${r.plays} ${tUnit('plays', r.plays)}</span>${r.date ? `<span class="acc-detail-date">${r.date}</span>` : ''}${viewTag}</div>`;
         }).join('')
       : `<div class="acc-detail-row"><span class="acc-detail-name" style="font-style:italic">${t('modal_no_detail')}</span></div>`;
@@ -24036,7 +24036,7 @@ function openAlbumModal(albumKey) {
   if (goldTracks.length) acc.push(albAccRow('🪙', t('acc_cert', { n: goldTracks.length, cert: t('cert_gold'), unit: tUnit('tracks', goldTracks.length), plays: CERT.song.gold, plays_unit: tUnit('plays', CERT.song.gold) }),
     goldTracks.map(s => ({ name: s.title, plays: s.count }))));
 
-  if (!acc.length) acc.push(`<div style="font-family:var(--font-sans);font-style:italic;font-size:0.85rem;color:var(--text3);padding:0.5rem 0">${t('acc_none', { n: chartSize })}</div>`);
+  if (!acc.length) acc.push(`<div style="font-family:var(--font-sans);font-style:italic;font-size:var(--fs-sm);color:var(--text3);padding:0.5rem 0">${t('acc_none', { n: chartSize })}</div>`);
   document.getElementById('albumModalAccomplishments').innerHTML = acc.join('');
 
   // ── CHART RUN HISTORY: 3 collapsible sections ─────────────────────────────
@@ -24413,15 +24413,15 @@ function openSongModal(key) {
   const fmtDate = d => d ? fmt(d) : '—';
   document.getElementById('songModalStats').innerHTML = `
     <div class="modal-stat"><div class="se">🎧</div><div class="sv" data-countup="${totalPlays}">${totalPlays.toLocaleString()}</div><div class="sl">Total Plays</div></div>
-    <div class="modal-stat"><div class="sv" style="font-size:0.9rem">${fmtDate(firstPlayed)}</div><div class="sl">First Played</div></div>
-    <div class="modal-stat"><div class="sv" style="font-size:0.9rem">${fmtDate(lastPlayed)}</div><div class="sl">Last Played</div></div>
+    <div class="modal-stat"><div class="sv" style="font-size:var(--fs-sm)">${fmtDate(firstPlayed)}</div><div class="sl">First Played</div></div>
+    <div class="modal-stat"><div class="sv" style="font-size:var(--fs-sm)">${fmtDate(lastPlayed)}</div><div class="sl">Last Played</div></div>
     <div class="modal-stat"><div class="se">📅</div><div class="sv">${calendarDays}</div><div class="sl">Days Played</div></div>
     <div class="modal-stat"><div class="se">🔥</div><div class="sv">${longestStreak}</div><div class="sl">Peak Day Streak</div></div>
-    <div class="modal-stat"><div class="se">📈</div><div class="sv">${peakDayPlays}</div><div class="sl">Peak Plays · Day${peakDayDate ? `<br><span style="font-size:0.65rem;color:var(--text3)">${fmtDate(new Date(peakDayDate))}</span>` : ''}</div></div>
-    <div class="modal-stat"><div class="se">📅</div><div class="sv">${peakMonthPlays}</div><div class="sl">Peak Plays · Month${peakMonthKey ? `<br><span style="font-size:0.65rem;color:var(--text3)">${peakMonthKey}</span>` : ''}</div></div>
-    <div class="modal-stat"><div class="se">⭐</div><div class="sv">${peakYearPlays}</div><div class="sl">Peak Plays · Year${peakYearKey ? `<br><span style="font-size:0.65rem;color:var(--text3)">${peakYearKey}</span>` : ''}</div></div>
+    <div class="modal-stat"><div class="se">📈</div><div class="sv">${peakDayPlays}</div><div class="sl">Peak Plays · Day${peakDayDate ? `<br><span style="font-size:var(--fs-xs);color:var(--text3)">${fmtDate(new Date(peakDayDate))}</span>` : ''}</div></div>
+    <div class="modal-stat"><div class="se">📅</div><div class="sv">${peakMonthPlays}</div><div class="sl">Peak Plays · Month${peakMonthKey ? `<br><span style="font-size:var(--fs-xs);color:var(--text3)">${peakMonthKey}</span>` : ''}</div></div>
+    <div class="modal-stat"><div class="se">⭐</div><div class="sv">${peakYearPlays}</div><div class="sl">Peak Plays · Year${peakYearKey ? `<br><span style="font-size:var(--fs-xs);color:var(--text3)">${peakYearKey}</span>` : ''}</div></div>
     <div class="modal-stat"><div class="se">⏰</div><div class="sv">${peakHour !== null ? fmtHour(peakHour) : '—'}</div><div class="sl">Peak Listen Hour</div></div>
-    <div class="modal-stat"><div class="se">🌙</div><div class="sv">${midnightPct}%</div><div class="sl">Late-Night Plays<br><span style="font-size:0.65rem;color:var(--text3)">12–4 AM</span></div></div>
+    <div class="modal-stat"><div class="se">🌙</div><div class="sv">${midnightPct}%</div><div class="sl">Late-Night Plays<br><span style="font-size:var(--fs-xs);color:var(--text3)">12–4 AM</span></div></div>
     <div class="modal-stat"><div class="se">🔄</div><div class="sv">${replayDepth}</div><div class="sl">Avg Plays/Day Played</div></div>
     ${reentries > 0 ? `<div class="modal-stat"><div class="se">↩️</div><div class="sv">${reentries}</div><div class="sl">Re-entries on the<br>Weekly Chart</div></div>` : ''}
     ${longestGap > 1 ? `<div class="modal-stat"><div class="se">⏳</div><div class="sv">${longestGap}</div><div class="sl">Longest Gap (days)</div></div>` : ''}
@@ -24430,7 +24430,7 @@ function openSongModal(key) {
     ${totalWeeksOnChart ? `<div class="modal-stat"><div class="se">📊</div><div class="sv">${totalWeeksOnChart}</div><div class="sl">Weeks on the<br>Weekly Chart</div></div>` : ''}
     ${totalMonthsOnChart ? `<div class="modal-stat"><div class="se">🌙</div><div class="sv">${totalMonthsOnChart}</div><div class="sl">Months on the<br>Monthly Chart</div></div>` : ''}
     ${totalYearsOnChart ? `<div class="modal-stat"><div class="se">⭐</div><div class="sv">${totalYearsOnChart}</div><div class="sl">Years on the<br>Yearly Chart</div></div>` : ''}
-    ${certBadge(totalPlays, 'song') ? `<div class="modal-stat"><div class="sv" style="font-size:0.85rem">${certBadge(totalPlays, 'song')}</div><div class="sl">Certification</div></div>` : ''}
+    ${certBadge(totalPlays, 'song') ? `<div class="modal-stat"><div class="sv" style="font-size:var(--fs-sm)">${certBadge(totalPlays, 'song')}</div><div class="sl">Certification</div></div>` : ''}
   `;
 
   // ── GRAND SLAM ────────────────────────────────────────────────
@@ -24481,7 +24481,7 @@ function openSongModal(key) {
   if (longestStreak >= 7) records.push(`<div class="modal-stat"><div class="se">🔥</div><div class="sv">${longestStreak}</div><div class="sl">Day Streak Record</div></div>`);
   if (peakDayPlays >= 10) records.push(`<div class="modal-stat"><div class="se">📈</div><div class="sv">${peakDayPlays}</div><div class="sl">Plays in One Day</div></div>`);
   document.getElementById('songModalRecords').innerHTML = records.length
-    ? records.join('') : `<div style="font-size:0.8rem;color:var(--text3);padding:0.4rem 0">No chart records yet.</div>`;
+    ? records.join('') : `<div style="font-size:var(--fs-sm);color:var(--text3);padding:0.4rem 0">No chart records yet.</div>`;
 
   // ── ACCOMPLISHMENTS ───────────────────────────────────────────
   let accId = 0;
@@ -24493,7 +24493,7 @@ function openSongModal(key) {
             ? ` onclick="goToWeek(${r.weekOffset});songModal.classList.remove('open')" style="cursor:pointer"`
             : r.period ? ` onclick="goToPeriodFromSongModal('${r.period}','${r.periodKey}')" style="cursor:pointer"` : '';
           const viewTag = (r.weekOffset !== undefined || r.period)
-            ? `<span style="color:var(--accent);font-size:0.6rem;flex-shrink:0;margin-left:0.5rem;letter-spacing:0.06em">→ VIEW</span>` : '';
+            ? `<span style="color:var(--accent);font-size:var(--fs-xs);flex-shrink:0;margin-left:0.5rem;">→ VIEW</span>` : '';
           return `<div class="acc-detail-row"${navAttr}><span class="acc-detail-name">${esc(r.name)}</span><span class="acc-detail-plays">${r.plays} ${tUnit('plays',r.plays)}</span>${r.date?`<span class="acc-detail-date">${r.date}</span>`:''}${viewTag}</div>`;
         }).join('')
       : `<div class="acc-detail-row"><span class="acc-detail-name" style="font-style:italic">${t('modal_no_detail')}</span></div>`;
@@ -24617,7 +24617,7 @@ function openSongModal(key) {
     ].filter(Boolean)));
   }
 
-  if (!acc.length) acc.push(`<div style="font-style:italic;font-size:0.85rem;color:var(--text3);padding:0.5rem 0">No chart accomplishments yet.</div>`);
+  if (!acc.length) acc.push(`<div style="font-style:italic;font-size:var(--fs-sm);color:var(--text3);padding:0.5rem 0">No chart accomplishments yet.</div>`);
   document.getElementById('songModalAccomplishments').innerHTML = acc.join('');
 
   // ── SPARKLINE (listening pattern by month) ────────────────────
@@ -24638,7 +24638,7 @@ function openSongModal(key) {
       <polyline points="${pts}" fill="none" stroke="var(--accent)" stroke-width="1.5"/>
       <circle cx="${Math.round((wRanks.length-1)*step)}" cy="${h-norm(wRanks[wRanks.length-1])}" r="2.5" fill="var(--accent)"/>
     </svg>
-    <div style="display:flex;justify-content:space-between;font-size:0.6rem;color:var(--text3);margin-top:0.2rem">
+    <div style="display:flex;justify-content:space-between;font-size:var(--fs-xs);color:var(--text3);margin-top:0.2rem">
       <span>${crPeriodLabel('week',wEntAsc[0].periodKey)}</span><span>#${Math.min(...wRanks)} Peak</span><span>${crPeriodLabel('week',wEntAsc[wEntAsc.length-1].periodKey)}</span>
     </div></div>`;
   }
@@ -25472,8 +25472,8 @@ function renderCumulativeChips() {
   wrap.innerHTML = gCumulativeArtists.map((a, i) => {
     const col = GRAPH_PALETTE[i % GRAPH_PALETTE.length];
     return `<span style="display:inline-flex;align-items:center;gap:4px;background:${col}22;border:1px solid ${col};
-              color:${col};font-family:var(--font-mono);font-size:0.65rem;padding:2px 8px;border-radius:20px;
-              letter-spacing:0.04em;">
+              color:${col};font-family:var(--font-sans);font-size:var(--fs-xs);padding:2px 8px;border-radius:20px;
+              ">
               ${esc(a)}
               <button onclick="removeCumulativeArtist(${i})" style="background:none;border:none;color:${col};
                 cursor:pointer;font-size:0.75rem;line-height:1;padding:0 0 1px 2px;">×</button>
@@ -25715,8 +25715,8 @@ function renderVolumeChips() {
   wrap.innerHTML = gVolumeArtists.map((a, i) => {
     const col = GRAPH_PALETTE[i % GRAPH_PALETTE.length];
     return `<span style="display:inline-flex;align-items:center;gap:4px;background:${col}22;border:1px solid ${col};
-              color:${col};font-family:var(--font-mono);font-size:0.65rem;padding:2px 8px;border-radius:20px;
-              letter-spacing:0.04em;">
+              color:${col};font-family:var(--font-sans);font-size:var(--fs-xs);padding:2px 8px;border-radius:20px;
+              ">
               ${esc(a)}
               <button onclick="removeVolumeArtist(${i})" style="background:none;border:none;color:${col};
                 cursor:pointer;font-size:0.75rem;line-height:1;padding:0 0 1px 2px;">×</button>
@@ -31904,8 +31904,8 @@ function renderHeatmapChips() {
   wrap.innerHTML = heatmapFilters.map((f, i) => {
     const col = GRAPH_PALETTE[i % GRAPH_PALETTE.length];
     return `<span style="display:inline-flex;align-items:center;gap:4px;background:${col}22;border:1px solid ${col};
-              color:${col};font-family:var(--font-mono);font-size:0.65rem;padding:2px 8px;border-radius:20px;
-              letter-spacing:0.04em;">${esc(f)}
+              color:${col};font-family:var(--font-sans);font-size:var(--fs-xs);padding:2px 8px;border-radius:20px;
+              ">${esc(f)}
               <button onclick="removeHeatmapFilter(${i})" style="background:none;border:none;color:${col};
                 cursor:pointer;font-size:0.75rem;line-height:1;padding:0 0 1px 2px;">×</button>
             </span>`;
@@ -32074,7 +32074,7 @@ function renderHeatmap() {
   const allDayKeys = Object.keys(dayMap).sort();
 
   if (!allDayKeys.length) {
-    container.innerHTML = '<div style="font-family:var(--font-mono);font-size:0.7rem;color:var(--text3);padding:1rem 0;">No scrobbles found for the selected filters.</div>';
+    container.innerHTML = '<div style="font-family:var(--font-sans);font-size:var(--fs-xs);color:var(--text3);padding:1rem 0;">No scrobbles found for the selected filters.</div>';
     return;
   }
 
@@ -43841,8 +43841,8 @@ function stOpenArtistModal(artist) {
       <div class="modal-stat"><div class="se">🔥</div><div class="sv" data-countup="${longestStreak}">${longestStreak}</div><div class="sl">${t('modal_listening_days_streak')}</div></div>
       <div class="modal-stat"><div class="se">📅</div><div class="sv" data-countup="${activeDays}">${activeDays}</div><div class="sl">${t('modal_calendar_days_played')}</div></div>
       <div class="modal-stat"><div class="se">💿</div><div class="sv" data-countup="${topAlbums.length}">${topAlbums.length}</div><div class="sl">${t('st_bubble_albums_title')}</div></div>
-      <div class="modal-stat"><div class="se">🏔️</div><div class="sv" style="font-size:1.05rem">${peakDay ? fmtDay(peakDay) : '—'}</div><div class="sl">${t('st_stat_peak_day')}</div></div>
-      <div class="modal-stat"><div class="se">✨</div><div class="sv" style="font-size:1.05rem">${discoveredDs ? fmtDay(discoveredDs) : '—'}</div><div class="sl">${t('st_bubble_discovered')}</div></div>
+      <div class="modal-stat"><div class="se">🏔️</div><div class="sv" style="font-size:var(--fs-md)">${peakDay ? fmtDay(peakDay) : '—'}</div><div class="sl">${t('st_stat_peak_day')}</div></div>
+      <div class="modal-stat"><div class="se">✨</div><div class="sv" style="font-size:var(--fs-md)">${discoveredDs ? fmtDay(discoveredDs) : '—'}</div><div class="sl">${t('st_bubble_discovered')}</div></div>
       ${rank > 0 ? `<div class="modal-stat${rank <= 3 ? ' modal-stat--gold' : ''}"><div class="se">🏆</div><div class="sv${rank <= 3 ? ' sv--gold' : ''}">#${rank}</div><div class="sl">${t('st_bubble_rank')}</div></div>` : ''}
     </div>
 

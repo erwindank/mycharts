@@ -1048,7 +1048,20 @@ Left out on purpose:
   and icons sized with `font-size`. 12px doesn't fit in them; they get
   looked at with their components (phase 8/9).
 - **Share-card images** (inline styles in app.js). They are fixed-pixel
-  designs, not page text.
+  designs, not page text. The printable chart PDF and the picture-in-picture
+  mini player are left the same way.
+
+**Phase 2 recheck (2026-10-12).** A second pass found what the first missed:
+- ~63 inline styles in app.js that build on-page text (song/album/artist
+  pop-ups, chart-run panels, raw data, filter chips, settings lists, empty
+  messages) still had raw sizes down to 9.6px, a few in mono capitals. They
+  now use the same nearest-token rule (date tiles in the pop-ups use
+  `--fs-sm` so "30 Sep 2026" stays on one line). Icon-only sizes (🗑, ×) kept.
+- `style.css`: the Records phone-card labels were 7px, now 12px; the four
+  gold ribbons/stickers (landing cards, award poster, Grammy card) moved to
+  sans at 12px without capitals or tracking; settings step numbers 12px.
+- Checked on screen: landing ribbons, song pop-up, every Records section on
+  a 390px phone (no overflow, no page scroll), no JS errors.
 - **Words written in capitals in the text itself.** About 80 translation
   keys (×4 languages) and a few strings in app.js are typed in capitals
   ("BEST DAY", "SYNC NOW", "PEAK #", "GOLD", "PLAYS PEAK", "RANK"), so
