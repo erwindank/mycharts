@@ -22,7 +22,7 @@ window.DC_CHANGELOG_I18N['pt-PT'] = {
 
   "Four stat tiles instead of eight":
     ["Quatro quadros de estatísticas em vez de oito",
-     "Os quadros de estatísticas no topo de cada tabela são agora quatro: Reproduções, Músicas, Artistas e Álbuns. Músicas, artistas e álbuns novos aparecem como uma linha \"+69 novas\" no quadro correspondente (clique para ir para essa lista, passe o cursor para ver a mudança desde a última vez), e o seu melhor dia é uma linha em Reproduções. Os números grandes têm agora todos a mesma cor, para nenhum parecer uma descida."],
+     "Os quadros de estatísticas no topo de cada tabela são agora quatro: Reproduções, Músicas, Artistas e Álbuns. Músicas, artistas e álbuns novos aparecem como um dado pequeno no quadro correspondente (clique para ir para essa lista, passe o cursor para ver a mudança desde a última vez), e o seu melhor dia aparece em Reproduções. Por baixo de cada número grande há uma segunda fila de dados pequenos, que também mostra que parte das suas músicas era nova."],
 
   "Calmer colours across the site":
     ["Cores mais calmas em todo o site",

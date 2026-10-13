@@ -5982,10 +5982,9 @@
       font-weight: 700;
       font-size: var(--fs-xl);
       letter-spacing: -0.025em;
-      /* 2026-10 (plan 4.6): all four big numbers in one colour. Four
-         different number colours competed, and the red one read as "down".
-         Each tile keeps its own colour in the icon square and corner wash. */
-      color: var(--text);
+      /* Each tile's own colour. A one-colour version (2026-10-12) was tried
+         and rejected as too plain; the colour is part of the tiles' look. */
+      color: var(--cat-color, var(--text));
       line-height: 1;
       font-variant-numeric: tabular-nums;
     }
@@ -6016,26 +6015,48 @@
       color: var(--text3);
       opacity: 0.6;
     }
-    /* Merged highlight lines (2026-10, plan 4.6): "+69 new" on Songs / Artists /
-       Albums and the best-day caption on Total Plays, replacing the old second
-       row of tiles. Quiet secondary text; the number stays mono. */
-    .stat-extra {
-      padding-top: var(--sp-1);
-      font-family: var(--font-sans);
-      font-size: var(--fs-xs);
-      color: var(--text2);
+    /* Small stats under a divider (2026-10, plan 4.6), replacing the old
+       second row of tiles: "+6 / new songs" and "3% / of the total" on Songs,
+       "+1 / new artists", "+5 / new albums", and "165 / best day" +
+       "Oct 12 / Monday" on Total Plays. Value in the tile's colour, one step
+       below the big number; label in muted text. */
+    .stat-sub {
+      display: flex;
+      justify-content: center;
+      gap: var(--sp-5);
+      margin-top: var(--sp-3);
+      padding-top: var(--sp-3);
+      border-top: 1px solid var(--border-t);
+    }
+    .stat-sub-cell {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2px;
+      min-width: 0;
       text-align: center;
     }
-    .stat-extra-num {
-      font-family: var(--font-mono);
+    .stat-sub-val {
+      font-family: var(--font-sans);
+      font-weight: 700;
+      font-size: var(--fs-md);
+      letter-spacing: -0.01em;
+      line-height: 1.1;
       font-variant-numeric: tabular-nums;
-      font-weight: 600;
-      color: var(--text);
+      color: var(--cat-color, var(--text));
     }
-    .stat-extra-dim { color: var(--text3); }
-    /* the "+N new" line jumps to its New Songs / Artists / Albums section */
-    .stat-extra-link { cursor: pointer; }
-    .stat-extra-link:hover { color: var(--accent); text-decoration: underline; }
+    .stat-sub-cell.is-plain .stat-sub-val { color: var(--text); }
+    .stat-sub-lbl {
+      font-family: var(--font-sans);
+      font-size: var(--fs-xs);
+      color: var(--text3);
+    }
+    /* the "new" cell jumps to its New Songs / Artists / Albums section */
+    .stat-sub-cell.is-link { cursor: pointer; }
+    .stat-sub-cell.is-link:hover .stat-sub-lbl { color: var(--accent); text-decoration: underline; }
+    @media (max-width: 600px) {
+      .stat-sub { gap: var(--sp-3); }
+    }
 
     .stat-rate {
       font-family: var(--font-mono);

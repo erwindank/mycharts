@@ -13512,7 +13512,12 @@ function renderAll() {
     const newPeak       = buildNewEntryPeakStats(currentPeriod, null);
     const newPeakAtTime = buildNewEntryPeakStats(currentPeriod, cutoffKey);
 
-    // "+69 new" line. Tooltip: label, change vs. last period, record badge.
+    // One small stat under the tile's divider: a value over a label.
+    const subCell = (val, label, extraCls = '', attrs = '') =>
+      `<div class="stat-sub-cell${extraCls}"${attrs}><span class="stat-sub-val">${val}</span><span class="stat-sub-lbl">${esc(label)}</span></div>`;
+
+    // "+69 / new songs" cell (+ "27% / of the total" on Songs). Clicking it jumps
+    // to the New Entries list. Tooltip: change vs. last period, record badge.
     const newLine = (n, prevN, maxAll, maxAt, labelKey, section, pct) => {
       const tip = [t(labelKey) + ': ' + n.toLocaleString()];
       if (prevN !== null) {
@@ -13521,8 +13526,10 @@ function renderAll() {
       }
       if (maxAll !== null && n > 0 && n >= maxAll) tip.push(t('stat_alltime_peak'));
       else if (maxAt !== null && n > 0 && n >= maxAt) tip.push(t('stat_peak_at_time'));
-      const pctHtml = pct !== null && pct !== undefined ? ` <span class="stat-extra-dim">(${pct}%)</span>` : '';
-      return `<div class="stat-extra stat-extra-link" onclick="event.stopPropagation();dcScrollTo('${section}')" title="${esc(tip.join(' · '))}">${esc(t(labelKey.replace('stat_new_', 'stat_new_n_'), { n: n.toLocaleString() }))}${pctHtml}</div>`;
+      const newCell = subCell('+' + n.toLocaleString(), t(labelKey.replace('stat_new_', 'stat_sub_new_')), ' is-link',
+        ` onclick="event.stopPropagation();dcScrollTo('${section}')" title="${esc(tip.join(' · '))}"`);
+      const pctCell = pct !== null && pct !== undefined ? subCell(pct + '%', t('stat_sub_of_total')) : '';
+      return `<div class="stat-sub">${newCell}${pctCell}</div>`;
     };
 
     // Best day in the period being viewed → caption on Total Plays
@@ -13542,8 +13549,9 @@ function renderAll() {
       const [y, m, d] = bestDay.split('-').map(Number);
       const mon = t(['month_jan','month_feb','month_mar','month_apr','month_may_short','month_jun','month_jul','month_aug','month_sep','month_oct','month_nov','month_dec'][m - 1]);
       const dow = t(['day_sunday','day_monday','day_tuesday','day_wednesday','day_thursday','day_friday','day_saturday'][new Date(y, m - 1, d).getDay()]);
-      const date = currentLang === 'en' ? `${dow}, ${mon} ${d}` : `${dow}, ${d} ${mon}`;
-      bestDayLine = `<div class="stat-extra">${esc(t('stat_best_day_short'))} <span class="stat-extra-num">${bestDayCount.toLocaleString()}</span> <span class="stat-extra-dim">· ${esc(date)}</span></div>`;
+      const date = currentLang === 'en' ? `${mon} ${d}` : `${d} ${mon}`;
+      // "165 / best day" and "Oct 12 / Monday"; the date is plain text colour
+      bestDayLine = `<div class="stat-sub">${subCell(bestDayCount.toLocaleString(), t('stat_best_day_short'))}${subCell(esc(date), dow, ' is-plain')}</div>`;
     }
 
     _hl = {

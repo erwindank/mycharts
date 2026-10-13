@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 97;
+const DC_CL_I18N_V = 98;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -86,7 +86,7 @@ const DC_CHANGELOG = [
 
   { d: '2026-10-12', t: 'design', a: 'ui', h: '71b1554',
     title: 'Four stat tiles instead of eight',
-    detail: "The stat tiles at the top of a chart are now four: Total Plays, Songs, Artists and Albums. New songs, artists and albums show as a \"+69 new\" line on their matching tile (click it to jump to that list, hover it for the change since last time), and your best day is a line on Total Plays. The big numbers are now all one colour, so none of them looks like a drop." },
+    detail: "The stat tiles at the top of a chart are now four: Total Plays, Songs, Artists and Albums. Under each big number there is a second row of small stats: how many new songs, artists or albums you found (click to jump to that list, hover for the change since last time), what share of your songs were new, and your best day on Total Plays." },
 
   { d: '2026-10-12', t: 'design', a: 'ui', h: 'c67e639',
     title: 'Calmer colours across the site',

@@ -1113,11 +1113,12 @@ What it did:
 - Six white hover washes (`rgba(255,255,255,…)`) that vanished on light
   themes now use `--hover` / `--raised`.
 
-- **Stat tiles (4.6), your choice, both options:** the four big numbers are
-  one colour (`--text`); each tile keeps its colour in the icon square and
-  corner wash. The second row is merged in: "+118 new (27%)" on Songs,
-  "+12 new" on Artists and Albums, "Best day 261 · Thursday, Sep 11" on Total
-  Plays. 8 tiles → 4 (2×2 on phones). The "new" line still jumps to its
+- **Stat tiles (4.6), your choice:** 8 tiles → 4 (2×2 on phones). The old
+  second row became small stats under a divider in each tile: "+118 / new
+  songs" and "27% / of the total" on Songs, "+12 / new artists", "+43 / new
+  albums", and "261 / best day" + "Sep 11 / Thursday" on Total Plays.
+  One-colour big numbers were tried and rejected as too plain, so the
+  numbers keep their tile colours. The "new" line still jumps to its
   section; its change vs. last period and record badge are in its tooltip.
   `#statsStrip2` stays in the page but is always hidden; its old
   `.stat-chip` / `bestday` / `new-*` CSS is left for phase 11.

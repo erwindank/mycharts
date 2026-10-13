@@ -491,10 +491,11 @@ const TRANSLATIONS = {
     stat_albumotm: 'ALBUM OF THE MOMENT',
     stat_alltime_peak: '★ ALL-TIME PEAK',
     stat_peak_at_time: '◆ PEAK AT THE TIME',
-    // stat tiles: merged 'new' line and best-day caption (2026-10)
-    stat_new_n_songs: '+{{n}} new',
-    stat_new_n_artists: '+{{n}} new',
-    stat_new_n_albums: '+{{n}} new',
+    // stat tiles: small stats under the divider (2026-10)
+    stat_sub_new_songs: 'new songs',
+    stat_sub_new_artists: 'new artists',
+    stat_sub_new_albums: 'new albums',
+    stat_sub_of_total: 'of the total',
     stat_best_day_short: 'Best day',
     stat_plays_sub: 'plays',
     stat_same: '= same',
@@ -2747,10 +2748,11 @@ const TRANSLATIONS = {
     stat_albumotm: 'ÁLBUM DEL MOMENTO',
     stat_alltime_peak: '★ PICO HISTÓRICO',
     stat_peak_at_time: '◆ PICO EN SU MOMENTO',
-    // stat tiles: merged 'new' line and best-day caption (2026-10)
-    stat_new_n_songs: '+{{n}} nuevas',
-    stat_new_n_artists: '+{{n}} nuevos',
-    stat_new_n_albums: '+{{n}} nuevos',
+    // stat tiles: small stats under the divider (2026-10)
+    stat_sub_new_songs: 'canciones nuevas',
+    stat_sub_new_artists: 'artistas nuevos',
+    stat_sub_new_albums: 'álbumes nuevos',
+    stat_sub_of_total: 'del total',
     stat_best_day_short: 'Mejor día',
     stat_plays_sub: 'reproducciones',
     stat_same: '= igual',
@@ -4899,10 +4901,11 @@ const TRANSLATIONS = {
     stat_albumotm: 'ÁLBUM DO MOMENTO',
     stat_alltime_peak: '★ PICO HISTÓRICO',
     stat_peak_at_time: '◆ PICO NA ÉPOCA',
-    // stat tiles: merged 'new' line and best-day caption (2026-10)
-    stat_new_n_songs: '+{{n}} novas',
-    stat_new_n_artists: '+{{n}} novos',
-    stat_new_n_albums: '+{{n}} novos',
+    // stat tiles: small stats under the divider (2026-10)
+    stat_sub_new_songs: 'músicas novas',
+    stat_sub_new_artists: 'artistas novos',
+    stat_sub_new_albums: 'álbuns novos',
+    stat_sub_of_total: 'do total',
     stat_best_day_short: 'Melhor dia',
     stat_plays_sub: 'reprod.',
     stat_same: '= igual',
@@ -7052,10 +7055,11 @@ const TRANSLATIONS = {
     stat_albumotm: 'ÁLBUM DO MOMENTO',
     stat_alltime_peak: '★ PICO HISTÓRICO',
     stat_peak_at_time: '◆ PICO NA ÉPOCA',
-    // stat tiles: merged 'new' line and best-day caption (2026-10)
-    stat_new_n_songs: '+{{n}} novas',
-    stat_new_n_artists: '+{{n}} novos',
-    stat_new_n_albums: '+{{n}} novos',
+    // stat tiles: small stats under the divider (2026-10)
+    stat_sub_new_songs: 'músicas novas',
+    stat_sub_new_artists: 'artistas novos',
+    stat_sub_new_albums: 'álbuns novos',
+    stat_sub_of_total: 'do total',
     stat_best_day_short: 'Melhor dia',
     stat_plays_sub: 'reprod.',
     stat_same: '= igual',
