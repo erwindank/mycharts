@@ -1118,7 +1118,9 @@ What it did:
   songs" and "27% / of the total" on Songs, "+12 / new artists", "+43 / new
   albums", and "261 / best day" + "Sep 11 / Thursday" on Total Plays.
   One-colour big numbers were tried and rejected as too plain, so the
-  numbers keep their tile colours. The "new" line still jumps to its
+  numbers keep their tile colours. Songs and Artists moved off green/red
+  (they read as up/down) to violet and magenta, your pick from four rendered
+  options; Total Plays stays blue on Purple too, as on Red and Pink. The "new" line still jumps to its
   section; its change vs. last period and record badge are in its tooltip.
   `#statsStrip2` stays in the page but is always hidden; its old
   `.stat-chip` / `bestday` / `new-*` CSS is left for phase 11.

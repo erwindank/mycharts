@@ -22,7 +22,7 @@ window.DC_CHANGELOG_I18N['es'] = {
 
   "Four stat tiles instead of eight":
     ["Cuatro recuadros de estadísticas en vez de ocho",
-     "Los recuadros de estadísticas arriba de cada lista ahora son cuatro: Reproducciones, Canciones, Artistas y Álbumes. Las canciones, artistas y álbumes nuevos aparecen como un dato pequeño en su recuadro (haz clic para ir a esa lista, pasa el cursor para ver el cambio desde la vez anterior), y tu mejor día aparece en Reproducciones. Debajo de cada número grande hay una segunda fila de datos pequeños, que también muestra qué parte de tus canciones fueron nuevas."],
+     "Los recuadros de estadísticas arriba de cada lista ahora son cuatro: Reproducciones, Canciones, Artistas y Álbumes. Las canciones, artistas y álbumes nuevos aparecen como un dato pequeño en su recuadro (haz clic para ir a esa lista, pasa el cursor para ver el cambio desde la vez anterior), y tu mejor día aparece en Reproducciones. Debajo de cada número grande hay una segunda fila de datos pequeños, que también muestra qué parte de tus canciones fueron nuevas. Canciones ahora es violeta y Artistas magenta, así sus números ya no se confunden con el verde y el rojo de subir o bajar."],
 
   "Calmer colours across the site":
     ["Colores más tranquilos en todo el sitio",
