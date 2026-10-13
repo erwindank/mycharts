@@ -454,6 +454,12 @@ const TRANSLATIONS = {
 
     // Chart size bar
     all_entries: 'All Entries',
+    // Custom chart size row (under the Top N presets in each chart's Size menu)
+    size_custom: 'Custom',
+    size_custom_apply: 'Set',
+    size_custom_aria: 'Custom chart size',
+    size_custom_note: 'Also changes past peaks, chart runs, debuts and records.',
+    size_custom_range: 'Pick a number from {{min}} to {{max}}.',
 
     // Date navigation
     btn_prev: 'Prev',
@@ -2713,6 +2719,11 @@ const TRANSLATIONS = {
 
     // Chart size bar
     all_entries: 'Todas las Entradas',
+    size_custom: 'Personalizado',
+    size_custom_apply: 'Aplicar',
+    size_custom_aria: 'Tamaño de lista personalizado',
+    size_custom_note: 'También cambia los picos, trayectorias, debuts y récords anteriores.',
+    size_custom_range: 'Elige un número entre {{min}} y {{max}}.',
 
     // Date navigation
     btn_prev: 'Anterior',
@@ -4866,6 +4877,11 @@ const TRANSLATIONS = {
 
     // Chart size bar
     all_entries: 'Todas as Entradas',
+    size_custom: 'Personalizado',
+    size_custom_apply: 'Aplicar',
+    size_custom_aria: 'Tamanho de parada personalizado',
+    size_custom_note: 'Também muda picos, trajetórias na parada, estreias e recordes anteriores.',
+    size_custom_range: 'Escolha um número de {{min}} a {{max}}.',
 
     // Date navigation
     btn_prev: 'Anterior',
@@ -7020,6 +7036,11 @@ const TRANSLATIONS = {
 
     // Chart size bar
     all_entries: 'Todas as Entradas',
+    size_custom: 'Personalizado',
+    size_custom_apply: 'Aplicar',
+    size_custom_aria: 'Tamanho de tabela personalizado',
+    size_custom_note: 'Também altera picos, percursos na tabela, estreias e recordes anteriores.',
+    size_custom_range: 'Escolha um número de {{min}} a {{max}}.',
 
     // Date navigation
     btn_prev: 'Anterior',

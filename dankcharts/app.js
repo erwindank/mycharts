@@ -6367,6 +6367,8 @@ function finalizeLoad() {
   _syncSizeBtns('sizeBtnsAlbumsM',   chartSizeAlbumsM);
   _syncSizeBtns('sizeBtnsAlbumsY',   chartSizeAlbumsY);
   _syncSizeBtns('sizeBtnsAlbumsAT',  chartSizeAlbumsAT);
+  // A loaded size that isn't a preset shows in the Custom row instead
+  _dcSyncCustomSizeRows();
 
   // Restore graph settings (cumulative, total volume, volume comparison)
   const savedCumArtists = localStorage.getItem('dc_gCumulativeArtists');
@@ -6562,16 +6564,23 @@ function parseDate(str) {
 // ─── PERIOD NAV ────────────────────────────────────────────────
 // Per-section chart size button handlers
 // Each button group is independent; paginated=true resets search/pagination state
-function _bindSectionSizeBar(id, setter, lsKey, paginated) {
+// Every bound size group, by element id → { apply(rawStr), current() }. The
+// Custom row (below) looks up whichever group is showing and applies through
+// the same path a preset click does, so both save and sync identically.
+const _dcSizeBars = {};
+// Allowed range for a typed-in custom size. Bigger lists already have
+// "All Entries" on the yearly/all-time charts.
+const DC_CUSTOM_SIZE_MIN = 5, DC_CUSTOM_SIZE_MAX = 500;
+
+function _bindSectionSizeBar(id, setter, lsKey, paginated, getter) {
   const el = document.getElementById(id);
   if (!el) return;
-  el.addEventListener('click', e => {
-    const btn = e.target.closest('[data-size]'); if (!btn) return;
-    el.querySelectorAll('button').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    const rawV = parseInt(btn.dataset.size);
+  // rawStr is the stored form: a number as text, '0' meaning All Entries
+  const apply = rawStr => {
+    el.querySelectorAll('button').forEach(b => b.classList.toggle('active', b.dataset.size === rawStr));
+    const rawV = parseInt(rawStr);
     setter(rawV === 0 ? Infinity : rawV);
-    localStorage.setItem(lsKey, btn.dataset.size);
+    localStorage.setItem(lsKey, rawStr);
     if (typeof dcSaveUserConfig === 'function') dcSaveUserConfig();
     if (paginated) {
       ['songs', 'artists', 'albums'].forEach(t => {
@@ -6580,24 +6589,109 @@ function _bindSectionSizeBar(id, setter, lsKey, paginated) {
       });
     }
     renderAll();
+    _dcSyncCustomSizeRows();
+  };
+  _dcSizeBars[id] = { apply, current: getter };
+  el.addEventListener('click', e => {
+    const btn = e.target.closest('[data-size]'); if (!btn) return;
+    apply(btn.dataset.size);
+  });
+}
+
+// ─── CUSTOM CHART SIZE ─────────────────────────────────────────
+// One "Custom" row per section's Size menu (songs / artists / albums), under
+// the preset list. It isn't tied to a period: it acts on whichever size group
+// renderAll() is currently showing, so three rows cover all twelve groups.
+// Built in JS rather than repeated twelve times in index.html. It sits outside
+// .size-btns on purpose, so the preset-button styles and the
+// "[data-size] → active" handling never touch its input or Set button.
+function _dcInitCustomSizeRows() {
+  ['Songs', 'Artists', 'Albums'].forEach(sec => {
+    const bar = document.getElementById('sizeBar' + sec);
+    if (!bar || bar.querySelector('.size-custom')) return;
+    const row = document.createElement('div');
+    row.className = 'size-custom';
+    row.innerHTML =
+      '<div class="size-custom-row">' +
+        '<span class="size-custom-label" data-i18n="size_custom">' + t('size_custom') + '</span>' +
+        '<input type="number" class="size-custom-input" inputmode="numeric" step="1"' +
+          ' min="' + DC_CUSTOM_SIZE_MIN + '" max="' + DC_CUSTOM_SIZE_MAX + '"' +
+          ' placeholder="' + DC_CUSTOM_SIZE_MIN + '–' + DC_CUSTOM_SIZE_MAX + '"' +
+          ' data-i18n-aria="size_custom_aria" aria-label="' + esc(t('size_custom_aria')) + '">' +
+        '<button type="button" class="size-custom-apply" data-i18n="size_custom_apply">' + t('size_custom_apply') + '</button>' +
+      '</div>' +
+      // Plain note, not a warning popup: presets rewrite history the same way
+      '<div class="size-custom-note" data-i18n="size_custom_note">' + t('size_custom_note') + '</div>';
+    bar.appendChild(row);
+
+    const input = row.querySelector('.size-custom-input');
+    const note  = row.querySelector('.size-custom-note');
+    const submit = () => {
+      const group = _dcVisibleSizeGroup(bar);
+      if (!group) return;
+      const v = Math.round(Number(input.value));
+      if (!input.value || !isFinite(v) || v < DC_CUSTOM_SIZE_MIN || v > DC_CUSTOM_SIZE_MAX) {
+        // Out of range: say so in the note line instead of applying
+        note.textContent = t('size_custom_range', { min: DC_CUSTOM_SIZE_MIN, max: DC_CUSTOM_SIZE_MAX });
+        note.classList.add('is-error');
+        input.focus();
+        return;
+      }
+      _dcSizeBars[group.id].apply(String(v));
+    };
+    row.querySelector('.size-custom-apply').addEventListener('click', submit);
+    input.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); submit(); } });
+    // Typing again clears an out-of-range message
+    input.addEventListener('input', () => {
+      if (!note.classList.contains('is-error')) return;
+      note.classList.remove('is-error');
+      note.textContent = t('size_custom_note');
+    });
+  });
+  _dcSyncCustomSizeRows();
+}
+
+// The size group renderAll() left visible inside one section's size bar
+function _dcVisibleSizeGroup(bar) {
+  return [...bar.querySelectorAll('.size-btns')].find(g => g.style.display !== 'none' && _dcSizeBars[g.id]) || null;
+}
+
+// Fills each Custom row with the size its visible group is using and lights it
+// up when that size isn't one of the presets (so 37 shows as Custom · 37).
+// Called after renderAll() swaps groups, after any size change, and on load.
+function _dcSyncCustomSizeRows() {
+  document.querySelectorAll('.section-size-bar .size-custom').forEach(row => {
+    const group = _dcVisibleSizeGroup(row.closest('.section-size-bar'));
+    if (!group) return;
+    const cur = _dcSizeBars[group.id].current();
+    const isPreset = [...group.querySelectorAll('[data-size]')]
+      .some(b => b.dataset.size === (isFinite(cur) ? String(cur) : '0'));
+    row.classList.toggle('active', !isPreset);
+    const input = row.querySelector('.size-custom-input');
+    // Don't overwrite what the user is in the middle of typing
+    if (document.activeElement !== input) input.value = isPreset ? '' : String(cur);
+    const note = row.querySelector('.size-custom-note');
+    if (note.classList.contains('is-error')) { note.classList.remove('is-error'); note.textContent = t('size_custom_note'); }
   });
 }
 // Weekly size bars (non-paginated)
-_bindSectionSizeBar('sizeBtnsSongsW',   v => { chartSizeSongsW   = v; chartSizeWeekly = v; }, 'dc_chartSizeSongsW',   false);
-_bindSectionSizeBar('sizeBtnsArtistsW', v => { chartSizeArtistsW = v; },                      'dc_chartSizeArtistsW', false);
-_bindSectionSizeBar('sizeBtnsAlbumsW',  v => { chartSizeAlbumsW  = v; },                      'dc_chartSizeAlbumsW',  false);
+// (last argument reads the size back, for the Custom row)
+_bindSectionSizeBar('sizeBtnsSongsW',   v => { chartSizeSongsW   = v; chartSizeWeekly = v; }, 'dc_chartSizeSongsW',   false, () => chartSizeSongsW);
+_bindSectionSizeBar('sizeBtnsArtistsW', v => { chartSizeArtistsW = v; },                      'dc_chartSizeArtistsW', false, () => chartSizeArtistsW);
+_bindSectionSizeBar('sizeBtnsAlbumsW',  v => { chartSizeAlbumsW  = v; },                      'dc_chartSizeAlbumsW',  false, () => chartSizeAlbumsW);
 // Monthly size bars (non-paginated)
-_bindSectionSizeBar('sizeBtnsSongsM',   v => { chartSizeSongsM   = v; chartSizeMonthly = v; }, 'dc_chartSizeSongsM',   false);
-_bindSectionSizeBar('sizeBtnsArtistsM', v => { chartSizeArtistsM = v; },                       'dc_chartSizeArtistsM', false);
-_bindSectionSizeBar('sizeBtnsAlbumsM',  v => { chartSizeAlbumsM  = v; },                       'dc_chartSizeAlbumsM',  false);
+_bindSectionSizeBar('sizeBtnsSongsM',   v => { chartSizeSongsM   = v; chartSizeMonthly = v; }, 'dc_chartSizeSongsM',   false, () => chartSizeSongsM);
+_bindSectionSizeBar('sizeBtnsArtistsM', v => { chartSizeArtistsM = v; },                       'dc_chartSizeArtistsM', false, () => chartSizeArtistsM);
+_bindSectionSizeBar('sizeBtnsAlbumsM',  v => { chartSizeAlbumsM  = v; },                       'dc_chartSizeAlbumsM',  false, () => chartSizeAlbumsM);
 // Yearly size bars (paginated)
-_bindSectionSizeBar('sizeBtnsSongsY',   v => { chartSizeSongsY   = v; chartSizeYearly = v; }, 'dc_chartSizeSongsY',   true);
-_bindSectionSizeBar('sizeBtnsArtistsY', v => { chartSizeArtistsY = v; },                      'dc_chartSizeArtistsY', true);
-_bindSectionSizeBar('sizeBtnsAlbumsY',  v => { chartSizeAlbumsY  = v; },                      'dc_chartSizeAlbumsY',  true);
+_bindSectionSizeBar('sizeBtnsSongsY',   v => { chartSizeSongsY   = v; chartSizeYearly = v; }, 'dc_chartSizeSongsY',   true, () => chartSizeSongsY);
+_bindSectionSizeBar('sizeBtnsArtistsY', v => { chartSizeArtistsY = v; },                      'dc_chartSizeArtistsY', true, () => chartSizeArtistsY);
+_bindSectionSizeBar('sizeBtnsAlbumsY',  v => { chartSizeAlbumsY  = v; },                      'dc_chartSizeAlbumsY',  true, () => chartSizeAlbumsY);
 // All-time size bars (paginated)
-_bindSectionSizeBar('sizeBtnsSongsAT',   v => { chartSizeSongsAT   = v; chartSizeAllTime = v; }, 'dc_chartSizeSongsAT',   true);
-_bindSectionSizeBar('sizeBtnsArtistsAT', v => { chartSizeArtistsAT = v; },                       'dc_chartSizeArtistsAT', true);
-_bindSectionSizeBar('sizeBtnsAlbumsAT',  v => { chartSizeAlbumsAT  = v; },                       'dc_chartSizeAlbumsAT',  true);
+_bindSectionSizeBar('sizeBtnsSongsAT',   v => { chartSizeSongsAT   = v; chartSizeAllTime = v; }, 'dc_chartSizeSongsAT',   true, () => chartSizeSongsAT);
+_bindSectionSizeBar('sizeBtnsArtistsAT', v => { chartSizeArtistsAT = v; },                       'dc_chartSizeArtistsAT', true, () => chartSizeArtistsAT);
+_bindSectionSizeBar('sizeBtnsAlbumsAT',  v => { chartSizeAlbumsAT  = v; },                       'dc_chartSizeAlbumsAT',  true, () => chartSizeAlbumsAT);
+_dcInitCustomSizeRows();
 
 // ─── NAVIGATE TO RECORD PERIOD ────────────────────────────────
 function navigateToRecPeriod(period, periodKey) {
@@ -13312,6 +13406,8 @@ function renderAll() {
       if (el) el.style.display = p === _szTag ? 'flex' : 'none';
     });
   });
+  // The Custom row follows whichever group is now showing
+  _dcSyncCustomSizeRows();
   // Set active per-section sizes and keep compat vars in sync
   if (!paginated) {
     const _isM = currentPeriod === 'month';

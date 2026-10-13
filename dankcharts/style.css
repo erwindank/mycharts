@@ -32171,6 +32171,94 @@ body.red-light .modal-rank-card--year .mrc-rank {
       border-radius: 0;
     }
 
+    /* Custom size row — built by _dcInitCustomSizeRows() under the Top N list.
+       Lives outside .size-btns so none of the preset-button rules (theme hover
+       overrides included) reach its input or Set button. */
+    .size-custom {
+      margin-top: 2px;
+      padding-top: var(--sp-1);
+      border-top: 1px solid var(--border);
+    }
+    .size-custom-row {
+      display: flex;
+      align-items: center;
+      gap: var(--sp-2);
+      padding: 0.3rem var(--sp-2);
+      border-radius: var(--r-sm);
+    }
+    .size-custom-label {
+      flex: 1;
+      min-width: 0;
+      font-family: var(--font-sans);
+      font-size: var(--fs-xs);
+      color: var(--text2);
+    }
+    .size-custom-input {
+      width: 4.5em;
+      padding: 0.2rem 0.4rem;
+      border: 1px solid var(--border);
+      border-radius: var(--r-sm);
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font-sans);
+      font-size: var(--fs-xs);
+      font-variant-numeric: tabular-nums;
+      text-align: right;
+      -moz-appearance: textfield;
+    }
+    /* No spinner arrows: each click would rebuild the chart history */
+    .size-custom-input::-webkit-outer-spin-button,
+    .size-custom-input::-webkit-inner-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+    .size-custom-input:focus {
+      outline: none;
+      border-color: var(--accent);
+    }
+    .size-custom-apply {
+      padding: 0.2rem 0.6rem;
+      border: 1px solid var(--border);
+      border-radius: var(--r-sm);
+      background: none;
+      color: var(--text2);
+      font-family: var(--font-sans);
+      font-size: var(--fs-xs);
+      cursor: pointer;
+      transition: background 120ms ease, color 120ms ease, border-color 120ms ease;
+    }
+    .size-custom-apply:hover {
+      background: var(--bg3);
+      color: var(--text);
+    }
+    /* A non-preset size is in use: the row reads as selected, like the
+       highlighted Top N row would */
+    .size-custom.active .size-custom-row {
+      background: color-mix(in srgb, var(--accent) 18%, transparent);
+    }
+    .size-custom.active .size-custom-label {
+      color: var(--accent);
+      font-weight: 600;
+    }
+    /* Yellow dark: same reason as the preset rows above — the tint reads dim,
+       so the label carries the selection with the solid accent instead */
+    body.yellow .size-custom.active .size-custom-row {
+      background: var(--accent);
+    }
+    body.yellow .size-custom.active .size-custom-label {
+      color: var(--on-accent);
+    }
+    .size-custom-note {
+      padding: var(--sp-1) var(--sp-2) 0;
+      font-family: var(--font-sans);
+      font-size: 0.6875rem; /* 11px — a footnote under the 12px rows */
+      line-height: 1.35;
+      color: var(--text3);
+    }
+    .size-custom-note.is-error {
+      color: var(--chart-down);
+    }
+
     /* Actions tab — Play All / Shuffle (songs only) sit above a divider,
        then Export Playlist / Share as Image / TXT+CSV — all "do something
        with this chart" actions, one family */
