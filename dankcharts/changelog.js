@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 93;
+const DC_CL_I18N_V = 94;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,10 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+
+  { d: '2026-10-12', t: 'fix', a: 'ui', h: '41ebc46',
+    title: 'More small text made easier to read',
+    detail: "A second check of the text change found spots it had missed: the song, album and artist pop-ups, chart-run panels, raw data, filter chips, settings lists and Records cards on phones, some still under 10px. They now use the same sizes as the rest of the site, 12px or larger. The gold ribbons on the welcome cards and award posters lost their typewriter capitals too." },
 
   { d: '2026-10-11', t: 'design', a: 'ui', h: 'd7249e6',
     title: 'Easier-to-read text across the site',

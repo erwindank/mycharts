@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['pt-BR'] = {
 
   /* ========== OUTUBRO 2026 ========== */
 
+  "More small text made easier to read":
+    ["Mais textos pequenos ficaram mais fáceis de ler",
+     "Uma segunda revisão da mudança de texto encontrou pontos que tinham ficado de fora: as janelas de músicas, álbuns e artistas, os painéis de trajetória na parada, os dados brutos, os filtros, as listas de configurações e os cartões de Recordes no celular, alguns ainda abaixo de 10px. Agora usam os mesmos tamanhos do resto do site, 12px ou mais. As faixas douradas dos cartões de boas-vindas e dos pôsteres de prêmios também deixaram as maiúsculas de máquina de escrever."],
+
   "Easier-to-read text across the site":
     ["Texto mais fácil de ler em todo o site",
      "Rótulos pequenos, botões, abas e títulos usavam maiúsculas minúsculas de máquina de escrever, algumas abaixo de 10px. Agora usam a fonte normal do site com 12px ou mais, sem as maiúsculas e o espaçamento largo entre letras. Números como posições, reproduções e datas mantêm a fonte de máquina de escrever, então continuam alinhados em colunas. Os cabeçalhos das tabelas continuam em maiúsculas pequenas."],
