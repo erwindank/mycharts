@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 94;
+const DC_CL_I18N_V = 95;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,10 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+
+  { d: '2026-10-12', t: 'design', a: 'ui', h: 'c67e639',
+    title: 'Calmer colours across the site',
+    detail: "Colour now only shows up where it means something: green for going up, red for going down, gold for certifications. Light themes have a much paler page, so covers stand out. The coloured bars on the left of new and returning songs are gone, Bubbling Under tags share one quiet style (only the rising and falling ones keep green or red), and the YouTube button is no longer bright red. In the Red and Pink themes, NEW no longer looks like a drop. \"Artist of the moment\" is easier to read on light themes." },
 
   { d: '2026-10-12', t: 'fix', a: 'ui', h: '41ebc46',
     title: 'More small text made easier to read',

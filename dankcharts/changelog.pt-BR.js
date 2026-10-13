@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['pt-BR'] = {
 
   /* ========== OUTUBRO 2026 ========== */
 
+  "Calmer colours across the site":
+    ["Cores mais calmas em todo o site",
+     "Agora a cor só aparece onde significa algo: verde para subir, vermelho para cair e dourado para as certificações. Os temas claros têm uma página bem mais pálida, então as capas se destacam. As barras coloridas à esquerda das músicas novas e das que voltaram sumiram, as etiquetas do Bubbling Under têm um estilo discreto único (só as que sobem ou caem mantêm o verde ou o vermelho) e o botão do YouTube não é mais vermelho vivo. Nos temas Vermelho e Rosa, NEW não parece mais uma queda. \"Artista do momento\" ficou mais fácil de ler nos temas claros."],
+
   "More small text made easier to read":
     ["Mais textos pequenos ficaram mais fáceis de ler",
      "Uma segunda revisão da mudança de texto encontrou pontos que tinham ficado de fora: as janelas de músicas, álbuns e artistas, os painéis de trajetória na parada, os dados brutos, os filtros, as listas de configurações e os cartões de Recordes no celular, alguns ainda abaixo de 10px. Agora usam os mesmos tamanhos do resto do site, 12px ou mais. As faixas douradas dos cartões de boas-vindas e dos pôsteres de prêmios também deixaram as maiúsculas de máquina de escrever."],
