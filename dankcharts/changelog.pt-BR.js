@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['pt-BR'] = {
 
   /* ========== OUTUBRO 2026 ========== */
 
+  "Four stat tiles instead of eight":
+    ["Quatro quadros de estatísticas em vez de oito",
+     "Os quadros de estatísticas no topo de cada parada agora são quatro: Reproduções, Músicas, Artistas e Álbuns. Músicas, artistas e álbuns novos aparecem como uma linha \"+69 novas\" no quadro correspondente (clique para ir até essa lista, passe o cursor para ver a mudança desde a última vez), e o seu melhor dia é uma linha em Reproduções. Os números grandes agora têm todos a mesma cor, então nenhum parece uma queda."],
+
   "Calmer colours across the site":
     ["Cores mais calmas em todo o site",
      "Agora a cor só aparece onde significa algo: verde para subir, vermelho para cair e dourado para as certificações. Os temas claros têm uma página bem mais pálida, então as capas se destacam. As barras coloridas à esquerda das músicas novas e das que voltaram sumiram, as etiquetas do Bubbling Under têm um estilo discreto único (só as que sobem ou caem mantêm o verde ou o vermelho) e o botão do YouTube não é mais vermelho vivo. Nos temas Vermelho e Rosa, NEW não parece mais uma queda. \"Artista do momento\" ficou mais fácil de ler nos temas claros."],
