@@ -12893,7 +12893,14 @@ function animateModalCountup(containerEl) {
 
 function dcScrollTo(sectionId) {
   const el = document.getElementById(sectionId);
-  if (!el || el.style.display === 'none') return;
+  if (!el) return;
+  // Only one of the Songs / Artists / Albums charts is shown at a time, so a
+  // jump to an artist or album section (Artists tile, "Artist of the moment",
+  // "+12 new"…) used to scroll to a hidden chart and do nothing. Switch the
+  // view to that chart first.
+  const group = el.closest('#songsChartGroup, #artistsChartGroup, #albumsChartGroup');
+  if (group && group.style.display === 'none') setChartTypeView(group.id.replace('ChartGroup', ''));
+  if (el.style.display === 'none') return;
   if (el.classList.contains('collapsed')) {
     const btn = el.querySelector('.section-collapse-btn');
     if (btn) btn.click();
