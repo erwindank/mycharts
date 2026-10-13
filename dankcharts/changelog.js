@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 100;
+const DC_CL_I18N_V = 101;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,10 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+
+  { d: '2026-10-12', t: 'feature', a: 'charts', h: 'd02cebd',
+    title: 'Pick any chart size',
+    detail: "Each chart's Size menu now has a Custom box under the Top 10 to Top 100 choices. Type any number from 5 to 500 and press Set or Enter, and the chart shows that many entries. It is saved per chart and per period, like the presets. A note under the box reminds you that past peaks, chart runs, debuts and records follow the size you pick." },
 
   { d: '2026-10-12', t: 'fix', a: 'ui', h: '9b71150',
     title: 'Artist and album tiles open their chart',

@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['pt-PT'] = {
 
   /* ========== OUTUBRO 2026 ========== */
 
+  "Pick any chart size":
+    ["Escolha qualquer tamanho de tabela",
+     "O menu Tamanho de cada tabela tem agora uma caixa Personalizado por baixo das opções Top 10 a Top 100. Escreva qualquer número de 5 a 500 e carregue em Aplicar ou Enter, e a tabela mostra esse número de entradas. Fica guardado por tabela e por período, como as opções fixas. Uma nota por baixo da caixa lembra que os picos, percursos, estreias e recordes anteriores acompanham o tamanho escolhido."],
+
   "Artist and album tiles open their chart":
     ["Os quadros de artistas e álbuns abrem a tabela deles",
      "Clicar no quadro de Artistas ou Álbuns, em \"Artista do momento\", \"Artista em ascensão\" ou \"Álbum do momento\" muda agora para a tabela de Artistas ou Álbuns e desloca-se até ela. Antes só funcionava se essa tabela já estivesse aberta."],

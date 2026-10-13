@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['pt-BR'] = {
 
   /* ========== OUTUBRO 2026 ========== */
 
+  "Pick any chart size":
+    ["Escolha qualquer tamanho de parada",
+     "O menu Tamanho de cada parada agora tem uma caixa Personalizado abaixo das opções Top 10 a Top 100. Digite qualquer número de 5 a 500 e clique em Aplicar ou pressione Enter, e a parada mostra essa quantidade de entradas. Fica salvo por parada e por período, como as opções fixas. Uma nota abaixo da caixa lembra que picos, trajetórias, estreias e recordes anteriores acompanham o tamanho escolhido."],
+
   "Artist and album tiles open their chart":
     ["Os quadros de artistas e álbuns abrem a parada deles",
      "Clicar no quadro de Artistas ou Álbuns, em \"Artista do momento\", \"Artista em ascensão\" ou \"Álbum do momento\" agora muda para a parada de Artistas ou Álbuns e rola até ela. Antes só funcionava se essa parada já estivesse aberta."],

@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['es'] = {
 
   /* ========== OCTUBRE 2026 ========== */
 
+  "Pick any chart size":
+    ["Elige cualquier tamaño de lista",
+     "El menú Tamaño de cada lista tiene ahora un cuadro Personalizado debajo de las opciones Top 10 a Top 100. Escribe cualquier número entre 5 y 500 y pulsa Aplicar o Enter, y la lista mostrará esa cantidad de entradas. Se guarda por lista y por periodo, igual que las opciones fijas. Una nota bajo el cuadro te recuerda que los picos, trayectorias, debuts y récords anteriores siguen el tamaño que elijas."],
+
   "Artist and album tiles open their chart":
     ["Los recuadros de artistas y álbumes abren su lista",
      "Al hacer clic en el recuadro de Artistas o Álbumes, en \"Artista del momento\", \"Artista en ascenso\" o \"Álbum del momento\", ahora se cambia a la lista de Artistas o Álbumes y se desplaza hasta ella. Antes solo funcionaba si esa lista ya estaba a la vista."],
