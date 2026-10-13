@@ -1113,8 +1113,16 @@ What it did:
 - Six white hover washes (`rgba(255,255,255,…)`) that vanished on light
   themes now use `--hover` / `--raised`.
 
+- **Stat tiles (4.6), your choice, both options:** the four big numbers are
+  one colour (`--text`); each tile keeps its colour in the icon square and
+  corner wash. The second row is merged in: "+118 new (27%)" on Songs,
+  "+12 new" on Artists and Albums, "Best day 261 · Thursday, Sep 11" on Total
+  Plays. 8 tiles → 4 (2×2 on phones). The "new" line still jumps to its
+  section; its change vs. last period and record badge are in its tooltip.
+  `#statsStrip2` stays in the page but is always hidden; its old
+  `.stat-chip` / `bestday` / `new-*` CSS is left for phase 11.
+
 Left out on purpose:
-- **Stat tile number colours** (4.6 says that's your call; not changed).
 - **The YouTube player and queue** keep YouTube red. It's the player's own
   branding, not chart content.
 - **The ON AIR / streak banner's left bars** go with phase 5, which merges

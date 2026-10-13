@@ -13456,7 +13456,7 @@ function renderAll() {
   // Tier 1 (core totals): icon+label share one header line, delta+rate share
   // one footer line — collapses the old stacked pill-label + separate lines into 3 rows.
   function statBox(val, i18nKey, prevVal, maxAllTime, maxAtTime, opts) {
-    const { scrollTo, sparkVals, extraLabel, emoji, cat } = opts || {};
+    const { scrollTo, sparkVals, extraLabel, emoji, cat, extraLine } = opts || {};
     const isAllTimePeak  = maxAllTime !== null && val > 0 && val >= maxAllTime;
     const isAtTimePeak   = maxAtTime  !== null && val > 0 && val >= maxAtTime;
     const allTimeBadge   = isAllTimePeak ? `<div class="stat-peak-badge stat-peak-badge-alltime">${t('stat_alltime_peak')}</div>` : '';
@@ -13471,33 +13471,28 @@ function renderAll() {
     return `<div class="stat-box${boxClass}${scrollTo ? ' stat-clickable' : ''}"${clickAttr}${catAttr}>
       <div class="stat-head">${iconHtml}<span class="stat-label" data-i18n="${i18nKey}">${t(i18nKey)}</span></div>
       <div class="stat-val" data-val="${val}">${val.toLocaleString()}</div>
-      ${footHtml}${allTimeBadge}${atTimeBadge}${sparklineSvg(sparkVals)}
+      ${footHtml}${extraLine || ''}${allTimeBadge}${atTimeBadge}${sparklineSvg(sparkVals)}
     </div>`;
   }
 
-  document.getElementById('statsStrip').innerHTML =
-    statBox(plays.length,   'stat_total_plays',  prevPlays     ? prevPlays.length     : null, peakStats ? peakStats.maxPlays   : null, peakAtTimeStats ? peakAtTimeStats.maxPlays   : null, { scrollTo: 'songsSection',   emoji: '🎵', cat: 'plays',   extraLabel: playsPerDay ? playsPerDay + t('stat_per_day') : null }) +
-    statBox(songSet.size,   'stat_unique_songs',  prevSongSet   ? prevSongSet.size     : null, peakStats ? peakStats.maxSongs   : null, peakAtTimeStats ? peakAtTimeStats.maxSongs   : null, { scrollTo: 'songsSection',   emoji: '🎶', cat: 'songs',   extraLabel: discoveryRate !== null ? discoveryRate + t('stat_pct_new') : null }) +
-    statBox(artistSet.size, 'stat_artists',       prevArtistSet ? prevArtistSet.size   : null, peakStats ? peakStats.maxArtists : null, peakAtTimeStats ? peakAtTimeStats.maxArtists : null, { scrollTo: 'artistsSection', emoji: '🎤', cat: 'artists' }) +
-    statBox(albumSet.size,  'stat_albums',        prevAlbumSet  ? prevAlbumSet.size    : null, peakStats ? peakStats.maxAlbums  : null, peakAtTimeStats ? peakAtTimeStats.maxAlbums  : null, { scrollTo: 'albumsSection',  emoji: '💿', cat: 'albums' });
-  animateStatStrip(document.getElementById('statsStrip'));
-
-  // Second stats strip: song of the moment + new songs/artists/albums
-  const strip2El = document.getElementById('statsStrip2');
-  const showStrip2 = _showStrip2;
-  if (showStrip2 && strip2El) {
+  // Highlights merged into the four total tiles (2026-10 redesign, plan 4.6):
+  // "New songs / artists / albums" were their own row of tiles; now each is a
+  // "+69 new" line on its matching tile, and "Best day" is a caption on Total
+  // Plays. Nothing is dropped: the change vs. last period and any record for the
+  // new count sit in the line's tooltip, and the line still jumps to its
+  // New Songs / Artists / Albums section.
+  let _hl = null;
+  if (_showStrip2) {
     if (!firstSeenMaps) firstSeenMaps = buildFirstSeenMaps();
     const { songFirst, artistFirst, albumFirst } = firstSeenMaps;
-
-    // New songs/artists/albums in current period (first-ever appearance)
-    const newSongsCount   = [...songSet].filter(s => songFirst[s] && songFirst[s] >= start).length;
-    const newArtistsCount = [...artistSet].filter(a => artistFirst[a] && artistFirst[a] >= start).length;
-    const newAlbumsCount  = new Set(plays
+    const newSongs   = [...songSet].filter(s => songFirst[s] && songFirst[s] >= start).length;
+    const newArtists = [...artistSet].filter(a => artistFirst[a] && artistFirst[a] >= start).length;
+    const newAlbums  = new Set(plays
       .filter(p => p.album && p.album !== '—')
       .map(p => albumKeyOf(p))
       .filter(ak => albumFirst[ak] && albumFirst[ak] >= start)).size;
 
-    // Previous period new counts
+    // Previous period new counts (for the tooltip's change line)
     let prevNewSongs = null, prevNewArtists = null, prevNewAlbums = null;
     if (prevPlays && prevStart) {
       const pSongSet     = new Set(prevPlays.map(p => songKey(p)));
@@ -13507,10 +13502,64 @@ function renderAll() {
       prevNewArtists = [...pArtistSet].filter(a => artistFirst[a] && artistFirst[a] >= prevStart).length;
       prevNewAlbums  = [...pAlbumKeySet].filter(ak => albumFirst[ak] && albumFirst[ak] >= prevStart).length;
     }
+    const newPeak       = buildNewEntryPeakStats(currentPeriod, null);
+    const newPeakAtTime = buildNewEntryPeakStats(currentPeriod, cutoffKey);
 
-    // All-time peak and peak-at-time for new entry counts
-    const newPeakStats       = buildNewEntryPeakStats(currentPeriod, null);
-    const newPeakAtTimeStats = buildNewEntryPeakStats(currentPeriod, cutoffKey);
+    // "+69 new" line. Tooltip: label, change vs. last period, record badge.
+    const newLine = (n, prevN, maxAll, maxAt, labelKey, section, pct) => {
+      const tip = [t(labelKey) + ': ' + n.toLocaleString()];
+      if (prevN !== null) {
+        const d = n - prevN;
+        tip.push(d > 0 ? '▲ ' + d.toLocaleString() : d < 0 ? '▼ ' + Math.abs(d).toLocaleString() : t('stat_same'));
+      }
+      if (maxAll !== null && n > 0 && n >= maxAll) tip.push(t('stat_alltime_peak'));
+      else if (maxAt !== null && n > 0 && n >= maxAt) tip.push(t('stat_peak_at_time'));
+      const pctHtml = pct !== null && pct !== undefined ? ` <span class="stat-extra-dim">(${pct}%)</span>` : '';
+      return `<div class="stat-extra stat-extra-link" onclick="event.stopPropagation();dcScrollTo('${section}')" title="${esc(tip.join(' · '))}">${esc(t(labelKey.replace('stat_new_', 'stat_new_n_'), { n: n.toLocaleString() }))}${pctHtml}</div>`;
+    };
+
+    // Best day in the period being viewed → caption on Total Plays
+    const dayCounts = {};
+    for (const p of allPlays) {
+      const pd = tzDateOf(p);
+      if (pd < start || pd > end) continue;
+      const dk = localDateStr(pd);
+      dayCounts[dk] = (dayCounts[dk] || 0) + 1;
+    }
+    let bestDay = null, bestDayCount = 0;
+    for (const [dk, cnt] of Object.entries(dayCounts)) {
+      if (cnt > bestDayCount) { bestDay = dk; bestDayCount = cnt; }
+    }
+    let bestDayLine = '';
+    if (bestDay) {
+      const [y, m, d] = bestDay.split('-').map(Number);
+      const mon = t(['month_jan','month_feb','month_mar','month_apr','month_may_short','month_jun','month_jul','month_aug','month_sep','month_oct','month_nov','month_dec'][m - 1]);
+      const dow = t(['day_sunday','day_monday','day_tuesday','day_wednesday','day_thursday','day_friday','day_saturday'][new Date(y, m - 1, d).getDay()]);
+      const date = currentLang === 'en' ? `${dow}, ${mon} ${d}` : `${dow}, ${d} ${mon}`;
+      bestDayLine = `<div class="stat-extra">${esc(t('stat_best_day_short'))} <span class="stat-extra-num">${bestDayCount.toLocaleString()}</span> <span class="stat-extra-dim">· ${esc(date)}</span></div>`;
+    }
+
+    _hl = {
+      bestDayLine,
+      songs:   newLine(newSongs,   prevNewSongs,   newPeak.maxNewSongs,   newPeakAtTime.maxNewSongs,   'stat_new_songs',   'newSongsSection',   discoveryRate),
+      artists: newLine(newArtists, prevNewArtists, newPeak.maxNewArtists, newPeakAtTime.maxNewArtists, 'stat_new_artists', 'newArtistsSection', null),
+      albums:  newLine(newAlbums,  prevNewAlbums,  newPeak.maxNewAlbums,  newPeakAtTime.maxNewAlbums,  'stat_new_albums',  'newAlbumsSection',  null),
+    };
+  }
+
+  document.getElementById('statsStrip').innerHTML =
+    statBox(plays.length,   'stat_total_plays',  prevPlays     ? prevPlays.length     : null, peakStats ? peakStats.maxPlays   : null, peakAtTimeStats ? peakAtTimeStats.maxPlays   : null, { scrollTo: 'songsSection',   emoji: '🎵', cat: 'plays',   extraLabel: playsPerDay ? playsPerDay + t('stat_per_day') : null, extraLine: _hl?.bestDayLine }) +
+    statBox(songSet.size,   'stat_unique_songs',  prevSongSet   ? prevSongSet.size     : null, peakStats ? peakStats.maxSongs   : null, peakAtTimeStats ? peakAtTimeStats.maxSongs   : null, { scrollTo: 'songsSection',   emoji: '🎶', cat: 'songs',   extraLabel: !_hl && discoveryRate !== null ? discoveryRate + t('stat_pct_new') : null, extraLine: _hl?.songs }) +
+    statBox(artistSet.size, 'stat_artists',       prevArtistSet ? prevArtistSet.size   : null, peakStats ? peakStats.maxArtists : null, peakAtTimeStats ? peakAtTimeStats.maxArtists : null, { scrollTo: 'artistsSection', emoji: '🎤', cat: 'artists', extraLine: _hl?.artists }) +
+    statBox(albumSet.size,  'stat_albums',        prevAlbumSet  ? prevAlbumSet.size    : null, peakStats ? peakStats.maxAlbums  : null, peakAtTimeStats ? peakAtTimeStats.maxAlbums  : null, { scrollTo: 'albumsSection',  emoji: '💿', cat: 'albums',  extraLine: _hl?.albums });
+  animateStatStrip(document.getElementById('statsStrip'));
+
+  // Second stats strip: song of the moment + new songs/artists/albums
+  const strip2El = document.getElementById('statsStrip2');
+  const showStrip2 = _showStrip2;
+  if (showStrip2 && strip2El) {
+    if (!firstSeenMaps) firstSeenMaps = buildFirstSeenMaps();
+    const { artistFirst } = firstSeenMaps;
 
     // Song of the moment: most played song in the 15 days ending at period end
     const sotmEnd   = end;
@@ -13533,51 +13582,6 @@ function renderAll() {
     }
     const sotmTitle  = sotmKey ? songNames15[sotmKey].title  : null;
     const sotmArtist = sotmKey ? songNames15[sotmKey].artist : null;
-
-    // Tier 2 (highlights): one flat chip in a shared ticker strip rather than
-    // a fully-bordered/shadowed card — visually demotes these vs. the Tier-1 totals.
-    function statBox2(val, label, prevVal, maxAllTime, maxAtTime, scrollTo, meta) {
-      const { emoji, cat } = meta || {};
-      const isAllTimePeak = maxAllTime !== null && val > 0 && val >= maxAllTime;
-      const isAtTimePeak  = maxAtTime  !== null && val > 0 && val >= maxAtTime;
-      const allTimeBadge  = isAllTimePeak ? `<div class="stat-peak-badge stat-peak-badge-alltime">${t('stat_alltime_peak')}</div>` : '';
-      const atTimeBadge   = isAtTimePeak  ? `<div class="stat-peak-badge stat-peak-badge-attime">${t('stat_peak_at_time')}</div>` : '';
-      const boxClass      = isAllTimePeak ? ' stat-peak-alltime' : isAtTimePeak ? ' stat-peak-attime' : '';
-      const clickAttr     = scrollTo ? ` onclick="dcScrollTo('${scrollTo}')" title="Jump to section"` : '';
-      const catAttr       = cat ? ` data-cat="${cat}"` : '';
-      const iconHtml      = emoji ? `<span class="stat-chip-icon">${emoji}</span>` : '';
-      const deltaHtml     = statDelta(val, prevVal);
-      return `<div class="stat-chip${boxClass}${scrollTo ? ' stat-clickable' : ''}"${clickAttr}${catAttr}>
-        <div class="stat-chip-head">${iconHtml}<span class="stat-chip-label">${label}</span></div>
-        <div class="stat-val" data-val="${val}">${val.toLocaleString()}</div>
-        ${deltaHtml ? `<div class="stat-chip-sub">${deltaHtml}</div>` : ''}
-        ${allTimeBadge}${atTimeBadge}
-      </div>`;
-    }
-
-    // Best day in the period being viewed
-    const _dayCounts = {};
-    for (const p of allPlays) {
-      const pd = tzDateOf(p);
-      if (pd < start || pd > end) continue;
-      const dk = localDateStr(pd);
-      _dayCounts[dk] = (_dayCounts[dk] || 0) + 1;
-    }
-    let bestDay = null, bestDayCount = 0;
-    for (const [dk, cnt] of Object.entries(_dayCounts)) {
-      if (cnt > bestDayCount) { bestDay = dk; bestDayCount = cnt; }
-    }
-    const _mos = ['month_jan','month_feb','month_mar','month_apr','month_may_short','month_jun','month_jul','month_aug','month_sep','month_oct','month_nov','month_dec'].map(k => t(k).toUpperCase());
-    const _mosLong = ['month_january','month_february','month_march','month_april','month_may','month_june','month_july','month_august','month_september','month_october','month_november','month_december'].map(k => t(k).toUpperCase());
-    const _dows = ['day_sunday','day_monday','day_tuesday','day_wednesday','day_thursday','day_friday','day_saturday'].map(k => t(k).toUpperCase());
-    const bestDayLabel = bestDay ? (() => { const [y, m, d] = bestDay.split('-').map(Number); const dow = new Date(y, m - 1, d).getDay(); const monSpan = `<span class="bd-month-short">${_mos[m-1]}</span><span class="bd-month-long">${_mosLong[m-1]}</span>`; const datePart = currentLang === 'en' ? monSpan + ' ' + d : d + ' ' + monSpan; return _dows[dow] + ' ' + datePart; })() : null;
-    const bestDayBox = bestDay
-      ? `<div class="stat-chip stat-clickable" onclick="dcScrollTo('songsSection')" title="Jump to section" data-cat="bestday">
-          <div class="stat-chip-head"><span class="stat-chip-icon">📅</span><span class="stat-chip-label">${t('stat_best_day')}</span></div>
-          <div class="stat-val" data-val="${bestDayCount}">${bestDayCount}</div>
-          <div class="stat-chip-sub">${bestDayLabel}</div>
-        </div>`
-      : '';
 
     // Tier 3 (spotlight): horizontal, image-forward cards — art on the left,
     // title/artist in the middle, play count on the right. These carry the
@@ -13687,11 +13691,8 @@ function renderAll() {
         </div>`
       : '';
 
-    strip2El.innerHTML = bestDayBox +
-      statBox2(newSongsCount,   t('stat_new_songs'),   prevNewSongs,   newPeakStats.maxNewSongs,   newPeakAtTimeStats.maxNewSongs,   'newSongsSection',   { emoji: '✨', cat: 'new-songs' }) +
-      statBox2(newArtistsCount, t('stat_new_artists'), prevNewArtists, newPeakStats.maxNewArtists, newPeakAtTimeStats.maxNewArtists, 'newArtistsSection', { emoji: '⭐', cat: 'new-artists' }) +
-      statBox2(newAlbumsCount,  t('stat_new_albums'),  prevNewAlbums,  newPeakStats.maxNewAlbums,  newPeakAtTimeStats.maxNewAlbums,  'newAlbumsSection',  { emoji: '🆕', cat: 'new-albums' });
-    animateStatStrip(strip2El);
+    // The highlights row is merged into the four total tiles above (see _hl)
+    strip2El.innerHTML = '';
 
     const strip3El = document.getElementById('statsStrip3');
     if (strip3El) {
@@ -13745,7 +13746,7 @@ function renderAll() {
       }, 'album');
     }
 
-    strip2El.style.display = '';
+    strip2El.style.display = 'none';
   } else if (strip2El) {
     strip2El.style.display = 'none';
     const strip3ElFallback = document.getElementById('statsStrip3');

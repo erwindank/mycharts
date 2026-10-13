@@ -5982,7 +5982,10 @@
       font-weight: 700;
       font-size: var(--fs-xl);
       letter-spacing: -0.025em;
-      color: var(--cat-color, var(--text));
+      /* 2026-10 (plan 4.6): all four big numbers in one colour. Four
+         different number colours competed, and the red one read as "down".
+         Each tile keeps its own colour in the icon square and corner wash. */
+      color: var(--text);
       line-height: 1;
       font-variant-numeric: tabular-nums;
     }
@@ -6013,6 +6016,27 @@
       color: var(--text3);
       opacity: 0.6;
     }
+    /* Merged highlight lines (2026-10, plan 4.6): "+69 new" on Songs / Artists /
+       Albums and the best-day caption on Total Plays, replacing the old second
+       row of tiles. Quiet secondary text; the number stays mono. */
+    .stat-extra {
+      padding-top: var(--sp-1);
+      font-family: var(--font-sans);
+      font-size: var(--fs-xs);
+      color: var(--text2);
+      text-align: center;
+    }
+    .stat-extra-num {
+      font-family: var(--font-mono);
+      font-variant-numeric: tabular-nums;
+      font-weight: 600;
+      color: var(--text);
+    }
+    .stat-extra-dim { color: var(--text3); }
+    /* the "+N new" line jumps to its New Songs / Artists / Albums section */
+    .stat-extra-link { cursor: pointer; }
+    .stat-extra-link:hover { color: var(--accent); text-decoration: underline; }
+
     .stat-rate {
       font-family: var(--font-mono);
       font-variant-numeric: tabular-nums;
@@ -11615,7 +11639,11 @@
         border-radius: 0;
       }
 
-      /* Stats on mobile: Tier 1 (totals) and Tier 2 (highlights) interleave
+      /* 2026-10: Tier 2 is merged into the Tier 1 tiles, so the highlights
+         row is always hidden and this grid simply shows the four totals two
+         by two. The bestday / new-* order rules below no longer match
+         anything; kept until the old Tier 2 classes are cleaned up (phase 11).
+         Stats on mobile: Tier 1 (totals) and Tier 2 (highlights) interleave
          into one shared 2-column grid so each total sits beside its related
          counterpart (Total Plays next to Best Day, Unique Songs next to New
          Songs, etc.) — the pairing the user asked to restore. #statsStrip and
