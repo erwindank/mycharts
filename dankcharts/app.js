@@ -5534,10 +5534,11 @@ function _npHistory(track) {
 }
 
 function _npOrdinal(n) {
-  // Spanish and European Portuguese write "43.ª", Brazilian Portuguese "43ª"
-  // (feminine, agreeing with reproducción / reprodução)
-  if (currentLang === 'es' || currentLang === 'pt-PT') return n.toLocaleString() + '.ª';
-  if (currentLang === 'pt-BR') return n.toLocaleString() + 'ª';
+  // Spanish writes "43.ª" (feminine, agreeing with reproducción). Portuguese
+  // says "play", which is masculine: European "43.º", Brazilian "43º"
+  if (currentLang === 'es') return n.toLocaleString() + '.ª';
+  if (currentLang === 'pt-PT') return n.toLocaleString() + '.º';
+  if (currentLang === 'pt-BR') return n.toLocaleString() + 'º';
   const rem100 = n % 100;
   // 11th/12th/13th are the exceptions to the last-digit rule
   const suffix = (rem100 >= 11 && rem100 <= 13) ? 'th'

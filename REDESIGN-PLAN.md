@@ -1349,10 +1349,17 @@ the pills into ⋮ → Show, 5 screen check (also covers phase 5).
   Found, older than phase 6, left for later:
   - Red light: the Bubbling Under section has a red bar down its left
     edge, the "down" colour (phase 3 removed these from rows, not from
-    this section). Phase 7 (4.11) restyles these sections.
+    this section). **Fixed 2026-10-14 ahead of phase 7:** the light themes
+    now draw one neutral `--border` all round instead of `--border2` on the
+    left. Phase 7 (4.11) still restyles these sections.
   - Portuguese: the New Entries table's column headers stay English
-    ("Title · Artist", "Plays"), and "reproduções" is cut to "repros" on a
-    phone (already noted for phase 7).
+    ("Title · Artist", "Plays"). **Wording settled 2026-10-14:** "repros"
+    is gone. Portuguese now says "play / plays" everywhere, and Spanish
+    short labels say "reprod / reprods" (sentences keep "reproducciones").
+  - **On a phone the Songs table is wider than its card** (390px, every
+    language, English included): the right edge clips the plays column
+    ("18 reprod…", header "Re…"). The wording was not the cause. Fix it
+    with the phase 7 table restyle.
   - The ⋮ menu's tabs (Show / Size / View / Actions) are English in every
     language; the "Chart hidden" note says "⋮ → Show" to match. Phase 8.
   - On a phone the open ⋮ menu runs under the bottom tab bar; the page
