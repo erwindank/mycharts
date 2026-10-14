@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['pt-BR'] = {
 
   /* ========== OUTUBRO 2026 ========== */
 
+  "Sync messages pop up instead of sitting in a strip":
+    ["As mensagens de sincronização aparecem num aviso em vez de uma faixa",
+     "A faixa de texto de sincronização no topo da página saiu. Mensagens como \"Sincronizado\" ou o resultado de uma autocorreção agora aparecem num canto e somem depois de alguns segundos; os erros ficam até você fechar. A atualização automática a cada poucas horas não mostra mais nada, mas o último status está na dica do botão Sincronizar. Também corrigido: apertar Sincronizar quando suas reproduções vêm de um arquivo enviado dizia \"Nenhuma Google Sheet configurada\"; agora diz quantas reproduções estão carregadas e como atualizá-las."],
+
   "Week, month, year and all-time on the date line":
     ["Semana, mês, ano e histórico na linha da data",
      "Os botões Semanal, Mensal, Anual e Histórico agora ficam na mesma linha da data, então escolher um período e navegar por ele acontece numa única barra fina que fica no topo enquanto você rola. A data aparece numa linha só, e clicar nela ainda abre o seletor de data. A dica de teclado embaixo da data saiu; as setas do teclado e o gesto de deslizar continuam funcionando."],

@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 106;
+const DC_CL_I18N_V = 107;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,10 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+
+  { d: '2026-10-13', t: 'design', a: 'data', h: 'de962d1',
+    title: 'Sync messages pop up instead of sitting in a strip',
+    detail: "The strip of sync text at the top of the page is gone. Messages like \"Synced\" or an auto-correct result now pop up in a corner and fade after a few seconds; errors stay until you close them. The automatic refresh every few hours no longer shows anything, but the latest status is in the Sync button's tooltip. Also fixed: pressing Sync when your plays come from an uploaded file said \"No Google Sheet configured\"; it now tells you how many plays are loaded and how to update them." },
 
   { d: '2026-10-13', t: 'design', a: 'charts', h: '0ff2ecd',
     title: 'Week, month, year and all-time on the date line',
