@@ -12155,7 +12155,7 @@ document.addEventListener('click', e => {
     localStorage.setItem('dc_rec_section_collapsed_' + section.id, collapsed ? '1' : '0');
   } else if (CHART_COLLAPSIBLE_SECTIONS.includes(section.id)) {
     localStorage.setItem('dc_chart_section_collapsed_' + section.id + '_' + currentPeriod, collapsed ? '1' : '0');
-  } else if (['birthdaysSection', 'anniversariesSection', 'eventsUpcomingSection', 'eventsRecentSection', 'eventsRecentBirthdaysSection', 'eventsRecentAnniversariesSection', 'nmfSection'].includes(section.id)) {
+  } else if (['timeMachineSection', 'birthdaysSection', 'anniversariesSection', 'eventsUpcomingSection', 'eventsRecentSection', 'eventsRecentBirthdaysSection', 'eventsRecentAnniversariesSection', 'nmfSection'].includes(section.id)) {
     localStorage.setItem('dc_events_section_collapsed_' + section.id, collapsed ? '1' : '0');
   }
   // Keep Collapse All toggle in sync when individual sections are toggled
@@ -12379,7 +12379,7 @@ document.getElementById('periodNav').addEventListener('click', e => {
     const sel = document.getElementById('eventsLimitSelect');
     if (sel) sel.value = eventsArtistLimit;
     _syncEventsTypeFilter();
-    ['birthdaysSection', 'anniversariesSection', 'eventsUpcomingSection', 'eventsRecentSection', 'eventsRecentBirthdaysSection', 'eventsRecentAnniversariesSection', 'nmfSection'].forEach(id => {
+    ['timeMachineSection', 'birthdaysSection', 'anniversariesSection', 'eventsUpcomingSection', 'eventsRecentSection', 'eventsRecentBirthdaysSection', 'eventsRecentAnniversariesSection', 'nmfSection'].forEach(id => {
       const el = document.getElementById(id);
       if (!el) return;
       const key = 'dc_events_section_collapsed_' + id;
@@ -12390,6 +12390,7 @@ document.getElementById('periodNav').addEventListener('click', e => {
       const btn = el.querySelector('.section-collapse-btn');
       if (btn) { btn.textContent = collapsed ? '+' : '−'; btn.title = collapsed ? 'Expand' : 'Collapse'; }
     });
+    renderTimeMachine();
     if (allPlays.length) { loadEvents(); loadConcerts(); loadNMF(); }
     if (typeof window._refreshBackToTop === 'function') window._refreshBackToTop();
     updateScrobbleBtn();
@@ -13907,9 +13908,9 @@ function renderAll() {
   }
 
   renderTableHeaders();
-  // The Time Machine lives on the Soundtrack tab, which renders it itself;
+  // The Time Machine lives on the Events tab, which renders it itself;
   // this only keeps it current when a sync re-renders while that tab is open
-  if (currentPeriod === 'soundtrack') renderTimeMachine();
+  if (currentPeriod === 'events') renderTimeMachine();
 
   const hasPeriodStats = currentPeriod === 'week' || currentPeriod === 'month' || currentPeriod === 'year';
   const colCount = hasPeriodStats ? 8 : 6; // +1 for the trailing chart-run icon column
@@ -34003,7 +34004,7 @@ function renderTimeMachine(forceRebuild) {
   const newData = buildTimeMachineData();
   const newHash = newData.songs.length + '|' + newData.artists.length + '|' + newData.albums.length;
 
-  // The section sits inside #soundtrackView, so that tab's own visibility
+  // The section sits inside #eventsView, so that tab's own visibility
   // decides whether it is on screen; this only shows or hides it for data.
   if (!forceRebuild && tmData && tmData._hash === newHash && track.firstChild) {
     section.style.display = ''; // cached cards are still in the track
@@ -42871,10 +42872,6 @@ function renderSoundtrack() {
   if (activitySection) activitySection.style.display = (isYear || isAlltime) ? '' : 'none';
   if (replaySection) replaySection.style.display = isYear ? '' : 'none';
 
-  // Time Machine at the bottom of the tab. It is about today, not the period
-  // picked above, so a period change finds it cached and leaves it as it is.
-  renderTimeMachine();
-
   requestAnimationFrame(stSetupReveal);
 }
 
@@ -45745,7 +45742,7 @@ const _cgTourSteps = [
     nav: 'records' },
 
   { title: 'Events',
-    content: 'A calendar built from the artists in your charts: artist birthdays, album anniversaries, upcoming releases and recent ones, plus recent birthdays and anniversaries you may have just missed. Switch between calendar and reel layouts per section. It is the tab that tells you when something in your library is worth replaying today.',
+    content: 'A calendar built from the artists in your charts, opening with the Time Machine (what you were playing on this day in past years): artist birthdays, album anniversaries, upcoming releases and recent ones, plus recent birthdays and anniversaries you may have just missed. Switch between calendar and reel layouts per section. It is the tab that tells you when something in your library is worth replaying today.',
     nav: 'events' },
 
   { title: 'Awards',
@@ -45753,7 +45750,7 @@ const _cgTourSteps = [
     nav: 'awards' },
 
   { title: 'Your Soundtrack',
-    content: 'A full recap for any month, any year, or all time. It opens with a reel and headline stats, then walks through your top charts, a featured artist, when in the day and week you actually listen, your most loyal artists, what you discovered, milestones, streaks, a mini awards run, and a hidden gem you had half forgotten. It also replays your charts as an animation and exports the whole thing as a shareable card. At the very bottom, the Time Machine shows what you were playing on this day in past years.',
+    content: 'A full recap for any month, any year, or all time. It opens with a reel and headline stats, then walks through your top charts, a featured artist, when in the day and week you actually listen, your most loyal artists, what you discovered, milestones, streaks, a mini awards run, and a hidden gem you had half forgotten. It also replays your charts as an animation and exports the whole thing as a shareable card.',
     nav: 'soundtrack' },
 
   { title: 'Playlists',
@@ -46460,7 +46457,7 @@ function dcRenderChartsGuideView() {
         { name: 'Records',         period: 'records',    icon: '🏆', desc: 'Eleven sections behind the button row at the top: All #1s, Perfect All Kill, Most Chart Appearances, Biggest Debuts, Most Plays in a Period, Play Count Milestones, Fastest to Milestone, Certifications, Streak Records, New Charts and an Overview.', use: 'Your record book.' },
         { name: 'Events',          period: 'events',     icon: '🎂', desc: 'A calendar of artist birthdays, album anniversaries and new releases for the artists in your charts.', use: 'Knowing when something is worth replaying.' },
         { name: 'Awards',          period: 'awards',     icon: '🏅', desc: '53 categories generated from your own chart data — the four majors plus Best Collaboration, Song of the Summer, Best Comeback, Best Discovery, Most Obsessive Play and opt-in genre awards. Set an eligibility window, pick categories, then run the ceremony. Real-Life Awards sits alongside My Grammys, with the real Grammys, VMAs, AMAs, iHeartRadio, World Music, Billboard, ARIA, Juno and BRIT Awards your artists were up for.', use: 'The fun one. Run it every December.' },
-        { name: 'Your Soundtrack', period: 'soundtrack', icon: '🎬', desc: 'A full recap of any month, year or all time: a reel, headline stats, top charts, a featured artist, your listening patterns, discoveries, milestones, streaks, a mini awards run and a hidden gem — plus an animated chart replay, a shareable card and the Time Machine.', use: 'The nostalgic pass through your history.' },
+        { name: 'Your Soundtrack', period: 'soundtrack', icon: '🎬', desc: 'A full recap of any month, year or all time: a reel, headline stats, top charts, a featured artist, your listening patterns, discoveries, milestones, streaks, a mini awards run and a hidden gem — plus an animated chart replay and a shareable card.', use: 'The nostalgic pass through your history.' },
         { name: 'Playlists',       period: 'playlists',  icon: '🎵', desc: 'Save any chart as a named playlist and queue tracks from anywhere, with recent releases and anniversaries alongside.', use: 'Turning a chart back into listening.' },
         { name: 'Board',           period: 'board',      icon: '💬', desc: 'The community board: suggest features, report bugs, ask questions and talk with other listeners. Vote up the ideas you want most and follow their status from Planned to Done. Reading is open to everyone; posting needs Google sign-in.', use: 'Asking for the feature you wish existed.' },
         { name: 'Charts Guide',    period: 'chartsguide',icon: '📖', desc: 'You are here. Setup checks, the tab breakdown, how charts are calculated, shortcuts, glossary, FAQ and your milestones.', use: 'Whenever something does not make sense.' },
@@ -46504,7 +46501,7 @@ function dcRenderChartsGuideView() {
     { term: 'Hidden Gem',   def: 'A track from your history that Your Soundtrack resurfaces because you once played it a lot and have not returned to it lately.' },
     { term: 'NMF',          def: 'New Music Friday — new releases from artists in your charts, surfaced in the Events tab.' },
     { term: 'Image Card',   def: 'A shareable PNG export of any chart, styled and sized for social media.' },
-    { term: 'Time Machine', def: 'At the bottom of Your Soundtrack: what you were playing on this day in past years.' },
+    { term: 'Time Machine', def: 'The first section of Events: what you were playing on this day in past years.' },
     { term: 'Autocorrect',  def: 'A rule that silently renames a misspelled artist or track across all your charts, applied at parse time.' },
   ];
 
@@ -46528,7 +46525,7 @@ function dcRenderChartsGuideView() {
     'Every chart section has six layouts behind the <strong>⋮ menu</strong> — Table, Card Grid, Compact, Mosaic, Filmstrip and Stack.',
     'Autocorrect rules sync through <strong>Firestore</strong>, so a name you fix on your laptop is already fixed on your phone.',
     '<strong>Graphs → Graveyard</strong> lists artists that used to chart for you and have since gone silent — a good place to find something to revive.',
-    'The <strong>Time Machine</strong> at the bottom of Your Soundtrack shows what you were playing on this day in past years.',
+    'The <strong>Time Machine</strong> at the top of Events shows what you were playing on this day in past years.',
     '<strong>Awards</strong> works for any year with enough data, not only the most recent one — run it on the year you first started scrobbling.',
     'Image cards are generated in your browser from the live chart, so whatever you are looking at is exactly what exports.',
   ];
