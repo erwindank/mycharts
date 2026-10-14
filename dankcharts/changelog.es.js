@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['es'] = {
 
   /* ========== OCTUBRE 2026 ========== */
 
+  "Release reels live on the Events tab only":
+    ["Los lanzamientos solo están en la pestaña Eventos",
+     "Los carruseles de Próximos lanzamientos y Lanzamientos recientes ya no aparecen al final de los charts semanales y mensuales, así que la página de Charts termina con tus charts. Los dos siguen en la pestaña Eventos, donde al hacer clic en un lanzamiento se abre el mismo menú de antes. La pestaña Listas de reproducción ahora muestra los Lanzamientos recientes de Eventos junto a los Aniversarios, y los dos se cargan sin tener que pasar antes por Eventos. Sus dos interruptores en Ajustes → Secciones de la página de rankings también se han quitado."],
+
   "Autocorrect rules always reach your account on page load":
     ["Las reglas de autocorrección siempre llegan a tu cuenta al cargar la página",
      "Si tenías la sesión iniciada, las reglas de autocorrección que se leen de tu Google Sheet al abrir la página a veces no se guardaban en tu cuenta, porque el guardado se hacía antes de que la conexión con la cuenta estuviera lista. Lo mismo podía pasar con tus álbumes recopilatorios y tus elecciones de sencillo/EP. Ahora estos guardados esperan a la conexión, así que no se pierde nada."],

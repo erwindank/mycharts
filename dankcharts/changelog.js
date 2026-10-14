@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 110;
+const DC_CL_I18N_V = 111;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,10 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+
+  { d: '2026-10-14', t: 'design', a: 'charts', h: '9bd9454',
+    title: 'Release reels live on the Events tab only',
+    detail: "The Upcoming and Recent Releases reels no longer sit at the bottom of the Weekly and Monthly charts, so the chart page ends with your charts. Both are still on the Events tab, where clicking a release opens the same menu as before. The Playlists tab now shows the Events tab’s Recent Releases next to Anniversaries, and both fill in without a trip to Events first. Their two switches under Settings → Chart page sections are gone with them." },
 
   { d: '2026-10-14', t: 'fix', a: 'data', h: '9b75d37',
     title: 'Autocorrect rules always reach your account on page load',

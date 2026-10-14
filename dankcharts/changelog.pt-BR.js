@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['pt-BR'] = {
 
   /* ========== OUTUBRO 2026 ========== */
 
+  "Release reels live on the Events tab only":
+    ["Os lançamentos ficam só na aba Eventos",
+     "Os carrosséis de Próximos lançamentos e Lançamentos recentes não aparecem mais no fim das paradas semanais e mensais, então a página de Charts termina com as suas paradas. Os dois continuam na aba Eventos, onde clicar em um lançamento abre o mesmo menu de antes. A aba Playlists agora mostra os Lançamentos recentes de Eventos ao lado dos Aniversários, e os dois carregam sem precisar passar antes por Eventos. As duas chaves deles em Configurações → Seções da página de paradas também saíram."],
+
   "Autocorrect rules always reach your account on page load":
     ["As regras de autocorreção sempre chegam à sua conta ao carregar a página",
      "Se você estava conectado, as regras de autocorreção lidas da sua Planilha Google ao abrir a página às vezes não eram salvas na sua conta, porque o salvamento acontecia antes de a conexão com a conta estar pronta. O mesmo podia acontecer com seus álbuns de coletânea e suas escolhas de single/EP. Agora esses salvamentos esperam a conexão, então nada se perde."],

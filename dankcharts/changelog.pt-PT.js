@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['pt-PT'] = {
 
   /* ========== OUTUBRO 2026 ========== */
 
+  "Release reels live on the Events tab only":
+    ["Os lançamentos ficam só no separador Eventos",
+     "Os carrosséis de Próximos lançamentos e Lançamentos recentes já não aparecem no fim das tabelas semanais e mensais, por isso a página de Charts termina com as tuas tabelas. Os dois continuam no separador Eventos, onde clicar num lançamento abre o mesmo menu de antes. O separador Playlists mostra agora os Lançamentos recentes de Eventos ao lado dos Aniversários, e os dois carregam sem teres de passar primeiro por Eventos. Os dois interruptores deles em Definições → Secções da página de tops também saíram."],
+
   "Autocorrect rules always reach your account on page load":
     ["As regras de correção automática chegam sempre à tua conta ao carregar a página",
      "Se tinhas sessão iniciada, as regras de correção automática lidas da tua Folha Google ao abrir a página às vezes não eram guardadas na tua conta, porque a gravação acontecia antes de a ligação à conta estar pronta. O mesmo podia acontecer com os teus álbuns de compilação e as tuas escolhas de single/EP. Agora estas gravações esperam pela ligação, por isso nada se perde."],
