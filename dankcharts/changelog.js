@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 104;
+const DC_CL_I18N_V = 105;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,10 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+
+  { d: '2026-10-13', t: 'design', a: 'ui', h: 'dd52101',
+    title: 'Five main tabs instead of thirteen',
+    detail: "The two rows of thirteen tabs are now five tabs in the top bar: Charts, Stats (what Graphs used to be called), Records, Awards and Soundtrack, plus More for Events, Playlists, Raw Data, the Board and the Charts Guide. Charts takes you back to the chart period you used last, and Week, Month, Year and All-time are picked on the Charts page itself. On a phone the tabs sit in a bar at the bottom of the screen. Number-key shortcuts still work, and each tab's tooltip shows its key." },
 
   { d: '2026-10-13', t: 'design', a: 'ui', h: '39a55c6',
     title: 'The top bar tucks away when you stop scrolling',

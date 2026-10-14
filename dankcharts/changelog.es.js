@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['es'] = {
 
   /* ========== OCTUBRE 2026 ========== */
 
+  "Five main tabs instead of thirteen":
+    ["Cinco pestañas principales en lugar de trece",
+     "Las dos filas de trece pestañas son ahora cinco pestañas en la barra superior: Charts, Estadísticas (lo que antes se llamaba Gráficas), Récords, Premios y Soundtrack, más Más para Eventos, Listas de reproducción, Base de datos, el Foro y la Guía de Charts. Charts te lleva al periodo que usaste por última vez, y Semana, Mes, Año e Histórico se eligen en la propia página de Charts. En el móvil las pestañas están en una barra en la parte inferior de la pantalla. Los atajos con números siguen funcionando, y la descripción de cada pestaña muestra su tecla."],
+
   "The top bar tucks away when you stop scrolling":
     ["La barra superior se oculta cuando dejas de desplazarte",
      "La barra superior ahora se muestra mientras te desplazas y se oculta tras unos tres segundos sin movimiento, así que solo ocupa espacio mientras te mueves por la página. Desplázate de nuevo, o lleva el ratón al borde superior de la ventana, y vuelve. Se queda fija arriba del todo de la página, mientras uno de sus menús está abierto y mientras el ratón está encima. La barra de fechas sube al espacio libre."],

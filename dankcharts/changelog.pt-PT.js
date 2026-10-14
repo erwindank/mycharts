@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['pt-PT'] = {
 
   /* ========== OUTUBRO 2026 ========== */
 
+  "Five main tabs instead of thirteen":
+    ["Cinco separadores principais em vez de treze",
+     "As duas filas de treze separadores são agora cinco separadores na barra superior: Charts, Estatísticas (o que antes se chamava Gráficos), Recordes, Prémios e Trilha Sonora, mais Mais para Eventos, Playlists, Dados Brutos, o Fórum e o Guia de Charts. Charts leva-o de volta ao período que usou por último, e Semana, Mês, Ano e Histórico escolhem-se na própria página de Charts. No telemóvel os separadores ficam numa barra no fundo do ecrã. Os atalhos com números continuam a funcionar, e a dica de cada separador mostra a tecla."],
+
   "The top bar tucks away when you stop scrolling":
     ["A barra superior esconde-se quando para de percorrer a página",
      "A barra superior aparece agora enquanto percorre a página e esconde-se após cerca de três segundos sem movimento, por isso só ocupa espaço enquanto se desloca. Percorra de novo, ou leve o rato à margem superior da janela, e ela volta. Fica no lugar no topo da página, enquanto um dos seus menus está aberto e enquanto o rato está por cima. A barra de datas sobe para o espaço livre."],

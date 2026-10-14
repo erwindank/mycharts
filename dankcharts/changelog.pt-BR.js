@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['pt-BR'] = {
 
   /* ========== OUTUBRO 2026 ========== */
 
+  "Five main tabs instead of thirteen":
+    ["Cinco abas principais no lugar de treze",
+     "As duas fileiras de treze abas agora são cinco abas na barra superior: Charts, Estatísticas (o que antes se chamava Gráficos), Recordes, Prêmios e Trilha Sonora, mais Mais para Eventos, Playlists, Dados Brutos, o Fórum e o Guia de Charts. Charts leva você de volta ao período que usou por último, e Semana, Mês, Ano e Histórico são escolhidos na própria página de Charts. No celular as abas ficam numa barra na parte de baixo da tela. Os atalhos com números continuam funcionando, e a dica de cada aba mostra a tecla dela."],
+
   "The top bar tucks away when you stop scrolling":
     ["A barra superior se esconde quando você para de rolar",
      "A barra superior agora aparece enquanto você rola a página e some depois de uns três segundos parada, então só ocupa espaço enquanto você se move pela página. Role de novo, ou leve o mouse até a borda de cima da janela, e ela volta. Ela fica no lugar no topo da página, enquanto um dos menus dela está aberto e enquanto o mouse está sobre ela. A barra de datas sobe para o espaço livre."],
