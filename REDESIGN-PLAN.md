@@ -1254,6 +1254,29 @@ only navy uses the `-dark` suffix). Phase 3 was checked in the real Yellow.
 `main` (the branch has nothing `main` lacks). Not yet recorded as checked on
 screen in the four check themes and on a phone.
 
+**Phase 6 (Weekly page). In progress on branch `redesign/phase-6-weekly`, one step per commit.**
+Decided with you (2026-10-14), replacing parts of the phase 6 row above:
+the release reels are removed, not moved (Events already has them); the
+Time Machine moves to the Soundtrack tab only; Certified and the Time
+Machine keep auto-scrolling; the layout buttons stay in ⋮ until phase 7;
+the Chart / Bubbling Under / Off the Chart / New Entries pills become four
+switches in ⋮ → Show. Steps: 1 releases off the chart page, 2 Certified
+below the chart sections, 3 Time Machine to Soundtrack, 4 one toolbar +
+the pills into ⋮ → Show, 5 screen check (also covers phase 5).
+- **Step 1 ✓ (2026-10-14): release reels off the chart page.** The
+  Upcoming / Recent Releases sections at the bottom of Weekly and Monthly
+  are gone, with their loaders (they searched the Top 200 on every visit),
+  their two Settings → Chart page sections switches, their tour stop and
+  14 translation keys. The Events tab's own sections are unchanged; their
+  cards open the same menus in every view (checked: Recent = Spotify,
+  playlist, last 10 songs, Google; Upcoming = Spotify, Google). Events
+  searches the Top 50 by default (Settings), so it can list fewer than the
+  chart page did. **The Playlists tab** used to show the chart-page Recent
+  Releases reel; it now shows the Events tab's (and loads Events data
+  itself, which also fills its Anniversaries reel without a visit to
+  Events first). The old `mbUpcomingCache` / `mbRecentCache` storage is
+  cleared on load.
+
 The period picker does not need moving into one place:
 it already is (see 4.4). What is left is making it slim enough to live in
 the top bar.

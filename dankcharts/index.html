@@ -27,11 +27,11 @@
   <!-- html2canvas, SheetJS (xlsx) and JSZip are intentionally NOT loaded here — they
        total ~1.2 MB and are only needed for image exports and Excel/ZIP imports.
        app.js pulls them from the CDN on first use (see ensureLazyLib). -->
-  <link rel="stylesheet" href="style.css?v=369">
+  <link rel="stylesheet" href="style.css?v=370">
   <!-- All scripts are deferred so the page paints without waiting on them.
        defer preserves execution order, which matters: translations → Chart.js →
        hammer → zoom plugin → firebase SDKs → firebase.js → app.js (in body). -->
-  <script defer src="translations.js?v=64"></script>
+  <script defer src="translations.js?v=65"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8/hammer.min.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@1.2.1/dist/chartjs-plugin-zoom.min.js"></script>
@@ -1214,57 +1214,6 @@
       </div>
     </div>
     </div><!-- /albumsChartGroup -->
-
-    <!-- UPCOMING RELEASES SECTION -->
-    <div class="chart-section" id="upcomingSection" style="display:none; margin-top:2rem;">
-      <div class="section-header">
-        <button class="section-collapse-btn" data-target="upcomingSection" data-i18n-title="tooltip_collapse">+</button>
-        <h2 class="section-title" data-i18n="sec_upcoming_title">🔜 Upcoming Releases</h2>
-        <span class="section-collapsed-label" data-i18n="collapsed_hint">collapsed — click + to expand</span>
-        <div class="section-rule"></div>
-        <div class="ev-view-btns" id="upcomingViewBtns">
-          <button class="ev-view-btn active" data-view="carousel" onclick="setEventsView('upcoming','carousel')">Reel</button>
-          <button class="ev-view-btn" data-view="tiles" onclick="setEventsView('upcoming','tiles')">Tiles</button>
-          <button class="ev-view-btn" data-view="table" onclick="setEventsView('upcoming','table')">Table</button>
-          <button class="ev-view-btn" data-view="list" onclick="setEventsView('upcoming','list')">List</button>
-        </div>
-      </div>
-      <div class="section-sub" id="upcomingSubtitle" data-i18n="sub_upcoming">Next 90 days · Based on your Top 200
-        All-Time Artists</div>
-      <div class="section-body">
-        <div class="upcoming-status" id="upcomingStatus"></div>
-        <button class="upcoming-refresh-btn" id="upcomingRefreshBtn" onclick="loadUpcomingReleases(true)"
-          style="display:none">↺ REFRESH</button>
-        <div class="upcoming-grid" id="upcomingGrid"></div>
-      </div>
-    </div>
-
-    <!-- RECENT RELEASES SECTION -->
-    <div class="chart-section" id="recentSection" style="display:none; margin-top:2rem;">
-      <div class="section-header">
-        <button class="section-collapse-btn" data-target="recentSection" data-i18n-title="tooltip_collapse">+</button>
-        <h2 class="section-title" data-i18n="sec_recent_title">🎉 Recent Releases</h2>
-        <span class="section-collapsed-label" data-i18n="collapsed_hint">collapsed — click + to expand</span>
-        <div class="section-rule"></div>
-        <button class="dc-pl-section-btn" id="recentPlBtn" style="display:none"
-          onclick="evAddSectionToPlaylist('recent')" data-i18n="pl_section_btn"
-          data-i18n-title="pl_section_btn_title" title="Save everything in this section to a playlist">＋ Playlist</button>
-        <div class="ev-view-btns" id="recentViewBtns">
-          <button class="ev-view-btn active" data-view="carousel" onclick="setEventsView('recent','carousel')">Reel</button>
-          <button class="ev-view-btn" data-view="tiles" onclick="setEventsView('recent','tiles')">Tiles</button>
-          <button class="ev-view-btn" data-view="table" onclick="setEventsView('recent','table')">Table</button>
-          <button class="ev-view-btn" data-view="list" onclick="setEventsView('recent','list')">List</button>
-        </div>
-      </div>
-      <div class="section-sub" id="recentSubtitle" data-i18n="sub_recent">Past 180 days · Based on your Top 200 All-Time
-        Artists</div>
-      <div class="section-body">
-        <div class="upcoming-status" id="recentStatus"></div>
-        <button class="upcoming-refresh-btn" id="recentRefreshBtn" onclick="loadRecentReleases(true)"
-          style="display:none">↺ REFRESH</button>
-        <div class="upcoming-grid" id="recentGrid"></div>
-      </div>
-    </div>
 
     <!-- GRAPHS VIEW -->
     <div id="graphsView" style="display:none;">
@@ -3744,7 +3693,7 @@
   <!-- Community board tab (suggestions / bugs / discussion). Loaded before
        app.js so window.dcBoard exists when app.js opens a #t=board/<id> link. -->
   <script defer src="board.js?v=1"></script>
-  <script defer src="app.js?v=329"></script>
+  <script defer src="app.js?v=330"></script>
 
   <!-- ── Settings Modal ──
        Split into three tabs so the whole form is never dumped on screen at
@@ -4661,7 +4610,7 @@ function deleteGenreTriggers() {
       </div>
 
       <!-- Chart page sections: each switch saves at once (setChartPageSection)
-           and hides that block on the charts page only, never on the Events tab -->
+           and hides that block on the charts page only -->
       <div class="cert-config-group">
         <div class="cert-config-title" data-i18n="set_cp_title">Chart page sections</div>
         <div class="set-row">
@@ -4693,28 +4642,6 @@ function deleteGenreTriggers() {
             </span>
             <span class="src-switch">
               <input type="checkbox" id="setCpCertReel" checked onchange="setChartPageSection('certReel', this.checked)">
-              <span class="src-switch-slider"></span>
-            </span>
-          </label>
-        </div>
-        <div class="set-row">
-          <label class="src-switch-row">
-            <span class="src-switch-label"><span data-i18n="set_cp_upcoming">🔜 Upcoming releases</span>
-              <span class="set-switch-note" data-i18n="set_cp_rel_note">Shown at the bottom of the charts. The Events tab keeps its own.</span>
-            </span>
-            <span class="src-switch">
-              <input type="checkbox" id="setCpUpcoming" checked onchange="setChartPageSection('upcoming', this.checked)">
-              <span class="src-switch-slider"></span>
-            </span>
-          </label>
-        </div>
-        <div class="set-row">
-          <label class="src-switch-row">
-            <span class="src-switch-label"><span data-i18n="set_cp_recent">🆕 Recent releases</span>
-              <span class="set-switch-note" data-i18n="set_cp_rel_note">Shown at the bottom of the charts. The Events tab keeps its own.</span>
-            </span>
-            <span class="src-switch">
-              <input type="checkbox" id="setCpRecent" checked onchange="setChartPageSection('recent', this.checked)">
               <span class="src-switch-slider"></span>
             </span>
           </label>

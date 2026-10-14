@@ -745,20 +745,9 @@ const TRANSLATIONS = {
     off_chart_empty: 'Nothing left the Top {{n}} this week 🎉',
     off_chart_rank_was: 'Was',
     off_chart_streak_before_drop: '🔥 {{n}}-week streak before dropping out',
-    sub_upcoming: 'Next 90 days · Based on your Top 200 All-Time Artists',
-    sub_recent: 'Past 180 days · Based on your Top 200 All-Time Artists',
 
     // Section / UI labels (static HTML)
     sec_off_chart: 'Off the Chart',
-    sec_upcoming_title: '🔜 Upcoming Releases',
-    sec_recent_title: '🎉 Recent Releases',
-    mb_searching: 'Searching MusicBrainz for {{n}} artists… this may take ~2 minutes on first load.',
-    mb_fetching: 'Fetching {{i}} / {{n}}: {{name}}…',
-    mb_cached: ' (cached)',
-    mb_upcoming_status: '{{count}} upcoming releases found across {{n}} artists · Last updated {{ts}}{{cache}}',
-    mb_recent_status: '{{count}} recent releases found across {{n}} artists · Last updated {{ts}}{{cache}}',
-    mb_upcoming_empty: 'No upcoming releases found in the next 90 days for your top 200 artists.<br>Coverage depends on MusicBrainz data availability.',
-    mb_recent_empty: 'No releases found in the past 180 days for your top 200 artists.<br>Coverage depends on MusicBrainz data availability.',
     mb_type_album: 'Album',
     mb_type_single: 'Single',
     mb_type_ep: 'EP',
@@ -890,9 +879,6 @@ const TRANSLATIONS = {
     set_cp_stats_note: "The row of stat cards under the date bar.",
     set_cp_cert: "🏆 Certified this period",
     set_cp_cert_note: "The reel of plaques earned during the week or month on screen.",
-    set_cp_upcoming: "🔜 Upcoming releases",
-    set_cp_recent: "🆕 Recent releases",
-    set_cp_rel_note: "Shown at the bottom of the charts. The Events tab keeps its own.",
     set_behavior: "Behavior",
     set_anim: "Animate charts on page load",
     set_anim_note: "Replays how rankings shifted. The <strong>▶ Animate Chart</strong> button above each chart always works either way.",
@@ -3019,20 +3005,9 @@ const TRANSLATIONS = {
     off_chart_empty: 'Nada salió del Top {{n}} esta semana 🎉',
     off_chart_rank_was: 'Era',
     off_chart_streak_before_drop: '🔥 Racha de {{n}} semanas antes de caer',
-    sub_upcoming: 'Próximos 90 días · Basado en tus Top 200 Artistas de todos los tiempos',
-    sub_recent: 'Últimos 180 días · Basado en tus Top 200 Artistas de todos los tiempos',
 
     // Section labels
     sec_off_chart: 'Fuera del Ranking',
-    sec_upcoming_title: '🔜 Próximos Lanzamientos',
-    sec_recent_title: '🎉 Lanzamientos Recientes',
-    mb_searching: 'Buscando en MusicBrainz {{n}} artistas… esto puede tardar ~2 minutos en la primera carga.',
-    mb_fetching: 'Obteniendo {{i}} / {{n}}: {{name}}…',
-    mb_cached: ' (en caché)',
-    mb_upcoming_status: '{{count}} próximos lanzamientos encontrados entre {{n}} artistas · Última actualización {{ts}}{{cache}}',
-    mb_recent_status: '{{count}} lanzamientos recientes encontrados entre {{n}} artistas · Última actualización {{ts}}{{cache}}',
-    mb_upcoming_empty: 'No se encontraron próximos lanzamientos en los próximos 90 días para tus top 200 artistas.<br>La cobertura depende de la disponibilidad de datos de MusicBrainz.',
-    mb_recent_empty: 'No se encontraron lanzamientos en los últimos 180 días para tus top 200 artistas.<br>La cobertura depende de la disponibilidad de datos de MusicBrainz.',
     mb_type_album: 'Álbum',
     mb_type_single: 'Sencillo',
     mb_type_ep: 'EP',
@@ -3164,9 +3139,6 @@ const TRANSLATIONS = {
     set_cp_stats_note: "La fila de tarjetas de estadísticas bajo la barra de fechas.",
     set_cp_cert: "🏆 Certificados este periodo",
     set_cp_cert_note: "La cinta de placas ganadas durante la semana o el mes en pantalla.",
-    set_cp_upcoming: "🔜 Próximos lanzamientos",
-    set_cp_recent: "🆕 Lanzamientos recientes",
-    set_cp_rel_note: "Aparece al final de los rankings. La pestaña Eventos tiene la suya.",
     set_behavior: "Comportamiento",
     set_anim: "Animar los rankings al cargar la página",
     set_anim_note: "Repite cómo cambiaron los puestos. El botón <strong>▶ Animate Chart</strong> encima de cada ranking funciona siempre, esté esto activado o no.",
@@ -5198,20 +5170,9 @@ const TRANSLATIONS = {
     off_chart_empty: 'Nada saiu do Top {{n}} esta semana 🎉',
     off_chart_rank_was: 'Era',
     off_chart_streak_before_drop: '🔥 Sequência de {{n}} semanas antes de cair',
-    sub_upcoming: 'Próximos 90 dias · Baseado nos seus Top 200 Artistas de Todos os Tempos',
-    sub_recent: 'Últimos 180 dias · Baseado nos seus Top 200 Artistas de Todos os Tempos',
 
     // Section labels
     sec_off_chart: 'Fora da Parada',
-    sec_upcoming_title: '🔜 Próximos Lançamentos',
-    sec_recent_title: '🎉 Lançamentos Recentes',
-    mb_searching: 'Pesquisando no MusicBrainz por {{n}} artistas… isso pode levar ~2 minutos no primeiro carregamento.',
-    mb_fetching: 'Obtendo {{i}} / {{n}}: {{name}}…',
-    mb_cached: ' (em cache)',
-    mb_upcoming_status: '{{count}} próximos lançamentos encontrados entre {{n}} artistas · Última atualização {{ts}}{{cache}}',
-    mb_recent_status: '{{count}} lançamentos recentes encontrados entre {{n}} artistas · Última atualização {{ts}}{{cache}}',
-    mb_upcoming_empty: 'Nenhum próximo lançamento encontrado nos próximos 90 dias para seus top 200 artistas.<br>A cobertura depende da disponibilidade de dados do MusicBrainz.',
-    mb_recent_empty: 'Nenhum lançamento encontrado nos últimos 180 dias para seus top 200 artistas.<br>A cobertura depende da disponibilidade de dados do MusicBrainz.',
     mb_type_album: 'Álbum',
     mb_type_single: 'Single',
     mb_type_ep: 'EP',
@@ -5343,9 +5304,6 @@ const TRANSLATIONS = {
     set_cp_stats_note: "A linha de cartões de estatísticas abaixo da barra de datas.",
     set_cp_cert: "🏆 Certificados neste período",
     set_cp_cert_note: "A faixa de placas conquistadas na semana ou no mês na tela.",
-    set_cp_upcoming: "🔜 Próximos lançamentos",
-    set_cp_recent: "🆕 Lançamentos recentes",
-    set_cp_rel_note: "Aparece no final das paradas. A aba Eventos tem a sua própria.",
     set_behavior: "Comportamento",
     set_anim: "Animar as paradas ao carregar a página",
     set_anim_note: "Mostra de novo como as posições mudaram. O botão <strong>▶ Animate Chart</strong> acima de cada parada funciona sempre, com isto ligado ou não.",
@@ -7378,20 +7336,9 @@ const TRANSLATIONS = {
     off_chart_empty: 'Nada saiu do Top {{n}} esta semana 🎉',
     off_chart_rank_was: 'Era',
     off_chart_streak_before_drop: '🔥 Sequência de {{n}} semanas antes de sair',
-    sub_upcoming: 'Próximos 90 dias · Com base nos seus Top 200 Artistas de Sempre',
-    sub_recent: 'Últimos 180 dias · Com base nos seus Top 200 Artistas de Sempre',
 
     // Section labels
     sec_off_chart: 'Fora do Top',
-    sec_upcoming_title: '🔜 Próximos Lançamentos',
-    sec_recent_title: '🎉 Lançamentos Recentes',
-    mb_searching: 'A pesquisar no MusicBrainz por {{n}} artistas… isto pode demorar ~2 minutos no primeiro carregamento.',
-    mb_fetching: 'A obter {{i}} / {{n}}: {{name}}…',
-    mb_cached: ' (em cache)',
-    mb_upcoming_status: '{{count}} próximos lançamentos encontrados entre {{n}} artistas · Última atualização {{ts}}{{cache}}',
-    mb_recent_status: '{{count}} lançamentos recentes encontrados entre {{n}} artistas · Última atualização {{ts}}{{cache}}',
-    mb_upcoming_empty: 'Nenhum próximo lançamento encontrado nos próximos 90 dias para os seus top 200 artistas.<br>A cobertura depende da disponibilidade de dados do MusicBrainz.',
-    mb_recent_empty: 'Nenhum lançamento encontrado nos últimos 180 dias para os seus top 200 artistas.<br>A cobertura depende da disponibilidade de dados do MusicBrainz.',
     mb_type_album: 'Álbum',
     mb_type_single: 'Single',
     mb_type_ep: 'EP',
@@ -7523,9 +7470,6 @@ const TRANSLATIONS = {
     set_cp_stats_note: "A fila de cartões de estatísticas por baixo da barra de datas.",
     set_cp_cert: "🏆 Certificados neste período",
     set_cp_cert_note: "A faixa de placas conquistadas na semana ou no mês no ecrã.",
-    set_cp_upcoming: "🔜 Próximos lançamentos",
-    set_cp_recent: "🆕 Lançamentos recentes",
-    set_cp_rel_note: "Aparece no fim dos tops. O separador Eventos tem a sua própria.",
     set_behavior: "Comportamento",
     set_anim: "Animar os tops ao carregar a página",
     set_anim_note: "Mostra outra vez como as posições mudaram. O botão <strong>▶ Animate Chart</strong> acima de cada top funciona sempre, com isto ligado ou não.",
@@ -9006,15 +8950,6 @@ function setLanguage(lang) {
   // The What's New list is built once and cached, so it has to be told to
   // rebuild (and fetch the new language's entries) rather than being re-stamped.
   if (typeof dcClOnLanguageChange === 'function') dcClOnLanguageChange();
-
-  // Re-render upcoming/recent status text with new language
-  ['upcomingStatus', 'recentStatus'].forEach(id => {
-    const el = document.getElementById(id);
-    if (!el || !el.dataset.ts) return;
-    const cacheNote = el.dataset.fromCache ? t('mb_cached') : '';
-    const key = id === 'upcomingStatus' ? 'mb_upcoming_status' : 'mb_recent_status';
-    el.textContent = t(key, { count: el.dataset.count, n: el.dataset.n, ts: el.dataset.ts, cache: cacheNote });
-  });
 
   // Re-render release card dates and type labels with new language
   document.querySelectorAll('.upcoming-card-date[data-date]').forEach(el => {

@@ -518,15 +518,12 @@ function initSectionDisplayToggles() {
 // ─── CHART PAGE SECTIONS (Settings → Charts) ────────────────────
 // One switch per optional block on the charts page. Hiding is a body class +
 // CSS rule, so it never fights the render code that shows/hides these blocks
-// for data reasons. The Events tab has its own Upcoming/Recent sections, which
-// these don't touch. Stored as { key: shown } and synced via SYNC_KEYS.
+// for data reasons. Stored as { key: shown } and synced via SYNC_KEYS.
 const CHART_PAGE_SECTIONS_KEY = 'dc_chart_page_sections';
 const CHART_PAGE_SECTIONS = {
   timeMachine: { bodyClass: 'cp-hide-time-machine', inputId: 'setCpTimeMachine' },
   periodStats: { bodyClass: 'cp-hide-period-stats', inputId: 'setCpPeriodStats' },
   certReel:    { bodyClass: 'cp-hide-cert-reel',    inputId: 'setCpCertReel' },
-  upcoming:    { bodyClass: 'cp-hide-upcoming',     inputId: 'setCpUpcoming' },
-  recent:      { bodyClass: 'cp-hide-recent',       inputId: 'setCpRecent' },
 };
 
 function _readChartPageSections() {
@@ -6677,7 +6674,6 @@ function finalizeLoad() {
   if (savedRaceTo) document.getElementById('raceTo').value = savedRaceTo;
 
   renderAll();
-  maybeLoadUpcoming();
 
   // Restore saved period (after renderAll so DOM is ready)
   const savedPeriod = localStorage.getItem('dc_period');
@@ -6973,14 +6969,6 @@ function navigateToRecPeriod(period, periodKey) {
       document.getElementById('songsSection').style.display = '';
       document.getElementById('artistsSection').style.display = '';
       document.getElementById('albumsSection').style.display = '';
-      (['upcomingSection', 'recentSection']).forEach(id => {
-        const el = document.getElementById(id);
-        el.style.display = '';
-        const savedCollapsed = localStorage.getItem('dc_section_collapsed_' + id) === '1';
-        el.classList.toggle('collapsed', savedCollapsed);
-        const colBtn = el.querySelector('.section-collapse-btn');
-        if (colBtn) colBtn.textContent = savedCollapsed ? '+' : '−';
-      });
       if (currentPeriod === 'graphs') destroyGraphCharts();
     }
     currentPeriod = period;
@@ -12167,8 +12155,6 @@ document.addEventListener('click', e => {
     localStorage.setItem('dc_rec_section_collapsed_' + section.id, collapsed ? '1' : '0');
   } else if (CHART_COLLAPSIBLE_SECTIONS.includes(section.id)) {
     localStorage.setItem('dc_chart_section_collapsed_' + section.id + '_' + currentPeriod, collapsed ? '1' : '0');
-  } else if (section.id === 'upcomingSection' || section.id === 'recentSection') {
-    localStorage.setItem('dc_section_collapsed_' + section.id, collapsed ? '1' : '0');
   } else if (['birthdaysSection', 'anniversariesSection', 'eventsUpcomingSection', 'eventsRecentSection', 'eventsRecentBirthdaysSection', 'eventsRecentAnniversariesSection', 'nmfSection'].includes(section.id)) {
     localStorage.setItem('dc_events_section_collapsed_' + section.id, collapsed ? '1' : '0');
   }
@@ -12269,21 +12255,11 @@ document.getElementById('periodNav').addEventListener('click', e => {
     document.getElementById('buAlbumsSection').style.display = 'none';
     COLLAPSE_ALL_TYPES.forEach(hideOffSection);
     NEW_ENTRY_SECTIONS.forEach(id => { const el = document.getElementById(id); if (el) el.style.display = 'none'; });
-    document.getElementById('upcomingSection').style.display = 'none';
-    document.getElementById('recentSection').style.display = 'none';
     document.getElementById('recordsView').style.display = 'none';
     document.getElementById('soundtrackView').style.display = 'none';
     document.getElementById('playlistsView').style.display = 'none';
     document.getElementById('chartsguideView').style.display = 'none';
     document.getElementById('rawDataView').style.display = 'block';
-    const recentEl = document.getElementById('recentSection');
-    recentEl.classList.add('collapsed');
-    const recentBtn = recentEl.querySelector('.section-collapse-btn');
-    if (recentBtn) recentBtn.textContent = '+';
-    const upcomingEl = document.getElementById('upcomingSection');
-    upcomingEl.classList.add('collapsed');
-    const upcomingBtn = upcomingEl.querySelector('.section-collapse-btn');
-    if (upcomingBtn) upcomingBtn.textContent = '+';
     applyRawFilters();
     updateScrobbleBtn();
     return;
@@ -12313,8 +12289,6 @@ document.getElementById('periodNav').addEventListener('click', e => {
     document.getElementById('buAlbumsSection').style.display = 'none';
     COLLAPSE_ALL_TYPES.forEach(hideOffSection);
     NEW_ENTRY_SECTIONS.forEach(id => { const el = document.getElementById(id); if (el) el.style.display = 'none'; });
-    document.getElementById('upcomingSection').style.display = 'none';
-    document.getElementById('recentSection').style.display = 'none';
     document.getElementById('recordsView').style.display = 'none';
     document.getElementById('rawDataView').style.display = 'none';
     document.getElementById('eventsView').style.display = 'none';
@@ -12354,8 +12328,6 @@ document.getElementById('periodNav').addEventListener('click', e => {
     document.getElementById('buAlbumsSection').style.display = 'none';
     COLLAPSE_ALL_TYPES.forEach(hideOffSection);
     NEW_ENTRY_SECTIONS.forEach(id => { const el = document.getElementById(id); if (el) el.style.display = 'none'; });
-    document.getElementById('upcomingSection').style.display = 'none';
-    document.getElementById('recentSection').style.display = 'none';
     document.getElementById('rawDataView').style.display = 'none';
     document.getElementById('graphsView').style.display = 'none';
     document.getElementById('eventsView').style.display = 'none';
@@ -12395,8 +12367,6 @@ document.getElementById('periodNav').addEventListener('click', e => {
     document.getElementById('buAlbumsSection').style.display = 'none';
     COLLAPSE_ALL_TYPES.forEach(hideOffSection);
     NEW_ENTRY_SECTIONS.forEach(id => { const el = document.getElementById(id); if (el) el.style.display = 'none'; });
-    document.getElementById('upcomingSection').style.display = 'none';
-    document.getElementById('recentSection').style.display = 'none';
     document.getElementById('rawDataView').style.display = 'none';
     document.getElementById('graphsView').style.display = 'none';
     document.getElementById('recordsView').style.display = 'none';
@@ -12449,8 +12419,6 @@ document.getElementById('periodNav').addEventListener('click', e => {
     document.getElementById('buAlbumsSection').style.display = 'none';
     COLLAPSE_ALL_TYPES.forEach(hideOffSection);
     NEW_ENTRY_SECTIONS.forEach(id => { const el = document.getElementById(id); if (el) el.style.display = 'none'; });
-    document.getElementById('upcomingSection').style.display = 'none';
-    document.getElementById('recentSection').style.display = 'none';
     document.getElementById('rawDataView').style.display = 'none';
     document.getElementById('graphsView').style.display = 'none';
     document.getElementById('recordsView').style.display = 'none';
@@ -12489,8 +12457,6 @@ document.getElementById('periodNav').addEventListener('click', e => {
     document.getElementById('buAlbumsSection').style.display = 'none';
     COLLAPSE_ALL_TYPES.forEach(hideOffSection);
     NEW_ENTRY_SECTIONS.forEach(id => { const el = document.getElementById(id); if (el) el.style.display = 'none'; });
-    document.getElementById('upcomingSection').style.display = 'none';
-    document.getElementById('recentSection').style.display = 'none';
     document.getElementById('rawDataView').style.display = 'none';
     document.getElementById('graphsView').style.display = 'none';
     document.getElementById('recordsView').style.display = 'none';
@@ -12530,29 +12496,25 @@ document.getElementById('periodNav').addEventListener('click', e => {
     document.getElementById('buAlbumsSection').style.display = 'none';
     COLLAPSE_ALL_TYPES.forEach(hideOffSection);
     NEW_ENTRY_SECTIONS.forEach(id => { const el = document.getElementById(id); if (el) el.style.display = 'none'; });
-    document.getElementById('upcomingSection').style.display = 'none';
     document.getElementById('rawDataView').style.display = 'none';
     document.getElementById('graphsView').style.display = 'none';
     document.getElementById('recordsView').style.display = 'none';
     document.getElementById('awardsView').style.display = 'none';
     document.getElementById('soundtrackView').style.display = 'none';
     document.getElementById('chartsguideView').style.display = 'none';
-    // Show Recent Releases, Time Machine and Anniversaries alongside the playlist manager
-    const _rcPl = document.getElementById('recentSection');
-    if (_rcPl) {
-      _rcPl.style.display = 'block';
-      _rcPl.classList.remove('collapsed'); // ensure it's expanded
-      const _rcBtn = _rcPl.querySelector('.section-collapse-btn');
-      if (_rcBtn) { _rcBtn.textContent = '−'; _rcBtn.title = 'Collapse'; }
-    }
+    // Show Time Machine and the Events tab's Recent Releases and Anniversaries
+    // alongside the playlist manager (dc-pl-mode hides the rest of Events)
     const _tmPl = document.getElementById('timeMachineSection'); if (_tmPl) _tmPl.style.display = 'block';
     const _evPl = document.getElementById('eventsView');
     if (_evPl) { _evPl.classList.add('dc-pl-mode'); _evPl.style.display = 'block'; }
     // Default all sections to Reel (carousel) view for easy browsing
     if (typeof setEventsView === 'function') {
-      setEventsView('recent', 'carousel');
+      setEventsView('eventsRecent', 'carousel');
       setEventsView('anniversaries', 'carousel');
     }
+    // Those two reels are filled by the Events loader, which otherwise only runs
+    // on the Events tab; it reads its cache first, so this is cheap after once
+    if (allPlays.length) loadEvents();
     document.getElementById('playlistsView').style.display = 'block';
     dcRenderPlaylistsView();
     if (typeof window._refreshBackToTop === 'function') window._refreshBackToTop();
@@ -12584,8 +12546,6 @@ document.getElementById('periodNav').addEventListener('click', e => {
     document.getElementById('buAlbumsSection').style.display = 'none';
     COLLAPSE_ALL_TYPES.forEach(hideOffSection);
     NEW_ENTRY_SECTIONS.forEach(id => { const el = document.getElementById(id); if (el) el.style.display = 'none'; });
-    document.getElementById('upcomingSection').style.display = 'none';
-    document.getElementById('recentSection').style.display = 'none';
     document.getElementById('rawDataView').style.display = 'none';
     document.getElementById('graphsView').style.display = 'none';
     document.getElementById('recordsView').style.display = 'none';
@@ -12628,8 +12588,6 @@ document.getElementById('periodNav').addEventListener('click', e => {
     document.getElementById('buAlbumsSection').style.display = 'none';
     COLLAPSE_ALL_TYPES.forEach(hideOffSection);
     NEW_ENTRY_SECTIONS.forEach(id => { const el = document.getElementById(id); if (el) el.style.display = 'none'; });
-    document.getElementById('upcomingSection').style.display = 'none';
-    document.getElementById('recentSection').style.display = 'none';
     document.getElementById('rawDataView').style.display = 'none';
     document.getElementById('graphsView').style.display = 'none';
     document.getElementById('recordsView').style.display = 'none';
@@ -12652,14 +12610,6 @@ document.getElementById('periodNav').addEventListener('click', e => {
     document.getElementById('songsSection').style.display = '';
     document.getElementById('artistsSection').style.display = '';
     document.getElementById('albumsSection').style.display = '';
-    (['upcomingSection', 'recentSection']).forEach(id => {
-      const el = document.getElementById(id);
-      el.style.display = '';
-      const savedCollapsed = localStorage.getItem('dc_section_collapsed_' + id) === '1';
-      el.classList.toggle('collapsed', savedCollapsed);
-      const colBtn = el.querySelector('.section-collapse-btn');
-      if (colBtn) colBtn.textContent = savedCollapsed ? '+' : '−';
-    });
     document.getElementById('rawDataView').style.display = 'none';
     document.getElementById('graphsView').style.display = 'none';
     document.getElementById('recordsView').style.display = 'none';
@@ -12672,21 +12622,6 @@ document.getElementById('periodNav').addEventListener('click', e => {
     if (currentPeriod === 'graphs') destroyGraphCharts();
   }
 
-  // Hide upcoming/recent on all-time and yearly; restore them when leaving those tabs
-  if (['alltime', 'year'].includes(btn.dataset.period)) {
-    ['upcomingSection', 'recentSection'].forEach(id => {
-      document.getElementById(id).style.display = 'none';
-    });
-  } else if (['alltime', 'year'].includes(currentPeriod)) {
-    ['upcomingSection', 'recentSection'].forEach(id => {
-      const el = document.getElementById(id);
-      el.style.display = '';
-      const savedCollapsed = localStorage.getItem('dc_section_collapsed_' + id) === '1';
-      el.classList.toggle('collapsed', savedCollapsed);
-      const colBtn = el.querySelector('.section-collapse-btn');
-      if (colBtn) colBtn.textContent = savedCollapsed ? '+' : '−';
-    });
-  }
 
   savedOffsets[(currentPeriod === 'rawdata' || currentPeriod === 'graphs' || currentPeriod === 'records' || currentPeriod === 'events' || currentPeriod === 'awards' || currentPeriod === 'playlists' || currentPeriod === 'chartsguide' || currentPeriod === 'board') ? btn.dataset.period : currentPeriod] = currentOffset;
   currentPeriod = btn.dataset.period;
@@ -24985,9 +24920,10 @@ function buildSongSparklineHTML(plays, title, key) {
   </div>`;
 }
 
-// ─── UPCOMING RELEASES (MusicBrainz) ───────────────────────────
-const MB_CACHE_KEY = 'mbUpcomingCache';
-const MB_CACHE_TTL = 24 * 60 * 60 * 1000; // 24 hours
+// ─── RELEASES (MusicBrainz) ────────────────────────────────────
+// Used by the Events tab's Upcoming / Recent Releases. The chart page had its
+// own copy of both reels until redesign phase 6; their old caches go here.
+try { localStorage.removeItem('mbUpcomingCache'); localStorage.removeItem('mbRecentCache'); } catch (e) {}
 
 // MusicBrainz supports CORS natively — no proxy needed.
 // User-Agent is required by their rate-limiting policy.
@@ -25001,14 +24937,6 @@ async function mbFetch(endpoint) {
   });
   if (!res.ok) throw new Error('MB ' + res.status);
   return res.json();
-}
-
-function getTop200Artists() {
-  const counts = {};
-  for (const p of allPlays) {
-    for (const a of p.artists) counts[a] = (counts[a] || 0) + 1;
-  }
-  return Object.entries(counts).sort((a, b) => b[1] - a[1]).slice(0, 200).map(([name]) => name);
 }
 
 const _mbidCache = {};
@@ -25190,126 +25118,7 @@ function sortUpcomingReleases(releases) {
     (a.release.date || '').localeCompare(b.release.date || ''));
 }
 
-async function loadUpcomingReleases(forceRefresh = false) {
-  if (!allPlays.length) return;
-
-  // Show the section only on chart tabs (not events/graphs/rawdata/records/awards/alltime/year/soundtrack)
-  if (!['events', 'graphs', 'rawdata', 'records', 'awards', 'alltime', 'year', 'soundtrack', 'board'].includes(currentPeriod)) {
-    const el = document.getElementById('upcomingSection');
-    el.style.display = '';
-    const savedCollapsed = localStorage.getItem('dc_section_collapsed_upcomingSection') === '1';
-    el.classList.toggle('collapsed', savedCollapsed);
-    const btn = el.querySelector('.section-collapse-btn');
-    if (btn) btn.textContent = savedCollapsed ? '+' : '−';
-  }
-
-  // Check cache
-  if (!forceRefresh) {
-    try {
-      const cached = JSON.parse(localStorage.getItem(MB_CACHE_KEY) || 'null');
-      if (cached && Date.now() - cached.ts < MB_CACHE_TTL) {
-        renderUpcomingResults(cached.releases, cached.artists, true);
-        return;
-      }
-    } catch (e) { }
-  }
-
-  const artists = getTop200Artists();
-  const statusEl = document.getElementById('upcomingStatus');
-  const gridEl = document.getElementById('upcomingGrid');
-  document.getElementById('upcomingRefreshBtn').style.display = 'none';
-
-  gridEl.innerHTML = '';
-  gridEl.className = 'upcoming-grid'; // a previous Reel/Table/List render left its own class here
-  /* The header buttons are markup-default "Reel" until something says
-     otherwise; sync them now so they match the view the progressive render
-     below is about to use, not only once the whole Top 200 has loaded. */
-  document.querySelectorAll('#upcomingViewBtns .ev-view-btn')
-    .forEach(b => b.classList.toggle('active', b.dataset.view === (eventsViewModes['upcoming'] || 'carousel')));
-  statusEl.textContent = t('mb_searching', { n: artists.length });
-
-  const allReleases = []; // { release, artistName }
-  let found = 0;
-  let lastPaint = 0; // throttles the progressive render below
-
-  for (let i = 0; i < artists.length; i++) {
-    const name = artists[i];
-    statusEl.textContent = t('mb_fetching', { i: i + 1, n: artists.length, name });
-
-    const mbid = await searchArtistMBID(name);
-    if (!mbid) continue;
-
-    const releases = await fetchReleasesForMBID(mbid);
-    for (const r of releases) {
-      allReleases.push({ release: r, artistName: name });
-      found++;
-    }
-
-    /* Progressive render — the section stays usable while the rest of the Top
-       200 is still being fetched. It goes through _evRenderSectionByKey so it
-       honours the chosen view; painting the tile markup straight into the grid
-       used to pin the section to Tiles until the loop finished, whatever the
-       header buttons said. _upcomingLastData is kept current for the same
-       reason — those buttons re-render from it, so mid-load they did nothing.
-       Throttled by EV_PROGRESS_PAINT_MS; renderUpcomingResults() paints the
-       final, complete list when the loop ends. */
-    if (releases.length > 0) {
-      _upcomingLastData = sortUpcomingReleases([...allReleases]);
-      if (Date.now() - lastPaint >= EV_PROGRESS_PAINT_MS) {
-        lastPaint = Date.now();
-        _evRenderSectionByKey('upcoming', _upcomingLastData);
-      }
-    }
-  }
-
-  // Cache results
-  try {
-    localStorage.setItem(MB_CACHE_KEY, JSON.stringify({
-      ts: Date.now(),
-      releases: allReleases,
-      artists
-    }));
-  } catch (e) { }
-
-  renderUpcomingResults(allReleases, artists, false);
-}
-
-function renderUpcomingResults(allReleases, artists, fromCache) {
-  const statusEl = document.getElementById('upcomingStatus');
-  const gridEl = document.getElementById('upcomingGrid');
-  const refreshEl = document.getElementById('upcomingRefreshBtn');
-
-  const sorted = sortUpcomingReleases([...allReleases]);
-  _upcomingLastData = sorted;
-  document.querySelectorAll('#upcomingViewBtns .ev-view-btn')
-    .forEach(b => b.classList.toggle('active', b.dataset.view === (eventsViewModes['upcoming'] || 'carousel')));
-  if (sorted.length === 0) {
-    gridEl.innerHTML = `<div class="upcoming-empty">${t('mb_upcoming_empty')}</div>`;
-  } else {
-    _evRenderSectionByKey('upcoming', sorted);
-  }
-
-  const cacheNote = fromCache ? t('mb_cached') : '';
-  const ts = fromCache
-    ? (() => { try { return new Date(JSON.parse(localStorage.getItem(MB_CACHE_KEY)).ts).toLocaleString(); } catch (e) { return ''; } })()
-    : new Date().toLocaleString();
-  statusEl.dataset.count = sorted.length;
-  statusEl.dataset.n = artists.length;
-  statusEl.dataset.ts = ts;
-  statusEl.dataset.fromCache = fromCache ? '1' : '';
-  statusEl.textContent = t('mb_upcoming_status', { count: sorted.length, n: artists.length, ts, cache: cacheNote });
-  refreshEl.style.display = 'block';
-}
-
-// Trigger after data is loaded — chain recent after upcoming so MBID lookups are shared
-async function maybeLoadUpcoming() {
-  if (!allPlays.length) return;
-  await loadUpcomingReleases();
-  await loadRecentReleases();
-}
-
 // ─── RECENT RELEASES ───────────────────────────────────────────
-const MB_RECENT_CACHE_KEY = 'mbRecentCache';
 
 async function fetchRecentReleasesForMBID(mbid) {
   try {
@@ -25349,102 +25158,6 @@ function renderRecentCard(release, artistName) {
 function sortRecentReleases(releases) {
   return releases.filter(r => r.release?.date).sort((a, b) =>
     (b.release.date || '').localeCompare(a.release.date || '')); // newest first
-}
-
-async function loadRecentReleases(forceRefresh = false) {
-  if (!allPlays.length) return;
-
-  // Show the section only on chart tabs (not events/graphs/rawdata/records/awards/alltime/year/soundtrack)
-  if (!['events', 'graphs', 'rawdata', 'records', 'awards', 'alltime', 'year', 'soundtrack', 'board'].includes(currentPeriod)) {
-    const el = document.getElementById('recentSection');
-    el.style.display = '';
-    const savedCollapsed = localStorage.getItem('dc_section_collapsed_recentSection') === '1';
-    el.classList.toggle('collapsed', savedCollapsed);
-    const btn = el.querySelector('.section-collapse-btn');
-    if (btn) btn.textContent = savedCollapsed ? '+' : '−';
-  }
-
-  if (!forceRefresh) {
-    try {
-      const cached = JSON.parse(localStorage.getItem(MB_RECENT_CACHE_KEY) || 'null');
-      if (cached && Date.now() - cached.ts < MB_CACHE_TTL) {
-        renderRecentResults(cached.releases, cached.artists, true);
-        return;
-      }
-    } catch (e) { }
-  }
-
-  const artists = getTop200Artists();
-  const statusEl = document.getElementById('recentStatus');
-  const gridEl = document.getElementById('recentGrid');
-  document.getElementById('recentRefreshBtn').style.display = 'none';
-
-  gridEl.innerHTML = '';
-  gridEl.className = 'upcoming-grid'; // a previous Reel/Table/List render left its own class here
-  /* The header buttons are markup-default "Reel" until something says
-     otherwise; sync them now so they match the view the progressive render
-     below is about to use, not only once the whole Top 200 has loaded. */
-  document.querySelectorAll('#recentViewBtns .ev-view-btn')
-    .forEach(b => b.classList.toggle('active', b.dataset.view === (eventsViewModes['recent'] || 'carousel')));
-  statusEl.textContent = t('mb_searching', { n: artists.length });
-
-  const allReleases = [];
-  let lastPaint = 0; // throttles the progressive render below
-
-  for (let i = 0; i < artists.length; i++) {
-    const name = artists[i];
-    statusEl.textContent = t('mb_fetching', { i: i + 1, n: artists.length, name });
-
-    const mbid = await searchArtistMBID(name);
-    if (!mbid) continue;
-
-    const releases = await fetchRecentReleasesForMBID(mbid);
-    for (const r of releases) allReleases.push({ release: r, artistName: name });
-
-    /* Same deal as loadUpcomingReleases(): render through the view-aware path
-       and keep _recentLastData fresh, so the section opens in Reel (the
-       default) rather than Tiles and the header buttons work mid-load. */
-    if (releases.length > 0) {
-      _recentLastData = sortRecentReleases([...allReleases]);
-      if (Date.now() - lastPaint >= EV_PROGRESS_PAINT_MS) {
-        lastPaint = Date.now();
-        _evRenderSectionByKey('recent', _recentLastData);
-      }
-    }
-  }
-
-  try {
-    localStorage.setItem(MB_RECENT_CACHE_KEY, JSON.stringify({ ts: Date.now(), releases: allReleases, artists }));
-  } catch (e) { }
-
-  renderRecentResults(allReleases, artists, false);
-}
-
-function renderRecentResults(allReleases, artists, fromCache) {
-  const statusEl = document.getElementById('recentStatus');
-  const gridEl = document.getElementById('recentGrid');
-  const refreshEl = document.getElementById('recentRefreshBtn');
-
-  const sorted = sortRecentReleases([...allReleases]);
-  _recentLastData = sorted;
-  document.querySelectorAll('#recentViewBtns .ev-view-btn')
-    .forEach(b => b.classList.toggle('active', b.dataset.view === (eventsViewModes['recent'] || 'carousel')));
-  if (sorted.length === 0) {
-    gridEl.innerHTML = `<div class="upcoming-empty">${t('mb_recent_empty')}</div>`;
-  } else {
-    _evRenderSectionByKey('recent', sorted);
-  }
-
-  const cacheNote = fromCache ? t('mb_cached') : '';
-  const ts = fromCache
-    ? (() => { try { return new Date(JSON.parse(localStorage.getItem(MB_RECENT_CACHE_KEY)).ts).toLocaleString(); } catch (e) { return ''; } })()
-    : new Date().toLocaleString();
-  statusEl.dataset.count = sorted.length;
-  statusEl.dataset.n = artists.length;
-  statusEl.dataset.ts = ts;
-  statusEl.dataset.fromCache = fromCache ? '1' : '';
-  statusEl.textContent = t('mb_recent_status', { count: sorted.length, n: artists.length, ts, cache: cacheNote });
-  refreshEl.style.display = 'block';
 }
 
 // ─── GRAPHS TAB ────────────────────────────────────────────────
@@ -28477,7 +28190,7 @@ function eventsCalendarNext() {
 const _eventsViewDefaults = {
   birthdays: 'carousel', anniversaries: 'carousel', eventsUpcoming: 'carousel',
   eventsRecent: 'carousel', recentBirthdays: 'carousel', recentAnniversaries: 'carousel', concerts: 'carousel',
-  nmf: 'carousel', upcoming: 'carousel', recent: 'carousel'
+  nmf: 'carousel'
 };
 const eventsViewModes = Object.assign({}, _eventsViewDefaults,
   (() => { try { return JSON.parse(localStorage.getItem('dc_events_view_modes') || '{}'); } catch (e) { return {}; } })()
@@ -28488,14 +28201,11 @@ const eventsViewModes = Object.assign({}, _eventsViewDefaults,
    artist was enough to make the reel unusable until the loop finished. */
 const EV_PROGRESS_PAINT_MS = 1500;
 let _eventsLastData = null;
-let _upcomingLastData = null;
-let _recentLastData = null;
 const EV_GRID_IDS = {
   birthdays: 'birthdaysGrid', anniversaries: 'anniversariesGrid',
   eventsUpcoming: 'eventsUpcomingGrid', eventsRecent: 'eventsRecentGrid',
   recentBirthdays: 'eventsRecentBirthdaysGrid', recentAnniversaries: 'eventsRecentAnniversariesGrid',
-  concerts: 'concertsGrid', nmf: 'nmfGrid',
-  upcoming: 'upcomingGrid', recent: 'recentGrid'
+  concerts: 'concertsGrid', nmf: 'nmfGrid'
 };
 
 function setEventsView(sectionKey, mode) {
@@ -28514,14 +28224,6 @@ function _evReRenderSection(sectionKey) {
   }
   if (sectionKey === 'nmf') {
     if (_nmfData && _nmfData.length) _evRenderSectionByKey('nmf', _nmfData);
-    return;
-  }
-  if (sectionKey === 'upcoming') {
-    if (_upcomingLastData) _evRenderSectionByKey('upcoming', sortUpcomingReleases([..._upcomingLastData]));
-    return;
-  }
-  if (sectionKey === 'recent') {
-    if (_recentLastData) _evRenderSectionByKey('recent', sortRecentReleases([..._recentLastData]));
     return;
   }
   if (!_eventsLastData) return;
@@ -28574,7 +28276,7 @@ function _evNormalize(sectionKey, items) {
         imgSrc: mbid ? `https://coverartarchive.org/release-group/${mbid}/front-250` : null,
         imgAttr: { artist: artistName, title, sources: 'deezer,itunes,lastfm' }, isToday });
     }
-  } else if (sectionKey === 'eventsUpcoming' || sectionKey === 'upcoming') {
+  } else if (sectionKey === 'eventsUpcoming') {
     for (const { release, artistName } of items) {
       const { label } = upcomingDateLabel(release.date);
       const tl = t('mb_type_' + (release.type || 'Release').toLowerCase()) || release.type || 'Release';
@@ -28584,7 +28286,7 @@ function _evNormalize(sectionKey, items) {
         imgSrc: release.mbid ? `https://coverartarchive.org/release-group/${release.mbid}/front-250` : null,
         imgAttr: { artist: artistName, title: release.title, sources: 'itunes,lastfm' }, isToday: false });
     }
-  } else if (sectionKey === 'eventsRecent' || sectionKey === 'recent') {
+  } else if (sectionKey === 'eventsRecent') {
     for (const { release, artistName } of items) {
       const tl = t('mb_type_' + (release.type || 'Release').toLowerCase()) || release.type || 'Release';
       out.push({ title: release.title, artist: artistName,
@@ -28704,8 +28406,8 @@ function _evRenderSectionByKey(sectionKey, items) {
     if (!items.length) { gridEl.innerHTML = ''; return; }
     if (sectionKey === 'birthdays') gridEl.innerHTML = items.map(renderBirthdayCard).join('');
     else if (sectionKey === 'anniversaries') gridEl.innerHTML = items.map(renderAnniversaryCard).join('');
-    else if (sectionKey === 'eventsUpcoming' || sectionKey === 'upcoming') gridEl.innerHTML = items.map(({ release, artistName }) => renderUpcomingCard(release, artistName)).join('');
-    else if (sectionKey === 'eventsRecent' || sectionKey === 'recent') gridEl.innerHTML = items.map(({ release, artistName }) => renderRecentCard(release, artistName)).join('');
+    else if (sectionKey === 'eventsUpcoming') gridEl.innerHTML = items.map(({ release, artistName }) => renderUpcomingCard(release, artistName)).join('');
+    else if (sectionKey === 'eventsRecent') gridEl.innerHTML = items.map(({ release, artistName }) => renderRecentCard(release, artistName)).join('');
     else if (sectionKey === 'recentBirthdays') gridEl.innerHTML = items.map(renderRecentBirthdayCard).join('');
     else if (sectionKey === 'recentAnniversaries') gridEl.innerHTML = items.map(renderRecentAnniversaryCard).join('');
     else if (sectionKey === 'concerts') gridEl.innerHTML = items.map(({ event, artistName }) => renderConcertCard(event, artistName)).join('');
@@ -28747,8 +28449,7 @@ const EV_PL_SECTIONS = {
   recentBirthdays:     { label: 'Recent Birthdays',    pick: it => _tmArtistLastSongs(it.artistName, 1)[0] },
   anniversaries:       { label: 'Anniversaries',       pick: it => _evPlRelease(it.title, it.artistName) },
   recentAnniversaries: { label: 'Recent Anniversaries', pick: it => _evPlRelease(it.title, it.artistName) },
-  eventsRecent:        { label: 'Recent Releases',     pick: it => _evPlRelease(it.release?.title, it.artistName) },
-  recent:              { label: 'Recent Releases',     pick: it => _evPlRelease(it.release?.title, it.artistName) }
+  eventsRecent:        { label: 'Recent Releases',     pick: it => _evPlRelease(it.release?.title, it.artistName) }
 };
 
 function _evPlRelease(title, artist) {
@@ -45988,10 +45689,6 @@ const _cgTourSteps = [
         spotlight: '#newSongsSection',
         reveal: true,
         hold: 10000 },
-
-      { content: 'At the bottom of the page, you\'ll find upcoming and recent releases from your top artists. Hover to pause the reel, drag to browse, or click an entry for more options. You can also switch your view using the toggle.',
-        spotlight: '#upcomingSection, #recentSection',
-        reveal: true },
     ] },
 
   { title: 'Reading a chart row',

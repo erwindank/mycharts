@@ -20595,8 +20595,8 @@ body.albums-hide-pl-btns  #newAlbumsSection  .dc-pl-add-btn { display: none; }
 .yt-pl-del-btn:hover { opacity: 1; color: var(--rose); }
 
 /* ── Full Playlist Manager View ── */
-/* Hide everything inside eventsView except anniversariesSection when shown on the Playlists tab */
-#eventsView.dc-pl-mode > :not(#anniversariesSection) { display: none !important; }
+/* Hide everything inside eventsView except Anniversaries and Recent Releases when shown on the Playlists tab */
+#eventsView.dc-pl-mode > :not(#anniversariesSection, #eventsRecentSection) { display: none !important; }
 
 .dc-pl-view {
   max-width: 780px;
@@ -35156,13 +35156,10 @@ body.songs-hide-desc   #songsChartGroup   .section-sub,
 body.artists-hide-desc #artistsChartGroup .section-sub,
 body.albums-hide-desc  #albumsChartGroup  .section-sub { display: none !important; }
 
-/* ─── CHART PAGE SECTIONS (Settings → Charts, applyChartPageSections) ───
-   Only the charts-page blocks; the Events tab's own sections have other ids */
+/* ─── CHART PAGE SECTIONS (Settings → Charts, applyChartPageSections) ─── */
 body.cp-hide-time-machine #timeMachineSection,
 body.cp-hide-period-stats .stats-strips-wrap,
-body.cp-hide-cert-reel    #certReelSection,
-body.cp-hide-upcoming     #upcomingSection,
-body.cp-hide-recent       #recentSection { display: none !important; }
+body.cp-hide-cert-reel    #certReelSection { display: none !important; }
 
 /* ===========================================================================
    COMMUNITY BOARD (board.js) — suggestions, bug reports, discussion
