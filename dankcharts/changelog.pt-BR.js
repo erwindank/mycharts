@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['pt-BR'] = {
 
   /* ========== OUTUBRO 2026 ========== */
 
+  "Every tab starts right at the top":
+    ["Cada aba começa lá no topo",
+     "Estatísticas, Recordes, Prêmios e as outras abas não começam mais no meio da página, embaixo da faixa de sequência e da Máquina do Tempo; essas ficam na página de Charts, e cada aba começa logo abaixo da barra superior. No celular, o botão redondo de voltar ao topo não cobre mais a parada: ao rolar para baixo, a aba em que você está vira uma seta para cima, e tocar nela leva você de volta ao topo. No computador, clicar na aba em que você está faz o mesmo."],
+
   "ON AIR and your streak share one strip":
     ["NO AR e a sua sequência dividem uma faixa",
      "A barra NO AR e o banner de sequência agora são uma faixa só, mais ou menos com metade da altura. No computador ela se lê da esquerda para a direita: a sua sequência, as capas das reproduções que a formaram e a música tocando agora, em destaque, com o tempo e as reproduções. Quando nada está tocando, ela termina na sua última reprodução. No celular é uma linha fina com a música e a sua sequência; toque para abrir a versão completa, e ela fica do jeito que você deixou. Os rótulos de sequência agora também estão traduzidos."],

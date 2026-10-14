@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 108;
+const DC_CL_I18N_V = 109;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,10 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+
+  { d: '2026-10-13', t: 'design', a: 'ui', h: '3cceaae',
+    title: 'Every tab starts right at the top',
+    detail: "Stats, Records, Awards and the other tabs no longer start halfway down the page under the streak strip and the Time Machine; those stay on the Charts page, and every other tab begins right under the top bar. On a phone, the round scroll-to-top button no longer covers the chart: once you scroll down, the tab you are on turns into an up arrow, and tapping it takes you back to the top. Clicking the tab you are on does the same on a computer." },
 
   { d: '2026-10-13', t: 'design', a: 'charts', h: 'f4b89be',
     title: 'ON AIR and your streak share one strip',

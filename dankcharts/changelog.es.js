@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['es'] = {
 
   /* ========== OCTUBRE 2026 ========== */
 
+  "Every tab starts right at the top":
+    ["Cada pestaña empieza arriba del todo",
+     "Estadísticas, Récords, Premios y las demás pestañas ya no empiezan a mitad de página debajo de la franja de racha y la Máquina del tiempo; esas se quedan en la página de Charts, y cada pestaña empieza justo debajo de la barra superior. En el móvil, el botón redondo para volver arriba ya no tapa la lista: al bajar, la pestaña en la que estás se convierte en una flecha hacia arriba, y al tocarla vuelves arriba. En el ordenador, hacer clic en la pestaña en la que estás hace lo mismo."],
+
   "ON AIR and your streak share one strip":
     ["EN EL AIRE y tu racha comparten una franja",
      "La barra EN EL AIRE y el banner de racha son ahora una sola franja, más o menos la mitad de alta. En el ordenador se lee de izquierda a derecha: tu racha, las portadas de las reproducciones que la forman y la canción que suena ahora, iluminada, con su tiempo y sus reproducciones. Si no suena nada, termina en tu última reproducción. En el móvil es una línea delgada con la canción y tu racha; tócala para abrir la versión completa, y se queda como la dejaste. Las etiquetas de racha ahora también están traducidas."],
