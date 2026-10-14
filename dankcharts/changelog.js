@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 109;
+const DC_CL_I18N_V = 110;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,10 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+
+  { d: '2026-10-14', t: 'fix', a: 'data', h: '9b75d37',
+    title: 'Autocorrect rules always reach your account on page load',
+    detail: "If you were signed in, the autocorrect rules read from your Google Sheet when the page opened sometimes failed to save to your account, because the save ran before the account connection was ready. The same could happen to your compilation albums and single/EP choices. These saves now wait for the connection, so nothing is dropped." },
 
   { d: '2026-10-13', t: 'design', a: 'ui', h: '3cceaae',
     title: 'Every tab starts right at the top',

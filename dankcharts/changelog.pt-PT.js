@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['pt-PT'] = {
 
   /* ========== OUTUBRO 2026 ========== */
 
+  "Autocorrect rules always reach your account on page load":
+    ["As regras de correção automática chegam sempre à tua conta ao carregar a página",
+     "Se tinhas sessão iniciada, as regras de correção automática lidas da tua Folha Google ao abrir a página às vezes não eram guardadas na tua conta, porque a gravação acontecia antes de a ligação à conta estar pronta. O mesmo podia acontecer com os teus álbuns de compilação e as tuas escolhas de single/EP. Agora estas gravações esperam pela ligação, por isso nada se perde."],
+
   "Every tab starts right at the top":
     ["Cada separador começa lá no topo",
      "Estatísticas, Recordes, Prémios e os outros separadores já não começam a meio da página, por baixo da faixa de sequência e da Máquina do Tempo; essas ficam na página de Charts, e cada separador começa logo abaixo da barra superior. No telemóvel, o botão redondo de voltar ao topo já não tapa o top: ao descer, o separador em que está passa a ser uma seta para cima, e tocar nele leva-o de volta ao topo. No computador, clicar no separador em que está faz o mesmo."],

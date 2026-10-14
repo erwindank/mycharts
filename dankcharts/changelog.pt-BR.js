@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['pt-BR'] = {
 
   /* ========== OUTUBRO 2026 ========== */
 
+  "Autocorrect rules always reach your account on page load":
+    ["As regras de autocorreção sempre chegam à sua conta ao carregar a página",
+     "Se você estava conectado, as regras de autocorreção lidas da sua Planilha Google ao abrir a página às vezes não eram salvas na sua conta, porque o salvamento acontecia antes de a conexão com a conta estar pronta. O mesmo podia acontecer com seus álbuns de coletânea e suas escolhas de single/EP. Agora esses salvamentos esperam a conexão, então nada se perde."],
+
   "Every tab starts right at the top":
     ["Cada aba começa lá no topo",
      "Estatísticas, Recordes, Prêmios e as outras abas não começam mais no meio da página, embaixo da faixa de sequência e da Máquina do Tempo; essas ficam na página de Charts, e cada aba começa logo abaixo da barra superior. No celular, o botão redondo de voltar ao topo não cobre mais a parada: ao rolar para baixo, a aba em que você está vira uma seta para cima, e tocar nela leva você de volta ao topo. No computador, clicar na aba em que você está faz o mesmo."],

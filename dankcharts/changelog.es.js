@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['es'] = {
 
   /* ========== OCTUBRE 2026 ========== */
 
+  "Autocorrect rules always reach your account on page load":
+    ["Las reglas de autocorrección siempre llegan a tu cuenta al cargar la página",
+     "Si tenías la sesión iniciada, las reglas de autocorrección que se leen de tu Google Sheet al abrir la página a veces no se guardaban en tu cuenta, porque el guardado se hacía antes de que la conexión con la cuenta estuviera lista. Lo mismo podía pasar con tus álbumes recopilatorios y tus elecciones de sencillo/EP. Ahora estos guardados esperan a la conexión, así que no se pierde nada."],
+
   "Every tab starts right at the top":
     ["Cada pestaña empieza arriba del todo",
      "Estadísticas, Récords, Premios y las demás pestañas ya no empiezan a mitad de página debajo de la franja de racha y la Máquina del tiempo; esas se quedan en la página de Charts, y cada pestaña empieza justo debajo de la barra superior. En el móvil, el botón redondo para volver arriba ya no tapa la lista: al bajar, la pestaña en la que estás se convierte en una flecha hacia arriba, y al tocarla vuelves arriba. En el ordenador, hacer clic en la pestaña en la que estás hace lo mismo."],
