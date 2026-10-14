@@ -45619,11 +45619,6 @@ const _cgTourSteps = [
         spotlight: '#statsStrip, #statsStrip2, #statsStrip3',
         hold: 12000 },
 
-      { content: 'Songs and albums go Gold, Platinum or Diamond once they pass a set number of plays. This section shows the ones that got there this week. Want different numbers? Change them in Settings → Certification Thresholds.',
-        spotlight: '#certReelSection',
-        reveal: true,
-        hold: 10000 },
-
       { content: 'Pick which chart you are reading — songs, artists or albums — then which parts of it you want: the chart itself, Bubbling Under, Off the Chart, New Entries. Any combination is allowed, and each chart type remembers its own.',
         seq: [
           '#chartTypeToggleBar .chart-type-toggle-btn[data-type="songs"]',
@@ -45689,6 +45684,10 @@ const _cgTourSteps = [
         spotlight: '#newSongsSection',
         reveal: true,
         hold: 10000 },
+
+      { content: 'Under the charts: songs and albums go Gold, Platinum or Diamond once they pass a set number of plays, and this section shows the ones that got there this week. Want different numbers? Change them in Settings → Certification Thresholds.',
+        spotlight: '#certReelSection',
+        reveal: true },
     ] },
 
   { title: 'Reading a chart row',

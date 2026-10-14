@@ -1276,6 +1276,12 @@ the pills into ⋮ → Show, 5 screen check (also covers phase 5).
   itself, which also fills its Anniversaries reel without a visit to
   Events first). The old `mbUpcomingCache` / `mbRecentCache` storage is
   cleared on load.
+- **Step 2 ✓ (2026-10-14): Certified below the charts.** `#certReelSection`
+  moved from between the stat tiles and the chart to after the chart
+  groups, so it follows Bubbling Under / Off the Chart / New Entries on
+  Weekly and Monthly. Unchanged otherwise (still auto-scrolls, same
+  Settings switch). The tour's Certified stop moved to the end of the
+  Weekly walkthrough to match. Checked on desktop and at 390px.
 
 The period picker does not need moving into one place:
 it already is (see 4.4). What is left is making it slim enough to live in
