@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 102;
+const DC_CL_I18N_V = 103;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,10 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+
+  { d: '2026-10-13', t: 'design', a: 'ui', h: 'db62c44',
+    title: 'A slim top bar instead of the big header',
+    detail: "The big header at the top of every page is gone. In its place is a slim bar that stays at the top as you scroll, with Sync, Settings, Theme, Language and your account always one click away. Signed in, your profile picture opens a small menu with Sign out. Click the dankcharts.fm logo to go back to the weekly chart. The all-time numbers that used to sit in the header (total plays, days listened, top artist, streak) now show on the All-Time tab, since they are about all time, not this week." },
 
   { d: '2026-10-13', t: 'design', a: 'ui', h: '5f09c94',
     title: 'Rounder artist cards, bigger streak covers',

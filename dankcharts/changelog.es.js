@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['es'] = {
 
   /* ========== OCTUBRE 2026 ========== */
 
+  "A slim top bar instead of the big header":
+    ["Una barra superior delgada en lugar de la cabecera grande",
+     "La cabecera grande que había arriba de cada página ya no está. En su lugar hay una barra delgada que se queda arriba al desplazarte, con Sincronizar, Configuración, Tema, Idioma y tu cuenta siempre a un clic. Con la sesión iniciada, tu foto de perfil abre un pequeño menú con Cerrar sesión. Haz clic en el logo de dankcharts.fm para volver a la lista semanal. Las cifras de todos los tiempos que estaban en la cabecera (reproducciones totales, días escuchados, artista principal, racha) ahora aparecen en la pestaña Histórico, porque hablan de todo el tiempo, no de esta semana."],
+
   "Rounder artist cards, bigger streak covers":
     ["Tarjetas de artista redondas y portadas de racha más grandes",
      "Artista del momento ahora muestra una imagen redonda, como Artista en ascenso a su lado, mientras que las imágenes de canciones y álbumes siguen cuadradas. Las portadas pequeñas del banner de racha son más grandes, así que puedes ver qué canciones son."],

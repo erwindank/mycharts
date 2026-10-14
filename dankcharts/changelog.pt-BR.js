@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['pt-BR'] = {
 
   /* ========== OUTUBRO 2026 ========== */
 
+  "A slim top bar instead of the big header":
+    ["Uma barra superior fina no lugar do cabeçalho grande",
+     "O cabeçalho grande no topo de cada página saiu. No lugar dele há uma barra fina que fica no topo enquanto você rola a página, com Sincronizar, Configurações, Tema, Idioma e sua conta sempre a um clique. Com a sessão iniciada, sua foto de perfil abre um pequeno menu com Sair. Clique no logo do dankcharts.fm para voltar à parada semanal. Os números de todos os tempos que ficavam no cabeçalho (reproduções totais, dias ouvidos, artista principal, sequência) agora aparecem na aba Histórico, porque falam de todo o tempo, não desta semana."],
+
   "Rounder artist cards, bigger streak covers":
     ["Cards de artista redondos e capas de sequência maiores",
      "Artista do momento agora mostra uma imagem redonda, como Artista em ascensão ao lado, enquanto as imagens de músicas e álbuns continuam quadradas. As capas pequenas no banner de sequência estão maiores, então dá para ver quais músicas são."],
