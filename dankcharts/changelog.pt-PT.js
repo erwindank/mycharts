@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['pt-PT'] = {
 
   /* ========== OUTUBRO 2026 ========== */
 
+  "Week, month, year and all-time on the date line":
+    ["Semana, mês, ano e de sempre na linha da data",
+     "Os botões Semanal, Mensal, Anual e De Sempre estão agora na mesma linha da data, por isso escolher um período e percorrê-lo acontece numa única barra fina que fica no topo enquanto percorre a página. A data lê-se numa só linha, e clicar nela continua a abrir o seletor de data. A dica de teclado por baixo da data desapareceu; as setas do teclado e deslizar continuam a funcionar."],
+
   "Five main tabs instead of thirteen":
     ["Cinco separadores principais em vez de treze",
      "As duas filas de treze separadores são agora cinco separadores na barra superior: Charts, Estatísticas (o que antes se chamava Gráficos), Recordes, Prémios e Trilha Sonora, mais Mais para Eventos, Playlists, Dados Brutos, o Fórum e o Guia de Charts. Charts leva-o de volta ao período que usou por último, e Semana, Mês, Ano e Histórico escolhem-se na própria página de Charts. No telemóvel os separadores ficam numa barra no fundo do ecrã. Os atalhos com números continuam a funcionar, e a dica de cada separador mostra a tecla."],

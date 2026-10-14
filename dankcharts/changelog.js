@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 105;
+const DC_CL_I18N_V = 106;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,10 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+
+  { d: '2026-10-13', t: 'design', a: 'charts', h: '0ff2ecd',
+    title: 'Week, month, year and all-time on the date line',
+    detail: "The Week, Month, Year and All-time buttons now sit on the same line as the date, so choosing a period and stepping through it happens in one slim bar that stays at the top as you scroll. The date reads on one line, and clicking it still opens the date picker. The keyboard hint under the date is gone; the arrow keys and swiping still work." },
 
   { d: '2026-10-13', t: 'design', a: 'ui', h: 'dd52101',
     title: 'Five main tabs instead of thirteen',

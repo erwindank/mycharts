@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['es'] = {
 
   /* ========== OCTUBRE 2026 ========== */
 
+  "Week, month, year and all-time on the date line":
+    ["Semana, mes, año e histórico en la línea de la fecha",
+     "Los botones Semanal, Mensual, Anual e Histórico ahora están en la misma línea que la fecha, así que elegir un periodo y recorrerlo se hace en una sola barra delgada que se queda arriba al desplazarte. La fecha se lee en una línea, y al hacer clic sigue abriendo el selector de fecha. La pista de teclado bajo la fecha ya no aparece; las flechas del teclado y deslizar siguen funcionando."],
+
   "Five main tabs instead of thirteen":
     ["Cinco pestañas principales en lugar de trece",
      "Las dos filas de trece pestañas son ahora cinco pestañas en la barra superior: Charts, Estadísticas (lo que antes se llamaba Gráficas), Récords, Premios y Soundtrack, más Más para Eventos, Listas de reproducción, Base de datos, el Foro y la Guía de Charts. Charts te lleva al periodo que usaste por última vez, y Semana, Mes, Año e Histórico se eligen en la propia página de Charts. En el móvil las pestañas están en una barra en la parte inferior de la pantalla. Los atajos con números siguen funcionando, y la descripción de cada pestaña muestra su tecla."],

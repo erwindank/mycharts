@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['pt-BR'] = {
 
   /* ========== OUTUBRO 2026 ========== */
 
+  "Week, month, year and all-time on the date line":
+    ["Semana, mês, ano e histórico na linha da data",
+     "Os botões Semanal, Mensal, Anual e Histórico agora ficam na mesma linha da data, então escolher um período e navegar por ele acontece numa única barra fina que fica no topo enquanto você rola. A data aparece numa linha só, e clicar nela ainda abre o seletor de data. A dica de teclado embaixo da data saiu; as setas do teclado e o gesto de deslizar continuam funcionando."],
+
   "Five main tabs instead of thirteen":
     ["Cinco abas principais no lugar de treze",
      "As duas fileiras de treze abas agora são cinco abas na barra superior: Charts, Estatísticas (o que antes se chamava Gráficos), Recordes, Prêmios e Trilha Sonora, mais Mais para Eventos, Playlists, Dados Brutos, o Fórum e o Guia de Charts. Charts leva você de volta ao período que usou por último, e Semana, Mês, Ano e Histórico são escolhidos na própria página de Charts. No celular as abas ficam numa barra na parte de baixo da tela. Os atalhos com números continuam funcionando, e a dica de cada aba mostra a tecla dela."],
