@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['pt-PT'] = {
 
   /* ========== OUTUBRO 2026 ========== */
 
+  "The Time Machine moves to Your Soundtrack":
+    ["A Máquina do tempo passa para Sua Trilha Sonora",
+     "A Máquina do tempo, o carrossel do que ouvias neste dia em anos anteriores, fica agora no fim do separador Sua Trilha Sonora em vez de no topo de cada tabela, por isso as tabelas começam com as tuas estatísticas. Funciona como antes: passa sozinha, Músicas, Artistas e Álbuns continuam a alternar, e o interruptor dela em Definições continua a escondê-la."],
+
   "Certified this period comes after the charts":
     ["Certificados neste período vem depois das tabelas",
      "Nas tabelas semanais e mensais, o carrossel de Certificados neste período fica agora por baixo das tabelas e das secções Quase no Top, Fora do Top e Novas Entradas, por isso a primeira coisa depois das tuas estatísticas é a tabela. O carrossel funciona como antes e continua a passar sozinho."],
