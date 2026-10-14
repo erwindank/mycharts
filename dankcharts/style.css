@@ -34,6 +34,9 @@
          < mobile tour sheet(9000) < context menus, toasts & tooltips(9999)
          < drill-down + streak tooltips(10000) */
       --z-nav: 100;
+      /* Height of the sticky top bar (phase 5). Anything else that sticks to
+         the page scroll sits below it: top: var(--topbar-h). */
+      --topbar-h: 56px;
       --z-dropdown: 500;
       --z-overlay: 900;
       --z-modal: 1000;
@@ -498,18 +501,6 @@
       box-shadow: var(--focus-ring);
     }
 
-    /* THEME SWITCHER */
-    .theme-toggle {
-      position: absolute;
-      top: 1rem;
-      right: 1rem;
-      display: flex;
-      flex-direction: column;
-      align-items: flex-end;
-      gap: 3px;
-      z-index: 10;
-    }
-
     .theme-btn {
       width: 12px;
       height: 12px;
@@ -684,16 +675,13 @@
 
     .ctrl-btn-narrow { display: none; }
 
-    /* WHAT'S NEW badge — the changelog's front door in the masthead.
+    /* WHAT'S NEW badge — the changelog's front door in the top bar.
        Only in the DOM's flow while unseen entries exist (dcClRefreshBadge
        toggles display), so the control row is unchanged the rest of the time.
 
-       Every colour here is currentColor. The masthead banner is dark under
-       some light themes and light under others, and each theme already sets
-       .ctrl-group-btn's colour to something readable on its own banner —
-       deriving from that is the only way this reads correctly in all ten
-       without a per-theme rule. */
-    .masthead .ctrl-group-btn.cl-new-btn {
+       Every colour here is currentColor, so it follows whatever colour the
+       top bar gives .ctrl-group-btn in each theme without a per-theme rule. */
+    #topbar .ctrl-group-btn.cl-new-btn {
       background: color-mix(in srgb, currentColor 12%, transparent);
       border-color: color-mix(in srgb, currentColor 60%, transparent);
     }
@@ -782,54 +770,6 @@
       text-size-adjust: 100%;
     }
 
-    /* MASTHEAD
-       2026 redesign: gradient + glow derive from the active theme's
-       tokens, so every DARK theme auto-tints — the old per-theme
-       .masthead background overrides (purple/red/yellow/pink) were
-       deleted as redundant. Light themes keep hand-tuned bands below. */
-    .masthead {
-      background: linear-gradient(160deg,
-          color-mix(in srgb, var(--bg) 92%, var(--accent)) 0%,
-          color-mix(in srgb, var(--bg3) 84%, var(--accent)) 50%,
-          color-mix(in srgb, var(--bg) 92%, var(--accent)) 100%);
-      text-align: center;
-      padding: 2.75rem var(--sp-4) var(--sp-6);
-      border-bottom: 1px solid color-mix(in srgb, var(--accent) 22%, transparent);
-      position: relative;
-      /* kill a 2px sub-pixel horizontal overflow on phones; clip (not hidden)
-         so no scroll container is created and dropdown panels stay visible */
-      overflow-x: clip;
-    }
-
-    .masthead::before {
-      content: '';
-      position: absolute;
-      inset: 0;
-      background: radial-gradient(ellipse at 50% 0%, color-mix(in srgb, var(--accent) 15%, transparent) 0%, transparent 65%);
-      pointer-events: none;
-    }
-
-    .masthead::after {
-      content: '';
-      position: absolute;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      height: 2px;
-      background: linear-gradient(90deg, transparent, var(--accent), var(--accent2), var(--accent), transparent);
-      opacity: 0.45;
-    }
-
-    /* Navy Light masthead — darker, clearly separated from page */
-    body.navy-light .masthead {
-      background: linear-gradient(160deg, #5e93c4 0%, #76a8d4 50%, #5e93c4 100%);
-      border-bottom: 1px solid rgba(10, 72, 160, 0.4);
-    }
-
-    body.navy-light .masthead::before {
-      background: radial-gradient(ellipse at 50% 0%, rgba(27, 109, 200, 0.18) 0%, transparent 65%);
-    }
-
     body.navy-light .wordmark-dank {
       color: #061828;
     }
@@ -842,27 +782,6 @@
       color: #1258b0;
       background: rgba(27, 109, 200, 0.14);
       border-color: rgba(27, 109, 200, 0.35);
-    }
-
-    body.navy-light .masthead .est {
-      color: rgba(15, 53, 96, 0.7);
-    }
-
-    body.navy-light .masthead .tagline {
-      color: #0f3560;
-    }
-
-    body.navy-light .masthead-rule {
-      color: rgba(18, 88, 176, 0.65);
-    }
-
-    body.navy-light .masthead-rule::before,
-    body.navy-light .masthead-rule::after {
-      background: linear-gradient(90deg, transparent, rgba(27, 109, 200, 0.5), transparent);
-    }
-
-    body.navy-light .masthead::after {
-      background: linear-gradient(90deg, transparent, #1258b0, #38bdf8, #1258b0, transparent);
     }
 
     /* Navy Light control buttons */
@@ -894,9 +813,8 @@
       color: rgba(4, 14, 28, 0.95);
     }
 
-    /* Purple Light — control buttons. Its masthead banner (#8579bd, medium
-       lavender) is bright enough that dark text reads better than white,
-       same reasoning as navy-light's .masthead .est/.tagline above. */
+    /* Purple Light — control buttons (landing screen; the app's top bar sets
+       its own colours on #topbar). Dark text on the pale ground. */
     body.purple-light .ctrl-group-btn {
       color: var(--text2);
       border-color: var(--border);
@@ -909,37 +827,11 @@
       color: var(--text);
     }
 
-    /* Red/Yellow/Pink Light — control buttons sit on their mastheads' dark
-       brand-gradient banner (same one .masthead .est/.tagline use white text
-       on below), not the light page background — so these need light text too,
-       not var(--text2)/var(--border) which are tuned for the pale page bg.
-       Scoped to .masthead specifically: the landing screen reuses this same
-       .ctrl-group-btn class but sits directly on the pale page bg (no dark
-       banner behind it), where white-on-white text was unreadable — see the
-       .landing-controls override right below for that case. */
-    body.red-light .masthead .ctrl-group-btn,
-    body.yellow-light .masthead .ctrl-group-btn,
-    body.pink-light .masthead .ctrl-group-btn {
-      color: rgba(255, 255, 255, 0.75);
-      border-color: rgba(255, 255, 255, 0.35);
-    }
-
-    body.red-light .masthead .ctrl-group-btn:hover,
-    body.red-light .masthead .ctrl-group.open .ctrl-group-btn,
-    body.yellow-light .masthead .ctrl-group-btn:hover,
-    body.yellow-light .masthead .ctrl-group.open .ctrl-group-btn,
-    body.pink-light .masthead .ctrl-group-btn:hover,
-    body.pink-light .masthead .ctrl-group.open .ctrl-group-btn {
-      background: rgba(255, 255, 255, 0.14);
-      border-color: rgba(255, 255, 255, 0.55);
-      color: #ffffff;
-    }
-
     /* Landing screen THEME/LANGUAGE buttons for Red/Yellow/Pink Light — these sit
-       on the plain pale page background (.landing-screen's --bg), not the dark
-       masthead banner, so they need the same dark-on-light treatment navy-light
-       and purple-light already use everywhere. Was previously falling through to
-       the white-text masthead rule above and reading as near-invisible. */
+       on the plain pale page background (.landing-screen's --bg), so they need the
+       same dark-on-light treatment navy-light and purple-light already use. (The
+       old masthead's white-text rule for these themes went with the masthead in
+       redesign phase 5.) */
     body.red-light .landing-controls .ctrl-group-btn,
     body.yellow-light .landing-controls .ctrl-group-btn,
     body.pink-light .landing-controls .ctrl-group-btn {
@@ -984,8 +876,7 @@
     }
 
     /* Yellow light — border/border2 are too yellow to read as UI outlines in the
-       panel dropdown (pale page bg); use text-based colors. (.ctrl-group-btn itself
-       lives on the dark masthead banner and gets a light-text treatment above.) */
+       panel dropdown (pale page bg); use text-based colors. */
     body.yellow-light .lang-btn {
       border-color: var(--text3);
     }
@@ -1006,38 +897,6 @@
       border-color: rgba(196, 184, 255, 0.35);
     }
 
-    body.purple .masthead .est {
-      color: rgba(196, 184, 255, 0.75);
-    }
-
-    body.purple .masthead .tagline {
-      color: rgba(255, 255, 255, 0.6);
-    }
-
-    body.purple .masthead-rule {
-      color: rgba(255, 255, 255, 0.8);
-    }
-
-    body.purple .masthead-rule::before,
-    body.purple .masthead-rule::after {
-      background: linear-gradient(90deg, transparent, rgba(124, 106, 247, 0.45), transparent);
-    }
-
-
-    /* Purple Light masthead — deeper purple, clearly separated from page */
-    body.purple-light .masthead {
-      background: linear-gradient(160deg, #8579bd 0%, #968ace 50%, #8579bd 100%);
-      border-bottom: 1px solid rgba(48, 30, 160, 0.4);
-    }
-
-    body.purple-light .masthead::before {
-      background: radial-gradient(ellipse at 50% 0%, rgba(97, 82, 232, 0.18) 0%, transparent 65%);
-    }
-
-    body.purple-light .masthead::after {
-      background: linear-gradient(90deg, transparent, #5240d0, #a897ff, #5240d0, transparent);
-    }
-
     body.purple-light .wordmark-dank {
       color: #120e28;
     }
@@ -1052,45 +911,11 @@
       border-color: rgba(97, 82, 232, 0.35);
     }
 
-    body.purple-light .masthead .est {
-      color: rgba(46, 36, 96, 0.7);
-    }
-
-    body.purple-light .masthead .tagline {
-      color: #2e2460;
-    }
-
-    body.purple-light .masthead-rule {
-      color: rgba(66, 50, 192, 0.65);
-    }
-
-    body.purple-light .masthead-rule::before,
-    body.purple-light .masthead-rule::after {
-      background: linear-gradient(90deg, transparent, rgba(97, 82, 232, 0.5), transparent);
-    }
-
     /* Red Dark masthead — background now derives from theme tokens in the base .masthead rule */
     body.red .wordmark-fm {
       color: #ff8888;
       background: rgba(220, 40, 40, 0.18);
       border-color: rgba(255, 136, 136, 0.35);
-    }
-
-    body.red .masthead .est {
-      color: rgba(255, 136, 136, 0.75);
-    }
-
-    body.red .masthead .tagline {
-      color: rgba(255, 220, 220, 0.6);
-    }
-
-    body.red .masthead-rule {
-      color: rgba(255, 255, 255, 0.8);
-    }
-
-    body.red .masthead-rule::before,
-    body.red .masthead-rule::after {
-      background: linear-gradient(90deg, transparent, rgba(220, 40, 40, 0.5), transparent);
     }
 
     body.red .page-nav button {
@@ -1169,21 +994,6 @@
       accent-color: #b01010;
     }
 
-    /* Red Light masthead */
-    body.red-light .masthead {
-      background: linear-gradient(160deg, #8f1f1c 0%, #a82724 50%, #8f1f1c 100%);
-      border-bottom: 1px solid rgba(80, 0, 0, 0.35);
-    }
-
-    body.red-light .masthead::before {
-      background: radial-gradient(ellipse at 50% 0%, rgba(255, 80, 80, 0.15) 0%, transparent 65%);
-    }
-
-    body.red-light .masthead::after {
-      background: linear-gradient(90deg, transparent, #cc4444, #ff7777, #cc4444, transparent);
-      opacity: 0.5;
-    }
-
     body.red-light .wordmark-dank {
       color: #ffffff;
     }
@@ -1196,23 +1006,6 @@
       color: #ffffff;
       background: rgba(255, 255, 255, 0.2);
       border-color: rgba(255, 255, 255, 0.5);
-    }
-
-    body.red-light .masthead .est {
-      color: rgba(255, 255, 255, 0.85);
-    }
-
-    body.red-light .masthead .tagline {
-      color: rgba(255, 255, 255, 0.88);
-    }
-
-    body.red-light .masthead-rule {
-      color: rgba(255, 255, 255, 0.75);
-    }
-
-    body.red-light .masthead-rule::before,
-    body.red-light .masthead-rule::after {
-      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
     }
 
     body.red-light .modal-header {
@@ -1302,23 +1095,6 @@
       border-color: rgba(255, 224, 64, 0.4);
     }
 
-    body.yellow .masthead .est {
-      color: rgba(255, 224, 64, 0.8);
-    }
-
-    body.yellow .masthead .tagline {
-      color: rgba(255, 240, 180, 0.7);
-    }
-
-    body.yellow .masthead-rule {
-      color: rgba(255, 255, 255, 0.8);
-    }
-
-    body.yellow .masthead-rule::before,
-    body.yellow .masthead-rule::after {
-      background: linear-gradient(90deg, transparent, rgba(240, 200, 0, 0.5), transparent);
-    }
-
     /* Yellow dark: accent (#f5d000) on dark bg is fine; no override needed for period-nav (uses var(--accent)) */
     body.yellow .chart-size-bar .size-btns button.active {
       color: #1a1a00;
@@ -1365,21 +1141,6 @@
       color: #1a1a00;
     }
 
-    /* Yellow Light masthead */
-    body.yellow-light .masthead {
-      background: linear-gradient(160deg, #7d660d 0%, #98800f 50%, #7d660d 100%);
-      border-bottom: 1px solid rgba(80, 60, 0, 0.35);
-    }
-
-    body.yellow-light .masthead::before {
-      background: radial-gradient(ellipse at 50% 0%, rgba(255, 220, 0, 0.2) 0%, transparent 65%);
-    }
-
-    body.yellow-light .masthead::after {
-      background: linear-gradient(90deg, transparent, #c8a800, #ffe880, #c8a800, transparent);
-      opacity: 0.5;
-    }
-
     body.yellow-light .wordmark-dank {
       color: #ffffff;
     }
@@ -1392,23 +1153,6 @@
       color: #ffffff;
       background: rgba(255, 255, 255, 0.2);
       border-color: rgba(255, 255, 255, 0.5);
-    }
-
-    body.yellow-light .masthead .est {
-      color: rgba(255, 255, 255, 0.85);
-    }
-
-    body.yellow-light .masthead .tagline {
-      color: rgba(255, 255, 255, 0.88);
-    }
-
-    body.yellow-light .masthead-rule {
-      color: rgba(255, 255, 255, 0.8);
-    }
-
-    body.yellow-light .masthead-rule::before,
-    body.yellow-light .masthead-rule::after {
-      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
     }
 
     body.yellow-light .picker-input {
@@ -1435,38 +1179,6 @@
       border-color: rgba(255, 128, 200, 0.4);
     }
 
-    body.pink .masthead .est {
-      color: rgba(255, 128, 200, 0.8);
-    }
-
-    body.pink .masthead .tagline {
-      color: rgba(255, 210, 240, 0.7);
-    }
-
-    body.pink .masthead-rule {
-      color: rgba(255, 255, 255, 0.8);
-    }
-
-    body.pink .masthead-rule::before,
-    body.pink .masthead-rule::after {
-      background: linear-gradient(90deg, transparent, rgba(220, 60, 160, 0.5), transparent);
-    }
-
-    /* Pink Light masthead */
-    body.pink-light .masthead {
-      background: linear-gradient(160deg, #85104f 0%, #a51a66 50%, #85104f 100%);
-      border-bottom: 1px solid rgba(80, 0, 50, 0.35);
-    }
-
-    body.pink-light .masthead::before {
-      background: radial-gradient(ellipse at 50% 0%, rgba(255, 80, 180, 0.18) 0%, transparent 65%);
-    }
-
-    body.pink-light .masthead::after {
-      background: linear-gradient(90deg, transparent, #e060a0, #ffaadd, #e060a0, transparent);
-      opacity: 0.5;
-    }
-
     body.pink-light .wordmark-dank {
       color: #ffffff;
     }
@@ -1479,23 +1191,6 @@
       color: #ffffff;
       background: rgba(255, 255, 255, 0.2);
       border-color: rgba(255, 255, 255, 0.5);
-    }
-
-    body.pink-light .masthead .est {
-      color: rgba(255, 255, 255, 0.85);
-    }
-
-    body.pink-light .masthead .tagline {
-      color: rgba(255, 255, 255, 0.88);
-    }
-
-    body.pink-light .masthead-rule {
-      color: rgba(255, 255, 255, 0.8);
-    }
-
-    body.pink-light .masthead-rule::before,
-    body.pink-light .masthead-rule::after {
-      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
     }
 
     body.pink-light .picker-input {
@@ -1560,47 +1255,6 @@
       line-height: 1.4;
     }
 
-    .masthead .est {
-      display: block;
-      font-family: var(--font-mono);
-      font-size: 0.6rem;
-      letter-spacing: 0.35em;
-      color: rgba(114, 187, 255, 0.75);
-      margin-bottom: var(--sp-4);
-      text-transform: uppercase;
-    }
-
-    .masthead .tagline {
-      font-family: var(--font-sans);
-      font-weight: 400;
-      font-size: 0.84rem;
-      color: rgba(226, 238, 255, 0.65);
-      margin-top: var(--sp-2);
-      letter-spacing: 0.04em;
-    }
-
-    .masthead-rule {
-      display: flex;
-      align-items: center;
-      gap: var(--sp-3);
-      justify-content: center;
-      margin-top: 1.25rem;
-      color: rgba(255, 255, 255, 0.8);
-      font-size: 10px;
-      letter-spacing: 0.22em;
-      font-family: var(--font-mono);
-      text-transform: uppercase;
-    }
-
-    .masthead-rule::before,
-    .masthead-rule::after {
-      content: '';
-      flex: 1;
-      height: 1px;
-      background: linear-gradient(90deg, transparent, rgba(59, 158, 255, 0.45), transparent);
-      max-width: 100px;
-    }
-
     /* UPLOAD SECTION */
     .upload-zone {
       max-width: 800px;
@@ -1660,6 +1314,322 @@
       padding: 0 var(--sp-4) var(--sp-9);
     }
 
+    /* TOP BAR (redesign phase 5, REDESIGN-PLAN.md 4.1)
+       Replaces the masthead. One slim row that stays at the top as you scroll:
+       small wordmark, the main tabs (#topbarNav, step 2), then the icon
+       buttons. It sits on the page background with a hairline under it, so it
+       uses the page tokens in every theme and needs no per-theme rules. All
+       selectors are on #topbar so they beat the older .ctrl-group-btn rules
+       (landing screen, per-theme tints) without touching them. No
+       backdrop-filter: a blur under a sticky bar repaints on every scroll. */
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: var(--z-nav);
+      background: var(--bg);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .topbar-inner {
+      max-width: 980px;
+      height: var(--topbar-h);
+      margin: 0 auto;
+      padding: 0 var(--sp-4);
+      display: flex;
+      align-items: center;
+      gap: var(--sp-3);
+    }
+
+    .topbar-brand {
+      display: inline-flex;
+      align-items: center;
+      flex-shrink: 0;
+      text-decoration: none;
+      border-radius: var(--r-xs);
+    }
+
+    #topbar .wordmark-dank,
+    #topbar .wordmark-station {
+      font-size: 1.25rem;
+      letter-spacing: -0.02em;
+      color: var(--text);
+    }
+
+    #topbar .wordmark-station {
+      color: var(--text2);
+    }
+
+    #topbar .wordmark-fm {
+      font-size: var(--fs-xs);
+      align-self: center;
+      margin: 0 0 0 4px;
+      padding: 0 5px;
+      color: var(--accent);
+      background: color-mix(in srgb, var(--accent) 14%, transparent);
+      border-color: color-mix(in srgb, var(--accent) 35%, transparent);
+    }
+
+    .topbar-nav {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .topbar-actions {
+      display: flex;
+      align-items: center;
+      gap: var(--sp-1);
+      flex-shrink: 0;
+    }
+
+    /* One button shape for everything in the bar: 36px, quiet until hovered.
+       .tb-btn labels stay in the DOM (screen readers, translations) but are
+       sized to 0 so only the icon shows; the title gives the tooltip. */
+    #topbar .tb-btn,
+    #topbar .ctrl-group-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      width: auto;
+      height: 36px;
+      min-width: 36px;
+      padding: 0 var(--sp-2);
+      border: 1px solid transparent;
+      border-radius: var(--r-sm);
+      background: transparent;
+      color: var(--text2);
+      font-family: var(--font-sans);
+      font-size: var(--fs-sm);
+      font-weight: 500;
+      cursor: pointer;
+      transition: background 0.15s, color 0.15s, border-color 0.15s;
+    }
+
+    #topbar .tb-btn {
+      font-size: 0;
+    }
+
+    #topbar .tb-btn:hover,
+    #topbar .ctrl-group-btn:hover,
+    #topbar .ctrl-group.open .ctrl-group-btn {
+      background: var(--hover);
+      border-color: transparent;
+      color: var(--text);
+      font-weight: 500;
+    }
+
+    #topbar .tb-btn:disabled {
+      opacity: 0.55;
+      cursor: default;
+      background: transparent;
+    }
+
+    /* Icons inside the zero-size labels need their own size */
+    #topbar .tb-btn .btn-icon {
+      font-size: 1.05rem;
+    }
+
+    #topbar .btn-ico-sync,
+    #topbar .btn-ico-gear {
+      width: 1rem;
+      height: 1rem;
+      vertical-align: middle;
+    }
+
+    /* Settings still pulses gold for a first-time visitor (configure-attention) */
+    #topbar #configureSourceBtn.configure-attention {
+      border-color: var(--gold1);
+      color: var(--gold1);
+    }
+
+    #topbar .ctrl-theme-dot {
+      width: 14px;
+      height: 14px;
+      box-shadow: 0 0 0 2px var(--bg), 0 0 0 3px var(--border2);
+    }
+
+    #topbar .tb-globe {
+      width: 16px;
+      height: 16px;
+      flex-shrink: 0;
+    }
+
+    #topbar .tb-lang-code {
+      font-size: var(--fs-xs);
+      font-weight: 600;
+    }
+
+    /* "What's new" keeps its words on wide screens, a count on phones */
+    #topbar .cl-new-btn {
+      color: var(--accent);
+    }
+
+    /* Drop-down panels open below their button, right-aligned to it */
+    #topbar .ctrl-group-panel {
+      top: calc(100% + 6px);
+      right: 0;
+      left: auto;
+      transform: none;
+      background: var(--bg2);
+      border-color: var(--border);
+      box-shadow: var(--shadow-2);
+    }
+
+    #topbar #themeCtrlGroup .ctrl-group-panel .theme-btn.active {
+      border-color: var(--text);
+    }
+
+    #topbar #themeCtrlGroup .ctrl-group-panel .theme-btn:hover {
+      border-color: var(--text2);
+    }
+
+    #topbar .lang-btn {
+      color: var(--text2);
+      border-color: var(--border);
+      background: transparent;
+      padding: var(--sp-1) var(--sp-2);
+    }
+
+    #topbar .lang-btn:hover {
+      color: var(--text);
+      border-color: var(--border2);
+    }
+
+    #topbar .lang-btn.active {
+      color: var(--text);
+      border-color: var(--border2);
+      background: var(--raised);
+    }
+
+    /* Account: Sign In (signed out) or the profile picture (signed in) */
+    #topbar .tb-signin-btn {
+      height: 32px;
+      padding: 0 var(--sp-3);
+      margin-left: var(--sp-1);
+      border: 1px solid var(--border2);
+      border-radius: 999px;
+      background: transparent;
+      color: var(--text);
+      font-family: var(--font-sans);
+      font-size: var(--fs-sm);
+      font-weight: 500;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    #topbar .tb-signin-btn:hover {
+      background: var(--hover);
+    }
+
+    #topbar .tb-acct-btn {
+      width: 36px;
+      padding: 0;
+      border-radius: 50%;
+      margin-left: var(--sp-1);
+    }
+
+    #topbar .tb-acct-btn .dc-user-avatar {
+      width: 28px;
+      height: 28px;
+    }
+
+    #topbar .tb-acct-initial {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--accent);
+      color: var(--on-accent);
+      font-size: var(--fs-sm);
+      font-weight: 700;
+    }
+
+    #topbar .tb-acct-initial:empty {
+      display: none;
+    }
+
+    #topbar .tb-acct-panel {
+      flex-direction: column;
+      align-items: stretch;
+      flex-wrap: nowrap;
+      gap: var(--sp-1);
+      min-width: 180px;
+      padding: var(--sp-2);
+    }
+
+    #topbar .tb-acct-panel .dc-user-name {
+      padding: var(--sp-1) var(--sp-2);
+      color: var(--text3);
+      font-size: var(--fs-xs);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      max-width: 240px;
+    }
+
+    #topbar .tb-acct-signout {
+      text-align: left;
+      padding: var(--sp-2);
+      border: 0;
+      border-radius: var(--r-xs);
+      background: transparent;
+      color: var(--text);
+      font-family: var(--font-sans);
+      font-size: var(--fs-sm);
+      cursor: pointer;
+    }
+
+    #topbar .tb-acct-signout:hover {
+      background: var(--hover);
+    }
+
+    /* Phones: tighter gaps and a smaller wordmark; on the narrowest screens
+       the .fm badge and the language code go so the row still fits. */
+    @media (max-width: 700px) {
+      .topbar-inner {
+        padding: 0 var(--sp-3);
+        gap: var(--sp-2);
+      }
+
+      .topbar-actions {
+        gap: 2px;
+      }
+
+      #topbar .wordmark-dank,
+      #topbar .wordmark-station {
+        font-size: 1.05rem;
+      }
+
+      #topbar .tb-btn,
+      #topbar .ctrl-group-btn {
+        min-width: 34px;
+        height: 34px;
+        padding: 0 6px;
+        border-radius: var(--r-sm);
+        border: 1px solid transparent;
+        background: transparent;
+      }
+
+      #topbar .tb-acct-btn {
+        width: 34px;
+        border-radius: 50%;
+        padding: 0;
+      }
+
+      #topbar .tb-signin-btn {
+        padding: 0 var(--sp-2);
+      }
+    }
+
+    @media (max-width: 400px) {
+      #topbar .wordmark-fm,
+      #topbar .tb-lang-code {
+        display: none;
+      }
+    }
+
     /* SYNC BAR */
     .sync-bar {
       display: flex;
@@ -1673,25 +1643,6 @@
       border-bottom: 1px solid var(--border);
       margin-top: var(--sp-5);
       border-radius: 8px 8px 0 0;
-    }
-
-    .sync-bar-right {
-      display: flex;
-      align-items: center;
-      gap: var(--sp-2);
-    }
-
-    .sync-bar-actions {
-      display: flex;
-      align-items: center;
-      gap: 0.4rem;
-    }
-
-    .sync-bar-account {
-      display: flex;
-      align-items: center;
-      padding-left: 0.6rem;
-      border-left: 1px solid var(--border);
     }
 
     .sync-bar #syncStatus {
@@ -1786,7 +1737,7 @@
 
     /* Text-glyph icons (Add Play's ✚). The two drawn icons below opt out of
        this sizing with their own fixed box. */
-    .sync-bar-actions .btn-icon {
+    #topbar .btn-icon {
       font-size: 1.25em;
       line-height: 1;
       vertical-align: middle;
@@ -1798,8 +1749,8 @@
        move. Both use currentColor, which means they inherit each button's
        existing hover and per-theme colour for free — no theme token needed,
        and none of the light-masthead collisions that the hero strip has. */
-    .sync-bar-actions .btn-ico-sync,
-    .sync-bar-actions .btn-ico-gear {
+    #topbar .btn-ico-sync,
+    #topbar .btn-ico-gear {
       position: relative;
       display: inline-block;
       width: 0.85rem;
@@ -1808,8 +1759,8 @@
       vertical-align: -0.17em; /* optical centre against the mono label */
     }
 
-    .sync-bar-actions .btn-ico-sync i,
-    .sync-bar-actions .btn-ico-gear i {
+    #topbar .btn-ico-sync i,
+    #topbar .btn-ico-gear i {
       display: block;
       position: absolute;
     }
@@ -1819,14 +1770,14 @@
        The head is placed parametrically — pushed out to the ring radius at
        45deg, then spun 90deg more so it points along the tangent rather than
        straight out from the centre. */
-    .sync-bar-actions .btn-ico-sync .bi-ring {
+    #topbar .btn-ico-sync .bi-ring {
       inset: 0;
       border: 1.6px solid currentColor;
       border-radius: 50%;
       border-top-color: transparent;
     }
 
-    .sync-bar-actions .btn-ico-sync .bi-head {
+    #topbar .btn-ico-sync .bi-head {
       top: 50%;
       left: 50%;
       width: 0;
@@ -1852,7 +1803,7 @@
 
     /* Gear: one polygon of 8 teeth with the hub punched out by a mask. Drawn
        as a solid body rather than a ring so it stays legible at 13px. */
-    .sync-bar-actions .btn-ico-gear i {
+    #topbar .btn-ico-gear i {
       inset: 0;
       background: currentColor;
       clip-path: polygon(39.1% 15.7%, 41.0% 0.8%, 59.0% 0.8%, 60.9% 15.7%, 66.6% 18.1%, 78.4% 8.9%, 91.1% 21.6%, 81.9% 33.4%, 84.3% 39.1%, 99.2% 41.0%, 99.2% 59.0%, 84.3% 60.9%, 81.9% 66.6%, 91.1% 78.4%, 78.4% 91.1%, 66.6% 81.9%, 60.9% 84.3%, 59.0% 99.2%, 41.0% 99.2%, 39.1% 84.3%, 33.4% 81.9%, 21.6% 91.1%, 8.9% 78.4%, 18.1% 66.6%, 15.7% 60.9%, 0.8% 59.0%, 0.8% 41.0%, 15.7% 39.1%, 18.1% 33.4%, 8.9% 21.6%, 21.6% 8.9%, 33.4% 18.1%);
@@ -4537,7 +4488,6 @@
       font-size: 0.7rem;
     }
 
-
     .new-entries-table .song-title {
       font-size: var(--fs-sm);
     }
@@ -4972,7 +4922,6 @@
       flex-wrap: wrap;
     }
 
-
     .section-collapse-btn {
       flex-shrink: 0;
       width: 18px;
@@ -5130,7 +5079,6 @@
     .sub-chart-toggled-off {
       display: none !important;
     }
-
 
     .section-body {
       display: block;
@@ -11323,54 +11271,6 @@
 
     /* CTRL GROUP — mobile: compact circle buttons */
     @media (max-width: 700px) {
-      /* Push masthead content below the stacked control buttons (~106px tall + 8px offset) */
-      .masthead {
-        padding-top: 8rem;
-      }
-
-      .theme-toggle {
-        position: fixed;
-        top: 0.5rem;
-        right: 0.5rem;
-        /* Higher than .sticky-nav-bar's z-index:50 (below) so this stack
-           always renders on top of the pinned date-nav bar instead of being
-           visually clipped by it once both occupy the top of the viewport
-           at the same time (i.e. once the user scrolls past the masthead). */
-        z-index: 60;
-        /* Drives the idle-hidden fade below; the JS in app.js
-           (MASTHEAD CONTROLS AUTO-HIDE) toggles the .idle-hidden class. */
-        transition: opacity 0.3s ease, transform 0.3s ease;
-      }
-
-      /* Applied by app.js after ~3s with no scroll activity on mobile, and
-         removed the instant the user scrolls again (or opens one of the
-         theme/day/language panels) — mirrors the #backToTop button's
-         show-on-scroll behavior so these controls don't permanently cover
-         content while the user is just reading. pointer-events:none while
-         hidden so a finger resting near the corner can't accidentally tap
-         a fully-transparent button. */
-      .theme-toggle.idle-hidden {
-        opacity: 0;
-        transform: translateY(-0.5rem);
-        pointer-events: none;
-      }
-
-      /* Once the date nav pins to the top (#stickyNavBar gets .is-stuck via
-         the IntersectionObserver in app.js), it shares the same screen real
-         estate as the fixed theme/day/language stack above — without this,
-         "Next" and the date-range dropdown render directly underneath the
-         circular buttons. Reserve room on the right so they never overlap.
-         Padding is added symmetrically (left AND right, not just the right)
-         because .date-nav is a 3-item `justify-content: space-between` flex
-         row (Prev | label | Next): shrinking only the right side pulls the
-         middle label off-center to the left, since space-between splits the
-         freed-up space into two equal gaps either side of it. Matching
-         padding on both sides keeps those two gaps equal, so the label
-         stays visually centered while both edges get equal breathing room. */
-      .sticky-nav-bar.is-stuck .date-nav {
-        padding-left: 3.25rem;
-        padding-right: 3.25rem;
-      }
 
       .ctrl-group-btn {
         width: 30px;
@@ -11615,7 +11515,6 @@
       .thumb-th {
         width: 46px !important;
       }
-
 
       .song-title {
         font-size: var(--fs-xs);
@@ -13179,7 +13078,6 @@
       }
     }
 
-
     /* New Charts record sub-tabs. Two exclusive rows nested *inside* a section
        that was reached by the pills above, so they have to read as a level
        below those: same mono family, but the type row is a filled segmented
@@ -14369,9 +14267,10 @@
          moves and its thead does not, so a thead-only background would be left
          behind and the rows would show straight through the labels.
          z-index clears the ✎ picker badges in the cells, which are absolute at
-         z-index 2 and would otherwise paint over the stuck header. */
+         z-index 2 and would otherwise paint over the stuck header.
+         top clears the sticky top bar (phase 5). */
       position: sticky;
-      top: 0;
+      top: var(--topbar-h);
       z-index: 3;
       background: var(--bg3);
     }
@@ -14641,7 +14540,6 @@
       color: var(--gold1);
       border-color: rgba(240, 170, 48, 0.3);
     }
-
 
     .rec-name {
       font-weight: 600;
@@ -17197,7 +17095,6 @@
       .cert-title { font-size: var(--fs-sm); }
     }
 
-
     /* ── Cert wall controls ─────────────────────────────────────── */
     .cwall-controls {
       display: flex;
@@ -19198,53 +19095,6 @@ body.purple .landing-card-config input:focus {
   line-height: 1.5;
 }
 
-/* Sync bar sign-in button */
-.sync-signin-btn {
-  background: none;
-  border: 1px solid var(--border);
-  color: var(--text3);
-  font-family: var(--font-sans);
-  font-size: var(--fs-xs);
-  padding: 0.3rem 0.6rem;
-  border-radius: 5px;
-  cursor: pointer;
-  transition: background 0.15s, border-color 0.15s, color 0.15s;
-}
-.sync-signin-btn:hover {
-  background: var(--surface);
-  border-color: var(--border2);
-  color: var(--text);
-}
-
-/* Sync bar user badge */
-.sync-user-badge {
-  display: flex;
-  align-items: center;
-  gap: 0.35rem;
-  font-size: var(--fs-xs);
-  color: var(--text3);
-}
-.sync-user-badge .dc-user-avatar {
-  width: 20px;
-  height: 20px;
-}
-.sync-user-badge .dc-user-name {
-  max-width: 120px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-.sync-signout-btn {
-  background: none;
-  border: none;
-  color: var(--text3);
-  font-size: var(--fs-xs);
-  cursor: pointer;
-  padding: 0 0.2rem;
-  line-height: 1;
-}
-.sync-signout-btn:hover { color: var(--text); }
-
 /* ── YouTube Mini Player ──────────────────────────────────── */
 @keyframes yt-spin        { to { transform: translate(-50%,-50%) rotate(360deg); } }
 @keyframes yt-btn-pulse   { 0%,100% { opacity: 1; } 50% { opacity: 0.65; } }
@@ -20598,7 +20448,7 @@ body.albums-hide-pl-btns  #newAlbumsSection  .dc-pl-add-btn { display: none; }
 
 .sticky-nav-bar {
   position: sticky;
-  top: 0;
+  top: var(--topbar-h);   /* pins just under the sticky top bar (phase 5) */
   z-index: 50;
   background: var(--bg);
   /* Gap between the period nav card and the date card — padding rather than
@@ -20618,36 +20468,36 @@ body.albums-hide-pl-btns  #newAlbumsSection  .dc-pl-add-btn { display: none; }
   border-radius: var(--r-md);
 }
 
-/* ── HERO STATS (masthead data strip) ── */
+/* ── HERO STATS (all-time summary) ──
+   Used to be the masthead's data strip on every tab. Since redesign phase 5
+   it is a card on the All-Time tab only (it describes all time, not this
+   week), sitting on the normal page background, so it uses the page tokens.
+   The per-theme overrides it needed on the coloured mastheads are gone. */
 .hero-stats {
-  /* Identity colours for the drawn stat icons below. Indirected through these
-     variables rather than used as raw tokens because the strip sits on the
-     masthead's own themed background, not on a neutral card like the landing
-     icons do — so on the strongly coloured mastheads a green calendar on olive
-     disappears. The per-theme blocks further down retarget these the same way
-     they already retarget --text/--bg2. The crown is deliberately absent: it
-     is literal gold in every theme, like the near-black vinyl disc. */
+  /* Identity colours for the drawn stat icons below. Kept as variables so a
+     theme can still retarget one; the crown is deliberately absent: it is
+     literal gold in every theme, like the near-black vinyl disc. */
   --icon-vinyl: var(--accent);
   --icon-cal: var(--green);
   --icon-bars: var(--teal);
-  /* Hover colour for the two clickable stats (Days Listened, Top Artist).
-     Same indirection and same reason as the icon colours above: --accent is
-     tuned for the page body, and on the dark saturated mastheads it is
-     near-black, which turns the label unreadable exactly when you point at it. */
+  /* Hover colour for the two clickable stats (Days Listened, Top Artist). */
   --hero-link: var(--accent, #5b8dee);
   display: flex;
   align-items: center;
   justify-content: center;
   flex-wrap: wrap;
   gap: var(--sp-2) var(--sp-7);
-  margin-top: 1.25rem;
+  margin: 0 auto var(--sp-6);
   padding: var(--sp-4) var(--sp-7);
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: var(--surface);
+  border: 1px solid var(--border);
   border-radius: var(--r-md);
-  max-width: 900px;
-  margin-left: auto;
-  margin-right: auto;
+}
+
+/* All-Time only. JS sets style.display='' when it renders, so this has to
+   win over an empty inline value; !important is the narrow way to do that. */
+body:not([data-view="alltime"]) #heroStats {
+  display: none !important;
 }
 
 .hero-stat {
@@ -21147,6 +20997,13 @@ body.yellow-light .hero-icon-crown {
 .hero-stat--streak-1 .hero-val {
   color: #f0c060;
 }
+/* The flame ramp was tuned for the old dark masthead. Since phase 5 the
+   strip sits on the page, and on the five light themes the yellows and
+   oranges wash out. One filter darkens the whole ramp (gradient text too)
+   instead of a second set of six colours. */
+body[class*="-light"] .hero-stats [class*="hero-stat--streak-"] .hero-val {
+  filter: brightness(0.72) saturate(1.25);
+}
 .hero-stat--streak-2 .hero-val {
   color: #ff8c00;
   text-shadow: 0 0 14px rgba(255, 140, 0, 0.45);
@@ -21251,63 +21108,6 @@ body.yellow-light .hero-icon-crown {
   opacity: 1;
 }
 
-/* Light themes with pale mastheads (navy/purple) — use dark text for contrast */
-body.navy-light .hero-stats {
-  --text: rgba(10, 40, 80, 0.95);
-  --text2: rgba(10, 40, 80, 0.85);
-  --text3: rgba(10, 40, 80, 0.6);
-  --border2: rgba(15, 53, 96, 0.35);
-  --bg2: rgba(255, 255, 255, 0.85);
-  background: rgba(255, 255, 255, 0.35);
-  border-color: rgba(15, 53, 96, 0.25);
-}
-
-body.purple-light .hero-stats {
-  --text: rgba(36, 28, 80, 0.95);
-  --text2: rgba(36, 28, 80, 0.85);
-  --text3: rgba(36, 28, 80, 0.6);
-  --border2: rgba(68, 48, 192, 0.35);
-  --bg2: rgba(255, 255, 255, 0.85);
-  background: rgba(255, 255, 255, 0.35);
-  border-color: rgba(68, 48, 192, 0.22);
-}
-
-/* Light themes with dark mastheads (red/yellow/pink) — white text */
-body.red-light .hero-stats,
-body.yellow-light .hero-stats,
-body.pink-light .hero-stats {
-  --text: rgba(255, 255, 255, 0.95);
-  --text2: rgba(255, 255, 255, 0.85);
-  --text3: rgba(255, 255, 255, 0.65);
-  --border2: rgba(255, 255, 255, 0.4);
-  --bg2: rgba(0, 0, 0, 0.75);
-  background: rgba(0, 0, 0, 0.15);
-  border-color: rgba(255, 255, 255, 0.18);
-  /* These three themes pair a light page with a dark, heavily saturated
-     masthead, so their accent tokens (tuned for the light page surface) come
-     out near-black here — and the rose mic lands on magenta in pink-light,
-     the green calendar on olive in yellow-light. High-luminance stand-ins
-     separate by brightness instead of hue, which holds on all three grounds. */
-  --icon-vinyl: #9ecdff;
-  --icon-cal: #7ceab8;
-  --icon-bars: #8ae2f7;
-}
-
-/* Hover colour for the two clickable stats. Must lighten against these dark
-   mastheads, never darken — but tinted to each theme's own hue rather than one
-   shared blue, which reads as a foreign link colour on a red or pink ground.
-   Values chosen against the measured strip background: .hero-val is 22px bold,
-   i.e. WCAG "large text", so the 3:1 AA threshold applies and all three clear
-   it. Each also stays far enough from the resting near-white to register as a
-   state change on its own, before the underline is taken into account. */
-body.red-light .hero-stats    { --hero-link: #ff9d9d; }  /* 4.51:1 on strip */
-body.pink-light .hero-stats   { --hero-link: #ff9ecb; }  /* 4.75:1 on strip */
-/* Yellow is the tight one: the olive masthead is far lighter than the other two
-   and shares the hue, so a light yellow can't be both high-contrast against the
-   ground and far from white. This sits above the large-text threshold and
-   leans on the hue shift plus the underline for the rest. */
-body.yellow-light .hero-stats { --hero-link: #ffe066; }  /* 3.94:1 on strip */
-
 /* Mobile: 2×2 grid */
 @media (max-width: 560px) {
   .hero-stats {
@@ -21321,7 +21121,7 @@ body.yellow-light .hero-stats { --hero-link: #ffe066; }  /* 3.94:1 on strip */
   }
   .hero-stat {
     padding: var(--sp-2) var(--sp-1);
-    background: rgba(255, 255, 255, 0.04);
+    background: var(--raised);
     border-radius: 8px;
   }
   .hero-stat:last-child {
@@ -21621,7 +21421,6 @@ body.yellow-light .hero-stats { --hero-link: #ffe066; }  /* 3.94:1 on strip */
   white-space: nowrap;
   margin-top: 2px;
 }
-
 
 /* ── Nav hint (keyboard shortcut reminder) ──
    Plain quiet caption, no pill/box chrome. Lives inside the date card
@@ -29040,10 +28839,6 @@ body.pink-light .awards-reallife-badge.nom { color: #4338ca; border-color: #6366
 
 .st-card-btn:hover { background: var(--sc); color: #fff; border-color: var(--sc); transform: translateY(-1px); }
 
-
-
-
-
 /* ── Scroll Reveal ───────────────────────────────────────────── */
 .st-reveal {
   opacity: 0;
@@ -31297,7 +31092,7 @@ body.red-light .modal-rank-card--year .mrc-rank {
     /* ── 21 · Table of contents (sticky jump nav) ─────────── */
     .cg-toc-row {
       position: sticky;
-      top: 0;
+      top: var(--topbar-h);   /* under the sticky top bar (phase 5) */
       z-index: var(--z-nav);
       display: flex;
       gap: 0.4rem;
@@ -31327,7 +31122,7 @@ body.red-light .modal-rank-card--year .mrc-rank {
     .cg-toc-pill:hover { border-color: var(--accent); color: var(--accent); }
 
     /* Anchor targets: keep section headers clear of the sticky TOC row when jumped to */
-    .cg-view [id^="cg-"] { scroll-margin-top: 3.75rem; }
+    .cg-view [id^="cg-"] { scroll-margin-top: calc(3.75rem + var(--topbar-h)); }
 
     /* ── 22 · Collapsible reference sections ──────────────── */
     .cg-section-toggle {
@@ -31740,7 +31535,7 @@ body.red-light .modal-rank-card--year .mrc-rank {
     .cg-toc-num { font-family: var(--font-mono);
       font-variant-numeric: tabular-nums; font-size: var(--fs-xs); opacity: 0.6; }
     .cg-toc-pill.active { border-color: var(--accent); color: var(--accent); background: color-mix(in srgb, var(--accent) 10%, var(--bg2)); }
-    .cg-chapter-head { scroll-margin-top: 3.75rem; }
+    .cg-chapter-head { scroll-margin-top: calc(3.75rem + var(--topbar-h)); }
 
     /* ── 01 · Numbered setup path ─────────────────────────── */
     .cg-steps { display: flex; flex-direction: column; gap: 0.45rem; }
@@ -31951,7 +31746,6 @@ body.red-light .modal-rank-card--year .mrc-rank {
       .cg-welcome-actions { width: 100%; }
       .cg-welcome-actions button { flex: 1 1 auto; }
     }
-
 
     /* ═══════════════════════════════════════════════════════════════
        KEBAB "⋮" CHART OPTIONS MENU
@@ -32354,7 +32148,6 @@ body.red-light .modal-rank-card--year .mrc-rank {
         display: none;
       }
     }
-
 
     /* ═══════════════════════════════════════════════════════════════
        GLOBAL REDUCED-MOTION GUARD (2026 redesign)
@@ -34561,7 +34354,6 @@ body.red-light .modal-rank-card--year .mrc-rank {
       .rt-dist-plot { height: 104px; }
       .rt-dist-count { font-size: var(--fs-xs); }
     }
-
 
 /* ===========================================================================
    CHANGELOG OVERLAY

@@ -900,7 +900,7 @@ const TRANSLATIONS = {
     set_credit_note: "In My Grammys, a nomination or win also counts for everyone featured or collaborating on it, not just the lead artist.",
     set_display_name: "Display name",
     set_display_name_ph: "Your name",
-    set_display_name_hint: "Appears in the masthead, as in \"Your Name's Personal Music Charts\".",
+    set_display_name_hint: "Appears in the page footer and the browser tab, as in \"Your Name's Personal Music Charts\".",
     set_timezone: "Time zone",
     set_timezone_hint: "Chart weeks, months and years start at midnight here.",
     set_backups: "Backups",
@@ -1855,6 +1855,11 @@ const TRANSLATIONS = {
     tooltip_theme_pink_light: 'Pink Light',
     ctrl_btn_theme: 'THEME',
     ctrl_btn_language: 'LANGUAGE',
+    // Top bar (phase 5): icon-button tooltips and the account menu
+    tooltip_sync_now: 'Sync now',
+    tb_sign_in: 'Sign in',
+    tb_account: 'Account',
+    tb_sign_out: 'Sign out',
     tooltip_jump_to_week: 'Jump to week',
     tooltip_jump_to_month: 'Jump to month',
     tooltip_jump_to_year: 'Jump to year',
@@ -3153,7 +3158,7 @@ const TRANSLATIONS = {
     set_credit_note: "En Mis Grammys, una nominación o un premio también cuenta para todos los artistas invitados o colaboradores, no solo para el artista principal.",
     set_display_name: "Nombre visible",
     set_display_name_ph: "Tu nombre",
-    set_display_name_hint: "Aparece en la cabecera, como en “Rankings Personales de Música de Tu Nombre”.",
+    set_display_name_hint: "Aparece en el pie de página y en la pestaña del navegador, como en “Rankings Personales de Música de Tu Nombre”.",
     set_timezone: "Zona horaria",
     set_timezone_hint: "Las semanas, los meses y los años de los rankings empiezan a medianoche en esta zona.",
     set_backups: "Copias de seguridad",
@@ -4018,6 +4023,11 @@ const TRANSLATIONS = {
     tooltip_theme_pink_light: 'Rosa Claro',
     ctrl_btn_theme: 'TEMA',
     ctrl_btn_language: 'IDIOMA',
+    // Top bar (phase 5): icon-button tooltips and the account menu
+    tooltip_sync_now: 'Sincronizar ahora',
+    tb_sign_in: 'Iniciar sesión',
+    tb_account: 'Cuenta',
+    tb_sign_out: 'Cerrar sesión',
     tooltip_jump_to_week: 'Saltar a semana',
     tooltip_jump_to_month: 'Saltar a mes',
     tooltip_jump_to_year: 'Saltar a año',
@@ -5311,7 +5321,7 @@ const TRANSLATIONS = {
     set_credit_note: "Em Meus Grammys, uma indicação ou vitória também conta para todos os convidados ou colaboradores, não só para o artista principal.",
     set_display_name: "Nome de exibição",
     set_display_name_ph: "Seu nome",
-    set_display_name_hint: "Aparece no cabeçalho, como em “Paradas Musicais Pessoais de Seu Nome”.",
+    set_display_name_hint: "Aparece no rodapé da página e na aba do navegador, como em “Paradas Musicais Pessoais de Seu Nome”.",
     set_timezone: "Fuso horário",
     set_timezone_hint: "As semanas, os meses e os anos das paradas começam à meia-noite neste fuso.",
     set_backups: "Backups",
@@ -6177,6 +6187,11 @@ const TRANSLATIONS = {
     tooltip_theme_pink_light: 'Rosa Claro',
     ctrl_btn_theme: 'TEMA',
     ctrl_btn_language: 'IDIOMA',
+    // Top bar (phase 5): icon-button tooltips and the account menu
+    tooltip_sync_now: 'Sincronizar agora',
+    tb_sign_in: 'Entrar',
+    tb_account: 'Conta',
+    tb_sign_out: 'Sair',
     tooltip_jump_to_week: 'Pular para semana',
     tooltip_jump_to_month: 'Pular para mês',
     tooltip_jump_to_year: 'Pular para ano',
@@ -7470,7 +7485,7 @@ const TRANSLATIONS = {
     set_credit_note: "Nos Meus Grammys, uma nomeação ou vitória também conta para todos os convidados ou colaboradores, não só para o artista principal.",
     set_display_name: "Nome a mostrar",
     set_display_name_ph: "O teu nome",
-    set_display_name_hint: "Aparece no cabeçalho, como em “Tops Pessoais de Música do Teu Nome”.",
+    set_display_name_hint: "Aparece no rodapé da página e no separador do navegador, como em “Tops Pessoais de Música do Teu Nome”.",
     set_timezone: "Fuso horário",
     set_timezone_hint: "As semanas, os meses e os anos dos tops começam à meia-noite neste fuso.",
     set_backups: "Cópias de segurança",
@@ -8335,6 +8350,11 @@ const TRANSLATIONS = {
     tooltip_theme_pink_light: 'Rosa Claro',
     ctrl_btn_theme: 'TEMA',
     ctrl_btn_language: 'IDIOMA',
+    // Top bar (phase 5): icon-button tooltips and the account menu
+    tooltip_sync_now: 'Sincronizar agora',
+    tb_sign_in: 'Iniciar sessão',
+    tb_account: 'Conta',
+    tb_sign_out: 'Terminar sessão',
     tooltip_jump_to_week: 'Saltar para semana',
     tooltip_jump_to_month: 'Saltar para mês',
     tooltip_jump_to_year: 'Saltar para ano',
@@ -8905,6 +8925,9 @@ function setLanguage(lang) {
     const activeBtn = document.querySelector('.lang-btn[data-lang="' + lang + '"]');
     if (activeBtn) langGroupFlag.textContent = activeBtn.textContent.trim().split(' ')[0];
   }
+  // Top bar language button shows the code instead of a flag (phase 5)
+  const langGroupCode = document.getElementById('langGroupCode');
+  if (langGroupCode) langGroupCode.textContent = lang.toUpperCase();
 
   // Update static DOM strings
   applyI18n();

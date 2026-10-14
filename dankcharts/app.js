@@ -803,12 +803,6 @@ document.querySelectorAll('.ctrl-group-btn').forEach(btn => {
     const wasOpen = group.classList.contains('open');
     document.querySelectorAll('.ctrl-group.open').forEach(g => g.classList.remove('open'));
     if (!wasOpen) group.classList.add('open');
-    // Defined later in this file (MASTHEAD CONTROLS AUTO-HIDE). Guarded with
-    // typeof since this handler is wired up before that block runs, and it
-    // makes sure opening a theme/language panel keeps the whole fixed
-    // stack visible/un-faded even if the mobile idle-hide timer had already
-    // fired since the last scroll.
-    if (typeof window._showMastheadControls === 'function') window._showMastheadControls();
   });
 });
 document.addEventListener('click', () => {
@@ -26803,65 +26797,38 @@ backToTopBtn.addEventListener('click', () => {
   window.scrollTo({ top: 0, behavior: 'smooth' });
 });
 
-// ── MASTHEAD CONTROLS AUTO-HIDE (mobile) ──
-// The theme/language button stack (.theme-toggle) is position:fixed on
-// mobile (see the max-width:700px rules in style.css) so it's always on
-// screen. That's convenient, but it also means it can sit on top of content
-// — including the sticky date-nav bar — while the user is just reading and
-// not touching anything. To fix that, we mirror the #backToTop pattern:
-// the stack fades out (.idle-hidden, defined in style.css) after a few
-// seconds of no scroll activity, and snaps back to visible the moment the
-// user scrolls again. It only applies on mobile — on desktop the buttons
-// are laid out inline in the masthead, not fixed, so there's nothing to hide.
-const mastheadControls = document.querySelector('.theme-toggle');
-if (mastheadControls) {
-  // Handle for the pending "go idle" timeout, so each new scroll event can
-  // cancel and restart the countdown (clearTimeout on an already-fired
-  // timer is a harmless no-op).
-  let controlsIdleTimer = null;
+// ── TOP BAR (redesign phase 5) ──
+// The old masthead's theme/language stack was position:fixed on phones and
+// faded itself out after 3s of no scrolling (the "MASTHEAD CONTROLS AUTO-HIDE"
+// block that used to live here). Those controls now sit inline in the sticky
+// top bar (#topbar), which never covers content, so the auto-hide is gone.
 
-  // Re-checked on every call (rather than cached once) so resizing the
-  // window across the 700px breakpoint — e.g. rotating a tablet, or a
-  // desktop user shrinking the window — is picked up automatically.
-  const isMobileControls = () => window.matchMedia('(max-width: 700px)').matches;
-
-  // Arms (or re-arms) the countdown to hide the controls. Only does
-  // anything on mobile; on desktop we just make sure no stale timer is
-  // left running from a previous narrow-viewport state.
-  const scheduleControlsHide = () => {
-    clearTimeout(controlsIdleTimer);
-    if (!isMobileControls()) return;
-    controlsIdleTimer = setTimeout(function checkIdle() {
-      // If the user has one of the theme/language panels open (tapped
-      // a ctrl-group-btn to expand it), hiding the whole stack out from
-      // under them mid-tap would be jarring and could strand an open
-      // panel with no way to close it visibly. Instead, keep polling every
-      // second until they close it, then hide as normal.
-      if (mastheadControls.querySelector('.ctrl-group.open')) {
-        controlsIdleTimer = setTimeout(checkIdle, 1000);
-      } else {
-        mastheadControls.classList.add('idle-hidden');
-      }
-    }, 3000);
-  };
-
-  // Reveals the controls immediately and resets the idle countdown. Called
-  // on every scroll event, on page load, and (via the global hook below)
-  // whenever a ctrl-group panel is opened — so opening a panel keeps the
-  // stack visible even if the user hasn't scrolled recently.
-  const showControls = () => {
-    mastheadControls.classList.remove('idle-hidden');
-    scheduleControlsHide();
-  };
-
-  // Exposed globally so the CTRL GROUP TOGGLE click handler (defined much
-  // earlier in this file, before this IIFE-free block runs) can call back
-  // in to keep the stack visible when a panel is opened. Same pattern as
-  // window._refreshBackToTop used elsewhere in the codebase.
-  window._showMastheadControls = showControls;
-  window.addEventListener('scroll', showControls, { passive: true });
-  showControls(); // start visible + arm the first countdown on load
+// Clicking the wordmark goes back to the Weekly chart — the usual "logo means
+// home" convention. Goes through the real tab button so every side effect of a
+// tab switch (hash, saved offsets, view teardown) runs exactly as on a click.
+function dcTopbarHome(e) {
+  if (e) e.preventDefault();
+  const weekBtn = document.querySelector('.period-nav button[data-period="week"]');
+  if (weekBtn && !weekBtn.classList.contains('active')) weekBtn.click();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
 }
+window.dcTopbarHome = dcTopbarHome;
+
+// body[data-view] mirrors whichever main tab is active (week, month, records…),
+// so CSS can show or hide whole blocks per tab — e.g. the all-time summary only
+// on All-Time. Read off the active nav button rather than hooked into every
+// place that sets currentPeriod (there are ~14), the same way the sliding tab
+// indicator above does it, so it cannot drift out of step with the tabs.
+(function initBodyViewAttr() {
+  const nav = document.getElementById('periodNav');
+  if (!nav) return;
+  const sync = () => {
+    const btn = nav.querySelector('button[data-period].active');
+    if (btn) document.body.dataset.view = btn.dataset.period;
+  };
+  new MutationObserver(sync).observe(nav, { attributes: true, attributeFilter: ['class'], subtree: true });
+  sync();
+})();
 
 // ─── CERTIFICATIONS WALL ────────────────────────────────────────
 const CWALL_TIER_CLASS = { gold: 'gold', platinum: 'plat', diamond: 'diamond' };
@@ -46171,17 +46138,21 @@ function _dcTourVisible(el) {
 
    Centre inside the space actually visible above the banner; for anything too
    tall to fit there, align its top instead so the header is always what you see. */
-/* The date-nav bar (#stickyNavBar) is position:sticky at top:0, so as soon as
-   the page is scrolled past the masthead it floats over the top of the
+/* The date-nav bar (#stickyNavBar) is position:sticky just under the top bar, so as soon as
+   the page is scrolled past the tabs it floats over the top of the
    viewport — which is exactly where the code below was parking each target.
    The Chart, Bubbling Under and New Entries sections are all taller than the
    screen, so they align to the top, and their <h2> ended up tucked behind the
    pinned bar: the step talked about a title nobody could see. Reserve the
    bar's height as extra top padding so the header always clears it. */
 function _dcTourStickyTopH() {
+  // The top bar (phase 5) is sticky too and sits above the date bar, so both
+  // heights are reserved.
+  const top = document.getElementById('topbar');
+  const topH = top && _dcTourVisible(top) ? top.getBoundingClientRect().height : 0;
   const bar = document.getElementById('stickyNavBar');
-  if (!bar || !_dcTourVisible(bar)) return 0;
-  return bar.getBoundingClientRect().height;
+  if (!bar || !_dcTourVisible(bar)) return topH;
+  return topH + bar.getBoundingClientRect().height;
 }
 
 function _dcTourScrollTo(el, attempt) {

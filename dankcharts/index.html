@@ -27,11 +27,11 @@
   <!-- html2canvas, SheetJS (xlsx) and JSZip are intentionally NOT loaded here — they
        total ~1.2 MB and are only needed for image exports and Excel/ZIP imports.
        app.js pulls them from the CDN on first use (see ensureLazyLib). -->
-  <link rel="stylesheet" href="style.css?v=361">
+  <link rel="stylesheet" href="style.css?v=362">
   <!-- All scripts are deferred so the page paints without waiting on them.
        defer preserves execution order, which matters: translations → Chart.js →
        hammer → zoom plugin → firebase SDKs → firebase.js → app.js (in body). -->
-  <script defer src="translations.js?v=60"></script>
+  <script defer src="translations.js?v=61"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8/hammer.min.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@1.2.1/dist/chartjs-plugin-zoom.min.js"></script>
@@ -40,7 +40,7 @@
   <script defer src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
   <script defer src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
   <script defer src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
-  <script defer src="firebase.js?v=14"></script>
+  <script defer src="firebase.js?v=15"></script>
 </head>
 
 <body>
@@ -252,13 +252,24 @@
     </div>
   </div>
 
-  <div class="masthead">
-    <div class="theme-toggle">
+  <!-- TOP BAR (redesign phase 5, REDESIGN-PLAN.md 4.1). Replaces the old
+       masthead (est. line, big wordmark, tagline, "Streaming since" rule) and
+       the buttons that used to sit in the sync bar. ~56px tall and sticky, so
+       Sync, Settings, Theme, Language and the account are always one click
+       away. The big wordmark and tagline now live on the landing page only.
+       The middle slot (#topbarNav) is where the main tabs go (phase 5 step 2). -->
+  <header class="topbar" id="topbar">
+    <div class="topbar-inner">
+      <a class="topbar-brand" href="#t=week" onclick="dcTopbarHome(event)" aria-label="dankcharts.fm">
+        <span class="wordmark-dank">dank</span><span class="wordmark-station">charts</span><span class="wordmark-fm">.fm</span>
+      </a>
+      <div class="topbar-nav" id="topbarNav"></div>
+    <div class="topbar-actions">
       <!-- "What's New" badge. Hidden by default and only revealed by
            dcClRefreshBadge() when changelog.js holds entries newer than the
            last one this browser was shown; opening the overlay hides it again.
            Deliberately has no .ctrl-group-panel — it is a plain button that
-           borrows the control row's look so it sits in the masthead without
+           borrows the control row's look so it sits in the top bar without
            adding a new piece of furniture. -->
       <div class="ctrl-group" id="clNewCtrlGroup" style="display:none;">
         <button class="ctrl-group-btn cl-new-btn" id="clNewBtn" onclick="openChangelog()" aria-label="What&rsquo;s New">
@@ -267,10 +278,15 @@
           <span class="ctrl-btn-narrow" id="clNewCount">1</span>
         </button>
       </div>
+      <!-- Sync / Add Play / Settings — moved here from the sync bar. IDs and
+           handlers unchanged; the labels stay in the markup (screen readers,
+           and the translations still carry them) but the bar shows icons only. -->
+      <button id="syncNowBtn" class="tb-btn" data-i18n-html="sync_now" data-i18n-title="tooltip_sync_now" title="Sync now"><span class="btn-icon btn-ico-sync" aria-hidden="true"><i class="bi-ring"></i><i class="bi-head"></i></span> SYNC NOW</button>
+      <button id="scrobbleBtn" class="tb-btn" onclick="openScrobbleModal()" title="Add a play manually" style="display:none" data-i18n-html="btn_add_play"><span class="btn-icon">✚</span> Add Play</button>
+      <button id="configureSourceBtn" class="tb-btn" onclick="openSourceModal()" title="Settings" data-i18n-html="btn_configure"><span class="btn-icon btn-ico-gear" aria-hidden="true"><i></i></span> Settings</button>
       <div class="ctrl-group" id="themeCtrlGroup">
         <button class="ctrl-group-btn" id="themeGroupBtn" aria-label="Theme" title="Theme">
-          <span class="ctrl-btn-wide"><span class="ctrl-theme-dot"></span><span data-i18n="ctrl_btn_theme">THEME</span></span>
-          <span class="ctrl-btn-narrow"><span class="ctrl-theme-dot"></span></span>
+          <span class="ctrl-theme-dot"></span>
         </button>
         <div class="ctrl-group-panel">
           <button class="theme-btn active" data-theme="navy-dark" data-i18n-title="tooltip_theme_navy_dark">●</button>
@@ -288,8 +304,11 @@
       </div>
       <div class="ctrl-group" id="langCtrlGroup">
         <button class="ctrl-group-btn" id="langGroupBtn" aria-label="Language" title="Language">
-          <span class="ctrl-btn-wide">🌐 <span data-i18n="ctrl_btn_language">LANGUAGE</span></span>
-          <span class="ctrl-btn-narrow" id="langGroupFlag">🇺🇸</span>
+          <!-- Top bar face: a drawn globe and the language code ("EN", "PT-BR").
+               The code is set by setLanguage() in translations.js. Flag emoji
+               were dropped here because Windows draws them as two letters. -->
+          <svg class="tb-globe" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.2" aria-hidden="true"><circle cx="8" cy="8" r="6.2"/><ellipse cx="8" cy="8" rx="2.6" ry="6.2"/><line x1="1.8" y1="8" x2="14.2" y2="8"/></svg>
+          <span class="tb-lang-code" id="langGroupCode">EN</span>
         </button>
         <div class="ctrl-group-panel">
           <div class="lang-switcher" id="langSwitcher">
@@ -300,17 +319,24 @@
           </div>
         </div>
       </div>
+      <!-- Account — moved here from the sync bar. Signed out: a Sign In button.
+           Signed in: the profile picture, which opens a small menu with the
+           name and Sign out. firebase.js (_refreshAuthUI) toggles both by class,
+           so nothing there had to change. -->
+      <button class="dc-signin-btn tb-signin-btn" onclick="dcSignIn()" title="Sign in to sync settings across devices" data-i18n="tb_sign_in">Sign In</button>
+      <div class="ctrl-group dc-user-badge" id="acctCtrlGroup" style="display:none;">
+        <button class="ctrl-group-btn tb-acct-btn" id="acctGroupBtn" aria-label="Account" data-i18n-title="tb_account" title="Account">
+          <img class="dc-user-avatar" src="" alt="">
+          <span class="tb-acct-initial" aria-hidden="true"></span>
+        </button>
+        <div class="ctrl-group-panel tb-acct-panel">
+          <span class="dc-user-name"></span>
+          <button class="tb-acct-signout" onclick="dcSignOut()" data-i18n="tb_sign_out">Sign out</button>
+        </div>
+      </div>
     </div>
-
-    <span class="est" data-i18n="masthead_est">★ Your Personal Music Charts · Est. 2016 ★</span>
-    <div class="wordmark">
-      <span class="wordmark-dank">dank</span><span class="wordmark-station">charts</span><span
-        class="wordmark-fm">.fm</span>
     </div>
-    <div class="tagline" data-i18n="masthead_tagline">Your listening history. Your charts. Your life's soundtrack.</div>
-    <div class="masthead-rule" data-i18n="masthead_streaming">Streaming since January 9, 2016</div>
-    <div id="heroStats" class="hero-stats" style="display:none;"></div>
-  </div>
+  </header>
 
   <div class="upload-zone" id="uploadZone" style="display:none;">
     <div class="upload-box" id="uploadBox">
@@ -327,22 +353,10 @@
       <!-- sync_loading is deliberately source-neutral: at this point we don't know yet
            whether the source is Google Sheets, Last.fm or a CSV file, so it must not
            say "Connecting to Google Sheets" (the source-specific text is set by app.js) -->
+      <!-- The buttons that used to sit on the right of this strip (Sync, Settings,
+           Add Play, Sign in) moved to the top bar in phase 5. The status text
+           stays here until it becomes a toast (phase 5, step 4). -->
       <span id="syncStatus" data-i18n="sync_loading">⟳ Loading…</span><button id="syncDismissBtn" title="Dismiss" style="display:none">×</button>
-      <div class="sync-bar-right">
-        <div class="sync-bar-actions">
-          <button id="syncNowBtn" data-i18n-html="sync_now"><span class="btn-icon btn-ico-sync" aria-hidden="true"><i class="bi-ring"></i><i class="bi-head"></i></span> SYNC NOW</button>
-          <button id="configureSourceBtn" onclick="openSourceModal()" title="Settings" data-i18n-html="btn_configure"><span class="btn-icon btn-ico-gear" aria-hidden="true"><i></i></span> Settings</button>
-          <button id="scrobbleBtn" onclick="openScrobbleModal()" title="Add a play manually" style="display:none" data-i18n-html="btn_add_play"><span class="btn-icon">✚</span> Add Play</button>
-        </div>
-        <div class="sync-bar-account">
-          <button class="dc-signin-btn sync-signin-btn" onclick="dcSignIn()" title="Sign in to sync settings across devices">Sign In</button>
-          <div class="dc-user-badge sync-user-badge" style="display:none;">
-            <img class="dc-user-avatar" src="" alt="">
-            <span class="dc-user-name"></span>
-            <button class="sync-signout-btn" onclick="dcSignOut()" title="Sign out">✕</button>
-          </div>
-        </div>
-      </div>
     </div>
 
     <!-- Live "ON AIR" bar — painted by renderNowPlaying() while Last.fm reports an
@@ -469,6 +483,12 @@
         </button>
       </div>
     </div>
+
+    <!-- All-time summary (total plays, days listened, top artist, streak).
+         Used to sit in the masthead on every tab; since phase 5 it only shows
+         on the All-Time tab, because it describes all time, not this week.
+         Visibility is CSS-driven from body[data-view] (see style.css). -->
+    <div id="heroStats" class="hero-stats" style="display:none;"></div>
 
     <!-- Wrapper exists purely so mobile CSS can collapse the three strips
          (display:contents) into one shared grid and reorder cards with
@@ -3667,7 +3687,7 @@
   <!-- Community board tab (suggestions / bugs / discussion). Loaded before
        app.js so window.dcBoard exists when app.js opens a #t=board/<id> link. -->
   <script defer src="board.js?v=1"></script>
-  <script defer src="app.js?v=323"></script>
+  <script defer src="app.js?v=324"></script>
 
   <!-- ── Settings Modal ──
        Split into three tabs so the whole form is never dumped on screen at
@@ -4691,7 +4711,7 @@ function deleteGenreTriggers() {
             <span data-i18n="set_display_name">Display name</span>
             <input type="text" id="srcDisplayName" placeholder="Your name" data-i18n-placeholder="set_display_name_ph" autocomplete="off">
           </label>
-          <p class="src-modal-hint" data-i18n="set_display_name_hint">Appears in the masthead, as in "Your Name's Personal Music Charts".</p>
+          <p class="src-modal-hint" data-i18n="set_display_name_hint">Appears in the page footer and the browser tab, as in "Your Name's Personal Music Charts".</p>
         </div>
 
         <div class="src-field-group" style="margin-top:1.2rem">

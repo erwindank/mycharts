@@ -1172,7 +1172,25 @@ Left out on purpose:
 passed `yellow-dark`, but the theme is called `yellow` (`applyTheme('yellow')`;
 only navy uses the `-dark` suffix). Phase 3 was checked in the real Yellow.
 
-**Phase 5 (shell).** The period picker does not need moving into one place:
+**Phase 5 (shell). In progress on branch `redesign/phase-5-shell`, one step per commit.**
+- **Step 1 ✓ (2026-10-13): slim top bar.** The masthead (est. line, big
+  wordmark, tagline, "Streaming since") is gone from the app; a 56px sticky
+  bar holds the small wordmark (click = Weekly), What's New, Sync, Add Play,
+  Settings, Theme, Language and the account (Sign in, or the profile picture
+  with a Sign out menu). Buttons kept their ids and handlers. The five
+  all-time stats moved to the All-Time tab only (`body[data-view]`, set from
+  the active tab). The date bar, Records table headers and the Guide's
+  contents row now stick under the bar (`--topbar-h`). Deleted with it: ~100
+  masthead / `.theme-toggle` / per-theme masthead and hero-strip rules, the
+  sync bar's button rules, and the phone auto-hide JS for the old fixed
+  control stack. Left for phase 11: the `masthead_est` /
+  `masthead_streaming` translation keys (their code is guarded and now finds
+  no element). The sync bar still shows the status line until step 4.
+- Steps left: 2 main tabs + More, 3 period switch next to the date,
+  4 toasts, 5 ON AIR + streak strip, 6 other tabs start at the top and the
+  phone scroll-to-top button.
+
+The period picker does not need moving into one place:
 it already is (see 4.4). What is left is making it slim enough to live in
 the top bar.
 

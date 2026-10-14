@@ -608,6 +608,11 @@ function _refreshAuthUI(user) {
     document.querySelectorAll('.dc-user-name').forEach(el => {
       el.textContent = user.displayName || user.email || '';
     });
+    // Top bar account button: when the account has no profile picture, show
+    // the first letter of the name in its place instead of an empty circle.
+    document.querySelectorAll('.tb-acct-initial').forEach(el => {
+      el.textContent = user.photoURL ? '' : (user.displayName || user.email || '?').trim().charAt(0).toUpperCase();
+    });
   }
 }
 
