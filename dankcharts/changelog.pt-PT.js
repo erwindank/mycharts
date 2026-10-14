@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['pt-PT'] = {
 
   /* ========== OUTUBRO 2026 ========== */
 
+  "The top bar tucks away when you stop scrolling":
+    ["A barra superior esconde-se quando para de percorrer a página",
+     "A barra superior aparece agora enquanto percorre a página e esconde-se após cerca de três segundos sem movimento, por isso só ocupa espaço enquanto se desloca. Percorra de novo, ou leve o rato à margem superior da janela, e ela volta. Fica no lugar no topo da página, enquanto um dos seus menus está aberto e enquanto o rato está por cima. A barra de datas sobe para o espaço livre."],
+
   "A slim top bar instead of the big header":
     ["Uma barra superior fina em vez do cabeçalho grande",
      "O cabeçalho grande no topo de cada página desapareceu. No lugar dele há uma barra fina que fica no topo enquanto percorre a página, com Sincronizar, Definições, Tema, Idioma e a sua conta sempre a um clique. Com a sessão iniciada, a sua foto de perfil abre um pequeno menu com Terminar sessão. Clique no logótipo do dankcharts.fm para voltar ao top semanal. Os números de sempre que estavam no cabeçalho (reproduções totais, dias ouvidos, artista principal, sequência) aparecem agora no separador Histórico, porque dizem respeito a todo o tempo, não a esta semana."],

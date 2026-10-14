@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 103;
+const DC_CL_I18N_V = 104;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,10 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+
+  { d: '2026-10-13', t: 'design', a: 'ui', h: '39a55c6',
+    title: 'The top bar tucks away when you stop scrolling',
+    detail: "The top bar now shows while you scroll and slides out of view after about three seconds of stillness, so it only takes space while you are moving around. Scroll again, or move the mouse to the top edge of the window, and it comes back. It stays put at the top of the page, while one of its menus is open, and while your mouse is over it. The date bar moves up into the free space." },
 
   { d: '2026-10-13', t: 'design', a: 'ui', h: 'db62c44',
     title: 'A slim top bar instead of the big header',
