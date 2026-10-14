@@ -5317,7 +5317,6 @@ function refreshAfterPoll() {
   updateMastheadDynamic();
   populateYearPicker();
   // New data arrived via poll — flag unvisited tabs with badge (features 9/17)
-  dcNavMarkDataLoaded();
   if (currentPeriod === 'rawdata') applyRawFilters();
   else if (currentPeriod === 'graphs') renderGraphs();
   else if (currentPeriod === 'records') buildRecords();
@@ -6497,7 +6496,6 @@ function finalizeLoad() {
   }
   populateYearPicker();
   // Track data loads so unvisited tabs show "new" badge after a refresh (features 9/17)
-  dcNavMarkDataLoaded();
   // The ON AIR bar renders before the history download finishes, so its play-count
   // chips only become computable here.
   refreshNowPlayingStats();
@@ -12138,7 +12136,7 @@ new MutationObserver(scheduleNavIndicatorUpdate).observe(document.getElementById
 });
 // #mainApp is display:none until data loads, so the initial call below measures
 // 0-width buttons — a ResizeObserver re-fires once periodNav actually gets real
-// layout (mainApp reveal, window resize, row2 expand/collapse, nav-shrunk, etc).
+// layout (mainApp reveal, window resize, etc).
 new ResizeObserver(scheduleNavIndicatorUpdate).observe(document.getElementById('periodNav'));
 scheduleNavIndicatorUpdate(); // best-effort position on load, corrected by the observer above
 
@@ -12155,8 +12153,6 @@ document.getElementById('periodNav').addEventListener('click', e => {
   const _bdLink = window.location.hash.match(/^#t=board\/([\w-]+)$/);
   // Deep link: update URL hash so tab is bookmarkable/shareable (feature 13)
   history.replaceState(null, '', '#t=' + btn.dataset.period);
-  // Mark this tab visited so badge disappears (features 9 + 17)
-  dcNavMarkTabVisited(btn.dataset.period);
 
   /* The "Certified this period" reel belongs to the week or month on screen and
      to nothing else. Every branch below leaves the chart column standing rather
@@ -12642,60 +12638,6 @@ document.getElementById('nextBtn').addEventListener('click', () => { currentOffs
 
 // ─── NAV ENHANCEMENTS ──────────────────────────────────────────
 
-// --- Feature 9/17: New-content badge tracking ---
-let _dcNavDataVersion = 0;
-const _dcNavVisitedVersion = {};
-
-function dcNavMarkDataLoaded() {
-  // Only show "new" badges after the first initial load (not on first page open)
-  _dcNavDataVersion++;
-  _dcNavVisitedVersion[currentPeriod] = _dcNavDataVersion; // current tab is already "seen"
-  if (_dcNavDataVersion > 1) dcNavUpdateBadges();
-}
-
-function dcNavMarkTabVisited(period) {
-  _dcNavVisitedVersion[period] = _dcNavDataVersion;
-  dcNavUpdateBadges();
-}
-
-function dcNavUpdateBadges() {
-  document.querySelectorAll('#periodNav button[data-period]').forEach(btn => {
-    const period = btn.dataset.period;
-    const isNew = (_dcNavVisitedVersion[period] || 0) < _dcNavDataVersion && _dcNavDataVersion > 1;
-    let badge = btn.querySelector('.nav-badge');
-    if (isNew && period !== currentPeriod) {
-      if (!badge) {
-        badge = document.createElement('span');
-        badge.className = 'nav-badge';
-        badge.setAttribute('aria-hidden', 'true');
-        btn.appendChild(badge);
-      }
-    } else if (badge) {
-      badge.remove();
-    }
-  });
-}
-
-// --- Feature 5: Hover preview card ---
-(function initNavPreview() {
-  const card = document.getElementById('navPreviewCard');
-  if (!card) return;
-  document.querySelectorAll('#periodNav button[data-preview]').forEach(btn => {
-    btn.addEventListener('mouseenter', () => {
-      const rect = btn.getBoundingClientRect();
-      card.textContent = btn.dataset.preview;
-      card.style.left = (rect.left + rect.width / 2) + 'px';
-      card.style.top = (rect.bottom + 6) + 'px';
-      card.classList.add('nav-preview-visible');
-    });
-    btn.addEventListener('mouseleave', () => {
-      card.classList.remove('nav-preview-visible');
-    });
-  });
-  // Also hide on scroll so card doesn't drift
-  window.addEventListener('scroll', () => card.classList.remove('nav-preview-visible'), { passive: true });
-})();
-
 // --- Feature 6: Keyboard shortcuts (1–9 jump to tabs) ---
 (function initNavShortcuts() {
   const shortcuts = { '1': 'week', '2': 'month', '3': 'year', '4': 'alltime', '5': 'rawdata', '6': 'graphs',
@@ -12709,90 +12651,6 @@ function dcNavUpdateBadges() {
     const btn = document.querySelector('#periodNav button[data-period="' + period + '"]');
     if (btn) { e.preventDefault(); btn.click(); }
   });
-})();
-
-// --- Mobile nav reflow: phones show only Weekly/Monthly/Yearly/All-Time as
-// the permanent row (a clean 1x4 grid); everything else — Raw Data, Graphs,
-// Records, Events, plus the existing Awards/Soundtrack/Playlists/Charts Guide
-// set — moves behind "More" as a clean 2x4 grid. Desktop keeps the original
-// 6/6 split untouched. Runs before the row-2 toggle below so its open/closed
-// default sees the already-reflowed DOM.
-(function initMobileNavReflow() {
-  const periodNav = document.getElementById('periodNav');
-  const row1 = periodNav && periodNav.querySelector('.period-nav-row:not(.period-nav-row-2)');
-  const row2 = document.getElementById('periodNavRow2');
-  if (!periodNav || !row1 || !row2) return;
-
-  const ROW1_DESKTOP = ['week', 'month', 'year', 'alltime', 'rawdata', 'graphs'];
-  const ROW2_DESKTOP = ['records', 'events', 'awards', 'soundtrack', 'playlists', 'board', 'chartsguide'];
-  const ROW1_MOBILE = ['week', 'month', 'year', 'alltime'];
-  const ROW2_MOBILE = ['rawdata', 'graphs', 'records', 'events', 'awards', 'soundtrack', 'playlists', 'board', 'chartsguide'];
-  const mq = window.matchMedia('(max-width: 700px)'); // matches the CSS mobile-grid breakpoint
-
-  function reflow(isMobile) {
-    (isMobile ? ROW1_MOBILE : ROW1_DESKTOP).forEach(period => {
-      const btn = periodNav.querySelector(`button[data-period="${period}"]`);
-      if (btn) row1.appendChild(btn); // appendChild on an existing node moves it, doesn't clone
-    });
-    (isMobile ? ROW2_MOBILE : ROW2_DESKTOP).forEach(period => {
-      const btn = periodNav.querySelector(`button[data-period="${period}"]`);
-      if (btn) row2.appendChild(btn);
-    });
-  }
-
-  reflow(mq.matches);
-  mq.addEventListener('change', e => reflow(e.matches));
-})();
-
-// --- Feature 18: Collapsible row 2 ---
-(function initNavRow2Toggle() {
-  const toggle = document.getElementById('periodNavToggle');
-  const row2 = document.getElementById('periodNavRow2');
-  if (!toggle || !row2) return;
-
-  // Default: collapsed (unless a row-2 tab is active or user previously expanded).
-  // Membership is read live from the DOM (not a fixed list) so it's correct both
-  // before and after initMobileNavReflow moves buttons between rows.
-  const ROW2_KEY = 'dc_nav_row2_open';
-  const row2Periods = () => Array.from(row2.querySelectorAll('button[data-period]')).map(b => b.dataset.period);
-  const isRow2Active = row2Periods().includes(currentPeriod);
-  const savedOpen = localStorage.getItem(ROW2_KEY) === '1';
-  const startOpen = isRow2Active || savedOpen;
-
-  function setRow2Open(open) {
-    row2.classList.toggle('nav-row2-collapsed', !open);
-    toggle.classList.toggle('open', open);
-    const label = toggle.querySelector('.period-nav-toggle-label');
-    if (label) label.textContent = open ? t('nav_toggle_less') : t('nav_toggle_more');
-    try { localStorage.setItem(ROW2_KEY, open ? '1' : '0'); } catch (e) {}
-  }
-
-  setRow2Open(startOpen);
-
-  toggle.addEventListener('click', () => {
-    const isOpen = !row2.classList.contains('nav-row2-collapsed');
-    setRow2Open(!isOpen);
-  });
-
-  // When a row-2 tab is activated from the nav, auto-expand row 2
-  document.getElementById('periodNav').addEventListener('click', e => {
-    const btn = e.target.closest('button[data-period]');
-    if (btn && row2Periods().includes(btn.dataset.period)) setRow2Open(true);
-  });
-})();
-
-// --- Feature 20: Shrink nav on scroll ---
-(function initNavShrink() {
-  const nav = document.getElementById('periodNav');
-  if (!nav) return;
-  let shrunk = false;
-  window.addEventListener('scroll', () => {
-    const shouldShrink = window.scrollY > 55;
-    if (shouldShrink !== shrunk) {
-      shrunk = shouldShrink;
-      nav.classList.toggle('nav-shrunk', shrunk);
-    }
-  }, { passive: true });
 })();
 
 // --- Feature 13: Deep link — restore tab from URL hash on load ---
@@ -26814,6 +26672,69 @@ function dcTopbarHome(e) {
 }
 window.dcTopbarHome = dcTopbarHome;
 
+// ── MAIN TABS (phase 5 step 2) ──
+// The top bar tabs (#topbarNav) and the phone bottom bar (#bottomTabs) are thin
+// front doors: each button names an old #periodNav tab in data-go, and clicking
+// it clicks that tab, so there is still exactly one place where views switch.
+// "charts" is the exception: it reopens the chart period you used last.
+const DC_CHART_PERIODS = ['week', 'month', 'year', 'alltime'];
+const DC_MORE_VIEWS = ['events', 'playlists', 'rawdata', 'board', 'chartsguide'];
+// Keyboard shortcuts (initNavShortcuts) shown in the tab tooltips
+const DC_TAB_SHORTCUT = { charts: '1–4', graphs: '6', records: '7', awards: '9', events: '8', rawdata: '5' };
+
+function dcLastChartPeriod() {
+  let p = null;
+  try { p = localStorage.getItem('dc_last_chart_period'); } catch (e) {}
+  return DC_CHART_PERIODS.includes(p) ? p : 'week';
+}
+
+function dcGoTab(go) {
+  const period = go === 'charts' ? dcLastChartPeriod() : go;
+  const btn = document.querySelector('#periodNav button[data-period="' + period + '"]');
+  if (btn && !btn.classList.contains('active')) btn.click();
+  document.querySelectorAll('.tb-more.open, .bt-more.open').forEach(g => g.classList.remove('open'));
+}
+window.dcGoTab = dcGoTab;
+
+// Highlight the tab for the view on screen. Called from the body[data-view]
+// observer below, so it follows every way of switching (shortcuts, links,
+// the tour), not only clicks on these tabs.
+function dcSyncMainTabs(view) {
+  const go = DC_CHART_PERIODS.includes(view) ? 'charts' : view;
+  if (DC_CHART_PERIODS.includes(view)) {
+    try { localStorage.setItem('dc_last_chart_period', view); } catch (e) {}
+  }
+  document.querySelectorAll('[data-go]').forEach(b => {
+    const on = b.dataset.go === go;
+    b.classList.toggle('active', on);
+    if (on) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current');
+  });
+  // On a phone Soundtrack is inside More too, so More lights up for it there
+  const inMore = DC_MORE_VIEWS.includes(view);
+  const tbMore = document.querySelector('#topbarNav .tb-more-btn');
+  if (tbMore) tbMore.classList.toggle('active', inMore);
+  const btMore = document.querySelector('#bottomTabs .bt-more-btn');
+  if (btMore) btMore.classList.toggle('active', inMore || view === 'soundtrack');
+}
+
+(function initMainTabs() {
+  document.querySelectorAll('#topbarNav, #bottomTabs').forEach(nav => {
+    nav.addEventListener('click', e => {
+      const b = e.target.closest('[data-go]');
+      if (!b) return;
+      dcGoTab(b.dataset.go);
+    });
+  });
+  // Shortcut in the tooltip, e.g. "Records (7)"
+  const refreshTitles = () => document.querySelectorAll('[data-go]').forEach(b => {
+    const label = (b.textContent || '').trim();
+    const key = DC_TAB_SHORTCUT[b.dataset.go];
+    b.title = key ? label + ' (' + key + ')' : label;
+  });
+  refreshTitles();
+  window.dcRefreshMainTabTitles = refreshTitles;   // re-run after a language switch
+})();
+
 // ── TOP BAR AUTO-HIDE ──
 // The bar shows while the page is moving and tucks itself away (slides up,
 // body.topbar-idle in style.css) after TOPBAR_IDLE_MS of no scrolling, so it
@@ -26837,7 +26758,8 @@ window.dcTopbarHome = dcTopbarHome;
     // keyboard focus only: a mouse click also focuses the button, and the bar
     // should still tuck away after you have clicked Sync
     !!bar.querySelector(':focus-visible') ||
-    !!bar.querySelector('.ctrl-group.open');
+    !!document.querySelector('#topbar .ctrl-group.open, #bottomTabs .ctrl-group.open') ||
+    document.body.classList.contains('cg-tour-open');
 
   const hide = () => {
     if (mustStay()) { arm(); return; }   // check again later instead of hiding
@@ -26852,10 +26774,15 @@ window.dcTopbarHome = dcTopbarHome;
     arm();
   };
 
+  window.dcTopbarShow = show;
   window.addEventListener('scroll', show, { passive: true });
   bar.addEventListener('mouseenter', () => { hovering = true; show(); });
   bar.addEventListener('mouseleave', () => { hovering = false; arm(); });
   bar.addEventListener('focusin', show);
+  // Tapping or clicking either bar counts as activity too: on a phone there is
+  // no hover, and the bottom tab bar must not slide away while you use it.
+  document.querySelectorAll('#topbar, #bottomTabs').forEach(el =>
+    el.addEventListener('pointerdown', show, { passive: true }));
   // Pointer at the top edge of the window (mouse only; touch scrolls instead)
   window.addEventListener('mousemove', e => {
     if (e.clientY <= 8 && document.body.classList.contains('topbar-idle')) show();
@@ -26873,7 +26800,10 @@ window.dcTopbarHome = dcTopbarHome;
   if (!nav) return;
   const sync = () => {
     const btn = nav.querySelector('button[data-period].active');
-    if (btn) document.body.dataset.view = btn.dataset.period;
+    if (btn) {
+      document.body.dataset.view = btn.dataset.period;
+      if (typeof dcSyncMainTabs === 'function') dcSyncMainTabs(btn.dataset.period);
+    }
   };
   new MutationObserver(sync).observe(nav, { attributes: true, attributeFilter: ['class'], subtree: true });
   sync();
@@ -45800,9 +45730,9 @@ const _cgTourSteps = [
 
   /* Written as short labelled lines rather than one dense paragraph — the
      banner renders newlines as line breaks (white-space: pre-line). */
-  { title: 'The nav bar',
-    content: 'Everything you need is split into two clean rows.\n\nTop row — your core stats: songs, artists, albums, raw plays and graphs, across four time windows.\n\nBottom row — your deep dives: records, events, awards, recaps and playlists, all built for you automatically.\n\nMissing the second row? Click More on the strip just below the tabs to expand it.',
-    nav: null, spotlight: '#periodNav', expandNav: true },
+  { title: 'The main tabs',
+    content: 'Everything lives under five tabs: at the top of the page, or at the bottom on a phone.\n\nCharts is your songs, artists and albums for any week, month, year or all time. Stats graphs how you listen. Records, Awards and Soundtrack are your deep dives.\n\nMore holds Events, Playlists, Raw Data, the Board and this guide.',
+    nav: null, spotlight: '#topbarNav, #bottomTabs', showTopbar: true },
 
   /* Step 3 is a walkthrough of one page rather than a single card: ten phases
      that advance themselves, each ringing the thing it is describing. Prev and
@@ -46329,15 +46259,9 @@ function _dcApplyTourStep() {
   }
 
   if (step.spotlight || phase) {
-    // Row 2 starts collapsed for most users, so a step describing both rows
-    // has to open it first. Going through the toggle keeps its label and its
-    // saved dc_nav_row2_open state in sync.
-    if (step.expandNav) {
-      const row2 = document.getElementById('periodNavRow2');
-      if (row2 && row2.classList.contains('nav-row2-collapsed')) {
-        document.getElementById('periodNavToggle')?.click();
-      }
-    }
+    // A step about the main tabs needs the top bar on screen, even if it had
+    // tucked itself away (TOP BAR AUTO-HIDE).
+    if (step.showTopbar && typeof window.dcTopbarShow === 'function') window.dcTopbarShow();
   }
 
   const target = phase || step;

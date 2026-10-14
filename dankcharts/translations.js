@@ -1860,6 +1860,11 @@ const TRANSLATIONS = {
     tb_sign_in: 'Sign in',
     tb_account: 'Account',
     tb_sign_out: 'Sign out',
+    // Main tabs (phase 5 step 2)
+    tab_charts: 'Charts',
+    tab_stats: 'Stats',
+    tab_soundtrack: 'Soundtrack',
+    tab_main_nav: 'Main',
     tooltip_jump_to_week: 'Jump to week',
     tooltip_jump_to_month: 'Jump to month',
     tooltip_jump_to_year: 'Jump to year',
@@ -4028,6 +4033,11 @@ const TRANSLATIONS = {
     tb_sign_in: 'Iniciar sesión',
     tb_account: 'Cuenta',
     tb_sign_out: 'Cerrar sesión',
+    // Main tabs (phase 5 step 2)
+    tab_charts: 'Charts',
+    tab_stats: 'Estadísticas',
+    tab_soundtrack: 'Soundtrack',
+    tab_main_nav: 'Principal',
     tooltip_jump_to_week: 'Saltar a semana',
     tooltip_jump_to_month: 'Saltar a mes',
     tooltip_jump_to_year: 'Saltar a año',
@@ -6192,6 +6202,11 @@ const TRANSLATIONS = {
     tb_sign_in: 'Entrar',
     tb_account: 'Conta',
     tb_sign_out: 'Sair',
+    // Main tabs (phase 5 step 2)
+    tab_charts: 'Charts',
+    tab_stats: 'Estatísticas',
+    tab_soundtrack: 'Trilha Sonora',
+    tab_main_nav: 'Principal',
     tooltip_jump_to_week: 'Pular para semana',
     tooltip_jump_to_month: 'Pular para mês',
     tooltip_jump_to_year: 'Pular para ano',
@@ -8355,6 +8370,11 @@ const TRANSLATIONS = {
     tb_sign_in: 'Iniciar sessão',
     tb_account: 'Conta',
     tb_sign_out: 'Terminar sessão',
+    // Main tabs (phase 5 step 2)
+    tab_charts: 'Charts',
+    tab_stats: 'Estatísticas',
+    tab_soundtrack: 'Trilha Sonora',
+    tab_main_nav: 'Principal',
     tooltip_jump_to_week: 'Saltar para semana',
     tooltip_jump_to_month: 'Saltar para mês',
     tooltip_jump_to_year: 'Saltar para ano',
@@ -8875,6 +8895,11 @@ function applyI18n() {
     el.innerHTML = t(el.dataset.i18nHtml);
   });
   updateMastheadDynamic();
+  document.querySelectorAll('[data-i18n-aria-label]').forEach(el => {
+    el.setAttribute('aria-label', t(el.dataset.i18nAriaLabel));
+  });
+  // Main tab tooltips are built from their (now translated) labels
+  if (typeof window.dcRefreshMainTabTitles === 'function') window.dcRefreshMainTabTitles();
   document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
     el.placeholder = t(el.dataset.i18nPlaceholder);
   });

@@ -1191,9 +1191,26 @@ only navy uses the `-dark` suffix). Phase 3 was checked in the real Yellow.
   It stays at the top of the page, with a menu open, under the pointer or
   with keyboard focus. Sticky rows follow it through `--topbar-offset`
   (0 while `body.topbar-idle`).
-- Steps left: 2 main tabs + More, 3 period switch next to the date,
-  4 toasts, 5 ON AIR + streak strip, 6 other tabs start at the top and the
-  phone scroll-to-top button.
+- **Step 2 ✓ (2026-10-13): main tabs.** Charts · Stats · Records · Awards ·
+  Soundtrack · More (Events, Playlists, Raw Data, Board, Charts Guide) in the
+  top bar; below 960px a bottom tab bar (Charts, Stats, Records, Awards,
+  More, with Soundtrack inside More) that slides away with the top bar.
+  961–1100px is a compact bar (What's New shows its count, no language code).
+  The new tabs only click the old `#periodNav` buttons (`data-go`,
+  `dcGoTab()`), so view switching, `#t=` links, number-key shortcuts and the
+  tour all still go through one path; "Charts" reopens the last chart period
+  (`dc_last_chart_period`). `#periodNav` now shows only Week / Month / Year /
+  All-time and only on chart views. Shortcuts moved into tab tooltips.
+  Deleted: the "Chart Views" eyebrow, More/Less toggle, hover preview card,
+  new-content corner dots, shortcut number chips, the phone reflow and
+  shrink-on-scroll JS and their CSS. Back-to-top, toasts, the mini player and
+  the tour panel sit above the phone tab bar (`--bottomnav-space`).
+  **Found, not caused by this:** between ~600 and 980px wide the page is
+  980px wide and scrolls sideways (`html { min-width: min-content }` plus a
+  980px-wide child), on main too. Worth its own fix.
+- Steps left: 3 period switch next to the date, 4 toasts, 5 ON AIR +
+  streak strip, 6 other tabs start at the top and the phone scroll-to-top
+  button.
 
 The period picker does not need moving into one place:
 it already is (see 4.4). What is left is making it slim enough to live in

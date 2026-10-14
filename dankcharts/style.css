@@ -37,6 +37,10 @@
       /* Height of the sticky top bar (phase 5). Anything else that sticks to
          the page scroll sits below it: top: var(--topbar-h). */
       --topbar-h: 56px;
+      /* Phone bottom tab bar (phase 5 step 2), and the room it takes while
+         showing; --bottomnav-space is 0 wherever there is no bottom bar. */
+      --bottomnav-h: 58px;
+      --bottomnav-space: 0px;
       /* Where page-sticky things pin. Same as --topbar-h while the bar is
          showing, 0 while it is tucked away (body.topbar-idle, see below). */
       --topbar-offset: var(--topbar-h);
@@ -1653,6 +1657,303 @@
       #topbar .wordmark-fm,
       #topbar .tb-lang-code {
         display: none;
+      }
+    }
+
+
+    /* MAIN TABS (phase 5 step 2, REDESIGN-PLAN.md 4.3)
+       Text-only tabs in the top bar. The active one gets the accent colour
+       and a 2px underline sitting on the bar's bottom hairline. */
+    .topbar-nav {
+      display: flex;
+      align-items: stretch;
+      align-self: stretch;
+      gap: 2px;
+      margin-left: var(--sp-3);
+    }
+
+    #topbar .tb-tab {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      height: auto;
+      min-width: 0;
+      padding: 0 var(--sp-3);
+      border: 0;
+      border-radius: 0;
+      background: transparent;
+      color: var(--text2);
+      font-family: var(--font-sans);
+      font-size: var(--fs-sm);
+      font-weight: 500;
+      white-space: nowrap;
+      cursor: pointer;
+      transition: color 0.15s, background 0.15s;
+    }
+
+    #topbar .tb-tab:hover,
+    #topbar .tb-more.open .tb-tab {
+      color: var(--text);
+      background: var(--hover);
+    }
+
+    #topbar .tb-tab.active {
+      color: var(--accent);
+      font-weight: 600;
+    }
+
+    #topbar .tb-tab.active::after {
+      content: '';
+      position: absolute;
+      left: var(--sp-2);
+      right: var(--sp-2);
+      bottom: -1px;
+      height: 2px;
+      border-radius: 2px 2px 0 0;
+      background: var(--accent);
+    }
+
+    /* The More group stretches like a tab so its button lines up with them */
+    #topbar .tb-more {
+      align-self: stretch;
+    }
+
+    #topbar .tb-more-btn {
+      height: 100%;
+    }
+
+    #topbar .tb-chev {
+      width: 12px;
+      height: 12px;
+      transition: transform 0.2s;
+    }
+
+    #topbar .tb-more.open .tb-chev {
+      transform: rotate(180deg);
+    }
+
+    /* More menus (top bar and bottom bar): a plain vertical list */
+    .tb-more-panel,
+    .bt-more-panel {
+      flex-direction: column;
+      align-items: stretch;
+      flex-wrap: nowrap;
+      gap: 2px;
+      min-width: 190px;
+      padding: var(--sp-2);
+    }
+
+    #topbar .tb-more-panel {
+      left: 0;
+      right: auto;
+      top: calc(100% + 1px);
+    }
+
+    .tb-more-item {
+      padding: var(--sp-2) var(--sp-3);
+      border: 0;
+      border-radius: var(--r-xs);
+      background: transparent;
+      color: var(--text);
+      font-family: var(--font-sans);
+      font-size: var(--fs-sm);
+      text-align: left;
+      white-space: nowrap;
+      cursor: pointer;
+    }
+
+    .tb-more-item:hover {
+      background: var(--hover);
+    }
+
+    .tb-more-item.active {
+      color: var(--accent);
+      font-weight: 600;
+      background: color-mix(in srgb, var(--accent) 10%, transparent);
+    }
+
+    /* OLD PERIOD NAV, since step 2: only the Week / Month / Year / All-time
+       switch, and only on the Charts page. The other buttons stay in the DOM
+       (they are what the new tabs click) but are never shown. */
+    /* ID selectors: the row and button rules (flex on desktop, grid on
+       phones) come later in the file and would otherwise show them again */
+    #periodNav .period-nav-row-2,
+    #periodNav button[data-period="rawdata"],
+    #periodNav button[data-period="graphs"] {
+      display: none;
+    }
+
+    #periodNav button[data-period="alltime"] {
+      border-right: none;
+    }
+
+    /* Only one row left, so it needs no divider under it */
+    #periodNav .period-nav-row {
+      border-bottom: none;
+    }
+
+    body[data-view]:not([data-view="week"]):not([data-view="month"]):not([data-view="year"]):not([data-view="alltime"]) #periodNav {
+      display: none;
+    }
+
+    /* BOTTOM TAB BAR (phones). Hidden on wider screens, where the tabs sit in
+       the top bar. Slides down out of view together with the top bar while
+       the page is still (body.topbar-idle). */
+    .bottom-tabs {
+      display: none;
+    }
+
+    /* Compact bar between 961 and 1100px: everything spelled out needs ~1000px
+       (measured in en / es / pt-BR), so What's New shrinks to its count, the
+       language code goes and the tabs pack tighter. */
+    @media (max-width: 1100px) {
+      #topbar .tb-tab {
+        padding: 0 var(--sp-2);
+      }
+
+      #topbar .cl-new-btn .ctrl-btn-wide,
+      #topbar .tb-lang-code {
+        display: none;
+      }
+
+      #topbar .cl-new-btn .ctrl-btn-narrow {
+        display: inline-flex;
+        font-weight: 700;
+      }
+    }
+
+    /* Below this width the five tabs, More and the buttons no longer fit in
+       one top bar row even compacted, so the tabs move to the bottom bar. */
+    @media (max-width: 960px) {
+      #topbarNav {
+        display: none;
+      }
+
+      .bottom-tabs {
+        position: fixed;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        z-index: var(--z-nav);
+        display: grid;
+        grid-template-columns: repeat(5, minmax(0, 1fr));
+        height: calc(var(--bottomnav-h) + env(safe-area-inset-bottom, 0px));
+        padding-bottom: env(safe-area-inset-bottom, 0px);
+        background: var(--bg);
+        border-top: 1px solid var(--border);
+        transition: transform 0.25s var(--ease, ease);
+      }
+
+      body.topbar-idle .bottom-tabs {
+        transform: translateY(100%);
+      }
+
+      /* Room at the end of the page so the last row is not stuck under it */
+      body {
+        --bottomnav-space: var(--bottomnav-h);
+      }
+
+      body.topbar-idle {
+        --bottomnav-space: 0px;
+      }
+
+      #mainApp {
+        padding-bottom: calc(var(--sp-9) + var(--bottomnav-h));
+      }
+
+      .bt-tab {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 3px;
+        width: 100%;
+        min-width: 0;
+        height: var(--bottomnav-h);
+        padding: 0 2px;
+        border: 0;
+        background: transparent;
+        color: var(--text3);
+        font-family: var(--font-sans);
+        font-size: var(--fs-xs);
+        font-weight: 500;
+        cursor: pointer;
+      }
+
+      .bt-tab span {
+        max-width: 100%;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .bt-tab svg {
+        width: 22px;
+        height: 22px;
+        flex-shrink: 0;
+      }
+
+      .bt-tab.active {
+        color: var(--accent);
+        font-weight: 600;
+      }
+
+      /* The More group fills its grid cell like the other tabs */
+      .bt-more {
+        display: block;
+        position: relative;
+      }
+
+      /* .ctrl-group-btn's phone rules make every such button a 30px circle;
+         undo that for the bottom bar's More button */
+      #bottomTabs .bt-more-btn {
+        width: 100%;
+        height: var(--bottomnav-h);
+        min-width: 0;
+        padding: 0 2px;
+        border: 0;
+        border-radius: 0;
+        background: transparent;
+        color: var(--text3);
+      }
+
+      #bottomTabs .bt-more-btn.active,
+      #bottomTabs .bt-more.open .bt-more-btn {
+        color: var(--accent);
+      }
+
+      /* Opens upward, right-aligned to the screen edge */
+      #bottomTabs .bt-more-panel {
+        top: auto;
+        bottom: calc(100% + 6px);
+        right: 6px;
+        left: auto;
+        transform: none;
+        background: var(--bg2);
+        border-color: var(--border);
+        box-shadow: var(--shadow-2);
+      }
+
+      /* Lift things pinned to the bottom of the screen above the tab bar */
+      /* body prefix: their own rules come later in the file */
+      body #backToTop {
+        bottom: calc(1.5rem + var(--bottomnav-space));
+      }
+
+      body .dc-pl-toast,
+      body .bd-toast {
+        bottom: calc(1.5rem + var(--bottomnav-space));
+      }
+
+      body .yt-mini-player {
+        bottom: calc(16px + var(--bottomnav-space));
+      }
+
+      /* The tour's panel sits above the tab bar, so the step about the tabs
+         can show them (the bars stay up while the tour runs) */
+      body .cg-tour-banner {
+        bottom: var(--bottomnav-space);
       }
     }
 
@@ -3360,17 +3661,6 @@
       font-size: var(--fs-sm);
     }
 
-    /* Eyebrow label — orients first-time users to what this whole tab
-       strip is before they read 12 individual tab names (reorg pass) */
-    .period-nav-eyebrow {
-      text-align: center;
-      font-size: var(--fs-xs);
-      color: var(--text3);
-      opacity: 0.55;
-      padding: 0.4rem var(--sp-2) var(--sp-1);
-      user-select: none;
-    }
-
     /* Each row of nav buttons */
     .period-nav-row {
       display: flex;
@@ -3400,88 +3690,9 @@
       }
     }
 
-    /* Row 2: tinted bg (feature 4) + separator + collapse support (feature 18) */
-    .period-nav-row-2 {
-      border-bottom: 1px solid var(--border);
-      background: var(--bg3);
-      overflow: hidden;
-      max-height: 60px;
-      transition: max-height 0.25s ease, opacity 0.25s ease;
-      opacity: 1;
-    }
-    .period-nav-row-2.nav-row2-collapsed {
-      max-height: 0;
-      opacity: 0;
-      border-bottom: none; /* hide border when collapsed so no phantom line shows */
-    }
-
-    /* Row 2 = secondary/insight views — sized down a step from the primary
-       period tabs above so it reads as a lower nav tier instead of competing
-       at equal visual weight (feature 6). Resting color already inherits
-       --text3 from .period-nav button; the added opacity recedes it a step
-       further at rest, then lifts back to full strength on hover/active so
-       --text/--accent still read exactly as bright as row 1 does there.
-       Scoped under .period-nav so it outranks the generic `.period-nav button`
-       rule declared after it — at equal specificity that later rule won and
-       row 2 silently rendered at row-1 size, wrapping "Your Soundtrack". */
-    .period-nav .period-nav-row-2 button {
-      font-size: var(--fs-xs);
-      padding: var(--sp-2) var(--sp-2);
-      opacity: 0.82;
-    }
     /* One-line labels only where every tab has room for its full name;
        narrower than this they may wrap rather than push the nav off-screen */
-    @media (min-width: 1000px) {
-      .period-nav .period-nav-row-2 button {
-        white-space: nowrap;
-      }
-    }
-    .period-nav .period-nav-row-2 button:hover,
-    .period-nav .period-nav-row-2 button.active {
-      opacity: 1;
-    }
-    .period-nav-row-2 .nav-icon {
-      font-size: 0.78em;
-    }
-
-    /* Row 2 collapse toggle button (feature 18) — icon+label with a chevron
-       that rotates on open instead of swapping glyph characters, reads as a
-       proper disclosure control rather than a plain text link.
-       Scoped as .period-nav .period-nav-toggle so it outranks the generic
-       `.period-nav button` tab rule below — that rule was leaking a tab's
-       right divider and 3px underline slot onto this bar (a stray vertical
-       line at its right edge) and dropping its top border. */
-    .period-nav .period-nav-toggle {
-      width: 100%;
-      background: var(--bg3);
-      border: none; /* the row above already draws the dividing line */
-      border-radius: 0;
-      color: var(--text3);
-      font-family: var(--font-sans);
-      font-size: var(--fs-xs);
-      cursor: pointer;
-      padding: 0.28rem 0.65rem;
-      text-align: center;
-      transition: color var(--t-med) var(--ease), background var(--t-med) var(--ease);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 0.3rem;
-    }
-    .period-nav .period-nav-toggle:hover {
-      color: var(--text);
-      background: var(--bg2);
-    }
-    .period-nav-toggle-chevron {
-      width: 10px;
-      height: 10px;
-      flex-shrink: 0;
-      transition: transform var(--t-med) var(--ease);
-    }
-    .period-nav-toggle.open .period-nav-toggle-chevron {
-      transform: rotate(180deg);
-    }
-
+    
     .period-nav button {
       flex: 1;
       padding: 0.55rem 0.65rem;
@@ -3981,22 +4192,6 @@
       }
     }
 
-    /* Keyboard shortcut badge (feature 6) — small kbd-style chip instead of
-       bare floating digits, reads as an intentional keyboard hint */
-    .nav-key {
-      font-size: var(--fs-xs);
-      opacity: 0.45;
-      line-height: 1;
-      position: absolute;
-      top: 4px;
-      right: 5px;
-      letter-spacing: 0;
-      font-variant-numeric: tabular-nums;
-      padding: 1px 3px;
-      border: 1px solid var(--border2);
-      border-radius: 3px;
-    }
-
     /* On-air equalizer bars (distinctive touch) — lights up next to the active
        tab's label like a live VU meter on a radio chart show. Built from a
        single element (the bar itself + ::before/::after) so no extra markup
@@ -4066,20 +4261,7 @@
     }
 
     /* New-content pulsing dot (features 9 + 17) */
-    /* Pinned to the tab's top-right corner rather than trailing the label:
-       after a sync every unvisited tab gets one, and inline they pushed all
-       twelve labels off-centre and read as a row of stray bullets. Static,
-       because a dozen pulsing dots at once is noise, not a signal. */
-    .nav-badge {
-      position: absolute;
-      top: 8px;
-      right: 10px;
-      width: 5px;
-      height: 5px;
-      border-radius: 50%;
-      background: var(--accent);
-      opacity: 0.7;
-    }
+
     /* Last button in each row has no right border */
     .period-nav-row button:last-child {
       border-right: none;
@@ -4107,36 +4289,6 @@
     }
     .period-nav button.active.nav-loading {
       animation: nav-tab-shimmer 0.7s ease-in-out infinite;
-    }
-
-    /* Shrunk state when user scrolls down (feature 20) */
-    .period-nav.nav-shrunk button {
-      padding: 0.32rem var(--sp-2);
-      font-size: var(--fs-xs);
-    }
-    .period-nav.nav-shrunk .nav-key {
-      display: none;
-    }
-
-    /* Hover preview card (feature 5) */
-    .nav-preview-card {
-      position: fixed;
-      z-index: 300;
-      background: var(--bg3);
-      border: 1px solid var(--border2);
-      padding: var(--sp-2) 0.8rem;
-      font-size: var(--fs-xs);
-      font-family: var(--font-sans);
-      color: var(--text);
-      max-width: 260px;
-      pointer-events: none;
-      opacity: 0;
-      transition: opacity 0.12s;
-      transform: translateX(-50%);
-      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35);
-    }
-    .nav-preview-card.nav-preview-visible {
-      opacity: 1;
     }
 
     /* CHART SIZE SELECTOR */
@@ -16064,10 +16216,10 @@
        slice of a wide bar. That slice is too narrow for translated labels
        ("BASE DE DATOS", "SUA TRILHA SONORA", "LISTAS DE REPRODUCCIÓN") to
        fit on one line, and a horizontal-scroll strip was tried and rejected:
-       row 2 in particular sits inside a container that's `overflow: hidden`
-       for its collapse/expand animation (see .period-nav-row-2 above), so
-       anything that overflowed past the fold was simply unreachable —
-       Playlists and Charts Guide silently lost, not just scrolled off.
+       row 2 sat inside an `overflow: hidden` collapse container, so
+       anything past the fold was simply unreachable. (Since phase 5 step 2
+       only the four period buttons are shown here; the rest of the tabs
+       live in the top bar / bottom tab bar.)
        Instead: below 700px each row becomes a real 3-column icon grid.
        Every tab is always on screen, at a fixed, generous tile size, and a
        label that needs two lines gets two lines *on purpose* — grid rows
@@ -16133,46 +16285,6 @@
         display: none;
       }
 
-      /* Keyboard shortcuts (1-9) are a desktop affordance — no keyboard on a phone */
-      .nav-key {
-        display: none;
-      }
-
-      /* "New content" dot: in the flex row it trails after the label; here it
-         would land on its own line below a possibly 2-line label. Unmoor it
-         from flow and pin it to the icon's corner instead — same row as the
-         emoji, costs no extra height. Sized down from the desktop pill's inline
-         dot (5px) — the badge logic flags every unvisited tab after a sync, so
-         several tiles can carry one at once; kept small so a full row of them
-         reads as a quiet hint, not a row of alarms. */
-      .nav-badge {
-        position: absolute;
-        top: 7px;
-        right: 9px;
-        width: 4px;
-        height: 4px;
-        opacity: 0.75;
-      }
-
-      .period-nav-row-2 {
-        /* was sized for one short row of small pills; a 2-row icon grid needs
-           real headroom or the collapse-animation max-height clips it */
-        max-height: 160px;
-      }
-
-      /* Same .period-nav scope as the desktop row-2 rule so this still wins;
-         labels may wrap to two lines here on purpose (see grid note above) */
-      .period-nav .period-nav-row-2 button {
-        padding: var(--sp-2) var(--sp-1);
-        min-height: 50px;
-        opacity: 0.85;
-        font-size: var(--fs-xs);
-        white-space: normal;
-      }
-
-      .period-nav-row-2 .nav-icon {
-        font-size: 1em;
-      }
     }
 
     /* Tighter date-nav on very small screens */
@@ -34735,12 +34847,6 @@ body.cp-hide-recent       #recentSection { display: none !important; }
 
 /* Phones: row 2 now holds nine tabs, so it becomes a 3×3 grid instead of a
    4-column one with three empty cells. More room per label, too. */
-@media (max-width: 700px) {
-  .period-nav-row-2 {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    max-height: 220px;
-  }
-}
 
 /* #boardView sits outside #mainApp's .container (like Soundtrack, Playlists
    and the Charts Guide), so it sets the same width itself - otherwise it ran
