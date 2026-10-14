@@ -1013,7 +1013,7 @@ themes (Navy dark, Navy light, Yellow dark, Red light; see 3.2) and on a phone.
 | **3** ✓ | **Colour pass — done 2026-10-12** (on branch `redesign/phase-3-colour`, see "Phase 3" below). Remove per-tile and per-label colours, the left row bars, the rainbow chart bars and extra rgba tints. Neutral tags (3.8). Movement = green/red only. | Calms the whole site at once. | Small–medium |
 | **4** ✓ | **Artwork — redone 2026-10-13** as a review of the picture system (3.7): the missing pictures were mostly a screenshot artifact. Fixed the Deezer→iTunes→Last.fm fallback, sized pictures to their slots, loaded three at a time with what's on screen first. Left for later: the gradient stand-in for the rare real miss. | Turned out smaller than planned. | Small |
 | **5** ✓ | **Done 2026-10-13** (branch `redesign/phase-5-shell`, merged into `main`). **Shell:** slim sticky top bar, new main tabs + More, period switch next to the date, toasts for status, merge ON AIR + streak, no masthead or Time Machine on non-chart tabs. | Fixes "can't find anything" and gives back ~1,000px on every tab. | Medium |
-| **6** | **Weekly page:** one filter toolbar, sections reordered (stats + "of the moment" → chart → bubbling/off/new → certified → time machine), releases moved to Events, light-touch stat tile changes only if you choose them (4.6). | This is the page everyone sees first. | Medium |
+| **6** ✓ | **Done 2026-10-14** (branch `redesign/phase-6-weekly`; what changed from this plan is under "Phase 6" below). **Weekly page:** one filter toolbar, sections reordered (stats + "of the moment" → chart → bubbling/off/new → certified → time machine), releases moved to Events, light-touch stat tile changes only if you choose them (4.6). | This is the page everyone sees first. | Medium |
 | **7** | **Chart table and layouts** (4.9b, 4.10, 4.11, 4.12): one item builder + one action menu + one details drawer so **every layout has every feature** (chart run, peak, plays change, player, playlist…), layouts on every period with paging, all six layouts restyled, buttons moved into the toolbar, slimmer rows from #11 down, short lists capped at 5. | The core of the product. Do the shared builder first, then restyle each layout on top of it. | Large |
 | **8** | **Shared components:** one button, tab, segmented control, chip, card, table, carousel, pop-up frame. Replace the per-feature button families. | Makes 9–10 fast and keeps it consistent. | Large |
 | **9** | **Other views** in this order: Records (4.15), Stats (4.14), Raw Data (4.13), then Events, Awards, Soundtrack and the rest once seen on screen. | Records and Stats have the most concrete fixes already written down. | Large |
@@ -1251,10 +1251,10 @@ only navy uses the `-dark` suffix). Phase 3 was checked in the real Yellow.
   on desktop too; the floating button stays there.
 
 **Phase 5 done (2026-10-13)** on `redesign/phase-5-shell`, and merged into
-`main` (the branch has nothing `main` lacks). Not yet recorded as checked on
-screen in the four check themes and on a phone.
+`main` (the branch has nothing `main` lacks). Checked on screen with phase 6
+step 5 (2026-10-14), see below.
 
-**Phase 6 (Weekly page). In progress on branch `redesign/phase-6-weekly`, one step per commit.**
+**Phase 6 (Weekly page). Built on branch `redesign/phase-6-weekly`, one step per commit.**
 Decided with you (2026-10-14), replacing parts of the phase 6 row above:
 the release reels are removed, not moved (Events already has them); the
 Time Machine moves to the Soundtrack tab only; Certified and the Time
@@ -1324,6 +1324,41 @@ the pills into ⋮ → Show, 5 screen check (also covers phase 5).
   them. Each section still collapses on its own. Tour: the chart-type stop
   rings only the three segments and says where the sections went; the ⋮
   walk adds a stop on the Sections group.
+- **Step 5 ✓ (2026-10-14): checked on screen, phases 5 and 6 together.**
+  Playwright on a real library (217k plays), week of 27 Sep 2026.
+  Desktop in Navy dark, Navy light, Yellow dark (`applyTheme('yellow')`)
+  and Red light: top bar with a toast, now strip, period bar, stat tiles,
+  toolbar, ⋮ → Show with the Sections group, Chart off, Bubbling Under /
+  Off / New, Certified, Events with the Time Machine, Records starting at
+  the top. Phone (390px) in Navy dark and Red light. pt-BR and pt-PT on
+  desktop and phone. Reduced motion. Results:
+  - Nothing broken. No JavaScript errors in any run. The page never
+    scrolls sideways at 390px (the 600–980px sideways scroll from phase 5
+    step 2 is a different width and still open).
+  - Contrast, measured (text on its real background, 4.5:1 needed): the
+    toolbar and period segments, date label, Sections label and rows,
+    "Chart hidden" note, top bar tabs and Time Machine title/sub all pass
+    in all four themes. Lowest: the selected segment in Navy dark, 4.8.
+  - Portuguese fits: "Músicas / Artistas / Álbuns", "Seções" / "Secções",
+    and the pt-PT "Chart hidden" note wraps onto its own line on a phone.
+  - Reduced motion: Certified and the Time Machine stay still (both still
+    drag).
+  - A first Yellow screenshot showed the #1 row in pieces with empty
+    Previous / Weeks cells; it was the load animation mid-way, and a shot
+    a moment later was whole.
+  Found, older than phase 6, left for later:
+  - Red light: the Bubbling Under section has a red bar down its left
+    edge, the "down" colour (phase 3 removed these from rows, not from
+    this section). Phase 7 (4.11) restyles these sections.
+  - Portuguese: the New Entries table's column headers stay English
+    ("Title · Artist", "Plays"), and "reproduções" is cut to "repros" on a
+    phone (already noted for phase 7).
+  - The ⋮ menu's tabs (Show / Size / View / Actions) are English in every
+    language; the "Chart hidden" note says "⋮ → Show" to match. Phase 8.
+  - On a phone the open ⋮ menu runs under the bottom tab bar; the page
+    scrolls to reach it. Phase 8 (one pop-up frame).
+
+**Phase 6 done (2026-10-14)** on `redesign/phase-6-weekly`, not merged yet.
 
 The period picker does not need moving into one place:
 it already is (see 4.4). What is left is making it slim enough to live in
@@ -1390,7 +1425,7 @@ noted under its phase): the hard-to-read "Artist of the moment" label in
 Red light (phase 3), the broken-up table rows on a phone (phase 7) and the
 scroll-to-top button over the plays column (phase 5).
 
-**Still to check:** Portuguese and reduced motion.
+**Portuguese and reduced motion:** checked 2026-10-14 with phase 6 step 5.
 
 ### Taking screenshots that don't mislead
 
