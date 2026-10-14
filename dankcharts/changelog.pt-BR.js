@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['pt-BR'] = {
 
   /* ========== OUTUBRO 2026 ========== */
 
+  "Certified this period comes after the charts":
+    ["Certificados neste período vem depois das paradas",
+     "Nas paradas semanais e mensais, o carrossel de Certificados neste período agora fica abaixo das paradas e das seções Quase no Top, Fora da Parada e Novas Entradas, então a primeira coisa depois das suas estatísticas é a parada. O carrossel funciona como antes e continua passando sozinho."],
+
   "Release reels live on the Events tab only":
     ["Os lançamentos ficam só na aba Eventos",
      "Os carrosséis de Próximos lançamentos e Lançamentos recentes não aparecem mais no fim das paradas semanais e mensais, então a página de Charts termina com as suas paradas. Os dois continuam na aba Eventos, onde clicar em um lançamento abre o mesmo menu de antes. A aba Playlists agora mostra os Lançamentos recentes de Eventos ao lado dos Aniversários, e os dois carregam sem precisar passar antes por Eventos. As duas chaves deles em Configurações → Seções da página de paradas também saíram."],

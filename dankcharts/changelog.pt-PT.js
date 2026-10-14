@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['pt-PT'] = {
 
   /* ========== OUTUBRO 2026 ========== */
 
+  "Certified this period comes after the charts":
+    ["Certificados neste período vem depois das tabelas",
+     "Nas tabelas semanais e mensais, o carrossel de Certificados neste período fica agora por baixo das tabelas e das secções Quase no Top, Fora do Top e Novas Entradas, por isso a primeira coisa depois das tuas estatísticas é a tabela. O carrossel funciona como antes e continua a passar sozinho."],
+
   "Release reels live on the Events tab only":
     ["Os lançamentos ficam só no separador Eventos",
      "Os carrosséis de Próximos lançamentos e Lançamentos recentes já não aparecem no fim das tabelas semanais e mensais, por isso a página de Charts termina com as tuas tabelas. Os dois continuam no separador Eventos, onde clicar num lançamento abre o mesmo menu de antes. O separador Playlists mostra agora os Lançamentos recentes de Eventos ao lado dos Aniversários, e os dois carregam sem teres de passar primeiro por Eventos. Os dois interruptores deles em Definições → Secções da página de tops também saíram."],

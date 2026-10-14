@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['es'] = {
 
   /* ========== OCTUBRE 2026 ========== */
 
+  "Certified this period comes after the charts":
+    ["Certificados en este periodo va después de los charts",
+     "En los charts semanales y mensuales, el carrusel de Certificados en este periodo ahora está debajo de los charts y de sus secciones Casi en el Top, Fuera del Ranking y Nuevas Entradas, así que lo primero después de tus estadísticas es el chart. El carrusel funciona igual que antes y sigue moviéndose solo."],
+
   "Release reels live on the Events tab only":
     ["Los lanzamientos solo están en la pestaña Eventos",
      "Los carruseles de Próximos lanzamientos y Lanzamientos recientes ya no aparecen al final de los charts semanales y mensuales, así que la página de Charts termina con tus charts. Los dos siguen en la pestaña Eventos, donde al hacer clic en un lanzamiento se abre el mismo menú de antes. La pestaña Listas de reproducción ahora muestra los Lanzamientos recientes de Eventos junto a los Aniversarios, y los dos se cargan sin tener que pasar antes por Eventos. Sus dos interruptores en Ajustes → Secciones de la página de rankings también se han quitado."],

@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 111;
+const DC_CL_I18N_V = 112;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,10 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+
+  { d: '2026-10-14', t: 'design', a: 'charts', h: 'b19c87b',
+    title: 'Certified this period comes after the charts',
+    detail: "On the Weekly and Monthly charts, the Certified this period reel now sits under the charts and their Bubbling Under, Off the Chart and New Entries sections, so the chart itself is the first thing after your stats. The reel works as before and still scrolls by itself." },
 
   { d: '2026-10-14', t: 'design', a: 'charts', h: '9bd9454',
     title: 'Release reels live on the Events tab only',
