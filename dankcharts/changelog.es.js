@@ -16,9 +16,9 @@ window.DC_CHANGELOG_I18N['es'] = {
 
   /* ========== OCTUBRE 2026 ========== */
 
-  "The Time Machine moves to Your Soundtrack":
-    ["La Máquina del tiempo pasa a Tu Soundtrack",
-     "La Máquina del tiempo, el carrusel de lo que escuchabas este mismo día en años anteriores, ahora está al final de la pestaña Tu Soundtrack en lugar de arriba de cada chart, así que los charts empiezan con tus estadísticas. Funciona igual que antes: se mueve sola, Canciones, Artistas y Álbumes siguen cambiándose, y su interruptor en Ajustes la sigue ocultando."],
+  "The Time Machine moves to the Events tab":
+    ["La Máquina del tiempo pasa a la pestaña Eventos",
+     "La Máquina del tiempo, el carrusel de lo que escuchabas este mismo día en años anteriores, ahora abre la pestaña Eventos, justo encima de los cumpleaños y aniversarios de tus artistas, en lugar de estar arriba de cada chart, así que los charts empiezan con tus estadísticas. Funciona igual que antes: se mueve sola, Canciones, Artistas y Álbumes siguen cambiándose, y su interruptor en Ajustes la sigue ocultando."],
 
   "Certified this period comes after the charts":
     ["Certificados en este periodo va después de los charts",

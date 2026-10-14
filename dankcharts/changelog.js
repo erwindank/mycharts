@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 113;
+const DC_CL_I18N_V = 114;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -80,9 +80,9 @@ const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
 
-  { d: '2026-10-14', t: 'design', a: 'charts', h: '03adc66',
-    title: 'The Time Machine moves to Your Soundtrack',
-    detail: "The Time Machine, the reel of what you were playing on this day in past years, now lives at the bottom of the Your Soundtrack tab instead of at the top of every chart, so the charts start with your stats. It works as before: it scrolls by itself, Songs, Artists and Albums still switch, and its switch in Settings still hides it." },
+  { d: '2026-10-14', t: 'design', a: 'charts', h: '18c8ee8',
+    title: 'The Time Machine moves to the Events tab',
+    detail: "The Time Machine, the reel of what you were playing on this day in past years, now opens the Events tab, right above artist birthdays and anniversaries, instead of sitting at the top of every chart, so the charts start with your stats. It works as before: it scrolls by itself, Songs, Artists and Albums still switch, and its switch in Settings still hides it." },
 
   { d: '2026-10-14', t: 'design', a: 'charts', h: 'b19c87b',
     title: 'Certified this period comes after the charts',

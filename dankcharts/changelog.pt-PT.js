@@ -16,9 +16,9 @@ window.DC_CHANGELOG_I18N['pt-PT'] = {
 
   /* ========== OUTUBRO 2026 ========== */
 
-  "The Time Machine moves to Your Soundtrack":
-    ["A Máquina do tempo passa para Sua Trilha Sonora",
-     "A Máquina do tempo, o carrossel do que ouvias neste dia em anos anteriores, fica agora no fim do separador Sua Trilha Sonora em vez de no topo de cada tabela, por isso as tabelas começam com as tuas estatísticas. Funciona como antes: passa sozinha, Músicas, Artistas e Álbuns continuam a alternar, e o interruptor dela em Definições continua a escondê-la."],
+  "The Time Machine moves to the Events tab":
+    ["A Máquina do tempo passa para o separador Eventos",
+     "A Máquina do tempo, o carrossel do que ouvias neste dia em anos anteriores, abre agora o separador Eventos, logo acima dos aniversários dos teus artistas e dos seus lançamentos, em vez de ficar no topo de cada tabela, por isso as tabelas começam com as tuas estatísticas. Funciona como antes: passa sozinha, Músicas, Artistas e Álbuns continuam a alternar, e o interruptor dela em Definições continua a escondê-la."],
 
   "Certified this period comes after the charts":
     ["Certificados neste período vem depois das tabelas",
