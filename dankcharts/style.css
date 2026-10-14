@@ -1957,6 +1957,208 @@
       }
     }
 
+
+    /* PERIOD BAR (phase 5 step 3, REDESIGN-PLAN.md 4.4)
+       One slim row inside the sticky date bar:
+         [ Week | Month | Year | All-time ]      ‹  This week · 11 – 17 Oct 2026 ▾  ›
+       The switch is a segmented control; the date is one line at --fs-lg and
+       still opens the jump picker when clicked. The keyboard / swipe hint
+       under the date is gone (plan 3.6: hints are taught once, not shown
+       forever); arrow keys and swipes still work. ID selectors throughout:
+       the older .date-nav / .period-nav rules come later in the file. */
+    #dateNav {
+      gap: var(--sp-3);
+      min-height: 52px;
+      padding: var(--sp-1) var(--sp-2);
+    }
+
+    #dateNav #periodNav {
+      flex-direction: row;
+      flex-shrink: 0;
+      margin: 0;
+      width: auto;
+      padding: 3px;
+      background: var(--raised);
+      border: 0;
+      border-radius: var(--r-sm);
+      box-shadow: none;
+    }
+
+    #dateNav #periodNav .period-nav-row:not(.period-nav-row-2) {
+      display: flex;
+      gap: 2px;
+      background: none;
+    }
+
+    /* The sliding underline and the icons belong to the old tab strip; a
+       segmented control marks the choice with a filled segment instead */
+    #dateNav #periodNav .nav-indicator,
+    #dateNav #periodNav .nav-icon,
+    #dateNav #periodNav .nav-eq {
+      display: none;
+    }
+
+    #dateNav #periodNav button {
+      flex: 0 0 auto;
+      min-height: 0;
+      height: 34px;
+      padding: 0 var(--sp-3);
+      border: 0;
+      border-radius: calc(var(--r-sm) - 2px);
+      background: transparent;
+      color: var(--text2);
+      font-family: var(--font-sans);
+      font-size: var(--fs-sm);
+      font-weight: 500;
+      white-space: nowrap;
+      transform: none;
+    }
+
+    #dateNav #periodNav button:hover {
+      background: var(--hover);
+      border: 0;
+      color: var(--text);
+    }
+
+    #dateNav #periodNav button.active {
+      /* tinted, not plain --surface: on dark themes --surface is darker than
+         the control's --raised track and the chosen segment looked sunken */
+      background: color-mix(in srgb, var(--accent) 18%, var(--raised));
+      color: var(--accent);
+      font-weight: 600;
+      box-shadow: var(--shadow-1);
+    }
+
+    /* Date group: ‹ label › pushed to the right, chevrons hugging the label */
+    #dateNav #prevBtn {
+      margin-left: auto;
+    }
+
+    #dateNav .date-nav-chevron {
+      width: 34px;
+      height: 34px;
+      background: transparent;
+      border-color: transparent;
+    }
+
+    #dateNav .date-nav-chevron:hover:not(:disabled) {
+      background: var(--hover);
+      border-color: transparent;
+    }
+
+    #dateNav .date-nav-center {
+      flex-direction: row;
+      gap: 0;
+      min-width: 0;
+    }
+
+    /* "This week · 11 Oct 2026 – 17 Oct 2026 ▾" on one line */
+    #dateNav .period-label {
+      display: flex;
+      align-items: baseline;
+      gap: var(--sp-2);
+      min-width: 0;
+      white-space: nowrap;
+      font-size: var(--fs-lg);
+    }
+
+    #dateNav .period-label strong {
+      display: inline;
+      font-size: var(--fs-lg);
+    }
+
+    #dateNav .period-sub {
+      padding: 0;
+      background: none;
+      border: 0;
+      color: var(--text2);
+      font-size: var(--fs-sm);
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    #dateNav .period-sub::before {
+      content: '·';
+      margin-right: var(--sp-2);
+      color: var(--text3);
+    }
+
+    #dateNav .period-sub:empty {
+      display: none;
+    }
+
+    /* block (not the base inline-flex) so a long subtitle ends in "…" */
+    #dateNav .period-sub {
+      display: block;
+      min-width: 0;
+    }
+
+    /* All-time is a single period: no arrows to step through and no picker */
+    body[data-view="alltime"] #dateNav .date-nav-chevron,
+    body[data-view="alltime"] #dateNav .period-sub::after {
+      display: none;
+    }
+
+    body[data-view="alltime"] #dateNav .period-label {
+      cursor: default;
+      margin-left: auto;
+    }
+
+    #dateNav .period-label:hover .period-sub {
+      background: none;
+      color: var(--accent);
+    }
+
+    #navHint {
+      display: none !important;   /* JS still toggles it per view; never shown since step 3 */
+    }
+
+    /* Phones: the switch takes the full first line, the date the second */
+    @media (max-width: 700px) {
+      #dateNav {
+        flex-wrap: wrap;
+        row-gap: var(--sp-1);
+        padding: var(--sp-2);
+      }
+
+      #dateNav #periodNav {
+        flex: 1 0 100%;
+      }
+
+      #dateNav #periodNav .period-nav-row:not(.period-nav-row-2) {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        width: 100%;
+      }
+
+      #dateNav #periodNav button {
+        padding: 0 var(--sp-1);
+        font-size: var(--fs-xs);
+      }
+
+      #dateNav #prevBtn {
+        margin-left: 0;
+      }
+
+      #dateNav .date-nav-center {
+        flex: 1;
+        justify-content: center;
+      }
+
+      #dateNav .period-label,
+      #dateNav .period-label strong {
+        font-size: var(--fs-base);
+      }
+
+      #dateNav .period-sub {
+        font-size: var(--fs-xs);
+      }
+
+      body[data-view="alltime"] #dateNav .period-label {
+        margin: 0 auto;
+      }
+    }
+
     /* SYNC BAR */
     .sync-bar {
       display: flex;

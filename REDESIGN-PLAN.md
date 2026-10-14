@@ -1208,9 +1208,15 @@ only navy uses the `-dark` suffix). Phase 3 was checked in the real Yellow.
   **Found, not caused by this:** between ~600 and 980px wide the page is
   980px wide and scrolls sideways (`html { min-width: min-content }` plus a
   980px-wide child), on main too. Worth its own fix.
-- Steps left: 3 period switch next to the date, 4 toasts, 5 ON AIR +
-  streak strip, 6 other tabs start at the top and the phone scroll-to-top
-  button.
+- **Step 3 ✓ (2026-10-13): period switch on the date line.** `#periodNav`
+  moved inside `#dateNav` and is a segmented control (Weekly · Monthly ·
+  Yearly · All-Time, no icons); the date is one line ("This Week · 11 Oct
+  2026 – 17 Oct 2026 ▾") at `--fs-lg`, still opening the picker. Desktop bar
+  52px, phone two lines (~100px). The keyboard/swipe hint is hidden
+  (`#navHint` stays in the DOM because ~10 view branches set its display;
+  phase 11 can remove it with them). All-Time hides the arrows and ▾.
+- Steps left: 4 toasts, 5 ON AIR + streak strip, 6 other tabs start at the
+  top and the phone scroll-to-top button.
 
 The period picker does not need moving into one place:
 it already is (see 4.4). What is left is making it slim enough to live in
