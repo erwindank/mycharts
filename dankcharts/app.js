@@ -32,12 +32,16 @@ function applyChartTypeView() {
   document.querySelectorAll('#chartTypeToggleBar .chart-type-toggle-btn').forEach(b => {
     b.classList.toggle('active', b.dataset.type === chartTypeView);
   });
+  // The album bucket filter shares the toolbar and only applies to the albums chart
+  syncAlbumsFilterBar();
 }
 
 // ─── SUB-CHART TOGGLES (Normal / Bubbling Under / Off the Chart / New Entries) ──
 // Each chart type (songs/artists/albums) has its own independent set of toggles —
 // unlike the exclusive Songs/Artists/Albums toggle above, any combination of these
-// four sub-charts can be active at once. Synced to the user's Firestore account via
+// four sub-charts can be active at once. They are the "Sections" rows at the end of
+// each chart's ⋮ → Show (#subChartRows-<type>); until phase 6 they were a row of
+// pills above the chart. Synced to the user's Firestore account via
 // dc_subChartToggles (see SYNC_KEYS in firebase.js) so the choice follows them across devices.
 const SUB_CHART_SECTION_IDS = {
   normal: { songs: 'songsSection',   artists: 'artistsSection',   albums: 'albumsSection' },
@@ -57,7 +61,7 @@ const subChartToggleState = (() => {
 
 // Which sub-charts even exist for the current period — mirrors the gating already used
 // by renderSongs/renderArtists/renderAlbums (Bubbling Under + Off the Chart: weekly only)
-// and renderNewEntries (New Entries: week/month/year, never alltime). The toggle button
+// and renderNewEntries (New Entries: week/month/year, never alltime). The Show row
 // for a sub-chart that doesn't exist this period is hidden entirely rather than left
 // clickable with no effect.
 const SUB_CHART_PERIOD_AVAILABILITY = {
@@ -68,29 +72,20 @@ const SUB_CHART_PERIOD_AVAILABILITY = {
 };
 
 function updateSubChartToggleBarAvailability() {
-  // All-Time only ever has the Normal chart (no Bubbling Under/Off the Chart/New
-  // Entries) — a bar with just one lonely "Chart" button isn't useful, so hide the
-  // whole sub-chart toggle bar there and fall back to the plain Songs/Artists/Albums
-  // switcher only.
-  const hideWholeBar = currentPeriod === 'alltime';
+  // All-Time keeps only the Chart row: there is nothing else to switch there,
+  // but a chart switched off elsewhere must still be switchable back on.
   ['songs', 'artists', 'albums'].forEach(type => {
-    const bar = document.getElementById('subChartToggleBar-' + type);
-    if (!bar) return;
-    bar.style.display = hideWholeBar ? 'none' : '';
-    if (hideWholeBar) return;
-    bar.querySelectorAll('.sub-chart-toggle-btn').forEach(btn => {
-      const check = SUB_CHART_PERIOD_AVAILABILITY[btn.dataset.sub];
-      btn.style.display = (!check || check()) ? '' : 'none';
+    document.querySelectorAll('#subChartRows-' + type + ' .kebab-check-row').forEach(row => {
+      const check = SUB_CHART_PERIOD_AVAILABILITY[row.dataset.sub];
+      row.style.display = (!check || check()) ? '' : 'none';
     });
   });
 }
 
 function initSubChartToggles() {
   ['songs', 'artists', 'albums'].forEach(type => {
-    const bar = document.getElementById('subChartToggleBar-' + type);
-    if (!bar) return;
-    bar.querySelectorAll('.sub-chart-toggle-btn').forEach(btn => {
-      btn.classList.toggle('active', Boolean(subChartToggleState[type][btn.dataset.sub]));
+    document.querySelectorAll('#subChartRows-' + type + ' .kebab-check-row').forEach(row => {
+      row.classList.toggle('active', Boolean(subChartToggleState[type][row.dataset.sub]));
     });
   });
 }
@@ -99,7 +94,7 @@ function toggleSubChart(type, sub) {
   const state = subChartToggleState[type];
   if (!state) return;
   state[sub] = !state[sub];
-  const btn = document.querySelector(`#subChartToggleBar-${type} .sub-chart-toggle-btn[data-sub="${sub}"]`);
+  const btn = document.querySelector(`#subChartRows-${type} .kebab-check-row[data-sub="${sub}"]`);
   if (btn) btn.classList.toggle('active', state[sub]);
   try { localStorage.setItem('dc_subChartToggles', JSON.stringify(subChartToggleState)); } catch (e) {}
   if (typeof dcSaveUserConfig === 'function') dcSaveUserConfig();
@@ -112,12 +107,15 @@ function toggleSubChart(type, sub) {
 // the section with !important; a toggle being on just removes that class, revealing
 // whatever the data-driven inline style already set — never touch .style.display
 // directly here, or turning the toggle back on would have nothing to restore it to
-// without a full re-render.
+// without a full re-render. The main chart is the exception: its header holds the
+// ⋮ menu with these very switches, so switching it off hides everything but that
+// header (sub-chart-rows-off) instead of the whole section.
 function applySubChartToggles() {
   for (const sub of Object.keys(SUB_CHART_SECTION_IDS)) {
+    const cls = sub === 'normal' ? 'sub-chart-rows-off' : 'sub-chart-toggled-off';
     for (const type of ['songs', 'artists', 'albums']) {
       const el = document.getElementById(SUB_CHART_SECTION_IDS[sub][type]);
-      if (el) el.classList.toggle('sub-chart-toggled-off', !subChartToggleState[type][sub]);
+      if (el) el.classList.toggle(cls, !subChartToggleState[type][sub]);
     }
   }
 }
@@ -1288,7 +1286,7 @@ function syncAlbumsFilterBar() {
      the chart sections one by one but leave #albumsChartGroup itself mounted,
      so without this gate the bar goes on hanging over views that never consult
      it. */
-  if (!['week', 'month', 'year', 'alltime'].includes(currentPeriod)) {
+  if (!['week', 'month', 'year', 'alltime'].includes(currentPeriod) || chartTypeView !== 'albums') {
     bar.style.display = 'none';
     return;
   }
@@ -12033,115 +12031,10 @@ function restoreChartSectionCollapseState(period) {
       if (iconEl) iconEl.textContent = collapsed ? '▼' : '▲';
     }
   });
-  syncCollapseAllBtn();
 }
 
-// Sections controlled by the Collapse All toggle
-const COLLAPSE_ALL_SECTIONS = ['songsSection', 'artistsSection', 'albumsSection'];
-// Type names used for both bubbling-under and new-entries sub-sections
+// The three chart types; the sub-chart helpers (hideOffSection etc.) loop over them
 const COLLAPSE_ALL_TYPES = ['songs', 'artists', 'albums'];
-// Arrow icon IDs for new-entries sections
-const NE_ARROW_IDS = { songs: 'neSongsToggleIcon', artists: 'neArtistsToggleIcon', albums: 'neAlbumsToggleIcon' };
-
-// Returns true only when all visible chart sections are collapsed/closed
-function _isEverythingCollapsed() {
-  const mainOk = COLLAPSE_ALL_SECTIONS.every(id => {
-    const el = document.getElementById(id);
-    return !el || el.style.display === 'none' || el.classList.contains('collapsed');
-  });
-  const neOk = COLLAPSE_ALL_TYPES.every(type => {
-    const ucType = type.charAt(0).toUpperCase() + type.slice(1);
-    const el = document.getElementById('new' + ucType + 'Section');
-    return !el || el.style.display === 'none' || el.classList.contains('collapsed');
-  });
-  // Check bu body display directly — more reliable than reading _buOpen state
-  const buOk = COLLAPSE_ALL_TYPES.every(type => {
-    const ucType = type.charAt(0).toUpperCase() + type.slice(1);
-    const sectionEl = document.getElementById('bu' + ucType + 'Section');
-    if (!sectionEl || sectionEl.style.display === 'none') return true;
-    const bodyEl = document.getElementById('bu' + ucType + 'Body');
-    return !bodyEl || bodyEl.style.display === 'none';
-  });
-  // Same check for the Off The Chart sections (own _offOpen state, like Bubbling Under)
-  const offOk = COLLAPSE_ALL_TYPES.every(type => {
-    const ucType = type.charAt(0).toUpperCase() + type.slice(1);
-    const sectionEl = document.getElementById('off' + ucType + 'Section');
-    if (!sectionEl || sectionEl.style.display === 'none') return true;
-    const bodyEl = document.getElementById('off' + ucType + 'Body');
-    return !bodyEl || bodyEl.style.display === 'none';
-  });
-  return mainOk && neOk && buOk && offOk;
-}
-
-// Toggle collapse/expand all main chart sections at once
-function toggleCollapseAllCharts() {
-  const shouldCollapse = !_isEverythingCollapsed();
-
-  // Main sections (use .collapsed class + collapse button)
-  COLLAPSE_ALL_SECTIONS.forEach(id => {
-    const section = document.getElementById(id);
-    if (!section || section.style.display === 'none') return;
-    section.classList.toggle('collapsed', shouldCollapse);
-    const btn = section.querySelector('.section-collapse-btn');
-    if (btn) {
-      btn.textContent = shouldCollapse ? '+' : '−';
-      btn.title = shouldCollapse ? 'Expand' : 'Collapse';
-    }
-    localStorage.setItem('dc_chart_section_collapsed_' + id + '_' + currentPeriod, shouldCollapse ? '1' : '0');
-  });
-
-  // New-entries sections (use .collapsed class + arrow icon, no collapse button)
-  COLLAPSE_ALL_TYPES.forEach(type => {
-    const ucType = type.charAt(0).toUpperCase() + type.slice(1);
-    const sectionId = 'new' + ucType + 'Section';
-    const section = document.getElementById(sectionId);
-    if (!section || section.style.display === 'none') return;
-    section.classList.toggle('collapsed', shouldCollapse);
-    const iconEl = document.getElementById(NE_ARROW_IDS[type]);
-    if (iconEl) iconEl.textContent = shouldCollapse ? '▼' : '▲';
-    localStorage.setItem('dc_chart_section_collapsed_' + sectionId + '_' + currentPeriod, shouldCollapse ? '1' : '0');
-  });
-
-  // Bubbling Under sections (use _buOpen state + body display)
-  COLLAPSE_ALL_TYPES.forEach(type => {
-    const ucType = type.charAt(0).toUpperCase() + type.slice(1);
-    const sectionEl = document.getElementById('bu' + ucType + 'Section');
-    if (!sectionEl || sectionEl.style.display === 'none') return;
-    _buOpen[type] = !shouldCollapse;
-    const bodyEl = document.getElementById('bu' + ucType + 'Body');
-    const iconEl = document.getElementById('bu' + ucType + 'ToggleIcon');
-    if (bodyEl) bodyEl.style.display = _buOpen[type] ? '' : 'none';
-    if (iconEl) iconEl.textContent = _buOpen[type] ? '▲' : '▼';
-  });
-
-  // Off The Chart sections (use _offOpen state + body display, same as Bubbling Under)
-  COLLAPSE_ALL_TYPES.forEach(type => {
-    const ucType = type.charAt(0).toUpperCase() + type.slice(1);
-    const sectionEl = document.getElementById('off' + ucType + 'Section');
-    if (!sectionEl || sectionEl.style.display === 'none') return;
-    _offOpen[type] = !shouldCollapse;
-    const bodyEl = document.getElementById('off' + ucType + 'Body');
-    const iconEl = document.getElementById('off' + ucType + 'ToggleIcon');
-    if (bodyEl) bodyEl.style.display = _offOpen[type] ? '' : 'none';
-    if (iconEl) iconEl.textContent = _offOpen[type] ? '▲' : '▼';
-  });
-
-  // Directly set button text — we know exactly what state we just applied
-  const toggleBtn = document.getElementById('collapseAllToggleBtn');
-  if (toggleBtn) {
-    toggleBtn.textContent = t(shouldCollapse ? 'btn_expand_all' : 'btn_collapse_all');
-    toggleBtn.title = t(shouldCollapse ? 'tooltip_expand_all' : 'tooltip_collapse_all');
-  }
-}
-
-// Keep the Collapse All / Expand All button in sync when individual sections are toggled
-function syncCollapseAllBtn() {
-  const toggleBtn = document.getElementById('collapseAllToggleBtn');
-  if (!toggleBtn) return;
-  const allCollapsed = _isEverythingCollapsed();
-  toggleBtn.textContent = t(allCollapsed ? 'btn_expand_all' : 'btn_collapse_all');
-  toggleBtn.title = t(allCollapsed ? 'tooltip_expand_all' : 'tooltip_collapse_all');
-}
 
 document.addEventListener('click', e => {
   const btn = e.target.closest('.section-collapse-btn');
@@ -12158,8 +12051,6 @@ document.addEventListener('click', e => {
   } else if (['timeMachineSection', 'birthdaysSection', 'anniversariesSection', 'eventsUpcomingSection', 'eventsRecentSection', 'eventsRecentBirthdaysSection', 'eventsRecentAnniversariesSection', 'nmfSection'].includes(section.id)) {
     localStorage.setItem('dc_events_section_collapsed_' + section.id, collapsed ? '1' : '0');
   }
-  // Keep Collapse All toggle in sync when individual sections are toggled
-  syncCollapseAllBtn();
 });
 
 // Sliding active-tab indicator (feature 5) — glides the shared .nav-indicator
@@ -12236,11 +12127,7 @@ document.getElementById('periodNav').addEventListener('click', e => {
     savedOffsets[currentPeriod] = currentOffset;
     currentPeriod = 'rawdata';
     localStorage.setItem('dc_period', currentPeriod);
-    document.getElementById('collapseAllBar').style.display = 'none';
     document.getElementById('chartTypeToggleBar').style.display = 'none';
-    document.getElementById('subChartToggleBar-songs').style.display = 'none';
-    document.getElementById('subChartToggleBar-artists').style.display = 'none';
-    document.getElementById('subChartToggleBar-albums').style.display = 'none';
     document.getElementById('exportPlaylistBtn').style.display = 'none';
     document.getElementById('dateNav').style.display = 'none';
     document.getElementById('navHint').style.display = 'none';
@@ -12270,11 +12157,7 @@ document.getElementById('periodNav').addEventListener('click', e => {
     savedOffsets[currentPeriod] = currentOffset;
     currentPeriod = 'graphs';
     localStorage.setItem('dc_period', currentPeriod);
-    document.getElementById('collapseAllBar').style.display = 'none';
     document.getElementById('chartTypeToggleBar').style.display = 'none';
-    document.getElementById('subChartToggleBar-songs').style.display = 'none';
-    document.getElementById('subChartToggleBar-artists').style.display = 'none';
-    document.getElementById('subChartToggleBar-albums').style.display = 'none';
     document.getElementById('exportPlaylistBtn').style.display = 'none';
     document.getElementById('dateNav').style.display = 'none';
     document.getElementById('navHint').style.display = 'none';
@@ -12309,11 +12192,7 @@ document.getElementById('periodNav').addEventListener('click', e => {
     savedOffsets[currentPeriod] = currentOffset;
     currentPeriod = 'records';
     localStorage.setItem('dc_period', currentPeriod);
-    document.getElementById('collapseAllBar').style.display = 'none';
     document.getElementById('chartTypeToggleBar').style.display = 'none';
-    document.getElementById('subChartToggleBar-songs').style.display = 'none';
-    document.getElementById('subChartToggleBar-artists').style.display = 'none';
-    document.getElementById('subChartToggleBar-albums').style.display = 'none';
     document.getElementById('exportPlaylistBtn').style.display = 'none';
     document.getElementById('dateNav').style.display = 'none';
     document.getElementById('navHint').style.display = 'none';
@@ -12348,11 +12227,7 @@ document.getElementById('periodNav').addEventListener('click', e => {
     savedOffsets[currentPeriod] = currentOffset;
     currentPeriod = 'events';
     localStorage.setItem('dc_period', currentPeriod);
-    document.getElementById('collapseAllBar').style.display = 'none';
     document.getElementById('chartTypeToggleBar').style.display = 'none';
-    document.getElementById('subChartToggleBar-songs').style.display = 'none';
-    document.getElementById('subChartToggleBar-artists').style.display = 'none';
-    document.getElementById('subChartToggleBar-albums').style.display = 'none';
     document.getElementById('exportPlaylistBtn').style.display = 'none';
     document.getElementById('dateNav').style.display = 'none';
     document.getElementById('navHint').style.display = 'none';
@@ -12401,11 +12276,7 @@ document.getElementById('periodNav').addEventListener('click', e => {
     savedOffsets[currentPeriod] = currentOffset;
     currentPeriod = 'awards';
     localStorage.setItem('dc_period', currentPeriod);
-    document.getElementById('collapseAllBar').style.display = 'none';
     document.getElementById('chartTypeToggleBar').style.display = 'none';
-    document.getElementById('subChartToggleBar-songs').style.display = 'none';
-    document.getElementById('subChartToggleBar-artists').style.display = 'none';
-    document.getElementById('subChartToggleBar-albums').style.display = 'none';
     document.getElementById('exportPlaylistBtn').style.display = 'none';
     document.getElementById('dateNav').style.display = 'none';
     document.getElementById('navHint').style.display = 'none';
@@ -12438,11 +12309,7 @@ document.getElementById('periodNav').addEventListener('click', e => {
     savedOffsets[currentPeriod] = currentOffset;
     currentPeriod = 'soundtrack';
     localStorage.setItem('dc_period', currentPeriod);
-    document.getElementById('collapseAllBar').style.display = 'none';
     document.getElementById('chartTypeToggleBar').style.display = 'none';
-    document.getElementById('subChartToggleBar-songs').style.display = 'none';
-    document.getElementById('subChartToggleBar-artists').style.display = 'none';
-    document.getElementById('subChartToggleBar-albums').style.display = 'none';
     document.getElementById('exportPlaylistBtn').style.display = 'none';
     document.getElementById('dateNav').style.display = 'none';
     document.getElementById('navHint').style.display = 'none';
@@ -12476,11 +12343,7 @@ document.getElementById('periodNav').addEventListener('click', e => {
     savedOffsets[currentPeriod] = currentOffset;
     currentPeriod = 'playlists';
     localStorage.setItem('dc_period', currentPeriod);
-    document.getElementById('collapseAllBar').style.display = 'none';
     document.getElementById('chartTypeToggleBar').style.display = 'none';
-    document.getElementById('subChartToggleBar-songs').style.display = 'none';
-    document.getElementById('subChartToggleBar-artists').style.display = 'none';
-    document.getElementById('subChartToggleBar-albums').style.display = 'none';
     document.getElementById('exportPlaylistBtn').style.display = 'none';
     document.getElementById('dateNav').style.display = 'none';
     document.getElementById('navHint').style.display = 'none';
@@ -12525,11 +12388,7 @@ document.getElementById('periodNav').addEventListener('click', e => {
     savedOffsets[currentPeriod] = currentOffset;
     currentPeriod = 'board';
     localStorage.setItem('dc_period', currentPeriod);
-    document.getElementById('collapseAllBar').style.display = 'none';
     document.getElementById('chartTypeToggleBar').style.display = 'none';
-    document.getElementById('subChartToggleBar-songs').style.display = 'none';
-    document.getElementById('subChartToggleBar-artists').style.display = 'none';
-    document.getElementById('subChartToggleBar-albums').style.display = 'none';
     document.getElementById('exportPlaylistBtn').style.display = 'none';
     document.getElementById('dateNav').style.display = 'none';
     document.getElementById('navHint').style.display = 'none';
@@ -12566,11 +12425,7 @@ document.getElementById('periodNav').addEventListener('click', e => {
     savedOffsets[currentPeriod] = currentOffset;
     currentPeriod = 'chartsguide';
     localStorage.setItem('dc_period', currentPeriod);
-    document.getElementById('collapseAllBar').style.display = 'none';
     document.getElementById('chartTypeToggleBar').style.display = 'none';
-    document.getElementById('subChartToggleBar-songs').style.display = 'none';
-    document.getElementById('subChartToggleBar-artists').style.display = 'none';
-    document.getElementById('subChartToggleBar-albums').style.display = 'none';
     document.getElementById('exportPlaylistBtn').style.display = 'none';
     document.getElementById('dateNav').style.display = 'none';
     document.getElementById('navHint').style.display = 'none';
@@ -13471,14 +13326,8 @@ function renderAll() {
   // The reel reads the period's own range, so it follows prev/next: step back
   // a week and it shows the awards that week earned.
   renderCertReel(start, end);
-  document.getElementById('collapseAllBar').style.display =
-    ['week', 'month', 'year', 'alltime'].includes(currentPeriod) ? 'flex' : 'none';
   document.getElementById('chartTypeToggleBar').style.display =
     ['week', 'month', 'year', 'alltime'].includes(currentPeriod) ? 'flex' : 'none';
-  const _subChartBarDisplay = ['week', 'month', 'year', 'alltime'].includes(currentPeriod) ? '' : 'none';
-  document.getElementById('subChartToggleBar-songs').style.display = _subChartBarDisplay;
-  document.getElementById('subChartToggleBar-artists').style.display = _subChartBarDisplay;
-  document.getElementById('subChartToggleBar-albums').style.display = _subChartBarDisplay;
   applyChartTypeView();
   const _isWeek = currentPeriod === 'week';
   ['songs','artists','albums'].forEach(tp => {
@@ -18026,7 +17875,6 @@ function toggleBuSection(type) {
   const iconEl = document.getElementById('bu' + ucType + 'ToggleIcon');
   if (bodyEl) bodyEl.style.display = _buOpen[type] ? '' : 'none';
   if (iconEl) iconEl.textContent = _buOpen[type] ? '▲' : '▼';
-  syncCollapseAllBtn();
 }
 
 // Toggles the New Entries section (songs/artists/albums) using the same
@@ -18041,7 +17889,6 @@ function toggleNeSection(type) {
   if (iconEl) iconEl.textContent = collapsed ? '▼' : '▲';
   // Persist via the same key used by restoreChartSectionCollapseState
   localStorage.setItem('dc_chart_section_collapsed_' + sectionId + '_' + currentPeriod, collapsed ? '1' : '0');
-  syncCollapseAllBtn();
 }
 
 function hideBuSection(type) {
@@ -18061,7 +17908,6 @@ function toggleOffSection(type) {
   const iconEl = document.getElementById('off' + ucType + 'ToggleIcon');
   if (bodyEl) bodyEl.style.display = _offOpen[type] ? '' : 'none';
   if (iconEl) iconEl.textContent = _offOpen[type] ? '▲' : '▼';
-  syncCollapseAllBtn();
 }
 
 function hideOffSection(type) {
@@ -45611,15 +45457,11 @@ const _cgTourSteps = [
         spotlight: '#statsStrip, #statsStrip2, #statsStrip3',
         hold: 12000 },
 
-      { content: 'Pick which chart you are reading — songs, artists or albums — then which parts of it you want: the chart itself, Bubbling Under, Off the Chart, New Entries. Any combination is allowed, and each chart type remembers its own.',
+      { content: 'Pick which chart you are reading: songs, artists or albums. Which parts of it show (the chart itself, Bubbling Under, Off the Chart, New Entries) is up to you, in the chart\'s ⋮ menu under Show. Each chart type remembers its own.',
         seq: [
           '#chartTypeToggleBar .chart-type-toggle-btn[data-type="songs"]',
           '#chartTypeToggleBar .chart-type-toggle-btn[data-type="artists"]',
           '#chartTypeToggleBar .chart-type-toggle-btn[data-type="albums"]',
-          '#subChartToggleBar-songs .sub-chart-toggle-btn[data-sub="normal"]',
-          '#subChartToggleBar-songs .sub-chart-toggle-btn[data-sub="bu"]',
-          '#subChartToggleBar-songs .sub-chart-toggle-btn[data-sub="off"]',
-          '#subChartToggleBar-songs .sub-chart-toggle-btn[data-sub="new"]',
         ],
         seqHold: 2000 },
 
@@ -45628,7 +45470,7 @@ const _cgTourSteps = [
          and walks its four tabs while this paragraph is being read. The holds
          below add up to a little under this phase's own hold, so the menu
          closes on the last tab instead of snapping shut mid-sequence. */
-      { content: 'Every section header has a ⋮ menu — here it is, opening on the songs chart.\n\n"Show" picks what each row carries: cert badges, your scores, plays peak, peak tags, the YouTube and playlist buttons, the Bubbling Under legend and descriptions. They all start off to keep the chart clean. The tour has switched them on for now so you can see them, and turns them back off when it ends. Tick any you want to keep.\n\n"Size" sets how many entries the chart holds, from Top 10 to Top 100, remembered separately per chart type.\n\n"View" switches the layout between table, card grid, compact, mosaic, filmstrip and stack.\n\n"Actions" plays the whole chart on YouTube, exports it as a playlist or a shareable image, and on the year and all-time charts downloads it as TXT or CSV.',
+      { content: 'Every section header has a ⋮ menu — here it is, opening on the songs chart.\n\n"Show" picks what each row carries: cert badges, your scores, plays peak, peak tags, the YouTube and playlist buttons, the Bubbling Under legend and descriptions. They all start off to keep the chart clean. The tour has switched them on for now so you can see them, and turns them back off when it ends. Tick any you want to keep. Under them, "Sections" picks which parts of the chart show.\n\n"Size" sets how many entries the chart holds, from Top 10 to Top 100, remembered separately per chart type.\n\n"View" switches the layout between table, card grid, compact, mosaic, filmstrip and stack.\n\n"Actions" plays the whole chart on YouTube, exports it as a playlist or a shareable image, and on the year and all-time charts downloads it as TXT or CSV.',
         kebabSection: '#songsSection',
         reveal: true,
         kebabSeq: [
@@ -45642,6 +45484,7 @@ const _cgTourSteps = [
           { tab: 'show',   sel: '.kebab-panel[data-panel="show"] > button:nth-child(6)', hold: 1100 },
           { tab: 'show',   sel: '.kebab-panel[data-panel="show"] > button:nth-child(7)', hold: 1100 },
           { tab: 'show',   sel: '.kebab-panel[data-panel="show"] > button:nth-child(8)', hold: 1100 },
+          { tab: 'show',   sel: '.kebab-panel[data-panel="show"] .kebab-sub-rows', hold: 1600 },
           { tab: 'size',   sel: '.kebab-tab[data-tab="size"]', hold: 1300 },
           { tab: 'size',   sel: '.kebab-panel[data-panel="size"] .size-btns', hold: 2400 },
           { tab: 'view',   sel: '.kebab-tab[data-tab="view"]', hold: 1300 },

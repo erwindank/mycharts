@@ -1301,6 +1301,29 @@ the pills into ⋮ → Show, 5 screen check (also covers phase 5).
   step now say Events. The switch still sits under Settings → "Chart page
   sections", which no longer quite fits; phase 10 (Settings) can regroup
   it.
+- **Step 4 ✓ (2026-10-14): one toolbar, sub-charts in ⋮ → Show.** The four
+  rows above the chart are now one: `#chartTypeToggleBar` holds Songs ·
+  Artists · Albums as a segmented control (same look as the period switch;
+  three equal segments on a phone) and, on its right, the album bucket
+  filter (`#albumsFilterBar`, moved out of the albums group, shown only on
+  the albums chart and only once a type is set apart; restyled as a small
+  segmented control, not the dropdown 4.9 suggested). The Chart / Bubbling
+  Under / Off the Chart / New Entries pills became a "Sections" group at
+  the end of each chart's ⋮ → Show (`#subChartRows-<type>`, after the eight
+  row switches so the tour's `nth-child` stops still ring the same rows).
+  Saved choices carry over (same `dc_subChartToggles`). Rows that do not
+  exist in a period hide (Monthly/Yearly: no Bubbling Under / Off; All-Time
+  keeps only Chart, so a chart switched off elsewhere can still come back).
+  **Chart off keeps the header** (your call): `sub-chart-rows-off` hides
+  everything but the title bar and ⋮, with "Chart hidden · switch it back on
+  in ⋮ → Show" (4 langs; on a phone on its own line). The Show panel grew
+  to fit the group (`min(480px, 70vh)` instead of a 280px scroll). Removed:
+  Collapse All (markup, `toggleCollapseAllCharts`, `syncCollapseAllBtn` and
+  its calls, `_isEverythingCollapsed`, its CSS and 4 keys × 4 langs), the
+  three pill rows and their CSS, and every per-tab line that showed or hid
+  them. Each section still collapses on its own. Tour: the chart-type stop
+  rings only the three segments and says where the sections went; the ⋮
+  walk adds a stop on the Sections group.
 
 The period picker does not need moving into one place:
 it already is (see 4.4). What is left is making it slim enough to live in

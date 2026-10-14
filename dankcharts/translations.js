@@ -957,18 +957,16 @@ const TRANSLATIONS = {
     btn_display_bu_legend: '🏷️ BU LEGEND',
     btn_display_desc: '📝 DESCRIPTIONS',
 
-    // Chart type + sub-chart toggle bars above the chart sections
+    // Chart toolbar (Songs / Artists / Albums) and the ⋮ → Show "Sections" rows
     chart_type_songs: 'Songs',
     chart_type_artists: 'Artists',
     chart_type_albums: 'Albums',
-    btn_collapse_all: '− Collapse All',
-    btn_expand_all: '+ Expand All',
-    tooltip_collapse_all: 'Collapse all sections',
-    tooltip_expand_all: 'Expand all sections',
     sub_toggle_new: 'New Entries',
 
     // Bubbling Under section (chart type toggle, section header, badges, legend, track list)
     sub_toggle_chart: 'Chart',
+    kebab_sections: 'Sections',
+    chart_hidden_hint: 'Chart hidden · switch it back on in ⋮ → Show',
     sub_toggle_bu: 'Bubbling Under',
     sec_bubbling_under: 'BUBBLING UNDER TOP {{n}}',
     bu_sub_songs: 'Songs just outside the chart — ranked by plays this week',
@@ -3217,18 +3215,16 @@ const TRANSLATIONS = {
     btn_display_bu_legend: '🏷️ LEYENDA BU',
     btn_display_desc: '📝 DESCRIPCIONES',
 
-    // Chart type + sub-chart toggle bars above the chart sections
+    // Chart toolbar (Songs / Artists / Albums) and the ⋮ → Show "Sections" rows
     chart_type_songs: 'Canciones',
     chart_type_artists: 'Artistas',
     chart_type_albums: 'Álbumes',
-    btn_collapse_all: '− Contraer Todo',
-    btn_expand_all: '+ Expandir Todo',
-    tooltip_collapse_all: 'Contraer todas las secciones',
-    tooltip_expand_all: 'Expandir todas las secciones',
     sub_toggle_new: 'Nuevas Entradas',
 
     // Bubbling Under section (chart type toggle, section header, badges, legend, track list)
     sub_toggle_chart: 'Ranking',
+    kebab_sections: 'Secciones',
+    chart_hidden_hint: 'Ranking oculto · vuelve a activarlo en ⋮ → Show',
     sub_toggle_bu: 'Casi en el Top',
     sec_bubbling_under: 'CASI EN EL TOP {{n}}',
     bu_sub_songs: 'Canciones justo fuera del ranking — ordenadas por reproducciones esta semana',
@@ -5382,18 +5378,16 @@ const TRANSLATIONS = {
     btn_display_desc: '📝 DESCRIÇÕES',
     badge_plays_peak: 'PICO DE REPROD.',
 
-    // Chart type + sub-chart toggle bars above the chart sections
+    // Chart toolbar (Songs / Artists / Albums) and the ⋮ → Show "Sections" rows
     chart_type_songs: 'Músicas',
     chart_type_artists: 'Artistas',
     chart_type_albums: 'Álbuns',
-    btn_collapse_all: '− Recolher Tudo',
-    btn_expand_all: '+ Expandir Tudo',
-    tooltip_collapse_all: 'Recolher todas as seções',
-    tooltip_expand_all: 'Expandir todas as seções',
     sub_toggle_new: 'Novas Entradas',
 
     // Bubbling Under section (chart type toggle, section header, badges, legend, track list)
     sub_toggle_chart: 'Parada',
+    kebab_sections: 'Seções',
+    chart_hidden_hint: 'Parada oculta · ative de novo em ⋮ → Show',
     sub_toggle_bu: 'Quase no Top',
     sec_bubbling_under: 'QUASE NO TOP {{n}}',
     bu_sub_songs: 'Músicas que ficaram de fora da parada — ordenadas por reproduções esta semana',
@@ -7548,18 +7542,16 @@ const TRANSLATIONS = {
     btn_display_desc: '📝 DESCRIÇÕES',
     badge_plays_peak: 'PICO DE REPROD.',
 
-    // Chart type + sub-chart toggle bars above the chart sections
+    // Chart toolbar (Songs / Artists / Albums) and the ⋮ → Show "Sections" rows
     chart_type_songs: 'Músicas',
     chart_type_artists: 'Artistas',
     chart_type_albums: 'Álbuns',
-    btn_collapse_all: '− Recolher Tudo',
-    btn_expand_all: '+ Expandir Tudo',
-    tooltip_collapse_all: 'Recolher todas as secções',
-    tooltip_expand_all: 'Expandir todas as secções',
     sub_toggle_new: 'Novas Entradas',
 
     // Bubbling Under section (chart type toggle, section header, badges, legend, track list)
     sub_toggle_chart: 'Top',
+    kebab_sections: 'Secções',
+    chart_hidden_hint: 'Top oculto · volta a ativá-lo em ⋮ → Show',
     sub_toggle_bu: 'Quase no Top',
     sec_bubbling_under: 'QUASE NO TOP {{n}}',
     bu_sub_songs: 'Músicas que ficaram fora do Top — ordenadas por reproduções esta semana',
