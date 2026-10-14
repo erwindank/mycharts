@@ -27,11 +27,11 @@
   <!-- html2canvas, SheetJS (xlsx) and JSZip are intentionally NOT loaded here — they
        total ~1.2 MB and are only needed for image exports and Excel/ZIP imports.
        app.js pulls them from the CDN on first use (see ensureLazyLib). -->
-  <link rel="stylesheet" href="style.css?v=365">
+  <link rel="stylesheet" href="style.css?v=366">
   <!-- All scripts are deferred so the page paints without waiting on them.
        defer preserves execution order, which matters: translations → Chart.js →
        hammer → zoom plugin → firebase SDKs → firebase.js → app.js (in body). -->
-  <script defer src="translations.js?v=62"></script>
+  <script defer src="translations.js?v=63"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8/hammer.min.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@1.2.1/dist/chartjs-plugin-zoom.min.js"></script>
@@ -40,7 +40,7 @@
   <script defer src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
   <script defer src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
   <script defer src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
-  <script defer src="firebase.js?v=15"></script>
+  <script defer src="firebase.js?v=16"></script>
 </head>
 
 <body>
@@ -386,6 +386,18 @@
     </div>
   </nav>
 
+  <!-- SYNC TOAST (phase 5 step 4, REDESIGN-PLAN.md 3.6 / 4.2). Sync and load
+       messages used to be a strip of text at the top of the page. They now pop
+       up here, in a corner (under the top bar on desktop, above the tab bar on
+       phones), and setSyncStatus() decides when: on the first load, when you
+       press Sync, for errors and for a few notable results. Background
+       auto-syncs only update the Sync button's tooltip. Successes fade after a
+       few seconds; errors stay until closed. -->
+  <div class="sync-toast" id="syncToast" role="status" aria-live="polite" hidden>
+    <span id="syncStatus"></span>
+    <button id="syncDismissBtn" type="button" aria-label="Dismiss" title="Dismiss">×</button>
+  </div>
+
   <div class="upload-zone" id="uploadZone" style="display:none;">
     <div class="upload-box" id="uploadBox">
       <input type="file" id="csvFile" accept=".csv">
@@ -396,16 +408,6 @@
   </div>
 
   <div class="container" id="mainApp" style="display:none;">
-
-    <div class="sync-bar" id="syncBar">
-      <!-- sync_loading is deliberately source-neutral: at this point we don't know yet
-           whether the source is Google Sheets, Last.fm or a CSV file, so it must not
-           say "Connecting to Google Sheets" (the source-specific text is set by app.js) -->
-      <!-- The buttons that used to sit on the right of this strip (Sync, Settings,
-           Add Play, Sign in) moved to the top bar in phase 5. The status text
-           stays here until it becomes a toast (phase 5, step 4). -->
-      <span id="syncStatus" data-i18n="sync_loading">⟳ Loading…</span><button id="syncDismissBtn" title="Dismiss" style="display:none">×</button>
-    </div>
 
     <!-- Live "ON AIR" bar — painted by renderNowPlaying() while Last.fm reports an
          in-progress track. Sits above the streak banner so the live moment reads
@@ -3732,7 +3734,7 @@
   <!-- Community board tab (suggestions / bugs / discussion). Loaded before
        app.js so window.dcBoard exists when app.js opens a #t=board/<id> link. -->
   <script defer src="board.js?v=1"></script>
-  <script defer src="app.js?v=326"></script>
+  <script defer src="app.js?v=327"></script>
 
   <!-- ── Settings Modal ──
        Split into three tabs so the whole form is never dumped on screen at

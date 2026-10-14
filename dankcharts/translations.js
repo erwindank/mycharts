@@ -472,6 +472,8 @@ const TRANSLATIONS = {
     sync_loading: '⟳ Loading…',
     sync_now: '<span class="btn-icon btn-ico-sync" aria-hidden="true"><i class="bi-ring"></i><i class="bi-head"></i></span> SYNC NOW',
     sync_ok: '✓ Synced · {{time}}  (⟦{{n}}⟧ plays loaded)',
+    // Sync pressed with an uploaded file as the source (nothing to fetch)
+    sync_file_nothing: '✓ {{n}} plays loaded from your file. To update them, upload a new file in Settings.',
     sync_partial: '⚠ Loaded ⟦{{n}}⟧ plays, but Last.fm rate-limited {{pages}} page(s) — retrying shortly.',
     sync_nocache: '✓ Loaded ⟦{{n}}⟧ plays — could not save the offline cache (device storage full or blocked).',
     sync_retrying: '⟳ Retrying {{done}} / {{total}} Last.fm pages…',
@@ -2744,6 +2746,8 @@ const TRANSLATIONS = {
     sync_loading: '⟳ Cargando…',
     sync_now: '<span class="btn-icon btn-ico-sync" aria-hidden="true"><i class="bi-ring"></i><i class="bi-head"></i></span> SINCRONIZAR',
     sync_ok: '✓ Sincronizado · {{time}}  (⟦{{n}}⟧ reproducciones cargadas)',
+    // Sync pressed with an uploaded file as the source (nothing to fetch)
+    sync_file_nothing: '✓ {{n}} reproducciones cargadas de tu archivo. Para actualizarlas, sube un archivo nuevo en Configuración.',
     sync_partial: '⚠ Se cargaron ⟦{{n}}⟧ reproducciones, pero Last.fm limitó {{pages}} página(s) — se reintentará en breve.',
     sync_nocache: '✓ Se cargaron ⟦{{n}}⟧ reproducciones — no se pudo guardar la caché local (almacenamiento del dispositivo lleno o bloqueado).',
     sync_retrying: '⟳ Reintentando {{done}} / {{total}} páginas de Last.fm…',
@@ -4912,6 +4916,8 @@ const TRANSLATIONS = {
     sync_loading: '⟳ Carregando…',
     sync_now: '<span class="btn-icon btn-ico-sync" aria-hidden="true"><i class="bi-ring"></i><i class="bi-head"></i></span> SINCRONIZAR',
     sync_ok: '✓ Sincronizado · {{time}}  (⟦{{n}}⟧ reproduções carregadas)',
+    // Sync pressed with an uploaded file as the source (nothing to fetch)
+    sync_file_nothing: '✓ {{n}} reproduções carregadas do seu arquivo. Para atualizar, envie um arquivo novo em Configurações.',
     sync_partial: '⚠ Foram carregadas ⟦{{n}}⟧ reproduções, mas o Last.fm limitou {{pages}} página(s) — nova tentativa em breve.',
     sync_nocache: '✓ Foram carregadas ⟦{{n}}⟧ reproduções — não foi possível guardar a cache local (armazenamento do dispositivo cheio ou bloqueado).',
     sync_retrying: '⟳ A repetir {{done}} / {{total}} páginas do Last.fm…',
@@ -7081,6 +7087,8 @@ const TRANSLATIONS = {
     sync_loading: '⟳ A carregar…',
     sync_now: '<span class="btn-icon btn-ico-sync" aria-hidden="true"><i class="bi-ring"></i><i class="bi-head"></i></span> SINCRONIZAR',
     sync_ok: '✓ Sincronizado · {{time}}  (⟦{{n}}⟧ reproduções carregadas)',
+    // Sync pressed with an uploaded file as the source (nothing to fetch)
+    sync_file_nothing: '✓ {{n}} reproduções carregadas do seu ficheiro. Para atualizar, carregue um ficheiro novo nas Definições.',
     sync_partial: '⚠ Foram carregadas ⟦{{n}}⟧ reproduções, mas o Last.fm limitou {{pages}} página(s) — nova tentativa em breve.',
     sync_nocache: '✓ Foram carregadas ⟦{{n}}⟧ reproduções — não foi possível guardar a cache local (armazenamento do dispositivo cheio ou bloqueado).',
     sync_retrying: '⟳ A repetir {{done}} / {{total}} páginas do Last.fm…',

@@ -1215,8 +1215,19 @@ only navy uses the `-dark` suffix). Phase 3 was checked in the real Yellow.
   52px, phone two lines (~100px). The keyboard/swipe hint is hidden
   (`#navHint` stays in the DOM because ~10 view branches set its display;
   phase 11 can remove it with them). All-Time hides the arrows and ▾.
-- Steps left: 4 toasts, 5 ON AIR + streak strip, 6 other tabs start at the
-  top and the phone scroll-to-top button.
+- **Step 4 ✓ (2026-10-13): toasts.** The sync strip (`#syncBar`) is gone;
+  `#syncStatus` now lives in `#syncToast`, top right under the top bar
+  (bottom centre above the tab bar on phones). `setSyncStatus(msg, cls,
+  {toast})` pops it for errors (stay until closed), the first status of a
+  visit, a press of Sync, flagged one-offs (auto-correct results, file
+  loaded) and while already on screen; background auto-syncs only update the
+  Sync button tooltip. Successes fade after 4.5s, hover holds. Deleted: the
+  strip's CSS, the auto-correct "dismiss restores previous status" code,
+  `_lastSyncStatusCls`. Also fixed: Sync with a CSV file as the source used
+  to report "No Google Sheet configured"; it now says what is loaded and how
+  to update it (`sync_file_nothing`, 4 langs).
+- Steps left: 5 ON AIR + streak strip, 6 other tabs start at the top and the
+  phone scroll-to-top button.
 
 The period picker does not need moving into one place:
 it already is (see 4.4). What is left is making it slim enough to live in

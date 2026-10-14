@@ -2314,15 +2314,9 @@ async function autoCorrectEntries(plays, writeUrl) {
     });
     const data = await res.json();
     if (data.status !== 'error' && data.updated > 0) {
-      const prevMsg = _lastSyncStatusMsg;
-      const prevCls = _lastSyncStatusCls;
-      setSyncStatus(`✓ Auto-corrected ${data.updated} entr${data.updated === 1 ? 'y' : 'ies'} in sheet.`, 'ok');
-      const dismissBtn = document.getElementById('syncDismissBtn');
-      dismissBtn.style.display = '';
-      dismissBtn.onclick = () => {
-        setSyncStatus(prevMsg, prevCls);
-        dismissBtn.style.display = 'none';
-      };
+      // A toast now (phase 5): it fades by itself, so there is no previous
+      // status line to restore with a dismiss button any more
+      setSyncStatus(`✓ Auto-corrected ${data.updated} entr${data.updated === 1 ? 'y' : 'ies'} in sheet.`, 'ok', { toast: true });
     } else if (data.status === 'error')
       console.warn('Auto-correct: sheet update failed:', data.message);
   } catch (e) {
@@ -3260,15 +3254,8 @@ async function saveEditLocally() {
     saveAutocorrectRule(orig.artist, orig.title, orig.album, f.artist, f.title, newAlbum);
     if (choice === 'run') {
       applyRuleToSheet(orig.artist, orig.title, orig.album, f.artist, f.title, newAlbum).then(r => {
-        const prevMsg = _lastSyncStatusMsg;
-        const prevCls = _lastSyncStatusCls;
         if (!r.error) {
-          setSyncStatus(`✓ Applied rule: corrected ${r.updated} entr${r.updated === 1 ? 'y' : 'ies'} in sheet.`, 'ok');
-          const dismissBtn = document.getElementById('syncDismissBtn');
-          if (dismissBtn) {
-            dismissBtn.style.display = '';
-            dismissBtn.onclick = () => { setSyncStatus(prevMsg, prevCls); dismissBtn.style.display = 'none'; };
-          }
+          setSyncStatus(`✓ Applied rule: corrected ${r.updated} entr${r.updated === 1 ? 'y' : 'ies'} in sheet.`, 'ok', { toast: true });
         } else {
           setSyncStatus('Rule saved, but sheet apply failed: ' + r.error, 'err');
         }
@@ -4686,18 +4673,79 @@ async function deleteFromIDB(key) {
 // knows which direction/distance to roll when the count changes.
 let _prevSyncCountDigits = null;
 
-// Raw (msg, cls) most recently passed to setSyncStatus. The odometer markup
+// Raw message most recently passed to setSyncStatus. The odometer markup
 // makes #syncStatus.textContent unreliable (it concatenates every stacked
-// digit in every reel), so callers that need to snapshot/restore the status
-// (e.g. the auto-correct dismiss button) must read these instead.
+// digit in every reel), so anything that needs the status reads this instead
+// (applyI18n in translations.js uses it to avoid re-stamping a live status).
 let _lastSyncStatusMsg = '';
-let _lastSyncStatusCls = '';
 
-function setSyncStatus(msg, cls) {
+// ── SYNC TOAST (phase 5 step 4) ──
+// The status text renders exactly as before (odometer and all), but into the
+// #syncToast pop-up instead of a strip at the top of the page. When it pops:
+//   - always for errors, which stay until closed;
+//   - for the first status of the visit (the initial load);
+//   - after a press of Sync (_syncToastUserAsked, until that sync ends);
+//   - when the caller passes { toast: true } for a notable one-off result;
+//   - and while it is already on screen, so progress updates in place.
+// Anything else (the background auto-sync every few minutes) only updates the
+// Sync button's tooltip, so a quiet refresh never pops up uninvited.
+const SYNC_TOAST_MS = 4500;
+let _syncToastTimer = null;
+let _syncToastFirstDone = false;
+let _syncToastUserAsked = false;
+
+function _syncToastEl() { return document.getElementById('syncToast'); }
+
+function _syncToastHide() {
+  const box = _syncToastEl();
+  if (!box) return;
+  clearTimeout(_syncToastTimer);
+  box.classList.remove('is-in');
+  setTimeout(() => { if (!box.classList.contains('is-in')) box.hidden = true; }, 260);
+}
+
+// Successes fade by themselves; errors and work in progress wait
+function _syncToastArm(cls) {
+  clearTimeout(_syncToastTimer);
+  if (cls === 'ok') _syncToastTimer = setTimeout(_syncToastHide, SYNC_TOAST_MS);
+}
+
+function _syncToastShow(cls) {
+  const box = _syncToastEl();
+  if (!box) return;
+  box.dataset.kind = cls || 'info';
+  box.hidden = false;
+  requestAnimationFrame(() => box.classList.add('is-in'));
+  _syncToastArm(cls);
+}
+
+(function initSyncToast() {
+  const box = _syncToastEl();
+  if (!box) return;
+  document.getElementById('syncDismissBtn')?.addEventListener('click', _syncToastHide);
+  // Pointing at it holds it open, so it can be read
+  box.addEventListener('mouseenter', () => clearTimeout(_syncToastTimer));
+  box.addEventListener('mouseleave', () => _syncToastArm(box.dataset.kind));
+})();
+
+function setSyncStatus(msg, cls, opts) {
+  _renderSyncStatus(msg, cls);
+  const box = _syncToastEl();
+  const onScreen = !!(box && !box.hidden && box.classList.contains('is-in'));
+  if ((opts && opts.toast) || cls === 'err' || !_syncToastFirstDone || _syncToastUserAsked || onScreen) {
+    _syncToastShow(cls);
+  }
+  // A sync has finished one way or the other: the next quiet one stays quiet
+  if (cls === 'ok' || cls === 'err') { _syncToastFirstDone = true; _syncToastUserAsked = false; }
+  // The last status is always one hover away, on the Sync button
+  const btn = document.getElementById('syncNowBtn');
+  if (btn && msg) btn.title = t('tooltip_sync_now') + ' · ' + String(msg).replace(/[⟦⟧]/g, '');
+}
+
+function _renderSyncStatus(msg, cls) {
   const el = document.getElementById('syncStatus');
   el.className = cls || '';
   _lastSyncStatusMsg = msg;
-  _lastSyncStatusCls = cls || '';
   // sync_ok / sync_ok_cached wrap the play count in ⟦…⟧ (see translations.js) —
   // split on that marker so the count can render as an animated digit reel
   // while everything else stays a plain text node (no innerHTML of msg, which
@@ -5217,6 +5265,14 @@ async function syncFromLastFm() {
 }
 
 function syncNow() {
+  // An uploaded file has nothing to fetch. This used to fall through to the
+  // Sheets sync and report "No Google Sheet configured" to CSV users; say what
+  // is loaded and how to update it instead.
+  if (getDataSource() === 'file') {
+    startNowPlaying();
+    setSyncStatus(t('sync_file_nothing', { n: allPlays.length.toLocaleString() }), 'ok');
+    return;
+  }
   if (getDataSource() === 'lastfm') syncFromLastFm();
   // Sheets/CSV keep the ON AIR bar as long as a Last.fm account is connected —
   // startNowPlaying() tears it down by itself when there's no username to poll.
@@ -6072,7 +6128,12 @@ function saveSourceConfig() {
   syncNow();
 }
 
-document.getElementById('syncNowBtn').addEventListener('click', syncNow);
+// A press of Sync is asked-for feedback, so its progress and result pop up
+// as a toast even though background auto-syncs stay quiet (setSyncStatus).
+document.getElementById('syncNowBtn').addEventListener('click', () => {
+  _syncToastUserAsked = true;
+  syncNow();
+});
 
 // ─── LANDING / ONBOARDING ──────────────────────────────────────
 function needsOnboarding() {
@@ -29465,7 +29526,7 @@ async function importFileData(file) {
     localStorage.setItem('dc_source', 'file');
     if (statusEl) statusEl.textContent = t('set_file_loaded', { n: allPlays.length.toLocaleString() });
     closeSourceModal();
-    setSyncStatus(`✓ ${allPlays.length.toLocaleString()} plays loaded from ${file.name}`, 'ok');
+    setSyncStatus(`✓ ${allPlays.length.toLocaleString()} plays loaded from ${file.name}`, 'ok', { toast: true });
     finalizeLoad();
   } catch (e) {
     if (statusEl) statusEl.textContent = t('set_error', { msg: e.message });

@@ -1660,7 +1660,6 @@
       }
     }
 
-
     /* MAIN TABS (phase 5 step 2, REDESIGN-PLAN.md 4.3)
        Text-only tabs in the top bar. The active one gets the accent colour
        and a 2px underline sitting on the bar's bottom hairline. */
@@ -1957,7 +1956,6 @@
       }
     }
 
-
     /* PERIOD BAR (phase 5 step 3, REDESIGN-PLAN.md 4.4)
        One slim row inside the sticky date bar:
          [ Week | Month | Year | All-time ]      ‹  This week · 11 – 17 Oct 2026 ▾  ›
@@ -2159,38 +2157,116 @@
       }
     }
 
-    /* SYNC BAR */
-    .sync-bar {
+    /* SYNC TOAST (phase 5 step 4) — replaces the old sync strip.
+       Top right under the top bar on desktop (it follows the bar up when the
+       bar tucks away, via --topbar-offset), bottom centre above the tab bar
+       on phones. A coloured dot says what kind of message it is; the text
+       itself stays in the normal text colour so it reads in every theme. */
+    .sync-toast {
+      position: fixed;
+      top: calc(var(--topbar-offset) + var(--sp-3));
+      right: var(--sp-4);
+      z-index: 950;   /* over the mini player (900–902), under modals (1000) */
       display: flex;
       align-items: center;
-      justify-content: space-between;
+      gap: var(--sp-2);
+      max-width: min(380px, calc(100vw - 2 * var(--sp-4)));
+      padding: var(--sp-2) var(--sp-2) var(--sp-2) var(--sp-3);
       background: var(--bg2);
-      color: var(--text2);
-      padding: var(--sp-2) var(--sp-4);
+      border: 1px solid var(--border);
+      border-radius: var(--r-md);
+      box-shadow: var(--shadow-2);
+      color: var(--text);
       font-family: var(--font-sans);
-      font-size: var(--fs-xs);
-      border-bottom: 1px solid var(--border);
-      margin-top: var(--sp-5);
-      border-radius: 8px 8px 0 0;
+      font-size: var(--fs-sm);
+      line-height: 1.35;
+      opacity: 0;
+      transform: translateY(-6px);
+      transition: opacity 0.22s var(--ease, ease), transform 0.22s var(--ease, ease), top 0.25s var(--ease, ease);
+      pointer-events: none;
     }
 
-    .sync-bar #syncStatus {
+    .sync-toast[hidden] {
+      display: none;
+    }
+
+    .sync-toast.is-in {
+      opacity: 1;
+      transform: none;
+      pointer-events: auto;
+    }
+
+    .sync-toast::before {
+      content: '';
+      flex-shrink: 0;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--text3);
+    }
+
+    .sync-toast[data-kind="ok"]::before      { background: var(--green); }
+    .sync-toast[data-kind="err"]::before     { background: var(--rose); }
+    .sync-toast[data-kind="loading"]::before {
+      background: var(--amber);
+      animation: syncToastPulse 1.2s ease-in-out infinite;
+    }
+
+    @keyframes syncToastPulse {
+      50% { opacity: 0.35; }
+    }
+
+    .sync-toast #syncStatus {
+      min-width: 0;
+      overflow-wrap: anywhere;
+    }
+
+    #syncDismissBtn {
+      flex-shrink: 0;
+      width: 26px;
+      height: 26px;
+      border: 0;
+      border-radius: var(--r-xs);
+      background: transparent;
       color: var(--text3);
+      font-size: var(--fs-md);
+      line-height: 1;
+      cursor: pointer;
     }
 
-    .sync-bar #syncStatus.ok {
-      color: var(--green);
+    #syncDismissBtn:hover {
+      background: var(--hover);
+      color: var(--text);
     }
 
-    .sync-bar #syncStatus.err {
-      color: var(--rose);
+    @media (max-width: 960px) {
+      .sync-toast {
+        top: auto;
+        right: var(--sp-3);
+        left: var(--sp-3);
+        bottom: calc(var(--sp-3) + var(--bottomnav-space));
+        /* centred between the side insets, as wide as its text needs */
+        width: fit-content;
+        max-width: calc(100vw - 2 * var(--sp-3));
+        margin-inline: auto;
+        transform: translateY(6px);
+        transition: opacity 0.22s var(--ease, ease), transform 0.22s var(--ease, ease), bottom 0.25s var(--ease, ease);
+      }
     }
 
-    .sync-bar #syncStatus.loading {
-      color: var(--amber);
+    @media (prefers-reduced-motion: reduce) {
+      .sync-toast,
+      .sync-toast.is-in {
+        transform: none;
+        transition: opacity 0.15s;
+      }
+
+      .sync-toast[data-kind="loading"]::before {
+        animation: none;
+      }
     }
 
-    /* Cassette-counter digit odometer for the sync bar play count (see setSyncStatus) */
+    /* Cassette-counter digit odometer for the sync toast's play count (see setSyncStatus) */
     .sync-count {
       display: inline-flex;
       align-items: baseline;
@@ -2226,19 +2302,6 @@
         transition: none;
       }
     }
-
-    #syncDismissBtn {
-      background: none;
-      border: none;
-      color: var(--text3);
-      cursor: pointer;
-      font-size: var(--fs-sm);
-      line-height: 1;
-      margin-left: var(--sp-1);
-      opacity: 0.6;
-      padding: 0 0.2rem;
-    }
-    #syncDismissBtn:hover { opacity: 1; }
 
     #syncNowBtn {
       background: none;
@@ -11782,12 +11845,6 @@
         display: none;
       }
 
-      /* Sync bar wraps on small screens */
-      .sync-bar {
-        flex-wrap: wrap;
-        gap: 0.4rem;
-      }
-
       /* Bigger touch targets for date nav */
       .date-nav button {
         min-height: 40px;
@@ -11940,7 +11997,6 @@
       /* .section-size-bar is excluded — it lives inside a chart-section with its own padding */
       /* stats strips excluded since the 2026 redesign: they are separated
          rounded cards now, and full-bleed would clip their borders/shadows */
-      .sync-bar,
       .streak-banner,
       .period-nav,
       .chart-size-bar:not(.section-size-bar),
@@ -11951,7 +12007,6 @@
       }
 
       /* Remove corner rounding on elements that are now edge-to-edge */
-      .sync-bar,
       .date-nav {
         border-radius: 0;
       }
