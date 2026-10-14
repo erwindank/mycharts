@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['pt-PT'] = {
 
   /* ========== OUTUBRO 2026 ========== */
 
+  "One toolbar above the chart":
+    ["Uma só barra por cima da tabela",
+     "As quatro filas de botões por cima da tabela são agora uma: Músicas, Artistas e Álbuns ficam num único seletor, e o filtro de Álbuns, Singles e EPs aparece ao lado quando separaste um tipo de lançamento. Top, Quase no Top, Fora do Top e Novas Entradas passaram para o menu ⋮ da tabela, em Show, num novo grupo Secções, e as tuas escolhas mantiveram-se. Se esconderes a própria tabela, o título e o menu ⋮ ficam lá para a voltares a ativar. O botão Recolher tudo saiu; cada secção continua a recolher-se sozinha."],
+
   "The Time Machine moves to the Events tab":
     ["A Máquina do tempo passa para o separador Eventos",
      "A Máquina do tempo, o carrossel do que ouvias neste dia em anos anteriores, abre agora o separador Eventos, logo acima dos aniversários dos teus artistas e dos seus lançamentos, em vez de ficar no topo de cada tabela, por isso as tabelas começam com as tuas estatísticas. Funciona como antes: passa sozinha, Músicas, Artistas e Álbuns continuam a alternar, e o interruptor dela em Definições continua a escondê-la."],

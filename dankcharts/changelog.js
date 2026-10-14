@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 114;
+const DC_CL_I18N_V = 115;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,10 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+
+  { d: '2026-10-14', t: 'design', a: 'charts', h: 'dd2f221',
+    title: 'One toolbar above the chart',
+    detail: "The four rows of buttons above the chart are now one: Songs, Artists and Albums sit in a single switch, and the Albums, Singles and EPs filter sits beside it when you have set a release type apart. Chart, Bubbling Under, Off the Chart and New Entries moved into the chart's ⋮ menu, under Show, in a new Sections group, and your choices there carried over. If you switch the chart itself off, its title and ⋮ menu stay so you can switch it back on. The Collapse All button is gone; each section still collapses on its own." },
 
   { d: '2026-10-14', t: 'design', a: 'charts', h: '18c8ee8',
     title: 'The Time Machine moves to the Events tab',

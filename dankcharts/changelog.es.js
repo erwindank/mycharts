@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['es'] = {
 
   /* ========== OCTUBRE 2026 ========== */
 
+  "One toolbar above the chart":
+    ["Una sola barra encima del chart",
+     "Las cuatro filas de botones encima del chart ahora son una: Canciones, Artistas y Álbumes están en un solo selector, y el filtro de Álbumes, Sencillos y EPs aparece a su lado cuando has separado un tipo de lanzamiento. Ranking, Casi en el Top, Fuera del Ranking y Nuevas Entradas pasaron al menú ⋮ del chart, en Show, dentro de un nuevo grupo Secciones, y lo que tenías elegido se mantiene. Si ocultas el propio chart, su título y el menú ⋮ se quedan para que puedas volver a activarlo. El botón Contraer todo ya no está; cada sección se sigue contrayendo por su cuenta."],
+
   "The Time Machine moves to the Events tab":
     ["La Máquina del tiempo pasa a la pestaña Eventos",
      "La Máquina del tiempo, el carrusel de lo que escuchabas este mismo día en años anteriores, ahora abre la pestaña Eventos, justo encima de los cumpleaños y aniversarios de tus artistas, en lugar de estar arriba de cada chart, así que los charts empiezan con tus estadísticas. Funciona igual que antes: se mueve sola, Canciones, Artistas y Álbumes siguen cambiándose, y su interruptor en Ajustes la sigue ocultando."],

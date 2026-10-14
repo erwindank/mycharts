@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['pt-BR'] = {
 
   /* ========== OUTUBRO 2026 ========== */
 
+  "One toolbar above the chart":
+    ["Uma só barra acima da parada",
+     "As quatro fileiras de botões acima da parada agora são uma: Músicas, Artistas e Álbuns ficam num único seletor, e o filtro de Álbuns, Singles e EPs aparece ao lado quando você separou um tipo de lançamento. Parada, Quase no Top, Fora da Parada e Novas Entradas foram para o menu ⋮ da parada, em Show, num novo grupo Seções, e suas escolhas foram mantidas. Se você esconder a própria parada, o título e o menu ⋮ continuam lá para você ativá-la de novo. O botão Recolher tudo saiu; cada seção continua recolhendo sozinha."],
+
   "The Time Machine moves to the Events tab":
     ["A Máquina do tempo vai para a aba Eventos",
      "A Máquina do tempo, o carrossel do que você ouvia neste dia em anos anteriores, agora abre a aba Eventos, logo acima dos aniversários dos seus artistas e dos seus lançamentos, em vez de ficar no topo de cada parada, então as paradas começam com as suas estatísticas. Funciona como antes: passa sozinha, Músicas, Artistas e Álbuns continuam alternando, e a chave dela em Configurações continua escondendo-a."],
