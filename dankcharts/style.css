@@ -37,6 +37,9 @@
       /* Height of the sticky top bar (phase 5). Anything else that sticks to
          the page scroll sits below it: top: var(--topbar-h). */
       --topbar-h: 56px;
+      /* Where page-sticky things pin. Same as --topbar-h while the bar is
+         showing, 0 while it is tucked away (body.topbar-idle, see below). */
+      --topbar-offset: var(--topbar-h);
       --z-dropdown: 500;
       --z-overlay: 900;
       --z-modal: 1000;
@@ -1328,6 +1331,29 @@
       z-index: var(--z-nav);
       background: var(--bg);
       border-bottom: 1px solid var(--border);
+      transition: transform 0.25s var(--ease, ease);
+    }
+
+    /* Auto-hide (asked for 2026-10-13): the bar shows while the page moves and
+       slides up out of view after a few seconds of stillness. app.js (TOP BAR
+       AUTO-HIDE) toggles body.topbar-idle; it never sets it at the top of the
+       page, while a menu in the bar is open, or while the pointer or keyboard
+       focus is in it. The date bar and other sticky rows follow it up through
+       --topbar-offset, so no gap is left where the bar was. */
+    body.topbar-idle .topbar {
+      transform: translateY(-100%);
+    }
+
+    body.topbar-idle {
+      --topbar-offset: 0px;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      /* body prefix: the .sticky-nav-bar rule sits much later in the file */
+      body .topbar,
+      body .sticky-nav-bar {
+        transition: none;
+      }
     }
 
     .topbar-inner {
@@ -14270,7 +14296,7 @@
          z-index 2 and would otherwise paint over the stuck header.
          top clears the sticky top bar (phase 5). */
       position: sticky;
-      top: var(--topbar-h);
+      top: var(--topbar-offset);
       z-index: 3;
       background: var(--bg3);
     }
@@ -20448,14 +20474,14 @@ body.albums-hide-pl-btns  #newAlbumsSection  .dc-pl-add-btn { display: none; }
 
 .sticky-nav-bar {
   position: sticky;
-  top: var(--topbar-h);   /* pins just under the sticky top bar (phase 5) */
+  top: var(--topbar-offset);   /* pins just under the sticky top bar (phase 5) */
+  transition: box-shadow 0.2s, top 0.25s var(--ease, ease);
   z-index: 50;
   background: var(--bg);
   /* Gap between the period nav card and the date card — padding rather than
      margin so the pinned bar keeps a strip of page background above the card */
   padding-top: 10px;
   margin-bottom: 1.75rem;
-  transition: box-shadow 0.2s;
 }
 
 .sticky-nav-bar.is-stuck {
@@ -31092,7 +31118,7 @@ body.red-light .modal-rank-card--year .mrc-rank {
     /* ── 21 · Table of contents (sticky jump nav) ─────────── */
     .cg-toc-row {
       position: sticky;
-      top: var(--topbar-h);   /* under the sticky top bar (phase 5) */
+      top: var(--topbar-offset);   /* under the sticky top bar (phase 5) */
       z-index: var(--z-nav);
       display: flex;
       gap: 0.4rem;

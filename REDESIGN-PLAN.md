@@ -1186,6 +1186,11 @@ only navy uses the `-dark` suffix). Phase 3 was checked in the real Yellow.
   control stack. Left for phase 11: the `masthead_est` /
   `masthead_streaming` translation keys (their code is guarded and now finds
   no element). The sync bar still shows the status line until step 4.
+  **Auto-hide (your request, 2026-10-13):** the bar slides up after 3s of
+  no scrolling and comes back on scroll or with the mouse at the top edge.
+  It stays at the top of the page, with a menu open, under the pointer or
+  with keyboard focus. Sticky rows follow it through `--topbar-offset`
+  (0 while `body.topbar-idle`).
 - Steps left: 2 main tabs + More, 3 period switch next to the date,
   4 toasts, 5 ON AIR + streak strip, 6 other tabs start at the top and the
   phone scroll-to-top button.

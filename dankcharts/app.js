@@ -26814,6 +26814,55 @@ function dcTopbarHome(e) {
 }
 window.dcTopbarHome = dcTopbarHome;
 
+// ── TOP BAR AUTO-HIDE ──
+// The bar shows while the page is moving and tucks itself away (slides up,
+// body.topbar-idle in style.css) after TOPBAR_IDLE_MS of no scrolling, so it
+// only takes space while you are moving around. It stays put:
+//   - near the top of the page, where it is part of the layout anyway;
+//   - while one of its menus (theme, language, account) is open;
+//   - while the pointer is over it or keyboard focus is inside it.
+// On a mouse, bringing the pointer to the top edge brings it back too, so the
+// buttons are reachable without having to scroll.
+(function initTopbarAutoHide() {
+  const bar = document.getElementById('topbar');
+  if (!bar) return;
+  const TOPBAR_IDLE_MS = 3000;
+  let idleTimer = null;
+  let hovering = false;
+
+  // True when the bar must stay visible no matter how long it has been still
+  const mustStay = () =>
+    window.scrollY < bar.offsetHeight ||
+    hovering ||
+    // keyboard focus only: a mouse click also focuses the button, and the bar
+    // should still tuck away after you have clicked Sync
+    !!bar.querySelector(':focus-visible') ||
+    !!bar.querySelector('.ctrl-group.open');
+
+  const hide = () => {
+    if (mustStay()) { arm(); return; }   // check again later instead of hiding
+    document.body.classList.add('topbar-idle');
+  };
+  function arm() {
+    clearTimeout(idleTimer);
+    idleTimer = setTimeout(hide, TOPBAR_IDLE_MS);
+  }
+  const show = () => {
+    document.body.classList.remove('topbar-idle');
+    arm();
+  };
+
+  window.addEventListener('scroll', show, { passive: true });
+  bar.addEventListener('mouseenter', () => { hovering = true; show(); });
+  bar.addEventListener('mouseleave', () => { hovering = false; arm(); });
+  bar.addEventListener('focusin', show);
+  // Pointer at the top edge of the window (mouse only; touch scrolls instead)
+  window.addEventListener('mousemove', e => {
+    if (e.clientY <= 8 && document.body.classList.contains('topbar-idle')) show();
+  }, { passive: true });
+  arm();
+})();
+
 // body[data-view] mirrors whichever main tab is active (week, month, records…),
 // so CSS can show or hide whole blocks per tab — e.g. the all-time summary only
 // on All-Time. Read off the active nav button rather than hooked into every
