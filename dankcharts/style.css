@@ -30632,10 +30632,12 @@ body.navy-light .song-album,   body.purple-light .song-album,
 body.yellow-light .song-album, body.pink-light .song-album,
 body.red-light .song-album { color: var(--text2); }
 
-/* 7. Bubbling Under section — hardcoded #7dd3fc is invisible on light backgrounds */
+/* 7. Bubbling Under section — the faint #7dd3fc border is invisible on light
+   backgrounds. One neutral border all round: --border2 on the left edge drew
+   a coloured stripe (red in Red light, the "down" colour). */
 body.navy-light .bu-section,   body.purple-light .bu-section,
 body.yellow-light .bu-section, body.pink-light .bu-section,
-body.red-light .bu-section { border-left-color: var(--border2); }
+body.red-light .bu-section { border-color: var(--border); }
 
 body.navy-light .bu-section-header,   body.purple-light .bu-section-header,
 body.yellow-light .bu-section-header, body.pink-light .bu-section-header,
