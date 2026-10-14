@@ -27,11 +27,11 @@
   <!-- html2canvas, SheetJS (xlsx) and JSZip are intentionally NOT loaded here — they
        total ~1.2 MB and are only needed for image exports and Excel/ZIP imports.
        app.js pulls them from the CDN on first use (see ensureLazyLib). -->
-  <link rel="stylesheet" href="style.css?v=366">
+  <link rel="stylesheet" href="style.css?v=367">
   <!-- All scripts are deferred so the page paints without waiting on them.
        defer preserves execution order, which matters: translations → Chart.js →
        hammer → zoom plugin → firebase SDKs → firebase.js → app.js (in body). -->
-  <script defer src="translations.js?v=63"></script>
+  <script defer src="translations.js?v=64"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8/hammer.min.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@1.2.1/dist/chartjs-plugin-zoom.min.js"></script>
@@ -409,14 +409,24 @@
 
   <div class="container" id="mainApp" style="display:none;">
 
-    <!-- Live "ON AIR" bar — painted by renderNowPlaying() while Last.fm reports an
-         in-progress track. Sits above the streak banner so the live moment reads
-         before the historical one. The aria-live region is scoped to the track
-         text inside (see renderNowPlaying), not this container: the elapsed clock
-         ticks every second and would otherwise be announced every second. -->
-    <div id="nowPlayingBar" class="np-bar" style="display:none;"></div>
-
-    <div id="streakBanner" class="streak-banner" style="display:none;"></div>
+    <!-- NOW STRIP (phase 5 step 5): the ON AIR bar and the streak banner merged
+         into one card. Desktop (option D in the step 5 layouts): one row that
+         reads left to right as a story: the streak count, the covers of the
+         plays that built it, then the song on air now (lit up) or, with nothing
+         playing, the last play. Phones (option C): a slim line that opens into
+         the full card; the open/closed choice is remembered (dc_nowstrip_open).
+         renderStreakBanner() fills #streakBanner and renderNowPlaying() fills
+         #nowPlayingBar, as before; dcSyncNowStrip() then shows or hides the card
+         and builds the phone summary line. On desktop both inner elements are
+         display:contents, so their children sit in the card's single grid row.
+         The aria-live region is scoped to the track text (see renderNowPlaying):
+         the elapsed clock ticks every second and must not be announced. -->
+    <div id="nowStrip" class="now-strip" hidden>
+      <button type="button" class="ns-summary" id="nsSummary" aria-expanded="false" aria-controls="nowStrip"></button>
+      <div id="streakBanner" class="ns-streak" style="display:none;"></div>
+      <div id="nowPlayingBar" class="ns-now" style="display:none;"></div>
+      <button type="button" class="ns-less" id="nsLess" data-i18n="nav_toggle_less">Less</button>
+    </div>
 
     <!-- TIME MACHINE -->
     <div class="chart-section" id="timeMachineSection" style="display:none;">
@@ -3734,7 +3744,7 @@
   <!-- Community board tab (suggestions / bugs / discussion). Loaded before
        app.js so window.dcBoard exists when app.js opens a #t=board/<id> link. -->
   <script defer src="board.js?v=1"></script>
-  <script defer src="app.js?v=327"></script>
+  <script defer src="app.js?v=328"></script>
 
   <!-- ── Settings Modal ──
        Split into three tabs so the whole form is never dumped on screen at

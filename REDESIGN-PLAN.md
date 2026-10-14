@@ -1226,8 +1226,22 @@ only navy uses the `-dark` suffix). Phase 3 was checked in the real Yellow.
   `_lastSyncStatusCls`. Also fixed: Sync with a CSV file as the source used
   to report "No Google Sheet configured"; it now says what is loaded and how
   to update it (`sync_file_nothing`, 4 langs).
-- Steps left: 5 ON AIR + streak strip, 6 other tabs start at the top and the
-  phone scroll-to-top button.
+- **Step 5 ✓ (2026-10-13): ON AIR + streak = one "now strip".** Picked from
+  six drawn layouts (artifact "ON AIR + Streak Options"): **desktop = option
+  D**, one row read as a story: 🔥 count / type · subject / nested album,
+  then the covers of the streak's plays (oldest → newest, left edge fades),
+  then the lit live cover and the song with ON AIR, timer and chips. With
+  nothing playing (also D) the row ends at the last play with "Last played
+  2 hours ago". **Phones = option C**: one summary line (cover, eq, song —
+  artist, 🔥 pill, ▾) that opens into the full card; open/closed is
+  remembered (`dc_nowstrip_open`). Built as `#nowStrip` around the existing
+  `#streakBanner` / `#nowPlayingBar` (display:contents on desktop);
+  `dcSyncNowStrip()` shows/hides it. Height ~107px live / ~81px idle (was
+  ~190px). Streak labels are now translated (`ns_*`, 4 langs). Deleted: all
+  `.np-*` / `.streak-banner*` / `.streak-art*` / `.streak-mini*` CSS (96
+  rules) and 11 keyframes nothing used any more.
+- Steps left: 6 other tabs start at the top and the phone scroll-to-top
+  button.
 
 The period picker does not need moving into one place:
 it already is (see 4.4). What is left is making it slim enough to live in

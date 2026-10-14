@@ -11997,7 +11997,6 @@
       /* .section-size-bar is excluded — it lives inside a chart-section with its own padding */
       /* stats strips excluded since the 2026 redesign: they are separated
          rounded cards now, and full-bleed would clip their borders/shadows */
-      .streak-banner,
       .period-nav,
       .chart-size-bar:not(.section-size-bar),
       .date-nav {
@@ -29362,44 +29361,8 @@ body.pink-light .awards-reallife-badge.nom { color: #4338ca; border-color: #6366
   font-feature-settings: "tnum";
 }
 
-/* ── STREAK BANNER ──────────────────────────────────────────── */
-@keyframes streak-shimmer {
-  0%, 100% { opacity: 0.07; }
-  50%       { opacity: 0.18; }
-}
-@keyframes streak-glow-song {
-  0%, 100% { box-shadow: 0 0 10px -4px rgba(251,191,36,0.0), inset 0 0 12px -6px rgba(251,191,36,0.0); }
-  50%       { box-shadow: 0 0 22px -4px rgba(251,191,36,0.5), inset 0 0 24px -6px rgba(251,191,36,0.25); }
-}
-@keyframes streak-glow-album {
-  0%, 100% { box-shadow: 0 0 10px -4px rgba(74,172,255,0.0),  inset 0 0 12px -6px rgba(74,172,255,0.0); }
-  50%       { box-shadow: 0 0 22px -4px rgba(74,172,255,0.45), inset 0 0 24px -6px rgba(74,172,255,0.2); }
-}
-@keyframes streak-glow-artist {
-  0%, 100% { box-shadow: 0 0 10px -4px rgba(52,211,153,0.0),  inset 0 0 12px -6px rgba(52,211,153,0.0); }
-  50%       { box-shadow: 0 0 22px -4px rgba(52,211,153,0.45), inset 0 0 24px -6px rgba(52,211,153,0.2); }
-}
-@keyframes streak-glow-shuffle {
-  0%, 100% { box-shadow: 0 0 10px -4px rgba(128,200,255,0.0),  inset 0 0 12px -6px rgba(128,200,255,0.0); }
-  50%       { box-shadow: 0 0 22px -4px rgba(128,200,255,0.4), inset 0 0 24px -6px rgba(128,200,255,0.18); }
-}
-@keyframes streak-icon-bounce {
-  0%, 100% { transform: scale(1) rotate(-3deg); }
-  50%       { transform: scale(1.22) rotate(4deg); }
-}
-@keyframes streak-num-glow {
-  0%, 100% { filter: brightness(1); }
-  50%       { filter: brightness(1.3) drop-shadow(0 0 6px currentColor); }
-}
-@keyframes streak-dot-pop {
-  from { transform: scale(0); opacity: 0; }
-  60%  { transform: scale(1.35); }
-  to   { transform: scale(1); opacity: 0.85; }
-}
-@keyframes streak-fire-pulse {
-  0%, 100% { transform: scale(0.82); filter: brightness(0.9); }
-  50%       { transform: scale(1.22); filter: brightness(1.25); }
-}
+/* ── NOW STRIP flame and equaliser animations (phase 5 step 5 reuses them) ── */
+
 @keyframes streak-fire-pulse-song {
   0%, 100% { transform: scale(0.82); filter: drop-shadow(0 0 2px rgba(251,191,36,0.3))  brightness(0.9); }
   50%       { transform: scale(1.22); filter: drop-shadow(0 0 10px rgba(251,191,36,0.9)) brightness(1.3); }
@@ -29417,502 +29380,591 @@ body.pink-light .awards-reallife-badge.nom { color: #4338ca; border-color: #6366
   50%       { transform: scale(1.22); filter: drop-shadow(0 0 10px rgba(128,200,255,0.9)) brightness(1.3); }
 }
 
-/* ═══ NOW PLAYING · "ON AIR" BAR ═══════════════════════════════
-   Sits directly above the streak banner and deliberately borrows its shape —
-   same height, same 4px left rule, same art-tile size — so the two read as one
-   stacked strip rather than two competing widgets. The live one gets --rose
-   (broadcast red) to separate it from the streak colours (amber/blue/green). */
-
-.np-bar {
-  display: flex;
-  align-items: center;
-  gap: var(--sp-4);
-  padding: 0.55rem var(--sp-4);
-  margin-bottom: 10px;
-  background: var(--bg2);
-  border-top: 1px solid var(--border);
-  border-bottom: 1px solid var(--border);
-  border-left: 4px solid var(--rose);
-  font-family: var(--font-sans);
-  overflow: hidden;
-  position: relative;
-  animation: np-glow 2.4s ease-in-out infinite;
-}
-
-/* Slow red sweep across the bar — the "we're live" cue, kept low-contrast so the
-   text on top stays readable at every point in the cycle. */
-.np-bar::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  background: linear-gradient(90deg, color-mix(in srgb, var(--rose) 22%, transparent) 0%, transparent 60%);
-  animation: np-shimmer 2.4s ease-in-out infinite;
-}
-
-@keyframes np-glow {
-  0%, 100% { box-shadow: inset 0 0 22px -14px var(--rose), 0 0 0 0 transparent; }
-  50%      { box-shadow: inset 0 0 26px -8px  var(--rose), 0 0 10px -4px color-mix(in srgb, var(--rose) 55%, transparent); }
-}
-@keyframes np-shimmer {
-  0%, 100% { opacity: 0.45; }
-  50%      { opacity: 0.9; }
-}
-
-/* ── Artwork ─── */
-.np-art-wrap {
-  flex-shrink: 0;
-  width: 48px;
-  height: 48px;
-  position: relative;
-}
-.np-art,
-.np-art-init {
-  position: absolute;
-  inset: 0;
-  width: 48px;
-  height: 48px;
-  border-radius: var(--r-sm);
-  border: 1px solid var(--border);
-  box-shadow: 0 0 10px -1px color-mix(in srgb, var(--rose) 55%, transparent);
-}
-.np-art { object-fit: cover; display: block; }
-.np-art-init {
-  background: var(--bg3);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-family: var(--font-display);
-  font-size: var(--fs-base);
-  color: var(--text3);
-}
-
-/* ── Text column ─── */
-.np-main {
-  display: flex;
-  flex-direction: column;
-  gap: 0.12rem;
-  min-width: 0; /* lets the ellipsis below actually engage inside the flex row */
-  flex: 1;
-}
-
-.np-label {
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
-  line-height: 1;
-}
-
-.np-onair {
-  font-family: var(--font-sans);
-  font-size: var(--fs-xs);
-  color: var(--rose);
-  font-weight: 700;
-}
-
-.np-source {
-  font-family: var(--font-sans);
-  font-size: var(--fs-xs);
-  color: var(--text3);
-}
-
-/* Four-bar equaliser — the one piece of literal motion here, standing in for the
-   audio actually playing. */
-.np-eq {
-  display: inline-flex;
-  align-items: flex-end;
-  gap: 2px;
-  height: 11px;
-}
-.np-eq i {
-  display: block;
-  width: 2.5px;
-  height: 100%;
-  background: var(--rose);
-  border-radius: 1px;
-  transform-origin: bottom;
-  animation: np-eq-bounce 0.9s ease-in-out infinite;
-}
-.np-eq i:nth-child(2) { animation-delay: 0.18s; animation-duration: 1.1s; }
-.np-eq i:nth-child(3) { animation-delay: 0.36s; animation-duration: 0.75s; }
-.np-eq i:nth-child(4) { animation-delay: 0.54s; animation-duration: 1.25s; }
 
 @keyframes np-eq-bounce {
   0%, 100% { transform: scaleY(0.25); }
   50%      { transform: scaleY(1); }
 }
 
-.np-title {
-  font-size: var(--fs-base);
-  font-weight: 600;
-  color: var(--text);
-  line-height: 1.2;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
+/* ═══ NOW STRIP (phase 5 step 5) ══════════════════════════════════
+   The ON AIR bar and the streak banner, merged into one card.
 
-.np-artist {
-  font-size: var(--fs-xs);
-  color: var(--text2);
-  line-height: 1.2;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-.np-artist em { font-style: italic; }
+   Desktop (option D): one grid row read left to right,
+     [🔥 14 in a row / type · subject]  [covers of those plays →]  [lit cover]  [song]
+   #streakBanner and #nowPlayingBar are display:contents, so their children
+   are the grid items. With nothing playing, the streak's own .ns-last (the
+   last play) takes the cover and song columns. Without a streak, the song
+   alone takes the first two columns.
 
-/* ── Stat chips ─── */
-.np-chips {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.3rem;
-  margin-top: 0.18rem;
-}
-.np-chips:empty { display: none; }
+   Phones (option C): a one-line summary (.ns-summary) that opens into the
+   full card; .is-open is remembered in localStorage (dc_nowstrip_open).
 
-.np-chip {
-  display: inline-flex;
+   Streak type colours carry over from the old banner: song amber, album
+   blue, artist green, shuffle light blue. ON AIR keeps broadcast red. */
+.now-strip {
+  --ns-c: var(--accent2);
+  --ns-fire: streak-fire-pulse-shuffle;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto minmax(220px, 340px);
   align-items: center;
-  /* display:block + fit-content rather than a table/inline-table box, so the
-     border-radius actually renders — see the badge pattern used elsewhere. */
-  width: fit-content;
-  padding: 0.1rem 0.4rem;
-  border-radius: var(--r-full);
-  background: var(--bg3);
-  border: 1px solid var(--border);
+  column-gap: var(--sp-4);
+  row-gap: var(--sp-2);
+  margin-bottom: var(--sp-5);
+  padding: var(--sp-3) var(--sp-4);
+  background: var(--bg2);
+  border: 1px solid var(--border-t, var(--border));
+  border-radius: var(--r-md);
+  box-shadow: var(--shadow-1);
   font-family: var(--font-sans);
+}
+
+.now-strip[hidden] {
+  display: none;
+}
+
+.now-strip.ns-type-song    { --ns-c: var(--amber);   --ns-fire: streak-fire-pulse-song; }
+.now-strip.ns-type-album   { --ns-c: var(--accent);  --ns-fire: streak-fire-pulse-album; }
+.now-strip.ns-type-artist  { --ns-c: var(--green);   --ns-fire: streak-fire-pulse-artist; }
+.now-strip.ns-type-shuffle { --ns-c: var(--accent2); --ns-fire: streak-fire-pulse-shuffle; }
+
+/* Without a streak there is nothing to the left of the song */
+.now-strip:not(.has-streak) {
+  grid-template-columns: auto minmax(0, 1fr);
+}
+
+#streakBanner,
+#nowPlayingBar,
+.ns-last {
+  display: contents;
+}
+
+/* Phone-only parts */
+.ns-summary,
+.ns-mmeta,
+.ns-less {
+  display: none;
+}
+
+/* While a song is on air, it replaces the last-play cell */
+.now-strip.is-live .ns-last {
+  display: none;
+}
+
+/* ---- streak block: count, type and subject, nested album ---- */
+.ns-smeta {
+  grid-column: 1;
+  grid-row: 1;
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+  max-width: 300px;
+}
+
+.ns-count {
+  display: flex;
+  align-items: baseline;
+  gap: var(--sp-2);
+}
+
+.ns-fire {
+  font-size: 1.35rem;
+  line-height: 1;
+  align-self: center;
+  animation: var(--ns-fire) 1.6s ease-in-out infinite;
+}
+
+.ns-num {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: var(--fs-lg);
+  font-weight: 700;
+  line-height: 1;
+  color: var(--ns-c);
+}
+
+.ns-unit {
   font-size: var(--fs-xs);
   color: var(--text3);
-  white-space: nowrap;
-}
-.np-chip-count {
-  color: var(--rose);
-  border-color: color-mix(in srgb, var(--rose) 45%, var(--border));
-}
-.np-chip-first {
-  color: var(--amber);
-  border-color: color-mix(in srgb, var(--amber) 45%, var(--border));
-}
-/* "Open album" — the one chip that's a button, so it gets a pointer and a hover
-   lift; everything else in the row is read-only. */
-.np-chip-album {
-  cursor: pointer;
-  color: var(--text2);
-  line-height: inherit;
-  transition: color 0.15s, border-color 0.15s, background 0.15s;
-}
-.np-chip-album:hover,
-.np-chip-album:focus-visible {
-  color: var(--rose);
-  border-color: color-mix(in srgb, var(--rose) 55%, var(--border));
-  background: color-mix(in srgb, var(--rose) 10%, var(--bg3));
 }
 
-/* Art tile as a button (when the album is in the history) — strip button chrome
-   so it lays out exactly like the plain <div> version. */
-.np-art-btn {
+.ns-typeline {
+  display: flex;
+  gap: var(--sp-1);
+  min-width: 0;
+  font-size: var(--fs-xs);
+  white-space: nowrap;
+}
+
+.ns-type {
+  font-weight: 700;
+  color: var(--ns-c);
+  flex-shrink: 0;
+}
+
+.ns-subject {
+  color: var(--text2);
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ns-subject::before {
+  content: '·';
+  margin-right: var(--sp-1);
+  color: var(--text3);
+}
+
+.ns-nested {
+  width: fit-content;
+  max-width: 100%;
+  padding: 1px var(--sp-2);
+  border-radius: var(--r-xs);
+  background: var(--raised);
+  color: var(--text2);
+  font-size: var(--fs-xs);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ---- the ribbon: one cover per play of the streak, oldest first ---- */
+.ns-ribbon {
+  grid-column: 2;
+  grid-row: 1;
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  min-width: 0;
+}
+
+.ns-thumbs {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  justify-content: flex-end;
+  gap: 3px;
+  overflow: hidden;
+  /* the oldest plays fade out to the left instead of being cut */
+  -webkit-mask: linear-gradient(90deg, transparent, #000 48px);
+  mask: linear-gradient(90deg, transparent, #000 48px);
+}
+
+.ns-thumb {
+  flex-shrink: 0;
+  width: 30px;
+  height: 30px;
+  border-radius: 5px;
+  overflow: hidden;
+  display: grid;
+  place-items: center;
+  background: var(--raised);
+  color: var(--text3);
+  font-size: 9px;
+}
+
+.ns-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.ns-arrow {
+  color: var(--text3);
+  font-size: var(--fs-sm);
+  flex-shrink: 0;
+}
+
+.now-strip:not(.is-live) .ns-arrow {
+  display: none;
+}
+
+/* ---- covers: the lit live one, or the streak subject's ---- */
+.ns-art {
+  grid-column: 3;
+  grid-row: 1;
+  position: relative;
+  flex-shrink: 0;
+  width: 64px;
+  height: 64px;
   padding: 0;
   border: 0;
-  background: none;
-  cursor: pointer;
-  z-index: 1; /* above the .np-bar::before sweep */
-  transition: transform 0.15s;
-}
-.np-art-btn:hover { transform: scale(1.05); }
-.np-art-btn:focus-visible { outline: 2px solid var(--rose); outline-offset: 2px; border-radius: var(--r-sm); }
-
-/* ── Elapsed clock ─── */
-.np-right {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 0.1rem;
-  flex-shrink: 0;
-}
-.np-elapsed-label {
-  font-family: var(--font-sans);
-  font-size: var(--fs-xs);
-  color: var(--text3);
-}
-.np-elapsed {
-  font-family: var(--font-mono);
-  font-size: var(--fs-md);
-  font-weight: 700;
-  color: var(--text);
-  font-variant-numeric: tabular-nums; /* stops the bar twitching as digits change */
-  line-height: 1;
-}
-
-/* ── Narrow screens ─── */
-@media (max-width: 620px) {
-  .np-bar { gap: 0.7rem; padding: var(--sp-2) 0.7rem; }
-  .np-art-wrap, .np-art, .np-art-init { width: 40px; height: 40px; }
-  .np-title  { font-size: var(--fs-sm); }
-  .np-artist { font-size: var(--fs-xs); }
-  .np-elapsed { font-size: var(--fs-base); }
-  .np-elapsed-label { display: none; }
-  /* Both chips stay on mobile — the artist total is half the point of the bar.
-     They're tightened up so the pair usually still fits on one line, and .np-chips
-     wraps if it doesn't. */
-  .np-chips { gap: var(--sp-1); }
-  .np-chip { font-size: var(--fs-xs); padding: 0.1rem 0.34rem; }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .np-bar,
-  .np-bar::before,
-  .np-eq i {
-    animation: none;
-  }
-  /* Without the sweep animation the overlay would sit at its keyframe default —
-     pin it to the midpoint so the bar still reads as live, just not moving. */
-  .np-bar::before { opacity: 0.6; }
-  .np-eq i { transform: scaleY(0.7); }
-}
-
-.streak-banner {
-  display: flex;
-  align-items: center;
-  gap: var(--sp-4);
-  padding: 0.55rem var(--sp-4);
-  margin-bottom: 10px; /* breathing room so the glow doesn't bleed over the nav tabs */
-  background: var(--bg2);
-  border-top: 1px solid var(--border);
-  border-bottom: 1px solid var(--border);
-  border-left: 4px solid transparent;
-  font-family: var(--font-sans);
+  border-radius: var(--r-sm);
   overflow: hidden;
-  position: relative;
+  background: var(--raised);
+  display: grid;
+  place-items: center;
 }
 
-/* Heat-shimmer overlay */
-.streak-banner::before {
-  content: '';
+button.ns-art {
+  cursor: pointer;
+}
+
+.ns-art-live {
+  box-shadow: 0 0 0 2px var(--rose), 0 0 18px color-mix(in srgb, var(--rose) 45%, transparent);
+}
+
+.ns-art-streak {
+  width: 48px;
+  height: 48px;
+}
+
+.ns-art-streak.is-round {
+  border-radius: 50%;
+}
+
+.ns-art-img {
   position: absolute;
   inset: 0;
-  pointer-events: none;
-  animation: streak-shimmer 2s ease-in-out infinite;
-}
-.streak-banner-song::before    { background: linear-gradient(90deg, rgba(251,191,36,0.35) 0%, transparent 55%); }
-.streak-banner-album::before   { background: linear-gradient(90deg, rgba(74,172,255,0.28) 0%, transparent 55%); }
-.streak-banner-artist::before  { background: linear-gradient(90deg, rgba(52,211,153,0.28) 0%, transparent 55%); }
-.streak-banner-shuffle::before { background: linear-gradient(90deg, rgba(128,200,255,0.22) 0%, transparent 55%); }
-
-/* Pulsing outer + inner glow per type */
-.streak-banner-song    { border-left-color: var(--amber);  animation: streak-glow-song    2.2s ease-in-out infinite; }
-.streak-banner-album   { border-left-color: var(--accent); animation: streak-glow-album   2.2s ease-in-out infinite; }
-.streak-banner-artist  { border-left-color: var(--green);  animation: streak-glow-artist  2.2s ease-in-out infinite; }
-.streak-banner-shuffle { border-left-color: var(--accent2);animation: streak-glow-shuffle 2.2s ease-in-out infinite; }
-
-.streak-art-wrap {
-  flex-shrink: 0;
-  width: 48px;
-  height: 48px;
-  position: relative;
-}
-
-.streak-art {
-  width: 48px;
-  height: 48px;
+  width: 100%;
+  height: 100%;
   object-fit: cover;
-  border-radius: var(--r-sm);
-  border: 1px solid var(--border);
-  display: block;
 }
-.streak-banner-song   .streak-art { box-shadow: 0 0 10px -1px rgba(251,191,36,0.55); }
-.streak-banner-album  .streak-art { box-shadow: 0 0 10px -1px rgba(74,172,255,0.55); }
-.streak-banner-artist .streak-art { box-shadow: 0 0 10px -1px rgba(52,211,153,0.55); }
-.streak-banner-shuffle .streak-art{ box-shadow: 0 0 10px -1px rgba(128,200,255,0.45); }
 
-.streak-art-init {
-  width: 48px;
-  height: 48px;
-  border-radius: var(--r-sm);
-  background: var(--bg3);
-  border: 1px solid var(--border);
+.ns-art-init {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-family: var(--font-display);
-  font-size: var(--fs-base);
-  color: var(--text3);
-}
-
-.streak-banner-left {
-  display: flex;
-  align-items: center;
-  gap: 0.55rem;
-  flex-shrink: 0;
-  position: relative;
-}
-
-.streak-banner-icon {
-  font-size: 1.1rem;
-  display: inline-block;
-  animation: streak-icon-bounce 1.8s ease-in-out infinite;
-}
-
-.streak-banner-meta {
-  display: flex;
-  flex-direction: column;
-  gap: 0.08rem;
-}
-
-.streak-banner-type {
-  font-family: var(--font-sans);
-  font-size: var(--fs-xs);
-  color: var(--text3);
-  line-height: 1;
-}
-.streak-banner-song   .streak-banner-type { color: var(--amber); }
-.streak-banner-album  .streak-banner-type { color: var(--accent2); }
-.streak-banner-artist .streak-banner-type { color: var(--green); }
-.streak-banner-shuffle .streak-banner-type { color: var(--accent2); }
-
-.streak-banner-subject {
+  color: var(--text2);
+  font-weight: 600;
   font-size: var(--fs-sm);
-  color: var(--text);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 340px;
-  line-height: 1.2;
 }
-.streak-banner-subject em { font-style: italic; }
 
-/* Inset "currently on this album" chip for a streak nested inside a longer
-   same-artist run — styled as a pill sitting inside the outer artist banner,
-   rather than a caption line, so the containment reads visually. */
-.streak-banner-nested-chip {
+/* ---- the song: on air, or the last play ---- */
+.ns-info {
+  grid-column: 4;
+  grid-row: 1;
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.now-strip:not(.has-streak) .ns-art  { grid-column: 1; }
+.now-strip:not(.has-streak) .ns-info { grid-column: 2; }
+
+.ns-label {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  font-size: var(--fs-xs);
+  min-width: 0;
+}
+
+.ns-eq {
   display: inline-flex;
-  align-items: center;
-  gap: var(--sp-1);
-  width: fit-content;
-  margin-top: 0.15rem;
-  padding: 0.1rem 0.45rem 0.1rem 0.35rem;
-  border-radius: var(--r-full);
-  background: rgba(74, 172, 255, 0.12);
-  border: 1px solid rgba(74, 172, 255, 0.3);
-  font-family: var(--font-sans);
+  align-items: flex-end;
+  gap: 2px;
+  height: 11px;
+  flex-shrink: 0;
+}
+
+.ns-eq i {
+  width: 3px;
+  height: 100%;
+  background: var(--rose);
+  border-radius: 1px;
+  transform-origin: bottom;
+  animation: np-eq-bounce 0.9s ease-in-out infinite;
+}
+
+.ns-eq i:nth-child(2) { animation-delay: -0.3s; }
+.ns-eq i:nth-child(3) { animation-delay: -0.6s; }
+.ns-eq i:nth-child(4) { animation-delay: -0.15s; }
+
+.ns-onair {
+  font-weight: 700;
+  color: var(--rose);
+}
+
+.ns-via {
+  color: var(--text3);
+}
+
+.ns-elapsed {
+  margin-left: auto;
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: var(--fs-base);
+  font-weight: 700;
+  color: var(--text);
+}
+
+.ns-ago {
   font-size: var(--fs-xs);
-  color: var(--accent2);
-  white-space: nowrap;
+  color: var(--text3);
+}
+
+.ns-title {
+  font-weight: 700;
+  font-size: var(--fs-base);
+  color: var(--text);
   overflow: hidden;
   text-overflow: ellipsis;
-  max-width: 340px;
-  line-height: 1.4;
+  white-space: nowrap;
 }
-.streak-banner-nested-chip em { font-style: italic; }
 
-.streak-banner-mid {
+.ns-artist {
+  font-size: var(--fs-sm);
+  color: var(--text2);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ns-chips {
   display: flex;
-  align-items: center;
+  flex-wrap: wrap;
   gap: var(--sp-1);
-  flex: 1;
-  justify-content: center;
-  flex-wrap: nowrap;
-  overflow: hidden;
-  position: relative;
+  margin-top: 2px;
 }
 
-/* 38px (34px of picture inside the border): at the old 26px (22px of
-   picture) the covers read as coloured squares rather than songs. The banner
-   is ~68px tall, so this fits without making it taller; phones hide the
-   strip entirely (see the 600px block below). */
-.streak-mini-thumb {
-  width: 38px;
-  height: 38px;
-  border-radius: var(--r-xs);
-  flex-shrink: 0;
-  overflow: hidden;
-  border: 2px solid var(--bg);
-  margin-left: -8px;
-  background: var(--bg3);
-  opacity: 0;
-  animation: streak-dot-pop 0.35s ease-out forwards;
-}
-.streak-mini-thumb:first-child { margin-left: 0; }
-.streak-mini-thumb { animation-delay: calc(var(--i, 0) * 0.04s); }
-
-.streak-mini-img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  display: block;
+.ns-chips:empty {
+  display: none;
 }
 
-.streak-mini-init {
-  width: 100%;
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-family: var(--font-display);
-  font-size: var(--fs-xs);
-  color: var(--text3);
-}
-
-.streak-banner-right {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  gap: 0.3rem;
-  flex-shrink: 0;
-  position: relative;
-}
-
-.streak-banner-count-col {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0;
-}
-
-.streak-banner-num {
-  font-family: var(--font-display);
-  font-size: var(--fs-lg);
-  line-height: 1;
-  animation: streak-num-glow 2.2s ease-in-out infinite;
-}
-.streak-banner-song   .streak-banner-num { color: var(--amber); }
-.streak-banner-album  .streak-banner-num { color: var(--accent); }
-.streak-banner-artist .streak-banner-num { color: var(--green); }
-.streak-banner-shuffle .streak-banner-num { color: var(--accent2); }
-
-.streak-banner-unit {
+.ns-chip {
+  padding: 1px var(--sp-2);
+  border: 1px solid var(--border2);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--text2);
   font-family: var(--font-sans);
   font-size: var(--fs-xs);
-  color: var(--text3);
+  white-space: nowrap;
 }
 
-.streak-fire-icon {
-  font-size: 1.5rem;
-  line-height: 1;
-  animation: streak-fire-pulse 1.6s ease-in-out infinite;
+.ns-chip-count {
+  color: var(--rose);
+  border-color: color-mix(in srgb, var(--rose) 55%, transparent);
 }
-.streak-banner-song   .streak-fire-icon { filter: drop-shadow(0 0 5px rgba(251,191,36,0.0));   animation: streak-fire-pulse-song   1.6s ease-in-out infinite; }
-.streak-banner-album  .streak-fire-icon { filter: drop-shadow(0 0 5px rgba(74,172,255,0.0));    animation: streak-fire-pulse-album  1.6s ease-in-out infinite; }
-.streak-banner-artist .streak-fire-icon { filter: drop-shadow(0 0 5px rgba(52,211,153,0.0));    animation: streak-fire-pulse-artist 1.6s ease-in-out infinite; }
-.streak-banner-shuffle .streak-fire-icon{ filter: drop-shadow(0 0 5px rgba(128,200,255,0.0));   animation: streak-fire-pulse-shuffle 1.6s ease-in-out infinite; }
 
-@media (max-width: 600px) {
-  /* Mid spacer (mini thumbs) is hidden, so left/right groups need an
-     explicit spread — otherwise they bunch on the left with dead space
-     to the right, since the flex:1 mid item is no longer there to fill it */
-  .streak-banner         { justify-content: space-between; }
-  .streak-banner-mid     { display: none; }
-  .streak-banner-subject { max-width: 160px; }
-  .streak-banner-nested-chip { max-width: 160px; }
+.ns-chip-first {
+  color: var(--gold1);
+  border-color: color-mix(in srgb, var(--gold1) 55%, transparent);
+}
+
+.ns-chip-album {
+  color: var(--text);
+  cursor: pointer;
+}
+
+.ns-chip-album:hover {
+  background: var(--hover);
+}
+
+/* ═══ Phones: option C ═══ */
+@media (max-width: 700px) {
+  .now-strip {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--sp-3);
+    padding: var(--sp-2) var(--sp-3);
+  }
+
+  /* Closed: only the summary line shows */
+  .now-strip:not(.is-open) > :not(.ns-summary) {
+    display: none !important;
+  }
+
+  .now-strip:not(.is-open) .ns-summary {
+    display: flex;
+  }
+
+  /* Open: song first, then the streak, then "Less" */
+  .now-strip.is-open {
+    padding: var(--sp-3);
+  }
+
+  #nowPlayingBar {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    column-gap: var(--sp-3);
+    align-items: center;
+    order: 1;
+  }
+
+  #streakBanner {
+    display: grid;
+    gap: var(--sp-2);
+    order: 2;
+  }
+
+  .now-strip.is-live #streakBanner {
+    padding-top: var(--sp-3);
+    border-top: 1px solid var(--border);
+  }
+
+  .ns-less {
+    display: block;
+    order: 3;
+    align-self: center;
+    padding: var(--sp-1) var(--sp-3);
+    border: 0;
+    border-radius: var(--r-xs);
+    background: transparent;
+    color: var(--text3);
+    font-family: var(--font-sans);
+    font-size: var(--fs-xs);
+    cursor: pointer;
+  }
+
+  .ns-less::after {
+    content: ' ▴';
+  }
+
+  /* undo the desktop grid placement: here each part is its own row */
+  .ns-art,
+  .ns-info,
+  .ns-smeta,
+  .ns-ribbon {
+    grid-column: auto;
+    grid-row: auto;
+  }
+
+  .ns-art {
+    width: 48px;
+    height: 48px;
+  }
+
+  #nowPlayingBar .ns-chips {
+    grid-column: 1 / -1;
+  }
+
+  /* The desktop streak block gives way to a two-line phone version */
+  .ns-smeta {
+    display: none;
+  }
+
+  .ns-mmeta {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-3);
+    min-width: 0;
+  }
+
+  .ns-mmeta-text {
+    display: grid;
+    min-width: 0;
+    font-size: var(--fs-xs);
+  }
+
+  .ns-msub {
+    color: var(--text2);
+    font-size: var(--fs-sm);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  /* The ribbon scrolls sideways (newest at the right end, shown first) */
+  .ns-ribbon,
+  .now-strip.is-live .ns-ribbon {
+    display: block;
+  }
+
+  .ns-thumbs {
+    justify-content: flex-start;
+    overflow-x: auto;
+    scrollbar-width: none;
+    -webkit-mask: none;
+    mask: none;
+  }
+
+  .ns-thumbs::-webkit-scrollbar {
+    display: none;
+  }
+
+  .ns-arrow {
+    display: none;
+  }
+
+  /* Nothing playing: the last play sits under the ribbon */
+  .now-strip:not(.is-live) .ns-last {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    column-gap: var(--sp-3);
+    align-items: center;
+  }
+
+  /* The summary line: [cover] [eq] Song — Artist   [🔥 14]  ▾ */
+  .ns-summary {
+    align-items: center;
+    gap: var(--sp-2);
+    width: 100%;
+    min-height: 40px;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: var(--text);
+    font-family: var(--font-sans);
+    font-size: var(--fs-sm);
+    text-align: left;
+    cursor: pointer;
+  }
+
+  .ns-sum-art {
+    flex-shrink: 0;
+    width: 32px;
+    height: 32px;
+    border-radius: 5px;
+    overflow: hidden;
+    background: var(--raised);
+  }
+
+  .ns-sum-art.is-round {
+    border-radius: 50%;
+  }
+
+  .ns-sum-art img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  .ns-sum-text {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .ns-sum-text span {
+    color: var(--text2);
+  }
+
+  .ns-sum-pill {
+    flex-shrink: 0;
+    padding: 2px var(--sp-2);
+    border-radius: 999px;
+    background: var(--raised);
+    font-size: var(--fs-xs);
+  }
+
+  .ns-sum-pill b {
+    font-family: var(--font-mono);
+    color: var(--ns-c);
+  }
+
+  .ns-sum-chev {
+    flex-shrink: 0;
+    color: var(--text3);
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .streak-banner, .streak-banner::before,
-  .streak-banner-icon, .streak-banner-num, .streak-mini-thumb, .streak-fire-icon {
+  .ns-fire,
+  .ns-eq i {
     animation: none;
   }
-  .streak-mini-thumb { opacity: 1; }
+
+  .ns-eq i {
+    transform: scaleY(0.7);
+  }
 }
+
+
 
 /* ── Chart animation speed bar ───────────────────────────────── */
 .anim-speed-bar {

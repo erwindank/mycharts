@@ -5568,6 +5568,7 @@ function hideNowPlaying() {
   npTrack      = null;
   clearInterval(npTickTimer);
   npTickTimer = null;
+  dcSyncNowStrip();
 }
 
 // Repaint the play-count chips for the track already on air, without restarting its
@@ -5600,10 +5601,10 @@ function renderNowPlaying(track, opts) {
   // Both are withheld until the history is actually loaded (stats === null).
   const countChip = !stats ? ''
     : stats.song > 0
-      ? `<span class="np-chip np-chip-count">${esc(t('np_nth_play', { n: _npOrdinal(stats.song + 1) }))}</span>`
-      : `<span class="np-chip np-chip-first">${esc(t('np_first_time'))}</span>`;
+      ? `<span class="ns-chip ns-chip-count">${esc(t('np_nth_play', { n: _npOrdinal(stats.song + 1) }))}</span>`
+      : `<span class="ns-chip ns-chip-first">${esc(t('np_first_time'))}</span>`;
   const artistChip = (stats && stats.artist > 0)
-    ? `<span class="np-chip">${esc(t('np_by_artist', { n: stats.artist.toLocaleString() }))}</span>`
+    ? `<span class="ns-chip">${esc(t('np_by_artist', { n: stats.artist.toLocaleString() }))}</span>`
     : '';
   // Opens the album page for what's on air — only once the history has a matching
   // album (see _npHistory), so it never leads to an empty modal. The art tile below
@@ -5611,32 +5612,35 @@ function renderNowPlaying(track, opts) {
   const albumKey  = stats?.albumKey || null;
   const albumArg  = albumKey ? esc(JSON.stringify(albumKey)) : '';
   const albumChip = albumKey
-    ? `<button type="button" class="np-chip np-chip-album" onclick="openAlbumModal(${albumArg})">${esc(t('np_open_album'))} ›</button>`
+    ? `<button type="button" class="ns-chip ns-chip-album" onclick="openAlbumModal(${albumArg})">${esc(t('np_open_album'))} ›</button>`
     : '';
 
-  el.className = 'np-bar';
+  // Now strip markup (phase 5 step 5). On desktop these two children land in
+  // the merged card's grid row after the streak ribbon: the lit cover, then the
+  // song. The clock sits on the label line, outside the aria-live block.
+  el.className = 'ns-now';
   el.innerHTML = `
     ${albumKey
-      ? `<button type="button" class="np-art-wrap np-art-btn" onclick="openAlbumModal(${albumArg})" title="${esc(t('np_open_album'))}" aria-label="${esc(t('np_open_album'))}: ${esc(track.album)}">`
-      : `<div class="np-art-wrap">`}
-      <div class="np-art-init" id="npArtInit">${esc(fallback)}</div>
+      ? `<button type="button" class="ns-art ns-art-live" onclick="openAlbumModal(${albumArg})" title="${esc(t('np_open_album'))}" aria-label="${esc(t('np_open_album'))}: ${esc(track.album)}">`
+      : `<div class="ns-art ns-art-live">`}
+      <div class="ns-art-init" id="npArtInit">${esc(fallback)}</div>
     ${albumKey ? `</button>` : `</div>`}
-    <div class="np-main" aria-live="polite">
-      <div class="np-label">
-        <span class="np-eq" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
-        <span class="np-onair">${esc(t('np_onair'))}</span>
-        <span class="np-source">${esc(t('np_via_lastfm'))}</span>
+    <div class="ns-info">
+      <div class="ns-label">
+        <span class="ns-eq" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
+        <span class="ns-onair">${esc(t('np_onair'))}</span>
+        <span class="ns-via">${esc(t('np_via_lastfm'))}</span>
+        <span class="ns-elapsed" id="npElapsed" aria-hidden="true" title="${esc(t('np_listening'))}">0:00</span>
       </div>
-      <div class="np-title">${esc(track.title)}</div>
-      <div class="np-artist">${esc(track.artist)}${hasAlbum ? ` · <em>${esc(track.album)}</em>` : ''}</div>
-      <div class="np-chips">${countChip}${artistChip}${albumChip}</div>
-    </div>
-    <div class="np-right" aria-hidden="true">
-      <span class="np-elapsed-label">${esc(t('np_listening'))}</span>
-      <span class="np-elapsed" id="npElapsed">0:00</span>
+      <div aria-live="polite">
+        <div class="ns-title">${esc(track.title)}</div>
+        <div class="ns-artist">${esc(track.artist)}${hasAlbum ? ` · <em>${esc(track.album)}</em>` : ''}</div>
+      </div>
+      <div class="ns-chips">${countChip}${artistChip}${albumChip}</div>
     </div>
   `;
   el.style.display = '';
+  dcSyncNowStrip();
 
   clearInterval(npTickTimer);
   npTickTimer = setInterval(_npTick, 1000);
@@ -5652,13 +5656,13 @@ function renderNowPlaying(track, opts) {
     } catch (e) { /* fall through to the Last.fm image */ }
     if (!url) url = track.lfmArt;
     if (!url || token !== npArtToken) return; // track changed while we were fetching
-    const wrap = el.querySelector('.np-art-wrap');
+    const wrap = el.querySelector('.ns-art-live');
     const init = document.getElementById('npArtInit');
     if (!wrap || !init) return;
     const img = document.createElement('img');
-    img.className = 'np-art';
+    img.className = 'ns-art-img';
     img.alt = '';
-    img.onload  = () => { init.style.display = 'none'; };
+    img.onload  = () => { init.style.display = 'none'; _nsLiveArt = url; dcSyncNowStrip(); };
     img.onerror = () => { img.remove(); };
     img.src = url;
     wrap.appendChild(img);
@@ -45577,33 +45581,30 @@ function computeCurrentStreak(plays) {
 function renderStreakBanner() {
   const el = document.getElementById('streakBanner');
   if (!el) return;
-  if (!allPlays.length) { el.style.display = 'none'; return; }
+  const hide = () => { el.style.display = 'none'; el.innerHTML = ''; _nsStreak = null; dcSyncNowStrip(); };
+  if (!allPlays.length) { hide(); return; }
 
   const streak = computeCurrentStreak(allPlays);
-  if (!streak) { el.style.display = 'none'; return; }
-
-  const icons  = { song: '🔂', album: '💿', artist: '🎤', shuffle: '🔀' };
-  const labels = { song: 'SONG STREAK', album: 'ALBUM STREAK', artist: 'ARTIST STREAK', shuffle: 'SHUFFLE STREAK' };
+  if (!streak) { hide(); return; }
 
   // When an album streak is nested inside a longer same-artist run (e.g. a
-  // discography binge), the artist run is the real streak — it leads with
-  // the icon/color/fire count, and the album becomes an inset "currently on"
-  // chip rather than a competing stat.
+  // discography binge), the artist run is the real streak — it leads with the
+  // count, and the album becomes an inset "currently on" chip.
   const nested = streak.type === 'album' && streak.artistStreak;
   const displayType  = nested ? 'artist' : streak.type;
   const displayCount = nested ? streak.artistStreak.count : streak.count;
+  _nsStreak = { type: displayType, count: displayCount };
 
   let subject = '';
-  if (streak.type === 'song')   subject = `<em>"${esc(streak.title)}"</em> · ${esc(streak.artist)}`;
+  if (streak.type === 'song')        subject = `<em>${esc(streak.title)}</em> · ${esc(streak.artist)}`;
   else if (nested)                   subject = esc(streak.artistStreak.artist);
   else if (streak.type === 'album')  subject = `<em>${esc(streak.album)}</em> · ${esc(streak.artist)}`;
   else if (streak.type === 'artist') subject = esc(streak.artist);
-
+  const typeLabel = esc(t('ns_type_' + displayType));
+  const inARow    = esc(t('ns_in_a_row'));
   const nestedChip = nested
-    ? `<span class="streak-banner-nested-chip">↳ 💿 <em>${esc(streak.album)}</em> · ${streak.count} straight</span>`
+    ? `<span class="ns-nested">↳ 💿 <em>${esc(streak.album)}</em> · ${esc(t('ns_nested', { n: streak.count }))}</span>`
     : '';
-
-  const thumbCount = displayCount;
 
   let artFallback = '';
   if (streak.type === 'artist') artFallback = initials(streak.artist);
@@ -45611,36 +45612,58 @@ function renderStreakBanner() {
   else if (streak.type === 'song') artFallback = initials(streak.album && streak.album !== '—' ? streak.album : streak.title);
   else artFallback = initials(allPlays[0].artist);
 
-  const thumbs = Array.from({ length: thumbCount }, (_, i) => {
+  // The ribbon: one cover per play of the streak, oldest on the left so it runs
+  // into the song on air (or the last play). Capped: past ~30 the oldest are
+  // under the left-edge fade anyway, and each one is an artwork lookup.
+  const NS_RIBBON_MAX = 30;
+  const shown = Math.min(displayCount, NS_RIBBON_MAX);
+  const thumbs = [];
+  for (let i = shown - 1; i >= 0; i--) {
     const p = allPlays[i];
-    return `<div class="streak-mini-thumb" style="--i:${i}" title="${esc(p.title)} · ${esc(p.artist)}"><div class="streak-mini-init">${esc(artFallback)}</div></div>`;
-  }).join('');
+    thumbs.push(`<div class="ns-thumb" data-play="${i}" title="${esc(p.title)} · ${esc(p.artist)}"><span>${esc(artFallback)}</span></div>`);
+  }
 
-  el.className = `streak-banner streak-banner-${displayType}`;
+  // Shown instead of the live song while nothing is playing: the last play
+  const p0 = allPlays[0];
+  const p0Album = p0.album && p0.album !== '—';
+  const ago = _nsAgo(p0.date);
+
+  el.className = `ns-streak ns-type-${displayType}`;
   el.innerHTML = `
-    <div class="streak-art-wrap">
-      <img id="streakArtImg" class="streak-art" src="" alt="" style="display:none;"
-           onerror="this.style.display='none';document.getElementById('streakArtInit').style.display='flex'">
-      <div id="streakArtInit" class="streak-art-init">${esc(artFallback)}</div>
+    <div class="ns-smeta">
+      <div class="ns-count"><span class="ns-fire" aria-hidden="true">🔥</span><span class="ns-num">${displayCount}</span><span class="ns-unit">${inARow}</span></div>
+      <div class="ns-typeline"><span class="ns-type">${typeLabel}</span>${subject ? `<span class="ns-subject">${subject}</span>` : ''}</div>
+      ${nestedChip}
     </div>
-    <div class="streak-banner-left">
-      <span class="streak-banner-icon">${icons[displayType]}</span>
-      <div class="streak-banner-meta">
-        <span class="streak-banner-type">${labels[displayType]}</span>
-        ${subject ? `<span class="streak-banner-subject">${subject}</span>` : ''}
-        ${nestedChip}
+    <div class="ns-mmeta">
+      <span class="ns-fire" aria-hidden="true">🔥</span>
+      <div class="ns-mmeta-text">
+        <div class="ns-type">${typeLabel} · ${displayCount} ${inARow}</div>
+        ${subject || nested ? `<div class="ns-msub">${subject}${nested ? ` · ↳ <em>${esc(streak.album)}</em>` : ''}</div>` : ''}
       </div>
     </div>
-    <div class="streak-banner-mid">${thumbs}</div>
-    <div class="streak-banner-right">
-      <span class="streak-fire-icon">🔥</span>
-      <div class="streak-banner-count-col">
-        <span class="streak-banner-num">${displayCount}</span>
-        <span class="streak-banner-unit">in a row</span>
+    <div class="ns-ribbon" title="${esc(t('ns_last_n_plays', { n: displayCount }))}">
+      <div class="ns-thumbs">${thumbs.join('')}</div>
+      <span class="ns-arrow" aria-hidden="true">→</span>
+    </div>
+    <div class="ns-last">
+      <div class="ns-art ns-art-streak${displayType === 'artist' ? ' is-round' : ''}">
+        <img id="streakArtImg" class="ns-art-img" src="" alt="" style="display:none;"
+             onerror="this.style.display='none';document.getElementById('streakArtInit').style.display='flex'">
+        <div id="streakArtInit" class="ns-art-init">${esc(artFallback)}</div>
+      </div>
+      <div class="ns-info">
+        ${ago ? `<span class="ns-ago">${esc(t('ns_last_played', { when: ago }))}</span>` : ''}
+        <div class="ns-title">${esc(p0.title)}</div>
+        <div class="ns-artist">${esc(p0.artist)}${p0Album ? ` · <em>${esc(p0.album)}</em>` : ''}</div>
       </div>
     </div>
   `;
   el.style.display = '';
+  dcSyncNowStrip();
+  // Phones scroll the ribbon sideways; start at the newest end
+  const rib = el.querySelector('.ns-thumbs');
+  if (rib) requestAnimationFrame(() => { rib.scrollLeft = rib.scrollWidth; });
 
   _fetchStreakArt(streak).then(url => {
     const img = document.getElementById('streakArtImg');
@@ -45649,19 +45672,19 @@ function renderStreakBanner() {
       img.src = url;
       img.style.display = '';
       init.style.display = 'none';
+      _nsStreakArt = url;
+      dcSyncNowStrip();
     }
-    // Fetch per-play art for each mini thumb individually, queued through the
-    // shared queueImg() (see stLoyaltyImg above) instead of firing every thumb's
-    // lookup at once.
-    el.querySelectorAll('.streak-mini-thumb').forEach((thumb, i) => {
-      const p = allPlays[i];
+    // Per-play art for each ribbon cover, queued through the shared queueImg()
+    // instead of firing every lookup at once.
+    el.querySelectorAll('.ns-thumb').forEach(thumb => {
+      const p = allPlays[+thumb.dataset.play];
       if (!p) return;
       queueImg(() => _fetchPlayArt(p).then(thumbUrl => {
         const src = thumbUrl || url;
         if (!src) return;
         const tImg = document.createElement('img');
-        tImg.className = 'streak-mini-img';
-        tImg.src = sizedArtUrl(src, 38); // the 38px strip — see .streak-mini-thumb
+        tImg.src = sizedArtUrl(src, 38); // the 30–38px ribbon tiles
         tImg.alt = '';
         tImg.onerror = () => tImg.remove();
         thumb.innerHTML = '';
@@ -45670,6 +45693,75 @@ function renderStreakBanner() {
     });
   });
 }
+
+// "2 hours ago" in the interface language, for the last-play line
+function _nsAgo(date) {
+  if (!(date instanceof Date) || isNaN(date)) return '';
+  // never "in 3 minutes": a clock a little ahead of this one reads as now
+  const secs = Math.min(0, (date.getTime() - Date.now()) / 1000);
+  const steps = [['year', 31536000], ['month', 2592000], ['week', 604800], ['day', 86400], ['hour', 3600], ['minute', 60]];
+  try {
+    const rtf = new Intl.RelativeTimeFormat(typeof currentLang !== 'undefined' ? currentLang : 'en', { numeric: 'auto' });
+    for (const [unit, n] of steps) if (Math.abs(secs) >= n) return rtf.format(Math.round(secs / n), unit);
+    return rtf.format(0, 'minute');
+  } catch (e) { return ''; }
+}
+
+// ── NOW STRIP (phase 5 step 5) ──
+// The card around #streakBanner and #nowPlayingBar. Shown when either has
+// something; .is-live and .has-streak let the CSS lay out the four cases
+// (live + streak, live only, streak only, neither = hidden). On phones it also
+// builds the one-line summary that the card folds into.
+// var, not let: hideNowPlaying() can run (and call dcSyncNowStrip) before
+// this part of the file has been evaluated, which would hit let's dead zone.
+var _nsStreak = null;     // { type, count } of the streak on screen
+var _nsLiveArt = '';      // cover of the song on air, once loaded
+var _nsStreakArt = '';    // cover of the streak subject, once loaded
+
+function dcSyncNowStrip() {
+  const strip = document.getElementById('nowStrip');
+  if (!strip) return;
+  const now = document.getElementById('nowPlayingBar');
+  const stk = document.getElementById('streakBanner');
+  const live = !!(now && now.style.display !== 'none' && npTrack);
+  const hasStreak = !!(stk && stk.style.display !== 'none' && _nsStreak);
+  strip.hidden = !(live || hasStreak);
+  strip.classList.toggle('is-live', live);
+  strip.classList.toggle('has-streak', hasStreak);
+  if (!live) _nsLiveArt = '';
+  strip.className = strip.className.replace(/\bns-type-\w+/g, '').trim() + (hasStreak ? ' ns-type-' + _nsStreak.type : '');
+
+  // Phone summary line: [cover] [eq] Song — Artist   [🔥 14]  ▾
+  const sum = document.getElementById('nsSummary');
+  if (!sum || strip.hidden) return;
+  const p0 = allPlays && allPlays[0];
+  const title  = live ? npTrack.title  : (p0 ? p0.title : '');
+  const artist = live ? npTrack.artist : (p0 ? p0.artist : '');
+  const art = live ? _nsLiveArt : _nsStreakArt;
+  sum.innerHTML = `
+    <span class="ns-sum-art${!live && _nsStreak && _nsStreak.type === 'artist' ? ' is-round' : ''}">${art ? `<img src="${esc(sizedArtUrl(art, 64))}" alt="">` : ''}</span>
+    ${live ? `<span class="ns-eq" aria-hidden="true"><i></i><i></i><i></i><i></i></span>` : ''}
+    <span class="ns-sum-text"><b>${esc(title)}</b> <span>— ${esc(artist)}</span></span>
+    ${hasStreak ? `<span class="ns-sum-pill">🔥 <b>${_nsStreak.count}</b></span>` : ''}
+    <span class="ns-sum-chev" aria-hidden="true">▾</span>`;
+  sum.setAttribute('aria-label', (live ? t('np_onair') + ': ' : '') + title + ' — ' + artist);
+}
+
+(function initNowStrip() {
+  const strip = document.getElementById('nowStrip');
+  if (!strip) return;
+  const KEY = 'dc_nowstrip_open';
+  const setOpen = open => {
+    strip.classList.toggle('is-open', open);
+    document.getElementById('nsSummary')?.setAttribute('aria-expanded', open ? 'true' : 'false');
+    try { localStorage.setItem(KEY, open ? '1' : '0'); } catch (e) {}
+  };
+  let saved = false;
+  try { saved = localStorage.getItem(KEY) === '1'; } catch (e) {}
+  strip.classList.toggle('is-open', saved);
+  document.getElementById('nsSummary')?.addEventListener('click', () => setOpen(true));
+  document.getElementById('nsLess')?.addEventListener('click', () => setOpen(false));
+})();
 
 async function _fetchPlayArt(p) {
   try {
