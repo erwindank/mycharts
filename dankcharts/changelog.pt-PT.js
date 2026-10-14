@@ -16,6 +16,14 @@ window.DC_CHANGELOG_I18N['pt-PT'] = {
 
   /* ========== OUTUBRO 2026 ========== */
 
+  "Plays in Portuguese, reprods in Spanish":
+    ["Plays em português, reprods em espanhol",
+     "Em português, as contagens dizem agora plays, a palavra que a maioria das apps de música e dos ouvintes já usa, em vez de reproduções e da forma curta «repros». Em espanhol, as etiquetas curtas, como os cabeçalhos de coluna e a palavra depois de um número, dizem reprods (reprod para um), e as frases completas continuam a dizer reproducciones."],
+
+  "Bubbling Under loses its red edge in Red light":
+    ["Quase no Top perde o rebordo vermelho no Vermelho claro",
+     "No tema Vermelho claro, a secção Quase no Top tinha uma linha vermelha no rebordo esquerdo, o mesmo vermelho que indica que uma música desceu, por isso a secção inteira parecia estar a cair. Os outros temas claros tinham uma linha na sua própria cor. Agora todos os temas claros desenham um rebordo neutro e simples à volta da secção."],
+
   "One toolbar above the chart":
     ["Uma só barra por cima da tabela",
      "As quatro filas de botões por cima da tabela são agora uma: Músicas, Artistas e Álbuns ficam num único seletor, e o filtro de Álbuns, Singles e EPs aparece ao lado quando separaste um tipo de lançamento. Top, Quase no Top, Fora do Top e Novas Entradas passaram para o menu ⋮ da tabela, em Show, num novo grupo Secções, e as tuas escolhas mantiveram-se. Se esconderes a própria tabela, o título e o menu ⋮ ficam lá para a voltares a ativar. O botão Recolher tudo saiu; cada secção continua a recolher-se sozinha."],

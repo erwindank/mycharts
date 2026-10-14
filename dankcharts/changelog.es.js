@@ -16,6 +16,14 @@ window.DC_CHANGELOG_I18N['es'] = {
 
   /* ========== OCTUBRE 2026 ========== */
 
+  "Plays in Portuguese, reprods in Spanish":
+    ["Plays en portugués, reprods en español",
+     "En portugués, las reproducciones ahora se llaman plays, la palabra que ya usan la mayoría de apps de música y de oyentes, en lugar de reproduções y su forma corta «repros». En español, las etiquetas cortas, como los encabezados de columna y la palabra después de un número, dicen reprods (reprod si es una), y las frases completas siguen diciendo reproducciones."],
+
+  "Bubbling Under loses its red edge in Red light":
+    ["Casi en el Top pierde su borde rojo en Rojo claro",
+     "En el tema Rojo claro, la sección Casi en el Top tenía una línea roja en su borde izquierdo, el mismo rojo que indica que una canción bajó, así que toda la sección parecía estar cayendo. Los otros temas claros tenían una línea de su propio color. Ahora todos los temas claros dibujan un borde neutro y sencillo alrededor de la sección."],
+
   "One toolbar above the chart":
     ["Una sola barra encima del chart",
      "Las cuatro filas de botones encima del chart ahora son una: Canciones, Artistas y Álbumes están en un solo selector, y el filtro de Álbumes, Sencillos y EPs aparece a su lado cuando has separado un tipo de lanzamiento. Ranking, Casi en el Top, Fuera del Ranking y Nuevas Entradas pasaron al menú ⋮ del chart, en Show, dentro de un nuevo grupo Secciones, y lo que tenías elegido se mantiene. Si ocultas el propio chart, su título y el menú ⋮ se quedan para que puedas volver a activarlo. El botón Contraer todo ya no está; cada sección se sigue contrayendo por su cuenta."],

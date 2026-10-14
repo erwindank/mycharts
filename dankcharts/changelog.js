@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 115;
+const DC_CL_I18N_V = 116;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,14 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+
+  { d: '2026-10-14', t: 'i18n', a: 'charts', h: '8d135f3',
+    title: 'Plays in Portuguese, reprods in Spanish',
+    detail: "In Portuguese, play counts now say plays, the word most music apps and listeners already use, instead of reproduções and its short form \"repros\". In Spanish, short labels such as column headers and the word after a number say reprods (reprod for one), and full sentences still say reproducciones." },
+
+  { d: '2026-10-14', t: 'fix', a: 'charts', h: '77a5387',
+    title: 'Bubbling Under loses its red edge in Red light',
+    detail: "In the Red light theme, the Bubbling Under section had a red line down its left edge, the same red that means a song went down, so the whole section looked like it was falling. The other light themes had a line in their own colour. Every light theme now draws a plain, neutral border around the section." },
 
   { d: '2026-10-14', t: 'design', a: 'charts', h: 'dd2f221',
     title: 'One toolbar above the chart',
