@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['es'] = {
 
   /* ========== OCTUBRE 2026 ========== */
 
+  "ON AIR and your streak share one strip":
+    ["EN EL AIRE y tu racha comparten una franja",
+     "La barra EN EL AIRE y el banner de racha son ahora una sola franja, más o menos la mitad de alta. En el ordenador se lee de izquierda a derecha: tu racha, las portadas de las reproducciones que la forman y la canción que suena ahora, iluminada, con su tiempo y sus reproducciones. Si no suena nada, termina en tu última reproducción. En el móvil es una línea delgada con la canción y tu racha; tócala para abrir la versión completa, y se queda como la dejaste. Las etiquetas de racha ahora también están traducidas."],
+
   "Sync messages pop up instead of sitting in a strip":
     ["Los mensajes de sincronización aparecen en una ventanita en lugar de una franja",
      "La franja de texto de sincronización arriba de la página ya no está. Mensajes como \"Sincronizado\" o el resultado de una autocorrección ahora aparecen en una esquina y desaparecen tras unos segundos; los errores se quedan hasta que los cierras. La actualización automática cada pocas horas ya no muestra nada, pero el último estado está en la descripción del botón Sincronizar. También corregido: pulsar Sincronizar cuando tus reproducciones vienen de un archivo subido decía \"No hay Google Sheet configurada\"; ahora te dice cuántas reproducciones hay cargadas y cómo actualizarlas."],

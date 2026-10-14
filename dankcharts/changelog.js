@@ -39,7 +39,7 @@
    only the English fallback.
    =========================================================================== */
 
-const DC_CL_I18N_V = 107;
+const DC_CL_I18N_V = 108;
 
 /* Type badges. Order here is the order the filter pills appear in. */
 const DC_CL_TYPES = {
@@ -79,6 +79,10 @@ const DC_CL_AREAS = {
 const DC_CHANGELOG = [
 
   /* ========== OCTOBER 2026 ========== */
+
+  { d: '2026-10-13', t: 'design', a: 'charts', h: 'f4b89be',
+    title: 'ON AIR and your streak share one strip',
+    detail: "The ON AIR bar and the streak banner are now one strip, about half as tall. On a computer it reads left to right: your streak count, the covers of the plays that built it, then the song on air now, lit up, with its timer and play counts. When nothing is playing it ends at your last play instead. On a phone it is one slim line with the song and your streak count; tap it to open the full version, and it stays the way you left it. Streak labels are now translated too." },
 
   { d: '2026-10-13', t: 'design', a: 'data', h: 'de962d1',
     title: 'Sync messages pop up instead of sitting in a strip',

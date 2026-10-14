@@ -16,6 +16,10 @@ window.DC_CHANGELOG_I18N['pt-BR'] = {
 
   /* ========== OUTUBRO 2026 ========== */
 
+  "ON AIR and your streak share one strip":
+    ["NO AR e a sua sequência dividem uma faixa",
+     "A barra NO AR e o banner de sequência agora são uma faixa só, mais ou menos com metade da altura. No computador ela se lê da esquerda para a direita: a sua sequência, as capas das reproduções que a formaram e a música tocando agora, em destaque, com o tempo e as reproduções. Quando nada está tocando, ela termina na sua última reprodução. No celular é uma linha fina com a música e a sua sequência; toque para abrir a versão completa, e ela fica do jeito que você deixou. Os rótulos de sequência agora também estão traduzidos."],
+
   "Sync messages pop up instead of sitting in a strip":
     ["As mensagens de sincronização aparecem num aviso em vez de uma faixa",
      "A faixa de texto de sincronização no topo da página saiu. Mensagens como \"Sincronizado\" ou o resultado de uma autocorreção agora aparecem num canto e somem depois de alguns segundos; os erros ficam até você fechar. A atualização automática a cada poucas horas não mostra mais nada, mas o último status está na dica do botão Sincronizar. Também corrigido: apertar Sincronizar quando suas reproduções vêm de um arquivo enviado dizia \"Nenhuma Google Sheet configurada\"; agora diz quantas reproduções estão carregadas e como atualizá-las."],
