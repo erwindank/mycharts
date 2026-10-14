@@ -125,6 +125,9 @@ async function dcSaveUserConfig() {
 
 async function dcSaveRulesToFirestore(rulesJson) {
   if (!_currentUser) return;
+  // Sign-in can finish before the database is set up; wait for it so an
+  // early save (e.g. rules loaded from the sheet at start-up) is not lost.
+  await _ensureDb();
   try {
     await _configRef(_currentUser.uid).set({ dc_autocorrect_rules: rulesJson }, { merge: true });
   } catch (err) {
@@ -137,6 +140,9 @@ async function dcSaveRulesToFirestore(rulesJson) {
 // stale localStorage value back up.
 async function dcSaveCompilationsToFirestore(listJson) {
   if (!_currentUser) return;
+  // Sign-in can finish before the database is set up; wait for it so an
+  // early save (e.g. rules loaded from the sheet at start-up) is not lost.
+  await _ensureDb();
   try {
     await _configRef(_currentUser.uid).set({ dc_compilation_albums: listJson }, { merge: true });
   } catch (err) {
@@ -149,6 +155,9 @@ async function dcSaveCompilationsToFirestore(listJson) {
 // by a racing dcSaveUserConfig().
 async function dcSaveReleaseTypesToFirestore(mapJson) {
   if (!_currentUser) return;
+  // Sign-in can finish before the database is set up; wait for it so an
+  // early save (e.g. rules loaded from the sheet at start-up) is not lost.
+  await _ensureDb();
   try {
     await _configRef(_currentUser.uid).set({ dc_release_types: mapJson }, { merge: true });
   } catch (err) {
