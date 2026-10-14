@@ -26787,6 +26787,13 @@ function dcSyncMainTabs(view) {
     nav.addEventListener('click', e => {
       const b = e.target.closest('[data-go]');
       if (!b) return;
+      // The tab you are already on takes you back to the top (step 6). On
+      // phones this replaces the floating scroll-to-top button, which sat
+      // over the chart's plays column.
+      if (b.classList.contains('active') && !b.classList.contains('tb-more-item')) {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        return;
+      }
       dcGoTab(b.dataset.go);
     });
   });
@@ -26798,6 +26805,15 @@ function dcSyncMainTabs(view) {
   });
   refreshTitles();
   window.dcRefreshMainTabTitles = refreshTitles;   // re-run after a language switch
+
+  // Each bottom tab also carries an up arrow; once you are a screen or more
+  // down the page, the current tab shows it instead of its icon (style.css,
+  // body.dc-scrolled), so you can see that tapping it goes back to the top.
+  const UP = '<svg class="bt-up" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="6,11 12,5 18,11"/></svg>';
+  document.querySelectorAll('#bottomTabs > .bt-tab[data-go]').forEach(b => b.insertAdjacentHTML('afterbegin', UP));
+  const markScrolled = () => document.body.classList.toggle('dc-scrolled', window.scrollY > window.innerHeight);
+  window.addEventListener('scroll', markScrolled, { passive: true });
+  markScrolled();
 })();
 
 // ── TOP BAR AUTO-HIDE ──

@@ -1796,6 +1796,29 @@
       display: none;
     }
 
+    /* OTHER TABS START AT THE TOP (phase 5 step 6, REDESIGN-PLAN.md 4.1).
+       Outside the Charts page the top of the page is just the top bar and the
+       tab's own title: no now strip, no Time Machine, and no empty sticky date
+       bar (its 10px padding and 28px margin stayed behind on every other tab).
+       !important because the view-switch code sets these elements' inline
+       display, and Time Machine shows itself again on a timer. */
+    body[data-view]:not([data-view="week"]):not([data-view="month"]):not([data-view="year"]):not([data-view="alltime"]) :is(#nowStrip, #timeMachineSection, #stickyNavBar, #stickyNavSentinel) {
+      display: none !important;
+    }
+
+    /* The first thing on those tabs is their own heading; the container's
+       top padding is the only gap the top bar needs */
+    body[data-view]:not([data-view="week"]):not([data-view="month"]):not([data-view="year"]):not([data-view="alltime"]) #mainApp {
+      padding-top: var(--sp-5);
+    }
+
+    /* Soundtrack, Board and the Charts Guide live after #mainApp in the page,
+       not inside it, so on those tabs #mainApp is empty and its padding was a
+       ~90px gap above them. */
+    body:is([data-view="soundtrack"], [data-view="board"], [data-view="chartsguide"]) #mainApp {
+      padding-block: 0;
+    }
+
     /* BOTTOM TAB BAR (phones). Hidden on wider screens, where the tabs sit in
        the top bar. Slides down out of view together with the top bar while
        the page is still (body.topbar-idle). */
@@ -1934,12 +1957,27 @@
         box-shadow: var(--shadow-2);
       }
 
-      /* Lift things pinned to the bottom of the screen above the tab bar */
-      /* body prefix: their own rules come later in the file */
+      /* Scroll-to-top lives in the tab bar here (step 6): the floating button
+         covered the chart's plays column. Scrolled a screen or more down, the
+         current tab's icon becomes an up arrow; tapping it scrolls to the top. */
       body #backToTop {
-        bottom: calc(1.5rem + var(--bottomnav-space));
+        display: none;
       }
 
+      .bt-tab .bt-up {
+        display: none;
+      }
+
+      body.dc-scrolled .bt-tab.active > svg:not(.bt-up) {
+        display: none;
+      }
+
+      body.dc-scrolled .bt-tab.active > .bt-up {
+        display: block;
+      }
+
+      /* Lift things pinned to the bottom of the screen above the tab bar */
+      /* body prefix: their own rules come later in the file */
       body .dc-pl-toast,
       body .bd-toast {
         bottom: calc(1.5rem + var(--bottomnav-space));

@@ -1012,7 +1012,7 @@ themes (Navy dark, Navy light, Yellow dark, Red light; see 3.2) and on a phone.
 | **2** ✓ | **Type pass — done 2026-10-11** (CSS side; see "Phase 2" below for what was left out). Map all 131 font sizes onto the 7 tokens (anything under 12px → 12px), switch labels/buttons/headings from mono to sans, remove most uppercase and letter-spacing. | Biggest visual improvement for the effort. Mostly find-and-replace in CSS. | Medium |
 | **3** ✓ | **Colour pass — done 2026-10-12** (on branch `redesign/phase-3-colour`, see "Phase 3" below). Remove per-tile and per-label colours, the left row bars, the rainbow chart bars and extra rgba tints. Neutral tags (3.8). Movement = green/red only. | Calms the whole site at once. | Small–medium |
 | **4** ✓ | **Artwork — redone 2026-10-13** as a review of the picture system (3.7): the missing pictures were mostly a screenshot artifact. Fixed the Deezer→iTunes→Last.fm fallback, sized pictures to their slots, loaded three at a time with what's on screen first. Left for later: the gradient stand-in for the rare real miss. | Turned out smaller than planned. | Small |
-| **5** | **Shell:** slim sticky top bar, new main tabs + More, period switch next to the date, toasts for status, merge ON AIR + streak, no masthead or Time Machine on non-chart tabs. | Fixes "can't find anything" and gives back ~1,000px on every tab. | Medium |
+| **5** ✓ | **Done 2026-10-13** (branch `redesign/phase-5-shell`). **Shell:** slim sticky top bar, new main tabs + More, period switch next to the date, toasts for status, merge ON AIR + streak, no masthead or Time Machine on non-chart tabs. | Fixes "can't find anything" and gives back ~1,000px on every tab. | Medium |
 | **6** | **Weekly page:** one filter toolbar, sections reordered (stats + "of the moment" → chart → bubbling/off/new → certified → time machine), releases moved to Events, light-touch stat tile changes only if you choose them (4.6). | This is the page everyone sees first. | Medium |
 | **7** | **Chart table and layouts** (4.9b, 4.10, 4.11, 4.12): one item builder + one action menu + one details drawer so **every layout has every feature** (chart run, peak, plays change, player, playlist…), layouts on every period with paging, all six layouts restyled, buttons moved into the toolbar, slimmer rows from #11 down, short lists capped at 5. | The core of the product. Do the shared builder first, then restyle each layout on top of it. | Large |
 | **8** | **Shared components:** one button, tab, segmented control, chip, card, table, carousel, pop-up frame. Replace the per-feature button families. | Makes 9–10 fast and keeps it consistent. | Large |
@@ -1240,8 +1240,17 @@ only navy uses the `-dark` suffix). Phase 3 was checked in the real Yellow.
   ~190px). Streak labels are now translated (`ns_*`, 4 langs). Deleted: all
   `.np-*` / `.streak-banner*` / `.streak-art*` / `.streak-mini*` CSS (96
   rules) and 11 keyframes nothing used any more.
-- Steps left: 6 other tabs start at the top and the phone scroll-to-top
-  button.
+- **Step 6 ✓ (2026-10-13): other tabs start at the top.** Outside the four
+  chart periods, `#nowStrip`, `#timeMachineSection` and the empty sticky
+  date bar are hidden (`body[data-view]`), and Soundtrack / Board / Guide
+  (which sit after `#mainApp`) lose its empty padding: every tab's content
+  now starts ~100px down (was 250–640px). Scroll-to-top on phones moved into
+  the bottom tab bar: a screen down, the current tab's icon becomes ↑ and
+  tapping it scrolls up; the floating `#backToTop` is hidden below 960px
+  (it covered the plays column). Clicking the active tab scrolls to the top
+  on desktop too; the floating button stays there.
+
+**Phase 5 done (2026-10-13)** on `redesign/phase-5-shell`, not merged yet.
 
 The period picker does not need moving into one place:
 it already is (see 4.4). What is left is making it slim enough to live in
