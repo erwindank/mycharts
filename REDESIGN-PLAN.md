@@ -1358,7 +1358,7 @@ the pills into ⋮ → Show, 5 screen check (also covers phase 5).
   - On a phone the open ⋮ menu runs under the bottom tab bar; the page
     scrolls to reach it. Phase 8 (one pop-up frame).
 
-**Phase 6 done (2026-10-14)** on `redesign/phase-6-weekly`, not merged yet.
+**Phase 6 done (2026-10-14)** on `redesign/phase-6-weekly`, and merged into `main` the same day.
 
 The period picker does not need moving into one place:
 it already is (see 4.4). What is left is making it slim enough to live in
