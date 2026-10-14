@@ -1798,11 +1798,10 @@
 
     /* OTHER TABS START AT THE TOP (phase 5 step 6, REDESIGN-PLAN.md 4.1).
        Outside the Charts page the top of the page is just the top bar and the
-       tab's own title: no now strip, no Time Machine, and no empty sticky date
-       bar (its 10px padding and 28px margin stayed behind on every other tab).
-       !important because the view-switch code sets these elements' inline
-       display, and Time Machine shows itself again on a timer. */
-    body[data-view]:not([data-view="week"]):not([data-view="month"]):not([data-view="year"]):not([data-view="alltime"]) :is(#nowStrip, #timeMachineSection, #stickyNavBar, #stickyNavSentinel) {
+       tab's own title: no now strip and no empty sticky date bar (its 10px
+       padding and 28px margin stayed behind on every other tab). !important
+       because the view-switch code sets these elements' inline display. */
+    body[data-view]:not([data-view="week"]):not([data-view="month"]):not([data-view="year"]):not([data-view="alltime"]) :is(#nowStrip, #stickyNavBar, #stickyNavSentinel) {
       display: none !important;
     }
 

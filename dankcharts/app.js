@@ -12426,7 +12426,6 @@ document.getElementById('periodNav').addEventListener('click', e => {
     document.getElementById('soundtrackView').style.display = 'none';
     document.getElementById('playlistsView').style.display = 'none';
     document.getElementById('chartsguideView').style.display = 'none';
-    const _tmAw = document.getElementById('timeMachineSection'); if (_tmAw) _tmAw.style.display = 'none';
     document.getElementById('awardsView').style.display = 'block';
     awardsInit();
     if (typeof window._refreshBackToTop === 'function') window._refreshBackToTop();
@@ -12464,7 +12463,6 @@ document.getElementById('periodNav').addEventListener('click', e => {
     document.getElementById('awardsView').style.display = 'none';
     document.getElementById('playlistsView').style.display = 'none';
     document.getElementById('chartsguideView').style.display = 'none';
-    const _tmSt = document.getElementById('timeMachineSection'); if (_tmSt) _tmSt.style.display = 'none';
     document.getElementById('soundtrackView').style.display = 'block';
     renderSoundtrack();
     if (typeof window._refreshBackToTop === 'function') window._refreshBackToTop();
@@ -12502,9 +12500,8 @@ document.getElementById('periodNav').addEventListener('click', e => {
     document.getElementById('awardsView').style.display = 'none';
     document.getElementById('soundtrackView').style.display = 'none';
     document.getElementById('chartsguideView').style.display = 'none';
-    // Show Time Machine and the Events tab's Recent Releases and Anniversaries
-    // alongside the playlist manager (dc-pl-mode hides the rest of Events)
-    const _tmPl = document.getElementById('timeMachineSection'); if (_tmPl) _tmPl.style.display = 'block';
+    // Show the Events tab's Recent Releases and Anniversaries alongside the
+    // playlist manager (dc-pl-mode hides the rest of Events)
     const _evPl = document.getElementById('eventsView');
     if (_evPl) { _evPl.classList.add('dc-pl-mode'); _evPl.style.display = 'block'; }
     // Default all sections to Reel (carousel) view for easy browsing
@@ -12555,7 +12552,6 @@ document.getElementById('periodNav').addEventListener('click', e => {
     document.getElementById('soundtrackView').style.display = 'none';
     document.getElementById('playlistsView').style.display = 'none';
     document.getElementById('chartsguideView').style.display = 'none';
-    const _tmBd = document.getElementById('timeMachineSection'); if (_tmBd) _tmBd.style.display = 'none';
     document.getElementById('boardView').style.display = 'block';
     // A #t=board/<postId> link opens straight onto that post
     if (window.dcBoard) window.dcBoard.show(_bdLink ? _bdLink[1] : null);
@@ -13911,7 +13907,9 @@ function renderAll() {
   }
 
   renderTableHeaders();
-  renderTimeMachine();
+  // The Time Machine lives on the Soundtrack tab, which renders it itself;
+  // this only keeps it current when a sync re-renders while that tab is open
+  if (currentPeriod === 'soundtrack') renderTimeMachine();
 
   const hasPeriodStats = currentPeriod === 'week' || currentPeriod === 'month' || currentPeriod === 'year';
   const colCount = hasPeriodStats ? 8 : 6; // +1 for the trailing chart-run icon column
@@ -34005,17 +34003,10 @@ function renderTimeMachine(forceRebuild) {
   const newData = buildTimeMachineData();
   const newHash = newData.songs.length + '|' + newData.artists.length + '|' + newData.albums.length;
 
-  // The Awards and Soundtrack tabs hide this section outright, and the block that
-  // restores the chart UI on the way back out never puts it back — so visibility
-  // has to be re-asserted here rather than only on the rebuild path below, or one
-  // visit to either tab hides the ticker for the rest of the session (the hash is
-  // unchanged, so this early return is exactly what runs). Guarded on the current
-  // view: a background re-render while Awards or Soundtrack is on screen must not
-  // pop the ticker back up over them.
-  const tmHiddenView = currentPeriod === 'awards' || currentPeriod === 'soundtrack' || currentPeriod === 'board';
-
+  // The section sits inside #soundtrackView, so that tab's own visibility
+  // decides whether it is on screen; this only shows or hides it for data.
   if (!forceRebuild && tmData && tmData._hash === newHash && track.firstChild) {
-    if (!tmHiddenView) section.style.display = ''; // cached cards are still in the track
+    section.style.display = ''; // cached cards are still in the track
     return;
   }
 
@@ -34050,12 +34041,12 @@ function renderTimeMachine(forceRebuild) {
     // in its own header, so hiding it strands the user with no way to switch one
     // back on — and the state rides along in Firestore, so neither a reload nor a
     // cache clear undoes it. The card hint would be nonsense with no cards.
-    if (!tmHiddenView) section.style.display = '';
+    section.style.display = '';
     if (emptyEl) emptyEl.style.display = '';
     if (hintEl) hintEl.style.display = 'none';
     return;
   }
-  if (!tmHiddenView) section.style.display = ''; // same view guard as the early return above
+  section.style.display = '';
   if (tickerOuter) tickerOuter.style.display = '';
   if (emptyEl) emptyEl.style.display = 'none';
   if (hintEl) hintEl.style.display = '';
@@ -42880,6 +42871,10 @@ function renderSoundtrack() {
   if (activitySection) activitySection.style.display = (isYear || isAlltime) ? '' : 'none';
   if (replaySection) replaySection.style.display = isYear ? '' : 'none';
 
+  // Time Machine at the bottom of the tab. It is about today, not the period
+  // picked above, so a period change finds it cached and leaves it as it is.
+  renderTimeMachine();
+
   requestAnimationFrame(stSetupReveal);
 }
 
@@ -45758,11 +45753,11 @@ const _cgTourSteps = [
     nav: 'awards' },
 
   { title: 'Your Soundtrack',
-    content: 'A full recap for any month, any year, or all time. It opens with a reel and headline stats, then walks through your top charts, a featured artist, when in the day and week you actually listen, your most loyal artists, what you discovered, milestones, streaks, a mini awards run, and a hidden gem you had half forgotten. It also replays your charts as an animation and exports the whole thing as a shareable card.',
+    content: 'A full recap for any month, any year, or all time. It opens with a reel and headline stats, then walks through your top charts, a featured artist, when in the day and week you actually listen, your most loyal artists, what you discovered, milestones, streaks, a mini awards run, and a hidden gem you had half forgotten. It also replays your charts as an animation and exports the whole thing as a shareable card. At the very bottom, the Time Machine shows what you were playing on this day in past years.',
     nav: 'soundtrack' },
 
   { title: 'Playlists',
-    content: 'Save any chart as a named playlist, queue tracks from anywhere in the app with + Play, and keep the queue across sessions. The Time Machine rebuilds what you were actually listening to on any specific past date — not the chart for that week, the plays themselves. Recent releases and anniversaries sit alongside it so there is always something to add.',
+    content: 'Save any chart as a named playlist, queue tracks from anywhere in the app with + Play, and keep the queue across sessions. Recent releases and anniversaries sit alongside it so there is always something to add.',
     nav: 'playlists' },
 
   { title: 'Board',
@@ -46465,8 +46460,8 @@ function dcRenderChartsGuideView() {
         { name: 'Records',         period: 'records',    icon: '🏆', desc: 'Eleven sections behind the button row at the top: All #1s, Perfect All Kill, Most Chart Appearances, Biggest Debuts, Most Plays in a Period, Play Count Milestones, Fastest to Milestone, Certifications, Streak Records, New Charts and an Overview.', use: 'Your record book.' },
         { name: 'Events',          period: 'events',     icon: '🎂', desc: 'A calendar of artist birthdays, album anniversaries and new releases for the artists in your charts.', use: 'Knowing when something is worth replaying.' },
         { name: 'Awards',          period: 'awards',     icon: '🏅', desc: '53 categories generated from your own chart data — the four majors plus Best Collaboration, Song of the Summer, Best Comeback, Best Discovery, Most Obsessive Play and opt-in genre awards. Set an eligibility window, pick categories, then run the ceremony. Real-Life Awards sits alongside My Grammys, with the real Grammys, VMAs, AMAs, iHeartRadio, World Music, Billboard, ARIA, Juno and BRIT Awards your artists were up for.', use: 'The fun one. Run it every December.' },
-        { name: 'Your Soundtrack', period: 'soundtrack', icon: '🎬', desc: 'A full recap of any month, year or all time: a reel, headline stats, top charts, a featured artist, your listening patterns, discoveries, milestones, streaks, a mini awards run and a hidden gem — plus an animated chart replay and a shareable card.', use: 'The nostalgic pass through your history.' },
-        { name: 'Playlists',       period: 'playlists',  icon: '🎵', desc: 'Save any chart as a named playlist, queue tracks from anywhere, and use the Time Machine to replay exactly what you had on for any past date.', use: 'Turning a chart back into listening.' },
+        { name: 'Your Soundtrack', period: 'soundtrack', icon: '🎬', desc: 'A full recap of any month, year or all time: a reel, headline stats, top charts, a featured artist, your listening patterns, discoveries, milestones, streaks, a mini awards run and a hidden gem — plus an animated chart replay, a shareable card and the Time Machine.', use: 'The nostalgic pass through your history.' },
+        { name: 'Playlists',       period: 'playlists',  icon: '🎵', desc: 'Save any chart as a named playlist and queue tracks from anywhere, with recent releases and anniversaries alongside.', use: 'Turning a chart back into listening.' },
         { name: 'Board',           period: 'board',      icon: '💬', desc: 'The community board: suggest features, report bugs, ask questions and talk with other listeners. Vote up the ideas you want most and follow their status from Planned to Done. Reading is open to everyone; posting needs Google sign-in.', use: 'Asking for the feature you wish existed.' },
         { name: 'Charts Guide',    period: 'chartsguide',icon: '📖', desc: 'You are here. Setup checks, the tab breakdown, how charts are calculated, shortcuts, glossary, FAQ and your milestones.', use: 'Whenever something does not make sense.' },
       ],
@@ -46509,7 +46504,7 @@ function dcRenderChartsGuideView() {
     { term: 'Hidden Gem',   def: 'A track from your history that Your Soundtrack resurfaces because you once played it a lot and have not returned to it lately.' },
     { term: 'NMF',          def: 'New Music Friday — new releases from artists in your charts, surfaced in the Events tab.' },
     { term: 'Image Card',   def: 'A shareable PNG export of any chart, styled and sized for social media.' },
-    { term: 'Time Machine', def: 'In Playlists, shows what you were actively listening to on any specific past date.' },
+    { term: 'Time Machine', def: 'At the bottom of Your Soundtrack: what you were playing on this day in past years.' },
     { term: 'Autocorrect',  def: 'A rule that silently renames a misspelled artist or track across all your charts, applied at parse time.' },
   ];
 
@@ -46533,7 +46528,7 @@ function dcRenderChartsGuideView() {
     'Every chart section has six layouts behind the <strong>⋮ menu</strong> — Table, Card Grid, Compact, Mosaic, Filmstrip and Stack.',
     'Autocorrect rules sync through <strong>Firestore</strong>, so a name you fix on your laptop is already fixed on your phone.',
     '<strong>Graphs → Graveyard</strong> lists artists that used to chart for you and have since gone silent — a good place to find something to revive.',
-    'The <strong>Time Machine</strong> in Playlists rebuilds what you were listening to on any specific date, not just the chart for that week.',
+    'The <strong>Time Machine</strong> at the bottom of Your Soundtrack shows what you were playing on this day in past years.',
     '<strong>Awards</strong> works for any year with enough data, not only the most recent one — run it on the year you first started scrobbling.',
     'Image cards are generated in your browser from the live chart, so whatever you are looking at is exactly what exports.',
   ];

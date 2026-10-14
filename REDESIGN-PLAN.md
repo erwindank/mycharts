@@ -1282,6 +1282,19 @@ the pills into ⋮ → Show, 5 screen check (also covers phase 5).
   Weekly and Monthly. Unchanged otherwise (still auto-scrolls, same
   Settings switch). The tour's Certified stop moved to the end of the
   Weekly walkthrough to match. Checked on desktop and at 390px.
+- **Step 3 ✓ (2026-10-14): Time Machine on Soundtrack only.**
+  `#timeMachineSection` moved out of `#mainApp` to the bottom of
+  `#soundtrackView` (after Share), so that tab's visibility decides whether
+  it shows. `renderSoundtrack()` renders it; `renderAll()` only does when a
+  sync lands while Soundtrack is open. Unchanged: auto-scroll, Songs /
+  Artists / Albums, ＋ Playlist, the all-off empty state, and its Settings
+  switch (note now says where it lives, 4 langs). Removed: the per-tab
+  show/hide lines (Awards, Soundtrack, Playlists, Board), the
+  `tmHiddenView` guard in `renderTimeMachine()`, and `#timeMachineSection`
+  in the phase 5 "other tabs start at the top" rule. The Charts Guide said
+  it was on Playlists (not true since phase 5); it now says Soundtrack.
+  The switch still sits under Settings → "Chart page sections", which no
+  longer quite fits; phase 10 (Settings) can regroup it.
 
 The period picker does not need moving into one place:
 it already is (see 4.4). What is left is making it slim enough to live in

@@ -27,11 +27,11 @@
   <!-- html2canvas, SheetJS (xlsx) and JSZip are intentionally NOT loaded here — they
        total ~1.2 MB and are only needed for image exports and Excel/ZIP imports.
        app.js pulls them from the CDN on first use (see ensureLazyLib). -->
-  <link rel="stylesheet" href="style.css?v=370">
+  <link rel="stylesheet" href="style.css?v=371">
   <!-- All scripts are deferred so the page paints without waiting on them.
        defer preserves execution order, which matters: translations → Chart.js →
        hammer → zoom plugin → firebase SDKs → firebase.js → app.js (in body). -->
-  <script defer src="translations.js?v=65"></script>
+  <script defer src="translations.js?v=66"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8/hammer.min.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@1.2.1/dist/chartjs-plugin-zoom.min.js"></script>
@@ -426,34 +426,6 @@
       <div id="streakBanner" class="ns-streak" style="display:none;"></div>
       <div id="nowPlayingBar" class="ns-now" style="display:none;"></div>
       <button type="button" class="ns-less" id="nsLess" data-i18n="nav_toggle_less">Less</button>
-    </div>
-
-    <!-- TIME MACHINE -->
-    <div class="chart-section" id="timeMachineSection" style="display:none;">
-      <div class="section-header">
-        <button class="section-collapse-btn" data-target="timeMachineSection" data-i18n-title="tooltip_collapse">−</button>
-        <h2 class="section-title" data-i18n="time_machine_title">⏳ TIME MACHINE</h2>
-        <span class="section-collapsed-label" data-i18n="collapsed_hint">collapsed — click + to expand</span>
-        <div class="section-rule"></div>
-        <button class="dc-pl-section-btn" id="tmPlBtn" onclick="tmAddAllToPlaylist()"
-          data-i18n="pl_section_btn" data-i18n-title="pl_section_btn_title"
-          title="Save everything in this section to a playlist">＋ Playlist</button>
-        <div class="tm-toggle-btns">
-          <button id="tmToggleSongs" class="tm-type-btn active" onclick="tmToggleType('songs')" data-i18n="time_machine_songs">Songs</button>
-          <button id="tmToggleArtists" class="tm-type-btn active" onclick="tmToggleType('artists')" data-i18n="time_machine_artists">Artists</button>
-          <button id="tmToggleAlbums" class="tm-type-btn active" onclick="tmToggleType('albums')" data-i18n="time_machine_albums">Albums</button>
-        </div>
-      </div>
-      <div class="section-sub" data-i18n="time_machine_sub">On this day in past years</div>
-      <div class="tm-hint" id="tmHint" data-i18n-html="tm_hint">▶ Click any card for options — Spotify, player queue, or Google · drag to browse</div>
-      <div class="section-body">
-        <div class="tm-ticker-outer" id="tmTickerOuter">
-          <div class="tm-ticker-track" id="tmTickerTrack"></div>
-        </div>
-        <!-- Shown by renderTimeMachine() when Songs, Artists and Albums are all
-             switched off — the section stays put so those buttons remain reachable -->
-        <div class="tm-empty" id="tmEmpty" style="display:none;" data-i18n="time_machine_empty">All three types are switched off — turn one back on to see this day in past years.</div>
-      </div>
     </div>
 
     <!-- Global size bars removed — chart size is now per-section (embedded in each chart section) -->
@@ -2500,6 +2472,36 @@
       </div>
       <div class="st-card-hint" data-i18n="st_card_hint">Five designs, eight palettes and three sizes — pick one, then download or copy it.</div>
     </div>
+
+    <!-- TIME MACHINE — what you played on this day in past years. Lives at
+         the bottom of Your Soundtrack since redesign phase 6 (it was on every
+         chart period); renderSoundtrack() renders it. -->
+    <div class="chart-section" id="timeMachineSection" style="display:none;">
+      <div class="section-header">
+        <button class="section-collapse-btn" data-target="timeMachineSection" data-i18n-title="tooltip_collapse">−</button>
+        <h2 class="section-title" data-i18n="time_machine_title">⏳ TIME MACHINE</h2>
+        <span class="section-collapsed-label" data-i18n="collapsed_hint">collapsed — click + to expand</span>
+        <div class="section-rule"></div>
+        <button class="dc-pl-section-btn" id="tmPlBtn" onclick="tmAddAllToPlaylist()"
+          data-i18n="pl_section_btn" data-i18n-title="pl_section_btn_title"
+          title="Save everything in this section to a playlist">＋ Playlist</button>
+        <div class="tm-toggle-btns">
+          <button id="tmToggleSongs" class="tm-type-btn active" onclick="tmToggleType('songs')" data-i18n="time_machine_songs">Songs</button>
+          <button id="tmToggleArtists" class="tm-type-btn active" onclick="tmToggleType('artists')" data-i18n="time_machine_artists">Artists</button>
+          <button id="tmToggleAlbums" class="tm-type-btn active" onclick="tmToggleType('albums')" data-i18n="time_machine_albums">Albums</button>
+        </div>
+      </div>
+      <div class="section-sub" data-i18n="time_machine_sub">On this day in past years</div>
+      <div class="tm-hint" id="tmHint" data-i18n-html="tm_hint">▶ Click any card for options — Spotify, player queue, or Google · drag to browse</div>
+      <div class="section-body">
+        <div class="tm-ticker-outer" id="tmTickerOuter">
+          <div class="tm-ticker-track" id="tmTickerTrack"></div>
+        </div>
+        <!-- Shown by renderTimeMachine() when Songs, Artists and Albums are all
+             switched off — the section stays put so those buttons remain reachable -->
+        <div class="tm-empty" id="tmEmpty" style="display:none;" data-i18n="time_machine_empty">All three types are switched off — turn one back on to see this day in past years.</div>
+      </div>
+    </div>
   </div>
   <!-- END YOUR SOUNDTRACK VIEW -->
 
@@ -3694,7 +3696,7 @@
   <!-- Community board tab (suggestions / bugs / discussion). Loaded before
        app.js so window.dcBoard exists when app.js opens a #t=board/<id> link. -->
   <script defer src="board.js?v=1"></script>
-  <script defer src="app.js?v=331"></script>
+  <script defer src="app.js?v=332"></script>
 
   <!-- ── Settings Modal ──
        Split into three tabs so the whole form is never dumped on screen at
@@ -4617,7 +4619,7 @@ function deleteGenreTriggers() {
         <div class="set-row">
           <label class="src-switch-row">
             <span class="src-switch-label"><span data-i18n="set_cp_tm">⏳ Time Machine</span>
-              <span class="set-switch-note" data-i18n="set_cp_tm_note">What you were playing on this day in past years.</span>
+              <span class="set-switch-note" data-i18n="set_cp_tm_note">At the bottom of Your Soundtrack: what you were playing on this day in past years.</span>
             </span>
             <span class="src-switch">
               <input type="checkbox" id="setCpTimeMachine" checked onchange="setChartPageSection('timeMachine', this.checked)">
