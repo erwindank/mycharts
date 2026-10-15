@@ -2278,6 +2278,9 @@ const TRANSLATIONS = {
     np_open_album: 'Open album',
     yt_scrobble_no_dest: 'Not saved — nowhere to scrobble to.',
     yt_scrobble_connect: 'Connect Last.fm →',
+    // Signed-out visitors only get songs someone already found (see _ytNeedsSignIn)
+    yt_signin_needed: 'Sign in to play songs nobody has played here yet.',
+    yt_signin_btn: 'Sign in →',
   },
 
   // ── SPANISH ───────────────────────────────────────────────────────────────────
@@ -4441,6 +4444,8 @@ const TRANSLATIONS = {
     np_open_album: 'Ver álbum',
     yt_scrobble_no_dest: 'No se guardó — no hay dónde hacer scrobble.',
     yt_scrobble_connect: 'Conectar Last.fm →',
+    yt_signin_needed: 'Inicia sesión para reproducir canciones que nadie ha escuchado aquí todavía.',
+    yt_signin_btn: 'Iniciar sesión →',
   },
 
   // ── PORTUGUESE — BRAZIL ───────────────────────────────────────────────────────
@@ -6605,6 +6610,8 @@ const TRANSLATIONS = {
     np_open_album: 'Ver álbum',
     yt_scrobble_no_dest: 'Não salvo — não há onde fazer scrobble.',
     yt_scrobble_connect: 'Conectar Last.fm →',
+    yt_signin_needed: 'Entre para tocar músicas que ninguém ouviu aqui ainda.',
+    yt_signin_btn: 'Entrar →',
   },
 
   // ── PORTUGUESE — EUROPEAN ─────────────────────────────────────────────────────
@@ -8768,6 +8775,8 @@ const TRANSLATIONS = {
     np_open_album: 'Ver álbum',
     yt_scrobble_no_dest: 'Não guardado — não há onde fazer scrobble.',
     yt_scrobble_connect: 'Ligar o Last.fm →',
+    yt_signin_needed: 'Inicia sessão para ouvir músicas que ainda ninguém ouviu aqui.',
+    yt_signin_btn: 'Iniciar sessão →',
   },
 };
 

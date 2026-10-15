@@ -29325,9 +29325,107 @@ async function _ytFetchAlbum(title, artist) {
   }
 }
 
+// ── Shared search memory (site-wide) ────────────────────────────────────────
+// Every search through the backend spends ~101 of the YouTube API's 10,000
+// free daily units, and that allowance is shared by every user of the site —
+// so about 100 searches a day in total. To stretch it, each search result is
+// remembered in Firestore (ytCache/{sha1 of the query}) for everyone: once
+// anyone has played a song, every later play of it — by anyone — skips the
+// API. Anyone can read the memory; only signed-in users add to it (rules in
+// firestore.rules). Firestore's offline persistence also keeps a local copy,
+// so repeat plays on the same device don't even reach the network.
+const _ytMem = new Map();   // this session's lookups: query → videoId
+
+// "Drake  Hotline Bling" and "drake hotline bling" are the same search
+function _ytMemNorm(query) {
+  return String(query || '').toLowerCase().replace(/\s+/g, ' ').trim();
+}
+
+async function _ytMemDocId(norm) {
+  const buf = await crypto.subtle.digest('SHA-1', new TextEncoder().encode(norm));
+  return Array.from(new Uint8Array(buf), b => b.toString(16).padStart(2, '0')).join('');
+}
+
+async function _ytMemRef(norm) {
+  if (typeof _ensureDb !== 'function' || !window.crypto || !crypto.subtle) return null;
+  const db = await _ensureDb();
+  return db.collection('ytCache').doc(await _ytMemDocId(norm));
+}
+
+// The remembered videoId for a query, or null. Never throws, and gives up
+// after 3s so a slow Firestore can't hold the player up — it just searches.
+async function _ytMemGet(query) {
+  const norm = _ytMemNorm(query);
+  if (_ytMem.has(norm)) return _ytMem.get(norm);
+  try {
+    const lookup = (async () => {
+      const ref = await _ytMemRef(norm);
+      if (!ref) return null;
+      const snap = await ref.get();
+      const v = snap.exists ? (snap.data() || {}).v : null;
+      return /^[A-Za-z0-9_-]{11}$/.test(v || '') ? v : null;
+    })();
+    const v = await Promise.race([lookup, new Promise(r => setTimeout(() => r(null), 3000))]);
+    if (v) _ytMem.set(norm, v);
+    return v;
+  } catch (e) { return null; }
+}
+
+// Remember a fresh search result. Signed-out visitors can still read the
+// memory but can't write to it, so for them this stays session-only.
+function _ytMemPut(query, videoId) {
+  const norm = _ytMemNorm(query);
+  if (!norm || !/^[A-Za-z0-9_-]{11}$/.test(videoId || '')) return;
+  _ytMem.set(norm, videoId);
+  if (typeof dcIsSignedIn !== 'function' || !dcIsSignedIn()) return;
+  _ytMemRef(norm).then(ref => ref && ref.set({
+    v: videoId,
+    q: norm.slice(0, 300),
+    at: firebase.firestore.FieldValue.serverTimestamp(),
+  })).catch(() => {});
+}
+
+// A remembered video that won't play (removed, or embedding turned off) is
+// forgotten, so the next play searches again instead of failing again.
+function _ytMemForget(query) {
+  const norm = _ytMemNorm(query);
+  if (!norm) return;
+  _ytMem.delete(norm);
+  if (typeof dcIsSignedIn !== 'function' || !dcIsSignedIn()) return;
+  _ytMemRef(norm).then(ref => ref && ref.delete()).catch(() => {});
+}
+
+// Signed-out visitors can only play songs already in the shared memory. A new
+// search spends the site's shared YouTube quota, so it needs an account.
+function _ytNeedsSignIn() {
+  return typeof dcIsSignedIn !== 'function' || !dcIsSignedIn();
+}
+function _ytSignInHTML() {
+  return `${esc(t('yt_signin_needed'))} <button class="yt-err-open-btn" onclick="dcSignIn()">${esc(t('yt_signin_btn'))}</button>`;
+}
+
+let _ytLastQuery = null;   // the query behind the video now loading — for _ytOnError
+
 async function _ytSearch(artist, title, overrideQuery) {
   const query = overrideQuery || (artist + ' ' + title + ' official audio');
   const statusEl = document.getElementById('ytMiniStatus');
+  _ytLastQuery = query;
+  // Already found by someone before? Play it without spending any quota.
+  const remembered = await _ytMemGet(query);
+  if (remembered) {
+    if (_ytLastQuery !== query) return;   // a newer play started meanwhile
+    _ytCurrentVideoId = remembered;
+    _ytUpdateThumb();
+    if (statusEl) { statusEl.textContent = ''; }
+    if (_ytApiReady) _ytLoadVideo(remembered);
+    else _ytPendingVideo = remembered;
+    return;
+  }
+  if (_ytNeedsSignIn()) {
+    if (_ytActiveBtn) _ytActiveBtn.classList.remove('yt-btn-loading', 'yt-btn-playing');
+    if (statusEl) { statusEl.innerHTML = _ytSignInHTML(); statusEl.className = 'yt-mini-status err'; }
+    return;
+  }
   // Render free tier cold starts take up to ~30s; 5 retries × 6s = 30s total wait
   const MAX_RETRIES = 5;
   const RETRY_DELAY_MS = 6000;
@@ -29346,6 +29444,7 @@ async function _ytSearch(artist, title, overrideQuery) {
       if (data.error) throw new Error(data.error);
       const videoId = data.videoId;
       if (!videoId) throw new Error('No results found');
+      _ytMemPut(query, videoId);
       _ytCurrentVideoId = videoId;
       _ytUpdateThumb();
       if ((data.videoTitle || data.title) && _ytActiveBtn) {
@@ -29466,6 +29565,8 @@ function _ytOnState(event) {
 function _ytOnError(event) {
   const statusEl = document.getElementById('ytMiniStatus');
   const code = event && event.data;
+  // This video can't play here, so don't hand it to the next person either
+  if (_ytLastQuery) _ytMemForget(_ytLastQuery);
   if (_ytCurrentTrack && _ytEmbedRetry < 5) {
     _ytEmbedRetry++;
     const { title, artist } = _ytCurrentTrack;
@@ -29697,11 +29798,18 @@ async function _ytSearchMulti(baseQuery) {
   const RETRY_DELAY_MS = 6000;
   let settled;
   for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
+    // Each variant checks the shared memory first; only new ones cost quota
     settled = await Promise.allSettled(
-      queries.map(q => fetch(`${BACKEND_API}/api/youtube/search?q=${encodeURIComponent(q)}`).then(r => {
+      queries.map(async q => {
+        const remembered = await _ytMemGet(q);
+        if (remembered) return { videoId: remembered };
+        if (_ytNeedsSignIn()) return {};   // new searches need an account
+        const r = await fetch(`${BACKEND_API}/api/youtube/search?q=${encodeURIComponent(q)}`);
         if (r.status === 502 || r.status === 503) throw new Error('server_unavailable');
-        return r.json();
-      }))
+        const data = await r.json();
+        if (data && data.videoId) _ytMemPut(q, data.videoId);
+        return data;
+      })
     );
     // Check if all failed with server_unavailable — if so, retry after delay
     const allUnavailable = settled.every(r => r.status === 'rejected' && r.reason && r.reason.message === 'server_unavailable');
@@ -29721,7 +29829,12 @@ async function _ytSearchMulti(baseQuery) {
     .map(r => r.value)
     .filter(v => { if (seen.has(v.videoId)) return false; seen.add(v.videoId); return true; });
   if (!resultsEl) return;
-  if (hits.length === 0) { resultsEl.innerHTML = '<div class="yt-sr-no-results">No results found</div>'; return; }
+  if (hits.length === 0) {
+    resultsEl.innerHTML = _ytNeedsSignIn()
+      ? `<div class="yt-sr-no-results">${_ytSignInHTML()}</div>`
+      : '<div class="yt-sr-no-results">No results found</div>';
+    return;
+  }
   if (hits.length === 1) { resultsEl.style.display = 'none'; _ytPickResult(hits[0].videoId); return; }
   resultsEl.innerHTML = hits.map(h =>
     `<div class="yt-sr-item" data-vid="${h.videoId}" onclick="_ytPickResult(this.dataset.vid)">` +
@@ -39823,6 +39936,13 @@ async function _awardsPickerPreview(item) {
   status('Finding the video…');
 
   let vid = _awardsVidCache[k];
+  // The site-wide search memory, shared with the mini player (see _ytMemGet)
+  if (vid === undefined) {
+    const remembered = await _ytMemGet(query);
+    if (seq !== _awardsPrevSeq) return;
+    if (remembered) vid = _awardsVidCache[k] = remembered;
+    else if (_ytNeedsSignIn()) { status(_ytSignInHTML()); return; }
+  }
   if (vid === undefined) {
     // The server sleeps when idle and can take ~30s to wake, like in _ytSearch
     for (let attempt = 0; attempt <= 5 && vid === undefined; attempt++) {
@@ -39831,6 +39951,7 @@ async function _awardsPickerPreview(item) {
         if (res.status === 502 || res.status === 503) throw new TypeError('asleep');
         const data = await res.json();
         vid = data.videoId || '';
+        if (vid) _ytMemPut(query, vid);
       } catch (e) {
         if (e.name !== 'TypeError' || attempt === 5) { vid = null; break; }
         status('Waking up the server…');

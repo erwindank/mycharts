@@ -44,6 +44,24 @@ service cloud.firestore {
       return /databases/$(database)/documents/boardPosts/$(postId)/replies/$(replyId);
     }
 
+    // ── YouTube search memory (app.js, _ytMemGet/_ytMemPut) ─────────────────
+    // Site-wide: query → videoId, so a song anyone has played never costs
+    // YouTube API quota again. Anyone can look a query up; nobody can list
+    // the collection. Signed-in users add entries and remove ones that turn
+    // out unplayable. Each entry is tiny and checked to be a real video id.
+    match /ytCache/{id} {
+      allow get: if true;
+      allow list: if false;
+      allow create, update: if signedIn()
+        && id.matches('^[0-9a-f]{40}$')
+        && request.resource.data.keys().hasOnly(['v', 'q', 'at'])
+        && request.resource.data.v is string
+        && request.resource.data.v.matches('^[A-Za-z0-9_-]{11}$')
+        && textOk(request.resource.data.q, 1, 300)
+        && request.resource.data.at == request.time;
+      allow delete: if signedIn();
+    }
+
     match /boardAdmins/{uid} {
       allow get: if signedIn() && request.auth.uid == uid;
       allow list, write: if false;
