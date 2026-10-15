@@ -18,7 +18,7 @@ window.DC_CHANGELOG_I18N['pt-BR'] = {
 
   "Samples and one menu on every chart entry":
     ["Prévias e um só menu em cada item da parada",
-     "Cada música, artista e álbum da parada, nos seis layouts, agora tem um ▶ na capa que toca uma prévia de 30 segundos, e um botão ⋮ (ou clique direito) com todo o resto: tocar a música inteira agora, em seguida ou depois, tocar parecidas, adicionar a uma playlist, detalhes, álbum, artista, trajetória na parada, trocar a imagem e buscar no YouTube. A prévia de um artista é a última música dele que você ouviu; a de um álbum, a que você mais ouviu dele no período na tela. As prévias não gastam o limite do YouTube do site, então clicar num card da grade agora abre os detalhes em vez de tocar."],
+     "Cada música, artista e álbum da parada, nos seis layouts, agora tem um ▶ que toca uma prévia de 30 segundos (no celular, toque na capa), e um botão ⋮ (ou clique direito) com todo o resto: tocar a música inteira agora, em seguida ou depois, tocar parecidas, adicionar a uma playlist, detalhes, álbum, artista, trajetória na parada, trocar a imagem e buscar no YouTube. A prévia de um artista é a última música dele que você ouviu; a de um álbum, a que você mais ouviu dele no período na tela. As prévias não gastam o limite do YouTube do site, então clicar num card da grade agora abre os detalhes em vez de tocar."],
 
   "Songs found once play for everyone":
     ["Músicas encontradas uma vez tocam para todos",

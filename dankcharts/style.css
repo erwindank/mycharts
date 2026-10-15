@@ -35403,93 +35403,74 @@ body.cp-hide-cert-reel    #certReelSection { display: none !important; }
 
 /* ═══ ENTRY ACTIONS (phase 7 step 1) ════════════════════════════════════════
    The ▶ sample and ⋮ menu buttons every chart entry carries, in all six
-   layouts (app.js, _eaAttrs / _eaSampleBtn / _eaMoreBtn). ▶ sits on the
-   cover and appears on hover; on touch screens there is no hover, so it is
-   always shown, smaller, in the cover's corner. ⋮ is a quiet ghost button
-   that firms up when its entry is hovered. Over artwork both use a dark scrim
-   with a white icon: artwork can be any colour, so theme colours can't be
-   trusted to contrast with it. */
+   layouts (app.js, _eaAttrs / _eaBtns). They sit side by side (.ea-pair),
+   never on the artwork, which keeps the cover free for the ✎ picture button.
+   With a mouse they are quiet until their entry is hovered. On touch
+   screens there is no ▶: tapping the cover (.ea-cover) plays the sample,
+   and a small badge on the cover shows it playing. */
 .ea-cover { position: relative; }
-.thumb-wrap, .wv-cx-art-wrap { position: relative; }
 
-.ea-sample {
-  position: absolute; left: 50%; top: 50%; z-index: 3;
-  transform: translate(-50%, -50%);
-  width: var(--ea-size, 30px); height: var(--ea-size, 30px);
-  display: inline-flex; align-items: center; justify-content: center;
-  padding: 0; border: 0; border-radius: var(--r-full);
-  background: rgba(0,0,0,0.62); color: #fff; cursor: pointer;
-  opacity: 0; transition: opacity var(--t-fast) var(--ease), background var(--t-fast) var(--ease), transform var(--t-fast) var(--ease);
+.ea-pair { display: inline-flex; align-items: center; gap: 2px; flex-shrink: 0; vertical-align: middle; }
+
+.ea-sample, .ea-more {
+  display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0;
+  width: 28px; height: 28px; padding: 0; border: 0; border-radius: var(--r-full);
+  background: transparent; color: var(--text3); cursor: pointer;
+  opacity: 0.55; transition: opacity var(--t-fast) var(--ease), background var(--t-fast) var(--ease), color var(--t-fast) var(--ease);
 }
-.ea-sample svg { width: 55%; height: 55%; fill: currentColor; margin-left: 6%; }
+.ea-more { border-radius: var(--r-sm); }
+.ea-sample svg { width: 14px; height: 14px; fill: currentColor; margin-left: 2px; }
+.ea-more svg { width: 16px; height: 16px; fill: currentColor; }
+[data-ea-type]:hover .ea-sample, [data-ea-type]:hover .ea-more,
+.ea-sample:focus-visible, .ea-more:focus-visible { opacity: 1; }
+.ea-sample:hover { background: var(--hover); color: var(--accent); }
+.ea-more:hover { background: var(--hover); color: var(--text); }
+.ea-sample:focus-visible, .ea-more:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+
 .ea-sample .ea-ic-stop { display: none; }
 .ea-sample.is-on { background: var(--accent); color: var(--on-accent); opacity: 1; }
 .ea-sample.is-on svg { margin-left: 0; }
 .ea-sample.is-on .ea-ic-play { display: none; }
 .ea-sample.is-on .ea-ic-stop { display: inline; }
-.ea-sample.is-loading { opacity: 1; animation: eaPulse 1s ease-in-out infinite; }
-.ea-sample.is-miss { background: rgba(0,0,0,0.45); color: rgba(255,255,255,0.6); }
-.ea-sample:hover { background: rgba(0,0,0,0.8); }
-/* A small grow on hover, only with a mouse and when motion is welcome */
-@media (hover: hover) and (prefers-reduced-motion: no-preference) {
-  .ea-sample:hover { transform: translate(-50%, -50%) scale(1.08); }
-  .ea-inline .ea-sample:hover { transform: scale(1.08); }
+.ea-sample.is-loading { opacity: 1; color: var(--accent); animation: eaPulse 1s ease-in-out infinite; }
+.ea-sample.is-miss { opacity: 0.3; }
+[data-ea-type]:hover .ea-sample.is-miss { opacity: 0.45; }
+@keyframes eaPulse { 50% { opacity: 0.35; } }
+
+/* Playing badge on the cover: the only sign of a sample on touch screens,
+   and a nice echo of the ▶ with a mouse. Over artwork it uses a dark scrim
+   with a white mark, since artwork can be any colour. */
+[data-ea-type].ea-playing .ea-cover::after,
+[data-ea-type].ea-loading .ea-cover::after {
+  content: '❚❚'; position: absolute; right: 3px; bottom: 3px; z-index: 3;
+  display: flex; align-items: center; justify-content: center;
+  width: 20px; height: 20px; border-radius: var(--r-full);
+  background: var(--accent); color: var(--on-accent);
+  font-size: 8px; letter-spacing: -1px; line-height: 1; pointer-events: none;
 }
-.ea-sample.is-on:hover { background: var(--accent); }
-[data-ea-type]:hover .ea-sample,
-.ea-sample:focus-visible { opacity: 1; }
-[data-ea-type]:hover .ea-sample.is-miss { opacity: 0.7; }
-.ea-sample:focus-visible, .ea-more:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-@keyframes eaPulse { 50% { background: rgba(0,0,0,0.35); } }
+[data-ea-type].ea-loading .ea-cover::after { content: '♪'; font-size: 11px; letter-spacing: 0; background: rgba(0,0,0,0.65); color: #fff; animation: eaPulse 1s ease-in-out infinite; }
 
-/* Size per layout: the Table and Compact covers are small, the cards big */
-.chart-table .ea-sample, .wv-cx-art-wrap .ea-sample { --ea-size: 26px; }
-.wv-card-art .ea-sample, .wv-film-thumb-wrap .ea-sample { --ea-size: 44px; }
-
-.ea-more {
-  display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0;
-  width: 28px; height: 28px; padding: 0; border: 0; border-radius: var(--r-sm);
-  background: transparent; color: var(--text3); cursor: pointer; vertical-align: middle;
-  opacity: 0.55; transition: opacity var(--t-fast) var(--ease), background var(--t-fast) var(--ease), color var(--t-fast) var(--ease);
-}
-.ea-more svg { width: 16px; height: 16px; fill: currentColor; }
-[data-ea-type]:hover .ea-more, .ea-more:focus-visible { opacity: 1; }
-.ea-more:hover { background: var(--hover); color: var(--text); }
-
-/* On a cover's top-right corner (Card grid, Filmstrip): scrim, like ▶ */
-.ea-more.ea-corner {
-  position: absolute; top: 6px; right: 6px; z-index: 3;
-  background: rgba(0,0,0,0.55); color: #fff; opacity: 0;
-}
-.ea-more.ea-corner:hover { background: rgba(0,0,0,0.8); color: #fff; }
-[data-ea-type]:hover .ea-more.ea-corner, .ea-more.ea-corner:focus-visible { opacity: 1; }
-
-/* Inline pair (Mosaic hover card and back): plain buttons in a row */
-.ea-inline { display: inline-flex; align-items: center; gap: var(--sp-1); }
-.ea-inline .ea-sample { position: static; transform: none; opacity: 1; --ea-size: 30px; }
-.ea-inline .ea-more { opacity: 1; color: #fff; background: rgba(255,255,255,0.12); }
-.ea-inline .ea-more:hover { background: rgba(255,255,255,0.22); color: #fff; }
+/* Mosaic: the pair on the dark hover card and the tile's back */
+.ea-inline .ea-sample, .ea-inline .ea-more { opacity: 1; color: #fff; background: rgba(255,255,255,0.12); }
+.ea-inline .ea-sample:hover, .ea-inline .ea-more:hover { background: rgba(255,255,255,0.24); color: #fff; }
+.ea-inline .ea-sample.is-on { background: var(--accent); color: var(--on-accent); }
 .wv-mos-back-acts { display: flex; align-items: center; gap: var(--sp-1); margin-top: auto; padding-top: var(--sp-2); }
 
-/* Table: ⋮ joins the chart-run icon in the last column */
-.chart-table .cr-cell { width: 68px; white-space: nowrap; }
-/* Card grid / Filmstrip: the playlist ＋ moves to the top-right, left of ⋮,
-   so the centre is free for ▶ */
-.wv-gc-hover, .wv-film-thumb-hover { align-items: flex-start; justify-content: flex-end; padding: 6px 40px 0 0; }
-.wv-gc-hover > *, .wv-film-thumb-hover > * { pointer-events: auto; }
-/* Compact and Stack: ⋮ ends the row */
-.wv-cx-row > .ea-more { margin-left: var(--sp-1); }
-.wv-stk-row > .ea-more { align-self: center; }
+/* Where the pair sits in each layout */
+.chart-table .cr-cell { width: 72px; white-space: nowrap; }
+.chart-table .cr-cell .ea-sample, .chart-table .cr-cell .ea-more { width: 22px; height: 24px; }
+.wv-gc-plays-row .ea-pair, .wv-film-plays-row .ea-pair { margin-left: auto; }
+.wv-gc-plays-row .ea-sample, .wv-gc-plays-row .ea-more,
+.wv-film-plays-row .ea-sample, .wv-film-plays-row .ea-more { width: 24px; height: 24px; }
+.wv-film-plays-row { display: flex; align-items: center; gap: var(--sp-1); }
+.wv-cx-row > .ea-pair { margin-left: var(--sp-1); }
+.wv-stk-row > .ea-pair { align-self: center; }
 
-/* Touch: no hover, so the buttons are always there. ▶ shrinks into the
-   cover's bottom-right corner (the ✎ image badge is hidden on touch, so the
-   corner is free) and stops covering the artwork. */
+/* Touch: no ▶ (the cover is the button) and ⋮ always shown */
 @media (hover: none) {
-  .ea-sample { opacity: 1; left: auto; top: auto; right: 3px; bottom: 3px; transform: none; --ea-size: 24px; }
-  .wv-card-art .ea-sample, .wv-film-thumb-wrap .ea-sample { --ea-size: 34px; right: 6px; bottom: 6px; }
-  .chart-table .ea-sample, .wv-cx-art-wrap .ea-sample { --ea-size: 20px; right: 1px; bottom: 1px; }
-  .ea-more, .ea-more.ea-corner { opacity: 1; }
-  .ea-inline .ea-sample { --ea-size: 30px; }
+  .ea-pair:not(.ea-inline) .ea-sample { display: none; }
+  .ea-more { opacity: 1; }
+  .chart-table .cr-cell { width: 68px; }
 }
 /* Phones: ⋮ takes the chart-run icon's place (Chart run is in its menu),
    so the row is no wider than before */
@@ -35500,13 +35481,12 @@ body.cp-hide-cert-reel    #certReelSection { display: none !important; }
 }
 @media (prefers-reduced-motion: reduce) {
   .ea-sample, .ea-more { transition: none; }
-  .ea-sample.is-loading { animation: none; background: rgba(0,0,0,0.4); }
+  .ea-sample.is-loading, [data-ea-type].ea-loading .ea-cover::after { animation: none; }
 }
 
 /* The action menu reuses the old Card grid menu's look (.wv-ctx-menu); its
    items are real buttons now, for the keyboard */
 .ea-menu { min-width: 210px; max-width: min(320px, calc(100vw - 16px)); }
-.ea-menu .wv-ctx-item { width: 100%; border: 0; background: none; font: inherit; text-align: left; }
+.ea-menu .wv-ctx-item { width: 100%; border: 0; background: none; font: inherit; text-align: left; overflow: hidden; text-overflow: ellipsis; }
 .ea-menu .wv-ctx-item:focus-visible { outline: none; background: var(--hover); color: var(--accent); }
-.ea-menu .wv-ctx-item { overflow: hidden; text-overflow: ellipsis; }
 .ea-mi-ic { display: inline-flex; justify-content: center; width: 18px; flex-shrink: 0; color: var(--text3); }

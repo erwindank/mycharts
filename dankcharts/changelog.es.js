@@ -18,7 +18,7 @@ window.DC_CHANGELOG_I18N['es'] = {
 
   "Samples and one menu on every chart entry":
     ["Fragmentos y un solo menú en cada entrada del ranking",
-     "Cada canción, artista y álbum del ranking, en los seis diseños, tiene ahora un ▶ en su portada que reproduce un fragmento de 30 segundos, y un botón ⋮ (o clic derecho) con todo lo demás: escuchar la canción completa ahora, a continuación o más tarde, reproducir similares, añadir a una lista, detalles, álbum, artista, recorrido en el ranking, cambiar la imagen y buscar en YouTube. El fragmento de un artista es la última canción suya que escuchaste; el de un álbum, la que más escuchaste de él en el periodo que estás viendo. Los fragmentos no gastan el límite de YouTube del sitio, así que al pulsar una tarjeta de la cuadrícula ahora se abren sus detalles en lugar de reproducirla."],
+     "Cada canción, artista y álbum del ranking, en los seis diseños, tiene ahora un ▶ que reproduce un fragmento de 30 segundos (en el móvil, toca la portada), y un botón ⋮ (o clic derecho) con todo lo demás: escuchar la canción completa ahora, a continuación o más tarde, reproducir similares, añadir a una lista, detalles, álbum, artista, recorrido en el ranking, cambiar la imagen y buscar en YouTube. El fragmento de un artista es la última canción suya que escuchaste; el de un álbum, la que más escuchaste de él en el periodo que estás viendo. Los fragmentos no gastan el límite de YouTube del sitio, así que al pulsar una tarjeta de la cuadrícula ahora se abren sus detalles en lugar de reproducirla."],
 
   "Songs found once play for everyone":
     ["Las canciones encontradas una vez suenan para todos",

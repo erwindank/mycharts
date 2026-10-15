@@ -1403,13 +1403,18 @@ animation, 12 screen check.
   (`_eaAttrs`, `_eaSampleBtn`, `_eaMoreBtn`, `_eaOpenMenu`, `_eaPlaySample`)
   serves all six layouts and Songs / Artists / Albums: the entry element
   carries `data-ea-*` attributes and document-level listeners do the rest,
-  so a layout only places the two buttons. ▶ sits on the cover (hover;
-  always shown on touch, small, bottom-right corner) and plays a store
-  sample through the ceremony's single audio slot; it pauses the player.
-  ⋮ sits before the chart-run icon in the Table (on phones it replaces that
-  icon, since Chart run is in the menu), at the row's end in Compact and
-  Stack, on the cover's top-right in Card grid and Filmstrip, and in the
-  hover card / back in Mosaic. The menu replaces `_wvGridCtx`. Play now /
+  so a layout only places the two buttons. ▶ plays a store sample through
+  the ceremony's single audio slot and pauses the player. **▶ and ⋮ sit
+  together (`_eaBtns`), never on the artwork** (you found ▶ on the cover
+  got in the way of the ✎ picture button, and on phones covered the art):
+  before the chart-run icon in the Table, at the row's end in Compact and
+  Stack, next to the plays in Card grid and Filmstrip, on the hover card /
+  back in Mosaic. **On touch screens there is no ▶: tapping the cover
+  (`.ea-cover`) plays the sample**, holding it still opens the picture
+  picker, and a small badge on the cover shows the sample playing. Mosaic
+  keeps ▶ on the tile's back (a tap flips the tile). On phones ⋮ replaces
+  the Table's chart-run icon (Chart run is in the menu), so the row is no
+  wider than before. The menu replaces `_wvGridCtx`. Play now /
   next / queue on an artist or album plays the song the sample picks, and
   "Pick a song…" opens the old last-10 picker. Chart run toggles the
   Table's run row; elsewhere it opens the details pop-up (the drawer
